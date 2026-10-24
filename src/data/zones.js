@@ -1,0 +1,59 @@
+// Zones de la campagne. Chaque zone couvre BALANCE.stages.stagesPerZone étapes ;
+// la dernière zone continue au-delà avec une difficulté croissante.
+
+export const ZONES = [
+  {
+    id: 'plains',
+    name: 'Plaines verdoyantes',
+    enemies: ['slime', 'goblin'],
+    bosses: ['slime_king'],
+    midDecor: ['tree', 'tree', 'bush'],
+    nearDecor: ['grass', 'flowers', 'rock', 'grass', 'bush'],
+    sky: 'clouds',
+    palette: {
+      sky: ['#79c3e6', '#8fcfea', '#a6daee', '#bde4f1', '#d3edf4'],
+      far: '#9cc79a',
+      haze: '#bde4f1',
+      ground: '#7a5532',
+      groundDark: '#5c3f24',
+      groundTop: '#4f9a3e',
+      groundTopLight: '#7cc85c',
+    },
+  },
+  {
+    id: 'forest',
+    name: 'Forêt sombre',
+    enemies: ['wolf', 'mushroom'],
+    bosses: ['alpha_wolf'],
+    midDecor: ['pine', 'pine', 'tree'],
+    nearDecor: ['grass', 'mushroom_small', 'bush', 'rock'],
+    sky: 'clouds',
+    palette: {
+      sky: ['#2f4a5a', '#3a5867', '#466674', '#527380', '#5f808a'],
+      far: '#2f5141',
+      haze: '#466674',
+      ground: '#4c3a2a',
+      groundDark: '#33271c',
+      groundTop: '#2f6a37',
+      groundTopLight: '#4a8c48',
+    },
+  },
+  {
+    id: 'caves',
+    name: 'Grottes de cristal',
+    enemies: ['bat', 'skeleton'],
+    bosses: ['bone_lord'],
+    midDecor: ['stalagmite', 'crystal', 'stalagmite'],
+    nearDecor: ['crystal', 'rock', 'stalagmite'],
+    sky: 'ceiling',
+    palette: {
+      sky: ['#15121f', '#1b1728', '#211c31', '#28223a', '#2f2843'],
+      far: '#3a3152',
+      haze: '#28223a',
+      ground: '#3b3446',
+      groundDark: '#29232f',
+      groundTop: '#585066',
+      groundTopLight: '#7b7290',
+    },
+  },
+];

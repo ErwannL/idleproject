@@ -1,0 +1,17 @@
+{
+  "name": "idle-rpg-prototype",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Prototype d'RPG idle 2D en pixel art pour PC (fenêtre compacte).",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node tools/serve.mjs",
+    "app": "node tools/launch.mjs",
+    "test": "node --test",
+    "smoke": "node tools/smoke.mjs",
+    "export-assets": "node tools/export-assets.mjs"
+  }
+}

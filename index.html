@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Idle RPG — Prototype</title>
+  <link rel="icon" href="assets/icon.png">
+  <link rel="stylesheet" href="src/ui/style.css">
+</head>
+<body>
+  <div id="app" class="layout-compact">
+    <section id="play">
+      <div id="stage-area">
+        <canvas id="scene" aria-label="Combat"></canvas>
+        <div id="top-hud">
+          <div class="gold-box"><img id="gold-icon" class="px" alt=""><span id="gold">0</span></div>
+          <div id="stage-label"></div>
+        </div>
+        <div id="banner" class="hidden"></div>
+        <div id="toasts"></div>
+      </div>
+      <div id="hud">
+        <div id="progress"><div id="progress-fill"></div><span id="progress-text"></span></div>
+        <div id="hud-row">
+          <span id="rate"></span>
+          <span id="ticker"></span>
+          <button id="advance-btn" class="small hidden" data-action="advance">Avancer ▶</button>
+        </div>
+        <nav id="tabs">
+          <button data-tab="upgrades">Améliorer</button>
+          <button data-tab="inventory">Sac <span id="inv-count"></span></button>
+          <button data-tab="hero">Héros</button>
+          <button data-tab="campaign">Carte</button>
+          <button data-tab="options" title="Options">⚙</button>
+        </nav>
+      </div>
+    </section>
+    <aside id="panel" class="hidden">
+      <header>
+        <h2 id="panel-title"></h2>
+        <button id="panel-close" title="Fermer">✕</button>
+      </header>
+      <div id="panel-body"></div>
+    </aside>
+    <div id="modal" class="hidden"><div id="modal-card"></div></div>
+  </div>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
