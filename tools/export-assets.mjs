@@ -1,7 +1,8 @@
 // Exporte les sprites (définis dans src/render/sprites.js) en fichiers PNG :
 //   assets/sprites/<nom>.png  (taille réelle)
 //   assets/spritesheet.png    (planche de prévisualisation ×4)
-//   assets/icon.png           (icône 128 px, utilisée comme favicon)
+//   assets/icon.png           (icône 128 px, favicon et fenêtre)
+//   build/icon.png            (icône 256 px de l'exécutable Windows)
 // Le rendu passe par le même code que le jeu, dans Chromium (Playwright).
 import { mkdir, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
@@ -56,24 +57,30 @@ const files = await page.evaluate(async () => {
     helmet: gear('iron_helm', 'epic'),
     armor: gear('cloth_tunic', 'rare'),
   });
-  const icon = document.createElement('canvas');
-  icon.width = 128;
-  icon.height = 128;
-  const ictx = icon.getContext('2d');
-  ictx.imageSmoothingEnabled = false;
-  ictx.fillStyle = '#2b2238';
-  ictx.beginPath();
-  ictx.roundRect(0, 0, 128, 128, 20);
-  ictx.fill();
-  ictx.drawImage(hero, 0, 0, 24, 20, 4, 18, 120, 100);
-  out['icon.png'] = toData(icon);
+  const drawIcon = (size) => {
+    const icon = document.createElement('canvas');
+    icon.width = size;
+    icon.height = size;
+    const ictx = icon.getContext('2d');
+    ictx.imageSmoothingEnabled = false;
+    ictx.fillStyle = '#2b2238';
+    ictx.beginPath();
+    ictx.roundRect(0, 0, size, size, size / 6.4);
+    ictx.fill();
+    const k = size / 128;
+    ictx.drawImage(hero, 0, 0, 24, 20, 4 * k, 18 * k, 120 * k, 100 * k);
+    return toData(icon);
+  };
+  out['icon.png'] = drawIcon(128);
+  out['../build/icon.png'] = drawIcon(256);
   return out;
 });
 
 await mkdir(`${ROOT}/assets/sprites`, { recursive: true });
+await mkdir(`${ROOT}/build`, { recursive: true });
 for (const [path, base64] of Object.entries(files)) {
   await writeFile(`${ROOT}/assets/${path}`, Buffer.from(base64, 'base64'));
 }
-console.log(`${Object.keys(files).length} fichiers PNG écrits dans assets/`);
+console.log(`${Object.keys(files).length} fichiers PNG écrits dans assets/ et build/`);
 await browser.close();
 server.close();

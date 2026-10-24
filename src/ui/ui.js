@@ -37,6 +37,7 @@ export class UI {
     this.state = null;
     this.goldLog = [];
     this.lastHud = {};
+    this.desktop = null; // renseigné par main.js dans la version bureau
 
     this.$('gold-icon').src = spriteUrl('coin', 3);
     root.querySelectorAll('#tabs button').forEach((btn) => {
@@ -112,6 +113,7 @@ export class UI {
       case 'simulate': this.actions.simulateAbsence(Number(seconds)); break;
       case 'reset': this.actions.reset(); break;
       case 'close-modal': this.closeModal(); break;
+      case 'window-size': this.actions.setWindowSize(el.dataset.preset); break;
       default: break;
     }
   }
@@ -121,6 +123,7 @@ export class UI {
     if (el.dataset.action === 'filter') this.actions.setFilter(el.value);
     if (el.dataset.action === 'sort') this.actions.setSort(el.value);
     if (el.dataset.action === 'auto') this.actions.setAutoAdvance(el.checked);
+    if (el.dataset.action === 'on-top') this.actions.setAlwaysOnTop(el.checked);
   }
 
   // --- Événements de la simulation ---
@@ -399,10 +402,7 @@ export class UI {
         <button data-action="save">Sauvegarder</button></div>
         <div class="muted">Sauvegarde automatique toutes les ${BALANCE.autosaveSeconds} s et à chaque action.</div>
       </div>
-      <div class="card">
-        <b>Fenêtre au premier plan</b>
-        <div class="muted">Non disponible dans la version navigateur : prévu avec l'empaquetage desktop (voir README).</div>
-      </div>
+      ${this.renderWindowOptions()}
       <div class="card">
         <b>Test des gains hors ligne</b>
         <div class="muted">Applique le vrai calcul hors ligne comme si le jeu avait été fermé.</div>
@@ -416,6 +416,22 @@ export class UI {
         <button class="danger" data-action="reset">Réinitialiser la partie</button>
       </div>
       <div class="muted">Prototype ${escapeHtml(document.title)} · gains hors ligne : ${BALANCE.offline.farmMultiplier * 100} % du rythme actif, ${BALANCE.offline.capHours} h max.</div>`;
+  }
+
+  renderWindowOptions() {
+    if (!this.desktop) {
+      return `<div class="card"><b>Fenêtre au premier plan</b>
+        <div class="muted">Disponible dans la version bureau (Idle RPG.exe), pas dans le navigateur.</div></div>`;
+    }
+    return `<div class="card">
+        <label class="toggle"><input type="checkbox" data-action="on-top" ${this.desktop.alwaysOnTop ? 'checked' : ''}>
+          Garder la fenêtre au premier plan</label>
+        <div class="row" style="margin-top:4px">
+          <button data-action="window-size" data-preset="compact">Fenêtre compacte</button>
+          <button data-action="window-size" data-preset="wide">Fenêtre large</button>
+        </div>
+        <div class="muted">Version ${escapeHtml(this.desktop.version)} · la position et la taille sont mémorisées.</div>
+      </div>`;
   }
 
   // --- Retour hors ligne ---

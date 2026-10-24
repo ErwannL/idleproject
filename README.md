@@ -9,9 +9,33 @@ et du butin ; à votre retour, vous équipez, recyclez, améliorez et choisissez
 ![Retour hors ligne](docs/screenshots/compact-offline.png)
 ![Fenêtre large](docs/screenshots/wide.png)
 
-## Lancer le jeu
+## Version Windows (exe)
 
-Prérequis : [Node.js](https://nodejs.org) 18 ou plus. **Aucune dépendance à installer.**
+Téléchargez la dernière version dans **Releases** du dépôt GitHub :
+
+- `IdleRPG-1.0.0-portable.exe` : sans installation, double-cliquez pour jouer ;
+- `IdleRPG-1.0.0-setup.exe` : installateur avec raccourcis Bureau et menu Démarrer.
+
+L'exe n'est pas signé : si SmartScreen s'affiche, cliquez sur **Informations complémentaires →
+Exécuter quand même**. La sauvegarde est dans `%APPDATA%\Idle RPG`. Dans l'onglet ⚙ : **Garder la
+fenêtre au premier plan**, fenêtre compacte ou large ; la position et la taille sont mémorisées.
+
+Les exe sont construits par GitHub Actions (`.github/workflows/windows-exe.yml`) sur Windows à
+chaque push : tests unitaires, construction (Electron + electron-builder), **lancement réel des deux
+exe** (combat, sauvegarde, relance avec restauration), puis publication de la release `v<version>`
+de `package.json`. Pour construire soi-même sous Windows :
+
+```bash
+npm ci
+npm run dist:win                                   # -> dist/*.exe
+npm run test:exe -- "dist/win-unpacked/Idle RPG.exe"
+npm run desktop                                    # lancer la version bureau sans l'empaqueter
+```
+
+## Lancer le jeu dans le navigateur
+
+Prérequis : [Node.js](https://nodejs.org) 18 ou plus. Le jeu lui-même n'a **aucune dépendance**
+(Electron ne sert qu'à la version bureau).
 
 ```bash
 npm run app     # ouvre le jeu dans une petite fenêtre d'application (Chrome ou Edge, mode --app)
@@ -150,16 +174,18 @@ vérifier quoi que ce soit. Le prototype est donc en **HTML5 Canvas + JavaScript
 - se lance sur n'importe quel PC avec Node ou un navigateur ;
 - la logique (`src/core`, `src/data`) est indépendante du moteur et se porte facilement.
 
-**Limite connue :** la version navigateur ne peut pas garder la fenêtre **au premier plan**.
-Prochaine étape recommandée : empaqueter avec **Tauri** (léger) ou **Electron** pour obtenir une vraie
-fenêtre desktop (toujours au premier plan, sans cadre, icône de barre des tâches), en réutilisant le
-code tel quel. Reconsidérer Godot reste possible si le projet a besoin d'un moteur complet.
+La version bureau enveloppe ce même code dans **Electron** (`desktop/`) : vraie fenêtre Windows,
+option « toujours au premier plan », position mémorisée, une seule instance, sauvegarde forcée à la
+fermeture. Le jeu est servi depuis une origine locale fixe (`app://game`) pour que la sauvegarde
+persiste. Reconsidérer Godot reste possible si le projet a besoin d'un moteur complet.
 
 ## Limites connues
 
-- Pas d'option « toujours au premier plan » (voir ci-dessus).
-- La sauvegarde est stockée dans le navigateur (localStorage) : changer de navigateur, de profil ou de
-  port repart de zéro. Pas d'export/import de sauvegarde pour l'instant.
+- « Toujours au premier plan » n'existe que dans la version bureau (exe), pas dans le navigateur.
+- Les sauvegardes de l'exe et du navigateur sont séparées ; dans le navigateur, changer de navigateur,
+  de profil ou de port repart de zéro. Pas d'export/import de sauvegarde pour l'instant.
+- L'exe n'est pas signé (avertissement SmartScreen au premier lancement) et pèse environ 80 Mo
+  (Chromium embarqué). Pas de mise à jour automatique.
 - Équilibrage indicatif : environ 30 étapes en 30 min de jeu actif, puis des paliers plus lents
   (mesuré par simulation, pas par des tests joueurs).
 - Pas de son. Pas d'effets légendaires (le champ `effect` existe mais reste vide).

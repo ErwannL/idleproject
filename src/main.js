@@ -108,6 +108,14 @@ const actions = {
     state.ui.sortBy = value;
     ui.invalidate();
   },
+  async setAlwaysOnTop(value) {
+    if (!window.desktop) return;
+    ui.desktop.alwaysOnTop = await window.desktop.setAlwaysOnTop(value);
+    ui.invalidate();
+  },
+  setWindowSize(preset) {
+    window.desktop?.setSizePreset(preset);
+  },
   saveNow() {
     save();
     ui.toast('Partie sauvegardée');
@@ -128,6 +136,14 @@ const actions = {
 };
 
 const ui = new UI(document.getElementById('app'), actions);
+
+// Version bureau (Electron) : options de fenêtre exposées par desktop/preload.cjs.
+if (window.desktop) {
+  window.desktop.getInfo().then((info) => {
+    ui.desktop = info;
+    ui.invalidate();
+  });
+}
 
 // Gains hors ligne depuis la dernière sauvegarde.
 if (loaded.source !== 'new') runOffline(state.lastSaved, Date.now());
@@ -179,10 +195,13 @@ document.addEventListener('visibilitychange', () => {
 });
 window.addEventListener('pagehide', save);
 
-// Points d'accès pour les tests automatisés (tools/smoke.mjs).
+// Points d'accès pour les tests automatisés (tools/smoke.mjs, desktop/main.cjs --smoke).
+// Utilisés aussi par la version bureau pour sauvegarder à la fermeture.
 window.__idle = {
   get state() { return state; },
   get world() { return world; },
+  loadSource: loaded.source,
+  save,
   actions,
   addRandomItem(minRarity = 'common') {
     const item = generateItem(state, rng, { level: state.stage, minRarity });

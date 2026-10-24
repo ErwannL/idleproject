@@ -1,17 +1,61 @@
 {
-  "name": "idle-rpg-prototype",
-  "version": "0.1.0",
+  "name": "idle-rpg",
+  "productName": "Idle RPG",
+  "version": "1.0.0",
   "private": true,
-  "description": "Prototype d'RPG idle 2D en pixel art pour PC (fenêtre compacte).",
+  "description": "RPG idle 2D en pixel art pour PC (fenêtre compacte).",
+  "author": "ErwannL",
   "type": "module",
+  "main": "desktop/main.cjs",
   "engines": {
     "node": ">=18"
   },
   "scripts": {
     "start": "node tools/serve.mjs",
     "app": "node tools/launch.mjs",
+    "desktop": "electron .",
     "test": "node --test",
     "smoke": "node tools/smoke.mjs",
-    "export-assets": "node tools/export-assets.mjs"
+    "export-assets": "node tools/export-assets.mjs",
+    "dist:win": "electron-builder --win --publish never",
+    "test:exe": "node tools/desktop-smoke.mjs"
+  },
+  "devDependencies": {
+    "electron": "44.7.0",
+    "electron-builder": "26.17.0"
+  },
+  "build": {
+    "appId": "com.erwannl.idlerpg",
+    "productName": "Idle RPG",
+    "copyright": "ErwannL",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "index.html",
+      "src/**/*",
+      "assets/**/*",
+      "desktop/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ],
+      "icon": "build/icon.png"
+    },
+    "portable": {
+      "artifactName": "IdleRPG-${version}-portable.exe"
+    },
+    "nsis": {
+      "artifactName": "IdleRPG-${version}-setup.exe",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Idle RPG"
+    }
   }
 }
