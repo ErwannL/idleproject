@@ -6,7 +6,7 @@ import { ITEM_BASES } from '../src/data/items.js';
 import { changeStage, createCombat, enemyStats, isBossStage, resumeAdvance, stageLabel, step } from '../src/core/combat.js';
 import { buyUpgrade, upgradeCost } from '../src/core/economy.js';
 import { formatDuration, formatNumber } from '../src/core/format.js';
-import { addToInventory, compareWithEquipped, equipItem, listInventory, recycleItem } from '../src/core/inventory.js';
+import { addToInventory, bulkRecycleCandidates, compareWithEquipped, equipItem, isUpgrade, listInventory, recycleItem } from '../src/core/inventory.js';
 import { makeItem, recycleValue, rollRarity } from '../src/core/loot.js';
 import { applyOfflineRewards, computeOfflineRewards, measureFarmRate } from '../src/core/offline.js';
 import { Rng } from '../src/core/rng.js';
@@ -108,6 +108,35 @@ test('tri et filtre du sac', () => {
   assert.equal(listInventory(state, { sortBy: 'rarity' })[0].rarity, 'legendary');
   assert.deepEqual(listInventory(state, { slot: 'armor' }).map((i) => i.baseId), ['chainmail']);
   assert.equal(listInventory(state, { sortBy: 'recent' })[0].baseId, 'chainmail');
+});
+
+test('tri par niveau', () => {
+  const state = createNewState(NOW, 1);
+  addToInventory(state, makeItem(state, 'dagger', 'legendary', 2));
+  addToInventory(state, makeItem(state, 'dagger', 'common', 9));
+  addToInventory(state, makeItem(state, 'dagger', 'rare', 5));
+  assert.deepEqual(listInventory(state, { sortBy: 'level' }).map((i) => i.level), [9, 5, 2]);
+});
+
+test('recyclage groupé : jamais les améliorations ni les objets Épiques ou mieux', () => {
+  const state = createNewState(NOW, 1);
+  const helm = makeItem(state, 'iron_helm', 'epic', 1);
+  addToInventory(state, helm);
+  equipItem(state, helm.id);
+  const weak = makeItem(state, 'leather_hood', 'common', 1); // moins bon que le casque épique
+  const upgradeHelm = makeItem(state, 'chainmail', 'common', 1); // emplacement d'armure vide : amélioration
+  const rareWeak = makeItem(state, 'leather_hood', 'rare', 1);
+  const epic = makeItem(state, 'leather_hood', 'epic', 1);
+  const legendary = makeItem(state, 'short_sword', 'legendary', 1);
+  for (const item of [weak, upgradeHelm, rareWeak, epic, legendary]) addToInventory(state, item);
+
+  assert.equal(isUpgrade(state, upgradeHelm), true);
+  assert.equal(isUpgrade(state, weak), false);
+  assert.deepEqual(bulkRecycleCandidates(state, 'common').map((i) => i.id), [weak.id]);
+  const withRares = bulkRecycleCandidates(state, 'rare').map((i) => i.id);
+  assert.ok(withRares.includes(rareWeak.id) && withRares.includes(weak.id));
+  assert.ok(!withRares.includes(upgradeHelm.id) && !withRares.includes(epic.id) && !withRares.includes(legendary.id));
+  assert.deepEqual(bulkRecycleCandidates(state, 'legendary').map((i) => i.id), [weak.id], 'limite inconnue = communs');
 });
 
 test('combat : le héros tue, gagne de l’or et progresse', () => {

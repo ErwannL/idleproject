@@ -68,26 +68,29 @@ function itemSpriteName(item) {
   return `${base.slot === 'weapon' ? 'weapon' : base.slot}_${base.sprite}`;
 }
 
-// Héros composé : corps + armure + casque + arme. Les pieds sont en (HERO_ANCHOR.x, HERO_ANCHOR.y).
-export const HERO_SIZE = { w: 28, h: 20 };
-export const HERO_ANCHOR = { x: 10, y: 19 };
-const BODY_OFFSET = { x: 2, y: 3 };
+// Héros composé : cape + corps + armure + casque + arme.
+// Les pieds sont en (HERO_ANCHOR.x, HERO_ANCHOR.y) ; marge à droite pour l'arme tendue.
+export const HERO_SIZE = { w: 36, h: 26 };
+const BODY_OFFSET = { x: 3, y: 3 };
+export const HERO_ANCHOR = { x: BODY_OFFSET.x + 10, y: BODY_OFFSET.y + 21 };
+export const CAPE_FRAMES = ['a', 'b', 'c'];
 
-export function heroComposite(frame, equipment, flash = false) {
+export function heroComposite(frame, equipment, flash = false, cape = 'a') {
   const gear = ['weapon', 'helmet', 'armor']
     .map((slot) => (equipment[slot] ? `${equipment[slot].baseId}/${equipment[slot].rarity}` : '-'))
     .join(',');
-  const key = `hero|${frame}|${gear}|${flash}`;
+  const key = `hero|${frame}|${gear}|${flash}|${cape}`;
   let canvas = cache.get(key);
   if (canvas) return canvas;
 
   if (flash) {
-    canvas = tinted(heroComposite(frame, equipment), '#ffffff', 1);
+    canvas = tinted(heroComposite(frame, equipment, false, cape), '#ffffff', 1);
   } else {
     canvas = createCanvas(HERO_SIZE.w, HERO_SIZE.h);
     const ctx = canvas.getContext('2d');
     const body = SPRITES[`hero_${frame}`];
     const { x: ox, y: oy } = BODY_OFFSET;
+    ctx.drawImage(spriteCanvas(`cape_${cape}`), ox, oy + SPRITES[`cape_${cape}`].oy);
     ctx.drawImage(spriteCanvas(`hero_${frame}`), ox, oy);
     for (const slot of ['armor', 'helmet']) {
       const item = equipment[slot];
@@ -110,6 +113,31 @@ export function heroComposite(frame, equipment, flash = false) {
   return canvas;
 }
 
+// Rectangle des pixels opaques (pour recadrer les calques d'équipement en icônes).
+function opaqueBounds(canvas) {
+  const { data, width, height } = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+  let x0 = width;
+  let y0 = height;
+  let x1 = -1;
+  let y1 = -1;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (data[(y * width + x) * 4 + 3] === 0) continue;
+      x0 = Math.min(x0, x);
+      y0 = Math.min(y0, y);
+      x1 = Math.max(x1, x);
+      y1 = Math.max(y1, y);
+    }
+  }
+  return x1 < 0 ? { x: 0, y: 0, w: width, h: height } : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+}
+
+// Zones du chevalier montrées dans les icônes de casque et d'armure.
+const ICON_REGIONS = {
+  helmet: { x: 5, y: 0, w: 11, h: 10 },
+  armor: { x: 3, y: 9, w: 15, h: 9 },
+};
+
 // Icône d'objet pour l'interface (data URL), agrandie et centrée.
 export function itemIconUrl(item, size = 32) {
   const key = `icon|${item.baseId}|${item.rarity}|${size}`;
@@ -118,22 +146,32 @@ export function itemIconUrl(item, size = 32) {
   const canvas = createCanvas(size, size);
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
-  const name = itemSpriteName(item);
-  const src = spriteCanvas(name, { colors: itemColors(item) });
-  // Casques et armures : on recadre la zone utile du calque de 16 px.
-  let sx = 0;
-  let sw = src.width;
-  if (item.slot !== 'weapon') {
-    sx = 2;
-    sw = 12;
+  let src = spriteCanvas(itemSpriteName(item), { colors: itemColors(item) });
+  let box = opaqueBounds(src);
+  const region = ICON_REGIONS[item.slot];
+  if (region) {
+    // Casque ou armure : dessinés sur la tête ou le buste du chevalier pour rester lisibles.
+    const name = itemSpriteName(item);
+    const body = createCanvas(src.width, SPRITES.hero_idle.rows.length);
+    const bctx = body.getContext('2d');
+    bctx.drawImage(spriteCanvas('hero_idle'), 0, 0);
+    bctx.drawImage(src, 0, SPRITES[name].oy);
+    src = body;
+    box = region;
   }
-  const scale = Math.floor((size - 4) / Math.max(sw, src.height));
-  const dw = sw * scale;
-  const dh = src.height * scale;
-  ctx.drawImage(src, sx, 0, sw, src.height, Math.floor((size - dw) / 2), Math.floor((size - dh) / 2), dw, dh);
+  const scale = Math.max(1, Math.floor((size - 4) / Math.max(box.w, box.h)));
+  const dw = box.w * scale;
+  const dh = box.h * scale;
+  ctx.drawImage(src, box.x, box.y, box.w, box.h, Math.floor((size - dw) / 2), Math.floor((size - dh) / 2), dw, dh);
   url = canvas.toDataURL();
   cache.set(key, url);
   return url;
+}
+
+// Icône de type d'emplacement (case vide, filtres).
+const SLOT_ICONS = { weapon: 'weapon_sword', helmet: 'icon_hero', armor: 'icon_shield' };
+export function slotIconName(slot) {
+  return SLOT_ICONS[slot];
 }
 
 export function spriteUrl(name, scale = 2) {
@@ -152,11 +190,16 @@ export function spriteUrl(name, scale = 2) {
 
 export function heroPortraitUrl(equipment, scale = 4) {
   const src = heroComposite('idle', equipment);
+  const key = `portrait|${scale}|${['weapon', 'helmet', 'armor'].map((s) => (equipment[s] ? equipment[s].baseId + equipment[s].rarity : '-')).join(',')}`;
+  const cached = cache.get(key);
+  if (cached) return cached;
   const canvas = createCanvas(src.width * scale, src.height * scale);
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(src, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL();
+  const url = canvas.toDataURL();
+  cache.set(key, url);
+  return url;
 }
 
 export function textWidth(text) {

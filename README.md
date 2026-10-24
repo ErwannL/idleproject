@@ -4,17 +4,22 @@ RPG idle 2D en vue de côté et en pixel art, pensé pour tourner dans une petit
 pendant que vous faites autre chose. Le héros combat seul, avance dans la campagne et ramasse de l'or
 et du butin ; à votre retour, vous équipez, recyclez, améliorez et choisissez la suite.
 
-![Combat en fenêtre compacte](docs/screenshots/compact-combat.png)
-![Boss](docs/screenshots/compact-boss.png)
-![Retour hors ligne](docs/screenshots/compact-offline.png)
+| Fenêtre standard | Inventaire | Fenêtre mini |
+|---|---|---|
+| ![Améliorations](docs/screenshots/standard-upgrades.png) | ![Inventaire](docs/screenshots/standard-inventory.png) | ![Boss](docs/screenshots/compact-boss.png) ![Retour hors ligne](docs/screenshots/compact-offline.png) |
+
 ![Fenêtre large](docs/screenshots/wide.png)
 
 ## Version Windows (exe)
 
 Téléchargez la dernière version dans **Releases** du dépôt GitHub :
 
-- `IdleRPG-1.0.0-portable.exe` : sans installation, double-cliquez pour jouer ;
-- `IdleRPG-1.0.0-setup.exe` : installateur avec raccourcis Bureau et menu Démarrer.
+- `IdleRPG-2.0.0-setup.exe` : installateur avec raccourcis Bureau et menu Démarrer.
+
+**Mise à jour :** lancez simplement le nouveau `setup.exe` (jeu fermé). Il remplace la version installée
+(même identifiant d'application) et conserve la partie, stockée à part dans `%APPDATA%\Idle RPG`.
+La CI le vérifie à chaque construction : installation de la v1, partie sauvegardée, installation de la
+nouvelle version par-dessus, puis contrôle d'une seule installation à jour qui reprend la sauvegarde.
 
 L'exe n'est pas signé : si SmartScreen s'affiche, cliquez sur **Informations complémentaires →
 Exécuter quand même**. La sauvegarde est dans `%APPDATA%\Idle RPG`. Dans l'onglet ⚙ : **Garder la
@@ -54,13 +59,22 @@ Tout est à la souris ; le combat n'a besoin d'aucune action.
 
 | Onglet | Rôle |
 |---|---|
-| **Améliorer** | Acheter Dégâts, Vitesse d'attaque, Vitalité avec l'or |
-| **Sac** | Voir le butin, comparer avec l'équipement (▲ = meilleur DPS), équiper, recycler, filtrer et trier |
-| **Héros** | Portrait équipé, statistiques, records |
-| **Carte** | Choisir une étape débloquée, activer ou couper l'avancée automatique |
-| **⚙** | Sauvegarder, tester les gains hors ligne (1 h / 8 h / 24 h), réinitialiser |
+| **Améliorer** | Cartes Dégâts, Vitesse d'attaque, Vitalité : niveau, effet du prochain niveau, coût |
+| **Sac** | 3 zones : équipement porté · fiche de l'objet (stats, comparaison, aperçu du héros, Équiper / Recycler) · grille avec filtres par type, tri (rareté, niveau, puissance, récent), compteur, recyclage groupé protégé |
+| **Héros** | Chevalier équipé, statistiques, exploits |
+| **Carte** | Zones (en cours, terminée, bloquée) et leurs étapes ; avancée automatique |
+| **Options** | Sauvegarde, fenêtre (premier plan, tailles Mini / Standard / Large), test hors ligne, réinitialisation |
 
-Échap ferme le panneau ou la fenêtre de retour. Au-delà de 680 px de large, le panneau reste ouvert sur le côté.
+Trois dispositions selon la fenêtre :
+- **Mini** (petite fenêtre) : le panneau s'ouvre par-dessus la scène, barre du haut et onglets restent visibles ;
+- **Standard** (fenêtre en hauteur, ≥ 420 px) : la scène en haut, le panneau toujours ouvert dessous ;
+- **Large** (≥ 720 px) : le panneau sur le côté.
+
+Le DPS, les PV et l'or restent affichés en permanence dans la barre du haut. Échap ferme le panneau
+(mode mini) ou la fenêtre de retour.
+
+**Recyclage groupé :** choisir « Communs » ou « + Rares », puis deux clics (le second confirme).
+Il ne touche jamais un objet Épique ou Légendaire, ni un objet marqué ▲ (meilleur que l'équipement porté).
 
 ## Règles du prototype
 
@@ -78,7 +92,7 @@ Tout est à la souris ; le combat n'a besoin d'aucune action.
 
 ## Critères d'acceptation
 
-Tous vérifiés automatiquement dans Chromium par `npm run smoke` (11/11) :
+Tous vérifiés automatiquement dans Chromium par `npm run smoke` (14/14, avec les onglets, filtres, tri et le recyclage groupé) :
 
 | Critère | Statut |
 |---|---|
@@ -147,7 +161,10 @@ remplaçables :
 - modifier une grille met à jour le jeu immédiatement ;
 - `npm run export-assets` régénère `assets/sprites/*.png`, `assets/spritesheet.png` (planche ×4)
   et `assets/icon.png` (Playwright requis) ;
-- l'équipement est dessiné en calques teintés par les couleurs de l'objet et de sa rareté ;
+- le héros est un chevalier de 20×22 px composé de calques : cape animée (3 images, derrière),
+  corps (repos, 2 images de marche, attaque), armure, casque, arme ; les calques d'équipement sont
+  teintés par les couleurs de l'objet et de sa rareté (plumet, liseré, garde de l'arme) ;
+- les icônes d'interface (onglets, statistiques, boss) sont des sprites du même fichier ;
 - les animations (marche, attaque, coup reçu, mort, victoire, apparition, boss) sont produites par le
   code et réutilisées pour tous les sprites.
 
@@ -156,7 +173,7 @@ remplaçables :
 ## Tests
 
 ```bash
-npm test        # 19 tests unitaires : économie, butin, inventaire, combat, boss, défaite,
+npm test        # 22 tests unitaires : économie, butin, inventaire (tri, recyclage protégé), combat, boss, défaite,
                 # hors ligne (plafond, horloge, cohérence avec le farm actif), sauvegarde, sprites
 npm run smoke   # test de bout en bout dans Chromium + captures dans docs/screenshots
 ```

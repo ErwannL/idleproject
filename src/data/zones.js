@@ -7,6 +7,7 @@ export const ZONES = [
     name: 'Plaines verdoyantes',
     enemies: ['slime', 'goblin'],
     bosses: ['slime_king'],
+    farDecor: ['castle'],
     midDecor: ['tree', 'tree', 'bush'],
     nearDecor: ['grass', 'flowers', 'rock', 'grass', 'bush'],
     sky: 'clouds',

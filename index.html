@@ -9,37 +9,45 @@
   <link rel="stylesheet" href="src/ui/style.css">
 </head>
 <body>
-  <div id="app" class="layout-compact">
-    <section id="play">
-      <div id="stage-area">
-        <canvas id="scene" aria-label="Combat"></canvas>
-        <div id="top-hud">
-          <div class="gold-box"><img id="gold-icon" class="px" alt=""><span id="gold">0</span></div>
-          <div id="stage-label"></div>
+  <div id="app" class="layout-mini">
+    <div id="main-col">
+      <header id="topbar">
+        <div class="brand"><img id="brand-icon" class="px" alt=""><span>Idle RPG</span></div>
+        <div class="chip chip-gold" title="Or"><img id="gold-icon" class="px" alt=""><span id="gold">0</span></div>
+        <div class="chip" title="Dégâts par seconde"><img id="dps-icon" class="px" alt=""><span id="dps">0</span></div>
+        <div class="chip" title="Points de vie max"><img id="hp-icon" class="px" alt=""><span id="hp">0</span></div>
+        <span id="rate" title="Or gagné par minute (moyenne sur 60 s)"></span>
+      </header>
+      <section id="play">
+        <div id="stage-area">
+          <canvas id="scene" aria-label="Combat"></canvas>
+          <div id="zone-card">
+            <div id="zone-name"></div>
+            <div id="stage-pips"></div>
+          </div>
+          <div id="banner" class="hidden"></div>
+          <div id="toasts"></div>
         </div>
-        <div id="banner" class="hidden"></div>
-        <div id="toasts"></div>
-      </div>
-      <div id="hud">
-        <div id="progress"><div id="progress-fill"></div><span id="progress-text"></span></div>
-        <div id="hud-row">
-          <span id="rate"></span>
-          <span id="ticker"></span>
-          <button id="advance-btn" class="small hidden" data-action="advance">Avancer ▶</button>
+        <div id="hud">
+          <div id="progress"><div id="progress-fill"></div><span id="progress-text"></span></div>
+          <div id="loot-box" title="Dernier butin"><span class="muted">Butin :</span> <b id="last-loot">—</b></div>
+          <button id="advance-btn" class="btn btn-primary small hidden" data-action="advance" title="Reprendre la progression">Avancer ▶</button>
         </div>
-        <nav id="tabs">
-          <button data-tab="upgrades">Améliorer</button>
-          <button data-tab="inventory">Sac <span id="inv-count"></span></button>
-          <button data-tab="hero">Héros</button>
-          <button data-tab="campaign">Carte</button>
-          <button data-tab="options" title="Options">⚙</button>
-        </nav>
-      </div>
-    </section>
+      </section>
+      <nav id="tabs">
+        <button data-tab="upgrades"><img class="px" data-icon="icon_upgrade" alt=""><span>Améliorer</span></button>
+        <button data-tab="inventory"><img class="px" data-icon="icon_bag" alt=""><span>Sac</span><i class="badge hidden" id="inv-badge"></i></button>
+        <button data-tab="hero"><img class="px" data-icon="icon_hero" alt=""><span>Héros</span></button>
+        <button data-tab="campaign"><img class="px" data-icon="icon_map" alt=""><span>Carte</span></button>
+        <button data-tab="options"><img class="px" data-icon="icon_gear" alt=""><span>Options</span></button>
+      </nav>
+    </div>
     <aside id="panel" class="hidden">
       <header>
+        <img id="panel-icon" class="px" alt="">
         <h2 id="panel-title"></h2>
-        <button id="panel-close" title="Fermer">✕</button>
+        <span id="panel-extra"></span>
+        <button id="panel-close" class="btn small" title="Fermer (Échap)">✕</button>
       </header>
       <div id="panel-body"></div>
     </aside>

@@ -1,7 +1,7 @@
 {
   "name": "idle-rpg",
   "productName": "Idle RPG",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "description": "RPG idle 2D en pixel art pour PC (fenêtre compacte).",
   "author": "ErwannL",
@@ -18,7 +18,8 @@
     "smoke": "node tools/smoke.mjs",
     "export-assets": "node tools/export-assets.mjs",
     "dist:win": "electron-builder --win --publish never",
-    "test:exe": "node tools/desktop-smoke.mjs"
+    "test:exe": "node tools/desktop-smoke.mjs",
+    "test:upgrade": "node tools/upgrade-smoke.mjs"
   },
   "devDependencies": {
     "electron": "44.7.0",
@@ -41,13 +42,9 @@
     ],
     "win": {
       "target": [
-        "portable",
         "nsis"
       ],
       "icon": "build/icon.png"
-    },
-    "portable": {
-      "artifactName": "IdleRPG-${version}-portable.exe"
     },
     "nsis": {
       "artifactName": "IdleRPG-${version}-setup.exe",
@@ -55,7 +52,8 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Idle RPG"
+      "shortcutName": "Idle RPG",
+      "deleteAppDataOnUninstall": false
     }
   }
 }

@@ -52,7 +52,7 @@ const files = await page.evaluate(async () => {
 
   // Icône : héros équipé, agrandi.
   const gear = (id, rarity) => ({ ...ITEM_BASES.find((b) => b.id === id), baseId: id, rarity });
-  const hero = heroComposite('attack', {
+  const hero = heroComposite('idle', {
     weapon: gear('short_sword', 'legendary'),
     helmet: gear('iron_helm', 'epic'),
     armor: gear('cloth_tunic', 'rare'),
@@ -67,8 +67,12 @@ const files = await page.evaluate(async () => {
     ictx.beginPath();
     ictx.roundRect(0, 0, size, size, size / 6.4);
     ictx.fill();
-    const k = size / 128;
-    ictx.drawImage(hero, 0, 0, 24, 20, 4 * k, 18 * k, 120 * k, 100 * k);
+    // Chevalier recadré (cape, corps, épée), agrandi d'un facteur entier pour rester net.
+    const crop = { x: 1, y: 2, w: 26, h: 24 };
+    const scale = Math.floor((size * 0.86) / crop.w);
+    const w = crop.w * scale;
+    const h = crop.h * scale;
+    ictx.drawImage(hero, crop.x, crop.y, crop.w, crop.h, (size - w) / 2, (size - h) / 2, w, h);
     return toData(icon);
   };
   out['icon.png'] = drawIcon(128);

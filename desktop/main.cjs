@@ -11,7 +11,9 @@ const path = require('node:path');
 const ROOT = path.join(__dirname, '..');
 const SCHEME = 'app';
 const ORIGIN = `${SCHEME}://game`;
-const SIZE_PRESETS = { compact: [420, 300], wide: [960, 600] };
+const SIZE_PRESETS = { mini: [420, 300], standard: [460, 640], wide: [980, 620] };
+// v2 : nouvelle interface pensée pour la fenêtre « standard » ; on l'applique une fois aux installations v1.
+const LAYOUT_VERSION = 2;
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -85,10 +87,16 @@ function serveGameFiles() {
 
 function createWindow() {
   const settings = loadSettings();
+  if ((settings.layoutVersion ?? 1) < LAYOUT_VERSION) {
+    if (settings.bounds) Object.assign(settings.bounds, { width: SIZE_PRESETS.standard[0], height: SIZE_PRESETS.standard[1] });
+    settings.layoutVersion = LAYOUT_VERSION;
+    saveSettings(settings);
+  }
   const bounds = visibleBounds(settings.bounds);
+  const area = screen.getPrimaryDisplay().workAreaSize;
   const win = new BrowserWindow({
-    width: bounds.width ?? SIZE_PRESETS.compact[0],
-    height: bounds.height ?? SIZE_PRESETS.compact[1],
+    width: Math.min(bounds.width ?? SIZE_PRESETS.standard[0], area.width),
+    height: Math.min(bounds.height ?? SIZE_PRESETS.standard[1], area.height),
     x: bounds.x,
     y: bounds.y,
     minWidth: 320,

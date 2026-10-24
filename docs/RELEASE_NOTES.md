@@ -1,22 +1,28 @@
-## Idle RPG v1.0.0 — Windows
+## Idle RPG v2.0.0 — refonte « Classic Knight »
 
-Deux fichiers au choix :
+**Installation ou mise à jour :** téléchargez **IdleRPG-2.0.0-setup.exe** et lancez-le.
+Si la v1 est déjà installée, elle est remplacée automatiquement et **votre partie est conservée**
+(sauvegarde dans `%APPDATA%\Idle RPG`). Fermez le jeu avant de lancer l'installateur.
 
-- **IdleRPG-1.0.0-portable.exe** : rien à installer, double-cliquez pour jouer (démarrage de quelques secondes).
-- **IdleRPG-1.0.0-setup.exe** : installateur classique, avec raccourcis Bureau et menu Démarrer.
+L'exécutable n'est pas signé : si Windows SmartScreen s'affiche, cliquez sur
+**Informations complémentaires**, puis **Exécuter quand même**.
 
-### Premier lancement
+### Nouveautés
 
-L'exécutable n'est pas signé : Windows SmartScreen peut afficher « Windows a protégé votre ordinateur ».
-Cliquez sur **Informations complémentaires**, puis **Exécuter quand même**.
+- **Nouveau héros chevalier** : casque, épaulières, bouclier, cape animée ; casques, armures et armes
+  visibles sur lui selon l'équipement et sa rareté
+- **Interface bleu nuit et or**, onglets avec icônes, état actif bien visible
+- **Fenêtre standard en hauteur** : le combat reste visible au-dessus des menus (tailles Mini,
+  Standard et Large dans ⚙)
+- **Inventaire en 3 zones** : équipement porté, fiche détaillée avec comparaison complète
+  (DPS, dégâts, vitesse, PV, armure) et aperçu du héros, grille avec filtres par type
+- Tri par rareté, **niveau**, puissance ou date ; compteur de places ; marque ▲ sur les améliorations
+- **Recyclage groupé protégé** : confirmation en deux clics, jamais d'objet Épique ou Légendaire,
+  jamais d'objet meilleur que l'équipement porté
+- **Améliorations en cartes** : niveau, effet du prochain niveau (ex. 42 → 67), coût
+- Carte du monde par zones, carte de zone avec progression vers le boss pendant le combat
 
-### Contenu
+Rien n'a changé dans le combat, la progression ou les sauvegardes.
 
-- Combat automatique en vue de côté, 3 zones, boss toutes les 5 étapes
-- Or, améliorations, butin en 4 raretés, équipement visible (arme, casque, armure)
-- Sauvegarde automatique (dans `%APPDATA%\Idle RPG`) et gains hors ligne jusqu'à 8 h
-- Petite fenêtre redimensionnable, option **Garder la fenêtre au premier plan** (onglet ⚙),
-  position et taille mémorisées
-
-Chaque exécutable a été lancé et testé automatiquement sur Windows avant publication
-(démarrage, combat, sauvegarde, relance avec restauration de la partie).
+Testé automatiquement sur Windows avant publication : lancement, combat, sauvegarde, relance,
+et mise à jour d'une installation v1 avec reprise de la partie.

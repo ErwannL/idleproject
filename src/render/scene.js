@@ -89,7 +89,7 @@ export class SceneRenderer {
       case 'heroAttack': {
         this.hero.attack = 0.16;
         this.enemyFxFor(event.enemyId).hit = 0.08;
-        this.effects.push({ kind: 'slash', x: heroX + 12, y: this.groundY - 12, life: 0.14, max: 0.14 });
+        this.effects.push({ kind: 'slash', x: heroX + 14, y: this.groundY - 14, life: 0.14, max: 0.14 });
         this.addText(formatNumber(event.damage), event.x, this.groundY - (event.boss ? 36 : 22), '#ffffff');
         if (event.boss) this.shake = Math.max(this.shake, 1);
         this.burst(event.x - 4, this.groundY - 8, '#ffffff', 3);
@@ -231,6 +231,11 @@ export class SceneRenderer {
       }
     }
 
+    // Silhouettes lointaines (châteaux des plaines…), voilées par la brume.
+    if (zone.farDecor) {
+      this.drawDecorLayer(ctx, zone.farDecor, scroll * 0.1, 150, 0.6, this.groundY - 14, { color: p.haze, alpha: 0.55 }, 303);
+    }
+
     // Collines lointaines (silhouette procédurale).
     ctx.fillStyle = p.far;
     const farOff = scroll * 0.15;
@@ -352,7 +357,11 @@ export class SceneRenderer {
 
     const blink = this.hero.respawn > 0 && Math.floor(this.time * 12) % 2 === 0;
     if (blink) return;
-    const img = heroComposite(frame, state.equipment, this.hero.hurt > 0);
+    // Cape : flotte au vent en marchant, ondule doucement à l'arrêt.
+    const cape = hero.walking
+      ? ['c', 'a'][Math.floor(this.time * 6) % 2]
+      : ['a', 'b'][Math.floor(this.time * 2.5) % 2];
+    const img = heroComposite(frame, state.equipment, this.hero.hurt > 0, cape);
     const jump = this.hero.victory > 0 ? Math.round(Math.abs(Math.sin(this.hero.victory * Math.PI * 2.5)) * 6) : 0;
     const lean = frame === 'attack' ? 1 : 0;
 
@@ -361,7 +370,7 @@ export class SceneRenderer {
     ctx.drawImage(img, baseX + lean, baseY - jump);
 
     const stats = world.heroStats;
-    if (stats) this.drawBar(ctx, BALANCE.world.heroX - 7, baseY + 1 - jump, 14, hero.hp / stats.maxHp, '#5ad07a');
+    if (stats) this.drawBar(ctx, BALANCE.world.heroX - 7, baseY - 1 - jump, 14, hero.hp / stats.maxHp, '#5ad07a');
   }
 
   drawBar(ctx, x, y, w, ratio, color) {

@@ -49,6 +49,7 @@ const itemNumber = (item) => Number.parseInt(item.id.slice(2), 10) || 0;
 
 const SORTERS = {
   rarity: (a, b) => rarityIndex(b.rarity) - rarityIndex(a.rarity) || itemPower(b) - itemPower(a),
+  level: (a, b) => b.level - a.level || rarityIndex(b.rarity) - rarityIndex(a.rarity),
   power: (a, b) => itemPower(b) - itemPower(a),
   recent: (a, b) => itemNumber(b) - itemNumber(a),
 };
@@ -68,4 +69,18 @@ export function compareWithEquipped(state, item, balance = BALANCE) {
     maxHp: next.maxHp - current.maxHp,
     armor: next.armor - current.armor,
   };
+}
+
+// Amélioration par rapport à l'équipement porté : plus de DPS, ou autant de DPS avec plus de survie.
+export function isUpgrade(state, item, balance = BALANCE) {
+  const diff = compareWithEquipped(state, item, balance);
+  return diff.dps > 0.001 || (diff.dps >= -0.001 && (diff.maxHp > 0 || diff.armor > 0));
+}
+
+// Objets proposés au recyclage groupé : rareté au plus `maxRarity` (jamais Épique ou Légendaire),
+// en excluant toujours les objets qui amélioreraient le héros.
+export const BULK_RECYCLE_MAX = ['common', 'rare'];
+export function bulkRecycleCandidates(state, maxRarity = 'common', balance = BALANCE) {
+  const limit = rarityIndex(BULK_RECYCLE_MAX.includes(maxRarity) ? maxRarity : 'common');
+  return state.inventory.filter((item) => rarityIndex(item.rarity) <= limit && !isUpgrade(state, item, balance));
 }

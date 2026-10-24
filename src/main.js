@@ -4,8 +4,8 @@
 import { BALANCE } from './data/balance.js';
 import { changeStage, createCombat, resumeAdvance, step } from './core/combat.js';
 import { buyUpgrade } from './core/economy.js';
-import { addToInventory, equipItem, recycleItem, recycleMatching } from './core/inventory.js';
-import { generateItem } from './core/loot.js';
+import { addToInventory, bulkRecycleCandidates, equipItem, recycleItem, recycleMatching } from './core/inventory.js';
+import { generateItem, makeItem } from './core/loot.js';
 import { applyOfflineRewards, computeOfflineRewards } from './core/offline.js';
 import { Rng } from './core/rng.js';
 import { clearSave, loadGame, saveGame } from './core/save.js';
@@ -77,8 +77,10 @@ const actions = {
       ui.invalidate();
     }
   },
-  recycleCommons() {
-    const { gold, count } = recycleMatching(state, (i) => i.rarity === 'common');
+  // Recyclage groupé protégé : jamais d'améliorations, jamais d'Épique ou de Légendaire.
+  recycleBulk(maxRarity) {
+    const ids = new Set(bulkRecycleCandidates(state, maxRarity).map((i) => i.id));
+    const { gold, count } = recycleMatching(state, (i) => ids.has(i.id));
     if (count > 0) {
       ui.toast(`${count} objets recyclés : +${formatNumber(gold)} or`);
       save();
@@ -203,6 +205,12 @@ window.__idle = {
   loadSource: loaded.source,
   save,
   actions,
+  addItem(baseId, rarity = 'common', level = 1) {
+    const item = makeItem(state, baseId, rarity, level);
+    addToInventory(state, item);
+    ui.invalidate();
+    return item;
+  },
   addRandomItem(minRarity = 'common') {
     const item = generateItem(state, rng, { level: state.stage, minRarity });
     addToInventory(state, item);

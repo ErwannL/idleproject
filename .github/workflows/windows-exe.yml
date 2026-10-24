@@ -1,8 +1,8 @@
 name: Windows exe
 
-# Construit Idle RPG pour Windows (exe portable + installateur), lance les
-# exécutables pour les tester, puis publie la release correspondant à la version
-# de package.json (ex. v1.0.0).
+# Construit l'installateur Windows d'Idle RPG, le teste (lancement réel, sauvegarde,
+# mise à jour d'une installation v1 existante), puis publie la release correspondant
+# à la version de package.json (ex. v2.0.0).
 on:
   push:
     branches: [main, master, 'claude/**']
@@ -34,20 +34,29 @@ jobs:
       - name: Tests unitaires
         run: npm test
 
-      - name: Construire les exe Windows
+      - name: Construire l'installateur Windows
         run: npm run dist:win
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 
-      - name: Tester les exe (lancement réel, sauvegarde, relance)
+      - name: Tester l'application (lancement réel, sauvegarde, relance)
         shell: bash
-        run: node tools/desktop-smoke.mjs "dist/win-unpacked/Idle RPG.exe" dist/IdleRPG-*-portable.exe
+        run: node tools/desktop-smoke.mjs "dist/win-unpacked/Idle RPG.exe"
 
-      - name: Conserver les exe comme artefact
+      - name: Tester la mise à jour depuis la v1 installée
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v1.0.0 --pattern 'IdleRPG-1.0.0-setup.exe' --dir previous
+          VERSION="$(node -p "require('./package.json').version")"
+          node tools/upgrade-smoke.mjs previous/IdleRPG-1.0.0-setup.exe "dist/IdleRPG-${VERSION}-setup.exe" "$VERSION"
+
+      - name: Conserver l'installateur comme artefact
         uses: actions/upload-artifact@v4
         with:
           name: idle-rpg-windows
-          path: dist/*.exe
+          path: dist/*-setup.exe
           if-no-files-found: error
 
       - name: Publier la release
@@ -58,7 +67,8 @@ jobs:
           VERSION="v$(node -p "require('./package.json').version")"
           # La release suit toujours la dernière construction validée de cette version.
           gh release delete "$VERSION" --cleanup-tag --yes 2>/dev/null || true
-          gh release create "$VERSION" dist/*.exe \
+          gh release create "$VERSION" dist/*-setup.exe \
             --target "$GITHUB_SHA" \
             --title "Idle RPG $VERSION" \
-            --notes-file docs/RELEASE_NOTES.md
+            --notes-file docs/RELEASE_NOTES.md \
+            --latest

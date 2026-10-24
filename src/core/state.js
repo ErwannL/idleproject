@@ -4,7 +4,7 @@ import { ITEM_BASES, SLOTS, STARTER_WEAPON, STAT_LABELS } from '../data/items.js
 import { makeItem, rarityById } from './loot.js';
 
 export const SAVE_VERSION = 1;
-export const SORT_OPTIONS = ['rarity', 'power', 'recent'];
+export const SORT_OPTIONS = ['rarity', 'level', 'power', 'recent'];
 
 export function createNewState(now = Date.now(), seed = Math.floor(Math.random() * 2 ** 32)) {
   const state = {

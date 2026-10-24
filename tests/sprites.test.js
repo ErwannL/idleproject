@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import { BOSSES, ENEMIES } from '../src/data/enemies.js';
 import { ITEM_BASES } from '../src/data/items.js';
 import { ZONES } from '../src/data/zones.js';
-import { BASE_PALETTE, FONT, SPRITES, rotateRowsCW } from '../src/render/sprites.js';
+import { BASE_PALETTE, FONT, HERO_FRAME_SIZE, SPRITES, rotateRowsCW } from '../src/render/sprites.js';
 
 test('chaque sprite utilise des lignes de même largeur et des couleurs connues', () => {
   for (const [name, sprite] of Object.entries(SPRITES)) {
@@ -17,11 +17,24 @@ test('chaque sprite utilise des lignes de même largeur et des couleurs connues'
   }
 });
 
-test('les images du héros ont toutes 16×16 pixels', () => {
+test('les images et calques du héros ont la taille du chevalier', () => {
+  const { w, h } = HERO_FRAME_SIZE;
   for (const frame of ['idle', 'walk1', 'walk2', 'attack']) {
     const rows = SPRITES[`hero_${frame}`].rows;
-    assert.equal(rows.length, 16, frame);
-    assert.ok(rows.every((r) => r.length === 16), frame);
+    assert.equal(rows.length, h, frame);
+    assert.ok(rows.every((r) => r.length === w), frame);
+  }
+  for (const name of ['cape_a', 'cape_b', 'cape_c', 'helmet_helm', 'helmet_hood', 'armor_mail', 'armor_tunic']) {
+    const sprite = SPRITES[name];
+    assert.equal(sprite.rows[0].length, w, name);
+    assert.ok(sprite.oy + sprite.rows.length <= h, `${name} dépasse du corps`);
+  }
+});
+
+test('le point de prise des armes est sur le manche', () => {
+  for (const name of ['weapon_sword', 'weapon_axe', 'weapon_dagger']) {
+    const { rows, grip } = SPRITES[name];
+    assert.equal(rows[grip.y][grip.x], 'H', name);
   }
 });
 
@@ -35,7 +48,7 @@ test('les données référencent des sprites existants', () => {
     assert.ok(SPRITES[`${prefix}_${base.sprite}`], base.id);
   }
   for (const zone of ZONES) {
-    for (const decor of [...zone.midDecor, ...zone.nearDecor]) assert.ok(SPRITES[decor], decor);
+    for (const decor of [...(zone.farDecor ?? []), ...zone.midDecor, ...zone.nearDecor]) assert.ok(SPRITES[decor], decor);
     for (const id of zone.enemies) assert.ok(ENEMIES[id], id);
     for (const id of zone.bosses) assert.ok(BOSSES[id], id);
   }

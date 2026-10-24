@@ -33,112 +33,305 @@ export const BASE_PALETTE = {
   u: '#8fe8ff', U: '#3fa8d8', // cristal
   x: '#ef6aa6', z: '#ffe066', // fleurs
   H: '#6b4423', // manche d'arme
+  E: '#e4ebf3', I: '#a3b1c2', J: '#5f6d80', // acier (clair, moyen, sombre)
+  X: '#0d0a14', // fente de visière
+  B: '#2f62b8', P: '#1d3b78', // bleu chevalier (cape, gambison, bouclier)
+  W: '#e8b64a', // dorure
+  Z: '#6b4428', // cuir des bottes
   a: '#cccccc', A: '#888888', r: '#ffffff', // remplacés par l'objet
 };
 
-// --- Héros (face à droite). Les 4 images partagent la tête et le buste. ---
-const HERO_HEAD = [
-  '................',
-  '......kkkk......',
-  '.....khhhhk.....',
-  '....khhhhhhk....',
-  '....khsssesk....',
-  '....khssssSk....',
-  '.....kssssk.....',
+// --- Héros : petit chevalier (20×22, face à droite). ---
+// Calques dessinés dans l'ordre : cape (derrière), corps, armure, casque, arme.
+// Sans équipement, le chevalier porte un camail, un gambison bleu, des épaulières et un bouclier.
+const KNIGHT_TOP = [
+  '....................',
+  '....................',
+  '........kkkk........',
+  '.......kIIIIk.......',
+  '......kIEEIIIk......',
+  '......kIIssssk......',
+  '......kIIssesk......',
+  '......kIIsssSk......',
+  '.......kIIIIk.......',
+  '......kJIIIIJk......',
 ];
-const HERO_TORSO = [
-  '....kttttttk....',
-  '...ktttttttsk...',
-  '...kTttttttsk...',
-  '...kkllllllkk...',
+const KNIGHT_TORSO = [
+  '....kEJkBBBBBkEJk...',
+  '....kJJkBBWBBkJJk...',
+  '...kWPPkBWWWBkJsk...',
+  '...kPWPkBBWBBk.kk...',
+  '...kWPPklllllk......',
+  '....kWPkBBBBBk......',
 ];
-const HERO_TORSO_ATTACK = [
-  '....kttttttk....',
-  '...kttttttkssk..',
-  '...kTtttttk.....',
-  '...kkllllllkk...',
+const KNIGHT_TORSO_ATTACK = [
+  '....kEJkBBBBBkEJk...',
+  '....kJJkBBWBBkJJJssk',
+  '...kWPPkBWWWBkkkkk..',
+  '...kPWPkBBWBBk......',
+  '...kWPPklllllk......',
+  '....kWPkBBBBBk......',
 ];
-const LEGS_IDLE = [
-  '....kppppppk....',
-  '....kppkkppk....',
-  '....kppkkppk....',
-  '....kbbkkbbk....',
-  '....kkkkkkkk....',
+const KNIGHT_LEGS_IDLE = [
+  '....kkkkJJkJJk......',
+  '.......kJIkIJk......',
+  '.......kJIkIJk......',
+  '.......kJIkIJk......',
+  '......kZZZkZZZk.....',
+  '......kkkkkkkkk.....',
 ];
-const LEGS_STRIDE = [
-  '....kppppppk....',
-  '...kppk..kppk...',
-  '..kppk....kppk..',
-  '..kbbk....kbbk..',
-  '..kkkk....kkkk..',
+const KNIGHT_LEGS_STRIDE = [
+  '....kkkkJJkJJk......',
+  '......kJIk.kIJk.....',
+  '.....kJIk...kIJk....',
+  '.....kJIk...kIJk....',
+  '....kZZZk...kZZZk...',
+  '....kkkkk...kkkkk...',
 ];
-const LEGS_PASS = [
-  '....kppppppk....',
-  '.....kppppk.....',
-  '.....kppppk.....',
-  '.....kbbbbk.....',
-  '.....kkkkkk.....',
+const KNIGHT_LEGS_PASS = [
+  '....kkkkJJkJJk......',
+  '........kJIJk.......',
+  '........kJIJk.......',
+  '........kJIJk.......',
+  '.......kZZZZk.......',
+  '.......kkkkkk.......',
 ];
+
+export const HERO_FRAME_SIZE = { w: 20, h: 22 };
 
 export const SPRITES = {
-  hero_idle: { rows: [...HERO_HEAD, ...HERO_TORSO, ...LEGS_IDLE], hand: { x: 11, y: 9 } },
-  hero_walk1: { rows: [...HERO_HEAD, ...HERO_TORSO, ...LEGS_STRIDE], hand: { x: 11, y: 9 } },
-  hero_walk2: { rows: [...HERO_HEAD, ...HERO_TORSO, ...LEGS_PASS], hand: { x: 11, y: 9 } },
-  hero_attack: { rows: [...HERO_HEAD, ...HERO_TORSO_ATTACK, ...LEGS_STRIDE], hand: { x: 13, y: 8 } },
+  hero_idle: { rows: [...KNIGHT_TOP, ...KNIGHT_TORSO, ...KNIGHT_LEGS_IDLE], hand: { x: 15, y: 12 } },
+  hero_walk1: { rows: [...KNIGHT_TOP, ...KNIGHT_TORSO, ...KNIGHT_LEGS_STRIDE], hand: { x: 15, y: 12 } },
+  hero_walk2: { rows: [...KNIGHT_TOP, ...KNIGHT_TORSO, ...KNIGHT_LEGS_PASS], hand: { x: 15, y: 12 } },
+  hero_attack: { rows: [...KNIGHT_TOP, ...KNIGHT_TORSO_ATTACK, ...KNIGHT_LEGS_STRIDE], hand: { x: 18, y: 11 } },
+
+  // Cape courte, animée (3 images), dessinée derrière le corps (oy = première ligne).
+  cape_a: {
+    oy: 9,
+    rows: [
+      '.....kBk............',
+      '...kBBBk............',
+      '..kBBBPk............',
+      '..kBBPk.............',
+      '.kBBBPk.............',
+      '.kBBPPk.............',
+      'kBBBPk..............',
+      'kBPPk...............',
+      '.kkk................',
+    ],
+  },
+  cape_b: {
+    oy: 9,
+    rows: [
+      '.....kBk............',
+      '...kBBBk............',
+      '..kBBBPk............',
+      '.kBBBPk.............',
+      'kBBBPPk.............',
+      'kBBPPk..............',
+      '.kBPPk..............',
+      '..kkk...............',
+    ],
+  },
+  cape_c: {
+    oy: 9,
+    rows: [
+      '.....kBk............',
+      '..kkBBBk............',
+      'kBBBBBPk............',
+      'kBBBBPk.............',
+      '.kBBPPk.............',
+      '..kPPk..............',
+      '...kk...............',
+    ],
+  },
 
   // --- Équipement superposé au héros (oy = ligne de départ sur le corps). ---
-  helmet_hood: {
-    oy: 1,
-    rows: [
-      '.....kkkkkk.....',
-      '....kaaaaaak....',
-      '...kaaaaaaaak...',
-      '...kaA..........',
-      '...kaA..........',
-      '....kA..........',
-    ],
-  },
   helmet_helm: {
-    oy: 1,
+    oy: 0,
     rows: [
-      '.....kkkkkk.....',
-      '....kaaaaaak....',
-      '...kaarraaaak...',
-      '...kA.....Ak....',
+      '........rrr.........',
+      '.......rrkkkk.......',
+      '......rkaaaaak......',
+      '......kaaaaaaak.....',
+      '......kaAAAAaak.....',
+      '......kaaaXXXXk.....',
+      '......kaaaAaAak.....',
+      '......kAaaaaaAk.....',
+      '.......kkkkkkk......',
     ],
   },
-  armor_tunic: {
-    oy: 7,
+  helmet_hood: {
+    oy: 2,
     rows: [
-      '....kaaaaaak....',
-      '...kaaaaaaa.....',
-      '...kAaaaaaA.....',
-      '...kkrrrrrrkk...',
-      '....kAAAAAAk....',
+      '........kkkk........',
+      '.......kaaaak.......',
+      '......kaarraak......',
+      '......kaA...........',
+      '......kaA...........',
+      '......kaA...........',
+      '.......kAa..........',
     ],
   },
   armor_mail: {
-    oy: 7,
+    oy: 10,
     rows: [
-      '....kaAaAaAk....',
-      '...kAaAaAaA.....',
-      '...kaAaAaAa.....',
-      '...kkrrrrrrkk...',
-      '....kaAaAaAk....',
+      '....kaAkaAaAakaAk...',
+      '....kAAkAaraAkAA....',
+      '........aAraA.a.....',
+      '........AaAaA.......',
+      '........rrrrr.......',
+      '........aAaAa.......',
+    ],
+  },
+  armor_tunic: {
+    oy: 10,
+    rows: [
+      '........aaaaa.......',
+      '........aarAa.......',
+      '........arrra.......',
+      '........aarAa.......',
+      '....................',
+      '........aAaAa.......',
+      '........AAkAA.......',
     ],
   },
   // Armes verticales, lame vers le haut ; `grip` = pixel tenu dans la main.
   weapon_sword: {
-    grip: { x: 2, y: 7 },
-    rows: ['..k..', '.kwk.', '.kak.', '.kak.', '.kak.', '.kAk.', 'krArk', '.kHk.', '.kHk.', '..k..'],
+    grip: { x: 2, y: 10 },
+    rows: ['..k..', '.kwk.', '.kak.', '.kak.', '.kak.', '.kak.', '.kak.', '.kAk.', 'krrrk', '.kHk.', '.kHk.', '.kWk.', '..k..'],
   },
   weapon_axe: {
-    grip: { x: 2, y: 7 },
-    rows: ['..kkk.', '.kHaak', '.kHaAk', '.kHkk.', '.kHk..', '.kHk..', 'krHrk.', '.kHk..', '.kHk..', '..k...'],
+    grip: { x: 2, y: 10 },
+    rows: ['...kkk.', '..kaaak', '.kHaaAk', '.kHaAAk', '.kHkkk.', '.kHk...', '.kHk...', '.kHk...', 'krHrk..', '.kHk...', '.kHk...', '.kHk...', '..k....'],
   },
   weapon_dagger: {
-    grip: { x: 2, y: 4 },
-    rows: ['..k..', '.kwk.', '.kak.', 'krArk', '.kHk.', '..k..'],
+    grip: { x: 2, y: 5 },
+    rows: ['..k..', '.kwk.', '.kak.', '.kAk.', 'krrrk', '.kHk.', '.kWk.', '..k..'],
+  },
+
+  // --- Icônes d'interface (12 px environ). ---
+  icon_upgrade: {
+    rows: [
+      '.....kk.....',
+      '....kWWk....',
+      '...kWWWWk...',
+      '..kWWWWWWk..',
+      '.kkkWWWWkkk.',
+      '...kWWWWk...',
+      '...kWWWWk...',
+      '...kWYYWk...',
+      '...kWYYWk...',
+      '...kYYYYk...',
+      '...kkkkkk...',
+    ],
+  },
+  icon_bag: {
+    rows: [
+      '....kkkk....',
+      '...koWWok...',
+      '....kook....',
+      '...kooook...',
+      '..koooooOk..',
+      '.kooooooOOk.',
+      '.koooWWooOk.',
+      '.koooWWooOk.',
+      '.kooooooOOk.',
+      '..kOOOOOOk..',
+      '...kkkkkk...',
+    ],
+  },
+  icon_hero: {
+    rows: [
+      '....kkkk....',
+      '...kEEIIk...',
+      '..kEIIIIJk..',
+      '..kIIIIIJk..',
+      '..kXXXXXXk..',
+      '..kIIJIIJk..',
+      '..kIIIIIJk..',
+      '..kIJIJIJk..',
+      '...kIIIJk...',
+      '....kkkk....',
+    ],
+  },
+  icon_map: {
+    pal: { m: '#e9d29a', M: '#b88f52', R: '#c0392b' },
+    rows: [
+      '.kkkkkkkkkk.',
+      '.kmmmmmmmMk.',
+      '.kmRmmmmmMk.',
+      '.kmmRRmmmMk.',
+      '.kmmmmRmmMk.',
+      '.kmmmmmRmMk.',
+      '.kmmmmmRkMk.',
+      '.kMMMMMMMMk.',
+      '.kkkkkkkkkk.',
+    ],
+  },
+  icon_gear: {
+    rows: [
+      '....kkkk....',
+      '.kk.kIIk.kk.',
+      '.kIkkIIkkIk.',
+      '..kIIIIIIk..',
+      'kkkIIkkIIkkk',
+      'kIIIk..kIIIk',
+      'kIIIk..kIIIk',
+      'kkkIIkkIIkkk',
+      '..kIIIIIIk..',
+      '.kIkkIIkkIk.',
+      '.kk.kIIk.kk.',
+      '....kkkk....',
+    ],
+  },
+  icon_heart: {
+    rows: [
+      '.kk...kk.',
+      'kRRk.kRRk',
+      'kRwRkRRRk',
+      'kRRRRRRRk',
+      '.kRRRRRk.',
+      '..kRRRk..',
+      '...kRk...',
+      '....k....',
+    ],
+  },
+  icon_bolt: {
+    rows: [
+      '...kkkk',
+      '..kyyk.',
+      '.kyyk..',
+      'kyyyyyk',
+      'kkkyyk.',
+      '..kyk..',
+      '.kyk...',
+      '.kk....',
+    ],
+  },
+  icon_shield: {
+    rows: [
+      'kkkkkkkkk',
+      'kBBBWBBBk',
+      'kBBBWBBBk',
+      'kWWWWWWWk',
+      'kBBBWBBBk',
+      'kBBBWBBBk',
+      '.kBBWBBk.',
+      '..kBWBk..',
+      '...kWk...',
+      '....k....',
+    ],
+  },
+  icon_skull: {
+    rows: [
+      '.kkkkk.',
+      'knnnnnk',
+      'knknknk',
+      'knnnnnk',
+      '.knknk.',
+      '..kkk..',
+    ],
   },
 
   // --- Ennemis (face à gauche, vers le héros), alignés par le bas. ---
@@ -338,6 +531,19 @@ export const SPRITES = {
       '.kqQk.',
       '.kqk..',
       '..k...',
+    ],
+  },
+  castle: {
+    rows: [
+      '..q.q............q.q..',
+      '..qqq.....q.q....qqq..',
+      '..qqq.....qqq....qqq..',
+      '..qQq.....qqq....qQq..',
+      '..qqqq.q.qqqqq.q.qqq..',
+      '..qqqqqqqqqQqqqqqqqq..',
+      '..qqqqqqqqQQQqqqqqqq..',
+      '..qqqqqqqqQQQqqqqqqq..',
+      'qqqqqqqqqqqqqqqqqqqqqq',
     ],
   },
   cloud: {

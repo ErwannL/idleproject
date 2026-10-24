@@ -91,10 +91,11 @@ await check('ouvrir l’inventaire, équiper un objet et voir les stats changer'
   const equipped = await game((id) => Object.values(__idle.state.equipment).some((i) => i && i.id === id), item.id);
   const after = await game(() => JSON.stringify(__idle.state.equipment));
   assert(equipped && before !== after, 'objet non équipé');
-  await page.click(`.equipped-row [data-id="${item.id}"]`);
+  await page.click(`.inv-slots [data-id="${item.id}"]`);
   await page.waitForSelector('.item-detail');
   const text = await page.textContent('.item-detail');
-  assert(text.includes('équipé'), 'détail équipé absent');
+  assert(/équipé/i.test(text), 'détail équipé absent');
+  assert(await page.$(`.inv-slots [data-id="${item.id}"] .eq`), 'marque « équipé » absente');
 });
 
 await check('recycler un objet contre de l’or', async () => {
@@ -105,6 +106,56 @@ await check('recycler un objet contre de l’or', async () => {
   const after = await game(() => __idle.state.gold);
   const still = await game((id) => __idle.state.inventory.some((i) => i.id === id), item.id);
   assert(after > gold && !still, `or ${gold} -> ${after}`);
+});
+
+await check('onglets avec icône et état actif distinct', async () => {
+  const tabs = await game(() => [...document.querySelectorAll('#tabs button')].map((b) => ({
+    tab: b.dataset.tab, icon: b.querySelector('img')?.naturalWidth > 0, active: b.classList.contains('active'),
+  })));
+  assert(tabs.length === 5 && tabs.every((t) => t.icon), JSON.stringify(tabs));
+  assert(tabs.filter((t) => t.active).map((t) => t.tab).join() === 'inventory', JSON.stringify(tabs));
+});
+
+await check('filtres par type et tri par niveau', async () => {
+  await game(() => { __idle.addItem('iron_helm', 'common', 1); __idle.addItem('dagger', 'common', 7); });
+  await page.click('.inv-filters [data-value="weapon"]');
+  await page.waitForTimeout(150);
+  const slots = await game(() => [...document.querySelectorAll('.inv-grid [data-id]')]
+    .map((el) => __idle.state.inventory.find((i) => i.id === el.dataset.id)?.slot));
+  assert(slots.length > 0 && slots.every((s) => s === 'weapon'), JSON.stringify(slots));
+  await page.selectOption('[data-action="sort"]', 'level');
+  await page.waitForTimeout(150);
+  const levels = await game(() => [...document.querySelectorAll('.inv-grid [data-id]')]
+    .map((el) => __idle.state.inventory.find((i) => i.id === el.dataset.id).level));
+  assert(levels.every((l, i) => i === 0 || levels[i - 1] >= l), JSON.stringify(levels));
+  await page.click('.inv-filters [data-value="all"]');
+  await page.waitForTimeout(150);
+});
+
+await check('recyclage groupé : confirmation et objets protégés', async () => {
+  const ids = await game(() => {
+    __idle.state.inventory = [];
+    const helm = __idle.addItem('iron_helm', 'epic', 1);
+    __idle.actions.equip(helm.id);
+    const weak = __idle.addItem('leather_hood', 'common', 1);
+    const weakRare = __idle.addItem('leather_hood', 'rare', 1);
+    const epic = __idle.addItem('leather_hood', 'epic', 1);
+    __idle.state.equipment.armor = null;
+    const upgrade = __idle.addItem('chainmail', 'common', 1);
+    return { weak: weak.id, weakRare: weakRare.id, epic: epic.id, upgrade: upgrade.id };
+  });
+  await page.waitForTimeout(150);
+  await page.selectOption('[data-action="bulk-rarity"]', 'rare');
+  await page.click('[data-action="bulk-recycle"]');
+  await page.waitForTimeout(150);
+  const armed = await page.textContent('[data-action="bulk-recycle"]');
+  assert(armed.includes('Confirmer'), armed);
+  const kept = await game((w) => __idle.state.inventory.some((i) => i.id === w), ids.weak);
+  assert(kept, 'recyclé sans confirmation');
+  await page.click('[data-action="bulk-recycle"]');
+  const left = await game(() => __idle.state.inventory.map((i) => i.id));
+  assert(!left.includes(ids.weak) && !left.includes(ids.weakRare), `restants ${left}`);
+  assert(left.includes(ids.epic) && left.includes(ids.upgrade), `objets protégés recyclés : ${left}`);
 });
 
 await check('un boss apparaît au palier et donne une récompense', async () => {
@@ -161,15 +212,31 @@ await check('horloge reculée : aucun gain', async () => {
 });
 
 await check('l’interface s’adapte au redimensionnement', async () => {
-  for (const [w, h] of [[320, 200], [400, 250], [900, 560]]) {
+  const expected = [[320, 200, 'mini'], [400, 250, 'mini'], [460, 640, 'tall'], [980, 620, 'wide']];
+  for (const [w, h, layout] of expected) {
     await page.setViewportSize({ width: w, height: h });
     await page.waitForTimeout(300);
-    const overflow = await game(() => document.documentElement.scrollWidth > window.innerWidth + 1);
-    assert(!overflow, `débordement horizontal à ${w}×${h}`);
+    const info = await game(() => ({
+      overflow: document.documentElement.scrollWidth > window.innerWidth + 1,
+      cls: document.querySelector('#app').className,
+      canvas: document.querySelector('#scene').getBoundingClientRect().height,
+    }));
+    assert(!info.overflow, `débordement horizontal à ${w}×${h}`);
+    assert(info.cls === `layout-${layout}`, `${w}×${h} : ${info.cls}`);
+    if (layout !== 'mini') {
+      // Le panneau reste ouvert sans masquer le combat.
+      const panelOpen = await game(() => !document.querySelector('#panel').classList.contains('hidden'));
+      assert(panelOpen && info.canvas >= 140, `${layout} : panneau ${panelOpen}, scène ${info.canvas}px`);
+    }
+    if (layout === 'tall') {
+      for (const tab of ['upgrades', 'inventory', 'hero', 'campaign']) {
+        await page.click(`#tabs button[data-tab="${tab}"]`);
+        await page.waitForTimeout(250);
+        await page.screenshot({ path: `${outDir}/standard-${tab}.png` });
+      }
+    }
   }
-  const wide = await game(() => document.querySelector('#app').classList.contains('layout-wide'));
-  assert(wide, 'disposition large non activée');
-  await page.click('#tabs button[data-tab="hero"]');
+  await page.click('#tabs button[data-tab="inventory"]');
   await page.waitForTimeout(300);
   await page.screenshot({ path: `${outDir}/wide.png` });
 });
