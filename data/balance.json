@@ -1,0 +1,56 @@
+{
+	"_comment": "Paramètres d'équilibrage centralisés. Modifier ce fichier plutôt que le code.",
+	"offline": {
+		"cap_hours": 8,
+		"farm_multiplier": 0.5
+	},
+	"hero": {
+		"base_damage": 10,
+		"base_attack_interval_seconds": 1.0
+	},
+	"upgrades": {
+		"damage": {
+			"base_cost": 10,
+			"cost_growth": 1.15,
+			"damage_per_level": 2
+		},
+		"attack_speed": {
+			"base_cost": 25,
+			"cost_growth": 1.2,
+			"interval_reduction_per_level": 0.02,
+			"min_interval_seconds": 0.25
+		}
+	},
+	"zone": {
+		"name": "Plaine",
+		"kills_per_stage": 10,
+		"boss_every_stages": 5,
+		"boss_hp_multiplier": 10,
+		"boss_guaranteed_drop_rarity": "rare"
+	},
+	"enemy": {
+		"base_hp": 20,
+		"hp_growth_per_stage": 1.1,
+		"base_gold": 5,
+		"gold_growth_per_stage": 1.08,
+		"spawn_interval_seconds": 1.5,
+		"drop_chance": 0.15
+	},
+	"rarities": {
+		"common": { "weight": 60, "stat_multiplier": 1.0 },
+		"rare":   { "weight": 25, "stat_multiplier": 1.5 },
+		"epic":   { "weight": 12, "stat_multiplier": 2.5 },
+		"legendary": { "weight": 3, "stat_multiplier": 4.0 }
+	},
+	"items": [
+		{ "id": "sword_wood", "name": "Épée en bois", "slot": "weapon", "stats": { "damage": 3 } },
+		{ "id": "helmet_leather", "name": "Casque en cuir", "slot": "helmet", "stats": { "hp": 10 } },
+		{ "id": "armor_leather", "name": "Armure en cuir", "slot": "armor", "stats": { "hp": 20 } }
+	],
+	"recycle_gold_per_rarity": {
+		"common": 5,
+		"rare": 15,
+		"epic": 40,
+		"legendary": 120
+	}
+}
