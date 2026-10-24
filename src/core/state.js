@@ -1,9 +1,15 @@
 // État persistant de la partie (tout ce qui est sauvegardé) et validation au chargement.
 import { BALANCE } from '../data/balance.js';
 import { ITEM_BASES, SLOTS, STARTER_WEAPON, STAT_LABELS } from '../data/items.js';
+import { BOSSES } from '../data/enemies.js';
+import { BOSS_POWERS } from '../data/powers.js';
+import { TALENTS } from '../data/rebirth.js';
 import { makeItem, rarityById } from './loot.js';
+import { bossFirstStage, powerSlots, rollPower } from './powers.js';
+import { Rng } from './rng.js';
 
-export const SAVE_VERSION = 1;
+// v1 : prototype · v2 (format identique) · v3 : pouvoirs ancestraux, Renaissance, verrouillage d'objets.
+export const SAVE_VERSION = 3;
 export const SORT_OPTIONS = ['rarity', 'level', 'power', 'recent'];
 
 export function createNewState(now = Date.now(), seed = Math.floor(Math.random() * 2 ** 32)) {
@@ -21,8 +27,13 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     inventory: [],
     nextItemId: 1,
     rngSeed: seed >>> 0,
-    records: { goldEarned: 0, kills: 0, bossesDefeated: 0, itemsFound: 0 },
+    records: { goldEarned: 0, kills: 0, bossesDefeated: 0, itemsFound: 0, rebirths: 0 },
     ui: { slotFilter: 'all', sortBy: 'rarity' },
+    // Progression permanente (conservée par la Renaissance).
+    powers: {}, // bossId -> { current, pending, victories, rerolls, sinceHigh }
+    equippedPowers: [], // bossIds dont le pouvoir est actif
+    fragments: 0,
+    talents: {}, // talentId -> niveau
   };
   state.equipment.weapon = makeItem(state, STARTER_WEAPON, 'common', 1);
   return state;
@@ -44,7 +55,36 @@ function cleanItem(item) {
   return {
     id: item.id, baseId: item.baseId, name: base.name, slot: item.slot,
     rarity: item.rarity, level: item.level, stats: { ...item.stats }, effect: null,
+    locked: item.locked === true,
   };
+}
+
+const powerIds = (bossId) => new Set(BOSS_POWERS[bossId].map((p) => p.id));
+
+function cleanPowers(state, raw) {
+  if (raw.powers && typeof raw.powers === 'object') {
+    for (const bossId of Object.keys(BOSSES)) {
+      const entry = raw.powers[bossId];
+      if (!entry || !powerIds(bossId).has(entry.current)) continue;
+      state.powers[bossId] = {
+        current: entry.current,
+        pending: powerIds(bossId).has(entry.pending) && entry.pending !== entry.current ? entry.pending : null,
+        victories: int(entry.victories, 1, 1),
+        rerolls: int(entry.rerolls, 0),
+        sinceHigh: int(entry.sinceHigh, 0),
+      };
+    }
+  } else {
+    // Sauvegarde v1/v2 : les boss déjà battus (étape dépassée) donnent leur pouvoir, de façon déterministe.
+    const rng = new Rng(state.rngSeed ^ 0x2545f491);
+    for (const bossId of Object.keys(BOSSES)) {
+      if (bossFirstStage(bossId) < state.maxStage) {
+        state.powers[bossId] = { current: rollPower(bossId, rng), pending: null, victories: 1, rerolls: 0, sinceHigh: 0 };
+      }
+    }
+  }
+  const wanted = Array.isArray(raw.equippedPowers) ? raw.equippedPowers : Object.keys(state.powers);
+  state.equippedPowers = [...new Set(wanted)].filter((id) => state.powers[id]).slice(0, powerSlots(state));
 }
 
 const int = (v, fallback, min = 0) => (Number.isInteger(v) && v >= min ? v : fallback);
@@ -82,6 +122,12 @@ export function sanitizeState(raw, balance = BALANCE, now = Date.now()) {
   state.nextItemId = Math.max(int(raw.nextItemId, 1, 1), ...used.map((n) => n + 1), 1);
 
   for (const key of Object.keys(state.records)) state.records[key] = int(raw.records?.[key], 0);
+  state.fragments = int(raw.fragments, 0);
+  for (const talent of TALENTS) {
+    const level = int(raw.talents?.[talent.id], 0);
+    if (level > 0) state.talents[talent.id] = Math.min(level, talent.max);
+  }
+  cleanPowers(state, raw);
   if (raw.ui && typeof raw.ui === 'object') {
     if (raw.ui.slotFilter === 'all' || raw.ui.slotFilter in SLOTS) state.ui.slotFilter = raw.ui.slotFilter;
     if (SORT_OPTIONS.includes(raw.ui.sortBy)) state.ui.sortBy = raw.ui.sortBy;

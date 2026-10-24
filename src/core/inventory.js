@@ -25,10 +25,10 @@ export function equipItem(state, itemId) {
   return true;
 }
 
-// Retourne l'or gagné, ou 0 si l'objet n'est pas dans l'inventaire.
+// Retourne l'or gagné, ou 0 si l'objet n'est pas dans l'inventaire ou s'il est verrouillé.
 export function recycleItem(state, itemId, balance = BALANCE) {
   const index = state.inventory.findIndex((i) => i.id === itemId);
-  if (index < 0) return 0;
+  if (index < 0 || state.inventory[index].locked) return 0;
   const [item] = state.inventory.splice(index, 1);
   return addGold(state, recycleValue(item, balance));
 }
@@ -37,7 +37,7 @@ export function recycleMatching(state, predicate, balance = BALANCE) {
   let gold = 0;
   let count = 0;
   state.inventory = state.inventory.filter((item) => {
-    if (!predicate(item)) return true;
+    if (item.locked || !predicate(item)) return true;
     gold += addGold(state, recycleValue(item, balance));
     count += 1;
     return false;
@@ -82,5 +82,13 @@ export function isUpgrade(state, item, balance = BALANCE) {
 export const BULK_RECYCLE_MAX = ['common', 'rare'];
 export function bulkRecycleCandidates(state, maxRarity = 'common', balance = BALANCE) {
   const limit = rarityIndex(BULK_RECYCLE_MAX.includes(maxRarity) ? maxRarity : 'common');
-  return state.inventory.filter((item) => rarityIndex(item.rarity) <= limit && !isUpgrade(state, item, balance));
+  return state.inventory.filter((item) => !item.locked && rarityIndex(item.rarity) <= limit && !isUpgrade(state, item, balance));
+}
+
+// Verrouiller un objet le protège de tout recyclage (simple ou groupé).
+export function toggleLock(state, itemId) {
+  const item = [...state.inventory, ...Object.values(state.equipment)].find((i) => i?.id === itemId);
+  if (!item) return null;
+  item.locked = !item.locked;
+  return item.locked;
 }

@@ -4,7 +4,9 @@
 import { BALANCE } from './data/balance.js';
 import { changeStage, createCombat, resumeAdvance, step } from './core/combat.js';
 import { buyUpgrade } from './core/economy.js';
-import { addToInventory, bulkRecycleCandidates, equipItem, recycleItem, recycleMatching } from './core/inventory.js';
+import { addToInventory, bulkRecycleCandidates, equipItem, recycleItem, recycleMatching, toggleLock } from './core/inventory.js';
+import { powerById, rerollPower, resolveReroll, setPowerActive, powerSlots } from './core/powers.js';
+import { buyTalent, performRebirth } from './core/rebirth.js';
 import { generateItem, makeItem } from './core/loot.js';
 import { applyOfflineRewards, computeOfflineRewards } from './core/offline.js';
 import { Rng } from './core/rng.js';
@@ -86,6 +88,49 @@ const actions = {
       save();
       ui.invalidate();
     }
+  },
+  rerollPower(bossId) {
+    if (rerollPower(state, bossId, rng)) {
+      save();
+      ui.invalidate();
+    }
+  },
+  // Le pouvoir actuel n'est remplacé que si le joueur choisit le nouveau.
+  resolvePower(bossId, accept) {
+    const pending = state.powers[bossId]?.pending;
+    if (!resolveReroll(state, bossId, accept)) return;
+    ui.toast(accept ? `Nouveau pouvoir : ${powerById(pending).name}` : 'Pouvoir actuel conservé');
+    save();
+    ui.invalidate();
+  },
+  togglePower(bossId) {
+    const active = state.equippedPowers.includes(bossId);
+    if (!setPowerActive(state, bossId, !active)) {
+      ui.toast(`Emplacements pleins (${powerSlots(state)}) : retirez d'abord un pouvoir actif.`);
+      return;
+    }
+    save();
+    ui.invalidate();
+  },
+  toggleLock(id) {
+    if (toggleLock(state, id) !== null) {
+      save();
+      ui.invalidate();
+    }
+  },
+  buyTalent(id) {
+    if (buyTalent(state, id)) {
+      save();
+      ui.invalidate();
+    }
+  },
+  rebirth() {
+    const gained = performRebirth(state);
+    if (gained <= 0) return;
+    world = createCombat(state);
+    save();
+    ui.banner(`Renaissance ! +${gained} fragments anciens`, 'win');
+    ui.invalidate();
   },
   selectStage(stage) {
     changeStage(state, world, stage);

@@ -14,7 +14,7 @@ et du butin ; à votre retour, vous équipez, recyclez, améliorez et choisissez
 
 Téléchargez la dernière version dans **Releases** du dépôt GitHub :
 
-- `IdleRPG-2.0.0-setup.exe` : installateur avec raccourcis Bureau et menu Démarrer.
+- `IdleRPG-3.0.0-setup.exe` : installateur avec raccourcis Bureau et menu Démarrer.
 
 **Mise à jour :** lancez simplement le nouveau `setup.exe` (jeu fermé). Il remplace la version installée
 (même identifiant d'application) et conserve la partie, stockée à part dans `%APPDATA%\Idle RPG`.
@@ -63,6 +63,8 @@ Tout est à la souris ; le combat n'a besoin d'aucune action.
 | **Sac** | 3 zones : équipement porté · fiche de l'objet (stats, comparaison, aperçu du héros, Équiper / Recycler) · grille avec filtres par type, tri (rareté, niveau, puissance, récent), compteur, recyclage groupé protégé |
 | **Héros** | Chevalier équipé, statistiques, exploits |
 | **Carte** | Zones (en cours, terminée, bloquée) et leurs étapes ; avancée automatique |
+| **Codex** *(après le 1er boss)* | Pouvoir ancestral de chaque boss, victoires, activation (emplacements limités), relance contre de l'or avec choix ancien / nouveau, probabilités |
+| **Renaissance** *(dès l'étape 2-5)* | Recommencer contre des fragments anciens ; talents permanents |
 | **Options** | Sauvegarde, fenêtre (premier plan, tailles Mini / Standard / Large), test hors ligne, réinitialisation |
 
 Trois dispositions selon la fenêtre :
@@ -86,6 +88,17 @@ Il ne touche jamais un objet Épique ou Légendaire, ni un objet marqué ▲ (me
 - **Butin** : 10 % de chance par ennemi. Raretés Commun, Rare, Épique, Légendaire. 3 emplacements
   (arme, casque, armure), visibles sur le héros. Sac de 40 places ; s'il est plein, les nouveaux objets
   sont recyclés en or automatiquement (jamais perdus).
+- **Pouvoirs ancestraux** (`src/data/powers.js`) : chaque boss a 5 passifs thématiques (Roi Gluant : survie,
+  Loup Alpha : dégâts, Seigneur des Os : butin et boss). La **première victoire** en débloque toujours un.
+  **Relancer** coûte de l'or (3 × la récompense du boss, coût fixe) et crée une **proposition** toujours
+  différente du pouvoir actuel ; le joueur garde l'actuel ou prend le nouveau. La proposition est sauvegardée :
+  rien n'est remplacé sans choix explicite. Rareté tirée selon 55 / 30 / 12 / 3 %, puis pouvoir au hasard
+  dans la rareté ; Épique ou mieux garanti après 6 relances sans en obtenir. 2 emplacements actifs.
+- **Renaissance** (`src/data/rebirth.js`) : possible à partir de l'étape max 15 (2-5). Fragments gagnés =
+  ⌊((étape max − 1) / 5)^1,3⌋. Réinitialise étapes, or et améliorations ; conserve équipement, sac, pouvoirs,
+  Codex, talents et exploits. 5 talents : Puissance (+10 % dégâts/niv.), Endurance (+10 % PV), Fortune (+10 % or),
+  Chasse (+1 pt de butin), Héritage (+1 emplacement de pouvoir, −25 % relance, +1 emplacement).
+- **Verrouillage** : un objet verrouillé n'est jamais recyclé (ni seul, ni en groupe).
 - **Hors ligne** : à la relance, les gains sont calculés depuis la dernière sauvegarde, plafonnés à 8 h,
   à 50 % du rythme de farm actif sur l'étape atteinte (sans progression d'étape). Si l'horloge de
   l'ordinateur a reculé, aucun gain n'est appliqué.
@@ -114,17 +127,22 @@ index.html            page unique
 src/main.js           boucle de jeu : simulation (minuterie) + rendu (requestAnimationFrame) + sauvegarde
 src/data/             ÉQUILIBRAGE ET CONTENU (aucune logique)
   balance.js          tous les chiffres : coûts, croissance, butin, hors ligne, sauvegarde auto…
+  powers.js           pouvoirs ancestraux par boss, probabilités, coût de relance, garantie, emplacements
+  rebirth.js          Renaissance (seuil, formule) et talents permanents
   items.js            emplacements, raretés, bases d'objets
   enemies.js          ennemis et boss
   zones.js            zones, palettes de couleurs, décor
 src/core/             LOGIQUE DE JEU PURE (testable sans navigateur)
   combat.js           simulation à pas fixe, file d'ennemis, boss, défaite, événements
-  stats.js            statistiques du héros (base + améliorations + équipement)
+  stats.js            statistiques du héros (base + améliorations + équipement + bonus)
+  powers.js           déblocage, relance, proposition acceptée/refusée, emplacements actifs
+  rebirth.js          Renaissance et talents
+  bonuses.js          cumul des bonus des pouvoirs actifs et des talents
   economy.js          or et améliorations
   loot.js             génération d'objets depuis les données, raretés, valeur de recyclage
   inventory.js        équiper, recycler, trier, comparer
   offline.js          gains hors ligne
-  save.js / state.js  sauvegarde sûre, validation des données chargées
+  save.js / state.js  sauvegarde sûre, validation et migration des données chargées (format v3)
 src/render/           RENDU
   sprites.js          tous les assets pixel art (grilles de caractères)
   pixel.js            grilles -> canvas (cache), héros composé avec son équipement, police pixel
@@ -173,7 +191,8 @@ remplaçables :
 ## Tests
 
 ```bash
-npm test        # 22 tests unitaires : économie, butin, inventaire (tri, recyclage protégé), combat, boss, défaite,
+npm test        # 35 tests unitaires : économie, butin, inventaire (tri, recyclage protégé, verrou), combat, boss,
+                # pouvoirs (déblocage, relance, choix, garantie, migration), Renaissance et talents, défaite,
                 # hors ligne (plafond, horloge, cohérence avec le farm actif), sauvegarde, sprites
 npm run smoke   # test de bout en bout dans Chromium + captures dans docs/screenshots
 ```
@@ -208,8 +227,13 @@ persiste. Reconsidérer Godot reste possible si le projet a besoin d'un moteur c
 - Pas de son. Pas d'effets légendaires (le champ `effect` existe mais reste vide).
 - Lancer deux fois `npm run app` en même temps peut échouer (port déjà utilisé).
 
+- Les sauvegardes v1/v2 sont migrées : les boss dont l'étape est dépassée donnent un pouvoir (tiré de façon
+  déterministe). Une sauvegarde v3 ouverte par une ancienne version perdrait pouvoirs, talents et fragments.
+- Renaissance et pouvoirs : équilibrage de premier jet, à ajuster en jeu (seulement 3 boss pour l'instant).
+
 ## Hors périmètre (phases suivantes)
 
-Compagnons, chasses aux boss, donjons, recyclage automatique par critères, gacha, forge, ensembles,
-tour, prestige, défis, boutique, mobile et synchronisation cloud : non implémentés, conformément au
-cahier des charges.
+D'après le game design : effets spéciaux d'équipement, butin ciblé, matériaux et fabrication (P3), gacha de
+héros et compagnons (P4), contrats, maîtrise des boss, événements discrets, nouvelles zones (P5) : non
+implémentés. Décisions encore ouvertes (`src/data/powers.js`) : nombre d'emplacements, coût de relance fixe
+ou progressif (`rerollCostGrowth`), tirage unique ou choix entre plusieurs résultats.

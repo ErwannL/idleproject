@@ -42,7 +42,7 @@ export function makeItem(state, baseId, rarityId, level, balance = BALANCE) {
   }
   const id = `it${state.nextItemId}`;
   state.nextItemId += 1;
-  return { id, baseId, name: base.name, slot: base.slot, rarity: rarityId, level, stats, effect: null };
+  return { id, baseId, name: base.name, slot: base.slot, rarity: rarityId, level, stats, effect: null, locked: false };
 }
 
 export function generateItem(state, rng, { level, minRarity = 'common' }, balance = BALANCE) {

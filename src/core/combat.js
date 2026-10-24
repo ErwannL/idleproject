@@ -7,6 +7,8 @@ import { ZONES } from '../data/zones.js';
 import { addGold } from './economy.js';
 import { addToInventory } from './inventory.js';
 import { generateItem } from './loot.js';
+import { recordBossVictory } from './powers.js';
+import { POWER_RULES } from '../data/powers.js';
 import { computeHeroStats } from './stats.js';
 
 const MAX_EVENTS = 300;
@@ -126,15 +128,15 @@ function clearStage(state, world, balance) {
   if (state.autoAdvance) changeStage(state, world, next, balance);
 }
 
-function killEnemy(state, world, enemy, rng, balance) {
+function killEnemy(state, world, enemy, rng, balance, stats) {
   world.enemies.splice(world.enemies.indexOf(enemy), 1);
-  const gold = addGold(state, enemy.gold);
+  const gold = addGold(state, enemy.gold * (1 + stats.bonus.goldPct / 100));
   world.counters.gold += gold;
   world.counters.kills += 1;
   state.records.kills += 1;
   emit(world, 'kill', { enemyId: enemy.id, kind: enemy.type, boss: enemy.boss, gold, x: enemy.x });
 
-  const dropChance = enemy.boss ? 1 : balance.loot.dropChance;
+  const dropChance = enemy.boss ? 1 : balance.loot.dropChance + stats.bonus.dropChance / 100;
   if (rng.next() < dropChance) {
     const minRarity = enemy.boss ? balance.loot.bossMinRarity : 'common';
     const item = generateItem(state, rng, { level: state.stage, minRarity }, balance);
@@ -146,6 +148,9 @@ function killEnemy(state, world, enemy, rng, balance) {
   if (enemy.boss) {
     state.records.bossesDefeated += 1;
     emit(world, 'bossDefeated', { kind: enemy.type, stage: state.stage });
+    // Première victoire contre ce boss : pouvoir ancestral débloqué.
+    const power = recordBossVictory(state, enemy.type, rng);
+    if (power) emit(world, 'powerUnlocked', { bossId: enemy.type, powerId: power.id });
     clearStage(state, world, balance);
   } else {
     const needed = balance.stages.killsPerStage;
@@ -224,9 +229,11 @@ export function step(state, world, dt, rng, balance = BALANCE) {
     hero.attackTimer -= dt;
     if (hero.attackTimer <= 0) {
       hero.attackTimer += stats.attackInterval;
-      front.hp -= stats.damage;
-      emit(world, 'heroAttack', { enemyId: front.id, damage: stats.damage, x: front.x, boss: front.boss });
-      if (front.hp <= 0) killEnemy(state, world, front, rng, balance);
+      const versus = front.boss ? stats.bonus.damageVsBossPct : stats.bonus.damageVsNormalPct;
+      const damage = stats.damage * (1 + versus / 100);
+      front.hp -= damage;
+      emit(world, 'heroAttack', { enemyId: front.id, damage, x: front.x, boss: front.boss });
+      if (front.hp <= 0) killEnemy(state, world, front, rng, balance, stats);
     }
   } else {
     hero.attackTimer = Math.min(hero.attackTimer, 0.25);
@@ -238,7 +245,9 @@ export function step(state, world, dt, rng, balance = BALANCE) {
     attacker.attackTimer -= dt;
     if (attacker.attackTimer <= 0) {
       attacker.attackTimer += attacker.attackInterval;
-      const damage = attacker.damage * (1 - stats.armor / 100);
+      const lowHp = hero.hp < stats.maxHp * POWER_RULES.lowHpThreshold ? stats.bonus.lowHpArmor : 0;
+      const armor = Math.min(balance.hero.armorCapPct, stats.armor + lowHp);
+      const damage = attacker.damage * (1 - armor / 100);
       hero.hp -= damage;
       emit(world, 'heroHit', { enemyId: attacker.id, damage, boss: attacker.boss });
       if (hero.hp <= 0) heroDies(state, world, balance);

@@ -2,7 +2,9 @@
 // (améliorations, sac, héros, carte, options), bandeaux, notifications et retour hors ligne.
 // L'interface ne modifie jamais l'état directement : elle appelle les actions fournies par main.js.
 import { BALANCE } from '../data/balance.js';
-import { BOSSES } from '../data/enemies.js';
+import { BOSSES, ENEMIES } from '../data/enemies.js';
+import { EFFECT_LABELS, POWER_RULES } from '../data/powers.js';
+import { REBIRTH, REBIRTH_KEEPS, REBIRTH_RESETS, TALENTS } from '../data/rebirth.js';
 import { SLOTS, STAT_LABELS } from '../data/items.js';
 import { ZONES } from '../data/zones.js';
 import { isBossStage, stageLabel, zoneForStage, zoneIndexForStage } from '../core/combat.js';
@@ -10,6 +12,10 @@ import { upgradeCost } from '../core/economy.js';
 import { formatDecimal, formatDuration, formatNumber, formatStat } from '../core/format.js';
 import { bulkRecycleCandidates, isUpgrade, listInventory } from '../core/inventory.js';
 import { rarityById, recycleValue } from '../core/loot.js';
+import {
+  bossFirstStage, bossesInOrder, pityRemaining, powerById, powerProbabilities, powerSlots, rerollCost,
+} from '../core/powers.js';
+import { canRebirth, rebirthReward, talentCost, talentLevelEffects } from '../core/rebirth.js';
 import { computeHeroStats, statsWithItem } from '../core/stats.js';
 import { heroPortraitUrl, itemIconUrl, slotIconName, spriteUrl } from '../render/pixel.js';
 
@@ -18,8 +24,11 @@ const TABS = {
   inventory: { title: 'Inventaire', icon: 'icon_bag' },
   hero: { title: 'Héros', icon: 'icon_hero' },
   campaign: { title: 'Carte du monde', icon: 'icon_map' },
+  codex: { title: 'Codex des boss', icon: 'icon_book' },
+  rebirth: { title: 'Renaissance', icon: 'icon_rebirth' },
   options: { title: 'Options', icon: 'icon_gear' },
 };
+const TAB_MIN_WIDTH = 78; // en dessous, seuls les icônes (et le libellé de l'onglet actif) sont affichés
 const UPGRADE_ICONS = { damage: 'weapon_sword', attackSpeed: 'icon_bolt', vitality: 'icon_heart' };
 const STAT_ICONS = { damage: 'weapon_sword', attackSpeed: 'icon_bolt', maxHp: 'icon_heart', armor: 'icon_shield' };
 const SORT_LABELS = { rarity: 'Rareté', level: 'Niveau', power: 'Puissance', recent: 'Récent' };
@@ -32,6 +41,9 @@ const escapeHtml = (text) => String(text).replace(/[&<>"']/g, (c) => `&#${c.char
 const icon = (name, scale = 2) => spriteUrl(name, scale);
 const img = (name, cls = '', alt = '') => `<img class="px ${cls}" src="${icon(name)}" alt="${alt}">`;
 const coin = () => img('coin');
+const fragment = () => img('icon_fragment');
+// Texte des effets d'un pouvoir ou d'un talent : « +10 % dégâts · +5 % or ».
+const effectText = (effects) => Object.entries(effects).map(([k, v]) => EFFECT_LABELS[k](v)).join(' · ') || '—';
 
 export class UI {
   constructor(root, actions) {
@@ -48,10 +60,13 @@ export class UI {
     this.desktop = null; // renseigné par main.js dans la version bureau
     this.goldLog = [];
     this.lastHud = {};
+    this.oddsOpen = new Set(); // boss dont la table de probabilités est dépliée
+    this.newTabs = new Set(); // onglets débloqués récemment (pastille)
 
     this.$('gold-icon').src = icon('coin', 3);
     this.$('dps-icon').src = icon('weapon_sword', 2);
     this.$('hp-icon').src = icon('icon_heart', 2);
+    this.$('fragment-icon').src = icon('icon_fragment', 2);
     this.$('brand-icon').src = icon('icon_hero', 2);
     root.querySelectorAll('#tabs img[data-icon]').forEach((el) => { el.src = icon(el.dataset.icon); });
     root.querySelectorAll('#tabs button').forEach((btn) => {
@@ -124,8 +139,21 @@ export class UI {
   onClick(event) {
     const el = event.target.closest('[data-action]');
     if (!el || el.disabled) return;
-    const { action, key, id, stage, seconds, value, preset } = el.dataset;
+    const { action, key, id, stage, seconds, value, preset, boss } = el.dataset;
     switch (action) {
+      case 'reroll': this.actions.rerollPower(boss); break;
+      case 'keep-power': this.actions.resolvePower(boss, false); break;
+      case 'take-power': this.actions.resolvePower(boss, true); break;
+      case 'toggle-power': this.actions.togglePower(boss); break;
+      case 'show-odds':
+        if (this.oddsOpen.has(boss)) this.oddsOpen.delete(boss);
+        else this.oddsOpen.add(boss);
+        this.invalidate();
+        break;
+      case 'lock': this.actions.toggleLock(id); break;
+      case 'buy-talent': this.actions.buyTalent(key); break;
+      case 'rebirth': this.showRebirthConfirm(this.state); break;
+      case 'confirm-rebirth': this.closeModal(); this.actions.rebirth(); break;
       case 'buy': this.actions.buy(key); break;
       case 'select-item': this.selectedItemId = id; this.invalidate(); break;
       case 'equip': this.actions.equip(id); break;
@@ -211,6 +239,14 @@ export class UI {
       case 'unlock':
         if (this.tab === 'campaign') this.invalidate();
         break;
+      case 'powerUnlocked': {
+        const power = powerById(event.powerId);
+        this.banner(`Pouvoir ancestral : ${power.name}`, 'win');
+        this.toast(`${BOSSES[event.bossId].name} vaincu pour la première fois : ${power.name} (${effectText(power.effects)})`, '#e8b64a');
+        if (this.tab !== 'codex') this.newTabs.add('codex');
+        if (this.tab === 'codex' || this.tab === 'hero') this.invalidate();
+        break;
+      }
       case 'heroDeath':
         this.banner(`Vaincu… retour à l'étape ${stageLabel(event.to)}`, 'lose');
         this.toast('Mode farm : améliorez le héros puis appuyez sur « Avancer ».');
@@ -266,13 +302,39 @@ export class UI {
 
     const upgrades = state.inventory.some((i) => isUpgradeCached(this, state, i));
     this.$('inv-badge').classList.toggle('hidden', !upgrades || this.tab === 'inventory');
+    this.updateTabs(state);
+    this.$('fragments-chip').classList.toggle('hidden', state.fragments <= 0 && state.records.rebirths === 0);
+    this.setText('fragments', formatNumber(state.fragments));
 
     if (this.dirty && this.tab) {
       this.renderPanel(state);
       this.dirty = false;
-    } else if (this.tab === 'upgrades') {
+    } else if (this.tab === 'upgrades' || this.tab === 'codex') {
       this.refreshUpgradeButtons(state);
     }
+  }
+
+  // Menus débloqués progressivement : Codex après le premier boss, Renaissance quand elle devient possible.
+  updateTabs(state) {
+    const visible = {
+      codex: Object.keys(state.powers).length > 0,
+      rebirth: canRebirth(state) || state.fragments > 0 || state.records.rebirths > 0,
+    };
+    const key = `${visible.codex}|${visible.rebirth}|${this.root.clientWidth}|${this.tab}|${[...this.newTabs].join()}`;
+    if (this.lastHud.tabs === key) return;
+    const firstPass = this.lastHud.tabs === undefined;
+    this.lastHud.tabs = key;
+    for (const [tab, show] of Object.entries(visible)) {
+      const btn = this.root.querySelector(`#tabs button[data-tab="${tab}"]`);
+      if (show && btn.classList.contains('hidden') && !firstPass && this.tab !== tab) this.newTabs.add(tab);
+      btn.classList.toggle('hidden', !show);
+    }
+    this.newTabs.delete(this.tab);
+    this.root.querySelectorAll('#tabs button').forEach((b) => {
+      b.querySelector('.badge-new')?.classList.toggle('hidden', !this.newTabs.has(b.dataset.tab));
+    });
+    const count = this.root.querySelectorAll('#tabs button:not(.hidden)').length;
+    this.$('tabs').classList.toggle('tabs-compact', count * TAB_MIN_WIDTH > this.root.querySelector('#tabs').clientWidth);
   }
 
   setText(id, text) {
@@ -333,6 +395,8 @@ export class UI {
       inventory: () => this.renderInventory(state),
       hero: () => this.renderHero(state),
       campaign: () => this.renderCampaign(state),
+      codex: () => this.renderCodex(state),
+      rebirth: () => this.renderRebirth(state),
       options: () => this.renderOptions(state),
     };
     body.innerHTML = renderers[this.tab]();
@@ -341,6 +405,8 @@ export class UI {
       upgrades: () => `${coin()}<b class="gold-text num">${formatNumber(state.gold)}</b>`,
       inventory: () => `<span class="num">${state.inventory.length}/${BALANCE.loot.inventorySize}</span>`,
       campaign: () => `Étape max ${stageLabel(state.maxStage)}`,
+      codex: () => `Pouvoirs actifs ${state.equippedPowers.length}/${powerSlots(state)}`,
+      rebirth: () => `${fragment()}<b class="num">${formatNumber(state.fragments)}</b>`,
     }[this.tab];
     this.$('panel-extra').innerHTML = extra ? extra() : '';
   }
@@ -371,7 +437,7 @@ export class UI {
   }
 
   refreshUpgradeButtons(state) {
-    this.$('panel-body').querySelectorAll('[data-action="buy"]').forEach((btn) => {
+    this.$('panel-body').querySelectorAll('[data-action="buy"], [data-action="reroll"]').forEach((btn) => {
       btn.disabled = state.gold < Number(btn.dataset.cost);
     });
     const extra = this.$('panel-extra').querySelector('b');
@@ -391,7 +457,8 @@ export class UI {
       title="${escapeHtml(item.name)} · ${rarityById(item.rarity).label} · niv. ${item.level}">
       <img class="px" src="${itemIconUrl(item)}" alt="${escapeHtml(item.name)}">
       ${up ? '<span class="up" title="Meilleur que l\'équipement porté">▲</span>' : ''}
-      ${equipped ? '<span class="eq">É</span>' : ''}</${tag}>`;
+      ${equipped ? '<span class="eq">É</span>' : ''}
+      ${item.locked ? `<img class="px lock" src="${icon('icon_lock', 1)}" alt="Verrouillé">` : ''}</${tag}>`;
   }
 
   renderInventory(state) {
@@ -471,12 +538,15 @@ export class UI {
         ${row('Armure', next.armor - cur.armor, formatDecimal(next.armor - cur.armor), ' %')}
       </div>`;
     }
+    const lock = `<button class="btn small lock-btn${item.locked ? ' on' : ''}" data-action="lock" data-id="${item.id}"
+      title="${item.locked ? 'Déverrouiller' : 'Verrouiller : protège du recyclage'}">${img('icon_lock')} ${item.locked ? 'Verrouillé' : 'Verrouiller'}</button>`;
     const actions = isEquipped
-      ? '<div class="muted">Objet porté. Équipez un autre objet pour le remplacer.</div>'
+      ? `<div class="detail-actions"><span class="muted" style="flex:1">Objet porté.</span>${lock}</div>`
       : `<div class="detail-actions">
           <button class="btn btn-primary" data-action="equip" data-id="${item.id}">Équiper</button>
-          <button class="btn btn-outline-gold" data-action="recycle" data-id="${item.id}" title="Recycler contre de l'or">Recycler +${formatNumber(recycleValue(item))} ${coin()}</button>
-        </div>`;
+          <button class="btn btn-outline-gold" data-action="recycle" data-id="${item.id}" ${item.locked ? 'disabled title="Objet verrouillé"' : 'title="Recycler contre de l\'or"'}>Recycler +${formatNumber(recycleValue(item))} ${coin()}</button>
+        </div>
+        <div class="detail-actions">${lock}</div>`;
     const preview = heroPortraitUrl({ ...state.equipment, [item.slot]: item }, 3);
 
     return `<div class="card item-detail r-${item.rarity}" style="display:flex;flex-direction:column;gap:5px">
@@ -515,12 +585,147 @@ export class UI {
         ${line('icon_shield', 'Armure', `${formatDecimal(s.armor)} %`)}
         ${line('icon_heart', 'Régénération', `${formatDecimal(s.regenPerSecond)} PV/s`)}
       </div></div>
+      ${this.renderHeroBonuses(state, s)}
       <div class="card"><div class="section-title">Exploits</div><div class="stats-grid">
         ${line('icon_skull', 'Ennemis vaincus', formatNumber(r.kills))}
         ${line('icon_skull', 'Boss vaincus', formatNumber(r.bossesDefeated))}
         ${line('icon_bag', 'Objets trouvés', formatNumber(r.itemsFound))}
         ${line('coin', 'Or gagné au total', formatNumber(r.goldEarned))}
+        ${r.rebirths ? line('icon_rebirth', 'Renaissances', formatNumber(r.rebirths)) : ''}
       </div></div>`;
+  }
+
+  renderHeroBonuses(state, stats) {
+    const powers = state.equippedPowers.map((bossId) => powerById(state.powers[bossId].current));
+    const bonuses = Object.entries(stats.bonus).filter(([, v]) => v !== 0);
+    if (!powers.length && !bonuses.length) return '';
+    return `<div class="card"><div class="section-title">Pouvoirs actifs et bonus permanents</div>
+      ${powers.map((p) => `<div class="r-${p.rarity}"><b class="rarity-text">${escapeHtml(p.name)}</b> <span class="muted">${effectText(p.effects)}</span></div>`).join('')}
+      ${bonuses.length ? `<div class="muted" style="margin-top:3px">Total : ${effectText(Object.fromEntries(bonuses.map(([k, v]) => [k, Math.round(v * 10) / 10])))}</div>` : ''}
+    </div>`;
+  }
+
+  // --- Codex des boss et pouvoirs ancestraux ---
+  powerBox(power, label) {
+    const rarity = rarityById(power.rarity);
+    return `<div class="power-box r-${power.rarity}">
+      <div class="section-title">${label}</div>
+      <div class="power-name rarity-text">${escapeHtml(power.name)}</div>
+      <div class="power-rarity rarity-text">${rarity.label}</div>
+      <div class="power-effect">${effectText(power.effects)}</div>
+    </div>`;
+  }
+
+  renderCodex(state) {
+    const rarityOdds = Object.entries(POWER_RULES.rarityWeights);
+    const totalWeight = rarityOdds.reduce((s, [, w]) => s + w, 0);
+    const odds = rarityOdds.map(([r, w]) => `<span class="r-${r}"><b class="rarity-text">${rarityById(r).label}</b> ${formatDecimal((w / totalWeight) * 100)} %</span>`).join(' · ');
+    const cards = bossesInOrder().map((bossId) => {
+      const boss = BOSSES[bossId];
+      const sprite = ENEMIES[boss.base].sprite;
+      const entry = state.powers[bossId];
+      const stage = stageLabel(bossFirstStage(bossId));
+      if (!entry) {
+        return `<div class="card power-card locked">
+          <div class="power-head"><div class="boss-portrait"><img class="px" src="${spriteUrl(sprite, 2, { tint: { color: '#4a5a78', alpha: 1 } })}" alt=""></div>
+          <div><div class="boss-name">???</div><div class="muted">Boss de l'étape ${stage} · vainquez-le pour découvrir son pouvoir.</div></div></div>
+        </div>`;
+      }
+      const current = powerById(entry.current);
+      const active = state.equippedPowers.includes(bossId);
+      const pity = pityRemaining(state, bossId);
+      let body;
+      if (entry.pending) {
+        body = `<div class="power-offer">
+          <div class="offer-cols">${this.powerBox(current, 'Actuel')}<div class="offer-arrow">⇄</div>${this.powerBox(powerById(entry.pending), 'Proposé')}</div>
+          <div class="detail-actions">
+            <button class="btn" data-action="keep-power" data-boss="${bossId}">Garder l'actuel</button>
+            <button class="btn btn-primary" data-action="take-power" data-boss="${bossId}">Prendre le nouveau</button>
+          </div></div>`;
+      } else {
+        const cost = rerollCost(state, bossId);
+        body = `${this.powerBox(current, 'Pouvoir actuel')}
+          <div class="reroll-row">
+            <button class="btn btn-gold num" data-action="reroll" data-boss="${bossId}" data-cost="${cost}" ${state.gold < cost ? 'disabled' : ''}
+              title="Propose un autre pouvoir de ce boss ; vous choisirez ensuite de le garder ou non.">Relancer ${coin()} ${formatNumber(cost)}</button>
+            <button class="btn small" data-action="show-odds" data-boss="${bossId}">${this.oddsOpen.has(bossId) ? 'Masquer' : 'Probabilités'}</button>
+          </div>
+          <div class="muted pity">${pity === 0 ? 'Prochaine relance : Épique ou mieux garanti.' : `Épique ou mieux garanti au plus tard dans ${pity} relance${pity > 1 ? 's' : ''}.`}</div>`;
+      }
+      let table = '';
+      if (this.oddsOpen.has(bossId)) {
+        const rows = powerProbabilities(bossId, { excludeId: entry.current, minRarity: pity === 0 ? POWER_RULES.pity.minRarity : 'common' })
+          .map(({ power, chance }) => `<div class="odds-row r-${power.rarity}"><span class="rarity-text">${escapeHtml(power.name)}</span>
+            <span class="muted">${effectText(power.effects)}</span><b class="num">${formatDecimal(chance * 100)} %</b></div>`).join('');
+        table = `<div class="odds"><div class="section-title">Prochaine relance (pouvoir actuel exclu)</div>${rows}</div>`;
+      }
+      return `<div class="card power-card">
+        <div class="power-head">
+          <div class="boss-portrait"><img class="px" src="${spriteUrl(sprite, 2, boss.palette ? { colors: boss.palette } : {})}" alt=""></div>
+          <div style="flex:1"><div class="boss-name">${escapeHtml(boss.name)}</div>
+            <div class="muted">Étape ${stage} · ${entry.victories} victoire${entry.victories > 1 ? 's' : ''}</div></div>
+          <button class="btn small${active ? ' btn-primary' : ''}" data-action="toggle-power" data-boss="${bossId}"
+            title="${active ? 'Retirer ce pouvoir des emplacements actifs' : 'Activer ce pouvoir'}">${active ? 'Actif ✓' : 'Activer'}</button>
+        </div>
+        ${body}${table}
+      </div>`;
+    });
+    return `<div class="card">
+        <div class="muted">1<sup>re</sup> victoire contre un boss : un pouvoir. Une relance en propose un autre, vous choisissez lequel garder.
+          ${powerSlots(state)} emplacements actifs.</div>
+        <div class="odds-summary">${odds}</div>
+      </div>${cards.join('')}`;
+  }
+
+  // --- Renaissance et talents ---
+  renderRebirth(state) {
+    const reward = rebirthReward(state);
+    const can = canRebirth(state);
+    const talents = TALENTS.map((talent) => {
+      const level = state.talents[talent.id] ?? 0;
+      const maxed = level >= talent.max;
+      const cost = talentCost(talent, level);
+      const now = effectText(talentLevelEffects(talent, level));
+      const next = maxed ? '' : effectText(talentLevelEffects(talent, level + 1));
+      return `<div class="card upg-card talent-card">
+        <div class="upg-icon">${img(talent.icon)}</div>
+        <div><div class="upg-name">${talent.name}</div><div class="upg-level">Niv. ${level}/${talent.max}</div></div>
+        <div class="upg-effect">${maxed ? `<span class="to">${now}</span>` : `<span class="from">${level ? now : '—'}</span> → <span class="to">${next}</span>`}</div>
+        <button class="btn btn-gold num" data-action="buy-talent" data-key="${talent.id}" ${maxed || state.fragments < cost ? 'disabled' : ''}>
+          ${maxed ? 'Max' : `${fragment()} ${cost}`}</button>
+      </div>`;
+    });
+    return `<div class="card rebirth-card">
+        <div class="rebirth-head">${img('icon_rebirth')}<div>
+          <div><b>${formatNumber(state.fragments)}</b> fragments anciens · ${state.records.rebirths} renaissance${state.records.rebirths > 1 ? 's' : ''}</div>
+          <div class="muted">${can
+            ? `Étape max ${stageLabel(state.maxStage)} : renaître rapporte <b class="gold-text">+${reward} fragments</b>.`
+            : `Atteignez l'étape ${stageLabel(REBIRTH.minStage)} pour renaître (étape max actuelle ${stageLabel(state.maxStage)}).`}</div>
+        </div></div>
+        <div class="keep-reset">
+          <div><div class="section-title">Réinitialisé</div><ul>${REBIRTH_RESETS.map((t) => `<li class="bad">${t}</li>`).join('')}</ul></div>
+          <div><div class="section-title">Conservé</div><ul>${REBIRTH_KEEPS.map((t) => `<li class="good">${t}</li>`).join('')}</ul></div>
+        </div>
+        <button class="btn btn-gold" data-action="rebirth" ${can ? '' : 'disabled'}>Renaître (+${reward} ${fragment()})</button>
+      </div>
+      <div class="section-title">Talents permanents</div>
+      <div class="upg-list">${talents.join('')}</div>`;
+  }
+
+  showRebirthConfirm(state) {
+    if (!canRebirth(state)) return;
+    this.$('modal-card').innerHTML = `<h2>Renaissance</h2>
+      <p>Vous gagnerez <b class="gold-text">+${rebirthReward(state)} fragments anciens</b> à investir dans les talents permanents.</p>
+      <div class="keep-reset">
+        <div><div class="section-title">Réinitialisé</div><ul>${REBIRTH_RESETS.map((t) => `<li class="bad">${t}</li>`).join('')}</ul></div>
+        <div><div class="section-title">Conservé</div><ul>${REBIRTH_KEEPS.map((t) => `<li class="good">${t}</li>`).join('')}</ul></div>
+      </div>
+      <p class="muted">Aucun déblocage permanent n'est perdu.</p>
+      <div class="detail-actions">
+        <button class="btn" data-action="close-modal">Annuler</button>
+        <button class="btn btn-gold" data-action="confirm-rebirth">Confirmer la Renaissance</button>
+      </div>`;
+    this.$('modal').classList.remove('hidden');
   }
 
   // --- Carte ---

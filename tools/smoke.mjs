@@ -111,8 +111,12 @@ await check('recycler un objet contre de l’or', async () => {
 await check('onglets avec icône et état actif distinct', async () => {
   const tabs = await game(() => [...document.querySelectorAll('#tabs button')].map((b) => ({
     tab: b.dataset.tab, icon: b.querySelector('img')?.naturalWidth > 0, active: b.classList.contains('active'),
+    hidden: b.classList.contains('hidden'),
   })));
-  assert(tabs.length === 5 && tabs.every((t) => t.icon), JSON.stringify(tabs));
+  assert(tabs.length === 7 && tabs.every((t) => t.icon), JSON.stringify(tabs));
+  // Menus débloqués progressivement : Codex et Renaissance cachés en début de partie.
+  const hidden = tabs.filter((t) => t.hidden).map((t) => t.tab).sort().join();
+  assert(hidden === 'codex,rebirth', `onglets cachés : ${hidden}`);
   assert(tabs.filter((t) => t.active).map((t) => t.tab).join() === 'inventory', JSON.stringify(tabs));
 });
 
@@ -174,6 +178,86 @@ await check('un boss apparaît au palier et donne une récompense', async () => 
   await waitFor(() => __idle.state.records.bossesDefeated >= 1, 20000);
   const after = await game(() => __idle.state.records.itemsFound);
   assert(after > found, 'aucun objet garanti');
+});
+
+await check('pouvoir ancestral : débloqué au premier boss et affiché dans le Codex', async () => {
+  const entry = await game(() => __idle.state.powers.slime_king);
+  assert(entry && entry.current, 'aucun pouvoir débloqué');
+  await waitFor(() => !document.querySelector('#tabs button[data-tab="codex"]').classList.contains('hidden'), 3000);
+  await page.click('#tabs button[data-tab="codex"]');
+  await page.waitForTimeout(200);
+  const text = await page.textContent('#panel-body');
+  assert(text.includes('Roi Gluant') && text.includes('Pouvoir actuel'), text.slice(0, 200));
+});
+
+await check('relance : proposition, refus puis acceptation, sans écrasement automatique', async () => {
+  await game(() => { __idle.state.gold += 1e6; __idle.state.powers.slime_king.pending = null; });
+  await page.waitForTimeout(150);
+  const before = await game(() => __idle.state.powers.slime_king.current);
+  await page.click('[data-action="reroll"][data-boss="slime_king"]');
+  await page.waitForSelector('.power-offer');
+  const offer = await game(() => __idle.state.powers.slime_king);
+  assert(offer.current === before && offer.pending && offer.pending !== before, JSON.stringify(offer));
+  await page.click('[data-action="keep-power"][data-boss="slime_king"]');
+  await page.waitForTimeout(150);
+  const kept = await game(() => __idle.state.powers.slime_king);
+  assert(kept.current === before && kept.pending === null, JSON.stringify(kept));
+  await page.click('[data-action="reroll"][data-boss="slime_king"]');
+  await page.waitForSelector('.power-offer');
+  const proposed = await game(() => __idle.state.powers.slime_king.pending);
+  await page.click('[data-action="take-power"][data-boss="slime_king"]');
+  await page.waitForTimeout(150);
+  const taken = await game(() => __idle.state.powers.slime_king);
+  assert(taken.current === proposed && taken.pending === null, JSON.stringify(taken));
+  // Une proposition en attente survit au rechargement.
+  await page.click('[data-action="reroll"][data-boss="slime_king"]');
+  await page.waitForSelector('.power-offer');
+  await page.screenshot({ path: `${outDir}/compact-codex-offer.png` });
+  const pending = await game(() => __idle.state.powers.slime_king.pending);
+  await page.reload();
+  await waitFor(() => window.__idle, 5000);
+  const after = await game(() => __idle.state.powers.slime_king);
+  assert(after.pending === pending && after.current === taken.current, JSON.stringify(after));
+  await game(() => __idle.actions.resolvePower('slime_king', false));
+  await page.click('[data-action="close-modal"]').catch(() => {});
+});
+
+await check('verrouillage : un objet verrouillé ne peut pas être recyclé', async () => {
+  const item = await game(() => __idle.addItem('dagger', 'common', 1));
+  await page.click('#tabs button[data-tab="inventory"]');
+  await page.click(`.inv-grid [data-id="${item.id}"]`);
+  await page.click('.item-detail [data-action="lock"]');
+  await page.waitForTimeout(150);
+  const disabled = await page.$eval('.item-detail [data-action="recycle"]', (b) => b.disabled);
+  const locked = await game((id) => __idle.state.inventory.find((i) => i.id === id).locked, item.id);
+  assert(locked && disabled, `verrou ${locked}, bouton désactivé ${disabled}`);
+  assert(await page.$(`.inv-grid [data-id="${item.id}"] img.lock`), 'icône de verrou absente');
+});
+
+await check('Renaissance : confirmation, réinitialisation et conservation des déblocages', async () => {
+  await game(() => { __idle.state.maxStage = 16; });
+  await waitFor(() => !document.querySelector('#tabs button[data-tab="rebirth"]').classList.contains('hidden'), 3000);
+  await page.click('#tabs button[data-tab="rebirth"]');
+  await page.waitForTimeout(150);
+  await page.click('[data-action="rebirth"]');
+  await page.waitForSelector('#modal:not(.hidden)');
+  const text = await page.textContent('#modal-card');
+  assert(text.includes('Conservé') && text.includes('Réinitialisé'), text);
+  const before = await game(() => ({ powers: JSON.stringify(__idle.state.powers), weapon: __idle.state.equipment.weapon.id }));
+  await page.click('[data-action="confirm-rebirth"]');
+  await page.waitForTimeout(200);
+  const after = await game(() => ({
+    stage: __idle.state.maxStage, gold: __idle.state.gold, fragments: __idle.state.fragments,
+    powers: JSON.stringify(__idle.state.powers), weapon: __idle.state.equipment.weapon.id, rebirths: __idle.state.records.rebirths,
+  }));
+  assert(after.stage === 1 && after.gold === 0 && after.fragments > 0 && after.rebirths === 1, JSON.stringify(after));
+  assert(after.powers === before.powers && after.weapon === before.weapon, 'déblocage perdu');
+  const fragments = after.fragments;
+  await page.click('[data-action="buy-talent"][data-key="power"]');
+  await page.waitForTimeout(150);
+  const talent = await game(() => [__idle.state.talents.power, __idle.state.fragments]);
+  assert(talent[0] === 1 && talent[1] < fragments, JSON.stringify(talent));
+  await page.screenshot({ path: `${outDir}/compact-rebirth.png` });
 });
 
 await check('la progression est sauvegardée et restaurée après relance', async () => {

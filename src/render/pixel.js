@@ -174,11 +174,12 @@ export function slotIconName(slot) {
   return SLOT_ICONS[slot];
 }
 
-export function spriteUrl(name, scale = 2) {
-  const key = `url|${name}|${scale}`;
+// options : passées à spriteCanvas (colors, tint, flash…).
+export function spriteUrl(name, scale = 2, options = {}) {
+  const key = `url|${name}|${scale}|${JSON.stringify(options)}`;
   let url = cache.get(key);
   if (url) return url;
-  const src = spriteCanvas(name);
+  const src = spriteCanvas(name, options);
   const canvas = createCanvas(src.width * scale, src.height * scale);
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
