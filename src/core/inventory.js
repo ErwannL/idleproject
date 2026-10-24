@@ -1,7 +1,8 @@
 // Inventaire : ajout, équipement, recyclage, tri et comparaison.
 import { BALANCE } from '../data/balance.js';
 import { addGold } from './economy.js';
-import { itemPower, rarityIndex, recycleValue } from './loot.js';
+import { trackContracts } from './contracts.js';
+import { itemPower, rarityIndex, recycleMaterials, recycleValue } from './loot.js';
 import { computeHeroStats, statsWithItem } from './stats.js';
 
 // Inventaire plein : l'objet est recyclé en or plutôt que perdu.
@@ -30,6 +31,15 @@ export function recycleItem(state, itemId, balance = BALANCE) {
   const index = state.inventory.findIndex((i) => i.id === itemId);
   if (index < 0 || state.inventory[index].locked) return 0;
   const [item] = state.inventory.splice(index, 1);
+  return salvage(state, item, balance);
+}
+
+// Recyclage : or + matériaux (éclats, essences) ; compte pour les contrats.
+function salvage(state, item, balance) {
+  const materials = recycleMaterials(item, balance);
+  state.materials.shards += materials.shards;
+  state.materials.essence += materials.essence;
+  trackContracts(state, 'recycle', 1);
   return addGold(state, recycleValue(item, balance));
 }
 
@@ -38,7 +48,7 @@ export function recycleMatching(state, predicate, balance = BALANCE) {
   let count = 0;
   state.inventory = state.inventory.filter((item) => {
     if (item.locked || !predicate(item)) return true;
-    gold += addGold(state, recycleValue(item, balance));
+    gold += salvage(state, item, balance);
     count += 1;
     return false;
   });
@@ -48,7 +58,7 @@ export function recycleMatching(state, predicate, balance = BALANCE) {
 const itemNumber = (item) => Number.parseInt(item.id.slice(2), 10) || 0;
 
 const SORTERS = {
-  rarity: (a, b) => rarityIndex(b.rarity) - rarityIndex(a.rarity) || itemPower(b) - itemPower(a),
+  rarity: (a, b) => rarityIndex(b.rarity) - rarityIndex(a.rarity) || itemPower(b) - itemPower(a) || itemNumber(b) - itemNumber(a),
   level: (a, b) => b.level - a.level || rarityIndex(b.rarity) - rarityIndex(a.rarity),
   power: (a, b) => itemPower(b) - itemPower(a),
   recent: (a, b) => itemNumber(b) - itemNumber(a),

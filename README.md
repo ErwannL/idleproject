@@ -55,28 +55,23 @@ conservée d'une session à l'autre. La sauvegarde est liée à l'adresse (port 
 
 ## Commandes
 
-Tout est à la souris ; le combat n'a besoin d'aucune action.
+Tout est à la souris ; le combat n'a besoin d'aucune action. Barre du haut : or, gemmes et tickets
+(ouvrent l'invocation), contrats, récompenses, paramètres.
 
 | Onglet | Rôle |
 |---|---|
-| **Améliorer** | Cartes Dégâts, Vitesse d'attaque, Vitalité : niveau, effet du prochain niveau, coût |
-| **Sac** | 3 zones : équipement porté · fiche de l'objet (stats, comparaison, aperçu du héros, Équiper / Recycler) · grille avec filtres par type, tri (rareté, niveau, puissance, récent), compteur, recyclage groupé protégé |
-| **Héros** | Chevalier équipé, statistiques, exploits |
-| **Carte** | Zones (en cours, terminée, bloquée) et leurs étapes ; avancée automatique |
-| **Codex** *(après le 1er boss)* | Pouvoir ancestral de chaque boss, victoires, activation (emplacements limités), relance contre de l'or avec choix ancien / nouveau, probabilités |
-| **Renaissance** *(dès l'étape 2-5)* | Recommencer contre des fragments anciens ; talents permanents |
-| **Options** | Sauvegarde, fenêtre (premier plan, tailles Mini / Standard / Large), test hors ligne, réinitialisation |
+| **Améliorer** | Catégories Combat / Survie / Ressources : effet actuel → suivant, coût |
+| **Inventaire** | Sac (équipement porté, fiche avec effets spéciaux et comparaison, grille, filtres, tri, recyclage) et Forge (fabriquer, réaffûter, relancer les effets) |
+| **Héros** | 6 chevaliers à collectionner, niveau, statistiques, bonus permanents |
+| **Compagnons** *(après le 1er boss)* | 3 emplacements, bonus passif + compétence, amélioration |
+| **Compétences** | Frappe rapide, Tourbillon, Cri de guerre, Frappe sacrée ; lancement automatique |
+| **Arbre** *(dès l'étape 2-5)* | Renaissance et arbre de talents à 4 branches |
+| **Carte** | Carte du monde illustrée, 6 zones, étapes ; avancée automatique |
+| **Donjons** *(vers l'étape 2-2)* | Crypte spectrale : butin ciblé, chemin, clés |
+| **Boss** *(après le 1er boss)* | Pouvoirs ancestraux, **Réaffronter** pour gagner une charge de relance, maîtrise, synergies |
 
-Trois dispositions selon la fenêtre :
-- **Mini** (petite fenêtre) : le panneau s'ouvre par-dessus la scène, barre du haut et onglets restent visibles ;
-- **Standard** (fenêtre en hauteur, ≥ 420 px) : la scène en haut, le panneau toujours ouvert dessous ;
-- **Large** (≥ 720 px) : le panneau sur le côté.
-
-Le DPS, les PV et l'or restent affichés en permanence dans la barre du haut. Échap ferme le panneau
-(mode mini) ou la fenêtre de retour.
-
-**Recyclage groupé :** choisir « Communs » ou « + Rares », puis deux clics (le second confirme).
-Il ne touche jamais un objet Épique ou Légendaire, ni un objet marqué ▲ (meilleur que l'équipement porté).
+Trois dispositions selon la fenêtre : **Mini** (panneau par-dessus la scène), **Standard** (fenêtre en
+hauteur ≥ 420 px, panneau dessous), **Large** (≥ 720 px, panneau sur le côté). Échap ferme le panneau.
 
 ## Règles du prototype
 
@@ -105,7 +100,7 @@ Il ne touche jamais un objet Épique ou Légendaire, ni un objet marqué ▲ (me
 
 ## Critères d'acceptation
 
-Tous vérifiés automatiquement dans Chromium par `npm run smoke` (14/14, avec les onglets, filtres, tri et le recyclage groupé) :
+Tous vérifiés automatiquement dans Chromium par `npm run smoke` (24/24, avec les onglets, filtres, tri et le recyclage groupé) :
 
 | Critère | Statut |
 |---|---|
@@ -142,7 +137,7 @@ src/core/             LOGIQUE DE JEU PURE (testable sans navigateur)
   loot.js             génération d'objets depuis les données, raretés, valeur de recyclage
   inventory.js        équiper, recycler, trier, comparer
   offline.js          gains hors ligne
-  save.js / state.js  sauvegarde sûre, validation et migration des données chargées (format v3)
+  save.js / state.js  sauvegarde sûre, validation et migration des données chargées (format v4)
 src/render/           RENDU
   sprites.js          tous les assets pixel art (grilles de caractères)
   pixel.js            grilles -> canvas (cache), héros composé avec son équipement, police pixel
@@ -179,7 +174,7 @@ remplaçables :
 - modifier une grille met à jour le jeu immédiatement ;
 - `npm run export-assets` régénère `assets/sprites/*.png`, `assets/spritesheet.png` (planche ×4)
   et `assets/icon.png` (Playwright requis) ;
-- le héros est un chevalier de 20×22 px composé de calques : cape animée (3 images, derrière),
+- le héros est un chevalier de 24×28 px composé de calques : cape animée (3 images, derrière),
   corps (repos, 2 images de marche, attaque), armure, casque, arme ; les calques d'équipement sont
   teintés par les couleurs de l'objet et de sa rareté (plumet, liseré, garde de l'arme) ;
 - les icônes d'interface (onglets, statistiques, boss) sont des sprites du même fichier ;
@@ -191,7 +186,7 @@ remplaçables :
 ## Tests
 
 ```bash
-npm test        # 35 tests unitaires : économie, butin, inventaire (tri, recyclage protégé, verrou), combat, boss,
+npm test        # 54 tests unitaires : économie, butin, inventaire (tri, recyclage protégé, verrou), combat, boss,
                 # pouvoirs (déblocage, relance, choix, garantie, migration), Renaissance et talents, défaite,
                 # hors ligne (plafond, horloge, cohérence avec le farm actif), sauvegarde, sprites
 npm run smoke   # test de bout en bout dans Chromium + captures dans docs/screenshots
@@ -231,9 +226,12 @@ persiste. Reconsidérer Godot reste possible si le projet a besoin d'un moteur c
   déterministe). Une sauvegarde v3 ouverte par une ancienne version perdrait pouvoirs, talents et fragments.
 - Renaissance et pouvoirs : équilibrage de premier jet, à ajuster en jeu (seulement 3 boss pour l'instant).
 
-## Hors périmètre (phases suivantes)
+## v4
 
-D'après le game design : effets spéciaux d'équipement, butin ciblé, matériaux et fabrication (P3), gacha de
-héros et compagnons (P4), contrats, maîtrise des boss, événements discrets, nouvelles zones (P5) : non
-implémentés. Décisions encore ouvertes (`src/data/powers.js`) : nombre d'emplacements, coût de relance fixe
+Voir `docs/RELEASE_NOTES.md` : chevalier agrandi (24×28 px), scène sans texte superflu, niveau/XP,
+compétences, héros et compagnons (invocation sans achat réel), effets spéciaux et objets signature, forge,
+arbre de talents, 6 zones et carte du monde, donjon, contrats, événements, maîtrise et familles de pouvoirs.
+**Changer de pouvoir exige une nouvelle victoire contre le boss** (1 charge par victoire, 3 au maximum).
+
+Décisions encore ouvertes (`src/data/powers.js`) : nombre d'emplacements, coût de relance fixe
 ou progressif (`rerollCostGrowth`), tirage unique ou choix entre plusieurs résultats.

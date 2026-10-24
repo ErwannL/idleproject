@@ -4,13 +4,18 @@ import { BALANCE } from '../data/balance.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
 import { RARITIES } from '../data/items.js';
 import { ZONES } from '../data/zones.js';
-import { zoneIndexForStage } from '../core/combat.js';
+import { currentEncounter } from '../core/combat.js';
+import { equippedCompanions } from '../core/companions.js';
 import { formatNumber } from '../core/format.js';
+import { activeHero } from '../core/heroes.js';
 import { HERO_ANCHOR, drawText, heroComposite, spriteCanvas, textWidth } from './pixel.js';
 
-export const MIN_VIEW_HEIGHT = 96;
-const GROUND_DEPTH = 18; // hauteur du sol sous la ligne des pieds
-const MIN_VIEW_WIDTH = 200; // largeur logique visée (zone d'apparition visible)
+// Vue resserrée : le chevalier occupe une bonne partie de la hauteur de la scène.
+export const MIN_VIEW_HEIGHT = 78;
+const GROUND_DEPTH = 13; // hauteur du sol sous la ligne des pieds
+const MIN_VIEW_WIDTH = 124; // largeur logique minimale : le chevalier reste grand même en colonne étroite
+const MAX_FLOATING_TEXTS = 6;
+const FLYING_PETS = new Set(['owl', 'fairy', 'wisp']);
 const STALE_EVENT_SECONDS = 1.5;
 
 // Bruit déterministe pour placer le décor sans le stocker.
@@ -88,13 +93,28 @@ export class SceneRenderer {
     switch (event.type) {
       case 'heroAttack': {
         this.hero.attack = 0.16;
-        this.enemyFxFor(event.enemyId).hit = 0.08;
-        this.effects.push({ kind: 'slash', x: heroX + 14, y: this.groundY - 14, life: 0.14, max: 0.14 });
-        this.addText(formatNumber(event.damage), event.x, this.groundY - (event.boss ? 36 : 22), '#ffffff');
+        this.effects.push({ kind: 'slash', x: heroX + 16, y: this.groundY - 16, life: 0.14, max: 0.14, big: event.crit });
         if (event.boss) this.shake = Math.max(this.shake, 1);
-        this.burst(event.x - 4, this.groundY - 8, '#ffffff', 3);
+        this.burst(event.x - 4, this.groundY - 8, event.crit ? '#ffd23f' : '#ffffff', event.crit ? 6 : 3);
+        this.addText(formatNumber(event.damage), event.x, this.groundY - (event.boss ? 38 : 24), event.crit ? '#ffd23f' : '#ffffff');
         break;
       }
+      case 'enemyHit':
+        this.enemyFxFor(event.enemyId).hit = 0.08;
+        if (event.source === 'skill' || event.source === 'companion') {
+          this.addText(formatNumber(event.damage), event.x, this.groundY - (event.boss ? 42 : 28), event.source === 'skill' ? '#7fd6ff' : '#9cf08a');
+        }
+        break;
+      case 'skill':
+        this.skillEffect(event);
+        break;
+      case 'companionSkill':
+        this.effects.push({ kind: 'ring', x: heroX - 18, y: this.groundY - 12, color: '#9cf08a', life: 0.5, max: 0.5, r: 8 });
+        break;
+      case 'levelUp':
+        this.effects.push({ kind: 'beam', x: heroX, color: '#ffd23f', life: 1, max: 1, wide: true });
+        this.burst(heroX, this.groundY - 20, '#ffd23f', 12, 40);
+        break;
       case 'heroHit':
         this.hero.hurt = 0.12;
         this.enemyFxFor(event.enemyId).lunge = 0.14;
@@ -132,6 +152,8 @@ export class SceneRenderer {
   }
 
   addText(text, x, y, color) {
+    const texts = this.effects.filter((e) => e.kind === 'text');
+    if (texts.length >= MAX_FLOATING_TEXTS) this.effects.splice(this.effects.indexOf(texts[0]), 1);
     this.effects.push({ kind: 'text', text, x: x - textWidth(text) / 2, y, color, life: 0.7, max: 0.7 });
   }
 
@@ -147,8 +169,10 @@ export class SceneRenderer {
   }
 
   killEffect(event) {
-    const { sprite, scale } = this.enemyLook(event.kind, event.boss);
-    const img = spriteCanvas(sprite, { flash: true });
+    const { sprite, scale, heroLike, colors } = this.enemyLook(event.kind, event.boss);
+    const img = heroLike
+      ? heroComposite('idle', { weapon: { baseId: 'fallen_blade', rarity: 'epic' } }, true, 'b', colors, true)
+      : spriteCanvas(sprite, { flash: true });
     this.effects.push({
       kind: 'corpse', img, x: event.x, w: img.width * scale, h: img.height * scale,
       fly: this.flyHeight(event.kind, event.boss), life: 0.3, max: 0.3,
@@ -161,14 +185,29 @@ export class SceneRenderer {
         vx: Math.random() * 40 - 20, vy: -40 - Math.random() * 30, life: 0.8, max: 0.8,
       });
     }
-    this.addText(`+${formatNumber(event.gold)}`, event.x, this.groundY - (event.boss ? 44 : 30), '#ffd23f');
   }
 
+  skillEffect(event) {
+    const heroX = BALANCE.world.heroX;
+    const y = this.groundY - 14;
+    if (event.skillId === 'whirl') this.effects.push({ kind: 'ring', x: heroX + 4, y, color: '#ff7a6b', life: 0.4, max: 0.4, r: 30 });
+    else if (event.skillId === 'cry') this.effects.push({ kind: 'ring', x: heroX, y, color: '#ffd23f', life: 0.5, max: 0.5, r: 18 });
+    else if (event.skillId === 'holy') {
+      this.effects.push({ kind: 'beam', x: Math.round(event.x), color: '#ffe680', life: 0.8, max: 0.8, wide: true });
+      this.shake = Math.max(this.shake, 2);
+    } else this.effects.push({ kind: 'slash', x: heroX + 16, y: y - 2, life: 0.2, max: 0.2, big: true, color: '#7fd6ff' });
+  }
+
+  // Apparence d'un ennemi : sprite, échelle, palette (boss et variantes comme le loup des glaces).
   enemyLook(type, boss) {
-    const def = boss ? ENEMIES[BOSSES[type].base] : ENEMIES[type];
-    const frames = def.frames ?? [def.sprite];
+    const bossDef = boss ? BOSSES[type] : null;
+    const def = boss ? ENEMIES[bossDef.base] : ENEMIES[type];
+    const frames = bossDef?.sprite ? [bossDef.sprite] : def.frames ?? [def.sprite];
     const sprite = frames[Math.floor(this.time * 6) % frames.length];
-    return { def, sprite, scale: boss ? 2 : 1, colors: boss ? BOSSES[type].palette ?? null : null };
+    return {
+      def, sprite, heroLike: Boolean(bossDef?.heroLike), scale: bossDef ? bossDef.scale ?? 2 : 1,
+      colors: (bossDef ? bossDef.palette : def.palette) ?? null,
+    };
   }
 
   flyHeight(type, boss) {
@@ -179,7 +218,7 @@ export class SceneRenderer {
   render(state, world, dt) {
     this.time += dt;
     const ctx = this.ctx;
-    const zoneIndex = zoneIndexForStage(state.stage);
+    const zoneIndex = currentEncounter(state).zoneIndex;
     if (zoneIndex !== this.lastZone) {
       if (this.lastZone >= 0) this.zoneFade = 1;
       this.lastZone = zoneIndex;
@@ -195,6 +234,7 @@ export class SceneRenderer {
     }
     this.drawBackground(ctx, ZONES[zoneIndex], zoneIndex, world.scroll);
     this.drawEnemies(ctx, world, dt);
+    this.drawCompanions(ctx, state, world);
     this.drawHero(ctx, state, world);
     this.drawEffects(ctx, dt);
     ctx.restore();
@@ -303,8 +343,12 @@ export class SceneRenderer {
       const moving = fx.lastX !== null && Math.abs(fx.lastX - enemy.x) > 0.01;
       fx.lastX = enemy.x;
 
-      const { def, sprite, scale, colors } = this.enemyLook(enemy.type, enemy.boss);
-      const img = spriteCanvas(sprite, { colors, flash: fx.hit > 0 });
+      const { def, sprite, scale, colors, heroLike } = this.enemyLook(enemy.type, enemy.boss);
+      // Le Chevalier déchu utilise le corps du héros, retourné, avec une épée sombre.
+      const img = heroLike
+        ? heroComposite(fx.lunge > 0 ? 'attack' : moving ? ['walk1', 'walk2'][Math.floor(this.time * 6) % 2] : 'idle',
+          { weapon: { baseId: 'fallen_blade', rarity: 'epic' } }, fx.hit > 0, 'b', colors, true)
+        : spriteCanvas(sprite, { colors, flash: fx.hit > 0 });
       const w = img.width * scale;
       const h = img.height * scale;
       const bob = moving ? Math.round(Math.abs(Math.sin(this.time * 10 + enemy.id)) * scale) : 0;
@@ -316,6 +360,13 @@ export class SceneRenderer {
       ctx.globalAlpha = fx.appear;
       ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
       ctx.fillRect(x + 2 * scale, this.groundY, w - 4 * scale, 2);
+      if (enemy.elite) {
+        // Élite errante : halo rouge pulsant.
+        const glow = spriteCanvas(sprite, { colors, tint: { color: '#ff3b3b', alpha: 1 } });
+        ctx.globalAlpha = fx.appear * (0.5 + 0.3 * Math.sin(this.time * 8));
+        for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.drawImage(glow, x + dx, y + dy, w, h);
+        ctx.globalAlpha = fx.appear;
+      }
       ctx.drawImage(img, x, y, w, h);
 
       if (enemy.boss) {
@@ -327,8 +378,8 @@ export class SceneRenderer {
         ctx.globalAlpha = 0.25 + 0.15 * Math.sin(this.time * 5);
         ctx.fillStyle = '#ff4d6d';
         ctx.fillRect(x + 2, this.groundY + 1, w - 4, 1);
-      } else if (enemy.hp < enemy.maxHp) {
-        this.drawBar(ctx, Math.round(enemy.x - 6), y - 4, 12, enemy.hp / enemy.maxHp, '#e84a5f');
+      } else if (enemy.elite || enemy.hp < enemy.maxHp) {
+        this.drawBar(ctx, Math.round(enemy.x - 6), y - 4, 12, enemy.hp / enemy.maxHp, enemy.elite ? '#ff9a3d' : '#e84a5f');
       }
       ctx.globalAlpha = 1;
     }
@@ -339,9 +390,10 @@ export class SceneRenderer {
     const baseX = BALANCE.world.heroX - HERO_ANCHOR.x;
     const baseY = this.groundY - HERO_ANCHOR.y + 1;
 
+    const palette = activeHero(state).palette;
     if (hero.dead) {
       // Héros à terre, qui s'estompe.
-      const img = heroComposite('idle', state.equipment, false);
+      const img = heroComposite('idle', state.equipment, false, 'a', palette);
       ctx.save();
       ctx.globalAlpha = Math.max(0.2, 1 - this.hero.deathTime);
       ctx.translate(BALANCE.world.heroX, this.groundY);
@@ -361,16 +413,61 @@ export class SceneRenderer {
     const cape = hero.walking
       ? ['c', 'a'][Math.floor(this.time * 6) % 2]
       : ['a', 'b'][Math.floor(this.time * 2.5) % 2];
-    const img = heroComposite(frame, state.equipment, this.hero.hurt > 0, cape);
+    const img = heroComposite(frame, state.equipment, this.hero.hurt > 0, cape, palette);
     const jump = this.hero.victory > 0 ? Math.round(Math.abs(Math.sin(this.hero.victory * Math.PI * 2.5)) * 6) : 0;
     const lean = frame === 'attack' ? 1 : 0;
 
     ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
-    ctx.fillRect(BALANCE.world.heroX - 5, this.groundY, 10, 2);
+    ctx.fillRect(BALANCE.world.heroX - 7, this.groundY, 14, 2);
+    // Cri de guerre : aura dorée ; Rempart du golem : aura bleue.
+    for (const [active, color] of [[world.buffs?.cry > 0, '#ffd23f'], [world.buffs?.shield > 0, '#7fd6ff']]) {
+      if (!active) continue;
+      const aura = heroComposite(frame, state.equipment, false, cape, palette);
+      ctx.globalAlpha = 0.35 + 0.2 * Math.sin(this.time * 10);
+      const glow = this.tintedComposite(aura, color);
+      for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1]]) ctx.drawImage(glow, baseX + lean + dx, baseY - jump + dy);
+      ctx.globalAlpha = 1;
+    }
     ctx.drawImage(img, baseX + lean, baseY - jump);
 
     const stats = world.heroStats;
-    if (stats) this.drawBar(ctx, BALANCE.world.heroX - 7, baseY - 1 - jump, 14, hero.hp / stats.maxHp, '#5ad07a');
+    if (stats) this.drawBar(ctx, BALANCE.world.heroX - 8, baseY + 1 - jump, 16, hero.hp / stats.maxHp, '#5ad07a');
+  }
+
+  tintedComposite(source, color) {
+    this.tintCache ??= new Map();
+    const key = `${color}`;
+    let canvas = this.tintCache.get(key);
+    if (!canvas || canvas.width !== source.width) {
+      canvas = document.createElement('canvas');
+      canvas.width = source.width;
+      canvas.height = source.height;
+      this.tintCache.set(key, canvas);
+    }
+    const c = canvas.getContext('2d');
+    c.globalCompositeOperation = 'source-over';
+    c.clearRect(0, 0, canvas.width, canvas.height);
+    c.drawImage(source, 0, 0);
+    c.globalCompositeOperation = 'source-atop';
+    c.fillStyle = color;
+    c.fillRect(0, 0, canvas.width, canvas.height);
+    return canvas;
+  }
+
+  // Compagnons : suivent le chevalier, les volants planent au-dessus de son épaule.
+  drawCompanions(ctx, state, world) {
+    if (world.hero.dead) return;
+    equippedCompanions(state).forEach((companion, i) => {
+      const img = spriteCanvas(companion.sprite);
+      const flying = FLYING_PETS.has(companion.id);
+      const x = BALANCE.world.heroX - 22 - i * 13;
+      const hop = world.hero.walking ? Math.round(Math.abs(Math.sin(this.time * 9 + i)) * 2) : 0;
+      const hover = flying ? 16 + Math.round(Math.sin(this.time * 3 + i) * 2) : 0;
+      const y = this.groundY - img.height + 1 - hop - hover;
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      ctx.fillRect(x + 1, this.groundY, img.width - 2, 1);
+      ctx.drawImage(img, Math.round(x), y);
+    });
   }
 
   drawBar(ctx, x, y, w, ratio, color) {
@@ -411,10 +508,19 @@ export class SceneRenderer {
           break;
         case 'slash': {
           ctx.globalAlpha = t;
-          ctx.fillStyle = '#fff6c8';
-          const reach = 10 * (1 - t) + 4;
-          for (let a = -1.1; a <= 1.1; a += 0.18) {
-            ctx.fillRect(Math.round(fx.x + Math.cos(a) * reach), Math.round(fx.y + Math.sin(a) * reach), 1, 1);
+          ctx.fillStyle = fx.color ?? (fx.big ? '#ffd23f' : '#fff6c8');
+          const reach = (fx.big ? 14 : 10) * (1 - t) + 4;
+          for (let a = -1.1; a <= 1.1; a += 0.14) {
+            ctx.fillRect(Math.round(fx.x + Math.cos(a) * reach), Math.round(fx.y + Math.sin(a) * reach), fx.big ? 2 : 1, 1);
+          }
+          break;
+        }
+        case 'ring': {
+          ctx.globalAlpha = t;
+          ctx.fillStyle = fx.color;
+          const r = fx.r * (1 - t * 0.6) + 2;
+          for (let a = 0; a < Math.PI * 2; a += 0.2) {
+            ctx.fillRect(Math.round(fx.x + Math.cos(a) * r), Math.round(fx.y + Math.sin(a) * r * 0.5), 1, 1);
           }
           break;
         }
@@ -422,10 +528,11 @@ export class SceneRenderer {
           ctx.globalAlpha = Math.min(1, t * 1.5) * 0.7;
           ctx.fillStyle = fx.color;
           const w = fx.wide ? 5 : 3;
-          ctx.fillRect(fx.x - Math.floor(w / 2), 0, w, this.groundY);
+          const top = Math.max(0, this.groundY - 64); // colonne de lumière bornée : pas de trait sur tout l'écran
+          ctx.fillRect(fx.x - Math.floor(w / 2), top, w, this.groundY - top);
           ctx.globalAlpha = Math.min(1, t * 1.5);
           ctx.fillStyle = '#ffffff';
-          ctx.fillRect(fx.x, 0, 1, this.groundY);
+          ctx.fillRect(fx.x, top, 1, this.groundY - top);
           break;
         }
         case 'corpse': {

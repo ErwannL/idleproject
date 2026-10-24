@@ -2,11 +2,23 @@
 // la simulation (minuterie, continue même fenêtre réduite) et le rendu (requestAnimationFrame,
 // suspendu automatiquement quand la fenêtre est masquée).
 import { BALANCE } from './data/balance.js';
-import { changeStage, createCombat, resumeAdvance, step } from './core/combat.js';
+import { BOSSES } from './data/enemies.js';
+import { changeStage, createCombat, resetWave, resumeAdvance, step } from './core/combat.js';
+import { toggleCompanion, upgradeCompanion } from './core/companions.js';
+import { claimContract } from './core/contracts.js';
+import { abandonDungeon, setDungeonPath, startDungeon } from './core/dungeon.js';
 import { buyUpgrade } from './core/economy.js';
+import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
+import { craftItem, reforgeItem, sharpenItem } from './core/forge.js';
+import { summon } from './core/gacha.js';
+import { setActiveHero } from './core/heroes.js';
 import { addToInventory, bulkRecycleCandidates, equipItem, recycleItem, recycleMatching, toggleLock } from './core/inventory.js';
-import { powerById, rerollPower, resolveReroll, setPowerActive, powerSlots } from './core/powers.js';
+import {
+  bossDungeon, bossFirstStage, claimMastery, powerById, powerSlots, rerollPower, resolveReroll, setPowerActive,
+} from './core/powers.js';
 import { buyTalent, performRebirth } from './core/rebirth.js';
+import { rewardText } from './core/rewards.js';
+import { learnSkill } from './core/skills.js';
 import { generateItem, makeItem } from './core/loot.js';
 import { applyOfflineRewards, computeOfflineRewards } from './core/offline.js';
 import { Rng } from './core/rng.js';
@@ -58,7 +70,77 @@ function runOffline(fromMs, nowMs) {
   ui.invalidate();
 }
 
+// Toute action réussie est sauvegardée immédiatement et rafraîchit le panneau.
+function done(ok, message = null, color = null) {
+  if (!ok) return false;
+  if (message) ui.toast(message, color);
+  save();
+  ui.invalidate();
+  return true;
+}
+
 const actions = {
+  learnSkill(id) { done(learnSkill(state, id)); },
+  setSkillAuto(value) { state.skillAuto = value; done(true); },
+  setHero(id) { done(setActiveHero(state, id), 'Nouveau héros actif'); },
+  toggleCompanion(id) {
+    if (!toggleCompanion(state, id)) ui.toast(`Trois compagnons au maximum : retirez-en un d'abord.`);
+    else done(true);
+  },
+  upgradeCompanion(id) { done(upgradeCompanion(state, id)); },
+  summon(count, currency) {
+    const results = summon(state, rng, count, currency);
+    if (!results) return null;
+    state.records.summons += results.length;
+    done(true);
+    return results;
+  },
+  craft(slot) {
+    const item = craftItem(state, slot, rng);
+    if (item) ui.view.selectedItemId = item.id;
+    done(Boolean(item), item ? `Forgé : ${item.name}` : null);
+  },
+  reforge(id) { done(reforgeItem(state, id, rng), 'Effets spéciaux relancés'); },
+  sharpen(id) { done(sharpenItem(state, id), 'Objet réaffûté'); },
+  claimMastery(bossId) {
+    const given = claimMastery(state, bossId);
+    done(Boolean(given), given ? `Maîtrise : ${rewardText(given)}` : null, '#f2d083');
+  },
+  // Réaffronter un boss : le chevalier va à son étape et y reste (mode farm) pour gagner des charges.
+  rechallenge(bossId) {
+    if (bossDungeon(bossId)) {
+      ui.openTab('dungeons');
+      return;
+    }
+    if (state.dungeon) {
+      ui.toast("Terminez ou abandonnez d'abord le donjon.");
+      return;
+    }
+    state.autoAdvance = false;
+    changeStage(state, world, bossFirstStage(bossId));
+    done(true, `${BOSSES[bossId].name} : le chevalier l'affronte en boucle (mode farm)`);
+  },
+  enterDungeon(id, slot, path) {
+    if (!startDungeon(state, id, slot, path)) return;
+    resetWave(world);
+    done(true, 'Expédition lancée');
+  },
+  abandonDungeon() {
+    abandonDungeon(state);
+    resetWave(world);
+    done(true, 'Retour à la campagne');
+  },
+  setDungeonPath(path) { done(setDungeonPath(state, path)); },
+  claimContract(id) {
+    const given = claimContract(state, id, rng);
+    done(Boolean(given), given ? `Contrat rempli : ${rewardText(given)}` : null, '#f2d083');
+  },
+  claimEvent(id) {
+    const given = claimEvent(state, id);
+    done(Boolean(given), given ? `Récupéré : ${rewardText(given) || given.item?.name}` : 'Sac plein');
+  },
+  buyMerchant(id) { done(buyFromMerchant(state, id), 'Objet acheté'); },
+  dismissEvent(id) { done(dismissEvent(state, id)); },
   buy(key) {
     if (buyUpgrade(state, key)) {
       save();

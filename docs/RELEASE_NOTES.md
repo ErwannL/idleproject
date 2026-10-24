@@ -1,36 +1,48 @@
-## Idle RPG v3.0.0 — Pouvoirs ancestraux et Renaissance
+## Idle RPG v4.0.0 — Le chevalier, la carte et la feuille de route complète
 
-**Installation ou mise à jour :** téléchargez **IdleRPG-3.0.0-setup.exe** et lancez-le (jeu fermé).
-Une version précédente installée est remplacée automatiquement et **votre partie est conservée**.
-Les boss que vous aviez déjà battus vous donnent leur pouvoir dès le premier lancement.
+**Installation ou mise à jour :** téléchargez **IdleRPG-4.0.0-setup.exe** et lancez-le (jeu fermé).
+Une version précédente installée (v1, v2 ou v3) est remplacée automatiquement et **votre partie est conservée**
+(niveau 1, pouvoirs, équipement, Renaissance… et une charge de relance offerte par boss déjà battu).
 
 L'exécutable n'est pas signé : si Windows SmartScreen s'affiche, cliquez sur
 **Informations complémentaires**, puis **Exécuter quand même**.
 
-### Pouvoirs ancestraux des boss
+### Plus chevalier, plus lisible
 
-- La **première victoire** contre un boss débloque toujours l'un de ses pouvoirs (5 par boss, du Commun au Légendaire),
-  enregistré dans la sauvegarde.
-- Nouvel onglet **Codex** (apparaît après votre premier boss) : pouvoir de chaque boss, victoires, boss encore inconnus.
-- **Relancer contre de l'or** : propose un autre pouvoir du même boss. Vous comparez l'actuel et le proposé
-  et choisissez **Garder l'actuel** ou **Prendre le nouveau** : rien n'est jamais remplacé automatiquement,
-  même si vous fermez le jeu entre-temps.
-- Probabilités affichées (Commun 55 %, Rare 30 %, Épique 12 %, Légendaire 3 %) et **garantie** : Épique ou mieux
-  au plus tard après 6 relances.
-- **2 emplacements actifs** : choisissez les pouvoirs qui s'appliquent.
+- Nouveau chevalier **plus grand** (24×28 px au lieu de 16×20) : heaume à plumet, tabard bleu à croix d'or,
+  écu, cape ; la caméra zoome davantage pour qu'il occupe la scène.
+- **Scène de combat dégagée** : plus de textes « +or » qui couvraient tout, seulement les dégâts (et les coups
+  critiques en or). Zone et étapes en petit cartouche, niveau / XP / DPS / PV dans une barre en bas de la scène.
+- Barre du haut façon maquette : or, gemmes, tickets, contrats, récompenses, paramètres.
+- 9 onglets : Améliorer, Inventaire, Héros, Compagnons, Compétences, Arbre, Carte, Donjons, Boss
+  (les derniers apparaissent quand ils deviennent utiles).
 
-### Renaissance (premier prototype)
+### Changer de pouvoir : il faut réaffronter le boss
 
-- Disponible dès l'étape 2-5. Recommence la campagne contre des **fragments anciens**.
-- Réinitialise : étapes, or, améliorations. **Conserve** : équipement, sac, pouvoirs, Codex, talents, exploits.
-  Confirmation obligatoire avec la liste de ce qui est perdu et conservé.
-- 5 **talents permanents** : Puissance, Endurance, Fortune, Chasse, Héritage (emplacement de pouvoir supplémentaire,
-  relances moins chères).
+- Chaque **nouvelle victoire** contre un boss donne **1 charge de relance** (3 au maximum). Sans charge, pas de relance.
+- Bouton **Réaffronter** dans l'onglet Boss : le chevalier retourne directement à l'étape du boss.
+- **Maîtrise** des boss (3, 10, 25, 50 victoires → gemmes), **familles** de pouvoirs (Survie, Combat, Fortune) :
+  2 pouvoirs actifs de la même famille = effets +25 %.
 
-### Aussi
+### Feuille de route
 
-- **Verrouillage d'objets** : un objet verrouillé ne peut être recyclé ni seul, ni en groupe.
-- Onglets compacts quand il y en a beaucoup ; nouveaux menus signalés par une pastille.
+- **Niveau et XP** du héros (jusqu'au niveau 200) : +2 % dégâts et PV par niveau, 1 point de compétence par niveau.
+- **Compétences actives** : Frappe rapide, Tourbillon (niv. 5), Cri de guerre (niv. 12), Frappe sacrée (niv. 30),
+  lancées automatiquement.
+- **Améliorations par catégories** (Combat, Survie, Ressources) : coup critique, armure, régénération, trouvaille d'or.
+- **Héros** : 6 chevaliers (Chevalier, Paladin, Gardien, Chevalier de fortune, Berserker, Chevalier dragon),
+  chacun avec ses couleurs et son bonus, jusqu'à 5 étoiles.
+- **Compagnons** : 6 compagnons (Slime doré, Chat du château, Hibou érudit, Fée des bois, Mini-golem, Feu follet),
+  3 emplacements, bonus passif + compétence, améliorables.
+- **Invocation** avec gemmes ou tickets gagnés en jeu (aucun achat réel), probabilités affichées et garanties.
+- **Objets** : effets spéciaux (critique, vol de vie, épines, or, dégâts contre boss…) et **objets signature**
+  sur chaque boss ; **Forge** (fabriquer, réaffûter, relancer les effets) avec éclats et essence tirés du recyclage.
+- **Arbre de talents** à 4 branches (Combat, Survie, Ressources, Spécial) avec prérequis, payé en fragments de Renaissance.
+- **Carte du monde** illustrée : 6 zones (Plaines, Forêt sombre, Grottes de cristal, Désert brûlant,
+  Montagnes gelées, Terres maudites) et 4 nouveaux boss, dont le Chevalier déchu et le Roi démon.
+- **Donjon** (dès l'étape 2-2) : la Crypte spectrale, 5 salles, choix du butin ciblé et du chemin, avec des clés.
+- **Contrats d'aventure** (3 en permanence, progressent aussi hors ligne) et **événements** pendant le farm :
+  coffres, marchand, élites, vagues d'or, gemmes.
 
 Testé automatiquement sur Windows avant publication : lancement, combat, sauvegarde, relance, et mise à jour
-d'une installation v2 avec reprise de la partie.
+d'une installation v3 avec reprise de la partie.

@@ -29,11 +29,16 @@ export function talentEffects(state) {
   return out;
 }
 
+// Un nœud de l'arbre se débloque quand son parent atteint le niveau requis.
+export function talentUnlocked(state, talent) {
+  return !talent.requires || (state.talents[talent.requires.id] ?? 0) >= talent.requires.level;
+}
+
 export function buyTalent(state, id) {
   const talent = talentById(id);
   if (!talent) return false;
   const level = state.talents[id] ?? 0;
-  if (level >= talent.max) return false;
+  if (level >= talent.max || !talentUnlocked(state, talent)) return false;
   const cost = talentCost(talent, level);
   if (state.fragments < cost) return false;
   state.fragments -= cost;

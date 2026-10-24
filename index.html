@@ -12,37 +12,46 @@
   <div id="app" class="layout-mini">
     <div id="main-col">
       <header id="topbar">
-        <div class="brand"><img id="brand-icon" class="px" alt=""><span>Idle RPG</span></div>
-        <div class="chip chip-gold" title="Or"><img id="gold-icon" class="px" alt=""><span id="gold">0</span></div>
-        <div class="chip" title="Dégâts par seconde"><img id="dps-icon" class="px" alt=""><span id="dps">0</span></div>
-        <div class="chip" title="Points de vie max"><img id="hp-icon" class="px" alt=""><span id="hp">0</span></div>
-        <div class="chip chip-fragment hidden" id="fragments-chip" title="Fragments anciens (Renaissance)"><img id="fragment-icon" class="px" alt=""><span id="fragments">0</span></div>
-        <span id="rate" title="Or gagné par minute (moyenne sur 60 s)"></span>
+        <div class="brand"><img class="px" data-icon="icon_hero" alt=""><span>Idle RPG</span></div>
+        <div class="chip chip-gold" title="Or"><img class="px" data-icon="coin" alt=""><span id="gold">0</span></div>
+        <button class="chip chip-gem" data-open="summon" title="Gemmes — invocation"><img class="px" data-icon="icon_gem" alt=""><span id="gems">0</span></button>
+        <button class="chip chip-ticket" data-open="summon" title="Tickets d'invocation"><img class="px" data-icon="icon_ticket" alt=""><span id="tickets">0</span></button>
+        <div class="chip chip-fragment hidden" id="fragments-chip" title="Fragments anciens (Renaissance)"><img class="px" data-icon="icon_fragment" alt=""><span id="fragments">0</span></div>
+        <div class="top-actions">
+          <button class="icon-btn" data-open="contracts" title="Contrats d'aventure"><img class="px" data-icon="icon_trophy" alt=""><i class="badge hidden" id="contracts-badge"></i></button>
+          <button class="icon-btn" data-open="inbox" title="Récompenses"><img class="px" data-icon="icon_mail" alt=""><i class="badge hidden" id="inbox-badge"></i></button>
+          <button class="icon-btn" data-open="options" title="Paramètres"><img class="px" data-icon="icon_gear" alt=""></button>
+        </div>
       </header>
       <section id="play">
         <div id="stage-area">
           <canvas id="scene" aria-label="Combat"></canvas>
-          <div id="zone-card">
-            <div id="zone-name"></div>
-            <div id="stage-pips"></div>
+          <div id="zone-card"><div id="zone-name"></div><div id="stage-pips"></div></div>
+          <button id="auto-toggle" class="scene-btn" data-action="toggle-auto" title="Avancer automatiquement après chaque étape"></button>
+          <div id="scene-bottom">
+            <span id="level-badge">Niv. 1</span>
+            <div id="xp-bar"><div id="xp-fill"></div></div>
+            <span id="dps-chip"><img class="px" data-icon="weapon_sword" alt=""><span id="dps">0</span></span>
+            <span id="hp-chip"><img class="px" data-icon="icon_heart" alt=""><span id="hp">0</span></span>
           </div>
           <div id="banner" class="hidden"></div>
-          <div id="toasts"></div>
         </div>
         <div id="hud">
           <div id="progress"><div id="progress-fill"></div><span id="progress-text"></span></div>
-          <div id="loot-box" title="Dernier butin"><span class="muted">Butin :</span> <b id="last-loot">—</b></div>
+          <div id="news" title="Dernier événement"><span id="news-text">—</span></div>
           <button id="advance-btn" class="btn btn-primary small hidden" data-action="advance" title="Reprendre la progression">Avancer ▶</button>
         </div>
       </section>
       <nav id="tabs">
         <button data-tab="upgrades"><img class="px" data-icon="icon_upgrade" alt=""><span>Améliorer</span></button>
-        <button data-tab="inventory"><img class="px" data-icon="icon_bag" alt=""><span>Sac</span><i class="badge hidden" id="inv-badge"></i></button>
+        <button data-tab="inventory"><img class="px" data-icon="icon_bag" alt=""><span>Inventaire</span><i class="badge hidden" id="inv-badge"></i></button>
         <button data-tab="hero"><img class="px" data-icon="icon_hero" alt=""><span>Héros</span></button>
+        <button data-tab="companions" class="hidden"><img class="px" data-icon="icon_paw" alt=""><span>Compagnons</span><i class="badge badge-new hidden"></i></button>
+        <button data-tab="skills"><img class="px" data-icon="skill_quick" alt=""><span>Compétences</span><i class="badge hidden" id="skills-badge"></i></button>
+        <button data-tab="tree" class="hidden"><img class="px" data-icon="icon_tree" alt=""><span>Arbre</span><i class="badge badge-new hidden"></i></button>
         <button data-tab="campaign"><img class="px" data-icon="icon_map" alt=""><span>Carte</span></button>
-        <button data-tab="codex" class="hidden" title="Codex des boss"><img class="px" data-icon="icon_book" alt=""><span>Codex</span><i class="badge badge-new hidden"></i></button>
-        <button data-tab="rebirth" class="hidden" title="Renaissance"><img class="px" data-icon="icon_rebirth" alt=""><span>Renaissance</span><i class="badge badge-new hidden"></i></button>
-        <button data-tab="options"><img class="px" data-icon="icon_gear" alt=""><span>Options</span></button>
+        <button data-tab="dungeons" class="hidden"><img class="px" data-icon="icon_dungeon" alt=""><span>Donjons</span><i class="badge badge-new hidden"></i></button>
+        <button data-tab="boss" class="hidden"><img class="px" data-icon="icon_boss" alt=""><span>Boss</span><i class="badge badge-new hidden"></i></button>
       </nav>
     </div>
     <aside id="panel" class="hidden">

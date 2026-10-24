@@ -4,11 +4,13 @@
 import { BALANCE } from '../data/balance.js';
 import { BOSSES } from '../data/enemies.js';
 import { RARITIES } from '../data/items.js';
+import { DUNGEONS } from '../data/dungeons.js';
 import { BOSS_POWERS, POWER_RULES } from '../data/powers.js';
 import { ZONES } from '../data/zones.js';
 import { enemyStats } from './combat.js';
 import { rarityIndex } from './loot.js';
 import { talentEffects } from './rebirth.js';
+import { grantReward } from './rewards.js';
 
 export function powerById(id) {
   for (const [bossId, list] of Object.entries(BOSS_POWERS)) {
@@ -18,10 +20,16 @@ export function powerById(id) {
   return null;
 }
 
-// Première étape où le boss apparaît (pour le coût de relance et le Codex).
+// Première étape où le boss apparaît (coût de relance, Codex). Boss de donjon : étape d'accès au donjon.
 export function bossFirstStage(bossId, balance = BALANCE) {
   const zone = ZONES.findIndex((z) => z.bosses.includes(bossId));
-  return zone * balance.stages.stagesPerZone + balance.stages.bossEvery;
+  if (zone >= 0) return zone * balance.stages.stagesPerZone + balance.stages.bossEvery;
+  const dungeon = DUNGEONS.find((d) => d.boss === bossId);
+  return dungeon ? dungeon.unlockStage : null;
+}
+
+export function bossDungeon(bossId) {
+  return DUNGEONS.find((d) => d.boss === bossId) ?? null;
 }
 
 // Boss dans l'ordre de la campagne.
@@ -61,17 +69,54 @@ export function activePowers(state) {
   return state.equippedPowers.map((bossId) => state.powers[bossId]?.current).filter(Boolean).map(powerById);
 }
 
-// Appelé à chaque victoire contre un boss. Renvoie le pouvoir débloqué lors de la première.
-export function recordBossVictory(state, bossId, rng) {
+// Familles qui profitent de la synergie (au moins 2 pouvoirs actifs de la même famille).
+export function synergyFamilies(state) {
+  const counts = {};
+  for (const p of activePowers(state)) counts[p.family] = (counts[p.family] ?? 0) + 1;
+  return Object.keys(counts).filter((f) => counts[f] >= POWER_RULES.synergy.minSameFamily);
+}
+
+// Effets des pouvoirs actifs, synergies comprises.
+export function powerEffects(state) {
+  const boosted = new Set(synergyFamilies(state));
+  const out = {};
+  for (const p of activePowers(state)) {
+    const factor = boosted.has(p.family) ? 1 + POWER_RULES.synergy.bonusPct / 100 : 1;
+    for (const [k, v] of Object.entries(p.effects)) out[k] = (out[k] ?? 0) + v * factor;
+  }
+  return out;
+}
+
+// Appelé à chaque victoire contre un boss. Première victoire : pouvoir + gemmes.
+// Victoires suivantes : une charge de relance (il faut réaffronter le boss pour relancer).
+export function recordBossVictory(state, bossId, rng, balance = BALANCE) {
   let entry = state.powers[bossId];
   if (entry) {
     entry.victories += 1;
+    entry.charges = Math.min(POWER_RULES.maxCharges, entry.charges + POWER_RULES.chargesPerVictory);
     return null;
   }
-  entry = { current: rollPower(bossId, rng), pending: null, victories: 1, rerolls: 0, sinceHigh: 0 };
+  entry = { current: rollPower(bossId, rng), pending: null, victories: 1, rerolls: 0, sinceHigh: 0, charges: 0, masteryClaimed: 0 };
   state.powers[bossId] = entry;
   if (state.equippedPowers.length < powerSlots(state)) state.equippedPowers.push(bossId);
+  state.gems += balance.summon.firstBossGems;
   return powerById(entry.current);
+}
+
+// Maîtrise : paliers de victoires avec récompenses à récupérer.
+export function nextMasteryTier(state, bossId, balance = BALANCE) {
+  const entry = state.powers[bossId];
+  if (!entry) return null;
+  return balance.mastery[entry.masteryClaimed] ?? null;
+}
+
+export function claimMastery(state, bossId, balance = BALANCE) {
+  const entry = state.powers[bossId];
+  const tier = nextMasteryTier(state, bossId, balance);
+  if (!tier || entry.victories < tier.victories) return null;
+  entry.masteryClaimed += 1;
+  const { victories, ...reward } = tier;
+  return grantReward(state, reward);
 }
 
 export function rerollCost(state, bossId, balance = BALANCE) {
@@ -90,10 +135,11 @@ export function pityRemaining(state, bossId) {
 // Dépense l'or et crée une proposition. Le pouvoir actuel reste en place.
 export function rerollPower(state, bossId, rng, balance = BALANCE) {
   const entry = state.powers[bossId];
-  if (!entry || entry.pending) return null;
+  if (!entry || entry.pending || entry.charges < 1) return null;
   const cost = rerollCost(state, bossId, balance);
   if (state.gold < cost) return null;
   state.gold -= cost;
+  entry.charges -= 1;
   const guaranteed = pityRemaining(state, bossId) === 0;
   const minRarity = guaranteed ? POWER_RULES.pity.minRarity : 'common';
   entry.pending = rollPower(bossId, rng, { excludeId: entry.current, minRarity });

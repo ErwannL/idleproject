@@ -62,7 +62,7 @@ await page.goto(url);
 await check('le jeu démarre et affiche la scène de combat', async () => {
   await waitFor(() => window.__idle && document.querySelector('#scene').width > 0, 5000);
   const size = await game(() => [document.querySelector('#scene').width, document.querySelector('#scene').height]);
-  assert(size[0] >= 120 && size[1] >= 96, `canvas ${size}`);
+  assert(size[0] >= 120 && size[1] >= 78, `canvas ${size}`);
 });
 
 await check('le héros attaque automatiquement, les ennemis meurent et donnent de l’or', async () => {
@@ -113,10 +113,10 @@ await check('onglets avec icône et état actif distinct', async () => {
     tab: b.dataset.tab, icon: b.querySelector('img')?.naturalWidth > 0, active: b.classList.contains('active'),
     hidden: b.classList.contains('hidden'),
   })));
-  assert(tabs.length === 7 && tabs.every((t) => t.icon), JSON.stringify(tabs));
-  // Menus débloqués progressivement : Codex et Renaissance cachés en début de partie.
+  assert(tabs.length === 9 && tabs.every((t) => t.icon), JSON.stringify(tabs));
+  // Menus débloqués progressivement : compagnons, arbre, donjons et boss cachés en début de partie.
   const hidden = tabs.filter((t) => t.hidden).map((t) => t.tab).sort().join();
-  assert(hidden === 'codex,rebirth', `onglets cachés : ${hidden}`);
+  assert(hidden === 'boss,companions,dungeons,tree', `onglets cachés : ${hidden}`);
   assert(tabs.filter((t) => t.active).map((t) => t.tab).join() === 'inventory', JSON.stringify(tabs));
 });
 
@@ -183,16 +183,32 @@ await check('un boss apparaît au palier et donne une récompense', async () => 
 await check('pouvoir ancestral : débloqué au premier boss et affiché dans le Codex', async () => {
   const entry = await game(() => __idle.state.powers.slime_king);
   assert(entry && entry.current, 'aucun pouvoir débloqué');
-  await waitFor(() => !document.querySelector('#tabs button[data-tab="codex"]').classList.contains('hidden'), 3000);
-  await page.click('#tabs button[data-tab="codex"]');
+  await waitFor(() => !document.querySelector('#tabs button[data-tab="boss"]').classList.contains('hidden'), 3000);
+  await page.click('#tabs button[data-tab="boss"]');
   await page.waitForTimeout(200);
   const text = await page.textContent('#panel-body');
   assert(text.includes('Roi Gluant') && text.includes('Pouvoir actuel'), text.slice(0, 200));
 });
 
+await check('changer de pouvoir exige de réaffronter le boss', async () => {
+  await game(() => { __idle.state.gold += 1e6; __idle.state.powers.slime_king.pending = null; __idle.state.powers.slime_king.charges = 0; });
+  await page.waitForTimeout(1200);
+  const disabled = await page.$eval('[data-action="reroll"][data-boss="slime_king"]', (b) => b.disabled);
+  assert(disabled, 'relance possible sans nouvelle victoire');
+  const victories = await game(() => __idle.state.powers.slime_king.victories);
+  await page.click('[data-action="rechallenge"][data-boss="slime_king"]');
+  await waitFor((v) => __idle.state.powers.slime_king.victories > v, 30000, victories);
+  const charges = await game(() => __idle.state.powers.slime_king.charges);
+  assert(charges === 1, `charges ${charges}`);
+  if (await page.$('#panel.hidden')) await page.click('#tabs button[data-tab="boss"]');
+  await page.waitForTimeout(1200);
+  const enabled = await page.$eval('[data-action="reroll"][data-boss="slime_king"]', (b) => !b.disabled);
+  assert(enabled, 'relance toujours bloquée après la victoire');
+});
+
 await check('relance : proposition, refus puis acceptation, sans écrasement automatique', async () => {
-  await game(() => { __idle.state.gold += 1e6; __idle.state.powers.slime_king.pending = null; });
-  await page.waitForTimeout(150);
+  await game(() => { __idle.state.powers.slime_king.charges = 3; });
+  await page.waitForTimeout(1200);
   const before = await game(() => __idle.state.powers.slime_king.current);
   await page.click('[data-action="reroll"][data-boss="slime_king"]');
   await page.waitForSelector('.power-offer');
@@ -234,10 +250,75 @@ await check('verrouillage : un objet verrouillé ne peut pas être recyclé', as
   assert(await page.$(`.inv-grid [data-id="${item.id}"] img.lock`), 'icône de verrou absente');
 });
 
+await check('compétences : un point par niveau, apprendre Tourbillon', async () => {
+  await game(() => { __idle.state.level = Math.max(__idle.state.level, 6); });
+  await page.click('#tabs button[data-tab="skills"]');
+  await page.waitForTimeout(300);
+  await page.click('[data-action="learn-skill"][data-key="whirl"]');
+  const level = await game(() => __idle.state.skills.whirl);
+  assert(level === 1, `tourbillon ${level}`);
+});
+
+await check('invocation : un ticket donne un héros ou un compagnon', async () => {
+  await game(() => { __idle.state.tickets = Math.max(1, __idle.state.tickets); });
+  await page.click('[data-open="summon"]');
+  await page.waitForTimeout(300);
+  const before = await game(() => ({ t: __idle.state.tickets, n: __idle.state.summon.total }));
+  await page.click('[data-action="summon"][data-currency="tickets"]');
+  const after = await game(() => ({ t: __idle.state.tickets, n: __idle.state.summon.total }));
+  assert(after.t === before.t - 1 && after.n === before.n + 1, JSON.stringify({ before, after }));
+  await page.screenshot({ path: `${outDir}/compact-summon.png` });
+});
+
+await check('contrats et récompenses : réclamer un contrat et un coffre', async () => {
+  const id = await game(() => { const c = __idle.state.contracts[0]; c.progress = c.target; return c.id; });
+  await page.click('[data-open="contracts"]');
+  await page.waitForTimeout(1200);
+  const gems = await game(() => __idle.state.gems);
+  await page.click(`[data-action="claim-contract"][data-value="${id}"]`);
+  const after = await game(() => ({ gems: __idle.state.gems, ids: __idle.state.contracts.map((c) => c.id) }));
+  assert(!after.ids.includes(id) && after.ids.length === 3, JSON.stringify(after));
+  await game(() => { __idle.state.nextEventId += 1; __idle.state.inbox.push({ id: __idle.state.nextEventId, type: 'gems', stage: 1, reward: { gems: 7 } }); });
+  await page.click('[data-open="inbox"]');
+  await page.waitForTimeout(300);
+  const before = await game(() => __idle.state.gems);
+  await page.click('[data-action="claim-event"]');
+  const gained = await game((b) => __idle.state.gems - b, before);
+  assert(gained === 7 && after.gems >= gems, `gemmes +${gained}`);
+});
+
+await check('forge : fabriquer un objet avec des éclats', async () => {
+  await game(() => { __idle.state.materials.shards += 500; __idle.state.gold += 1e6; });
+  await page.click('#tabs button[data-tab="inventory"]');
+  await page.click('[data-action="inv-tab"][data-value="forge"]');
+  await page.waitForTimeout(300);
+  const count = await game(() => __idle.state.inventory.length);
+  await page.click('[data-action="craft"][data-value="helmet"]');
+  const after = await game(() => __idle.state.inventory.length);
+  assert(after === count + 1, `inventaire ${count} -> ${after}`);
+  await page.click('[data-action="inv-tab"][data-value="bag"]');
+});
+
+await check('donjon : entrer avec une clé puis abandonner', async () => {
+  await game(() => { __idle.state.maxStage = Math.max(__idle.state.maxStage, 12); __idle.state.keys = Math.max(1, __idle.state.keys); });
+  await waitFor(() => !document.querySelector('#tabs button[data-tab="dungeons"]').classList.contains('hidden'), 3000);
+  await page.click('#tabs button[data-tab="dungeons"]');
+  await page.waitForTimeout(300);
+  const keys = await game(() => __idle.state.keys);
+  await page.click('[data-action="enter-dungeon"]');
+  await page.waitForTimeout(300);
+  const inside = await game(() => ({ d: __idle.state.dungeon, keys: __idle.state.keys }));
+  assert(inside.d && inside.keys === keys - 1, JSON.stringify(inside));
+  await page.screenshot({ path: `${outDir}/compact-dungeon.png` });
+  await page.click('[data-action="abandon-dungeon"]');
+  const out = await game(() => __idle.state.dungeon);
+  assert(out === null, 'toujours dans le donjon');
+});
+
 await check('Renaissance : confirmation, réinitialisation et conservation des déblocages', async () => {
   await game(() => { __idle.state.maxStage = 16; });
-  await waitFor(() => !document.querySelector('#tabs button[data-tab="rebirth"]').classList.contains('hidden'), 3000);
-  await page.click('#tabs button[data-tab="rebirth"]');
+  await waitFor(() => !document.querySelector('#tabs button[data-tab="tree"]').classList.contains('hidden'), 3000);
+  await page.click('#tabs button[data-tab="tree"]');
   await page.waitForTimeout(150);
   await page.click('[data-action="rebirth"]');
   await page.waitForSelector('#modal:not(.hidden)');
@@ -313,7 +394,7 @@ await check('l’interface s’adapte au redimensionnement', async () => {
       assert(panelOpen && info.canvas >= 140, `${layout} : panneau ${panelOpen}, scène ${info.canvas}px`);
     }
     if (layout === 'tall') {
-      for (const tab of ['upgrades', 'inventory', 'hero', 'campaign']) {
+      for (const tab of ['upgrades', 'inventory', 'hero', 'skills', 'campaign', 'boss', 'tree']) {
         await page.click(`#tabs button[data-tab="${tab}"]`);
         await page.waitForTimeout(250);
         await page.screenshot({ path: `${outDir}/standard-${tab}.png` });

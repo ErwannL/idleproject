@@ -5,13 +5,16 @@
 import { BALANCE } from '../data/balance.js';
 import { createCombat, step } from './combat.js';
 import { addGold } from './economy.js';
+import { trackContracts } from './contracts.js';
 import { addToInventory } from './inventory.js';
+import { addXp } from './level.js';
 import { generateItem, recycleValue } from './loot.js';
 import { Rng } from './rng.js';
 
 export function measureFarmRate(state, balance = BALANCE, seconds = balance.offline.measureSeconds) {
   const clone = structuredClone(state);
   clone.autoAdvance = false; // hors ligne : on farme l'étape atteinte, sans progresser
+  clone.dungeon = null; // un donjon en cours est mis en pause : on mesure le farm de campagne
   clone.inventory = [];
   const world = createCombat(clone, balance);
   world.recordEvents = false;
@@ -23,6 +26,7 @@ export function measureFarmRate(state, balance = BALANCE, seconds = balance.offl
     goldPerSecond: world.counters.gold / seconds,
     killsPerSecond: world.counters.kills / seconds,
     dropsPerSecond: world.counters.drops / seconds,
+    xpPerSecond: world.counters.xp / seconds,
     stage: clone.stage,
   };
 }
@@ -40,6 +44,7 @@ export function computeOfflineRewards(state, fromMs, nowMs, rng, balance = BALAN
     items: [],
     excessDrops: 0,
     excessGold: 0,
+    xp: 0,
     stage: state.stage,
   };
   if (!Number.isFinite(elapsed) || !(fromMs > 0)) return result;
@@ -64,6 +69,7 @@ export function computeOfflineRewards(state, fromMs, nowMs, rng, balance = BALAN
     capped: elapsed > cap,
     gold: Math.floor(rate.goldPerSecond * factor),
     kills: Math.floor(rate.killsPerSecond * factor),
+    xp: Math.floor(rate.xpPerSecond * factor),
     items,
     excessDrops,
     excessGold,
@@ -74,6 +80,9 @@ export function computeOfflineRewards(state, fromMs, nowMs, rng, balance = BALAN
 export function applyOfflineRewards(state, rewards, balance = BALANCE) {
   const gold = addGold(state, rewards.gold + rewards.excessGold);
   state.records.kills += rewards.kills;
+  const levelsGained = addXp(state, rewards.xp);
+  trackContracts(state, 'kills', rewards.kills);
+  trackContracts(state, 'gold', gold);
   let autoRecycledGold = 0;
   let autoRecycledCount = 0;
   for (const item of rewards.items) {
@@ -84,5 +93,5 @@ export function applyOfflineRewards(state, rewards, balance = BALANCE) {
     }
   }
   state.records.itemsFound += rewards.excessDrops;
-  return { ...rewards, totalGold: gold + autoRecycledGold, autoRecycledGold, autoRecycledCount };
+  return { ...rewards, totalGold: gold + autoRecycledGold, autoRecycledGold, autoRecycledCount, levelsGained };
 }

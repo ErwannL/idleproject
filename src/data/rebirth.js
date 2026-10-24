@@ -10,21 +10,38 @@ export const REBIRTH = {
 // Ce que la Renaissance réinitialise et conserve (affiché avant confirmation).
 export const REBIRTH_RESETS = ['Étapes et progression de campagne', 'Or courant', 'Améliorations (Dégâts, Vitesse, Vitalité)'];
 export const REBIRTH_KEEPS = [
-  'Équipement porté et sac',
+  'Niveau du héros et compétences',
+  'Équipement porté, sac et matériaux',
+  'Héros, compagnons, gemmes et tickets',
   'Pouvoirs ancestraux, Codex et offres de relance',
   'Talents et fragments anciens',
   'Statistiques et exploits',
 ];
 
+// Arbre de talents permanents (fragments anciens). 4 branches, nœuds débloqués par leurs parents.
 // Coût du niveau n (en partant de 0) = costBase + costStep × n.
 // `perLevel` s'applique à chaque niveau ; `levels` décrit des paliers distincts.
+// `requires` : niveau minimal d'un autre talent ; `col`/`row` : position dans l'arbre.
+export const TALENT_BRANCHES = [
+  { id: 'combat', label: 'Combat', color: '#ff7a6b' },
+  { id: 'survival', label: 'Survie', color: '#63d98a' },
+  { id: 'resources', label: 'Ressources', color: '#f2d083' },
+  { id: 'special', label: 'Spécial', color: '#c9a6ff' },
+];
+
 export const TALENTS = [
-  { id: 'power', name: 'Puissance', icon: 'weapon_sword', max: 10, costBase: 1, costStep: 1, perLevel: { damagePct: 10 } },
-  { id: 'endurance', name: 'Endurance', icon: 'icon_heart', max: 10, costBase: 1, costStep: 1, perLevel: { maxHpPct: 10 } },
-  { id: 'fortune', name: 'Fortune', icon: 'coin', max: 10, costBase: 1, costStep: 1, perLevel: { goldPct: 10 } },
-  { id: 'hunt', name: 'Chasse', icon: 'icon_bag', max: 5, costBase: 2, costStep: 1, perLevel: { dropChance: 1 } },
+  { id: 'power', name: 'Puissance', branch: 'combat', row: 0, icon: 'weapon_sword', max: 10, costBase: 1, costStep: 1, perLevel: { damagePct: 10 } },
+  { id: 'crit_master', name: "Maître d'armes", branch: 'combat', row: 1, icon: 'skill_quick', max: 5, costBase: 2, costStep: 1, perLevel: { critChance: 2 }, requires: { id: 'power', level: 3 } },
+  { id: 'skill_mastery', name: 'Technique', branch: 'combat', row: 2, icon: 'skill_whirl', max: 4, costBase: 3, costStep: 2, perLevel: { skillCooldownPct: 5 }, requires: { id: 'crit_master', level: 2 } },
+  { id: 'endurance', name: 'Endurance', branch: 'survival', row: 0, icon: 'icon_heart', max: 10, costBase: 1, costStep: 1, perLevel: { maxHpPct: 10 } },
+  { id: 'bulwark', name: 'Rempart', branch: 'survival', row: 1, icon: 'icon_shield', max: 5, costBase: 2, costStep: 1, perLevel: { armor: 2 }, requires: { id: 'endurance', level: 3 } },
+  { id: 'second_wind', name: 'Second souffle', branch: 'survival', row: 2, icon: 'pet_fairy', max: 4, costBase: 3, costStep: 2, perLevel: { regenPct: 0.5 }, requires: { id: 'bulwark', level: 2 } },
+  { id: 'fortune', name: 'Fortune', branch: 'resources', row: 0, icon: 'coin', max: 10, costBase: 1, costStep: 1, perLevel: { goldPct: 10 } },
+  { id: 'hunt', name: 'Chasse', branch: 'resources', row: 1, icon: 'icon_bag', max: 5, costBase: 2, costStep: 1, perLevel: { dropChance: 1 }, requires: { id: 'fortune', level: 2 } },
+  { id: 'scholar', name: 'Érudition', branch: 'resources', row: 2, icon: 'pet_owl', max: 5, costBase: 2, costStep: 1, perLevel: { xpPct: 10 }, requires: { id: 'hunt', level: 2 } },
   {
-    id: 'legacy', name: 'Héritage', icon: 'icon_book', max: 3, costBase: 3, costStep: 2,
+    id: 'legacy', name: 'Héritage', branch: 'special', row: 0, icon: 'icon_book', max: 3, costBase: 3, costStep: 2,
     levels: [{ powerSlots: 1 }, { rerollDiscountPct: 25 }, { powerSlots: 1 }],
   },
+  { id: 'beast_bond', name: 'Lien animal', branch: 'special', row: 1, icon: 'pet_cat', max: 5, costBase: 2, costStep: 2, perLevel: { companionPct: 10 }, requires: { id: 'legacy', level: 1 } },
 ];

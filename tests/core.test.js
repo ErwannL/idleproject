@@ -52,10 +52,11 @@ test('améliorations : coût croissant et or débité', () => {
   assert.ok(upgradeCost('damage', 5) > upgradeCost('damage', 4));
   assert.equal(buyUpgrade(state, 'damage'), false);
   state.gold = 10;
-  const before = computeHeroStats(state).damage;
+  const before = computeHeroStats(state);
   assert.equal(buyUpgrade(state, 'damage'), true);
   assert.equal(state.gold, 0);
-  assert.equal(computeHeroStats(state).damage, before + BALANCE.upgrades.damage.perLevel);
+  const factor = 1 + before.bonus.damagePct / 100; // bonus du héros actif
+  assert.ok(Math.abs(computeHeroStats(state).damage - (before.damage + BALANCE.upgrades.damage.perLevel * factor)) < 1e-9);
 });
 
 test('loot : rareté minimale respectée et stats issues des données', () => {

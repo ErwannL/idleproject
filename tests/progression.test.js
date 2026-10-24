@@ -27,9 +27,10 @@ class MemoryStorage {
   removeItem(k) { this.map.delete(k); }
 }
 
-function stateWithPower(bossId = 'slime_king', seed = 1) {
+function stateWithPower(bossId = 'slime_king', seed = 1, charges = 0) {
   const state = createNewState(NOW, seed);
   recordBossVictory(state, bossId, new Rng(seed));
+  state.powers[bossId].charges = charges;
   return state;
 }
 
@@ -75,8 +76,23 @@ test('combat : vaincre le boss débloque son pouvoir et émet un événement', (
   assert.ok(world.events.some((e) => e.type === 'powerUnlocked' && e.bossId === 'slime_king'));
 });
 
-test('relance : coûte de l\'or, propose sans remplacer, refus et acceptation', () => {
+test('relance : il faut réaffronter le boss (charge) et payer de l\'or', () => {
   const state = stateWithPower();
+  state.gold = 1e9;
+  const rng = new Rng(3);
+  assert.equal(state.powers.slime_king.charges, 0, 'aucune charge après la première victoire');
+  assert.equal(rerollPower(state, 'slime_king', rng), null, 'pas de relance sans nouvelle victoire');
+  recordBossVictory(state, 'slime_king', rng);
+  assert.equal(state.powers.slime_king.charges, 1);
+  assert.ok(rerollPower(state, 'slime_king', rng));
+  assert.equal(state.powers.slime_king.charges, 0, 'la relance consomme la charge');
+  resolveReroll(state, 'slime_king', false);
+  for (let i = 0; i < 10; i++) recordBossVictory(state, 'slime_king', rng);
+  assert.equal(state.powers.slime_king.charges, POWER_RULES.maxCharges, 'charges plafonnées');
+});
+
+test('relance : coûte de l\'or, propose sans remplacer, refus et acceptation', () => {
+  const state = stateWithPower('slime_king', 1, 3);
   const rng = new Rng(9);
   const before = state.powers.slime_king.current;
   const cost = rerollCost(state, 'slime_king');
@@ -107,6 +123,7 @@ test('relance : coûte de l\'or, propose sans remplacer, refus et acceptation', 
 test('relance : garantie Épique+ après la série prévue', () => {
   const state = stateWithPower('alpha_wolf');
   const entry = state.powers.alpha_wolf;
+  entry.charges = 1e6;
   entry.current = 'predator_instinct';
   entry.sinceHigh = POWER_RULES.pity.after;
   state.gold = 1e9;
@@ -131,8 +148,11 @@ test('emplacements limités et effets appliqués aux statistiques', () => {
   state.powers.alpha_wolf.current = 'moon_hunter';
   state.equippedPowers = ['slime_king', 'alpha_wolf'];
   const boosted = computeHeroStats(state);
-  assert.ok(Math.abs(boosted.maxHp - base.maxHp * 1.1) < 1e-9);
-  assert.ok(Math.abs(boosted.damage - base.damage * 1.2) < 1e-9);
+  // Les % s'additionnent avec le bonus du héros actif (Chevalier : +5 % dégâts et PV).
+  const hp = base.bonus.maxHpPct;
+  const dmg = base.bonus.damagePct;
+  assert.ok(Math.abs(boosted.maxHp - (base.maxHp / (1 + hp / 100)) * (1 + (hp + 10) / 100)) < 1e-9);
+  assert.ok(Math.abs(boosted.damage - (base.damage / (1 + dmg / 100)) * (1 + (dmg + 20) / 100)) < 1e-9);
   assert.ok(boosted.attacksPerSecond > base.attacksPerSecond);
 
   assert.ok(setPowerActive(state, 'alpha_wolf', false));
@@ -153,7 +173,7 @@ test('bonus d\'or et de dégâts contre les boss pris en compte par le combat et
 
 test('sauvegarde : pouvoirs, proposition en attente, talents et verrou restaurés', () => {
   const storage = new MemoryStorage();
-  const state = stateWithPower();
+  const state = stateWithPower('slime_king', 1, 2);
   state.gold = 1e6;
   rerollPower(state, 'slime_king', new Rng(2));
   state.fragments = 7;
@@ -236,7 +256,11 @@ test('talents : coût, plafond, effets et emplacement de pouvoir supplémentaire
   state.fragments = 100;
   assert.ok(buyTalent(state, 'power'));
   assert.equal(state.fragments, 100 - talentCost(TALENTS[0], 0));
-  assert.ok(Math.abs(computeHeroStats(state).damage - base.damage * 1.1) < 1e-9);
+  const dmg = base.bonus.damagePct;
+  assert.ok(Math.abs(computeHeroStats(state).damage - (base.damage / (1 + dmg / 100)) * (1 + (dmg + 10) / 100)) < 1e-9);
+  assert.equal(buyTalent(state, 'hunt'), false, 'nœud verrouillé tant que Fortune < 2');
+  buyTalent(state, 'fortune');
+  buyTalent(state, 'fortune');
 
   const slots = powerSlots(state);
   assert.ok(buyTalent(state, 'legacy'));

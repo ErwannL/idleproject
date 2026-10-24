@@ -57,6 +57,16 @@ const files = await page.evaluate(async () => {
     helmet: gear('iron_helm', 'epic'),
     armor: gear('cloth_tunic', 'rare'),
   });
+  // Rectangle englobant les pixels opaques du chevalier composé.
+  const opaqueBox = (canvas) => {
+    const { data, width, height } = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+    let x0 = width, y0 = height, x1 = -1, y1 = -1;
+    for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+      if (data[(y * width + x) * 4 + 3] === 0) continue;
+      x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+    }
+    return { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+  };
   const drawIcon = (size) => {
     const icon = document.createElement('canvas');
     icon.width = size;
@@ -68,8 +78,8 @@ const files = await page.evaluate(async () => {
     ictx.roundRect(0, 0, size, size, size / 6.4);
     ictx.fill();
     // Chevalier recadré (cape, corps, épée), agrandi d'un facteur entier pour rester net.
-    const crop = { x: 1, y: 2, w: 26, h: 24 };
-    const scale = Math.floor((size * 0.86) / crop.w);
+    const crop = opaqueBox(hero);
+    const scale = Math.floor((size * 0.86) / Math.max(crop.w, crop.h));
     const w = crop.w * scale;
     const h = crop.h * scale;
     ictx.drawImage(hero, crop.x, crop.y, crop.w, crop.h, (size - w) / 2, (size - h) / 2, w, h);
