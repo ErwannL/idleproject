@@ -184,7 +184,7 @@ persiste. Reconsidérer Godot reste possible si le projet a besoin d'un moteur c
 - « Toujours au premier plan » n'existe que dans la version bureau (exe), pas dans le navigateur.
 - Les sauvegardes de l'exe et du navigateur sont séparées ; dans le navigateur, changer de navigateur,
   de profil ou de port repart de zéro. Pas d'export/import de sauvegarde pour l'instant.
-- L'exe n'est pas signé (avertissement SmartScreen au premier lancement) et pèse environ 80 Mo
+- L'exe n'est pas signé (avertissement SmartScreen au premier lancement) et pèse environ 105 Mo
   (Chromium embarqué). Pas de mise à jour automatique.
 - Équilibrage indicatif : environ 30 étapes en 30 min de jeu actif, puis des paliers plus lents
   (mesuré par simulation, pas par des tests joueurs).
