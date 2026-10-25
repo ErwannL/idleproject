@@ -1,10 +1,11 @@
 // Inventaire : ajout, équipement, recyclage, tri et comparaison.
 import { BALANCE } from '../data/balance.js';
-import { ACCESSORY_SLOTS } from '../data/items.js';
+import { ACCESSORY_SLOTS, SLOTS } from '../data/items.js';
 import { addGold } from './economy.js';
 import { trackContracts } from './contracts.js';
 import { itemBase, itemPower, rarityIndex, recycleMaterials, recycleValue } from './loot.js';
 import { computeHeroStats, statsWithItem } from './stats.js';
+import { recordItem } from './codex.js';
 
 // Inventaire plein : l'objet est recyclé en or plutôt que perdu.
 export function addToInventory(state, item, balance = BALANCE) {
@@ -39,18 +40,58 @@ export function recycleItem(state, itemId, balance = BALANCE) {
 // ('off', 'common' ou 'rare'). Jamais un objet signature ni un objet meilleur que l'équipement porté.
 export const AUTO_RECYCLE_RULES = { off: 'Tout garder', common: 'Recycler les Communs', rare: 'Recycler Communs et Rares' };
 
-export function shouldAutoRecycle(state, item) {
-  const rule = state.ui?.autoRecycle ?? 'off';
-  if (rule === 'off' || itemBase(item.baseId).signature) return false;
-  if (rarityIndex(item.rarity) > rarityIndex(rule)) return false;
+// v7.7 : règles de recyclage automatique configurables.
+// mode : 'off' | 'pickup' (dès le ramassage) | 'full' (seulement quand le sac est plein) ;
+// rarities / slots : ce qui est recyclé. Jamais : objet équipé, verrouillé, ancestral, ou meilleur que l'équipé.
+export const RECYCLE_MODES = { off: 'Désactivé', pickup: 'Au ramassage', full: 'Quand le sac est plein' };
+
+export function recycleRules(state) {
+  const r = state.ui?.recycle;
+  if (r) return r;
+  // Ancienne règle (v7.5) : Communs, ou Communs + Rares, au ramassage.
+  const legacy = state.ui?.autoRecycle ?? 'off';
+  if (legacy === 'off') return { mode: 'off', rarities: ['common'], slots: Object.keys(SLOTS) };
+  return { mode: 'pickup', rarities: legacy === 'rare' ? ['common', 'rare'] : ['common'], slots: Object.keys(SLOTS) };
+}
+
+export function matchesRecycleRule(state, item, rules = recycleRules(state)) {
+  if (item.locked || itemBase(item.baseId).signature) return false;
+  if (!rules.rarities.includes(item.rarity) || !rules.slots.includes(item.slot)) return false;
   return !isUpgrade(state, item);
+}
+
+export function shouldAutoRecycle(state, item) {
+  const rules = recycleRules(state);
+  return rules.mode === 'pickup' && matchesRecycleRule(state, item, rules);
+}
+
+// Sac plein (mode « quand le sac est plein ») : recycle les objets du sac qui correspondent aux règles.
+export function recycleForSpace(state, balance = BALANCE) {
+  const rules = recycleRules(state);
+  if (rules.mode !== 'full') return 0;
+  let gold = 0;
+  for (const item of [...state.inventory]) {
+    if (!matchesRecycleRule(state, item, rules)) continue;
+    state.inventory.splice(state.inventory.indexOf(item), 1);
+    gold += salvage(state, item, balance);
+  }
+  return gold;
 }
 
 // Ramassage d'un objet : recyclé automatiquement selon la règle, sinon rangé dans le sac.
 export function collectItem(state, item, balance = BALANCE) {
+  trackContracts(state, 'items', 1);
+  if (state.codex) recordItem(state, item);
   if (shouldAutoRecycle(state, item)) {
     state.records.itemsFound += 1;
     return { added: false, auto: true, recycledGold: salvage(state, item, balance) };
+  }
+  if (state.inventory.length >= balance.loot.inventorySize) {
+    const freed = recycleForSpace(state, balance);
+    if (recycleRules(state).mode === 'full' && matchesRecycleRule(state, item) && state.inventory.length >= balance.loot.inventorySize) {
+      state.records.itemsFound += 1;
+      return { added: false, auto: true, recycledGold: freed + salvage(state, item, balance) };
+    }
   }
   return addToInventory(state, item, balance);
 }

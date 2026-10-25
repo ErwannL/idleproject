@@ -47,4 +47,43 @@ export const ZONES = [
     bosses: ['demon_king'], // méga boss (étape 20)
     tierBosses: { mini: 'mini_reaper', mid: 'mid_hellhound', hard: 'hard_demon_general' }, // étapes 5, 10, 15
   },
+  // v7.7 : mondes 7 à 10.
+  {
+    id: 'swamp',
+    name: 'Marais putride',
+    enemies: ['toad', 'bog_zombie', 'leech_fly', 'lizardman'],
+    bosses: ['boss_swamp_behemoth'],
+    tierBosses: { mini: 'mini_toad_king', mid: 'mid_hydra', hard: 'hard_plague_doctor' },
+  },
+  {
+    id: 'sky',
+    name: 'Îles célestes',
+    enemies: ['harpy', 'cloud_spirit', 'griffin_cub', 'sky_automaton'],
+    bosses: ['boss_sky_titan'],
+    tierBosses: { mini: 'mini_harpy_queen', mid: 'mid_thunder_griffin', hard: 'hard_storm_valkyrie' },
+  },
+  {
+    id: 'volcano',
+    name: 'Cœur du volcan',
+    enemies: ['magma_slime', 'salamander', 'ash_wraith', 'obsidian_beetle'],
+    bosses: ['boss_phoenix'],
+    tierBosses: { mini: 'mini_salamander_chief', mid: 'mid_lava_golem', hard: 'hard_flame_djinn' },
+  },
+  {
+    id: 'void',
+    name: 'Royaume du Néant',
+    enemies: ['void_eye', 'star_stalker', 'shadow_knight', 'voidling'],
+    bosses: ['boss_void_emperor'],
+    tierBosses: { mini: 'mini_void_watcher', mid: 'mid_star_devourer', hard: 'hard_void_knight' },
+  },
+  // Monde 11 : Trône de l'Abysse — 10 étapes, chacune contre le méga boss d'un monde en mode berserk,
+  // qui invoque ses boss des étapes 5, 10 et 15 (berserk eux aussi) quand ses PV baissent.
+  {
+    id: 'abyss',
+    name: "Trône de l'Abysse",
+    stages: 10,
+    gauntlet: true,
+    enemies: ['shadow_knight', 'voidling', 'imp'],
+    bosses: ['demon_king'],
+  },
 ];

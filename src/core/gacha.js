@@ -9,25 +9,30 @@ import { trackMissions } from './missions.js';
 
 // v7.6 : le chevalier est le seul héros (plus de variantes à invoquer) ; on invoque des personnages
 // (héros alliés R/SR/SSR) et des compagnons (familiers).
-export function summonPool() {
-  return COMPANIONS.map((c) => ({ kind: 'companion', id: c.id, name: c.name, rarity: c.rarity, ally: c.kind === 'ally' }));
+// Bassins d'invocation : 'ally' (compagnons humains R/SR/SSR) ou 'pet' (familiers animaux).
+export function summonPool(pool = 'ally') {
+  return COMPANIONS.filter((c) => (c.kind === 'ally') === (pool === 'ally'))
+    .map((c) => ({ kind: 'companion', id: c.id, name: c.name, rarity: c.rarity, ally: c.kind === 'ally' }));
+}
+
+function poolWeights(pool, balance) {
+  return balance.summon.pools[pool]?.rarityWeights ?? balance.summon.rarityWeights;
 }
 
 // Probabilité de chaque rareté et de chaque unité (hors garantie).
-export function summonOdds(balance = BALANCE) {
-  const weights = balance.summon.rarityWeights;
+export function summonOdds(pool = 'ally', balance = BALANCE) {
+  const weights = poolWeights(pool, balance);
   const total = Object.values(weights).reduce((s, w) => s + w, 0);
-  const pool = summonPool();
-  return RARITIES.map((r) => {
-    const units = pool.filter((u) => u.rarity === r.id);
-    const chance = (weights[r.id] ?? 0) / total;
-    return { rarity: r.id, chance, units: units.map((u) => ({ ...u, chance: units.length ? chance / units.length : 0 })) };
+  const units = summonPool(pool);
+  return RARITIES.filter((r) => weights[r.id]).map((r) => {
+    const list = units.filter((u) => u.rarity === r.id);
+    const chance = weights[r.id] / total;
+    return { rarity: r.id, chance, units: list.map((u) => ({ ...u, chance: list.length ? chance / list.length : 0 })) };
   });
 }
 
-function rollRarity(rng, minRarity, balance) {
-  const weights = balance.summon.rarityWeights;
-  const pool = Object.keys(weights).filter((r) => rarityIndex(r) >= rarityIndex(minRarity));
+function rollRarity(rng, minRarity, weights) {
+  const pool = Object.keys(weights).filter((r) => weights[r] > 0 && rarityIndex(r) >= rarityIndex(minRarity));
   const total = pool.reduce((s, r) => s + weights[r], 0);
   let roll = rng.next() * total;
   for (const r of pool) {
@@ -43,7 +48,7 @@ export function summonCost(count, currency, balance = BALANCE) {
 }
 
 // count = 1 ou 10 ; currency = 'gems' | 'tickets'. Renvoie la liste des résultats, ou null.
-export function summon(state, rng, count = 1, currency = 'gems', balance = BALANCE) {
+export function summon(state, rng, count = 1, currency = 'gems', balance = BALANCE, pool = 'ally') {
   const cost = summonCost(count, currency, balance);
   if (state[currency] < cost) return null;
   state[currency] -= cost;
@@ -55,8 +60,8 @@ export function summon(state, rng, count = 1, currency = 'gems', balance = BALAN
     let min = 'common';
     if (p.sinceLegendary + 1 >= pity.legendaryAfter) min = 'legendary';
     else if (p.sinceEpic + 1 >= pity.epicAfter) min = 'epic';
-    const rarity = rollRarity(rng, min, balance);
-    const units = summonPool().filter((u) => u.rarity === rarity);
+    const rarity = rollRarity(rng, min, poolWeights(pool, balance));
+    const units = summonPool(pool).filter((u) => u.rarity === rarity);
     const unit = units[Math.floor(rng.next() * units.length)];
     p.total += 1;
     p.sinceLegendary = rarity === 'legendary' ? 0 : p.sinceLegendary + 1;

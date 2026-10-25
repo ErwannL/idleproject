@@ -12,7 +12,9 @@
   <div id="app" class="layout-mini">
     <div id="main-col">
       <header id="topbar">
-        <div class="brand"><img class="px" data-icon="icon_hero" alt=""><span>Idle RPG</span></div>
+        <div class="brand top-level" title="Niveau du chevalier"><img class="px" data-icon="icon_hero" alt=""><b id="top-level">Niv. 1</b>
+          <span class="top-xp"><i id="top-xp"></i></span></div>
+        <button class="chip chip-stage" id="top-stage" data-open="campaign" title="Carte du monde"></button>
         <div class="chip chip-gold" title="Or"><img class="px" data-icon="coin" alt=""><span id="gold">0</span></div>
         <button class="chip chip-gem" data-open="summon" title="Gemmes — invocation"><img class="px" data-icon="icon_gem" alt=""><span id="gems">0</span></button>
         <button class="chip chip-ticket" data-open="summon" title="Tickets d'invocation"><img class="px" data-icon="icon_ticket" alt=""><span id="tickets">0</span></button>
@@ -30,6 +32,7 @@
           <div id="boss-flash"></div>
           <div id="zone-card"><div id="zone-name"></div><div id="stage-pips"></div></div>
           <div id="rush-bar"></div>
+          <button id="loot-pop" class="hidden" data-action="open-tab" data-value="inventory" title="Ouvrir l'inventaire"></button>
           <button id="auto-toggle" class="scene-btn" data-action="toggle-auto" title="Avancer automatiquement après chaque étape"></button>
           <div id="strip-bar">
             <span class="strip-gold"><img class="px" data-icon="coin" alt=""><b id="strip-gold">0</b></span>

@@ -2,36 +2,27 @@
 import { REBIRTH, REBIRTH_KEEPS, REBIRTH_RESETS, TALENT_BRANCHES, TALENTS } from '../../data/rebirth.js';
 import { stageLabel } from '../../core/combat.js';
 import { canRebirth, rebirthReward, talentById, talentCost, talentLevelEffects, talentUnlocked } from '../../core/rebirth.js';
-import { canPrestige, perkCost, prestigeReward } from '../../core/prestige.js';
-import { PRESTIGE, PRESTIGE_KEEPS, PRESTIGE_PERKS, PRESTIGE_RESETS } from '../../data/prestige.js';
+import { perkCost } from '../../core/prestige.js';
+import { PRESTIGE, PRESTIGE_PERKS } from '../../data/prestige.js';
 import { costButton, effectText, escapeHtml, fragment, formatNumber, img } from '../common.js';
 
-// Prestige : au-dessus de la Renaissance (fragments et talents remis à zéro contre des étoiles).
-function prestigeCard(ui, state) {
+// Bonus éternels (achetés avec les fragments) et bonus permanent gagné à chaque Renaissance.
+function eternalCard(state) {
   const p = state.prestige;
-  const can = canPrestige(state);
-  const stars = prestigeReward(state);
+  const n = state.records.rebirths + p.count;
   const perks = PRESTIGE_PERKS.map((perk) => {
     const level = p.perks[perk.id] ?? 0;
     const maxed = level >= perk.max;
-    const cost = perkCost(level);
     const eff = Object.fromEntries(Object.entries(perk.effect).map(([k, v]) => [k, v * Math.max(1, level)]));
     return `<div class="perk-row">${img(perk.icon)}<div class="grow"><b>${perk.name}</b> <span class="muted">${level}/${perk.max}</span>
         <div class="${level ? 'good' : 'muted'}">${effectText(eff)}${level ? '' : ' (au niveau 1)'}</div></div>
-      <button class="btn btn-gold small" data-action="buy-perk" data-key="${perk.id}" ${maxed || p.stars < cost ? 'disabled' : ''}>${maxed ? 'Max' : `★ ${cost}`}</button></div>`;
+      ${costButton({ action: 'buy-perk', cost: perkCost(level), have: state.fragments, currency: 'fragments', attrs: `data-key="${perk.id}"`, cls: 'btn-gold small', max: maxed })}</div>`;
   }).join('');
-  const armed = ui.view.prestigeArmed && can;
+  const bonus = Object.fromEntries(Object.entries(PRESTIGE.perPrestige).map(([k, v]) => [k, v * n]));
   return `<div class="card prestige-card">
-    <div class="row-between"><b class="prestige-title">✦ Prestige ${p.count ? p.count : ''}</b><span class="gold-text">★ ${p.stars} étoile${p.stars > 1 ? 's' : ''}</span></div>
-    <div class="muted">${p.count ? `Bonus permanent : <span class="good">${effectText(Object.fromEntries(Object.entries(PRESTIGE.perPrestige).map(([k, v]) => [k, v * p.count])))}</span> · fragments +${PRESTIGE.fragmentBonusPct * p.count} %.<br>` : ''}
-      ${can ? `Le Prestige rapporte <b class="gold-text">★ ${stars}</b> et un bonus permanent de plus.`
-        : `Terminez le monde 6 (étape ${stageLabel(PRESTIGE.minStage - 1)}) pour débloquer le Prestige.`}</div>
-    <div class="keep-reset">
-      <div><div class="section-title">Réinitialisé</div><ul>${PRESTIGE_RESETS.map((t) => `<li class="bad">${t}</li>`).join('')}</ul></div>
-      <div><div class="section-title">Conservé</div><ul>${PRESTIGE_KEEPS.map((t) => `<li class="good">${t}</li>`).join('')}</ul></div>
-    </div>
-    <button class="btn ${armed ? 'btn-danger' : 'btn-gold'}" data-action="prestige" ${can ? '' : 'disabled'}>${armed ? 'Confirmer le Prestige ?' : `Prestige (+★ ${stars})`}</button>
-    <div class="section-title">Bonus éternels</div>${perks}
+    <div class="row-between"><b class="prestige-title">✦ Bonus éternels</b>${n ? `<span class="good">${effectText(bonus)}</span>` : ''}</div>
+    <div class="muted">Chaque Renaissance ajoute ${effectText(PRESTIGE.perPrestige)} pour toujours. Les bonus éternels s'achètent avec les fragments anciens.</div>
+    ${perks}
   </div>`;
 }
 
@@ -136,6 +127,6 @@ export default {
         ${keepResetLists()}
         <button class="btn btn-gold" data-action="rebirth" ${can ? '' : 'disabled'}>Renaître (+${reward} ${fragment()})</button>
       </div>
-      ${prestigeCard(ui, state)}`;
+      ${eternalCard(state)}`;
   },
 };

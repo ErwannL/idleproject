@@ -1,5 +1,5 @@
 // Contrats d'aventure : 3 objectifs actifs qui progressent automatiquement.
-import { CONTRACT_COUNT, CONTRACT_TYPES } from '../data/contracts.js';
+import { CONTRACT_COUNT, CONTRACT_TYPES, RARE_CONTRACT } from '../data/contracts.js';
 import { BALANCE } from '../data/balance.js';
 import { referenceKillGold } from './combat.js';
 import { trackMissions } from './missions.js';
@@ -10,9 +10,13 @@ export function newContract(state, rng, balance = BALANCE) {
   const types = Object.keys(CONTRACT_TYPES).filter((t) => !active.has(t));
   const type = types[Math.floor(rng.next() * types.length)] ?? 'kills';
   const def = CONTRACT_TYPES[type];
-  const target = Math.max(1, Math.round(def.amount(state, { killGold: referenceKillGold(state.maxStage, balance) })));
+  const rare = rng.next() < RARE_CONTRACT.chance;
+  const base = Math.max(1, Math.round(def.amount(state, { killGold: referenceKillGold(state.maxStage, balance) })));
+  const target = rare ? base * RARE_CONTRACT.targetMultiplier : base;
+  const reward = Object.fromEntries(Object.entries(def.reward).map(([k, v]) => [k, rare ? v * RARE_CONTRACT.rewardMultiplier : v]));
+  if (rare) for (const [k, v] of Object.entries(RARE_CONTRACT.bonus)) reward[k] = (reward[k] ?? 0) + v;
   state.nextContractId += 1;
-  return { id: state.nextContractId, type, target, progress: 0, reward: { ...def.reward } };
+  return { id: state.nextContractId, type, target, progress: 0, reward, rare };
 }
 
 export function ensureContracts(state, rng, balance = BALANCE) {
@@ -34,6 +38,10 @@ export function claimContract(state, id, rng, balance = BALANCE) {
   state.records.contractsDone += 1;
   state.contracts.splice(index, 1, newContract(state, rng, balance));
   return given;
+}
+
+export function contractTitle(contract) {
+  return `${contract.rare ? 'Contrat rare · ' : ''}${CONTRACT_TYPES[contract.type].title}`;
 }
 
 export function contractLabel(contract) {

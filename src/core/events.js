@@ -13,6 +13,8 @@ const EVENT_LABELS = {
   elite: 'Élite errante',
   wave: 'Vague spéciale',
   gems: 'Gemmes trouvées',
+  portal: 'Portail vers une salle au trésor',
+  wanderer: 'Boss errant vaincu',
 };
 
 export function eventLabel(type) {
@@ -50,6 +52,13 @@ export function rollEvent(state, world, rng, balance = BALANCE, multiplier = 1) 
   if (type === 'chest') {
     event.reward = { gold: Math.floor(killGold * e.chestGoldKills), shards: 5 };
     event.item = generateItem(state, rng, { level: state.stage, minRarity: 'rare' }, balance);
+  } else if (type === 'portal') {
+    // Salle au trésor : beaucoup d'or, des éclats et quelques gemmes.
+    event.reward = { gold: Math.floor(killGold * e.portalGoldKills), shards: 25, gems: 15 };
+  } else if (type === 'wanderer') {
+    // Boss errant (rare) : essences, gemmes et un objet Épique ou mieux.
+    event.reward = { essence: 3, gems: 30 };
+    event.item = generateItem(state, rng, { level: state.stage, minRarity: 'epic' }, balance);
   } else if (type === 'merchant') {
     event.item = generateItem(state, rng, { level: state.stage, minRarity: 'epic' }, balance);
     event.price = Math.floor(killGold * e.merchantPriceKills);

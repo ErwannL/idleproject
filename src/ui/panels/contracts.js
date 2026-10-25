@@ -1,20 +1,14 @@
-// Missions (connexion, journalières, hebdomadaires, mensuelles) et contrats d'aventure.
-import { contractLabel } from '../../core/contracts.js';
+// Missions (connexion, journalières, hebdomadaires, mensuelles) et contrats d'aventure, en onglets.
+import { contractLabel, contractTitle } from '../../core/contracts.js';
 import { bonusReady, loginDay, loginReady, missionsClaimable, missionStatus, periodRemaining } from '../../core/missions.js';
 import { rewardText } from '../../core/rewards.js';
 import { LOGIN_CALENDAR, MISSION_PERIODS } from '../../data/missions.js';
-import { escapeHtml, formatNumber, progressBar } from '../common.js';
+import { escapeHtml, formatNumber, img, progressBar } from '../common.js';
 
-// Section repliable : l'en-tête montre un résumé (missions prêtes) et déplie le contenu au clic.
-function section(ui, id, title, summary, body, ready = 0) {
-  const open = !ui.view.closed.has(id);
-  return `<div class="card fold${open ? ' open' : ''}">
-    <button class="fold-head" data-action="toggle-section" data-value="${id}">
-      <span class="fold-arrow">${open ? '▾' : '▸'}</span><b>${title}</b>
-      ${ready ? `<i class="fold-ready">${ready}</i>` : ''}<span class="muted fold-sum">${summary}</span></button>
-    ${open ? `<div class="fold-body">${body}</div>` : ''}
-  </div>`;
-}
+const TYPE_ICONS = {
+  login: 'icon_book', kills: 'weapon_sword', bosses: 'icon_boss', recycle: 'icon_anvil', summons: 'icon_summon',
+  dungeons: 'icon_dungeon', rareLoot: 'icon_bag', upgrades: 'icon_upgrade', gold: 'coin', stages: 'icon_map', items: 'icon_chest',
+};
 
 function remainingText(ms) {
   const h = Math.floor(ms / 3600000);
@@ -23,37 +17,56 @@ function remainingText(ms) {
   return `${Math.max(1, Math.floor(ms / 60000))} min`;
 }
 
-function loginCard(ui, state) {
+// Ligne de mission : icône, intitulé + barre, récompense, bouton.
+function row({ icon, label, progress, target, reward, done, claimed, action, value, sub = '' }) {
+  const btn = claimed ? '<span class="m-done">✔</span>'
+    : `<button class="btn ${done ? 'btn-gold' : ''} small" data-action="${action}" data-value="${value}" ${done ? '' : 'disabled'}>${done ? 'Récupérer' : 'En cours'}</button>`;
+  return `<div class="m-row${claimed ? ' claimed' : ''}">
+    <div class="m-icon">${img(icon)}</div>
+    <div class="m-main">${sub}<b>${escapeHtml(label)}</b>${progressBar(progress / target, `${formatNumber(progress)} / ${formatNumber(target)}`)}</div>
+    <div class="m-reward">${rewardText(reward, formatNumber).replaceAll(' · ', '<br>')}</div>
+    <div class="m-btn">${btn}</div>
+  </div>`;
+}
+
+function loginTab(state) {
   const day = loginDay(state);
   const ready = loginReady(state);
   const cells = LOGIN_CALENDAR.map((r, i) => {
     const st = i < day || (i === day && !ready) ? 'got' : i === day ? 'today' : '';
     return `<div class="login-day ${st}"><b>J${i + 1}</b><span>${rewardText(r, formatNumber).replaceAll(' · ', '<br>')}</span></div>`;
   }).join('');
-  return section(ui, 'login', 'Connexion quotidienne', `Série : ${state.missions.login.streak} jour(s)`, `
+  return `<div class="muted">Série : ${state.missions.login.streak} jour(s) consécutif(s). Manquer un jour ramène au jour 1.</div>
     <div class="login-cal">${cells}</div>
-    <button class="btn ${ready ? 'btn-gold' : ''} small" data-action="claim-login" ${ready ? '' : 'disabled'}>${ready ? 'Récupérer' : 'Revenez demain'}</button>`, ready ? 1 : 0);
+    <button class="btn ${ready ? 'btn-gold' : ''}" data-action="claim-login" ${ready ? '' : 'disabled'}>${ready ? 'Récupérer' : 'Revenez demain'}</button>`;
 }
 
-function periodCard(ui, state, period) {
+function periodTab(state, period) {
   const run = state.missions[period.id];
   const rows = period.missions.map((m) => {
     const st = missionStatus(state, period.id, m);
-    const btn = st.claimed ? '<span class="good">✔</span>'
-      : `<button class="btn ${st.done ? 'btn-gold' : ''} small" data-action="claim-mission" data-value="${period.id}|${m.id}" ${st.done ? '' : 'disabled'}>${st.done ? 'Récupérer' : '…'}</button>`;
-    return `<div class="mission${st.claimed ? ' claimed' : ''}">
-      <div class="row-between"><span>${escapeHtml(m.label)}</span><span class="gold-text">${rewardText(m.reward, formatNumber)}</span></div>
-      <div class="mission-line">${progressBar(st.progress / m.target, `${formatNumber(st.progress)} / ${formatNumber(m.target)}`)}${btn}</div>
-    </div>`;
+    return row({ icon: TYPE_ICONS[m.type] ?? 'icon_star', label: m.label, progress: st.progress, target: m.target, reward: m.reward,
+      done: st.done, claimed: st.claimed, action: 'claim-mission', value: `${period.id}|${m.id}` });
   }).join('');
+  const claimedCount = period.missions.filter((m) => missionStatus(state, period.id, m).claimed).length;
   const ready = bonusReady(state, period.id);
-  const bonus = `<div class="mission-bonus row-between"><span>Coffre (toutes les missions) : <b class="gold-text">${rewardText(period.bonus, formatNumber)}</b></span>
-    ${run.bonus ? '<span class="good">✔</span>' : `<button class="btn ${ready ? 'btn-gold' : ''} small" data-action="claim-mission-bonus" data-value="${period.id}" ${ready ? '' : 'disabled'}>Ouvrir</button>`}</div>`;
-  const done = period.missions.filter((m) => missionStatus(state, period.id, m).claimed).length;
-  const readyCount = period.missions.filter((m) => { const st = missionStatus(state, period.id, m); return st.done && !st.claimed; }).length + (ready ? 1 : 0);
-  return section(ui, period.id, `Missions ${period.label.toLowerCase()}`,
-    `${done}/${period.missions.length} · ${remainingText(periodRemaining(period.id))}`,
-    `<div class="muted">${period.reset}</div>${rows}${bonus}`, readyCount);
+  const chest = `<div class="m-row m-chest${run.bonus ? ' claimed' : ''}">
+    <div class="m-icon">${img('icon_chest')}</div>
+    <div class="m-main"><b>Récompense complète (${claimedCount}/${period.missions.length})</b>${progressBar(claimedCount / period.missions.length, `${claimedCount} / ${period.missions.length}`)}</div>
+    <div class="m-reward">${rewardText(period.bonus, formatNumber).replaceAll(' · ', '<br>')}</div>
+    <div class="m-btn">${run.bonus ? '<span class="m-done">✔</span>' : `<button class="btn ${ready ? 'btn-gold' : ''} small" data-action="claim-mission-bonus" data-value="${period.id}" ${ready ? '' : 'disabled'}>Ouvrir</button>`}</div>
+  </div>`;
+  return `<div class="m-reset muted">${period.reset} · dans ${remainingText(periodRemaining(period.id))}</div>${rows}${chest}`;
+}
+
+function contractsTab(state) {
+  const rows = state.contracts.map((c) => row({
+    icon: TYPE_ICONS[c.type] ?? 'icon_trophy', label: contractLabel(c), progress: c.progress, target: c.target, reward: c.reward,
+    done: c.progress >= c.target, claimed: false, action: 'claim-contract', value: c.id,
+    sub: `<span class="contract-title${c.rare ? ' rare' : ''}">${escapeHtml(contractTitle(c))}</span>`,
+  })).join('');
+  return `<div class="muted">Les contrats progressent tout seuls pendant le farm, même hors ligne. Un nouveau contrat remplace chaque contrat rempli ;
+    parfois un <b class="rare-text">contrat rare</b> apparaît (objectif doublé, récompenses triplées).</div>${rows}`;
 }
 
 export default {
@@ -62,20 +75,23 @@ export default {
   icon: 'icon_trophy',
   extra: (ui, state) => `${state.records.contractsDone} contrats remplis`,
   render(ui, state) {
-    const cards = state.contracts.map((c) => {
-      const done = c.progress >= c.target;
-      return `<div class="contract${done ? ' done' : ''}">
-        <div class="row-between"><b>${escapeHtml(contractLabel(c))}</b><span class="gold-text">${rewardText(c.reward, formatNumber)}</span></div>
-        ${progressBar(c.progress / c.target, `${formatNumber(c.progress)} / ${formatNumber(c.target)}`)}
-        <button class="btn ${done ? 'btn-gold' : ''} small" data-action="claim-contract" data-value="${c.id}" ${done ? '' : 'disabled'}>
-          ${done ? 'Récupérer' : 'En cours…'}</button>
-      </div>`;
-    }).join('');
-    const contractsReady = state.contracts.filter((c) => c.progress >= c.target).length;
-    const any = missionsClaimable(state) || contractsReady > 0;
-    return `<button class="btn ${any ? 'btn-gold' : ''} claim-all" data-action="claim-all" ${any ? '' : 'disabled'}>Tout récupérer</button>
-      ${loginCard(ui, state)}${MISSION_PERIODS.map((p) => periodCard(ui, state, p)).join('')}
-      ${section(ui, 'contracts', "Contrats d'aventure", `${state.contracts.length} actifs`,
-        `<div class="muted">Les contrats progressent tout seuls pendant le farm, même hors ligne. Un nouveau contrat remplace chaque contrat rempli.</div>${cards}`, contractsReady)}`;
+    // Nombre de récompenses prêtes par onglet (pastilles).
+    const ready = {
+      login: loginReady(state) ? 1 : 0,
+      contracts: state.contracts.filter((c) => c.progress >= c.target).length,
+    };
+    for (const p of MISSION_PERIODS) {
+      ready[p.id] = p.missions.filter((m) => { const st = missionStatus(state, p.id, m); return st.done && !st.claimed; }).length + (bonusReady(state, p.id) ? 1 : 0);
+    }
+    const tabs = [['daily', 'Journalières', 'icon_book'], ['weekly', 'Hebdomadaires', 'icon_map'], ['monthly', 'Mensuelles', 'icon_trophy'],
+      ['login', 'Connexion', 'icon_gem'], ['contracts', 'Contrats', 'icon_chest']];
+    const tab = tabs.some(([id]) => id === ui.view.missionTab) ? ui.view.missionTab : 'daily';
+    const head = tabs.map(([id, label, icon]) => `<button class="btn m-tab${id === tab ? ' active' : ''}" data-action="mission-tab" data-value="${id}">
+      ${img(icon)}<span>${label}</span>${ready[id] ? `<i class="fold-ready">${ready[id]}</i>` : ''}</button>`).join('');
+    const period = MISSION_PERIODS.find((p) => p.id === tab);
+    const body = tab === 'login' ? loginTab(state) : tab === 'contracts' ? contractsTab(state) : periodTab(state, period);
+    const any = missionsClaimable(state) || ready.contracts > 0;
+    return `<div class="m-tabs">${head}<button class="btn ${any ? 'btn-gold' : ''} claim-all" data-action="claim-all" ${any ? '' : 'disabled'}>Tout récupérer</button></div>
+      <div class="card m-body">${body}</div>`;
   },
 };

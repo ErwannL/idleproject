@@ -34,6 +34,26 @@ export const ENEMIES = {
   wraith: { name: 'Spectre', sprite: 'wraith', hp: 24, damage: 5, gold: 6, speed: 20, attackInterval: 1.1, range: 16, flyHeight: 6 },
   lich: { name: 'Liche', sprite: 'lich', hp: 30, damage: 7, gold: 8, speed: 14, attackInterval: 1.5, range: 26 },
   slime_fire: { name: 'Gluant de feu', sprite: 'slime_fire', hp: 28, damage: 7, gold: 7, speed: 18, attackInterval: 1.2, range: 18 },
+  // v7.7 — Monde 7 : Marais putride
+  toad: { name: 'Crapaud venimeux', sprite: 'toad', hp: 30, damage: 7, gold: 7, speed: 20, attackInterval: 1.3, range: 18 },
+  bog_zombie: { name: 'Zombie des marais', sprite: 'bog_zombie', hp: 42, damage: 6, gold: 8, speed: 11, attackInterval: 1.6, range: 16 },
+  leech_fly: { name: 'Moustique géant', sprite: 'leech_fly', hp: 22, damage: 7, gold: 7, speed: 30, attackInterval: 0.9, range: 16, flyHeight: 12 },
+  lizardman: { name: 'Homme-lézard', sprite: 'lizardman', hp: 36, damage: 8, gold: 8, speed: 20, attackInterval: 1.2, range: 22 },
+  // Monde 8 : Îles célestes
+  harpy: { name: 'Harpie', sprite: 'harpy', hp: 28, damage: 8, gold: 8, speed: 30, attackInterval: 1.0, range: 18, flyHeight: 14 },
+  cloud_spirit: { name: 'Esprit des nuées', sprite: 'cloud_spirit', hp: 34, damage: 8, gold: 8, speed: 16, attackInterval: 1.3, range: 24, flyHeight: 6 },
+  griffin_cub: { name: 'Jeune griffon', sprite: 'griffin_cub', hp: 38, damage: 8, gold: 8, speed: 28, attackInterval: 1.1, range: 18 },
+  sky_automaton: { name: 'Automate céleste', sprite: 'sky_automaton', hp: 48, damage: 7, gold: 9, speed: 12, attackInterval: 1.6, range: 18 },
+  // Monde 9 : Cœur du volcan
+  magma_slime: { name: 'Gluant de magma', sprite: 'magma_slime', hp: 34, damage: 9, gold: 8, speed: 16, attackInterval: 1.3, range: 18 },
+  salamander: { name: 'Salamandre', sprite: 'salamander', hp: 32, damage: 9, gold: 8, speed: 26, attackInterval: 1.1, range: 18 },
+  ash_wraith: { name: 'Spectre de cendre', sprite: 'ash_wraith', hp: 26, damage: 10, gold: 8, speed: 22, attackInterval: 1.0, range: 18, flyHeight: 8 },
+  obsidian_beetle: { name: "Scarabée d'obsidienne", sprite: 'obsidian_beetle', hp: 52, damage: 8, gold: 9, speed: 12, attackInterval: 1.6, range: 18 },
+  // Monde 10 : Royaume du Néant
+  void_eye: { name: 'Œil du néant', sprite: 'void_eye', hp: 28, damage: 10, gold: 9, speed: 20, attackInterval: 1.1, range: 26, flyHeight: 14 },
+  star_stalker: { name: 'Rôdeur stellaire', sprite: 'star_stalker', hp: 34, damage: 10, gold: 9, speed: 32, attackInterval: 0.9, range: 18 },
+  shadow_knight: { name: "Chevalier d'ombre", sprite: 'shadow_knight', hp: 50, damage: 9, gold: 10, speed: 14, attackInterval: 1.4, range: 20 },
+  voidling: { name: 'Rejeton du néant', sprite: 'voidling', hp: 26, damage: 9, gold: 8, speed: 26, attackInterval: 1.0, range: 16 },
 };
 
 // Deux images de marche (ou de vol) par ennemi : `sprite` et `sprite_b`.
@@ -69,4 +89,21 @@ export const BOSSES = {
   hard_anubis: { name: 'Gardien chacal', base: 'mummy', sprite: 'hard_anubis', tier: 'hard' },
   hard_frost_giant: { name: 'Géant du givre', base: 'ogre', sprite: 'hard_frost_giant', tier: 'hard' },
   hard_demon_general: { name: 'Général démon', base: 'imp', sprite: 'hard_demon_general', tier: 'hard' },
+  // v7.7 — mondes 7 à 10 (mini, moyen, dur, méga).
+  mini_toad_king: { name: 'Roi crapaud', base: 'toad', sprite: 'mini_toad_king', tier: 'mini' },
+  mid_hydra: { name: 'Hydre des marais', base: 'lizardman', sprite: 'mid_hydra', tier: 'mid' },
+  hard_plague_doctor: { name: 'Médecin de la peste', base: 'bog_zombie', sprite: 'hard_plague_doctor', tier: 'hard' },
+  boss_swamp_behemoth: { name: 'Béhémoth des marais', base: 'bog_zombie', sprite: 'boss_swamp_behemoth' },
+  mini_harpy_queen: { name: 'Reine harpie', base: 'harpy', sprite: 'mini_harpy_queen', tier: 'mini' },
+  mid_thunder_griffin: { name: 'Griffon du tonnerre', base: 'griffin_cub', sprite: 'mid_thunder_griffin', tier: 'mid' },
+  hard_storm_valkyrie: { name: 'Valkyrie de la tempête', base: 'sky_automaton', sprite: 'hard_storm_valkyrie', tier: 'hard' },
+  boss_sky_titan: { name: 'Titan céleste', base: 'sky_automaton', sprite: 'boss_sky_titan' },
+  mini_salamander_chief: { name: 'Chef salamandre', base: 'salamander', sprite: 'mini_salamander_chief', tier: 'mini' },
+  mid_lava_golem: { name: 'Golem de lave', base: 'obsidian_beetle', sprite: 'mid_lava_golem', tier: 'mid' },
+  hard_flame_djinn: { name: 'Djinn des flammes', base: 'ash_wraith', sprite: 'hard_flame_djinn', tier: 'hard' },
+  boss_phoenix: { name: 'Phénix ancestral', base: 'salamander', sprite: 'boss_phoenix' },
+  mini_void_watcher: { name: 'Guetteur du néant', base: 'void_eye', sprite: 'mini_void_watcher', tier: 'mini' },
+  mid_star_devourer: { name: "Dévoreur d'étoiles", base: 'star_stalker', sprite: 'mid_star_devourer', tier: 'mid' },
+  hard_void_knight: { name: 'Chevalier du néant', base: 'shadow_knight', sprite: 'hard_void_knight', tier: 'hard' },
+  boss_void_emperor: { name: 'Empereur du Néant', base: 'shadow_knight', sprite: 'boss_void_emperor' },
 };

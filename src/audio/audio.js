@@ -109,6 +109,15 @@ const MODES = {
       [[0, 'm9'], [1, 'maj7'], [10, 'm7'], [7, 'dom7b9']],
     ],
   },
+  // Monde 11 : méga boss berserk — rapide, harmonique mineure, percussions lourdes, arpèges.
+  berserk: {
+    tempo: 118, scale: 'harmMinor', swing: 0, cutoff: 4600, crackle: 0.2, pad: 'pad', leads: ['chip'],
+    drums: 'boss', density: 0, arp: true, padGain: 0.9, bass: 'drive',
+    progs: [
+      [[0, 'm7'], [8, 'maj7'], [7, 'dom7b9'], [0, 'm7']],
+      [[0, 'm9'], [5, 'm7'], [7, 'dom7b9'], [8, 'maj7']],
+    ],
+  },
   dungeon: {
     tempo: 70, scale: 'phrygian', swing: 0.2, cutoff: 1600, crackle: 1.1, pad: 'pad', leads: ['kalimba', 'bell'],
     drums: 'dungeon', density: 0.2, padGain: 1, bass: 'hold',
@@ -784,7 +793,7 @@ const NOOP_SCENE = { world: 0, mode: 'normal' };
 
 function normScene(scene = {}) {
   const world = clamp(Math.floor(Number(scene.world) || 0), 0, WORLDS.length - 1);
-  const mode = scene.mode === 'boss' || scene.mode === 'dungeon' ? scene.mode : 'normal';
+  const mode = scene.mode in MODES ? scene.mode : 'normal';
   return { world, mode };
 }
 

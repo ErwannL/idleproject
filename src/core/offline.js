@@ -78,6 +78,7 @@ export function computeOfflineRewards(state, fromMs, nowMs, rng, balance = BALAN
 }
 
 export function applyOfflineRewards(state, rewards, balance = BALANCE) {
+  const before = { shards: state.materials.shards, essence: state.materials.essence };
   const gold = addGold(state, rewards.gold + rewards.excessGold);
   state.records.kills += rewards.kills;
   const levelsGained = addXp(state, rewards.xp);
@@ -93,5 +94,6 @@ export function applyOfflineRewards(state, rewards, balance = BALANCE) {
     }
   }
   state.records.itemsFound += rewards.excessDrops;
-  return { ...rewards, totalGold: gold + autoRecycledGold, autoRecycledGold, autoRecycledCount, levelsGained };
+  const materials = { shards: state.materials.shards - before.shards, essence: state.materials.essence - before.essence };
+  return { ...rewards, totalGold: gold + autoRecycledGold, autoRecycledGold, autoRecycledCount, levelsGained, materials };
 }

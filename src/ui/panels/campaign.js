@@ -1,20 +1,26 @@
 // Carte du monde : zones reliées par un chemin, étapes de la zone choisie, avance automatique.
 import { BALANCE } from '../../data/balance.js';
 import { ZONES } from '../../data/zones.js';
-import { bossesForStage, bossTierForStage, cycleForStage, stageLabel, stagesPerCycle, zoneIndexForStage } from '../../core/combat.js';
+import { bossesForStage, bossTierForStage, cycleForStage, stageLabel, stagesPerCycle, zoneIndexForStage, zoneLength, zoneStartStage } from '../../core/combat.js';
 import { BOSSES } from '../../data/enemies.js';
 
 const TIER_LABELS = { mini: 'Mini-boss', mid: 'Boss', hard: 'Boss redoutable', mega: 'MÉGA BOSS' };
 import { escapeHtml, img } from '../common.js';
 
 // Positions des zones sur la carte peinte (assets/ui/worldmap.png, générée par tools/art/worldmap.py).
+// (tools/art/worldmap_nodes.json, positions relatives des 11 régions sur la carte peinte)
 const MAP_NODES = [
-  { x: 0.13, y: 0.72 },
-  { x: 0.3, y: 0.38 },
-  { x: 0.47, y: 0.74 },
-  { x: 0.62, y: 0.38 },
-  { x: 0.78, y: 0.7 },
-  { x: 0.9, y: 0.32 },
+  { x: 0.09, y: 0.8 },
+  { x: 0.18, y: 0.56 },
+  { x: 0.29, y: 0.82 },
+  { x: 0.41, y: 0.6 },
+  { x: 0.53, y: 0.84 },
+  { x: 0.65, y: 0.62 },
+  { x: 0.78, y: 0.84 },
+  { x: 0.91, y: 0.58 },
+  { x: 0.81, y: 0.3 },
+  { x: 0.61, y: 0.28 },
+  { x: 0.38, y: 0.3 },
 ];
 
 export default {
@@ -23,7 +29,6 @@ export default {
   icon: 'icon_map',
   extra: (ui, state) => `Étape max ${stageLabel(state.maxStage)}`,
   render(ui, state) {
-    const per = BALANCE.stages.stagesPerZone;
     const cyc = stagesPerCycle();
     // Difficulté affichée : celle choisie (×1, ×2…) parmi celles atteintes, par défaut celle de l'étape actuelle.
     const maxCycle = cycleForStage(state.maxStage);
@@ -36,16 +41,16 @@ export default {
       data-action="cycle-sel" data-value="${c}">Difficulté ×${c + 1}</button>`).join('')}</div>` : '';
     const markers = ZONES.map((zone, i) => {
       const locked = i > lastZone;
-      const cleared = state.maxStage > offset + (i + 1) * per;
+      const cleared = state.maxStage >= offset + zoneStartStage(i) + zoneLength(zone);
       const n = MAP_NODES[i];
       return `<button class="map-node${locked ? ' locked' : ''}${i === sel ? ' selected' : ''}${i === currentZone ? ' current' : ''}"
         style="left:${n.x * 100}%;top:${n.y * 100}%" data-action="zone-sel" data-value="${i}" ${locked ? 'disabled' : ''}>
-        <span class="map-label">${escapeHtml(zone.name)}<small>${locked ? 'Bloqué' : cleared ? 'Terminé' : `1–${per}`}</small></span>
+        <span class="map-label">${escapeHtml(zone.name)}<small>${locked ? 'Bloqué' : cleared ? 'Terminé' : `1–${zoneLength(zone)}`}</small></span>
       </button>`;
     }).join('');
-    const first = offset + sel * per + 1;
+    const first = offset + zoneStartStage(sel);
     const buttons = [];
-    for (let stage = first; stage < first + per; stage++) {
+    for (let stage = first; stage < first + zoneLength(ZONES[sel]); stage++) {
       const tier = bossTierForStage(stage);
       const classes = ['btn', tier ? `boss tier-${tier}` : '', stage === state.stage && !state.dungeon ? 'current' : '', stage < state.maxStage ? 'cleared' : ''].join(' ');
       const title = tier ? `${TIER_LABELS[tier]} : ${BOSSES[bossesForStage(stage)[0]].name}` : 'Étape';

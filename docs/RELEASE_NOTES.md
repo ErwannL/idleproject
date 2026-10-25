@@ -1,10 +1,37 @@
-## Idle RPG v7.6.0 — Mondes de 20 étapes, boss épiques, boosts, prestige, musique
+## Idle RPG v7.7.0 — 11 mondes, Codex, donjons à difficultés, synergies, anglais
 
-**Installation ou mise à jour :** téléchargez **IdleRPG-7.6.0-setup.exe** et lancez-le (jeu fermé).
-L'installation se fait en un clic et remplace l'ancienne version ; **votre partie est conservée**
-(votre progression est convertie automatiquement à la nouvelle carte de 20 étapes par monde).
+**Installation ou mise à jour :** téléchargez **IdleRPG-7.7.0-setup.exe** et lancez-le (jeu fermé).
+L'installation se fait en un clic et remplace l'ancienne version ; **votre partie est conservée**.
 
-### Nouveau dans la v7.6
+### Nouveau dans la v7.7
+- **10 mondes + le Trône de l'Abysse** : 4 nouveaux mondes (Marais putride, Îles célestes, Cœur du volcan,
+  Royaume du Néant) avec décors, ennemis et 4 boss chacun. **Monde 11** : 10 étapes, chacune contre le méga boss
+  d'un monde en **mode berserk**, qui invoque ses boss des étapes 5, 10 et 15 ; musique épique dédiée.
+  Ensuite, retour au monde 1 en difficulté ×2, ×3…
+- **Boss bien plus coriaces** (PV, dégâts, une partie de l'armure ignorée) et **rage** s'ils durent trop longtemps.
+  Chaque méga boss a son **objet ancestral**.
+- **Renaissance revue (et fusionnée avec le Prestige)** : niveau du héros, compétences et niveau des compagnons
+  repartent à zéro, **un seul pouvoir ancestral conservé (au choix)** ; chaque Renaissance donne un bonus
+  permanent, les **bonus éternels** s'achètent avec les fragments, et les **boss s'adaptent** (plus durs,
+  mais plus généreux).
+- **Donjons** : liste + fiche détaillée, **difficultés Facile / Normal / Difficile** (bien plus dures que la
+  campagne), et ils rapportent les **fragments anciens** de l'arbre de talents.
+- **Codex des boss** redessiné : liste + fiche (histoire, pouvoir actuel / proposé côte à côte, récompenses,
+  piste de maîtrise) et **collections** (monstres, boss, équipements, compagnons) avec récompenses.
+- **Équipe** : **compagnons** (humains) et **familiers** (animaux) bien séparés, invocations séparées,
+  **rôles et synergies** visibles, **configurations** enregistrables (équipe + équipement), choix de qui remplacer.
+- **Inventaire** en 3 colonnes (équipement autour du héros · fiche · inventaire par catégories), **100 places**,
+  boutons toujours au même endroit, comparaison claire (« Si vous l'équipez : actuel → nouveau »),
+  **recyclage automatique** au ramassage ou quand le sac est plein, selon la rareté et le type d'objet.
+- **Butin** qui reste au sol plus longtemps et pop-up « N nouveaux objets » ; **missions** en onglets ;
+  **contrats thématiques et contrats rares** ; nouveaux événements : **portail vers une salle au trésor** et **boss errant**.
+- **Achat ×1 / ×10 / ×100 / Max** ; aide pour activer les **boosts** ; détail du bonus ×N au survol.
+- **Barre du haut** : niveau + XP, étape et monde ; listes déroulantes lisibles ; onglets débloqués plus tôt.
+- **Paramètres** : notifications réglables, **mode concentration**, rapport de retour hors ligne plus complet,
+  **choix de la langue (français / anglais)**.
+- Corrigés : familier invisible, cadenas géants sur les objets verrouillés, animations du dragon et des loups.
+
+### v7.6
 - **Mondes de 20 étapes et 4 boss par monde** : mini-boss à l'étape 5, boss à l'étape 10, boss redoutable
   à l'étape 15 et **méga boss** à l'étape 20, avec entrée spectaculaire (bannière, éclair, aura, braises).
   18 nouveaux boss dessinés, et les 6 méga boss redessinés et animés (Dragon des cendres, Roi démoniaque

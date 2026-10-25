@@ -6,6 +6,7 @@
 export const DUNGEONS = [
   {
     id: 'crypt',
+    roles: ['healer', 'mage'], // rôles conseillés (synergies)
     name: 'Crypte spectrale',
     description: 'Quatre salles hantées, puis la Reine spectrale.',
     unlockStage: 25, // étape max requise (monde 2-5)
@@ -19,6 +20,7 @@ export const DUNGEONS = [
   },
   {
     id: 'sanctuary',
+    roles: ['mage', 'guardian'], // rôles conseillés (synergies)
     name: 'Sanctuaire sylvestre',
     description: 'Une forêt corrompue, gardée par le Loup Alpha.',
     unlockStage: 35,
@@ -32,6 +34,7 @@ export const DUNGEONS = [
   },
   {
     id: 'furnace',
+    roles: ['mage', 'healer'], // rôles conseillés (synergies)
     name: 'Fournaise des sables',
     description: 'Des catacombes brûlantes où sommeille le Dragon des cendres.',
     unlockStage: 55,
@@ -45,6 +48,7 @@ export const DUNGEONS = [
   },
   {
     id: 'glacier',
+    roles: ['berserker', 'mage'], // rôles conseillés (synergies)
     name: 'Glacier éternel',
     description: 'Un dédale gelé que le Chevalier déchu ne quitte jamais.',
     unlockStage: 75,
@@ -58,6 +62,7 @@ export const DUNGEONS = [
   },
   {
     id: 'citadel',
+    roles: ['assassin', 'healer'], // rôles conseillés (synergies)
     name: 'Citadelle des ombres',
     description: "Le trône du Roi démoniaque, au cœur des terres maudites.",
     unlockStage: 95,
@@ -79,3 +84,13 @@ export const DUNGEON_PATHS = {
 // Récompense finale : objet Épique ou mieux de l'emplacement choisi (butin ciblé).
 export const DUNGEON_REWARD = { minRarity: 'epic', gems: 25, essence: 2, firstClearTickets: 1 };
 export const STARTING_KEYS = 1;
+
+// v7.7 : trois difficultés, bien plus dures que la campagne (niveau d'ennemi au-dessus de l'étape max,
+// PV et dégâts multipliés). Les fragments anciens (arbre de talents) se gagnent ici.
+// Normal se débloque après une victoire en Facile, Difficile après une victoire en Normal.
+export const DUNGEON_DIFFICULTIES = {
+  easy: { label: 'Facile', skulls: 1, levelBonus: 6, hp: 2, damage: 1.8, fragments: 4, gems: 1, essence: 1 },
+  normal: { label: 'Normal', skulls: 3, levelBonus: 14, hp: 3.5, damage: 2.8, fragments: 12, gems: 1.6, essence: 2 },
+  hard: { label: 'Difficile', skulls: 5, levelBonus: 26, hp: 6, damage: 4.5, fragments: 30, gems: 2.5, essence: 3 },
+};
+export const DIFFICULTY_ORDER = ['easy', 'normal', 'hard'];

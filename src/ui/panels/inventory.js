@@ -1,10 +1,10 @@
 // Inventaire en 3 zones (équipement porté · fiche de l'objet · grille) et Forge.
 import { BALANCE } from '../../data/balance.js';
 import { BOSSES } from '../../data/enemies.js';
-import { ACCESSORY_SLOTS, GEAR_SLOTS, SLOTS, STAT_LABELS } from '../../data/items.js';
+import { ACCESSORY_SLOTS, GEAR_SLOTS, RARITIES, SLOTS, STAT_LABELS } from '../../data/items.js';
 import { formatStat } from '../../core/format.js';
 import { canReforge, craftCost, fusionGroups, maxUpgrades, sharpenCost, upgradeCost } from '../../core/forge.js';
-import { AUTO_RECYCLE_RULES, bulkRecycleCandidates, listInventory } from '../../core/inventory.js';
+import { bulkRecycleCandidates, listInventory, RECYCLE_MODES, recycleRules } from '../../core/inventory.js';
 import { itemBase, rarityById, recycleMaterials, recycleValue } from '../../core/loot.js';
 import { computeHeroStats, statsWithItem } from '../../core/stats.js';
 import { slotIconName } from '../../render/pixel.js';
@@ -32,18 +32,23 @@ function detail(ui, state, item) {
   if (!isEquipped) {
     const cur = computeHeroStats(state);
     const next = statsWithItem(state, item);
-    const row = (label, diff, text, unit = '') => {
+    // Héros actuel → héros avec cet objet (à la place de l'objet porté), et la différence.
+    const row = (label, a, b, fmt, unit = '') => {
+      const diff = b - a;
       const cls = Math.abs(diff) < 0.001 ? 'muted' : diff > 0 ? 'good' : 'bad';
       const arrow = Math.abs(diff) < 0.001 ? '•' : diff > 0 ? '▲' : '▼';
-      return `<div class="compare-row"><span>${label}</span><span class="num ${cls}">${diff > 0 ? '+' : ''}${text}${unit} ${arrow}</span></div>`;
+      return `<div class="compare-row"><span>${label}</span><span class="num muted">${fmt(a)}${unit} → ${fmt(b)}${unit}</span>
+        <span class="num ${cls}">${diff > 0 ? '+' : ''}${fmt(diff)}${unit} ${arrow}</span></div>`;
     };
     const current = state.equipment[item.slot];
-    compare = `<div class="compare"><div class="section-title">Comparaison${current ? ` · ${escapeHtml(current.name)}` : ' · emplacement vide'}</div>
-      ${row('DPS', next.dps - cur.dps, formatDecimal(next.dps - cur.dps))}
-      ${row('Dégâts', next.damage - cur.damage, formatNumber(Math.round(next.damage - cur.damage)))}
-      ${row('Attaques / s', next.attacksPerSecond - cur.attacksPerSecond, formatDecimal(next.attacksPerSecond - cur.attacksPerSecond, 2))}
-      ${row('PV max', next.maxHp - cur.maxHp, formatNumber(Math.round(next.maxHp - cur.maxHp)))}
-      ${row('Armure', next.armor - cur.armor, formatDecimal(next.armor - cur.armor), ' %')}
+    const int = (v) => formatNumber(Math.round(v));
+    compare = `<div class="compare"><div class="section-title">Si vous l'équipez${current ? ` (à la place de ${escapeHtml(current.name)})` : ' (emplacement vide)'}</div>
+      <div class="muted compare-hint">Vos statistiques actuelles → avec cet objet, et le gain ou la perte.</div>
+      ${row('DPS', cur.dps, next.dps, (v) => formatDecimal(v))}
+      ${row('Dégâts', cur.damage, next.damage, int)}
+      ${row('Attaques / s', cur.attacksPerSecond, next.attacksPerSecond, (v) => formatDecimal(v, 2))}
+      ${row('PV max', cur.maxHp, next.maxHp, int)}
+      ${row('Armure', cur.armor, next.armor, (v) => formatDecimal(v), ' %')}
     </div>`;
   }
   const mats = recycleMaterials(item);
@@ -54,36 +59,35 @@ function detail(ui, state, item) {
   const ups = item.upgrades ?? 0;
   const maxUp = maxUpgrades(item);
   const upCost = upgradeCost(item);
-  const upgradeRow = ups >= maxUp
-    ? `<div class="upgrade-row"><span class="gold-text">Amélioration maximale (+${maxUp})</span></div>`
-    : `<div class="upgrade-row">
-        <button class="btn btn-gold num" data-action="upgrade-item" data-id="${item.id}" data-cost="${upCost.gold}" data-currency="gold"
-          ${state.materials.shards < upCost.shards ? 'data-locked="1" disabled' : state.gold < upCost.gold ? 'disabled' : ''}
-          title="Augmente une statistique de l'objet au hasard de ${BALANCE.forge.upgradeBoostPct} %">
-          Améliorer +${ups + 1} ${coin()} ${formatNumber(upCost.gold)} ${shard()} ${upCost.shards}</button>
-        <span class="muted num">${ups}/${maxUp}</span>
-      </div>`;
-  const forgeRow = `<div class="detail-actions">
-      ${sharpen ? costButton({ action: 'sharpen', cost: sharpen, have: state.materials.shards, currency: 'shards', attrs: `data-id="${item.id}"`, cls: 'small', label: `Réaffûter niv. ${state.maxStage} ` }) : ''}
-      ${canReforge(item) ? `<button class="btn small" data-action="reforge" data-id="${item.id}"
-        ${state.materials.shards < BALANCE.forge.reforgeShards || state.materials.essence < BALANCE.forge.reforgeEssence ? 'disabled' : ''}
-        title="Relancer les effets spéciaux">Relancer effets ${shard()}${BALANCE.forge.reforgeShards} ${essence()}${BALANCE.forge.reforgeEssence}</button>` : ''}
-      ${lock}</div>`;
-  const actions = isEquipped ? '' : `<div class="detail-actions">
-      <button class="btn btn-primary" data-action="equip" data-id="${item.id}">Équiper</button>
-      <button class="btn btn-outline-gold" data-action="recycle" data-id="${item.id}" ${item.locked ? 'disabled title="Objet verrouillé"' : ''}
-        title="Recycler : or et matériaux">Recycler +${formatNumber(recycleValue(item))} ${coin()}${mats.shards ? ` +${mats.shards}${shard()}` : ''}${mats.essence ? ` +${mats.essence}${essence()}` : ''}</button>
+  // Boutons toujours aux mêmes places, quel que soit l'objet : ceux qui ne s'appliquent pas sont grisés.
+  const upgradeBtn = ups >= maxUp
+    ? `<button class="btn btn-gold" disabled>Amélioration maximale (+${maxUp})</button>`
+    : `<button class="btn btn-gold num" data-action="upgrade-item" data-id="${item.id}" data-cost="${upCost.gold}" data-currency="gold"
+        ${state.materials.shards < upCost.shards ? 'data-locked="1" disabled' : state.gold < upCost.gold ? 'disabled' : ''}
+        title="Augmente une statistique de l'objet au hasard de ${BALANCE.forge.upgradeBoostPct} %">Améliorer +${ups + 1} ${coin()} ${formatNumber(upCost.gold)} ${shard()} ${upCost.shards}</button>`;
+  const sharpenBtn = sharpen
+    ? costButton({ action: 'sharpen', cost: sharpen, have: state.materials.shards, currency: 'shards', attrs: `data-id="${item.id}"`, cls: 'small', label: `Réaffûter niv. ${state.maxStage} ` })
+    : '<button class="btn small" disabled title="Déjà au niveau de votre étape max">Réaffûter</button>';
+  const reforgeBtn = `<button class="btn small" data-action="reforge" data-id="${item.id}"
+      ${!canReforge(item) || state.materials.shards < BALANCE.forge.reforgeShards || state.materials.essence < BALANCE.forge.reforgeEssence ? 'disabled' : ''}
+      title="${canReforge(item) ? 'Relancer les effets spéciaux' : 'Cet objet n\'a pas d\'effets à relancer'}">Relancer effets ${shard()}${BALANCE.forge.reforgeShards} ${essence()}${BALANCE.forge.reforgeEssence}</button>`;
+  const actions = `<div class="action-grid">
+      ${isEquipped ? '<button class="btn btn-primary" disabled>Équipé</button>' : `<button class="btn btn-primary" data-action="equip" data-id="${item.id}">Équiper</button>`}
+      <button class="btn btn-outline-gold" data-action="recycle" data-id="${item.id}" ${item.locked || isEquipped ? 'disabled' : ''}
+        title="${isEquipped ? 'Un objet équipé ne peut pas être recyclé' : item.locked ? 'Objet verrouillé' : 'Recycler : or et matériaux'}">Recycler +${formatNumber(recycleValue(item))} ${coin()}${mats.shards ? ` +${mats.shards}${shard()}` : ''}${mats.essence ? ` +${mats.essence}${essence()}` : ''}</button>
+      <div class="span2 upgrade-line">${upgradeBtn}<span class="muted num">${ups}/${maxUp}</span></div>
+      <div class="span2 tool-line">${sharpenBtn}${reforgeBtn}${lock}</div>
     </div>`;
-  const preview = animCanvas('hero', 64, 58, 2, `data-preview="${escapeHtml(JSON.stringify({ ...state.equipment, [item.slot]: item }))}"`);
   return `<div class="card item-detail r-${item.rarity}">
     <div class="detail-head">${itemFrame(item, { tag: 'div' })}
       <div><div class="item-name">${escapeHtml(item.name)}${ups ? ` <span class="plus-lv">+${ups}</span>` : ''}</div>
         <div class="item-sub">${SLOTS[item.slot]} · <span class="rarity-text">${rarity.label}</span> · niv. ${item.level}</div>
-        ${isEquipped ? '<span class="equipped-tag">Équipé</span>' : ''}
-        ${base.signature ? `<span class="signature-tag">Butin de ${escapeHtml(BOSSES[base.signature].name)}</span>` : ''}</div></div>
+        <div class="tags">${isEquipped ? '<span class="equipped-tag">Équipé</span>' : ''}
+        ${base.signature ? `<span class="signature-tag">Objet ancestral · butin de ${escapeHtml(BOSSES[base.signature].name)}</span>` : ''}</div></div></div>
+    ${actions}
+    <div class="section-title">Statistiques de l'objet</div>
     <ul class="stat-list">${stats}${affixes}</ul>
-    ${compare}${actions}${upgradeRow}${forgeRow}
-    <div class="preview" title="Aperçu du chevalier avec cet objet">${preview}</div>
+    ${compare}
   </div>`;
 }
 
@@ -105,12 +109,10 @@ function bag(ui, state) {
     return `<div class="slot" title="${label}">${frame}</div>`;
   };
   // Équipement porté à gauche, accessoires à droite.
-  const slots = `<div class="slot-col">${GEAR_SLOTS.map(slotFrame).join('')}</div>
-    <div class="slot-col acc">${ACCESSORY_SLOTS.map(slotFrame).join('')}</div>`;
-  const filters = [['all', null, 'Tous'], ...GEAR_SLOTS.map((slot) => [slot, slotIconName(slot), SLOTS[slot]]),
+  const filters = [['all', null, 'Tous'], ['weapon', 'weapon_sword', 'Armes'], ['helmet', 'icon_hero', 'Casques'], ['armor', 'icon_shield', 'Armures'],
     ['accessory', 'ring_band', 'Accessoires']]
     .map(([value, iconName, label]) => `<button class="btn${state.ui.slotFilter === value ? ' active' : ''}"
-      data-action="filter" data-value="${value}" title="${label}">${iconName ? img(iconName) : 'Tous'}</button>`).join('');
+      data-action="filter" data-value="${value}" title="${label}">${iconName ? img(iconName) : ''}<span>${label}</span></button>`).join('');
   const sortOptions = Object.entries(SORT_LABELS)
     .map(([v, l]) => `<option value="${v}" ${v === state.ui.sortBy ? 'selected' : ''}>Tri : ${l}</option>`).join('');
   const candidates = bulkRecycleCandidates(state, ui.view.bulkRarity);
@@ -119,22 +121,27 @@ function bag(ui, state) {
   const bulkLabel = ui.view.bulkArmed
     ? `Confirmer : ${candidates.length} objet${candidates.length > 1 ? 's' : ''} (+${formatNumber(bulkGold)} or)`
     : `Recycler (${candidates.length}) +${formatNumber(bulkGold)}`;
-  return `<div class="inv">
-    <div class="inv-slots">${slots}</div>
+  // Colonne équipement : le chevalier (aperçu avec l'objet sélectionné) entouré de ses emplacements.
+  const previewEq = selected ? { ...state.equipment, [selected.slot]: selected } : state.equipment;
+  const st = computeHeroStats(state);
+  const equipCol = `<div class="card inv-equip"><div class="section-title">Équipement</div>
+      <div class="equip-doll"><div class="slot-col">${GEAR_SLOTS.map(slotFrame).join('')}</div>
+        <div class="doll" title="Aperçu avec l'objet sélectionné">${animCanvas('hero', 64, 58, 2, `data-preview="${escapeHtml(JSON.stringify(previewEq))}"`)}</div>
+        <div class="slot-col acc">${ACCESSORY_SLOTS.map(slotFrame).join('')}</div></div>
+      <div class="mini-stats"><span>${img('weapon_sword')} ${formatNumber(st.damage)}</span><span>${img('icon_heart')} ${formatNumber(st.maxHp)}</span>
+        <span>${img('icon_shield')} ${formatDecimal(st.armor)} %</span><span>${img('icon_bolt')} ${formatDecimal(st.attacksPerSecond, 2)}/s</span></div></div>`;
+  return `<div class="inv inv3">
+    ${equipCol}
     <div class="inv-detail">${selected ? detail(ui, state, selected) : '<div class="card muted">Aucun objet.</div>'}</div>
-    <div class="inv-list">
+    <div class="card inv-list">
+      <div class="row-between"><div class="section-title">Inventaire</div><span class="inv-count${full ? ' full' : ''}">${state.inventory.length}/${BALANCE.loot.inventorySize}</span></div>
       <div class="inv-filters">${filters}</div>
       <div class="inv-grid">${items.map((i) => itemFrame(i, { selected: i.id === ui.view.selectedItemId, showUp: true, state })).join('')
         || '<div class="inv-empty">Aucun objet ici. Les ennemis laissent parfois tomber de l\'équipement.</div>'}</div>
       <div class="inv-footer">
         <select data-action="sort" aria-label="Trier">${sortOptions}</select>
-        <span class="inv-count${full ? ' full' : ''}">${state.inventory.length}/${BALANCE.loot.inventorySize}</span>
       </div>
-      <label class="inv-rule" title="Règle de collecte : les objets ramassés sont recyclés aussitôt (jamais un objet meilleur que l'équipement porté ni un objet signature).">
-        <span>Au ramassage :</span>
-        <select data-action="auto-recycle" aria-label="Règle de collecte">${Object.entries(AUTO_RECYCLE_RULES)
-          .map(([v, l]) => `<option value="${v}" ${v === (state.ui.autoRecycle ?? 'off') ? 'selected' : ''}>${l}</option>`).join('')}</select>
-      </label>
+      ${recycleRuleEditor(state)}
       <div class="inv-bulk" title="Ne recycle jamais un objet verrouillé, meilleur que l'équipement porté, Épique ou Légendaire.">
         <select data-action="bulk-rarity" aria-label="Rareté maximale à recycler">
           <option value="common" ${ui.view.bulkRarity === 'common' ? 'selected' : ''}>Communs</option>
@@ -186,6 +193,20 @@ function forge(ui, state) {
       <div class="muted">Le recyclage rend des éclats (toutes raretés) et des essences (Épique et Légendaire).
         Dans la fiche d'un objet : <b>Réaffûter</b> (le remonter au niveau de votre étape max) et <b>Relancer effets</b>.</div>
     </div>`;
+}
+
+// Recyclage automatique : quand (ramassage / sac plein), quelles raretés, quels types d'objets.
+function recycleRuleEditor(state) {
+  const rules = recycleRules(state);
+  const chip = (group, value, label, on) => `<button class="btn chip-btn small${on ? ' active' : ''}" data-action="recycle-toggle" data-group="${group}" data-value="${value}">${label}</button>`;
+  const rarities = RARITIES.map((r) => chip('rarities', r.id, r.label, rules.rarities.includes(r.id))).join('');
+  const slots = Object.entries(SLOTS).map(([s, l]) => chip('slots', s, l, rules.slots.includes(s))).join('');
+  return `<div class="recycle-rules" title="Jamais recyclé : objet équipé, verrouillé, ancestral, ou meilleur que l'objet porté.">
+    <label class="inv-rule"><span>Recyclage auto :</span>
+      <select data-action="recycle-mode" aria-label="Recyclage automatique">${Object.entries(RECYCLE_MODES)
+        .map(([v, l]) => `<option value="${v}" ${v === rules.mode ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+    ${rules.mode === 'off' ? '' : `<div class="chip-row">${rarities}</div><div class="chip-row">${slots}</div>`}
+  </div>`;
 }
 
 export default {

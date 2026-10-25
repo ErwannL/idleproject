@@ -30,8 +30,8 @@ const run = (state, world, seconds, rng) => {
   for (let i = 0; i < seconds * 20; i++) step(state, world, 0.05, rng);
 };
 
-test('6 zones, chacune avec ses ennemis, son boss et son décor', () => {
-  assert.equal(ZONES.length, 6);
+test('11 mondes, chacun avec ses ennemis, son boss et son décor', () => {
+  assert.equal(ZONES.length, 11);
   for (const zone of ZONES) assert.ok(zone.enemies.length >= 2 && zone.bosses.length === 1, zone.id);
 });
 
@@ -172,12 +172,12 @@ test('événements discrets : coffre, marchand, élite et vague, jamais bloquant
   const rules = { ...BALANCE, events: { ...BALANCE.events, chancePerKill: 1 } };
   const world = createCombat(state);
   const seen = new Set();
-  for (let seed = 0; seed < 200 && seen.size < 5; seed++) {
+  for (let seed = 0; seed < 600 && seen.size < 7; seed++) {
     const e = rollEvent(state, world, new Rng(seed), rules);
     if (e) seen.add(e.type);
     if (state.inbox.length >= BALANCE.events.inboxSize) state.inbox.length = 0;
   }
-  assert.deepEqual([...seen].sort(), ['chest', 'elite', 'gems', 'merchant', 'wave']);
+  assert.deepEqual([...seen].sort(), ['chest', 'elite', 'gems', 'merchant', 'portal', 'wanderer', 'wave']);
   assert.ok(world.pendingElite && world.goldWave > 0);
 
   state.inbox = [];

@@ -57,6 +57,12 @@ export function spriteCanvas(name, options = {}) {
   if (canvas) return canvas;
 
   const sprite = SPRITES[name];
+  if (!sprite) {
+    // Sprite inconnu (contenu pas encore dessiné) : image vide plutôt qu'une erreur.
+    canvas = createCanvas(1, 1);
+    cache.set(key, canvas);
+    return canvas;
+  }
   if (flip) {
     canvas = mirrored(spriteCanvas(name, { colors, rotate, tint, flash }));
   } else if (flash || tint) {

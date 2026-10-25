@@ -8,12 +8,18 @@ export const REBIRTH = {
 };
 
 // Ce que la Renaissance réinitialise et conserve (affiché avant confirmation).
-export const REBIRTH_RESETS = ['Étapes et progression de campagne', 'Or courant', 'Améliorations (Dégâts, Vitesse, Vitalité)'];
+// v7.7 : la Renaissance remet aussi à zéro le niveau du héros (et ses compétences), le niveau des
+// compagnons et familiers, et ne garde qu'UN pouvoir ancestral (au choix). En échange, les boss
+// s'adaptent : plus durs, mais leurs récompenses augmentent à chaque Renaissance.
+export const REBIRTH_RESETS = [
+  'Étapes et progression de campagne', 'Or courant', 'Améliorations (Dégâts, Vitesse, Vitalité)',
+  'Niveau du héros et compétences', 'Niveau des compagnons et familiers (retour au niveau 1)',
+  'Pouvoirs ancestraux : un seul est conservé',
+];
 export const REBIRTH_KEEPS = [
-  'Niveau du héros et compétences',
   'Équipement porté, sac et matériaux',
-  'Héros, compagnons, gemmes et tickets',
-  'Pouvoirs ancestraux, Codex et offres de relance',
+  'Compagnons et familiers (étoiles conservées), gemmes et tickets',
+  'Le pouvoir ancestral choisi, Codex',
   'Talents et fragments anciens',
   'Statistiques et exploits',
 ];
@@ -27,10 +33,10 @@ export const REBIRTH_KEEPS = [
 // `x`, `y` : case de l'arbre dessiné (le Cœur en 0, 0 ; Combat à gauche, Ressources à droite,
 // Spécial en haut, Survie en bas).
 export const TALENT_BRANCHES = [
-  { id: 'combat', label: 'Combat', color: '#ff7a6b' },
-  { id: 'survival', label: 'Survie', color: '#63d98a' },
-  { id: 'resources', label: 'Ressources', color: '#f2d083' },
-  { id: 'special', label: 'Spécial', color: '#c9a6ff' },
+  { id: 'combat', label: 'Puissance', color: '#ff7a6b' },
+  { id: 'survival', label: 'Endurance', color: '#63d98a' },
+  { id: 'resources', label: 'Fortune et chasse', color: '#f2d083' },
+  { id: 'special', label: 'Héritage', color: '#c9a6ff' },
 ];
 
 // Nœud central de l'arbre : il ouvre les 4 branches.

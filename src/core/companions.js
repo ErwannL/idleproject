@@ -4,6 +4,7 @@ import { COMPANION_RULES, COMPANIONS } from '../data/companions.js';
 import { referenceKillGold } from './combat.js';
 import { talentEffects } from './rebirth.js';
 import { DUNGEONS } from '../data/dungeons.js';
+import { COMPANION_ROLES, SYNERGIES } from '../data/synergies.js';
 
 export function companionById(id) {
   return COMPANIONS.find((c) => c.id === id);
@@ -33,8 +34,30 @@ export function dungeonDamageTaken(state, balance = BALANCE) {
   return ally && state.companions.equipped.includes(ally) ? 1 - balance.dungeonAffinity.damageTakenPct / 100 : 1;
 }
 
+// Rôles présents dans l'équipe (le chevalier compte comme Gardien).
+export function teamRoles(state) {
+  return ['guardian', ...equippedCompanions(state).map((c) => COMPANION_ROLES[c.id]).filter(Boolean)];
+}
+
+// Synergies actives : chaque rôle requis doit être couvert (un membre ne compte qu'une fois).
+export function activeSynergies(state) {
+  const roles = teamRoles(state);
+  return SYNERGIES.filter((syn) => {
+    const pool = [...roles];
+    return syn.roles.every((r) => {
+      const i = pool.indexOf(r);
+      if (i < 0) return false;
+      pool.splice(i, 1);
+      return true;
+    });
+  });
+}
+
 export function companionEffects(state, balance = BALANCE) {
   const out = {};
+  for (const syn of activeSynergies(state)) {
+    for (const [k, v] of Object.entries(syn.effects)) out[k] = (out[k] ?? 0) + v;
+  }
   for (const c of equippedCompanions(state)) {
     const home = dungeonAffinity(state, c.id);
     const m = companionMultiplier(state, c.id) * (home ? balance.dungeonAffinity.passiveMultiplier : 1);
@@ -80,6 +103,17 @@ export function clampTeam(equipped, balance = BALANCE) {
     count[kind] += 1;
     return true;
   });
+}
+
+// Remplace un membre de l'équipe par un autre de la même catégorie (équipe pleine).
+export function replaceCompanion(state, newId, oldId) {
+  const c = companionById(newId);
+  const old = companionById(oldId);
+  if (!c || !old || !state.companions.owned[newId] || teamKind(c) !== teamKind(old)) return false;
+  const index = state.companions.equipped.indexOf(oldId);
+  if (index < 0 || state.companions.equipped.includes(newId)) return false;
+  state.companions.equipped[index] = newId;
+  return true;
 }
 
 // Équiper / retirer. Le compagnon (1 place) remplace l'ancien ; les personnages sont limités à 2.

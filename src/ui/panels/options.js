@@ -2,6 +2,7 @@
 import { BALANCE } from '../../data/balance.js';
 import { formatDuration } from '../../core/format.js';
 import { escapeHtml } from '../common.js';
+import { getLang } from '../../i18n/i18n.js';
 
 // Musique lo-fi / aventure et effets sonores (générés en direct, aucun fichier audio).
 function soundOptions(ui) {
@@ -47,7 +48,26 @@ export default {
           <button class="btn small" data-action="save">Sauvegarder</button></div>
         <div class="muted">Automatique toutes les ${BALANCE.autosaveSeconds} s, à chaque action et à la fermeture.</div>
       </div>
+      <div class="card">
+        <div class="section-title">Langue · Language</div>
+        <div class="chip-row" data-no-i18n>
+          <button class="btn chip-btn${getLang() === 'fr' ? ' active' : ''}" data-action="lang" data-value="fr">🇫🇷 Français</button>
+          <button class="btn chip-btn${getLang() === 'en' ? ' active' : ''}" data-action="lang" data-value="en">🇬🇧 English</button>
+        </div>
+      </div>
       ${soundOptions(ui)}
+      <div class="card">
+        <div class="section-title">Notifications et confort</div>
+        <label class="toggle"><input type="checkbox" data-action="notify" data-key="loot" ${state.ui.notify?.loot !== false ? 'checked' : ''}> Pop-up « nouveaux objets dans l'inventaire »</label>
+        <label class="toggle"><input type="checkbox" data-action="notify" data-key="boss" ${state.ui.notify?.boss !== false ? 'checked' : ''}> Bannières d'arrivée des boss</label>
+        <label class="toggle"><input type="checkbox" data-action="notify" data-key="events" ${state.ui.notify?.events !== false ? 'checked' : ''}> Messages des événements (coffres, marchands…)</label>
+        <label class="toggle"><input type="checkbox" data-action="focus" ${state.ui.focus ? 'checked' : ''}> <b>Mode concentration</b> : moins d'effets visuels et de messages (le jeu continue normalement)</label>
+      </div>
+      <div class="card">
+        <div class="section-title">Code secret</div>
+        <div class="row"><input id="cheat-code" class="grow" type="text" maxlength="24" placeholder="Entrer un code…" autocomplete="off">
+          <button class="btn small" data-action="cheat">Valider</button></div>
+      </div>
       ${windowOptions(ui)}
       <div class="card">
         <div class="section-title">Test des gains hors ligne</div>

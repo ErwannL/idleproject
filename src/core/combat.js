@@ -18,16 +18,47 @@ import { activeSkills, skillCooldown, skillValue } from './skills.js';
 import { computeHeroStats } from './stats.js';
 import { earlyBoost } from './boost.js';
 import { phantomHitPct, rushById, tickRushes } from './rushes.js';
+import { recordKill } from './codex.js';
+import { DUNGEON_DIFFICULTIES } from '../data/dungeons.js';
 
 const MAX_EVENTS = 300;
 
+// Nombre d'étapes d'un monde (20 par défaut ; le monde 11 en a 10).
+export function zoneLength(zone, balance = BALANCE) {
+  return zone.stages ?? balance.stages.stagesPerZone;
+}
+
+// Position d'une étape : index du monde et étape dans le monde (1..n), quel que soit le cycle.
+export function locateStage(stage, balance = BALANCE) {
+  let s = (stage - 1) % stagesPerCycle(balance);
+  for (let i = 0; i < ZONES.length; i++) {
+    const len = zoneLength(ZONES[i], balance);
+    if (s < len) return { zone: i, inZone: s + 1 };
+    s -= len;
+  }
+  return { zone: ZONES.length - 1, inZone: 1 };
+}
+
+// Première étape (cycle 0) d'un monde.
+export function zoneStartStage(zoneIndex, balance = BALANCE) {
+  let start = 1;
+  for (let i = 0; i < zoneIndex; i++) start += zoneLength(ZONES[i], balance);
+  return start;
+}
+
 export function isBossStage(stage, balance = BALANCE) {
-  return stage % balance.stages.bossEvery === 0;
+  const { zone, inZone } = locateStage(stage, balance);
+  return Boolean(ZONES[zone].gauntlet) || inZone % balance.stages.bossEvery === 0;
+}
+
+// Monde 11 : chaque étape est un méga boss berserk.
+export function isGauntletStage(stage, balance = BALANCE) {
+  return Boolean(ZONES[locateStage(stage, balance).zone].gauntlet);
 }
 
 // Un « cycle » = les 6 mondes. Après le dernier monde, on repart du monde 1 en difficulté ×2, ×3…
 export function stagesPerCycle(balance = BALANCE) {
-  return ZONES.length * balance.stages.stagesPerZone;
+  return ZONES.reduce((sum, z) => sum + (z.stages ?? balance.stages.stagesPerZone), 0);
 }
 
 // 0 pour le premier passage, 1 pour la difficulté ×2, etc.
@@ -40,19 +71,26 @@ export function difficultyForStage(stage, balance = BALANCE) {
 }
 
 export function zoneIndexForStage(stage, balance = BALANCE) {
-  return Math.floor(((stage - 1) % stagesPerCycle(balance)) / balance.stages.stagesPerZone);
+  return locateStage(stage, balance).zone;
 }
 
-// Étape dans le monde (1..20).
+// Étape dans le monde (1..20, ou 1..10 pour le monde 11).
 export function stageInZone(stage, balance = BALANCE) {
-  return ((stage - 1) % balance.stages.stagesPerZone) + 1;
+  return locateStage(stage, balance).inZone;
 }
 
 // Rang du boss de l'étape : 'mini' (5), 'mid' (10), 'hard' (15), 'mega' (20), ou null.
 export function bossTierForStage(stage, balance = BALANCE) {
   if (!isBossStage(stage, balance)) return null;
+  if (isGauntletStage(stage, balance)) return 'mega';
   const s = stageInZone(stage, balance);
   return Object.entries(balance.stages.tiers).find(([, t]) => t.stage === s)?.[0] ?? 'mega';
+}
+
+// Adaptation aux Renaissances : multiplicateurs des boss (PV/dégâts) et de leurs récompenses.
+export function rebirthHeat(state, balance = BALANCE) {
+  const n = state.records?.rebirths ?? 0;
+  return { boss: 1 + (balance.stages.rebirthBossPct / 100) * n, reward: 1 + (balance.stages.rebirthRewardPct / 100) * n };
 }
 
 // Rang d'un boss d'après sa définition (méga boss par défaut).
@@ -73,6 +111,8 @@ export function stageLabel(stage, balance = BALANCE) {
 // Boss de l'étape : le boss du rang correspondant du monde (méga boss à l'étape 20).
 export function bossesForStage(stage, balance = BALANCE) {
   const zone = zoneForStage(stage, balance);
+  // Monde 11 : étape n = méga boss du monde n.
+  if (zone.gauntlet) return ZONES[stageInZone(stage, balance) - 1].bosses;
   const tier = bossTierForStage(stage, balance);
   return tier && tier !== 'mega' && zone.tierBosses?.[tier] ? [zone.tierBosses[tier]] : zone.bosses;
 }
@@ -122,6 +162,9 @@ export function currentEncounter(state, balance = BALANCE) {
     level: state.stage, boss: isBossStage(state.stage, balance), enemies: zone.enemies,
     bosses: bossesForStage(state.stage, balance),
     killsNeeded: balance.stages.killsPerStage, zoneIndex: zoneIndexForStage(state.stage, balance), dungeon: null,
+    // Monde 11 : le méga boss (berserk) invoque les boss 5/10/15 de son monde quand ses PV baissent.
+    gauntlet: Boolean(zone.gauntlet),
+    summons: zone.gauntlet ? Object.values(ZONES[stageInZone(state.stage, balance) - 1].tierBosses ?? {}) : [],
   };
 }
 
@@ -153,10 +196,50 @@ function emit(world, type, data = {}) {
   if (world.events.length > MAX_EVENTS) world.events.splice(0, world.events.length - MAX_EVENTS);
 }
 
+// Mode berserk (monde 11) : PV, dégâts et vitesse d'attaque augmentés.
+function applyBerserk(s, balance) {
+  const b = balance.stages.berserk;
+  s.hp *= b.hp;
+  s.damage *= b.damage;
+  s.attackInterval /= b.speed;
+  s.gold *= b.gold;
+}
+
+// Un méga boss berserk appelle un de ses boss (mini, moyen, dur) à chaque palier de PV perdus.
+function summonMinion(state, world, master, balance, enc) {
+  const type = master.summons.shift();
+  if (!type) return;
+  const s = enemyStats(enc.level, type, true, balance);
+  applyBerserk(s, balance);
+  const heat = rebirthHeat(state, balance);
+  const minion = {
+    id: world.nextEnemyId++, type, boss: true, summoned: true, elite: false, berserk: true,
+    x: master.x - 4, hp: s.hp * heat.boss, maxHp: s.hp * heat.boss, damage: s.damage * heat.boss, gold: s.gold * heat.reward,
+    speed: s.speed, attackInterval: s.attackInterval, attackTimer: s.attackInterval * 0.6, range: s.range, engaged: false, age: 0, summons: [],
+  };
+  // Il se place devant son maître pour le protéger.
+  world.enemies.unshift(minion);
+  emit(world, 'bossSummon', { enemyId: minion.id, kind: type, master: master.type });
+}
+
 function spawnEnemy(state, world, rng, balance, enc, elite = false) {
   const boss = enc.boss && !elite;
   const type = rng.pick(boss ? enc.bosses : enc.enemies);
   const s = enemyStats(enc.level, type, boss, balance);
+  if (boss && enc.gauntlet) applyBerserk(s, balance);
+  if (enc.dungeon) {
+    // Donjons : bien plus durs que la campagne, selon la difficulté choisie.
+    const diff = DUNGEON_DIFFICULTIES[state.dungeon?.difficulty] ?? DUNGEON_DIFFICULTIES.easy;
+    s.hp *= diff.hp;
+    s.damage *= diff.damage;
+  }
+  if (boss) {
+    // Les boss s'adaptent aux Renaissances : plus durs, mais plus généreux.
+    const heat = rebirthHeat(state, balance);
+    s.hp *= heat.boss;
+    s.damage *= heat.boss;
+    s.gold *= heat.reward;
+  }
   const e = balance.events;
   const enemy = {
     id: world.nextEnemyId++,
@@ -173,6 +256,9 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
     attackTimer: s.attackInterval * 0.6,
     range: s.range + (elite ? 4 : 0),
     engaged: false,
+    age: 0, // secondes au contact (rage des boss)
+    berserk: Boolean(boss && enc.gauntlet),
+    summons: boss && enc.gauntlet ? [...enc.summons] : [],
   };
   world.enemies.push(enemy);
   emit(world, boss ? 'bossSpawn' : elite ? 'eliteSpawn' : 'spawn', { enemyId: enemy.id, kind: type });
@@ -201,11 +287,12 @@ export function resumeAdvance(state, world, balance = BALANCE) {
 }
 
 function clearStage(state, world, balance) {
+  trackContracts(state, 'stages', 1);
   const next = state.stage + 1;
   if (next > state.maxStage) {
     state.maxStage = next;
     // Nouvelle étape (et nouveau monde) : quelques gemmes.
-    const newWorld = (next - 1) % balance.stages.stagesPerZone === 0;
+    const newWorld = stageInZone(next, balance) === 1;
     const gems = balance.gems.newStage + (newWorld ? balance.gems.newWorld : 0);
     state.gems += gems;
     emit(world, 'unlock', { stage: next, gems });
@@ -238,6 +325,7 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
   const gold = gainGold(state, world, enemy.gold * (1 + stats.goldPct / 100) * wave * boost.gold);
   world.counters.kills += 1;
   state.records.kills += 1;
+  if (state.codex) recordKill(state, enemy.type);
   trackContracts(state, 'kills', 1);
 
   const xp = killXp(enc.level, enemy.boss || enemy.elite, balance) * (1 + stats.xpPct / 100) * boost.xp;
@@ -272,9 +360,19 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
     if (event) emit(world, 'worldEvent', { eventType: event.type });
   }
 
+  if (enemy.summoned) {
+    // Boss invoqué (monde 11) : gemmes, sans terminer l'étape.
+    const gems = Math.round(balance.stages.tiers[bossTier(enemy.type)].gems * rebirthHeat(state, balance).reward);
+    state.gems += gems;
+    emit(world, 'gems', { gems, x: enemy.x });
+    emit(world, 'bossDefeated', { kind: enemy.type, stage: enc.level, summoned: true });
+    return;
+  }
   if (enemy.boss) {
+    // Méga boss berserk vaincu : ses invocations s'effondrent avec lui.
+    if (enemy.berserk) world.enemies = world.enemies.filter((e) => !e.summoned);
     // Table de butin des boss : matériau rare (essences) en plus de l'objet Rare+ garanti.
-    const essence = bossEssence(enc.level, balance);
+    const essence = Math.round(bossEssence(enc.level, balance) * rebirthHeat(state, balance).reward);
     state.materials.essence += essence;
     state.tickets += boost.bossTickets; // bonus de démarrage : un ticket d'invocation par boss
     emit(world, 'bossLoot', { essence, tickets: boost.bossTickets });
@@ -283,7 +381,7 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
     emit(world, 'bossDefeated', { kind: enemy.type, stage: enc.level });
     // Gemmes (cristaux) à chaque boss : de quoi invoquer souvent.
     const tier = bossTier(enemy.type);
-    const gems = balance.stages.tiers[tier].gems;
+    const gems = Math.round(balance.stages.tiers[tier].gems * rebirthHeat(state, balance).reward);
     state.gems += gems;
     emit(world, 'gems', { gems, x: enemy.x });
     // Méga boss (et boss de donjon) — première victoire : pouvoir ancestral ; ensuite : charge de relance.
@@ -320,6 +418,12 @@ function hitEnemy(state, world, enemy, damage, rng, balance, stats, enc, source)
     world.hero.hp = Math.min(stats.maxHp, world.hero.hp + (damage * stats.lifesteal) / 100);
   }
   emit(world, 'enemyHit', { enemyId: enemy.id, damage, x: enemy.x, boss: enemy.boss, source });
+  // Invocations berserk : à 75 %, 50 % et 25 % des PV.
+  if (enemy.summons?.length && enemy.hp > 0) {
+    const thresholds = [0.75, 0.5, 0.25];
+    const done = 3 - enemy.summons.length;
+    if (enemy.hp / enemy.maxHp <= thresholds[done]) summonMinion(state, world, enemy, balance, enc);
+  }
   if (enemy.hp <= 0) killEnemy(state, world, enemy, rng, balance, stats, enc);
 }
 
@@ -508,14 +612,23 @@ export function step(state, world, dt, rng, balance = BALANCE) {
 
   // Seul l'ennemi au contact frappe.
   const attacker = world.enemies[0];
+  if (attacker?.engaged) attacker.age = (attacker.age ?? 0) + dt;
   if (attacker?.engaged) {
     attacker.attackTimer -= dt;
     if (attacker.attackTimer <= 0) {
       attacker.attackTimer += attacker.attackInterval;
       const lowHp = hero.hp < stats.maxHp * POWER_RULES.lowHpThreshold ? stats.bonus.lowHpArmor : 0;
-      const armor = Math.min(balance.hero.armorCapPct, stats.armor + lowHp);
+      const st = balance.stages;
+      const armor = Math.min(balance.hero.armorCapPct, stats.armor + lowHp) * (attacker.boss ? 1 - st.bossArmorPierce : 1);
       const shield = world.buffs.shield > 0 ? world.buffs.shieldPct : 0;
-      const damage = attacker.damage * (1 - armor / 100) * (1 - shield / 100) * dungeonDamageTaken(state, balance);
+      // Rage : un boss qui dure trop longtemps frappe de plus en plus fort.
+      const rage = attacker.boss && attacker.age > st.enrageSeconds
+        ? 1 + (st.enragePct / 100) * (1 + Math.floor((attacker.age - st.enrageSeconds) / st.enrageStepSeconds)) : 1;
+      if (rage > 1 && !attacker.enraged) {
+        attacker.enraged = true;
+        emit(world, 'bossEnrage', { enemyId: attacker.id, kind: attacker.type });
+      }
+      const damage = attacker.damage * rage * (1 - armor / 100) * (1 - shield / 100) * dungeonDamageTaken(state, balance);
       hero.hp -= damage;
       emit(world, 'heroHit', { enemyId: attacker.id, damage, boss: attacker.boss });
       if (stats.thorns > 0) hitEnemy(state, world, attacker, (damage * stats.thorns) / 100, rng, balance, stats, enc, 'thorns');

@@ -1,44 +1,71 @@
-// Donjons : expédition à salles, butin ciblé (emplacement choisi), chemin modifiable à tout moment.
-import { BOSSES } from '../../data/enemies.js';
-import { DUNGEON_PATHS, DUNGEON_REWARD, DUNGEONS } from '../../data/dungeons.js';
+// Donjons (v7.7) : liste filtrable + fiche détaillée (difficulté, salles, récompenses, butin ciblé, chemin).
+// Bien plus durs que la campagne ; ils rapportent les fragments anciens de l'arbre de talents.
+import { BALANCE } from '../../data/balance.js';
+import { BOSSES, ENEMIES } from '../../data/enemies.js';
+import { COMPANIONS } from '../../data/companions.js';
+import { DIFFICULTY_ORDER, DUNGEON_DIFFICULTIES, DUNGEON_PATHS, DUNGEON_REWARD, DUNGEONS } from '../../data/dungeons.js';
 import { SLOTS } from '../../data/items.js';
+import { ROLES } from '../../data/synergies.js';
 import { stageLabel } from '../../core/combat.js';
-import { canEnterDungeon, dungeonById } from '../../core/dungeon.js';
+import { canEnterDungeon, dungeonById, unlockedDifficulties } from '../../core/dungeon.js';
 import { rewardText } from '../../core/rewards.js';
 import { slotIconName } from '../../render/pixel.js';
+import { animCanvas } from '../animator.js';
 import { escapeHtml, formatNumber, img, progressBar } from '../common.js';
-import { BALANCE } from '../../data/balance.js';
-import { COMPANIONS } from '../../data/companions.js';
 
-// Héros SSR adapté au donjon : rappel de son bonus et de sa présence dans l'équipe.
+const FILTERS = { all: 'Tous', open: 'Disponibles', done: 'Terminés', locked: 'Verrouillés' };
+
+function bossPortrait(d, scale = 1) {
+  const boss = BOSSES[d.boss];
+  return animCanvas(`foe:${boss.sprite ?? ENEMIES[boss.base].sprite}`, 80, 76, scale);
+}
+
+// Compagnon SSR adapté : caché par défaut (code ORACLE pour le révéler).
 function affinityLine(state, d) {
   const ally = COMPANIONS.find((c) => c.id === d.ally);
   if (!ally) return '';
+  if (!state.cheats?.reveal) {
+    return `<div class="dungeon-ally"><b class="gold-text">Un compagnon SSR est adapté à ce donjon…</b>
+      <div class="muted">Avec lui dans l'équipe, il écrase tout ici. À vous de découvrir lequel !</div></div>`;
+  }
   const a = BALANCE.dungeonAffinity;
-  const owned = Boolean(state.companions.owned[ally.id]);
   const inTeam = state.companions.equipped.includes(ally.id);
-  const status = inTeam ? '<span class="good">dans l\'équipe ✔</span>'
-    : owned ? '<span class="muted">à placer dans l\'équipe</span>' : '<span class="muted">non invoqué</span>';
-  return `<div class="dungeon-ally"><b class="gold-text">Héros adapté : ${escapeHtml(ally.name)} (SSR)</b> · ${status}
+  return `<div class="dungeon-ally"><b class="gold-text">Compagnon adapté : ${escapeHtml(ally.name)} (SSR)</b> · ${inTeam ? '<span class="good">dans l\'équipe ✔</span>' : '<span class="muted">absent</span>'}
     <div class="muted">Ici : compétence ×${a.skillMultiplier}, passif ×${a.passiveMultiplier}, dégâts de l'équipe +${a.teamDamagePct} %, dégâts subis −${a.damageTakenPct} %.</div></div>`;
+}
+
+// Chemin des salles : coches pour les salles franchies, boss final au bout.
+function roomPath(d, room = 0) {
+  const steps = [];
+  for (let i = 1; i < d.rooms; i++) {
+    steps.push(`<div class="room${room > i ? ' done' : room === i ? ' current' : ''}"><span>${room > i ? '✔' : i}</span><small>Salle ${i}</small></div>`);
+  }
+  steps.push(`<div class="room boss${room >= d.rooms ? ' current' : ''}"><span>${img('icon_skull')}</span><small>Boss final<br>${escapeHtml(BOSSES[d.boss].name)}</small></div>`);
+  return `<div class="room-path">${steps.join('<i class="room-link"></i>')}</div>`;
 }
 
 function running(ui, state) {
   const run = state.dungeon;
   const d = dungeonById(run.id);
+  const diff = DUNGEON_DIFFICULTIES[run.difficulty] ?? DUNGEON_DIFFICULTIES.easy;
   const paths = Object.entries(DUNGEON_PATHS).map(([id, p]) => `<button class="btn chip-btn${run.path === id ? ' active' : ''}"
     data-action="dungeon-path" data-value="${id}" title="${p.text}">${p.label}</button>`).join('');
   const boss = run.room >= d.rooms;
   return `<div class="card dungeon-card running">
-      <div class="row-between"><b>${img('icon_dungeon')} ${escapeHtml(d.name)}</b><span class="muted">niv. ${run.level}</span></div>
+      <div class="row-between"><b>${img('icon_dungeon')} ${escapeHtml(d.name)} · ${diff.label}</b><span class="muted">niv. ${run.level}</span></div>
+      ${roomPath(d, run.room)}
       ${progressBar((run.room - 1 + (boss ? 0 : run.kills / d.killsPerRoom)) / d.rooms, boss ? `Salle du boss — ${BOSSES[d.boss].name}` : `Salle ${run.room}/${d.rooms} · ${run.kills}/${d.killsPerRoom}`)}
       <div class="section-title">Chemin (modifiable à tout moment)</div>
       <div class="chip-row">${paths}</div>
-      ${affinityLine(state, d)}
-      <div class="muted">Butin final : objet Épique ou mieux · ${run.slot === 'any' ? 'tout emplacement' : SLOTS[run.slot]}</div>
+      <div class="muted">Butin final : objet Épique ou mieux · ${run.slot === 'any' ? 'tout emplacement' : SLOTS[run.slot]} · +${diff.fragments} fragments anciens</div>
       <div>Gagné : <span class="gold-text">${rewardText(run.earned, formatNumber) || '—'}</span></div>
       <button class="btn btn-danger small" data-action="abandon-dungeon">Abandonner (retour à la campagne)</button>
     </div>`;
+}
+
+function status(state, d) {
+  if (state.maxStage < d.unlockStage) return 'locked';
+  return state.dungeonsCleared[d.id] ? 'done' : 'open';
 }
 
 export default {
@@ -48,27 +75,63 @@ export default {
   extra: (ui, state) => `${img('icon_key')}<b class="num">${state.keys}</b> clé${state.keys > 1 ? 's' : ''}`,
   render(ui, state) {
     if (state.dungeon) return running(ui, state);
-    return DUNGEONS.map((d) => {
-      const locked = state.maxStage < d.unlockStage;
-      const slot = ui.view.dungeonSlot ?? 'any';
-      const path = ui.view.dungeonPath ?? 'gold';
-      const slots = [['any', null, 'Tous'], ...Object.entries(SLOTS).map(([s, l]) => [s, slotIconName(s), l])]
-        .map(([v, ic, l]) => `<button class="btn chip-btn${slot === v ? ' active' : ''}" data-action="dungeon-slot" data-value="${v}" title="${l}">${ic ? img(ic) : ''}<span>${l}</span></button>`).join('');
-      const paths = Object.entries(DUNGEON_PATHS).map(([id, p]) => `<button class="btn chip-btn${path === id ? ' active' : ''}"
-        data-action="dungeon-path-pre" data-value="${id}" title="${p.text}">${p.label}</button>`).join('');
+    const filter = ui.view.dungeonFilter ?? 'all';
+    const sel = dungeonById(ui.view.dungeonSel) ?? DUNGEONS.find((d) => status(state, d) !== 'locked') ?? DUNGEONS[0];
+    const chips = Object.entries(FILTERS).map(([id, label]) => `<button class="btn chip-btn${id === filter ? ' active' : ''}" data-action="dungeon-filter" data-value="${id}">${label}</button>`).join('');
+    const list = DUNGEONS.filter((d) => filter === 'all' || status(state, d) === filter).map((d) => {
+      const st = status(state, d);
       const cleared = state.dungeonsCleared[d.id] ?? 0;
-      return `<div class="card dungeon-card${locked ? ' locked' : ''}">
-        <div class="row-between"><b>${img('icon_dungeon')} ${escapeHtml(d.name)}</b><span class="muted">${cleared ? `${cleared} victoire${cleared > 1 ? 's' : ''}` : 'Jamais terminé'}</span></div>
-        <div class="muted">${escapeHtml(d.description)} Boss : <b>${BOSSES[d.boss].name}</b> (pouvoir ancestral).</div>
-        ${affinityLine(state, d)}
-        ${locked ? `<div class="bad">Débloqué à l'étape ${stageLabel(d.unlockStage)}.</div>` : `
-        <div class="section-title">Butin ciblé : emplacement de l'objet final</div><div class="chip-row">${slots}</div>
-        <div class="section-title">Chemin</div><div class="chip-row">${paths}</div>
-        <div class="muted">Récompense finale : objet Épique ou mieux · ${rewardText({ gems: DUNGEON_REWARD.gems, essence: DUNGEON_REWARD.essence }, formatNumber)}${cleared ? '' : ` · +${DUNGEON_REWARD.firstClearTickets} ticket (1re fois)`}.
-          En cas de défaite, les récompenses des salles terminées sont conservées.</div>
-        <button class="btn btn-gold" data-action="enter-dungeon" data-value="${d.id}" ${canEnterDungeon(state, d.id) ? '' : 'disabled'}>Entrer ${img('icon_key')} 1</button>
-        ${state.keys < 1 ? '<div class="muted">Clés : contrats « Vaincre des boss » et événements.</div>' : ''}`}
-      </div>`;
+      return `<button class="dungeon-item${d.id === sel.id ? ' selected' : ''}${st === 'locked' ? ' locked' : ''}" data-action="dungeon-sel" data-value="${d.id}">
+        <div class="boss-thumb">${bossPortrait(d)}</div>
+        <div class="grow"><b>${escapeHtml(d.name)}</b><div class="muted">Boss : ${escapeHtml(BOSSES[d.boss].name)}</div>
+          <div>${st === 'locked' ? `<span class="tag-locked">Verrouillé</span> <span class="muted">Étape ${stageLabel(d.unlockStage)} requise</span>`
+            : `<span class="tag-open">Disponible</span> <span class="muted">${cleared ? `${cleared} victoire${cleared > 1 ? 's' : ''}` : 'Jamais terminé'}</span>`}</div></div>
+      </button>`;
+    }).join('') || '<div class="muted">Aucun donjon dans cette catégorie.</div>';
+
+    const locked = state.maxStage < sel.unlockStage;
+    const unlocked = unlockedDifficulties(state, sel.id);
+    const diffId = unlocked.includes(ui.view.dungeonDiff) ? ui.view.dungeonDiff : unlocked[unlocked.length - 1];
+    const diff = DUNGEON_DIFFICULTIES[diffId];
+    const diffs = DIFFICULTY_ORDER.map((id) => {
+      const dd = DUNGEON_DIFFICULTIES[id];
+      const ok = unlocked.includes(id);
+      return `<button class="btn diff-btn${id === diffId ? ' active' : ''}" data-action="dungeon-diff" data-value="${id}" ${ok ? '' : 'disabled title="Réussissez la difficulté précédente"'}>
+        <span class="skulls">${'☠'.repeat(dd.skulls)}</span><span>${dd.label}</span></button>`;
     }).join('');
+    const roles = (sel.roles ?? []).map((r) => `<div class="role-chip" style="--role:${ROLES[r].color}">${img(ROLES[r].icon)}<span>${ROLES[r].label}</span></div>`).join('');
+    const slot = ui.view.dungeonSlot ?? 'any';
+    const path = ui.view.dungeonPath ?? 'gold';
+    const slots = [['any', null, 'Tous'], ...Object.entries(SLOTS).map(([s, l]) => [s, slotIconName(s), l])]
+      .map(([v, ic, l]) => `<button class="btn chip-btn${slot === v ? ' active' : ''}" data-action="dungeon-slot" data-value="${v}" title="${l}">${ic ? img(ic) : ''}<span>${l}</span></button>`).join('');
+    const paths = Object.entries(DUNGEON_PATHS).map(([id, p]) => `<button class="path-card${path === id ? ' active' : ''}" data-action="dungeon-path-pre" data-value="${id}">
+      <b>${p.label}</b><span class="muted">${p.text}</span></button>`).join('');
+    const rewards = [
+      ['icon_bag', 'Équipement Épique ou mieux', 'r-epic'], ['icon_fragment', `${diff.fragments} fragments anciens`, 'r-legendary'],
+      ['icon_gem', `${Math.round(DUNGEON_REWARD.gems * diff.gems)} gemmes`, 'r-rare'], ['icon_essence', `${Math.round(DUNGEON_REWARD.essence * diff.essence)} essences`, 'r-epic'],
+    ].map(([ic, t, r]) => `<div class="reward-icon ${r}" title="${t}">${img(ic)}</div><span class="reward-label">${t}</span>`).join('');
+    const cleared = state.dungeonsCleared[sel.id] ?? 0;
+    const detail = `<div class="card dungeon-detail">
+        <div class="dungeon-head">${img('icon_dungeon')}<div class="grow"><div class="boss-title">${escapeHtml(sel.name)}</div>
+          <div class="muted">${escapeHtml(sel.description)}</div></div>
+          <div class="diff-box"><div class="section-title">Difficulté</div><div class="diff-row">${diffs}</div>
+            <div class="muted">♛ ${cleared} victoire${cleared > 1 ? 's' : ''} · ennemis niv. ${Math.max(1, state.maxStage + sel.levelOffset + diff.levelBonus)} · PV ×${diff.hp}</div></div>
+        </div>
+        ${roles ? `<div class="row"><span class="section-title">Compagnons conseillés</span>${roles}</div>` : ''}
+        ${affinityLine(state, sel)}
+        ${roomPath(sel)}
+        <div class="dungeon-cols">
+          <div class="card-sub"><div class="section-title">Récompenses possibles</div><div class="reward-grid">${rewards}</div></div>
+          <div class="card-sub"><div class="section-title">Butin ciblé <span class="muted">(emplacement de l'objet final)</span></div><div class="chip-row">${slots}</div>
+            <div class="path-row">${paths}</div></div>
+        </div>
+        ${locked ? `<div class="bad">Débloqué à l'étape ${stageLabel(sel.unlockStage)}.</div>`
+          : `<button class="btn btn-gold enter-btn" data-action="enter-dungeon" data-value="${sel.id}" ${canEnterDungeon(state, sel.id) ? '' : 'disabled'}>Entrer dans le donjon · ${diff.label} — 1 ${img('icon_key')}</button>
+            ${state.keys < 1 ? '<div class="muted">Clés : contrats « Vaincre des boss », missions et événements.</div>' : ''}`}
+      </div>`;
+    return `<div class="dungeon-layout">
+        <div class="dungeon-side"><div class="chip-row">${chips}</div><div class="dungeon-list">${list}</div></div>
+        ${detail}
+      </div>`;
   },
 };

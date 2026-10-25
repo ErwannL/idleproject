@@ -4,9 +4,10 @@ import { test } from 'node:test';
 import { BALANCE } from '../src/data/balance.js';
 import { BOSSES } from '../src/data/enemies.js';
 import { ZONES } from '../src/data/zones.js';
-import { bossesForStage, bossTierForStage, createCombat, enemyStats, step } from '../src/core/combat.js';
+import { bossesForStage, bossTierForStage, createCombat, enemyStats, step, zoneStartStage } from '../src/core/combat.js';
 import { claimAllMissions, refreshMissions } from '../src/core/missions.js';
-import { buyPerk, canPrestige, performPrestige, prestigeEffects } from '../src/core/prestige.js';
+import { buyPerk, prestigeEffects } from '../src/core/prestige.js';
+import { performRebirth } from '../src/core/rebirth.js';
 import { activateRush, rushEffects, tickRushes, upgradeRush } from '../src/core/rushes.js';
 import { learnSkill, skillPointCost, skillPointsAvailable } from '../src/core/skills.js';
 import { computeHeroStats, softAttackSpeed } from '../src/core/stats.js';
@@ -21,15 +22,18 @@ test('mondes de 20 étapes : mini-boss (5), boss (10), boss dur (15), méga boss
   assert.equal(bossTierForStage(20), 'mega');
   assert.equal(bossTierForStage(7), null);
   for (const [i, zone] of ZONES.entries()) {
-    const base = i * 20;
+    if (zone.gauntlet) continue;
+    const base = zoneStartStage(i) - 1;
     assert.equal(BOSSES[bossesForStage(base + 5)[0]].tier, 'mini');
     assert.equal(BOSSES[bossesForStage(base + 15)[0]].tier, 'hard');
     assert.deepEqual(bossesForStage(base + 20), zone.bosses);
   }
   // Un méga boss est plus coriace qu'un mini-boss au même niveau.
   assert.ok(enemyStats(20, 'slime_king', true).hp > enemyStats(20, 'mini_goblin_warlord', true).hp);
-  // Après le monde 6 : retour au monde 1, avec des ennemis plus forts.
-  assert.deepEqual(bossesForStage(140), ZONES[0].bosses);
+  // Monde 11 : chaque étape est le méga boss d'un monde ; ensuite retour au monde 1.
+  assert.deepEqual(bossesForStage(201), ZONES[0].bosses);
+  assert.deepEqual(bossesForStage(210), ZONES[9].bosses);
+  assert.deepEqual(bossesForStage(230), ZONES[0].bosses);
 });
 
 test('ancienne sauvegarde (10 étapes par monde) convertie sans perdre la progression', () => {
@@ -75,22 +79,26 @@ test('missions : tout récupérer', () => {
   assert.equal(claimAllMissions(state), null);
 });
 
-test('prestige : après le monde 6, étoiles et bonus éternels', () => {
+test('renaissance (prestige fusionné) : bonus permanent et bonus éternels en fragments', () => {
   const state = createNewState(0, 4);
-  state.maxStage = 100;
-  assert.ok(!canPrestige(state));
-  state.maxStage = 130;
-  state.fragments = 50;
-  state.talents = { core: 1 };
-  const stars = performPrestige(state);
-  assert.ok(stars >= 1);
-  assert.equal(state.fragments, 0);
-  assert.deepEqual(state.talents, {});
-  assert.equal(state.maxStage, 1);
-  assert.ok(prestigeEffects(state).damagePct > 0);
+  state.maxStage = 40;
+  state.level = 30;
+  state.companions.owned = { squire: { stars: 2, level: 7 } };
+  state.powers = { slime_king: { current: 'gel_heart' }, alpha_wolf: { current: 'pack_fury' } };
+  state.equippedPowers = ['alpha_wolf', 'slime_king'];
+  assert.ok(performRebirth(state, 'slime_king') > 0);
+  assert.deepEqual(Object.keys(state.powers), ['slime_king'], 'un seul pouvoir conservé');
+  assert.equal(state.level, 1);
+  assert.equal(state.companions.owned.squire.level, 1);
+  assert.equal(state.companions.owned.squire.stars, 2);
+  assert.ok(prestigeEffects(state).damagePct > 0, 'bonus permanent par Renaissance');
+  state.fragments = 100;
   assert.ok(buyPerk(state, 'power'));
-  const back = sanitizeState(JSON.parse(JSON.stringify(state)), BALANCE, 0);
-  assert.deepEqual(back.prestige, state.prestige);
+  assert.equal(state.fragments, 90);
+  // Anciennes étoiles de prestige converties en fragments.
+  const back = sanitizeState({ ...JSON.parse(JSON.stringify(state)), version: 5, prestige: { count: 1, stars: 3, perks: {} } }, BALANCE, 0);
+  assert.equal(back.fragments, 90 + 30);
+  assert.equal(back.prestige.stars, 0);
 });
 
 test('boosts à durée limitée : activation, durée, recharge, mode auto', () => {

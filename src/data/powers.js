@@ -78,6 +78,35 @@ export const BOSS_POWERS = {
     { id: 'pact', name: 'Pacte', rarity: 'epic', family: 'combat', effects: { damagePct: 15, goldPct: 10 } },
     { id: 'domination', name: 'Domination', rarity: 'legendary', family: 'fortune', effects: { goldPct: 30, damagePct: 15 } },
   ],
+  // v7.7 : méga boss des mondes 7 à 10.
+  boss_swamp_behemoth: [
+    { id: 'bog_hide', name: 'Peau de vase', rarity: 'common', family: 'survival', effects: { maxHpPct: 12 } },
+    { id: 'toxic_spores', name: 'Spores toxiques', rarity: 'rare', family: 'combat', effects: { damageVsNormalPct: 18 } },
+    { id: 'mire_regen', name: 'Régénération des marais', rarity: 'rare', family: 'survival', effects: { regenPct: 2 } },
+    { id: 'rot_tithe', name: 'Dîme putride', rarity: 'epic', family: 'fortune', effects: { goldPct: 20, dropChance: 3 } },
+    { id: 'behemoth_will', name: 'Volonté du Béhémoth', rarity: 'legendary', family: 'survival', effects: { maxHpPct: 30, thorns: 30 } },
+  ],
+  boss_sky_titan: [
+    { id: 'tailwind', name: 'Vent arrière', rarity: 'common', family: 'combat', effects: { attackSpeedPct: 6 } },
+    { id: 'thunder_call', name: 'Appel du tonnerre', rarity: 'rare', family: 'combat', effects: { critChance: 7 } },
+    { id: 'gilded_marble', name: 'Marbre doré', rarity: 'rare', family: 'survival', effects: { armor: 10 } },
+    { id: 'sky_tribute', name: 'Tribut céleste', rarity: 'epic', family: 'fortune', effects: { goldPct: 30 } },
+    { id: 'titan_wrath', name: 'Colère du Titan', rarity: 'legendary', family: 'combat', effects: { damagePct: 25, critChance: 8 } },
+  ],
+  boss_phoenix: [
+    { id: 'cinders', name: 'Cendres vives', rarity: 'common', family: 'combat', effects: { damagePct: 10 } },
+    { id: 'rebirth_flame', name: 'Flamme de renaissance', rarity: 'rare', family: 'survival', effects: { regenPct: 2.5 } },
+    { id: 'blazing_wings', name: 'Ailes ardentes', rarity: 'rare', family: 'combat', effects: { damageVsBossPct: 22 } },
+    { id: 'sun_feather', name: 'Plume solaire', rarity: 'epic', family: 'combat', effects: { damagePct: 18, lifesteal: 3 } },
+    { id: 'eternal_flame', name: 'Flamme éternelle', rarity: 'legendary', family: 'survival', effects: { maxHpPct: 25, regenPct: 3, damagePct: 10 } },
+  ],
+  boss_void_emperor: [
+    { id: 'starlight', name: 'Lueur stellaire', rarity: 'common', family: 'fortune', effects: { dropChance: 3 } },
+    { id: 'void_edge', name: 'Tranchant du néant', rarity: 'rare', family: 'combat', effects: { critChance: 8 } },
+    { id: 'event_horizon', name: "Horizon des événements", rarity: 'rare', family: 'survival', effects: { lowHpArmor: 25 } },
+    { id: 'cosmic_hoard', name: 'Trésor cosmique', rarity: 'epic', family: 'fortune', effects: { goldPct: 30, dropChance: 3 } },
+    { id: 'emperor_decree', name: "Décret de l'Empereur", rarity: 'legendary', family: 'combat', effects: { damagePct: 30, damageVsBossPct: 20 } },
+  ],
 };
 
 // Libellés des effets (affichage).

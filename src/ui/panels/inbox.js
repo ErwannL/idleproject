@@ -5,7 +5,7 @@ import { rewardText } from '../../core/rewards.js';
 import { stageLabel } from '../../core/combat.js';
 import { coin, escapeHtml, formatNumber, img, itemFrame, rarityLabel } from '../common.js';
 
-const ICONS = { chest: 'icon_chest', merchant: 'icon_bag', gems: 'icon_gem' };
+const ICONS = { chest: 'icon_chest', merchant: 'icon_bag', gems: 'icon_gem', portal: 'icon_dungeon', wanderer: 'icon_boss' };
 
 export default {
   id: 'inbox',

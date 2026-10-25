@@ -16,7 +16,11 @@ import { bossDungeon, bossFirstStage, powerSlots, rollPower } from './powers.js'
 import { Rng } from './rng.js';
 import { clampTeam } from './companions.js';
 import { sanitizePrestige } from './prestige.js';
+import { PRESTIGE } from '../data/prestige.js';
 import { sanitizeRushes } from './rushes.js';
+import { sanitizeCheats } from './cheats.js';
+import { emptyLoadouts, sanitizeLoadouts } from './loadouts.js';
+import { sanitizeCodex } from './codex.js';
 
 // v1 : prototype · v2 (format identique) · v3 : pouvoirs, Renaissance, verrou
 // v4 : niveau, compétences, héros, compagnons, invocation, contrats, événements, matériaux, donjons.
@@ -41,7 +45,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     records: {
       goldEarned: 0, kills: 0, bossesDefeated: 0, itemsFound: 0, rebirths: 0, contractsDone: 0, summons: 0,
     },
-    ui: { slotFilter: 'all', sortBy: 'rarity', autoRecycle: 'off' },
+    ui: { slotFilter: 'all', sortBy: 'rarity', autoRecycle: 'off', notify: { loot: true, boss: true, events: true }, focus: false },
     // Progression permanente (conservée par la Renaissance).
     level: 1,
     xp: 0,
@@ -64,9 +68,13 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     nextEventId: 0,
     dungeon: null,
     dungeonsCleared: {},
+    dungeonBest: {}, // meilleure difficulté réussie par donjon (0 facile, 1 normal, 2 difficile)
     missions: emptyMissions(),
     prestige: { count: 0, stars: 0, perks: {} },
     rushes: { levels: {}, active: {}, cooldown: {}, auto: false }, // boosts à durée limitée
+    cheats: { boostUntil: 0, boostMultiplier: 1, reveal: false },
+    loadouts: emptyLoadouts(),
+    codex: { kills: {}, items: {}, claimed: {} },
     playSeconds: 0, // temps de jeu cumulé (boost des premières heures)
   };
   state.equipment.weapon = makeItem(state, STARTER_WEAPON, 'common', 1);
@@ -166,20 +174,28 @@ function cleanActivities(state, raw) {
     state.contracts = raw.contracts
       .filter((c) => c && c.type in CONTRACT_TYPES && int(c.target, 0, 1) && Number.isInteger(c.id))
       .slice(0, 3)
-      .map((c) => ({ id: c.id, type: c.type, target: c.target, progress: Math.min(int(c.progress, 0), c.target), reward: { ...obj(c.reward) } }));
+      .map((c) => ({ id: c.id, type: c.type, target: c.target, progress: Math.min(int(c.progress, 0), c.target), reward: { ...obj(c.reward) }, rare: c.rare === true }));
   }
   state.nextContractId = Math.max(int(raw.nextContractId, 0), ...state.contracts.map((c) => c.id));
   ensureContracts(state, new Rng(state.rngSeed ^ state.nextContractId));
 
   state.missions = sanitizeMissions(raw.missions);
   state.prestige = sanitizePrestige(raw.prestige);
+  // v7.7 : anciennes étoiles de prestige → fragments anciens.
+  if (state.prestige.stars > 0) {
+    state.fragments += state.prestige.stars * PRESTIGE.legacyStarFragments;
+    state.prestige.stars = 0;
+  }
   state.rushes = sanitizeRushes(raw.rushes);
+  state.cheats = sanitizeCheats(raw.cheats);
+  state.loadouts = sanitizeLoadouts(raw.loadouts);
+  state.codex = sanitizeCodex(raw.codex);
   state.playSeconds = Math.max(0, Number(raw.playSeconds) || 0);
 
   state.nextEventId = int(raw.nextEventId, 0);
   if (Array.isArray(raw.inbox)) {
     state.inbox = raw.inbox
-      .filter((e) => e && Number.isInteger(e.id) && ['chest', 'merchant', 'gems'].includes(e.type))
+      .filter((e) => e && Number.isInteger(e.id) && ['chest', 'merchant', 'gems', 'portal', 'wanderer'].includes(e.type))
       .filter((e) => !e.item || isValidItem(e.item))
       .slice(0, BALANCE.events.inboxSize)
       .map((e) => ({ ...e, item: e.item ? cleanItem(e.item) : undefined, reward: obj(e.reward), price: num(e.price, 0), seen: e.seen === true }));
@@ -190,11 +206,14 @@ function cleanActivities(state, raw) {
     state.dungeon = {
       id: run.id, room: int(run.room, 1, 1), kills: int(run.kills, 0), slot: run.slot in SLOTS ? run.slot : 'any',
       path: run.path, level: int(run.level, 1, 1), earned: { ...obj(run.earned) },
+      difficulty: ['easy', 'normal', 'hard'].includes(run.difficulty) ? run.difficulty : 'easy',
     };
   }
   for (const d of DUNGEONS) {
     const n = int(obj(raw.dungeonsCleared)[d.id], 0);
     if (n) state.dungeonsCleared[d.id] = n;
+    const best = Number(obj(raw.dungeonBest)[d.id]);
+    if (Number.isInteger(best) && best >= 0 && best <= 2) state.dungeonBest[d.id] = best;
   }
 }
 
@@ -288,6 +307,16 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   if (raw.ui && typeof raw.ui === 'object') {
     if (raw.ui.slotFilter === 'all' || raw.ui.slotFilter === 'accessory' || raw.ui.slotFilter in SLOTS) state.ui.slotFilter = raw.ui.slotFilter;
     if (['off', 'common', 'rare'].includes(raw.ui.autoRecycle)) state.ui.autoRecycle = raw.ui.autoRecycle;
+    const rec = raw.ui.recycle;
+    if (rec && typeof rec === 'object' && ['off', 'pickup', 'full'].includes(rec.mode)) {
+      state.ui.recycle = {
+        mode: rec.mode,
+        rarities: Array.isArray(rec.rarities) ? rec.rarities.filter((r) => ['common', 'rare', 'epic', 'legendary'].includes(r)) : ['common'],
+        slots: Array.isArray(rec.slots) ? rec.slots.filter((s) => s in SLOTS) : Object.keys(SLOTS),
+      };
+    }
+    if (typeof raw.ui.notify === 'object' && raw.ui.notify) state.ui.notify = { ...state.ui.notify, ...raw.ui.notify };
+    state.ui.focus = raw.ui.focus === true;
     if (SORT_OPTIONS.includes(raw.ui.sortBy)) state.ui.sortBy = raw.ui.sortBy;
   }
   return state;

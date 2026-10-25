@@ -1,11 +1,27 @@
-"""Carte du monde peinte (assets/ui/worldmap.png), 240×130.
-Les positions des zones correspondent à MAP_NODES (src/ui/panels/campaign.js)."""
+"""Carte du monde peinte (assets/ui/worldmap.png), 240×130 : 11 régions reliées par un chemin.
+
+Centres des régions, positions relatives (x, y entre 0 et 1), dans l'ordre des mondes
+(à reprendre dans MAP_NODES de src/ui/panels/campaign.js ; copie dans tools/art/worldmap_nodes.json) :
+   1 plaines              (0.09, 0.80)
+   2 forêt sombre         (0.18, 0.56)
+   3 grottes de cristal   (0.29, 0.82)
+   4 désert               (0.41, 0.60)
+   5 montagnes gelées     (0.53, 0.84)
+   6 terres maudites      (0.65, 0.62)
+   7 marais putride       (0.78, 0.84)
+   8 îles célestes        (0.91, 0.58)
+   9 cœur du volcan       (0.81, 0.30)
+  10 royaume du néant     (0.61, 0.28)
+  11 trône de l'abysse    (0.38, 0.30)  <- point final
+"""
 import math
 from lib import Canvas, ramp, shift, mix, rng
 import scenery as sc
+import scenery2 as sc2
 
 W, H = 240, 130
-NODES = [(0.13, 0.72), (0.3, 0.38), (0.47, 0.74), (0.62, 0.38), (0.78, 0.7), (0.9, 0.32)]
+NODES = [(0.09, 0.80), (0.18, 0.56), (0.29, 0.82), (0.41, 0.60), (0.53, 0.84), (0.65, 0.62),
+         (0.78, 0.84), (0.91, 0.58), (0.81, 0.30), (0.61, 0.28), (0.38, 0.30)]
 REGION = [
     ramp('#5aae4a', 4, 0.18),  # plaines
     ramp('#2f7a44', 4, 0.18),  # forêt
@@ -13,7 +29,13 @@ REGION = [
     ramp('#e0b46a', 4, 0.16),  # désert
     ramp('#c8d8ee', 4, 0.14),  # montagnes
     ramp('#5a3a6a', 4, 0.16),  # terres maudites
+    ramp('#4e6a3a', 4, 0.16),  # marais
+    ramp('#5c9ce4', 4, 0.14),  # îles célestes (ciel et nuages)
+    ramp('#4a2c28', 4, 0.16),  # volcan
+    ramp('#2c1c58', 4, 0.16),  # néant
+    ramp('#2a0e12', 4, 0.14),  # trône de l'abysse
 ]
+SPECKS = {6: ('#2a4a34', 0.06), 7: ('#e8f4ff', 0.07), 8: ('#ff7a20', 0.025), 9: ('#e8dcff', 0.05), 10: ('#ff4a14', 0.04)}
 
 
 def pyramid(c, x, base, h, colors):
@@ -33,16 +55,16 @@ def build(path):
             # terre : distance au chemin des zones + bruit
             d = min(math.hypot(x - px, (y - py) * 1.25) for px, py in pts)
             n = sc.noise1(x + y * 0.7, 120, 5, 3) * 7 + sc.noise1(y - x * 0.3, 90, 9, 2) * 5
-            land = d < 46 + n and 6 < x < W - 6 and 5 < y < H - 5
+            land = d < 34 + n and 6 < x < W - 6 and 5 < y < H - 5
             if not land:
                 wave = (x + int(sc.noise1(y, 40, 3, 2) * 4)) % 11 == 0 and y % 5 == 0
                 c.set(x, y, sea[3] if wave else sea[2] if (x * 7 + y * 3) % 23 else sea[1])
                 continue
             # région de la zone la plus proche (frontière bruitée)
-            k = min(range(6), key=lambda i: math.hypot(x - pts[i][0] + n * 0.8, y - pts[i][1] - n * 0.5))
+            k = min(range(len(pts)), key=lambda i: math.hypot(x - pts[i][0] + n * 0.8, y - pts[i][1] - n * 0.5))
             col = REGION[k]
             shade_ = 1 if r.random() < 0.12 else 2
-            if d > 40 + n:
+            if d > 29 + n:
                 col_ = '#e8d49a'  # plage
                 c.set(x, y, col_)
             else:
@@ -65,6 +87,13 @@ def build(path):
         for x in range(W):
             if src.px[y][x] in sea and any(src.get(x + dx, y + dy) == '#e8d49a' for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
                 c.set(x, y, '#d8f0ff')
+    # textures propres aux nouvelles régions (eaux du marais, nuages, braises, étoiles, failles)
+    for y in range(H):
+        for x in range(W):
+            v = c.px[y][x]
+            for k, (col, p) in SPECKS.items():
+                if v in REGION[k][1:] and r.random() < p:
+                    c.set(x, y, col)
     # chemin pointillé entre les zones
     for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
         steps = int(math.hypot(x1 - x0, y1 - y0))
@@ -100,6 +129,40 @@ def build(path):
     sc.castle(c, px[5][0], px[5][1] + 4, 0.42, ramp('#3a2a40', 4, 0.12), ramp('#5a1d34', 4, 0.14), '#ff7a3a', '#9a1d2a')
     for i in range(8):
         c.set(px[5][0] - 14 + i * 4, px[5][1] + 8 + (i % 2), '#ff6a2a')
+    # 7 marais : arbres morts, mare et champignons luisants
+    x, y = px[6]
+    for dx, h, seed in ((-11, 18, 1), (12, 14, 2)):
+        sc.place(c, x + dx, y + 5, 26, h + 6, sc2.twisted_tree, h, ramp('#6a5640', 4, 0.3), ramp('#9aac62', 4, 0.3), seed, moss_p=1.0)
+    c.ellipse(x + 1, y + 8, 10, 2.5, '#1e3a26'); c.ellipse(x, y + 7.5, 8, 1.5, '#3a6a3a')
+    sc.lily(c, x + 4, y + 8, ramp('#5aa040', 4, 0.3), '#f080b0')
+    sc.lily(c, x - 4, y + 8, ramp('#5aa040', 4, 0.3))
+    for dx in (-7, 16):
+        c.set(x + dx, y + 6, '#5af0c0'); c.set(x + dx, y + 7, '#c8d8c0')
+    # 8 îles célestes : îles flottantes, temple, cascade
+    x, y = px[7]
+    sc.cloud(c, x - 8, y + 8, 22, ['#b8d0ea', '#dceaf8', '#f4f8ff', '#ffffff'], 5)
+    sc2.sky_island(c, x - 2, y - 2, 24, 10, ramp('#5cbc44', 5, 0.3), ramp('#8a84a8', 5, 0.26), 3)
+    sc2.temple(c, x - 2, y - 3, 0.3, ramp('#d8d4e8', 5, 0.2), ramp('#e0aa34', 5, 0.3), ncol=3)
+    sc2.sky_island(c, x - 17, y - 14, 10, 6, ramp('#5cbc44', 5, 0.3), ramp('#8a84a8', 5, 0.26), 4)
+    for k in range(9):
+        c.set(x + 6, y - 1 + k, '#c4e4fa' if k % 3 else '#ffffff')
+    # 9 volcan : cône, coulées, panache
+    x, y = px[8]
+    sc2.volcano_cone(c, x, y + 8, 40, 22, ramp('#4a2a26', 5, 0.2), ['#c8300c', '#ff7a18', '#ffc040', '#fff0a0'], 9)
+    for i, (dx, dy, rr) in enumerate(((1, -16, 3), (3, -20, 4), (6, -25, 5))):
+        c.shaded_ellipse(x + dx, y + dy, rr, rr * 0.7, ['#2a1c1c', '#3e2a26', '#5a4236', '#6e5242'] if i else ['#7a2c14', '#b0461a', '#e0782a', '#ffa040'])
+    # 10 néant : plateforme flottante, monolithe runique, éclat de réalité
+    x, y = px[9]
+    sc2.void_platform(c, x, y + 2, 26, 9, ramp('#5a4e90', 5, 0.24), 10, ramp('#5af0ff', 4, 0.3))
+    sc2.obelisk(c, x - 5, y + 1, 16, 5, ramp('#5a4e90', 5, 0.24), ramp('#5af0ff', 4, 0.3), 2, gap=2)
+    sc2.reality_shard(c, x + 10, y - 8, 4, 7, 'meadow')
+    # 11 trône de l'abysse (point final) : tête de démon, braseros, lave
+    x, y = px[10]
+    c.ellipse(x, y + 8, 16, 3, '#ff6a1a'); c.ellipse(x, y + 8, 13, 2, '#ffc040')
+    sc.place(c, x, y + 8, 34, 32, sc.demon_head, 0.5, ramp('#2a1e22', 5, 0.16), ['#ff4a1a', '#ffc030', '#fff4b0'])
+    for dx in (-15, 15):
+        c.rect(x + dx - 1, y, 3, 8, '#2a1e22')
+        sc.flame(c, x + dx, y, 5, ['#c8200c', '#ff6a14', '#ffc030', '#fff4b0'])
     # cadre de parchemin
     for x in range(W):
         for y in (0, H - 1):

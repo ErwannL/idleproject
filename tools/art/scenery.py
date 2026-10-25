@@ -1871,13 +1871,20 @@ def build(out_dir):
     import os
     os.makedirs(out_dir, exist_ok=True)
     manifest = {}
-    for zone, fn in ZONES.items():
+    zones, veil = dict(ZONES), dict(NEAR_VEIL)
+    try:  # mondes 7 à 11 (tools/art/scenery2.py), facultatifs
+        import scenery2
+        zones.update(scenery2.ZONES)
+        veil.update(scenery2.NEAR_VEIL)
+    except ImportError:
+        pass
+    for zone, fn in zones.items():
         sky, ground, layers = fn()
         entries = []
         for lay in layers:
             if lay['name'] == 'near':
                 # léger voile : sépare le plan proche des personnages qui marchent devant
-                haze(lay['canvas'], NEAR_VEIL[zone], 0.1)
+                haze(lay['canvas'], veil[zone], 0.1)
             fname = f"{zone}_{lay['name']}.png"
             save_png(lay['canvas'], os.path.join(out_dir, fname))
             e = {'file': fname, 'factor': lay['factor'], 'anchor': lay['anchor'], 'y': lay['y'], 'front': lay['front']}

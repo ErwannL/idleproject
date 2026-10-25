@@ -126,6 +126,23 @@ export const SIGNATURE_ITEMS = [
     id: 'demon_axe', name: 'Hache démoniaque', slot: 'weapon', sprite: 'axe', signature: 'demon_king',
     colors: { main: '#ff5a4a', shade: '#8a1d2a' }, stats: { damage: 12, attackSpeed: -8 }, affixes: [{ type: 'damageVsBossPct', value: 25 }],
   },
+  // v7.7 : objets ancestraux des méga boss des mondes 7 à 10.
+  {
+    id: 'behemoth_heart', name: 'Cœur du Béhémoth', slot: 'amulet', sprite: 'pendant', signature: 'boss_swamp_behemoth',
+    colors: { main: '#7a6a3a', shade: '#4a3f22', light: '#b8a86a', dark: '#2a2414', gem: '#7adf5a' }, stats: { maxHp: 60 }, affixes: [{ type: 'regenPct', value: 3 }, { type: 'thorns', value: 30 }],
+  },
+  {
+    id: 'titan_halo', name: 'Auréole du Titan', slot: 'helmet', sprite: 'helm', signature: 'boss_sky_titan',
+    colors: { main: '#ffe08a', shade: '#c9a040' }, stats: { maxHp: 45, armor: 5 }, affixes: [{ type: 'goldPct', value: 30 }],
+  },
+  {
+    id: 'phoenix_blade', name: 'Lame du Phénix', slot: 'weapon', sprite: 'sword', signature: 'boss_phoenix',
+    colors: { main: '#ff8a3a', shade: '#c0401a' }, stats: { damage: 16 }, affixes: [{ type: 'lifesteal', value: 6 }],
+  },
+  {
+    id: 'void_signet', name: 'Sceau du Néant', slot: 'ring', sprite: 'signet', signature: 'boss_void_emperor',
+    colors: { main: '#3a2a6a', shade: '#1e1440', light: '#7a5ac9', dark: '#120a26', gem: '#c9a6ff' }, stats: {}, affixes: [{ type: 'critChance', value: 12 }, { type: 'damageVsBossPct', value: 20 }],
+  },
 ];
 
 // Effets spéciaux (« affixes ») tirés pour les objets Rares et mieux.

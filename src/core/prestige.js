@@ -1,4 +1,4 @@
-// Prestige : réinitialisation profonde contre des étoiles et des bonus éternels.
+// Bonus éternels (fusionnés dans la Renaissance) ; performPrestige reste pour les anciennes sauvegardes.
 import { PRESTIGE, PRESTIGE_PERKS } from '../data/prestige.js';
 import { performRebirth } from './rebirth.js';
 
@@ -28,7 +28,7 @@ export function performPrestige(state) {
 }
 
 export function perkCost(level) {
-  return level + 1;
+  return PRESTIGE.perkCostFragments * (level + 1);
 }
 
 export function buyPerk(state, id) {
@@ -36,8 +36,8 @@ export function buyPerk(state, id) {
   if (!perk) return false;
   const level = state.prestige.perks[id] ?? 0;
   const cost = perkCost(level);
-  if (level >= perk.max || state.prestige.stars < cost) return false;
-  state.prestige.stars -= cost;
+  if (level >= perk.max || state.fragments < cost) return false;
+  state.fragments -= cost;
   state.prestige.perks[id] = level + 1;
   return true;
 }
@@ -47,7 +47,9 @@ export function prestigeEffects(state) {
   const p = state.prestige;
   const out = {};
   if (!p) return out;
-  for (const [k, v] of Object.entries(PRESTIGE.perPrestige)) out[k] = v * p.count;
+  // Un bonus permanent par Renaissance (et par ancien Prestige).
+  const n = (state.records?.rebirths ?? 0) + p.count;
+  for (const [k, v] of Object.entries(PRESTIGE.perPrestige)) out[k] = v * n;
   for (const perk of PRESTIGE_PERKS) {
     const level = p.perks[perk.id] ?? 0;
     for (const [k, v] of Object.entries(perk.effect)) out[k] = (out[k] ?? 0) + v * level;

@@ -1,6 +1,6 @@
 // Améliorations achetées avec l'or, rangées par catégorie (Combat, Survie, Ressources).
 import { BALANCE } from '../../data/balance.js';
-import { upgradeCost } from '../../core/economy.js';
+import { bulkPlan, upgradeCost } from '../../core/economy.js';
 import { computeHeroStats } from '../../core/stats.js';
 import { coin, costButton, effectText, escapeHtml, formatDecimal, formatNumber, img } from '../common.js';
 import { RUSH_RULES, RUSHES } from '../../data/rushes.js';
@@ -27,7 +27,10 @@ function effect(key, cur, next) {
 
 // Boosts à durée limitée : niveau (or), effet, durée et recharge.
 function rushCards(state) {
-  const auto = `<div class="card row-between"><span>Déclenchement automatique dès qu'un boost est prêt</span>
+  const auto = `<div class="card rush-help"><b>Comment activer un boost ?</b> Cliquez sur son icône en bas à droite de la scène
+      (elle brille quand le boost est prêt). Il dure quelques dizaines de secondes, puis se recharge (cadran sombre).
+      Cochez « Auto » pour qu'ils se lancent tout seuls.</div>
+    <div class="card row-between"><span>Déclenchement automatique dès qu'un boost est prêt</span>
     <label class="toggle"><input type="checkbox" data-action="rush-auto" ${state.rushes.auto ? 'checked' : ''}> Auto</label></div>`;
   return auto + RUSHES.map((rush) => {
     const unlocked = rushUnlocked(state, rush);
@@ -56,12 +59,17 @@ export default {
     if (cat.id === 'rushes') {
       return `<div class="split-nav"><div class="side-nav">${cats}</div><div class="upg-list">${rushCards(state)}</div></div>`;
     }
+    // Quantité achetée par clic : ×1, ×10, ×100 ou le maximum abordable.
+    const amount = ui.view.buyAmount ?? '1';
+    const amounts = ['1', '10', '100', 'max'].map((a) => `<button class="btn chip-btn${a === amount ? ' active' : ''}" data-action="buy-amount" data-value="${a}">${a === 'max' ? 'Max' : `×${a}`}</button>`).join('');
     const cards = cat.keys.map((key) => {
       const up = BALANCE.upgrades[key];
       const level = state.upgrades[key];
       const max = up.maxLevel !== undefined && level >= up.maxLevel;
-      const cost = upgradeCost(key, level);
-      const next = computeHeroStats({ ...state, upgrades: { ...state.upgrades, [key]: level + 1 } });
+      const plan = bulkPlan(state, key, amount);
+      const count = Math.max(1, plan.count);
+      const cost = plan.count ? plan.cost : upgradeCost(key, level);
+      const next = computeHeroStats({ ...state, upgrades: { ...state.upgrades, [key]: level + count } });
       const [from, to, unit] = effect(key, current, next);
       const milestone = key === 'damage' && (level + 1) % up.milestoneEvery === 0
         ? `<span class="tag">×${formatDecimal(up.milestoneMultiplier)}</span>` : '';
@@ -70,9 +78,9 @@ export default {
         <div><div class="upg-name">${escapeHtml(up.label)}</div><div class="upg-level">Niv. ${level}${up.maxLevel ? `/${up.maxLevel}` : ''}</div></div>
         <div class="upg-effect num">${max ? `<span class="to">${from}</span> ${unit}`
           : `<span class="from">${from}</span> → <span class="to">${to}</span> ${unit}${milestone}`}</div>
-        ${costButton({ action: 'buy', cost, have: state.gold, attrs: `data-key="${key}"`, max })}
+        ${costButton({ action: 'buy', cost, have: state.gold, attrs: `data-key="${key}" data-amount="${amount}"`, max, label: count > 1 ? `+${count} ` : '' })}
       </div>`;
     });
-    return `<div class="split-nav"><div class="side-nav">${cats}</div><div class="upg-list">${cards.join('')}</div></div>`;
+    return `<div class="split-nav"><div class="side-nav">${cats}</div><div class="upg-list"><div class="chip-row buy-amounts">${amounts}</div>${cards.join('')}</div></div>`;
   },
 };

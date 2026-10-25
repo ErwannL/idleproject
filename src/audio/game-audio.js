@@ -63,11 +63,14 @@ export function createGameAudio() {
 
     // Ambiance (monde, boss, donjon) et bruits de pas pendant la marche.
     update(state, world, zoneIndex, dt) {
-      const mode = state.dungeon ? 'dungeon' : world.enemies.some((e) => e.boss) ? 'boss' : 'normal';
-      const key = `${zoneIndex}|${mode}`;
+      const berserk = world.enemies.some((e) => e.berserk);
+      const mode = state.dungeon ? 'dungeon' : berserk ? 'berserk' : world.enemies.some((e) => e.boss) ? 'boss' : 'normal';
+      // Mondes 7 à 11 : ambiance la plus proche parmi les 6 thèmes musicaux.
+      const theme = [0, 1, 2, 3, 4, 5, 1, 0, 5, 2, 5][zoneIndex] ?? 0;
+      const key = `${theme}|${mode}`;
       if (key !== scene) {
         scene = key;
-        audio.setScene({ world: zoneIndex, mode });
+        audio.setScene({ world: theme, mode });
       }
       if (world.hero.walking && !world.hero.dead) {
         stepTimer -= dt;

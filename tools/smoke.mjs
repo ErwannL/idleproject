@@ -91,11 +91,11 @@ await check('ouvrir l’inventaire, équiper un objet et voir les stats changer'
   const equipped = await game((id) => Object.values(__idle.state.equipment).some((i) => i && i.id === id), item.id);
   const after = await game(() => JSON.stringify(__idle.state.equipment));
   assert(equipped && before !== after, 'objet non équipé');
-  await page.click(`.inv-slots [data-id="${item.id}"]`);
+  await page.click(`.inv-equip [data-id="${item.id}"]`);
   await page.waitForSelector('.item-detail');
   const text = await page.textContent('.item-detail');
   assert(/équipé/i.test(text), 'détail équipé absent');
-  assert(await page.$(`.inv-slots [data-id="${item.id}"] .eq`), 'marque « équipé » absente');
+  assert(await page.$(`.inv-equip [data-id="${item.id}"] .eq`), 'marque « équipé » absente');
 });
 
 await check('recycler un objet contre de l’or', async () => {
@@ -188,7 +188,7 @@ await check('pouvoir ancestral : débloqué au premier boss et affiché dans le 
   await page.click('#tabs button[data-tab="boss"]');
   await page.waitForTimeout(200);
   const text = await page.textContent('#panel-body');
-  assert(text.includes('Roi Gluant') && text.includes('Pouvoir actuel'), text.slice(0, 200));
+  assert(text.includes('Roi Gluant') && text.includes('Pouvoir ancestral actuel'), text.slice(0, 200));
 });
 
 await check('changer de pouvoir exige de réaffronter le boss', async () => {
@@ -274,6 +274,7 @@ await check('invocation : un ticket donne un héros ou un compagnon', async () =
 await check('contrats et récompenses : réclamer un contrat et un coffre', async () => {
   const id = await game(() => { const c = __idle.state.contracts[0]; c.progress = c.target; return c.id; });
   await page.click('[data-open="contracts"]');
+  await page.click('[data-action="mission-tab"][data-value="contracts"]');
   await page.waitForTimeout(1200);
   const gems = await game(() => __idle.state.gems);
   await page.click(`[data-action="claim-contract"][data-value="${id}"]`);

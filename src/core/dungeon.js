@@ -1,7 +1,7 @@
 // Donjons : salles successives, chemin de récompense modifiable à tout moment,
 // objet final ciblé (emplacement choisi) et boss avec pouvoir ancestral.
 import { BALANCE } from '../data/balance.js';
-import { DUNGEON_PATHS, DUNGEON_REWARD, DUNGEONS } from '../data/dungeons.js';
+import { DIFFICULTY_ORDER, DUNGEON_DIFFICULTIES, DUNGEON_PATHS, DUNGEON_REWARD, DUNGEONS } from '../data/dungeons.js';
 import { SLOTS } from '../data/items.js';
 import { referenceKillGold } from './combat.js';
 import { addToInventory } from './inventory.js';
@@ -18,13 +18,20 @@ export function canEnterDungeon(state, id) {
   return Boolean(d) && !state.dungeon && state.keys >= 1 && state.maxStage >= d.unlockStage;
 }
 
-export function startDungeon(state, id, slot = 'any', path = 'gold') {
-  if (!canEnterDungeon(state, id)) return false;
+// Difficultés débloquées pour un donjon : Facile, puis Normal (1 victoire en Facile), puis Difficile.
+export function unlockedDifficulties(state, id) {
+  const best = state.dungeonBest?.[id] ?? -1;
+  return DIFFICULTY_ORDER.filter((_, i) => i <= best + 1);
+}
+
+export function startDungeon(state, id, slot = 'any', path = 'gold', difficulty = 'easy') {
+  if (!canEnterDungeon(state, id) || !unlockedDifficulties(state, id).includes(difficulty)) return false;
   const d = dungeonById(id);
+  const diff = DUNGEON_DIFFICULTIES[difficulty];
   state.keys -= 1;
   state.dungeon = {
-    id, room: 1, kills: 0, slot: slot in SLOTS ? slot : 'any', path: path in DUNGEON_PATHS ? path : 'gold',
-    level: Math.max(1, state.maxStage + d.levelOffset), earned: {},
+    id, room: 1, kills: 0, slot: slot in SLOTS ? slot : 'any', path: path in DUNGEON_PATHS ? path : 'gold', difficulty,
+    level: Math.max(1, state.maxStage + d.levelOffset + diff.levelBonus), earned: {},
   };
   return true;
 }
@@ -63,10 +70,17 @@ export function completeDungeon(state, rng, balance = BALANCE) {
   const slot = run.slot === 'any' ? undefined : run.slot;
   const item = generateItem(state, rng, { level: run.level, minRarity: DUNGEON_REWARD.minRarity, slot }, balance);
   const added = addToInventory(state, item, balance);
-  const reward = { gems: DUNGEON_REWARD.gems, essence: DUNGEON_REWARD.essence, tickets: first ? DUNGEON_REWARD.firstClearTickets : 0 };
+  const diff = DUNGEON_DIFFICULTIES[run.difficulty] ?? DUNGEON_DIFFICULTIES.easy;
+  // Fragments anciens (arbre de talents) : la récompense phare des donjons, plus la difficulté est haute.
+  const reward = {
+    gems: DUNGEON_REWARD.gems * diff.gems, essence: DUNGEON_REWARD.essence * diff.essence,
+    fragments: diff.fragments, tickets: first ? DUNGEON_REWARD.firstClearTickets : 0,
+  };
   const given = grantReward(state, reward);
   addEarned(run, given);
   state.dungeonsCleared[run.id] = (state.dungeonsCleared[run.id] ?? 0) + 1;
+  const rank = DIFFICULTY_ORDER.indexOf(run.difficulty ?? 'easy');
+  state.dungeonBest[run.id] = Math.max(state.dungeonBest[run.id] ?? -1, rank);
   trackMissions(state, 'dungeons', 1);
   state.dungeon = null;
   return { item, added: added.added, earned: run.earned };

@@ -4,21 +4,21 @@
 import { BALANCE } from './data/balance.js';
 import { BOSSES } from './data/enemies.js';
 import { changeStage, createCombat, currentEncounter, resetWave, resumeAdvance, step } from './core/combat.js';
-import { toggleCompanion, upgradeCompanion } from './core/companions.js';
+import { replaceCompanion, toggleCompanion, upgradeCompanion } from './core/companions.js';
 import { claimContract } from './core/contracts.js';
 import { claimAllMissions, claimLogin, claimMission, claimMissionBonus, mergeReward, refreshMissions } from './core/missions.js';
 import { abandonDungeon, setDungeonPath, startDungeon } from './core/dungeon.js';
-import { buyUpgrade } from './core/economy.js';
+import { buyUpgradeBulk } from './core/economy.js';
 import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
 import { craftItem, fuseItems, reforgeItem, sharpenItem, upgradeItem } from './core/forge.js';
 import { summon } from './core/gacha.js';
 import { setActiveHero } from './core/heroes.js';
-import { addToInventory, bulkRecycleCandidates, equipItem, recycleItem, recycleMatching, toggleLock } from './core/inventory.js';
+import { addToInventory, bulkRecycleCandidates, equipItem, recycleItem, recycleMatching, recycleRules, toggleLock } from './core/inventory.js';
 import {
   bossDungeon, bossFirstStage, claimMastery, powerById, powerSlots, rerollPower, resolveReroll, setPowerActive,
 } from './core/powers.js';
 import { buyTalent, performRebirth } from './core/rebirth.js';
-import { buyPerk, performPrestige } from './core/prestige.js';
+import { buyPerk } from './core/prestige.js';
 import { activateRush, rushById, upgradeRush } from './core/rushes.js';
 import { rewardText } from './core/rewards.js';
 import { learnSkill } from './core/skills.js';
@@ -34,6 +34,10 @@ import { SceneRenderer } from './render/scene.js';
 import { UI } from './ui/ui.js';
 import { animateMenus } from './ui/animator.js';
 import { createGameAudio } from './audio/game-audio.js';
+import { applyCheat } from './core/cheats.js';
+import { applyLoadout, saveLoadout } from './core/loadouts.js';
+import { claimCollection } from './core/codex.js';
+import { setLang, startAutoTranslate, t } from './i18n/i18n.js';
 
 const SIM_INTERVAL_MS = 100;
 
@@ -93,12 +97,22 @@ const actions = {
   setSkillAuto(value) { state.skillAuto = value; done(true); },
   setHero(id) { done(setActiveHero(state, id), 'Nouveau héros actif'); },
   toggleCompanion(id) {
-    if (!toggleCompanion(state, id)) ui.toast(`Deux personnages au maximum : retirez-en un d'abord.`);
+    if (!toggleCompanion(state, id)) ui.toast(`Deux compagnons au maximum : retirez-en un d'abord.`);
     else done(true);
   },
+  saveLoadout(i) { done(saveLoadout(state, i), `Configuration « ${state.loadouts[i].name} » enregistrée`); },
+  applyLoadout(i) { done(applyLoadout(state, i), `Configuration « ${state.loadouts[i].name} » équipée`); },
+  claimCollection(id) {
+    const given = claimCollection(state, id);
+    done(Boolean(given), given ? `Collection : ${rewardText(given)}` : null, '#f2d083');
+  },
+  replaceCompanion(newId, oldId) {
+    ui.view.replaceFor = null;
+    done(replaceCompanion(state, newId, oldId), 'Équipe modifiée');
+  },
   upgradeCompanion(id) { done(upgradeCompanion(state, id)); },
-  summon(count, currency) {
-    const results = summon(state, rng, count, currency);
+  summon(count, currency, pool = 'ally') {
+    const results = summon(state, rng, count, currency, BALANCE, pool === 'pet' ? 'pet' : 'ally');
     if (!results) return null;
     state.records.summons += results.length;
     const best = ['legendary', 'epic', 'rare', 'common'].find((r) => results.some((u) => u.rarity === r));
@@ -143,8 +157,8 @@ const actions = {
     changeStage(state, world, bossFirstStage(bossId));
     done(true, `${BOSSES[bossId].name} : le chevalier l'affronte en boucle (mode farm)`);
   },
-  enterDungeon(id, slot, path) {
-    if (!startDungeon(state, id, slot, path)) return;
+  enterDungeon(id, slot, path, difficulty) {
+    if (!startDungeon(state, id, slot, path, difficulty)) return;
     resetWave(world);
     done(true, 'Expédition lancée');
   },
@@ -199,8 +213,8 @@ const actions = {
   },
   buyMerchant(id) { done(buyFromMerchant(state, id), 'Objet acheté'); },
   dismissEvent(id) { done(dismissEvent(state, id)); },
-  buy(key) {
-    if (buyUpgrade(state, key)) {
+  buy(key, amount = '1') {
+    if (buyUpgradeBulk(state, key, amount) > 0) {
       sound.play('upgrade', { volume: 0.6 });
       save();
       ui.invalidate();
@@ -265,28 +279,14 @@ const actions = {
       ui.invalidate();
     }
   },
-  rebirth() {
-    const gained = performRebirth(state);
+  rebirth(keepPower) {
+    const gained = performRebirth(state, keepPower);
     if (gained <= 0) return;
     world = createCombat(state);
     save();
     ui.banner(`Renaissance ! +${gained} fragments anciens`, 'win');
     ui.invalidate();
   },
-  prestige() {
-    const stars = performPrestige(state);
-    if (stars <= 0) return;
-    world = createCombat(state);
-    save();
-    ui.banner(`PRESTIGE ${state.prestige.count} ! +${stars} étoile${stars > 1 ? 's' : ''}`, 'win');
-    ui.invalidate();
-  },
-  activateRush(id) {
-    const rush = rushById(id);
-    if (activateRush(state, id)) done(true, `${rush.name} !`, rush.color);
-  },
-  upgradeRush(id) { done(upgradeRush(state, id)); },
-  setRushAuto(on) { state.rushes.auto = on; done(true); },
   buyPerk(id) { done(buyPerk(state, id), 'Bonus éternel amélioré', '#ffe08a'); },
   selectStage(stage) {
     changeStage(state, world, stage);
@@ -303,6 +303,17 @@ const actions = {
     save();
     ui.invalidate();
   },
+  // Règles de recyclage automatique : mode, ou bascule d'une rareté / d'un type d'objet.
+  setRecycleRule(group, value) {
+    const rules = { ...recycleRules(state) };
+    if (group === 'mode') rules.mode = value;
+    else rules[group] = rules[group].includes(value) ? rules[group].filter((v) => v !== value) : [...rules[group], value];
+    state.ui.recycle = rules;
+    done(true);
+  },
+  setLanguage(lang) { setLang(lang); ui.invalidate(); },
+  setNotify(key, on) { state.ui.notify = { ...state.ui.notify, [key]: on }; done(true); },
+  setFocus(on) { state.ui.focus = on; done(true); },
   setAutoRecycle(value) {
     state.ui.autoRecycle = value;
     ui.invalidate();
@@ -333,7 +344,7 @@ const actions = {
     runOffline(now - seconds * 1000, now);
   },
   reset() {
-    if (!window.confirm('Effacer définitivement la progression ?')) return;
+    if (!window.confirm(t('Effacer définitivement la progression ?'))) return;
     clearSave(store);
     state = createNewState(Date.now());
     world = createCombat(state);
@@ -343,6 +354,8 @@ const actions = {
 };
 
 const ui = new UI(document.getElementById('app'), actions);
+// Langue (français / anglais) : la page entière est traduite à la volée.
+startAutoTranslate(document.body);
 
 // Musique et sons (moteur procédural) : démarrés au premier geste du joueur (règle des navigateurs).
 const sound = createGameAudio();

@@ -113,8 +113,18 @@ export const BALANCE = {
     killsPerStage: 15,
     bossEvery: 5,
     stagesPerZone: 20, // étapes 5, 10, 15, 20 : mini-boss, boss moyen, boss dur, méga boss
-    bossHpMultiplier: 20, // un boss se gagne aux dégâts…
-    bossDamageMultiplier: 1.4, // …sans tuer en un coup un chevalier au niveau de la zone
+    // v7.7 : boss bien plus coriaces (ils étaient balayés en quelques coups).
+    bossHpMultiplier: 45, // un boss se gagne aux dégâts…
+    bossDamageMultiplier: 2.4, // …et il frappe fort
+    bossArmorPierce: 0.4, // un boss ignore 40 % de l'armure du héros
+    enrageSeconds: 25, // au-delà, le boss enrage : +50 % de dégâts toutes les 10 s
+    enrageStepSeconds: 10,
+    enragePct: 50,
+    // Monde 11 : méga boss berserk (et leurs invocations).
+    berserk: { hp: 1.8, damage: 1.6, speed: 1.3, gold: 2 },
+    // Renaissance : les boss s'adaptent (plus durs) mais rapportent plus.
+    rebirthBossPct: 60, // PV et dégâts des boss +60 % par Renaissance
+    rebirthRewardPct: 50, // or, gemmes et essences des boss +50 % par Renaissance
     bossGoldMultiplier: 15,
     bossSpawnDelaySeconds: 1.2,
     // Boss par rang (étape du monde) : multiplicateurs appliqués aux valeurs « boss » ci-dessus.
@@ -143,7 +153,7 @@ export const BALANCE = {
     bossMinRarity: 'rare',
     stagePowerGrowth: 0.045, // +4,5 % de stats par niveau d'objet (v7.6 : 2 niveaux = 1 ancien)
     recycleLevelGrowth: 0.05,
-    inventorySize: 40, // au-delà, les nouveaux objets sont recyclés en or
+    inventorySize: 100, // au-delà, les nouveaux objets sont recyclés en or
     signatureChance: 0.15, // chance qu'un boss lâche son objet signature
     bossEssence: 2, // essences garanties par boss (+1 par zone)
     // Poids de chaque emplacement dans le butin (accessoires ≈ 1/3 des objets).
@@ -180,7 +190,8 @@ export const BALANCE = {
   events: {
     chancePerKill: 0.004,
     inboxSize: 8,
-    weights: { chest: 30, merchant: 15, elite: 20, wave: 20, gems: 15 },
+    weights: { chest: 30, merchant: 15, elite: 20, wave: 20, gems: 15, portal: 6, wanderer: 3 },
+    portalGoldKills: 120,
     chestGoldKills: 30,
     merchantPriceKills: 40,
     eliteHpMultiplier: 5,
@@ -204,7 +215,12 @@ export const BALANCE = {
   summon: {
     gemCost: 100,
     tenPullGemCost: 900,
-    rarityWeights: { common: 60, rare: 30, epic: 8.5, legendary: 1.5 },
+    // v7.7 : deux invocations séparées. Compagnons (humains R/SR/SSR) et familiers (animaux).
+    pools: {
+      ally: { label: 'Compagnons', rarityWeights: { rare: 76, epic: 21, legendary: 3 } },
+      pet: { label: 'Familiers', rarityWeights: { common: 60, rare: 30, epic: 8.5, legendary: 1.5 } },
+    },
+    rarityWeights: { common: 60, rare: 30, epic: 8.5, legendary: 1.5 }, // (ancien tirage unique)
     pity: { epicAfter: 10, legendaryAfter: 60 }, // garanties
     maxStars: 5,
     duplicateRefundGems: 20, // doublon d'une unité déjà à 5 étoiles

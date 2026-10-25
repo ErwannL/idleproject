@@ -386,5 +386,346 @@ export const BG = {
         "front": true
       }
     ]
+  },
+  "swamp": {
+    "sky": [
+      "#121c1a",
+      "#203628",
+      "#3a5638",
+      "#7a8e52"
+    ],
+    "ground": "#0a100a",
+    "layers": [
+      {
+        "file": "swamp_moon.png",
+        "factor": 0.01,
+        "anchor": "top",
+        "y": 0,
+        "front": false
+      },
+      {
+        "file": "swamp_clouds.png",
+        "factor": 0.03,
+        "anchor": "top",
+        "y": 0,
+        "front": false,
+        "drift": 1
+      },
+      {
+        "file": "swamp_far.png",
+        "factor": 0.06,
+        "anchor": "ground",
+        "y": -128,
+        "front": false
+      },
+      {
+        "file": "swamp_marsh.png",
+        "factor": 0.18,
+        "anchor": "ground",
+        "y": -122,
+        "front": false
+      },
+      {
+        "file": "swamp_trees.png",
+        "factor": 0.4,
+        "anchor": "ground",
+        "y": -148,
+        "front": false
+      },
+      {
+        "file": "swamp_fog.png",
+        "factor": 0.55,
+        "anchor": "ground",
+        "y": -36,
+        "front": false,
+        "drift": 4
+      },
+      {
+        "file": "swamp_near.png",
+        "factor": 0.7,
+        "anchor": "ground",
+        "y": -62,
+        "front": false
+      },
+      {
+        "file": "swamp_ground.png",
+        "factor": 1.0,
+        "anchor": "ground",
+        "y": -8,
+        "front": false
+      },
+      {
+        "file": "swamp_front.png",
+        "factor": 1.25,
+        "anchor": "ground",
+        "y": 7,
+        "front": true
+      }
+    ]
+  },
+  "sky": {
+    "sky": [
+      "#2a66d8",
+      "#5294f0",
+      "#94c6f8",
+      "#e2f2ff"
+    ],
+    "ground": "#2a2c4a",
+    "layers": [
+      {
+        "file": "sky_sun.png",
+        "factor": 0.01,
+        "anchor": "top",
+        "y": 0,
+        "front": false
+      },
+      {
+        "file": "sky_clouds.png",
+        "factor": 0.03,
+        "anchor": "top",
+        "y": 4,
+        "front": false,
+        "drift": 3
+      },
+      {
+        "file": "sky_far.png",
+        "factor": 0.05,
+        "anchor": "ground",
+        "y": -158,
+        "front": false
+      },
+      {
+        "file": "sky_islands.png",
+        "factor": 0.16,
+        "anchor": "ground",
+        "y": -148,
+        "front": false
+      },
+      {
+        "file": "sky_temples.png",
+        "factor": 0.4,
+        "anchor": "ground",
+        "y": -148,
+        "front": false
+      },
+      {
+        "file": "sky_near.png",
+        "factor": 0.7,
+        "anchor": "ground",
+        "y": -62,
+        "front": false
+      },
+      {
+        "file": "sky_ground.png",
+        "factor": 1.0,
+        "anchor": "ground",
+        "y": -8,
+        "front": false
+      },
+      {
+        "file": "sky_front.png",
+        "factor": 1.25,
+        "anchor": "ground",
+        "y": 7,
+        "front": true
+      }
+    ]
+  },
+  "volcano": {
+    "sky": [
+      "#120808",
+      "#30120c",
+      "#62200e",
+      "#b44c16"
+    ],
+    "ground": "#08060a",
+    "layers": [
+      {
+        "file": "volcano_smoke.png",
+        "factor": 0.03,
+        "anchor": "top",
+        "y": 0,
+        "front": false,
+        "drift": 1.5
+      },
+      {
+        "file": "volcano_far.png",
+        "factor": 0.05,
+        "anchor": "ground",
+        "y": -248,
+        "front": false
+      },
+      {
+        "file": "volcano_ash.png",
+        "factor": 0.08,
+        "anchor": "top",
+        "y": 0,
+        "front": false,
+        "drift": 7
+      },
+      {
+        "file": "volcano_flows.png",
+        "factor": 0.17,
+        "anchor": "ground",
+        "y": -132,
+        "front": false
+      },
+      {
+        "file": "volcano_forge.png",
+        "factor": 0.4,
+        "anchor": "ground",
+        "y": -132,
+        "front": false
+      },
+      {
+        "file": "volcano_near.png",
+        "factor": 0.7,
+        "anchor": "ground",
+        "y": -62,
+        "front": false
+      },
+      {
+        "file": "volcano_ground.png",
+        "factor": 1.0,
+        "anchor": "ground",
+        "y": -8,
+        "front": false
+      },
+      {
+        "file": "volcano_front.png",
+        "factor": 1.25,
+        "anchor": "ground",
+        "y": 7,
+        "front": true
+      }
+    ]
+  },
+  "void": {
+    "sky": [
+      "#04020c",
+      "#0c0624",
+      "#1c0e44",
+      "#301660"
+    ],
+    "ground": "#06040e",
+    "layers": [
+      {
+        "file": "void_stars.png",
+        "factor": 0.01,
+        "anchor": "top",
+        "y": 0,
+        "front": false
+      },
+      {
+        "file": "void_nebula.png",
+        "factor": 0.02,
+        "anchor": "top",
+        "y": 0,
+        "front": false,
+        "drift": 0.6
+      },
+      {
+        "file": "void_far.png",
+        "factor": 0.05,
+        "anchor": "ground",
+        "y": -178,
+        "front": false
+      },
+      {
+        "file": "void_platforms.png",
+        "factor": 0.16,
+        "anchor": "ground",
+        "y": -148,
+        "front": false
+      },
+      {
+        "file": "void_monoliths.png",
+        "factor": 0.4,
+        "anchor": "ground",
+        "y": -148,
+        "front": false
+      },
+      {
+        "file": "void_near.png",
+        "factor": 0.7,
+        "anchor": "ground",
+        "y": -62,
+        "front": false
+      },
+      {
+        "file": "void_ground.png",
+        "factor": 1.0,
+        "anchor": "ground",
+        "y": -8,
+        "front": false
+      },
+      {
+        "file": "void_front.png",
+        "factor": 1.25,
+        "anchor": "ground",
+        "y": 7,
+        "front": true
+      }
+    ]
+  },
+  "abyss": {
+    "sky": [
+      "#070304",
+      "#160608",
+      "#2c0a0a",
+      "#561a0e"
+    ],
+    "ground": "#060304",
+    "layers": [
+      {
+        "file": "abyss_far.png",
+        "factor": 0.04,
+        "anchor": "ground",
+        "y": -188,
+        "front": false
+      },
+      {
+        "file": "abyss_vault.png",
+        "factor": 0.08,
+        "anchor": "top",
+        "y": 0,
+        "front": false
+      },
+      {
+        "file": "abyss_hall.png",
+        "factor": 0.15,
+        "anchor": "ground",
+        "y": -158,
+        "front": false
+      },
+      {
+        "file": "abyss_columns.png",
+        "factor": 0.4,
+        "anchor": "ground",
+        "y": -158,
+        "front": false
+      },
+      {
+        "file": "abyss_near.png",
+        "factor": 0.7,
+        "anchor": "ground",
+        "y": -62,
+        "front": false
+      },
+      {
+        "file": "abyss_ground.png",
+        "factor": 1.0,
+        "anchor": "ground",
+        "y": -8,
+        "front": false
+      },
+      {
+        "file": "abyss_front.png",
+        "factor": 1.25,
+        "anchor": "ground",
+        "y": 7,
+        "front": true
+      }
+    ]
   }
 };

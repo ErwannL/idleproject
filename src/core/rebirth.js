@@ -59,9 +59,18 @@ export function rebirthReward(state) {
 
 // Réinitialise la campagne, l'or et les améliorations ; conserve tout le reste.
 // Renvoie le nombre de fragments gagnés (0 si la Renaissance n'est pas possible).
-export function performRebirth(state) {
+export function performRebirth(state, keepPower = state.equippedPowers?.[0]) {
   const reward = rebirthReward(state);
   if (reward <= 0) return 0;
+  // Un seul pouvoir ancestral conservé (celui choisi, sinon le premier actif).
+  const kept = state.powers?.[keepPower] ? keepPower : Object.keys(state.powers ?? {})[0];
+  state.powers = kept ? { [kept]: state.powers[kept] } : {};
+  state.equippedPowers = kept ? [kept] : [];
+  // Niveau du héros, compétences et niveau de l'équipe repartent de zéro.
+  state.level = 1;
+  state.xp = 0;
+  state.skills = { quick: 1 };
+  for (const c of Object.values(state.companions?.owned ?? {})) c.level = 1;
   state.fragments += reward;
   state.records.rebirths += 1;
   state.gold = 0;

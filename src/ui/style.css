@@ -307,7 +307,7 @@ select { padding: 3px 6px; }
 /* --- Inventaire : emplacements | fiche | grille --- */
 .inv { display: grid; grid-template-columns: 46px minmax(0, 1fr) minmax(0, 1fr); gap: 7px; min-height: 0; }
 .layout-mini .inv-detail .card { padding: 5px 6px; }
-.layout-mini .compare-row:nth-child(n+4) { display: none; } /* mini : DPS et dégâts seulement */
+.layout-mini .compare-row:nth-child(n+5), .layout-mini .compare-hint { display: none; } /* mini : DPS et dégâts seulement */
 .inv-slots { display: flex; flex-direction: column; gap: 5px; }
 .inv-slots .item-frame { width: 44px; height: 44px; }
 .inv-slots .item-frame img { width: 32px; height: 32px; }
@@ -857,7 +857,7 @@ body { background: radial-gradient(ellipse at 50% 0%, #16203a, var(--bg-0) 70%);
 /* --- v7 --- */
 /* Jeu en bandeau : la scène prend toute la largeur, onglets et interface en dessous. */
 .layout-tall #play { height: clamp(200px, 38vh, 360px); }
-.layout-tall #panel-body > * { width: 100%; max-width: 960px; margin-left: auto; margin-right: auto; }
+.layout-tall #panel-body > * { width: 100%; max-width: 1500px; margin-left: auto; margin-right: auto; }
 .layout-tall #tabs { justify-content: center; }
 .layout-tall #tabs button { max-width: 120px; }
 /* Bouton « Max » des compétences : le texte tient dans la case. */
@@ -1065,3 +1065,186 @@ canvas.anim { display: block; image-rendering: pixelated; }
 .rush-icon { border-radius: 6px; background: color-mix(in srgb, var(--rush) 25%, transparent); }
 .volume-row { display: grid; grid-template-columns: 70px 1fr; align-items: center; gap: 8px; font-size: 12px; margin-top: 4px; }
 .volume-row input { width: 100%; accent-color: #f2d083; }
+
+/* --- v7.7 --- */
+/* Listes déroulantes lisibles : options sombres (sinon blanc sur blanc sous Windows). */
+select { color-scheme: dark; }
+select option { background: #1b2340; color: #e9ecf2; }
+select option:checked { background: #3a5a9a; }
+#loot-pop { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); z-index: 4; display: flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; color: #fff;
+  background: rgba(16, 20, 34, 0.88); border: 2px solid var(--rarity, #8a93a3); box-shadow: 0 0 10px -2px var(--rarity, #8a93a3); }
+#loot-pop.hidden { display: none; }
+#loot-pop img { width: 16px; height: 16px; }
+#loot-pop.bump { animation: loot-bump 0.35s ease-out; }
+@keyframes loot-bump { 40% { transform: translateX(-50%) scale(1.12); } }
+.layout-strip #loot-pop { top: 2px; padding: 1px 6px; font-size: 10px; }
+.rush-help { font-size: 12px; line-height: 1.4; border-color: #6a7fb8; }
+input[type="text"] { font: inherit; color: var(--text); background: #141a2c; border: 1px solid #3a4a72; border-radius: 4px; padding: 4px 6px; min-width: 0; }
+.replace-box { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; width: 100%; margin-top: 6px; padding: 6px; border: 1px dashed #6a7fb8; border-radius: 6px; }
+.replace-box .btn { display: inline-flex; align-items: center; gap: 4px; }
+.replace-box canvas { width: 28px; height: 28px; }
+.summon-tabs { margin-bottom: 6px; }
+.buy-amounts { justify-content: flex-end; margin-bottom: 4px; }
+.buy-amounts .chip-btn { min-width: 42px; justify-content: center; }
+.compare-row { gap: 8px; }
+.compare-row > span:first-child { flex: 1; }
+.compare-row > span:last-child { min-width: 64px; text-align: right; }
+.compare-hint { font-size: 10px; margin-bottom: 2px; }
+.keep-power { display: flex; flex-direction: column; gap: 4px; margin: 6px 0; }
+.keep-power label { font-size: 12px; }
+.contract-title { font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: #8fb0e8; }
+.contract.rare { border: 1px solid #c06bff; border-radius: 6px; padding: 6px; box-shadow: 0 0 8px -3px #c06bff; }
+.contract.rare .contract-title { color: #d8a6ff; }
+.syn-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px; }
+.syn { display: flex; flex-direction: column; gap: 1px; padding: 4px 6px; font-size: 11px; border-radius: 4px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.06); opacity: 0.7; }
+.syn.on { opacity: 1; border-color: #f2d083; box-shadow: 0 0 6px -2px #f2d083; }
+.syn-roles i { font-style: normal; font-weight: 700; }
+.role-dot { position: absolute; right: 2px; top: 2px; width: 7px; height: 7px; border-radius: 50%; border: 1px solid #000; }
+.loadout { display: grid; grid-template-columns: 1fr auto auto; grid-template-rows: auto auto; align-items: center; gap: 2px 6px; padding: 4px 0; border-top: 1px solid rgba(255,255,255,0.06); font-size: 12px; }
+.loadout .muted { grid-column: 1; grid-row: 2; font-size: 10px; }
+.loadout .btn { grid-row: 1 / span 2; }
+
+/* --- v7.7 : Codex des boss (liste + fiche) --- */
+.collections { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; }
+.collection { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+.collection > img { width: 20px; height: 20px; }
+.codex { display: grid; grid-template-columns: minmax(200px, 300px) 1fr; gap: 8px; align-items: start; }
+.layout-mini .codex, .layout-strip .codex { grid-template-columns: 1fr; }
+.codex-list { display: flex; flex-direction: column; gap: 5px; max-height: 70vh; overflow: auto; }
+.boss-item { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 5px; cursor: pointer; border-radius: 6px;
+  background: linear-gradient(180deg, #1c2440, #141a30); border: 2px solid #2c3a62; font-size: 12px; }
+.boss-item:hover { border-color: #5b7fb6; }
+.boss-item.selected { border-color: #f2c060; box-shadow: 0 0 8px -2px #f2c060; }
+.boss-item.unknown { opacity: 0.75; }
+.boss-thumb { width: 56px; height: 48px; display: grid; place-items: center; overflow: hidden; border-radius: 4px; background: #0e1222; flex: none; }
+.boss-thumb canvas, .boss-thumb img { max-width: 56px; max-height: 48px; image-rendering: pixelated; }
+.boss-item .chev { color: #f2c060; font-size: 18px; }
+.crowns i { font-style: normal; color: #4a5068; margin-left: 1px; }
+.crowns i.on { color: #f2c060; }
+.codex-detail { display: flex; flex-direction: column; gap: 8px; }
+.boss-hero { display: flex; gap: 10px; align-items: flex-start; }
+.boss-big { width: 170px; height: 150px; flex: none; display: grid; place-items: center; border-radius: 6px; border: 2px solid #3a4a7a;
+  background: radial-gradient(circle at 50% 60%, #2a2a5a, #0c0f1e); }
+.boss-big canvas, .boss-big img { max-width: 160px; max-height: 146px; image-rendering: pixelated; }
+.layout-mini .boss-big { width: 96px; height: 86px; }
+.boss-title { font-size: 18px; font-weight: 800; }
+.badge-ancestral { margin-left: 8px; padding: 1px 8px; border-radius: 10px; font-size: 11px; color: #f0c8ff; border: 1px solid #b05cff; background: rgba(176,92,255,0.15); }
+.lore { font-size: 12px; color: #b9c2d8; margin: 4px 0 0; }
+.boss-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.layout-mini .boss-bottom { grid-template-columns: 1fr; }
+.card-sub { padding: 6px; border-radius: 6px; border: 1px solid #2c3a62; background: rgba(0,0,0,0.2); }
+.reward-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.reward-icon { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 5px; border: 2px solid var(--rarity, #556); background: #10152a; }
+.reward-icon img { width: 26px; height: 26px; image-rendering: pixelated; }
+.m-track { position: relative; height: 54px; margin: 8px 14px 4px; }
+.m-track::before { content: ''; position: absolute; left: 0; right: 0; top: 10px; height: 4px; background: #1c2440; border-radius: 2px; }
+.m-fill { position: absolute; left: 0; top: 10px; height: 4px; background: linear-gradient(90deg, #4f8cff, #8ac4ff); border-radius: 2px; }
+.m-step { position: absolute; top: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; font-size: 9px; text-align: center; }
+.m-step > span, .m-step > .btn { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: #1c2440; border: 2px solid #3a4a7a; padding: 0; }
+.m-step img { width: 14px; height: 14px; }
+.m-step.got > span { border-color: #5ad46a; color: #5ad46a; }
+.m-step small { color: #aab3c8; white-space: nowrap; }
+.power-box.unknown { text-align: left; }
+.codex-help { font-size: 11px; }
+
+/* --- v7.7 : Donjons (liste + fiche) --- */
+.dungeon-layout { display: grid; grid-template-columns: minmax(220px, 320px) 1fr; gap: 8px; align-items: start; }
+.layout-mini .dungeon-layout, .layout-strip .dungeon-layout { grid-template-columns: 1fr; }
+.dungeon-side { display: flex; flex-direction: column; gap: 6px; }
+.dungeon-list { display: flex; flex-direction: column; gap: 5px; max-height: 70vh; overflow: auto; }
+.dungeon-item { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 5px; cursor: pointer; border-radius: 6px; font-size: 12px;
+  background: linear-gradient(180deg, #1c2440, #141a30); border: 2px solid #2c3a62; }
+.dungeon-item:hover { border-color: #5b7fb6; }
+.dungeon-item.selected { border-color: #f2c060; box-shadow: 0 0 8px -2px #f2c060; }
+.dungeon-item.locked { opacity: 0.6; filter: grayscale(0.6); }
+.tag-open, .tag-locked { display: inline-block; padding: 0 6px; border-radius: 4px; font-size: 10px; font-weight: 800; }
+.tag-open { color: #7fe08f; border: 1px solid #3a8a4a; background: rgba(90,212,106,0.12); }
+.tag-locked { color: #aab3c8; border: 1px solid #4a5068; }
+.dungeon-detail { display: flex; flex-direction: column; gap: 8px; }
+.dungeon-head { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
+.dungeon-head > img { width: 40px; height: 40px; }
+.diff-box { padding: 6px; border-radius: 6px; border: 1px solid #2c3a62; background: rgba(0,0,0,0.2); }
+.diff-row { display: flex; gap: 4px; }
+.diff-btn { display: flex; flex-direction: column; align-items: center; padding: 3px 8px; font-size: 11px; }
+.diff-btn.active { border-color: #ff5a5a; box-shadow: 0 0 6px -1px #ff5a5a; }
+.skulls { color: #ff5a5a; letter-spacing: -1px; font-size: 12px; }
+.role-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; margin-left: 6px; border-radius: 12px; font-size: 11px; border: 1px solid var(--role); }
+.role-chip img { width: 16px; height: 16px; }
+.room-path { display: flex; align-items: center; justify-content: space-between; padding: 10px 8px; border-radius: 6px;
+  background: linear-gradient(90deg, #121a36, #1d1640 70%, #2a1238); border: 1px solid #2c3a62; }
+.room { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; text-align: center; color: #aab3c8; }
+.room > span { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; border: 2px solid #3a4a7a; background: #10152a; font-weight: 800; }
+.room.done > span { border-color: #5ad46a; color: #5ad46a; }
+.room.current > span { border-color: #f2c060; box-shadow: 0 0 6px #f2c060; }
+.room.boss > span { width: 32px; height: 32px; border-color: #ff4d6d; }
+.room.boss img { width: 18px; height: 18px; }
+.room-link { flex: 1; height: 2px; margin: 0 4px 14px; background: repeating-linear-gradient(90deg, #4a5a8a 0 6px, transparent 6px 10px); }
+.dungeon-cols { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; }
+.layout-mini .dungeon-cols { grid-template-columns: 1fr; }
+.reward-grid { display: grid; grid-template-columns: auto 1fr; gap: 4px 6px; align-items: center; font-size: 11px; }
+.reward-label { color: #c9d2e8; }
+.path-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+.path-card { all: unset; box-sizing: border-box; display: flex; flex-direction: column; gap: 2px; padding: 6px; border-radius: 6px; cursor: pointer; font-size: 11px;
+  border: 2px solid #3a4a7a; background: rgba(0,0,0,0.25); }
+.path-card.active { border-color: #f2c060; box-shadow: 0 0 6px -2px #f2c060; }
+.enter-btn { width: 100%; padding: 8px; font-size: 14px; }
+.recycle-rules { display: flex; flex-direction: column; gap: 4px; padding: 4px 0; }
+.recycle-rules .chip-btn.small { padding: 1px 6px; font-size: 10px; }
+
+/* --- v7.7 : inventaire en 3 colonnes (équipement · fiche · inventaire) --- */
+.inv.inv3 { grid-template-columns: minmax(230px, 0.9fr) minmax(280px, 1.2fr) minmax(280px, 1.3fr); align-items: start; }
+@container (max-width: 760px) { .inv.inv3 { grid-template-columns: 1fr 1fr; } .inv3 .inv-equip { grid-column: 1 / -1; } }
+@container (max-width: 480px) { .inv.inv3 { grid-template-columns: 1fr; } }
+.layout-mini .inv.inv3 { grid-template-columns: 1fr; }
+.inv-equip { display: flex; flex-direction: column; gap: 6px; }
+.equip-doll { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.equip-doll .slot-col { display: flex; flex-direction: column; gap: 5px; }
+.equip-doll .item-frame { width: 48px; height: 48px; }
+.equip-doll .item-frame img { width: 34px; height: 34px; }
+.equip-doll .doll { flex: 1; display: grid; place-items: center; min-height: 150px; border-radius: 6px;
+  background: radial-gradient(circle at 50% 70%, rgba(90,140,255,0.18), transparent 70%); }
+.mini-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 8px; font-size: 12px; }
+.mini-stats img { width: 14px; height: 14px; vertical-align: -2px; }
+.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.action-grid .span2 { grid-column: 1 / -1; }
+.upgrade-line { display: flex; align-items: center; gap: 6px; }
+.upgrade-line .btn { flex: 1; }
+.tool-line { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+.tool-line .btn { min-width: 0; white-space: normal; line-height: 1.15; }
+.item-detail .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+.inv-filters .btn { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; }
+.inv-filters .btn img { width: 14px; height: 14px; }
+/* Cadenas : petit badge dans le coin, jamais par-dessus l'icône (spécificité renforcée). */
+body .item-frame img.lock { position: absolute; top: 1px; left: 1px; width: 8px; height: 9px; }
+/* Barre du haut (v7.7) : niveau + XP, étape et monde. */
+.top-level { display: flex; align-items: center; gap: 6px; }
+.top-level b { font-size: 13px; white-space: nowrap; }
+.top-xp { display: block; width: 90px; height: 6px; border-radius: 3px; background: #0d1222; border: 1px solid #2c3a62; overflow: hidden; }
+.top-xp i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #4fd06a, #9cf08a); }
+.chip-stage { cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; font-weight: 700; }
+.layout-mini .top-xp, .layout-mini .chip-stage { display: none; }
+@container (max-width: 700px) { .chip-stage { display: none; } }
+/* Missions en onglets (v7.7) */
+.m-tabs { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.m-tab { position: relative; display: inline-flex; align-items: center; gap: 5px; }
+.m-tab img { width: 16px; height: 16px; }
+.m-tab.active { border-color: #f2c060; box-shadow: inset 0 -2px 0 #f2c060; }
+.m-tab .fold-ready { position: absolute; top: -6px; right: -6px; }
+.m-tabs .claim-all { width: auto; margin: 0 0 0 auto; }
+.m-body { display: flex; flex-direction: column; gap: 6px; }
+.m-reset { text-align: right; color: #7fb0ff; }
+.m-row { display: grid; grid-template-columns: 40px 1fr minmax(90px, auto) 96px; align-items: center; gap: 8px; padding: 6px; border-radius: 6px;
+  background: linear-gradient(180deg, #1a2140, #131a32); border: 1px solid #2c3a62; }
+.m-row.claimed { opacity: 0.55; }
+.m-icon { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 6px; background: #0e1326; border: 1px solid #3a4a7a; }
+.m-icon img { width: 26px; height: 26px; }
+.m-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.m-reward { padding: 4px 8px; border-radius: 5px; background: rgba(0,0,0,0.25); font-size: 11px; color: #f2d083; font-weight: 700; }
+.m-btn { display: flex; justify-content: center; }
+.m-btn .btn { width: 100%; }
+.m-done { color: #5ad46a; font-weight: 900; font-size: 16px; }
+.m-chest { border-color: #c9a040; background: linear-gradient(180deg, #2a2418, #1a1610); }
+.contract-title.rare, .rare-text { color: #d8a6ff; }
+@container (max-width: 520px) { .m-row { grid-template-columns: 34px 1fr 80px; } .m-reward { display: none; } }
+.offline-rare { padding: 6px; border: 1px solid #c9a040; border-radius: 6px; background: rgba(242,192,96,0.08); margin: 4px 0; }

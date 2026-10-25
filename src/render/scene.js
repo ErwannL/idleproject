@@ -20,8 +20,12 @@ const MAX_SCALE = 3; // zoom maximal : une grande fenêtre montre plus de décor
 // Les positions de la simulation (BALANCE.world) sont agrandies à l'affichage pour
 // s'accorder aux sprites v5, plus détaillés ; la simulation elle-même ne change pas.
 export const WORLD_SCALE = 1.5;
+// Durée de vie d'un objet tombé : saut, repos au sol, puis aspiration vers le chevalier.
+const LOOT_LIFE = 4;
+
 // Aura des boss par rang (mini, moyen, dur, méga).
 const BOSS_AURAS = {
+  berserk: { color: '#ff0030', ember: '#1a0008', width: 3, alpha: 0.6, speed: 10, embers: 0.5 },
   mini: { color: '#ffb050', ember: '#ffe08a', width: 1, alpha: 0.35, speed: 4, embers: 0 },
   mid: { color: '#ff4d6d', ember: '#ffb0a8', width: 1, alpha: 0.45, speed: 5, embers: 0.05 },
   hard: { color: '#ff4dd2', ember: '#ffc0f0', width: 2, alpha: 0.4, speed: 6, embers: 0.15 },
@@ -38,6 +42,11 @@ const AMBIENT = {
   desert: { colors: ['#ffe2a8', '#f4c27a'], count: 18, vx: -28, vy: 1, wobble: 2, size: 1 }, // sable
   mountains: { colors: ['#ffffff', '#e6f2ff'], count: 26, vx: -10, vy: 14, wobble: 8, size: 1 }, // neige
   cursed: { colors: ['#ff8a3a', '#ffcc4a', '#ff5a2a'], count: 18, vx: -3, vy: -12, wobble: 5, size: 1, glow: true }, // braises
+  swamp: { colors: ['#b8ff6a', '#7adf5a', '#d8ff9a'], count: 16, vx: -2, vy: -3, wobble: 9, size: 1, glow: true }, // spores
+  sky: { colors: ['#ffffff', '#fff2c0', '#d8eeff'], count: 14, vx: -16, vy: -1, wobble: 4, size: 1 }, // plumes, vent
+  volcano: { colors: ['#ff6a2a', '#ffb43a', '#ff3a1a'], count: 24, vx: -4, vy: -16, wobble: 4, size: 1, glow: true }, // braises
+  void: { colors: ['#c9a6ff', '#7fd4ff', '#ffffff'], count: 20, vx: -1, vy: -2, wobble: 12, size: 1, glow: true }, // poussière d'étoiles
+  abyss: { colors: ['#ff3a3a', '#ff8a3a', '#7a1a2a'], count: 22, vx: -2, vy: -10, wobble: 6, size: 1, glow: true }, // cendres rouges
 };
 
 // Calques de décor (PNG générés par tools/art/scenery.py), chargés à la demande.
@@ -183,11 +192,15 @@ export class SceneRenderer {
         const big = event.item.rarity === 'legendary' || event.item.rarity === 'epic';
         this.effects.push({ kind: 'beam', x: Math.round(event.x), color, life: 1.4, max: 1.4, wide: big });
         // L'objet jaillit du monstre, retombe en brillant, puis file vers le sac du chevalier.
-        this.effects.push({ kind: 'loot', item: event.item, color, x0: event.x, x: event.x, y: this.groundY, life: 1.6, max: 1.6 });
+        this.effects.push({ kind: 'loot', item: event.item, color, x0: event.x, x: event.x, y: this.groundY, life: LOOT_LIFE, max: LOOT_LIFE });
         this.burst(event.x, this.groundY - 6, color, big ? 14 : 6, 50);
         if (event.item.rarity === 'legendary') this.shake = Math.max(this.shake, 3);
         break;
       }
+      case 'bossSummon':
+        this.shake = Math.max(this.shake, 3);
+        this.burst(HERO_X + 60, this.groundY - 20, '#ff0030', 18, 60);
+        break;
       case 'gems':
         // Gemmes (cristaux) : petite gemme qui saute et texte bleu.
         this.sprite(['icon_gem'], event.x, this.groundY - 16, 0.9);
@@ -220,6 +233,7 @@ export class SceneRenderer {
   }
 
   burst(x, y, color, count, speed = 30) {
+    if (this.focus) count = Math.min(count, 3);
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
       const v = speed * (0.4 + Math.random() * 0.6);
@@ -300,6 +314,9 @@ export class SceneRenderer {
   render(state, world, dt) {
     this.time += dt;
     const ctx = this.ctx;
+    // Mode concentration : pas de secousses ni de particules d'ambiance, effets allégés.
+    this.focus = Boolean(state.ui?.focus);
+    if (this.focus) this.shake = 0;
     const zoneIndex = currentEncounter(state).zoneIndex;
     if (zoneIndex !== this.lastZone) {
       if (this.lastZone >= 0) this.zoneFade = 1;
@@ -320,6 +337,9 @@ export class SceneRenderer {
     this.drawEnemies(ctx, world, dt);
     this.drawCompanions(ctx, state, world, dt);
     this.drawHero(ctx, state, world);
+    // Le familier trottine devant le chevalier (sinon il disparaît derrière lui).
+    const pet = world.hero.dead ? null : equippedCompanions(state).find((c) => c.kind !== 'ally');
+    if (pet) this.drawPet(ctx, world, pet);
     this.drawBackground(ctx, ZONES[zoneIndex], this.smoothScroll(world), true); // premier plan
     this.drawEffects(ctx, dt);
     ctx.restore();
@@ -334,7 +354,7 @@ export class SceneRenderer {
   // Décor de la zone : dégradé du ciel puis calques peints (assets/bg, manifeste BG généré par
   // tools/art/scenery.py), du plus lointain au plus proche, chacun à sa vitesse de parallaxe.
   drawBackground(ctx, zone, scroll, front = false) {
-    const bg = BG[zone.id];
+    const bg = BG[zone.id] ?? BG.cursed; // (décor manquant : repli)
     const G = this.groundY;
     if (!front) {
       const stops = bg.sky;
@@ -360,7 +380,7 @@ export class SceneRenderer {
   // Particules d'ambiance : positions calculées à partir du temps (aucun état à garder).
   drawAmbient(ctx, zone, scroll, front) {
     const a = AMBIENT[zone.id];
-    if (!a) return;
+    if (!a || this.focus) return;
     const factor = front ? 1.15 : 0.55;
     const W = this.width + 20;
     const H = this.groundY + 4;
@@ -465,7 +485,7 @@ export class SceneRenderer {
   // Aura des boss selon leur rang : contour lumineux pulsant (plus épais et plus rouge pour les méga boss),
   // braises qui montent autour des boss durs et méga boss.
   drawBossAura(ctx, enemy, sprite, colors, x, y, w, h, appear) {
-    const tier = BOSSES[enemy.type]?.tier ?? 'mega';
+    const tier = enemy.berserk ? 'berserk' : BOSSES[enemy.type]?.tier ?? 'mega';
     const look = BOSS_AURAS[tier];
     const glow = spriteCanvas(sprite, { colors, tint: { color: look.color, alpha: 1 } });
     const pulse = 0.5 + 0.5 * Math.sin(this.time * look.speed + enemy.id);
@@ -552,12 +572,12 @@ export class SceneRenderer {
     ctx.drawImage(img, this.snap(x), y);
   }
 
-  // Compagnon (familier) : trottine juste derrière le chevalier ; les volants planent en battant des ailes.
+  // Familier : trottine aux pieds du chevalier (dessiné devant lui) ; les volants planent en battant des ailes.
   drawPet(ctx, world, companion) {
     const img = spriteCanvas(companion.sprite);
     const flying = FLYING_PETS.has(companion.id);
     const walking = world.hero.walking;
-    const x = HERO_X - 14 - img.width / 2;
+    const x = HERO_X - 6 - img.width / 2;
     if (flying) {
       const hover = 30 + Math.sin(this.time * 3) * 3;
       // Battement d'ailes : écrasement vertical rapide autour du centre du sprite.
@@ -586,12 +606,10 @@ export class SceneRenderer {
   drawCompanions(ctx, state, world, dt) {
     if (world.hero.dead) return;
     for (const [id, t] of this.allyAttack) this.allyAttack.set(id, Math.max(0, t - dt));
-    // Du plus éloigné au plus proche : 2e personnage, 1er personnage, puis le compagnon.
+    // Du plus éloigné au plus proche : 2e compagnon puis 1er (le familier est dessiné après le chevalier).
     const team = equippedCompanions(state);
     const allies = team.filter((c) => c.kind === 'ally');
     for (let i = allies.length - 1; i >= 0; i--) this.drawAlly(ctx, world, allies[i], i);
-    const pet = team.find((c) => c.kind !== 'ally');
-    if (pet) this.drawPet(ctx, world, pet);
   }
 
   drawBar(ctx, x, y, w, ratio, color) {
@@ -653,12 +671,13 @@ export class SceneRenderer {
             const k = age / 0.5;
             x = fx.x0 + 14 * k;
             y = this.groundY - 2 - Math.sin(k * Math.PI) * 26;
-          } else if (age < 1.1) {
+          } else if (age < LOOT_LIFE - 0.5) {
+            // Posé au sol (le décor défile : il suit le sol), avec un petit rebond à l'atterrissage.
             x = fx.x0 + 14;
-            y = this.groundY - 2 - Math.abs(Math.sin((age - 0.5) * 9)) * 2 * (1.1 - age);
+            y = this.groundY - 2 - Math.abs(Math.sin((age - 0.5) * 9)) * 2 * Math.max(0, 1.1 - age);
           } else {
             // Aspiré vers le chevalier.
-            const k = Math.min(1, (age - 1.1) / 0.5);
+            const k = Math.min(1, (age - (LOOT_LIFE - 0.5)) / 0.5);
             const e = k * k;
             x = fx.x0 + 14 + (HERO_X - fx.x0 - 14) * e;
             y = this.groundY - 2 - 20 * e - Math.sin(k * Math.PI) * 10;

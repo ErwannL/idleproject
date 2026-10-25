@@ -7,7 +7,7 @@ import { RARITIES } from '../data/items.js';
 import { DUNGEONS } from '../data/dungeons.js';
 import { BOSS_POWERS, POWER_RULES } from '../data/powers.js';
 import { ZONES } from '../data/zones.js';
-import { enemyStats } from './combat.js';
+import { enemyStats, zoneStartStage } from './combat.js';
 import { rarityIndex } from './loot.js';
 import { talentEffects } from './rebirth.js';
 import { grantReward } from './rewards.js';
@@ -22,18 +22,17 @@ export function powerById(id) {
 
 // Première étape où le boss apparaît (coût de relance, Codex). Boss de donjon : étape d'accès au donjon.
 export function bossFirstStage(bossId, balance = BALANCE) {
-  const per = balance.stages.stagesPerZone;
-  const zone = ZONES.findIndex((z) => z.bosses.includes(bossId));
-  if (zone >= 0) return zone * per + balance.stages.tiers.mega.stage;
+  const zone = ZONES.findIndex((z) => !z.gauntlet && z.bosses.includes(bossId));
+  if (zone >= 0) return zoneStartStage(zone, balance) - 1 + balance.stages.tiers.mega.stage;
   const tierZone = ZONES.findIndex((z) => Object.values(z.tierBosses ?? {}).includes(bossId));
-  if (tierZone >= 0) return tierZone * per + balance.stages.tiers[BOSSES[bossId].tier].stage;
+  if (tierZone >= 0) return zoneStartStage(tierZone, balance) - 1 + balance.stages.tiers[BOSSES[bossId].tier].stage;
   const dungeon = DUNGEONS.find((d) => d.boss === bossId);
   return dungeon ? dungeon.unlockStage : null;
 }
 
 // Donjon propre au boss (null pour un boss de campagne, même réutilisé dans un donjon).
 export function bossDungeon(bossId) {
-  if (ZONES.some((z) => z.bosses.includes(bossId))) return null;
+  if (ZONES.some((z) => !z.gauntlet && z.bosses.includes(bossId))) return null;
   return DUNGEONS.find((d) => d.boss === bossId) ?? null;
 }
 

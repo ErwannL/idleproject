@@ -33,6 +33,7 @@ import { missionsClaimable } from '../core/missions.js';
 import { earlyBoost } from '../core/boost.js';
 import { RUSHES } from '../data/rushes.js';
 import { rushUnlocked } from '../core/rushes.js';
+import { dungeonById } from '../core/dungeon.js';
 
 const PANELS = Object.fromEntries([upgrades, inventory, hero, companions, skills, tree, campaign, dungeons, boss, summon, contracts, inbox, options]
   .map((p) => [p.id, p]));
@@ -41,7 +42,19 @@ const TALL_MIN_HEIGHT = 420;
 const STRIP_MAX_HEIGHT = 190; // en dessous : mode barre (seulement la scène, comme une barre des tâches)
 const BULK_CONFIRM_MS = 4000;
 // Panneaux dont le contenu évolue pendant le farm : réaffichés au plus une fois par seconde.
-const LIVE_PANELS = new Set(['contracts', 'dungeons', 'skills', 'boss', 'hero']);
+const LIVE_PANELS = new Set(['contracts', 'dungeons', 'skills', 'boss', 'hero', 'upgrades']);
+
+// Renaissance : choix du seul pouvoir ancestral conservé.
+function powerChoice(state) {
+  const ids = Object.keys(state.powers);
+  if (ids.length <= 1) return '';
+  const first = state.equippedPowers[0] ?? ids[0];
+  return `<div class="keep-power"><div class="section-title">Pouvoir ancestral conservé (un seul)</div>${ids.map((id) => {
+    const p = powerById(state.powers[id].current);
+    return `<label class="toggle"><input type="radio" name="keep-power" value="${id}" ${id === first ? 'checked' : ''}>
+      <b>${BOSSES[id].name}</b> : ${p ? `${p.name} (${effectText(p.effects)})` : '—'}</label>`;
+  }).join('')}</div>`;
+}
 
 export class UI {
   constructor(root, actions) {
@@ -111,6 +124,7 @@ export class UI {
 
   openTab(tab) {
     if (!PANELS[tab]) return;
+    if (tab === 'inventory') this.clearLootPopup();
     this.tab = tab;
     this.view.bulkArmed = false;
     this.newTabs.delete(tab);
@@ -145,7 +159,8 @@ export class UI {
     const a = this.actions;
     const local = (fn) => { fn(); this.invalidate(); };
     switch (action) {
-      case 'buy': a.buy(key); break;
+      case 'buy': a.buy(key, el.dataset.amount ?? '1'); break;
+      case 'buy-amount': local(() => { v.buyAmount = value; }); break;
       case 'upgrade-cat': local(() => { v.upgradeCat = value; }); break;
       case 'inv-tab': local(() => { v.invTab = value; }); break;
       case 'craft-tier': local(() => { v.craftTier = value; }); break;
@@ -177,16 +192,28 @@ export class UI {
       case 'toggle-companion': a.toggleCompanion(value); break;
       case 'upgrade-companion': a.upgradeCompanion(value); break;
       case 'open-tab': this.openTab(value); break;
-      case 'summon': v.lastSummon = a.summon(Number(value), currency) ?? v.lastSummon; this.invalidate(); break;
+      case 'summon': v.lastSummon = a.summon(Number(value), currency, el.dataset.pool) ?? v.lastSummon; this.invalidate(); break;
+      case 'summon-pool': local(() => { v.summonPool = value; v.lastSummon = null; }); break;
       case 'talent-sel': local(() => { v.talentSel = value; }); break;
       case 'buy-talent': a.buyTalent(key); break;
       case 'rebirth': this.showRebirthConfirm(this.state); break;
-      case 'confirm-rebirth': this.closeModal(); a.rebirth(); break;
-      case 'prestige':
-        if (!v.prestigeArmed) local(() => { v.prestigeArmed = true; });
-        else { v.prestigeArmed = false; a.prestige(); }
+      case 'confirm-rebirth': {
+        const keep = this.$('modal-card').querySelector('input[name="keep-power"]:checked')?.value;
+        this.closeModal();
+        a.rebirth(keep);
         break;
+      }
       case 'buy-perk': a.buyPerk(key); break;
+      case 'ask-replace': local(() => { v.replaceFor = value || null; }); break;
+      case 'replace-companion': { const [n, o] = value.split('|'); a.replaceCompanion(n, o); break; }
+      case 'save-loadout': a.saveLoadout(Number(value)); break;
+      case 'apply-loadout': a.applyLoadout(Number(value)); break;
+      case 'claim-collection': a.claimCollection(value); break;
+      case 'boss-sel': local(() => { v.bossSel = value; }); break;
+      case 'recycle-toggle': a.setRecycleRule(el.dataset.group, value); break;
+      case 'mission-tab': local(() => { v.missionTab = value; }); break;
+      case 'lang': a.setLanguage(value); break;
+      case 'cheat': a.cheat(this.$('cheat-code')?.value); break;
       case 'rush': a.activateRush(value); break;
       case 'upgrade-rush': a.upgradeRush(key); break;
       case 'reroll': a.rerollPower(bossId); break;
@@ -199,7 +226,10 @@ export class UI {
       case 'dungeon-slot': local(() => { v.dungeonSlot = value; }); break;
       case 'dungeon-path-pre': local(() => { v.dungeonPath = value; }); break;
       case 'dungeon-path': a.setDungeonPath(value); break;
-      case 'enter-dungeon': a.enterDungeon(value, v.dungeonSlot, v.dungeonPath); break;
+      case 'enter-dungeon': a.enterDungeon(value, v.dungeonSlot, v.dungeonPath, v.dungeonDiff ?? 'easy'); break;
+      case 'dungeon-sel': local(() => { v.dungeonSel = value; v.dungeonDiff = null; }); break;
+      case 'dungeon-diff': local(() => { v.dungeonDiff = value; }); break;
+      case 'dungeon-filter': local(() => { v.dungeonFilter = value; }); break;
       case 'abandon-dungeon': a.abandonDungeon(); break;
       case 'claim-contract': a.claimContract(Number(value)); break;
       case 'claim-mission': { const [period, id] = value.split('|'); a.claimMission(period, id); break; }
@@ -232,7 +262,10 @@ export class UI {
     if (action === 'rush-auto') this.actions.setRushAuto(el.checked);
     if (action === 'volume') this.sound?.setVolume(el.dataset.kind, Number(el.value) / 100);
     if (action === 'mute') this.sound?.setMuted(el.checked);
+    if (action === 'notify') this.actions.setNotify(el.dataset.key, el.checked);
+    if (action === 'focus') this.actions.setFocus(el.checked);
     if (action === 'auto-recycle') this.actions.setAutoRecycle(el.value);
+    if (action === 'recycle-mode') this.actions.setRecycleRule('mode', el.value);
     if (action === 'bulk-rarity') {
       this.view.bulkRarity = el.value;
       this.view.bulkArmed = false;
@@ -269,13 +302,21 @@ export class UI {
             ? `Sac plein : ${event.item.name} recyclé (+${formatNumber(event.recycledGold)} or)`
             : `Butin : ${event.item.name} (${rarity.label})`, event.byRule ? '#8e9db8' : rarity.color);
         if (this.tab === 'inventory' || this.tab === 'hero') this.invalidate();
+        if (!event.byRule && !event.autoRecycled) this.addLootPopup(event.item);
         break;
       }
+      case 'bossSummon':
+        this.banner(`${BOSSES[event.master].name} invoque ${BOSSES[event.kind].name} !`, 'boss tier-hard');
+        break;
+      case 'bossEnrage':
+        this.banner(`${BOSSES[event.kind].name} enrage !`, 'boss tier-mega');
+        break;
       case 'bossLoot':
         this.news(`Butin du boss : +${event.essence} essences`, '#e27bff');
         break;
       case 'bossSpawn':
       {
+        if (state.ui.notify?.boss === false) break;
         const tier = BOSSES[event.kind].tier ?? 'mega';
         const label = { mini: 'Mini-boss', mid: 'Boss', hard: 'Boss redoutable', mega: 'MÉGA BOSS' }[tier];
         this.banner(`${label} — ${BOSSES[event.kind].name}`, `boss tier-${tier}`);
@@ -319,11 +360,13 @@ export class UI {
           chest: ['Coffre découvert : il vous attend dans les récompenses', '#f2d083'],
           merchant: ['Un marchand ambulant propose un objet (récompenses)', '#f2d083'],
           gems: ['Gemmes trouvées (récompenses)', '#6fd6ff'],
+          portal: ['Un portail vers une salle au trésor ! (récompenses)', '#c9a6ff'],
+          wanderer: ['Un boss errant a été vaincu ! (récompenses)', '#ff6b7d'],
           wave: ['Vague spéciale : or ×2 pendant 15 ennemis', '#f2d083'],
           elite: ['Une élite errante approche !', '#ff9a3d'],
         };
         const [text, color] = texts[event.eventType] ?? [eventLabel(event.eventType), null];
-        this.news(text, color);
+        if (state.ui.notify?.events !== false && !state.ui.focus) this.news(text, color);
         if (this.tab === 'inbox') this.invalidate();
         break;
       }
@@ -358,6 +401,24 @@ export class UI {
       default:
         break;
     }
+  }
+
+  // Pop-up « N nouveaux objets » : reste affichée jusqu'à l'ouverture de l'inventaire (clic dessus).
+  addLootPopup(item) {
+    if (this.tab === 'inventory' || this.state?.ui?.notify?.loot === false) return;
+    this.loot = this.loot ?? { count: 0, best: 'common' };
+    this.loot.count += 1;
+    if (rarityById(item.rarity).weight < rarityById(this.loot.best).weight) this.loot.best = item.rarity;
+    const el = this.$('loot-pop');
+    el.className = `r-${this.loot.best}`;
+    el.innerHTML = `${img('icon_bag')}<span><b>+${this.loot.count}</b> nouvel${this.loot.count > 1 ? 's objets' : ' objet'} dans l'inventaire</span>`;
+    void el.offsetWidth;
+    el.classList.add('bump');
+  }
+
+  clearLootPopup() {
+    this.loot = null;
+    this.$('loot-pop').className = 'hidden';
   }
 
   news(text, color = null) {
@@ -399,8 +460,11 @@ export class UI {
     const xpRatio = state.xp / xpForLevel(state.level);
     if (Math.abs(xpRatio - (this.lastHud.xp ?? -1)) > 0.002) {
       this.$('xp-fill').style.width = `${Math.min(100, xpRatio * 100)}%`;
+      this.$('top-xp').style.width = `${Math.min(100, xpRatio * 100)}%`;
       this.lastHud.xp = xpRatio;
     }
+    this.setText('top-level', `Niv. ${state.level}`);
+    this.setText('top-stage', state.dungeon ? `Donjon · ${dungeonById(state.dungeon.id)?.name ?? ''}` : `Étape ${stageLabel(state.stage)} · ${zoneForStage(state.stage).name}`);
     this.setText('auto-toggle', state.autoAdvance ? '⏵ Avance auto' : '⏸ Farm');
     this.$('auto-toggle').classList.toggle('off', !state.autoAdvance);
     this.$('auto-toggle').classList.toggle('hidden', Boolean(state.dungeon));
@@ -429,6 +493,8 @@ export class UI {
     switch (this.tab) {
       case 'contracts': return state.contracts.map((c) => `${c.id}:${c.progress}`).join() + JSON.stringify(state.missions);
       case 'dungeons': return JSON.stringify(state.dungeon);
+      // Achat « Max » : le nombre de niveaux abordables change avec l'or.
+      case 'upgrades': return this.view.buyAmount === 'max' ? String(Math.floor(Math.log10(state.gold + 1) * 8)) : '';
       case 'skills': return `${state.level}|${Math.floor(state.xp)}`;
       case 'boss': return Object.values(state.powers).map((p) => `${p.victories}${p.charges}${p.pending}`).join();
       case 'hero': return `${state.level}|${Math.floor(state.xp / 5)}`;
@@ -507,7 +573,7 @@ export class UI {
     if (bar.dataset.key !== key) {
       bar.dataset.key = key;
       bar.innerHTML = unlocked.map((r) => `<button class="rush-btn" data-action="rush" data-value="${r.id}" style="--rush:${r.color}"
-        title="${r.name} — ${r.text}">${img(r.icon)}<span class="rush-time"></span></button>`).join('');
+        title="${r.name} — ${r.text}. Cliquer pour activer.">${img(r.icon)}<span class="rush-time"></span></button>`).join('');
     }
     for (const btn of bar.children) {
       const rush = RUSHES.find((r) => r.id === btn.dataset.value);
@@ -530,7 +596,7 @@ export class UI {
     this.$('contracts-badge').classList.toggle('hidden', !state.contracts.some((c) => c.progress >= c.target) && !missionsClaimable(state));
     this.$('inbox-badge').classList.toggle('hidden', !state.inbox.some((e) => !e.seen) || this.tab === 'inbox');
     const boost = earlyBoost(state);
-    const active = boost.secondsLeft > 0 || boost.weekend;
+    const active = boost.secondsLeft > 0 || boost.weekend || boost.cheat > 1;
     this.$('boost-chip').classList.toggle('hidden', !active);
     if (active) {
       const dur = (sec) => {
@@ -541,10 +607,14 @@ export class UI {
       const parts = [`×${boost.gold.toFixed(1).replace('.', ',')}`];
       if (boost.secondsLeft > 0) parts.push(dur(boost.secondsLeft));
       if (boost.weekend) parts.push('Week-end');
+      if (boost.cheat > 1) parts.push(`Code ${dur(boost.cheatSecondsLeft)}`);
       this.$('boost').textContent = parts.join(' · ');
+      const early = boost.gold / (boost.weekend ? 2 : 1) / (boost.cheat ?? 1);
       this.$('boost-chip').title = [
-        boost.secondsLeft > 0 ? `Démarrage rapide : encore ${dur(boost.secondsLeft)} de jeu.` : '',
-        boost.weekend ? `Week-end ×2 (or, XP, butin, événements) : encore ${dur(boost.weekendSecondsLeft)}.` : '',
+        `Bonus total ×${boost.gold.toFixed(1).replace('.', ',')} sur l'or et l'XP =`,
+        boost.secondsLeft > 0 ? `démarrage rapide ×${early.toFixed(1).replace('.', ',')} (×3 au début, diminue jusqu'à ×1 au bout de 5 h de jeu ; encore ${dur(boost.secondsLeft)})` : '',
+        boost.weekend ? `× week-end ×2 (samedi et dimanche ; encore ${dur(boost.weekendSecondsLeft)})` : '',
+        boost.cheat > 1 ? `× code ×${boost.cheat} (encore ${dur(boost.cheatSecondsLeft)})` : '',
       ].filter(Boolean).join(' ');
     }
   }
@@ -553,9 +623,10 @@ export class UI {
   updateTabs(state) {
     const visible = {
       companions: Object.keys(state.companions.owned).length > 0 || state.records.bossesDefeated > 0,
-      tree: canRebirth(state) || state.fragments > 0 || state.records.rebirths > 0,
-      dungeons: state.maxStage >= DUNGEONS[0].unlockStage - 2 || Object.keys(state.dungeonsCleared).length > 0,
-      boss: Object.keys(state.powers).length > 0,
+      // v7.7 : déblocages plus tôt et plus prévisibles (identiques d'une partie à l'autre).
+      tree: state.maxStage >= 10 || state.fragments > 0 || state.records.rebirths > 0 || (state.prestige?.count ?? 0) > 0,
+      dungeons: state.maxStage >= DUNGEONS[0].unlockStage - 10 || Object.keys(state.dungeonsCleared).length > 0,
+      boss: state.records.bossesDefeated > 0 || Object.keys(state.powers).length > 0,
     };
     const key = `${JSON.stringify(visible)}|${this.root.clientWidth}|${this.tab}|${[...this.newTabs].join()}`;
     if (this.lastHud.tabs === key) return;
@@ -614,7 +685,8 @@ export class UI {
     this.$('modal-card').innerHTML = `<h2>Renaissance</h2>
       <p>Vous gagnerez <b class="gold-text">+${rebirthReward(state)} fragments anciens</b> à investir dans l'arbre de talents.</p>
       ${keepResetLists()}
-      <p class="muted">Aucun déblocage permanent n'est perdu.</p>
+      ${powerChoice(state)}
+      <p class="muted">Les boss s'adapteront : plus durs, mais leurs récompenses augmentent à chaque Renaissance.</p>
       <div class="detail-actions">
         <button class="btn" data-action="close-modal">Annuler</button>
         <button class="btn btn-gold" data-action="confirm-rebirth">Confirmer la Renaissance</button>
@@ -630,7 +702,11 @@ export class UI {
         <p>L'heure de l'ordinateur est antérieure à la dernière sauvegarde. Aucun gain hors ligne n'a été appliqué.</p>
         <button class="btn btn-primary" data-action="close-modal">Continuer</button>`;
     } else {
-      const items = summary.items.map((i) => itemFrame(i, { tag: 'div' })).join('');
+      // Rapport de retour : les objets Épiques et Légendaires sont mis en avant.
+      const rare = summary.items.filter((i) => i.rarity === 'epic' || i.rarity === 'legendary');
+      const items = summary.items.filter((i) => !rare.includes(i)).map((i) => itemFrame(i, { tag: 'div' })).join('');
+      const rareItems = rare.map((i) => itemFrame(i, { tag: 'div' })).join('');
+      const mats = summary.materials ?? {};
       const recycled = summary.excessDrops + summary.autoRecycledCount;
       card.innerHTML = `<h2>Bon retour, chevalier !</h2>
         <p>Absence : <b>${formatDuration(summary.elapsedSeconds)}</b>${summary.capped ? ` <span class="muted">(gains limités à ${BALANCE.offline.capHours} h)</span>` : ''}</p>
@@ -638,8 +714,12 @@ export class UI {
         <p>Expérience : <b>+${formatNumber(summary.xp)}</b>${summary.levelsGained ? ` · <b class="good">+${summary.levelsGained} niveau${summary.levelsGained > 1 ? 'x' : ''}</b>` : ''}</p>
         <p>Ennemis vaincus : ~${formatNumber(summary.kills)} · Objets : ${summary.items.length - summary.autoRecycledCount}
           ${recycled ? `<span class="muted">(+${recycled} convertis en or)</span>` : ''}</p>
+        ${rareItems ? `<div class="offline-rare"><b class="gold-text">★ Objets rares obtenus</b><div class="loot-row">${rareItems}</div></div>` : ''}
         ${items ? `<div class="loot-row">${items}</div>` : ''}
-        <p class="muted">Hors ligne, le chevalier farme l'étape ${stageLabel(summary.stage)} à ${BALANCE.offline.farmMultiplier * 100} % de son rythme actif, sans avancer. Les contrats progressent aussi.</p>
+        ${mats.shards || mats.essence ? `<p>Matériaux : ${mats.shards ? `+${formatNumber(mats.shards)} éclats` : ''}${mats.shards && mats.essence ? ' · ' : ''}${mats.essence ? `+${formatNumber(mats.essence)} essences` : ''}</p>` : ''}
+        <p>Contrats et missions : <b>+${formatNumber(summary.kills)}</b> monstres comptés.</p>
+        <p class="muted">Hors ligne, le chevalier farme l'étape ${stageLabel(summary.stage)} à ${BALANCE.offline.farmMultiplier * 100} % de son rythme actif, sans avancer
+          et sans affronter de boss (ils se battent en jeu).</p>
         <button class="btn btn-primary" data-action="close-modal">Continuer</button>`;
     }
     this.$('modal').classList.remove('hidden');
