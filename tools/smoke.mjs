@@ -289,6 +289,19 @@ await check('contrats et récompenses : réclamer un contrat et un coffre', asyn
   assert(gained === 7 && after.gems >= gems, `gemmes +${gained}`);
 });
 
+await check('paramètres : version lancée et mise à jour détectée (GitHub simulé)', async () => {
+  await page.route('https://api.github.com/**', (route) => route.fulfill({ status: 200, contentType: 'application/json',
+    headers: { 'access-control-allow-origin': '*' },
+    body: JSON.stringify({ tag_name: 'v99.0.0', html_url: 'https://github.com/ErwannL/idleproject/releases/tag/v99.0.0', body: 'Notes', assets: [] }) }));
+  await page.click('[data-open="options"]');
+  await page.waitForTimeout(300);
+  const version = await page.textContent('#panel-body');
+  assert(/Version lancée/.test(version), 'version absente');
+  await page.click('[data-action="check-update"]');
+  await page.waitForFunction(() => /Nouvelle version 99\.0\.0/.test(document.querySelector('#panel-body').textContent), null, { timeout: 5000 });
+  await page.unroute('https://api.github.com/**');
+});
+
 await check('forge : fabriquer un objet avec des éclats', async () => {
   await game(() => { __idle.state.materials.shards += 500; __idle.state.gold += 1e6; });
   await page.click('#tabs button[data-tab="inventory"]');

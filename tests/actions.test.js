@@ -12,3 +12,11 @@ test('toutes les actions de l’interface sont définies', () => {
   const missing = [...used].filter((name) => !defined.has(name));
   assert.deepEqual(missing, []);
 });
+
+test('main.js n’écrase aucune méthode de l’interface (ui.xxx = …)', () => {
+  const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
+  const uiSrc = readFileSync(new URL('../src/ui/ui.js', import.meta.url), 'utf8');
+  const methods = new Set([...uiSrc.matchAll(/^ {2}(?:async )?(\w+)\(/gm)].map((m) => m[1]));
+  const assigned = [...main.matchAll(/\bui\.(\w+)\s*=[^=]/g)].map((m) => m[1]);
+  for (const name of assigned) assert.ok(!methods.has(name), `ui.${name} est une méthode de UI`);
+});

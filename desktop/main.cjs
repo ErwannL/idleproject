@@ -121,7 +121,7 @@ function createWindow() {
     if (!url.startsWith(ORIGIN)) event.preventDefault();
   });
 
-  ipcMain.handle('desktop:getInfo', () => ({ alwaysOnTop: win.isAlwaysOnTop(), version: app.getVersion() }));
+  ipcMain.handle('desktop:getInfo', () => ({ alwaysOnTop: win.isAlwaysOnTop(), version: app.getVersion(), smoke: Boolean(smokeFile) }));
   ipcMain.handle('desktop:setAlwaysOnTop', (_event, value) => {
     win.setAlwaysOnTop(Boolean(value));
     settings.alwaysOnTop = win.isAlwaysOnTop();

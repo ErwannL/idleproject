@@ -1,10 +1,10 @@
-## Idle RPG v7.8.0 — mises à jour en jeu, vitesse des combats, menus pixel art
+## Idle RPG v7.9.0 — mises à jour en jeu, vitesse des combats, menus pixel art
 
-**Installation ou mise à jour :** téléchargez **IdleRPG-7.8.0-setup.exe** et lancez-le (jeu fermé).
+**Installation ou mise à jour :** téléchargez **IdleRPG-7.9.0-setup.exe** et lancez-le (jeu fermé).
 L'installation se fait en un clic et remplace l'ancienne version ; **votre partie est conservée**.
-À partir de la v7.8, les mises à jour suivantes s'installent **directement depuis le jeu** (Paramètres).
+À partir de la v7.9, les mises à jour suivantes s'installent **directement depuis le jeu** (Paramètres).
 
-### Nouveau dans la v7.8
+### Nouveau dans la v7.9 (contient la v7.8, jamais publiée)
 - **Version et mises à jour** (Paramètres) : affiche la version lancée, vérifie la dernière version publiée sur
   GitHub (aussi au lancement) et, dans la version bureau, **télécharge et installe la mise à jour en un clic**
   (sauvegarde puis redémarrage automatique). Notes de version consultables avant d'installer.
@@ -20,6 +20,7 @@ L'installation se fait en un clic et remplace l'ancienne version ; **votre parti
   difficulté précédente, chaque donjon séparément), ✔ sur les difficultés réussies.
 
 ### Corrigés
+- **Version bureau : plantage au démarrage** de la v7.8 (« ui.update is not a function ») corrigé avant publication.
 - **Codes de triche** qui ne faisaient plus rien (ainsi que l'activation/amélioration manuelle des boosts).
 - **Victoires de donjon d'avant la v7.7** : elles débloquent maintenant la difficulté Normal.
 - **Recyclage en masse** : toutes les raretés sont proposées (+ Épiques, + Légendaires) ; objets verrouillés,

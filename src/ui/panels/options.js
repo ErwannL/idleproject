@@ -40,7 +40,7 @@ function windowOptions(ui) {
 // Version lancée + dernière version publiée sur GitHub (github.com/ErwannL/idleproject).
 function versionOptions(ui) {
   const current = ui.desktop?.version ?? GAME_VERSION;
-  const u = ui.update ?? {};
+  const u = ui.updateInfo ?? {};
   const rel = u.release;
   let status = '<span class="muted">Pas encore vérifié.</span>';
   if (u.busy) status = '<span class="muted">Vérification…</span>';

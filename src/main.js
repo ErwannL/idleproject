@@ -351,7 +351,7 @@ const actions = {
   },
   // Mises à jour : la dernière release GitHub est comparée à la version lancée.
   async checkUpdate(quiet = false) {
-    ui.update = { ...ui.update, busy: true };
+    ui.updateInfo = { ...ui.updateInfo, busy: true };
     ui.invalidate();
     let release = null;
     try {
@@ -359,28 +359,28 @@ const actions = {
       if (res.ok) release = parseRelease(await res.json());
     } catch { /* hors ligne */ }
     const current = ui.desktop?.version ?? GAME_VERSION;
-    ui.update = { busy: false, release, status: updateStatus(current, release), checkedAt: Date.now() };
-    if (ui.update.status === 'available') ui.toast(`Mise à jour ${release.version} disponible (Paramètres)`, '#7fe0ff');
-    else if (!quiet) ui.toast(ui.update.status === 'uptodate' ? 'Le jeu est à jour.' : 'Impossible de joindre GitHub.', ui.update.status === 'uptodate' ? '#8ef0a0' : '#ff8a8a');
+    ui.updateInfo = { busy: false, release, status: updateStatus(current, release), checkedAt: Date.now() };
+    if (ui.updateInfo.status === 'available') ui.toast(`Mise à jour ${release.version} disponible (Paramètres)`, '#7fe0ff');
+    else if (!quiet) ui.toast(ui.updateInfo.status === 'uptodate' ? 'Le jeu est à jour.' : 'Impossible de joindre GitHub.', ui.updateInfo.status === 'uptodate' ? '#8ef0a0' : '#ff8a8a');
     ui.invalidate();
   },
   async installUpdate() {
     if (!window.desktop?.installUpdate) {
-      window.open(ui.update?.release?.url ?? RELEASES_PAGE, '_blank', 'noopener');
+      window.open(ui.updateInfo?.release?.url ?? RELEASES_PAGE, '_blank', 'noopener');
       return;
     }
     save();
-    ui.update = { ...ui.update, installing: true, error: null };
+    ui.updateInfo = { ...ui.updateInfo, installing: true, error: null };
     ui.invalidate();
     const result = await window.desktop.installUpdate();
-    ui.update = { ...ui.update, installing: result.ok, error: result.ok ? null : result.error };
+    ui.updateInfo = { ...ui.updateInfo, installing: result.ok, error: result.ok ? null : result.error };
     if (result.ok) ui.toast(`Installation de la ${result.version}… le jeu va redémarrer.`, '#7fe0ff');
     else ui.toast(`Mise à jour impossible : ${result.error}`, '#ff8a8a');
     ui.invalidate();
   },
   openReleases() {
     if (window.desktop?.openReleases) window.desktop.openReleases();
-    else window.open(ui.update?.release?.url ?? RELEASES_PAGE, '_blank', 'noopener');
+    else window.open(ui.updateInfo?.release?.url ?? RELEASES_PAGE, '_blank', 'noopener');
   },
   setWindowSize(preset) {
     window.desktop?.setSizePreset(preset);
@@ -423,8 +423,9 @@ if (window.desktop) {
     ui.invalidate();
   });
 }
-// Vérification discrète des mises à jour au lancement (pas pendant les tests automatisés).
-if (!navigator.webdriver) setTimeout(() => actions.checkUpdate(true), 4000);
+// Vérification discrète des mises à jour au lancement.
+// (désactivée pendant les tests automatisés : pas d'appel réseau réel, voir tools/smoke.mjs).
+setTimeout(() => { if (!navigator.webdriver && !ui.desktop?.smoke) actions.checkUpdate(true); }, 4000);
 
 // Gains hors ligne depuis la dernière sauvegarde.
 if (loaded.source !== 'new') runOffline(state.lastSaved, Date.now());
