@@ -6,6 +6,7 @@ import { COMPANIONS } from '../data/companions.js';
 import { HEROES } from '../data/heroes.js';
 import { RARITIES } from '../data/items.js';
 import { rarityIndex } from './loot.js';
+import { trackMissions } from './missions.js';
 
 export function summonPool() {
   return [
@@ -48,6 +49,7 @@ export function summon(state, rng, count = 1, currency = 'gems', balance = BALAN
   const cost = summonCost(count, currency, balance);
   if (state[currency] < cost) return null;
   state[currency] -= cost;
+  trackMissions(state, 'summons', count);
   const { pity, maxStars, duplicateRefundGems } = balance.summon;
   const results = [];
   for (let i = 0; i < count; i++) {

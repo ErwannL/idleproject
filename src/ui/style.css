@@ -863,19 +863,7 @@ body { background: radial-gradient(ellipse at 50% 0%, #16203a, var(--bg-0) 70%);
 /* Bouton « Max » des compétences : le texte tient dans la case. */
 .btn.plus { width: auto; min-width: 40px; padding: 0 6px; }
 .btn.plus.maxed { font-size: 12px; }
-/* Arbre de talents dessiné (flèches SVG entre les nœuds). */
 .tree-card { padding: 6px 4px; }
-.talent-tree { position: relative; width: 100%; }
-.talent-tree svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-.talent-tree .tree-branch { position: absolute; top: 2%; transform: translateX(-50%); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; text-shadow: 0 1px 0 #000; }
-.talent-tree .tree-node {
-  position: absolute; width: 7.6%; height: auto; aspect-ratio: 1; transform: translate(-50%, -50%) rotate(45deg);
-  min-width: 28px; border-radius: 22%;
-}
-.talent-tree .tree-node img { width: 62%; height: 62%; }
-.talent-tree .tree-node .node-level { bottom: -15px; right: -12px; font-size: 9.5px; color: var(--cream); text-shadow: 0 1px 0 #000; }
-.talent-tree .tree-node.locked { opacity: 0.5; }
-.talent-tree .tree-node.maxed { box-shadow: inset 0 0 0 2px var(--branch), 0 0 12px -1px var(--branch); background: radial-gradient(circle, color-mix(in srgb, var(--branch) 35%, #1c2744), #121a30); }
 /* Portraits animés des menus. */
 canvas.anim { display: block; image-rendering: pixelated; }
 .pedestal canvas.anim { width: 192px; height: 174px; margin: 0 auto; }
@@ -889,15 +877,6 @@ canvas.anim { display: block; image-rendering: pixelated; }
 /* v7.2 : sans onglet ouvert, le jeu prend toute la hauteur de la fenêtre. */
 .layout-tall:not(.panel-open) #main-col { flex: 1; }
 .layout-tall:not(.panel-open) #play { height: auto; flex: 1; }
-/* v7.3 : arbre de talents — largeur plafonnée, icônes non déformées, niveaux sous les nœuds. */
-.talent-tree { max-width: 620px; margin: 0 auto; }
-.talent-tree .tree-node img { width: 64%; height: 64%; object-fit: contain; }
-.talent-tree .node-lv {
-  position: absolute; transform: translate(-50%, -50%); padding: 0 4px; border-radius: 4px;
-  background: rgba(7, 10, 19, 0.85); font-size: 10px; font-weight: 800; color: var(--cream); line-height: 13px;
-  pointer-events: none; white-space: nowrap;
-}
-.talent-tree .node-lv.max { color: var(--gold-text); }
 
 /* --- v7.4 --- */
 /* La scène ne pilote jamais la taille de la mise en page (évitait une scène plus haute que la fenêtre). */
@@ -945,10 +924,80 @@ canvas.anim { display: block; image-rendering: pixelated; }
 .layout-strip #scene-bottom { left: 4px; right: 4px; bottom: 2px; font-size: 10px; gap: 4px; }
 .layout-strip #xp-bar { height: 8px; }
 .layout-strip #hp-chip, .layout-strip #dps-chip img { display: none; }
-/* v7.4 : arbre en étoile autour du Cœur du chevalier. */
-.talent-tree { max-width: 560px; }
-.talent-tree .tree-node { width: 6.8%; min-width: 26px; }
-.talent-tree .tree-node.core { width: 8.4%; box-shadow: inset 0 0 0 2px #ffe08a, 0 0 14px -2px #ffd23f; }
-.talent-tree .tree-branch { top: auto; transform: translate(-50%, -50%); font-size: 10.5px; }
-/* L'arbre tient dans la hauteur disponible (sans descendre sous une taille lisible). */
-.talent-tree { max-width: max(280px, min(560px, calc((62vh - 120px) * 1.11))); }
+
+/* --- v7.5 : améliorations, fusion, accessoires --- */
+.inv { grid-template-columns: 104px minmax(0, 1fr) minmax(0, 1fr); }
+.inv-slots { flex-direction: row; gap: 4px; align-items: flex-start; }
+.inv-slots .slot-col { display: flex; flex-direction: column; gap: 4px; }
+.inv-slots .item-frame { width: 48px; height: 48px; }
+.inv-slots .acc .item-frame { width: 48px; height: 40px; }
+.inv-slots .acc .item-frame img { width: 30px; height: 30px; }
+.item-frame .plus-lv { position: absolute; top: -2px; left: 1px; font-size: 9px; font-weight: 900; color: #7fe08f; text-shadow: 0 1px 0 #000, 0 0 2px #000; }
+.item-name .plus-lv { color: #7fe08f; font-size: 12px; }
+.upgrade-row { display: flex; align-items: center; gap: 6px; }
+.upgrade-row .btn { flex: 1; }
+.fusion-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 4px 0; border-top: 1px solid var(--line); font-size: 11.5px; }
+.fusion-row img { width: 16px; height: 16px; vertical-align: -3px; }
+@container (max-width: 340px) { .inv { grid-template-columns: 104px 1fr; } }
+.inv-rule { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+.inv-rule select { flex: 1; min-width: 0; }
+
+/* Arbre de talents en grille (v7.5) : fond de pierre sombre, cases carrées, traits fins. */
+.rune-card {
+  background-color: #23252b;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.025) 0 18%, transparent 19%),
+    radial-gradient(circle at 70% 65%, rgba(255, 255, 255, 0.02) 0 22%, transparent 23%),
+    repeating-linear-gradient(35deg, rgba(0, 0, 0, 0.18) 0 2px, transparent 2px 46px),
+    repeating-linear-gradient(-55deg, rgba(0, 0, 0, 0.14) 0 2px, transparent 2px 58px);
+  border-color: #0c0d10;
+  box-shadow: inset 0 0 0 1px #4a4d55, inset 0 0 24px rgba(0, 0, 0, 0.6);
+}
+.rune-tree { position: relative; width: 100%; max-width: max(280px, min(460px, calc((62vh - 120px) * 1))); margin: 0 auto; }
+.rune-tree svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.rune-tree line { stroke: #8e939e; stroke-width: 3; opacity: 0.55; }
+.rune-tree line.on { stroke: #e9ecf2; opacity: 0.9; }
+.rune-tree .tile {
+  position: absolute; width: 10.5%; aspect-ratio: 1; min-width: 26px; transform: translate(-50%, -50%);
+  padding: 0; display: flex; align-items: center; justify-content: center; cursor: pointer;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--branch) 22%, #3a3426), color-mix(in srgb, var(--branch) 12%, #1d1a14));
+  border: 3px solid #a86b2a; border-radius: 3px;
+  box-shadow: 0 0 0 1px #0c0d10, inset 0 0 0 1px rgba(0, 0, 0, 0.6), inset 0 2px 0 rgba(255, 255, 255, 0.15);
+}
+.rune-tree .tile img { width: 72%; height: 72%; }
+.rune-tree .tile .lv {
+  position: absolute; right: -3px; bottom: -6px; padding: 0 2px; font-size: 8.5px; font-weight: 900; line-height: 10px;
+  background: #0c0d10; border-radius: 2px; color: #e9ecf2;
+}
+.rune-tree .tile.open { border-color: #c98a35; }
+.rune-tree .tile.owned { border-color: #f0c040; box-shadow: 0 0 0 1px #0c0d10, 0 0 8px -2px #f0c040; }
+.rune-tree .tile.maxed { border-color: #5ad46a; box-shadow: 0 0 0 1px #0c0d10, 0 0 9px -2px #5ad46a; }
+.rune-tree .tile.locked { border-color: #4a3a2a; background: #1c1d22; }
+.rune-tree .tile.locked img { filter: grayscale(1) brightness(0.45); }
+.rune-tree .tile.core { width: 12.5%; border-color: #ffe08a; }
+.rune-tree .tile.selected { outline: 2px solid #fff; outline-offset: 2px; }
+.tree-legend { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; font-size: 10.5px; font-weight: 800; margin-top: 4px; }
+
+/* Héros alliés : étiquette de rareté R / SR / SSR. */
+.grade { position: absolute; top: -3px; left: -3px; padding: 0 3px; border-radius: 3px; font-size: 8.5px; font-weight: 900; line-height: 11px; color: #fff; text-shadow: 0 1px 0 #000; }
+.grade.g-rare { background: #2f6fd8; }
+.grade.g-epic { background: #8a3fd0; }
+.grade.g-legendary { background: linear-gradient(#ffcf4a, #d88a1a); color: #3a2205; text-shadow: none; }
+.pet-thumb canvas.anim[data-anim^="foe:"] { width: 44px; height: 44px; }
+.pet-portrait canvas.anim[data-anim^="foe:"] { width: 52px; height: 52px; }
+
+/* --- v7.5 : missions & connexion --- */
+.mission-card { display: flex; flex-direction: column; gap: 6px; }
+.mission { display: flex; flex-direction: column; gap: 3px; padding: 4px 0; border-top: 1px solid rgba(255,255,255,0.06); }
+.mission.claimed { opacity: 0.55; }
+.mission-line { display: flex; align-items: center; gap: 6px; }
+.mission-line > :first-child { flex: 1; }
+.mission-bonus { padding-top: 6px; border-top: 1px dashed rgba(242,208,131,0.35); gap: 6px; }
+.login-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.login-day { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 2px; font-size: 10px; text-align: center;
+  background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 4px; }
+.login-day.got { opacity: 0.45; }
+.login-day.today { border-color: #f2d083; box-shadow: 0 0 6px rgba(242,208,131,0.5); }
+.dungeon-ally { padding: 4px 6px; border-left: 2px solid #f2d083; background: rgba(242,208,131,0.07); font-size: 12px; }
+.chip-boost { color: #ffe08a; border-color: rgba(255,224,138,0.5); animation: boost-glow 2.4s ease-in-out infinite; }
+@keyframes boost-glow { 50% { box-shadow: 0 0 8px rgba(255,224,138,0.55); } }

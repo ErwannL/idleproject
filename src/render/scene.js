@@ -5,7 +5,7 @@ import { BOSSES, ENEMIES } from '../data/enemies.js';
 import { RARITIES } from '../data/items.js';
 import { ZONES } from '../data/zones.js';
 import { currentEncounter } from '../core/combat.js';
-import { equippedCompanions } from '../core/companions.js';
+import { companionById, equippedCompanions } from '../core/companions.js';
 import { formatNumber } from '../core/format.js';
 import { activeHero } from '../core/heroes.js';
 import { BG } from './bg.js';
@@ -79,6 +79,7 @@ export class SceneRenderer {
     this.effects = [];
     this.enemyFx = new Map();
     this.hero = { attack: 0, hurt: 0, victory: 0, respawn: 0, deathTime: 0, cast: 0 };
+    this.allyAttack = new Map();
     this.shake = 0;
     this.zoneFade = 0;
     this.lastZone = -1;
@@ -139,9 +140,23 @@ export class SceneRenderer {
       case 'skill':
         this.skillEffect(event);
         break;
-      case 'companionSkill':
-        this.effects.push({ kind: 'ring', x: heroX - 28, y: this.groundY - 14, color: '#9cf08a', life: 0.5, max: 0.5, r: 10 });
+      case 'companionSkill': {
+        const companion = companionById(event.companionId);
+        if (companion?.kind === 'ally') {
+          // Héros allié : pose d'attaque, puis effet de sa couleur sur l'ennemi de tête.
+          this.allyAttack.set(companion.id, 0.35);
+          const front = world.enemies[0];
+          const x = front ? front.x * WORLD_SCALE : heroX + 40;
+          if (['hit', 'burst'].includes(companion.skill?.type)) {
+            this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], x - 6, this.groundY + 1, 0.2, { delay: 0.08, tint: companion.fx });
+          } else {
+            this.sprite(['fx_spark'], heroX, this.groundY - 40, 0.5, { tint: companion.fx });
+          }
+        } else {
+          this.effects.push({ kind: 'ring', x: heroX - 28, y: this.groundY - 14, color: '#9cf08a', life: 0.5, max: 0.5, r: 10 });
+        }
         break;
+      }
       case 'levelUp':
         this.effects.push({ kind: 'beam', x: heroX, color: '#ffd23f', life: 1, max: 1, wide: true });
         this.burst(heroX, this.groundY - 28, '#ffd23f', 14, 46);
@@ -282,7 +297,7 @@ export class SceneRenderer {
     }
     this.drawBackground(ctx, ZONES[zoneIndex], this.smoothScroll(world));
     this.drawEnemies(ctx, world, dt);
-    this.drawCompanions(ctx, state, world);
+    this.drawCompanions(ctx, state, world, dt);
     this.drawHero(ctx, state, world);
     this.drawBackground(ctx, ZONES[zoneIndex], this.smoothScroll(world), true); // premier plan
     this.drawEffects(ctx, dt);
@@ -479,9 +494,29 @@ export class SceneRenderer {
   }
 
   // Compagnons : suivent le chevalier, les volants planent au-dessus de son épaule.
-  drawCompanions(ctx, state, world) {
+  // Héros allié : à taille humaine derrière le chevalier ; marche, respiration, pose d'attaque.
+  drawAlly(ctx, world, companion, i) {
+    const attacking = (this.allyAttack.get(companion.id) ?? 0) > 0;
+    const frame = attacking ? `${companion.sprite}_atk`
+      : world.hero.walking || Math.floor(this.time * 2 + i) % 2 ? `${companion.sprite}_b` : companion.sprite;
+    const img = spriteCanvas(frame);
+    // Le 2e allié se tient un peu en retrait (plus loin et légèrement plus haut).
+    const x = HERO_X - 26 - i * 24 - img.width / 2 + (attacking ? 4 : 0);
+    const y = this.groundY - img.height + 1 - i * 2;
+    this.drawShadow(ctx, x + img.width / 2, 18);
+    ctx.drawImage(img, this.snap(x), y);
+  }
+
+  drawCompanions(ctx, state, world, dt) {
     if (world.hero.dead) return;
-    equippedCompanions(state).forEach((companion, i) => {
+    for (const [id, t] of this.allyAttack) this.allyAttack.set(id, Math.max(0, t - dt));
+    // Du plus éloigné au plus proche : le 1er allié passe devant le 2e.
+    const team = equippedCompanions(state).map((companion, i) => [companion, i]).reverse();
+    team.forEach(([companion, i]) => {
+      if (companion.kind === 'ally') {
+        this.drawAlly(ctx, world, companion, i);
+        return;
+      }
       const img = spriteCanvas(companion.sprite);
       const flying = FLYING_PETS.has(companion.id);
       const x = HERO_X - 36 - i * 20 - img.width / 2;

@@ -6,7 +6,7 @@ import { BALANCE } from '../data/balance.js';
 import { createCombat, step } from './combat.js';
 import { addGold } from './economy.js';
 import { trackContracts } from './contracts.js';
-import { addToInventory } from './inventory.js';
+import { collectItem } from './inventory.js';
 import { addXp } from './level.js';
 import { generateItem, recycleValue } from './loot.js';
 import { Rng } from './rng.js';
@@ -86,7 +86,7 @@ export function applyOfflineRewards(state, rewards, balance = BALANCE) {
   let autoRecycledGold = 0;
   let autoRecycledCount = 0;
   for (const item of rewards.items) {
-    const result = addToInventory(state, item, balance);
+    const result = collectItem(state, item, balance);
     if (!result.added) {
       autoRecycledGold += result.recycledGold;
       autoRecycledCount += 1;

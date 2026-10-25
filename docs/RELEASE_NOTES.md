@@ -1,9 +1,28 @@
-## Idle RPG v7.4.0 — Mode barre, arbre en étoile, mouvements fluides
+## Idle RPG v7.5.0 — Invocations, accessoires, forge, missions
 
-**Installation ou mise à jour :** téléchargez **IdleRPG-7.4.0-setup.exe** et lancez-le (jeu fermé).
+**Installation ou mise à jour :** téléchargez **IdleRPG-7.5.0-setup.exe** et lancez-le (jeu fermé).
 L'installation se fait en un clic et remplace l'ancienne version ; **votre partie est conservée**.
 
-### Nouveau dans la v7.4
+### Nouveau dans la v7.5
+- **20 héros invocables** (8 R, 7 SR, 5 SSR) qui combattent aux côtés du chevalier, chacun avec son
+  passif, sa compétence et ses animations ; nouvel onglet **Invocation**.
+- **Donjons des SSR** : 4 nouveaux donjons (Sanctuaire sylvestre, Fournaise des sables, Glacier éternel,
+  Citadelle des ombres) en plus de la Crypte. Chaque SSR est adapté à un donjon : dans son donjon,
+  compétence ×3, passif ×2 et dégâts subis par l'équipe −35 %.
+- **Démarrage rapide** : pendant les 5 premières heures de jeu, or et XP ×3, butin et événements
+  bien plus fréquents, un ticket d'invocation par boss ; le bonus diminue ensuite progressivement.
+- **Missions journalières, hebdomadaires et mensuelles** + **calendrier de connexion** sur 7 jours :
+  gemmes, tickets, clés et un coffre bonus quand toutes les missions d'une période sont faites.
+- **Accessoires** : collier, boucles d'oreilles, anneau et bracelet, en plusieurs modèles et plusieurs
+  couleurs de pierre ; ils améliorent les statistiques secondaires (critique, vol de vie, butin…).
+- **Amélioration d'équipement** : 5 fois pour Commun et Rare, 10 fois pour Épique et Légendaire ;
+  chaque amélioration renforce une statistique au hasard.
+- **Fusion** : 5 objets du même emplacement et de la même rareté donnent 1 objet de la rareté supérieure.
+- **Butin** : tables de butin des boss (essences garanties), fabrication Épique, recyclage automatique
+  au ramassage (jamais une amélioration ni un objet verrouillé), notifications discrètes.
+- **Arbre de talents** redessiné façon grille de runes : cases carrées, traits fins, état visible d'un coup d'œil.
+
+### v7.4
 - **Corrigé** : dans une fenêtre large et peu haute, la scène pouvait dépasser la fenêtre (on ne voyait que le ciel,
   sans onglets) ; elle reste maintenant dans la fenêtre.
 - **Interface plus compacte** : barre du haut, onglets, barre de progression et zoom maximal réduits.

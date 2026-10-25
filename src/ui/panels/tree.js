@@ -11,18 +11,12 @@ export function keepResetLists() {
   </div>`;
 }
 
-// Géométrie de l'arbre (unités du viewBox). Centre, directions des branches, distance de chaque rangée
-// au centre (horizontale ou verticale) et écart entre les deux sous-branches.
-const TREE_W = 1000;
-const TREE_H = 900;
-const CX = 500;
-const CY = 450;
-const BRANCH_DIRS = { combat: { x: -1, y: 0 }, resources: { x: 1, y: 0 }, special: { x: 0, y: -1 }, survival: { x: 0, y: 1 } };
-const DIST_X = [150, 285, 415];
-const DIST_Y = [135, 250, 360];
-const SPREAD = [0, 90, 125];
-const NODE_R = 34; // demi-taille d'un nœud (6,8 % de la largeur)
-const OFF_COLOR = '#6a80b0';
+// Géométrie de l'arbre : une case de grille = CELL unités du viewBox (cases x, y des talents).
+const CELL = 100;
+const MIN_X = Math.min(...TALENTS.map((t) => t.x));
+const MIN_Y = Math.min(...TALENTS.map((t) => t.y));
+const TREE_W = (Math.max(...TALENTS.map((t) => t.x)) - MIN_X + 1) * CELL;
+const TREE_H = (Math.max(...TALENTS.map((t) => t.y)) - MIN_Y + 1) * CELL;
 
 export default {
   id: 'tree',
@@ -31,53 +25,30 @@ export default {
   extra: (ui, state) => `${fragment()}<b class="num">${formatNumber(state.fragments)}</b>`,
   render(ui, state) {
     const sel = talentById(ui.view.talentSel) ?? TALENTS[0];
-    // Un seul arbre : le Cœur du chevalier au centre, une branche par direction, chaque branche se divise
-    // en deux. Coordonnées en unités du viewBox (TREE_W × TREE_H) ; le conteneur garde ce rapport.
-    const pos = (t) => {
-      if (t.branch === 'core') return { x: CX, y: CY };
-      const dir = BRANCH_DIRS[t.branch];
-      const axis = dir.x ? DIST_X : DIST_Y;
-      const along = axis[t.row];
-      const side = (t.col - 1) * SPREAD[t.row];
-      return { x: CX + dir.x * along + (dir.x ? 0 : side), y: CY + dir.y * along + (dir.y ? 0 : side) };
-    };
-    const colorOf = (t) => (t.branch === 'core' ? '#ffe08a' : TALENT_BRANCHES.find((br) => br.id === t.branch).color);
-    const arrows = TALENTS.filter((t) => t.requires).map((t) => {
-      const from = pos(talentById(t.requires.id));
-      const to = pos(t);
-      const dx = to.x - from.x;
-      const dy = to.y - from.y;
-      const len = Math.hypot(dx, dy);
-      const [ux, uy] = [dx / len, dy / len];
-      const on = talentUnlocked(state, t);
-      return `<line x1="${from.x + ux * NODE_R}" y1="${from.y + uy * NODE_R}" x2="${to.x - ux * (NODE_R + 16)}" y2="${to.y - uy * (NODE_R + 16)}"
-        stroke="${on ? colorOf(t) : OFF_COLOR}" stroke-width="7" stroke-linecap="round" marker-end="url(#arrow-${on ? t.branch : 'off'})" />`;
+    // Un seul arbre sur une grille : le Cœur du chevalier au centre, les branches partent dans les
+    // 4 directions. Cases carrées reliées par des traits fins ; la bordure indique l'état du talent.
+    const pos = (t) => ({ x: (t.x - MIN_X + 0.5) * CELL, y: (t.y - MIN_Y + 0.5) * CELL });
+    const links = TALENTS.filter((t) => t.requires).map((t) => {
+      const a = pos(talentById(t.requires.id));
+      const b = pos(t);
+      const on = (state.talents[t.requires.id] ?? 0) > 0;
+      return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" class="${on ? 'on' : ''}" />`;
     }).join('');
-    const markers = [...TALENT_BRANCHES.map((br) => [br.id, br.color]), ['off', OFF_COLOR]].map(([id, color]) =>
-      `<marker id="arrow-${id}" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
-        <path d="M0,0 L10,5 L0,10 z" fill="${color}" /></marker>`).join('');
     const pct = (x, y) => `left:${(x / TREE_W) * 100}%;top:${(y / TREE_H) * 100}%`;
-    // Nom de chaque branche à côté de sa première case.
-    const labels = TALENT_BRANCHES.map((br) => {
-      const root = TALENTS.find((t) => t.branch === br.id && t.row === 0);
-      const p = pos(root);
-      const d = BRANCH_DIRS[br.id];
-      const lx = p.x + (d.x ? 0 : 125);
-      const ly = p.y + (d.x ? -78 : 0);
-      return `<span class="tree-branch" style="${pct(lx, ly)};color:${br.color}">${br.label}</span>`;
-    }).join('');
     const nodes = TALENTS.map((t) => {
       const level = state.talents[t.id] ?? 0;
       const unlocked = talentUnlocked(state, t);
       const { x, y } = pos(t);
-      const cls = [t.branch === 'core' ? 'core' : '', level ? 'owned' : '', unlocked ? '' : 'locked', t.id === sel.id ? 'selected' : '', level >= t.max ? 'maxed' : ''].join(' ');
-      return `<button class="tree-node ${cls}" style="--branch:${colorOf(t)};${pct(x, y)}"
-        data-action="talent-sel" data-value="${t.id}" title="${escapeHtml(t.name)}">${unlocked ? img(t.icon) : img('icon_lock')}</button>
-        <span class="node-lv${level >= t.max ? ' max' : ''}" style="${pct(x, y + NODE_R + 30)}">${level}/${t.max}</span>`;
+      const branch = TALENT_BRANCHES.find((br) => br.id === t.branch);
+      const st = level >= t.max ? 'maxed' : level > 0 ? 'owned' : unlocked ? 'open' : 'locked';
+      return `<button class="tile ${st}${t.id === sel.id ? ' selected' : ''}${t.branch === 'core' ? ' core' : ''}"
+        style="${pct(x, y)};--branch:${branch?.color ?? '#ffe08a'}" data-action="talent-sel" data-value="${t.id}"
+        title="${escapeHtml(t.name)} · ${level}/${t.max}">${img(t.icon)}<span class="lv">${level}/${t.max}</span></button>`;
     }).join('');
-    const tree = `<div class="talent-tree" style="aspect-ratio:${TREE_W}/${TREE_H}">
-      <svg viewBox="0 0 ${TREE_W} ${TREE_H}" preserveAspectRatio="none" aria-hidden="true"><defs>${markers}</defs>${arrows}</svg>
-      ${labels}${nodes}</div>`;
+    const legend = TALENT_BRANCHES.map((br) => `<span style="color:${br.color}">● ${br.label}</span>`).join('');
+    const tree = `<div class="rune-tree" style="aspect-ratio:${TREE_W}/${TREE_H}">
+      <svg viewBox="0 0 ${TREE_W} ${TREE_H}" preserveAspectRatio="none" aria-hidden="true">${links}</svg>${nodes}</div>
+      <div class="tree-legend">${legend}</div>`;
 
     const level = state.talents[sel.id] ?? 0;
     const unlocked = talentUnlocked(state, sel);
@@ -85,7 +56,7 @@ export default {
     const req = sel.requires ? talentById(sel.requires.id) : null;
     const reward = rebirthReward(state);
     const can = canRebirth(state);
-    return `<div class="card tree-card">${tree}</div>
+    return `<div class="card tree-card rune-card">${tree}</div>
       <div class="card talent-detail">
         <div class="row-between"><b class="gold-text">${escapeHtml(sel.name)}</b><span class="muted">Niv. ${level}/${sel.max}</span></div>
         <div>${level ? effectText(talentLevelEffects(sel, level)) : '<span class="muted">Pas encore appris</span>'}</div>

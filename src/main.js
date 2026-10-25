@@ -6,10 +6,11 @@ import { BOSSES } from './data/enemies.js';
 import { changeStage, createCombat, resetWave, resumeAdvance, step } from './core/combat.js';
 import { toggleCompanion, upgradeCompanion } from './core/companions.js';
 import { claimContract } from './core/contracts.js';
+import { claimLogin, claimMission, claimMissionBonus, refreshMissions } from './core/missions.js';
 import { abandonDungeon, setDungeonPath, startDungeon } from './core/dungeon.js';
 import { buyUpgrade } from './core/economy.js';
 import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
-import { craftItem, reforgeItem, sharpenItem } from './core/forge.js';
+import { craftItem, fuseItems, reforgeItem, sharpenItem, upgradeItem } from './core/forge.js';
 import { summon } from './core/gacha.js';
 import { setActiveHero } from './core/heroes.js';
 import { addToInventory, bulkRecycleCandidates, equipItem, recycleItem, recycleMatching, toggleLock } from './core/inventory.js';
@@ -19,7 +20,8 @@ import {
 import { buyTalent, performRebirth } from './core/rebirth.js';
 import { rewardText } from './core/rewards.js';
 import { learnSkill } from './core/skills.js';
-import { generateItem, makeItem } from './core/loot.js';
+import { generateItem, makeItem, rarityById } from './core/loot.js';
+import { STAT_LABELS } from './data/items.js';
 import { applyOfflineRewards, computeOfflineRewards } from './core/offline.js';
 import { Rng } from './core/rng.js';
 import { clearSave, loadGame, saveGame } from './core/save.js';
@@ -96,13 +98,23 @@ const actions = {
     done(true);
     return results;
   },
-  craft(slot) {
-    const item = craftItem(state, slot, rng);
+  craft(slot, tier = 'rare') {
+    const item = craftItem(state, slot, rng, BALANCE, tier);
     if (item) ui.view.selectedItemId = item.id;
     done(Boolean(item), item ? `Forgé : ${item.name}` : null);
   },
   reforge(id) { done(reforgeItem(state, id, rng), 'Effets spéciaux relancés'); },
   sharpen(id) { done(sharpenItem(state, id), 'Objet réaffûté'); },
+  upgradeItem(id) {
+    const stat = upgradeItem(state, id, rng);
+    const label = stat === 'main' ? 'effet principal' : STAT_LABELS[stat];
+    done(Boolean(stat), stat ? `Amélioration : ${label} +${BALANCE.forge.upgradeBoostPct} %` : null, '#7fe08f');
+  },
+  fuse(slot, rarity) {
+    const item = fuseItems(state, slot, rarity, rng);
+    if (item) ui.view.selectedItemId = item.id;
+    done(Boolean(item), item ? `Fusion : ${item.name} (${rarityById(item.rarity).label})` : null, rarityById(item?.rarity ?? 'common').color);
+  },
   claimMastery(bossId) {
     const given = claimMastery(state, bossId);
     done(Boolean(given), given ? `Maîtrise : ${rewardText(given)}` : null, '#f2d083');
@@ -132,6 +144,18 @@ const actions = {
     done(true, 'Retour à la campagne');
   },
   setDungeonPath(path) { done(setDungeonPath(state, path)); },
+  claimMission(period, id) {
+    const given = claimMission(state, period, id);
+    done(Boolean(given), given ? `Mission accomplie : ${rewardText(given)}` : null, '#7fd4ff');
+  },
+  claimMissionBonus(period) {
+    const given = claimMissionBonus(state, period);
+    done(Boolean(given), given ? `Coffre de missions : ${rewardText(given)}` : null, '#7fd4ff');
+  },
+  claimLogin() {
+    const given = claimLogin(state);
+    done(Boolean(given), given ? `Connexion : ${rewardText(given)}` : null, '#7fd4ff');
+  },
   claimContract(id) {
     const given = claimContract(state, id, rng);
     done(Boolean(given), given ? `Contrat rempli : ${rewardText(given)}` : null, '#f2d083');
@@ -230,6 +254,10 @@ const actions = {
     save();
     ui.invalidate();
   },
+  setAutoRecycle(value) {
+    state.ui.autoRecycle = value;
+    ui.invalidate();
+  },
   setFilter(value) {
     state.ui.slotFilter = value;
     ui.invalidate();
@@ -284,8 +312,14 @@ else save();
 // est traitée comme une absence hors ligne.
 let lastWall = Date.now();
 let accumulator = 0;
+let lastMissionCheck = 0;
 function tick() {
   const now = Date.now();
+  // Réinitialisations journalières / hebdomadaires / mensuelles et connexion du jour.
+  if (now - lastMissionCheck >= 1000) {
+    lastMissionCheck = now;
+    refreshMissions(state, now);
+  }
   let dt = (now - lastWall) / 1000;
   lastWall = now;
   if (dt < 0) dt = 0; // horloge reculée : on ignore

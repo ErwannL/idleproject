@@ -29,6 +29,8 @@ import skills from './panels/skills.js';
 import summon from './panels/summon.js';
 import tree, { keepResetLists } from './panels/tree.js';
 import upgrades from './panels/upgrades.js';
+import { missionsClaimable } from '../core/missions.js';
+import { earlyBoost } from '../core/boost.js';
 
 const PANELS = Object.fromEntries([upgrades, inventory, hero, companions, skills, tree, campaign, dungeons, boss, summon, contracts, inbox, options]
   .map((p) => [p.id, p]));
@@ -143,6 +145,7 @@ export class UI {
       case 'buy': a.buy(key); break;
       case 'upgrade-cat': local(() => { v.upgradeCat = value; }); break;
       case 'inv-tab': local(() => { v.invTab = value; }); break;
+      case 'craft-tier': local(() => { v.craftTier = value; }); break;
       case 'select-item': local(() => { v.selectedItemId = id; }); break;
       case 'equip': a.equip(id); break;
       case 'recycle': {
@@ -156,8 +159,10 @@ export class UI {
       case 'bulk-recycle': this.onBulkRecycle(); break;
       case 'lock': a.toggleLock(id); break;
       case 'sharpen': a.sharpen(id); break;
+      case 'upgrade-item': a.upgradeItem(id); break;
+      case 'fuse': a.fuse(...value.split('|')); break;
       case 'reforge': a.reforge(id); break;
-      case 'craft': a.craft(value); break;
+      case 'craft': a.craft(value, el.dataset.tier); break;
       case 'stage': a.selectStage(Number(stage)); break;
       case 'zone-sel': local(() => { v.zoneSel = Number(value); }); break;
       case 'advance': a.advance(); break;
@@ -187,6 +192,9 @@ export class UI {
       case 'enter-dungeon': a.enterDungeon(value, v.dungeonSlot, v.dungeonPath); break;
       case 'abandon-dungeon': a.abandonDungeon(); break;
       case 'claim-contract': a.claimContract(Number(value)); break;
+      case 'claim-mission': { const [period, id] = value.split('|'); a.claimMission(period, id); break; }
+      case 'claim-mission-bonus': a.claimMissionBonus(value); break;
+      case 'claim-login': a.claimLogin(); break;
       case 'claim-event': a.claimEvent(Number(value)); break;
       case 'buy-merchant': a.buyMerchant(Number(value)); break;
       case 'dismiss-event': a.dismissEvent(Number(value)); break;
@@ -206,6 +214,7 @@ export class UI {
     if (action === 'auto') this.actions.setAutoAdvance(el.checked);
     if (action === 'on-top') this.actions.setAlwaysOnTop(el.checked);
     if (action === 'skill-auto') this.actions.setSkillAuto(el.checked);
+    if (action === 'auto-recycle') this.actions.setAutoRecycle(el.value);
     if (action === 'bulk-rarity') {
       this.view.bulkRarity = el.value;
       this.view.bulkArmed = false;
@@ -236,12 +245,17 @@ export class UI {
     switch (event.type) {
       case 'drop': {
         const rarity = rarityById(event.item.rarity);
-        this.news(event.autoRecycled
-          ? `Sac plein : ${event.item.name} recyclé (+${formatNumber(event.recycledGold)} or)`
-          : `Butin : ${event.item.name} (${rarity.label})`, rarity.color);
+        this.news(event.byRule
+          ? `Recyclé au ramassage : ${event.item.name} (+${formatNumber(event.recycledGold)} or)`
+          : event.autoRecycled
+            ? `Sac plein : ${event.item.name} recyclé (+${formatNumber(event.recycledGold)} or)`
+            : `Butin : ${event.item.name} (${rarity.label})`, event.byRule ? '#8e9db8' : rarity.color);
         if (this.tab === 'inventory' || this.tab === 'hero') this.invalidate();
         break;
       }
+      case 'bossLoot':
+        this.news(`Butin du boss : +${event.essence} essences`, '#e27bff');
+        break;
       case 'bossSpawn':
         this.banner(`Boss — ${BOSSES[event.kind].name}`, 'boss');
         break;
@@ -381,7 +395,7 @@ export class UI {
   // Empreinte du contenu d'un panneau « vivant » (évite de le redessiner pour rien).
   liveKey(state) {
     switch (this.tab) {
-      case 'contracts': return state.contracts.map((c) => `${c.id}:${c.progress}`).join();
+      case 'contracts': return state.contracts.map((c) => `${c.id}:${c.progress}`).join() + JSON.stringify(state.missions);
       case 'dungeons': return JSON.stringify(state.dungeon);
       case 'skills': return `${state.level}|${Math.floor(state.xp)}`;
       case 'boss': return Object.values(state.powers).map((p) => `${p.victories}${p.charges}${p.pending}`).join();
@@ -457,8 +471,15 @@ export class UI {
     const upgrade = state.inventory.some((i) => isUpgrade(state, i));
     this.$('inv-badge').classList.toggle('hidden', !upgrade || this.tab === 'inventory');
     this.$('skills-badge').classList.toggle('hidden', skillPointsAvailable(state) < 1 || this.tab === 'skills');
-    this.$('contracts-badge').classList.toggle('hidden', !state.contracts.some((c) => c.progress >= c.target));
+    this.$('contracts-badge').classList.toggle('hidden', !state.contracts.some((c) => c.progress >= c.target) && !missionsClaimable(state));
     this.$('inbox-badge').classList.toggle('hidden', state.inbox.length === 0);
+    const boost = earlyBoost(state);
+    this.$('boost-chip').classList.toggle('hidden', boost.secondsLeft <= 0);
+    if (boost.secondsLeft > 0) {
+      const h = Math.floor(boost.secondsLeft / 3600);
+      const m = Math.floor((boost.secondsLeft % 3600) / 60);
+      this.$('boost').textContent = `×${boost.gold.toFixed(1).replace('.', ',')} · ${h ? `${h} h ${String(m).padStart(2, '0')}` : `${m} min`}`;
+    }
   }
 
   // Menus débloqués progressivement.

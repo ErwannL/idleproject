@@ -31,8 +31,8 @@ function pickType(rng, balance) {
 }
 
 // Appelé à chaque ennemi ordinaire vaincu en campagne. Renvoie l'événement créé, ou null.
-export function rollEvent(state, world, rng, balance = BALANCE) {
-  if (rng.next() >= balance.events.chancePerKill) return null;
+export function rollEvent(state, world, rng, balance = BALANCE, multiplier = 1) {
+  if (rng.next() >= balance.events.chancePerKill * multiplier) return null;
   const type = pickType(rng, balance);
   const e = balance.events;
   const killGold = referenceKillGold(state.stage, balance);

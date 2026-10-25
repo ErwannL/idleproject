@@ -28,7 +28,9 @@ export function bossFirstStage(bossId, balance = BALANCE) {
   return dungeon ? dungeon.unlockStage : null;
 }
 
+// Donjon propre au boss (null pour un boss de campagne, même réutilisé dans un donjon).
 export function bossDungeon(bossId) {
+  if (ZONES.some((z) => z.bosses.includes(bossId))) return null;
   return DUNGEONS.find((d) => d.boss === bossId) ?? null;
 }
 

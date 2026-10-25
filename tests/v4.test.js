@@ -17,7 +17,7 @@ import { summon, summonOdds } from '../src/core/gacha.js';
 import { heroEffects, setActiveHero } from '../src/core/heroes.js';
 import { addToInventory, recycleItem } from '../src/core/inventory.js';
 import { addXp, xpForLevel } from '../src/core/level.js';
-import { generateItem, makeItem, makeSignatureItem } from '../src/core/loot.js';
+import { generateItem, itemBase, makeItem, makeSignatureItem } from '../src/core/loot.js';
 import { applyOfflineRewards, computeOfflineRewards } from '../src/core/offline.js';
 import { claimMastery, powerEffects, recordBossVictory, synergyFamilies } from '../src/core/powers.js';
 import { Rng } from '../src/core/rng.js';
@@ -40,7 +40,8 @@ test('objets : effets spéciaux selon la rareté et objets signature de boss', (
   const rng = new Rng(4);
   for (let i = 0; i < 50; i++) {
     const item = generateItem(state, rng, { level: 5, minRarity: 'legendary' });
-    assert.equal(item.affixes.length, BALANCE.loot.affixCount.legendary);
+    // Les accessoires ont en plus leur effet principal.
+    assert.equal(item.affixes.length, BALANCE.loot.affixCount.legendary + (itemBase(item.baseId).mainAffix ? 1 : 0));
     assert.equal(new Set(item.affixes.map((a) => a.type)).size, item.affixes.length, 'pas de doublon');
     for (const a of item.affixes) assert.ok(AFFIXES[a.type].slots.includes(item.slot));
   }

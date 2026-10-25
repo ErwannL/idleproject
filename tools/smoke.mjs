@@ -113,7 +113,7 @@ await check('onglets avec icône et état actif distinct', async () => {
     tab: b.dataset.tab, icon: b.querySelector('img')?.naturalWidth > 0, active: b.classList.contains('active'),
     hidden: b.classList.contains('hidden'),
   })));
-  assert(tabs.length === 9 && tabs.every((t) => t.icon), JSON.stringify(tabs));
+  assert(tabs.length === 10 && tabs.every((t) => t.icon), JSON.stringify(tabs));
   // Menus débloqués progressivement : compagnons, arbre, donjons et boss cachés en début de partie.
   const hidden = tabs.filter((t) => t.hidden).map((t) => t.tab).sort().join();
   assert(hidden === 'boss,companions,dungeons,tree', `onglets cachés : ${hidden}`);

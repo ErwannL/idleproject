@@ -1,8 +1,9 @@
 // Inventaire : ajout, équipement, recyclage, tri et comparaison.
 import { BALANCE } from '../data/balance.js';
+import { ACCESSORY_SLOTS } from '../data/items.js';
 import { addGold } from './economy.js';
 import { trackContracts } from './contracts.js';
-import { itemPower, rarityIndex, recycleMaterials, recycleValue } from './loot.js';
+import { itemBase, itemPower, rarityIndex, recycleMaterials, recycleValue } from './loot.js';
 import { computeHeroStats, statsWithItem } from './stats.js';
 
 // Inventaire plein : l'objet est recyclé en or plutôt que perdu.
@@ -32,6 +33,26 @@ export function recycleItem(state, itemId, balance = BALANCE) {
   if (index < 0 || state.inventory[index].locked) return 0;
   const [item] = state.inventory.splice(index, 1);
   return salvage(state, item, balance);
+}
+
+// Règle de collecte (Automatisation) : recycler dès le ramassage les objets jusqu'à une rareté donnée
+// ('off', 'common' ou 'rare'). Jamais un objet signature ni un objet meilleur que l'équipement porté.
+export const AUTO_RECYCLE_RULES = { off: 'Tout garder', common: 'Recycler les Communs', rare: 'Recycler Communs et Rares' };
+
+export function shouldAutoRecycle(state, item) {
+  const rule = state.ui?.autoRecycle ?? 'off';
+  if (rule === 'off' || itemBase(item.baseId).signature) return false;
+  if (rarityIndex(item.rarity) > rarityIndex(rule)) return false;
+  return !isUpgrade(state, item);
+}
+
+// Ramassage d'un objet : recyclé automatiquement selon la règle, sinon rangé dans le sac.
+export function collectItem(state, item, balance = BALANCE) {
+  if (shouldAutoRecycle(state, item)) {
+    state.records.itemsFound += 1;
+    return { added: false, auto: true, recycledGold: salvage(state, item, balance) };
+  }
+  return addToInventory(state, item, balance);
 }
 
 // Recyclage : or + matériaux (éclats, essences) ; compte pour les contrats.
@@ -65,7 +86,7 @@ const SORTERS = {
 };
 
 export function listInventory(state, { slot = 'all', sortBy = 'rarity' } = {}) {
-  const items = state.inventory.filter((i) => slot === 'all' || i.slot === slot);
+  const items = state.inventory.filter((i) => slot === 'all' || i.slot === slot || (slot === 'accessory' && ACCESSORY_SLOTS.includes(i.slot)));
   return items.sort(SORTERS[sortBy] ?? SORTERS.rarity);
 }
 
@@ -83,6 +104,7 @@ export function compareWithEquipped(state, item, balance = BALANCE) {
 
 // Amélioration par rapport à l'équipement porté : plus de DPS, ou autant de DPS avec plus de survie.
 export function isUpgrade(state, item, balance = BALANCE) {
+  if (!state.equipment[item.slot]) return true; // emplacement vide (accessoires en particulier)
   const diff = compareWithEquipped(state, item, balance);
   return diff.dps > 0.001 || (diff.dps >= -0.001 && (diff.maxHp > 0 || diff.armor > 0));
 }

@@ -84,9 +84,11 @@ export function shade(color, t) {
 export function itemColors(item) {
   const base = itemBase(item.baseId);
   const rarity = RARITIES.find((r) => r.id === item.rarity);
+  // Accessoires : la pierre prend la couleur du modèle (rubis, saphir…) ; la rareté se lit au cadre.
+  const accent = base.colors.gem ?? rarity.color;
   return {
     a: base.colors.main, A: base.colors.shade, 1: shade(base.colors.main, 0.45), 2: shade(base.colors.shade, -0.45),
-    r: rarity.color, 3: shade(rarity.color, 0.45), 9: shade(rarity.color, -0.4),
+    r: accent, 3: shade(accent, 0.45), 9: shade(accent, -0.4),
   };
 }
 
@@ -202,7 +204,7 @@ export function itemIconUrl(item, size = 32) {
   ctx.imageSmoothingEnabled = false;
   let src = spriteCanvas(itemSpriteName(item), { colors: itemColors(item) });
   let box = opaqueBounds(src);
-  if (item.slot !== 'weapon') {
+  if (item.slot === 'helmet' || item.slot === 'armor') {
     // Casque ou armure : posés sur le chevalier (cadré sur l'objet) pour rester lisibles.
     const name = itemSpriteName(item);
     const body = createCanvas(src.width, SPRITES.hero_idle.rows.length);
@@ -222,7 +224,10 @@ export function itemIconUrl(item, size = 32) {
 }
 
 // Icône de type d'emplacement (case vide, filtres).
-const SLOT_ICONS = { weapon: 'weapon_sword', helmet: 'icon_hero', armor: 'icon_shield' };
+const SLOT_ICONS = {
+  weapon: 'weapon_sword', helmet: 'icon_hero', armor: 'icon_shield',
+  amulet: 'amulet_ruby', earring: 'earring_drop', ring: 'ring_band', bracelet: 'bracelet_cuff',
+};
 export function slotIconName(slot) {
   return SLOT_ICONS[slot];
 }

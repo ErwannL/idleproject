@@ -10,8 +10,8 @@ export const BALANCE = {
 
   // Coordonnées logiques du combat (indépendantes de la taille de la fenêtre).
   world: {
-    heroX: 40,
-    spawnX: 210,
+    heroX: 56, // v7.5 : place pour 2 héros alliés derrière le chevalier
+    spawnX: 226, // même distance d'approche qu'avant (heroX + 170)
     heroRange: 42,
     meleeOffset: 6, // les ennemis s'arrêtent un peu plus loin : le chevalier est plus large
     enemyGap: 15,
@@ -135,6 +135,9 @@ export const BALANCE = {
     recycleLevelGrowth: 0.1,
     inventorySize: 40, // au-delà, les nouveaux objets sont recyclés en or
     signatureChance: 0.15, // chance qu'un boss lâche son objet signature
+    bossEssence: 2, // essences garanties par boss (+1 par zone)
+    // Poids de chaque emplacement dans le butin (accessoires ≈ 1/3 des objets).
+    slotWeights: { weapon: 3, helmet: 2, armor: 2, amulet: 1, earring: 1, ring: 1, bracelet: 1 },
     // Effets spéciaux : nombre d'effets par rareté.
     affixCount: { common: 0, rare: 1, epic: 1, legendary: 2 },
   },
@@ -150,9 +153,17 @@ export const BALANCE = {
     craftShards: 25,
     craftGoldKills: 25, // coût en or = 25 × l'or d'un ennemi de l'étape max
     craftMinRarity: 'rare',
+    // Fabrication épique : Épique ou mieux, payée aussi en essences (butin des boss).
+    epicCraft: { shards: 60, essence: 6, goldKills: 60 },
     reforgeShards: 10,
     reforgeEssence: 1,
     sharpenShardsPerLevel: 2, // réaffûtage : éclats par niveau gagné × facteur de rareté
+    // Amélioration d'un objet : chaque niveau augmente une de ses statistiques (au hasard) de 12 %.
+    maxUpgrades: { common: 5, rare: 5, epic: 10, legendary: 10 },
+    upgradeBoostPct: 12,
+    upgradeGoldKills: 6, // coût en or = 6 × (niveau + 1) × l'or d'un ennemi au niveau de l'objet
+    upgradeShards: 2, // éclats = 2 × (niveau + 1)
+    fusionCount: 5, // 5 objets d'une rareté (même emplacement) → 1 objet de la rareté suivante
   },
 
   // Événements discrets pendant le farm (aucun ne demande de surveiller l'écran).
@@ -181,6 +192,18 @@ export const BALANCE = {
     firstBossGems: 50,
     startingTickets: 1,
   },
+  // 5 premières heures : progression très rapide, beaucoup de butin et d'invocations, puis normal.
+  earlyBoost: {
+    hours: 5,
+    goldMultiplier: 3, // ×3 au début, décroît jusqu'à ×1
+    xpMultiplier: 3,
+    extraDropChance: 0.15, // +15 points de chance de butin au début
+    eventMultiplier: 4, // coffres, gemmes, marchands… 4 fois plus fréquents
+    bossTickets: 1, // chaque victoire contre un boss donne un ticket d'invocation tant que le bonus dure
+  },
+  // Donjons : le héros SSR adapté à un donjon y écrase tout.
+  dungeonAffinity: { skillMultiplier: 3, passiveMultiplier: 2, damageTakenPct: 35 },
+
   companionSlots: 2, // équipe : le chevalier (fixe) + 2 compagnons
 
 

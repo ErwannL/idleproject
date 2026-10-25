@@ -5,17 +5,18 @@ import { BALANCE } from '../data/balance.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
 import { POWER_RULES } from '../data/powers.js';
 import { ZONES } from '../data/zones.js';
-import { equippedCompanions } from './companions.js';
+import { dungeonAffinity, dungeonDamageTaken, equippedCompanions } from './companions.js';
 import { trackContracts } from './contracts.js';
 import { completeDungeon, dungeonById, dungeonKill, failDungeon } from './dungeon.js';
 import { addGold } from './economy.js';
 import { rollEvent } from './events.js';
-import { addToInventory } from './inventory.js';
+import { collectItem } from './inventory.js';
 import { addXp, killXp } from './level.js';
 import { generateItem, makeSignatureItem, rarityIndex } from './loot.js';
 import { recordBossVictory } from './powers.js';
 import { activeSkills, skillCooldown, skillValue } from './skills.js';
 import { computeHeroStats } from './stats.js';
+import { earlyBoost } from './boost.js';
 
 const MAX_EVENTS = 300;
 
@@ -57,6 +58,11 @@ export function enemyStats(stage, type, boss, balance = BALANCE) {
 }
 
 // Or d'un ennemi ordinaire de référence à une étape (sert d'unité pour les coûts et récompenses).
+// Essences (matériau rare) lâchées par un boss : 2, +1 par zone.
+export function bossEssence(stage, balance = BALANCE) {
+  return balance.loot.bossEssence + Math.floor((stage - 1) / balance.stages.stagesPerZone);
+}
+
 export function referenceKillGold(stage, balance = BALANCE) {
   return enemyStats(Math.max(1, stage), 'slime', false, balance).gold;
 }
@@ -170,9 +176,9 @@ function gainGold(state, world, amount) {
 
 function dropItem(state, world, item, x, balance) {
   world.counters.drops += 1;
-  const result = addToInventory(state, item, balance);
+  const result = collectItem(state, item, balance);
   if (rarityIndex(item.rarity) >= 1) trackContracts(state, 'rareLoot', 1);
-  emit(world, 'drop', { item, x, autoRecycled: !result.added, recycledGold: result.recycledGold });
+  emit(world, 'drop', { item, x, autoRecycled: !result.added, byRule: Boolean(result.auto), recycledGold: result.recycledGold });
 }
 
 function killEnemy(state, world, enemy, rng, balance, stats, enc) {
@@ -182,19 +188,20 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
 
   const wave = world.goldWave > 0 && !enemy.boss ? balance.events.waveGoldMultiplier : 1;
   if (world.goldWave > 0 && !enemy.boss) world.goldWave -= 1;
-  const gold = gainGold(state, world, enemy.gold * (1 + stats.goldPct / 100) * wave);
+  const boost = earlyBoost(state, balance);
+  const gold = gainGold(state, world, enemy.gold * (1 + stats.goldPct / 100) * wave * boost.gold);
   world.counters.kills += 1;
   state.records.kills += 1;
   trackContracts(state, 'kills', 1);
 
-  const xp = killXp(enc.level, enemy.boss || enemy.elite, balance) * (1 + stats.xpPct / 100);
+  const xp = killXp(enc.level, enemy.boss || enemy.elite, balance) * (1 + stats.xpPct / 100) * boost.xp;
   world.counters.xp += xp;
   const levels = addXp(state, xp, balance);
   if (levels > 0) emit(world, 'levelUp', { level: state.level });
   emit(world, 'kill', { enemyId: enemy.id, kind: enemy.type, boss: enemy.boss, elite: enemy.elite, gold, x: enemy.x });
 
   // Butin : objet signature possible sur les boss (butin ciblé), objet Rare+ garanti sur les boss et élites.
-  const dropChance = enemy.boss || enemy.elite ? 1 : balance.loot.dropChance + stats.bonus.dropChance / 100;
+  const dropChance = enemy.boss || enemy.elite ? 1 : balance.loot.dropChance + stats.bonus.dropChance / 100 + boost.dropChance;
   if (rng.next() < dropChance) {
     const signature = enemy.boss && rng.next() < balance.loot.signatureChance
       ? makeSignatureItem(state, enemy.type, enc.level, rng, balance) : null;
@@ -206,11 +213,16 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
     state.gems += balance.events.eliteGems;
     emit(world, 'eliteDefeated', { gems: balance.events.eliteGems });
   } else if (!enemy.boss && !enc.dungeon) {
-    const event = rollEvent(state, world, rng, balance);
+    const event = rollEvent(state, world, rng, balance, boost.events);
     if (event) emit(world, 'worldEvent', { eventType: event.type });
   }
 
   if (enemy.boss) {
+    // Table de butin des boss : matériau rare (essences) en plus de l'objet Rare+ garanti.
+    const essence = bossEssence(enc.level, balance);
+    state.materials.essence += essence;
+    state.tickets += boost.bossTickets; // bonus de démarrage : un ticket d'invocation par boss
+    emit(world, 'bossLoot', { essence, tickets: boost.bossTickets });
     state.records.bossesDefeated += 1;
     trackContracts(state, 'bosses', 1);
     emit(world, 'bossDefeated', { kind: enemy.type, stage: enc.level });
@@ -277,17 +289,18 @@ function castSkill(state, world, skill, stats, rng, balance, enc, front) {
 
 function castCompanion(state, world, companion, stats, rng, balance, enc, front) {
   const { skill } = companion;
+  const aff = dungeonAffinity(state, companion.id, balance) ? balance.dungeonAffinity.skillMultiplier : 1;
   if (skill.type === 'gold') {
     gainGold(state, world, referenceKillGold(enc.level, balance) * skill.value * (1 + stats.goldPct / 100));
   } else if (skill.type === 'heal') {
-    world.hero.hp = Math.min(stats.maxHp, world.hero.hp + (stats.maxHp * skill.value) / 100);
+    world.hero.hp = Math.min(stats.maxHp, world.hero.hp + (stats.maxHp * skill.value * Math.min(aff, 2)) / 100);
   } else if (skill.type === 'shield') {
     world.buffs.shield = skill.duration;
     world.buffs.shieldPct = skill.value;
   } else if (skill.type === 'hit' && front) {
-    hitEnemy(state, world, front, stats.damage * skill.value, rng, balance, stats, enc, 'companion');
+    hitEnemy(state, world, front, stats.damage * skill.value * aff, rng, balance, stats, enc, 'companion');
   } else if (skill.type === 'burst') {
-    for (const enemy of [...world.enemies]) hitEnemy(state, world, enemy, stats.damage * skill.value, rng, balance, stats, enc, 'companion');
+    for (const enemy of [...world.enemies]) hitEnemy(state, world, enemy, stats.damage * skill.value * aff, rng, balance, stats, enc, 'companion');
   }
   emit(world, 'companionSkill', { companionId: companion.id });
 }
@@ -314,6 +327,7 @@ function heroDies(state, world, balance) {
 
 export function step(state, world, dt, rng, balance = BALANCE) {
   world.time += dt;
+  state.playSeconds = (state.playSeconds ?? 0) + dt;
   // Positions du pas précédent : le rendu interpole entre les deux (sans effet sur la partie).
   world.prevScroll = world.scroll;
   for (const enemy of world.enemies) enemy.prevX = enemy.x;
@@ -420,7 +434,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
       const lowHp = hero.hp < stats.maxHp * POWER_RULES.lowHpThreshold ? stats.bonus.lowHpArmor : 0;
       const armor = Math.min(balance.hero.armorCapPct, stats.armor + lowHp);
       const shield = world.buffs.shield > 0 ? world.buffs.shieldPct : 0;
-      const damage = attacker.damage * (1 - armor / 100) * (1 - shield / 100);
+      const damage = attacker.damage * (1 - armor / 100) * (1 - shield / 100) * dungeonDamageTaken(state, balance);
       hero.hp -= damage;
       emit(world, 'heroHit', { enemyId: attacker.id, damage, boss: attacker.boss });
       if (stats.thorns > 0) hitEnemy(state, world, attacker, (damage * stats.thorns) / 100, rng, balance, stats, enc, 'thorns');

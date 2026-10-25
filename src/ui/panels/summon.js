@@ -7,7 +7,8 @@ import { escapeHtml, formatDecimal, formatNumber, gem, img, rarityLabel, stars }
 
 function unitPortrait(result) {
   if (result.kind === 'hero') return animCanvas(`hero:${result.id}`, 48, 52, 1);
-  return animCanvas(`pet:${companionById(result.id).sprite}`, 24, 24, 2);
+  const c = companionById(result.id);
+  return c.kind === 'ally' ? animCanvas(`foe:${c.sprite}`, 48, 48, 1) : animCanvas(`pet:${c.sprite}`, 24, 24, 2);
 }
 
 export default {

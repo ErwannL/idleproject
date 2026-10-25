@@ -3,6 +3,7 @@ import { BALANCE } from '../data/balance.js';
 import { COMPANION_RULES, COMPANIONS } from '../data/companions.js';
 import { referenceKillGold } from './combat.js';
 import { talentEffects } from './rebirth.js';
+import { DUNGEONS } from '../data/dungeons.js';
 
 export function companionById(id) {
   return COMPANIONS.find((c) => c.id === id);
@@ -20,10 +21,22 @@ export function equippedCompanions(state) {
   return state.companions.equipped.map(companionById).filter(Boolean);
 }
 
-export function companionEffects(state) {
+// Héros adapté au donjon en cours (DUNGEONS[].ally) : il y écrase tout.
+export function dungeonAffinity(state, id) {
+  if (!state.dungeon) return false;
+  return DUNGEONS.find((d) => d.id === state.dungeon.id)?.ally === id;
+}
+
+// Multiplicateur des dégâts subis : réduits quand le héros adapté au donjon fait partie de l'équipe.
+export function dungeonDamageTaken(state, balance = BALANCE) {
+  const ally = state.dungeon && DUNGEONS.find((d) => d.id === state.dungeon.id)?.ally;
+  return ally && state.companions.equipped.includes(ally) ? 1 - balance.dungeonAffinity.damageTakenPct / 100 : 1;
+}
+
+export function companionEffects(state, balance = BALANCE) {
   const out = {};
   for (const c of equippedCompanions(state)) {
-    const m = companionMultiplier(state, c.id);
+    const m = companionMultiplier(state, c.id) * (dungeonAffinity(state, c.id) ? balance.dungeonAffinity.passiveMultiplier : 1);
     for (const [k, v] of Object.entries(c.passive)) out[k] = (out[k] ?? 0) + v * m;
   }
   return out;

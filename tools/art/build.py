@@ -17,7 +17,7 @@ import scenery  # noqa: E402
 import worldmap  # noqa: E402
 
 modules = [knight]
-for name in ('enemies', 'icons'):
+for name in ('enemies', 'icons', 'accessories', 'allies_r', 'allies_sr', 'allies_ssr'):
     try:
         modules.append(__import__(name))
     except ImportError:

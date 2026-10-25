@@ -2,6 +2,7 @@
 import { CONTRACT_COUNT, CONTRACT_TYPES } from '../data/contracts.js';
 import { BALANCE } from '../data/balance.js';
 import { referenceKillGold } from './combat.js';
+import { trackMissions } from './missions.js';
 import { grantReward } from './rewards.js';
 
 export function newContract(state, rng, balance = BALANCE) {
@@ -19,6 +20,7 @@ export function ensureContracts(state, rng, balance = BALANCE) {
 }
 
 export function trackContracts(state, type, amount = 1) {
+  trackMissions(state, type, amount);
   for (const c of state.contracts) {
     if (c.type === type && c.progress < c.target) c.progress = Math.min(c.target, c.progress + amount);
   }

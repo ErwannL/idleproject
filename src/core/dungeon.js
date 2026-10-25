@@ -7,6 +7,7 @@ import { referenceKillGold } from './combat.js';
 import { addToInventory } from './inventory.js';
 import { generateItem } from './loot.js';
 import { grantReward } from './rewards.js';
+import { trackMissions } from './missions.js';
 
 export function dungeonById(id) {
   return DUNGEONS.find((d) => d.id === id);
@@ -66,6 +67,7 @@ export function completeDungeon(state, rng, balance = BALANCE) {
   const given = grantReward(state, reward);
   addEarned(run, given);
   state.dungeonsCleared[run.id] = (state.dungeonsCleared[run.id] ?? 0) + 1;
+  trackMissions(state, 'dungeons', 1);
   state.dungeon = null;
   return { item, added: added.added, earned: run.earned };
 }

@@ -30,8 +30,9 @@ export function itemFrame(item, { selected = false, showUp = false, equipped = f
   const attrs = tag === 'button' ? `data-action="${action}" data-id="${item.id}"` : '';
   const signature = itemBase(item.baseId).signature;
   return `<${tag} class="item-frame r-${item.rarity}${selected ? ' selected' : ''}${signature ? ' signature' : ''}" ${attrs}
-    title="${escapeHtml(item.name)} · ${rarityLabel(item.rarity)} · niv. ${item.level}">
+    title="${escapeHtml(item.name)}${item.upgrades ? ` +${item.upgrades}` : ''} · ${rarityLabel(item.rarity)} · niv. ${item.level}">
     <img class="px" src="${itemIconUrl(item)}" alt="${escapeHtml(item.name)}">
+    ${item.upgrades ? `<span class="plus-lv">+${item.upgrades}</span>` : ''}
     ${up ? '<span class="up" title="Meilleur que l\'équipement porté">▲</span>' : ''}
     ${equipped ? '<span class="eq">É</span>' : ''}
     ${item.locked ? `<img class="px lock" src="${icon('icon_lock', 1)}" alt="Verrouillé">` : ''}</${tag}>`;

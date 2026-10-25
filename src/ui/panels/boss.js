@@ -2,7 +2,7 @@
 import { BALANCE } from '../../data/balance.js';
 import { BOSSES, ENEMIES } from '../../data/enemies.js';
 import { POWER_FAMILIES, POWER_RULES } from '../../data/powers.js';
-import { stageLabel } from '../../core/combat.js';
+import { bossEssence, stageLabel } from '../../core/combat.js';
 import { itemBase, signatureItemFor } from '../../core/loot.js';
 import {
   bossDungeon, bossFirstStage, bossesInOrder, nextMasteryTier, pityRemaining, powerById, powerProbabilities, powerSlots,
@@ -10,7 +10,7 @@ import {
 } from '../../core/powers.js';
 import { rewardText } from '../../core/rewards.js';
 import { heroPortraitUrl } from '../../render/pixel.js';
-import { coin, effectText, escapeHtml, formatDecimal, formatNumber, icon, img, rarityLabel } from '../common.js';
+import { coin, effectText, escapeHtml, essence, formatDecimal, formatNumber, icon, img, rarityLabel } from '../common.js';
 import { animCanvas } from '../animator.js';
 
 function powerBox(power, label) {
@@ -94,7 +94,9 @@ export default {
         <div class="power-head">
           <div class="boss-portrait">${portrait(bossId, true)}</div>
           <div style="flex:1"><div class="boss-name">${escapeHtml(boss.name)}</div>
-            <div class="muted">${where} · ${entry.victories} victoire${entry.victories > 1 ? 's' : ''}${signature ? ` · butin : ${escapeHtml(itemBase(signature.id).name)}` : ''}</div></div>
+            <div class="muted">${where} · ${entry.victories} victoire${entry.victories > 1 ? 's' : ''}</div>
+            <div class="loot-table muted">Butin : objet Rare ou mieux garanti${signature ? ` · ${Math.round(BALANCE.loot.signatureChance * 100)} % ${escapeHtml(itemBase(signature.id).name)}` : ''}
+              · ${essence()} ${bossEssence(bossFirstStage(bossId) ?? 1)} essences</div></div>
           <button class="btn small${active ? ' btn-primary' : ''}" data-action="toggle-power" data-boss="${bossId}">${active ? 'Actif ✓' : 'Activer'}</button>
         </div>
         ${body}${table}${mastery}

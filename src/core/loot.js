@@ -40,17 +40,29 @@ export function itemStatValue(stat, baseValue, rarity, level, balance = BALANCE)
   return Math.round(value);
 }
 
-function computeStats(base, rarity, level, balance) {
+// `boosts` : niveaux d'amélioration reçus par chaque statistique (+12 % chacun, les malus ne grandissent pas).
+function computeStats(base, rarity, level, balance, boosts = {}) {
   const stats = {};
-  for (const [stat, value] of Object.entries(base.stats)) stats[stat] = itemStatValue(stat, value, rarity, level, balance);
+  for (const [stat, value] of Object.entries(base.stats)) {
+    const raw = itemStatValue(stat, value, rarity, level, balance);
+    const boost = raw > 0 ? 1 + ((boosts[stat] ?? 0) * balance.forge.upgradeBoostPct) / 100 : 1;
+    stats[stat] = PERCENT_STATS.has(stat) ? Math.round(raw * boost * 10) / 10 : Math.round(raw * boost);
+  }
   return stats;
 }
 
+// Effet principal d'un accessoire : grandit avec la rareté et (modérément) avec le niveau.
+function mainAffixValue(main, rarity, level) {
+  const raw = main.base * rarity.statMultiplier * (1 + 0.02 * (level - 1));
+  return raw < 3 ? Math.round(raw * 10) / 10 : Math.round(raw);
+}
+
 // Effets spéciaux tirés au hasard parmi ceux autorisés pour l'emplacement (sans doublon).
-export function rollAffixes(slot, rarityId, rng, balance = BALANCE) {
+// `exclude` : types déjà présents (effet principal d'un accessoire).
+export function rollAffixes(slot, rarityId, rng, balance = BALANCE, exclude = []) {
   const count = balance.loot.affixCount[rarityId] ?? 0;
   const rarity = rarityById(rarityId);
-  const pool = Object.entries(AFFIXES).filter(([, a]) => a.slots.includes(slot)).map(([type]) => type);
+  const pool = Object.entries(AFFIXES).filter(([type, a]) => a.slots.includes(slot) && !exclude.includes(type)).map(([type]) => type);
   const affixes = [];
   for (let i = 0; i < count && pool.length; i++) {
     const type = pool.splice(Math.floor(rng.next() * pool.length), 1)[0];
@@ -65,19 +77,28 @@ export function makeItem(state, baseId, rarityId, level, balance = BALANCE, rng 
   const rarity = rarityById(rarityId);
   const id = `it${state.nextItemId}`;
   state.nextItemId += 1;
+  const main = base.mainAffix ? [{ type: base.mainAffix.type, value: mainAffixValue(base.mainAffix, rarity, level) }] : [];
   const affixes = base.affixes
     ? base.affixes.map((a) => ({ ...a }))
-    : rng ? rollAffixes(base.slot, rarityId, rng, balance) : [];
+    : [...main, ...(rng ? rollAffixes(base.slot, rarityId, rng, balance, main.map((a) => a.type)) : [])];
   return {
     id, baseId, name: base.name, slot: base.slot, rarity: rarityId, level,
     stats: computeStats(base, rarity, level, balance), affixes, effect: null, locked: false,
+    upgrades: 0, boosts: {},
   };
 }
 
 // options.slot : limite le tirage à un emplacement (butin ciblé de la forge et des donjons).
+// Sans emplacement imposé, on tire d'abord l'emplacement (poids de balance.loot.slotWeights), puis un
+// modèle : les accessoires, déclinés en plusieurs couleurs, ne remplissent pas tout le butin.
 export function generateItem(state, rng, { level, minRarity = 'common', slot } = {}, balance = BALANCE) {
-  const pool = slot ? ITEM_BASES.filter((b) => b.slot === slot) : ITEM_BASES;
-  const base = rng.pick(pool);
+  let chosen = slot;
+  if (!chosen) {
+    const weights = Object.entries(balance.loot.slotWeights);
+    let roll = rng.next() * weights.reduce((sum, [, w]) => sum + w, 0);
+    chosen = weights.find(([, w]) => (roll -= w) < 0)?.[0] ?? weights[0][0];
+  }
+  const base = rng.pick(ITEM_BASES.filter((b) => b.slot === chosen));
   return makeItem(state, base.id, rollRarity(rng, minRarity), Math.max(1, level), balance, rng);
 }
 
@@ -89,12 +110,22 @@ export function makeSignatureItem(state, bossId, level, rng, balance = BALANCE) 
 }
 
 export function rerollAffixes(item, rng, balance = BALANCE) {
-  item.affixes = rollAffixes(item.slot, item.rarity, rng, balance);
+  const base = itemBase(item.baseId);
+  // L'effet principal d'un accessoire est conservé.
+  const main = base.mainAffix ? [item.affixes[0]] : [];
+  item.affixes = [...main, ...rollAffixes(item.slot, item.rarity, rng, balance, main.map((a) => a.type))];
 }
 
-// Recalcule les statistiques après un changement de niveau (réaffûtage).
+// Recalcule les statistiques après un changement de niveau (réaffûtage) ou une amélioration.
 export function refreshItemStats(item, balance = BALANCE) {
-  item.stats = computeStats(itemBase(item.baseId), rarityById(item.rarity), item.level, balance);
+  const base = itemBase(item.baseId);
+  const rarity = rarityById(item.rarity);
+  item.stats = computeStats(base, rarity, item.level, balance, item.boosts ?? {});
+  if (base.mainAffix && item.affixes[0]?.type === base.mainAffix.type) {
+    const boost = 1 + ((item.boosts?.main ?? 0) * balance.forge.upgradeBoostPct) / 100;
+    const v = mainAffixValue(base.mainAffix, rarity, item.level) * boost;
+    item.affixes[0].value = v < 3 ? Math.round(v * 10) / 10 : Math.round(v);
+  }
 }
 
 export function recycleValue(item, balance = BALANCE) {

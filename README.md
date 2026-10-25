@@ -238,8 +238,9 @@ persiste. Reconsidérer Godot reste possible si le projet a besoin d'un moteur c
 ## v5, v6 et v7
 
 Refonte complète de la direction artistique (v5), puis chevalier chibi animé, 25 ennemis animés et
-décors enrichis (v6), puis équilibrage, arbre de talents, interface en bandeau et fluidité (v7) :
-voir `docs/RELEASE_NOTES.md`.
+décors enrichis (v6), puis équilibrage, arbre de talents, interface en bandeau et fluidité (v7),
+puis 20 héros invocables, donjons des SSR, accessoires, amélioration/fusion d'équipement, missions
+journalières/hebdomadaires/mensuelles et démarrage rapide (v7.5) : voir `docs/RELEASE_NOTES.md`.
 
 ## v4
 

@@ -5,7 +5,16 @@ export const SLOTS = {
   weapon: 'Arme',
   helmet: 'Casque',
   armor: 'Armure',
+  amulet: 'Collier',
+  earring: "Boucles d'oreilles",
+  ring: 'Anneau',
+  bracelet: 'Bracelet',
 };
+
+// Équipement porté visible sur le chevalier ; les accessoires améliorent seulement ses statistiques
+// secondaires (critique, vol de vie, or, butin…).
+export const GEAR_SLOTS = ['weapon', 'helmet', 'armor'];
+export const ACCESSORY_SLOTS = ['amulet', 'earring', 'ring', 'bracelet'];
 
 export const RARITIES = [
   { id: 'common', label: 'Commun', color: '#c9c9c9', weight: 70, statMultiplier: 1, recycleGold: 5 },
@@ -23,6 +32,35 @@ export const STAT_LABELS = {
 
 // Statistiques en pourcentage : affichées avec « % », non multipliées par le niveau d'objet.
 export const PERCENT_STATS = new Set(['armor', 'attackSpeed']);
+
+// Accessoires : pas de statistique principale, un effet principal (`mainAffix`, qui grandit avec le
+// niveau de l'objet) et des effets tirés au hasard comme les autres objets. Chaque modèle existe
+// en plusieurs couleurs de pierre (rubis, saphir, émeraude, améthyste) ; la rareté se lit au cadre.
+const GOLD = { main: '#ffd23f', shade: '#c8961e' };
+const SILVER = { main: '#d6dde6', shade: '#7a8494' };
+const BRONZE = { main: '#c8844a', shade: '#7a4a28' };
+export const ACCESSORY_GEMS = [
+  { id: 'ruby', label: 'de rubis', color: '#e8384f' },
+  { id: 'sapphire', label: 'de saphir', color: '#3f8cff' },
+  { id: 'emerald', label: "d'émeraude", color: '#36c46a' },
+  { id: 'amethyst', label: "d'améthyste", color: '#b05cff' },
+];
+const ACCESSORY_DESIGNS = [
+  { id: 'necklace', name: 'Collier', slot: 'amulet', sprite: 'ruby', metal: GOLD, mainAffix: { type: 'critChance', base: 2 } },
+  { id: 'pendant', name: 'Pendentif', slot: 'amulet', sprite: 'pendant', metal: SILVER, mainAffix: { type: 'regenPct', base: 0.5 } },
+  { id: 'drop_earrings', name: 'Pendants', slot: 'earring', sprite: 'drop', metal: GOLD, mainAffix: { type: 'dropChance', base: 1 } },
+  { id: 'hoop_earrings', name: 'Créoles', slot: 'earring', sprite: 'hoop', metal: SILVER, mainAffix: { type: 'lifesteal', base: 1 } },
+  { id: 'band_ring', name: 'Anneau', slot: 'ring', sprite: 'band', metal: GOLD, mainAffix: { type: 'goldPct', base: 5 } },
+  { id: 'signet_ring', name: 'Chevalière', slot: 'ring', sprite: 'signet', metal: SILVER, mainAffix: { type: 'damageVsBossPct', base: 5 } },
+  { id: 'thorn_bracelet', name: 'Bracelet épineux', slot: 'bracelet', sprite: 'thorn', metal: BRONZE, mainAffix: { type: 'thorns', base: 6 } },
+  { id: 'hunter_bracelet', name: 'Bracelet du chasseur', slot: 'bracelet', sprite: 'cuff', metal: SILVER, mainAffix: { type: 'damageVsNormalPct', base: 5 } },
+];
+function accessoryBases() {
+  return ACCESSORY_DESIGNS.flatMap((d) => ACCESSORY_GEMS.map((g) => ({
+    id: `${d.id}_${g.id}`, name: `${d.name} ${g.label}`, slot: d.slot, sprite: d.sprite,
+    colors: { ...d.metal, gem: g.color }, stats: {}, mainAffix: d.mainAffix,
+  })));
+}
 
 // `sprite` renvoie aux grilles de src/render/sprites.js ; `colors` teinte le sprite sur le héros.
 export const ITEM_BASES = [
@@ -54,6 +92,7 @@ export const ITEM_BASES = [
     id: 'chainmail', name: 'Harnois', slot: 'armor', sprite: 'mail',
     colors: { main: '#a3adb9', shade: '#68727e' }, stats: { maxHp: 25, armor: 4 },
   },
+  ...accessoryBases(),
 ];
 
 // Objets signature : lâchés uniquement par leur boss (butin ciblé), toujours Épiques ou Légendaires,
@@ -92,14 +131,14 @@ export const SIGNATURE_ITEMS = [
 // Effets spéciaux (« affixes ») tirés pour les objets Rares et mieux.
 // Valeur = base × multiplicateur de rareté, arrondie.
 export const AFFIXES = {
-  critChance: { label: (v) => `+${v} % de coup critique`, base: 2, slots: ['weapon', 'helmet'] },
-  lifesteal: { label: (v) => `Vol de vie : ${v} % des dégâts`, base: 1, slots: ['weapon'] },
-  thorns: { label: (v) => `Épines : renvoie ${v} % des dégâts subis`, base: 8, slots: ['armor', 'helmet'] },
-  goldPct: { label: (v) => `+${v} % or`, base: 5, slots: ['weapon', 'helmet', 'armor'] },
-  damageVsBossPct: { label: (v) => `+${v} % dégâts contre les boss`, base: 6, slots: ['weapon'] },
-  damageVsNormalPct: { label: (v) => `+${v} % dégâts contre les ennemis ordinaires`, base: 6, slots: ['weapon', 'armor'] },
-  regenPct: { label: (v) => `+${String(v).replace('.', ',')} % PV/s`, base: 0.5, slots: ['helmet', 'armor'] },
-  dropChance: { label: (v) => `+${v} pts de chance de butin`, base: 1, slots: ['helmet', 'armor'] },
+  critChance: { label: (v) => `+${v} % de coup critique`, base: 2, slots: ['weapon', 'helmet', ...ACCESSORY_SLOTS] },
+  lifesteal: { label: (v) => `Vol de vie : ${v} % des dégâts`, base: 1, slots: ['weapon', ...ACCESSORY_SLOTS] },
+  thorns: { label: (v) => `Épines : renvoie ${v} % des dégâts subis`, base: 8, slots: ['armor', 'helmet', ...ACCESSORY_SLOTS] },
+  goldPct: { label: (v) => `+${v} % or`, base: 5, slots: ['weapon', 'helmet', 'armor', ...ACCESSORY_SLOTS] },
+  damageVsBossPct: { label: (v) => `+${v} % dégâts contre les boss`, base: 6, slots: ['weapon', ...ACCESSORY_SLOTS] },
+  damageVsNormalPct: { label: (v) => `+${v} % dégâts contre les ennemis ordinaires`, base: 6, slots: ['weapon', 'armor', ...ACCESSORY_SLOTS] },
+  regenPct: { label: (v) => `+${String(v).replace('.', ',')} % PV/s`, base: 0.5, slots: ['helmet', 'armor', ...ACCESSORY_SLOTS] },
+  dropChance: { label: (v) => `+${v} pts de chance de butin`, base: 1, slots: ['helmet', 'armor', ...ACCESSORY_SLOTS] },
 };
 
 export const STARTER_WEAPON = 'short_sword';

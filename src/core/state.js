@@ -10,8 +10,9 @@ import { BOSS_POWERS, POWER_RULES } from '../data/powers.js';
 import { TALENTS } from '../data/rebirth.js';
 import { SKILLS } from '../data/skills.js';
 import { ensureContracts } from './contracts.js';
+import { emptyMissions, sanitizeMissions } from './missions.js';
 import { itemBase, makeItem, rarityById } from './loot.js';
-import { bossFirstStage, powerSlots, rollPower } from './powers.js';
+import { bossDungeon, bossFirstStage, powerSlots, rollPower } from './powers.js';
 import { Rng } from './rng.js';
 
 // v1 : prototype · v2 (format identique) · v3 : pouvoirs, Renaissance, verrou
@@ -30,14 +31,14 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     maxStage: 1,
     kills: 0,
     autoAdvance: true,
-    equipment: { weapon: null, helmet: null, armor: null },
+    equipment: Object.fromEntries(Object.keys(SLOTS).map((slot) => [slot, null])),
     inventory: [],
     nextItemId: 1,
     rngSeed: seed >>> 0,
     records: {
       goldEarned: 0, kills: 0, bossesDefeated: 0, itemsFound: 0, rebirths: 0, contractsDone: 0, summons: 0,
     },
-    ui: { slotFilter: 'all', sortBy: 'rarity' },
+    ui: { slotFilter: 'all', sortBy: 'rarity', autoRecycle: 'off' },
     // Progression permanente (conservée par la Renaissance).
     level: 1,
     xp: 0,
@@ -60,6 +61,8 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     nextEventId: 0,
     dungeon: null,
     dungeonsCleared: {},
+    missions: emptyMissions(),
+    playSeconds: 0, // temps de jeu cumulé (boost des premières heures)
   };
   state.equipment.weapon = makeItem(state, STARTER_WEAPON, 'common', 1);
   ensureContracts(state, new Rng(state.rngSeed ^ 0x51ed27));
@@ -82,10 +85,12 @@ function cleanItem(item) {
   const affixes = Array.isArray(item.affixes)
     ? item.affixes.filter((a) => a && a.type in AFFIXES && Number.isFinite(a.value)).map((a) => ({ type: a.type, value: a.value }))
     : [];
+  const boosts = {};
+  for (const [k, v] of Object.entries(obj(item.boosts))) if (Number.isInteger(v) && v > 0) boosts[k] = v;
   return {
     id: item.id, baseId: item.baseId, name: base.name, slot: item.slot,
     rarity: item.rarity, level: item.level, stats: { ...item.stats }, affixes, effect: null,
-    locked: item.locked === true,
+    locked: item.locked === true, upgrades: int(item.upgrades, 0), boosts,
   };
 }
 
@@ -116,7 +121,7 @@ function cleanPowers(state, raw) {
     const rng = new Rng(state.rngSeed ^ 0x2545f491);
     for (const bossId of Object.keys(BOSSES)) {
       const stage = bossFirstStage(bossId);
-      if (stage !== null && stage < state.maxStage && !DUNGEONS.some((d) => d.boss === bossId)) {
+      if (stage !== null && stage < state.maxStage && !bossDungeon(bossId)) {
         state.powers[bossId] = {
           current: rollPower(bossId, rng), pending: null, victories: 1, rerolls: 0, sinceHigh: 0, charges: 1, masteryClaimed: 0,
         };
@@ -160,6 +165,9 @@ function cleanActivities(state, raw) {
   }
   state.nextContractId = Math.max(int(raw.nextContractId, 0), ...state.contracts.map((c) => c.id));
   ensureContracts(state, new Rng(state.rngSeed ^ state.nextContractId));
+
+  state.missions = sanitizeMissions(raw.missions);
+  state.playSeconds = Math.max(0, Number(raw.playSeconds) || 0);
 
   state.nextEventId = int(raw.nextEventId, 0);
   if (Array.isArray(raw.inbox)) {
@@ -246,7 +254,8 @@ export function sanitizeState(raw, balance = BALANCE, now = Date.now()) {
   state.nextItemId = Math.max(int(raw.nextItemId, 1, 1), ...used.map((n) => n + 1), 1);
 
   if (raw.ui && typeof raw.ui === 'object') {
-    if (raw.ui.slotFilter === 'all' || raw.ui.slotFilter in SLOTS) state.ui.slotFilter = raw.ui.slotFilter;
+    if (raw.ui.slotFilter === 'all' || raw.ui.slotFilter === 'accessory' || raw.ui.slotFilter in SLOTS) state.ui.slotFilter = raw.ui.slotFilter;
+    if (['off', 'common', 'rare'].includes(raw.ui.autoRecycle)) state.ui.autoRecycle = raw.ui.autoRecycle;
     if (SORT_OPTIONS.includes(raw.ui.sortBy)) state.ui.sortBy = raw.ui.sortBy;
   }
   return state;

@@ -7,6 +7,21 @@ import { canEnterDungeon, dungeonById } from '../../core/dungeon.js';
 import { rewardText } from '../../core/rewards.js';
 import { slotIconName } from '../../render/pixel.js';
 import { escapeHtml, formatNumber, img, progressBar } from '../common.js';
+import { BALANCE } from '../../data/balance.js';
+import { COMPANIONS } from '../../data/companions.js';
+
+// Héros SSR adapté au donjon : rappel de son bonus et de sa présence dans l'équipe.
+function affinityLine(state, d) {
+  const ally = COMPANIONS.find((c) => c.id === d.ally);
+  if (!ally) return '';
+  const a = BALANCE.dungeonAffinity;
+  const owned = Boolean(state.companions.owned[ally.id]);
+  const inTeam = state.companions.equipped.includes(ally.id);
+  const status = inTeam ? '<span class="good">dans l\'équipe ✔</span>'
+    : owned ? '<span class="muted">à placer dans l\'équipe</span>' : '<span class="muted">non invoqué</span>';
+  return `<div class="dungeon-ally"><b class="gold-text">Héros adapté : ${escapeHtml(ally.name)} (SSR)</b> · ${status}
+    <div class="muted">Ici : compétence ×${a.skillMultiplier}, passif ×${a.passiveMultiplier}, dégâts subis −${a.damageTakenPct} %.</div></div>`;
+}
 
 function running(ui, state) {
   const run = state.dungeon;
@@ -19,6 +34,7 @@ function running(ui, state) {
       ${progressBar((run.room - 1 + (boss ? 0 : run.kills / d.killsPerRoom)) / d.rooms, boss ? `Salle du boss — ${BOSSES[d.boss].name}` : `Salle ${run.room}/${d.rooms} · ${run.kills}/${d.killsPerRoom}`)}
       <div class="section-title">Chemin (modifiable à tout moment)</div>
       <div class="chip-row">${paths}</div>
+      ${affinityLine(state, d)}
       <div class="muted">Butin final : objet Épique ou mieux · ${run.slot === 'any' ? 'tout emplacement' : SLOTS[run.slot]}</div>
       <div>Gagné : <span class="gold-text">${rewardText(run.earned, formatNumber) || '—'}</span></div>
       <button class="btn btn-danger small" data-action="abandon-dungeon">Abandonner (retour à la campagne)</button>
@@ -44,6 +60,7 @@ export default {
       return `<div class="card dungeon-card${locked ? ' locked' : ''}">
         <div class="row-between"><b>${img('icon_dungeon')} ${escapeHtml(d.name)}</b><span class="muted">${cleared ? `${cleared} victoire${cleared > 1 ? 's' : ''}` : 'Jamais terminé'}</span></div>
         <div class="muted">${escapeHtml(d.description)} Boss : <b>${BOSSES[d.boss].name}</b> (pouvoir ancestral).</div>
+        ${affinityLine(state, d)}
         ${locked ? `<div class="bad">Débloqué à l'étape ${stageLabel(d.unlockStage)}.</div>` : `
         <div class="section-title">Butin ciblé : emplacement de l'objet final</div><div class="chip-row">${slots}</div>
         <div class="section-title">Chemin</div><div class="chip-row">${paths}</div>

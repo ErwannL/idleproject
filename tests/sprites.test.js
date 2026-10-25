@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs';
 import { test } from 'node:test';
 
 import { BOSSES, ENEMIES } from '../src/data/enemies.js';
+import { COMPANIONS } from '../src/data/companions.js';
 import { ITEM_BASES } from '../src/data/items.js';
 import { ZONES } from '../src/data/zones.js';
 import { BG } from '../src/render/bg.js';
@@ -61,6 +62,18 @@ test('les données référencent des sprites existants', () => {
     for (const layer of bg.layers) assert.ok(existsSync(new URL(`../assets/bg/${layer.file}`, import.meta.url)), layer.file);
     for (const id of zone.enemies) assert.ok(ENEMIES[id], id);
     for (const id of zone.bosses) assert.ok(BOSSES[id], id);
+  }
+});
+
+test('héros alliés : 3 images (repos, marche, attaque) de même taille', () => {
+  for (const c of COMPANIONS) {
+    if (c.kind !== 'ally') {
+      assert.ok(SPRITES[c.sprite], c.sprite);
+      continue;
+    }
+    const frames = [c.sprite, `${c.sprite}_b`, `${c.sprite}_atk`].map((n) => SPRITES[n]);
+    assert.ok(frames.every(Boolean), c.id);
+    assert.ok(frames.every((f) => f.rows.length === frames[0].rows.length && f.rows[0].length === frames[0].rows[0].length), `${c.id} : tailles`);
   }
 });
 

@@ -1,15 +1,15 @@
 // Inventaire en 3 zones (équipement porté · fiche de l'objet · grille) et Forge.
 import { BALANCE } from '../../data/balance.js';
 import { BOSSES } from '../../data/enemies.js';
-import { SLOTS, STAT_LABELS } from '../../data/items.js';
+import { ACCESSORY_SLOTS, GEAR_SLOTS, SLOTS, STAT_LABELS } from '../../data/items.js';
 import { formatStat } from '../../core/format.js';
-import { canReforge, craftCost, sharpenCost } from '../../core/forge.js';
-import { bulkRecycleCandidates, listInventory } from '../../core/inventory.js';
+import { canReforge, craftCost, fusionGroups, maxUpgrades, sharpenCost, upgradeCost } from '../../core/forge.js';
+import { AUTO_RECYCLE_RULES, bulkRecycleCandidates, listInventory } from '../../core/inventory.js';
 import { itemBase, rarityById, recycleMaterials, recycleValue } from '../../core/loot.js';
 import { computeHeroStats, statsWithItem } from '../../core/stats.js';
 import { slotIconName } from '../../render/pixel.js';
 import {
-  affixText, coin, costButton, escapeHtml, essence, formatDecimal, formatNumber, img, itemFrame, shard,
+  affixText, coin, costButton, escapeHtml, essence, formatDecimal, formatNumber, img, itemFrame, rarityLabel, shard,
 } from '../common.js';
 import { animCanvas } from '../animator.js';
 
@@ -50,6 +50,19 @@ function detail(ui, state, item) {
   const lock = `<button class="btn small lock-btn${item.locked ? ' on' : ''}" data-action="lock" data-id="${item.id}"
     title="${item.locked ? 'Déverrouiller' : 'Verrouiller : protège du recyclage'}">${img('icon_lock')} ${item.locked ? 'Verrouillé' : 'Verrouiller'}</button>`;
   const sharpen = sharpenCost(state, item);
+  // Amélioration : +12 % sur une statistique au hasard, 5 fois (Commun, Rare) ou 10 fois (Épique, Légendaire).
+  const ups = item.upgrades ?? 0;
+  const maxUp = maxUpgrades(item);
+  const upCost = upgradeCost(item);
+  const upgradeRow = ups >= maxUp
+    ? `<div class="upgrade-row"><span class="gold-text">Amélioration maximale (+${maxUp})</span></div>`
+    : `<div class="upgrade-row">
+        <button class="btn btn-gold num" data-action="upgrade-item" data-id="${item.id}" data-cost="${upCost.gold}" data-currency="gold"
+          ${state.materials.shards < upCost.shards ? 'data-locked="1" disabled' : state.gold < upCost.gold ? 'disabled' : ''}
+          title="Augmente une statistique de l'objet au hasard de ${BALANCE.forge.upgradeBoostPct} %">
+          Améliorer +${ups + 1} ${coin()} ${formatNumber(upCost.gold)} ${shard()} ${upCost.shards}</button>
+        <span class="muted num">${ups}/${maxUp}</span>
+      </div>`;
   const forgeRow = `<div class="detail-actions">
       ${sharpen ? costButton({ action: 'sharpen', cost: sharpen, have: state.materials.shards, currency: 'shards', attrs: `data-id="${item.id}"`, cls: 'small', label: `Réaffûter niv. ${state.maxStage} ` }) : ''}
       ${canReforge(item) ? `<button class="btn small" data-action="reforge" data-id="${item.id}"
@@ -64,12 +77,12 @@ function detail(ui, state, item) {
   const preview = animCanvas('hero', 64, 58, 2, `data-preview="${escapeHtml(JSON.stringify({ ...state.equipment, [item.slot]: item }))}"`);
   return `<div class="card item-detail r-${item.rarity}">
     <div class="detail-head">${itemFrame(item, { tag: 'div' })}
-      <div><div class="item-name">${escapeHtml(item.name)}</div>
+      <div><div class="item-name">${escapeHtml(item.name)}${ups ? ` <span class="plus-lv">+${ups}</span>` : ''}</div>
         <div class="item-sub">${SLOTS[item.slot]} · <span class="rarity-text">${rarity.label}</span> · niv. ${item.level}</div>
         ${isEquipped ? '<span class="equipped-tag">Équipé</span>' : ''}
         ${base.signature ? `<span class="signature-tag">Butin de ${escapeHtml(BOSSES[base.signature].name)}</span>` : ''}</div></div>
     <ul class="stat-list">${stats}${affixes}</ul>
-    ${compare}${actions}${forgeRow}
+    ${compare}${actions}${upgradeRow}${forgeRow}
     <div class="preview" title="Aperçu du chevalier avec cet objet">${preview}</div>
   </div>`;
 }
@@ -83,14 +96,19 @@ function bag(ui, state) {
     selected = items[0] ?? state.equipment.weapon ?? equippedItems[0] ?? null;
     ui.view.selectedItemId = selected?.id ?? null;
   }
-  const slots = Object.entries(SLOTS).map(([slot, label]) => {
+  const slotFrame = (slot) => {
+    const label = SLOTS[slot];
     const item = state.equipment[slot];
     const frame = item
       ? itemFrame(item, { selected: item.id === ui.view.selectedItemId, equipped: true })
       : `<div class="item-frame empty" title="${label} : aucun">${img(slotIconName(slot))}</div>`;
-    return `<div>${frame}<div class="slot-label">${label}</div></div>`;
-  }).join('');
-  const filters = [['all', null, 'Tous'], ...Object.entries(SLOTS).map(([slot, label]) => [slot, slotIconName(slot), label])]
+    return `<div class="slot" title="${label}">${frame}</div>`;
+  };
+  // Équipement porté à gauche, accessoires à droite.
+  const slots = `<div class="slot-col">${GEAR_SLOTS.map(slotFrame).join('')}</div>
+    <div class="slot-col acc">${ACCESSORY_SLOTS.map(slotFrame).join('')}</div>`;
+  const filters = [['all', null, 'Tous'], ...GEAR_SLOTS.map((slot) => [slot, slotIconName(slot), SLOTS[slot]]),
+    ['accessory', 'ring_band', 'Accessoires']]
     .map(([value, iconName, label]) => `<button class="btn${state.ui.slotFilter === value ? ' active' : ''}"
       data-action="filter" data-value="${value}" title="${label}">${iconName ? img(iconName) : 'Tous'}</button>`).join('');
   const sortOptions = Object.entries(SORT_LABELS)
@@ -112,6 +130,11 @@ function bag(ui, state) {
         <select data-action="sort" aria-label="Trier">${sortOptions}</select>
         <span class="inv-count${full ? ' full' : ''}">${state.inventory.length}/${BALANCE.loot.inventorySize}</span>
       </div>
+      <label class="inv-rule" title="Règle de collecte : les objets ramassés sont recyclés aussitôt (jamais un objet meilleur que l'équipement porté ni un objet signature).">
+        <span>Au ramassage :</span>
+        <select data-action="auto-recycle" aria-label="Règle de collecte">${Object.entries(AUTO_RECYCLE_RULES)
+          .map(([v, l]) => `<option value="${v}" ${v === (state.ui.autoRecycle ?? 'off') ? 'selected' : ''}>${l}</option>`).join('')}</select>
+      </label>
       <div class="inv-bulk" title="Ne recycle jamais un objet verrouillé, meilleur que l'équipement porté, Épique ou Légendaire.">
         <select data-action="bulk-rarity" aria-label="Rareté maximale à recycler">
           <option value="common" ${ui.view.bulkRarity === 'common' ? 'selected' : ''}>Communs</option>
@@ -124,16 +147,38 @@ function bag(ui, state) {
 }
 
 function forge(ui, state) {
-  const cost = craftCost(state);
+  const tier = ui.view.craftTier === 'epic' ? 'epic' : 'rare';
+  const cost = craftCost(state, undefined, tier);
   const full = state.inventory.length >= BALANCE.loot.inventorySize;
-  const slots = Object.entries(SLOTS).map(([slot, label]) => `<button class="btn forge-slot" data-action="craft" data-value="${slot}"
-      ${state.gold < cost.gold || state.materials.shards < cost.shards || full ? 'disabled' : ''}>
-      ${img(slotIconName(slot))}<b>${label}</b><span class="muted">Rare ou mieux · niv. ${state.maxStage}</span></button>`).join('');
+  const short = state.gold < cost.gold || state.materials.shards < cost.shards || state.materials.essence < cost.essence;
+  const slots = Object.entries(SLOTS).map(([slot, label]) => `<button class="btn forge-slot" data-action="craft" data-value="${slot}" data-tier="${tier}"
+      ${short || full ? 'disabled' : ''}>
+      ${img(slotIconName(slot))}<b>${label}</b><span class="muted">${tier === 'epic' ? 'Épique' : 'Rare'} ou mieux · niv. ${state.maxStage}</span></button>`).join('');
+  const tiers = `<div class="sub-tabs">
+      <button class="btn chip-btn${tier === 'rare' ? ' active' : ''}" data-action="craft-tier" data-value="rare">Rare+</button>
+      <button class="btn chip-btn${tier === 'epic' ? ' active' : ''}" data-action="craft-tier" data-value="epic">${essence()} Épique+</button></div>`;
+  const groups = fusionGroups(state);
+  const fusion = groups.length
+    ? groups.map((g) => `<div class="fusion-row">
+        <span>${img(slotIconName(g.slot))} ${BALANCE.forge.fusionCount} × ${SLOTS[g.slot]}
+          <b class="r-${g.rarity} rarity-text">${rarityLabel(g.rarity)}</b> → 1 <b class="r-${g.next} rarity-text">${rarityLabel(g.next)}</b>
+          <span class="muted">(${g.count} dans le sac)</span></span>
+        <button class="btn btn-gold small" data-action="fuse" data-value="${g.slot}|${g.rarity}">Fusionner</button></div>`).join('')
+    : `<div class="muted">Aucune fusion possible : il faut ${BALANCE.forge.fusionCount} objets du même emplacement et de la même rareté
+        (non verrouillés, hors objets signature).</div>`;
   return `<div class="card">
+      <div class="section-title">Fusion</div>
+      <div class="muted">${BALANCE.forge.fusionCount} objets de même emplacement et de même rareté → 1 objet de la rareté suivante,
+        au niveau du meilleur. Les plus faibles sont utilisés en premier.</div>
+      ${fusion}
+    </div>
+    <div class="card">
       <div class="section-title">Fabrication ciblée</div>
-      <div class="muted">Choisissez l'emplacement : l'objet est garanti Rare ou mieux, au niveau de votre étape max, avec ses effets spéciaux.</div>
+      <div class="muted">Choisissez l'emplacement : l'objet est garanti ${tier === 'epic' ? 'Épique' : 'Rare'} ou mieux, au niveau de votre étape max,
+        avec ses effets spéciaux. La version Épique demande des essences, butin des boss.</div>
+      ${tiers}
       <div class="forge-grid">${slots}</div>
-      <div class="muted">Coût : ${coin()} ${formatNumber(cost.gold)} · ${shard()} ${cost.shards} éclats${full ? ' · <span class="bad">sac plein</span>' : ''}</div>
+      <div class="muted">Coût : ${coin()} ${formatNumber(cost.gold)} · ${shard()} ${cost.shards} éclats${cost.essence ? ` · ${essence()} ${cost.essence} essences` : ''}${full ? ' · <span class="bad">sac plein</span>' : ''}</div>
     </div>
     <div class="card">
       <div class="section-title">Matériaux</div>
