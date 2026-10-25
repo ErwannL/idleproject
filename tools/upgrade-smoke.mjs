@@ -107,7 +107,11 @@ for (const entry of installations()) {
   const uninstaller = entry.UninstallString.match(/^"([^"]+)"/)?.[1] ?? entry.UninstallString.split(' /')[0];
   await runSetup(uninstaller, ['/S', ...(/allusers/i.test(entry.UninstallString) ? ['/allusers'] : [])]).catch(() => {});
 }
-await pause(3000);
-check('désinstallation propre', installations().length === 0, `${installations().length} entrée(s) restante(s)`);
+let left = installations().length;
+for (let i = 0; i < 20 && left > 0; i++) {
+  await pause(1000);
+  left = installations().length;
+}
+check('désinstallation propre', left === 0, `${left} entrée(s) restante(s)`);
 
 process.exit(results.every(Boolean) ? 0 : 1);

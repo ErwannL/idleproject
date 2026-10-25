@@ -1,6 +1,6 @@
-## Idle RPG v7.0.0 — Équilibrage, arbre de talents, jeu en bandeau et fluidité
+## Idle RPG v7.1.0 — Équilibrage, arbre de talents, jeu en bandeau et fluidité
 
-**Installation ou mise à jour :** téléchargez **IdleRPG-7.0.0-setup.exe** et lancez-le (jeu fermé).
+**Installation ou mise à jour :** téléchargez **IdleRPG-7.1.0-setup.exe** et lancez-le (jeu fermé).
 L'installation se fait désormais **en un clic** et **remplace toujours l'ancienne version** : plus de doublons,
 même si une ancienne version avait été installée « pour tous les utilisateurs » (elle est désinstallée,
 Windows peut demander une confirmation). **Votre partie est conservée.**
