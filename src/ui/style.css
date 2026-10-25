@@ -560,6 +560,12 @@ button.chip:hover { border-color: var(--line-2); }
 /* Carte du monde. */
 .world-map { position: relative; border: 1px solid #5c4a2c; border-radius: var(--radius); overflow: hidden; }
 .world-map > img { display: block; width: 100%; height: auto; }
+.map-viewport { overflow: hidden; border-radius: var(--radius); }
+.map-viewport.zoomed { overflow: auto; max-height: min(58vh, 520px); overscroll-behavior: contain; }
+.map-viewport .world-map { max-width: none; }
+.map-viewport.zoomed .world-map { cursor: grab; }
+.map-viewport.dragging .world-map { cursor: grabbing; }
+.map-viewport .world-map > img { -webkit-user-drag: none; user-select: none; }
 .map-node { position: absolute; transform: translate(-50%, -10%); padding: 0; background: none; border: none; cursor: pointer; }
 .map-label { display: flex; flex-direction: column; align-items: center; padding: 1px 5px; background: rgba(20, 14, 6, 0.82); border: 1px solid #7a5a33; border-radius: 3px; color: #f2e2b8; font-size: 9.5px; font-weight: 700; white-space: nowrap; }
 .map-label small { font-size: 8.5px; color: #c9b27a; font-weight: 600; }
@@ -1248,3 +1254,66 @@ body .item-frame img.lock { position: absolute; top: 1px; left: 1px; width: 8px;
 .contract-title.rare, .rare-text { color: #d8a6ff; }
 @container (max-width: 520px) { .m-row { grid-template-columns: 34px 1fr 80px; } .m-reward { display: none; } }
 .offline-rare { padding: 6px; border: 1px solid #c9a040; border-radius: 6px; background: rgba(242,192,96,0.08); margin: 4px 0; }
+/* v7.8 : la barre des boosts ne recouvre plus la barre de niveau : en haut à droite, sous « Avance auto ». */
+#rush-bar { top: 40px; bottom: auto; right: 6px; }
+.layout-strip #rush-bar { top: 2px; right: 50px; bottom: auto; }
+#speed-toggle { right: 118px; }
+#speed-toggle.fast { color: #7fd4ff; border-color: #4f8cff; }
+.layout-strip #speed-toggle { display: none; }
+.small-note { font-size: 10.5px; margin-top: 3px; }
+.diff-btn.done { border-color: #5fbf6a; }
+.tag-new { display: inline-block; padding: 0 6px; border-radius: 4px; font-size: 10px; font-weight: 800; color: #7fe0ff; border: 1px solid #3a7a9a; background: rgba(90,180,240,0.14); }
+.update-notes pre { white-space: pre-wrap; max-height: 160px; overflow: auto; font-size: 10px; margin: 4px 0 0; }
+
+/* v7.8 — habillage pixel art (cadres 9-slice générés par tools/art/ui_frames.py). */
+#panel {
+  border-style: solid; border-width: 12px;
+  border-image: url('../../assets/ui/frames/panel.png') 16 fill / 16px round;
+  image-rendering: pixelated;
+}
+#panel header {
+  margin: -4px -4px 4px; min-height: 34px;
+  background: none; box-shadow: none;
+  border-style: solid; border-width: 9px 14px;
+  border-image: url('../../assets/ui/frames/header.png') 12 14 fill / 12px 14px stretch;
+}
+#panel header h2 { color: #ffe8a8; text-shadow: 0 2px 0 #0b0f1e; }
+#panel-body > .card, .detail-pane > .card, .card.framed {
+  background: none; box-shadow: none; border-radius: 0;
+  border-style: solid; border-width: 6px;
+  border-image: url('../../assets/ui/frames/panel_alt.png') 10 fill / 10px stretch;
+}
+#tabs button {
+  background: none; box-shadow: none; border-radius: 0;
+  border-style: solid; border-width: 6px;
+  border-image: url('../../assets/ui/frames/tab.png') 8 fill / 8px stretch;
+}
+#tabs button:hover { box-shadow: none; filter: brightness(1.15); }
+#tabs button.active { background: none; box-shadow: none; border-image-source: url('../../assets/ui/frames/tab_active.png'); }
+.btn-gold, .btn-primary, .btn-danger, .btn-purple, .btn-gray {
+  border-radius: 0; box-shadow: none;
+  border-style: solid; border-width: 4px;
+  border-image: url('../../assets/ui/frames/btn_blue.png') 5 fill / 5px stretch;
+  background: none;
+}
+.btn-gold { border-image-source: url('../../assets/ui/frames/btn_gold.png'); color: #3a2208; text-shadow: 0 1px 0 rgba(255, 240, 190, 0.6); }
+.btn-primary { border-image-source: url('../../assets/ui/frames/btn_blue.png'); color: #fff; }
+.btn-danger { border-image-source: url('../../assets/ui/frames/btn_red.png'); color: #fff; }
+.btn-purple { border-image-source: url('../../assets/ui/frames/btn_purple.png'); color: #fff; }
+.btn-gray { border-image-source: url('../../assets/ui/frames/btn_gray.png'); color: #fff; }
+.btn-gold:hover:not(:disabled), .btn-primary:hover:not(:disabled), .btn-danger:hover:not(:disabled) { box-shadow: none; filter: brightness(1.12); }
+.btn-gold:disabled, .btn-primary:disabled, .btn-danger:disabled { border-image-source: url('../../assets/ui/frames/btn_gray.png'); color: #c8cede; text-shadow: none; filter: none; opacity: 0.85; }
+.tag-open, .tag-locked, .tag-new, .tag-done, .tag-never {
+  border-radius: 0; background: none; color: #fff; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
+  border-style: solid; border-width: 3px; padding: 0 3px;
+  border-image: url('../../assets/ui/frames/badge_green.png') 4 fill / 4px stretch;
+}
+.tag-locked { border-image-source: url('../../assets/ui/frames/badge_gray.png'); }
+.tag-new { border-image-source: url('../../assets/ui/frames/btn_blue.png'); border-image-slice: 5 fill; border-image-width: 5px; }
+.tag-done { border-image-source: url('../../assets/ui/frames/badge_gold.png'); color: #3a2208; text-shadow: none; }
+.tag-never { border-image-source: url('../../assets/ui/frames/badge_red.png'); }
+.item-frame.empty, .team-slot.empty {
+  border-radius: 0; background: none;
+  border-style: solid; border-width: 4px;
+  border-image: url('../../assets/ui/frames/slot.png') 6 fill / 6px stretch;
+}

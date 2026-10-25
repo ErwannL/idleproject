@@ -1,9 +1,32 @@
-## Idle RPG v7.7.0 — 11 mondes, Codex, donjons à difficultés, synergies, anglais
+## Idle RPG v7.8.0 — mises à jour en jeu, vitesse des combats, menus pixel art
 
-**Installation ou mise à jour :** téléchargez **IdleRPG-7.7.0-setup.exe** et lancez-le (jeu fermé).
+**Installation ou mise à jour :** téléchargez **IdleRPG-7.8.0-setup.exe** et lancez-le (jeu fermé).
 L'installation se fait en un clic et remplace l'ancienne version ; **votre partie est conservée**.
+À partir de la v7.8, les mises à jour suivantes s'installent **directement depuis le jeu** (Paramètres).
 
-### Nouveau dans la v7.7
+### Nouveau dans la v7.8
+- **Version et mises à jour** (Paramètres) : affiche la version lancée, vérifie la dernière version publiée sur
+  GitHub (aussi au lancement) et, dans la version bureau, **télécharge et installe la mise à jour en un clic**
+  (sauvegarde puis redémarrage automatique). Notes de version consultables avant d'installer.
+- **Vitesse des combats ×1 / ×2 / ×5 / ×10** : bouton ⏩ sur la scène, mémorisé avec la partie —
+  idéal pour les boss coriaces.
+- **Carte du monde zoomable** : boutons − / + / ⟲ (ou Ctrl + molette), glisser pour se déplacer ;
+  la vue se centre sur la zone choisie.
+- **Menus redessinés en pixel art** : panneaux à coins dorés et rubis, bandeau de titre, onglets en tuiles,
+  boutons or / bleu / rouge, badges de statut et cases d'équipement dans le style de la planche d'assets.
+- **Animations** : marche des monstres à quatre pattes fluide (plus de saccades), compagnons avec
+  cycle de marche et attaque en deux temps (élan puis frappe).
+- **Donjons** : chaque difficulté indique clairement comment la débloquer (terminer **ce** donjon dans la
+  difficulté précédente, chaque donjon séparément), ✔ sur les difficultés réussies.
+
+### Corrigés
+- **Codes de triche** qui ne faisaient plus rien (ainsi que l'activation/amélioration manuelle des boosts).
+- **Victoires de donjon d'avant la v7.7** : elles débloquent maintenant la difficulté Normal.
+- **Recyclage en masse** : toutes les raretés sont proposées (+ Épiques, + Légendaires) ; objets verrouillés,
+  uniques et objets d'amélioration toujours protégés.
+- La barre des boosts ne cache plus la barre de niveau.
+
+### v7.7
 - **10 mondes + le Trône de l'Abysse** : 4 nouveaux mondes (Marais putride, Îles célestes, Cœur du volcan,
   Royaume du Néant) avec décors, ennemis et 4 boss chacun. **Monde 11** : 10 étapes, chacune contre le méga boss
   d'un monde en **mode berserk**, qui invoque ses boss des étapes 5, 10 et 15 ; musique épique dédiée.

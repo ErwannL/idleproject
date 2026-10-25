@@ -95,10 +95,18 @@ export default {
     const diff = DUNGEON_DIFFICULTIES[diffId];
     const diffs = DIFFICULTY_ORDER.map((id) => {
       const dd = DUNGEON_DIFFICULTIES[id];
+      const i = DIFFICULTY_ORDER.indexOf(id);
       const ok = unlocked.includes(id);
-      return `<button class="btn diff-btn${id === diffId ? ' active' : ''}" data-action="dungeon-diff" data-value="${id}" ${ok ? '' : 'disabled title="Réussissez la difficulté précédente"'}>
-        <span class="skulls">${'☠'.repeat(dd.skulls)}</span><span>${dd.label}</span></button>`;
+      const done = i <= (state.dungeonBest[sel.id] ?? -1);
+      const prev = i > 0 ? DUNGEON_DIFFICULTIES[DIFFICULTY_ORDER[i - 1]].label : '';
+      return `<button class="btn diff-btn${id === diffId ? ' active' : ''}${done ? ' done' : ''}" data-action="dungeon-diff" data-value="${id}"
+        ${ok ? (done ? 'title="Déjà réussi"' : '') : `disabled title="Terminez ce donjon en ${escapeHtml(prev)} pour débloquer"`}>
+        <span class="skulls">${'☠'.repeat(dd.skulls)}</span><span>${ok ? '' : '🔒 '}${dd.label}${done ? ' ✔' : ''}</span></button>`;
     }).join('');
+    const nextLocked = DIFFICULTY_ORDER.find((id) => !unlocked.includes(id));
+    const unlockHint = nextLocked
+      ? `<div class="muted small-note">🔒 ${DUNGEON_DIFFICULTIES[nextLocked].label} : terminez ce donjon (boss final vaincu) en ${DUNGEON_DIFFICULTIES[DIFFICULTY_ORDER[DIFFICULTY_ORDER.indexOf(nextLocked) - 1]].label}. Chaque donjon se débloque séparément.</div>`
+      : '';
     const roles = (sel.roles ?? []).map((r) => `<div class="role-chip" style="--role:${ROLES[r].color}">${img(ROLES[r].icon)}<span>${ROLES[r].label}</span></div>`).join('');
     const slot = ui.view.dungeonSlot ?? 'any';
     const path = ui.view.dungeonPath ?? 'gold';
@@ -114,7 +122,7 @@ export default {
     const detail = `<div class="card dungeon-detail">
         <div class="dungeon-head">${img('icon_dungeon')}<div class="grow"><div class="boss-title">${escapeHtml(sel.name)}</div>
           <div class="muted">${escapeHtml(sel.description)}</div></div>
-          <div class="diff-box"><div class="section-title">Difficulté</div><div class="diff-row">${diffs}</div>
+          <div class="diff-box"><div class="section-title">Difficulté</div><div class="diff-row">${diffs}</div>${unlockHint}
             <div class="muted">♛ ${cleared} victoire${cleared > 1 ? 's' : ''} · ennemis niv. ${Math.max(1, state.maxStage + sel.levelOffset + diff.levelBonus)} · PV ×${diff.hp}</div></div>
         </div>
         ${roles ? `<div class="row"><span class="section-title">Compagnons conseillés</span>${roles}</div>` : ''}

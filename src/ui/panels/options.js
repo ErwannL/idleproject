@@ -3,6 +3,7 @@ import { BALANCE } from '../../data/balance.js';
 import { formatDuration } from '../../core/format.js';
 import { escapeHtml } from '../common.js';
 import { getLang } from '../../i18n/i18n.js';
+import { GAME_VERSION } from '../../version.js';
 
 // Musique lo-fi / aventure et effets sonores (générés en direct, aucun fichier audio).
 function soundOptions(ui) {
@@ -32,7 +33,35 @@ function windowOptions(ui) {
         <button class="btn small" data-action="window-size" data-preset="standard">Standard</button>
         <button class="btn small" data-action="window-size" data-preset="wide">Large</button>
       </div>
-      <div class="muted">Version ${escapeHtml(ui.desktop.version)} · position et taille mémorisées.</div>
+      <div class="muted">Position et taille mémorisées.</div>
+    </div>`;
+}
+
+// Version lancée + dernière version publiée sur GitHub (github.com/ErwannL/idleproject).
+function versionOptions(ui) {
+  const current = ui.desktop?.version ?? GAME_VERSION;
+  const u = ui.update ?? {};
+  const rel = u.release;
+  let status = '<span class="muted">Pas encore vérifié.</span>';
+  if (u.busy) status = '<span class="muted">Vérification…</span>';
+  else if (u.status === 'uptodate') status = `<span class="tag-open">À jour</span> <span class="muted">dernière version : ${escapeHtml(rel.version)}</span>`;
+  else if (u.status === 'error') status = '<span class="tag-locked">Hors ligne</span> <span class="muted">GitHub injoignable.</span>';
+  else if (u.status === 'available') status = `<span class="tag-new">Nouvelle version ${escapeHtml(rel.version)}</span>`;
+  const install = u.status === 'available'
+    ? (ui.desktop ? `<button class="btn btn-gold small" data-action="install-update" ${u.installing || !rel.setup ? 'disabled' : ''}>
+        ${u.installing ? 'Téléchargement…' : `Mettre à jour vers ${escapeHtml(rel.version)}`}</button>`
+      : `<button class="btn btn-gold small" data-action="open-releases">Télécharger la ${escapeHtml(rel.version)}</button>`)
+    : '';
+  const notes = u.status === 'available' && rel.notes
+    ? `<details class="update-notes"><summary>Nouveautés</summary><pre>${escapeHtml(rel.notes)}</pre></details>` : '';
+  return `<div class="card">
+      <div class="section-title">Version et mises à jour</div>
+      <div class="row-between"><span>Version lancée : <b class="num">${escapeHtml(current)}</b> ${ui.desktop ? '(bureau)' : '(navigateur)'}</span>
+        <button class="btn small" data-action="check-update" ${u.busy ? 'disabled' : ''}>Vérifier</button></div>
+      <div class="row-between">${status}${install}</div>
+      ${u.error ? `<div class="bad">${escapeHtml(u.error)}</div>` : ''}
+      ${notes}
+      <div class="options-row"><button class="btn small" data-action="open-releases">Voir les versions sur GitHub</button></div>
     </div>`;
 }
 
@@ -42,7 +71,7 @@ export default {
   icon: 'icon_gear',
   render(ui, state) {
     const ago = Math.max(0, (Date.now() - state.lastSaved) / 1000);
-    return `<div class="card">
+    return `${versionOptions(ui)}<div class="card">
         <div class="section-title">Sauvegarde</div>
         <div class="row-between"><span>Dernière sauvegarde : il y a ${formatDuration(ago)}</span>
           <button class="btn small" data-action="save">Sauvegarder</button></div>

@@ -213,6 +213,10 @@ export class UI {
       case 'recycle-toggle': a.setRecycleRule(el.dataset.group, value); break;
       case 'mission-tab': local(() => { v.missionTab = value; }); break;
       case 'lang': a.setLanguage(value); break;
+      case 'speed': a.cycleSpeed(); break;
+      case 'check-update': a.checkUpdate(); break;
+      case 'install-update': a.installUpdate(); break;
+      case 'open-releases': a.openReleases(); break;
       case 'cheat': a.cheat(this.$('cheat-code')?.value); break;
       case 'rush': a.activateRush(value); break;
       case 'upgrade-rush': a.upgradeRush(key); break;
@@ -236,6 +240,7 @@ export class UI {
       case 'claim-mission-bonus': a.claimMissionBonus(value); break;
       case 'claim-login': a.claimLogin(); break;
       case 'claim-all': a.claimAll(); break;
+      case 'map-zoom': local(() => { v.mapZoom = value === 'reset' ? 1 : Math.min(3, Math.max(1, (v.mapZoom ?? 1) * (value === 'in' ? 1.5 : 1 / 1.5))); }); break;
       case 'tree-zoom': local(() => { v.treeZoom = value === 'reset' ? 1 : Math.min(2.5, Math.max(0.5, (v.treeZoom ?? 1) * (value === 'in' ? 1.25 : 0.8))); }); break;
       case 'cycle-sel': local(() => { v.cycleSel = Number(value); v.zoneSel = null; }); break;
       case 'claim-all-events': a.claimAllEvents(); break;
@@ -466,6 +471,8 @@ export class UI {
     this.setText('top-level', `Niv. ${state.level}`);
     this.setText('top-stage', state.dungeon ? `Donjon · ${dungeonById(state.dungeon.id)?.name ?? ''}` : `Étape ${stageLabel(state.stage)} · ${zoneForStage(state.stage).name}`);
     this.setText('auto-toggle', state.autoAdvance ? '⏵ Avance auto' : '⏸ Farm');
+    this.setText('speed-toggle', `⏩ ×${state.ui.speed ?? 1}`);
+    this.$('speed-toggle').classList.toggle('fast', (state.ui.speed ?? 1) > 1);
     this.$('auto-toggle').classList.toggle('off', !state.autoAdvance);
     this.$('auto-toggle').classList.toggle('hidden', Boolean(state.dungeon));
 

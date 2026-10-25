@@ -20,6 +20,9 @@ const MAX_SCALE = 3; // zoom maximal : une grande fenêtre montre plus de décor
 // Les positions de la simulation (BALANCE.world) sont agrandies à l'affichage pour
 // s'accorder aux sprites v5, plus détaillés ; la simulation elle-même ne change pas.
 export const WORLD_SCALE = 1.5;
+// Durée de l'attaque d'un compagnon (préparation puis coup).
+const ALLY_ATTACK_TIME = 0.5;
+
 // Durée de vie d'un objet tombé : saut, repos au sol, puis aspiration vers le chevalier.
 const LOOT_LIFE = 4;
 
@@ -160,7 +163,7 @@ export class SceneRenderer {
         const companion = companionById(event.companionId);
         if (companion?.kind === 'ally') {
           // Héros allié : pose d'attaque, puis effet de sa couleur sur l'ennemi de tête.
-          this.allyAttack.set(companion.id, 0.35);
+          this.allyAttack.set(companion.id, ALLY_ATTACK_TIME);
           const front = world.enemies[0];
           const x = front ? front.x * WORLD_SCALE : heroX + 40;
           if (['hit', 'burst'].includes(companion.skill?.type)) {
@@ -290,17 +293,20 @@ export class SceneRenderer {
 
   // Apparence d'un ennemi : sprite, échelle, palette (boss et variantes comme le loup des glaces).
   // Images : repos / marche (<nom>, <nom>_b) et attaque (<nom>_atk) quand elles existent.
-  enemyLook(type, boss, attacking = false, phase = 0) {
+  enemyLook(type, boss, attacking = false, phase = 0, moving = true) {
     const bossDef = boss ? BOSSES[type] : null;
     const def = boss ? ENEMIES[bossDef.base] : ENEMIES[type];
     const base = bossDef?.sprite ?? def.sprite;
     let frames = bossDef?.sprite ? [base] : def.frames ?? [base];
     if (frames.length === 1 && SPRITES[`${base}_b`]) frames = [base, `${base}_b`];
-    const fps = boss ? 4 : 6;
-    let sprite = frames[Math.floor(this.time * fps + phase) % frames.length];
+    // Marche : 6 images/s (4 pour les boss) ; au contact, respiration plus lente.
+    const fps = moving ? (boss ? 4 : 6) : 2.5;
+    const step = Math.floor(this.time * fps + phase);
+    let sprite = frames[step % frames.length];
     if (attacking && SPRITES[`${base}_atk`]) sprite = `${base}_atk`;
     if (!SPRITES[sprite]) sprite = SPRITES[base] ? base : def.sprite;
     return {
+      step,
       def, sprite, heroLike: Boolean(bossDef?.heroLike), scale: bossDef ? bossDef.scale ?? 1 : 1,
       colors: (bossDef ? bossDef.palette : def.palette) ?? null,
     };
@@ -436,12 +442,13 @@ export class SceneRenderer {
       fx.appear = Math.min(1, fx.appear + dt * 5);
       fx.hit = Math.max(0, fx.hit - dt);
       fx.lunge = Math.max(0, fx.lunge - dt);
-      const moving = fx.lastX !== null && Math.abs(fx.lastX - enemy.x) > 0.01;
-      fx.lastX = enemy.x;
+      // En marche tant qu'il n'est pas au contact (état de la simulation, stable d'une image à l'autre :
+      // comparer les positions entre deux images faisait clignoter l'animation, la simulation avançant par pas).
+      const moving = !enemy.engaged;
       const alpha = Math.min(1, world.alpha ?? 1);
       const ex = ((enemy.prevX ?? enemy.x) + (enemy.x - (enemy.prevX ?? enemy.x)) * alpha) * WORLD_SCALE;
 
-      const { def, sprite, scale, colors, heroLike } = this.enemyLook(enemy.type, enemy.boss, fx.lunge > 0, enemy.id * 0.37);
+      const { def, sprite, scale, colors, heroLike, step } = this.enemyLook(enemy.type, enemy.boss, fx.lunge > 0, enemy.id * 0.37, moving);
       // Le Chevalier déchu utilise le corps du héros, retourné, avec une épée sombre.
       const img = heroLike
         ? heroComposite(fx.lunge > 0 ? 'attack' : moving ? ['walk1', 'walk2'][Math.floor(this.time * 6) % 2] : 'idle',
@@ -449,7 +456,8 @@ export class SceneRenderer {
         : spriteCanvas(sprite, { colors, flash: fx.hit > 0 });
       const w = img.width * scale;
       const h = img.height * scale;
-      const bob = moving ? this.snap(Math.abs(Math.sin(this.time * 10 + enemy.id)) * scale * 1.2) : 0;
+      // Rebond synchronisé sur l'image de marche (1 px sur la 2e image), jamais pour les volants.
+      const bob = moving && !def.flyHeight && step % 2 ? 1 : 0;
       const hover = def.flyHeight ? def.flyHeight * WORLD_SCALE + this.snap(Math.sin(this.time * 4 + enemy.id) * 3) : 0;
       const lunge = fx.lunge > 0 ? this.snap(Math.sin((fx.lunge / 0.14) * Math.PI) * 6) : 0;
       // Les grands sprites (boss, ogre…) restent devant le chevalier sans le chevaucher.
@@ -558,15 +566,29 @@ export class SceneRenderer {
   // Compagnons : suivent le chevalier, les volants planent au-dessus de son épaule.
   // Héros allié : à taille humaine derrière le chevalier ; marche, respiration, pose d'attaque.
   drawAlly(ctx, world, companion, i) {
-    const attacking = (this.allyAttack.get(companion.id) ?? 0) > 0;
+    const s = companion.sprite;
+    const t = this.allyAttack.get(companion.id) ?? 0;
+    const attacking = t > 0;
     const walking = world.hero.walking;
-    // Marche : alternance rapide des deux images + petit rebond ; à l'arrêt : respiration lente.
-    const step = Math.floor(this.time * (walking ? 7 : 2) + i);
-    const frame = attacking ? `${companion.sprite}_atk` : step % 2 ? `${companion.sprite}_b` : companion.sprite;
+    let frame;
+    let lunge = 0;
+    if (attacking) {
+      // Attaque en deux temps : préparation (recul), puis coup porté vers l'avant.
+      const k = 1 - t / ALLY_ATTACK_TIME;
+      const winding = k < 0.35 && SPRITES[`${s}_wind`];
+      frame = winding ? `${s}_wind` : `${s}_atk`;
+      lunge = winding ? -2 : Math.round(Math.sin(Math.min(1, (k - 0.35) / 0.4) * Math.PI) * 6);
+    } else if (walking && SPRITES[`${s}_w1`]) {
+      // Cycle de marche en 4 temps : passage → pas avant → passage → pas arrière.
+      frame = [s, `${s}_w1`, s, `${s}_w2`][Math.floor(this.time * 9 + i * 2) % 4];
+    } else {
+      const step = Math.floor(this.time * (walking ? 7 : 2) + i);
+      frame = step % 2 ? `${s}_b` : s;
+    }
     const img = spriteCanvas(frame);
-    const bob = walking && !attacking ? this.snap(Math.abs(Math.sin(this.time * 11 + i * 1.7)) * 1.5) : 0;
+    const bob = walking && !attacking ? this.snap(Math.abs(Math.sin(this.time * 9 * Math.PI / 2 + i)) * 1) : 0;
     // Le 2e personnage se tient un peu en retrait (plus loin et légèrement plus haut).
-    const x = HERO_X - 26 - i * 24 - img.width / 2 + (attacking ? 4 : 0);
+    const x = HERO_X - 26 - i * 24 - img.width / 2 + lunge;
     const y = this.groundY - img.height + 1 - i * 2 - bob;
     this.drawShadow(ctx, x + img.width / 2, 18 - bob * 2);
     ctx.drawImage(img, this.snap(x), y);

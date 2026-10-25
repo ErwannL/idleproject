@@ -9,6 +9,7 @@ import { escapeHtml, img } from '../common.js';
 
 // Positions des zones sur la carte peinte (assets/ui/worldmap.png, générée par tools/art/worldmap.py).
 // (tools/art/worldmap_nodes.json, positions relatives des 11 régions sur la carte peinte)
+let mapCenteredAt = null;
 const MAP_NODES = [
   { x: 0.09, y: 0.8 },
   { x: 0.18, y: 0.56 },
@@ -28,6 +29,46 @@ export default {
   title: 'Carte du monde',
   icon: 'icon_map',
   extra: (ui, state) => `Étape max ${stageLabel(state.maxStage)}`,
+  afterRender(ui, body) {
+    const vp = body.querySelector('.map-viewport');
+    if (!vp) return;
+    const zoom = ui.view.mapZoom ?? 1;
+    const restore = () => {
+      if (mapCenteredAt !== zoom) {
+        // Nouveau zoom : on centre la vue sur la zone sélectionnée.
+        mapCenteredAt = zoom;
+        const n = MAP_NODES[Number(vp.dataset.sel)] ?? { x: 0.5, y: 0.5 };
+        vp.scrollLeft = n.x * vp.scrollWidth - vp.clientWidth / 2;
+        vp.scrollTop = n.y * vp.scrollHeight - vp.clientHeight / 2;
+      } else if (ui.view.mapScroll) {
+        [vp.scrollLeft, vp.scrollTop] = ui.view.mapScroll;
+      }
+    };
+    const pic = vp.querySelector('img');
+    if (pic.complete) restore(); else pic.addEventListener('load', restore, { once: true });
+    vp.addEventListener('scroll', () => { ui.view.mapScroll = [vp.scrollLeft, vp.scrollTop]; });
+    vp.addEventListener('wheel', (e) => {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      body.querySelector(`[data-action="map-zoom"][data-value="${e.deltaY < 0 ? 'in' : 'out'}"]`)?.click();
+    }, { passive: false });
+    // Glisser la carte pour la déplacer quand elle est zoomée.
+    let drag = null;
+    vp.addEventListener('pointerdown', (e) => {
+      if (zoom <= 1 || e.button !== 0 || e.target.closest('.map-node')) return;
+      drag = { x: e.clientX, y: e.clientY, l: vp.scrollLeft, t: vp.scrollTop };
+      vp.setPointerCapture(e.pointerId);
+      vp.classList.add('dragging');
+    });
+    vp.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      vp.scrollLeft = drag.l - (e.clientX - drag.x);
+      vp.scrollTop = drag.t - (e.clientY - drag.y);
+    });
+    const stop = () => { drag = null; vp.classList.remove('dragging'); };
+    vp.addEventListener('pointerup', stop);
+    vp.addEventListener('pointercancel', stop);
+  },
   render(ui, state) {
     const cyc = stagesPerCycle();
     // Difficulté affichée : celle choisie (×1, ×2…) parmi celles atteintes, par défaut celle de l'étape actuelle.
@@ -57,7 +98,14 @@ export default {
       buttons.push(`<button class="${classes}" data-action="stage" data-stage="${stage}" ${stage > state.maxStage ? 'disabled' : ''}
         title="${escapeHtml(title)} · ${stageLabel(stage)}">${stage - first + 1}${tier ? img('icon_skull') : ''}</button>`);
     }
-    return `${cycles}<div class="world-map"><img class="px" src="assets/ui/worldmap.png" alt="Carte du monde">${markers}</div>
+    // Zoom (boutons, molette sur la carte) : la carte s'agrandit dans une fenêtre qu'on fait défiler.
+    const zoom = ui.view.mapZoom ?? 1;
+    const tools = `<div class="tree-tools map-tools"><button class="btn small" data-action="map-zoom" data-value="out" title="Dézoomer" ${zoom <= 1 ? 'disabled' : ''}>−</button>
+        <span class="muted" title="Ctrl + molette pour zoomer, glisser pour déplacer">${Math.round(zoom * 100)} %</span>
+        <button class="btn small" data-action="map-zoom" data-value="in" title="Zoomer" ${zoom >= 3 ? 'disabled' : ''}>+</button>
+        <button class="btn small" data-action="map-zoom" data-value="reset" title="Taille normale">⟲</button></div>`;
+    return `${cycles}${tools}<div class="map-viewport${zoom > 1 ? ' zoomed' : ''}" data-sel="${sel}"><div class="world-map" style="width:${zoom * 100}%">
+      <img class="px" src="assets/ui/worldmap.png" alt="Carte du monde">${markers}</div></div>
       <div class="card zone-card">
         <div class="row-between"><b>${sel + 1}. ${escapeHtml(ZONES[sel].name)}${cycle ? ` <span class="bad">×${cycle + 1}</span>` : ''}</b>
           <label class="toggle"><input type="checkbox" data-action="auto" ${state.autoAdvance ? 'checked' : ''}> Avancer automatiquement</label></div>

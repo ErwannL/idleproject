@@ -1,0 +1,308 @@
+{
+  "panel": {
+    "file": "panel.png",
+    "w": 48,
+    "h": 48,
+    "slice": [
+      16,
+      16,
+      16,
+      16
+    ],
+    "border": [
+      16,
+      16,
+      16,
+      16
+    ],
+    "repeat": "round",
+    "fill": true,
+    "note": "repeat round : rivets tous les 16 px sur les barres d'acier"
+  },
+  "panel_alt": {
+    "file": "panel_alt.png",
+    "w": 32,
+    "h": 32,
+    "slice": [
+      10,
+      10,
+      10,
+      10
+    ],
+    "border": [
+      10,
+      10,
+      10,
+      10
+    ],
+    "repeat": "stretch",
+    "fill": true
+  },
+  "header": {
+    "file": "header.png",
+    "w": 48,
+    "h": 25,
+    "slice": [
+      12,
+      14,
+      12,
+      14
+    ],
+    "border": [
+      12,
+      14,
+      12,
+      14
+    ],
+    "repeat": "stretch",
+    "fill": true,
+    "note": "hauteur conseill\u00e9e = 25 px source (pointes centr\u00e9es) ; contenu sur une ligne"
+  },
+  "tab": {
+    "file": "tab.png",
+    "w": 32,
+    "h": 32,
+    "slice": [
+      8,
+      8,
+      8,
+      8
+    ],
+    "border": [
+      8,
+      8,
+      8,
+      8
+    ],
+    "repeat": "stretch",
+    "fill": true
+  },
+  "tab_active": {
+    "file": "tab_active.png",
+    "w": 32,
+    "h": 32,
+    "slice": [
+      8,
+      8,
+      8,
+      8
+    ],
+    "border": [
+      8,
+      8,
+      8,
+      8
+    ],
+    "repeat": "stretch",
+    "fill": true
+  },
+  "btn_gold": {
+    "file": "btn_gold.png",
+    "w": 16,
+    "h": 16,
+    "slice": [
+      5,
+      5,
+      5,
+      5
+    ],
+    "border": [
+      5,
+      5,
+      5,
+      5
+    ],
+    "repeat": "stretch",
+    "fill": true
+  },
+  "btn_blue": {
+    "file": "btn_blue.png",
+    "w": 16,
+    "h": 16,
+    "slice": [
+      5,
+      5,
+      5,
+      5
+    ],
+    "border": [
+      5,
+      5,
+      5,
+      5
+    ],
+    "repeat": "stretch",
+    "fill": true
+  },
+  "btn_purple": {
+    "file": "btn_purple.png",
+    "w": 16,
+    "h": 16,
+    "slice": [
+      5,
+      5,
+      5,
+      5
+    ],
+    "border": [
+      5,
+      5,
+      5,
+      5
+    ],
+    "repeat": "stretch",
+    "fill": true
+  },
+  "btn_gray": {
+    "file": "btn_gray.png",
+    "w": 16,
+    "h": 16,
+    "slice": [
+      5,
+      5,
+      5,
+      5
+    ],
+    "border": [
+      5,
+      5,
+      5,
+      5
+    ],
+    "repeat": "stretch",
+    "fill": true
+  },
+  "btn_red": {
+    "file": "btn_red.png",
+    "w": 16,
+    "h": 16,
+    "slice": [
+      5,
+      5,
+      5,
+      5
+    ],
+    "border": [
+      5,
+      5,
+      5,
+      5
+    ],
+    "repeat": "stretch",
+    "fill": true
+  },
+  "slot": {
+    "file": "slot.png",
+    "w": 24,
+    "h": 24,
+    "slice": [
+      6,
+      6,
+      6,
+      6
+    ],
+    "border": [
+      6,
+      6,
+      6,
+      6
+    ],
+    "repeat": "stretch",
+    "fill": true
+  },
+  "badge_green": {
+    "file": "badge_green.png",
+    "w": 12,
+    "h": 12,
+    "slice": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "border": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "repeat": "stretch",
+    "fill": true
+  },
+  "badge_gray": {
+    "file": "badge_gray.png",
+    "w": 12,
+    "h": 12,
+    "slice": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "border": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "repeat": "stretch",
+    "fill": true
+  },
+  "badge_gold": {
+    "file": "badge_gold.png",
+    "w": 12,
+    "h": 12,
+    "slice": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "border": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "repeat": "stretch",
+    "fill": true
+  },
+  "badge_red": {
+    "file": "badge_red.png",
+    "w": 12,
+    "h": 12,
+    "slice": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "border": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "repeat": "stretch",
+    "fill": true
+  },
+  "tooltip": {
+    "file": "tooltip.png",
+    "w": 24,
+    "h": 24,
+    "slice": [
+      8,
+      8,
+      8,
+      8
+    ],
+    "border": [
+      8,
+      8,
+      8,
+      8
+    ],
+    "repeat": "stretch",
+    "fill": true
+  }
+}

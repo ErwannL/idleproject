@@ -38,6 +38,8 @@ import { applyCheat } from './core/cheats.js';
 import { applyLoadout, saveLoadout } from './core/loadouts.js';
 import { claimCollection } from './core/codex.js';
 import { setLang, startAutoTranslate, t } from './i18n/i18n.js';
+import { GAME_VERSION } from './version.js';
+import { RELEASES_API, RELEASES_PAGE, parseRelease, updateStatus } from './core/update.js';
 
 const SIM_INTERVAL_MS = 100;
 
@@ -287,6 +289,17 @@ const actions = {
     ui.banner(`Renaissance ! +${gained} fragments anciens`, 'win');
     ui.invalidate();
   },
+  activateRush(id) {
+    const rush = rushById(id);
+    if (activateRush(state, id)) done(true, `${rush.name} !`, rush.color);
+  },
+  upgradeRush(id) { done(upgradeRush(state, id)); },
+  setRushAuto(on) { state.rushes.auto = on; done(true); },
+  cheat(code) {
+    const msg = applyCheat(state, code);
+    if (msg) done(true, msg, '#ffe08a');
+    else ui.toast('Code inconnu.', '#ff8a8a');
+  },
   buyPerk(id) { done(buyPerk(state, id), 'Bonus éternel amélioré', '#ffe08a'); },
   selectStage(stage) {
     changeStage(state, world, stage);
@@ -312,6 +325,11 @@ const actions = {
     done(true);
   },
   setLanguage(lang) { setLang(lang); ui.invalidate(); },
+  cycleSpeed() {
+    const speeds = BALANCE.simulation.speeds;
+    state.ui.speed = speeds[(speeds.indexOf(state.ui.speed ?? 1) + 1) % speeds.length];
+    done(true, `Vitesse des combats ×${state.ui.speed}`);
+  },
   setNotify(key, on) { state.ui.notify = { ...state.ui.notify, [key]: on }; done(true); },
   setFocus(on) { state.ui.focus = on; done(true); },
   setAutoRecycle(value) {
@@ -330,6 +348,39 @@ const actions = {
     if (!window.desktop) return;
     ui.desktop.alwaysOnTop = await window.desktop.setAlwaysOnTop(value);
     ui.invalidate();
+  },
+  // Mises à jour : la dernière release GitHub est comparée à la version lancée.
+  async checkUpdate(quiet = false) {
+    ui.update = { ...ui.update, busy: true };
+    ui.invalidate();
+    let release = null;
+    try {
+      const res = await fetch(RELEASES_API, { headers: { Accept: 'application/vnd.github+json' } });
+      if (res.ok) release = parseRelease(await res.json());
+    } catch { /* hors ligne */ }
+    const current = ui.desktop?.version ?? GAME_VERSION;
+    ui.update = { busy: false, release, status: updateStatus(current, release), checkedAt: Date.now() };
+    if (ui.update.status === 'available') ui.toast(`Mise à jour ${release.version} disponible (Paramètres)`, '#7fe0ff');
+    else if (!quiet) ui.toast(ui.update.status === 'uptodate' ? 'Le jeu est à jour.' : 'Impossible de joindre GitHub.', ui.update.status === 'uptodate' ? '#8ef0a0' : '#ff8a8a');
+    ui.invalidate();
+  },
+  async installUpdate() {
+    if (!window.desktop?.installUpdate) {
+      window.open(ui.update?.release?.url ?? RELEASES_PAGE, '_blank', 'noopener');
+      return;
+    }
+    save();
+    ui.update = { ...ui.update, installing: true, error: null };
+    ui.invalidate();
+    const result = await window.desktop.installUpdate();
+    ui.update = { ...ui.update, installing: result.ok, error: result.ok ? null : result.error };
+    if (result.ok) ui.toast(`Installation de la ${result.version}… le jeu va redémarrer.`, '#7fe0ff');
+    else ui.toast(`Mise à jour impossible : ${result.error}`, '#ff8a8a');
+    ui.invalidate();
+  },
+  openReleases() {
+    if (window.desktop?.openReleases) window.desktop.openReleases();
+    else window.open(ui.update?.release?.url ?? RELEASES_PAGE, '_blank', 'noopener');
   },
   setWindowSize(preset) {
     window.desktop?.setSizePreset(preset);
@@ -372,6 +423,8 @@ if (window.desktop) {
     ui.invalidate();
   });
 }
+// Vérification discrète des mises à jour au lancement (pas pendant les tests automatisés).
+if (!navigator.webdriver) setTimeout(() => actions.checkUpdate(true), 4000);
 
 // Gains hors ligne depuis la dernière sauvegarde.
 if (loaded.source !== 'new') runOffline(state.lastSaved, Date.now());
@@ -398,7 +451,8 @@ function tick() {
     runOffline(now - dt * 1000, now);
     return;
   }
-  accumulator += dt;
+  // Vitesse des combats choisie par le joueur (×1, ×2, ×5, ×10).
+  accumulator += dt * (state.ui.speed ?? 1);
   const stepSeconds = BALANCE.simulation.tickSeconds;
   while (accumulator >= stepSeconds) {
     step(state, world, stepSeconds, rng);

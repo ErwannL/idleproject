@@ -242,7 +242,8 @@ décors enrichis (v6), puis équilibrage, arbre de talents, interface en bandeau
 puis 20 héros invocables, donjons des SSR, accessoires, amélioration/fusion d'équipement, missions
 journalières/hebdomadaires/mensuelles et démarrage rapide (v7.5), puis mondes de 20 étapes à 4 boss,
 difficulté ×2/×3 après le dernier monde, boosts à durée limitée, prestige, musique et sons procéduraux (v7.6),
-puis 11 mondes, donjons à difficultés, Codex et collections, synergies, configurations d'équipe et anglais (v7.7) :
+puis 11 mondes, donjons à difficultés, Codex et collections, synergies, configurations d'équipe et anglais (v7.7),
+puis mises à jour en jeu, vitesse des combats ×2/×5/×10, carte zoomable et menus pixel art (v7.8) :
 voir `docs/RELEASE_NOTES.md`.
 
 ## v4

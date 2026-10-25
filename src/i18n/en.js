@@ -10,6 +10,32 @@
 // --- Dictionnaire exact ---------------------------------------------------------------------------
 
 export const EXACT = {
+  // v7.8
+  "Vitesse des combats (×1, ×2, ×5, ×10)": "Combat speed (×1, ×2, ×5, ×10)",
+  "+ Épiques": "+ Epics",
+  "+ Légendaires": "+ Legendaries",
+  "Dézoomer": "Zoom out",
+  "Zoomer": "Zoom in",
+  "Taille normale": "Normal size",
+  "Ctrl + molette pour zoomer, glisser pour déplacer": "Ctrl + wheel to zoom, drag to pan",
+  "Version et mises à jour": "Version & updates",
+  "Pas encore vérifié.": "Not checked yet.",
+  "Vérification…": "Checking…",
+  "À jour": "Up to date",
+  "Hors ligne": "Offline",
+  "GitHub injoignable.": "GitHub unreachable.",
+  "Vérifier": "Check",
+  "Téléchargement…": "Downloading…",
+  "Nouveautés": "What’s new",
+  "Voir les versions sur GitHub": "See releases on GitHub",
+  "(bureau)": "(desktop)",
+  "(navigateur)": "(browser)",
+  "Position et taille mémorisées.": "Position and size remembered.",
+  "Le jeu est à jour.": "The game is up to date.",
+  "Impossible de joindre GitHub.": "Could not reach GitHub.",
+  "Déjà réussi": "Already cleared",
+  "Chaque donjon se débloque séparément.": "Each dungeon unlocks separately.",
+  "ce donjon": "this dungeon",
   // index.html : barre du haut, scène, onglets
   "Niveau du chevalier": "Knight level",
   "Carte du monde": "World map",
@@ -865,6 +891,18 @@ const tr = (s) => translate(s);
 // --- Motifs (textes construits par les gabarits) --------------------------------------------------
 
 export const PATTERNS = [
+  // v7.8
+  [/^Vitesse des combats ×(\d+)$/, 'Combat speed ×$1'],
+  [/^Version lancée :$/, 'Running version:'],
+  [/^dernière version : (.+)$/, 'latest version: $1'],
+  [/^Nouvelle version (.+)$/, 'New version $1'],
+  [/^Mettre à jour vers (.+)$/, 'Update to $1'],
+  [/^Télécharger la (.+)$/, 'Download $1'],
+  [/^Mise à jour (.+) disponible \(Paramètres\)$/, 'Update $1 available (Settings)'],
+  [/^Installation de la (.+)… le jeu va redémarrer\.$/, 'Installing $1… the game will restart.'],
+  [/^Mise à jour impossible : (.+)$/, 'Update failed: $1'],
+  [/^Terminez ce donjon en (.+) pour débloquer$/, 'Clear this dungeon on $1 to unlock'],
+  [/^🔒 (.+) : terminez ce donjon \(boss final vaincu\) en (.+)\. Chaque donjon se débloque séparément\.$/, '🔒 $1: clear this dungeon (final boss defeated) on $2. Each dungeon unlocks separately.'],
   // Niveaux, étapes, mondes
   [/^Niv\. (\d+)$/, 'Lv. $1'],
   [/^Niv\. (\d+)\/(\d+)$/, 'Lv. $1/$2'],

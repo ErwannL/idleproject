@@ -119,7 +119,7 @@ test('tri par niveau', () => {
   assert.deepEqual(listInventory(state, { sortBy: 'level' }).map((i) => i.level), [9, 5, 2]);
 });
 
-test('recyclage groupé : jamais les améliorations ni les objets Épiques ou mieux', () => {
+test('recyclage groupé : jamais les améliorations, raretés au choix', () => {
   const state = createNewState(NOW, 1);
   const helm = makeItem(state, 'iron_helm', 'epic', 1);
   addToInventory(state, helm);
@@ -137,7 +137,10 @@ test('recyclage groupé : jamais les améliorations ni les objets Épiques ou mi
   const withRares = bulkRecycleCandidates(state, 'rare').map((i) => i.id);
   assert.ok(withRares.includes(rareWeak.id) && withRares.includes(weak.id));
   assert.ok(!withRares.includes(upgradeHelm.id) && !withRares.includes(epic.id) && !withRares.includes(legendary.id));
-  assert.deepEqual(bulkRecycleCandidates(state, 'legendary').map((i) => i.id), [weak.id], 'limite inconnue = communs');
+  // Jusqu'aux Légendaires (sur confirmation) : jamais une amélioration.
+  const all = bulkRecycleCandidates(state, 'legendary').map((i) => i.id);
+  assert.ok(all.includes(epic.id) && !all.includes(upgradeHelm.id) && !all.includes(legendary.id));
+  assert.deepEqual(bulkRecycleCandidates(state, 'nope').map((i) => i.id), [weak.id], 'limite inconnue = communs');
 });
 
 test('combat : le héros tue, gagne de l’or et progresse', () => {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://api.github.com">
   <title>Idle RPG</title>
   <link rel="icon" href="assets/icon.png">
   <link rel="stylesheet" href="src/ui/style.css">
@@ -32,6 +32,7 @@
           <div id="boss-flash"></div>
           <div id="zone-card"><div id="zone-name"></div><div id="stage-pips"></div></div>
           <div id="rush-bar"></div>
+          <button id="speed-toggle" class="scene-btn" data-action="speed" title="Vitesse des combats (×1, ×2, ×5, ×10)">×1</button>
           <button id="loot-pop" class="hidden" data-action="open-tab" data-value="inventory" title="Ouvrir l'inventaire"></button>
           <button id="auto-toggle" class="scene-btn" data-action="toggle-auto" title="Avancer automatiquement après chaque étape"></button>
           <div id="strip-bar">

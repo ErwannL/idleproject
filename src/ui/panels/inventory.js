@@ -142,10 +142,12 @@ function bag(ui, state) {
         <select data-action="sort" aria-label="Trier">${sortOptions}</select>
       </div>
       ${recycleRuleEditor(state)}
-      <div class="inv-bulk" title="Ne recycle jamais un objet verrouillé, meilleur que l'équipement porté, Épique ou Légendaire.">
+      <div class="inv-bulk" title="Ne recycle jamais un objet verrouillé, ancestral ou meilleur que l'équipement porté. Une confirmation est demandée.">
         <select data-action="bulk-rarity" aria-label="Rareté maximale à recycler">
           <option value="common" ${ui.view.bulkRarity === 'common' ? 'selected' : ''}>Communs</option>
           <option value="rare" ${ui.view.bulkRarity === 'rare' ? 'selected' : ''}>+ Rares</option>
+          <option value="epic" ${ui.view.bulkRarity === 'epic' ? 'selected' : ''}>+ Épiques</option>
+          <option value="legendary" ${ui.view.bulkRarity === 'legendary' ? 'selected' : ''}>+ Légendaires</option>
         </select>
         <button class="btn btn-outline-gold${ui.view.bulkArmed ? ' armed' : ''}" data-action="bulk-recycle" ${candidates.length ? '' : 'disabled'}>${bulkLabel}</button>
       </div>

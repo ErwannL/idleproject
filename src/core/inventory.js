@@ -150,12 +150,14 @@ export function isUpgrade(state, item, balance = BALANCE) {
   return diff.dps > 0.001 || (diff.dps >= -0.001 && (diff.maxHp > 0 || diff.armor > 0));
 }
 
-// Objets proposés au recyclage groupé : rareté au plus `maxRarity` (jamais Épique ou Légendaire),
+// Objets proposés au recyclage groupé : rareté au plus `maxRarity`.
 // en excluant toujours les objets qui amélioreraient le héros.
-export const BULK_RECYCLE_MAX = ['common', 'rare'];
+// v7.7+ : toutes les raretés (avec confirmation) ; jamais un objet verrouillé, ancestral ou meilleur que l'équipé.
+export const BULK_RECYCLE_MAX = ['common', 'rare', 'epic', 'legendary'];
 export function bulkRecycleCandidates(state, maxRarity = 'common', balance = BALANCE) {
   const limit = rarityIndex(BULK_RECYCLE_MAX.includes(maxRarity) ? maxRarity : 'common');
-  return state.inventory.filter((item) => !item.locked && rarityIndex(item.rarity) <= limit && !isUpgrade(state, item, balance));
+  return state.inventory.filter((item) => !item.locked && !itemBase(item.baseId).signature
+    && rarityIndex(item.rarity) <= limit && !isUpgrade(state, item, balance));
 }
 
 // Verrouiller un objet le protège de tout recyclage (simple ou groupé).

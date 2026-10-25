@@ -4,13 +4,16 @@
 //
 // Mode test : `Idle RPG.exe --smoke=<fichier.json> [--smoke-fresh]` lance le jeu,
 // le laisse tourner quelques secondes, écrit un rapport JSON puis quitte.
-const { app, BrowserWindow, Menu, ipcMain, protocol, screen } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, net, protocol, screen, shell } = require('electron');
+const { spawn } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..');
 const SCHEME = 'app';
 const ORIGIN = `${SCHEME}://game`;
+const RELEASES_API = 'https://api.github.com/repos/ErwannL/idleproject/releases/latest';
+const RELEASES_PAGE = 'https://github.com/ErwannL/idleproject/releases/latest';
 const SIZE_PRESETS = { strip: [520, 150], mini: [420, 300], standard: [460, 640], wide: [960, 720] };
 // v2 : nouvelle interface pensée pour la fenêtre « standard » ; on l'applique une fois aux installations v1.
 const LAYOUT_VERSION = 2;
@@ -125,6 +128,36 @@ function createWindow() {
     saveSettings(settings);
     return settings.alwaysOnTop;
   });
+  // Mise à jour (v7.8) : le processus principal relit lui-même la dernière release GitHub,
+  // télécharge l'installateur officiel puis le lance en silencieux et ferme le jeu (sauvegarde comprise).
+  ipcMain.handle('desktop:openReleases', () => shell.openExternal(RELEASES_PAGE));
+  ipcMain.handle('desktop:installUpdate', async () => {
+    try {
+      const res = await net.fetch(RELEASES_API, { headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'IdleRPG' } });
+      if (!res.ok) return { ok: false, error: `GitHub ${res.status}` };
+      const release = await res.json();
+      const version = String(release.tag_name ?? '').replace(/^v/i, '');
+      if (!newerThan(version, app.getVersion())) return { ok: false, error: 'Déjà à jour.' };
+      const asset = (release.assets ?? []).find((a) => /^IdleRPG-[\d.]+-setup\.exe$/.test(a.name ?? ''));
+      const url = asset && new URL(asset.browser_download_url);
+      if (!url || url.protocol !== 'https:' || url.hostname !== 'github.com' || !url.pathname.startsWith('/ErwannL/idleproject/releases/download/')) {
+        return { ok: false, error: 'Installateur introuvable dans la release.' };
+      }
+      const file = path.join(app.getPath('temp'), asset.name);
+      const download = await net.fetch(url.href);
+      if (!download.ok) return { ok: false, error: `Téléchargement ${download.status}` };
+      const data = Buffer.from(await download.arrayBuffer());
+      if (asset.size && data.length !== asset.size) return { ok: false, error: 'Téléchargement incomplet.' };
+      fs.writeFileSync(file, data);
+      if (process.platform !== 'win32') return { ok: false, error: 'Installation automatique : Windows seulement.' };
+      // /S : installation silencieuse ; --force-run : l'installateur relance le jeu à la fin.
+      spawn(file, ['/S', '--updated', '--force-run'], { detached: true, stdio: 'ignore' }).unref();
+      setTimeout(() => win.close(), 300);
+      return { ok: true, version };
+    } catch (error) {
+      return { ok: false, error: String(error?.message ?? error) };
+    }
+  });
   ipcMain.handle('desktop:setSizePreset', (_event, preset) => {
     const size = SIZE_PRESETS[preset];
     if (!size) return false;
@@ -151,6 +184,16 @@ function createWindow() {
 
   win.loadURL(`${ORIGIN}/index.html`);
   return win;
+}
+
+function newerThan(a, b) {
+  const pa = a.split('.').map(Number);
+  const pb = b.split('.').map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (pa[i] || 0) - (pb[i] || 0);
+    if (d) return d > 0;
+  }
+  return false;
 }
 
 function runSmokeTest(win) {

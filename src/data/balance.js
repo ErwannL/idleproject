@@ -4,6 +4,7 @@
 export const BALANCE = {
   simulation: {
     tickSeconds: 0.05, // pas fixe de la simulation
+    speeds: [1, 2, 5, 10], // vitesses de combat au choix du joueur
     maxCatchUpSeconds: 600, // au-delà (veille, onglet gelé), on applique le calcul hors ligne
   },
   autosaveSeconds: 10,

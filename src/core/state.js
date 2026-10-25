@@ -214,6 +214,8 @@ function cleanActivities(state, raw) {
     if (n) state.dungeonsCleared[d.id] = n;
     const best = Number(obj(raw.dungeonBest)[d.id]);
     if (Number.isInteger(best) && best >= 0 && best <= 2) state.dungeonBest[d.id] = best;
+    // Victoires d'avant les difficultés (≤ v7.6) : elles comptent comme une réussite en Facile.
+    else if (n) state.dungeonBest[d.id] = 0;
   }
 }
 
@@ -317,6 +319,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     }
     if (typeof raw.ui.notify === 'object' && raw.ui.notify) state.ui.notify = { ...state.ui.notify, ...raw.ui.notify };
     state.ui.focus = raw.ui.focus === true;
+    if ([1, 2, 5, 10].includes(raw.ui.speed)) state.ui.speed = raw.ui.speed;
     if (SORT_OPTIONS.includes(raw.ui.sortBy)) state.ui.sortBy = raw.ui.sortBy;
   }
   return state;
