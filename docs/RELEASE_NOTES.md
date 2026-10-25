@@ -1,9 +1,20 @@
-## Idle RPG v7.3.0 — Arbre de talents corrigé
+## Idle RPG v7.4.0 — Mode barre, arbre en étoile, mouvements fluides
 
-**Installation ou mise à jour :** téléchargez **IdleRPG-7.3.0-setup.exe** et lancez-le (jeu fermé).
+**Installation ou mise à jour :** téléchargez **IdleRPG-7.4.0-setup.exe** et lancez-le (jeu fermé).
 L'installation se fait en un clic et remplace l'ancienne version ; **votre partie est conservée**.
 
-### Nouveau dans la v7.3
+### Nouveau dans la v7.4
+- **Corrigé** : dans une fenêtre large et peu haute, la scène pouvait dépasser la fenêtre (on ne voyait que le ciel,
+  sans onglets) ; elle reste maintenant dans la fenêtre.
+- **Interface plus compacte** : barre du haut, onglets, barre de progression et zoom maximal réduits.
+- **Mode barre** (façon jeu de barre des tâches) : dans une fenêtre très basse, seuls la scène, le niveau
+  et l'or restent affichés. Bouton « Barre » dans les options (fenêtre 520 × 150) et ⤢ pour ré-agrandir.
+- **Mouvements plus fluides** : la scène est dessinée à la résolution de l'écran, les monstres avancent
+  pixel d'écran par pixel d'écran (et non plus par sauts de 3-4 pixels).
+- **Un seul arbre de talents** qui part du **Cœur du chevalier** au centre et s'étend dans les 4 directions ;
+  les nœuds ne se chevauchent plus. Les parties qui avaient déjà des talents reçoivent le Cœur au niveau 1.
+
+### v7.3
 - **Arbre de talents** : les icônes ne sont plus écrasées ni ne dépassent (l'épée et les autres images
   gardent leurs proportions), nouvelle icône pour Puissance, niveaux affichés sous chaque nœud,
   flèches plus visibles, arbre centré à une taille lisible dans les grandes fenêtres.

@@ -13,6 +13,7 @@ function windowOptions(ui) {
       <label class="toggle"><input type="checkbox" data-action="on-top" ${ui.desktop.alwaysOnTop ? 'checked' : ''}>
         Garder la fenêtre au premier plan</label>
       <div class="options-row">
+        <button class="btn small" data-action="window-size" data-preset="strip" title="Une simple barre, comme dans la barre des tâches">Barre</button>
         <button class="btn small" data-action="window-size" data-preset="mini">Mini</button>
         <button class="btn small" data-action="window-size" data-preset="standard">Standard</button>
         <button class="btn small" data-action="window-size" data-preset="wide">Large</button>

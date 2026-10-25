@@ -16,7 +16,7 @@ import { HERO_ANCHOR, drawBigText, heroComposite, spriteCanvas, textWidth } from
 export const MIN_VIEW_HEIGHT = 96;
 const GROUND_DEPTH = 18; // hauteur du sol sous la ligne des pieds
 const MIN_VIEW_WIDTH = 160; // largeur logique minimale (zoom : le chevalier reste grand)
-const MAX_SCALE = 4; // zoom maximal : une grande fenêtre montre plus de décor
+const MAX_SCALE = 3; // zoom maximal : une grande fenêtre montre plus de décor
 // Les positions de la simulation (BALANCE.world) sont agrandies à l'affichage pour
 // s'accorder aux sprites v5, plus détaillés ; la simulation elle-même ne change pas.
 export const WORLD_SCALE = 1.5;
@@ -94,8 +94,11 @@ export class SceneRenderer {
     this.width = Math.max(120, Math.floor(cssWidth / scale));
     this.height = Math.max(MIN_VIEW_HEIGHT, Math.floor(cssHeight / scale));
     this.groundY = this.height - GROUND_DEPTH;
-    this.canvas.width = this.width;
-    this.canvas.height = this.height;
+    // Rendu à la résolution de l'écran (k pixels par pixel de jeu) : les sprites restent nets mais
+    // les personnages et le décor se déplacent pixel d'écran par pixel d'écran (mouvement fluide).
+    this.k = Math.max(1, Math.round(scale * (window.devicePixelRatio || 1)));
+    this.canvas.width = this.width * this.k;
+    this.canvas.height = this.height * this.k;
     this.canvas.style.width = `${Math.round(this.width * scale)}px`;
     this.canvas.style.height = `${Math.round(this.height * scale)}px`;
     this.ctx.imageSmoothingEnabled = false;
@@ -270,6 +273,8 @@ export class SceneRenderer {
     this.hero.respawn = Math.max(0, this.hero.respawn - dt);
     this.hero.deathTime += dt;
 
+    ctx.setTransform(this.k, 0, 0, this.k, 0, 0);
+    ctx.imageSmoothingEnabled = false;
     ctx.save();
     if (this.shake > 0) {
       ctx.translate(Math.round((Math.random() * 2 - 1) * this.shake), Math.round((Math.random() * 2 - 1) * this.shake));
@@ -348,6 +353,11 @@ export class SceneRenderer {
     ctx.globalAlpha = 1;
   }
 
+  // Arrondi au pixel d'écran (et non au pixel de jeu) pour les éléments en mouvement.
+  snap(v) {
+    return Math.round(v * this.k) / this.k;
+  }
+
   // Défilement interpolé entre deux pas de simulation.
   smoothScroll(world) {
     const prev = world.prevScroll ?? world.scroll;
@@ -358,7 +368,7 @@ export class SceneRenderer {
   drawLayer(ctx, img, offset, y) {
     if (!img) return;
     const w = img.width;
-    let x = -(Math.floor(offset) % w);
+    let x = -(this.snap(offset) % w);
     if (x > 0) x -= w;
     for (; x < this.width; x += w) ctx.drawImage(img, x, Math.round(y));
   }
@@ -383,11 +393,11 @@ export class SceneRenderer {
         : spriteCanvas(sprite, { colors, flash: fx.hit > 0 });
       const w = img.width * scale;
       const h = img.height * scale;
-      const bob = moving ? Math.round(Math.abs(Math.sin(this.time * 10 + enemy.id)) * scale) : 0;
-      const hover = def.flyHeight ? def.flyHeight * WORLD_SCALE + Math.round(Math.sin(this.time * 4 + enemy.id) * 3) : 0;
-      const lunge = fx.lunge > 0 ? Math.round(Math.sin((fx.lunge / 0.14) * Math.PI) * 6) : 0;
+      const bob = moving ? this.snap(Math.abs(Math.sin(this.time * 10 + enemy.id)) * scale * 1.2) : 0;
+      const hover = def.flyHeight ? def.flyHeight * WORLD_SCALE + this.snap(Math.sin(this.time * 4 + enemy.id) * 3) : 0;
+      const lunge = fx.lunge > 0 ? this.snap(Math.sin((fx.lunge / 0.14) * Math.PI) * 6) : 0;
       // Les grands sprites (boss, ogre…) restent devant le chevalier sans le chevaucher.
-      const x = Math.round(Math.max(ex - w / 2, HERO_X + 12) - lunge);
+      const x = this.snap(Math.max(ex - w / 2, HERO_X + 12) - lunge);
       const y = this.groundY - h - bob - hover + 1;
 
       ctx.globalAlpha = fx.appear;
@@ -475,11 +485,11 @@ export class SceneRenderer {
       const img = spriteCanvas(companion.sprite);
       const flying = FLYING_PETS.has(companion.id);
       const x = HERO_X - 36 - i * 20 - img.width / 2;
-      const hop = world.hero.walking ? Math.round(Math.abs(Math.sin(this.time * 9 + i)) * 3) : 0;
-      const hover = flying ? 26 + Math.round(Math.sin(this.time * 3 + i) * 3) : 0;
+      const hop = world.hero.walking ? this.snap(Math.abs(Math.sin(this.time * 9 + i)) * 3) : 0;
+      const hover = flying ? 26 + this.snap(Math.sin(this.time * 3 + i) * 3) : 0;
       const y = this.groundY - img.height + 1 - hop - hover;
       if (!flying) this.drawShadow(ctx, x + img.width / 2, img.width * 0.8);
-      ctx.drawImage(img, Math.round(x), y);
+      ctx.drawImage(img, this.snap(x), y);
     });
   }
 
@@ -512,9 +522,9 @@ export class SceneRenderer {
       const t = fx.life / fx.max;
       switch (fx.kind) {
         case 'text':
-          fx.y -= (fx.life > fx.max - 0.12 ? 60 : 14) * dt; // petit rebond puis montée lente
+          fx.y -= (fx.life > fx.max - 0.12 ? 60 : 14) * dt; // petit rebond puis montée lente (positions au pixel d'écran)
           ctx.globalAlpha = Math.min(1, t * 2.5);
-          drawBigText(ctx, fx.text, fx.x, fx.y, fx.color, fx.light);
+          drawBigText(ctx, fx.text, Math.round(fx.x), this.snap(fx.y), fx.color, fx.light);
           break;
         case 'particle':
           fx.vy += 120 * dt;
@@ -538,7 +548,7 @@ export class SceneRenderer {
           const img = spriteCanvas(name, fx.tint ? { tint: { color: fx.tint, alpha: 0.65 } } : {});
           const x = fx.x + fx.vx * (fx.max - fx.life);
           ctx.globalAlpha = Math.min(1, t * 4);
-          ctx.drawImage(img, Math.round(x - img.width / 2), Math.round(fx.y - img.height));
+          ctx.drawImage(img, this.snap(x - img.width / 2), Math.round(fx.y - img.height));
           break;
         }
         case 'ring': {

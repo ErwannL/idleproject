@@ -251,11 +251,13 @@ test('Renaissance : seuil, récompense, réinitialisation et conservation', () =
 
 test('talents : coût, plafond, effets et emplacement de pouvoir supplémentaire', () => {
   const state = createNewState(NOW, 1);
-  const base = computeHeroStats(state);
   assert.equal(buyTalent(state, 'power'), false, 'pas de fragments');
   state.fragments = 100;
+  assert.equal(buyTalent(state, 'power'), false, 'branche fermée tant que le Cœur du chevalier n\'est pas appris');
+  state.talents.core = 1;
+  const base = computeHeroStats(state);
   assert.ok(buyTalent(state, 'power'));
-  assert.equal(state.fragments, 100 - talentCost(TALENTS[0], 0));
+  assert.equal(state.fragments, 100 - talentCost(TALENTS.find((t) => t.id === 'power'), 0));
   const dmg = base.bonus.damagePct;
   assert.ok(Math.abs(computeHeroStats(state).damage - (base.damage / (1 + dmg / 100)) * (1 + (dmg + 10) / 100)) < 1e-9);
   assert.equal(buyTalent(state, 'hunt'), false, 'nœud verrouillé tant que Fortune < 2');

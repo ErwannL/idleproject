@@ -270,14 +270,14 @@ export function textWidth(text, font = FONT) {
 export function drawBigText(ctx, text, x, y, color, light = '#ffffff', outline = '#1a1226') {
   const draw = (ox, oy, fill, half = false) => {
     ctx.fillStyle = fill;
-    let cx = Math.round(x) + ox;
+    let cx = x + ox; // x et y peuvent être fractionnaires (rendu au pixel d'écran)
     for (const ch of text) {
       const glyph = FONT_BIG[ch];
       if (!glyph) continue;
       glyph.forEach((row, gy) => {
         if (half && gy > 2) return;
         for (let gx = 0; gx < row.length; gx++) {
-          if (row[gx] === '1') ctx.fillRect(cx + gx, Math.round(y) + oy + gy, 1, 1);
+          if (row[gx] === '1') ctx.fillRect(cx + gx, y + oy + gy, 1, 1);
         }
       });
       cx += glyph[0].length + 1;

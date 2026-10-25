@@ -70,7 +70,8 @@ Tout est à la souris ; le combat n'a besoin d'aucune action. Barre du haut : or
 | **Donjons** *(vers l'étape 2-2)* | Crypte spectrale : butin ciblé, chemin, clés |
 | **Boss** *(après le 1er boss)* | Pouvoirs ancestraux, **Réaffronter** pour gagner une charge de relance, maîtrise, synergies |
 
-Deux dispositions : **Mini** (fenêtre basse : le panneau s'ouvre par-dessus la scène) et **Standard**
+Trois dispositions : **Barre** (fenêtre très basse, ≤ 190 px : seulement la scène, le niveau et l'or,
+comme un jeu de barre des tâches), **Mini** (fenêtre basse : le panneau s'ouvre par-dessus la scène) et **Standard**
 (fenêtre ≥ 420 px de haut) : le jeu en bandeau sur toute la largeur, les onglets dessous, l'interface
 en dessous. Aucun onglet n'est ouvert au démarrage : un clic ouvre un onglet, un second clic (ou Échap) le
 referme et le jeu reprend toute la hauteur. Les portraits des menus (chevalier, compagnons, boss) sont animés.

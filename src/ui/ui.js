@@ -34,6 +34,7 @@ const PANELS = Object.fromEntries([upgrades, inventory, hero, companions, skills
   .map((p) => [p.id, p]));
 const TAB_MIN_WIDTH = 60; // en dessous, seuls les icônes (et le libellé de l'onglet actif) sont affichés
 const TALL_MIN_HEIGHT = 420;
+const STRIP_MAX_HEIGHT = 190; // en dessous : mode barre (seulement la scène, comme une barre des tâches)
 const BULK_CONFIRM_MS = 4000;
 // Panneaux dont le contenu évolue pendant le farm : réaffichés au plus une fois par seconde.
 const LIVE_PANELS = new Set(['contracts', 'dungeons', 'skills', 'boss', 'hero']);
@@ -58,6 +59,7 @@ export class UI {
     };
 
     root.querySelectorAll('img[data-icon]').forEach((el) => { el.src = icon(el.dataset.icon); });
+    if (!window.desktop) root.querySelector('.strip-btn')?.remove(); // agrandir la fenêtre : version bureau seulement
     root.querySelectorAll('#tabs button').forEach((btn) => btn.addEventListener('click', () => this.toggleTab(btn.dataset.tab)));
     root.querySelectorAll('[data-open]').forEach((btn) => btn.addEventListener('click', () => this.toggleTab(btn.dataset.open)));
     this.$('panel-close').addEventListener('click', () => this.closePanel());
@@ -77,9 +79,10 @@ export class UI {
     const w = this.root.clientWidth;
     const h = this.root.clientHeight;
     // Jeu en bandeau en haut, onglets dessous, interface en dessous ; panneau superposé si la fenêtre est basse.
-    const layout = h >= TALL_MIN_HEIGHT ? 'tall' : 'mini';
+    const layout = h >= TALL_MIN_HEIGHT ? 'tall' : h <= STRIP_MAX_HEIGHT ? 'strip' : 'mini';
     if (layout !== this.layout) {
-      this.root.classList.remove('layout-mini', 'layout-tall');
+      this.root.classList.remove('layout-mini', 'layout-tall', 'layout-strip');
+      if (layout === 'strip') this.closePanel();
       this.root.classList.add(`layout-${layout}`);
       this.layout = layout;
       this.invalidate();
@@ -339,6 +342,7 @@ export class UI {
     this.state = state;
     const stats = world.heroStats ?? computeHeroStats(state);
     this.setText('gold', formatNumber(state.gold));
+    this.setText('strip-gold', formatNumber(state.gold));
     this.setText('gems', formatNumber(state.gems));
     this.setText('tickets', formatNumber(state.tickets));
     this.$('fragments-chip').classList.toggle('hidden', state.fragments <= 0 && state.records.rebirths === 0);

@@ -11,7 +11,7 @@ const path = require('node:path');
 const ROOT = path.join(__dirname, '..');
 const SCHEME = 'app';
 const ORIGIN = `${SCHEME}://game`;
-const SIZE_PRESETS = { mini: [420, 300], standard: [460, 640], wide: [960, 720] };
+const SIZE_PRESETS = { strip: [520, 150], mini: [420, 300], standard: [460, 640], wide: [960, 720] };
 // v2 : nouvelle interface pensée pour la fenêtre « standard » ; on l'applique une fois aux installations v1.
 const LAYOUT_VERSION = 2;
 const MIME = {
@@ -99,8 +99,8 @@ function createWindow() {
     height: Math.min(bounds.height ?? SIZE_PRESETS.standard[1], area.height),
     x: bounds.x,
     y: bounds.y,
-    minWidth: 320,
-    minHeight: 220,
+    minWidth: 260,
+    minHeight: 110,
     title: 'Idle RPG',
     icon: path.join(ROOT, 'assets', 'icon.png'),
     backgroundColor: '#15111d',

@@ -34,22 +34,29 @@ test('hors ligne : 65 % du farm actif, plafonné à 24 h', () => {
   assert.equal(twoDays.gold, day.gold);
 });
 
-test('arbre de talents : chaque nœud a une place unique et un parent dans sa branche', () => {
+test('arbre de talents : un seul arbre qui part du Cœur du chevalier', () => {
   const seen = new Set();
+  const core = TALENTS.find((t) => t.id === 'core');
+  assert.ok(core && !core.requires, 'nœud central');
   for (const t of TALENTS) {
+    if (t === core) continue;
     assert.ok(TALENT_BRANCHES.some((b) => b.id === t.branch), t.id);
     const key = `${t.branch}:${t.row}:${t.col}`;
     assert.ok(!seen.has(key), `deux talents en ${key}`);
     seen.add(key);
-    if (t.row === 0) continue;
     const parent = TALENTS.find((p) => p.id === t.requires?.id);
-    assert.ok(parent && parent.branch === t.branch && parent.row === t.row - 1, `${t.id} : parent`);
+    if (t.row === 0) assert.equal(parent, core, `${t.id} : part du centre`);
+    else assert.ok(parent && parent.branch === t.branch && parent.row === t.row - 1, `${t.id} : parent`);
   }
-  // Chaque racine se divise en deux.
+  // Chaque branche se divise en deux.
   for (const b of TALENT_BRANCHES) {
     const root = TALENTS.find((t) => t.branch === b.id && t.row === 0);
     assert.ok(TALENTS.filter((t) => t.requires?.id === root.id).length >= 2, b.id);
   }
+  // Une ancienne partie avec des talents reçoit le Cœur (ses branches restent accessibles).
+  const raw = JSON.parse(JSON.stringify(createNewState(0, 9)));
+  raw.talents = { power: 3 };
+  assert.equal(sanitizeState(raw).talents.core, 1);
 });
 
 test('PV : palier ×1,4 tous les 10 niveaux de Points de vie', () => {

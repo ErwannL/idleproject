@@ -334,9 +334,9 @@ await check('Renaissance : confirmation, réinitialisation et conservation des d
   assert(after.stage === 1 && after.gold === 0 && after.fragments > 0 && after.rebirths === 1, JSON.stringify(after));
   assert(after.powers === before.powers && after.weapon === before.weapon, 'déblocage perdu');
   const fragments = after.fragments;
-  await page.click('[data-action="buy-talent"][data-key="power"]');
+  await page.click('[data-action="buy-talent"][data-key="core"]');
   await page.waitForTimeout(150);
-  const talent = await game(() => [__idle.state.talents.power, __idle.state.fragments]);
+  const talent = await game(() => [__idle.state.talents.core, __idle.state.fragments]);
   assert(talent[0] === 1 && talent[1] < fragments, JSON.stringify(talent));
   await page.screenshot({ path: `${outDir}/compact-rebirth.png` });
 });
@@ -377,7 +377,7 @@ await check('horloge reculée : aucun gain', async () => {
 });
 
 await check('l’interface s’adapte au redimensionnement', async () => {
-  const expected = [[320, 200, 'mini'], [400, 250, 'mini'], [460, 640, 'tall'], [980, 620, 'tall']];
+  const expected = [[520, 150, 'strip'], [320, 200, 'mini'], [400, 250, 'mini'], [460, 640, 'tall'], [980, 620, 'tall']];
   for (const [w, h, layout] of expected) {
     await page.setViewportSize({ width: w, height: h });
     await page.waitForTimeout(300);
@@ -388,6 +388,17 @@ await check('l’interface s’adapte au redimensionnement', async () => {
     }));
     assert(!info.overflow, `débordement horizontal à ${w}×${h}`);
     assert(info.cls === `layout-${layout}`, `${w}×${h} : ${info.cls}`);
+    if (layout === 'strip') {
+      // Mode barre : seulement la scène (et l'or), rien d'autre ne prend de place.
+      const strip = await game(() => ({
+        topbar: document.querySelector('#topbar').offsetParent !== null,
+        tabs: document.querySelector('#tabs').offsetParent !== null,
+        gold: document.querySelector('#strip-gold').offsetParent !== null,
+      }));
+      assert(!strip.topbar && !strip.tabs && strip.gold, `mode barre : ${JSON.stringify(strip)}`);
+      await page.screenshot({ path: `${outDir}/strip.png` });
+      continue;
+    }
     if (layout !== 'mini') {
       // Fenêtre haute : la scène reste grande, panneau ouvert ou non.
       assert(info.canvas >= 140, `${layout} : scène ${info.canvas}px`);

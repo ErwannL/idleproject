@@ -216,6 +216,8 @@ export function sanitizeState(raw, balance = BALANCE, now = Date.now()) {
     const level = int(raw.talents?.[talent.id], 0);
     if (level > 0) state.talents[talent.id] = Math.min(level, talent.max);
   }
+  // v7.4 : l'arbre part du Cœur du chevalier ; une partie qui avait déjà des talents le reçoit au niveau 1.
+  if (Object.keys(state.talents).length && !state.talents.core) state.talents.core = 1;
 
   state.level = Math.min(int(raw.level, 1, 1), balance.level.maxLevel);
   state.xp = num(raw.xp, 0);
