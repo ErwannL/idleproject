@@ -167,19 +167,23 @@ Points clés :
 
 ## Assets
 
-Tous les graphismes sont **dessinés pour le projet** sous forme de grilles de caractères dans
-`src/render/sprites.js` (aucun asset externe ou commercial). Ce sont des placeholders propres et
-remplaçables :
+Tous les graphismes sont **générés pour le projet** par des scripts Python (`tools/art/`, aucun asset
+externe ou commercial) dans une direction « RPG fantasy 16 bits » : formes ombrées, contour sélectif
+sombre, rampes de couleurs à décalage de teinte, lumière venant d'en haut à gauche.
 
-- modifier une grille met à jour le jeu immédiatement ;
-- `npm run export-assets` régénère `assets/sprites/*.png`, `assets/spritesheet.png` (planche ×4)
-  et `assets/icon.png` (Playwright requis) ;
-- le héros est un chevalier de 24×28 px composé de calques : cape animée (3 images, derrière),
-  corps (repos, 2 images de marche, attaque), armure, casque, arme ; les calques d'équipement sont
-  teintés par les couleurs de l'objet et de sa rareté (plumet, liseré, garde de l'arme) ;
-- les icônes d'interface (onglets, statistiques, boss) sont des sprites du même fichier ;
-- les animations (marche, attaque, coup reçu, mort, victoire, apparition, boss) sont produites par le
-  code et réutilisées pour tous les sprites.
+- `npm run art` (`python3 tools/art/build.py`, Pillow requis) régénère tout :
+  - `src/render/art.js` : grilles des sprites (chevalier, ennemis, boss, compagnons, icônes) ;
+  - `assets/bg/<zone>_<calque>.png` : décors de parallaxe raccordables (lointain, intermédiaire, sol,
+    nuages ou plafond) pour les 6 zones ;
+  - `assets/ui/worldmap.png` : carte du monde peinte ;
+- scripts : `lib.py` (outils de dessin), `knight.py` (chevalier 40×44 en calques), `enemies.py`
+  (13 ennemis, 6 boss, 6 compagnons), `icons.py` (34 icônes), `scenery.py` (décors), `worldmap.py` ;
+- le chevalier est composé de calques : cape animée, écu, corps (repos, 2 images de marche, attaque),
+  armure, casque (heaume à plumet par défaut), arme. Les calques d'équipement utilisent des caractères
+  réservés remplacés par les couleurs de l'objet et de sa rareté ; ceux du corps par les couleurs du héros ;
+- `npm run export-assets` régénère `assets/sprites/*.png`, `assets/spritesheet.png` et l'icône
+  (Playwright requis) ;
+- les animations (marche, attaque, coup reçu, mort, victoire, apparition) sont produites par le code.
 
 ![Planche de sprites](assets/spritesheet.png)
 
@@ -226,9 +230,13 @@ persiste. Reconsidérer Godot reste possible si le projet a besoin d'un moteur c
   déterministe). Une sauvegarde v3 ouverte par une ancienne version perdrait pouvoirs, talents et fragments.
 - Renaissance et pouvoirs : équilibrage de premier jet, à ajuster en jeu (seulement 3 boss pour l'instant).
 
+## v5
+
+Refonte complète de la direction artistique : voir `docs/RELEASE_NOTES.md`.
+
 ## v4
 
-Voir `docs/RELEASE_NOTES.md` : chevalier agrandi (24×28 px), scène sans texte superflu, niveau/XP,
+Notes de version v4 : chevalier agrandi, scène sans texte superflu, niveau/XP,
 compétences, héros et compagnons (invocation sans achat réel), effets spéciaux et objets signature, forge,
 arbre de talents, 6 zones et carte du monde, donjon, contrats, événements, maîtrise et familles de pouvoirs.
 **Changer de pouvoir exige une nouvelle victoire contre le boss** (1 charge par victoire, 3 au maximum).

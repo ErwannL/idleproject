@@ -1,5 +1,7 @@
 // Zones de la campagne. Chaque zone couvre BALANCE.stages.stagesPerZone étapes ;
 // la dernière zone continue au-delà avec une difficulté croissante.
+// Le décor de chaque zone est peint dans assets/bg/<id>_<calque>.png (tools/art/scenery.py) ;
+// `palette.sky` donne le dégradé du ciel derrière les calques, `palette.ground` le sol.
 
 export const ZONES = [
   {
@@ -7,18 +9,10 @@ export const ZONES = [
     name: 'Plaines verdoyantes',
     enemies: ['slime', 'goblin'],
     bosses: ['slime_king'],
-    farDecor: ['castle'],
-    midDecor: ['tree', 'tree', 'bush', 'banner'],
-    nearDecor: ['grass', 'flowers', 'rock', 'grass', 'bush'],
     sky: 'clouds',
     palette: {
-      sky: ['#79c3e6', '#8fcfea', '#a6daee', '#bde4f1', '#d3edf4'],
-      far: '#9cc79a',
-      haze: '#bde4f1',
-      ground: '#7a5532',
-      groundDark: '#5c3f24',
-      groundTop: '#4f9a3e',
-      groundTopLight: '#7cc85c',
+      sky: ['#5aa8e6', '#7cc0ee', '#a6d8f4', '#cdeaf6'],
+      ground: '#8a5a33',
     },
   },
   {
@@ -26,17 +20,10 @@ export const ZONES = [
     name: 'Forêt sombre',
     enemies: ['wolf', 'mushroom'],
     bosses: ['alpha_wolf'],
-    midDecor: ['pine', 'pine', 'tree'],
-    nearDecor: ['grass', 'mushroom_small', 'bush', 'rock'],
     sky: 'clouds',
     palette: {
-      sky: ['#2f4a5a', '#3a5867', '#466674', '#527380', '#5f808a'],
-      far: '#2f5141',
-      haze: '#466674',
-      ground: '#4c3a2a',
-      groundDark: '#33271c',
-      groundTop: '#2f6a37',
-      groundTopLight: '#4a8c48',
+      sky: ['#2f4a5a', '#466674', '#5f808a', '#7a989c'],
+      ground: '#4a3424',
     },
   },
   {
@@ -44,17 +31,10 @@ export const ZONES = [
     name: 'Grottes de cristal',
     enemies: ['bat', 'skeleton'],
     bosses: ['bone_lord'],
-    midDecor: ['stalagmite', 'crystal', 'stalagmite'],
-    nearDecor: ['crystal', 'rock', 'stalagmite'],
     sky: 'ceiling',
     palette: {
-      sky: ['#15121f', '#1b1728', '#211c31', '#28223a', '#2f2843'],
-      far: '#3a3152',
-      haze: '#28223a',
-      ground: '#3b3446',
-      groundDark: '#29232f',
-      groundTop: '#585066',
-      groundTopLight: '#7b7290',
+      sky: ['#120f1c', '#1b1728', '#28223a', '#2f2843'],
+      ground: '#2e2840',
     },
   },
   {
@@ -62,18 +42,10 @@ export const ZONES = [
     name: 'Désert brûlant',
     enemies: ['scorpion', 'mummy'],
     bosses: ['ash_dragon'],
-    farDecor: ['pyramid'],
-    midDecor: ['cactus', 'dune_rock', 'cactus'],
-    nearDecor: ['bones', 'rock', 'cactus_small', 'dune_rock'],
     sky: 'clouds',
     palette: {
-      sky: ['#f0a95a', '#f4bb6e', '#f7cc86', '#f9dba0', '#fbe8bf'],
-      far: '#e2b072',
-      haze: '#f7cc86',
-      ground: '#d9a55c',
-      groundDark: '#b5803f',
-      groundTop: '#e8bf77',
-      groundTopLight: '#f5d699',
+      sky: ['#f08a4a', '#f4b06e', '#f9d49a', '#fbe8bf'],
+      ground: '#d49c58',
     },
   },
   {
@@ -81,18 +53,10 @@ export const ZONES = [
     name: 'Montagnes gelées',
     enemies: ['yeti', 'ice_wolf'],
     bosses: ['fallen_knight'],
-    farDecor: ['snow_peak'],
-    midDecor: ['snow_pine', 'snow_pine', 'ice_crystal'],
-    nearDecor: ['snow_rock', 'ice_crystal', 'snow_rock'],
     sky: 'clouds',
     palette: {
-      sky: ['#7fa8d1', '#93b9dc', '#a8c9e5', '#bdd8ee', '#d3e7f5'],
-      far: '#c9dbea',
-      haze: '#bdd8ee',
-      ground: '#e8f0f7',
-      groundDark: '#b7c9da',
-      groundTop: '#ffffff',
-      groundTopLight: '#ffffff',
+      sky: ['#6a98d1', '#93b9dc', '#bdd8ee', '#e3eef8'],
+      ground: '#9aaec8',
     },
   },
   {
@@ -100,18 +64,10 @@ export const ZONES = [
     name: 'Terres maudites',
     enemies: ['imp', 'wraith'],
     bosses: ['demon_king'],
-    farDecor: ['dark_castle'],
-    midDecor: ['dead_tree', 'dead_tree', 'gravestone'],
-    nearDecor: ['gravestone', 'bones', 'lava_crystal'],
     sky: 'clouds',
     palette: {
-      sky: ['#2a1330', '#3a1838', '#4d1e3c', '#63263d', '#7a2f3a'],
-      far: '#3a1f3f',
-      haze: '#4d1e3c',
-      ground: '#3a2a35',
-      groundDark: '#241a22',
-      groundTop: '#5a3a4a',
-      groundTopLight: '#7a4f60',
+      sky: ['#1a0d22', '#3a1838', '#63263d', '#8a3a3a'],
+      ground: '#2a1a2e',
     },
   },
 ];

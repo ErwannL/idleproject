@@ -1,7 +1,7 @@
 // Conversion des grilles de sprites en canvas (avec cache) et texte pixel.
 import { RARITIES } from '../data/items.js';
 import { itemBase } from '../core/loot.js';
-import { BASE_PALETTE, FONT, SHIELD_OFFSET, SPRITES, normalizeRows, rotateRowsCW } from './sprites.js';
+import { BASE_PALETTE, FONT, FONT_BIG, SHIELD_OFFSET, SPRITES, normalizeRows, rotateRowsCW } from './sprites.js';
 
 const cache = new Map();
 
@@ -69,10 +69,33 @@ export function spriteCanvas(name, options = {}) {
   return canvas;
 }
 
+// Éclaircit (t > 0) ou assombrit (t < 0) une couleur #rrggbb.
+export function shade(color, t) {
+  const c = [1, 3, 5].map((i) => parseInt(color.slice(i, i + 2), 16));
+  const target = t > 0 ? [255, 250, 230] : [20, 12, 40];
+  const k = Math.abs(t);
+  return `#${c.map((v, i) => Math.round(v + (target[i] - v) * k).toString(16).padStart(2, '0')).join('')}`;
+}
+
+// Couleurs d'un objet équipé : principale (a), ombre (A), rareté (r) et leurs nuances.
 export function itemColors(item) {
   const base = itemBase(item.baseId);
   const rarity = RARITIES.find((r) => r.id === item.rarity);
-  return { a: base.colors.main, A: base.colors.shade, r: rarity.color };
+  return {
+    a: base.colors.main, A: base.colors.shade, 1: shade(base.colors.main, 0.45), 2: shade(base.colors.shade, -0.45),
+    r: rarity.color, 3: shade(rarity.color, 0.45), 9: shade(rarity.color, -0.4),
+  };
+}
+
+// Palette d'un héros (B tabard, P ombre, W dorure, K plumet) complétée de ses nuances.
+export function heroColors(palette) {
+  if (!palette) return null;
+  const p = { ...palette };
+  if (p.B) p[4] = shade(p.B, 0.3);
+  if (p.P) p[5] = shade(p.P, -0.4);
+  if (p.W) { p[6] = shade(p.W, 0.4); p[7] = shade(p.W, -0.35); }
+  if (p.K) p[8] = shade(p.K, -0.35);
+  return p;
 }
 
 function itemSpriteName(item) {
@@ -83,9 +106,9 @@ function itemSpriteName(item) {
 // Héros composé : cape, corps, armure, bouclier, casque (heaume par défaut), arme.
 // `palette` recolore le chevalier selon le héros choisi (tabard, cape, bouclier, dorures, plumet).
 // Les pieds sont en (HERO_ANCHOR.x, HERO_ANCHOR.y) ; marge à droite pour l'arme tendue.
-export const HERO_SIZE = { w: 42, h: 32 };
-const BODY_OFFSET = { x: 3, y: 3 };
-export const HERO_ANCHOR = { x: BODY_OFFSET.x + 12, y: BODY_OFFSET.y + 27 };
+export const HERO_SIZE = { w: 68, h: 48 };
+const BODY_OFFSET = { x: 4, y: 3 };
+export const HERO_ANCHOR = { x: BODY_OFFSET.x + 19, y: BODY_OFFSET.y + 43 };
 export const CAPE_FRAMES = ['a', 'b', 'c'];
 
 export function heroComposite(frame, equipment, flash = false, cape = 'a', palette = null, flip = false) {
@@ -105,16 +128,17 @@ export function heroComposite(frame, equipment, flash = false, cape = 'a', palet
     const ctx = canvas.getContext('2d');
     const body = SPRITES[`hero_${frame}`];
     const { x: ox, y: oy } = BODY_OFFSET;
-    const colors = palette ?? null;
+    const colors = heroColors(palette);
     ctx.drawImage(spriteCanvas(`cape_${cape}`, { colors }), ox, oy + SPRITES[`cape_${cape}`].oy);
+    // L'écu est porté au bras arrière : derrière le corps, il dépasse sur le côté.
+    ctx.drawImage(spriteCanvas('shield', { colors }), ox + SHIELD_OFFSET.x, oy + SHIELD_OFFSET.y);
     ctx.drawImage(spriteCanvas(`hero_${frame}`, { colors }), ox, oy);
     if (equipment.armor) {
       const name = itemSpriteName(equipment.armor);
-      ctx.drawImage(spriteCanvas(name, { colors: itemColors(equipment.armor) }), ox, oy + SPRITES[name].oy);
+      ctx.drawImage(spriteCanvas(name, { colors: { ...colors, ...itemColors(equipment.armor) } }), ox, oy + SPRITES[name].oy);
     }
-    ctx.drawImage(spriteCanvas('shield', { colors }), ox + SHIELD_OFFSET.x, oy + SHIELD_OFFSET.y);
     const helmet = equipment.helmet ? itemSpriteName(equipment.helmet) : 'helmet_default';
-    const helmetColors = equipment.helmet ? itemColors(equipment.helmet) : colors;
+    const helmetColors = equipment.helmet ? { ...colors, ...itemColors(equipment.helmet) } : colors;
     ctx.drawImage(spriteCanvas(helmet, { colors: helmetColors }), ox, oy + SPRITES[helmet].oy);
     const weapon = equipment.weapon;
     if (weapon) {
@@ -152,8 +176,8 @@ function opaqueBounds(canvas) {
 
 // Zones du chevalier montrées dans les icônes de casque et d'armure.
 const ICON_REGIONS = {
-  helmet: { x: 7, y: 0, w: 12, h: 11 },
-  armor: { x: 4, y: 9, w: 18, h: 10 },
+  helmet: { x: 10, y: 0, w: 19, h: 19 },
+  armor: { x: 8, y: 16, w: 24, h: 20 },
 };
 
 // Icône d'objet pour l'interface (data URL), agrandie et centrée.
@@ -207,24 +231,50 @@ export function spriteUrl(name, scale = 2, options = {}) {
   return url;
 }
 
-export function heroPortraitUrl(equipment, scale = 4, palette = null) {
-  const src = heroComposite('idle', equipment, false, 'a', palette);
-  const key = `portrait|${scale}|${JSON.stringify(palette)}|${['weapon', 'helmet', 'armor'].map((s) => (equipment[s] ? equipment[s].baseId + equipment[s].rarity : '-')).join(',')}`;
+// Portrait du chevalier (recadré sur ses pixels opaques). `silhouette` : couleur unie (boss inconnu).
+export function heroPortraitUrl(equipment, scale = 4, palette = null, silhouette = null) {
+  const gear = ['weapon', 'helmet', 'armor'].map((s) => (equipment[s] ? equipment[s].baseId + equipment[s].rarity : '-')).join(',');
+  const key = `portrait|${scale}|${JSON.stringify(palette)}|${gear}|${silhouette}`;
   const cached = cache.get(key);
   if (cached) return cached;
-  const canvas = createCanvas(src.width * scale, src.height * scale);
+  let src = heroComposite('idle', equipment, false, 'a', palette);
+  if (silhouette) src = tinted(src, silhouette, 1);
+  const box = opaqueBounds(src);
+  const canvas = createCanvas(box.w * scale, box.h * scale);
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(src, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(src, box.x, box.y, box.w, box.h, 0, 0, canvas.width, canvas.height);
   const url = canvas.toDataURL();
   cache.set(key, url);
   return url;
 }
 
-export function textWidth(text) {
+export function textWidth(text, font = FONT) {
   let w = 0;
-  for (const ch of text) w += (FONT[ch]?.[0].length ?? 0) + 1;
+  for (const ch of text) w += (font[ch]?.[0].length ?? 0) + 1;
   return Math.max(0, w - 1);
+}
+
+// Nombre en police large 5×7, contour sombre d'un pixel et reflet clair sur la moitié haute.
+export function drawBigText(ctx, text, x, y, color, light = '#ffffff', outline = '#1a1226') {
+  const draw = (ox, oy, fill, half = false) => {
+    ctx.fillStyle = fill;
+    let cx = Math.round(x) + ox;
+    for (const ch of text) {
+      const glyph = FONT_BIG[ch];
+      if (!glyph) continue;
+      glyph.forEach((row, gy) => {
+        if (half && gy > 2) return;
+        for (let gx = 0; gx < row.length; gx++) {
+          if (row[gx] === '1') ctx.fillRect(cx + gx, Math.round(y) + oy + gy, 1, 1);
+        }
+      });
+      cx += glyph[0].length + 1;
+    }
+  };
+  for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [1, 1], [-1, 1], [1, -1], [-1, -1], [0, 2], [1, 2]]) draw(dx, dy, outline);
+  draw(0, 0, color);
+  draw(0, 0, light, true);
 }
 
 // Texte pixel avec ombre portée d'un pixel.
@@ -245,55 +295,4 @@ export function drawText(ctx, text, x, y, color, shadow = '#1b1424') {
   };
   if (shadow) draw(1, 1, shadow);
   draw(0, 0, color);
-}
-
-// Carte du monde (parchemin pixel art) : chemin entre les zones et vignette de décor par zone.
-// `nodes` : [{ x, y, sprite, locked }] en coordonnées relatives (0..1).
-export function worldMapUrl(nodes, width = 200, height = 110) {
-  const key = `map|${width}|${height}|${nodes.map((n) => `${n.sprite}${n.locked ? 1 : 0}`).join(',')}`;
-  let url = cache.get(key);
-  if (url) return url;
-  const canvas = createCanvas(width, height);
-  const ctx = canvas.getContext('2d');
-  // Parchemin avec grain déterministe.
-  ctx.fillStyle = '#d9c28e';
-  ctx.fillRect(0, 0, width, height);
-  for (let i = 0; i < width * height * 0.06; i++) {
-    const x = (i * 97) % width;
-    const y = Math.floor((i * 57) / width * 3) % height;
-    ctx.fillStyle = i % 3 ? '#cdb47c' : '#e4d09f';
-    ctx.fillRect(x, y, 1, 1);
-  }
-  // Mer et bords.
-  ctx.fillStyle = '#7fa9b8';
-  for (let x = 0; x < width; x++) {
-    const h = 6 + Math.round(3 * Math.sin(x * 0.12) + 2 * Math.sin(x * 0.31));
-    ctx.fillRect(x, height - h, 1, h);
-  }
-  ctx.fillStyle = '#5c4a2c';
-  ctx.fillRect(0, 0, width, 1);
-  ctx.fillRect(0, height - 1, width, 1);
-  ctx.fillRect(0, 0, 1, height);
-  ctx.fillRect(width - 1, 0, 1, height);
-  // Chemin pointillé.
-  ctx.fillStyle = '#7a5a33';
-  for (let i = 0; i < nodes.length - 1; i++) {
-    const a = nodes[i];
-    const b = nodes[i + 1];
-    const steps = 24;
-    for (let s = 0; s <= steps; s += 2) {
-      const t = s / steps;
-      ctx.fillRect(Math.round((a.x + (b.x - a.x) * t) * width), Math.round((a.y + (b.y - a.y) * t) * height), 1, 1);
-    }
-  }
-  // Vignettes de zone.
-  for (const n of nodes) {
-    const sprite = spriteCanvas(n.sprite, n.locked ? { tint: { color: '#8a7650', alpha: 0.85 } } : {});
-    const scale = sprite.width > 16 ? 1 : 2;
-    ctx.drawImage(sprite, Math.round(n.x * width - (sprite.width * scale) / 2), Math.round(n.y * height - sprite.height * scale + 4),
-      sprite.width * scale, sprite.height * scale);
-  }
-  url = canvas.toDataURL();
-  cache.set(key, url);
-  return url;
 }

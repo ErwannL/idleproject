@@ -2,16 +2,16 @@
 import { BALANCE } from '../../data/balance.js';
 import { ZONES } from '../../data/zones.js';
 import { isBossStage, stageLabel, zoneIndexForStage } from '../../core/combat.js';
-import { worldMapUrl } from '../../render/pixel.js';
 import { escapeHtml, img } from '../common.js';
 
+// Positions des zones sur la carte peinte (assets/ui/worldmap.png, générée par tools/art/worldmap.py).
 const MAP_NODES = [
-  { x: 0.13, y: 0.72, sprite: 'tree' },
-  { x: 0.3, y: 0.38, sprite: 'pine' },
-  { x: 0.47, y: 0.74, sprite: 'stalagmite' },
-  { x: 0.62, y: 0.38, sprite: 'pyramid' },
-  { x: 0.78, y: 0.7, sprite: 'snow_peak' },
-  { x: 0.9, y: 0.32, sprite: 'dark_castle' },
+  { x: 0.13, y: 0.72 },
+  { x: 0.3, y: 0.38 },
+  { x: 0.47, y: 0.74 },
+  { x: 0.62, y: 0.38 },
+  { x: 0.78, y: 0.7 },
+  { x: 0.9, y: 0.32 },
 ];
 
 export default {
@@ -24,7 +24,6 @@ export default {
     const currentZone = zoneIndexForStage(state.stage);
     const lastZone = zoneIndexForStage(state.maxStage);
     const sel = Number.isInteger(ui.view.zoneSel) && ui.view.zoneSel <= lastZone ? ui.view.zoneSel : currentZone;
-    const nodes = MAP_NODES.map((n, i) => ({ ...n, locked: i > lastZone }));
     const markers = ZONES.map((zone, i) => {
       const locked = i > lastZone;
       const cleared = state.maxStage > (i + 1) * per;
@@ -42,7 +41,7 @@ export default {
       buttons.push(`<button class="${classes}" data-action="stage" data-stage="${stage}" ${stage > state.maxStage ? 'disabled' : ''}
         title="${isBossStage(stage) ? 'Boss' : 'Étape'} ${stageLabel(stage)}">${stage - first + 1}${isBossStage(stage) ? img('icon_skull') : ''}</button>`);
     }
-    return `<div class="world-map"><img class="px" src="${worldMapUrl(nodes)}" alt="Carte du monde">${markers}</div>
+    return `<div class="world-map"><img class="px" src="assets/ui/worldmap.png" alt="Carte du monde">${markers}</div>
       <div class="card zone-card">
         <div class="row-between"><b>${sel + 1}. ${escapeHtml(ZONES[sel].name)}</b>
           <label class="toggle"><input type="checkbox" data-action="auto" ${state.autoAdvance ? 'checked' : ''}> Avancer automatiquement</label></div>

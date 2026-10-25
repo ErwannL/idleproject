@@ -22,7 +22,7 @@ export default {
     const owned = state.heroes.owned[hero.id];
     const roster = HEROES.map((h) => {
       const has = state.heroes.owned[h.id];
-      const url = heroPortraitUrl({ weapon: state.equipment.weapon }, 1, has ? h.palette : { B: '#2a3550', P: '#1a2238', W: '#3a4a66', K: '#3a4a66' });
+      const url = heroPortraitUrl({ weapon: state.equipment.weapon }, 1, h.palette, has ? null : '#2a3550');
       return `<button class="hero-thumb r-${h.rarity}${h.id === selectedId ? ' selected' : ''}${has ? '' : ' unowned'}${h.id === state.heroes.active ? ' active-hero' : ''}"
         data-action="hero-sel" data-value="${h.id}" title="${h.name}${has ? '' : ' (à invoquer)'}"><img class="px" src="${url}" alt=""></button>`;
     }).join('');

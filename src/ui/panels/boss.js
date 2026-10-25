@@ -24,9 +24,9 @@ function powerBox(power, label) {
 
 function portrait(bossId, known) {
   const boss = BOSSES[bossId];
-  if (boss.heroLike) return heroPortraitUrl({ weapon: { baseId: 'fallen_blade', rarity: 'epic' } }, 1, known ? boss.palette : { B: '#4a5a78', P: '#4a5a78', W: '#4a5a78', K: '#4a5a78', E: '#4a5a78', I: '#4a5a78', J: '#4a5a78', k: '#4a5a78', s: '#4a5a78', S: '#4a5a78', e: '#4a5a78', l: '#4a5a78', Z: '#4a5a78' });
+  if (boss.heroLike) return heroPortraitUrl({ weapon: { baseId: 'fallen_blade', rarity: 'epic' } }, 1, boss.palette, known ? null : '#4a5a78');
   const sprite = boss.sprite ?? ENEMIES[boss.base].sprite;
-  return icon(sprite, 2, known ? (boss.palette ? { colors: boss.palette } : {}) : { tint: { color: '#4a5a78', alpha: 1 } });
+  return icon(sprite, 1, known ? (boss.palette ? { colors: boss.palette } : {}) : { tint: { color: '#4a5a78', alpha: 1 } });
 }
 
 export default {

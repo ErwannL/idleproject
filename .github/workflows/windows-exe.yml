@@ -2,7 +2,7 @@ name: Windows exe
 
 # Construit l'installateur Windows d'Idle RPG, le teste (lancement réel, sauvegarde,
 # mise à jour d'une installation précédente), puis publie la release correspondant
-# à la version de package.json (ex. v4.0.0).
+# à la version de package.json (ex. v5.0.0).
 on:
   push:
     branches: [main, master, 'claude/**']
@@ -47,7 +47,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          PREVIOUS: '3.0.0'
+          PREVIOUS: '4.0.0'
         run: |
           gh release download "v$PREVIOUS" --pattern "IdleRPG-$PREVIOUS-setup.exe" --dir previous
           VERSION="$(node -p "require('./package.json').version")"

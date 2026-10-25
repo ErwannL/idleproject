@@ -17,36 +17,23 @@ export const ENEMIES = {
   mummy: { name: 'Momie', sprite: 'mummy', hp: 36, damage: 4, gold: 7, speed: 12, attackInterval: 1.5, range: 16 },
   yeti: { name: 'Yéti', sprite: 'yeti', hp: 40, damage: 6, gold: 7, speed: 14, attackInterval: 1.6, range: 18 },
   ice_wolf: {
-    name: 'Loup des glaces', sprite: 'wolf', hp: 26, damage: 5, gold: 6, speed: 34, attackInterval: 1.0, range: 18,
-    palette: { f: '#dfeef7', F: '#8fb4cc', R: '#3fa8d8' },
+    name: 'Loup des glaces', sprite: 'wolf_ice', hp: 26, damage: 5, gold: 6, speed: 34, attackInterval: 1.0, range: 18,
   },
   imp: { name: 'Diablotin', sprite: 'imp', hp: 26, damage: 6, gold: 7, speed: 26, attackInterval: 1.0, range: 16 },
 };
 
-// Boss : réutilisent un ennemi de base, agrandi, avec une couronne ou une palette différente.
+// Boss : statistiques d'un ennemi de base (`base`), sprite dédié (v5, dessiné à sa taille).
 export const BOSSES = {
-  slime_king: { name: 'Roi Gluant', base: 'slime', crown: true },
-  alpha_wolf: {
-    name: 'Loup Alpha', base: 'wolf', crown: false,
-    palette: { f: '#4b4e5c', F: '#2e3039', R: '#ffdd33' },
-  },
-  bone_lord: {
-    name: 'Seigneur des Os', base: 'skeleton', crown: true,
-    palette: { n: '#d9d0f0', N: '#9c8fc2' },
-  },
+  slime_king: { name: 'Roi Gluant', base: 'slime', sprite: 'boss_slime_king' },
+  alpha_wolf: { name: 'Loup Alpha', base: 'wolf', sprite: 'boss_alpha_wolf' },
+  bone_lord: { name: 'Seigneur des Os', base: 'skeleton', sprite: 'boss_bone_lord' },
   // Boss du donjon « Crypte spectrale ».
-  spectral_queen: {
-    name: 'Reine spectrale', base: 'wraith', crown: true,
-    palette: { v: '#bfe9ff', V: '#5fa9d9' },
-  },
-  ash_dragon: { name: 'Dragon des cendres', base: 'scorpion', sprite: 'dragon', crown: false },
+  spectral_queen: { name: 'Reine spectrale', base: 'wraith', sprite: 'boss_spectral_queen' },
+  ash_dragon: { name: 'Dragon des cendres', base: 'scorpion', sprite: 'boss_ash_dragon' },
   // Chevalier noir : dessiné avec le corps du héros, retourné et assombri.
   fallen_knight: {
-    name: 'Chevalier déchu', base: 'yeti', heroLike: true, scale: 1, crown: false,
-    palette: { B: '#3a2f4a', P: '#211a2c', W: '#9a3445', K: '#9a3445', E: '#8a93a3', I: '#5d6878', J: '#353c48' },
+    name: 'Chevalier déchu', base: 'yeti', heroLike: true,
+    palette: { B: '#3a2f4a', P: '#211a2c', W: '#9a3445', K: '#9a3445', w: '#aab2c0', E: '#8a93a3', I: '#5d6878', J: '#353c48', X: '#1e222c' },
   },
-  demon_king: {
-    name: 'Roi démoniaque', base: 'imp', crown: true,
-    palette: { m: '#7a1d2a', M: '#4a0f18' },
-  },
+  demon_king: { name: 'Roi démoniaque', base: 'imp', sprite: 'boss_demon_king' },
 };

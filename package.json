@@ -1,7 +1,7 @@
 {
   "name": "idle-rpg",
   "productName": "Idle RPG",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "private": true,
   "description": "RPG idle 2D en pixel art pour PC (fenêtre compacte).",
   "author": "ErwannL",
@@ -16,6 +16,7 @@
     "desktop": "electron .",
     "test": "node --test",
     "smoke": "node tools/smoke.mjs",
+    "art": "python3 tools/art/build.py",
     "export-assets": "node tools/export-assets.mjs",
     "dist:win": "electron-builder --win --publish never",
     "test:exe": "node tools/desktop-smoke.mjs",
