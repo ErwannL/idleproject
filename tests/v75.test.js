@@ -107,7 +107,8 @@ test('règle de collecte : recycler au ramassage sans jamais jeter une améliora
 
 test('boss : essences garanties, et fabrication épique', () => {
   assert.equal(bossEssence(5), 2);
-  assert.equal(bossEssence(25), 4);
+  assert.equal(bossEssence(45), 4);
+  assert.equal(bossEssence(125), 8); // difficulté ×2 : +6
   const state = rich(12);
   state.materials.essence = 100;
   const item = craftItem(state, 'ring', new Rng(1), undefined, 'epic');

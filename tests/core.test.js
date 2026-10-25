@@ -188,7 +188,10 @@ test('les ennemis deviennent plus forts avec les étapes', () => {
   assert.ok(enemyStats(10, 'slime', false).hp > enemyStats(1, 'slime', false).hp);
   assert.ok(enemyStats(5, 'slime_king', true).hp > enemyStats(5, 'slime', false).hp);
   assert.equal(stageLabel(1), '1-1');
-  assert.equal(stageLabel(14), '2-4');
+  assert.equal(stageLabel(14), '1-14');
+  assert.equal(stageLabel(34), '2-14');
+  assert.equal(stageLabel(121), '1-1 ×2'); // après le dernier monde : retour au monde 1, difficulté ×2
+  assert.ok(enemyStats(121, 'slime', false).hp > enemyStats(120, 'slime', false).hp);
 });
 
 test('hors ligne : plafond, horloge reculée et cohérence avec le farm actif', () => {
@@ -254,7 +257,7 @@ test('sauvegarde : aller-retour, secours si corrompue, valeurs aberrantes nettoy
   assert.equal(loadGame(storage, BALANCE, NOW).source, 'new');
 
   const cleaned = sanitizeState({
-    gold: -50, stage: 99, maxStage: 3, upgrades: { damage: 'x' },
+    version: 5, gold: -50, stage: 99, maxStage: 3, upgrades: { damage: 'x' },
     inventory: [{ id: 'it5', baseId: 'nope', slot: 'weapon', rarity: 'rare', level: 1, stats: {} }, null],
     nextItemId: 1,
   });

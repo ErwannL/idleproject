@@ -3,16 +3,14 @@
 // Légendaire toutes les 60 au plus. Doublon = +1 étoile (max 5), puis remboursement en gemmes.
 import { BALANCE } from '../data/balance.js';
 import { COMPANIONS } from '../data/companions.js';
-import { HEROES } from '../data/heroes.js';
 import { RARITIES } from '../data/items.js';
 import { rarityIndex } from './loot.js';
 import { trackMissions } from './missions.js';
 
+// v7.6 : le chevalier est le seul héros (plus de variantes à invoquer) ; on invoque des personnages
+// (héros alliés R/SR/SSR) et des compagnons (familiers).
 export function summonPool() {
-  return [
-    ...HEROES.map((h) => ({ kind: 'hero', id: h.id, name: h.name, rarity: h.rarity })),
-    ...COMPANIONS.map((c) => ({ kind: 'companion', id: c.id, name: c.name, rarity: c.rarity })),
-  ];
+  return COMPANIONS.map((c) => ({ kind: 'companion', id: c.id, name: c.name, rarity: c.rarity, ally: c.kind === 'ally' }));
 }
 
 // Probabilité de chaque rareté et de chaque unité (hors garantie).

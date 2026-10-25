@@ -9,8 +9,8 @@ import { companionById, equippedCompanions } from '../core/companions.js';
 import { formatNumber } from '../core/format.js';
 import { activeHero } from '../core/heroes.js';
 import { BG } from './bg.js';
-import { FONT_BIG } from './sprites.js';
-import { HERO_ANCHOR, drawBigText, heroComposite, spriteCanvas, textWidth } from './pixel.js';
+import { FONT_BIG, SPRITES } from './sprites.js';
+import { HERO_ANCHOR, drawBigText, heroComposite, itemDropCanvas, spriteCanvas, textWidth } from './pixel.js';
 
 // Vue resserrée : le chevalier (≈ 40 px) occupe un bon tiers de la hauteur de la scène.
 export const MIN_VIEW_HEIGHT = 96;
@@ -20,6 +20,13 @@ const MAX_SCALE = 3; // zoom maximal : une grande fenêtre montre plus de décor
 // Les positions de la simulation (BALANCE.world) sont agrandies à l'affichage pour
 // s'accorder aux sprites v5, plus détaillés ; la simulation elle-même ne change pas.
 export const WORLD_SCALE = 1.5;
+// Aura des boss par rang (mini, moyen, dur, méga).
+const BOSS_AURAS = {
+  mini: { color: '#ffb050', ember: '#ffe08a', width: 1, alpha: 0.35, speed: 4, embers: 0 },
+  mid: { color: '#ff4d6d', ember: '#ffb0a8', width: 1, alpha: 0.45, speed: 5, embers: 0.05 },
+  hard: { color: '#ff4dd2', ember: '#ffc0f0', width: 2, alpha: 0.4, speed: 6, embers: 0.15 },
+  mega: { color: '#ff2020', ember: '#ffd23f', width: 2, alpha: 0.55, speed: 7, embers: 0.35 },
+};
 const HERO_X = BALANCE.world.heroX * WORLD_SCALE;
 
 // Particules d'ambiance par zone, sur deux profondeurs (derrière et devant les personnages) :
@@ -175,10 +182,18 @@ export class SceneRenderer {
         const color = rarityColor(event.item.rarity);
         const big = event.item.rarity === 'legendary' || event.item.rarity === 'epic';
         this.effects.push({ kind: 'beam', x: Math.round(event.x), color, life: 1.4, max: 1.4, wide: big });
+        // L'objet jaillit du monstre, retombe en brillant, puis file vers le sac du chevalier.
+        this.effects.push({ kind: 'loot', item: event.item, color, x0: event.x, x: event.x, y: this.groundY, life: 1.6, max: 1.6 });
         this.burst(event.x, this.groundY - 6, color, big ? 14 : 6, 50);
         if (event.item.rarity === 'legendary') this.shake = Math.max(this.shake, 3);
         break;
       }
+      case 'gems':
+        // Gemmes (cristaux) : petite gemme qui saute et texte bleu.
+        this.sprite(['icon_gem'], event.x, this.groundY - 16, 0.9);
+        this.addText(`+${event.gems}`, event.x, this.groundY - 40, '#6fd6ff', '#d8f6ff');
+        this.burst(event.x, this.groundY - 14, '#6fd6ff', 6, 34);
+        break;
       case 'bossSpawn':
         this.shake = Math.max(this.shake, 3);
         break;
@@ -260,11 +275,17 @@ export class SceneRenderer {
   }
 
   // Apparence d'un ennemi : sprite, échelle, palette (boss et variantes comme le loup des glaces).
-  enemyLook(type, boss) {
+  // Images : repos / marche (<nom>, <nom>_b) et attaque (<nom>_atk) quand elles existent.
+  enemyLook(type, boss, attacking = false, phase = 0) {
     const bossDef = boss ? BOSSES[type] : null;
     const def = boss ? ENEMIES[bossDef.base] : ENEMIES[type];
-    const frames = bossDef?.sprite ? [bossDef.sprite] : def.frames ?? [def.sprite];
-    const sprite = frames[Math.floor(this.time * 6) % frames.length];
+    const base = bossDef?.sprite ?? def.sprite;
+    let frames = bossDef?.sprite ? [base] : def.frames ?? [base];
+    if (frames.length === 1 && SPRITES[`${base}_b`]) frames = [base, `${base}_b`];
+    const fps = boss ? 4 : 6;
+    let sprite = frames[Math.floor(this.time * fps + phase) % frames.length];
+    if (attacking && SPRITES[`${base}_atk`]) sprite = `${base}_atk`;
+    if (!SPRITES[sprite]) sprite = SPRITES[base] ? base : def.sprite;
     return {
       def, sprite, heroLike: Boolean(bossDef?.heroLike), scale: bossDef ? bossDef.scale ?? 1 : 1,
       colors: (bossDef ? bossDef.palette : def.palette) ?? null,
@@ -400,7 +421,7 @@ export class SceneRenderer {
       const alpha = Math.min(1, world.alpha ?? 1);
       const ex = ((enemy.prevX ?? enemy.x) + (enemy.x - (enemy.prevX ?? enemy.x)) * alpha) * WORLD_SCALE;
 
-      const { def, sprite, scale, colors, heroLike } = this.enemyLook(enemy.type, enemy.boss);
+      const { def, sprite, scale, colors, heroLike } = this.enemyLook(enemy.type, enemy.boss, fx.lunge > 0, enemy.id * 0.37);
       // Le Chevalier déchu utilise le corps du héros, retourné, avec une épée sombre.
       const img = heroLike
         ? heroComposite(fx.lunge > 0 ? 'attack' : moving ? ['walk1', 'walk2'][Math.floor(this.time * 6) % 2] : 'idle',
@@ -417,6 +438,7 @@ export class SceneRenderer {
 
       ctx.globalAlpha = fx.appear;
       this.drawShadow(ctx, ex, Math.max(6, w * 0.7));
+      if (enemy.boss) this.drawBossAura(ctx, enemy, sprite, colors, x, y, w, h, fx.appear);
       if (enemy.elite) {
         // Élite errante : halo rouge pulsant.
         const glow = spriteCanvas(sprite, { colors, tint: { color: '#ff3b3b', alpha: 1 } });
@@ -437,6 +459,26 @@ export class SceneRenderer {
         this.drawBar(ctx, Math.round(ex - 9), y - 5, 18, enemy.hp / enemy.maxHp, enemy.elite ? '#ff9a3d' : '#e84a5f');
       }
       ctx.globalAlpha = 1;
+    }
+  }
+
+  // Aura des boss selon leur rang : contour lumineux pulsant (plus épais et plus rouge pour les méga boss),
+  // braises qui montent autour des boss durs et méga boss.
+  drawBossAura(ctx, enemy, sprite, colors, x, y, w, h, appear) {
+    const tier = BOSSES[enemy.type]?.tier ?? 'mega';
+    const look = BOSS_AURAS[tier];
+    const glow = spriteCanvas(sprite, { colors, tint: { color: look.color, alpha: 1 } });
+    const pulse = 0.5 + 0.5 * Math.sin(this.time * look.speed + enemy.id);
+    ctx.globalAlpha = appear * (look.alpha + 0.25 * pulse);
+    for (let r = 1; r <= look.width; r++) {
+      for (const [dx, dy] of [[-r, 0], [r, 0], [0, -r], [0, r]]) ctx.drawImage(glow, x + dx, y + dy, w, h);
+    }
+    ctx.globalAlpha = 1;
+    if (look.embers && Math.random() < look.embers) {
+      this.effects.push({
+        kind: 'particle', x: x + Math.random() * w, y: y + h * (0.3 + Math.random() * 0.7), vx: (Math.random() - 0.5) * 6, vy: -18 - Math.random() * 14,
+        color: Math.random() < 0.5 ? look.color : look.ember, life: 0.9, max: 0.9,
+      });
     }
   }
 
@@ -497,35 +539,59 @@ export class SceneRenderer {
   // Héros allié : à taille humaine derrière le chevalier ; marche, respiration, pose d'attaque.
   drawAlly(ctx, world, companion, i) {
     const attacking = (this.allyAttack.get(companion.id) ?? 0) > 0;
-    const frame = attacking ? `${companion.sprite}_atk`
-      : world.hero.walking || Math.floor(this.time * 2 + i) % 2 ? `${companion.sprite}_b` : companion.sprite;
+    const walking = world.hero.walking;
+    // Marche : alternance rapide des deux images + petit rebond ; à l'arrêt : respiration lente.
+    const step = Math.floor(this.time * (walking ? 7 : 2) + i);
+    const frame = attacking ? `${companion.sprite}_atk` : step % 2 ? `${companion.sprite}_b` : companion.sprite;
     const img = spriteCanvas(frame);
-    // Le 2e allié se tient un peu en retrait (plus loin et légèrement plus haut).
+    const bob = walking && !attacking ? this.snap(Math.abs(Math.sin(this.time * 11 + i * 1.7)) * 1.5) : 0;
+    // Le 2e personnage se tient un peu en retrait (plus loin et légèrement plus haut).
     const x = HERO_X - 26 - i * 24 - img.width / 2 + (attacking ? 4 : 0);
-    const y = this.groundY - img.height + 1 - i * 2;
-    this.drawShadow(ctx, x + img.width / 2, 18);
+    const y = this.groundY - img.height + 1 - i * 2 - bob;
+    this.drawShadow(ctx, x + img.width / 2, 18 - bob * 2);
     ctx.drawImage(img, this.snap(x), y);
+  }
+
+  // Compagnon (familier) : trottine juste derrière le chevalier ; les volants planent en battant des ailes.
+  drawPet(ctx, world, companion) {
+    const img = spriteCanvas(companion.sprite);
+    const flying = FLYING_PETS.has(companion.id);
+    const walking = world.hero.walking;
+    const x = HERO_X - 14 - img.width / 2;
+    if (flying) {
+      const hover = 30 + Math.sin(this.time * 3) * 3;
+      // Battement d'ailes : écrasement vertical rapide autour du centre du sprite.
+      const flap = 1 - Math.abs(Math.sin(this.time * 12)) * 0.14;
+      const cy = this.groundY - hover - img.height / 2;
+      this.drawShadow(ctx, x + img.width / 2, img.width * 0.5);
+      ctx.save();
+      ctx.translate(this.snap(x + img.width / 2), this.snap(cy));
+      ctx.scale(1, flap);
+      ctx.drawImage(img, -img.width / 2, -img.height / 2);
+      ctx.restore();
+      return;
+    }
+    // Petits bonds en marchant, avec écrasement à la réception.
+    const phase = Math.abs(Math.sin(this.time * (walking ? 9 : 2.5)));
+    const hop = walking ? phase * 4 : phase * 0.8;
+    const squash = walking && phase < 0.25 ? 0.9 : 1;
+    this.drawShadow(ctx, x + img.width / 2, img.width * 0.8 - hop);
+    ctx.save();
+    ctx.translate(this.snap(x + img.width / 2), this.groundY + 1 - this.snap(hop));
+    ctx.scale(2 - squash, squash);
+    ctx.drawImage(img, -img.width / 2, -img.height);
+    ctx.restore();
   }
 
   drawCompanions(ctx, state, world, dt) {
     if (world.hero.dead) return;
     for (const [id, t] of this.allyAttack) this.allyAttack.set(id, Math.max(0, t - dt));
-    // Du plus éloigné au plus proche : le 1er allié passe devant le 2e.
-    const team = equippedCompanions(state).map((companion, i) => [companion, i]).reverse();
-    team.forEach(([companion, i]) => {
-      if (companion.kind === 'ally') {
-        this.drawAlly(ctx, world, companion, i);
-        return;
-      }
-      const img = spriteCanvas(companion.sprite);
-      const flying = FLYING_PETS.has(companion.id);
-      const x = HERO_X - 36 - i * 20 - img.width / 2;
-      const hop = world.hero.walking ? this.snap(Math.abs(Math.sin(this.time * 9 + i)) * 3) : 0;
-      const hover = flying ? 26 + this.snap(Math.sin(this.time * 3 + i) * 3) : 0;
-      const y = this.groundY - img.height + 1 - hop - hover;
-      if (!flying) this.drawShadow(ctx, x + img.width / 2, img.width * 0.8);
-      ctx.drawImage(img, this.snap(x), y);
-    });
+    // Du plus éloigné au plus proche : 2e personnage, 1er personnage, puis le compagnon.
+    const team = equippedCompanions(state);
+    const allies = team.filter((c) => c.kind === 'ally');
+    for (let i = allies.length - 1; i >= 0; i--) this.drawAlly(ctx, world, allies[i], i);
+    const pet = team.find((c) => c.kind !== 'ally');
+    if (pet) this.drawPet(ctx, world, pet);
   }
 
   drawBar(ctx, x, y, w, ratio, color) {
@@ -551,6 +617,7 @@ export class SceneRenderer {
 
   drawEffects(ctx, dt) {
     const coin = spriteCanvas('coin');
+    const spawned = []; // particules créées pendant le parcours (ajoutées après le filtrage)
     this.effects = this.effects.filter((fx) => {
       fx.life -= dt;
       if (fx.life <= 0) return false;
@@ -576,6 +643,37 @@ export class SceneRenderer {
           ctx.globalAlpha = Math.min(1, t * 2);
           ctx.drawImage(coin, Math.round(fx.x - coin.width / 2), Math.round(fx.y - coin.height / 2));
           break;
+        case 'loot': {
+          const img = itemDropCanvas(fx.item);
+          const age = fx.max - fx.life;
+          let x = fx.x0;
+          let y;
+          if (age < 0.5) {
+            // Saut en cloche, un peu vers l'avant.
+            const k = age / 0.5;
+            x = fx.x0 + 14 * k;
+            y = this.groundY - 2 - Math.sin(k * Math.PI) * 26;
+          } else if (age < 1.1) {
+            x = fx.x0 + 14;
+            y = this.groundY - 2 - Math.abs(Math.sin((age - 0.5) * 9)) * 2 * (1.1 - age);
+          } else {
+            // Aspiré vers le chevalier.
+            const k = Math.min(1, (age - 1.1) / 0.5);
+            const e = k * k;
+            x = fx.x0 + 14 + (HERO_X - fx.x0 - 14) * e;
+            y = this.groundY - 2 - 20 * e - Math.sin(k * Math.PI) * 10;
+          }
+          // Halo de rareté qui pulse.
+          ctx.globalAlpha = 0.35 + 0.25 * Math.sin(this.time * 12);
+          ctx.fillStyle = fx.color;
+          ctx.fillRect(this.snap(x - img.width / 2 - 1), Math.round(y - img.height - 1), img.width + 2, img.height + 2);
+          ctx.globalAlpha = Math.min(1, fx.life * 3);
+          ctx.drawImage(img, this.snap(x - img.width / 2), Math.round(y - img.height));
+          if (Math.random() < 0.3) {
+            spawned.push({ kind: 'particle', x, y: y - img.height / 2, vx: (Math.random() - 0.5) * 20, vy: -10 - Math.random() * 10, color: fx.color, life: 0.4, max: 0.4 });
+          }
+          break;
+        }
         case 'sprite': {
           if (fx.life > fx.max) break; // pas encore commencé
           const k = 1 - t;
@@ -618,6 +716,7 @@ export class SceneRenderer {
       ctx.globalAlpha = 1;
       return true;
     });
+    this.effects.push(...spawned);
     if (this.effects.length > 400) this.effects.splice(0, this.effects.length - 400);
   }
 }

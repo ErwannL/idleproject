@@ -4,6 +4,8 @@ import { SLOTS } from '../data/items.js';
 import { companionEffects } from './companions.js';
 import { heroEffects } from './heroes.js';
 import { powerEffects } from './powers.js';
+import { prestigeEffects } from './prestige.js';
+import { rushEffects } from './rushes.js';
 import { talentEffects } from './rebirth.js';
 
 export const BONUS_KEYS = [
@@ -28,6 +30,8 @@ export function bonusSources(state, equipment = state.equipment) {
     hero: heroEffects(state),
     companions: companionEffects(state),
     gear: gearAffixEffects(equipment),
+    prestige: prestigeEffects(state),
+    rushes: rushEffects(state),
   };
 }
 

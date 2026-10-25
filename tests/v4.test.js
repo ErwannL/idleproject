@@ -131,7 +131,11 @@ test('compagnons : équipement limité, niveaux et effets', () => {
   const state = createNewState(NOW, 1);
   for (const c of COMPANIONS) state.companions.owned[c.id] = { stars: 1, level: 1 };
   for (const c of COMPANIONS) toggleCompanion(state, c.id);
-  assert.equal(state.companions.equipped.length, BALANCE.companionSlots);
+  // Équipe : 2 personnages + 1 compagnon (le dernier compagnon équipé remplace le précédent).
+  assert.equal(state.companions.equipped.length, BALANCE.teamSlots.ally + BALANCE.teamSlots.pet);
+  toggleCompanion(state, 'golden_slime');
+  assert.ok(state.companions.equipped.includes('golden_slime'));
+  assert.equal(state.companions.equipped.length, 3);
   const gold = companionEffects(state).goldPct;
   state.gold = 1e9;
   assert.ok(upgradeCompanion(state, 'golden_slime'));
@@ -322,11 +326,11 @@ test('hors ligne : XP et contrats progressent aussi', () => {
 
 test('les 7 boss donnent un pouvoir et la campagne de zone 4 à 6 se joue', () => {
   const state = createNewState(NOW, 11);
-  state.maxStage = 55;
-  state.upgrades.damage = 400;
-  state.upgrades.vitality = 300;
+  state.maxStage = 120;
+  state.upgrades.damage = 450;
+  state.upgrades.vitality = 330;
   const world = createCombat(state);
-  for (const stage of [35, 45, 55]) {
+  for (const stage of [80, 100, 120]) {
     changeStage(state, world, stage);
     const rng = new Rng(stage);
     for (let i = 0; i < 20 * 60 && state.stage === stage; i++) step(state, world, 0.05, rng);

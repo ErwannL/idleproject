@@ -194,6 +194,19 @@ function opaqueBounds(canvas) {
   return x1 < 0 ? { x: 0, y: 0, w: width, h: height } : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
 }
 
+// Objet seul, recadré, à taille réelle : butin qui tombe dans la scène.
+export function itemDropCanvas(item) {
+  const key = `drop|${item.baseId}|${item.rarity}`;
+  let canvas = cache.get(key);
+  if (canvas) return canvas;
+  const src = spriteCanvas(itemSpriteName(item), { colors: itemColors(item) });
+  const box = opaqueBounds(src);
+  canvas = createCanvas(Math.max(1, box.w), Math.max(1, box.h));
+  canvas.getContext('2d').drawImage(src, box.x, box.y, box.w, box.h, 0, 0, box.w, box.h);
+  cache.set(key, canvas);
+  return canvas;
+}
+
 // Icône d'objet pour l'interface (data URL), agrandie et centrée.
 export function itemIconUrl(item, size = 32) {
   const key = `icon|${item.baseId}|${item.rarity}|${size}`;

@@ -47,10 +47,26 @@ export const BOSSES = {
   // Boss du donjon « Crypte spectrale ».
   spectral_queen: { name: 'Reine spectrale', base: 'wraith', sprite: 'boss_spectral_queen' },
   ash_dragon: { name: 'Dragon des cendres', base: 'scorpion', sprite: 'boss_ash_dragon' },
-  // Chevalier noir : dessiné avec le corps du héros, retourné et assombri.
-  fallen_knight: {
-    name: 'Chevalier déchu', base: 'yeti', heroLike: true,
-    palette: { B: '#3a2f4a', P: '#211a2c', W: '#9a3445', K: '#9a3445', w: '#aab2c0', E: '#8a93a3', I: '#5d6878', J: '#353c48', X: '#1e222c' },
-  },
+  fallen_knight: { name: 'Chevalier déchu', base: 'yeti', sprite: 'boss_fallen_knight' },
   demon_king: { name: 'Roi démoniaque', base: 'imp', sprite: 'boss_demon_king' },
+  // v7.6 : chaque monde a 4 boss : mini (étape 5), moyen (10), dur (15) ; les boss ci-dessus sont
+  // les méga boss (étape 20). `tier` absent = méga boss.
+  mini_goblin_warlord: { name: 'Chef de guerre gobelin', base: 'goblin', sprite: 'mini_goblin_warlord', tier: 'mini' },
+  mini_treant: { name: 'Tréant corrompu', base: 'mushroom', sprite: 'mini_treant', tier: 'mini' },
+  mini_crystal_golem: { name: 'Golem de cristal', base: 'golem', sprite: 'mini_crystal_golem', tier: 'mini' },
+  mini_pharaoh: { name: 'Pharaon maudit', base: 'mummy', sprite: 'mini_pharaoh', tier: 'mini' },
+  mini_frost_witch: { name: 'Sorcière des glaces', base: 'slime_ice', sprite: 'mini_frost_witch', tier: 'mini' },
+  mini_reaper: { name: 'Faucheuse', base: 'wraith', sprite: 'mini_reaper', tier: 'mini' },
+  mid_boar_titan: { name: 'Sanglier titan', base: 'boar', sprite: 'mid_boar_titan', tier: 'mid' },
+  mid_giant_spider: { name: 'Araignée géante', base: 'wolf', sprite: 'mid_giant_spider', tier: 'mid' },
+  mid_crystal_bat: { name: 'Chauve-souris de cristal', base: 'bat', sprite: 'mid_crystal_bat', tier: 'mid' },
+  mid_sand_worm: { name: 'Ver des sables', base: 'scorpion', sprite: 'mid_sand_worm', tier: 'mid' },
+  mid_mammoth: { name: 'Mammouth de givre', base: 'yeti', sprite: 'mid_mammoth', tier: 'mid' },
+  mid_hellhound: { name: "Chien de l'enfer", base: 'imp', sprite: 'mid_hellhound', tier: 'mid' },
+  hard_scarecrow: { name: 'Épouvantail maudit', base: 'goblin', sprite: 'hard_scarecrow', tier: 'hard' },
+  hard_werewolf: { name: 'Loup-garou', base: 'wolf', sprite: 'hard_werewolf', tier: 'hard' },
+  hard_necromancer: { name: 'Nécromancien', base: 'skeleton', sprite: 'hard_necromancer', tier: 'hard' },
+  hard_anubis: { name: 'Gardien chacal', base: 'mummy', sprite: 'hard_anubis', tier: 'hard' },
+  hard_frost_giant: { name: 'Géant du givre', base: 'ogre', sprite: 'hard_frost_giant', tier: 'hard' },
+  hard_demon_general: { name: 'Général démon', base: 'imp', sprite: 'hard_demon_general', tier: 'hard' },
 };

@@ -4,7 +4,7 @@
 import { BALANCE } from '../data/balance.js';
 import { BOSSES } from '../data/enemies.js';
 import { DUNGEONS } from '../data/dungeons.js';
-import { currentEncounter, isBossStage, stageLabel, zoneForStage, zoneIndexForStage } from '../core/combat.js';
+import { currentEncounter, difficultyForStage, isBossStage, stageLabel, zoneForStage, zoneIndexForStage } from '../core/combat.js';
 import { eventLabel } from '../core/events.js';
 import { formatDecimal, formatDuration, formatNumber } from '../core/format.js';
 import { isUpgrade } from '../core/inventory.js';
@@ -15,7 +15,7 @@ import { canRebirth, rebirthReward } from '../core/rebirth.js';
 import { rewardText } from '../core/rewards.js';
 import { skillPointsAvailable } from '../core/skills.js';
 import { computeHeroStats } from '../core/stats.js';
-import { coin, effectText, icon, itemFrame } from './common.js';
+import { coin, effectText, icon, img, itemFrame } from './common.js';
 import boss from './panels/boss.js';
 import campaign from './panels/campaign.js';
 import companions from './panels/companions.js';
@@ -31,6 +31,8 @@ import tree, { keepResetLists } from './panels/tree.js';
 import upgrades from './panels/upgrades.js';
 import { missionsClaimable } from '../core/missions.js';
 import { earlyBoost } from '../core/boost.js';
+import { RUSHES } from '../data/rushes.js';
+import { rushUnlocked } from '../core/rushes.js';
 
 const PANELS = Object.fromEntries([upgrades, inventory, hero, companions, skills, tree, campaign, dungeons, boss, summon, contracts, inbox, options]
   .map((p) => [p.id, p]));
@@ -55,6 +57,7 @@ export class UI {
     this.newTabs = new Set();
     this.lastLive = 0;
     this.view = {
+      closed: new Set(['weekly', 'monthly']), // sections repliées (missions…)
       upgradeCat: 'combat', invTab: 'bag', selectedItemId: null, bulkRarity: 'common', bulkArmed: false,
       heroSel: null, companionSel: null, talentSel: null, zoneSel: null, dungeonSlot: 'any', dungeonPath: 'gold',
       oddsOpen: new Set(), lastSummon: null,
@@ -179,6 +182,13 @@ export class UI {
       case 'buy-talent': a.buyTalent(key); break;
       case 'rebirth': this.showRebirthConfirm(this.state); break;
       case 'confirm-rebirth': this.closeModal(); a.rebirth(); break;
+      case 'prestige':
+        if (!v.prestigeArmed) local(() => { v.prestigeArmed = true; });
+        else { v.prestigeArmed = false; a.prestige(); }
+        break;
+      case 'buy-perk': a.buyPerk(key); break;
+      case 'rush': a.activateRush(value); break;
+      case 'upgrade-rush': a.upgradeRush(key); break;
       case 'reroll': a.rerollPower(bossId); break;
       case 'keep-power': a.resolvePower(bossId, false); break;
       case 'take-power': a.resolvePower(bossId, true); break;
@@ -195,6 +205,11 @@ export class UI {
       case 'claim-mission': { const [period, id] = value.split('|'); a.claimMission(period, id); break; }
       case 'claim-mission-bonus': a.claimMissionBonus(value); break;
       case 'claim-login': a.claimLogin(); break;
+      case 'claim-all': a.claimAll(); break;
+      case 'tree-zoom': local(() => { v.treeZoom = value === 'reset' ? 1 : Math.min(2.5, Math.max(0.5, (v.treeZoom ?? 1) * (value === 'in' ? 1.25 : 0.8))); }); break;
+      case 'cycle-sel': local(() => { v.cycleSel = Number(value); v.zoneSel = null; }); break;
+      case 'claim-all-events': a.claimAllEvents(); break;
+      case 'toggle-section': local(() => { if (v.closed.has(value)) v.closed.delete(value); else v.closed.add(value); }); break;
       case 'claim-event': a.claimEvent(Number(value)); break;
       case 'buy-merchant': a.buyMerchant(Number(value)); break;
       case 'dismiss-event': a.dismissEvent(Number(value)); break;
@@ -214,6 +229,9 @@ export class UI {
     if (action === 'auto') this.actions.setAutoAdvance(el.checked);
     if (action === 'on-top') this.actions.setAlwaysOnTop(el.checked);
     if (action === 'skill-auto') this.actions.setSkillAuto(el.checked);
+    if (action === 'rush-auto') this.actions.setRushAuto(el.checked);
+    if (action === 'volume') this.sound?.setVolume(el.dataset.kind, Number(el.value) / 100);
+    if (action === 'mute') this.sound?.setMuted(el.checked);
     if (action === 'auto-recycle') this.actions.setAutoRecycle(el.value);
     if (action === 'bulk-rarity') {
       this.view.bulkRarity = el.value;
@@ -257,7 +275,17 @@ export class UI {
         this.news(`Butin du boss : +${event.essence} essences`, '#e27bff');
         break;
       case 'bossSpawn':
-        this.banner(`Boss — ${BOSSES[event.kind].name}`, 'boss');
+      {
+        const tier = BOSSES[event.kind].tier ?? 'mega';
+        const label = { mini: 'Mini-boss', mid: 'Boss', hard: 'Boss redoutable', mega: 'MÉGA BOSS' }[tier];
+        this.banner(`${label} — ${BOSSES[event.kind].name}`, `boss tier-${tier}`);
+        if (tier === 'mega' || tier === 'hard') {
+          const flash = this.$('boss-flash');
+          flash.className = `tier-${tier}`;
+          void flash.offsetWidth;
+          flash.classList.add('on');
+        }
+      }
         break;
       case 'eliteSpawn':
         this.news('Une élite errante approche !', '#ff9a3d');
@@ -300,7 +328,10 @@ export class UI {
         break;
       }
       case 'stage':
-        if (event.zoneChanged) this.banner(`Zone ${zoneIndexForStage(event.stage) + 1} — ${zoneForStage(event.stage).name}`, 'zone');
+        if (event.zoneChanged) {
+          const d = difficultyForStage(event.stage);
+          this.banner(`Monde ${zoneIndexForStage(event.stage) + 1} — ${zoneForStage(event.stage).name}${d > 1 ? ` · difficulté ×${d}` : ''}`, 'zone');
+        }
         if (this.tab === 'campaign') this.invalidate();
         break;
       case 'unlock':
@@ -354,6 +385,7 @@ export class UI {
   // --- Mise à jour à chaque image ---
   update(state, world) {
     this.state = state;
+    this.updateRushBar(state);
     const stats = world.heroStats ?? computeHeroStats(state);
     this.setText('gold', formatNumber(state.gold));
     this.setText('strip-gold', formatNumber(state.gold));
@@ -464,6 +496,30 @@ export class UI {
     this.setText('progress-text', text);
   }
 
+  // Barre des boosts sur la scène : icône, recharge (cadran) et temps restant quand actif.
+  updateRushBar(state) {
+    const now = performance.now();
+    if (now - (this.lastHud.rushTime ?? 0) < 200) return;
+    this.lastHud.rushTime = now;
+    const bar = this.$('rush-bar');
+    const unlocked = RUSHES.filter((r) => rushUnlocked(state, r));
+    const key = unlocked.map((r) => r.id).join();
+    if (bar.dataset.key !== key) {
+      bar.dataset.key = key;
+      bar.innerHTML = unlocked.map((r) => `<button class="rush-btn" data-action="rush" data-value="${r.id}" style="--rush:${r.color}"
+        title="${r.name} — ${r.text}">${img(r.icon)}<span class="rush-time"></span></button>`).join('');
+    }
+    for (const btn of bar.children) {
+      const rush = RUSHES.find((r) => r.id === btn.dataset.value);
+      const active = state.rushes.active[rush.id] ?? 0;
+      const cd = state.rushes.cooldown[rush.id] ?? 0;
+      btn.classList.toggle('active', active > 0);
+      btn.classList.toggle('ready', !active && !cd);
+      btn.style.setProperty('--cd', active > 0 ? 0 : cd / rush.cooldown);
+      btn.querySelector('.rush-time').textContent = active > 0 ? `${Math.ceil(active)}` : cd > 0 ? (cd >= 60 ? `${Math.ceil(cd / 60)}m` : `${Math.ceil(cd)}`) : '';
+    }
+  }
+
   updateBadges(state) {
     const now = performance.now();
     if (now - (this.lastHud.badgeTime ?? 0) < 500) return;
@@ -472,13 +528,24 @@ export class UI {
     this.$('inv-badge').classList.toggle('hidden', !upgrade || this.tab === 'inventory');
     this.$('skills-badge').classList.toggle('hidden', skillPointsAvailable(state) < 1 || this.tab === 'skills');
     this.$('contracts-badge').classList.toggle('hidden', !state.contracts.some((c) => c.progress >= c.target) && !missionsClaimable(state));
-    this.$('inbox-badge').classList.toggle('hidden', state.inbox.length === 0);
+    this.$('inbox-badge').classList.toggle('hidden', !state.inbox.some((e) => !e.seen) || this.tab === 'inbox');
     const boost = earlyBoost(state);
-    this.$('boost-chip').classList.toggle('hidden', boost.secondsLeft <= 0);
-    if (boost.secondsLeft > 0) {
-      const h = Math.floor(boost.secondsLeft / 3600);
-      const m = Math.floor((boost.secondsLeft % 3600) / 60);
-      this.$('boost').textContent = `×${boost.gold.toFixed(1).replace('.', ',')} · ${h ? `${h} h ${String(m).padStart(2, '0')}` : `${m} min`}`;
+    const active = boost.secondsLeft > 0 || boost.weekend;
+    this.$('boost-chip').classList.toggle('hidden', !active);
+    if (active) {
+      const dur = (sec) => {
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        return h ? `${h} h ${String(m).padStart(2, '0')}` : `${m} min`;
+      };
+      const parts = [`×${boost.gold.toFixed(1).replace('.', ',')}`];
+      if (boost.secondsLeft > 0) parts.push(dur(boost.secondsLeft));
+      if (boost.weekend) parts.push('Week-end');
+      this.$('boost').textContent = parts.join(' · ');
+      this.$('boost-chip').title = [
+        boost.secondsLeft > 0 ? `Démarrage rapide : encore ${dur(boost.secondsLeft)} de jeu.` : '',
+        boost.weekend ? `Week-end ×2 (or, XP, butin, événements) : encore ${dur(boost.weekendSecondsLeft)}.` : '',
+      ].filter(Boolean).join(' ');
     }
   }
 
@@ -514,6 +581,7 @@ export class UI {
     const scroll = body.scrollTop;
     body.innerHTML = panel.render(this, state);
     body.scrollTop = scroll;
+    panel.afterRender?.(this, body);
     this.lastHud.extra = panel.extra ? panel.extra(this, state) : '';
     this.$('panel-extra').innerHTML = this.lastHud.extra;
     this.lastHud.live = this.liveKey(state);

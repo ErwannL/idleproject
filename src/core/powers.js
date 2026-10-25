@@ -22,8 +22,11 @@ export function powerById(id) {
 
 // Première étape où le boss apparaît (coût de relance, Codex). Boss de donjon : étape d'accès au donjon.
 export function bossFirstStage(bossId, balance = BALANCE) {
+  const per = balance.stages.stagesPerZone;
   const zone = ZONES.findIndex((z) => z.bosses.includes(bossId));
-  if (zone >= 0) return zone * balance.stages.stagesPerZone + balance.stages.bossEvery;
+  if (zone >= 0) return zone * per + balance.stages.tiers.mega.stage;
+  const tierZone = ZONES.findIndex((z) => Object.values(z.tierBosses ?? {}).includes(bossId));
+  if (tierZone >= 0) return tierZone * per + balance.stages.tiers[BOSSES[bossId].tier].stage;
   const dungeon = DUNGEONS.find((d) => d.boss === bossId);
   return dungeon ? dungeon.unlockStage : null;
 }
@@ -34,9 +37,9 @@ export function bossDungeon(bossId) {
   return DUNGEONS.find((d) => d.boss === bossId) ?? null;
 }
 
-// Boss dans l'ordre de la campagne.
+// Boss à pouvoir ancestral (méga boss et boss de donjon), dans l'ordre de la campagne.
 export function bossesInOrder(balance = BALANCE) {
-  return Object.keys(BOSSES).sort((a, b) => bossFirstStage(a, balance) - bossFirstStage(b, balance));
+  return Object.keys(BOSSES).filter((id) => !BOSSES[id].tier).sort((a, b) => bossFirstStage(a, balance) - bossFirstStage(b, balance));
 }
 
 // Probabilité de chaque pouvoir au prochain tirage :

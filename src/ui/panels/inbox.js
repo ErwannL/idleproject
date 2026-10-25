@@ -18,7 +18,11 @@ export default {
         ou ramasse des gemmes : tout arrive ici et attend votre retour.</div>`;
     }
     const full = state.inventory.length >= BALANCE.loot.inventorySize;
-    return state.inbox.map((e) => {
+    // Ouvrir la boîte marque tout comme lu : la pastille ne revient qu'avec un nouveau message.
+    for (const e of state.inbox) e.seen = true;
+    const claimable = state.inbox.some((e) => e.type !== 'merchant' && !(e.item && full));
+    const all = claimable ? '<button class="btn btn-gold claim-all" data-action="claim-all-events">Tout récupérer</button>' : '';
+    return all + state.inbox.map((e) => {
       let body;
       if (e.type === 'merchant') {
         body = `<div class="row">${itemFrame(e.item, { tag: 'div' })}<div class="grow"><b class="r-${e.item.rarity} rarity-text">${escapeHtml(e.item.name)}</b>
@@ -31,6 +35,7 @@ export default {
           <div class="detail-actions"><button class="btn btn-gold" data-action="claim-event" data-value="${e.id}" ${e.item && full ? 'disabled title="Sac plein"' : ''}>Récupérer</button></div>`;
       }
       return `<div class="card inbox-item"><div class="row-between"><b>${img(ICONS[e.type])} ${eventLabel(e.type)}</b><span class="muted">étape ${stageLabel(e.stage)}</span></div>${body}</div>`;
-    }).join('');
+    }).join('')
+      + (full ? '<div class="card bad">Sac plein : recyclez des objets pour récupérer les coffres qui contiennent un objet.</div>' : '');
   },
 };

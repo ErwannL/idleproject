@@ -64,9 +64,9 @@ export const COMPANIONS = [
   ally('ninja', 'Ninja', 'epic', '#9a5cff', { critChance: 6, lifesteal: 2 }, { name: 'Frappe éclair', type: 'hit', every: 4, value: 0.9, text: 'Frappe à 90 % des dégâts du héros' }),
   ally('barbarian', 'Barbare', 'epic', '#ff4a3a', { damagePct: 12 }, { name: 'Fureur', type: 'burst', every: 8, value: 1, text: 'Frappe tous les ennemis (100 % des dégâts)' }),
   // SSR
-  ally('archangel', 'Archange', 'legendary', '#9fd8ff', { damagePct: 15, maxHpPct: 15 }, { name: 'Jugement céleste', type: 'burst', every: 7, value: 1.5, text: 'Frappe tous les ennemis (150 % des dégâts)' }),
-  ally('demon_queen', 'Reine démone', 'legendary', '#ff5a2a', { damagePct: 20, damageVsBossPct: 10 }, { name: 'Brasier infernal', type: 'burst', every: 6, value: 1.3, text: 'Embrase tous les ennemis (130 % des dégâts)' }),
-  ally('ice_empress', 'Impératrice des glaces', 'legendary', '#bfe9ff', { armor: 8, critChance: 6 }, { name: 'Tempête de givre', type: 'burst', every: 7, value: 1.2, text: 'Gèle tous les ennemis (120 % des dégâts)' }),
-  ally('shadow_lord', "Seigneur de l'ombre", 'legendary', '#a855ff', { damagePct: 18, lifesteal: 3 }, { name: 'Lame du néant', type: 'hit', every: 5, value: 2.5, text: 'Frappe à 250 % des dégâts du héros' }),
-  ally('sylvan_guardian', 'Gardienne sylvestre', 'legendary', '#63d98a', { regenPct: 1.5, goldPct: 20 }, { name: 'Sève de vie', type: 'heal', every: 10, value: 25, text: 'Soigne 25 % des PV' }),
+  ally('archangel', 'Archange', 'legendary', '#9fd8ff', { damagePct: 13, maxHpPct: 8 }, { name: 'Jugement céleste', type: 'burst', every: 7, value: 1.15, text: 'Frappe tous les ennemis (115 % des dégâts)' }),
+  ally('demon_queen', 'Reine démone', 'legendary', '#ff5a2a', { damagePct: 14, damageVsBossPct: 6 }, { name: 'Brasier infernal', type: 'burst', every: 7, value: 1.1, text: 'Embrase tous les ennemis (110 % des dégâts)' }),
+  ally('ice_empress', 'Impératrice des glaces', 'legendary', '#bfe9ff', { armor: 6, critChance: 6 }, { name: 'Tempête de givre', type: 'burst', every: 7, value: 1.05, text: 'Gèle tous les ennemis (105 % des dégâts)' }),
+  ally('shadow_lord', "Seigneur de l'ombre", 'legendary', '#a855ff', { damagePct: 13, lifesteal: 2 }, { name: 'Lame du néant', type: 'hit', every: 5, value: 1.6, text: 'Frappe à 160 % des dégâts du héros' }),
+  ally('sylvan_guardian', 'Gardienne sylvestre', 'legendary', '#63d98a', { regenPct: 1.2, goldPct: 15 }, { name: 'Sève de vie', type: 'heal', every: 10, value: 22, text: 'Soigne 22 % des PV' }),
 ];

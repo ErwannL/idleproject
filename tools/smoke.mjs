@@ -164,12 +164,13 @@ await check('recyclage groupé : confirmation et objets protégés', async () =>
 
 await check('un boss apparaît au palier et donne une récompense', async () => {
   await game(() => {
-    __idle.state.upgrades.damage = 60;
-    __idle.state.maxStage = Math.max(__idle.state.maxStage, 5);
+    __idle.state.upgrades.damage = 120;
+    __idle.state.upgrades.vitality = 60;
+    __idle.state.maxStage = Math.max(__idle.state.maxStage, 20);
     __idle.state.autoAdvance = false;
   });
   await page.click('#tabs button[data-tab="campaign"]');
-  await page.click('.stage-grid [data-stage="5"]');
+  await page.click('.stage-grid [data-stage="20"]'); // méga boss du monde 1 (pouvoir ancestral)
   await waitFor(() => __idle.world.enemies.some((e) => e.boss), 10000);
   await page.click('#panel-close');
   await page.waitForTimeout(400);
@@ -300,7 +301,7 @@ await check('forge : fabriquer un objet avec des éclats', async () => {
 });
 
 await check('donjon : entrer avec une clé puis abandonner', async () => {
-  await game(() => { __idle.state.maxStage = Math.max(__idle.state.maxStage, 12); __idle.state.keys = Math.max(1, __idle.state.keys); });
+  await game(() => { __idle.state.maxStage = Math.max(__idle.state.maxStage, 25); __idle.state.keys = Math.max(1, __idle.state.keys); });
   await waitFor(() => !document.querySelector('#tabs button[data-tab="dungeons"]').classList.contains('hidden'), 3000);
   await page.click('#tabs button[data-tab="dungeons"]');
   await page.waitForTimeout(300);
@@ -316,7 +317,7 @@ await check('donjon : entrer avec une clé puis abandonner', async () => {
 });
 
 await check('Renaissance : confirmation, réinitialisation et conservation des déblocages', async () => {
-  await game(() => { __idle.state.maxStage = 16; });
+  await game(() => { __idle.state.maxStage = 31; });
   await waitFor(() => !document.querySelector('#tabs button[data-tab="tree"]').classList.contains('hidden'), 3000);
   await page.click('#tabs button[data-tab="tree"]');
   await page.waitForTimeout(150);

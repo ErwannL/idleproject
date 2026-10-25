@@ -1,5 +1,6 @@
 // Renaissance (prestige) et talents permanents.
 import { REBIRTH, TALENTS } from '../data/rebirth.js';
+import { PRESTIGE } from '../data/prestige.js';
 
 export function talentById(id) {
   return TALENTS.find((t) => t.id === id);
@@ -52,7 +53,8 @@ export function canRebirth(state) {
 
 export function rebirthReward(state) {
   if (!canRebirth(state)) return 0;
-  return Math.floor(((state.maxStage - 1) / REBIRTH.divisor) ** REBIRTH.exponent);
+  const prestigeBonus = 1 + (PRESTIGE.fragmentBonusPct * (state.prestige?.count ?? 0)) / 100;
+  return Math.floor(((state.maxStage - 1) / REBIRTH.divisor) ** REBIRTH.exponent * prestigeBonus);
 }
 
 // Réinitialise la campagne, l'or et les améliorations ; conserve tout le reste.

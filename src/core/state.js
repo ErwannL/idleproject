@@ -14,10 +14,13 @@ import { emptyMissions, sanitizeMissions } from './missions.js';
 import { itemBase, makeItem, rarityById } from './loot.js';
 import { bossDungeon, bossFirstStage, powerSlots, rollPower } from './powers.js';
 import { Rng } from './rng.js';
+import { clampTeam } from './companions.js';
+import { sanitizePrestige } from './prestige.js';
+import { sanitizeRushes } from './rushes.js';
 
 // v1 : prototype · v2 (format identique) · v3 : pouvoirs, Renaissance, verrou
 // v4 : niveau, compétences, héros, compagnons, invocation, contrats, événements, matériaux, donjons.
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 export const SORT_OPTIONS = ['rarity', 'level', 'power', 'recent'];
 
 export function createNewState(now = Date.now(), seed = Math.floor(Math.random() * 2 ** 32)) {
@@ -62,6 +65,8 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     dungeon: null,
     dungeonsCleared: {},
     missions: emptyMissions(),
+    prestige: { count: 0, stars: 0, perks: {} },
+    rushes: { levels: {}, active: {}, cooldown: {}, auto: false }, // boosts à durée limitée
     playSeconds: 0, // temps de jeu cumulé (boost des premières heures)
   };
   state.equipment.weapon = makeItem(state, STARTER_WEAPON, 'common', 1);
@@ -121,7 +126,7 @@ function cleanPowers(state, raw) {
     const rng = new Rng(state.rngSeed ^ 0x2545f491);
     for (const bossId of Object.keys(BOSSES)) {
       const stage = bossFirstStage(bossId);
-      if (stage !== null && stage < state.maxStage && !bossDungeon(bossId)) {
+      if (stage !== null && stage < state.maxStage && !bossDungeon(bossId) && !BOSSES[bossId].tier) {
         state.powers[bossId] = {
           current: rollPower(bossId, rng), pending: null, victories: 1, rerolls: 0, sinceHigh: 0, charges: 1, masteryClaimed: 0,
         };
@@ -150,7 +155,7 @@ function cleanCollections(state, raw) {
     };
   }
   const equipped = Array.isArray(companions.equipped) ? companions.equipped : [];
-  state.companions.equipped = [...new Set(equipped)].filter((id) => state.companions.owned[id]).slice(0, BALANCE.companionSlots);
+  state.companions.equipped = clampTeam([...new Set(equipped)].filter((id) => state.companions.owned[id]));
 
   const summon = obj(raw.summon);
   state.summon = { total: int(summon.total, 0), sinceEpic: int(summon.sinceEpic, 0), sinceLegendary: int(summon.sinceLegendary, 0) };
@@ -167,6 +172,8 @@ function cleanActivities(state, raw) {
   ensureContracts(state, new Rng(state.rngSeed ^ state.nextContractId));
 
   state.missions = sanitizeMissions(raw.missions);
+  state.prestige = sanitizePrestige(raw.prestige);
+  state.rushes = sanitizeRushes(raw.rushes);
   state.playSeconds = Math.max(0, Number(raw.playSeconds) || 0);
 
   state.nextEventId = int(raw.nextEventId, 0);
@@ -175,7 +182,7 @@ function cleanActivities(state, raw) {
       .filter((e) => e && Number.isInteger(e.id) && ['chest', 'merchant', 'gems'].includes(e.type))
       .filter((e) => !e.item || isValidItem(e.item))
       .slice(0, BALANCE.events.inboxSize)
-      .map((e) => ({ ...e, item: e.item ? cleanItem(e.item) : undefined, reward: obj(e.reward), price: num(e.price, 0) }));
+      .map((e) => ({ ...e, item: e.item ? cleanItem(e.item) : undefined, reward: obj(e.reward), price: num(e.price, 0), seen: e.seen === true }));
   }
 
   const run = raw.dungeon;
@@ -191,11 +198,36 @@ function cleanActivities(state, raw) {
   }
 }
 
+// v7.6 : les mondes passent de 10 à 20 étapes (et la croissance par étape est divisée par 2 en log).
+// Une ancienne étape s (monde z, étape k) devient z*20 + 2k-1 ; les niveaux d'objet doublent (2L-1).
+export function oldStageToNew(s) {
+  const n = Math.max(1, Math.floor(Number(s) || 1));
+  const zone = Math.min(5, Math.floor((n - 1) / 10));
+  return zone * 20 + 2 * (n - zone * 10) - 1;
+}
+
+function migrateTo20Stages(raw) {
+  const out = { ...raw };
+  const item = (it) => (it && typeof it === 'object' && Number.isFinite(it.level) ? { ...it, level: Math.max(1, 2 * it.level - 1) } : it);
+  out.maxStage = oldStageToNew(raw.maxStage);
+  out.stage = oldStageToNew(raw.stage);
+  out.kills = 0;
+  if (Array.isArray(raw.inventory)) out.inventory = raw.inventory.map(item);
+  if (raw.equipment && typeof raw.equipment === 'object') {
+    out.equipment = Object.fromEntries(Object.entries(raw.equipment).map(([k, v]) => [k, item(v)]));
+  }
+  if (Array.isArray(raw.inbox)) out.inbox = raw.inbox.map((e) => (e && typeof e === 'object' ? { ...e, item: item(e.item), stage: oldStageToNew(e.stage) } : e));
+  if (raw.dungeon && typeof raw.dungeon === 'object') out.dungeon = { ...raw.dungeon, level: oldStageToNew(raw.dungeon.level) };
+  return out;
+}
+
 // Accepte n'importe quelle donnée lue sur disque et renvoie un état valide.
 // Les champs absents ou corrompus reprennent leur valeur par défaut.
-export function sanitizeState(raw, balance = BALANCE, now = Date.now()) {
+export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
+  let raw = input;
   const state = createNewState(now);
   if (!raw || typeof raw !== 'object') return state;
+  if (int(raw.version, 1) < 5) raw = migrateTo20Stages(raw);
 
   state.createdAt = num(raw.createdAt, now);
   state.lastSaved = num(raw.lastSaved, now);

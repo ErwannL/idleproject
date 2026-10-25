@@ -10,17 +10,21 @@ import { createNewState, sanitizeState } from '../src/core/state.js';
 import { computeHeroStats } from '../src/core/stats.js';
 import { enemyStats } from '../src/core/combat.js';
 
-test('équipe : le chevalier et 2 compagnons au maximum', () => {
+test('équipe : le chevalier, 2 personnages et 1 compagnon au maximum', () => {
   const state = createNewState(0, 1);
-  state.companions.owned = { golden_slime: { stars: 1, level: 1 }, cat: { stars: 1, level: 1 }, owl: { stars: 1, level: 1 } };
+  const owned = ['golden_slime', 'cat', 'squire', 'ninja', 'archangel'];
+  state.companions.owned = Object.fromEntries(owned.map((id) => [id, { stars: 1, level: 1 }]));
   assert.ok(toggleCompanion(state, 'golden_slime'));
-  assert.ok(toggleCompanion(state, 'cat'));
-  assert.equal(toggleCompanion(state, 'owl'), false);
-  assert.deepEqual(state.companions.equipped, ['golden_slime', 'cat']);
-  // Une sauvegarde avec 3 compagnons équipés est ramenée à 2.
+  assert.ok(toggleCompanion(state, 'cat')); // le compagnon remplace l'ancien
+  assert.deepEqual(state.companions.equipped, ['cat']);
+  assert.ok(toggleCompanion(state, 'squire'));
+  assert.ok(toggleCompanion(state, 'ninja'));
+  assert.equal(toggleCompanion(state, 'archangel'), false, '2 personnages au maximum');
+  assert.deepEqual(state.companions.equipped, ['cat', 'squire', 'ninja']);
+  // Une sauvegarde avec trop de membres est ramenée à 2 personnages + 1 compagnon.
   const raw = JSON.parse(JSON.stringify(state));
-  raw.companions.equipped = ['golden_slime', 'cat', 'owl'];
-  assert.equal(sanitizeState(raw).companions.equipped.length, 2);
+  raw.companions.equipped = ['golden_slime', 'cat', 'squire', 'ninja', 'archangel'];
+  assert.deepEqual(sanitizeState(raw).companions.equipped, ['golden_slime', 'squire', 'ninja']);
 });
 
 test('hors ligne : 65 % du farm actif, plafonné à 24 h', () => {

@@ -16,6 +16,14 @@ export function sumEquipmentStats(equipment) {
   return total;
 }
 
+// Vitesse d'attaque (att./s) : linéaire jusqu'au seuil, puis rendements décroissants (logarithme) :
+// elle progresse toujours, de plus en plus lentement, sans plafond brutal.
+export function softAttackSpeed(raw, hero = BALANCE.hero) {
+  const { softCap, softness, hardCap } = hero.attackSpeed;
+  const v = raw <= softCap ? raw : softCap + softness * Math.log(1 + (raw - softCap) / softness);
+  return Math.min(hardCap, v);
+}
+
 export function computeHeroStats(state, balance = BALANCE, equipment = state.equipment) {
   const { hero, upgrades } = balance;
   const gear = sumEquipmentStats(equipment);
@@ -31,10 +39,8 @@ export function computeHeroStats(state, balance = BALANCE, equipment = state.equ
 
   const upgradeFactor = Math.pow(1 - upgrades.attackSpeed.perLevel, state.upgrades.attackSpeed);
   const gearSpeedPct = Math.max(-50, gear.attackSpeed);
-  const attackInterval = Math.max(
-    hero.minAttackInterval,
-    (hero.baseAttackInterval * upgradeFactor) / ((1 + gearSpeedPct / 100) * (1 + bonus.attackSpeedPct / 100)),
-  );
+  const rawSpeed = ((1 + gearSpeedPct / 100) * (1 + bonus.attackSpeedPct / 100)) / (hero.baseAttackInterval * upgradeFactor);
+  const attackInterval = 1 / softAttackSpeed(rawSpeed, hero);
 
   const vit = upgrades.vitality;
   const hpMilestones = vit.milestoneEvery ? Math.floor(ups.vitality / vit.milestoneEvery) : 0;

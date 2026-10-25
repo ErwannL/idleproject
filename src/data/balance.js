@@ -21,7 +21,8 @@ export const BALANCE = {
   hero: {
     baseDamage: 8,
     baseAttackInterval: 1.0,
-    minAttackInterval: 0.25,
+    // Au-delà de 3 att./s, rendements décroissants (voir softAttackSpeed) ; 15 att./s au maximum.
+    attackSpeed: { softCap: 3, softness: 1.5, hardCap: 15 },
     baseMaxHp: 100,
     regenPerSecondPct: 2,
     respawnSeconds: 3,
@@ -36,7 +37,7 @@ export const BALANCE = {
     xpBase: 30, // XP pour passer du niveau 1 au niveau 2
     xpGrowth: 1.2,
     killXp: 2,
-    killXpGrowth: 1.12, // par étape
+    killXpGrowth: 1.0583, // par étape (v7.6 : 20 étapes par monde, croissance par étape divisée par 2 en log)
     bossXpMultiplier: 10,
     damagePctPerLevel: 2,
     hpPctPerLevel: 2,
@@ -55,10 +56,10 @@ export const BALANCE = {
     },
     attackSpeed: {
       label: "Vitesse d'attaque",
-      description: "-4 % d'intervalle entre deux attaques",
+      description: "-3 % d'intervalle entre deux attaques (rendements décroissants au-delà de 3 att./s)",
       baseCost: 25,
       costGrowth: 1.22,
-      perLevel: 0.04,
+      perLevel: 0.03,
     },
     vitality: {
       label: 'Points de vie',
@@ -105,22 +106,31 @@ export const BALANCE = {
     { id: 'combat', label: 'Combat', icon: 'weapon_sword', keys: ['damage', 'attackSpeed', 'crit'] },
     { id: 'survival', label: 'Survie', icon: 'icon_shield', keys: ['vitality', 'armor', 'regen'] },
     { id: 'resources', label: 'Ressources', icon: 'coin', keys: ['goldFind'] },
+    { id: 'rushes', label: 'Boosts', icon: 'skill_cry', keys: [] }, // boosts à durée limitée (core/rushes.js)
   ],
 
   stages: {
     killsPerStage: 15,
     bossEvery: 5,
-    stagesPerZone: 10,
+    stagesPerZone: 20, // étapes 5, 10, 15, 20 : mini-boss, boss moyen, boss dur, méga boss
     bossHpMultiplier: 20, // un boss se gagne aux dégâts…
     bossDamageMultiplier: 1.4, // …sans tuer en un coup un chevalier au niveau de la zone
     bossGoldMultiplier: 15,
     bossSpawnDelaySeconds: 1.2,
+    // Boss par rang (étape du monde) : multiplicateurs appliqués aux valeurs « boss » ci-dessus.
+    tiers: {
+      mini: { stage: 5, hp: 0.45, damage: 0.85, gold: 0.4, gems: 10 },
+      mid: { stage: 10, hp: 0.65, damage: 0.95, gold: 0.6, gems: 15 },
+      hard: { stage: 15, hp: 0.85, damage: 1.05, gold: 0.8, gems: 20 },
+      mega: { stage: 20, hp: 1.15, damage: 1.15, gold: 1.2, gems: 35 },
+    },
   },
 
   enemyScaling: {
-    hpGrowth: 1.17,
-    damageGrowth: 1.12,
-    goldGrowth: 1.15,
+    // v7.6 : 20 étapes par monde (au lieu de 10) : croissance par étape = racine de l'ancienne.
+    hpGrowth: 1.0817,
+    damageGrowth: 1.0583,
+    goldGrowth: 1.0724,
   },
 
   spawn: {
@@ -131,8 +141,8 @@ export const BALANCE = {
   loot: {
     dropChance: 0.1,
     bossMinRarity: 'rare',
-    stagePowerGrowth: 0.09, // +9 % de stats par niveau d'objet
-    recycleLevelGrowth: 0.1,
+    stagePowerGrowth: 0.045, // +4,5 % de stats par niveau d'objet (v7.6 : 2 niveaux = 1 ancien)
+    recycleLevelGrowth: 0.05,
     inventorySize: 40, // au-delà, les nouveaux objets sont recyclés en or
     signatureChance: 0.15, // chance qu'un boss lâche son objet signature
     bossEssence: 2, // essences garanties par boss (+1 par zone)
@@ -181,6 +191,15 @@ export const BALANCE = {
     gems: [5, 15],
   },
 
+  // Gemmes (cristaux) gagnées en jouant, pour invoquer souvent (v7.6).
+  gems: {
+    killChance: 0.02, // 2 % des monstres lâchent quelques gemmes
+    killAmount: [1, 3],
+    levelUp: 5,
+    newStage: 3, // première fois qu'une étape est atteinte
+    newWorld: 25, // première fois qu'un monde est atteint
+  },
+
   // Monnaies d'invocation (gagnées uniquement en jouant).
   summon: {
     gemCost: 100,
@@ -201,10 +220,15 @@ export const BALANCE = {
     eventMultiplier: 4, // coffres, gemmes, marchands… 4 fois plus fréquents
     bossTickets: 1, // chaque victoire contre un boss donne un ticket d'invocation tant que le bonus dure
   },
+  // Week-end (samedi + dimanche, 48 h) : or, XP, butin et événements ×2, cumulable avec le démarrage.
+  weekendBoost: { multiplier: 2 },
   // Donjons : le héros SSR adapté à un donjon y écrase tout.
-  dungeonAffinity: { skillMultiplier: 3, passiveMultiplier: 2, damageTakenPct: 35 },
+  // Hors de son donjon, un SSR reste un peu au-dessus d'un SR ; dans son donjon, il écrase tout.
+  dungeonAffinity: { skillMultiplier: 6, passiveMultiplier: 4, damageTakenPct: 60, teamDamagePct: 150 },
 
-  companionSlots: 2, // équipe : le chevalier (fixe) + 2 compagnons
+  // Équipe : le chevalier (fixe) + 2 personnages (héros alliés) + 1 compagnon (familier).
+  teamSlots: { ally: 2, pet: 1 },
+  companionSlots: 3,
 
 
   offline: {

@@ -36,8 +36,11 @@ export function dungeonDamageTaken(state, balance = BALANCE) {
 export function companionEffects(state, balance = BALANCE) {
   const out = {};
   for (const c of equippedCompanions(state)) {
-    const m = companionMultiplier(state, c.id) * (dungeonAffinity(state, c.id) ? balance.dungeonAffinity.passiveMultiplier : 1);
+    const home = dungeonAffinity(state, c.id);
+    const m = companionMultiplier(state, c.id) * (home ? balance.dungeonAffinity.passiveMultiplier : 1);
     for (const [k, v] of Object.entries(c.passive)) out[k] = (out[k] ?? 0) + v * m;
+    // Dans son donjon, le SSR galvanise toute l'équipe.
+    if (home) out.damagePct = (out.damagePct ?? 0) + balance.dungeonAffinity.teamDamagePct;
   }
   return out;
 }
@@ -59,14 +62,41 @@ export function upgradeCompanion(state, id, balance = BALANCE) {
   return true;
 }
 
+// Catégorie d'équipe : 'ally' (personnage) ou 'pet' (compagnon).
+export function teamKind(c) {
+  return c?.kind === 'ally' ? 'ally' : 'pet';
+}
+
+export function equippedOfKind(state, kind) {
+  return equippedCompanions(state).filter((c) => teamKind(c) === kind);
+}
+
+// Garde au plus `teamSlots[kind]` membres de chaque catégorie (ordre conservé).
+export function clampTeam(equipped, balance = BALANCE) {
+  const count = { ally: 0, pet: 0 };
+  return equipped.filter((id) => {
+    const kind = teamKind(companionById(id));
+    if (!companionById(id) || count[kind] >= balance.teamSlots[kind]) return false;
+    count[kind] += 1;
+    return true;
+  });
+}
+
+// Équiper / retirer. Le compagnon (1 place) remplace l'ancien ; les personnages sont limités à 2.
 export function toggleCompanion(state, id, balance = BALANCE) {
-  if (!state.companions.owned[id]) return false;
+  const c = companionById(id);
+  if (!c || !state.companions.owned[id]) return false;
   const index = state.companions.equipped.indexOf(id);
   if (index >= 0) {
     state.companions.equipped.splice(index, 1);
     return true;
   }
-  if (state.companions.equipped.length >= balance.companionSlots) return false;
+  const kind = teamKind(c);
+  const same = state.companions.equipped.filter((x) => teamKind(companionById(x)) === kind);
+  if (same.length >= balance.teamSlots[kind]) {
+    if (kind !== 'pet') return false;
+    state.companions.equipped = state.companions.equipped.filter((x) => !same.includes(x));
+  }
   state.companions.equipped.push(id);
   return true;
 }

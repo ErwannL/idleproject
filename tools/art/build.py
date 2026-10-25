@@ -17,7 +17,8 @@ import scenery  # noqa: E402
 import worldmap  # noqa: E402
 
 modules = [knight]
-for name in ('enemies', 'icons', 'accessories', 'allies_r', 'allies_sr', 'allies_ssr'):
+for name in ('enemies', 'icons', 'accessories', 'allies_r', 'allies_sr', 'allies_ssr',
+             'bosses_mega', 'bosses_classic', 'brutes', 'minibosses', 'bosses_mid', 'bosses_hard'):  # les derniers remplacent les anciens sprites
     try:
         modules.append(__import__(name))
     except ImportError:

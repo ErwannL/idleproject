@@ -20,7 +20,7 @@ function affinityLine(state, d) {
   const status = inTeam ? '<span class="good">dans l\'équipe ✔</span>'
     : owned ? '<span class="muted">à placer dans l\'équipe</span>' : '<span class="muted">non invoqué</span>';
   return `<div class="dungeon-ally"><b class="gold-text">Héros adapté : ${escapeHtml(ally.name)} (SSR)</b> · ${status}
-    <div class="muted">Ici : compétence ×${a.skillMultiplier}, passif ×${a.passiveMultiplier}, dégâts subis −${a.damageTakenPct} %.</div></div>`;
+    <div class="muted">Ici : compétence ×${a.skillMultiplier}, passif ×${a.passiveMultiplier}, dégâts de l'équipe +${a.teamDamagePct} %, dégâts subis −${a.damageTakenPct} %.</div></div>`;
 }
 
 function running(ui, state) {

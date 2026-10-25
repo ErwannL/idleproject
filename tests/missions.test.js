@@ -63,11 +63,12 @@ test('connexion : série de jours consécutifs, remise à zéro après un jour m
 
 test('démarrage rapide : bonus fort au début, disparu après 5 h de jeu', () => {
   const state = createNewState(0, 6);
-  const start = earlyBoost(state);
+  const weekday = new Date(2026, 9, 21, 12).getTime(); // un mercredi (pas de bonus de week-end)
+  const start = earlyBoost(state, BALANCE, weekday);
   assert.equal(start.gold, BALANCE.earlyBoost.goldMultiplier);
   assert.ok(start.dropChance > 0 && start.bossTickets > 0);
   state.playSeconds = BALANCE.earlyBoost.hours * 3600;
-  const later = earlyBoost(state);
+  const later = earlyBoost(state, BALANCE, weekday);
   assert.equal(later.gold, 1);
   assert.equal(later.dropChance, 0);
   assert.equal(later.bossTickets, 0);
@@ -86,4 +87,17 @@ test('donjons : chaque SSR a son donjon et y écrase tout', () => {
   assert.ok(dungeonAffinity(state, d.ally));
   assert.ok(!dungeonAffinity(state, DUNGEONS[0].ally));
   assert.ok(dungeonDamageTaken(state) < 1);
+});
+
+test('week-end : ×2 cumulable avec le démarrage rapide', async () => {
+  const { isWeekend } = await import('../src/core/boost.js');
+  const saturday = new Date(2026, 9, 24, 15).getTime();
+  const monday = new Date(2026, 9, 26, 15).getTime();
+  assert.ok(isWeekend(saturday));
+  assert.ok(!isWeekend(monday));
+  const state = createNewState(0, 8);
+  assert.equal(earlyBoost(state, BALANCE, saturday).gold, BALANCE.earlyBoost.goldMultiplier * 2);
+  state.playSeconds = 1e9;
+  assert.equal(earlyBoost(state, BALANCE, saturday).gold, 2);
+  assert.equal(earlyBoost(state, BALANCE, monday).gold, 1);
 });

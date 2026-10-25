@@ -53,7 +53,7 @@ function computeStats(base, rarity, level, balance, boosts = {}) {
 
 // Effet principal d'un accessoire : grandit avec la rareté et (modérément) avec le niveau.
 function mainAffixValue(main, rarity, level) {
-  const raw = main.base * rarity.statMultiplier * (1 + 0.02 * (level - 1));
+  const raw = main.base * rarity.statMultiplier * (1 + 0.01 * (level - 1));
   return raw < 3 ? Math.round(raw * 10) / 10 : Math.round(raw);
 }
 

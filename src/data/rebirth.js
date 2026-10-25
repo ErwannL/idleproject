@@ -1,9 +1,9 @@
 // Renaissance (prestige) et talents permanents achetés avec les fragments anciens.
 
 export const REBIRTH = {
-  minStage: 15, // étape maximale à atteindre pour pouvoir renaître
+  minStage: 30, // étape maximale à atteindre pour pouvoir renaître (monde 2-10)
   // Fragments gagnés = floor(((étape max - 1) / divisor) ^ exponent)
-  divisor: 5,
+  divisor: 10, // v7.6 : 20 étapes par monde
   exponent: 1.3,
 };
 

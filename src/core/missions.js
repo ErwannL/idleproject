@@ -147,3 +147,22 @@ export function sanitizeMissions(raw) {
   }
   return out;
 }
+
+// Additionne deux récompenses ({ gems: 10 } + { gems: 5, tickets: 1 }).
+export function mergeReward(total, given) {
+  for (const [k, v] of Object.entries(given ?? {})) total[k] = (total[k] ?? 0) + v;
+  return total;
+}
+
+// « Tout récupérer » : connexion, missions remplies puis coffres bonus. Renvoie le total (ou null).
+export function claimAllMissions(state) {
+  const total = {};
+  let count = 0;
+  const add = (given) => { if (given) { mergeReward(total, given); count += 1; } };
+  add(claimLogin(state));
+  for (const p of MISSION_PERIODS) {
+    for (const m of p.missions) add(claimMission(state, p.id, m.id));
+    add(claimMissionBonus(state, p.id));
+  }
+  return count ? total : null;
+}

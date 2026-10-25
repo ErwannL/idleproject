@@ -3,6 +3,19 @@ import { BALANCE } from '../../data/balance.js';
 import { formatDuration } from '../../core/format.js';
 import { escapeHtml } from '../common.js';
 
+// Musique lo-fi / aventure et effets sonores (générés en direct, aucun fichier audio).
+function soundOptions(ui) {
+  const s = ui.sound?.settings;
+  if (!s) return '';
+  const slider = (kind, label) => `<label class="volume-row"><span>${label}</span>
+    <input type="range" min="0" max="100" step="5" value="${Math.round(s[kind] * 100)}" data-action="volume" data-kind="${kind}"></label>`;
+  return `<div class="card">
+      <div class="section-title">Son</div>
+      <label class="toggle"><input type="checkbox" data-action="mute" ${s.muted ? 'checked' : ''}> Couper le son</label>
+      ${slider('master', 'Général')}${slider('music', 'Musique')}${slider('sfx', 'Effets')}
+    </div>`;
+}
+
 function windowOptions(ui) {
   if (!ui.desktop) {
     return `<div class="card"><div class="section-title">Fenêtre</div>
@@ -34,6 +47,7 @@ export default {
           <button class="btn small" data-action="save">Sauvegarder</button></div>
         <div class="muted">Automatique toutes les ${BALANCE.autosaveSeconds} s, à chaque action et à la fermeture.</div>
       </div>
+      ${soundOptions(ui)}
       ${windowOptions(ui)}
       <div class="card">
         <div class="section-title">Test des gains hors ligne</div>

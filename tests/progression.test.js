@@ -67,9 +67,9 @@ test('première victoire : un pouvoir thématique, puis seulement le compteur de
 test('combat : vaincre le boss débloque son pouvoir et émet un événement', () => {
   const state = createNewState(NOW, 1);
   state.upgrades.damage = 200;
-  state.maxStage = 5;
+  state.maxStage = 20;
   const world = createCombat(state);
-  changeStage(state, world, 5);
+  changeStage(state, world, 20); // méga boss du monde 1
   const rng = new Rng(5);
   for (let i = 0; i < 400 && state.records.bossesDefeated === 0; i++) step(state, world, 0.05, rng);
   assert.ok(state.powers.slime_king);
@@ -199,13 +199,13 @@ test('migration : une sauvegarde v1/v2 reçoit les pouvoirs des boss déjà batt
   delete old.fragments;
   delete old.talents;
   old.version = 1;
-  old.maxStage = 17; // boss des étapes 5 et 15 battus, pas celui de l'étape 25
+  old.maxStage = 22; // ancienne échelle (10 étapes/monde) : 2 méga boss battus → nouvelle étape 43
   const migrated = sanitizeState(JSON.parse(JSON.stringify(old)), BALANCE, NOW);
   assert.deepEqual(Object.keys(migrated.powers).sort(), ['alpha_wolf', 'slime_king']);
   assert.equal(migrated.equippedPowers.length, 2);
   const again = sanitizeState(JSON.parse(JSON.stringify(old)), BALANCE, NOW);
   assert.deepEqual(again.powers, migrated.powers, 'migration déterministe');
-  assert.equal(bossFirstStage('bone_lord'), 25);
+  assert.equal(bossFirstStage('bone_lord'), 60);
 });
 
 test('nettoyage : pouvoirs inconnus ou incohérents ignorés', () => {

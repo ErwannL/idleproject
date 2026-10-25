@@ -27,7 +27,9 @@
       <section id="play">
         <div id="stage-area">
           <canvas id="scene" aria-label="Combat"></canvas>
+          <div id="boss-flash"></div>
           <div id="zone-card"><div id="zone-name"></div><div id="stage-pips"></div></div>
+          <div id="rush-bar"></div>
           <button id="auto-toggle" class="scene-btn" data-action="toggle-auto" title="Avancer automatiquement après chaque étape"></button>
           <div id="strip-bar">
             <span class="strip-gold"><img class="px" data-icon="coin" alt=""><b id="strip-gold">0</b></span>
@@ -52,7 +54,7 @@
         <button data-tab="inventory"><img class="px" data-icon="icon_bag" alt=""><span>Inventaire</span><i class="badge hidden" id="inv-badge"></i></button>
         <button data-tab="hero"><img class="px" data-icon="icon_hero" alt=""><span>Héros</span></button>
         <button data-tab="summon"><img class="px" data-icon="icon_summon" alt=""><span>Invocation</span></button>
-        <button data-tab="companions" class="hidden"><img class="px" data-icon="icon_paw" alt=""><span>Compagnons</span><i class="badge badge-new hidden"></i></button>
+        <button data-tab="companions" class="hidden"><img class="px" data-icon="icon_paw" alt=""><span>Équipe</span><i class="badge badge-new hidden"></i></button>
         <button data-tab="skills"><img class="px" data-icon="skill_quick" alt=""><span>Compétences</span><i class="badge hidden" id="skills-badge"></i></button>
         <button data-tab="tree" class="hidden"><img class="px" data-icon="icon_tree" alt=""><span>Arbre</span><i class="badge badge-new hidden"></i></button>
         <button data-tab="campaign"><img class="px" data-icon="icon_map" alt=""><span>Carte</span></button>

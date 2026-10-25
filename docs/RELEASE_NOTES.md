@@ -1,9 +1,38 @@
-## Idle RPG v7.5.0 — Invocations, accessoires, forge, missions
+## Idle RPG v7.6.0 — Mondes de 20 étapes, boss épiques, boosts, prestige, musique
 
-**Installation ou mise à jour :** téléchargez **IdleRPG-7.5.0-setup.exe** et lancez-le (jeu fermé).
-L'installation se fait en un clic et remplace l'ancienne version ; **votre partie est conservée**.
+**Installation ou mise à jour :** téléchargez **IdleRPG-7.6.0-setup.exe** et lancez-le (jeu fermé).
+L'installation se fait en un clic et remplace l'ancienne version ; **votre partie est conservée**
+(votre progression est convertie automatiquement à la nouvelle carte de 20 étapes par monde).
 
-### Nouveau dans la v7.5
+### Nouveau dans la v7.6
+- **Mondes de 20 étapes et 4 boss par monde** : mini-boss à l'étape 5, boss à l'étape 10, boss redoutable
+  à l'étape 15 et **méga boss** à l'étape 20, avec entrée spectaculaire (bannière, éclair, aura, braises).
+  18 nouveaux boss dessinés, et les 6 méga boss redessinés et animés (Dragon des cendres, Roi démoniaque
+  et Chevalier déchu refaits de zéro).
+- **Après le monde 6, on repart du monde 1 en difficulté ×2**, puis ×3, ×4… (au lieu d'étapes sans fin).
+- **Musique lo-fi / aventure** générée en direct (une ambiance par monde, boss et donjon), **effets sonores**
+  et bruitages (coups, butin selon la rareté, boss, invocations, pas…). Volumes et coupure dans les Paramètres.
+- **Boosts à durée limitée** (façon Tap Titans) : Rage du berserker, Frénésie, Main de Midas, Œil du chasseur,
+  Lame fantôme. Boutons sur la scène, recharge visible, mode automatique, améliorables avec l'or.
+- **Prestige** : après le monde 6, réinitialise aussi fragments et talents contre des étoiles et des bonus éternels.
+- **Équipe** : le chevalier + **2 personnages** (R/SR/SSR) + **1 compagnon** ; onglet « Équipe » qui les sépare
+  clairement. Le panneau Héros n'affiche plus la colonne de chevaliers vides.
+- **SSR et donjons** : hors de leur donjon, les SSR sont un peu au-dessus des SR ; dans leur donjon, ils écrasent
+  tout (compétence ×6, passif ×4, dégâts de l'équipe +150 %, dégâts subis −60 %).
+- **Week-end ×2** (samedi et dimanche, 48 h) sur l'or, l'XP, le butin et les événements, cumulable avec le démarrage rapide.
+- **Beaucoup plus de gemmes** : chaque boss, chaque niveau du héros, chaque nouvelle étape et nouveau monde,
+  et parfois les monstres eux-mêmes.
+- **Vitesse d'attaque** : plus de blocage à 4 att./s ; elle progresse toujours, de plus en plus lentement.
+- **Compétences** : 50 niveaux au lieu de 10 (les paliers supérieurs coûtent plus de points).
+- **Butin visible** : l'objet jaillit du monstre, brille à sa rareté et file vers le chevalier ; gemmes visibles aussi.
+- **Animations** : marche des personnages, sautillement des compagnons, battement d'ailes des volants,
+  images de marche et d'attaque des boss ; yéti et troll redessinés.
+- **Missions** : sections repliables et bouton **Tout récupérer** ; boîte de récompenses : « Tout récupérer »
+  et la pastille disparaît une fois les messages lus.
+- **Invocation** : les probabilités montrent la tête de chaque personnage et compagnon (avec sa rareté).
+- **Arbre de talents** : zoom (boutons ou Ctrl + molette) et cases plus espacées.
+
+### v7.5
 - **20 héros invocables** (8 R, 7 SR, 5 SSR) qui combattent aux côtés du chevalier, chacun avec son
   passif, sa compétence et ses animations ; nouvel onglet **Invocation**.
 - **Donjons des SSR** : 4 nouveaux donjons (Sanctuaire sylvestre, Fournaise des sables, Glacier éternel,

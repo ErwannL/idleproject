@@ -2,6 +2,7 @@
 import { BALANCE } from '../../data/balance.js';
 import { summonOdds } from '../../core/gacha.js';
 import { companionById } from '../../core/companions.js';
+import { ALLY_GRADE } from '../../data/companions.js';
 import { animCanvas } from '../animator.js';
 import { escapeHtml, formatDecimal, formatNumber, gem, img, rarityLabel, stars } from '../common.js';
 
@@ -18,14 +19,24 @@ export default {
   extra: (ui, state) => `${gem()}<b class="num">${formatNumber(state.gems)}</b> ${img('icon_ticket')}<b class="num">${state.tickets}</b>`,
   render(ui, state) {
     const s = BALANCE.summon;
-    const odds = summonOdds().map((r) => `<div class="odds-row r-${r.rarity}"><b class="rarity-text">${rarityLabel(r.rarity)}</b>
-      <span class="muted">${r.units.map((u) => u.name).join(', ')}</span><b class="num">${formatDecimal(r.chance * 100)} %</b></div>`).join('');
+    // Probabilités avec la tête de chaque personnage / compagnon (on repère tout de suite sa rareté).
+    const odds = summonOdds().filter((r) => r.units.length).reverse().map((r) => {
+      const units = r.units.map((u) => {
+        const owned = state.companions.owned[u.id];
+        return `<div class="odds-unit${owned ? ' owned' : ''}" title="${escapeHtml(u.name)} · ${formatDecimal(u.chance * 100, 2)} %">
+          ${unitPortrait(u)}${u.ally ? `<span class="grade g-${u.rarity}">${ALLY_GRADE[u.rarity]}</span>` : ''}
+          <span class="odds-name">${escapeHtml(u.name)}</span><span class="muted">${formatDecimal(u.chance * 100, 2)} %</span>
+          ${owned ? stars(owned.stars) : ''}</div>`;
+      }).join('');
+      return `<div class="odds-group r-${r.rarity}"><div class="row-between"><b class="rarity-text">${rarityLabel(r.rarity)}</b>
+        <b class="num">${formatDecimal(r.chance * 100)} %</b></div><div class="odds-units">${units}</div></div>`;
+    }).join('');
     const results = (ui.view.lastSummon ?? []).map((r) => `<div class="summon-result r-${r.rarity}${r.isNew ? ' new' : ''}" title="${escapeHtml(r.name)}">
       ${unitPortrait(r)}<span>${escapeHtml(r.name)}</span>
       ${r.isNew ? '<b class="good">Nouveau !</b>' : r.refund ? `<span class="muted">+${r.refund} gemmes</span>` : stars(r.stars)}</div>`).join('');
     return `<div class="card summon-banner">
-        <div class="summon-title">${img('icon_summon')} Appel des chevaliers et compagnons</div>
-        <div class="muted">Héros et compagnons s'obtiennent ici. Gemmes et tickets se gagnent en jouant (premières victoires de boss,
+        <div class="summon-title">${img('icon_summon')} Appel des héros et compagnons</div>
+        <div class="muted">Personnages alliés (R, SR, SSR) et compagnons s'obtiennent ici. Gemmes et tickets se gagnent en jouant (premières victoires de boss,
           contrats, maîtrise, événements, donjon). Aucun achat réel.</div>
         <div class="summon-buttons">
           <button class="btn btn-gold" data-action="summon" data-value="1" data-currency="tickets" ${state.tickets < 1 ? 'disabled' : ''}>×1 ${img('icon_ticket')} 1</button>

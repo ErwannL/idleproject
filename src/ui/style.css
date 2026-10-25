@@ -953,12 +953,14 @@ canvas.anim { display: block; image-rendering: pixelated; }
   border-color: #0c0d10;
   box-shadow: inset 0 0 0 1px #4a4d55, inset 0 0 24px rgba(0, 0, 0, 0.6);
 }
-.rune-tree { position: relative; width: 100%; max-width: max(280px, min(460px, calc((62vh - 120px) * 1))); margin: 0 auto; }
+.tree-tools { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-bottom: 4px; }
+.tree-viewport { overflow: auto; max-height: min(62vh, 560px); border-radius: 4px; overscroll-behavior: contain; }
+.rune-tree { position: relative; flex: none; margin: 0 auto; }
 .rune-tree svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .rune-tree line { stroke: #8e939e; stroke-width: 3; opacity: 0.55; }
 .rune-tree line.on { stroke: #e9ecf2; opacity: 0.9; }
 .rune-tree .tile {
-  position: absolute; width: 10.5%; aspect-ratio: 1; min-width: 26px; transform: translate(-50%, -50%);
+  position: absolute; width: 8%; aspect-ratio: 1; min-width: 18px; transform: translate(-50%, -50%);
   padding: 0; display: flex; align-items: center; justify-content: center; cursor: pointer;
   background: linear-gradient(180deg, color-mix(in srgb, var(--branch) 22%, #3a3426), color-mix(in srgb, var(--branch) 12%, #1d1a14));
   border: 3px solid #a86b2a; border-radius: 3px;
@@ -974,7 +976,7 @@ canvas.anim { display: block; image-rendering: pixelated; }
 .rune-tree .tile.maxed { border-color: #5ad46a; box-shadow: 0 0 0 1px #0c0d10, 0 0 9px -2px #5ad46a; }
 .rune-tree .tile.locked { border-color: #4a3a2a; background: #1c1d22; }
 .rune-tree .tile.locked img { filter: grayscale(1) brightness(0.45); }
-.rune-tree .tile.core { width: 12.5%; border-color: #ffe08a; }
+.rune-tree .tile.core { width: 10%; border-color: #ffe08a; }
 .rune-tree .tile.selected { outline: 2px solid #fff; outline-offset: 2px; }
 .tree-legend { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; font-size: 10.5px; font-weight: 800; margin-top: 4px; }
 
@@ -1001,3 +1003,65 @@ canvas.anim { display: block; image-rendering: pixelated; }
 .dungeon-ally { padding: 4px 6px; border-left: 2px solid #f2d083; background: rgba(242,208,131,0.07); font-size: 12px; }
 .chip-boost { color: #ffe08a; border-color: rgba(255,224,138,0.5); animation: boost-glow 2.4s ease-in-out infinite; }
 @keyframes boost-glow { 50% { box-shadow: 0 0 8px rgba(255,224,138,0.55); } }
+
+/* --- v7.6 : sections repliables, tout récupérer --- */
+.claim-all { width: 100%; margin-bottom: 6px; }
+.fold { padding: 0; overflow: hidden; flex-shrink: 0; }
+.fold-head { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 6px; width: 100%; padding: 7px 10px; cursor: pointer; }
+.fold-head:hover { background: rgba(255,255,255,0.04); }
+.fold-arrow { width: 10px; color: #f2d083; }
+.fold-sum { margin-left: auto; font-size: 11px; }
+.fold-ready { font-style: normal; font-size: 10px; font-weight: 700; min-width: 16px; height: 16px; line-height: 16px; text-align: center;
+  border-radius: 8px; background: #e84a5f; color: #fff; padding: 0 4px; }
+.fold-body { display: flex; flex-direction: column; gap: 6px; padding: 0 10px 8px; }
+.fold-body .contract { display: flex; flex-direction: column; gap: 4px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.06); }
+.odds-group { display: flex; flex-direction: column; gap: 4px; padding: 6px 0; border-top: 1px solid rgba(255,255,255,0.06); }
+.odds-units { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 4px; }
+.odds-unit { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 4px 2px; font-size: 10px; text-align: center;
+  background: rgba(0,0,0,0.25); border: 1px solid var(--rarity, rgba(255,255,255,0.1)); border-radius: 4px; }
+.odds-unit canvas { width: 40px; height: 40px; image-rendering: pixelated; object-fit: contain; }
+.odds-unit:not(.owned) canvas { filter: saturate(0.4) brightness(0.75); }
+.odds-name { font-weight: 700; line-height: 1.1; }
+.team-bar { display: flex; align-items: center; gap: 6px; padding: 6px; margin-bottom: 4px; background: rgba(0,0,0,0.25); border-radius: 6px; }
+.team-slot { all: unset; box-sizing: border-box; position: relative; width: 56px; height: 56px; display: grid; place-items: center; cursor: pointer;
+  border: 2px solid var(--rarity, rgba(255,255,255,0.15)); border-radius: 6px; background: rgba(255,255,255,0.03); }
+.team-slot canvas { max-width: 52px; max-height: 52px; image-rendering: pixelated; }
+.team-slot.empty { border-style: dashed; font-size: 9px; color: var(--muted, #8a93a3); text-align: center; cursor: default; }
+.team-slot.hero { border-color: #f2d083; cursor: default; }
+.team-sep { width: 1px; align-self: stretch; background: rgba(255,255,255,0.12); margin: 0 4px; }
+.stage-grid .btn.tier-mini { border-color: #b0773a; color: #ffd29a; }
+.stage-grid .btn.tier-mid { border-color: #a8455a; color: #ffb4bf; }
+.stage-grid .btn.tier-hard { border-color: #b03a7a; color: #ff9ad6; box-shadow: 0 0 4px -1px #ff5ab0; }
+.stage-grid .btn.tier-mega { border-color: #ff3b3b; color: #fff; background: linear-gradient(#5a1424, #2a0a14); box-shadow: 0 0 6px -1px #ff3b3b; }
+.cycle-row { margin-bottom: 6px; }
+/* Entrée des boss : bannière par rang, éclair rouge pour les boss durs et méga boss. */
+#banner.boss.tier-mini { color: #ffd29a; }
+#banner.boss.tier-hard { color: #ff9ad6; font-size: 18px; }
+#banner.boss.tier-mega { color: #fff; font-size: 21px; letter-spacing: 1px;
+  text-shadow: 0 0 6px #ff2a2a, 0 0 14px #ff2a2a, 0 2px 0 #1a1226; }
+#boss-flash { position: absolute; inset: 0; pointer-events: none; opacity: 0; }
+#boss-flash.on { animation: boss-flash 1.4s ease-out; }
+#boss-flash.tier-mega { background: radial-gradient(ellipse at 70% 60%, rgba(255,40,40,0.0) 20%, rgba(160,0,20,0.55) 100%); }
+#boss-flash.tier-hard { background: radial-gradient(ellipse at 70% 60%, rgba(255,60,160,0.0) 30%, rgba(120,0,80,0.4) 100%); }
+@keyframes boss-flash { 0% { opacity: 0; } 12% { opacity: 1; } 30% { opacity: 0.35; } 45% { opacity: 0.8; } 100% { opacity: 0; } }
+.prestige-card { border-color: #8a6cff; box-shadow: 0 0 10px -4px #8a6cff; }
+.prestige-title { color: #c9b6ff; text-shadow: 0 0 6px #8a6cff; }
+.perk-row { display: flex; align-items: center; gap: 6px; padding: 4px 0; border-top: 1px solid rgba(255,255,255,0.06); }
+.perk-row img { width: 20px; height: 20px; }
+/* Boosts à durée limitée : barre d'icônes sur la scène (cadran de recharge, lueur quand actif). */
+#rush-bar { position: absolute; right: 6px; bottom: 6px; display: flex; gap: 4px; z-index: 3; }
+.rush-btn { position: relative; width: 30px; height: 30px; padding: 0; border-radius: 6px; cursor: pointer; overflow: hidden;
+  background: #1a1d26; border: 2px solid color-mix(in srgb, var(--rush) 60%, #000); }
+.rush-btn img { width: 20px; height: 20px; image-rendering: pixelated; }
+.rush-btn::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: conic-gradient(rgba(0,0,0,0.65) calc(var(--cd, 0) * 360deg), transparent 0); }
+.rush-btn.ready { border-color: var(--rush); box-shadow: 0 0 6px -1px var(--rush); animation: rush-ready 1.6s ease-in-out infinite; }
+.rush-btn.active { border-color: #fff; box-shadow: 0 0 10px 1px var(--rush); background: color-mix(in srgb, var(--rush) 35%, #1a1d26); }
+.rush-time { position: absolute; left: 0; right: 0; bottom: -1px; font-size: 9px; font-weight: 900; color: #fff; text-shadow: 0 1px 0 #000, 0 0 2px #000; z-index: 1; }
+@keyframes rush-ready { 50% { transform: translateY(-1px); } }
+.layout-strip #rush-bar { bottom: 2px; right: 50px; }
+.layout-strip .rush-btn { width: 22px; height: 22px; }
+.layout-strip .rush-btn img { width: 14px; height: 14px; }
+.rush-icon { border-radius: 6px; background: color-mix(in srgb, var(--rush) 25%, transparent); }
+.volume-row { display: grid; grid-template-columns: 70px 1fr; align-items: center; gap: 8px; font-size: 12px; margin-top: 4px; }
+.volume-row input { width: 100%; accent-color: #f2d083; }

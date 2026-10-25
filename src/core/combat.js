@@ -17,6 +17,7 @@ import { recordBossVictory } from './powers.js';
 import { activeSkills, skillCooldown, skillValue } from './skills.js';
 import { computeHeroStats } from './stats.js';
 import { earlyBoost } from './boost.js';
+import { phantomHitPct, rushById, tickRushes } from './rushes.js';
 
 const MAX_EVENTS = 300;
 
@@ -24,33 +25,73 @@ export function isBossStage(stage, balance = BALANCE) {
   return stage % balance.stages.bossEvery === 0;
 }
 
+// Un « cycle » = les 6 mondes. Après le dernier monde, on repart du monde 1 en difficulté ×2, ×3…
+export function stagesPerCycle(balance = BALANCE) {
+  return ZONES.length * balance.stages.stagesPerZone;
+}
+
+// 0 pour le premier passage, 1 pour la difficulté ×2, etc.
+export function cycleForStage(stage, balance = BALANCE) {
+  return Math.floor((stage - 1) / stagesPerCycle(balance));
+}
+
+export function difficultyForStage(stage, balance = BALANCE) {
+  return cycleForStage(stage, balance) + 1;
+}
+
 export function zoneIndexForStage(stage, balance = BALANCE) {
-  return Math.min(ZONES.length - 1, Math.floor((stage - 1) / balance.stages.stagesPerZone));
+  return Math.floor(((stage - 1) % stagesPerCycle(balance)) / balance.stages.stagesPerZone);
+}
+
+// Étape dans le monde (1..20).
+export function stageInZone(stage, balance = BALANCE) {
+  return ((stage - 1) % balance.stages.stagesPerZone) + 1;
+}
+
+// Rang du boss de l'étape : 'mini' (5), 'mid' (10), 'hard' (15), 'mega' (20), ou null.
+export function bossTierForStage(stage, balance = BALANCE) {
+  if (!isBossStage(stage, balance)) return null;
+  const s = stageInZone(stage, balance);
+  return Object.entries(balance.stages.tiers).find(([, t]) => t.stage === s)?.[0] ?? 'mega';
+}
+
+// Rang d'un boss d'après sa définition (méga boss par défaut).
+export function bossTier(bossId) {
+  return BOSSES[bossId]?.tier ?? 'mega';
 }
 
 export function zoneForStage(stage, balance = BALANCE) {
   return ZONES[zoneIndexForStage(stage, balance)];
 }
 
-// "2-4" = zone 2, étape 4 de la zone.
+// "2-4" = monde 2, étape 4 du monde ; "2-4 ×3" en difficulté ×3.
 export function stageLabel(stage, balance = BALANCE) {
-  const zone = zoneIndexForStage(stage, balance);
-  return `${zone + 1}-${stage - zone * balance.stages.stagesPerZone}`;
+  const d = difficultyForStage(stage, balance);
+  return `${zoneIndexForStage(stage, balance) + 1}-${stageInZone(stage, balance)}${d > 1 ? ` ×${d}` : ''}`;
+}
+
+// Boss de l'étape : le boss du rang correspondant du monde (méga boss à l'étape 20).
+export function bossesForStage(stage, balance = BALANCE) {
+  const zone = zoneForStage(stage, balance);
+  const tier = bossTierForStage(stage, balance);
+  return tier && tier !== 'mega' && zone.tierBosses?.[tier] ? [zone.tierBosses[tier]] : zone.bosses;
 }
 
 export function enemyDefinition(type, boss) {
   return boss ? ENEMIES[BOSSES[type].base] : ENEMIES[type];
 }
 
+
 export function enemyStats(stage, type, boss, balance = BALANCE) {
   const def = enemyDefinition(type, boss);
+  const tier = boss ? balance.stages.tiers[bossTier(type)] : null;
   const growth = balance.enemyScaling;
   const st = balance.stages;
   const n = Math.max(0, stage - 1);
   return {
-    hp: Math.round(def.hp * growth.hpGrowth ** n * (boss ? st.bossHpMultiplier : 1)),
-    damage: def.damage * growth.damageGrowth ** n * (boss ? st.bossDamageMultiplier : 1),
-    gold: Math.max(1, Math.round(def.gold * growth.goldGrowth ** n * (boss ? st.bossGoldMultiplier : 1))),
+    hp: Math.round(def.hp * growth.hpGrowth ** n * (boss ? st.bossHpMultiplier * tier.hp : 1)),
+    damage: def.damage * growth.damageGrowth ** n * (boss ? st.bossDamageMultiplier * tier.damage : 1),
+    gold: Math.max(1, Math.round(def.gold * growth.goldGrowth ** n * (boss ? st.bossGoldMultiplier * tier.gold : 1))),
     speed: def.speed,
     attackInterval: def.attackInterval * (boss ? 1.2 : 1),
     range: def.range + (boss ? 8 : 0),
@@ -60,7 +101,7 @@ export function enemyStats(stage, type, boss, balance = BALANCE) {
 // Or d'un ennemi ordinaire de référence à une étape (sert d'unité pour les coûts et récompenses).
 // Essences (matériau rare) lâchées par un boss : 2, +1 par zone.
 export function bossEssence(stage, balance = BALANCE) {
-  return balance.loot.bossEssence + Math.floor((stage - 1) / balance.stages.stagesPerZone);
+  return balance.loot.bossEssence + zoneIndexForStage(stage, balance) + ZONES.length * cycleForStage(stage, balance);
 }
 
 export function referenceKillGold(stage, balance = BALANCE) {
@@ -78,7 +119,8 @@ export function currentEncounter(state, balance = BALANCE) {
   }
   const zone = zoneForStage(state.stage, balance);
   return {
-    level: state.stage, boss: isBossStage(state.stage, balance), enemies: zone.enemies, bosses: zone.bosses,
+    level: state.stage, boss: isBossStage(state.stage, balance), enemies: zone.enemies,
+    bosses: bossesForStage(state.stage, balance),
     killsNeeded: balance.stages.killsPerStage, zoneIndex: zoneIndexForStage(state.stage, balance), dungeon: null,
   };
 }
@@ -162,7 +204,11 @@ function clearStage(state, world, balance) {
   const next = state.stage + 1;
   if (next > state.maxStage) {
     state.maxStage = next;
-    emit(world, 'unlock', { stage: next });
+    // Nouvelle étape (et nouveau monde) : quelques gemmes.
+    const newWorld = (next - 1) % balance.stages.stagesPerZone === 0;
+    const gems = balance.gems.newStage + (newWorld ? balance.gems.newWorld : 0);
+    state.gems += gems;
+    emit(world, 'unlock', { stage: next, gems });
   }
   if (state.autoAdvance) changeStage(state, world, next, balance);
 }
@@ -197,7 +243,16 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
   const xp = killXp(enc.level, enemy.boss || enemy.elite, balance) * (1 + stats.xpPct / 100) * boost.xp;
   world.counters.xp += xp;
   const levels = addXp(state, xp, balance);
-  if (levels > 0) emit(world, 'levelUp', { level: state.level });
+  if (levels > 0) {
+    state.gems += levels * balance.gems.levelUp;
+    emit(world, 'levelUp', { level: state.level, gems: levels * balance.gems.levelUp });
+  }
+  if (!enemy.boss && rng.next() < balance.gems.killChance) {
+    const [lo, hi] = balance.gems.killAmount;
+    const gems = lo + Math.floor(rng.next() * (hi - lo + 1));
+    state.gems += gems;
+    emit(world, 'gems', { gems, x: enemy.x });
+  }
   emit(world, 'kill', { enemyId: enemy.id, kind: enemy.type, boss: enemy.boss, elite: enemy.elite, gold, x: enemy.x });
 
   // Butin : objet signature possible sur les boss (butin ciblé), objet Rare+ garanti sur les boss et élites.
@@ -226,10 +281,17 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
     state.records.bossesDefeated += 1;
     trackContracts(state, 'bosses', 1);
     emit(world, 'bossDefeated', { kind: enemy.type, stage: enc.level });
-    // Première victoire : pouvoir ancestral ; victoires suivantes : charge de relance.
-    const power = recordBossVictory(state, enemy.type, rng, balance);
-    if (power) emit(world, 'powerUnlocked', { bossId: enemy.type, powerId: power.id });
-    else emit(world, 'rerollCharge', { bossId: enemy.type });
+    // Gemmes (cristaux) à chaque boss : de quoi invoquer souvent.
+    const tier = bossTier(enemy.type);
+    const gems = balance.stages.tiers[tier].gems;
+    state.gems += gems;
+    emit(world, 'gems', { gems, x: enemy.x });
+    // Méga boss (et boss de donjon) — première victoire : pouvoir ancestral ; ensuite : charge de relance.
+    if (tier === 'mega') {
+      const power = recordBossVictory(state, enemy.type, rng, balance);
+      if (power) emit(world, 'powerUnlocked', { bossId: enemy.type, powerId: power.id });
+      else emit(world, 'rerollCharge', { bossId: enemy.type });
+    }
     if (enc.dungeon) {
       const result = completeDungeon(state, rng, balance);
       resetWave(world, balance);
@@ -291,9 +353,9 @@ function castCompanion(state, world, companion, stats, rng, balance, enc, front)
   const { skill } = companion;
   const aff = dungeonAffinity(state, companion.id, balance) ? balance.dungeonAffinity.skillMultiplier : 1;
   if (skill.type === 'gold') {
-    gainGold(state, world, referenceKillGold(enc.level, balance) * skill.value * (1 + stats.goldPct / 100));
+    gainGold(state, world, referenceKillGold(enc.level, balance) * skill.value * (1 + stats.goldPct / 100) * earlyBoost(state, balance).gold);
   } else if (skill.type === 'heal') {
-    world.hero.hp = Math.min(stats.maxHp, world.hero.hp + (stats.maxHp * skill.value * Math.min(aff, 2)) / 100);
+    world.hero.hp = Math.min(stats.maxHp, world.hero.hp + (stats.maxHp * skill.value * Math.min(aff, 3)) / 100);
   } else if (skill.type === 'shield') {
     world.buffs.shield = skill.duration;
     world.buffs.shieldPct = skill.value;
@@ -332,6 +394,12 @@ export function step(state, world, dt, rng, balance = BALANCE) {
   world.prevScroll = world.scroll;
   for (const enemy of world.enemies) enemy.prevX = enemy.x;
   const hero = world.hero;
+  // Boosts à durée limitée : minuteries (et relance automatique si activée).
+  if (state.rushes) {
+    const { ended, started } = tickRushes(state, dt);
+    for (const id of started) emit(world, 'rushStart', { id });
+    for (const id of ended) emit(world, 'rushEnd', { id });
+  }
   const stats = computeHeroStats(state, balance);
   world.heroStats = stats;
 
@@ -399,6 +467,19 @@ export function step(state, world, dt, rng, balance = BALANCE) {
     }
   } else {
     hero.attackTimer = Math.min(hero.attackTimer, 0.25);
+  }
+
+  // Lame fantôme : un double spectral frappe plusieurs fois par seconde tant que le boost dure.
+  const phantom = rushById('phantom');
+  if (state.rushes?.active.phantom > 0 && inRange) {
+    world.phantomTimer = (world.phantomTimer ?? 0) - dt;
+    if (world.phantomTimer <= 0) {
+      world.phantomTimer += 1 / phantom.hitsPerSecond;
+      const { damage } = heroDamage(stats, front, world, rng, balance);
+      const hit = (damage * phantomHitPct(state, phantom)) / 100;
+      emit(world, 'phantomHit', { enemyId: front.id, damage: hit, x: front.x });
+      hitEnemy(state, world, front, hit, rng, balance, stats, enc, 'phantom');
+    }
   }
 
   // Compétences lancées automatiquement dès qu'un ennemi est à portée.

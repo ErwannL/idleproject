@@ -3,10 +3,10 @@
 // suspendu automatiquement quand la fenêtre est masquée).
 import { BALANCE } from './data/balance.js';
 import { BOSSES } from './data/enemies.js';
-import { changeStage, createCombat, resetWave, resumeAdvance, step } from './core/combat.js';
+import { changeStage, createCombat, currentEncounter, resetWave, resumeAdvance, step } from './core/combat.js';
 import { toggleCompanion, upgradeCompanion } from './core/companions.js';
 import { claimContract } from './core/contracts.js';
-import { claimLogin, claimMission, claimMissionBonus, refreshMissions } from './core/missions.js';
+import { claimAllMissions, claimLogin, claimMission, claimMissionBonus, mergeReward, refreshMissions } from './core/missions.js';
 import { abandonDungeon, setDungeonPath, startDungeon } from './core/dungeon.js';
 import { buyUpgrade } from './core/economy.js';
 import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
@@ -18,6 +18,8 @@ import {
   bossDungeon, bossFirstStage, claimMastery, powerById, powerSlots, rerollPower, resolveReroll, setPowerActive,
 } from './core/powers.js';
 import { buyTalent, performRebirth } from './core/rebirth.js';
+import { buyPerk, performPrestige } from './core/prestige.js';
+import { activateRush, rushById, upgradeRush } from './core/rushes.js';
 import { rewardText } from './core/rewards.js';
 import { learnSkill } from './core/skills.js';
 import { generateItem, makeItem, rarityById } from './core/loot.js';
@@ -31,6 +33,7 @@ import { formatNumber } from './core/format.js';
 import { SceneRenderer } from './render/scene.js';
 import { UI } from './ui/ui.js';
 import { animateMenus } from './ui/animator.js';
+import { createGameAudio } from './audio/game-audio.js';
 
 const SIM_INTERVAL_MS = 100;
 
@@ -76,7 +79,10 @@ function runOffline(fromMs, nowMs) {
 // Toute action réussie est sauvegardée immédiatement et rafraîchit le panneau.
 function done(ok, message = null, color = null) {
   if (!ok) return false;
-  if (message) ui.toast(message, color);
+  if (message) {
+    ui.toast(message, color);
+    sound.play('claim', { volume: 0.7 });
+  }
   save();
   ui.invalidate();
   return true;
@@ -87,7 +93,7 @@ const actions = {
   setSkillAuto(value) { state.skillAuto = value; done(true); },
   setHero(id) { done(setActiveHero(state, id), 'Nouveau héros actif'); },
   toggleCompanion(id) {
-    if (!toggleCompanion(state, id)) ui.toast(`Trois compagnons au maximum : retirez-en un d'abord.`);
+    if (!toggleCompanion(state, id)) ui.toast(`Deux personnages au maximum : retirez-en un d'abord.`);
     else done(true);
   },
   upgradeCompanion(id) { done(upgradeCompanion(state, id)); },
@@ -95,6 +101,8 @@ const actions = {
     const results = summon(state, rng, count, currency);
     if (!results) return null;
     state.records.summons += results.length;
+    const best = ['legendary', 'epic', 'rare', 'common'].find((r) => results.some((u) => u.rarity === r));
+    sound.play('summon', { rarity: best });
     done(true);
     return results;
   },
@@ -107,11 +115,13 @@ const actions = {
   sharpen(id) { done(sharpenItem(state, id), 'Objet réaffûté'); },
   upgradeItem(id) {
     const stat = upgradeItem(state, id, rng);
+    if (stat) sound.play('upgrade');
     const label = stat === 'main' ? 'effet principal' : STAT_LABELS[stat];
     done(Boolean(stat), stat ? `Amélioration : ${label} +${BALANCE.forge.upgradeBoostPct} %` : null, '#7fe08f');
   },
   fuse(slot, rarity) {
     const item = fuseItems(state, slot, rarity, rng);
+    if (item) sound.play('loot', { rarity: item.rarity });
     if (item) ui.view.selectedItemId = item.id;
     done(Boolean(item), item ? `Fusion : ${item.name} (${rarityById(item.rarity).label})` : null, rarityById(item?.rarity ?? 'common').color);
   },
@@ -156,9 +166,32 @@ const actions = {
     const given = claimLogin(state);
     done(Boolean(given), given ? `Connexion : ${rewardText(given)}` : null, '#7fd4ff');
   },
+  claimAll() {
+    const total = claimAllMissions(state) ?? {};
+    let n = Object.keys(total).length;
+    for (const c of [...state.contracts]) {
+      const given = c.progress >= c.target ? claimContract(state, c.id, rng) : null;
+      if (given) { mergeReward(total, given); n += 1; }
+    }
+    if (!n) ui.toast('Rien à récupérer pour le moment.');
+    else done(true, `Tout récupéré : ${rewardText(total)}`, '#7fd4ff');
+  },
   claimContract(id) {
     const given = claimContract(state, id, rng);
     done(Boolean(given), given ? `Contrat rempli : ${rewardText(given)}` : null, '#f2d083');
+  },
+  claimAllEvents() {
+    const total = {};
+    let items = 0;
+    for (const e of [...state.inbox]) {
+      const given = e.type === 'merchant' ? null : claimEvent(state, e.id);
+      if (!given) continue;
+      if (given.item) items += 1;
+      const { item, ...rest } = given;
+      mergeReward(total, rest);
+    }
+    const text = [rewardText(total), items ? `${items} objet(s)` : ''].filter(Boolean).join(' · ');
+    done(Boolean(text), `Récupéré : ${text}`);
   },
   claimEvent(id) {
     const given = claimEvent(state, id);
@@ -168,6 +201,7 @@ const actions = {
   dismissEvent(id) { done(dismissEvent(state, id)); },
   buy(key) {
     if (buyUpgrade(state, key)) {
+      sound.play('upgrade', { volume: 0.6 });
       save();
       ui.invalidate();
     }
@@ -239,6 +273,21 @@ const actions = {
     ui.banner(`Renaissance ! +${gained} fragments anciens`, 'win');
     ui.invalidate();
   },
+  prestige() {
+    const stars = performPrestige(state);
+    if (stars <= 0) return;
+    world = createCombat(state);
+    save();
+    ui.banner(`PRESTIGE ${state.prestige.count} ! +${stars} étoile${stars > 1 ? 's' : ''}`, 'win');
+    ui.invalidate();
+  },
+  activateRush(id) {
+    const rush = rushById(id);
+    if (activateRush(state, id)) done(true, `${rush.name} !`, rush.color);
+  },
+  upgradeRush(id) { done(upgradeRush(state, id)); },
+  setRushAuto(on) { state.rushes.auto = on; done(true); },
+  buyPerk(id) { done(buyPerk(state, id), 'Bonus éternel amélioré', '#ffe08a'); },
   selectStage(stage) {
     changeStage(state, world, stage);
     save();
@@ -294,6 +343,14 @@ const actions = {
 };
 
 const ui = new UI(document.getElementById('app'), actions);
+
+// Musique et sons (moteur procédural) : démarrés au premier geste du joueur (règle des navigateurs).
+const sound = createGameAudio();
+ui.sound = sound;
+const unlockAudio = () => sound.unlock();
+window.addEventListener('pointerdown', unlockAudio, { capture: true });
+window.addEventListener('keydown', unlockAudio, { capture: true });
+document.addEventListener('click', (e) => { if (e.target.closest('button')) sound.play('click', { volume: 0.5 }); }, { capture: true });
 
 // Version bureau (Electron) : options de fenêtre exposées par desktop/preload.cjs.
 if (window.desktop) {
@@ -351,7 +408,9 @@ function frame(ts) {
   for (const event of world.events) {
     renderer.handleEvent(event, world);
     ui.handleEvent(event, state);
+    sound.handleEvent(event);
   }
+  sound.update(state, world, currentEncounter(state).zoneIndex, dt);
   world.events.length = 0;
   renderer.render(state, world, dt);
   ui.update(state, world);
@@ -361,7 +420,12 @@ function frame(ts) {
 requestAnimationFrame(frame);
 
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') save();
+  if (document.visibilityState === 'hidden') {
+    save();
+    sound.suspend();
+  } else {
+    sound.resume();
+  }
 });
 window.addEventListener('pagehide', save);
 
