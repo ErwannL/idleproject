@@ -8,6 +8,7 @@ import { currentEncounter } from '../core/combat.js';
 import { equippedCompanions } from '../core/companions.js';
 import { formatNumber } from '../core/format.js';
 import { activeHero } from '../core/heroes.js';
+import { BG } from './bg.js';
 import { FONT_BIG } from './sprites.js';
 import { HERO_ANCHOR, drawBigText, heroComposite, spriteCanvas, textWidth } from './pixel.js';
 
@@ -22,20 +23,21 @@ const HERO_X = BALANCE.world.heroX * WORLD_SCALE;
 
 // Calques de décor (PNG générés par tools/art/scenery.py), chargés à la demande.
 const layers = new Map();
-function layer(zoneId, name) {
-  const key = `${zoneId}_${name}`;
-  let img = layers.get(key);
+function layer(file) {
+  let img = layers.get(file);
   if (!img) {
     img = new Image();
     img.onerror = () => { img.failed = true; };
-    img.src = `assets/bg/${key}.png`;
-    layers.set(key, img);
+    img.src = `assets/bg/${file}`;
+    layers.set(file, img);
   }
   return img.complete && !img.failed && img.naturalWidth > 0 ? img : null;
 }
 const MAX_FLOATING_TEXTS = 6;
 const FLYING_PETS = new Set(['owl', 'fairy', 'wisp']);
 const STALE_EVENT_SECONDS = 1.5;
+const ATTACK_TIME = 0.3; // durée de l'animation d'attaque (élan, frappe, suite)
+const CAST_TIME = 0.35; // durée de la pose de sort
 
 const mixCache = new Map();
 function mixColor(a, b, t) {
@@ -64,7 +66,7 @@ export class SceneRenderer {
     this.time = 0;
     this.effects = [];
     this.enemyFx = new Map();
-    this.hero = { attack: 0, hurt: 0, victory: 0, respawn: 0, deathTime: 0 };
+    this.hero = { attack: 0, hurt: 0, victory: 0, respawn: 0, deathTime: 0, cast: 0 };
     this.shake = 0;
     this.zoneFade = 0;
     this.lastZone = -1;
@@ -101,8 +103,11 @@ export class SceneRenderer {
     const heroX = HERO_X;
     switch (event.type) {
       case 'heroAttack': {
-        this.hero.attack = 0.16;
-        this.effects.push({ kind: 'slash', x: heroX + 26, y: this.groundY - 22, life: 0.16, max: 0.16, big: event.crit });
+        this.hero.attack = ATTACK_TIME;
+        // Arc de taille dessiné (bleu, ou doré et plus grand sur un coup critique), puis impact.
+        if (event.crit) this.sprite(['fx_slash_crit'], heroX + 18, this.groundY + 4, 0.22, { delay: 0.07, tint: '#ffd23f' });
+        else this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], heroX + 14, this.groundY + 1, 0.18, { delay: 0.07 });
+        this.sprite(['fx_hit'], event.x - 4, this.groundY - 10, 0.14, { delay: 0.1, tint: event.crit ? '#ffd23f' : null });
         if (event.boss) this.shake = Math.max(this.shake, 1);
         this.burst(event.x - 6, this.groundY - 12, event.crit ? '#ffd23f' : '#ffffff', event.crit ? 8 : 4);
         this.addText(formatNumber(event.damage), event.x, this.groundY - (event.boss ? 58 : 36), event.crit ? '#ffd23f' : '#ffffff', event.crit ? '#fff6c8' : '#ffffff');
@@ -110,6 +115,7 @@ export class SceneRenderer {
       }
       case 'enemyHit':
         this.enemyFxFor(event.enemyId).hit = 0.08;
+        if (event.source !== 'hero') this.sprite(['fx_hit'], event.x, this.groundY - 10, 0.14);
         if (event.source === 'skill' || event.source === 'companion') {
           this.addText(formatNumber(event.damage), event.x, this.groundY - (event.boss ? 64 : 42), event.source === 'skill' ? '#7fd6ff' : '#9cf08a');
         }
@@ -123,9 +129,10 @@ export class SceneRenderer {
       case 'levelUp':
         this.effects.push({ kind: 'beam', x: heroX, color: '#ffd23f', life: 1, max: 1, wide: true });
         this.burst(heroX, this.groundY - 28, '#ffd23f', 14, 46);
+        for (let i = 0; i < 5; i++) this.sprite(['fx_spark'], heroX - 16 + i * 8, this.groundY - 30 - (i % 2) * 14, 0.6, { delay: i * 0.08 });
         break;
       case 'heroHit':
-        this.hero.hurt = 0.12;
+        this.hero.hurt = 0.18;
         this.enemyFxFor(event.enemyId).lunge = 0.14;
         this.addText(formatNumber(Math.max(1, Math.round(event.damage))), heroX - 4, this.groundY - 48, '#ff5a5a', '#ffb0a8');
         if (event.boss) this.shake = Math.max(this.shake, 2);
@@ -198,13 +205,27 @@ export class SceneRenderer {
 
   skillEffect(event) {
     const heroX = HERO_X;
-    const y = this.groundY - 20;
-    if (event.skillId === 'whirl') this.effects.push({ kind: 'ring', x: heroX + 6, y, color: '#ff7a6b', life: 0.4, max: 0.4, r: 44 });
-    else if (event.skillId === 'cry') this.effects.push({ kind: 'ring', x: heroX, y, color: '#ffd23f', life: 0.5, max: 0.5, r: 26 });
-    else if (event.skillId === 'holy') {
-      this.effects.push({ kind: 'beam', x: Math.round(event.x * WORLD_SCALE), color: '#ffe680', life: 0.8, max: 0.8, wide: true });
+    const G = this.groundY;
+    this.hero.cast = CAST_TIME;
+    if (event.skillId === 'quick') {
+      // Vague d'énergie lancée vers l'ennemi.
+      const target = event.x * WORLD_SCALE;
+      this.sprite(['fx_wave'], heroX + 12, G - 10, 0.3, { vx: (target - heroX - 12) / 0.3, delay: 0.05 });
+    } else if (event.skillId === 'whirl') {
+      this.sprite(['fx_whirl1', 'fx_whirl2', 'fx_whirl1', 'fx_whirl2', 'fx_whirl1', 'fx_whirl2'], heroX, G + 3, 0.4);
+    } else if (event.skillId === 'cry') {
+      for (let i = 0; i < 6; i++) this.sprite(['fx_spark'], heroX - 18 + i * 7, G - 40 - (i % 3) * 6, 0.5, { delay: i * 0.05, tint: '#ffd23f' });
+    } else if (event.skillId === 'holy') {
+      const target = Math.round(event.x * WORLD_SCALE);
+      this.effects.push({ kind: 'beam', x: target, color: '#ffe680', life: 0.8, max: 0.8, wide: true });
+      this.sprite(['fx_burst'], target, G + 1, 0.5, { tint: '#ffe680' });
       this.shake = Math.max(this.shake, 2);
-    } else this.effects.push({ kind: 'slash', x: heroX + 26, y: y - 4, life: 0.2, max: 0.2, big: true, color: '#7fd6ff' });
+    }
+  }
+
+  // Effet dessiné (images d'un sprite jouées sur `life` secondes), centré en x, posé sur y.
+  sprite(frames, x, y, life, { delay = 0, tint = null, vx = 0 } = {}) {
+    this.effects.push({ kind: 'sprite', frames, x, y, life: life + delay, max: life, delay, tint, vx });
   }
 
   // Apparence d'un ennemi : sprite, échelle, palette (boss et variantes comme le loup des glaces).
@@ -232,7 +253,7 @@ export class SceneRenderer {
       if (this.lastZone >= 0) this.zoneFade = 1;
       this.lastZone = zoneIndex;
     }
-    for (const key of ['attack', 'hurt', 'victory']) this.hero[key] = Math.max(0, this.hero[key] - dt);
+    for (const key of ['attack', 'hurt', 'victory', 'cast']) this.hero[key] = Math.max(0, this.hero[key] - dt);
     this.hero.respawn = Math.max(0, this.hero.respawn - dt);
     this.hero.deathTime += dt;
 
@@ -241,10 +262,11 @@ export class SceneRenderer {
       ctx.translate(Math.round((Math.random() * 2 - 1) * this.shake), Math.round((Math.random() * 2 - 1) * this.shake));
       this.shake = Math.max(0, this.shake - dt * 12);
     }
-    this.drawBackground(ctx, ZONES[zoneIndex], zoneIndex, world.scroll * WORLD_SCALE);
+    this.drawBackground(ctx, ZONES[zoneIndex], world.scroll * WORLD_SCALE);
     this.drawEnemies(ctx, world, dt);
     this.drawCompanions(ctx, state, world);
     this.drawHero(ctx, state, world);
+    this.drawBackground(ctx, ZONES[zoneIndex], world.scroll * WORLD_SCALE, true); // premier plan
     this.drawEffects(ctx, dt);
     ctx.restore();
 
@@ -255,27 +277,27 @@ export class SceneRenderer {
     }
   }
 
-  drawBackground(ctx, zone, zoneIndex, scroll) {
-    const W = this.width;
-    const p = zone.palette;
+  // Décor de la zone : dégradé du ciel puis calques peints (assets/bg, manifeste BG généré par
+  // tools/art/scenery.py), du plus lointain au plus proche, chacun à sa vitesse de parallaxe.
+  drawBackground(ctx, zone, scroll, front = false) {
+    const bg = BG[zone.id];
     const G = this.groundY;
-
-    // Ciel : dégradé en paliers de 3 px entre les couleurs de la zone.
-    const stops = p.sky;
-    for (let y = 0; y < G; y += 3) {
-      const t = Math.min(0.999, y / G) * (stops.length - 1);
-      const i = Math.min(stops.length - 2, Math.floor(t));
-      ctx.fillStyle = mixColor(stops[i], stops[i + 1], Math.round((t - i) * 4) / 4);
-      ctx.fillRect(0, y, W, 3);
+    if (!front) {
+      const stops = bg.sky;
+      for (let y = 0; y < G; y += 3) {
+        const t = Math.min(0.999, y / G) * (stops.length - 1);
+        const i = Math.min(stops.length - 2, Math.floor(t));
+        ctx.fillStyle = mixColor(stops[i], stops[i + 1], Math.round((t - i) * 4) / 4);
+        ctx.fillRect(0, y, this.width, 3);
+      }
+      ctx.fillStyle = bg.ground;
+      ctx.fillRect(0, G, this.width, this.height - G);
     }
-    // Calques peints, du plus lointain au plus proche (parallaxe).
-    if (zone.sky === 'ceiling') this.drawLayer(ctx, layer(zone.id, 'top'), scroll * 0.5, 0);
-    else this.drawLayer(ctx, layer(zone.id, 'clouds'), scroll * 0.04 + this.time * 3, 0);
-    this.drawLayer(ctx, layer(zone.id, 'far'), scroll * 0.12, G - 74);
-    this.drawLayer(ctx, layer(zone.id, 'mid'), scroll * 0.4, G - 64);
-    ctx.fillStyle = p.ground;
-    ctx.fillRect(0, G, W, this.height - G);
-    this.drawLayer(ctx, layer(zone.id, 'ground'), scroll, G - 4);
+    for (const l of bg.layers) {
+      if (Boolean(l.front) !== front) continue;
+      const y = l.anchor === 'top' ? l.y : G + l.y;
+      this.drawLayer(ctx, layer(l.file), scroll * l.factor + this.time * (l.drift ?? 0), y);
+    }
   }
 
   // Calque répété horizontalement, décalé de `offset` pixels.
@@ -309,7 +331,8 @@ export class SceneRenderer {
       const bob = moving ? Math.round(Math.abs(Math.sin(this.time * 10 + enemy.id)) * scale) : 0;
       const hover = def.flyHeight ? def.flyHeight * WORLD_SCALE + Math.round(Math.sin(this.time * 4 + enemy.id) * 3) : 0;
       const lunge = fx.lunge > 0 ? Math.round(Math.sin((fx.lunge / 0.14) * Math.PI) * 6) : 0;
-      const x = Math.round(ex - w / 2 - lunge);
+      // Les grands sprites (boss, ogre…) restent devant le chevalier sans le chevaucher.
+      const x = Math.round(Math.max(ex - w / 2, HERO_X + 12) - lunge);
       const y = this.groundY - h - bob - hover + 1;
 
       ctx.globalAlpha = fx.appear;
@@ -345,7 +368,7 @@ export class SceneRenderer {
     const palette = activeHero(state).palette;
     if (hero.dead) {
       // Héros à terre, qui s'estompe.
-      const img = heroComposite('idle', state.equipment, false, 'a', palette);
+      const img = heroComposite('hurt', state.equipment, false, 'a', palette);
       ctx.save();
       ctx.globalAlpha = Math.max(0.2, 1 - this.hero.deathTime);
       ctx.translate(HERO_X, this.groundY);
@@ -355,9 +378,15 @@ export class SceneRenderer {
       return;
     }
 
-    let frame = 'idle';
-    if (this.hero.attack > 0) frame = 'attack';
-    else if (hero.walking) frame = ['walk1', 'idle', 'walk2', 'idle'][Math.floor(this.time * 8) % 4];
+    // Animation : attaque en trois temps (élan, frappe, suite), sort, coup reçu, victoire, marche, respiration.
+    let frame = ['idle', 'idle2'][Math.floor(this.time * 2) % 2];
+    if (this.hero.attack > 0) {
+      const t = ATTACK_TIME - this.hero.attack;
+      frame = t < 0.07 ? 'attack1' : t < 0.17 ? 'attack2' : 'attack3';
+    } else if (this.hero.cast > 0) frame = 'cast';
+    else if (this.hero.hurt > 0) frame = 'hurt';
+    else if (this.hero.victory > 0) frame = 'victory';
+    else if (hero.walking) frame = `walk${1 + (Math.floor(this.time * 9) % 4)}`;
 
     const blink = this.hero.respawn > 0 && Math.floor(this.time * 12) % 2 === 0;
     if (blink) return;
@@ -365,44 +394,23 @@ export class SceneRenderer {
     const cape = hero.walking
       ? ['c', 'a'][Math.floor(this.time * 6) % 2]
       : ['a', 'b'][Math.floor(this.time * 2.5) % 2];
-    const img = heroComposite(frame, state.equipment, this.hero.hurt > 0, cape, palette);
+    const img = heroComposite(frame, state.equipment, this.hero.hurt > 0.1, cape, palette);
     const jump = this.hero.victory > 0 ? Math.round(Math.abs(Math.sin(this.hero.victory * Math.PI * 2.5)) * 6) : 0;
-    const lean = frame === 'attack' ? 2 : 0;
+    const lean = frame === 'attack2' ? 2 : frame === 'hurt' ? -2 : 0;
 
     this.drawShadow(ctx, HERO_X, 22);
-    // Cri de guerre : aura dorée ; Rempart du golem : aura bleue.
-    for (const [active, color] of [[world.buffs?.cry > 0, '#ffd23f'], [world.buffs?.shield > 0, '#7fd6ff']]) {
+    // Cri de guerre : aura dorée ; Rempart du golem : aura bleue (flammes d'énergie derrière le chevalier).
+    for (const [active, tint] of [[world.buffs?.cry > 0, { color: '#ffc23a', alpha: 0.75 }], [world.buffs?.shield > 0, null]]) {
       if (!active) continue;
-      const aura = heroComposite(frame, state.equipment, false, cape, palette);
-      ctx.globalAlpha = 0.35 + 0.2 * Math.sin(this.time * 10);
-      const glow = this.tintedComposite(aura, color);
-      for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1]]) ctx.drawImage(glow, baseX + lean + dx, baseY - jump + dy);
+      const aura = spriteCanvas(Math.floor(this.time * 8) % 2 ? 'fx_aura1' : 'fx_aura2', tint ? { tint } : {});
+      ctx.globalAlpha = 0.55 + 0.25 * Math.sin(this.time * 10);
+      ctx.drawImage(aura, Math.round(HERO_X + 4 - aura.width / 2), this.groundY - aura.height + 1 - jump);
       ctx.globalAlpha = 1;
     }
     ctx.drawImage(img, baseX + lean, baseY - jump);
 
     const stats = world.heroStats;
     if (stats) this.drawBar(ctx, HERO_X - 11, baseY - 2 - jump, 22, hero.hp / stats.maxHp, '#5ad07a');
-  }
-
-  tintedComposite(source, color) {
-    this.tintCache ??= new Map();
-    const key = `${color}`;
-    let canvas = this.tintCache.get(key);
-    if (!canvas || canvas.width !== source.width) {
-      canvas = document.createElement('canvas');
-      canvas.width = source.width;
-      canvas.height = source.height;
-      this.tintCache.set(key, canvas);
-    }
-    const c = canvas.getContext('2d');
-    c.globalCompositeOperation = 'source-over';
-    c.clearRect(0, 0, canvas.width, canvas.height);
-    c.drawImage(source, 0, 0);
-    c.globalCompositeOperation = 'source-atop';
-    c.fillStyle = color;
-    c.fillRect(0, 0, canvas.width, canvas.height);
-    return canvas;
   }
 
   // Compagnons : suivent le chevalier, les volants planent au-dessus de son épaule.
@@ -468,16 +476,14 @@ export class SceneRenderer {
           ctx.globalAlpha = Math.min(1, t * 2);
           ctx.drawImage(coin, Math.round(fx.x - coin.width / 2), Math.round(fx.y - coin.height / 2));
           break;
-        case 'slash': {
-          ctx.globalAlpha = t;
-          ctx.fillStyle = fx.color ?? (fx.big ? '#ffd23f' : '#fff6c8');
-          // Arc de taille : trois traits concentriques, le plus épais au centre.
-          const reach = (fx.big ? 20 : 15) * (1 - t) + 6;
-          for (const [dr, size] of [[0, fx.big ? 3 : 2], [-3, 1], [3, 1]]) {
-            for (let a = -1.2; a <= 1.2; a += 0.08) {
-              ctx.fillRect(Math.round(fx.x + Math.cos(a) * (reach + dr)), Math.round(fx.y + Math.sin(a) * (reach + dr)), size, size);
-            }
-          }
+        case 'sprite': {
+          if (fx.life > fx.max) break; // pas encore commencé
+          const k = 1 - t;
+          const name = fx.frames[Math.min(fx.frames.length - 1, Math.floor(k * fx.frames.length))];
+          const img = spriteCanvas(name, fx.tint ? { tint: { color: fx.tint, alpha: 0.65 } } : {});
+          const x = fx.x + fx.vx * (fx.max - fx.life);
+          ctx.globalAlpha = Math.min(1, t * 4);
+          ctx.drawImage(img, Math.round(x - img.width / 2), Math.round(fx.y - img.height));
           break;
         }
         case 'ring': {

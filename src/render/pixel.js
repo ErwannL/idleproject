@@ -1,7 +1,7 @@
 // Conversion des grilles de sprites en canvas (avec cache) et texte pixel.
 import { RARITIES } from '../data/items.js';
 import { itemBase } from '../core/loot.js';
-import { BASE_PALETTE, FONT, FONT_BIG, SHIELD_OFFSET, SPRITES, normalizeRows, rotateRowsCW } from './sprites.js';
+import { BASE_PALETTE, FONT, FONT_BIG, HERO_FOOT, SPRITES, normalizeRows, rotateRowsCW } from './sprites.js';
 
 const cache = new Map();
 
@@ -48,7 +48,8 @@ function mirrored(source) {
   return canvas;
 }
 
-// options : colors (remplacements de palette), rotate, tint {color, alpha}, flash, flip (miroir horizontal)
+// options : colors (remplacements de palette), rotate (quarts de tour horaires, true = 1),
+// tint {color, alpha}, flash, flip (miroir horizontal)
 export function spriteCanvas(name, options = {}) {
   const { colors = null, rotate = false, tint = null, flash = false, flip = false } = options;
   const key = `${name}|${colors ? JSON.stringify(colors) : ''}|${rotate}|${tint ? tint.color + tint.alpha : ''}|${flash}|${flip}`;
@@ -63,7 +64,9 @@ export function spriteCanvas(name, options = {}) {
     canvas = flash ? tinted(base, '#ffffff', 1) : tinted(base, tint.color, tint.alpha);
   } else {
     const palette = { ...BASE_PALETTE, ...(sprite.pal ?? {}), ...(colors ?? {}) };
-    canvas = paint(rotate ? rotateRowsCW(sprite.rows) : sprite.rows, palette);
+    let rows = sprite.rows;
+    for (let i = 0; i < Number(rotate) % 4; i++) rows = rotateRowsCW(rows);
+    canvas = paint(rows, palette);
   }
   cache.set(key, canvas);
   return canvas;
@@ -103,13 +106,26 @@ function itemSpriteName(item) {
   return `${base.slot === 'weapon' ? 'weapon' : base.slot}_${base.sprite}`;
 }
 
-// Héros composé : cape, corps, armure, bouclier, casque (heaume par défaut), arme.
-// `palette` recolore le chevalier selon le héros choisi (tabard, cape, bouclier, dorures, plumet).
-// Les pieds sont en (HERO_ANCHOR.x, HERO_ANCHOR.y) ; marge à droite pour l'arme tendue.
-export const HERO_SIZE = { w: 68, h: 48 };
-const BODY_OFFSET = { x: 4, y: 3 };
-export const HERO_ANCHOR = { x: BODY_OFFSET.x + 19, y: BODY_OFFSET.y + 43 };
+// Héros composé : cape, écu, corps, armure, casque (heaume par défaut), arme.
+// Chaque image du corps indique la main (prise de l'arme), la rotation de l'arme (rot, en degrés
+// horaires) et le décalage de la tête (casques) et du buste (armure, cape, écu) par rapport au repos.
+// `palette` recolore le chevalier selon le héros choisi (tabard, cape, plumet, dorures).
+// Marges autour de l'image du corps : l'arme dépasse vers l'avant et vers le haut.
+const BODY_OFFSET = { x: 10, y: 16 };
+export const HERO_SIZE = { w: 92, h: 66 };
+export const HERO_ANCHOR = { x: BODY_OFFSET.x + HERO_FOOT.x, y: BODY_OFFSET.y + HERO_FOOT.y };
 export const CAPE_FRAMES = ['a', 'b', 'c'];
+
+// Point de prise après `turns` quarts de tour horaires d'une grille de largeur w et hauteur h.
+function rotatedGrip(grip, w, h, turns) {
+  let { x, y } = grip;
+  let [cw, ch] = [w, h];
+  for (let i = 0; i < turns; i++) {
+    [x, y] = [ch - 1 - y, x];
+    [cw, ch] = [ch, cw];
+  }
+  return { x, y };
+}
 
 export function heroComposite(frame, equipment, flash = false, cape = 'a', palette = null, flip = false) {
   const gear = ['weapon', 'helmet', 'armor']
@@ -126,28 +142,30 @@ export function heroComposite(frame, equipment, flash = false, cape = 'a', palet
   } else {
     canvas = createCanvas(HERO_SIZE.w, HERO_SIZE.h);
     const ctx = canvas.getContext('2d');
-    const body = SPRITES[`hero_${frame}`];
+    const body = SPRITES[`hero_${frame}`] ?? SPRITES.hero_idle;
+    const name = SPRITES[`hero_${frame}`] ? `hero_${frame}` : 'hero_idle';
     const { x: ox, y: oy } = BODY_OFFSET;
+    const head = body.head ?? { x: 0, y: 0 };
+    const torso = body.torso ?? { x: 0, y: 0 };
     const colors = heroColors(palette);
-    ctx.drawImage(spriteCanvas(`cape_${cape}`, { colors }), ox, oy + SPRITES[`cape_${cape}`].oy);
+    const layer = (sprite, layerColors, dx, dy) => {
+      ctx.drawImage(spriteCanvas(sprite, { colors: layerColors }), ox + dx, oy + dy + (SPRITES[sprite].oy ?? 0));
+    };
+    layer(`cape_${cape}`, colors, torso.x, torso.y);
     // L'écu est porté au bras arrière : derrière le corps, il dépasse sur le côté.
-    ctx.drawImage(spriteCanvas('shield', { colors }), ox + SHIELD_OFFSET.x, oy + SHIELD_OFFSET.y);
-    ctx.drawImage(spriteCanvas(`hero_${frame}`, { colors }), ox, oy);
-    if (equipment.armor) {
-      const name = itemSpriteName(equipment.armor);
-      ctx.drawImage(spriteCanvas(name, { colors: { ...colors, ...itemColors(equipment.armor) } }), ox, oy + SPRITES[name].oy);
-    }
+    const shield = SPRITES.shield;
+    layer('shield', colors, torso.x + (shield.x ?? 0), torso.y + (shield.y ?? 0));
+    layer(name, colors, 0, 0);
+    if (equipment.armor) layer(itemSpriteName(equipment.armor), { ...colors, ...itemColors(equipment.armor) }, torso.x, torso.y);
     const helmet = equipment.helmet ? itemSpriteName(equipment.helmet) : 'helmet_default';
-    const helmetColors = equipment.helmet ? { ...colors, ...itemColors(equipment.helmet) } : colors;
-    ctx.drawImage(spriteCanvas(helmet, { colors: helmetColors }), ox, oy + SPRITES[helmet].oy);
+    layer(helmet, equipment.helmet ? { ...colors, ...itemColors(equipment.helmet) } : colors, head.x, head.y);
     const weapon = equipment.weapon;
     if (weapon) {
-      const name = itemSpriteName(weapon);
-      const def = SPRITES[name];
-      const attack = frame === 'attack';
-      const img = spriteCanvas(name, { colors: itemColors(weapon), rotate: attack });
-      // En attaque, l'arme pivote : le point de prise (gx, gy) devient (h - 1 - gy, gx).
-      const grip = attack ? { x: def.rows.length - 1 - def.grip.y, y: def.grip.x } : def.grip;
+      const wname = itemSpriteName(weapon);
+      const def = SPRITES[wname];
+      const turns = Math.round((body.rot ?? 0) / 90) % 4;
+      const img = spriteCanvas(wname, { colors: itemColors(weapon), rotate: turns });
+      const grip = rotatedGrip(def.grip, def.rows[0].length, def.rows.length, turns);
       ctx.drawImage(img, ox + body.hand.x - grip.x, oy + body.hand.y - grip.y);
     }
   }
@@ -174,12 +192,6 @@ function opaqueBounds(canvas) {
   return x1 < 0 ? { x: 0, y: 0, w: width, h: height } : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
 }
 
-// Zones du chevalier montrées dans les icônes de casque et d'armure.
-const ICON_REGIONS = {
-  helmet: { x: 10, y: 0, w: 19, h: 19 },
-  armor: { x: 8, y: 16, w: 24, h: 20 },
-};
-
 // Icône d'objet pour l'interface (data URL), agrandie et centrée.
 export function itemIconUrl(item, size = 32) {
   const key = `icon|${item.baseId}|${item.rarity}|${size}`;
@@ -190,16 +202,15 @@ export function itemIconUrl(item, size = 32) {
   ctx.imageSmoothingEnabled = false;
   let src = spriteCanvas(itemSpriteName(item), { colors: itemColors(item) });
   let box = opaqueBounds(src);
-  const region = ICON_REGIONS[item.slot];
-  if (region) {
-    // Casque ou armure : dessinés sur la tête ou le buste du chevalier pour rester lisibles.
+  if (item.slot !== 'weapon') {
+    // Casque ou armure : posés sur le chevalier (cadré sur l'objet) pour rester lisibles.
     const name = itemSpriteName(item);
     const body = createCanvas(src.width, SPRITES.hero_idle.rows.length);
     const bctx = body.getContext('2d');
     bctx.drawImage(spriteCanvas('hero_idle'), 0, 0);
-    bctx.drawImage(src, 0, SPRITES[name].oy);
+    bctx.drawImage(src, 0, SPRITES[name].oy ?? 0);
     src = body;
-    box = region;
+    box = { x: Math.max(0, box.x - 1), y: Math.max(0, box.y - 1), w: box.w + 2, h: box.h + 2 };
   }
   const scale = Math.max(1, Math.floor((size - 4) / Math.max(box.w, box.h)));
   const dw = box.w * scale;

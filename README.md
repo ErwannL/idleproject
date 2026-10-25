@@ -176,11 +176,13 @@ sombre, rampes de couleurs à décalage de teinte, lumière venant d'en haut à 
   - `assets/bg/<zone>_<calque>.png` : décors de parallaxe raccordables (lointain, intermédiaire, sol,
     nuages ou plafond) pour les 6 zones ;
   - `assets/ui/worldmap.png` : carte du monde peinte ;
-- scripts : `lib.py` (outils de dessin), `knight.py` (chevalier 40×44 en calques), `enemies.py`
-  (13 ennemis, 6 boss, 6 compagnons), `icons.py` (34 icônes), `scenery.py` (décors), `worldmap.py` ;
-- le chevalier est composé de calques : cape animée, écu, corps (repos, 2 images de marche, attaque),
-  armure, casque (heaume à plumet par défaut), arme. Les calques d'équipement utilisent des caractères
-  réservés remplacés par les couleurs de l'objet et de sa rareté ; ceux du corps par les couleurs du héros ;
+- scripts : `lib.py` (outils de dessin), `knight.py` (chevalier chibi 48×48 en calques et effets
+  d'énergie), `enemies.py` (25 ennemis à 2 images, 6 boss, 6 compagnons), `icons.py` (34 icônes),
+  `scenery.py` (45 calques de décor et leur manifeste `src/render/bg.js`), `worldmap.py` ;
+- le chevalier est composé de calques : cape animée, écu, corps (12 images : respiration, marche,
+  attaque en 3 temps, sort, coup reçu, victoire ; chacune donne la main, la rotation de l'arme et le
+  décalage de la tête et du buste), armure, casque, arme. Les calques d'équipement utilisent des
+  caractères réservés remplacés par les couleurs de l'objet et de sa rareté ; le corps, celles du héros ;
 - `npm run export-assets` régénère `assets/sprites/*.png`, `assets/spritesheet.png` et l'icône
   (Playwright requis) ;
 - les animations (marche, attaque, coup reçu, mort, victoire, apparition) sont produites par le code.
@@ -190,7 +192,7 @@ sombre, rampes de couleurs à décalage de teinte, lumière venant d'en haut à 
 ## Tests
 
 ```bash
-npm test        # 54 tests unitaires : économie, butin, inventaire (tri, recyclage protégé, verrou), combat, boss,
+npm test        # 55 tests unitaires : économie, butin, inventaire (tri, recyclage protégé, verrou), combat, boss,
                 # pouvoirs (déblocage, relance, choix, garantie, migration), Renaissance et talents, défaite,
                 # hors ligne (plafond, horloge, cohérence avec le farm actif), sauvegarde, sprites
 npm run smoke   # test de bout en bout dans Chromium + captures dans docs/screenshots
@@ -230,9 +232,10 @@ persiste. Reconsidérer Godot reste possible si le projet a besoin d'un moteur c
   déterministe). Une sauvegarde v3 ouverte par une ancienne version perdrait pouvoirs, talents et fragments.
 - Renaissance et pouvoirs : équilibrage de premier jet, à ajuster en jeu (seulement 3 boss pour l'instant).
 
-## v5
+## v5 et v6
 
-Refonte complète de la direction artistique : voir `docs/RELEASE_NOTES.md`.
+Refonte complète de la direction artistique (v5), puis chevalier chibi animé, 25 ennemis animés et
+décors enrichis (v6) : voir `docs/RELEASE_NOTES.md`.
 
 ## v4
 

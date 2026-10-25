@@ -5,6 +5,7 @@ import { test } from 'node:test';
 import { BOSSES, ENEMIES } from '../src/data/enemies.js';
 import { ITEM_BASES } from '../src/data/items.js';
 import { ZONES } from '../src/data/zones.js';
+import { BG } from '../src/render/bg.js';
 import { BASE_PALETTE, FONT, FONT_BIG, HERO_FRAME_SIZE, SPRITES, rotateRowsCW } from '../src/render/sprites.js';
 
 test('chaque sprite utilise des lignes de même largeur et des couleurs connues', () => {
@@ -20,15 +21,17 @@ test('chaque sprite utilise des lignes de même largeur et des couleurs connues'
 
 test('les images et calques du héros ont la taille du chevalier', () => {
   const { w, h } = HERO_FRAME_SIZE;
-  for (const frame of ['idle', 'walk1', 'walk2', 'attack']) {
-    const rows = SPRITES[`hero_${frame}`].rows;
-    assert.equal(rows.length, h, frame);
-    assert.ok(rows.every((r) => r.length === w), frame);
+  for (const frame of ['idle', 'idle2', 'walk1', 'walk2', 'walk3', 'walk4', 'attack1', 'attack2', 'attack3', 'cast', 'hurt', 'victory']) {
+    const sprite = SPRITES[`hero_${frame}`];
+    assert.ok(sprite, frame);
+    assert.equal(sprite.rows.length, h, frame);
+    assert.ok(sprite.rows.every((r) => r.length === w), frame);
+    assert.ok(sprite.hand && [0, 90, 180, 270].includes(sprite.rot ?? 0), `${frame} : main et rotation de l'arme`);
   }
   for (const name of ['cape_a', 'cape_b', 'cape_c', 'helmet_helm', 'helmet_hood', 'armor_mail', 'armor_tunic']) {
     const sprite = SPRITES[name];
     assert.equal(sprite.rows[0].length, w, name);
-    assert.ok(sprite.oy + sprite.rows.length <= h, `${name} dépasse du corps`);
+    assert.ok((sprite.oy ?? 0) + sprite.rows.length <= h, `${name} dépasse du corps`);
   }
 });
 
@@ -53,11 +56,17 @@ test('les données référencent des sprites existants', () => {
     assert.ok(SPRITES[`${prefix}_${base.sprite}`], base.id);
   }
   for (const zone of ZONES) {
-    for (const layer of ['far', 'mid', 'ground', zone.sky === 'ceiling' ? 'top' : 'clouds']) {
-      assert.ok(existsSync(new URL(`../assets/bg/${zone.id}_${layer}.png`, import.meta.url)), `${zone.id}_${layer}`);
-    }
+    const bg = BG[zone.id];
+    assert.ok(bg && bg.sky.length >= 2 && bg.layers.length >= 3, `décor de ${zone.id}`);
+    for (const layer of bg.layers) assert.ok(existsSync(new URL(`../assets/bg/${layer.file}`, import.meta.url)), layer.file);
     for (const id of zone.enemies) assert.ok(ENEMIES[id], id);
     for (const id of zone.bosses) assert.ok(BOSSES[id], id);
+  }
+});
+
+test('effets de combat présents', () => {
+  for (const name of ['fx_slash1', 'fx_slash2', 'fx_slash3', 'fx_slash_crit', 'fx_wave', 'fx_whirl1', 'fx_whirl2', 'fx_burst', 'fx_aura1', 'fx_aura2', 'fx_spark', 'fx_hit']) {
+    assert.ok(SPRITES[name], name);
   }
 });
 

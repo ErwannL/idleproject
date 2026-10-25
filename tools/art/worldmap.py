@@ -16,6 +16,13 @@ REGION = [
 ]
 
 
+def pyramid(c, x, base, h, colors):
+    for i in range(h):
+        y = base - h + i
+        for xx in range(x - i, x + i + 1):
+            c.set(xx, y, (colors[3] if xx < x else colors[1]) if i % 4 != 3 else (colors[2] if xx < x else colors[0]))
+
+
 def build(path):
     c = Canvas(W, H)
     r = rng(77)
@@ -70,22 +77,21 @@ def build(path):
             c.set(int(x), int(y), '#c8945a')
     # décor par région (au-dessus du point de la zone)
     px = [(int(x), int(y) - 8) for x, y in pts]
-    leaf = ramp('#3f9a3a', 5, 0.28, 0.06); trunk = ramp('#6b4428', 3, 0.2)
+    leaf = ramp('#3f9a3a', 5, 0.28, 0.06); trunk = ramp('#6b4428', 4, 0.2)
     sc.castle(c, px[0][0] - 6, px[0][1] + 2, 0.45, ramp('#c8d0e0', 4, 0.2), ramp('#3a62c8', 4, 0.24), '#ffe9a0', '#d84a4a')
-    sc.deciduous(c, px[0][0] + 14, px[0][1] + 4, 9, leaf, trunk, 1)
-    sc.deciduous(c, px[0][0] - 20, px[0][1] + 6, 8, leaf, trunk, 2)
+    sc.round_tree(c, px[0][0] + 14, px[0][1] + 4, 10, leaf, trunk, 1, roots=False)
+    sc.round_tree(c, px[0][0] - 20, px[0][1] + 6, 9, leaf, trunk, 2, roots=False)
     for i, dx in enumerate((-12, -4, 4, 12, 0)):
         sc.pine(c, px[1][0] + dx, px[1][1] + 4 + (i % 2) * 3, 12 + (i % 3) * 2, ramp('#1f5a34', 4, 0.2), trunk)
-    sc.ridge  # (montagne des grottes dessinée à la main)
     mx, my = px[2]
     c.poly([(mx - 16, my + 6), (mx - 4, my - 12), (mx + 4, my - 6), (mx + 10, my - 14), (mx + 20, my + 6)], '#6a6080')
     c.poly([(mx - 16, my + 6), (mx - 4, my - 12), (mx - 2, my + 6)], '#8a80a0')
     c.ellipse(mx + 2, my + 3, 4, 4, '#1a1226')
-    sc.crystal(c, mx - 10, my + 7, 6, ramp('#c86ae8', 5, 0.28))
-    sc.crystal(c, mx + 13, my + 7, 5, ramp('#4fc8e8', 5, 0.28))
-    sc.pyramid(c, px[3][0] - 4, px[3][1] + 6, 12, ramp('#d49a52', 4, 0.2))
-    sc.pyramid(c, px[3][0] + 10, px[3][1] + 6, 8, ramp('#d49a52', 4, 0.2))
-    sc.cactus(c, px[3][0] - 18, px[3][1] + 6, 7, ramp('#4a9a4a', 4, 0.24))
+    sc.crystal(c, mx - 10, my + 7, 7, 2, 0, ramp('#c86ae8', 5, 0.28))
+    sc.crystal(c, mx + 13, my + 7, 6, 2, 0, ramp('#4fc8e8', 5, 0.28))
+    pyramid(c, px[3][0] - 4, px[3][1] + 6, 12, ramp('#d49a52', 4, 0.2))
+    pyramid(c, px[3][0] + 10, px[3][1] + 6, 8, ramp('#d49a52', 4, 0.2))
+    sc.cactus(c, px[3][0] - 18, px[3][1] + 6, 7, ramp('#4a9a4a', 5, 0.24))
     for dx, h in ((-10, 14), (2, 20), (14, 13)):
         x0, y0 = px[4][0] + dx, px[4][1] + 6
         c.poly([(x0 - h * 0.7, y0), (x0, y0 - h), (x0 + h * 0.7, y0)], '#7a8eb0')

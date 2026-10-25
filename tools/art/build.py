@@ -47,8 +47,17 @@ with open(out, 'w', encoding='utf-8') as f:
     f.write('\n'.join(lines))
 print(f'{len(sprites)} sprites -> {os.path.relpath(out, ROOT)} ({os.path.getsize(out) // 1024} Ko)')
 
-bg = scenery.build(os.path.join(ROOT, 'assets', 'bg'))
-print(f'{len(bg)} calques de décor -> assets/bg/')
+bg_dir = os.path.join(ROOT, 'assets', 'bg')
+for old in os.listdir(bg_dir) if os.path.isdir(bg_dir) else []:
+    if old.endswith('.png'):
+        os.remove(os.path.join(bg_dir, old))
+manifest = scenery.build(bg_dir)
+with open(os.path.join(ROOT, 'src', 'render', 'bg.js'), 'w', encoding='utf-8') as f:
+    f.write('// FICHIER GÉNÉRÉ par tools/art/build.py — ne pas modifier à la main.\n')
+    f.write('// Décor de chaque zone : dégradé du ciel, couleur du sol et calques (assets/bg), du fond vers l\'avant.\n')
+    f.write('// anchor "ground" : y relatif à la ligne du sol ; "top" : y depuis le haut ; factor : parallaxe.\n')
+    f.write('export const BG = ' + json.dumps(manifest, ensure_ascii=False, indent=2) + ';\n')
+print(f'{sum(len(z["layers"]) for z in manifest.values())} calques de décor -> assets/bg/ + src/render/bg.js')
 os.makedirs(os.path.join(ROOT, 'assets', 'ui'), exist_ok=True)
 worldmap.build(os.path.join(ROOT, 'assets', 'ui', 'worldmap.png'))
 print('carte du monde -> assets/ui/worldmap.png')

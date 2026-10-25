@@ -19,8 +19,9 @@ export const BASE_PALETTE = {
   w: '#ffffff', E: '#dfe6ee', I: '#a3b1c2', J: '#66748a', X: '#2c3444',
 };
 
-export const HERO_FRAME_SIZE = { w: 40, h: 44 };
-export const SHIELD_OFFSET = { x: 4, y: 21 };
+export const HERO_FRAME_SIZE = { w: 48, h: 48 };
+// Position des pieds du chevalier dans ses images (milieu des pieds, ligne du sol).
+export const HERO_FOOT = { x: 20, y: 47 };
 
 export const SPRITES = { ...ART };
 
