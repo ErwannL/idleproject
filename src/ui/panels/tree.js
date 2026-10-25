@@ -13,7 +13,7 @@ export function keepResetLists() {
 
 const TREE_TOP = 110; // centre de la première rangée (sous les noms des branches)
 const TREE_ROW = 150; // écart vertical entre deux rangées
-const TREE_H = TREE_TOP + 2 * TREE_ROW + 70;
+const TREE_H = TREE_TOP + 2 * TREE_ROW + 110;
 const NODE_R = 46; // demi-taille d'un nœud dans les unités du viewBox (≈ 7,6 % de la largeur)
 
 export default {
@@ -37,11 +37,11 @@ export default {
       const len = Math.hypot(dx, dy);
       const [ux, uy] = [dx / len, dy / len];
       const on = talentUnlocked(state, t);
-      const color = on ? TALENT_BRANCHES.find((br) => br.id === t.branch).color : '#3d4f7c';
+      const color = on ? TALENT_BRANCHES.find((br) => br.id === t.branch).color : '#6a80b0';
       return `<line x1="${from.x + ux * NODE_R}" y1="${from.y + uy * NODE_R}" x2="${to.x - ux * (NODE_R + 14)}" y2="${to.y - uy * (NODE_R + 14)}"
         stroke="${color}" stroke-width="7" stroke-linecap="round" marker-end="url(#arrow-${on ? t.branch : 'off'})" />`;
     }).join('');
-    const markers = [...TALENT_BRANCHES.map((br) => [br.id, br.color]), ['off', '#3d4f7c']].map(([id, color]) =>
+    const markers = [...TALENT_BRANCHES.map((br) => [br.id, br.color]), ['off', '#6a80b0']].map(([id, color]) =>
       `<marker id="arrow-${id}" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
         <path d="M0,0 L10,5 L0,10 z" fill="${color}" /></marker>`).join('');
     const labels = TALENT_BRANCHES.map((br, i) => `<span class="tree-branch" style="left:${((i * 3 + 1.5) / 12) * 100}%;color:${br.color}">${br.label}</span>`).join('');
@@ -52,8 +52,8 @@ export default {
       const { x, y } = pos(t);
       const cls = [level ? 'owned' : '', unlocked ? '' : 'locked', t.id === sel.id ? 'selected' : '', level >= t.max ? 'maxed' : ''].join(' ');
       return `<button class="tree-node ${cls}" style="--branch:${branch.color};left:${x / 12}%;top:${(y / TREE_H) * 100}%"
-        data-action="talent-sel" data-value="${t.id}" title="${escapeHtml(t.name)}">
-        ${unlocked ? img(t.icon) : img('icon_lock')}<span class="node-level">${level}/${t.max}</span></button>`;
+        data-action="talent-sel" data-value="${t.id}" title="${escapeHtml(t.name)}">${unlocked ? img(t.icon) : img('icon_lock')}</button>
+        <span class="node-lv${level >= t.max ? ' max' : ''}" style="left:${x / 12}%;top:${((y + NODE_R + 40) / TREE_H) * 100}%">${level}/${t.max}</span>`;
     }).join('');
     const tree = `<div class="talent-tree" style="aspect-ratio:1200/${TREE_H}">
       <svg viewBox="0 0 1200 ${TREE_H}" preserveAspectRatio="none" aria-hidden="true"><defs>${markers}</defs>${arrows}</svg>

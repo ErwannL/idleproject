@@ -1,9 +1,15 @@
-## Idle RPG v7.2.0 — Onglets repliables
+## Idle RPG v7.3.0 — Arbre de talents corrigé
 
-**Installation ou mise à jour :** téléchargez **IdleRPG-7.2.0-setup.exe** et lancez-le (jeu fermé).
+**Installation ou mise à jour :** téléchargez **IdleRPG-7.3.0-setup.exe** et lancez-le (jeu fermé).
 L'installation se fait en un clic et remplace l'ancienne version ; **votre partie est conservée**.
 
-### Nouveau dans la v7.2
+### Nouveau dans la v7.3
+- **Arbre de talents** : les icônes ne sont plus écrasées ni ne dépassent (l'épée et les autres images
+  gardent leurs proportions), nouvelle icône pour Puissance, niveaux affichés sous chaque nœud,
+  flèches plus visibles, arbre centré à une taille lisible dans les grandes fenêtres.
+- Plus généralement, aucune icône de l'interface n'est plus déformée.
+
+### v7.2
 - **Aucun onglet ouvert au démarrage** : le jeu occupe toute la fenêtre.
 - **Un clic sur un onglet l'ouvre** (l'interface se déploie sous le jeu), **un second clic le referme**
   (le bouton ✕ et la touche Échap aussi).

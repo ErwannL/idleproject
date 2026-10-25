@@ -35,7 +35,7 @@ html, body {
   user-select: none;
 }
 
-img.px { image-rendering: pixelated; }
+img.px { image-rendering: pixelated; object-fit: contain; } /* jamais déformée : les sprites longs (épée…) gardent leurs proportions */
 .hidden { display: none !important; }
 .muted { color: var(--muted); }
 .good { color: var(--good); }
@@ -889,3 +889,12 @@ canvas.anim { display: block; image-rendering: pixelated; }
 /* v7.2 : sans onglet ouvert, le jeu prend toute la hauteur de la fenêtre. */
 .layout-tall:not(.panel-open) #main-col { flex: 1; }
 .layout-tall:not(.panel-open) #play { height: auto; flex: 1; }
+/* v7.3 : arbre de talents — largeur plafonnée, icônes non déformées, niveaux sous les nœuds. */
+.talent-tree { max-width: 620px; margin: 0 auto; }
+.talent-tree .tree-node img { width: 64%; height: 64%; object-fit: contain; }
+.talent-tree .node-lv {
+  position: absolute; transform: translate(-50%, -50%); padding: 0 4px; border-radius: 4px;
+  background: rgba(7, 10, 19, 0.85); font-size: 10px; font-weight: 800; color: var(--cream); line-height: 13px;
+  pointer-events: none; white-space: nowrap;
+}
+.talent-tree .node-lv.max { color: var(--gold-text); }

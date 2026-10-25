@@ -32,7 +32,7 @@ export const TALENT_BRANCHES = [
 
 export const TALENTS = [
   // Combat
-  { id: 'power', name: 'Puissance', branch: 'combat', row: 0, col: 1, icon: 'weapon_sword', max: 10, costBase: 1, costStep: 1, perLevel: { damagePct: 10 } },
+  { id: 'power', name: 'Puissance', branch: 'combat', row: 0, col: 1, icon: 'skill_mastery', max: 10, costBase: 1, costStep: 1, perLevel: { damagePct: 10 } },
   { id: 'crit_master', name: "Maître d'armes", branch: 'combat', row: 1, col: 0, icon: 'skill_quick', max: 5, costBase: 2, costStep: 1, perLevel: { critChance: 2 }, requires: { id: 'power', level: 3 } },
   { id: 'giant_slayer', name: 'Tueur de géants', branch: 'combat', row: 1, col: 2, icon: 'icon_boss', max: 5, costBase: 2, costStep: 1, perLevel: { damageVsBossPct: 6 }, requires: { id: 'power', level: 3 } },
   { id: 'skill_mastery', name: 'Technique', branch: 'combat', row: 2, col: 0, icon: 'skill_whirl', max: 4, costBase: 3, costStep: 2, perLevel: { skillCooldownPct: 5 }, requires: { id: 'crit_master', level: 2 } },
