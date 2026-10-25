@@ -16,6 +16,7 @@ import { HERO_ANCHOR, drawBigText, heroComposite, spriteCanvas, textWidth } from
 export const MIN_VIEW_HEIGHT = 96;
 const GROUND_DEPTH = 18; // hauteur du sol sous la ligne des pieds
 const MIN_VIEW_WIDTH = 160; // largeur logique minimale (zoom : le chevalier reste grand)
+const MAX_SCALE = 4; // zoom maximal : une grande fenêtre montre plus de décor
 // Les positions de la simulation (BALANCE.world) sont agrandies à l'affichage pour
 // s'accorder aux sprites v5, plus détaillés ; la simulation elle-même ne change pas.
 export const WORLD_SCALE = 1.5;
@@ -86,7 +87,8 @@ export class SceneRenderer {
   // Taille du conteneur en pixels CSS. L'échelle vise ~200 px logiques de large ;
   // une fenêtre plus haute montre plus de ciel, une fenêtre plus large plus de décor.
   resize(cssWidth, cssHeight) {
-    let scale = Math.min(cssHeight / MIN_VIEW_HEIGHT, cssWidth / MIN_VIEW_WIDTH);
+    // Zoom plafonné : dans une grande fenêtre, on voit davantage du niveau plutôt qu'un chevalier géant.
+    let scale = Math.min(cssHeight / MIN_VIEW_HEIGHT, cssWidth / MIN_VIEW_WIDTH, MAX_SCALE);
     if (scale >= 3) scale = Math.floor(scale);
     scale = Math.max(0.5, scale);
     this.width = Math.max(120, Math.floor(cssWidth / scale));

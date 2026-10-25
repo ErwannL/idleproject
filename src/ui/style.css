@@ -90,7 +90,6 @@ select { padding: 3px 6px; }
 .layout-tall #play { height: clamp(150px, 34vh, 260px); flex: none; }
 .layout-tall #panel { flex: 1; border-top: 1px solid var(--line); }
 .layout-mini #panel { position: absolute; left: 0; right: 0; top: var(--panel-top, 30px); bottom: var(--panel-bottom, 38px); z-index: 5; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-.layout-tall #panel-close { display: none; }
 
 /* --- Barre du haut --- */
 #topbar {
@@ -887,3 +886,6 @@ canvas.anim { display: block; image-rendering: pixelated; }
 .boss-portrait canvas.anim { width: 52px; height: 42px; object-fit: contain; }
 .summon-result canvas.anim { width: 48px; height: 52px; }
 .hero-thumb { height: 56px; }
+/* v7.2 : sans onglet ouvert, le jeu prend toute la hauteur de la fenêtre. */
+.layout-tall:not(.panel-open) #main-col { flex: 1; }
+.layout-tall:not(.panel-open) #play { height: auto; flex: 1; }

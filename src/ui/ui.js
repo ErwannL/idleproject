@@ -82,7 +82,6 @@ export class UI {
       this.root.classList.remove('layout-mini', 'layout-tall');
       this.root.classList.add(`layout-${layout}`);
       this.layout = layout;
-      if (layout !== 'mini' && !this.tab) this.openTab('upgrades');
       this.invalidate();
     }
     if (layout === 'mini') {
@@ -96,12 +95,9 @@ export class UI {
     this.lastHud.tabs = null;
   }
 
-  isMini() {
-    return this.layout === 'mini';
-  }
-
+  // Aucun onglet ouvert par défaut : un clic ouvre l'onglet, un second clic le referme.
   toggleTab(tab) {
-    if (this.tab === tab && this.isMini()) this.closePanel();
+    if (this.tab === tab) this.closePanel();
     else this.openTab(tab);
   }
 
@@ -111,6 +107,7 @@ export class UI {
     this.view.bulkArmed = false;
     this.newTabs.delete(tab);
     this.$('panel').classList.remove('hidden');
+    this.root.classList.add('panel-open');
     this.$('panel-title').textContent = PANELS[tab].title;
     this.$('panel-icon').src = icon(PANELS[tab].icon);
     this.root.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab));
@@ -120,9 +117,9 @@ export class UI {
   }
 
   closePanel() {
-    if (!this.isMini()) return;
     this.tab = null;
     this.$('panel').classList.add('hidden');
+    this.root.classList.remove('panel-open');
     this.root.querySelectorAll('#tabs button, [data-open]').forEach((b) => b.classList.remove('active'));
     this.lastHud.tabs = null;
   }

@@ -389,9 +389,8 @@ await check('l’interface s’adapte au redimensionnement', async () => {
     assert(!info.overflow, `débordement horizontal à ${w}×${h}`);
     assert(info.cls === `layout-${layout}`, `${w}×${h} : ${info.cls}`);
     if (layout !== 'mini') {
-      // Le panneau reste ouvert sans masquer le combat.
-      const panelOpen = await game(() => !document.querySelector('#panel').classList.contains('hidden'));
-      assert(panelOpen && info.canvas >= 140, `${layout} : panneau ${panelOpen}, scène ${info.canvas}px`);
+      // Fenêtre haute : la scène reste grande, panneau ouvert ou non.
+      assert(info.canvas >= 140, `${layout} : scène ${info.canvas}px`);
     }
     if (layout === 'tall') {
       for (const tab of ['upgrades', 'inventory', 'hero', 'skills', 'campaign', 'boss', 'tree']) {
@@ -399,6 +398,16 @@ await check('l’interface s’adapte au redimensionnement', async () => {
         await page.waitForTimeout(250);
         await page.screenshot({ path: `${outDir}/standard-${tab}.png` });
       }
+      // Un second clic sur l'onglet ouvert le referme : le jeu reprend toute la hauteur.
+      const before = await game(() => document.querySelector('#scene').getBoundingClientRect().height);
+      await page.click('#tabs button[data-tab="tree"]');
+      await page.waitForTimeout(300);
+      const closed = await game(() => ({
+        hidden: document.querySelector('#panel').classList.contains('hidden'),
+        canvas: document.querySelector('#scene').getBoundingClientRect().height,
+      }));
+      assert(closed.hidden && closed.canvas > before, `onglet non refermé : ${JSON.stringify(closed)} (avant ${before})`);
+      await page.screenshot({ path: `${outDir}/standard-closed.png` });
     }
   }
   await page.click('#tabs button[data-tab="inventory"]');

@@ -1,6 +1,16 @@
-## Idle RPG v7.1.0 — Équilibrage, arbre de talents, jeu en bandeau et fluidité
+## Idle RPG v7.2.0 — Onglets repliables
 
-**Installation ou mise à jour :** téléchargez **IdleRPG-7.1.0-setup.exe** et lancez-le (jeu fermé).
+**Installation ou mise à jour :** téléchargez **IdleRPG-7.2.0-setup.exe** et lancez-le (jeu fermé).
+L'installation se fait en un clic et remplace l'ancienne version ; **votre partie est conservée**.
+
+### Nouveau dans la v7.2
+- **Aucun onglet ouvert au démarrage** : le jeu occupe toute la fenêtre.
+- **Un clic sur un onglet l'ouvre** (l'interface se déploie sous le jeu), **un second clic le referme**
+  (le bouton ✕ et la touche Échap aussi).
+- Zoom de la scène plafonné : dans une grande fenêtre, on voit davantage du niveau.
+
+### Rappel de la v7
+
 L'installation se fait désormais **en un clic** et **remplace toujours l'ancienne version** : plus de doublons,
 même si une ancienne version avait été installée « pour tous les utilisateurs » (elle est désinstallée,
 Windows peut demander une confirmation). **Votre partie est conservée.**

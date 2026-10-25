@@ -72,7 +72,8 @@ Tout est à la souris ; le combat n'a besoin d'aucune action. Barre du haut : or
 
 Deux dispositions : **Mini** (fenêtre basse : le panneau s'ouvre par-dessus la scène) et **Standard**
 (fenêtre ≥ 420 px de haut) : le jeu en bandeau sur toute la largeur, les onglets dessous, l'interface
-en dessous. Échap ferme le panneau. Les portraits des menus (chevalier, compagnons, boss) sont animés.
+en dessous. Aucun onglet n'est ouvert au démarrage : un clic ouvre un onglet, un second clic (ou Échap) le
+referme et le jeu reprend toute la hauteur. Les portraits des menus (chevalier, compagnons, boss) sont animés.
 
 ## Règles du prototype
 
