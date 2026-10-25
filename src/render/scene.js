@@ -21,6 +21,17 @@ const MIN_VIEW_WIDTH = 160; // largeur logique minimale (zoom : le chevalier res
 export const WORLD_SCALE = 1.5;
 const HERO_X = BALANCE.world.heroX * WORLD_SCALE;
 
+// Particules d'ambiance par zone, sur deux profondeurs (derrière et devant les personnages) :
+// elles défilent avec la parallaxe et donnent de la vie au décor même quand le chevalier se bat.
+const AMBIENT = {
+  plains: { colors: ['#fff6b0', '#ffffff', '#c8f08a'], count: 14, vx: -6, vy: -3, wobble: 6, size: 1 }, // pollen
+  forest: { colors: ['#e8ff7a', '#b8ff6a', '#fff6a0'], count: 16, vx: -2, vy: -2, wobble: 10, size: 1, glow: true }, // lucioles
+  caves: { colors: ['#9fe8ff', '#e0a8ff', '#ffffff'], count: 12, vx: 0, vy: -4, wobble: 3, size: 1, glow: true }, // éclats
+  desert: { colors: ['#ffe2a8', '#f4c27a'], count: 18, vx: -28, vy: 1, wobble: 2, size: 1 }, // sable
+  mountains: { colors: ['#ffffff', '#e6f2ff'], count: 26, vx: -10, vy: 14, wobble: 8, size: 1 }, // neige
+  cursed: { colors: ['#ff8a3a', '#ffcc4a', '#ff5a2a'], count: 18, vx: -3, vy: -12, wobble: 5, size: 1, glow: true }, // braises
+};
+
 // Calques de décor (PNG générés par tools/art/scenery.py), chargés à la demande.
 const layers = new Map();
 function layer(file) {
@@ -262,11 +273,11 @@ export class SceneRenderer {
       ctx.translate(Math.round((Math.random() * 2 - 1) * this.shake), Math.round((Math.random() * 2 - 1) * this.shake));
       this.shake = Math.max(0, this.shake - dt * 12);
     }
-    this.drawBackground(ctx, ZONES[zoneIndex], world.scroll * WORLD_SCALE);
+    this.drawBackground(ctx, ZONES[zoneIndex], this.smoothScroll(world));
     this.drawEnemies(ctx, world, dt);
     this.drawCompanions(ctx, state, world);
     this.drawHero(ctx, state, world);
-    this.drawBackground(ctx, ZONES[zoneIndex], world.scroll * WORLD_SCALE, true); // premier plan
+    this.drawBackground(ctx, ZONES[zoneIndex], this.smoothScroll(world), true); // premier plan
     this.drawEffects(ctx, dt);
     ctx.restore();
 
@@ -295,9 +306,50 @@ export class SceneRenderer {
     }
     for (const l of bg.layers) {
       if (Boolean(l.front) !== front) continue;
+      // Avant le sol : particules lointaines, entre le décor et les personnages.
+      if (!front && l === bg.layers[bg.layers.length - 1 - bg.layers.filter((x) => x.front).length]) this.drawAmbient(ctx, zone, scroll, false);
       const y = l.anchor === 'top' ? l.y : G + l.y;
       this.drawLayer(ctx, layer(l.file), scroll * l.factor + this.time * (l.drift ?? 0), y);
     }
+    if (front) this.drawAmbient(ctx, zone, scroll, true);
+  }
+
+  // Particules d'ambiance : positions calculées à partir du temps (aucun état à garder).
+  drawAmbient(ctx, zone, scroll, front) {
+    const a = AMBIENT[zone.id];
+    if (!a) return;
+    const factor = front ? 1.15 : 0.55;
+    const W = this.width + 20;
+    const H = this.groundY + 4;
+    const n = front ? Math.round(a.count / 3) : a.count;
+    for (let i = 0; i < n; i++) {
+      const seed = i * 97 + (front ? 13 : 0);
+      const r1 = ((seed * 9301 + 49297) % 233280) / 233280;
+      const r2 = ((seed * 4271 + 1013) % 7919) / 7919;
+      const speed = 0.6 + r2 * 0.8;
+      let x = (r1 * W + a.vx * speed * this.time - scroll * factor) % W;
+      if (x < 0) x += W;
+      let y = (r2 * H + a.vy * speed * this.time) % H;
+      if (y < 0) y += H;
+      x += Math.sin(this.time * 1.3 + i) * a.wobble * 0.3;
+      const color = a.colors[i % a.colors.length];
+      const blink = a.glow ? 0.45 + 0.55 * Math.abs(Math.sin(this.time * (1.5 + r1) + i)) : 0.85;
+      ctx.globalAlpha = blink * (front ? 1 : 0.7);
+      ctx.fillStyle = color;
+      const size = front ? 2 : a.size;
+      ctx.fillRect(Math.round(x - 10), Math.round(y), size, size);
+      if (a.glow && front) {
+        ctx.globalAlpha = blink * 0.25;
+        ctx.fillRect(Math.round(x - 11), Math.round(y - 1), size + 2, size + 2);
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Défilement interpolé entre deux pas de simulation.
+  smoothScroll(world) {
+    const prev = world.prevScroll ?? world.scroll;
+    return (prev + (world.scroll - prev) * Math.min(1, world.alpha ?? 1)) * WORLD_SCALE;
   }
 
   // Calque répété horizontalement, décalé de `offset` pixels.
@@ -318,7 +370,8 @@ export class SceneRenderer {
       fx.lunge = Math.max(0, fx.lunge - dt);
       const moving = fx.lastX !== null && Math.abs(fx.lastX - enemy.x) > 0.01;
       fx.lastX = enemy.x;
-      const ex = enemy.x * WORLD_SCALE;
+      const alpha = Math.min(1, world.alpha ?? 1);
+      const ex = ((enemy.prevX ?? enemy.x) + (enemy.x - (enemy.prevX ?? enemy.x)) * alpha) * WORLD_SCALE;
 
       const { def, sprite, scale, colors, heroLike } = this.enemyLook(enemy.type, enemy.boss);
       // Le Chevalier déchu utilise le corps du héros, retourné, avec une épée sombre.

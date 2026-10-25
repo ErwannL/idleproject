@@ -1,14 +1,13 @@
 // Invocation : gemmes ou tickets gagnés en jouant, probabilités et garanties affichées.
 import { BALANCE } from '../../data/balance.js';
 import { summonOdds } from '../../core/gacha.js';
-import { heroById } from '../../core/heroes.js';
 import { companionById } from '../../core/companions.js';
-import { heroPortraitUrl } from '../../render/pixel.js';
-import { escapeHtml, formatDecimal, formatNumber, gem, icon, img, rarityLabel, stars } from '../common.js';
+import { animCanvas } from '../animator.js';
+import { escapeHtml, formatDecimal, formatNumber, gem, img, rarityLabel, stars } from '../common.js';
 
-function unitIcon(result) {
-  if (result.kind === 'hero') return heroPortraitUrl({}, 1, heroById(result.id).palette);
-  return icon(companionById(result.id).sprite, 3);
+function unitPortrait(result) {
+  if (result.kind === 'hero') return animCanvas(`hero:${result.id}`, 48, 52, 1);
+  return animCanvas(`pet:${companionById(result.id).sprite}`, 24, 24, 2);
 }
 
 export default {
@@ -21,7 +20,7 @@ export default {
     const odds = summonOdds().map((r) => `<div class="odds-row r-${r.rarity}"><b class="rarity-text">${rarityLabel(r.rarity)}</b>
       <span class="muted">${r.units.map((u) => u.name).join(', ')}</span><b class="num">${formatDecimal(r.chance * 100)} %</b></div>`).join('');
     const results = (ui.view.lastSummon ?? []).map((r) => `<div class="summon-result r-${r.rarity}${r.isNew ? ' new' : ''}" title="${escapeHtml(r.name)}">
-      <img class="px" src="${unitIcon(r)}" alt=""><span>${escapeHtml(r.name)}</span>
+      ${unitPortrait(r)}<span>${escapeHtml(r.name)}</span>
       ${r.isNew ? '<b class="good">Nouveau !</b>' : r.refund ? `<span class="muted">+${r.refund} gemmes</span>` : stars(r.stars)}</div>`).join('');
     return `<div class="card summon-banner">
         <div class="summon-title">${img('icon_summon')} Appel des chevaliers et compagnons</div>

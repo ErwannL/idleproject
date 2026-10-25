@@ -8,6 +8,7 @@ import { xpForLevel } from '../../core/level.js';
 import { computeHeroStats } from '../../core/stats.js';
 import { heroPortraitUrl, slotIconName } from '../../render/pixel.js';
 import { effectText, escapeHtml, formatDecimal, formatNumber, img, itemFrame, progressBar, rarityLabel, stars } from '../common.js';
+import { animCanvas } from '../animator.js';
 
 const SOURCE_LABELS = { hero: 'Héros', powers: 'Pouvoirs de boss', talents: 'Talents', companions: 'Compagnons', gear: 'Effets d’équipement' };
 
@@ -22,9 +23,10 @@ export default {
     const owned = state.heroes.owned[hero.id];
     const roster = HEROES.map((h) => {
       const has = state.heroes.owned[h.id];
-      const url = heroPortraitUrl({ weapon: state.equipment.weapon }, 1, h.palette, has ? null : '#2a3550');
+      const portrait = has ? animCanvas(`hero:${h.id}`, 48, 52, 1)
+        : `<img class="px" src="${heroPortraitUrl({ weapon: state.equipment.weapon }, 1, h.palette, '#2a3550')}" alt="">`;
       return `<button class="hero-thumb r-${h.rarity}${h.id === selectedId ? ' selected' : ''}${has ? '' : ' unowned'}${h.id === state.heroes.active ? ' active-hero' : ''}"
-        data-action="hero-sel" data-value="${h.id}" title="${h.name}${has ? '' : ' (à invoquer)'}"><img class="px" src="${url}" alt=""></button>`;
+        data-action="hero-sel" data-value="${h.id}" title="${h.name}${has ? '' : ' (à invoquer)'}">${portrait}</button>`;
     }).join('');
     const s = computeHeroStats(state);
     const xpNeeded = xpForLevel(state.level);
@@ -40,7 +42,7 @@ export default {
     return `<div class="hero-layout">
         <div class="hero-roster">${roster}</div>
         <div class="card hero-main r-${hero.rarity}">
-          <div class="pedestal"><img class="px" src="${heroPortraitUrl(state.equipment, 3, hero.palette)}" alt="${hero.name}"></div>
+          <div class="pedestal">${hero.id === state.heroes.active ? animCanvas('hero', 64, 58, 3) : animCanvas(`hero:${hero.id}`, 64, 58, 3)}</div>
           <div class="grow">
             <div class="hero-title">${escapeHtml(hero.name)}</div>
             <div class="muted"><span class="rarity-text">${rarityLabel(hero.rarity)}</span> · ${hero.role} ${owned ? stars(owned.stars) : ''}</div>

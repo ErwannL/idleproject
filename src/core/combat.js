@@ -314,6 +314,9 @@ function heroDies(state, world, balance) {
 
 export function step(state, world, dt, rng, balance = BALANCE) {
   world.time += dt;
+  // Positions du pas précédent : le rendu interpole entre les deux (sans effet sur la partie).
+  world.prevScroll = world.scroll;
+  for (const enemy of world.enemies) enemy.prevX = enemy.x;
   const hero = world.hero;
   const stats = computeHeroStats(state, balance);
   world.heroStats = stats;

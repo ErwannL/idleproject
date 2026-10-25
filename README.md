@@ -63,15 +63,16 @@ Tout est à la souris ; le combat n'a besoin d'aucune action. Barre du haut : or
 | **Améliorer** | Catégories Combat / Survie / Ressources : effet actuel → suivant, coût |
 | **Inventaire** | Sac (équipement porté, fiche avec effets spéciaux et comparaison, grille, filtres, tri, recyclage) et Forge (fabriquer, réaffûter, relancer les effets) |
 | **Héros** | 6 chevaliers à collectionner, niveau, statistiques, bonus permanents |
-| **Compagnons** *(après le 1er boss)* | 3 emplacements, bonus passif + compétence, amélioration |
+| **Compagnons** *(après le 1er boss)* | Équipe de 3 : le chevalier (fixe) + 2 compagnons ; bonus passif + compétence, amélioration |
 | **Compétences** | Frappe rapide, Tourbillon, Cri de guerre, Frappe sacrée ; lancement automatique |
 | **Arbre** *(dès l'étape 2-5)* | Renaissance et arbre de talents à 4 branches |
 | **Carte** | Carte du monde illustrée, 6 zones, étapes ; avancée automatique |
 | **Donjons** *(vers l'étape 2-2)* | Crypte spectrale : butin ciblé, chemin, clés |
 | **Boss** *(après le 1er boss)* | Pouvoirs ancestraux, **Réaffronter** pour gagner une charge de relance, maîtrise, synergies |
 
-Trois dispositions selon la fenêtre : **Mini** (panneau par-dessus la scène), **Standard** (fenêtre en
-hauteur ≥ 420 px, panneau dessous), **Large** (≥ 720 px, panneau sur le côté). Échap ferme le panneau.
+Deux dispositions : **Mini** (fenêtre basse : le panneau s'ouvre par-dessus la scène) et **Standard**
+(fenêtre ≥ 420 px de haut) : le jeu en bandeau sur toute la largeur, les onglets dessous, l'interface
+en dessous. Échap ferme le panneau. Les portraits des menus (chevalier, compagnons, boss) sont animés.
 
 ## Règles du prototype
 
@@ -94,8 +95,8 @@ hauteur ≥ 420 px, panneau dessous), **Large** (≥ 720 px, panneau sur le côt
   Codex, talents et exploits. 5 talents : Puissance (+10 % dégâts/niv.), Endurance (+10 % PV), Fortune (+10 % or),
   Chasse (+1 pt de butin), Héritage (+1 emplacement de pouvoir, −25 % relance, +1 emplacement).
 - **Verrouillage** : un objet verrouillé n'est jamais recyclé (ni seul, ni en groupe).
-- **Hors ligne** : à la relance, les gains sont calculés depuis la dernière sauvegarde, plafonnés à 8 h,
-  à 50 % du rythme de farm actif sur l'étape atteinte (sans progression d'étape). Si l'horloge de
+- **Hors ligne** : à la relance, les gains sont calculés depuis la dernière sauvegarde, plafonnés à 24 h,
+  à 65 % du rythme de farm actif sur l'étape atteinte (sans progression d'étape). Si l'horloge de
   l'ordinateur a reculé, aucun gain n'est appliqué.
 
 ## Critères d'acceptation
@@ -192,7 +193,7 @@ sombre, rampes de couleurs à décalage de teinte, lumière venant d'en haut à 
 ## Tests
 
 ```bash
-npm test        # 55 tests unitaires : économie, butin, inventaire (tri, recyclage protégé, verrou), combat, boss,
+npm test        # 60 tests unitaires : économie, butin, inventaire (tri, recyclage protégé, verrou), combat, boss,
                 # pouvoirs (déblocage, relance, choix, garantie, migration), Renaissance et talents, défaite,
                 # hors ligne (plafond, horloge, cohérence avec le farm actif), sauvegarde, sprites
 npm run smoke   # test de bout en bout dans Chromium + captures dans docs/screenshots
@@ -232,10 +233,11 @@ persiste. Reconsidérer Godot reste possible si le projet a besoin d'un moteur c
   déterministe). Une sauvegarde v3 ouverte par une ancienne version perdrait pouvoirs, talents et fragments.
 - Renaissance et pouvoirs : équilibrage de premier jet, à ajuster en jeu (seulement 3 boss pour l'instant).
 
-## v5 et v6
+## v5, v6 et v7
 
 Refonte complète de la direction artistique (v5), puis chevalier chibi animé, 25 ennemis animés et
-décors enrichis (v6) : voir `docs/RELEASE_NOTES.md`.
+décors enrichis (v6), puis équilibrage, arbre de talents, interface en bandeau et fluidité (v7) :
+voir `docs/RELEASE_NOTES.md`.
 
 ## v4
 

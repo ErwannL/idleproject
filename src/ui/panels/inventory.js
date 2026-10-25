@@ -7,11 +7,11 @@ import { canReforge, craftCost, sharpenCost } from '../../core/forge.js';
 import { bulkRecycleCandidates, listInventory } from '../../core/inventory.js';
 import { itemBase, rarityById, recycleMaterials, recycleValue } from '../../core/loot.js';
 import { computeHeroStats, statsWithItem } from '../../core/stats.js';
-import { activeHero } from '../../core/heroes.js';
-import { heroPortraitUrl, slotIconName } from '../../render/pixel.js';
+import { slotIconName } from '../../render/pixel.js';
 import {
   affixText, coin, costButton, escapeHtml, essence, formatDecimal, formatNumber, img, itemFrame, shard,
 } from '../common.js';
+import { animCanvas } from '../animator.js';
 
 const STAT_ICONS = { damage: 'weapon_sword', attackSpeed: 'icon_bolt', maxHp: 'icon_heart', armor: 'icon_shield' };
 const SORT_LABELS = { rarity: 'Rareté', level: 'Niveau', power: 'Puissance', recent: 'Récent' };
@@ -61,7 +61,7 @@ function detail(ui, state, item) {
       <button class="btn btn-outline-gold" data-action="recycle" data-id="${item.id}" ${item.locked ? 'disabled title="Objet verrouillé"' : ''}
         title="Recycler : or et matériaux">Recycler +${formatNumber(recycleValue(item))} ${coin()}${mats.shards ? ` +${mats.shards}${shard()}` : ''}${mats.essence ? ` +${mats.essence}${essence()}` : ''}</button>
     </div>`;
-  const preview = heroPortraitUrl({ ...state.equipment, [item.slot]: item }, 2, activeHero(state).palette);
+  const preview = animCanvas('hero', 64, 58, 2, `data-preview="${escapeHtml(JSON.stringify({ ...state.equipment, [item.slot]: item }))}"`);
   return `<div class="card item-detail r-${item.rarity}">
     <div class="detail-head">${itemFrame(item, { tag: 'div' })}
       <div><div class="item-name">${escapeHtml(item.name)}</div>
@@ -70,7 +70,7 @@ function detail(ui, state, item) {
         ${base.signature ? `<span class="signature-tag">Butin de ${escapeHtml(BOSSES[base.signature].name)}</span>` : ''}</div></div>
     <ul class="stat-list">${stats}${affixes}</ul>
     ${compare}${actions}${forgeRow}
-    <div class="preview" title="Aperçu du chevalier avec cet objet"><img class="px" src="${preview}" alt=""></div>
+    <div class="preview" title="Aperçu du chevalier avec cet objet">${preview}</div>
   </div>`;
 }
 

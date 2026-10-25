@@ -36,8 +36,10 @@ export function computeHeroStats(state, balance = BALANCE, equipment = state.equ
     (hero.baseAttackInterval * upgradeFactor) / ((1 + gearSpeedPct / 100) * (1 + bonus.attackSpeedPct / 100)),
   );
 
-  const maxHp = Math.max(1, (hero.baseMaxHp + ups.vitality * upgrades.vitality.perLevel + gear.maxHp)
-    * (1 + bonus.maxHpPct / 100) * (1 + (balance.level.hpPctPerLevel * levelBonus) / 100));
+  const vit = upgrades.vitality;
+  const hpMilestones = vit.milestoneEvery ? Math.floor(ups.vitality / vit.milestoneEvery) : 0;
+  const maxHp = Math.max(1, (hero.baseMaxHp + ups.vitality * vit.perLevel + gear.maxHp)
+    * (vit.milestoneMultiplier ?? 1) ** hpMilestones * (1 + bonus.maxHpPct / 100) * (1 + (balance.level.hpPctPerLevel * levelBonus) / 100));
   const armor = Math.min(hero.armorCapPct, Math.max(0, gear.armor + bonus.armor + (ups.armor ?? 0) * upgrades.armor.perLevel));
   const regenPct = hero.regenPerSecondPct + bonus.regenPct + (ups.regen ?? 0) * upgrades.regen.perLevel;
   const critChance = Math.min(hero.critCapPct, bonus.critChance + (ups.crit ?? 0) * upgrades.crit.perLevel);

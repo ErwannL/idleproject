@@ -11,7 +11,7 @@ const path = require('node:path');
 const ROOT = path.join(__dirname, '..');
 const SCHEME = 'app';
 const ORIGIN = `${SCHEME}://game`;
-const SIZE_PRESETS = { mini: [420, 300], standard: [460, 640], wide: [980, 620] };
+const SIZE_PRESETS = { mini: [420, 300], standard: [460, 640], wide: [960, 720] };
 // v2 : nouvelle interface pensée pour la fenêtre « standard » ; on l'applique une fois aux installations v1.
 const LAYOUT_VERSION = 2;
 const MIME = {

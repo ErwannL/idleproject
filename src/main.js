@@ -28,6 +28,7 @@ import { computeHeroStats } from './core/stats.js';
 import { formatNumber } from './core/format.js';
 import { SceneRenderer } from './render/scene.js';
 import { UI } from './ui/ui.js';
+import { animateMenus } from './ui/animator.js';
 
 const SIM_INTERVAL_MS = 100;
 
@@ -299,6 +300,8 @@ function tick() {
     step(state, world, stepSeconds, rng);
     accumulator -= stepSeconds;
   }
+  // Fraction du pas en cours : le rendu interpole les positions entre deux pas (mouvement fluide).
+  world.alpha = accumulator / stepSeconds;
   world.heroStats = computeHeroStats(state);
   if (now - lastSave >= BALANCE.autosaveSeconds * 1000) save();
 }
@@ -308,6 +311,9 @@ let lastFrame = performance.now();
 function frame(ts) {
   const dt = Math.min(0.1, (ts - lastFrame) / 1000);
   lastFrame = ts;
+  // Fenêtre visible : la simulation avance à chaque image (la minuterie reste le relais
+  // quand la fenêtre est masquée et que requestAnimationFrame s'arrête).
+  tick();
   for (const event of world.events) {
     renderer.handleEvent(event, world);
     ui.handleEvent(event, state);
@@ -315,6 +321,7 @@ function frame(ts) {
   world.events.length = 0;
   renderer.render(state, world, dt);
   ui.update(state, world);
+  animateMenus(document.body, state, ts);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

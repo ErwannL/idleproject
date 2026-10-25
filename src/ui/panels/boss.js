@@ -11,6 +11,7 @@ import {
 import { rewardText } from '../../core/rewards.js';
 import { heroPortraitUrl } from '../../render/pixel.js';
 import { coin, effectText, escapeHtml, formatDecimal, formatNumber, icon, img, rarityLabel } from '../common.js';
+import { animCanvas } from '../animator.js';
 
 function powerBox(power, label) {
   const family = POWER_FAMILIES[power.family];
@@ -24,6 +25,8 @@ function powerBox(power, label) {
 
 function portrait(bossId, known) {
   const boss = BOSSES[bossId];
+  if (boss.heroLike && known) return animCanvas('hero', 64, 58, 1, 'data-fallen="1"');
+  if (known) return animCanvas(`foe:${boss.sprite ?? ENEMIES[boss.base].sprite}`, 72, 58, 1);
   if (boss.heroLike) return heroPortraitUrl({ weapon: { baseId: 'fallen_blade', rarity: 'epic' } }, 1, boss.palette, known ? null : '#4a5a78');
   const sprite = boss.sprite ?? ENEMIES[boss.base].sprite;
   return icon(sprite, 1, known ? (boss.palette ? { colors: boss.palette } : {}) : { tint: { color: '#4a5a78', alpha: 1 } });
@@ -89,7 +92,7 @@ export default {
         : `<div class="mastery muted">${img('icon_star')} Maîtrise complète (${entry.victories} victoires)</div>`;
       return `<div class="card power-card">
         <div class="power-head">
-          <div class="boss-portrait"><img class="px" src="${portrait(bossId, true)}" alt=""></div>
+          <div class="boss-portrait">${portrait(bossId, true)}</div>
           <div style="flex:1"><div class="boss-name">${escapeHtml(boss.name)}</div>
             <div class="muted">${where} · ${entry.victories} victoire${entry.victories > 1 ? 's' : ''}${signature ? ` · butin : ${escapeHtml(itemBase(signature.id).name)}` : ''}</div></div>
           <button class="btn small${active ? ' btn-primary' : ''}" data-action="toggle-power" data-boss="${bossId}">${active ? 'Actif ✓' : 'Activer'}</button>

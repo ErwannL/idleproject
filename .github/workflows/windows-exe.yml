@@ -2,7 +2,7 @@ name: Windows exe
 
 # Construit l'installateur Windows d'Idle RPG, le teste (lancement réel, sauvegarde,
 # mise à jour d'une installation précédente), puis publie la release correspondant
-# à la version de package.json (ex. v6.0.0).
+# à la version de package.json (ex. v7.0.0).
 on:
   push:
     branches: [main, master, 'claude/**']
@@ -47,11 +47,13 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          PREVIOUS: '5.0.0'
+          PREVIOUS: '6.0.0'
         run: |
           gh release download "v$PREVIOUS" --pattern "IdleRPG-$PREVIOUS-setup.exe" --dir previous
           VERSION="$(node -p "require('./package.json').version")"
           node tools/upgrade-smoke.mjs "previous/IdleRPG-$PREVIOUS-setup.exe" "dist/IdleRPG-${VERSION}-setup.exe" "$VERSION"
+          # Ancienne installation « pour tous les utilisateurs » : la nouvelle doit la remplacer.
+          node tools/upgrade-smoke.mjs "previous/IdleRPG-$PREVIOUS-setup.exe" "dist/IdleRPG-${VERSION}-setup.exe" "$VERSION" --all-users
 
       - name: Conserver l'installateur comme artefact
         uses: actions/upload-artifact@v4

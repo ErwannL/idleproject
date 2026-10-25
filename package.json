@@ -1,7 +1,7 @@
 {
   "name": "idle-rpg",
   "productName": "Idle RPG",
-  "version": "6.0.0",
+  "version": "7.0.0",
   "private": true,
   "description": "RPG idle 2D en pixel art pour PC (fenêtre compacte).",
   "author": "ErwannL",
@@ -49,12 +49,14 @@
     },
     "nsis": {
       "artifactName": "IdleRPG-${version}-setup.exe",
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
+      "oneClick": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Idle RPG",
-      "deleteAppDataOnUninstall": false
+      "deleteAppDataOnUninstall": false,
+      "perMachine": false,
+      "include": "build/installer.nsh",
+      "runAfterFinish": true
     }
   }
 }

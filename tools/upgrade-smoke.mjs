@@ -2,14 +2,18 @@
 //   1. installe l'ancienne version (setup.exe /S) et la lance (partie + sauvegarde) ;
 //   2. installe la nouvelle version par-dessus ;
 //   3. vérifie qu'une seule installation existe, à la nouvelle version,
-//      et que la nouvelle version reprend la sauvegarde de l'ancienne.
-// Usage : node tools/upgrade-smoke.mjs <ancien-setup.exe> <nouveau-setup.exe> <nouvelle-version>
+//      et que la nouvelle version reprend la sauvegarde de l'ancienne ;
+//   4. désinstalle tout à la fin (les scénarios peuvent s'enchaîner).
+// Avec --all-users, l'ancienne version est installée « pour tous les utilisateurs » (/allusers) :
+// la nouvelle (toujours pour l'utilisateur courant) doit la remplacer, sans doublon.
+// Usage : node tools/upgrade-smoke.mjs <ancien-setup.exe> <nouveau-setup.exe> <nouvelle-version> [--all-users]
 import { execFileSync, spawn } from 'node:child_process';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-const [oldSetup, newSetup, newVersion] = process.argv.slice(2);
+const [oldSetup, newSetup, newVersion, mode] = process.argv.slice(2);
+const allUsers = mode === '--all-users';
 if (!oldSetup || !newSetup || !newVersion) {
   console.error('Usage : node tools/upgrade-smoke.mjs <ancien-setup.exe> <nouveau-setup.exe> <version>');
   process.exit(2);
@@ -18,7 +22,11 @@ if (!oldSetup || !newSetup || !newVersion) {
 const powershell = (script) => execFileSync('powershell.exe', ['-NoProfile', '-Command', script], { encoding: 'utf8' });
 
 function installations() {
-  const out = powershell(`Get-ItemProperty HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\* -ErrorAction SilentlyContinue |
+  // Utilisateur courant et « tous les utilisateurs » (vues 64 et 32 bits).
+  const keys = ['HKCU:', 'HKLM:', 'HKLM:\\Software\\WOW6432Node']
+    .map((root) => (root.endsWith(':') ? `${root}\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*` : `${root}\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*`))
+    .map((k) => `'${k}'`).join(',');
+  const out = powershell(`Get-ItemProperty ${keys} -ErrorAction SilentlyContinue |
     Where-Object { $_.DisplayName -like 'Idle RPG*' } |
     Select-Object DisplayName, DisplayVersion, InstallLocation, UninstallString | ConvertTo-Json -Compress`).trim();
   if (!out) return [];
@@ -35,9 +43,9 @@ function fileVersion(path) {
   return powershell(`(Get-Item '${path.replace(/'/g, "''")}').VersionInfo.ProductVersion`).trim();
 }
 
-function runSetup(setup) {
+function runSetup(setup, args = ['/S']) {
   return new Promise((resolve, reject) => {
-    const child = spawn(setup, ['/S'], { stdio: 'ignore' });
+    const child = spawn(setup, args, { stdio: 'ignore' });
     child.on('error', reject);
     child.on('exit', (code) => (code === 0 ? resolve() : reject(new Error(`${setup} a quitté avec le code ${code}`))));
   });
@@ -69,8 +77,8 @@ const check = (name, ok, detail = '') => {
 };
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 
-console.log('Installation de la version précédente…');
-await runSetup(oldSetup);
+console.log(`Installation de la version précédente${allUsers ? ' pour tous les utilisateurs' : ''}…`);
+await runSetup(oldSetup, allUsers ? ['/S', '/allusers'] : ['/S']);
 let entries = installations();
 check('ancienne version installée', entries.length === 1, JSON.stringify(entries.map((e) => e.DisplayVersion)));
 const oldExe = installedExe(entries[0]);
@@ -93,5 +101,13 @@ check('nouvelle version : démarre sans erreur', newRun.ok, JSON.stringify(newRu
 check('sauvegarde de l\'ancienne version reprise', newRun.source === 'main' && newRun.kills >= oldRun.kills,
   `source ${newRun.source}, ennemis ${oldRun.kills} -> ${newRun.kills}`);
 check('version affichée par le jeu', newRun.desktop?.version === newVersion, newRun.desktop?.version);
+
+// Nettoyage : désinstallation silencieuse de ce qui reste.
+for (const entry of installations()) {
+  const uninstaller = entry.UninstallString.match(/^"([^"]+)"/)?.[1] ?? entry.UninstallString.split(' /')[0];
+  await runSetup(uninstaller, ['/S', ...(/allusers/i.test(entry.UninstallString) ? ['/allusers'] : [])]).catch(() => {});
+}
+await pause(3000);
+check('désinstallation propre', installations().length === 0, `${installations().length} entrée(s) restante(s)`);
 
 process.exit(results.every(Boolean) ? 0 : 1);

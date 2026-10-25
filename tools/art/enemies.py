@@ -1656,72 +1656,142 @@ def boss_spectral_queen():
     return finish(c)
 
 
+# -- dragon helpers (boss_ash_dragon)
+
+def dragon_spike(c, x, base, h, w, colors, lean=0.4):
+    """Pique dorsale : triangle ombré, pointe claire, penché vers l'arrière (droite)."""
+    tip = (x + w / 2 + lean * h, base - h)
+    spoly(c, [(x, base), tip, (x + w, base)], colors, contrast=0.5)
+    c.set(tip[0], tip[1] + 0.5, colors[-1])
+
+
+def dragon_claws(c, x0, y, n, col_hi, col_lo, step=3):
+    """Griffes : petits crochets clairs tournés vers la gauche, posés sur la dernière ligne."""
+    for i in range(n):
+        x = x0 + i * step
+        c.set(x, y, col_hi)
+        c.set(x - 1, y, col_lo)
+        c.set(x, y - 1, col_lo)
+
+
+def dragon_belly(c, mask, P, rows=2):
+    """Plastron ventral : bandes horizontales ombrées (clair en haut à gauche)."""
+    if not mask:
+        return
+    xs = [p[0] for p in mask]
+    x0, x1 = min(xs), max(xs)
+    for (x, y) in mask:
+        if c.get(x, y) is None:
+            continue
+        if y % (rows + 1) == 0:
+            col = P[1]
+        else:
+            t = (x - x0) / max(1, x1 - x0)
+            col = P[3] if (t < 0.45 and y % (rows + 1) == 1) else P[2]
+        c.set(x, y, col)
+
+
+def dragon_scales(c, x0, y0, x1, y1, R):
+    """Motif d'écailles : petits arcs plus sombres en quinconce sur les zones lumineuses."""
+    down = {R[4]: R[3], R[3]: R[2]}
+    for y in range(y0, y1, 4):
+        off = 3 if (y // 4) % 2 else 0
+        for x in range(x0 + off, x1, 6):
+            for dx, dy in ((0, 0), (1, 1), (2, 0)):
+                col = c.get(x + dx, y + dy)
+                if col in down:
+                    c.set(x + dx, y + dy, down[col])
+
+
 def boss_ash_dragon():
-    c = Canvas(70, 54)
-    R = ['#120a1c', '#271a36', '#423052', '#634c74', '#8a6e9a']
-    Rd = dk(R, -0.06)
-    PLATE = ['#5a0e14', '#9a1e1e', '#d0402a', '#f07a3a', '#ffb060']
-    MEMB = ['#3a0a18', '#6a1424', '#9e2a2e', '#d0503a']
-    BONEW = ['#140a1c', '#3a2448', '#6a4c78']
-    EMBER = ['#ff6a1a', '#ffb02a', '#ffe680', '#ffffd0']
-    # aile arrière
-    membrane_wing(c, (34, 20), (42, 4), [(52, 0), (60, 5), (59, 13), (52, 19)], (41, 22), dk(MEMB, -0.1), BONEW)
+    c = Canvas(72, 58)
+    R = ['#0d0916', '#1c1430', '#2f2346', '#46365e', '#6a5384']
+    BELLY = ['#4a1418', '#9a3424', '#d06a34', '#f0a052', '#ffd088']
+    SPIKE = ['#5a1018', '#b02e22', '#e8602a', '#ffa040', '#ffe08a']
+    MEMB = ['#30081a', '#5e1226', '#902430', '#c24234', '#e86a40']
+    WBONE = [R[0], R[2], R[4]]
+    HORN = ['#2a1e2a', '#6a5a5e', '#b8a890', '#ece2c8', '#fffbea']
+    EMBER = ['#ff5a1a', '#ffa02a', '#ffe070', '#fffbd0']
+    MOUTH = '#4a0812'
+
+    # aile arrière (plus sombre)
+    membrane_wing(c, (38, 26), (33, 3), [(41, 1), (49, 4), (50, 14), (44, 24)], (42, 30),
+                  [mix(m, R[1], 0.5) for m in MEMB], dk(WBONE, -0.05), scallop=0.25)
+    # piques dorsales (bases cachées par le cou et le corps)
+    for x, base, h in ((21, 19, 7), (27, 22, 9), (33, 26, 10), (39, 28, 8)):
+        dragon_spike(c, x - 3, base, h, 6, SPIKE)
+    # patte avant lointaine
+    Rf = dk(R, -0.03)
+    spoly(c, [(32, 40), (38, 40), (38, 52), (32, 52)], Rf)
+    spoly(c, [(29, 51), (39, 51), (39, 55), (28, 55)], Rf)
+    dragon_claws(c, 29, 55, 3, HORN[2], HORN[1])
     # queue
-    spoly(c, [(40, 30), (49, 33), (56, 37), (61, 35), (60, 41), (51, 42), (40, 38)], R)
-    spoly(c, [(59, 35), (66, 30), (64, 39)], PLATE)
-    for x in range(44, 58, 4):
-        y = 32 + (x - 40) // 5
-        spoly(c, [(x, y + 1), (x + 1.5, y - 2), (x + 3, y + 1)], PLATE)
-    # pattes arrière
-    spoly(c, [(37, 31), (45, 31), (46, 44), (41, 47), (37, 45)], Rd)
-    spoly(c, [(35, 45), (46, 45), (47, 48), (34, 48)], Rd)
+    tail = [(46, 31), (55, 36), (61, 42), (66, 44), (67, 47), (62, 49), (55, 47), (46, 45)]
+    spoly(c, tail, R, contrast=0.4)
+    for x, h in ((54, 4), (59, 4), (63, 3)):
+        y = 36 + (x - 52) * 0.75
+        dragon_spike(c, x - 1.5, y + 1, h, 3, SPIKE, lean=0.6)
+    spoly(c, [(64, 45), (69, 41), (69, 49)], SPIKE)
     # corps
-    sell(c, 33, 31, 13.5, 9.5, R)
-    for (x, y) in mask_of(lambda m: m.ellipse(30, 36.5, 10, 4.5, '#000')):
-        if c.get(x, y) is not None:
-            c.set(x, y, PLATE[1] if y % 2 else PLATE[2])
-    # écailles dorsales (rouges)
-    for x in range(22, 46, 4):
-        y = 22 - int(3 * math.sin((x - 18) / 28 * math.pi))
-        spoly(c, [(x, y + 2), (x + 2, y - 4), (x + 4, y + 2)], PLATE, contrast=0.5)
-    # patte avant
-    spoly(c, [(22, 32), (29, 32), (28, 44), (23, 46)], R)
-    spoly(c, [(17, 44), (28, 44), (28, 48), (16, 48)], R)
-    for x in (17, 20, 23):
-        c.set(x, 48, '#f8e8d0'); c.set(x - 1, 48, '#c0b0a0')
+    sell(c, 38, 36, 14, 10.5, R)
+    belly = mask_of(lambda m: m.ellipse(35, 43, 12, 5, '#000'))
+    dragon_belly(c, {p for p in belly if c.get(*p) is not None}, BELLY)
+    # patte arrière proche
+    def hind(t):
+        sell(t, 49, 41, 7, 8, R)
+        spoly(t, [(46, 45), (53, 45), (52, 52), (46, 52)], R)
+        spoly(t, [(42, 51), (53, 51), (54, 55), (41, 55)], R)
+        dragon_claws(t, 42, 55, 3, HORN[3], HORN[2])
+    part(c, hind)
+    dragon_scales(c, 24, 26, 58, 50, R)
     # cou
-    spoly(c, [(14, 13), (22, 13), (28, 27), (19, 31), (14, 21)], R)
-    for y in range(16, 30, 2):
-        c.setf(17 + (y - 14) * 0.45, y, PLATE[2]); c.setf(18 + (y - 14) * 0.45, y, PLATE[1])
-    for y in range(12, 24, 4):
-        spoly(c, [(19 + (y - 12) * 0.4, y + 1), (23 + (y - 12) * 0.4, y - 2), (22 + (y - 12) * 0.4, y + 3)], PLATE)
+    neck = [(17, 18), (25, 18), (36, 28), (31, 44), (18, 42), (14, 32)]
+    spoly(c, neck, R)
+    nb = mask_of(lambda m: m.poly([(12, 31), (18, 31), (24, 37), (27, 45), (19, 45), (14, 38)], '#000'))
+    dragon_belly(c, nb, BELLY, rows=1)
     # tête
-    sell(c, 13, 11, 6.6, 5.6, R)
-    spoly(c, [(0, 11), (9, 7.5), (13, 11), (12, 16), (1, 15)], R)
-    spoly(c, [(2, 15.5), (11, 14.5), (10, 18.5), (4, 18)], Rd)
-    # cornes
-    spoly(c, [(14, 6), (24, -1), (20, 7)], ['#2a2028', '#6a5a5a', '#c8bca8', '#f0e8d8'])
-    spoly(c, [(10, 7), (12, 0), (15, 6)], ['#2a2028', '#6a5a5a', '#c8bca8'])
-    spoly(c, [(15, 13), (21, 12), (18, 16)], PLATE)
-    # œil + naseau
-    c.rect(7, 9, 4, 2, EMBER[2]); c.set(7, 9, EMBER[3]); c.set(8, 9, EMBER[3])
-    c.rect(8, 10, 2, 1, INK); c.set(10, 10, EMBER[0])
-    c.line(5, 7, 11, 8, INK); c.line(5, 6, 10, 7, R[4])
-    c.set(1, 11, INK); c.set(2, 11, R[0])
-    # gueule et crocs
-    c.line(1, 15, 11, 15, INK)
-    for x in (2, 5, 8):
-        c.set(x, 16, WHITE)
-    for x in (3, 7):
-        c.set(x, 14, WHITE)
-    # braises qui s'échappent
-    c.set(0, 17, EMBER[1]); c.set(-1, 18, EMBER[0]); c.set(-1, 14, EMBER[2])
+    def head(t):
+        spoly(t, [(13, 14), (16, 7), (22, 3), (19, 9), (17, 15)], dk(HORN, -0.1))
+        sell(t, 15, 20, 8.5, 7, R)
+        spoly(t, [(1, 21), (4, 18.5), (10, 17), (17, 19), (17, 27), (2, 26.5)], R)
+        spoly(t, [(4, 30.5), (16, 28), (19, 32), (7, 34)], dk(R, -0.05))
+        t.poly([(3, 26.5), (17, 27), (16, 29), (5, 30.5)], MOUTH)
+        t.line(7, 29, 13, 28.5, '#c8384a')
+        for x in (3, 7, 11):
+            t.set(x, 27, WHITE)
+        t.set(4, 27, HORN[3])
+        for x in (6, 10):
+            t.set(x, 30, WHITE)
+        t.set(8, 28, EMBER[1]); t.set(9, 28, EMBER[2]); t.set(10, 28, EMBER[3]); t.set(11, 28, EMBER[1]); t.set(12, 28, EMBER[0]); t.set(9, 29, EMBER[0])
+        t.set(2, 21, INK); t.set(3, 21, R[1])
+        t.line(3, 19, 7, 18, R[4])
+        # gros œil brillant
+        ex, ey = 9, 16
+        t.rect(ex, ey, 5, 4, EMBER[2])
+        t.rect(ex, ey, 5, 1, EMBER[3])
+        t.set(ex + 4, ey + 3, EMBER[0]); t.set(ex + 3, ey + 3, EMBER[1])
+        t.rect(ex + 1, ey + 1, 2, 3, INK)
+        t.set(ex + 1, ey + 1, WHITE)
+        t.line(7, 14, 15, 16, INK); t.line(8, 13, 14, 14.5, R[4])
+        # corne avant
+        spoly(t, [(17, 15), (21, 9), (30, 5), (25, 11), (21, 17)], HORN, contrast=0.5)
+        t.set(29, 5, HORN[4]); t.set(21, 10, HORN[3]); t.set(22, 9, HORN[4])
+        t.line(19, 15, 24, 10.5, HORN[1])
+        spoly(t, [(19, 24), (27, 26), (21, 28)], SPIKE)
+    part(c, head)
+    # patte avant proche
+    def fore(t):
+        sell(t, 27, 42, 6, 6, R)
+        spoly(t, [(22, 44), (30, 44), (29, 52), (23, 52)], R)
+        spoly(t, [(17, 51), (29, 51), (30, 55), (16, 55)], R)
+        dragon_claws(t, 17, 55, 3, HORN[3], HORN[2])
+    part(c, fore)
     # aile avant
-    membrane_wing(c, (28, 23), (34, 3), [(44, -1), (53, 5), (52, 13), (45, 19), (37, 24)], (32, 28), MEMB, BONEW)
-    for x, y in ((56, 20), (60, 25), (52, 25), (8, 24), (5, 28)):
-        c.set(x, y, EMBER[2])
-    for x, y in ((27, 37), (30, 38), (33, 37)):
-        c.set(x, y, EMBER[2])
+    membrane_wing(c, (40, 28), (48, 4), [(58, 1), (66, 7), (68, 17), (62, 25), (52, 30)], (46, 33),
+                  MEMB, WBONE, scallop=0.25)
+    # braises
+    for x, y, k in ((0, 29, 1), (0, 32, 2), (1, 34, 0)):
+        c.set(x, y, EMBER[k])
     return finish(c)
 
 

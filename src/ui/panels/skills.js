@@ -26,7 +26,7 @@ export default {
           <div class="skill-text">${skill.text(formatDecimal(value))}${level && !maxed ? ` <span class="muted">→ ${skill.text(formatDecimal(next))}</span>` : ''}</div>
           <div class="muted">Recharge : ${formatDecimal(skillCooldown(skill, bonus))} s</div>
         </div>
-        <button class="btn btn-gold plus" data-action="learn-skill" data-key="${skill.id}" ${locked || maxed || points < 1 ? 'disabled' : ''}
+        <button class="btn btn-gold plus${maxed ? ' maxed' : ''}" data-action="learn-skill" data-key="${skill.id}" ${locked || maxed || points < 1 ? 'disabled' : ''}
           title="${locked ? 'Verrouillée' : maxed ? 'Niveau maximal' : 'Dépenser 1 point'}">${locked ? img('icon_lock') : maxed ? 'Max' : '+'}</button>
       </div>`;
     });

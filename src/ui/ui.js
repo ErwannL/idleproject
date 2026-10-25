@@ -33,7 +33,6 @@ import upgrades from './panels/upgrades.js';
 const PANELS = Object.fromEntries([upgrades, inventory, hero, companions, skills, tree, campaign, dungeons, boss, summon, contracts, inbox, options]
   .map((p) => [p.id, p]));
 const TAB_MIN_WIDTH = 60; // en dessous, seuls les icônes (et le libellé de l'onglet actif) sont affichés
-const WIDE_MIN_WIDTH = 720;
 const TALL_MIN_HEIGHT = 420;
 const BULK_CONFIRM_MS = 4000;
 // Panneaux dont le contenu évolue pendant le farm : réaffichés au plus une fois par seconde.
@@ -77,9 +76,10 @@ export class UI {
   updateLayout() {
     const w = this.root.clientWidth;
     const h = this.root.clientHeight;
-    const layout = w >= WIDE_MIN_WIDTH ? 'wide' : h >= TALL_MIN_HEIGHT ? 'tall' : 'mini';
+    // Jeu en bandeau en haut, onglets dessous, interface en dessous ; panneau superposé si la fenêtre est basse.
+    const layout = h >= TALL_MIN_HEIGHT ? 'tall' : 'mini';
     if (layout !== this.layout) {
-      this.root.classList.remove('layout-mini', 'layout-tall', 'layout-wide');
+      this.root.classList.remove('layout-mini', 'layout-tall');
       this.root.classList.add(`layout-${layout}`);
       this.layout = layout;
       if (layout !== 'mini' && !this.tab) this.openTab('upgrades');

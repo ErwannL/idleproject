@@ -377,7 +377,7 @@ await check('horloge reculée : aucun gain', async () => {
 });
 
 await check('l’interface s’adapte au redimensionnement', async () => {
-  const expected = [[320, 200, 'mini'], [400, 250, 'mini'], [460, 640, 'tall'], [980, 620, 'wide']];
+  const expected = [[320, 200, 'mini'], [400, 250, 'mini'], [460, 640, 'tall'], [980, 620, 'tall']];
   for (const [w, h, layout] of expected) {
     await page.setViewportSize({ width: w, height: h });
     await page.waitForTimeout(300);

@@ -1,39 +1,41 @@
-## Idle RPG v6.0.0 — Chevalier chibi, bestiaire et décors enrichis
+## Idle RPG v7.0.0 — Équilibrage, arbre de talents, jeu en bandeau et fluidité
 
-**Installation ou mise à jour :** téléchargez **IdleRPG-6.0.0-setup.exe** et lancez-le (jeu fermé).
-Une version précédente installée est remplacée automatiquement et **votre partie est conservée**.
+**Installation ou mise à jour :** téléchargez **IdleRPG-7.0.0-setup.exe** et lancez-le (jeu fermé).
+L'installation se fait désormais **en un clic** et **remplace toujours l'ancienne version** : plus de doublons,
+même si une ancienne version avait été installée « pour tous les utilisateurs » (elle est désinstallée,
+Windows peut demander une confirmation). **Votre partie est conservée.**
 
 L'exécutable n'est pas signé : si Windows SmartScreen s'affiche, cliquez sur
 **Informations complémentaires**, puis **Exécuter quand même**.
 
-### Le chevalier, version chibi et animée
+### Équilibrage
+- Progression plus lente : 15 ennemis par étape, dégâts de départ plus bas, améliorations un peu plus chères,
+  objets qui grandissent moins vite, niveaux du héros plus longs à gagner.
+- **Les boss ne tuent plus en un coup** : leurs dégâts sont réduits (×1,4 au lieu de ×2) et la croissance
+  des dégâts ennemis ralentie, mais ils ont plus de PV (×20) : un boss se gagne aux dégâts.
+- **Points de vie** : comme les Dégâts, l'amélioration donne un palier ×1,4 tous les 10 niveaux.
 
-- Nouveau chevalier **chibi** : grand heaume arrondi avec visage, grand panache bleu, cape, épaulières dorées.
-- **12 images d'animation** : respiration, marche en 4 temps, attaque en 3 temps (élan, frappe, suite),
-  pose de sort, coup reçu, victoire épée levée.
-- **Effets d'énergie bleus** : arcs de taille (dorés et plus grands sur un coup critique), impacts,
-  vague d'énergie (Frappe rapide), tourbillon (Tourbillon), aura de flammes (Cri de guerre, Rempart),
-  éruption au sol (Frappe sacrée), étincelles de montée de niveau.
+### Équipe
+- Équipe de 3 : **le chevalier (toujours présent) + 2 compagnons** au choix.
 
-### Bestiaire : 25 ennemis, tous animés
+### Interface
+- **Jeu en bandeau** : la scène occupe toute la largeur en haut, les onglets dessous, l'interface en dessous.
+- **Vrai arbre de talents** : chaque branche se divise en deux, avec des flèches ; 8 nouveaux talents
+  (Tueur de géants, Célérité, Hérisson, Soif de vie, Flair du trésor, Sagesse, Écho ancestral, Chef de meute).
+- **Portraits animés** dans les menus : le chevalier respire, sa cape flotte et il fait un moulinet d'épée ;
+  les compagnons sautillent, les boss du Codex bougent.
+- Corrigé : l'aperçu du chevalier sous « Verrouiller » n'est plus écrasé ; « Max » tient dans les boutons.
 
-- Ennemis redessinés en chibi expressifs, chacun avec **2 images de marche** (ou de vol).
-- **12 nouveaux ennemis** : sanglier, mandragore, champignon des marais, chaman gobelin, gluant bleu,
-  squelette au bouclier, golem de pierre, squelette archer, gobelin cuirassé, gluant de glace, ogre,
-  liche, gluant de feu ; la chauve-souris devient un œil volant, le spectre un fantôme.
-  Chaque zone a maintenant 4 à 5 types d'ennemis.
-- Les 6 boss et les 6 compagnons sont redessinés.
+### Fluidité et décors
+- **Animation bien plus fluide** : la simulation avance à chaque image et les positions sont interpolées
+  (avant, les ennemis et le décor bougeaient par saccades 10 fois par seconde).
+- **Parallaxe plus vivante** : particules d'ambiance sur deux profondeurs (pollen, lucioles, éclats de cristal,
+  sable, neige, braises) en plus des calques de décor.
+- **Nouveau dragon** (Dragon des cendres) redessiné.
 
-### Décors bien plus riches
+### Hors ligne
+- Gains hors ligne à **65 %** du rythme actif (35 % de moins), **jusqu'à 24 h** d'absence.
 
-- 45 calques de parallaxe : plaines (château sur falaises, cascades, clôtures, bannières, lanternes, étal),
-  forêt-marais enchantée (arbres géants moussus, lianes, lucioles, nénuphars, ponts de corde),
-  mine de cristal (échafaudages, échelles, lanternes, cascades souterraines), désert au coucher du soleil
-  (canyons, arches, ossements géants, tours de guet), montagnes (château de glace, cascades gelées,
-  rochers flottants), terres volcaniques (lune rouge, tête de démon, coulées de lave, braseros, chaînes).
-- Sol en blocs de pierre avec herbe, neige ou cendres, et un léger premier plan.
-
-Les règles du jeu ne changent pas (les nouveaux ennemis ont des statistiques proches de ceux de leur zone).
-
-Testé automatiquement sur Windows avant publication : lancement, combat, sauvegarde, relance, et mise à jour
-d'une installation v5 avec reprise de la partie.
+Testé automatiquement sur Windows avant publication : lancement, combat, sauvegarde, relance ; mise à jour
+d'une installation v6 (pour l'utilisateur courant, puis « pour tous les utilisateurs ») avec reprise de la partie
+et une seule installation à la fin.

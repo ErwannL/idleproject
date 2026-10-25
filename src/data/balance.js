@@ -19,7 +19,7 @@ export const BALANCE = {
   },
 
   hero: {
-    baseDamage: 10,
+    baseDamage: 8,
     baseAttackInterval: 1.0,
     minAttackInterval: 0.25,
     baseMaxHp: 100,
@@ -33,8 +33,8 @@ export const BALANCE = {
   // Niveau du héros : chaque ennemi donne de l'XP ; chaque niveau donne +2 % dégâts et PV
   // et 1 point de compétence.
   level: {
-    xpBase: 20, // XP pour passer du niveau 1 au niveau 2
-    xpGrowth: 1.16,
+    xpBase: 30, // XP pour passer du niveau 1 au niveau 2
+    xpGrowth: 1.2,
     killXp: 2,
     killXpGrowth: 1.12, // par étape
     bossXpMultiplier: 10,
@@ -46,12 +46,12 @@ export const BALANCE = {
   upgrades: {
     damage: {
       label: 'Dégâts',
-      description: '+3 dégâts par niveau, ×1,5 tous les 10 niveaux',
+      description: '+3 dégâts par niveau, ×1,35 tous les 10 niveaux',
       baseCost: 10,
-      costGrowth: 1.15,
+      costGrowth: 1.17,
       perLevel: 3,
       milestoneEvery: 10,
-      milestoneMultiplier: 1.5,
+      milestoneMultiplier: 1.35,
     },
     attackSpeed: {
       label: "Vitesse d'attaque",
@@ -62,10 +62,12 @@ export const BALANCE = {
     },
     vitality: {
       label: 'Points de vie',
-      description: '+20 PV max par niveau',
+      description: '+20 PV max par niveau, ×1,4 tous les 10 niveaux',
       baseCost: 15,
-      costGrowth: 1.17,
+      costGrowth: 1.16,
       perLevel: 20,
+      milestoneEvery: 10,
+      milestoneMultiplier: 1.4,
     },
     crit: {
       label: 'Coup critique',
@@ -106,19 +108,19 @@ export const BALANCE = {
   ],
 
   stages: {
-    killsPerStage: 10,
+    killsPerStage: 15,
     bossEvery: 5,
     stagesPerZone: 10,
-    bossHpMultiplier: 12,
-    bossDamageMultiplier: 2,
+    bossHpMultiplier: 20, // un boss se gagne aux dégâts…
+    bossDamageMultiplier: 1.4, // …sans tuer en un coup un chevalier au niveau de la zone
     bossGoldMultiplier: 15,
     bossSpawnDelaySeconds: 1.2,
   },
 
   enemyScaling: {
-    hpGrowth: 1.16,
-    damageGrowth: 1.13,
-    goldGrowth: 1.14,
+    hpGrowth: 1.17,
+    damageGrowth: 1.12,
+    goldGrowth: 1.15,
   },
 
   spawn: {
@@ -129,7 +131,7 @@ export const BALANCE = {
   loot: {
     dropChance: 0.1,
     bossMinRarity: 'rare',
-    stagePowerGrowth: 0.12, // +12 % de stats par niveau d'objet
+    stagePowerGrowth: 0.09, // +9 % de stats par niveau d'objet
     recycleLevelGrowth: 0.1,
     inventorySize: 40, // au-delà, les nouveaux objets sont recyclés en or
     signatureChance: 0.15, // chance qu'un boss lâche son objet signature
@@ -179,12 +181,12 @@ export const BALANCE = {
     firstBossGems: 50,
     startingTickets: 1,
   },
-  companionSlots: 3,
+  companionSlots: 2, // équipe : le chevalier (fixe) + 2 compagnons
 
 
   offline: {
-    capHours: 8,
-    farmMultiplier: 0.5, // hors ligne = 50 % du rythme de farm actif mesuré
+    capHours: 24,
+    farmMultiplier: 0.65, // hors ligne = 65 % du rythme de farm actif mesuré (35 % de moins)
     measureSeconds: 180, // durée de combat simulée pour mesurer ce rythme
     maxItems: 10, // objets réellement générés ; le surplus est converti en or
     minSecondsForSummary: 60,
