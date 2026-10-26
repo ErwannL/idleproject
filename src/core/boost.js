@@ -3,6 +3,7 @@
 //   (or, XP, butin, événements, tickets d'invocation), puis le bonus décroît jusqu'à 1 ;
 // - week-end : ×2 du samedi 0 h au lundi 0 h (heure locale), cumulable avec le démarrage rapide.
 import { BALANCE } from '../data/balance.js';
+import { cheatLoot, cheatMultiplier, cheatSecondsLeft } from './cheats.js';
 
 // Part du bonus de démarrage restante : 1 au tout début, 0 après la durée prévue.
 export function boostRemaining(state, balance = BALANCE) {
@@ -27,8 +28,9 @@ export function earlyBoost(state, balance = BALANCE, now = Date.now()) {
   const r = boostRemaining(state, balance);
   const b = balance.earlyBoost;
   const weekend = isWeekend(now);
-  const cheatLeft = Math.max(0, ((state.cheats?.boostUntil ?? 0) - now) / 1000);
-  const cheat = cheatLeft > 0 ? state.cheats.boostMultiplier : 1;
+  // Codes de triche : multiplicateurs cumulés (×100 puis ×100 = ×10 000).
+  const cheat = cheatMultiplier(state, 'boost', now);
+  const cheatLeft = cheatSecondsLeft(state, 'boost', now);
   const w = (weekend ? balance.weekendBoost.multiplier : 1) * cheat;
   return {
     remaining: r,
@@ -40,7 +42,7 @@ export function earlyBoost(state, balance = BALANCE, now = Date.now()) {
     gold: (1 + (b.goldMultiplier - 1) * r) * w,
     xp: (1 + (b.xpMultiplier - 1) * r) * w,
     // Ajouté à la chance de butin (0..1) ; le week-end double la chance de base.
-    dropChance: b.extraDropChance * r + (weekend ? balance.loot.dropChance : 0) + (cheat > 1 ? 0.5 : 0),
+    dropChance: b.extraDropChance * r + (weekend ? balance.loot.dropChance : 0) + (cheat > 1 ? 0.5 : 0) + cheatLoot(state, now).drop,
     events: (1 + (b.eventMultiplier - 1) * r) * w,
     bossTickets: r > 0 ? b.bossTickets : 0,
   };

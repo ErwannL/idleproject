@@ -7,7 +7,9 @@ import { DIFFICULTY_ORDER, DUNGEON_DIFFICULTIES, DUNGEON_PATHS, DUNGEON_REWARD, 
 import { SLOTS } from '../../data/items.js';
 import { ROLES } from '../../data/synergies.js';
 import { stageLabel } from '../../core/combat.js';
-import { canEnterDungeon, dungeonById, unlockedDifficulties } from '../../core/dungeon.js';
+import { canEnterDungeon, dungeonById, dungeonRunInfo, unlockedDifficulties } from '../../core/dungeon.js';
+import { formatDuration } from '../../core/format.js';
+import { itemIconUrl } from '../../render/pixel.js';
 import { rewardText } from '../../core/rewards.js';
 import { slotIconName } from '../../render/pixel.js';
 import { animCanvas } from '../animator.js';
@@ -42,6 +44,29 @@ function roomPath(d, room = 0) {
   }
   steps.push(`<div class="room boss${room >= d.rooms ? ' current' : ''}"><span>${img('icon_skull')}</span><small>Boss final<br>${escapeHtml(BOSSES[d.boss].name)}</small></div>`);
   return `<div class="room-path">${steps.join('<i class="room-link"></i>')}</div>`;
+}
+
+// v8.1 : où en était-on ? Dernière tentative et meilleure tentative (salle, PV du boss, équipe, équipement).
+function runCard(r, title) {
+  if (!r) return '';
+  const where = r.won ? '<span class="good">Donjon terminé ✔</span>'
+    : r.bossHpPct !== null ? `Boss final : <b>${formatNumber(r.bossHpPct)} %</b> de PV restants`
+      : `Salle <b>${r.room}/${r.rooms - 1}</b>`;
+  const bar = r.bossHpPct !== null && !r.won ? `<div class="run-boss-bar"><i style="width:${Math.min(100, r.bossHpPct)}%"></i></div>` : '';
+  const gear = r.gear.map((g) => `<img class="px r-${g.rarity}" src="${itemIconUrl(g)}" title="${escapeHtml(g.name)}${g.upgrades ? ` +${g.upgrades}` : ''} · niv. ${g.level}" alt="">`).join('');
+  const team = r.team.map((id) => COMPANIONS.find((c) => c.id === id)).filter(Boolean)
+    .map((c) => `<span class="run-mate r-${c.rarity}" title="${escapeHtml(c.name)}">${escapeHtml(c.name)}</span>`).join('');
+  return `<div class="run-card"><div class="row-between"><b>${title}</b><span class="muted">${formatDuration(r.seconds)} · héros niv. ${r.level}</span></div>
+    <div>${where}</div>${bar}
+    <div class="run-gear">${gear}</div>${team ? `<div class="run-team">${team}</div>` : ''}</div>`;
+}
+
+function runsBlock(state, d, diffId) {
+  const info = dungeonRunInfo(state, d.id, diffId);
+  if (!info || (!info.last && !info.best)) return '';
+  const same = info.best && info.last && info.best.at === info.last.at;
+  return `<div class="card-sub run-block"><div class="section-title">Vos expéditions · ${DUNGEON_DIFFICULTIES[diffId].label} <span class="muted">(${info.tries} essai${info.tries > 1 ? 's' : ''})</span></div>
+    <div class="run-cols">${runCard(info.last, same ? 'Dernière et meilleure tentative' : 'Dernière tentative')}${same ? '' : runCard(info.best, 'Meilleure tentative')}</div></div>`;
 }
 
 function running(ui, state) {
@@ -128,6 +153,7 @@ export default {
         ${roles ? `<div class="row"><span class="section-title">Compagnons conseillés</span>${roles}</div>` : ''}
         ${affinityLine(state, sel)}
         ${roomPath(sel)}
+        ${runsBlock(state, sel, diffId)}
         <div class="dungeon-cols">
           <div class="card-sub"><div class="section-title">Récompenses possibles</div><div class="reward-grid">${rewards}</div></div>
           <div class="card-sub"><div class="section-title">Butin ciblé <span class="muted">(emplacement de l'objet final)</span></div><div class="chip-row">${slots}</div>

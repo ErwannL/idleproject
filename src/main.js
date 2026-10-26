@@ -3,17 +3,19 @@
 // suspendu automatiquement quand la fenêtre est masquée).
 import { BALANCE } from './data/balance.js';
 import { BOSSES } from './data/enemies.js';
-import { changeStage, createCombat, currentEncounter, resetWave, resumeAdvance, step } from './core/combat.js';
-import { replaceCompanion, toggleCompanion, upgradeCompanion } from './core/companions.js';
+import { changeStage, createCombat, currentEncounter, cycleForStage, resetWave, resumeAdvance, stageLabel, step } from './core/combat.js';
+import { ZONES } from './data/zones.js';
+import { playCinematic, worldCinematic } from './ui/cinematic.js';
+import { activeSynergies, replaceCompanion, toggleCompanion, upgradeCompanion } from './core/companions.js';
 import { claimContract } from './core/contracts.js';
 import { claimAllMissions, claimLogin, claimMission, claimMissionBonus, mergeReward, refreshMissions } from './core/missions.js';
 import { abandonDungeon, setDungeonPath, startDungeon } from './core/dungeon.js';
 import { buyUpgradeBulk } from './core/economy.js';
 import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
-import { craftItem, fuseItems, reforgeItem, sharpenItem, upgradeItem } from './core/forge.js';
+import { autoFuse, craftItem, fuseItems, reforgeItem, sharpenItem, upgradeItem } from './core/forge.js';
 import { summon } from './core/gacha.js';
 import { setActiveHero } from './core/heroes.js';
-import { addToInventory, bulkRecycleCandidates, equipItem, recycleItem, recycleMatching, recycleRules, sweepInventory, toggleLock } from './core/inventory.js';
+import { addToInventory, bulkRecycleCandidates, equipItem, isUpgrade, recycleItem, recycleMatching, recycleRules, sweepInventory, toggleLock } from './core/inventory.js';
 import {
   bossDungeon, bossFirstStage, claimMastery, powerById, powerSlots, rerollPower, resolveReroll, setPowerActive,
 } from './core/powers.js';
@@ -39,7 +41,7 @@ import { applyLoadout, saveLoadout } from './core/loadouts.js';
 import { claimCollection } from './core/codex.js';
 import { setLang, startAutoTranslate, t } from './i18n/i18n.js';
 import { GAME_VERSION } from './version.js';
-import { RELEASES_API, RELEASES_PAGE, parseRelease, updateStatus } from './core/update.js';
+import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagList, updateStatus } from './core/update.js';
 
 const SIM_INTERVAL_MS = 100;
 
@@ -82,9 +84,24 @@ function runOffline(fromMs, nowMs) {
   ui.invalidate();
 }
 
+// Synergies (v8.1) : une synergie qui s'active est annoncée (bannière + message à sa couleur de rôle).
+let knownSynergies = null;
+function announceSynergies() {
+  const ids = activeSynergies(state).map((s) => s.id);
+  if (knownSynergies) {
+    for (const syn of activeSynergies(state).filter((s) => !knownSynergies.includes(s.id))) {
+      ui.banner(`Synergie : ${syn.name} !`, 'win');
+      ui.toast(`${syn.name} — ${syn.text}`, '#ffe680');
+      sound.play('claim', { volume: 0.8 });
+    }
+  }
+  knownSynergies = ids;
+}
+
 // Toute action réussie est sauvegardée immédiatement et rafraîchit le panneau.
 function done(ok, message = null, color = null) {
   if (!ok) return false;
+  announceSynergies();
   if (message) {
     ui.toast(message, color);
     sound.play('claim', { volume: 0.7 });
@@ -316,6 +333,15 @@ const actions = {
     save();
     ui.invalidate();
   },
+  // Fusion automatique : activer, ou basculer une rareté fusionnée.
+  setAutoFuse(group, value) {
+    const rules = { on: false, rarities: ['common'], ...(state.ui.autoFuse ?? {}) };
+    if (group === 'on') rules.on = !rules.on;
+    else rules.rarities = rules.rarities.includes(value) ? rules.rarities.filter((r) => r !== value) : [...rules.rarities, value];
+    state.ui.autoFuse = rules;
+    lastSweep = 0; // appliquée tout de suite
+    done(true);
+  },
   // Règles de recyclage automatique : mode, ou bascule d'une rareté / d'un type d'objet.
   setRecycleRule(group, value) {
     const rules = { ...recycleRules(state) };
@@ -334,6 +360,7 @@ const actions = {
   },
   setNotify(key, on) { state.ui.notify = { ...state.ui.notify, [key]: on }; done(true); },
   setFocus(on) { state.ui.focus = on; done(true); },
+  setCinematics(on) { state.ui.cinematics = on; done(true); },
   setAutoRecycle(value) {
     state.ui.autoRecycle = value;
     ui.invalidate();
@@ -364,6 +391,13 @@ const actions = {
       if (json?.error) error = json.error;
       else release = parseRelease(json);
     } catch (e) { error = String(e?.message ?? e); }
+    if (!release && !window.desktop?.checkUpdate) {
+      // Secours : liste des versions publiées via jsDelivr (si l'API GitHub est bloquée ou limitée).
+      try {
+        const res = await fetch(TAGS_FALLBACK_API);
+        if (res.ok) release = parseTagList(await res.json());
+      } catch (e) { error = `${error ?? ''} · secours : ${e?.message ?? e}`; }
+    }
     const current = ui.desktop?.version ?? GAME_VERSION;
     ui.updateInfo = { busy: false, release, status: updateStatus(current, release), checkedAt: Date.now(), error: release ? null : error };
     if (ui.updateInfo.status === 'available') ui.toast(`Mise à jour ${release.version} disponible (Paramètres)`, '#7fe0ff');
@@ -437,6 +471,28 @@ setTimeout(() => { if (!navigator.webdriver && !ui.desktop?.smoke) actions.check
 if (loaded.source !== 'new') runOffline(state.lastSaved, Date.now());
 else save();
 
+// Cinématiques (v8.1) : au lancement, puis à chaque arrivée dans un nouveau monde (en avançant).
+const cinematicsOn = () => state.ui.cinematics !== false && !navigator.webdriver && !ui.desktop?.smoke;
+setTimeout(() => {
+  if (!cinematicsOn()) return;
+  const zone = ZONES[currentEncounter(state).zoneIndex];
+  if (loaded.source === 'new') playCinematic({ kicker: 'Une nouvelle légende', title: 'Idle RPG', line: 'Un chevalier, une épée, et onze mondes à libérer.' });
+  else playCinematic({ kicker: 'Bon retour, chevalier', title: zone.name, line: `Étape ${stageLabel(state.stage)} — la bataille continue.`, zone: zone.id });
+}, 600);
+announceSynergies(); // mémorise les synergies du chargement (seules les nouvelles seront annoncées)
+let lastZoneKey = null;
+function watchWorldChange() {
+  if (state.dungeon) return;
+  const enc = currentEncounter(state);
+  const key = `${cycleForStage(state.stage)}:${enc.zoneIndex}`;
+  if (lastZoneKey !== null && key !== lastZoneKey && state.stage > (watchWorldChange.lastStage ?? 0) && cinematicsOn()) {
+    const cycle = cycleForStage(state.stage);
+    worldCinematic(ZONES[enc.zoneIndex], cycle ? ` · difficulté ×${cycle + 1}` : '');
+  }
+  lastZoneKey = key;
+  watchWorldChange.lastStage = state.stage;
+}
+
 // Simulation à pas fixe, pilotée par l'horloge murale pour rattraper les retards
 // (onglet en arrière-plan, minuterie ralentie). Une longue interruption (veille)
 // est traitée comme une absence hors ligne.
@@ -472,6 +528,13 @@ function tick() {
   // Recyclage « au ramassage » : le sac est trié toutes les 3 s (objets devenus moins bons que l'équipement).
   if (now - lastSweep >= 3000) {
     lastSweep = now;
+    // Fusion automatique d'abord (5 objets identiques → rareté supérieure), puis recyclage.
+    const fused = autoFuse(state, rng, isUpgrade);
+    if (fused.length) {
+      const best = fused.at(-1);
+      ui.toast(`Fusion auto : ${fused.length} objet${fused.length > 1 ? 's' : ''} créé${fused.length > 1 ? 's' : ''} (${best.name})`, rarityById(best.rarity).color);
+      ui.invalidate();
+    }
     if (sweepInventory(state).count) ui.invalidate();
   }
   if (now - lastSave >= BALANCE.autosaveSeconds * 1000) save();
@@ -492,6 +555,7 @@ function frame(ts) {
   }
   sound.update(state, world, currentEncounter(state).zoneIndex, dt);
   world.events.length = 0;
+  watchWorldChange();
   renderer.render(state, world, dt);
   ui.update(state, world);
   animateMenus(document.body, state, ts);

@@ -15,6 +15,9 @@ import { canRebirth, rebirthReward } from '../core/rebirth.js';
 import { rewardText } from '../core/rewards.js';
 import { skillPointsAvailable } from '../core/skills.js';
 import { computeHeroStats } from '../core/stats.js';
+import { installShortcuts, shortcutsHtml } from './shortcuts.js';
+import { installHoldToRepeat } from './hold.js';
+import { playSummonReveal } from './summon-fx.js';
 import { coin, effectText, icon, img, itemFrame } from './common.js';
 import boss from './panels/boss.js';
 import campaign from './panels/campaign.js';
@@ -100,6 +103,15 @@ export class UI {
     });
     new ResizeObserver(() => this.updateLayout()).observe(root);
     this.updateLayout();
+    installShortcuts(this);
+    installHoldToRepeat(root);
+  }
+
+  showShortcuts() {
+    this.$('modal-card').innerHTML = `<h2>Raccourcis clavier</h2>${shortcutsHtml()}
+      <p class="muted">Astuce : maintenez le clic sur un bouton (acheter, améliorer…) — quand l'anneau est plein, il est cliqué en continu jusqu'à ce que vous bougiez la souris.</p>
+      <div class="detail-actions"><button class="btn btn-primary" data-action="close-modal">OK</button></div>`;
+    this.$('modal').classList.remove('hidden');
   }
 
   // --- Disposition selon la taille de la fenêtre ---
@@ -203,7 +215,12 @@ export class UI {
       case 'toggle-companion': a.toggleCompanion(value); break;
       case 'upgrade-companion': a.upgradeCompanion(value); break;
       case 'open-tab': this.openTab(value); break;
-      case 'summon': v.lastSummon = a.summon(Number(value), currency, el.dataset.pool) ?? v.lastSummon; this.invalidate(); break;
+      case 'summon': {
+        const res = a.summon(Number(value), currency, el.dataset.pool);
+        if (res) { v.lastSummon = res; playSummonReveal(res); }
+        this.invalidate();
+        break;
+      }
       case 'summon-pool': local(() => { v.summonPool = value; v.lastSummon = null; }); break;
       case 'talent-sel': local(() => { v.talentSel = value; }); break;
       case 'buy-talent': a.buyTalent(key); break;
@@ -225,6 +242,7 @@ export class UI {
       case 'mission-tab': local(() => { v.missionTab = value; }); break;
       case 'lang': a.setLanguage(value); break;
       case 'speed': a.cycleSpeed(); break;
+      case 'autofuse': a.setAutoFuse(el.dataset.group, value); break;
       case 'check-update': a.checkUpdate(); break;
       case 'install-update': a.installUpdate(); break;
       case 'open-releases': a.openReleases(); break;
@@ -263,6 +281,7 @@ export class UI {
       case 'simulate': a.simulateAbsence(Number(seconds)); break;
       case 'reset': a.reset(); break;
       case 'close-modal': this.closeModal(); break;
+      case 'show-shortcuts': this.showShortcuts(); break;
       case 'window-size': a.setWindowSize(preset); break;
       default: break;
     }
@@ -280,6 +299,7 @@ export class UI {
     if (action === 'mute') this.sound?.setMuted(el.checked);
     if (action === 'notify') this.actions.setNotify(el.dataset.key, el.checked);
     if (action === 'focus') this.actions.setFocus(el.checked);
+    if (action === 'cinematics') this.actions.setCinematics(el.checked);
     if (action === 'auto-recycle') this.actions.setAutoRecycle(el.value);
     if (action === 'recycle-mode') this.actions.setRecycleRule('mode', el.value);
     if (action === 'bulk-rarity') {
@@ -406,12 +426,12 @@ export class UI {
         break;
       case 'dungeonFailed':
         this.banner('Expédition échouée', 'lose');
-        this.news(`Défaite dans le donjon. Conservé : ${rewardText(event.earned, formatNumber) || 'rien'}`);
+        this.news(`Défaite ${event.bossHpPct !== null && event.bossHpPct !== undefined ? `face au boss final (encore ${formatNumber(event.bossHpPct)} % de PV)` : `en salle ${event.room}`}. Conservé : ${rewardText(event.earned, formatNumber) || 'rien'} — détails dans l'onglet Donjons.`);
         this.invalidate();
         break;
       case 'heroDeath':
         this.banner(`Vaincu… retour à l'étape ${stageLabel(event.to)}`, 'lose');
-        this.news('Mode farm : améliorez le chevalier puis appuyez sur « Avancer ».');
+        this.news(state?.autoAdvance === false ? 'Mode farm : améliorez le chevalier puis appuyez sur « Avancer ».' : 'Le chevalier refait l\'étape précédente puis retente automatiquement.');
         if (this.tab === 'campaign') this.invalidate();
         break;
       default:
@@ -496,8 +516,10 @@ export class UI {
     const now0 = performance.now();
     const userRecent = now0 - this.userAt < 400;
     const focus = document.activeElement;
-    const busy = this.pointerDown || (focus && focus.tagName === 'SELECT' && this.$('panel-body').contains(focus));
-    if (this.dirty && this.tab && !this.pointerDown && (userRecent || (!busy && now0 - this.lastRender >= RENDER_THROTTLE_MS))) {
+    const holding = document.body.classList.contains('hold-repeating');
+    const pointer = this.pointerDown && !holding;
+    const busy = pointer || (focus && focus.tagName === 'SELECT' && this.$('panel-body').contains(focus));
+    if (this.dirty && this.tab && !pointer && (holding || userRecent || (!busy && now0 - this.lastRender >= RENDER_THROTTLE_MS))) {
       this.renderPanel(state);
       this.dirty = false;
     } else if (this.tab && !this.dirty) {

@@ -244,7 +244,8 @@ journalières/hebdomadaires/mensuelles et démarrage rapide (v7.5), puis mondes 
 difficulté ×2/×3 après le dernier monde, boosts à durée limitée, prestige, musique et sons procéduraux (v7.6),
 puis 11 mondes, donjons à difficultés, Codex et collections, synergies, configurations d'équipe et anglais (v7.7),
 puis mises à jour en jeu, vitesse des combats ×2/×5/×10, carte zoomable et menus pixel art (v7.8/v7.9),
-puis recyclage automatique fiable, menus stables en ×10 et avance auto qui reste cochée (v8.0) :
+puis recyclage automatique fiable, menus stables en ×10 et avance auto qui reste cochée (v8.0),
+puis raccourcis clavier, clic maintenu, codes cumulables, fusion auto, effets d'équipe et cinématiques (v8.1) :
 voir `docs/RELEASE_NOTES.md`.
 
 ## v4

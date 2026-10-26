@@ -1315,3 +1315,87 @@ body .item-frame img.lock { position: absolute; top: 1px; left: 1px; width: 8px;
   border-style: solid; border-width: 4px;
   border-image: url('../../assets/ui/frames/slot.png') 6 fill / 6px stretch;
 }
+
+/* v8.1 — rapports d'expédition. */
+.run-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 6px; }
+.run-card { display: flex; flex-direction: column; gap: 3px; padding: 5px 7px; background: rgba(8, 12, 26, 0.55); border: 1px solid var(--line); border-radius: 4px; }
+.run-boss-bar { height: 7px; background: #2a1016; border: 1px solid #000; border-radius: 3px; overflow: hidden; }
+.run-boss-bar i { display: block; height: 100%; background: linear-gradient(#ff6a6a, #c0283a); }
+.run-gear { display: flex; flex-wrap: wrap; gap: 2px; }
+.run-gear img { width: 22px; height: 22px; border: 1px solid var(--rarity, #445); border-radius: 3px; background: #0c1222; }
+.run-team { display: flex; flex-wrap: wrap; gap: 3px; }
+.run-mate { font-size: 10px; padding: 0 4px; border: 1px solid #445; border-radius: 3px; }
+/* v8.1 — mode barre : les boosts à gauche, l'or et ⤢ à droite (plus de chevauchement quand l'or s'allonge). */
+.layout-strip #rush-bar { top: 2px; left: 4px; right: auto; bottom: auto; }
+
+/* v8.1 — clic maintenu et raccourcis. */
+.hold-ring { position: fixed; width: 36px; height: 36px; margin: -18px 0 0 -18px; pointer-events: none; z-index: 9999; }
+.hold-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.hold-ring circle { fill: none; stroke-width: 4; }
+.hold-ring .bg { stroke: rgba(0, 0, 0, 0.45); }
+.hold-ring .fg { stroke: #ffd35a; stroke-linecap: round; filter: drop-shadow(0 0 2px #ffb000); }
+.hold-ring.full .fg { stroke: #7fffa0; filter: drop-shadow(0 0 4px #3fff70); }
+.shortcuts { border-collapse: collapse; width: 100%; font-size: 12px; }
+.shortcuts td { padding: 3px 6px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+kbd { display: inline-block; min-width: 18px; padding: 1px 5px; border: 1px solid #6a7aa8; border-bottom-width: 3px; border-radius: 4px; background: #1a2240; color: #fff; font: 700 11px/1.3 inherit; text-align: center; }
+
+/* v8.1 — animation d'invocation. */
+.summon-fx { position: fixed; inset: 0; z-index: 9000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  background: radial-gradient(circle at 50% 45%, rgba(40, 30, 90, 0.92), rgba(4, 4, 14, 0.97)); opacity: 0; transition: opacity 0.25s; cursor: pointer; overflow: hidden; }
+.summon-fx.open { opacity: 1; }
+.summon-fx { --glow: #8fb0ff; }
+.summon-fx.best-epic { --glow: #c06bff; }
+.summon-fx.best-legendary { --glow: #ffcf4a; }
+.sfx-portal { position: absolute; left: 50%; top: 45%; width: 0; height: 0; }
+.sfx-portal i { position: absolute; left: 50%; top: 50%; border: 3px dashed var(--glow); border-radius: 50%; transform: translate(-50%, -50%);
+  box-shadow: 0 0 18px var(--glow), inset 0 0 18px var(--glow); animation: sfx-spin 2.4s linear infinite, sfx-grow 0.9s ease-out both; }
+.sfx-portal i:nth-child(1) { width: 260px; height: 260px; }
+.sfx-portal i:nth-child(2) { width: 190px; height: 190px; animation-direction: reverse, normal; border-style: dotted; }
+.sfx-portal i:nth-child(3) { width: 120px; height: 120px; border-width: 5px; }
+.summon-fx.done .sfx-portal i { opacity: 0.25; transition: opacity 0.6s; }
+.sfx-beam { position: absolute; left: 50%; top: 0; bottom: 0; width: 70px; margin-left: -35px; background: linear-gradient(transparent, var(--glow), transparent);
+  opacity: 0; filter: blur(6px); animation: sfx-beam 1.2s ease-out 0.6s both; }
+.sfx-flash { position: absolute; inset: 0; background: var(--glow); opacity: 0; pointer-events: none; }
+.summon-fx.burst-legendary .sfx-flash { animation: sfx-flash 0.6s ease-out; }
+.summon-fx.burst-epic .sfx-flash { animation: sfx-flash 0.45s ease-out; }
+.summon-fx.burst-legendary .sfx-cards { animation: sfx-shake 0.35s; }
+.sfx-cards { position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: min(92vw, 640px); }
+.sfx-card { width: 100px; height: 140px; perspective: 600px; opacity: 0; transform: translateY(30px) scale(0.6);
+  animation: sfx-deal 0.35s ease-out both; animation-delay: calc(0.85s + var(--i) * 0.06s); }
+.sfx-cards.count-10 .sfx-card { width: 84px; height: 120px; }
+.sfx-back, .sfx-face { position: absolute; inset: 0; border-radius: 8px; backface-visibility: hidden; transition: transform 0.45s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+.sfx-back { background: repeating-linear-gradient(45deg, #1c2450 0 6px, #232c60 6px 12px); border: 3px solid #6a7ab8; color: #cfd8ff; font: 900 34px/1 inherit; box-shadow: 0 0 10px rgba(120, 140, 255, 0.4); }
+.sfx-face { transform: rotateY(180deg); background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--rarity) 45%, #101830), #0a0f20 80%);
+  border: 3px solid var(--rarity); box-shadow: 0 0 16px var(--rarity); color: #fff; font-size: 10px; text-align: center; padding: 4px; }
+.sfx-face canvas.anim { width: 72px; height: 72px; object-fit: contain; }
+.sfx-face b { font-size: 11px; line-height: 1.1; }
+.sfx-face em { color: #7fffa0; font-style: normal; font-weight: 900; }
+.sfx-grade { font-weight: 900; color: var(--rarity); text-shadow: 0 0 4px var(--rarity); }
+.sfx-card.flipped .sfx-back { transform: rotateY(180deg); }
+.sfx-card.flipped .sfx-face { transform: rotateY(360deg); }
+.sfx-card.r-legendary.flipped .sfx-face { animation: sfx-pulse 1s ease-in-out infinite alternate; }
+.sfx-hint { position: relative; color: #cfd8ff; font-size: 12px; opacity: 0.8; }
+@keyframes sfx-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes sfx-grow { from { width: 0; height: 0; opacity: 0; } }
+@keyframes sfx-beam { 0% { opacity: 0; transform: scaleX(0.2); } 40% { opacity: 0.9; transform: scaleX(1.4); } 100% { opacity: 0.35; transform: scaleX(1); } }
+@keyframes sfx-flash { 0% { opacity: 0.75; } 100% { opacity: 0; } }
+@keyframes sfx-deal { to { opacity: 1; transform: none; } }
+@keyframes sfx-shake { 25% { transform: translate(-4px, 2px); } 50% { transform: translate(4px, -2px); } 75% { transform: translate(-2px, -2px); } }
+@keyframes sfx-pulse { from { box-shadow: 0 0 10px var(--rarity); } to { box-shadow: 0 0 28px var(--rarity), 0 0 6px #fff; } }
+
+/* v8.1 — cinématiques. */
+.cinematic { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.6)); opacity: 0; transition: opacity 0.5s; }
+.cinematic.in { opacity: 1; }
+.cinematic.out { opacity: 0; }
+.cine-bar { position: absolute; left: 0; right: 0; height: 16%; background: #000; transition: transform 0.6s cubic-bezier(.2, .8, .2, 1); }
+.cine-bar.top { top: 0; transform: translateY(-100%); }
+.cine-bar.bottom { bottom: 0; transform: translateY(100%); }
+.cinematic.in .cine-bar { transform: none; }
+.cinematic.out .cine-bar.top { transform: translateY(-100%); }
+.cinematic.out .cine-bar.bottom { transform: translateY(100%); }
+.cine-text { position: relative; text-align: center; color: #fff; text-shadow: 0 2px 0 #000, 0 0 12px rgba(0, 0, 0, 0.8); padding: 0 16px; max-width: 90%; }
+.cine-text small { display: block; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: #ffd35a; opacity: 0; animation: cine-fade 0.6s 0.4s forwards; }
+.cine-text h1 { margin: 2px 0 4px; font-size: clamp(18px, 4.2vw, 40px); letter-spacing: 0.04em; min-height: 1.2em; color: #fff4d6; }
+.cine-text p { margin: 0; font-size: clamp(11px, 1.6vw, 15px); font-style: italic; color: #e6e9ff; opacity: 0; animation: cine-fade 0.8s 1.2s forwards; }
+@keyframes cine-fade { to { opacity: 1; } }

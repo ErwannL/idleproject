@@ -32,6 +32,7 @@ export function startDungeon(state, id, slot = 'any', path = 'gold', difficulty 
   state.dungeon = {
     id, room: 1, kills: 0, slot: slot in SLOTS ? slot : 'any', path: path in DUNGEON_PATHS ? path : 'gold', difficulty,
     level: Math.max(1, state.maxStage + d.levelOffset + diff.levelBonus), earned: {},
+    startPlay: state.playSeconds ?? 0,
   };
   return true;
 }
@@ -82,17 +83,50 @@ export function completeDungeon(state, rng, balance = BALANCE) {
   const rank = DIFFICULTY_ORDER.indexOf(run.difficulty ?? 'easy');
   state.dungeonBest[run.id] = Math.max(state.dungeonBest[run.id] ?? -1, rank);
   trackMissions(state, 'dungeons', 1);
+  recordRun(state, run, runReport(state, run, { won: true }));
   state.dungeon = null;
   return { item, added: added.added, earned: run.earned };
 }
 
+// v8.1 : rapport d'expédition (dernière tentative + meilleure par donjon et difficulté) :
+// salle atteinte, PV restants du boss, durée, niveau, équipement, compagnons et familier.
+export function runReport(state, run, { won = false, bossHpPct = null } = {}) {
+  const d = dungeonById(run.id);
+  const progress = won ? d.rooms + 1 : run.room + (bossHpPct === null ? 0 : 1 - bossHpPct / 100);
+  return {
+    won, room: run.room, rooms: d.rooms, bossHpPct, progress: Math.round(progress * 1000) / 1000,
+    seconds: Math.max(0, Math.round((state.playSeconds ?? 0) - (run.startPlay ?? state.playSeconds ?? 0))),
+    level: state.level, heroLevel: run.level, at: Date.now(),
+    gear: Object.values(state.equipment).filter(Boolean).map((i) => ({ baseId: i.baseId, name: i.name, rarity: i.rarity, level: i.level, upgrades: i.upgrades ?? 0 })),
+    team: [...state.companions.equipped],
+  };
+}
+
+function recordRun(state, run, report) {
+  const key = `${run.id}:${run.difficulty ?? 'easy'}`;
+  const entry = state.dungeonRuns[key] ?? {};
+  entry.last = report;
+  if (!entry.best || report.progress > entry.best.progress
+    || (report.progress === entry.best.progress && report.seconds < entry.best.seconds)) entry.best = report;
+  entry.tries = (entry.tries ?? 0) + 1;
+  state.dungeonRuns[key] = entry;
+  return entry;
+}
+
+export function dungeonRunInfo(state, id, difficulty) {
+  return state.dungeonRuns?.[`${id}:${difficulty}`] ?? null;
+}
+
 // Défaite : l'expédition s'arrête, les récompenses des salles déjà gagnées sont conservées.
-export function failDungeon(state) {
+export function failDungeon(state, { bossHpPct = null } = {}) {
   const run = state.dungeon;
+  if (run) recordRun(state, run, runReport(state, run, { bossHpPct }));
   state.dungeon = null;
   return run?.earned ?? {};
 }
 
 export function abandonDungeon(state) {
-  return failDungeon(state);
+  const run = state.dungeon;
+  state.dungeon = null;
+  return run?.earned ?? {};
 }

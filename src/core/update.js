@@ -1,6 +1,8 @@
 // Mises à jour (v7.8) : comparaison de versions et lecture de la dernière release GitHub.
 export const RELEASES_API = 'https://api.github.com/repos/ErwannL/idleproject/releases/latest';
 export const RELEASES_PAGE = 'https://github.com/ErwannL/idleproject/releases/latest';
+// Source de secours (v8.1) si l'API GitHub est bloquée ou limitée : la liste des tags vue par jsDelivr.
+export const TAGS_FALLBACK_API = 'https://data.jsdelivr.com/v1/packages/gh/ErwannL/idleproject';
 
 // « v7.10.0 » > « 7.9.2 » : comparaison numérique champ par champ.
 export function compareVersions(a, b) {
@@ -29,4 +31,19 @@ export function parseRelease(json) {
 export function updateStatus(current, release) {
   if (!release) return 'error';
   return compareVersions(release.version, current) > 0 ? 'available' : 'uptodate';
+}
+
+// Réponse jsDelivr ({ versions: [{ version: '8.0.0' }, …] }) → même forme que parseRelease.
+export function parseTagList(json) {
+  const versions = (json?.versions ?? []).map((v) => String(v?.version ?? v ?? '').replace(/^v/i, ''))
+    .filter((v) => /^\d+\.\d+\.\d+$/.test(v));
+  if (!versions.length) return null;
+  const version = versions.sort(compareVersions).at(-1);
+  const name = `IdleRPG-${version}-setup.exe`;
+  return {
+    version,
+    url: `https://github.com/ErwannL/idleproject/releases/tag/v${version}`,
+    notes: '',
+    setup: { name, url: `https://github.com/ErwannL/idleproject/releases/download/v${version}/${name}`, size: 0 },
+  };
 }

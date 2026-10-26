@@ -1,10 +1,37 @@
-## Idle RPG v8.0.0 — recyclage automatique fiable, menus stables en ×10, carte zoomable
+## Idle RPG v8.1.0 — raccourcis, clic maintenu, codes cumulables, effets d'équipe, cinématiques
 
-**Installation ou mise à jour :** téléchargez **IdleRPG-8.0.0-setup.exe** et lancez-le (jeu fermé).
-**Votre partie est conservée.** (La v7.9 pouvait afficher « GitHub injoignable » : installez cette version à la main ;
-les suivantes se mettront à jour depuis **Paramètres → Version et mises à jour**.)
+**Installation ou mise à jour :** **Paramètres → Version et mises à jour → Mettre à jour** (version bureau),
+ou téléchargez **IdleRPG-8.1.0-setup.exe** et lancez-le (jeu fermé). **Votre partie est conservée.**
 
-### Nouveau dans la v8.0
+### Nouveau dans la v8.1
+- **Raccourcis clavier pour tout** : 1…0 onglets, ← → onglet suivant, Espace / A avance auto, V vitesse,
+  Q W E R T boosts, G tout récupérer, M missions, N récompenses, P paramètres, Échap fermer, K ou ? aide.
+- **Clic maintenu** : gardez le clic sur un bouton (acheter, améliorer, invoquer, réclamer…) ; un anneau se
+  remplit autour du curseur, puis le bouton est cliqué en continu jusqu'à ce que vous bougiez la souris.
+- **Codes secrets cumulables** (×100 puis ×100 = ×10 000, chacun avec sa minuterie) et beaucoup de nouveaux codes :
+  plus forts, pour le butin, les objets, les ressources… (les codes actifs sont listés dans les Paramètres).
+- **Fusion automatique** (Inventaire) : 5 objets du même type et de la même rareté fusionnent tout seuls en un
+  objet de rareté supérieure (raretés au choix ; jamais un objet verrouillé, ancestral ou meilleur que l'équipé).
+- **Donjons : rapport d'expédition** — après une défaite, on voit où l'on en était (salle, **PV restants du boss**),
+  et chaque donjon/difficulté garde votre **meilleure tentative** : durée, niveau, équipement et équipe.
+- **Boosts visibles sur la scène** : flammes de rage, éclairs de frénésie, pièces de Midas en orbite, viseur
+  de l'Œil du chasseur, lames fantômes.
+- **Synergies animées** : Bénédiction = halo de lumière au-dessus du chevalier, Pluie de feu = flèches
+  enflammées qui tombent sur les ennemis, Forteresse = dôme protecteur, Cercle arcanique, marques, lames…
+  et **10 nouvelles synergies** (Salve, Pacte des ombres, Chœur sacré, Horde, Mur de boucliers…), annoncées
+  quand elles s'activent.
+- **Invocation animée** : portail, faisceau de la couleur de la meilleure rareté, cartes retournées une à une
+  (éclat doré pour un SSR). Un clic révèle tout.
+- **Cinématiques** au lancement du jeu et à l'arrivée dans chaque nouveau monde (désactivables).
+- **Grand écran** : les ennemis arrivent du bord droit de la scène au lieu d'apparaître au milieu.
+- **Sprites coupés corrigés** et animations retravaillées.
+
+### Corrigés
+- **« GitHub injoignable »** : seconde source (liste des versions publiées) si l'API GitHub est bloquée ou limitée,
+  et la raison exacte est affichée.
+- **Mode barre** : les boosts ne chevauchent plus l'or et le bouton d'agrandissement.
+
+### v8.0
 - **Recyclage automatique qui marche vraiment** : un objet n'est plus protégé parce qu'il a « un peu plus de PV »
   (même avec beaucoup moins d'armure). Le jeu compare maintenant le bilan global **dégâts × robustesse**
   (PV et armure), les stats secondaires départageant les égalités. En mode « Au ramassage », **le sac est aussi

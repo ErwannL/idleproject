@@ -12,3 +12,18 @@ export const BOSS_LORE = {
   boss_phoenix: 'Oiseau de feu éternel qui renaît de ses cendres au cœur du volcan.',
   boss_void_emperor: 'Souverain du néant, il porte une couronne d’étoiles mortes.',
 };
+
+// Cinématiques (v8.1) : une phrase d'ambiance à l'arrivée dans chaque monde.
+export const ZONE_INTRO = {
+  plains: 'Là où tout commence : des plaines paisibles… que les gobelins ont envahies.',
+  forest: 'Sous les arbres noirs, des yeux brillent. La meute vous a déjà senti.',
+  caves: 'Le cristal chante dans l’obscurité. Les morts, eux, ne dorment pas.',
+  desert: 'Le sable brûle et cache des tombeaux. Quelque chose d’immense y respire.',
+  mountains: 'Le vent glacé hurle un nom : celui d’un chevalier qui a trahi son serment.',
+  cursed: 'La terre elle-même saigne. Le roi démoniaque vous attend sur son trône.',
+  swamp: 'L’eau croupie bouillonne. Au fond du marais, un colosse se réveille.',
+  sky: 'Au-dessus des nuages, des îles flottent sous la foudre d’un titan de marbre.',
+  volcano: 'La roche fond, le ciel rougit : le phénix renaît encore et encore.',
+  void: 'Plus de sol, plus d’étoiles. Seul l’empereur du néant règne ici.',
+  abyss: 'Le trône de l’Abysse. Tous les maîtres des mondes reviennent, déchaînés.',
+};

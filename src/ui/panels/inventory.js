@@ -197,6 +197,15 @@ function forge(ui, state) {
     </div>`;
 }
 
+// Fusion automatique (v8.1) : 5 objets identiques (emplacement + rareté) → 1 objet de rareté supérieure.
+function autoFuseEditor(state) {
+  const f = state.ui.autoFuse ?? { on: false, rarities: ['common'] };
+  const chips = RARITIES.slice(0, 3).map((r) => `<button class="btn chip-btn small${f.rarities.includes(r.id) ? ' active' : ''}" data-action="autofuse" data-group="rarities" data-value="${r.id}">${r.label}</button>`).join('');
+  return `<label class="inv-rule" title="Jamais fusionné : objet verrouillé, ancestral, ou meilleur que l'objet porté."><span>Fusion auto :</span>
+      <button class="btn chip-btn small${f.on ? ' active' : ''}" data-action="autofuse" data-group="on">${f.on ? 'Activée' : 'Désactivée'}</button></label>
+    ${f.on ? `<div class="chip-row">${chips}</div>` : ''}`;
+}
+
 // Recyclage automatique : quand (ramassage / sac plein), quelles raretés, quels types d'objets.
 function recycleRuleEditor(state) {
   const rules = recycleRules(state);
@@ -208,6 +217,7 @@ function recycleRuleEditor(state) {
       <select data-action="recycle-mode" aria-label="Recyclage automatique">${Object.entries(RECYCLE_MODES)
         .map(([v, l]) => `<option value="${v}" ${v === rules.mode ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
     ${rules.mode === 'off' ? '' : `<div class="chip-row">${rarities}</div><div class="chip-row">${slots}</div>`}
+    ${autoFuseEditor(state)}
   </div>`;
 }
 

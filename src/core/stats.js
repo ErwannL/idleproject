@@ -3,6 +3,7 @@
 import { BALANCE } from '../data/balance.js';
 import { SLOTS } from '../data/items.js';
 import { collectBonuses } from './bonuses.js';
+import { cheatMultiplier } from './cheats.js';
 
 export function sumEquipmentStats(equipment) {
   const total = { damage: 0, maxHp: 0, armor: 0, attackSpeed: 0 };
@@ -35,7 +36,7 @@ export function computeHeroStats(state, balance = BALANCE, equipment = state.equ
   const milestones = Math.floor(state.upgrades.damage / dmg.milestoneEvery);
   const damage = (hero.baseDamage + state.upgrades.damage * dmg.perLevel + gear.damage)
     * dmg.milestoneMultiplier ** milestones * (1 + bonus.damagePct / 100)
-    * (1 + (balance.level.damagePctPerLevel * levelBonus) / 100);
+    * (1 + (balance.level.damagePctPerLevel * levelBonus) / 100) * cheatMultiplier(state, 'damage');
 
   const upgradeFactor = Math.pow(1 - upgrades.attackSpeed.perLevel, state.upgrades.attackSpeed);
   const gearSpeedPct = Math.max(-50, gear.attackSpeed);
@@ -45,7 +46,7 @@ export function computeHeroStats(state, balance = BALANCE, equipment = state.equ
   const vit = upgrades.vitality;
   const hpMilestones = vit.milestoneEvery ? Math.floor(ups.vitality / vit.milestoneEvery) : 0;
   const maxHp = Math.max(1, (hero.baseMaxHp + ups.vitality * vit.perLevel + gear.maxHp)
-    * (vit.milestoneMultiplier ?? 1) ** hpMilestones * (1 + bonus.maxHpPct / 100) * (1 + (balance.level.hpPctPerLevel * levelBonus) / 100));
+    * (vit.milestoneMultiplier ?? 1) ** hpMilestones * (1 + bonus.maxHpPct / 100) * (1 + (balance.level.hpPctPerLevel * levelBonus) / 100)) * cheatMultiplier(state, 'hp');
   const armor = Math.min(hero.armorCapPct, Math.max(0, gear.armor + bonus.armor + (ups.armor ?? 0) * upgrades.armor.perLevel));
   const regenPct = hero.regenPerSecondPct + bonus.regenPct + (ups.regen ?? 0) * upgrades.regen.perLevel;
   const critChance = Math.min(hero.critCapPct, bonus.critChance + (ups.crit ?? 0) * upgrades.crit.perLevel);

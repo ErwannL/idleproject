@@ -13,6 +13,7 @@ import { rollEvent } from './events.js';
 import { collectItem } from './inventory.js';
 import { addXp, killXp } from './level.js';
 import { generateItem, makeSignatureItem, rarityIndex } from './loot.js';
+import { cheatLoot } from './cheats.js';
 import { recordBossVictory } from './powers.js';
 import { activeSkills, skillCooldown, skillValue } from './skills.js';
 import { computeHeroStats } from './stats.js';
@@ -348,7 +349,9 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
   if (rng.next() < dropChance) {
     const signature = enemy.boss && rng.next() < balance.loot.signatureChance
       ? makeSignatureItem(state, enemy.type, enc.level, rng, balance) : null;
-    const minRarity = enemy.boss || enemy.elite ? balance.loot.bossMinRarity : 'common';
+    const base = enemy.boss || enemy.elite ? balance.loot.bossMinRarity : 'common';
+    const luck = cheatLoot(state).minRarity;
+    const minRarity = luck && rarityIndex(luck) > rarityIndex(base) ? luck : base;
     dropItem(state, world, signature ?? generateItem(state, rng, { level: enc.level, minRarity }, balance), enemy.x, balance);
   }
 
@@ -480,10 +483,14 @@ function heroDies(state, world, balance) {
   hero.dead = true;
   hero.hp = 0;
   hero.respawnTimer = balance.hero.respawnSeconds;
+  // Donjon : on note où l'on en était (salle, PV restants du boss) avant de vider la vague.
+  const boss = state.dungeon ? world.enemies.find((e) => e.boss && !e.summoned) : null;
+  const bossHpPct = boss ? Math.max(0, Math.round((boss.hp / boss.maxHp) * 1000) / 10) : null;
   resetWave(world, balance);
   if (state.dungeon) {
-    const earned = failDungeon(state);
-    emit(world, 'dungeonFailed', { earned });
+    const run = state.dungeon;
+    const earned = failDungeon(state, { bossHpPct });
+    emit(world, 'dungeonFailed', { earned, id: run.id, difficulty: run.difficulty, room: run.room, bossHpPct });
     return;
   }
   if (state.stage > 1) state.stage -= 1;

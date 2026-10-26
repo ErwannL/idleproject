@@ -4,6 +4,14 @@ import { formatDuration } from '../../core/format.js';
 import { escapeHtml } from '../common.js';
 import { getLang } from '../../i18n/i18n.js';
 import { GAME_VERSION } from '../../version.js';
+import { activeCheats } from '../../core/cheats.js';
+
+// Codes actifs : chacun avec son temps restant (ils se cumulent).
+function activeCodes(state) {
+  const list = activeCheats(state);
+  if (!list.length) return '';
+  return `<div class="muted">Actifs : ${list.map((e) => `${escapeHtml(e.code)} ${formatDuration((e.until - Date.now()) / 1000)}`).join(' · ')}</div>`;
+}
 
 // Musique lo-fi / aventure et effets sonores (générés en direct, aucun fichier audio).
 function soundOptions(ui) {
@@ -45,7 +53,7 @@ function versionOptions(ui) {
   let status = '<span class="muted">Pas encore vérifié.</span>';
   if (u.busy) status = '<span class="muted">Vérification…</span>';
   else if (u.status === 'uptodate') status = `<span class="tag-open">À jour</span> <span class="muted">dernière version : ${escapeHtml(rel.version)}</span>`;
-  else if (u.status === 'error') status = '<span class="tag-locked">Hors ligne</span> <span class="muted">GitHub injoignable.</span>';
+  else if (u.status === 'error') status = `<span class="tag-locked">Hors ligne</span> <span class="muted">GitHub injoignable${u.error ? ` (${escapeHtml(u.error)})` : ''}.</span>`;
   else if (u.status === 'available') status = `<span class="tag-new">Nouvelle version ${escapeHtml(rel.version)}</span>`;
   const install = u.status === 'available'
     ? (ui.desktop ? `<button class="btn btn-gold small" data-action="install-update" ${u.installing || !rel.setup ? 'disabled' : ''}>
@@ -59,7 +67,7 @@ function versionOptions(ui) {
       <div class="row-between"><span>Version lancée : <b class="num">${escapeHtml(current)}</b> ${ui.desktop ? '(bureau)' : '(navigateur)'}</span>
         <button class="btn small" data-action="check-update" ${u.busy ? 'disabled' : ''}>Vérifier</button></div>
       <div class="row-between">${status}${install}</div>
-      ${u.error ? `<div class="bad">${escapeHtml(u.error)}</div>` : ''}
+      ${u.error && u.status !== 'error' ? `<div class="bad">${escapeHtml(u.error)}</div>` : ''}
       ${notes}
       <div class="options-row"><button class="btn small" data-action="open-releases">Voir les versions sur GitHub</button></div>
     </div>`;
@@ -90,12 +98,19 @@ export default {
         <label class="toggle"><input type="checkbox" data-action="notify" data-key="loot" ${state.ui.notify?.loot !== false ? 'checked' : ''}> Pop-up « nouveaux objets dans l'inventaire »</label>
         <label class="toggle"><input type="checkbox" data-action="notify" data-key="boss" ${state.ui.notify?.boss !== false ? 'checked' : ''}> Bannières d'arrivée des boss</label>
         <label class="toggle"><input type="checkbox" data-action="notify" data-key="events" ${state.ui.notify?.events !== false ? 'checked' : ''}> Messages des événements (coffres, marchands…)</label>
+        <label class="toggle"><input type="checkbox" data-action="cinematics" ${state.ui.cinematics !== false ? 'checked' : ''}> Cinématiques (lancement du jeu, nouveau monde)</label>
         <label class="toggle"><input type="checkbox" data-action="focus" ${state.ui.focus ? 'checked' : ''}> <b>Mode concentration</b> : moins d'effets visuels et de messages (le jeu continue normalement)</label>
+      </div>
+      <div class="card">
+        <div class="section-title">Raccourcis clavier</div>
+        <div class="row-between"><span class="muted">1…0 onglets · Espace avance auto · V vitesse · Q W E R T boosts · G tout récupérer…</span>
+          <button class="btn small" data-action="show-shortcuts">Tout voir (K)</button></div>
       </div>
       <div class="card">
         <div class="section-title">Code secret</div>
         <div class="row"><input id="cheat-code" class="grow" type="text" maxlength="24" placeholder="Entrer un code…" autocomplete="off">
           <button class="btn small" data-action="cheat">Valider</button></div>
+        ${activeCodes(state)}
       </div>
       ${windowOptions(ui)}
       <div class="card">

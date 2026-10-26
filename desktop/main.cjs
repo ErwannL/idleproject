@@ -14,6 +14,44 @@ const SCHEME = 'app';
 const ORIGIN = `${SCHEME}://game`;
 const RELEASES_API = 'https://api.github.com/repos/ErwannL/idleproject/releases/latest';
 const RELEASES_PAGE = 'https://github.com/ErwannL/idleproject/releases/latest';
+const TAGS_FALLBACK_API = 'https://data.jsdelivr.com/v1/packages/gh/ErwannL/idleproject';
+
+// Dernière release : API GitHub, sinon (bloquée, limite de requêtes…) liste des tags via jsDelivr.
+async function latestRelease() {
+  const errors = [];
+  try {
+    const res = await net.fetch(RELEASES_API, { headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'IdleRPG' } });
+    if (res.ok) {
+      const r = await res.json();
+      return {
+        tag_name: r.tag_name, html_url: r.html_url, body: r.body,
+        assets: (r.assets ?? []).map((a) => ({ name: a.name, browser_download_url: a.browser_download_url, size: a.size })),
+      };
+    }
+    errors.push(`GitHub ${res.status}`);
+  } catch (error) {
+    errors.push(`GitHub : ${error?.message ?? error}`);
+  }
+  try {
+    const res = await net.fetch(TAGS_FALLBACK_API, { headers: { 'User-Agent': 'IdleRPG' } });
+    if (res.ok) {
+      const versions = ((await res.json()).versions ?? []).map((v) => String(v.version ?? v).replace(/^v/i, ''))
+        .filter((v) => /^\d+\.\d+\.\d+$/.test(v)).sort((a, b) => (newerThan(a, b) ? 1 : newerThan(b, a) ? -1 : 0));
+      const version = versions.at(-1);
+      if (version) {
+        const name = `IdleRPG-${version}-setup.exe`;
+        return {
+          tag_name: `v${version}`, html_url: `https://github.com/ErwannL/idleproject/releases/tag/v${version}`, body: '',
+          assets: [{ name, browser_download_url: `https://github.com/ErwannL/idleproject/releases/download/v${version}/${name}`, size: 0 }],
+        };
+      }
+    }
+    errors.push(`jsDelivr ${res.status}`);
+  } catch (error) {
+    errors.push(`jsDelivr : ${error?.message ?? error}`);
+  }
+  return { error: errors.join(' · ') };
+}
 const SIZE_PRESETS = { strip: [520, 150], mini: [420, 300], standard: [460, 640], wide: [960, 720] };
 // v2 : nouvelle interface pensée pour la fenêtre « standard » ; on l'applique une fois aux installations v1.
 const LAYOUT_VERSION = 2;
@@ -130,25 +168,12 @@ function createWindow() {
   });
   // Mise à jour (v7.8) : le processus principal relit lui-même la dernière release GitHub,
   // télécharge l'installateur officiel puis le lance en silencieux et ferme le jeu (sauvegarde comprise).
-  ipcMain.handle('desktop:checkUpdate', async () => {
-    try {
-      const res = await net.fetch(RELEASES_API, { headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'IdleRPG' } });
-      if (!res.ok) return { error: `GitHub ${res.status}` };
-      const r = await res.json();
-      return {
-        tag_name: r.tag_name, html_url: r.html_url, body: r.body,
-        assets: (r.assets ?? []).map((a) => ({ name: a.name, browser_download_url: a.browser_download_url, size: a.size })),
-      };
-    } catch (error) {
-      return { error: String(error?.message ?? error) };
-    }
-  });
+  ipcMain.handle('desktop:checkUpdate', () => latestRelease());
   ipcMain.handle('desktop:openReleases', () => shell.openExternal(RELEASES_PAGE));
   ipcMain.handle('desktop:installUpdate', async () => {
     try {
-      const res = await net.fetch(RELEASES_API, { headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'IdleRPG' } });
-      if (!res.ok) return { ok: false, error: `GitHub ${res.status}` };
-      const release = await res.json();
+      const release = await latestRelease();
+      if (release.error) return { ok: false, error: release.error };
       const version = String(release.tag_name ?? '').replace(/^v/i, '');
       if (!newerThan(version, app.getVersion())) return { ok: false, error: 'Déjà à jour.' };
       const asset = (release.assets ?? []).find((a) => /^IdleRPG-[\d.]+-setup\.exe$/.test(a.name ?? ''));

@@ -1,6 +1,7 @@
 // Rendu de la scène de combat sur un canvas basse résolution agrandi en « pixel perfect ».
 // Le rendu lit l'état de la simulation et ses événements ; il ne modifie jamais la partie.
 import { BALANCE } from '../data/balance.js';
+import { drawTeamFx } from './team-fx.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
 import { RARITIES } from '../data/items.js';
 import { ZONES } from '../data/zones.js';
@@ -133,9 +134,20 @@ export class SceneRenderer {
     return fx;
   }
 
+  // Position à l'écran d'un x du monde. Grand écran (v8.1) : la zone d'approche est étirée pour que
+  // les ennemis apparaissent au bord DROIT de la scène et avancent (au lieu de surgir au milieu).
+  wx(x) {
+    const near = (BALANCE.world.heroX + 70) * WORLD_SCALE;
+    const spawn = BALANCE.world.spawnX * WORLD_SCALE;
+    const sx = x * WORLD_SCALE;
+    const edge = this.width + 24;
+    if (sx <= near || edge <= spawn) return sx;
+    return near + ((sx - near) * (edge - near)) / (spawn - near);
+  }
+
   handleEvent(raw, world) {
     if (world.time - raw.time > STALE_EVENT_SECONDS) return;
-    const event = raw.x === undefined ? raw : { ...raw, x: raw.x * WORLD_SCALE };
+    const event = raw.x === undefined ? raw : { ...raw, x: this.wx(raw.x) };
     const heroX = HERO_X;
     switch (event.type) {
       case 'heroAttack': {
@@ -165,7 +177,7 @@ export class SceneRenderer {
           // Héros allié : pose d'attaque, puis effet de sa couleur sur l'ennemi de tête.
           this.allyAttack.set(companion.id, ALLY_ATTACK_TIME);
           const front = world.enemies[0];
-          const x = front ? front.x * WORLD_SCALE : heroX + 40;
+          const x = front ? this.wx(front.x) : heroX + 40;
           if (['hit', 'burst'].includes(companion.skill?.type)) {
             this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], x - 6, this.groundY + 1, 0.2, { delay: 0.08, tint: companion.fx });
           } else {
@@ -253,14 +265,14 @@ export class SceneRenderer {
       ? heroComposite('idle', { weapon: { baseId: 'fallen_blade', rarity: 'epic' } }, true, 'b', colors, true)
       : spriteCanvas(sprite, { flash: true });
     this.effects.push({
-      kind: 'corpse', img, x: event.x * WORLD_SCALE, w: img.width * scale, h: img.height * scale,
+      kind: 'corpse', img, x: this.wx(event.x), w: img.width * scale, h: img.height * scale,
       fly: this.flyHeight(event.kind, event.boss), life: 0.3, max: 0.3,
     });
     this.enemyFx.delete(event.enemyId);
     const coins = event.boss ? 12 : Math.min(4, 1 + Math.floor(event.gold / 20));
     for (let i = 0; i < coins; i++) {
       this.effects.push({
-        kind: 'coin', x: event.x * WORLD_SCALE + (Math.random() * 10 - 5), y: this.groundY - 14,
+        kind: 'coin', x: this.wx(event.x) + (Math.random() * 10 - 5), y: this.groundY - 14,
         vx: Math.random() * 40 - 20, vy: -40 - Math.random() * 30, life: 0.8, max: 0.8,
       });
     }
@@ -272,14 +284,14 @@ export class SceneRenderer {
     this.hero.cast = CAST_TIME;
     if (event.skillId === 'quick') {
       // Vague d'énergie lancée vers l'ennemi.
-      const target = event.x * WORLD_SCALE;
+      const target = this.wx(event.x);
       this.sprite(['fx_wave'], heroX + 12, G - 10, 0.3, { vx: (target - heroX - 12) / 0.3, delay: 0.05 });
     } else if (event.skillId === 'whirl') {
       this.sprite(['fx_whirl1', 'fx_whirl2', 'fx_whirl1', 'fx_whirl2', 'fx_whirl1', 'fx_whirl2'], heroX, G + 3, 0.4);
     } else if (event.skillId === 'cry') {
       for (let i = 0; i < 6; i++) this.sprite(['fx_spark'], heroX - 18 + i * 7, G - 40 - (i % 3) * 6, 0.5, { delay: i * 0.05, tint: '#ffd23f' });
     } else if (event.skillId === 'holy') {
-      const target = Math.round(event.x * WORLD_SCALE);
+      const target = Math.round(this.wx(event.x));
       this.effects.push({ kind: 'beam', x: target, color: '#ffe680', life: 0.8, max: 0.8, wide: true });
       this.sprite(['fx_burst'], target, G + 1, 0.5, { tint: '#ffe680' });
       this.shake = Math.max(this.shake, 2);
@@ -346,6 +358,7 @@ export class SceneRenderer {
     // Le familier trottine devant le chevalier (sinon il disparaît derrière lui).
     const pet = world.hero.dead ? null : equippedCompanions(state).find((c) => c.kind !== 'ally');
     if (pet) this.drawPet(ctx, world, pet);
+    drawTeamFx(this, ctx, state, world, HERO_X);
     this.drawBackground(ctx, ZONES[zoneIndex], this.smoothScroll(world), true); // premier plan
     this.drawEffects(ctx, dt);
     ctx.restore();
@@ -446,7 +459,7 @@ export class SceneRenderer {
       // comparer les positions entre deux images faisait clignoter l'animation, la simulation avançant par pas).
       const moving = !enemy.engaged;
       const alpha = Math.min(1, world.alpha ?? 1);
-      const ex = ((enemy.prevX ?? enemy.x) + (enemy.x - (enemy.prevX ?? enemy.x)) * alpha) * WORLD_SCALE;
+      const ex = this.wx((enemy.prevX ?? enemy.x) + (enemy.x - (enemy.prevX ?? enemy.x)) * alpha);
 
       const { def, sprite, scale, colors, heroLike, step } = this.enemyLook(enemy.type, enemy.boss, fx.lunge > 0, enemy.id * 0.37, moving);
       // Le Chevalier déchu utilise le corps du héros, retourné, avec une épée sombre.

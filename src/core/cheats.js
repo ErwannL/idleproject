@@ -1,31 +1,107 @@
 // Codes de triche (saisis dans les Paramètres). Ils ne sont pas affichés dans le jeu.
-// - TURBO100 : bonus ×100 (or, XP, événements) pendant 1 h, cumulable avec les autres bonus ;
-// - ORACLE   : révèle quel compagnon SSR est adapté à chaque donjon.
-const CODES = {
-  TURBO100: (state, now) => {
-    state.cheats.boostUntil = now + 3600 * 1000;
-    state.cheats.boostMultiplier = 100;
-    return 'Bonus ×100 activé pendant 1 h !';
-  },
-  ORACLE: (state) => {
-    state.cheats.reveal = true;
-    return 'Les compagnons adaptés aux donjons sont révélés.';
-  },
+// v8.1 : effets à durée limitée CUMULABLES (multiplicatifs) : TURBO100 deux fois = ×10 000.
+// Chaque saisie ajoute un effet avec sa propre minuterie ; les dons immédiats s'ajoutent simplement.
+const MIN = 60 * 1000;
+const H = 60 * MIN;
+
+// kind : boost (or, XP, événements) · damage · hp · loot (chance de butin +x) · luck (rareté minimale)
+const TIMED = {
+  TURBO10: { kind: 'boost', mult: 10, ms: H, label: 'Bonus ×10 (or, XP, événements) pendant 1 h' },
+  TURBO100: { kind: 'boost', mult: 100, ms: H, label: 'Bonus ×100 (or, XP, événements) pendant 1 h' },
+  TURBO1000: { kind: 'boost', mult: 1000, ms: 10 * MIN, label: 'Bonus ×1000 pendant 10 min' },
+  BERSERK: { kind: 'damage', mult: 10, ms: 30 * MIN, label: 'Dégâts ×10 pendant 30 min' },
+  TITAN: { kind: 'hp', mult: 10, ms: 30 * MIN, label: 'PV ×10 pendant 30 min' },
+  GODMODE: { kind: 'godmode', mult: 100, ms: 15 * MIN, label: 'Mode dieu : dégâts et PV ×100 pendant 15 min' },
+  LOOTSTORM: { kind: 'loot', mult: 1, ms: 30 * MIN, label: 'Chaque ennemi laisse un objet pendant 30 min' },
+  LUCKY: { kind: 'luck', mult: 2, ms: 30 * MIN, label: 'Butin Épique ou mieux pendant 30 min' },
+  JACKPOT: { kind: 'luck', mult: 3, ms: 10 * MIN, label: 'Butin Légendaire uniquement pendant 10 min' },
 };
+
+const GIFTS = {
+  GEMRAIN: { label: '+1 000 gemmes', give: (s) => { s.gems += 1000; } },
+  DIAMONDS: { label: '+10 000 gemmes', give: (s) => { s.gems += 10000; } },
+  TICKETS: { label: '+50 tickets d\'invocation', give: (s) => { s.tickets += 50; } },
+  KEYMASTER: { label: '+10 clés de donjon', give: (s) => { s.keys += 10; } },
+  ANCIENT: { label: '+500 fragments anciens', give: (s) => { s.fragments += 500; } },
+  FORGE: { label: '+5 000 éclats et +500 essences', give: (s) => { s.materials.shards += 5000; s.materials.essence += 500; } },
+};
+
+const MAX_EFFECTS = 30;
+const LUCK_RARITY = ['common', 'rare', 'epic', 'legendary'];
 
 // Applique un code ; renvoie le message de succès, ou null si le code est inconnu.
 export function applyCheat(state, code, now = Date.now()) {
-  const fn = CODES[String(code ?? '').trim().toUpperCase()];
-  return fn ? fn(state, now) : null;
+  const key = String(code ?? '').trim().toUpperCase();
+  if (key === 'ORACLE') {
+    state.cheats.reveal = true;
+    return 'Les compagnons adaptés aux donjons sont révélés.';
+  }
+  if (key === 'RESETCODES') {
+    state.cheats.effects = [];
+    return 'Tous les codes actifs sont annulés.';
+  }
+  if (GIFTS[key]) {
+    GIFTS[key].give(state);
+    return `${GIFTS[key].label} !`;
+  }
+  const def = TIMED[key];
+  if (!def) return null;
+  state.cheats.effects = activeCheats(state, now).slice(-(MAX_EFFECTS - 1));
+  state.cheats.effects.push({ code: key, kind: def.kind, mult: def.mult, until: now + def.ms });
+  const total = cheatMultiplier(state, def.kind, now);
+  return def.kind === 'boost' || def.kind === 'damage' || def.kind === 'hp' || def.kind === 'godmode'
+    ? `${def.label} ! (cumulé : ×${formatMult(total)})` : `${def.label} !`;
+}
+
+function formatMult(n) {
+  return n >= 1e6 ? n.toExponential(1).replace('e+', 'e') : n.toLocaleString('fr-FR');
+}
+
+export function activeCheats(state, now = Date.now()) {
+  return (state.cheats?.effects ?? []).filter((e) => e.until > now);
+}
+
+// Produit des multiplicateurs actifs d'un type (cumul multiplicatif). « godmode » compte pour dégâts et PV.
+export function cheatMultiplier(state, kind, now = Date.now()) {
+  let m = 1;
+  for (const e of activeCheats(state, now)) {
+    if (e.kind === kind || (e.kind === 'godmode' && (kind === 'damage' || kind === 'hp'))) m *= e.mult;
+  }
+  return m;
+}
+
+export function cheatSecondsLeft(state, kind, now = Date.now()) {
+  const list = activeCheats(state, now).filter((e) => e.kind === kind);
+  return list.length ? Math.max(...list.map((e) => e.until - now)) / 1000 : 0;
+}
+
+// Chance de butin ajoutée (0..1) et rareté minimale imposée par les codes.
+export function cheatLoot(state, now = Date.now()) {
+  const effects = activeCheats(state, now);
+  const drop = effects.some((e) => e.kind === 'loot') ? 1 : 0;
+  const luck = Math.max(0, ...effects.filter((e) => e.kind === 'luck').map((e) => e.mult));
+  return { drop, minRarity: luck ? LUCK_RARITY[Math.min(3, luck)] : null };
 }
 
 export function sanitizeCheats(raw) {
-  const out = { boostUntil: 0, boostMultiplier: 1, reveal: false };
+  const out = { effects: [], reveal: false };
   if (!raw || typeof raw !== 'object') return out;
+  const kinds = new Set(Object.values(TIMED).map((d) => d.kind));
+  if (Array.isArray(raw.effects)) {
+    for (const e of raw.effects.slice(-MAX_EFFECTS)) {
+      const until = Number(e?.until);
+      const mult = Number(e?.mult);
+      if (kinds.has(e?.kind) && Number.isFinite(until) && until > 0 && Number.isFinite(mult) && mult >= 1 && mult <= 1000) {
+        out.effects.push({ code: String(e.code ?? '').slice(0, 16), kind: e.kind, mult, until });
+      }
+    }
+  }
+  // Ancien format (≤ v8.0) : un seul bonus ×N.
   const until = Number(raw.boostUntil);
-  if (Number.isFinite(until) && until > 0) out.boostUntil = until;
   const m = Number(raw.boostMultiplier);
-  if (Number.isFinite(m) && m >= 1 && m <= 100) out.boostMultiplier = m;
+  if (Number.isFinite(until) && until > 0 && Number.isFinite(m) && m > 1 && m <= 100) {
+    out.effects.push({ code: 'TURBO100', kind: 'boost', mult: m, until });
+  }
   out.reveal = raw.reveal === true;
   return out;
 }

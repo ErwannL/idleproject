@@ -69,10 +69,11 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     dungeon: null,
     dungeonsCleared: {},
     dungeonBest: {}, // meilleure difficulté réussie par donjon (0 facile, 1 normal, 2 difficile)
+    dungeonRuns: {}, // v8.1 : « donjon:difficulté » → { last, best, tries } (rapports d'expédition)
     missions: emptyMissions(),
     prestige: { count: 0, stars: 0, perks: {} },
     rushes: { levels: {}, active: {}, cooldown: {}, auto: false }, // boosts à durée limitée
-    cheats: { boostUntil: 0, boostMultiplier: 1, reveal: false },
+    cheats: { effects: [], reveal: false },
     loadouts: emptyLoadouts(),
     codex: { kills: {}, items: {}, claimed: {} },
     playSeconds: 0, // temps de jeu cumulé (boost des premières heures)
@@ -217,6 +218,19 @@ function cleanActivities(state, raw) {
     // Victoires d'avant les difficultés (≤ v7.6) : elles comptent comme une réussite en Facile.
     else if (n) state.dungeonBest[d.id] = 0;
   }
+  for (const [key, entry] of Object.entries(obj(raw.dungeonRuns))) {
+    const [id, diff] = key.split(':');
+    if (!DUNGEONS.some((d) => d.id === id) || !['easy', 'normal', 'hard'].includes(diff) || !entry || typeof entry !== 'object') continue;
+    const clean = (r) => (r && typeof r === 'object' && Number.isFinite(r.progress) ? {
+      won: r.won === true, room: int(r.room, 1, 1), rooms: int(r.rooms, 1, 1), progress: r.progress,
+      bossHpPct: Number.isFinite(r.bossHpPct) ? r.bossHpPct : null, seconds: int(r.seconds, 0), level: int(r.level, 1, 1),
+      heroLevel: int(r.heroLevel, 1, 1), at: int(r.at, 0),
+      gear: Array.isArray(r.gear) ? r.gear.slice(0, 12).filter((g) => g && typeof g.baseId === 'string').map((g) => ({
+        baseId: g.baseId, name: String(g.name ?? '').slice(0, 60), rarity: String(g.rarity ?? 'common'), level: int(g.level, 1, 1), upgrades: int(g.upgrades, 0) })) : [],
+      team: Array.isArray(r.team) ? r.team.filter((t) => typeof t === 'string').slice(0, 6) : [],
+    } : null);
+    state.dungeonRuns[key] = { last: clean(entry.last), best: clean(entry.best), tries: int(entry.tries, 0) };
+  }
 }
 
 // v7.6 : les mondes passent de 10 à 20 étapes (et la croissance par étape est divisée par 2 en log).
@@ -317,8 +331,13 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
         slots: Array.isArray(rec.slots) ? rec.slots.filter((s) => s in SLOTS) : Object.keys(SLOTS),
       };
     }
+    const af = raw.ui.autoFuse;
+    if (af && typeof af === 'object') {
+      state.ui.autoFuse = { on: af.on === true, rarities: Array.isArray(af.rarities) ? af.rarities.filter((r) => ['common', 'rare', 'epic'].includes(r)) : ['common'] };
+    }
     if (typeof raw.ui.notify === 'object' && raw.ui.notify) state.ui.notify = { ...state.ui.notify, ...raw.ui.notify };
     state.ui.focus = raw.ui.focus === true;
+    if (raw.ui.cinematics === false) state.ui.cinematics = false;
     if ([1, 2, 5, 10].includes(raw.ui.speed)) state.ui.speed = raw.ui.speed;
     if (SORT_OPTIONS.includes(raw.ui.sortBy)) state.ui.sortBy = raw.ui.sortBy;
   }

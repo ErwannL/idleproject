@@ -120,9 +120,9 @@ export function fusionGroups(state, balance = BALANCE) {
 }
 
 // Fusionne les 5 objets les plus faibles du groupe ; le nouvel objet prend le niveau le plus haut.
-export function fuseItems(state, slot, rarity, rng, balance = BALANCE) {
+export function fuseItems(state, slot, rarity, rng, balance = BALANCE, keep = null) {
   const n = balance.forge.fusionCount;
-  const pool = state.inventory.filter((i) => i.slot === slot && i.rarity === rarity && fusable(i))
+  const pool = state.inventory.filter((i) => i.slot === slot && i.rarity === rarity && fusable(i) && !keep?.(i))
     .sort((a, b) => itemPower(a) - itemPower(b));
   if (pool.length < n || rarityIndex(rarity) >= RARITIES.length - 1) return null;
   const used = pool.slice(0, n);
@@ -134,4 +134,28 @@ export function fuseItems(state, slot, rarity, rng, balance = BALANCE) {
   const item = makeItem(state, base.id, RARITIES[rarityIndex(rarity) + 1].id, level, balance, rng);
   addToInventory(state, item, balance);
   return item;
+}
+
+// Fusion automatique (v8.1) : dès que 5 objets du même emplacement et de la même rareté (parmi les raretés
+// choisies) sont dans le sac, ils sont fusionnés. Jamais un objet verrouillé, ancestral ou meilleur que l'équipé.
+export function autoFuse(state, rng, isUpgrade, balance = BALANCE) {
+  const rules = state.ui?.autoFuse;
+  if (!rules?.on || !rules.rarities?.length) return [];
+  const made = [];
+  for (let guard = 0; guard < 50; guard++) {
+    const keep = (i) => isUpgrade(state, i);
+    const counts = new Map();
+    for (const i of state.inventory) {
+      if (!rules.rarities.includes(i.rarity) || !fusable(i) || keep(i)) continue;
+      const k = `${i.slot}|${i.rarity}`;
+      counts.set(k, (counts.get(k) ?? 0) + 1);
+    }
+    const next = [...counts].find(([, c]) => c >= balance.forge.fusionCount);
+    if (!next) break;
+    const [slot, rarity] = next[0].split('|');
+    const item = fuseItems(state, slot, rarity, rng, balance, keep);
+    if (!item) break;
+    made.push(item);
+  }
+  return made;
 }

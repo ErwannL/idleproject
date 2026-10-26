@@ -268,6 +268,12 @@ await check('invocation : un ticket donne un héros ou un compagnon', async () =
   await page.click('[data-action="summon"][data-currency="tickets"]');
   const after = await game(() => ({ t: __idle.state.tickets, n: __idle.state.summon.total }));
   assert(after.t === before.t - 1 && after.n === before.n + 1, JSON.stringify({ before, after }));
+  // Animation d'invocation : un clic révèle tout, un second ferme.
+  await page.waitForSelector('.summon-fx');
+  await page.waitForTimeout(1600);
+  await page.screenshot({ path: `${outDir}/compact-summon-reveal.png` });
+  for (let i = 0; i < 2 && (await page.$('.summon-fx')); i++) await page.click('.summon-fx');
+  assert(!(await page.$('.summon-fx')), 'animation d\'invocation non fermée');
   await page.screenshot({ path: `${outDir}/compact-summon.png` });
 });
 
