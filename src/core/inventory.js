@@ -143,11 +143,28 @@ export function compareWithEquipped(state, item, balance = BALANCE) {
   };
 }
 
-// Amélioration par rapport à l'équipement porté : plus de DPS, ou autant de DPS avec plus de survie.
-export function isUpgrade(state, item, balance = BALANCE) {
+// Amélioration par rapport à l'équipement porté (v8.0) : bilan global DPS × robustesse (PV / (1 − armure)).
+// Avant, « un peu plus de PV » suffisait, même avec beaucoup moins d'armure : presque tout était protégé
+// du recyclage. Les stats secondaires (or, XP, vol de vie, épines, régénération) départagent les égalités.
+const ehp = (s) => s.maxHp / Math.max(0.05, 1 - s.armor / 100);
+const extras = (s) => s.goldPct + s.xpPct + s.lifesteal + s.thorns + (s.regenPerSecond / s.maxHp) * 100;
+export function isUpgrade(state, item, balance = BALANCE, current = computeHeroStats(state, balance)) {
   if (!state.equipment[item.slot]) return true; // emplacement vide (accessoires en particulier)
-  const diff = compareWithEquipped(state, item, balance);
-  return diff.dps > 0.001 || (diff.dps >= -0.001 && (diff.maxHp > 0 || diff.armor > 0));
+  const next = statsWithItem(state, item, balance);
+  const score = Math.log(next.dps / current.dps) + Math.log(ehp(next) / ehp(current));
+  if (Math.abs(score) > 1e-4) return score > 0;
+  return extras(next) > extras(current) + 1e-6;
+}
+
+// Mode « au ramassage » : le sac est aussi trié régulièrement (objets devenus inutiles après un meilleur équipement).
+export function sweepInventory(state, balance = BALANCE) {
+  const rules = recycleRules(state);
+  if (rules.mode !== 'pickup') return { gold: 0, count: 0 };
+  const current = computeHeroStats(state, balance);
+  const doomed = new Set(state.inventory.filter((item) => !item.locked && !itemBase(item.baseId).signature
+    && rules.rarities.includes(item.rarity) && rules.slots.includes(item.slot)
+    && !isUpgrade(state, item, balance, current)).map((i) => i.id));
+  return doomed.size ? recycleMatching(state, (i) => doomed.has(i.id), balance) : { gold: 0, count: 0 };
 }
 
 // Objets proposés au recyclage groupé : rareté au plus `maxRarity`.
@@ -156,8 +173,9 @@ export function isUpgrade(state, item, balance = BALANCE) {
 export const BULK_RECYCLE_MAX = ['common', 'rare', 'epic', 'legendary'];
 export function bulkRecycleCandidates(state, maxRarity = 'common', balance = BALANCE) {
   const limit = rarityIndex(BULK_RECYCLE_MAX.includes(maxRarity) ? maxRarity : 'common');
+  const current = computeHeroStats(state, balance);
   return state.inventory.filter((item) => !item.locked && !itemBase(item.baseId).signature
-    && rarityIndex(item.rarity) <= limit && !isUpgrade(state, item, balance));
+    && rarityIndex(item.rarity) <= limit && !isUpgrade(state, item, balance, current));
 }
 
 // Verrouiller un objet le protège de tout recyclage (simple ou groupé).

@@ -10,6 +10,8 @@ import { escapeHtml, img } from '../common.js';
 // Positions des zones sur la carte peinte (assets/ui/worldmap.png, générée par tools/art/worldmap.py).
 // (tools/art/worldmap_nodes.json, positions relatives des 11 régions sur la carte peinte)
 let mapCenteredAt = null;
+// Largeur de la carte à 100 % (comme l'arbre de talents : taille fixe, zoom 50–250 %, fenêtre qui défile).
+const MAP_PX = 720;
 const MAP_NODES = [
   { x: 0.09, y: 0.8 },
   { x: 0.18, y: 0.56 },
@@ -55,7 +57,7 @@ export default {
     // Glisser la carte pour la déplacer quand elle est zoomée.
     let drag = null;
     vp.addEventListener('pointerdown', (e) => {
-      if (zoom <= 1 || e.button !== 0 || e.target.closest('.map-node')) return;
+      if (e.button !== 0 || e.target.closest('.map-node')) return;
       drag = { x: e.clientX, y: e.clientY, l: vp.scrollLeft, t: vp.scrollTop };
       vp.setPointerCapture(e.pointerId);
       vp.classList.add('dragging');
@@ -100,11 +102,11 @@ export default {
     }
     // Zoom (boutons, molette sur la carte) : la carte s'agrandit dans une fenêtre qu'on fait défiler.
     const zoom = ui.view.mapZoom ?? 1;
-    const tools = `<div class="tree-tools map-tools"><button class="btn small" data-action="map-zoom" data-value="out" title="Dézoomer" ${zoom <= 1 ? 'disabled' : ''}>−</button>
+    const tools = `<div class="tree-tools map-tools"><button class="btn small" data-action="map-zoom" data-value="out" title="Dézoomer">−</button>
         <span class="muted" title="Ctrl + molette pour zoomer, glisser pour déplacer">${Math.round(zoom * 100)} %</span>
-        <button class="btn small" data-action="map-zoom" data-value="in" title="Zoomer" ${zoom >= 3 ? 'disabled' : ''}>+</button>
+        <button class="btn small" data-action="map-zoom" data-value="in" title="Zoomer">+</button>
         <button class="btn small" data-action="map-zoom" data-value="reset" title="Taille normale">⟲</button></div>`;
-    return `${cycles}${tools}<div class="map-viewport${zoom > 1 ? ' zoomed' : ''}" data-sel="${sel}"><div class="world-map" style="width:${zoom * 100}%">
+    return `${cycles}${tools}<div class="map-viewport" data-sel="${sel}"><div class="world-map" style="width:${Math.round(MAP_PX * zoom)}px">
       <img class="px" src="assets/ui/worldmap.png" alt="Carte du monde">${markers}</div></div>
       <div class="card zone-card">
         <div class="row-between"><b>${sel + 1}. ${escapeHtml(ZONES[sel].name)}${cycle ? ` <span class="bad">×${cycle + 1}</span>` : ''}</b>

@@ -173,14 +173,15 @@ test('boss : apparaît au palier et donne un objet garanti', () => {
   assert.equal(state.stage, 6);
 });
 
-test('défaite : retour à l’étape précédente en mode farm, puis reprise', () => {
+test('défaite : retour à l’étape précédente, l’avance automatique reste cochée', () => {
   const state = createNewState(NOW, 1);
   state.maxStage = 40;
   const world = createCombat(state);
   changeStage(state, world, 40);
   run(state, world, 120, new Rng(9));
-  assert.equal(state.autoAdvance, false);
+  assert.equal(state.autoAdvance, true);
   assert.ok(state.stage < 40);
+  state.autoAdvance = false; // mode farm choisi par le joueur, puis reprise
   const stage = state.stage;
   resumeAdvance(state, world);
   assert.equal(state.autoAdvance, true);

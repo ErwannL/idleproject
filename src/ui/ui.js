@@ -56,6 +56,7 @@ function powerChoice(state) {
   }).join('')}</div>`;
 }
 
+const RENDER_THROTTLE_MS = 1000;
 export class UI {
   constructor(root, actions) {
     this.root = root;
@@ -69,6 +70,15 @@ export class UI {
     this.lastHud = {};
     this.newTabs = new Set();
     this.lastLive = 0;
+    // v8.0 : le panneau n'est pas redessiné pendant un clic, ni quand une liste déroulante est ouverte,
+    // et au plus une fois par seconde quand le jeu (et non le joueur) le demande (vitesse ×10 : butin incessant).
+    this.lastRender = 0;
+    this.userAt = 0;
+    this.pointerDown = false;
+    root.addEventListener('pointerdown', () => { this.pointerDown = true; this.userAt = performance.now(); }, { capture: true });
+    window.addEventListener('pointerup', () => { this.pointerDown = false; this.userAt = performance.now(); }, { capture: true });
+    window.addEventListener('pointercancel', () => { this.pointerDown = false; });
+    root.addEventListener('keydown', () => { this.userAt = performance.now(); }, { capture: true });
     this.view = {
       closed: new Set(['weekly', 'monthly']), // sections repliées (missions…)
       upgradeCat: 'combat', invTab: 'bag', selectedItemId: null, bulkRarity: 'common', bulkArmed: false,
@@ -118,6 +128,7 @@ export class UI {
 
   // Aucun onglet ouvert par défaut : un clic ouvre l'onglet, un second clic le referme.
   toggleTab(tab) {
+    this.userAt = performance.now();
     if (this.tab === tab) this.closePanel();
     else this.openTab(tab);
   }
@@ -240,7 +251,7 @@ export class UI {
       case 'claim-mission-bonus': a.claimMissionBonus(value); break;
       case 'claim-login': a.claimLogin(); break;
       case 'claim-all': a.claimAll(); break;
-      case 'map-zoom': local(() => { v.mapZoom = value === 'reset' ? 1 : Math.min(3, Math.max(1, (v.mapZoom ?? 1) * (value === 'in' ? 1.5 : 1 / 1.5))); }); break;
+      case 'map-zoom': local(() => { v.mapZoom = value === 'reset' ? 1 : Math.min(2.5, Math.max(0.5, (v.mapZoom ?? 1) * (value === 'in' ? 1.25 : 0.8))); }); break;
       case 'tree-zoom': local(() => { v.treeZoom = value === 'reset' ? 1 : Math.min(2.5, Math.max(0.5, (v.treeZoom ?? 1) * (value === 'in' ? 1.25 : 0.8))); }); break;
       case 'cycle-sel': local(() => { v.cycleSel = Number(value); v.zoneSel = null; }); break;
       case 'claim-all-events': a.claimAllEvents(); break;
@@ -482,15 +493,19 @@ export class UI {
     this.updateBadges(state);
     this.updateTabs(state);
 
-    if (this.dirty && this.tab) {
+    const now0 = performance.now();
+    const userRecent = now0 - this.userAt < 400;
+    const focus = document.activeElement;
+    const busy = this.pointerDown || (focus && focus.tagName === 'SELECT' && this.$('panel-body').contains(focus));
+    if (this.dirty && this.tab && !this.pointerDown && (userRecent || (!busy && now0 - this.lastRender >= RENDER_THROTTLE_MS))) {
       this.renderPanel(state);
       this.dirty = false;
-    } else if (this.tab) {
+    } else if (this.tab && !this.dirty) {
       this.refreshCosts(state);
       const now = performance.now();
       if (LIVE_PANELS.has(this.tab) && now - this.lastLive > 1000) {
         this.lastLive = now;
-        if (this.liveKey(state) !== this.lastHud.live) this.renderPanel(state);
+        if (!busy && this.liveKey(state) !== this.lastHud.live) this.renderPanel(state);
       }
     }
   }
@@ -597,7 +612,8 @@ export class UI {
     const now = performance.now();
     if (now - (this.lastHud.badgeTime ?? 0) < 500) return;
     this.lastHud.badgeTime = now;
-    const upgrade = state.inventory.some((i) => isUpgrade(state, i));
+    const current = computeHeroStats(state);
+    const upgrade = state.inventory.some((i) => isUpgrade(state, i, undefined, current));
     this.$('inv-badge').classList.toggle('hidden', !upgrade || this.tab === 'inventory');
     this.$('skills-badge').classList.toggle('hidden', skillPointsAvailable(state) < 1 || this.tab === 'skills');
     this.$('contracts-badge').classList.toggle('hidden', !state.contracts.some((c) => c.progress >= c.target) && !missionsClaimable(state));
@@ -656,9 +672,17 @@ export class UI {
   renderPanel(state) {
     const panel = PANELS[this.tab];
     const body = this.$('panel-body');
+    this.lastRender = performance.now();
     const scroll = body.scrollTop;
+    // Les zones défilantes internes (liste d'inventaire, fiche…) gardent aussi leur position.
+    const inner = [...body.querySelectorAll('[class]')].filter((el) => el.scrollTop > 0)
+      .map((el) => [el.className, [...body.getElementsByClassName(el.classList[0])].indexOf(el), el.scrollTop]);
     body.innerHTML = panel.render(this, state);
     body.scrollTop = scroll;
+    for (const [cls, i, top] of inner) {
+      const el = body.getElementsByClassName(cls.split(' ')[0])[i];
+      if (el) el.scrollTop = top;
+    }
     panel.afterRender?.(this, body);
     this.lastHud.extra = panel.extra ? panel.extra(this, state) : '';
     this.$('panel-extra').innerHTML = this.lastHud.extra;

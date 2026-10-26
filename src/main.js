@@ -13,7 +13,7 @@ import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
 import { craftItem, fuseItems, reforgeItem, sharpenItem, upgradeItem } from './core/forge.js';
 import { summon } from './core/gacha.js';
 import { setActiveHero } from './core/heroes.js';
-import { addToInventory, bulkRecycleCandidates, equipItem, recycleItem, recycleMatching, recycleRules, toggleLock } from './core/inventory.js';
+import { addToInventory, bulkRecycleCandidates, equipItem, recycleItem, recycleMatching, recycleRules, sweepInventory, toggleLock } from './core/inventory.js';
 import {
   bossDungeon, bossFirstStage, claimMastery, powerById, powerSlots, rerollPower, resolveReroll, setPowerActive,
 } from './core/powers.js';
@@ -322,7 +322,9 @@ const actions = {
     if (group === 'mode') rules.mode = value;
     else rules[group] = rules[group].includes(value) ? rules[group].filter((v) => v !== value) : [...rules[group], value];
     state.ui.recycle = rules;
-    done(true);
+    // Les nouvelles règles s'appliquent tout de suite aux objets déjà dans le sac.
+    const swept = sweepInventory(state);
+    done(true, swept.count ? `${swept.count} objet${swept.count > 1 ? 's' : ''} recyclé${swept.count > 1 ? 's' : ''} (+${formatNumber(swept.gold)} or)` : null);
   },
   setLanguage(lang) { setLang(lang); ui.invalidate(); },
   cycleSpeed() {
@@ -354,12 +356,16 @@ const actions = {
     ui.updateInfo = { ...ui.updateInfo, busy: true };
     ui.invalidate();
     let release = null;
+    let error = null;
     try {
-      const res = await fetch(RELEASES_API, { headers: { Accept: 'application/vnd.github+json' } });
-      if (res.ok) release = parseRelease(await res.json());
-    } catch { /* hors ligne */ }
+      // Version bureau : requête faite par le processus principal (pas de restriction réseau de la page).
+      const json = window.desktop?.checkUpdate ? await window.desktop.checkUpdate()
+        : await fetch(RELEASES_API).then((res) => (res.ok ? res.json() : { error: `GitHub ${res.status}` }));
+      if (json?.error) error = json.error;
+      else release = parseRelease(json);
+    } catch (e) { error = String(e?.message ?? e); }
     const current = ui.desktop?.version ?? GAME_VERSION;
-    ui.updateInfo = { busy: false, release, status: updateStatus(current, release), checkedAt: Date.now() };
+    ui.updateInfo = { busy: false, release, status: updateStatus(current, release), checkedAt: Date.now(), error: release ? null : error };
     if (ui.updateInfo.status === 'available') ui.toast(`Mise à jour ${release.version} disponible (Paramètres)`, '#7fe0ff');
     else if (!quiet) ui.toast(ui.updateInfo.status === 'uptodate' ? 'Le jeu est à jour.' : 'Impossible de joindre GitHub.', ui.updateInfo.status === 'uptodate' ? '#8ef0a0' : '#ff8a8a');
     ui.invalidate();
@@ -437,6 +443,7 @@ else save();
 let lastWall = Date.now();
 let accumulator = 0;
 let lastMissionCheck = 0;
+let lastSweep = 0;
 function tick() {
   const now = Date.now();
   // Réinitialisations journalières / hebdomadaires / mensuelles et connexion du jour.
@@ -462,6 +469,11 @@ function tick() {
   // Fraction du pas en cours : le rendu interpole les positions entre deux pas (mouvement fluide).
   world.alpha = accumulator / stepSeconds;
   world.heroStats = computeHeroStats(state);
+  // Recyclage « au ramassage » : le sac est trié toutes les 3 s (objets devenus moins bons que l'équipement).
+  if (now - lastSweep >= 3000) {
+    lastSweep = now;
+    if (sweepInventory(state).count) ui.invalidate();
+  }
   if (now - lastSave >= BALANCE.autosaveSeconds * 1000) save();
 }
 setInterval(tick, SIM_INTERVAL_MS);
@@ -502,6 +514,7 @@ window.addEventListener('pagehide', save);
 window.__idle = {
   get state() { return state; },
   get world() { return world; },
+  ui,
   loadSource: loaded.source,
   save,
   actions,

@@ -1,10 +1,26 @@
-## Idle RPG v7.9.0 — mises à jour en jeu, vitesse des combats, menus pixel art
+## Idle RPG v8.0.0 — recyclage automatique fiable, menus stables en ×10, carte zoomable
 
-**Installation ou mise à jour :** téléchargez **IdleRPG-7.9.0-setup.exe** et lancez-le (jeu fermé).
-L'installation se fait en un clic et remplace l'ancienne version ; **votre partie est conservée**.
-À partir de la v7.9, les mises à jour suivantes s'installent **directement depuis le jeu** (Paramètres).
+**Installation ou mise à jour :** téléchargez **IdleRPG-8.0.0-setup.exe** et lancez-le (jeu fermé).
+**Votre partie est conservée.** (La v7.9 pouvait afficher « GitHub injoignable » : installez cette version à la main ;
+les suivantes se mettront à jour depuis **Paramètres → Version et mises à jour**.)
 
-### Nouveau dans la v7.9 (contient la v7.8, jamais publiée)
+### Nouveau dans la v8.0
+- **Recyclage automatique qui marche vraiment** : un objet n'est plus protégé parce qu'il a « un peu plus de PV »
+  (même avec beaucoup moins d'armure). Le jeu compare maintenant le bilan global **dégâts × robustesse**
+  (PV et armure), les stats secondaires départageant les égalités. En mode « Au ramassage », **le sac est aussi
+  trié toutes les 3 s** (objets devenus moins bons qu'un nouvel équipement), et changer les règles les applique
+  tout de suite aux objets déjà dans le sac. Les objets verrouillés et uniques restent toujours protégés.
+- **Avancer automatiquement ne se décoche plus** quand le héros meurt : il recule d'une étape, la refait,
+  puis retente tout seul. Le mode farm ne s'active que si vous le choisissez.
+- **Menus stables en vitesse ×10** : le panneau n'est plus redessiné pendant un clic ni quand une liste
+  déroulante est ouverte, au plus une fois par seconde quand c'est le jeu qui le demande, et les listes
+  internes (inventaire…) gardent leur position de défilement. Le jeu est aussi plus léger avec un sac plein.
+- **Carte du monde zoomable comme l'arbre de talents** : fenêtre qui défile, zoom 50 % à 250 %
+  (− / + / ⟲ ou Ctrl + molette), glisser pour se déplacer, centrage sur la zone choisie.
+- **Mises à jour** : dans la version bureau, la vérification passe par le programme lui-même (et non plus
+  par la page), ce qui corrige « GitHub injoignable » ; en cas d'échec, la raison exacte est affichée.
+
+### v7.9 (contient la v7.8, jamais publiée)
 - **Version et mises à jour** (Paramètres) : affiche la version lancée, vérifie la dernière version publiée sur
   GitHub (aussi au lancement) et, dans la version bureau, **télécharge et installe la mise à jour en un clic**
   (sauvegarde puis redémarrage automatique). Notes de version consultables avant d'installer.
@@ -19,7 +35,7 @@ L'installation se fait en un clic et remplace l'ancienne version ; **votre parti
 - **Donjons** : chaque difficulté indique clairement comment la débloquer (terminer **ce** donjon dans la
   difficulté précédente, chaque donjon séparément), ✔ sur les difficultés réussies.
 
-### Corrigés
+### Corrigés en v7.9
 - **Version bureau : plantage au démarrage** de la v7.8 (« ui.update is not a function ») corrigé avant publication.
 - **Codes de triche** qui ne faisaient plus rien (ainsi que l'activation/amélioration manuelle des boosts).
 - **Victoires de donjon d'avant la v7.7** : elles débloquent maintenant la difficulté Normal.

@@ -560,10 +560,8 @@ button.chip:hover { border-color: var(--line-2); }
 /* Carte du monde. */
 .world-map { position: relative; border: 1px solid #5c4a2c; border-radius: var(--radius); overflow: hidden; }
 .world-map > img { display: block; width: 100%; height: auto; }
-.map-viewport { overflow: hidden; border-radius: var(--radius); }
-.map-viewport.zoomed { overflow: auto; max-height: min(58vh, 520px); overscroll-behavior: contain; }
-.map-viewport .world-map { max-width: none; }
-.map-viewport.zoomed .world-map { cursor: grab; }
+.map-viewport { overflow: auto; max-height: min(58vh, 520px); border-radius: var(--radius); overscroll-behavior: contain; background: #0b1020; }
+.map-viewport .world-map { max-width: none; margin: 0 auto; cursor: grab; }
 .map-viewport.dragging .world-map { cursor: grabbing; }
 .map-viewport .world-map > img { -webkit-user-drag: none; user-select: none; }
 .map-node { position: absolute; transform: translate(-50%, -10%); padding: 0; background: none; border: none; cursor: pointer; }

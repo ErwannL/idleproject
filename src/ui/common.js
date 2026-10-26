@@ -25,8 +25,8 @@ export const affixText = (affix) => AFFIXES[affix.type].label(affix.value);
 
 export const rarityLabel = (id) => rarityById(id).label;
 
-export function itemFrame(item, { selected = false, showUp = false, equipped = false, state = null, tag = 'button', action = 'select-item' } = {}) {
-  const up = showUp && state && isUpgrade(state, item);
+export function itemFrame(item, { selected = false, showUp = false, equipped = false, state = null, tag = 'button', action = 'select-item', current } = {}) {
+  const up = showUp && state && isUpgrade(state, item, undefined, current);
   const attrs = tag === 'button' ? `data-action="${action}" data-id="${item.id}"` : '';
   const signature = itemBase(item.baseId).signature;
   return `<${tag} class="item-frame r-${item.rarity}${selected ? ' selected' : ''}${signature ? ' signature' : ''}" ${attrs}

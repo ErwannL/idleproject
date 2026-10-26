@@ -130,6 +130,19 @@ function createWindow() {
   });
   // Mise à jour (v7.8) : le processus principal relit lui-même la dernière release GitHub,
   // télécharge l'installateur officiel puis le lance en silencieux et ferme le jeu (sauvegarde comprise).
+  ipcMain.handle('desktop:checkUpdate', async () => {
+    try {
+      const res = await net.fetch(RELEASES_API, { headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'IdleRPG' } });
+      if (!res.ok) return { error: `GitHub ${res.status}` };
+      const r = await res.json();
+      return {
+        tag_name: r.tag_name, html_url: r.html_url, body: r.body,
+        assets: (r.assets ?? []).map((a) => ({ name: a.name, browser_download_url: a.browser_download_url, size: a.size })),
+      };
+    } catch (error) {
+      return { error: String(error?.message ?? error) };
+    }
+  });
   ipcMain.handle('desktop:openReleases', () => shell.openExternal(RELEASES_PAGE));
   ipcMain.handle('desktop:installUpdate', async () => {
     try {

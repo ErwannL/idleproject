@@ -136,7 +136,7 @@ function bag(ui, state) {
     <div class="card inv-list">
       <div class="row-between"><div class="section-title">Inventaire</div><span class="inv-count${full ? ' full' : ''}">${state.inventory.length}/${BALANCE.loot.inventorySize}</span></div>
       <div class="inv-filters">${filters}</div>
-      <div class="inv-grid">${items.map((i) => itemFrame(i, { selected: i.id === ui.view.selectedItemId, showUp: true, state })).join('')
+      <div class="inv-grid">${items.map((i) => itemFrame(i, { selected: i.id === ui.view.selectedItemId, showUp: true, state, current: st })).join('')
         || '<div class="inv-empty">Aucun objet ici. Les ennemis laissent parfois tomber de l\'équipement.</div>'}</div>
       <div class="inv-footer">
         <select data-action="sort" aria-label="Trier">${sortOptions}</select>

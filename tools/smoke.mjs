@@ -314,6 +314,25 @@ await check('forge : fabriquer un objet avec des éclats', async () => {
   await page.click('[data-action="inv-tab"][data-value="bag"]');
 });
 
+await check('vitesse ×10 : l’inventaire reste cliquable (pas de redessin pendant le clic)', async () => {
+  await game(() => { __idle.state.ui.speed = 10; for (let i = 0; i < 4; i++) __idle.addItem('iron_helm', 'common', 1).locked = true; });
+  if (await game(() => __idle.ui.tab !== 'inventory')) await page.click('#tabs button[data-tab="inventory"]');
+  await page.waitForSelector('.inv-grid .item-frame', { timeout: 5000 }).catch(async (e) => {
+    const dbg = await game(() => ({ tab: __idle.ui.tab, dirty: __idle.ui.dirty, pd: __idle.ui.pointerDown, inv: __idle.state.inventory.length,
+      html: document.querySelector('#panel-body').innerHTML.slice(0, 200) }));
+    throw new Error(`${e.message} ${JSON.stringify(dbg)}`);
+  });
+  for (let i = 0; i < 5; i++) {
+    const ids = await page.$$eval('.inv-grid .item-frame', (els) => els.map((e) => e.dataset.id));
+    const id = ids[i % ids.length];
+    await page.click(`.inv-grid [data-id="${id}"]`);
+    await page.waitForTimeout(150);
+    const sel = await game(() => window.__idle.ui.view.selectedItemId);
+    assert(sel === id, `sélection ${sel} ≠ ${id}`);
+  }
+  await game(() => { __idle.state.ui.speed = 1; });
+});
+
 await check('donjon : entrer avec une clé puis abandonner', async () => {
   await game(() => { __idle.state.maxStage = Math.max(__idle.state.maxStage, 25); __idle.state.keys = Math.max(1, __idle.state.keys); });
   await waitFor(() => !document.querySelector('#tabs button[data-tab="dungeons"]').classList.contains('hidden'), 3000);

@@ -891,6 +891,7 @@ const tr = (s) => translate(s);
 // --- Motifs (textes construits par les gabarits) --------------------------------------------------
 
 export const PATTERNS = [
+  [/^(\d+) objets? recyclés? \(\+(.+) or\)$/, '$1 item(s) recycled (+$2 gold)'],
   // v7.8
   [/^Vitesse des combats ×(\d+)$/, 'Combat speed ×$1'],
   [/^Version lancée :$/, 'Running version:'],

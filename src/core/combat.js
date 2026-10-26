@@ -471,7 +471,8 @@ function castCompanion(state, world, companion, stats, rng, balance, enc, front)
   emit(world, 'companionSkill', { companionId: companion.id });
 }
 
-// Défaite : en campagne, le héros recule d'une étape et passe en mode farm ;
+// Défaite : en campagne, le héros recule d'une étape (v8.0 : l'avance automatique reste active,
+// il refait l'étape précédente puis retente — elle ne se décoche plus toute seule) ;
 // en donjon, l'expédition s'arrête (les salles gagnées restent acquises).
 function heroDies(state, world, balance) {
   const hero = world.hero;
@@ -485,7 +486,6 @@ function heroDies(state, world, balance) {
     emit(world, 'dungeonFailed', { earned });
     return;
   }
-  state.autoAdvance = false;
   if (state.stage > 1) state.stage -= 1;
   state.kills = 0;
   emit(world, 'heroDeath', { from, to: state.stage });
