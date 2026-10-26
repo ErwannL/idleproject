@@ -42,6 +42,7 @@ import { applyLoadout, saveLoadout } from './core/loadouts.js';
 import { claimCollection } from './core/codex.js';
 import { setLang, startAutoTranslate, t } from './i18n/i18n.js';
 import { GAME_VERSION } from './version.js';
+import { BUILT_IN_TOKEN } from './core/update-token.js';
 import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagList, updateStatus } from './core/update.js';
 
 const SIM_INTERVAL_MS = 100;
@@ -113,11 +114,12 @@ function done(ok, message = null, color = null) {
 }
 
 const TOKEN_KEY = 'idle-rpg.github-token';
+// Jeton du joueur (Paramètres) en priorité, sinon celui intégré à l'installateur (secret de compilation).
 function githubToken() {
-  try {
-    const t = localStorage.getItem(TOKEN_KEY) ?? '';
-    return /^[A-Za-z0-9_]{20,255}$/.test(t) ? t : '';
-  } catch { return ''; }
+  const ok = (t) => /^[A-Za-z0-9_]{20,255}$/.test(t ?? '');
+  let own = '';
+  try { own = localStorage.getItem(TOKEN_KEY) ?? ''; } catch { /* stockage indisponible */ }
+  return ok(own) ? own : ok(BUILT_IN_TOKEN) ? BUILT_IN_TOKEN : '';
 }
 
 const actions = {

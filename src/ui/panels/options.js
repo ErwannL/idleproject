@@ -4,6 +4,7 @@ import { formatDuration } from '../../core/format.js';
 import { escapeHtml } from '../common.js';
 import { getLang } from '../../i18n/i18n.js';
 import { GAME_VERSION } from '../../version.js';
+import { BUILT_IN_TOKEN } from '../../core/update-token.js';
 import { activeCheats } from '../../core/cheats.js';
 
 // Codes actifs : chacun avec son temps restant (ils se cumulent).
@@ -50,6 +51,7 @@ function windowOptions(ui) {
 function privateRepoHelp(u) {
   let has = false;
   try { has = Boolean(localStorage.getItem('idle-rpg.github-token')); } catch { /* indisponible */ }
+  if (BUILT_IN_TOKEN && !has && u.status !== 'error') return ''; // jeton intégré à l'installateur : rien à faire
   const show = has || (u.status === 'error' && /404/.test(u.error ?? ''));
   if (!show) return '';
   return `<details class="update-notes" ${has ? '' : 'open'}><summary>Dépôt privé : comment activer les mises à jour</summary>

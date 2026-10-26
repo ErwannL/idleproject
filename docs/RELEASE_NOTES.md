@@ -15,8 +15,9 @@
   et des attaques spectaculaires.
 - **Animation d'invocation seulement pour une nouveauté** (personnage ou familier jamais obtenu) ; les doublons s'affichent directement.
 - **Fusion automatique aussi dans la Forge** (à côté de la fusion manuelle).
-- **Mises à jour avec un dépôt privé** : Paramètres → Version et mises à jour → « Dépôt privé » : collez un jeton
-  GitHub en lecture seule (gardé uniquement sur ce PC) pour vérifier et installer les mises à jour.
+- **Mises à jour avec un dépôt privé** : un jeton GitHub en lecture seule peut être intégré à l'installateur à la
+  compilation (secret « UPDATE_TOKEN » du dépôt, jamais écrit dans le code) ; sinon, Paramètres → Version et
+  mises à jour → « Dépôt privé » pour coller un jeton (gardé uniquement sur ce PC).
 
 ### Corrigés
 - **Achats** : « Améliorer » ne faisait rien sur les objets ancestraux et accessoires sans statistique de base

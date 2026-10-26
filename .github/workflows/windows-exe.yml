@@ -34,6 +34,18 @@ jobs:
       - name: Tests unitaires
         run: npm test
 
+      - name: Intégrer le jeton de mise à jour (secret UPDATE_TOKEN, jamais dans le dépôt)
+        shell: bash
+        env:
+          UPDATE_TOKEN: ${{ secrets.UPDATE_TOKEN }}
+        run: |
+          if [[ "$UPDATE_TOKEN" =~ ^[A-Za-z0-9_]{20,255}$ ]]; then
+            printf "export const BUILT_IN_TOKEN = '%s';\n" "$UPDATE_TOKEN" > src/core/update-token.js
+            echo "Jeton de mise à jour intégré."
+          else
+            echo "Pas de secret UPDATE_TOKEN : installateur sans jeton intégré."
+          fi
+
       - name: Construire l'installateur Windows
         run: npm run dist:win
         env:
