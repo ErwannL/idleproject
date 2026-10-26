@@ -18,7 +18,7 @@ trois images sur exactement le même canvas. Tournés vers la GAUCHE, pieds sur 
 import math
 
 from bosses_hard import (Layer, stamp, mask_of, shade, spoly, ball, tube, horn, arc_fx, lens, glow_ring,
-                         dots, sparkle, finalize, clipped, flame_tongue, OUT, WHITE)
+                         dots, sparkle, finalize, clipped, flame_tongue, OUT, WHITE, frames_boxed)
 
 GOLD = ['#6a3414', '#b0661a', '#e0a630', '#ffd86a', '#fff6c8']
 
@@ -1600,11 +1600,7 @@ def sky_titan(f):
 # ======================================================================= export
 
 def frames(fn):
-    out = []
-    for f in (0, 1, 2):
-        c, (w, h) = fn(f)
-        out.append((finalize(c, w, h), clipped(c, w, h)))
-    return out
+    return frames_boxed(fn)
 
 
 BOSSES = {

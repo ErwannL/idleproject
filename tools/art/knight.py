@@ -308,7 +308,8 @@ def spine_fill(c, spine, widths, shade, only_inside=False):
 
 
 # Épine du panache : part du cimier, monte, puis retombe en arrière en s'enroulant.
-PLUME_SPINE = [(20.5, 9), (21.5, 4), (18, 1.4), (12, 2.0), (7, 4.6), (3.6, 8.6), (1.8, 13.5), (1.6, 17.5)]
+# queue du panache décalée de 1 à 2 px vers la droite : elle ne touche plus le bord gauche du calque (48 px imposés)
+PLUME_SPINE = [(20.5, 9), (21.5, 4), (18, 1.4), (12, 2.0), (7.6, 4.6), (4.8, 8.6), (3.6, 13.5), (3.4, 17.5)]
 PLUME_W = [2.4, 3.8, 4.6, 5.0, 4.8, 4.0, 2.8, 0.9]
 LOCK_SPINE = [(12, 9), (7.5, 11), (5, 15), (5, 20), (7, 23)]
 LOCK_W = [2.6, 3.2, 3.0, 2.0, 0.7]
@@ -407,7 +408,7 @@ def helmet_helm():
         if s > 0.5:
             return RAR[0]
         return RAR[1]
-    spine = [(21, 8), (20, 4), (16, 2.5), (11, 3.5), (7.5, 7), (6.5, 11)]
+    spine = [(21, 8), (20, 4.8), (16, 3.9), (11, 4.5), (7.5, 7.4), (6.5, 11)]  # crête abaissée d'1 px : contour non coupé
     plume(c, crest_shade, spine, [1.8, 2.8, 3.0, 2.6, 2.0, 0.8])
     part = layer()
     dome(part, [ITEM[0], ITEM[1], ITEM[2], ITEM[3], ITEM[3]])
@@ -537,7 +538,7 @@ def cape(frame):
     left = []
     for y in range(24, 43):
         u = (y - 24) / 18
-        x = 10 - 9.5 * math.sin(u * math.pi / 2) ** 0.8 + 1.1 * math.sin(y * 0.55 + ph) * u
+        x = 10 - 8.2 * math.sin(u * math.pi / 2) ** 0.8 + 1.1 * math.sin(y * 0.55 + ph) * u  # bord gauche dans le calque
         left.append((x, y))
     hem = []
     x0 = left[-1][0]
@@ -916,13 +917,29 @@ def fx_hit():
 
 # ---------------------------------------------------------------- assemblage
 
+def _tall(fn):
+    """Dessine fn() sur des calques à marge puis recadre : largeur W, agrandi vers le haut si besoin."""
+    global layer
+    from lib import PadCanvas
+    old = layer
+    layer = lambda: PadCanvas(W, H, 16)  # noqa: E731
+    try:
+        c = fn()
+    finally:
+        layer = old
+    top = max(0, 16 - c.bounds()[1])
+    return c.crop_box((0, -top, W - 1, H - 1))
+
+
 def build():
     """Renvoie {nom: (canvas, extra)}."""
     out = {}
     for pose in POSES:
         cv, extra = body(pose)
         out[f'hero_{pose}'] = (cv, extra)
-    out['helmet_default'] = (helmet_default(), {'oy': 0})
+    # casque par défaut : le panache dépasse au-dessus du calque -> calque plus haut, remonté par oy (< 0)
+    tall = _tall(helmet_default)
+    out['helmet_default'] = (tall, {'oy': H - tall.h})
     out['helmet_helm'] = (helmet_helm(), {'oy': 0})
     out['helmet_hood'] = (helmet_hood(), {'oy': 0})
     out['armor_mail'] = (armor_mail(), {'oy': 0})

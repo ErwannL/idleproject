@@ -1143,7 +1143,8 @@ def _check_and_crop(res):
 
 
 def frames(fn):
-    return [_check_and_crop(fn(f)) for f in (0, 1, 2)]
+    from bosses_hard import frames_boxed
+    return frames_boxed(fn)
 
 
 BOSSES = {

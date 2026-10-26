@@ -11,7 +11,7 @@ trois images recadrées sur la même boîte. Tournés vers la GAUCHE, pieds sur 
 """
 import math
 
-from enemies import (Canvas, part, mask_of, shade_mask, spoly, sell, sline, slime_body, crop_to,
+from enemies import (group_box, Canvas, part, mask_of, shade_mask, spoly, sell, sline, slime_body, crop_to,
                      OUT, INK, WHITE, GOLD, RED_GEM, BLUE_GEM, BONE, DSTEEL, LEATHER, dk)
 
 # ---------------------------------------------------------------- outils
@@ -53,8 +53,7 @@ def triple(draw, fx=None, limit=None):
         if fx:
             fx(c, f)
         frames.append(c)
-    bs = [c.bounds() for c in frames]
-    box = (min(b[0] for b in bs), min(b[1] for b in bs), max(b[2] for b in bs), max(b[3] for b in bs))
+    box = group_box(frames)
     out = [reduce_colors(crop_to(c, box)) for c in frames]
     if limit:
         w, h = out[0].w, out[0].h

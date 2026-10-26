@@ -8,10 +8,11 @@ Couleurs fixes (pas de calques teintables).
 """
 import math
 
-from lib import Canvas, mix
+from lib import Canvas, PadCanvas, mix
 
 W, H = 40, 40
 G = 39  # ligne des pieds
+PADX = 16  # marge invisible des calques : rien n'est coupé au bord (recadrage dans allies_anim)
 OUT = '#1a1226'
 INK = '#1a1226'
 WHITE = '#fbfbff'
@@ -57,7 +58,7 @@ EYE_BROWN = ('#2e1408', '#6a3a1a', '#b07a3a')
 # ---------------------------------------------------------------- outils
 
 def L():
-    return Canvas(W, H)
+    return PadCanvas(W, H, PADX)
 
 
 def stamp(dst, src, outline=OUT):
@@ -69,7 +70,8 @@ def stamp(dst, src, outline=OUT):
 
 
 def mask(c):
-    return {(x, y) for y in range(c.h) for x in range(c.w) if c.px[y][x] is not None}
+    p = getattr(c, 'pad', 0)
+    return {(x - p, y - p) for y in range(c.h) for x in range(c.w) if c.px[y][x] is not None}
 
 
 def m_poly(pts):
@@ -428,8 +430,8 @@ def arc(c, center, r, a0, a1, cols, th=2.0):
     """Arc d'effet (traînée de coup) entre deux angles (degrés, 0 = droite, sens horaire)."""
     cx, cy = center
     part = L()
-    for y in range(H):
-        for x in range(W):
+    for y in range(-PADX, H + PADX):
+        for x in range(-PADX, W + PADX):
             dx, dy = x + 0.5 - cx, y + 0.5 - cy
             d = math.hypot(dx, dy)
             a = math.degrees(math.atan2(dy, dx))
@@ -1042,8 +1044,8 @@ ALLIES = [('squire', squire), ('mercenary', mercenary), ('ranger', ranger), ('py
 def build():
     """Renvoie {nom: (canvas, extra)}."""
     out = {}
-    for aid, fn in ALLIES:
-        out[f'ally_{aid}'] = (fn('idle'), {})
-        out[f'ally_{aid}_b'] = (fn('b'), {})
-        out[f'ally_{aid}_atk'] = (fn('atk'), {})
+    for aid, fn in ALLIES:  # cadre d'origine ici ; allies_anim les recadre sans rien couper
+        out[f'ally_{aid}'] = (fn('idle').crop_logical(), {})
+        out[f'ally_{aid}_b'] = (fn('b').crop_logical(), {})
+        out[f'ally_{aid}_atk'] = (fn('atk').crop_logical(), {})
     return out

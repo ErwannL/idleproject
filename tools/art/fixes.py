@@ -171,7 +171,11 @@ def dragon_walk(f):
 
 
 def boss_ash_dragon():
-    return [BM._check_and_crop(dragon_walk(f))[0] for f in (0, 1)]
+    """Repos + marche + attaque d'origine, recadrés sur une même boîte qui ne coupe rien (souffle compris)."""
+    res = [dragon_walk(0), dragon_walk(1), BM.dragon(2)]
+    w, h = res[0][1]
+    box = BH.group_box([c for c, _ in res], w, h)
+    return [BH.finalize_box(c, box) for c, _ in res]
 
 
 # ================================================================ LOUPS (ennemis normaux, 34×24)
@@ -753,13 +757,10 @@ def werewolf_walk(f):
 
 
 def hard_werewolf():
-    out = []
-    for f in (0, 1):
-        c, (w, h) = werewolf_walk(f)
-        oc, (ow, oh) = BH.werewolf(f)
-        assert BH.clipped(c, w, h) <= BH.clipped(oc, ow, oh) + 4, 'hors cadre'
-        out.append(BH.finalize(c, w, h))
-    return out
+    res = [werewolf_walk(0), werewolf_walk(1), BH.werewolf(2)]
+    w, h = res[0][1]
+    box = BH.group_box([c for c, _ in res], w, h)
+    return [BH.finalize_box(c, box) for c, _ in res]
 
 
 # ================================================================ export
@@ -778,7 +779,9 @@ def build():
     """Repos + 2e image de marche corrigés ; les images _atk d'origine restent celles des autres modules."""
     out = {}
     for name, fn in FIXES.items():
-        a, b = fn()
-        out[name] = (a, {})
-        out[name + '_b'] = (b, {})
+        frames = fn()
+        out[name] = (frames[0], {})
+        out[name + '_b'] = (frames[1], {})
+        if len(frames) > 2:  # attaque d'origine recadrée sur la nouvelle boîte commune
+            out[name + '_atk'] = (frames[2], {})
     return out

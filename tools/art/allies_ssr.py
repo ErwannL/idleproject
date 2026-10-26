@@ -9,11 +9,12 @@ Couleurs hexadécimales fixes uniquement (pas de calques teintables).
 """
 import math
 
-from lib import Canvas
+from lib import Canvas, PadCanvas
 from knight import ball, limb, spine_fill
 
 W, H = 48, 48
 GROUND = 47
+PADX = 16  # marge invisible : rien n'est coupé au bord (recadrage dans allies_anim)
 OUT = '#1a1226'
 WHITE = '#ffffff'
 LIGHT = (-0.6, -0.8)
@@ -34,7 +35,7 @@ LIGHTB = ['#5a78c8', '#98b8f2', '#d0e4ff', '#f2f8ff', '#ffffff']
 # ---------------------------------------------------------------- outils
 
 def new():
-    return Canvas(W, H)
+    return PadCanvas(W, H, PADX)
 
 
 def stamp(dst, src, outline=OUT):
@@ -178,9 +179,9 @@ def head(c, hx, hy, hair, iris, mouth='smile', fringe=DEFAULT_FRINGE, brows=None
     # frange / calotte : pixels de la masse au-dessus de la ligne de frange, et tout l'arrière
     bangs = new()
     x0 = int(hx - 2.5)
-    for y in range(H):
-        for x in range(W):
-            col = hb.px[y][x]
+    for y in range(-PADX, H + PADX):
+        for x in range(-PADX, W + PADX):
+            col = hb.get(x, y)
             if col is None:
                 continue
             u = x - x0
@@ -193,14 +194,14 @@ def head(c, hx, hy, hair, iris, mouth='smile', fringe=DEFAULT_FRINGE, brows=None
     # texture : anneau de lumière (reflet d'anime), mèches sombres vers les pointes de la frange
     bx, by, brx, bry = hx - 0.6, hy - 1.4, 8.2, 7.8
     hairset = set(hair)
-    for y in range(H):
-        for x in range(W):
-            if bangs.px[y][x] is None:
+    for y in range(-PADX, H + PADX):
+        for x in range(-PADX, W + PADX):
+            if bangs.get(x, y) is None:
                 continue
             dx, dy = (x + 0.5 - bx) / brx, (y + 0.5 - by) / bry
             d = math.hypot(dx, dy)
             if 0.5 < d < 0.66 and dy < -0.15 and dx < 0.45:
-                bangs.px[y][x] = hair[4] if dx < 0 else hair[3]
+                bangs.set(x, y, hair[4] if dx < 0 else hair[3])
     for u in range(1, min(len(fringe), 12) - 1):
         if fringe[u] < fringe[u - 1] and fringe[u] <= fringe[u + 1] and u > 2:
             continue
@@ -216,10 +217,10 @@ def head(c, hx, hy, hair, iris, mouth='smile', fringe=DEFAULT_FRINGE, brows=None
                 bangs.set(xx, yy, hair[1])
     stamp(c, bangs)
     # ombre portée de la frange sur le front
-    for y in range(H - 1, 0, -1):
-        for x in range(W):
-            if c.px[y][x] == skin[2] and c.px[y - 1][x] == OUT and bangs.get(x, y - 2) is not None:
-                c.px[y][x] = skin[1]
+    for y in range(H - 1, 0 - PADX, -1):
+        for x in range(-PADX, W + PADX):
+            if c.get(x, y) == skin[2] and c.get(x, y - 1) == OUT and bangs.get(x, y - 2) is not None:
+                c.set(x, y, skin[1])
     # yeux, sourcils, bouche, joues
     ex0, ex1, ey = int(hx + 1), int(hx + 5), int(hy)
     eye(c, ex0, ey, iris)
@@ -942,10 +943,10 @@ def shadow_lord(f):
         q = along(hand, a, k + f)
         side = 3.4 if (k // 3) % 2 else -3.4
         gl.set(q[0] + nx * side, q[1] + ny * side, VIO[2] if k % 2 else VIO[3])
-    for y in range(H):
-        for x in range(W):
-            if gl.px[y][x] and c.px[y][x] is None:
-                c.px[y][x] = gl.px[y][x]
+    for y in range(-PADX, H + PADX):
+        for x in range(-PADX, W + PADX):
+            if gl.get(x, y) and c.get(x, y) is None:
+                c.set(x, y, gl.get(x, y))
     s = (27 + ox, 28 + oy)
     arm(c, s, elbow_of(s, hand), hand, S_ARM[1:4], S_ARM[1:5], cuff=(VIO[1], VIO[2]))
     # épaulière à pointes
@@ -1127,7 +1128,7 @@ def build():
     out = {}
     for aid in ALLIES:
         fn = DRAW[aid]
-        out[f'ally_{aid}'] = (fn(0), {})
-        out[f'ally_{aid}_b'] = (fn(1), {})
-        out[f'ally_{aid}_atk'] = (fn(2), {})
+        out[f'ally_{aid}'] = (fn(0).crop_logical(), {})  # recadré sans coupe dans allies_anim
+        out[f'ally_{aid}_b'] = (fn(1).crop_logical(), {})
+        out[f'ally_{aid}_atk'] = (fn(2).crop_logical(), {})
     return out

@@ -1657,11 +1657,8 @@ def void_emperor(f):
 # ================================================================ export
 
 def frames(fn):
-    out = []
-    for f in (0, 1, 2):
-        c, (w, h) = fn(f)
-        out.append((reduce_colors(finalize(c, w, h), MAX_COLORS), clipped(c, w, h)))
-    return out
+    from bosses_hard import frames_boxed
+    return frames_boxed(fn, lambda c: reduce_colors(c, MAX_COLORS))
 
 
 BOSSES = {

@@ -11,7 +11,7 @@ const ORDER = ['common', 'rare', 'epic', 'legendary'];
 function portrait(r) {
   if (r.kind === 'hero') return animCanvas(`hero:${r.id}`, 48, 52, 2);
   const c = companionById(r.id);
-  return c.kind === 'ally' ? animCanvas(`foe:${c.sprite}`, 48, 48, 2) : animCanvas(`pet:${c.sprite}`, 24, 24, 4);
+  return c.kind === 'ally' ? animCanvas(`foe:${c.sprite}`, 64, 56, 2) : animCanvas(`pet:${c.sprite}`, 24, 24, 4);
 }
 
 function grade(r) {

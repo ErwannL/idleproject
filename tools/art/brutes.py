@@ -105,17 +105,18 @@ def put(c, t, sep=OUT):
     """Pose le calque t sur c ; trace un liseré `sep` sur ce qu'il recouvre (séparation des volumes)."""
     m = t.mask()
     p = t.P
+    q = getattr(c, 'P', 0)  # c peut lui-même être un calque à marge (dessin non coupé)
     if sep:
         for (x, y) in m:
             for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
                 nx, ny = x + dx, y + dy
-                if (nx, ny) in m or not (0 <= nx < c.w and 0 <= ny < c.h):
+                if (nx, ny) in m or not (0 <= nx + q < c.w and 0 <= ny + q < c.h):
                     continue
-                if c.px[ny][nx] is not None and c.px[ny][nx] != OUT:
-                    c.px[ny][nx] = sep
+                if c.px[ny + q][nx + q] is not None and c.px[ny + q][nx + q] != OUT:
+                    c.px[ny + q][nx + q] = sep
     for (x, y) in m:
-        if 0 <= x < c.w and 0 <= y < c.h:
-            c.px[y][x] = t.px[y + p][x + p]
+        if 0 <= x + q < c.w and 0 <= y + q < c.h:
+            c.px[y + q][x + q] = t.px[y + p][x + p]
     return m
 
 
@@ -219,6 +220,25 @@ def perp(a):
 def finish(c):
     c.outline(OUT)
     return c
+
+
+def crop_frames(frames, w, h):
+    """Recadre les images (calques à marge) sur le cadre w×h, agrandi si besoin pour ne rien couper :
+    symétriquement en largeur (ancrage bas-centre inchangé) et vers le haut ; pieds sur la dernière ligne."""
+    p = Layer.P
+    e = t = 0
+    for c in frames:
+        x0, y0, x1, y1 = c.bounds()
+        e = max(e, p - x0, x1 - (p + w - 1))
+        t = max(t, p - y0)
+    out = []
+    for c in frames:
+        n = Canvas(w + 2 * e, h + t)
+        for y in range(n.h):
+            for x in range(n.w):
+                n.px[y][x] = c.px[y + p - t][x + p - e]
+        out.append(n)
+    return out
 
 
 # ================================================================ YÉTI (40×38)
@@ -375,7 +395,7 @@ def y_head(c, hx, hy, mode):
 
 def yeti_draw(f):
     """f : 0 repos, 1 pas de marche, 2 coup de poing."""
-    c = Canvas(YW, YH)
+    c = Layer(YW, YH)  # à marge : rien n'est coupé, recadré par crop_frames
     G = YH - 1
     bob = (0, 1, 1)[f]
     lean = (0, 0, -2)[f]
@@ -439,7 +459,7 @@ def yeti_draw(f):
 
 
 def yeti_frames():
-    return [yeti_draw(f) for f in range(3)]
+    return crop_frames([yeti_draw(f) for f in range(3)], YW, YH)
 
 
 # ================================================================ TROLL / OGRE (48×46)
@@ -642,7 +662,7 @@ def o_head(c, hx, hy, mode):
 
 def ogre_draw(f):
     """f : 0 repos (massue dressée devant), 1 pas de marche, 2 coup de massue au sol."""
-    c = Canvas(OW, OH)
+    c = Layer(OW, OH)  # à marge : rien n'est coupé, recadré par crop_frames
     G = OH - 1
     bob = (0, 1, 2)[f]
     lean = (0, 0, -3)[f]
@@ -742,7 +762,7 @@ def ogre_draw(f):
 
 
 def ogre_frames():
-    return [ogre_draw(f) for f in range(3)]
+    return crop_frames([ogre_draw(f) for f in range(3)], OW, OH)
 
 
 # ---------------------------------------------------------------- export

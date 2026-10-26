@@ -214,6 +214,87 @@ class Canvas:
         img.save(path)
 
 
+class PadCanvas(Canvas):
+    """Canvas à marge invisible `pad` : on dessine en coordonnées logiques (0..w-1), même hors cadre,
+    sans rien perdre ; crop_logical() / group_crop() recadrent ensuite. px, w, h, bounds() sont bruts."""
+
+    def __init__(self, w, h, pad=16):
+        super().__init__(w + 2 * pad, h + 2 * pad)
+        self.lw, self.lh, self.pad = w, h, pad
+
+    def set(self, x, y, c):
+        x, y = int(round(x)) + self.pad, int(round(y)) + self.pad
+        if 0 <= x < self.w and 0 <= y < self.h:
+            self.px[y][x] = c
+
+    def setf(self, x, y, c):
+        x, y = int(round(x)) + self.pad, int(round(y)) + self.pad
+        if 0 <= x < self.w and 0 <= y < self.h and self.px[y][x] is not None:
+            self.px[y][x] = c
+
+    def get(self, x, y):
+        x, y = int(round(x)) + self.pad, int(round(y)) + self.pad
+        return self.px[y][x] if 0 <= x < self.w and 0 <= y < self.h else None
+
+    def copy(self):
+        c = PadCanvas(self.lw, self.lh, self.pad)
+        c.px = [row[:] for row in self.px]
+        return c
+
+    def _raw(self):
+        r = Canvas(self.w, self.h)
+        r.px = self.px  # même tableau : les finitions de Canvas travaillent en coordonnées brutes
+        return r
+
+    def outline(self, color=None, diagonal=False, skip=()):
+        self._raw().outline(color, diagonal, skip)
+        return self
+
+    def inner_light(self, light_color=None, shadow_color=None, amount=0.25):
+        self._raw().inner_light(light_color, shadow_color, amount)
+        return self
+
+    def paste(self, other, ox, oy, flip=False):
+        if isinstance(other, PadCanvas) and not flip:
+            d = other.pad - self.pad
+            for y in range(other.h):
+                for x in range(other.w):
+                    c = other.px[y][x]
+                    if c is not None:
+                        Canvas.set(self, ox + x - d, oy + y - d, c)
+            return
+        super().paste(other, ox, oy, flip)
+
+    def crop_box(self, box):
+        """Recadre la zone logique box = (x0, y0, x1, y1) dans un Canvas simple."""
+        x0, y0, x1, y1 = box
+        out = Canvas(x1 - x0 + 1, y1 - y0 + 1)
+        for y in range(y0, y1 + 1):
+            for x in range(x0, x1 + 1):
+                out.px[y - y0][x - x0] = self.get(x, y)
+        return out
+
+    def crop_logical(self):
+        return self.crop_box((0, 0, self.lw - 1, self.lh - 1))
+
+
+def group_crop(frames, bottom=False):
+    """Recadre des PadCanvas de même cadre logique sur une boîte commune qui ne coupe rien :
+    le cadre d'origine agrandi symétriquement en largeur (ancrage bas-centre inchangé) et vers le haut
+    (et vers le bas seulement si bottom, pour les volants)."""
+    w, h, p = frames[0].lw, frames[0].lh, frames[0].pad
+    e = t = b = 0
+    for c in frames:
+        x0, y0, x1, y1 = c.bounds()
+        if x1 < x0:
+            continue
+        e = max(e, p - x0, x1 - (p + w - 1))
+        t = max(t, p - y0)
+        b = max(b, y1 - (p + h - 1))
+    box = (-e, -t, w - 1 + e, h - 1 + (b if bottom else 0))
+    return [c.crop_box(box) for c in frames]
+
+
 # Caractères réservés : remplacés à l'exécution (objets équipés, couleurs du héros, acier recolorable).
 TINT = {
     # objets : a principal, A ombre, 1 clair, 2 très sombre, r rareté, 3 rareté claire, 9 rareté sombre

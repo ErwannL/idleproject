@@ -18,7 +18,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from enemies import (Canvas, M, OUT, INK, WHITE, part, crop_to, mask_of, shade_mask, spoly,  # noqa: E402
+from enemies import (group_box, Canvas, M, OUT, INK, WHITE, part, crop_to, mask_of, shade_mask, spoly,  # noqa: E402
                      dome, dk, GOLD, WOOD, LEATHER, BONE)
 
 
@@ -29,8 +29,7 @@ def triple(fn):
     fr = [fn(i) for i in range(3)]
     for c in fr:
         c.outline(OUT)
-    bs = [c.bounds() for c in fr]
-    box = (min(b[0] for b in bs), min(b[1] for b in bs), max(b[2] for b in bs), max(b[3] for b in bs))
+    box = group_box(fr)
     return [crop_to(c, box) for c in fr]
 
 

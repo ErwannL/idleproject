@@ -1399,3 +1399,8 @@ kbd { display: inline-block; min-width: 18px; padding: 1px 5px; border: 1px soli
 .cine-text h1 { margin: 2px 0 4px; font-size: clamp(18px, 4.2vw, 40px); letter-spacing: 0.04em; min-height: 1.2em; color: #fff4d6; }
 .cine-text p { margin: 0; font-size: clamp(11px, 1.6vw, 15px); font-style: italic; color: #e6e9ff; opacity: 0; animation: cine-fade 0.8s 1.2s forwards; }
 @keyframes cine-fade { to { opacity: 1; } }
+/* v8.1 — portraits plus larges (sprites d'alliés et de boss agrandis) : on garde les proportions. */
+.summon-result canvas.anim, .pet-portrait canvas.anim, .pet-portrait canvas.anim[data-anim^="foe:"] { width: auto; height: 52px; }
+.team-slot canvas { width: auto; height: auto; max-width: 56px; max-height: 52px; }
+.odds-unit canvas { width: auto; height: 40px; max-width: 46px; }
+.sfx-face canvas.anim { width: auto; height: 72px; }

@@ -214,6 +214,49 @@ def finalize(c, w, h):
     return out
 
 
+FLYING_BOSSES = {'phoenix', 'void_watcher'}  # volants : le bas peut aussi s'agrandir (pas de pieds au sol)
+
+
+def group_box(layers, w, h, bottom=False):
+    """Boîte logique commune aux images d'un boss : le cadre w×h, agrandi juste assez pour ne rien couper,
+    symétriquement en largeur (ancrage bas-centre inchangé) et vers le haut ; les pieds restent en bas."""
+    e = t = b = 0
+    for c in layers:
+        xs, ys = [], []
+        for y in range(c.h):
+            row = c.px[y]
+            for x in range(c.w):
+                if row[x] is not None:
+                    xs.append(x)
+                    ys.append(y)
+        e = max(e, PAD - min(xs), max(xs) - (PAD + w - 1))
+        t = max(t, PAD - min(ys))
+        b = max(b, max(ys) - (PAD + h - 1))
+    return (-e, -t, w - 1 + e, h - 1 + (b if bottom else 0))
+
+
+def finalize_box(c, box):
+    """Recadre la zone logique box = (x0, y0, x1, y1) dans un Canvas simple."""
+    x0, y0, x1, y1 = box
+    out = Canvas(x1 - x0 + 1, y1 - y0 + 1)
+    for y in range(y0, y1 + 1):
+        for x in range(x0, x1 + 1):
+            out.px[y - y0][x - x0] = c.px[y + PAD][x + PAD]
+    return out
+
+
+def frames_boxed(fn, reduce=None):
+    """Trois images fn(0..2) recadrées sur une même boîte qui ne coupe rien (voir group_box)."""
+    res = [fn(f) for f in (0, 1, 2)]
+    w, h = res[0][1]
+    box = group_box([c for c, _ in res], w, h, bottom=fn.__name__ in FLYING_BOSSES)
+    out = []
+    for c, _ in res:
+        cv = finalize_box(c, box)
+        out.append((reduce(cv) if reduce else cv, 0))
+    return out
+
+
 def clipped(c, w, h):
     n = 0
     for y in range(c.h):
@@ -1654,11 +1697,7 @@ def demon_general(f):
 # ================================================================ export
 
 def frames(fn):
-    out = []
-    for f in (0, 1, 2):
-        c, (w, h) = fn(f)
-        out.append((finalize(c, w, h), clipped(c, w, h)))
-    return out
+    return frames_boxed(fn)
 
 
 BOSSES = {

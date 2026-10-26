@@ -15,6 +15,7 @@ les modules d'origine ne sont pas modifiés.
 import math
 import types
 
+from lib import group_crop
 import allies_r
 import allies_sr
 import allies_ssr
@@ -1687,10 +1688,10 @@ def ssr_shadow_lord(Q):
         q = along(hand, a, k + ph)
         side = 3.4 if (k // 3) % 2 else -3.4
         gl.set(q[0] + nx * side, q[1] + ny * side, VIO[2] if k % 2 else VIO[3])
-    for y in range(H):
-        for x in range(W):
-            if gl.px[y][x] and c.px[y][x] is None:
-                c.px[y][x] = gl.px[y][x]
+    for y in range(-PADX, H + PADX):
+        for x in range(-PADX, W + PADX):
+            if gl.get(x, y) and c.get(x, y) is None:
+                c.set(x, y, gl.get(x, y))
     sh_ = (27 + ox, 28 + oy)
     arm(c, sh_, elbow_of(sh_, hand), hand, S_ARM[1:4], S_ARM[1:5], cuff=(VIO[1], VIO[2]))
     t = new()
@@ -1834,10 +1835,28 @@ def _groups():
     return out
 
 
-def build():
-    """Renvoie {nom: (canvas, extra)} : ally_<id>_w1, ally_<id>_w2, ally_<id>_wind pour les 20 alliés."""
+def _originals():
+    """Images d'origine (repos, _b, _atk) de chaque allié, sur calques à marge (non recadrées)."""
     out = {}
+    for aid, fn in allies_r.ALLIES:
+        out[aid] = (lambda fn=fn: [fn('idle'), fn('b'), fn('atk')])
+    for aid, fn in allies_sr.ALLIES:
+        out[aid] = (lambda fn=fn: [fn(allies_sr.POSES[k]) for k in ('idle', 'b', 'atk')])
+    for aid in allies_ssr.ALLIES:
+        out[aid] = (lambda fn=allies_ssr.DRAW[aid]: [fn(0), fn(1), fn(2)])
+    return out
+
+
+def build():
+    """Renvoie {nom: (canvas, extra)} : ally_<id>_w1, ally_<id>_w2, ally_<id>_wind pour les 20 alliés,
+    et ally_<id>, _b, _atk recadrés avec elles : les 6 images partagent un canvas agrandi juste assez pour
+    que rien ne soit coupé (halo, ailes, cornes, armes), symétriquement en largeur et vers le haut
+    (ancrage bas-centre inchangé, pieds sur la dernière ligne)."""
+    out = {}
+    orig = _originals()
     for aid, fn, arg in _groups():
-        for k in FRAMES:
-            out[f'ally_{aid}_{k}'] = (fn(arg(k)), {})
+        frames = orig[aid]() + [fn(arg(k)) for k in FRAMES]
+        names = [f'ally_{aid}', f'ally_{aid}_b', f'ally_{aid}_atk'] + [f'ally_{aid}_{k}' for k in FRAMES]
+        for name, cv in zip(names, group_crop(frames)):
+            out[name] = (cv, {})
     return out

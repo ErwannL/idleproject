@@ -15,7 +15,8 @@ LIGHT = (-0.6, -0.8)  # direction vers la source : haut-gauche
 
 # ---------------------------------------------------------------- canvas à marge
 
-M = 10  # marge invisible : on dessine en coordonnées logiques, même négatives
+M = 22  # marge invisible : on dessine en coordonnées logiques, même négatives
+M_OLD = 10  # ancienne marge (les recadrages restent identiques tant que rien ne la dépasse)
 
 
 class Canvas(_Canvas):
@@ -81,7 +82,34 @@ def crop_to(c, box):
 def finish(c, outline=True):
     if outline:
         c.outline(OUT)
-    return crop_to(c, c.bounds())
+    return crop_to(c, group_box([c]))
+
+
+def group_box(frames):
+    """Boîte commune de plusieurs images (Canvas à marge).
+
+    Boîte englobante de toutes les images ; si un dessin dépasse l'ancienne marge (M_OLD, où il était
+    coupé), la boîte s'agrandit symétriquement en largeur (personnage toujours centré, ancré par le bas)
+    et vers le haut. Sans dépassement, la boîte est exactement l'ancienne.
+    """
+    bs = [c.bounds() for c in frames]
+    new = (min(b[0] for b in bs), min(b[1] for b in bs), max(b[2] for b in bs), max(b[3] for b in bs))
+    d = M - M_OLD
+    lo_x, lo_y = d, d
+    hi_x, hi_y = frames[0].w - 1 - d, frames[0].h - 1 - d
+    xs, ys = [], []
+    for c in frames:
+        for y in range(max(0, lo_y), min(c.h, hi_y + 1)):
+            row = c.px[y]
+            for x in range(max(0, lo_x), min(c.w, hi_x + 1)):
+                if row[x] is not None:
+                    xs.append(x)
+                    ys.append(y)
+    old = (min(xs), min(ys), max(xs), max(ys))
+    if old == new:
+        return new
+    e = max(old[0] - new[0], new[2] - old[2])
+    return (old[0] - e, new[1], old[2] + e, max(old[3], new[3]))
 
 
 def pair(fn):
@@ -89,8 +117,7 @@ def pair(fn):
     a, b = fn(0), fn(1)
     a.outline(OUT)
     b.outline(OUT)
-    ba, bb = a.bounds(), b.bounds()
-    box = (min(ba[0], bb[0]), min(ba[1], bb[1]), max(ba[2], bb[2]), max(ba[3], bb[3]))
+    box = group_box([a, b])
     return crop_to(a, box), crop_to(b, box)
 
 

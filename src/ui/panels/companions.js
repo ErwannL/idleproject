@@ -17,7 +17,7 @@ function dungeonFor(c, state) {
 
 // Portrait animé : héros allié (taille humaine) ou petit compagnon.
 function portrait(c, big = false) {
-  if (c.kind === 'ally') return animCanvas(`foe:${c.sprite}`, 48, 48, big ? 2 : 1);
+  if (c.kind === 'ally') return animCanvas(`foe:${c.sprite}`, 64, 56, big ? 2 : 1);
   return animCanvas(`pet:${c.sprite}`, big ? 26 : 24, big ? 26 : 24, 2);
 }
 

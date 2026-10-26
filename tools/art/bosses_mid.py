@@ -10,7 +10,7 @@ Couleurs hexadécimales fixes uniquement.
 import math
 
 from lib import mix, shift
-from enemies import (Canvas, M, part, shade_mask, spoly, sell, sline, mask_of, dk, crop_to,
+from enemies import (group_box, Canvas, M, part, shade_mask, spoly, sell, sline, mask_of, dk, crop_to,
                      OUT, INK, WHITE, STEEL, BONE, GOLD, LEATHER, ICE)
 from minibosses import reduce_colors
 
@@ -25,8 +25,7 @@ def trio(fn):
     frames = [fn(f) for f in range(3)]
     for c in frames:
         c.outline(OUT)
-    bs = [c.bounds() for c in frames]
-    box = (min(b[0] for b in bs), min(b[1] for b in bs), max(b[2] for b in bs), max(b[3] for b in bs))
+    box = group_box(frames)
     return [reduce_colors(crop_to(c, box), MAX_COLORS) for c in frames]
 
 

@@ -19,7 +19,7 @@ const FILTERS = { all: 'Tous', open: 'Disponibles', done: 'Terminés', locked: '
 
 function bossPortrait(d, scale = 1) {
   const boss = BOSSES[d.boss];
-  return animCanvas(`foe:${boss.sprite ?? ENEMIES[boss.base].sprite}`, 80, 76, scale);
+  return animCanvas(`foe:${boss.sprite ?? ENEMIES[boss.base].sprite}`, 92, 80, scale);
 }
 
 // Compagnon SSR adapté : caché par défaut (code ORACLE pour le révéler).

@@ -10,10 +10,11 @@ et quelques pixels d'aura.
 """
 import math
 
-from lib import Canvas, mix, shift
+from lib import Canvas, PadCanvas, mix, shift
 
 W, H = 40, 40
 GROUND = 39
+PADX = 16  # marge invisible : rien n'est coupé au bord (recadrage dans allies_anim)
 OUT = '#1a1226'
 WHITE = '#ffffff'
 LIGHT = (-0.6, -0.8)
@@ -103,9 +104,9 @@ def m_ellipse(cx, cy, rx, ry):
 
 
 def m_poly(pts):
-    c = Canvas(W + 20, H + 20)
-    c.poly([(x + 10, y + 10) for x, y in pts], '#000000')
-    return {(x - 10, y - 10) for y in range(c.h) for x in range(c.w) if c.px[y][x] is not None}
+    c = Canvas(W + 2 * PADX, H + 2 * PADX)
+    c.poly([(x + PADX, y + PADX) for x, y in pts], '#000000')
+    return {(x - PADX, y - PADX) for y in range(c.h) for x in range(c.w) if c.px[y][x] is not None}
 
 
 def m_line(pts, width):
@@ -191,7 +192,7 @@ def fill(mask, col):
 
 class Sprite:
     def __init__(self):
-        self.c = Canvas(W, H)
+        self.c = PadCanvas(W, H, PADX)
 
     def put(self, layer, sep=True):
         """Pose un calque ; assombrit ce qu'il recouvre en bordure (séparation interne douce)."""
@@ -203,15 +204,15 @@ class Sprite:
                         continue
                     p = self.c.get(*q)
                     if p is not None and p != OUT:
-                        self.c.px[q[1]][q[0]] = SEP
+                        self.c.set(q[0], q[1], SEP)
         for (x, y), col in layer.items():
             self.c.set(x, y, col)
 
     def fx(self, layer, over=False):
         """Effets (sans contour) : seulement sur le vide sauf `over`."""
         for (x, y), col in layer.items():
-            if 0 <= x < W and 0 <= y < H and (over or self.c.px[y][x] is None):
-                self.c.px[y][x] = col
+            if -PADX <= x < W + PADX and -PADX <= y < H + PADX and (over or self.c.get(x, y) is None):
+                self.c.set(x, y, col)
 
     def finish(self):
         self.c.outline(OUT)
@@ -478,8 +479,8 @@ def arc(cx, cy, R, thick, a0, a1, FX, sy=1.0, lead=0.65, fade=0.35):
     """Croissant d'énergie : bord d'attaque clair, traînée qui s'effiloche."""
     out = {}
     n = len(FX)
-    for y in range(H):
-        for x in range(W):
+    for y in range(-PADX, H + PADX):
+        for x in range(-PADX, W + PADX):
             dx = x + 0.5 - cx
             dy = (y + 0.5 - cy) / sy
             r = math.hypot(dx, dy)
@@ -1247,7 +1248,7 @@ def build():
     """Renvoie {nom: (canvas, extra)}."""
     out = {}
     for aid, fn in ALLIES:
-        out[f'ally_{aid}'] = (fn(POSES['idle']), {})
-        out[f'ally_{aid}_b'] = (fn(POSES['b']), {})
-        out[f'ally_{aid}_atk'] = (fn(POSES['atk']), {})
+        out[f'ally_{aid}'] = (fn(POSES['idle']).crop_logical(), {})  # recadré sans coupe dans allies_anim
+        out[f'ally_{aid}_b'] = (fn(POSES['b']).crop_logical(), {})
+        out[f'ally_{aid}_atk'] = (fn(POSES['atk']).crop_logical(), {})
     return out
