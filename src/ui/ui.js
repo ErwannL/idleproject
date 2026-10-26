@@ -26,6 +26,7 @@ import contracts from './panels/contracts.js';
 import dungeons from './panels/dungeons.js';
 import tower from './panels/tower.js';
 import { towerUnlocked } from '../core/tower.js';
+import { claimableAchievements } from '../core/achievements.js';
 import hero from './panels/hero.js';
 import inbox from './panels/inbox.js';
 import inventory, { visibleItems } from './panels/inventory.js';
@@ -274,6 +275,7 @@ export class UI {
       case 'claim-mission-bonus': a.claimMissionBonus(value); break;
       case 'claim-login': a.claimLogin(); break;
       case 'claim-all': a.claimAll(); break;
+      case 'claim-achievement': a.claimAchievement(value); break;
       case 'map-zoom': local(() => { v.mapZoom = value === 'reset' ? 1 : Math.min(2.5, Math.max(0.5, (v.mapZoom ?? 1) * (value === 'in' ? 1.25 : 0.8))); }); break;
       case 'tree-zoom': local(() => { v.treeZoom = value === 'reset' ? 1 : Math.min(2.5, Math.max(0.5, (v.treeZoom ?? 1) * (value === 'in' ? 1.25 : 0.8))); }); break;
       case 'cycle-sel': local(() => { v.cycleSel = Number(value); v.zoneSel = null; }); break;
@@ -661,7 +663,7 @@ export class UI {
     const upgrade = state.inventory.some((i) => isUpgrade(state, i, undefined, current));
     this.$('inv-badge').classList.toggle('hidden', !upgrade || this.tab === 'inventory');
     this.$('skills-badge').classList.toggle('hidden', skillPointsAvailable(state) < 1 || this.tab === 'skills');
-    this.$('contracts-badge').classList.toggle('hidden', !state.contracts.some((c) => c.progress >= c.target) && !missionsClaimable(state));
+    this.$('contracts-badge').classList.toggle('hidden', !state.contracts.some((c) => c.progress >= c.target) && !missionsClaimable(state) && !claimableAchievements(state).length);
     this.$('inbox-badge').classList.toggle('hidden', !state.inbox.some((e) => !e.seen) || this.tab === 'inbox');
     const boost = earlyBoost(state);
     const active = boost.secondsLeft > 0 || boost.weekend || boost.cheat > 1;

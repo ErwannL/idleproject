@@ -1424,3 +1424,11 @@ kbd { display: inline-block; min-width: 18px; padding: 1px 5px; border: 1px soli
 .tower-floor.current { border-color: #c9a6ff; box-shadow: 0 0 8px rgba(201, 166, 255, 0.6); }
 .tower-floor.done { opacity: 0.7; }
 .tf-reward { color: #9ee6a0; text-align: right; }
+
+/* v8.3 — hauts faits. */
+.ach-list { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.ach { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 4px; background: rgba(10, 14, 30, 0.55); }
+.ach .ach-icon { font-size: 16px; width: 22px; text-align: center; }
+.ach.ready { border-color: #e0b84a; box-shadow: 0 0 6px rgba(224, 184, 74, 0.45); }
+.ach.done { opacity: 0.65; }
+.ach .grow { display: flex; flex-direction: column; gap: 2px; min-width: 0; }

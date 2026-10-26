@@ -61,12 +61,13 @@ test('donjons : difficultés débloquées une à une, plus durs, et ils rapporte
   assert.deepEqual(unlockedDifficulties(state, 'crypt'), ['easy']);
   assert.equal(startDungeon(state, 'crypt', 'any', 'gold', 'hard'), false);
   assert.ok(startDungeon(state, 'crypt', 'any', 'gold', 'easy'));
+  assert.ok(state.dungeon.level < state.maxStage); // v8.3 : Facile = sous l'étape max
   const fragments = state.fragments;
   completeDungeon(state, new Rng(1));
   assert.ok(state.fragments > fragments);
   assert.deepEqual(unlockedDifficulties(state, 'crypt'), ['easy', 'normal']);
   assert.ok(startDungeon(state, 'crypt', 'any', 'gold', 'normal'));
-  assert.ok(state.dungeon.level > state.maxStage);
+  assert.ok(state.dungeon.level >= state.maxStage - 4);
 });
 
 test('recyclage automatique « sac plein » : libère de la place selon les règles', () => {

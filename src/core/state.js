@@ -20,6 +20,7 @@ import { PRESTIGE } from '../data/prestige.js';
 import { sanitizeRushes } from './rushes.js';
 import { sanitizeCheats } from './cheats.js';
 import { sanitizeTower } from './tower.js';
+import { sanitizeAchievements } from './achievements.js';
 import { emptyLoadouts, sanitizeLoadouts } from './loadouts.js';
 import { sanitizeCodex } from './codex.js';
 
@@ -72,6 +73,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     dungeonBest: {}, // meilleure difficulté réussie par donjon (0 facile, 1 normal, 2 difficile)
     tower: null, // v8.2 : ascension en cours de la Tour de l'Éternité { floor, startPlay }
     towerBest: 0,
+    achievements: { claimed: {} }, // v8.3 : hauts faits réclamés
     towerLast: null,
     dungeonRuns: {}, // v8.1 : « donjon:difficulté » → { last, best, tries } (rapports d'expédition)
     missions: emptyMissions(),
@@ -194,6 +196,7 @@ function cleanActivities(state, raw) {
   state.rushes = sanitizeRushes(raw.rushes);
   state.cheats = sanitizeCheats(raw.cheats);
   sanitizeTower(state, raw);
+  state.achievements = sanitizeAchievements(raw.achievements);
   if (state.tower && raw.dungeon) state.tower = null; // jamais les deux à la fois
   state.loadouts = sanitizeLoadouts(raw.loadouts);
   state.codex = sanitizeCodex(raw.codex);

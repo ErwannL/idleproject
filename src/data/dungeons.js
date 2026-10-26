@@ -89,8 +89,9 @@ export const STARTING_KEYS = 1;
 // PV et dégâts multipliés). Les fragments anciens (arbre de talents) se gagnent ici.
 // Normal se débloque après une victoire en Facile, Difficile après une victoire en Normal.
 export const DUNGEON_DIFFICULTIES = {
-  easy: { label: 'Facile', skulls: 1, levelBonus: 6, hp: 2, damage: 1.8, fragments: 4, gems: 1, essence: 1 },
-  normal: { label: 'Normal', skulls: 3, levelBonus: 14, hp: 3.5, damage: 2.8, fragments: 12, gems: 1.6, essence: 2 },
-  hard: { label: 'Difficile', skulls: 5, levelBonus: 26, hp: 6, damage: 4.5, fragments: 30, gems: 2.5, essence: 3 },
+  // v8.3 : Facile = un peu en dessous de votre étape max (avant : au-dessus, PV ×2 — bien plus dur que la campagne).
+  easy: { label: 'Facile', skulls: 1, levelBonus: -8, hp: 1, damage: 1, fragments: 4, gems: 1, essence: 1 },
+  normal: { label: 'Normal', skulls: 3, levelBonus: 2, hp: 1.6, damage: 1.5, fragments: 12, gems: 1.6, essence: 2 },
+  hard: { label: 'Difficile', skulls: 5, levelBonus: 12, hp: 3, damage: 2.5, fragments: 30, gems: 2.5, essence: 3 },
 };
 export const DIFFICULTY_ORDER = ['easy', 'normal', 'hard'];

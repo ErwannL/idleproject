@@ -8,6 +8,7 @@ import { ZONES } from './data/zones.js';
 import { playCinematic, worldCinematic } from './ui/cinematic.js';
 import { activeSynergies, replaceCompanion, toggleCompanion, upgradeCompanion } from './core/companions.js';
 import { claimContract } from './core/contracts.js';
+import { claimAchievement, claimableAchievements } from './core/achievements.js';
 import { claimAllMissions, claimLogin, claimMission, claimMissionBonus, mergeReward, refreshMissions } from './core/missions.js';
 import { abandonDungeon, setDungeonPath, startDungeon } from './core/dungeon.js';
 import { buyUpgradeBulk } from './core/economy.js';
@@ -218,8 +219,15 @@ const actions = {
       const given = c.progress >= c.target ? claimContract(state, c.id, rng) : null;
       if (given) { mergeReward(total, given); n += 1; }
     }
+    for (const a of claimableAchievements(state)) {
+      if (claimAchievement(state, a.id)) { mergeReward(total, { gems: a.gems }); n += 1; }
+    }
     if (!n) ui.toast('Rien à récupérer pour le moment.');
     else done(true, `Tout récupéré : ${rewardText(total)}`, '#7fd4ff');
+  },
+  claimAchievement(id) {
+    const a = claimAchievement(state, id);
+    done(Boolean(a), a ? `Haut fait « ${a.name} » : +${a.gems} gemmes, +1 % dégâts et or pour toujours` : null, '#ffe08a');
   },
   claimContract(id) {
     const given = claimContract(state, id, rng);

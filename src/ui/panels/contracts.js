@@ -4,6 +4,24 @@ import { bonusReady, loginDay, loginReady, missionsClaimable, missionStatus, per
 import { rewardText } from '../../core/rewards.js';
 import { LOGIN_CALENDAR, MISSION_PERIODS } from '../../data/missions.js';
 import { escapeHtml, formatNumber, img, progressBar } from '../common.js';
+import { ACHIEVEMENT_BONUS, ACHIEVEMENTS, achievementCount, achievementProgress, claimableAchievements } from '../../core/achievements.js';
+
+// Hauts faits (v8.3) : défis permanents, gemmes à réclamer et bonus permanent par haut fait obtenu.
+function achievementsTab(state) {
+  const n = achievementCount(state);
+  const rows = ACHIEVEMENTS.map((a) => {
+    const p = achievementProgress(state, a);
+    const cls = p.claimed ? ' done' : p.done ? ' ready' : '';
+    return `<div class="ach${cls}"><span class="ach-icon">${p.claimed ? '🏆' : p.done ? '✨' : '🔒'}</span>
+      <div class="grow"><b>${escapeHtml(a.name)}</b> <span class="muted">${a.label} : ${formatNumber(Math.min(p.value, a.target))} / ${formatNumber(a.target)}</span>
+        ${progressBar(p.ratio)}</div>
+      ${p.claimed ? '<span class="good">Obtenu</span>'
+        : `<button class="btn small${p.done ? ' btn-gold' : ''}" data-action="claim-achievement" data-value="${a.id}" ${p.done ? '' : 'disabled'}>+${a.gems} ${img('icon_gem')}</button>`}</div>`;
+  }).join('');
+  return `<div class="row-between"><b>${n} / ${ACHIEVEMENTS.length} hauts faits</b>
+      <span class="muted">Bonus permanent : +${n * ACHIEVEMENT_BONUS.damagePct} % dégâts · +${n * ACHIEVEMENT_BONUS.goldPct} % or (+1 % chacun par haut fait)</span></div>
+    <div class="ach-list">${rows}</div>`;
+}
 
 const TYPE_ICONS = {
   login: 'icon_book', kills: 'weapon_sword', bosses: 'icon_boss', recycle: 'icon_anvil', summons: 'icon_summon',
@@ -79,18 +97,20 @@ export default {
     const ready = {
       login: loginReady(state) ? 1 : 0,
       contracts: state.contracts.filter((c) => c.progress >= c.target).length,
+      achievements: claimableAchievements(state).length,
     };
     for (const p of MISSION_PERIODS) {
       ready[p.id] = p.missions.filter((m) => { const st = missionStatus(state, p.id, m); return st.done && !st.claimed; }).length + (bonusReady(state, p.id) ? 1 : 0);
     }
     const tabs = [['daily', 'Journalières', 'icon_book'], ['weekly', 'Hebdomadaires', 'icon_map'], ['monthly', 'Mensuelles', 'icon_trophy'],
-      ['login', 'Connexion', 'icon_gem'], ['contracts', 'Contrats', 'icon_chest']];
+      ['login', 'Connexion', 'icon_gem'], ['contracts', 'Contrats', 'icon_chest'], ['achievements', 'Hauts faits', 'icon_star']];
     const tab = tabs.some(([id]) => id === ui.view.missionTab) ? ui.view.missionTab : 'daily';
     const head = tabs.map(([id, label, icon]) => `<button class="btn m-tab${id === tab ? ' active' : ''}" data-action="mission-tab" data-value="${id}">
       ${img(icon)}<span>${label}</span>${ready[id] ? `<i class="fold-ready">${ready[id]}</i>` : ''}</button>`).join('');
     const period = MISSION_PERIODS.find((p) => p.id === tab);
-    const body = tab === 'login' ? loginTab(state) : tab === 'contracts' ? contractsTab(state) : periodTab(state, period);
-    const any = missionsClaimable(state) || ready.contracts > 0;
+    const body = tab === 'login' ? loginTab(state) : tab === 'contracts' ? contractsTab(state)
+      : tab === 'achievements' ? achievementsTab(state) : periodTab(state, period);
+    const any = missionsClaimable(state) || ready.contracts > 0 || ready.achievements > 0;
     return `<div class="m-tabs">${head}<button class="btn ${any ? 'btn-gold' : ''} claim-all" data-action="claim-all" ${any ? '' : 'disabled'}>Tout récupérer</button></div>
       <div class="card m-body">${body}</div>`;
   },

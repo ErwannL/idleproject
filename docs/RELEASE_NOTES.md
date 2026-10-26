@@ -1,10 +1,22 @@
-## Idle RPG v8.2.0 — Tour de l'Éternité, tout au clavier, méga boss animés
+## Idle RPG v8.3.0 — Hauts faits, donjons rééquilibrés, mises à jour en jeu
 
-**Installation ou mise à jour :** téléchargez **IdleRPG-8.2.0-setup.exe** et lancez-le (jeu fermé).
-**Votre partie est conservée.** Le dépôt GitHub étant privé, la mise à jour en jeu demande un jeton GitHub
-(voir ci-dessous) ou que le dépôt soit rendu public.
+**Installation ou mise à jour :** téléchargez **IdleRPG-8.3.0-setup.exe** et lancez-le (jeu fermé).
+**Votre partie est conservée.** À partir de cette version, le jeton de mise à jour est intégré :
+les versions suivantes s'installent depuis **Paramètres → Version et mises à jour**.
 
-### Nouveau dans la v8.2
+### Nouveau dans la v8.3
+- **Hauts faits** (Missions → onglet « Hauts faits ») : 40 défis permanents (ennemis, boss, mondes atteints,
+  niveau, objets, invocations, Renaissances, Tour de l'Éternité, équipe, donjons, contrats, or).
+  Chacun rapporte des gemmes et **+1 % de dégâts et +1 % d'or pour toujours** (visible dans la fiche du héros).
+  « Tout récupérer » les réclame aussi.
+- **Mises à jour en jeu avec le dépôt privé** : jeton en lecture seule intégré à l'installateur à la compilation.
+
+### Équilibrage
+- **Donjons** : le mode **Facile** était plus dur que la campagne (ennemis au-dessus de l'étape max, PV ×2,
+  dégâts ×1,8). Désormais : Facile = un peu sous votre étape max, sans bonus ; Normal = votre niveau,
+  PV ×1,6 ; Difficile = au-dessus, PV ×3.
+
+### v8.2
 - **Tour de l'Éternité** (nouvel onglet « Tour », dès l'étape 2-20) : un boss par étage, de plus en plus fort,
   un méga boss tous les 10 étages. Gratuite, sans clé ; gemmes à chaque nouveau record, fragments tous les 5 étages,
   ticket et clé tous les 10. Une défaite termine l'ascension (record et dernière ascension affichés).
@@ -19,7 +31,7 @@
   compilation (secret « UPDATE_TOKEN » du dépôt, jamais écrit dans le code) ; sinon, Paramètres → Version et
   mises à jour → « Dépôt privé » pour coller un jeton (gardé uniquement sur ce PC).
 
-### Corrigés
+### Corrigés en v8.2
 - **Achats** : « Améliorer » ne faisait rien sur les objets ancestraux et accessoires sans statistique de base
   (ex. Sceau du Néant) — leurs effets spéciaux s'améliorent maintenant de +12 % par niveau ; un message
   s'affiche quand une amélioration est impossible.
