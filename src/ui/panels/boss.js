@@ -29,7 +29,7 @@ function powerBox(power, label) {
 
 function portrait(bossId, known, scale = 1) {
   const boss = BOSSES[bossId];
-  if (known) return animCanvas(`foe:${boss.sprite ?? ENEMIES[boss.base].sprite}`, 92, 80, scale);
+  if (known) return animCanvas(`foe:${boss.sprite ?? ENEMIES[boss.base].sprite}`, 124, 80, scale);
   const sprite = boss.sprite ?? ENEMIES[boss.base].sprite;
   return icon(sprite, 1, known ? (boss.palette ? { colors: boss.palette } : {}) : { tint: { color: '#4a5a78', alpha: 1 } });
 }

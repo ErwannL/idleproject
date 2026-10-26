@@ -39,7 +39,7 @@ export default {
     const floor = run?.floor ?? (state.towerBest ?? 0) + 1;
     const last = state.towerLast;
     const head = `<div class="card tower-head">
-        <div class="tower-portrait">${animCanvas(`foe:${bossSprite(run?.floor ?? 1)}`, 92, 80, 1)}</div>
+        <div class="tower-portrait">${animCanvas(`foe:${bossSprite(run?.floor ?? 1)}`, 124, 80, 1)}</div>
         <div class="grow">
           <div class="boss-title">Tour de l'Éternité</div>
           <div class="muted">Un boss par étage, toujours plus fort (+${TOWER.floorLevel} niveaux par étage, un méga boss tous les ${TOWER.milestone}).
