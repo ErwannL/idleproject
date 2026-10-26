@@ -21,6 +21,7 @@ import { earlyBoost } from './boost.js';
 import { phantomHitPct, rushById, tickRushes } from './rushes.js';
 import { recordKill } from './codex.js';
 import { DUNGEON_DIFFICULTIES } from '../data/dungeons.js';
+import { clearTowerFloor, endTower, towerBoss, towerLevel } from './tower.js';
 
 const MAX_EVENTS = 300;
 
@@ -151,6 +152,14 @@ export function referenceKillGold(stage, balance = BALANCE) {
 
 // Rencontre en cours : campagne (étape) ou donjon (salle).
 export function currentEncounter(state, balance = BALANCE) {
+  if (state.tower) {
+    // Tour de l'Éternité : un boss par étage, décor qui change tous les 10 étages.
+    const floor = state.tower.floor;
+    return {
+      level: towerLevel(state, floor), boss: true, enemies: [], bosses: [towerBoss(floor)],
+      killsNeeded: 1, zoneIndex: Math.floor((floor - 1) / 10) % (ZONES.length - 1), dungeon: null, tower: true,
+    };
+  }
   if (state.dungeon) {
     const d = dungeonById(state.dungeon.id);
     return {
@@ -358,7 +367,7 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
   if (enemy.elite) {
     state.gems += balance.events.eliteGems;
     emit(world, 'eliteDefeated', { gems: balance.events.eliteGems });
-  } else if (!enemy.boss && !enc.dungeon) {
+  } else if (!enemy.boss && !enc.dungeon && !enc.tower) {
     const event = rollEvent(state, world, rng, balance, boost.events);
     if (event) emit(world, 'worldEvent', { eventType: event.type });
   }
@@ -384,16 +393,21 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
     emit(world, 'bossDefeated', { kind: enemy.type, stage: enc.level });
     // Gemmes (cristaux) à chaque boss : de quoi invoquer souvent.
     const tier = bossTier(enemy.type);
-    const gems = Math.round(balance.stages.tiers[tier].gems * rebirthHeat(state, balance).reward);
+    // Tour : pas de gemmes par boss (seulement les récompenses de record), pas de pouvoir ancestral.
+    const gems = enc.tower ? 0 : Math.round(balance.stages.tiers[tier].gems * rebirthHeat(state, balance).reward);
     state.gems += gems;
-    emit(world, 'gems', { gems, x: enemy.x });
+    if (gems) emit(world, 'gems', { gems, x: enemy.x });
     // Méga boss (et boss de donjon) — première victoire : pouvoir ancestral ; ensuite : charge de relance.
-    if (tier === 'mega') {
+    if (tier === 'mega' && !enc.tower) {
       const power = recordBossVictory(state, enemy.type, rng, balance);
       if (power) emit(world, 'powerUnlocked', { bossId: enemy.type, powerId: power.id });
       else emit(world, 'rerollCharge', { bossId: enemy.type });
     }
-    if (enc.dungeon) {
+    if (enc.tower) {
+      const result = clearTowerFloor(state);
+      resetWave(world, balance);
+      emit(world, 'towerFloor', result);
+    } else if (enc.dungeon) {
       const result = completeDungeon(state, rng, balance);
       resetWave(world, balance);
       emit(world, 'dungeonComplete', result);
@@ -484,9 +498,14 @@ function heroDies(state, world, balance) {
   hero.hp = 0;
   hero.respawnTimer = balance.hero.respawnSeconds;
   // Donjon : on note où l'on en était (salle, PV restants du boss) avant de vider la vague.
-  const boss = state.dungeon ? world.enemies.find((e) => e.boss && !e.summoned) : null;
+  const boss = state.dungeon || state.tower ? world.enemies.find((e) => e.boss && !e.summoned) : null;
   const bossHpPct = boss ? Math.max(0, Math.round((boss.hp / boss.maxHp) * 1000) / 10) : null;
   resetWave(world, balance);
+  if (state.tower) {
+    const result = endTower(state);
+    emit(world, 'towerFailed', { ...result, bossHpPct });
+    return;
+  }
   if (state.dungeon) {
     const run = state.dungeon;
     const earned = failDungeon(state, { bossHpPct });

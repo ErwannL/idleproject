@@ -1404,3 +1404,23 @@ kbd { display: inline-block; min-width: 18px; padding: 1px 5px; border: 1px soli
 .team-slot canvas { width: auto; height: auto; max-width: 56px; max-height: 52px; }
 .odds-unit canvas { width: auto; height: 40px; max-width: 46px; }
 .sfx-face canvas.anim { width: auto; height: 72px; }
+
+/* v8.2 — navigation au clavier : la sélection est bien visible. */
+#app button:focus-visible, #app select:focus-visible, #app input:focus-visible, #app summary:focus-visible, .modal button:focus-visible {
+  outline: 3px solid #ffd35a; outline-offset: 2px; box-shadow: 0 0 10px 2px rgba(255, 200, 60, 0.6); position: relative; z-index: 2;
+}
+
+/* v8.2 — Tour de l'Éternité. */
+.tower-head { display: flex; gap: 10px; align-items: flex-start; }
+.tower-portrait { flex: 0 0 auto; width: 92px; height: 80px; display: flex; align-items: flex-end; justify-content: center;
+  background: radial-gradient(circle at 50% 70%, rgba(150, 110, 255, 0.35), transparent 70%); border-radius: 6px; }
+.tower-stats { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0; align-items: center; }
+.tower-stats img { width: 14px; height: 14px; vertical-align: -2px; }
+.tower-floors { display: flex; flex-direction: column; gap: 3px; }
+.tower-floor { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 4px 8px;
+  border: 1px solid var(--line); border-radius: 4px; background: rgba(10, 14, 30, 0.6); font-size: 11px; }
+.tower-floor .tf-num { font-weight: 900; font-size: 14px; text-align: center; color: #c9a6ff; }
+.tower-floor.mega { border-color: #e0b84a; background: linear-gradient(90deg, rgba(224, 184, 74, 0.18), rgba(10, 14, 30, 0.6)); }
+.tower-floor.current { border-color: #c9a6ff; box-shadow: 0 0 8px rgba(201, 166, 255, 0.6); }
+.tower-floor.done { opacity: 0.7; }
+.tf-reward { color: #9ee6a0; text-align: right; }

@@ -5,7 +5,7 @@ contextBridge.exposeInMainWorld('desktop', {
   getInfo: () => ipcRenderer.invoke('desktop:getInfo'),
   setAlwaysOnTop: (value) => ipcRenderer.invoke('desktop:setAlwaysOnTop', value),
   setSizePreset: (preset) => ipcRenderer.invoke('desktop:setSizePreset', preset),
-  checkUpdate: () => ipcRenderer.invoke('desktop:checkUpdate'),
+  checkUpdate: (token) => ipcRenderer.invoke('desktop:checkUpdate', token),
   openReleases: () => ipcRenderer.invoke('desktop:openReleases'),
-  installUpdate: () => ipcRenderer.invoke('desktop:installUpdate'),
+  installUpdate: (token) => ipcRenderer.invoke('desktop:installUpdate', token),
 });

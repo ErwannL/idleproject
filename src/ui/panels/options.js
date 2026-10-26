@@ -45,6 +45,23 @@ function windowOptions(ui) {
     </div>`;
 }
 
+// Dépôt GitHub privé : sans identification, GitHub répond « 404 » à tout le monde. Deux solutions :
+// rendre le dépôt public, ou coller ici un jeton GitHub en lecture seule (gardé uniquement sur ce PC).
+function privateRepoHelp(u) {
+  let has = false;
+  try { has = Boolean(localStorage.getItem('idle-rpg.github-token')); } catch { /* indisponible */ }
+  const show = has || (u.status === 'error' && /404/.test(u.error ?? ''));
+  if (!show) return '';
+  return `<details class="update-notes" ${has ? '' : 'open'}><summary>Dépôt privé : comment activer les mises à jour</summary>
+      <div class="muted">Le dépôt GitHub du jeu est privé : sans identification, GitHub répond « 404 ». Deux solutions :
+        <b>1.</b> rendre le dépôt public (GitHub → Settings → Danger Zone → Change visibility) ;
+        <b>2.</b> créer un jeton « fine-grained » en <b>lecture seule</b> limité à ce dépôt (GitHub → Settings → Developer settings →
+        Personal access tokens → Fine-grained, droit « Contents : Read-only ») et le coller ici. Il reste uniquement sur ce PC.</div>
+      <div class="row"><input id="github-token" class="grow" type="password" maxlength="255" placeholder="${has ? 'Jeton enregistré (laisser vide pour le supprimer)' : 'github_pat_…'}" autocomplete="off">
+        <button class="btn small" data-action="github-token">${has ? 'Remplacer' : 'Enregistrer'}</button></div>
+    </details>`;
+}
+
 // Version lancée + dernière version publiée sur GitHub (github.com/ErwannL/idleproject).
 function versionOptions(ui) {
   const current = ui.desktop?.version ?? GAME_VERSION;
@@ -70,6 +87,7 @@ function versionOptions(ui) {
       ${u.error && u.status !== 'error' ? `<div class="bad">${escapeHtml(u.error)}</div>` : ''}
       ${notes}
       <div class="options-row"><button class="btn small" data-action="open-releases">Voir les versions sur GitHub</button></div>
+      ${privateRepoHelp(u)}
     </div>`;
 }
 

@@ -19,6 +19,7 @@ import { sanitizePrestige } from './prestige.js';
 import { PRESTIGE } from '../data/prestige.js';
 import { sanitizeRushes } from './rushes.js';
 import { sanitizeCheats } from './cheats.js';
+import { sanitizeTower } from './tower.js';
 import { emptyLoadouts, sanitizeLoadouts } from './loadouts.js';
 import { sanitizeCodex } from './codex.js';
 
@@ -69,6 +70,9 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     dungeon: null,
     dungeonsCleared: {},
     dungeonBest: {}, // meilleure difficulté réussie par donjon (0 facile, 1 normal, 2 difficile)
+    tower: null, // v8.2 : ascension en cours de la Tour de l'Éternité { floor, startPlay }
+    towerBest: 0,
+    towerLast: null,
     dungeonRuns: {}, // v8.1 : « donjon:difficulté » → { last, best, tries } (rapports d'expédition)
     missions: emptyMissions(),
     prestige: { count: 0, stars: 0, perks: {} },
@@ -97,7 +101,7 @@ export function isValidItem(item) {
 function cleanItem(item) {
   const base = itemBase(item.baseId);
   const affixes = Array.isArray(item.affixes)
-    ? item.affixes.filter((a) => a && a.type in AFFIXES && Number.isFinite(a.value)).map((a) => ({ type: a.type, value: a.value }))
+    ? item.affixes.filter((a) => a && a.type in AFFIXES && Number.isFinite(a.value)).map((a) => (Number.isFinite(a.base) ? { type: a.type, value: a.value, base: a.base } : { type: a.type, value: a.value }))
     : [];
   const boosts = {};
   for (const [k, v] of Object.entries(obj(item.boosts))) if (Number.isInteger(v) && v > 0) boosts[k] = v;
@@ -189,6 +193,8 @@ function cleanActivities(state, raw) {
   }
   state.rushes = sanitizeRushes(raw.rushes);
   state.cheats = sanitizeCheats(raw.cheats);
+  sanitizeTower(state, raw);
+  if (state.tower && raw.dungeon) state.tower = null; // jamais les deux à la fois
   state.loadouts = sanitizeLoadouts(raw.loadouts);
   state.codex = sanitizeCodex(raw.codex);
   state.playSeconds = Math.max(0, Number(raw.playSeconds) || 0);

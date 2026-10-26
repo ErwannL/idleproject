@@ -15,7 +15,7 @@ export function dungeonById(id) {
 
 export function canEnterDungeon(state, id) {
   const d = dungeonById(id);
-  return Boolean(d) && !state.dungeon && state.keys >= 1 && state.maxStage >= d.unlockStage;
+  return Boolean(d) && !state.dungeon && !state.tower && state.keys >= 1 && state.maxStage >= d.unlockStage;
 }
 
 // Difficultés débloquées pour un donjon : Facile, puis Normal (1 victoire en Facile), puis Difficile.

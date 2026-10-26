@@ -1,22 +1,25 @@
 // Clic maintenu (v8.1) : en gardant le bouton de la souris enfoncé sur un bouton, un anneau se remplit
 // autour du curseur ; une fois plein, le bouton est cliqué en continu jusqu'à ce qu'on relâche ou bouge la souris.
+// v8.2 : Entrée maintenue sur un bouton sélectionné au clavier fait la même chose (anneau sur le bouton).
 const DELAY_MS = 250; // avant d'afficher l'anneau
 const FILL_MS = 650; // remplissage de l'anneau
 const REPEAT_MS = 90; // cadence des clics automatiques
 const MOVE_TOLERANCE = 6; // px
 // Seulement les actions qu'on veut répéter (achats, améliorations, invocations, réclamations, zoom…) :
 // jamais une confirmation (Renaissance, recyclage groupé, réinitialisation…).
-const REPEATABLE = new Set(['buy', 'upgrade-item', 'sharpen', 'reforge', 'craft', 'fuse', 'learn-skill', 'upgrade-companion',
+export const REPEATABLE = new Set(['buy', 'upgrade-item', 'sharpen', 'reforge', 'craft', 'fuse', 'learn-skill', 'upgrade-companion',
   'summon', 'buy-talent', 'buy-perk', 'upgrade-rush', 'reroll', 'claim-contract', 'claim-mission', 'claim-event',
   'buy-merchant', 'map-zoom', 'tree-zoom', 'claim-collection']);
 
 // Sélecteur qui retrouve « le même » bouton après un redessin du panneau.
-function selectorFor(el) {
+export function selectorFor(el) {
   const parts = Object.entries(el.dataset)
     .filter(([k]) => !k.startsWith('cost') && k !== 'currency' && k !== 'needsCharge' && k !== 'locked')
     .map(([k, v]) => `[data-${k.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}="${CSS.escape(v)}"]`);
-  return parts.length ? `button${parts.join('')}` : null;
+  return parts.length ? `${el.tagName.toLowerCase()}${parts.join('')}` : null;
 }
+
+let api = null;
 
 export function installHoldToRepeat(root) {
   const ring = document.createElement('div');
@@ -35,7 +38,7 @@ export function installHoldToRepeat(root) {
     cancelAnimationFrame(hold.raf);
     ring.classList.add('hidden');
     document.body.classList.remove('hold-repeating');
-    if (hold.fired) {
+    if (hold.fired && hold.source === 'pointer') {
       // Le clic natif du relâchement ne doit pas compter en plus.
       const swallow = (e) => { e.stopPropagation(); e.preventDefault(); };
       window.addEventListener('click', swallow, { capture: true, once: true });
@@ -44,23 +47,18 @@ export function installHoldToRepeat(root) {
     hold = null;
   };
 
-  root.addEventListener('pointerdown', (e) => {
-    if (e.button !== 0 || e.pointerType === 'touch') return;
-    const btn = e.target.closest('button[data-action]');
-    if (!btn || btn.disabled || !REPEATABLE.has(btn.dataset.action)) return;
-    const selector = selectorFor(btn);
-    if (!selector) return;
+  const start = (selector, x, y, source) => {
     stop();
-    hold = { x: e.clientX, y: e.clientY, selector, fired: false };
-    ring.style.left = `${e.clientX}px`;
-    ring.style.top = `${e.clientY}px`;
+    hold = { x, y, selector, source, fired: false };
+    ring.style.left = `${x}px`;
+    ring.style.top = `${y}px`;
     hold.timer = setTimeout(() => {
       if (!hold) return;
-      ring.classList.remove('hidden');
-      const start = performance.now();
+      ring.classList.remove('hidden', 'full');
+      const t0 = performance.now();
       const tick = (now) => {
         if (!hold) return;
-        const p = Math.min(1, (now - start) / FILL_MS);
+        const p = Math.min(1, (now - t0) / FILL_MS);
         fg.style.strokeDashoffset = `${LEN * (1 - p)}`;
         if (p < 1) { hold.raf = requestAnimationFrame(tick); return; }
         ring.classList.add('full');
@@ -70,16 +68,44 @@ export function installHoldToRepeat(root) {
           if (!target || target.disabled) return;
           hold.fired = true;
           target.click();
+          if (hold.source === 'key' && document.activeElement !== target) target.focus({ preventScroll: true });
         }, REPEAT_MS);
       };
-      ring.classList.remove('full');
       hold.raf = requestAnimationFrame(tick);
     }, DELAY_MS);
+  };
+
+  root.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 || e.pointerType === 'touch') return;
+    const btn = e.target.closest('button[data-action]');
+    if (!btn || btn.disabled || !REPEATABLE.has(btn.dataset.action)) return;
+    const selector = selectorFor(btn);
+    if (selector) start(selector, e.clientX, e.clientY, 'pointer');
   });
   window.addEventListener('pointermove', (e) => {
-    if (hold && Math.hypot(e.clientX - hold.x, e.clientY - hold.y) > MOVE_TOLERANCE) stop();
+    if (hold?.source === 'pointer' && Math.hypot(e.clientX - hold.x, e.clientY - hold.y) > MOVE_TOLERANCE) stop();
   });
-  window.addEventListener('pointerup', stop);
+  window.addEventListener('pointerup', () => { if (hold?.source === 'pointer') stop(); });
   window.addEventListener('pointercancel', stop);
   window.addEventListener('blur', stop);
+
+  api = {
+    // Entrée enfoncée sur un bouton : un clic tout de suite, puis l'anneau et la répétition.
+    keyDown(btn) {
+      if (hold?.source === 'key') return true;
+      if (!btn || btn.disabled || !REPEATABLE.has(btn.dataset.action)) return false;
+      const selector = selectorFor(btn);
+      if (!selector) return false;
+      btn.click();
+      const r = btn.getBoundingClientRect();
+      start(selector, r.left + r.width / 2, r.top + r.height / 2, 'key');
+      return true;
+    },
+    keyUp() { if (hold?.source === 'key') stop(); },
+  };
 }
+
+export const holdKeys = {
+  keyDown: (btn) => api?.keyDown(btn) ?? false,
+  keyUp: () => api?.keyUp(),
+};

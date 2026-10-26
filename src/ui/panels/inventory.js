@@ -179,6 +179,7 @@ function forge(ui, state) {
       <div class="section-title">Fusion</div>
       <div class="muted">${BALANCE.forge.fusionCount} objets de même emplacement et de même rareté → 1 objet de la rareté suivante,
         au niveau du meilleur. Les plus faibles sont utilisés en premier.</div>
+      <div class="recycle-rules">${autoFuseEditor(state)}</div>
       ${fusion}
     </div>
     <div class="card">

@@ -126,6 +126,14 @@ export function refreshItemStats(item, balance = BALANCE) {
     const v = mainAffixValue(base.mainAffix, rarity, item.level) * boost;
     item.affixes[0].value = v < 3 ? Math.round(v * 10) / 10 : Math.round(v);
   }
+  // Affixes améliorés (v8.2) : valeur d'origine mémorisée dans `base`, +12 % par niveau d'amélioration.
+  (item.affixes ?? []).forEach((a, i) => {
+    const n = item.boosts?.[`affix:${i}`] ?? 0;
+    if (!n) return;
+    if (!Number.isFinite(a.base)) a.base = a.value;
+    const v = a.base * (1 + (n * balance.forge.upgradeBoostPct) / 100);
+    a.value = v < 3 ? Math.round(v * 10) / 10 : Math.round(v * 10) / 10;
+  });
 }
 
 export function recycleValue(item, balance = BALANCE) {

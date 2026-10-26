@@ -17,18 +17,25 @@ const RELEASES_PAGE = 'https://github.com/ErwannL/idleproject/releases/latest';
 const TAGS_FALLBACK_API = 'https://data.jsdelivr.com/v1/packages/gh/ErwannL/idleproject';
 
 // Dernière release : API GitHub, sinon (bloquée, limite de requêtes…) liste des tags via jsDelivr.
-async function latestRelease() {
+// Dépôt privé (v8.2) : un jeton GitHub (lecture seule) saisi par le joueur est nécessaire ; il n'est jamais
+// enregistré par le jeu ailleurs que sur ce PC et n'est envoyé qu'à api.github.com.
+const validToken = (t) => typeof t === 'string' && /^[A-Za-z0-9_]{20,255}$/.test(t);
+const ghHeaders = (token, accept = 'application/vnd.github+json') => ({
+  Accept: accept, 'User-Agent': 'IdleRPG', ...(validToken(token) ? { Authorization: `Bearer ${token}` } : {}),
+});
+
+async function latestRelease(token) {
   const errors = [];
   try {
-    const res = await net.fetch(RELEASES_API, { headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'IdleRPG' } });
+    const res = await net.fetch(RELEASES_API, { headers: ghHeaders(token) });
     if (res.ok) {
       const r = await res.json();
       return {
         tag_name: r.tag_name, html_url: r.html_url, body: r.body,
-        assets: (r.assets ?? []).map((a) => ({ name: a.name, browser_download_url: a.browser_download_url, size: a.size })),
+        assets: (r.assets ?? []).map((a) => ({ id: a.id, url: a.url, name: a.name, browser_download_url: a.browser_download_url, size: a.size })),
       };
     }
-    errors.push(`GitHub ${res.status}`);
+    errors.push(`GitHub ${res.status}${res.status === 404 && !validToken(token) ? ' (dépôt privé ?)' : ''}`);
   } catch (error) {
     errors.push(`GitHub : ${error?.message ?? error}`);
   }
@@ -168,21 +175,24 @@ function createWindow() {
   });
   // Mise à jour (v7.8) : le processus principal relit lui-même la dernière release GitHub,
   // télécharge l'installateur officiel puis le lance en silencieux et ferme le jeu (sauvegarde comprise).
-  ipcMain.handle('desktop:checkUpdate', () => latestRelease());
+  ipcMain.handle('desktop:checkUpdate', (_event, token) => latestRelease(token));
   ipcMain.handle('desktop:openReleases', () => shell.openExternal(RELEASES_PAGE));
-  ipcMain.handle('desktop:installUpdate', async () => {
+  ipcMain.handle('desktop:installUpdate', async (_event, token) => {
     try {
-      const release = await latestRelease();
+      const release = await latestRelease(token);
       if (release.error) return { ok: false, error: release.error };
       const version = String(release.tag_name ?? '').replace(/^v/i, '');
       if (!newerThan(version, app.getVersion())) return { ok: false, error: 'Déjà à jour.' };
       const asset = (release.assets ?? []).find((a) => /^IdleRPG-[\d.]+-setup\.exe$/.test(a.name ?? ''));
-      const url = asset && new URL(asset.browser_download_url);
-      if (!url || url.protocol !== 'https:' || url.hostname !== 'github.com' || !url.pathname.startsWith('/ErwannL/idleproject/releases/download/')) {
-        return { ok: false, error: 'Installateur introuvable dans la release.' };
-      }
+      // Dépôt privé : téléchargement par l'API (avec le jeton) ; public : lien de téléchargement direct.
+      const privateDl = validToken(token) && asset?.url;
+      const url = asset && new URL(privateDl ? asset.url : asset.browser_download_url);
+      const okUrl = url && url.protocol === 'https:' && (privateDl
+        ? url.hostname === 'api.github.com' && url.pathname.startsWith('/repos/ErwannL/idleproject/releases/assets/')
+        : url.hostname === 'github.com' && url.pathname.startsWith('/ErwannL/idleproject/releases/download/'));
+      if (!okUrl) return { ok: false, error: 'Installateur introuvable dans la release.' };
       const file = path.join(app.getPath('temp'), asset.name);
-      const download = await net.fetch(url.href);
+      const download = await net.fetch(url.href, privateDl ? { headers: ghHeaders(token, 'application/octet-stream') } : {});
       if (!download.ok) return { ok: false, error: `Téléchargement ${download.status}` };
       const data = Buffer.from(await download.arrayBuffer());
       if (asset.size && data.length !== asset.size) return { ok: false, error: 'Téléchargement incomplet.' };

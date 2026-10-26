@@ -12,6 +12,7 @@ import { claimAllMissions, claimLogin, claimMission, claimMissionBonus, mergeRew
 import { abandonDungeon, setDungeonPath, startDungeon } from './core/dungeon.js';
 import { buyUpgradeBulk } from './core/economy.js';
 import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
+import { endTower, startTower } from './core/tower.js';
 import { autoFuse, craftItem, fuseItems, reforgeItem, sharpenItem, upgradeItem } from './core/forge.js';
 import { summon } from './core/gacha.js';
 import { setActiveHero } from './core/heroes.js';
@@ -111,6 +112,14 @@ function done(ok, message = null, color = null) {
   return true;
 }
 
+const TOKEN_KEY = 'idle-rpg.github-token';
+function githubToken() {
+  try {
+    const t = localStorage.getItem(TOKEN_KEY) ?? '';
+    return /^[A-Za-z0-9_]{20,255}$/.test(t) ? t : '';
+  } catch { return ''; }
+}
+
 const actions = {
   learnSkill(id) { done(learnSkill(state, id)); },
   setSkillAuto(value) { state.skillAuto = value; done(true); },
@@ -149,7 +158,8 @@ const actions = {
   upgradeItem(id) {
     const stat = upgradeItem(state, id, rng);
     if (stat) sound.play('upgrade');
-    const label = stat === 'main' ? 'effet principal' : STAT_LABELS[stat];
+    const label = stat === 'main' || stat?.startsWith('affix:') ? 'effet spécial' : STAT_LABELS[stat];
+    if (!stat) ui.toast('Amélioration impossible (or ou éclats insuffisants, ou maximum atteint).', '#ff8a8a');
     done(Boolean(stat), stat ? `Amélioration : ${label} +${BALANCE.forge.upgradeBoostPct} %` : null, '#7fe08f');
   },
   fuse(slot, rarity) {
@@ -168,8 +178,8 @@ const actions = {
       ui.openTab('dungeons');
       return;
     }
-    if (state.dungeon) {
-      ui.toast("Terminez ou abandonnez d'abord le donjon.");
+    if (state.dungeon || state.tower) {
+      ui.toast("Terminez d'abord le donjon ou la tour.");
       return;
     }
     state.autoAdvance = false;
@@ -318,7 +328,20 @@ const actions = {
     else ui.toast('Code inconnu.', '#ff8a8a');
   },
   buyPerk(id) { done(buyPerk(state, id), 'Bonus éternel amélioré', '#ffe08a'); },
+  // Tour de l'Éternité (v8.2).
+  enterTower() {
+    if (state.dungeon) { ui.toast("Terminez ou abandonnez d'abord le donjon."); return; }
+    if (!startTower(state)) return;
+    resetWave(world);
+    done(true, 'Ascension de la Tour de l\'Éternité : étage 1 !', '#c9a6ff');
+  },
+  leaveTower() {
+    const r = endTower(state, { defeated: false });
+    resetWave(world);
+    done(Boolean(r), r ? `Ascension terminée à l'étage ${r.floors}.` : null);
+  },
   selectStage(stage) {
+    if (state.tower) { ui.toast('Quittez d\'abord la Tour de l\'Éternité.'); return; }
     changeStage(state, world, stage);
     save();
     ui.invalidate();
@@ -386,8 +409,10 @@ const actions = {
     let error = null;
     try {
       // Version bureau : requête faite par le processus principal (pas de restriction réseau de la page).
-      const json = window.desktop?.checkUpdate ? await window.desktop.checkUpdate()
-        : await fetch(RELEASES_API).then((res) => (res.ok ? res.json() : { error: `GitHub ${res.status}` }));
+      const token = githubToken();
+      const json = window.desktop?.checkUpdate ? await window.desktop.checkUpdate(token)
+        : await fetch(RELEASES_API, token ? { headers: { Authorization: `Bearer ${token}` } } : {})
+          .then((res) => (res.ok ? res.json() : { error: `GitHub ${res.status}${res.status === 404 && !token ? ' (dépôt privé ?)' : ''}` }));
       if (json?.error) error = json.error;
       else release = parseRelease(json);
     } catch (e) { error = String(e?.message ?? e); }
@@ -412,11 +437,20 @@ const actions = {
     save();
     ui.updateInfo = { ...ui.updateInfo, installing: true, error: null };
     ui.invalidate();
-    const result = await window.desktop.installUpdate();
+    const result = await window.desktop.installUpdate(githubToken());
     ui.updateInfo = { ...ui.updateInfo, installing: result.ok, error: result.ok ? null : result.error };
     if (result.ok) ui.toast(`Installation de la ${result.version}… le jeu va redémarrer.`, '#7fe0ff');
     else ui.toast(`Mise à jour impossible : ${result.error}`, '#ff8a8a');
     ui.invalidate();
+  },
+  // Jeton GitHub (dépôt privé) : gardé uniquement dans ce navigateur / ce PC, jamais dans la sauvegarde.
+  setGithubToken(value) {
+    const token = String(value ?? '').trim();
+    try {
+      if (token) localStorage.setItem(TOKEN_KEY, token); else localStorage.removeItem(TOKEN_KEY);
+    } catch { /* stockage indisponible */ }
+    ui.toast(token ? 'Jeton GitHub enregistré sur ce PC.' : 'Jeton GitHub supprimé.', '#8ef0a0');
+    this.checkUpdate();
   },
   openReleases() {
     if (window.desktop?.openReleases) window.desktop.openReleases();

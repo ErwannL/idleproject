@@ -1,9 +1,31 @@
-## Idle RPG v8.1.0 — raccourcis, clic maintenu, codes cumulables, effets d'équipe, cinématiques
+## Idle RPG v8.2.0 — Tour de l'Éternité, tout au clavier, méga boss animés
 
-**Installation ou mise à jour :** **Paramètres → Version et mises à jour → Mettre à jour** (version bureau),
-ou téléchargez **IdleRPG-8.1.0-setup.exe** et lancez-le (jeu fermé). **Votre partie est conservée.**
+**Installation ou mise à jour :** téléchargez **IdleRPG-8.2.0-setup.exe** et lancez-le (jeu fermé).
+**Votre partie est conservée.** Le dépôt GitHub étant privé, la mise à jour en jeu demande un jeton GitHub
+(voir ci-dessous) ou que le dépôt soit rendu public.
 
-### Nouveau dans la v8.1
+### Nouveau dans la v8.2
+- **Tour de l'Éternité** (nouvel onglet « Tour », dès l'étape 2-20) : un boss par étage, de plus en plus fort,
+  un méga boss tous les 10 étages. Gratuite, sans clé ; gemmes à chaque nouveau record, fragments tous les 5 étages,
+  ticket et clé tous les 10. Une défaite termine l'ascension (record et dernière ascension affichés).
+- **Tout se joue au clavier** : les flèches déplacent la sélection d'un bouton à l'autre (encadrée en or),
+  Entrée ou Espace l'active, **Entrée maintenue = clic maintenu** (anneau puis achats en continu),
+  [ ] ou Page préc./suiv. pour changer d'onglet ; la sélection reste en place quand le panneau se met à jour.
+- **Méga boss réanimés** : Chevalier déchu, Roi démoniaque et Colosse du marais ont une vraie marche
+  et des attaques spectaculaires.
+- **Animation d'invocation seulement pour une nouveauté** (personnage ou familier jamais obtenu) ; les doublons s'affichent directement.
+- **Fusion automatique aussi dans la Forge** (à côté de la fusion manuelle).
+- **Mises à jour avec un dépôt privé** : Paramètres → Version et mises à jour → « Dépôt privé » : collez un jeton
+  GitHub en lecture seule (gardé uniquement sur ce PC) pour vérifier et installer les mises à jour.
+
+### Corrigés
+- **Achats** : « Améliorer » ne faisait rien sur les objets ancestraux et accessoires sans statistique de base
+  (ex. Sceau du Néant) — leurs effets spéciaux s'améliorent maintenant de +12 % par niveau ; un message
+  s'affiche quand une amélioration est impossible.
+- **« GitHub injoignable (404) »** : expliqué (dépôt privé) et contournable avec un jeton.
+- Bonus des codes affiché lisiblement (×100 M au lieu de ×100000000,0).
+
+### v8.1
 - **Raccourcis clavier pour tout** : 1…0 onglets, ← → onglet suivant, Espace / A avance auto, V vitesse,
   Q W E R T boosts, G tout récupérer, M missions, N récompenses, P paramètres, Échap fermer, K ou ? aide.
 - **Clic maintenu** : gardez le clic sur un bouton (acheter, améliorer, invoquer, réclamer…) ; un anneau se
@@ -26,7 +48,7 @@ ou téléchargez **IdleRPG-8.1.0-setup.exe** et lancez-le (jeu fermé). **Votre 
 - **Grand écran** : les ennemis arrivent du bord droit de la scène au lieu d'apparaître au milieu.
 - **Sprites coupés corrigés** et animations retravaillées.
 
-### Corrigés
+### Corrigés en v8.1
 - **« GitHub injoignable »** : seconde source (liste des versions publiées) si l'API GitHub est bloquée ou limitée,
   et la raison exacte est affichée.
 - **Mode barre** : les boosts ne chevauchent plus l'or et le bouton d'agrandissement.

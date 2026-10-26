@@ -14,7 +14,8 @@ import { Rng } from './rng.js';
 export function measureFarmRate(state, balance = BALANCE, seconds = balance.offline.measureSeconds) {
   const clone = structuredClone(state);
   clone.autoAdvance = false; // hors ligne : on farme l'étape atteinte, sans progresser
-  clone.dungeon = null; // un donjon en cours est mis en pause : on mesure le farm de campagne
+  clone.dungeon = null;
+  clone.tower = null; // un donjon en cours est mis en pause : on mesure le farm de campagne
   clone.inventory = [];
   const world = createCombat(clone, balance);
   world.recordEvents = false;

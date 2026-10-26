@@ -15,8 +15,8 @@ import { canRebirth, rebirthReward } from '../core/rebirth.js';
 import { rewardText } from '../core/rewards.js';
 import { skillPointsAvailable } from '../core/skills.js';
 import { computeHeroStats } from '../core/stats.js';
-import { installShortcuts, shortcutsHtml } from './shortcuts.js';
-import { installHoldToRepeat } from './hold.js';
+import { focusables, installShortcuts, shortcutsHtml } from './shortcuts.js';
+import { installHoldToRepeat, selectorFor } from './hold.js';
 import { playSummonReveal } from './summon-fx.js';
 import { coin, effectText, icon, img, itemFrame } from './common.js';
 import boss from './panels/boss.js';
@@ -24,6 +24,8 @@ import campaign from './panels/campaign.js';
 import companions from './panels/companions.js';
 import contracts from './panels/contracts.js';
 import dungeons from './panels/dungeons.js';
+import tower from './panels/tower.js';
+import { towerUnlocked } from '../core/tower.js';
 import hero from './panels/hero.js';
 import inbox from './panels/inbox.js';
 import inventory, { visibleItems } from './panels/inventory.js';
@@ -38,14 +40,14 @@ import { RUSHES } from '../data/rushes.js';
 import { rushUnlocked } from '../core/rushes.js';
 import { dungeonById } from '../core/dungeon.js';
 
-const PANELS = Object.fromEntries([upgrades, inventory, hero, companions, skills, tree, campaign, dungeons, boss, summon, contracts, inbox, options]
+const PANELS = Object.fromEntries([upgrades, inventory, hero, companions, skills, tree, campaign, dungeons, tower, boss, summon, contracts, inbox, options]
   .map((p) => [p.id, p]));
 const TAB_MIN_WIDTH = 60; // en dessous, seuls les icônes (et le libellé de l'onglet actif) sont affichés
 const TALL_MIN_HEIGHT = 420;
 const STRIP_MAX_HEIGHT = 190; // en dessous : mode barre (seulement la scène, comme une barre des tâches)
 const BULK_CONFIRM_MS = 4000;
 // Panneaux dont le contenu évolue pendant le farm : réaffichés au plus une fois par seconde.
-const LIVE_PANELS = new Set(['contracts', 'dungeons', 'skills', 'boss', 'hero', 'upgrades']);
+const LIVE_PANELS = new Set(['contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'upgrades']);
 
 // Renaissance : choix du seul pouvoir ancestral conservé.
 function powerChoice(state) {
@@ -244,6 +246,9 @@ export class UI {
       case 'speed': a.cycleSpeed(); break;
       case 'autofuse': a.setAutoFuse(el.dataset.group, value); break;
       case 'check-update': a.checkUpdate(); break;
+      case 'enter-tower': a.enterTower(); break;
+      case 'leave-tower': a.leaveTower(); break;
+      case 'github-token': a.setGithubToken(this.$('github-token')?.value); break;
       case 'install-update': a.installUpdate(); break;
       case 'open-releases': a.openReleases(); break;
       case 'cheat': a.cheat(this.$('cheat-code')?.value); break;
@@ -424,6 +429,16 @@ export class UI {
         this.news(`Donjon terminé : ${event.item.name} (${rarityById(event.item.rarity).label})`, rarityById(event.item.rarity).color);
         this.invalidate();
         break;
+      case 'towerFloor':
+        this.banner(`Étage ${event.floor} franchi !`, 'win');
+        this.news(event.record ? `Nouveau record dans la tour : étage ${event.floor} · ${rewardText(event.reward, formatNumber)}` : `Tour : étage ${event.floor} franchi.`, '#c9a6ff');
+        this.invalidate();
+        break;
+      case 'towerFailed':
+        this.banner('Ascension terminée', 'lose');
+        this.news(`Tour de l'Éternité : vaincu à l'étage ${event.defeatedAt}${event.bossHpPct !== null && event.bossHpPct !== undefined ? ` (boss à ${formatNumber(event.bossHpPct)} % de PV)` : ''}. Record : ${state.towerBest}.`, '#c9a6ff');
+        this.invalidate();
+        break;
       case 'dungeonFailed':
         this.banner('Expédition échouée', 'lose');
         this.news(`Défaite ${event.bossHpPct !== null && event.bossHpPct !== undefined ? `face au boss final (encore ${formatNumber(event.bossHpPct)} % de PV)` : `en salle ${event.room}`}. Conservé : ${rewardText(event.earned, formatNumber) || 'rien'} — détails dans l'onglet Donjons.`);
@@ -500,16 +515,16 @@ export class UI {
       this.lastHud.xp = xpRatio;
     }
     this.setText('top-level', `Niv. ${state.level}`);
-    this.setText('top-stage', state.dungeon ? `Donjon · ${dungeonById(state.dungeon.id)?.name ?? ''}` : `Étape ${stageLabel(state.stage)} · ${zoneForStage(state.stage).name}`);
+    this.setText('top-stage', state.tower ? `Tour de l'Éternité · étage ${state.tower.floor}` : state.dungeon ? `Donjon · ${dungeonById(state.dungeon.id)?.name ?? ''}` : `Étape ${stageLabel(state.stage)} · ${zoneForStage(state.stage).name}`);
     this.setText('auto-toggle', state.autoAdvance ? '⏵ Avance auto' : '⏸ Farm');
     this.setText('speed-toggle', `⏩ ×${state.ui.speed ?? 1}`);
     this.$('speed-toggle').classList.toggle('fast', (state.ui.speed ?? 1) > 1);
     this.$('auto-toggle').classList.toggle('off', !state.autoAdvance);
-    this.$('auto-toggle').classList.toggle('hidden', Boolean(state.dungeon));
+    this.$('auto-toggle').classList.toggle('hidden', Boolean(state.dungeon || state.tower));
 
     this.updateZoneCard(state);
     this.updateProgress(state, world);
-    this.$('advance-btn').classList.toggle('hidden', state.autoAdvance || Boolean(state.dungeon));
+    this.$('advance-btn').classList.toggle('hidden', state.autoAdvance || Boolean(state.dungeon || state.tower));
     this.updateBadges(state);
     this.updateTabs(state);
 
@@ -537,6 +552,7 @@ export class UI {
     switch (this.tab) {
       case 'contracts': return state.contracts.map((c) => `${c.id}:${c.progress}`).join() + JSON.stringify(state.missions);
       case 'dungeons': return JSON.stringify(state.dungeon);
+      case 'tower': return `${JSON.stringify(state.tower)}|${state.towerBest}`;
       // Achat « Max » : le nombre de niveaux abordables change avec l'or.
       case 'upgrades': return this.view.buyAmount === 'max' ? String(Math.floor(Math.log10(state.gold + 1) * 8)) : '';
       case 'skills': return `${state.level}|${Math.floor(state.xp)}`;
@@ -553,9 +569,16 @@ export class UI {
   }
 
   updateZoneCard(state) {
-    const key = `${state.stage}|${state.maxStage}|${JSON.stringify(state.dungeon)}`;
+    const key = `${state.stage}|${state.maxStage}|${JSON.stringify(state.dungeon)}|${state.tower?.floor}`;
     if (this.lastHud.zone === key) return;
     this.lastHud.zone = key;
+    if (state.tower) {
+      const f = state.tower.floor;
+      const first = Math.floor((f - 1) / 10) * 10 + 1;
+      this.$('zone-name').textContent = `Tour de l'Éternité · étage ${f}`;
+      this.$('stage-pips').innerHTML = this.pips(first, first + 9, f, f - 1, (i) => i % 10 === 0);
+      return;
+    }
     if (state.dungeon) {
       const d = DUNGEONS.find((x) => x.id === state.dungeon.id);
       this.$('zone-name').textContent = d.name;
@@ -649,17 +672,18 @@ export class UI {
         const m = Math.floor((sec % 3600) / 60);
         return h ? `${h} h ${String(m).padStart(2, '0')}` : `${m} min`;
       };
-      const parts = [`×${boost.gold.toFixed(1).replace('.', ',')}`];
+      const mult = (n) => (n >= 1000 ? formatNumber(n) : n.toFixed(1).replace('.', ','));
+      const parts = [`×${mult(boost.gold)}`];
       if (boost.secondsLeft > 0) parts.push(dur(boost.secondsLeft));
       if (boost.weekend) parts.push('Week-end');
       if (boost.cheat > 1) parts.push(`Code ${dur(boost.cheatSecondsLeft)}`);
       this.$('boost').textContent = parts.join(' · ');
       const early = boost.gold / (boost.weekend ? 2 : 1) / (boost.cheat ?? 1);
       this.$('boost-chip').title = [
-        `Bonus total ×${boost.gold.toFixed(1).replace('.', ',')} sur l'or et l'XP =`,
+        `Bonus total ×${mult(boost.gold)} sur l'or et l'XP =`,
         boost.secondsLeft > 0 ? `démarrage rapide ×${early.toFixed(1).replace('.', ',')} (×3 au début, diminue jusqu'à ×1 au bout de 5 h de jeu ; encore ${dur(boost.secondsLeft)})` : '',
         boost.weekend ? `× week-end ×2 (samedi et dimanche ; encore ${dur(boost.weekendSecondsLeft)})` : '',
-        boost.cheat > 1 ? `× code ×${boost.cheat} (encore ${dur(boost.cheatSecondsLeft)})` : '',
+        boost.cheat > 1 ? `× code ×${mult(boost.cheat)} (encore ${dur(boost.cheatSecondsLeft)})` : '',
       ].filter(Boolean).join(' ');
     }
   }
@@ -672,6 +696,7 @@ export class UI {
       tree: state.maxStage >= 10 || state.fragments > 0 || state.records.rebirths > 0 || (state.prestige?.count ?? 0) > 0,
       dungeons: state.maxStage >= DUNGEONS[0].unlockStage - 10 || Object.keys(state.dungeonsCleared).length > 0,
       boss: state.records.bossesDefeated > 0 || Object.keys(state.powers).length > 0,
+      tower: towerUnlocked(state) || (state.towerBest ?? 0) > 0,
     };
     const key = `${JSON.stringify(visible)}|${this.root.clientWidth}|${this.tab}|${[...this.newTabs].join()}`;
     if (this.lastHud.tabs === key) return;
@@ -699,8 +724,16 @@ export class UI {
     // Les zones défilantes internes (liste d'inventaire, fiche…) gardent aussi leur position.
     const inner = [...body.querySelectorAll('[class]')].filter((el) => el.scrollTop > 0)
       .map((el) => [el.className, [...body.getElementsByClassName(el.classList[0])].indexOf(el), el.scrollTop]);
+    // Navigation au clavier (v8.2) : l'élément sélectionné est retrouvé après le redessin.
+    const focused = document.activeElement && body.contains(document.activeElement) ? document.activeElement : null;
+    const focusSel = focused ? selectorFor(focused) : null;
+    const focusIndex = focused ? focusables(this).indexOf(focused) : -1;
     body.innerHTML = panel.render(this, state);
     body.scrollTop = scroll;
+    if (focused) {
+      const again = (focusSel && body.querySelector(focusSel)) || focusables(this)[focusIndex];
+      again?.focus({ preventScroll: true });
+    }
     for (const [cls, i, top] of inner) {
       const el = body.getElementsByClassName(cls.split(' ')[0])[i];
       if (el) el.scrollTop = top;

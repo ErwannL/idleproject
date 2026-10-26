@@ -113,10 +113,10 @@ await check('onglets avec icône et état actif distinct', async () => {
     tab: b.dataset.tab, icon: b.querySelector('img')?.naturalWidth > 0, active: b.classList.contains('active'),
     hidden: b.classList.contains('hidden'),
   })));
-  assert(tabs.length === 10 && tabs.every((t) => t.icon), JSON.stringify(tabs));
-  // Menus débloqués progressivement : compagnons, arbre, donjons et boss cachés en début de partie.
+  assert(tabs.length === 11 && tabs.every((t) => t.icon), JSON.stringify(tabs));
+  // Menus débloqués progressivement : compagnons, arbre, donjons, tour et boss cachés en début de partie.
   const hidden = tabs.filter((t) => t.hidden).map((t) => t.tab).sort().join();
-  assert(hidden === 'boss,companions,dungeons,tree', `onglets cachés : ${hidden}`);
+  assert(hidden === 'boss,companions,dungeons,tower,tree', `onglets cachés : ${hidden}`);
   assert(tabs.filter((t) => t.active).map((t) => t.tab).join() === 'inventory', JSON.stringify(tabs));
 });
 
@@ -269,9 +269,12 @@ await check('invocation : un ticket donne un héros ou un compagnon', async () =
   const after = await game(() => ({ t: __idle.state.tickets, n: __idle.state.summon.total }));
   assert(after.t === before.t - 1 && after.n === before.n + 1, JSON.stringify({ before, after }));
   // Animation d'invocation : un clic révèle tout, un second ferme.
-  await page.waitForSelector('.summon-fx');
-  await page.waitForTimeout(1600);
-  await page.screenshot({ path: `${outDir}/compact-summon-reveal.png` });
+  // L'animation ne se joue que pour une nouveauté.
+  if (await game(() => __idle.ui.view.lastSummon?.some((r) => r.isNew))) {
+    await page.waitForSelector('.summon-fx');
+    await page.waitForTimeout(1600);
+    await page.screenshot({ path: `${outDir}/compact-summon-reveal.png` });
+  }
   for (let i = 0; i < 2 && (await page.$('.summon-fx')); i++) await page.click('.summon-fx');
   assert(!(await page.$('.summon-fx')), 'animation d\'invocation non fermée');
   await page.screenshot({ path: `${outDir}/compact-summon.png` });
@@ -337,6 +340,28 @@ await check('vitesse ×10 : l’inventaire reste cliquable (pas de redessin pend
     assert(sel === id, `sélection ${sel} ≠ ${id}`);
   }
   await game(() => { __idle.state.ui.speed = 1; });
+});
+
+await check('clavier : onglet par touche, flèches entre les boutons, Entrée maintenue = achat en continu', async () => {
+  await game(() => { __idle.state.gold += 1e40; __idle.ui.closePanel(); });
+  await page.click('#scene', { position: { x: 5, y: 5 } }).catch(() => {});
+  await page.keyboard.press('1');
+  await page.waitForTimeout(300);
+  const tab = await game(() => __idle.ui.tab);
+  assert(tab === 'upgrades', `onglet ${tab}`);
+  const inPanel = await game(() => Boolean(document.activeElement?.closest('#panel-body')));
+  assert(inPanel, 'la sélection n\'est pas dans le panneau');
+  const before = await game(() => document.activeElement?.outerHTML.slice(0, 80));
+  await page.keyboard.press('ArrowDown');
+  const after = await game(() => document.activeElement?.outerHTML.slice(0, 80));
+  assert(before !== after, 'les flèches ne déplacent pas la sélection');
+  const key = await game(() => { const b = document.querySelector('#panel-body [data-action="buy"]:not([disabled])'); b.focus(); return b.dataset.key; });
+  const lvl = await game((k) => __idle.state.upgrades[k], key);
+  await page.keyboard.down('Enter');
+  await page.waitForTimeout(1600);
+  await page.keyboard.up('Enter');
+  const lvl2 = await game((k) => __idle.state.upgrades[k], key);
+  assert(lvl2 >= lvl + 3, `niveaux ${lvl} → ${lvl2}`);
 });
 
 await check('donjon : entrer avec une clé puis abandonner', async () => {

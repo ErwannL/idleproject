@@ -78,6 +78,11 @@ function upgradableStats(item) {
   const base = itemBase(item.baseId);
   const stats = Object.entries(base.stats).filter(([, v]) => v > 0).map(([k]) => k);
   if (base.mainAffix) stats.push('main');
+  // v8.2 : les effets spéciaux (affixes) s'améliorent aussi — indispensable pour les accessoires et les
+  // objets ancestraux qui n'ont parfois aucune statistique de base (avant, « Améliorer » ne faisait rien).
+  (item.affixes ?? []).forEach((a, i) => {
+    if (!(base.mainAffix && i === 0 && a.type === base.mainAffix.type)) stats.push(`affix:${i}`);
+  });
   return stats;
 }
 
