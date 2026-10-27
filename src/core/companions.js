@@ -6,6 +6,11 @@ import { talentEffects } from './rebirth.js';
 import { DUNGEONS } from '../data/dungeons.js';
 import { COMPANION_ROLES, SYNERGIES } from '../data/synergies.js';
 
+export const MULTIPLICATIVE = { damagePct: 'damageMultPct', maxHpPct: 'maxHpMultPct', goldPct: 'goldMultPct' };
+
+// v8.8 : puissance des compétences selon la rareté (un SSR frappe nettement plus fort qu'un R).
+export const RARITY_SKILL = { common: 1, rare: 1, epic: 1.3, legendary: 1.8 };
+
 export function companionById(id) {
   return COMPANIONS.find((c) => c.id === id);
 }
@@ -61,7 +66,12 @@ export function companionEffects(state, balance = BALANCE) {
   for (const c of equippedCompanions(state)) {
     const home = dungeonAffinity(state, c.id);
     const m = companionMultiplier(state, c.id) * (home ? balance.dungeonAffinity.passiveMultiplier : 1);
-    for (const [k, v] of Object.entries(c.passive)) out[k] = (out[k] ?? 0) + v * m;
+    // v8.8 : les % de dégâts, PV et or des compagnons sont MULTIPLICATIFS (avant : noyés dans les milliers de %
+    // de l'arbre, si bien qu'un SR valait un SSR en fin de partie).
+    for (const [k, v] of Object.entries(c.passive)) {
+      const key = MULTIPLICATIVE[k] ?? k;
+      out[key] = (out[key] ?? 0) + v * m;
+    }
     // Dans son donjon, le SSR galvanise toute l'équipe.
     if (home) out.damagePct = (out.damagePct ?? 0) + balance.dungeonAffinity.teamDamagePct;
   }

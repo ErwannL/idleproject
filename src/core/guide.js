@@ -88,7 +88,7 @@ export const PANEL_HELP = {
   campaign: 'Chaque monde a 20 étapes et 4 boss. Si un boss vous bat, le chevalier refarme l\'étape d\'avant et le retente quand il est 15 % plus fort (ou bouton « Retenter le boss »).',
   dungeons: 'Une clé par expédition. Facile = sous votre étape max ; réussir une difficulté débloque la suivante, donjon par donjon. En haut : le défi de la semaine (3 tentatives, règles qui changent chaque lundi, sans clé).',
   companions: 'Deux compagnons et un familier. Leurs rôles forment des synergies (bonus + effets visuels). Améliorez-les avec l\'or. Ceux qui restent sur le banc partent en expédition (1 h, 4 h, 12 h, même jeu fermé) et rapportent or, matériaux, gemmes, clés et fragments.',
-  tower: 'Une ascension par semaine (lundi). Un boss par étage ; récompenses au meilleur étage de la semaine et à chaque record absolu.',
+  tower: 'Une ascension par semaine (lundi). Un boss par étage ; récompenses au meilleur étage de la semaine et à chaque record absolu. La tour s\'effondre après 10 h de combat (chaque nouvel étage rajoute un peu de temps).',
   boss: 'Chaque méga boss vaincu donne un pouvoir ancestral ; les collections rapportent des récompenses.',
   contracts: 'Missions quotidiennes, hebdomadaires et mensuelles, contrats et hauts faits (bonus permanents). « Tout récupérer » ou la touche G.',
   inbox: 'Coffres, marchands et gemmes trouvés pendant le farm attendent ici.',

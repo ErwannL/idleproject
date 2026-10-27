@@ -1,8 +1,31 @@
-## Idle RPG v8.7.0 — codes sans limite, Tour qui finit, arbre aux couleurs des régions
+## Idle RPG v8.8.0 — Transcendance, Tour à chrono, SSR revalorisés, achat en masse dans l'arbre
 
-**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-8.7.0-setup.exe). Votre partie est conservée.
+**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-8.8.0-setup.exe). Votre partie est conservée.
+
+### Nouveau
+- **Transcendance** (onglet Arbre, dès l'étape 11-10 ×3) : on recommence tout — Renaissances (25 % conservées),
+  arbre de talents et fragments — contre des **Étoiles**, et dégâts, PV et or **×2 pour toujours** par Transcendance.
+  Les Étoiles achètent des **bonus stellaires** qui changent les règles : Puissance stellaire (×1,5 par niveau),
+  **Entropie** (les ennemis grandissent jusqu'à 20 % moins vite par étape), Renaissance sublimée (×1,55… au lieu
+  de ×1,5), Mémoire du guerrier (garder une partie des améliorations à la Renaissance), Moisson ancienne (+fragments),
+  Héritage stellaire (garder plus de Renaissances). Boutons « Max » partout.
+- **Arbre : « Tout apprendre (max) »** apprend en boucle le talent disponible le moins cher tant que les fragments
+  suffisent ; un clic sur une région de la légende fait la même chose dans cette région seulement.
+- **Tour de l'Éternité à chrono** : elle s'effondre au bout de **10 h de combat** ; chaque nouvel étage la stabilise
+  (+5 min, de moins en moins à mesure qu'on monte, jamais plus de 10 h devant soi). Le chrono est affiché en haut
+  de l'écran et dans l'onglet Tour. Une ascension sans fin d'une ancienne version s'effondre au chargement.
+
+### Équilibrage
+- **Compagnons SSR revalorisés** : les % de dégâts, PV et or des compagnons sont désormais **multiplicatifs**
+  (avant, noyés dans les milliers de % de l'arbre, un SR valait un SSR en fin de partie), et leurs compétences
+  frappent plus fort selon la rareté (Épique ×1,3, Légendaire ×1,8). Impératrice des glaces : +10 % de dégâts ;
+  Sorcière : recharge des compétences −2 % (au lieu de −5 %, qui écrasait tout une fois multiplié).
 
 ### Corrigés
+- **Bonus de code « ×1 ap »** : le plafond des codes (×1e60) s'affiche maintenant « ×1e60 (max) ».
+- **Pastille d'ensemble** déplacée en bas à gauche de l'objet (le niveau d'amélioration est en haut à gauche).
+
+### v8.7 — codes sans limite, Tour qui finit, arbre aux couleurs des régions
 - **« Entrer dans le donjon » grisé avec 42 clés** : ce n'était pas les clés — on ne peut pas entrer dans un donjon
   pendant une ascension de la Tour (ou un défi). Le bouton l'explique maintenant, et un bouton **« ⟲ Quitter la Tour »**
   (ou « Abandonner le défi / le donjon ») est toujours visible sur la scène.

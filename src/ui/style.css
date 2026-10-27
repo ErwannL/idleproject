@@ -1486,7 +1486,7 @@ kbd { display: inline-block; min-width: 18px; padding: 1px 5px; border: 1px soli
 #perf-overlay.hidden { display: none; }
 
 /* v8.5 : ensembles d'équipement (point coloré sur l'objet, fiche, héros). */
-.item-frame .set-dot { position: absolute; left: 2px; top: 2px; width: 7px; height: 7px; border-radius: 50%; background: var(--set);
+.item-frame .set-dot { position: absolute; left: 2px; bottom: 2px; width: 7px; height: 7px; border-radius: 50%; background: var(--set);
   box-shadow: 0 0 0 1px #0c0d10, 0 0 5px var(--set); pointer-events: none; }
 .set-block { border-left: 3px solid var(--set); padding-left: 6px; margin: 4px 0; }
 .set-tiers { margin: 2px 0 0; padding-left: 16px; font-size: 11.5px; }
@@ -1527,3 +1527,9 @@ kbd { display: inline-block; min-width: 18px; padding: 1px 5px; border: 1px soli
 .cheat-list { margin-top: 6px; display: grid; gap: 3px; }
 .cheat-row { display: flex; align-items: center; gap: 6px; font-size: 11.5px; }
 .cheat-list > .btn { justify-self: start; }
+.region-buy { background: transparent; border-color: currentColor; }
+
+/* v8.8 : Transcendance. */
+.transcend-card { border-color: #9fe6ff; box-shadow: 0 0 12px -4px #9fe6ff; display: flex; flex-direction: column; gap: 4px; }
+.transcend-title { color: #bfefff; text-shadow: 0 0 6px #4fb8e8; }
+.star-cur { color: #bfefff; font-weight: 900; }

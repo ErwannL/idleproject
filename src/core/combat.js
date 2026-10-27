@@ -5,7 +5,7 @@ import { BALANCE } from '../data/balance.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
 import { POWER_RULES } from '../data/powers.js';
 import { ZONES } from '../data/zones.js';
-import { dungeonAffinity, dungeonDamageTaken, equippedCompanions } from './companions.js';
+import { RARITY_SKILL, dungeonAffinity, dungeonDamageTaken, equippedCompanions } from './companions.js';
 import { trackContracts } from './contracts.js';
 import { completeDungeon, dungeonById, dungeonKill, failDungeon } from './dungeon.js';
 import { addGold } from './economy.js';
@@ -21,7 +21,8 @@ import { earlyBoost } from './boost.js';
 import { phantomHitPct, rushById, tickRushes } from './rushes.js';
 import { recordKill } from './codex.js';
 import { DUNGEON_DIFFICULTIES } from '../data/dungeons.js';
-import { clearTowerFloor, endTower, towerBoss, towerLevel } from './tower.js';
+import { enemyScaleFactor } from './transcend.js';
+import { clearTowerFloor, endTower, towerBoss, towerLevel, towerTimeLeft } from './tower.js';
 import { CHALLENGE, challengeBosses, challengeKill, challengeLevel, challengeRule, challengeTimeUp, clearChallengeWave, endChallenge, isBossWave } from './challenge.js';
 
 const MAX_EVENTS = 300;
@@ -232,6 +233,9 @@ function summonMinion(state, world, master, balance, enc) {
   if (!type) return;
   const s = enemyStats(enc.level, type, true, balance);
   applyBerserk(s, balance);
+  const entropy = enemyScaleFactor(state, enc.level, balance);
+  s.hp *= entropy.hp;
+  s.damage *= entropy.damage;
   const heat = rebirthHeat(state, balance);
   const minion = {
     id: world.nextEnemyId++, type, boss: true, summoned: true, elite: false, berserk: true,
@@ -254,6 +258,10 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
     s.hp *= diff.hp;
     s.damage *= diff.damage;
   }
+  // Transcendance « Entropie » : ennemis qui grandissent moins vite.
+  const entropy = enemyScaleFactor(state, enc.level, balance);
+  s.hp *= entropy.hp;
+  s.damage *= entropy.damage;
   if (enc.challenge) {
     s.hp *= challengeRule(state, 'enemyHp') ?? 1;
     s.damage *= challengeRule(state, 'enemyDamage') ?? 1;
@@ -515,7 +523,7 @@ function castSkill(state, world, skill, stats, rng, balance, enc, front) {
 
 function castCompanion(state, world, companion, stats, rng, balance, enc, front) {
   const { skill } = companion;
-  const aff = dungeonAffinity(state, companion.id, balance) ? balance.dungeonAffinity.skillMultiplier : 1;
+  const aff = (dungeonAffinity(state, companion.id, balance) ? balance.dungeonAffinity.skillMultiplier : 1) * (RARITY_SKILL[companion.rarity] ?? 1);
   if (skill.type === 'gold') {
     gainGold(state, world, referenceKillGold(enc.level, balance) * skill.value * (1 + stats.goldPct / 100) * (stats.goldMult ?? 1) * earlyBoost(state, balance).gold);
   } else if (skill.type === 'heal') {
@@ -597,6 +605,13 @@ export function step(state, world, dt, rng, balance = BALANCE) {
   world.buffs.shield = Math.max(0, world.buffs.shield - dt);
 
   const enc = currentEncounter(state, balance);
+  // Tour de l'Éternité : elle s'effondre quand le chrono est écoulé (v8.8).
+  if (enc.tower && towerTimeLeft(state) <= 0) {
+    resetWave(world, balance);
+    const result = endTower(state, { defeated: false, collapsed: true });
+    emit(world, 'towerCollapsed', result);
+    return;
+  }
   // Défi de la semaine : temps limité par vague.
   if (enc.challenge && challengeTimeUp(state, dt)) {
     const boss = world.enemies.find((e) => e.boss && !e.summoned);

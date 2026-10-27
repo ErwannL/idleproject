@@ -23,7 +23,8 @@ import { addToInventory, bulkRecycleCandidates, equipItem, isUpgrade, recycleIte
 import {
   bossDungeon, bossFirstStage, claimMastery, powerById, powerSlots, rerollPower, resolveReroll, setPowerActive,
 } from './core/powers.js';
-import { buyTalent, buyTalentMax, buyTalentPath, performRebirth, respecTalents } from './core/rebirth.js';
+import { buyTalent, buyTalentMax, buyTalentPath, buyTalentsCheapest, performRebirth, respecTalents } from './core/rebirth.js';
+import { buyTranscendPerk, buyTranscendPerkMax, performTranscend, stellarMultiplier } from './core/transcend.js';
 import { buyPerk } from './core/prestige.js';
 import { activateRush, rushById, upgradeRush } from './core/rushes.js';
 import { grantReward, rewardText } from './core/rewards.js';
@@ -325,6 +326,26 @@ const actions = {
     }
   },
   buyTalentMax(id) { done(buyTalentMax(state, id) > 0); },
+  // Transcendance (v8.8).
+  transcend() {
+    const stars = performTranscend(state, performRebirth);
+    if (!stars) return;
+    world = createCombat(state);
+    resetWave(world);
+    save();
+    ui.banner(`Transcendance ! +${formatNumber(stars)} Étoiles`, 'win');
+    if (cinematicsOn()) playCinematic({ kicker: `Transcendance ${state.transcend.count}`, title: 'Un nouveau cycle', line: `+${formatNumber(stars)} Étoiles · dégâts, PV et or ×${formatNumber(stellarMultiplier(state))}` });
+    ui.invalidate();
+  },
+  buyTranscendPerk(id, max = false) {
+    const n = max ? buyTranscendPerkMax(state, id) : (buyTranscendPerk(state, id) ? 1 : 0);
+    done(n > 0, n ? 'Bonus stellaire amélioré' : null, '#c9a6ff');
+  },
+  buyTalentsAll(region) {
+    const n = buyTalentsCheapest(state, region);
+    if (!n) ui.toast('Pas assez de fragments pour le prochain talent.', '#ff8a8a');
+    done(n > 0, n ? `${n} niveau${n > 1 ? 'x' : ''} de talent appris` : null, '#c9a6ff');
+  },
   buyTalentPath(id) {
     const n = buyTalentPath(state, id);
     if (!n) ui.toast('Pas assez de fragments pour le premier talent du chemin.', '#ff8a8a');

@@ -136,10 +136,10 @@ test('compagnons : équipement limité, niveaux et effets', () => {
   toggleCompanion(state, 'golden_slime');
   assert.ok(state.companions.equipped.includes('golden_slime'));
   assert.equal(state.companions.equipped.length, 3);
-  const gold = companionEffects(state).goldPct;
+  const gold = companionEffects(state).goldMultPct;
   state.gold = 1e9;
   assert.ok(upgradeCompanion(state, 'golden_slime'));
-  assert.ok(companionEffects(state).goldPct > gold);
+  assert.ok(companionEffects(state).goldMultPct > gold);
 });
 
 test('compagnon « Pluie d\'or » : de l\'or en plus pendant le combat', () => {

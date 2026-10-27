@@ -45,7 +45,7 @@ export function itemFrame(item, { selected = false, showUp = false, equipped = f
 
 // `locked` : bouton désactivé pour une autre raison que le coût (ne sera pas réactivé par l'actualisation).
 export function costButton({ action, cost, have, label = '', currency = 'gold', attrs = '', cls = 'btn-gold', max = false, locked = false }) {
-  const iconHtml = { gold: coin(), gems: gem(), fragments: fragment(), shards: shard(), essence: essence(), tickets: img('icon_ticket') }[currency];
+  const iconHtml = { gold: coin(), gems: gem(), fragments: fragment(), shards: shard(), essence: essence(), tickets: img('icon_ticket'), stars: '<span class="star-cur">✧</span>' }[currency];
   if (max) return `<button class="btn ${cls}" disabled>Max</button>`;
   return `<button class="btn ${cls} num" data-action="${action}" data-cost="${cost}" data-currency="${currency}" ${attrs}
     ${locked ? 'data-locked="1"' : ''} ${locked || have < cost ? 'disabled' : ''}>${label}${iconHtml} ${formatNumber(cost)}</button>`;

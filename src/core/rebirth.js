@@ -3,6 +3,7 @@
 // les clés de voûte demandent en plus des points dépensés dans leur région.
 import { LEGACY_TALENTS, REBIRTH, TALENT_RESPEC, TALENTS } from '../data/rebirth.js';
 import { PRESTIGE } from '../data/prestige.js';
+import { fragmentBonus, memoryShare } from './transcend.js';
 
 const BY_ID = new Map(TALENTS.map((t) => [t.id, t]));
 
@@ -91,6 +92,26 @@ export function buyTalentMax(state, id) {
   return n;
 }
 
+// v8.8 : achat en masse — apprend en boucle le niveau le moins cher disponible (dans une région, ou partout)
+// tant que les fragments suffisent. Renvoie le nombre de niveaux appris.
+export function buyTalentsCheapest(state, region = null, limit = 5000) {
+  let n = 0;
+  while (n < limit) {
+    let best = null;
+    let bestCost = Infinity;
+    for (const t of TALENTS) {
+      if (region && t.region !== region && t.id !== 'core') continue;
+      const level = state.talents[t.id] ?? 0;
+      if (level >= t.max) continue;
+      const cost = talentCost(t, level);
+      if (cost < bestCost && cost <= state.fragments && talentUnlocked(state, t)) { best = t; bestCost = cost; }
+    }
+    if (!best || !buyTalent(state, best.id)) break;
+    n += 1;
+  }
+  return n;
+}
+
 // Chemin le moins cher (premier niveau de chaque nœud) depuis l'arbre appris jusqu'à `targetId`
 // (Dijkstra sur ~500 nœuds). Renvoie les identifiants à apprendre, dans l'ordre, cible comprise.
 export function talentPath(state, targetId) {
@@ -173,7 +194,7 @@ export function canRebirth(state) {
 export function rebirthReward(state) {
   if (!canRebirth(state)) return 0;
   const prestigeBonus = 1 + (PRESTIGE.fragmentBonusPct * (state.prestige?.count ?? 0)) / 100;
-  return Math.floor(((state.maxStage - 1) / REBIRTH.divisor) ** REBIRTH.exponent * prestigeBonus);
+  return Math.floor(((state.maxStage - 1) / REBIRTH.divisor) ** REBIRTH.exponent * prestigeBonus * fragmentBonus(state));
 }
 
 // Réinitialise la campagne, l'or et les améliorations ; conserve tout le reste.
@@ -193,7 +214,9 @@ export function performRebirth(state, keepPower = state.equippedPowers?.[0]) {
   state.fragments += reward;
   state.records.rebirths += 1;
   state.gold = 0;
-  for (const key of Object.keys(state.upgrades)) state.upgrades[key] = 0;
+  // v8.8 : « Mémoire du guerrier » (Transcendance) conserve une partie des niveaux d'amélioration.
+  const keep = memoryShare(state);
+  for (const key of Object.keys(state.upgrades)) state.upgrades[key] = Math.floor(state.upgrades[key] * keep);
   state.stage = 1;
   state.maxStage = 1;
   state.kills = 0;

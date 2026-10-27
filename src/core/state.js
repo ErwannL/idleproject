@@ -26,6 +26,7 @@ import { emptyLoadouts, sanitizeLoadouts } from './loadouts.js';
 import { sanitizeCodex } from './codex.js';
 import { emptyExpeditions, sanitizeExpeditions } from './expeditions.js';
 import { setById } from './sets.js';
+import { emptyTranscend, sanitizeTranscend } from './transcend.js';
 import { sanitizeChallenge } from './challenge.js';
 
 // v1 : prototype · v2 (format identique) · v3 : pouvoirs, Renaissance, verrou
@@ -94,6 +95,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     challengeBest: 0,
     challengeHistory: [], // meilleures vagues des semaines passées
     talentRespecs: 0,
+    transcend: emptyTranscend(), // v8.8 : Transcendance (Étoiles, bonus stellaires)
   };
   state.equipment.weapon = makeItem(state, STARTER_WEAPON, 'common', 1);
   ensureContracts(state, new Rng(state.rngSeed ^ 0x51ed27));
@@ -221,6 +223,7 @@ function cleanActivities(state, raw) {
   // Jamais à la fois dans l'équipe et en expédition.
   state.companions.equipped = state.companions.equipped.filter((id) => !state.expeditions.slots.some((s) => s?.companionId === id));
   sanitizeChallenge(state, raw);
+  state.transcend = sanitizeTranscend(raw.transcend);
   state.codex = sanitizeCodex(raw.codex);
   state.playSeconds = Math.max(0, Number(raw.playSeconds) || 0);
 

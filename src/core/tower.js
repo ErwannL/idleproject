@@ -4,7 +4,12 @@
 import { BOSSES } from '../data/enemies.js';
 import { grantReward } from './rewards.js';
 
-export const TOWER = { unlockStage: 40, floorLevel: 3, milestone: 10, climbsPerWeek: 1, steepness: 40 };
+export const TOWER = {
+  unlockStage: 40, floorLevel: 3, milestone: 10, climbsPerWeek: 1, steepness: 40,
+  // v8.8 : la tour s'effondre au bout de 10 h de jeu (temps de combat : la vitesse le fait défiler plus vite) ;
+  // chaque nouvel étage la stabilise un peu (+5 min × 0,98^étage, sans dépasser 10 h devant soi).
+  timeLimit: 10 * 3600, floorBonus: 300, floorBonusDecay: 0.98,
+};
 
 // v8.4 : une ascension par semaine (remise à zéro le lundi, heure locale). Récompenses :
 // - record absolu (une seule fois par étage, à vie) : towerReward ;
@@ -63,7 +68,7 @@ export function towerReward(floor) {
 export function startTower(state, now = Date.now()) {
   if (!towerUnlocked(state) || state.dungeon || state.tower || state.challenge || climbsLeft(state, now) <= 0) return false;
   towerWeek(state, now).climbs += 1;
-  state.tower = { floor: 1, startPlay: state.playSeconds ?? 0 };
+  state.tower = { floor: 1, startPlay: state.playSeconds ?? 0, deadline: (state.playSeconds ?? 0) + TOWER.timeLimit };
   return true;
 }
 
@@ -79,15 +84,26 @@ export function clearTowerFloor(state) {
   if (record) { add(towerReward(floor)); state.towerBest = floor; }
   if (weekly) { add(weeklyReward(floor)); week.best = floor; }
   run.floor += 1;
-  return { floor, record, weekly, reward };
+  // L'étage franchi stabilise la tour : un peu de temps en plus, de moins en moins à mesure qu'on monte.
+  const now = state.playSeconds ?? 0;
+  const bonus = TOWER.floorBonus * TOWER.floorBonusDecay ** floor;
+  run.deadline = Math.min(now + TOWER.timeLimit, (run.deadline ?? now + TOWER.timeLimit) + bonus);
+  return { floor, record, weekly, reward, bonus: Math.round(bonus) };
 }
 
-export function endTower(state, { defeated = true } = {}) {
+// Temps (de jeu) restant avant l'effondrement de la tour.
+export function towerTimeLeft(state) {
+  const run = state.tower;
+  if (!run) return 0;
+  return Math.max(0, (run.deadline ?? (run.startPlay ?? 0) + TOWER.timeLimit) - (state.playSeconds ?? 0));
+}
+
+export function endTower(state, { defeated = true, collapsed = false } = {}) {
   const run = state.tower;
   if (!run) return null;
   const reached = run.floor - 1;
   state.towerLast = {
-    floors: reached, defeatedAt: defeated ? run.floor : null,
+    floors: reached, defeatedAt: defeated ? run.floor : null, collapsed,
     seconds: Math.max(0, Math.round((state.playSeconds ?? 0) - (run.startPlay ?? 0))), at: Date.now(),
   };
   state.tower = null;
@@ -99,11 +115,13 @@ export function sanitizeTower(state, raw) {
   state.towerBest = int(raw.towerBest) ?? 0;
   const run = raw.tower;
   state.tower = run && int(run.floor, 1) ? { floor: run.floor, startPlay: Number(run.startPlay) || 0 } : null;
+  // Ascension d'avant la v8.8 : chrono de 10 h compté depuis son début (une ascension sans fin s'effondre au chargement).
+  if (state.tower) state.tower.deadline = Number.isFinite(run.deadline) ? run.deadline : state.tower.startPlay + TOWER.timeLimit;
   const w = raw.towerWeek;
   state.towerWeek = w && typeof w.week === 'string'
     ? { week: w.week.slice(0, 10), best: int(w.best) ?? 0, climbs: int(w.climbs) ?? 0, extra: int(w.extra) ?? 0 } : null;
   const last = raw.towerLast;
   state.towerLast = last && int(last.floors) !== null
-    ? { floors: last.floors, defeatedAt: int(last.defeatedAt, 1), seconds: int(last.seconds) ?? 0, at: int(last.at) ?? 0 }
+    ? { floors: last.floors, defeatedAt: int(last.defeatedAt, 1), seconds: int(last.seconds) ?? 0, at: int(last.at) ?? 0, collapsed: last.collapsed === true }
     : null;
 }

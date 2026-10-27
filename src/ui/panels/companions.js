@@ -1,7 +1,7 @@
 // Équipe : le chevalier + 2 personnages (héros alliés) + 1 compagnon ; collection, niveaux, compétences.
 import { BALANCE } from '../../data/balance.js';
 import { ALLY_GRADE, COMPANION_RULES, COMPANIONS } from '../../data/companions.js';
-import { activeSynergies, companionById, companionMultiplier, companionUpgradeCost, equippedOfKind, teamKind } from '../../core/companions.js';
+import { MULTIPLICATIVE, RARITY_SKILL, activeSynergies, companionById, companionMultiplier, companionUpgradeCost, equippedOfKind, teamKind } from '../../core/companions.js';
 import { COMPANION_ROLES, ROLES, SYNERGIES } from '../../data/synergies.js';
 import { costButton, effectText, escapeHtml, formatNumber, icon, img, progressBar, rarityLabel, stars } from '../common.js';
 import { animCanvas } from '../animator.js';
@@ -90,7 +90,7 @@ export default {
     const owned = state.companions.owned[sel.id];
     const equipped = state.companions.equipped.includes(sel.id);
     const m = owned ? companionMultiplier(state, sel.id) : 1;
-    const passive = Object.fromEntries(Object.entries(sel.passive).map(([k, v]) => [k, v * m]));
+    const passive = Object.fromEntries(Object.entries(sel.passive).map(([k, v]) => [MULTIPLICATIVE[k] ?? k, v * m]));
     let actions;
     if (!owned) {
       actions = '<button class="btn btn-gold" data-action="open-tab" data-value="summon">Invoquer…</button>';
@@ -140,7 +140,7 @@ export default {
         <div class="section-title">Bonus passif</div>
         <div class="good">${effectText(passive)}</div>
         ${dungeonFor(sel, state)}
-        ${sel.skill ? `<div class="section-title">Compétence</div><div>${img('icon_star')} <b>${sel.skill.name}</b> <span class="muted">toutes les ${sel.skill.every} s</span><div class="muted">${sel.skill.text}</div></div>` : ''}
+        ${sel.skill ? `<div class="section-title">Compétence</div><div>${img('icon_star')} <b>${sel.skill.name}</b> <span class="muted">toutes les ${sel.skill.every} s</span><div class="muted">${sel.skill.text}${(RARITY_SKILL[sel.rarity] ?? 1) > 1 ? ` · puissance ×${String(RARITY_SKILL[sel.rarity]).replace('.', ',')} (rareté)` : ''}</div></div>` : ''}
         <div class="detail-actions">${actions}</div>
         ${owned ? expeditionButtons(state, sel) : ''}
       </div>`;

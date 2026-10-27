@@ -2,7 +2,7 @@
 import { BOSSES, ENEMIES } from '../../data/enemies.js';
 import { formatDuration } from '../../core/format.js';
 import { rewardText } from '../../core/rewards.js';
-import { TOWER, climbsLeft, towerBoss, towerLevel, towerReward, towerUnlocked, towerWeek, weeklyReward } from '../../core/tower.js';
+import { TOWER, climbsLeft, towerBoss, towerLevel, towerReward, towerTimeLeft, towerUnlocked, towerWeek, weeklyReward } from '../../core/tower.js';
 import { stageLabel } from '../../core/combat.js';
 import { animCanvas } from '../animator.js';
 import { escapeHtml, formatNumber, img } from '../common.js';
@@ -55,12 +55,14 @@ export default {
           <div class="muted">Un boss par étage, toujours plus fort (+${TOWER.floorLevel} niveaux par étage, un méga boss tous les ${TOWER.milestone}).
             <b>Une ascension par semaine</b> (remise à zéro le lundi) : montez aussi haut que possible.
             Récompenses : chaque nouveau <b>meilleur étage de la semaine</b>, plus un bonus à chaque <b>record absolu</b>.
-            Une défaite termine l'ascension.</div>
+            Une défaite termine l'ascension, et la tour <b>s'effondre au bout de ${TOWER.timeLimit / 3600} h de combat</b>
+            (+${TOWER.floorBonus / 60} min par nouvel étage, de moins en moins).</div>
           <div class="tower-stats"><span>${img('icon_trophy')} Record : <b>${state.towerBest ?? 0}</b></span>
             <span>Cette semaine : <b>${towerWeek(state).best}</b></span>
-            ${last ? `<span class="muted">Dernière ascension : ${last.floors} étage${last.floors > 1 ? 's' : ''} en ${formatDuration(last.seconds)}</span>` : ''}</div>
+            ${last ? `<span class="muted">Dernière ascension : ${last.floors} étage${last.floors > 1 ? 's' : ''} en ${formatDuration(last.seconds)}${last.collapsed ? ' (effondrée)' : ''}</span>` : ''}</div>
           ${run
-            ? `<div class="row-between"><b class="gold-text">Étage ${run.floor} : ${escapeHtml(bossName(run.floor))}</b>
+            ? `<div class="muted">⌛ La tour s'effondre dans <b>${formatDuration(towerTimeLeft(state))}</b> de combat (chaque nouvel étage la stabilise un peu).</div>
+              <div class="row-between"><b class="gold-text">Étage ${run.floor} : ${escapeHtml(bossName(run.floor))}</b>
                 <button class="btn btn-danger small" data-action="leave-tower">Quitter la tour</button></div>`
             : climbsLeft(state) > 0
               ? `<button class="btn btn-gold enter-btn" data-action="enter-tower" ${state.dungeon ? 'disabled title="Terminez d\'abord le donjon"' : ''}>Commencer l'ascension de la semaine (${climbsLeft(state)} restante${climbsLeft(state) > 1 ? 's' : ''})</button>`

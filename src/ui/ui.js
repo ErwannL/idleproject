@@ -12,6 +12,8 @@ import { xpForLevel } from '../core/level.js';
 import { rarityById } from '../core/loot.js';
 import { powerById } from '../core/powers.js';
 import { canRebirth, fragmentsSpent, rebirthReward, respecCost } from '../core/rebirth.js';
+import { keptRebirthShare, transcendReward } from '../core/transcend.js';
+import { TRANSCEND } from '../data/transcend.js';
 import { rewardText } from '../core/rewards.js';
 import { skillCooldown, skillPointsAvailable } from '../core/skills.js';
 import { computeHeroStats } from '../core/stats.js';
@@ -25,7 +27,7 @@ import companions from './panels/companions.js';
 import contracts from './panels/contracts.js';
 import dungeons from './panels/dungeons.js';
 import tower from './panels/tower.js';
-import { towerUnlocked } from '../core/tower.js';
+import { towerTimeLeft, towerUnlocked } from '../core/tower.js';
 import { claimableAchievements } from '../core/achievements.js';
 import { cheatTimes, simSpeed, unlockedSpeeds } from '../core/cheats.js';
 import { PRESTIGE } from '../data/prestige.js';
@@ -378,6 +380,11 @@ export class UI {
         v.treeZoom = value === 'reset' ? TREE_ZOOM : Math.min(2, Math.max(0.3, (v.treeZoom ?? TREE_ZOOM) * (value === 'in' ? 1.25 : 0.8)));
       }); break;
       case 'buy-talent-max': a.buyTalentMax(key); break;
+      case 'buy-talents-all': a.buyTalentsAll(value || null); break;
+      case 'buy-tperk': a.buyTranscendPerk(key); break;
+      case 'buy-tperk-max': a.buyTranscendPerk(key, true); break;
+      case 'transcend': this.showTranscendConfirm(this.state); break;
+      case 'confirm-transcend': this.closeModal(); a.transcend(); break;
       case 'start-expedition': { const [cid, type] = value.split('|'); a.startExpedition(cid, type); break; }
       case 'claim-expedition': a.claimExpedition(Number(value)); break;
       case 'recall-expedition': a.recallExpedition(Number(value)); break;
@@ -562,6 +569,11 @@ export class UI {
         this.news(`${event.timeout ? 'Temps écoulé ! ' : ''}Défi de la semaine : ${event.waves} vague${event.waves > 1 ? 's' : ''} franchie${event.waves > 1 ? 's' : ''}. Record de la semaine : ${state.challengeWeek?.best ?? 0} · absolu : ${state.challengeBest ?? 0}.`, '#ffb36b');
         this.invalidate();
         break;
+      case 'towerCollapsed':
+        this.banner('La tour s\'effondre !', 'lose');
+        this.news(`Tour de l'Éternité : temps écoulé, la tour s'effondre à l'étage ${event.floors + 1}. Record : ${state.towerBest}.`, '#c9a6ff');
+        this.invalidate();
+        break;
       case 'towerFailed':
         this.banner('Ascension terminée', 'lose');
         this.news(`Tour de l'Éternité : vaincu à l'étage ${event.defeatedAt}${event.bossHpPct !== null && event.bossHpPct !== undefined ? ` (boss à ${formatNumber(event.bossHpPct)} % de PV)` : ''}. Record : ${state.towerBest}.`, '#c9a6ff');
@@ -730,7 +742,7 @@ export class UI {
       this.lastHud.xp = xpRatio;
     }
     this.setText('top-level', `Niv. ${state.level}`);
-    this.setText('top-stage', state.challenge ? `Défi de la semaine · vague ${state.challenge.wave}` : state.tower ? `Tour de l'Éternité · étage ${state.tower.floor}` : state.dungeon ? `Donjon · ${dungeonById(state.dungeon.id)?.name ?? ''}` : `Étape ${stageLabel(state.stage)} · ${zoneForStage(state.stage).name}`);
+    this.setText('top-stage', state.challenge ? `Défi de la semaine · vague ${state.challenge.wave}` : state.tower ? `Tour de l'Éternité · étage ${state.tower.floor} · ⌛ ${formatDuration(towerTimeLeft(state))}` : state.dungeon ? `Donjon · ${dungeonById(state.dungeon.id)?.name ?? ''}` : `Étape ${stageLabel(state.stage)} · ${zoneForStage(state.stage).name}`);
     this.setText('auto-toggle', state.autoAdvance ? '⏵ Avance auto' : '⏸ Farm');
     this.speed = simSpeed(state);
     this.$('speed-toggle').classList.toggle('hidden', unlockedSpeeds(state).length < 2 && !state.cheats.skipBattle);
@@ -943,7 +955,8 @@ export class UI {
         const m = Math.floor((sec % 3600) / 60);
         return h ? `${h} h ${String(m).padStart(2, '0')}` : `${m} min`;
       };
-      const mult = (n) => (n >= 1000 ? formatNumber(n) : n.toFixed(1).replace('.', ','));
+      // v8.8 : très grands multiplicateurs en notation 1e60 (« ×1 ap » était illisible) ; ×1e60 = plafond des codes.
+      const mult = (n) => (n >= 1e15 ? `${n.toExponential(1).replace('e+', 'e').replace('.', ',')}${boost.cheat >= 1e60 ? ' (max)' : ''}` : n >= 1000 ? formatNumber(n) : n.toFixed(1).replace('.', ','));
       const parts = [`×${mult(boost.gold)}`];
       if (boost.secondsLeft > 0) parts.push(dur(boost.secondsLeft));
       if (boost.weekend) parts.push('Week-end');
@@ -1022,7 +1035,7 @@ export class UI {
   refreshCosts(state) {
     const have = {
       gold: state.gold, gems: state.gems, tickets: state.tickets, fragments: state.fragments,
-      shards: state.materials.shards, essence: state.materials.essence,
+      shards: state.materials.shards, essence: state.materials.essence, stars: state.transcend?.stars ?? 0,
     };
     this.$('panel-body').querySelectorAll('[data-cost]').forEach((btn) => {
       if (btn.dataset.locked) return;
@@ -1037,6 +1050,18 @@ export class UI {
         this.$('panel-extra').innerHTML = html;
       }
     }
+  }
+
+  showTranscendConfirm(state) {
+    const stars = transcendReward(state);
+    if (!stars) return;
+    this.$('modal-card').innerHTML = `<h2>✧ Transcendance</h2>
+      <p>Vous gagnerez <b class="gold-text">+${formatNumber(stars)} Étoiles</b> et dégâts, PV et or <b>×${TRANSCEND.powerPerTranscend}</b> pour toujours.</p>
+      <p>Tout repart de l'étape 1 : Renaissances (${Math.round(keptRebirthShare(state) * 100)} % conservées), arbre de talents et fragments anciens
+        sont remis à zéro. L'équipement, les compagnons, les gemmes et les bonus éternels sont conservés.</p>
+      <div class="detail-actions"><button class="btn" data-action="close-modal">Annuler</button>
+        <button class="btn btn-gold" data-action="confirm-transcend">Transcender</button></div>`;
+    this.$('modal').classList.remove('hidden');
   }
 
   showRespecConfirm(state) {

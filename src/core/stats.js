@@ -6,11 +6,13 @@ import { collectBonuses } from './bonuses.js';
 import { cheatMultiplier } from './cheats.js';
 import { PRESTIGE } from '../data/prestige.js';
 import { challengeRule } from './challenge.js';
+import { rebirthBase, stellarMultiplier } from './transcend.js';
 
 // v8.4 : chaque Renaissance multiplie dégâts, PV et or (×1,5 par défaut).
+// v8.8 : + les Renaissances conservées par la Transcendance, et le multiplicateur stellaire.
 export function rebirthMultiplier(state) {
-  const n = (state.records?.rebirths ?? 0) + (state.prestige?.count ?? 0);
-  return (PRESTIGE.rebirthMultiplier ?? 1) ** n;
+  const n = (state.records?.rebirths ?? 0) + (state.prestige?.count ?? 0) + (state.transcend?.keptRebirths ?? 0);
+  return Math.min(1e200, rebirthBase(state, PRESTIGE.rebirthMultiplier ?? 1) ** n * stellarMultiplier(state));
 }
 
 export function sumEquipmentStats(equipment) {
