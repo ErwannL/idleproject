@@ -5,7 +5,7 @@ export const BALANCE = {
   simulation: {
     tickSeconds: 0.05, // pas fixe de la simulation
     speeds: [1, 2, 5, 10, 100], // v8.4 : ×1 par défaut ; les autres se débloquent avec des codes
-    maxCatchUpSeconds: 600, // au-delà (veille, onglet gelé), on applique le calcul hors ligne
+    maxCatchUpSeconds: 30, // au-delà (veille, onglet gelé), on applique le calcul hors ligne (v8.5 : 600 → 30, anti-gel)
   },
   autosaveSeconds: 10,
 
@@ -173,6 +173,8 @@ export const BALANCE = {
     slotWeights: { weapon: 3, helmet: 2, armor: 2, amulet: 1, earring: 1, ring: 1, bracelet: 1 },
     // Effets spéciaux : nombre d'effets par rareté.
     affixCount: { common: 0, rare: 1, epic: 1, legendary: 2 },
+    // v8.5 : chance qu'un objet appartienne à l'ensemble de son monde, par rareté.
+    setChance: { common: 0, rare: 0.12, epic: 0.25, legendary: 0.4 },
   },
 
   // Recyclage : matériaux rendus en plus de l'or, par rareté.

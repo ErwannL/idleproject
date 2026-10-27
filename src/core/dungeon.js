@@ -15,7 +15,7 @@ export function dungeonById(id) {
 
 export function canEnterDungeon(state, id) {
   const d = dungeonById(id);
-  return Boolean(d) && !state.dungeon && !state.tower && state.keys >= 1 && state.maxStage >= d.unlockStage;
+  return Boolean(d) && !state.dungeon && !state.tower && !state.challenge && state.keys >= 1 && state.maxStage >= d.unlockStage;
 }
 
 // Difficultés débloquées pour un donjon : Facile, puis Normal (1 victoire en Facile), puis Difficile.
@@ -69,7 +69,7 @@ export function completeDungeon(state, rng, balance = BALANCE) {
   const run = state.dungeon;
   const first = !state.dungeonsCleared[run.id];
   const slot = run.slot === 'any' ? undefined : run.slot;
-  const item = generateItem(state, rng, { level: run.level, minRarity: DUNGEON_REWARD.minRarity, slot }, balance);
+  const item = generateItem(state, rng, { level: run.level, minRarity: DUNGEON_REWARD.minRarity, slot, setZone: dungeonById(run.id).zone }, balance);
   const added = addToInventory(state, item, balance);
   const diff = DUNGEON_DIFFICULTIES[run.difficulty] ?? DUNGEON_DIFFICULTIES.easy;
   // Fragments anciens (arbre de talents) : la récompense phare des donjons, plus la difficulté est haute.

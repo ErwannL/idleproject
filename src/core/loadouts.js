@@ -2,7 +2,7 @@
 // et l'équipement porté, pour changer vite de farm (monstres, or, boss…).
 import { SLOTS } from '../data/items.js';
 import { LOADOUT_NAMES } from '../data/synergies.js';
-import { clampTeam } from './companions.js';
+import { clampTeam, onExpedition } from './companions.js';
 import { equipItem } from './inventory.js';
 
 export function emptyLoadouts() {
@@ -21,7 +21,7 @@ export function saveLoadout(state, index) {
 export function applyLoadout(state, index) {
   const slot = state.loadouts[index];
   if (!slot?.team) return false;
-  state.companions.equipped = clampTeam(slot.team.filter((id) => state.companions.owned[id]));
+  state.companions.equipped = clampTeam(slot.team.filter((id) => state.companions.owned[id] && !onExpedition(state, id)));
   for (const id of Object.values(slot.gear ?? {})) if (id) equipItem(state, id);
   return true;
 }

@@ -177,7 +177,7 @@ test('sauvegarde : pouvoirs, proposition en attente, talents et verrou restauré
   state.gold = 1e6;
   rerollPower(state, 'slime_king', new Rng(2));
   state.fragments = 7;
-  state.talents.power = 2;
+  state.talents.combat_1_0 = 2;
   const item = makeItem(state, 'dagger', 'epic', 3);
   addToInventory(state, item);
   toggleLock(state, item.id);
@@ -188,7 +188,7 @@ test('sauvegarde : pouvoirs, proposition en attente, talents et verrou restauré
   assert.ok(loaded.powers.slime_king.pending);
   assert.deepEqual(loaded.equippedPowers, ['slime_king']);
   assert.equal(loaded.fragments, 7);
-  assert.equal(loaded.talents.power, 2);
+  assert.equal(loaded.talents.combat_1_0, 2);
   assert.equal(loaded.inventory[0].locked, true);
 });
 
@@ -213,14 +213,16 @@ test('nettoyage : pouvoirs inconnus ou incohérents ignorés', () => {
     maxStage: 3,
     powers: { slime_king: { current: 'moon_hunter' }, alpha_wolf: { current: 'pack_fury', pending: 'pack_fury', victories: -2 } },
     equippedPowers: ['alpha_wolf', 'alpha_wolf', 'ghost'],
-    talents: { power: 999, nope: 3 },
+    talents: { combat_1_0: 999, nope: 3 },
     fragments: -4,
+    version: 7,
   }, BALANCE, NOW);
   assert.equal(s.powers.slime_king, undefined, 'pouvoir d\'un autre boss refusé');
   assert.equal(s.powers.alpha_wolf.pending, null);
   assert.equal(s.powers.alpha_wolf.victories, 1);
   assert.deepEqual(s.equippedPowers, ['alpha_wolf']);
-  assert.equal(s.talents.power, TALENTS.find((t) => t.id === 'power').max);
+  assert.equal(s.talents.combat_1_0, TALENTS.find((t) => t.id === 'combat_1_0').max);
+  assert.equal(s.talents.nope, undefined);
   assert.equal(s.fragments, 0);
   assert.equal(powerById('moon_hunter').bossId, 'alpha_wolf');
 });
@@ -251,30 +253,33 @@ test('Renaissance : seuil, récompense, réinitialisation et conservation', () =
 
 test('talents : coût, plafond, effets et emplacement de pouvoir supplémentaire', () => {
   const state = createNewState(NOW, 1);
-  assert.equal(buyTalent(state, 'power'), false, 'pas de fragments');
+  assert.equal(buyTalent(state, 'core'), false, 'pas de fragments');
   state.fragments = 100;
-  assert.equal(buyTalent(state, 'power'), false, 'branche fermée tant que le Cœur du chevalier n\'est pas appris');
-  state.talents.core = 1;
+  assert.equal(buyTalent(state, 'combat_1_0'), false, 'région fermée tant que le Cœur du chevalier n\'est pas appris');
+  assert.ok(buyTalent(state, 'core'));
   const base = computeHeroStats(state);
-  assert.ok(buyTalent(state, 'power'));
-  assert.equal(state.fragments, 100 - talentCost(TALENTS.find((t) => t.id === 'power'), 0));
+  const node = TALENTS.find((t) => t.id === 'combat_1_0');
+  const before = state.fragments;
+  assert.ok(buyTalent(state, 'combat_1_0'));
+  assert.equal(state.fragments, before - talentCost(node, 0));
   const dmg = base.bonus.damagePct;
-  assert.ok(Math.abs(computeHeroStats(state).damage - (base.damage / (1 + dmg / 100)) * (1 + (dmg + 10) / 100)) < 1e-9);
-  assert.equal(buyTalent(state, 'hunt'), false, 'nœud verrouillé tant que Fortune < 2');
-  buyTalent(state, 'fortune');
-  buyTalent(state, 'fortune');
+  const gain = node.perLevel.damagePct;
+  assert.ok(Math.abs(computeHeroStats(state).damage - (base.damage / (1 + dmg / 100)) * (1 + (dmg + gain) / 100)) < 1e-6);
+  assert.equal(buyTalent(state, 'combat_3_0'), false, 'nœud non relié');
 
   const slots = powerSlots(state);
-  assert.ok(buyTalent(state, 'legacy'));
+  const legacy = TALENTS.find((t) => t.name === 'Héritage I');
+  state.talents = { ...state.talents, [legacy.links[0]]: 1 };
+  state.fragments = 1e6;
+  assert.ok(buyTalent(state, legacy.id), 'relié par un voisin');
   assert.equal(powerSlots(state), slots + 1);
   const cost = rerollCost(stateWithPower(), 'slime_king');
   const discounted = stateWithPower();
-  discounted.talents.legacy = 2;
+  discounted.talents = { [TALENTS.find((t) => t.name === 'Héritage II').id]: 1 };
   assert.ok(rerollCost(discounted, 'slime_king') < cost);
 
-  state.fragments = 1e6;
-  while (buyTalent(state, 'hunt'));
-  assert.equal(state.talents.hunt, TALENTS.find((t) => t.id === 'hunt').max);
+  while (buyTalent(state, 'combat_1_0'));
+  assert.equal(state.talents.combat_1_0, node.max);
   assert.equal(buyTalent(state, 'nope'), false);
 });
 

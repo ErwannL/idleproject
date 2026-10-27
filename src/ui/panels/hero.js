@@ -8,8 +8,23 @@ import { computeHeroStats } from '../../core/stats.js';
 import { slotIconName } from '../../render/pixel.js';
 import { effectText, escapeHtml, formatDecimal, formatNumber, img, itemFrame, progressBar } from '../common.js';
 import { animCanvas } from '../animator.js';
+import { setBonusFor, setById, setCounts } from '../../core/sets.js';
+import { SET_PIECES } from '../../data/sets.js';
 
-const SOURCE_LABELS = { hero: 'Héros', powers: 'Pouvoirs de boss', talents: 'Talents', companions: 'Équipe', gear: 'Effets d’équipement', prestige: 'Prestige', rushes: 'Boosts actifs', achievements: 'Hauts faits' };
+const SOURCE_LABELS = { hero: 'Héros', powers: 'Pouvoirs de boss', talents: 'Talents', companions: 'Équipe', gear: 'Effets d’équipement', prestige: 'Prestige', rushes: 'Boosts actifs', achievements: 'Hauts faits', sets: 'Ensembles' };
+
+// Ensembles d'équipement portés (v8.5) : pièces et paliers atteints.
+function setsCard(state) {
+  const counts = setCounts(state.equipment);
+  const rows = Object.entries(counts).map(([id, n]) => {
+    const set = setById(id);
+    const next = SET_PIECES.find((p) => p > n);
+    return `<div class="set-row" style="--set:${set.color}"><b style="color:${set.color}">${escapeHtml(set.name)}</b> <span class="muted">${n} pièce${n > 1 ? 's' : ''}</span>
+      <span class="${n >= SET_PIECES[0] ? 'good' : 'muted'}">${n >= SET_PIECES[0] ? effectText(setBonusFor(set, n)) : 'aucun bonus'}</span>
+      ${next ? `<span class="muted">· à ${next} : ${effectText(set.bonuses[next])}</span>` : ''}</div>`;
+  }).join('');
+  return `<div class="card"><div class="section-title">Ensembles d'équipement</div>${rows || '<div class="muted">Les objets Rares et mieux appartiennent parfois à l\'ensemble de leur monde (point coloré). Portez 2, 4 puis 6 pièces d\'un même ensemble pour ses bonus.</div>'}</div>`;
+}
 
 export default {
   id: 'hero',
@@ -54,6 +69,7 @@ export default {
         ${line('pet_fairy', 'Régénération', `${formatDecimal(s.regenPerSecond)} PV/s`)}
         ${line('coin', 'Or bonus', `+${formatDecimal(s.goldPct)} %`)}
       </div></div>
+      ${setsCard(state)}
       ${sources ? `<div class="card"><div class="section-title">Bonus permanents</div><div class="bonus-sources">${sources}</div></div>` : ''}
       <div class="card"><div class="section-title">Exploits</div><div class="stats-grid">
         ${line('icon_skull', 'Ennemis vaincus', formatNumber(state.records.kills))}

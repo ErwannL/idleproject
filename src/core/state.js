@@ -8,6 +8,7 @@ import { DUNGEON_PATHS, DUNGEONS, STARTING_KEYS } from '../data/dungeons.js';
 import { HEROES, STARTER_HERO } from '../data/heroes.js';
 import { BOSS_POWERS, POWER_RULES } from '../data/powers.js';
 import { TALENTS } from '../data/rebirth.js';
+import { legacyTalentRefund } from './rebirth.js';
 import { SKILLS } from '../data/skills.js';
 import { ensureContracts } from './contracts.js';
 import { emptyMissions, sanitizeMissions } from './missions.js';
@@ -23,10 +24,13 @@ import { sanitizeTower } from './tower.js';
 import { sanitizeAchievements } from './achievements.js';
 import { emptyLoadouts, sanitizeLoadouts } from './loadouts.js';
 import { sanitizeCodex } from './codex.js';
+import { emptyExpeditions, sanitizeExpeditions } from './expeditions.js';
+import { setById } from './sets.js';
+import { sanitizeChallenge } from './challenge.js';
 
 // v1 : prototype · v2 (format identique) · v3 : pouvoirs, Renaissance, verrou
 // v4 : niveau, compétences, héros, compagnons, invocation, contrats, événements, matériaux, donjons.
-export const SAVE_VERSION = 6; // v8.4 : nouvel équilibrage (remboursement des améliorations)
+export const SAVE_VERSION = 7; // v8.4 : nouvel équilibrage (remboursement des améliorations) · v8.5 : arbre de 500 talents (fragments remboursés)
 export const SORT_OPTIONS = ['rarity', 'level', 'power', 'recent'];
 
 export function createNewState(now = Date.now(), seed = Math.floor(Math.random() * 2 ** 32)) {
@@ -84,6 +88,12 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     loadouts: emptyLoadouts(),
     codex: { kills: {}, items: {}, claimed: {} },
     playSeconds: 0, // temps de jeu cumulé (boost des premières heures)
+    expeditions: emptyExpeditions(), // v8.5 : compagnons en mission
+    challenge: null, // v8.5 : défi de la semaine en cours { wave, kills, startPlay }
+    challengeWeek: null, // { week, best, tries, extra }
+    challengeBest: 0,
+    challengeHistory: [], // meilleures vagues des semaines passées
+    talentRespecs: 0,
   };
   state.equipment.weapon = makeItem(state, STARTER_WEAPON, 'common', 1);
   ensureContracts(state, new Rng(state.rngSeed ^ 0x51ed27));
@@ -112,6 +122,7 @@ function cleanItem(item) {
     id: item.id, baseId: item.baseId, name: base.name, slot: item.slot,
     rarity: item.rarity, level: item.level, stats: { ...item.stats }, affixes, effect: null,
     locked: item.locked === true, upgrades: int(item.upgrades, 0), boosts,
+    ...(setById(item.set) ? { set: item.set } : {}),
   };
 }
 
@@ -206,6 +217,10 @@ function cleanActivities(state, raw) {
   state.bossRetry = br && Number.isInteger(br.stage) && br.stage > 0 && Number.isFinite(br.power) && br.power > 0 ? { stage: br.stage, power: br.power } : null;
   if (state.tower && raw.dungeon) state.tower = null; // jamais les deux à la fois
   state.loadouts = sanitizeLoadouts(raw.loadouts);
+  state.expeditions = sanitizeExpeditions(raw.expeditions, state);
+  // Jamais à la fois dans l'équipe et en expédition.
+  state.companions.equipped = state.companions.equipped.filter((id) => !state.expeditions.slots.some((s) => s?.companionId === id));
+  sanitizeChallenge(state, raw);
   state.codex = sanitizeCodex(raw.codex);
   state.playSeconds = Math.max(0, Number(raw.playSeconds) || 0);
 
@@ -317,12 +332,20 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
 
   for (const key of Object.keys(state.records)) state.records[key] = int(raw.records?.[key], 0);
   state.fragments = int(raw.fragments, 0);
-  for (const talent of TALENTS) {
-    const level = int(raw.talents?.[talent.id], 0);
-    if (level > 0) state.talents[talent.id] = Math.min(level, talent.max);
+  if (int(raw.version, 1) < 7) {
+    // v8.5 : nouvel arbre (500 nœuds) → les fragments dépensés dans l'ancien sont rendus.
+    const refund = legacyTalentRefund(raw.talents);
+    if (refund > 0) {
+      state.fragments += refund;
+      state.migrationTalentRefund = refund;
+    }
+  } else {
+    for (const talent of TALENTS) {
+      const level = int(raw.talents?.[talent.id], 0);
+      if (level > 0) state.talents[talent.id] = Math.min(level, talent.max);
+    }
   }
-  // v7.4 : l'arbre part du Cœur du chevalier ; une partie qui avait déjà des talents le reçoit au niveau 1.
-  if (Object.keys(state.talents).length && !state.talents.core) state.talents.core = 1;
+  state.talentRespecs = int(raw.talentRespecs, 0);
 
   state.level = Math.min(int(raw.level, 1, 1), balance.level.maxLevel);
   state.xp = num(raw.xp, 0);
@@ -375,6 +398,8 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     // v8.4 : seules les vitesses débloquées par code sont gardées (sinon ×1).
     if (unlockedSpeeds(state).includes(raw.ui.speed)) state.ui.speed = raw.ui.speed;
     if (SORT_OPTIONS.includes(raw.ui.sortBy)) state.ui.sortBy = raw.ui.sortBy;
+    if (raw.ui.keepSets === false) state.ui.keepSets = false;
   }
+  if (state.challenge && (state.tower || state.dungeon)) state.challenge = null; // un seul mode à la fois
   return state;
 }

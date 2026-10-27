@@ -17,6 +17,7 @@ export const SHORTCUTS = [
   ['Q W E R T', 'Lancer les boosts (Rage, Frénésie, Midas, Œil, Lame)'],
   ['G', 'Tout récupérer (missions et récompenses)'],
   ['M · N · P', 'Missions · Récompenses · Paramètres'],
+  ['J', 'Journal de la session (ce qui s\'est passé depuis le lancement)'],
   ['K ou ?', 'Afficher cette aide'],
 ];
 
@@ -98,6 +99,8 @@ export function installShortcuts(ui) {
       return;
     }
     const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    // Témoin de performances (caché) : F9.
+    if (key === 'F9') { e.preventDefault(); ui.togglePerf(); return; }
     const focused = document.activeElement;
     const onButton = focused && focused !== document.body && ui.root.contains(focused) && focused.matches('button, summary');
     const onControl = focused && focused !== document.body && ui.root.contains(focused) && focused.matches('select, input');
@@ -143,6 +146,7 @@ export function installShortcuts(ui) {
       if (next.dataset.tab !== ui.tab) next.click();
       focusPanelStart(ui);
     } else if (key === 'k' || key === '?') ui.showShortcuts();
+    else if (key === 'j') ui.showJournal(ui.sessionJournal?.() ?? {});
     else handled = false;
     if (handled) e.preventDefault();
   });

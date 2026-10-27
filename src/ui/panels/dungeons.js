@@ -13,6 +13,8 @@ import { itemIconUrl } from '../../render/pixel.js';
 import { rewardText } from '../../core/rewards.js';
 import { slotIconName } from '../../render/pixel.js';
 import { animCanvas } from '../animator.js';
+import { CHALLENGE, challengeTriesLeft, challengeUnlocked, challengeWeek, modifierById, weeklySetup } from '../../core/challenge.js';
+import { ZONES } from '../../data/zones.js';
 import { escapeHtml, formatNumber, img, progressBar } from '../common.js';
 
 const FILTERS = { all: 'Tous', open: 'Disponibles', done: 'Terminés', locked: 'Verrouillés' };
@@ -100,72 +102,113 @@ export default {
   extra: (ui, state) => `${img('icon_key')}<b class="num">${state.keys}</b> clé${state.keys > 1 ? 's' : ''}`,
   render(ui, state) {
     if (state.dungeon) return running(ui, state);
-    const filter = ui.view.dungeonFilter ?? 'all';
-    const sel = dungeonById(ui.view.dungeonSel) ?? DUNGEONS.find((d) => status(state, d) !== 'locked') ?? DUNGEONS[0];
-    const chips = Object.entries(FILTERS).map(([id, label]) => `<button class="btn chip-btn${id === filter ? ' active' : ''}" data-action="dungeon-filter" data-value="${id}">${label}</button>`).join('');
-    const list = DUNGEONS.filter((d) => filter === 'all' || status(state, d) === filter).map((d) => {
-      const st = status(state, d);
-      const cleared = state.dungeonsCleared[d.id] ?? 0;
-      return `<button class="dungeon-item${d.id === sel.id ? ' selected' : ''}${st === 'locked' ? ' locked' : ''}" data-action="dungeon-sel" data-value="${d.id}">
-        <div class="boss-thumb">${bossPortrait(d)}</div>
-        <div class="grow"><b>${escapeHtml(d.name)}</b><div class="muted">Boss : ${escapeHtml(BOSSES[d.boss].name)}</div>
-          <div>${st === 'locked' ? `<span class="tag-locked">Verrouillé</span> <span class="muted">Étape ${stageLabel(d.unlockStage)} requise</span>`
-            : `<span class="tag-open">Disponible</span> <span class="muted">${cleared ? `${cleared} victoire${cleared > 1 ? 's' : ''}` : 'Jamais terminé'}</span>`}</div></div>
-      </button>`;
-    }).join('') || '<div class="muted">Aucun donjon dans cette catégorie.</div>';
-
-    const locked = state.maxStage < sel.unlockStage;
-    const unlocked = unlockedDifficulties(state, sel.id);
-    const diffId = unlocked.includes(ui.view.dungeonDiff) ? ui.view.dungeonDiff : unlocked[unlocked.length - 1];
-    const diff = DUNGEON_DIFFICULTIES[diffId];
-    const diffs = DIFFICULTY_ORDER.map((id) => {
-      const dd = DUNGEON_DIFFICULTIES[id];
-      const i = DIFFICULTY_ORDER.indexOf(id);
-      const ok = unlocked.includes(id);
-      const done = i <= (state.dungeonBest[sel.id] ?? -1);
-      const prev = i > 0 ? DUNGEON_DIFFICULTIES[DIFFICULTY_ORDER[i - 1]].label : '';
-      return `<button class="btn diff-btn${id === diffId ? ' active' : ''}${done ? ' done' : ''}" data-action="dungeon-diff" data-value="${id}"
-        ${ok ? (done ? 'title="Déjà réussi"' : '') : `disabled title="Terminez ce donjon en ${escapeHtml(prev)} pour débloquer"`}>
-        <span class="skulls">${'☠'.repeat(dd.skulls)}</span><span>${ok ? '' : '🔒 '}${dd.label}${done ? ' ✔' : ''}</span></button>`;
-    }).join('');
-    const nextLocked = DIFFICULTY_ORDER.find((id) => !unlocked.includes(id));
-    const unlockHint = nextLocked
-      ? `<div class="muted small-note">🔒 ${DUNGEON_DIFFICULTIES[nextLocked].label} : terminez ce donjon (boss final vaincu) en ${DUNGEON_DIFFICULTIES[DIFFICULTY_ORDER[DIFFICULTY_ORDER.indexOf(nextLocked) - 1]].label}. Chaque donjon se débloque séparément.</div>`
-      : '';
-    const roles = (sel.roles ?? []).map((r) => `<div class="role-chip" style="--role:${ROLES[r].color}">${img(ROLES[r].icon)}<span>${ROLES[r].label}</span></div>`).join('');
-    const slot = ui.view.dungeonSlot ?? 'any';
-    const path = ui.view.dungeonPath ?? 'gold';
-    const slots = [['any', null, 'Tous'], ...Object.entries(SLOTS).map(([s, l]) => [s, slotIconName(s), l])]
-      .map(([v, ic, l]) => `<button class="btn chip-btn${slot === v ? ' active' : ''}" data-action="dungeon-slot" data-value="${v}" title="${l}">${ic ? img(ic) : ''}<span>${l}</span></button>`).join('');
-    const paths = Object.entries(DUNGEON_PATHS).map(([id, p]) => `<button class="path-card${path === id ? ' active' : ''}" data-action="dungeon-path-pre" data-value="${id}">
-      <b>${p.label}</b><span class="muted">${p.text}</span></button>`).join('');
-    const rewards = [
-      ['icon_bag', 'Équipement Épique ou mieux', 'r-epic'], ['icon_fragment', `${diff.fragments} fragments anciens`, 'r-legendary'],
-      ['icon_gem', `${Math.round(DUNGEON_REWARD.gems * diff.gems)} gemmes`, 'r-rare'], ['icon_essence', `${Math.round(DUNGEON_REWARD.essence * diff.essence)} essences`, 'r-epic'],
-    ].map(([ic, t, r]) => `<div class="reward-icon ${r}" title="${t}">${img(ic)}</div><span class="reward-label">${t}</span>`).join('');
-    const cleared = state.dungeonsCleared[sel.id] ?? 0;
-    const detail = `<div class="card dungeon-detail">
-        <div class="dungeon-head">${img('icon_dungeon')}<div class="grow"><div class="boss-title">${escapeHtml(sel.name)}</div>
-          <div class="muted">${escapeHtml(sel.description)}</div></div>
-          <div class="diff-box"><div class="section-title">Difficulté</div><div class="diff-row">${diffs}</div>${unlockHint}
-            <div class="muted">♛ ${cleared} victoire${cleared > 1 ? 's' : ''} · ennemis niv. ${Math.max(1, state.maxStage + sel.levelOffset + diff.levelBonus)} · PV ×${diff.hp}</div></div>
-        </div>
-        ${roles ? `<div class="row"><span class="section-title">Compagnons conseillés</span>${roles}</div>` : ''}
-        ${affinityLine(state, sel)}
-        ${roomPath(sel)}
-        ${runsBlock(state, sel, diffId)}
-        <div class="dungeon-cols">
-          <div class="card-sub"><div class="section-title">Récompenses possibles</div><div class="reward-grid">${rewards}</div></div>
-          <div class="card-sub"><div class="section-title">Butin ciblé <span class="muted">(emplacement de l'objet final)</span></div><div class="chip-row">${slots}</div>
-            <div class="path-row">${paths}</div></div>
-        </div>
-        ${locked ? `<div class="bad">Débloqué à l'étape ${stageLabel(sel.unlockStage)}.</div>`
-          : `<button class="btn btn-gold enter-btn" data-action="enter-dungeon" data-value="${sel.id}" ${canEnterDungeon(state, sel.id) ? '' : 'disabled'}>Entrer dans le donjon · ${diff.label} — 1 ${img('icon_key')}</button>
-            ${state.keys < 1 ? '<div class="muted">Clés : contrats « Vaincre des boss », missions et événements.</div>' : ''}`}
-      </div>`;
-    return `<div class="dungeon-layout">
-        <div class="dungeon-side"><div class="chip-row">${chips}</div><div class="dungeon-list">${list}</div></div>
-        ${detail}
-      </div>`;
+    return challengeCard(state) + dungeonsList(ui, state);
   },
 };
+
+// Défi de la semaine (v8.5) : règles de la semaine, tentatives, records personnels et semaines passées.
+function nextMonday() {
+  const d = new Date();
+  const days = ((8 - d.getDay()) % 7) || 7;
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + days);
+}
+
+function challengeCard(state) {
+  if (!challengeUnlocked(state)) {
+    return `<div class="card muted challenge-card">⚔ Défi de la semaine : s'ouvre à l'étape ${stageLabel(CHALLENGE.unlockStage)}.</div>`;
+  }
+  const week = challengeWeek(state);
+  const setup = weeklySetup(week.week);
+  const run = state.challenge;
+  const mods = setup.mods.map((id) => modifierById(id)).map((m) => `<span class="mod${m.good ? ' good' : ''}" title="${escapeHtml(m.text)}"><b>${escapeHtml(m.name)}</b> · ${escapeHtml(m.text)}</span>`).join('');
+  const left = challengeTriesLeft(state);
+  const history = (state.challengeHistory ?? []).slice(0, 5).map((h) => `<span>${h.week.slice(5).replace('-', '/')} : <b>${h.best}</b></span>`).join('');
+  const last = state.challengeLast;
+  const button = run
+    ? `<div class="row-between"><b class="gold-text">Vague ${run.wave} en cours</b><button class="btn btn-danger small" data-action="leave-challenge">Abandonner</button></div>`
+    : left > 0
+      ? `<button class="btn btn-gold enter-btn" data-action="enter-challenge" ${state.dungeon || state.tower ? 'disabled title="Terminez d\'abord le donjon ou la tour"' : ''}>Lancer le défi (${left} tentative${left > 1 ? 's' : ''} cette semaine)</button>`
+      : `<button class="btn enter-btn" disabled>Tentatives épuisées — nouvelles règles le ${nextMonday().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</button>`;
+  return `<div class="card challenge-card">
+    <div class="row-between"><div class="boss-title">⚔ Défi de la semaine</div><span class="muted">${escapeHtml(ZONES[setup.zone].name)}</span></div>
+    <div class="muted">Des vagues de ${CHALLENGE.killsPerWave} ennemis toujours plus forts (${CHALLENGE.waveSeconds} s par vague), un boss toutes les ${CHALLENGE.bossEvery} vagues (sauf règle contraire).
+      Une défaite termine la tentative. Récompenses à chaque nouveau meilleur score de la semaine et à chaque record absolu.</div>
+    <div class="mods">${mods}</div>
+    <div class="tower-stats"><span>${img('icon_trophy')} Record absolu : <b>${state.challengeBest ?? 0}</b></span>
+      <span>Cette semaine : <b>${week.best}</b></span>
+      ${last ? `<span class="muted">Dernière tentative : ${last.waves} vague${last.waves > 1 ? 's' : ''} en ${formatDuration(last.seconds)}</span>` : ''}</div>
+    ${history ? `<div class="muted challenge-history">Semaines passées : ${history}</div>` : ''}
+    ${button}
+  </div>`;
+}
+
+function dungeonsList(ui, state) {
+  const filter = ui.view.dungeonFilter ?? 'all';
+  const sel = dungeonById(ui.view.dungeonSel) ?? DUNGEONS.find((d) => status(state, d) !== 'locked') ?? DUNGEONS[0];
+  const chips = Object.entries(FILTERS).map(([id, label]) => `<button class="btn chip-btn${id === filter ? ' active' : ''}" data-action="dungeon-filter" data-value="${id}">${label}</button>`).join('');
+  const list = DUNGEONS.filter((d) => filter === 'all' || status(state, d) === filter).map((d) => {
+    const st = status(state, d);
+    const cleared = state.dungeonsCleared[d.id] ?? 0;
+    return `<button class="dungeon-item${d.id === sel.id ? ' selected' : ''}${st === 'locked' ? ' locked' : ''}" data-action="dungeon-sel" data-value="${d.id}">
+      <div class="boss-thumb">${bossPortrait(d)}</div>
+      <div class="grow"><b>${escapeHtml(d.name)}</b><div class="muted">Boss : ${escapeHtml(BOSSES[d.boss].name)}</div>
+        <div>${st === 'locked' ? `<span class="tag-locked">Verrouillé</span> <span class="muted">Étape ${stageLabel(d.unlockStage)} requise</span>`
+          : `<span class="tag-open">Disponible</span> <span class="muted">${cleared ? `${cleared} victoire${cleared > 1 ? 's' : ''}` : 'Jamais terminé'}</span>`}</div></div>
+    </button>`;
+  }).join('') || '<div class="muted">Aucun donjon dans cette catégorie.</div>';
+
+  const locked = state.maxStage < sel.unlockStage;
+  const unlocked = unlockedDifficulties(state, sel.id);
+  const diffId = unlocked.includes(ui.view.dungeonDiff) ? ui.view.dungeonDiff : unlocked[unlocked.length - 1];
+  const diff = DUNGEON_DIFFICULTIES[diffId];
+  const diffs = DIFFICULTY_ORDER.map((id) => {
+    const dd = DUNGEON_DIFFICULTIES[id];
+    const i = DIFFICULTY_ORDER.indexOf(id);
+    const ok = unlocked.includes(id);
+    const done = i <= (state.dungeonBest[sel.id] ?? -1);
+    const prev = i > 0 ? DUNGEON_DIFFICULTIES[DIFFICULTY_ORDER[i - 1]].label : '';
+    return `<button class="btn diff-btn${id === diffId ? ' active' : ''}${done ? ' done' : ''}" data-action="dungeon-diff" data-value="${id}"
+      ${ok ? (done ? 'title="Déjà réussi"' : '') : `disabled title="Terminez ce donjon en ${escapeHtml(prev)} pour débloquer"`}>
+      <span class="skulls">${'☠'.repeat(dd.skulls)}</span><span>${ok ? '' : '🔒 '}${dd.label}${done ? ' ✔' : ''}</span></button>`;
+  }).join('');
+  const nextLocked = DIFFICULTY_ORDER.find((id) => !unlocked.includes(id));
+  const unlockHint = nextLocked
+    ? `<div class="muted small-note">🔒 ${DUNGEON_DIFFICULTIES[nextLocked].label} : terminez ce donjon (boss final vaincu) en ${DUNGEON_DIFFICULTIES[DIFFICULTY_ORDER[DIFFICULTY_ORDER.indexOf(nextLocked) - 1]].label}. Chaque donjon se débloque séparément.</div>`
+    : '';
+  const roles = (sel.roles ?? []).map((r) => `<div class="role-chip" style="--role:${ROLES[r].color}">${img(ROLES[r].icon)}<span>${ROLES[r].label}</span></div>`).join('');
+  const slot = ui.view.dungeonSlot ?? 'any';
+  const path = ui.view.dungeonPath ?? 'gold';
+  const slots = [['any', null, 'Tous'], ...Object.entries(SLOTS).map(([s, l]) => [s, slotIconName(s), l])]
+    .map(([v, ic, l]) => `<button class="btn chip-btn${slot === v ? ' active' : ''}" data-action="dungeon-slot" data-value="${v}" title="${l}">${ic ? img(ic) : ''}<span>${l}</span></button>`).join('');
+  const paths = Object.entries(DUNGEON_PATHS).map(([id, p]) => `<button class="path-card${path === id ? ' active' : ''}" data-action="dungeon-path-pre" data-value="${id}">
+    <b>${p.label}</b><span class="muted">${p.text}</span></button>`).join('');
+  const rewards = [
+    ['icon_bag', 'Équipement Épique ou mieux', 'r-epic'], ['icon_fragment', `${diff.fragments} fragments anciens`, 'r-legendary'],
+    ['icon_gem', `${Math.round(DUNGEON_REWARD.gems * diff.gems)} gemmes`, 'r-rare'], ['icon_essence', `${Math.round(DUNGEON_REWARD.essence * diff.essence)} essences`, 'r-epic'],
+  ].map(([ic, t, r]) => `<div class="reward-icon ${r}" title="${t}">${img(ic)}</div><span class="reward-label">${t}</span>`).join('');
+  const cleared = state.dungeonsCleared[sel.id] ?? 0;
+  const detail = `<div class="card dungeon-detail">
+      <div class="dungeon-head">${img('icon_dungeon')}<div class="grow"><div class="boss-title">${escapeHtml(sel.name)}</div>
+        <div class="muted">${escapeHtml(sel.description)}</div></div>
+        <div class="diff-box"><div class="section-title">Difficulté</div><div class="diff-row">${diffs}</div>${unlockHint}
+          <div class="muted">♛ ${cleared} victoire${cleared > 1 ? 's' : ''} · ennemis niv. ${Math.max(1, state.maxStage + sel.levelOffset + diff.levelBonus)} · PV ×${diff.hp}</div></div>
+      </div>
+      ${roles ? `<div class="row"><span class="section-title">Compagnons conseillés</span>${roles}</div>` : ''}
+      ${affinityLine(state, sel)}
+      ${roomPath(sel)}
+      ${runsBlock(state, sel, diffId)}
+      <div class="dungeon-cols">
+        <div class="card-sub"><div class="section-title">Récompenses possibles</div><div class="reward-grid">${rewards}</div></div>
+        <div class="card-sub"><div class="section-title">Butin ciblé <span class="muted">(emplacement de l'objet final)</span></div><div class="chip-row">${slots}</div>
+          <div class="path-row">${paths}</div></div>
+      </div>
+      ${locked ? `<div class="bad">Débloqué à l'étape ${stageLabel(sel.unlockStage)}.</div>`
+        : `<button class="btn btn-gold enter-btn" data-action="enter-dungeon" data-value="${sel.id}" ${canEnterDungeon(state, sel.id) ? '' : 'disabled'}>Entrer dans le donjon · ${diff.label} — 1 ${img('icon_key')}</button>
+          ${state.keys < 1 ? '<div class="muted">Clés : contrats « Vaincre des boss », missions et événements.</div>' : ''}`}
+    </div>`;
+  return `<div class="dungeon-layout">
+      <div class="dungeon-side"><div class="chip-row">${chips}</div><div class="dungeon-list">${list}</div></div>
+      ${detail}
+    </div>`;
+}
+

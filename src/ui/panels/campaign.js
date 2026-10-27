@@ -6,7 +6,6 @@ import { BOSSES } from '../../data/enemies.js';
 
 const TIER_LABELS = { mini: 'Mini-boss', mid: 'Boss', hard: 'Boss redoutable', mega: 'MÉGA BOSS' };
 import { bossForecast, escapeHtml, forecastHtml, img } from '../common.js';
-import { forecastBoss } from '../../core/guide.js';
 
 // Positions des zones sur la carte peinte (assets/ui/worldmap.png, générée par tools/art/worldmap.py).
 // (tools/art/worldmap_nodes.json, positions relatives des 11 régions sur la carte peinte)
@@ -112,7 +111,7 @@ export default {
       <div class="card zone-card">
         <div class="row-between"><b>${sel + 1}. ${escapeHtml(ZONES[sel].name)}${cycle ? ` <span class="bad">×${cycle + 1}</span>` : ''}</b>
           <label class="toggle"><input type="checkbox" data-action="auto" ${state.autoAdvance ? 'checked' : ''}> Avancer automatiquement</label></div>
-        ${state.dungeon || state.tower ? '' : forecastHtml(bossForecast(state, forecastBoss))}
+        ${state.dungeon || state.tower || state.challenge ? '' : forecastHtml(bossForecast(state, () => ui.invalidate()))}
         <div class="stage-grid">${buttons.join('')}</div>
         ${state.autoAdvance ? '' : `<div class="row-between"><span class="muted">Mode farm : le chevalier reste sur l'étape actuelle.</span>
           <button class="btn btn-primary small" data-action="advance">Avancer ▶</button></div>`}

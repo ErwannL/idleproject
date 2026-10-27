@@ -5,6 +5,7 @@ import { SLOTS } from '../data/items.js';
 import { collectBonuses } from './bonuses.js';
 import { cheatMultiplier } from './cheats.js';
 import { PRESTIGE } from '../data/prestige.js';
+import { challengeRule } from './challenge.js';
 
 // v8.4 : chaque Renaissance multiplie dégâts, PV et or (×1,5 par défaut).
 export function rebirthMultiplier(state) {
@@ -45,7 +46,8 @@ export function computeHeroStats(state, balance = BALANCE, equipment = state.equ
   const reborn = rebirthMultiplier(state);
   const damage = (hero.baseDamage + state.upgrades.damage * dmg.perLevel + gear.damage)
     * dmg.milestoneMultiplier ** milestones * big(dmg, state.upgrades.damage) * reborn * (1 + bonus.damagePct / 100)
-    * (1 + (balance.level.damagePctPerLevel * levelBonus) / 100) * cheatMultiplier(state, 'damage');
+    * (1 + (balance.level.damagePctPerLevel * levelBonus) / 100) * cheatMultiplier(state, 'damage')
+    * Math.max(0.1, 1 + (bonus.damageMultPct ?? 0) / 100) * (state.challenge ? challengeRule(state, 'heroDamage') ?? 1 : 1);
 
   const upgradeFactor = Math.pow(1 - upgrades.attackSpeed.perLevel, state.upgrades.attackSpeed);
   const gearSpeedPct = Math.max(-50, gear.attackSpeed);
@@ -55,7 +57,8 @@ export function computeHeroStats(state, balance = BALANCE, equipment = state.equ
   const vit = upgrades.vitality;
   const hpMilestones = vit.milestoneEvery ? Math.floor(ups.vitality / vit.milestoneEvery) : 0;
   const maxHp = Math.max(1, (hero.baseMaxHp + ups.vitality * vit.perLevel + gear.maxHp)
-    * (vit.milestoneMultiplier ?? 1) ** hpMilestones * big(vit, ups.vitality) * reborn * (1 + bonus.maxHpPct / 100) * (1 + (balance.level.hpPctPerLevel * levelBonus) / 100)) * cheatMultiplier(state, 'hp');
+    * (vit.milestoneMultiplier ?? 1) ** hpMilestones * big(vit, ups.vitality) * reborn * (1 + bonus.maxHpPct / 100) * (1 + (balance.level.hpPctPerLevel * levelBonus) / 100)) * cheatMultiplier(state, 'hp')
+    * Math.max(0.1, 1 + (bonus.maxHpMultPct ?? 0) / 100) * (state.challenge ? challengeRule(state, 'heroHp') ?? 1 : 1);
   const armor = Math.min(hero.armorCapPct, Math.max(0, gear.armor + bonus.armor + (ups.armor ?? 0) * upgrades.armor.perLevel));
   const regenPct = hero.regenPerSecondPct + bonus.regenPct + (ups.regen ?? 0) * upgrades.regen.perLevel;
   const critChance = Math.min(hero.critCapPct, bonus.critChance + (ups.crit ?? 0) * upgrades.crit.perLevel);
@@ -74,7 +77,7 @@ export function computeHeroStats(state, balance = BALANCE, equipment = state.equ
     thorns: bonus.thorns,
     goldPct: bonus.goldPct + (ups.goldFind ?? 0) * upgrades.goldFind.perLevel,
     // Multiplicateur d'or (Renaissances × paliers du Butin d'or), appliqué en plus du goldPct.
-    goldMult: reborn * big(upgrades.goldFind, ups.goldFind ?? 0),
+    goldMult: reborn * big(upgrades.goldFind, ups.goldFind ?? 0) * Math.max(0.1, 1 + (bonus.goldMultPct ?? 0) / 100),
     rebirthMult: reborn,
     xpPct: bonus.xpPct,
     bonus,

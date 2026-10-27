@@ -6,6 +6,7 @@ import { referenceKillGold } from './combat.js';
 import { addToInventory } from './inventory.js';
 import { generateItem, itemBase, itemPower, makeItem, rarityIndex, refreshItemStats, rerollAffixes } from './loot.js';
 import { trackMissions } from './missions.js';
+import { usefulSetPiece } from './sets.js';
 
 // tier 'rare' : Rare ou mieux (or + éclats) ; 'epic' : Épique ou mieux (or + éclats + essences des boss).
 export function craftCost(state, balance = BALANCE, tier = 'rare') {
@@ -148,7 +149,7 @@ export function autoFuse(state, rng, isUpgrade, balance = BALANCE) {
   if (!rules?.on || !rules.rarities?.length) return [];
   const made = [];
   for (let guard = 0; guard < 50; guard++) {
-    const keep = (i) => isUpgrade(state, i);
+    const keep = (i) => isUpgrade(state, i) || usefulSetPiece(state, i, itemPower);
     const counts = new Map();
     for (const i of state.inventory) {
       if (!rules.rarities.includes(i.rarity) || !fusable(i) || keep(i)) continue;

@@ -9,8 +9,10 @@ import { itemBase, rarityById, recycleMaterials, recycleValue } from '../../core
 import { computeHeroStats, statsWithItem } from '../../core/stats.js';
 import { slotIconName } from '../../render/pixel.js';
 import {
-  affixText, coin, costButton, escapeHtml, essence, formatDecimal, formatNumber, img, itemFrame, rarityLabel, shard,
+  affixText, coin, costButton, effectText, escapeHtml, essence, formatDecimal, formatNumber, img, itemFrame, rarityLabel, shard,
 } from '../common.js';
+import { setById, setCounts } from '../../core/sets.js';
+import { SET_PIECES } from '../../data/sets.js';
 import { animCanvas } from '../animator.js';
 
 const STAT_ICONS = { damage: 'weapon_sword', attackSpeed: 'icon_bolt', maxHp: 'icon_heart', armor: 'icon_shield' };
@@ -100,8 +102,19 @@ function detail(ui, state, item) {
     ${actions}
     <div class="section-title">Statistiques de l'objet</div>
     <ul class="stat-list">${stats}${affixes}</ul>
+    ${setBlock(state, item)}
     ${compare}
   </div>`;
+}
+
+// Ensemble d'équipement (v8.5) : pièces portées et paliers de bonus.
+function setBlock(state, item) {
+  const set = setById(item.set);
+  if (!set) return '';
+  const worn = setCounts(state.equipment)[set.id] ?? 0;
+  const tiers = SET_PIECES.map((n) => `<li class="${worn >= n ? 'good' : 'muted'}">${n} pièces : ${effectText(set.bonuses[n])}</li>`).join('');
+  return `<div class="set-block" style="--set:${set.color}"><div class="section-title">Ensemble : <b style="color:${set.color}">${escapeHtml(set.name)}</b>
+      <span class="muted">${worn}/${SET_PIECES.at(-1)} portées</span></div><ul class="set-tiers">${tiers}</ul></div>`;
 }
 
 function bag(ui, state) {
@@ -231,6 +244,8 @@ function recycleRuleEditor(state) {
       <select data-action="recycle-mode" aria-label="Recyclage automatique">${Object.entries(RECYCLE_MODES)
         .map(([v, l]) => `<option value="${v}" ${v === rules.mode ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
     ${rules.mode === 'off' ? '' : `<div class="chip-row">${rarities}</div><div class="chip-row">${slots}</div>`}
+    <label class="inv-rule" title="Une pièce d'ensemble est gardée dès que vous en avez 2 emplacements différents (la meilleure par emplacement).">
+      <span>Ensembles :</span><button class="btn chip-btn small${state.ui.keepSets !== false ? ' active' : ''}" data-action="keep-sets">${state.ui.keepSets !== false ? 'Garder les pièces utiles' : 'Recycler comme le reste'}</button></label>
     ${autoFuseEditor(state)}
   </div>`;
 }

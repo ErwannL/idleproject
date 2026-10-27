@@ -22,6 +22,7 @@ import { phantomHitPct, rushById, tickRushes } from './rushes.js';
 import { recordKill } from './codex.js';
 import { DUNGEON_DIFFICULTIES } from '../data/dungeons.js';
 import { clearTowerFloor, endTower, towerBoss, towerLevel } from './tower.js';
+import { CHALLENGE, challengeBosses, challengeKill, challengeLevel, challengeRule, challengeTimeUp, clearChallengeWave, endChallenge, isBossWave } from './challenge.js';
 
 const MAX_EVENTS = 300;
 
@@ -160,6 +161,16 @@ export function currentEncounter(state, balance = BALANCE) {
       killsNeeded: 1, zoneIndex: Math.floor((floor - 1) / 10) % (ZONES.length - 1), dungeon: null, tower: true,
     };
   }
+  if (state.challenge) {
+    // Défi de la semaine (v8.5) : vagues dans le monde de la semaine, un boss toutes les 5 vagues.
+    const run = state.challenge;
+    const zone = ZONES[run.zone];
+    const boss = isBossWave(state);
+    return {
+      level: challengeLevel(state, run.wave), boss, enemies: zone.enemies, bosses: boss ? challengeBosses(state) : zone.bosses,
+      killsNeeded: boss ? 1 : CHALLENGE.killsPerWave, zoneIndex: run.zone, dungeon: null, challenge: true,
+    };
+  }
   if (state.dungeon) {
     const d = dungeonById(state.dungeon.id);
     return {
@@ -242,6 +253,11 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
     const diff = DUNGEON_DIFFICULTIES[state.dungeon?.difficulty] ?? DUNGEON_DIFFICULTIES.easy;
     s.hp *= diff.hp;
     s.damage *= diff.damage;
+  }
+  if (enc.challenge) {
+    s.hp *= challengeRule(state, 'enemyHp') ?? 1;
+    s.damage *= challengeRule(state, 'enemyDamage') ?? 1;
+    s.attackInterval /= challengeRule(state, 'enemyAttackSpeed') ?? 1;
   }
   if (boss) {
     // Les boss s'adaptent aux Renaissances : plus durs, mais plus généreux.
@@ -347,7 +363,8 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
   const wave = world.goldWave > 0 && !enemy.boss ? balance.events.waveGoldMultiplier : 1;
   if (world.goldWave > 0 && !enemy.boss) world.goldWave -= 1;
   const boost = earlyBoost(state, balance);
-  const gold = gainGold(state, world, enemy.gold * (1 + stats.goldPct / 100) * (stats.goldMult ?? 1) * wave * boost.gold);
+  const challengeGold = enc.challenge ? challengeRule(state, 'gold') ?? 1 : 1;
+  const gold = gainGold(state, world, enemy.gold * (1 + stats.goldPct / 100) * (stats.goldMult ?? 1) * wave * boost.gold * challengeGold);
   world.counters.kills += 1;
   state.records.kills += 1;
   if (state.codex) recordKill(state, enemy.type);
@@ -376,13 +393,14 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
     const base = enemy.boss || enemy.elite ? balance.loot.bossMinRarity : 'common';
     const luck = cheatLoot(state).minRarity;
     const minRarity = luck && rarityIndex(luck) > rarityIndex(base) ? luck : base;
-    dropItem(state, world, signature ?? generateItem(state, rng, { level: enc.level, minRarity }, balance), enemy.x, balance);
+    const item = signature ?? generateItem(state, rng, { level: enc.level, minRarity, setZone: enc.tower ? null : enc.zoneIndex }, balance);
+    dropItem(state, world, item, enemy.x, balance);
   }
 
   if (enemy.elite) {
     state.gems += balance.events.eliteGems;
     emit(world, 'eliteDefeated', { gems: balance.events.eliteGems });
-  } else if (!enemy.boss && !enc.dungeon && !enc.tower) {
+  } else if (!enemy.boss && !enc.dungeon && !enc.tower && !enc.challenge) {
     const event = rollEvent(state, world, rng, balance, boost.events);
     if (event) emit(world, 'worldEvent', { eventType: event.type });
   }
@@ -409,16 +427,20 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
     // Gemmes (cristaux) à chaque boss : de quoi invoquer souvent.
     const tier = bossTier(enemy.type);
     // Tour : pas de gemmes par boss (seulement les récompenses de record), pas de pouvoir ancestral.
-    const gems = enc.tower ? 0 : Math.round(balance.stages.tiers[tier].gems * rebirthHeat(state, balance).reward);
+    const gems = enc.tower || enc.challenge ? 0 : Math.round(balance.stages.tiers[tier].gems * rebirthHeat(state, balance).reward);
     state.gems += gems;
     if (gems) emit(world, 'gems', { gems, x: enemy.x });
     // Méga boss (et boss de donjon) — première victoire : pouvoir ancestral ; ensuite : charge de relance.
-    if (tier === 'mega' && !enc.tower) {
+    if (tier === 'mega' && !enc.tower && !enc.challenge) {
       const power = recordBossVictory(state, enemy.type, rng, balance);
       if (power) emit(world, 'powerUnlocked', { bossId: enemy.type, powerId: power.id });
       else emit(world, 'rerollCharge', { bossId: enemy.type });
     }
-    if (enc.tower) {
+    if (enc.challenge) {
+      const result = clearChallengeWave(state);
+      resetWave(world, balance);
+      emit(world, 'challengeWave', result);
+    } else if (enc.tower) {
       const result = clearTowerFloor(state);
       resetWave(world, balance);
       emit(world, 'towerFloor', result);
@@ -428,6 +450,12 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
       emit(world, 'dungeonComplete', result);
     } else {
       clearStage(state, world, balance);
+    }
+  } else if (enc.challenge && !enemy.elite) {
+    const result = challengeKill(state);
+    if (result) {
+      world.enemies = [];
+      emit(world, 'challengeWave', result);
     }
   } else if (enc.dungeon && !enemy.elite) {
     const { roomCleared, reward } = dungeonKill(state, balance);
@@ -446,7 +474,7 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
 function hitEnemy(state, world, enemy, damage, rng, balance, stats, enc, source) {
   if (!world.enemies.includes(enemy)) return;
   enemy.hp -= damage;
-  if (stats.lifesteal > 0 && source !== 'thorns') {
+  if (stats.lifesteal > 0 && source !== 'thorns' && !(enc?.challenge && challengeRule(state, 'noHeal'))) {
     world.hero.hp = Math.min(stats.maxHp, world.hero.hp + (damage * stats.lifesteal) / 100);
   }
   emit(world, 'enemyHit', { enemyId: enemy.id, damage, x: enemy.x, boss: enemy.boss, source });
@@ -513,9 +541,14 @@ function heroDies(state, world, balance) {
   hero.hp = 0;
   hero.respawnTimer = balance.hero.respawnSeconds;
   // Donjon : on note où l'on en était (salle, PV restants du boss) avant de vider la vague.
-  const boss = state.dungeon || state.tower ? world.enemies.find((e) => e.boss && !e.summoned) : null;
+  const boss = state.dungeon || state.tower || state.challenge ? world.enemies.find((e) => e.boss && !e.summoned) : null;
   const bossHpPct = boss ? Math.max(0, Math.round((boss.hp / boss.maxHp) * 1000) / 10) : null;
   resetWave(world, balance);
+  if (state.challenge) {
+    const result = endChallenge(state);
+    emit(world, 'challengeFailed', { ...result, bossHpPct });
+    return;
+  }
   if (state.tower) {
     const result = endTower(state);
     emit(world, 'towerFailed', { ...result, bossHpPct });
@@ -559,11 +592,19 @@ export function step(state, world, dt, rng, balance = BALANCE) {
     }
     return;
   }
-  hero.hp = Math.min(stats.maxHp, hero.hp + stats.regenPerSecond * dt);
+  if (!state.challenge || !challengeRule(state, 'noHeal')) hero.hp = Math.min(stats.maxHp, hero.hp + stats.regenPerSecond * dt);
   world.buffs.cry = Math.max(0, world.buffs.cry - dt);
   world.buffs.shield = Math.max(0, world.buffs.shield - dt);
 
   const enc = currentEncounter(state, balance);
+  // Défi de la semaine : temps limité par vague.
+  if (enc.challenge && challengeTimeUp(state, dt)) {
+    const boss = world.enemies.find((e) => e.boss && !e.summoned);
+    resetWave(world, balance);
+    const result = endChallenge(state);
+    emit(world, 'challengeFailed', { ...result, timeout: true, bossHpPct: boss ? Math.round((boss.hp / boss.maxHp) * 1000) / 10 : null });
+    return;
+  }
 
   // Apparition des ennemis (boss seul, ou vague ordinaire avec éventuellement une élite).
   if (enc.boss) {
@@ -577,11 +618,12 @@ export function step(state, world, dt, rng, balance = BALANCE) {
   } else {
     world.spawnTimer -= dt;
     if (world.spawnTimer <= 0) {
-      if (world.enemies.length < balance.spawn.maxAlive) {
+      const rate = enc.challenge ? challengeRule(state, 'spawnRate') ?? 1 : 1;
+      if (world.enemies.length < balance.spawn.maxAlive + (rate > 1 ? 2 : 0)) {
         spawnEnemy(state, world, rng, balance, enc, world.pendingElite);
         world.pendingElite = false;
       }
-      world.spawnTimer = balance.spawn.intervalSeconds;
+      world.spawnTimer = balance.spawn.intervalSeconds / rate;
     }
   }
 
@@ -664,8 +706,9 @@ export function step(state, world, dt, rng, balance = BALANCE) {
       const armor = Math.min(balance.hero.armorCapPct, stats.armor + lowHp) * (attacker.boss ? 1 - st.bossArmorPierce : 1);
       const shield = world.buffs.shield > 0 ? world.buffs.shieldPct : 0;
       // Rage : un boss qui dure trop longtemps frappe de plus en plus fort.
-      const rage = attacker.boss && attacker.age > st.enrageSeconds
-        ? 1 + (st.enragePct / 100) * (1 + Math.floor((attacker.age - st.enrageSeconds) / st.enrageStepSeconds)) : 1;
+      const instant = state.challenge && challengeRule(state, 'instantRage');
+      const rage = attacker.boss && (attacker.age > st.enrageSeconds || instant)
+        ? 1 + (st.enragePct / 100) * (1 + Math.floor(Math.max(0, attacker.age - st.enrageSeconds) / st.enrageStepSeconds)) : 1;
       if (rage > 1 && !attacker.enraged) {
         attacker.enraged = true;
         emit(world, 'bossEnrage', { enemyId: attacker.id, kind: attacker.type });

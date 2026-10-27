@@ -38,29 +38,34 @@ test('hors ligne : 65 % du farm actif, plafonné à 24 h', () => {
   assert.equal(twoDays.gold, day.gold);
 });
 
-test('arbre de talents : un seul arbre qui part du Cœur du chevalier', () => {
-  const seen = new Set();
-  const core = TALENTS.find((t) => t.id === 'core');
-  assert.ok(core && !core.requires, 'nœud central');
+test('arbre de talents (v8.5) : ~500 nœuds reliés au Cœur, liens symétriques, ancienne partie remboursée', () => {
+  assert.ok(TALENTS.length >= 480 && TALENTS.length <= 560, String(TALENTS.length));
+  const byId = new Map(TALENTS.map((t) => [t.id, t]));
+  assert.equal(byId.size, TALENTS.length, 'identifiants uniques');
   for (const t of TALENTS) {
-    if (t === core) continue;
-    assert.ok(TALENT_BRANCHES.some((b) => b.id === t.branch), t.id);
-    const key = `${t.branch}:${t.row}:${t.col}`;
-    assert.ok(!seen.has(key), `deux talents en ${key}`);
-    seen.add(key);
-    const parent = TALENTS.find((p) => p.id === t.requires?.id);
-    if (t.row === 0) assert.equal(parent, core, `${t.id} : part du centre`);
-    else assert.ok(parent && parent.branch === t.branch && parent.row === t.row - 1, `${t.id} : parent`);
+    assert.ok(t.id === 'core' || TALENT_BRANCHES.some((b) => b.id === t.region), t.id);
+    for (const id of t.links) assert.ok(byId.get(id)?.links.includes(t.id), `${t.id} ↔ ${id}`);
   }
-  // Chaque branche se divise en deux.
-  for (const b of TALENT_BRANCHES) {
-    const root = TALENTS.find((t) => t.branch === b.id && t.row === 0);
-    assert.ok(TALENTS.filter((t) => t.requires?.id === root.id).length >= 2, b.id);
+  // Tout l'arbre est accessible depuis le Cœur.
+  const seen = new Set(['core']);
+  const todo = ['core'];
+  while (todo.length) for (const id of byId.get(todo.pop()).links) if (!seen.has(id)) { seen.add(id); todo.push(id); }
+  assert.equal(seen.size, TALENTS.length);
+  // Des branches qui se rejoignent : des nœuds ont plusieurs voisins vers le centre.
+  assert.ok(TALENTS.filter((t) => t.links.filter((id) => byId.get(id).ring < t.ring).length >= 2).length > 50);
+  // Chaque région a ses clés de voûte.
+  for (const b of TALENT_BRANCHES.filter((x) => x.id !== 'bridge')) {
+    assert.ok(TALENTS.filter((t) => t.region === b.id && t.kind === 'keystone').length >= 2, b.id);
   }
-  // Une ancienne partie avec des talents reçoit le Cœur (ses branches restent accessibles).
+  // Une ancienne partie (v8.4) : ses talents sont remboursés en fragments.
   const raw = JSON.parse(JSON.stringify(createNewState(0, 9)));
-  raw.talents = { power: 3 };
-  assert.equal(sanitizeState(raw).talents.core, 1);
+  raw.version = 6;
+  raw.fragments = 10;
+  raw.talents = { core: 2, power: 3 };
+  const s = sanitizeState(raw);
+  assert.deepEqual(s.talents, {});
+  assert.equal(s.fragments, 10 + (1 + 2) + (1 + 2 + 3));
+  assert.equal(s.migrationTalentRefund, 9);
 });
 
 test('PV : palier ×1,4 tous les 10 niveaux de Points de vie', () => {

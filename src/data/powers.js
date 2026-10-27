@@ -110,23 +110,29 @@ export const BOSS_POWERS = {
 };
 
 // Libellés des effets (affichage).
+// v8.5 : les effets peuvent être négatifs (clés de voûte de l'arbre) → signe explicite.
+const sg = (v) => (v < 0 ? `-${String(-v).replace('.', ',')}` : `+${String(v).replace('.', ',')}`);
+const mult = (v) => String(Math.round((1 + v / 100) * 100) / 100).replace('.', ',');
 export const EFFECT_LABELS = {
-  damagePct: (v) => `+${v} % dégâts`,
-  attackSpeedPct: (v) => `+${v} % vitesse d'attaque`,
-  maxHpPct: (v) => `+${v} % PV max`,
-  regenPct: (v) => `+${String(v).replace('.', ',')} % PV/s`,
-  armor: (v) => `+${v} % armure`,
-  goldPct: (v) => `+${v} % or`,
-  dropChance: (v) => `+${v} pts de chance de butin`,
-  damageVsNormalPct: (v) => `+${v} % dégâts contre les ennemis ordinaires`,
-  damageVsBossPct: (v) => `+${v} % dégâts contre les boss`,
-  lowHpArmor: (v) => `+${v} % armure sous 30 % de PV`,
-  critChance: (v) => `+${v} % de coup critique`,
-  lifesteal: (v) => `vol de vie ${v} %`,
-  thorns: (v) => `épines ${v} %`,
-  xpPct: (v) => `+${v} % XP`,
-  companionPct: (v) => `+${v} % effets des compagnons`,
-  skillCooldownPct: (v) => `-${v} % recharge des compétences`,
+  damagePct: (v) => `${sg(v)} % dégâts`,
+  attackSpeedPct: (v) => `${sg(v)} % vitesse d'attaque`,
+  maxHpPct: (v) => `${sg(v)} % PV max`,
+  regenPct: (v) => `${sg(v)} % PV/s`,
+  armor: (v) => `${sg(v)} % armure`,
+  goldPct: (v) => `${sg(v)} % or`,
+  dropChance: (v) => `${sg(v)} pts de chance de butin`,
+  damageVsNormalPct: (v) => `${sg(v)} % dégâts contre les ennemis ordinaires`,
+  damageVsBossPct: (v) => `${sg(v)} % dégâts contre les boss`,
+  lowHpArmor: (v) => `${sg(v)} % armure sous 30 % de PV`,
+  critChance: (v) => `${sg(v)} % de coup critique`,
+  lifesteal: (v) => `vol de vie ${String(v).replace('.', ',')} %`,
+  thorns: (v) => `épines ${String(v).replace('.', ',')} %`,
+  xpPct: (v) => `${sg(v)} % XP`,
+  companionPct: (v) => `${sg(v)} % effets des compagnons`,
+  skillCooldownPct: (v) => `-${String(v).replace('.', ',')} % recharge des compétences`,
   powerSlots: (v) => `+${v} emplacement${v > 1 ? 's' : ''} de pouvoir`,
   rerollDiscountPct: (v) => `-${v} % coût de relance`,
+  damageMultPct: (v) => `dégâts ×${mult(v)}`,
+  maxHpMultPct: (v) => `PV max ×${mult(v)}`,
+  goldMultPct: (v) => `or ×${mult(v)}`,
 };

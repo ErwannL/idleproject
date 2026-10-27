@@ -60,7 +60,7 @@ export function towerReward(floor) {
 }
 
 export function startTower(state, now = Date.now()) {
-  if (!towerUnlocked(state) || state.dungeon || state.tower || climbsLeft(state, now) <= 0) return false;
+  if (!towerUnlocked(state) || state.dungeon || state.tower || state.challenge || climbsLeft(state, now) <= 0) return false;
   towerWeek(state, now).climbs += 1;
   state.tower = { floor: 1, startPlay: state.playSeconds ?? 0 };
   return true;

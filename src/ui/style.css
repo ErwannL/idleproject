@@ -958,31 +958,51 @@ canvas.anim { display: block; image-rendering: pixelated; }
   box-shadow: inset 0 0 0 1px #4a4d55, inset 0 0 24px rgba(0, 0, 0, 0.6);
 }
 .tree-tools { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-bottom: 4px; }
-.tree-viewport { overflow: auto; max-height: min(62vh, 560px); border-radius: 4px; overscroll-behavior: contain; }
+.tree-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; font-size: 11.5px; }
+.tree-head input { width: 200px; max-width: 50%; }
+.tree-head img { width: 14px; height: 14px; vertical-align: -2px; }
+.tree-wrap { position: relative; }
+.tree-viewport { overflow: auto; height: clamp(180px, 44vh, 520px); border-radius: 4px; overscroll-behavior: contain; cursor: grab; }
+.tree-viewport.dragging { cursor: grabbing; }
 .rune-tree { position: relative; flex: none; margin: 0 auto; }
 .rune-tree svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-.rune-tree line { stroke: #8e939e; stroke-width: 3; opacity: 0.55; }
-.rune-tree line.on { stroke: #e9ecf2; opacity: 0.9; }
-.rune-tree .tile {
-  position: absolute; width: 8%; aspect-ratio: 1; min-width: 18px; transform: translate(-50%, -50%);
-  padding: 0; display: flex; align-items: center; justify-content: center; cursor: pointer;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--branch) 22%, #3a3426), color-mix(in srgb, var(--branch) 12%, #1d1a14));
-  border: 3px solid #a86b2a; border-radius: 3px;
-  box-shadow: 0 0 0 1px #0c0d10, inset 0 0 0 1px rgba(0, 0, 0, 0.6), inset 0 2px 0 rgba(255, 255, 255, 0.15);
+.rune-tree line { stroke: #5d616b; stroke-width: 0.06; opacity: 0.6; }
+.rune-tree line.half { stroke: #b9a36a; opacity: 0.8; }
+.rune-tree line.on { stroke: #f2e2a8; stroke-width: 0.09; opacity: 0.95; }
+.rune-tree line.path { stroke: #9fe6ff; stroke-width: 0.09; stroke-dasharray: 0.2 0.12; opacity: 1; }
+/* v8.5 : nœuds ronds (petits), losanges (notables), hexagones dorés (clés de voûte). Taille en % de l'arbre. */
+.rune-tree .tnode {
+  position: absolute; width: 1.5%; aspect-ratio: 1; transform: translate(-50%, -50%); padding: 0; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--branch) 35%, #3a3426), #15161a 80%);
+  border: 2px solid #4a4d55; box-shadow: 0 0 0 1px #0c0d10;
 }
-.rune-tree .tile img { width: 72%; height: 72%; }
-.rune-tree .tile .lv {
-  position: absolute; right: -3px; bottom: -6px; padding: 0 2px; font-size: 8.5px; font-weight: 900; line-height: 10px;
-  background: #0c0d10; border-radius: 2px; color: #e9ecf2;
+.rune-tree .tnode img { width: 70%; height: 70%; image-rendering: pixelated; }
+.rune-tree .tnode .lv {
+  position: absolute; right: -4px; bottom: -6px; padding: 0 2px; font-size: 8px; font-weight: 900; line-height: 9px;
+  background: #0c0d10; border-radius: 2px; color: #e9ecf2; pointer-events: none;
 }
-.rune-tree .tile.open { border-color: #c98a35; }
-.rune-tree .tile.owned { border-color: #f0c040; box-shadow: 0 0 0 1px #0c0d10, 0 0 8px -2px #f0c040; }
-.rune-tree .tile.maxed { border-color: #5ad46a; box-shadow: 0 0 0 1px #0c0d10, 0 0 9px -2px #5ad46a; }
-.rune-tree .tile.locked { border-color: #4a3a2a; background: #1c1d22; }
-.rune-tree .tile.locked img { filter: grayscale(1) brightness(0.45); }
-.rune-tree .tile.core { width: 10%; border-color: #ffe08a; }
-.rune-tree .tile.selected { outline: 2px solid #fff; outline-offset: 2px; }
+.rune-tree .tnode.k-small .lv { right: 50%; bottom: 50%; transform: translate(50%, 50%); background: none; color: #0c0d10; }
+.rune-tree .tnode.k-notable { width: 2.1%; border-radius: 4px; transform: translate(-50%, -50%) rotate(45deg); }
+.rune-tree .tnode.k-notable img, .rune-tree .tnode.k-notable .lv { transform: rotate(-45deg); }
+.rune-tree .tnode.k-keystone { width: 2.9%; border-radius: 6px; border-width: 3px; border-color: #8a6a2a; clip-path: polygon(25% 2%, 75% 2%, 99% 50%, 75% 98%, 25% 98%, 1% 50%); }
+.rune-tree .tnode.k-core { width: 3.4%; border-color: #ffe08a; border-width: 3px; }
+.rune-tree .tnode.open { border-color: #c98a35; }
+.rune-tree .tnode.gated { border-color: #7a5a8a; }
+.rune-tree .tnode.owned { border-color: #f0c040; background: radial-gradient(circle at 35% 30%, #fff3c0, var(--branch) 55%, #3a2c10); box-shadow: 0 0 0 1px #0c0d10, 0 0 8px -1px var(--branch); }
+.rune-tree .tnode.maxed { border-color: #5ad46a; background: radial-gradient(circle at 35% 30%, #fff, var(--branch) 50%, #2a3a14); box-shadow: 0 0 0 1px #0c0d10, 0 0 10px 0 var(--branch); }
+.rune-tree .tnode.locked { opacity: 0.55; }
+.rune-tree .tnode.locked img { filter: grayscale(1) brightness(0.5); }
+.rune-tree .tnode.path { border-color: #9fe6ff; opacity: 1; }
+.rune-tree .tnode.hit { outline: 3px solid #7fe0ff; outline-offset: 2px; z-index: 2; }
+.rune-tree .tnode.selected { outline: 2px solid #fff; outline-offset: 2px; z-index: 3; }
+.rune-tree .tnode:focus-visible { outline: 2px solid #ffd35a; outline-offset: 3px; }
+.tree-minimap { position: absolute; right: 6px; bottom: 6px; width: 96px; height: 96px; background: rgba(10, 11, 14, 0.82);
+  border: 1px solid #4a4d55; border-radius: 4px; padding: 2px; }
+.tree-minimap svg { width: 100%; height: 100%; display: block; cursor: crosshair; }
+.tree-minimap .mm-view { fill: rgba(255, 255, 255, 0.08); stroke: #fff; stroke-width: 0.25; }
 .tree-legend { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; font-size: 10.5px; font-weight: 800; margin-top: 4px; }
+.tree-hint { font-size: 10.5px; margin-top: 3px; text-align: center; }
 
 /* Héros alliés : étiquette de rareté R / SR / SSR. */
 .grade { position: absolute; top: -3px; left: -3px; padding: 0 3px; border-radius: 3px; font-size: 8.5px; font-weight: 900; line-height: 11px; color: #fff; text-shadow: 0 1px 0 #000; }
@@ -1456,3 +1476,34 @@ kbd { display: inline-block; min-width: 18px; padding: 1px 5px; border: 1px soli
 .hist-row { display: flex; flex-wrap: wrap; gap: 3px; }
 .hist { font-size: 10px; padding: 0 5px; border: 1px solid var(--rarity); border-radius: 3px; color: var(--rarity); }
 .odds-unit.featured-unit { box-shadow: 0 0 0 2px #e0b84a, 0 0 8px #e0b84a; border-radius: 4px; }
+
+/* v8.5 : pop-up du butin (détail recyclés / fusions), journal de session, témoin de performances (F9). */
+#loot-pop small { opacity: 0.75; font-size: 0.85em; }
+.journal { display: grid; gap: 4px; margin: 8px 0; }
+.journal-row { display: grid; grid-template-columns: 18px 1fr auto; align-items: center; gap: 8px; padding: 3px 6px; border-radius: 4px; background: rgba(255, 255, 255, 0.04); }
+.journal-row img { width: 16px; height: 16px; image-rendering: pixelated; }
+.journal-row b { text-align: right; }
+#perf-overlay { position: absolute; left: 6px; bottom: 6px; z-index: 30; white-space: pre; font: 11px/1.35 monospace; color: #b8ffb8;
+  background: rgba(0, 0, 0, 0.72); padding: 4px 7px; border-radius: 4px; pointer-events: none; }
+#perf-overlay.hidden { display: none; }
+
+/* v8.5 : ensembles d'équipement (point coloré sur l'objet, fiche, héros). */
+.item-frame .set-dot { position: absolute; left: 2px; top: 2px; width: 7px; height: 7px; border-radius: 50%; background: var(--set);
+  box-shadow: 0 0 0 1px #0c0d10, 0 0 5px var(--set); pointer-events: none; }
+.set-block { border-left: 3px solid var(--set); padding-left: 6px; margin: 4px 0; }
+.set-tiers { margin: 2px 0 0; padding-left: 16px; font-size: 11.5px; }
+.set-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; border-left: 3px solid var(--set); padding: 2px 6px; margin: 2px 0; font-size: 11.5px; }
+
+/* v8.5 : défi de la semaine et expéditions. */
+.challenge-card { border-color: #ffb36b; display: flex; flex-direction: column; gap: 4px; }
+.challenge-card .mods { display: flex; flex-wrap: wrap; gap: 4px; }
+.challenge-card .mod { font-size: 11px; padding: 2px 6px; border-radius: 3px; background: rgba(255, 110, 80, 0.14); border: 1px solid rgba(255, 110, 80, 0.4); }
+.challenge-card .mod.good { background: rgba(90, 212, 106, 0.14); border-color: rgba(90, 212, 106, 0.45); }
+.challenge-history { display: flex; gap: 8px; flex-wrap: wrap; font-size: 11px; }
+.exp-slot { display: flex; align-items: center; gap: 8px; padding: 4px; border-radius: 4px; background: rgba(255, 255, 255, 0.03); margin: 3px 0; }
+.exp-slot.empty { justify-content: center; min-height: 34px; font-size: 11px; }
+.exp-slot.done { box-shadow: inset 0 0 0 1px #f0c040; }
+.exp-who { flex: none; width: 44px; display: flex; justify-content: center; }
+.exp-reward { font-size: 10.5px; }
+.exp-buttons { display: flex; gap: 4px; flex-wrap: wrap; }
+.pet-thumb .away { position: absolute; left: 1px; bottom: 0; font-size: 11px; color: #9fe6ff; text-shadow: 0 1px 0 #000; }

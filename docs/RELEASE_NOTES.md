@@ -1,9 +1,44 @@
-## Idle RPG v8.4.0 — progression sans fin, Renaissance qui rend plus fort, aide au joueur
+## Idle RPG v8.5.0 — un arbre mastodonte, expéditions, ensembles, défi de la semaine, fini les gels
 
-**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-8.4.0-setup.exe).
-**Votre partie est conservée** ; l'or dépensé en améliorations est **remboursé** (voir ci-dessous).
+**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-8.5.0-setup.exe).
+**Votre partie est conservée** ; les fragments dépensés dans l'ancien arbre sont **remboursés** (voir ci-dessous).
 
-### Nouvel équilibrage (réglé par simulation du vrai moteur de combat)
+### Corrigés
+- **Gros gels / écran noir** : quand Windows ralentissait la fenêtre (réduite, en arrière-plan), le jeu essayait
+  de rattraper d'un bloc jusqu'à 10 minutes de combat (×100 : plus d'un million de pas) → écran noir.
+  Désormais la simulation ne prend jamais plus de 25 ms d'affilée, le retard est crédité en gains hors ligne
+  au retour, et à grande vitesse le bouton affiche la **vitesse réelle** si le PC ne suit pas (« ×100 (réel ×38) »).
+  La prévision du boss est calculée en arrière-plan par petites tranches (et en pause à ×10 et plus),
+  le fil d'actualité ne force plus un recalcul de l'affichage à chaque butin, et si la page plante malgré tout,
+  le jeu se recharge tout seul depuis la dernière sauvegarde. **F9** affiche un témoin de performances.
+- **« +397 nouveaux objets » avec un sac de 100** : la pop-up comptait chaque ramassage, même les objets recyclés
+  ou fusionnés ensuite. Elle compte maintenant les objets **encore dans le sac**, avec à côté
+  « 385 recyclés · 3 fusions ».
+
+### Nouveau
+- **Arbre de talents mastodonte : 511 talents** (au lieu de 25). Le Cœur du chevalier au centre, **6 régions**
+  (Puissance, Chasse, Fortune, Héritage, Arcanes, Endurance) sur 14 anneaux ; les branches se divisent,
+  **se rejoignent** et se croisent, des **ponts** relient les régions. Un talent s'apprend dès qu'**un** voisin
+  est appris. Petits nœuds (3 niveaux), **notables** (effets nommés) et **18 clés de voûte** (dégâts ×1,6 mais
+  −25 % PV, or ×2, PV ×2 mais attaque plus lente…), qui demandent des points dans leur région.
+  Zoom, glisser pour se déplacer, **mini-carte**, **recherche** (« or », « critique »…), bouton **« Chemin »**
+  qui apprend la route la moins chère jusqu'au talent choisi, et **réinitialisation** (gratuite la 1re fois).
+- **Expéditions** (onglet Équipe) : les compagnons et familiers hors de l'équipe partent 1 h, 4 h ou 12 h
+  (même jeu fermé) et rapportent or, éclats, essences, gemmes, clés et **fragments anciens**. 3 places.
+- **Ensembles d'équipement** : un ensemble par monde. Les objets Rares et mieux en font parfois partie
+  (point coloré). **2, 4 et 6 pièces** donnent des bonus, le palier 6 étant un multiplicateur (dégâts, PV ou or).
+  Le recyclage automatique **garde les pièces utiles** (option dans l'inventaire).
+- **Défi de la semaine** (onglet Donjons) : des vagues de plus en plus fortes dans un monde tiré au sort, avec
+  **3 règles qui changent chaque lundi** (Peau de pierre, Sans soin, Canon de verre, Pluie d'or…). 3 tentatives
+  par semaine, 90 s par vague. Récompenses à chaque nouveau meilleur score de la semaine et à chaque record absolu ;
+  historique des semaines passées.
+- **Journal de session** (touche **J** ou Paramètres) : étapes, boss, or, objets ramassés / encore dans le sac /
+  recyclés / fusionnés. Affiché automatiquement au retour après au moins 5 minutes fenêtre réduite.
+
+### Équilibrage
+- **Remboursement** : les fragments dépensés dans l'ancien arbre sont rendus au chargement ; replantez-les.
+
+### v8.4 — nouvel équilibrage (réglé par simulation du vrai moteur de combat)
 - **Plus de mur** : avant, les PV des ennemis grandissaient ~6 fois plus vite que vos dégâts et tout bloquait
   vers le monde 4-8 ×2. Désormais :
   - améliorations Dégâts / PV moins chères (×1,13 par niveau au lieu de ×1,17) avec un **palier ×1,75 tous les
@@ -16,7 +51,7 @@
 - **Remboursement** : l'or dépensé dans les améliorations avant la v8.4 est rendu au chargement ;
   rachetez-les au nouveau prix (« Max »).
 
-### Nouveau
+### Nouveau en v8.4
 - **Mort contre un boss** : le chevalier refarme l'étape d'avant (avance auto toujours cochée) et ne retente le boss
   que quand il est **15 % plus fort** — ou tout de suite avec le bouton **« Retenter le boss »**.
 - **Prévision du prochain boss** (Améliorer, Carte) : le vrai combat est simulé — « battable en ~20 s » ou
@@ -33,7 +68,7 @@
 - **Vitesse des combats** : ×1 par défaut ; les autres vitesses sont secrètes (codes). À ×100, avertissement
   et effets visuels coupés.
 
-### Corrigés
+### Corrigés en v8.4
 - **Hors ligne** : plus de « +0 partout » après une ascension de la Tour — le jeu farme la meilleure étape
   réellement farmable et indique si une Tour / un donjon était en cours.
 - **Tour** : les étages déjà battus affichent « récompense déjà récupérée » au lieu de « record battu ».

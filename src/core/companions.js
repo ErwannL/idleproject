@@ -109,17 +109,21 @@ export function clampTeam(equipped, balance = BALANCE) {
 export function replaceCompanion(state, newId, oldId) {
   const c = companionById(newId);
   const old = companionById(oldId);
-  if (!c || !old || !state.companions.owned[newId] || teamKind(c) !== teamKind(old)) return false;
+  if (!c || !old || !state.companions.owned[newId] || teamKind(c) !== teamKind(old) || onExpedition(state, newId)) return false;
   const index = state.companions.equipped.indexOf(oldId);
   if (index < 0 || state.companions.equipped.includes(newId)) return false;
   state.companions.equipped[index] = newId;
   return true;
 }
 
+// v8.5 : un compagnon parti en expédition ne peut pas rejoindre l'équipe.
+export const onExpedition = (state, id) => (state.expeditions?.slots ?? []).some((s) => s?.companionId === id);
+
 // Équiper / retirer. Le compagnon (1 place) remplace l'ancien ; les personnages sont limités à 2.
 export function toggleCompanion(state, id, balance = BALANCE) {
   const c = companionById(id);
   if (!c || !state.companions.owned[id]) return false;
+  if (onExpedition(state, id) && !state.companions.equipped.includes(id)) return false;
   const index = state.companions.equipped.indexOf(id);
   if (index >= 0) {
     state.companions.equipped.splice(index, 1);

@@ -127,6 +127,11 @@ export default {
           <button class="btn small" data-action="show-shortcuts">Tout voir (K)</button></div>
       </div>
       <div class="card">
+        <div class="section-title">Journal de la session</div>
+        <div class="row-between"><span class="muted">Étapes, boss, or, objets ramassés, recyclés et fusionnés depuis le lancement du jeu.</span>
+          <button class="btn small" data-action="show-journal">📜 Ouvrir (J)</button></div>
+      </div>
+      <div class="card">
         <div class="section-title">Code secret</div>
         <div class="row"><input id="cheat-code" class="grow" type="text" maxlength="24" placeholder="Entrer un code…" autocomplete="off">
           <button class="btn small" data-action="cheat">Valider</button></div>

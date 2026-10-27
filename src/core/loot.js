@@ -2,6 +2,7 @@
 // statistiques selon la rareté et le niveau, effets spéciaux (Rare et mieux), objets signature de boss.
 import { BALANCE } from '../data/balance.js';
 import { AFFIXES, ITEM_BASES, PERCENT_STATS, RARITIES, SIGNATURE_ITEMS } from '../data/items.js';
+import { rollSet } from './sets.js';
 
 const ALL_BASES = [...ITEM_BASES, ...SIGNATURE_ITEMS];
 
@@ -73,7 +74,7 @@ export function rollAffixes(slot, rarityId, rng, balance = BALANCE, exclude = []
   return affixes;
 }
 
-export function makeItem(state, baseId, rarityId, level, balance = BALANCE, rng = null) {
+export function makeItem(state, baseId, rarityId, level, balance = BALANCE, rng = null, set = null) {
   const base = itemBase(baseId);
   const rarity = rarityById(rarityId);
   const id = `it${state.nextItemId}`;
@@ -85,14 +86,15 @@ export function makeItem(state, baseId, rarityId, level, balance = BALANCE, rng 
   return {
     id, baseId, name: base.name, slot: base.slot, rarity: rarityId, level,
     stats: computeStats(base, rarity, level, balance), affixes, effect: null, locked: false,
-    upgrades: 0, boosts: {},
+    upgrades: 0, boosts: {}, ...(set ? { set } : {}),
   };
 }
 
 // options.slot : limite le tirage à un emplacement (butin ciblé de la forge et des donjons).
 // Sans emplacement imposé, on tire d'abord l'emplacement (poids de balance.loot.slotWeights), puis un
 // modèle : les accessoires, déclinés en plusieurs couleurs, ne remplissent pas tout le butin.
-export function generateItem(state, rng, { level, minRarity = 'common', slot } = {}, balance = BALANCE) {
+// options.setZone (v8.5) : monde d'origine → l'objet peut appartenir à l'ensemble de ce monde.
+export function generateItem(state, rng, { level, minRarity = 'common', slot, setZone = null } = {}, balance = BALANCE) {
   let chosen = slot;
   if (!chosen) {
     const weights = Object.entries(balance.loot.slotWeights);
@@ -100,7 +102,9 @@ export function generateItem(state, rng, { level, minRarity = 'common', slot } =
     chosen = weights.find(([, w]) => (roll -= w) < 0)?.[0] ?? weights[0][0];
   }
   const base = rng.pick(ITEM_BASES.filter((b) => b.slot === chosen));
-  return makeItem(state, base.id, rollRarity(rng, minRarity), Math.max(1, level), balance, rng);
+  const rarity = rollRarity(rng, minRarity);
+  const set = setZone === null || setZone === undefined ? null : rollSet(setZone, rarity, rng, balance);
+  return makeItem(state, base.id, rarity, Math.max(1, level), balance, rng, set);
 }
 
 // Objet signature d'un boss : Épique, parfois Légendaire.

@@ -3,9 +3,45 @@ import { BALANCE } from '../../data/balance.js';
 import { ALLY_GRADE, COMPANION_RULES, COMPANIONS } from '../../data/companions.js';
 import { activeSynergies, companionById, companionMultiplier, companionUpgradeCost, equippedOfKind, teamKind } from '../../core/companions.js';
 import { COMPANION_ROLES, ROLES, SYNERGIES } from '../../data/synergies.js';
-import { costButton, effectText, escapeHtml, icon, img, rarityLabel, stars } from '../common.js';
+import { costButton, effectText, escapeHtml, formatNumber, icon, img, progressBar, rarityLabel, stars } from '../common.js';
 import { animCanvas } from '../animator.js';
 import { DUNGEONS } from '../../data/dungeons.js';
+import { EXPEDITION_TYPES, availableForExpedition, expeditionDone, expeditionReward, expeditionType, isAway } from '../../core/expeditions.js';
+import { rewardText } from '../../core/rewards.js';
+import { formatDuration } from '../../core/format.js';
+
+// Expéditions (v8.5) : 3 places ; les compagnons hors de l'équipe partent 1 h, 4 h ou 12 h.
+function expeditionsCard(state, now = Date.now()) {
+  const slots = state.expeditions.slots.map((run, i) => {
+    if (!run) return `<div class="exp-slot empty"><span class="muted">Place libre — choisissez un compagnon hors de l'équipe puis « Expédition ».</span></div>`;
+    const c = companionById(run.companionId);
+    const type = expeditionType(run.type);
+    const done = expeditionDone(run, now);
+    const ratio = Math.min(1, (now - run.start) / (run.end - run.start));
+    return `<div class="exp-slot${done ? ' done' : ''}">
+      <div class="exp-who">${portrait(c)}</div>
+      <div class="grow"><b>${escapeHtml(c.name)}</b> <span class="muted">· ${type.label} (${type.hours} h)</span>
+        ${progressBar(ratio, done ? 'Terminée !' : `encore ${formatDuration((run.end - now) / 1000)}`, done ? 'xp' : '')}
+        <div class="muted exp-reward">${rewardText(run.reward, formatNumber)}</div></div>
+      ${done ? `<button class="btn btn-gold small" data-action="claim-expedition" data-value="${i}">Récupérer</button>`
+        : `<button class="btn small" data-action="recall-expedition" data-value="${i}" title="Rappeler maintenant : la mission est abandonnée, sans récompense">Rappeler</button>`}
+    </div>`;
+  }).join('');
+  return `<div class="card"><div class="section-title">Expéditions <span class="muted">(${state.expeditions.done} terminée${state.expeditions.done > 1 ? 's' : ''} · elles avancent aussi jeu fermé)</span></div>${slots}</div>`;
+}
+
+// Boutons de départ en expédition (fiche d'un compagnon disponible).
+function expeditionButtons(state, c) {
+  if (isAway(state, c.id)) {
+    const run = state.expeditions.slots.find((s) => s?.companionId === c.id);
+    return `<div class="muted">En expédition : ${expeditionType(run.type).label}${expeditionDone(run) ? ' — terminée, à récupérer' : ''}.</div>`;
+  }
+  if (!availableForExpedition(state).some((x) => x.id === c.id)) return '';
+  const free = state.expeditions.slots.some((s) => !s);
+  return `<div class="section-title">Envoyer en expédition</div><div class="exp-buttons">${EXPEDITION_TYPES.map((t) => `<button class="btn small" data-action="start-expedition" data-value="${c.id}|${t.id}"
+    ${free ? '' : 'disabled'} title="${t.text} — prévu : ${rewardText(expeditionReward(state, c.id, t.id), formatNumber)}">${t.label} · ${t.hours} h</button>`).join('')}</div>
+    ${free ? '' : '<div class="muted">Les 3 places d\'expédition sont occupées.</div>'}`;
+}
 
 // Donjon où ce héros SSR est adapté (il y écrase tout).
 function dungeonFor(c, state) {
@@ -47,7 +83,7 @@ export default {
         ${owned ? portrait(c) : `<img class="px" src="${icon(c.sprite, c.kind === 'ally' ? 1 : 3, { tint: { color: '#3a4a66', alpha: 1 } })}" alt="">`}
         ${c.kind === 'ally' ? `<span class="grade g-${c.rarity}">${ALLY_GRADE[c.rarity]}</span>` : ''}
         ${COMPANION_ROLES[c.id] ? `<span class="role-dot" style="background:${ROLES[COMPANION_ROLES[c.id]].color}" title="${ROLES[COMPANION_ROLES[c.id]].label}"></span>` : ''}
-        ${equipped ? '<span class="eq">É</span>' : ''}</button>`;
+        ${equipped ? '<span class="eq">É</span>' : ''}${isAway(state, c.id) ? '<span class="away" title="En expédition">⚑</span>' : ''}</button>`;
     };
     const allies = COMPANIONS.filter((c) => teamKind(c) === 'ally');
     const pets = COMPANIONS.filter((c) => teamKind(c) === 'pet');
@@ -65,7 +101,8 @@ export default {
       const swap = !equipped && kind === 'pet' && equippedOfKind(state, 'pet').length >= BALANCE.teamSlots.pet;
       // Équipe pleine : « Équiper » propose de choisir le compagnon à remplacer.
       const replacing = full && ui.view.replaceFor === sel.id;
-      actions = full
+      const away = isAway(state, sel.id);
+      actions = away ? '<button class="btn" disabled>En expédition</button>' : full
         ? `<button class="btn btn-primary" data-action="ask-replace" data-value="${sel.id}">Équiper…</button>`
         : `<button class="btn ${equipped ? '' : 'btn-primary'}" data-action="toggle-companion" data-value="${sel.id}">
           ${equipped ? 'Retirer' : swap ? 'Remplacer le familier' : 'Équiper'}</button>`;
@@ -86,6 +123,7 @@ export default {
       <button class="btn small" data-action="save-loadout" data-value="${i}">Enregistrer</button>
       <button class="btn btn-primary small" data-action="apply-loadout" data-value="${i}" ${l.team ? '' : 'disabled'}>Équiper</button></div>`).join('');
     return `${team}
+      ${expeditionsCard(state)}
       <div class="card"><div class="section-title">Synergies d'équipe <span class="muted">(le chevalier compte comme Gardien)</span></div><div class="syn-list">${synergies}</div></div>
       <div class="card"><div class="section-title">Configurations <span class="muted">(équipe + équipement porté)</span></div>${loadouts}</div>
       <div class="section-title">Compagnons <span class="muted">(humains R · SR · SSR — 2 places)</span></div>
@@ -104,6 +142,7 @@ export default {
         ${dungeonFor(sel, state)}
         ${sel.skill ? `<div class="section-title">Compétence</div><div>${img('icon_star')} <b>${sel.skill.name}</b> <span class="muted">toutes les ${sel.skill.every} s</span><div class="muted">${sel.skill.text}</div></div>` : ''}
         <div class="detail-actions">${actions}</div>
+        ${owned ? expeditionButtons(state, sel) : ''}
       </div>`;
   },
 };

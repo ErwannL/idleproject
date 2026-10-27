@@ -8,11 +8,15 @@ import { prestigeEffects } from './prestige.js';
 import { rushEffects } from './rushes.js';
 import { talentEffects } from './rebirth.js';
 import { achievementEffects } from './achievements.js';
+import { setEffects } from './sets.js';
 
 export const BONUS_KEYS = [
   'damagePct', 'attackSpeedPct', 'maxHpPct', 'regenPct', 'armor', 'goldPct', 'dropChance',
   'damageVsNormalPct', 'damageVsBossPct', 'lowHpArmor', 'critChance', 'lifesteal', 'thorns',
   'xpPct', 'skillCooldownPct',
+  // v8.5 : multiplicateurs (clés de voûte de l'arbre, ensembles d'équipement) — additionnés entre eux,
+  // puis appliqués en facteur (×(1 + total / 100)).
+  'damageMultPct', 'maxHpMultPct', 'goldMultPct',
 ];
 
 export function gearAffixEffects(equipment) {
@@ -34,6 +38,7 @@ export function bonusSources(state, equipment = state.equipment) {
     prestige: prestigeEffects(state),
     rushes: rushEffects(state),
     achievements: achievementEffects(state),
+    sets: setEffects(equipment),
   };
 }
 

@@ -1,13 +1,24 @@
 // Renaissance (prestige) et talents permanents.
-import { REBIRTH, TALENTS } from '../data/rebirth.js';
+// v8.5 : arbre de ~500 nœuds ; un nœud s'apprend dès qu'un de ses voisins est appris (le Cœur est libre),
+// les clés de voûte demandent en plus des points dépensés dans leur région.
+import { LEGACY_TALENTS, REBIRTH, TALENT_RESPEC, TALENTS } from '../data/rebirth.js';
 import { PRESTIGE } from '../data/prestige.js';
 
+const BY_ID = new Map(TALENTS.map((t) => [t.id, t]));
+
 export function talentById(id) {
-  return TALENTS.find((t) => t.id === id);
+  return BY_ID.get(id);
 }
 
 export function talentCost(talent, level) {
   return talent.costBase + talent.costStep * level;
+}
+
+// Fragments dépensés pour amener un talent au niveau `level`.
+export function talentSpent(talent, level) {
+  let sum = 0;
+  for (let i = 0; i < level; i++) sum += talentCost(talent, i);
+  return sum;
 }
 
 // Effets cumulés d'un talent à un niveau donné.
@@ -20,19 +31,45 @@ export function talentLevelEffects(talent, level) {
   return out;
 }
 
+// Effets de tout l'arbre. Calculés une fois par version de `state.talents` (l'objet est remplacé à
+// chaque achat) : les statistiques du héros sont recalculées à chaque pas de combat.
+const effectsCache = new WeakMap();
 export function talentEffects(state) {
-  const out = {};
-  for (const talent of TALENTS) {
-    for (const [k, v] of Object.entries(talentLevelEffects(talent, state.talents[talent.id] ?? 0))) {
-      out[k] = (out[k] ?? 0) + v;
-    }
+  const talents = state.talents ?? {};
+  let out = effectsCache.get(talents);
+  if (out) return out;
+  out = {};
+  for (const [id, level] of Object.entries(talents)) {
+    const talent = BY_ID.get(id);
+    if (!talent || !level) continue;
+    for (const [k, v] of Object.entries(talentLevelEffects(talent, level))) out[k] = (out[k] ?? 0) + v;
   }
+  effectsCache.set(talents, out);
   return out;
 }
 
-// Un nœud de l'arbre se débloque quand son parent atteint le niveau requis.
+// Points dépensés (niveaux) dans une région.
+export function regionPoints(state, region) {
+  let n = 0;
+  for (const [id, level] of Object.entries(state.talents ?? {})) if (BY_ID.get(id)?.region === region) n += level;
+  return n;
+}
+
+export function talentsOwned(state) {
+  return Object.values(state.talents ?? {}).filter((v) => v > 0).length;
+}
+
+export function fragmentsSpent(state) {
+  return Object.entries(state.talents ?? {}).reduce((sum, [id, level]) => sum + (BY_ID.has(id) ? talentSpent(BY_ID.get(id), level) : 0), 0);
+}
+
+// Relié à un talent appris (le Cœur est toujours accessible).
+export function talentConnected(state, talent) {
+  return talent.id === 'core' || talent.links.some((id) => (state.talents[id] ?? 0) > 0);
+}
+
 export function talentUnlocked(state, talent) {
-  return !talent.requires || (state.talents[talent.requires.id] ?? 0) >= talent.requires.level;
+  return talentConnected(state, talent) && (!talent.gate || regionPoints(state, talent.region) >= talent.gate);
 }
 
 export function buyTalent(state, id) {
@@ -43,8 +80,90 @@ export function buyTalent(state, id) {
   const cost = talentCost(talent, level);
   if (state.fragments < cost) return false;
   state.fragments -= cost;
-  state.talents[id] = level + 1;
+  state.talents = { ...state.talents, [id]: level + 1 };
   return true;
+}
+
+// Tous les niveaux abordables d'un talent ; renvoie le nombre de niveaux achetés.
+export function buyTalentMax(state, id) {
+  let n = 0;
+  while (buyTalent(state, id)) n += 1;
+  return n;
+}
+
+// Chemin le moins cher (premier niveau de chaque nœud) depuis l'arbre appris jusqu'à `targetId`
+// (Dijkstra sur ~500 nœuds). Renvoie les identifiants à apprendre, dans l'ordre, cible comprise.
+export function talentPath(state, targetId) {
+  const target = BY_ID.get(targetId);
+  if (!target) return null;
+  if ((state.talents[targetId] ?? 0) > 0) return [];
+  const owned = (id) => (state.talents[id] ?? 0) > 0;
+  const dist = new Map();
+  const prev = new Map();
+  const open = [];
+  // Points de départ : le Cœur s'il n'est pas appris, sinon tous les nœuds reliés à l'arbre appris.
+  const starts = owned('core') ? TALENTS.filter((t) => !owned(t.id) && talentConnected(state, t)) : [BY_ID.get('core')];
+  for (const t of starts) { dist.set(t.id, talentCost(t, 0)); open.push(t.id); }
+  const done = new Set();
+  while (open.length) {
+    let bi = 0;
+    for (let i = 1; i < open.length; i++) if (dist.get(open[i]) < dist.get(open[bi])) bi = i;
+    const id = open.splice(bi, 1)[0];
+    if (done.has(id)) continue;
+    done.add(id);
+    if (id === targetId) break;
+    for (const nid of BY_ID.get(id).links) {
+      if (owned(nid) || done.has(nid)) continue;
+      const d = dist.get(id) + talentCost(BY_ID.get(nid), 0);
+      if (!dist.has(nid) || d < dist.get(nid)) { dist.set(nid, d); prev.set(nid, id); open.push(nid); }
+    }
+  }
+  if (!done.has(targetId)) return null;
+  const path = [targetId];
+  while (prev.has(path[0])) path.unshift(prev.get(path[0]));
+  return path;
+}
+
+export function pathCost(path) {
+  return (path ?? []).reduce((sum, id) => sum + talentCost(BY_ID.get(id), 0), 0);
+}
+
+// Apprend le chemin (un niveau par nœud) tant que les fragments suffisent ; renvoie le nombre de nœuds appris.
+export function buyTalentPath(state, targetId) {
+  const path = talentPath(state, targetId);
+  let n = 0;
+  for (const id of path ?? []) {
+    if (!buyTalent(state, id)) break;
+    n += 1;
+  }
+  return n;
+}
+
+// Réinitialisation : tous les fragments dépensés sont rendus (gratuite la première fois, puis en gemmes).
+export function respecCost(state) {
+  return (state.talentRespecs ?? 0) > 0 ? TALENT_RESPEC.gems : 0;
+}
+
+export function respecTalents(state) {
+  const spent = fragmentsSpent(state);
+  if (spent <= 0) return 0;
+  const cost = respecCost(state);
+  if (state.gems < cost) return 0;
+  state.gems -= cost;
+  state.fragments += spent;
+  state.talents = {};
+  state.talentRespecs = (state.talentRespecs ?? 0) + 1;
+  return spent;
+}
+
+// v8.5 : fragments dépensés dans l'ancien arbre (25 talents), remboursés à la migration.
+export function legacyTalentRefund(rawTalents) {
+  let sum = 0;
+  for (const t of LEGACY_TALENTS) {
+    const level = Math.min(t.max, Math.max(0, Math.floor(Number(rawTalents?.[t.id]) || 0)));
+    for (let i = 0; i < level; i++) sum += t.costBase + t.costStep * i;
+  }
+  return sum;
 }
 
 export function canRebirth(state) {

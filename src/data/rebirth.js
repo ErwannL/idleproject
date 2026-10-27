@@ -1,4 +1,5 @@
 // Renaissance (prestige) et talents permanents achetés avec les fragments anciens.
+import { TALENT_REGIONS, buildTree } from './talent-tree.js';
 
 export const REBIRTH = {
   minStage: 30, // étape maximale à atteindre pour pouvoir renaître (monde 2-10)
@@ -24,25 +25,20 @@ export const REBIRTH_KEEPS = [
   'Statistiques et exploits',
 ];
 
-// Arbre de talents permanents (fragments anciens) : un seul arbre qui part du « Cœur du chevalier »,
-// au centre, vers 4 branches (une par direction) ; chaque branche se divise en deux.
-// Chaque nœud est débloqué par son parent (`requires`).
-// Coût du niveau n (en partant de 0) = costBase + costStep × n.
-// `perLevel` s'applique à chaque niveau ; `levels` décrit des paliers distincts.
-// `row` : profondeur dans la branche ; `col` : position dans la branche (0 d'un côté, 1 au milieu, 2 de l'autre) ;
-// `x`, `y` : case de l'arbre dessiné (le Cœur en 0, 0 ; Combat à gauche, Ressources à droite,
-// Spécial en haut, Survie en bas).
-export const TALENT_BRANCHES = [
-  { id: 'combat', label: 'Puissance', color: '#ff7a6b' },
-  { id: 'survival', label: 'Endurance', color: '#63d98a' },
-  { id: 'resources', label: 'Fortune et chasse', color: '#f2d083' },
-  { id: 'special', label: 'Héritage', color: '#c9a6ff' },
-];
+// Arbre de talents permanents (fragments anciens). v8.5 : arbre « mastodonte » d'environ 500 nœuds,
+// généré par src/data/talent-tree.js (Cœur au centre, 6 régions, anneaux, ponts entre régions).
+export const TALENT_BRANCHES = [...TALENT_REGIONS, { id: 'bridge', label: 'Ponts', color: '#e8e2d0' }];
 
-// Nœud central de l'arbre : il ouvre les 4 branches.
+// Nœud central de l'arbre : il ouvre les 6 régions.
 export const CORE_TALENT_ID = 'core';
 
-export const TALENTS = [
+export const TALENTS = buildTree();
+
+// Réinitialisation de l'arbre (fragments rendus) : la première est gratuite, puis en gemmes.
+export const TALENT_RESPEC = { gems: 300 };
+
+// Ancien arbre (≤ v8.4, 25 talents) : gardé seulement pour rembourser les fragments dépensés (v8.5).
+export const LEGACY_TALENTS = [
   { id: 'core', name: 'Cœur du chevalier', branch: 'core', row: -1, col: 1, x: 0, y: 0, icon: 'icon_hero', max: 5, costBase: 1, costStep: 1, perLevel: { damagePct: 3, maxHpPct: 3 } },
   // Combat
   { id: 'power', name: 'Puissance', branch: 'combat', row: 0, col: 1, x: -1, y: 0, icon: 'skill_mastery', max: 10, costBase: 1, costStep: 1, perLevel: { damagePct: 10 }, requires: { id: 'core', level: 1 } },

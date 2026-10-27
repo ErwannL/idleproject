@@ -6,7 +6,7 @@ import { BOSSES } from './data/enemies.js';
 import { changeStage, createCombat, currentEncounter, cycleForStage, resetWave, resumeAdvance, stageLabel, step } from './core/combat.js';
 import { ZONES } from './data/zones.js';
 import { playCinematic, worldCinematic } from './ui/cinematic.js';
-import { activeSynergies, replaceCompanion, toggleCompanion, upgradeCompanion } from './core/companions.js';
+import { activeSynergies, companionById, onExpedition, replaceCompanion, toggleCompanion, upgradeCompanion } from './core/companions.js';
 import { claimContract } from './core/contracts.js';
 import { claimAchievement, claimableAchievements } from './core/achievements.js';
 import { claimAllMissions, claimLogin, claimMission, claimMissionBonus, mergeReward, refreshMissions } from './core/missions.js';
@@ -14,6 +14,8 @@ import { abandonDungeon, setDungeonPath, startDungeon } from './core/dungeon.js'
 import { buyUpgradeBulk } from './core/economy.js';
 import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
 import { endTower, startTower } from './core/tower.js';
+import { claimExpedition, expeditionType, startExpedition } from './core/expeditions.js';
+import { endChallenge, startChallenge } from './core/challenge.js';
 import { autoFuse, craftItem, fuseItems, reforgeItem, sharpenItem, upgradeItem } from './core/forge.js';
 import { summon } from './core/gacha.js';
 import { setActiveHero } from './core/heroes.js';
@@ -21,10 +23,10 @@ import { addToInventory, bulkRecycleCandidates, equipItem, isUpgrade, recycleIte
 import {
   bossDungeon, bossFirstStage, claimMastery, powerById, powerSlots, rerollPower, resolveReroll, setPowerActive,
 } from './core/powers.js';
-import { buyTalent, performRebirth } from './core/rebirth.js';
+import { buyTalent, buyTalentMax, buyTalentPath, performRebirth, respecTalents } from './core/rebirth.js';
 import { buyPerk } from './core/prestige.js';
 import { activateRush, rushById, upgradeRush } from './core/rushes.js';
-import { rewardText } from './core/rewards.js';
+import { grantReward, rewardText } from './core/rewards.js';
 import { learnSkill } from './core/skills.js';
 import { generateItem, makeItem, rarityById } from './core/loot.js';
 import { STAT_LABELS } from './data/items.js';
@@ -34,6 +36,7 @@ import { clearSave, loadGame, saveGame } from './core/save.js';
 import { createNewState } from './core/state.js';
 import { computeHeroStats } from './core/stats.js';
 import { formatNumber } from './core/format.js';
+import { createJournal, journalSummary, noteDrop, noteFused, noteRecycled } from './core/journal.js';
 import { SceneRenderer } from './render/scene.js';
 import { UI } from './ui/ui.js';
 import { animateMenus } from './ui/animator.js';
@@ -76,11 +79,13 @@ function save() {
   lastSave = Date.now();
 }
 
-function runOffline(fromMs, nowMs) {
+function runOffline(fromMs, nowMs, journal = null) {
   const rewards = computeOfflineRewards(state, fromMs, nowMs, rng);
   const summary = applyOfflineRewards(state, rewards);
   if (rewards.clockSuspicious || rewards.elapsedSeconds >= BALANCE.offline.minSecondsForSummary) {
-    ui.showOffline(summary);
+    ui.showOffline(summary, journal ? journalSummary(journal, state, nowMs) : null);
+  } else if (journal) {
+    ui.showJournal(journalSummary(journal, state, nowMs), 'away');
   }
   world = createCombat(state);
   save();
@@ -129,7 +134,7 @@ const actions = {
   setSkillAuto(value) { state.skillAuto = value; done(true); },
   setHero(id) { done(setActiveHero(state, id), 'Nouveau héros actif'); },
   toggleCompanion(id) {
-    if (!toggleCompanion(state, id)) ui.toast(`Deux compagnons au maximum : retirez-en un d'abord.`);
+    if (!toggleCompanion(state, id)) ui.toast(onExpedition(state, id) ? 'Ce compagnon est en expédition.' : `Deux compagnons au maximum : retirez-en un d'abord.`);
     else done(true);
   },
   saveLoadout(i) { done(saveLoadout(state, i), `Configuration « ${state.loadouts[i].name} » enregistrée`); },
@@ -182,8 +187,8 @@ const actions = {
       ui.openTab('dungeons');
       return;
     }
-    if (state.dungeon || state.tower) {
-      ui.toast("Terminez d'abord le donjon ou la tour.");
+    if (state.dungeon || state.tower || state.challenge) {
+      ui.toast("Terminez d'abord le donjon, la tour ou le défi.");
       return;
     }
     state.autoAdvance = false;
@@ -319,6 +324,16 @@ const actions = {
       ui.invalidate();
     }
   },
+  buyTalentMax(id) { done(buyTalentMax(state, id) > 0); },
+  buyTalentPath(id) {
+    const n = buyTalentPath(state, id);
+    if (!n) ui.toast('Pas assez de fragments pour le premier talent du chemin.', '#ff8a8a');
+    done(n > 0, n ? `${n} talent${n > 1 ? 's' : ''} appris le long du chemin` : null, '#c9a6ff');
+  },
+  respecTalents() {
+    const n = respecTalents(state);
+    done(n > 0, n ? `Arbre réinitialisé : +${formatNumber(n)} fragments rendus` : null, '#c9a6ff');
+  },
   rebirth(keepPower) {
     const gained = performRebirth(state, keepPower);
     if (gained <= 0) return;
@@ -341,7 +356,7 @@ const actions = {
   buyPerk(id) { done(buyPerk(state, id), 'Bonus éternel amélioré', '#ffe08a'); },
   // Tour de l'Éternité (v8.2).
   enterTower() {
-    if (state.dungeon) { ui.toast("Terminez ou abandonnez d'abord le donjon."); return; }
+    if (state.dungeon || state.challenge) { ui.toast("Terminez d'abord le donjon ou le défi."); return; }
     if (!startTower(state)) { ui.toast('Ascension de la semaine déjà faite (remise à zéro le lundi).', '#ff8a8a'); return; }
     resetWave(world);
     done(true, 'Ascension de la Tour de l\'Éternité : étage 1 !', '#c9a6ff');
@@ -352,7 +367,7 @@ const actions = {
     done(Boolean(r), r ? `Ascension terminée à l'étage ${r.floors}.` : null);
   },
   selectStage(stage) {
-    if (state.tower) { ui.toast('Quittez d\'abord la Tour de l\'Éternité.'); return; }
+    if (state.tower || state.challenge) { ui.toast(state.tower ? 'Quittez d\'abord la Tour de l\'Éternité.' : 'Quittez d\'abord le défi de la semaine.'); return; }
     changeStage(state, world, stage);
     save();
     ui.invalidate();
@@ -406,6 +421,36 @@ const actions = {
     if (speed >= 100) speed100Confirmed = true;
     state.ui.speed = speed;
     done(true, `Vitesse des combats ×${speed}`);
+  },
+  // Expéditions (v8.5).
+  startExpedition(companionId, type) {
+    const slot = state.expeditions.slots.findIndex((x) => !x);
+    const c = companionById(companionId);
+    done(startExpedition(state, slot, companionId, type), c ? `${c.name} part en expédition (${expeditionType(type)?.label})` : null, '#9fe6ff');
+  },
+  claimExpedition(slot) {
+    const given = claimExpedition(state, slot, Date.now(), grantReward);
+    done(Boolean(given), given ? `Expédition terminée : ${rewardText(given, formatNumber)}` : null, '#9fe6ff');
+  },
+  recallExpedition(slot) {
+    done(claimExpedition(state, slot, Date.now(), grantReward) !== null, 'Compagnon rappelé (expédition abandonnée)');
+  },
+  // Défi de la semaine (v8.5).
+  enterChallenge() {
+    if (state.dungeon || state.tower) { ui.toast("Terminez d'abord le donjon ou la tour."); return; }
+    if (!startChallenge(state)) { ui.toast('Plus de tentative cette semaine (remise à zéro le lundi).', '#ff8a8a'); return; }
+    resetWave(world);
+    done(true, 'Défi de la semaine : vague 1 !', '#ffb36b');
+  },
+  leaveChallenge() {
+    const r = endChallenge(state);
+    resetWave(world);
+    done(Boolean(r), r ? `Défi terminé : ${r.waves} vague${r.waves > 1 ? 's' : ''} franchie${r.waves > 1 ? 's' : ''}.` : null);
+  },
+  setKeepSets(on) {
+    state.ui.keepSets = on;
+    lastSweep = 0;
+    done(true, on ? 'Pièces d\'ensemble utiles gardées' : 'Pièces d\'ensemble recyclées comme les autres objets');
   },
   setNotify(key, on) { state.ui.notify = { ...state.ui.notify, [key]: on }; done(true); },
   setFocus(on) { state.ui.focus = on; done(true); },
@@ -505,6 +550,11 @@ const actions = {
 };
 
 const ui = new UI(document.getElementById('app'), actions);
+// Journal de session (v8.5) : depuis le lancement, et pendant la dernière absence.
+const sessionJournal = createJournal(state);
+let awayJournal = null;
+const journals = () => (awayJournal ? [sessionJournal, awayJournal] : [sessionJournal]);
+ui.sessionJournal = () => journalSummary(sessionJournal, state);
 // Langue (français / anglais) : la page entière est traduite à la volée.
 startAutoTranslate(document.body);
 
@@ -540,6 +590,13 @@ setTimeout(() => {
   else playCinematic({ kicker: 'Bon retour, chevalier', title: zone.name, line: `Étape ${stageLabel(state.stage)} — la bataille continue.`, zone: zone.id });
 }, 600);
 // v8.4 : sauvegarde d'avant le nouvel équilibrage → or des améliorations remboursé, on l'annonce.
+// v8.5 : nouvel arbre de talents → fragments de l'ancien rendus, on l'annonce.
+if (state.migrationTalentRefund) {
+  const refund = state.migrationTalentRefund;
+  delete state.migrationTalentRefund;
+  save();
+  setTimeout(() => ui.showTreeNotice(refund), 1700);
+}
 if (state.migrationRefund) {
   const refund = state.migrationRefund;
   delete state.migrationRefund;
@@ -563,10 +620,18 @@ function watchWorldChange() {
 // Simulation à pas fixe, pilotée par l'horloge murale pour rattraper les retards
 // (onglet en arrière-plan, minuterie ralentie). Une longue interruption (veille)
 // est traitée comme une absence hors ligne.
+// v8.5 (anti-gel) : chaque appel ne calcule qu'au plus TICK_BUDGET_MS de simulation ; le retard qui
+// dépasse MAX_BACKLOG_SECONDS (temps réel) est abandonné au lieu d'être rattrapé d'un bloc. Avant, une
+// fenêtre ralentie par Windows pouvait demander des centaines de milliers de pas d'un coup → écran noir.
+const TICK_BUDGET_MS = 25;
+const MAX_BACKLOG_SECONDS = 1;
 let lastWall = Date.now();
 let accumulator = 0;
 let lastMissionCheck = 0;
 let lastSweep = 0;
+let awaySeconds = 0; // fenêtre masquée et minuterie très ralentie : crédité en gains hors ligne au retour
+const perf = { simulated: 0, real: 0, effective: 1, worstTickMs: 0, stalls: 0, lastStall: null, steps: 0, fps: 0 };
+ui.perf = perf;
 function tick() {
   const now = Date.now();
   // Réinitialisations journalières / hebdomadaires / mensuelles et connexion du jour.
@@ -579,18 +644,35 @@ function tick() {
   if (dt < 0) dt = 0; // horloge reculée : on ignore
   if (dt > BALANCE.simulation.maxCatchUpSeconds) {
     accumulator = 0;
-    runOffline(now - dt * 1000, now);
+    // Fenêtre masquée : on garde ce temps pour le rapport de retour (un seul, au lieu d'un par minute).
+    if (document.visibilityState === 'hidden') awaySeconds += dt;
+    else runOffline(now - dt * 1000, now);
     return;
   }
-  // Vitesse des combats choisie par le joueur (×1, ×2, ×5, ×10).
-  accumulator += dt * (state.ui.speed ?? 1);
+  // Vitesse des combats choisie par le joueur (×1 ; ×2, ×5, ×10, ×100 par code).
+  const speed = state.ui.speed ?? 1;
+  accumulator += dt * speed;
   const stepSeconds = BALANCE.simulation.tickSeconds;
+  const t0 = performance.now();
+  let steps = 0;
   while (accumulator >= stepSeconds) {
     step(state, world, stepSeconds, rng);
     accumulator -= stepSeconds;
+    steps += 1;
+    if ((steps & 7) === 0 && performance.now() - t0 > TICK_BUDGET_MS) break;
   }
-  // Fraction du pas en cours : le rendu interpole les positions entre deux pas (mouvement fluide).
-  world.alpha = accumulator / stepSeconds;
+  // Le PC ne suit pas : le retard au-delà de ce plafond est abandonné (la vitesse réelle baisse, sans gel).
+  accumulator = Math.min(accumulator, Math.max(BALANCE.simulation.maxCatchUpSeconds, MAX_BACKLOG_SECONDS * speed));
+  const spent = performance.now() - t0;
+  perf.steps = steps;
+  perf.simulated += steps * stepSeconds;
+  perf.real += dt;
+  perf.worstTickMs = Math.max(perf.worstTickMs * 0.995, spent);
+  if (perf.real >= 2) {
+    perf.effective = perf.simulated / perf.real;
+    perf.simulated = 0;
+    perf.real = 0;
+  }
   world.heroStats = computeHeroStats(state);
   // Recyclage « au ramassage » : le sac est trié toutes les 3 s (objets devenus moins bons que l'équipement).
   if (now - lastSweep >= 3000) {
@@ -598,11 +680,18 @@ function tick() {
     // Fusion automatique d'abord (5 objets identiques → rareté supérieure), puis recyclage.
     const fused = autoFuse(state, rng, isUpgrade);
     if (fused.length) {
+      ui.noteFused(fused.length);
+      for (const j of journals()) noteFused(j, fused.length);
       const best = fused.at(-1);
       ui.toast(`Fusion auto : ${fused.length} objet${fused.length > 1 ? 's' : ''} créé${fused.length > 1 ? 's' : ''} (${best.name})`, rarityById(best.rarity).color);
       ui.invalidate();
     }
-    if (sweepInventory(state).count) ui.invalidate();
+    const swept = sweepInventory(state);
+    if (swept.count) {
+      ui.noteRecycled(swept.count, swept.gold);
+      for (const j of journals()) noteRecycled(j, swept.count, swept.gold);
+      ui.invalidate();
+    }
   }
   if (now - lastSave >= BALANCE.autosaveSeconds * 1000) save();
 }
@@ -610,8 +699,16 @@ setInterval(tick, SIM_INTERVAL_MS);
 
 let lastFrame = performance.now();
 function frame(ts) {
-  const dt = Math.min(0.1, (ts - lastFrame) / 1000);
+  const gap = ts - lastFrame;
+  const dt = Math.min(0.1, gap / 1000);
   lastFrame = ts;
+  // Témoin de performances : images par seconde et « gels » (image affichée plus de 0,5 s après la précédente).
+  perf.fps = perf.fps ? perf.fps * 0.95 + (1000 / Math.max(1, gap)) * 0.05 : 60;
+  if (gap > 500 && document.visibilityState === 'visible' && ts > 5000) {
+    perf.stalls += 1;
+    perf.lastStall = { at: Date.now(), ms: gap };
+  }
+  perf.enemies = world.enemies.length;
   // Fenêtre visible : la simulation avance à chaque image (la minuterie reste le relais
   // quand la fenêtre est masquée et que requestAnimationFrame s'arrête).
   tick();
@@ -619,6 +716,7 @@ function frame(ts) {
     // Vitesse ×100 : plus d'effets visuels (flashs, chiffres, secousses) ni de bannières.
     if ((state.ui.speed ?? 1) < 100) renderer.handleEvent(event, world);
     ui.handleEvent(event, state);
+    if (event.type === 'drop') for (const j of journals()) noteDrop(j, event);
     sound.handleEvent(event);
   }
   sound.update(state, world, currentEncounter(state).zoneIndex, dt);
@@ -631,12 +729,25 @@ function frame(ts) {
 }
 requestAnimationFrame(frame);
 
+// Retour après une absence (fenêtre réduite ou masquée) : le temps non simulé est crédité en gains
+// hors ligne, et le journal de l'absence est affiché si elle a duré au moins 5 minutes (v8.5).
+const AWAY_JOURNAL_SECONDS = 300;
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') {
     save();
     sound.suspend();
+    awayJournal = createJournal(state);
   } else {
     sound.resume();
+    const journal = awayJournal;
+    awayJournal = null;
+    const now = Date.now();
+    lastWall = now;
+    const away = awaySeconds;
+    awaySeconds = 0;
+    const long = journal && (now - journal.start.at) / 1000 >= AWAY_JOURNAL_SECONDS;
+    if (away > 0) runOffline(now - away * 1000, now, long ? journal : null);
+    else if (long) ui.showJournal(journalSummary(journal, state, now), 'away');
   }
 });
 window.addEventListener('pagehide', save);

@@ -1,6 +1,8 @@
 // Petits outils partagés par les panneaux de l'interface.
 import { AFFIXES, SLOTS } from '../data/items.js';
 import { EFFECT_LABELS } from '../data/powers.js';
+import { forecastSteps } from '../core/guide.js';
+import { setById } from '../core/sets.js';
 import { formatDecimal, formatNumber } from '../core/format.js';
 import { isUpgrade } from '../core/inventory.js';
 import { itemBase, rarityById } from '../core/loot.js';
@@ -33,6 +35,7 @@ export function itemFrame(item, { selected = false, showUp = false, equipped = f
     title="${escapeHtml(item.name)}${item.upgrades ? ` +${item.upgrades}` : ''} · ${rarityLabel(item.rarity)} · niv. ${item.level}">
     <img class="px" src="${itemIconUrl(item)}" alt="${escapeHtml(item.name)}">
     ${item.upgrades ? `<span class="plus-lv">+${item.upgrades}</span>` : ''}
+    ${item.set && setById(item.set) ? `<span class="set-dot" style="--set:${setById(item.set).color}" title="Ensemble : ${escapeHtml(setById(item.set).name)}"></span>` : ''}
     ${up ? '<span class="up" title="Meilleur que l\'équipement porté">▲</span>' : ''}
     ${equipped ? '<span class="eq">É</span>' : ''}
     ${item.locked ? `<img class="px lock" src="${icon('icon_lock', 1)}" alt="Verrouillé">` : ''}</${tag}>`;
@@ -58,17 +61,46 @@ export function stars(n, max = 5) {
 export const slotLabel = (slot) => SLOTS[slot] ?? 'Tous';
 export { formatDecimal, formatNumber };
 
-// v8.4 : prévision du prochain boss (combat simulé), mise en cache quelques secondes.
+// v8.4 : prévision du prochain boss (combat simulé), mise en cache.
+// v8.5 (anti-gel) : calculée en arrière-plan par tranches de quelques millisecondes (avant : ~80 ms d'un
+// bloc toutes les 8 s, panneau Améliorer ou Carte ouvert), gardée 20 s, et en pause à ×10 et plus.
 let forecastCache = { key: '', at: 0, value: null };
-export function bossForecast(state, forecast) {
-  const key = `${state.stage}|${JSON.stringify(state.upgrades)}|${Object.values(state.equipment).map((i) => i?.id).join()}|${state.level}|${state.companions.equipped.join()}`;
+let forecastJob = null;
+const FORECAST_SLICE_MS = 6;
+function runForecastJob() {
+  const job = forecastJob;
+  if (!job) return;
+  const t0 = performance.now();
+  for (;;) {
+    const r = job.gen.next();
+    if (r.done) {
+      forecastCache = { key: job.key, at: Date.now(), value: r.value };
+      forecastJob = null;
+      job.onReady?.();
+      return;
+    }
+    if (performance.now() - t0 > FORECAST_SLICE_MS) break;
+  }
+  setTimeout(runForecastJob, 16);
+}
+
+export function bossForecast(state, onReady = null) {
+  if ((state.ui?.speed ?? 1) >= 10) return { paused: true };
+  const key = `${state.stage}|${JSON.stringify(state.upgrades)}|${Object.values(state.equipment).map((i) => i?.id).join()}|${state.level}|${state.companions.equipped.join()}|${Object.keys(state.talents).length}`;
   const now = Date.now();
-  if (forecastCache.key !== key || now - forecastCache.at > 8000) forecastCache = { key, at: now, value: forecast(state) };
-  return forecastCache.value;
+  const fresh = forecastCache.key === key && now - forecastCache.at < 20000;
+  if (!fresh && forecastJob?.key !== key) {
+    forecastJob = { key, gen: forecastSteps(state), onReady };
+    setTimeout(runForecastJob, 0);
+  }
+  if (forecastCache.key === key) return forecastCache.value;
+  return forecastCache.value ? { ...forecastCache.value, stale: true } : { pending: true };
 }
 
 export function forecastHtml(f) {
   if (!f) return '';
+  if (f.paused) return '<div class="forecast muted">⚔ Prévision du prochain boss en pause à grande vitesse (×10 et plus).</div>';
+  if (f.pending) return '<div class="forecast muted">⚔ Prévision du prochain boss : calcul en cours…</div>';
   return f.win
     ? `<div class="forecast good">⚔ Prochain boss (étape ${f.stage}) : <b>battable</b> en ~${f.seconds} s.</div>`
     : `<div class="forecast bad">⚔ Prochain boss (étape ${f.stage}) : pas encore — il lui resterait <b>${f.bossHpPct} %</b> de PV.

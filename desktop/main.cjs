@@ -162,6 +162,19 @@ function createWindow() {
   });
 
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  // v8.5 : écran noir (processus de la page tombé, ou bloqué trop longtemps) → la page est rechargée ;
+  // la partie repart de la dernière sauvegarde automatique (10 s au plus).
+  if (!smokeFile) {
+    win.webContents.on('render-process-gone', (_e, details) => {
+      if (details.reason !== 'clean-exit' && !win.isDestroyed()) setTimeout(() => !win.isDestroyed() && win.webContents.reload(), 800);
+    });
+    let hungSince = 0;
+    win.on('unresponsive', () => {
+      hungSince = Date.now();
+      setTimeout(() => { if (hungSince && !win.isDestroyed()) win.webContents.forcefullyCrashRenderer(); }, 20000);
+    });
+    win.on('responsive', () => { hungSince = 0; });
+  }
   win.webContents.on('will-navigate', (event, url) => {
     if (!url.startsWith(ORIGIN)) event.preventDefault();
   });

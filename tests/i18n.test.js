@@ -23,6 +23,9 @@ import { ZONES } from '../src/data/zones.js';
 import { eventLabel } from '../src/core/events.js';
 import { AUTO_RECYCLE_RULES, RECYCLE_MODES } from '../src/core/inventory.js';
 import { rewardText } from '../src/core/rewards.js';
+import { ITEM_SETS } from '../src/data/sets.js';
+import { CHALLENGE_MODIFIERS } from '../src/core/challenge.js';
+import { EXPEDITION_TYPES } from '../src/core/expeditions.js';
 
 // Faux localStorage (Node n'en a pas).
 const store = new Map();
@@ -137,10 +140,12 @@ test('données du jeu : tous les noms et libellés sont traduits', () => {
     ...['chest', 'merchant', 'elite', 'wave', 'gems', 'portal', 'wanderer'].map(eventLabel),
     ...Object.values(RECYCLE_MODES), ...Object.values(AUTO_RECYCLE_RULES),
     rewardText({ gold: 1200, gems: 5, tickets: 1, keys: 2, fragments: 3, shards: 4, essence: 1 }),
+    // v8.5 : ensembles, défi de la semaine, expéditions.
+    ...ITEM_SETS.map((x) => x.name), ...CHALLENGE_MODIFIERS.flatMap((m) => [m.name, m.text]), ...EXPEDITION_TYPES.flatMap((x) => [x.label, x.text]),
   ].filter(Boolean);
   const missing = texts.filter((s) => translate(s) === s && (FRENCH.test(s) || !/^[A-Z][a-z]+$/.test(s)));
   assert.deepEqual(missing.filter((s) => !['Ninja', 'Ogre', 'Scorpion', 'Paladin', 'Berserker', 'Archer', 'Mage', 'Assassin',
     'Boss', 'Combat', 'Fortune', 'Prestige', 'Bracelet', 'Rare', 'Normal', 'Forge', 'Talents', 'Boosts', 'Endurance', 'Technique',
-    'Domination', 'Carnage', 'Lamentation'].includes(s)), []);
+    'Domination', 'Carnage', 'Lamentation', 'Rage', 'Exploration'].includes(s)), []);
   for (const s of texts) assert.ok(!FRENCH.test(translate(s)), `traduction encore française : ${s} → ${translate(s)}`);
 });

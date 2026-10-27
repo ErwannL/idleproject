@@ -6,6 +6,7 @@ import { trackContracts } from './contracts.js';
 import { itemBase, itemPower, rarityIndex, recycleMaterials, recycleValue } from './loot.js';
 import { computeHeroStats, statsWithItem } from './stats.js';
 import { recordItem } from './codex.js';
+import { usefulSetPiece } from './sets.js';
 
 // Inventaire plein : l'objet est recyclé en or plutôt que perdu.
 export function addToInventory(state, item, balance = BALANCE) {
@@ -56,6 +57,7 @@ export function recycleRules(state) {
 
 export function matchesRecycleRule(state, item, rules = recycleRules(state)) {
   if (item.locked || itemBase(item.baseId).signature) return false;
+  if (usefulSetPiece(state, item, itemPower)) return false; // v8.5 : pièce d'un ensemble en cours de collecte
   if (!rules.rarities.includes(item.rarity) || !rules.slots.includes(item.slot)) return false;
   return !isUpgrade(state, item);
 }
@@ -164,7 +166,7 @@ export function sweepInventory(state, balance = BALANCE) {
   const current = computeHeroStats(state, balance);
   const doomed = new Set(state.inventory.filter((item) => !item.locked && !itemBase(item.baseId).signature
     && rules.rarities.includes(item.rarity) && rules.slots.includes(item.slot)
-    && !isUpgrade(state, item, balance, current)).map((i) => i.id));
+    && !usefulSetPiece(state, item, itemPower) && !isUpgrade(state, item, balance, current)).map((i) => i.id));
   return doomed.size ? recycleMatching(state, (i) => doomed.has(i.id), balance) : { gold: 0, count: 0 };
 }
 
@@ -176,7 +178,7 @@ export function bulkRecycleCandidates(state, maxRarity = 'common', balance = BAL
   const limit = rarityIndex(BULK_RECYCLE_MAX.includes(maxRarity) ? maxRarity : 'common');
   const current = computeHeroStats(state, balance);
   return state.inventory.filter((item) => !item.locked && !itemBase(item.baseId).signature
-    && rarityIndex(item.rarity) <= limit && !isUpgrade(state, item, balance, current));
+    && rarityIndex(item.rarity) <= limit && !usefulSetPiece(state, item, itemPower) && !isUpgrade(state, item, balance, current));
 }
 
 // Verrouiller un objet le protège de tout recyclage (simple ou groupé).

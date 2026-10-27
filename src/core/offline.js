@@ -16,6 +16,7 @@ function measureAt(state, stage, balance, seconds) {
   clone.autoAdvance = false; // hors ligne : on farme l'étape, sans progresser
   clone.dungeon = null; // donjon ou tour en cours : mis en pause, on mesure le farm de campagne
   clone.tower = null;
+  clone.challenge = null;
   clone.inventory = [];
   clone.stage = stage;
   if (isBossStage(stage, balance)) clone.stage = Math.max(1, stage - 1); // jamais de boss hors ligne
@@ -43,9 +44,9 @@ export function measureFarmRate(state, balance = BALANCE, seconds = balance.offl
   let rate = measureAt(state, stage, balance, seconds);
   for (let tries = 0; tries < 8 && (rate.died || rate.killsPerSecond <= 0) && stage > 1; tries++) {
     stage = Math.max(1, Math.min(rate.stage - 1, stage - Math.max(1, Math.round(stage * 0.08 * (tries + 1)))));
-    rate = measureAt(state, stage, balance, seconds);
+    rate = measureAt(state, stage, balance, Math.min(seconds, 60)); // v8.5 : essais suivants plus courts (chargement plus rapide)
   }
-  return { ...rate, paused: state.tower ? 'tower' : state.dungeon ? 'dungeon' : null };
+  return { ...rate, paused: state.tower ? 'tower' : state.dungeon ? 'dungeon' : state.challenge ? 'challenge' : null };
 }
 
 // fromMs / nowMs : horodatages en millisecondes (Date.now()).
