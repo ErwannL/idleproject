@@ -13,9 +13,9 @@ import { rarityById } from '../core/loot.js';
 import { powerById } from '../core/powers.js';
 import { canRebirth, fragmentsSpent, rebirthReward, respecCost } from '../core/rebirth.js';
 import { rewardText } from '../core/rewards.js';
-import { skillPointsAvailable } from '../core/skills.js';
+import { skillCooldown, skillPointsAvailable } from '../core/skills.js';
 import { computeHeroStats } from '../core/stats.js';
-import { focusables, installShortcuts, shortcutsHtml } from './shortcuts.js';
+import { BOOST_KEYS, focusables, installShortcuts, shortcutsHtml } from './shortcuts.js';
 import { installHoldToRepeat, selectorFor } from './hold.js';
 import { playSummonReveal } from './summon-fx.js';
 import { coin, effectText, icon, img, itemFrame } from './common.js';
@@ -27,7 +27,7 @@ import dungeons from './panels/dungeons.js';
 import tower from './panels/tower.js';
 import { towerUnlocked } from '../core/tower.js';
 import { claimableAchievements } from '../core/achievements.js';
-import { unlockedSpeeds } from '../core/cheats.js';
+import { simSpeed, unlockedSpeeds } from '../core/cheats.js';
 import { PRESTIGE } from '../data/prestige.js';
 import { PANEL_HELP } from '../core/guide.js';
 import { heroPower } from '../core/combat.js';
@@ -42,6 +42,7 @@ import upgrades from './panels/upgrades.js';
 import { missionsClaimable } from '../core/missions.js';
 import { earlyBoost } from '../core/boost.js';
 import { RUSHES } from '../data/rushes.js';
+import { SKILLS } from '../data/skills.js';
 import { rushUnlocked } from '../core/rushes.js';
 import { dungeonById } from '../core/dungeon.js';
 import { newItemsInBag } from '../core/journal.js';
@@ -227,6 +228,8 @@ export class UI {
   openTab(tab) {
     if (!PANELS[tab]) return;
     if (tab === 'inventory') this.clearLootPopup();
+    // Nouvel onglet : il s'ouvre en haut (avant, il gardait le défilement de l'onglet précédent).
+    if (tab !== this.tab) this.$('panel-body').scrollTop = 0;
     this.tab = tab;
     this.view.bulkArmed = false;
     this.newTabs.delete(tab);
@@ -330,7 +333,12 @@ export class UI {
       case 'install-update': a.installUpdate(); break;
       case 'open-releases': a.openReleases(); break;
       case 'cheat': a.cheat(this.$('cheat-code')?.value); break;
-      case 'rush': a.activateRush(value); break;
+      case 'rush': {
+        const rush = RUSHES.find((r) => r.id === value);
+        if (rush && !rushUnlocked(this.state, rush)) this.toast(`${rush.name} : débloqué au niveau ${rush.unlockLevel} du héros.`);
+        else a.activateRush(value);
+        break;
+      }
       case 'upgrade-rush': a.upgradeRush(key); break;
       case 'reroll': a.rerollPower(bossId); break;
       case 'keep-power': a.resolvePower(bossId, false); break;
@@ -667,7 +675,9 @@ export class UI {
     // Vitesse réelle : affichée sur le bouton quand le PC ne suit pas la vitesse choisie.
     const speed = this.state?.ui?.speed ?? 1;
     const lag = speed > 1 && p.effective < speed * 0.8;
-    this.setText('speed-toggle', `⏩ ×${speed}${lag ? ` (réel ×${p.effective >= 10 ? Math.round(p.effective) : p.effective.toFixed(1).replace('.', ',')})` : ''}`);
+    const real = p.effective >= 10 ? formatNumber(Math.round(p.effective)) : p.effective.toFixed(1).replace('.', ',');
+    this.setText('speed-toggle', this.state?.cheats?.skipBattle ? `⏭ Combats passés (×${real})`
+      : `⏩ ×${speed}${lag ? ` (réel ×${real})` : ''}`);
     if (!this.perfOn || now - (this.lastHud.perfAt ?? 0) < 500) return;
     this.lastHud.perfAt = now;
     this.$('perf-overlay').textContent = [
@@ -691,6 +701,7 @@ export class UI {
   update(state, world) {
     this.state = state;
     this.updateRushBar(state);
+    this.updateSkillBar(state, world);
     const stats = world.heroStats ?? computeHeroStats(state);
     this.setText('gold', formatNumber(state.gold));
     this.setText('strip-gold', formatNumber(state.gold));
@@ -710,10 +721,10 @@ export class UI {
     this.setText('top-level', `Niv. ${state.level}`);
     this.setText('top-stage', state.challenge ? `Défi de la semaine · vague ${state.challenge.wave}` : state.tower ? `Tour de l'Éternité · étage ${state.tower.floor}` : state.dungeon ? `Donjon · ${dungeonById(state.dungeon.id)?.name ?? ''}` : `Étape ${stageLabel(state.stage)} · ${zoneForStage(state.stage).name}`);
     this.setText('auto-toggle', state.autoAdvance ? '⏵ Avance auto' : '⏸ Farm');
-    this.speed = state.ui.speed ?? 1;
-    this.$('speed-toggle').classList.toggle('hidden', unlockedSpeeds(state).length < 2);
-    this.root.classList.toggle('speed-max', (state.ui.speed ?? 1) >= 100);
-    this.$('speed-toggle').classList.toggle('fast', (state.ui.speed ?? 1) > 1);
+    this.speed = simSpeed(state);
+    this.$('speed-toggle').classList.toggle('hidden', unlockedSpeeds(state).length < 2 && !state.cheats.skipBattle);
+    this.root.classList.toggle('speed-max', simSpeed(state) >= 100);
+    this.$('speed-toggle').classList.toggle('fast', simSpeed(state) > 1);
     this.$('auto-toggle').classList.toggle('off', !state.autoAdvance);
     this.$('auto-toggle').classList.toggle('hidden', Boolean(state.dungeon || state.tower || state.challenge));
 
@@ -840,27 +851,60 @@ export class UI {
     this.setText('progress-text', text);
   }
 
-  // Barre des boosts sur la scène : icône, recharge (cadran) et temps restant quand actif.
+  // Barre des boosts sur la scène (en haut à droite) : TOUS les boosts, avec leur touche (Q W E R T) ;
+  // ceux pas encore débloqués sont grisés avec un cadenas. On les lance d'un clic (ou en mode Auto).
   updateRushBar(state) {
     const now = performance.now();
     if (now - (this.lastHud.rushTime ?? 0) < 200) return;
     this.lastHud.rushTime = now;
     const bar = this.$('rush-bar');
-    const unlocked = RUSHES.filter((r) => rushUnlocked(state, r));
-    const key = unlocked.map((r) => r.id).join();
+    const key = RUSHES.map((r) => (rushUnlocked(state, r) ? r.id : `-${r.id}`)).join();
     if (bar.dataset.key !== key) {
       bar.dataset.key = key;
-      bar.innerHTML = unlocked.map((r) => `<button class="rush-btn" data-action="rush" data-value="${r.id}" style="--rush:${r.color}"
-        title="${r.name} — ${r.text}. Cliquer pour activer.">${img(r.icon)}<span class="rush-time"></span></button>`).join('');
+      bar.innerHTML = `<span class="bar-label">Boosts</span>${RUSHES.map((r, i) => {
+        const open = rushUnlocked(state, r);
+        return `<button class="rush-btn${open ? '' : ' locked'}" data-action="rush" data-value="${r.id}" style="--rush:${r.color}"
+          title="${r.name} — ${r.text}. ${open ? `Cliquer (ou touche ${BOOST_KEYS[i]}) pour l'activer.` : `Débloqué au niveau ${r.unlockLevel} du héros.`}">${img(r.icon)}
+          <span class="rush-key">${BOOST_KEYS[i]}</span><span class="rush-time"></span>${open ? '' : `<img class="px rush-lock" src="${icon('icon_lock', 1)}" alt="">`}</button>`;
+      }).join('')}`;
     }
-    for (const btn of bar.children) {
+    for (const btn of bar.querySelectorAll('.rush-btn')) {
       const rush = RUSHES.find((r) => r.id === btn.dataset.value);
+      if (!rushUnlocked(state, rush)) continue;
       const active = state.rushes.active[rush.id] ?? 0;
       const cd = state.rushes.cooldown[rush.id] ?? 0;
       btn.classList.toggle('active', active > 0);
       btn.classList.toggle('ready', !active && !cd);
       btn.style.setProperty('--cd', active > 0 ? 0 : cd / rush.cooldown);
       btn.querySelector('.rush-time').textContent = active > 0 ? `${Math.ceil(active)}` : cd > 0 ? (cd >= 60 ? `${Math.ceil(cd / 60)}m` : `${Math.ceil(cd)}`) : '';
+    }
+  }
+
+  // Barre des compétences sur la scène (en haut à gauche, sous le monde) : elles se lancent TOUTES SEULES
+  // dès qu'un ennemi est à portée ; le cadran montre leur recharge. Un clic ouvre l'onglet Compétences.
+  updateSkillBar(state, world) {
+    const now = performance.now();
+    if (now - (this.lastHud.skillTime ?? 0) < 200) return;
+    this.lastHud.skillTime = now;
+    const bar = this.$('skill-bar');
+    if (!bar) return;
+    const key = `${SKILLS.map((sk) => state.skills[sk.id] ?? 0).join()}|${state.skillAuto}`;
+    if (bar.dataset.key !== key) {
+      bar.dataset.key = key;
+      bar.innerHTML = `<span class="bar-label">Compétences${state.skillAuto ? '' : ' (pause)'}</span>${SKILLS.map((sk) => {
+        const lv = state.skills[sk.id] ?? 0;
+        return `<button class="skill-btn${lv ? '' : ' locked'}" data-action="open-tab" data-value="skills" data-skill="${sk.id}"
+          title="${sk.name}${lv ? ` (niv. ${lv}) — se lance toute seule toutes les ${sk.cooldown} s environ` : ' — pas encore apprise (onglet Compétences)'}">${img(sk.icon)}
+          ${lv ? '' : `<img class="px rush-lock" src="${icon('icon_lock', 1)}" alt="">`}</button>`;
+      }).join('')}`;
+    }
+    const bonus = (world.heroStats ?? computeHeroStats(state)).bonus;
+    for (const btn of bar.querySelectorAll('.skill-btn:not(.locked)')) {
+      const sk = SKILLS.find((x) => x.id === btn.dataset.skill);
+      const left = Math.max(0, world.skillTimers?.[sk.id] ?? 0);
+      const total = skillCooldown(sk, bonus);
+      btn.style.setProperty('--cd', Math.min(1, left / total));
+      btn.classList.toggle('ready', left <= 0.05);
     }
   }
 

@@ -21,7 +21,7 @@ export const SHORTCUTS = [
   ['K ou ?', 'Afficher cette aide'],
 ];
 
-const BOOST_KEYS = ['q', 'w', 'e', 'r', 't'];
+export const BOOST_KEYS = ['Q', 'W', 'E', 'R', 'T'];
 const FOCUSABLE = 'button:not([disabled]), select:not([disabled]), input:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
 const ARROWS = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
 
@@ -128,8 +128,8 @@ export function installShortcuts(ui) {
       if (btn) { btn.click(); if (ui.tab) focusPanelStart(ui); } else handled = false;
     } else if (key === ' ' || key === 'a') click('#auto-toggle');
     else if (key === 'v') click('#speed-toggle');
-    else if (BOOST_KEYS.includes(key)) {
-      const rush = RUSHES[BOOST_KEYS.indexOf(key)];
+    else if (key.length === 1 && BOOST_KEYS.includes(key.toUpperCase())) {
+      const rush = RUSHES[BOOST_KEYS.indexOf(key.toUpperCase())];
       const btn = rush && ui.root.querySelector(`#rush-bar [data-value="${rush.id}"]`);
       if (btn) btn.click(); else handled = false;
     } else if (key === 'g') {

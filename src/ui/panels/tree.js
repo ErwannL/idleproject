@@ -119,6 +119,11 @@ export default {
     const vp = body.querySelector('.tree-viewport');
     if (!vp) return;
     const zoom = ui.view.treeZoom ?? DEFAULT_ZOOM;
+    // v8.6 : la fenêtre de l'arbre remplit exactement la hauteur du panneau (avant, le panneau défilait
+    // aussi et cachait le haut ou le bas de l'arbre sous la barre de titre).
+    const top = vp.getBoundingClientRect().top - body.getBoundingClientRect().top + body.scrollTop;
+    const below = (body.querySelector('.tree-legend')?.offsetHeight ?? 0) + (body.querySelector('.tree-hint')?.offsetHeight ?? 0) + 28;
+    vp.style.height = `${Math.round(Math.max(200, Math.min(1200, body.clientHeight - top - below)))}px`;
     const mmRect = body.querySelector('.mm-view');
     const syncMinimap = () => {
       if (!mmRect) return;
@@ -143,10 +148,15 @@ export default {
     }
     syncMinimap();
     vp.addEventListener('scroll', () => { ui.view.treeScroll = [vp.scrollLeft, vp.scrollTop]; syncMinimap(); });
+    // Molette : déplace l'arbre (Maj = horizontalement), Ctrl + molette : zoom. Le panneau ne défile pas.
     vp.addEventListener('wheel', (e) => {
-      if (!e.ctrlKey) return;
       e.preventDefault();
-      body.querySelector(`[data-action="tree-zoom"][data-value="${e.deltaY < 0 ? 'in' : 'out'}"]`)?.click();
+      if (e.ctrlKey) {
+        body.querySelector(`[data-action="tree-zoom"][data-value="${e.deltaY < 0 ? 'in' : 'out'}"]`)?.click();
+        return;
+      }
+      vp.scrollLeft += e.shiftKey ? e.deltaY : e.deltaX;
+      vp.scrollTop += e.shiftKey ? 0 : e.deltaY;
     }, { passive: false });
     // Glisser le fond de l'arbre pour se déplacer (comme une carte).
     let drag = null;
@@ -213,7 +223,7 @@ export default {
       <svg viewBox="0 0 ${SPAN} ${SPAN}" preserveAspectRatio="none" aria-hidden="true">${links}</svg>${nodes}</div></div>${minimap(state)}</div>
       <div class="tree-legend">${regionSummary(state)}</div>
       <div class="muted tree-hint">Un talent s'apprend dès qu'un talent voisin est appris. Petits nœuds : 3 niveaux · ◆ notables · ⬢ clés de voûte (effets puissants, parfois avec un prix).
-        Glissez pour vous déplacer, Ctrl + molette pour zoomer.</div>`;
+        Glissez ou utilisez la molette pour vous déplacer, Ctrl + molette pour zoomer.</div>`;
 
     const reward = rebirthReward(state);
     const can = canRebirth(state);

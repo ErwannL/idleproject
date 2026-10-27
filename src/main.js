@@ -41,7 +41,7 @@ import { SceneRenderer } from './render/scene.js';
 import { UI } from './ui/ui.js';
 import { animateMenus } from './ui/animator.js';
 import { createGameAudio } from './audio/game-audio.js';
-import { applyCheat, unlockedSpeeds } from './core/cheats.js';
+import { applyCheat, simSpeed, unlockedSpeeds } from './core/cheats.js';
 import { applyLoadout, saveLoadout } from './core/loadouts.js';
 import { claimCollection } from './core/codex.js';
 import { setLang, startAutoTranslate, t } from './i18n/i18n.js';
@@ -411,6 +411,11 @@ const actions = {
   setLanguage(lang) { setLang(lang); ui.invalidate(); },
   // Vitesses débloquées par code (v8.4) ; ×100 demande une confirmation (effets visuels coupés).
   cycleSpeed() {
+    if (state.cheats.skipBattle) {
+      state.cheats.skipBattle = false;
+      done(true, 'Combats passés désactivés.');
+      return;
+    }
     const speeds = unlockedSpeeds(state);
     if (speeds.length < 2) return; // secret : rien n'indique que le jeu peut être accéléré
     const next = speeds[(speeds.indexOf(state.ui.speed ?? 1) + 1) % speeds.length];
@@ -650,7 +655,9 @@ function tick() {
     return;
   }
   // Vitesse des combats choisie par le joueur (×1 ; ×2, ×5, ×10, ×100 par code).
-  const speed = state.ui.speed ?? 1;
+  const speed = simSpeed(state);
+  // Combats passés (code SKIPBATTLE) : moitié moins de temps de calcul par appel, pour garder l'affichage fluide.
+  const budget = state.cheats.skipBattle ? TICK_BUDGET_MS / 2 : TICK_BUDGET_MS;
   accumulator += dt * speed;
   const stepSeconds = BALANCE.simulation.tickSeconds;
   const t0 = performance.now();
@@ -659,10 +666,10 @@ function tick() {
     step(state, world, stepSeconds, rng);
     accumulator -= stepSeconds;
     steps += 1;
-    if ((steps & 7) === 0 && performance.now() - t0 > TICK_BUDGET_MS) break;
+    if ((steps & 7) === 0 && performance.now() - t0 > budget) break;
   }
   // Le PC ne suit pas : le retard au-delà de ce plafond est abandonné (la vitesse réelle baisse, sans gel).
-  accumulator = Math.min(accumulator, Math.max(BALANCE.simulation.maxCatchUpSeconds, MAX_BACKLOG_SECONDS * speed));
+  accumulator = state.cheats.skipBattle ? 0 : Math.min(accumulator, Math.max(BALANCE.simulation.maxCatchUpSeconds, MAX_BACKLOG_SECONDS * speed));
   const spent = performance.now() - t0;
   perf.steps = steps;
   perf.simulated += steps * stepSeconds;
@@ -714,7 +721,7 @@ function frame(ts) {
   tick();
   for (const event of world.events) {
     // Vitesse ×100 : plus d'effets visuels (flashs, chiffres, secousses) ni de bannières.
-    if ((state.ui.speed ?? 1) < 100) renderer.handleEvent(event, world);
+    if (simSpeed(state) < 100) renderer.handleEvent(event, world);
     ui.handleEvent(event, state);
     if (event.type === 'drop') for (const j of journals()) noteDrop(j, event);
     sound.handleEvent(event);

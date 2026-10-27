@@ -37,6 +37,10 @@ export default {
           ${progressBar(state.xp / xpNeeded, `${Math.floor(state.xp)} / ${xpNeeded} XP`, 'xp')}</div>
         <label class="toggle"><input type="checkbox" data-action="skill-auto" ${state.skillAuto ? 'checked' : ''}> Lancement auto</label>
       </div>
+      <div class="card rush-help"><b>Comment lancer une compétence ?</b> Rien à faire : apprenez-la ici avec vos points, elle se lance
+        <b>toute seule</b> dès qu'un ennemi est à portée et qu'elle est rechargée (« Lancement auto » coché). Leur recharge se voit dans
+        la barre « Compétences » <b>en haut à gauche de la scène</b>. Les boosts (barre « Boosts » en haut à droite, touches Q W E R T)
+        se lancent, eux, d'un clic.</div>
       <div class="upg-list">${cards.join('')}</div>`;
   },
 };

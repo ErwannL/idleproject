@@ -28,9 +28,11 @@ function effect(key, cur, next) {
 
 // Boosts à durée limitée : niveau (or), effet, durée et recharge.
 function rushCards(state) {
-  const auto = `<div class="card rush-help"><b>Comment activer un boost ?</b> Cliquez sur son icône en bas à droite de la scène
-      (elle brille quand le boost est prêt). Il dure quelques dizaines de secondes, puis se recharge (cadran sombre).
-      Cochez « Auto » pour qu'ils se lancent tout seuls.</div>
+  const auto = `<div class="card rush-help"><b>Comment activer un boost ?</b> Cliquez sur son icône dans la barre « Boosts »
+      <b>en haut à droite de la scène</b>, ou appuyez sur sa touche (Q W E R T, indiquée sur l'icône). Elle brille quand le boost
+      est prêt ; il dure quelques dizaines de secondes, puis se recharge (cadran sombre). Cochez « Auto » pour qu'ils se lancent
+      tout seuls. Les boosts ne sont pas les compétences : celles-ci se lancent toujours seules (barre « Compétences »,
+      en haut à gauche).</div>
     <div class="card row-between"><span>Déclenchement automatique dès qu'un boost est prêt</span>
     <label class="toggle"><input type="checkbox" data-action="rush-auto" ${state.rushes.auto ? 'checked' : ''}> Auto</label></div>`;
   return auto + RUSHES.map((rush) => {

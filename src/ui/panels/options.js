@@ -9,9 +9,10 @@ import { activeCheats } from '../../core/cheats.js';
 
 // Codes actifs : chacun avec son temps restant (ils se cumulent).
 function activeCodes(state) {
-  const list = activeCheats(state);
+  const list = activeCheats(state).map((e) => `${escapeHtml(e.code)} ${formatDuration((e.until - Date.now()) / 1000)}`);
+  if (state.cheats?.skipBattle) list.unshift('SKIPBATTLE (combats passés)');
   if (!list.length) return '';
-  return `<div class="muted">Actifs : ${list.map((e) => `${escapeHtml(e.code)} ${formatDuration((e.until - Date.now()) / 1000)}`).join(' · ')}</div>`;
+  return `<div class="muted">Actifs : ${list.join(' · ')}</div>`;
 }
 
 // Musique lo-fi / aventure et effets sonores (générés en direct, aucun fichier audio).

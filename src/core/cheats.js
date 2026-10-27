@@ -40,6 +40,12 @@ function unlockSpeed(state, speed) {
   state.cheats.speeds = [...new Set([...(state.cheats.speeds ?? []), speed])].sort((a, b) => a - b);
 }
 
+// Vitesse réelle de la simulation : « combats passés » = aussi vite que possible (bornée par le temps de calcul).
+export const SKIP_SPEED = 100000;
+export function simSpeed(state) {
+  return state.cheats?.skipBattle ? SKIP_SPEED : state.ui?.speed ?? 1;
+}
+
 // Vitesses de combat disponibles : ×1 toujours, les autres débloquées par code (v8.4).
 export function unlockedSpeeds(state) {
   return [1, ...(state.cheats?.speeds ?? []).filter((v) => SPEEDS.includes(v))];
@@ -52,6 +58,14 @@ export function applyCheat(state, code, now = Date.now()) {
   if (key === 'ORACLE') {
     state.cheats.reveal = true;
     return 'Les compagnons adaptés aux donjons sont révélés.';
+  }
+  // v8.6 : les combats sont simulés aussi vite que le PC le permet (sans animations) : on voit tout de
+  // suite si une étape ou un boss passe. Le même code le désactive.
+  if (key === 'SKIPBATTLE' || key === 'PASSECOMBAT') {
+    state.cheats.skipBattle = !state.cheats.skipBattle;
+    return state.cheats.skipBattle
+      ? 'Combats passés : chaque combat est simulé instantanément (code à nouveau ou bouton ⏭ pour arrêter).'
+      : 'Combats passés désactivés.';
   }
   if (key === 'RESETCODES') {
     state.cheats.effects = [];
@@ -101,7 +115,7 @@ export function cheatLoot(state, now = Date.now()) {
 }
 
 export function sanitizeCheats(raw) {
-  const out = { effects: [], reveal: false, speeds: [] };
+  const out = { effects: [], reveal: false, speeds: [], skipBattle: false };
   if (!raw || typeof raw !== 'object') return out;
   if (Array.isArray(raw.speeds)) out.speeds = raw.speeds.filter((v) => SPEEDS.includes(v));
   const kinds = new Set(Object.values(TIMED).map((d) => d.kind));
@@ -121,5 +135,6 @@ export function sanitizeCheats(raw) {
     out.effects.push({ code: 'TURBO100', kind: 'boost', mult: m, until });
   }
   out.reveal = raw.reveal === true;
+  out.skipBattle = raw.skipBattle === true;
   return out;
 }

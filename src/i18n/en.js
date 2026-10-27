@@ -581,6 +581,12 @@ export const EXACT = {
   "Lancement auto": "Auto cast",
 
   // Arbre de talents, Renaissance, bonus éternels
+  // v8.6
+  "Compétences (pause)": "Skills (paused)",
+  "Combats passés : chaque combat est simulé instantanément (code à nouveau ou bouton ⏭ pour arrêter).": "Battles skipped: every fight is simulated instantly (enter the code again or press ⏭ to stop).",
+  "Combats passés désactivés.": "Battle skipping turned off.",
+  "SKIPBATTLE (combats passés)": "SKIPBATTLE (battles skipped)",
+  "Comment lancer une compétence ?": "How do I cast a skill?",
   // v8.5 : ensembles, défi de la semaine, expéditions, journal, anti-gel
   "Panoplie du Pré": "Meadow Panoply",
   "Parure du Chasseur": "Hunter's Attire",
@@ -1266,7 +1272,7 @@ export const PATTERNS = [
   [/^Historique \((\d+) dernières\) · (\d+) Légendaires?$/, 'History (last $1) · $2 Legendary'],
   [/^Épique garanti dans$/, 'Epic guaranteed in'],
   [/^Légendaire garanti dans$/, 'Legendary guaranteed in'],
-  [/^⚔ Prochain boss \(étape (\d+)\) :$/, '⚔ Next boss (stage $1):'],
+  [/^⚔ Prochain boss \(étape ([\d-]+(?: ×\d+)?)\) :$/, '⚔ Next boss (stage $1):'],
   [/^battable$/, 'beatable'],
   [/^en ~(\d+) s\.$/, 'in ~$1 s.'],
   [/^Renaissances : dégâts, PV et or ×(.+)$/, 'Rebirths: damage, HP and gold ×$1'],
@@ -1359,6 +1365,8 @@ export const PATTERNS = [
   [rx('^# recyclés?$'), '$1 recycled'],
   [/^(\d+) fusions?$/, (m) => `${m[1]} ${pl(m[1], 'fusion', 'fusions')}`],
   [/^Vague (\d+) franchie !$/, 'Wave $1 cleared!'],
+  [/^⏭ Combats passés \(×(.+)\)$/, (m) => `⏭ Battles skipped (×${num(m[1])})`],
+  [/^(.+) : débloqué au niveau (\d+) du héros\.$/, (m) => `${tr(m[1])}: unlocks at hero level ${m[2]}.`],
   [/^Jeu lancé depuis (.+)\.$/, (m) => `Game running for ${dur(m[1])}.`],
   [/^Fenêtre réduite pendant (.+)\.$/, (m) => `Window minimized for ${dur(m[1])}.`],
   [/^Défi de la semaine : vague (\d+) !$/, 'Weekly challenge: wave $1!'],

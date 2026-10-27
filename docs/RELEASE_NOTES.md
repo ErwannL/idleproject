@@ -1,9 +1,25 @@
-## Idle RPG v8.5.0 — un arbre mastodonte, expéditions, ensembles, défi de la semaine, fini les gels
+## Idle RPG v8.6.0 — arbre entièrement visible, boosts et compétences bien distincts, code « combats passés »
 
-**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-8.5.0-setup.exe).
-**Votre partie est conservée** ; les fragments dépensés dans l'ancien arbre sont **remboursés** (voir ci-dessous).
+**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-8.6.0-setup.exe). Votre partie est conservée.
 
 ### Corrigés
+- **Arbre de talents** : on ne voyait pas le haut (ni le bas) de l'arbre — le panneau défilait en même temps que
+  l'arbre et le cachait sous sa barre de titre. L'arbre remplit maintenant exactement le panneau, la **molette
+  déplace l'arbre** (Maj = horizontalement, Ctrl = zoom) et chaque onglet s'ouvre en haut.
+- **Prévision du boss** : l'étape s'affiche comme partout (« 7-15 ×3 ») et non plus en numéro brut (« 1025 »).
+- **Boosts / compétences** : les boosts réutilisaient les icônes des compétences. **5 nouvelles icônes** (poing
+  enflammé, double éclair, main dorée, œil-viseur, lame spectrale). L'aide disait « en bas à droite » alors que
+  la barre est en haut à droite.
+
+### Nouveau
+- **Barre « Boosts »** (en haut à droite de la scène) : **tous** les boosts, avec leur touche (Q W E R T) ;
+  ceux pas encore débloqués sont grisés avec un cadenas (niveau requis au survol). On les lance d'un clic.
+- **Barre « Compétences »** (en haut à gauche de la scène) : les compétences du héros avec leur recharge ;
+  elles se lancent **toutes seules**. Les deux aides (Améliorer → Boosts, Compétences) expliquent la différence.
+- **Code secret SKIPBATTLE** (ou PASSECOMBAT) : les combats sont simulés aussi vite que le PC le permet, sans
+  animations — on voit tout de suite si une étape ou un boss passe. Le même code (ou le bouton ⏭) l'arrête.
+
+### v8.5 — un arbre mastodonte, expéditions, ensembles, défi de la semaine, fini les gels
 - **Gros gels / écran noir** : quand Windows ralentissait la fenêtre (réduite, en arrière-plan), le jeu essayait
   de rattraper d'un bloc jusqu'à 10 minutes de combat (×100 : plus d'un million de pas) → écran noir.
   Désormais la simulation ne prend jamais plus de 25 ms d'affilée, le retard est crédité en gains hors ligne
@@ -15,7 +31,7 @@
   ou fusionnés ensuite. Elle compte maintenant les objets **encore dans le sac**, avec à côté
   « 385 recyclés · 3 fusions ».
 
-### Nouveau
+### Nouveau en v8.5
 - **Arbre de talents mastodonte : 511 talents** (au lieu de 25). Le Cœur du chevalier au centre, **6 régions**
   (Puissance, Chasse, Fortune, Héritage, Arcanes, Endurance) sur 14 anneaux ; les branches se divisent,
   **se rejoignent** et se croisent, des **ponts** relient les régions. Un talent s'apprend dès qu'**un** voisin
@@ -35,7 +51,7 @@
 - **Journal de session** (touche **J** ou Paramètres) : étapes, boss, or, objets ramassés / encore dans le sac /
   recyclés / fusionnés. Affiché automatiquement au retour après au moins 5 minutes fenêtre réduite.
 
-### Équilibrage
+### Équilibrage en v8.5
 - **Remboursement** : les fragments dépensés dans l'ancien arbre sont rendus au chargement ; replantez-les.
 
 ### v8.4 — nouvel équilibrage (réglé par simulation du vrai moteur de combat)

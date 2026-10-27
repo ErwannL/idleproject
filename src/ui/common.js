@@ -2,7 +2,9 @@
 import { AFFIXES, SLOTS } from '../data/items.js';
 import { EFFECT_LABELS } from '../data/powers.js';
 import { forecastSteps } from '../core/guide.js';
+import { stageLabel } from '../core/combat.js';
 import { setById } from '../core/sets.js';
+import { simSpeed } from '../core/cheats.js';
 import { formatDecimal, formatNumber } from '../core/format.js';
 import { isUpgrade } from '../core/inventory.js';
 import { itemBase, rarityById } from '../core/loot.js';
@@ -85,7 +87,7 @@ function runForecastJob() {
 }
 
 export function bossForecast(state, onReady = null) {
-  if ((state.ui?.speed ?? 1) >= 10) return { paused: true };
+  if (simSpeed(state) >= 10) return { paused: true };
   const key = `${state.stage}|${JSON.stringify(state.upgrades)}|${Object.values(state.equipment).map((i) => i?.id).join()}|${state.level}|${state.companions.equipped.join()}|${Object.keys(state.talents).length}`;
   const now = Date.now();
   const fresh = forecastCache.key === key && now - forecastCache.at < 20000;
@@ -102,7 +104,7 @@ export function forecastHtml(f) {
   if (f.paused) return '<div class="forecast muted">⚔ Prévision du prochain boss en pause à grande vitesse (×10 et plus).</div>';
   if (f.pending) return '<div class="forecast muted">⚔ Prévision du prochain boss : calcul en cours…</div>';
   return f.win
-    ? `<div class="forecast good">⚔ Prochain boss (étape ${f.stage}) : <b>battable</b> en ~${f.seconds} s.</div>`
-    : `<div class="forecast bad">⚔ Prochain boss (étape ${f.stage}) : pas encore — il lui resterait <b>${f.bossHpPct} %</b> de PV.
+    ? `<div class="forecast good">⚔ Prochain boss (étape ${stageLabel(f.stage)}) : <b>battable</b> en ~${f.seconds} s.</div>`
+    : `<div class="forecast bad">⚔ Prochain boss (étape ${stageLabel(f.stage)}) : pas encore — il lui resterait <b>${f.bossHpPct} %</b> de PV.
         Améliorez Dégâts / PV, l'équipement ou l'équipe.</div>`;
 }

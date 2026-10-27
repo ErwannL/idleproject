@@ -1050,6 +1050,100 @@ def icon_book():
     return c
 
 
+# ------------------------------------------------------------------ boosts (v8.6 : icônes propres, plus de
+# réemploi des icônes de compétences) : poing enflammé, double éclair, main dorée, œil-viseur, lame spectrale.
+def boost_rage():
+    fl = cv()
+    F = shape(lambda m, k: (m.poly([(3, 19), (2, 10), (5, 13), (5, 5), (8, 10), (10, 1), (12, 9), (15, 4), (15, 12),
+                                    (18, 9), (17, 19)], k)))
+    for (x, y) in F:
+        fl.set(x, y, RED[1] if y < 6 else RED[2] if y < 10 else ORANGE[2] if y < 14 else ORANGE[3])
+    done(fl)
+    f = cv()
+    # poing fermé : 4 jointures arrondies, pouce replié devant, poignet.
+    fist = shape(lambda m, k: (m.ellipse(6.2, 9.5, 2.1, 2.2, k), m.ellipse(9.4, 9.0, 2.1, 2.3, k), m.ellipse(12.6, 9.2, 2.1, 2.2, k),
+                               m.ellipse(15.2, 10.2, 1.8, 2.0, k), m.rect(4, 10, 13, 5, k), m.rect(6, 15, 9, 4, k)))
+    fill(f, fist, ['#5a2a14', '#9a5232', '#d4875a', '#f2b48a', '#ffd8bc'], grad=1.0)
+    for x in (8, 11, 14):
+        for y in range(9, 12):
+            f.set(x, y, '#9a5232')
+    thumb = shape(lambda m, k: m.poly([(4, 13), (11, 12), (12, 14), (5, 15)], k))
+    for (x, y) in thumb:
+        f.set(x, y, '#e8a074' if y < 14 else '#b86a42')
+    for x in range(6, 15):
+        f.set(x, 16, RED[2])
+        f.set(x, 17, RED[1])
+    done(f)
+    c = layer(fl, f)
+    c.set(9, 4, ORANGE[4])
+    return c
+
+
+def boost_frenzy():
+    c = cv()
+    for ox in (-3.5, 3.0):
+        P = shape(lambda m, k, ox=ox: m.poly([(11 + ox, 1), (4 + ox, 10.5), (8.5 + ox, 10.5), (6.5 + ox, 19),
+                                              (14.5 + ox, 8), (10 + ox, 8), (13.5 + ox, 1)], k))
+        fill(c, P, YELLOW, grad=1.0)
+        edge_light(c, P, YELLOW[4], YELLOW[1])
+    for y in (5, 9, 13):
+        for x in range(0, 3):
+            c.set(x, y, ICE[3])
+    done(c)
+    c.set(8, 3, WHITE)
+    c.set(14, 3, WHITE)
+    return c
+
+
+def boost_midas():
+    c = cv()
+    hand = shape(lambda m, k: (m.rect(4, 9, 10, 8, k), m.rect(4, 4, 2, 6, k), m.rect(7, 2, 2, 8, k),
+                               m.rect(10, 3, 2, 7, k), m.rect(13, 5, 2, 6, k), m.poly([(14, 12), (18, 8), (19, 10), (15, 15)], k)))
+    fill(c, hand, GOLD, grad=1.0)
+    edge_light(c, hand, GOLD[4], GOLD[1])
+    done(c)
+    for (x, y) in ((2, 1), (17, 2), (1, 14)):
+        sparkle(c, x, y)
+    coin_ = shape(lambda m, k: m.ellipse(9, 14, 2.6, 2.6, k))
+    for (x, y) in coin_:
+        c.set(x, y, YELLOW[4] if x + y < 23 else YELLOW[2])
+    return c
+
+
+def boost_hunter():
+    c = cv()
+    eye = shape(lambda m, k: m.poly([(1, 10), (5, 5.5), (10, 4), (15, 5.5), (19, 10), (15, 14.5), (10, 16), (5, 14.5)], k))
+    for (x, y) in eye:
+        c.set(x, y, BONE[4] if y < 10 else BONE[3])
+    iris = shape(lambda m, k: m.ellipse(10, 10, 4.2, 4.2, k))
+    sfill(c, iris, ICE, 9, 9, 4.5)
+    pupil = shape(lambda m, k: m.ellipse(10, 10, 1.8, 1.8, k))
+    for (x, y) in pupil:
+        c.set(x, y, '#101828')
+    done(c)
+    # viseur rouge
+    for i in range(0, 4):
+        for (x, y) in ((10, i), (10, 19 - i), (i, 10), (19 - i, 10)):
+            c.set(x, y, RED[3])
+    c.set(8, 8, WHITE)
+    return c
+
+
+def boost_phantom():
+    ghost = cv()
+    for off, col in ((3, PURPLE[1]), (1.5, PURPLE[2])):
+        blade = shape(lambda m, k, off=off: m.poly([(3 + off, 17 - off), (15 + off, 3 - off * 0.2), (17 + off, 3 - off * 0.2),
+                                                     (17 + off * 0.5, 5), (5 + off, 19 - off)], k))
+        for (x, y) in blade:
+            ghost.set(x, y, col)
+    sw = sword_layer(5.0, 15.0, 17.6, 2.4)
+    sw.recolor({STEEL[2]: PURPLE[3], STEEL[4]: PURPLE[4], GOLD[3]: MAGENTA[3], LEATHER[2]: PURPLE[1]})
+    done(sw)
+    c = layer(ghost, sw)
+    sparkle(c, 4, 4, col=PURPLE[4], mid=PURPLE[3])
+    return c
+
+
 # ------------------------------------------------------------------ export
 ICONS = [
     ('coin', coin), ('icon_gem', icon_gem), ('icon_ticket', icon_ticket), ('icon_fragment', icon_fragment),
@@ -1064,6 +1158,8 @@ ICONS = [
     ('icon_heart', icon_heart), ('icon_shield', icon_shield), ('icon_bolt', icon_bolt), ('icon_skull', icon_skull),
     ('icon_lock', icon_lock), ('icon_star', icon_star), ('icon_summon', icon_summon), ('icon_rebirth', icon_rebirth),
     ('icon_book', icon_book),
+    ('boost_rage', boost_rage), ('boost_frenzy', boost_frenzy), ('boost_midas', boost_midas),
+    ('boost_hunter', boost_hunter), ('boost_phantom', boost_phantom),
 ]
 
 
