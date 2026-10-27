@@ -123,7 +123,7 @@ export default {
       </div>
       <div class="card">
         <div class="section-title">Raccourcis clavier</div>
-        <div class="row-between"><span class="muted">1…0 onglets · Espace avance auto · V vitesse · Q W E R T boosts · G tout récupérer…</span>
+        <div class="row-between"><span class="muted">1…0 onglets · Espace avance auto · Q W E R T boosts · G tout récupérer…</span>
           <button class="btn small" data-action="show-shortcuts">Tout voir (K)</button></div>
       </div>
       <div class="card">

@@ -38,7 +38,7 @@ import { SceneRenderer } from './render/scene.js';
 import { UI } from './ui/ui.js';
 import { animateMenus } from './ui/animator.js';
 import { createGameAudio } from './audio/game-audio.js';
-import { applyCheat } from './core/cheats.js';
+import { applyCheat, unlockedSpeeds } from './core/cheats.js';
 import { applyLoadout, saveLoadout } from './core/loadouts.js';
 import { claimCollection } from './core/codex.js';
 import { setLang, startAutoTranslate, t } from './i18n/i18n.js';
@@ -114,6 +114,7 @@ function done(ok, message = null, color = null) {
   return true;
 }
 
+let speed100Confirmed = false;
 const TOKEN_KEY = 'idle-rpg.github-token';
 // Jeton du joueur (Paramètres) en priorité, sinon celui intégré à l'installateur (secret de compilation).
 function githubToken() {
@@ -341,7 +342,7 @@ const actions = {
   // Tour de l'Éternité (v8.2).
   enterTower() {
     if (state.dungeon) { ui.toast("Terminez ou abandonnez d'abord le donjon."); return; }
-    if (!startTower(state)) return;
+    if (!startTower(state)) { ui.toast('Ascension de la semaine déjà faite (remise à zéro le lundi).', '#ff8a8a'); return; }
     resetWave(world);
     done(true, 'Ascension de la Tour de l\'Éternité : étage 1 !', '#c9a6ff');
   },
@@ -355,6 +356,13 @@ const actions = {
     changeStage(state, world, stage);
     save();
     ui.invalidate();
+  },
+  retryBoss() {
+    const r = state.bossRetry;
+    if (!r) return;
+    state.bossRetry = null;
+    changeStage(state, world, r.stage);
+    done(true, 'Le chevalier retente le boss !', '#ffd35a');
   },
   advance() {
     resumeAdvance(state, world);
@@ -386,10 +394,18 @@ const actions = {
     done(true, swept.count ? `${swept.count} objet${swept.count > 1 ? 's' : ''} recyclé${swept.count > 1 ? 's' : ''} (+${formatNumber(swept.gold)} or)` : null);
   },
   setLanguage(lang) { setLang(lang); ui.invalidate(); },
+  // Vitesses débloquées par code (v8.4) ; ×100 demande une confirmation (effets visuels coupés).
   cycleSpeed() {
-    const speeds = BALANCE.simulation.speeds;
-    state.ui.speed = speeds[(speeds.indexOf(state.ui.speed ?? 1) + 1) % speeds.length];
-    done(true, `Vitesse des combats ×${state.ui.speed}`);
+    const speeds = unlockedSpeeds(state);
+    if (speeds.length < 2) return; // secret : rien n'indique que le jeu peut être accéléré
+    const next = speeds[(speeds.indexOf(state.ui.speed ?? 1) + 1) % speeds.length];
+    if (next >= 100 && !speed100Confirmed) { ui.showSpeedWarning(); return; }
+    this.setSpeed(next);
+  },
+  setSpeed(speed) {
+    if (speed >= 100) speed100Confirmed = true;
+    state.ui.speed = speed;
+    done(true, `Vitesse des combats ×${speed}`);
   },
   setNotify(key, on) { state.ui.notify = { ...state.ui.notify, [key]: on }; done(true); },
   setFocus(on) { state.ui.focus = on; done(true); },
@@ -523,6 +539,13 @@ setTimeout(() => {
   if (loaded.source === 'new') playCinematic({ kicker: 'Une nouvelle légende', title: 'Idle RPG', line: 'Un chevalier, une épée, et onze mondes à libérer.' });
   else playCinematic({ kicker: 'Bon retour, chevalier', title: zone.name, line: `Étape ${stageLabel(state.stage)} — la bataille continue.`, zone: zone.id });
 }, 600);
+// v8.4 : sauvegarde d'avant le nouvel équilibrage → or des améliorations remboursé, on l'annonce.
+if (state.migrationRefund) {
+  const refund = state.migrationRefund;
+  delete state.migrationRefund;
+  save();
+  setTimeout(() => ui.showRebalanceNotice(refund), 1500);
+}
 announceSynergies(); // mémorise les synergies du chargement (seules les nouvelles seront annoncées)
 let lastZoneKey = null;
 function watchWorldChange() {
@@ -593,7 +616,8 @@ function frame(ts) {
   // quand la fenêtre est masquée et que requestAnimationFrame s'arrête).
   tick();
   for (const event of world.events) {
-    renderer.handleEvent(event, world);
+    // Vitesse ×100 : plus d'effets visuels (flashs, chiffres, secousses) ni de bannières.
+    if ((state.ui.speed ?? 1) < 100) renderer.handleEvent(event, world);
     ui.handleEvent(event, state);
     sound.handleEvent(event);
   }

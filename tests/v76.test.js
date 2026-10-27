@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { rebirthMultiplier } from '../src/core/stats.js';
 import { test } from 'node:test';
 
 import { BALANCE } from '../src/data/balance.js';
@@ -91,7 +92,7 @@ test('renaissance (prestige fusionné) : bonus permanent et bonus éternels en f
   assert.equal(state.level, 1);
   assert.equal(state.companions.owned.squire.level, 1);
   assert.equal(state.companions.owned.squire.stars, 2);
-  assert.ok(prestigeEffects(state).damagePct > 0, 'bonus permanent par Renaissance');
+  assert.ok(rebirthMultiplier(state) > 1, 'bonus permanent par Renaissance (v8.4 : multiplicateur)');
   state.fragments = 100;
   assert.ok(buyPerk(state, 'power'));
   assert.equal(state.fragments, 90);

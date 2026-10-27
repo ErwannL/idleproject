@@ -1,4 +1,5 @@
 // Arbre de talents permanents (fragments anciens) et Renaissance.
+import { BALANCE } from '../../data/balance.js';
 import { REBIRTH, REBIRTH_KEEPS, REBIRTH_RESETS, TALENT_BRANCHES, TALENTS } from '../../data/rebirth.js';
 import { stageLabel } from '../../core/combat.js';
 import { canRebirth, rebirthReward, talentById, talentCost, talentLevelEffects, talentUnlocked } from '../../core/rebirth.js';
@@ -18,10 +19,11 @@ function eternalCard(state) {
         <div class="${level ? 'good' : 'muted'}">${effectText(eff)}${level ? '' : ' (au niveau 1)'}</div></div>
       ${costButton({ action: 'buy-perk', cost: perkCost(level), have: state.fragments, currency: 'fragments', attrs: `data-key="${perk.id}"`, cls: 'btn-gold small', max: maxed })}</div>`;
   }).join('');
-  const bonus = Object.fromEntries(Object.entries(PRESTIGE.perPrestige).map(([k, v]) => [k, v * n]));
+  const mult = PRESTIGE.rebirthMultiplier ** n;
   return `<div class="card prestige-card">
-    <div class="row-between"><b class="prestige-title">✦ Bonus éternels</b>${n ? `<span class="good">${effectText(bonus)}</span>` : ''}</div>
-    <div class="muted">Chaque Renaissance ajoute ${effectText(PRESTIGE.perPrestige)} pour toujours. Les bonus éternels s'achètent avec les fragments anciens.</div>
+    <div class="row-between"><b class="prestige-title">✦ Bonus éternels</b>${n ? `<span class="good">Renaissances : dégâts, PV et or ×${mult < 1000 ? mult.toFixed(2).replace('.', ',') : formatNumber(mult)}</span>` : ''}</div>
+    <div class="muted">Chaque Renaissance <b>multiplie</b> dégâts, PV et or par ${String(PRESTIGE.rebirthMultiplier).replace('.', ',')} pour toujours (cumulatif : ×1,5 · ×2,25 · ×3,4…),
+      et les boss ne se renforcent que de ${BALANCE.stages.rebirthBossPct} % par Renaissance. Les bonus éternels s'achètent avec les fragments anciens.</div>
     ${perks}
   </div>`;
 }

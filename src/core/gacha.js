@@ -6,6 +6,17 @@ import { COMPANIONS } from '../data/companions.js';
 import { RARITIES } from '../data/items.js';
 import { rarityIndex } from './loot.js';
 import { trackMissions } from './missions.js';
+import { weekKey } from './tower.js';
+
+// v8.4 : bannière de la semaine — un personnage (ou familier) Légendaire mis en avant :
+// quand une invocation tombe sur Légendaire, il a 50 % de chances d'être celui-là.
+export const FEATURED_SHARE = 0.5;
+export function featuredUnit(pool = 'ally', now = Date.now()) {
+  const legends = summonPool(pool).filter((u) => u.rarity === 'legendary');
+  if (!legends.length) return null;
+  const n = Math.floor(new Date(`${weekKey(now)}T00:00:00`).getTime() / (7 * 86400000));
+  return legends[((n % legends.length) + legends.length) % legends.length];
+}
 
 // v7.6 : le chevalier est le seul héros (plus de variantes à invoquer) ; on invoque des personnages
 // (héros alliés R/SR/SSR) et des compagnons (familiers).
@@ -27,7 +38,12 @@ export function summonOdds(pool = 'ally', balance = BALANCE) {
   return RARITIES.filter((r) => weights[r.id]).map((r) => {
     const list = units.filter((u) => u.rarity === r.id);
     const chance = weights[r.id] / total;
-    return { rarity: r.id, chance, units: list.map((u) => ({ ...u, chance: list.length ? chance / list.length : 0 })) };
+    const featured = r.id === 'legendary' ? featuredUnit(pool) : null;
+    const unitChance = (u) => {
+      if (!featured || list.length < 2) return list.length ? chance / list.length : 0;
+      return u.id === featured.id ? chance * FEATURED_SHARE : (chance * (1 - FEATURED_SHARE)) / (list.length - 1);
+    };
+    return { rarity: r.id, chance, units: list.map((u) => ({ ...u, chance: unitChance(u), featured: u.id === featured?.id })) };
   });
 }
 
@@ -62,7 +78,12 @@ export function summon(state, rng, count = 1, currency = 'gems', balance = BALAN
     else if (p.sinceEpic + 1 >= pity.epicAfter) min = 'epic';
     const rarity = rollRarity(rng, min, poolWeights(pool, balance));
     const units = summonPool(pool).filter((u) => u.rarity === rarity);
-    const unit = units[Math.floor(rng.next() * units.length)];
+    const featured = rarity === 'legendary' ? featuredUnit(pool) : null;
+    let unit;
+    if (featured && units.length > 1) {
+      const others = units.filter((u) => u.id !== featured.id);
+      unit = rng.next() < FEATURED_SHARE ? featured : others[Math.floor(rng.next() * others.length)];
+    } else unit = units[Math.floor(rng.next() * units.length)];
     p.total += 1;
     p.sinceLegendary = rarity === 'legendary' ? 0 : p.sinceLegendary + 1;
     p.sinceEpic = rarityIndex(rarity) >= rarityIndex('epic') ? 0 : p.sinceEpic + 1;
@@ -80,6 +101,8 @@ export function summon(state, rng, count = 1, currency = 'gems', balance = BALAN
     }
     result.stars = store[unit.id].stars;
     results.push(result);
+    // Historique des 60 dernières invocations.
+    p.history = [{ id: unit.id, rarity, at: Date.now() }, ...(p.history ?? [])].slice(0, 60);
   }
   return results;
 }

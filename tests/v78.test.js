@@ -15,10 +15,12 @@ test('anciennes victoires de donjon débloquent la difficulté Normal', () => {
   assert.deepEqual(unlockedDifficulties(s, DUNGEONS[1].id), ['easy']);
 });
 
-test('vitesses de combat ×1 ×2 ×5 ×10 sauvegardées', () => {
-  assert.deepEqual(BALANCE.simulation.speeds, [1, 2, 5, 10]);
+test('vitesses de combat : ×1 par défaut, les autres débloquées par code (v8.4) et sauvegardées', () => {
+  assert.deepEqual(BALANCE.simulation.speeds, [1, 2, 5, 10, 100]);
   const raw = JSON.parse(JSON.stringify(createNewState(0, 1)));
   raw.ui = { ...(raw.ui ?? {}), speed: 5 };
+  assert.notEqual(sanitizeState(raw).ui.speed, 5); // pas débloquée
+  raw.cheats = { ...raw.cheats, speeds: [5] };
   assert.equal(sanitizeState(raw).ui.speed, 5);
   raw.ui.speed = 7;
   assert.notEqual(sanitizeState(raw).ui.speed, 7);

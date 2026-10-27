@@ -304,8 +304,9 @@ test('migration v3 → v4 : sauvegarde conservée, nouveaux champs, charge offer
   v3.powers = { slime_king: { current: 'gel_heart', pending: null, victories: 2, rerolls: 0, sinceHigh: 0 } };
   v3.equippedPowers = ['slime_king'];
   const s = sanitizeState(JSON.parse(JSON.stringify(v3)), BALANCE, NOW);
-  assert.equal(s.gold, 777);
-  assert.equal(s.upgrades.damage, 4);
+  // v8.4 : les niveaux d'amélioration sont remboursés en or (nouveaux coûts).
+  assert.ok(s.gold > 777);
+  assert.equal(s.upgrades.damage, 0);
   assert.equal(s.upgrades.crit, 0);
   assert.equal(s.powers.slime_king.charges, 1);
   assert.equal(s.level, 1);

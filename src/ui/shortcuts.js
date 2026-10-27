@@ -14,7 +14,6 @@ export const SHORTCUTS = [
   ['Tab', 'Élément suivant (Maj + Tab : précédent)'],
   ['Échap', 'Fermer le panneau ou la fenêtre'],
   ['A (ou Espace sans sélection)', 'Avance automatique / mode farm'],
-  ['V', 'Vitesse des combats (×1, ×2, ×5, ×10)'],
   ['Q W E R T', 'Lancer les boosts (Rage, Frénésie, Midas, Œil, Lame)'],
   ['G', 'Tout récupérer (missions et récompenses)'],
   ['M · N · P', 'Missions · Récompenses · Paramètres'],

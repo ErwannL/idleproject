@@ -32,7 +32,7 @@
           <div id="boss-flash"></div>
           <div id="zone-card"><div id="zone-name"></div><div id="stage-pips"></div></div>
           <div id="rush-bar"></div>
-          <button id="speed-toggle" class="scene-btn" data-action="speed" title="Vitesse des combats (×1, ×2, ×5, ×10)">×1</button>
+          <button id="speed-toggle" class="scene-btn hidden" data-action="speed" title="Vitesse des combats">×1</button>
           <button id="loot-pop" class="hidden" data-action="open-tab" data-value="inventory" title="Ouvrir l'inventaire"></button>
           <button id="auto-toggle" class="scene-btn" data-action="toggle-auto" title="Avancer automatiquement après chaque étape"></button>
           <div id="strip-bar">
@@ -51,6 +51,7 @@
           <div id="progress"><div id="progress-fill"></div><span id="progress-text"></span></div>
           <div id="news" title="Dernier événement"><span id="news-text">—</span></div>
           <button id="advance-btn" class="btn btn-primary small hidden" data-action="advance" title="Reprendre la progression">Avancer ▶</button>
+          <button id="retry-boss" class="btn btn-gold small hidden" data-action="retry-boss" title="Retenter tout de suite le boss qui vous a vaincu"></button>
         </div>
       </section>
       <nav id="tabs">
@@ -72,6 +73,7 @@
         <img id="panel-icon" class="px" alt="">
         <h2 id="panel-title"></h2>
         <span id="panel-extra"></span>
+        <button id="panel-help" class="btn small" title="Comment ça marche ?">?</button>
         <button id="panel-close" class="btn small" title="Fermer (Échap)">✕</button>
       </header>
       <div id="panel-body"></div>

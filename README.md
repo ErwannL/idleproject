@@ -247,7 +247,8 @@ puis mises à jour en jeu, vitesse des combats ×2/×5/×10, carte zoomable et m
 puis recyclage automatique fiable, menus stables en ×10 et avance auto qui reste cochée (v8.0),
 puis raccourcis clavier, clic maintenu, codes cumulables, fusion auto, effets d'équipe et cinématiques (v8.1),
 puis Tour de l'Éternité, navigation complète au clavier et méga boss réanimés (v8.2),
-puis hauts faits et donjons rééquilibrés (v8.3) :
+puis hauts faits et donjons rééquilibrés (v8.3),
+puis progression sans fin, Renaissance multiplicative et aide au joueur (v8.4) :
 voir `docs/RELEASE_NOTES.md`.
 
 ## v4

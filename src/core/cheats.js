@@ -1,6 +1,8 @@
 // Codes de triche (saisis dans les Paramètres). Ils ne sont pas affichés dans le jeu.
 // v8.1 : effets à durée limitée CUMULABLES (multiplicatifs) : TURBO100 deux fois = ×10 000.
 // Chaque saisie ajoute un effet avec sa propre minuterie ; les dons immédiats s'ajoutent simplement.
+import { towerWeek } from './tower.js';
+
 const MIN = 60 * 1000;
 const H = 60 * MIN;
 
@@ -24,9 +26,24 @@ const GIFTS = {
   KEYMASTER: { label: '+10 clés de donjon', give: (s) => { s.keys += 10; } },
   ANCIENT: { label: '+500 fragments anciens', give: (s) => { s.fragments += 500; } },
   FORGE: { label: '+5 000 éclats et +500 essences', give: (s) => { s.materials.shards += 5000; s.materials.essence += 500; } },
+  VITESSE2: { label: 'Vitesse ×2 débloquée (bouton ⏩)', give: (s) => unlockSpeed(s, 2) },
+  VITESSE5: { label: 'Vitesse ×5 débloquée (bouton ⏩)', give: (s) => unlockSpeed(s, 5) },
+  VITESSE10: { label: 'Vitesse ×10 débloquée (bouton ⏩)', give: (s) => unlockSpeed(s, 10) },
+  VITESSE100: { label: 'Vitesse ×100 débloquée (bouton ⏩) — effets visuels coupés à cette vitesse', give: (s) => unlockSpeed(s, 100) },
+  TOWERPASS: { label: '+1 ascension de la Tour cette semaine', give: (s) => { towerWeek(s).extra = (towerWeek(s).extra ?? 0) + 1; } },
 };
 
 const MAX_EFFECTS = 30;
+const SPEEDS = [2, 5, 10, 100];
+
+function unlockSpeed(state, speed) {
+  state.cheats.speeds = [...new Set([...(state.cheats.speeds ?? []), speed])].sort((a, b) => a - b);
+}
+
+// Vitesses de combat disponibles : ×1 toujours, les autres débloquées par code (v8.4).
+export function unlockedSpeeds(state) {
+  return [1, ...(state.cheats?.speeds ?? []).filter((v) => SPEEDS.includes(v))];
+}
 const LUCK_RARITY = ['common', 'rare', 'epic', 'legendary'];
 
 // Applique un code ; renvoie le message de succès, ou null si le code est inconnu.
@@ -84,8 +101,9 @@ export function cheatLoot(state, now = Date.now()) {
 }
 
 export function sanitizeCheats(raw) {
-  const out = { effects: [], reveal: false };
+  const out = { effects: [], reveal: false, speeds: [] };
   if (!raw || typeof raw !== 'object') return out;
+  if (Array.isArray(raw.speeds)) out.speeds = raw.speeds.filter((v) => SPEEDS.includes(v));
   const kinds = new Set(Object.values(TIMED).map((d) => d.kind));
   if (Array.isArray(raw.effects)) {
     for (const e of raw.effects.slice(-MAX_EFFECTS)) {

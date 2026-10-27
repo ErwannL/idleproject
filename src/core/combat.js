@@ -307,7 +307,22 @@ function clearStage(state, world, balance) {
     state.gems += gems;
     emit(world, 'unlock', { stage: next, gems });
   }
-  if (state.autoAdvance) changeStage(state, world, next, balance);
+  if (!state.autoAdvance) return;
+  // v8.4 : après une défaite contre ce boss, on ne le retente tout seul que nettement plus fort
+  // (+15 % de puissance) — sinon on refarme l'étape précédente (bouton « Retenter le boss » à tout moment).
+  const retry = state.bossRetry;
+  if (retry && next === retry.stage && heroPower(state, balance) < retry.power * balance.stages.bossRetryPower) {
+    state.kills = 0;
+    return;
+  }
+  if (retry && next === retry.stage) state.bossRetry = null;
+  changeStage(state, world, next, balance);
+}
+
+// Puissance globale (dégâts × robustesse) : sert à décider quand retenter un boss.
+export function heroPower(state, balance = BALANCE) {
+  const s = computeHeroStats(state, balance);
+  return s.dps * (s.maxHp / Math.max(0.05, 1 - s.armor / 100));
 }
 
 function gainGold(state, world, amount) {
@@ -332,7 +347,7 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
   const wave = world.goldWave > 0 && !enemy.boss ? balance.events.waveGoldMultiplier : 1;
   if (world.goldWave > 0 && !enemy.boss) world.goldWave -= 1;
   const boost = earlyBoost(state, balance);
-  const gold = gainGold(state, world, enemy.gold * (1 + stats.goldPct / 100) * wave * boost.gold);
+  const gold = gainGold(state, world, enemy.gold * (1 + stats.goldPct / 100) * (stats.goldMult ?? 1) * wave * boost.gold);
   world.counters.kills += 1;
   state.records.kills += 1;
   if (state.codex) recordKill(state, enemy.type);
@@ -474,7 +489,7 @@ function castCompanion(state, world, companion, stats, rng, balance, enc, front)
   const { skill } = companion;
   const aff = dungeonAffinity(state, companion.id, balance) ? balance.dungeonAffinity.skillMultiplier : 1;
   if (skill.type === 'gold') {
-    gainGold(state, world, referenceKillGold(enc.level, balance) * skill.value * (1 + stats.goldPct / 100) * earlyBoost(state, balance).gold);
+    gainGold(state, world, referenceKillGold(enc.level, balance) * skill.value * (1 + stats.goldPct / 100) * (stats.goldMult ?? 1) * earlyBoost(state, balance).gold);
   } else if (skill.type === 'heal') {
     world.hero.hp = Math.min(stats.maxHp, world.hero.hp + (stats.maxHp * skill.value * Math.min(aff, 3)) / 100);
   } else if (skill.type === 'shield') {
@@ -512,9 +527,10 @@ function heroDies(state, world, balance) {
     emit(world, 'dungeonFailed', { earned, id: run.id, difficulty: run.difficulty, room: run.room, bossHpPct });
     return;
   }
+  if (isBossStage(from, balance)) state.bossRetry = { stage: from, power: heroPower(state, balance) };
   if (state.stage > 1) state.stage -= 1;
   state.kills = 0;
-  emit(world, 'heroDeath', { from, to: state.stage });
+  emit(world, 'heroDeath', { from, to: state.stage, boss: isBossStage(from, balance) });
 }
 
 export function step(state, world, dt, rng, balance = BALANCE) {

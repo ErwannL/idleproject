@@ -46,7 +46,9 @@ test('Tour de l\'Éternité : un boss par étage, récompenses seulement aux nou
   const last = endTower(s);
   assert.equal(last.floors, 10);
   assert.equal(s.tower, null);
-  startTower(s);
+  assert.equal(startTower(s), false); // v8.4 : une ascension par semaine
+  s.towerWeek.extra = 1; // code TOWERPASS
+  assert.equal(startTower(s), true);
   const g1 = s.gems;
   const again = clearTowerFloor(s); // étage 1 déjà battu : pas de récompense
   assert.equal(again.record, false);

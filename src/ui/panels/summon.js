@@ -1,15 +1,38 @@
 // Invocation : gemmes ou tickets gagnés en jouant, probabilités et garanties affichées.
 import { BALANCE } from '../../data/balance.js';
-import { summonOdds } from '../../core/gacha.js';
+import { FEATURED_SHARE, featuredUnit, summonOdds } from '../../core/gacha.js';
 import { companionById } from '../../core/companions.js';
 import { ALLY_GRADE } from '../../data/companions.js';
 import { animCanvas } from '../animator.js';
-import { escapeHtml, formatDecimal, formatNumber, gem, img, rarityLabel, stars } from '../common.js';
+import { escapeHtml, formatDecimal, formatNumber, gem, img, progressBar, rarityLabel, stars } from '../common.js';
 
 function unitPortrait(result) {
   if (result.kind === 'hero') return animCanvas(`hero:${result.id}`, 48, 52, 1);
   const c = companionById(result.id);
   return c.kind === 'ally' ? animCanvas(`foe:${c.sprite}`, 64, 56, 1) : animCanvas(`pet:${c.sprite}`, 24, 24, 2);
+}
+
+// v8.4 : bannière de la semaine (Légendaire mis en avant) et historique des invocations.
+function featuredBlock(state, pool) {
+  const f = featuredUnit(pool);
+  if (!f) return '';
+  const owned = state.companions.owned[f.id];
+  return `<div class="featured r-legendary">${unitPortrait(f)}<div class="grow">
+      <b class="gold-text">★ Mis en avant cette semaine : ${escapeHtml(f.name)}</b>
+      <div class="muted">Quand une invocation donne un ${pool === 'ally' ? 'SSR' : 'Légendaire'}, ${Math.round(FEATURED_SHARE * 100)} % de chances que ce soit lui.
+        Change chaque lundi.${owned ? ` Déjà obtenu ${stars(owned.stars)}` : ''}</div></div></div>`;
+}
+
+function historyBlock(state) {
+  const h = state.summon.history ?? [];
+  if (!h.length) return '';
+  const rows = h.slice(0, 30).map((e) => {
+    const c = companionById(e.id);
+    return c ? `<span class="hist r-${e.rarity}" title="${escapeHtml(c.name)}">${escapeHtml(c.name)}</span>` : '';
+  }).join('');
+  const legend = h.filter((e) => e.rarity === 'legendary').length;
+  return `<div class="card"><div class="section-title">Historique (${h.length} dernières) · ${legend} Légendaire${legend > 1 ? 's' : ''}</div>
+    <div class="hist-row">${rows}</div></div>`;
 }
 
 export default {
@@ -26,7 +49,7 @@ export default {
     const odds = summonOdds(pool).filter((r) => r.units.length).reverse().map((r) => {
       const units = r.units.map((u) => {
         const owned = state.companions.owned[u.id];
-        return `<div class="odds-unit${owned ? ' owned' : ''}" title="${escapeHtml(u.name)} · ${formatDecimal(u.chance * 100, 2)} %">
+        return `<div class="odds-unit${owned ? ' owned' : ''}${u.featured ? ' featured-unit' : ''}" title="${escapeHtml(u.name)} · ${formatDecimal(u.chance * 100, 2)} %">
           ${unitPortrait(u)}${u.ally ? `<span class="grade g-${u.rarity}">${ALLY_GRADE[u.rarity]}</span>` : ''}
           <span class="odds-name">${escapeHtml(u.name)}</span><span class="muted">${formatDecimal(u.chance * 100, 2)} %</span>
           ${owned ? stars(owned.stars) : ''}</div>`;
@@ -51,9 +74,14 @@ export default {
           ${btn(1, 'gems', s.gemCost, `×1 ${gem()} ${s.gemCost}`)}
           ${btn(10, 'gems', s.tenPullGemCost, `×10 ${gem()} ${s.tenPullGemCost}`)}
         </div>
-        <div class="muted">Garanties : Épique ou mieux au plus tard dans <b>${s.pity.epicAfter - state.summon.sinceEpic}</b> invocation(s),
-          Légendaire dans <b>${s.pity.legendaryAfter - state.summon.sinceLegendary}</b>. Doublon : +1 étoile (max ${s.maxStars}), puis +${s.duplicateRefundGems} gemmes.</div>
+        ${featuredBlock(state, pool)}
+        <div class="pity">
+          <div><span>Épique garanti dans <b>${s.pity.epicAfter - state.summon.sinceEpic}</b></span>${progressBar(state.summon.sinceEpic / s.pity.epicAfter)}</div>
+          <div><span>Légendaire garanti dans <b>${s.pity.legendaryAfter - state.summon.sinceLegendary}</b></span>${progressBar(state.summon.sinceLegendary / s.pity.legendaryAfter)}</div>
+        </div>
+        <div class="muted">Doublon : +1 étoile (max ${s.maxStars}), puis +${s.duplicateRefundGems} gemmes.</div>
       </div>
+      ${historyBlock(state)}
       ${results ? `<div class="card"><div class="section-title">Dernière invocation</div><div class="summon-results">${results}</div></div>` : ''}
       <div class="card odds"><div class="section-title">Probabilités — ${s.pools[pool].label.toLowerCase()}</div>${odds}</div>`;
   },

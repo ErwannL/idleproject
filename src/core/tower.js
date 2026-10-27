@@ -4,7 +4,31 @@
 import { BOSSES } from '../data/enemies.js';
 import { grantReward } from './rewards.js';
 
-export const TOWER = { unlockStage: 40, floorLevel: 3, milestone: 10 };
+export const TOWER = { unlockStage: 40, floorLevel: 3, milestone: 10, climbsPerWeek: 1 };
+
+// v8.4 : une ascension par semaine (remise à zéro le lundi, heure locale). Récompenses :
+// - record absolu (une seule fois par étage, à vie) : towerReward ;
+// - meilleur étage de la semaine (chaque semaine) : weeklyReward.
+export function weekKey(now = Date.now()) {
+  const d = new Date(now);
+  const monday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
+  return `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`;
+}
+
+export function towerWeek(state, now = Date.now()) {
+  const key = weekKey(now);
+  if (state.towerWeek?.week !== key) state.towerWeek = { week: key, best: 0, climbs: 0, extra: 0 };
+  return state.towerWeek;
+}
+
+export function climbsLeft(state, now = Date.now()) {
+  const w = towerWeek(state, now);
+  return Math.max(0, TOWER.climbsPerWeek + (w.extra ?? 0) - w.climbs);
+}
+
+export function weeklyReward(floor) {
+  return { gems: 5 + floor, fragments: floor % 5 === 0 ? Math.ceil(floor / 2) : 0 };
+}
 
 // Ordre des boss de la tour : déterministe, tous les boss du jeu, les méga boss tous les 10 étages.
 const ALL = Object.keys(BOSSES);
@@ -35,8 +59,9 @@ export function towerReward(floor) {
   };
 }
 
-export function startTower(state) {
-  if (!towerUnlocked(state) || state.dungeon || state.tower) return false;
+export function startTower(state, now = Date.now()) {
+  if (!towerUnlocked(state) || state.dungeon || state.tower || climbsLeft(state, now) <= 0) return false;
+  towerWeek(state, now).climbs += 1;
   state.tower = { floor: 1, startPlay: state.playSeconds ?? 0 };
   return true;
 }
@@ -46,13 +71,14 @@ export function clearTowerFloor(state) {
   const run = state.tower;
   const floor = run.floor;
   const record = floor > (state.towerBest ?? 0);
-  let reward = {};
-  if (record) {
-    reward = grantReward(state, towerReward(floor));
-    state.towerBest = floor;
-  }
+  const week = towerWeek(state);
+  const weekly = floor > week.best;
+  const reward = {};
+  const add = (r) => { for (const [k, v] of Object.entries(grantReward(state, r))) reward[k] = (reward[k] ?? 0) + v; };
+  if (record) { add(towerReward(floor)); state.towerBest = floor; }
+  if (weekly) { add(weeklyReward(floor)); week.best = floor; }
   run.floor += 1;
-  return { floor, record, reward };
+  return { floor, record, weekly, reward };
 }
 
 export function endTower(state, { defeated = true } = {}) {
@@ -72,6 +98,9 @@ export function sanitizeTower(state, raw) {
   state.towerBest = int(raw.towerBest) ?? 0;
   const run = raw.tower;
   state.tower = run && int(run.floor, 1) ? { floor: run.floor, startPlay: Number(run.startPlay) || 0 } : null;
+  const w = raw.towerWeek;
+  state.towerWeek = w && typeof w.week === 'string'
+    ? { week: w.week.slice(0, 10), best: int(w.best) ?? 0, climbs: int(w.climbs) ?? 0, extra: int(w.extra) ?? 0 } : null;
   const last = raw.towerLast;
   state.towerLast = last && int(last.floors) !== null
     ? { floors: last.floors, defeatedAt: int(last.defeatedAt, 1), seconds: int(last.seconds) ?? 0, at: int(last.at) ?? 0 }

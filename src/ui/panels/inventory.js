@@ -20,6 +20,18 @@ export function visibleItems(state) {
   return listInventory(state, { slot: state.ui.slotFilter, sortBy: state.ui.sortBy });
 }
 
+// v8.4 : les accessoires comptent aussi pour leurs effets (or, butin, critique, épines, dégâts contre les boss…).
+const BONUS_ROWS = {
+  goldPct: ['Or', ' %'], dropChance: ['Chance de butin', ' pts'], xpPct: ['XP', ' %'], critChance: ['Coup critique', ' %'],
+  damageVsBossPct: ['Dégâts contre les boss', ' %'], damageVsNormalPct: ['Dégâts contre les ennemis', ' %'],
+  lifesteal: ['Vol de vie', ' %'], thorns: ['Épines', ' %'], regenPct: ['Régénération', ' %/s'], attackSpeedPct: ['Vitesse d\'attaque', ' %'],
+  skillCooldownPct: ['Recharge des compétences', ' %'], lowHpArmor: ['Armure sous 30 % PV', ' %'],
+};
+function bonusRows(a, b, row) {
+  return Object.entries(BONUS_ROWS).filter(([k]) => Math.abs((a[k] ?? 0) - (b[k] ?? 0)) > 1e-6)
+    .map(([k, [label, unit]]) => row(label, a[k] ?? 0, b[k] ?? 0, (v) => formatDecimal(v), unit)).join('');
+}
+
 function detail(ui, state, item) {
   const rarity = rarityById(item.rarity);
   const base = itemBase(item.baseId);
@@ -49,6 +61,7 @@ function detail(ui, state, item) {
       ${row('Attaques / s', cur.attacksPerSecond, next.attacksPerSecond, (v) => formatDecimal(v, 2))}
       ${row('PV max', cur.maxHp, next.maxHp, int)}
       ${row('Armure', cur.armor, next.armor, (v) => formatDecimal(v), ' %')}
+      ${bonusRows(cur.bonus, next.bonus, row)}
     </div>`;
   }
   const mats = recycleMaterials(item);

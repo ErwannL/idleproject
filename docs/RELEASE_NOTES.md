@@ -1,17 +1,51 @@
-## Idle RPG v8.3.0 — Hauts faits, donjons rééquilibrés, mises à jour en jeu
+## Idle RPG v8.4.0 — progression sans fin, Renaissance qui rend plus fort, aide au joueur
 
-**Installation ou mise à jour :** téléchargez **IdleRPG-8.3.0-setup.exe** et lancez-le (jeu fermé).
-**Votre partie est conservée.** À partir de cette version, le jeton de mise à jour est intégré :
-les versions suivantes s'installent depuis **Paramètres → Version et mises à jour**.
+**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-8.4.0-setup.exe).
+**Votre partie est conservée** ; l'or dépensé en améliorations est **remboursé** (voir ci-dessous).
 
-### Nouveau dans la v8.3
+### Nouvel équilibrage (réglé par simulation du vrai moteur de combat)
+- **Plus de mur** : avant, les PV des ennemis grandissaient ~6 fois plus vite que vos dégâts et tout bloquait
+  vers le monde 4-8 ×2. Désormais :
+  - améliorations Dégâts / PV moins chères (×1,13 par niveau au lieu de ×1,17) avec un **palier ×1,75 tous les
+    25 niveaux** en plus de ceux tous les 10 ; Butin d'or ×1,5 tous les 25 niveaux ;
+  - **les objets grandissent de façon exponentielle** avec leur niveau (×1,03 par niveau) : le stuff compte
+    à nouveau, pensez à le réaffûter ;
+  - **la Renaissance multiplie dégâts, PV et or par 1,5 pour toujours** (×2,25, ×3,4…) et les boss ne se
+    renforcent plus que de 5 % par Renaissance (avant : +60 % !) ;
+  - **niveau maximum du héros : 1 000** (avant 200).
+- **Remboursement** : l'or dépensé dans les améliorations avant la v8.4 est rendu au chargement ;
+  rachetez-les au nouveau prix (« Max »).
+
+### Nouveau
+- **Mort contre un boss** : le chevalier refarme l'étape d'avant (avance auto toujours cochée) et ne retente le boss
+  que quand il est **15 % plus fort** — ou tout de suite avec le bouton **« Retenter le boss »**.
+- **Prévision du prochain boss** (Améliorer, Carte) : le vrai combat est simulé — « battable en ~20 s » ou
+  « il lui resterait 34 % de PV ».
+- **« Que faire ? »** : conseils cliquables (améliorations, meilleur objet, compétences, récompenses, Tour, donjon…).
+- **Bouton « ? »** sur chaque panneau : les règles expliquées en quelques lignes.
+- **Bannière d'invocation de la semaine** : un SSR / Légendaire mis en avant (50 % des Légendaires), garanties
+  avec barres de progression, **historique** des 60 dernières invocations.
+- **Tour de l'Éternité : une ascension par semaine** (lundi). Récompenses au meilleur étage de la semaine
+  + bonus à chaque record absolu.
+- **Comparaison des accessoires** : tous les effets sont comparés (or, chance de butin, critique, épines,
+  dégâts contre les boss…), pas seulement les statistiques de combat.
+- **Nombres** : K, M, B, T puis **aa, ab… zz** (fini les « 423469075433 Qi »).
+- **Vitesse des combats** : ×1 par défaut ; les autres vitesses sont secrètes (codes). À ×100, avertissement
+  et effets visuels coupés.
+
+### Corrigés
+- **Hors ligne** : plus de « +0 partout » après une ascension de la Tour — le jeu farme la meilleure étape
+  réellement farmable et indique si une Tour / un donjon était en cours.
+- **Tour** : les étages déjà battus affichent « récompense déjà récupérée » au lieu de « record battu ».
+
+### v8.3
 - **Hauts faits** (Missions → onglet « Hauts faits ») : 40 défis permanents (ennemis, boss, mondes atteints,
   niveau, objets, invocations, Renaissances, Tour de l'Éternité, équipe, donjons, contrats, or).
   Chacun rapporte des gemmes et **+1 % de dégâts et +1 % d'or pour toujours** (visible dans la fiche du héros).
   « Tout récupérer » les réclame aussi.
 - **Mises à jour en jeu avec le dépôt privé** : jeton en lecture seule intégré à l'installateur à la compilation.
 
-### Équilibrage
+### Équilibrage en v8.3
 - **Donjons** : le mode **Facile** était plus dur que la campagne (ennemis au-dessus de l'étape max, PV ×2,
   dégâts ×1,8). Désormais : Facile = un peu sous votre étape max, sans bonus ; Normal = votre niveau,
   PV ×1,6 ; Difficile = au-dessus, PV ×3.

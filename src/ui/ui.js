@@ -27,6 +27,10 @@ import dungeons from './panels/dungeons.js';
 import tower from './panels/tower.js';
 import { towerUnlocked } from '../core/tower.js';
 import { claimableAchievements } from '../core/achievements.js';
+import { unlockedSpeeds } from '../core/cheats.js';
+import { PRESTIGE } from '../data/prestige.js';
+import { PANEL_HELP } from '../core/guide.js';
+import { heroPower } from '../core/combat.js';
 import hero from './panels/hero.js';
 import inbox from './panels/inbox.js';
 import inventory, { visibleItems } from './panels/inventory.js';
@@ -97,6 +101,11 @@ export class UI {
     root.querySelectorAll('#tabs button').forEach((btn) => btn.addEventListener('click', () => this.toggleTab(btn.dataset.tab)));
     root.querySelectorAll('[data-open]').forEach((btn) => btn.addEventListener('click', () => this.toggleTab(btn.dataset.open)));
     this.$('panel-close').addEventListener('click', () => this.closePanel());
+    this.$('panel-help').addEventListener('click', () => {
+      this.view.helpOpen = this.view.helpOpen === this.tab ? null : this.tab;
+      this.userAt = performance.now();
+      this.invalidate();
+    });
     root.addEventListener('click', (e) => this.onClick(e));
     root.addEventListener('change', (e) => this.onChange(e));
     window.addEventListener('keydown', (e) => {
@@ -108,6 +117,42 @@ export class UI {
     this.updateLayout();
     installShortcuts(this);
     installHoldToRepeat(root);
+  }
+
+  // Après une défaite contre un boss : puissance actuelle / puissance visée, et bouton pour retenter.
+  updateRetry(state) {
+    const r = state.bossRetry;
+    const show = Boolean(r) && !state.dungeon && !state.tower && state.stage === r.stage - 1;
+    const btn = this.$('retry-boss');
+    btn.classList.toggle('hidden', !show);
+    if (!show) return;
+    const now = performance.now();
+    if (now - (this.lastHud.retryAt ?? 0) < 1000) return;
+    this.lastHud.retryAt = now;
+    const pct = Math.min(999, Math.floor((heroPower(state) / (r.power * BALANCE.stages.bossRetryPower)) * 100));
+    this.setText('retry-boss', `Retenter le boss ⚔ (${pct} % de la puissance visée)`);
+  }
+
+  // v8.4 : annonce du nouvel équilibrage (or des améliorations remboursé).
+  showRebalanceNotice(refund) {
+    this.$('modal-card').innerHTML = `<h2>⚖ Nouvel équilibrage (v8.4)</h2>
+      <p>Le jeu ne bloque plus : les améliorations coûtent moins cher en fin de partie (paliers ×1,75 tous les 25 niveaux),
+        les objets grandissent bien plus avec leur niveau, la Renaissance <b>multiplie</b> vos dégâts, PV et or, et le niveau
+        maximum du héros passe à ${BALANCE.level.maxLevel}.</p>
+      <p>Vos améliorations ont été remboursées : <b class="gold-text">+${formatNumber(refund)} or</b>. Rachetez-les au nouveau prix
+        (bouton « Max » dans Améliorer) — vous irez bien plus loin qu'avant.</p>
+      <div class="detail-actions"><button class="btn btn-gold" data-action="close-modal">C'est parti !</button></div>`;
+    this.$('modal').classList.remove('hidden');
+  }
+
+  showSpeedWarning() {
+    this.$('modal-card').innerHTML = `<h2>⚠ Vitesse ×100</h2>
+      <p>À cette vitesse, les combats défilent extrêmement vite. Pour éviter les clignotements (personnes sensibles
+        à l'épilepsie photosensible), <b>les effets visuels sont coupés</b> : plus de flashs, de chiffres de dégâts,
+        de secousses ni de bannières.</p>
+      <div class="detail-actions"><button class="btn" data-action="close-modal">Annuler</button>
+        <button class="btn btn-danger" data-action="confirm-speed100">Activer ×100</button></div>`;
+    this.$('modal').classList.remove('hidden');
   }
 
   showShortcuts() {
@@ -209,6 +254,7 @@ export class UI {
       case 'craft': a.craft(value, el.dataset.tier); break;
       case 'stage': a.selectStage(Number(stage)); break;
       case 'zone-sel': local(() => { v.zoneSel = Number(value); }); break;
+      case 'retry-boss': a.retryBoss(); break;
       case 'advance': a.advance(); break;
       case 'toggle-auto': a.setAutoAdvance(!this.state.autoAdvance); break;
       case 'learn-skill': a.learnSkill(key); break;
@@ -289,6 +335,7 @@ export class UI {
       case 'reset': a.reset(); break;
       case 'close-modal': this.closeModal(); break;
       case 'show-shortcuts': this.showShortcuts(); break;
+      case 'confirm-speed100': this.closeModal(); a.setSpeed(100); break;
       case 'window-size': a.setWindowSize(preset); break;
       default: break;
     }
@@ -433,7 +480,9 @@ export class UI {
         break;
       case 'towerFloor':
         this.banner(`Étage ${event.floor} franchi !`, 'win');
-        this.news(event.record ? `Nouveau record dans la tour : étage ${event.floor} · ${rewardText(event.reward, formatNumber)}` : `Tour : étage ${event.floor} franchi.`, '#c9a6ff');
+        this.news(event.record || event.weekly
+          ? `${event.record ? 'Nouveau record' : 'Meilleur étage de la semaine'} dans la tour : étage ${event.floor} · ${rewardText(event.reward, formatNumber)}`
+          : `Tour : étage ${event.floor} franchi.`, '#c9a6ff');
         this.invalidate();
         break;
       case 'towerFailed':
@@ -448,7 +497,9 @@ export class UI {
         break;
       case 'heroDeath':
         this.banner(`Vaincu… retour à l'étape ${stageLabel(event.to)}`, 'lose');
-        this.news(state?.autoAdvance === false ? 'Mode farm : améliorez le chevalier puis appuyez sur « Avancer ».' : 'Le chevalier refait l\'étape précédente puis retente automatiquement.');
+        this.news(state?.autoAdvance === false ? 'Mode farm : améliorez le chevalier puis appuyez sur « Avancer ».'
+          : event.boss ? 'Le chevalier refarme l\'étape précédente et retentera le boss quand il sera 15 % plus fort (ou « Retenter le boss »).'
+            : 'Le chevalier refait l\'étape précédente puis retente automatiquement.');
         if (this.tab === 'campaign') this.invalidate();
         break;
       default:
@@ -489,6 +540,7 @@ export class UI {
   }
 
   banner(text, kind) {
+    if ((this.speed ?? 1) >= 100) return; // ×100 : pas de bannières clignotantes
     const el = this.$('banner');
     el.className = kind;
     el.textContent = text;
@@ -519,7 +571,10 @@ export class UI {
     this.setText('top-level', `Niv. ${state.level}`);
     this.setText('top-stage', state.tower ? `Tour de l'Éternité · étage ${state.tower.floor}` : state.dungeon ? `Donjon · ${dungeonById(state.dungeon.id)?.name ?? ''}` : `Étape ${stageLabel(state.stage)} · ${zoneForStage(state.stage).name}`);
     this.setText('auto-toggle', state.autoAdvance ? '⏵ Avance auto' : '⏸ Farm');
+    this.speed = state.ui.speed ?? 1;
     this.setText('speed-toggle', `⏩ ×${state.ui.speed ?? 1}`);
+    this.$('speed-toggle').classList.toggle('hidden', unlockedSpeeds(state).length < 2);
+    this.root.classList.toggle('speed-max', (state.ui.speed ?? 1) >= 100);
     this.$('speed-toggle').classList.toggle('fast', (state.ui.speed ?? 1) > 1);
     this.$('auto-toggle').classList.toggle('off', !state.autoAdvance);
     this.$('auto-toggle').classList.toggle('hidden', Boolean(state.dungeon || state.tower));
@@ -527,6 +582,7 @@ export class UI {
     this.updateZoneCard(state);
     this.updateProgress(state, world);
     this.$('advance-btn').classList.toggle('hidden', state.autoAdvance || Boolean(state.dungeon || state.tower));
+    this.updateRetry(state);
     this.updateBadges(state);
     this.updateTabs(state);
 
@@ -730,7 +786,9 @@ export class UI {
     const focused = document.activeElement && body.contains(document.activeElement) ? document.activeElement : null;
     const focusSel = focused ? selectorFor(focused) : null;
     const focusIndex = focused ? focusables(this).indexOf(focused) : -1;
-    body.innerHTML = panel.render(this, state);
+    const help = this.view.helpOpen === this.tab && PANEL_HELP[this.tab]
+      ? `<div class="card panel-help-card"><b>Comment ça marche ?</b> ${PANEL_HELP[this.tab]}</div>` : '';
+    body.innerHTML = help + panel.render(this, state);
     body.scrollTop = scroll;
     if (focused) {
       const again = (focusSel && body.querySelector(focusSel)) || focusables(this)[focusIndex];
@@ -774,7 +832,8 @@ export class UI {
       <p>Vous gagnerez <b class="gold-text">+${rebirthReward(state)} fragments anciens</b> à investir dans l'arbre de talents.</p>
       ${keepResetLists()}
       ${powerChoice(state)}
-      <p class="muted">Les boss s'adapteront : plus durs, mais leurs récompenses augmentent à chaque Renaissance.</p>
+      <p><b class="good">Après cette Renaissance : dégâts, PV et or ×${String(PRESTIGE.rebirthMultiplier).replace('.', ',')} pour toujours</b> (cumulatif).</p>
+      <p class="muted">Les boss ne se renforcent que de ${BALANCE.stages.rebirthBossPct} % par Renaissance, et leurs récompenses augmentent.</p>
       <div class="detail-actions">
         <button class="btn" data-action="close-modal">Annuler</button>
         <button class="btn btn-gold" data-action="confirm-rebirth">Confirmer la Renaissance</button>
@@ -806,7 +865,9 @@ export class UI {
         ${items ? `<div class="loot-row">${items}</div>` : ''}
         ${mats.shards || mats.essence ? `<p>Matériaux : ${mats.shards ? `+${formatNumber(mats.shards)} éclats` : ''}${mats.shards && mats.essence ? ' · ' : ''}${mats.essence ? `+${formatNumber(mats.essence)} essences` : ''}</p>` : ''}
         <p>Contrats et missions : <b>+${formatNumber(summary.kills)}</b> monstres comptés.</p>
-        <p class="muted">Hors ligne, le chevalier farme l'étape ${stageLabel(summary.stage)} à ${BALANCE.offline.farmMultiplier * 100} % de son rythme actif, sans avancer
+        ${summary.paused === 'tower' ? '<p class="bad">Vous étiez dans la Tour de l\'Éternité : elle ne progresse pas hors ligne (l\'ascension reprend à votre retour).</p>' : ''}
+        ${summary.paused === 'dungeon' ? '<p class="bad">Vous étiez dans un donjon : il ne progresse pas hors ligne (l\'expédition reprend à votre retour).</p>' : ''}
+        <p class="muted">Hors ligne, le chevalier farme l'étape ${stageLabel(summary.stage)} (la meilleure qu'il peut vraiment farmer) à ${BALANCE.offline.farmMultiplier * 100} % de son rythme actif, sans avancer
           et sans affronter de boss (ils se battent en jeu).</p>
         <button class="btn btn-primary" data-action="close-modal">Continuer</button>`;
     }

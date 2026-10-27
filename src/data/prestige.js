@@ -6,7 +6,8 @@ export const PRESTIGE = {
   minStage: 121, // avoir terminé le monde 6 (méga boss de l'étape 120)
   starsBase: 1,
   starsPerStages: 60, // +1 étoile par tranche de 60 étapes au-delà
-  perPrestige: { damagePct: 10, goldPct: 10 }, // bonus permanent par Renaissance effectuée
+  perPrestige: {}, // v8.4 : remplacé par le multiplicateur ci-dessous
+  rebirthMultiplier: 1.5, // v8.4 : dégâts, PV et or ×1,5 par Renaissance (multiplicatif)
   perkCostFragments: 10, // coût du niveau n = 10 × (n + 1) fragments
   legacyStarFragments: 10, // anciennes étoiles de prestige converties en fragments
   fragmentBonusPct: 25, // fragments de Renaissance +25 % par Prestige

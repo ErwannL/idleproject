@@ -147,7 +147,8 @@ export function compareWithEquipped(state, item, balance = BALANCE) {
 // Avant, « un peu plus de PV » suffisait, même avec beaucoup moins d'armure : presque tout était protégé
 // du recyclage. Les stats secondaires (or, XP, vol de vie, épines, régénération) départagent les égalités.
 const ehp = (s) => s.maxHp / Math.max(0.05, 1 - s.armor / 100);
-const extras = (s) => s.goldPct + s.xpPct + s.lifesteal + s.thorns + (s.regenPerSecond / s.maxHp) * 100;
+const extras = (s) => s.goldPct + s.xpPct + s.lifesteal + s.thorns + (s.regenPerSecond / s.maxHp) * 100
+  + (s.bonus?.dropChance ?? 0) * 3 + (s.bonus?.damageVsBossPct ?? 0) + (s.bonus?.damageVsNormalPct ?? 0) * 0.5;
 export function isUpgrade(state, item, balance = BALANCE, current = computeHeroStats(state, balance)) {
   if (!state.equipment[item.slot]) return true; // emplacement vide (accessoires en particulier)
   const next = statsWithItem(state, item, balance);

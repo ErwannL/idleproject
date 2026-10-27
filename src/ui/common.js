@@ -57,3 +57,20 @@ export function stars(n, max = 5) {
 
 export const slotLabel = (slot) => SLOTS[slot] ?? 'Tous';
 export { formatDecimal, formatNumber };
+
+// v8.4 : prévision du prochain boss (combat simulé), mise en cache quelques secondes.
+let forecastCache = { key: '', at: 0, value: null };
+export function bossForecast(state, forecast) {
+  const key = `${state.stage}|${JSON.stringify(state.upgrades)}|${Object.values(state.equipment).map((i) => i?.id).join()}|${state.level}|${state.companions.equipped.join()}`;
+  const now = Date.now();
+  if (forecastCache.key !== key || now - forecastCache.at > 8000) forecastCache = { key, at: now, value: forecast(state) };
+  return forecastCache.value;
+}
+
+export function forecastHtml(f) {
+  if (!f) return '';
+  return f.win
+    ? `<div class="forecast good">⚔ Prochain boss (étape ${f.stage}) : <b>battable</b> en ~${f.seconds} s.</div>`
+    : `<div class="forecast bad">⚔ Prochain boss (étape ${f.stage}) : pas encore — il lui resterait <b>${f.bossHpPct} %</b> de PV.
+        Améliorez Dégâts / PV, l'équipement ou l'équipe.</div>`;
+}

@@ -4,7 +4,7 @@
 export const BALANCE = {
   simulation: {
     tickSeconds: 0.05, // pas fixe de la simulation
-    speeds: [1, 2, 5, 10], // vitesses de combat au choix du joueur
+    speeds: [1, 2, 5, 10, 100], // v8.4 : ×1 par défaut ; les autres se débloquent avec des codes
     maxCatchUpSeconds: 600, // au-delà (veille, onglet gelé), on applique le calcul hors ligne
   },
   autosaveSeconds: 10,
@@ -42,34 +42,41 @@ export const BALANCE = {
     bossXpMultiplier: 10,
     damagePctPerLevel: 2,
     hpPctPerLevel: 2,
-    maxLevel: 200,
+    maxLevel: 1000, // v8.4 : 200 → 1000
   },
 
   upgrades: {
     damage: {
       label: 'Dégâts',
-      description: '+3 dégâts par niveau, ×1,35 tous les 10 niveaux',
+      description: '+3 dégâts par niveau, ×1,35 tous les 10 niveaux, ×1,75 tous les 25 niveaux',
       baseCost: 10,
-      costGrowth: 1.17,
+      costGrowth: 1.13, // v8.4 : 1,17 → 1,13 (réglé par simulation : progression qui ralentit sans mur)
+      oldCostGrowth: 1.17, // pour rembourser l'or dépensé avant la v8.4
       perLevel: 3,
       milestoneEvery: 10,
       milestoneMultiplier: 1.35,
+      bigMilestoneEvery: 25,
+      bigMilestoneMultiplier: 1.75,
     },
     attackSpeed: {
       label: "Vitesse d'attaque",
       description: "-3 % d'intervalle entre deux attaques (rendements décroissants au-delà de 3 att./s)",
       baseCost: 25,
-      costGrowth: 1.22,
+      costGrowth: 1.15,
+      oldCostGrowth: 1.22,
       perLevel: 0.03,
     },
     vitality: {
       label: 'Points de vie',
-      description: '+20 PV max par niveau, ×1,4 tous les 10 niveaux',
+      description: '+20 PV max par niveau, ×1,4 tous les 10 niveaux, ×1,75 tous les 25 niveaux',
       baseCost: 15,
-      costGrowth: 1.16,
+      costGrowth: 1.13,
+      oldCostGrowth: 1.16,
       perLevel: 20,
       milestoneEvery: 10,
       milestoneMultiplier: 1.4,
+      bigMilestoneEvery: 25,
+      bigMilestoneMultiplier: 1.75,
     },
     crit: {
       label: 'Coup critique',
@@ -97,10 +104,13 @@ export const BALANCE = {
     },
     goldFind: {
       label: "Butin d'or",
-      description: "+5 % d'or gagné",
+      description: "+5 % d'or gagné, ×1,5 tous les 25 niveaux",
       baseCost: 80,
-      costGrowth: 1.22,
+      costGrowth: 1.12,
+      oldCostGrowth: 1.22,
       perLevel: 5,
+      bigMilestoneEvery: 25,
+      bigMilestoneMultiplier: 1.5,
     },
   },
   upgradeCategories: [
@@ -124,10 +134,11 @@ export const BALANCE = {
     // Monde 11 : méga boss berserk (et leurs invocations).
     berserk: { hp: 1.8, damage: 1.6, speed: 1.3, gold: 2 },
     // Renaissance : les boss s'adaptent (plus durs) mais rapportent plus.
-    rebirthBossPct: 60, // PV et dégâts des boss +60 % par Renaissance
+    rebirthBossPct: 5, // v8.4 : 60 → 5 (la Renaissance doit rendre plus fort, pas plus faible)
     rebirthRewardPct: 50, // or, gemmes et essences des boss +50 % par Renaissance
     bossGoldMultiplier: 15,
     bossSpawnDelaySeconds: 1.2,
+    bossRetryPower: 1.15, // v8.4 : boss retenté automatiquement à +15 % de puissance
     // Boss par rang (étape du monde) : multiplicateurs appliqués aux valeurs « boss » ci-dessus.
     tiers: {
       mini: { stage: 5, hp: 0.45, damage: 0.85, gold: 0.4, gems: 10 },
@@ -152,7 +163,8 @@ export const BALANCE = {
   loot: {
     dropChance: 0.1,
     bossMinRarity: 'rare',
-    stagePowerGrowth: 0.045, // +4,5 % de stats par niveau d'objet (v7.6 : 2 niveaux = 1 ancien)
+    stagePowerGrowth: 0.045, // +4,5 % de stats par niveau d'objet (linéaire jusqu'à la v8.3)
+    stagePowerExp: 1.03, // v8.4 : croissance exponentielle (×1,03 par niveau d'objet)
     recycleLevelGrowth: 0.05,
     inventorySize: 100, // au-delà, les nouveaux objets sont recyclés en or
     signatureChance: 0.15, // chance qu'un boss lâche son objet signature

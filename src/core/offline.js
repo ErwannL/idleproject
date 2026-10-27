@@ -3,7 +3,7 @@
 // (sans rendu) sur une copie de la partie : les gains hors ligne suivent donc
 // exactement les mêmes règles que le farm actif, sans simuler des heures d'animation.
 import { BALANCE } from '../data/balance.js';
-import { createCombat, step } from './combat.js';
+import { createCombat, isBossStage, step } from './combat.js';
 import { addGold } from './economy.js';
 import { trackContracts } from './contracts.js';
 import { collectItem } from './inventory.js';
@@ -11,12 +11,15 @@ import { addXp } from './level.js';
 import { generateItem, recycleValue } from './loot.js';
 import { Rng } from './rng.js';
 
-export function measureFarmRate(state, balance = BALANCE, seconds = balance.offline.measureSeconds) {
+function measureAt(state, stage, balance, seconds) {
   const clone = structuredClone(state);
-  clone.autoAdvance = false; // hors ligne : on farme l'étape atteinte, sans progresser
-  clone.dungeon = null;
-  clone.tower = null; // un donjon en cours est mis en pause : on mesure le farm de campagne
+  clone.autoAdvance = false; // hors ligne : on farme l'étape, sans progresser
+  clone.dungeon = null; // donjon ou tour en cours : mis en pause, on mesure le farm de campagne
+  clone.tower = null;
   clone.inventory = [];
+  clone.stage = stage;
+  if (isBossStage(stage, balance)) clone.stage = Math.max(1, stage - 1); // jamais de boss hors ligne
+  const start = clone.stage;
   const world = createCombat(clone, balance);
   world.recordEvents = false;
   const rng = new Rng(state.rngSeed ^ 0x5bd1e995);
@@ -28,8 +31,21 @@ export function measureFarmRate(state, balance = BALANCE, seconds = balance.offl
     killsPerSecond: world.counters.kills / seconds,
     dropsPerSecond: world.counters.drops / seconds,
     xpPerSecond: world.counters.xp / seconds,
-    stage: clone.stage,
+    stage: start,
+    died: clone.stage < start,
   };
+}
+
+// v8.4 : on farme la meilleure étape VRAIMENT farmable (avant : l'étape actuelle, même si le héros
+// n'y tuait rien — par ex. après une ascension de la Tour → « +0 » partout).
+export function measureFarmRate(state, balance = BALANCE, seconds = balance.offline.measureSeconds) {
+  let stage = state.stage;
+  let rate = measureAt(state, stage, balance, seconds);
+  for (let tries = 0; tries < 8 && (rate.died || rate.killsPerSecond <= 0) && stage > 1; tries++) {
+    stage = Math.max(1, Math.min(rate.stage - 1, stage - Math.max(1, Math.round(stage * 0.08 * (tries + 1)))));
+    rate = measureAt(state, stage, balance, seconds);
+  }
+  return { ...rate, paused: state.tower ? 'tower' : state.dungeon ? 'dungeon' : null };
 }
 
 // fromMs / nowMs : horodatages en millisecondes (Date.now()).
@@ -75,6 +91,7 @@ export function computeOfflineRewards(state, fromMs, nowMs, rng, balance = BALAN
     excessDrops,
     excessGold,
     stage: rate.stage,
+    paused: rate.paused,
   };
 }
 

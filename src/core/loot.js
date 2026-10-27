@@ -36,7 +36,8 @@ export function itemStatValue(stat, baseValue, rarity, level, balance = BALANCE)
   // Les bonus sont amplifiés par la rareté, les malus (ex. hache plus lente) non.
   let value = baseValue > 0 ? baseValue * rarity.statMultiplier : baseValue;
   if (PERCENT_STATS.has(stat)) return Math.round(value * 10) / 10;
-  value *= 1 + balance.loot.stagePowerGrowth * (level - 1);
+  // v8.4 : croissance exponentielle avec le niveau (les ennemis grandissent aussi exponentiellement).
+  value *= balance.loot.stagePowerExp ? balance.loot.stagePowerExp ** (level - 1) : 1 + balance.loot.stagePowerGrowth * (level - 1);
   return Math.round(value);
 }
 

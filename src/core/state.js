@@ -11,14 +11,14 @@ import { TALENTS } from '../data/rebirth.js';
 import { SKILLS } from '../data/skills.js';
 import { ensureContracts } from './contracts.js';
 import { emptyMissions, sanitizeMissions } from './missions.js';
-import { itemBase, makeItem, rarityById } from './loot.js';
+import { itemBase, makeItem, rarityById, refreshItemStats } from './loot.js';
 import { bossDungeon, bossFirstStage, powerSlots, rollPower } from './powers.js';
 import { Rng } from './rng.js';
 import { clampTeam } from './companions.js';
 import { sanitizePrestige } from './prestige.js';
 import { PRESTIGE } from '../data/prestige.js';
 import { sanitizeRushes } from './rushes.js';
-import { sanitizeCheats } from './cheats.js';
+import { sanitizeCheats, unlockedSpeeds } from './cheats.js';
 import { sanitizeTower } from './tower.js';
 import { sanitizeAchievements } from './achievements.js';
 import { emptyLoadouts, sanitizeLoadouts } from './loadouts.js';
@@ -26,7 +26,7 @@ import { sanitizeCodex } from './codex.js';
 
 // v1 : prototype · v2 (format identique) · v3 : pouvoirs, Renaissance, verrou
 // v4 : niveau, compétences, héros, compagnons, invocation, contrats, événements, matériaux, donjons.
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6; // v8.4 : nouvel équilibrage (remboursement des améliorations)
 export const SORT_OPTIONS = ['rarity', 'level', 'power', 'recent'];
 
 export function createNewState(now = Date.now(), seed = Math.floor(Math.random() * 2 ** 32)) {
@@ -73,13 +73,14 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     dungeonBest: {}, // meilleure difficulté réussie par donjon (0 facile, 1 normal, 2 difficile)
     tower: null, // v8.2 : ascension en cours de la Tour de l'Éternité { floor, startPlay }
     towerBest: 0,
+    bossRetry: null, // v8.4 : { stage, power } après une défaite contre un boss
     achievements: { claimed: {} }, // v8.3 : hauts faits réclamés
     towerLast: null,
     dungeonRuns: {}, // v8.1 : « donjon:difficulté » → { last, best, tries } (rapports d'expédition)
     missions: emptyMissions(),
     prestige: { count: 0, stars: 0, perks: {} },
     rushes: { levels: {}, active: {}, cooldown: {}, auto: false }, // boosts à durée limitée
-    cheats: { effects: [], reveal: false },
+    cheats: { effects: [], reveal: false, speeds: [] },
     loadouts: emptyLoadouts(),
     codex: { kills: {}, items: {}, claimed: {} },
     playSeconds: 0, // temps de jeu cumulé (boost des premières heures)
@@ -174,6 +175,10 @@ function cleanCollections(state, raw) {
 
   const summon = obj(raw.summon);
   state.summon = { total: int(summon.total, 0), sinceEpic: int(summon.sinceEpic, 0), sinceLegendary: int(summon.sinceLegendary, 0) };
+  if (Array.isArray(summon.history)) {
+    state.summon.history = summon.history.filter((h) => h && typeof h.id === 'string' && typeof h.rarity === 'string')
+      .slice(0, 60).map((h) => ({ id: h.id, rarity: h.rarity, at: int(h.at, 0) }));
+  }
 }
 
 function cleanActivities(state, raw) {
@@ -197,6 +202,8 @@ function cleanActivities(state, raw) {
   state.cheats = sanitizeCheats(raw.cheats);
   sanitizeTower(state, raw);
   state.achievements = sanitizeAchievements(raw.achievements);
+  const br = raw.bossRetry;
+  state.bossRetry = br && Number.isInteger(br.stage) && br.stage > 0 && Number.isFinite(br.power) && br.power > 0 ? { stage: br.stage, power: br.power } : null;
   if (state.tower && raw.dungeon) state.tower = null; // jamais les deux à la fois
   state.loadouts = sanitizeLoadouts(raw.loadouts);
   state.codex = sanitizeCodex(raw.codex);
@@ -279,6 +286,20 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   for (const key of Object.keys(state.upgrades)) {
     state.upgrades[key] = Math.min(int(raw.upgrades?.[key], 0), balance.upgrades[key].maxLevel ?? Infinity);
   }
+  // v8.4 : les coûts des améliorations changent → l'or dépensé avant est remboursé, à racheter au nouveau prix.
+  if (int(raw.version, 1) < 6) {
+    let refund = 0;
+    for (const [key, up] of Object.entries(balance.upgrades)) {
+      const L = state.upgrades[key];
+      if (!up.oldCostGrowth || !L) continue;
+      refund += up.baseCost * (up.oldCostGrowth ** L - 1) / (up.oldCostGrowth - 1);
+      state.upgrades[key] = 0;
+    }
+    if (refund > 0 && Number.isFinite(refund)) {
+      state.gold += Math.floor(refund);
+      state.migrationRefund = Math.floor(refund);
+    }
+  }
   state.maxStage = int(raw.maxStage, 1, 1);
   state.stage = Math.min(int(raw.stage, 1, 1), state.maxStage);
   state.kills = Math.min(int(raw.kills, 0), balance.stages.killsPerStage);
@@ -319,6 +340,10 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   const materials = obj(raw.materials);
   state.materials = { shards: int(materials.shards, 0), essence: int(materials.essence, 0) };
 
+  // v8.4 : statistiques des objets recalculées (croissance exponentielle avec le niveau).
+  if (int(raw.version, 1) < 6) {
+    for (const item of [...state.inventory, ...Object.values(state.equipment)]) if (item) refreshItemStats(item, balance);
+  }
   cleanPowers(state, raw);
   cleanCollections(state, raw);
   cleanActivities(state, raw);
@@ -347,7 +372,8 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     if (typeof raw.ui.notify === 'object' && raw.ui.notify) state.ui.notify = { ...state.ui.notify, ...raw.ui.notify };
     state.ui.focus = raw.ui.focus === true;
     if (raw.ui.cinematics === false) state.ui.cinematics = false;
-    if ([1, 2, 5, 10].includes(raw.ui.speed)) state.ui.speed = raw.ui.speed;
+    // v8.4 : seules les vitesses débloquées par code sont gardées (sinon ×1).
+    if (unlockedSpeeds(state).includes(raw.ui.speed)) state.ui.speed = raw.ui.speed;
     if (SORT_OPTIONS.includes(raw.ui.sortBy)) state.ui.sortBy = raw.ui.sortBy;
   }
   return state;
