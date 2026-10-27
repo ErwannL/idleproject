@@ -8,7 +8,7 @@ const MOVE_TOLERANCE = 6; // px
 // Seulement les actions qu'on veut répéter (achats, améliorations, invocations, réclamations, zoom…) :
 // jamais une confirmation (Renaissance, recyclage groupé, réinitialisation…).
 export const REPEATABLE = new Set(['buy', 'upgrade-item', 'sharpen', 'reforge', 'craft', 'fuse', 'learn-skill', 'upgrade-companion',
-  'summon', 'buy-talent', 'buy-perk', 'upgrade-rush', 'reroll', 'claim-contract', 'claim-mission', 'claim-event',
+  'summon', 'cheat', 'buy-talent', 'buy-perk', 'upgrade-rush', 'reroll', 'claim-contract', 'claim-mission', 'claim-event',
   'buy-merchant', 'map-zoom', 'tree-zoom', 'claim-collection']);
 
 // Sélecteur qui retrouve « le même » bouton après un redessin du panneau.

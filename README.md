@@ -250,7 +250,8 @@ puis Tour de l'Éternité, navigation complète au clavier et méga boss réanim
 puis hauts faits et donjons rééquilibrés (v8.3),
 puis progression sans fin, Renaissance multiplicative et aide au joueur (v8.4),
 puis arbre de 511 talents, expéditions, ensembles d'équipement, défi de la semaine, journal et fin des gels (v8.5),
-puis arbre entièrement visible, barres Boosts / Compétences et code « combats passés » (v8.6) :
+puis arbre entièrement visible, barres Boosts / Compétences et code « combats passés » (v8.6),
+puis codes secrets sans limite, Tour qui finit et arbre aux couleurs des régions (v8.7) :
 voir `docs/RELEASE_NOTES.md`.
 
 ## v4

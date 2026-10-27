@@ -4,7 +4,7 @@
 import { BOSSES } from '../data/enemies.js';
 import { grantReward } from './rewards.js';
 
-export const TOWER = { unlockStage: 40, floorLevel: 3, milestone: 10, climbsPerWeek: 1 };
+export const TOWER = { unlockStage: 40, floorLevel: 3, milestone: 10, climbsPerWeek: 1, steepness: 40 };
 
 // v8.4 : une ascension par semaine (remise à zéro le lundi, heure locale). Récompenses :
 // - record absolu (une seule fois par étage, à vie) : towerReward ;
@@ -44,9 +44,10 @@ export function towerBoss(floor) {
   return OTHERS[(floor * 7 + 3) % OTHERS.length];
 }
 
-// Niveau des ennemis : part d'environ la moitié de l'étape max, +3 niveaux par étage.
+// Niveau des ennemis : part d'environ la moitié de l'étape max, +3 niveaux par étage, et (v8.7) une pente qui
+// s'accentue : +f²/40 niveaux (étage 100 : +250, étage 400 : +4 000). Une ascension finit toujours par s'arrêter.
 export function towerLevel(state, floor) {
-  return Math.max(20, Math.round(state.maxStage * 0.5)) + floor * TOWER.floorLevel;
+  return Math.max(20, Math.round(state.maxStage * 0.5)) + floor * TOWER.floorLevel + Math.floor((floor * floor) / TOWER.steepness);
 }
 
 // Récompense d'un nouveau record : gemmes à chaque étage, fragments tous les 5, ticket + clé tous les 10.

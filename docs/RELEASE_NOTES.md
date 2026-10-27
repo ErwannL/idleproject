@@ -1,8 +1,26 @@
-## Idle RPG v8.6.0 — arbre entièrement visible, boosts et compétences bien distincts, code « combats passés »
+## Idle RPG v8.7.0 — codes sans limite, Tour qui finit, arbre aux couleurs des régions
 
-**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-8.6.0-setup.exe). Votre partie est conservée.
+**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-8.7.0-setup.exe). Votre partie est conservée.
 
 ### Corrigés
+- **« Entrer dans le donjon » grisé avec 42 clés** : ce n'était pas les clés — on ne peut pas entrer dans un donjon
+  pendant une ascension de la Tour (ou un défi). Le bouton l'explique maintenant, et un bouton **« ⟲ Quitter la Tour »**
+  (ou « Abandonner le défi / le donjon ») est toujours visible sur la scène.
+- **Tour de l'Éternité sans fin** : les étages se durcissaient trop lentement (+3 niveaux par étage). La pente
+  s'accentue désormais (+f²/40 niveaux : étage 100 = +250, étage 400 = +4 000) : une ascension s'arrête toujours.
+- **Arbre de talents** : plus de mini-carte ; l'arbre lui-même prend les couleurs de ses régions (talents appris
+  et liens colorés, halo sur les talents au maximum) au lieu d'un vert uniforme.
+
+### Codes secrets
+- **Plus de durée** : un code reste actif jusqu'à ce que vous le retiriez.
+- **Champ « × fois »** à côté du code : appliquez-le jusqu'à **1 milliard de fois d'un coup** (TURBO1000, DIAMONDS,
+  GEMRAIN…). Entrée valide ; bouton « Valider » maintenu = validations en continu.
+- **Codes actifs** listés avec leur nombre de saisies : **Retirer** (le nombre indiqué dans « × fois »),
+  **Tout ce code**, ou **Tout annuler**. Les multiplicateurs sont plafonnés à ×1e60 pour ne jamais casser les nombres.
+- **Animation de changement de monde** aussi dans la Tour (nouveau décor tous les 10 étages), au plus une toutes
+  les 15 s même en combats passés.
+
+### v8.6 — arbre entièrement visible, boosts et compétences bien distincts, code « combats passés »
 - **Arbre de talents** : on ne voyait pas le haut (ni le bas) de l'arbre — le panneau défilait en même temps que
   l'arbre et le cachait sous sa barre de titre. L'arbre remplit maintenant exactement le panneau, la **molette
   déplace l'arbre** (Maj = horizontalement, Ctrl = zoom) et chaque onglet s'ouvre en haut.

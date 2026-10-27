@@ -27,3 +27,13 @@ test('v8.6 : les boosts ont leurs propres icônes (plus de réemploi des compét
   }
   for (const id of boostIcons) assert.ok(ART[id], `icône générée : ${id}`);
 });
+
+test('v8.7 : la Tour se durcit de plus en plus vite (une ascension finit toujours)', async () => {
+  const { towerLevel } = await import('../src/core/tower.js');
+  const s = createNewState(Date.now(), 2);
+  s.maxStage = 400;
+  const d1 = towerLevel(s, 101) - towerLevel(s, 100);
+  const d2 = towerLevel(s, 401) - towerLevel(s, 400);
+  assert.ok(d2 > d1 * 2.5, `${d1} → ${d2}`);
+  assert.ok(towerLevel(s, 429) > 200 + 429 * 3 + 4000);
+});

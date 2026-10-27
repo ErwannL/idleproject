@@ -204,6 +204,8 @@ function dungeonsList(ui, state) {
       </div>
       ${locked ? `<div class="bad">Débloqué à l'étape ${stageLabel(sel.unlockStage)}.</div>`
         : `<button class="btn btn-gold enter-btn" data-action="enter-dungeon" data-value="${sel.id}" ${canEnterDungeon(state, sel.id) ? '' : 'disabled'}>Entrer dans le donjon · ${diff.label} — 1 ${img('icon_key')}</button>
+          ${state.tower ? '<div class="bad">Vous êtes dans la Tour de l\'Éternité : quittez-la d\'abord (onglet Tour ou bouton « Quitter » sur la scène).</div>' : ''}
+          ${state.challenge ? '<div class="bad">Défi de la semaine en cours : terminez-le ou abandonnez-le d\'abord (en haut de cet onglet).</div>' : ''}
           ${state.keys < 1 ? '<div class="muted">Clés : contrats « Vaincre des boss », missions et événements.</div>' : ''}`}
     </div>`;
   return `<div class="dungeon-layout">

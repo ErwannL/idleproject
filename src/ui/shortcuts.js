@@ -89,6 +89,11 @@ export function installShortcuts(ui) {
     const typing = t && (t.tagName === 'INPUT' && t.type !== 'checkbox' && t.type !== 'range' || t.tagName === 'TEXTAREA' || t.isContentEditable);
     if (typing) {
       if (e.key === 'Escape') t.blur();
+      // Codes secrets : Entrée valide (et répète tant qu'elle est maintenue).
+      if (e.key === 'Enter' && (t.id === 'cheat-code' || t.id === 'cheat-times')) {
+        e.preventDefault();
+        ui.root.querySelector('[data-action="cheat"]')?.click();
+      }
       return;
     }
     // Animation d'invocation ouverte : Entrée / Espace / Échap la font avancer.

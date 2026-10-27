@@ -47,6 +47,7 @@ const SPAN = EXTENT * 2;
 const TREE_PX = SPAN * UNIT;
 const pctX = (t) => ((t.x + EXTENT) / SPAN) * 100;
 const pctY = (t) => ((t.y + EXTENT) / SPAN) * 100;
+const REGION_COLOR = Object.fromEntries(TALENT_BRANCHES.filter((b) => b.id !== 'bridge').map((b) => [b.id, b.color]));
 const KIND_LABEL = { core: 'Cœur', small: 'Talent', notable: 'Notable', keystone: 'Clé de voûte' };
 const LINKS = (() => {
   const out = [];
@@ -72,15 +73,6 @@ export function recenterTree() { centeredAt = null; }
 function nodeState(state, t) {
   const level = state.talents[t.id] ?? 0;
   return level >= t.max ? 'maxed' : level > 0 ? 'owned' : talentUnlocked(state, t) ? 'open' : talentConnected(state, t) ? 'gated' : 'locked';
-}
-
-function minimap(state) {
-  const dots = TALENTS.map((t) => {
-    const st = nodeState(state, t);
-    const color = st === 'maxed' || st === 'owned' ? (TALENT_BRANCHES.find((b) => b.id === t.region)?.color ?? '#ffe08a') : st === 'open' ? '#c98a35' : '#3a3d45';
-    return `<circle cx="${(t.x + EXTENT).toFixed(2)}" cy="${(t.y + EXTENT).toFixed(2)}" r="${t.kind === 'small' ? 0.28 : 0.45}" fill="${color}"/>`;
-  }).join('');
-  return `<div class="tree-minimap" title="Mini-carte : cliquer pour s'y rendre"><svg viewBox="0 0 ${SPAN} ${SPAN}">${dots}<rect class="mm-view" x="0" y="0" width="0" height="0"/></svg></div>`;
 }
 
 function regionSummary(state) {
@@ -124,15 +116,6 @@ export default {
     const top = vp.getBoundingClientRect().top - body.getBoundingClientRect().top + body.scrollTop;
     const below = (body.querySelector('.tree-legend')?.offsetHeight ?? 0) + (body.querySelector('.tree-hint')?.offsetHeight ?? 0) + 28;
     vp.style.height = `${Math.round(Math.max(200, Math.min(1200, body.clientHeight - top - below)))}px`;
-    const mmRect = body.querySelector('.mm-view');
-    const syncMinimap = () => {
-      if (!mmRect) return;
-      const k = SPAN / vp.scrollWidth;
-      mmRect.setAttribute('x', vp.scrollLeft * k);
-      mmRect.setAttribute('y', vp.scrollTop * k);
-      mmRect.setAttribute('width', vp.clientWidth * k);
-      mmRect.setAttribute('height', vp.clientHeight * k);
-    };
     // Centre sur la partie de l'arbre réellement visible (le panneau peut couper le bas de la fenêtre).
     const centerOn = (ux, uy) => {
       const visibleH = Math.max(60, Math.min(vp.clientHeight, body.getBoundingClientRect().bottom - vp.getBoundingClientRect().top));
@@ -146,8 +129,7 @@ export default {
     } else if (ui.view.treeScroll) {
       [vp.scrollLeft, vp.scrollTop] = ui.view.treeScroll;
     }
-    syncMinimap();
-    vp.addEventListener('scroll', () => { ui.view.treeScroll = [vp.scrollLeft, vp.scrollTop]; syncMinimap(); });
+    vp.addEventListener('scroll', () => { ui.view.treeScroll = [vp.scrollLeft, vp.scrollTop]; });
     // Molette : déplace l'arbre (Maj = horizontalement), Ctrl + molette : zoom. Le panneau ne défile pas.
     vp.addEventListener('wheel', (e) => {
       e.preventDefault();
@@ -174,11 +156,6 @@ export default {
     const stop = () => { drag = null; vp.classList.remove('dragging'); };
     vp.addEventListener('pointerup', stop);
     vp.addEventListener('pointercancel', stop);
-    // Mini-carte : un clic centre la vue à cet endroit.
-    body.querySelector('.tree-minimap svg')?.addEventListener('click', (e) => {
-      const r = e.currentTarget.getBoundingClientRect();
-      centerOn(((e.clientX - r.left) / r.width) * SPAN - EXTENT, ((e.clientY - r.top) / r.height) * SPAN - EXTENT);
-    });
     // Recherche : surligne les talents correspondants sans redessiner le panneau.
     const input = body.querySelector('#tree-search');
     const highlight = () => {
@@ -196,9 +173,11 @@ export default {
     const selPath = !(state.talents[sel.id] ?? 0) && !talentConnected(state, sel) ? new Set(talentPath(state, sel.id) ?? []) : new Set();
     const hits = treeSearchHits(ui.view.treeSearch);
     const owned = (id) => (state.talents[id] ?? 0) > 0;
+    // v8.7 : liens appris à la couleur de leur région (plus de mini-carte : l'arbre lui-même est coloré).
     const links = LINKS.map(([a, b]) => {
       const cls = owned(a.id) && owned(b.id) ? 'on' : owned(a.id) || owned(b.id) ? 'half' : selPath.has(a.id) && (selPath.has(b.id) || owned(b.id)) ? 'path' : '';
-      return `<line x1="${(a.x + EXTENT).toFixed(2)}" y1="${(a.y + EXTENT).toFixed(2)}" x2="${(b.x + EXTENT).toFixed(2)}" y2="${(b.y + EXTENT).toFixed(2)}"${cls ? ` class="${cls}"` : ''}/>`;
+      const color = cls === 'on' ? REGION_COLOR[a.region] ?? REGION_COLOR[b.region] : null;
+      return `<line x1="${(a.x + EXTENT).toFixed(2)}" y1="${(a.y + EXTENT).toFixed(2)}" x2="${(b.x + EXTENT).toFixed(2)}" y2="${(b.y + EXTENT).toFixed(2)}"${cls ? ` class="${cls}"` : ''}${color ? ` style="stroke:${color}"` : ''}/>`;
     }).join('');
     const nodes = TALENTS.map((t) => {
       const level = state.talents[t.id] ?? 0;
@@ -220,7 +199,7 @@ export default {
         <button class="btn small" data-action="tree-zoom" data-value="in" title="Zoomer">+</button>
         <button class="btn small" data-action="tree-zoom" data-value="reset" title="Taille normale, centrée sur le talent choisi">⟲</button></div>
       <div class="tree-wrap"><div class="tree-viewport"><div class="rune-tree" style="width:${Math.round(TREE_PX * zoom)}px;height:${Math.round(TREE_PX * zoom)}px">
-      <svg viewBox="0 0 ${SPAN} ${SPAN}" preserveAspectRatio="none" aria-hidden="true">${links}</svg>${nodes}</div></div>${minimap(state)}</div>
+      <svg viewBox="0 0 ${SPAN} ${SPAN}" preserveAspectRatio="none" aria-hidden="true">${links}</svg>${nodes}</div></div></div>
       <div class="tree-legend">${regionSummary(state)}</div>
       <div class="muted tree-hint">Un talent s'apprend dès qu'un talent voisin est appris. Petits nœuds : 3 niveaux · ◆ notables · ⬢ clés de voûte (effets puissants, parfois avec un prix).
         Glissez ou utilisez la molette pour vous déplacer, Ctrl + molette pour zoomer.</div>`;

@@ -41,7 +41,7 @@ import { SceneRenderer } from './render/scene.js';
 import { UI } from './ui/ui.js';
 import { animateMenus } from './ui/animator.js';
 import { createGameAudio } from './audio/game-audio.js';
-import { applyCheat, simSpeed, unlockedSpeeds } from './core/cheats.js';
+import { applyCheat, removeCheat, simSpeed, unlockedSpeeds } from './core/cheats.js';
 import { applyLoadout, saveLoadout } from './core/loadouts.js';
 import { claimCollection } from './core/codex.js';
 import { setLang, startAutoTranslate, t } from './i18n/i18n.js';
@@ -348,10 +348,13 @@ const actions = {
   },
   upgradeRush(id) { done(upgradeRush(state, id)); },
   setRushAuto(on) { state.rushes.auto = on; done(true); },
-  cheat(code) {
-    const msg = applyCheat(state, code);
+  cheat(code, times = 1) {
+    const msg = applyCheat(state, code, times);
     if (msg) done(true, msg, '#ffe08a');
     else ui.toast('Code inconnu.', '#ff8a8a');
+  },
+  removeCheat(code, times) {
+    done(removeCheat(state, code, times), `Code ${code} retiré${Number.isFinite(times) ? ` (×${formatNumber(times)})` : ''}.`);
   },
   buyPerk(id) { done(buyPerk(state, id), 'Bonus éternel amélioré', '#ffe08a'); },
   // Tour de l'Éternité (v8.2).
@@ -610,13 +613,23 @@ if (state.migrationRefund) {
 }
 announceSynergies(); // mémorise les synergies du chargement (seules les nouvelles seront annoncées)
 let lastZoneKey = null;
+let lastCinematicAt = 0;
+// Animation de changement de monde : en campagne (nouveau monde en avançant) et, v8.7, dans la Tour de
+// l'Éternité (nouveau décor tous les 10 étages). Au plus une toutes les 15 s (combats passés, ×100…).
 function watchWorldChange() {
   if (state.dungeon) return;
   const enc = currentEncounter(state);
-  const key = `${cycleForStage(state.stage)}:${enc.zoneIndex}`;
-  if (lastZoneKey !== null && key !== lastZoneKey && state.stage > (watchWorldChange.lastStage ?? 0) && cinematicsOn()) {
-    const cycle = cycleForStage(state.stage);
-    worldCinematic(ZONES[enc.zoneIndex], cycle ? ` · difficulté ×${cycle + 1}` : '');
+  const key = state.tower ? `tower:${enc.zoneIndex}` : state.challenge ? `challenge:${enc.zoneIndex}` : `${cycleForStage(state.stage)}:${enc.zoneIndex}`;
+  const forward = state.tower ? true : state.stage > (watchWorldChange.lastStage ?? 0);
+  const now = performance.now();
+  if (lastZoneKey !== null && key !== lastZoneKey && forward && !state.challenge && cinematicsOn() && now - lastCinematicAt > 15000) {
+    lastCinematicAt = now;
+    if (state.tower) {
+      playCinematic({ kicker: `Tour de l'Éternité · étage ${state.tower.floor}`, title: ZONES[enc.zoneIndex].name, line: 'Les murs de la tour changent : un nouveau monde s\'élève.', zone: ZONES[enc.zoneIndex].id, duration: 3200 });
+    } else {
+      const cycle = cycleForStage(state.stage);
+      worldCinematic(ZONES[enc.zoneIndex], cycle ? ` · difficulté ×${cycle + 1}` : '');
+    }
   }
   lastZoneKey = key;
   watchWorldChange.lastStage = state.stage;

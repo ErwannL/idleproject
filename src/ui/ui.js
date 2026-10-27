@@ -27,7 +27,7 @@ import dungeons from './panels/dungeons.js';
 import tower from './panels/tower.js';
 import { towerUnlocked } from '../core/tower.js';
 import { claimableAchievements } from '../core/achievements.js';
-import { simSpeed, unlockedSpeeds } from '../core/cheats.js';
+import { cheatTimes, simSpeed, unlockedSpeeds } from '../core/cheats.js';
 import { PRESTIGE } from '../data/prestige.js';
 import { PANEL_HELP } from '../core/guide.js';
 import { heroPower } from '../core/combat.js';
@@ -329,10 +329,21 @@ export class UI {
       case 'check-update': a.checkUpdate(); break;
       case 'enter-tower': a.enterTower(); break;
       case 'leave-tower': a.leaveTower(); break;
+      case 'leave-mode':
+        if (this.state.tower) a.leaveTower();
+        else if (this.state.challenge) a.leaveChallenge();
+        else if (this.state.dungeon) a.abandonDungeon();
+        break;
       case 'github-token': a.setGithubToken(this.$('github-token')?.value); break;
       case 'install-update': a.installUpdate(); break;
       case 'open-releases': a.openReleases(); break;
-      case 'cheat': a.cheat(this.$('cheat-code')?.value); break;
+      case 'cheat':
+        v.cheatCode = this.$('cheat-code')?.value ?? '';
+        v.cheatTimes = this.$('cheat-times')?.value ?? '1';
+        a.cheat(v.cheatCode, v.cheatTimes);
+        break;
+      case 'cheat-remove': a.removeCheat(value, el.dataset.times === 'all' ? Infinity : cheatTimes(this.$('cheat-times')?.value)); break;
+      case 'cheat-reset': a.cheat('RESETCODES'); break;
       case 'rush': {
         const rush = RUSHES.find((r) => r.id === value);
         if (rush && !rushUnlocked(this.state, rush)) this.toast(`${rush.name} : débloqué au niveau ${rush.unlockLevel} du héros.`);
@@ -732,6 +743,10 @@ export class UI {
     this.updateProgress(state, world);
     this.$('advance-btn').classList.toggle('hidden', state.autoAdvance || Boolean(state.dungeon || state.tower || state.challenge));
     this.updateRetry(state);
+    // v8.7 : sortie toujours visible quand on est dans la Tour, le défi ou un donjon.
+    const mode = state.tower ? 'Quitter la Tour' : state.challenge ? 'Abandonner le défi' : state.dungeon ? 'Abandonner le donjon' : '';
+    this.$('leave-mode').classList.toggle('hidden', !mode);
+    if (mode) this.setText('leave-mode', `⟲ ${mode}`);
     this.updateBadges(state);
     this.updateTabs(state);
     this.updateLootPopup(state);
@@ -932,14 +947,14 @@ export class UI {
       const parts = [`×${mult(boost.gold)}`];
       if (boost.secondsLeft > 0) parts.push(dur(boost.secondsLeft));
       if (boost.weekend) parts.push('Week-end');
-      if (boost.cheat > 1) parts.push(`Code ${dur(boost.cheatSecondsLeft)}`);
+      if (boost.cheat > 1) parts.push('Code');
       this.$('boost').textContent = parts.join(' · ');
       const early = boost.gold / (boost.weekend ? 2 : 1) / (boost.cheat ?? 1);
       this.$('boost-chip').title = [
         `Bonus total ×${mult(boost.gold)} sur l'or et l'XP =`,
         boost.secondsLeft > 0 ? `démarrage rapide ×${early.toFixed(1).replace('.', ',')} (×3 au début, diminue jusqu'à ×1 au bout de 5 h de jeu ; encore ${dur(boost.secondsLeft)})` : '',
         boost.weekend ? `× week-end ×2 (samedi et dimanche ; encore ${dur(boost.weekendSecondsLeft)})` : '',
-        boost.cheat > 1 ? `× code ×${mult(boost.cheat)} (encore ${dur(boost.cheatSecondsLeft)})` : '',
+        boost.cheat > 1 ? `× code ×${mult(boost.cheat)} (jusqu'à ce que vous le retiriez, Paramètres)` : '',
       ].filter(Boolean).join(' ');
     }
   }

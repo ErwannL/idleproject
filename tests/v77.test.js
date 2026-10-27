@@ -110,13 +110,13 @@ test('codex : collections avec paliers de récompenses', () => {
   assert.deepEqual(back.codex, state.codex);
 });
 
-test('codes de triche : ×100 pendant 1 h, révélation des donjons', () => {
+test('codes de triche : ×100 sans limite de durée (v8.7), révélation des donjons', () => {
   const state = createNewState(NOW, 8);
-  assert.equal(applyCheat(state, 'nope', NOW), null);
-  assert.ok(applyCheat(state, 'turbo100', NOW));
+  assert.equal(applyCheat(state, 'nope'), null);
+  assert.ok(applyCheat(state, 'turbo100'));
   assert.ok(earlyBoost(state, BALANCE, NOW).gold >= 100);
-  assert.equal(earlyBoost(state, BALANCE, NOW + 2 * 3600 * 1000).cheat, 1);
-  assert.ok(applyCheat(state, 'ORACLE', NOW));
+  assert.equal(earlyBoost(state, BALANCE, NOW + 2 * 3600 * 1000).cheat, 100);
+  assert.ok(applyCheat(state, 'ORACLE'));
   assert.ok(state.cheats.reveal);
 });
 

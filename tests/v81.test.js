@@ -1,21 +1,32 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createNewState, sanitizeState } from '../src/core/state.js';
-import { applyCheat, cheatLoot, cheatMultiplier } from '../src/core/cheats.js';
+import { applyCheat, cheatLoot, cheatMultiplier, cheatTimes, removeCheat } from '../src/core/cheats.js';
 import { earlyBoost } from '../src/core/boost.js';
 import { computeHeroStats } from '../src/core/stats.js';
 import { BALANCE } from '../src/data/balance.js';
 
 const NOW = Date.now();
 
-test('codes de triche cumulables : ×100 puis ×100 = ×10 000, chacun avec sa minuterie', () => {
+test('codes de triche cumulables : ×100 puis ×100 = ×10 000, sans durée, N fois d\'un coup, retrait', () => {
   const s = createNewState(NOW, 3);
-  assert.ok(applyCheat(s, 'turbo100', NOW));
-  assert.ok(applyCheat(s, 'TURBO100', NOW + 1000));
-  assert.equal(cheatMultiplier(s, 'boost', NOW + 2000), 10000);
-  assert.equal(earlyBoost(s, BALANCE, NOW + 2000).cheat, 10000);
-  assert.equal(cheatMultiplier(s, 'boost', NOW + 3600 * 1000 + 500), 100); // le 1er a expiré
-  assert.equal(cheatMultiplier(s, 'boost', NOW + 3 * 3600 * 1000), 1);
+  assert.ok(applyCheat(s, 'turbo100'));
+  assert.ok(applyCheat(s, 'TURBO100'));
+  assert.equal(cheatMultiplier(s, 'boost'), 10000);
+  assert.equal(earlyBoost(s, BALANCE, NOW + 3 * 3600 * 1000).cheat, 10000, 'toujours actif des heures après');
+  removeCheat(s, 'TURBO100', 1);
+  assert.equal(cheatMultiplier(s, 'boost'), 100);
+  // 100 millions de fois : plafonné, jamais Infinity.
+  applyCheat(s, 'TURBO1000', '100 000 000');
+  assert.equal(s.cheats.effects.find((e) => e.code === 'TURBO1000').count, 1e8);
+  assert.equal(cheatMultiplier(s, 'boost'), 1e60);
+  const gems = s.gems;
+  applyCheat(s, 'DIAMONDS', 1e8);
+  assert.equal(s.gems, gems + 1e12);
+  removeCheat(s, 'TURBO1000');
+  assert.equal(cheatMultiplier(s, 'boost'), 100);
+  assert.equal(cheatTimes('abc'), 1);
+  assert.equal(cheatTimes('5000000000'), 1e9);
 });
 
 test('codes : dégâts, PV, butin et dons', () => {
@@ -42,7 +53,7 @@ test('ancien format de code (v8.0) conservé', () => {
   const raw = JSON.parse(JSON.stringify(createNewState(NOW, 3)));
   raw.cheats = { boostUntil: NOW + 60000, boostMultiplier: 100, reveal: true };
   const s = sanitizeState(raw);
-  assert.equal(cheatMultiplier(s, 'boost', NOW), 100);
+  assert.equal(cheatMultiplier(s, 'boost'), 100);
   assert.ok(s.cheats.reveal);
 });
 

@@ -968,7 +968,7 @@ canvas.anim { display: block; image-rendering: pixelated; }
 .rune-tree svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .rune-tree line { stroke: #5d616b; stroke-width: 0.06; opacity: 0.6; }
 .rune-tree line.half { stroke: #b9a36a; opacity: 0.8; }
-.rune-tree line.on { stroke: #f2e2a8; stroke-width: 0.09; opacity: 0.95; }
+.rune-tree line.on { stroke: #f2e2a8; stroke-width: 0.11; opacity: 0.95; filter: drop-shadow(0 0 0.15px #fff); }
 .rune-tree line.path { stroke: #9fe6ff; stroke-width: 0.09; stroke-dasharray: 0.2 0.12; opacity: 1; }
 /* v8.5 : nœuds ronds (petits), losanges (notables), hexagones dorés (clés de voûte). Taille en % de l'arbre. */
 .rune-tree .tnode {
@@ -989,18 +989,16 @@ canvas.anim { display: block; image-rendering: pixelated; }
 .rune-tree .tnode.k-core { width: 3.4%; border-color: #ffe08a; border-width: 3px; }
 .rune-tree .tnode.open { border-color: #c98a35; }
 .rune-tree .tnode.gated { border-color: #7a5a8a; }
-.rune-tree .tnode.owned { border-color: #f0c040; background: radial-gradient(circle at 35% 30%, #fff3c0, var(--branch) 55%, #3a2c10); box-shadow: 0 0 0 1px #0c0d10, 0 0 8px -1px var(--branch); }
-.rune-tree .tnode.maxed { border-color: #5ad46a; background: radial-gradient(circle at 35% 30%, #fff, var(--branch) 50%, #2a3a14); box-shadow: 0 0 0 1px #0c0d10, 0 0 10px 0 var(--branch); }
+.rune-tree .tnode.owned { border-color: color-mix(in srgb, var(--branch) 70%, #fff); background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--branch) 55%, #fff), var(--branch) 55%, color-mix(in srgb, var(--branch) 40%, #000)); box-shadow: 0 0 0 1px #0c0d10, 0 0 8px -1px var(--branch); }
+/* Talent au maximum : couleur pleine de sa région, liseré clair et halo (plus de vert uniforme). */
+.rune-tree .tnode.maxed { border-color: color-mix(in srgb, var(--branch) 45%, #fff); background: radial-gradient(circle at 35% 30%, #fff 0 12%, var(--branch) 45%, color-mix(in srgb, var(--branch) 55%, #000)); box-shadow: 0 0 0 1px #0c0d10, 0 0 12px 1px var(--branch); }
+.rune-tree .tnode.maxed .lv { color: #0c0d10; text-shadow: 0 0 2px #fff; }
 .rune-tree .tnode.locked { opacity: 0.55; }
 .rune-tree .tnode.locked img { filter: grayscale(1) brightness(0.5); }
 .rune-tree .tnode.path { border-color: #9fe6ff; opacity: 1; }
 .rune-tree .tnode.hit { outline: 3px solid #7fe0ff; outline-offset: 2px; z-index: 2; }
 .rune-tree .tnode.selected { outline: 2px solid #fff; outline-offset: 2px; z-index: 3; }
 .rune-tree .tnode:focus-visible { outline: 2px solid #ffd35a; outline-offset: 3px; }
-.tree-minimap { position: absolute; right: 6px; bottom: 6px; width: 96px; height: 96px; background: rgba(10, 11, 14, 0.82);
-  border: 1px solid #4a4d55; border-radius: 4px; padding: 2px; }
-.tree-minimap svg { width: 100%; height: 100%; display: block; cursor: crosshair; }
-.tree-minimap .mm-view { fill: rgba(255, 255, 255, 0.08); stroke: #fff; stroke-width: 0.25; }
 .tree-legend { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; font-size: 10.5px; font-weight: 800; margin-top: 4px; }
 .tree-hint { font-size: 10.5px; margin-top: 3px; text-align: center; }
 
@@ -1524,3 +1522,8 @@ kbd { display: inline-block; min-width: 18px; padding: 1px 5px; border: 1px soli
 .skill-btn.ready { border-color: #7fd4ff; box-shadow: 0 0 5px -1px #7fd4ff; }
 .layout-strip #skill-bar, .layout-strip .bar-label { display: none; }
 .layout-mini #skill-bar .bar-label, .layout-mini #rush-bar .bar-label { display: none; }
+
+/* v8.7 : codes actifs sans durée. */
+.cheat-list { margin-top: 6px; display: grid; gap: 3px; }
+.cheat-row { display: flex; align-items: center; gap: 6px; font-size: 11.5px; }
+.cheat-list > .btn { justify-self: start; }
