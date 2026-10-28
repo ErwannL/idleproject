@@ -9,6 +9,7 @@ import { rushEffects } from './rushes.js';
 import { talentEffects } from './rebirth.js';
 import { achievementEffects } from './achievements.js';
 import { setEffects } from './sets.js';
+import { museumEffects } from './museum.js';
 
 export const BONUS_KEYS = [
   'damagePct', 'attackSpeedPct', 'maxHpPct', 'regenPct', 'armor', 'goldPct', 'dropChance',
@@ -39,6 +40,7 @@ export function bonusSources(state, equipment = state.equipment) {
     rushes: rushEffects(state),
     achievements: achievementEffects(state),
     sets: setEffects(equipment),
+    museum: museumEffects(state),
   };
 }
 

@@ -40,6 +40,7 @@ import { computeHeroStats } from './core/stats.js';
 import { formatNumber } from './core/format.js';
 import { claimBounty } from './core/bounty.js';
 import { moveToStash, putOnMannequin, takeFromMannequin, takeFromStash, wearMannequin } from './core/stash.js';
+import { putInMuseum, takeFromMuseum } from './core/museum.js';
 import { createJournal, journalSummary, noteDrop, noteFused, noteRecycled } from './core/journal.js';
 import { SceneRenderer } from './render/scene.js';
 import { UI } from './ui/ui.js';
@@ -50,6 +51,7 @@ import { applyLoadout, saveLoadout } from './core/loadouts.js';
 import { claimCollection } from './core/codex.js';
 import { setLang, startAutoTranslate, t } from './i18n/i18n.js';
 import { GAME_VERSION } from './version.js';
+import { applyTheme, themeById } from './ui/themes.js';
 import { BUILT_IN_TOKEN } from './core/update-token.js';
 import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagList, updateStatus } from './core/update.js';
 
@@ -441,6 +443,7 @@ const actions = {
     done(true, swept.count ? `${swept.count} objet${swept.count > 1 ? 's' : ''} recyclé${swept.count > 1 ? 's' : ''} (+${formatNumber(swept.gold)} or)` : null);
   },
   setLanguage(lang) { setLang(lang); ui.invalidate(); },
+  setTheme(id) { state.ui.theme = themeById(id).id; applyTheme(state.ui.theme).then(() => ui.invalidate()); done(true); },
   // Vitesses débloquées par code (v8.4) ; ×100 demande une confirmation (effets visuels coupés).
   cycleSpeed() {
     if (state.cheats.skipBattle) {
@@ -510,6 +513,16 @@ const actions = {
     done(n > 0, n ? `${n} pièce${n > 1 ? 's' : ''} d'ensemble équipée${n > 1 ? 's' : ''}` : null, '#ffe08a');
   },
   setAutoMannequin(on) { state.ui.autoMannequin = on; done(true); },
+  // Musée (v9.0).
+  toMuseum(id) {
+    if (!putInMuseum(state, id)) ui.toast('Impossible : pas un objet ancestral, ou sac et coffre pleins.', '#ff8a8a');
+    else done(true, 'Exposé au Musée', '#ffe08a');
+  },
+  fromMuseum(baseId) {
+    if (!takeFromMuseum(state, baseId)) ui.toast('Sac et coffre pleins.', '#ff8a8a');
+    else done(true, 'Repris dans le sac');
+  },
+  setAutoMuseum(on) { state.ui.autoMuseum = on; done(true); },
   setKeepSets(on) {
     state.ui.keepSets = on;
     lastSweep = 0;
@@ -620,6 +633,8 @@ const journals = () => (awayJournal ? [sessionJournal, awayJournal] : [sessionJo
 ui.sessionJournal = () => journalSummary(sessionJournal, state);
 // Langue (français / anglais) : la page entière est traduite à la volée.
 startAutoTranslate(document.body);
+// Thème d'interface (v9.0).
+if (state.ui.theme && state.ui.theme !== 'knight') applyTheme(state.ui.theme);
 
 // Musique et sons (moteur procédural) : démarrés au premier geste du joueur (règle des navigateurs).
 const sound = createGameAudio();

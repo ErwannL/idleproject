@@ -14,7 +14,7 @@ import { modifierById } from '../../core/challenge.js';
 import { setBonusFor, setById, setCounts } from '../../core/sets.js';
 import { SET_PIECES } from '../../data/sets.js';
 
-const SOURCE_LABELS = { hero: 'Héros', powers: 'Pouvoirs de boss', talents: 'Talents', companions: 'Équipe', gear: 'Effets d’équipement', prestige: 'Prestige', rushes: 'Boosts actifs', achievements: 'Hauts faits', sets: 'Ensembles' };
+const SOURCE_LABELS = { hero: 'Héros', powers: 'Pouvoirs de boss', talents: 'Talents', companions: 'Équipe', gear: 'Effets d’équipement', prestige: 'Prestige', rushes: 'Boosts actifs', achievements: 'Hauts faits', sets: 'Ensembles', museum: 'Musée' };
 
 // Ensembles d'équipement portés (v8.5) : pièces et paliers atteints.
 function setsCard(state) {

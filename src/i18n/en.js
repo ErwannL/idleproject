@@ -581,6 +581,36 @@ export const EXACT = {
   "Lancement auto": "Auto cast",
 
   // Arbre de talents, Renaissance, bonus éternels
+  // v9.0
+  "Musée": "Museum",
+  "Exposer au Musée": "Display in the Museum",
+  "Exposer dans sa vitrine du Musée (bonus permanent)": "Display in its Museum case (permanent bonus)",
+  "Exposé au Musée": "Displayed in the Museum",
+  "Impossible : pas un objet ancestral, ou sac et coffre pleins.": "Impossible: not an ancestral item, or bag and chest full.",
+  "Exposition auto : activée": "Auto display: on",
+  "Exposition auto : désactivée": "Auto display: off",
+  "Les objets ancestraux ramassés vont dans leur vitrine si elle est vide ou s'ils sont meilleurs (l'ancien retourne au sac)": "Ancestral items you pick up go to their case if it is empty or if they are better (the old one returns to the bag)",
+  "pièces exposées": "pieces displayed",
+  "bonus ×2": "bonus ×2",
+  "Interface": "Interface",
+  "Style des menus (les couleurs des raretés ne changent pas).": "Menu style (rarity colours never change).",
+  "Royal": "Royal",
+  "Sylvestre": "Sylvan",
+  "Forge naine": "Dwarven Forge",
+  "Nécropole": "Necropolis",
+  "Sables": "Sands",
+  "Givre": "Frost",
+  "Sakura": "Sakura",
+  "Bleu nuit et acier, dorures discrètes (style d'origine).": "Midnight blue and steel, subtle gilding (original style).",
+  "Bleu roi profond, cadres et filets d'or.": "Deep royal blue, gold frames and trims.",
+  "Sous-bois émeraude, bois sculpté et feuilles d'or vert.": "Emerald undergrowth, carved wood and green-gold leaves.",
+  "Charbon, fer martelé et cuivre incandescent.": "Charcoal, hammered iron and glowing copper.",
+  "Violet mystique, argent et runes cyan.": "Mystic purple, silver and cyan runes.",
+  "Ténèbres, os blanchis et lueurs vertes.": "Darkness, bleached bone and green glows.",
+  "Terre cuite, grès chaud et turquoise.": "Terracotta, warm sandstone and turquoise.",
+  "Glace pâle, ardoise et reflets polaires.": "Pale ice, slate and polar gleams.",
+  "Laque noire, prune et fleurs de cerisier.": "Black lacquer, plum and cherry blossoms.",
+  "Noir et argent, sans aucune couleur superflue.": "Black and silver, nothing superfluous.",
   // v8.9
   "Massue": "Mace",
   "Marteau de guerre": "War Hammer",
@@ -1653,6 +1683,11 @@ export const PATTERNS = [
   [/^Récompense complète \((\d+)\/(\d+)\)$/, 'Full reward ($1/$2)'],
   [/^dans (.+)$/, (m) => (/\d/.test(m[1]) ? `in ${dur(m[1])}` : null)],
 
+  // v9.0
+  [/^Musée (\d+)\/(\d+)$/, 'Museum $1/$2'],
+  [/^(.+) exposé au Musée$/, (m) => `${tr(m[1])} displayed in the Museum`],
+  [/^Butin de (.+)$/, (m) => `Dropped by ${tr(m[1])}`],
+  [/^Le Musée expose vos objets ancestraux, un par vitrine\. Chaque pièce exposée : dégâts, PV et or \+(\d+) % \(multiplicatif, ×2 si Légendaire\)\. Collection complète : dégâts et PV \+(\d+) % de plus\. Une pièce exposée n'est pas portée : reprenez-la \(↩\) pour l'équiper\.$/, 'The Museum displays your ancestral items, one per case. Each displayed piece: damage, HP and gold +$1% (multiplicative, ×2 if Legendary). Full collection: damage and HP +$2% more. A displayed piece is not worn: take it back (↩) to equip it.'],
   // v8.9
   [/^Espace disque insuffisant : (\d+) Mo libres, il en faut environ (\d+) Mo\. Videz la Corbeille ou supprimez des fichiers, puis réessayez\.$/, 'Not enough disk space: $1 MB free, about $2 MB needed. Empty the Recycle Bin or delete some files, then try again.'],
   [/^(.+) — (.+)\. Cliquer \(ou touche (\S+)\) pour l'activer\.$/, (m) => `${tr(m[1])} — ${tr(m[2])}. Click (or key ${m[3]}) to activate.`],

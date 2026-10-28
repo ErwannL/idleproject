@@ -117,6 +117,24 @@ export class UI {
     window.addEventListener('pointerup', () => { this.pointerDown = false; this.userAt = performance.now(); }, { capture: true });
     window.addEventListener('pointercancel', () => { this.pointerDown = false; });
     root.addEventListener('keydown', () => { this.userAt = performance.now(); }, { capture: true });
+    // v9.0 : liste déroulante ouverte = aucun redessin du panneau (avant, un monstre tué juste après le clic
+    // d'ouverture redessinait le panneau et refermait la liste). Elle est « fermée » au choix ou en la quittant.
+    this.selectOpenAt = 0;
+    const isSelect = (e) => e.target instanceof HTMLSelectElement;
+    root.addEventListener('pointerdown', (e) => { this.selectOpenAt = isSelect(e) ? performance.now() : 0; }, { capture: true });
+    root.addEventListener('keydown', (e) => {
+      if (!isSelect(e)) return;
+      if ([' ', 'F4'].includes(e.key) || (e.altKey && e.key.startsWith('Arrow'))) this.selectOpenAt = performance.now();
+      else if (['Escape', 'Enter', 'Tab'].includes(e.key)) this.selectOpenAt = 0;
+    }, { capture: true });
+    for (const type of ['change', 'blur', 'focusout']) {
+      root.addEventListener(type, (e) => {
+        if (!isSelect(e)) return;
+        this.selectOpenAt = 0;
+        // Le choix dans la liste native ne produit pas toujours de « pointerup » dans la page.
+        if (type === 'change') { this.pointerDown = false; this.userAt = performance.now(); }
+      }, { capture: true });
+    }
     this.view = {
       closed: new Set(['weekly', 'monthly']), // sections repliées (missions…)
       upgradeCat: 'combat', invTab: 'bag', selectedItemId: null, bulkRarity: 'common', bulkArmed: false,
@@ -344,6 +362,7 @@ export class UI {
       case 'recycle-toggle': a.setRecycleRule(el.dataset.group, value); break;
       case 'mission-tab': local(() => { v.missionTab = value; }); break;
       case 'lang': a.setLanguage(value); break;
+      case 'theme': a.setTheme(value); break;
       case 'speed': a.cycleSpeed(); break;
       case 'autofuse': a.setAutoFuse(el.dataset.group, value); break;
       case 'check-update': a.checkUpdate(); break;
@@ -418,6 +437,9 @@ export class UI {
       case 'from-mannequin': { const [setId, slot] = value.split('|'); a.fromMannequin(setId, slot); break; }
       case 'wear-mannequin': a.wearMannequin(value); break;
       case 'auto-mannequin': a.setAutoMannequin(this.state.ui.autoMannequin === false); break;
+      case 'to-museum': a.toMuseum(id); break;
+      case 'from-museum': a.fromMuseum(value); break;
+      case 'auto-museum': a.setAutoMuseum(this.state.ui.autoMuseum === false); break;
       case 'keep-sets': a.setKeepSets(this.state.ui.keepSets === false); break;
       case 'buy-talent-path': a.buyTalentPath(key); break;
       case 'respec-talents': this.showRespecConfirm(this.state); break;
@@ -489,7 +511,9 @@ export class UI {
     switch (event.type) {
       case 'drop': {
         const rarity = rarityById(event.item.rarity);
-        this.news(event.mannequin
+        this.news(event.museum
+          ? `${event.item.name} exposé au Musée`
+          : event.mannequin
           ? `${event.item.name} rangé sur le mannequin « ${setById(event.item.set)?.name ?? ''} »`
           : event.byRule
           ? `Recyclé au ramassage : ${event.item.name} (+${formatNumber(event.recycledGold)} or)`
@@ -497,7 +521,7 @@ export class UI {
             ? `Sac plein : ${event.item.name} recyclé (+${formatNumber(event.recycledGold)} or)`
             : `Butin : ${event.item.name} (${rarity.label})`, event.byRule ? '#8e9db8' : rarity.color);
         if (this.tab === 'inventory' || this.tab === 'hero') this.invalidate();
-        if (event.mannequin) break;
+        if (event.mannequin || event.museum) break;
         if (!event.byRule && !event.autoRecycled) this.addLootPopup(event.item);
         else this.noteRecycled(1, event.recycledGold ?? 0);
         break;
@@ -802,11 +826,12 @@ export class UI {
 
     const now0 = performance.now();
     const userRecent = now0 - this.userAt < 400;
-    const focus = document.activeElement;
     const holding = document.body.classList.contains('hold-repeating');
     const pointer = this.pointerDown && !holding;
-    const busy = pointer || (focus && focus.tagName === 'SELECT' && this.$('panel-body').contains(focus));
-    if (this.dirty && this.tab && !pointer && (holding || userRecent || (!busy && now0 - this.lastRender >= RENDER_THROTTLE_MS))) {
+    // Liste ouverte (au plus 60 s, au cas où sa fermeture n'aurait pas été vue).
+    const selectOpen = this.selectOpenAt > 0 && now0 - this.selectOpenAt < 60000;
+    const busy = pointer || selectOpen;
+    if (this.dirty && this.tab && !pointer && !selectOpen && (holding || userRecent || now0 - this.lastRender >= RENDER_THROTTLE_MS)) {
       this.renderPanel(state);
       this.dirty = false;
     } else if (this.tab && !this.dirty) {

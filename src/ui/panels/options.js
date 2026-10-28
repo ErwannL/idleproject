@@ -3,6 +3,7 @@ import { BALANCE } from '../../data/balance.js';
 import { formatDuration } from '../../core/format.js';
 import { escapeHtml, formatNumber } from '../common.js';
 import { getLang } from '../../i18n/i18n.js';
+import { THEMES, themeSwatches } from '../themes.js';
 import { GAME_VERSION } from '../../version.js';
 import { BUILT_IN_TOKEN } from '../../core/update-token.js';
 import { activeCheats, cheatLabel } from '../../core/cheats.js';
@@ -116,6 +117,13 @@ export default {
           <button class="btn chip-btn${getLang() === 'fr' ? ' active' : ''}" data-action="lang" data-value="fr">🇫🇷 Français</button>
           <button class="btn chip-btn${getLang() === 'en' ? ' active' : ''}" data-action="lang" data-value="en">🇬🇧 English</button>
         </div>
+      </div>
+      <div class="card">
+        <div class="section-title">Interface</div>
+        <div class="muted">Style des menus (les couleurs des raretés ne changent pas).</div>
+        <div class="theme-grid">${THEMES.map((t) => `<button class="btn theme-btn${(state.ui.theme ?? 'knight') === t.id ? ' active' : ''}" data-action="theme" data-value="${t.id}">
+          <span class="theme-swatches">${themeSwatches(t.id).map((c) => `<i style="background:${c}"></i>`).join('')}</span>
+          <b>${escapeHtml(t.name)}</b><span class="muted">${escapeHtml(t.text)}</span></button>`).join('')}</div>
       </div>
       ${soundOptions(ui)}
       <div class="card">

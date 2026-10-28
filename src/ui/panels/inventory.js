@@ -14,6 +14,8 @@ import {
 import { setById, setCounts } from '../../core/sets.js';
 import { ITEM_SETS, SET_PIECES } from '../../data/sets.js';
 import { STASH_SIZE } from '../../core/stash.js';
+import { MUSEUM, MUSEUM_PIECES, museumCount, museumEffects } from '../../core/museum.js';
+import { itemIconUrl } from '../../render/pixel.js';
 import { animCanvas } from '../animator.js';
 
 const STAT_ICONS = { damage: 'weapon_sword', attackSpeed: 'icon_bolt', maxHp: 'icon_heart', armor: 'icon_shield' };
@@ -95,7 +97,8 @@ function detail(ui, state, item) {
       <div class="span2 tool-line">${sharpenBtn}${reforgeBtn}${lock}</div>
       ${isEquipped ? '' : `<div class="span2 tool-line">
         <button class="btn small" data-action="to-stash" data-id="${item.id}" ${state.stash.length >= STASH_SIZE ? 'disabled' : ''} title="Le coffre n'est jamais recyclé ni fusionné">Ranger au coffre (${state.stash.length}/${STASH_SIZE})</button>
-        ${item.set ? `<button class="btn small" data-action="to-mannequin" data-id="${item.id}" title="Poser sur le mannequin de son ensemble">Mettre sur le mannequin</button>` : ''}</div>`}
+        ${item.set ? `<button class="btn small" data-action="to-mannequin" data-id="${item.id}" title="Poser sur le mannequin de son ensemble">Mettre sur le mannequin</button>` : ''}
+        ${base.signature ? `<button class="btn small btn-gold" data-action="to-museum" data-id="${item.id}" title="Exposer dans sa vitrine du Musée (bonus permanent)">Exposer au Musée</button>` : ''}</div>`}
     </div>`;
   return `<div class="card item-detail r-${item.rarity}">
     <div class="detail-head">${itemFrame(item, { tag: 'div' })}
@@ -139,6 +142,33 @@ function stashView(ui, state) {
 }
 
 // Mannequins (v8.9) : un par ensemble ; « Porter » équipe tout l'ensemble d'un coup.
+// Musée (v9.0) : une vitrine par objet ancestral, bonus permanent par pièce exposée.
+function museumView(ui, state) {
+  const auto = state.ui.autoMuseum !== false;
+  const pct = (v) => `+${v} %`;
+  const per = MUSEUM.perPiece;
+  const cases = MUSEUM_PIECES.map((baseId) => {
+    const base = itemBase(baseId);
+    const item = state.museum[baseId];
+    const boss = BOSSES[base.signature];
+    const frame = item
+      ? `${itemFrame(item, { tag: 'div' })}<button class="btn tiny" data-action="from-museum" data-value="${baseId}" title="Reprendre dans le sac">↩</button>`
+      : `<div class="item-frame empty museum-ghost"><img class="px" src="${itemIconUrl({ baseId, rarity: 'common', slot: base.slot })}" alt=""></div>`;
+    return `<div class="card museum-case${item ? ` r-${item.rarity}` : ' empty'}">
+      <div class="mq-slot">${frame}</div>
+      <div class="grow"><b>${escapeHtml(base.name)}</b>
+        <div class="muted">${item ? `${rarityById(item.rarity).label} · niv. ${item.level}${item.rarity === 'legendary' ? ' · bonus ×2' : ''}` : `Butin de ${escapeHtml(boss?.name ?? '?')}`}</div></div></div>`;
+  }).join('');
+  const n = museumCount(state);
+  const total = effectText(museumEffects(state));
+  return `<div class="card"><div class="row-between"><span class="muted">Le Musée expose vos objets ancestraux, un par vitrine. Chaque pièce exposée :
+      dégâts, PV et or ${pct(per.damageMultPct)} (multiplicatif, ×2 si Légendaire). Collection complète : dégâts et PV +${MUSEUM.complete.damageMultPct} % de plus.
+      Une pièce exposée n'est pas portée : reprenez-la (↩) pour l'équiper.</span>
+      <button class="btn chip-btn small${auto ? ' active' : ''}" data-action="auto-museum" title="Les objets ancestraux ramassés vont dans leur vitrine si elle est vide ou s'ils sont meilleurs (l'ancien retourne au sac)">${auto ? 'Exposition auto : activée' : 'Exposition auto : désactivée'}</button></div>
+      <div class="museum-total"><b>${n}/${MUSEUM_PIECES.length}</b> pièces exposées${total ? ` · <span class="good">${total}</span>` : ''}</div></div>
+    <div class="museum">${cases}</div>`;
+}
+
 function mannequinsView(ui, state) {
   const auto = state.ui.autoMannequin !== false;
   const cards = ITEM_SETS.map((set) => {
@@ -300,11 +330,12 @@ export default {
     <span class="num">· ${state.inventory.length}/${BALANCE.loot.inventorySize}</span>`,
   render(ui, state) {
     const tab = ui.view.invTab;
-    const views = { forge, stash: stashView, mannequins: mannequinsView };
+    const views = { forge, stash: stashView, mannequins: mannequinsView, museum: museumView };
     return `<div class="sub-tabs">
         <button class="btn chip-btn${tab === 'bag' ? ' active' : ''}" data-action="inv-tab" data-value="bag">${img('icon_bag')}<span>Sac</span></button>
         <button class="btn chip-btn${tab === 'stash' ? ' active' : ''}" data-action="inv-tab" data-value="stash">${img('icon_chest')}<span>Coffre ${state.stash.length}/${STASH_SIZE}</span></button>
         <button class="btn chip-btn${tab === 'mannequins' ? ' active' : ''}" data-action="inv-tab" data-value="mannequins">${img('icon_hero')}<span>Mannequins</span></button>
+        <button class="btn chip-btn${tab === 'museum' ? ' active' : ''}" data-action="inv-tab" data-value="museum">${img('icon_trophy')}<span>Musée ${museumCount(state)}/${MUSEUM_PIECES.length}</span></button>
         <button class="btn chip-btn${tab === 'forge' ? ' active' : ''}" data-action="inv-tab" data-value="forge">${img('icon_anvil')}<span>Forge</span></button>
       </div>${(views[tab] ?? bag)(ui, state)}`;
   },

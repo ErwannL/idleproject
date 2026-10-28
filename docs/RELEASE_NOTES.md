@@ -1,9 +1,27 @@
-## Idle RPG v8.9.2 — installation qui ne remplit plus le disque
+## Idle RPG v9.0.0 — Musée des objets ancestraux, 10 thèmes d'interface
 
-**Mise à jour :** téléchargez **IdleRPG-8.9.2-setup.exe** sur la page des versions et lancez-le (ou Paramètres →
-Version et mises à jour → Mettre à jour). **Votre partie est conservée.**
+**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.0-setup.exe). Votre partie est conservée.
+
+### Nouveau
+- **Musée** (Sac → Musée) : comme les mannequins, mais pour les **11 objets ancestraux** (butin des boss).
+  Une vitrine par objet, qui expose le meilleur exemplaire. Chaque pièce exposée donne **dégâts, PV et or +5 %**
+  (multiplicatif, **×2 si Légendaire**), et la **collection complète** ajoute dégâts et PV +25 %. Les vitrines
+  vides montrent l'objet en silhouette et le boss qui le lâche. Bouton « Exposer au Musée » sur la fiche d'un objet
+  ancestral ; option « Exposition auto » : un objet ancestral ramassé va dans sa vitrine s'il est meilleur
+  (l'ancien retourne au sac). Une pièce exposée n'est pas portée : reprenez-la (↩) pour l'équiper.
+- **10 thèmes d'interface** (Paramètres → Interface) : **Chevalier** (le style actuel, par défaut), **Royal**
+  (bleu roi et cadres d'or), **Sylvestre**, **Forge naine**, **Arcanes**, **Nécropole**, **Sables**, **Givre**,
+  **Sakura** et **Ombre**. Les cadres en pixel art, les boutons, les onglets et les textes changent de couleur ; les
+  couleurs des raretés ne changent jamais. Le choix est gardé avec la partie.
 
 ### Corrigés
+- **Une liste déroulante ouverte se refermait toute seule** (tri de l'inventaire, recyclage, expéditions…) quand un
+  monstre mourait ou qu'un objet tombait : le panneau était redessiné juste après le clic d'ouverture. Tant qu'une
+  liste est ouverte, le panneau n'est plus redessiné ; il se met à jour dès qu'on a choisi.
+
+### v8.9.2 — installation qui ne remplit plus le disque
+
+### Corrigés en v8.9.2
 - **« Extraction : erreur d'écriture du fichier …\app-64.7z »** : Windows n'arrivait plus à écrire dans le dossier
   Temp, presque toujours parce que le disque était plein. L'installateur y décompresse le jeu et a besoin d'environ
   700 Mo libres. Et chaque mise à jour faite depuis le jeu laissait son installateur (≈ 120 Mo) dans ce dossier,

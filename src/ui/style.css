@@ -1580,3 +1580,19 @@ table.records td { padding: 2px 4px; border-top: 1px solid rgba(255, 255, 255, 0
 .tips-box[open] summary { margin-bottom: 3px; }
 .bounty-card { display: flex; align-items: center; gap: 8px; border-color: #e8b64a; margin-bottom: 6px; }
 .bounty-portrait { flex: none; width: 48px; display: flex; justify-content: center; }
+
+/* v9.0 : Musée des objets ancestraux. */
+.museum { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; }
+.museum-case { display: flex; align-items: center; gap: 8px; }
+.museum-case.empty { opacity: 0.75; }
+.museum-ghost img { filter: grayscale(1) brightness(0.35); }
+.museum-total { margin-top: 4px; }
+
+/* v9.0 : thèmes d'interface (src/ui/themes.js) — police des titres propre à certains thèmes. */
+#panel header h2, .section-title, .hero-title { font-family: var(--head-font, inherit); }
+.theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 5px; }
+.theme-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left; padding: 5px 7px; }
+.theme-btn.active { border-color: var(--gold); box-shadow: inset 0 0 0 1px var(--gold); }
+.theme-swatches { display: flex; gap: 3px; }
+.theme-swatches i { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(0, 0, 0, 0.6); }
+.theme-btn .muted { font-size: 10px; line-height: 1.2; }

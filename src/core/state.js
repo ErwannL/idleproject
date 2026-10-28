@@ -27,6 +27,7 @@ import { sanitizeCodex } from './codex.js';
 import { emptyExpeditions, sanitizeExpeditions } from './expeditions.js';
 import { setById } from './sets.js';
 import { STASH_SIZE, emptyMannequins, mannequinItems } from './stash.js';
+import { museumItems } from './museum.js';
 import { sanitizeBounty } from './bounty.js';
 import { emptyTranscend, sanitizeTranscend } from './transcend.js';
 import { sanitizeChallenge } from './challenge.js';
@@ -101,6 +102,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     transcend: emptyTranscend(), // v8.8 : Transcendance (Étoiles, bonus stellaires)
     stash: [], // v8.9 : coffre (300 places, jamais recyclé)
     mannequins: emptyMannequins(), // v8.9 : un mannequin par ensemble { setId: { slot: objet } }
+    museum: {}, // v9.0 : Musée des objets ancestraux { baseId: objet }
     bounty: null, // v8.9 : prime du jour
   };
   state.equipment.weapon = makeItem(state, STARTER_WEAPON, 'common', 1);
@@ -346,6 +348,10 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
       if (slot in SLOTS && isValidItem(item) && item.slot === slot && item.set === setId) state.mannequins[setId][slot] = cleanItem(item);
     }
   }
+  // v9.0 : Musée (un objet ancestral par vitrine).
+  for (const [baseId, item] of Object.entries(obj(raw.museum))) {
+    if (isValidItem(item) && item.baseId === baseId && itemBase(baseId)?.signature) state.museum[baseId] = cleanItem(item);
+  }
 
   for (const key of Object.keys(state.records)) state.records[key] = int(raw.records?.[key], 0);
   state.fragments = int(raw.fragments, 0);
@@ -389,7 +395,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   cleanActivities(state, raw);
 
   // Identifiants uniques : nextItemId dépasse tous les identifiants existants (sac, équipement, boîte).
-  const used = [...state.inventory, ...Object.values(state.equipment), ...state.inbox.map((e) => e.item), ...state.stash, ...mannequinItems(state)]
+  const used = [...state.inventory, ...Object.values(state.equipment), ...state.inbox.map((e) => e.item), ...state.stash, ...mannequinItems(state), ...museumItems(state)]
     .filter(Boolean)
     .map((i) => Number.parseInt(i.id.slice(2), 10));
   state.nextItemId = Math.max(int(raw.nextItemId, 1, 1), ...used.map((n) => n + 1), 1);
@@ -412,11 +418,13 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     if (typeof raw.ui.notify === 'object' && raw.ui.notify) state.ui.notify = { ...state.ui.notify, ...raw.ui.notify };
     state.ui.focus = raw.ui.focus === true;
     if (raw.ui.cinematics === false) state.ui.cinematics = false;
+    if (typeof raw.ui.theme === 'string' && /^[a-z]{1,16}$/.test(raw.ui.theme)) state.ui.theme = raw.ui.theme;
     // v8.4 : seules les vitesses débloquées par code sont gardées (sinon ×1).
     if (unlockedSpeeds(state).includes(raw.ui.speed)) state.ui.speed = raw.ui.speed;
     if (SORT_OPTIONS.includes(raw.ui.sortBy)) state.ui.sortBy = raw.ui.sortBy;
     if (raw.ui.keepSets === false) state.ui.keepSets = false;
     if (raw.ui.autoMannequin === false) state.ui.autoMannequin = false;
+    if (raw.ui.autoMuseum === false) state.ui.autoMuseum = false;
   }
   if (state.challenge && (state.tower || state.dungeon)) state.challenge = null; // un seul mode à la fois
   return state;

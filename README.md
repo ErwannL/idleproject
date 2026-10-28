@@ -255,7 +255,8 @@ puis codes secrets sans limite, Tour qui finit et arbre aux couleurs des région
 puis Transcendance, Tour à chrono, SSR revalorisés et achat en masse dans l'arbre (v8.8),
 puis coffre et mannequins, compagnons à 4 compétences, Records, transitions et Prime du jour (v8.9),
 puis mise à jour depuis le jeu réparée (v8.9.1),
-puis installation qui ne remplit plus le disque (v8.9.2) :
+puis installation qui ne remplit plus le disque (v8.9.2),
+puis Musée des objets ancestraux et 10 thèmes d'interface (v9.0) :
 voir `docs/RELEASE_NOTES.md`.
 
 ## v4

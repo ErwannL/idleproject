@@ -8,6 +8,7 @@ import { computeHeroStats, statsWithItem } from './stats.js';
 import { recordItem } from './codex.js';
 import { usefulSetPiece } from './sets.js';
 import { autoMannequin } from './stash.js';
+import { autoMuseum } from './museum.js';
 
 // Inventaire plein : l'objet est recyclé en or plutôt que perdu.
 export function addToInventory(state, item, balance = BALANCE) {
@@ -85,6 +86,11 @@ export function recycleForSpace(state, balance = BALANCE) {
 export function collectItem(state, item, balance = BALANCE) {
   trackContracts(state, 'items', 1);
   if (state.codex) recordItem(state, item);
+  // v9.0 : objet ancestral → sa vitrine du Musée (si elle est vide ou s'il est meilleur).
+  if (state.museum && autoMuseum(state, item, balance)) {
+    state.records.itemsFound += 1;
+    return { added: false, museum: true, recycledGold: 0 };
+  }
   // v8.9 : pièce d'ensemble meilleure que celle de son mannequin → directement dessus (l'ancienne est recyclée).
   if (state.mannequins) {
     const replaced = autoMannequin(state, item);
