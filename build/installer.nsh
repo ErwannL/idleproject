@@ -22,3 +22,55 @@
     Sleep 1000
   ${endif}
 !macroend
+
+; v8.9.1 — mise à jour depuis le jeu : l'installateur était lancé pendant que le jeu se fermait (sauvegarde).
+; En silencieux, l'installateur d'origine abandonnait sans rien dire s'il ne parvenait pas à fermer le jeu
+; (ou si l'ancien désinstallateur échouait) : jeu à moitié installé, ou processus fantôme qui empêchait
+; tout nouveau lancement. Ici : on laisse le jeu finir sa sauvegarde (10 s au plus), puis on ferme de force
+; tous ses processus, et on n'abandonne jamais.
+!macro idleKillApp
+  nsExec::Exec `"$SYSDIR\cmd.exe" /C taskkill /F /IM "${APP_EXECUTABLE_FILENAME}" /FI "USERNAME eq %USERNAME%"`
+  Pop $0
+!macroend
+
+!macro idleAppRunning _RETURN
+  nsExec::Exec `"$SYSDIR\cmd.exe" /C tasklist /FI "USERNAME eq %USERNAME%" /FI "IMAGENAME eq ${APP_EXECUTABLE_FILENAME}" /FO CSV /NH | "$SYSDIR\findstr.exe" /B /I /C:"\"${APP_EXECUTABLE_FILENAME}\""`
+  Pop ${_RETURN}
+!macroend
+
+!macro customCheckAppRunning
+  StrCpy $R1 0
+  ${do}
+    !insertmacro idleAppRunning $R0
+    ${if} $R0 != 0
+      ${break}
+    ${endif}
+    ${if} $R1 == 4
+      ; Demande polie (le jeu sauvegarde puis se ferme), comme un clic sur la croix.
+      nsExec::Exec `"$SYSDIR\cmd.exe" /C taskkill /IM "${APP_EXECUTABLE_FILENAME}" /FI "USERNAME eq %USERNAME%"`
+      Pop $0
+    ${endif}
+    ${if} $R1 >= 20
+      DetailPrint `Closing "${PRODUCT_NAME}"...`
+      !insertmacro idleKillApp
+    ${endif}
+    Sleep 500
+    IntOp $R1 $R1 + 1
+  ${loopuntil} $R1 >= 60
+  ; Laisse Windows libérer les fichiers.
+  Sleep 800
+!macroend
+
+; L'ancien désinstallateur a échoué (fichier encore ouvert…) : on installe quand même par-dessus au lieu
+; d'abandonner (les fichiers sont remplacés, la sauvegarde est ailleurs et n'est jamais touchée).
+!macro customUnInstallCheck
+  ClearErrors
+  ${if} $R0 != 0
+    DetailPrint `Old version: uninstall incomplete (code $R0), installing over it.`
+    !insertmacro idleKillApp
+    Sleep 800
+  ${endif}
+!macroend
+!macro customUnInstallCheckCurrentUser
+  !insertmacro customUnInstallCheck
+!macroend

@@ -6,6 +6,8 @@
 //   4. désinstalle tout à la fin (les scénarios peuvent s'enchaîner).
 // Avec --all-users, l'ancienne version est installée « pour tous les utilisateurs » (/allusers) :
 // la nouvelle (toujours pour l'utilisateur courant) doit la remplacer, sans doublon.
+// Avec --live (v8.9.1), la mise à jour se fait comme depuis le jeu : la nouvelle version est installée
+// (/S --updated --force-run) pendant que l'ancienne tourne ; ensuite le jeu doit se relancer normalement.
 // Usage : node tools/upgrade-smoke.mjs <ancien-setup.exe> <nouveau-setup.exe> <nouvelle-version> [--all-users]
 import { execFileSync, spawn } from 'node:child_process';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
@@ -14,6 +16,7 @@ import { join } from 'node:path';
 
 const [oldSetup, newSetup, newVersion, mode] = process.argv.slice(2);
 const allUsers = mode === '--all-users';
+const live = mode === '--live';
 if (!oldSetup || !newSetup || !newVersion) {
   console.error('Usage : node tools/upgrade-smoke.mjs <ancien-setup.exe> <nouveau-setup.exe> <version>');
   process.exit(2);
@@ -86,15 +89,59 @@ const oldRun = await runGame(oldExe, 'old', true);
 check('ancienne version : partie lancée et sauvegardée', oldRun.ok && oldRun.saved, JSON.stringify(oldRun));
 await pause(3000);
 
-console.log(`Installation de la version ${newVersion} par-dessus…`);
-await runSetup(newSetup);
-await pause(2000);
+const exeName = 'Idle RPG.exe';
+const running = () => powershell(`@(Get-Process -Name 'Idle RPG' -ErrorAction SilentlyContinue).Count`).trim() !== '0';
+function stopGame() {
+  try { execFileSync('taskkill', ['/IM', exeName], { stdio: 'ignore' }); } catch { /* déjà fermé */ }
+}
+function killGame() {
+  try { execFileSync('taskkill', ['/F', '/IM', exeName], { stdio: 'ignore' }); } catch { /* déjà fermé */ }
+}
+async function waitStopped(ms) {
+  const end = Date.now() + ms;
+  while (running() && Date.now() < end) await pause(500);
+  return !running();
+}
+
+if (live) {
+  console.log('Lancement normal de l\'ancienne version (comme un joueur)…');
+  spawn(oldExe, [], { detached: true, stdio: 'ignore' }).unref();
+  await pause(15000);
+  check('ancienne version en cours d\'exécution', running());
+  console.log(`Mise à jour vers ${newVersion} pendant que le jeu tourne (/S --updated --force-run)…`);
+  await runSetup(newSetup, ['/S', '--updated', '--force-run']);
+  await pause(8000);
+} else {
+  console.log(`Installation de la version ${newVersion} par-dessus…`);
+  await runSetup(newSetup);
+  await pause(2000);
+}
 entries = installations();
 check('une seule installation après la mise à jour', entries.length === 1, `${entries.length} entrée(s)`);
 check(`installation à la version ${newVersion}`, entries[0]?.DisplayVersion === newVersion, entries[0]?.DisplayVersion);
 const newExe = installedExe(entries[0]);
 const version = fileVersion(newExe);
 check('exécutable installé à jour', version.startsWith(newVersion), `${newExe} : ${version}`);
+
+if (live) {
+  console.log(`  · relance par l'installateur : ${running() ? 'oui' : 'non'}`);
+  stopGame();
+  if (!(await waitStopped(15000))) killGame();
+  check('le jeu se ferme entièrement (aucun processus fantôme)', await waitStopped(10000));
+  console.log('Relance normale de la nouvelle version…');
+  spawn(newExe, [], { detached: true, stdio: 'ignore' }).unref();
+  await pause(15000);
+  check('nouvelle version : se relance normalement et reste ouverte', running());
+  // Deuxième lancement pendant que le jeu tourne : il ne doit ni ouvrir une 2e instance, ni fermer la 1re.
+  spawn(newExe, [], { detached: true, stdio: 'ignore' }).unref();
+  await pause(9000);
+  const count = Number(powershell(`@(Get-Process -Name 'Idle RPG' -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 }).Count`).trim());
+  console.log(`  · fenêtres ouvertes après un 2e lancement : ${count}`);
+  check('2e lancement : le jeu reste ouvert', running());
+  stopGame();
+  if (!(await waitStopped(15000))) killGame();
+  await waitStopped(10000);
+}
 
 const newRun = await runGame(newExe, 'new', false);
 check('nouvelle version : démarre sans erreur', newRun.ok, JSON.stringify(newRun));

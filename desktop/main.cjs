@@ -78,13 +78,24 @@ protocol.registerSchemesAsPrivileged([
   { scheme: SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true } },
 ]);
 
+let duplicate = false; // une autre instance tourne déjà : aucune fenêtre ici
 if (smokeFile) {
   const dir = path.join(app.getPath('temp'), 'idle-rpg-smoke');
   if (process.argv.includes('--smoke-fresh')) fs.rmSync(dir, { recursive: true, force: true });
   app.setPath('userData', dir);
 } else if (!app.requestSingleInstanceLock()) {
   // Une seule instance : deux fenêtres écraseraient mutuellement la sauvegarde.
-  app.quit();
+  duplicate = true;
+  // v8.9.1 : si l'autre instance était un processus fantôme (fenêtre fermée), elle vient de se terminer en
+  // recevant notre signal : on se relance une fois, après un court délai, au lieu de ne rien ouvrir.
+  if (!process.argv.includes('--lock-retry')) {
+    setTimeout(() => {
+      app.relaunch({ args: [...process.argv.slice(1), '--lock-retry'] });
+      app.exit(0);
+    }, 2500);
+  } else {
+    app.quit();
+  }
 }
 
 const settingsFile = () => path.join(app.getPath('userData'), 'window.json');
@@ -212,7 +223,9 @@ function createWindow() {
       fs.writeFileSync(file, data);
       if (process.platform !== 'win32') return { ok: false, error: 'Installation automatique : Windows seulement.' };
       // /S : installation silencieuse ; --force-run : l'installateur relance le jeu à la fin.
-      spawn(file, ['/S', '--updated', '--force-run'], { detached: true, stdio: 'ignore' }).unref();
+      // v8.9.1 : l'installateur ne démarre qu'une fois le jeu entièrement fermé (sauvegarde écrite) ;
+      // avant, il démarrait pendant la fermeture, et pouvait abandonner en laissant le jeu à moitié installé.
+      launchInstallerAfterExit(file);
       setTimeout(() => win.close(), 300);
       return { ok: true, version };
     } catch (error) {
@@ -254,11 +267,30 @@ function createWindow() {
     Promise.race([finalSave, timeout]).finally(() => {
       win.webContents.session.flushStorageData();
       win.destroy();
+      // Filet de sécurité (v8.9.1) : jamais de processus fantôme sans fenêtre, qui bloquerait les relances.
+      setTimeout(() => app.exit(0), 3000).unref?.();
     });
   });
 
   win.loadURL(`${ORIGIN}/index.html`);
   return win;
+}
+
+// Lance l'installateur par un petit script PowerShell qui attend la fin de ce processus (30 s au plus).
+// Sans PowerShell : lancement direct (l'installateur v8.9.1+ attend lui-même la fermeture du jeu).
+function launchInstallerAfterExit(file) {
+  const quoted = file.replace(/'/g, "''");
+  const script = `try { Wait-Process -Id ${process.pid} -Timeout 30 -ErrorAction SilentlyContinue } catch {}; `
+    + `Start-Sleep -Milliseconds 1500; Start-Process -FilePath '${quoted}' -ArgumentList '/S','--updated','--force-run'`;
+  const direct = () => spawn(file, ['/S', '--updated', '--force-run'], { detached: true, stdio: 'ignore' }).unref();
+  try {
+    const child = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-Command', script],
+      { detached: true, stdio: 'ignore', windowsHide: true });
+    child.on('error', direct);
+    child.unref();
+  } catch {
+    direct();
+  }
 }
 
 function newerThan(a, b) {
@@ -309,11 +341,14 @@ function runSmokeTest(win) {
 }
 
 app.whenReady().then(() => {
+  if (duplicate) return;
   Menu.setApplicationMenu(null);
   serveGameFiles();
   const win = createWindow();
   if (smokeFile) runSmokeTest(win);
   app.on('second-instance', () => {
+    // Fenêtre déjà fermée (processus en train de quitter ou bloqué) : on libère la place à la nouvelle instance.
+    if (win.isDestroyed()) { app.exit(0); return; }
     if (win.isMinimized()) win.restore();
     win.show();
     win.focus();

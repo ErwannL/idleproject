@@ -1,8 +1,25 @@
-## Idle RPG v8.9.0 — Coffre et mannequins, compagnons à 4 compétences, Records, transitions en nuages, Prime du jour
+## Idle RPG v8.9.1 — mise à jour depuis le jeu réparée
 
-**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-8.9.0-setup.exe). Votre partie est conservée.
+**Mise à jour :** si le jeu ne se lance plus depuis la mise à jour vers la v8.9.0, téléchargez
+**IdleRPG-8.9.1-setup.exe** sur la page des versions et lancez-le : il ferme ce qui reste du jeu et le réinstalle
+proprement. **Votre partie est conservée** (elle est rangée à part et l'installateur n'y touche jamais).
+Sinon : Paramètres → Version et mises à jour → Mettre à jour.
 
-### Nouveau
+### Corrigés
+- **Le jeu se fermait pendant la mise à jour et ne se relançait plus.** L'installateur démarrait alors que le jeu était
+  encore en train de se fermer et de sauvegarder. En mode silencieux, s'il n'arrivait pas à fermer le jeu ou à
+  désinstaller l'ancienne version, il abandonnait sans rien dire, et laissait un jeu à moitié installé ou un
+  processus fantôme qui empêchait tout nouveau lancement. Désormais :
+  - le jeu se ferme entièrement (sauvegarde écrite) **avant** que l'installateur ne démarre ;
+  - l'installateur laisse au jeu le temps de sauvegarder, puis ferme lui-même tout ce qui reste, et n'abandonne
+    plus jamais (si l'ancienne version ne se désinstalle pas, il installe par-dessus) ;
+  - un processus fantôme sans fenêtre se termine tout seul, et lancer le jeu ouvre bien la fenêtre.
+- Testé automatiquement sous Windows avant publication : mise à jour **pendant que le jeu tourne**, puis relance
+  normale et double lancement.
+
+### v8.9 — Coffre et mannequins, compagnons à 4 compétences, Records, transitions en nuages, Prime du jour
+
+### Nouveau en v8.9
 - **Coffre** (Sac → Coffre) : **300 places** en plus du sac ; ce qui y est rangé n'est **jamais recyclé ni fusionné**.
   Bouton « Ranger au coffre » sur la fiche d'un objet.
 - **Mannequins** (Sac → Mannequins) : **un par ensemble**, chacun garde la meilleure pièce de chaque emplacement.
@@ -26,7 +43,7 @@
 - **Prime du jour** (en haut des Contrats) : chaque jour un monstre d'un monde déjà atteint est mis à prix ; en
   vaincre 150 rapporte une **pièce d'ensemble Épique ou mieux** de ce monde et 60 gemmes.
 
-### Améliorés
+### Améliorés en v8.9
 - **Arbre de talents** : il ne s'affiche plus d'un coup, il **se dévoile au fur et à mesure** (un talent apparaît dès
   qu'un talent voisin est appris ; le nombre de talents encore cachés est indiqué).
 - **Expéditions** : on choisit le compagnon et la durée **directement dans la place libre** (plus besoin d'aller
@@ -35,7 +52,7 @@
   le bas), et elle reprend sa taille à la fermeture. L'onglet Améliorer est plus lisible (conseils repliables).
 - **Animation d'invocation** à chaque invocation (plus seulement la première).
 
-### Corrigés
+### Corrigés en v8.9
 - **Petite flèche sur les monstres** (marque de la synergie Exécuteur) remplacée par un discret cercle au sol.
 - **Sprites cassés** du décor (arbres de la forêt, etc.) redessinés.
 
