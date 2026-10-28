@@ -216,6 +216,11 @@ function createWindow() {
         : url.hostname === 'github.com' && url.pathname.startsWith('/ErwannL/idleproject/releases/download/'));
       if (!okUrl) return { ok: false, error: 'Installateur introuvable dans la release.' };
       const file = path.join(app.getPath('temp'), asset.name);
+      // v8.9.2 : l'installateur a besoin d'environ 700 Mo (téléchargement + décompression + installation).
+      const freeMb = freeSpaceMb(app.getPath('temp'));
+      if (freeMb !== null && freeMb < 800) {
+        return { ok: false, error: `Espace disque insuffisant : ${freeMb} Mo libres, il en faut environ 800 Mo. Videz la Corbeille ou supprimez des fichiers, puis réessayez.` };
+      }
       const download = await net.fetch(url.href, privateDl ? { headers: ghHeaders(token, 'application/octet-stream') } : {});
       if (!download.ok) return { ok: false, error: `Téléchargement ${download.status}` };
       const data = Buffer.from(await download.arrayBuffer());
@@ -274,6 +279,29 @@ function createWindow() {
 
   win.loadURL(`${ORIGIN}/index.html`);
   return win;
+}
+
+// Place libre (Mo) sur le disque d'un dossier ; null si inconnue.
+function freeSpaceMb(dir) {
+  try {
+    const st = fs.statfsSync(dir);
+    return Math.floor((st.bavail * st.bsize) / 1048576);
+  } catch {
+    return null;
+  }
+}
+
+// v8.9.2 : les installateurs téléchargés par les mises à jour précédentes restaient dans le dossier Temp
+// (≈ 120 Mo chacun) et finissaient par remplir le disque ; on les supprime au lancement.
+function cleanOldInstallers() {
+  try {
+    const dir = app.getPath('temp');
+    for (const name of fs.readdirSync(dir)) {
+      if (/^IdleRPG-[\d.]+-setup\.exe$/.test(name)) fs.rm(path.join(dir, name), { force: true }, () => {});
+    }
+  } catch {
+    // Dossier Temp illisible : sans importance.
+  }
 }
 
 // Lance l'installateur par un petit script PowerShell qui attend la fin de ce processus (30 s au plus).
@@ -342,6 +370,7 @@ function runSmokeTest(win) {
 
 app.whenReady().then(() => {
   if (duplicate) return;
+  if (!smokeFile) cleanOldInstallers();
   Menu.setApplicationMenu(null);
   serveGameFiles();
   const win = createWindow();

@@ -1654,6 +1654,7 @@ export const PATTERNS = [
   [/^dans (.+)$/, (m) => (/\d/.test(m[1]) ? `in ${dur(m[1])}` : null)],
 
   // v8.9
+  [/^Espace disque insuffisant : (\d+) Mo libres, il en faut environ (\d+) Mo\. Videz la Corbeille ou supprimez des fichiers, puis réessayez\.$/, 'Not enough disk space: $1 MB free, about $2 MB needed. Empty the Recycle Bin or delete some files, then try again.'],
   [/^(.+) — (.+)\. Cliquer \(ou touche (\S+)\) pour l'activer\.$/, (m) => `${tr(m[1])} — ${tr(m[2])}. Click (or key ${m[3]}) to activate.`],
   [/^(.+) — (.+)\. Débloqué au niveau (\d+) du héros\.$/, (m) => `${tr(m[1])} — ${tr(m[2])}. Unlocked at hero level ${m[3]}.`],
   [/^(.+) \(niv\. (\d+)\) — se lance toute seule toutes les (\d+) s environ$/, (m) => `${tr(m[1])} (lv. ${m[2]}) — casts itself about every ${m[3]} s`],

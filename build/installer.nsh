@@ -4,6 +4,28 @@
 ; (choix possible dans les versions 1 à 6) est d'abord désinstallée, pour ne pas avoir deux jeux.
 ; (customInit s'exécute après check64BitAndSetRegView : la vue 64 bits du registre est active.)
 !macro customInit
+  ; v8.9.2 — « Extraction : erreur d'écriture du fichier …\app-64.7z » : le disque (dossier Temp) était plein.
+  ; 1) On supprime les installateurs des mises à jour précédentes laissés dans Temp (≈ 120 Mo chacun ;
+  ;    celui qui tourne est verrouillé et reste). 2) On vérifie la place libre et on l'explique clairement.
+  FindFirst $4 $5 "$TEMP\IdleRPG-*-setup.exe"
+  ${do}
+    ${if} $5 == ""
+      ${break}
+    ${endif}
+    Delete "$TEMP\$5"
+    FindNext $4 $5
+  ${loop}
+  FindClose $4
+  ClearErrors
+  ${GetRoot} "$TEMP" $6
+  ${DriveSpace} "$6\" "/D=F /S=M" $7
+  ${ifNot} ${Errors}
+  ${andif} $7 < 700
+    MessageBox MB_OK|MB_ICONEXCLAMATION "Espace disque insuffisant sur $6 : $7 Mo libres, il en faut environ 700 Mo pour installer Idle RPG.$\r$\n$\r$\nVidez la Corbeille ou supprimez des fichiers (Parametres Windows > Stockage), puis relancez l'installation. Votre partie est conservee." /SD IDOK
+    SetErrorLevel 3
+    Quit
+  ${endif}
+  ClearErrors
   ReadRegStr $1 HKLM "${INSTALL_REGISTRY_KEY}" InstallLocation
   ${if} $1 != ""
   ${andif} ${FileExists} "$1\${UNINSTALL_FILENAME}"

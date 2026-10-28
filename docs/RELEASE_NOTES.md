@@ -1,11 +1,22 @@
-## Idle RPG v8.9.1 — mise à jour depuis le jeu réparée
+## Idle RPG v8.9.2 — installation qui ne remplit plus le disque
 
-**Mise à jour :** si le jeu ne se lance plus depuis la mise à jour vers la v8.9.0, téléchargez
-**IdleRPG-8.9.1-setup.exe** sur la page des versions et lancez-le : il ferme ce qui reste du jeu et le réinstalle
-proprement. **Votre partie est conservée** (elle est rangée à part et l'installateur n'y touche jamais).
-Sinon : Paramètres → Version et mises à jour → Mettre à jour.
+**Mise à jour :** téléchargez **IdleRPG-8.9.2-setup.exe** sur la page des versions et lancez-le (ou Paramètres →
+Version et mises à jour → Mettre à jour). **Votre partie est conservée.**
 
 ### Corrigés
+- **« Extraction : erreur d'écriture du fichier …\app-64.7z »** : Windows n'arrivait plus à écrire dans le dossier
+  Temp, presque toujours parce que le disque était plein. L'installateur y décompresse le jeu et a besoin d'environ
+  700 Mo libres. Et chaque mise à jour faite depuis le jeu laissait son installateur (≈ 120 Mo) dans ce dossier,
+  sans jamais le supprimer : au fil des versions, plus d'1 Go.
+  - Le jeu et l'installateur **suppriment les anciens installateurs** restés dans Temp.
+  - L'installateur **vérifie la place libre** avant de commencer et, s'il en manque, le dit clairement (place libre,
+    place nécessaire, que faire) au lieu d'une erreur obscure. La mise à jour depuis le jeu vérifie aussi avant de
+    télécharger.
+  - **Installation plus légère** : seules les langues française et anglaise d'Electron sont embarquées.
+
+### v8.9.1 — mise à jour depuis le jeu réparée
+
+### Corrigés en v8.9.1
 - **Le jeu se fermait pendant la mise à jour et ne se relançait plus.** L'installateur démarrait alors que le jeu était
   encore en train de se fermer et de sauvegarder. En mode silencieux, s'il n'arrivait pas à fermer le jeu ou à
   désinstaller l'ancienne version, il abandonnait sans rien dire, et laissait un jeu à moitié installé ou un

@@ -1,7 +1,7 @@
 {
   "name": "idle-rpg",
   "productName": "Idle RPG",
-  "version": "8.9.1",
+  "version": "8.9.2",
   "private": true,
   "description": "RPG idle 2D en pixel art pour PC (fenêtre compacte).",
   "author": "ErwannL",
@@ -40,6 +40,10 @@
       "assets/**/*",
       "desktop/**/*",
       "package.json"
+    ],
+    "electronLanguages": [
+      "fr",
+      "en-US"
     ],
     "win": {
       "target": [
