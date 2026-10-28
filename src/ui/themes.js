@@ -49,13 +49,56 @@ export const THEMES = [
     accent: { h: 336, sMul: 0.85, lMul: 1.1 }, primary: { h: 352, sMul: 0.95, lMul: 0.95 },
   },
   {
-    id: 'shadow', radius: 1, name: 'Ombre', text: 'Noir et argent, sans aucune couleur superflue.',
-    dark: { sSet: 0, lMul: 0.92 }, steel: { sSet: 0, lMul: 1.0 },
-    accent: { sSet: 0.05, lMul: 1.08 }, primary: { sSet: 0.06, lMul: 0.85 },
+    id: 'shadow', radius: 1, name: 'Ombre', text: 'Obsidienne, fumée violette et éclats cramoisis.',
+    dark: { h: 268, sMul: 0.55, lMul: 0.72 }, steel: { h: 276, sSet: 0.32, lMul: 0.95 },
+    accent: { h: 286, sMul: 0.95, lMul: 1.1 }, primary: { h: 272, sMul: 0.95, lMul: 0.9 },
   },
 ];
 
 export const themeById = (id) => THEMES.find((t) => t.id === id) ?? THEMES[0];
+
+// v9.0.3 : décor des thèmes (hors Chevalier, volontairement sobre) : grands ornements aux coins du panneau,
+// emblème sur l'en-tête, texture de fond, ornement des titres et de l'onglet actif, lueurs, et particules animées.
+// motion : fall (tombent en se balançant), rise (montent), twinkle (scintillent sur place), drift (dérivent).
+export const THEME_FX = {
+  royal: { glow: '#ffd76a', motion: 'twinkle', count: 16, speed: [2.5, 5] },
+  sylvan: { glow: '#9fe36a', motion: 'fall', count: 12, speed: [9, 16] },
+  forge: { glow: '#ff8a2a', motion: 'rise', count: 18, speed: [4, 8] },
+  arcane: { glow: '#5ff2ff', motion: 'rise', count: 12, speed: [7, 12] },
+  necro: { glow: '#7dff6a', motion: 'rise', count: 10, speed: [9, 15] },
+  desert: { glow: '#3fe0d0', motion: 'drift', count: 14, speed: [8, 14] },
+  frost: { glow: '#cdf3ff', motion: 'fall', count: 22, speed: [8, 15] },
+  sakura: { glow: '#ff9ccd', motion: 'fall', count: 14, speed: [10, 17] },
+  shadow: { glow: '#b26bff', motion: 'rise', count: 12, speed: [8, 14] },
+};
+
+const assetUrl = (theme, file) => new URL(`assets/ui/themes/${theme}/${file}`, document.baseURI).href;
+
+// Couche de décor posée sur le panneau (coins, emblème, particules), recréée à chaque changement de thème.
+function applyDecor(theme) {
+  const root = document.documentElement;
+  const panel = document.getElementById('panel');
+  const fx = THEME_FX[theme.id];
+  for (const [key, file] of [['corner', 'corner.png'], ['crest', 'crest.png'], ['tab', 'tab_deco.png'], ['divider', 'divider.png'], ['texture', 'texture.png']]) {
+    if (fx) root.style.setProperty(`--deco-${key}`, `url("${assetUrl(theme.id, file)}")`);
+    else root.style.removeProperty(`--deco-${key}`);
+  }
+  if (fx) root.style.setProperty('--glow', fx.glow); else root.style.removeProperty('--glow');
+  if (!panel) return;
+  panel.querySelector('.theme-deco')?.remove();
+  if (!fx) return;
+  const deco = document.createElement('div');
+  deco.className = 'theme-deco';
+  deco.setAttribute('aria-hidden', 'true');
+  const parts = [];
+  for (let i = 0; i < fx.count; i++) {
+    const r = (a, b) => a + Math.random() * (b - a);
+    const sprite = assetUrl(theme.id, i % 3 === 2 ? 'particle2.png' : 'particle1.png');
+    parts.push(`<i class="p ${fx.motion}" style="--x:${r(0, 100).toFixed(1)}%;--y:${r(0, 100).toFixed(1)}%;--t:${r(...fx.speed).toFixed(1)}s;--d:-${r(0, fx.speed[1]).toFixed(1)}s;--sc:${r(0.7, 1.3).toFixed(2)};--sw:${r(10, 34).toFixed(0)}px;background-image:url('${sprite}')"></i>`);
+  }
+  deco.innerHTML = `<i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i><i class="crest"></i><div class="fx">${parts.join('')}</div>`;
+  panel.appendChild(deco);
+}
 
 // --- Couleurs -------------------------------------------------------------------------------------
 
@@ -239,6 +282,7 @@ async function applyNow(id) {
     o.style.setProperty(o.prop, value, o.priority);
   }
   document.documentElement.style.setProperty('--head-font', theme.font ?? 'inherit');
+  applyDecor(theme);
   if (theme.radius !== undefined) document.documentElement.style.setProperty('--radius', `${theme.radius}px`);
   else document.documentElement.style.removeProperty('--radius');
 }

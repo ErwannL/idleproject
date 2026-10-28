@@ -76,3 +76,19 @@ test('v9.0 : collections du Codex — paliers atteignables, ancestraux comptés,
   s.codex.claimed.items = 5;
   assert.equal(collectionStatus(s, items).next, null);
 });
+
+test('v9.0.3 : « Exposer tout » expose les objets ancestraux déjà dans le sac et le coffre', async () => {
+  const { exposeAll } = await import('../src/core/museum.js');
+  const s = createNewState(NOW, 5);
+  const a = makeItem(s, 'phoenix_blade', 'epic', 10);
+  const b = makeItem(s, 'phoenix_blade', 'legendary', 20);
+  const c = makeItem(s, 'void_signet', 'epic', 10);
+  c.locked = true;
+  s.inventory.push(a, c);
+  s.stash.push(b);
+  assert.equal(exposeAll(s), 2);
+  assert.equal(s.museum.phoenix_blade.id, b.id);
+  assert.equal(s.museum.void_signet.id, c.id);
+  assert.ok(s.inventory.some((i) => i.id === a.id));
+  assert.equal(exposeAll(s), 0);
+});

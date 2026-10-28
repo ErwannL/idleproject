@@ -165,7 +165,8 @@ function museumView(ui, state) {
       dégâts, PV et or ${pct(per.damageMultPct)} (multiplicatif, ×2 si Légendaire). Collection complète : dégâts et PV +${MUSEUM.complete.damageMultPct} % de plus.
       Une pièce exposée n'est pas portée : reprenez-la (↩) pour l'équiper.</span>
       <button class="btn chip-btn small${auto ? ' active' : ''}" data-action="auto-museum" title="Les objets ancestraux ramassés vont dans leur vitrine si elle est vide ou s'ils sont meilleurs (l'ancien retourne au sac)">${auto ? 'Exposition auto : activée' : 'Exposition auto : désactivée'}</button></div>
-      <div class="museum-total"><b>${n}/${MUSEUM_PIECES.length}</b> pièces exposées${total ? ` · <span class="good">${total}</span>` : ''}</div></div>
+      <div class="row-between museum-total"><span><b>${n}/${MUSEUM_PIECES.length}</b> pièces exposées${total ? ` · <span class="good">${total}</span>` : ''}</span>
+        <button class="btn btn-gold small" data-action="expose-all" title="Expose les objets ancestraux du sac et du coffre (pas ceux que porte le héros)">Exposer tout (sac + coffre)</button></div></div>
     <div class="museum">${cases}</div>`;
 }
 

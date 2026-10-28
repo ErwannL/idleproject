@@ -69,6 +69,22 @@ export function takeFromMuseum(state, baseId, balance = BALANCE) {
   return true;
 }
 
+// v9.0.3 : expose les objets ancestraux déjà dans le sac et le coffre (vitrine vide ou exemplaire meilleur ;
+// l'ancien exemplaire retourne au sac). Avant, l'exposition auto ne valait que pour les objets ramassés ensuite.
+// Les objets portés ne sont jamais pris (le verrou protège du recyclage, pas de l'exposition). Renvoie le nombre de pièces exposées.
+export function exposeAll(state, balance = BALANCE) {
+  if (!state.museum) return 0;
+  let n = 0;
+  const candidates = [...state.inventory, ...(state.stash ?? [])].filter((i) => isAncestral(i))
+    .sort((a, b) => itemPower(b) - itemPower(a));
+  for (const item of candidates) {
+    const old = state.museum[item.baseId];
+    if (old && itemPower(old) >= itemPower(item)) continue;
+    if (putInMuseum(state, item.id, balance)) n += 1;
+  }
+  return n;
+}
+
 // Ramassage : un objet ancestral va dans sa vitrine si elle est vide ou s'il est meilleur ; l'ancien exemplaire
 // retourne au sac (les objets ancestraux ne sont jamais recyclés). Renvoie true si l'objet a été exposé.
 export function autoMuseum(state, item, balance = BALANCE) {

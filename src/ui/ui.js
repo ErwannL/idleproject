@@ -455,6 +455,7 @@ export class UI {
       case 'to-museum': a.toMuseum(id); break;
       case 'from-museum': a.fromMuseum(value); break;
       case 'auto-museum': a.setAutoMuseum(this.state.ui.autoMuseum === false); break;
+      case 'expose-all': a.exposeAll(); break;
       case 'keep-sets': a.setKeepSets(this.state.ui.keepSets === false); break;
       case 'buy-talent-path': a.buyTalentPath(key); break;
       case 'respec-talents': this.showRespecConfirm(this.state); break;
@@ -821,6 +822,8 @@ export class UI {
     this.speed = simSpeed(state);
     this.$('speed-toggle').classList.toggle('hidden', unlockedSpeeds(state).length < 2 && !state.cheats.skipBattle);
     this.root.classList.toggle('speed-max', simSpeed(state) >= 100);
+    // v9.0.3 : particules et lueurs animées des thèmes coupées en mode concentration et à ×100.
+    document.documentElement.classList.toggle('fx-calm', Boolean(state.ui.focus) || simSpeed(state) >= 100);
     this.$('speed-toggle').classList.toggle('fast', simSpeed(state) > 1);
     this.$('auto-toggle').classList.toggle('off', !state.autoAdvance);
     this.$('auto-toggle').classList.toggle('hidden', Boolean(state.dungeon || state.tower || state.challenge));

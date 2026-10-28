@@ -40,7 +40,7 @@ import { computeHeroStats } from './core/stats.js';
 import { formatNumber } from './core/format.js';
 import { claimBounty } from './core/bounty.js';
 import { moveToStash, putOnMannequin, takeFromMannequin, takeFromStash, wearMannequin } from './core/stash.js';
-import { putInMuseum, takeFromMuseum } from './core/museum.js';
+import { exposeAll, putInMuseum, takeFromMuseum } from './core/museum.js';
 import { createJournal, journalSummary, noteDrop, noteFused, noteRecycled } from './core/journal.js';
 import { SceneRenderer } from './render/scene.js';
 import { UI } from './ui/ui.js';
@@ -522,7 +522,15 @@ const actions = {
     if (!takeFromMuseum(state, baseId)) ui.toast('Sac et coffre pleins.', '#ff8a8a');
     else done(true, 'Repris dans le sac');
   },
-  setAutoMuseum(on) { state.ui.autoMuseum = on; done(true); },
+  setAutoMuseum(on) {
+    state.ui.autoMuseum = on;
+    const n = on ? exposeAll(state) : 0;
+    done(true, n ? `${n} objet${n > 1 ? 's' : ''} ancestra${n > 1 ? 'ux' : 'l'} exposé${n > 1 ? 's' : ''} au Musée` : null, '#ffe08a');
+  },
+  exposeAll() {
+    const n = exposeAll(state);
+    done(true, n ? `${n} objet${n > 1 ? 's' : ''} ancestra${n > 1 ? 'ux' : 'l'} exposé${n > 1 ? 's' : ''} au Musée` : 'Rien de mieux à exposer (les objets portés restent sur le héros).', '#ffe08a');
+  },
   setKeepSets(on) {
     state.ui.keepSets = on;
     lastSweep = 0;
@@ -663,6 +671,8 @@ if (window.desktop) {
 setTimeout(() => { if (!navigator.webdriver && !ui.desktop?.smoke) actions.checkUpdate(true); }, 4000);
 
 // Gains hors ligne depuis la dernière sauvegarde.
+// v9.0.3 : exposition auto des objets ancestraux déjà dans le sac ou le coffre.
+if (state.ui.autoMuseum !== false) exposeAll(state);
 if (loaded.source !== 'new') runOffline(state.lastSaved, Date.now());
 else save();
 

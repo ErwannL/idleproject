@@ -582,6 +582,9 @@ export const EXACT = {
 
   // Arbre de talents, Renaissance, bonus éternels
   // v9.0
+  "Exposer tout (sac + coffre)": "Display all (bag + chest)",
+  "Expose les objets ancestraux du sac et du coffre (pas ceux que porte le héros)": "Displays the ancestral items from the bag and chest (not those the hero wears)",
+  "Rien de mieux à exposer (les objets portés restent sur le héros).": "Nothing better to display (worn items stay on the hero).",
   "⚠ La mise à jour n'a pas pu s'installer": "⚠ The update could not be installed",
   "Causes possibles : place disque insuffisante, antivirus qui bloque l'installateur, ou fermeture de l'installateur. Relancez-le : cette fois sa fenêtre s'affiche et indique le problème éventuel. Votre partie est conservée.": "Possible causes: not enough disk space, an antivirus blocking the installer, or the installer was closed. Run it again: this time its window shows any problem. Your save is kept.",
   "Relancer l'installateur": "Run the installer again",
@@ -622,7 +625,7 @@ export const EXACT = {
   "Terre cuite, grès chaud et turquoise.": "Terracotta, warm sandstone and turquoise.",
   "Glace pâle, ardoise et reflets polaires.": "Pale ice, slate and polar gleams.",
   "Laque noire, prune et fleurs de cerisier.": "Black lacquer, plum and cherry blossoms.",
-  "Noir et argent, sans aucune couleur superflue.": "Black and silver, nothing superfluous.",
+  "Obsidienne, fumée violette et éclats cramoisis.": "Obsidian, violet smoke and crimson shards.",
   // v8.9
   "Massue": "Mace",
   "Marteau de guerre": "War Hammer",
@@ -1696,6 +1699,7 @@ export const PATTERNS = [
   [/^dans (.+)$/, (m) => (/\d/.test(m[1]) ? `in ${dur(m[1])}` : null)],
 
   // v9.0
+  [/^(\d+) objets? ancestra(?:l|ux) exposés? au Musée$/, (m) => `${m[1]} ancestral item${pl(m[1], '', 's')} displayed in the Museum`],
   [/^La version (\S+) a été téléchargée, mais le jeu est toujours en version (\S+)\.$/, (m) => `Version ${m[1]} was downloaded, but the game is still version ${m[2]}.`],
   [/^à (\d+) : (.+)$/, (m) => `at ${m[1]}: ${tr(m[2])}`],
   [/^Manquants \((\d+)\)$/, 'Missing ($1)'],

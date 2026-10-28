@@ -1,0 +1,99 @@
+/* Thèmes d'interface — décor et effets (v9.0.3). Le Chevalier reste sobre : rien de ceci ne s'applique à lui.
+   Les variables --deco-* (images du thème) et --glow (couleur de lueur) sont posées par src/ui/themes.js. */
+
+html:not([data-theme="knight"]) .layout-tall #panel,
+html:not([data-theme="knight"]) .layout-mini.side-open #panel { position: relative; }
+
+/* --- Couche de décor : grands ornements aux coins, emblème, particules ---------------------------- */
+.theme-deco { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+.theme-deco .c {
+  position: absolute; width: 80px; height: 80px;
+  background: var(--deco-corner) no-repeat 0 0 / 100% 100%; image-rendering: pixelated;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.55));
+}
+.theme-deco .tl { left: -10px; top: -10px; }
+.theme-deco .tr { right: -10px; top: -10px; transform: scaleX(-1); }
+.theme-deco .bl { left: -10px; bottom: -10px; transform: scaleY(-1); }
+.theme-deco .br { right: -10px; bottom: -10px; transform: scale(-1, -1); }
+.theme-deco .crest {
+  position: absolute; left: 50%; top: -14px; width: 112px; height: 44px; transform: translateX(-50%);
+  background: var(--deco-crest) no-repeat center / 100% 100%; image-rendering: pixelated;
+  filter: drop-shadow(0 0 6px var(--glow)) drop-shadow(0 2px 2px rgba(0, 0, 0, 0.6));
+  animation: crest-glow 4s ease-in-out infinite;
+}
+@keyframes crest-glow { 50% { filter: drop-shadow(0 0 11px var(--glow)) drop-shadow(0 2px 2px rgba(0, 0, 0, 0.6)); } }
+
+/* Particules : sprites du thème, animés en CSS (quelques dizaines au plus, transformées par le GPU). */
+.theme-deco .fx { position: absolute; inset: 8px; overflow: hidden; }
+.theme-deco .p {
+  position: absolute; left: var(--x); top: var(--y); width: 18px; height: 18px;
+  background: no-repeat center / contain; image-rendering: pixelated; opacity: 0;
+  animation-duration: var(--t); animation-delay: var(--d); animation-iteration-count: infinite; animation-timing-function: linear;
+  will-change: transform, opacity;
+}
+.theme-deco .p.fall { top: -24px; animation-name: p-fall; }
+.theme-deco .p.rise { top: auto; bottom: -24px; animation-name: p-rise; }
+.theme-deco .p.drift { left: -24px; animation-name: p-drift; }
+.theme-deco .p.twinkle { animation-name: p-twinkle; animation-timing-function: ease-in-out; filter: drop-shadow(0 0 4px var(--glow)); }
+@keyframes p-fall {
+  0% { transform: translate(0, 0) rotate(0deg) scale(var(--sc)); opacity: 0; }
+  8% { opacity: 0.85; }
+  25% { transform: translate(var(--sw), 25vh) rotate(90deg) scale(var(--sc)); }
+  50% { transform: translate(calc(var(--sw) * -1), 50vh) rotate(180deg) scale(var(--sc)); }
+  75% { transform: translate(var(--sw), 75vh) rotate(270deg) scale(var(--sc)); }
+  92% { opacity: 0.8; }
+  100% { transform: translate(0, 100vh) rotate(360deg) scale(var(--sc)); opacity: 0; }
+}
+@keyframes p-rise {
+  0% { transform: translate(0, 0) scale(var(--sc)); opacity: 0; }
+  10% { opacity: 0.9; }
+  50% { transform: translate(var(--sw), -40vh) scale(var(--sc)); }
+  85% { opacity: 0.5; }
+  100% { transform: translate(calc(var(--sw) * -0.5), -80vh) scale(calc(var(--sc) * 0.6)); opacity: 0; }
+}
+@keyframes p-drift {
+  0% { transform: translate(0, 0) scale(var(--sc)); opacity: 0; }
+  10% { opacity: 0.8; }
+  50% { transform: translate(50vw, var(--sw)) scale(var(--sc)); }
+  90% { opacity: 0.7; }
+  100% { transform: translate(100vw, 0) scale(var(--sc)); opacity: 0; }
+}
+@keyframes p-twinkle {
+  0%, 100% { transform: scale(calc(var(--sc) * 0.4)) rotate(0deg); opacity: 0; }
+  50% { transform: scale(var(--sc)) rotate(45deg); opacity: 0.95; }
+}
+/* Mode concentration / vitesse ×100 : pas de particules. */
+html.fx-calm .theme-deco .fx { display: none; }
+
+/* --- Texture, titres, onglets, boutons -------------------------------------------------------------- */
+html:not([data-theme="knight"]) #panel-body {
+  background-image: var(--deco-texture); background-size: 128px 128px; image-rendering: pixelated;
+}
+html:not([data-theme="knight"]) #panel header h2 {
+  text-shadow: 0 0 6px var(--glow), 0 2px 0 rgba(0, 0, 0, 0.8);
+  letter-spacing: 0.03em;
+}
+html:not([data-theme="knight"]) .section-title { text-shadow: 0 0 5px color-mix(in srgb, var(--glow) 55%, transparent); }
+html:not([data-theme="knight"]) #panel-body > .card > .section-title:first-child::after {
+  content: ''; display: block; width: 192px; max-width: 70%; height: 14px; margin: 2px 0 2px;
+  background: var(--deco-divider) no-repeat left center / contain; image-rendering: pixelated; opacity: 0.95;
+}
+html:not([data-theme="knight"]) #tabs button { position: relative; }
+html:not([data-theme="knight"]) #tabs button.active { animation: tab-glow 2.6s ease-in-out infinite; }
+html:not([data-theme="knight"]) #tabs button.active::before {
+  content: ''; position: absolute; left: 50%; top: -10px; width: 40px; height: 16px; transform: translateX(-50%);
+  background: var(--deco-tab) no-repeat center / 100% 100%; image-rendering: pixelated; pointer-events: none;
+  filter: drop-shadow(0 0 4px var(--glow));
+}
+@keyframes tab-glow { 50% { filter: drop-shadow(0 0 6px var(--glow)) brightness(1.12); } }
+html:not([data-theme="knight"]) .btn:hover:not(:disabled) { filter: brightness(1.12) drop-shadow(0 0 5px var(--glow)); }
+html:not([data-theme="knight"]) .btn-gold:not(:disabled) { filter: drop-shadow(0 0 3px color-mix(in srgb, var(--glow) 60%, transparent)); }
+html:not([data-theme="knight"]) .item-frame.r-legendary { animation: legend-glow 3s ease-in-out infinite; }
+@keyframes legend-glow { 50% { filter: drop-shadow(0 0 4px var(--legendary)); } }
+html.fx-calm #tabs button.active, html.fx-calm .item-frame.r-legendary, html.fx-calm .theme-deco .crest { animation: none; }
+
+/* Panneau étroit (petite fenêtre) : ornements plus petits. */
+.layout-mini .theme-deco .c { width: 56px; height: 56px; }
+.layout-mini .theme-deco .crest { width: 84px; height: 33px; top: -10px; }
+/* L'en-tête (titre, boutons ? et ✕) reste au-dessus des ornements. */
+html:not([data-theme="knight"]) #panel header { position: relative; z-index: 4; }
