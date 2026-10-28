@@ -1,8 +1,15 @@
-## Idle RPG v9.0.4 — ennemis mutés, boss de donjon uniques, aura des 5 étoiles
+## Idle RPG v9.0.5 — aura des 5 étoiles bien nette
 
-**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.4-setup.exe). Votre partie est conservée.
+**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.5-setup.exe). Votre partie est conservée.
 
-### Nouveau
+### Améliorés
+- **Aura des compagnons et familiers à 5 étoiles** : un contour lumineux net en pixel art, de la couleur de leur
+  rareté (doré pour un SSR), qui pulse, avec une lueur et un anneau tournant au sol et des étincelles. Avant, un
+  grand halo flou délavait aussi le chevalier et les personnages voisins.
+
+### v9.0.4 — ennemis mutés, boss de donjon uniques, aura des 5 étoiles
+
+### Nouveau en v9.0.4
 - **Ennemis mutés** (dès le monde 2) : de temps en temps, un monstre ordinaire apparaît muté, entouré de la couleur
   de sa mutation avec un losange au-dessus de la tête : **Scissipare** (se dédouble en mourant), **Régénérant**
   (4 % de PV par seconde), **Cuirassé** (dégâts −50 % au-dessus de la moitié de ses PV), **Frénétique** (attaque
@@ -17,7 +24,7 @@
 - **Nouveaux codes secrets** : **ETOILES** (+10 Étoiles de Transcendance par saisie, compatible avec « × fois ») et
   **SUPERNOVA** (tous vos compagnons et familiers passent à 5 étoiles).
 
-### Améliorés
+### Améliorés en v9.0.4
 - **Aura des compagnons et familiers à 5 étoiles** bien visible : contour lumineux de la couleur de leur rareté,
   halo pulsé, anneau tournant au sol et étincelles (avant : un halo presque invisible).
 - **Musée** : les objets ancestraux restés dans le sac quand le Musée est complet sont des **doublons** (un exemplaire
@@ -26,7 +33,7 @@
 - **Combat en boucle contre un boss** (bouton « Réaffronter » du Codex des boss, pour gagner des charges) : un
   bouton **« Arrêter : … en boucle »** sur la scène reprend la progression (retour à l'étape max, avance auto).
 
-### Corrigés
+### Corrigés en v9.0.4
 - **Effets des thèmes invisibles** : le mode concentration les coupait sans le dire. Ils dépendent maintenant d'une
   option dédiée, **« Effets animés »** (Paramètres → Interface, activée par défaut), et se coupent à ×100. Le thème
   Chevalier reste volontairement sans effets.
