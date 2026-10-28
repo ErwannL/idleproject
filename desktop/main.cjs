@@ -146,6 +146,17 @@ function serveGameFiles() {
 
 function createWindow() {
   const settings = loadSettings();
+  // v9.0.2 : mise à jour lancée la dernière fois mais version inchangée → elle a échoué ; on le signale.
+  let updateFailed = null;
+  const pending = settings.pendingUpdate;
+  if (pending && !smokeFile) {
+    if (newerThan(String(pending.version), app.getVersion())) {
+      updateFailed = { version: String(pending.version), file: fs.existsSync(String(pending.file)) ? String(pending.file) : null };
+    }
+    delete settings.pendingUpdate;
+    saveSettings(settings);
+  }
+  if (!smokeFile) cleanOldInstallers(updateFailed?.file);
   if ((settings.layoutVersion ?? 1) < LAYOUT_VERSION) {
     if (settings.bounds) Object.assign(settings.bounds, { width: SIZE_PRESETS.standard[0], height: SIZE_PRESETS.standard[1] });
     settings.layoutVersion = LAYOUT_VERSION;
@@ -190,7 +201,17 @@ function createWindow() {
     if (!url.startsWith(ORIGIN)) event.preventDefault();
   });
 
-  ipcMain.handle('desktop:getInfo', () => ({ alwaysOnTop: win.isAlwaysOnTop(), version: app.getVersion(), smoke: Boolean(smokeFile) }));
+  ipcMain.handle('desktop:getInfo', () => ({ alwaysOnTop: win.isAlwaysOnTop(), version: app.getVersion(), smoke: Boolean(smokeFile), updateFailed }));
+  // Relance l'installateur déjà téléchargé (après un échec signalé), visible.
+  ipcMain.handle('desktop:retryInstaller', () => {
+    const file = updateFailed?.file;
+    if (!file || !fs.existsSync(file)) return { ok: false, error: 'Installateur introuvable : téléchargez-le à nouveau.' };
+    settings.pendingUpdate = { version: updateFailed.version, file, at: Date.now() };
+    saveSettings(settings);
+    runInstaller(file);
+    setTimeout(() => win.close(), 300);
+    return { ok: true };
+  });
   ipcMain.handle('desktop:setAlwaysOnTop', (_event, value) => {
     win.setAlwaysOnTop(Boolean(value));
     settings.alwaysOnTop = win.isAlwaysOnTop();
@@ -227,10 +248,13 @@ function createWindow() {
       if (asset.size && data.length !== asset.size) return { ok: false, error: 'Téléchargement incomplet.' };
       fs.writeFileSync(file, data);
       if (process.platform !== 'win32') return { ok: false, error: 'Installation automatique : Windows seulement.' };
-      // /S : installation silencieuse ; --force-run : l'installateur relance le jeu à la fin.
-      // v8.9.1 : l'installateur ne démarre qu'une fois le jeu entièrement fermé (sauvegarde écrite) ;
-      // avant, il démarrait pendant la fermeture, et pouvait abandonner en laissant le jeu à moitié installé.
-      launchInstallerAfterExit(file);
+      // v9.0.2 : installateur lancé directement et VISIBLE (fenêtre de progression, erreurs affichées) ; il ferme
+      // lui-même le jeu (après sa sauvegarde) et le relance à la fin. Avant : script PowerShell intermédiaire puis
+      // installation silencieuse — un échec de l'un ou l'autre laissait l'ancienne version sans aucun message.
+      // La mise à jour en cours est notée : au prochain lancement, une version inchangée = échec signalé.
+      settings.pendingUpdate = { version, file, at: Date.now() };
+      saveSettings(settings);
+      runInstaller(file);
       setTimeout(() => win.close(), 300);
       return { ok: true, version };
     } catch (error) {
@@ -277,6 +301,18 @@ function createWindow() {
     });
   });
 
+  // Test (CI, v9.0.2) : `--test-update=<setup.exe>` refait le chemin du bouton « Mettre à jour » sans le
+  // téléchargement : mise à jour notée, installateur lancé, jeu fermé.
+  const testUpdate = process.argv.find((a) => a.startsWith('--test-update='));
+  if (testUpdate && !smokeFile) {
+    win.webContents.once('did-finish-load', () => setTimeout(() => {
+      settings.pendingUpdate = { version: app.getVersion(), file: testUpdate.slice('--test-update='.length), at: Date.now() };
+      saveSettings(settings);
+      runInstaller(settings.pendingUpdate.file);
+      setTimeout(() => win.close(), 300);
+    }, 6000));
+  }
+
   win.loadURL(`${ORIGIN}/index.html`);
   return win;
 }
@@ -293,32 +329,20 @@ function freeSpaceMb(dir) {
 
 // v8.9.2 : les installateurs téléchargés par les mises à jour précédentes restaient dans le dossier Temp
 // (≈ 120 Mo chacun) et finissaient par remplir le disque ; on les supprime au lancement.
-function cleanOldInstallers() {
+function cleanOldInstallers(keep = null) {
   try {
     const dir = app.getPath('temp');
     for (const name of fs.readdirSync(dir)) {
-      if (/^IdleRPG-[\d.]+-setup\.exe$/.test(name)) fs.rm(path.join(dir, name), { force: true }, () => {});
+      if (/^IdleRPG-[\d.]+-setup\.exe$/.test(name) && path.join(dir, name) !== keep) fs.rm(path.join(dir, name), { force: true }, () => {});
     }
   } catch {
     // Dossier Temp illisible : sans importance.
   }
 }
 
-// Lance l'installateur par un petit script PowerShell qui attend la fin de ce processus (30 s au plus).
-// Sans PowerShell : lancement direct (l'installateur v8.9.1+ attend lui-même la fermeture du jeu).
-function launchInstallerAfterExit(file) {
-  const quoted = file.replace(/'/g, "''");
-  const script = `try { Wait-Process -Id ${process.pid} -Timeout 30 -ErrorAction SilentlyContinue } catch {}; `
-    + `Start-Sleep -Milliseconds 1500; Start-Process -FilePath '${quoted}' -ArgumentList '/S','--updated','--force-run'`;
-  const direct = () => spawn(file, ['/S', '--updated', '--force-run'], { detached: true, stdio: 'ignore' }).unref();
-  try {
-    const child = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-Command', script],
-      { detached: true, stdio: 'ignore', windowsHide: true });
-    child.on('error', direct);
-    child.unref();
-  } catch {
-    direct();
-  }
+// Lance l'installateur (visible) détaché du jeu : il attend lui-même la fermeture du jeu (v8.9.1+).
+function runInstaller(file) {
+  spawn(file, ['--updated'], { detached: true, stdio: 'ignore' }).unref();
 }
 
 function newerThan(a, b) {
@@ -370,7 +394,6 @@ function runSmokeTest(win) {
 
 app.whenReady().then(() => {
   if (duplicate) return;
-  if (!smokeFile) cleanOldInstallers();
   Menu.setApplicationMenu(null);
   serveGameFiles();
   const win = createWindow();

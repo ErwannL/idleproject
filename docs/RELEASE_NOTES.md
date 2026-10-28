@@ -1,8 +1,25 @@
-## Idle RPG v9.0.1 — vrais styles d'interface, Codex expliqué, grand écran
+## Idle RPG v9.0.2 — mise à jour depuis le jeu fiable
 
-**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.1-setup.exe). Votre partie est conservée.
+**Mise à jour :** depuis la v9.0.1 ou avant, si « Mettre à jour » ferme le jeu sans rien installer, téléchargez
+**IdleRPG-9.0.2-setup.exe** sur la page des versions et lancez-le une fois (votre partie est conservée). Les mises à
+jour suivantes se feront de nouveau depuis le jeu.
 
-### Améliorés
+### Corrigés
+- **« Mettre à jour » téléchargeait, fermait le jeu… et rien d'autre** : au lancement suivant, c'était toujours
+  l'ancienne version. L'installateur était lancé en mode invisible par un script intermédiaire ; si l'un ou l'autre
+  échouait (ou si la place disque manquait), tout s'arrêtait sans un message. Désormais :
+  - l'installateur est lancé **directement et visible** (fenêtre de progression, erreurs affichées) ; il attend
+    que le jeu ait sauvegardé et se soit fermé, installe, puis **relance le jeu** ;
+  - si une mise à jour n'a pas abouti, le jeu **le dit au lancement suivant** et propose de **relancer
+    l'installateur** déjà téléchargé (ou d'ouvrir la page des versions) ;
+  - le manque de place disque est **toujours signalé** (seuil abaissé à 500 Mo), même en installation silencieuse.
+- **Testé automatiquement sous Windows avant publication**, en plus des scénarios existants : le vrai parcours du
+  bouton « Mettre à jour » (le jeu lance l'installateur et se ferme, l'installation se fait, le jeu se relance et
+  constate la réussite), puis une mise à jour ratée simulée, qui doit être détectée au lancement suivant.
+
+### v9.0.1 — vrais styles d'interface, Codex expliqué, grand écran
+
+### Améliorés en v9.0.1
 - **Thèmes d'interface : chacun a désormais son propre style d'ornements**, pas seulement ses couleurs. Les
   panneaux, en-têtes, onglets, boutons, cases et pastilles sont redessinés pour chaque thème :
   - **Royal** : filets d'or fins et doubles, coins arrondis à équerres ouvragées, en-têtes bleu roi, boutons
@@ -17,7 +34,7 @@
   « ramasser au moins une fois chaque modèle d'équipement… »), affiche la récompense du prochain palier, et un
   bouton **« Manquants »** liste, avec leurs icônes, ce qu'il reste à trouver.
 
-### Corrigés
+### Corrigés en v9.0.1
 - **Le bouton « … » des collections ne faisait rien** : il est remplacé par la récompense du palier et la liste des
   manquants.
 - **Collection Équipements impossible à finir** : elle visait 75 puis 100 objets alors qu'il n'existe que 60

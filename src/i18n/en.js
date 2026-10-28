@@ -582,6 +582,12 @@ export const EXACT = {
 
   // Arbre de talents, Renaissance, bonus éternels
   // v9.0
+  "⚠ La mise à jour n'a pas pu s'installer": "⚠ The update could not be installed",
+  "Causes possibles : place disque insuffisante, antivirus qui bloque l'installateur, ou fermeture de l'installateur. Relancez-le : cette fois sa fenêtre s'affiche et indique le problème éventuel. Votre partie est conservée.": "Possible causes: not enough disk space, an antivirus blocking the installer, or the installer was closed. Run it again: this time its window shows any problem. Your save is kept.",
+  "Relancer l'installateur": "Run the installer again",
+  "Plus tard": "Later",
+  "Installateur introuvable : téléchargez-le à nouveau.": "Installer not found: download it again.",
+  "Installateur introuvable.": "Installer not found.",
   "Vaincre au moins une fois chaque sorte de monstre, dans tous les mondes.": "Defeat every kind of monster at least once, in every world.",
   "Vaincre au moins une fois chaque boss : mini-boss, boss et méga boss des 11 mondes.": "Defeat every boss at least once: mini-bosses, bosses and mega bosses of the 11 worlds.",
   "Ramasser au moins une fois chaque modèle d'équipement : armes, casques, armures, chaque accessoire dans chaque pierre, et les objets ancestraux des boss. La rareté ne compte pas.": "Pick up every equipment model at least once: weapons, helmets, armours, each accessory in each gem, and the bosses' ancestral items. Rarity doesn't matter.",
@@ -1690,6 +1696,7 @@ export const PATTERNS = [
   [/^dans (.+)$/, (m) => (/\d/.test(m[1]) ? `in ${dur(m[1])}` : null)],
 
   // v9.0
+  [/^La version (\S+) a été téléchargée, mais le jeu est toujours en version (\S+)\.$/, (m) => `Version ${m[1]} was downloaded, but the game is still version ${m[2]}.`],
   [/^à (\d+) : (.+)$/, (m) => `at ${m[1]}: ${tr(m[2])}`],
   [/^Manquants \((\d+)\)$/, 'Missing ($1)'],
   [/^Récompense du palier (\d+)$/, 'Reward for tier $1'],

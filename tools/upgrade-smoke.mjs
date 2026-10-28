@@ -6,17 +6,21 @@
 //   4. désinstalle tout à la fin (les scénarios peuvent s'enchaîner).
 // Avec --all-users, l'ancienne version est installée « pour tous les utilisateurs » (/allusers) :
 // la nouvelle (toujours pour l'utilisateur courant) doit la remplacer, sans doublon.
+// Avec --inapp (v9.0.2), le vrai parcours du bouton « Mettre à jour » : le jeu (lancé normalement, option cachée
+// --test-update) note la mise à jour, lance l'installateur visible et se ferme ; l'installateur doit installer
+// puis relancer le jeu, qui constate la réussite. Puis une mise à jour ratée simulée doit être détectée.
 // Avec --live (v8.9.1), la mise à jour se fait comme depuis le jeu : la nouvelle version est installée
 // (/S --updated --force-run) pendant que l'ancienne tourne ; ensuite le jeu doit se relancer normalement.
 // Usage : node tools/upgrade-smoke.mjs <ancien-setup.exe> <nouveau-setup.exe> <nouvelle-version> [--all-users]
 import { execFileSync, spawn } from 'node:child_process';
-import { existsSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 
 const [oldSetup, newSetup, newVersion, mode] = process.argv.slice(2);
 const allUsers = mode === '--all-users';
 const live = mode === '--live';
+const inapp = mode === '--inapp';
 if (!oldSetup || !newSetup || !newVersion) {
   console.error('Usage : node tools/upgrade-smoke.mjs <ancien-setup.exe> <nouveau-setup.exe> <version>');
   process.exit(2);
@@ -101,6 +105,54 @@ async function waitStopped(ms) {
   const end = Date.now() + ms;
   while (running() && Date.now() < end) await pause(500);
   return !running();
+}
+
+if (inapp) {
+  const settingsFile = join(process.env.APPDATA ?? '', 'Idle RPG', 'window.json');
+  const readSettings = () => { try { return JSON.parse(readFileSync(settingsFile, 'utf8')); } catch { return null; } };
+  console.log('Installation de la nouvelle version, puis mise à jour depuis le jeu (bouton « Mettre à jour »)…');
+  await runSetup(newSetup);
+  await pause(2000);
+  const exe = installedExe(installations()[0]);
+  spawn(exe, [`--test-update=${resolve(newSetup)}`], { detached: true, stdio: 'ignore' }).unref();
+  // Le jeu démarre, lance l'installateur au bout de ~6 s et se ferme ; l'installateur le relance à la fin.
+  let sawRunning = false;
+  let sawExit = false;
+  let relaunched = false;
+  const end = Date.now() + 180000;
+  while (Date.now() < end) {
+    const r = running();
+    if (r) sawRunning = true;
+    if (sawRunning && !r) sawExit = true;
+    if (sawExit && r) { relaunched = true; break; }
+    await pause(500);
+  }
+  check('le jeu se ferme pour laisser l\'installateur travailler', sawExit);
+  check('le jeu est relancé après l\'installation', relaunched);
+  await pause(8000);
+  const after = installations();
+  check('une seule installation, à la nouvelle version', after.length === 1 && after[0].DisplayVersion === newVersion, JSON.stringify(after.map((e) => e.DisplayVersion)));
+  const s1 = readSettings();
+  check('le jeu relancé a pris acte de la mise à jour (rien en attente)', s1 !== null && !s1.pendingUpdate, JSON.stringify(s1?.pendingUpdate ?? null));
+  stopGame();
+  if (!(await waitStopped(15000))) killGame();
+  await waitStopped(10000);
+  // Mise à jour ratée simulée : notée vers une version future, le jeu (inchangé) doit la détecter au lancement.
+  const s2 = readSettings() ?? {};
+  s2.pendingUpdate = { version: '99.0.0', file: resolve(newSetup), at: Date.now() };
+  writeFileSync(settingsFile, JSON.stringify(s2));
+  spawn(exe, [], { detached: true, stdio: 'ignore' }).unref();
+  await pause(12000);
+  check('mise à jour ratée détectée au lancement suivant', !readSettings()?.pendingUpdate);
+  check('le jeu reste ouvert', running());
+  stopGame();
+  if (!(await waitStopped(15000))) killGame();
+  await waitStopped(10000);
+  for (const entry of installations()) {
+    const uninstaller = entry.UninstallString.match(/^"([^"]+)"/)?.[1] ?? entry.UninstallString.split(' /')[0];
+    await runSetup(uninstaller, ['/S']).catch(() => {});
+  }
+  process.exit(results.every(Boolean) ? 0 : 1);
 }
 
 if (live) {

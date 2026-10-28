@@ -590,6 +590,11 @@ const actions = {
     else ui.toast(`Mise à jour impossible : ${result.error}`, '#ff8a8a');
     ui.invalidate();
   },
+  async retryInstaller() {
+    save();
+    const r = await window.desktop?.retryInstaller?.();
+    if (!r?.ok) { ui.toast(r?.error ?? 'Installateur introuvable.', '#ff8a8a'); this.openReleases(); }
+  },
   // Jeton GitHub (dépôt privé) : gardé uniquement dans ce navigateur / ce PC, jamais dans la sauvegarde.
   setGithubToken(value) {
     const token = String(value ?? '').trim();
@@ -648,6 +653,8 @@ document.addEventListener('click', (e) => { if (e.target.closest('button')) soun
 if (window.desktop) {
   window.desktop.getInfo().then((info) => {
     ui.desktop = info;
+    // v9.0.2 : la dernière mise à jour n'a pas pu s'installer → on le dit et on propose de réessayer.
+    if (info.updateFailed) ui.showUpdateFailed(info.updateFailed);
     ui.invalidate();
   });
 }

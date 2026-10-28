@@ -9,4 +9,5 @@ contextBridge.exposeInMainWorld('desktop', {
   checkUpdate: (token) => ipcRenderer.invoke('desktop:checkUpdate', token),
   openReleases: () => ipcRenderer.invoke('desktop:openReleases'),
   installUpdate: (token) => ipcRenderer.invoke('desktop:installUpdate', token),
+  retryInstaller: () => ipcRenderer.invoke('desktop:retryInstaller'),
 });

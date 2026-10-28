@@ -20,7 +20,8 @@ import { computeHeroStats } from '../core/stats.js';
 import { BOOST_KEYS, focusables, installShortcuts, shortcutsHtml } from './shortcuts.js';
 import { installHoldToRepeat, selectorFor } from './hold.js';
 import { playSummonReveal } from './summon-fx.js';
-import { coin, effectText, icon, img, itemFrame } from './common.js';
+import { coin, effectText, escapeHtml, icon, img, itemFrame } from './common.js';
+import { GAME_VERSION } from '../version.js';
 import boss from './panels/boss.js';
 import campaign from './panels/campaign.js';
 import companions from './panels/companions.js';
@@ -211,6 +212,18 @@ export class UI {
     this.$('modal').classList.remove('hidden');
   }
 
+
+  // v9.0.2 : mise à jour lancée mais version inchangée au redémarrage.
+  showUpdateFailed(info) {
+    this.$('modal-card').innerHTML = `<h2>⚠ La mise à jour n'a pas pu s'installer</h2>
+      <p>La version ${escapeHtml(info.version)} a été téléchargée, mais le jeu est toujours en version ${escapeHtml(GAME_VERSION)}.</p>
+      <p class="muted">Causes possibles : place disque insuffisante, antivirus qui bloque l'installateur, ou fermeture
+      de l'installateur. Relancez-le : cette fois sa fenêtre s'affiche et indique le problème éventuel. Votre partie est conservée.</p>
+      <div class="detail-actions">${info.file ? '<button class="btn btn-gold" data-action="retry-installer">Relancer l\'installateur</button>' : ''}
+        <button class="btn" data-action="open-releases">Page des versions</button>
+        <button class="btn" data-action="close-modal">Plus tard</button></div>`;
+    this.$('modal').classList.remove('hidden');
+  }
   showShortcuts() {
     this.$('modal-card').innerHTML = `<h2>Raccourcis clavier</h2>${shortcutsHtml()}
       <p class="muted">Astuce : maintenez le clic sur un bouton (acheter, améliorer…) — quand l'anneau est plein, il est cliqué en continu jusqu'à ce que vous bougiez la souris.</p>
@@ -376,6 +389,7 @@ export class UI {
         break;
       case 'github-token': a.setGithubToken(this.$('github-token')?.value); break;
       case 'install-update': a.installUpdate(); break;
+      case 'retry-installer': this.closeModal(); a.retryInstaller(); break;
       case 'open-releases': a.openReleases(); break;
       case 'cheat':
         v.cheatCode = this.$('cheat-code')?.value ?? '';
