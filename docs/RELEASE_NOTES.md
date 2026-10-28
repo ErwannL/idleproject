@@ -14,6 +14,9 @@
   éternel), **Tyran d'obsidienne** (Citadelle des ombres) ; la Reine spectrale reste la maîtresse de la Crypte.
   La **Tour de l'Éternité** mélange tous les boss du jeu, dont ceux-ci et une **Archiliche** qu'on ne croise que là.
 
+- **Nouveaux codes secrets** : **ETOILES** (+10 Étoiles de Transcendance par saisie, compatible avec « × fois ») et
+  **SUPERNOVA** (tous vos compagnons et familiers passent à 5 étoiles).
+
 ### Améliorés
 - **Aura des compagnons et familiers à 5 étoiles** bien visible : contour lumineux de la couleur de leur rareté,
   halo pulsé, anneau tournant au sol et étincelles (avant : un halo presque invisible).

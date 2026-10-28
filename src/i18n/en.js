@@ -1728,6 +1728,8 @@ export const PATTERNS = [
   [/^dans (.+)$/, (m) => (/\d/.test(m[1]) ? `in ${dur(m[1])}` : null)],
 
   // v9.0.4
+  [/^\+(.+) Étoiles de Transcendance$/, '+$1 Transcendence Stars'],
+  [/^Tous vos compagnons et familiers passent à (\d+) étoiles$/, 'All your companions and pets go to $1 stars'],
   [/^Ennemi muté — (.+) : (.+) \(or ×3, objet garanti\)$/, (m) => `Mutated enemy — ${tr(m[1])}: ${tr(m[2])} (gold ×3, guaranteed item)`],
   [/^Arrêter : (.+) en boucle$/, (m) => `Stop: ${tr(m[1])} on repeat`],
   [/^(.+) : le chevalier l'affronte en boucle \(mode farm\) — bouton « Arrêter » sur la scène pour reprendre$/, (m) => `${tr(m[1])}: the knight fights it on repeat (farm mode) — “Stop” button on the scene to resume`],

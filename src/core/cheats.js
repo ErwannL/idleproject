@@ -4,6 +4,7 @@
 // coup (champ « × fois », jusqu'à 1 milliard) ; on retire 1, N ou toutes les saisies d'un code, ou tout.
 // Les multiplicateurs sont plafonnés (×1e60 par type) pour ne jamais faire « déborder » les nombres du jeu.
 import { towerWeek } from './tower.js';
+import { BALANCE } from '../data/balance.js';
 
 // kind : boost (or, XP, événements) · damage · hp · godmode (dégâts et PV) · loot (chaque ennemi lâche un
 // objet) · luck (rareté minimale du butin).
@@ -31,6 +32,9 @@ const GIFTS = {
   VITESSE5: { label: () => 'Vitesse ×5 débloquée (bouton ⏩)', give: (s) => unlockSpeed(s, 5) },
   VITESSE10: { label: () => 'Vitesse ×10 débloquée (bouton ⏩)', give: (s) => unlockSpeed(s, 10) },
   VITESSE100: { label: () => 'Vitesse ×100 débloquée (bouton ⏩) — effets visuels coupés à cette vitesse', give: (s) => unlockSpeed(s, 100) },
+  // v9.0.4 : Étoiles de Transcendance, et étoiles des compagnons / familiers.
+  ETOILES: { label: (n) => `+${fmt(10 * n)} Étoiles de Transcendance`, give: (s, n) => { if (s.transcend) s.transcend.stars = Math.min(1e15, s.transcend.stars + 10 * n); } },
+  SUPERNOVA: { label: () => `Tous vos compagnons et familiers passent à ${BALANCE.summon.maxStars} étoiles`, give: (s) => { for (const o of Object.values(s.companions.owned)) o.stars = BALANCE.summon.maxStars; } },
   TOWERPASS: { label: (n) => `+${fmt(n)} ascension${n > 1 ? 's' : ''} de la Tour cette semaine`, give: (s, n) => { towerWeek(s).extra = Math.min(1e6, (towerWeek(s).extra ?? 0) + n); } },
 };
 
