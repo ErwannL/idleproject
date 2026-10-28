@@ -38,6 +38,11 @@ const BOSS_AURAS = {
   dungeon: { color: '#b04dff', ember: '#e8c0ff', width: 2, alpha: 0.55, speed: 6, embers: 0.3 }, // v9.0.4 : boss de donjon
 };
 const HERO_X = BALANCE.world.heroX * WORLD_SCALE;
+// v9.0.4 : couleur de l'aura des compagnons aux étoiles maximales, selon leur rareté.
+const AURA_COLORS = {
+  legendary: { hex: '#ffc23d', rgb: '255, 194, 61' }, epic: { hex: '#cf7bff', rgb: '207, 123, 255' },
+  rare: { hex: '#5fb4ff', rgb: '95, 180, 255' }, common: { hex: '#e6efff', rgb: '230, 239, 255' },
+};
 
 // Particules d'ambiance par zone, sur deux profondeurs (derrière et devant les personnages) :
 // elles défilent avec la parallaxe et donnent de la vie au décor même quand le chevalier se bat.
@@ -627,9 +632,8 @@ export class SceneRenderer {
     const y = this.groundY - img.height + 1 - i * 2 - bob;
     this.drawShadow(ctx, x + img.width / 2, 18 - bob * 2);
     if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, y, img.width, img.height, companion.rarity);
-    this.glowOn(ctx, companion);
+    this.drawStarOutline(ctx, companion, frame, this.snap(x), y);
     ctx.drawImage(img, this.snap(x), y);
-    this.glowOff(ctx);
   }
 
   // v8.9 : compagnon aux étoiles maximales → aura lumineuse (couleur de sa rareté) et étincelles qui montent.
@@ -638,49 +642,50 @@ export class SceneRenderer {
   }
 
   drawStarAura(ctx, cx, top, w, h, rarity) {
-    // v9.0.4 : aura bien visible (avant : un halo très pâle) — halo pulsé, anneau runique tournant au sol,
-    // étincelles qui montent ; le contour lumineux du personnage est posé par glowOn().
-    const color = { legendary: '255, 190, 70', epic: '200, 120, 255', rare: '110, 180, 255' }[rarity] ?? '220, 230, 255';
+    // v9.0.4 : lueur au sol, anneau tournant et étincelles ; le contour du personnage est tracé par
+    // drawStarOutline() (net, en pixel art : un halo flou délavait les personnages voisins).
+    const color = AURA_COLORS[rarity] ?? AURA_COLORS.common;
     const pulse = 0.7 + 0.3 * Math.sin(this.time * 3);
-    const cy = top + h * 0.55;
-    const g = ctx.createRadialGradient(cx, cy, 2, cx, cy, Math.max(w, h) * 0.9);
-    g.addColorStop(0, `rgba(${color}, ${0.55 * pulse})`);
-    g.addColorStop(0.6, `rgba(${color}, ${0.18 * pulse})`);
-    g.addColorStop(1, `rgba(${color}, 0)`);
-    ctx.fillStyle = g;
-    ctx.fillRect(cx - w * 1.2, top - h * 0.4, w * 2.4, h * 1.8);
-    // Anneau au sol : pointillés qui tournent.
     const fy = top + h;
-    const rx = Math.max(10, w * 0.7);
-    const ry = Math.max(3, rx * 0.28);
-    ctx.fillStyle = `rgba(${color}, ${0.75 * pulse})`;
-    for (let k = 0; k < 16; k++) {
-      const a = (k / 16) * Math.PI * 2 + this.time * 1.6;
-      if (k % 2) continue;
+    const rx = Math.max(10, w * 0.75);
+    const ry = Math.max(3, rx * 0.3);
+    const g = ctx.createRadialGradient(cx, fy, 1, cx, fy, rx);
+    g.addColorStop(0, `rgba(${color.rgb}, ${0.55 * pulse})`);
+    g.addColorStop(1, `rgba(${color.rgb}, 0)`);
+    ctx.save();
+    ctx.translate(cx, fy);
+    ctx.scale(1, ry / rx);
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(0, 0, rx, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = `rgba(${color.rgb}, ${0.9 * pulse})`;
+    for (let k = 0; k < 18; k += 2) {
+      const a = (k / 18) * Math.PI * 2 + this.time * 1.6;
       ctx.fillRect(Math.round(cx + Math.cos(a) * rx), Math.round(fy + Math.sin(a) * ry), 2, 1);
     }
-    // Étincelles qui montent.
-    for (let k = 0; k < 8; k++) {
-      const p = (this.time * 0.6 + k / 8) % 1;
+    for (let k = 0; k < 10; k++) {
+      const p = (this.time * 0.6 + k / 10) % 1;
       ctx.globalAlpha = (1 - p) * 0.95;
-      ctx.fillStyle = k % 3 ? `rgb(${color})` : '#ffffff';
+      ctx.fillStyle = k % 3 ? color.hex : '#ffffff';
       const sx = cx - w * 0.6 + ((k * 53) % Math.max(1, Math.round(w * 1.2)));
-      ctx.fillRect(Math.round(sx + Math.sin(this.time * 3 + k) * 2), Math.round(fy - p * h * 1.4), 2, 2);
+      ctx.fillRect(Math.round(sx + Math.sin(this.time * 3 + k) * 2), Math.round(fy - p * h * 1.4), k % 4 ? 1 : 2, 2);
     }
     ctx.globalAlpha = 1;
   }
 
-  // Contour lumineux du personnage (compagnon aux étoiles maximales) ; à refermer avec glowOff().
-  glowOn(ctx, companion) {
+  // Contour lumineux net du personnage (compagnon aux étoiles maximales), dessiné juste avant son sprite.
+  drawStarOutline(ctx, companion, sprite, x, y) {
     if (!this.maxStars(companion)) return;
-    const color = { legendary: '#ffbe46', epic: '#c878ff', rare: '#6eb4ff' }[companion.rarity] ?? '#dce6ff';
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 6 + 3 * Math.sin(this.time * 3);
-  }
-
-  glowOff(ctx) {
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
+    const color = AURA_COLORS[companion.rarity] ?? AURA_COLORS.common;
+    const glow = spriteCanvas(sprite, { tint: { color: color.hex, alpha: 1 } });
+    const pulse = 0.65 + 0.35 * Math.sin(this.time * 4);
+    ctx.globalAlpha = 0.35 * pulse;
+    for (const [dx, dy] of [[-2, 0], [2, 0], [0, -2], [0, 2], [-2, -2], [2, -2], [-2, 2], [2, 2]]) ctx.drawImage(glow, x + dx, y + dy);
+    ctx.globalAlpha = 0.95 * pulse;
+    for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.drawImage(glow, x + dx, y + dy);
+    ctx.globalAlpha = 1;
   }
 
   // Familier : trottine aux pieds du chevalier (dessiné devant lui) ; les volants planent en battant des ailes.
@@ -699,7 +704,7 @@ export class SceneRenderer {
       ctx.save();
       ctx.translate(this.snap(x + img.width / 2), this.snap(cy));
       ctx.scale(1, flap);
-      this.glowOn(ctx, companion);
+      this.drawStarOutline(ctx, companion, companion.sprite, -img.width / 2, -img.height / 2);
       ctx.drawImage(img, -img.width / 2, -img.height / 2);
       ctx.restore();
       return;
@@ -713,7 +718,7 @@ export class SceneRenderer {
     ctx.save();
     ctx.translate(this.snap(x + img.width / 2), this.groundY + 1 - this.snap(hop));
     ctx.scale(2 - squash, squash);
-    this.glowOn(ctx, companion);
+    this.drawStarOutline(ctx, companion, companion.sprite, -img.width / 2, -img.height);
     ctx.drawImage(img, -img.width / 2, -img.height);
     ctx.restore();
   }
