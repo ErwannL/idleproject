@@ -9,7 +9,7 @@
 export const THEMES = [
   { id: 'knight', name: 'Chevalier', text: 'Bleu nuit et acier, dorures discrètes (style d\'origine).' },
   {
-    id: 'royal', name: 'Royal', text: 'Bleu roi profond, cadres et filets d\'or.',
+    id: 'royal', radius: 7, name: 'Royal', text: 'Bleu roi profond, cadres et filets d\'or.',
     dark: { h: 222, sMul: 1.6, lMul: 1.3 }, steel: { h: 41, sSet: 0.78, lMul: 1.2 },
     accent: { h: 45, sMul: 1.15, lMul: 1.08 }, primary: { h: 216, sMul: 1.2, lMul: 1.05 }, font: 'Georgia, "Times New Roman", serif',
   },
@@ -19,12 +19,12 @@ export const THEMES = [
     accent: { h: 78, sMul: 0.95 }, primary: { h: 135, sMul: 0.85, lMul: 0.95 },
   },
   {
-    id: 'forge', name: 'Forge naine', text: 'Charbon, fer martelé et cuivre incandescent.',
+    id: 'forge', radius: 2, name: 'Forge naine', text: 'Charbon, fer martelé et cuivre incandescent.',
     dark: { h: 22, sMul: 0.32 }, steel: { h: 25, sSet: 0.12, lMul: 1.02 },
     accent: { h: 24, sMul: 1.1, lMul: 0.98 }, primary: { h: 18, sMul: 0.95, lMul: 0.95 }, font: '"Trebuchet MS", Impact, sans-serif',
   },
   {
-    id: 'arcane', name: 'Arcanes', text: 'Violet mystique, argent et runes cyan.',
+    id: 'arcane', radius: 6, name: 'Arcanes', text: 'Violet mystique, argent et runes cyan.',
     dark: { h: 270, sMul: 1.1 }, steel: { h: 282, sSet: 0.28, lMul: 1.05 },
     accent: { h: 186, sMul: 0.95, lMul: 1.05 }, primary: { h: 278, sMul: 1.0 },
   },
@@ -39,17 +39,17 @@ export const THEMES = [
     accent: { h: 174, sMul: 0.9 }, primary: { h: 176, sMul: 0.8, lMul: 0.92 },
   },
   {
-    id: 'frost', name: 'Givre', text: 'Glace pâle, ardoise et reflets polaires.',
+    id: 'frost', radius: 6, name: 'Givre', text: 'Glace pâle, ardoise et reflets polaires.',
     dark: { h: 200, sMul: 0.75, lMul: 1.12 }, steel: { h: 194, sSet: 0.32, lMul: 1.18 },
     accent: { h: 190, sMul: 0.55, lMul: 1.15 }, primary: { h: 196, sMul: 0.9 },
   },
   {
-    id: 'sakura', name: 'Sakura', text: 'Laque noire, prune et fleurs de cerisier.',
+    id: 'sakura', radius: 4, name: 'Sakura', text: 'Laque noire, prune et fleurs de cerisier.',
     dark: { h: 338, sMul: 0.75 }, steel: { h: 350, sSet: 0.14, lMul: 0.8 },
     accent: { h: 336, sMul: 0.85, lMul: 1.1 }, primary: { h: 352, sMul: 0.95, lMul: 0.95 },
   },
   {
-    id: 'shadow', name: 'Ombre', text: 'Noir et argent, sans aucune couleur superflue.',
+    id: 'shadow', radius: 1, name: 'Ombre', text: 'Noir et argent, sans aucune couleur superflue.',
     dark: { sSet: 0, lMul: 0.92 }, steel: { sSet: 0, lMul: 1.0 },
     accent: { sSet: 0.05, lMul: 1.08 }, primary: { sSet: 0.06, lMul: 0.85 },
   },
@@ -219,8 +219,16 @@ async function applyNow(id) {
   if (theme.id !== 'knight') {
     const urls = new Set();
     for (const o of list) for (const m of o.value.matchAll(URL_RX)) urls.add(m[2]);
+    // v9.0.1 : chaque thème a ses propres cadres dessinés (assets/ui/themes/<id>/), d'un style différent ;
+    // à défaut, les cadres du Chevalier sont recolorés.
     await Promise.all([...urls].map(async (u) => {
-      try { frames.set(u, await themedFrame(theme, u)); } catch { /* cadre introuvable : on garde l'original */ }
+      const own = u.replace('/frames/', `/themes/${theme.id}/`);
+      try {
+        await loadImage(own);
+        frames.set(u, own);
+      } catch {
+        try { frames.set(u, await themedFrame(theme, u)); } catch { /* cadre introuvable : on garde l'original */ }
+      }
     }));
   }
   for (const o of list) {
@@ -231,6 +239,8 @@ async function applyNow(id) {
     o.style.setProperty(o.prop, value, o.priority);
   }
   document.documentElement.style.setProperty('--head-font', theme.font ?? 'inherit');
+  if (theme.radius !== undefined) document.documentElement.style.setProperty('--radius', `${theme.radius}px`);
+  else document.documentElement.style.removeProperty('--radius');
 }
 
 // Aperçu d'un thème (pastilles) : fond, acier, dorure, bouton principal.
