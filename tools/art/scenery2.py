@@ -1197,7 +1197,7 @@ def zone_swamp():
     fog_band(fm, GB - 30, GB - 8, '#a8c890', 0.32, 706)
     out.append(L('marsh', fm, 0.18, -GB))
 
-    mid = Wrap(512, 150); GB = 148
+    mid = Wrap(512, 150, top=40); GB = 148
     swamp_water(mid, 0, 512, GB - 9, GB, 730)
     barkm = R('#54483a', 5, 0.3, 0.05)
     mossm = R('#86985a', 5, 0.3, 0.06)
@@ -1291,7 +1291,7 @@ def zone_sky():
     haze(far, '#c8e0f8', 0.45, 0.25)
     out.append(L('far', far, 0.05, -GB))
 
-    fm = Wrap(512, 150); GB = 148
+    fm = Wrap(512, 150, top=24); GB = 148
     lights = []
     isl = [(70, 62, 70, 40), (230, 84, 56, 30), (360, 50, 90, 46), (480, 92, 40, 26)]
     for x, top, w, d in isl:
@@ -1312,7 +1312,7 @@ def zone_sky():
         glow(fm, x, y, rr, '#fff0b0', a=0.35)
     out.append(L('islands', fm, 0.16, -GB))
 
-    mid = Wrap(512, 150); GB = 148
+    mid = Wrap(512, 150, top=40); GB = 148
     lights = []
     isl = [(130, 70, 150, 54), (400, 40, 110, 50)]
     for x, top, w, d in isl:
@@ -1381,7 +1381,7 @@ def zone_volcano():
         streak_cloud(sm, i * 86 + 40 + r.randint(0, 30), r.randint(70, 100), r.randint(50, 80), ['#4a1c12', '#6a2a16'], 910 + i)
     out.append(L('smoke', sm, 0.03, 0, 'top', drift=1.5))
 
-    far = Wrap(512, 250); GB = 248
+    far = Wrap(512, 250, top=50); GB = 248
     peaks(far, GB - 40, 22, R('#3a1c1a', 5, 0.14), ['#4a2018', '#5a2818', '#6a3018'], 920, -999)
     lights = volcano_cone(far, 256, GB - 18, 320, 112, R('#3e2424', 5, 0.2), lavac, 921)
     cy0 = GB - 18 - 112
@@ -1432,7 +1432,7 @@ def zone_volcano():
         glow(fm, x + r.randint(0, 9), GB - 14, 8, '#ff8a20', a=0.22)
     out.append(L('flows', fm, 0.17, -GB))
 
-    mid = Wrap(512, 134); GB = 132
+    mid = Wrap(512, 134, top=188); GB = 132
     ridge(mid, GB - 12, 4, R('#241a20', 5, 0.14), 940)
     lights = []
     lights += place(mid, 190, GB - 8, 130, 120, forge_ruin, stone, gold, metal, fire)
@@ -1443,7 +1443,7 @@ def zone_volcano():
     for x, h in [(80, 20), (360, 16), (440, 22), (20, 14)]:
         lights += place(mid, x, GB - 7, 36, 34, crystal_cluster, h, magma, x)
     for x in (330, 420):
-        hanging_chain(mid, x, 0, r.randint(30, 50), metal)
+        hanging_chain(mid, x, -mid.top, mid.top + r.randint(30, 50), metal)
     lava_flow(mid, 300, 380, GB - 6, GB, 941)
     haze(mid, hz, 0.1)
     for x, y, rr in lights:
@@ -1604,9 +1604,9 @@ def zone_abyss():
     ceiling_vault(vt, 4, R('#1e1418', 5, 0.12), R('#4a3434', 5, 0.24), 1101)
     haze(vt, '#2a0a0a', 0.12)
 
-    far = Wrap(512, 190); GB = 188
+    far = Wrap(512, 190, top=140); GB = 188
     wallc = R('#20181c', 5, 0.12)
-    for y in range(0, GB):
+    for y in range(-far.top, GB):
         for x in range(512):
             far.set(x, y, wallc[1] if ((y // 7) + (x // 16 if (y // 7) % 2 else (x + 8) // 16)) % 2 else wallc[2])
             if y % 7 == 0 or ((x + (8 if (y // 7) % 2 else 0)) % 16 == 0):
@@ -1635,12 +1635,12 @@ def zone_abyss():
     out.append(L('far', far, 0.04, -GB))
     out.append(L('vault', vt, 0.08, 0, 'top'))
 
-    hall = Wrap(512, 160); GB = 158
+    hall = Wrap(512, 160, top=162); GB = 158
     lava_flow(hall, 0, 512, GB - 16, GB, 1110)
     glows = []
     cols_x = [30, 140, 236, 362, 452]
     for i, x in enumerate(cols_x):
-        black_column(hall, x, 0, GB - 12, 18, stone, gold)
+        black_column(hall, x, -hall.top, GB - 12, 18, stone, gold)
         for k in range(3):
             hall.rect(x - 12 + k * 2, GB - 12 - k * 4, 24 - k * 4, 4, stone[1])
         nx = cols_x[(i + 1) % len(cols_x)] + (512 if i == len(cols_x) - 1 else 0)
@@ -1660,16 +1660,16 @@ def zone_abyss():
                 blend(hall, x, y, '#ff5a10', (y - (GB - 50)) / 34 * 0.3)
     out.append(L('hall', hall, 0.15, -GB))
 
-    mid = Wrap(512, 160); GB = 158
+    mid = Wrap(512, 160, top=162); GB = 158
     lava_flow(mid, 0, 512, GB - 8, GB, 1120)
     glows = []
     for x in (60, 316):
-        black_column(mid, x, 0, GB - 6, 28, stone2, gold)
+        black_column(mid, x, -mid.top, GB - 6, 28, stone2, gold)
         hang_banner(mid, x + 34, 4, 104, 18, cloth, gold, emblem='horns' if x < 200 else 'eye')
     for x in (190, 440):
         glows += place(mid, x, GB - 6, 26, 90, pillar_brazier, 66, stone2, metal, fire)
     for x in (140, 250, 390, 500):
-        hanging_chain(mid, x, 0, rng(x).randint(40, 80), metal)
+        hanging_chain(mid, x, -mid.top, mid.top + rng(x).randint(40, 80), metal)
     chain(mid, 74, 50, 182, 70, 18, metal)
     chain(mid, 330, 50, 432, 66, 16, metal)
     for x in range(0, 512, 9):

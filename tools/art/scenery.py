@@ -29,23 +29,29 @@ class Local(Canvas):
 
 
 class Wrap(Local):
-    """Canvas dont l'axe x boucle (calques raccordables)."""
+    """Canvas dont l'axe x boucle (calques raccordables).
+    `top` : marge ajoutée au-dessus (coordonnées y logiques de -top à h-1) pour les éléments qui
+    montent plus haut que le cadre (colonnes, troncs, panaches) : visibles dans une vue très haute."""
+    def __init__(self, w, h, top=0):
+        Local.__init__(self, w, h + top)
+        self.top = top
+
     def set(self, x, y, c):
-        x, y = int(round(x)) % self.w, int(round(y))
+        x, y = int(round(x)) % self.w, int(round(y)) + self.top
         if 0 <= y < self.h:
             self.px[y][x] = c
 
     def setf(self, x, y, c):
-        x, y = int(round(x)) % self.w, int(round(y))
+        x, y = int(round(x)) % self.w, int(round(y)) + self.top
         if 0 <= y < self.h and self.px[y][x] is not None:
             self.px[y][x] = c
 
     def get(self, x, y):
-        y = int(y)
+        y = int(y) + self.top
         return self.px[y][int(x) % self.w] if 0 <= y < self.h else None
 
     def inside(self, x, y):
-        return 0 <= y < self.h
+        return -self.top <= y < self.h - self.top
 
 
 def rgba_of(p):
@@ -87,10 +93,11 @@ def save_png(c, path):
 def haze(c, col, t0, t1=None, y0=0, y1=None, steps=10):
     """Mélange chaque pixel vers `col` (brume), de t0 (y0) à t1 (y1)."""
     t1 = t0 if t1 is None else t1
-    y1 = c.h if y1 is None else y1
+    top = getattr(c, 'top', 0)  # marge haute d'un Wrap : y0 / y1 sont en coordonnées logiques
+    y1 = c.h - top if y1 is None else y1
     cache = {}
     for y in range(c.h):
-        k = max(0.0, min(1.0, (y - y0) / max(1, y1 - y0)))
+        k = max(0.0, min(1.0, (y - top - y0) / max(1, y1 - y0)))
         t = round((t0 + (t1 - t0) * k) * steps) / steps
         if t <= 0:
             continue
@@ -109,7 +116,7 @@ def glow(c, x, y, r, col, a=0.32, rings=None, opaque=0.7):
     """Halo lumineux par paliers : semi-transparent sur le vide, éclaircit l'opaque."""
     rings = rings or max(2, min(6, int(r / 2.2)))
     for yy in range(int(y - r) - 1, int(y + r) + 2):
-        if not (0 <= yy < c.h):
+        if not c.inside(0, yy):
             continue
         for xx in range(int(x - r) - 1, int(x + r) + 2):
             d = math.hypot(xx + 0.5 - x, yy + 0.5 - y) / r
@@ -130,18 +137,51 @@ def glow(c, x, y, r, col, a=0.32, rings=None, opaque=0.7):
                 c.set(xx, yy, mix(cur, col, k * opaque))
 
 
+class PadLocal(Local):
+    """Canvas d'objet à marge invisible : `fn` dessine en coordonnées locales (0..w-1, 0..h-1) comme
+    sur un Local, mais ce qui déborde du cadre (cimes, drapeaux, branches) est conservé au lieu d'être coupé."""
+    def __init__(self, w, h, pad=48):
+        Canvas.__init__(self, w + 2 * pad, h + 2 * pad)
+        self.rw, self.rh = self.w, self.h
+        self.w, self.h, self.pad = w, h, pad
+
+    def set(self, x, y, c):
+        x, y = int(round(x)) + self.pad, int(round(y)) + self.pad
+        if 0 <= x < self.rw and 0 <= y < self.rh:
+            self.px[y][x] = c
+
+    def setf(self, x, y, c):
+        x, y = int(round(x)) + self.pad, int(round(y)) + self.pad
+        if 0 <= x < self.rw and 0 <= y < self.rh and self.px[y][x] is not None:
+            self.px[y][x] = c
+
+    def get(self, x, y):
+        x, y = int(round(x)) + self.pad, int(round(y)) + self.pad
+        return self.px[y][x] if 0 <= x < self.rw and 0 <= y < self.rh else None
+
+    def inside(self, x, y):
+        return -self.pad <= x < self.w + self.pad and -self.pad <= y < self.h + self.pad
+
+    def raw(self):
+        r = Canvas(self.rw, self.rh)
+        r.px = self.px
+        return r
+
+
 def place(c, x, base, w, h, fn, *args, outline=True, ol=None, **kw):
     """Dessine un objet sur un petit canvas local (contour sélectif) puis le colle.
     `fn(t, lx, lb, ...)` reçoit le centre x et la base locaux ; les points renvoyés
-    (lumières…) sont convertis en coordonnées du calque."""
+    (lumières…) sont convertis en coordonnées du calque. Le canvas local a une marge invisible :
+    un objet qui dépasse de la boîte (w, h) n'est jamais rogné."""
     w, h = int(w), int(h)
-    t = Local(w, h)
+    t = PadLocal(w, h)
     lx, lb = w // 2, h - 2
     res = fn(t, lx, lb, *args, **kw)
+    raw = t.raw()
     if outline:
-        t.outline(ol)
+        raw.outline(ol)
     ox, oy = int(x) - lx, int(base) - lb
-    c.paste(t, ox, oy)
+    c.paste(raw, ox - t.pad, oy - t.pad)
     if res:
         return [(p[0] + ox, p[1] + oy) + tuple(p[2:]) for p in res]
     return []
@@ -1045,6 +1085,29 @@ def big_tree(c, x, base, tw, h, bark, moss, leaf, seed):
         vines(c, x + r.uniform(-tw * 1.6, tw * 1.6), top + 22, r.randint(10, 34), leaf, seed + i)
 
 
+def forest_tree(c, x, base, tw, bark, moss, leaf, seed, top=0, side=0):
+    """Arbre de futaie : tronc géant qui monte jusqu'à `top` (hors de la vue), branches feuillues
+    étagées des deux côtés (la plus basse vers 70-95 px du sol : visible même dans une vue basse)."""
+    r = rng(seed + 11)
+    big_tree(c, x, base, tw, base - top, bark, moss, leaf, seed)
+    y = base - r.randint(56, 76)
+    k = side
+    while y > top + 20:
+        sd = -1 if k % 2 == 0 else 1
+        ln = r.uniform(tw * 0.5 + 10, tw * 0.5 + 24)
+        sx = x + sd * tw * 0.35
+        ex, ey = x + sd * ln, y - ln * r.uniform(0.35, 0.6)
+        c.line(sx, y + 2, ex, ey, bark[1], 3)
+        c.line(sx, y + 1, ex, ey - 1, bark[2], 1)
+        foliage(c, ex, ey - 4, r.uniform(19, 27), r.uniform(11, 15), leaf, seed + int(y) * 7, n=13)
+        if r.random() < 0.7:
+            foliage(c, x - sd * r.uniform(4, tw * 0.5), y - r.randint(16, 26), r.uniform(12, 17), r.uniform(8, 10), leaf, seed + int(y) * 3, n=8)
+        for i in range(2):
+            vines(c, ex + r.uniform(-8, 8), ey + 4, r.randint(6, 18), leaf, seed + int(y) + i)
+        y -= r.randint(34, 50)
+        k += 1
+
+
 def vines(c, x, y0, L, leaf, seed):
     r = rng(seed)
     for k in range(L):
@@ -1329,10 +1392,13 @@ def front_strip(w, seed, kind, cols, extra=None):
 # ====================================================================== zones
 
 def L(name, canvas, factor, y, anchor='ground', front=False, drift=None):
+    if anchor == 'ground':
+        y -= getattr(canvas, 'top', 0)  # marge haute d'un Wrap : le bas du calque reste au même endroit
     return {'name': name, 'canvas': canvas, 'factor': factor, 'y': y, 'anchor': anchor, 'front': front, 'drift': drift}
 
 
 def clouds_layer(w, h, colors, seed, n=7, ymin=10, ymax=40, wmin=30, wmax=64):
+    w, n = w * 2, n * 2  # calque large : le même nuage ne revient pas dans une vue de 500+ px
     c = Wrap(w, h)
     r = rng(seed)
     for i in range(n):
@@ -1426,27 +1492,39 @@ def zone_forest():
     sky = ['#0f3a3c', '#1a5a58', '#2a7e74', '#52a490']
     hz = '#5cb0a0'
     out = []
-    can = Wrap(384, 40)
+    # voûte de feuillage (haut de la vue) : large, bord inférieur irrégulier, lianes
+    can = Wrap(768, 44)
     leafc = R('#22684a', 5, 0.26, 0.06)
     r = rng(41)
-    for x in range(0, 384, 9):
-        foliage(can, x + r.randint(0, 6), r.randint(0, 6), r.randint(9, 15), r.randint(6, 10), leafc, x + 7, rim=True)
-    for x in range(3, 384, 13):
-        vines(can, x + r.randint(0, 6), 8, r.randint(8, 28), R('#38904e', 5, 0.3), x)
+    for x in range(0, 768, 9):
+        dip = 4 + 5 * (noise1(x, 768, 48, 3) + 1)
+        foliage(can, x + r.randint(0, 6), r.randint(0, int(dip)), r.randint(9, 16), r.randint(6, 11), leafc, x + 7, rim=True)
+    for x in range(3, 768, 13):
+        vines(can, x + r.randint(0, 6), 8 + r.randint(0, 6), r.randint(8, 28), R('#38904e', 5, 0.3), x)
     out.append(L('canopy', can, 0.3, 0, 'top'))
 
-    far = Wrap(512, 160); GB = 158
+    # futaie lointaine : troncs qui montent jusqu'en haut de la plus grande vue, feuillages étagés
+    GB = 158
+    far = Wrap(768, 160, top=320 - GB)
     trunkf = R('#2c625c', 5, 0.14)
+    leaff = R('#2f745e', 5, 0.16)
     ridge(far, GB - 30, 6, R('#2a6a62', 5, 0.14), 43)
-    for i, x in enumerate(range(0, 512, 37)):
-        xx = x + r.randint(0, 14)
-        tw = r.randint(8, 16)
-        for y in range(0, GB - 20):
+    x = 0
+    while x < 768:
+        xx = x + r.randint(0, 10)
+        tw = r.choice((6, 8, 10, 12, 14, 16))
+        for y in range(-far.top, GB - 20):
             for dx in range(-tw // 2, tw // 2 + 1):
-                s = dx / (tw / 2)
-                far.set(xx + dx, y, trunkf[3] if s < -0.5 else trunkf[2] if s < 0.4 else trunkf[1])
-        for _ in range(3):
-            foliage(far, xx + r.randint(-20, 20), r.randint(0, 40), r.randint(16, 26), r.randint(10, 16), R('#2f745e', 5, 0.16), r.randint(0, 999), rim=False)
+                sh = dx / (tw / 2)
+                far.set(xx + dx, y, trunkf[3] if sh < -0.5 else trunkf[2] if sh < 0.4 else trunkf[1])
+        fy = GB - r.randint(60, 90)
+        while fy > -far.top:
+            sd = r.choice((-1, 1))
+            bx = xx + sd * r.randint(8, 16)
+            far.line(xx, fy + 8, bx, fy, trunkf[1], 2)
+            foliage(far, bx, fy, r.randint(16, 26), r.randint(10, 15), leaff, r.randint(0, 999), rim=False)
+            fy -= r.randint(40, 70)
+        x += r.randint(30, 52)
     haze(far, '#6ec8b2', 0.5, 0.6, 0, GB)
     out.append(L('far', far, 0.07, -GB))
 
@@ -1468,26 +1546,31 @@ def zone_forest():
     haze(fm, hz, 0.36, 0.24, 0, GB)
     out.append(L('ruins', fm, 0.2, -GB))
 
-    mid = Wrap(512, 130); GB = 128
+    # arbres géants : troncs jusqu'en haut de la vue (jamais coupés), branches feuillues étagées,
+    # largeurs et hauteurs variées sur un calque large (pas de motif répété visible)
+    GB = 128
+    mid = Wrap(1024, 130, top=320 - GB)
     bark = R('#5e4a34', 5, 0.32, 0.05)
     mossm = R('#4eaa42', 5, 0.32, 0.07)
     leafm = R('#2c8a4a', 5, 0.32, 0.06)
-    water(mid, 0, 512, GB - 10, GB, ['#1a6a66', '#2a8a82', '#4cb2a2', '#9ae4cc'], 45)
+    water(mid, 0, 1024, GB - 10, GB, ['#1a6a66', '#2a8a82', '#4cb2a2', '#9ae4cc'], 45)
     plat = R('#56726a', 5, 0.28)
-    cliff(mid, 112, 176, GB - 36, GB - 6, plat, 140, cap=mossm)
-    cliff(mid, 300, 352, GB - 28, GB - 6, plat, 141, cap=mossm)
-    for x, tw in [(60, 22), (250, 26), (420, 20)]:
-        big_tree(mid, x, GB - 8, tw, GB - 8, bark, mossm, leafm, x)
-    place(mid, 205, GB - 6, 70, 50, lambda t, lx, lb: rope_bridge(t, 3, 62, lb - 30, 4, R('#7a5232', 4, 0.3), ['#8a7050', '#c8a878']))
-    for x in [190, 490]:
+    for i, (x0, x1, top) in enumerate([(120, 184, GB - 36), (520, 572, GB - 28), (790, 846, GB - 32)]):
+        cliff(mid, x0, x1, top, GB - 6, plat, 140 + i, cap=mossm)
+    trees = [(60, 24, 0), (262, 18, 1), (400, 28, 0), (640, 20, 1), (742, 16, 0), (905, 26, 1)]
+    for x, tw, side in trees:
+        forest_tree(mid, x, GB - 8, tw, bark, mossm, leafm, x, top=-mid.top, side=side)
+    place(mid, 213, GB - 6, 70, 50, lambda t, lx, lb: rope_bridge(t, 3, 62, lb - 30, 4, R('#7a5232', 4, 0.3), ['#8a7050', '#c8a878']))
+    place(mid, 600, GB - 6, 56, 50, lambda t, lx, lb: rope_bridge(t, 3, 50, lb - 26, 4, R('#7a5232', 4, 0.3), ['#8a7050', '#c8a878']))
+    for x in [196, 490, 690, 980]:
         place(mid, x, GB - 6, 22, 60, mossy_pillar, 12, r.randint(30, 46), R('#5a766e', 5, 0.26), mossm, x + 1)
-    for x in range(0, 512, 19):
+    for x in range(0, 1024, 19):
         bush(mid, x + r.randint(0, 6), GB - 6, r.randint(10, 16), r.randint(6, 10), R('#33964a', 5, 0.3), x + 5)
-    for x in range(10, 512, 16):
+    for x in range(10, 1024, 16):
         lily(mid, x + r.randint(0, 6), GB - 3 + r.randint(0, 2), R('#4ab44a', 4, 0.3), '#f080b0' if r.random() < 0.3 else None)
     haze(mid, hz, 0.12, 0.16, 0, GB)
-    for _ in range(14):
-        firefly(mid, r.randint(0, 511), r.randint(20, GB - 30))
+    for _ in range(26):
+        firefly(mid, r.randint(0, 1023), r.randint(20, GB - 30))
     out.append(L('trees', mid, 0.42, -GB))
 
     near = Wrap(384, 64); GB = 62
@@ -1525,13 +1608,13 @@ def zone_caves():
     haze(ceil, '#221c48', 0.4)
     out.append(L('ceiling_far', ceil, 0.12, 0, 'top'))
 
-    far = Wrap(512, 180); GB = 178
+    far = Wrap(512, 180, top=140); GB = 178
     wall = R('#262050', 5, 0.16)
     ridge(far, 40, 14, wall, 63, sharp=True)
     for i, x in enumerate(range(0, 512, 46)):
         xx = x + r.randint(0, 20)
         w = r.randint(10, 20)
-        for y in range(0, GB):
+        for y in range(-far.top, GB):
             for dx in range(-w // 2, w // 2 + 1):
                 s = dx / (w / 2)
                 far.set(xx + dx, y, wall[3] if s < -0.5 else wall[2] if s < 0.3 else wall[1])
@@ -1809,7 +1892,7 @@ def zone_cursed():
         glow(fm, x + 2, GB - 30, 12, '#ff7a18', a=0.22)
     out.append(L('demon', fm, 0.15, -GB))
 
-    mid = Wrap(512, 110); GB = 108
+    mid = Wrap(512, 110, top=212); GB = 108
     st2 = R('#3a2228', 5, 0.24)
     metal = R('#4a3c40', 4, 0.24)
     ridge(mid, GB - 12, 4, R('#241014', 5, 0.14), 127)
@@ -1819,7 +1902,7 @@ def zone_cursed():
     chain(mid, 44, GB - 8 - 56, 156, GB - 8 - 44, 14, metal)
     chain(mid, 304, GB - 8 - 62, 426, GB - 8 - 48, 16, metal)
     for x in (100, 230, 370, 490):
-        hanging_chain(mid, x, 0, r.randint(30, 60), metal)
+        hanging_chain(mid, x, -mid.top, mid.top + r.randint(30, 60), metal)
     place(mid, 226, GB - 2, 60, 50, lava_crag, 54, 42, st2, 128)
     place(mid, 372, GB - 2, 40, 30, lava_crag, 34, 22, st2, 129)
     waterfall(mid, 232, GB - 34, GB - 4, 5, lavaf, 129)

@@ -1486,7 +1486,7 @@ kbd { display: inline-block; min-width: 18px; padding: 1px 5px; border: 1px soli
 #perf-overlay.hidden { display: none; }
 
 /* v8.5 : ensembles d'équipement (point coloré sur l'objet, fiche, héros). */
-.item-frame .set-ico { position: absolute; left: 1px; bottom: 1px; width: 12px; height: 12px; pointer-events: none;
+.item-frame img.set-ico { position: absolute; left: 1px; bottom: 1px; width: 12px !important; height: 12px !important; pointer-events: none;
   filter: drop-shadow(0 0 1px #0c0d10) drop-shadow(0 0 1px #0c0d10); }
 .set-block { border-left: 3px solid var(--set); padding-left: 6px; margin: 4px 0; }
 .set-tiers { margin: 2px 0 0; padding-left: 16px; font-size: 11.5px; }

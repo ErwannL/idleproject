@@ -479,6 +479,107 @@ def helmet_hood():
     return c
 
 
+def helmet_horned():
+    """Casque viking (objet) : calotte, nasal et cornes d'ivoire, bandeau de rareté ; visage visible."""
+    c = layer()
+    HORN = ['#8a6a48', '#c8aa80', '#eadbb8', '#fff6e0']
+    # cornes (derrière la calotte côté nuque, devant côté visage), effilées vers la pointe
+    for spine, flip in (([(14, 11), (10, 9.5), (7.5, 6.5), (7, 3)], False), ([(27, 10.5), (31, 9), (33.5, 5.5), (33.5, 2.5)], True)):
+        part = layer()
+
+        def horn_shade(t, sd, x, y):
+            if t > 0.86:
+                return HORN[3] if sd < 0 else HORN[2]
+            if sd < -0.35:
+                return HORN[3]
+            if sd > 0.45:
+                return HORN[0]
+            return HORN[2] if (int(t * 9) % 3) else HORN[1]
+        spine_fill(part, spine, [2.6, 2.3, 1.7, 0.7], horn_shade)
+        stamp(c, part)
+    part = layer()
+    dome(part, [ITEM[0], ITEM[1], ITEM[2], ITEM[3], ITEM[3]])
+    # rebord inférieur
+    part.poly([(12, 20), (30, 20), (30, 25), (12, 25)], ITEM[1])
+    for x in range(12, 31):
+        part.setf(x, 24, ITEM[0]); part.setf(x, 20, ITEM[2])
+    # ouverture du visage
+    fx0, fx1, fy0, fy1 = 22, 29, 15, 21
+    rounded_rect(part, fx0 - 1, fy0 - 1, fx1 + 1, fy1 + 1, ITEM[0], only_inside=True)
+    rounded_rect(part, fx0, fy0, fx1, fy1, SKIN[2], only_inside=True)
+    for x in range(fx0, fx1 + 1):
+        part.setf(x, fy0, SKIN[1])
+    for y in range(fy0, fy1 + 1):
+        part.setf(fx0, y, SKIN[1])
+    for ex in (24, 28):
+        part.setf(ex, 17, EYE); part.setf(ex, 18, EYE)
+    part.setf(23, 19, BLUSH); part.setf(29, 19, BLUSH)
+    part.setf(25, 20, SKIN[1]); part.setf(26, 20, SKIN[1])
+    # bandeau frontal de rareté + nasal
+    for x in range(12, 31):
+        part.setf(x, 13, RAR[2] if x < 20 else RAR[1]); part.setf(x, 14, RAR[0])
+    for y in range(13, 19):
+        part.setf(26, y, ITEM[2] if y < 15 else ITEM[1]); part.setf(27, y, ITEM[0] if y > 14 else ITEM[1])
+    for x in (14, 18, 22, 29):
+        part.setf(x, 13, ITEM[3])
+    # arête centrale et reflets
+    for y in range(7, 13):
+        part.setf(20, y, ITEM[3] if y < 10 else ITEM[2])
+    for x, y in ((14, 10), (15, 9), (14, 11), (16, 8)):
+        part.setf(x, y, ITEM[3])
+    stamp(c, part)
+    return c
+
+
+def helmet_circlet():
+    """Diadème (objet) : tête nue (cheveux, visage chibi), bandeau ouvragé à fleurons, gemme de rareté."""
+    c = layer()
+    HAIR_R = ['#2e1810', '#4a2a1a', HAIR, '#7a4a30', '#9a6440']
+    part = layer()
+    # mèches dans la nuque
+    part.poly([(12, 13), (10, 18), (11, 23), (15, 24), (17, 19)], HAIR_R[1])
+    for p in ((11, 20), (12, 22), (11, 18)):
+        part.setf(*p, HAIR_R[0])
+    ball(part, 20.6, 15.4, 9.2, 8.6, HAIR_R)
+    # visage
+    part.ellipse(25.6, 17.6, 5.0, 5.0, SKIN[2])
+    face = {(x, y) for y in range(H) for x in range(W) if part.get(x, y) == SKIN[2]}
+    for x, y in face:
+        if (x - 1, y) not in face:
+            part.set(x, y, SKIN[1])
+    # frange au-dessus des yeux (mèches en pointe)
+    for x in range(21, 31):
+        top = min((y for (fx, y) in face if fx == x), default=None)
+        if top is None:
+            continue
+        n = 2 if x % 3 else 3
+        for k in range(n):
+            part.set(x, top + k, HAIR_R[2] if k == 0 else HAIR_R[1])
+    for ex in (25, 28):
+        part.setf(ex, 17, EYE); part.setf(ex, 18, EYE)
+    part.setf(24, 19, BLUSH); part.setf(29, 19, BLUSH)
+    part.setf(26, 20, SKIN[1])
+    # reflets des cheveux
+    for x, y in ((14, 11), (15, 10), (16, 9), (17, 9), (15, 12)):
+        part.setf(x, y, HAIR_R[4])
+    stamp(c, part)
+    # diadème : bandeau incurvé qui suit le crâne, fleurons, gemme frontale
+    band = layer()
+    for x in range(11, 32):
+        y = 11 + int(round(((x - 21) / 10.5) ** 2 * 2.2))
+        band.set(x, y, ITEM[3] if x < 22 else ITEM[2])
+        band.set(x, y + 1, ITEM[1] if x < 26 else ITEM[0])
+    for px, h in ((17, 2), (22, 3), (27, 2)):
+        y = 11 + int(round(((px - 21) / 10.5) ** 2 * 2.2))
+        for k in range(1, h + 1):
+            band.set(px, y - k, ITEM[3] if k < h else ITEM[2])
+        band.set(px - 1, y - 1, ITEM[2]); band.set(px + 1, y - 1, ITEM[1])
+    band.ellipse(22.5, 11.5, 1.5, 1.5, RAR[1])
+    band.set(22, 11, RAR[2]); band.set(23, 12, RAR[0])
+    stamp(c, band)
+    return c
+
+
 # ---------------------------------------------------------------- armures (calques de buste)
 
 def armor_mail():
@@ -525,6 +626,99 @@ def armor_tunic():
         part.setf(x, 32, LEATHER[1]); part.setf(x, 33, LEATHER[0])
     part.setf(20, 32, TRIM[2]); part.setf(21, 32, TRIM[1]); part.setf(21, 33, TRIM[0])
     stamp(c, part)
+    return c
+
+
+def armor_plate():
+    """Harnois lourd (objet) : plastron bombé à lames, gorgerin, braconnière, épaulières doublées, rivets de rareté."""
+    c = layer()
+    part = layer()
+    # braconnière (lames sous la ceinture)
+    for i, y in enumerate((33, 35, 37)):
+        part.poly([(13 - i * 0.5, y), (28 + i * 0.5, y), (28.5 + i * 0.5, y + 2), (12.5 - i * 0.5, y + 2)], ITEM[1])
+        for x in range(12 - i, 30 + i):
+            part.setf(x, y, ITEM[2] if x < 22 else ITEM[1]); part.setf(x, y + 2, ITEM[0])
+    # plastron
+    ball(part, 20.5, 28.2, 7.9, 6.9, [ITEM[0], ITEM[1], ITEM[2], ITEM[3], ITEM[3]])
+    for y in range(23, 33):
+        part.setf(21, y, ITEM[3] if y < 28 else ITEM[2]); part.setf(22, y, ITEM[1])
+    for x in range(13, 29):
+        part.setf(x, 31, ITEM[0])
+    for x in range(14, 28):
+        part.setf(x, 29, ITEM[1] if x > 22 else ITEM[2])
+    # gorgerin
+    part.poly([(16, 21.5), (26, 21.5), (27, 24), (15, 24)], ITEM[2])
+    for x in range(15, 27):
+        part.setf(x, 21, ITEM[3]); part.setf(x, 23, ITEM[0])
+    # ceinture de rareté et rivets
+    for x in range(13, 29):
+        part.setf(x, 32, RAR[1] if x < 24 else RAR[0])
+    part.setf(20, 32, RAR[2]); part.setf(21, 32, RAR[2])
+    for x, y in ((16, 26), (25, 26), (15, 30), (26, 30)):
+        part.setf(x, y, RAR[1])
+    part.setf(17, 25, ITEM[3]); part.setf(17, 26, ITEM[3]); part.setf(18, 25, ITEM[3])
+    # épaulière arrière doublée
+    ball(part, 14.3, 26.4, 4.3, 3.7, [ITEM[0], ITEM[0], ITEM[1], ITEM[2], ITEM[3]])
+    for x in range(10, 19):
+        part.setf(x, 28, ITEM[0]); part.setf(x, 29, RAR[0])
+    stamp(c, part)
+    # épaulière avant à deux lames
+    front = layer()
+    ball(front, 27.2, 27.6, 4.9, 3.6, [ITEM[0], ITEM[1], ITEM[2], ITEM[3], ITEM[3]])
+    for x in range(22, 33):
+        front.setf(x, 30, RAR[1]); front.setf(x, 31, RAR[0])
+    stamp(c, front)
+    top = layer()
+    ball(top, 26.6, 25.2, 4.5, 3.2, [ITEM[0], ITEM[1], ITEM[2], ITEM[3], ITEM[3]])
+    top.setf(24, 23, ITEM[3]); top.setf(25, 23, ITEM[3])
+    top.setf(28, 26, RAR[1])
+    stamp(c, top)
+    return c
+
+
+def armor_robe():
+    """Robe de mage (objet) : longue jusqu'aux chevilles, col et ourlet de rareté, ceinture à pans, motif runique."""
+    c = layer()
+    part = layer()
+    part.poly([(15, 22.5), (26, 22.5), (27, 31), (29.5, 44), (21, 45.5), (11.5, 44), (14, 31)], ITEM[2])
+    # ombrage : gauche éclairé, droite ombrée, plis verticaux
+    for y in range(22, 46):
+        xs = [x for x in range(W) if part.get(x, y) is not None]
+        if not xs:
+            continue
+        x0, x1 = xs[0], xs[-1]
+        for x in xs:
+            t = (x - x0) / max(1, x1 - x0)
+            col = ITEM[3] if t < 0.18 else ITEM[2] if t < 0.62 else ITEM[1] if t < 0.9 else ITEM[0]
+            part.set(x, y, col)
+    for fx, y0 in ((17, 35), (21, 34), (25, 36)):
+        for y in range(y0, 44):
+            part.setf(fx + (y - y0) // 5 * (1 if fx > 21 else -1 if fx < 21 else 0), y, ITEM[1])
+    # ourlet de rareté
+    for x in range(10, 31):
+        for y in range(42, 47):
+            if part.get(x, y) is not None and part.get(x, y + 2) is None:
+                part.set(x, y, RAR[1] if part.get(x, y + 1) is not None else RAR[0])
+    # col en V de rareté
+    for i in range(5):
+        part.setf(19 + i * 0.5, 23 + i, RAR[2]); part.setf(24 - i * 0.5, 23 + i, RAR[1])
+    part.setf(21, 27, RAR[1])
+    # ceinture à pans
+    for x in range(13, 29):
+        part.setf(x, 32, LEATHER[2] if x < 22 else LEATHER[1]); part.setf(x, 33, LEATHER[0])
+    for y in range(33, 39):
+        part.setf(19, y, LEATHER[1]); part.setf(20, y, LEATHER[0] if y > 34 else LEATHER[1])
+    part.ellipse(20.5, 32.5, 1.4, 1.4, RAR[1], only_inside=True); part.setf(20, 32, RAR[2])
+    # étoile runique sur la poitrine
+    for x, y in ((17, 27), (16, 28), (18, 28), (17, 29), (17, 28)):
+        part.setf(x, y, RAR[2] if (x, y) == (17, 28) else RAR[1])
+    stamp(c, part)
+    # manche drapée sur l'épaule avant
+    sl = layer()
+    ball(sl, 27, 26.8, 4.2, 3.6, [ITEM[0], ITEM[1], ITEM[2], ITEM[3], ITEM[3]])
+    for x in range(23, 32):
+        sl.setf(x, 29, RAR[1]); sl.setf(x, 30, RAR[0])
+    stamp(c, sl)
     return c
 
 
@@ -668,6 +862,174 @@ def weapon_dagger():
     c.shaded_ellipse(4, 15, 1.4, 1.2, RAR)
     c.outline(OUT)
     return c, (3, 12)
+
+
+def weapon_mace():
+    """Masse d'armes : boule cloutée (objet), collier et pommeau de rareté."""
+    c = Canvas(13, 25)
+    for y in range(11, 22):
+        c.set(6, y, LEATHER[2] if y % 3 else LEATHER[1]); c.set(7, y, LEATHER[0])
+    c.shaded_ellipse(7, 23, 1.6, 1.4, RAR)
+    # pointes (8 directions, 2 px) puis boule ombrée par-dessus
+    cx, cy = 6.5, 6.5
+    for a in range(8):
+        ang = math.radians(a * 45 - 90)
+        for d in (4.4, 5.4, 6.2):
+            col = ITEM[3] if a in (5, 6, 7) else ITEM[2] if a in (0, 4) else ITEM[1]
+            c.set(cx - 0.5 + math.cos(ang) * d, cy - 0.5 + math.sin(ang) * d, col)
+    c.shaded_ellipse(cx, cy, 3.9, 3.9, [ITEM[0], ITEM[1], ITEM[2], ITEM[3]])
+    c.set(5, 4, '#ffffff')
+    for x in (3, 9):
+        c.set(x, 7, ITEM[0])
+    c.rect(4, 11, 6, 2, RAR[1]); c.set(4, 11, RAR[2]); c.set(5, 11, RAR[2]); c.rect(4, 12, 6, 1, RAR[0])
+    c.outline(OUT)
+    return c, (6, 18)
+
+
+def weapon_hammer():
+    """Marteau de guerre à deux mains : tête massive (objet), bande runique de rareté, long manche."""
+    c = Canvas(13, 30)
+    for y in range(9, 27):
+        c.set(6, y, LEATHER[2] if y % 3 else LEATHER[1]); c.set(7, y, LEATHER[0])
+    for y in (16, 21):
+        c.set(6, y, RAR[1]); c.set(7, y, RAR[0])
+    c.shaded_ellipse(6.5, 28, 1.7, 1.4, RAR)
+    # tête : bloc biseauté
+    x0, x1 = 1, 11
+    c.rect(x0, 2, x1 - x0 + 1, 8, ITEM[2])
+    for x in range(x0, x1 + 1):
+        c.set(x, 2, ITEM[3]); c.set(x, 9, ITEM[0]); c.set(x, 8, ITEM[1])
+    for y in range(2, 10):
+        c.set(x0, y, ITEM[3]); c.set(x0 + 1, y, ITEM[3] if y < 8 else ITEM[2])
+        c.set(x1, y, ITEM[1]); c.set(x1 - 1, y, ITEM[1] if y > 3 else ITEM[2])
+    c.set(x0, 2, ITEM[2]); c.set(x1, 2, ITEM[2]); c.set(x0, 9, ITEM[1]); c.set(x1, 9, ITEM[0])
+    # faces de frappe striées
+    for y in range(3, 9, 2):
+        c.set(x0 - 1, y, ITEM[1]); c.set(x1 + 1, y, ITEM[0])
+    # bande de rareté + rune
+    for y in range(2, 10):
+        c.set(5, y, RAR[2] if y < 5 else RAR[1]); c.set(6, y, RAR[1]); c.set(7, y, RAR[0])
+    c.set(6, 5, '#ffffff')
+    # pointe sommitale
+    c.set(6, 1, ITEM[3]); c.set(6, 0, ITEM[2]); c.set(7, 1, ITEM[1])
+    c.set(3, 3, '#ffffff')
+    c.outline(OUT)
+    return c, (6, 23)
+
+
+def weapon_spear():
+    """Lance : fer en feuille (objet), collier et talon de rareté, hampe longue."""
+    c = Canvas(9, 32)
+    for y in range(11, 30):
+        c.set(4, y, LEATHER[2] if y % 4 else LEATHER[1]); c.set(5, y, LEATHER[0])
+    c.rect(4, 30, 2, 1, RAR[1]); c.set(4, 31, RAR[0]); c.set(5, 31, RAR[0])
+    # fer en feuille de laurier
+    prof = [0.5, 1.0, 1.5, 2.0, 2.4, 2.6, 2.5, 2.1, 1.5, 1.0]
+    for y, hw in enumerate(prof):
+        for x in range(9):
+            dx = x + 0.5 - 4.5
+            if abs(dx) <= hw:
+                col = ITEM[3] if dx < -hw * 0.3 else ITEM[2] if dx < hw * 0.35 else ITEM[1]
+                c.set(x, y, col)
+    for y in range(2, 9):
+        c.set(4, y, ITEM[2] if y % 3 else ITEM[3])  # arête
+    c.set(3, 3, '#ffffff')
+    # collier de rareté + pompon
+    c.rect(3, 10, 3, 2, RAR[1]); c.set(3, 10, RAR[2]); c.set(5, 11, RAR[0])
+    c.set(6, 12, RAR[1]); c.set(6, 13, RAR[0]); c.set(7, 14, RAR[0])
+    c.outline(OUT)
+    return c, (4, 24)
+
+
+def weapon_staff():
+    """Bâton de mage : bois noueux, griffes d'objet serrant un orbe de rareté."""
+    c = Canvas(11, 30)
+    for y in range(8, 28):
+        wob = 1 if 14 <= y <= 17 else 0
+        c.set(5 - wob, y, LEATHER[2] if y % 5 else LEATHER[3]); c.set(6 - wob, y, LEATHER[1])
+    for y in (13, 18):
+        c.set(4, y, LEATHER[0]); c.set(7, y, LEATHER[1])
+    c.set(5, 28, ITEM[1]); c.set(6, 28, ITEM[0]); c.set(5, 29, ITEM[0])
+    # griffes (couleur d'objet)
+    for x, y, col in ((2, 3, ITEM[3]), (2, 4, ITEM[3]), (2, 5, ITEM[2]), (3, 6, ITEM[2]), (3, 7, ITEM[1]), (1, 2, ITEM[3]),
+                      (8, 3, ITEM[2]), (8, 4, ITEM[1]), (8, 5, ITEM[1]), (7, 6, ITEM[1]), (7, 7, ITEM[0]), (9, 2, ITEM[2]),
+                      (4, 8, ITEM[2]), (5, 8, ITEM[2]), (6, 8, ITEM[1]), (4, 9, ITEM[1]), (6, 9, ITEM[0]), (5, 9, ITEM[1])):
+        c.set(x, y, col)
+    # orbe
+    c.shaded_ellipse(5.5, 4.5, 2.7, 2.7, RAR)
+    c.set(4, 3, '#ffffff')
+    c.outline(OUT)
+    c.set(5, 0, RAR[2])  # éclat au-dessus de l'orbe
+    return c, (5, 22)
+
+
+def weapon_whip():
+    """Fouet : manche gainé de cuir, lanière d'objet enroulée en boucles, mèche de rareté."""
+    c = Canvas(13, 26)
+    for y in range(17, 24):
+        c.set(6, y, LEATHER[2] if y % 2 else LEATHER[1]); c.set(7, y, LEATHER[0])
+    c.shaded_ellipse(7, 24.5, 1.6, 1.3, RAR)
+    c.rect(5, 15, 4, 2, ITEM[2]); c.set(5, 15, ITEM[3]); c.set(8, 16, ITEM[0])
+    # lanière ondulante en S (épaisse en bas, fine en haut) : lisible tenue à la verticale
+    pts = []
+    for k in range(80):
+        t = k / 79
+        pts.append((6.5 + 4.2 * math.sin(t * math.pi * 2.1) * (0.55 + 0.45 * t), 14.5 - t * 13))
+    for i, (x, y) in enumerate(pts):
+        t = i / 79
+        nxt = pts[min(79, i + 1)]
+        lit = nxt[0] < x  # segment qui part vers la gauche : face éclairée
+        c.set(x - 0.5, y - 0.5, ITEM[3] if lit else ITEM[2])
+        if t < 0.7:
+            c.set(x + 0.5, y - 0.5, ITEM[1] if lit else ITEM[0])
+    tx, ty = pts[-1]
+    c.set(tx - 0.5, ty - 1.5, RAR[2]); c.set(tx + 0.5, ty - 1.5, RAR[1]); c.set(tx + 0.5, ty - 0.5, RAR[0])
+    c.set(6, 14, ITEM[1]); c.set(7, 14, ITEM[0])
+    c.outline(OUT)
+    return c, (6, 20)
+
+
+def weapon_greatsword():
+    """Espadon à deux mains : lame large à gouttière, garde et pommeau de rareté, longue fusée."""
+    c = Canvas(14, 32)
+    for y in range(3, 21):
+        for x in range(4, 10):
+            c.set(x, y, ITEM[3] if x < 6 else ITEM[2] if x < 8 else ITEM[1])
+        c.set(4, y, ITEM[3])
+        c.set(9, y, ITEM[0] if y % 6 else ITEM[1])
+    for y in range(5, 19):
+        c.set(6, y, ITEM[1] if y % 7 else ITEM[2]); c.set(7, y, ITEM[2])  # gouttière
+    # pointe
+    for y, (x0, x1) in ((0, (6, 7)), (1, (5, 8)), (2, (5, 8))):
+        for x in range(x0, x1 + 1):
+            c.set(x, y, ITEM[3] if x <= 6 else ITEM[1])
+    c.set(5, 4, '#ffffff'); c.set(4, 7, '#ffffff')
+    # garde en croix, quillons recourbés
+    for x in range(0, 14):
+        c.set(x, 21, RAR[1]); c.set(x, 22, RAR[0])
+    c.set(0, 20, RAR[1]); c.set(13, 20, RAR[0]); c.set(1, 21, RAR[2]); c.set(2, 21, RAR[2])
+    c.ellipse(7, 21.5, 1.6, 1.6, RAR[1]); c.set(6, 21, RAR[2])
+    # fusée longue
+    for y in range(23, 29):
+        c.set(6, y, LEATHER[2] if y % 2 else LEATHER[1]); c.set(7, y, LEATHER[0])
+    c.shaded_ellipse(7, 30, 1.9, 1.6, RAR)
+    c.outline(OUT)
+    return c, (6, 26)
+
+
+def framed(c, grip):
+    """Ajoute 1 px de marge sur les côtés où la forme touche le bord (contour complet, rien de rogné)."""
+    edge = lambda pts: any(c.px[y][x] not in (None, OUT) for x, y in pts)
+    l = 1 if edge((0, y) for y in range(c.h)) else 0
+    r = 1 if edge((c.w - 1, y) for y in range(c.h)) else 0
+    t = 1 if edge((x, 0) for x in range(c.w)) else 0
+    b = 1 if edge((x, c.h - 1) for x in range(c.w)) else 0
+    if not (l or r or t or b):
+        return c, grip
+    out = Canvas(c.w + l + r, c.h + t + b)
+    out.paste(c, l, t)
+    out.outline(OUT, skip=(OUT,))
+    return out, (grip[0] + l, grip[1] + t)
 
 
 # ---------------------------------------------------------------- effets
@@ -944,11 +1306,17 @@ def build():
     out['helmet_hood'] = (helmet_hood(), {'oy': 0})
     out['armor_mail'] = (armor_mail(), {'oy': 0})
     out['armor_tunic'] = (armor_tunic(), {'oy': 0})
+    out['helmet_horned'] = (helmet_horned(), {'oy': 0})
+    out['helmet_circlet'] = (helmet_circlet(), {'oy': 0})
+    out['armor_plate'] = (armor_plate(), {'oy': 0})
+    out['armor_robe'] = (armor_robe(), {'oy': 0})
     for f in 'abc':
         out[f'cape_{f}'] = (cape(f), {'oy': 0})
     out['shield'] = (shield(), {'x': SHIELD_POS[0], 'y': SHIELD_POS[1]})
-    for name, fn in (('weapon_sword', weapon_sword), ('weapon_axe', weapon_axe), ('weapon_dagger', weapon_dagger)):
-        cv, grip = fn()
+    for name, fn in (('weapon_sword', weapon_sword), ('weapon_axe', weapon_axe), ('weapon_dagger', weapon_dagger),
+                     ('weapon_mace', weapon_mace), ('weapon_hammer', weapon_hammer), ('weapon_spear', weapon_spear),
+                     ('weapon_staff', weapon_staff), ('weapon_whip', weapon_whip), ('weapon_greatsword', weapon_greatsword)):
+        cv, grip = framed(*fn())
         out[name] = (cv, {'grip': {'x': grip[0], 'y': grip[1]}})
     out['fx_slash1'] = (fx_slash(1), {})
     out['fx_slash2'] = (fx_slash(2), {})

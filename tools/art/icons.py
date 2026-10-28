@@ -1144,6 +1144,186 @@ def boost_phantom():
     return c
 
 
+# ------------------------------------------------------------------ emblèmes de panoplie (12×12, coin des cadres d'objets)
+SWAMP = ['#24280e', '#465418', '#6e8a28', '#a2bc48', '#dcec94']
+LAVA = ['#3a0c08', '#8c1a0c', '#e04a12', '#ff9a2a', '#ffe27a']
+ASH = ['#1e1618', '#3a2e30', '#5a4a4a', '#7e6a66', '#a89088']
+VOID = ['#04020a', '#140a26', '#2a1450']
+
+
+def set_plains():
+    """Feuille verte."""
+    c = cv(12, 12)
+    P = shape(lambda m, k: m.poly([(1.5, 10.5), (2, 6), (4.5, 2.8), (8.5, 1), (11, 0.8), (10.6, 4), (8.6, 8), (5, 10.2)], k), 12, 12)
+    fill(c, P, GREEN, grad=1.2)
+    for i in range(8):
+        c.set(2 + i, 9 - i, GREEN[1] if i < 6 else GREEN[2])
+    for x, y in ((5, 5), (4, 5), (7, 4), (7, 3)):
+        c.set(x, y, GREEN[1])
+    c.set(5, 3, GREEN[4])
+    c.set(1, 11, WOOD[2]); c.set(0, 11, WOOD[1])
+    done(c)
+    return c
+
+
+def set_forest():
+    """Sapin."""
+    c = cv(12, 12)
+    for (y0, y1, hw) in ((0, 4, 2.5), (2.5, 7, 3.8), (5, 10, 5.0)):
+        P = shape(lambda m, k, y0=y0, y1=y1, hw=hw: m.poly([(6, y0), (6 + hw, y1), (6 - hw, y1)], k), 12, 12)
+        fill(c, P, GREEN[0:4], grad=1.3)
+    c.rect(5, 10, 2, 2, WOOD[2]); c.set(6, 10, WOOD[1]); c.set(6, 11, WOOD[1])
+    c.set(5, 2, GREEN[4]); c.set(4, 5, GREEN[3]); c.set(3, 8, GREEN[3])
+    done(c)
+    return c
+
+
+def set_caves():
+    """Cristal bleu."""
+    c = cv(12, 12)
+    side = shape(lambda m, k: m.poly([(1, 6), (3, 4), (5, 6), (5, 11), (1, 11)], k), 12, 12)
+    fill(c, side, GEM[1:5], grad=1.0)
+    main = shape(lambda m, k: m.poly([(5, 2.5), (7.5, 0), (10, 2.5), (10, 11), (5, 11)], k), 12, 12)
+    for (x, y) in main:
+        c.set(x, y, GEM[4] if x < 6 else GEM[3] if x < 8 else GEM[2])
+    for x, y in main:
+        if y == 2 and x in (6, 7):
+            c.set(x, y, WHITE)
+    for y in range(4, 10):
+        c.set(6, y, ICE[4] if y % 3 else WHITE)
+    c.set(2, 7, ICE[4])
+    done(c)
+    return c
+
+
+def set_desert():
+    """Soleil orangé."""
+    c = cv(12, 12)
+    for x, y in ((6, 0), (6, 11), (0, 6), (11, 6), (5, 0), (5, 11), (0, 5), (11, 5),
+                 (2, 2), (9, 2), (2, 9), (9, 9)):
+        c.set(x, y, YELLOW[3] if y < 6 else ORANGE[3])
+    P = shape(lambda m, k: m.ellipse(6, 6, 3.6, 3.6, k), 12, 12)
+    sfill(c, P, ORANGE[1:4] + [YELLOW[3], YELLOW[4]], 6, 6, 3.6)
+    c.set(4, 4, WHITE)
+    done(c)
+    return c
+
+
+def set_mountains():
+    """Flocon de neige bleu glacier."""
+    c = cv(12, 12)
+    cx, cy = 5.5, 5.5
+    for a in range(0, 180, 60):
+        r_ = math.radians(a + 90)
+        dx, dy = math.cos(r_), math.sin(r_)
+        for t in range(-5, 6):
+            c.set(cx + dx * t + 0.01, cy + dy * t + 0.01, ICE[3] if abs(t) < 4 else ICE[4])
+        for sgn in (-1, 1):
+            bx, by = cx + dx * 3.2 * sgn, cy + dy * 3.2 * sgn
+            for side in (-1, 1):
+                ra = r_ + side * math.radians(55) + (0 if sgn > 0 else math.pi)
+                c.set(bx + math.cos(ra) * 1.4, by + math.sin(ra) * 1.4, ICE[2])
+    c.set(5, 5, WHITE); c.set(6, 6, WHITE); c.set(5, 6, ICE[4]); c.set(6, 5, ICE[4])
+    done(c)
+    return c
+
+
+def set_cursed():
+    """Crâne violet aux yeux luisants."""
+    c = cv(12, 12)
+    head = shape(lambda m, k: m.ellipse(6, 5, 5, 4.6, k), 12, 12)
+    jaw = shape(lambda m, k: m.rect(3, 8, 6, 3, k), 12, 12)
+    sfill(c, head | jaw, PURPLE[1:5], 5.2, 4.2, 5.5)
+    for x in range(3, 9):
+        c.set(x, 10, PURPLE[1] if x % 2 else PURPLE[2])
+    for x in (4, 6, 8):
+        c.set(x, 9, OUT)
+    for ex in (2, 7):
+        c.rect(ex, 4, 3, 3, '#14061e')
+        c.set(ex + 1, 5, MAGENTA[4])
+    c.set(6, 7, '#14061e'); c.set(5, 7, '#14061e')
+    c.set(4, 2, PURPLE[4]); c.set(3, 3, PURPLE[4])
+    done(c)
+    return c
+
+
+def set_swamp():
+    """Goutte vert-brun (marais)."""
+    c = cv(12, 12)
+    P = shape(lambda m, k: (m.ellipse(6, 7.6, 4.2, 4.0, k), m.poly([(6, 0), (9.6, 6.5), (2.4, 6.5)], k)), 12, 12)
+    sfill(c, P, SWAMP, 5.6, 7.0, 4.6, 5.2)
+    c.set(4, 6, SWAMP[4]); c.set(4, 7, SWAMP[4]); c.set(5, 5, SWAMP[3])
+    for x, y in ((7, 9), (8, 8)):
+        c.set(x, y, SWAMP[1])
+    done(c)
+    return c
+
+
+def set_sky():
+    """Plume blanche ourlée de bleu ciel."""
+    c = cv(12, 12)
+    ang, cx, cy = -45, 6, 5.6
+    P = set()
+    for y in range(12):
+        for x in range(12):
+            u, v = to_local(x, y, ang, cx, cy)
+            half = 2.9 * math.sqrt(max(0.0, 1 - (u / 6.0) ** 2)) * (0.7 + 0.3 * (u + 6) / 12)
+            if -6 <= u <= 5.4 and abs(v) <= half:
+                P.add((x, y))
+    cols = ['#5a8ac8', '#9ac4ec', '#d4ecfc', WHITE]
+    for (x, y) in P:
+        u, v = to_local(x, y, ang, cx, cy)
+        col = cols[3] if v < -0.6 else cols[2] if v < 0.8 else cols[1]
+        c.set(x, y, col)
+    for t in range(-3, 8):
+        x, y = cx - 0.5 + t * 0.707 * -1 + 0.0, cy - 0.5 + t * 0.707
+        c.set(x, y, cols[0] if t > 4 else cols[1])
+    done(c)
+    return c
+
+
+def set_volcano():
+    """Volcan en éruption, coulées de lave."""
+    c = cv(12, 12)
+    cone = shape(lambda m, k: m.poly([(0, 11.5), (4, 4), (8, 4), (12, 11.5)], k), 12, 12)
+    fill(c, cone, ASH, grad=1.2)
+    for x in range(4, 8):
+        c.set(x, 4, LAVA[3])
+    for x, y in ((6, 5), (6, 6), (7, 7), (7, 8), (8, 9), (8, 10), (5, 5), (4, 6), (4, 7), (3, 8)):
+        c.set(x, y, LAVA[3] if y < 7 else LAVA[2])
+    plume = shape(lambda m, k: (m.ellipse(6, 2, 2.2, 1.6, k), m.ellipse(4, 1.2, 1.4, 1.2, k), m.ellipse(8.2, 1.2, 1.4, 1.2, k)), 12, 12)
+    sfill(c, plume, LAVA[1:5], 5.5, 1.5, 3, 2)
+    c.set(6, 3, LAVA[4])
+    done(c)
+    return c
+
+
+def set_void():
+    """Trou noir : disque obscur cerclé d'un anneau violet incliné."""
+    c = cv(12, 12)
+    cx, cy = 6, 6
+    ring = []
+    for y in range(12):
+        for x in range(12):
+            dx, dy = x + 0.5 - cx, y + 0.5 - cy
+            d = (dx / 5.8) ** 2 + (dy / 2.4) ** 2
+            if 0.5 <= d <= 1.0:
+                ring.append((x, y, dy))
+    for x, y, dy in ring:
+        if dy < 0:
+            c.set(x, y, PURPLE[2])
+    disc = shape(lambda m, k: m.ellipse(6, 6, 3.4, 3.4, k), 12, 12)
+    for (x, y) in disc:
+        d = math.hypot(x + 0.5 - cx, y + 0.5 - cy)
+        c.set(x, y, MAGENTA[3] if d > 2.6 else VOID[1] if d > 1.8 else VOID[0])
+    for x, y, dy in ring:
+        if dy >= 0:
+            c.set(x, y, PURPLE[4] if abs(x + 0.5 - cx) < 3 else PURPLE[3])
+    c.set(1, 1, WHITE); c.set(10, 2, PURPLE[4])
+    done(c)
+    return c
+
+
 # ------------------------------------------------------------------ export
 ICONS = [
     ('coin', coin), ('icon_gem', icon_gem), ('icon_ticket', icon_ticket), ('icon_fragment', icon_fragment),
@@ -1160,6 +1340,9 @@ ICONS = [
     ('icon_book', icon_book),
     ('boost_rage', boost_rage), ('boost_frenzy', boost_frenzy), ('boost_midas', boost_midas),
     ('boost_hunter', boost_hunter), ('boost_phantom', boost_phantom),
+    ('set_plains', set_plains), ('set_forest', set_forest), ('set_caves', set_caves), ('set_desert', set_desert),
+    ('set_mountains', set_mountains), ('set_cursed', set_cursed), ('set_swamp', set_swamp), ('set_sky', set_sky),
+    ('set_volcano', set_volcano), ('set_void', set_void),
 ]
 
 

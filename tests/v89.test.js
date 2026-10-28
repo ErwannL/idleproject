@@ -89,3 +89,11 @@ test('v8.9 : historique des ascensions de la Tour (écran Records)', () => {
   assert.equal(s.towerHistory[0].floors, 6);
   assert.equal(sanitizeState(JSON.parse(JSON.stringify(s))).towerHistory.length, 1);
 });
+
+test('v8.9 : chaque base d\'objet et chaque ensemble a son sprite', async () => {
+  const { ITEM_BASES } = await import('../src/data/items.js');
+  const { ITEM_SETS } = await import('../src/data/sets.js');
+  const { SPRITES } = await import('../src/render/sprites.js');
+  for (const b of ITEM_BASES.filter((x) => ['weapon', 'helmet', 'armor'].includes(x.slot))) assert.ok(SPRITES[`${b.slot}_${b.sprite}`], b.id);
+  for (const s of ITEM_SETS) assert.ok(SPRITES[`set_${s.id}`], s.id);
+});
