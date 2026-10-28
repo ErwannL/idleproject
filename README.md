@@ -258,7 +258,8 @@ puis mise à jour depuis le jeu réparée (v8.9.1),
 puis installation qui ne remplit plus le disque (v8.9.2),
 puis Musée des objets ancestraux et 10 thèmes d'interface (v9.0),
 puis vrais styles d'interface par thème et Codex expliqué (v9.0.1),
-puis mise à jour depuis le jeu fiable (v9.0.2) :
+puis mise à jour depuis le jeu fiable (v9.0.2),
+puis thèmes d'interface de luxe et Musée « Exposer tout » (v9.0.3) :
 voir `docs/RELEASE_NOTES.md`.
 
 ## v4

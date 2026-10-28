@@ -1,10 +1,33 @@
-## Idle RPG v9.0.2 — mise à jour depuis le jeu fiable
+## Idle RPG v9.0.3 — thèmes d'interface de luxe, Musée qui expose vraiment
 
-**Mise à jour :** depuis la v9.0.1 ou avant, si « Mettre à jour » ferme le jeu sans rien installer, téléchargez
-**IdleRPG-9.0.2-setup.exe** sur la page des versions et lancez-le une fois (votre partie est conservée). Les mises à
-jour suivantes se feront de nouveau depuis le jeu.
+**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.3-setup.exe). Votre partie est conservée.
+
+### Améliorés
+- **Thèmes d'interface entièrement refaits** (Paramètres → Interface). Le Chevalier reste le style sobre d'origine ;
+  les 9 autres sont désormais très travaillés :
+  - **cadres redessinés** à plusieurs épaisseurs (moulure, gorge, filet, lueur intérieure, motif répété) ;
+  - **grands ornements aux 4 coins du panneau** : rinceaux d'or et rubis (Royal), branche moussue et baies
+    (Sylvestre), équerre de fer et rune de braise (Forge naine), cercle runique et cristal (Arcanes), crâne et os
+    (Nécropole), disque solaire et scarabée (Sables), grand flocon et stalactites (Givre), branche de cerisier
+    (Sakura), éclat d'obsidienne à l'œil violet (Ombre) ;
+  - **emblème lumineux sur l'en-tête** (couronne sertie, bois de cerf, enclume, œil, crâne cornu, soleil ailé,
+    couronne de glace, torii, œil du néant), **texture de fond** (damas, planches, métal martelé, carte du ciel,
+    pierre fissurée, grès à hiéroglyphes, cristaux de givre, vagues seigaiha, fumée) ;
+  - **effets animés** : paillettes d'or, feuilles qui tombent, braises qui montent, runes, feux follets, sable,
+    flocons, pétales de cerisier, fumée violette ; ornement sous les titres et au-dessus de l'onglet actif, lueurs
+    sur l'emblème, les boutons et les objets Légendaires ;
+  - **Ombre** n'est plus en noir et blanc : obsidienne, fumée violette et éclats cramoisis.
+  Les effets animés se coupent en mode concentration et en vitesse ×100.
 
 ### Corrigés
+- **Musée vide malgré « Exposition auto »** : l'option ne valait que pour les objets ramassés ensuite. Les objets
+  ancestraux déjà dans le sac ou le coffre sont maintenant exposés au lancement, quand on active l'option, et avec
+  le nouveau bouton **« Exposer tout (sac + coffre) »** (les objets portés par le héros restent sur lui ; un objet
+  verrouillé peut être exposé, le verrou ne protège que du recyclage).
+
+### v9.0.2 — mise à jour depuis le jeu fiable
+
+### Corrigés en v9.0.2
 - **« Mettre à jour » téléchargeait, fermait le jeu… et rien d'autre** : au lancement suivant, c'était toujours
   l'ancienne version. L'installateur était lancé en mode invisible par un script intermédiaire ; si l'un ou l'autre
   échouait (ou si la place disque manquait), tout s'arrêtait sans un message. Désormais :
