@@ -7,8 +7,8 @@
   de sa mutation avec un losange au-dessus de la tête : **Scissipare** (se dédouble en mourant), **Régénérant**
   (4 % de PV par seconde), **Cuirassé** (dégâts −50 % au-dessus de la moitié de ses PV), **Frénétique** (attaque
   deux fois plus vite), **Vampirique** (se soigne de ses coups), **Géant** (PV ×3, plus lent). Plus coriace
-  (PV ×1,6), mais **or ×3 et objet garanti**. 4 % des monstres, +1 point par difficulté (×2, ×3…), 12 % au plus ;
-  jamais dans la Tour.
+  (PV ×1,6), mais **or ×3 et objet garanti**. Très rares au début : **1 % des monstres sans Transcendance**, puis
+  **+1 point à chaque Transcendance** (2 %, 3 %…), 15 % au plus ; jamais dans la Tour.
 - **Boss de donjon uniques** : les donjons ne réutilisent plus les méga boss de la campagne — **Dryade
   pourrissante** (Sanctuaire sylvestre), **Colosse de magma** (Fournaise des sables), **Wyrm de givre** (Glacier
   éternel), **Tyran d'obsidienne** (Citadelle des ombres) ; la Reine spectrale reste la maîtresse de la Crypte.

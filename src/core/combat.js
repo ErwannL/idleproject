@@ -296,7 +296,7 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
     summons: boss && enc.gauntlet ? [...enc.summons] : [],
   };
   // v9.0.4 : ennemis mutés (campagne, donjons, défi ; jamais dans la Tour).
-  const mutation = !boss && !elite && !enc.tower ? maybeMutate(state, enemy, rng, cycleForStage(state.stage, balance)) : null;
+  const mutation = !boss && !elite && !enc.tower ? maybeMutate(state, enemy, rng) : null;
   world.enemies.push(enemy);
   emit(world, boss ? 'bossSpawn' : elite ? 'eliteSpawn' : 'spawn', { enemyId: enemy.id, kind: type });
   if (mutation) emit(world, 'mutantSpawn', { enemyId: enemy.id, kind: type, mutation: mutation.id });

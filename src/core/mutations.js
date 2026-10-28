@@ -12,24 +12,26 @@ export const MUTATIONS = [
 
 export const MUTATION_RULES = {
   unlockStage: 21, // monde 2
-  chance: 0.04, // par ennemi ordinaire
-  chancePerCycle: 0.01, // +1 point par difficulté (×2, ×3…)
-  maxChance: 0.12,
+  chance: 0.01, // par ennemi ordinaire, sans Transcendance
+  chancePerTranscend: 0.01, // +1 point par Transcendance
+  maxChance: 0.15,
   hpMultiplier: 1.6,
   goldMultiplier: 3,
 };
 
 export const mutationById = (id) => MUTATIONS.find((m) => m.id === id) ?? null;
 
-export function mutationChance(state, cycle = 0) {
+// v9.0.4 : la fréquence grandit avec les Transcendances (1 % sans Transcendance, +1 point par Transcendance).
+export function mutationChance(state) {
   if ((state.maxStage ?? 1) < MUTATION_RULES.unlockStage) return 0;
-  return Math.min(MUTATION_RULES.maxChance, MUTATION_RULES.chance + MUTATION_RULES.chancePerCycle * cycle);
+  const n = state.transcend?.count ?? 0;
+  return Math.min(MUTATION_RULES.maxChance, MUTATION_RULES.chance + MUTATION_RULES.chancePerTranscend * n);
 }
 
 // Applique une mutation tirée au hasard à un ennemi tout juste créé ; renvoie la mutation (ou null).
-export function maybeMutate(state, enemy, rng, cycle = 0) {
+export function maybeMutate(state, enemy, rng) {
   if (enemy.boss || enemy.elite || enemy.splitChild) return null;
-  if (rng.next() >= mutationChance(state, cycle)) return null;
+  if (rng.next() >= mutationChance(state)) return null;
   const m = MUTATIONS[Math.floor(rng.next() * MUTATIONS.length)];
   enemy.mutation = m.id;
   enemy.hp *= MUTATION_RULES.hpMultiplier;
