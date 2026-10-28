@@ -83,7 +83,7 @@ export const BG = {
         "file": "forest_far.png",
         "factor": 0.07,
         "anchor": "ground",
-        "y": -158,
+        "y": -320,
         "front": false
       },
       {
@@ -97,7 +97,7 @@ export const BG = {
         "file": "forest_trees.png",
         "factor": 0.42,
         "anchor": "ground",
-        "y": -128,
+        "y": -320,
         "front": false
       },
       {
@@ -143,7 +143,7 @@ export const BG = {
         "file": "caves_far.png",
         "factor": 0.08,
         "anchor": "ground",
-        "y": -178,
+        "y": -318,
         "front": false
       },
       {
@@ -361,7 +361,7 @@ export const BG = {
         "file": "cursed_pillars.png",
         "factor": 0.4,
         "anchor": "ground",
-        "y": -108,
+        "y": -320,
         "front": false
       },
       {
@@ -429,7 +429,7 @@ export const BG = {
         "file": "swamp_trees.png",
         "factor": 0.4,
         "anchor": "ground",
-        "y": -148,
+        "y": -188,
         "front": false
       },
       {
@@ -498,14 +498,14 @@ export const BG = {
         "file": "sky_islands.png",
         "factor": 0.16,
         "anchor": "ground",
-        "y": -148,
+        "y": -172,
         "front": false
       },
       {
         "file": "sky_temples.png",
         "factor": 0.4,
         "anchor": "ground",
-        "y": -148,
+        "y": -188,
         "front": false
       },
       {
@@ -552,7 +552,7 @@ export const BG = {
         "file": "volcano_far.png",
         "factor": 0.05,
         "anchor": "ground",
-        "y": -248,
+        "y": -298,
         "front": false
       },
       {
@@ -574,7 +574,7 @@ export const BG = {
         "file": "volcano_forge.png",
         "factor": 0.4,
         "anchor": "ground",
-        "y": -132,
+        "y": -320,
         "front": false
       },
       {
@@ -681,7 +681,7 @@ export const BG = {
         "file": "abyss_far.png",
         "factor": 0.04,
         "anchor": "ground",
-        "y": -188,
+        "y": -328,
         "front": false
       },
       {
@@ -695,14 +695,14 @@ export const BG = {
         "file": "abyss_hall.png",
         "factor": 0.15,
         "anchor": "ground",
-        "y": -158,
+        "y": -320,
         "front": false
       },
       {
         "file": "abyss_columns.png",
         "factor": 0.4,
         "anchor": "ground",
-        "y": -158,
+        "y": -320,
         "front": false
       },
       {

@@ -20,8 +20,8 @@ function grade(r) {
 }
 
 export function playSummonReveal(results) {
-  // Seulement s'il y a une nouveauté (personnage ou familier jamais obtenu) : les doublons n'en valent pas la peine.
-  if (!results?.some((r) => r.isNew) || document.body.classList.contains('hold-repeating')) return;
+  // v8.9 : animation à chaque invocation (un clic la passe) — sauf pendant un clic maintenu (invocations en continu).
+  if (!results?.length || document.body.classList.contains('hold-repeating')) return;
   document.querySelector('.summon-fx')?.remove();
   const best = ORDER.filter((r) => results.some((u) => u.rarity === r)).at(-1) ?? 'common';
   const el = document.createElement('div');

@@ -219,6 +219,19 @@ function createWindow() {
       return { ok: false, error: String(error?.message ?? error) };
     }
   });
+  let sideExtra = 0; // largeur ajoutée pour le menu sur le côté (retirée des dimensions mémorisées)
+  // v8.9 : élargir / rétrécir la fenêtre (menu ouvert sur le côté en petite fenêtre), sans sortir de l'écran.
+  ipcMain.handle('desktop:resizeBy', (_event, dw, dh) => {
+    if (win.isMaximized() || win.isFullScreen()) return false;
+    const b = win.getBounds();
+    const area = screen.getDisplayMatching(b).workArea;
+    const width = Math.max(260, Math.min(area.width, b.width + (Number(dw) || 0)));
+    const height = Math.max(110, Math.min(area.height, b.height + (Number(dh) || 0)));
+    const x = Math.max(area.x, Math.min(b.x, area.x + area.width - width));
+    win.setBounds({ x, y: b.y, width, height });
+    sideExtra += width - b.width;
+    return true;
+  });
   ipcMain.handle('desktop:setSizePreset', (_event, preset) => {
     const size = SIZE_PRESETS[preset];
     if (!size) return false;
@@ -234,6 +247,7 @@ function createWindow() {
     event.preventDefault();
     closing = true;
     settings.bounds = win.getNormalBounds();
+    if (sideExtra > 0) settings.bounds.width = Math.max(260, settings.bounds.width - sideExtra);
     saveSettings(settings);
     const finalSave = win.webContents.executeJavaScript('window.__idle && window.__idle.save()').catch(() => {});
     const timeout = new Promise((resolve) => setTimeout(resolve, 1500));

@@ -5,11 +5,32 @@ import { referenceKillGold } from './combat.js';
 import { talentEffects } from './rebirth.js';
 import { DUNGEONS } from '../data/dungeons.js';
 import { COMPANION_ROLES, SYNERGIES } from '../data/synergies.js';
+import { SKILL_RULES, companionSkillList } from '../data/companion-skills.js';
 
 export const MULTIPLICATIVE = { damagePct: 'damageMultPct', maxHpPct: 'maxHpMultPct', goldPct: 'goldMultPct' };
 
 // v8.8 : puissance des compétences selon la rareté (un SSR frappe nettement plus fort qu'un R).
 export const RARITY_SKILL = { common: 1, rare: 1, epic: 1.3, legendary: 1.8 };
+
+// v8.9 : 4 compétences par compagnon (la 4e avec 3 doublons), renforcées à chaque étoile.
+const SKILL_CACHE = new Map();
+export function companionSkills(state, id) {
+  let list = SKILL_CACHE.get(id);
+  if (!list) {
+    list = companionSkillList(companionById(id), COMPANION_ROLES[id] ?? 'pet');
+    SKILL_CACHE.set(id, list);
+  }
+  const stars = state.companions.owned[id]?.stars ?? 1;
+  return list.filter((sk) => !sk.ultimate || stars >= SKILL_RULES.ultimateStars);
+}
+
+export function allCompanionSkills(id) {
+  return companionSkillList(companionById(id), COMPANION_ROLES[id] ?? 'pet');
+}
+
+export function skillPower(state, id) {
+  return 1 + SKILL_RULES.powerPerStar * ((state.companions.owned[id]?.stars ?? 1) - 1);
+}
 
 export function companionById(id) {
   return COMPANIONS.find((c) => c.id === id);

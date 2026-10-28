@@ -156,11 +156,14 @@ function shadowStrikeFx(ctx, t, ex, g) {
 
 function markFx(ctx, t, ex, g) {
   if (ex === null) return;
-  // Marque rouge qui flotte au-dessus de la cible.
-  const y = g - 46 + Math.round(Math.sin(t * 4) * 2);
-  px(ctx, ex - 2, y, 5, 1, '#ff4a4a');
-  px(ctx, ex - 1, y + 1, 3, 1, '#ff4a4a');
-  px(ctx, ex, y + 2, 1, 1, '#ff4a4a');
+  // v8.9 : plus de flèche au-dessus de la cible (on la prenait pour un indicateur d'interface) : un cercle de visée
+  // rouge, discret, tourne au sol sous l'ennemi marqué (synergies Exécuteur, Marque du chasseur).
+  for (let i = 0; i < 12; i++) {
+    const a = t * 1.6 + (i / 12) * Math.PI * 2;
+    ctx.globalAlpha = i % 3 === 0 ? 0.85 : 0.4;
+    px(ctx, ex + Math.cos(a) * 10, g + 1 + Math.sin(a) * 2.5, i % 3 === 0 ? 2 : 1, 1, '#ff4a4a');
+  }
+  ctx.globalAlpha = 1;
 }
 
 function runeCircleFx(ctx, t, hx, g) {

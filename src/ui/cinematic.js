@@ -33,6 +33,24 @@ export function playCinematic({ kicker = '', title, line = '', zone = null, dura
   requestAnimationFrame(() => el.classList.add('in'));
 }
 
+// v8.9 : transition entre deux lieux (monde, donjon, tour, défi…) : des nuages arrivent de la gauche et de la
+// droite, couvrent la scène, puis se lèvent pour laisser place aux bandes noires et au titre du lieu.
+export function playTransition(opts) {
+  const host = document.getElementById('stage-area');
+  if (!host || document.querySelector('#app.layout-strip')) return;
+  host.querySelector('.cloud-transition')?.remove();
+  const el = document.createElement('div');
+  el.className = 'cloud-transition';
+  el.innerHTML = '<i class="cloud-bank left"></i><i class="cloud-bank right"></i>';
+  host.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('closing'));
+  setTimeout(() => {
+    el.classList.add('lifting');
+    playCinematic(opts);
+  }, 750);
+  setTimeout(() => el.remove(), 1800);
+}
+
 export function worldCinematic(zone, cycleLabel = '') {
-  playCinematic({ kicker: `Nouveau monde${cycleLabel}`, title: zone.name, line: ZONE_INTRO[zone.id] ?? '', zone: zone.id });
+  playTransition({ kicker: `Nouveau monde${cycleLabel}`, title: zone.name, line: ZONE_INTRO[zone.id] ?? '', zone: zone.id });
 }

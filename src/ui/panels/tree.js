@@ -62,10 +62,22 @@ const fold = (str) => String(str).toLowerCase().normalize('NFD').replace(/[̀-ͯ
 // Chaque mot cherché doit commencer un mot du talent (« or » trouve l'or, pas « Force »).
 const words = (str) => fold(str).split(/[^a-z0-9]+/).filter(Boolean);
 const SEARCH_WORDS = new Map(TALENTS.map((t) => [t.id, words(`${t.name} ${effectText(talentLevelEffects(t, 1))} ${KIND_LABEL[t.kind]}`)]));
-export function treeSearchHits(query) {
+export function treeSearchHits(query, shown = null) {
   const q = words(query ?? '');
   if (!q.length || q.join('').length < 2) return null;
-  return new Set(TALENTS.filter((t) => q.every((w) => SEARCH_WORDS.get(t.id).some((x) => x.startsWith(w)))).map((t) => t.id));
+  return new Set(TALENTS.filter((t) => (!shown || shown.has(t.id)) && q.every((w) => SEARCH_WORDS.get(t.id).some((x) => x.startsWith(w)))).map((t) => t.id));
+}
+
+// Talents visibles : le Cœur, les talents appris et tous leurs voisins.
+export function visibleTalents(state) {
+  const shown = new Set(['core']);
+  for (const t of TALENTS) {
+    if (!(state.talents[t.id] ?? 0)) continue;
+    shown.add(t.id);
+    for (const id of t.links) shown.add(id);
+  }
+  for (const id of talentById('core').links) shown.add(id);
+  return shown;
 }
 
 // Fenêtre centrée sur le Cœur à l'ouverture et à chaque zoom ; Ctrl + molette pour zoomer ; glisser pour se déplacer.
@@ -164,7 +176,7 @@ export default {
     // Recherche : surligne les talents correspondants sans redessiner le panneau.
     const input = body.querySelector('#tree-search');
     const highlight = () => {
-      const hits = treeSearchHits(input.value);
+      const hits = treeSearchHits(input.value, visibleTalents(ui.state));
       ui.view.treeSearch = input.value;
       body.querySelectorAll('.rune-tree .tnode').forEach((el) => el.classList.toggle('hit', Boolean(hits?.has(el.dataset.value))));
       body.querySelector('.tree-hits').textContent = hits ? `${hits.size} résultat${hits.size > 1 ? 's' : ''}` : '';
@@ -176,15 +188,17 @@ export default {
     const sel = talentById(ui.view.talentSel) ?? talentById('core');
     const zoom = ui.view.treeZoom ?? DEFAULT_ZOOM;
     const selPath = !(state.talents[sel.id] ?? 0) && !talentConnected(state, sel) ? new Set(talentPath(state, sel.id) ?? []) : new Set();
-    const hits = treeSearchHits(ui.view.treeSearch);
+    // v8.9 : l'arbre se dévoile au fur et à mesure — seuls les talents appris et leurs voisins sont visibles.
+    const shown = visibleTalents(state);
+    const hits = treeSearchHits(ui.view.treeSearch, shown);
     const owned = (id) => (state.talents[id] ?? 0) > 0;
     // v8.7 : liens appris à la couleur de leur région (plus de mini-carte : l'arbre lui-même est coloré).
-    const links = LINKS.map(([a, b]) => {
+    const links = LINKS.filter(([a, b]) => shown.has(a.id) && shown.has(b.id)).map(([a, b]) => {
       const cls = owned(a.id) && owned(b.id) ? 'on' : owned(a.id) || owned(b.id) ? 'half' : selPath.has(a.id) && (selPath.has(b.id) || owned(b.id)) ? 'path' : '';
       const color = cls === 'on' ? REGION_COLOR[a.region] ?? REGION_COLOR[b.region] : null;
       return `<line x1="${(a.x + EXTENT).toFixed(2)}" y1="${(a.y + EXTENT).toFixed(2)}" x2="${(b.x + EXTENT).toFixed(2)}" y2="${(b.y + EXTENT).toFixed(2)}"${cls ? ` class="${cls}"` : ''}${color ? ` style="stroke:${color}"` : ''}/>`;
     }).join('');
-    const nodes = TALENTS.map((t) => {
+    const nodes = TALENTS.filter((t) => shown.has(t.id)).map((t) => {
       const level = state.talents[t.id] ?? 0;
       const st = nodeState(state, t);
       const color = TALENT_BRANCHES.find((br) => br.id === t.region)?.color ?? '#ffe08a';
@@ -195,7 +209,8 @@ export default {
     }).join('');
     const total = TALENTS.length;
     const tree = `<div class="tree-head">
-        <span><b>${talentsOwned(state)}</b>/${total} talents · ${formatNumber(fragmentsSpent(state))} ${fragment()} investis</span>
+        <span><b>${talentsOwned(state)}</b>/${total} talents · ${formatNumber(fragmentsSpent(state))} ${fragment()} investis
+          ${total - shown.size > 0 ? `<span class="muted">· ${total - shown.size} encore cachés</span>` : ''}</span>
         <span class="grow"></span>
         <button class="btn btn-gold small" data-action="buy-talents-all" data-value="" title="Apprend en boucle le talent disponible le moins cher, partout dans l'arbre, tant que les fragments suffisent">Tout apprendre (max)</button>
         <input id="tree-search" type="search" placeholder="Chercher (or, critique, PV…)" value="${escapeHtml(ui.view.treeSearch ?? '')}" autocomplete="off"><span class="tree-hits muted"></span>
@@ -207,7 +222,7 @@ export default {
       <div class="tree-wrap"><div class="tree-viewport"><div class="rune-tree" style="width:${Math.round(TREE_PX * zoom)}px;height:${Math.round(TREE_PX * zoom)}px">
       <svg viewBox="0 0 ${SPAN} ${SPAN}" preserveAspectRatio="none" aria-hidden="true">${links}</svg>${nodes}</div></div></div>
       <div class="tree-legend">${regionSummary(state)}</div>
-      <div class="muted tree-hint">Un talent s'apprend dès qu'un talent voisin est appris. Petits nœuds : 3 niveaux · ◆ notables · ⬢ clés de voûte (effets puissants, parfois avec un prix).
+      <div class="muted tree-hint">L'arbre se dévoile au fur et à mesure : un talent apparaît (et s'apprend) dès qu'un talent voisin est appris. Petits nœuds : 3 niveaux · ◆ notables · ⬢ clés de voûte (effets puissants, parfois avec un prix).
         Glissez ou utilisez la molette pour vous déplacer, Ctrl + molette pour zoomer.</div>`;
 
     const reward = rebirthReward(state);

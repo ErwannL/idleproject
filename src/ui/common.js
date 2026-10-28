@@ -37,7 +37,7 @@ export function itemFrame(item, { selected = false, showUp = false, equipped = f
     title="${escapeHtml(item.name)}${item.upgrades ? ` +${item.upgrades}` : ''} · ${rarityLabel(item.rarity)} · niv. ${item.level}">
     <img class="px" src="${itemIconUrl(item)}" alt="${escapeHtml(item.name)}">
     ${item.upgrades ? `<span class="plus-lv">+${item.upgrades}</span>` : ''}
-    ${item.set && setById(item.set) ? `<span class="set-dot" style="--set:${setById(item.set).color}" title="Ensemble : ${escapeHtml(setById(item.set).name)}"></span>` : ''}
+    ${item.set && setById(item.set) ? `<img class="px set-ico" src="${icon(`set_${item.set}`, 1)}" alt="" title="Ensemble : ${escapeHtml(setById(item.set).name)}">` : ''}
     ${up ? '<span class="up" title="Meilleur que l\'équipement porté">▲</span>' : ''}
     ${equipped ? '<span class="eq">É</span>' : ''}
     ${item.locked ? `<img class="px lock" src="${icon('icon_lock', 1)}" alt="Verrouillé">` : ''}</${tag}>`;

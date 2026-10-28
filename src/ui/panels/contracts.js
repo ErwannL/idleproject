@@ -1,4 +1,9 @@
 // Missions (connexion, journalières, hebdomadaires, mensuelles) et contrats d'aventure, en onglets.
+import { BOUNTY, bountyProgress, dailyBounty } from '../../core/bounty.js';
+import { ENEMIES } from '../../data/enemies.js';
+import { ZONES } from '../../data/zones.js';
+import { ITEM_SETS } from '../../data/sets.js';
+import { animCanvas } from '../animator.js';
 import { contractLabel, contractTitle } from '../../core/contracts.js';
 import { bonusReady, loginDay, loginReady, missionsClaimable, missionStatus, periodRemaining } from '../../core/missions.js';
 import { rewardText } from '../../core/rewards.js';
@@ -87,6 +92,22 @@ function contractsTab(state) {
     parfois un <b class="rare-text">contrat rare</b> apparaît (objectif doublé, récompenses triplées).</div>${rows}`;
 }
 
+// Prime du jour (v8.9).
+function bountyCard(state) {
+  const b = dailyBounty(state);
+  const enemy = ENEMIES[b.type];
+  const done = bountyProgress(state);
+  const set = ITEM_SETS.find((x) => x.id === ZONES[b.zone].id);
+  return `<div class="card bounty-card">
+    <div class="bounty-portrait">${animCanvas(`foe:${enemy.sprite}`, 48, 40, 1)}</div>
+    <div class="grow"><div class="row-between"><b class="gold-text">🎯 Prime du jour : ${escapeHtml(enemy.name)}</b><span class="muted">${escapeHtml(ZONES[b.zone].name)}</span></div>
+      ${progressBar(done / b.target, `${done}/${b.target} vaincus`)}
+      <div class="muted">Récompense : une pièce Épique ou mieux de l'ensemble <b style="color:${set?.color ?? '#fff'}">${escapeHtml(set?.name ?? '')}</b> et ${BOUNTY.gems} gemmes. Nouvelle prime chaque jour.</div></div>
+    ${b.claimed ? '<button class="btn" disabled>Récupérée ✔</button>'
+      : `<button class="btn ${done >= b.target ? 'btn-gold' : ''}" data-action="claim-bounty" ${done >= b.target ? '' : 'disabled'}>Récupérer</button>`}
+  </div>`;
+}
+
 export default {
   id: 'contracts',
   title: 'Missions & contrats',
@@ -111,7 +132,7 @@ export default {
     const body = tab === 'login' ? loginTab(state) : tab === 'contracts' ? contractsTab(state)
       : tab === 'achievements' ? achievementsTab(state) : periodTab(state, period);
     const any = missionsClaimable(state) || ready.contracts > 0 || ready.achievements > 0;
-    return `<div class="m-tabs">${head}<button class="btn ${any ? 'btn-gold' : ''} claim-all" data-action="claim-all" ${any ? '' : 'disabled'}>Tout récupérer</button></div>
+    return `${bountyCard(state)}<div class="m-tabs">${head}<button class="btn ${any ? 'btn-gold' : ''} claim-all" data-action="claim-all" ${any ? '' : 'disabled'}>Tout récupérer</button></div>
       <div class="card m-body">${body}</div>`;
   },
 };

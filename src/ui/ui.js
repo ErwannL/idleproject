@@ -48,7 +48,9 @@ import { SKILLS } from '../data/skills.js';
 import { rushUnlocked } from '../core/rushes.js';
 import { dungeonById } from '../core/dungeon.js';
 import { newItemsInBag } from '../core/journal.js';
+import { setById } from '../core/sets.js';
 import { readyExpeditions } from '../core/expeditions.js';
+import { bountyReady } from '../core/bounty.js';
 import { CHALLENGE, bossEvery } from '../core/challenge.js';
 import { ZONES } from '../data/zones.js';
 
@@ -91,6 +93,8 @@ export function journalHtml(j) {
 }
 
 const RENDER_THROTTLE_MS = 1000;
+const SIDE_PANEL_W = 440; // largeur du menu sur le côté (petite fenêtre)
+const SIDE_MIN_WIDTH = 900; // navigateur : menu sur le côté seulement à partir de cette largeur
 export class UI {
   constructor(root, actions) {
     this.root = root;
@@ -227,8 +231,21 @@ export class UI {
     else this.openTab(tab);
   }
 
+  // v8.9 : petite fenêtre → le menu s'ouvre sur le côté (la fenêtre bureau s'élargit d'autant) au lieu de
+  // recouvrir la scène ; en navigateur, seulement si la fenêtre est assez large.
+  sidePanel(open) {
+    const want = open && this.layout === 'mini' && (Boolean(window.desktop?.resizeBy) || this.root.clientWidth >= SIDE_MIN_WIDTH);
+    if (want === this.root.classList.contains('side-open')) return;
+    this.root.classList.toggle('side-open', want);
+    if (window.desktop?.resizeBy) {
+      if (want && !this.sideGrown) { this.sideGrown = true; window.desktop.resizeBy(SIDE_PANEL_W, 0); }
+      else if (!want && this.sideGrown) { this.sideGrown = false; window.desktop.resizeBy(-SIDE_PANEL_W, 0); }
+    }
+  }
+
   openTab(tab) {
     if (!PANELS[tab]) return;
+    this.sidePanel(true);
     if (tab === 'inventory') this.clearLootPopup();
     // Nouvel onglet : il s'ouvre en haut (avant, il gardait le défilement de l'onglet précédent).
     if (tab !== this.tab) this.$('panel-body').scrollTop = 0;
@@ -246,6 +263,7 @@ export class UI {
   }
 
   closePanel() {
+    this.sidePanel(false);
     this.tab = null;
     this.$('panel').classList.add('hidden');
     this.root.classList.remove('panel-open');
@@ -390,6 +408,16 @@ export class UI {
       case 'recall-expedition': a.recallExpedition(Number(value)); break;
       case 'enter-challenge': a.enterChallenge(); break;
       case 'leave-challenge': a.leaveChallenge(); break;
+      case 'to-stash': a.toStash(id); break;
+      case 'from-stash': a.fromStash(id); break;
+      case 'stash-sel': local(() => { v.stashSel = id; }); break;
+      case 'hero-tab': local(() => { v.heroTab = value; }); break;
+      case 'claim-bounty': a.claimBounty(); break;
+      case 'toggle-tips': event.preventDefault(); local(() => { v.tipsOpen = v.tipsOpen === false; }); break;
+      case 'to-mannequin': a.toMannequin(id); break;
+      case 'from-mannequin': { const [setId, slot] = value.split('|'); a.fromMannequin(setId, slot); break; }
+      case 'wear-mannequin': a.wearMannequin(value); break;
+      case 'auto-mannequin': a.setAutoMannequin(this.state.ui.autoMannequin === false); break;
       case 'keep-sets': a.setKeepSets(this.state.ui.keepSets === false); break;
       case 'buy-talent-path': a.buyTalentPath(key); break;
       case 'respec-talents': this.showRespecConfirm(this.state); break;
@@ -427,6 +455,10 @@ export class UI {
     if (action === 'cinematics') this.actions.setCinematics(el.checked);
     if (action === 'auto-recycle') this.actions.setAutoRecycle(el.value);
     if (action === 'recycle-mode') this.actions.setRecycleRule('mode', el.value);
+    if (action === 'exp-pick') {
+      this.view.expPick = { ...(this.view.expPick ?? {}), [el.dataset.slot]: el.value };
+      this.invalidate();
+    }
     if (action === 'bulk-rarity') {
       this.view.bulkRarity = el.value;
       this.view.bulkArmed = false;
@@ -457,12 +489,15 @@ export class UI {
     switch (event.type) {
       case 'drop': {
         const rarity = rarityById(event.item.rarity);
-        this.news(event.byRule
+        this.news(event.mannequin
+          ? `${event.item.name} rangé sur le mannequin « ${setById(event.item.set)?.name ?? ''} »`
+          : event.byRule
           ? `Recyclé au ramassage : ${event.item.name} (+${formatNumber(event.recycledGold)} or)`
           : event.autoRecycled
             ? `Sac plein : ${event.item.name} recyclé (+${formatNumber(event.recycledGold)} or)`
             : `Butin : ${event.item.name} (${rarity.label})`, event.byRule ? '#8e9db8' : rarity.color);
         if (this.tab === 'inventory' || this.tab === 'hero') this.invalidate();
+        if (event.mannequin) break;
         if (!event.byRule && !event.autoRecycled) this.addLootPopup(event.item);
         else this.noteRecycled(1, event.recycledGold ?? 0);
         break;
@@ -943,7 +978,7 @@ export class UI {
     const upgrade = state.inventory.some((i) => isUpgrade(state, i, undefined, current));
     this.$('inv-badge').classList.toggle('hidden', !upgrade || this.tab === 'inventory');
     this.$('skills-badge').classList.toggle('hidden', skillPointsAvailable(state) < 1 || this.tab === 'skills');
-    this.$('contracts-badge').classList.toggle('hidden', !state.contracts.some((c) => c.progress >= c.target) && !missionsClaimable(state) && !claimableAchievements(state).length);
+    this.$('contracts-badge').classList.toggle('hidden', !state.contracts.some((c) => c.progress >= c.target) && !missionsClaimable(state) && !claimableAchievements(state).length && !bountyReady(state));
     this.$('inbox-badge').classList.toggle('hidden', !state.inbox.some((e) => !e.seen) || this.tab === 'inbox');
     this.$('team-badge')?.classList.toggle('hidden', !readyExpeditions(state) || this.tab === 'companions');
     const boost = earlyBoost(state);

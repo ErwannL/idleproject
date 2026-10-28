@@ -7,6 +7,7 @@ import { itemBase, itemPower, rarityIndex, recycleMaterials, recycleValue } from
 import { computeHeroStats, statsWithItem } from './stats.js';
 import { recordItem } from './codex.js';
 import { usefulSetPiece } from './sets.js';
+import { autoMannequin } from './stash.js';
 
 // Inventaire plein : l'objet est recyclé en or plutôt que perdu.
 export function addToInventory(state, item, balance = BALANCE) {
@@ -84,6 +85,14 @@ export function recycleForSpace(state, balance = BALANCE) {
 export function collectItem(state, item, balance = BALANCE) {
   trackContracts(state, 'items', 1);
   if (state.codex) recordItem(state, item);
+  // v8.9 : pièce d'ensemble meilleure que celle de son mannequin → directement dessus (l'ancienne est recyclée).
+  if (state.mannequins) {
+    const replaced = autoMannequin(state, item);
+    if (replaced !== false) {
+      state.records.itemsFound += 1;
+      return { added: false, mannequin: true, recycledGold: replaced ? salvage(state, replaced, balance) : 0 };
+    }
+  }
   if (shouldAutoRecycle(state, item)) {
     state.records.itemsFound += 1;
     return { added: false, auto: true, recycledGold: salvage(state, item, balance) };

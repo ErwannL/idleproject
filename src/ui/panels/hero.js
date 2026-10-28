@@ -8,6 +8,9 @@ import { computeHeroStats } from '../../core/stats.js';
 import { slotIconName } from '../../render/pixel.js';
 import { effectText, escapeHtml, formatDecimal, formatNumber, img, itemFrame, progressBar } from '../common.js';
 import { animCanvas } from '../animator.js';
+import { DUNGEONS } from '../../data/dungeons.js';
+import { formatDuration } from '../../core/format.js';
+import { modifierById } from '../../core/challenge.js';
 import { setBonusFor, setById, setCounts } from '../../core/sets.js';
 import { SET_PIECES } from '../../data/sets.js';
 
@@ -19,11 +22,11 @@ function setsCard(state) {
   const rows = Object.entries(counts).map(([id, n]) => {
     const set = setById(id);
     const next = SET_PIECES.find((p) => p > n);
-    return `<div class="set-row" style="--set:${set.color}"><b style="color:${set.color}">${escapeHtml(set.name)}</b> <span class="muted">${n} pièce${n > 1 ? 's' : ''}</span>
+    return `<div class="set-row" style="--set:${set.color}"><b style="color:${set.color}">${img(`set_${set.id}`)} ${escapeHtml(set.name)}</b> <span class="muted">${n} pièce${n > 1 ? 's' : ''}</span>
       <span class="${n >= SET_PIECES[0] ? 'good' : 'muted'}">${n >= SET_PIECES[0] ? effectText(setBonusFor(set, n)) : 'aucun bonus'}</span>
       ${next ? `<span class="muted">· à ${next} : ${effectText(set.bonuses[next])}</span>` : ''}</div>`;
   }).join('');
-  return `<div class="card"><div class="section-title">Ensembles d'équipement</div>${rows || '<div class="muted">Les objets Rares et mieux appartiennent parfois à l\'ensemble de leur monde (point coloré). Portez 2, 4 puis 6 pièces d\'un même ensemble pour ses bonus.</div>'}</div>`;
+  return `<div class="card"><div class="section-title">Ensembles d'équipement</div>${rows || '<div class="muted">Les objets Rares et mieux appartiennent parfois à l\'ensemble de leur monde (icône en bas à gauche). Portez 2, 4 puis 6 pièces d\'un même ensemble pour ses bonus.</div>'}</div>`;
 }
 
 export default {
@@ -32,52 +35,96 @@ export default {
   icon: 'icon_hero',
   extra: (ui, state) => `Niv. <b class="gold-text">${state.level}</b>`,
   render(ui, state) {
-    // Le chevalier est le seul héros (inchangeable) : plus de collection de variantes.
-    const hero = heroById(state.heroes.active);
-    const s = computeHeroStats(state);
-    const xpNeeded = xpForLevel(state.level);
-    const gear = Object.keys(SLOTS).map((slot) => {
-      const item = state.equipment[slot];
-      return item ? itemFrame(item, { tag: 'div' }) : `<div class="item-frame empty">${img(slotIconName(slot))}</div>`;
-    }).join('');
-    const line = (iconName, label, value) => `${img(iconName)}<span>${label}</span><span class="v">${value}</span>`;
-    const sources = Object.entries(bonusSources(state))
-      .filter(([, eff]) => Object.values(eff).some((v) => v))
-      .map(([k, eff]) => `<div><span class="muted">${SOURCE_LABELS[k]} :</span> ${effectText(eff)}</div>`).join('');
-    const heroBonus = effectText(heroEffects(state));
-    return `<div class="card hero-main r-${hero.rarity}">
-          <div class="pedestal">${animCanvas('hero', 64, 58, 3)}</div>
-          <div class="grow">
-            <div class="hero-title">${escapeHtml(hero.name)}</div>
-            <div class="muted">${hero.role} · le héros de l'aventure</div>
-            <div class="hero-desc">${escapeHtml(hero.description)}</div>
-            ${heroBonus ? `<div class="hero-bonus">${heroBonus}</div>` : ''}
-          </div>
-      </div>
-      <div class="card">
-        <div class="row-between"><b>Niveau ${state.level}</b><span class="muted">Étape max ${stageLabel(state.maxStage)}</span></div>
-        ${progressBar(state.xp / xpNeeded, `${formatNumber(Math.floor(state.xp))} / ${formatNumber(xpNeeded)} XP`, 'xp')}
-        <div class="gear-row" style="margin-top:5px">${gear}</div>
-      </div>
-      <div class="card"><div class="section-title">Statistiques</div><div class="stats-grid">
-        ${line('weapon_sword', 'Dégâts', formatNumber(s.damage))}
-        ${line('icon_bolt', 'Attaques / s', formatDecimal(s.attacksPerSecond, 2))}
-        ${line('skill_quick', 'Coup critique', `${formatDecimal(s.critChance)} %`)}
-        ${line('weapon_sword', 'DPS', formatDecimal(s.dps))}
-        ${line('icon_heart', 'PV max', formatNumber(s.maxHp))}
-        ${line('icon_shield', 'Armure', `${formatDecimal(s.armor)} %`)}
-        ${line('pet_fairy', 'Régénération', `${formatDecimal(s.regenPerSecond)} PV/s`)}
-        ${line('coin', 'Or bonus', `+${formatDecimal(s.goldPct)} %`)}
-      </div></div>
-      ${setsCard(state)}
-      ${sources ? `<div class="card"><div class="section-title">Bonus permanents</div><div class="bonus-sources">${sources}</div></div>` : ''}
-      <div class="card"><div class="section-title">Exploits</div><div class="stats-grid">
-        ${line('icon_skull', 'Ennemis vaincus', formatNumber(state.records.kills))}
-        ${line('icon_boss', 'Boss vaincus', formatNumber(state.records.bossesDefeated))}
-        ${line('icon_bag', 'Objets trouvés', formatNumber(state.records.itemsFound))}
-        ${line('icon_trophy', 'Contrats remplis', formatNumber(state.records.contractsDone))}
-        ${line('coin', 'Or gagné au total', formatNumber(state.records.goldEarned))}
-        ${state.records.rebirths ? line('icon_rebirth', 'Renaissances', formatNumber(state.records.rebirths)) : ''}
-      </div></div>`;
+    const tabs = `<div class="sub-tabs">
+        <button class="btn chip-btn${ui.view.heroTab !== 'records' ? ' active' : ''}" data-action="hero-tab" data-value="hero">${img('icon_hero')}<span>Héros</span></button>
+        <button class="btn chip-btn${ui.view.heroTab === 'records' ? ' active' : ''}" data-action="hero-tab" data-value="records">${img('icon_trophy')}<span>Records</span></button></div>`;
+    if (ui.view.heroTab === 'records') return tabs + recordsView(state);
+    return tabs + heroView(ui, state);
   },
 };
+
+// Records (v8.9) : tous les records et l'historique des runs (Tour, défi de la semaine, donjons) en un écran.
+function recordsView(state) {
+  const date = (at) => (at ? new Date(at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '—');
+  const tower = (state.towerHistory ?? []).map((h) => `<tr><td>${date(h.at)}</td><td><b>${h.floors}</b> étage${h.floors > 1 ? 's' : ''}</td>
+      <td>${formatDuration(h.seconds)}</td><td class="muted">${h.collapsed ? 'effondrée' : h.defeatedAt ? `vaincu à l'étage ${h.defeatedAt}` : 'quittée'}</td></tr>`).join('');
+  const weeks = (state.challengeHistory ?? []).map((h) => `<tr><td>Semaine du ${h.week.slice(8)}/${h.week.slice(5, 7)}</td><td><b>${h.best}</b> vague${h.best > 1 ? 's' : ''}</td>
+      <td class="muted">${h.mods.map((id) => escapeHtml(modifierById(id)?.name ?? id)).join(' · ')}</td></tr>`).join('');
+  const dungeons = DUNGEONS.map((d) => {
+    const cells = ['easy', 'normal', 'hard'].map((diff) => {
+      const r = state.dungeonRuns?.[`${d.id}:${diff}`];
+      if (!r?.best) return '<td class="muted">—</td>';
+      const b = r.best;
+      return `<td>${b.won ? `<b class="good">✔ ${formatDuration(b.seconds)}</b>` : `salle ${b.room}/${b.rooms}${b.bossHpPct !== null ? ` · boss ${formatNumber(b.bossHpPct)} %` : ''}`}
+        <span class="muted">(${r.tries} essai${r.tries > 1 ? 's' : ''})</span></td>`;
+    }).join('');
+    return `<tr><td><b>${escapeHtml(d.name)}</b></td>${cells}</tr>`;
+  }).join('');
+  const line = (iconName, label, value) => `${img(iconName)}<span>${label}</span><span class="v">${value}</span>`;
+  return `<div class="card"><div class="section-title">Records</div><div class="stats-grid">
+      ${line('icon_map', 'Étape max', stageLabel(state.maxStage))}
+      ${line('icon_star', 'Tour de l\'Éternité', `étage ${state.towerBest ?? 0}`)}
+      ${line('icon_trophy', 'Défi de la semaine', `${state.challengeBest ?? 0} vagues`)}
+      ${line('icon_rebirth', 'Renaissances', formatNumber(state.records.rebirths))}
+      ${line('icon_star', 'Transcendances', formatNumber(state.transcend?.count ?? 0))}
+      ${line('icon_dungeon', 'Donjons terminés', formatNumber(Object.values(state.dungeonsCleared).reduce((a, b) => a + b, 0)))}
+    </div></div>
+    <div class="card"><div class="section-title">Tour de l'Éternité — dernières ascensions</div>
+      ${tower ? `<table class="records">${tower}</table>` : '<div class="muted">Aucune ascension terminée pour l\'instant.</div>'}</div>
+    <div class="card"><div class="section-title">Défi de la semaine — semaines passées</div>
+      ${state.challengeWeek?.best ? `<div>Cette semaine : <b>${state.challengeWeek.best}</b> vagues</div>` : ''}
+      ${weeks ? `<table class="records">${weeks}</table>` : '<div class="muted">Pas encore d\'historique (il se remplit chaque lundi).</div>'}</div>
+    <div class="card"><div class="section-title">Donjons — meilleure tentative</div>
+      <table class="records"><tr class="muted"><td></td><td>Facile</td><td>Normal</td><td>Difficile</td></tr>${dungeons}</table></div>`;
+}
+
+function heroView(ui, state) {
+  // Le chevalier est le seul héros (inchangeable) : plus de collection de variantes.
+  const hero = heroById(state.heroes.active);
+  const s = computeHeroStats(state);
+  const xpNeeded = xpForLevel(state.level);
+  const gear = Object.keys(SLOTS).map((slot) => {
+    const item = state.equipment[slot];
+    return item ? itemFrame(item, { tag: 'div' }) : `<div class="item-frame empty">${img(slotIconName(slot))}</div>`;
+  }).join('');
+  const line = (iconName, label, value) => `${img(iconName)}<span>${label}</span><span class="v">${value}</span>`;
+  const sources = Object.entries(bonusSources(state))
+    .filter(([, eff]) => Object.values(eff).some((v) => v))
+    .map(([k, eff]) => `<div><span class="muted">${SOURCE_LABELS[k]} :</span> ${effectText(eff)}</div>`).join('');
+  const heroBonus = effectText(heroEffects(state));
+  return `<div class="card hero-main r-${hero.rarity}">
+        <div class="pedestal">${animCanvas('hero', 64, 58, 3)}</div>
+        <div class="grow">
+          <div class="hero-title">${escapeHtml(hero.name)}</div>
+          <div class="muted">${hero.role} · le héros de l'aventure</div>
+          <div class="hero-desc">${escapeHtml(hero.description)}</div>
+          ${heroBonus ? `<div class="hero-bonus">${heroBonus}</div>` : ''}
+        </div>
+    </div>
+    <div class="card">
+      <div class="row-between"><b>Niveau ${state.level}</b><span class="muted">Étape max ${stageLabel(state.maxStage)}</span></div>
+      ${progressBar(state.xp / xpNeeded, `${formatNumber(Math.floor(state.xp))} / ${formatNumber(xpNeeded)} XP`, 'xp')}
+      <div class="gear-row" style="margin-top:5px">${gear}</div>
+    </div>
+    <div class="card"><div class="section-title">Statistiques</div><div class="stats-grid">
+      ${line('weapon_sword', 'Dégâts', formatNumber(s.damage))}
+      ${line('icon_bolt', 'Attaques / s', formatDecimal(s.attacksPerSecond, 2))}
+      ${line('skill_quick', 'Coup critique', `${formatDecimal(s.critChance)} %`)}
+      ${line('weapon_sword', 'DPS', formatDecimal(s.dps))}
+      ${line('icon_heart', 'PV max', formatNumber(s.maxHp))}
+      ${line('icon_shield', 'Armure', `${formatDecimal(s.armor)} %`)}
+      ${line('pet_fairy', 'Régénération', `${formatDecimal(s.regenPerSecond)} PV/s`)}
+      ${line('coin', 'Or bonus', `+${formatDecimal(s.goldPct)} %`)}
+    </div></div>
+    ${setsCard(state)}
+    ${sources ? `<div class="card"><div class="section-title">Bonus permanents</div><div class="bonus-sources">${sources}</div></div>` : ''}
+    <div class="card"><div class="section-title">Exploits</div><div class="stats-grid">
+      ${line('icon_skull', 'Ennemis vaincus', formatNumber(state.records.kills))}
+      ${line('icon_boss', 'Boss vaincus', formatNumber(state.records.bossesDefeated))}
+      ${line('icon_bag', 'Objets trouvés', formatNumber(state.records.itemsFound))}
+      ${line('icon_trophy', 'Contrats remplis', formatNumber(state.records.contractsDone))}
+      ${line('coin', 'Or gagné au total', formatNumber(state.records.goldEarned))}
+      ${state.records.rebirths ? line('icon_rebirth', 'Renaissances', formatNumber(state.records.rebirths)) : ''}
+    </div></div>`;
+}
+

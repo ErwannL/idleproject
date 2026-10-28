@@ -107,6 +107,8 @@ export function endTower(state, { defeated = true, collapsed = false } = {}) {
     seconds: Math.max(0, Math.round((state.playSeconds ?? 0) - (run.startPlay ?? 0))), at: Date.now(),
   };
   state.tower = null;
+  // v8.9 : historique des ascensions (écran Records).
+  state.towerHistory = [{ ...state.towerLast }, ...(state.towerHistory ?? [])].slice(0, 20);
   return state.towerLast;
 }
 
@@ -120,6 +122,10 @@ export function sanitizeTower(state, raw) {
   const w = raw.towerWeek;
   state.towerWeek = w && typeof w.week === 'string'
     ? { week: w.week.slice(0, 10), best: int(w.best) ?? 0, climbs: int(w.climbs) ?? 0, extra: int(w.extra) ?? 0 } : null;
+  state.towerHistory = Array.isArray(raw.towerHistory)
+    ? raw.towerHistory.filter((h) => h && int(h.floors) !== null).slice(0, 20)
+      .map((h) => ({ floors: h.floors, seconds: int(h.seconds) ?? 0, at: int(h.at) ?? 0, collapsed: h.collapsed === true, defeatedAt: int(h.defeatedAt, 1) }))
+    : [];
   const last = raw.towerLast;
   state.towerLast = last && int(last.floors) !== null
     ? { floors: last.floors, defeatedAt: int(last.defeatedAt, 1), seconds: int(last.seconds) ?? 0, at: int(last.at) ?? 0, collapsed: last.collapsed === true }

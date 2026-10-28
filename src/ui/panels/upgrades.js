@@ -62,7 +62,7 @@ export default {
     // v8.4 : que faire maintenant ? (conseils cliquables) + prévision du prochain boss.
     const tips = advice(state).map((t) => `<button class="btn tip" data-action="open-tab" data-value="${t.tab}">💡 ${escapeHtml(t.text)}</button>`).join('');
     const guide = `<div class="card guide-card">${forecastHtml(state.dungeon || state.tower || state.challenge ? null : bossForecast(state, () => ui.invalidate()))}
-      ${tips ? `<div class="tips"><span class="muted">Que faire ?</span>${tips}</div>` : ''}</div>`;
+      ${tips ? `<details class="tips-box"${ui.view.tipsOpen === false ? '' : ' open'}><summary data-action="toggle-tips">Que faire ? <span class="muted">(${advice(state).length})</span></summary><div class="tips">${tips}</div></details>` : ''}</div>`;
     if (cat.id === 'rushes') {
       return `${guide}<div class="split-nav"><div class="side-nav">${cats}</div><div class="upg-list">${rushCards(state)}</div></div>`;
     }

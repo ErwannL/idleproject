@@ -1,8 +1,47 @@
-## Idle RPG v8.8.0 — Transcendance, Tour à chrono, SSR revalorisés, achat en masse dans l'arbre
+## Idle RPG v8.9.0 — Coffre et mannequins, compagnons à 4 compétences, Records, transitions en nuages, Prime du jour
 
-**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-8.8.0-setup.exe). Votre partie est conservée.
+**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-8.9.0-setup.exe). Votre partie est conservée.
 
 ### Nouveau
+- **Coffre** (Sac → Coffre) : **300 places** en plus du sac ; ce qui y est rangé n'est **jamais recyclé ni fusionné**.
+  Bouton « Ranger au coffre » sur la fiche d'un objet.
+- **Mannequins** (Sac → Mannequins) : **un par ensemble**, chacun garde la meilleure pièce de chaque emplacement.
+  « Porter cet ensemble » échange tout l'ensemble avec votre équipement en un clic (ce qui est retiré retourne sur
+  son propre mannequin, sinon au sac, sinon au coffre). Option « Rangement auto » : les pièces d'ensemble
+  ramassées vont d'elles-mêmes sur leur mannequin si elles sont meilleures.
+- **Vraies icônes d'ensemble** à la place des pastilles : volcan pour la Forge du volcan, trou noir pour l'Éclat du
+  Néant, etc. (en bas à gauche des objets, sur les fiches et les mannequins).
+- **Plus de variété d'équipement** : Massue, Marteau de guerre, Lance, Bâton de mage, Fouet, Espadon, Casque à
+  cornes, Diadème, Cuirasse de plates et Robe de mage, chacun avec son sprite (aussi porté par le chevalier) et
+  ses statistiques (le marteau frappe fort mais lentement, le fouet vite…).
+- **Compagnons : 4 compétences**. 3 sont disponibles d'office (sa compétence propre + 2 de son rôle), la 4e
+  (**Ultime**) se débloque avec **3 doublons** (4 étoiles). **Chaque doublon renforce toutes ses compétences
+  de +15 %**. La fiche affiche aussi son **Attaque** (dégâts par seconde de ses compétences) et sa **Défense**.
+- **Aura** sur la scène pour les compagnons et familiers aux étoiles au maximum.
+- **Écran « Records »** (onglet Héros → Records) : étape max, Tour, défi de la semaine, donjons, avec l'**historique**
+  des 20 dernières ascensions de la Tour, des semaines de défi passées et la meilleure tentative par donjon et
+  difficulté.
+- **Transitions** entre le monde, les donjons, la Tour et le défi : des nuages arrivent de la gauche et de la droite,
+  couvrent l'écran, se lèvent, puis les bandeaux noirs annoncent le lieu.
+- **Prime du jour** (en haut des Contrats) : chaque jour un monstre d'un monde déjà atteint est mis à prix ; en
+  vaincre 150 rapporte une **pièce d'ensemble Épique ou mieux** de ce monde et 60 gemmes.
+
+### Améliorés
+- **Arbre de talents** : il ne s'affiche plus d'un coup, il **se dévoile au fur et à mesure** (un talent apparaît dès
+  qu'un talent voisin est appris ; le nombre de talents encore cachés est indiqué).
+- **Expéditions** : on choisit le compagnon et la durée **directement dans la place libre** (plus besoin d'aller
+  en bas de la fiche puis de remonter).
+- **Petite fenêtre** : le menu s'ouvre **sur le côté** en agrandissant la fenêtre (au lieu de recouvrir la scène par
+  le bas), et elle reprend sa taille à la fermeture. L'onglet Améliorer est plus lisible (conseils repliables).
+- **Animation d'invocation** à chaque invocation (plus seulement la première).
+
+### Corrigés
+- **Petite flèche sur les monstres** (marque de la synergie Exécuteur) remplacée par un discret cercle au sol.
+- **Sprites cassés** du décor (arbres de la forêt, etc.) redessinés.
+
+### v8.8 — Transcendance, Tour à chrono, SSR revalorisés, achat en masse dans l'arbre
+
+### Nouveau en v8.8
 - **Transcendance** (onglet Arbre, dès l'étape 11-10 ×3) : on recommence tout — Renaissances (25 % conservées),
   arbre de talents et fragments — contre des **Étoiles**, et dégâts, PV et or **×2 pour toujours** par Transcendance.
   Les Étoiles achètent des **bonus stellaires** qui changent les règles : Puissance stellaire (×1,5 par niveau),
@@ -15,13 +54,13 @@
   (+5 min, de moins en moins à mesure qu'on monte, jamais plus de 10 h devant soi). Le chrono est affiché en haut
   de l'écran et dans l'onglet Tour. Une ascension sans fin d'une ancienne version s'effondre au chargement.
 
-### Équilibrage
+### Équilibrage en v8.8
 - **Compagnons SSR revalorisés** : les % de dégâts, PV et or des compagnons sont désormais **multiplicatifs**
   (avant, noyés dans les milliers de % de l'arbre, un SR valait un SSR en fin de partie), et leurs compétences
   frappent plus fort selon la rareté (Épique ×1,3, Légendaire ×1,8). Impératrice des glaces : +10 % de dégâts ;
   Sorcière : recharge des compétences −2 % (au lieu de −5 %, qui écrasait tout une fois multiplié).
 
-### Corrigés
+### Corrigés en v8.8
 - **Bonus de code « ×1 ap »** : le plafond des codes (×1e60) s'affiche maintenant « ×1e60 (max) ».
 - **Pastille d'ensemble** déplacée en bas à gauche de l'objet (le niveau d'amélioration est en haut à gauche).
 

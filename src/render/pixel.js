@@ -109,9 +109,12 @@ export function heroColors(palette) {
   return p;
 }
 
+// Repli si le sprite d'une base manque (ancienne sauvegarde, sprite renommé) : jamais d'écran noir.
+const SPRITE_FALLBACK = { weapon: 'weapon_sword', helmet: 'helmet_helm', armor: 'armor_mail' };
 function itemSpriteName(item) {
   const base = itemBase(item.baseId);
-  return `${base.slot === 'weapon' ? 'weapon' : base.slot}_${base.sprite}`;
+  const name = `${base.slot === 'weapon' ? 'weapon' : base.slot}_${base.sprite}`;
+  return SPRITES[name] ? name : SPRITE_FALLBACK[base.slot] ?? name;
 }
 
 // Héros composé : cape, écu, corps, armure, casque (heaume par défaut), arme.

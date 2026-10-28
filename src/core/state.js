@@ -26,6 +26,8 @@ import { emptyLoadouts, sanitizeLoadouts } from './loadouts.js';
 import { sanitizeCodex } from './codex.js';
 import { emptyExpeditions, sanitizeExpeditions } from './expeditions.js';
 import { setById } from './sets.js';
+import { STASH_SIZE, emptyMannequins, mannequinItems } from './stash.js';
+import { sanitizeBounty } from './bounty.js';
 import { emptyTranscend, sanitizeTranscend } from './transcend.js';
 import { sanitizeChallenge } from './challenge.js';
 
@@ -81,6 +83,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     bossRetry: null, // v8.4 : { stage, power } après une défaite contre un boss
     achievements: { claimed: {} }, // v8.3 : hauts faits réclamés
     towerLast: null,
+    towerHistory: [], // v8.9 : dernières ascensions (écran Records)
     dungeonRuns: {}, // v8.1 : « donjon:difficulté » → { last, best, tries } (rapports d'expédition)
     missions: emptyMissions(),
     prestige: { count: 0, stars: 0, perks: {} },
@@ -96,6 +99,9 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     challengeHistory: [], // meilleures vagues des semaines passées
     talentRespecs: 0,
     transcend: emptyTranscend(), // v8.8 : Transcendance (Étoiles, bonus stellaires)
+    stash: [], // v8.9 : coffre (300 places, jamais recyclé)
+    mannequins: emptyMannequins(), // v8.9 : un mannequin par ensemble { setId: { slot: objet } }
+    bounty: null, // v8.9 : prime du jour
   };
   state.equipment.weapon = makeItem(state, STARTER_WEAPON, 'common', 1);
   ensureContracts(state, new Rng(state.rngSeed ^ 0x51ed27));
@@ -224,6 +230,7 @@ function cleanActivities(state, raw) {
   state.companions.equipped = state.companions.equipped.filter((id) => !state.expeditions.slots.some((s) => s?.companionId === id));
   sanitizeChallenge(state, raw);
   state.transcend = sanitizeTranscend(raw.transcend);
+  state.bounty = sanitizeBounty(raw.bounty);
   state.codex = sanitizeCodex(raw.codex);
   state.playSeconds = Math.max(0, Number(raw.playSeconds) || 0);
 
@@ -332,6 +339,13 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   }
   const items = Array.isArray(raw.inventory) ? raw.inventory.filter(isValidItem) : [];
   state.inventory = items.slice(0, balance.loot.inventorySize).map(cleanItem);
+  state.stash = (Array.isArray(raw.stash) ? raw.stash.filter(isValidItem) : []).slice(0, STASH_SIZE).map(cleanItem);
+  const mann = raw.mannequins && typeof raw.mannequins === 'object' ? raw.mannequins : {};
+  for (const setId of Object.keys(state.mannequins)) {
+    for (const [slot, item] of Object.entries(obj(mann[setId]))) {
+      if (slot in SLOTS && isValidItem(item) && item.slot === slot && item.set === setId) state.mannequins[setId][slot] = cleanItem(item);
+    }
+  }
 
   for (const key of Object.keys(state.records)) state.records[key] = int(raw.records?.[key], 0);
   state.fragments = int(raw.fragments, 0);
@@ -375,7 +389,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   cleanActivities(state, raw);
 
   // Identifiants uniques : nextItemId dépasse tous les identifiants existants (sac, équipement, boîte).
-  const used = [...state.inventory, ...Object.values(state.equipment), ...state.inbox.map((e) => e.item)]
+  const used = [...state.inventory, ...Object.values(state.equipment), ...state.inbox.map((e) => e.item), ...state.stash, ...mannequinItems(state)]
     .filter(Boolean)
     .map((i) => Number.parseInt(i.id.slice(2), 10));
   state.nextItemId = Math.max(int(raw.nextItemId, 1, 1), ...used.map((n) => n + 1), 1);
@@ -402,6 +416,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     if (unlockedSpeeds(state).includes(raw.ui.speed)) state.ui.speed = raw.ui.speed;
     if (SORT_OPTIONS.includes(raw.ui.sortBy)) state.ui.sortBy = raw.ui.sortBy;
     if (raw.ui.keepSets === false) state.ui.keepSets = false;
+    if (raw.ui.autoMannequin === false) state.ui.autoMannequin = false;
   }
   if (state.challenge && (state.tower || state.dungeon)) state.challenge = null; // un seul mode à la fois
   return state;

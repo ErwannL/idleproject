@@ -12,7 +12,8 @@ import {
   affixText, coin, costButton, effectText, escapeHtml, essence, formatDecimal, formatNumber, img, itemFrame, rarityLabel, shard,
 } from '../common.js';
 import { setById, setCounts } from '../../core/sets.js';
-import { SET_PIECES } from '../../data/sets.js';
+import { ITEM_SETS, SET_PIECES } from '../../data/sets.js';
+import { STASH_SIZE } from '../../core/stash.js';
 import { animCanvas } from '../animator.js';
 
 const STAT_ICONS = { damage: 'weapon_sword', attackSpeed: 'icon_bolt', maxHp: 'icon_heart', armor: 'icon_shield' };
@@ -92,6 +93,9 @@ function detail(ui, state, item) {
         title="${isEquipped ? 'Un objet équipé ne peut pas être recyclé' : item.locked ? 'Objet verrouillé' : 'Recycler : or et matériaux'}">Recycler +${formatNumber(recycleValue(item))} ${coin()}${mats.shards ? ` +${mats.shards}${shard()}` : ''}${mats.essence ? ` +${mats.essence}${essence()}` : ''}</button>
       <div class="span2 upgrade-line">${upgradeBtn}<span class="muted num">${ups}/${maxUp}</span></div>
       <div class="span2 tool-line">${sharpenBtn}${reforgeBtn}${lock}</div>
+      ${isEquipped ? '' : `<div class="span2 tool-line">
+        <button class="btn small" data-action="to-stash" data-id="${item.id}" ${state.stash.length >= STASH_SIZE ? 'disabled' : ''} title="Le coffre n'est jamais recyclé ni fusionné">Ranger au coffre (${state.stash.length}/${STASH_SIZE})</button>
+        ${item.set ? `<button class="btn small" data-action="to-mannequin" data-id="${item.id}" title="Poser sur le mannequin de son ensemble">Mettre sur le mannequin</button>` : ''}</div>`}
     </div>`;
   return `<div class="card item-detail r-${item.rarity}">
     <div class="detail-head">${itemFrame(item, { tag: 'div' })}
@@ -113,8 +117,45 @@ function setBlock(state, item) {
   if (!set) return '';
   const worn = setCounts(state.equipment)[set.id] ?? 0;
   const tiers = SET_PIECES.map((n) => `<li class="${worn >= n ? 'good' : 'muted'}">${n} pièces : ${effectText(set.bonuses[n])}</li>`).join('');
-  return `<div class="set-block" style="--set:${set.color}"><div class="section-title">Ensemble : <b style="color:${set.color}">${escapeHtml(set.name)}</b>
+  return `<div class="set-block" style="--set:${set.color}"><div class="section-title">Ensemble : <b style="color:${set.color}">${img(`set_${set.id}`)} ${escapeHtml(set.name)}</b>
       <span class="muted">${worn}/${SET_PIECES.at(-1)} portées</span></div><ul class="set-tiers">${tiers}</ul></div>`;
+}
+
+// Coffre (v8.9) : 300 places, jamais recyclé ni fusionné automatiquement.
+function stashView(ui, state) {
+  const items = [...state.stash].sort((a, b) => rarityById(b.rarity).statMultiplier - rarityById(a.rarity).statMultiplier || b.level - a.level);
+  const sel = items.find((i) => i.id === ui.view.stashSel) ?? items[0];
+  const grid = items.map((i) => itemFrame(i, { selected: i.id === sel?.id, action: 'stash-sel' })).join('');
+  const detail = sel ? `<div class="card item-detail r-${sel.rarity}">
+      <div class="detail-head">${itemFrame(sel, { tag: 'div' })}<div><div class="item-name">${escapeHtml(sel.name)}</div>
+        <div class="item-sub">${SLOTS[sel.slot]} · <span class="rarity-text">${rarityById(sel.rarity).label}</span> · niv. ${sel.level}</div></div></div>
+      <ul class="stat-list">${Object.entries(sel.stats).map(([k, v]) => `<li>${STAT_LABELS[k]} <b class="num">${formatStat(k, v, true)}</b></li>`).join('')}${(sel.affixes ?? []).map((a) => `<li class="affix">✦ ${affixText(a)}</li>`).join('')}</ul>
+      ${setBlock(state, sel)}
+      <div class="detail-actions"><button class="btn btn-primary" data-action="from-stash" data-id="${sel.id}" ${state.inventory.length >= BALANCE.loot.inventorySize ? 'disabled title="Sac plein"' : ''}>Reprendre dans le sac</button>
+        ${sel.set ? `<button class="btn" data-action="to-mannequin" data-id="${sel.id}">Mettre sur le mannequin</button>` : ''}</div></div>` : '';
+  return `<div class="card"><div class="muted">Le coffre garde ${STASH_SIZE} objets de plus que le sac. Ce qui y est rangé n'est <b>jamais recyclé ni fusionné</b>.
+      Rangez-y un objet depuis sa fiche dans le Sac (« Ranger au coffre »).</div></div>
+    ${items.length ? `<div class="stash-layout"><div class="inv-grid">${grid}</div>${detail}</div>` : '<div class="card muted">Le coffre est vide.</div>'}`;
+}
+
+// Mannequins (v8.9) : un par ensemble ; « Porter » équipe tout l'ensemble d'un coup.
+function mannequinsView(ui, state) {
+  const auto = state.ui.autoMannequin !== false;
+  const cards = ITEM_SETS.map((set) => {
+    const m = state.mannequins[set.id] ?? {};
+    const n = Object.values(m).filter(Boolean).length;
+    const slots = Object.keys(SLOTS).map((slot) => (m[slot]
+      ? `<div class="mq-slot" title="${escapeHtml(m[slot].name)}">${itemFrame(m[slot], { tag: 'div' })}<button class="btn tiny" data-action="from-mannequin" data-value="${set.id}|${slot}" title="Reprendre dans le sac">↩</button></div>`
+      : `<div class="mq-slot empty" title="${SLOTS[slot]} : vide"><div class="item-frame empty">${img(slotIconName(slot))}</div></div>`)).join('');
+    const tiers = SET_PIECES.map((p) => `<span class="${n >= p ? 'good' : 'muted'}">${p} : ${effectText(set.bonuses[p])}</span>`).join(' · ');
+    return `<div class="card mannequin" style="--set:${set.color}">
+      <div class="row-between"><b style="color:${set.color}">${img(`set_${set.id}`)} ${escapeHtml(set.name)}</b><span class="muted">${n}/${Object.keys(SLOTS).length} pièces</span></div>
+      <div class="mq-slots">${slots}</div><div class="mq-tiers">${tiers}</div>
+      <button class="btn btn-gold small" data-action="wear-mannequin" data-value="${set.id}" ${n ? '' : 'disabled'}>Porter cet ensemble</button></div>`;
+  }).join('');
+  return `<div class="card row-between"><span class="muted">Un mannequin par ensemble : il garde la meilleure pièce de chaque emplacement. « Porter » échange tout l'ensemble avec votre équipement.</span>
+      <button class="btn chip-btn small${auto ? ' active' : ''}" data-action="auto-mannequin" title="Les pièces d'ensemble ramassées vont sur leur mannequin si elles sont meilleures (l'ancienne est recyclée)">${auto ? 'Rangement auto : activé' : 'Rangement auto : désactivé'}</button></div>
+    <div class="mannequins">${cards}</div>`;
 }
 
 function bag(ui, state) {
@@ -259,9 +300,12 @@ export default {
     <span class="num">· ${state.inventory.length}/${BALANCE.loot.inventorySize}</span>`,
   render(ui, state) {
     const tab = ui.view.invTab;
+    const views = { forge, stash: stashView, mannequins: mannequinsView };
     return `<div class="sub-tabs">
         <button class="btn chip-btn${tab === 'bag' ? ' active' : ''}" data-action="inv-tab" data-value="bag">${img('icon_bag')}<span>Sac</span></button>
+        <button class="btn chip-btn${tab === 'stash' ? ' active' : ''}" data-action="inv-tab" data-value="stash">${img('icon_chest')}<span>Coffre ${state.stash.length}/${STASH_SIZE}</span></button>
+        <button class="btn chip-btn${tab === 'mannequins' ? ' active' : ''}" data-action="inv-tab" data-value="mannequins">${img('icon_hero')}<span>Mannequins</span></button>
         <button class="btn chip-btn${tab === 'forge' ? ' active' : ''}" data-action="inv-tab" data-value="forge">${img('icon_anvil')}<span>Forge</span></button>
-      </div>${tab === 'forge' ? forge(ui, state) : bag(ui, state)}`;
+      </div>${(views[tab] ?? bag)(ui, state)}`;
   },
 };

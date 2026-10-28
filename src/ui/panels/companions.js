@@ -1,19 +1,52 @@
 // Équipe : le chevalier + 2 personnages (héros alliés) + 1 compagnon ; collection, niveaux, compétences.
 import { BALANCE } from '../../data/balance.js';
 import { ALLY_GRADE, COMPANION_RULES, COMPANIONS } from '../../data/companions.js';
-import { MULTIPLICATIVE, RARITY_SKILL, activeSynergies, companionById, companionMultiplier, companionUpgradeCost, equippedOfKind, teamKind } from '../../core/companions.js';
+import { MULTIPLICATIVE, RARITY_SKILL, activeSynergies, allCompanionSkills, companionById, companionMultiplier, companionUpgradeCost, equippedOfKind, teamKind } from '../../core/companions.js';
 import { COMPANION_ROLES, ROLES, SYNERGIES } from '../../data/synergies.js';
 import { costButton, effectText, escapeHtml, formatNumber, icon, img, progressBar, rarityLabel, stars } from '../common.js';
 import { animCanvas } from '../animator.js';
 import { DUNGEONS } from '../../data/dungeons.js';
+import { SKILL_RULES } from '../../data/companion-skills.js';
+import { computeHeroStats } from '../../core/stats.js';
 import { EXPEDITION_TYPES, availableForExpedition, expeditionDone, expeditionReward, expeditionType, isAway } from '../../core/expeditions.js';
 import { rewardText } from '../../core/rewards.js';
 import { formatDuration } from '../../core/format.js';
 
+// Compétences (v8.9) : 4 par compagnon, la 4e avec 3 doublons ; chaque étoile les renforce de +15 %.
+// Attaque = dégâts par seconde de ses compétences offensives ; Défense = armure, PV et boucliers qu'il apporte.
+function skillsBlock(state, c, owned) {
+  const stars = owned?.stars ?? 1;
+  const power = (RARITY_SKILL[c.rarity] ?? 1) * (1 + SKILL_RULES.powerPerStar * (stars - 1));
+  const hero = computeHeroStats(state);
+  const list = allCompanionSkills(c.id);
+  const unlocked = (sk) => !sk.ultimate || stars >= SKILL_RULES.ultimateStars;
+  const dps = list.filter((sk) => unlocked(sk) && (sk.type === 'hit' || sk.type === 'burst')).reduce((sum, sk) => sum + (hero.damage * sk.value * power) / sk.every, 0);
+  const m = owned ? companionMultiplier(state, c.id) : 1;
+  const def = ['armor', 'maxHpPct', 'regenPct', 'lifesteal'].filter((k) => c.passive[k]).map((k) => effectText({ [MULTIPLICATIVE[k] ?? k]: c.passive[k] * m })).join(' · ');
+  const shields = list.filter((sk) => unlocked(sk) && sk.type === 'shield').map((sk) => `bouclier −${sk.value} %`).join(' · ');
+  const rows = list.map((sk) => `<div class="cskill${unlocked(sk) ? '' : ' locked'}${sk.ultimate ? ' ult' : ''}">
+      ${img(sk.ultimate ? 'icon_star' : 'skill_quick')} <b>${escapeHtml(sk.name)}</b> <span class="muted">toutes les ${sk.every} s</span>
+      ${sk.ultimate ? `<span class="tag-ult">${unlocked(sk) ? 'Ultime' : `Ultime · ${SKILL_RULES.ultimateStars} étoiles (3 doublons)`}</span>` : ''}
+      <div class="muted">${escapeHtml(sk.text)}</div></div>`).join('');
+  return `<div class="cstats"><span>⚔ Attaque <b>${formatNumber(dps)}</b>/s</span><span>🛡 Défense <b>${def || shields ? [def, shields].filter(Boolean).join(' · ') : '—'}</b></span></div>
+    <div class="section-title">Compétences <span class="muted">(puissance ×${String(Math.round(power * 100) / 100).replace('.', ',')} : rareté × ${stars} étoile${stars > 1 ? 's' : ''} — chaque doublon +${Math.round(SKILL_RULES.powerPerStar * 100)} %)</span></div>
+    ${rows}
+    ${stars >= BALANCE.summon.maxStars ? '<div class="good">✦ Étoiles au maximum : ce compagnon brille d\'une aura sur la scène.</div>' : ''}`;
+}
+
 // Expéditions (v8.5) : 3 places ; les compagnons hors de l'équipe partent 1 h, 4 h ou 12 h.
-function expeditionsCard(state, now = Date.now()) {
+function expeditionsCard(ui, state, now = Date.now()) {
   const slots = state.expeditions.slots.map((run, i) => {
-    if (!run) return `<div class="exp-slot empty"><span class="muted">Place libre — choisissez un compagnon hors de l'équipe puis « Expédition ».</span></div>`;
+    // v8.9 : tout se fait ici — choisir le compagnon (liste) puis la durée, sans chercher sa fiche plus bas.
+    if (!run) {
+      const free = availableForExpedition(state);
+      if (!free.length) return '<div class="exp-slot empty"><span class="muted">Place libre — aucun compagnon disponible (ceux de l\'équipe ne partent pas).</span></div>';
+      const pick = free.some((c) => c.id === ui.view.expPick?.[i]) ? ui.view.expPick[i] : free[i % free.length].id;
+      return `<div class="exp-slot empty">
+        <select data-action="exp-pick" data-slot="${i}" aria-label="Compagnon à envoyer">${free.map((c) => `<option value="${c.id}" ${c.id === pick ? 'selected' : ''}>${escapeHtml(c.name)} (${rarityLabel(c.rarity)} · ${stars(state.companions.owned[c.id].stars).replace(/<[^>]+>/g, '')})</option>`).join('')}</select>
+        <div class="exp-buttons">${EXPEDITION_TYPES.map((t) => `<button class="btn small" data-action="start-expedition" data-value="${pick}|${t.id}"
+          title="${t.text} — prévu : ${rewardText(expeditionReward(state, pick, t.id), formatNumber)}">${t.label} · ${t.hours} h</button>`).join('')}</div></div>`;
+    }
     const c = companionById(run.companionId);
     const type = expeditionType(run.type);
     const done = expeditionDone(run, now);
@@ -123,7 +156,7 @@ export default {
       <button class="btn small" data-action="save-loadout" data-value="${i}">Enregistrer</button>
       <button class="btn btn-primary small" data-action="apply-loadout" data-value="${i}" ${l.team ? '' : 'disabled'}>Équiper</button></div>`).join('');
     return `${team}
-      ${expeditionsCard(state)}
+      ${expeditionsCard(ui, state)}
       <div class="card"><div class="section-title">Synergies d'équipe <span class="muted">(le chevalier compte comme Gardien)</span></div><div class="syn-list">${synergies}</div></div>
       <div class="card"><div class="section-title">Configurations <span class="muted">(équipe + équipement porté)</span></div>${loadouts}</div>
       <div class="section-title">Compagnons <span class="muted">(humains R · SR · SSR — 2 places)</span></div>
@@ -140,7 +173,7 @@ export default {
         <div class="section-title">Bonus passif</div>
         <div class="good">${effectText(passive)}</div>
         ${dungeonFor(sel, state)}
-        ${sel.skill ? `<div class="section-title">Compétence</div><div>${img('icon_star')} <b>${sel.skill.name}</b> <span class="muted">toutes les ${sel.skill.every} s</span><div class="muted">${sel.skill.text}${(RARITY_SKILL[sel.rarity] ?? 1) > 1 ? ` · puissance ×${String(RARITY_SKILL[sel.rarity]).replace('.', ',')} (rareté)` : ''}</div></div>` : ''}
+        ${skillsBlock(state, sel, owned)}
         <div class="detail-actions">${actions}</div>
         ${owned ? expeditionButtons(state, sel) : ''}
       </div>`;

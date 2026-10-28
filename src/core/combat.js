@@ -5,7 +5,7 @@ import { BALANCE } from '../data/balance.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
 import { POWER_RULES } from '../data/powers.js';
 import { ZONES } from '../data/zones.js';
-import { RARITY_SKILL, dungeonAffinity, dungeonDamageTaken, equippedCompanions } from './companions.js';
+import { RARITY_SKILL, companionSkills, dungeonAffinity, dungeonDamageTaken, equippedCompanions, skillPower } from './companions.js';
 import { trackContracts } from './contracts.js';
 import { completeDungeon, dungeonById, dungeonKill, failDungeon } from './dungeon.js';
 import { addGold } from './economy.js';
@@ -360,7 +360,7 @@ function dropItem(state, world, item, x, balance) {
   world.counters.drops += 1;
   const result = collectItem(state, item, balance);
   if (rarityIndex(item.rarity) >= 1) trackContracts(state, 'rareLoot', 1);
-  emit(world, 'drop', { item, x, autoRecycled: !result.added, byRule: Boolean(result.auto), recycledGold: result.recycledGold });
+  emit(world, 'drop', { item, x, autoRecycled: !result.added && !result.mannequin, byRule: Boolean(result.auto), mannequin: Boolean(result.mannequin), recycledGold: result.recycledGold });
 }
 
 function killEnemy(state, world, enemy, rng, balance, stats, enc) {
@@ -506,8 +506,8 @@ function heroDamage(stats, enemy, world, rng, balance) {
 function castSkill(state, world, skill, stats, rng, balance, enc, front) {
   const value = skillValue(skill, state.skills[skill.id]);
   if (skill.type === 'buff') {
-    world.buffs.cry = skill.duration;
-    world.buffs.cryPct = value;
+    world.buffs.cryPct = Math.max(world.buffs.cry > 0 ? world.buffs.cryPct : 0, value);
+    world.buffs.cry = Math.max(world.buffs.cry, skill.duration);
   } else if (skill.type === 'aoe') {
     for (const enemy of [...world.enemies]) {
       const { damage } = heroDamage(stats, enemy, world, rng, balance);
@@ -521,22 +521,26 @@ function castSkill(state, world, skill, stats, rng, balance, enc, front) {
   emit(world, 'skill', { skillId: skill.id, x: front?.x ?? balance.world.heroX + 20 });
 }
 
-function castCompanion(state, world, companion, stats, rng, balance, enc, front) {
-  const { skill } = companion;
-  const aff = (dungeonAffinity(state, companion.id, balance) ? balance.dungeonAffinity.skillMultiplier : 1) * (RARITY_SKILL[companion.rarity] ?? 1);
+function castCompanion(state, world, companion, skill, stats, rng, balance, enc, front) {
+  // v8.9 : × rareté × étoiles (chaque doublon renforce les compétences).
+  const aff = (dungeonAffinity(state, companion.id, balance) ? balance.dungeonAffinity.skillMultiplier : 1)
+    * (RARITY_SKILL[companion.rarity] ?? 1) * skillPower(state, companion.id);
   if (skill.type === 'gold') {
     gainGold(state, world, referenceKillGold(enc.level, balance) * skill.value * (1 + stats.goldPct / 100) * (stats.goldMult ?? 1) * earlyBoost(state, balance).gold);
   } else if (skill.type === 'heal') {
     world.hero.hp = Math.min(stats.maxHp, world.hero.hp + (stats.maxHp * skill.value * Math.min(aff, 3)) / 100);
   } else if (skill.type === 'shield') {
-    world.buffs.shield = skill.duration;
-    world.buffs.shieldPct = skill.value;
+    world.buffs.shield = skill.duration ?? 6;
+    world.buffs.shieldPct = Math.max(world.buffs.shield > 0 ? world.buffs.shieldPct : 0, Math.min(90, skill.value));
+  } else if (skill.type === 'rally') {
+    world.buffs.cry = Math.max(world.buffs.cry, skill.duration ?? 6);
+    world.buffs.cryPct = Math.max(world.buffs.cryPct, skill.value * Math.min(aff, 3));
   } else if (skill.type === 'hit' && front) {
     hitEnemy(state, world, front, stats.damage * skill.value * aff, rng, balance, stats, enc, 'companion');
   } else if (skill.type === 'burst') {
     for (const enemy of [...world.enemies]) hitEnemy(state, world, enemy, stats.damage * skill.value * aff, rng, balance, stats, enc, 'companion');
   }
-  emit(world, 'companionSkill', { companionId: companion.id });
+  emit(world, 'companionSkill', { companionId: companion.id, skill: skill.index, ultimate: Boolean(skill.ultimate) });
 }
 
 // Défaite : en campagne, le héros recule d'une étape (v8.0 : l'avance automatique reste active,
@@ -603,6 +607,8 @@ export function step(state, world, dt, rng, balance = BALANCE) {
   if (!state.challenge || !challengeRule(state, 'noHeal')) hero.hp = Math.min(stats.maxHp, hero.hp + stats.regenPerSecond * dt);
   world.buffs.cry = Math.max(0, world.buffs.cry - dt);
   world.buffs.shield = Math.max(0, world.buffs.shield - dt);
+  if (world.buffs.cry <= 0) world.buffs.cryPct = 0;
+  if (world.buffs.shield <= 0) world.buffs.shieldPct = 0;
 
   const enc = currentEncounter(state, balance);
   // Tour de l'Éternité : elle s'effondre quand le chrono est écoulé (v8.8).
@@ -697,15 +703,17 @@ export function step(state, world, dt, rng, balance = BALANCE) {
     }
   }
 
-  // Compétences des compagnons.
+  // Compétences des compagnons (v8.9 : jusqu'à 4 chacun, chacune avec sa recharge).
   for (const companion of equippedCompanions(state)) {
-    if (!companion.skill) continue;
-    world.companionTimers[companion.id] = (world.companionTimers[companion.id] ?? companion.skill.every / 2) - dt;
-    const target = world.enemies[0];
-    const needsTarget = ['hit', 'burst'].includes(companion.skill.type);
-    if (world.companionTimers[companion.id] <= 0 && (!needsTarget || (target && target.x - W.heroX <= W.heroRange + 20))) {
-      castCompanion(state, world, companion, stats, rng, balance, enc, target);
-      world.companionTimers[companion.id] = companion.skill.every;
+    for (const skill of companionSkills(state, companion.id)) {
+      const key = `${companion.id}#${skill.index}`;
+      world.companionTimers[key] = (world.companionTimers[key] ?? skill.every / 2 + skill.index) - dt;
+      const target = world.enemies[0];
+      const needsTarget = ['hit', 'burst'].includes(skill.type);
+      if (world.companionTimers[key] <= 0 && (!needsTarget || (target && target.x - W.heroX <= W.heroRange + 20))) {
+        castCompanion(state, world, companion, skill, stats, rng, balance, enc, target);
+        world.companionTimers[key] = skill.every;
+      }
     }
   }
 

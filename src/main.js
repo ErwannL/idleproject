@@ -5,12 +5,13 @@ import { BALANCE } from './data/balance.js';
 import { BOSSES } from './data/enemies.js';
 import { changeStage, createCombat, currentEncounter, cycleForStage, resetWave, resumeAdvance, stageLabel, step } from './core/combat.js';
 import { ZONES } from './data/zones.js';
-import { playCinematic, worldCinematic } from './ui/cinematic.js';
+import { playCinematic, playTransition, worldCinematic } from './ui/cinematic.js';
 import { activeSynergies, companionById, onExpedition, replaceCompanion, toggleCompanion, upgradeCompanion } from './core/companions.js';
 import { claimContract } from './core/contracts.js';
 import { claimAchievement, claimableAchievements } from './core/achievements.js';
 import { claimAllMissions, claimLogin, claimMission, claimMissionBonus, mergeReward, refreshMissions } from './core/missions.js';
-import { abandonDungeon, setDungeonPath, startDungeon } from './core/dungeon.js';
+import { abandonDungeon, dungeonById, setDungeonPath, startDungeon } from './core/dungeon.js';
+import { DUNGEON_DIFFICULTIES } from './data/dungeons.js';
 import { buyUpgradeBulk } from './core/economy.js';
 import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
 import { endTower, startTower } from './core/tower.js';
@@ -37,6 +38,8 @@ import { clearSave, loadGame, saveGame } from './core/save.js';
 import { createNewState } from './core/state.js';
 import { computeHeroStats } from './core/stats.js';
 import { formatNumber } from './core/format.js';
+import { claimBounty } from './core/bounty.js';
+import { moveToStash, putOnMannequin, takeFromMannequin, takeFromStash, wearMannequin } from './core/stash.js';
 import { createJournal, journalSummary, noteDrop, noteFused, noteRecycled } from './core/journal.js';
 import { SceneRenderer } from './render/scene.js';
 import { UI } from './ui/ui.js';
@@ -199,11 +202,14 @@ const actions = {
   enterDungeon(id, slot, path, difficulty) {
     if (!startDungeon(state, id, slot, path, difficulty)) return;
     resetWave(world);
+    const d = dungeonById(id);
+    placeTransition(`Donjon · ${DUNGEON_DIFFICULTIES[difficulty]?.label ?? ''}`, d.name, d.description, ZONES[d.zone]?.id);
     done(true, 'Expédition lancée');
   },
   abandonDungeon() {
     abandonDungeon(state);
     resetWave(world);
+    backToCampaign();
     done(true, 'Retour à la campagne');
   },
   setDungeonPath(path) { done(setDungeonPath(state, path)); },
@@ -334,7 +340,7 @@ const actions = {
     resetWave(world);
     save();
     ui.banner(`Transcendance ! +${formatNumber(stars)} Étoiles`, 'win');
-    if (cinematicsOn()) playCinematic({ kicker: `Transcendance ${state.transcend.count}`, title: 'Un nouveau cycle', line: `+${formatNumber(stars)} Étoiles · dégâts, PV et or ×${formatNumber(stellarMultiplier(state))}` });
+    if (cinematicsOn()) playTransition({ kicker: `Transcendance ${state.transcend.count}`, title: 'Un nouveau cycle', line: `+${formatNumber(stars)} Étoiles · dégâts, PV et or ×${formatNumber(stellarMultiplier(state))}` });
     ui.invalidate();
   },
   buyTranscendPerk(id, max = false) {
@@ -383,11 +389,13 @@ const actions = {
     if (state.dungeon || state.challenge) { ui.toast("Terminez d'abord le donjon ou le défi."); return; }
     if (!startTower(state)) { ui.toast('Ascension de la semaine déjà faite (remise à zéro le lundi).', '#ff8a8a'); return; }
     resetWave(world);
+    placeTransition('Ascension de la semaine', 'Tour de l\'Éternité', 'Un boss par étage. La tour s\'effondre au bout de 10 h de combat.');
     done(true, 'Ascension de la Tour de l\'Éternité : étage 1 !', '#c9a6ff');
   },
   leaveTower() {
     const r = endTower(state, { defeated: false });
     resetWave(world);
+    if (r) backToCampaign();
     done(Boolean(r), r ? `Ascension terminée à l'étage ${r.floors}.` : null);
   },
   selectStage(stage) {
@@ -469,13 +477,39 @@ const actions = {
     if (state.dungeon || state.tower) { ui.toast("Terminez d'abord le donjon ou la tour."); return; }
     if (!startChallenge(state)) { ui.toast('Plus de tentative cette semaine (remise à zéro le lundi).', '#ff8a8a'); return; }
     resetWave(world);
+    placeTransition('Défi de la semaine', ZONES[state.challenge.zone].name, 'Des vagues toujours plus fortes : tenez le plus longtemps possible.', ZONES[state.challenge.zone].id);
     done(true, 'Défi de la semaine : vague 1 !', '#ffb36b');
   },
   leaveChallenge() {
     const r = endChallenge(state);
     resetWave(world);
+    if (r) backToCampaign();
     done(Boolean(r), r ? `Défi terminé : ${r.waves} vague${r.waves > 1 ? 's' : ''} franchie${r.waves > 1 ? 's' : ''}.` : null);
   },
+  // Prime du jour (v8.9).
+  claimBounty() {
+    const r = claimBounty(state, rng);
+    done(Boolean(r), r ? `Prime du jour : ${r.item.name} (${rarityById(r.item.rarity).label}) et +${r.gems} gemmes` : null, '#ffe08a');
+  },
+  // Coffre et mannequins (v8.9).
+  toStash(id) { done(moveToStash(state, id), 'Rangé au coffre'); },
+  fromStash(id) {
+    if (!takeFromStash(state, id)) ui.toast('Sac plein.', '#ff8a8a');
+    else done(true, 'Repris dans le sac');
+  },
+  toMannequin(id) {
+    if (!putOnMannequin(state, id)) ui.toast('Impossible : pas une pièce d\'ensemble, ou sac et coffre pleins.', '#ff8a8a');
+    else done(true, 'Posé sur le mannequin', '#ffe08a');
+  },
+  fromMannequin(setId, slot) {
+    if (!takeFromMannequin(state, setId, slot)) ui.toast('Sac et coffre pleins.', '#ff8a8a');
+    else done(true);
+  },
+  wearMannequin(setId) {
+    const n = wearMannequin(state, setId);
+    done(n > 0, n ? `${n} pièce${n > 1 ? 's' : ''} d'ensemble équipée${n > 1 ? 's' : ''}` : null, '#ffe08a');
+  },
+  setAutoMannequin(on) { state.ui.autoMannequin = on; done(true); },
   setKeepSets(on) {
     state.ui.keepSets = on;
     lastSweep = 0;
@@ -634,7 +668,19 @@ if (state.migrationRefund) {
 }
 announceSynergies(); // mémorise les synergies du chargement (seules les nouvelles seront annoncées)
 let lastZoneKey = null;
-let lastCinematicAt = 0;
+let lastCinematicAt = -Infinity;
+// v8.9 : transition en nuages à chaque changement de lieu (campagne ↔ donjon, tour, défi), au plus une toutes les 8 s.
+function placeTransition(kicker, title, line = '', zone = null) {
+  const now = performance.now();
+  if (!cinematicsOn() || now - lastCinematicAt < 8000) return;
+  lastCinematicAt = now;
+  playTransition({ kicker, title, line, zone, duration: 3000 });
+}
+function backToCampaign() {
+  const zone = ZONES[currentEncounter(state).zoneIndex];
+  placeTransition('Retour à la campagne', zone.name, `Étape ${stageLabel(state.stage)}`, zone.id);
+}
+const RETURN_EVENTS = new Set(['dungeonComplete', 'dungeonFailed', 'towerFailed', 'towerCollapsed', 'challengeFailed']);
 // Animation de changement de monde : en campagne (nouveau monde en avançant) et, v8.7, dans la Tour de
 // l'Éternité (nouveau décor tous les 10 étages). Au plus une toutes les 15 s (combats passés, ×100…).
 function watchWorldChange() {
@@ -646,7 +692,7 @@ function watchWorldChange() {
   if (lastZoneKey !== null && key !== lastZoneKey && forward && !state.challenge && cinematicsOn() && now - lastCinematicAt > 15000) {
     lastCinematicAt = now;
     if (state.tower) {
-      playCinematic({ kicker: `Tour de l'Éternité · étage ${state.tower.floor}`, title: ZONES[enc.zoneIndex].name, line: 'Les murs de la tour changent : un nouveau monde s\'élève.', zone: ZONES[enc.zoneIndex].id, duration: 3200 });
+      playTransition({ kicker: `Tour de l'Éternité · étage ${state.tower.floor}`, title: ZONES[enc.zoneIndex].name, line: 'Les murs de la tour changent : un nouveau monde s\'élève.', zone: ZONES[enc.zoneIndex].id, duration: 3200 });
     } else {
       const cycle = cycleForStage(state.stage);
       worldCinematic(ZONES[enc.zoneIndex], cycle ? ` · difficulté ×${cycle + 1}` : '');
@@ -758,6 +804,7 @@ function frame(ts) {
     if (simSpeed(state) < 100) renderer.handleEvent(event, world);
     ui.handleEvent(event, state);
     if (event.type === 'drop') for (const j of journals()) noteDrop(j, event);
+    if (RETURN_EVENTS.has(event.type)) backToCampaign();
     sound.handleEvent(event);
   }
   sound.update(state, world, currentEncounter(state).zoneIndex, dt);

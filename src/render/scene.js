@@ -604,7 +604,30 @@ export class SceneRenderer {
     const x = HERO_X - 26 - i * 24 - img.width / 2 + lunge;
     const y = this.groundY - img.height + 1 - i * 2 - bob;
     this.drawShadow(ctx, x + img.width / 2, 18 - bob * 2);
+    if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, y, img.width, img.height, companion.rarity);
     ctx.drawImage(img, this.snap(x), y);
+  }
+
+  // v8.9 : compagnon aux étoiles maximales → aura lumineuse (couleur de sa rareté) et étincelles qui montent.
+  maxStars(companion) {
+    return (this.state?.companions.owned[companion.id]?.stars ?? 0) >= BALANCE.summon.maxStars;
+  }
+
+  drawStarAura(ctx, cx, top, w, h, rarity) {
+    const color = { legendary: '255, 190, 70', epic: '200, 120, 255', rare: '110, 180, 255' }[rarity] ?? '220, 230, 255';
+    const pulse = 0.55 + 0.25 * Math.sin(this.time * 3);
+    const g = ctx.createRadialGradient(cx, top + h * 0.55, 2, cx, top + h * 0.55, Math.max(w, h) * 0.75);
+    g.addColorStop(0, `rgba(${color}, ${0.45 * pulse})`);
+    g.addColorStop(1, `rgba(${color}, 0)`);
+    ctx.fillStyle = g;
+    ctx.fillRect(cx - w, top - h * 0.3, w * 2, h * 1.6);
+    for (let k = 0; k < 4; k++) {
+      const p = (this.time * 0.7 + k / 4) % 1;
+      ctx.globalAlpha = 1 - p;
+      ctx.fillStyle = `rgb(${color})`;
+      ctx.fillRect(Math.round(cx - w / 2 + ((k * 37) % Math.max(1, w))), Math.round(top + h - p * h * 1.2), 1, 2);
+    }
+    ctx.globalAlpha = 1;
   }
 
   // Familier : trottine aux pieds du chevalier (dessiné devant lui) ; les volants planent en battant des ailes.
@@ -619,6 +642,7 @@ export class SceneRenderer {
       const flap = 1 - Math.abs(Math.sin(this.time * 12)) * 0.14;
       const cy = this.groundY - hover - img.height / 2;
       this.drawShadow(ctx, x + img.width / 2, img.width * 0.5);
+      if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, cy - img.height / 2, img.width, img.height, companion.rarity);
       ctx.save();
       ctx.translate(this.snap(x + img.width / 2), this.snap(cy));
       ctx.scale(1, flap);
@@ -631,6 +655,7 @@ export class SceneRenderer {
     const hop = walking ? phase * 4 : phase * 0.8;
     const squash = walking && phase < 0.25 ? 0.9 : 1;
     this.drawShadow(ctx, x + img.width / 2, img.width * 0.8 - hop);
+    if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, this.groundY - img.height, img.width, img.height, companion.rarity);
     ctx.save();
     ctx.translate(this.snap(x + img.width / 2), this.groundY + 1 - this.snap(hop));
     ctx.scale(2 - squash, squash);
@@ -639,6 +664,7 @@ export class SceneRenderer {
   }
 
   drawCompanions(ctx, state, world, dt) {
+    this.state = state;
     if (world.hero.dead) return;
     for (const [id, t] of this.allyAttack) this.allyAttack.set(id, Math.max(0, t - dt));
     // Du plus éloigné au plus proche : 2e compagnon puis 1er (le familier est dessiné après le chevalier).

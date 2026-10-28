@@ -92,6 +92,47 @@ export const ITEM_BASES = [
     id: 'chainmail', name: 'Harnois', slot: 'armor', sprite: 'mail',
     colors: { main: '#a3adb9', shade: '#68727e' }, stats: { maxHp: 25, armor: 4 },
   },
+  // v8.9 : plus de variété (chaque base a son sprite et son style de jeu).
+  {
+    id: 'mace', name: 'Massue', slot: 'weapon', sprite: 'mace',
+    colors: { main: '#9a6b43', shade: '#5e3f24' }, stats: { damage: 7, maxHp: 10, attackSpeed: -4 },
+  },
+  {
+    id: 'war_hammer', name: 'Marteau de guerre', slot: 'weapon', sprite: 'hammer',
+    colors: { main: '#b0b8c2', shade: '#626b77' }, stats: { damage: 11, attackSpeed: -14 },
+  },
+  {
+    id: 'spear', name: 'Lance', slot: 'weapon', sprite: 'spear',
+    colors: { main: '#d2d9e2', shade: '#7f8996' }, stats: { damage: 6, attackSpeed: 5 },
+  },
+  {
+    id: 'mage_staff', name: 'Bâton de mage', slot: 'weapon', sprite: 'staff',
+    colors: { main: '#7fd3ff', shade: '#3b7fb5' }, stats: { damage: 5, maxHp: 15 },
+  },
+  {
+    id: 'whip', name: 'Fouet', slot: 'weapon', sprite: 'whip',
+    colors: { main: '#8a5a3b', shade: '#4e321f' }, stats: { damage: 3, attackSpeed: 18 },
+  },
+  {
+    id: 'greatsword', name: 'Espadon', slot: 'weapon', sprite: 'greatsword',
+    colors: { main: '#e2e8ef', shade: '#8d97a5' }, stats: { damage: 10, attackSpeed: -10 },
+  },
+  {
+    id: 'horned_helm', name: 'Casque à cornes', slot: 'helmet', sprite: 'horned',
+    colors: { main: '#9aa4b0', shade: '#5c6570' }, stats: { maxHp: 12, armor: 3 },
+  },
+  {
+    id: 'circlet', name: 'Diadème', slot: 'helmet', sprite: 'circlet',
+    colors: { main: '#ffd23f', shade: '#c8961e' }, stats: { maxHp: 10, damage: 2 },
+  },
+  {
+    id: 'plate_armor', name: 'Cuirasse de plates', slot: 'armor', sprite: 'plate',
+    colors: { main: '#b6c0cc', shade: '#6a7482' }, stats: { maxHp: 20, armor: 6, attackSpeed: -4 },
+  },
+  {
+    id: 'mage_robe', name: 'Robe de mage', slot: 'armor', sprite: 'robe',
+    colors: { main: '#6a4fbf', shade: '#3f2c80' }, stats: { maxHp: 28, damage: 2 },
+  },
   ...accessoryBases(),
 ];
 
