@@ -1607,3 +1607,9 @@ table.records td { padding: 2px 4px; border-top: 1px solid rgba(255, 255, 255, 0
 .collections { grid-template-columns: 1fr; }
 .collection .grow { min-width: 0; }
 .collection .coll-next { flex: none; }
+
+/* v9.0.1 : en grand écran, le panneau écrasait son dernier bloc (boutons d'étape de la Carte coupés, sans
+   défilement possible). Les cartes et rangées gardent leur hauteur ; seule la carte du monde se réduit (jusqu'à
+   160 px), et au-delà le panneau défile. */
+#panel-body > .card, #panel-body > .chip-row, #panel-body > .tree-tools { flex-shrink: 0; }
+#panel-body > .map-viewport { min-height: 160px; }

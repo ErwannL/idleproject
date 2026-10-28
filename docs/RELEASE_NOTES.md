@@ -1,8 +1,34 @@
-## Idle RPG v9.0.0 — Musée des objets ancestraux, 10 thèmes d'interface
+## Idle RPG v9.0.1 — vrais styles d'interface, Codex expliqué, grand écran
 
-**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.0-setup.exe). Votre partie est conservée.
+**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.1-setup.exe). Votre partie est conservée.
 
-### Nouveau
+### Améliorés
+- **Thèmes d'interface : chacun a désormais son propre style d'ornements**, pas seulement ses couleurs. Les
+  panneaux, en-têtes, onglets, boutons, cases et pastilles sont redessinés pour chaque thème :
+  - **Royal** : filets d'or fins et doubles, coins arrondis à équerres ouvragées, en-têtes bleu roi, boutons
+    bombés et brillants (plus de barres d'acier ni de rubis) ;
+  - **Sylvestre** : bois sculpté veiné, feuilles aux coins ; **Forge naine** : plaques de fer boulonnées, filet de
+    cuivre et lueur de braise ; **Arcanes** : cadre d'argent, médaillons et runes cyan, boutons octogonaux ;
+  - **Nécropole** : cadre d'os, crânes aux coins, boutons en pierre tombale ; **Sables** : blocs de grès,
+    incrustations turquoise, coins à degrés ; **Givre** : glace taillée, flocons et éclats ;
+  - **Sakura** : laque noire et or, fleurs de cerisier, en-tête en torii ; **Ombre** : épuré, sans ornement.
+  - **Chevalier** reste le style d'origine.
+- **Collections du Codex** (onglet Boss) : chaque collection explique ce qu'il faut faire (ex. Équipements :
+  « ramasser au moins une fois chaque modèle d'équipement… »), affiche la récompense du prochain palier, et un
+  bouton **« Manquants »** liste, avec leurs icônes, ce qu'il reste à trouver.
+
+### Corrigés
+- **Le bouton « … » des collections ne faisait rien** : il est remplacé par la récompense du palier et la liste des
+  manquants.
+- **Collection Équipements impossible à finir** : elle visait 75 puis 100 objets alors qu'il n'existe que 60
+  modèles, et les objets ancestraux, comptés au ramassage, étaient oubliés au chargement de la partie. Les paliers
+  ne dépassent plus le nombre réel d'éléments et les ancestraux restent comptés.
+- **Plein écran : bas du panneau invisible** (boutons d'étape de la Carte coupés, sans défilement possible). Les
+  blocs gardent leur hauteur, la carte du monde se réduit si besoin, et au-delà le panneau défile.
+
+### v9.0 — Musée des objets ancestraux, 10 thèmes d'interface
+
+### Nouveau en v9.0
 - **Musée** (Sac → Musée) : comme les mannequins, mais pour les **11 objets ancestraux** (butin des boss).
   Une vitrine par objet, qui expose le meilleur exemplaire. Chaque pièce exposée donne **dégâts, PV et or +5 %**
   (multiplicatif, **×2 si Légendaire**), et la **collection complète** ajoute dégâts et PV +25 %. Les vitrines
@@ -11,10 +37,9 @@
   (l'ancien retourne au sac). Une pièce exposée n'est pas portée : reprenez-la (↩) pour l'équiper.
 - **10 thèmes d'interface** (Paramètres → Interface) : **Chevalier** (le style actuel, par défaut), **Royal**
   (bleu roi et cadres d'or), **Sylvestre**, **Forge naine**, **Arcanes**, **Nécropole**, **Sables**, **Givre**,
-  **Sakura** et **Ombre**. Les cadres en pixel art, les boutons, les onglets et les textes changent de couleur ; les
-  couleurs des raretés ne changent jamais. Le choix est gardé avec la partie.
+  **Sakura** et **Ombre**. Les couleurs des raretés ne changent jamais. Le choix est gardé avec la partie.
 
-### Corrigés
+### Corrigés en v9.0
 - **Une liste déroulante ouverte se refermait toute seule** (tri de l'inventaire, recyclage, expéditions…) quand un
   monstre mourait ou qu'un objet tombait : le panneau était redessiné juste après le clic d'ouverture. Tant qu'une
   liste est ouverte, le panneau n'est plus redessiné ; il se met à jour dès qu'on a choisi.
