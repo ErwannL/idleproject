@@ -10,6 +10,26 @@
 // --- Dictionnaire exact ---------------------------------------------------------------------------
 
 export const EXACT = {
+  // v9.0.5 : Encyclopédie
+  "Encyclopédie": "Encyclopedia",
+  "Mutations": "Mutations",
+  "Variantes": "Variants",
+  "Raretés": "Rarities",
+  "Élite": "Elite",
+  "Muté": "Mutated",
+  "Méga boss": "Mega bosses",
+  "Boss redoutables": "Fearsome bosses",
+  "Boss de donjon": "Dungeon boss",
+  "Vaincus": "Defeated",
+  "Élites vaincues": "Elites defeated",
+  "PV de base": "Base HP",
+  "Dégâts de base": "Base damage",
+  "Vitesse": "Speed",
+  "Volant": "Flying",
+  "Effet principal": "Main effect",
+  "Objet ancestral": "Ancestral item",
+  "Tous les paliers récupérés ✔": "All milestones claimed ✔",
+  "✔ découvert": "✔ discovered",
   // v8.4 (2)
   "Acheter des améliorations (« Max »)": "Buy upgrades (“Max”)",
   "Objet meilleur dans l'inventaire": "Better item in the inventory",

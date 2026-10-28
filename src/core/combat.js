@@ -386,7 +386,7 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
   const gold = gainGold(state, world, enemy.gold * (1 + stats.goldPct / 100) * (stats.goldMult ?? 1) * wave * boost.gold * challengeGold);
   world.counters.kills += 1;
   state.records.kills += 1;
-  if (state.codex) recordKill(state, enemy.type);
+  if (state.codex) recordKill(state, enemy.type, enemy);
   trackContracts(state, 'kills', 1);
 
   const xp = killXp(enc.level, enemy.boss || enemy.elite, balance) * (1 + stats.xpPct / 100) * boost.xp;

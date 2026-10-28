@@ -24,6 +24,8 @@ import { coin, effectText, escapeHtml, icon, img, itemFrame } from './common.js'
 import { GAME_VERSION } from '../version.js';
 import { mutationById } from '../core/mutations.js';
 import boss from './panels/boss.js';
+import encyclopedia from './panels/encyclopedia.js';
+import { encyclopediaNext, encyclopediaProgress } from '../core/encyclopedia.js';
 import campaign from './panels/campaign.js';
 import companions from './panels/companions.js';
 import contracts from './panels/contracts.js';
@@ -56,14 +58,14 @@ import { bountyReady } from '../core/bounty.js';
 import { CHALLENGE, bossEvery } from '../core/challenge.js';
 import { ZONES } from '../data/zones.js';
 
-const PANELS = Object.fromEntries([upgrades, inventory, hero, companions, skills, tree, campaign, dungeons, tower, boss, summon, contracts, inbox, options]
+const PANELS = Object.fromEntries([upgrades, inventory, hero, companions, skills, tree, campaign, dungeons, tower, boss, encyclopedia, summon, contracts, inbox, options]
   .map((p) => [p.id, p]));
 const TAB_MIN_WIDTH = 60; // en dessous, seuls les icônes (et le libellé de l'onglet actif) sont affichés
 const TALL_MIN_HEIGHT = 420;
 const STRIP_MAX_HEIGHT = 190; // en dessous : mode barre (seulement la scène, comme une barre des tâches)
 const BULK_CONFIRM_MS = 4000;
 // Panneaux dont le contenu évolue pendant le farm : réaffichés au plus une fois par seconde.
-const LIVE_PANELS = new Set(['contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'upgrades', 'companions']);
+const LIVE_PANELS = new Set(['contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'upgrades', 'companions', 'encyclopedia']);
 
 // Renaissance : choix du seul pouvoir ancestral conservé.
 function powerChoice(state) {
@@ -374,6 +376,10 @@ export class UI {
       case 'claim-collection': a.claimCollection(value); break;
       case 'collection-missing': local(() => { v.collOpen = v.collOpen === value ? null : value; }); break;
       case 'boss-sel': local(() => { v.bossSel = value; }); break;
+      case 'enc-sec': local(() => { v.encSec = value; }); break;
+      case 'enc-sel': local(() => { v.encSel = value; }); break;
+      case 'enc-slot': local(() => { v.encSlot = value; }); break;
+      case 'enc-claim': a.claimEncyclopedia(); break;
       case 'recycle-toggle': a.setRecycleRule(el.dataset.group, value); break;
       case 'mission-tab': local(() => { v.missionTab = value; }); break;
       case 'lang': a.setLanguage(value); break;
@@ -891,6 +897,7 @@ export class UI {
       case 'skills': return `${state.level}|${Math.floor(state.xp)}`;
       case 'boss': return Object.values(state.powers).map((p) => `${p.victories}${p.charges}${p.pending}`).join();
       case 'hero': return `${state.level}|${Math.floor(state.xp / 5)}`;
+      case 'encyclopedia': return String(encyclopediaProgress(state).found);
       default: return '';
     }
   }
@@ -1040,6 +1047,7 @@ export class UI {
     this.$('contracts-badge').classList.toggle('hidden', !state.contracts.some((c) => c.progress >= c.target) && !missionsClaimable(state) && !claimableAchievements(state).length && !bountyReady(state));
     this.$('inbox-badge').classList.toggle('hidden', !state.inbox.some((e) => !e.seen) || this.tab === 'inbox');
     this.$('team-badge')?.classList.toggle('hidden', !readyExpeditions(state) || this.tab === 'companions');
+    this.$('enc-badge')?.classList.toggle('hidden', !encyclopediaNext(state)?.ready);
     const boost = earlyBoost(state);
     const active = boost.secondsLeft > 0 || boost.weekend || boost.cheat > 1;
     this.$('boost-chip').classList.toggle('hidden', !active);
@@ -1075,6 +1083,7 @@ export class UI {
       dungeons: state.maxStage >= DUNGEONS[0].unlockStage - 10 || Object.keys(state.dungeonsCleared).length > 0,
       boss: state.records.bossesDefeated > 0 || Object.keys(state.powers).length > 0,
       tower: towerUnlocked(state) || (state.towerBest ?? 0) > 0,
+      encyclopedia: state.records.kills > 0 || Object.keys(state.codex.kills).length > 0,
     };
     const key = `${JSON.stringify(visible)}|${this.root.clientWidth}|${this.tab}|${[...this.newTabs].join()}`;
     if (this.lastHud.tabs === key) return;

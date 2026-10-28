@@ -23,7 +23,8 @@ import { sanitizeCheats, unlockedSpeeds } from './cheats.js';
 import { sanitizeTower } from './tower.js';
 import { sanitizeAchievements } from './achievements.js';
 import { emptyLoadouts, sanitizeLoadouts } from './loadouts.js';
-import { sanitizeCodex } from './codex.js';
+import { emptyCodex, sanitizeCodex } from './codex.js';
+import { seedEncyclopedia } from './encyclopedia.js';
 import { emptyExpeditions, sanitizeExpeditions } from './expeditions.js';
 import { setById } from './sets.js';
 import { STASH_SIZE, emptyMannequins, mannequinItems } from './stash.js';
@@ -92,7 +93,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     rushes: { levels: {}, active: {}, cooldown: {}, auto: false }, // boosts à durée limitée
     cheats: { effects: [], reveal: false, speeds: [] },
     loadouts: emptyLoadouts(),
-    codex: { kills: {}, items: {}, claimed: {} },
+    codex: emptyCodex(),
     playSeconds: 0, // temps de jeu cumulé (boost des premières heures)
     expeditions: emptyExpeditions(), // v8.5 : compagnons en mission
     challenge: null, // v8.5 : défi de la semaine en cours { wave, kills, startPlay }
@@ -107,6 +108,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     bounty: null, // v8.9 : prime du jour
   };
   state.equipment.weapon = makeItem(state, STARTER_WEAPON, 'common', 1);
+  seedEncyclopedia(state);
   ensureContracts(state, new Rng(state.rngSeed ^ 0x51ed27));
   return state;
 }
@@ -401,6 +403,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     .filter(Boolean)
     .map((i) => Number.parseInt(i.id.slice(2), 10));
   state.nextItemId = Math.max(int(raw.nextItemId, 1, 1), ...used.map((n) => n + 1), 1);
+  seedEncyclopedia(state); // v9.0.5 : les objets possédés comptent comme découverts
 
   if (raw.ui && typeof raw.ui === 'object') {
     if (raw.ui.slotFilter === 'all' || raw.ui.slotFilter === 'accessory' || raw.ui.slotFilter in SLOTS) state.ui.slotFilter = raw.ui.slotFilter;

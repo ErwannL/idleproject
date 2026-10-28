@@ -49,6 +49,7 @@ import { createGameAudio } from './audio/game-audio.js';
 import { applyCheat, removeCheat, simSpeed, unlockedSpeeds } from './core/cheats.js';
 import { applyLoadout, saveLoadout } from './core/loadouts.js';
 import { claimCollection } from './core/codex.js';
+import { claimEncyclopedia } from './core/encyclopedia.js';
 import { setLang, startAutoTranslate, t } from './i18n/i18n.js';
 import { GAME_VERSION } from './version.js';
 import { applyTheme, themeById } from './ui/themes.js';
@@ -145,6 +146,10 @@ const actions = {
   },
   saveLoadout(i) { done(saveLoadout(state, i), `Configuration « ${state.loadouts[i].name} » enregistrée`); },
   applyLoadout(i) { done(applyLoadout(state, i), `Configuration « ${state.loadouts[i].name} » équipée`); },
+  claimEncyclopedia() {
+    const given = claimEncyclopedia(state);
+    done(Boolean(given), given ? `Encyclopédie : ${rewardText(given)}` : null, '#f2d083');
+  },
   claimCollection(id) {
     const given = claimCollection(state, id);
     done(Boolean(given), given ? `Collection : ${rewardText(given)}` : null, '#f2d083');

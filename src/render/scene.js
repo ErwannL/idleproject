@@ -1,6 +1,7 @@
 // Rendu de la scène de combat sur un canvas basse résolution agrandi en « pixel perfect ».
 // Le rendu lit l'état de la simulation et ses événements ; il ne modifie jamais la partie.
 import { mutationById } from '../core/mutations.js';
+import { auraColors } from '../data/auras.js';
 import { BALANCE } from '../data/balance.js';
 import { drawTeamFx } from './team-fx.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
@@ -38,11 +39,6 @@ const BOSS_AURAS = {
   dungeon: { color: '#b04dff', ember: '#e8c0ff', width: 2, alpha: 0.55, speed: 6, embers: 0.3 }, // v9.0.4 : boss de donjon
 };
 const HERO_X = BALANCE.world.heroX * WORLD_SCALE;
-// v9.0.4 : couleur de l'aura des compagnons aux étoiles maximales, selon leur rareté.
-const AURA_COLORS = {
-  legendary: { hex: '#ffc23d', rgb: '255, 194, 61' }, epic: { hex: '#cf7bff', rgb: '207, 123, 255' },
-  rare: { hex: '#5fb4ff', rgb: '95, 180, 255' }, common: { hex: '#e6efff', rgb: '230, 239, 255' },
-};
 
 // Particules d'ambiance par zone, sur deux profondeurs (derrière et devant les personnages) :
 // elles défilent avec la parallaxe et donnent de la vie au décor même quand le chevalier se bat.
@@ -631,7 +627,7 @@ export class SceneRenderer {
     const x = HERO_X - 26 - i * 24 - img.width / 2 + lunge;
     const y = this.groundY - img.height + 1 - i * 2 - bob;
     this.drawShadow(ctx, x + img.width / 2, 18 - bob * 2);
-    if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, y, img.width, img.height, companion.rarity);
+    if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, y, img.width, img.height, companion);
     this.drawStarOutline(ctx, companion, frame, this.snap(x), y);
     ctx.drawImage(img, this.snap(x), y);
   }
@@ -641,49 +637,70 @@ export class SceneRenderer {
     return (this.state?.companions.owned[companion.id]?.stars ?? 0) >= BALANCE.summon.maxStars;
   }
 
-  drawStarAura(ctx, cx, top, w, h, rarity) {
-    // v9.0.4 : lueur au sol, anneau tournant et étincelles ; le contour du personnage est tracé par
-    // drawStarOutline() (net, en pixel art : un halo flou délavait les personnages voisins).
-    const color = AURA_COLORS[rarity] ?? AURA_COLORS.common;
-    const pulse = 0.7 + 0.3 * Math.sin(this.time * 3);
-    const fy = top + h;
-    const rx = Math.max(10, w * 0.75);
-    const ry = Math.max(3, rx * 0.3);
-    const g = ctx.createRadialGradient(cx, fy, 1, cx, fy, rx);
-    g.addColorStop(0, `rgba(${color.rgb}, ${0.55 * pulse})`);
-    g.addColorStop(1, `rgba(${color.rgb}, 0)`);
-    ctx.save();
-    ctx.translate(cx, fy);
-    ctx.scale(1, ry / rx);
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(0, 0, rx, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-    ctx.fillStyle = `rgba(${color.rgb}, ${0.9 * pulse})`;
-    for (let k = 0; k < 18; k += 2) {
-      const a = (k / 18) * Math.PI * 2 + this.time * 1.6;
-      ctx.fillRect(Math.round(cx + Math.cos(a) * rx), Math.round(fy + Math.sin(a) * ry), 2, 1);
+  // v9.0.5 : aura façon « Super guerrier » — flammes en pixels qui montent autour du personnage, aux couleurs
+  // propres à chacun (3 couches pour un SSR, 2 pour un SR, 1 sinon ; de l'extérieur vers le cœur), traits
+  // d'énergie qui filent vers le haut et, pour les SSR, éclairs qui crépitent.
+  drawStarAura(ctx, cx, top, w, h, companion) {
+    const colors = auraColors(companion);
+    const layers = colors.length === 1 ? [colors[0], colors[0]] : colors;
+    const feet = top + h;
+    const t = this.time;
+    const seed = companion.id.length * 7.3;
+    for (let l = layers.length - 1; l >= 0; l--) {
+      // Couche l : 0 = cœur (plus étroit, plus opaque) ; la dernière est la plus large.
+      const k = layers.length > 1 ? l / (layers.length - 1) : 0;
+      const half = Math.round(w * 0.32 + 2 + k * 5);
+      const tall = h * 0.9 + 3 + k * 10;
+      const alpha = 0.95 - k * 0.3;
+      ctx.fillStyle = layers[l];
+      for (let x = -half; x <= half; x++) {
+        const u = x / half;
+        const body = Math.pow(1 - u * u, 0.45);
+        // Langues de flamme : bosses qui défilent vers le haut et vacillent à chaque colonne.
+        const tongue = Math.pow(Math.max(0, Math.sin(u * 7 + seed + l * 1.7 - t * 5)), 3) * (5 + k * 5)
+          + Math.max(0, Math.sin(x * 2.1 + t * 17 + l)) * 2;
+        const y0 = Math.round(feet - tall * body - tongue * body);
+        const y1 = Math.round(feet + 2 - (1 - Math.sqrt(1 - u * u)) * 4);
+        if (y1 <= y0) continue;
+        // Flamme « creuse » : intérieur translucide, bord vif (le personnage reste lisible).
+        ctx.globalAlpha = alpha * 0.28;
+        ctx.fillRect(Math.round(cx + x), y0, 1, y1 - y0);
+        ctx.globalAlpha = alpha;
+        ctx.fillRect(Math.round(cx + x), y0, 1, Math.min(y1 - y0, Math.abs(u) > 0.85 ? 8 : 3));
+      }
     }
-    for (let k = 0; k < 10; k++) {
-      const p = (this.time * 0.6 + k / 10) % 1;
-      ctx.globalAlpha = (1 - p) * 0.95;
-      ctx.fillStyle = k % 3 ? color.hex : '#ffffff';
-      const sx = cx - w * 0.6 + ((k * 53) % Math.max(1, Math.round(w * 1.2)));
-      ctx.fillRect(Math.round(sx + Math.sin(this.time * 3 + k) * 2), Math.round(fy - p * h * 1.4), k % 4 ? 1 : 2, 2);
+    // Traits d'énergie qui montent le long du corps.
+    for (let n = 0; n < 8; n++) {
+      const p = (t * 1.3 + n / 8 + seed) % 1;
+      const sx = Math.round(cx + Math.sin(n * 2.4 + seed) * (w * 0.5 + 2));
+      ctx.globalAlpha = Math.sin(p * Math.PI) * 0.95;
+      ctx.fillStyle = n % 2 ? '#ffffff' : colors[0];
+      ctx.fillRect(sx, Math.round(feet - p * (h + 12)), 1, 4 + (n % 3));
+    }
+    // SSR : éclairs qui crépitent par intermittence.
+    if (companion.rarity === 'legendary') {
+      const beat = Math.floor(t * 6);
+      for (let b = 0; b < 2; b++) {
+        if (((beat * 7 + b * 13 + Math.round(seed)) % 5) > 1) continue;
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = b ? colors[colors.length - 1] : '#ffffff';
+        let bx = Math.round(cx + (b ? 1 : -1) * (w * 0.35 + ((beat + b) % 3)));
+        let by = Math.round(top + h * 0.15 + ((beat * 3 + b * 5) % Math.max(1, Math.round(h * 0.4))));
+        for (let s = 0; s < 6; s++) {
+          ctx.fillRect(bx, by, 1, 2);
+          by += 2;
+          bx += ((beat + s + b) % 3) - 1;
+        }
+      }
     }
     ctx.globalAlpha = 1;
   }
 
-  // Contour lumineux net du personnage (compagnon aux étoiles maximales), dessiné juste avant son sprite.
+  // Contour net du personnage (couleur du cœur de son aura), dessiné juste avant son sprite pour le détacher des flammes.
   drawStarOutline(ctx, companion, sprite, x, y) {
     if (!this.maxStars(companion)) return;
-    const color = AURA_COLORS[companion.rarity] ?? AURA_COLORS.common;
-    const glow = spriteCanvas(sprite, { tint: { color: color.hex, alpha: 1 } });
-    const pulse = 0.65 + 0.35 * Math.sin(this.time * 4);
-    ctx.globalAlpha = 0.35 * pulse;
-    for (const [dx, dy] of [[-2, 0], [2, 0], [0, -2], [0, 2], [-2, -2], [2, -2], [-2, 2], [2, 2]]) ctx.drawImage(glow, x + dx, y + dy);
-    ctx.globalAlpha = 0.95 * pulse;
+    const glow = spriteCanvas(sprite, { tint: { color: auraColors(companion)[0], alpha: 1 } });
+    ctx.globalAlpha = 0.9;
     for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.drawImage(glow, x + dx, y + dy);
     ctx.globalAlpha = 1;
   }
@@ -700,7 +717,7 @@ export class SceneRenderer {
       const flap = 1 - Math.abs(Math.sin(this.time * 12)) * 0.14;
       const cy = this.groundY - hover - img.height / 2;
       this.drawShadow(ctx, x + img.width / 2, img.width * 0.5);
-      if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, cy - img.height / 2, img.width, img.height, companion.rarity);
+      if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, cy - img.height / 2, img.width, img.height, companion);
       ctx.save();
       ctx.translate(this.snap(x + img.width / 2), this.snap(cy));
       ctx.scale(1, flap);
@@ -714,7 +731,7 @@ export class SceneRenderer {
     const hop = walking ? phase * 4 : phase * 0.8;
     const squash = walking && phase < 0.25 ? 0.9 : 1;
     this.drawShadow(ctx, x + img.width / 2, img.width * 0.8 - hop);
-    if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, this.groundY - img.height, img.width, img.height, companion.rarity);
+    if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, this.groundY - img.height, img.width, img.height, companion);
     ctx.save();
     ctx.translate(this.snap(x + img.width / 2), this.groundY + 1 - this.snap(hop));
     ctx.scale(2 - squash, squash);

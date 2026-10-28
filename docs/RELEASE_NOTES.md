@@ -1,11 +1,21 @@
-## Idle RPG v9.0.5 — aura des 5 étoiles bien nette
+## Idle RPG v9.0.5 — Encyclopédie et aura « Super guerrier »
 
 **Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.5-setup.exe). Votre partie est conservée.
 
+### Nouveau
+- **Encyclopédie** (nouvel onglet) : tout ce que vous rencontrez ou obtenez s'y inscrit, en cinq sections —
+  **Monstres** avec leurs variantes (normale, Élite, Mutée), **Boss** (méga, mini, moyens, redoutables, de donjon),
+  **Mutations**, **Équipements** (une entrée par modèle **et par rareté** : Commun, Rare, Épique, Légendaire ; les
+  objets ancestraux en Épique et Légendaire) et **Compagnons et familiers**. Ce qui reste à découvrir apparaît en
+  silhouette « ??? » avec un indice ; chaque entrée a sa fiche (où le trouver, statistiques, nombre de victoires,
+  histoire). Le **pourcentage de complétion** débloque 6 paliers de récompenses (10 % à 100 % : gemmes, tickets,
+  éclats, essences). Les objets que vous possédez déjà comptent dès la mise à jour.
+
 ### Améliorés
-- **Aura des compagnons et familiers à 5 étoiles** : un contour lumineux net en pixel art, de la couleur de leur
-  rareté (doré pour un SSR), qui pulse, avec une lueur et un anneau tournant au sol et des étincelles. Avant, un
-  grand halo flou délavait aussi le chevalier et les personnages voisins.
+- **Aura des compagnons et familiers à 5 étoiles façon « Super guerrier »** : des flammes en pixels qui montent
+  autour du personnage, aux **couleurs propres à chacun** — **3 couleurs pour un SSR** (avec des éclairs qui
+  crépitent), **2 pour un SR**, **1 pour les autres** — et des traits d'énergie qui filent vers le haut. Visible
+  seulement à 5 étoiles.
 
 ### v9.0.4 — ennemis mutés, boss de donjon uniques, aura des 5 étoiles
 

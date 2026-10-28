@@ -90,6 +90,7 @@ export const PANEL_HELP = {
   companions: 'Deux compagnons et un familier. Leurs rôles forment des synergies (bonus + effets visuels). Améliorez-les avec l\'or. Ceux qui restent sur le banc partent en expédition (1 h, 4 h, 12 h, même jeu fermé) et rapportent or, matériaux, gemmes, clés et fragments.',
   tower: 'Une ascension par semaine (lundi). Un boss par étage ; récompenses au meilleur étage de la semaine et à chaque record absolu. La tour s\'effondre après 10 h de combat (chaque nouvel étage rajoute un peu de temps).',
   boss: 'Chaque méga boss vaincu donne un pouvoir ancestral ; les collections rapportent des récompenses.',
+  encyclopedia: 'Tout ce que vous rencontrez ou obtenez s\'y inscrit : monstres (et leurs variantes Élite et Mutée), boss, mutations, chaque équipement dans chaque rareté, compagnons et familiers. Cliquez une case pour sa fiche ; les « ??? » restent à découvrir. Le pourcentage de complétion débloque des paliers de récompenses.',
   contracts: 'Missions quotidiennes, hebdomadaires et mensuelles, contrats et hauts faits (bonus permanents). « Tout récupérer » ou la touche G.',
   inbox: 'Coffres, marchands et gemmes trouvés pendant le farm attendent ici.',
   options: 'Sauvegarde, langue, son, mises à jour et codes secrets.',

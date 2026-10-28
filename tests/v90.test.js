@@ -66,7 +66,7 @@ test('v9.0 : collections du Codex — paliers atteignables, ancestraux comptés,
     assert.ok(c.text, c.id);
   }
   s.codex.items.slime_crown = 1;
-  assert.equal(collectionProgress(s, 'items').found, 1);
+  assert.equal(collectionProgress(s, 'items').found, 2); // v9.0.5 : l'épée de départ compte aussi
   const back = sanitizeState(JSON.parse(JSON.stringify(s)));
   assert.equal(back.codex.items.slime_crown, 1);
   // Une ancienne partie ayant récupéré 4 paliers « Équipements » (75) : le prochain est plafonné au total.
@@ -126,4 +126,47 @@ test('v9.0.4 : ennemis mutés — tirage, cuirasse, régénération, vampirisme,
   const v = { ...enemy(), hp: 50, mutation: 'vampire' };
   M.mutationOnHit(v, 5);
   assert.equal(v.hp, 65);
+});
+
+test('v9.0.5 : Encyclopédie — variantes, rareté des objets, paliers, sauvegarde, auras', async () => {
+  const E = await import('../src/core/encyclopedia.js');
+  const { recordKill, recordItem } = await import('../src/core/codex.js');
+  const { auraColors } = await import('../src/data/auras.js');
+  const { COMPANIONS } = await import('../src/data/companions.js');
+  const s = createNewState(NOW, 5);
+  // L'épée de départ est découverte (Commune).
+  assert.equal(s.codex.itemRar['short_sword:common'], 1);
+  const p0 = E.encyclopediaProgress(s);
+  assert.ok(p0.total > 300 && p0.found >= 1);
+  recordKill(s, 'slime', { type: 'slime' });
+  recordKill(s, 'slime', { type: 'slime', elite: true });
+  recordKill(s, 'goblin', { type: 'goblin', mutation: 'regen' });
+  assert.ok(E.variantFound(s, 'slime', 'normal') && E.variantFound(s, 'slime', 'elite') && !E.variantFound(s, 'slime', 'mutant'));
+  assert.ok(E.variantFound(s, 'goblin', 'mutant'));
+  assert.equal(E.sectionProgress(s, 'mutations').found, 1);
+  recordItem(s, { baseId: 'slime_crown', rarity: 'legendary' });
+  assert.equal(s.codex.itemRar['slime_crown:legendary'], 1);
+  // Objets ancestraux : seulement Épique et Légendaire.
+  assert.equal(E.itemEntries().filter((e) => e.base.id === 'slime_crown').length, 2);
+  // Sauvegarde : tout est conservé, les clés inconnues sont écartées.
+  s.codex.itemRar['nope:legendary'] = 1;
+  const back = sanitizeState(JSON.parse(JSON.stringify(s)));
+  assert.equal(back.codex.elite.slime, 1);
+  assert.equal(back.codex.mutants.regen, 1);
+  assert.equal(back.codex.mutantOf.goblin, 1);
+  assert.equal(back.codex.itemRar['slime_crown:legendary'], 1);
+  assert.equal(back.codex.itemRar['nope:legendary'], undefined);
+  // Paliers : rien tant que 10 % ne sont pas atteints, puis un seul à la fois.
+  assert.equal(E.claimEncyclopedia(s), null);
+  for (const e of E.itemEntries()) s.codex.itemRar[`${e.base.id}:${e.rarity}`] = 1;
+  const gems = s.gems;
+  assert.ok(E.encyclopediaProgress(s).pct >= 50);
+  assert.ok(E.claimEncyclopedia(s));
+  assert.ok(s.gems > gems);
+  assert.equal(s.codex.encClaimed, 1);
+  // Auras : 3 couleurs pour un SSR, 2 pour un SR, 1 sinon ; chaque compagnon a les siennes.
+  for (const c of COMPANIONS) {
+    const n = auraColors(c).length;
+    assert.equal(n, c.rarity === 'legendary' ? 3 : c.rarity === 'epic' ? 2 : 1, c.id);
+  }
 });
