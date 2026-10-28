@@ -85,6 +85,18 @@ export function exposeAll(state, balance = BALANCE) {
   return n;
 }
 
+// v9.0.4 : doublons du Musée — objets ancestraux du sac (non verrouillés) dont la vitrine expose déjà un
+// exemplaire au moins aussi bon. Ils ne sont jamais recyclés automatiquement ; ce bouton le fait à la demande.
+export function museumDuplicates(state) {
+  return state.inventory.filter((i) => isAncestral(i) && !i.locked && state.museum?.[i.baseId]
+    && itemPower(state.museum[i.baseId]) >= itemPower(i));
+}
+
+export function isMuseumDuplicate(state, item) {
+  return isAncestral(item) && Boolean(state.museum?.[item.baseId]) && state.museum[item.baseId].id !== item.id
+    && itemPower(state.museum[item.baseId]) >= itemPower(item);
+}
+
 // Ramassage : un objet ancestral va dans sa vitrine si elle est vide ou s'il est meilleur ; l'ancien exemplaire
 // retourne au sac (les objets ancestraux ne sont jamais recyclés). Renvoie true si l'objet a été exposé.
 export function autoMuseum(state, item, balance = BALANCE) {

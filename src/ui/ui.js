@@ -22,6 +22,7 @@ import { installHoldToRepeat, selectorFor } from './hold.js';
 import { playSummonReveal } from './summon-fx.js';
 import { coin, effectText, escapeHtml, icon, img, itemFrame } from './common.js';
 import { GAME_VERSION } from '../version.js';
+import { mutationById } from '../core/mutations.js';
 import boss from './panels/boss.js';
 import campaign from './panels/campaign.js';
 import companions from './panels/companions.js';
@@ -386,6 +387,7 @@ export class UI {
         if (this.state.tower) a.leaveTower();
         else if (this.state.challenge) a.leaveChallenge();
         else if (this.state.dungeon) a.abandonDungeon();
+        else if (this.state.farmBoss) a.stopFarmBoss();
         break;
       case 'github-token': a.setGithubToken(this.$('github-token')?.value); break;
       case 'install-update': a.installUpdate(); break;
@@ -456,6 +458,7 @@ export class UI {
       case 'from-museum': a.fromMuseum(value); break;
       case 'auto-museum': a.setAutoMuseum(this.state.ui.autoMuseum === false); break;
       case 'expose-all': a.exposeAll(); break;
+      case 'recycle-museum-dupes': a.recycleMuseumDuplicates(); break;
       case 'keep-sets': a.setKeepSets(this.state.ui.keepSets === false); break;
       case 'buy-talent-path': a.buyTalentPath(key); break;
       case 'respec-talents': this.showRespecConfirm(this.state); break;
@@ -491,6 +494,7 @@ export class UI {
     if (action === 'notify') this.actions.setNotify(el.dataset.key, el.checked);
     if (action === 'focus') this.actions.setFocus(el.checked);
     if (action === 'cinematics') this.actions.setCinematics(el.checked);
+    if (action === 'theme-fx') this.actions.setThemeFx(el.checked);
     if (action === 'auto-recycle') this.actions.setAutoRecycle(el.value);
     if (action === 'recycle-mode') this.actions.setRecycleRule('mode', el.value);
     if (action === 'exp-pick') {
@@ -567,6 +571,14 @@ export class UI {
         break;
       case 'eliteSpawn':
         this.news('Une élite errante approche !', '#ff9a3d');
+        break;
+      case 'mutantSpawn': {
+        const m = mutationById(event.mutation);
+        if (m && !state.ui.focus) this.news(`Ennemi muté — ${m.name} : ${m.text} (or ×3, objet garanti)`, m.color);
+        break;
+      }
+      case 'mutantSplit':
+        if (!state.ui.focus) this.news('Le mutant se dédouble !', '#7fe07a');
         break;
       case 'eliteDefeated':
         this.news(`Élite vaincue : +${event.gems} gemmes`, '#6fd6ff');
@@ -822,8 +834,9 @@ export class UI {
     this.speed = simSpeed(state);
     this.$('speed-toggle').classList.toggle('hidden', unlockedSpeeds(state).length < 2 && !state.cheats.skipBattle);
     this.root.classList.toggle('speed-max', simSpeed(state) >= 100);
-    // v9.0.3 : particules et lueurs animées des thèmes coupées en mode concentration et à ×100.
-    document.documentElement.classList.toggle('fx-calm', Boolean(state.ui.focus) || simSpeed(state) >= 100);
+    // v9.0.4 : particules et lueurs animées des thèmes coupées à ×100 ou par l'option « Effets animés »
+    // (le mode concentration ne les coupait sans le dire).
+    document.documentElement.classList.toggle('fx-calm', state.ui.themeFx === false || simSpeed(state) >= 100);
     this.$('speed-toggle').classList.toggle('fast', simSpeed(state) > 1);
     this.$('auto-toggle').classList.toggle('off', !state.autoAdvance);
     this.$('auto-toggle').classList.toggle('hidden', Boolean(state.dungeon || state.tower || state.challenge));
@@ -833,7 +846,10 @@ export class UI {
     this.$('advance-btn').classList.toggle('hidden', state.autoAdvance || Boolean(state.dungeon || state.tower || state.challenge));
     this.updateRetry(state);
     // v8.7 : sortie toujours visible quand on est dans la Tour, le défi ou un donjon.
-    const mode = state.tower ? 'Quitter la Tour' : state.challenge ? 'Abandonner le défi' : state.dungeon ? 'Abandonner le donjon' : '';
+    // v9.0.4 : boss réaffronté en boucle depuis le Codex → bouton pour reprendre la progression.
+    const farm = !state.tower && !state.challenge && !state.dungeon && !state.autoAdvance && state.farmBoss && BOSSES[state.farmBoss];
+    const mode = state.tower ? 'Quitter la Tour' : state.challenge ? 'Abandonner le défi' : state.dungeon ? 'Abandonner le donjon'
+      : farm ? `Arrêter : ${BOSSES[state.farmBoss].name} en boucle` : '';
     this.$('leave-mode').classList.toggle('hidden', !mode);
     if (mode) this.setText('leave-mode', `⟲ ${mode}`);
     this.updateBadges(state);

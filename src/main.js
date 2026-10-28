@@ -40,7 +40,7 @@ import { computeHeroStats } from './core/stats.js';
 import { formatNumber } from './core/format.js';
 import { claimBounty } from './core/bounty.js';
 import { moveToStash, putOnMannequin, takeFromMannequin, takeFromStash, wearMannequin } from './core/stash.js';
-import { exposeAll, putInMuseum, takeFromMuseum } from './core/museum.js';
+import { exposeAll, museumDuplicates, putInMuseum, takeFromMuseum } from './core/museum.js';
 import { createJournal, journalSummary, noteDrop, noteFused, noteRecycled } from './core/journal.js';
 import { SceneRenderer } from './render/scene.js';
 import { UI } from './ui/ui.js';
@@ -198,8 +198,16 @@ const actions = {
       return;
     }
     state.autoAdvance = false;
+    state.farmBoss = bossId;
     changeStage(state, world, bossFirstStage(bossId));
-    done(true, `${BOSSES[bossId].name} : le chevalier l'affronte en boucle (mode farm)`);
+    done(true, `${BOSSES[bossId].name} : le chevalier l'affronte en boucle (mode farm) — bouton « Arrêter » sur la scène pour reprendre`);
+  },
+  // v9.0.4 : fin du combat en boucle lancé depuis le Codex : retour à l'étape max, avance auto.
+  stopFarmBoss() {
+    state.farmBoss = null;
+    state.autoAdvance = true;
+    changeStage(state, world, state.maxStage);
+    done(true, 'Progression reprise');
   },
   enterDungeon(id, slot, path, difficulty) {
     if (!startDungeon(state, id, slot, path, difficulty)) return;
@@ -414,12 +422,14 @@ const actions = {
     done(true, 'Le chevalier retente le boss !', '#ffd35a');
   },
   advance() {
+    state.farmBoss = null;
     resumeAdvance(state, world);
     save();
     ui.invalidate();
   },
   setAutoAdvance(value) {
     state.autoAdvance = value;
+    if (value) state.farmBoss = null;
     save();
     ui.invalidate();
   },
@@ -443,6 +453,7 @@ const actions = {
     done(true, swept.count ? `${swept.count} objet${swept.count > 1 ? 's' : ''} recyclé${swept.count > 1 ? 's' : ''} (+${formatNumber(swept.gold)} or)` : null);
   },
   setLanguage(lang) { setLang(lang); ui.invalidate(); },
+  setThemeFx(on) { state.ui.themeFx = on; done(true); },
   setTheme(id) { state.ui.theme = themeById(id).id; applyTheme(state.ui.theme).then(() => ui.invalidate()); done(true); },
   // Vitesses débloquées par code (v8.4) ; ×100 demande une confirmation (effets visuels coupés).
   cycleSpeed() {
@@ -526,6 +537,12 @@ const actions = {
     state.ui.autoMuseum = on;
     const n = on ? exposeAll(state) : 0;
     done(true, n ? `${n} objet${n > 1 ? 's' : ''} ancestra${n > 1 ? 'ux' : 'l'} exposé${n > 1 ? 's' : ''} au Musée` : null, '#ffe08a');
+  },
+  recycleMuseumDuplicates() {
+    let gold = 0;
+    let n = 0;
+    for (const item of museumDuplicates(state)) { gold += recycleItem(state, item.id); n += 1; }
+    done(n > 0, n ? `${n} doublon${n > 1 ? 's' : ''} du Musée recyclé${n > 1 ? 's' : ''} : +${formatNumber(gold)} or` : null, '#ffe08a');
   },
   exposeAll() {
     const n = exposeAll(state);

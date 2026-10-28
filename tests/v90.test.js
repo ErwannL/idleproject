@@ -92,3 +92,33 @@ test('v9.0.3 : « Exposer tout » expose les objets ancestraux déjà dans le sa
   assert.ok(s.inventory.some((i) => i.id === a.id));
   assert.equal(exposeAll(s), 0);
 });
+
+test('v9.0.4 : ennemis mutés — tirage, cuirasse, régénération, vampirisme, dédoublement', async () => {
+  const M = await import('../src/core/mutations.js');
+  const s = createNewState(NOW, 6);
+  const enemy = () => ({ id: 1, hp: 100, maxHp: 100, gold: 10, speed: 20, attackInterval: 1, attackTimer: 0.6, x: 100 });
+  const fixed = (...vals) => ({ next: () => vals.shift() ?? 0 });
+  s.maxStage = 1;
+  assert.equal(M.maybeMutate(s, enemy(), fixed(0, 0)), null, 'pas avant le monde 2');
+  s.maxStage = 100;
+  const e = enemy();
+  const m = M.maybeMutate(s, e, fixed(0, 0)); // 1er tirage < chance, 2e = première mutation
+  assert.equal(m.id, 'split');
+  assert.equal(e.maxHp, 160);
+  assert.equal(e.gold, 30);
+  const kids = M.splitChildren(e, 50);
+  assert.equal(kids.length, 2);
+  assert.ok(kids.every((k) => !k.mutation && k.splitChild && k.maxHp === 64));
+  assert.equal(M.maybeMutate(s, kids[0], fixed(0, 0)), null, 'un double ne mute pas');
+  assert.equal(M.maybeMutate(s, { ...enemy(), boss: true }, fixed(0, 0)), null);
+  const a = { ...enemy(), mutation: 'armored' };
+  assert.equal(M.mutationDamageTaken(a, 10), 5);
+  a.hp = 40;
+  assert.equal(M.mutationDamageTaken(a, 10), 10);
+  const r = { ...enemy(), hp: 50, mutation: 'regen' };
+  M.mutationTick(r, 1);
+  assert.equal(r.hp, 54);
+  const v = { ...enemy(), hp: 50, mutation: 'vampire' };
+  M.mutationOnHit(v, 5);
+  assert.equal(v.hp, 65);
+});

@@ -69,6 +69,13 @@ export const BOSSES = {
   ash_dragon: { name: 'Dragon des cendres', base: 'scorpion', sprite: 'boss_ash_dragon' },
   fallen_knight: { name: 'Chevalier déchu', base: 'yeti', sprite: 'boss_fallen_knight' },
   demon_king: { name: 'Roi démoniaque', base: 'imp', sprite: 'boss_demon_king' },
+  // v9.0.4 : boss propres aux donjons (avant, 4 donjons réutilisaient des méga boss de la campagne), plus
+  // l'Archiliche qui ne rôde que dans la Tour de l'Éternité. Rang « dungeon » : pas de pouvoir ancestral.
+  rotting_dryad: { name: 'Dryade pourrissante', base: 'mushroom', sprite: 'boss_rotting_dryad', tier: 'dungeon' },
+  magma_colossus: { name: 'Colosse de magma', base: 'golem', sprite: 'boss_magma_colossus', tier: 'dungeon' },
+  frost_wyrm: { name: 'Wyrm de givre', base: 'yeti', sprite: 'boss_frost_wyrm', tier: 'dungeon' },
+  obsidian_tyrant: { name: "Tyran d'obsidienne", base: 'shadow_knight', sprite: 'boss_obsidian_tyrant', tier: 'dungeon' },
+  crypt_archlich: { name: 'Archiliche', base: 'skeleton', sprite: 'boss_crypt_archlich', tier: 'dungeon' },
   // v7.6 : chaque monde a 4 boss : mini (étape 5), moyen (10), dur (15) ; les boss ci-dessus sont
   // les méga boss (étape 20). `tier` absent = méga boss.
   mini_goblin_warlord: { name: 'Chef de guerre gobelin', base: 'goblin', sprite: 'mini_goblin_warlord', tier: 'mini' },

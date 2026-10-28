@@ -120,7 +120,9 @@ export default {
       </div>
       <div class="card">
         <div class="section-title">Interface</div>
-        <div class="muted">Style des menus (les couleurs des raretés ne changent pas).</div>
+        <div class="row-between"><span class="muted">Style des menus (les couleurs des raretés ne changent pas). Chevalier est le style sobre : les
+          ornements et effets animés (particules, lueurs) viennent avec les autres thèmes.</span>
+          <label class="toggle"><input type="checkbox" data-action="theme-fx" ${state.ui.themeFx !== false ? 'checked' : ''}> Effets animés</label></div>
         <div class="theme-grid">${THEMES.map((t) => `<button class="btn theme-btn${(state.ui.theme ?? 'knight') === t.id ? ' active' : ''}" data-action="theme" data-value="${t.id}">
           <span class="theme-swatches">${themeSwatches(t.id).map((c) => `<i style="background:${c}"></i>`).join('')}</span>
           <b>${escapeHtml(t.name)}</b><span class="muted">${escapeHtml(t.text)}</span></button>`).join('')}</div>

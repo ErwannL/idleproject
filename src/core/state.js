@@ -48,6 +48,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     maxStage: 1,
     kills: 0,
     autoAdvance: true,
+    farmBoss: null, // v9.0.4 : boss réaffronté en boucle depuis le Codex
     equipment: Object.fromEntries(Object.keys(SLOTS).map((slot) => [slot, null])),
     inventory: [],
     nextItemId: 1,
@@ -331,6 +332,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   state.stage = Math.min(int(raw.stage, 1, 1), state.maxStage);
   state.kills = Math.min(int(raw.kills, 0), balance.stages.killsPerStage);
   state.autoAdvance = typeof raw.autoAdvance === 'boolean' ? raw.autoAdvance : true;
+  state.farmBoss = !state.autoAdvance && typeof raw.farmBoss === 'string' && BOSSES[raw.farmBoss] ? raw.farmBoss : null;
   state.rngSeed = int(raw.rngSeed, state.rngSeed);
 
   if (raw.equipment && typeof raw.equipment === 'object') {
@@ -425,6 +427,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     if (raw.ui.keepSets === false) state.ui.keepSets = false;
     if (raw.ui.autoMannequin === false) state.ui.autoMannequin = false;
     if (raw.ui.autoMuseum === false) state.ui.autoMuseum = false;
+    if (raw.ui.themeFx === false) state.ui.themeFx = false;
   }
   if (state.challenge && (state.tower || state.dungeon)) state.challenge = null; // un seul mode à la fois
   return state;

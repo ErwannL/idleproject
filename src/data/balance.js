@@ -145,6 +145,7 @@ export const BALANCE = {
       mid: { stage: 10, hp: 0.65, damage: 0.95, gold: 0.6, gems: 15 },
       hard: { stage: 15, hp: 0.85, damage: 1.05, gold: 0.8, gems: 20 },
       mega: { stage: 20, hp: 1.15, damage: 1.15, gold: 1.2, gems: 35 },
+      dungeon: { stage: null, hp: 1.15, damage: 1.15, gold: 1.2, gems: 35 }, // v9.0.4 : boss propres aux donjons
     },
   },
 

@@ -1,5 +1,6 @@
 // Rendu de la scène de combat sur un canvas basse résolution agrandi en « pixel perfect ».
 // Le rendu lit l'état de la simulation et ses événements ; il ne modifie jamais la partie.
+import { mutationById } from '../core/mutations.js';
 import { BALANCE } from '../data/balance.js';
 import { drawTeamFx } from './team-fx.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
@@ -34,6 +35,7 @@ const BOSS_AURAS = {
   mid: { color: '#ff4d6d', ember: '#ffb0a8', width: 1, alpha: 0.45, speed: 5, embers: 0.05 },
   hard: { color: '#ff4dd2', ember: '#ffc0f0', width: 2, alpha: 0.4, speed: 6, embers: 0.15 },
   mega: { color: '#ff2020', ember: '#ffd23f', width: 2, alpha: 0.55, speed: 7, embers: 0.35 },
+  dungeon: { color: '#b04dff', ember: '#e8c0ff', width: 2, alpha: 0.55, speed: 6, embers: 0.3 }, // v9.0.4 : boss de donjon
 };
 const HERO_X = BALANCE.world.heroX * WORLD_SCALE;
 
@@ -487,7 +489,27 @@ export class SceneRenderer {
         for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.drawImage(glow, x + dx, y + dy, w, h);
         ctx.globalAlpha = fx.appear;
       }
+      const mutation = enemy.mutation ? mutationById(enemy.mutation) : null;
+      if (mutation) {
+        // v9.0.4 : ennemi muté — contour de la couleur de sa mutation, pulsé (géant : un peu plus grand).
+        const glow = spriteCanvas(sprite, { colors, tint: { color: mutation.color, alpha: 1 } });
+        ctx.globalAlpha = fx.appear * (0.55 + 0.35 * Math.sin(this.time * 6 + enemy.id));
+        for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1]]) ctx.drawImage(glow, x + dx, y + dy, w, h);
+        ctx.globalAlpha = fx.appear;
+      }
       ctx.drawImage(img, x, y, w, h);
+      if (mutation) {
+        // Marqueur : losange de couleur au-dessus de la tête.
+        const mx = Math.round(ex);
+        const my = Math.round(y - 11 + Math.sin(this.time * 4 + enemy.id) * 1.5);
+        ctx.fillStyle = '#0c0d10';
+        ctx.fillRect(mx - 3, my - 1, 7, 3);
+        ctx.fillRect(mx - 1, my - 3, 3, 7);
+        ctx.fillStyle = mutation.color;
+        ctx.fillRect(mx - 2, my, 5, 1);
+        ctx.fillRect(mx, my - 2, 1, 5);
+        ctx.fillRect(mx - 1, my - 1, 3, 3);
+      }
 
       if (enemy.boss) {
         // Aura pulsante et barre de vie large.
@@ -496,8 +518,8 @@ export class SceneRenderer {
         ctx.fillRect(x + 2, this.groundY + 1, w - 4, 1);
         ctx.globalAlpha = 1;
         this.drawBar(ctx, Math.round(ex - 16), y - 6, 32, enemy.hp / enemy.maxHp, '#e84a5f');
-      } else if (enemy.elite || enemy.hp < enemy.maxHp) {
-        this.drawBar(ctx, Math.round(ex - 9), y - 5, 18, enemy.hp / enemy.maxHp, enemy.elite ? '#ff9a3d' : '#e84a5f');
+      } else if (enemy.elite || enemy.mutation || enemy.hp < enemy.maxHp) {
+        this.drawBar(ctx, Math.round(ex - 9), y - 5, 18, enemy.hp / enemy.maxHp, enemy.elite ? '#ff9a3d' : mutation ? mutation.color : '#e84a5f');
       }
       ctx.globalAlpha = 1;
     }
@@ -605,7 +627,9 @@ export class SceneRenderer {
     const y = this.groundY - img.height + 1 - i * 2 - bob;
     this.drawShadow(ctx, x + img.width / 2, 18 - bob * 2);
     if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, y, img.width, img.height, companion.rarity);
+    this.glowOn(ctx, companion);
     ctx.drawImage(img, this.snap(x), y);
+    this.glowOff(ctx);
   }
 
   // v8.9 : compagnon aux étoiles maximales → aura lumineuse (couleur de sa rareté) et étincelles qui montent.
@@ -614,20 +638,49 @@ export class SceneRenderer {
   }
 
   drawStarAura(ctx, cx, top, w, h, rarity) {
+    // v9.0.4 : aura bien visible (avant : un halo très pâle) — halo pulsé, anneau runique tournant au sol,
+    // étincelles qui montent ; le contour lumineux du personnage est posé par glowOn().
     const color = { legendary: '255, 190, 70', epic: '200, 120, 255', rare: '110, 180, 255' }[rarity] ?? '220, 230, 255';
-    const pulse = 0.55 + 0.25 * Math.sin(this.time * 3);
-    const g = ctx.createRadialGradient(cx, top + h * 0.55, 2, cx, top + h * 0.55, Math.max(w, h) * 0.75);
-    g.addColorStop(0, `rgba(${color}, ${0.45 * pulse})`);
+    const pulse = 0.7 + 0.3 * Math.sin(this.time * 3);
+    const cy = top + h * 0.55;
+    const g = ctx.createRadialGradient(cx, cy, 2, cx, cy, Math.max(w, h) * 0.9);
+    g.addColorStop(0, `rgba(${color}, ${0.55 * pulse})`);
+    g.addColorStop(0.6, `rgba(${color}, ${0.18 * pulse})`);
     g.addColorStop(1, `rgba(${color}, 0)`);
     ctx.fillStyle = g;
-    ctx.fillRect(cx - w, top - h * 0.3, w * 2, h * 1.6);
-    for (let k = 0; k < 4; k++) {
-      const p = (this.time * 0.7 + k / 4) % 1;
-      ctx.globalAlpha = 1 - p;
-      ctx.fillStyle = `rgb(${color})`;
-      ctx.fillRect(Math.round(cx - w / 2 + ((k * 37) % Math.max(1, w))), Math.round(top + h - p * h * 1.2), 1, 2);
+    ctx.fillRect(cx - w * 1.2, top - h * 0.4, w * 2.4, h * 1.8);
+    // Anneau au sol : pointillés qui tournent.
+    const fy = top + h;
+    const rx = Math.max(10, w * 0.7);
+    const ry = Math.max(3, rx * 0.28);
+    ctx.fillStyle = `rgba(${color}, ${0.75 * pulse})`;
+    for (let k = 0; k < 16; k++) {
+      const a = (k / 16) * Math.PI * 2 + this.time * 1.6;
+      if (k % 2) continue;
+      ctx.fillRect(Math.round(cx + Math.cos(a) * rx), Math.round(fy + Math.sin(a) * ry), 2, 1);
+    }
+    // Étincelles qui montent.
+    for (let k = 0; k < 8; k++) {
+      const p = (this.time * 0.6 + k / 8) % 1;
+      ctx.globalAlpha = (1 - p) * 0.95;
+      ctx.fillStyle = k % 3 ? `rgb(${color})` : '#ffffff';
+      const sx = cx - w * 0.6 + ((k * 53) % Math.max(1, Math.round(w * 1.2)));
+      ctx.fillRect(Math.round(sx + Math.sin(this.time * 3 + k) * 2), Math.round(fy - p * h * 1.4), 2, 2);
     }
     ctx.globalAlpha = 1;
+  }
+
+  // Contour lumineux du personnage (compagnon aux étoiles maximales) ; à refermer avec glowOff().
+  glowOn(ctx, companion) {
+    if (!this.maxStars(companion)) return;
+    const color = { legendary: '#ffbe46', epic: '#c878ff', rare: '#6eb4ff' }[companion.rarity] ?? '#dce6ff';
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 6 + 3 * Math.sin(this.time * 3);
+  }
+
+  glowOff(ctx) {
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
   }
 
   // Familier : trottine aux pieds du chevalier (dessiné devant lui) ; les volants planent en battant des ailes.
@@ -646,6 +699,7 @@ export class SceneRenderer {
       ctx.save();
       ctx.translate(this.snap(x + img.width / 2), this.snap(cy));
       ctx.scale(1, flap);
+      this.glowOn(ctx, companion);
       ctx.drawImage(img, -img.width / 2, -img.height / 2);
       ctx.restore();
       return;
@@ -659,6 +713,7 @@ export class SceneRenderer {
     ctx.save();
     ctx.translate(this.snap(x + img.width / 2), this.groundY + 1 - this.snap(hop));
     ctx.scale(2 - squash, squash);
+    this.glowOn(ctx, companion);
     ctx.drawImage(img, -img.width / 2, -img.height);
     ctx.restore();
   }

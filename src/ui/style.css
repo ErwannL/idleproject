@@ -1613,3 +1613,4 @@ table.records td { padding: 2px 4px; border-top: 1px solid rgba(255, 255, 255, 0
    160 px), et au-delà le panneau défile. */
 #panel-body > .card, #panel-body > .chip-row, #panel-body > .tree-tools { flex-shrink: 0; }
 #panel-body > .map-viewport { min-height: 160px; }
+.tag-dupe { display: inline-block; margin-left: 4px; padding: 0 5px; font-size: 10px; border: 1px solid #a07a3a; border-radius: 3px; color: #f2d083; background: rgba(160, 122, 58, 0.18); }

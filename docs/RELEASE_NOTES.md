@@ -1,8 +1,36 @@
-## Idle RPG v9.0.3 — thèmes d'interface de luxe, Musée qui expose vraiment
+## Idle RPG v9.0.4 — ennemis mutés, boss de donjon uniques, aura des 5 étoiles
 
-**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.3-setup.exe). Votre partie est conservée.
+**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.4-setup.exe). Votre partie est conservée.
+
+### Nouveau
+- **Ennemis mutés** (dès le monde 2) : de temps en temps, un monstre ordinaire apparaît muté, entouré de la couleur
+  de sa mutation avec un losange au-dessus de la tête : **Scissipare** (se dédouble en mourant), **Régénérant**
+  (4 % de PV par seconde), **Cuirassé** (dégâts −50 % au-dessus de la moitié de ses PV), **Frénétique** (attaque
+  deux fois plus vite), **Vampirique** (se soigne de ses coups), **Géant** (PV ×3, plus lent). Plus coriace
+  (PV ×1,6), mais **or ×3 et objet garanti**. 4 % des monstres, +1 point par difficulté (×2, ×3…), 12 % au plus ;
+  jamais dans la Tour.
+- **Boss de donjon uniques** : les donjons ne réutilisent plus les méga boss de la campagne — **Dryade
+  pourrissante** (Sanctuaire sylvestre), **Colosse de magma** (Fournaise des sables), **Wyrm de givre** (Glacier
+  éternel), **Tyran d'obsidienne** (Citadelle des ombres) ; la Reine spectrale reste la maîtresse de la Crypte.
+  La **Tour de l'Éternité** mélange tous les boss du jeu, dont ceux-ci et une **Archiliche** qu'on ne croise que là.
 
 ### Améliorés
+- **Aura des compagnons et familiers à 5 étoiles** bien visible : contour lumineux de la couleur de leur rareté,
+  halo pulsé, anneau tournant au sol et étincelles (avant : un halo presque invisible).
+- **Musée** : les objets ancestraux restés dans le sac quand le Musée est complet sont des **doublons** (un exemplaire
+  au moins aussi bon est déjà exposé) ; ils portent l'étiquette « Doublon du Musée » et un bouton **« Recycler les
+  doublons »** les recycle (jamais automatiquement ; les verrouillés sont gardés).
+- **Combat en boucle contre un boss** (bouton « Réaffronter » du Codex des boss, pour gagner des charges) : un
+  bouton **« Arrêter : … en boucle »** sur la scène reprend la progression (retour à l'étape max, avance auto).
+
+### Corrigés
+- **Effets des thèmes invisibles** : le mode concentration les coupait sans le dire. Ils dépendent maintenant d'une
+  option dédiée, **« Effets animés »** (Paramètres → Interface, activée par défaut), et se coupent à ×100. Le thème
+  Chevalier reste volontairement sans effets.
+
+### v9.0.3 — thèmes d'interface de luxe, Musée qui expose vraiment
+
+### Améliorés en v9.0.3
 - **Thèmes d'interface entièrement refaits** (Paramètres → Interface). Le Chevalier reste le style sobre d'origine ;
   les 9 autres sont désormais très travaillés :
   - **cadres redessinés** à plusieurs épaisseurs (moulure, gorge, filet, lueur intérieure, motif répété) ;
@@ -19,7 +47,7 @@
   - **Ombre** n'est plus en noir et blanc : obsidienne, fumée violette et éclats cramoisis.
   Les effets animés se coupent en mode concentration et en vitesse ×100.
 
-### Corrigés
+### Corrigés en v9.0.3
 - **Musée vide malgré « Exposition auto »** : l'option ne valait que pour les objets ramassés ensuite. Les objets
   ancestraux déjà dans le sac ou le coffre sont maintenant exposés au lancement, quand on active l'option, et avec
   le nouveau bouton **« Exposer tout (sac + coffre) »** (les objets portés par le héros restent sur lui ; un objet

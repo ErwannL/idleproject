@@ -2,6 +2,7 @@
 // `state` = données sauvegardées ; `world` = état transitoire du combat (positions, PV, minuteries).
 // La simulation émet des événements (world.events) que le rendu et l'interface consomment.
 import { BALANCE } from '../data/balance.js';
+import { maybeMutate, mutationDamageTaken, mutationOnHit, mutationTick, splitChildren } from './mutations.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
 import { POWER_RULES } from '../data/powers.js';
 import { ZONES } from '../data/zones.js';
@@ -294,8 +295,11 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
     berserk: Boolean(boss && enc.gauntlet),
     summons: boss && enc.gauntlet ? [...enc.summons] : [],
   };
+  // v9.0.4 : ennemis mutés (campagne, donjons, défi ; jamais dans la Tour).
+  const mutation = !boss && !elite && !enc.tower ? maybeMutate(state, enemy, rng, cycleForStage(state.stage, balance)) : null;
   world.enemies.push(enemy);
   emit(world, boss ? 'bossSpawn' : elite ? 'eliteSpawn' : 'spawn', { enemyId: enemy.id, kind: type });
+  if (mutation) emit(world, 'mutantSpawn', { enemyId: enemy.id, kind: type, mutation: mutation.id });
 }
 
 export function changeStage(state, world, stage, balance = BALANCE) {
@@ -367,6 +371,13 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
   const index = world.enemies.indexOf(enemy);
   if (index < 0) return;
   world.enemies.splice(index, 1);
+  // v9.0.4 : un ennemi muté « scissipare » laisse deux doubles à sa place.
+  const children = splitChildren(enemy, world.nextEnemyId);
+  if (children.length) {
+    world.nextEnemyId += children.length;
+    world.enemies.splice(index, 0, ...children);
+    emit(world, 'mutantSplit', { enemyId: enemy.id, kind: enemy.type, x: enemy.x });
+  }
 
   const wave = world.goldWave > 0 && !enemy.boss ? balance.events.waveGoldMultiplier : 1;
   if (world.goldWave > 0 && !enemy.boss) world.goldWave -= 1;
@@ -394,7 +405,7 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
   emit(world, 'kill', { enemyId: enemy.id, kind: enemy.type, boss: enemy.boss, elite: enemy.elite, gold, x: enemy.x });
 
   // Butin : objet signature possible sur les boss (butin ciblé), objet Rare+ garanti sur les boss et élites.
-  const dropChance = enemy.boss || enemy.elite ? 1 : balance.loot.dropChance + stats.bonus.dropChance / 100 + boost.dropChance;
+  const dropChance = enemy.boss || enemy.elite || enemy.mutation ? 1 : balance.loot.dropChance + stats.bonus.dropChance / 100 + boost.dropChance;
   if (rng.next() < dropChance) {
     const signature = enemy.boss && rng.next() < balance.loot.signatureChance
       ? makeSignatureItem(state, enemy.type, enc.level, rng, balance) : null;
@@ -481,6 +492,7 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
 // Inflige des dégâts à un ennemi (coup normal, compétence, compagnon, épines).
 function hitEnemy(state, world, enemy, damage, rng, balance, stats, enc, source) {
   if (!world.enemies.includes(enemy)) return;
+  damage = mutationDamageTaken(enemy, damage);
   enemy.hp -= damage;
   if (stats.lifesteal > 0 && source !== 'thorns' && !(enc?.challenge && challengeRule(state, 'noHeal'))) {
     world.hero.hp = Math.min(stats.maxHp, world.hero.hp + (damage * stats.lifesteal) / 100);
@@ -583,7 +595,10 @@ export function step(state, world, dt, rng, balance = BALANCE) {
   state.playSeconds = (state.playSeconds ?? 0) + dt;
   // Positions du pas précédent : le rendu interpole entre les deux (sans effet sur la partie).
   world.prevScroll = world.scroll;
-  for (const enemy of world.enemies) enemy.prevX = enemy.x;
+  for (const enemy of world.enemies) {
+    enemy.prevX = enemy.x;
+    if (enemy.mutation) mutationTick(enemy, dt);
+  }
   const hero = world.hero;
   // Boosts à durée limitée : minuteries (et relance automatique si activée).
   if (state.rushes) {
@@ -738,6 +753,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
       }
       const damage = attacker.damage * rage * (1 - armor / 100) * (1 - shield / 100) * dungeonDamageTaken(state, balance);
       hero.hp -= damage;
+      mutationOnHit(attacker, damage);
       emit(world, 'heroHit', { enemyId: attacker.id, damage, boss: attacker.boss });
       if (stats.thorns > 0) hitEnemy(state, world, attacker, (damage * stats.thorns) / 100, rng, balance, stats, enc, 'thorns');
       if (hero.hp <= 0) heroDies(state, world, balance);

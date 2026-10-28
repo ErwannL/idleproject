@@ -14,7 +14,7 @@ import {
 import { setById, setCounts } from '../../core/sets.js';
 import { ITEM_SETS, SET_PIECES } from '../../data/sets.js';
 import { STASH_SIZE } from '../../core/stash.js';
-import { MUSEUM, MUSEUM_PIECES, museumCount, museumEffects } from '../../core/museum.js';
+import { MUSEUM, MUSEUM_PIECES, isMuseumDuplicate, museumCount, museumDuplicates, museumEffects } from '../../core/museum.js';
 import { itemIconUrl } from '../../render/pixel.js';
 import { animCanvas } from '../animator.js';
 
@@ -105,7 +105,8 @@ function detail(ui, state, item) {
       <div><div class="item-name">${escapeHtml(item.name)}${ups ? ` <span class="plus-lv">+${ups}</span>` : ''}</div>
         <div class="item-sub">${SLOTS[item.slot]} · <span class="rarity-text">${rarity.label}</span> · niv. ${item.level}</div>
         <div class="tags">${isEquipped ? '<span class="equipped-tag">Équipé</span>' : ''}
-        ${base.signature ? `<span class="signature-tag">Objet ancestral · butin de ${escapeHtml(BOSSES[base.signature].name)}</span>` : ''}</div></div></div>
+        ${base.signature ? `<span class="signature-tag">Objet ancestral · butin de ${escapeHtml(BOSSES[base.signature].name)}</span>` : ''}
+        ${isMuseumDuplicate(state, item) ? '<span class="tag-dupe" title="Le Musée expose déjà un exemplaire au moins aussi bon">Doublon du Musée</span>' : ''}</div></div></div>
     ${actions}
     <div class="section-title">Statistiques de l'objet</div>
     <ul class="stat-list">${stats}${affixes}</ul>
@@ -160,13 +161,16 @@ function museumView(ui, state) {
         <div class="muted">${item ? `${rarityById(item.rarity).label} · niv. ${item.level}${item.rarity === 'legendary' ? ' · bonus ×2' : ''}` : `Butin de ${escapeHtml(boss?.name ?? '?')}`}</div></div></div>`;
   }).join('');
   const n = museumCount(state);
+  const dupes = museumDuplicates(state).length;
   const total = effectText(museumEffects(state));
   return `<div class="card"><div class="row-between"><span class="muted">Le Musée expose vos objets ancestraux, un par vitrine. Chaque pièce exposée :
       dégâts, PV et or ${pct(per.damageMultPct)} (multiplicatif, ×2 si Légendaire). Collection complète : dégâts et PV +${MUSEUM.complete.damageMultPct} % de plus.
       Une pièce exposée n'est pas portée : reprenez-la (↩) pour l'équiper.</span>
       <button class="btn chip-btn small${auto ? ' active' : ''}" data-action="auto-museum" title="Les objets ancestraux ramassés vont dans leur vitrine si elle est vide ou s'ils sont meilleurs (l'ancien retourne au sac)">${auto ? 'Exposition auto : activée' : 'Exposition auto : désactivée'}</button></div>
       <div class="row-between museum-total"><span><b>${n}/${MUSEUM_PIECES.length}</b> pièces exposées${total ? ` · <span class="good">${total}</span>` : ''}</span>
-        <button class="btn btn-gold small" data-action="expose-all" title="Expose les objets ancestraux du sac et du coffre (pas ceux que porte le héros)">Exposer tout (sac + coffre)</button></div></div>
+        <span><button class="btn btn-gold small" data-action="expose-all" title="Expose les objets ancestraux du sac et du coffre (pas ceux que porte le héros)">Exposer tout (sac + coffre)</button>
+        ${dupes ? `<button class="btn btn-danger small" data-action="recycle-museum-dupes" title="Objets ancestraux du sac moins bons que l'exemplaire exposé (les verrouillés sont gardés)">Recycler les doublons (${dupes})</button>` : ''}</span></div>
+      ${dupes ? `<div class="muted">${dupes} objet${dupes > 1 ? 's' : ''} ancestra${dupes > 1 ? 'ux' : 'l'} du sac ${dupes > 1 ? 'sont des doublons' : 'est un doublon'} : la vitrine expose déjà un exemplaire au moins aussi bon. Les objets ancestraux ne sont jamais recyclés automatiquement.</div>` : ''}</div>
     <div class="museum">${cases}</div>`;
 }
 
