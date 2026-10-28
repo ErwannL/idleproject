@@ -1,7 +1,11 @@
 // Codex : suivi des découvertes et récompenses de collection.
 import { COLLECTIONS } from '../data/codex.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
-import { ITEM_BASES } from '../data/items.js';
+import { ITEM_BASES, SIGNATURE_ITEMS } from '../data/items.js';
+
+// Modèles d'équipement de la collection : ordinaires et ancestraux (v9.0 : les ancestraux étaient comptés au
+// ramassage mais effacés au chargement, et absents du total).
+const COLLECTION_ITEMS = [...ITEM_BASES, ...SIGNATURE_ITEMS];
 import { COMPANIONS } from '../data/companions.js';
 import { grantReward } from './rewards.js';
 
@@ -19,9 +23,21 @@ export function collectionProgress(state, id) {
   switch (id) {
     case 'monsters': return { found: kills.filter((k) => ENEMIES[k]).length, total: Object.keys(ENEMIES).length };
     case 'bosses': return { found: kills.filter((k) => BOSSES[k]).length, total: Object.keys(BOSSES).length };
-    case 'items': return { found: Object.keys(state.codex.items).length, total: ITEM_BASES.length };
+    case 'items': return { found: COLLECTION_ITEMS.filter((b) => state.codex.items[b.id]).length, total: COLLECTION_ITEMS.length };
     case 'companions': return { found: Object.keys(state.companions.owned).length, total: COMPANIONS.length };
     default: return { found: 0, total: 0 };
+  }
+}
+
+// v9.0 : ce qu'il reste à découvrir dans une collection : [{ id, name, kind }].
+export function collectionMissing(state, id) {
+  const kills = state.codex.kills;
+  switch (id) {
+    case 'monsters': return Object.entries(ENEMIES).filter(([k]) => !kills[k]).map(([k, e]) => ({ id: k, name: e.name, kind: 'enemy', sprite: e.sprite }));
+    case 'bosses': return Object.entries(BOSSES).filter(([k]) => !kills[k]).map(([k, b]) => ({ id: k, name: b.name, kind: 'enemy', sprite: b.sprite ?? ENEMIES[b.base]?.sprite }));
+    case 'items': return COLLECTION_ITEMS.filter((b) => !state.codex.items[b.id]).map((b) => ({ id: b.id, name: b.name, kind: 'item', slot: b.slot }));
+    case 'companions': return COMPANIONS.filter((c) => !state.companions.owned[c.id]).map((c) => ({ id: c.id, name: c.name, kind: 'companion' }));
+    default: return [];
   }
 }
 
@@ -29,7 +45,9 @@ export function collectionProgress(state, id) {
 export function collectionStatus(state, c) {
   const claimed = state.codex.claimed[c.id] ?? 0;
   const { found, total } = collectionProgress(state, c.id);
-  const next = c.milestones[claimed] ?? null;
+  // Palier plafonné au nombre réel d'éléments (et jamais deux fois le même palier).
+  const raw = c.milestones[claimed];
+  const next = raw === undefined || (claimed > 0 && Math.min(c.milestones[claimed - 1], total) >= total) ? null : Math.min(raw, total);
   return { found, total, claimed, next, ready: next !== null && found >= next };
 }
 
@@ -48,7 +66,7 @@ export function sanitizeCodex(raw) {
   const out = { kills: {}, items: {}, claimed: {} };
   if (!raw || typeof raw !== 'object') return out;
   for (const [k, v] of Object.entries(raw.kills ?? {})) if ((ENEMIES[k] || BOSSES[k]) && Number(v) > 0) out.kills[k] = Math.floor(Number(v));
-  const bases = new Set(ITEM_BASES.map((b) => b.id));
+  const bases = new Set(COLLECTION_ITEMS.map((b) => b.id));
   for (const k of Object.keys(raw.items ?? {})) if (bases.has(k)) out.items[k] = 1;
   for (const c of COLLECTIONS) {
     const n = Number(raw.claimed?.[c.id]);

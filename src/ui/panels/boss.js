@@ -13,7 +13,7 @@ import { itemIconUrl } from '../../render/pixel.js';
 import { ZONES } from '../../data/zones.js';
 import { COLLECTIONS } from '../../data/codex.js';
 import { BOSS_LORE } from '../../data/lore.js';
-import { collectionStatus } from '../../core/codex.js';
+import { collectionMissing, collectionStatus } from '../../core/codex.js';
 import { coin, effectText, escapeHtml, formatNumber, icon, img, progressBar, rarityLabel } from '../common.js';
 import { animCanvas } from '../animator.js';
 
@@ -35,15 +35,29 @@ function portrait(bossId, known, scale = 1) {
 }
 
 // Collections du Codex : paliers de découverte et récompenses.
-function collections(state) {
+function collections(ui, state) {
   return `<div class="collections">${COLLECTIONS.map((c) => {
     const st = collectionStatus(state, c);
-    const goal = st.next ?? c.milestones[c.milestones.length - 1];
-    return `<div class="collection">${img(c.icon)}<div class="grow"><b>${c.label}</b>
+    const goal = Math.min(st.next ?? c.milestones[c.milestones.length - 1], st.total);
+    return `<div class="collection">${img(c.icon)}<div class="grow"><b>${c.label}</b> <span class="muted coll-text">${c.text}</span>
         ${progressBar(Math.min(1, st.found / goal), `${st.found} / ${goal}`)}</div>
-      ${st.next === null ? '<span class="good">✔</span>' : `<button class="btn small ${st.ready ? 'btn-gold' : ''}" data-action="claim-collection" data-value="${c.id}"
-        ${st.ready ? '' : 'disabled'} title="${rewardText(c.reward)}">${st.ready ? 'Récupérer' : '…'}</button>`}</div>`;
+      ${st.next === null ? '<span class="good">✔</span>' : st.ready
+        ? `<button class="btn small btn-gold" data-action="claim-collection" data-value="${c.id}" title="${rewardText(c.reward)}">Récupérer</button>`
+        : `<span class="muted coll-next" title="Récompense du palier ${goal}">à ${goal} : ${rewardText(c.reward)}</span>`}
+      ${st.found < st.total ? `<button class="btn small" data-action="collection-missing" data-value="${c.id}" title="Ce qu'il reste à découvrir">Manquants (${st.total - st.found})</button>` : ''}</div>
+      ${ui.view.collOpen === c.id ? missingList(state, c.id) : ''}`;
   }).join('')}</div>`;
+}
+
+// v9.0 : liste de ce qu'il reste à découvrir (le bouton « … » ne faisait rien).
+function missingList(state, id) {
+  const list = collectionMissing(state, id);
+  const cells = list.map((m) => {
+    const pic = m.kind === 'item' ? `<img class="px" src="${itemIconUrl({ baseId: m.id, rarity: 'common', slot: m.slot })}" alt="">`
+      : m.kind === 'enemy' && m.sprite ? `<img class="px" src="${icon(m.sprite, 1)}" alt="">` : '';
+    return `<span class="missing-chip">${pic}${escapeHtml(m.name)}</span>`;
+  }).join('');
+  return `<div class="missing-list">${cells || '<span class="muted">Rien à découvrir.</span>'}</div>`;
 }
 
 // Couronnes de maîtrise : une par palier récupéré.
@@ -142,7 +156,7 @@ export default {
     const sel = BOSSES[ui.view.bossSel] && order.includes(ui.view.bossSel) ? ui.view.bossSel : (order.find((id) => state.powers[id]) ?? order[0]);
     const synergies = synergyFamilies(state).map((f) => POWER_FAMILIES[f].label);
     return `<div class="card"><div class="row-between"><div class="section-title">Collections</div>
-        <span class="muted">Boss découverts : ${known}/${order.length}</span></div>${collections(state)}</div>
+        <span class="muted">Boss découverts : ${known}/${order.length}</span></div>${collections(ui, state)}</div>
       <div class="codex">
         <div class="codex-list">${order.map((id) => bossListItem(ui, state, id, sel)).join('')}</div>
         <div class="card codex-detail">${bossDetail(ui, state, sel)}

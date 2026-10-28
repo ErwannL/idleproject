@@ -54,3 +54,25 @@ test('v9.0 : 10 thèmes d\'interface ; « Chevalier » ne change rien, les autre
     assert.ok(out && out.every((v) => Number.isInteger(v) && v >= 0 && v <= 255), t.id);
   }
 });
+
+test('v9.0 : collections du Codex — paliers atteignables, ancestraux comptés, liste des manquants', async () => {
+  const { COLLECTIONS } = await import('../src/data/codex.js');
+  const { collectionMissing, collectionProgress, collectionStatus } = await import('../src/core/codex.js');
+  const s = createNewState(NOW, 4);
+  for (const c of COLLECTIONS) {
+    const { total } = collectionProgress(s, c.id);
+    assert.ok(c.milestones.every((m) => m <= total), `${c.id} : palier > ${total}`);
+    assert.equal(collectionMissing(s, c.id).length, total - collectionProgress(s, c.id).found, c.id);
+    assert.ok(c.text, c.id);
+  }
+  s.codex.items.slime_crown = 1;
+  assert.equal(collectionProgress(s, 'items').found, 1);
+  const back = sanitizeState(JSON.parse(JSON.stringify(s)));
+  assert.equal(back.codex.items.slime_crown, 1);
+  // Une ancienne partie ayant récupéré 4 paliers « Équipements » (75) : le prochain est plafonné au total.
+  const items = COLLECTIONS.find((c) => c.id === 'items');
+  s.codex.claimed.items = 4;
+  assert.equal(collectionStatus(s, items).next, collectionProgress(s, 'items').total);
+  s.codex.claimed.items = 5;
+  assert.equal(collectionStatus(s, items).next, null);
+});

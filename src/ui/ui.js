@@ -358,6 +358,7 @@ export class UI {
       case 'save-loadout': a.saveLoadout(Number(value)); break;
       case 'apply-loadout': a.applyLoadout(Number(value)); break;
       case 'claim-collection': a.claimCollection(value); break;
+      case 'collection-missing': local(() => { v.collOpen = v.collOpen === value ? null : value; }); break;
       case 'boss-sel': local(() => { v.bossSel = value; }); break;
       case 'recycle-toggle': a.setRecycleRule(el.dataset.group, value); break;
       case 'mission-tab': local(() => { v.missionTab = value; }); break;

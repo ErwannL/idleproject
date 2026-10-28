@@ -582,6 +582,12 @@ export const EXACT = {
 
   // Arbre de talents, Renaissance, bonus éternels
   // v9.0
+  "Vaincre au moins une fois chaque sorte de monstre, dans tous les mondes.": "Defeat every kind of monster at least once, in every world.",
+  "Vaincre au moins une fois chaque boss : mini-boss, boss et méga boss des 11 mondes.": "Defeat every boss at least once: mini-bosses, bosses and mega bosses of the 11 worlds.",
+  "Ramasser au moins une fois chaque modèle d'équipement : armes, casques, armures, chaque accessoire dans chaque pierre, et les objets ancestraux des boss. La rareté ne compte pas.": "Pick up every equipment model at least once: weapons, helmets, armours, each accessory in each gem, and the bosses' ancestral items. Rarity doesn't matter.",
+  "Obtenir chaque compagnon et chaque familier (onglet Invocation).": "Get every companion and every pet (Summon tab).",
+  "Ce qu'il reste à découvrir": "What is left to discover",
+  "Rien à découvrir.": "Nothing left to discover.",
   "Musée": "Museum",
   "Exposer au Musée": "Display in the Museum",
   "Exposer dans sa vitrine du Musée (bonus permanent)": "Display in its Museum case (permanent bonus)",
@@ -1684,6 +1690,9 @@ export const PATTERNS = [
   [/^dans (.+)$/, (m) => (/\d/.test(m[1]) ? `in ${dur(m[1])}` : null)],
 
   // v9.0
+  [/^à (\d+) : (.+)$/, (m) => `at ${m[1]}: ${tr(m[2])}`],
+  [/^Manquants \((\d+)\)$/, 'Missing ($1)'],
+  [/^Récompense du palier (\d+)$/, 'Reward for tier $1'],
   [/^Musée (\d+)\/(\d+)$/, 'Museum $1/$2'],
   [/^(.+) exposé au Musée$/, (m) => `${tr(m[1])} displayed in the Museum`],
   [/^Butin de (.+)$/, (m) => `Dropped by ${tr(m[1])}`],
