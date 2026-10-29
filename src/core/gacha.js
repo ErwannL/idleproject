@@ -3,6 +3,7 @@
 // Légendaire toutes les 60 au plus. Doublon = +1 étoile (max 5), puis remboursement en gemmes.
 import { BALANCE } from '../data/balance.js';
 import { COMPANIONS } from '../data/companions.js';
+import { HEROES } from '../data/heroes.js';
 import { RARITIES } from '../data/items.js';
 import { rarityIndex } from './loot.js';
 import { trackMissions } from './missions.js';
@@ -22,6 +23,8 @@ export function featuredUnit(pool = 'ally', now = Date.now()) {
 // (héros alliés R/SR/SSR) et des compagnons (familiers).
 // Bassins d'invocation : 'ally' (compagnons humains R/SR/SSR) ou 'pet' (familiers animaux).
 export function summonPool(pool = 'ally') {
+  // v9.0.6 : invocation de héros (skins et chevaliers aux couleurs d'antan).
+  if (pool === 'hero') return HEROES.filter((h) => h.summon).map((h) => ({ kind: 'hero', id: h.id, name: h.name, rarity: h.rarity, ally: true }));
   return COMPANIONS.filter((c) => (c.kind === 'ally') === (pool === 'ally'))
     .map((c) => ({ kind: 'companion', id: c.id, name: c.name, rarity: c.rarity, ally: c.kind === 'ally' }));
 }

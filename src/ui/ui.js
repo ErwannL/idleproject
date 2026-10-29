@@ -518,6 +518,7 @@ export class UI {
       case 'stash-sel': local(() => { v.stashSel = id; }); break;
       case 'hero-tab': local(() => { v.heroTab = value; }); break;
       case 'set-class': a.setHeroClass(value); break;
+      case 'open-summon-hero': local(() => { v.summonPool = 'hero'; }); this.openTab('summon'); break;
       case 'claim-bounty': a.claimBounty(); break;
       case 'toggle-tips': event.preventDefault(); local(() => { v.tipsOpen = v.tipsOpen === false; }); break;
       case 'to-mannequin': a.toMannequin(id); break;
@@ -959,9 +960,9 @@ export class UI {
       case 'tower': return `${JSON.stringify(state.tower)}|${state.towerBest}`;
       // Achat « Max » : le nombre de niveaux abordables change avec l'or.
       case 'upgrades': return this.view.buyAmount === 'max' ? String(Math.floor(Math.log10(state.gold + 1) * 8)) : '';
-      case 'skills': return `${state.level}|${Math.floor(state.xp)}`;
+      case 'skills': return `${state.level}|${Math.floor(state.xp)}|${Object.values(state.rushes.active).map(Math.ceil).join()}|${Object.values(state.rushes.cooldown).map((c) => Math.ceil(c / 10)).join()}`;
       case 'boss': return Object.values(state.powers).map((p) => `${p.victories}${p.charges}${p.pending}`).join();
-      case 'hero': return `${state.level}|${Math.floor(state.xp / 5)}`;
+      case 'hero': return `${state.level}|${Math.floor(state.xp / 5)}|${state.heroes.active}|${Object.keys(state.heroes.owned).length}`;
       case 'encyclopedia': return String(encyclopediaProgress(state).found);
       default: return '';
     }

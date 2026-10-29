@@ -10,6 +10,24 @@
 // --- Dictionnaire exact ---------------------------------------------------------------------------
 
 export const EXACT = {
+  // v9.0.6 : skins de héros
+  "Fée Lumibelle": "Lumibelle the Fairy",
+  "Ses ailes répandent une poussière qui soigne.": "Her wings scatter a healing dust.",
+  "Valkyrie Sigrún": "Sigrún the Valkyrie",
+  "Une armure céleste qui encaisse les coups des boss.": "Celestial armor that shrugs off boss blows.",
+  "Sorcière Morgaline": "Morgaline the Witch",
+  "Apprend plus vite et frappe plus fort.": "Learns faster and hits harder.",
+  "Comte Vladimir": "Count Vladimir",
+  "Chaque coup lui rend de la vie.": "Every hit restores his life.",
+  "Kage le Ninja": "Kage the Ninja",
+  "Frappe vite et touche les points faibles.": "Strikes fast and finds weak spots.",
+  "Lilith la Diablesse": "Lilith the Demoness",
+  "Une puissance de feu dévastatrice.": "Devastating firepower.",
+  "Séraphin Auriel": "Auriel the Seraph",
+  "Lumière": "Light",
+  "Lumière qui protège et brûle les boss.": "Light that shields and burns bosses.",
+  "Roi Grombar": "King Grombar",
+  "Le roi nain : une forteresse vivante qui brise les boss.": "The dwarf king: a living fortress that breaks bosses.",
   // v9.0.6 : classes et armes
   "Arc court": "Short bow",
   "Arc long elfique": "Elven longbow",

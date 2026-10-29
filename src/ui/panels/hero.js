@@ -7,8 +7,9 @@ import { stageLabel } from '../../core/combat.js';
 import { heroById, heroEffects } from '../../core/heroes.js';
 import { xpForLevel } from '../../core/level.js';
 import { computeHeroStats } from '../../core/stats.js';
-import { itemIconUrl, slotIconName } from '../../render/pixel.js';
-import { effectText, escapeHtml, formatDecimal, formatNumber, img, itemFrame, progressBar } from '../common.js';
+import { heroPortraitUrl, itemIconUrl, slotIconName } from '../../render/pixel.js';
+import { HEROES } from '../../data/heroes.js';
+import { effectText, escapeHtml, formatDecimal, formatNumber, img, itemFrame, progressBar, stars } from '../common.js';
 import { animCanvas } from '../animator.js';
 import { DUNGEONS } from '../../data/dungeons.js';
 import { formatDuration } from '../../core/format.js';
@@ -37,11 +38,12 @@ export default {
   icon: 'icon_hero',
   extra: (ui, state) => `Niv. <b class="gold-text">${state.level}</b>`,
   render(ui, state) {
-    const tab = ['class', 'records'].includes(ui.view.heroTab) ? ui.view.heroTab : 'hero';
+    const tab = ['class', 'look', 'records'].includes(ui.view.heroTab) ? ui.view.heroTab : 'hero';
     const btn = (id, icon, label) => `<button class="btn chip-btn${tab === id ? ' active' : ''}" data-action="hero-tab" data-value="${id}">${img(icon)}<span>${label}</span></button>`;
-    const tabs = `<div class="sub-tabs">${btn('hero', 'icon_hero', 'Héros')}${btn('class', 'weapon_sword', 'Classe')}${btn('records', 'icon_trophy', 'Records')}</div>`;
+    const tabs = `<div class="sub-tabs">${btn('hero', 'icon_hero', 'Héros')}${btn('class', 'weapon_sword', 'Classe')}${btn('look', 'icon_summon', 'Apparence')}${btn('records', 'icon_trophy', 'Records')}</div>`;
     if (tab === 'records') return tabs + recordsView(state);
     if (tab === 'class') return tabs + classView(state);
+    if (tab === 'look') return tabs + lookView(state);
     return tabs + heroView(ui, state);
   },
 };
@@ -70,6 +72,24 @@ function classView(state) {
       <div class="muted">Chaque classe a ses armes (les autres ne s'équipent pas), sa portée, sa façon de frapper et ses animations.
       En changeant de classe, l'arme portée est remplacée par la meilleure arme de la classe dans le sac, ou reforgée sans perte de puissance.</div>
       <div class="class-grid">${cards}</div></div>`;
+}
+
+// v9.0.6 : apparences (skins de héros) — invoquées dans Invocation → Héros ; chacune apporte son bonus.
+const GRADE = { common: '', rare: 'R', epic: 'SR', legendary: 'SSR' };
+function lookView(state) {
+  const cards = HEROES.map((h) => {
+    const owned = state.heroes.owned[h.id];
+    const active = state.heroes.active === h.id;
+    return `<div class="look-card r-${h.rarity}${active ? ' active' : ''}${owned ? '' : ' locked'}">
+      <div class="look-pic">${owned ? animCanvas(`hero:${h.id}`, 64, 58, 2) : `<img class="px look-shadow" src="${heroPortraitUrl({}, 2, h.palette, '#2e3a52')}" alt="">`}</div>
+      <div class="look-name">${GRADE[h.rarity] ? `<span class="grade g-${h.rarity}">${GRADE[h.rarity]}</span> ` : ''}${escapeHtml(h.name)}</div>
+      <div class="muted look-role">${escapeHtml(h.title ?? h.role)}</div>
+      <div class="good look-fx">${effectText(h.bonus)}</div>
+      ${owned ? `${stars(owned.stars ?? 1)}${active ? '<span class="class-on">Portée ✓</span>' : `<button class="btn btn-primary small" data-action="set-hero" data-value="${h.id}">Porter</button>`}`
+        : `<button class="btn small" data-action="open-summon-hero">${img('icon_summon')} Invoquer</button>`}</div>`;
+  }).join('');
+  return `<div class="card"><div class="row-between"><div class="section-title">Apparence du héros</div><span class="muted">Le bonus de l'apparence portée s'applique (+20 % par étoile)</span></div>
+    <div class="look-grid">${cards}</div></div>`;
 }
 
 // Records (v8.9) : tous les records et l'historique des runs (Tour, défi de la semaine, donjons) en un écran.

@@ -150,6 +150,23 @@ export function heroComposite(frame, equipment, flash = false, cape = 'a', palet
     canvas = mirrored(heroComposite(frame, equipment, flash, cape, palette));
   } else if (flash) {
     canvas = tinted(heroComposite(frame, equipment, false, cape, palette), '#ffffff', 1);
+  } else if (palette?.skin && SPRITES[`skin_${palette.skin}_idle`]) {
+    // v9.0.6 : skin de héros — personnage complet dessiné ; seule l'arme portée s'y ajoute.
+    canvas = createCanvas(HERO_SIZE.w, HERO_SIZE.h);
+    const ctx = canvas.getContext('2d');
+    const name = SPRITES[`skin_${palette.skin}_${frame}`] ? `skin_${palette.skin}_${frame}` : `skin_${palette.skin}_idle`;
+    const body = SPRITES[name];
+    const { x: ox, y: oy } = BODY_OFFSET;
+    ctx.drawImage(spriteCanvas(name), ox, oy + (body.oy ?? 0));
+    const weapon = equipment.weapon;
+    if (weapon) {
+      const wname = itemSpriteName(weapon);
+      const def = SPRITES[wname];
+      const turns = Math.round((body.rot ?? 0) / 90) % 4;
+      const img = spriteCanvas(wname, { colors: itemColors(weapon), rotate: turns });
+      const grip = rotatedGrip(def.grip, def.rows[0].length, def.rows.length, turns);
+      ctx.drawImage(img, ox + body.hand.x - grip.x, oy + body.hand.y - grip.y);
+    }
   } else {
     canvas = createCanvas(HERO_SIZE.w, HERO_SIZE.h);
     const ctx = canvas.getContext('2d');

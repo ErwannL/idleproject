@@ -1735,3 +1735,95 @@ table.records td { padding: 2px 4px; border-top: 1px solid rgba(255, 255, 255, 0
 .adv-summary { display: flex; flex-direction: column; gap: 5px; border-color: var(--gold-2, #d9a441); }
 .adv-zone { font-size: 15px; font-weight: 800; color: var(--gold-text, #f2d083); }
 .adv-tips { gap: 4px; }
+
+/* --- v9.0.6 : Compétences façon Tap Titans (Sorts, Boosts) ------------------------------------------------- */
+.tt-head { display: flex; align-items: baseline; gap: 8px; margin-top: 2px; }
+.tt-head .toggle { margin-left: auto; }
+.tt-title { font-size: 15px; font-weight: 900; color: var(--gold-text, #f2d083); letter-spacing: 0.04em; text-transform: uppercase; }
+.tt-list { display: flex; flex-direction: column; gap: 4px; }
+.tt-row { display: flex; align-items: center; gap: 8px; padding: 5px 6px; border-radius: 6px; background: linear-gradient(#1b2640, #131b30);
+  border: 1px solid #2a3654; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); }
+.tt-row.locked { opacity: 0.6; }
+.tt-icon { flex: none; width: 46px; height: 46px; display: grid; place-items: center; border-radius: 6px; border: 2px solid var(--rush, #3a4a7a);
+  background: radial-gradient(circle, color-mix(in srgb, var(--rush, #3a5a9a) 35%, #16203a), #0b1020 80%); }
+.tt-icon img { width: 32px; height: 32px; image-rendering: pixelated; }
+.tt-main { flex: 1; min-width: 0; }
+.tt-name { font-weight: 800; font-size: 13.5px; }
+.tt-lv { font-size: 11px; color: var(--muted, #8fa0c0); font-weight: 700; }
+.tt-effect { font-size: 12px; color: #dfe9ff; }
+.tt-next { color: var(--good, #63d98a); font-weight: 700; }
+.tt-sub { font-size: 10.5px; color: var(--muted, #8fa0c0); }
+.tt-btn { flex: none; width: 104px; min-height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  border-radius: 5px; border: 2px solid rgba(0, 0, 0, 0.45); font: inherit; font-weight: 900; font-size: 13px; color: #fff; cursor: pointer;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6); box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -3px 0 rgba(0, 0, 0, 0.25); line-height: 1.1; }
+.tt-btn small { font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; gap: 3px; }
+.tt-btn small img { width: 12px; height: 12px; }
+.tt-btn span { text-align: center; }
+.tt-btn img { width: 14px; height: 14px; }
+.tt-up { background: linear-gradient(#ff9d2e, #e0731a); }
+.tt-use { background: linear-gradient(#5fcf4a, #3a9a2f); }
+.tt-active { background: linear-gradient(#4fb0ff, #2f74c9); }
+.tt-wait, .tt-locked, .tt-max { background: linear-gradient(#5a6478, #3c4458); color: #dfe3ec; font-size: 11px; }
+.tt-btn:disabled { cursor: default; filter: saturate(0.6) brightness(0.85); }
+.tt-btn.tt-active:disabled, .tt-btn.tt-wait:disabled { filter: none; }
+.tt-btn:not(:disabled):hover { filter: brightness(1.12); }
+.tt-small { width: 92px; }
+.layout-mini .tt-btn { width: 86px; min-height: 38px; font-size: 12px; }
+.layout-mini .tt-icon { width: 38px; height: 38px; }
+/* v9.0.6 : apparences (skins de héros). */
+.look-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; margin-top: 6px; }
+.look-card { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px; border-radius: 6px; text-align: center;
+  border: 2px solid color-mix(in srgb, var(--rarity) 55%, #1d2742); background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--rarity) 22%, #16203a), #0b1020 80%); }
+.look-card.active { box-shadow: 0 0 0 1px var(--rarity) inset, 0 0 12px -2px var(--rarity); }
+.look-card.locked .look-name, .look-card.locked .look-fx { opacity: 0.6; }
+.look-pic { height: 96px; display: grid; place-items: end center; }
+.look-pic canvas.anim { height: 96px; width: auto; }
+.look-pic img { height: 80px; image-rendering: pixelated; }
+.look-name { font-weight: 800; font-size: 12.5px; }
+.look-role, .look-fx { font-size: 10.5px; line-height: 1.2; }
+.look-card .class-on { color: var(--rarity); }
+.look-name .grade { position: static; }
+
+/* --- v9.0.6 : bannière du héros en vedette (Invocation → Héros) ---------------------------------------- */
+.hero-banner { position: relative; display: grid; grid-template-columns: minmax(220px, 1.1fr) minmax(200px, 1.3fr) 92px; gap: 8px; min-height: 250px;
+  padding: 10px 10px 8px; border-radius: 8px; overflow: hidden; border: 2px solid #c98a2a;
+  background:
+    radial-gradient(ellipse at 58% 72%, rgba(255, 140, 40, 0.55), transparent 55%),
+    radial-gradient(ellipse at 58% 100%, rgba(255, 70, 20, 0.6), transparent 45%),
+    linear-gradient(160deg, #3a1610, #1b0d14 55%, #0e0a18);
+  box-shadow: inset 0 0 40px rgba(255, 120, 40, 0.25), 0 0 14px -4px #ff8a3a; }
+.hero-banner::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(circle at 20% 80%, rgba(255, 200, 80, 0.5) 0 1px, transparent 2px) 0 0 / 37px 41px,
+              radial-gradient(circle at 70% 30%, rgba(255, 160, 60, 0.6) 0 1px, transparent 2px) 0 0 / 53px 47px;
+  animation: hb-embers 6s linear infinite; opacity: 0.8; }
+@keyframes hb-embers { to { background-position: 0 -200px, 0 -260px; } }
+html.fx-calm .hero-banner::after { animation: none; }
+.hb-left { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 6px; }
+.hb-ribbon { align-self: flex-start; padding: 3px 14px; font-weight: 900; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #ffe8b0;
+  background: linear-gradient(#b8282a, #7a1418); border: 1px solid #ffcf6a; border-radius: 3px; box-shadow: 0 2px 0 #3a0a0c; }
+.hb-titlerow { display: flex; align-items: center; gap: 8px; }
+.hb-ssr { font-size: 38px; font-weight: 900; font-style: italic; line-height: 1; color: #ffd84a; letter-spacing: -0.02em;
+  text-shadow: 0 0 10px rgba(255, 200, 60, 0.7), 2px 2px 0 #8a4a10, -1px -1px 0 #fff3b0; }
+.hb-name { font-size: 24px; font-weight: 900; line-height: 1.05; color: #fff6dc; text-shadow: 0 2px 0 #3a1408, 0 0 10px rgba(255, 170, 70, 0.6); }
+.hb-sub { font-size: 13px; font-weight: 800; color: #ffcf6a; }
+.hb-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.hb-tags span { padding: 2px 9px; border-radius: 4px; font-size: 11.5px; font-weight: 800; color: #fff; background: linear-gradient(#2a3a66, #18223e); border: 1px solid #5a74b8; }
+.hb-perks { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 4px; }
+.hb-perk { display: flex; align-items: center; gap: 4px; padding: 3px 5px; border-radius: 5px; font-size: 11px; font-weight: 700; color: #ffe9c0;
+  background: linear-gradient(#5a2a14, #2e1410); border: 1px solid #c9762a; }
+.hb-perk img { width: 20px; height: 20px; image-rendering: pixelated; flex: none; }
+.hb-quote { font-style: italic; font-size: 13px; color: #fff1d0; padding: 4px 8px; background: rgba(0, 0, 0, 0.35); border-left: 3px solid #ffcf6a; border-radius: 3px; }
+.hb-note { font-size: 10.5px; }
+.hb-stage { position: relative; z-index: 1; display: grid; place-items: end center; }
+.hb-stage::before { content: ''; position: absolute; bottom: 4px; left: 50%; width: 70%; height: 22px; transform: translateX(-50%);
+  border-radius: 50%; background: radial-gradient(ellipse, rgba(255, 180, 80, 0.75), rgba(255, 90, 30, 0.25) 60%, transparent 72%); }
+.hb-stage canvas.anim { position: relative; height: 240px; width: auto; filter: drop-shadow(0 0 8px rgba(255, 150, 60, 0.6)); }
+.hb-side { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 4px; }
+.hb-side-title { font-size: 9.5px; font-weight: 900; color: #ffe8b0; text-transform: uppercase; text-align: center; }
+.hb-thumb { position: relative; height: 38px; display: grid; place-items: end center; overflow: hidden; border-radius: 5px; border: 2px solid var(--rarity);
+  background: radial-gradient(circle, color-mix(in srgb, var(--rarity) 35%, #16203a), #0b1020 80%); }
+.hb-thumb.on { box-shadow: 0 0 0 1px #fff inset, 0 0 8px var(--rarity); }
+.hb-thumb canvas.anim { height: 36px; width: auto; }
+@container (max-width: 640px) { .hero-banner { grid-template-columns: 1fr 1fr; } .hb-side { display: none; } .hb-stage canvas.anim { height: 170px; } }
+.layout-mini .hero-banner { grid-template-columns: 1fr 1fr; min-height: 0; } .layout-mini .hb-side { display: none; }
+.layout-mini .hb-stage canvas.anim { height: 150px; } .layout-mini .hb-name { font-size: 18px; } .layout-mini .hb-ssr { font-size: 28px; }
