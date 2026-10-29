@@ -11,6 +11,7 @@ import { currentEncounter } from '../core/combat.js';
 import { companionById, equippedCompanions } from '../core/companions.js';
 import { formatNumber } from '../core/format.js';
 import { activeHero } from '../core/heroes.js';
+import { activeClass } from '../core/classes.js';
 import { BG } from './bg.js';
 import { FONT_BIG, SPRITES } from './sprites.js';
 import { HERO_ANCHOR, drawBigText, heroComposite, itemDropCanvas, spriteCanvas, textWidth } from './pixel.js';
@@ -87,6 +88,23 @@ function mixColor(a, b, t) {
   return color;
 }
 
+// Silhouette teintée d'un canvas (images rémanentes), avec cache par canvas.
+const ghostCache = new WeakMap();
+function spriteCanvasTint(source, color) {
+  let c = ghostCache.get(source);
+  if (c) return c;
+  c = document.createElement('canvas');
+  c.width = source.width;
+  c.height = source.height;
+  const g = c.getContext('2d');
+  g.drawImage(source, 0, 0);
+  g.globalCompositeOperation = 'source-atop';
+  g.fillStyle = color;
+  g.fillRect(0, 0, c.width, c.height);
+  ghostCache.set(source, c);
+  return c;
+}
+
 function rarityColor(id) {
   return RARITIES.find((r) => r.id === id)?.color ?? '#ffffff';
 }
@@ -101,7 +119,7 @@ export class SceneRenderer {
     this.time = 0;
     this.effects = [];
     this.enemyFx = new Map();
-    this.hero = { attack: 0, hurt: 0, victory: 0, respawn: 0, deathTime: 0, cast: 0 };
+    this.hero = { attack: 0, hurt: 0, victory: 0, respawn: 0, deathTime: 0, cast: 0, dash: 0, dashTo: 0, shoot: 0, aim: 0, shadow: 0 };
     this.allyAttack = new Map();
     this.shake = 0;
     this.zoneFade = 0;
@@ -155,9 +173,19 @@ export class SceneRenderer {
     switch (event.type) {
       case 'heroAttack': {
         this.hero.attack = ATTACK_TIME;
+        // v9.0.6 : chaque classe a sa propre attaque (voir classAttack()).
+        if (event.kind && event.kind !== 'slash') {
+          // Tir et magie : pas d'élan d'épée (poses de tir / de sort à la place).
+          if (['arrow', 'bolt', 'fireball', 'lightning', 'soul'].includes(event.kind)) this.hero.attack = 0;
+          this.classAttack(event);
+          break;
+        }
+        this.hero.dash = ATTACK_TIME;
+        this.hero.dashTo = event.x;
         // Arc de taille dessiné (bleu, ou doré et plus grand sur un coup critique), puis impact.
-        if (event.crit) this.sprite(['fx_slash_crit'], heroX + 18, this.groundY + 4, 0.22, { delay: 0.07, tint: '#ffd23f' });
-        else this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], heroX + 14, this.groundY + 1, 0.18, { delay: 0.07 });
+        const sx = this.dashReach(event.x);
+        if (event.crit) this.sprite(['fx_slash_crit'], heroX + 18 + sx, this.groundY + 4, 0.22, { delay: 0.07, tint: '#ffd23f' });
+        else this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], heroX + 14 + sx, this.groundY + 1, 0.18, { delay: 0.07 });
         this.sprite(['fx_hit'], event.x - 4, this.groundY - 10, 0.14, { delay: 0.1, tint: event.crit ? '#ffd23f' : null });
         if (event.boss) this.shake = Math.max(this.shake, 1);
         this.burst(event.x - 6, this.groundY - 12, event.crit ? '#ffd23f' : '#ffffff', event.crit ? 8 : 4);
@@ -301,6 +329,131 @@ export class SceneRenderer {
     }
   }
 
+  // v9.0.6 : distance du bond vers la cible (corps à corps) — le héros avance vers l'ennemi pour frapper.
+  dashReach(targetX) {
+    return Math.max(0, Math.min(26, targetX - HERO_X - 22));
+  }
+
+  // Projectile qui vole de (x0, y0) à (x1, y1) en `time` secondes (en cloche si `arc` > 0), puis effet d'impact.
+  projectile(frames, x0, y0, x1, y1, time, { arc = 0, delay = 0, rotate = 0, impact = null } = {}) {
+    this.effects.push({ kind: 'proj', frames, x0, y0, x1, y1, arc, rotate, life: time + delay, max: time, delay });
+    if (impact) impact(delay + time);
+  }
+
+  // v9.0.6 : attaques de classe — arc et flèches, arbalète, boules de feu et météore, éclairs en chaîne, âmes,
+  // estoc du lancier, fente du berserker, lumière du paladin, pas de l'ombre de l'assassin.
+  classAttack(event) {
+    const G = this.groundY;
+    const hx = HERO_X + 10;
+    const hy = G - 19;
+    const tx = event.x;
+    const others = (event.targets ?? []).map((t) => ({ ...t, x: this.wx(t.x) }));
+    const crit = event.crit;
+    switch (event.kind) {
+      case 'arrow': {
+        this.hero.shoot = ATTACK_TIME;
+        const frames = crit ? ['fx_arrow_fire1', 'fx_arrow_fire2'] : ['fx_arrow'];
+        const time = Math.max(0.08, (tx - hx) / 420);
+        this.projectile(frames, hx, hy, tx, G - 12, time, { arc: 4, impact: (d) => this.sprite(['fx_hit'], tx, G - 4, 0.15, { delay: d }) });
+        if (event.special === 'volley') {
+          // Pluie de flèches : une gerbe tirée vers le ciel, puis des flèches qui retombent sur chaque cible.
+          for (let i = 0; i < 3; i++) this.projectile(['fx_arrow'], hx, hy, hx + 30 + i * 6, G - 80, 0.18, { delay: 0.05 * i, rotate: 3 });
+          const spots = others.length ? others : [{ x: tx }];
+          spots.forEach((t, i) => {
+            for (let j = 0; j < 3; j++) {
+              const x = t.x - 8 + j * 8;
+              this.projectile(['fx_arrow'], x - 10, G - 90, x, G - 4, 0.22, { delay: 0.3 + i * 0.06 + j * 0.04, rotate: 1, impact: (d) => this.sprite(['fx_spark'], x, G, 0.15, { delay: d }) });
+            }
+          });
+        }
+        break;
+      }
+      case 'bolt': {
+        this.hero.aim = ATTACK_TIME;
+        const time = Math.max(0.05, (tx - hx) / 700);
+        const far = others.length ? Math.max(...others.map((t) => t.x)) + 16 : tx;
+        this.projectile(['fx_bolt'], hx + 4, G - 21, Math.max(far, tx), G - 21, time * (Math.max(far, tx) - hx) / Math.max(1, tx - hx));
+        for (const t of [{ x: tx }, ...others]) this.sprite(['fx_hit'], t.x, G - 8, 0.15, { delay: time });
+        this.shake = Math.max(this.shake, 1);
+        break;
+      }
+      case 'fireball': {
+        this.hero.cast = CAST_TIME;
+        const time = Math.max(0.12, (tx - hx) / 260);
+        this.projectile(['fx_fireball1', 'fx_fireball2'], hx + 2, hy - 6, tx, G - 10, time, { arc: 10, impact: (d) => {
+          this.sprite(['fx_burst'], tx, G + 2, 0.35, { delay: d, tint: '#ff7a2a' });
+          for (const t of others) this.sprite(['fx_spark'], t.x, G - 6, 0.25, { delay: d + 0.05, tint: '#ffb43a' });
+        } });
+        if (event.special === 'meteor') {
+          const mx = others.length ? (tx + Math.max(...others.map((t) => t.x))) / 2 : tx;
+          this.projectile(['fx_meteor'], mx - 60, -10, mx, G - 4, 0.45, { delay: 0.1, impact: (d) => {
+            this.sprite(['fx_burst'], mx, G + 4, 0.5, { delay: d, tint: '#ff4a1a' });
+            this.sprite(['fx_burst'], mx - 14, G + 2, 0.4, { delay: d + 0.05, tint: '#ffb43a' });
+            this.sprite(['fx_burst'], mx + 14, G + 2, 0.4, { delay: d + 0.08, tint: '#ffb43a' });
+            setTimeout(() => { this.shake = Math.max(this.shake, 4); }, d * 1000);
+          } });
+        }
+        break;
+      }
+      case 'lightning': {
+        this.hero.cast = CAST_TIME;
+        const pts = [{ x: hx + 4, y: hy - 8 }, { x: tx, y: G - 10 }, ...others.map((t) => ({ x: t.x, y: G - 10 }))];
+        this.effects.push({ kind: 'zap', pts, life: 0.22, max: 0.22, color: '#bfe8ff' });
+        for (const p of pts.slice(1)) this.sprite(['fx_spark'], p.x, G - 4, 0.2, { tint: '#9fe0ff' });
+        break;
+      }
+      case 'soul': {
+        this.hero.cast = CAST_TIME;
+        const time = Math.max(0.15, (tx - hx) / 200);
+        this.projectile(['fx_soul1', 'fx_soul2'], hx, hy - 4, tx, G - 12, time, { arc: -8, impact: (d) => {
+          this.sprite(['fx_burst'], tx, G + 2, 0.3, { delay: d, tint: '#5fe0a0' });
+          for (const t of others) this.sprite(['fx_spark'], t.x, G - 6, 0.25, { delay: d, tint: '#5fe0a0' });
+        } });
+        break;
+      }
+      case 'thrust': {
+        this.hero.dash = ATTACK_TIME;
+        this.hero.dashTo = tx;
+        const far = others.length ? Math.max(...others.map((t) => t.x)) : tx;
+        this.effects.push({ kind: 'streak', x0: hx + 16, x1: far + 6, y: G - 18, color: '#cfefff', life: 0.24, max: 0.16 });
+        this.sprite(['fx_hit'], tx, G - 6, 0.15, { delay: 0.1 });
+        for (const t of others) this.sprite(['fx_hit'], t.x, G - 6, 0.15, { delay: 0.12 });
+        break;
+      }
+      case 'cleave': {
+        this.hero.dash = ATTACK_TIME;
+        this.hero.dashTo = tx;
+        const sx = this.dashReach(tx);
+        this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], HERO_X + 16 + sx, G + 3, 0.22, { delay: 0.07, tint: '#ff4a3a' });
+        if (crit) this.sprite(['fx_slash_crit'], HERO_X + 18 + sx, G + 4, 0.22, { delay: 0.1, tint: '#ff7a3a' });
+        for (const t of others) this.sprite(['fx_slash2', 'fx_slash3'], t.x - 4, G + 1, 0.16, { delay: 0.12, tint: '#ff4a3a' });
+        this.shake = Math.max(this.shake, 1.5);
+        break;
+      }
+      case 'smite': {
+        this.hero.dash = ATTACK_TIME;
+        this.hero.dashTo = tx;
+        const sx = this.dashReach(tx);
+        this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], HERO_X + 14 + sx, G + 1, 0.2, { delay: 0.07, tint: '#ffe27a' });
+        this.effects.push({ kind: 'beam', x: Math.round(tx), color: '#fff2a8', life: 0.35, max: 0.35, wide: false });
+        for (const t of others) this.sprite(['fx_spark'], t.x, G - 6, 0.2, { delay: 0.1, tint: '#ffe27a' });
+        break;
+      }
+      case 'shadow': {
+        // Pas de l'ombre : le héros surgit contre sa cible, laissant des images rémanentes violettes.
+        this.hero.dash = ATTACK_TIME;
+        this.hero.dashTo = tx;
+        this.hero.shadow = ATTACK_TIME;
+        const sx = this.dashReach(tx);
+        this.sprite(['fx_slash2', 'fx_slash3'], HERO_X + 16 + sx, G + 1, 0.12, { delay: 0.04, tint: '#b07bff' });
+        this.sprite(['fx_slash1', 'fx_slash3'], HERO_X + 18 + sx, G - 2, 0.12, { delay: 0.12, tint: crit ? '#ffd23f' : '#d8b8ff' });
+        break;
+      }
+      default:
+        this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], HERO_X + 14, G + 1, 0.18, { delay: 0.07 });
+    }
+  }
+
   // Effet dessiné (images d'un sprite jouées sur `life` secondes), centré en x, posé sur y.
   sprite(frames, x, y, life, { delay = 0, tint = null, vx = 0 } = {}) {
     this.effects.push({ kind: 'sprite', frames, x, y, life: life + delay, max: life, delay, tint, vx });
@@ -345,6 +498,7 @@ export class SceneRenderer {
     }
     for (const key of ['attack', 'hurt', 'victory', 'cast']) this.hero[key] = Math.max(0, this.hero[key] - dt);
     this.hero.respawn = Math.max(0, this.hero.respawn - dt);
+    for (const k of ['dash', 'shoot', 'aim', 'shadow']) this.hero[k] = Math.max(0, this.hero[k] - dt);
     this.hero.deathTime += dt;
 
     ctx.setTransform(this.k, 0, 0, this.k, 0, 0);
@@ -565,7 +719,12 @@ export class SceneRenderer {
     }
 
     // Animation : attaque en trois temps (élan, frappe, suite), sort, coup reçu, victoire, marche, respiration.
+    // v9.0.6 : les tireurs gardent la pose de visée tant qu'un ennemi est à portée (l'arbalète est tenue à l'horizontale).
+    const style = activeClass(state).style;
+    const engaged = !hero.walking && world.enemies.length > 0;
     let frame = ['idle', 'idle2'][Math.floor(this.time * 2) % 2];
+    if (style === 'ranged' && engaged && activeClass(state).id === 'archer') frame = this.hero.shoot > ATTACK_TIME - 0.14 ? 'shoot' : 'aim';
+    else if (style === 'ranged' && engaged) frame = 'attack2';
     if (this.hero.attack > 0) {
       const t = ATTACK_TIME - this.hero.attack;
       frame = t < 0.07 ? 'attack1' : t < 0.17 ? 'attack2' : 'attack3';
@@ -582,7 +741,21 @@ export class SceneRenderer {
       : ['a', 'b'][Math.floor(this.time * 2.5) % 2];
     const img = heroComposite(frame, state.equipment, this.hero.hurt > 0.1, cape, palette);
     const jump = this.hero.victory > 0 ? Math.round(Math.abs(Math.sin(this.hero.victory * Math.PI * 2.5)) * 6) : 0;
-    const lean = frame === 'attack2' ? 2 : frame === 'hurt' ? -2 : 0;
+    // v9.0.6 : corps à corps — le héros bondit vers l'ennemi pour frapper puis revient (aller-retour en cloche).
+    const dashK = this.hero.dash > 0 ? Math.sin((1 - this.hero.dash / ATTACK_TIME) * Math.PI) : 0;
+    const dash = Math.round(this.dashReach(this.hero.dashTo) * dashK);
+    const recoil = this.hero.aim > ATTACK_TIME - 0.08 ? -1 : 0;
+    const lean = (frame === 'attack2' && style !== 'ranged' ? 2 : frame === 'hurt' ? -2 : 0) + dash + recoil;
+    if (this.hero.shadow > 0 && dash > 4) {
+      // Assassin : images rémanentes violettes le long du bond.
+      const ghost = heroComposite(frame, state.equipment, false, cape, palette);
+      const tintGhost = spriteCanvasTint(ghost, '#a070ff');
+      for (const f of [0.35, 0.7]) {
+        ctx.globalAlpha = 0.35 * (1 - f / 2);
+        ctx.drawImage(tintGhost, baseX + Math.round(dash * f), baseY - jump);
+      }
+      ctx.globalAlpha = 1;
+    }
 
     this.drawShadow(ctx, HERO_X, 22);
     // Cri de guerre : aura dorée ; Rempart du golem : aura bleue (flammes d'énergie derrière le chevalier).
@@ -596,7 +769,7 @@ export class SceneRenderer {
     ctx.drawImage(img, baseX + lean, baseY - jump);
 
     const stats = world.heroStats;
-    if (stats) this.drawBar(ctx, HERO_X - 11, baseY - 2 - jump, 22, hero.hp / stats.maxHp, '#5ad07a');
+    if (stats) this.drawBar(ctx, HERO_X - 11 + dash, baseY - 2 - jump, 22, hero.hp / stats.maxHp, '#5ad07a');
   }
 
   // Compagnons : suivent le chevalier, les volants planent au-dessus de son épaule.
@@ -839,6 +1012,53 @@ export class SceneRenderer {
           const x = fx.x + fx.vx * (fx.max - fx.life);
           ctx.globalAlpha = Math.min(1, t * 4);
           ctx.drawImage(img, this.snap(x - img.width / 2), Math.round(fx.y - img.height));
+          break;
+        }
+        case 'proj': {
+          if (fx.life > fx.max) break; // pas encore parti
+          const k = 1 - t;
+          const name = fx.frames[Math.floor(this.time * 12) % fx.frames.length];
+          const img = spriteCanvas(name, fx.rotate ? { rotate: fx.rotate } : {});
+          const x = fx.x0 + (fx.x1 - fx.x0) * k;
+          const y = fx.y0 + (fx.y1 - fx.y0) * k - Math.sin(k * Math.PI) * fx.arc;
+          ctx.globalAlpha = 1;
+          ctx.drawImage(img, Math.round(x - img.width / 2), Math.round(y - img.height / 2));
+          break;
+        }
+        case 'zap': {
+          // Éclair en zigzag (redessiné à chaque image : il crépite), du héros vers chaque cible.
+          ctx.globalAlpha = Math.min(1, t * 2);
+          for (let i = 1; i < fx.pts.length; i++) {
+            const a = fx.pts[i - 1];
+            const b = fx.pts[i];
+            let px = a.x;
+            let py = a.y;
+            const n = Math.max(3, Math.round(Math.abs(b.x - a.x) / 6));
+            for (let j = 1; j <= n; j++) {
+              const nx = a.x + ((b.x - a.x) * j) / n;
+              const ny = a.y + ((b.y - a.y) * j) / n + (j < n ? (Math.random() - 0.5) * 8 : 0);
+              const steps = Math.max(1, Math.round(Math.hypot(nx - px, ny - py)));
+              for (let q = 0; q <= steps; q++) {
+                const xx = Math.round(px + ((nx - px) * q) / steps);
+                const yy = Math.round(py + ((ny - py) * q) / steps);
+                ctx.fillStyle = '#3f8cff';
+                ctx.fillRect(xx - 1, yy - 1, 3, 3);
+                ctx.fillStyle = fx.color;
+                ctx.fillRect(xx, yy, 1, 1);
+              }
+              px = nx;
+              py = ny;
+            }
+          }
+          break;
+        }
+        case 'streak': {
+          if (fx.life > fx.max) break;
+          ctx.globalAlpha = t;
+          ctx.fillStyle = fx.color;
+          ctx.fillRect(Math.round(fx.x0), Math.round(fx.y), Math.round(fx.x1 - fx.x0), 1);
+          ctx.globalAlpha = t * 0.5;
+          ctx.fillRect(Math.round(fx.x0), Math.round(fx.y) - 1, Math.round(fx.x1 - fx.x0), 3);
           break;
         }
         case 'ring': {
