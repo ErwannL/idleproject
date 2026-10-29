@@ -5,7 +5,35 @@ import { bossesForStage, bossTierForStage, cycleForStage, stageLabel, stagesPerC
 import { BOSSES } from '../../data/enemies.js';
 
 const TIER_LABELS = { mini: 'Mini-boss', mid: 'Boss', hard: 'Boss redoutable', mega: 'MÉGA BOSS' };
-import { bossForecast, escapeHtml, forecastHtml, img } from '../common.js';
+import { bossForecast, escapeHtml, forecastHtml, img, progressBar } from '../common.js';
+import { advice } from '../../core/guide.js';
+
+// v9.0.6 : écran Aventure — « où j'en suis » en un coup d'œil : monde et étape, prochain boss, prévision,
+// avance automatique et la prochaine chose utile à faire (un clic ouvre le bon écran).
+function summary(state) {
+  if (state.dungeon || state.tower || state.challenge) {
+    return `<div class="card adv-summary"><b>${state.dungeon ? 'Donjon en cours' : state.tower ? 'Tour de l\'Éternité en cours' : 'Défi de la semaine en cours'}</b>
+      <span class="muted">— la campagne reprend à la fin (bouton rouge sous la scène pour revenir).</span></div>`;
+  }
+  const zi = zoneIndexForStage(state.stage);
+  const zone = ZONES[zi];
+  const first = Math.floor((state.stage - 1) / stagesPerCycle()) * stagesPerCycle() + zoneStartStage(zi);
+  const pos = state.stage - first + 1;
+  const len = zoneLength(zone);
+  let next = state.stage;
+  while (!bossTierForStage(next) && next < first + len) next++;
+  const tier = bossTierForStage(next);
+  const boss = tier ? BOSSES[bossesForStage(next)[0]] : null;
+  const tips = advice(state).map((t) => `<button class="chip chip-btn" data-action="open-tab" data-value="${t.tab}">💡 ${escapeHtml(t.text)}</button>`).join('');
+  return `<div class="card adv-summary">
+      <div class="row-between"><div><div class="adv-zone">${zi + 1}. ${escapeHtml(zone.name)}</div>
+        <div class="muted">Étape ${pos} / ${len}${boss ? ` · ${next === state.stage ? 'boss en cours' : `prochain boss dans ${next - state.stage} étape${next - state.stage > 1 ? 's' : ''}`} : <b>${escapeHtml(boss.name)}</b> (${TIER_LABELS[tier]})` : ''}</div></div>
+        <div class="adv-auto">${state.autoAdvance ? '<span class="good">▶ Avance automatique</span>' : '<button class="btn btn-primary small" data-action="advance">Avancer ▶</button>'}</div></div>
+      ${progressBar(pos / len, `${pos} / ${len}`)}
+      ${forecastHtml(bossForecast(state))}
+      ${tips ? `<div class="chip-row adv-tips">${tips}</div>` : ''}
+    </div>`;
+}
 
 // Positions des zones sur la carte peinte (assets/ui/worldmap.png, générée par tools/art/worldmap.py).
 // (tools/art/worldmap_nodes.json, positions relatives des 11 régions sur la carte peinte)
@@ -106,7 +134,7 @@ export default {
         <span class="muted" title="Ctrl + molette pour zoomer, glisser pour déplacer">${Math.round(zoom * 100)} %</span>
         <button class="btn small" data-action="map-zoom" data-value="in" title="Zoomer">+</button>
         <button class="btn small" data-action="map-zoom" data-value="reset" title="Taille normale">⟲</button></div>`;
-    return `${cycles}${tools}<div class="map-viewport" data-sel="${sel}"><div class="world-map" style="width:${Math.round(MAP_PX * zoom)}px">
+    return `${summary(state)}${cycles}${tools}<div class="map-viewport" data-sel="${sel}"><div class="world-map" style="width:${Math.round(MAP_PX * zoom)}px">
       <img class="px" src="assets/ui/worldmap.png" alt="Carte du monde">${markers}</div></div>
       <div class="card zone-card">
         <div class="row-between"><b>${sel + 1}. ${escapeHtml(ZONES[sel].name)}${cycle ? ` <span class="bad">×${cycle + 1}</span>` : ''}</b>

@@ -121,8 +121,8 @@ await check('onglets avec icône et état actif distinct', async () => {
     menu: b.dataset.menu, icon: b.querySelector('img')?.naturalWidth > 0, active: b.classList.contains('active'),
     hidden: b.classList.contains('hidden'),
   })));
-  assert(tabs.length === 6 && tabs.every((t) => t.icon && !t.hidden), JSON.stringify(tabs));
-  assert(tabs.filter((t) => t.active).map((t) => t.menu).join() === 'gear', JSON.stringify(tabs));
+  assert(tabs.length === 5 && tabs.every((t) => t.icon && !t.hidden), JSON.stringify(tabs));
+  assert(tabs.filter((t) => t.active).map((t) => t.menu).join() === 'character', JSON.stringify(tabs));
   // Sous-onglets débloqués progressivement : compagnons, arbre, donjons, tour et boss cachés en début de partie.
   const hidden = await game(() => Object.entries(__idle.ui.tabVisible).filter(([, v]) => v === false).map(([k]) => k).sort().join());
   assert(hidden === 'boss,companions,dungeons,tower,tree', `sous-onglets cachés : ${hidden}`);
@@ -351,9 +351,9 @@ await check('vitesse ×10 : l’inventaire reste cliquable (pas de redessin pend
 });
 
 await check('clavier : onglet par touche, flèches entre les boutons, Entrée maintenue = achat en continu', async () => {
-  await game(() => { __idle.state.gold += 1e40; __idle.ui.closePanel(); __idle.ui.lastSub = {}; });
+  await game(() => { __idle.state.gold += 1e40; __idle.ui.closePanel(); __idle.ui.lastSub = { character: 'upgrades' }; });
   await page.click('#scene', { position: { x: 5, y: 5 } }).catch(() => {});
-  await page.keyboard.press('1');
+  await page.keyboard.press('2'); // v9.0.6 : 2e catégorie = Personnage
   await page.waitForTimeout(300);
   const tab = await game(() => __idle.ui.tab);
   assert(tab === 'upgrades', `onglet ${tab}`);

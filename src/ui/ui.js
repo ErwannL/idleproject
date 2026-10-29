@@ -63,17 +63,16 @@ const PANELS = Object.fromEntries([upgrades, inventory, hero, companions, skills
   .map((p) => [p.id, p]));
 // v9.0.6 : 6 menus regroupant les panneaux (sous-onglets en haut du panneau).
 export const MENUS = [
-  { id: 'hero', label: 'Héros', tabs: ['upgrades', 'skills', 'tree', 'hero'] },
-  { id: 'gear', label: 'Équipement', tabs: ['inventory'] },
-  { id: 'team', label: 'Équipe', tabs: ['companions', 'summon'] },
-  { id: 'adventure', label: 'Aventure', tabs: ['campaign', 'dungeons', 'tower'] },
-  { id: 'collection', label: 'Collection', tabs: ['boss', 'encyclopedia'] },
-  { id: 'missions', label: 'Missions', tabs: ['contracts', 'inbox'] },
-];
+  { id: 'adventure', label: 'Aventure', tabs: ['campaign'] },
+  { id: 'character', label: 'Personnage', tabs: ['inventory', 'hero', 'upgrades', 'skills', 'companions'] },
+  { id: 'summon', label: 'Invocation', tabs: ['summon'] },
+  { id: 'events', label: 'Événements', tabs: ['dungeons', 'tower', 'contracts'] },
+  { id: 'progress', label: 'Progression', tabs: ['tree', 'boss', 'encyclopedia'] },
+]
 const SUB_LABELS = {
-  upgrades: 'Améliorer', skills: 'Compétences', tree: 'Arbre', hero: 'Héros', inventory: 'Inventaire',
-  companions: 'Équipe', summon: 'Invocation', campaign: 'Carte', dungeons: 'Donjons', tower: 'Tour',
-  boss: 'Boss', encyclopedia: 'Encyclopédie', contracts: 'Missions', inbox: 'Récompenses',
+  upgrades: 'Améliorations', skills: 'Compétences', tree: 'Renaissance', hero: 'Héros', inventory: 'Équipement',
+  companions: 'Compagnons', summon: 'Invocation', campaign: 'Carte', dungeons: 'Donjons', tower: 'Tour',
+  boss: 'Boss ancestraux', encyclopedia: 'Collections', contracts: 'Missions', inbox: 'Récompenses',
 };
 const SUB_ICONS = {
   upgrades: 'icon_upgrade', skills: 'skill_quick', tree: 'icon_tree', hero: 'icon_hero', inventory: 'icon_bag',
@@ -303,13 +302,13 @@ export class UI {
     const menu = menuOf(this.tab);
     const el = this.$('panel-subtabs');
     const tabs = menu ? menu.tabs.filter((t) => this.tabVisible[t] !== false) : [];
-    const key = `${this.tab}|${tabs.join()}|${tabs.map((t) => (this.tabBadges[t] ? 1 : 0) + (this.newTabs.has(t) ? 2 : 0)).join('')}`;
+    const key = `${this.tab}|${tabs.join()}|${tabs.map((t) => (this.tabBadges[t] ? 1 : 0) + (this.newTabs.has(t) || this.tabHints?.[t] ? 2 : 0)).join('')}`;
     if (this.lastHud.subtabs === key) return;
     this.lastHud.subtabs = key;
     el.classList.toggle('hidden', tabs.length < 2);
     el.innerHTML = tabs.map((t) => `<button class="subtab${t === this.tab ? ' active' : ''}" data-sub="${t}">
       <img class="px" src="${icon(SUB_ICONS[t])}" alt=""><span>${SUB_LABELS[t]}</span>
-      ${this.tabBadges[t] || this.newTabs.has(t) ? '<i class="badge"></i>' : ''}</button>`).join('');
+      ${this.tabBadges[t] ? '<i class="badge" title="Récompense à récupérer"></i>' : this.newTabs.has(t) || this.tabHints?.[t] ? '<i class="badge hint"></i>' : ''}</button>`).join('');
   }
 
   // Aucun onglet ouvert par défaut : un clic ouvre l'onglet, un second clic le referme.
@@ -1110,11 +1109,13 @@ export class UI {
     const upgrade = state.inventory.some((i) => isUpgrade(state, i, undefined, current));
     // v9.0.6 : pastilles par sous-onglet, regroupées sur le bouton de leur menu.
     const contractsReady = state.contracts.some((c) => c.progress >= c.target) || missionsClaimable(state) || claimableAchievements(state).length > 0 || bountyReady(state);
+    // Rouge (sur le menu) : seulement une récompense à récupérer. Or (sur le sous-onglet seulement) : une
+    // suggestion utile — objet meilleur, points de compétence.
     this.tabBadges = {
-      inventory: upgrade, skills: skillPointsAvailable(state) >= 1, companions: readyExpeditions(state) > 0,
-      encyclopedia: Boolean(encyclopediaNext(state)?.ready), boss: collectionsClaimable(state),
-      contracts: contractsReady, inbox: state.inbox.some((e) => !e.seen),
+      companions: readyExpeditions(state) > 0, encyclopedia: Boolean(encyclopediaNext(state)?.ready),
+      boss: collectionsClaimable(state), contracts: contractsReady, inbox: state.inbox.some((e) => !e.seen),
     };
+    this.tabHints = { inventory: upgrade, skills: skillPointsAvailable(state) >= 1 };
     for (const menu of MENUS) {
       const on = menu.tabs.some((t) => this.tabBadges[t] && this.tabVisible[t] !== false && t !== this.tab);
       this.$(`badge-${menu.id}`)?.classList.toggle('hidden', !on);

@@ -3,7 +3,6 @@ import { BALANCE } from '../../data/balance.js';
 import { bulkPlan, upgradeCost } from '../../core/economy.js';
 import { computeHeroStats } from '../../core/stats.js';
 import { bossForecast, coin, costButton, effectText, escapeHtml, forecastHtml, formatDecimal, formatNumber, img } from '../common.js';
-import { advice } from '../../core/guide.js';
 import { RUSH_RULES, RUSHES } from '../../data/rushes.js';
 import { phantomHitPct, rushDuration, rushEffect, rushLevel, rushUnlocked, rushUpgradeCost } from '../../core/rushes.js';
 
@@ -60,9 +59,8 @@ export default {
     const cats = BALANCE.upgradeCategories.map((c) => `<button class="btn chip-btn${c.id === cat.id ? ' active' : ''}"
       data-action="upgrade-cat" data-value="${c.id}">${img(c.icon)}<span>${c.label}</span></button>`).join('');
     // v8.4 : que faire maintenant ? (conseils cliquables) + prévision du prochain boss.
-    const tips = advice(state).map((t) => `<button class="btn tip" data-action="open-tab" data-value="${t.tab}">💡 ${escapeHtml(t.text)}</button>`).join('');
-    const guide = `<div class="card guide-card">${forecastHtml(state.dungeon || state.tower || state.challenge ? null : bossForecast(state, () => ui.invalidate()))}
-      ${tips ? `<details class="tips-box"${ui.view.tipsOpen === false ? '' : ' open'}><summary data-action="toggle-tips">Que faire ? <span class="muted">(${advice(state).length})</span></summary><div class="tips">${tips}</div></details>` : ''}</div>`;
+    // v9.0.6 : « Que faire ? » est passé dans l'écran Aventure ; ici, seulement la prévision du prochain boss.
+    const guide = `<div class="card guide-card">${forecastHtml(state.dungeon || state.tower || state.challenge ? null : bossForecast(state, () => ui.invalidate()))}</div>`;
     if (cat.id === 'rushes') {
       return `${guide}<div class="split-nav"><div class="side-nav">${cats}</div><div class="upg-list">${rushCards(state)}</div></div>`;
     }

@@ -1720,3 +1720,18 @@ table.records td { padding: 2px 4px; border-top: 1px solid rgba(255, 255, 255, 0
 #panel-subtabs .badge { position: absolute; top: 2px; right: 3px; width: 8px; height: 8px; border-radius: 50%; background: #ff3b4e; box-shadow: 0 0 0 2px #0b1120; }
 .layout-mini #panel-subtabs .subtab { padding: 3px 8px 4px; font-size: 11px; }
 .layout-mini #panel-subtabs .subtab img { width: 14px; height: 14px; }
+#panel-subtabs .badge.hint, #tabs .badge-new { background: #f2c14e !important; }
+#tabs .badge-new { width: 7px !important; height: 7px !important; }
+/* Écran étroit (mobile) : les 5 catégories passent en barre du bas, un panneau à la fois. */
+@media (max-width: 560px) {
+  #app { flex-direction: column-reverse; }
+  #app > #tabs { flex-direction: row; width: auto !important; height: 58px; border-right: none; border-top: 2px solid var(--edge); padding: 4px; }
+  #app > #tabs button { flex: 1 1 0; min-height: 0; height: 100%; }
+  #app > #tabs button img { width: 22px !important; height: 22px !important; }
+  #panel-subtabs .subtab span { display: none; }
+  #panel-subtabs .subtab.active span { display: inline; }
+}
+/* v9.0.6 : écran Aventure — résumé. */
+.adv-summary { display: flex; flex-direction: column; gap: 5px; border-color: var(--gold-2, #d9a441); }
+.adv-zone { font-size: 15px; font-weight: 800; color: var(--gold-text, #f2d083); }
+.adv-tips { gap: 4px; }
