@@ -2,7 +2,8 @@
 // de la scène, HUD, onglets débloqués progressivement et panneaux (un module par panneau dans ./panels).
 // L'interface ne modifie jamais l'état directement : elle appelle les actions fournies par main.js.
 import { BALANCE } from '../data/balance.js';
-import { BOSSES } from '../data/enemies.js';
+import { BOSSES, ENEMIES } from '../data/enemies.js';
+import { bossTrait } from '../core/boss-traits.js';
 import { DUNGEONS } from '../data/dungeons.js';
 import { currentEncounter, difficultyForStage, isBossStage, stageLabel, zoneForStage, zoneIndexForStage } from '../core/combat.js';
 import { eventLabel } from '../core/events.js';
@@ -118,7 +119,7 @@ export function journalHtml(j) {
 const RENDER_THROTTLE_MS = 1000;
 const SIDE_PANEL_W = 440; // largeur du menu sur le côté (petite fenêtre)
 const SIDE_MIN_WIDTH = 900; // navigateur : menu sur le côté seulement à partir de cette largeur
-const RAIL_W = 70; // barre des menus verticale (petite fenêtre)
+const RAIL_W = 80; // barre des menus verticale (petite fenêtre)
 const STRIP_MENU_HEIGHT = 400; // mode barre : hauteur de la fenêtre quand le menu est ouvert
 export class UI {
   constructor(root, actions) {
@@ -619,7 +620,7 @@ export class UI {
         break;
       }
       case 'bossSummon':
-        this.banner(`${BOSSES[event.master].name} invoque ${BOSSES[event.kind].name} !`, 'boss tier-hard');
+        this.banner(`${BOSSES[event.master]?.name ?? ''} invoque ${(BOSSES[event.kind] ?? ENEMIES[event.kind])?.name ?? 'des serviteurs'} !`, 'boss tier-hard');
         break;
       case 'bossEnrage':
         this.banner(`${BOSSES[event.kind].name} enrage !`, 'boss tier-mega');
@@ -632,7 +633,10 @@ export class UI {
         if (state.ui.notify?.boss === false) break;
         const tier = BOSSES[event.kind].tier ?? 'mega';
         const label = { mini: 'Mini-boss', mid: 'Boss', hard: 'Boss redoutable', mega: 'MÉGA BOSS' }[tier];
+        // v9.0.6 : mécanique du boss annoncée (et ce qui la contre) dans les nouvelles.
+        const trait = bossTrait(event.kind);
         this.banner(`${label} — ${BOSSES[event.kind].name}`, `boss tier-${tier}`);
+        if (trait) this.news(`${BOSSES[event.kind].name} — ${trait.name} : ${trait.text}. Contre : ${trait.counter}.`, trait.color, 2);
         if (tier === 'mega' || tier === 'hard') {
           const flash = this.$('boss-flash');
           flash.className = `tier-${tier}`;

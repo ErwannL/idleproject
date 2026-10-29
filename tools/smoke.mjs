@@ -88,7 +88,8 @@ await check('acheter une amélioration avec l’or', async () => {
 });
 
 await check('ouvrir l’inventaire, équiper un objet et voir les stats changer', async () => {
-  const item = await game(() => __idle.addRandomItem('epic'));
+  // v9.0.6 : un objet que toutes les classes portent (une arme peut être réservée à une autre classe).
+  const item = await game(() => __idle.addItem('iron_helm', 'epic', 3));
   await clickTab('inventory');
   await page.click(`.inv-grid [data-id="${item.id}"]`);
   await page.waitForSelector('.item-detail');

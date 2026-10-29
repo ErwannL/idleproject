@@ -6,6 +6,7 @@ import { DUNGEONS } from '../../data/dungeons.js';
 import { BOSSES, ENEMIES } from '../../data/enemies.js';
 import { RARITIES, SIGNATURE_ITEMS, SLOTS, STAT_LABELS, PERCENT_STATS, ITEM_BASES } from '../../data/items.js';
 import { BOSS_LORE } from '../../data/lore.js';
+import { bossTrait } from '../../core/boss-traits.js';
 import { ZONES } from '../../data/zones.js';
 import { MULTIPLICATIVE } from '../../core/companions.js';
 import {
@@ -149,6 +150,7 @@ function bossCard(state, id) {
     <div class="enc-title">${escapeHtml(b.name)}</div><div class="badge-ancestral">${tier}</div>
     <div class="muted">📍 ${escapeHtml(where.join(' · '))}</div>
     ${BOSS_LORE[id] ? `<p class="lore">${escapeHtml(BOSS_LORE[id])}</p>` : ''}
+    ${bossTrait(id) ? `<div class="trait-box" style="--trait:${bossTrait(id).color}"><b>${escapeHtml(bossTrait(id).name)}</b> : ${escapeHtml(bossTrait(id).text)}.<div class="muted">Contre : ${escapeHtml(bossTrait(id).counter)}</div></div>` : ''}
     <div class="enc-stats">${statRow('Vaincu', `${formatNumber(state.codex.kills[id])} fois`)}${statRow('Inspiré du', escapeHtml(ENEMIES[b.base]?.name ?? '—'))}
       ${sig ? statRow('Objet ancestral', `<span class="rarity-text r-legendary">${escapeHtml(sig.name)}</span>`) : ''}</div></div>`;
 }

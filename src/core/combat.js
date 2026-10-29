@@ -22,6 +22,7 @@ import { earlyBoost } from './boost.js';
 import { phantomHitPct, rushById, tickRushes } from './rushes.js';
 import { recordKill } from './codex.js';
 import { activeClass, classRange } from './classes.js';
+import { BOSS_TRAITS, TRAITS, traitAttack, traitDamageTaken } from './boss-traits.js';
 import { DUNGEON_DIFFICULTIES } from '../data/dungeons.js';
 import { enemyScaleFactor } from './transcend.js';
 import { clearTowerFloor, endTower, towerBoss, towerLevel, towerTimeLeft } from './tower.js';
@@ -295,7 +296,9 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
     age: 0, // secondes au contact (rage des boss)
     berserk: Boolean(boss && enc.gauntlet),
     summons: boss && enc.gauntlet ? [...enc.summons] : [],
+    trait: boss ? BOSS_TRAITS[type] ?? null : null, // v9.0.6 : mécanique du boss (core/boss-traits.js)
   };
+  if (enemy.trait === 'summoner') enemy.summonTimer = TRAITS.summoner.every / 2;
   // v9.0.4 : ennemis mutés (campagne, donjons, défi ; jamais dans la Tour).
   const mutation = !boss && !elite && !enc.tower ? maybeMutate(state, enemy, rng) : null;
   world.enemies.push(enemy);
@@ -515,6 +518,7 @@ export function classAttackTargets(heroClass, world, front, damage, count) {
 function hitEnemy(state, world, enemy, damage, rng, balance, stats, enc, source) {
   if (!world.enemies.includes(enemy)) return;
   damage = mutationDamageTaken(enemy, damage);
+  damage = traitDamageTaken(enemy, damage);
   enemy.hp -= damage;
   if (stats.lifesteal > 0 && source !== 'thorns' && !(enc?.challenge && challengeRule(state, 'noHeal'))) {
     world.hero.hp = Math.min(stats.maxHp, world.hero.hp + (damage * stats.lifesteal) / 100);
@@ -766,8 +770,26 @@ export function step(state, world, dt, rng, balance = BALANCE) {
   // Seul l'ennemi au contact frappe.
   const attacker = world.enemies[0];
   if (attacker?.engaged) attacker.age = (attacker.age ?? 0) + dt;
+  // v9.0.6 : boss invocateur — des serviteurs surgissent devant lui à intervalles réguliers.
+  for (const boss of world.enemies) {
+    if (boss.trait !== 'summoner' || boss.hp <= 0) continue;
+    boss.summonTimer -= dt;
+    if (boss.summonTimer > 0) continue;
+    boss.summonTimer = TRAITS.summoner.every;
+    const t = TRAITS.summoner;
+    for (let i = 0; i < t.count; i++) {
+      const hp = (boss.maxHp * t.minionHpPct) / 100;
+      world.enemies.unshift({
+        id: world.nextEnemyId++, type: t.minion, boss: false, elite: false, summoned: true, x: boss.x - 6 - i * 8,
+        hp, maxHp: hp, damage: boss.damage * 0.25, gold: boss.gold * 0.02, speed: 30, attackInterval: 1.2, attackTimer: 1,
+        range: ENEMIES[t.minion].range, engaged: false, age: 0, summons: [], trait: null,
+      });
+    }
+    emit(world, 'bossSummon', { enemyId: boss.id, kind: t.minion, master: boss.type });
+  }
+  const traitAtk = attacker?.trait ? traitAttack(attacker) : { damage: 1, speed: 1 };
   if (attacker?.engaged) {
-    attacker.attackTimer -= dt;
+    attacker.attackTimer -= dt * traitAtk.speed;
     if (attacker.attackTimer <= 0) {
       attacker.attackTimer += attacker.attackInterval;
       const lowHp = hero.hp < stats.maxHp * POWER_RULES.lowHpThreshold ? stats.bonus.lowHpArmor : 0;
@@ -782,7 +804,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
         attacker.enraged = true;
         emit(world, 'bossEnrage', { enemyId: attacker.id, kind: attacker.type });
       }
-      const damage = attacker.damage * rage * (1 - armor / 100) * (1 - shield / 100) * dungeonDamageTaken(state, balance);
+      const damage = attacker.damage * rage * traitAtk.damage * (1 - armor / 100) * (1 - shield / 100) * dungeonDamageTaken(state, balance);
       hero.hp -= damage;
       mutationOnHit(attacker, damage);
       emit(world, 'heroHit', { enemyId: attacker.id, damage, boss: attacker.boss });

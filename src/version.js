@@ -1,3 +1,3 @@
 // Version du jeu (identique à package.json, vérifiée par tests/v78.test.js).
-export const GAME_VERSION = '9.0.5';
+export const GAME_VERSION = '9.0.6';
 export const REPO = 'ErwannL/idleproject';

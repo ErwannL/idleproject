@@ -261,7 +261,8 @@ puis vrais styles d'interface par thème et Codex expliqué (v9.0.1),
 puis mise à jour depuis le jeu fiable (v9.0.2),
 puis thèmes d'interface de luxe et Musée « Exposer tout » (v9.0.3),
 puis ennemis mutés, boss de donjon uniques et aura des 5 étoiles (v9.0.4),
-puis Encyclopédie et aura « Super guerrier » des 5 étoiles (v9.0.5) :
+puis Encyclopédie et aura « Super guerrier » des 5 étoiles (v9.0.5),
+puis 10 classes, héros à collectionner et menus simplifiés (v9.0.6) :
 voir `docs/RELEASE_NOTES.md`.
 
 ## v4

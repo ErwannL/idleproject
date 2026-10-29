@@ -12,7 +12,16 @@ import { weekKey } from './tower.js';
 // v8.4 : bannière de la semaine — un personnage (ou familier) Légendaire mis en avant :
 // quand une invocation tombe sur Légendaire, il a 50 % de chances d'être celui-là.
 export const FEATURED_SHARE = 0.5;
+// v9.0.6 : en vedette chez les héros, seulement les skins dessinés, en commençant par le Roi Grombar la
+// semaine de leur arrivée (puis Diablesse, Séraphin… chaque lundi).
+const HERO_FEATURED = ['grombar', 'demoness', 'seraph'];
+const HERO_LAUNCH_WEEK = Math.round(new Date('2026-10-26T00:00:00').getTime() / (7 * 86400000));
 export function featuredUnit(pool = 'ally', now = Date.now()) {
+  if (pool === 'hero') {
+    const n = Math.round(new Date(`${weekKey(now)}T00:00:00`).getTime() / (7 * 86400000)) - HERO_LAUNCH_WEEK;
+    const id = HERO_FEATURED[((n % HERO_FEATURED.length) + HERO_FEATURED.length) % HERO_FEATURED.length];
+    return summonPool('hero').find((u) => u.id === id) ?? null;
+  }
   const legends = summonPool(pool).filter((u) => u.rarity === 'legendary');
   if (!legends.length) return null;
   const n = Math.floor(new Date(`${weekKey(now)}T00:00:00`).getTime() / (7 * 86400000));

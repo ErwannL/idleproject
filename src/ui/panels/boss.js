@@ -13,6 +13,7 @@ import { itemIconUrl } from '../../render/pixel.js';
 import { ZONES } from '../../data/zones.js';
 import { COLLECTIONS } from '../../data/codex.js';
 import { BOSS_LORE } from '../../data/lore.js';
+import { bossTrait } from '../../core/boss-traits.js';
 import { collectionMissing, collectionStatus } from '../../core/codex.js';
 import { coin, effectText, escapeHtml, formatNumber, icon, img, progressBar, rarityLabel } from '../common.js';
 import { animCanvas } from '../animator.js';
@@ -98,7 +99,8 @@ function bossDetail(ui, state, bossId) {
       <div class="boss-big">${entry ? portrait(bossId, true, 2) : `<img class="px" src="${portrait(bossId, false)}" alt="">`}</div>
       <div class="grow"><div class="row"><span class="boss-title">${entry ? escapeHtml(boss.name) : '???'}</span><span class="badge-ancestral">Boss ancestral</span></div>
         <div class="muted">📍 ${escapeHtml(where)}</div>
-        <p class="lore">${entry ? escapeHtml(BOSS_LORE[bossId] ?? '') : 'Vainquez ce boss pour découvrir son histoire et son pouvoir ancestral.'}</p></div>
+        <p class="lore">${entry ? escapeHtml(BOSS_LORE[bossId] ?? '') : 'Vainquez ce boss pour découvrir son histoire et son pouvoir ancestral.'}</p>
+        ${bossTrait(bossId) ? `<div class="trait-box" style="--trait:${bossTrait(bossId).color}"><b>${escapeHtml(bossTrait(bossId).name)}</b> : ${escapeHtml(bossTrait(bossId).text)}. <span class="muted">Contre : ${escapeHtml(bossTrait(bossId).counter)}</span></div>` : ''}</div>
     </div>`;
   if (!entry) {
     return `${header}<div class="power-box unknown"><div class="section-title">Pouvoir ancestral</div><div class="power-name">À découvrir</div>

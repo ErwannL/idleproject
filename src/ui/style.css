@@ -1701,7 +1701,7 @@ table.records td { padding: 2px 4px; border-top: 1px solid rgba(255, 255, 255, 0
   padding: 4px 1px; font-size: 10px; line-height: 1.1; letter-spacing: -0.02em; }
 #app > #tabs button img { width: 28px !important; height: 28px !important; }
 #app > #tabs button span { display: block !important; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#app.layout-mini > #tabs { width: 70px; padding: 4px 3px; gap: 3px; }
+#app.layout-mini > #tabs { width: 80px; padding: 4px 3px; gap: 3px; }
 #app.layout-mini > #tabs button { flex-basis: 52px; min-height: 34px; font-size: 8.5px; gap: 1px; letter-spacing: -0.03em; }
 #app.layout-mini > #tabs button img { width: 22px !important; height: 22px !important; }
 #app.layout-strip > #tabs { display: none !important; }
@@ -1730,6 +1730,8 @@ table.records td { padding: 2px 4px; border-top: 1px solid rgba(255, 255, 255, 0
   #app > #tabs button img { width: 22px !important; height: 22px !important; }
   #panel-subtabs .subtab span { display: none; }
   #panel-subtabs .subtab.active span { display: inline; }
+  /* Barre du haut : seulement le niveau, l'or, les gemmes et les boutons (le reste est dans les menus). */
+  #top-stage, #boost-chip, #fragments-chip, .chip-ticket, .top-xp { display: none !important; }
 }
 /* v9.0.6 : écran Aventure — résumé. */
 .adv-summary { display: flex; flex-direction: column; gap: 5px; border-color: var(--gold-2, #d9a441); }
@@ -1827,3 +1829,4 @@ html.fx-calm .hero-banner::after { animation: none; }
 @container (max-width: 640px) { .hero-banner { grid-template-columns: 1fr 1fr; } .hb-side { display: none; } .hb-stage canvas.anim { height: 170px; } }
 .layout-mini .hero-banner { grid-template-columns: 1fr 1fr; min-height: 0; } .layout-mini .hb-side { display: none; }
 .layout-mini .hb-stage canvas.anim { height: 150px; } .layout-mini .hb-name { font-size: 18px; } .layout-mini .hb-ssr { font-size: 28px; }
+.trait-box { padding: 4px 8px; border-left: 3px solid var(--trait); border-radius: 3px; background: color-mix(in srgb, var(--trait) 12%, #0b1120); font-size: 12px; }

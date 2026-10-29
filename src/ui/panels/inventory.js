@@ -1,4 +1,5 @@
 // Inventaire en 3 zones (équipement porté · fiche de l'objet · grille) et Forge.
+import { canEquip, weaponClass } from '../../core/classes.js';
 import { BALANCE } from '../../data/balance.js';
 import { BOSSES } from '../../data/enemies.js';
 import { ACCESSORY_SLOTS, GEAR_SLOTS, RARITIES, SLOTS, STAT_LABELS } from '../../data/items.js';
@@ -90,7 +91,9 @@ function detail(ui, state, item) {
       ${!canReforge(item) || state.materials.shards < BALANCE.forge.reforgeShards || state.materials.essence < BALANCE.forge.reforgeEssence ? 'disabled' : ''}
       title="${canReforge(item) ? 'Relancer les effets spéciaux' : 'Cet objet n\'a pas d\'effets à relancer'}">Relancer effets ${shard()}${BALANCE.forge.reforgeShards} ${essence()}${BALANCE.forge.reforgeEssence}</button>`;
   const actions = `<div class="action-grid">
-      ${isEquipped ? '<button class="btn btn-primary" disabled>Équipé</button>' : `<button class="btn btn-primary" data-action="equip" data-id="${item.id}">Équiper</button>`}
+      ${isEquipped ? '<button class="btn btn-primary" disabled>Équipé</button>' : canEquip(state, item)
+        ? `<button class="btn btn-primary" data-action="equip" data-id="${item.id}">Équiper</button>`
+        : `<button class="btn" disabled title="Changez de classe (Personnage → Héros → Classe) pour la porter">Arme de ${escapeHtml(weaponClass(item.baseId).name)}</button>`}
       <button class="btn btn-outline-gold" data-action="recycle" data-id="${item.id}" ${item.locked || isEquipped ? 'disabled' : ''}
         title="${isEquipped ? 'Un objet équipé ne peut pas être recyclé' : item.locked ? 'Objet verrouillé' : 'Recycler : or et matériaux'}">Recycler +${formatNumber(recycleValue(item))} ${coin()}${mats.shards ? ` +${mats.shards}${shard()}` : ''}${mats.essence ? ` +${mats.essence}${essence()}` : ''}</button>
       <div class="span2 upgrade-line">${upgradeBtn}<span class="muted num">${ups}/${maxUp}</span></div>

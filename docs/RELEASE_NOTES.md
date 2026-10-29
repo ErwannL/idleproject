@@ -1,8 +1,45 @@
-## Idle RPG v9.0.5 — Encyclopédie et aura « Super guerrier »
+## Idle RPG v9.0.6 — 10 classes, héros à collectionner, menus simplifiés
 
-**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.5-setup.exe). Votre partie est conservée.
+**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.6-setup.exe). Votre partie est conservée.
 
 ### Nouveau
+- **10 classes de héros** (Personnage → Héros → Classe) : Chevalier, Archer, Mage de feu, Berserker, Lancier, Paladin,
+  Assassin, Arbalétrier, Mage de foudre, Nécromancien. Un clic change tout le style de combat : armes autorisées
+  (les armes des autres classes ne s'équipent pas), portée (l'archer tire de loin), façon de frapper (zone, perçant,
+  éclairs en chaîne, pluie de flèches, météore, âmes…), animations et bonus de classe. En changeant de classe, l'arme
+  portée est remplacée par la meilleure de la classe dans le sac, ou **reforgée sans perte de puissance**. 11 nouvelles
+  armes (arcs, arbalètes, baguettes, sceptres, faux, hallebarde, katar…) ; le butin donne surtout des armes de votre classe.
+- **Animations d'attaque par classe** : le héros bondit vers l'ennemi au corps à corps, les flèches et carreaux volent
+  jusqu'à la cible, boules de feu qui explosent, météore, éclairs qui rebondissent, âmes du Nécromancien, images
+  rémanentes de l'Assassin.
+- **Héros à collectionner (skins)** : 8 personnages dessinés — Roi Grombar, Lilith la Diablesse, Séraphin Auriel (SSR),
+  Fée Lumibelle, Valkyrie Sigrún, Sorcière Morgaline, Comte Vladimir, Kage le Ninja (SR) — plus les chevaliers aux
+  couleurs d'antan. Nouvelle **Invocation → Héros** avec une grande **bannière du héros en vedette** (Roi Grombar cette
+  semaine) ; chaque apparence apporte son bonus (Personnage → Héros → Apparence).
+- **Boss à mécaniques** : certains boss demandent une autre préparation — **Carapace** (golems : la vitesse
+  d'attaque l'use), **Invocatrice** (Reine spectrale : des serviteurs à balayer en zone), **Fournaise** (dragons :
+  dégâts croissants, misez sur PV et régénération), **Désespoir** (démons : plus dangereux sous 50 % de PV, misez sur
+  l'armure). La mécanique et ce qui la contre sont annoncés à l'arrivée du boss et dans les fiches.
+
+### Améliorés
+- **Menus simplifiés en 5 catégories** (barre verticale ; en bas sur écran étroit) : **Aventure** (résumé « où j'en
+  suis » + carte), **Personnage** (équipement, héros, améliorations, compétences, compagnons), **Invocation**,
+  **Événements** (donjons, Tour, missions), **Progression** (Renaissance, boss ancestraux, collections). Rien n'a été
+  retiré, tout est à un ou deux clics.
+- **Petite fenêtre et mode barre** : le menu s'ouvre à gauche de la scène et la fenêtre s'agrandit **vers la gauche**
+  (et vers le haut en mode barre, bouton ☰) : le combat reste à sa place.
+- **Compétences façon Tap Titans** : deux listes claires, Sorts et Boosts, une ligne par pouvoir et un gros bouton
+  (coût ou niveau de déblocage écrit dessus) ; « Utiliser » pour les boosts.
+- **Moins de pastilles rouges** : seulement quand une récompense est à récupérer (une pastille dorée discrète signale
+  un objet meilleur ou des points à dépenser).
+
+### Corrigés
+- **Animation d'invocation** : avec certains thèmes, le faisceau d'un SSR prenait la couleur du thème (violet, rose…)
+  au lieu du doré : les couleurs de rareté ne sont plus jamais recolorées.
+
+### v9.0.5 — Encyclopédie et aura « Super guerrier »
+
+### Nouveau en v9.0.5
 - **Encyclopédie** (nouvel onglet) : tout ce que vous rencontrez ou obtenez s'y inscrit, en cinq sections —
   **Monstres** avec leurs variantes (normale, Élite, Mutée), **Boss** (méga, mini, moyens, redoutables, de donjon),
   **Mutations**, **Équipements** (une entrée par modèle **et par rareté** : Commun, Rare, Épique, Légendaire ; les
@@ -11,7 +48,7 @@
   histoire). Le **pourcentage de complétion** débloque 6 paliers de récompenses (10 % à 100 % : gemmes, tickets,
   éclats, essences). Les objets que vous possédez déjà comptent dès la mise à jour.
 
-### Améliorés
+### Améliorés en v9.0.5
 - **Aura des compagnons et familiers à 5 étoiles façon « Super guerrier »** : des flammes en pixels qui montent
   autour du personnage, aux **couleurs propres à chacun** — **3 couleurs pour un SSR** (avec des éclairs qui
   crépitent), **2 pour un SR**, **1 pour les autres** — et des traits d'énergie qui filent vers le haut. Visible
