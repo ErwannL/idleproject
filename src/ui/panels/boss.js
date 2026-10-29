@@ -149,7 +149,7 @@ function bossDetail(ui, state, bossId) {
 
 export default {
   id: 'boss',
-  title: 'Codex des boss',
+  title: 'Boss ancestraux',
   icon: 'icon_boss',
   extra: (ui, state) => `Pouvoirs actifs ${state.equippedPowers.length}/${powerSlots(state)}`,
   render(ui, state) {

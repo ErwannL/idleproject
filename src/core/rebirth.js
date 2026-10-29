@@ -187,6 +187,15 @@ export function legacyTalentRefund(rawTalents) {
   return sum;
 }
 
+// v9.0.6 : « poids » des Renaissances — une Renaissance vaut min(1, étape max / 200) ; les anciennes sauvegardes
+// gardent une Renaissance entière par Renaissance déjà faite.
+export function rebirthPower(state) {
+  return Number.isFinite(state.rebirthPower) ? state.rebirthPower : state.records?.rebirths ?? 0;
+}
+export function rebirthGain(state) {
+  return Math.min(1, Math.max(0, (state.maxStage - 1) / REBIRTH.fullPowerStage));
+}
+
 export function canRebirth(state) {
   return state.maxStage >= REBIRTH.minStage;
 }
@@ -202,6 +211,7 @@ export function rebirthReward(state) {
 export function performRebirth(state, keepPower = state.equippedPowers?.[0]) {
   const reward = rebirthReward(state);
   if (reward <= 0) return 0;
+  state.rebirthPower = rebirthPower(state) + rebirthGain(state);
   // Un seul pouvoir ancestral conservé (celui choisi, sinon le premier actif).
   const kept = state.powers?.[keepPower] ? keepPower : Object.keys(state.powers ?? {})[0];
   state.powers = kept ? { [kept]: state.powers[kept] } : {};

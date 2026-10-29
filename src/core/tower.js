@@ -5,7 +5,7 @@ import { BOSSES } from '../data/enemies.js';
 import { grantReward } from './rewards.js';
 
 export const TOWER = {
-  unlockStage: 40, floorLevel: 3, milestone: 10, climbsPerWeek: 1, steepness: 40,
+  unlockStage: 60, floorLevel: 3, milestone: 10, climbsPerWeek: 1, steepness: 40, // étape 5 : déblocage 40 → 60 (calendrier étalé)
   // v8.8 : la tour s'effondre au bout de 10 h de jeu (temps de combat : la vitesse le fait défiler plus vite) ;
   // chaque nouvel étage la stabilise un peu (+5 min × 0,98^étage, sans dépasser 10 h devant soi).
   timeLimit: 10 * 3600, floorBonus: 300, floorBonusDecay: 0.98,
@@ -41,7 +41,7 @@ const MEGA = ALL.filter((id) => !/^(mini|mid|hard)_/.test(id));
 const OTHERS = ALL.filter((id) => /^(mini|mid|hard)_/.test(id));
 
 export function towerUnlocked(state) {
-  return state.maxStage >= TOWER.unlockStage;
+  return state.maxStage >= TOWER.unlockStage || (state.towerBest ?? 0) > 0 || Boolean(state.tower);
 }
 
 export function towerBoss(floor) {

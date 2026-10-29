@@ -1,4 +1,4 @@
-## Idle RPG v9.0.6 — 10 classes, héros à collectionner, menus simplifiés
+## Idle RPG v9.0.6 — 10 classes, héros à collectionner, menus simplifiés, jeu rééquilibré
 
 **Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.6-setup.exe). Votre partie est conservée.
 
@@ -21,6 +21,32 @@
   dégâts croissants, misez sur PV et régénération), **Désespoir** (démons : plus dangereux sous 50 % de PV, misez sur
   l'armure). La mécanique et ce qui la contre sont annoncés à l'arrivée du boss et dans les fiches.
 
+- **Illustrations détaillées** : chaque héros, apparence, compagnon et familier existe aussi en grande illustration
+  (version « affiche »), affichée derrière le personnage dans la bannière d'invocation, la galerie d'apparences et la
+  fiche compagnon ; les apparences non obtenues apparaissent en silhouette. Premières illustrations réalistes :
+  Roi Grombar, Lilith, Séraphin, Fée Lumibelle, Valkyrie Sigrún.
+- **Une arme ancestrale pour chaque classe** : Arc de l'Épouvantail, Bâton du Tréant, Lance du Loup-garou, Masse
+  solaire du Pharaon, Arbalète du Chacal, Baguette de la Sorcière des glaces, Faux de la Faucheuse.
+- **Cartes « Nouveau »** : chaque fonctionnalité débloquée est annoncée et expliquée en une carte (« Voir » l'ouvre).
+- **« ⬆ Équiper le meilleur »** (Équipement) : équipe en un clic tous les objets du sac meilleurs que ceux portés.
+  Une flèche verte à côté de l'or signale qu'une amélioration est achetable (un clic ouvre Améliorations).
+- **Gemmes hors ligne** : 30 % des gemmes de combat sont aussi gagnées pendant l'absence.
+
+### Équilibrage
+- **Début de partie plus disputé** : les ennemis gagnent progressivement en résistance sur les 25 premières étapes
+  (les améliorations comptent dès le début) et grandissent ensuite un peu moins vite ; bonus d'or de démarrage ×1,5.
+- **Boss** : la rage augmente maintenant de ×1,3 toutes les 10 s (les combats se jouent en 60 à 90 s au lieu de
+  plusieurs minutes d'usure). Contres plus décisifs : la Carapace s'use moins vite (la vitesse d'attaque compte),
+  la Fournaise plafonne à ×2,5, une armure de 40 % annule la fureur du Désespoir.
+- **Renaissance** : le bonus dépend de l'étape atteinte (pleine puissance à l'étape 200) — renaître en boucle très
+  tôt n'est plus la meilleure stratégie.
+- **Butin d'or** plafonné au niveau 100 ; les boss rejoués (Codex, boss déjà battus) ne donnent plus de gemmes ni de
+  tickets (le butin et la maîtrise restent).
+- **Classes** : Mage de feu renforcé, Assassin et Arbalétrier légèrement réduits, Chevalier +5 % de dégâts.
+- **Recyclage** : la valeur en or suit maintenant le niveau de l'objet (les objets de fin de partie valent enfin quelque
+  chose).
+- **Déblocages étalés** : Défi de la semaine à l'étape 45, Tour à l'étape 60 (ceux qui y ont déjà joué les gardent).
+
 ### Améliorés
 - **Menus simplifiés en 5 catégories** (barre verticale ; en bas sur écran étroit) : **Aventure** (résumé « où j'en
   suis » + carte), **Personnage** (équipement, héros, améliorations, compétences, compagnons), **Invocation**,
@@ -32,8 +58,16 @@
   (coût ou niveau de déblocage écrit dessus) ; « Utiliser » pour les boosts.
 - **Moins de pastilles rouges** : seulement quand une récompense est à récupérer (une pastille dorée discrète signale
   un objet meilleur ou des points à dépenser).
+- **Mobile** : libellés de la barre du bas lisibles, cartes d'amélioration et boutons entiers, caméra élargie (on voit
+  les ennemis arriver). **Petite fenêtre** : le menu s'ouvre sur le côté, la scène reste visible.
+- **Lisibilité** : prévision du boss grisée « mise à jour… » quand elle n'est plus à jour, « Retenter le boss (vous êtes
+  prêt) », titres des panneaux identiques aux sous-onglets, un menu s'ouvre directement sur la récompense à récupérer,
+  une seule pastille par récompense. Nouvelle partie : les Communs moins bons sont recyclés quand le sac est plein.
+- **Visite guidée** de l'interface à la première partie (rejouable dans Paramètres) ; textes traduits en anglais.
 
 ### Corrigés
+- **Serviteurs de l'Invocatrice** : ils pouvaient s'accumuler sans fin et rapportaient des gemmes de boss ; au plus 4 à
+  la fois, sans gemmes, et ils disparaissent avec leur maîtresse.
 - **Animation d'invocation** : avec certains thèmes, le faisceau d'un SSR prenait la couleur du thème (violet, rose…)
   au lieu du doré : les couleurs de rareté ne sont plus jamais recolorées.
 

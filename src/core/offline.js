@@ -58,6 +58,7 @@ export function computeOfflineRewards(state, fromMs, nowMs, rng, balance = BALAN
     capped: false,
     clockSuspicious: false,
     gold: 0,
+    gems: 0,
     kills: 0,
     items: [],
     excessDrops: 0,
@@ -87,6 +88,9 @@ export function computeOfflineRewards(state, fromMs, nowMs, rng, balance = BALAN
     capped: elapsed > cap,
     gold: Math.floor(rate.goldPerSecond * factor),
     kills: Math.floor(rate.killsPerSecond * factor),
+    // Étape 4 : une part des gemmes de kill aussi hors ligne (avant : aucune).
+    gems: Math.floor(rate.killsPerSecond * factor * balance.gems.killChance
+      * ((balance.gems.killAmount[0] + balance.gems.killAmount[1]) / 2) * (balance.offline.gemShare ?? 0)),
     xp: Math.floor(rate.xpPerSecond * factor),
     items,
     excessDrops,
@@ -100,6 +104,7 @@ export function applyOfflineRewards(state, rewards, balance = BALANCE) {
   const before = { shards: state.materials.shards, essence: state.materials.essence };
   const gold = addGold(state, rewards.gold + rewards.excessGold);
   state.records.kills += rewards.kills;
+  state.gems += rewards.gems ?? 0;
   const levelsGained = addXp(state, rewards.xp);
   trackContracts(state, 'kills', rewards.kills);
   trackContracts(state, 'gold', gold);

@@ -57,7 +57,7 @@ test('v9.0.6 : attaques de classe — zone, perçant, chaîne, volée, météore
   const world = { enemies };
   const byId = (id) => CLASSES.find((c) => c.id === id);
   const fire = classAttackTargets(byId('pyromancer'), world, enemies[0], 100, 1);
-  assert.ok(fire.hits.length >= 1 && fire.hits.every((h) => h.damage === 50));
+  assert.ok(fire.hits.length >= 1 && fire.hits.every((h) => h.damage === 60));
   assert.equal(classAttackTargets(byId('pyromancer'), world, enemies[0], 100, 6).special, 'meteor');
   assert.equal(classAttackTargets(byId('stormcaller'), world, enemies[0], 100, 1).hits.length, 3);
   assert.equal(classAttackTargets(byId('crossbowman'), world, enemies[0], 100, 1).hits.length, 3);
@@ -75,6 +75,8 @@ test('v9.0.6 : mécaniques de boss (carapace, fournaise, désespoir)', () => {
   assert.ok(traitAttack({ trait: 'escalate', age: 30 }).damage > 1.5);
   assert.equal(traitAttack({ trait: 'desperate', hp: 90, maxHp: 100 }).damage, 1);
   assert.equal(traitAttack({ trait: 'desperate', hp: 40, maxHp: 100 }).damage, TRAITS.desperate.damage);
+  assert.equal(traitAttack({ trait: 'desperate', hp: 40, maxHp: 100 }, 40).damage, 1); // armure solide : bonus annulé
+  assert.equal(traitAttack({ trait: 'escalate', age: 9999 }).damage, TRAITS.escalate.maxDamage);
 });
 
 test('v9.0.6 : invocation de héros — skins, vedette Roi Grombar, sauvegarde', () => {
@@ -90,4 +92,52 @@ test('v9.0.6 : invocation de héros — skins, vedette Roi Grombar, sauvegarde',
   assert.ok(res.every((r) => r.kind === 'hero' && s.heroes.owned[r.id]));
   const back = sanitizeState(JSON.parse(JSON.stringify(s)));
   for (const r of res) assert.ok(back.heroes.owned[r.id], r.id);
+});
+
+test('v9.0.6 : serviteurs de l\'Invocatrice — au plus 4, jamais de gemmes de boss, la file ne s\'emballe pas', async () => {
+  const { createCombat, step } = await import('../src/core/combat.js');
+  const s = createNewState(NOW, 11);
+  Object.assign(s, { maxStage: 20, stage: 20, level: 1, autoAdvance: false });
+  const world = createCombat(s);
+  const rng = new Rng(3);
+  let boss = null;
+  for (let i = 0; i < 4000 && !boss; i++) {
+    step(s, world, 0.05, rng);
+    boss = world.enemies.find((e) => e.boss);
+  }
+  assert.ok(boss, 'boss apparu');
+  boss.trait = 'summoner';
+  boss.summonTimer = 0;
+  boss.hp = boss.maxHp = 1e12; // boss increvable : on laisse tourner 10 minutes
+  let maxMinions = 0;
+  for (let i = 0; i < 12000; i++) {
+    step(s, world, 0.05, rng);
+    for (const e of world.enemies) if (e.minionOf) { e.hp = e.maxHp; assert.ok(!e.summoned && !e.boss); }
+    maxMinions = Math.max(maxMinions, world.enemies.filter((e) => e.minionOf === boss.id).length);
+    if (!world.enemies.includes(boss)) break;
+  }
+  assert.ok(maxMinions <= TRAITS.summoner.maxAlive, `serviteurs : ${maxMinions}`);
+  assert.ok(world.enemies.length <= TRAITS.summoner.maxAlive + 6, `file : ${world.enemies.length}`);
+  assert.ok(Math.max(...world.enemies.map((e) => e.x)) < 2000, 'la file ne recule pas sans fin');
+});
+
+test('étape 2–3 : Renaissance au prorata de l\'étape, « Équiper le meilleur »', async () => {
+  const { rebirthGain, rebirthPower } = await import('../src/core/rebirth.js');
+  const { equipBest } = await import('../src/core/inventory.js');
+  const s = createNewState(NOW, 12);
+  s.maxStage = 31;
+  assert.ok(Math.abs(rebirthGain(s) - 0.15) < 1e-9); // étape 30 sur 200 → 15 % d'une Renaissance pleine
+  s.maxStage = 900;
+  assert.equal(rebirthGain(s), 1);
+  assert.equal(rebirthPower({ records: { rebirths: 3 } }), 3); // ancienne sauvegarde
+  // Équiper le meilleur : l'arme forte et le casque (emplacement vide) sont équipés, l'arme faible reste au sac.
+  const weak = makeItem(s, 'short_sword', 'common', 1);
+  const strong = makeItem(s, 'greatsword', 'legendary', 20);
+  const helm = makeItem(s, 'iron_helm', 'rare', 5);
+  s.equipment.helmet = null;
+  s.inventory.push(weak, strong, helm);
+  assert.equal(equipBest(s), 2);
+  assert.equal(s.equipment.weapon.id, strong.id);
+  assert.equal(s.equipment.helmet.id, helm.id);
+  assert.equal(equipBest(s), 0);
 });

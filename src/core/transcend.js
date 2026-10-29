@@ -89,9 +89,12 @@ export function performTranscend(state, rebirth) {
   state.challenge = null;
   rebirth(state);
   const t = state.transcend;
-  const total = (state.records.rebirths ?? 0) + (state.prestige?.count ?? 0);
+  // v9.0.6 : Renaissances comptées au prorata de leur profondeur (state.rebirthPower).
+  const power = Number.isFinite(state.rebirthPower) ? state.rebirthPower : state.records.rebirths ?? 0;
+  const total = power + (state.prestige?.count ?? 0);
   t.keptRebirths += Math.floor(total * keptRebirthShare(state));
   state.records.rebirths = 0;
+  state.rebirthPower = 0;
   if (state.prestige) state.prestige.count = 0;
   state.talents = {};
   state.fragments = 0;

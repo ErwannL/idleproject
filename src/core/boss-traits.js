@@ -7,23 +7,23 @@
 export const TRAITS = {
   armored: {
     name: 'Carapace', color: '#b8c8e0', counter: 'Vitesse d\'attaque, coups multiples',
-    text: 'encaisse −60 % des dégâts ; chaque coup reçu use sa carapace de 3 points',
-    shell: 60, wear: 3,
+    text: 'encaisse −60 % des dégâts ; chaque coup reçu use sa carapace de 1,5 point',
+    shell: 60, wear: 1.5, // étape 4 : 3 → 1,5 — il faut ~40 coups : la vitesse d'attaque fait vraiment la différence
   },
   summoner: {
     name: 'Invocatrice', color: '#9fe6ff', counter: 'Dégâts de zone, perçants ou en chaîne',
     text: 'fait surgir 2 serviteurs toutes les 12 s, qui se placent devant elle',
-    every: 12, count: 2, minionHpPct: 3, minion: 'wraith',
+    every: 12, count: 2, maxAlive: 4, minionHpPct: 3, minion: 'wraith',
   },
   escalate: {
     name: 'Fournaise', color: '#ff7a3a', counter: 'PV, régénération, vol de vie',
-    text: 'ses dégâts augmentent de 6 % toutes les 3 s de combat',
-    stepSeconds: 3, stepPct: 6,
+    text: 'ses dégâts augmentent de 6 % toutes les 3 s de combat (jusqu\'à ×2,5)',
+    stepSeconds: 3, stepPct: 6, maxDamage: 2.5, // étape 4 : plafonné (la rage s'en charge déjà)
   },
   desperate: {
     name: 'Désespoir', color: '#ff4a6a', counter: 'Armure, PV',
-    text: 'sous 50 % de ses PV, frappe 60 % plus fort et 30 % plus vite',
-    below: 0.5, damage: 1.6, speed: 1.3,
+    text: 'sous 50 % de ses PV, frappe 60 % plus fort et 30 % plus vite — sauf contre une armure solide (40 % l\'annule)',
+    below: 0.5, damage: 1.6, speed: 1.3, armorNullifies: 40, // étape 4 : l'armure devient le vrai contre
   },
 };
 
@@ -48,14 +48,16 @@ export function traitDamageTaken(enemy, damage) {
   return damage * (1 - shell / 100);
 }
 
-// Multiplicateurs de l'attaque du boss : { damage, speed }.
-export function traitAttack(enemy) {
+// Multiplicateurs de l'attaque du boss : { damage, speed }. heroArmor : armure du héros en % (contre de Désespoir).
+export function traitAttack(enemy, heroArmor = 0) {
   if (enemy.trait === 'escalate') {
     const t = TRAITS.escalate;
-    return { damage: 1 + (t.stepPct / 100) * Math.floor((enemy.age ?? 0) / t.stepSeconds), speed: 1 };
+    return { damage: Math.min(t.maxDamage, 1 + (t.stepPct / 100) * Math.floor((enemy.age ?? 0) / t.stepSeconds)), speed: 1 };
   }
   if (enemy.trait === 'desperate' && enemy.hp < enemy.maxHp * TRAITS.desperate.below) {
-    return { damage: TRAITS.desperate.damage, speed: TRAITS.desperate.speed };
+    const t = TRAITS.desperate;
+    const left = Math.max(0, 1 - heroArmor / t.armorNullifies); // part du bonus qui passe l'armure
+    return { damage: 1 + (t.damage - 1) * left, speed: 1 + (t.speed - 1) * left };
   }
   return { damage: 1, speed: 1 };
 }

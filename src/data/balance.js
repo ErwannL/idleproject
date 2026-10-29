@@ -104,8 +104,9 @@ export const BALANCE = {
     },
     goldFind: {
       label: "Butin d'or",
-      description: "+5 % d'or gagné, ×1,5 tous les 25 niveaux",
+      description: "+5 % d'or gagné, ×1,5 tous les 25 niveaux (100 niveaux au plus)",
       baseCost: 80,
+      maxLevel: 100, // v9.0.6 : sans plafond, il écrasait toutes les autres améliorations
       costGrowth: 1.12,
       oldCostGrowth: 1.22,
       perLevel: 5,
@@ -128,9 +129,9 @@ export const BALANCE = {
     bossHpMultiplier: 45, // un boss se gagne aux dégâts…
     bossDamageMultiplier: 2.4, // …et il frappe fort
     bossArmorPierce: 0.4, // un boss ignore 40 % de l'armure du héros
-    enrageSeconds: 25, // au-delà, le boss enrage : +50 % de dégâts toutes les 10 s
+    enrageSeconds: 25, // au-delà, le boss enrage : dégâts ×1,3 toutes les 10 s (étape 4 : multiplicatif)
     enrageStepSeconds: 10,
-    enragePct: 50,
+    enragePct: 30, // étape 4 : ×1,3 par palier, multiplicatif (×4,8 à 85 s, ×14 à 125 s)
     // Monde 11 : méga boss berserk (et leurs invocations).
     berserk: { hp: 1.8, damage: 1.6, speed: 1.3, gold: 2 },
     // Renaissance : les boss s'adaptent (plus durs) mais rapportent plus.
@@ -151,7 +152,11 @@ export const BALANCE = {
 
   enemyScaling: {
     // v7.6 : 20 étapes par monde (au lieu de 10) : croissance par étape = racine de l'ancienne.
-    hpGrowth: 1.0817,
+    // Étape 4 (rythme) : ennemis 8 fois plus robustes au départ, croissance un peu plus douce (1,0817 → 1,075) :
+    // le début se dispute (les améliorations comptent), la fin de partie n'est pas durcie (égalité vers l'étape 335).
+    hpBase: 8,
+    hpBaseRamp: 25, // ×8 atteint progressivement sur les 25 premières étapes
+    hpGrowth: 1.075,
     damageGrowth: 1.0583,
     goldGrowth: 1.0724,
   },
@@ -167,6 +172,7 @@ export const BALANCE = {
     stagePowerGrowth: 0.045, // +4,5 % de stats par niveau d'objet (linéaire jusqu'à la v8.3)
     stagePowerExp: 1.03, // v8.4 : croissance exponentielle (×1,03 par niveau d'objet)
     recycleLevelGrowth: 0.05,
+    recycleGoldShare: 0.5, // étape 4 : part de l'or d'étape (voir recycleValue)
     inventorySize: 100, // au-delà, les nouveaux objets sont recyclés en or
     signatureChance: 0.15, // chance qu'un boss lâche son objet signature
     bossEssence: 2, // essences garanties par boss (+1 par zone)
@@ -247,7 +253,7 @@ export const BALANCE = {
   // 5 premières heures : progression très rapide, beaucoup de butin et d'invocations, puis normal.
   earlyBoost: {
     hours: 5,
-    goldMultiplier: 3, // ×3 au début, décroît jusqu'à ×1
+    goldMultiplier: 1.5, // étape 4 : ×3 → ×1,5 au début (le début allait trop vite), décroît jusqu'à ×1
     xpMultiplier: 3,
     extraDropChance: 0.15, // +15 points de chance de butin au début
     eventMultiplier: 4, // coffres, gemmes, marchands… 4 fois plus fréquents
@@ -269,6 +275,7 @@ export const BALANCE = {
     farmMultiplier: 0.65, // hors ligne = 65 % du rythme de farm actif mesuré (35 % de moins)
     measureSeconds: 180, // durée de combat simulée pour mesurer ce rythme
     maxItems: 10, // objets réellement générés ; le surplus est converti en or
+    gemShare: 0.3, // étape 4 : 30 % des gemmes de kill gagnées aussi hors ligne
     minSecondsForSummary: 60,
   },
 

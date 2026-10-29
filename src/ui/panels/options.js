@@ -137,8 +137,13 @@ export default {
         <label class="toggle"><input type="checkbox" data-action="focus" ${state.ui.focus ? 'checked' : ''}> <b>Mode concentration</b> : moins d'effets visuels et de messages (le jeu continue normalement)</label>
       </div>
       <div class="card">
+        <div class="section-title">Découverte guidée</div>
+        <div class="row-between"><span class="muted">Revoir le tour de l'interface : catégories, classes, compétences, invocation.</span>
+          <button class="btn small" data-action="tour-full">Revoir le tutoriel</button></div>
+      </div>
+      <div class="card">
         <div class="section-title">Raccourcis clavier</div>
-        <div class="row-between"><span class="muted">1…0 onglets · Espace avance auto · Q W E R T boosts · G tout récupérer…</span>
+        <div class="row-between"><span class="muted">1…5 catégories · Espace avance auto · Q W E R T boosts · G tout récupérer…</span>
           <button class="btn small" data-action="show-shortcuts">Tout voir (K)</button></div>
       </div>
       <div class="card">

@@ -147,7 +147,11 @@ export function refreshItemStats(item, balance = BALANCE) {
 
 export function recycleValue(item, balance = BALANCE) {
   const rarity = rarityById(item.rarity);
-  return Math.floor(rarity.recycleGold * (1 + balance.loot.recycleLevelGrowth * (item.level - 1)));
+  const linear = rarity.recycleGold * (1 + balance.loot.recycleLevelGrowth * (item.level - 1));
+  // Étape 4 : indexé sur l'or des ennemis du même niveau (avant : sans valeur passé l'étape ~80) —
+  // un Commun vaut ~1 ennemi, un Légendaire ~60 ennemis de son étape.
+  const indexed = rarity.recycleGold * balance.loot.recycleGoldShare * balance.enemyScaling.goldGrowth ** Math.max(0, item.level - 1);
+  return Math.floor(Math.max(linear, indexed));
 }
 
 export function recycleMaterials(item, balance = BALANCE) {

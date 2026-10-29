@@ -177,6 +177,26 @@ export function isUpgrade(state, item, balance = BALANCE, current = computeHeroS
   return extras(next) > extras(current) + 1e-6;
 }
 
+// « Équiper le meilleur » (étape 3) : équipe, une pièce à la fois, l'objet du sac qui améliore le plus le
+// héros (même bilan qu'isUpgrade), jusqu'à ce qu'aucun objet du sac ne soit meilleur. Renvoie le nombre d'objets équipés.
+export function equipBest(state, balance = BALANCE) {
+  let count = 0;
+  for (let guard = 0; guard < 24; guard++) {
+    const current = computeHeroStats(state, balance);
+    let best = null;
+    let bestScore = -Infinity;
+    for (const item of state.inventory) {
+      if (!isUpgrade(state, item, balance, current)) continue;
+      const next = statsWithItem(state, item, balance);
+      const score = state.equipment[item.slot] ? Math.log(next.dps / current.dps) + Math.log(ehp(next) / ehp(current)) : Infinity;
+      if (score > bestScore) { best = item; bestScore = score; }
+    }
+    if (!best || !equipItem(state, best.id)) break;
+    count += 1;
+  }
+  return count;
+}
+
 // Mode « au ramassage » : le sac est aussi trié régulièrement (objets devenus inutiles après un meilleur équipement).
 export function sweepInventory(state, balance = BALANCE) {
   const rules = recycleRules(state);

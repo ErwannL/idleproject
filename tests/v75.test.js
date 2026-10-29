@@ -92,6 +92,7 @@ test('accessoires : chaque modèle existe en plusieurs couleurs', () => {
 
 test('règle de collecte : recycler au ramassage sans jamais jeter une amélioration', () => {
   const state = rich(11);
+  delete state.ui.recycle; // ancienne règle (v7.5)
   state.ui.autoRecycle = 'common';
   const shards = state.materials.shards;
   const weak = makeItem(state, 'dagger', 'common', 1);

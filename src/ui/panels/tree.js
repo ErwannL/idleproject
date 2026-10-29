@@ -121,7 +121,7 @@ function detailCard(state, sel) {
 
 export default {
   id: 'tree',
-  title: 'Arbre de talents',
+  title: 'Renaissance',
   icon: 'icon_tree',
   extra: (ui, state) => `${fragment()}<b class="num">${formatNumber(state.fragments)}</b>`,
   afterRender(ui, body) {

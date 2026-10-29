@@ -6,7 +6,8 @@ import { ZONES } from '../data/zones.js';
 import { weekKey } from './tower.js';
 import { grantReward } from './rewards.js';
 
-export const CHALLENGE = { unlockStage: 30, triesPerWeek: 3, killsPerWave: 8, bossEvery: 5, levelPerWave: 2, history: 8, modifiers: 3, waveSeconds: 90 };
+// Étape 5 : calendrier de déblocages étalé (Donjons 25, Renaissance 30, Défi 45, Tour 60) — avant, tout arrivait entre 25 et 40.
+export const CHALLENGE = { unlockStage: 45, triesPerWeek: 3, killsPerWave: 8, bossEvery: 5, levelPerWave: 2, history: 8, modifiers: 3, waveSeconds: 90 };
 
 // Règles possibles. Chaque semaine en tire 3 (dont au moins une favorable quand c'est possible).
 export const CHALLENGE_MODIFIERS = [
@@ -62,7 +63,8 @@ export function challengeRule(state, key) {
 }
 
 export function challengeUnlocked(state) {
-  return state.maxStage >= CHALLENGE.unlockStage;
+  // Une partie qui a déjà joué le défi le garde.
+  return state.maxStage >= CHALLENGE.unlockStage || (state.challengeBest ?? 0) > 0 || Boolean(state.challenge);
 }
 
 // Semaine en cours : remise à zéro le lundi ; la semaine terminée rejoint l'historique.

@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1536">
+<title>Préinscriptions — affiche HD</title>
+<!--
+  Affiche promotionnelle « Préinscriptions » (1536×1024), version HD : héros et vignettes des récompenses tirés des
+  illustrations détaillées (assets/hd, 256×256, ×2 et ×1) ; décor et boss en pixel art du jeu.
+  À ouvrir via le serveur du dépôt (npm start → http://localhost:5173/docs/promo/preinscriptions.html) :
+  les chemins /assets/... et /src/... sont relatifs à la racine du dépôt.
+
+  Règles de mise en page (toutes les positions dérivent des constantes du script) :
+  - Pixel art : agrandissements entiers, plus proche voisin uniquement (canvas, imageSmoothingEnabled = false).
+  - Personnages : ×5 (héros, skins, monstres) ; boss : ×4. Tous posés sur la même ligne de sol (FEET_Y).
+  - Décor : zone « Montagnes » du jeu, ×3.
+  - Cartes : 10 cartes 132 px, gouttières 16 px, marge 36 px. Illustration : boîte 112×112 = grille 28×28 px natifs ×4.
+  - Le chevalier entièrement équipé est composé à l'exécution par heroComposite() (src/render/pixel.js).
+-->
+<style>
+  :root {
+    --navy-0: #070b1c;
+    --navy-1: #0d1430;
+    --navy-2: #16204a;
+    --gold: #e8b64a;
+    --gold-hi: #f6d98e;
+    --gold-lo: #9a6a1c;
+    --ink: #05081a;
+    --green: #47d866;
+    --sr: #b46bff;
+    --ssr: #ffa630;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1536px; height: 1024px; overflow: hidden; background: var(--navy-0); }
+  body { font-family: 'Inter Display', 'Inter', 'DejaVu Sans', Arial, sans-serif; color: #fff; }
+  canvas, img { image-rendering: pixelated; display: block; }
+  #poster { position: relative; width: 1536px; height: 1024px; overflow: hidden; background: var(--navy-0); }
+  .abs { position: absolute; }
+
+  /* ---------- Décor (zone Montagnes, ×3) ---------- */
+  .scene { position: absolute; left: 0; width: 512px; transform: scale(3); transform-origin: 0 0; overflow: hidden; }
+  .scene img { position: absolute; }
+  #sky { top: 0; height: 176px; background: linear-gradient(#2a66cc 0%, #4a8ce0 38%, #82baf0 72%, #c6e4fa 100%); }
+  #front { top: 0; height: 176px; pointer-events: none; }
+  /* Crépuscule côté monstres + vignette derrière le titre. */
+  .dusk { position: absolute; left: 0; top: 0; width: 1536px; height: 528px;
+    background:
+      linear-gradient(90deg, rgba(20,6,40,0) 0%, rgba(20,6,40,0) 52%, rgba(34,8,52,.62) 74%, rgba(26,4,36,.82) 100%),
+      linear-gradient(180deg, rgba(7,11,28,.30) 0%, rgba(7,11,28,0) 24%); }
+  .heroglow { position: absolute; left: -103px; top: 96px; width: 560px; height: 340px;
+    background: radial-gradient(ellipse 50% 50% at 50% 62%, rgba(255,214,120,.38), rgba(255,214,120,0) 70%); }
+  .bossglow { position: absolute; right: 0; top: 64px; width: 600px; height: 380px;
+    background: radial-gradient(ellipse 50% 50% at 50% 60%, rgba(196,64,255,.42), rgba(255,60,60,0) 72%); }
+  .fade { position: absolute; left: 0; top: 400px; width: 1536px; height: 140px;
+    background: linear-gradient(180deg, rgba(7,11,28,0) 0%, rgba(7,11,28,.72) 34%, var(--navy-0) 100%); }
+
+  /* Bas de l'affiche : sapins de la même zone, assombris. */
+  #lower { top: 0; height: 342px; }
+  .lowveil { position: absolute; left: 0; top: 520px; width: 1536px; height: 504px;
+    background: linear-gradient(180deg, var(--navy-0) 0%, rgba(7,11,28,.9) 46%, rgba(7,11,28,.74) 76%, rgba(7,11,28,.86) 100%); }
+
+  .char { position: absolute; }
+  .shadow { position: absolute; height: 16px; border-radius: 50%; background: rgba(5,8,26,.45); }
+
+  /* ---------- Titre ---------- */
+  .plaque { position: absolute; }
+  .plaque::before, .plaque::after { content: ''; position: absolute; inset: 0;
+    clip-path: polygon(40px 0, calc(100% - 40px) 0, 100% 40px, calc(100% - 14px) 50%, 100% calc(100% - 40px), calc(100% - 40px) 100%, 40px 100%, 0 calc(100% - 40px), 14px 50%, 0 40px); }
+  .plaque::before { background: linear-gradient(180deg, var(--gold-hi), var(--gold) 45%, var(--gold-lo)); }
+  .plaque::after { inset: 6px; background:
+      radial-gradient(ellipse 60% 55% at 50% 58%, rgba(79,163,255,.30), rgba(79,163,255,0) 72%),
+      linear-gradient(180deg, #1d2c6c 0%, #111a44 55%, #0a1030 100%); }
+  .plaque .rim { position: absolute; inset: 12px; z-index: 1;
+    clip-path: polygon(34px 0, calc(100% - 34px) 0, 100% 34px, calc(100% - 11px) 50%, 100% calc(100% - 34px), calc(100% - 34px) 100%, 34px 100%, 0 calc(100% - 34px), 11px 50%, 0 34px);
+    box-shadow: inset 0 0 0 2px rgba(246,217,142,.35); }
+
+  .t { position: absolute; left: 0; width: 1536px; text-align: center; font-weight: 900; line-height: 1; white-space: nowrap; z-index: 2; }
+  .t span { position: absolute; left: 0; right: 0; }
+  .t .back { color: #1a0d05; -webkit-text-stroke: var(--sw) #1a0d05; transform: translateY(var(--sd)); }
+  .t .mid  { color: #5a3008; -webkit-text-stroke: var(--sm) #5a3008; }
+  .t .face { background: linear-gradient(180deg, #fff6c8 0%, #ffe07a 30%, #f5b52c 56%, #d97a10 82%, #a8500a 100%);
+             -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .t.blue .mid { color: #0a1640; -webkit-text-stroke: var(--sm) #0a1640; }
+  .t.blue .back { color: #040818; -webkit-text-stroke: var(--sw) #040818; }
+  .t.blue .face { background: linear-gradient(180deg, #ffffff 0%, #dff0ff 45%, #8cc8ff 100%); -webkit-background-clip: text; background-clip: text; }
+
+  .ribbon { position: absolute; z-index: 2; }
+  .ribbon::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, var(--gold-hi), var(--gold-lo));
+    clip-path: polygon(24px 0, calc(100% - 24px) 0, 100% 50%, calc(100% - 24px) 100%, 24px 100%, 0 50%); }
+  .ribbon::after { content: ''; position: absolute; inset: 3px 4px; background: linear-gradient(180deg, #16205a, #0a1030);
+    clip-path: polygon(22px 0, calc(100% - 22px) 0, 100% 50%, calc(100% - 22px) 100%, 22px 100%, 0 50%); }
+  .ribbon p { position: relative; z-index: 1; height: 100%; display: flex; align-items: center; justify-content: center; text-align: center;
+    font-size: 17px; line-height: 22px; font-weight: 700; letter-spacing: .2px; color: #fff3cf; padding: 0 48px; text-shadow: 0 2px 0 #000; }
+
+  /* ---------- Paliers ---------- */
+  .rail { position: absolute; height: 6px; border-radius: 3px; background: #3a2e16; box-shadow: 0 0 0 2px var(--ink); }
+  .fill { position: absolute; height: 6px; border-radius: 3px; background: linear-gradient(180deg, #fff2b0, var(--gold) 50%, #b07a20);
+    box-shadow: 0 0 0 2px var(--ink), 0 0 12px rgba(255,200,80,.85); }
+  .badge { position: absolute; border-radius: 8px; background: linear-gradient(180deg, #1f2c62, #0b1233);
+    border: 3px solid var(--gold); box-shadow: 0 0 0 2px var(--ink), inset 0 0 0 2px rgba(255,230,160,.22), 0 4px 0 rgba(0,0,0,.45);
+    display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; letter-spacing: .5px; color: #fff; text-shadow: 0 2px 0 #000; }
+  .badge.locked { border-color: #8a6a32; color: #d9d2c0; }
+  .badge.final { border-color: var(--gold-hi); color: #ffe7a6; box-shadow: 0 0 0 2px var(--ink), inset 0 0 0 2px rgba(255,230,160,.3), 0 0 16px rgba(255,190,70,.8), 0 4px 0 rgba(0,0,0,.45); }
+  .node { position: absolute; width: 16px; height: 16px; transform: rotate(45deg);
+    background: linear-gradient(135deg, #fff6c0, var(--gold) 50%, #a06a18); box-shadow: 0 0 0 2px var(--ink), 0 0 10px rgba(255,210,90,.9); }
+  .node.locked { background: linear-gradient(135deg, #a88c52, #5e4820); box-shadow: 0 0 0 2px var(--ink); }
+
+  /* ---------- Cartes (géométrie identique pour les 10) ---------- */
+  .card { position: absolute; border-radius: 10px; border: 3px solid var(--bc); background: linear-gradient(180deg, #121b40 0%, #0c1230 60%, #0a0f28 100%);
+    box-shadow: 0 0 0 2px var(--ink), 0 6px 0 rgba(0,0,0,.45); }
+  .card.done { --bc: #3fcf62; box-shadow: 0 0 0 2px var(--ink), 0 0 14px rgba(71,216,102,.45), 0 6px 0 rgba(0,0,0,.45); }
+  .card.locked { --bc: #8a6a32; }
+  .card.final { border-color: transparent;
+    background: linear-gradient(180deg, #1a1440 0%, #110d30 60%, #0c0a26 100%) padding-box,
+                linear-gradient(135deg, #ff7fb0, #ffa630 30%, #ffe680 55%, #6fb6ff 78%, #c06bff) border-box;
+    box-shadow: 0 0 0 2px var(--ink), 0 0 26px rgba(255,170,60,.65), 0 6px 0 rgba(0,0,0,.45); }
+  /* Les enfants sont positionnés depuis le bord extérieur de la carte (bordure comprise). */
+  .card > * { position: absolute; }
+  .chips { left: -3px; width: 132px; display: flex; justify-content: center; gap: 4px; }
+  .chip { height: 18px; padding: 0 6px; border-radius: 4px; font-size: 10px; line-height: 18px; font-weight: 900; letter-spacing: 1px;
+    color: #10081e; background: var(--cc); box-shadow: 0 0 0 2px var(--ink); }
+  .artbox { border-radius: 6px; overflow: hidden;
+    background: radial-gradient(circle at 50% 54%, color-mix(in srgb, var(--ac) 50%, transparent) 0, transparent 66%),
+                linear-gradient(180deg, color-mix(in srgb, var(--ac) 22%, #0a1030), #0b1230);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), 0 0 0 1px rgba(0,0,0,.5); }
+  .artbox canvas { position: absolute; left: 0; top: 0; }
+  .card.locked .artbox canvas { filter: brightness(.88); }
+  .ttl { left: -3px; width: 132px; text-align: center; white-space: nowrap; font-size: 16px; line-height: 24px; font-weight: 900; letter-spacing: 0; text-shadow: 0 2px 0 #000; }
+  .sub { left: 3px; width: 120px; text-align: center; font-size: 13px; line-height: 17px; font-weight: 800; letter-spacing: .1px; color: var(--sc, #c9d6f5); text-shadow: 0 1px 0 #000; }
+  .foot { left: 0; width: 126px; border-top: 2px solid rgba(255,255,255,.08); border-radius: 0 0 7px 7px;
+    background: linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,.42)); display: flex; align-items: center; justify-content: center; }
+  .card.done .foot { background: linear-gradient(180deg, rgba(40,150,64,.18), rgba(20,90,40,.5)); }
+  .status { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .status.ok { background: radial-gradient(circle at 40% 35%, #8af59a, #2bb04a 60%, #17752e); box-shadow: 0 0 0 3px #0b3a16, 0 0 12px rgba(79,220,106,.8); }
+  .status.lock { background: radial-gradient(circle at 40% 35%, #3a4470, #1a2048); box-shadow: 0 0 0 3px var(--ink), inset 0 0 0 2px rgba(232,182,74,.5); }
+
+  /* ---------- Bandeau d'infos ---------- */
+  .panel { position: absolute; border-radius: 12px; border: 2px solid rgba(232,182,74,.55);
+    background: linear-gradient(180deg, rgba(22,32,74,.82), rgba(10,15,40,.88));
+    box-shadow: 0 0 0 2px var(--ink), inset 0 1px 0 rgba(255,236,180,.18), 0 8px 0 rgba(0,0,0,.35); }
+  .info { position: absolute; display: flex; align-items: center; gap: 18px; }
+  .info > div:last-child { height: 103px; }
+  .info .ic { flex: none; width: 76px; height: 76px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 45% 40%, #2a3878, #111a44 70%); border: 3px solid var(--gold); box-shadow: 0 0 0 2px var(--ink), 0 0 16px rgba(232,182,74,.35); }
+  .info h3 { font-size: 16px; line-height: 20px; font-weight: 900; color: var(--gold-hi); text-transform: uppercase; letter-spacing: .6px; text-shadow: 0 2px 0 #000; margin-bottom: 6px; }
+  .info p { font-size: 14px; line-height: 19px; color: #d5ddf5; font-weight: 500; letter-spacing: .1px; text-shadow: 0 1px 0 #000; }
+  .sep { position: absolute; width: 2px; background: linear-gradient(180deg, transparent, rgba(232,182,74,.55), transparent); }
+</style>
+</head>
+<body>
+<div id="poster"></div>
+
+<script type="module">
+  // =====================================================================================
+  // Constantes de mise en page — toute la géométrie de l'affiche en découle.
+  // =====================================================================================
+  const W = 1536, H = 1024;
+  const BG_S = 3;            // décor : ×3
+  const CHAR_S = 5;          // personnages (héros, skins, monstres) : ×5
+  const BOSS_S = 4;          // boss (sprites natifs ~74 px de haut) : ×4
+  const ART_S = 4;           // illustrations des cartes : ×4 …
+  const ART_N = 28;          // … dans une grille native 28×28 → boîte 112×112
+  const ART = ART_N * ART_S;
+  const G_NATIVE = 136;      // ligne de sol du décor, en px natifs
+  const FEET_Y = G_NATIVE * BG_S; // 408 : tous les pieds se posent ici
+
+  const CARD_W = 132, GUT = 16, N = 10;
+  const MARGIN = (W - (N * CARD_W + (N - 1) * GUT)) / 2; // 36
+  const BADGE_W = 96, BADGE_H = 40, BADGE_Y = 420;
+  const RAIL_Y = 478;        // centre de la piste
+  const CARD_Y = 498, CARD_H = 314;
+  const PANEL_Y = CARD_Y + CARD_H + 24, PANEL_H = H - 32 - (CARD_Y + CARD_H + 24); // bas : marge 32
+  // Géométrie interne d'une carte (depuis son bord extérieur).
+  const IN = { chipsY: 10, artY: 36, ttlY: 156, subY: 182, subH: 51, footY: 244 };
+  const cardX = (i) => MARGIN + i * (CARD_W + GUT);
+  const cardCX = (i) => cardX(i) + CARD_W / 2;
+
+  const poster = document.getElementById('poster');
+  const el = (tag, cls, style = {}, html = '') => {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    for (const [k, v] of Object.entries(style)) e.style[k] = typeof v === 'number' ? `${v}px` : v;
+    if (html) e.innerHTML = html;
+    return e;
+  };
+  const add = (e, parent = poster) => (parent.append(e), e);
+
+  // =====================================================================================
+  // Chargement des sprites et rendu entier au plus proche voisin
+  // =====================================================================================
+  const cache = new Map();
+  const load = (src) => {
+    if (!cache.has(src)) cache.set(src, new Promise((ok, ko) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ko(new Error(src)); i.src = src; }));
+    return cache.get(src);
+  };
+  const sprite = (n) => load(`/assets/sprites/${n}.png`);
+  const bg = (n) => `/assets/bg/${n}.png`;
+
+  function bbox(src) {
+    const c = document.createElement('canvas'); c.width = src.width; c.height = src.height;
+    const x = c.getContext('2d'); x.drawImage(src, 0, 0);
+    const d = x.getImageData(0, 0, c.width, c.height).data;
+    let x0 = c.width, y0 = c.height, x1 = -1, y1 = -1;
+    for (let y = 0; y < c.height; y++) for (let xx = 0; xx < c.width; xx++) if (d[(y * c.width + xx) * 4 + 3] > 0) {
+      x0 = Math.min(x0, xx); y0 = Math.min(y0, y); x1 = Math.max(x1, xx); y1 = Math.max(y1, y);
+    }
+    return { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+  }
+  // Rogne au contenu opaque puis agrandit d'un facteur entier.
+  function scaled(src, s, flip = false) {
+    const b = bbox(src);
+    const c = document.createElement('canvas'); c.width = b.w * s; c.height = b.h * s;
+    const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
+    if (flip) { x.translate(c.width, 0); x.scale(-1, 1); }
+    x.drawImage(src, b.x, b.y, b.w, b.h, 0, 0, c.width, c.height);
+    c.dataset.scale = s;
+    return c;
+  }
+
+  // =====================================================================================
+  // Décor : zone « Montagnes » (calques et ancrages de src/render/bg.js), ×3
+  // =====================================================================================
+  function layer(scene, file, y, x = 0, tileW = 0) {
+    // Répète le calque horizontalement (comme le moteur) à partir du décalage x.
+    const n = tileW ? Math.ceil((512 - x) / tileW) + 1 : 1;
+    for (let k = -1; k < n; k++) add(el('img', '', { left: x + k * tileW, top: y }), scene).src = bg(file);
+  }
+  const sky = add(el('div', 'scene', {}, '')); sky.id = 'sky';
+  const G = G_NATIVE;
+  layer(sky, 'mountains_clouds', 4, 0, 1024);
+  layer(sky, 'mountains_far', G - 148, -96, 512);
+  layer(sky, 'mountains_castle', G - 132, 170, 512);
+  layer(sky, 'mountains_pines', G - 108, -40, 512);
+  layer(sky, 'mountains_near', G - 62, -20, 384);
+  layer(sky, 'mountains_ground', G - 8, 0, 256);
+
+  // Bas de l'affiche : mêmes sapins, sous un voile sombre.
+  const lower = add(el('div', 'scene', { top: 682 })); lower.id = 'lower';
+  layer(lower, 'mountains_pines', 0, 120, 512);
+  layer(lower, 'mountains_near', 46, 60, 384);
+  add(el('div', 'dusk'));
+  add(el('div', 'heroglow'));
+  add(el('div', 'bossglow'));
+
+  // =====================================================================================
+  // Personnages : héros ×5 à gauche, monstres ×5 / boss ×4 à droite, pieds sur FEET_Y
+  // =====================================================================================
+  const chars = [];
+  function stand(canvas, left, z, name) {
+    canvas.className = 'char';
+    canvas.style.left = `${left}px`;
+    canvas.style.top = `${FEET_Y - canvas.height}px`;
+    canvas.style.zIndex = z;
+    canvas.dataset.name = name;
+    chars.push(canvas);
+    add(canvas);
+    return canvas;
+  }
+  // Chevalier entièrement équipé, composé par le moteur du jeu.
+  const P = await import('/src/render/pixel.js');
+  const gear = { weapon: { baseId: 'greatsword', rarity: 'legendary' }, armor: { baseId: 'plate_armor', rarity: 'legendary' } };
+  const knightSrc = P.heroComposite('victory', gear, false, 'a');
+
+  // Version HD : illustrations détaillées ×1,25 (plus proche voisin), même taille que les anciens sprites ×5,
+  // pieds sur la ligne de sol du décor.
+  const hd = (n) => load(`/assets/hd/${n}.png`);
+  const HD_S = 1.25, HD_FEET = FEET_Y + 4;
+  const heroes = [
+    // [illustration, x gauche (contenu), z] — du fond vers l'avant, tous tournés vers la droite.
+    ['seraph', 64, 2],
+    ['valkyrie', 236, 3],
+    ['hero_knight', 150, 4],
+    ['grombar', -24, 5],
+  ];
+  const monsters = [
+    // Miroir du groupe de héros : tous regardent à gauche, le boss du fond déborde à droite.
+    ['boss_demon_king', BOSS_S, 1268, 2],
+    ['boss_ash_dragon', BOSS_S, 1096, 3],
+    ['wolf_ice', CHAR_S, 1118, 5],
+    ['slime_blue', CHAR_S, 1352, 5],
+  ];
+  for (const [s, x, z] of heroes) {
+    const src = await hd(s); const b = bbox(src);
+    const c = document.createElement('canvas'); c.width = Math.round(b.w * HD_S); c.height = Math.round(b.h * HD_S);
+    const cx = c.getContext('2d'); cx.imageSmoothingEnabled = false; cx.drawImage(src, b.x, b.y, b.w, b.h, 0, 0, c.width, c.height);
+    stand(c, x, z, s);
+    c.style.top = `${HD_FEET - c.height}px`;
+    c.style.filter = 'drop-shadow(0 0 3px rgba(0,0,0,.6))';
+  }
+  for (const [s, sc, x, z] of monsters) stand(scaled(await sprite(s), sc), x, z, s);
+  // Ombres au sol, sous chaque personnage.
+  for (const c of chars) {
+    const w = Math.round(c.width * 0.7);
+    add(el('div', 'shadow', { left: parseFloat(c.style.left) + (c.width - w) / 2, top: FEET_Y - 8, width: w, zIndex: 1 }));
+  }
+
+  // Avant-plan du décor (calque « front » du jeu), devant les pieds.
+  const front = add(el('div', 'scene', { zIndex: 6 })); front.id = 'front';
+  layer(front, 'mountains_front', G + 7, 0, 320);
+  add(el('div', 'fade', { zIndex: 7 }));
+  add(el('div', 'lowveil', { zIndex: 7 }));
+
+  // =====================================================================================
+  // Titre
+  // =====================================================================================
+  const PL = { x: 468, y: 28, w: 600, h: 288 };
+  const plaque = add(el('div', 'plaque', { left: PL.x, top: PL.y, width: PL.w, height: PL.h, zIndex: 8 }));
+  add(el('div', 'rim'), plaque);
+  const title = (text, top, size, { sw, sm, sd, ls = 0, blue = false }) => {
+    const t = add(el('div', `t${blue ? ' blue' : ''}`, { top, height: size, fontSize: size, letterSpacing: `${ls}px`, zIndex: 9 }));
+    t.style.setProperty('--sw', `${sw}px`); t.style.setProperty('--sm', `${sm}px`); t.style.setProperty('--sd', `${sd}px`);
+    t.innerHTML = ['back', 'mid', 'face'].map((c) => `<span class="${c}">${text}</span>`).join('');
+    return t;
+  };
+  title('PRÉINSCRIPTIONS', PL.y + 26, 62, { sw: 14, sm: 8, sd: 6, ls: 0 });
+  title('AIDE-NOUS À ATTEINDRE LES', PL.y + 102, 26, { sw: 8, sm: 4, sd: 3, ls: 1.5, blue: true });
+  const big = title('100 000', PL.y + 142, 92, { sw: 18, sm: 10, sd: 8, ls: 2 });
+  title('AVENTURIERS !', PL.y + 236, 34, { sw: 10, sm: 5, sd: 4, ls: 2, blue: true });
+  // Éclats de cristal de part et d'autre du « 100 000 » (×4, miroir sans rééchantillonnage).
+  const shard = await sprite('icon_shard');
+  // Placés d'après la largeur réelle du texte : 20 px d'air entre éclat et chiffres.
+  const rg = document.createRange(); rg.selectNodeContents(big.querySelector('.face'));
+  const tb = rg.getBoundingClientRect();
+  const SW = bbox(shard).w * 4;
+  for (const [x, flip] of [[Math.round(tb.left) - 20 - SW, false], [Math.round(tb.right) + 20, true]]) {
+    const c = scaled(shard, 4, flip);
+    c.className = 'abs';
+    Object.assign(c.style, { left: `${x}px`, top: `${PL.y + 144}px`, zIndex: 9, filter: 'drop-shadow(0 0 10px rgba(120,200,255,.9))' });
+    add(c);
+  }
+  const RB = { w: 560, h: 48 };
+  add(el('div', 'ribbon', { left: (W - RB.w) / 2, top: PL.y + PL.h + 14, width: RB.w, height: RB.h },
+    '<p>Plus nous sommes nombreux, plus les récompenses<br>sont grandes pour tous les joueurs !</p>'));
+
+  // =====================================================================================
+  // Paliers et cartes
+  // =====================================================================================
+  const RARE = '#4fa3ff', GOLDC = '#f2b33a', PET = '#7fe07a', EPIC = '#b46bff', LEG = '#ff8a3d', TICK = '#ff5a6a', MEGA = '#ffb84a';
+  // art : liste de [sprite, x natif, y natif] dans la grille 28×28 (débordements rognés par la boîte).
+  const REWARDS = [
+    { k: '10K',  ac: RARE,  ttl: '500 gemmes',      sub: 'Monnaie premium',      art: [['icon_gem', 4, 4]] },
+    { k: '20K',  ac: GOLDC, ttl: '250\u00a0K or',        sub: 'Pièces d’or',          art: [['coin', 7, 2], ['coin', 0, 13], ['coin', 14, 13]] },
+    { k: '30K',  ac: PET,   ttl: '1 familier',      sub: 'Slime doré',           chips: [['EXCLUSIF', '#ffe27a']], art: [], hd: 'pet_golden_slime', whole: true },
+    { k: '40K',  ac: RARE,  ttl: '1\u00a0000 gemmes',    sub: 'Monnaie premium',      art: [['icon_gem', 9, 0], ['icon_gem', -1, 9]] },
+    { k: '50K',  ac: EPIC,  ttl: '1 compagnon',     sub: 'Lame rose',            chips: [['SR', EPIC], ['EXCLUSIF', '#ffe27a']], art: [], hd: 'ally_rose_blade', dy: 2 },
+    { k: '60K',  ac: GOLDC, ttl: '1\u00a0500 gemmes',    sub: '+ 500 K or',           art: [['icon_gem', 1, 0], ['coin', 13, 13]] },
+    { k: '70K',  ac: LEG,   ttl: '1 héros SSR',     sub: 'Lilith la Diablesse',  chips: [['SSR', '#ffa630'], ['EXCLUSIF', '#ffe27a']], art: [], hd: 'demoness', dy: 14, dx: 6 },
+    { k: '80K',  ac: TICK,  ttl: '10 tickets',      sub: 'd’invocation',         art: [['icon_ticket', 8, 0], ['icon_ticket', 0, 9]] },
+    { k: '90K',  ac: LEG,   ttl: '1 héros SSR',     sub: 'Roi Grombar',          chips: [['SSR', '#ffa630'], ['EXCLUSIF', '#ffe27a']], art: [], hd: 'grombar', dy: 0, dx: -6 },
+    { k: '100K', ac: MEGA,  ttl: '2\u00a0500 gemmes',    sub: '+ 1 M or<br>+ 1 ticket SSR garanti', chips: [['MÉGA PACK', '#ffe27a']], final: true,
+      art: [['icon_chest', 4, 3], ['icon_gem', -2, 11], ['coin', 15, 14]] },
+  ];
+  const UNLOCKED = 5;
+
+  // Piste : rail du 1er au dernier centre, remplissage jusqu'à mi-chemin du 6e palier.
+  add(el('div', 'rail', { left: cardCX(0), top: RAIL_Y - 3, width: cardCX(N - 1) - cardCX(0), zIndex: 10 }));
+  add(el('div', 'fill', { left: cardCX(0), top: RAIL_Y - 3, width: (cardCX(UNLOCKED - 1) + cardCX(UNLOCKED)) / 2 - cardCX(0), zIndex: 10 }));
+
+  const artCanvases = [];
+  for (const [i, r] of REWARDS.entries()) {
+    const done = i < UNLOCKED;
+    const cx = cardCX(i);
+    add(el('div', `badge ${done ? 'done' : 'locked'}${r.final ? ' final' : ''}`, { left: cx - BADGE_W / 2, top: BADGE_Y, width: BADGE_W, height: BADGE_H, zIndex: 11 }, r.k));
+    add(el('div', `node${done ? '' : ' locked'}`, { left: cx - 8, top: RAIL_Y - 8, zIndex: 11 }));
+
+    const card = add(el('div', `card ${done ? 'done' : 'locked'}${r.final ? ' final' : ''}`, { left: cardX(i), top: CARD_Y, width: CARD_W, height: CARD_H, zIndex: 11 }));
+    // Les enfants « absolute » se placent dans la boîte de remplissage : on retire la bordure (3 px).
+    const B = 3;
+    add(el('div', 'chips', { top: IN.chipsY - B }, (r.chips ?? []).map(([t, c]) => `<span class="chip" style="--cc:${c}">${t}</span>`).join('')), card);
+    const box = add(el('div', 'artbox', { left: (CARD_W - ART) / 2 - B, top: IN.artY - B, width: ART, height: ART }), card);
+    box.style.setProperty('--ac', r.ac);
+    // Composition dans la grille native 28×28, puis agrandissement ×4 (plus proche voisin).
+    const big = document.createElement('canvas'); big.width = ART; big.height = ART;
+    const bx = big.getContext('2d'); bx.imageSmoothingEnabled = false;
+    if (r.hd) {
+      // Illustration HD : buste ×1 (boîte 112×112 = 112 px de l'illustration), ou corps entier ×½ pour un familier.
+      const src = await hd(r.hd); const b = bbox(src);
+      if (r.whole) { const k = Math.min(ART / b.w, ART / b.h) * 0.92; const w = Math.round(b.w * k), h = Math.round(b.h * k);
+        bx.drawImage(src, b.x, b.y, b.w, b.h, (ART - w) / 2, ART - h - 2, w, h); }
+      else bx.drawImage(src, Math.round(b.x + b.w / 2 - ART / 2 + (r.dx ?? 0)), b.y + (r.dy ?? 0), ART, ART, 0, 0, ART, ART);
+    } else {
+      const nat = document.createElement('canvas'); nat.width = ART_N; nat.height = ART_N;
+      const nx = nat.getContext('2d');
+      for (const [s, ax, ay] of r.art) nx.drawImage(await sprite(s), ax, ay);
+      bx.drawImage(nat, 0, 0, ART, ART);
+    }
+    big.dataset.scale = ART_S;
+    box.append(big); artCanvases.push(big);
+    add(el('div', 'ttl', { top: IN.ttlY - B }, r.ttl), card);
+    add(el('div', 'sub', { top: IN.subY - B, height: IN.subH }, r.sub), card);
+    const foot = add(el('div', 'foot', { top: IN.footY - B, height: CARD_H - IN.footY - B }), card);
+    if (done) {
+      foot.innerHTML = '<div class="status ok"><svg width="24" height="20" viewBox="0 0 12 10" shape-rendering="crispEdges"><path fill="#0b3a16" d="M10 0h2v3h-1v1h-1v1H9v1H8v1H7v1H6v1H5v1H4V9H3V8H2V7H1V6H0V4h2v1h1v1h1v1h1V6h1V5h1V4h1V3h1V2h1z"/><path fill="#fff" d="M10 1h1v2h-1v1H9v1H8v1H7v1H6v1H5v1H4V8H3V7H2V6H1V5h1v1h1v1h1v1h1V7h1V6h1V5h1V4h1V3h1z"/></svg></div>';
+    } else {
+      const st = add(el('div', 'status lock'), foot);
+      st.append(scaled(await sprite('icon_lock'), 2));
+    }
+  }
+
+  // =====================================================================================
+  // Bandeau d'infos : 4 blocs de largeur égale
+  // =====================================================================================
+  const PX = MARGIN, PW = W - 2 * MARGIN;
+  add(el('div', 'panel', { left: PX, top: PANEL_Y, width: PW, height: PANEL_H, zIndex: 11 }));
+  const INFOS = [
+    ['icon_chest', 'Récompenses<br>pour tous', 'Chaque joueur recevra les récompenses débloquées dès le lancement du jeu !'],
+    ['icon_hero', 'Rejoins<br>l’aventure', 'Plus nous sommes nombreux, plus le monde s’agrandit : héros, boss et zones !'],
+    ['icon_mail', 'Suis<br>les actus', 'Infos, bonus et annonces du lancement : reste à l’affût !'],
+    ['icon_heart', 'Merci pour<br>votre soutien !', 'Chaque préinscription compte et nous aide à bâtir un jeu toujours plus grand.'],
+  ];
+  const COL = PW / INFOS.length;
+  for (const [i, [ic, h, p]] of INFOS.entries()) {
+    const box = add(el('div', 'info', { left: PX + i * COL + 24, top: PANEL_Y, width: COL - 48, height: PANEL_H, zIndex: 12 },
+      `<div class="ic"></div><div><h3>${h}</h3><p>${p}</p></div>`));
+    box.querySelector('.ic').append(scaled(await sprite(ic), 3));
+    if (i) add(el('div', 'sep', { left: PX + i * COL - 1, top: PANEL_Y + 24, height: PANEL_H - 48, zIndex: 12 }));
+  }
+
+  // Exposé pour la vérification automatique de la mise en page.
+  window.__layout = { FEET_Y, CHAR_S, BOSS_S, ART_S, ART, CARD_W, GUT, MARGIN, chars: chars.map((c) => c.dataset.name) };
+  await Promise.all([...document.images].map((i) => i.complete ? 0 : new Promise((ok) => { i.onload = i.onerror = ok; })));
+  await document.fonts.ready;
+  document.documentElement.dataset.ready = '1';
+</script>
+</body>
+</html>

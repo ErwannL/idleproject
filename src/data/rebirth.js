@@ -6,6 +6,9 @@ export const REBIRTH = {
   // Fragments gagnés = floor(((étape max - 1) / divisor) ^ exponent)
   divisor: 10, // v7.6 : 20 étapes par monde
   exponent: 1.3,
+  // v9.0.6 : une Renaissance ne compte pleinement (×1,5) qu'à partir de cette étape ; avant, au prorata
+  // (renaître en boucle à l'étape 30 dominait toute autre stratégie : ×2 220 en 3 h).
+  fullPowerStage: 200,
 };
 
 // Ce que la Renaissance réinitialise et conserve (affiché avant confirmation).

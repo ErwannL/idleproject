@@ -3,7 +3,7 @@ import { BALANCE } from '../../data/balance.js';
 import { ALLY_GRADE, COMPANION_RULES, COMPANIONS } from '../../data/companions.js';
 import { MULTIPLICATIVE, RARITY_SKILL, activeSynergies, allCompanionSkills, companionById, companionMultiplier, companionUpgradeCost, equippedOfKind, teamKind } from '../../core/companions.js';
 import { COMPANION_ROLES, ROLES, SYNERGIES } from '../../data/synergies.js';
-import { costButton, effectText, escapeHtml, formatNumber, icon, img, progressBar, rarityLabel, stars } from '../common.js';
+import { costButton, effectText, escapeHtml, hdArt, formatNumber, icon, img, progressBar, rarityLabel, stars } from '../common.js';
 import { animCanvas } from '../animator.js';
 import { DUNGEONS } from '../../data/dungeons.js';
 import { SKILL_RULES } from '../../data/companion-skills.js';
@@ -92,7 +92,7 @@ function portrait(c, big = false) {
 
 export default {
   id: 'companions',
-  title: 'Équipe',
+  title: 'Compagnons',
   icon: 'icon_paw',
   extra: (ui, state) => `Équipe ${1 + state.companions.equipped.length}/${1 + BALANCE.teamSlots.ally + BALANCE.teamSlots.pet}`,
   render(ui, state) {
@@ -164,6 +164,7 @@ export default {
       <div class="section-title">Familiers <span class="muted">(animaux — 1 place)</span></div>
       <div class="pet-grid">${pets.map(thumb).join('')}</div>
       <div class="card pet-detail r-${sel.rarity}">
+        ${hdArt(sel, owned ? 'pet-hd' : 'pet-hd locked')}
         <div class="detail-head">
           <div class="pet-portrait">${owned ? portrait(sel, true) : `<img class="px" src="${icon(sel.sprite, sel.kind === 'ally' ? 1 : 4, { tint: { color: '#3a4a66', alpha: 1 } })}" alt="">`}</div>
           <div><div class="item-name">${escapeHtml(sel.name)}</div>

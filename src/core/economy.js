@@ -8,6 +8,8 @@ export function upgradeCost(key, level, balance = BALANCE) {
 
 export function buyUpgrade(state, key, balance = BALANCE) {
   if (!(key in balance.upgrades)) return false;
+  const cap = balance.upgrades[key].maxLevel ?? Infinity;
+  if (state.upgrades[key] >= cap) return false;
   const cost = upgradeCost(key, state.upgrades[key], balance);
   if (state.gold < cost) return false;
   state.gold -= cost;

@@ -1468,6 +1468,7 @@ kbd { display: inline-block; min-width: 18px; padding: 1px 5px; border: 1px soli
 .forecast { font-size: 11.5px; padding: 3px 6px; border-radius: 4px; background: rgba(10, 14, 30, 0.6); }
 .forecast.good { border-left: 3px solid #5fbf6a; }
 .forecast.bad { border-left: 3px solid #e0604a; }
+.forecast.stale { opacity: 0.6; }
 #panel-help { margin-left: 4px; }
 .panel-help-card { border-left: 3px solid #7fb0ff; }
 
@@ -1728,6 +1729,7 @@ table.records td { padding: 2px 4px; border-top: 1px solid rgba(255, 255, 255, 0
   #app > #tabs { flex-direction: row; width: auto !important; height: 58px; border-right: none; border-top: 2px solid var(--edge); padding: 4px; }
   #app > #tabs button { flex: 1 1 0; min-height: 0; height: 100%; }
   #app > #tabs button img { width: 22px !important; height: 22px !important; }
+  #app > #tabs button span { font-size: 9.5px; }
   #panel-subtabs .subtab span { display: none; }
   #panel-subtabs .subtab.active span { display: inline; }
   /* Barre du haut : seulement le niveau, l'or, les gemmes et les boutons (le reste est dans les menus). */
@@ -1787,7 +1789,7 @@ table.records td { padding: 2px 4px; border-top: 1px solid rgba(255, 255, 255, 0
 .look-name .grade { position: static; }
 
 /* --- v9.0.6 : bannière du héros en vedette (Invocation → Héros) ---------------------------------------- */
-.hero-banner { position: relative; display: grid; grid-template-columns: minmax(220px, 1.1fr) minmax(200px, 1.3fr) 92px; gap: 8px; min-height: 250px;
+.hero-banner { position: relative; flex: none; display: grid; grid-template-columns: minmax(220px, 1.1fr) minmax(200px, 1.3fr) 92px; gap: 8px; min-height: 250px;
   padding: 10px 10px 8px; border-radius: 8px; overflow: hidden; border: 2px solid #c98a2a;
   background:
     radial-gradient(ellipse at 58% 72%, rgba(255, 140, 40, 0.55), transparent 55%),
@@ -1801,7 +1803,7 @@ table.records td { padding: 2px 4px; border-top: 1px solid rgba(255, 255, 255, 0
 @keyframes hb-embers { to { background-position: 0 -200px, 0 -260px; } }
 html.fx-calm .hero-banner::after { animation: none; }
 .hb-left { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 6px; }
-.hb-ribbon { align-self: flex-start; padding: 3px 14px; font-weight: 900; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #ffe8b0;
+.hb-ribbon { align-self: flex-start; white-space: nowrap; padding: 3px 14px; font-weight: 900; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #ffe8b0;
   background: linear-gradient(#b8282a, #7a1418); border: 1px solid #ffcf6a; border-radius: 3px; box-shadow: 0 2px 0 #3a0a0c; }
 .hb-titlerow { display: flex; align-items: center; gap: 8px; }
 .hb-ssr { font-size: 38px; font-weight: 900; font-style: italic; line-height: 1; color: #ffd84a; letter-spacing: -0.02em;
@@ -1826,7 +1828,87 @@ html.fx-calm .hero-banner::after { animation: none; }
   background: radial-gradient(circle, color-mix(in srgb, var(--rarity) 35%, #16203a), #0b1020 80%); }
 .hb-thumb.on { box-shadow: 0 0 0 1px #fff inset, 0 0 8px var(--rarity); }
 .hb-thumb canvas.anim { height: 36px; width: auto; }
-@container (max-width: 640px) { .hero-banner { grid-template-columns: 1fr 1fr; } .hb-side { display: none; } .hb-stage canvas.anim { height: 170px; } }
-.layout-mini .hero-banner { grid-template-columns: 1fr 1fr; min-height: 0; } .layout-mini .hb-side { display: none; }
-.layout-mini .hb-stage canvas.anim { height: 150px; } .layout-mini .hb-name { font-size: 18px; } .layout-mini .hb-ssr { font-size: 28px; }
+/* Panneau étroit : le héros d'abord (grand, centré), puis ses informations ; la colonne des vedettes disparaît. */
+@container (max-width: 640px) {
+  .hero-banner { grid-template-columns: 1fr; min-height: 0; }
+  .hb-stage { order: -1; min-height: 160px; }
+  .hb-stage canvas.anim { height: 170px; }
+  .hb-side { display: none; }
+  .hb-name { font-size: 20px; } .hb-ssr { font-size: 30px; }
+}
+.layout-mini .hero-banner { min-height: 0; }
+.layout-mini .hb-stage canvas.anim { height: 150px; }
 .trait-box { padding: 4px 8px; border-left: 3px solid var(--trait); border-radius: 3px; background: color-mix(in srgb, var(--trait) 12%, #0b1120); font-size: 12px; }
+
+/* --- v9.0.6 : découverte guidée -------------------------------------------------------------------------- */
+.tour { position: fixed; inset: 0; z-index: 9500; }
+.tour-hole { position: fixed; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(4, 8, 18, 0.72), 0 0 0 3px #f2c14e, 0 0 18px 4px rgba(242, 193, 78, 0.6);
+  transition: all 0.25s ease; pointer-events: none; }
+.tour-bubble { position: fixed; padding: 12px 14px; border-radius: 10px; background: linear-gradient(#1c2846, #121a30); border: 2px solid #f2c14e;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); color: #e8eefc; transition: top 0.25s, left 0.25s; }
+.tour-step { font-size: 11px; color: var(--muted, #8fa0c0); font-weight: 700; }
+.tour-title { font-size: 17px; font-weight: 900; color: #ffd86a; margin: 2px 0 4px; }
+.tour-bubble p { margin: 0 0 10px; font-size: 13px; line-height: 1.4; }
+.tour-actions { display: flex; justify-content: space-between; gap: 8px; }
+
+/* Étape 3 (gains UX) : or dépensable et « Équiper le meilleur » bien visibles. */
+.chip-gold { cursor: pointer; font: inherit; color: inherit; }
+.gold-up { margin-left: 3px; color: #7fe0a0; font-size: 11px; animation: gold-up 1.2s ease-in-out infinite; }
+@keyframes gold-up { 50% { transform: translateY(-2px); } }
+.pulse-gold:not(:disabled) { animation: boost-glow 1.4s ease-in-out infinite; }
+
+/* --- Étape 3 : correctifs petits écrans (mobile 400 px, petite fenêtre 820×380) ---------------------------- */
+.split-nav { grid-template-columns: minmax(0, 1fr); }
+@container (min-width: 460px) { .split-nav { grid-template-columns: 120px minmax(0, 1fr); } }
+.upg-list { min-width: 0; }
+.buy-amounts { flex-wrap: wrap; }
+@container (max-width: 420px) {
+  .upg-card { grid-template-columns: 34px minmax(0, 1fr) auto; gap: 6px; padding: 5px 6px; }
+  .upg-icon { width: 34px; height: 34px; }
+  .upg-icon img { width: 22px; height: 22px; }
+  .upg-effect { grid-column: 2; grid-row: 2; text-align: left; white-space: normal; }
+  .upg-card .btn-gold { grid-column: 3; grid-row: 1 / span 2; min-width: 64px; padding: 5px 6px; font-size: 12.5px; }
+  .dungeon-layout { grid-template-columns: minmax(0, 1fr); }
+  .inv-footer .btn { flex: 1 1 auto; }
+}
+@media (max-width: 560px) {
+  #app > #tabs button { gap: 2px; padding: 3px 1px; justify-content: center; }
+  #app > #tabs button img { flex: none; }
+  #app > #tabs button span { flex: none; display: block; max-width: 100%; font-size: 9.5px; line-height: 11px; height: 11px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
+.sub-tabs { flex-wrap: wrap; }
+
+/* Étape 5 : carte « Nouveau : … » à chaque déblocage. */
+.unlock-card { position: absolute; left: 50%; bottom: 44px; transform: translateX(-50%); z-index: 4; width: min(380px, calc(100% - 24px));
+  display: grid; grid-template-columns: 40px 1fr; gap: 6px 10px; align-items: center; padding: 10px 12px; border-radius: 8px;
+  background: linear-gradient(#22305a, #141c34); border: 2px solid var(--gold-2, #d9a441); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
+  animation: unlock-in 0.35s ease-out; }
+.unlock-card > img { width: 40px; height: 40px; image-rendering: pixelated; }
+.unlock-kicker { font-size: 10px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; color: #7fe0a0; }
+.unlock-text b { font-size: 14px; color: var(--gold-text, #f2d083); }
+.unlock-text p { margin: 2px 0 0; font-size: 12px; line-height: 1.35; }
+.unlock-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 6px; }
+@keyframes unlock-in { from { opacity: 0; transform: translate(-50%, 12px); } }
+.coll-links { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 6px; font-size: 12px; }
+.coll-links img { width: 14px; height: 14px; }
+
+/* Illustrations détaillées (assets/hd) derrière le sprite du jeu. */
+.hd-art { image-rendering: pixelated; pointer-events: none; user-select: none; }
+.hb-stage { min-height: 250px; }
+.hb-stage .hb-hd { position: absolute; z-index: 0; left: 50%; bottom: 0; height: 100%; max-height: 330px; width: auto; transform: translateX(-58%);
+  filter: drop-shadow(0 0 14px rgba(255, 170, 80, 0.35)); animation: hd-float 6s ease-in-out infinite; }
+.hb-stage canvas.anim { z-index: 1; height: 150px; margin-left: 52%; filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.8)); }
+@keyframes hd-float { 50% { transform: translateX(-58%) translateY(-4px); } }
+.look-pic { position: relative; height: 120px; overflow: hidden; width: 100%; align-self: stretch; }
+.look-pic .look-hd { position: absolute; left: 50%; bottom: -4px; height: 128px; width: auto; transform: translateX(-62%); opacity: 0.9; }
+.look-pic canvas.anim, .look-pic .look-shadow { position: relative; z-index: 1; margin-left: 46%; height: 64px; }
+.hd-art.locked { filter: brightness(0) invert(0.32) sepia(0.5) hue-rotate(180deg) drop-shadow(0 0 2px rgba(160, 190, 255, 0.5)); opacity: 0.75; }
+.pet-detail { position: relative; overflow: hidden; }
+.pet-detail .pet-hd { position: absolute; right: -10px; top: -6px; height: 210px; width: auto; opacity: 0.5; z-index: 0; }
+.pet-detail .pet-hd.locked { opacity: 0.35; }
+/* Apparence verrouillée : seule la silhouette de l'illustration, centrée. */
+.look-pic .look-hd.locked { transform: translateX(-50%); }
+.look-pic .look-hd.locked ~ .look-shadow { display: none; }
+.pet-detail > :not(.pet-hd) { position: relative; z-index: 1; }
+.hd-art.real { image-rendering: auto; }

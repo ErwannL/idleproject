@@ -129,6 +129,9 @@ export function enemyDefinition(type, boss) {
 }
 
 
+// Étape 4 : ×hpBase atteint progressivement (première minute vive, puis début disputé).
+const hpBaseFactor = (n, g) => 1 + ((g.hpBase ?? 1) - 1) * Math.min(1, n / (g.hpBaseRamp ?? 1));
+
 export function enemyStats(stage, type, boss, balance = BALANCE) {
   const def = enemyDefinition(type, boss);
   const tier = boss ? balance.stages.tiers[bossTier(type)] : null;
@@ -136,7 +139,7 @@ export function enemyStats(stage, type, boss, balance = BALANCE) {
   const st = balance.stages;
   const n = Math.max(0, stage - 1);
   return {
-    hp: Math.round(def.hp * growth.hpGrowth ** n * (boss ? st.bossHpMultiplier * tier.hp : 1)),
+    hp: Math.round(def.hp * hpBaseFactor(n, growth) * growth.hpGrowth ** n * (boss ? st.bossHpMultiplier * tier.hp : 1)),
     damage: def.damage * growth.damageGrowth ** n * (boss ? st.bossDamageMultiplier * tier.damage : 1),
     gold: Math.max(1, Math.round(def.gold * growth.goldGrowth ** n * (boss ? st.bossGoldMultiplier * tier.gold : 1))),
     speed: def.speed,
@@ -411,7 +414,9 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
   // Butin : objet signature possible sur les boss (butin ciblé), objet Rare+ garanti sur les boss et élites.
   const dropChance = enemy.boss || enemy.elite || enemy.mutation ? 1 : balance.loot.dropChance + stats.bonus.dropChance / 100 + boost.dropChance;
   if (rng.next() < dropChance) {
-    const signature = enemy.boss && rng.next() < balance.loot.signatureChance
+    // v9.0.6 : boss réaffronté (boucle, étape déjà franchie) → objet ancestral 5 fois plus rare.
+    const farmed = enemy.boss && (Boolean(state.farmBoss) || (!enc.dungeon && !enc.tower && !enc.challenge && state.stage < state.maxStage));
+    const signature = enemy.boss && rng.next() < balance.loot.signatureChance * (farmed ? 0.2 : 1)
       ? makeSignatureItem(state, enemy.type, enc.level, rng, balance) : null;
     const base = enemy.boss || enemy.elite ? balance.loot.bossMinRarity : 'common';
     const luck = cheatLoot(state).minRarity;
@@ -439,18 +444,24 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
   if (enemy.boss) {
     // Méga boss berserk vaincu : ses invocations s'effondrent avec lui.
     if (enemy.berserk) world.enemies = world.enemies.filter((e) => !e.summoned);
+    // v9.0.6 : les serviteurs d'un boss invocateur disparaissent avec lui.
+    world.enemies = world.enemies.filter((e) => e.minionOf !== enemy.id);
     // Table de butin des boss : matériau rare (essences) en plus de l'objet Rare+ garanti.
     const essence = Math.round(bossEssence(enc.level, balance) * rebirthHeat(state, balance).reward);
     state.materials.essence += essence;
-    state.tickets += boost.bossTickets; // bonus de démarrage : un ticket d'invocation par boss
-    emit(world, 'bossLoot', { essence, tickets: boost.bossTickets });
+    // v9.0.6 : un boss déjà battu, réaffronté (boucle depuis le Codex ou étape inférieure au record), ne donne
+    // plus ni gemmes ni tickets — seulement son butin, ses essences et sa maîtrise (avant : 33 600 gemmes/h).
+    const replay = Boolean(state.farmBoss) || (!enc.dungeon && !enc.tower && !enc.challenge && state.stage < state.maxStage);
+    const tickets = replay ? 0 : boost.bossTickets;
+    state.tickets += tickets; // bonus de démarrage : un ticket d'invocation par boss
+    emit(world, 'bossLoot', { essence, tickets });
     state.records.bossesDefeated += 1;
     trackContracts(state, 'bosses', 1);
     emit(world, 'bossDefeated', { kind: enemy.type, stage: enc.level });
     // Gemmes (cristaux) à chaque boss : de quoi invoquer souvent.
     const tier = bossTier(enemy.type);
     // Tour : pas de gemmes par boss (seulement les récompenses de record), pas de pouvoir ancestral.
-    const gems = enc.tower || enc.challenge ? 0 : Math.round(balance.stages.tiers[tier].gems * rebirthHeat(state, balance).reward);
+    const gems = enc.tower || enc.challenge || replay ? 0 : Math.round(balance.stages.tiers[tier].gems * rebirthHeat(state, balance).reward);
     state.gems += gems;
     if (gems) emit(world, 'gems', { gems, x: enemy.x });
     // Méga boss (et boss de donjon) — première victoire : pouvoir ancestral ; ensuite : charge de relance.
@@ -771,23 +782,27 @@ export function step(state, world, dt, rng, balance = BALANCE) {
   const attacker = world.enemies[0];
   if (attacker?.engaged) attacker.age = (attacker.age ?? 0) + dt;
   // v9.0.6 : boss invocateur — des serviteurs surgissent devant lui à intervalles réguliers.
-  for (const boss of world.enemies) {
+  for (const boss of [...world.enemies]) {
     if (boss.trait !== 'summoner' || boss.hp <= 0) continue;
     boss.summonTimer -= dt;
     if (boss.summonTimer > 0) continue;
-    boss.summonTimer = TRAITS.summoner.every;
     const t = TRAITS.summoner;
-    for (let i = 0; i < t.count; i++) {
+    boss.summonTimer = t.every;
+    // Serviteurs : ennemis ordinaires (pas de gemmes de boss), placés juste devant leur maître (la file ne recule
+    // pas), et jamais plus de `maxAlive` à la fois — sinon la file pouvait s'allonger sans fin et bloquer le jeu.
+    const alive = world.enemies.filter((e) => e.minionOf === boss.id).length;
+    const count = Math.min(t.count, t.maxAlive - alive);
+    for (let i = 0; i < count; i++) {
       const hp = (boss.maxHp * t.minionHpPct) / 100;
-      world.enemies.unshift({
-        id: world.nextEnemyId++, type: t.minion, boss: false, elite: false, summoned: true, x: boss.x - 6 - i * 8,
+      world.enemies.splice(world.enemies.indexOf(boss), 0, {
+        id: world.nextEnemyId++, type: t.minion, boss: false, elite: false, minionOf: boss.id, x: boss.x - 4,
         hp, maxHp: hp, damage: boss.damage * 0.25, gold: boss.gold * 0.02, speed: 30, attackInterval: 1.2, attackTimer: 1,
         range: ENEMIES[t.minion].range, engaged: false, age: 0, summons: [], trait: null,
       });
     }
-    emit(world, 'bossSummon', { enemyId: boss.id, kind: t.minion, master: boss.type });
+    if (count > 0) emit(world, 'bossSummon', { enemyId: boss.id, kind: t.minion, master: boss.type });
   }
-  const traitAtk = attacker?.trait ? traitAttack(attacker) : { damage: 1, speed: 1 };
+  const traitAtk = attacker?.trait ? traitAttack(attacker, stats.armor) : { damage: 1, speed: 1 };
   if (attacker?.engaged) {
     attacker.attackTimer -= dt * traitAtk.speed;
     if (attacker.attackTimer <= 0) {
@@ -798,8 +813,10 @@ export function step(state, world, dt, rng, balance = BALANCE) {
       const shield = world.buffs.shield > 0 ? world.buffs.shieldPct : 0;
       // Rage : un boss qui dure trop longtemps frappe de plus en plus fort.
       const instant = state.challenge && challengeRule(state, 'instantRage');
+      // Étape 4 : rage multiplicative (×1,3 toutes les 10 s) — un combat de boss se joue en 60–90 s au plus,
+      // au lieu de 7 à 10 minutes d'usure quand le héros est juste assez fort pour survivre.
       const rage = attacker.boss && (attacker.age > st.enrageSeconds || instant)
-        ? 1 + (st.enragePct / 100) * (1 + Math.floor(Math.max(0, attacker.age - st.enrageSeconds) / st.enrageStepSeconds)) : 1;
+        ? (1 + st.enragePct / 100) ** (1 + Math.floor(Math.max(0, attacker.age - st.enrageSeconds) / st.enrageStepSeconds)) : 1;
       if (rage > 1 && !attacker.enraged) {
         attacker.enraged = true;
         emit(world, 'bossEnrage', { enemyId: attacker.id, kind: attacker.type });

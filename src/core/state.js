@@ -59,7 +59,9 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     records: {
       goldEarned: 0, kills: 0, bossesDefeated: 0, itemsFound: 0, rebirths: 0, contractsDone: 0, summons: 0,
     },
-    ui: { slotFilter: 'all', sortBy: 'rarity', autoRecycle: 'off', notify: { loot: true, boss: true, events: true }, focus: false },
+    ui: { slotFilter: 'all', sortBy: 'rarity', autoRecycle: 'off',
+      // Étape 3 (gains UX) : nouvelle partie → les Communs moins bons que l'équipé sont recyclés quand le sac est plein.
+      recycle: { mode: 'full', rarities: ['common'], slots: Object.keys(SLOTS) }, notify: { loot: true, boss: true, events: true }, focus: false },
     // Progression permanente (conservée par la Renaissance).
     level: 1,
     xp: 0,
@@ -241,6 +243,7 @@ function cleanActivities(state, raw) {
   state.bounty = sanitizeBounty(raw.bounty);
   state.codex = sanitizeCodex(raw.codex);
   state.heroClass = sanitizeHeroClass(raw.heroClass);
+  if (Number.isFinite(raw.rebirthPower) && raw.rebirthPower >= 0) state.rebirthPower = raw.rebirthPower; // v9.0.6
   state.playSeconds = Math.max(0, Number(raw.playSeconds) || 0);
 
   state.nextEventId = int(raw.nextEventId, 0);
@@ -318,7 +321,15 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   state.lastSaved = num(raw.lastSaved, now);
   state.gold = Math.floor(num(raw.gold, 0));
   for (const key of Object.keys(state.upgrades)) {
-    state.upgrades[key] = Math.min(int(raw.upgrades?.[key], 0), balance.upgrades[key].maxLevel ?? Infinity);
+    const raw0 = int(raw.upgrades?.[key], 0);
+    const cap = balance.upgrades[key].maxLevel ?? Infinity;
+    state.upgrades[key] = Math.min(raw0, cap);
+    // v9.0.6 : niveaux au-delà d'un nouveau plafond (Butin d'or : 100) → l'or dépensé pour eux est rendu.
+    if (raw0 > cap && int(raw.version, 1) >= 6) {
+      const up = balance.upgrades[key];
+      const refund = up.baseCost * (up.costGrowth ** raw0 - up.costGrowth ** cap) / (up.costGrowth - 1);
+      if (Number.isFinite(refund) && refund > 0) state.gold += Math.floor(refund);
+    }
   }
   // v8.4 : les coûts des améliorations changent → l'or dépensé avant est remboursé, à racheter au nouveau prix.
   if (int(raw.version, 1) < 6) {
@@ -413,6 +424,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     if (raw.ui.slotFilter === 'all' || raw.ui.slotFilter === 'accessory' || raw.ui.slotFilter in SLOTS) state.ui.slotFilter = raw.ui.slotFilter;
     if (['off', 'common', 'rare'].includes(raw.ui.autoRecycle)) state.ui.autoRecycle = raw.ui.autoRecycle;
     const rec = raw.ui.recycle;
+    if (!rec) delete state.ui.recycle; // partie existante : ses réglages d'avant (ancienne règle) restent tels quels
     if (rec && typeof rec === 'object' && ['off', 'pickup', 'full'].includes(rec.mode)) {
       state.ui.recycle = {
         mode: rec.mode,
@@ -435,6 +447,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     if (raw.ui.autoMannequin === false) state.ui.autoMannequin = false;
     if (raw.ui.autoMuseum === false) state.ui.autoMuseum = false;
     if (raw.ui.themeFx === false) state.ui.themeFx = false;
+    if (raw.ui.tour === 'done') state.ui.tour = 'done'; // v9.0.6 : découverte guidée vue
   }
   if (state.challenge && (state.tower || state.dungeon)) state.challenge = null; // un seul mode à la fois
   return state;

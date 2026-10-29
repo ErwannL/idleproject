@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920">
+<title>Héros en vedette — fond promo</title>
+<!--
+  Fond de mise en avant (1920×1080) du héros en vedette de la semaine, à partir des illustrations détaillées
+  (assets/hd, ×3 au plus proche voisin) et des données du jeu (nom, titre, citation, bonus).
+  À ouvrir via le serveur du dépôt : /docs/promo/vedette.html?hero=grombar (ou demoness, seraph…).
+-->
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: #070b1c; }
+  body { font-family: 'Inter Display', 'Inter', 'DejaVu Sans', Arial, sans-serif; color: #fff; }
+  #v { position: relative; width: 1920px; height: 1080px; overflow: hidden;
+    background: radial-gradient(ellipse 55% 70% at 68% 58%, var(--glow) 0%, rgba(0,0,0,0) 62%),
+      radial-gradient(ellipse 80% 60% at 30% 110%, rgba(40,60,140,.55), rgba(0,0,0,0) 70%),
+      linear-gradient(160deg, #0c1230 0%, #070b1c 55%, #04060f 100%); }
+  .rays { position: absolute; left: 1300px; top: 600px; width: 0; height: 0; }
+  .rays i { position: absolute; left: -6px; bottom: 0; width: 12px; height: 1100px; transform-origin: 50% 100%;
+    background: linear-gradient(0deg, var(--ray), rgba(255,255,255,0)); opacity: .22; }
+  .spark { position: absolute; width: 6px; height: 6px; background: #fff; box-shadow: 0 0 8px var(--accent); }
+  .ground { position: absolute; left: 820px; top: 930px; width: 960px; height: 90px; border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 50%, rgba(0,0,0,.65), rgba(0,0,0,0) 70%); }
+  .ring { position: absolute; left: 950px; top: 140px; width: 700px; height: 700px; border-radius: 50%;
+    border: 3px solid var(--accent); opacity: .25; box-shadow: 0 0 60px var(--accent) inset, 0 0 40px var(--accent); }
+  canvas { position: absolute; image-rendering: pixelated; }
+  #hero { filter: drop-shadow(0 0 24px var(--accent)) drop-shadow(0 12px 0 rgba(0,0,0,.35)); }
+  .txt { position: absolute; left: 120px; top: 190px; width: 820px; }
+  .ribbon { display: inline-block; padding: 10px 26px; border-radius: 6px; font-weight: 900; letter-spacing: 3px; font-size: 26px;
+    background: linear-gradient(#ff5a4a, #b8202e); box-shadow: 0 0 0 3px #05081a, 0 6px 0 rgba(0,0,0,.4); text-shadow: 0 2px 0 #000; }
+  .row { display: flex; align-items: center; gap: 22px; margin-top: 34px; }
+  .grade { font-size: 92px; font-weight: 900; font-style: italic; line-height: 1;
+    background: linear-gradient(#fff6c8, #ffc23a 45%, #e07a10); -webkit-background-clip: text; color: transparent;
+    filter: drop-shadow(0 4px 0 #3a1c00) drop-shadow(0 0 16px rgba(255,170,40,.6)); }
+  h1 { font-size: 86px; line-height: 1; font-weight: 900; text-shadow: 0 5px 0 #000, 0 0 30px var(--accent); }
+  h2 { margin-top: 10px; font-size: 34px; font-weight: 800; color: #f6d98e; text-shadow: 0 3px 0 #000; }
+  .tags { display: flex; gap: 12px; margin-top: 30px; }
+  .tags span { padding: 8px 18px; border-radius: 8px; font-size: 24px; font-weight: 800; background: rgba(30,50,110,.85);
+    border: 2px solid rgba(140,180,255,.5); }
+  .perks { display: flex; flex-direction: column; gap: 14px; margin-top: 36px; }
+  .perks div { font-size: 30px; font-weight: 800; padding: 12px 22px; border-radius: 10px; width: fit-content;
+    background: linear-gradient(90deg, rgba(60,30,10,.85), rgba(60,30,10,.2)); border-left: 6px solid #ffb43a; }
+  .quote { margin-top: 40px; font-size: 32px; font-style: italic; color: #e8eeff; text-shadow: 0 2px 0 #000; }
+  .foot { position: absolute; left: 120px; bottom: 80px; font-size: 26px; font-weight: 700; color: #c9d6f5; }
+  .foot b { color: #ffd23f; }
+</style>
+</head>
+<body>
+<div id="v"></div>
+<script type="module">
+  const { HEROES } = await import('/src/data/heroes.js');
+  const { effectText } = await import('/src/ui/common.js');
+  const id = new URLSearchParams(location.search).get('hero') ?? 'grombar';
+  const h = HEROES.find((x) => x.id === id) ?? HEROES.find((x) => x.id === 'grombar');
+  const ACCENT = { grombar: '#ff8a3a', demoness: '#ff3a5a', seraph: '#ffe08a', fairy: '#ff9ad8', valkyrie: '#9fd0ff', witch: '#b07bff', vampire: '#ff3a4a', ninja: '#ff5a4a' };
+  const accent = ACCENT[h.id] ?? '#ffb43a';
+  const v = document.getElementById('v');
+  v.style.setProperty('--accent', accent);
+  v.style.setProperty('--glow', `${accent}55`);
+  v.style.setProperty('--ray', accent);
+  const add = (html) => v.insertAdjacentHTML('beforeend', html);
+  const rays = Array.from({ length: 18 }, (_, i) => `<i style="transform: rotate(${-90 + i * 10}deg)"></i>`).join('');
+  add(`<div class="rays">${rays}</div><div class="ring"></div><div class="ground"></div>`);
+  // Étincelles : positions fixes (pseudo-aléatoire déterministe) pour un rendu identique à chaque fois.
+  let seed = 7; const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+  for (let i = 0; i < 46; i++) add(`<div class="spark" style="left:${900 + rnd() * 980}px;top:${60 + rnd() * 860}px;opacity:${0.3 + rnd() * 0.7};transform:scale(${0.5 + rnd()})"></div>`);
+  // Illustration réaliste (assets/hd/real) si elle existe, sinon la version pixel HD ×3.
+  const { HD_REAL } = await import('/src/data/hd-real.js');
+  const artId = h.skin ?? `hero_${h.id}`;
+  const real = HD_REAL.has(artId);
+  const img = await new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.src = real ? `/assets/hd/real/${artId}.png` : `/assets/hd/${artId}.png`; });
+  const c = document.createElement('canvas'); c.id = 'hero';
+  const x = c.getContext('2d');
+  if (real) {
+    // Recadrée au personnage : 860 px de haut, pieds sur le sol lumineux.
+    const k = 860 / img.height; c.width = Math.round(img.width * k); c.height = 860;
+    x.imageSmoothingQuality = 'high'; x.drawImage(img, 0, 0, c.width, c.height);
+    Object.assign(c.style, { left: `${1300 - c.width / 2}px`, top: `${975 - c.height}px`, imageRendering: 'auto' });
+  } else {
+    const S = 3; c.width = 256 * S; c.height = 256 * S;
+    x.imageSmoothingEnabled = false; x.drawImage(img, 0, 0, c.width, c.height);
+    Object.assign(c.style, { left: `${1300 - c.width / 2}px`, top: `${975 - 244 * S}px` });
+  }
+  v.append(c);
+  const perks = Object.entries(h.bonus).map(([k, val]) => `<div>${effectText({ [k]: val })}</div>`).join('');
+  const grade = { legendary: 'SSR', epic: 'SR', rare: 'R' }[h.rarity] ?? '';
+  add(`<div class="txt"><div class="ribbon">✦ HÉROS EN VEDETTE ✦</div>
+    <div class="row">${grade ? `<span class="grade">${grade}</span>` : ''}<div><h1>${h.name}</h1><h2>${h.title ?? ''}</h2></div></div>
+    <div class="tags">${(h.tags ?? []).map((t) => `<span>${t}</span>`).join('')}</div>
+    <div class="perks">${perks}</div>
+    ${h.quote ? `<div class="quote">« ${h.quote} »</div>` : ''}</div>
+    <div class="foot">Invocation → Héros · <b>50 % des SSR obtenus</b> · cette semaine seulement</div>`);
+  await document.fonts.ready;
+  document.documentElement.dataset.ready = '1';
+</script>
+</body>
+</html>

@@ -5,7 +5,7 @@ import { heroById } from '../../core/heroes.js';
 import { companionById } from '../../core/companions.js';
 import { ALLY_GRADE } from '../../data/companions.js';
 import { animCanvas } from '../animator.js';
-import { effectText, escapeHtml, formatDecimal, formatNumber, gem, img, progressBar, rarityLabel, stars } from '../common.js';
+import { effectText, escapeHtml, hdArt, formatDecimal, formatNumber, gem, img, progressBar, rarityLabel, stars } from '../common.js';
 
 function unitPortrait(result) {
   if (result.kind === 'hero') return animCanvas(`hero:${result.id}`, 48, 52, 1);
@@ -36,7 +36,7 @@ function heroBanner(state) {
         ${h.quote ? `<div class="hb-quote">« ${escapeHtml(h.quote)} »</div>` : ''}
         <div class="muted hb-note">${Math.round(FEATURED_SHARE * 100)} % des SSR obtenus · change chaque lundi${owned ? ` · obtenu ${stars(owned.stars)}` : ''}</div>
       </div>
-      <div class="hb-stage">${animCanvas(`hero:${h.id}`, 96, 74, 4)}</div>
+      <div class="hb-stage">${hdArt(h, 'hb-hd')}${animCanvas(`hero:${h.id}`, 96, 74, 4)}</div>
       <div class="hb-side"><div class="hb-side-title">Héros vedettes</div>${others}</div>
     </div>`;
 }

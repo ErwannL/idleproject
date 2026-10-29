@@ -250,7 +250,7 @@ function milestones(state, progress) {
 
 export default {
   id: 'encyclopedia',
-  title: 'Encyclopédie',
+  title: 'Collections',
   icon: 'icon_book',
   extra: (ui, state) => `${pct(encyclopediaProgress(state).pct)}`,
   render(ui, state) {
@@ -262,7 +262,11 @@ export default {
       ${img(s.icon)}<span>${s.label}</span><small>${s.found}/${s.total}</small>${progressBar(s.found / s.total)}</button>`).join('');
     const list = { monsters: () => monsterList(state, sel), bosses: () => bossList(state, sel), mutations: () => mutationList(state, sel),
       items: () => itemList(state, sel, v.encSlot ?? 'all'), companions: () => companionList(state, sel) }[sec]();
-    return `<div class="card">${milestones(state, progress)}</div>
+    // Étape 5 : les trois collections (Encyclopédie, collections du Codex des boss, Musée) reliées entre elles.
+    const links = `<div class="coll-links"><span class="muted">Autres collections :</span>
+      <button class="btn small" data-action="goto" data-value="boss">${img('icon_boss')} Codex des boss</button>
+      <button class="btn small" data-action="goto" data-value="museum">${img('icon_trophy')} Musée ancestral</button></div>`;
+    return `<div class="card">${milestones(state, progress)}${links}</div>
       <div class="enc-tabs">${tabs}</div>
       <div class="codex enc-body"><div class="card enc-list">${list}</div><div class="card codex-detail">${detail(state, sel)}</div></div>`;
   },

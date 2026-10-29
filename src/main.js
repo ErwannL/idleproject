@@ -6,6 +6,7 @@ import { BOSSES } from './data/enemies.js';
 import { changeStage, createCombat, currentEncounter, cycleForStage, resetWave, resumeAdvance, stageLabel, step } from './core/combat.js';
 import { ZONES } from './data/zones.js';
 import { playCinematic, playTransition, worldCinematic } from './ui/cinematic.js';
+import { maybeStartTour, startTour } from './ui/onboarding.js';
 import { activeSynergies, companionById, onExpedition, replaceCompanion, toggleCompanion, upgradeCompanion } from './core/companions.js';
 import { claimContract } from './core/contracts.js';
 import { claimAchievement, claimableAchievements } from './core/achievements.js';
@@ -20,7 +21,7 @@ import { endChallenge, startChallenge } from './core/challenge.js';
 import { autoFuse, craftItem, fuseItems, reforgeItem, sharpenItem, upgradeItem } from './core/forge.js';
 import { summon } from './core/gacha.js';
 import { setActiveHero } from './core/heroes.js';
-import { addToInventory, bulkRecycleCandidates, equipItem, isUpgrade, recycleItem, recycleMatching, recycleRules, sweepInventory, toggleLock } from './core/inventory.js';
+import { addToInventory, bulkRecycleCandidates, equipBest, equipItem, isUpgrade, recycleItem, recycleMatching, recycleRules, sweepInventory, toggleLock } from './core/inventory.js';
 import {
   bossDungeon, bossFirstStage, claimMastery, powerById, powerSlots, rerollPower, resolveReroll, setPowerActive,
 } from './core/powers.js';
@@ -305,6 +306,10 @@ const actions = {
     const c = item && weaponClass(item.baseId);
     if (c && !canEquip(state, item)) ui.toast(`Arme de ${c.name} : changez de classe (Héros → Classe) pour la porter.`, c.color);
   },
+  equipBest() {
+    const n = equipBest(state);
+    if (n) { save(); ui.invalidate(); ui.toast(`${n} objet${n > 1 ? 's' : ''} équipé${n > 1 ? 's' : ''}`, '#7fe0a0'); }
+  },
   recycle(id) {
     const gold = recycleItem(state, id);
     if (gold > 0) {
@@ -573,6 +578,8 @@ const actions = {
   setNotify(key, on) { state.ui.notify = { ...state.ui.notify, [key]: on }; done(true); },
   setFocus(on) { state.ui.focus = on; done(true); },
   setCinematics(on) { state.ui.cinematics = on; done(true); },
+  startTour(newUiOnly = false) { ui.closeModal(); startTour(ui, state, { newUiOnly }); },
+  skipTour() { state.ui.tour = 'done'; ui.closeModal(); save(); },
   setAutoRecycle(value) {
     state.ui.autoRecycle = value;
     ui.invalidate();
@@ -731,6 +738,18 @@ if (state.migrationRefund) {
   delete state.migrationRefund;
   save();
   setTimeout(() => ui.showRebalanceNotice(refund), 1500);
+}
+// v9.0.6 : découverte guidée — après la cinématique et une fois les fenêtres d'accueil (absence, annonces) fermées.
+// Jamais pendant les tests automatisés (sauf ?tour dans l'adresse).
+if (state.ui.tour !== 'done' && (!navigator.webdriver || location.search.includes('tour'))) {
+  let waited = 0;
+  const tryTour = () => {
+    waited += 1;
+    const busy = !document.getElementById('modal').classList.contains('hidden') || document.querySelector('.cinematic, .summon-fx');
+    if (busy && waited < 120) { setTimeout(tryTour, 1000); return; }
+    maybeStartTour(ui, state);
+  };
+  setTimeout(tryTour, navigator.webdriver ? 300 : 4200);
 }
 announceSynergies(); // mémorise les synergies du chargement (seules les nouvelles seront annoncées)
 let lastZoneKey = null;
@@ -912,6 +931,7 @@ window.__idle = {
   get state() { return state; },
   get world() { return world; },
   ui,
+  renderer, // v9.0.6 : rendu de la scène (tests, captures)
   loadSource: loaded.source,
   save,
   actions,

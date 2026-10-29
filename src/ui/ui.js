@@ -9,10 +9,12 @@ import { currentEncounter, difficultyForStage, isBossStage, stageLabel, zoneForS
 import { eventLabel } from '../core/events.js';
 import { formatDecimal, formatDuration, formatNumber } from '../core/format.js';
 import { isUpgrade } from '../core/inventory.js';
+import { upgradeCost } from '../core/economy.js';
 import { xpForLevel } from '../core/level.js';
 import { rarityById } from '../core/loot.js';
 import { powerById } from '../core/powers.js';
-import { canRebirth, fragmentsSpent, rebirthReward, respecCost } from '../core/rebirth.js';
+import { canRebirth, fragmentsSpent, rebirthGain, rebirthReward, respecCost } from '../core/rebirth.js';
+import { REBIRTH } from '../data/rebirth.js';
 import { keptRebirthShare, transcendReward } from '../core/transcend.js';
 import { TRANSCEND } from '../data/transcend.js';
 import { rewardText } from '../core/rewards.js';
@@ -80,6 +82,15 @@ const SUB_ICONS = {
   companions: 'icon_paw', summon: 'icon_summon', campaign: 'icon_map', dungeons: 'icon_dungeon', tower: 'icon_star',
   boss: 'icon_boss', encyclopedia: 'icon_book', contracts: 'icon_trophy', inbox: 'icon_mail',
 };
+// Étape 5 : texte de la carte « Nouveau » de chaque sous-onglet débloqué en cours de partie.
+const UNLOCK_INFO = {
+  companions: 'Vos compagnons combattent à vos côtés. Équipez-en un et envoyez les autres en expédition.',
+  tree: 'La Renaissance : recommencez plus fort. Plus vous allez loin avant de renaître, plus le bonus est grand.',
+  dungeons: 'Des donjons à clés : de vrais combats de boss qui donnent fragments et équipement.',
+  boss: 'Chaque boss vaincu laisse un pouvoir ancestral. Rejouez-les pour leur butin et leur maîtrise.',
+  tower: 'Une ascension par semaine : chaque nouvel étage record rapporte gemmes, fragments et tickets.',
+  encyclopedia: 'Tout ce que vous découvrez est répertorié ; chaque palier de collection donne une récompense.',
+};
 export const menuOf = (tab) => MENUS.find((m) => m.tabs.includes(tab)) ?? null;
 const TALL_MIN_HEIGHT = 420;
 const STRIP_MAX_HEIGHT = 190; // en dessous : mode barre (seulement la scène, comme une barre des tâches)
@@ -118,7 +129,7 @@ export function journalHtml(j) {
 
 const RENDER_THROTTLE_MS = 1000;
 const SIDE_PANEL_W = 440; // largeur du menu sur le côté (petite fenêtre)
-const SIDE_MIN_WIDTH = 900; // navigateur : menu sur le côté seulement à partir de cette largeur
+const SIDE_MIN_WIDTH = 760; // navigateur : menu sur le côté à partir de cette largeur (étape 3 : 900 → 760, la scène reste visible en 820×380)
 const RAIL_W = 80; // barre des menus verticale (petite fenêtre)
 const STRIP_MENU_HEIGHT = 400; // mode barre : hauteur de la fenêtre quand le menu est ouvert
 export class UI {
@@ -209,7 +220,8 @@ export class UI {
     if (now - (this.lastHud.retryAt ?? 0) < 1000) return;
     this.lastHud.retryAt = now;
     const pct = Math.min(999, Math.floor((heroPower(state) / (r.power * BALANCE.stages.bossRetryPower)) * 100));
-    this.setText('retry-boss', `Retenter le boss ⚔ (${pct} % de la puissance visée)`);
+    // Étape 3 : « 999 % » était incompréhensible → message clair une fois le seuil atteint.
+    this.setText('retry-boss', pct >= 100 ? 'Retenter le boss ⚔ (vous êtes prêt)' : `Retenter le boss ⚔ (puissance ${pct} % de l'objectif)`);
   }
 
   // v8.4 : annonce du nouvel équilibrage (or des améliorations remboursé).
@@ -294,7 +306,9 @@ export class UI {
     if (!menu) return;
     if (this.tab && menu.tabs.includes(this.tab)) { this.closePanel(); return; }
     const visible = menu.tabs.filter((t) => this.tabVisible[t] !== false);
-    const tab = visible.includes(this.lastSub[id]) ? this.lastSub[id] : visible[0] ?? menu.tabs[0];
+    // Étape 3 : une récompense attend dans un sous-onglet → on l'ouvre directement.
+    const rewarded = visible.find((t) => this.tabBadges[t]);
+    const tab = rewarded ?? (visible.includes(this.lastSub[id]) ? this.lastSub[id] : visible[0] ?? menu.tabs[0]);
     this.openTab(tab);
   }
 
@@ -398,6 +412,10 @@ export class UI {
       }
       case 'filter': a.setFilter(value); break;
       case 'bulk-recycle': this.onBulkRecycle(); break;
+      case 'equip-best': a.equipBest(); break;
+      case 'goto':
+        if (el.dataset.value === 'museum') { this.view.invTab = 'museum'; this.openTab('inventory'); } else this.openTab(el.dataset.value);
+        break;
       case 'lock': a.toggleLock(id); break;
       case 'sharpen': a.sharpen(id); break;
       case 'upgrade-item': a.upgradeItem(id); break;
@@ -519,6 +537,9 @@ export class UI {
       case 'stash-sel': local(() => { v.stashSel = id; }); break;
       case 'hero-tab': local(() => { v.heroTab = value; }); break;
       case 'set-class': a.setHeroClass(value); break;
+      case 'tour-new': a.startTour(true); break;
+      case 'tour-full': a.startTour(false); break;
+      case 'tour-later': a.skipTour(); break;
       case 'open-summon-hero': local(() => { v.summonPool = 'hero'; }); this.openTab('summon'); break;
       case 'claim-bounty': a.claimBounty(); break;
       case 'toggle-tips': event.preventDefault(); local(() => { v.tipsOpen = v.tipsOpen === false; }); break;
@@ -1120,9 +1141,14 @@ export class UI {
       companions: readyExpeditions(state) > 0, encyclopedia: Boolean(encyclopediaNext(state)?.ready),
       boss: collectionsClaimable(state), contracts: contractsReady, inbox: state.inbox.some((e) => !e.seen),
     };
-    this.tabHints = { inventory: upgrade, skills: skillPointsAvailable(state) >= 1 };
+    // Étape 3 : une amélioration d'or est achetable → pastille dorée sur l'onglet et « ⬆ » à côté de l'or.
+    const affordable = Object.keys(BALANCE.upgrades).some((k) => state.upgrades[k] < (BALANCE.upgrades[k].maxLevel ?? Infinity)
+      && state.gold >= upgradeCost(k, state.upgrades[k]));
+    this.tabHints = { inventory: upgrade, skills: skillPointsAvailable(state) >= 1, upgrades: affordable && this.tab !== 'upgrades' };
+    this.$('gold-up')?.classList.toggle('hidden', !affordable || this.tab === 'upgrades');
     for (const menu of MENUS) {
-      const on = menu.tabs.some((t) => this.tabBadges[t] && this.tabVisible[t] !== false && t !== this.tab);
+      // Une seule pastille par récompense : les missions ont déjà la leur sur le trophée en haut.
+      const on = menu.tabs.some((t) => t !== 'contracts' && this.tabBadges[t] && this.tabVisible[t] !== false && t !== this.tab);
       this.$(`badge-${menu.id}`)?.classList.toggle('hidden', !on);
     }
     this.$('contracts-badge').classList.toggle('hidden', !contractsReady);
@@ -1154,6 +1180,35 @@ export class UI {
     }
   }
 
+  // Étape 5 : chaque déblocage est annoncé par une carte « Nouveau : … » qui dit à quoi il sert.
+  announceUnlock(tab) {
+    const info = UNLOCK_INFO[tab];
+    if (!info || !PANELS[tab]) return;
+    // Plusieurs déblocages d'un coup : une carte à la fois, dans l'ordre.
+    this.unlockQueue = this.unlockQueue ?? [];
+    if (this.root.querySelector('.unlock-card')) { if (!this.unlockQueue.includes(tab)) this.unlockQueue.push(tab); return; }
+    const el = document.createElement('div');
+    el.className = 'unlock-card';
+    el.innerHTML = `<img class="px" src="${icon(SUB_ICONS[tab] ?? PANELS[tab].icon, 2)}" alt="">
+      <div class="unlock-text"><div class="unlock-kicker">Nouveau</div><b>${escapeHtml(SUB_LABELS[tab] ?? PANELS[tab].title)}</b><p>${info}</p></div>
+      <div class="unlock-actions"><button class="btn btn-primary small" data-unlock="open">Voir</button><button class="btn small" data-unlock="close">Plus tard</button></div>`;
+    el.addEventListener('click', (e) => {
+      const act = e.target.closest('[data-unlock]')?.dataset.unlock;
+      if (!act) return;
+      done();
+      if (act === 'open') this.openTab(tab);
+    });
+    const done = () => {
+      if (!el.isConnected) return;
+      el.remove();
+      const next = this.unlockQueue.shift();
+      if (next) this.announceUnlock(next);
+    };
+    // Dans la scène (sous le panneau) : la carte ne masque jamais un bouton du menu.
+    (this.$('stage-area') ?? this.root).appendChild(el);
+    setTimeout(done, 30000);
+  }
+
   // Menus débloqués progressivement.
   updateTabs(state) {
     const visible = {
@@ -1173,7 +1228,10 @@ export class UI {
     // v9.0.6 : un sous-onglet qui se débloque marque son menu « nouveau » ; un menu sans aucun sous-onglet
     // disponible est caché.
     for (const [tab, show] of Object.entries(visible)) {
-      if (show && this.tabVisible[tab] === false && !firstPass && this.tab !== tab) this.newTabs.add(tab);
+      if (show && this.tabVisible[tab] === false && !firstPass && this.tab !== tab) {
+        this.newTabs.add(tab);
+        this.announceUnlock(tab);
+      }
       this.tabVisible[tab] = show;
     }
     this.newTabs.delete(this.tab);
@@ -1265,7 +1323,8 @@ export class UI {
       <p>Vous gagnerez <b class="gold-text">+${rebirthReward(state)} fragments anciens</b> à investir dans l'arbre de talents.</p>
       ${keepResetLists()}
       ${powerChoice(state)}
-      <p><b class="good">Après cette Renaissance : dégâts, PV et or ×${String(PRESTIGE.rebirthMultiplier).replace('.', ',')} pour toujours</b> (cumulatif).</p>
+      <p><b class="good">Après cette Renaissance : dégâts, PV et or ×${(PRESTIGE.rebirthMultiplier ** rebirthGain(state)).toFixed(2).replace('.', ',')} pour toujours</b> (cumulatif).</p>
+      ${rebirthGain(state) < 1 ? `<p class="muted">Une Renaissance ne vaut pleinement ×${String(PRESTIGE.rebirthMultiplier).replace('.', ',')} qu'à partir de l'étape ${REBIRTH.fullPowerStage + 1} ; plus tôt, au prorata de votre étape maximale.</p>` : ''}
       <p class="muted">Les boss ne se renforcent que de ${BALANCE.stages.rebirthBossPct} % par Renaissance, et leurs récompenses augmentent.</p>
       <div class="detail-actions">
         <button class="btn" data-action="close-modal">Annuler</button>
@@ -1300,6 +1359,7 @@ export class UI {
       card.innerHTML = `<h2>Bon retour, chevalier !</h2>
         <p>Absence : <b>${formatDuration(summary.elapsedSeconds)}</b>${summary.capped ? ` <span class="muted">(gains limités à ${BALANCE.offline.capHours} h)</span>` : ''}</p>
         <p>Or gagné : <b class="gold-text">+${formatNumber(summary.totalGold)}</b> ${coin()}</p>
+        ${summary.gems ? `<p>Gemmes : <b>+${formatNumber(summary.gems)}</b> ${img('icon_gem')}</p>` : ''}
         <p>Expérience : <b>+${formatNumber(summary.xp)}</b>${summary.levelsGained ? ` · <b class="good">+${summary.levelsGained} niveau${summary.levelsGained > 1 ? 'x' : ''}</b>` : ''}</p>
         <p>Ennemis vaincus : ~${formatNumber(summary.kills)} · Objets : ${summary.items.length - summary.autoRecycledCount}
           ${recycled ? `<span class="muted">(+${recycled} convertis en or)</span>` : ''}</p>

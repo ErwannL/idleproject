@@ -229,6 +229,35 @@ export const SIGNATURE_ITEMS = [
     id: 'void_signet', name: 'Sceau du Néant', slot: 'ring', sprite: 'signet', signature: 'boss_void_emperor',
     colors: { main: '#3a2a6a', shade: '#1e1440', light: '#7a5ac9', dark: '#120a26', gem: '#c9a6ff' }, stats: {}, affixes: [{ type: 'critChance', value: 12 }, { type: 'damageVsBossPct', value: 20 }],
   },
+  // Étape 4 : une arme ancestrale pour chaque classe (avant, 6 sur 7 allaient au Chevalier, à l'Assassin ou au Berserker).
+  {
+    id: 'scarecrow_bow', name: "Arc de l'Épouvantail", slot: 'weapon', sprite: 'bow', signature: 'hard_scarecrow',
+    colors: { main: '#c9a050', shade: '#6a4a22' }, stats: { damage: 4, attackSpeed: 8 }, affixes: [{ type: 'critChance', value: 6 }],
+  },
+  {
+    id: 'treant_staff', name: 'Bâton du Tréant', slot: 'weapon', sprite: 'staff', signature: 'mini_treant',
+    colors: { main: '#7a9a4a', shade: '#3e5222' }, stats: { damage: 5, maxHp: 10 }, affixes: [{ type: 'regenPct', value: 1.5 }],
+  },
+  {
+    id: 'werewolf_spear', name: 'Lance du Loup-garou', slot: 'weapon', sprite: 'spear', signature: 'hard_werewolf',
+    colors: { main: '#a8a0b8', shade: '#5a5068' }, stats: { damage: 6 }, affixes: [{ type: 'lifesteal', value: 3 }],
+  },
+  {
+    id: 'pharaoh_mace', name: 'Masse solaire du Pharaon', slot: 'weapon', sprite: 'mace', signature: 'mini_pharaoh',
+    colors: { main: '#ffd060', shade: '#a07020' }, stats: { damage: 7, armor: 3 }, affixes: [{ type: 'thorns', value: 20 }],
+  },
+  {
+    id: 'jackal_crossbow', name: 'Arbalète du Chacal', slot: 'weapon', sprite: 'crossbow', signature: 'hard_anubis',
+    colors: { main: '#3a3a4a', shade: '#1a1a26' }, stats: { damage: 9 }, affixes: [{ type: 'damageVsBossPct', value: 15 }],
+  },
+  {
+    id: 'frost_witch_wand', name: 'Baguette de la Sorcière des glaces', slot: 'weapon', sprite: 'wand', signature: 'mini_frost_witch',
+    colors: { main: '#9fe6ff', shade: '#4f8fc9' }, stats: { damage: 9, attackSpeed: 5 }, affixes: [{ type: 'critChance', value: 8 }],
+  },
+  {
+    id: 'reaper_scythe', name: 'Faux de la Faucheuse', slot: 'weapon', sprite: 'scythe', signature: 'mini_reaper',
+    colors: { main: '#5a5a6a', shade: '#22222e' }, stats: { damage: 10 }, affixes: [{ type: 'lifesteal', value: 5 }],
+  },
 ];
 
 // Effets spéciaux (« affixes ») tirés pour les objets Rares et mieux.

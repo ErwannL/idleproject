@@ -4,6 +4,7 @@ import { mutationById } from '../core/mutations.js';
 import { auraColors } from '../data/auras.js';
 import { BALANCE } from '../data/balance.js';
 import { drawTeamFx } from './team-fx.js';
+import { installClassFx } from './class-fx.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
 import { RARITIES } from '../data/items.js';
 import { ZONES } from '../data/zones.js';
@@ -88,6 +89,25 @@ function mixColor(a, b, t) {
   return color;
 }
 
+// Bord avant réel (premier pixel opaque à gauche, au milieu de la hauteur) d'un sprite : les flèches et les
+// impacts touchent le corps, pas la marge transparente de l'image.
+const edgeCache = new WeakMap();
+function bodyEdge(img) {
+  let edge = edgeCache.get(img);
+  if (edge !== undefined) return edge;
+  edge = 0;
+  try {
+    const { data, width, height } = img.getContext('2d').getImageData(0, 0, img.width, img.height);
+    let best = width;
+    for (let y = Math.floor(height * 0.3); y < Math.floor(height * 0.75); y++) {
+      for (let x = 0; x < best; x++) if (data[(y * width + x) * 4 + 3] > 0) { best = x; break; }
+    }
+    edge = best < width ? best : 0;
+  } catch { edge = 0; }
+  edgeCache.set(img, edge);
+  return edge;
+}
+
 // Silhouette teintée d'un canvas (images rémanentes), avec cache par canvas.
 const ghostCache = new WeakMap();
 function spriteCanvasTint(source, color) {
@@ -130,7 +150,9 @@ export class SceneRenderer {
   // une fenêtre plus haute montre plus de ciel, une fenêtre plus large plus de décor.
   resize(cssWidth, cssHeight) {
     // Zoom plafonné : dans une grande fenêtre, on voit davantage du niveau plutôt qu'un chevalier géant.
-    let scale = Math.min(cssHeight / MIN_VIEW_HEIGHT, cssWidth / MIN_VIEW_WIDTH, MAX_SCALE);
+    // Étape 3 : écran de téléphone (portrait) → un peu plus de champ, pour voir les ennemis arriver.
+    const minWidth = cssWidth < 560 && cssHeight > cssWidth * 0.45 ? 215 : MIN_VIEW_WIDTH;
+    let scale = Math.min(cssHeight / MIN_VIEW_HEIGHT, cssWidth / minWidth, MAX_SCALE);
     if (scale >= 3) scale = Math.floor(scale);
     scale = Math.max(0.5, scale);
     this.width = Math.max(120, Math.floor(cssWidth / scale));
@@ -184,16 +206,18 @@ export class SceneRenderer {
         this.hero.dashTo = event.x;
         // Arc de taille dessiné (bleu, ou doré et plus grand sur un coup critique), puis impact.
         const sx = this.dashReach(event.x);
+        this.dust(HERO_X - 4, 3);
         if (event.crit) this.sprite(['fx_slash_crit'], heroX + 18 + sx, this.groundY + 4, 0.22, { delay: 0.07, tint: '#ffd23f' });
         else this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], heroX + 14 + sx, this.groundY + 1, 0.18, { delay: 0.07 });
-        this.sprite(['fx_hit'], event.x - 4, this.groundY - 10, 0.14, { delay: 0.1, tint: event.crit ? '#ffd23f' : null });
-        if (event.boss) this.shake = Math.max(this.shake, 1);
-        this.burst(event.x - 6, this.groundY - 12, event.crit ? '#ffd23f' : '#ffffff', event.crit ? 8 : 4);
-        this.addText(formatNumber(event.damage), event.x, this.groundY - (event.boss ? 58 : 36), event.crit ? '#ffd23f' : '#ffffff', event.crit ? '#fff6c8' : '#ffffff');
+        // L'impact (éclair blanc, recul, étincelles, chiffre) tombe quand la lame touche, pas au début du geste.
+        this.later(0.09, () => this.hitReact(event.enemyId, event.x, { crit: event.crit, boss: event.boss, damage: event.damage, color: '#ffffff' }));
         break;
       }
       case 'enemyHit':
+        // v9.0.6 : les coups du héros (attaque) réagissent à l'impact réel (lame ou projectile qui arrive) : voir hitReact().
+        if (event.source === 'attack') break;
         this.enemyFxFor(event.enemyId).hit = 0.08;
+        this.enemyFxFor(event.enemyId).knock = Math.min(6, (this.enemyFxFor(event.enemyId).knock ?? 0) + 2);
         if (event.source !== 'hero') this.sprite(['fx_hit'], event.x, this.groundY - 10, 0.14);
         if (event.source === 'skill' || event.source === 'companion') {
           this.addText(formatNumber(event.damage), event.x, this.groundY - (event.boss ? 64 : 42), event.source === 'skill' ? '#7fd6ff' : '#9cf08a');
@@ -230,9 +254,16 @@ export class SceneRenderer {
         this.addText(formatNumber(Math.max(1, Math.round(event.damage))), heroX - 4, this.groundY - 48, '#ff5a5a', '#ffb0a8');
         if (event.boss) this.shake = Math.max(this.shake, 2);
         break;
-      case 'kill':
-        this.killEffect(event);
+      case 'kill': {
+        // Tué par un projectile encore en vol : l'ennemi reste affiché (figé) jusqu'à l'impact, puis s'effondre.
+        const pending = this.inFlight?.get(event.enemyId);
+        if (pending && pending > this.time) {
+          const fx = this.enemyFx.get(event.enemyId);
+          if (fx?.img) this.effects.push({ kind: 'ghost', img: fx.img, x: fx.sx, y: fx.sy, w: fx.sw, h: fx.sh, life: pending - this.time, max: pending - this.time });
+          this.later(pending - this.time, () => this.killEffect(event));
+        } else this.killEffect(event);
         break;
+      }
       case 'drop': {
         const color = rarityColor(event.item.rarity);
         const big = event.item.rarity === 'legendary' || event.item.rarity === 'epic';
@@ -272,10 +303,10 @@ export class SceneRenderer {
     }
   }
 
-  addText(text, x, y, color, light = '#ffffff') {
+  addText(text, x, y, color, light = '#ffffff', big = false) {
     const texts = this.effects.filter((e) => e.kind === 'text');
     if (texts.length >= MAX_FLOATING_TEXTS) this.effects.splice(this.effects.indexOf(texts[0]), 1);
-    this.effects.push({ kind: 'text', text, x: x - textWidth(text, FONT_BIG) / 2, y, color, light, life: 0.8, max: 0.8 });
+    this.effects.push({ kind: 'text', text, x: x - textWidth(text, FONT_BIG) / 2, y, color, light, life: big ? 0.95 : 0.8, max: big ? 0.95 : 0.8, pop: big });
   }
 
   burst(x, y, color, count, speed = 30) {
@@ -290,7 +321,50 @@ export class SceneRenderer {
     }
   }
 
+  // Appel différé, synchronisé sur le temps de la scène.
+  later(delay, fn) {
+    this.effects.push({ kind: 'call', fn, life: delay, max: delay });
+  }
+
+  // Petits nuages de poussière aux pieds (bond, réception).
+  dust(x, count) {
+    for (let i = 0; i < count; i++) {
+      this.effects.push({ kind: 'puff', x: x + (Math.random() * 6 - 3), y: this.groundY - 1, vx: -10 - Math.random() * 16, vy: -4 - Math.random() * 6,
+        life: 0.35 + Math.random() * 0.2, max: 0.5, color: i % 2 ? '#d8d0b8' : '#a89e86' });
+    }
+  }
+
+  // v9.0.6 : impact d'un coup du héros sur un ennemi — éclair blanc, recul, écrasement, étincelles dans le sens du
+  // coup, chiffre ; sur un critique : arrêt sur image, anneau, secousse et étincelles dorées.
+  hitReact(enemyId, x, { crit = false, boss = false, damage = 0, color = '#ffffff', y = null } = {}) {
+    const fx = this.enemyFx.get(enemyId);
+    const G = this.groundY;
+    const ix = fx?.seen > this.time - 0.2 ? fx.edge + 2 : x - 6;
+    const iy = y ?? (fx?.seen > this.time - 0.2 ? fx.sy + fx.sh * 0.5 : G - 12);
+    if (fx) {
+      fx.hit = crit ? 0.13 : 0.08;
+      fx.knock = Math.min(boss ? 4 : 8, (fx.knock ?? 0) + (crit ? 5 : 3) * (boss ? 0.5 : 1));
+      fx.squash = 0.14;
+      if (crit && !this.focus) this.hitstop = Math.max(this.hitstop ?? 0, 0.06);
+    }
+    const sparkColor = crit ? '#ffd23f' : color;
+    for (let i = 0; i < (crit ? 9 : 5); i++) {
+      const a = -0.9 + Math.random() * 1.6; // vers la droite (sens du coup), un peu vers le haut
+      const v = 50 + Math.random() * 70;
+      this.effects.push({ kind: 'spark', x: ix, y: iy, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 20, color: i % 3 ? sparkColor : '#ffffff', life: 0.22, max: 0.22 });
+    }
+    this.sprite(['fx_hit'], ix + 2, iy + 6, 0.14, { tint: crit ? '#ffd23f' : null });
+    if (crit) {
+      this.effects.push({ kind: 'ring', x: ix, y: iy, color: '#ffd23f', life: 0.25, max: 0.25, r: 12 });
+      this.shake = Math.max(this.shake, boss ? 3 : 2);
+    } else if (boss) this.shake = Math.max(this.shake, 1);
+    if (damage) this.addText(formatNumber(damage), x, G - (boss ? 58 : 36), crit ? '#ffd23f' : '#ffffff', crit ? '#fff6c8' : '#ffffff', crit);
+  }
+
   killEffect(event) {
+    // Éclatement en pixels : quelques pixels du sprite volent en éclats (couleurs réelles du monstre).
+    const fxe = this.enemyFx.get(event.enemyId);
+    if (fxe?.img && !this.focus) this.shatter(fxe);
     const { sprite, scale, heroLike, colors } = this.enemyLook(event.kind, event.boss);
     const img = heroLike
       ? heroComposite('idle', { weapon: { baseId: 'fallen_blade', rarity: 'epic' } }, true, 'b', colors, true)
@@ -306,6 +380,24 @@ export class SceneRenderer {
         kind: 'coin', x: this.wx(event.x) + (Math.random() * 10 - 5), y: this.groundY - 14,
         vx: Math.random() * 40 - 20, vy: -40 - Math.random() * 30, life: 0.8, max: 0.8,
       });
+    }
+  }
+
+  shatter(fx) {
+    const img = fx.img;
+    let data;
+    try { data = img.getContext('2d').getImageData(0, 0, img.width, img.height).data; } catch { return; }
+    const pts = [];
+    for (let i = 0; i < 40 && pts.length < 14; i++) {
+      const px = Math.floor(Math.random() * img.width);
+      const py = Math.floor(Math.random() * img.height);
+      const o = (py * img.width + px) * 4;
+      if (data[o + 3] > 0) pts.push({ px, py, color: `rgb(${data[o]},${data[o + 1]},${data[o + 2]})` });
+    }
+    const sx = fx.sw / img.width;
+    for (const p of pts) {
+      this.effects.push({ kind: 'particle', x: fx.sx + p.px * sx, y: fx.sy + p.py * sx, vx: 20 + Math.random() * 50, vy: -30 - Math.random() * 50,
+        color: p.color, life: 0.5 + Math.random() * 0.3, max: 0.8, size: 2 });
     }
   }
 
@@ -335,123 +427,14 @@ export class SceneRenderer {
   }
 
   // Projectile qui vole de (x0, y0) à (x1, y1) en `time` secondes (en cloche si `arc` > 0), puis effet d'impact.
-  projectile(frames, x0, y0, x1, y1, time, { arc = 0, delay = 0, rotate = 0, impact = null } = {}) {
-    this.effects.push({ kind: 'proj', frames, x0, y0, x1, y1, arc, rotate, life: time + delay, max: time, delay });
-    if (impact) impact(delay + time);
-  }
-
-  // v9.0.6 : attaques de classe — arc et flèches, arbalète, boules de feu et météore, éclairs en chaîne, âmes,
-  // estoc du lancier, fente du berserker, lumière du paladin, pas de l'ombre de l'assassin.
-  classAttack(event) {
-    const G = this.groundY;
-    const hx = HERO_X + 10;
-    const hy = G - 19;
-    const tx = event.x;
-    const others = (event.targets ?? []).map((t) => ({ ...t, x: this.wx(t.x) }));
-    const crit = event.crit;
-    switch (event.kind) {
-      case 'arrow': {
-        this.hero.shoot = ATTACK_TIME;
-        const frames = crit ? ['fx_arrow_fire1', 'fx_arrow_fire2'] : ['fx_arrow'];
-        const time = Math.max(0.08, (tx - hx) / 420);
-        this.projectile(frames, hx, hy, tx, G - 12, time, { arc: 4, impact: (d) => this.sprite(['fx_hit'], tx, G - 4, 0.15, { delay: d }) });
-        if (event.special === 'volley') {
-          // Pluie de flèches : une gerbe tirée vers le ciel, puis des flèches qui retombent sur chaque cible.
-          for (let i = 0; i < 3; i++) this.projectile(['fx_arrow'], hx, hy, hx + 30 + i * 6, G - 80, 0.18, { delay: 0.05 * i, rotate: 3 });
-          const spots = others.length ? others : [{ x: tx }];
-          spots.forEach((t, i) => {
-            for (let j = 0; j < 3; j++) {
-              const x = t.x - 8 + j * 8;
-              this.projectile(['fx_arrow'], x - 10, G - 90, x, G - 4, 0.22, { delay: 0.3 + i * 0.06 + j * 0.04, rotate: 1, impact: (d) => this.sprite(['fx_spark'], x, G, 0.15, { delay: d }) });
-            }
-          });
-        }
-        break;
-      }
-      case 'bolt': {
-        this.hero.aim = ATTACK_TIME;
-        const time = Math.max(0.05, (tx - hx) / 700);
-        const far = others.length ? Math.max(...others.map((t) => t.x)) + 16 : tx;
-        this.projectile(['fx_bolt'], hx + 4, G - 21, Math.max(far, tx), G - 21, time * (Math.max(far, tx) - hx) / Math.max(1, tx - hx));
-        for (const t of [{ x: tx }, ...others]) this.sprite(['fx_hit'], t.x, G - 8, 0.15, { delay: time });
-        this.shake = Math.max(this.shake, 1);
-        break;
-      }
-      case 'fireball': {
-        this.hero.cast = CAST_TIME;
-        const time = Math.max(0.12, (tx - hx) / 260);
-        this.projectile(['fx_fireball1', 'fx_fireball2'], hx + 2, hy - 6, tx, G - 10, time, { arc: 10, impact: (d) => {
-          this.sprite(['fx_burst'], tx, G + 2, 0.35, { delay: d, tint: '#ff7a2a' });
-          for (const t of others) this.sprite(['fx_spark'], t.x, G - 6, 0.25, { delay: d + 0.05, tint: '#ffb43a' });
-        } });
-        if (event.special === 'meteor') {
-          const mx = others.length ? (tx + Math.max(...others.map((t) => t.x))) / 2 : tx;
-          this.projectile(['fx_meteor'], mx - 60, -10, mx, G - 4, 0.45, { delay: 0.1, impact: (d) => {
-            this.sprite(['fx_burst'], mx, G + 4, 0.5, { delay: d, tint: '#ff4a1a' });
-            this.sprite(['fx_burst'], mx - 14, G + 2, 0.4, { delay: d + 0.05, tint: '#ffb43a' });
-            this.sprite(['fx_burst'], mx + 14, G + 2, 0.4, { delay: d + 0.08, tint: '#ffb43a' });
-            setTimeout(() => { this.shake = Math.max(this.shake, 4); }, d * 1000);
-          } });
-        }
-        break;
-      }
-      case 'lightning': {
-        this.hero.cast = CAST_TIME;
-        const pts = [{ x: hx + 4, y: hy - 8 }, { x: tx, y: G - 10 }, ...others.map((t) => ({ x: t.x, y: G - 10 }))];
-        this.effects.push({ kind: 'zap', pts, life: 0.22, max: 0.22, color: '#bfe8ff' });
-        for (const p of pts.slice(1)) this.sprite(['fx_spark'], p.x, G - 4, 0.2, { tint: '#9fe0ff' });
-        break;
-      }
-      case 'soul': {
-        this.hero.cast = CAST_TIME;
-        const time = Math.max(0.15, (tx - hx) / 200);
-        this.projectile(['fx_soul1', 'fx_soul2'], hx, hy - 4, tx, G - 12, time, { arc: -8, impact: (d) => {
-          this.sprite(['fx_burst'], tx, G + 2, 0.3, { delay: d, tint: '#5fe0a0' });
-          for (const t of others) this.sprite(['fx_spark'], t.x, G - 6, 0.25, { delay: d, tint: '#5fe0a0' });
-        } });
-        break;
-      }
-      case 'thrust': {
-        this.hero.dash = ATTACK_TIME;
-        this.hero.dashTo = tx;
-        const far = others.length ? Math.max(...others.map((t) => t.x)) : tx;
-        this.effects.push({ kind: 'streak', x0: hx + 16, x1: far + 6, y: G - 18, color: '#cfefff', life: 0.24, max: 0.16 });
-        this.sprite(['fx_hit'], tx, G - 6, 0.15, { delay: 0.1 });
-        for (const t of others) this.sprite(['fx_hit'], t.x, G - 6, 0.15, { delay: 0.12 });
-        break;
-      }
-      case 'cleave': {
-        this.hero.dash = ATTACK_TIME;
-        this.hero.dashTo = tx;
-        const sx = this.dashReach(tx);
-        this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], HERO_X + 16 + sx, G + 3, 0.22, { delay: 0.07, tint: '#ff4a3a' });
-        if (crit) this.sprite(['fx_slash_crit'], HERO_X + 18 + sx, G + 4, 0.22, { delay: 0.1, tint: '#ff7a3a' });
-        for (const t of others) this.sprite(['fx_slash2', 'fx_slash3'], t.x - 4, G + 1, 0.16, { delay: 0.12, tint: '#ff4a3a' });
-        this.shake = Math.max(this.shake, 1.5);
-        break;
-      }
-      case 'smite': {
-        this.hero.dash = ATTACK_TIME;
-        this.hero.dashTo = tx;
-        const sx = this.dashReach(tx);
-        this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], HERO_X + 14 + sx, G + 1, 0.2, { delay: 0.07, tint: '#ffe27a' });
-        this.effects.push({ kind: 'beam', x: Math.round(tx), color: '#fff2a8', life: 0.35, max: 0.35, wide: false });
-        for (const t of others) this.sprite(['fx_spark'], t.x, G - 6, 0.2, { delay: 0.1, tint: '#ffe27a' });
-        break;
-      }
-      case 'shadow': {
-        // Pas de l'ombre : le héros surgit contre sa cible, laissant des images rémanentes violettes.
-        this.hero.dash = ATTACK_TIME;
-        this.hero.dashTo = tx;
-        this.hero.shadow = ATTACK_TIME;
-        const sx = this.dashReach(tx);
-        this.sprite(['fx_slash2', 'fx_slash3'], HERO_X + 16 + sx, G + 1, 0.12, { delay: 0.04, tint: '#b07bff' });
-        this.sprite(['fx_slash1', 'fx_slash3'], HERO_X + 18 + sx, G - 2, 0.12, { delay: 0.12, tint: crit ? '#ffd23f' : '#d8b8ff' });
-        break;
-      }
-      default:
-        this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], HERO_X + 14, G + 1, 0.18, { delay: 0.07 });
+  projectile(frames, x0, y0, x1, y1, time, { arc = 0, delay = 0, rotate = 0, impact = null, targetId, onHit = null, trail = null, trailVy } = {}) {
+    this.effects.push({ kind: 'proj', frames, x0, y0, x1, y1, arc, rotate, life: time + delay, max: time, delay, targetId, onHit, trail, trailVy });
+    // Ennemi visé : il reste affiché jusqu'à l'impact même si le coup l'a déjà tué (voir 'kill').
+    if (targetId !== undefined) {
+      this.inFlight ??= new Map();
+      this.inFlight.set(targetId, Math.max(this.inFlight.get(targetId) ?? 0, this.time + delay + time));
     }
+    if (impact) impact(delay + time);
   }
 
   // Effet dessiné (images d'un sprite jouées sur `life` secondes), centré en x, posé sur y.
@@ -486,7 +469,13 @@ export class SceneRenderer {
   }
 
   render(state, world, dt) {
+    // Arrêt sur image (coup critique) : la scène ralentit fortement pendant un instant — le coup « pèse ».
+    if (this.hitstop > 0) {
+      this.hitstop -= dt;
+      dt *= 0.12;
+    }
     this.time += dt;
+    this.frameNo = (this.frameNo ?? 0) + 1;
     const ctx = this.ctx;
     // Mode concentration : pas de secousses ni de particules d'ambiance, effets allégés.
     this.focus = Boolean(state.ui?.focus);
@@ -612,6 +601,8 @@ export class SceneRenderer {
       fx.appear = Math.min(1, fx.appear + dt * 5);
       fx.hit = Math.max(0, fx.hit - dt);
       fx.lunge = Math.max(0, fx.lunge - dt);
+      fx.squash = Math.max(0, (fx.squash ?? 0) - dt);
+      fx.knock = (fx.knock ?? 0) * Math.exp(-dt * 14); // recul qui revient en douceur
       // En marche tant qu'il n'est pas au contact (état de la simulation, stable d'une image à l'autre :
       // comparer les positions entre deux images faisait clignoter l'animation, la simulation avançant par pas).
       const moving = !enemy.engaged;
@@ -631,8 +622,10 @@ export class SceneRenderer {
       const hover = def.flyHeight ? def.flyHeight * WORLD_SCALE + this.snap(Math.sin(this.time * 4 + enemy.id) * 3) : 0;
       const lunge = fx.lunge > 0 ? this.snap(Math.sin((fx.lunge / 0.14) * Math.PI) * 6) : 0;
       // Les grands sprites (boss, ogre…) restent devant le chevalier sans le chevaucher.
-      const x = this.snap(Math.max(ex - w / 2, HERO_X + 12) - lunge);
+      const x = this.snap(Math.max(ex - w / 2, HERO_X + 12) - lunge + (fx.knock > 0.5 ? fx.knock : 0));
       const y = this.groundY - h - bob - hover + 1;
+      // Géométrie à l'écran (projectiles qui visent la cible, impacts, ennemi figé à la mort).
+      Object.assign(fx, { sx: x, sy: y, sw: w, sh: h, seen: this.time, img, edge: x + bodyEdge(img) * scale });
 
       ctx.globalAlpha = fx.appear;
       this.drawShadow(ctx, ex, Math.max(6, w * 0.7));
@@ -652,7 +645,13 @@ export class SceneRenderer {
         for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1]]) ctx.drawImage(glow, x + dx, y + dy, w, h);
         ctx.globalAlpha = fx.appear;
       }
-      ctx.drawImage(img, x, y, w, h);
+      if (fx.squash > 0) {
+        // Écrasement à l'impact (ancré aux pieds) : plus large et plus bas, très bref.
+        const k = fx.squash / 0.14;
+        const w2 = Math.round(w * (1 + 0.12 * k));
+        const h2 = Math.round(h * (1 - 0.14 * k));
+        ctx.drawImage(img, x - Math.round((w2 - w) / 2), y + (h - h2), w2, h2);
+      } else ctx.drawImage(img, x, y, w, h);
       if (mutation) {
         // Marqueur : losange de couleur au-dessus de la tête.
         const mx = Math.round(ex);
@@ -947,24 +946,89 @@ export class SceneRenderer {
   drawEffects(ctx, dt) {
     const coin = spriteCanvas('coin');
     const spawned = []; // particules créées pendant le parcours (ajoutées après le filtrage)
+    const finished = []; // appels de fin d'effet (impacts…), exécutés après le filtrage
     this.effects = this.effects.filter((fx) => {
       fx.life -= dt;
-      if (fx.life <= 0) return false;
+      if (fx.life <= 0) {
+        // Fin d'un effet : appel différé, ou projectile qui touche sa cible (exécutés après le tri de la liste,
+        // sinon les effets qu'ils créent seraient perdus).
+        if (fx.kind === 'call') finished.push(fx.fn);
+        if (fx.kind === 'proj' && fx.onHit) finished.push(() => fx.onHit(fx.cx ?? fx.x1, fx.cy ?? fx.y1));
+        return false;
+      }
       const t = fx.life / fx.max;
       switch (fx.kind) {
         case 'text':
           fx.y -= (fx.life > fx.max - 0.12 ? 60 : 14) * dt; // petit rebond puis montée lente (positions au pixel d'écran)
           ctx.globalAlpha = Math.min(1, t * 2.5);
-          drawBigText(ctx, fx.text, Math.round(fx.x), this.snap(fx.y), fx.color, fx.light);
+          if (fx.pop && fx.life > fx.max - 0.16) {
+            // Critique : le chiffre jaillit en double taille, puis reprend sa taille.
+            const wText = textWidth(fx.text, FONT_BIG);
+            ctx.save();
+            ctx.translate(Math.round(fx.x + wText / 2), this.snap(fx.y));
+            ctx.scale(2, 2);
+            drawBigText(ctx, fx.text, -Math.round(wText / 2), -4, fx.color, fx.light);
+            ctx.restore();
+          } else drawBigText(ctx, fx.text, Math.round(fx.x), this.snap(fx.y), fx.color, fx.light);
+          break;
+        case 'flash':
+          ctx.globalAlpha = t * 0.35;
+          ctx.fillStyle = fx.color;
+          ctx.fillRect(0, 0, this.width, this.height);
           break;
         case 'particle':
           fx.vy += 120 * dt;
           fx.x += fx.vx * dt;
-          fx.y += fx.vy * dt;
+          fx.y = Math.min(this.groundY, fx.y + fx.vy * dt);
           ctx.globalAlpha = t;
           ctx.fillStyle = fx.color;
-          ctx.fillRect(Math.round(fx.x), Math.round(fx.y), 2, 2);
+          ctx.fillRect(Math.round(fx.x), Math.round(fx.y), fx.size ?? 2, fx.size ?? 2);
           break;
+        case 'spark': {
+          // Étincelle d'impact : petit trait qui file dans le sens du coup.
+          fx.vy += 200 * dt;
+          const px = fx.x;
+          const py = fx.y;
+          fx.x += fx.vx * dt;
+          fx.y += fx.vy * dt;
+          ctx.globalAlpha = Math.min(1, t * 2);
+          ctx.fillStyle = fx.color;
+          ctx.fillRect(Math.round(fx.x), Math.round(fx.y), 1, 1);
+          ctx.fillRect(Math.round((fx.x + px) / 2), Math.round((fx.y + py) / 2), 1, 1);
+          break;
+        }
+        case 'puff':
+          fx.x += fx.vx * dt;
+          fx.y += fx.vy * dt;
+          ctx.globalAlpha = t * 0.8;
+          ctx.fillStyle = fx.color;
+          ctx.fillRect(Math.round(fx.x), Math.round(fx.y), t > 0.5 ? 2 : 1, t > 0.5 ? 2 : 1);
+          break;
+        case 'ember':
+          // Braise / trace laissée par un projectile : flotte un peu et s'éteint.
+          fx.y += (fx.vy ?? -8) * dt;
+          ctx.globalAlpha = t;
+          ctx.fillStyle = fx.color;
+          ctx.fillRect(Math.round(fx.x), Math.round(fx.y), 1, 1);
+          break;
+        case 'ghost':
+          // Ennemi tué par un projectile encore en vol : figé jusqu'à l'impact.
+          ctx.globalAlpha = 1;
+          ctx.drawImage(fx.img, fx.x, fx.y, fx.w, fx.h);
+          break;
+        case 'stuck': {
+          // Flèche plantée dans l'ennemi : elle suit la cible, puis tombe si la cible disparaît.
+          const target = this.enemyFx.get(fx.targetId);
+          if (target?.seen > this.time - 0.1 && !fx.falling) { fx.x = target.sx + fx.ox; fx.y = target.sy + fx.oy; } else {
+            fx.falling = true;
+            fx.vy = (fx.vy ?? 0) + 200 * dt;
+            fx.y = Math.min(this.groundY - 1, fx.y + fx.vy * dt);
+          }
+          const img = spriteCanvas(fx.frame);
+          ctx.globalAlpha = Math.min(1, t * 3);
+          ctx.drawImage(img, Math.round(fx.x - img.width + 4), Math.round(fx.y - img.height / 2));
+          break;
+        }
         case 'coin':
           fx.vy += 160 * dt;
           fx.x += fx.vx * dt;
@@ -1017,10 +1081,24 @@ export class SceneRenderer {
         case 'proj': {
           if (fx.life > fx.max) break; // pas encore parti
           const k = 1 - t;
+          // Tête chercheuse : la cible avance pendant le vol, le projectile vise sa position actuelle (bord avant).
+          const target = fx.targetId !== undefined ? this.enemyFx.get(fx.targetId) : null;
+          if (target?.seen > this.time - 0.1) {
+            fx.x1 = target.edge + 3;
+            fx.y1 = target.sy + target.sh * (target.sh > 30 ? 0.45 : 0.55);
+          }
           const name = fx.frames[Math.floor(this.time * 12) % fx.frames.length];
           const img = spriteCanvas(name, fx.rotate ? { rotate: fx.rotate } : {});
-          const x = fx.x0 + (fx.x1 - fx.x0) * k;
+          // La pointe (bord droit du sprite) arrive sur la cible : le projectile ne la traverse pas.
+          const tipX = fx.rotate ? 0 : img.width / 2 - 2;
+          const x = fx.x0 + (fx.x1 - tipX - fx.x0) * k;
           const y = fx.y0 + (fx.y1 - fx.y0) * k - Math.sin(k * Math.PI) * fx.arc;
+          fx.cx = x + tipX;
+          fx.cy = y;
+          if (fx.trail && !this.focus && Math.random() < 0.8) {
+            spawned.push({ kind: 'ember', x: x - img.width / 2 + Math.random() * 3, y: y + (Math.random() * 4 - 2), vy: fx.trailVy ?? -10,
+              color: fx.trail[Math.floor(Math.random() * fx.trail.length)], life: 0.25, max: 0.25 });
+          }
           ctx.globalAlpha = 1;
           ctx.drawImage(img, Math.round(x - img.width / 2), Math.round(y - img.height / 2));
           break;
@@ -1094,6 +1172,10 @@ export class SceneRenderer {
       return true;
     });
     this.effects.push(...spawned);
+    for (const fn of finished) fn();
     if (this.effects.length > 400) this.effects.splice(0, this.effects.length - 400);
   }
 }
+
+// Attaques de classe (render/class-fx.js).
+installClassFx(SceneRenderer.prototype, { HERO_X, ATTACK_TIME, CAST_TIME });

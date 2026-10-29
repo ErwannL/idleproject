@@ -3,12 +3,13 @@
 // accessoires vont à toutes les classes ; seules les armes sont réservées (famille = `sprite` de la base).
 // `style` : 'melee' (fonce au contact), 'reach' (allonge), 'ranged' (tire de loin), 'magic' (sorts de loin).
 // `range` : portée d'attaque (unités de BALANCE.world ; le corps à corps vaut 42).
+// Étape 4 : Mage de feu (était dominé partout), Assassin (trop fort), Arbalétrier et Chevalier rééquilibrés.
 // `attack` : règles de l'attaque automatique (voir core/classes.js) ; `effects` : bonus permanents de classe.
 export const CLASSES = [
   {
     id: 'knight', name: 'Chevalier', weapons: ['sword', 'greatsword'], style: 'melee', range: 42, unlockStage: 1,
     color: '#5fa0ff', text: 'Équilibré et solide : fonce au contact, coups d\'épée en arc.',
-    effects: { maxHpPct: 10, armor: 2 }, attack: { kind: 'slash' },
+    effects: { maxHpPct: 10, armor: 2, damagePct: 5 }, attack: { kind: 'slash' },
   },
   {
     id: 'archer', name: 'Archer', weapons: ['bow', 'longbow'], style: 'ranged', range: 110, unlockStage: 1,
@@ -18,7 +19,7 @@ export const CLASSES = [
   {
     id: 'pyromancer', name: 'Mage de feu', weapons: ['staff'], style: 'magic', range: 100, unlockStage: 1,
     color: '#ff7a2a', text: 'Boules de feu qui explosent sur les ennemis proches ; toutes les 6 attaques, un météore.',
-    effects: { damagePct: -15, maxHpPct: -20 }, attack: { kind: 'fireball', splash: 0.5, splashRadius: 34, meteorEvery: 6, meteorFactor: 0.8 },
+    effects: { damagePct: -5, maxHpPct: -10 }, attack: { kind: 'fireball', splash: 0.6, splashRadius: 34, meteorEvery: 6, meteorFactor: 0.8 },
   },
   {
     id: 'berserker', name: 'Berserker', weapons: ['axe', 'whip'], style: 'melee', range: 42, unlockStage: 15,
@@ -38,17 +39,17 @@ export const CLASSES = [
   {
     id: 'assassin', name: 'Assassin', weapons: ['dagger', 'katar'], style: 'melee', range: 42, unlockStage: 45,
     color: '#b07bff', text: 'Coups très rapides et critiques, surgit dans l\'ombre de sa cible.',
-    effects: { attackSpeedPct: 25, critChance: 10, maxHpPct: -15 }, attack: { kind: 'shadow' },
+    effects: { attackSpeedPct: 18, critChance: 10, maxHpPct: -15 }, attack: { kind: 'shadow' },
   },
   {
     id: 'crossbowman', name: 'Arbalétrier', weapons: ['crossbow'], style: 'ranged', range: 100, unlockStage: 55,
     color: '#c8a070', text: 'Carreaux lourds qui transpercent toute la file d\'ennemis.',
-    effects: { damagePct: 15, attackSpeedPct: -15, maxHpPct: -10 }, attack: { kind: 'bolt', pierce: 9, pierceFactor: 0.6 },
+    effects: { damagePct: 15, attackSpeedPct: -15, maxHpPct: -10 }, attack: { kind: 'bolt', pierce: 9, pierceFactor: 0.5 },
   },
   {
     id: 'stormcaller', name: 'Mage de foudre', weapons: ['wand', 'scepter'], style: 'magic', range: 100, unlockStage: 65,
     color: '#7fd4ff', text: 'Éclairs qui rebondissent sur 3 autres ennemis.',
-    effects: { attackSpeedPct: 5, damagePct: -10, maxHpPct: -20 }, attack: { kind: 'lightning', chain: 3, chainFactor: 0.5 },
+    effects: { attackSpeedPct: 5, damagePct: -10, maxHpPct: -10 }, attack: { kind: 'lightning', chain: 3, chainFactor: 0.5 },
   },
   {
     id: 'necromancer', name: 'Nécromancien', weapons: ['scythe'], style: 'magic', range: 80, unlockStage: 80,

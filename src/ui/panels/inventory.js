@@ -5,7 +5,7 @@ import { BOSSES } from '../../data/enemies.js';
 import { ACCESSORY_SLOTS, GEAR_SLOTS, RARITIES, SLOTS, STAT_LABELS } from '../../data/items.js';
 import { formatStat } from '../../core/format.js';
 import { canReforge, craftCost, fusionGroups, maxUpgrades, sharpenCost, upgradeCost } from '../../core/forge.js';
-import { bulkRecycleCandidates, listInventory, RECYCLE_MODES, recycleRules } from '../../core/inventory.js';
+import { bulkRecycleCandidates, isUpgrade, listInventory, RECYCLE_MODES, recycleRules } from '../../core/inventory.js';
 import { itemBase, rarityById, recycleMaterials, recycleValue } from '../../core/loot.js';
 import { computeHeroStats, statsWithItem } from '../../core/stats.js';
 import { slotIconName } from '../../render/pixel.js';
@@ -229,6 +229,7 @@ function bag(ui, state) {
   // Colonne équipement : le chevalier (aperçu avec l'objet sélectionné) entouré de ses emplacements.
   const previewEq = selected ? { ...state.equipment, [selected.slot]: selected } : state.equipment;
   const st = computeHeroStats(state);
+  const anyUpgrade = state.inventory.some((i) => isUpgrade(state, i, undefined, st));
   const equipCol = `<div class="card inv-equip"><div class="section-title">Équipement</div>
       <div class="equip-doll"><div class="slot-col">${GEAR_SLOTS.map(slotFrame).join('')}</div>
         <div class="doll" title="Aperçu avec l'objet sélectionné">${animCanvas('hero', 64, 58, 2, `data-preview="${escapeHtml(JSON.stringify(previewEq))}"`)}</div>
@@ -245,6 +246,8 @@ function bag(ui, state) {
         || '<div class="inv-empty">Aucun objet ici. Les ennemis laissent parfois tomber de l\'équipement.</div>'}</div>
       <div class="inv-footer">
         <select data-action="sort" aria-label="Trier">${sortOptions}</select>
+        <button class="btn btn-primary small${anyUpgrade ? ' pulse-gold' : ''}" data-action="equip-best" ${anyUpgrade ? '' : 'disabled'}
+          title="Équipe les objets du sac meilleurs que ceux portés">⬆ Équiper le meilleur</button>
       </div>
       ${recycleRuleEditor(state)}
       <div class="inv-bulk" title="Ne recycle jamais un objet verrouillé, ancestral ou meilleur que l'équipement porté. Une confirmation est demandée.">
@@ -331,7 +334,7 @@ function recycleRuleEditor(state) {
 
 export default {
   id: 'inventory',
-  title: 'Inventaire',
+  title: 'Équipement',
   icon: 'icon_bag',
   extra: (ui, state) => `${shard()}<span class="num">${formatNumber(state.materials.shards)}</span>
     ${essence()}<span class="num">${formatNumber(state.materials.essence)}</span>

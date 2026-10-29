@@ -1,4 +1,5 @@
 // Petits outils partagés par les panneaux de l'interface.
+import { HD_REAL } from '../data/hd-real.js';
 import { AFFIXES, SLOTS } from '../data/items.js';
 import { EFFECT_LABELS } from '../data/powers.js';
 import { forecastSteps } from '../core/guide.js';
@@ -103,8 +104,32 @@ export function forecastHtml(f) {
   if (!f) return '';
   if (f.paused) return '<div class="forecast muted">⚔ Prévision du prochain boss en pause à grande vitesse (×10 et plus).</div>';
   if (f.pending) return '<div class="forecast muted">⚔ Prévision du prochain boss : calcul en cours…</div>';
+  // Résultat périmé (équipement ou améliorations changés) : on le montre grisé, avec « mise à jour… ».
+  const cls = f.stale ? ' stale' : '';
+  const note = f.stale ? ' <small class="muted">(mise à jour…)</small>' : '';
   return f.win
-    ? `<div class="forecast good">⚔ Prochain boss (étape ${stageLabel(f.stage)}) : <b>battable</b> en ~${f.seconds} s.</div>`
-    : `<div class="forecast bad">⚔ Prochain boss (étape ${stageLabel(f.stage)}) : pas encore — il lui resterait <b>${f.bossHpPct} %</b> de PV.
-        Améliorez Dégâts / PV, l'équipement ou l'équipe.</div>`;
+    ? `<div class="forecast good${cls}">⚔ Prochain boss (étape ${stageLabel(f.stage)}) : <b>battable</b> en ~${f.seconds} s.${note}</div>`
+    : `<div class="forecast bad${cls}">⚔ Prochain boss (étape ${stageLabel(f.stage)}) : pas encore — il lui resterait <b>${f.bossHpPct} %</b> de PV.
+        Améliorez Dégâts / PV, l'équipement ou l'équipe.${note}</div>`;
+}
+
+// Illustrations détaillées (assets/hd, 256×256) : version « affiche » de chaque héros, apparence, compagnon et
+// familier, montrée derrière le sprite du jeu (bannière d'invocation, apparences, fiche compagnon).
+// Une illustration réaliste (assets/hd/real, importée par tools/art/import_real.py) remplace la version pixel HD.
+function hdArtId(unit) {
+  if (!unit?.id) return null;
+  if (unit.skin) return unit.skin;
+  if (unit.kind === 'ally') return `ally_${unit.id}`;
+  if (unit.palette || unit.title || unit.role) return `hero_${unit.id}`;
+  return `pet_${unit.id}`;
+}
+export function hdArtUrl(unit) {
+  const id = hdArtId(unit);
+  if (!id) return null;
+  return HD_REAL.has(id) ? `assets/hd/real/${id}.png` : `assets/hd/${id}.png`;
+}
+export function hdArt(unit, cls = '') {
+  const id = hdArtId(unit);
+  const url = hdArtUrl(unit);
+  return url ? `<img class="hd-art ${cls}${HD_REAL.has(id) ? ' real' : ''}" src="${url}" alt="" loading="lazy" onerror="this.remove()">` : '';
 }

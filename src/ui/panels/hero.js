@@ -9,7 +9,7 @@ import { xpForLevel } from '../../core/level.js';
 import { computeHeroStats } from '../../core/stats.js';
 import { heroPortraitUrl, itemIconUrl, slotIconName } from '../../render/pixel.js';
 import { HEROES } from '../../data/heroes.js';
-import { effectText, escapeHtml, formatDecimal, formatNumber, img, itemFrame, progressBar, stars } from '../common.js';
+import { effectText, escapeHtml, hdArt, formatDecimal, formatNumber, img, itemFrame, progressBar, stars } from '../common.js';
 import { animCanvas } from '../animator.js';
 import { DUNGEONS } from '../../data/dungeons.js';
 import { formatDuration } from '../../core/format.js';
@@ -81,7 +81,7 @@ function lookView(state) {
     const owned = state.heroes.owned[h.id];
     const active = state.heroes.active === h.id;
     return `<div class="look-card r-${h.rarity}${active ? ' active' : ''}${owned ? '' : ' locked'}">
-      <div class="look-pic">${owned ? animCanvas(`hero:${h.id}`, 64, 58, 2) : `<img class="px look-shadow" src="${heroPortraitUrl({}, 2, h.palette, '#2e3a52')}" alt="">`}</div>
+      <div class="look-pic">${hdArt(h, owned ? 'look-hd' : 'look-hd locked')}${owned ? animCanvas(`hero:${h.id}`, 64, 58, 2) : `<img class="px look-shadow" src="${heroPortraitUrl({}, 2, h.palette, '#2e3a52')}" alt="">`}</div>
       <div class="look-name">${GRADE[h.rarity] ? `<span class="grade g-${h.rarity}">${GRADE[h.rarity]}</span> ` : ''}${escapeHtml(h.name)}</div>
       <div class="muted look-role">${escapeHtml(h.title ?? h.role)}</div>
       <div class="good look-fx">${effectText(h.bonus)}</div>

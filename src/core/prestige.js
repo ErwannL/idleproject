@@ -1,4 +1,5 @@
 // Bonus éternels (fusionnés dans la Renaissance) ; performPrestige reste pour les anciennes sauvegardes.
+import { rebirthPower } from './rebirth.js';
 import { PRESTIGE, PRESTIGE_PERKS } from '../data/prestige.js';
 import { performRebirth } from './rebirth.js';
 
@@ -48,7 +49,7 @@ export function prestigeEffects(state) {
   const out = {};
   if (!p) return out;
   // Un bonus permanent par Renaissance (et par ancien Prestige).
-  const n = (state.records?.rebirths ?? 0) + p.count;
+  const n = rebirthPower(state) + p.count; // v9.0.6 : Renaissances au prorata de leur profondeur
   for (const [k, v] of Object.entries(PRESTIGE.perPrestige)) out[k] = v * n;
   for (const perk of PRESTIGE_PERKS) {
     const level = p.perks[perk.id] ?? 0;
