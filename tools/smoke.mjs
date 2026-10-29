@@ -45,6 +45,13 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 const game = (fn, arg) => page.evaluate(fn, arg);
+// v9.0.6 : les panneaux sont regroupés en 6 menus (barre verticale) avec des sous-onglets : clic sur le menu,
+// puis sur le sous-onglet ; un clic sur le sous-onglet déjà ouvert referme le panneau (comme avant sur l'onglet).
+async function clickTab(tab) {
+  const open = await game((t) => __idle.ui.tab === t, tab);
+  if (open) { await page.click('#panel-close'); return; }
+  await game((t) => __idle.ui.openTab(t), tab);
+}
 const waitFor = (fn, timeout = 20000, arg) => page.waitForFunction(fn, arg, { timeout, polling: 100 });
 function shiftSaveOnNextLoad(deltaMs, flag) {
   return page.addInitScript(([delta, name]) => {
@@ -72,7 +79,7 @@ await check('le héros attaque automatiquement, les ennemis meurent et donnent d
 
 await check('acheter une amélioration avec l’or', async () => {
   await game(() => { __idle.state.gold += 500; });
-  await page.click('#tabs button[data-tab="upgrades"]');
+  await clickTab('upgrades');
   const before = await game(() => __idle.state.upgrades.damage);
   await page.click('[data-action="buy"][data-key="damage"]');
   const after = await game(() => __idle.state.upgrades.damage);
@@ -82,7 +89,7 @@ await check('acheter une amélioration avec l’or', async () => {
 
 await check('ouvrir l’inventaire, équiper un objet et voir les stats changer', async () => {
   const item = await game(() => __idle.addRandomItem('epic'));
-  await page.click('#tabs button[data-tab="inventory"]');
+  await clickTab('inventory');
   await page.click(`.inv-grid [data-id="${item.id}"]`);
   await page.waitForSelector('.item-detail');
   const before = await game(() => JSON.stringify(__idle.state.equipment));
@@ -109,15 +116,16 @@ await check('recycler un objet contre de l’or', async () => {
 });
 
 await check('onglets avec icône et état actif distinct', async () => {
+  // v9.0.6 : 6 menus en barre verticale ; le menu du panneau ouvert est actif, ses sous-onglets en haut du panneau.
   const tabs = await game(() => [...document.querySelectorAll('#tabs button')].map((b) => ({
-    tab: b.dataset.tab, icon: b.querySelector('img')?.naturalWidth > 0, active: b.classList.contains('active'),
+    menu: b.dataset.menu, icon: b.querySelector('img')?.naturalWidth > 0, active: b.classList.contains('active'),
     hidden: b.classList.contains('hidden'),
   })));
-  assert(tabs.length === 12 && tabs.every((t) => t.icon), JSON.stringify(tabs));
-  // Menus débloqués progressivement : compagnons, arbre, donjons, tour et boss cachés en début de partie (l'Encyclopédie s'ouvre au premier monstre vaincu).
-  const hidden = tabs.filter((t) => t.hidden).map((t) => t.tab).sort().join();
-  assert(hidden === 'boss,companions,dungeons,tower,tree', `onglets cachés : ${hidden}`);
-  assert(tabs.filter((t) => t.active).map((t) => t.tab).join() === 'inventory', JSON.stringify(tabs));
+  assert(tabs.length === 6 && tabs.every((t) => t.icon && !t.hidden), JSON.stringify(tabs));
+  assert(tabs.filter((t) => t.active).map((t) => t.menu).join() === 'gear', JSON.stringify(tabs));
+  // Sous-onglets débloqués progressivement : compagnons, arbre, donjons, tour et boss cachés en début de partie.
+  const hidden = await game(() => Object.entries(__idle.ui.tabVisible).filter(([, v]) => v === false).map(([k]) => k).sort().join());
+  assert(hidden === 'boss,companions,dungeons,tower,tree', `sous-onglets cachés : ${hidden}`);
 });
 
 await check('filtres par type et tri par niveau', async () => {
@@ -169,7 +177,7 @@ await check('un boss apparaît au palier et donne une récompense', async () => 
     __idle.state.maxStage = Math.max(__idle.state.maxStage, 20);
     __idle.state.autoAdvance = false;
   });
-  await page.click('#tabs button[data-tab="campaign"]');
+  await clickTab('campaign');
   await page.click('.stage-grid [data-stage="20"]'); // méga boss du monde 1 (pouvoir ancestral)
   await waitFor(() => __idle.world.enemies.some((e) => e.boss), 10000);
   await page.click('#panel-close');
@@ -184,8 +192,8 @@ await check('un boss apparaît au palier et donne une récompense', async () => 
 await check('pouvoir ancestral : débloqué au premier boss et affiché dans le Codex', async () => {
   const entry = await game(() => __idle.state.powers.slime_king);
   assert(entry && entry.current, 'aucun pouvoir débloqué');
-  await waitFor(() => !document.querySelector('#tabs button[data-tab="boss"]').classList.contains('hidden'), 3000);
-  await page.click('#tabs button[data-tab="boss"]');
+  await waitFor(() => __idle.ui.tabVisible['boss'] !== false, 3000);
+  await clickTab('boss');
   await page.waitForTimeout(200);
   const text = await page.textContent('#panel-body');
   assert(text.includes('Roi Gluant') && text.includes('Pouvoir ancestral actuel'), text.slice(0, 200));
@@ -201,7 +209,7 @@ await check('changer de pouvoir exige de réaffronter le boss', async () => {
   await waitFor((v) => __idle.state.powers.slime_king.victories > v, 30000, victories);
   const charges = await game(() => __idle.state.powers.slime_king.charges);
   assert(charges === 1, `charges ${charges}`);
-  if (await page.$('#panel.hidden')) await page.click('#tabs button[data-tab="boss"]');
+  if (await page.$('#panel.hidden')) await clickTab('boss');
   await page.waitForTimeout(1200);
   const enabled = await page.$eval('[data-action="reroll"][data-boss="slime_king"]', (b) => !b.disabled);
   assert(enabled, 'relance toujours bloquée après la victoire');
@@ -241,7 +249,7 @@ await check('relance : proposition, refus puis acceptation, sans écrasement aut
 
 await check('verrouillage : un objet verrouillé ne peut pas être recyclé', async () => {
   const item = await game(() => __idle.addItem('dagger', 'common', 1));
-  await page.click('#tabs button[data-tab="inventory"]');
+  await clickTab('inventory');
   await page.click(`.inv-grid [data-id="${item.id}"]`);
   await page.click('.item-detail [data-action="lock"]');
   await page.waitForTimeout(150);
@@ -253,7 +261,7 @@ await check('verrouillage : un objet verrouillé ne peut pas être recyclé', as
 
 await check('compétences : un point par niveau, apprendre Tourbillon', async () => {
   await game(() => { __idle.state.level = Math.max(__idle.state.level, 6); });
-  await page.click('#tabs button[data-tab="skills"]');
+  await clickTab('skills');
   await page.waitForTimeout(300);
   await page.click('[data-action="learn-skill"][data-key="whirl"]');
   const level = await game(() => __idle.state.skills.whirl);
@@ -313,7 +321,7 @@ await check('paramètres : version lancée et mise à jour détectée (GitHub si
 
 await check('forge : fabriquer un objet avec des éclats', async () => {
   await game(() => { __idle.state.materials.shards += 500; __idle.state.gold += 1e6; });
-  await page.click('#tabs button[data-tab="inventory"]');
+  await clickTab('inventory');
   await page.click('[data-action="inv-tab"][data-value="forge"]');
   await page.waitForTimeout(300);
   const count = await game(() => __idle.state.inventory.length);
@@ -325,7 +333,7 @@ await check('forge : fabriquer un objet avec des éclats', async () => {
 
 await check('vitesse ×10 : l’inventaire reste cliquable (pas de redessin pendant le clic)', async () => {
   await game(() => { __idle.state.ui.speed = 10; for (let i = 0; i < 4; i++) __idle.addItem('iron_helm', 'common', 1).locked = true; });
-  if (await game(() => __idle.ui.tab !== 'inventory')) await page.click('#tabs button[data-tab="inventory"]');
+  if (await game(() => __idle.ui.tab !== 'inventory')) await clickTab('inventory');
   await page.waitForSelector('.inv-grid .item-frame', { timeout: 5000 }).catch(async (e) => {
     const dbg = await game(() => ({ tab: __idle.ui.tab, dirty: __idle.ui.dirty, pd: __idle.ui.pointerDown, inv: __idle.state.inventory.length,
       html: document.querySelector('#panel-body').innerHTML.slice(0, 200) }));
@@ -343,7 +351,7 @@ await check('vitesse ×10 : l’inventaire reste cliquable (pas de redessin pend
 });
 
 await check('clavier : onglet par touche, flèches entre les boutons, Entrée maintenue = achat en continu', async () => {
-  await game(() => { __idle.state.gold += 1e40; __idle.ui.closePanel(); });
+  await game(() => { __idle.state.gold += 1e40; __idle.ui.closePanel(); __idle.ui.lastSub = {}; });
   await page.click('#scene', { position: { x: 5, y: 5 } }).catch(() => {});
   await page.keyboard.press('1');
   await page.waitForTimeout(300);
@@ -366,8 +374,8 @@ await check('clavier : onglet par touche, flèches entre les boutons, Entrée ma
 
 await check('donjon : entrer avec une clé puis abandonner', async () => {
   await game(() => { __idle.state.maxStage = Math.max(__idle.state.maxStage, 25); __idle.state.keys = Math.max(1, __idle.state.keys); });
-  await waitFor(() => !document.querySelector('#tabs button[data-tab="dungeons"]').classList.contains('hidden'), 3000);
-  await page.click('#tabs button[data-tab="dungeons"]');
+  await waitFor(() => __idle.ui.tabVisible['dungeons'] !== false, 3000);
+  await clickTab('dungeons');
   await page.waitForTimeout(300);
   const keys = await game(() => __idle.state.keys);
   await page.click('[data-action="enter-dungeon"]');
@@ -382,8 +390,8 @@ await check('donjon : entrer avec une clé puis abandonner', async () => {
 
 await check('Renaissance : confirmation, réinitialisation et conservation des déblocages', async () => {
   await game(() => { __idle.state.maxStage = 31; });
-  await waitFor(() => !document.querySelector('#tabs button[data-tab="tree"]').classList.contains('hidden'), 3000);
-  await page.click('#tabs button[data-tab="tree"]');
+  await waitFor(() => __idle.ui.tabVisible['tree'] !== false, 3000);
+  await clickTab('tree');
   await page.waitForTimeout(150);
   await page.click('[data-action="rebirth"]');
   await page.waitForSelector('#modal:not(.hidden)');
@@ -470,13 +478,13 @@ await check('l’interface s’adapte au redimensionnement', async () => {
     }
     if (layout === 'tall') {
       for (const tab of ['upgrades', 'inventory', 'hero', 'skills', 'campaign', 'boss', 'tree']) {
-        await page.click(`#tabs button[data-tab="${tab}"]`);
+        await clickTab(tab);
         await page.waitForTimeout(250);
         await page.screenshot({ path: `${outDir}/standard-${tab}.png` });
       }
       // Un second clic sur l'onglet ouvert le referme : le jeu reprend toute la hauteur.
       const before = await game(() => document.querySelector('#scene').getBoundingClientRect().height);
-      await page.click('#tabs button[data-tab="tree"]');
+      await clickTab('tree');
       await page.waitForTimeout(300);
       const closed = await game(() => ({
         hidden: document.querySelector('#panel').classList.contains('hidden'),
@@ -486,7 +494,7 @@ await check('l’interface s’adapte au redimensionnement', async () => {
       await page.screenshot({ path: `${outDir}/standard-closed.png` });
     }
   }
-  await page.click('#tabs button[data-tab="inventory"]');
+  await clickTab('inventory');
   await page.waitForTimeout(300);
   await page.screenshot({ path: `${outDir}/wide.png` });
 });

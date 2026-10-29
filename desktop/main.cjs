@@ -262,6 +262,7 @@ function createWindow() {
     }
   });
   let sideExtra = 0; // largeur ajoutée pour le menu sur le côté (retirée des dimensions mémorisées)
+  let sideExtraH = 0; // hauteur ajoutée (menu ouvert depuis le mode barre)
   // v8.9 : élargir / rétrécir la fenêtre (menu ouvert sur le côté en petite fenêtre), sans sortir de l'écran.
   ipcMain.handle('desktop:resizeBy', (_event, dw, dh) => {
     if (win.isMaximized() || win.isFullScreen()) return false;
@@ -272,6 +273,34 @@ function createWindow() {
     const x = Math.max(area.x, Math.min(b.x, area.x + area.width - width));
     win.setBounds({ x, y: b.y, width, height });
     sideExtra += width - b.width;
+    return true;
+  });
+  // v9.0.6 : le menu s'ouvre à GAUCHE de la scène — la fenêtre s'agrandit vers la gauche (et vers le haut en
+  // mode barre), la scène reste à sa place à l'écran ; restoreGrow annule exactement l'agrandissement.
+  let grown = null; // { dw, dh } réellement ajoutés
+  ipcMain.handle('desktop:growLeft', (_event, dw, dh) => {
+    if (grown || win.isMaximized() || win.isFullScreen()) return false;
+    const b = win.getBounds();
+    const area = screen.getDisplayMatching(b).workArea;
+    const width = Math.min(area.width, b.width + Math.max(0, Number(dw) || 0));
+    const height = Math.min(area.height, b.height + Math.max(0, Number(dh) || 0));
+    const x = Math.max(area.x, b.x - (width - b.width));
+    const y = Math.max(area.y, b.y - (height - b.height));
+    win.setBounds({ x, y, width, height });
+    grown = { dw: width - b.width, dh: height - b.height, dx: b.x - x, dy: b.y - y };
+    sideExtra += grown.dw;
+    sideExtraH += grown.dh;
+    return true;
+  });
+  ipcMain.handle('desktop:restoreGrow', () => {
+    if (!grown) return false;
+    const b = win.getBounds();
+    if (!win.isMaximized() && !win.isFullScreen()) {
+      win.setBounds({ x: b.x + grown.dx, y: b.y + grown.dy, width: Math.max(260, b.width - grown.dw), height: Math.max(110, b.height - grown.dh) });
+    }
+    sideExtra -= grown.dw;
+    sideExtraH -= grown.dh;
+    grown = null;
     return true;
   });
   ipcMain.handle('desktop:setSizePreset', (_event, preset) => {
@@ -290,6 +319,8 @@ function createWindow() {
     closing = true;
     settings.bounds = win.getNormalBounds();
     if (sideExtra > 0) settings.bounds.width = Math.max(260, settings.bounds.width - sideExtra);
+    if (sideExtraH > 0) settings.bounds.height = Math.max(110, settings.bounds.height - sideExtraH);
+    if (grown) { settings.bounds.x += grown.dx; settings.bounds.y += grown.dy; }
     saveSettings(settings);
     const finalSave = win.webContents.executeJavaScript('window.__idle && window.__idle.save()').catch(() => {});
     const timeout = new Promise((resolve) => setTimeout(resolve, 1500));

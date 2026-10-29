@@ -30,7 +30,7 @@ import { buyPerk } from './core/prestige.js';
 import { activateRush, rushById, upgradeRush } from './core/rushes.js';
 import { grantReward, rewardText } from './core/rewards.js';
 import { learnSkill } from './core/skills.js';
-import { generateItem, makeItem, rarityById } from './core/loot.js';
+import { generateItem, itemPower, makeItem, rarityById } from './core/loot.js';
 import { STAT_LABELS } from './data/items.js';
 import { applyOfflineRewards, computeOfflineRewards } from './core/offline.js';
 import { Rng } from './core/rng.js';
@@ -50,6 +50,7 @@ import { applyCheat, removeCheat, simSpeed, unlockedSpeeds } from './core/cheats
 import { applyLoadout, saveLoadout } from './core/loadouts.js';
 import { claimCollection } from './core/codex.js';
 import { claimEncyclopedia } from './core/encyclopedia.js';
+import { activeClass, canEquip, setHeroClass, weaponClass } from './core/classes.js';
 import { setLang, startAutoTranslate, t } from './i18n/i18n.js';
 import { GAME_VERSION } from './version.js';
 import { applyTheme, themeById } from './ui/themes.js';
@@ -140,6 +141,12 @@ const actions = {
   learnSkill(id) { done(learnSkill(state, id)); },
   setSkillAuto(value) { state.skillAuto = value; done(true); },
   setHero(id) { done(setActiveHero(state, id), 'Nouveau héros actif'); },
+  setHeroClass(id) {
+    const r = setHeroClass(state, id, itemPower);
+    if (!r) return;
+    const c = activeClass(state);
+    done(true, r.reforged ? `${c.name} : arme reforgée en ${r.reforged.name}` : r.swapped ? `${c.name} : ${r.swapped.name} équipée` : `Classe : ${c.name}`, c.color);
+  },
   toggleCompanion(id) {
     if (!toggleCompanion(state, id)) ui.toast(onExpedition(state, id) ? 'Ce compagnon est en expédition.' : `Deux compagnons au maximum : retirez-en un d'abord.`);
     else done(true);
@@ -291,7 +298,12 @@ const actions = {
     if (equipItem(state, id)) {
       save();
       ui.invalidate();
+      return;
     }
+    // v9.0.6 : arme d'une autre classe.
+    const item = state.inventory.find((i) => i.id === id);
+    const c = item && weaponClass(item.baseId);
+    if (c && !canEquip(state, item)) ui.toast(`Arme de ${c.name} : changez de classe (Héros → Classe) pour la porter.`, c.color);
   },
   recycle(id) {
     const gold = recycleItem(state, id);

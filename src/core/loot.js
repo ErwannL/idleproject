@@ -1,5 +1,7 @@
 // Génération d'objets à partir des définitions de src/data/items.js :
 // statistiques selon la rareté et le niveau, effets spéciaux (Rare et mieux), objets signature de boss.
+import { CLASS_WEAPON_DROP } from '../data/classes.js';
+import { activeClass, classWeaponBases } from './classes.js';
 import { BALANCE } from '../data/balance.js';
 import { AFFIXES, ITEM_BASES, PERCENT_STATS, RARITIES, SIGNATURE_ITEMS } from '../data/items.js';
 import { rollSet } from './sets.js';
@@ -101,7 +103,9 @@ export function generateItem(state, rng, { level, minRarity = 'common', slot, se
     let roll = rng.next() * weights.reduce((sum, [, w]) => sum + w, 0);
     chosen = weights.find(([, w]) => (roll -= w) < 0)?.[0] ?? weights[0][0];
   }
-  const base = rng.pick(ITEM_BASES.filter((b) => b.slot === chosen));
+  // v9.0.6 : la plupart des armes tombent dans la classe active (les autres restent possibles).
+  const classPool = chosen === 'weapon' && state ? classWeaponBases(activeClass(state).id) : [];
+  const base = classPool.length && rng.next() < CLASS_WEAPON_DROP ? rng.pick(classPool) : rng.pick(ITEM_BASES.filter((b) => b.slot === chosen));
   const rarity = rollRarity(rng, minRarity);
   const set = setZone === null || setZone === undefined ? null : rollSet(setZone, rarity, rng, balance);
   return makeItem(state, base.id, rarity, Math.max(1, level), balance, rng, set);

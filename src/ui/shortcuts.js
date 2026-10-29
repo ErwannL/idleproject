@@ -9,8 +9,8 @@ export const SHORTCUTS = [
   ['← ↑ → ↓', 'Se déplacer entre les boutons (la sélection est encadrée en or)'],
   ['Entrée ou Espace', 'Activer le bouton sélectionné'],
   ['Entrée maintenue', 'Comme le clic maintenu : achète / améliore en continu'],
-  ['1 … 0', 'Ouvrir / fermer les onglets (dans l\'ordre de la barre)'],
-  ['[ ] ou Page préc. / suiv.', 'Onglet précédent / suivant'],
+  ['1 … 6', 'Ouvrir / fermer les menus (dans l\'ordre de la barre)'],
+  ['[ ] ou Page préc. / suiv.', 'Sous-onglet précédent / suivant'],
   ['Tab', 'Élément suivant (Maj + Tab : précédent)'],
   ['Échap', 'Fermer le panneau ou la fenêtre'],
   ['A (ou Espace sans sélection)', 'Avance automatique / mode farm'],
@@ -144,11 +144,17 @@ export function installShortcuts(ui) {
     else if (key === 'n') { ui.toggleTab('inbox'); if (ui.tab) focusPanelStart(ui); }
     else if (key === 'p') { ui.toggleTab('options'); if (ui.tab) focusPanelStart(ui); }
     else if (key === ']' || key === '[' || key === 'PageDown' || key === 'PageUp') {
-      if (!tabs.length) return;
-      const i = tabs.findIndex((b) => b.dataset.tab === ui.tab);
+      // v9.0.6 : sous-onglet précédent / suivant du menu ouvert (sinon menu précédent / suivant).
+      const subs = [...ui.root.querySelectorAll('#panel-subtabs [data-sub]')];
       const fwd = key === ']' || key === 'PageDown';
-      const next = tabs[(i + (fwd ? 1 : -1) + tabs.length) % tabs.length];
-      if (next.dataset.tab !== ui.tab) next.click();
+      if (ui.tab && subs.length > 1) {
+        const i = subs.findIndex((b) => b.dataset.sub === ui.tab);
+        subs[(i + (fwd ? 1 : -1) + subs.length) % subs.length].click();
+      } else {
+        if (!tabs.length) return;
+        const i = tabs.findIndex((b) => b.classList.contains('active'));
+        tabs[(i + (fwd ? 1 : -1) + tabs.length) % tabs.length].click();
+      }
       focusPanelStart(ui);
     } else if (key === 'k' || key === '?') ui.showShortcuts();
     else if (key === 'j') ui.showJournal(ui.sessionJournal?.() ?? {});

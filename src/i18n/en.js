@@ -10,6 +10,22 @@
 // --- Dictionnaire exact ---------------------------------------------------------------------------
 
 export const EXACT = {
+  // v9.0.6 : classes et armes
+  "Arc court": "Short bow",
+  "Arc long elfique": "Elven longbow",
+  "Arbalète": "Crossbow",
+  "Arbalète lourde": "Heavy crossbow",
+  "Bâton des flammes": "Staff of flames",
+  "Baguette de foudre": "Lightning wand",
+  "Sceptre des tempêtes": "Storm scepter",
+  "Faucheuse d'âmes": "Soul reaper",
+  "Arbalétrier": "Crossbowman",
+  "Mage de foudre": "Storm mage",
+  "Hallebarde": "Halberd",
+  "Katar": "Katar",
+  "Faux": "Scythe",
+  "Mage de feu": "Fire mage",
+  "Classe": "Class",
   // v9.0.5 : Encyclopédie
   "Encyclopédie": "Encyclopedia",
   "Mutations": "Mutations",

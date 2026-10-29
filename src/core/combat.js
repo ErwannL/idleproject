@@ -21,6 +21,7 @@ import { computeHeroStats } from './stats.js';
 import { earlyBoost } from './boost.js';
 import { phantomHitPct, rushById, tickRushes } from './rushes.js';
 import { recordKill } from './codex.js';
+import { activeClass, classRange } from './classes.js';
 import { DUNGEON_DIFFICULTIES } from '../data/dungeons.js';
 import { enemyScaleFactor } from './transcend.js';
 import { clearTowerFloor, endTower, towerBoss, towerLevel, towerTimeLeft } from './tower.js';
@@ -490,6 +491,27 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
 }
 
 // Inflige des dégâts à un ennemi (coup normal, compétence, compagnon, épines).
+// v9.0.6 : coups supplémentaires de l'attaque de classe (zone, perçant, chaîne, volée, météore).
+// Renvoie { hits: [{ enemy, damage }], special } — `special` : 'volley' ou 'meteor' quand l'attaque spéciale part.
+export function classAttackTargets(heroClass, world, front, damage, count) {
+  const a = heroClass.attack;
+  const others = world.enemies.filter((e) => e !== front);
+  const hits = [];
+  if (a.splash) for (const e of others) if (Math.abs(e.x - front.x) <= (a.splashRadius ?? 30)) hits.push({ enemy: e, damage: damage * a.splash });
+  if (a.pierce) for (const e of others.slice(0, a.pierce)) hits.push({ enemy: e, damage: damage * a.pierceFactor });
+  if (a.chain) for (const e of others.slice(0, a.chain)) hits.push({ enemy: e, damage: damage * a.chainFactor });
+  let special = null;
+  if (a.volleyEvery && count % a.volleyEvery === 0) {
+    special = 'volley';
+    for (const e of world.enemies.slice(0, a.volley)) hits.push({ enemy: e, damage: damage * a.volleyFactor });
+  }
+  if (a.meteorEvery && count % a.meteorEvery === 0) {
+    special = 'meteor';
+    for (const e of world.enemies) hits.push({ enemy: e, damage: damage * a.meteorFactor });
+  }
+  return { hits, special };
+}
+
 function hitEnemy(state, world, enemy, damage, rng, balance, stats, enc, source) {
   if (!world.enemies.includes(enemy)) return;
   damage = mutationDamageTaken(enemy, damage);
@@ -667,7 +689,10 @@ export function step(state, world, dt, rng, balance = BALANCE) {
   // Le héros « marche » (le décor défile) tant qu'aucun ennemi n'est à portée.
   const W = balance.world;
   const front = world.enemies[0];
-  hero.walking = !front || front.x - W.heroX > W.heroRange;
+  // v9.0.6 : portée selon la classe (l'archer s'arrête et tire de loin, le lancier frappe avec allonge).
+  const range = classRange(state, balance);
+  const heroClass = activeClass(state);
+  hero.walking = !front || front.x - W.heroX > range;
   const scroll = hero.walking ? W.scrollSpeed : 0;
   world.scroll += scroll * dt;
   world.enemies.forEach((enemy, i) => {
@@ -678,7 +703,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
     enemy.engaged = !prev && enemy.x <= stopX + 0.01;
   });
 
-  const inRange = front && front.x - W.heroX <= W.heroRange;
+  const inRange = front && front.x - W.heroX <= range;
 
   // Attaque automatique du héros sur l'ennemi le plus proche.
   if (inRange) {
@@ -686,8 +711,14 @@ export function step(state, world, dt, rng, balance = BALANCE) {
     if (hero.attackTimer <= 0) {
       hero.attackTimer += stats.attackInterval;
       const { damage, crit } = heroDamage(stats, front, world, rng, balance);
-      emit(world, 'heroAttack', { enemyId: front.id, damage, crit, x: front.x, boss: front.boss });
+      world.attackCount = (world.attackCount ?? 0) + 1;
+      const extra = classAttackTargets(heroClass, world, front, damage, world.attackCount);
+      emit(world, 'heroAttack', {
+        enemyId: front.id, damage, crit, x: front.x, boss: front.boss, kind: heroClass.attack.kind,
+        special: extra.special, targets: extra.hits.map((h) => ({ id: h.enemy.id, x: h.enemy.x })),
+      });
       hitEnemy(state, world, front, damage, rng, balance, stats, enc, 'attack');
+      for (const h of extra.hits) hitEnemy(state, world, h.enemy, h.damage, rng, balance, stats, enc, 'attack');
     }
   } else {
     hero.attackTimer = Math.min(hero.attackTimer, 0.25);
@@ -711,7 +742,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
     for (const skill of activeSkills(state)) {
       world.skillTimers[skill.id] = (world.skillTimers[skill.id] ?? 1) - dt;
       const target = world.enemies[0];
-      if (world.skillTimers[skill.id] <= 0 && target && target.x - W.heroX <= W.heroRange) {
+      if (world.skillTimers[skill.id] <= 0 && target && target.x - W.heroX <= range) {
         castSkill(state, world, skill, stats, rng, balance, enc, target);
         world.skillTimers[skill.id] = skillCooldown(skill, stats.bonus);
       }
@@ -725,7 +756,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
       world.companionTimers[key] = (world.companionTimers[key] ?? skill.every / 2 + skill.index) - dt;
       const target = world.enemies[0];
       const needsTarget = ['hit', 'burst'].includes(skill.type);
-      if (world.companionTimers[key] <= 0 && (!needsTarget || (target && target.x - W.heroX <= W.heroRange + 20))) {
+      if (world.companionTimers[key] <= 0 && (!needsTarget || (target && target.x - W.heroX <= range + 20))) {
         castCompanion(state, world, companion, skill, stats, rng, balance, enc, target);
         world.companionTimers[key] = skill.every;
       }

@@ -117,6 +117,51 @@ export const ITEM_BASES = [
     id: 'greatsword', name: 'Espadon', slot: 'weapon', sprite: 'greatsword',
     colors: { main: '#e2e8ef', shade: '#8d97a5' }, stats: { damage: 10, attackSpeed: -10 },
   },
+  // v9.0.6 : armes des nouvelles classes (Archer, Arbalétrier, Mages, Lancier, Assassin, Nécromancien).
+  {
+    id: 'halberd', name: 'Hallebarde', slot: 'weapon', sprite: 'halberd',
+    colors: { main: '#c9d1db', shade: '#6d7783' }, stats: { damage: 9, attackSpeed: -6 },
+  },
+  {
+    id: 'katar', name: 'Katar', slot: 'weapon', sprite: 'katar',
+    colors: { main: '#dfe6ee', shade: '#7f8996' }, stats: { damage: 4, attackSpeed: 15 },
+  },
+  {
+    id: 'short_bow', name: 'Arc court', slot: 'weapon', sprite: 'bow',
+    colors: { main: '#a0703f', shade: '#5e3f24' }, stats: { damage: 5, attackSpeed: 8 },
+  },
+  {
+    id: 'long_bow', name: 'Arc long elfique', slot: 'weapon', sprite: 'longbow',
+    colors: { main: '#d8c48a', shade: '#8a7440' }, stats: { damage: 8 },
+  },
+  {
+    id: 'crossbow', name: 'Arbalète', slot: 'weapon', sprite: 'crossbow',
+    colors: { main: '#8a5a3b', shade: '#4e321f' }, stats: { damage: 9, attackSpeed: -10 },
+  },
+  {
+    id: 'heavy_crossbow', name: 'Arbalète lourde', slot: 'weapon', sprite: 'crossbow',
+    colors: { main: '#5d6878', shade: '#2e3440' }, stats: { damage: 12, attackSpeed: -18 },
+  },
+  {
+    id: 'fire_staff', name: 'Bâton des flammes', slot: 'weapon', sprite: 'staff',
+    colors: { main: '#ff7a3a', shade: '#a8361a' }, stats: { damage: 7, attackSpeed: -4 },
+  },
+  {
+    id: 'storm_wand', name: 'Baguette de foudre', slot: 'weapon', sprite: 'wand',
+    colors: { main: '#c9b8ff', shade: '#6a58b0' }, stats: { damage: 4, attackSpeed: 10 },
+  },
+  {
+    id: 'storm_scepter', name: 'Sceptre des tempêtes', slot: 'weapon', sprite: 'scepter',
+    colors: { main: '#ffd23f', shade: '#c8961e' }, stats: { damage: 8, maxHp: 10 },
+  },
+  {
+    id: 'scythe', name: 'Faux', slot: 'weapon', sprite: 'scythe',
+    colors: { main: '#b9c2cc', shade: '#5c6570' }, stats: { damage: 8, attackSpeed: -4 },
+  },
+  {
+    id: 'soul_reaper', name: "Faucheuse d'âmes", slot: 'weapon', sprite: 'scythe',
+    colors: { main: '#5fe0a0', shade: '#2a6a50' }, stats: { damage: 10, attackSpeed: -8, maxHp: 10 },
+  },
   {
     id: 'horned_helm', name: 'Casque à cornes', slot: 'helmet', sprite: 'horned',
     colors: { main: '#9aa4b0', shade: '#5c6570' }, stats: { maxHp: 12, armor: 3 },

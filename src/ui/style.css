@@ -19,6 +19,10 @@
   --rare: #4fa3ff;
   --epic: #b46bff;
   --legendary: #ffa630;
+  /* v9.0.6 : couleurs de l'invocation, jamais recolorées par les thèmes (src/ui/themes.js KEEP_VARS) */
+  --sfx-common: #8fb0ff;
+  --sfx-epic: #c06bff;
+  --sfx-legendary: #ffcf4a;
   --radius: 5px;
   color-scheme: dark;
 }
@@ -85,7 +89,8 @@ select { padding: 3px 6px; }
    wide   : fenêtre large ; panneau toujours ouvert sur le côté */
 #app { position: relative; height: 100vh; width: 100vw; display: flex; }
 #main-col { display: flex; flex-direction: column; min-width: 0; flex: 1; }
-.layout-tall { flex-direction: column; }
+#content { position: relative; display: flex; flex: 1; min-width: 0; min-height: 0; } /* v9.0.6 : tout sauf la barre des menus */
+.layout-tall #content { flex-direction: column; }
 .layout-tall #main-col { flex: none; }
 .layout-tall #play { height: clamp(150px, 34vh, 260px); flex: none; }
 .layout-tall #panel { flex: 1; border-top: 1px solid var(--line); }
@@ -1361,9 +1366,9 @@ kbd { display: inline-block; min-width: 18px; padding: 1px 5px; border: 1px soli
 .summon-fx { position: fixed; inset: 0; z-index: 9000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
   background: radial-gradient(circle at 50% 45%, rgba(40, 30, 90, 0.92), rgba(4, 4, 14, 0.97)); opacity: 0; transition: opacity 0.25s; cursor: pointer; overflow: hidden; }
 .summon-fx.open { opacity: 1; }
-.summon-fx { --glow: #8fb0ff; }
-.summon-fx.best-epic { --glow: #c06bff; }
-.summon-fx.best-legendary { --glow: #ffcf4a; }
+.summon-fx { --glow: var(--sfx-common); }
+.summon-fx.best-epic { --glow: var(--sfx-epic); }
+.summon-fx.best-legendary { --glow: var(--sfx-legendary); }
 .sfx-portal { position: absolute; left: 50%; top: 45%; width: 0; height: 0; }
 .sfx-portal i { position: absolute; left: 50%; top: 50%; border: 3px dashed var(--glow); border-radius: 50%; transform: translate(-50%, -50%);
   box-shadow: 0 0 18px var(--glow), inset 0 0 18px var(--glow); animation: sfx-spin 2.4s linear infinite, sfx-grow 0.9s ease-out both; }
@@ -1672,3 +1677,46 @@ table.records td { padding: 2px 4px; border-top: 1px solid rgba(255, 255, 255, 0
 .enc-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); column-gap: 18px; }
 .enc-legend { margin-bottom: 6px; font-size: 12px; }
 .enc-shadow { filter: brightness(0) invert(0.22) sepia(0.4) hue-rotate(185deg); opacity: 0.8; }
+
+/* --- Classes du héros (v9.0.6) ---------------------------------------------------------------------------- */
+.class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 6px; margin-top: 6px; }
+.class-card { display: flex; gap: 8px; align-items: center; padding: 7px 8px; border-radius: 6px; background: linear-gradient(90deg, color-mix(in srgb, var(--cls) 18%, #0d1426), #0b1120 70%);
+  border: 1px solid color-mix(in srgb, var(--cls) 45%, #1d2742); }
+.class-card.active { border-color: var(--cls); box-shadow: 0 0 0 1px var(--cls) inset, 0 0 10px -2px var(--cls); }
+.class-card.locked { filter: grayscale(0.8) brightness(0.7); }
+.class-pic { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 6px; background: radial-gradient(circle, color-mix(in srgb, var(--cls) 35%, #16203a), #0b1020 75%); flex: none; }
+.class-pic img { width: 40px; height: 40px; image-rendering: pixelated; }
+.class-name { color: var(--cls); font-size: 14px; }
+.class-style { font-size: 10px; padding: 0 5px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--cls) 60%, transparent); color: #dfe6ee; }
+.class-text { font-size: 11.5px; line-height: 1.25; }
+.class-fx, .class-weapons { font-size: 11px; }
+.class-on { color: var(--cls); font-weight: 800; white-space: nowrap; }
+.class-lock { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; font-size: 11px; }
+.class-lock img { width: 14px; height: 14px; }
+
+/* --- v9.0.6 : barre des menus verticale (6 menus) + sous-onglets en haut du panneau -------------------- */
+#app > #tabs { flex-direction: column; flex: none; width: 86px; gap: 5px; padding: 6px 5px; justify-content: flex-start;
+  border-top: none; border-right: 2px solid var(--edge); background: linear-gradient(90deg, #121a30, #0e1528); overflow: hidden; }
+#app > #tabs button { flex: 0 1 68px; min-height: 40px; max-width: none; width: 100%; flex-direction: column; justify-content: center; gap: 3px;
+  padding: 4px 1px; font-size: 10px; line-height: 1.1; letter-spacing: -0.02em; }
+#app > #tabs button img { width: 28px !important; height: 28px !important; }
+#app > #tabs button span { display: block !important; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#app.layout-mini > #tabs { width: 70px; padding: 4px 3px; gap: 3px; }
+#app.layout-mini > #tabs button { flex-basis: 52px; min-height: 34px; font-size: 8.5px; gap: 1px; letter-spacing: -0.03em; }
+#app.layout-mini > #tabs button img { width: 22px !important; height: 22px !important; }
+#app.layout-strip > #tabs { display: none !important; }
+/* Panneau sur le côté (petite fenêtre) : il s'ouvre à GAUCHE de la scène, la fenêtre s'agrandit vers la gauche. */
+.layout-mini.side-open #panel { order: -1; border-left: none; border-right: 2px solid var(--edge); }
+/* Sous-onglets du menu ouvert. */
+#panel-subtabs { display: flex; gap: 4px; padding: 5px 8px 0; background: linear-gradient(#101a2e, #0d1526); border-bottom: 1px solid var(--line); overflow-x: auto; flex: none; }
+#panel-subtabs.hidden { display: none; }
+#panel-subtabs .subtab { position: relative; display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px 6px; border: 1px solid var(--line-2, #2a3654);
+  border-bottom: none; border-radius: 6px 6px 0 0; background: linear-gradient(#1a2440, #121a30); color: var(--muted, #8fa0c0); font: inherit; font-weight: 700;
+  font-size: 12px; cursor: pointer; white-space: nowrap; }
+#panel-subtabs .subtab img { width: 18px; height: 18px; image-rendering: pixelated; }
+#panel-subtabs .subtab:hover { color: #fff; }
+#panel-subtabs .subtab.active { color: var(--gold-text, #f2d083); background: linear-gradient(#26395f, #1a2945); border-color: var(--gold, #e8b64a);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.12); }
+#panel-subtabs .badge { position: absolute; top: 2px; right: 3px; width: 8px; height: 8px; border-radius: 50%; background: #ff3b4e; box-shadow: 0 0 0 2px #0b1120; }
+.layout-mini #panel-subtabs .subtab { padding: 3px 8px 4px; font-size: 11px; }
+.layout-mini #panel-subtabs .subtab img { width: 14px; height: 14px; }

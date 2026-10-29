@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1536">
+<title>Préinscriptions — affiche</title>
+<!--
+  Affiche promotionnelle « Préinscriptions » (1536×1024), composée uniquement avec les assets du jeu.
+  À ouvrir via le serveur du dépôt (npm start → http://localhost:5173/docs/promo/preinscriptions.html) :
+  les chemins /assets/... et /src/... sont relatifs à la racine du dépôt.
+  Le chevalier est composé à l'exécution par heroComposite() (src/render/pixel.js).
+-->
+<style>
+  :root {
+    --navy-0: #070b1c;
+    --navy-1: #0d1430;
+    --navy-2: #16204a;
+    --navy-3: #22306a;
+    --gold: #e8b64a;
+    --gold-hi: #f2d083;
+    --gold-lo: #9a6a1c;
+    --rare: #4fa3ff;
+    --epic: #c06bff;
+    --legendary: #ffa630;
+    --green: #4fdc6a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1536px; height: 1024px; overflow: hidden; background: var(--navy-0); }
+  body { font-family: 'Inter Display', 'Inter', 'DejaVu Sans', Arial, sans-serif; color: #fff; }
+  img.px, canvas.px { image-rendering: pixelated; display: block; }
+
+  #poster { position: relative; width: 1536px; height: 1024px; overflow: hidden; background: var(--navy-0); }
+
+  /* ---------- Décor : deux zones peintes du jeu (plaines / terres maudites) ---------- */
+  .scene { position: absolute; left: 0; top: 0; width: 512px; height: 176px; transform: scale(3); transform-origin: 0 0; overflow: hidden; }
+  .scene img { position: absolute; image-rendering: pixelated; }
+  #plains { background: linear-gradient(#3d8ee0 0%, #64aeee 40%, #98cff4 72%, #cdeaf8 100%); }
+  #cursed {
+    background: linear-gradient(#180406 0%, #420a0c 35%, #781410 70%, #b0301a 100%);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, transparent 330px, #000 410px);
+            mask-image: linear-gradient(90deg, transparent 0, transparent 330px, #000 410px);
+  }
+  .scene-shade { position: absolute; left: 0; top: 0; width: 1536px; height: 560px;
+    background:
+      radial-gradient(ellipse 520px 330px at 768px 190px, rgba(7,11,28,.55), rgba(7,11,28,0) 70%),
+      linear-gradient(180deg, rgba(7,11,28,.15) 0%, rgba(7,11,28,0) 30%, rgba(7,11,28,0) 58%, rgba(7,11,28,.85) 80%, var(--navy-0) 100%);
+  }
+
+  /* ---------- Personnages ---------- */
+  .char { position: absolute; filter: drop-shadow(0 6px 0 rgba(0,0,0,.35)); }
+  .glow-l { position: absolute; left: -60px; top: 120px; width: 560px; height: 360px;
+    background: radial-gradient(ellipse at 50% 60%, rgba(120,190,255,.35), rgba(120,190,255,0) 65%); }
+  .glow-r { position: absolute; right: -60px; top: 80px; width: 600px; height: 400px;
+    background: radial-gradient(ellipse at 50% 60%, rgba(200,60,255,.35), rgba(255,60,40,0) 65%); }
+  .floor-shadow { position: absolute; height: 22px; border-radius: 50%; background: rgba(0,0,0,.35); }
+
+  /* ---------- Titre ---------- */
+  .plaque { position: absolute; left: 418px; top: 22px; width: 700px; height: 318px; }
+  .plaque::before, .plaque::after { content: ''; position: absolute; inset: 0;
+    clip-path: polygon(6% 0, 94% 0, 100% 12%, 97% 50%, 100% 88%, 94% 100%, 6% 100%, 0 88%, 3% 50%, 0 12%); }
+  .plaque::before { background: linear-gradient(180deg, var(--gold-hi), var(--gold) 40%, var(--gold-lo)); }
+  .plaque::after { inset: 5px; background:
+      radial-gradient(ellipse at 50% 35%, rgba(79,163,255,.28), rgba(79,163,255,0) 70%),
+      linear-gradient(180deg, #1b2a66 0%, #111a42 55%, #0a1030 100%); }
+
+  .t { position: absolute; left: 0; width: 1536px; text-align: center; font-weight: 900; line-height: 1; white-space: nowrap; }
+  .t span { position: absolute; left: 0; right: 0; }
+  .t .back { color: #1a0d05; -webkit-text-stroke: var(--sw, 16px) #1a0d05; transform: translateY(var(--sd, 7px)); }
+  .t .mid  { color: #5a3008; -webkit-text-stroke: var(--sm, 9px) #5a3008; }
+  .t .face { background: linear-gradient(180deg, #fff6c8 0%, #ffe07a 30%, #f5b52c 55%, #d97a10 80%, #a8500a 100%);
+             -webkit-background-clip: text; background-clip: text; color: transparent;
+             -webkit-text-stroke: 1.5px rgba(255,248,210,.55); }
+  #title { top: 40px; height: 92px; font-size: 74px; letter-spacing: -1px; }
+  #big   { top: 172px; height: 110px; font-size: 118px; letter-spacing: 2px; --sw: 20px; --sm: 11px; --sd: 9px; }
+
+  .sub { position: absolute; left: 0; width: 1536px; text-align: center; font-weight: 900; white-space: nowrap; }
+  .sub span { position: absolute; left: 0; right: 0; }
+  .sub .back { color: #050a1e; -webkit-text-stroke: 9px #050a1e; transform: translateY(4px); }
+  .sub .face { background: linear-gradient(180deg, #ffffff 0%, #d6ecff 45%, #7fc0ff 100%);
+               -webkit-background-clip: text; background-clip: text; color: transparent; }
+  #sub1 { top: 132px; font-size: 32px; letter-spacing: 1px; }
+  #sub2 { top: 286px; font-size: 44px; letter-spacing: 2px; }
+
+  .crystal { position: absolute; filter: drop-shadow(0 0 10px rgba(120,200,255,.9)); }
+
+  .ribbon { position: absolute; left: 448px; top: 352px; width: 640px; height: 56px; }
+  .ribbon::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, var(--gold-hi), var(--gold-lo));
+    clip-path: polygon(3% 0, 97% 0, 100% 50%, 97% 100%, 3% 100%, 0 50%); }
+  .ribbon::after { content: ''; position: absolute; inset: 3px 4px; background: linear-gradient(180deg, #121a3f, #0a1030);
+    clip-path: polygon(3% 0, 97% 0, 100% 50%, 97% 100%, 3% 100%, 0 50%); }
+  .ribbon p { position: relative; z-index: 1; height: 100%; display: flex; align-items: center; justify-content: center; text-align: center;
+    font-size: 17px; line-height: 1.2; font-weight: 700; color: #fff3cf; padding: 0 44px; text-shadow: 0 2px 0 #000; }
+
+  /* ---------- Paliers ---------- */
+  .track { position: absolute; left: 24px; top: 466px; width: 1488px; height: 8px; }
+  .track .rail { position: absolute; left: 70px; right: 70px; top: 0; height: 8px; border-radius: 4px; background: #4a3a1a; box-shadow: 0 0 0 2px #1a1206; }
+  .track .fill { position: absolute; left: 70px; top: 0; height: 8px; border-radius: 4px; width: 678px;
+    background: linear-gradient(180deg, #fff2b0, var(--gold) 50%, #b07a20); box-shadow: 0 0 12px rgba(255,200,80,.9), 0 0 0 2px #1a1206; }
+  .ms { position: absolute; top: 412px; width: 100px; height: 42px; }
+  .ms .badge { position: absolute; inset: 0; border-radius: 7px; background: linear-gradient(180deg, #1c2858, #0b1233);
+    border: 3px solid var(--gold); box-shadow: 0 0 0 2px #1a1206, inset 0 0 0 2px rgba(255,230,160,.25), 0 4px 0 rgba(0,0,0,.4);
+    display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 25px; color: #fff; text-shadow: 0 2px 0 #000; }
+  .ms.done .badge { box-shadow: 0 0 0 2px #1a1206, inset 0 0 0 2px rgba(255,230,160,.25), 0 0 14px rgba(255,200,80,.7); }
+  .ms.final .badge { border-color: var(--gold-hi); font-size: 28px; }
+  .ms.final { top: 406px; height: 50px; }
+  .ms .gem { position: absolute; left: 50%; top: 52px; width: 18px; height: 18px; margin-left: -9px; transform: rotate(45deg);
+    background: linear-gradient(135deg, #fff6c0, var(--gold) 50%, #a06a18); box-shadow: 0 0 0 2px #1a1206, 0 0 10px rgba(255,210,90,.9); }
+  .ms.final .gem { top: 58px; }
+  .ms:not(.done) .gem { background: linear-gradient(135deg, #b89a5a, #6e5424); box-shadow: 0 0 0 2px #1a1206; }
+
+  .card { position: absolute; top: 492px; width: 140px; height: 312px; border-radius: 10px; overflow: hidden;
+    border: 3px solid var(--c); box-shadow: 0 0 0 2px #05081a, 0 6px 0 rgba(0,0,0,.45); background: var(--navy-1); }
+  .card .art { position: absolute; left: 0; right: 0; top: 0; height: 150px;
+    background: radial-gradient(circle at 50% 56%, color-mix(in srgb, var(--c) 55%, transparent) 0, transparent 62%),
+                linear-gradient(180deg, color-mix(in srgb, var(--c) 30%, #0a1030), #0d1430);
+    display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .card .art .stack { position: relative; width: 130px; height: 130px; }
+  .card .art .stack > * { position: absolute; }
+  .card .txt { position: absolute; left: 4px; right: 4px; top: 150px; height: 104px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 1px; }
+  .card .amt { font-size: 23px; word-spacing: 3px; font-weight: 900; line-height: 1.05; text-shadow: 0 2px 0 #000; letter-spacing: -.3px; }
+  .card .amt.sm { font-size: 18px; }
+  .card .amt.xs { font-size: 17px; }
+  .card .lbl { font-size: 15px; font-weight: 800; line-height: 1.12; color: var(--lc, #dfe9ff); text-shadow: 0 2px 0 #000; }
+  .card .ex { font-size: 13px; font-weight: 700; color: var(--lc, #c9d4f2); opacity: .9; }
+  .card .foot { position: absolute; left: 0; right: 0; bottom: 0; height: 56px; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.45)); border-top: 2px solid rgba(255,255,255,.08); }
+  .card.done { box-shadow: 0 0 0 2px #05081a, 0 0 16px rgba(79,220,106,.55), 0 6px 0 rgba(0,0,0,.45); }
+  .card.done .foot { background: linear-gradient(180deg, rgba(40,140,60,.25), rgba(20,90,40,.55)); }
+  .card.locked .art { filter: saturate(.85) brightness(.85); }
+  .card.locked::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,8,26,.05), rgba(5,8,26,.25)); pointer-events: none; }
+  .tag { position: absolute; top: 6px; left: 6px; z-index: 2; font-size: 12px; font-weight: 900; padding: 2px 6px; border-radius: 4px; letter-spacing: .5px;
+    color: #10081e; background: var(--tc); box-shadow: 0 0 0 2px #05081a; }
+  .check { width: 42px; height: 42px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #8af59a, #2bb04a 60%, #17752e);
+    box-shadow: 0 0 0 3px #0b3a16, 0 0 12px rgba(79,220,106,.8); display: flex; align-items: center; justify-content: center; }
+  .lock { width: 42px; height: 42px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #3a4470, #1a2048);
+    box-shadow: 0 0 0 3px #05081a, inset 0 0 0 2px rgba(232,182,74,.45); display: flex; align-items: center; justify-content: center; }
+
+  .card.final { width: 148px; border: 3px solid transparent;
+    background: linear-gradient(var(--navy-1), var(--navy-1)) padding-box, linear-gradient(135deg, #ff6fa8, #ffa630, #ffe680, #4fa3ff, #c06bff) border-box;
+    box-shadow: 0 0 0 2px #05081a, 0 0 22px rgba(255,166,48,.55), 0 6px 0 rgba(0,0,0,.45); }
+
+  /* ---------- Bandeau du bas ---------- */
+  .bottom { position: absolute; left: 0; top: 818px; width: 1536px; height: 198px; overflow: hidden; }
+  .bottom .strip { position: absolute; left: 0; top: 0; width: 512px; height: 66px; transform: scale(3); transform-origin: 0 0; }
+  .bottom .strip img { position: absolute; image-rendering: pixelated; }
+  .bottom .veil { position: absolute; inset: 0; background: linear-gradient(180deg, var(--navy-0) 0%, rgba(7,11,28,.82) 22%, rgba(7,11,28,.86) 100%); }
+  .info { position: absolute; top: 30px; height: 132px; display: flex; align-items: center; gap: 16px; }
+  .info .ic { flex: none; width: 84px; height: 84px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 45% 40%, #2a3878, #111a44 70%); border: 3px solid var(--gold); box-shadow: 0 0 0 2px #05081a, 0 0 16px rgba(232,182,74,.35); }
+  .info h3 { font-size: 19px; font-weight: 900; line-height: 1.12; color: var(--gold-hi); text-transform: uppercase; letter-spacing: .3px; text-shadow: 0 2px 0 #000; margin-bottom: 7px; }
+  .info p { font-size: 15px; line-height: 1.32; color: #d5ddf5; font-weight: 500; text-shadow: 0 1px 0 #000; }
+  .sep { position: absolute; top: 52px; width: 2px; height: 90px; background: linear-gradient(180deg, transparent, rgba(232,182,74,.5), transparent); }
+</style>
+</head>
+<body>
+<div id="poster">
+
+  <!-- Décor -->
+  <div class="scene" id="plains">
+    <img src="/assets/bg/plains_clouds.png" style="left:0; top:4px">
+    <img src="/assets/bg/plains_far.png" style="left:-150px; top:12px">
+    <img src="/assets/bg/plains_hills.png" style="left:-60px; top:34px">
+    <img src="/assets/bg/plains_trees.png" style="left:-30px; top:28px">
+    <img src="/assets/bg/plains_near.png" style="left:-40px; top:82px">
+    <img src="/assets/bg/plains_near.png" style="left:344px; top:82px">
+    <img src="/assets/bg/plains_ground.png" style="left:0; top:136px">
+    <img src="/assets/bg/plains_ground.png" style="left:256px; top:136px">
+  </div>
+  <div class="scene" id="cursed">
+    <img src="/assets/bg/cursed_moon.png" style="left:60px; top:0">
+    <img src="/assets/bg/cursed_smoke.png" style="left:0; top:4px">
+    <img src="/assets/bg/cursed_far.png" style="left:0; top:16px">
+    <img src="/assets/bg/cursed_demon.png" style="left:290px; top:26px">
+    <img src="/assets/bg/cursed_near.png" style="left:128px; top:82px">
+    <img src="/assets/bg/cursed_ground.png" style="left:256px; top:136px">
+  </div>
+  <div class="scene-shade"></div>
+
+  <!-- Héros (gauche) -->
+  <div class="glow-l"></div>
+  <div class="floor-shadow" style="left:40px; top:396px; width:380px;"></div>
+  <img class="px char" data-sprite="ally_ice_empress" data-s="3" style="left:-14px; bottom:628px;">
+  <img class="px char" data-sprite="pet_wisp" data-s="4" style="left:318px; top:120px;">
+  <canvas class="px char" id="hero" style="left:96px; bottom:618px;"></canvas>
+  <img class="px char" data-sprite="ally_elf_archer" data-s="3" style="left:58px; bottom:606px;">
+  <img class="px char" data-sprite="ally_witch" data-s="3" style="left:300px; bottom:614px;">
+
+  <!-- Monstres (droite) -->
+  <div class="glow-r"></div>
+  <img class="px char" data-sprite="boss_demon_king" data-s="4" style="right:-40px; bottom:650px;">
+  <img class="px char" data-sprite="boss_ash_dragon" data-s="3" style="left:1146px; bottom:618px;">
+  <img class="px char" data-sprite="wolf_ice" data-s="4" style="left:1250px; bottom:616px;">
+  <img class="px char" data-sprite="slime_blue" data-s="4" style="left:1392px; bottom:618px;">
+
+  <!-- Titre -->
+  <div class="plaque"></div>
+  <img class="px crystal" data-sprite="icon_shard" data-s="5" style="left:398px; top:182px; transform: rotate(-14deg);">
+  <img class="px crystal" data-sprite="icon_shard" data-s="5" style="left:1038px; top:182px; transform: scaleX(-1) rotate(-14deg);">
+  <div class="t" id="title"><span class="back">PRÉINSCRIPTIONS</span><span class="mid">PRÉINSCRIPTIONS</span><span class="face">PRÉINSCRIPTIONS</span></div>
+  <div class="sub" id="sub1"><span class="back">AIDE-NOUS À ATTEINDRE LES</span><span class="face">AIDE-NOUS À ATTEINDRE LES</span></div>
+  <div class="t" id="big"><span class="back">100 000</span><span class="mid">100 000</span><span class="face">100 000</span></div>
+  <div class="sub" id="sub2"><span class="back">AVENTURIERS !</span><span class="face">AVENTURIERS !</span></div>
+  <div class="ribbon"><p>Plus nous sommes nombreux, plus les récompenses sont grandes pour tous les joueurs !</p></div>
+
+  <!-- Paliers -->
+  <div class="track"><div class="rail"></div><div class="fill"></div></div>
+  <div id="milestones"></div>
+  <div id="cards"></div>
+
+  <!-- Bandeau du bas -->
+  <div class="bottom">
+    <div class="strip">
+      <img src="/assets/bg/forest_near.png" style="left:0; top:0">
+      <img src="/assets/bg/forest_near.png" style="left:384px; top:0">
+    </div>
+    <div class="veil"></div>
+    <div class="info" style="left:40px; width:340px;">
+      <div class="ic"><img class="px" data-sprite="icon_chest" data-s="3"></div>
+      <div><h3>Récompenses<br>pour tous</h3><p>Chaque joueur recevra les récompenses débloquées dès le lancement du jeu !</p></div>
+    </div>
+    <div class="sep" style="left:398px"></div>
+    <div class="info" style="left:420px; width:330px;">
+      <div class="ic"><img class="px" data-sprite="icon_hero" data-s="3"></div>
+      <div><h3>Rejoins<br>l'aventure</h3><p>Plus nous sommes nombreux, plus le monde s'agrandit : héros, boss et zones !</p></div>
+    </div>
+    <div class="sep" style="left:768px"></div>
+    <div class="info" style="left:790px; width:330px;">
+      <div class="ic"><img class="px" data-sprite="icon_mail" data-s="3"></div>
+      <div><h3>Suis<br>les actus</h3><p>Infos, bonus et annonces du lancement : reste à l'affût !</p></div>
+    </div>
+    <div class="sep" style="left:1138px"></div>
+    <div class="info" style="left:1160px; width:340px;">
+      <div class="ic"><img class="px" data-sprite="icon_heart" data-s="3"></div>
+      <div><h3>Merci pour<br>votre soutien !</h3><p>Chaque préinscription compte et nous aide à bâtir un jeu toujours plus grand.</p></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  const S = (name) => `/assets/sprites/${name}.png`;
+  // Récompenses par palier : art = liste de sprites [nom, échelle, x, y] dans une zone 130×130.
+  const RARE = '#4fa3ff', EPIC = '#c06bff', LEG = '#ffa630', GOLD = '#e8b64a', GREEN = '#4fdc6a';
+  const REWARDS = [
+    { k: '10K', c: RARE, amt: '500', lbl: 'gemmes', art: [['icon_gem', 3, 8, 50], ['icon_gem', 3, 62, 50], ['icon_gem', 4, 25, 20]] },
+    { k: '20K', c: GOLD, amt: '250 K', lbl: 'or', art: [['coin', 4, 8, 64], ['coin', 4, 66, 64], ['coin', 4, 37, 74], ['coin', 5, 30, 18]] },
+    { k: '30K', c: GREEN, amt: '1 familier', lbl: 'Slime doré', ex: '(exclusif)', art: [['pet_slime', 6, 11, 14]] },
+    { k: '40K', c: RARE, amt: '1 000', lbl: 'gemmes', art: [['icon_gem', 3, 0, 60], ['icon_gem', 3, 70, 60], ['icon_gem', 3, 35, 72], ['icon_gem', 4, 25, 10]] },
+    { k: '50K', c: EPIC, tag: 'SR', amt: '1 compagnon', xs: true, lbl: 'Lame rose', ex: '(exclusif)', art: [['ally_rose_blade', 3, -1, 6]] },
+    { k: '60K', c: GOLD, amt: '1 500', lbl: 'gemmes<br>+ 500 K or', sm: true, art: [['icon_chest', 4, 25, 36], ['icon_gem', 2, 4, 86], ['coin', 3, 92, 88], ['icon_gem', 2, 98, 20]] },
+    { k: '70K', c: LEG, tag: 'SSR', amt: '1 compagnon', xs: true, lbl: 'Reine démone', ex: '(exclusif)', art: [['ally_demon_queen', 3, -13, -2]] },
+    { k: '80K', c: EPIC, amt: '10', lbl: "tickets<br>d'invocation", art: [['icon_ticket', 3, 2, 26], ['icon_ticket', 3, 68, 26], ['icon_ticket', 4, 25, 50]] },
+    { k: '90K', c: LEG, tag: 'SSR', amt: '1 compagnon', xs: true, lbl: 'Archange', ex: '(exclusif)', art: [['ally_archangel', 3, -16, -12]] },
+    { k: '100K', c: LEG, final: true, amt: '2 500 gemmes', lbl: '+ 1 M or<br>+ 1 ticket SSR garanti', sm: true,
+      art: [['icon_chest', 4, 27, 30], ['icon_gem', 2, 2, 82], ['icon_ticket', 2, 92, 82], ['coin', 3, 98, 30], ['icon_star', 3, 6, 18]] },
+  ];
+  const UNLOCKED = 5;
+  const X0 = 24, W = 140, GAP = 9.6;
+  const cards = document.getElementById('cards');
+  const ms = document.getElementById('milestones');
+  const LC = { [RARE]: '#9fd0ff', [EPIC]: '#e0b4ff', [LEG]: '#ffd08a', [GOLD]: '#ffe2a0', [GREEN]: '#b4f5c0' };
+  REWARDS.forEach((r, i) => {
+    const done = i < UNLOCKED;
+    const x = X0 + i * (W + GAP) - (r.final ? 8 : 0);
+    const w = r.final ? 148 : W;
+    const m = document.createElement('div');
+    m.className = `ms${done ? ' done' : ''}${r.final ? ' final' : ''}`;
+    m.style.left = `${x + w / 2 - (r.final ? 56 : 50)}px`;
+    if (r.final) m.style.width = '112px';
+    m.innerHTML = `<div class="badge">${r.k}</div><div class="gem"></div>`;
+    ms.append(m);
+    const c = document.createElement('div');
+    c.className = `card ${done ? 'done' : 'locked'}${r.final ? ' final' : ''}`;
+    c.style.left = `${x}px`;
+    c.style.setProperty('--c', done ? '#3fcf62' : r.c);
+    c.style.setProperty('--lc', LC[r.c]);
+    const art = r.art.map(([n, s, ax, ay]) => `<img class="px" data-sprite="${n}" data-s="${s}" style="left:${ax}px; top:${ay}px">`).join('');
+    c.innerHTML = `
+      ${r.tag ? `<div class="tag" style="--tc:${r.c}">${r.tag}</div>` : ''}
+      <div class="art" style="--c:${r.c}"><div class="stack">${art}</div></div>
+      <div class="txt"><div class="amt${r.sm ? ' sm' : ''}${r.xs ? ' xs' : ''}">${r.amt}</div><div class="lbl">${r.lbl}</div>${r.ex ? `<div class="ex">${r.ex}</div>` : ''}</div>
+      <div class="foot">${done
+        ? '<div class="check"><svg width="24" height="20" viewBox="0 0 12 10" shape-rendering="crispEdges"><path fill="#0b3a16" d="M10 0h2v3h-1v1h-1v1H9v1H8v1H7v1H6v1H5v1H4V9H3V8H2V7H1V6H0V4h2v1h1v1h1v1h1V6h1V5h1V4h1V3h1V2h1z"/><path fill="#fff" d="M10 1h1v2h-1v1H9v1H8v1H7v1H6v1H5v1H4V8H3V7H2V6H1V5h1v1h1v1h1v1h1V7h1V6h1V5h1V4h1V3h1z"/></svg></div>'
+        : '<div class="lock"><img class="px" data-sprite="icon_lock" data-s="2"></div>'}</div>`;
+    cards.append(c);
+  });
+  // Barre de progression : jusqu'au 5e palier et un peu au-delà.
+  const mid = (i) => X0 + i * (W + GAP) + W / 2 - X0;
+  document.querySelector('.track .fill').style.width = `${mid(UNLOCKED - 1) + (mid(UNLOCKED) - mid(UNLOCKED - 1)) * 0.45 - 70}px`;
+  document.querySelector('.track .rail').style.cssText += `left:${mid(0)}px; right:${1488 - mid(9) - 4}px;`;
+  document.querySelector('.track .fill').style.left = `${mid(0)}px`;
+
+  // Sprites : agrandissement entier, plus proche voisin.
+  const imgs = [...document.querySelectorAll('img[data-sprite]')];
+  await Promise.all(imgs.map((img) => new Promise((ok) => {
+    img.onload = () => { const s = +img.dataset.s; img.width = img.naturalWidth * s; img.height = img.naturalHeight * s; ok(); };
+    img.onerror = ok;
+    img.src = S(img.dataset.sprite);
+  })));
+
+  // Chevalier entièrement équipé, composé par le moteur du jeu.
+  const P = await import('/src/render/pixel.js');
+  const gear = { weapon: { baseId: 'greatsword', rarity: 'legendary' }, armor: { baseId: 'plate_armor', rarity: 'legendary' } };
+  const src = P.heroComposite('victory', gear, false, 'a');
+  const d = src.getContext('2d').getImageData(0, 0, src.width, src.height).data;
+  let x0 = src.width, y0 = src.height, x1 = 0, y1 = 0;
+  for (let y = 0; y < src.height; y++) for (let x = 0; x < src.width; x++) if (d[(y * src.width + x) * 4 + 3]) {
+    x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+  }
+  const HS = 6;
+  const hero = document.getElementById('hero');
+  hero.width = (x1 - x0 + 1) * HS; hero.height = (y1 - y0 + 1) * HS;
+  const ctx = hero.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(src, x0, y0, x1 - x0 + 1, y1 - y0 + 1, 0, 0, hero.width, hero.height);
+
+  await Promise.all([...document.images].map((i) => i.complete ? 0 : new Promise((ok) => { i.onload = i.onerror = ok; })));
+  await document.fonts.ready;
+  document.documentElement.dataset.ready = '1';
+</script>
+</body>
+</html>

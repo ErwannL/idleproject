@@ -6,6 +6,7 @@ import { trackContracts } from './contracts.js';
 import { itemBase, itemPower, rarityIndex, recycleMaterials, recycleValue } from './loot.js';
 import { computeHeroStats, statsWithItem } from './stats.js';
 import { recordItem } from './codex.js';
+import { canEquip } from './classes.js';
 import { usefulSetPiece } from './sets.js';
 import { autoMannequin } from './stash.js';
 import { autoMuseum } from './museum.js';
@@ -24,6 +25,7 @@ export function equipItem(state, itemId) {
   const index = state.inventory.findIndex((i) => i.id === itemId);
   if (index < 0) return false;
   const item = state.inventory[index];
+  if (!canEquip(state, item)) return false; // v9.0.6 : arme d'une autre classe
   const previous = state.equipment[item.slot];
   state.inventory.splice(index, 1);
   if (previous) state.inventory.splice(index, 0, previous);
@@ -167,6 +169,7 @@ const ehp = (s) => s.maxHp / Math.max(0.05, 1 - s.armor / 100);
 const extras = (s) => s.goldPct + s.xpPct + s.lifesteal + s.thorns + (s.regenPerSecond / s.maxHp) * 100
   + (s.bonus?.dropChance ?? 0) * 3 + (s.bonus?.damageVsBossPct ?? 0) + (s.bonus?.damageVsNormalPct ?? 0) * 0.5;
 export function isUpgrade(state, item, balance = BALANCE, current = computeHeroStats(state, balance)) {
+  if (!canEquip(state, item)) return false; // v9.0.6 : arme d'une autre classe
   if (!state.equipment[item.slot]) return true; // emplacement vide (accessoires en particulier)
   const next = statsWithItem(state, item, balance);
   const score = Math.log(next.dps / current.dps) + Math.log(ehp(next) / ehp(current));

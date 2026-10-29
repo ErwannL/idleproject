@@ -11,6 +11,16 @@
 </head>
 <body>
   <div id="app" class="layout-mini">
+    <!-- v9.0.6 : 6 menus (sous-onglets dans le panneau), en barre verticale -->
+    <nav id="tabs">
+      <button data-menu="hero"><img class="px" data-icon="icon_hero" alt=""><span>Héros</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-hero"></i></button>
+      <button data-menu="gear"><img class="px" data-icon="icon_bag" alt=""><span>Équipement</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-gear"></i></button>
+      <button data-menu="team"><img class="px" data-icon="icon_paw" alt=""><span>Équipe</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-team"></i></button>
+      <button data-menu="adventure"><img class="px" data-icon="icon_map" alt=""><span>Aventure</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-adventure"></i></button>
+      <button data-menu="collection"><img class="px" data-icon="icon_book" alt=""><span>Collection</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-collection"></i></button>
+      <button data-menu="missions"><img class="px" data-icon="icon_trophy" alt=""><span>Missions</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-missions"></i></button>
+    </nav>
+    <div id="content">
     <div id="main-col">
       <header id="topbar">
         <div class="brand top-level" title="Niveau du chevalier"><img class="px" data-icon="icon_hero" alt=""><b id="top-level">Niv. 1</b>
@@ -39,6 +49,7 @@
           <button id="auto-toggle" class="scene-btn" data-action="toggle-auto" title="Avancer automatiquement après chaque étape"></button>
           <div id="strip-bar">
             <span class="strip-gold"><img class="px" data-icon="coin" alt=""><b id="strip-gold">0</b></span>
+            <button class="strip-btn" data-action="strip-menu" title="Ouvrir le menu (la fenêtre s'agrandit vers la gauche)">☰</button>
             <button class="strip-btn" data-action="window-size" data-preset="standard" title="Agrandir la fenêtre">⤢</button>
           </div>
           <div id="scene-bottom">
@@ -57,20 +68,6 @@
           <button id="leave-mode" class="btn btn-danger small hidden" data-action="leave-mode" title="Revenir à la campagne"></button>
         </div>
       </section>
-      <nav id="tabs">
-        <button data-tab="upgrades"><img class="px" data-icon="icon_upgrade" alt=""><span>Améliorer</span></button>
-        <button data-tab="inventory"><img class="px" data-icon="icon_bag" alt=""><span>Inventaire</span><i class="badge hidden" id="inv-badge"></i></button>
-        <button data-tab="hero"><img class="px" data-icon="icon_hero" alt=""><span>Héros</span></button>
-        <button data-tab="summon"><img class="px" data-icon="icon_summon" alt=""><span>Invocation</span></button>
-        <button data-tab="companions" class="hidden"><img class="px" data-icon="icon_paw" alt=""><span>Équipe</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="team-badge"></i></button>
-        <button data-tab="skills"><img class="px" data-icon="skill_quick" alt=""><span>Compétences</span><i class="badge hidden" id="skills-badge"></i></button>
-        <button data-tab="tree" class="hidden"><img class="px" data-icon="icon_tree" alt=""><span>Arbre</span><i class="badge badge-new hidden"></i></button>
-        <button data-tab="campaign"><img class="px" data-icon="icon_map" alt=""><span>Carte</span></button>
-        <button data-tab="dungeons" class="hidden"><img class="px" data-icon="icon_dungeon" alt=""><span>Donjons</span><i class="badge badge-new hidden"></i></button>
-        <button data-tab="tower" class="hidden"><img class="px" data-icon="icon_star" alt=""><span>Tour</span><i class="badge badge-new hidden"></i></button>
-        <button data-tab="boss" class="hidden"><img class="px" data-icon="icon_boss" alt=""><span>Boss</span><i class="badge badge-new hidden"></i></button>
-        <button data-tab="encyclopedia" class="hidden"><img class="px" data-icon="icon_book" alt=""><span>Encyclopédie</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="enc-badge"></i></button>
-      </nav>
     </div>
     <aside id="panel" class="hidden">
       <header>
@@ -80,8 +77,10 @@
         <button id="panel-help" class="btn small" title="Comment ça marche ?">?</button>
         <button id="panel-close" class="btn small" title="Fermer (Échap)">✕</button>
       </header>
+      <div id="panel-subtabs"></div>
       <div id="panel-body"></div>
     </aside>
+    </div>
     <div id="modal" class="hidden"><div id="modal-card"></div></div>
   </div>
   <script type="module" src="src/main.js"></script>

@@ -26,6 +26,7 @@ import { mutationById } from '../core/mutations.js';
 import boss from './panels/boss.js';
 import encyclopedia from './panels/encyclopedia.js';
 import { encyclopediaNext, encyclopediaProgress } from '../core/encyclopedia.js';
+import { collectionsClaimable } from '../core/codex.js';
 import campaign from './panels/campaign.js';
 import companions from './panels/companions.js';
 import contracts from './panels/contracts.js';
@@ -60,7 +61,26 @@ import { ZONES } from '../data/zones.js';
 
 const PANELS = Object.fromEntries([upgrades, inventory, hero, companions, skills, tree, campaign, dungeons, tower, boss, encyclopedia, summon, contracts, inbox, options]
   .map((p) => [p.id, p]));
-const TAB_MIN_WIDTH = 60; // en dessous, seuls les icônes (et le libellé de l'onglet actif) sont affichés
+// v9.0.6 : 6 menus regroupant les panneaux (sous-onglets en haut du panneau).
+export const MENUS = [
+  { id: 'hero', label: 'Héros', tabs: ['upgrades', 'skills', 'tree', 'hero'] },
+  { id: 'gear', label: 'Équipement', tabs: ['inventory'] },
+  { id: 'team', label: 'Équipe', tabs: ['companions', 'summon'] },
+  { id: 'adventure', label: 'Aventure', tabs: ['campaign', 'dungeons', 'tower'] },
+  { id: 'collection', label: 'Collection', tabs: ['boss', 'encyclopedia'] },
+  { id: 'missions', label: 'Missions', tabs: ['contracts', 'inbox'] },
+];
+const SUB_LABELS = {
+  upgrades: 'Améliorer', skills: 'Compétences', tree: 'Arbre', hero: 'Héros', inventory: 'Inventaire',
+  companions: 'Équipe', summon: 'Invocation', campaign: 'Carte', dungeons: 'Donjons', tower: 'Tour',
+  boss: 'Boss', encyclopedia: 'Encyclopédie', contracts: 'Missions', inbox: 'Récompenses',
+};
+const SUB_ICONS = {
+  upgrades: 'icon_upgrade', skills: 'skill_quick', tree: 'icon_tree', hero: 'icon_hero', inventory: 'icon_bag',
+  companions: 'icon_paw', summon: 'icon_summon', campaign: 'icon_map', dungeons: 'icon_dungeon', tower: 'icon_star',
+  boss: 'icon_boss', encyclopedia: 'icon_book', contracts: 'icon_trophy', inbox: 'icon_mail',
+};
+export const menuOf = (tab) => MENUS.find((m) => m.tabs.includes(tab)) ?? null;
 const TALL_MIN_HEIGHT = 420;
 const STRIP_MAX_HEIGHT = 190; // en dessous : mode barre (seulement la scène, comme une barre des tâches)
 const BULK_CONFIRM_MS = 4000;
@@ -99,6 +119,8 @@ export function journalHtml(j) {
 const RENDER_THROTTLE_MS = 1000;
 const SIDE_PANEL_W = 440; // largeur du menu sur le côté (petite fenêtre)
 const SIDE_MIN_WIDTH = 900; // navigateur : menu sur le côté seulement à partir de cette largeur
+const RAIL_W = 70; // barre des menus verticale (petite fenêtre)
+const STRIP_MENU_HEIGHT = 400; // mode barre : hauteur de la fenêtre quand le menu est ouvert
 export class UI {
   constructor(root, actions) {
     this.root = root;
@@ -148,7 +170,14 @@ export class UI {
 
     root.querySelectorAll('img[data-icon]').forEach((el) => { el.src = icon(el.dataset.icon); });
     if (!window.desktop) root.querySelector('.strip-btn')?.remove(); // agrandir la fenêtre : version bureau seulement
-    root.querySelectorAll('#tabs button').forEach((btn) => btn.addEventListener('click', () => this.toggleTab(btn.dataset.tab)));
+    this.lastSub = {}; // dernier sous-onglet ouvert de chaque menu
+    this.tabVisible = {};
+    this.tabBadges = {};
+    root.querySelectorAll('#tabs button').forEach((btn) => btn.addEventListener('click', () => this.toggleMenu(btn.dataset.menu)));
+    this.$('panel-subtabs').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-sub]');
+      if (b) { this.userAt = performance.now(); this.openTab(b.dataset.sub); }
+    });
     root.querySelectorAll('[data-open]').forEach((btn) => btn.addEventListener('click', () => this.toggleTab(btn.dataset.open)));
     this.$('panel-close').addEventListener('click', () => this.closePanel());
     this.$('panel-help').addEventListener('click', () => {
@@ -251,11 +280,36 @@ export class UI {
       // Le panneau recouvre la scène mais laisse la barre du haut et les onglets visibles.
       const rootTop = this.root.getBoundingClientRect().top;
       const top = this.$('topbar').getBoundingClientRect().bottom - rootTop;
-      const tabsTop = this.$('tabs').getBoundingClientRect().top - rootTop;
+      const tabsTop = h; // v9.0.6 : la barre des menus est sur le côté ; le panneau descend jusqu'en bas
       this.root.style.setProperty('--panel-top', `${Math.round(top)}px`);
       this.root.style.setProperty('--panel-bottom', `${Math.round(h - tabsTop)}px`);
     }
     this.lastHud.tabs = null;
+  }
+
+  // v9.0.6 : un menu ouvre son dernier sous-onglet (ou le premier disponible) ; un second clic le referme.
+  toggleMenu(id) {
+    this.userAt = performance.now();
+    const menu = MENUS.find((m) => m.id === id);
+    if (!menu) return;
+    if (this.tab && menu.tabs.includes(this.tab)) { this.closePanel(); return; }
+    const visible = menu.tabs.filter((t) => this.tabVisible[t] !== false);
+    const tab = visible.includes(this.lastSub[id]) ? this.lastSub[id] : visible[0] ?? menu.tabs[0];
+    this.openTab(tab);
+  }
+
+  // Sous-onglets du menu courant, en haut du panneau.
+  renderSubtabs() {
+    const menu = menuOf(this.tab);
+    const el = this.$('panel-subtabs');
+    const tabs = menu ? menu.tabs.filter((t) => this.tabVisible[t] !== false) : [];
+    const key = `${this.tab}|${tabs.join()}|${tabs.map((t) => (this.tabBadges[t] ? 1 : 0) + (this.newTabs.has(t) ? 2 : 0)).join('')}`;
+    if (this.lastHud.subtabs === key) return;
+    this.lastHud.subtabs = key;
+    el.classList.toggle('hidden', tabs.length < 2);
+    el.innerHTML = tabs.map((t) => `<button class="subtab${t === this.tab ? ' active' : ''}" data-sub="${t}">
+      <img class="px" src="${icon(SUB_ICONS[t])}" alt=""><span>${SUB_LABELS[t]}</span>
+      ${this.tabBadges[t] || this.newTabs.has(t) ? '<i class="badge"></i>' : ''}</button>`).join('');
   }
 
   // Aucun onglet ouvert par défaut : un clic ouvre l'onglet, un second clic le referme.
@@ -268,12 +322,18 @@ export class UI {
   // v8.9 : petite fenêtre → le menu s'ouvre sur le côté (la fenêtre bureau s'élargit d'autant) au lieu de
   // recouvrir la scène ; en navigateur, seulement si la fenêtre est assez large.
   sidePanel(open) {
-    const want = open && this.layout === 'mini' && (Boolean(window.desktop?.resizeBy) || this.root.clientWidth >= SIDE_MIN_WIDTH);
-    if (want === this.root.classList.contains('side-open')) return;
+    // v9.0.6 : le menu s'ouvre à gauche de la scène ; la fenêtre bureau s'agrandit vers la GAUCHE (la scène ne
+    // bouge pas à l'écran). Depuis le mode barre, elle grandit aussi vers le haut pour que le menu soit lisible.
+    const fromStrip = open && this.layout === 'strip' && Boolean(window.desktop?.growLeft);
+    const want = open && (this.layout === 'mini' || fromStrip) && (Boolean(window.desktop?.growLeft) || this.root.clientWidth >= SIDE_MIN_WIDTH);
+    if (want === this.root.classList.contains('side-open') && !fromStrip) return;
     this.root.classList.toggle('side-open', want);
-    if (window.desktop?.resizeBy) {
-      if (want && !this.sideGrown) { this.sideGrown = true; window.desktop.resizeBy(SIDE_PANEL_W, 0); }
-      else if (!want && this.sideGrown) { this.sideGrown = false; window.desktop.resizeBy(-SIDE_PANEL_W, 0); }
+    if (window.desktop?.growLeft) {
+      if (want && !this.sideGrown) {
+        this.sideGrown = true;
+        const dh = fromStrip ? Math.max(0, STRIP_MENU_HEIGHT - this.root.clientHeight) : 0;
+        window.desktop.growLeft(SIDE_PANEL_W + RAIL_W * (fromStrip ? 1 : 0), dh);
+      } else if (!want && this.sideGrown) { this.sideGrown = false; window.desktop.restoreGrow(); }
     }
   }
 
@@ -290,7 +350,11 @@ export class UI {
     this.root.classList.add('panel-open');
     this.$('panel-title').textContent = PANELS[tab].title;
     this.$('panel-icon').src = icon(PANELS[tab].icon);
-    this.root.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab));
+    const menu = menuOf(tab);
+    if (menu) this.lastSub[menu.id] = tab;
+    this.lastOpened = tab;
+    this.root.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('active', b.dataset.menu === menu?.id));
+    this.renderSubtabs();
     this.root.querySelectorAll('[data-open]').forEach((b) => b.classList.toggle('active', b.dataset.open === tab));
     this.lastHud.tabs = null;
     this.invalidate();
@@ -454,6 +518,7 @@ export class UI {
       case 'from-stash': a.fromStash(id); break;
       case 'stash-sel': local(() => { v.stashSel = id; }); break;
       case 'hero-tab': local(() => { v.heroTab = value; }); break;
+      case 'set-class': a.setHeroClass(value); break;
       case 'claim-bounty': a.claimBounty(); break;
       case 'toggle-tips': event.preventDefault(); local(() => { v.tipsOpen = v.tipsOpen === false; }); break;
       case 'to-mannequin': a.toMannequin(id); break;
@@ -483,6 +548,7 @@ export class UI {
       case 'show-journal': this.showJournal(this.sessionJournal?.() ?? {}); break;
       case 'confirm-speed100': this.closeModal(); a.setSpeed(100); break;
       case 'window-size': a.setWindowSize(preset); break;
+      case 'strip-menu': this.toggleMenu(MENUS.find((m) => m.tabs.includes(this.lastOpened))?.id ?? 'hero'); break;
       default: break;
     }
   }
@@ -1042,12 +1108,20 @@ export class UI {
     this.lastHud.badgeTime = now;
     const current = computeHeroStats(state);
     const upgrade = state.inventory.some((i) => isUpgrade(state, i, undefined, current));
-    this.$('inv-badge').classList.toggle('hidden', !upgrade || this.tab === 'inventory');
-    this.$('skills-badge').classList.toggle('hidden', skillPointsAvailable(state) < 1 || this.tab === 'skills');
-    this.$('contracts-badge').classList.toggle('hidden', !state.contracts.some((c) => c.progress >= c.target) && !missionsClaimable(state) && !claimableAchievements(state).length && !bountyReady(state));
-    this.$('inbox-badge').classList.toggle('hidden', !state.inbox.some((e) => !e.seen) || this.tab === 'inbox');
-    this.$('team-badge')?.classList.toggle('hidden', !readyExpeditions(state) || this.tab === 'companions');
-    this.$('enc-badge')?.classList.toggle('hidden', !encyclopediaNext(state)?.ready);
+    // v9.0.6 : pastilles par sous-onglet, regroupées sur le bouton de leur menu.
+    const contractsReady = state.contracts.some((c) => c.progress >= c.target) || missionsClaimable(state) || claimableAchievements(state).length > 0 || bountyReady(state);
+    this.tabBadges = {
+      inventory: upgrade, skills: skillPointsAvailable(state) >= 1, companions: readyExpeditions(state) > 0,
+      encyclopedia: Boolean(encyclopediaNext(state)?.ready), boss: collectionsClaimable(state),
+      contracts: contractsReady, inbox: state.inbox.some((e) => !e.seen),
+    };
+    for (const menu of MENUS) {
+      const on = menu.tabs.some((t) => this.tabBadges[t] && this.tabVisible[t] !== false && t !== this.tab);
+      this.$(`badge-${menu.id}`)?.classList.toggle('hidden', !on);
+    }
+    this.$('contracts-badge').classList.toggle('hidden', !contractsReady);
+    this.$('inbox-badge').classList.toggle('hidden', !this.tabBadges.inbox || this.tab === 'inbox');
+    if (this.tab) this.renderSubtabs();
     const boost = earlyBoost(state);
     const active = boost.secondsLeft > 0 || boost.weekend || boost.cheat > 1;
     this.$('boost-chip').classList.toggle('hidden', !active);
@@ -1085,22 +1159,24 @@ export class UI {
       tower: towerUnlocked(state) || (state.towerBest ?? 0) > 0,
       encyclopedia: state.records.kills > 0 || Object.keys(state.codex.kills).length > 0,
     };
-    const key = `${JSON.stringify(visible)}|${this.root.clientWidth}|${this.tab}|${[...this.newTabs].join()}`;
+    const key = `${JSON.stringify(visible)}|${this.tab}|${[...this.newTabs].join()}`;
     if (this.lastHud.tabs === key) return;
     const firstPass = this.lastHud.tabsInit === undefined;
     this.lastHud.tabsInit = true;
     this.lastHud.tabs = key;
+    // v9.0.6 : un sous-onglet qui se débloque marque son menu « nouveau » ; un menu sans aucun sous-onglet
+    // disponible est caché.
     for (const [tab, show] of Object.entries(visible)) {
-      const btn = this.root.querySelector(`#tabs button[data-tab="${tab}"]`);
-      if (show && btn.classList.contains('hidden') && !firstPass && this.tab !== tab) this.newTabs.add(tab);
-      btn.classList.toggle('hidden', !show);
+      if (show && this.tabVisible[tab] === false && !firstPass && this.tab !== tab) this.newTabs.add(tab);
+      this.tabVisible[tab] = show;
     }
     this.newTabs.delete(this.tab);
     this.root.querySelectorAll('#tabs button').forEach((b) => {
-      b.querySelector('.badge-new')?.classList.toggle('hidden', !this.newTabs.has(b.dataset.tab));
+      const menu = MENUS.find((m) => m.id === b.dataset.menu);
+      b.classList.toggle('hidden', !menu.tabs.some((t) => this.tabVisible[t] !== false));
+      b.querySelector('.badge-new')?.classList.toggle('hidden', !menu.tabs.some((t) => this.newTabs.has(t)));
     });
-    const count = this.root.querySelectorAll('#tabs button:not(.hidden)').length;
-    this.$('tabs').classList.toggle('tabs-compact', count * TAB_MIN_WIDTH > this.$('tabs').clientWidth);
+    if (this.tab) this.renderSubtabs();
   }
 
   renderPanel(state) {

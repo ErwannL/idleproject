@@ -3,6 +3,7 @@
 import { SLOTS } from '../data/items.js';
 import { companionEffects } from './companions.js';
 import { heroEffects } from './heroes.js';
+import { classEffects } from './classes.js';
 import { powerEffects } from './powers.js';
 import { prestigeEffects } from './prestige.js';
 import { rushEffects } from './rushes.js';
@@ -34,6 +35,7 @@ export function bonusSources(state, equipment = state.equipment) {
     powers: powerEffects(state),
     talents: talentEffects(state),
     hero: heroEffects(state),
+    heroClass: classEffects(state), // v9.0.6
     companions: companionEffects(state),
     gear: gearAffixEffects(equipment),
     prestige: prestigeEffects(state),

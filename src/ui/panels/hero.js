@@ -1,11 +1,13 @@
 // Héros : collection de chevaliers (rôles distincts), niveau, statistiques et bonus par source.
 import { SLOTS } from '../../data/items.js';
+import { CLASSES } from '../../data/classes.js';
+import { activeClass, classUnlocked, classWeaponBases } from '../../core/classes.js';
 import { bonusSources } from '../../core/bonuses.js';
 import { stageLabel } from '../../core/combat.js';
 import { heroById, heroEffects } from '../../core/heroes.js';
 import { xpForLevel } from '../../core/level.js';
 import { computeHeroStats } from '../../core/stats.js';
-import { slotIconName } from '../../render/pixel.js';
+import { itemIconUrl, slotIconName } from '../../render/pixel.js';
 import { effectText, escapeHtml, formatDecimal, formatNumber, img, itemFrame, progressBar } from '../common.js';
 import { animCanvas } from '../animator.js';
 import { DUNGEONS } from '../../data/dungeons.js';
@@ -14,7 +16,7 @@ import { modifierById } from '../../core/challenge.js';
 import { setBonusFor, setById, setCounts } from '../../core/sets.js';
 import { SET_PIECES } from '../../data/sets.js';
 
-const SOURCE_LABELS = { hero: 'Héros', powers: 'Pouvoirs de boss', talents: 'Talents', companions: 'Équipe', gear: 'Effets d’équipement', prestige: 'Prestige', rushes: 'Boosts actifs', achievements: 'Hauts faits', sets: 'Ensembles', museum: 'Musée' };
+const SOURCE_LABELS = { hero: 'Héros', heroClass: 'Classe', powers: 'Pouvoirs de boss', talents: 'Talents', companions: 'Équipe', gear: 'Effets d’équipement', prestige: 'Prestige', rushes: 'Boosts actifs', achievements: 'Hauts faits', sets: 'Ensembles', museum: 'Musée' };
 
 // Ensembles d'équipement portés (v8.5) : pièces et paliers atteints.
 function setsCard(state) {
@@ -35,13 +37,40 @@ export default {
   icon: 'icon_hero',
   extra: (ui, state) => `Niv. <b class="gold-text">${state.level}</b>`,
   render(ui, state) {
-    const tabs = `<div class="sub-tabs">
-        <button class="btn chip-btn${ui.view.heroTab !== 'records' ? ' active' : ''}" data-action="hero-tab" data-value="hero">${img('icon_hero')}<span>Héros</span></button>
-        <button class="btn chip-btn${ui.view.heroTab === 'records' ? ' active' : ''}" data-action="hero-tab" data-value="records">${img('icon_trophy')}<span>Records</span></button></div>`;
-    if (ui.view.heroTab === 'records') return tabs + recordsView(state);
+    const tab = ['class', 'records'].includes(ui.view.heroTab) ? ui.view.heroTab : 'hero';
+    const btn = (id, icon, label) => `<button class="btn chip-btn${tab === id ? ' active' : ''}" data-action="hero-tab" data-value="${id}">${img(icon)}<span>${label}</span></button>`;
+    const tabs = `<div class="sub-tabs">${btn('hero', 'icon_hero', 'Héros')}${btn('class', 'weapon_sword', 'Classe')}${btn('records', 'icon_trophy', 'Records')}</div>`;
+    if (tab === 'records') return tabs + recordsView(state);
+    if (tab === 'class') return tabs + classView(state);
     return tabs + heroView(ui, state);
   },
 };
+
+// v9.0.6 : classes — un clic change le style de combat, les armes portables et les animations.
+const STYLE_LABEL = { melee: 'Corps à corps', reach: 'Allonge', ranged: 'Distance', magic: 'Magie' };
+function classView(state) {
+  const current = activeClass(state);
+  const cards = CLASSES.map((c) => {
+    const open = classUnlocked(state, c.id);
+    const active = c.id === current.id;
+    const weapons = classWeaponBases(c.id).map((b) => b.name).join(', ');
+    const icon = classWeaponBases(c.id)[0];
+    const pic = icon ? `<img class="px" src="${itemIconUrl({ baseId: icon.id, rarity: 'legendary', slot: 'weapon' }, 40)}" alt="">` : '';
+    return `<div class="class-card${active ? ' active' : ''}${open ? '' : ' locked'}" style="--cls:${c.color}">
+      <div class="class-pic">${pic}</div>
+      <div class="grow"><b class="class-name">${escapeHtml(c.name)}</b> <span class="class-style">${STYLE_LABEL[c.style]}</span>
+        <div class="class-text">${escapeHtml(c.text)}</div>
+        <div class="good class-fx">${effectText(c.effects)}</div>
+        <div class="muted class-weapons">Armes : ${escapeHtml(weapons)}</div></div>
+      ${active ? '<span class="class-on">Active ✓</span>' : open
+        ? `<button class="btn btn-primary small" data-action="set-class" data-value="${c.id}">Choisir</button>`
+        : `<span class="muted class-lock">${img('icon_lock')} étape ${stageLabel(c.unlockStage)}</span>`}</div>`;
+  }).join('');
+  return `<div class="card"><div class="row-between"><div class="section-title">Classe du héros</div><span class="muted">Changement gratuit et instantané</span></div>
+      <div class="muted">Chaque classe a ses armes (les autres ne s'équipent pas), sa portée, sa façon de frapper et ses animations.
+      En changeant de classe, l'arme portée est remplacée par la meilleure arme de la classe dans le sac, ou reforgée sans perte de puissance.</div>
+      <div class="class-grid">${cards}</div></div>`;
+}
 
 // Records (v8.9) : tous les records et l'historique des runs (Tour, défi de la semaine, donjons) en un écran.
 function recordsView(state) {
@@ -96,7 +125,7 @@ function heroView(ui, state) {
         <div class="pedestal">${animCanvas('hero', 64, 58, 3)}</div>
         <div class="grow">
           <div class="hero-title">${escapeHtml(hero.name)}</div>
-          <div class="muted">${hero.role} · le héros de l'aventure</div>
+          <div class="muted">Classe : <b style="color:${activeClass(state).color}">${escapeHtml(activeClass(state).name)}</b> · ${hero.role}</div>
           <div class="hero-desc">${escapeHtml(hero.description)}</div>
           ${heroBonus ? `<div class="hero-bonus">${heroBonus}</div>` : ''}
         </div>

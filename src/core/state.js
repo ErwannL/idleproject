@@ -24,6 +24,8 @@ import { sanitizeTower } from './tower.js';
 import { sanitizeAchievements } from './achievements.js';
 import { emptyLoadouts, sanitizeLoadouts } from './loadouts.js';
 import { emptyCodex, sanitizeCodex } from './codex.js';
+import { sanitizeHeroClass } from './classes.js';
+import { STARTER_CLASS } from '../data/classes.js';
 import { seedEncyclopedia } from './encyclopedia.js';
 import { emptyExpeditions, sanitizeExpeditions } from './expeditions.js';
 import { setById } from './sets.js';
@@ -106,6 +108,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     mannequins: emptyMannequins(), // v8.9 : un mannequin par ensemble { setId: { slot: objet } }
     museum: {}, // v9.0 : Musée des objets ancestraux { baseId: objet }
     bounty: null, // v8.9 : prime du jour
+    heroClass: STARTER_CLASS, // v9.0.6 : classe du héros
   };
   state.equipment.weapon = makeItem(state, STARTER_WEAPON, 'common', 1);
   seedEncyclopedia(state);
@@ -237,6 +240,7 @@ function cleanActivities(state, raw) {
   state.transcend = sanitizeTranscend(raw.transcend);
   state.bounty = sanitizeBounty(raw.bounty);
   state.codex = sanitizeCodex(raw.codex);
+  state.heroClass = sanitizeHeroClass(raw.heroClass);
   state.playSeconds = Math.max(0, Number(raw.playSeconds) || 0);
 
   state.nextEventId = int(raw.nextEventId, 0);

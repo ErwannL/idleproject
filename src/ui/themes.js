@@ -181,7 +181,8 @@ function transformValue(theme, value) {
 
 // --- Application ----------------------------------------------------------------------------------
 
-const KEEP_VARS = new Set(['--common', '--rare', '--epic', '--legendary', '--good', '--bad']);
+// v9.0.6 : les couleurs d'invocation aussi (un thème recolorait le faisceau doré d'un SSR en violet, rose…).
+const KEEP_VARS = new Set(['--common', '--rare', '--epic', '--legendary', '--good', '--bad', '--sfx-common', '--sfx-epic', '--sfx-legendary']);
 let originals = null; // [{ style, prop, value, priority }]
 const frameCache = new Map(); // `${theme}:${file}` -> data URL
 
