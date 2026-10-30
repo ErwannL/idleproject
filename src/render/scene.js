@@ -458,7 +458,8 @@ export class SceneRenderer {
     if (!SPRITES[sprite]) sprite = SPRITES[base] ? base : def.sprite;
     return {
       step,
-      def, sprite, heroLike: Boolean(bossDef?.heroLike), scale: bossDef ? bossDef.scale ?? 1 : 1,
+      // v9.0.7 : un sprite en pleine définition (chara design PixelLab) porte son propre facteur d'échelle.
+      def, sprite, heroLike: Boolean(bossDef?.heroLike), scale: (bossDef ? bossDef.scale ?? 1 : 1) * (SPRITES[sprite]?.scale ?? 1),
       colors: (bossDef ? bossDef.palette : def.palette) ?? null,
     };
   }
@@ -794,14 +795,17 @@ export class SceneRenderer {
       frame = step % 2 ? `${s}_b` : s;
     }
     const img = spriteCanvas(frame);
+    const sc = SPRITES[frame]?.scale ?? 1; // v9.0.7 : sprite en pleine définition, ramené à la taille du jeu
+    const w = img.width * sc;
+    const h = img.height * sc;
     const bob = walking && !attacking ? this.snap(Math.abs(Math.sin(this.time * 9 * Math.PI / 2 + i)) * 1) : 0;
     // Le 2e personnage se tient un peu en retrait (plus loin et légèrement plus haut).
-    const x = HERO_X - 26 - i * 24 - img.width / 2 + lunge;
-    const y = this.groundY - img.height + 1 - i * 2 - bob;
-    this.drawShadow(ctx, x + img.width / 2, 18 - bob * 2);
-    if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, y, img.width, img.height, companion);
-    this.drawStarOutline(ctx, companion, frame, this.snap(x), y);
-    ctx.drawImage(img, this.snap(x), y);
+    const x = HERO_X - 26 - i * 24 - w / 2 + lunge;
+    const y = this.groundY - h + 1 - i * 2 - bob;
+    this.drawShadow(ctx, x + w / 2, 18 - bob * 2);
+    if (this.maxStars(companion)) this.drawStarAura(ctx, x + w / 2, y, w, h, companion);
+    this.drawStarOutline(ctx, companion, frame, this.snap(x), y, w, h);
+    ctx.drawImage(img, this.snap(x), y, w, h);
   }
 
   // v8.9 : compagnon aux étoiles maximales → aura lumineuse (couleur de sa rareté) et étincelles qui montent.
@@ -869,11 +873,11 @@ export class SceneRenderer {
   }
 
   // Contour net du personnage (couleur du cœur de son aura), dessiné juste avant son sprite pour le détacher des flammes.
-  drawStarOutline(ctx, companion, sprite, x, y) {
+  drawStarOutline(ctx, companion, sprite, x, y, w = null, h = null) {
     if (!this.maxStars(companion)) return;
     const glow = spriteCanvas(sprite, { tint: { color: auraColors(companion)[0], alpha: 1 } });
     ctx.globalAlpha = 0.9;
-    for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.drawImage(glow, x + dx, y + dy);
+    for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.drawImage(glow, x + dx, y + dy, w ?? glow.width, h ?? glow.height);
     ctx.globalAlpha = 1;
   }
 

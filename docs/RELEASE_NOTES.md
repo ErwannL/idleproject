@@ -1,8 +1,19 @@
-## Idle RPG v9.0.6 — 10 classes, héros à collectionner, menus simplifiés, jeu rééquilibré
+## Idle RPG v9.0.7 — nouveau chara design
 
-**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.6-setup.exe). Votre partie est conservée.
+**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.7-setup.exe). Votre partie est conservée.
 
 ### Nouveau
+- **Nouveau chara design** pour 19 compagnons (Archange, Reine démone, Impératrice des glaces, Seigneur des ombres,
+  Gardienne sylvestre, Paladin d'azur, Lame rose, Sorcière, Archère elfe, Grand prêtre, Ninja, Barbare, Écuyer,
+  Mercenaire, Rôdeur, Pyromancienne, Prêtresse, Ombre, Nain guerrier) : sprites plus fins et plus détaillés, avec
+  respiration, marche et attaque. Leurs illustrations (bannière d'invocation, fiche du compagnon) suivent le nouveau
+  dessin.
+- **Monstres du monde 1 redessinés** : Gluant, Gobelin, Gobelin cuirassé, Sanglier, Mandragore, ainsi que les boss
+  Sanglier titan, Épouvantail maudit et Roi Gluant.
+
+### v9.0.6 — 10 classes, héros à collectionner, menus simplifiés, jeu rééquilibré
+
+### Nouveau en v9.0.6
 - **10 classes de héros** (Personnage → Héros → Classe) : Chevalier, Archer, Mage de feu, Berserker, Lancier, Paladin,
   Assassin, Arbalétrier, Mage de foudre, Nécromancien. Un clic change tout le style de combat : armes autorisées
   (les armes des autres classes ne s'équipent pas), portée (l'archer tire de loin), façon de frapper (zone, perçant,
@@ -32,7 +43,7 @@
   Une flèche verte à côté de l'or signale qu'une amélioration est achetable (un clic ouvre Améliorations).
 - **Gemmes hors ligne** : 30 % des gemmes de combat sont aussi gagnées pendant l'absence.
 
-### Équilibrage
+### Équilibrage en v9.0.6
 - **Début de partie plus disputé** : les ennemis gagnent progressivement en résistance sur les 25 premières étapes
   (les améliorations comptent dès le début) et grandissent ensuite un peu moins vite ; bonus d'or de démarrage ×1,5.
 - **Boss** : la rage augmente maintenant de ×1,3 toutes les 10 s (les combats se jouent en 60 à 90 s au lieu de
@@ -47,7 +58,7 @@
   chose).
 - **Déblocages étalés** : Défi de la semaine à l'étape 45, Tour à l'étape 60 (ceux qui y ont déjà joué les gardent).
 
-### Améliorés
+### Améliorés en v9.0.6
 - **Menus simplifiés en 5 catégories** (barre verticale ; en bas sur écran étroit) : **Aventure** (résumé « où j'en
   suis » + carte), **Personnage** (équipement, héros, améliorations, compétences, compagnons), **Invocation**,
   **Événements** (donjons, Tour, missions), **Progression** (Renaissance, boss ancestraux, collections). Rien n'a été
@@ -65,7 +76,7 @@
   une seule pastille par récompense. Nouvelle partie : les Communs moins bons sont recyclés quand le sac est plein.
 - **Visite guidée** de l'interface à la première partie (rejouable dans Paramètres) ; textes traduits en anglais.
 
-### Corrigés
+### Corrigés en v9.0.6
 - **Serviteurs de l'Invocatrice** : ils pouvaient s'accumuler sans fin et rapportaient des gemmes de boss ; au plus 4 à
   la fois, sans gemmes, et ils disparaissent avec leur maîtresse.
 - **Animation d'invocation** : avec certains thèmes, le faisceau d'un SSR prenait la couleur du thème (violet, rose…)

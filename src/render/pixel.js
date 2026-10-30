@@ -277,7 +277,9 @@ export function spriteUrl(name, scale = 2, options = {}) {
   let url = cache.get(key);
   if (url) return url;
   const src = spriteCanvas(name, options);
-  const canvas = createCanvas(src.width * scale, src.height * scale);
+  // v9.0.7 : un sprite en pleine définition garde la taille d'affichage des autres (facteur `scale` du sprite).
+  const k = scale * (SPRITES[name]?.scale ?? 1);
+  const canvas = createCanvas(Math.max(1, Math.round(src.width * k)), Math.max(1, Math.round(src.height * k)));
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(src, 0, 0, canvas.width, canvas.height);

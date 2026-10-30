@@ -34,8 +34,10 @@ function drawHero(ctx, canvas, state, t, palette, equipment, phase) {
 
 function drawSprite(ctx, canvas, name, t, phase, hop) {
   const frames = SPRITES[`${name}_b`] ? [name, `${name}_b`] : [name];
-  const img = spriteCanvas(frames[Math.floor(t * 3 + phase) % frames.length]);
-  const scale = Number(canvas.dataset.scale) || 2;
+  const frame = frames[Math.floor(t * 3 + phase) % frames.length];
+  const img = spriteCanvas(frame);
+  // v9.0.7 : sprite en pleine définition → facteur d'échelle propre (le canvas a plus de pixels, rien n'est perdu).
+  const scale = (Number(canvas.dataset.scale) || 2) * (SPRITES[frame]?.scale ?? 1);
   const bob = hop ? Math.round(Math.abs(Math.sin(t * 3 + phase)) * 2) : Math.round((Math.sin(t * 2 + phase) + 1) * 0.5);
   const w = img.width * scale;
   const h = img.height * scale;
