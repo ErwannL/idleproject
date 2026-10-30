@@ -589,7 +589,7 @@ function castCompanion(state, world, companion, skill, stats, rng, balance, enc,
   } else if (skill.type === 'burst') {
     for (const enemy of [...world.enemies]) hitEnemy(state, world, enemy, stats.damage * skill.value * aff, rng, balance, stats, enc, 'companion');
   }
-  emit(world, 'companionSkill', { companionId: companion.id, skill: skill.index, ultimate: Boolean(skill.ultimate) });
+  emit(world, 'companionSkill', { companionId: companion.id, skill: skill.index, skillType: skill.type, ultimate: Boolean(skill.ultimate) });
 }
 
 // Défaite : en campagne, le héros recule d'une étape (v8.0 : l'avance automatique reste active,

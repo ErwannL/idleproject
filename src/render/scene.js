@@ -26,7 +26,17 @@ const MAX_SCALE = 3; // zoom maximal : une grande fenêtre montre plus de décor
 // s'accorder aux sprites v5, plus détaillés ; la simulation elle-même ne change pas.
 export const WORLD_SCALE = 1.5;
 // Durée de l'attaque d'un compagnon (préparation puis coup).
-const ALLY_ATTACK_TIME = 0.5;
+// v9.0.8 : façon de combattre de chaque compagnon (le reste se bat au corps à corps) et durée de chaque geste.
+const ALLY_STYLE = {
+  elf_archer: 'archer', ranger: 'archer',
+  pyromancer: 'fire', ice_empress: 'frost', witch: 'arcane', sylvan_guardian: 'nature', high_priest: 'holy', priestess: 'holy',
+};
+const ALLY_GESTURE_TIME = { melee: 0.62, archer: 0.42, cast: 0.72, support: 0.8, burst: 0.8 };
+const CAST_ORB = {
+  fire: ['fx_fireball1', 'fx_fireball2'], frost: ['fx_frost1', 'fx_frost2'], arcane: ['fx_soul1', 'fx_soul2'],
+  nature: ['fx_spark'], holy: ['fx_spark'],
+};
+const SUPPORT_COLOR = { heal: '#7dff9a', shield: '#7fc8ff', rally: '#ffd23f', gold: '#ffe08a' };
 
 // Durée de vie d'un objet tombé : saut, repos au sol, puis aspiration vers le chevalier.
 const LOOT_LIFE = 4;
@@ -108,6 +118,64 @@ function bodyEdge(img) {
   return edge;
 }
 
+// Étendue horizontale opaque d'un canvas { l, r } (premier et dernier pixel non transparent), avec cache.
+const spanCache = new WeakMap();
+function opaqueSpan(img) {
+  let span = spanCache.get(img);
+  if (span) return span;
+  span = { l: 0, r: img.width - 1 };
+  try {
+    const { data, width, height } = img.getContext('2d').getImageData(0, 0, img.width, img.height);
+    let l = width;
+    let r = -1;
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (data[(y * width + x) * 4 + 3] > 0) { if (x < l) l = x; if (x > r) r = x; }
+      }
+    }
+    if (r >= l) span = { l, r };
+  } catch { /* canvas illisible : toute la largeur */ }
+  spanCache.set(img, span);
+  return span;
+}
+
+// v9.0.8 : mouvement du corps, calculé en continu (en plus des images du sprite) — respiration douce à l'arrêt,
+// rebond et balancement en marche, sauts écrasés pour les gluants, trot pour les quadrupèdes.
+// Renvoie { sx, sy, dy, rot } : échelles (ancrées aux pieds), hauteur et inclinaison (radians, + = vers la droite).
+const HOPPERS = /slime|jelly|blob|mandrake/;
+const QUADRUPEDS = /boar|wolf|hound|bear|spider|rat|cat_|tiger|lizard|scorp|beetle|crab|mammoth/;
+function bodyMotion(sprite, t, moving, facing) {
+  if (HOPPERS.test(sprite)) {
+    const p = (t * (moving ? 2.4 : 1.1)) % 1;
+    const air = Math.sin(p * Math.PI);
+    const land = Math.max(0, 1 - p * 6) + Math.max(0, (p - 0.85) * 6.6);
+    return moving
+      ? { sx: 1 + 0.16 * land - 0.06 * air, sy: 1 - 0.16 * land + 0.08 * air, dy: air * 5, rot: 0 }
+      : { sx: 1 + 0.05 * Math.sin(t * 3), sy: 1 - 0.05 * Math.sin(t * 3), dy: 0, rot: 0 };
+  }
+  // Pas d'inclinaison ni d'étirement (le dessin reste intact) : trot rapide et bas, marche à petits bonds.
+  void facing;
+  if (QUADRUPEDS.test(sprite)) {
+    return moving
+      ? { sx: 1, sy: 1, dy: Math.abs(Math.sin(t * 12)) * 1.5, rot: 0 }
+      : { sx: 1, sy: 1, dy: (Math.sin(t * 2.2) + 1) * 0.3, rot: 0 };
+  }
+  return moving
+    ? { sx: 1, sy: 1, dy: Math.abs(Math.sin(t * 9)) * 2, rot: 0 }
+    : { sx: 1, sy: 1, dy: (Math.sin(t * 2.2) + 1) * 0.35, rot: 0 };
+}
+
+// Applique un mouvement de corps autour des pieds (cx, feet) : tout ce qui est dessiné ensuite suit le corps.
+function withMotion(ctx, cx, feet, m, draw) {
+  ctx.save();
+  ctx.translate(cx, feet - m.dy);
+  ctx.rotate(m.rot);
+  ctx.scale(m.sx, m.sy);
+  ctx.translate(-cx, -feet);
+  draw();
+  ctx.restore();
+}
+
 // Silhouette teintée d'un canvas (images rémanentes), avec cache par canvas.
 const ghostCache = new WeakMap();
 function spriteCanvasTint(source, color) {
@@ -140,7 +208,6 @@ export class SceneRenderer {
     this.effects = [];
     this.enemyFx = new Map();
     this.hero = { attack: 0, hurt: 0, victory: 0, respawn: 0, deathTime: 0, cast: 0, dash: 0, dashTo: 0, shoot: 0, aim: 0, shadow: 0 };
-    this.allyAttack = new Map();
     this.shake = 0;
     this.zoneFade = 0;
     this.lastZone = -1;
@@ -229,15 +296,8 @@ export class SceneRenderer {
       case 'companionSkill': {
         const companion = companionById(event.companionId);
         if (companion?.kind === 'ally') {
-          // Héros allié : pose d'attaque, puis effet de sa couleur sur l'ennemi de tête.
-          this.allyAttack.set(companion.id, ALLY_ATTACK_TIME);
-          const front = world.enemies[0];
-          const x = front ? this.wx(front.x) : heroX + 40;
-          if (['hit', 'burst'].includes(companion.skill?.type)) {
-            this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], x - 6, this.groundY + 1, 0.2, { delay: 0.08, tint: companion.fx });
-          } else {
-            this.sprite(['fx_spark'], heroX, this.groundY - 40, 0.5, { tint: companion.fx });
-          }
+          // v9.0.8 : geste propre au compagnon (saut d'attaque, tir, sort, soutien), l'effet part de sa place.
+          this.allyGesture(companion, world, heroX, event.skillType);
         } else {
           this.effects.push({ kind: 'ring', x: heroX - 28, y: this.groundY - 14, color: '#9cf08a', life: 0.5, max: 0.5, r: 10 });
         }
@@ -448,7 +508,9 @@ export class SceneRenderer {
     const bossDef = boss ? BOSSES[type] : null;
     const def = boss ? ENEMIES[bossDef.base] : ENEMIES[type];
     const base = bossDef?.sprite ?? def.sprite;
-    let frames = bossDef?.sprite ? [base] : def.frames ?? [base];
+    let frames = bossDef?.sprite || SPRITES[base]?.scale ? [base] : def.frames ?? [base]; // pleine définition : une image
+    // v9.0.8 : pas de marche (bipèdes, quadrupèdes redessinés) : repos → pas 1 → repos → pas 2.
+    if (moving && SPRITES[base]?.scale && SPRITES[`${base}_w1`]) frames = [base, `${base}_w1`, base, `${base}_w2`];
     if (frames.length === 1 && SPRITES[`${base}_b`]) frames = [base, `${base}_b`];
     // Marche : 6 images/s (4 pour les boss) ; au contact, respiration plus lente.
     const fps = moving ? (boss ? 4 : 6) : 2.5;
@@ -499,15 +561,29 @@ export class SceneRenderer {
       this.shake = Math.max(0, this.shake - dt * 12);
     }
     this.drawBackground(ctx, ZONES[zoneIndex], this.smoothScroll(world));
+    // v9.0.8 : chacun dans sa case (chevalier | familier | compagnons) ; si l'équipe ne tient pas à gauche du
+    // chevalier, tout le combat glisse vers la droite (en douceur) plutôt que de faire se chevaucher les personnages.
+    this.layout = this.teamLayout(state);
+    const wantShift = Math.max(0, 3 - this.layout.left);
+    this.viewShift = this.viewShift === undefined ? wantShift : this.viewShift + (wantShift - this.viewShift) * Math.min(1, dt * 4);
+    const shift = Math.round(this.viewShift);
+    ctx.save();
+    ctx.translate(shift, 0);
     this.drawEnemies(ctx, world, dt);
     this.drawCompanions(ctx, state, world, dt);
-    this.drawHero(ctx, state, world);
-    // Le familier trottine devant le chevalier (sinon il disparaît derrière lui).
     const pet = world.hero.dead ? null : equippedCompanions(state).find((c) => c.kind !== 'ally');
     if (pet) this.drawPet(ctx, world, pet);
+    this.drawHero(ctx, state, world);
     drawTeamFx(this, ctx, state, world, HERO_X);
+    ctx.restore();
     this.drawBackground(ctx, ZONES[zoneIndex], this.smoothScroll(world), true); // premier plan
+    ctx.save();
+    ctx.translate(shift, 0);
+    // Effets au ras du sol (halo des robes, souffle des ailes) : par-dessus les herbes du premier plan.
+    for (const draw of this.groundFx ?? []) draw(ctx);
+    this.groundFx = [];
     this.drawEffects(ctx, dt);
+    ctx.restore();
     ctx.restore();
 
     if (this.zoneFade > 0) {
@@ -619,7 +695,8 @@ export class SceneRenderer {
       const w = img.width * scale;
       const h = img.height * scale;
       // Rebond synchronisé sur l'image de marche (1 px sur la 2e image), jamais pour les volants.
-      const bob = moving && !def.flyHeight && step % 2 ? 1 : 0;
+      const hd = Boolean(SPRITES[sprite]?.scale);
+      const bob = moving && !def.flyHeight && !hd && step % 2 ? 1 : 0;
       const hover = def.flyHeight ? def.flyHeight * WORLD_SCALE + this.snap(Math.sin(this.time * 4 + enemy.id) * 3) : 0;
       const lunge = fx.lunge > 0 ? this.snap(Math.sin((fx.lunge / 0.14) * Math.PI) * 6) : 0;
       // Les grands sprites (boss, ogre…) restent devant le chevalier sans le chevaucher.
@@ -631,28 +708,36 @@ export class SceneRenderer {
       ctx.globalAlpha = fx.appear;
       this.drawShadow(ctx, ex, Math.max(6, w * 0.7));
       if (enemy.boss) this.drawBossAura(ctx, enemy, sprite, colors, x, y, w, h, fx.appear);
-      if (enemy.elite) {
-        // Élite errante : halo rouge pulsant.
-        const glow = spriteCanvas(sprite, { colors, tint: { color: '#ff3b3b', alpha: 1 } });
-        ctx.globalAlpha = fx.appear * (0.5 + 0.3 * Math.sin(this.time * 8));
-        for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.drawImage(glow, x + dx, y + dy, w, h);
-        ctx.globalAlpha = fx.appear;
-      }
+      // v9.0.8 : corps animé en continu (marche, sauts des gluants, trot, respiration ; buste projeté à l'attaque).
+      const attackK = fx.lunge > 0 ? Math.sin((fx.lunge / 0.14) * Math.PI) : 0;
+      const stepping = moving && hd && ['walk', 'quad'].includes(SPRITES[sprite]?.gait); // les images de pas suffisent
+      const motion = def.flyHeight || heroLike || stepping ? { sx: 1, sy: 1, dy: 0, rot: 0 }
+        : bodyMotion(sprite, this.time * (enemy.boss ? 0.75 : 1) + enemy.id * 0.61, moving, -1);
+      if (attackK > 0) motion.dy += attackK * 2; // petit saut en frappant (le recul/élan horizontal existe déjà)
       const mutation = enemy.mutation ? mutationById(enemy.mutation) : null;
-      if (mutation) {
-        // v9.0.4 : ennemi muté — contour de la couleur de sa mutation, pulsé (géant : un peu plus grand).
-        const glow = spriteCanvas(sprite, { colors, tint: { color: mutation.color, alpha: 1 } });
-        ctx.globalAlpha = fx.appear * (0.55 + 0.35 * Math.sin(this.time * 6 + enemy.id));
-        for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1]]) ctx.drawImage(glow, x + dx, y + dy, w, h);
-        ctx.globalAlpha = fx.appear;
-      }
-      if (fx.squash > 0) {
-        // Écrasement à l'impact (ancré aux pieds) : plus large et plus bas, très bref.
-        const k = fx.squash / 0.14;
-        const w2 = Math.round(w * (1 + 0.12 * k));
-        const h2 = Math.round(h * (1 - 0.14 * k));
-        ctx.drawImage(img, x - Math.round((w2 - w) / 2), y + (h - h2), w2, h2);
-      } else ctx.drawImage(img, x, y, w, h);
+      withMotion(ctx, x + w / 2, y + h, motion, () => {
+        if (enemy.elite) {
+          // Élite errante : halo rouge pulsant.
+          const glow = spriteCanvas(sprite, { colors, tint: { color: '#ff3b3b', alpha: 1 } });
+          ctx.globalAlpha = fx.appear * (0.5 + 0.3 * Math.sin(this.time * 8));
+          for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.drawImage(glow, x + dx, y + dy, w, h);
+          ctx.globalAlpha = fx.appear;
+        }
+        if (mutation) {
+          // v9.0.4 : ennemi muté — contour de la couleur de sa mutation, pulsé (géant : un peu plus grand).
+          const glow = spriteCanvas(sprite, { colors, tint: { color: mutation.color, alpha: 1 } });
+          ctx.globalAlpha = fx.appear * (0.55 + 0.35 * Math.sin(this.time * 6 + enemy.id));
+          for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1]]) ctx.drawImage(glow, x + dx, y + dy, w, h);
+          ctx.globalAlpha = fx.appear;
+        }
+        if (fx.squash > 0) {
+          // Écrasement à l'impact (ancré aux pieds) : plus large et plus bas, très bref.
+          const k = fx.squash / 0.14;
+          const w2 = Math.round(w * (1 + 0.12 * k));
+          const h2 = Math.round(h * (1 - 0.14 * k));
+          ctx.drawImage(img, x - Math.round((w2 - w) / 2), y + (h - h2), w2, h2);
+        } else ctx.drawImage(img, x, y, w, h);
+      });
       if (mutation) {
         // Marqueur : losange de couleur au-dessus de la tête.
         const mx = Math.round(ex);
@@ -774,39 +859,225 @@ export class SceneRenderer {
 
   // Compagnons : suivent le chevalier, les volants planent au-dessus de son épaule.
   // Héros allié : à taille humaine derrière le chevalier ; marche, respiration, pose d'attaque.
+  // v9.0.8 : déclenche le geste d'un compagnon et ses effets (au bon moment du geste).
+  allyGesture(companion, world, heroX, skillType) {
+    const type = skillType ?? companion.skill?.type;
+    const style = ALLY_STYLE[companion.id] ?? 'melee';
+    const support = ['heal', 'shield', 'rally', 'gold'].includes(type);
+    const kind = support ? 'support' : type === 'burst' ? 'burst' : style === 'archer' ? 'archer' : style === 'melee' ? 'melee' : 'cast';
+    this.allyAnims ??= new Map();
+    this.allyAnims.set(companion.id, { kind, start: this.time, max: ALLY_GESTURE_TIME[kind],
+      color: (kind === 'support' ? SUPPORT_COLOR[type] : null) ?? companion.fx ?? '#ffffff' });
+    const slot = this.layout?.slots.get(companion.id);
+    const ax = slot?.cx ?? heroX - 30;
+    const G = this.groundY;
+    const color = companion.fx ?? '#ffffff';
+    const front = world.enemies[0];
+    const tx = front ? this.wx(front.x) - 4 : heroX + 40;
+    const hit = (x) => {
+      this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], x, G + 1, 0.2, { tint: color });
+      this.burst(x, G - 16, color, 8, 30);
+      if (front) this.hitReact(front.id, x, { color });
+    };
+    if (kind === 'melee') {
+      // Saut : l'onde tranchante part au sommet du bond et file jusqu'à l'ennemi.
+      this.later(0.24, () => this.projectile(['fx_wave'], ax + 8, G - 30, tx, G - 18, 0.2, {
+        targetId: front?.id, trail: [color], trailVy: 0, onHit: () => hit(tx) }));
+      this.later(0.46, () => this.dust(ax, 3));
+    } else if (kind === 'archer') {
+      this.later(0.14, () => this.projectile(['fx_arrow'], ax + 8, G - 24, tx, G - 18, 0.22, {
+        arc: 6, rotate: 1, targetId: front?.id, trail: ['#e8e0c8'], trailVy: 0, onHit: () => hit(tx) }));
+    } else if (kind === 'cast') {
+      const style2 = ALLY_STYLE[companion.id];
+      this.later(0.3, () => this.projectile(CAST_ORB[style2] ?? ['fx_spark'], ax + 6, G - 34, tx, G - 18, 0.3, {
+        arc: 8, targetId: front?.id, trail: [color], onHit: () => { hit(tx); this.burst(tx, G - 18, color, 10, 40); } }));
+    } else if (kind === 'burst') {
+      this.later(0.3, () => {
+        for (const e of world.enemies) {
+          const x = this.wx(e.x);
+          this.sprite(['fx_burst'], x, G - 2, 0.35, { tint: color });
+          this.burst(x, G - 18, color, 6, 34);
+        }
+        this.shake = Math.max(this.shake, 2);
+      });
+      this.later(0.6, () => this.dust(ax, 4));
+    } else {
+      // Soutien : étincelles de sa couleur qui volent vers le chevalier, puis anneau autour de lui.
+      const c = SUPPORT_COLOR[type] ?? color;
+      this.later(0.28, () => {
+        for (let k = 0; k < 4; k++) {
+          this.projectile(['fx_spark'], ax, G - 30 - k * 3, heroX, G - 24, 0.32, { delay: k * 0.05, arc: 10 + k * 3, trail: [c] });
+        }
+      });
+      this.later(0.62, () => {
+        this.effects.push({ kind: 'ring', x: heroX, y: G - 14, color: c, life: 0.5, max: 0.5, r: 12 });
+        if (type === 'gold') this.burst(heroX, G - 30, c, 10, 40);
+      });
+    }
+  }
+
+  // v9.0.8 : position du corps d'un compagnon selon son geste (aucune déformation du dessin).
+  // { dx, dy } en pixels de jeu (dy > 0 = vers le haut), glow = intensité du halo, ghosts = images rémanentes.
+  allyPose(companion, walking, i) {
+    const a = this.allyAnims?.get(companion.id);
+    const t = this.time + i * 0.41;
+    const gesture = this.allyGesturePose(companion, a);
+    const pose = gesture ?? this.allyMovePose(companion, walking, t);
+    const gait = SPRITES[companion.sprite]?.gait;
+    if (gait === 'fly') {
+      // Battement d'ailes (~4 par seconde) : le corps remonte à chaque coup d'aile vers le bas.
+      const phase = (t * 4) % 1;
+      pose.flap = phase;
+      pose.dy = (gesture ? pose.dy : 0) + 5 + Math.sin(phase * Math.PI * 2 - Math.PI / 2) * -1.2;
+    }
+    if (gait === 'glide' && gesture) { pose.dy += 4; pose.glide = true; }
+    return pose;
+  }
+
+  allyGesturePose(companion, a) {
+    if (a) {
+      const k = (this.time - a.start) / a.max;
+      if (k >= 1 || k < 0) this.allyAnims.delete(companion.id);
+      else {
+        const arc = (p0, p1, h) => (k < p0 || k > p1 ? 0 : Math.sin(((k - p0) / (p1 - p0)) * Math.PI) * h);
+        switch (a.kind) {
+          case 'melee': // élan (recul d'un pas), puis pas en avant et frappe : on reste au sol
+            return { dx: k < 0.25 ? -1.5 * (k / 0.25) : -1.5 + arc(0.25, 0.8, 3.5) + 1.5 * Math.min(1, (k - 0.25) / 0.2),
+              dy: arc(0.3, 0.6, 2), glow: 0, ghosts: k > 0.3 && k < 0.6, lunge: k > 0.25 && k < 0.7, color: a.color };
+          case 'burst':
+            return { dx: arc(0.15, 0.75, 1), dy: k < 0.15 ? -1 : arc(0.15, 0.75, 10), glow: arc(0.1, 0.9, 0.9), ghosts: k > 0.2 && k < 0.7, color: a.color };
+          case 'archer': // recul au tir, puis retour
+            return { dx: k < 0.15 ? -k / 0.15 : -Math.max(0, 1 - (k - 0.15) / 0.5), dy: 0, glow: 0, color: a.color };
+          case 'cast': // lévitation, halo qui pulse
+            return { dx: 0, dy: arc(0, 1, 5), glow: arc(0, 1, 1), color: a.color };
+          default: // soutien
+            return { dx: 0, dy: arc(0, 1, 4), glow: arc(0, 1, 1), color: a.color };
+        }
+      }
+    }
+    return null;
+  }
+
+  // v9.0.8 : démarche selon le personnage — pas de marche (images de pas), vol, glissade ou sauts.
+  allyMovePose(companion, walking, t) {
+    const gait = SPRITES[companion.sprite]?.gait;
+    if (gait === 'fly') return { dx: 0, dy: 5, glow: 0 }; // battement et hauteur ajoutés dans allyPose
+    // Robe longue : flotte en permanence 2 à 3 px au-dessus du sol (balancement plus ample en avançant).
+    if (gait === 'glide') return { dx: 0, dy: 4 + Math.sin(t * (walking ? 4.5 : 2)) * (walking ? 1 : 0.8), glow: 0, glide: true };
+    if (walking && gait === 'hop') return { dx: 0, dy: Math.abs(Math.sin(t * 6)) * 4, glow: 0 };
+    if (walking) return { dx: 0, dy: 0, glow: 0, step: Math.floor(this.time * 9) }; // les images de pas portent le mouvement
+    return { dx: 0, dy: (Math.sin(t * 2.2) + 1) * 0.35, glow: 0 };
+  }
+
   drawAlly(ctx, world, companion, i) {
     const s = companion.sprite;
-    const t = this.allyAttack.get(companion.id) ?? 0;
-    const attacking = t > 0;
     const walking = world.hero.walking;
-    let frame;
-    let lunge = 0;
-    if (attacking) {
-      // Attaque en deux temps : préparation (recul), puis coup porté vers l'avant.
-      const k = 1 - t / ALLY_ATTACK_TIME;
-      const winding = k < 0.35 && SPRITES[`${s}_wind`];
-      frame = winding ? `${s}_wind` : `${s}_atk`;
-      lunge = winding ? -2 : Math.round(Math.sin(Math.min(1, (k - 0.35) / 0.4) * Math.PI) * 6);
-    } else if (walking && SPRITES[`${s}_w1`]) {
-      // Cycle de marche en 4 temps : passage → pas avant → passage → pas arrière.
-      frame = [s, `${s}_w1`, s, `${s}_w2`][Math.floor(this.time * 9 + i * 2) % 4];
-    } else {
-      const step = Math.floor(this.time * (walking ? 7 : 2) + i);
-      frame = step % 2 ? `${s}_b` : s;
+    const hd = Boolean(SPRITES[s]?.scale);
+    const pose = this.allyPose(companion, walking, i);
+    // Anciens sprites (dessinés image par image) : leurs propres images de marche et d'attaque.
+    let frame = s;
+    if (pose.flap !== undefined && SPRITES[`${s}_f1`]) {
+      // Ailes : hautes → milieu → basses → milieu.
+      frame = pose.flap < 0.3 ? `${s}_f1` : pose.flap < 0.5 ? s : pose.flap < 0.8 ? `${s}_f2` : s;
+    } else if (hd && pose.step !== undefined && SPRITES[`${s}_w1`]) {
+      // Pas de marche synchronisé avec le chevalier : repos → pas 1 → repos → pas 2.
+      frame = [s, `${s}_w1`, s, `${s}_w2`][(pose.step + i * 2) % 4];
+    } else if (hd && pose.lunge && SPRITES[`${s}_w1`]) frame = `${s}_w1`; // pas en avant pour frapper
+    if (!hd) {
+      const a = this.allyAnims?.get(companion.id);
+      if (a) frame = (this.time - a.start) / a.max < 0.3 && SPRITES[`${s}_wind`] ? `${s}_wind` : SPRITES[`${s}_atk`] ? `${s}_atk` : s;
+      else if (walking && SPRITES[`${s}_w1`]) frame = [s, `${s}_w1`, s, `${s}_w2`][Math.floor(this.time * 9 + i * 2) % 4];
+      else if (Math.floor(this.time * 2 + i) % 2 && SPRITES[`${s}_b`]) frame = `${s}_b`;
     }
     const img = spriteCanvas(frame);
-    const sc = SPRITES[frame]?.scale ?? 1; // v9.0.7 : sprite en pleine définition, ramené à la taille du jeu
+    const sc = SPRITES[frame]?.scale ?? 1;
     const w = img.width * sc;
     const h = img.height * sc;
-    const bob = walking && !attacking ? this.snap(Math.abs(Math.sin(this.time * 9 * Math.PI / 2 + i)) * 1) : 0;
-    // Le 2e personnage se tient un peu en retrait (plus loin et légèrement plus haut).
-    const x = HERO_X - 26 - i * 24 - w / 2 + lunge;
-    const y = this.groundY - h + 1 - i * 2 - bob;
-    this.drawShadow(ctx, x + w / 2, 18 - bob * 2);
-    if (this.maxStars(companion)) this.drawStarAura(ctx, x + w / 2, y, w, h, companion);
-    this.drawStarOutline(ctx, companion, frame, this.snap(x), y, w, h);
-    ctx.drawImage(img, this.snap(x), y, w, h);
+    const slot = this.layout?.slots.get(companion.id);
+    const x0 = slot ? slot.x : HERO_X - 26 - i * 24 - w / 2;
+    const cx0 = slot ? slot.cx : x0 + w / 2;
+    const x = x0 + pose.dx;
+    const y = this.groundY + 1 - h - pose.dy;
+    // Poussière à chaque pas de marche.
+    if (pose.step !== undefined) {
+      this.allySteps ??= new Map();
+      if (this.allySteps.get(companion.id) !== pose.step) {
+        this.allySteps.set(companion.id, pose.step);
+        if (!this.focus && pose.step % 4 === 1) this.dust(cx0 - 3, 1);
+      }
+    }
+    // Ailés : souffle au sol à chaque coup d'aile vers le bas (traits et poussière chassés des deux côtés).
+    if (pose.flap !== undefined) {
+      this.allyFlaps ??= new Map();
+      const down = pose.flap >= 0.5 && pose.flap < 0.8;
+      if (down && !this.allyFlaps.get(companion.id) && !this.focus) {
+        const gx = cx0 + pose.dx;
+        this.effects.push({ kind: 'gust', x: gx, y: this.groundY - 1, color: '#f4fbff', life: 0.45, max: 0.45 });
+        // Filets d'air qui descendent sous le personnage vers le sol.
+        for (let k = -1; k <= 1; k++) {
+          this.effects.push({ kind: 'ember', x: gx + k * 5, y: this.groundY - pose.dy - 2, vx: k * 6, vy: 40, life: 0.18, max: 0.18, color: '#ffffff' });
+          this.effects.push({ kind: 'ember', x: gx + k * 5, y: this.groundY - pose.dy, vx: k * 6, vy: 40, life: 0.16, max: 0.16, color: '#dff0ff' });
+        }
+        for (const side of [-1, 1]) {
+          this.effects.push({ kind: 'puff', x: gx + side * 3, y: this.groundY - 1, vx: side * (20 + Math.random() * 14), vy: -3 - Math.random() * 4,
+            life: 0.35, max: 0.5, color: '#d8d0b8' });
+        }
+      }
+      this.allyFlaps.set(companion.id, down);
+    }
+    // Robe longue : cercle lumineux au sol (par-dessus les herbes) et poussière d'étoiles qui tombe de l'ourlet ;
+    // en avançant, la poussière forme une traînée derrière le personnage.
+    if (pose.glide) {
+      const color = companion.fx ?? '#bfe6ff';
+      const gx = cx0 + pose.dx;
+      const rw = Math.max(6, Math.round(w * 0.34));
+      const pulse = 0.5 + 0.5 * Math.sin(this.time * 3 + i);
+      const G = this.groundY;
+      (this.groundFx ??= []).push((c) => {
+        c.globalAlpha = 0.3 + 0.15 * pulse;
+        c.fillStyle = color;
+        c.fillRect(Math.round(gx - rw + 2), G - 2, rw * 2 - 4, 3);
+        c.globalAlpha = 0.75;
+        c.fillRect(Math.round(gx - rw), G - 1, 2, 1);
+        c.fillRect(Math.round(gx + rw - 2), G - 1, 2, 1);
+        c.fillRect(Math.round(gx - rw + 2), G - 3, rw * 2 - 4, 1);
+        c.fillRect(Math.round(gx - rw + 2), G + 1, rw * 2 - 4, 1);
+        c.globalAlpha = 1;
+      });
+      this.allyMotes ??= new Map();
+      if (!this.focus && this.time - (this.allyMotes.get(companion.id) ?? 0) > (walking ? 0.05 : 0.11)) {
+        this.allyMotes.set(companion.id, this.time);
+        this.effects.push({ kind: 'ember', x: gx + (Math.random() - 0.5) * w * 0.6, y: G - pose.dy + 1,
+          vx: walking ? -24 - Math.random() * 12 : (Math.random() - 0.5) * 6, vy: walking ? 3 : 5 + Math.random() * 3,
+          life: 0.7, max: 0.7, color: Math.random() < 0.5 ? '#ffffff' : color });
+      }
+    }
+    // Ombre au sol : plus petite et plus claire quand le personnage est en l'air.
+    ctx.globalAlpha = Math.max(0.35, 1 - pose.dy / 18);
+    this.drawShadow(ctx, cx0 + pose.dx, Math.max(10, w * 0.5 - pose.dy));
+    ctx.globalAlpha = 1;
+    if (this.maxStars(companion)) this.drawStarAura(ctx, cx0 + pose.dx, y, w, h, companion);
+    // Images rémanentes du saut, de la couleur du compagnon.
+    if (pose.ghosts) {
+      const ghost = spriteCanvas(frame, { tint: { color: pose.color, alpha: 1 } });
+      for (const [f, al] of [[0.45, 0.22], [0.8, 0.12]]) {
+        ctx.globalAlpha = al;
+        ctx.drawImage(ghost, x0 + pose.dx * (1 - f), y + pose.dy * f, w, h);
+      }
+      ctx.globalAlpha = 1;
+    }
+    // Halo de sort : silhouette lumineuse de sa couleur autour du corps.
+    if (pose.glow > 0.02) {
+      const glow = spriteCanvas(frame, { tint: { color: pose.color, alpha: 1 } });
+      ctx.globalAlpha = 0.65 * pose.glow;
+      for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1]]) ctx.drawImage(glow, x + dx, y + dy, w, h);
+      ctx.globalAlpha = 1;
+    }
+    this.drawStarOutline(ctx, companion, frame, x, y, w, h);
+    ctx.drawImage(img, x, y, w, h);
   }
+
+
 
   // v8.9 : compagnon aux étoiles maximales → aura lumineuse (couleur de sa rareté) et étincelles qui montent.
   maxStars(companion) {
@@ -886,11 +1157,12 @@ export class SceneRenderer {
     const img = spriteCanvas(companion.sprite);
     const flying = FLYING_PETS.has(companion.id);
     const walking = world.hero.walking;
-    const x = HERO_X - 6 - img.width / 2;
+    const slot = this.layout?.slots.get(companion.id); // v9.0.8 : sa propre case, entre le chevalier et les compagnons
+    const x = slot ? slot.x : HERO_X - 6 - img.width / 2;
     if (flying) {
       const hover = 30 + Math.sin(this.time * 3) * 3;
       // Battement d'ailes : écrasement vertical rapide autour du centre du sprite.
-      const flap = 1 - Math.abs(Math.sin(this.time * 12)) * 0.14;
+      const flap = 1; // v9.0.8 : plus d'écrasement du dessin (vol = flottement)
       const cy = this.groundY - hover - img.height / 2;
       this.drawShadow(ctx, x + img.width / 2, img.width * 0.5);
       if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, cy - img.height / 2, img.width, img.height, companion);
@@ -904,8 +1176,10 @@ export class SceneRenderer {
     }
     // Petits bonds en marchant, avec écrasement à la réception.
     const phase = Math.abs(Math.sin(this.time * (walking ? 9 : 2.5)));
-    const hop = walking ? phase * 4 : phase * 0.8;
-    const squash = walking && phase < 0.25 ? 0.9 : 1;
+    // v9.0.8 : seul le slime avance par sauts ; chat et golem trottinent (petit balancement d'un pixel).
+    const hopper = companion.id === 'golden_slime';
+    const hop = walking ? phase * (hopper ? 4 : 1) : phase * 0.6;
+    const squash = 1; // v9.0.8 : bonds sans écrasement du dessin
     this.drawShadow(ctx, x + img.width / 2, img.width * 0.8 - hop);
     if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, this.groundY - img.height, img.width, img.height, companion);
     ctx.save();
@@ -916,10 +1190,31 @@ export class SceneRenderer {
     ctx.restore();
   }
 
+  // v9.0.8 : rang de l'équipe, de droite à gauche — chevalier | familier | 1er compagnon | 2e compagnon. Chaque
+  // personnage a sa case, de la largeur réelle (opaque) de son sprite, avec 3 px d'écart : aucun chevauchement.
+  teamLayout(state) {
+    const GAP = 3;
+    const team = equippedCompanions(state);
+    const heroImg = heroComposite('idle', state.equipment, false, 'a', activeHero(state).palette);
+    let cursor = HERO_X - HERO_ANCHOR.x + opaqueSpan(heroImg).l - GAP;
+    const slots = new Map();
+    const place = (c) => {
+      const img = spriteCanvas(c.sprite);
+      const sc = SPRITES[c.sprite]?.scale ?? 1;
+      const span = opaqueSpan(img);
+      const x = cursor - (span.r + 1) * sc; // bord opaque droit du personnage collé à la case précédente
+      slots.set(c.id, { x, cx: x + ((span.l + span.r + 1) / 2) * sc });
+      cursor = x + span.l * sc - GAP;
+    };
+    const pet = team.find((c) => c.kind !== 'ally');
+    if (pet) place(pet);
+    team.filter((c) => c.kind === 'ally').forEach(place);
+    return { slots, left: cursor + GAP };
+  }
+
   drawCompanions(ctx, state, world, dt) {
     this.state = state;
     if (world.hero.dead) return;
-    for (const [id, t] of this.allyAttack) this.allyAttack.set(id, Math.max(0, t - dt));
     // Du plus éloigné au plus proche : 2e compagnon puis 1er (le familier est dessiné après le chevalier).
     const team = equippedCompanions(state);
     const allies = team.filter((c) => c.kind === 'ally');
@@ -1008,9 +1303,23 @@ export class SceneRenderer {
           ctx.fillStyle = fx.color;
           ctx.fillRect(Math.round(fx.x), Math.round(fx.y), t > 0.5 ? 2 : 1, t > 0.5 ? 2 : 1);
           break;
+        case 'gust': {
+          // v9.0.8 : souffle d'un battement d'ailes au sol — traits qui s'écartent des deux côtés et s'effacent.
+          const u = 1 - t;
+          ctx.globalAlpha = Math.min(1, t * 1.1);
+          ctx.fillStyle = fx.color;
+          for (const side of [-1, 1]) {
+            const r = 3 + u * 20;
+            ctx.fillRect(Math.round(fx.x + side * r - (side < 0 ? 7 : 0)), fx.y, 7, 2);
+            ctx.fillRect(Math.round(fx.x + side * (r * 0.65) - (side < 0 ? 4 : 0)), fx.y - 3, 4, 1);
+            ctx.fillRect(Math.round(fx.x + side * (r * 1.2) - (side < 0 ? 2 : 0)), fx.y - 1, 2, 1);
+          }
+          break;
+        }
         case 'ember':
           // Braise / trace laissée par un projectile : flotte un peu et s'éteint.
           fx.y += (fx.vy ?? -8) * dt;
+          fx.x += (fx.vx ?? 0) * dt;
           ctx.globalAlpha = t;
           ctx.fillStyle = fx.color;
           ctx.fillRect(Math.round(fx.x), Math.round(fx.y), 1, 1);

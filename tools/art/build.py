@@ -36,6 +36,11 @@ for mod in modules:
         entry.update(extra)
         sprites[key] = entry
 
+# Un module peut retirer des images devenues inutiles (ex. anciennes images d'animation d'un sprite redessiné).
+for mod in modules:
+    for key in getattr(mod, 'REMOVE', ()):
+        sprites.pop(key, None)
+
 lines = [
     '// FICHIER GÉNÉRÉ par tools/art/build.py — ne pas modifier à la main.',
     '// Sprites v5 (grilles + palettes locales). Caractères réservés : voir tools/art/lib.py (TINT).',

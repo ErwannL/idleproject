@@ -46,7 +46,9 @@ test('le point de prise des armes est sur le manche (ni vide, ni sur la lame)', 
 
 test('les données référencent des sprites existants', () => {
   for (const enemy of Object.values(ENEMIES)) {
-    for (const frame of enemy.frames ?? [enemy.sprite]) assert.ok(SPRITES[frame], frame);
+    // v9.0.8 : un sprite en pleine définition (chara design PixelLab) n'a qu'une image, animée par le jeu.
+    const frames = SPRITES[enemy.sprite]?.scale ? [enemy.sprite] : enemy.frames ?? [enemy.sprite];
+    for (const frame of frames) assert.ok(SPRITES[frame], frame);
   }
   for (const boss of Object.values(BOSSES)) {
     assert.ok(ENEMIES[boss.base], boss.base);
@@ -71,6 +73,7 @@ test('héros alliés : 3 images (repos, marche, attaque) de même taille', () =>
       assert.ok(SPRITES[c.sprite], c.sprite);
       continue;
     }
+    if (SPRITES[c.sprite]?.scale) { assert.ok(SPRITES[c.sprite].rows.length > 0, c.id); continue; } // une image, animée par le jeu
     const frames = [c.sprite, `${c.sprite}_b`, `${c.sprite}_atk`].map((n) => SPRITES[n]);
     assert.ok(frames.every(Boolean), c.id);
     assert.ok(frames.every((f) => f.rows.length === frames[0].rows.length && f.rows[0].length === frames[0].rows[0].length), `${c.id} : tailles`);

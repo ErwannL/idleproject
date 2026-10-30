@@ -1,8 +1,30 @@
-## Idle RPG v9.0.7 — nouveau chara design
+## Idle RPG v9.0.8 — animations plus vivantes, équipe bien rangée
 
-**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.7-setup.exe). Votre partie est conservée.
+**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.8-setup.exe). Votre partie est conservée.
 
-### Nouveau
+### Améliorés
+- **L'équipe ne se chevauche plus** : de droite à gauche, le chevalier, le familier puis les deux compagnons ont
+  chacun leur place, à la largeur réelle de leur dessin. Avec de grands compagnons (ailes, capes), tout le combat se
+  décale doucement vers la droite pour que chacun reste visible, même sur mobile.
+- **Animations des compagnons, refaites sans jamais déformer le dessin**, avec une démarche logique pour chacun :
+  les bipèdes **marchent vraiment** (une jambe se lève pendant que l'autre reste au sol, au rythme du chevalier), les
+  ailés (Archange, Reine démone) **volent** juste au-dessus du sol, les robes longues (Impératrice, prêtres,
+  Pyromancienne) **glissent**. Chaque compagnon a son geste : **corps à corps** — un pas d'élan, puis un pas en avant
+  et une onde tranchante jusqu'à l'ennemi ; **archers** — recul et flèche ; **mages** — lévitation, halo de leur
+  couleur et projectile de leur élément (feu, givre, âmes, nature, lumière) ; **soins, bouclier, cri de guerre, or** —
+  halo puis étincelles envoyées au chevalier ; **attaque de zone** — saut et explosion sur chaque ennemi. Parmi les
+  familiers, seul le slime avance par sauts.
+- **Ailés** (Archange, Reine démone) : leurs ailes **battent** vraiment, et chaque coup d'aile vers le bas chasse
+  l'air au sol (souffle et poussière qui s'écartent des deux côtés).
+- **Robes longues** (Impératrice, Prêtresse, Grand prêtre, Pyromancienne) : elles **flottent** légèrement au-dessus du
+  sol en se balançant, au-dessus d'un halo lumineux de leur couleur ; une poussière d'étoiles tombe de l'ourlet et
+  forme une traînée quand elles avancent.
+- **Animations des ennemis** : les gobelins et l'Épouvantail marchent pas à pas, les sangliers trottent (pattes qui
+  alternent), les gluants et mandragores avancent par sauts (écrasés à la réception) ; tous respirent au contact.
+
+### v9.0.7 — nouveau chara design
+
+### Nouveau en v9.0.7
 - **Nouveau chara design** pour 19 compagnons (Archange, Reine démone, Impératrice des glaces, Seigneur des ombres,
   Gardienne sylvestre, Paladin d'azur, Lame rose, Sorcière, Archère elfe, Grand prêtre, Ninja, Barbare, Écuyer,
   Mercenaire, Rôdeur, Pyromancienne, Prêtresse, Ombre, Nain guerrier) : sprites plus fins et plus détaillés, avec
