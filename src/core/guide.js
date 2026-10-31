@@ -85,7 +85,7 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
     }
   }
   const better = ctx.betterItem !== undefined ? ctx.betterItem : betterItem(state, balance);
-  if (better) return { id: 'equip', text: `Équipez : ${better.name}`, tab: 'inventory', view: { invTab: 'bag', invView: null, selectedItemId: better.id } };
+  if (better) return { id: 'equip', text: `Équipez : ${better.name}`, tab: 'inventory', view: { invTab: 'bag', invView: null, selectedItemId: better.id, sheetOpen: 'item' } };
   const points = skillPointsAvailable(state);
   if (points >= 1) return { id: 'skills', text: `${points} point${points > 1 ? 's' : ''} de compétence à dépenser`, tab: 'skills' };
   if (best && state.gold >= best.cost) return { id: 'upgrade', text: `Améliorer : ${balance.upgrades[best.key].label}`, tab: 'upgrades' };
@@ -114,7 +114,7 @@ function goalAction(state, balance) {
 
 function beginnerAction(state, ctx, balance) {
   const better = ctx.betterItem !== undefined ? ctx.betterItem : betterItem(state, balance);
-  if (better) return { id: 'equip', text: `Équipez : ${better.name}`, tab: 'inventory', view: { invTab: 'bag', invView: null, selectedItemId: better.id } };
+  if (better) return { id: 'equip', text: `Équipez : ${better.name}`, tab: 'inventory', view: { invTab: 'bag', invView: null, selectedItemId: better.id, sheetOpen: 'item' } };
   if (skillPointsAvailable(state) >= 1) return { id: 'skills', text: 'Apprenez une compétence', tab: 'skills' };
   const best = bestUpgrade(state, balance);
   if (best && state.gold >= best.cost) return { id: 'upgrade', text: `Améliorez : ${balance.upgrades[best.key].label}`, tab: 'upgrades' };
