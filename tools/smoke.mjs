@@ -203,7 +203,7 @@ await check('pouvoir ancestral : débloqué au premier boss et affiché dans le 
   await clickTab('boss');
   await page.waitForTimeout(200);
   const text = await page.textContent('#panel-body');
-  assert(text.includes('Roi Gluant') && text.includes('Pouvoir ancestral actuel'), text.slice(0, 200));
+  assert(text.includes('Roi Gluant') && text.includes('Pouvoir actuel'), text.slice(0, 200));
 });
 
 await check('changer de pouvoir exige de réaffronter le boss', async () => {

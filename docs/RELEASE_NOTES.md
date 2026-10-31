@@ -1,3 +1,61 @@
+## Idle RPG v9.1.0 — 4 menus, « Prochaine action », téléphone et accessibilité
+
+**Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.0-setup.exe). Votre partie est conservée
+(une copie d'avant la mise à jour est gardée à part).
+
+### Savoir toujours quoi faire
+- **Bouton « Prochaine action »** sous le combat : une seule chose utile à la fois (récupérer, équiper un objet meilleur,
+  apprendre une compétence, améliorer les dégâts, retenter un boss…). Un appui mène au bon écran. Touche C.
+- **Boss trop fort ?** Le jeu le dit clairement (c'est normal : le héros s'entraîne et retente seul) et propose
+  « Améliorer les dégâts », puis « Retenter le boss » avec le pourcentage de puissance atteint.
+- **Débutant** : un tutoriel de 3 messages, puis le bouton guide pas à pas (équiper, apprendre, améliorer, battre
+  le premier mini-boss). Les menus s'ouvrent avec la progression et ne disparaissent plus après une Renaissance.
+
+### 4 menus aux noms clairs
+- **Héros** (Équipement, Améliorations, Compétences, Talents) · **Aventure** (Carte, Donjons, Tour, Boss) ·
+  **Équipe** (Composition, Invocation, Expéditions) · **Objectifs** (À récupérer, Missions, Collections).
+- Votre **fiche** (classe, apparence, records) s'ouvre en touchant le **portrait**. Touches 1 à 4 fixes, **F** pour
+  chercher n'importe quel écran. Les anciens joueurs voient une fois une carte « où est passé quoi ».
+- **À récupérer** : une seule liste de tout ce qui est prêt (missions, contrats, prime, coffres trouvés, expéditions,
+  collections, maîtrises) et un seul bouton — la touche G fait pareil.
+
+### Écrans refaits
+- **Combat allégé** : niveau et étape affichés une seule fois, boosts et compétences seulement quand ils existent,
+  compteur d'ennemis lisible, nouveaux objets comptés sur le menu Héros (+N).
+- **Équipement** : Sac / Coffre, Builds en liste (ils gardent aussi la classe, les pouvoirs et les compétences, et
+  vont chercher les objets au coffre), fiche d'objet qui ne montre que ce qui change, Réglages du sac repliés avec
+  un filtre « garder si l'objet a… » (vol de vie, or…). Forge avec « Fusionner tout ».
+- **Améliorations** : « Acheter le plus rentable » (le plus de dégâts/s par pièce d'or), tri et filtre.
+- **Compétences** : « Répartir mes points ». **Talents** : segment Arbre / Renaissance, « Achetables », objectif de
+  chaque région, achat confirmé. **Carte** : choix du monde et du cycle, grande carte repliée.
+- **Donjons** : mécanique et contre du boss sur la fiche, butin ciblé mémorisé, verrouillés repliés.
+  **Tour** : mécanique du boss de l'étage. **Expéditions** : onglet à part, « Tout récupérer » et « Repartir ».
+- **Missions** : Aujourd'hui, Cette semaine, Hauts faits. **Collections** : encyclopédie, Codex et Musée réunis.
+- **Retour de session** (touche S, ou depuis le résumé hors ligne) : tout récupérer, équiper le meilleur, acheter
+  les améliorations de dégâts les plus rentables, répartir les points — sans dépenser de gemmes.
+
+### Téléphone et accessibilité
+- Sur téléphone : panneau plein écran avec une petite bande de combat, boutons de 44 px, fiche d'objet en bas à
+  portée de pouce, action principale collée en bas, balayage entre onglets, appui long pour l'aide.
+- Paramètres en 4 onglets ; réglages propres à l'appareil : **mode compact**, combat simple ou complet,
+  **réduire les animations** (suit aussi le réglage du système), **taille de l'interface** (100 à 200 %),
+  **aide aux couleurs**, **contraste élevé**, **raccourcis clavier modifiables**.
+- Clavier AZERTY : chiffres et touches ^ $ reconnus ; Échap ferme d'abord la fenêtre ; Tab reste dans la fenêtre.
+- Raretés partout en Commun, Rare, Épique, Légendaire ; boutons grisés qui disent ce qui manque ; fiche de chaque
+  monnaie (à quoi elle sert, où en gagner) d'un appui.
+
+### Sauvegarde et sécurité
+- **Exporter / importer** la partie (fichier ou code), **zone de danger** (taper EFFACER pour réinitialiser).
+- Copie de la sauvegarde avant chaque migration ; une sauvegarde d'une version plus récente n'est jamais écrasée ;
+  message si la sauvegarde échoue.
+- Les codes de triche ne sont plus livrés du tout dans la version publique.
+
+### Corrections
+- Prévision du boss qui restait sur « (mise à jour…) » ; donjon lancé dans une autre difficulté que celle affichée ;
+  ☰ du mode Barre sans effet ; Renaissance possible pendant un donjon ; la Transcendance gardait toujours le premier
+  pouvoir ; boss hors de portée « combattu » ; build qui disait « équipé » sans l'objet ; journal qui oubliait le
+  recyclage fait pour libérer le sac ; écran Équipement coupé vers 900 px de large.
+
 ## Idle RPG v9.0.9 — compte, sauvegarde cloud, classement, version publique
 
 **Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.9-setup.exe). Votre partie est conservée.
