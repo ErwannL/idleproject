@@ -5,7 +5,8 @@ import { createServer } from 'node:http';
 import { mkdtempSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { checkSave, createApp, hashPassword, LIMITS, summarizeSave } from '../server/app.mjs';
+import { checkSave, createApp, hashPassword, LIMITS, stageLabel, summarizeSave } from '../server/app.mjs';
+import { stageLabel as gameStageLabel } from '../src/core/combat.js';
 import { openDatabase } from '../server/db.mjs';
 
 async function setup(extra = {}) {
@@ -463,4 +464,8 @@ test('connexions réussies sans limite ; seuls les échecs comptent', async (t) 
   }
   assert.equal((await call(base, 'POST', '/api/admin/login', { username: 'erwann', password: 'faux-mdp-xxxx' })).status, 429);
   assert.equal((await call(base, 'POST', '/api/login', { pseudo: 'Fidele', password: 'motdepasse1' })).status, 200);
+});
+
+test("libellé d'étape du serveur identique à celui du jeu (classement, admin)", () => {
+  for (let stage = 1; stage <= 3000; stage += 1) assert.equal(stageLabel(stage), gameStageLabel(stage), `étape ${stage}`);
 });

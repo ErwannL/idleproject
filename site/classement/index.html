@@ -32,11 +32,13 @@
     tr.top3 td.rank { color: #e0a06a; }
     td.pseudo { font-weight: 800; word-break: break-word; }
     .empty, .msg { text-align: center; color: var(--muted); padding: 28px 16px; }
-    .foot { text-align: center; color: var(--muted); font-size: 14px; margin-top: 22px; }
+    /* Bas de page sur un fond : il passait sur les îles du décor et devenait illisible. */
+    .foot { text-align: center; color: var(--muted); font-size: 14px; margin: 22px auto 0; max-width: 640px; padding: 10px 14px; border-radius: 12px; background: rgba(13,21,40,.82); }
     .foot a { color: var(--muted); }
     @media (max-width: 560px) {
       th.hide-sm, td.hide-sm { display: none; }
       th, td { padding: 9px 8px; font-size: 14px; }
+      td.rank { width: 36px; }
     }
   </style>
 </head>
@@ -93,7 +95,7 @@
           const cells = [
             [String(p.rank), 'rank', ''],
             [p.pseudo, 'pseudo', ''],
-            [fmt(p.maxStage), 'num', ''],
+            [p.stageLabel ?? fmt(p.maxStage), 'num', ''], // libellé du jeu : « 7-6 ×8 »
             [fmt(p.level), 'num', ''],
             [fmt(p.bossesDefeated), 'num', 'hide-sm'],
           ];

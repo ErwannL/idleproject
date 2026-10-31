@@ -160,6 +160,19 @@ export function createFailureLimiter({ max, windowMs }, now = () => Date.now()) 
   };
 }
 
+// Libellé d'étape du jeu (« 7-6 ×8 » = monde 7, étape 6, difficulté ×8), comme src/core/combat.js stageLabel.
+// Étapes par monde de src/data/zones.js (tests/server.test.js vérifie l'égalité avec le jeu).
+export const ZONE_STAGES = [20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 10];
+export function stageLabel(stage) {
+  const cycle = ZONE_STAGES.reduce((a, b) => a + b, 0);
+  if (!Number.isInteger(stage) || stage < 1) return '—';
+  let s = (stage - 1) % cycle;
+  let zone = 0;
+  while (s >= ZONE_STAGES[zone]) { s -= ZONE_STAGES[zone]; zone += 1; }
+  const d = Math.floor((stage - 1) / cycle) + 1;
+  return `${zone + 1}-${s + 1}${d > 1 ? ` ×${d}` : ''}`;
+}
+
 // Extrait les champs de suivi d'une partie (format du jeu) ; tout champ absent vaut 0.
 export function summarizeSave(parsed) {
   const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
@@ -362,6 +375,7 @@ export function createApp({
     saveUpdatedAt: r.updated_at ?? null,
     level: r.level ?? 0,
     maxStage: r.max_stage ?? 0,
+    stageLabel: stageLabel(r.max_stage ?? 0),
     gold: r.gold ?? 0,
     gems: r.gems ?? 0,
     kills: r.kills ?? 0,
@@ -532,7 +546,7 @@ export function createApp({
         body: {
           sort,
           players: rows.map((r, i) => ({
-            rank: i + 1, pseudo: r.pseudo, level: r.level, maxStage: r.max_stage, bossesDefeated: r.bosses_defeated, updatedAt: r.updated_at,
+            rank: i + 1, pseudo: r.pseudo, level: r.level, maxStage: r.max_stage, stageLabel: stageLabel(r.max_stage), bossesDefeated: r.bosses_defeated, updatedAt: r.updated_at,
           })),
         },
       };

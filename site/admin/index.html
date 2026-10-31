@@ -546,7 +546,7 @@
           const cells = [
             [p.pseudo, ''], [p.guest ? 'Invité' : 'Joueur', ''], [PLATFORM_LABEL[p.platform] ?? '—', ''], [p.gameVersion ?? '—', ''],
             [fmtDate(p.createdAt), ''], [fmtRel(p.lastSeenAt), ''],
-            [fmt(p.level), 'num'], [fmt(p.maxStage), 'num'], [fmtBig(p.gold), 'num'],
+            [fmt(p.level), 'num'], [p.stageLabel ?? fmt(p.maxStage), 'num'], [fmtBig(p.gold), 'num'],
             [fmtBig(p.gems), 'num'], [fmt(p.bossesDefeated), 'num'], [p.hasSave ? fmtDate(p.saveUpdatedAt) : 'aucune', ''],
           ];
           for (const [text, cls] of cells) {
@@ -584,7 +584,7 @@
           ['Plateforme', PLATFORM_LABEL[p.platform] ?? '—'], ['Version du jeu (appareil)', p.gameVersion ?? '—'],
           ['Inscrit le', fmtDate(p.createdAt)], ['Dernière activité', fmtRel(p.lastSeenAt)],
           ['Jours joués', fmt(p.activity?.daysPlayed)], ['Temps de jeu (≈)', fmtMinutes(p.activity?.minutesPlayed)],
-          ['Niveau', fmt(p.level)], ['Étape max', fmt(p.maxStage)], ['Or', fmtBig(p.gold)],
+          ['Niveau', fmt(p.level)], ['Étape max', `${p.stageLabel ?? '—'} (${fmt(p.maxStage)})`], ['Or', fmtBig(p.gold)],
           ['Gemmes', fmtBig(p.gems)], ['Ennemis vaincus', fmt(p.kills)], ['Boss vaincus', fmt(p.bossesDefeated)],
         ];
         if (p.progress) {
