@@ -338,3 +338,10 @@ test('les 7 boss donnent un pouvoir et la campagne de zone 4 à 6 se joue', () =
   }
   for (const boss of ['ash_dragon', 'fallen_knight', 'demon_king']) assert.ok(state.powers[boss], boss);
 });
+
+test('v9.1 : montée de niveau plus lente (XP cumulée au niveau 10 et 50 : au moins 2x et 3,9x l ancienne courbe)', () => {
+  const cumulative = (target) => { let s = 0; for (let l = 1; l < target; l += 1) s += xpForLevel(l); return s; };
+  const oldCurve = (target) => { let s = 0; for (let l = 1; l < target; l += 1) s += Math.floor(30 * 1.2 ** (l - 1)); return s; };
+  assert.ok(cumulative(10) >= 2 * oldCurve(10) * 0.99);
+  assert.ok(cumulative(50) >= 3.9 * oldCurve(50));
+});

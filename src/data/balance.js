@@ -35,8 +35,8 @@ export const BALANCE = {
   // Niveau du héros : chaque ennemi donne de l'XP ; chaque niveau donne +2 % dégâts et PV
   // et 1 point de compétence.
   level: {
-    xpBase: 30, // XP pour passer du niveau 1 au niveau 2
-    xpGrowth: 1.2,
+    xpBase: 60, // XP pour passer du niveau 1 au niveau 2 (v9.1 : 30 → 60, montée deux fois plus lente au début)
+    xpGrowth: 1.22, // v9.1 : 1,2 → 1,22 (niveau 50 : environ 4 fois plus d'XP qu'avant)
     killXp: 2,
     killXpGrowth: 1.0583, // par étape (v7.6 : 20 étapes par monde, croissance par étape divisée par 2 en log)
     bossXpMultiplier: 10,

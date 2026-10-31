@@ -4,4 +4,4 @@ dist/
 *.log
 __pycache__/
 .claude/worktrees/
-data/
+/data/
