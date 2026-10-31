@@ -6,7 +6,6 @@ import { BOSSES } from '../../data/enemies.js';
 
 const TIER_LABELS = { mini: 'Mini-boss', mid: 'Boss', hard: 'Boss redoutable', mega: 'MÉGA BOSS' };
 import { bossForecast, escapeHtml, forecastHtml, img, progressBar } from '../common.js';
-import { advice } from '../../core/guide.js';
 
 // v9.0.6 : écran Aventure — « où j'en suis » en un coup d'œil : monde et étape, prochain boss, prévision,
 // avance automatique et la prochaine chose utile à faire (un clic ouvre le bon écran).
@@ -24,14 +23,12 @@ function summary(ui, state) {
   while (!bossTierForStage(next) && next < first + len) next++;
   const tier = bossTierForStage(next);
   const boss = tier ? BOSSES[bossesForStage(next)[0]] : null;
-  const tips = advice(state).map((t) => `<button class="chip chip-btn" data-action="open-tab" data-value="${t.tab}">💡 ${escapeHtml(t.text)}</button>`).join('');
   return `<div class="card adv-summary">
       <div class="row-between"><div><div class="adv-zone">${zi + 1}. ${escapeHtml(zone.name)}</div>
         <div class="muted">Étape ${pos} / ${len}${boss ? ` · ${next === state.stage ? 'boss en cours' : `prochain boss dans ${next - state.stage} étape${next - state.stage > 1 ? 's' : ''}`} : <b>${escapeHtml(boss.name)}</b> (${TIER_LABELS[tier]})` : ''}</div></div>
         <div class="adv-auto">${state.autoAdvance ? '<span class="good">▶ Avance automatique</span>' : '<button class="btn btn-primary small" data-action="advance">Avancer ▶</button>'}</div></div>
       ${progressBar(pos / len, `${pos} / ${len}`)}
       ${forecastHtml(bossForecast(state, () => ui.invalidate()))}
-      ${tips ? `<div class="chip-row adv-tips">${tips}</div>` : ''}
     </div>`;
 }
 

@@ -2,7 +2,6 @@
 // meilleure rareté, puis cartes retournées une à une (éclat doré pour un SSR / Légendaire).
 // Un clic révèle tout d'un coup, un second clic ferme. Pas d'animation pendant un clic maintenu.
 import { companionById } from '../core/companions.js';
-import { ALLY_GRADE } from '../data/companions.js';
 import { animCanvas } from './animator.js';
 import { escapeHtml, rarityLabel } from './common.js';
 
@@ -16,7 +15,7 @@ function portrait(r) {
 
 function grade(r) {
   const c = r.kind === 'hero' ? null : companionById(r.id);
-  return c?.kind === 'ally' ? ALLY_GRADE[r.rarity] : rarityLabel(r.rarity);
+  return rarityLabel(r.rarity);
 }
 
 export function playSummonReveal(results) {

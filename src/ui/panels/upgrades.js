@@ -1,8 +1,9 @@
-// Améliorations achetées avec l'or, rangées par catégorie (Combat, Survie, Ressources).
+// Améliorations achetées avec l'or.
 import { BALANCE } from '../../data/balance.js';
 import { bulkPlan, upgradeCost } from '../../core/economy.js';
 import { computeHeroStats } from '../../core/stats.js';
-import { bossForecast, coin, costButton, escapeHtml, forecastHtml, formatDecimal, formatNumber, img } from '../common.js';
+import { bossForecast, coin, costButton, escapeHtml, fold, forecastHtml, formatDecimal, formatNumber, img } from '../common.js';
+import { bestUpgrade, upgradeProfits } from '../../core/profit.js';
 
 const ICONS = {
   damage: 'weapon_sword', attackSpeed: 'icon_bolt', crit: 'skill_quick', vitality: 'icon_heart',
@@ -23,25 +24,33 @@ function effect(key, cur, next) {
   }
 }
 
+// v9.1.0 : une seule liste (catégorie en filtre replié), quantité mémorisée, « Acheter le plus rentable » (dégâts/s
+// gagnés par or, core/profit.js). Au début, 3 lignes seulement (Dégâts, Vitesse, PV) ; ×10, ×100 et Max quand l'or
+// atteint 10 fois le moins cher. Mode compact : une ligne par amélioration, sans description.
+const BEGINNER_KEYS = ['damage', 'attackSpeed', 'vitality'];
+const ORDER = ['damage', 'attackSpeed', 'crit', 'vitality', 'armor', 'regen', 'goldFind'];
+
 export default {
   id: 'upgrades',
   title: 'Améliorations',
   icon: 'icon_upgrade',
   extra: (ui, state) => `${coin()}<b class="gold-text num">${formatNumber(state.gold)}</b>`,
   render(ui, state) {
-    // v9.0.6 : les boosts sont passés dans Compétences (avec les sorts) ; ici, seulement les améliorations d'or.
-    const cats0 = BALANCE.upgradeCategories.filter((c) => c.id !== 'rushes');
-    const cat = cats0.find((c) => c.id === ui.view.upgradeCat) ?? cats0[0];
+    const beginner = (state.records.bossesDefeated ?? 0) === 0;
+    const cats = BALANCE.upgradeCategories.filter((c) => c.id !== 'rushes');
+    const cat = cats.find((c) => c.id === ui.view.upgradeCat) ?? null; // null = toutes
     const current = computeHeroStats(state);
-    const cats = cats0.map((c) => `<button class="btn chip-btn${c.id === cat.id ? ' active' : ''}"
-      data-action="upgrade-cat" data-value="${c.id}">${img(c.icon)}<span>${c.label}</span></button>`).join('');
-    // v8.4 : que faire maintenant ? (conseils cliquables) + prévision du prochain boss.
-    // v9.0.6 : « Que faire ? » est passé dans l'écran Aventure ; ici, seulement la prévision du prochain boss.
-    const guide = `<div class="card guide-card">${forecastHtml(state.dungeon || state.tower || state.challenge ? null : bossForecast(state, () => ui.invalidate()))}</div>`;
-    // Quantité achetée par clic : ×1, ×10, ×100 ou le maximum abordable.
-    const amount = ui.view.buyAmount ?? '1';
-    const amounts = ['1', '10', '100', 'max'].map((a) => `<button class="btn chip-btn${a === amount ? ' active' : ''}" data-action="buy-amount" data-value="${a}">${a === 'max' ? 'Max' : `×${a}`}</button>`).join('');
-    const cards = cat.keys.map((key) => {
+    const profits = upgradeProfits(state);
+    const best = bestUpgrade(state);
+    let keys = ORDER.filter((k) => !beginner || BEGINNER_KEYS.includes(k)).filter((k) => !cat || cat.keys.includes(k));
+    if (ui.view.upgradeSort === 'profit') keys = [...keys].sort((x, y) => (profits[y]?.score ?? -1) - (profits[x]?.score ?? -1));
+    else if (ui.view.upgradeSort === 'cost') keys = [...keys].sort((x, y) => upgradeCost(x, state.upgrades[x]) - upgradeCost(y, state.upgrades[y]));
+    const cheapest = Math.min(...keys.map((k) => upgradeCost(k, state.upgrades[k])));
+    const bulkOpen = !beginner || state.gold >= cheapest * 10;
+    const amount = bulkOpen ? ui.view.buyAmount ?? '1' : '1';
+    const amounts = bulkOpen ? `<div class="chip-row buy-amounts" role="group" aria-label="Quantité">${['1', '10', '100', 'max'].map((a) => `<button class="btn chip-btn${a === amount ? ' active' : ''}" data-action="buy-amount" data-value="${a}" aria-pressed="${a === amount}">${a === 'max' ? 'Max' : `×${a}`}</button>`).join('')}</div>` : '';
+    const compact = ui.compact;
+    const cards = keys.map((key) => {
       const up = BALANCE.upgrades[key];
       const level = state.upgrades[key];
       const max = up.maxLevel !== undefined && level >= up.maxLevel;
@@ -52,14 +61,26 @@ export default {
       const [from, to, unit] = effect(key, current, next);
       const milestone = key === 'damage' && (level + 1) % up.milestoneEvery === 0
         ? `<span class="tag">×${formatDecimal(up.milestoneMultiplier)}</span>` : '';
-      return `<div class="card upg-card" title="${escapeHtml(up.description)}">
+      const p = profits[key];
+      const isBest = best?.key === key;
+      const gain = p ? `<span class="${isBest ? 'good' : 'muted'} upg-profit">+${formatDecimal(p.pct)} % dégâts/s${isBest ? ' · le plus rentable' : ''}</span>` : '';
+      return `<div class="card upg-card${isBest ? ' best' : ''}${compact ? ' compact' : ''}">
         <div class="upg-icon">${img(ICONS[key])}</div>
-        <div><div class="upg-name">${escapeHtml(up.label)}</div><div class="upg-level">Niv. ${level}${up.maxLevel ? `/${up.maxLevel}` : ''}</div></div>
+        <div><div class="upg-name">${escapeHtml(up.label)} <span class="upg-level">niv. ${level}${up.maxLevel ? `/${up.maxLevel}` : ''}</span></div>
+          ${compact ? '' : `<div class="muted upg-desc">${escapeHtml(up.description)}</div>`}${gain}</div>
         <div class="upg-effect num">${max ? `<span class="to">${from}</span> ${unit}`
           : `<span class="from">${from}</span> → <span class="to">${to}</span> ${unit}${milestone}`}</div>
         ${costButton({ action: 'buy', cost, have: state.gold, attrs: `data-key="${key}" data-amount="${amount}"`, max, label: count > 1 ? `+${count} ` : '' })}
       </div>`;
     });
-    return `${guide}<div class="split-nav"><div class="side-nav">${cats}</div><div class="upg-list"><div class="chip-row buy-amounts">${amounts}</div>${cards.join('')}</div></div>`;
+    const bestBtn = best ? `<button class="btn btn-gold primary-action" data-action="buy-best" data-cost="${best.cost}" data-currency="gold" ${state.gold >= best.cost ? '' : 'disabled'}>Acheter le plus rentable</button>` : '';
+    const filters = `<div class="row upg-filters"><select data-action="upgrade-cat-select" aria-label="Catégorie"><option value="all">Toutes les catégories</option>${cats.map((c) => `<option value="${c.id}" ${cat?.id === c.id ? 'selected' : ''}>${c.label}</option>`).join('')}</select>
+      <select data-action="upgrade-sort" aria-label="Trier"><option value="">Tri : par défaut</option><option value="profit" ${ui.view.upgradeSort === 'profit' ? 'selected' : ''}>Tri : rentabilité</option><option value="cost" ${ui.view.upgradeSort === 'cost' ? 'selected' : ''}>Tri : coût</option></select></div>`;
+    const forecast = state.dungeon || state.tower || state.challenge ? '' : forecastHtml(bossForecast(state, () => ui.invalidate()));
+    return `<div class="card upg-top">${forecast}<div class="row-between">${bestBtn}${amounts}</div>
+        <div class="muted">« Le plus rentable » achète, tant que l'or suffit, l'amélioration qui donne le plus de dégâts/s par pièce d'or.</div></div>
+      ${beginner ? '' : fold(ui, 'upg-filters', 'Filtrer et trier', filters, { extra: cat ? cat.label : '' })}
+      <div class="upg-list">${cards.join('')}</div>
+      ${beginner ? '<div class="muted">D\'autres améliorations (critique, armure, régénération, or) s\'ouvrent après le premier mini-boss.</div>' : ''}`;
   },
 };

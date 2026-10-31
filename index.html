@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://api.github.com https://data.jsdelivr.com">
   <title>Idle RPG</title>
   <link rel="icon" href="assets/icon.png">
@@ -11,40 +11,33 @@
 </head>
 <body>
   <div id="app" class="layout-mini">
-    <!-- v9.0.6 : 5 catégories (sous-onglets dans le panneau), en barre verticale (en bas sur écran étroit) -->
-    <nav id="tabs">
+    <!-- v9.1.0 : 4 menus (onglets dans le panneau), barre verticale (en bas sur écran étroit). Chiffre fixe par menu. -->
+    <nav id="tabs" aria-label="Menus">
+      <button data-menu="hero"><img class="px" data-icon="icon_hero" alt=""><span>Héros</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-hero"></i><b class="badge-count hidden" id="count-hero"></b></button>
       <button data-menu="adventure"><img class="px" data-icon="icon_map" alt=""><span>Aventure</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-adventure"></i></button>
-      <button data-menu="character"><img class="px" data-icon="icon_hero" alt=""><span>Personnage</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-character"></i></button>
-      <button data-menu="summon"><img class="px" data-icon="icon_summon" alt=""><span>Invocation</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-summon"></i></button>
-      <button data-menu="events"><img class="px" data-icon="icon_dungeon" alt=""><span>Événements</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-events"></i></button>
-      <button data-menu="progress"><img class="px" data-icon="icon_book" alt=""><span>Progression</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-progress"></i></button>
+      <button data-menu="team"><img class="px" data-icon="icon_summon" alt=""><span>Équipe</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-team"></i></button>
+      <button data-menu="goals"><img class="px" data-icon="icon_trophy" alt=""><span>Objectifs</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-goals"></i></button>
     </nav>
     <div id="content">
     <div id="main-col">
       <header id="topbar">
-        <div class="brand top-level" title="Niveau du chevalier"><img class="px" data-icon="icon_hero" alt=""><b id="top-level">Niv. 1</b>
-          <span class="top-xp"><i id="top-xp"></i></span></div>
-        <button class="chip chip-stage" id="top-stage" data-open="campaign" title="Carte du monde"></button>
-        <button class="chip chip-gold" data-open="upgrades" title="Or — améliorations"><img class="px" data-icon="coin" alt=""><span id="gold">0</span><b class="gold-up hidden" id="gold-up" title="Une amélioration est achetable">⬆</b></button>
-        <button class="chip chip-gem" data-open="summon" title="Gemmes — invocation"><img class="px" data-icon="icon_gem" alt=""><span id="gems">0</span></button>
-        <button class="chip chip-ticket" data-open="summon" title="Tickets d'invocation"><img class="px" data-icon="icon_ticket" alt=""><span id="tickets">0</span></button>
-        <div class="chip chip-fragment hidden" id="fragments-chip" title="Fragments anciens (Renaissance)"><img class="px" data-icon="icon_fragment" alt=""><span id="fragments">0</span></div>
-        <div class="chip chip-boost hidden" id="boost-chip" title="Démarrage rapide : or, XP, butin et événements boostés pendant les premières heures de jeu">⚡<span id="boost">0</span></div>
+        <button class="brand top-level" id="portrait" data-open="hero" title="Fiche du héros"><img class="px" data-icon="icon_hero" alt=""><b id="top-level">Niv. 1</b>
+          <span class="top-xp" aria-hidden="true"><i id="top-xp"></i></span></button>
+        <button class="chip chip-gold" data-currency="gold" title="Or"><img class="px" data-icon="coin" alt="Or"><span id="gold">0</span></button>
+        <button class="chip chip-gem" data-currency="gems" title="Gemmes"><img class="px" data-icon="icon_gem" alt="Gemmes"><span id="gems">0</span></button>
         <div class="top-actions">
-          <button class="icon-btn" data-open="contracts" title="Missions &amp; contrats"><img class="px" data-icon="icon_trophy" alt=""><i class="badge hidden" id="contracts-badge"></i></button>
-          <button class="icon-btn" data-open="inbox" title="Récompenses"><img class="px" data-icon="icon_mail" alt=""><i class="badge hidden" id="inbox-badge"></i></button>
-          <button class="icon-btn" data-open="options" title="Paramètres"><img class="px" data-icon="icon_gear" alt=""></button>
+          <button class="icon-btn" data-open="options" title="Paramètres" aria-label="Paramètres"><img class="px" data-icon="icon_gear" alt=""></button>
         </div>
       </header>
       <section id="play">
         <div id="stage-area">
           <canvas id="scene" aria-label="Combat"></canvas>
           <div id="boss-flash"></div>
-          <div id="zone-card"><div id="zone-name"></div><div id="stage-pips"></div></div>
-          <div id="rush-bar"></div>
-          <div id="skill-bar"></div>
+          <button id="zone-card" data-open="campaign" title="Carte"><span id="zone-name"></span><span id="stage-pips"></span></button>
+          <div id="boost-group"><button id="boost-toggle" class="scene-btn hidden" data-action="toggle-boosts" aria-expanded="false">⚡ Boosts</button>
+            <div id="rush-bar"></div></div>
+          <div id="skill-bar" class="hidden"></div>
           <button id="speed-toggle" class="scene-btn hidden" data-action="speed" title="Vitesse des combats">×1</button>
-          <button id="loot-pop" class="hidden" data-action="open-tab" data-value="inventory" title="Ouvrir l'inventaire"></button>
           <button id="auto-toggle" class="scene-btn" data-action="toggle-auto" title="Avancer automatiquement après chaque étape"></button>
           <div id="strip-bar">
             <span class="strip-gold"><img class="px" data-icon="coin" alt=""><b id="strip-gold">0</b></span>
@@ -54,8 +47,7 @@
           <div id="scene-bottom">
             <span id="level-badge">Niv. 1</span>
             <div id="xp-bar"><div id="xp-fill"></div></div>
-            <span id="dps-chip"><img class="px" data-icon="weapon_sword" alt=""><span id="dps">0</span></span>
-            <span id="hp-chip"><img class="px" data-icon="icon_heart" alt=""><span id="hp">0</span></span>
+            <span id="hp-chip"><img class="px" data-icon="icon_heart" alt="PV"><span id="hp">0</span></span>
           </div>
           <div id="banner" class="hidden"></div>
         </div>
@@ -63,9 +55,9 @@
           <div id="progress"><div id="progress-fill"></div><span id="progress-text"></span></div>
           <div id="news" title="Dernier événement"><span id="news-text">—</span></div>
           <button id="advance-btn" class="btn btn-primary small hidden" data-action="advance" title="Reprendre la progression">Avancer ▶</button>
-          <button id="retry-boss" class="btn btn-gold small hidden" data-action="retry-boss" title="Retenter tout de suite le boss qui vous a vaincu"></button>
           <button id="leave-mode" class="btn btn-danger small hidden" data-action="leave-mode" title="Revenir à la campagne"></button>
         </div>
+        <button id="next-action" class="hidden" type="button"><span class="na-icon" aria-hidden="true">›</span><span id="next-action-text"></span></button>
       </section>
     </div>
     <aside id="panel" class="hidden">
@@ -80,7 +72,8 @@
       <div id="panel-body"></div>
     </aside>
     </div>
-    <div id="modal" class="hidden"><div id="modal-card"></div></div>
+    <div id="modal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div id="modal-card"></div></div>
+    <div id="live" class="sr-only" aria-live="polite"></div>
   </div>
   <script type="module" src="src/main.js"></script>
 </body>

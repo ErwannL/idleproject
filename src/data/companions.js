@@ -16,7 +16,6 @@ function ally(id, name, rarity, fx, passive, skill) {
 }
 
 // Étiquette de rareté des héros alliés (style gacha).
-export const ALLY_GRADE = { rare: 'R', epic: 'SR', legendary: 'SSR' };
 
 export const COMPANIONS = [
   {

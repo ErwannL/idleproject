@@ -239,7 +239,7 @@ export const BALANCE = {
     tenPullGemCost: 900,
     // v7.7 : deux invocations séparées. Compagnons (humains R/SR/SSR) et familiers (animaux).
     pools: {
-      hero: { label: 'Héros', rarityWeights: { rare: 76, epic: 21, legendary: 3 } }, // v9.0.6 : skins de héros
+      hero: { label: 'Apparences', rarityWeights: { rare: 76, epic: 21, legendary: 3 } }, // v9.0.6 : skins de héros
       ally: { label: 'Compagnons', rarityWeights: { rare: 76, epic: 21, legendary: 3 } },
       pet: { label: 'Familiers', rarityWeights: { common: 60, rare: 30, epic: 8.5, legendary: 1.5 } },
     },

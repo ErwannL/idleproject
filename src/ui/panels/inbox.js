@@ -1,41 +1,42 @@
-// Boîte de récompenses : coffres, marchands et gemmes trouvés pendant le farm (jamais perdus).
+// Objectifs > À récupérer (v9.1.0) : une seule liste de tout ce qui est réclamable (missions, contrats, hauts faits,
+// prime, trouvailles, expéditions, collections, maîtrises) et un seul bouton — la touche G fait la même chose.
+// Dessous, les marchands (un achat reste une décision). Rien n'apparaît deux fois.
 import { BALANCE } from '../../data/balance.js';
-import { eventLabel } from '../../core/events.js';
 import { rewardText } from '../../core/rewards.js';
-import { stageLabel } from '../../core/combat.js';
 import { coin, escapeHtml, formatNumber, img, itemFrame, rarityLabel } from '../common.js';
 
-const ICONS = { chest: 'icon_chest', merchant: 'icon_bag', gems: 'icon_gem', portal: 'icon_dungeon', wanderer: 'icon_boss' };
+const KIND_ICONS = {
+  login: 'icon_star', mission: 'icon_trophy', missionBonus: 'icon_chest', contract: 'icon_trophy', achievement: 'icon_star',
+  bounty: 'icon_skull', event: 'icon_chest', expedition: 'icon_paw', encyclopedia: 'icon_book', collection: 'icon_book', mastery: 'icon_boss',
+};
 
 export default {
   id: 'inbox',
-  title: 'Récompenses',
+  title: 'À récupérer',
   icon: 'icon_mail',
-  extra: (ui, state) => `${state.inbox.length}/${BALANCE.events.inboxSize}`,
+  extra: (ui) => {
+    const n = ui.claims.filter((c) => !c.blocked).length;
+    return n ? `${n} prêt${n > 1 ? 's' : ''}` : '';
+  },
   render(ui, state) {
-    if (!state.inbox.length) {
-      return `<div class="card muted">Rien pour l'instant. Pendant le farm, le chevalier trouve parfois un coffre, croise un marchand
-        ou ramasse des gemmes : tout arrive ici et attend votre retour.</div>`;
-    }
+    const list = ui.claims;
+    const ready = list.filter((c) => !c.blocked);
     const full = state.inventory.length >= BALANCE.loot.inventorySize;
-    // Ouvrir la boîte marque tout comme lu : la pastille ne revient qu'avec un nouveau message.
-    for (const e of state.inbox) e.seen = true;
-    const claimable = state.inbox.some((e) => e.type !== 'merchant' && !(e.item && full));
-    const all = claimable ? '<button class="btn btn-gold claim-all" data-action="claim-all-events">Tout récupérer</button>' : '';
-    return all + state.inbox.map((e) => {
-      let body;
-      if (e.type === 'merchant') {
-        body = `<div class="row">${itemFrame(e.item, { tag: 'div' })}<div class="grow"><b class="r-${e.item.rarity} rarity-text">${escapeHtml(e.item.name)}</b>
-            <div class="muted">${rarityLabel(e.item.rarity)} · niv. ${e.item.level}</div></div></div>
-          <div class="detail-actions"><button class="btn btn-gold" data-action="buy-merchant" data-value="${e.id}" ${state.gold < e.price || full ? 'disabled' : ''}>
-            Acheter ${coin()} ${formatNumber(e.price)}</button>
-            <button class="btn" data-action="dismiss-event" data-value="${e.id}">Ignorer</button></div>`;
-      } else {
-        body = `<div class="row">${e.item ? itemFrame(e.item, { tag: 'div' }) : ''}<div class="grow gold-text">${rewardText(e.reward, formatNumber)}</div></div>
-          <div class="detail-actions"><button class="btn btn-gold" data-action="claim-event" data-value="${e.id}" ${e.item && full ? 'disabled title="Sac plein"' : ''}>Récupérer</button></div>`;
-      }
-      return `<div class="card inbox-item"><div class="row-between"><b>${img(ICONS[e.type])} ${eventLabel(e.type)}</b><span class="muted">étape ${stageLabel(e.stage)}</span></div>${body}</div>`;
-    }).join('')
-      + (full ? '<div class="card bad">Sac plein : recyclez des objets pour récupérer les coffres qui contiennent un objet.</div>' : '');
+    const rows = list.map((c) => `<div class="claim-row${c.blocked ? ' blocked' : ''}">${img(KIND_ICONS[c.kind] ?? 'icon_chest')}
+        <div class="grow"><b>${escapeHtml(c.label)}</b><div class="gold-text">${rewardText(c.reward, formatNumber) || (c.item ? 'Un objet' : '')}${c.item && rewardText(c.reward, formatNumber) ? ' · un objet' : ''}</div></div>
+        ${c.itemRef ? itemFrame(c.itemRef, { tag: 'div' }) : ''}${c.blocked ? `<span class="bad">${c.blocked}</span>` : ''}</div>`).join('');
+    const merchants = state.inbox.filter((e) => e.type === 'merchant').map((e) => `<div class="card inbox-item"><div class="row">${itemFrame(e.item, { tag: 'div' })}
+        <div class="grow"><b class="r-${e.item.rarity} rarity-text">${escapeHtml(e.item.name)}</b><div class="muted">${rarityLabel(e.item.rarity)} · niv. ${e.item.level}</div></div></div>
+        <div class="detail-actions"><button class="btn btn-gold" data-action="buy-merchant" data-value="${e.id}" data-cost="${e.price}" ${state.gold < e.price || full ? 'disabled' : ''}>
+          Acheter ${coin()} ${formatNumber(e.price)}</button>
+          <button class="btn" data-action="dismiss-event" data-value="${e.id}">Ignorer</button></div>
+        ${full ? '<div class="bad">Sac plein : recyclez un objet pour acheter.</div>' : ''}</div>`).join('');
+    const head = list.length
+      ? `<div class="card claim-card"><button class="btn btn-gold primary-action claim-all" data-action="claim-everything" ${ready.length ? '' : 'disabled'}>Tout récupérer${ready.length ? ` (${ready.length})` : ''}</button>
+          ${list.length > ready.length ? '<div class="bad">Sac plein : les récompenses avec un objet attendent ici. Recyclez ou rangez des objets.</div>' : ''}
+          <div class="claim-list">${rows}</div></div>`
+      : `<div class="card muted">Rien à récupérer pour l'instant. Missions remplies, coffres trouvés au combat, expéditions terminées et
+          paliers de collection arrivent ici.</div>`;
+    return head + (merchants ? `<div class="section-title">Marchands</div>${merchants}` : '');
   },
 };

@@ -16,9 +16,9 @@ import { DUNGEON_DIFFICULTIES } from './data/dungeons.js';
 import { buyUpgradeBulk } from './core/economy.js';
 import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
 import { endTower, startTower } from './core/tower.js';
-import { claimExpedition, expeditionType, startExpedition } from './core/expeditions.js';
+import { claimExpedition, expeditionType, relaunchExpeditions, startExpedition } from './core/expeditions.js';
 import { endChallenge, startChallenge } from './core/challenge.js';
-import { autoFuse, craftItem, fuseItems, reforgeItem, sharpenItem, upgradeItem } from './core/forge.js';
+import { autoFuse, craftItem, fuseItems, fusionGroups, reforgeItem, sharpenItem, upgradeItem } from './core/forge.js';
 import { summon } from './core/gacha.js';
 import { setActiveHero } from './core/heroes.js';
 import { addToInventory, bulkRecycleCandidates, equipBest, equipItem, isUpgrade, recycleItem, recycleMatching, recycleRules, sweepInventory, toggleLock } from './core/inventory.js';
@@ -30,7 +30,8 @@ import { buyTranscendPerk, buyTranscendPerkMax, performTranscend, stellarMultipl
 import { buyPerk } from './core/prestige.js';
 import { activateRush, rushById, upgradeRush } from './core/rushes.js';
 import { grantReward, rewardText } from './core/rewards.js';
-import { learnSkill } from './core/skills.js';
+import { distributeSkillPoints, learnSkill } from './core/skills.js';
+import { buyMostProfitable } from './core/profit.js';
 import { generateItem, itemPower, makeItem, rarityById } from './core/loot.js';
 import { STAT_LABELS } from './data/items.js';
 import { applyOfflineRewards, computeOfflineRewards } from './core/offline.js';
@@ -40,6 +41,7 @@ import { createNewState } from './core/state.js';
 import { computeHeroStats } from './core/stats.js';
 import { formatNumber } from './core/format.js';
 import { claimBounty } from './core/bounty.js';
+import { claimables } from './core/claimables.js';
 import { moveToStash, putOnMannequin, takeFromMannequin, takeFromStash, wearMannequin } from './core/stash.js';
 import { exposeAll, museumDuplicates, putInMuseum, takeFromMuseum } from './core/museum.js';
 import { createJournal, journalSummary, noteDrop, noteFused, noteRecycled } from './core/journal.js';
@@ -62,6 +64,7 @@ import { BUILT_IN_TOKEN } from './core/update-token.js';
 import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagList, updateStatus } from './core/update.js';
 
 const SIM_INTERVAL_MS = 100;
+const formatRatio = (x) => (x >= 100 ? formatNumber(Math.round(x)) : x.toFixed(2).replace('.', ','));
 // v9.1.0 : codes de triche chargés seulement dans la version dev (fichier absent de la version publique).
 let cheatCodes = null;
 
@@ -221,14 +224,24 @@ const actions = {
     const stat = upgradeItem(state, id, rng);
     if (stat) sound.play('upgrade');
     const label = stat === 'main' || stat?.startsWith('affix:') ? 'effet spécial' : STAT_LABELS[stat];
-    if (!stat) ui.toast('Amélioration impossible (or ou éclats insuffisants, ou maximum atteint).', '#ff8a8a');
-    done(Boolean(stat), stat ? `Amélioration : ${label} +${BALANCE.forge.upgradeBoostPct} %` : null, '#7fe08f');
+    if (!stat) ui.toast('Renforcement impossible (or ou éclats insuffisants, ou maximum atteint).', '#ff8a8a');
+    done(Boolean(stat), stat ? `Renforcé : ${label} +${BALANCE.forge.upgradeBoostPct} %` : null, '#7fe08f');
   },
   fuse(slot, rarity) {
     const item = fuseItems(state, slot, rarity, rng);
     if (item) sound.play('loot', { rarity: item.rarity });
     if (item) ui.view.selectedItemId = item.id;
     done(Boolean(item), item ? `Fusion : ${item.name} (${rarityById(item.rarity).label})` : null, rarityById(item?.rarity ?? 'common').color);
+  },
+  fuseAll() {
+    let n = 0;
+    for (let guard = 0; guard < 500; guard++) {
+      const g = fusionGroups(state)[0];
+      if (!g || !fuseItems(state, g.slot, g.rarity, rng)) break;
+      n += 1;
+    }
+    if (n) sound.play('loot', { rarity: 'epic' });
+    done(n > 0, n ? `${n} fusion${n > 1 ? 's' : ''} faite${n > 1 ? 's' : ''}` : null, '#c9a6ff');
   },
   claimMastery(bossId) {
     const given = claimMastery(state, bossId);
@@ -300,10 +313,66 @@ const actions = {
     if (!n) ui.toast('Rien à récupérer pour le moment.');
     else done(true, `Tout récupéré : ${rewardText(total)}`, '#7fd4ff');
   },
-  // Touche G (v9.1.0 : complétée au lot 2 par tout ce qui est réclamable).
+  // Tout récupérer (v9.1.0, bouton « À récupérer », Prochaine action et touche G) : toutes les récompenses de
+  // core/claimables.js ; d'abord celles sans objet, puis les objets tant que le sac a de la place.
   claimEverything() {
-    this.claimAll();
-    this.claimAllEvents();
+    const total = {};
+    let n = 0;
+    let items = 0;
+    const add = (given) => { if (given) { const { item, ...rest } = given; mergeReward(total, rest); n += 1; } };
+    const list = claimables(state);
+    const order = [...list.filter((c) => !c.item), ...list.filter((c) => c.item)];
+    for (const c of order) {
+      if (c.item && state.inventory.length >= BALANCE.loot.inventorySize) continue;
+      switch (c.kind) {
+        case 'login': add(claimLogin(state)); break;
+        case 'mission': add(claimMission(state, c.period, c.id)); break;
+        case 'missionBonus': add(claimMissionBonus(state, c.period)); break;
+        case 'contract': add(claimContract(state, c.id, rng)); break;
+        case 'achievement': { const a = claimAchievement(state, c.id); if (a) add({ gems: a.gems }); break; }
+        case 'event': { const g = claimEvent(state, c.id); if (g) { add(g); if (g.item) items += 1; } break; }
+        case 'expedition': add(claimExpedition(state, c.slot, Date.now(), grantReward)); break;
+        case 'encyclopedia': add(claimEncyclopedia(state)); break;
+        case 'collection': add(claimCollection(state, c.id)); break;
+        case 'mastery': add(claimMastery(state, c.bossId)); break;
+        case 'bounty': { const r = claimBounty(state, rng); if (r) { add({ gems: r.gems }); items += 1; } break; }
+        default: break;
+      }
+    }
+    const left = claimables(state).length;
+    if (!n) { ui.toast(left ? 'Sac plein : libérez de la place pour récupérer les objets.' : 'Rien à récupérer pour le moment.'); return; }
+    const text = [rewardText(total, formatNumber), items ? `${items} objet${items > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ');
+    done(true, `Tout récupéré : ${text}${left ? ` (${left} en attente : sac plein)` : ''}`, '#7fd4ff');
+  },
+  distributeSkills() {
+    const n = distributeSkillPoints(state);
+    if (!n) ui.toast('Aucun point de compétence à répartir.');
+    done(n > 0, n ? `${n} niveau${n > 1 ? 'x' : ''} de compétence appris` : null, '#f2d083');
+  },
+  buyBestUpgrades() {
+    const r = buyMostProfitable(state);
+    const n = Object.values(r.bought).reduce((a, b) => a + b, 0);
+    if (!n) { ui.toast('Pas assez d\'or pour la prochaine amélioration de dégâts.'); return; }
+    sound.play('upgrade', { volume: 0.6 });
+    done(true, `${n} amélioration${n > 1 ? 's' : ''} achetée${n > 1 ? 's' : ''} : dégâts/s ×${formatRatio(r.dpsAfter / r.dpsBefore)}`, '#7fe08f');
+  },
+  // Retour de session (v9.1.0, touche S) : récupérer tout, équiper le meilleur, dépenser l'or dans les améliorations
+  // de dégâts les plus rentables, répartir les points de compétence, puis un récapitulatif. Jamais de gemmes.
+  sessionReturn() {
+    const before = computeHeroStats(state).dps;
+    const claimsBefore = claimables(state).length;
+    this.claimEverything();
+    const claimsLeft = claimables(state).length;
+    const equipped = equipBest(state);
+    const bought = buyMostProfitable(state);
+    const levels = Object.values(bought.bought).reduce((a, b) => a + b, 0);
+    const points = distributeSkillPoints(state);
+    const after = computeHeroStats(state).dps;
+    save();
+    ui.invalidate();
+    ui.showSessionReturn({
+      claimed: claimsBefore - claimsLeft, claimsLeft, equipped, levels, spent: bought.spent, points, before, after,
+    });
   },
   claimAchievement(id) {
     const a = claimAchievement(state, id);
@@ -542,14 +611,31 @@ const actions = {
     done(true, `Vitesse des combats ×${speed}`);
   },
   // Expéditions (v8.5).
-  startExpedition(companionId, type) {
-    const slot = state.expeditions.slots.findIndex((x) => !x);
+  startExpedition(companionId, type, chosen = null) {
+    // v9.1.0 : la place choisie dans la liste est respectée (avant : toujours la première libre).
+    const slot = Number.isInteger(chosen) && !state.expeditions.slots[chosen] ? chosen : state.expeditions.slots.findIndex((x) => !x);
     const c = companionById(companionId);
     done(startExpedition(state, slot, companionId, type), c ? `${c.name} part en expédition (${expeditionType(type)?.label})` : null, '#9fe6ff');
   },
   claimExpedition(slot) {
     const given = claimExpedition(state, slot, Date.now(), grantReward);
     done(Boolean(given), given ? `Expédition terminée : ${rewardText(given, formatNumber)}` : null, '#9fe6ff');
+  },
+  claimAllExpeditions() {
+    const total = {};
+    let n = 0;
+    state.expeditions.slots.forEach((run, slot) => {
+      if (!run || Date.now() < run.end) return;
+      const given = claimExpedition(state, slot, Date.now(), grantReward);
+      if (given) { mergeReward(total, given); n += 1; }
+    });
+    done(n > 0, n ? `${n} expédition${n > 1 ? 's' : ''} récupérée${n > 1 ? 's' : ''} : ${rewardText(total, formatNumber)}` : null, '#9fe6ff');
+    return n;
+  },
+  relaunchExpeditions() {
+    const n = relaunchExpeditions(state);
+    if (!n) ui.toast('Aucune expédition à relancer (place occupée ou compagnon dans l\'équipe).');
+    done(n > 0, n ? `${n} expédition${n > 1 ? 's' : ''} relancée${n > 1 ? 's' : ''}` : null, '#9fe6ff');
   },
   recallExpedition(slot) {
     done(claimExpedition(state, slot, Date.now(), grantReward) !== null, 'Compagnon rappelé (expédition abandonnée)');
@@ -621,6 +707,10 @@ const actions = {
     state.ui.keepSets = on;
     lastSweep = 0;
     done(true, on ? 'Pièces d\'ensemble utiles gardées' : 'Pièces d\'ensemble recyclées comme les autres objets');
+  },
+  markSeen(tab) {
+    state.ui.seenTabs = [...new Set([...(state.ui.seenTabs ?? []), tab])];
+    done(true);
   },
   setNotify(key, on) { state.ui.notify = { ...state.ui.notify, [key]: on }; done(true); },
   setFocus(on) { state.ui.focus = on; done(true); },
@@ -1017,15 +1107,11 @@ function tick() {
     // Fusion automatique d'abord (5 objets identiques → rareté supérieure), puis recyclage.
     const fused = autoFuse(state, rng, isUpgrade);
     if (fused.length) {
-      ui.noteFused(fused.length);
       for (const j of journals()) noteFused(j, fused.length);
-      const best = fused.at(-1);
-      ui.toast(`Fusion auto : ${fused.length} objet${fused.length > 1 ? 's' : ''} créé${fused.length > 1 ? 's' : ''} (${best.name})`, rarityById(best.rarity).color);
       ui.invalidate();
     }
     const swept = sweepInventory(state);
     if (swept.count) {
-      ui.noteRecycled(swept.count, swept.gold);
       for (const j of journals()) noteRecycled(j, swept.count, swept.gold);
       ui.invalidate();
     }

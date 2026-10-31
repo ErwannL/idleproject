@@ -106,7 +106,7 @@ test('v8.4 : bannière de la semaine (Légendaire mis en avant) et historique', 
 });
 
 test('v8.4 : prévision du prochain boss et conseils', async () => {
-  const { forecastBoss, advice } = await import('../src/core/guide.js');
+  const { forecastBoss, nextAction } = await import('../src/core/guide.js');
   const s = createNewState(NOW, 3);
   const weak = forecastBoss(s);
   s.upgrades.damage = 200; s.upgrades.vitality = 200;
@@ -114,5 +114,5 @@ test('v8.4 : prévision du prochain boss et conseils', async () => {
   assert.equal(strong.win, true);
   assert.ok(!weak.win || weak.seconds >= strong.seconds);
   s.gold = 1e30;
-  assert.ok(advice(s).some((t) => t.tab === 'upgrades'));
+  assert.equal(nextAction(s).tab, 'upgrades'); // v9.1.0 : un seul conseil (ici, l'amélioration la plus rentable)
 });

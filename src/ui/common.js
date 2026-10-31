@@ -45,11 +45,22 @@ export function itemFrame(item, { selected = false, showUp = false, equipped = f
 }
 
 // `locked` : bouton désactivé pour une autre raison que le coût (ne sera pas réactivé par l'actualisation).
+// v9.1.0 : sous un bouton grisé faute de monnaie, ce qui manque (« Il manque 12 éclats ») ; mis à jour par
+// refreshCosts (ui.js) sans redessiner le panneau.
+export const CURRENCY_WORDS = { gold: ['or', 'or'], gems: ['gemme', 'gemmes'], fragments: ['fragment', 'fragments'], shards: ['éclat', 'éclats'],
+  essence: ['essence', 'essences'], tickets: ['ticket', 'tickets'], stars: ['Étoile', 'Étoiles'] };
+export function missingText(cost, have, currency) {
+  const n = Math.ceil(cost - have);
+  if (!(n > 0)) return '';
+  const [one, many] = CURRENCY_WORDS[currency] ?? ['', ''];
+  return `Il manque ${formatNumber(n)} ${n > 1 ? many : one}`;
+}
+
 export function costButton({ action, cost, have, label = '', currency = 'gold', attrs = '', cls = 'btn-gold', max = false, locked = false }) {
   const iconHtml = { gold: coin(), gems: gem(), fragments: fragment(), shards: shard(), essence: essence(), tickets: img('icon_ticket'), stars: '<span class="star-cur">✧</span>' }[currency];
   if (max) return `<button class="btn ${cls}" disabled>Max</button>`;
-  return `<button class="btn ${cls} num" data-action="${action}" data-cost="${cost}" data-currency="${currency}" ${attrs}
-    ${locked ? 'data-locked="1"' : ''} ${locked || have < cost ? 'disabled' : ''}>${label}${iconHtml} ${formatNumber(cost)}</button>`;
+  return `<span class="cost-wrap"><button class="btn ${cls} num" data-action="${action}" data-cost="${cost}" data-currency="${currency}" ${attrs}
+    ${locked ? 'data-locked="1"' : ''} ${locked || have < cost ? 'disabled' : ''}>${label}${iconHtml} ${formatNumber(cost)}</button><small class="cost-missing">${locked ? '' : missingText(cost, have, currency)}</small></span>`;
 }
 
 export function progressBar(ratio, text = '', cls = '') {
@@ -137,4 +148,22 @@ export function hdArt(unit, cls = '') {
   const id = hdArtId(unit);
   const url = hdArtUrl(unit);
   return url ? `<img class="hd-art ${cls}${HD_REAL.has(id) ? ' real' : ''}" src="${url}" alt="" loading="lazy" onerror="this.remove()">` : '';
+}
+
+// v9.1.0 : bloc repliable unique (au clavier : bouton avec aria-expanded). L'état vit dans ui.view (open / closed)
+// pour survivre au redessin du panneau. `body` peut être une fonction : elle n'est calculée que bloc ouvert.
+export function fold(ui, id, title, body, { open = false, extra = '', cls = '' } = {}) {
+  const v = ui.view;
+  const isOpen = v.open?.has(id) ? true : v.closed?.has(id) ? false : open;
+  const content = isOpen ? (typeof body === 'function' ? body() : body) : '';
+  return `<div class="fold${isOpen ? ' open' : ''}${cls ? ` ${cls}` : ''}">
+    <button class="fold-head" data-action="toggle-section" data-value="${id}" data-expanded="${isOpen}" aria-expanded="${isOpen}">
+      <span class="fold-arrow" aria-hidden="true">${isOpen ? '▾' : '▸'}</span><span class="fold-title">${title}</span>${extra ? `<span class="fold-extra">${extra}</span>` : ''}</button>
+    ${isOpen ? `<div class="fold-body">${content}</div>` : ''}</div>`;
+}
+
+// Segment (au plus un par écran) : [[id, libellé, icône?]], action et valeur active.
+export function segment(items, action, active, attrs = '') {
+  return `<div class="seg" role="tablist" ${attrs}>${items.map(([id, label, ic]) => `<button class="seg-btn${id === active ? ' active' : ''}" role="tab"
+    aria-selected="${id === active}" data-action="${action}" data-value="${id}">${ic ? img(ic) : ''}<span>${label}</span></button>`).join('')}</div>`;
 }

@@ -1,7 +1,12 @@
 // Encyclopédie (v9.0.5) : bestiaire, boss, mutations, équipements (une entrée par rareté) et compagnons.
 // Ce qui n'a pas encore été découvert apparaît en silhouette « ??? ». Chaque entrée a sa fiche détaillée.
+import { collections } from './boss.js';
+import { museumView } from './inventory.js';
+import { MUSEUM_PIECES, museumCount } from '../../core/museum.js';
+import { COLLECTIONS } from '../../data/codex.js';
+import { collectionStatus } from '../../core/codex.js';
 import { BALANCE } from '../../data/balance.js';
-import { ALLY_GRADE, COMPANIONS } from '../../data/companions.js';
+import { COMPANIONS } from '../../data/companions.js';
 import { DUNGEONS } from '../../data/dungeons.js';
 import { BOSSES, ENEMIES } from '../../data/enemies.js';
 import { RARITIES, SIGNATURE_ITEMS, SLOTS, STAT_LABELS, PERCENT_STATS, ITEM_BASES } from '../../data/items.js';
@@ -19,7 +24,7 @@ import { rewardText } from '../../core/rewards.js';
 import { itemIconUrl } from '../../render/pixel.js';
 import { animCanvas } from '../animator.js';
 import { AFFIXES } from '../../data/items.js';
-import { effectText, escapeHtml, formatNumber, icon, img, progressBar, rarityLabel, stars } from '../common.js';
+import { effectText, escapeHtml, fold, formatNumber, icon, img, progressBar, rarityLabel, stars } from '../common.js';
 
 const SHADOW = { tint: { color: '#2e3a52', alpha: 1 } };
 const TIERS = { mini: 'Mini-boss', mid: 'Boss', hard: 'Boss redoutable', dungeon: 'Boss de donjon' };
@@ -86,7 +91,7 @@ function mutationList(state, sel) {
 // Équipements : une ligne par modèle, une case par rareté (chaque case est une entrée).
 function itemList(state, sel, slot) {
   const bases = [...ITEM_BASES, ...SIGNATURE_ITEMS].filter((b) => slot === 'all' || b.slot === slot);
-  const filters = ['all', ...Object.keys(SLOTS)].map((s) => `<button class="chip chip-btn${slot === s ? ' active' : ''}" data-action="enc-slot" data-value="${s}">${s === 'all' ? 'Tous' : SLOTS[s]}</button>`).join('');
+  const filters = `<select data-action="enc-slot-select" aria-label="Emplacement">${['all', ...Object.keys(SLOTS)].map((s) => `<option value="${s}" ${slot === s ? 'selected' : ''}>${s === 'all' ? 'Tous les emplacements' : SLOTS[s]}</option>`).join('')}</select>`;
   const rows = bases.map((b) => {
     const anyKnown = RARITIES.some((r) => state.codex.itemRar[`${b.id}:${r.id}`]);
     const cells = RARITIES.map((r) => {
@@ -198,7 +203,7 @@ function itemCard(state, baseId, rarity) {
 function companionCard(state, id) {
   const c = COMPANIONS.find((x) => x.id === id);
   const owned = state.companions.owned[id];
-  const grade = c.kind === 'ally' ? ALLY_GRADE[c.rarity] : rarityLabel(c.rarity);
+  const grade = rarityLabel(c.rarity);
   if (!owned) return unknownCard(`${c.kind === 'ally' ? 'Compagnon' : 'Familier'} ${grade}. S'obtient par l'Invocation.`, spritePic(c.sprite, false, c.kind === 'ally' ? 2 : 4));
   const passive = Object.fromEntries(Object.entries(c.passive).map(([k, v]) => [MULTIPLICATIVE[k] ?? k, v]));
   return `<div class="enc-card"><div class="enc-portrait">${c.kind === 'ally' ? animCanvas(`foe:${c.sprite}`, 96, 72, 2) : animCanvas(`pet:${c.sprite}`, 64, 56, 3)}</div>
@@ -248,6 +253,9 @@ function milestones(state, progress) {
     <div class="m-track enc-track"><div class="m-fill" style="width:${Math.min(100, progress.pct)}%"></div>${steps}</div>`;
 }
 
+// v9.1.0 : trois systèmes sur un écran, dans cet ordre — en-tête (pourcentage et paliers de l'encyclopédie, pour ses
+// 5 sections seulement), bloc Codex replié (paliers propres), sections, puis le Musée (compteur propre, sans effet
+// sur le pourcentage). Le Musée n'est pas une section de l'encyclopédie (core/encyclopedia.js ne le compte pas).
 export default {
   id: 'encyclopedia',
   title: 'Collections',
@@ -256,18 +264,22 @@ export default {
   render(ui, state) {
     const v = ui.view;
     const progress = encyclopediaProgress(state);
-    const sec = ENCYCLOPEDIA_SECTIONS.some((s) => s.id === v.encSec) ? v.encSec : 'monsters';
-    const sel = v.encSel?.startsWith(`${PREFIX[sec]}:`) ? v.encSel : FIRST[sec]();
+    const sec = v.encSec === 'museum' || ENCYCLOPEDIA_SECTIONS.some((s) => s.id === v.encSec) ? v.encSec : 'monsters';
     const tabs = progress.sections.map((s) => `<button class="enc-tab${s.id === sec ? ' active' : ''}" data-action="enc-sec" data-value="${s.id}">
-      ${img(s.icon)}<span>${s.label}</span><small>${s.found}/${s.total}</small>${progressBar(s.found / s.total)}</button>`).join('');
-    const list = { monsters: () => monsterList(state, sel), bosses: () => bossList(state, sel), mutations: () => mutationList(state, sel),
-      items: () => itemList(state, sel, v.encSlot ?? 'all'), companions: () => companionList(state, sel) }[sec]();
-    // Étape 5 : les trois collections (Encyclopédie, collections du Codex des boss, Musée) reliées entre elles.
-    const links = `<div class="coll-links"><span class="muted">Autres collections :</span>
-      <button class="btn small" data-action="goto" data-value="boss">${img('icon_boss')} Codex des boss</button>
-      <button class="btn small" data-action="goto" data-value="museum">${img('icon_trophy')} Musée ancestral</button></div>`;
-    return `<div class="card">${milestones(state, progress)}${links}</div>
-      <div class="enc-tabs">${tabs}</div>
-      <div class="codex enc-body"><div class="card enc-list">${list}</div><div class="card codex-detail">${detail(state, sel)}</div></div>`;
+      ${img(s.icon)}<span>${s.label}</span><small>${s.found}/${s.total}</small>${progressBar(s.found / s.total)}</button>`).join('')
+      + `<button class="enc-tab museum-tab${sec === 'museum' ? ' active' : ''}" data-action="enc-sec" data-value="museum">
+      ${img('icon_trophy')}<span>Musée</span><small>${museumCount(state)}/${MUSEUM_PIECES.length}</small>${progressBar(museumCount(state) / MUSEUM_PIECES.length)}</button>`;
+    const codexReady = COLLECTIONS.filter((c) => collectionStatus(state, c).ready).length;
+    const codex = fold(ui, 'codex-collections', 'Codex : collections et paliers', () => collections(ui, state),
+      { extra: codexReady ? `<span class="good">${codexReady} prête${codexReady > 1 ? 's' : ''}</span>` : '' });
+    let body;
+    if (sec === 'museum') body = museumView(ui, state);
+    else {
+      const sel = v.encSel?.startsWith(`${PREFIX[sec]}:`) ? v.encSel : FIRST[sec]();
+      const list = { monsters: () => monsterList(state, sel), bosses: () => bossList(state, sel), mutations: () => mutationList(state, sel),
+        items: () => itemList(state, sel, v.encSlot ?? 'all'), companions: () => companionList(state, sel) }[sec]();
+      body = `<div class="codex enc-body"><div class="card enc-list">${list}</div><div class="card codex-detail">${detail(state, sel)}</div></div>`;
+    }
+    return `<div class="card">${milestones(state, progress)}</div>${codex}<div class="enc-tabs">${tabs}</div>${body}`;
   },
 };

@@ -44,3 +44,19 @@ export function learnSkill(state, id) {
 export function activeSkills(state) {
   return SKILLS.filter((s) => (state.skills[s.id] ?? 0) > 0 && state.level >= s.unlockLevel);
 }
+
+// « Répartir mes points » (v9.1.0) : répartition équilibrée entre les compétences déjà apprises — chaque point va à
+// la moins haute (à égalité, la première de la liste). Sans compétence apprise, la première débloquée est apprise.
+// Renvoie le nombre de niveaux achetés.
+export function distributeSkillPoints(state) {
+  let n = 0;
+  for (let guard = 0; guard < 2000; guard++) {
+    const learned = SKILLS.filter((s) => (state.skills[s.id] ?? 0) > 0 && state.level >= s.unlockLevel && state.skills[s.id] < s.maxLevel);
+    const pool = learned.length ? learned : SKILLS.filter((s) => state.level >= s.unlockLevel && (state.skills[s.id] ?? 0) < s.maxLevel).slice(0, 1);
+    const target = pool.filter((s) => skillPointsAvailable(state) >= skillPointCost(state.skills[s.id] ?? 0))
+      .sort((a, b) => (state.skills[a.id] ?? 0) - (state.skills[b.id] ?? 0))[0];
+    if (!target || !learnSkill(state, target.id)) break;
+    n += 1;
+  }
+  return n;
+}

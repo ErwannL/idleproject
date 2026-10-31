@@ -45,7 +45,7 @@ function portrait(bossId, known, scale = 1) {
 }
 
 // Collections du Codex : paliers de découverte et récompenses.
-function collections(ui, state) {
+export function collections(ui, state) {
   return `<div class="collections">${COLLECTIONS.map((c) => {
     const st = collectionStatus(state, c);
     const goal = Math.min(st.next ?? c.milestones[c.milestones.length - 1], st.total);
@@ -158,7 +158,7 @@ function bossDetail(ui, state, bossId) {
 
 export default {
   id: 'boss',
-  title: 'Boss ancestraux',
+  title: 'Boss',
   icon: 'icon_boss',
   extra: (ui, state) => `Pouvoirs actifs ${state.equippedPowers.length}/${powerSlots(state)}`,
   render(ui, state) {
@@ -166,13 +166,13 @@ export default {
     const known = order.filter((id) => state.powers[id]).length;
     const sel = BOSSES[ui.view.bossSel] && order.includes(ui.view.bossSel) ? ui.view.bossSel : (order.find((id) => state.powers[id]) ?? order[0]);
     const synergies = synergyFamilies(state).map((f) => POWER_FAMILIES[f].label);
-    return `<div class="card"><div class="row-between"><div class="section-title">Collections</div>
-        <span class="muted">Boss découverts : ${known}/${order.length}</span></div>${collections(ui, state)}</div>
+    // v9.1.0 : les collections du Codex sont dans Objectifs › Collections ; ici, victoires, maîtrise et pouvoirs.
+    return `<div class="muted">Boss découverts : ${known}/${order.length} · ${powerSlots(state)} pouvoirs actifs à la fois.</div>
       <div class="codex">
         <div class="codex-list">${order.map((id) => bossListItem(ui, state, id, sel)).join('')}</div>
         <div class="card codex-detail">${bossDetail(ui, state, sel)}
-          <div class="muted codex-help">${powerSlots(state)} pouvoirs actifs à la fois. Synergie : 2 pouvoirs de la même famille = effets +${POWER_RULES.synergy.bonusPct} %.
-            ${synergies.length ? `<span class="good">Synergie active : ${synergies.join(', ')}</span>` : ''}</div></div>
+          <div class="muted codex-help">Bonus de famille : 2 pouvoirs de la même famille = effets +${POWER_RULES.synergy.bonusPct} %.
+            ${synergies.length ? `<span class="good">Bonus de famille actif : ${synergies.join(', ')}</span>` : ''}</div></div>
       </div>`;
   },
 };

@@ -1,16 +1,16 @@
-// Équipe : le chevalier + 2 personnages (héros alliés) + 1 compagnon ; collection, niveaux, compétences.
+// Équipe > Composition : le héros + 2 compagnons + 1 familier ; collection, niveaux, capacités.
+// v9.1.0 : expéditions dans leur propre onglet, builds dans Équipement, synergies repliées (actives visibles).
 import { BALANCE } from '../../data/balance.js';
-import { ALLY_GRADE, COMPANION_RULES, COMPANIONS } from '../../data/companions.js';
+import { COMPANION_RULES, COMPANIONS } from '../../data/companions.js';
 import { MULTIPLICATIVE, RARITY_SKILL, activeSynergies, allCompanionSkills, companionById, companionMultiplier, companionUpgradeCost, equippedOfKind, teamKind } from '../../core/companions.js';
 import { COMPANION_ROLES, ROLES, SYNERGIES } from '../../data/synergies.js';
-import { costButton, effectText, escapeHtml, hdArt, formatNumber, icon, img, progressBar, rarityLabel, stars } from '../common.js';
+import { costButton, effectText, escapeHtml, fold, hdArt, formatNumber, icon, img, rarityLabel, stars } from '../common.js';
 import { animCanvas } from '../animator.js';
 import { DUNGEONS } from '../../data/dungeons.js';
 import { SKILL_RULES } from '../../data/companion-skills.js';
 import { computeHeroStats } from '../../core/stats.js';
-import { EXPEDITION_TYPES, availableForExpedition, expeditionDone, expeditionReward, expeditionType, isAway } from '../../core/expeditions.js';
-import { rewardText } from '../../core/rewards.js';
-import { formatDuration } from '../../core/format.js';
+import { expeditionDone, expeditionType, isAway } from '../../core/expeditions.js';
+import { companionPortrait } from './expeditions.js';
 
 // Compétences (v8.9) : 4 par compagnon, la 4e avec 3 doublons ; chaque étoile les renforce de +15 %.
 // Attaque = dégâts par seconde de ses compétences offensives ; Défense = armure, PV et boucliers qu'il apporte.
@@ -34,48 +34,6 @@ function skillsBlock(state, c, owned) {
     ${stars >= BALANCE.summon.maxStars ? '<div class="good">✦ Étoiles au maximum : ce compagnon brille d\'une aura sur la scène.</div>' : ''}`;
 }
 
-// Expéditions (v8.5) : 3 places ; les compagnons hors de l'équipe partent 1 h, 4 h ou 12 h.
-function expeditionsCard(ui, state, now = Date.now()) {
-  const slots = state.expeditions.slots.map((run, i) => {
-    // v8.9 : tout se fait ici — choisir le compagnon (liste) puis la durée, sans chercher sa fiche plus bas.
-    if (!run) {
-      const free = availableForExpedition(state);
-      if (!free.length) return '<div class="exp-slot empty"><span class="muted">Place libre — aucun compagnon disponible (ceux de l\'équipe ne partent pas).</span></div>';
-      const pick = free.some((c) => c.id === ui.view.expPick?.[i]) ? ui.view.expPick[i] : free[i % free.length].id;
-      return `<div class="exp-slot empty">
-        <select data-action="exp-pick" data-slot="${i}" aria-label="Compagnon à envoyer">${free.map((c) => `<option value="${c.id}" ${c.id === pick ? 'selected' : ''}>${escapeHtml(c.name)} (${rarityLabel(c.rarity)} · ${stars(state.companions.owned[c.id].stars).replace(/<[^>]+>/g, '')})</option>`).join('')}</select>
-        <div class="exp-buttons">${EXPEDITION_TYPES.map((t) => `<button class="btn small" data-action="start-expedition" data-value="${pick}|${t.id}"
-          title="${t.text} — prévu : ${rewardText(expeditionReward(state, pick, t.id), formatNumber)}">${t.label} · ${t.hours} h</button>`).join('')}</div></div>`;
-    }
-    const c = companionById(run.companionId);
-    const type = expeditionType(run.type);
-    const done = expeditionDone(run, now);
-    const ratio = Math.min(1, (now - run.start) / (run.end - run.start));
-    return `<div class="exp-slot${done ? ' done' : ''}">
-      <div class="exp-who">${portrait(c)}</div>
-      <div class="grow"><b>${escapeHtml(c.name)}</b> <span class="muted">· ${type.label} (${type.hours} h)</span>
-        ${progressBar(ratio, done ? 'Terminée !' : `encore ${formatDuration((run.end - now) / 1000)}`, done ? 'xp' : '')}
-        <div class="muted exp-reward">${rewardText(run.reward, formatNumber)}</div></div>
-      ${done ? `<button class="btn btn-gold small" data-action="claim-expedition" data-value="${i}">Récupérer</button>`
-        : `<button class="btn small" data-action="recall-expedition" data-value="${i}" title="Rappeler maintenant : la mission est abandonnée, sans récompense">Rappeler</button>`}
-    </div>`;
-  }).join('');
-  return `<div class="card"><div class="section-title">Expéditions <span class="muted">(${state.expeditions.done} terminée${state.expeditions.done > 1 ? 's' : ''} · elles avancent aussi jeu fermé)</span></div>${slots}</div>`;
-}
-
-// Boutons de départ en expédition (fiche d'un compagnon disponible).
-function expeditionButtons(state, c) {
-  if (isAway(state, c.id)) {
-    const run = state.expeditions.slots.find((s) => s?.companionId === c.id);
-    return `<div class="muted">En expédition : ${expeditionType(run.type).label}${expeditionDone(run) ? ' — terminée, à récupérer' : ''}.</div>`;
-  }
-  if (!availableForExpedition(state).some((x) => x.id === c.id)) return '';
-  const free = state.expeditions.slots.some((s) => !s);
-  return `<div class="section-title">Envoyer en expédition</div><div class="exp-buttons">${EXPEDITION_TYPES.map((t) => `<button class="btn small" data-action="start-expedition" data-value="${c.id}|${t.id}"
-    ${free ? '' : 'disabled'} title="${t.text} — prévu : ${rewardText(expeditionReward(state, c.id, t.id), formatNumber)}">${t.label} · ${t.hours} h</button>`).join('')}</div>
-    ${free ? '' : '<div class="muted">Les 3 places d\'expédition sont occupées.</div>'}`;
-}
-
 // Donjon où ce héros SSR est adapté (il y écrase tout).
 function dungeonFor(c, state) {
   if (!state.cheats?.reveal) return '';
@@ -84,15 +42,11 @@ function dungeonFor(c, state) {
   return d ? `<div class="dungeon-ally"><b class="gold-text">Adapté au donjon « ${d.name} »</b><div class="muted">Dans ce donjon : compétence ×${a.skillMultiplier}, passif ×${a.passiveMultiplier}, dégâts de l'équipe +${a.teamDamagePct} %, dégâts subis −${a.damageTakenPct} %.</div></div>` : '';
 }
 
-// Portrait animé : héros allié (taille humaine) ou petit compagnon.
-function portrait(c, big = false) {
-  if (c.kind === 'ally') return animCanvas(`foe:${c.sprite}`, 64, 56, big ? 2 : 1);
-  return animCanvas(`pet:${c.sprite}`, big ? 26 : 24, big ? 26 : 24, 2);
-}
+const portrait = companionPortrait;
 
 export default {
   id: 'companions',
-  title: 'Compagnons',
+  title: 'Composition',
   icon: 'icon_paw',
   extra: (ui, state) => `Équipe ${1 + state.companions.equipped.length}/${1 + BALANCE.teamSlots.ally + BALANCE.teamSlots.pet}`,
   render(ui, state) {
@@ -114,9 +68,9 @@ export default {
       return `<button class="pet-thumb r-${c.rarity}${c.id === sel.id ? ' selected' : ''}${owned ? '' : ' unowned'}"
         data-action="companion-sel" data-value="${c.id}" title="${c.name}">
         ${owned ? portrait(c) : `<img class="px" src="${icon(c.sprite, c.kind === 'ally' ? 1 : 3, { tint: { color: '#3a4a66', alpha: 1 } })}" alt="">`}
-        ${c.kind === 'ally' ? `<span class="grade g-${c.rarity}">${ALLY_GRADE[c.rarity]}</span>` : ''}
+        <span class="rar-letter" aria-hidden="true">${rarityLabel(c.rarity).slice(0, 1)}</span>
         ${COMPANION_ROLES[c.id] ? `<span class="role-dot" style="background:${ROLES[COMPANION_ROLES[c.id]].color}" title="${ROLES[COMPANION_ROLES[c.id]].label}"></span>` : ''}
-        ${equipped ? '<span class="eq">É</span>' : ''}${isAway(state, c.id) ? '<span class="away" title="En expédition">⚑</span>' : ''}</button>`;
+        ${equipped ? '<span class="eq" title="Dans l\'équipe">✓</span>' : ''}${isAway(state, c.id) ? '<span class="away" title="En expédition">⚑</span>' : ''}</button>`;
     };
     const allies = COMPANIONS.filter((c) => teamKind(c) === 'ally');
     const pets = COMPANIONS.filter((c) => teamKind(c) === 'pet');
@@ -126,7 +80,7 @@ export default {
     const passive = Object.fromEntries(Object.entries(sel.passive).map(([k, v]) => [MULTIPLICATIVE[k] ?? k, v * m]));
     let actions;
     if (!owned) {
-      actions = '<button class="btn btn-gold" data-action="open-tab" data-value="summon">Invoquer…</button>';
+      actions = ui.tabVisible.summon !== false ? '<button class="btn btn-gold" data-action="open-tab" data-value="summon">Invoquer…</button>' : '<span class="muted">Pas encore obtenu.</span>';
     } else {
       const maxed = owned.level >= COMPANION_RULES.maxLevel;
       const kind = teamKind(sel);
@@ -135,7 +89,8 @@ export default {
       // Équipe pleine : « Équiper » propose de choisir le compagnon à remplacer.
       const replacing = full && ui.view.replaceFor === sel.id;
       const away = isAway(state, sel.id);
-      actions = away ? '<button class="btn" disabled>En expédition</button>' : full
+      const run = away ? state.expeditions.slots.find((x) => x?.companionId === sel.id) : null;
+      actions = away ? `<button class="btn" data-action="open-tab" data-value="expeditions">En expédition : ${expeditionType(run.type).label}${expeditionDone(run) ? ' (terminée)' : ''}</button>` : full
         ? `<button class="btn btn-primary" data-action="ask-replace" data-value="${sel.id}">Équiper…</button>`
         : `<button class="btn ${equipped ? '' : 'btn-primary'}" data-action="toggle-companion" data-value="${sel.id}">
           ${equipped ? 'Retirer' : swap ? 'Remplacer le familier' : 'Équiper'}</button>`;
@@ -146,37 +101,36 @@ export default {
       }
       actions += costButton({ action: 'upgrade-companion', cost: companionUpgradeCost(state, sel.id), have: state.gold, attrs: `data-value="${sel.id}"`, label: 'Améliorer ', max: maxed });
     }
-    // Synergies : actives (or) et possibles (grisées) selon les rôles de l'équipe.
-    const active = new Set(activeSynergies(state).map((s) => s.id));
-    const synergies = SYNERGIES.map((syn) => `<div class="syn${active.has(syn.id) ? ' on' : ''}" title="${escapeHtml(syn.text)}">
+    // Synergies : actives (or) et possibles (grisées) selon les rôles de l'équipe. v9.1.0 : repliées, actives visibles.
+    const activeList = activeSynergies(state);
+    const active = new Set(activeList.map((s) => s.id));
+    const synergies = () => `<div class="muted">Le héros compte comme Gardien.</div><div class="syn-list">${SYNERGIES.map((syn) => `<div class="syn${active.has(syn.id) ? ' on' : ''}">
       <b>${escapeHtml(syn.name)}</b> <span class="syn-roles">${syn.roles.map((r) => `<i style="color:${ROLES[r].color}">${ROLES[r].label}</i>`).join(' + ')}</span>
-      <span class="${active.has(syn.id) ? 'good' : 'muted'}">${effectText(syn.effects)}</span></div>`).join('');
-    const loadouts = state.loadouts.map((l, i) => `<div class="loadout">
-      <b>${escapeHtml(l.name)}</b><span class="muted">${l.team ? l.team.map((id) => escapeHtml(companionById(id)?.name ?? '')).filter(Boolean).join(', ') || 'équipe vide' : 'vide'}</span>
-      <button class="btn small" data-action="save-loadout" data-value="${i}">Enregistrer</button>
-      <button class="btn btn-primary small" data-action="apply-loadout" data-value="${i}" ${l.team ? '' : 'disabled'}>Équiper</button></div>`).join('');
-    return `${team}
-      ${expeditionsCard(ui, state)}
-      <div class="card"><div class="section-title">Synergies d'équipe <span class="muted">(le chevalier compte comme Gardien)</span></div><div class="syn-list">${synergies}</div></div>
-      <div class="card"><div class="section-title">Configurations <span class="muted">(équipe + équipement porté)</span></div>${loadouts}</div>
-      <div class="section-title">Compagnons <span class="muted">(humains R · SR · SSR — 2 places)</span></div>
-      <div class="pet-grid">${allies.map(thumb).join('')}</div>
-      <div class="section-title">Familiers <span class="muted">(animaux — 1 place)</span></div>
-      <div class="pet-grid">${pets.map(thumb).join('')}</div>
-      <div class="card pet-detail r-${sel.rarity}">
+      <span class="${active.has(syn.id) ? 'good' : 'muted'}">${effectText(syn.effects)}</span> <span class="muted">${escapeHtml(syn.text)}</span></div>`).join('')}</div>`;
+    const synTitle = `Synergies${activeList.length ? ` : <span class="good">${activeList.map((x) => escapeHtml(x.name)).join(', ')}</span>` : ''}`;
+    const detail = `<div class="card pet-detail r-${sel.rarity} sheet${ui.view.sheetOpen === 'companion' ? ' sheet-open' : ''}">
+        <button class="btn small sheet-close" data-action="close-sheet" aria-label="Fermer la fiche">✕</button>
         ${hdArt(sel, owned ? 'pet-hd' : 'pet-hd locked')}
         <div class="detail-head">
           <div class="pet-portrait">${owned ? portrait(sel, true) : `<img class="px" src="${icon(sel.sprite, sel.kind === 'ally' ? 1 : 4, { tint: { color: '#3a4a66', alpha: 1 } })}" alt="">`}</div>
           <div><div class="item-name">${escapeHtml(sel.name)}</div>
             <div class="item-sub"><span class="rarity-text">${rarityLabel(sel.rarity)}</span>${owned ? ` · niv. ${owned.level}/${COMPANION_RULES.maxLevel} ${stars(owned.stars)}` : ' · non obtenu'}</div></div>
         </div>
+        <div class="detail-actions">${actions}</div>
         ${COMPANION_ROLES[sel.id] ? `<div>Rôle : <b style="color:${ROLES[COMPANION_ROLES[sel.id]].color}">${ROLES[COMPANION_ROLES[sel.id]].label}</b></div>` : ''}
         <div class="section-title">Bonus passif</div>
         <div class="good">${effectText(passive)}</div>
         ${dungeonFor(sel, state)}
         ${skillsBlock(state, sel, owned)}
-        <div class="detail-actions">${actions}</div>
-        ${owned ? expeditionButtons(state, sel) : ''}
       </div>`;
+    return `${team}
+      ${fold(ui, 'synergies', synTitle, synergies)}
+      <div class="comp-layout"><div class="comp-lists">
+        <div class="section-title">Compagnons <span class="muted">(2 places)</span></div>
+        <div class="pet-grid">${allies.map(thumb).join('')}</div>
+        <div class="section-title">Familiers <span class="muted">(1 place)</span></div>
+        <div class="pet-grid">${pets.map(thumb).join('')}</div>
+        <div class="muted">Enregistrer une équipe avec son équipement : Héros › Équipement › Builds.</div>
+      </div>${detail}</div>`;
   },
 };

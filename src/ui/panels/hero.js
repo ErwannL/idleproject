@@ -9,7 +9,7 @@ import { xpForLevel } from '../../core/level.js';
 import { computeHeroStats } from '../../core/stats.js';
 import { heroPortraitUrl, itemIconUrl, slotIconName } from '../../render/pixel.js';
 import { HEROES } from '../../data/heroes.js';
-import { effectText, escapeHtml, hdArt, formatDecimal, formatNumber, img, itemFrame, progressBar, stars } from '../common.js';
+import { effectText, escapeHtml, fold, hdArt, formatDecimal, formatNumber, img, itemFrame, progressBar, rarityLabel, segment, stars } from '../common.js';
 import { animCanvas } from '../animator.js';
 import { DUNGEONS } from '../../data/dungeons.js';
 import { formatDuration } from '../../core/format.js';
@@ -17,10 +17,11 @@ import { modifierById } from '../../core/challenge.js';
 import { setBonusFor, setById, setCounts } from '../../core/sets.js';
 import { SET_PIECES } from '../../data/sets.js';
 
-const SOURCE_LABELS = { hero: 'Héros', heroClass: 'Classe', powers: 'Pouvoirs de boss', talents: 'Talents', companions: 'Équipe', gear: 'Effets d’équipement', prestige: 'Prestige', rushes: 'Boosts actifs', achievements: 'Hauts faits', sets: 'Ensembles', museum: 'Musée' };
+const SOURCE_LABELS = { hero: 'Héros', heroClass: 'Classe', powers: 'Pouvoirs de boss', talents: 'Talents', companions: 'Équipe', gear: 'Effets d’équipement', prestige: 'Bonus éternels', rushes: 'Boosts actifs', achievements: 'Hauts faits', sets: 'Ensembles', museum: 'Musée' };
 
 // Ensembles d'équipement portés (v8.5) : pièces et paliers atteints.
 function setsCard(state) {
+  // v9.1.0 : contenu d'un bloc repliable (le titre est celui du bloc).
   const counts = setCounts(state.equipment);
   const rows = Object.entries(counts).map(([id, n]) => {
     const set = setById(id);
@@ -29,21 +30,21 @@ function setsCard(state) {
       <span class="${n >= SET_PIECES[0] ? 'good' : 'muted'}">${n >= SET_PIECES[0] ? effectText(setBonusFor(set, n)) : 'aucun bonus'}</span>
       ${next ? `<span class="muted">· à ${next} : ${effectText(set.bonuses[next])}</span>` : ''}</div>`;
   }).join('');
-  return `<div class="card"><div class="section-title">Ensembles d'équipement</div>${rows || '<div class="muted">Les objets Rares et mieux appartiennent parfois à l\'ensemble de leur monde (icône en bas à gauche). Portez 2, 4 puis 6 pièces d\'un même ensemble pour ses bonus.</div>'}</div>`;
+  return rows || '<div class="muted">Les objets Rares et mieux appartiennent parfois à l\'ensemble de leur monde (icône en bas à gauche). Portez 2, 4 puis 6 pièces d\'un même ensemble pour ses bonus.</div>';
 }
 
+// Fiche du héros (v9.1.0 : ouverte par le portrait, hors menu) — segment Fiche, Classe, Apparence, Records.
 export default {
   id: 'hero',
-  title: 'Héros',
+  title: 'Fiche',
   icon: 'icon_hero',
   extra: (ui, state) => `Niv. <b class="gold-text">${state.level}</b>`,
   render(ui, state) {
     const tab = ['class', 'look', 'records'].includes(ui.view.heroTab) ? ui.view.heroTab : 'hero';
-    const btn = (id, icon, label) => `<button class="btn chip-btn${tab === id ? ' active' : ''}" data-action="hero-tab" data-value="${id}">${img(icon)}<span>${label}</span></button>`;
-    const tabs = `<div class="sub-tabs">${btn('hero', 'icon_hero', 'Héros')}${btn('class', 'weapon_sword', 'Classe')}${btn('look', 'icon_summon', 'Apparence')}${btn('records', 'icon_trophy', 'Records')}</div>`;
-    if (tab === 'records') return tabs + recordsView(state);
+    const tabs = segment([['hero', 'Fiche', 'icon_hero'], ['class', 'Classe', 'weapon_sword'], ['look', 'Apparence', 'icon_summon'], ['records', 'Records', 'icon_trophy']], 'hero-tab', tab);
+    if (tab === 'records') return tabs + recordsView(ui, state);
     if (tab === 'class') return tabs + classView(state);
-    if (tab === 'look') return tabs + lookView(state);
+    if (tab === 'look') return tabs + lookView(ui, state);
     return tabs + heroView(ui, state);
   },
 };
@@ -75,25 +76,38 @@ function classView(state) {
 }
 
 // v9.0.6 : apparences (skins de héros) — invoquées dans Invocation → Héros ; chacune apporte son bonus.
-const GRADE = { common: '', rare: 'R', epic: 'SR', legendary: 'SSR' };
-function lookView(state) {
+function lookView(ui, state) {
   const cards = HEROES.map((h) => {
     const owned = state.heroes.owned[h.id];
     const active = state.heroes.active === h.id;
     return `<div class="look-card r-${h.rarity}${active ? ' active' : ''}${owned ? '' : ' locked'}">
       <div class="look-pic">${hdArt(h, owned ? 'look-hd' : 'look-hd locked')}${owned ? animCanvas(`hero:${h.id}`, 64, 58, 2) : `<img class="px look-shadow" src="${heroPortraitUrl({}, 2, h.palette, '#2e3a52')}" alt="">`}</div>
-      <div class="look-name">${GRADE[h.rarity] ? `<span class="grade g-${h.rarity}">${GRADE[h.rarity]}</span> ` : ''}${escapeHtml(h.name)}</div>
+      <div class="look-name">${escapeHtml(h.name)} <span class="rarity-text">${rarityLabel(h.rarity)}</span></div>
       <div class="muted look-role">${escapeHtml(h.title ?? h.role)}</div>
       <div class="good look-fx">${effectText(h.bonus)}</div>
       ${owned ? `${stars(owned.stars ?? 1)}${active ? '<span class="class-on">Portée ✓</span>' : `<button class="btn btn-primary small" data-action="set-hero" data-value="${h.id}">Porter</button>`}`
-        : `<button class="btn small" data-action="open-summon-hero">${img('icon_summon')} Invoquer</button>`}</div>`;
+        : ui.tabVisible.summon !== false ? `<button class="btn small" data-action="open-summon-hero">${img('icon_summon')} Invoquer</button>` : '<span class="muted">À invoquer</span>'}</div>`;
   }).join('');
   return `<div class="card"><div class="row-between"><div class="section-title">Apparence du héros</div><span class="muted">Le bonus de l'apparence portée s'applique (+20 % par étoile)</span></div>
     <div class="look-grid">${cards}</div></div>`;
 }
 
 // Records (v8.9) : tous les records et l'historique des runs (Tour, défi de la semaine, donjons) en un écran.
-function recordsView(state) {
+// Statistiques de farm (v9.1.0) : or et XP par heure à l'étape actuelle, mesurés sur demande (combat simulé).
+function farmStats(ui, state) {
+  const f = ui.view.farmRate;
+  const btn = '<button class="btn small" data-action="measure-farm">Mesurer (quelques secondes de combat simulé)</button>';
+  if (!f) return `<div class="card"><div class="section-title">Rythme de jeu</div><div class="row-between"><span class="muted">Or et expérience par heure à l'étape où reste le héros.</span>${btn}</div></div>`;
+  const line = (iconName, label, value) => `${img(iconName)}<span>${label}</span><span class="v">${value}</span>`;
+  return `<div class="card"><div class="section-title">Rythme de jeu <span class="muted">(étape ${stageLabel(f.stage)})</span></div><div class="stats-grid">
+      ${line('coin', 'Or par heure', formatNumber(f.goldPerSecond * 3600))}
+      ${line('icon_upgrade', 'XP par heure', formatNumber(f.xpPerSecond * 3600))}
+      ${line('icon_skull', 'Ennemis par minute', formatDecimal(f.killsPerSecond * 60))}
+      ${line('weapon_sword', 'Dégâts/s (calculés)', formatDecimal(computeHeroStats(state).dps))}
+    </div><div class="options-row">${btn}</div></div>`;
+}
+
+function recordsView(ui, state) {
   const date = (at) => (at ? new Date(at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '—');
   const tower = (state.towerHistory ?? []).map((h) => `<tr><td>${date(h.at)}</td><td><b>${h.floors}</b> étage${h.floors > 1 ? 's' : ''}</td>
       <td>${formatDuration(h.seconds)}</td><td class="muted">${h.collapsed ? 'effondrée' : h.defeatedAt ? `vaincu à l'étage ${h.defeatedAt}` : 'quittée'}</td></tr>`).join('');
@@ -110,7 +124,7 @@ function recordsView(state) {
     return `<tr><td><b>${escapeHtml(d.name)}</b></td>${cells}</tr>`;
   }).join('');
   const line = (iconName, label, value) => `${img(iconName)}<span>${label}</span><span class="v">${value}</span>`;
-  return `<div class="card"><div class="section-title">Records</div><div class="stats-grid">
+  return `${farmStats(ui, state)}<div class="card"><div class="section-title">Records</div><div class="stats-grid">
       ${line('icon_map', 'Étape max', stageLabel(state.maxStage))}
       ${line('icon_star', 'Tour de l\'Éternité', `étage ${state.towerBest ?? 0}`)}
       ${line('icon_trophy', 'Défi de la semaine', `${state.challengeBest ?? 0} vagues`)}
@@ -141,7 +155,9 @@ function heroView(ui, state) {
     .filter(([, eff]) => Object.values(eff).some((v) => v))
     .map(([k, eff]) => `<div><span class="muted">${SOURCE_LABELS[k]} :</span> ${effectText(eff)}</div>`).join('');
   const heroBonus = effectText(heroEffects(state));
-  return `<div class="card hero-main r-${hero.rarity}">
+  const dps = `<div class="card hero-dps"><span class="muted">Dégâts/s</span> <b class="big-num">${formatDecimal(s.dps)}</b>
+      <span class="muted">· ${formatNumber(s.damage)} dégâts × ${formatDecimal(s.attacksPerSecond, 2)} att./s, critique ${formatDecimal(s.critChance)} %</span></div>`;
+  return `${dps}<div class="card hero-main r-${hero.rarity}">
         <div class="pedestal">${animCanvas('hero', 64, 58, 3)}</div>
         <div class="grow">
           <div class="hero-title">${escapeHtml(hero.name)}</div>
@@ -155,25 +171,23 @@ function heroView(ui, state) {
       ${progressBar(state.xp / xpNeeded, `${formatNumber(Math.floor(state.xp))} / ${formatNumber(xpNeeded)} XP`, 'xp')}
       <div class="gear-row" style="margin-top:5px">${gear}</div>
     </div>
-    <div class="card"><div class="section-title">Statistiques</div><div class="stats-grid">
+    ${fold(ui, 'hero-stats', 'Statistiques', () => `<div class="stats-grid">
       ${line('weapon_sword', 'Dégâts', formatNumber(s.damage))}
       ${line('icon_bolt', 'Attaques / s', formatDecimal(s.attacksPerSecond, 2))}
       ${line('skill_quick', 'Coup critique', `${formatDecimal(s.critChance)} %`)}
-      ${line('weapon_sword', 'DPS', formatDecimal(s.dps))}
       ${line('icon_heart', 'PV max', formatNumber(s.maxHp))}
       ${line('icon_shield', 'Armure', `${formatDecimal(s.armor)} %`)}
       ${line('pet_fairy', 'Régénération', `${formatDecimal(s.regenPerSecond)} PV/s`)}
       ${line('coin', 'Or bonus', `+${formatDecimal(s.goldPct)} %`)}
-    </div></div>
-    ${setsCard(state)}
-    ${sources ? `<div class="card"><div class="section-title">Bonus permanents</div><div class="bonus-sources">${sources}</div></div>` : ''}
-    <div class="card"><div class="section-title">Exploits</div><div class="stats-grid">
+    </div>`, { extra: `Dégâts ${formatNumber(s.damage)} · PV ${formatNumber(s.maxHp)}` })}
+    ${fold(ui, 'hero-sets', 'Ensembles d\'équipement', () => setsCard(state))}
+    ${sources ? fold(ui, 'hero-bonus', 'Bonus permanents', `<div class="bonus-sources">${sources}</div>`) : ''}
+    ${fold(ui, 'hero-feats', 'Exploits', () => `<div class="stats-grid">
       ${line('icon_skull', 'Ennemis vaincus', formatNumber(state.records.kills))}
       ${line('icon_boss', 'Boss vaincus', formatNumber(state.records.bossesDefeated))}
       ${line('icon_bag', 'Objets trouvés', formatNumber(state.records.itemsFound))}
       ${line('icon_trophy', 'Contrats remplis', formatNumber(state.records.contractsDone))}
       ${line('coin', 'Or gagné au total', formatNumber(state.records.goldEarned))}
       ${state.records.rebirths ? line('icon_rebirth', 'Renaissances', formatNumber(state.records.rebirths)) : ''}
-    </div></div>`;
+    </div>`)}`;
 }
-

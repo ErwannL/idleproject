@@ -10,6 +10,7 @@ import { clampTeam, onExpedition } from './companions.js';
 import { equipItem } from './inventory.js';
 import { classById, classUnlocked, setHeroClass } from './classes.js';
 import { powerSlots } from './powers.js';
+import { skillPointsSpent } from './skills.js';
 
 export function emptyLoadouts() {
   return LOADOUT_NAMES.map((name) => ({ name, team: null, gear: null }));
@@ -68,7 +69,7 @@ export function applyLoadout(state, index, balance = BALANCE, itemPower = () => 
     if (wanted.length) state.equippedPowers = wanted.slice(0, powerSlots(state));
   }
   if (slot.skills) {
-    const spent = Object.values(slot.skills).reduce((a, b) => a + b, 0);
+    const spent = Object.values(slot.skills).reduce((a, lv) => a + skillPointsSpent(lv), 0);
     if (spent <= state.level) state.skills = { ...slot.skills };
   }
   return { missing, refused };

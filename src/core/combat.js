@@ -336,6 +336,7 @@ function clearStage(state, world, balance) {
   const next = state.stage + 1;
   if (next > state.maxStage) {
     state.maxStage = next;
+    if (next > (state.records.bestStage ?? 0)) state.records.bestStage = next; // v9.1.0 : jamais remis à zéro
     // Nouvelle étape (et nouveau monde) : quelques gemmes.
     const newWorld = stageInZone(next, balance) === 1;
     const gems = balance.gems.newStage + (newWorld ? balance.gems.newWorld : 0);

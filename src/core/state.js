@@ -7,7 +7,8 @@ import { CONTRACT_TYPES } from '../data/contracts.js';
 import { DUNGEON_PATHS, DUNGEONS, STARTING_KEYS } from '../data/dungeons.js';
 import { HEROES, STARTER_HERO } from '../data/heroes.js';
 import { BOSS_POWERS, POWER_RULES } from '../data/powers.js';
-import { TALENTS } from '../data/rebirth.js';
+import { REBIRTH, TALENTS } from '../data/rebirth.js';
+
 import { legacyTalentRefund } from './rebirth.js';
 import { SKILLS } from '../data/skills.js';
 import { ensureContracts } from './contracts.js';
@@ -20,7 +21,7 @@ import { sanitizePrestige } from './prestige.js';
 import { PRESTIGE } from '../data/prestige.js';
 import { sanitizeRushes } from './rushes.js';
 import { sanitizeCheats, unlockedSpeeds } from './cheats.js';
-import { sanitizeTower } from './tower.js';
+import { TOWER, sanitizeTower } from './tower.js';
 import { sanitizeAchievements } from './achievements.js';
 import { emptyLoadouts, sanitizeLoadouts } from './loadouts.js';
 import { emptyCodex, sanitizeCodex } from './codex.js';
@@ -58,6 +59,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     rngSeed: seed >>> 0,
     records: {
       goldEarned: 0, kills: 0, bossesDefeated: 0, itemsFound: 0, rebirths: 0, contractsDone: 0, summons: 0,
+      bestStage: 1, // v9.1.0 : meilleure étape jamais atteinte (la Renaissance ne la remet pas à zéro)
     },
     ui: { slotFilter: 'all', sortBy: 'rarity', autoRecycle: 'off',
       // Étape 3 (gains UX) : nouvelle partie → les Communs moins bons que l'équipé sont recyclés quand le sac est plein.
@@ -375,6 +377,13 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   }
 
   for (const key of Object.keys(state.records)) state.records[key] = int(raw.records?.[key], 0);
+  // v9.1.0 : partie d'avant la meilleure étape — estimée (étape max, donjons réussis, Renaissances, Tour).
+  if (!state.records.bestStage) {
+    const cleared = DUNGEONS.filter((d) => int(obj(raw.dungeonsCleared)[d.id], 0) > 0).map((d) => d.unlockStage);
+    const reborn = int(raw.records?.rebirths, 0) > 0 || Number(raw.rebirthPower) > 0 || int(raw.transcend?.count, 0) > 0;
+    state.records.bestStage = Math.max(state.maxStage, ...cleared, reborn ? REBIRTH.minStage : 1, int(raw.towerBest, 0) > 0 ? TOWER.unlockStage : 1);
+  }
+  state.records.bestStage = Math.max(state.records.bestStage, state.maxStage);
   state.fragments = int(raw.fragments, 0);
   if (int(raw.version, 1) < 7) {
     // v8.5 : nouvel arbre (500 nœuds) → les fragments dépensés dans l'ancien sont rendus.
@@ -450,7 +459,18 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     if (raw.ui.autoMuseum === false) state.ui.autoMuseum = false;
     if (raw.ui.themeFx === false) state.ui.themeFx = false;
     if (raw.ui.tour === 'done') state.ui.tour = 'done'; // v9.0.6 : découverte guidée vue
+    // v9.1.0 : champs ajoutés (sans eux, ils disparaîtraient au rechargement).
+    if (Number.isInteger(raw.ui.tourV) && raw.ui.tourV > 0) state.ui.tourV = raw.ui.tourV;
+    if (raw.ui.goalsOpen === true) state.ui.goalsOpen = true;
+    if (Array.isArray(raw.ui.seenTabs)) state.ui.seenTabs = raw.ui.seenTabs.filter((t) => typeof t === 'string' && /^[a-z]{2,16}$/.test(t)).slice(0, 32);
+    if (raw.ui.guide && typeof raw.ui.guide === 'object') {
+      state.ui.guide = Object.fromEntries(Object.entries(raw.ui.guide).filter(([k, v]) => /^[a-z]{2,16}$/.test(k) && v === true).slice(0, 32));
+    }
+    if (raw.ui.dungeonSlot && typeof raw.ui.dungeonSlot === 'string') state.ui.dungeonSlot = raw.ui.dungeonSlot.slice(0, 16);
+    if (raw.ui.dungeonPath && typeof raw.ui.dungeonPath === 'string') state.ui.dungeonPath = raw.ui.dungeonPath.slice(0, 16);
   }
   if (state.challenge && (state.tower || state.dungeon)) state.challenge = null; // un seul mode à la fois
+  // v9.1.0 : une partie existante a déjà ses Objectifs ouverts (le menu ne doit pas disparaître pour elle).
+  if (int(raw.records?.kills, 0) > 0) state.ui.goalsOpen = true;
   return state;
 }

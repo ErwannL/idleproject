@@ -15,7 +15,7 @@ const RARITY_POWER = { common: 1, rare: 1.5, epic: 2.2, legendary: 3.5 };
 const HOUR = 3600 * 1000;
 
 export function emptyExpeditions() {
-  return { slots: Array(EXPEDITION_RULES.slots).fill(null), done: 0 };
+  return { slots: Array(EXPEDITION_RULES.slots).fill(null), done: 0, last: Array(EXPEDITION_RULES.slots).fill(null) };
 }
 
 export function expeditionType(id) {
@@ -70,7 +70,27 @@ export function startExpedition(state, slot, companionId, typeId, now = Date.now
   const reward = expeditionReward(state, companionId, typeId, balance);
   if (!reward) return false;
   ex.slots[slot] = { companionId, type: typeId, start: now, end: now + expeditionType(typeId).hours * HOUR, reward };
+  if (!ex.last) ex.last = Array(ex.slots.length).fill(null);
+  ex.last[slot] = { companionId, type: typeId }; // v9.1.0 : « Repartir » refait la même expédition
   return true;
+}
+
+// v9.1.0 : « Repartir » — la dernière expédition de chaque place libre, avec le même compagnon et la même durée
+// (récompense recalculée au départ). Renvoie le nombre d'expéditions relancées.
+export function relaunchExpeditions(state, now = Date.now(), balance = BALANCE) {
+  const ex = state.expeditions;
+  let n = 0;
+  ex.slots.forEach((run, slot) => {
+    const last = ex.last?.[slot];
+    if (!run && last && startExpedition(state, slot, last.companionId, last.type, now, balance)) n += 1;
+  });
+  return n;
+}
+
+// Places dont la dernière expédition peut repartir telle quelle (place libre, compagnon disponible).
+export function relaunchable(state) {
+  const free = new Set(availableForExpedition(state).map((c) => c.id));
+  return (state.expeditions?.last ?? []).filter((l, slot) => l && !state.expeditions.slots[slot] && free.has(l.companionId)).length;
 }
 
 export function expeditionDone(run, now = Date.now()) {
@@ -103,6 +123,9 @@ export function sanitizeExpeditions(raw, state) {
     for (const [k, v] of Object.entries(s.reward ?? {})) if (['gold', 'shards', 'essence', 'gems', 'keys', 'fragments', 'tickets'].includes(k) && Number.isFinite(v) && v > 0) reward[k] = v;
     seen.add(s.companionId);
     out.slots[i] = { companionId: s.companionId, type: s.type, start: s.start, end: s.end, reward };
+  });
+  (Array.isArray(raw.last) ? raw.last : []).slice(0, out.slots.length).forEach((l, i) => {
+    if (l && typeof l === 'object' && state.companions.owned[l.companionId] && expeditionType(l.type)) out.last[i] = { companionId: l.companionId, type: l.type };
   });
   return out;
 }
