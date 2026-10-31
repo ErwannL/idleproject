@@ -1,3 +1,31 @@
+## Idle RPG v9.1.3 — Sauvegarde en ligne fiable, formulaires de compte, décors
+
+**Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.3-setup.exe).
+
+### Sauvegarde en ligne
+- Les parties avec beaucoup d'or (au-delà de 1 aa, soit 10¹⁵) étaient refusées par le serveur : le jeu affichait
+  « Serveur injoignable » alors que vous étiez connecté. L'or et les gemmes n'ont plus de plafond côté serveur.
+- Quand le serveur refuse une sauvegarde, le jeu affiche maintenant sa vraie raison au lieu de « Serveur injoignable ».
+
+### Compte joueur
+- Le nom et le mot de passe tapés dans **Créer mon compte joueur**, **Se connecter** ou **Changer de nom** ne
+  s'effacent plus tout seuls quelques secondes après la saisie : on envoyait parfois le formulaire vide.
+- **Entrée** valide ces formulaires ; le mot de passe et sa confirmation sont sur deux lignes (plus de texte coupé).
+
+### Affichage
+- Forêt (et piliers, forge) : les arbres ne sont plus coupés net en haut dans une fenêtre haute.
+- Thèmes : l'emblème (torii du thème Sakura…) est dans l'en-tête du panneau, entre le titre et les compteurs ; il ne
+  déborde plus au-dessus du panneau et ne couvre plus les compteurs. Coins plus discrets, ornement de l'onglet actif
+  au-dessus de son icône.
+- Version navigateur (/play/) : les thèmes chargent enfin leurs propres cadres dessinés.
+
+### Administration
+- Menu de gauche toujours visible quand la page défile ; session conservée au rafraîchissement.
+- Or et gemmes affichés comme dans le jeu (1 aa, 10 ab…) au lieu de 25 chiffres ; graduations des graphiques sans doublon.
+- Sur téléphone : bouton de déconnexion accessible, statistiques sur deux colonnes.
+- Connexion : seuls les échecs comptent dans la limite de tentatives ; mauvais mot de passe actuel = 403 (l'interface
+  ne vous déconnecte plus pendant un changement de mot de passe).
+
 ## Idle RPG v9.1.2 — Création de compte et messages de connexion
 
 - Sans compte, Paramètres → Compte et sauvegarde en ligne propose de nouveau **Créer un compte joueur**

@@ -268,7 +268,8 @@ puis animations plus vivantes et équipe sans chevauchement (v9.0.8),
 puis compte, sauvegarde cloud et classement (v9.0.9),
 puis grande mise à jour de confort : 4 menus, bouton « Prochaine action », téléphone et accessibilité (v9.1.0),
 puis sauvegarde en ligne automatique, compte joueur et analytique admin (v9.1.1),
-puis création de compte toujours possible et messages de connexion clairs (v9.1.2) :
+puis création de compte toujours possible et messages de connexion clairs (v9.1.2),
+puis sauvegarde en ligne qui ne refuse plus les grosses parties, formulaires de compte fiables et décors corrigés (v9.1.3) :
 voir `docs/RELEASE_NOTES.md`.
 
 ## v4
