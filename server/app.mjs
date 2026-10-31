@@ -16,6 +16,7 @@ export const LIMITS = {
   adminSessionMs: 12 * 3600 * 1000,
   authAttempts: { max: 10, windowMs: 15 * 60 * 1000 },
   preregAttempts: { max: 20, windowMs: 60 * 60 * 1000 },
+  guestAttempts: { max: 30, windowMs: 60 * 60 * 1000 },
 };
 
 export const CONSENT_VERSION = '2026-10-31';
@@ -41,6 +42,27 @@ const LEADERBOARD_SORTS = {
 };
 
 const PSEUDO_RE = /^[A-Za-z0-9_-]{3,20}$/;
+// Noms automatiques des comptes invités (v9.1.1) : réservés, un joueur ne peut pas les choisir.
+const GUEST_RE = /^joueur\d{6}$/i;
+const PLATFORMS = new Set(['windows', 'android', 'web', 'mac', 'linux']);
+const VERSION_RE = /^\d{1,3}\.\d{1,3}\.\d{1,3}$/;
+
+// Valide un pseudo choisi par le joueur ; renvoie le message d'erreur ou null.
+function pseudoError(pseudo) {
+  if (typeof pseudo !== 'string' || !PSEUDO_RE.test(pseudo)) return "Nom d'utilisateur : 3 à 20 caractères (lettres, chiffres, _ ou -)";
+  if (GUEST_RE.test(pseudo)) return 'Ce nom est réservé aux comptes automatiques : choisissez-en un autre';
+  return null;
+}
+
+function passwordError(password) {
+  if (typeof password !== 'string' || password.length < 8 || password.length > 200) return 'Mot de passe : 8 caractères minimum';
+  return null;
+}
+
+// Jour civil UTC (AAAA-MM-JJ) pour l'activité quotidienne.
+export function dayOf(ms) {
+  return new Date(ms).toISOString().slice(0, 10);
+}
 const ADMIN_NAME_RE = /^[A-Za-z]{2,20}$/;
 
 // Mot de passe temporaire : 12 caractères, communiqué une seule fois. Doit être changé au premier login.
@@ -190,6 +212,7 @@ export function createApp({
 }) {
   const authLimit = createRateLimiter(LIMITS.authAttempts, now);
   const preregLimit = createRateLimiter(LIMITS.preregAttempts, now);
+  const guestLimit = createRateLimiter(LIMITS.guestAttempts, now);
   // Sessions admin (en mémoire : perdues au redémarrage) : hash du jeton -> { username, mustChange, expires }.
   const adminSessions = new Map();
 
@@ -206,11 +229,19 @@ export function createApp({
     setAdminPassword: db.prepare('UPDATE admin_users SET password_hash = ?, must_change = ? WHERE id = ?'),
     insertSession: db.prepare('INSERT INTO sessions (token_hash, account_id, expires_at) VALUES (?, ?, ?)'),
     findSession: db.prepare(
-      'SELECT a.id AS id, a.pseudo AS pseudo FROM sessions s JOIN accounts a ON a.id = s.account_id WHERE s.token_hash = ? AND s.expires_at > ?',
+      'SELECT a.id AS id, a.pseudo AS pseudo, a.guest AS guest, a.listed AS listed FROM sessions s JOIN accounts a ON a.id = s.account_id WHERE s.token_hash = ? AND s.expires_at > ?',
     ),
     deleteSession: db.prepare('DELETE FROM sessions WHERE token_hash = ?'),
-    findAccount: db.prepare('SELECT id, pseudo, password_hash FROM accounts WHERE pseudo = ?'),
-    insertAccount: db.prepare('INSERT INTO accounts (pseudo, password_hash, created_at, last_seen_at) VALUES (?, ?, ?, ?)'),
+    extendSession: db.prepare('UPDATE sessions SET expires_at = ? WHERE token_hash = ?'),
+    findAccount: db.prepare('SELECT id, pseudo, password_hash, guest FROM accounts WHERE pseudo = ?'),
+    findAccountById: db.prepare('SELECT id, pseudo, password_hash, guest FROM accounts WHERE id = ?'),
+    insertGuest: db.prepare("INSERT INTO accounts (pseudo, password_hash, created_at, last_seen_at, guest, platform, game_version) VALUES (?, '', ?, ?, 1, ?, ?)"),
+    claimAccount: db.prepare('UPDATE accounts SET pseudo = ?, password_hash = ?, guest = 0, claimed_at = ? WHERE id = ? AND guest = 1'),
+    renameAccount: db.prepare('UPDATE accounts SET pseudo = ? WHERE id = ?'),
+    setClient: db.prepare('UPDATE accounts SET platform = COALESCE(?, platform), game_version = COALESCE(?, game_version) WHERE id = ?'),
+    ping: db.prepare(`INSERT INTO activity (account_id, day, pings) VALUES (?, ?, 1)
+      ON CONFLICT(account_id, day) DO UPDATE SET pings = activity.pings + 1`),
+    insertAccount: db.prepare('INSERT INTO accounts (pseudo, password_hash, created_at, last_seen_at, claimed_at) VALUES (?, ?, ?, ?, ?)'),
     touchAccount: db.prepare('UPDATE accounts SET last_seen_at = ? WHERE id = ?'),
     deleteAccount: db.prepare('DELETE FROM accounts WHERE id = ?'),
     findSave: db.prepare('SELECT data, version, updated_at, level FROM saves WHERE account_id = ?'),
@@ -224,14 +255,37 @@ export function createApp({
     countPrereg: db.prepare('SELECT COUNT(*) AS n FROM preregistrations'),
   };
 
+  // Plateforme et version annoncées par le jeu (en-têtes), filtrées : jamais de texte libre en base.
+  function clientInfo(req, body = {}) {
+    const platform = String(req.headers['x-platform'] ?? body.platform ?? '').toLowerCase();
+    const version = String(req.headers['x-game-version'] ?? body.gameVersion ?? '');
+    return { platform: PLATFORMS.has(platform) ? platform : null, version: VERSION_RE.test(version) ? version : null };
+  }
+
   function authenticate(req) {
     const token = bearer(req);
     if (!token) throw new HttpError(401, 'Connexion requise');
     const row = q.findSession.get(hashToken(token), now());
     if (!row) throw new HttpError(401, 'Session expirée');
     q.touchAccount.run(now(), row.id);
+    // Session glissante (v9.1.1) : un compte invité n'a pas de mot de passe, sa session ne doit pas expirer
+    // tant que le joueur revient au moins une fois tous les 30 jours.
+    q.extendSession.run(now() + LIMITS.sessionMs, hashToken(token));
+    const info = clientInfo(req);
+    if (info.platform || info.version) q.setClient.run(info.platform, info.version, row.id);
     return row;
   }
+
+  // Nom libre « joueur » + 6 chiffres (quelques essais en cas de collision).
+  function freeGuestName() {
+    for (let i = 0; i < 20; i += 1) {
+      const name = `joueur${String(randomBytes(4).readUInt32BE(0) % 1e6).padStart(6, '0')}`;
+      if (!q.findAccount.get(name)) return name;
+    }
+    throw new HttpError(503, 'Réessayez dans un instant');
+  }
+
+  const accountBody = (a) => ({ pseudo: a.pseudo, guest: a.guest === 1, listed: a.listed !== 0 });
 
   function issueSession(accountId) {
     const token = randomBytes(32).toString('base64url');
@@ -270,6 +324,10 @@ export function createApp({
   const playerRow = (r) => ({
     id: r.id,
     pseudo: r.pseudo,
+    guest: r.guest === 1,
+    platform: r.platform ?? null,
+    gameVersion: r.game_version ?? null,
+    claimedAt: r.claimed_at ?? null,
     createdAt: r.created_at,
     lastSeenAt: r.last_seen_at,
     hasSave: r.version !== null,
@@ -286,15 +344,59 @@ export function createApp({
     { method: 'POST', path: /^\/api\/register$/, handler: async ({ req }) => {
       rateLimit(authLimit, `register:${clientIp(req, trustProxy)}`);
       const { pseudo, password } = await readJson(req);
-      if (typeof pseudo !== 'string' || !PSEUDO_RE.test(pseudo)) {
-        throw new HttpError(400, 'Pseudo : 3 à 20 caractères (lettres, chiffres, _ ou -)');
+      const bad = pseudoError(pseudo) ?? passwordError(password);
+      if (bad) throw new HttpError(400, bad);
+      if (q.findAccount.get(pseudo)) throw new HttpError(409, 'Ce nom est déjà pris');
+      const info = q.insertAccount.run(pseudo, await hashPassword(password), now(), now(), now());
+      return { status: 201, body: { token: issueSession(Number(info.lastInsertRowid)), pseudo, guest: false } };
+    } },
+
+    // Compte invité automatique (v9.1.1) : créé au premier lancement, sans mot de passe (connexion impossible
+    // ailleurs). La progression est sauvegardée sur le serveur dès le début ; le joueur le transforme ensuite
+    // en compte joueur (nom + mot de passe) pour la retrouver sur un autre appareil ou changer de nom.
+    { method: 'POST', path: /^\/api\/guest$/, handler: async ({ req }) => {
+      rateLimit(guestLimit, `guest:${clientIp(req, trustProxy)}`);
+      const body = await readJson(req);
+      const info = clientInfo(req, body);
+      const pseudo = freeGuestName();
+      const row = q.insertGuest.run(pseudo, now(), now(), info.platform, info.version);
+      const id = Number(row.lastInsertRowid);
+      q.ping.run(id, dayOf(now()));
+      return { status: 201, body: { token: issueSession(id), pseudo, guest: true } };
+    } },
+
+    { method: 'GET', path: /^\/api\/account$/, handler: ({ req }) => ({ body: accountBody(authenticate(req)) }) },
+
+    // Compte invité -> compte joueur : choisit son nom d'utilisateur et un mot de passe. La progression suit.
+    { method: 'POST', path: /^\/api\/account\/claim$/, handler: async ({ req }) => {
+      rateLimit(authLimit, `claim:${clientIp(req, trustProxy)}`);
+      const account = authenticate(req);
+      if (account.guest !== 1) throw new HttpError(409, 'Ce compte a déjà un nom et un mot de passe');
+      const { pseudo, password } = await readJson(req);
+      const bad = pseudoError(pseudo) ?? passwordError(password);
+      if (bad) throw new HttpError(400, bad);
+      const taken = q.findAccount.get(pseudo);
+      if (taken && taken.id !== account.id) throw new HttpError(409, 'Ce nom est déjà pris');
+      q.claimAccount.run(pseudo, await hashPassword(password), now(), account.id);
+      return { body: { pseudo, guest: false } };
+    } },
+
+    // Changer de nom (compte joueur seulement) : mot de passe demandé.
+    { method: 'PUT', path: /^\/api\/account\/pseudo$/, handler: async ({ req }) => {
+      rateLimit(authLimit, `rename:${clientIp(req, trustProxy)}`);
+      const account = authenticate(req);
+      if (account.guest === 1) throw new HttpError(403, "Créez d'abord votre compte joueur (nom d'utilisateur et mot de passe)");
+      const { pseudo, password } = await readJson(req);
+      const bad = pseudoError(pseudo);
+      if (bad) throw new HttpError(400, bad);
+      const full = q.findAccountById.get(account.id);
+      if (typeof password !== 'string' || !(await verifyPassword(password, full.password_hash))) {
+        throw new HttpError(401, 'Mot de passe incorrect');
       }
-      if (typeof password !== 'string' || password.length < 8 || password.length > 200) {
-        throw new HttpError(400, 'Mot de passe : 8 caractères minimum');
-      }
-      if (q.findAccount.get(pseudo)) throw new HttpError(409, 'Ce pseudo est déjà pris');
-      const info = q.insertAccount.run(pseudo, await hashPassword(password), now(), now());
-      return { status: 201, body: { token: issueSession(Number(info.lastInsertRowid)), pseudo } };
+      const taken = q.findAccount.get(pseudo);
+      if (taken && taken.id !== account.id) throw new HttpError(409, 'Ce nom est déjà pris');
+      q.renameAccount.run(pseudo, account.id);
+      return { body: { pseudo, guest: false } };
     } },
 
     { method: 'POST', path: /^\/api\/login$/, handler: async ({ req }) => {
@@ -302,9 +404,9 @@ export function createApp({
       const { pseudo, password } = await readJson(req);
       const account = typeof pseudo === 'string' ? q.findAccount.get(pseudo) : undefined;
       const ok = typeof password === 'string' && account ? await verifyPassword(password, account.password_hash) : false;
-      if (!ok) throw new HttpError(401, 'Pseudo ou mot de passe incorrect');
+      if (!ok) throw new HttpError(401, "Nom d'utilisateur ou mot de passe incorrect");
       q.touchAccount.run(now(), account.id);
-      return { body: { token: issueSession(account.id), pseudo: account.pseudo } };
+      return { body: { token: issueSession(account.id), pseudo: account.pseudo, guest: false } };
     } },
 
     { method: 'POST', path: /^\/api\/logout$/, handler: ({ req }) => {
@@ -315,6 +417,7 @@ export function createApp({
 
     { method: 'GET', path: /^\/api\/save$/, handler: ({ req }) => {
       const account = authenticate(req);
+      q.ping.run(account.id, dayOf(now()));
       const row = q.findSave.get(account.id);
       if (!row) return { body: { data: null, version: 0 } };
       return { body: { data: row.data, version: row.version, updatedAt: row.updated_at } };
@@ -323,7 +426,10 @@ export function createApp({
     // Corps : { version, data } ; data = chaîne JSON de la partie. 409 si la version serveur a changé.
     { method: 'PUT', path: /^\/api\/save$/, handler: async ({ req }) => {
       const account = authenticate(req);
-      const { version, data } = await readJson(req, LIMITS.saveBody);
+      const body = await readJson(req, LIMITS.saveBody);
+      const info = clientInfo(req, body);
+      if (info.platform || info.version) q.setClient.run(info.platform, info.version, account.id);
+      const { version, data } = body;
       if (typeof data !== 'string' || data.length === 0) throw new HttpError(400, 'Sauvegarde manquante');
       let parsed;
       try {
@@ -352,8 +458,8 @@ export function createApp({
     { method: 'DELETE', path: /^\/api\/account$/, handler: async ({ req }) => {
       const account = authenticate(req);
       const { password } = await readJson(req);
-      const full = q.findAccount.get(account.pseudo);
-      if (typeof password !== 'string' || !full || !(await verifyPassword(password, full.password_hash))) {
+      const full = q.findAccountById.get(account.id);
+      if (full?.guest !== 1 && (typeof password !== 'string' || !full || !(await verifyPassword(password, full.password_hash)))) {
         throw new HttpError(401, 'Mot de passe incorrect');
       }
       q.deleteAccount.run(account.id);
@@ -503,15 +609,79 @@ export function createApp({
       return { body: { ...row, ...bySize, now: t } };
     } },
 
+    // Analytique (v9.1.1) : activité par jour, rétention, plateformes, versions, répartition de la progression.
+    { method: 'GET', path: /^\/api\/admin\/analytics$/, handler: ({ req, url }) => {
+      requireAdmin(req);
+      const days = Math.min(Math.max(Number(url.searchParams.get('days')) || 30, 7), 90);
+      const DAY = 24 * 3600 * 1000;
+      const t = now();
+      const from = dayOf(t - (days - 1) * DAY);
+      const fromMs = Date.parse(`${from}T00:00:00Z`);
+      const series = [];
+      for (let i = 0; i < days; i += 1) series.push({ day: dayOf(fromMs + i * DAY), active: 0, minutes: 0, newAccounts: 0, newPlayers: 0 });
+      const byDay = new Map(series.map((d) => [d.day, d]));
+      for (const r of db.prepare('SELECT day, COUNT(*) AS n, SUM(pings) AS m FROM activity WHERE day >= ? GROUP BY day').all(from)) {
+        const d = byDay.get(r.day);
+        if (d) { d.active = r.n; d.minutes = r.m; }
+      }
+      for (const r of db.prepare('SELECT created_at FROM accounts WHERE created_at >= ?').all(fromMs)) {
+        const d = byDay.get(dayOf(r.created_at));
+        if (d) d.newAccounts += 1;
+      }
+      for (const r of db.prepare('SELECT claimed_at FROM accounts WHERE claimed_at >= ?').all(fromMs)) {
+        const d = byDay.get(dayOf(r.claimed_at));
+        if (d) d.newPlayers += 1;
+      }
+      // Rétention J1 / J7 / J30 : part des comptes revenus ce jour-là, parmi ceux assez anciens.
+      const retention = {};
+      for (const n of [1, 7, 30]) {
+        const row = db.prepare(`SELECT COUNT(*) AS cohort, SUM(CASE WHEN EXISTS (
+            SELECT 1 FROM activity v WHERE v.account_id = a.id AND v.day = strftime('%Y-%m-%d', a.created_at / 1000 + ?, 'unixepoch')
+          ) THEN 1 ELSE 0 END) AS back FROM accounts a WHERE a.created_at <= ?`).get(n * 86400, t - n * DAY);
+        retention[`d${n}`] = { cohort: row.cohort, back: row.back ?? 0, rate: row.cohort ? (row.back ?? 0) / row.cohort : 0 };
+      }
+      const group = (sql) => db.prepare(sql).all().map((r) => ({ key: r.k ?? 'inconnu', count: r.n }));
+      const platforms = group('SELECT platform AS k, COUNT(*) AS n FROM accounts GROUP BY platform ORDER BY n DESC');
+      const versions = group('SELECT game_version AS k, COUNT(*) AS n FROM accounts GROUP BY game_version ORDER BY n DESC LIMIT 12');
+      const accountsKind = db.prepare('SELECT SUM(guest) AS guests, COUNT(*) - SUM(guest) AS registered FROM accounts').get();
+      const STAGE_BUCKETS = [[1, 9], [10, 24], [25, 49], [50, 99], [100, 199], [200, 499], [500, 1e9]];
+      const stageDist = STAGE_BUCKETS.map(([a, b]) => ({
+        key: b >= 1e9 ? `${a}+` : `${a}–${b}`,
+        count: db.prepare('SELECT COUNT(*) AS n FROM saves WHERE max_stage BETWEEN ? AND ?').get(a, b).n,
+      }));
+      const LEVEL_BUCKETS = [[1, 9], [10, 49], [50, 99], [100, 249], [250, 499], [500, 1000]];
+      const levelDist = LEVEL_BUCKETS.map(([a, b]) => ({
+        key: `${a}–${b}`, count: db.prepare('SELECT COUNT(*) AS n FROM saves WHERE level BETWEEN ? AND ?').get(a, b).n,
+      }));
+      const play = db.prepare(`SELECT COUNT(*) AS players, COALESCE(AVG(m), 0) AS avgMinutes, COALESCE(AVG(d), 0) AS avgDays FROM
+        (SELECT account_id, SUM(pings) AS m, COUNT(*) AS d FROM activity GROUP BY account_id)`).get();
+      const today = byDay.get(dayOf(t));
+      return {
+        body: {
+          now: t, days, series, retention, platforms, versions, stageDist, levelDist,
+          guests: accountsKind.guests ?? 0, registered: accountsKind.registered ?? 0,
+          dau: today?.active ?? 0,
+          wau: db.prepare('SELECT COUNT(DISTINCT account_id) AS n FROM activity WHERE day >= ?').get(dayOf(t - 6 * DAY)).n,
+          mau: db.prepare('SELECT COUNT(DISTINCT account_id) AS n FROM activity WHERE day >= ?').get(dayOf(t - 29 * DAY)).n,
+          avgMinutesPerPlayer: play.avgMinutes, avgDaysPerPlayer: play.avgDays,
+        },
+      };
+    } },
+
     { method: 'GET', path: /^\/api\/admin\/players$/, handler: ({ req, url }) => {
       requireAdmin(req);
       const sort = SORTS[url.searchParams.get('sort')] ? url.searchParams.get('sort') : 'recent';
       const search = (url.searchParams.get('q') ?? '').slice(0, 20).replace(/[%_]/g, '');
       const limit = Math.min(Math.max(Number(url.searchParams.get('limit')) || 50, 1), 200);
       const offset = Math.max(Number(url.searchParams.get('offset')) || 0, 0);
-      const where = search ? 'WHERE a.pseudo LIKE ?' : '';
-      const args = search ? [`%${search}%`] : [];
-      const rows = db.prepare(`SELECT a.id, a.pseudo, a.created_at, a.last_seen_at, s.version, s.updated_at,
+      const kind = url.searchParams.get('kind');
+      const conds = [];
+      const args = [];
+      if (search) { conds.push('a.pseudo LIKE ?'); args.push(`%${search}%`); }
+      if (kind === 'guest') conds.push('a.guest = 1');
+      if (kind === 'registered') conds.push('a.guest = 0');
+      const where = conds.length ? `WHERE ${conds.join(' AND ')}` : '';
+      const rows = db.prepare(`SELECT a.id, a.pseudo, a.guest, a.platform, a.game_version, a.claimed_at, a.created_at, a.last_seen_at, s.version, s.updated_at,
           s.level, s.max_stage, s.gold, s.gems, s.kills, s.bosses_defeated
         FROM accounts a LEFT JOIN saves s ON s.account_id = a.id ${where}
         ORDER BY ${SORTS[sort]} LIMIT ? OFFSET ?`).all(...args, limit, offset);
@@ -521,11 +691,16 @@ export function createApp({
 
     { method: 'GET', path: /^\/api\/admin\/players\/(\d+)$/, handler: ({ req, params }) => {
       requireAdmin(req);
-      const r = db.prepare(`SELECT a.id, a.pseudo, a.created_at, a.last_seen_at, s.version, s.updated_at,
+      const r = db.prepare(`SELECT a.id, a.pseudo, a.guest, a.platform, a.game_version, a.claimed_at, a.created_at, a.last_seen_at, s.version, s.updated_at,
           s.level, s.max_stage, s.gold, s.gems, s.kills, s.bosses_defeated
         FROM accounts a LEFT JOIN saves s ON s.account_id = a.id WHERE a.id = ?`).get(Number(params[0]));
       if (!r) throw new HttpError(404, 'Joueur introuvable');
       const player = playerRow(r);
+      // Activité des 30 derniers jours (jours joués, minutes ≈ pings) et au total.
+      const since = dayOf(now() - 29 * 24 * 3600 * 1000);
+      const act = db.prepare('SELECT day, pings FROM activity WHERE account_id = ? AND day >= ? ORDER BY day').all(r.id, since);
+      const total = db.prepare('SELECT COUNT(*) AS days, COALESCE(SUM(pings), 0) AS pings FROM activity WHERE account_id = ?').get(r.id);
+      player.activity = { days30: act.map((a) => ({ day: a.day, minutes: a.pings })), daysPlayed: total.days, minutesPlayed: total.pings };
       const save = q.findSave.get(r.id);
       if (save) {
         const parsed = JSON.parse(save.data);
@@ -602,7 +777,7 @@ export function createApp({
     const started = now();
     // Jetons en en-tête Authorization (pas de cookies) : CORS ouvert sans identifiants est sans risque.
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Game-Version, X-Platform');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     const url = new URL(req.url, 'http://localhost');
     // Journal : méthode, chemin (sans requête), code, durée. Jamais de corps ni d'email.

@@ -1,3 +1,22 @@
+## Idle RPG v9.1.1 — Progression sauvegardée en ligne, compte joueur
+
+**Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.1-setup.exe).
+
+### Votre progression est sauvegardée sur le serveur
+- Dès le lancement, le jeu vous crée un compte automatique nommé **joueurXXXXXX** : votre partie est envoyée sur le
+  serveur toutes les minutes et à la fermeture, sans rien avoir à faire.
+- **Paramètres → Compte et sauvegarde en ligne → Créer mon compte joueur** : choisissez votre nom d'utilisateur et
+  un mot de passe. Votre progression suit. C'est ce compte qui permet de **changer de nom** et de retrouver votre
+  partie sur un autre appareil.
+- Connexion à un compte existant sur un nouvel appareil : la progression du compte est chargée (celle de l'appareil
+  est gardée en copie), elle n'est plus écrasée par quelques minutes jouées ailleurs.
+- Les noms « joueur » + 6 chiffres sont réservés aux comptes automatiques.
+
+### Administration
+- Nouvel onglet **Analytique** : joueurs actifs par jour, nouveaux comptes, temps de jeu, rétention J1 / J7 / J30,
+  plateformes, versions du jeu, répartition des étapes et des niveaux.
+- Liste des joueurs : type de compte (invité ou joueur), plateforme, version ; fiche avec l'activité des 30 derniers jours.
+
 ## Idle RPG v9.1.0 — 4 menus, « Prochaine action », téléphone et accessibilité
 
 **Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.0-setup.exe). Votre partie est conservée

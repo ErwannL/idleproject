@@ -180,6 +180,8 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       sandbox: true,
+      // v9.1.1 : signale le mode test à la page (aucun compte créé sur le serveur).
+      additionalArguments: smokeFile ? ['--idle-automated'] : [],
     },
   });
 

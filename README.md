@@ -266,7 +266,8 @@ puis 10 classes, héros à collectionner et menus simplifiés (v9.0.6),
 puis nouveau chara design des compagnons et des monstres du monde 1 (v9.0.7),
 puis animations plus vivantes et équipe sans chevauchement (v9.0.8),
 puis compte, sauvegarde cloud et classement (v9.0.9),
-puis grande mise à jour de confort : 4 menus, bouton « Prochaine action », téléphone et accessibilité (v9.1.0) :
+puis grande mise à jour de confort : 4 menus, bouton « Prochaine action », téléphone et accessibilité (v9.1.0),
+puis sauvegarde en ligne automatique, compte joueur et analytique admin (v9.1.1) :
 voir `docs/RELEASE_NOTES.md`.
 
 ## v4

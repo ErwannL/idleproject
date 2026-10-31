@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createApp } from '../server/app.mjs';
 import { openDatabase } from '../server/db.mjs';
-import { createCloudClient, CloudError, isFreshSave, reconcile, syncOnce } from '../src/core/cloud-save.js';
+import { BEFORE_LOGIN_KEY, createCloudClient, CloudError, isFreshSave, reconcile, syncOnce } from '../src/core/cloud-save.js';
 import { SAVE_KEY } from '../src/core/save.js';
 
 function memoryStorage() {
@@ -88,4 +88,53 @@ test('suppression du compte : données serveur effacées, session locale oublié
   await client.deleteAccount('motdepasse1');
   assert.equal(client.isLoggedIn(), false);
   await assert.rejects(() => client.login('Suppr_01', 'motdepasse1'), (err) => err.status === 401);
+});
+
+// ---- v9.1.1 ----
+const game = (level, maxStage, lastSaved) => JSON.stringify({ level, maxStage, gold: 1, gems: 0, kills: 3, lastSaved, records: {} });
+
+test('invité automatique : sauvegarde en ligne dès le départ, puis compte joueur et autre appareil', async (t) => {
+  const baseUrl = await startApi(t);
+  const pc = memoryStorage();
+  const client = createCloudClient({ baseUrl, storage: pc, client: { platform: 'windows', version: '9.1.1' } });
+  pc.setItem(SAVE_KEY, game(5, 8, 100));
+  const name = await client.guest();
+  assert.match(name, /^joueur\d{6}$/);
+  assert.equal(client.isGuest(), true);
+  assert.equal((await syncOnce({ client, storage: pc })).action, 'push');
+  await client.claim('Ayla', 'motdepasse1');
+  assert.equal(client.isGuest(), false);
+  assert.equal(client.pseudo(), 'Ayla');
+  // Téléphone : déjà un invité avec quelques minutes (plus récentes), puis connexion au compte joueur.
+  const phone = memoryStorage();
+  const other = createCloudClient({ baseUrl, storage: phone });
+  phone.setItem(SAVE_KEY, game(2, 2, 999));
+  await other.guest();
+  await syncOnce({ client: other, storage: phone });
+  await other.login('Ayla', 'motdepasse1');
+  const r = await syncOnce({ client: other, storage: phone, preferRemote: true });
+  assert.equal(r.action, 'pull', 'la partie du compte gagne à la connexion');
+  assert.equal(JSON.parse(phone.getItem(SAVE_KEY)).level, 5);
+  assert.equal(JSON.parse(phone.getItem(BEFORE_LOGIN_KEY)).level, 2, 'copie de la partie du téléphone');
+  // Renommage depuis le téléphone ; le PC le voit au prochain refresh.
+  await other.rename('Aylana', 'motdepasse1');
+  assert.equal((await client.refresh()).pseudo, 'Aylana');
+  assert.equal(client.pseudo(), 'Aylana');
+});
+
+test('déconnexion volontaire : plus d\'invité automatique jusqu\'à une nouvelle connexion', async (t) => {
+  const baseUrl = await startApi(t);
+  const st = memoryStorage();
+  const client = createCloudClient({ baseUrl, storage: st });
+  await client.register('Bob_1', 'motdepasse1');
+  await client.logout();
+  assert.equal(client.optedOut(), true);
+  assert.equal(client.isLoggedIn(), false);
+  await client.login('Bob_1', 'motdepasse1');
+  assert.equal(client.optedOut(), false);
+  // Session expirée d'un invité : forget() n'empêche pas d'en recréer un.
+  await client.logout();
+  await client.guest();
+  client.forget();
+  assert.equal(client.optedOut(), false);
 });

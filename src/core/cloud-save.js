@@ -4,6 +4,12 @@ import { SAVE_KEY } from './save.js';
 
 export const TOKEN_KEY = 'idle-rpg.cloud-token';
 export const PSEUDO_KEY = 'idle-rpg.cloud-pseudo';
+// v9.1.1 : '1' si le compte est un invité automatique (joueurXXXXXX) ; '1' dans OPTOUT_KEY si le joueur s'est
+// déconnecté exprès (aucun nouvel invité n'est alors créé tout seul).
+export const GUEST_KEY = 'idle-rpg.cloud-guest';
+export const OPTOUT_KEY = 'idle-rpg.cloud-optout';
+// Copie de la partie de l'appareil, gardée quand une connexion ramène la partie du compte.
+export const BEFORE_LOGIN_KEY = 'idle-rpg.save.before-login';
 
 export class CloudError extends Error {
   constructor(status, message, extra = {}) {
@@ -14,7 +20,22 @@ export class CloudError extends Error {
 }
 
 // `baseUrl` vide = même origine (site et jeu servis par le même serveur).
-export function createCloudClient({ baseUrl = '', storage, fetchImpl = globalThis.fetch }) {
+export function createCloudClient({ baseUrl = '', storage, fetchImpl = globalThis.fetch, client = {} }) {
+  const get = (k) => {
+    try {
+      return storage.getItem(k);
+    } catch {
+      return null;
+    }
+  };
+  const set = (k, v) => {
+    try {
+      if (v === null) storage.removeItem(k);
+      else storage.setItem(k, v);
+    } catch {
+      // Stockage indisponible.
+    }
+  };
   const readToken = () => {
     try {
       return storage.getItem(TOKEN_KEY);
@@ -43,36 +64,52 @@ export function createCloudClient({ baseUrl = '', storage, fetchImpl = globalThi
     return data;
   }
 
-  function remember(token, pseudo) {
-    try {
-      storage.setItem(TOKEN_KEY, token);
-      storage.setItem(PSEUDO_KEY, pseudo);
-    } catch {
-      // Stockage indisponible : la session ne survivra pas au rechargement.
-    }
+  function remember(token, pseudo, guest = false) {
+    if (token) set(TOKEN_KEY, token);
+    set(PSEUDO_KEY, pseudo);
+    set(GUEST_KEY, guest ? '1' : null);
+    set(OPTOUT_KEY, null);
   }
 
   function forget() {
-    try {
-      storage.removeItem(TOKEN_KEY);
-      storage.removeItem(PSEUDO_KEY);
-    } catch {
-      // Rien à faire.
-    }
+    set(TOKEN_KEY, null);
+    set(PSEUDO_KEY, null);
+    set(GUEST_KEY, null);
   }
 
   return {
     isLoggedIn: () => Boolean(readToken()),
-    pseudo: () => {
-      try {
-        return storage.getItem(PSEUDO_KEY);
-      } catch {
-        return null;
-      }
-    },
+    pseudo: () => get(PSEUDO_KEY),
+    isGuest: () => get(GUEST_KEY) === '1',
+    // Oublie la session locale sans bloquer la création d'un nouvel invité (session expirée).
+    forget,
+    optedOut: () => get(OPTOUT_KEY) === '1',
     async register(pseudo, password) {
       const data = await request('POST', '/api/register', { body: { pseudo, password }, auth: false });
       remember(data.token, data.pseudo);
+      return data.pseudo;
+    },
+    // Compte invité automatique (premier lancement) : nom joueurXXXXXX, sans mot de passe.
+    async guest() {
+      const data = await request('POST', '/api/guest', { body: { platform: client.platform, gameVersion: client.version }, auth: false });
+      remember(data.token, data.pseudo, true);
+      return data.pseudo;
+    },
+    // Met à jour le nom et le type de compte depuis le serveur (renommage fait ailleurs, etc.).
+    async refresh() {
+      const data = await request('GET', '/api/account');
+      remember(null, data.pseudo, data.guest);
+      return data;
+    },
+    // Invité -> compte joueur : nom d'utilisateur + mot de passe. Même session, même progression.
+    async claim(pseudo, password) {
+      const data = await request('POST', '/api/account/claim', { body: { pseudo, password } });
+      remember(null, data.pseudo, false);
+      return data.pseudo;
+    },
+    async rename(pseudo, password) {
+      const data = await request('PUT', '/api/account/pseudo', { body: { pseudo, password } });
+      remember(null, data.pseudo, false);
       return data.pseudo;
     },
     async login(pseudo, password) {
@@ -87,18 +124,21 @@ export function createCloudClient({ baseUrl = '', storage, fetchImpl = globalThi
         // Déconnexion locale dans tous les cas.
       } finally {
         forget();
+        set(OPTOUT_KEY, '1');
       }
     },
     // Renvoie { data, version } ; data = chaîne JSON de la partie, ou null si aucune sauvegarde.
     pull: () => request('GET', '/api/save'),
     // `version` = version connue lors du dernier pull/push. Lève CloudError(409) si périmée.
-    push: (version, data) => request('PUT', '/api/save', { body: { version, data } }),
+    // Plateforme et version dans le corps (pas d'en-tête personnalisé : un ancien serveur refuserait la requête CORS).
+    push: (version, data) => request('PUT', '/api/save', { body: { version, data, platform: client.platform, gameVersion: client.version } }),
     // Apparaître ou non dans le classement public.
     setListed: (listed) => request('PUT', '/api/account/listed', { body: { listed } }),
     // Suppression du compte et de toutes ses données sur le serveur (RGPD).
     async deleteAccount(password) {
       await request('DELETE', '/api/account', { body: { password } });
       forget();
+      set(OPTOUT_KEY, '1');
     },
   };
 }
@@ -131,10 +171,17 @@ export function stripCheats(json) {
 }
 
 // Synchronisation complète au lancement ou à la connexion. Renvoie l'action effectuée.
-export async function syncOnce({ client, storage, version = 0 }) {
+// preferRemote (connexion à un compte existant) : la partie du compte l'emporte toujours si elle existe ;
+// celle de l'appareil est gardée en copie (BEFORE_LOGIN_KEY). Sans cela, quelques minutes jouées sur un
+// nouvel appareil (plus récentes) écraseraient des semaines de progression.
+export async function syncOnce({ client, storage, version = 0, preferRemote = false }) {
   const remote = await client.pull();
   const local = stripCheats(storage.getItem(SAVE_KEY));
-  const action = reconcile(local, remote.data);
+  let action = reconcile(local, remote.data);
+  if (preferRemote && remote.data) {
+    action = remote.data === local ? 'none' : 'pull';
+    if (action === 'pull' && local) storage.setItem(BEFORE_LOGIN_KEY, local);
+  }
   if (action === 'pull') {
     storage.setItem(SAVE_KEY, remote.data);
     return { action, version: remote.version };

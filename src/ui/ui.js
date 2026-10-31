@@ -161,6 +161,11 @@ export class UI {
     this.root = root;
     this.actions = actions;
     this.$ = (id) => root.querySelector(`#${id}`);
+    // v9.1.1 : nom tapé dans un formulaire de compte, conservé au redessin du panneau.
+    this.cloudDraft = (id) => {
+      if (!this.cloud) return;
+      this.cloud.draft = { ...(this.cloud.draft ?? {}), [id]: this.$(id)?.value ?? '' };
+    };
     this.tab = null;
     this.layout = null;
     this.dirty = true;
@@ -687,7 +692,11 @@ export class UI {
         break;
       case 'github-token': a.setGithubToken(this.$('github-token')?.value); break;
       case 'cloud-register': a.cloudRegister(this.$('cloud-pseudo')?.value, this.$('cloud-password')?.value); break;
-      case 'cloud-login': a.cloudLogin(this.$('cloud-pseudo')?.value, this.$('cloud-password')?.value); break;
+      // Garde le nom tapé si le panneau est redessiné (message d'erreur) ; jamais les mots de passe.
+      case 'cloud-login': this.cloudDraft('cloud-pseudo'); a.cloudLogin(this.$('cloud-pseudo')?.value, this.$('cloud-password')?.value); break;
+      case 'cloud-claim': this.cloudDraft('cloud-claim-pseudo'); a.cloudClaim(this.$('cloud-claim-pseudo')?.value?.trim(), this.$('cloud-claim-password')?.value, this.$('cloud-claim-confirm')?.value); break;
+      case 'cloud-rename': this.cloudDraft('cloud-rename-pseudo'); a.cloudRename(this.$('cloud-rename-pseudo')?.value?.trim(), this.$('cloud-rename-password')?.value); break;
+      case 'cloud-resume': a.cloudResume(); break;
       case 'cloud-logout': a.cloudLogout(); break;
       case 'cloud-sync': a.cloudSync(); break;
       case 'cloud-delete': a.cloudDelete(this.$('cloud-delete-password')?.value); break;

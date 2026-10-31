@@ -86,6 +86,19 @@
     }
     .toolbar .input input { padding-right: 44px; }
 
+    .chart { width: 100%; height: auto; display: block; }
+    .chart .bar { fill: var(--accent); }
+    .chart .bar2 { fill: #6aa8ff; }
+    .chart text { fill: var(--muted); font-size: 11px; }
+    .chart .grid { stroke: var(--line); stroke-width: 1; }
+    .legend { display: flex; gap: 14px; font-size: 13px; color: var(--muted); margin-bottom: 8px; flex-wrap: wrap; }
+    .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+    .grid2 .panel + .panel { margin-top: 0; }
+    .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-top: 16px; }
+    .hbar { display: grid; grid-template-columns: 110px 1fr 56px; gap: 8px; align-items: center; font-size: 13px; margin: 6px 0; }
+    .hbar .track { background: var(--card-2); border-radius: 6px; height: 12px; overflow: hidden; }
+    .hbar .fill { background: var(--accent); height: 100%; }
+    .hbar .n { text-align: right; font-variant-numeric: tabular-nums; }
     .kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
     .kpi { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
     .kpi .label { color: var(--muted); font-size: 13px; }
@@ -201,6 +214,7 @@
       <div class="brand"><img src="/assets/icon.png" alt=""><div><b>Idle RPG</b><span>Administration</span></div></div>
       <nav class="nav" id="nav">
         <button data-tab="stats" class="active">Vue d'ensemble</button>
+        <button data-tab="analytics">Analytique</button>
         <button data-tab="players">Joueurs</button>
         <button data-tab="prereg">Préinscriptions</button>
         <button data-tab="team">Équipe</button>
@@ -220,6 +234,33 @@
         <div class="kpis" id="kpis"></div>
       </section>
 
+      <section data-panel="analytics" class="hidden">
+        <div class="page-head">
+          <div><h2>Analytique des joueurs</h2><p id="an-time">Chargement…</p></div>
+          <div class="toolbar">
+            <select id="an-days" aria-label="Période"><option value="7">7 jours</option><option value="30" selected>30 jours</option><option value="90">90 jours</option></select>
+            <button class="btn" id="an-refresh">Actualiser</button>
+          </div>
+        </div>
+        <div class="kpis" id="an-kpis"></div>
+        <div class="panel" style="margin-top:16px">
+          <h3>Joueurs actifs par jour</h3>
+          <div class="legend"><span><i style="background:var(--accent)"></i>Actifs</span><span><i style="background:#6aa8ff"></i>Nouveaux comptes</span></div>
+          <div id="an-active"></div>
+        </div>
+        <div class="panel">
+          <h3>Temps de jeu par jour (minutes, approximatif)</h3>
+          <div id="an-minutes"></div>
+        </div>
+        <div class="grid2">
+          <div class="panel"><h3>Rétention</h3><div id="an-retention"></div></div>
+          <div class="panel"><h3>Plateformes</h3><div id="an-platforms"></div></div>
+          <div class="panel"><h3>Versions du jeu</h3><div id="an-versions"></div></div>
+          <div class="panel"><h3>Étape max atteinte</h3><div id="an-stages"></div></div>
+          <div class="panel"><h3>Niveau</h3><div id="an-levels"></div></div>
+        </div>
+      </section>
+
       <section data-panel="players" class="hidden">
         <div class="page-head"><div><h2>Joueurs</h2><p id="players-total"></p></div></div>
         <div class="toolbar" style="margin-bottom:14px">
@@ -231,12 +272,17 @@
             <option value="stage">Étape max</option>
             <option value="gold">Or</option>
           </select>
+          <select id="kind" aria-label="Type de compte">
+            <option value="">Tous les comptes</option>
+            <option value="registered">Comptes joueur</option>
+            <option value="guest">Invités (joueurXXXXXX)</option>
+          </select>
           <button class="btn" id="search-btn">Rechercher</button>
         </div>
         <div class="table-wrap">
           <table class="table">
             <thead><tr>
-              <th>Pseudo</th><th>Inscrit</th><th>Vu</th><th class="num">Niveau</th><th class="num">Étape max</th>
+              <th>Pseudo</th><th>Type</th><th>Plateforme</th><th>Version</th><th>Inscrit</th><th>Vu</th><th class="num">Niveau</th><th class="num">Étape max</th>
               <th class="num">Or</th><th class="num">Gemmes</th><th class="num">Boss</th><th>Sauvegarde</th>
             </tr></thead>
             <tbody id="players-body"></tbody>
@@ -409,6 +455,7 @@
       document.querySelectorAll('[data-panel]').forEach((p) => p.classList.toggle('hidden', p.dataset.panel !== btn.dataset.tab));
       if (btn.dataset.tab === 'stats') loadStats();
       if (btn.dataset.tab === 'players') loadPlayers();
+      if (btn.dataset.tab === 'analytics') loadAnalytics();
       if (btn.dataset.tab === 'prereg') loadPrereg();
       if (btn.dataset.tab === 'team') loadTeam();
     }));
@@ -447,17 +494,18 @@
     async function loadPlayers() {
       const q = encodeURIComponent($('search').value.trim());
       try {
-        const data = await api(`/api/admin/players?sort=${$('sort').value}&q=${q}&limit=${PAGE}&offset=${page * PAGE}`);
+        const data = await api(`/api/admin/players?sort=${$('sort').value}&kind=${$('kind').value}&q=${q}&limit=${PAGE}&offset=${page * PAGE}`);
         $('players-total').textContent = `${fmt(data.total)} joueur${data.total > 1 ? 's' : ''}`;
         const body = $('players-body');
         body.innerHTML = '';
-        if (!data.players.length) body.innerHTML = '<tr><td colspan="9" class="muted">Aucun joueur.</td></tr>';
+        if (!data.players.length) body.innerHTML = '<tr><td colspan="12" class="muted">Aucun joueur.</td></tr>';
         for (const p of data.players) {
           const tr = document.createElement('tr');
           tr.className = 'click';
           tr.addEventListener('click', () => showDetail(p.id));
           const cells = [
-            [p.pseudo, ''], [fmtDate(p.createdAt), ''], [fmtRel(p.lastSeenAt), ''],
+            [p.pseudo, ''], [p.guest ? 'Invité' : 'Joueur', ''], [PLATFORM_LABEL[p.platform] ?? '—', ''], [p.gameVersion ?? '—', ''],
+            [fmtDate(p.createdAt), ''], [fmtRel(p.lastSeenAt), ''],
             [fmt(p.level), 'num'], [fmt(p.maxStage), 'num'], [fmt(Math.floor(p.gold)), 'num'],
             [fmt(p.gems), 'num'], [fmt(p.bossesDefeated), 'num'], [p.hasSave ? fmtDate(p.saveUpdatedAt) : 'aucune', ''],
           ];
@@ -477,6 +525,7 @@
     $('search-btn').addEventListener('click', () => { page = 0; loadPlayers(); });
     $('search').addEventListener('keydown', (e) => { if (e.key === 'Enter') { page = 0; loadPlayers(); } });
     $('sort').addEventListener('change', () => { page = 0; loadPlayers(); });
+    $('kind').addEventListener('change', () => { page = 0; loadPlayers(); });
     $('prev').addEventListener('click', () => { page -= 1; loadPlayers(); });
     $('next').addEventListener('click', () => { page += 1; loadPlayers(); });
 
@@ -490,14 +539,18 @@
         const grid = document.createElement('div');
         grid.className = 'detail';
         const rows = [
+          ['Type de compte', p.guest ? 'Invité (pas encore de compte joueur)' : 'Compte joueur'],
+          ['Compte joueur créé le', p.claimedAt ? fmtDate(p.claimedAt) : '—'],
+          ['Plateforme', PLATFORM_LABEL[p.platform] ?? '—'], ['Version du jeu (appareil)', p.gameVersion ?? '—'],
           ['Inscrit le', fmtDate(p.createdAt)], ['Dernière activité', fmtRel(p.lastSeenAt)],
+          ['Jours joués', fmt(p.activity?.daysPlayed)], ['Temps de jeu (≈)', fmtMinutes(p.activity?.minutesPlayed)],
           ['Niveau', fmt(p.level)], ['Étape max', fmt(p.maxStage)], ['Or', fmt(Math.floor(p.gold))],
           ['Gemmes', fmt(p.gems)], ['Ennemis vaincus', fmt(p.kills)], ['Boss vaincus', fmt(p.bossesDefeated)],
         ];
         if (p.progress) {
           rows.push(['Héros possédés', fmt(p.progress.heroes)], ['Compagnons', fmt(p.progress.companions)],
             ['Renaissances', fmt(p.progress.rebirths)], ['Invocations', fmt(p.progress.summons)],
-            ['Dernière sauvegarde', fmtDate(p.progress.lastSaved)], ['Version du jeu', p.progress.gameVersion ?? '—']);
+            ['Dernière sauvegarde', fmtDate(p.progress.lastSaved)], ['Format de sauvegarde', p.progress.gameVersion ?? '—']);
         }
         for (const [k, v] of rows) {
           const d = document.createElement('div');
@@ -518,11 +571,116 @@
             loadPlayers();
           } catch (err) { toast(err.message, 'bad'); }
         });
-        box.append(title, grid, del);
+        const act = document.createElement('div');
+        if (p.activity) {
+          const h = document.createElement('h3'); h.textContent = 'Activité des 30 derniers jours (minutes)'; h.style.marginTop = '16px';
+          const byDay = new Map(p.activity.days30.map((d) => [d.day, d.minutes]));
+          const series = [];
+          for (let i = 29; i >= 0; i -= 1) {
+            const day = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+            series.push({ day, a: byDay.get(day) ?? 0 });
+          }
+          act.append(h, barChart(series, ['a'], { height: 120 }));
+        }
+        box.append(title, grid, act, del);
         box.classList.remove('hidden');
         box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       } catch (err) { toast(err.message, 'bad'); }
     }
+
+    // ---- Analytique ----
+    const PLATFORM_LABEL = { windows: 'Windows', android: 'Android', web: 'Navigateur', mac: 'Mac', linux: 'Linux' };
+    const fmtMinutes = (m) => {
+      const n = Math.round(m ?? 0);
+      return n < 60 ? `${n} min` : `${Math.floor(n / 60)} h ${String(n % 60).padStart(2, '0')}`;
+    };
+    const fmtPct = (r) => `${Math.round((r ?? 0) * 100)} %`;
+    const SVGNS = 'http://www.w3.org/2000/svg';
+    const svgEl = (tag, attrs, text) => {
+      const el = document.createElementNS(SVGNS, tag);
+      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+      if (text !== undefined) el.textContent = text;
+      return el;
+    };
+    // Histogramme par jour ; keys = séries côte à côte (1re en doré, 2e en bleu). Valeur au survol (title).
+    function barChart(series, keys, { height = 180 } = {}) {
+      const W = 720, H = height, pad = { l: 34, r: 6, t: 8, b: 22 };
+      const max = Math.max(1, ...series.flatMap((d) => keys.map((k) => d[k] ?? 0)));
+      const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, class: 'chart', role: 'img' });
+      const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
+      for (const f of [0, 0.5, 1]) {
+        const y = pad.t + ih * (1 - f);
+        svg.append(svgEl('line', { x1: pad.l, x2: W - pad.r, y1: y, y2: y, class: 'grid' }));
+        svg.append(svgEl('text', { x: pad.l - 6, y: y + 4, 'text-anchor': 'end' }, fmt(Math.round(max * f))));
+      }
+      const slot = iw / series.length;
+      const bw = Math.max(1, (slot * 0.8) / keys.length);
+      series.forEach((d, i) => {
+        keys.forEach((k, j) => {
+          const v = d[k] ?? 0;
+          const h = (v / max) * ih;
+          const rect = svgEl('rect', { x: pad.l + i * slot + slot * 0.1 + j * bw, y: pad.t + ih - h, width: bw, height: Math.max(h, v ? 1 : 0), class: j ? 'bar2' : 'bar', rx: 1 });
+          rect.append(svgEl('title', {}, `${d.day} : ${fmt(v)}`));
+          svg.append(rect);
+        });
+        const step = Math.ceil(series.length / 8);
+        if (i % step === 0) svg.append(svgEl('text', { x: pad.l + i * slot + slot / 2, y: H - 6, 'text-anchor': 'middle' }, d.day.slice(5).split('-').reverse().join('/')));
+      });
+      return svg;
+    }
+    function hbars(target, rows, { label = (k) => k, value = (r) => fmt(r.count), scale } = {}) {
+      const box = $(target);
+      box.innerHTML = '';
+      const max = scale ?? Math.max(1, ...rows.map((r) => r.count));
+      if (!rows.length) { box.textContent = 'Aucune donnée.'; box.className = 'muted'; return; }
+      box.className = '';
+      for (const r of rows) {
+        const row = document.createElement('div'); row.className = 'hbar';
+        const l = document.createElement('span'); l.textContent = label(r.key);
+        const track = document.createElement('div'); track.className = 'track';
+        const fill = document.createElement('div'); fill.className = 'fill'; fill.style.width = `${(r.count / max) * 100}%`;
+        track.append(fill);
+        const n = document.createElement('span'); n.className = 'n'; n.textContent = value(r);
+        row.append(l, track, n);
+        box.append(row);
+      }
+    }
+    async function loadAnalytics() {
+      try {
+        const a = await api(`/api/admin/analytics?days=${$('an-days').value}`);
+        const kpis = [
+          ['Actifs aujourd\'hui', fmt(a.dau)], ['Actifs 7 j', fmt(a.wau)], ['Actifs 30 j', fmt(a.mau)],
+          ['Comptes joueur', fmt(a.registered)], ['Invités', fmt(a.guests)],
+          ['Temps de jeu moyen', fmtMinutes(a.avgMinutesPerPlayer)], ['Jours joués (moyenne)', (a.avgDaysPerPlayer ?? 0).toFixed(1)],
+          ['Rétention J1', fmtPct(a.retention.d1.rate)], ['Rétention J7', fmtPct(a.retention.d7.rate)],
+        ];
+        $('an-kpis').innerHTML = '';
+        for (const [label, value] of kpis) {
+          const card = document.createElement('div'); card.className = 'kpi';
+          const l = document.createElement('div'); l.className = 'label'; l.textContent = label;
+          const v = document.createElement('div'); v.className = 'value'; v.textContent = value;
+          card.append(l, v);
+          $('an-kpis').append(card);
+        }
+        $('an-active').replaceChildren(barChart(a.series, ['active', 'newAccounts']));
+        $('an-minutes').replaceChildren(barChart(a.series, ['minutes'], { height: 140 }));
+        // Barres en pourcentage (échelle 100 %) ; détail « revenus / comptes assez anciens » dessous.
+        hbars('an-retention', ['d1', 'd7', 'd30'].map((k) => ({ key: k, count: Math.round(a.retention[k].rate * 100) })), {
+          label: (k) => ({ d1: 'Revenus à J1', d7: 'Revenus à J7', d30: 'Revenus à J30' }[k]), value: (r) => `${r.count} %`, scale: 100,
+        });
+        $('an-retention').append(Object.assign(document.createElement('div'), {
+          className: 'muted',
+          textContent: ['d1', 'd7', 'd30'].map((k) => `J${k.slice(1)} : ${fmt(a.retention[k].back)} sur ${fmt(a.retention[k].cohort)}`).join(' · '),
+        }));
+        hbars('an-platforms', a.platforms, { label: (k) => PLATFORM_LABEL[k] ?? k });
+        hbars('an-versions', a.versions);
+        hbars('an-stages', a.stageDist);
+        hbars('an-levels', a.levelDist);
+        $('an-time').textContent = `Mis à jour ${fmtDate(a.now)} · jours en heure UTC`;
+      } catch (err) { toast(err.message, 'bad'); }
+    }
+    $('an-refresh').addEventListener('click', loadAnalytics);
+    $('an-days').addEventListener('change', loadAnalytics);
 
     // ---- Préinscriptions ----
     let pPage = 0;

@@ -795,8 +795,19 @@ const actions = {
   },
   // Jeton GitHub (dépôt privé) : gardé uniquement dans ce navigateur / ce PC, jamais dans la sauvegarde.
   cloudRegister(pseudo, password) { cloudAuth(() => cloud.register(pseudo, password), 'Compte créé, progression envoyée'); },
-  cloudLogin(pseudo, password) { cloudAuth(() => cloud.login(pseudo, password), 'Connecté'); },
-  cloudLogout() { cloud.logout().then(() => setCloudMessage('Déconnecté. La partie reste sur cet appareil.')); },
+  // Connexion à un compte existant : la progression du compte remplace celle de l'appareil (copie gardée).
+  cloudLogin(pseudo, password) { cloudAuth(() => cloud.login(pseudo, password), 'Connecté : progression du compte chargée', true); },
+  // v9.1.1 : invité -> compte joueur (nom + mot de passe), puis changement de nom.
+  cloudClaim(pseudo, password, confirm) {
+    if (password !== confirm) { setCloudMessage('Les deux mots de passe ne correspondent pas.', true); return; }
+    cloudAuth(() => cloud.claim(pseudo, password), `Compte joueur créé : vous êtes maintenant ${pseudo}`);
+  },
+  cloudRename(pseudo, password) { cloudAuth(() => cloud.rename(pseudo, password), `Nom changé : vous êtes maintenant ${pseudo}`); },
+  cloudLogout() {
+    if (cloud.isGuest()) { setCloudMessage("Créez d'abord votre compte joueur : sans lui, cette progression ne pourrait plus être retrouvée.", true); return; }
+    cloud.logout().then(() => setCloudMessage('Déconnecté. La partie reste sur cet appareil.'));
+  },
+  cloudResume() { cloudAuth(() => cloud.guest(), 'Sauvegarde en ligne réactivée'); },
   cloudSync() { cloudSync(true); },
   cloudListed(listed) {
     cloud.setListed(listed)
@@ -889,13 +900,16 @@ const ui = new UI(document.getElementById('app'), actions);
 if (BUILD.cheats) import('./core/cheat-codes.js').then((m) => { cheatCodes = m; ui.cheatCodes = m; ui.invalidate(); });
 
 // Compte et sauvegarde cloud (optionnels) : le jeu fonctionne sans, via localStorage.
-const cloud = createCloudClient({ baseUrl: CLOUD_BASE, storage: store });
+const platform = window.desktop ? 'windows' : window.Capacitor?.isNativePlatform?.() ? 'android' : 'web';
+const cloud = createCloudClient({ baseUrl: CLOUD_BASE, storage: store, client: { platform, version: GAME_VERSION } });
 const cloudView = { busy: false, message: '', error: false };
 ui.cloud = cloudView;
 function setCloudMessage(text, error = false) {
   cloudView.busy = false;
   cloudView.loggedIn = cloud.isLoggedIn();
   cloudView.pseudo = cloud.pseudo() ?? '';
+  cloudView.guest = cloud.isGuest();
+  cloudView.optedOut = cloud.optedOut();
   try { cloudView.listed = localStorage.getItem('idle-rpg.cloud-listed') !== '0'; } catch { cloudView.listed = true; }
   cloudView.message = text;
   cloudView.error = error;
@@ -909,18 +923,35 @@ function reloadFromStore() {
   world = createCombat(state);
   ui.invalidate();
 }
-async function cloudSync(manual = false) {
-  if (!BUILD.cloud || !cloud.isLoggedIn() || cloudView.busy) return;
+// v9.1.1 : au premier lancement, un compte invité « joueurXXXXXX » est créé tout seul et la progression est
+// sauvegardée sur le serveur. Pas si le joueur s'est déconnecté exprès (il se reconnecte quand il veut).
+// Jamais pendant les tests automatisés (CI, smoke) : ils ne doivent pas créer de comptes sur le vrai serveur.
+function canCreateGuest() {
+  return !cloud.optedOut() && !navigator.webdriver && !window.desktop?.automated;
+}
+async function ensureGuest() {
+  if (cloud.isLoggedIn() || !canCreateGuest()) return;
+  await cloud.guest();
+}
+async function cloudSync(manual = false, preferRemote = false) {
+  if (!BUILD.cloud || cloudView.busy) return;
+  if (!cloud.isLoggedIn() && !canCreateGuest()) return;
   cloudView.busy = true;
-  save();
   try {
-    const { action } = await syncOnce({ client: cloud, storage: store });
+    await ensureGuest();
+    if (!cloud.isLoggedIn()) { cloudView.busy = false; return; }
+    // Sauvegarde locale juste avant l'envoi (jamais avant le calcul hors ligne du lancement : sans compte et
+    // sans invité possible, on est sorti plus haut).
+    save();
+    const { action } = await syncOnce({ client: cloud, storage: store, preferRemote });
     if (action === 'pull') reloadFromStore();
     cloudView.busy = false;
     const when = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     setCloudMessage(manual || action !== 'none' ? `Synchronisé à ${when}` : cloudView.message);
   } catch (err) {
     if (err instanceof CloudError && err.status === 401) {
+      // Invité expiré : un nouvel invité reprendra la partie de l'appareil au prochain essai.
+      if (cloud.isGuest()) { cloud.forget(); setCloudMessage(''); return; }
       cloud.logout();
       setCloudMessage('Session expirée : reconnectez-vous.', true);
     } else {
@@ -928,21 +959,28 @@ async function cloudSync(manual = false) {
     }
   }
 }
-async function cloudAuth(call, okText) {
+async function cloudAuth(call, okText, preferRemote = false) {
   cloudView.message = '';
+  cloudView.error = false;
+  if (cloudView.busy) return;
+  cloudView.busy = true;
+  ui.invalidate();
   try {
     await call();
   } catch (err) {
     setCloudMessage(err instanceof CloudError && err.status !== 0 ? err.message : 'Serveur injoignable.', true);
     return;
   }
-  await cloudSync();
-  setCloudMessage(okText);
+  cloudView.busy = false;
+  await cloudSync(false, preferRemote);
+  if (!cloudView.error) setCloudMessage(okText);
 }
 // Synchronisation périodique et au retour sur l'onglet ; une fois au lancement si déjà connecté.
 setInterval(() => cloudSync(), 60 * 1000);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') cloudSync(); });
-cloudSync();
+// Nom et type de compte à jour (renommé depuis un autre appareil), puis première synchronisation.
+if (BUILD.cloud && cloud.isLoggedIn()) cloud.refresh().catch(() => {}).finally(() => { setCloudMessage(''); cloudSync(); });
+else cloudSync().then(() => setCloudMessage(''));
 // Journal de session (v8.5) : depuis le lancement, et pendant la dernière absence.
 const sessionJournal = createJournal(state);
 let awayJournal = null;

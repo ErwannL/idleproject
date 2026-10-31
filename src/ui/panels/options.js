@@ -51,21 +51,54 @@ function cheatCard(state, ui) {
       </div>`;
 }
 
-// Compte et sauvegarde cloud : pseudo + mot de passe. Optionnel : sans compte, tout reste local.
+// Compte et sauvegarde en ligne (v9.1.1) : un compte invité « joueurXXXXXX » est créé au premier lancement et
+// la progression est sauvegardée sur le serveur. Pour changer de nom ou retrouver la partie ailleurs, le joueur
+// crée son compte joueur (nom d'utilisateur + mot de passe).
 function cloudOptions(ui) {
   if (!BUILD.cloud) return '';
   const c = ui.cloud ?? {};
-  const msg = c.message ? `<div style="${c.error ? 'color:#ff9aa8' : 'color:#7fe08f'}">${escapeHtml(c.message)}</div>` : '';
+  const busy = c.busy ? 'disabled' : '';
+  const msg = c.message ? `<div role="status" style="${c.error ? 'color:#ff9aa8' : 'color:#7fe08f'}">${escapeHtml(c.message)}</div>` : '';
+  const loginForm = `<div class="row"><input id="cloud-pseudo" class="grow" type="text" value="${escapeHtml(c.draft?.['cloud-pseudo'] ?? '')}" maxlength="20" placeholder="Nom d'utilisateur" autocomplete="username" aria-label="Nom d'utilisateur">
+        <input id="cloud-password" class="grow" type="password" maxlength="200" placeholder="Mot de passe" autocomplete="current-password" aria-label="Mot de passe"></div>
+      <div class="options-row"><button class="btn small" data-action="cloud-login" ${busy}>Se connecter</button></div>`;
+  const listed = `<label class="toggle"><input type="checkbox" data-action="cloud-listed" ${c.listed !== false ? 'checked' : ''}> Apparaître dans le classement public (nom, niveau, étape, boss)</label>`;
+  if (c.loggedIn && c.guest) {
+    return `<div class="card">
+      <div class="section-title">Compte et sauvegarde en ligne</div>
+      <div>Votre nom : <b>${escapeHtml(c.pseudo)}</b>. Votre progression est sauvegardée sur le serveur automatiquement.</div>
+      <div class="muted">Pour choisir votre nom et retrouver votre partie sur un autre appareil, créez votre compte joueur. Votre progression le suit.</div>
+      <div><b>Créer mon compte joueur</b></div>
+      <div class="row"><input id="cloud-claim-pseudo" class="grow" type="text" value="${escapeHtml(c.draft?.['cloud-claim-pseudo'] ?? '')}" maxlength="20" placeholder="Nom d'utilisateur (3 à 20 caractères)" autocomplete="username" aria-label="Nom d'utilisateur"></div>
+      <div class="row"><input id="cloud-claim-password" class="grow" type="password" maxlength="200" placeholder="Mot de passe (8 caractères min.)" autocomplete="new-password" aria-label="Mot de passe">
+        <input id="cloud-claim-confirm" class="grow" type="password" maxlength="200" placeholder="Confirmer le mot de passe" autocomplete="new-password" aria-label="Confirmer le mot de passe"></div>
+      <div class="options-row">
+        <button class="btn small btn-primary" data-action="cloud-claim" ${busy}>Créer mon compte joueur</button>
+        <button class="btn small" data-action="cloud-sync" ${busy}>Synchroniser maintenant</button>
+      </div>
+      ${listed}
+      ${msg}
+      <details class="update-notes"><summary>J'ai déjà un compte joueur</summary>
+        <div class="muted">La progression de votre compte remplacera celle de cet appareil (une copie est gardée).</div>
+        ${loginForm}
+      </details>
+    </div>`;
+  }
   if (c.loggedIn) {
     return `<div class="card">
-      <div class="section-title">Compte et sauvegarde cloud</div>
-      <div>Connecté en tant que <b>${escapeHtml(c.pseudo)}</b>. La partie est synchronisée automatiquement (toutes les minutes et à la fermeture de l'onglet).</div>
+      <div class="section-title">Compte et sauvegarde en ligne</div>
+      <div>Connecté en tant que <b>${escapeHtml(c.pseudo)}</b>. La partie est sauvegardée sur le serveur automatiquement (toutes les minutes et à la fermeture).</div>
       <div class="options-row">
-        <button class="btn small" data-action="cloud-sync" ${c.busy ? 'disabled' : ''}>Synchroniser maintenant</button>
+        <button class="btn small" data-action="cloud-sync" ${busy}>Synchroniser maintenant</button>
         <button class="btn small" data-action="cloud-logout">Se déconnecter</button>
       </div>
-      <label class="toggle"><input type="checkbox" data-action="cloud-listed" ${c.listed !== false ? 'checked' : ''}> Apparaître dans le classement public (pseudo, niveau, étape, boss)</label>
+      ${listed}
       ${msg}
+      <details class="update-notes"><summary>Changer de nom</summary>
+        <div class="row"><input id="cloud-rename-pseudo" class="grow" type="text" value="${escapeHtml(c.draft?.['cloud-rename-pseudo'] ?? '')}" maxlength="20" placeholder="Nouveau nom (3 à 20 caractères)" autocomplete="username" aria-label="Nouveau nom">
+          <input id="cloud-rename-password" class="grow" type="password" maxlength="200" placeholder="Mot de passe du compte" autocomplete="current-password" aria-label="Mot de passe du compte"></div>
+        <div class="options-row"><button class="btn small" data-action="cloud-rename" ${busy}>Changer de nom</button></div>
+      </details>
       <details class="update-notes"><summary>Supprimer mon compte</summary>
         <div class="muted">Efface le compte et la progression sur le serveur. Votre partie reste sur cet appareil.</div>
         <div class="row"><input id="cloud-delete-password" class="grow" type="password" maxlength="200" placeholder="Mot de passe du compte" autocomplete="current-password">
@@ -74,14 +107,10 @@ function cloudOptions(ui) {
     </div>`;
   }
   return `<div class="card">
-      <div class="section-title">Compte et sauvegarde cloud</div>
-      <div class="muted">Créez un compte pour retrouver votre progression sur un autre appareil ou après avoir vidé le cache. Facultatif : le jeu fonctionne sans compte.</div>
-      <div class="row"><input id="cloud-pseudo" class="grow" type="text" maxlength="20" placeholder="Pseudo (3 à 20 caractères)" autocomplete="username">
-        <input id="cloud-password" class="grow" type="password" maxlength="200" placeholder="Mot de passe (8 caractères min.)" autocomplete="current-password"></div>
-      <div class="options-row">
-        <button class="btn small" data-action="cloud-login" ${c.busy ? 'disabled' : ''}>Se connecter</button>
-        <button class="btn small" data-action="cloud-register" ${c.busy ? 'disabled' : ''}>Créer un compte</button>
-      </div>
+      <div class="section-title">Compte et sauvegarde en ligne</div>
+      <div class="muted">${c.optedOut ? 'Déconnecté : la partie est sauvegardée seulement sur cet appareil.' : 'Connexion au serveur en cours… La partie est sauvegardée sur cet appareil en attendant.'}</div>
+      ${loginForm}
+      ${c.optedOut ? `<div class="options-row"><button class="btn small" data-action="cloud-resume" ${busy}>Sauvegarder en ligne sans compte</button></div>` : ''}
       ${msg}
     </div>`;
 }

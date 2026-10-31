@@ -2,6 +2,8 @@
 const { contextBridge, ipcRenderer, webFrame } = require('electron');
 
 contextBridge.exposeInMainWorld('desktop', {
+  // v9.1.1 : vrai en mode test (--smoke) ; le jeu ne crée alors aucun compte sur le serveur.
+  automated: Array.isArray(process.argv) && process.argv.includes('--idle-automated'),
   getInfo: () => ipcRenderer.invoke('desktop:getInfo'),
   setAlwaysOnTop: (value) => ipcRenderer.invoke('desktop:setAlwaysOnTop', value),
   setSizePreset: (preset) => ipcRenderer.invoke('desktop:setSizePreset', preset),

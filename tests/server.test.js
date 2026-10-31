@@ -303,3 +303,138 @@ test('anti-triche : codes refusés, régression de niveau refusée, meilleure é
   const board = (await call(base, 'GET', '/api/leaderboard?sort=stage')).body.players;
   assert.equal(board[0].maxStage, 40);
 });
+
+// ---- v9.1.1 : comptes invités, compte joueur, changement de nom, analytique ----
+const SAVE = (level, maxStage, lastSaved) => JSON.stringify({ level, maxStage, gold: 10, gems: 1, kills: 5, lastSaved, records: { bossesDefeated: 0 } });
+
+test('invité : nom joueurXXXXXX, sauvegarde serveur, connexion impossible sans compte joueur', async (t) => {
+  const s = await setup();
+  t.after(() => s.close());
+  const base = s.url();
+  const g = await call(base, 'POST', '/api/guest', { platform: 'windows', gameVersion: '9.1.1' });
+  assert.equal(g.status, 201);
+  assert.match(g.body.pseudo, /^joueur\d{6}$/);
+  assert.equal(g.body.guest, true);
+  const put = await call(base, 'PUT', '/api/save', { version: 0, data: SAVE(3, 4, 1) }, g.body.token);
+  assert.equal(put.status, 200);
+  const acc = await call(base, 'GET', '/api/account', undefined, g.body.token);
+  assert.deepEqual(acc.body, { pseudo: g.body.pseudo, guest: true, listed: true });
+  // Mot de passe vide : aucune connexion possible au nom de l'invité.
+  for (const password of ['', 'nimportequoi']) {
+    assert.equal((await call(base, 'POST', '/api/login', { pseudo: g.body.pseudo, password })).status, 401);
+  }
+  const row = s.db.prepare('SELECT platform, game_version FROM accounts WHERE pseudo = ?').get(g.body.pseudo);
+  assert.deepEqual({ ...row }, { platform: 'windows', game_version: '9.1.1' });
+  // Valeurs inconnues filtrées.
+  const g2 = await call(base, 'POST', '/api/guest', { platform: '<script>', gameVersion: 'x' });
+  const row2 = s.db.prepare('SELECT platform, game_version FROM accounts WHERE pseudo = ?').get(g2.body.pseudo);
+  assert.deepEqual({ ...row2 }, { platform: null, game_version: null });
+});
+
+test('invité -> compte joueur : nom choisi, progression gardée, puis changement de nom', async (t) => {
+  const s = await setup();
+  t.after(() => s.close());
+  const base = s.url();
+  const g = await call(base, 'POST', '/api/guest', {});
+  const tok = g.body.token;
+  await call(base, 'PUT', '/api/save', { version: 0, data: SAVE(7, 9, 1) }, tok);
+  // Renommer sans compte joueur : refusé.
+  assert.equal((await call(base, 'PUT', '/api/account/pseudo', { pseudo: 'Ayla', password: 'x' }, tok)).status, 403);
+  // Noms réservés et mots de passe trop courts.
+  assert.equal((await call(base, 'POST', '/api/account/claim', { pseudo: 'joueur123456', password: 'motdepasse1' }, tok)).status, 400);
+  assert.equal((await call(base, 'POST', '/api/account/claim', { pseudo: 'Ayla', password: 'court' }, tok)).status, 400);
+  await call(base, 'POST', '/api/register', { pseudo: 'Pris', password: 'motdepasse1' });
+  assert.equal((await call(base, 'POST', '/api/account/claim', { pseudo: 'pris', password: 'motdepasse1' }, tok)).status, 409);
+  const claim = await call(base, 'POST', '/api/account/claim', { pseudo: 'Ayla', password: 'motdepasse1' }, tok);
+  assert.equal(claim.status, 200);
+  assert.deepEqual(claim.body, { pseudo: 'Ayla', guest: false });
+  // Une seule fois.
+  assert.equal((await call(base, 'POST', '/api/account/claim', { pseudo: 'Ayla2', password: 'motdepasse1' }, tok)).status, 409);
+  // Même session, même sauvegarde ; connexion par nom possible.
+  assert.equal(JSON.parse((await call(base, 'GET', '/api/save', undefined, tok)).body.data).level, 7);
+  const login = await call(base, 'POST', '/api/login', { pseudo: 'ayla', password: 'motdepasse1' });
+  assert.equal(login.status, 200);
+  // Changement de nom : mot de passe requis.
+  assert.equal((await call(base, 'PUT', '/api/account/pseudo', { pseudo: 'Aylana', password: 'mauvais12' }, tok)).status, 401);
+  assert.equal((await call(base, 'PUT', '/api/account/pseudo', { pseudo: 'Pris', password: 'motdepasse1' }, tok)).status, 409);
+  const ren = await call(base, 'PUT', '/api/account/pseudo', { pseudo: 'Aylana', password: 'motdepasse1' }, tok);
+  assert.equal(ren.status, 200);
+  assert.equal((await call(base, 'POST', '/api/login', { pseudo: 'Aylana', password: 'motdepasse1' })).status, 200);
+  assert.equal((await call(base, 'POST', '/api/login', { pseudo: 'Ayla', password: 'motdepasse1' })).status, 401);
+  // On ne peut pas prendre un nom automatique en s'inscrivant.
+  assert.equal((await call(base, 'POST', '/api/register', { pseudo: 'Joueur000001', password: 'motdepasse1' })).status, 400);
+});
+
+test('invité : suppression sans mot de passe ; création limitée par adresse', async (t) => {
+  const s = await setup();
+  t.after(() => s.close());
+  const base = s.url();
+  const g = await call(base, 'POST', '/api/guest', {});
+  assert.equal((await call(base, 'DELETE', '/api/account', {}, g.body.token)).status, 204);
+  assert.equal(s.db.prepare('SELECT COUNT(*) AS n FROM accounts').get().n, 0);
+  let last = 0;
+  for (let i = 0; i < LIMITS.guestAttempts.max + 1; i += 1) last = (await call(base, 'POST', '/api/guest', {})).status;
+  assert.equal(last, 429);
+});
+
+test('analytique admin : activité par jour, rétention, plateformes, versions, répartition', async (t) => {
+  const s = await setup({ adminPasswordHash: await hashPassword('admin-secret-123') });
+  t.after(() => s.close());
+  const base = s.url();
+  const a = await call(base, 'POST', '/api/guest', { platform: 'android', gameVersion: '9.1.1' });
+  const b = await call(base, 'POST', '/api/guest', { platform: 'windows', gameVersion: '9.1.0' });
+  await call(base, 'PUT', '/api/save', { version: 0, data: SAVE(12, 30, 1) }, a.body.token);
+  await call(base, 'GET', '/api/save', undefined, a.body.token);
+  s.advance(24 * 3600 * 1000);
+  await call(base, 'GET', '/api/save', undefined, a.body.token); // revenu à J1
+  await call(base, 'POST', '/api/account/claim', { pseudo: 'Bob', password: 'motdepasse1' }, b.body.token);
+  const admin = await call(base, 'POST', '/api/admin/login', { username: 'erwann', password: 'admin-secret-123' });
+  const an = await call(base, 'GET', '/api/admin/analytics?days=7', undefined, admin.body.token);
+  assert.equal(an.status, 200);
+  assert.equal(an.body.series.length, 7);
+  const last2 = an.body.series.slice(-2);
+  assert.deepEqual(last2.map((d) => d.active), [2, 1]);
+  assert.deepEqual(last2.map((d) => d.newAccounts), [2, 0]);
+  assert.deepEqual(last2.map((d) => d.newPlayers), [0, 1]);
+  assert.equal(last2[0].minutes, 3, 'deux créations + un GET le premier jour');
+  assert.deepEqual(an.body.retention.d1, { cohort: 2, back: 1, rate: 0.5 });
+  assert.equal(an.body.guests, 1);
+  assert.equal(an.body.registered, 1);
+  assert.deepEqual(an.body.platforms.map((p) => p.key).sort(), ['android', 'windows']);
+  assert.ok(an.body.versions.some((v) => v.key === '9.1.1' && v.count === 1));
+  assert.equal(an.body.stageDist.find((d) => d.key === '25–49').count, 1);
+  assert.equal(an.body.dau, 1);
+  assert.equal(an.body.wau, 2);
+  // Fiche joueur : activité et type de compte ; filtre invités / joueurs.
+  const list = await call(base, 'GET', '/api/admin/players?kind=guest', undefined, admin.body.token);
+  assert.equal(list.body.total, 1);
+  const detail = await call(base, 'GET', `/api/admin/players/${list.body.players[0].id}`, undefined, admin.body.token);
+  assert.equal(detail.body.guest, true);
+  assert.equal(detail.body.platform, 'android');
+  assert.equal(detail.body.activity.daysPlayed, 2);
+  // Sans jeton admin : refusé.
+  assert.equal((await call(base, 'GET', '/api/admin/analytics', undefined, a.body.token)).status, 401);
+});
+
+test('session glissante : un invité qui revient garde son compte au-delà de 30 jours', async (t) => {
+  const s = await setup();
+  t.after(() => s.close());
+  const base = s.url();
+  const g = await call(base, 'POST', '/api/guest', {});
+  for (let i = 0; i < 3; i += 1) {
+    s.advance(20 * 24 * 3600 * 1000);
+    assert.equal((await call(base, 'GET', '/api/save', undefined, g.body.token)).status, 200);
+  }
+  s.advance(31 * 24 * 3600 * 1000);
+  assert.equal((await call(base, 'GET', '/api/save', undefined, g.body.token)).status, 401);
+});
+
+test('plateforme et version transmises avec la sauvegarde (sans en-tête personnalisé)', async (t) => {
+  const s = await setup();
+  t.after(() => s.close());
+  const base = s.url();
+  const reg = await call(base, 'POST', '/api/register', { pseudo: 'Ancien', password: 'motdepasse1' });
+  await call(base, 'PUT', '/api/save', { version: 0, data: SAVE(2, 2, 1), platform: 'android', gameVersion: '9.1.1' }, reg.body.token);
+  const row = s.db.prepare('SELECT platform, game_version FROM accounts WHERE pseudo = ?').get('Ancien');
+  assert.deepEqual({ ...row }, { platform: 'android', game_version: '9.1.1' });
+});

@@ -29,6 +29,13 @@ CREATE TABLE IF NOT EXISTS saves (
   kills INTEGER NOT NULL DEFAULT 0,
   bosses_defeated INTEGER NOT NULL DEFAULT 0
 );
+-- Activité par jour (v9.1.1) : un ping ≈ une minute de jeu (synchronisation toutes les minutes).
+CREATE TABLE IF NOT EXISTS activity (
+  account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+  day TEXT NOT NULL,
+  pings INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (account_id, day)
+);
 CREATE TABLE IF NOT EXISTS admin_users (
   id INTEGER PRIMARY KEY,
   username TEXT NOT NULL UNIQUE COLLATE NOCASE,
@@ -59,6 +66,11 @@ export function openDatabase(file) {
   addColumnIfMissing(db, 'accounts', 'listed', 'INTEGER NOT NULL DEFAULT 1');
   for (const col of ['level', 'max_stage', 'kills', 'bosses_defeated']) addColumnIfMissing(db, 'saves', col, 'INTEGER NOT NULL DEFAULT 0');
   addColumnIfMissing(db, 'saves', 'gold', 'REAL NOT NULL DEFAULT 0');
+  // v9.1.1 : comptes invités « joueurXXXXXX », plateforme et version du jeu, date de création du compte joueur.
+  addColumnIfMissing(db, 'accounts', 'guest', 'INTEGER NOT NULL DEFAULT 0');
+  addColumnIfMissing(db, 'accounts', 'platform', 'TEXT');
+  addColumnIfMissing(db, 'accounts', 'game_version', 'TEXT');
+  addColumnIfMissing(db, 'accounts', 'claimed_at', 'INTEGER');
   addColumnIfMissing(db, 'saves', 'gems', 'INTEGER NOT NULL DEFAULT 0');
   return db;
 }
