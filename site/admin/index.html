@@ -141,8 +141,14 @@
       .side .brand span { display: none; }
       .nav { display: flex; gap: 6px; }
       .nav button { width: auto; white-space: nowrap; padding: 8px 12px; }
-      .side .foot { display: none; }
+      .side .brand { white-space: nowrap; }
+      /* Téléphone : le bouton de déconnexion reste accessible au bout de la barre (le nom est masqué). */
+      .side .foot { margin: 0 0 0 8px; padding: 0; flex: none; }
+      .side .foot #who { display: none; }
+      .side .foot button { margin-top: 0; width: auto; white-space: nowrap; }
       .content { padding: 18px 14px 40px; }
+      .kpis, .detail { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .grid2 { grid-template-columns: minmax(0, 1fr); }
       .toolbar input, .toolbar select { width: 100%; }
       .toolbar .input { width: 100%; }
     }
