@@ -591,6 +591,7 @@ export class UI {
     if (action === 'volume') this.sound?.setVolume(el.dataset.kind, Number(el.value) / 100);
     if (action === 'mute') this.sound?.setMuted(el.checked);
     if (action === 'notify') this.actions.setNotify(el.dataset.key, el.checked);
+    if (action === 'cloud-listed') this.actions.cloudListed(el.checked);
     if (action === 'focus') this.actions.setFocus(el.checked);
     if (action === 'cinematics') this.actions.setCinematics(el.checked);
     if (action === 'theme-fx') this.actions.setThemeFx(el.checked);

@@ -651,6 +651,14 @@ const actions = {
   cloudLogin(pseudo, password) { cloudAuth(() => cloud.login(pseudo, password), 'Connecté'); },
   cloudLogout() { cloud.logout().then(() => setCloudMessage('Déconnecté. La partie reste sur cet appareil.')); },
   cloudSync() { cloudSync(true); },
+  cloudListed(listed) {
+    cloud.setListed(listed)
+      .then(() => {
+        try { localStorage.setItem('idle-rpg.cloud-listed', listed ? '1' : '0'); } catch { /* indisponible */ }
+        setCloudMessage(listed ? 'Vous apparaissez dans le classement.' : 'Vous êtes masqué du classement.');
+      })
+      .catch((err) => setCloudMessage(err.message || 'Mise à jour impossible', true));
+  },
   cloudDelete(password) {
     cloud.deleteAccount(password)
       .then(() => setCloudMessage('Compte et sauvegarde cloud supprimés. La partie reste sur cet appareil.'))
@@ -700,6 +708,7 @@ function setCloudMessage(text, error = false) {
   cloudView.busy = false;
   cloudView.loggedIn = cloud.isLoggedIn();
   cloudView.pseudo = cloud.pseudo() ?? '';
+  try { cloudView.listed = localStorage.getItem('idle-rpg.cloud-listed') !== '0'; } catch { cloudView.listed = true; }
   cloudView.message = text;
   cloudView.error = error;
   ui.invalidate();

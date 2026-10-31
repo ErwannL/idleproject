@@ -93,6 +93,8 @@ export function createCloudClient({ baseUrl = '', storage, fetchImpl = globalThi
     pull: () => request('GET', '/api/save'),
     // `version` = version connue lors du dernier pull/push. Lève CloudError(409) si périmée.
     push: (version, data) => request('PUT', '/api/save', { body: { version, data } }),
+    // Apparaître ou non dans le classement public.
+    setListed: (listed) => request('PUT', '/api/account/listed', { body: { listed } }),
     // Suppression du compte et de toutes ses données sur le serveur (RGPD).
     async deleteAccount(password) {
       await request('DELETE', '/api/account', { body: { password } });

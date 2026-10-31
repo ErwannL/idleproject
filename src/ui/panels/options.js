@@ -45,6 +45,7 @@ function cloudOptions(ui) {
         <button class="btn small" data-action="cloud-sync" ${c.busy ? 'disabled' : ''}>Synchroniser maintenant</button>
         <button class="btn small" data-action="cloud-logout">Se déconnecter</button>
       </div>
+      <label class="toggle"><input type="checkbox" data-action="cloud-listed" ${c.listed !== false ? 'checked' : ''}> Apparaître dans le classement public (pseudo, niveau, étape, boss)</label>
       ${msg}
       <details class="update-notes"><summary>Supprimer mon compte</summary>
         <div class="muted">Efface le compte et la progression sur le serveur. Votre partie reste sur cet appareil.</div>
