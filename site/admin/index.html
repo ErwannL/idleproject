@@ -62,7 +62,8 @@
 
     /* Application */
     .app { display: grid; grid-template-columns: 220px 1fr; min-height: 100%; }
-    .side { background: var(--side); border-right: 1px solid var(--line); padding: 18px 12px; display: flex; flex-direction: column; gap: 6px; }
+    .side { background: var(--side); border-right: 1px solid var(--line); padding: 18px 12px; display: flex; flex-direction: column; gap: 6px;
+      position: sticky; top: 0; height: 100vh; overflow-y: auto; } /* menu toujours visible quand la page défile */
     .side .brand { margin: 4px 8px 18px; }
     .nav button {
       width: 100%; text-align: left; background: transparent; border: 0; border-radius: 10px;
@@ -135,7 +136,7 @@
 
     @media (max-width: 760px) {
       .app { grid-template-columns: 1fr; }
-      .side { flex-direction: row; align-items: center; overflow-x: auto; padding: 10px; position: sticky; top: 0; z-index: 2; }
+      .side { flex-direction: row; align-items: center; overflow-x: auto; padding: 10px; position: sticky; top: 0; z-index: 2; height: auto; }
       .side .brand { margin: 0 8px 0 0; }
       .side .brand span { display: none; }
       .nav { display: flex; gap: 6px; }
