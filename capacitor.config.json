@@ -1,0 +1,8 @@
+{
+  "appId": "com.erwannl.idlerpg",
+  "appName": "Idle RPG",
+  "webDir": "dist/web",
+  "server": {
+    "androidScheme": "https"
+  }
+}

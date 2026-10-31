@@ -27,6 +27,9 @@
     "test:upgrade": "node tools/upgrade-smoke.mjs"
   },
   "devDependencies": {
+    "@capacitor/android": "^7.6.10",
+    "@capacitor/cli": "^7.6.10",
+    "@capacitor/core": "^7.6.10",
     "electron": "44.7.0",
     "electron-builder": "26.17.0"
   },

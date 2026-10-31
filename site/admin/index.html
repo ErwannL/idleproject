@@ -4,91 +4,225 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>Admin · Idle RPG</title>
+  <title>Administration · Idle RPG</title>
+  <link rel="icon" href="/assets/icon.png">
   <style>
-    :root { --bg:#0d1528; --panel:#131e38; --panel-2:#1a2847; --line:#2e3d63; --text:#eef3ff; --muted:#9aa8c7; --gold:#f2b43a; --ok:#5fdc7a; --bad:#ff7a8a; }
+    :root {
+      --bg: #0b1222; --side: #0f1830; --card: #141f3a; --card-2: #1b2a4b; --line: #26365c;
+      --text: #e9efff; --muted: #8e9cc2; --accent: #f2b43a; --accent-ink: #2a1600;
+      --ok: #5fdc7a; --bad: #ff7a8a; --radius: 14px;
+    }
     * { box-sizing: border-box; }
-    body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui, sans-serif; }
-    header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
-    header h1 { font-size:18px; margin:0; color:var(--gold); }
-    main { padding:16px; max-width:1200px; margin:0 auto; }
-    button, select, input { font:inherit; color:var(--text); background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:8px 12px; }
-    button { cursor:pointer; }
-    button.primary { background:var(--gold); color:#2a1600; border-color:#7a3d00; font-weight:700; }
-    button.danger { background:#5a1d28; border-color:#a0404f; }
-    button:disabled { opacity:.5; cursor:default; }
-    input[type=password], input[type=search], input[type=text] { min-width:220px; }
-    .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:14px; }
-    .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px; }
-    .stat { background:var(--panel-2); border-radius:10px; padding:10px 12px; }
-    .stat .k { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
-    .stat .v { font-size:22px; font-weight:800; margin-top:2px; }
-    .tabs { display:flex; gap:8px; margin:6px 0 14px; flex-wrap:wrap; }
-    .tabs button.active { background:var(--gold); color:#2a1600; font-weight:700; }
-    .toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
-    .table-wrap { overflow-x:auto; border:1px solid var(--line); border-radius:10px; }
-    table { width:100%; border-collapse:collapse; min-width:700px; }
-    th, td { padding:9px 10px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; }
-    th { background:var(--panel-2); color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; position:sticky; top:0; }
-    tbody tr { cursor:pointer; }
-    tbody tr:hover { background:rgba(242,180,58,.06); }
-    td.num { text-align:right; font-variant-numeric: tabular-nums; }
-    .muted { color:var(--muted); }
-    .msg { min-height:1.4em; margin:8px 0; }
-    .msg.err { color:var(--bad); }
-    .msg.ok { color:var(--ok); }
-    dl { display:grid; grid-template-columns:max-content 1fr; gap:6px 14px; margin:0; }
-    dt { color:var(--muted); }
-    dd { margin:0; font-variant-numeric: tabular-nums; }
-    .pager { display:flex; gap:8px; align-items:center; margin-top:10px; flex-wrap:wrap; }
-    .hidden { display:none !important; }
-    @media (max-width: 600px) { input[type=password], input[type=search], input[type=text] { min-width:0; width:100%; } }
+    html, body { margin: 0; height: 100%; }
+    body { background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+    button, input, select { font: inherit; color: inherit; }
+    .hidden { display: none !important; }
+    .muted { color: var(--muted); }
+
+    /* Champs */
+    .field { display: grid; gap: 6px; }
+    .field label { font-size: 13px; color: var(--muted); font-weight: 600; }
+    .input { position: relative; }
+    .input input {
+      width: 100%; background: var(--card-2); border: 1px solid var(--line); border-radius: 10px;
+      padding: 11px 44px 11px 13px; outline: none;
+    }
+    .input input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(242,180,58,.18); }
+    .eye {
+      position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+      background: transparent; border: 0; padding: 6px; border-radius: 8px; cursor: pointer; color: var(--muted);
+      width: 34px; height: 34px; display: grid; place-items: center;
+    }
+    .eye:hover { color: var(--text); background: rgba(255,255,255,.06); }
+    .eye svg { width: 18px; height: 18px; }
+
+    .btn {
+      background: var(--card-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 16px;
+      cursor: pointer; font-weight: 600;
+    }
+    .btn:hover { border-color: #3c5084; }
+    .btn:disabled { opacity: .5; cursor: default; }
+    .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: #c98f1d; }
+    .btn.primary:hover { filter: brightness(1.06); }
+    .btn.danger { color: #ffb3bd; border-color: #6a2a36; background: #2a1620; }
+    .btn.small { padding: 6px 10px; font-size: 13px; border-radius: 8px; }
+    .btn.ghost { background: transparent; }
+
+    /* Connexion */
+    .auth { min-height: 100%; display: grid; place-items: center; padding: 24px 16px; }
+    .auth-card { width: 100%; max-width: 380px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 28px 24px; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+    .brand img { width: 40px; height: 40px; image-rendering: pixelated; }
+    .brand b { display: block; font-size: 17px; }
+    .brand span { color: var(--muted); font-size: 13px; }
+    .auth-card h1 { font-size: 20px; margin: 0 0 6px; }
+    .auth-card p.lead { margin: 0 0 20px; color: var(--muted); }
+    .auth-card form { display: grid; gap: 14px; }
+    .error { color: var(--bad); font-size: 14px; min-height: 20px; margin-top: 12px; }
+
+    /* Application */
+    .app { display: grid; grid-template-columns: 220px 1fr; min-height: 100%; }
+    .side { background: var(--side); border-right: 1px solid var(--line); padding: 18px 12px; display: flex; flex-direction: column; gap: 6px; }
+    .side .brand { margin: 4px 8px 18px; }
+    .nav button {
+      width: 100%; text-align: left; background: transparent; border: 0; border-radius: 10px;
+      padding: 10px 12px; color: var(--muted); cursor: pointer; font-weight: 600;
+    }
+    .nav button:hover { color: var(--text); background: rgba(255,255,255,.04); }
+    .nav button.active { color: var(--accent-ink); background: var(--accent); }
+    .side .foot { margin-top: auto; padding: 12px; font-size: 13px; color: var(--muted); }
+    .side .foot button { margin-top: 8px; width: 100%; }
+    .content { padding: 26px 28px 40px; min-width: 0; }
+    .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+    .page-head h2 { margin: 0; font-size: 24px; }
+    .page-head p { margin: 4px 0 0; color: var(--muted); }
+
+    .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+    .panel + .panel { margin-top: 16px; }
+    .panel h3 { margin: 0 0 12px; font-size: 16px; }
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .toolbar .input input, .toolbar input, .toolbar select {
+      background: var(--card-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; outline: none;
+    }
+    .toolbar .input input { padding-right: 44px; }
+
+    .kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
+    .kpi { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+    .kpi .label { color: var(--muted); font-size: 13px; }
+    .kpi .value { font-size: 26px; font-weight: 800; margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .kpi .hint { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+    .table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); }
+    .table th, .table td { padding: 11px 14px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    .table th { color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; background: var(--card-2); }
+    .table tr:last-child td { border-bottom: 0; }
+    .table td.num, .table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .table tbody tr.click { cursor: pointer; }
+    .table tbody tr.click:hover td { background: rgba(242,180,58,.06); }
+    .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .pill.warn { background: rgba(242,180,58,.15); color: var(--accent); }
+    .pill.ok { background: rgba(95,220,122,.14); color: var(--ok); }
+    .pager { display: flex; gap: 10px; align-items: center; margin-top: 12px; color: var(--muted); }
+
+    .detail { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin: 14px 0; }
+    .detail div { background: var(--card-2); border-radius: 10px; padding: 10px 12px; }
+    .detail small { display: block; color: var(--muted); font-size: 12px; }
+    .detail b { font-variant-numeric: tabular-nums; }
+
+    .temp { border: 1px solid #6b5520; background: rgba(242,180,58,.08); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
+    .temp code { display: inline-block; margin-top: 6px; background: #0b1222; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: 18px; letter-spacing: .04em; }
+
+    .toast {
+      position: fixed; right: 18px; bottom: 18px; background: var(--card-2); border: 1px solid var(--line);
+      border-radius: 12px; padding: 12px 16px; max-width: 360px; box-shadow: 0 12px 30px rgba(0,0,0,.4); z-index: 10;
+    }
+    .toast.bad { border-color: #6a2a36; color: #ffb3bd; }
+    .toast.ok { border-color: #2c6b3d; color: #aef0bd; }
+
+    @media (max-width: 760px) {
+      .app { grid-template-columns: 1fr; }
+      .side { flex-direction: row; align-items: center; overflow-x: auto; padding: 10px; position: sticky; top: 0; z-index: 2; }
+      .side .brand { margin: 0 8px 0 0; }
+      .side .brand span { display: none; }
+      .nav { display: flex; gap: 6px; }
+      .nav button { width: auto; white-space: nowrap; padding: 8px 12px; }
+      .side .foot { display: none; }
+      .content { padding: 18px 14px 40px; }
+      .toolbar input, .toolbar select { width: 100%; }
+      .toolbar .input { width: 100%; }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Idle RPG · Administration</h1>
-    <button id="logout" class="hidden">Se déconnecter</button>
-  </header>
 
-  <main>
-    <section id="login" class="card" style="max-width:420px">
-      <h2 style="margin-top:0">Connexion</h2>
-      <form id="login-form" class="toolbar" style="flex-direction:column; align-items:stretch">
-        <input id="username" type="text" placeholder="Identifiant (ex. Erwann)" autocomplete="username" required>
-        <input id="password" type="password" placeholder="Mot de passe" autocomplete="current-password" required>
-        <button class="primary" type="submit">Entrer</button>
+  <!-- Connexion -->
+  <div class="auth" id="view-login">
+    <div class="auth-card">
+      <div class="brand"><img src="/assets/icon.png" alt=""><div><b>Idle RPG</b><span>Administration</span></div></div>
+      <h1>Connexion</h1>
+      <p class="lead">Entrez votre nom d'utilisateur et votre mot de passe.</p>
+      <form id="login-form" autocomplete="on">
+        <div class="field">
+          <label for="username">Nom d'utilisateur</label>
+          <div class="input"><input id="username" name="username" type="text" placeholder="Erwann" autocomplete="username" required></div>
+        </div>
+        <div class="field">
+          <label for="password">Mot de passe</label>
+          <div class="input">
+            <input id="password" name="password" type="password" autocomplete="current-password" required>
+            <button type="button" class="eye" data-eye="password" aria-label="Afficher le mot de passe" title="Afficher / masquer"></button>
+          </div>
+        </div>
+        <button class="btn primary" type="submit" id="login-btn">Se connecter</button>
       </form>
-      <p class="msg err" id="login-msg"></p>
-    </section>
+      <div class="error" id="login-error"></div>
+    </div>
+  </div>
 
-    <section id="change" class="card hidden" style="max-width:420px">
-      <h2 style="margin-top:0">Nouveau mot de passe</h2>
-      <p class="muted">Votre mot de passe est temporaire. Choisissez-en un nouveau (12 caractères minimum) pour continuer.</p>
-      <form id="change-form" class="toolbar" style="flex-direction:column; align-items:stretch">
-        <input id="change-current" type="password" placeholder="Mot de passe temporaire" autocomplete="current-password" required>
-        <input id="change-new" type="password" minlength="12" placeholder="Nouveau mot de passe" autocomplete="new-password" required>
-        <input id="change-confirm" type="password" minlength="12" placeholder="Répétez le nouveau mot de passe" autocomplete="new-password" required>
-        <button class="primary" type="submit">Enregistrer</button>
+  <!-- Mot de passe temporaire -->
+  <div class="auth hidden" id="view-change">
+    <div class="auth-card">
+      <div class="brand"><img src="/assets/icon.png" alt=""><div><b>Idle RPG</b><span>Administration</span></div></div>
+      <h1>Choisissez un mot de passe</h1>
+      <p class="lead">Votre mot de passe est temporaire. Remplacez-le par un mot de passe personnel (12 caractères minimum) pour continuer.</p>
+      <form id="change-form">
+        <div class="field">
+          <label for="change-current">Mot de passe temporaire</label>
+          <div class="input">
+            <input id="change-current" type="password" autocomplete="current-password" required>
+            <button type="button" class="eye" data-eye="change-current" aria-label="Afficher" title="Afficher / masquer"></button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="change-new">Nouveau mot de passe</label>
+          <div class="input">
+            <input id="change-new" type="password" minlength="12" autocomplete="new-password" required>
+            <button type="button" class="eye" data-eye="change-new" aria-label="Afficher" title="Afficher / masquer"></button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="change-confirm">Répétez le nouveau mot de passe</label>
+          <div class="input">
+            <input id="change-confirm" type="password" minlength="12" autocomplete="new-password" required>
+            <button type="button" class="eye" data-eye="change-confirm" aria-label="Afficher" title="Afficher / masquer"></button>
+          </div>
+        </div>
+        <button class="btn primary" type="submit">Enregistrer et continuer</button>
       </form>
-      <p class="msg err" id="change-msg"></p>
-    </section>
+      <div class="error" id="change-error"></div>
+      <button class="btn ghost small" id="change-cancel" type="button" style="margin-top:10px">Retour à la connexion</button>
+    </div>
+  </div>
 
-    <section id="app" class="hidden">
-      <div class="tabs">
+  <!-- Application -->
+  <div class="app hidden" id="view-app">
+    <aside class="side">
+      <div class="brand"><img src="/assets/icon.png" alt=""><div><b>Idle RPG</b><span>Administration</span></div></div>
+      <nav class="nav" id="nav">
         <button data-tab="stats" class="active">Vue d'ensemble</button>
         <button data-tab="players">Joueurs</button>
         <button data-tab="prereg">Préinscriptions</button>
         <button data-tab="team">Équipe</button>
+      </nav>
+      <div class="foot">
+        <div id="who"></div>
+        <button class="btn small" id="logout">Se déconnecter</button>
       </div>
+    </aside>
 
+    <main class="content">
       <section data-panel="stats">
-        <div class="toolbar"><button id="refresh-stats">Actualiser</button><span class="muted" id="stats-time"></span></div>
-        <div class="grid" id="stats-grid"></div>
+        <div class="page-head">
+          <div><h2>Vue d'ensemble</h2><p id="stats-time">Chargement…</p></div>
+          <button class="btn" id="refresh-stats">Actualiser</button>
+        </div>
+        <div class="kpis" id="kpis"></div>
       </section>
 
       <section data-panel="players" class="hidden">
-        <div class="toolbar">
+        <div class="page-head"><div><h2>Joueurs</h2><p id="players-total"></p></div></div>
+        <div class="toolbar" style="margin-bottom:14px">
           <input id="search" type="search" maxlength="20" placeholder="Rechercher un pseudo">
           <select id="sort">
             <option value="recent">Dernière activité</option>
@@ -97,11 +231,10 @@
             <option value="stage">Étape max</option>
             <option value="gold">Or</option>
           </select>
-          <button id="search-btn">Rechercher</button>
-          <span class="muted" id="players-total"></span>
+          <button class="btn" id="search-btn">Rechercher</button>
         </div>
         <div class="table-wrap">
-          <table>
+          <table class="table">
             <thead><tr>
               <th>Pseudo</th><th>Inscrit</th><th>Vu</th><th class="num">Niveau</th><th class="num">Étape max</th>
               <th class="num">Or</th><th class="num">Gemmes</th><th class="num">Boss</th><th>Sauvegarde</th>
@@ -110,51 +243,53 @@
           </table>
         </div>
         <div class="pager">
-          <button id="prev">Précédent</button><button id="next">Suivant</button><span class="muted" id="page-info"></span>
+          <button class="btn small" id="prev">Précédent</button><button class="btn small" id="next">Suivant</button><span id="page-info"></span>
         </div>
-        <div class="card hidden" id="detail" style="margin-top:14px"></div>
+        <div class="panel hidden" id="detail" style="margin-top:16px"></div>
       </section>
 
       <section data-panel="prereg" class="hidden">
-        <div class="toolbar">
-          <button id="export">Exporter en CSV</button>
-          <span class="muted" id="prereg-total"></span>
+        <div class="page-head">
+          <div><h2>Préinscriptions</h2><p id="prereg-total"></p></div>
+          <button class="btn" id="export">Exporter en CSV</button>
         </div>
         <div class="table-wrap">
-          <table>
+          <table class="table">
             <thead><tr><th>Email</th><th>Consentement</th><th>Version du texte</th><th></th></tr></thead>
             <tbody id="prereg-body"></tbody>
           </table>
         </div>
         <div class="pager">
-          <button id="prereg-prev">Précédent</button><button id="prereg-next">Suivant</button><span class="muted" id="prereg-page"></span>
+          <button class="btn small" id="prereg-prev">Précédent</button><button class="btn small" id="prereg-next">Suivant</button><span id="prereg-page"></span>
         </div>
       </section>
 
       <section data-panel="team" class="hidden">
-        <div class="card">
-          <h3 style="margin-top:0">Ajouter un membre</h3>
-          <p class="muted">Un mot de passe temporaire est créé. Le membre devra le changer à sa première connexion.</p>
+        <div class="page-head"><div><h2>Équipe</h2><p>Chaque membre a son propre identifiant. Un mot de passe temporaire doit être changé à la première connexion.</p></div></div>
+        <div id="temp-box" class="temp hidden"></div>
+        <div class="panel">
+          <h3>Ajouter un membre</h3>
           <div class="toolbar">
-            <input id="new-name" type="text" maxlength="20" placeholder="Prénom (ex. Akan)">
-            <button class="primary" id="add-member">Créer</button>
+            <input id="new-name" type="text" maxlength="20" placeholder="Nom d'utilisateur, ex. Akan" style="min-width:240px">
+            <button class="btn primary" id="add-member">Créer le compte</button>
           </div>
         </div>
-        <div id="temp-box" class="card hidden"></div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Identifiant</th><th>Créé le</th><th>Dernière connexion</th><th>Mot de passe</th><th></th></tr></thead>
+        <div class="table-wrap" style="margin-top:16px">
+          <table class="table">
+            <thead><tr><th>Nom d'utilisateur</th><th>Créé le</th><th>Dernière connexion</th><th>Mot de passe</th><th></th></tr></thead>
             <tbody id="team-body"></tbody>
           </table>
         </div>
       </section>
-      <p class="msg" id="app-msg"></p>
-    </section>
-  </main>
+    </main>
+  </div>
+
+  <div class="toast hidden" id="toast" role="status"></div>
 
   <script>
-    // Le jeton reste en mémoire : il disparaît à la fermeture de la page.
+    // Jeton en mémoire seulement : il disparaît à la fermeture de la page.
     let token = null;
+    let me = null;
     const $ = (id) => document.getElementById(id);
     const fmt = (n) => (n ?? 0).toLocaleString('fr-FR');
     const fmtDate = (ms) => (ms ? new Date(ms).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '—');
@@ -167,14 +302,33 @@
       return `il y a ${Math.round(min / 1440)} j`;
     };
 
+    // Boutons « œil » : afficher ou masquer un mot de passe.
+    const EYE_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+    const EYE_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.9 10.9 0 0 1 12 19c-7 0-11-7-11-7a19.8 19.8 0 0 1 5.06-5.94M9.9 4.24A10.9 10.9 0 0 1 12 4c7 0 11 7 11 7a19.8 19.8 0 0 1-3.17 4.19M1 1l22 22"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/></svg>';
+    document.querySelectorAll('.eye').forEach((btn) => {
+      btn.innerHTML = EYE_ON;
+      btn.addEventListener('click', () => {
+        const input = $(btn.dataset.eye);
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        btn.innerHTML = show ? EYE_OFF : EYE_ON;
+        btn.setAttribute('aria-label', show ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+      });
+    });
+
+    function toast(text, kind = 'ok') {
+      const el = $('toast');
+      el.textContent = text;
+      el.className = `toast ${kind}`;
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => el.classList.add('hidden'), 4000);
+    }
+
     async function api(path, { method = 'GET', body, raw = false } = {}) {
       const headers = { Authorization: `Bearer ${token}` };
       if (body !== undefined) headers['Content-Type'] = 'application/json';
       const res = await fetch(path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
-      if (res.status === 401) {
-        logout('Session expirée, reconnectez-vous.');
-        throw new Error('401');
-      }
+      if (res.status === 401) { logout('Session expirée, reconnectez-vous.'); throw new Error('Session expirée'); }
       if (raw) return res;
       if (res.status === 204) return null;
       const data = await res.json().catch(() => ({}));
@@ -182,68 +336,74 @@
       return data;
     }
 
-    function setMsg(el, text, kind = '') {
-      el.textContent = text;
-      el.className = `msg ${kind}`;
+    function show(view) {
+      for (const v of ['view-login', 'view-change', 'view-app']) $(v).classList.toggle('hidden', v !== view);
     }
 
     function logout(message = '') {
-      token = null;
-      $('app').classList.add('hidden');
-      $('change').classList.add('hidden');
-      $('logout').classList.add('hidden');
-      $('login').classList.remove('hidden');
+      token = null; me = null;
+      show('view-login');
       $('password').value = '';
-      setMsg($('login-msg'), message, 'err');
+      $('login-error').textContent = message;
     }
 
     function enterApp() {
-      $('login').classList.add('hidden');
-      $('change').classList.add('hidden');
-      $('app').classList.remove('hidden');
-      $('logout').classList.remove('hidden');
+      $('who').textContent = `Connecté : ${me}`;
+      show('view-app');
       loadStats();
     }
 
+    // ---- Connexion ----
     $('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
+      const btn = $('login-btn');
+      btn.disabled = true;
+      $('login-error').textContent = '';
       try {
         const res = await fetch('/api/admin/login', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username: $('username').value.trim(), password: $('password').value }),
         });
         const json = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(json.error || 'Connexion refusée');
+        if (res.status === 429) throw new Error('Trop de tentatives. Patientez quelques minutes.');
+        if (!res.ok) throw new Error(res.status === 401 ? "Nom d'utilisateur ou mot de passe incorrect." : (json.error || 'Connexion refusée.'));
         token = json.token;
-        setMsg($('login-msg'), '');
-        $('login').classList.add('hidden');
+        me = json.username;
+        $('change-current').value = $('password').value;
+        $('password').value = '';
         if (json.mustChange) {
-          $('change-current').value = $('password').value;
-          $('change').classList.remove('hidden');
-          return;
+          show('view-change');
+          $('change-new').focus();
+        } else {
+          enterApp();
         }
-        enterApp();
       } catch (err) {
-        setMsg($('login-msg'), err.message, 'err');
+        $('login-error').textContent = err.message;
+      } finally {
+        btn.disabled = false;
       }
     });
-    $('logout').addEventListener('click', () => logout());
 
     $('change-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const next = $('change-new').value;
-      if (next !== $('change-confirm').value) return setMsg($('change-msg'), 'Les deux mots de passe ne correspondent pas.', 'err');
+      if ($('change-new').value !== $('change-confirm').value) {
+        $('change-error').textContent = 'Les deux mots de passe ne correspondent pas.';
+        return;
+      }
       try {
-        await api('/api/admin/password', { method: 'POST', body: { password: $('change-current').value, newPassword: next } });
-        for (const id of ['change-new', 'change-confirm', 'change-current', 'password']) $(id).value = '';
-        setMsg($('change-msg'), '');
+        await api('/api/admin/password', { method: 'POST', body: { password: $('change-current').value, newPassword: $('change-new').value } });
+        for (const id of ['change-current', 'change-new', 'change-confirm']) $(id).value = '';
+        $('change-error').textContent = '';
+        toast('Mot de passe enregistré.');
         enterApp();
       } catch (err) {
-        setMsg($('change-msg'), err.message, 'err');
+        $('change-error').textContent = err.message;
       }
     });
+    $('change-cancel').addEventListener('click', () => logout());
+    $('logout').addEventListener('click', () => logout());
 
-    // ---- Onglets ----
+    // ---- Navigation ----
     document.querySelectorAll('[data-tab]').forEach((btn) => btn.addEventListener('click', () => {
       document.querySelectorAll('[data-tab]').forEach((b) => b.classList.toggle('active', b === btn));
       document.querySelectorAll('[data-panel]').forEach((p) => p.classList.toggle('hidden', p.dataset.panel !== btn.dataset.tab));
@@ -254,49 +414,47 @@
     }));
 
     // ---- Vue d'ensemble ----
-    const STAT_CARDS = [
-      ['Comptes', 'accounts', fmt], ['Actifs 24 h', 'active24h', fmt], ['Actifs 7 j', 'active7d', fmt],
-      ['Nouveaux 7 j', 'new7d', fmt], ['Avec sauvegarde', 'withSave', fmt], ['Ont vaincu un boss', 'withBoss', fmt],
-      ['Préinscrits', 'preregistrations', fmt], ['Préinscrits 7 j', 'preregistrations7d', fmt],
-      ['Niveau max', 'maxLevel', fmt], ['Niveau moyen', 'avgLevel', (n) => Math.round(n)],
-      ['Étape max', 'maxStage', fmt], ['Étape moyenne', 'avgStage', (n) => Math.round(n)],
-      ['Joueurs à l’étape 10+', 'atStage10', fmt], ['Joueurs à l’étape 25+', 'atStage25', fmt],
-      ['Joueurs à l’étape 50+', 'atStage50', fmt],
+    const KPIS = [
+      ['Comptes', 'accounts', fmt, ''], ['Actifs 24 h', 'active24h', fmt, 'connectés'], ['Actifs 7 j', 'active7d', fmt, ''],
+      ['Nouveaux 7 j', 'new7d', fmt, ''], ['Avec sauvegarde', 'withSave', fmt, ''], ['Ont vaincu un boss', 'withBoss', fmt, ''],
+      ['Préinscrits', 'preregistrations', fmt, ''], ['Préinscrits 7 j', 'preregistrations7d', fmt, ''],
+      ['Niveau max', 'maxLevel', fmt, ''], ['Niveau moyen', 'avgLevel', (n) => Math.round(n), ''],
+      ['Étape max', 'maxStage', fmt, ''], ['Étape moyenne', 'avgStage', (n) => Math.round(n), ''],
+      ['Joueurs étape 10+', 'atStage10', fmt, ''], ['Joueurs étape 25+', 'atStage25', fmt, ''], ['Joueurs étape 50+', 'atStage50', fmt, ''],
     ];
     async function loadStats() {
       try {
         const s = await api('/api/admin/stats');
-        $('stats-grid').innerHTML = '';
-        for (const [label, key, f] of STAT_CARDS) {
+        $('kpis').innerHTML = '';
+        for (const [label, key, f, hint] of KPIS) {
           const card = document.createElement('div');
-          card.className = 'stat';
-          const k = document.createElement('div'); k.className = 'k'; k.textContent = label;
-          const v = document.createElement('div'); v.className = 'v'; v.textContent = f(s[key]);
-          card.append(k, v);
-          $('stats-grid').append(card);
+          card.className = 'kpi';
+          card.innerHTML = '';
+          const l = document.createElement('div'); l.className = 'label'; l.textContent = label;
+          const v = document.createElement('div'); v.className = 'value'; v.textContent = f(s[key]);
+          card.append(l, v);
+          if (hint) { const h = document.createElement('div'); h.className = 'hint'; h.textContent = hint; card.append(h); }
+          $('kpis').append(card);
         }
         $('stats-time').textContent = `Mis à jour ${fmtDate(s.now)}`;
-      } catch (err) {
-        setMsg($('app-msg'), err.message, 'err');
-      }
+      } catch (err) { toast(err.message, 'bad'); }
     }
     $('refresh-stats').addEventListener('click', loadStats);
 
     // ---- Joueurs ----
     let page = 0;
     const PAGE = 50;
-    let total = 0;
     async function loadPlayers() {
       const q = encodeURIComponent($('search').value.trim());
-      const sort = $('sort').value;
       try {
-        const data = await api(`/api/admin/players?sort=${sort}&q=${q}&limit=${PAGE}&offset=${page * PAGE}`);
-        total = data.total;
-        $('players-total').textContent = `${fmt(total)} joueur${total > 1 ? 's' : ''}`;
+        const data = await api(`/api/admin/players?sort=${$('sort').value}&q=${q}&limit=${PAGE}&offset=${page * PAGE}`);
+        $('players-total').textContent = `${fmt(data.total)} joueur${data.total > 1 ? 's' : ''}`;
         const body = $('players-body');
         body.innerHTML = '';
+        if (!data.players.length) body.innerHTML = '<tr><td colspan="9" class="muted">Aucun joueur.</td></tr>';
         for (const p of data.players) {
           const tr = document.createElement('tr');
+          tr.className = 'click';
           tr.addEventListener('click', () => showDetail(p.id));
           const cells = [
             [p.pseudo, ''], [fmtDate(p.createdAt), ''], [fmtRel(p.lastSeenAt), ''],
@@ -311,17 +469,10 @@
           }
           body.append(tr);
         }
-        if (!data.players.length) {
-          const tr = document.createElement('tr');
-          const td = document.createElement('td'); td.colSpan = 9; td.className = 'muted'; td.textContent = 'Aucun joueur.';
-          tr.append(td); body.append(tr);
-        }
-        $('page-info').textContent = `Page ${page + 1} / ${Math.max(1, Math.ceil(total / PAGE))}`;
+        $('page-info').textContent = `Page ${page + 1} / ${Math.max(1, Math.ceil(data.total / PAGE))}`;
         $('prev').disabled = page === 0;
-        $('next').disabled = (page + 1) * PAGE >= total;
-      } catch (err) {
-        setMsg($('app-msg'), err.message, 'err');
-      }
+        $('next').disabled = (page + 1) * PAGE >= data.total;
+      } catch (err) { toast(err.message, 'bad'); }
     }
     $('search-btn').addEventListener('click', () => { page = 0; loadPlayers(); });
     $('search').addEventListener('keydown', (e) => { if (e.key === 'Enter') { page = 0; loadPlayers(); } });
@@ -335,8 +486,9 @@
         const box = $('detail');
         box.innerHTML = '';
         const title = document.createElement('h3');
-        title.style.marginTop = '0';
-        title.textContent = `Joueur ${p.pseudo}`;
+        title.textContent = p.pseudo;
+        const grid = document.createElement('div');
+        grid.className = 'detail';
         const rows = [
           ['Inscrit le', fmtDate(p.createdAt)], ['Dernière activité', fmtRel(p.lastSeenAt)],
           ['Niveau', fmt(p.level)], ['Étape max', fmt(p.maxStage)], ['Or', fmt(Math.floor(p.gold))],
@@ -347,33 +499,29 @@
             ['Renaissances', fmt(p.progress.rebirths)], ['Invocations', fmt(p.progress.summons)],
             ['Dernière sauvegarde', fmtDate(p.progress.lastSaved)], ['Version du jeu', p.progress.gameVersion ?? '—']);
         }
-        const dl = document.createElement('dl');
         for (const [k, v] of rows) {
-          const dt = document.createElement('dt'); dt.textContent = k;
-          const dd = document.createElement('dd'); dd.textContent = v;
-          dl.append(dt, dd);
+          const d = document.createElement('div');
+          const s = document.createElement('small'); s.textContent = k;
+          const b = document.createElement('b'); b.textContent = v;
+          d.append(s, b);
+          grid.append(d);
         }
         const del = document.createElement('button');
-        del.className = 'danger';
-        del.style.marginTop = '12px';
+        del.className = 'btn danger';
         del.textContent = 'Supprimer ce compte et sa sauvegarde';
         del.addEventListener('click', async () => {
           if (!confirm(`Supprimer définitivement le compte « ${p.pseudo} » et toute sa progression ?`)) return;
           try {
             await api(`/api/admin/players/${id}`, { method: 'DELETE' });
             box.classList.add('hidden');
-            setMsg($('app-msg'), `Compte « ${p.pseudo} » supprimé.`, 'ok');
+            toast(`Compte « ${p.pseudo} » supprimé.`);
             loadPlayers();
-          } catch (err) {
-            setMsg($('app-msg'), err.message, 'err');
-          }
+          } catch (err) { toast(err.message, 'bad'); }
         });
-        box.append(title, dl, del);
+        box.append(title, grid, del);
         box.classList.remove('hidden');
         box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      } catch (err) {
-        setMsg($('app-msg'), err.message, 'err');
-      }
+      } catch (err) { toast(err.message, 'bad'); }
     }
 
     // ---- Préinscriptions ----
@@ -384,6 +532,7 @@
         $('prereg-total').textContent = `${fmt(data.total)} préinscrit${data.total > 1 ? 's' : ''}`;
         const body = $('prereg-body');
         body.innerHTML = '';
+        if (!data.items.length) body.innerHTML = '<tr><td colspan="4" class="muted">Aucune préinscription pour l\'instant.</td></tr>';
         for (const r of data.items) {
           const tr = document.createElement('tr');
           const td1 = document.createElement('td'); td1.textContent = r.email;
@@ -391,16 +540,14 @@
           const td3 = document.createElement('td'); td3.textContent = r.consentVersion;
           const td4 = document.createElement('td');
           const del = document.createElement('button');
-          del.className = 'danger';
+          del.className = 'btn danger small';
           del.textContent = 'Retirer';
           del.addEventListener('click', async () => {
             if (!confirm(`Retirer ${r.email} de la liste ?`)) return;
             try {
               await api(`/api/admin/preregistrations/${encodeURIComponent(r.email)}`, { method: 'DELETE' });
               loadPrereg();
-            } catch (err) {
-              setMsg($('app-msg'), err.message, 'err');
-            }
+            } catch (err) { toast(err.message, 'bad'); }
           });
           td4.append(del);
           tr.append(td1, td2, td3, td4);
@@ -409,9 +556,7 @@
         $('prereg-page').textContent = `Page ${pPage + 1}`;
         $('prereg-prev').disabled = pPage === 0;
         $('prereg-next').disabled = (pPage + 1) * 100 >= data.total;
-      } catch (err) {
-        setMsg($('app-msg'), err.message, 'err');
-      }
+      } catch (err) { toast(err.message, 'bad'); }
     }
     $('prereg-prev').addEventListener('click', () => { pPage -= 1; loadPrereg(); });
     $('prereg-next').addEventListener('click', () => { pPage += 1; loadPrereg(); });
@@ -425,21 +570,23 @@
         a.download = `preinscriptions-${new Date().toISOString().slice(0, 10)}.csv`;
         a.click();
         URL.revokeObjectURL(url);
-      } catch (err) {
-        setMsg($('app-msg'), err.message, 'err');
-      }
+      } catch (err) { toast(err.message, 'bad'); }
     });
 
     // ---- Équipe ----
     function tempBox(username, password) {
       const box = $('temp-box');
       box.innerHTML = '';
-      const p = document.createElement('p');
-      p.textContent = `Mot de passe temporaire de ${username} (affiché une seule fois, à transmettre en main propre) :`;
+      const title = document.createElement('div');
+      title.innerHTML = '';
+      const strong = document.createElement('b');
+      strong.textContent = `Mot de passe temporaire de ${username}`;
+      const note = document.createElement('div');
+      note.className = 'muted';
+      note.textContent = 'Affiché une seule fois. À transmettre en main propre ; il devra être changé à la première connexion.';
       const code = document.createElement('code');
-      code.style.fontSize = '18px';
       code.textContent = password;
-      box.append(p, code);
+      box.append(strong, document.createElement('br'), code, note);
       box.classList.remove('hidden');
     }
 
@@ -450,10 +597,17 @@
         body.innerHTML = '';
         for (const u of users) {
           const tr = document.createElement('tr');
-          const cells = [u.username, fmtDate(u.createdAt), fmtRel(u.lastLoginAt), u.mustChange ? 'temporaire' : 'personnel'];
-          for (const text of cells) { const td = document.createElement('td'); td.textContent = text; tr.append(td); }
+          const name = document.createElement('td'); name.textContent = u.username + (u.username === me ? ' (vous)' : '');
+          const created = document.createElement('td'); created.textContent = fmtDate(u.createdAt);
+          const last = document.createElement('td'); last.textContent = fmtRel(u.lastLoginAt);
+          const state = document.createElement('td');
+          const pill = document.createElement('span');
+          pill.className = `pill ${u.mustChange ? 'warn' : 'ok'}`;
+          pill.textContent = u.mustChange ? 'Temporaire' : 'Personnel';
+          state.append(pill);
           const actions = document.createElement('td');
           const reset = document.createElement('button');
+          reset.className = 'btn small';
           reset.textContent = 'Nouveau temporaire';
           reset.addEventListener('click', async () => {
             if (!confirm(`Réinitialiser le mot de passe de ${u.username} ? Sa session sera fermée.`)) return;
@@ -461,25 +615,24 @@
               const r = await api(`/api/admin/users/${u.id}/reset`, { method: 'POST' });
               tempBox(u.username, r.temporaryPassword);
               loadTeam();
-            } catch (err) { setMsg($('app-msg'), err.message, 'err'); }
+            } catch (err) { toast(err.message, 'bad'); }
           });
           const del = document.createElement('button');
-          del.className = 'danger';
+          del.className = 'btn danger small';
           del.textContent = 'Supprimer';
+          del.disabled = u.username === me;
           del.addEventListener('click', async () => {
             if (!confirm(`Supprimer l'accès de ${u.username} ?`)) return;
             try {
               await api(`/api/admin/users/${u.id}`, { method: 'DELETE' });
               loadTeam();
-            } catch (err) { setMsg($('app-msg'), err.message, 'err'); }
+            } catch (err) { toast(err.message, 'bad'); }
           });
           actions.append(reset, ' ', del);
-          tr.append(actions);
+          tr.append(name, created, last, state, actions);
           body.append(tr);
         }
-      } catch (err) {
-        setMsg($('app-msg'), err.message, 'err');
-      }
+      } catch (err) { toast(err.message, 'bad'); }
     }
 
     $('add-member').addEventListener('click', async () => {
@@ -488,9 +641,7 @@
         $('new-name').value = '';
         tempBox(r.username, r.temporaryPassword);
         loadTeam();
-      } catch (err) {
-        setMsg($('app-msg'), err.message, 'err');
-      }
+      } catch (err) { toast(err.message, 'bad'); }
     });
   </script>
 </body>

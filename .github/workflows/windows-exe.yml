@@ -78,16 +78,68 @@ jobs:
           path: dist/*-setup.exe
           if-no-files-found: error
 
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Tests unitaires
+        run: npm test
+
+      - name: Préparer le jeu pour Android
+        run: |
+          npm run build:web
+          npx cap sync android
+
+      - name: Construire l'APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Renommer l'APK
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          mkdir -p dist
+          cp android/app/build/outputs/apk/debug/app-debug.apk "dist/IdleRPG-${VERSION}.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: idle-rpg-android
+          path: dist/*.apk
+          if-no-files-found: error
+
+  publish:
+    needs: [build, android]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: assets
+
       - name: Publier la release
-        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION="v$(node -p "require('./package.json').version")"
           # La release suit toujours la dernière construction validée de cette version.
           gh release delete "$VERSION" --cleanup-tag --yes 2>/dev/null || true
-          gh release create "$VERSION" dist/*-setup.exe \
-            --target "$GITHUB_SHA" \
-            --title "Idle RPG $VERSION" \
-            --notes-file docs/RELEASE_NOTES.md \
-            --latest
+          gh release create "$VERSION" assets/idle-rpg-windows/*-setup.exe assets/idle-rpg-android/*.apk             --target "$GITHUB_SHA"             --title "Idle RPG $VERSION"             --notes-file docs/RELEASE_NOTES.md             --latest

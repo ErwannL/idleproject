@@ -5,3 +5,7 @@ dist/
 __pycache__/
 .claude/worktrees/
 /data/
+android/app/build/
+android/.gradle/
+android/local.properties
+android/build/
