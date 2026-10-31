@@ -247,7 +247,7 @@ test('admin : mot de passe temporaire, changement obligatoire au premier login',
   const pierre = login.body.token;
   assert.equal((await call(base, 'GET', '/api/admin/stats', undefined, pierre)).status, 403);
   assert.equal((await call(base, 'POST', '/api/admin/password', { password: temp, newPassword: 'court' }, pierre)).status, 400);
-  assert.equal((await call(base, 'POST', '/api/admin/password', { password: 'faux-temp-xx', newPassword: 'nouveau-mdp-solide' }, pierre)).status, 401);
+  assert.equal((await call(base, 'POST', '/api/admin/password', { password: 'faux-temp-xx', newPassword: 'nouveau-mdp-solide' }, pierre)).status, 403);
   assert.equal((await call(base, 'POST', '/api/admin/password', { password: temp, newPassword: 'nouveau-mdp-solide' }, pierre)).status, 204);
   assert.equal((await call(base, 'GET', '/api/admin/stats', undefined, pierre)).status, 200);
   const again = await call(base, 'POST', '/api/admin/login', { username: 'Pierre', password: 'nouveau-mdp-solide' });

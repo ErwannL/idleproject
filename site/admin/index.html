@@ -371,11 +371,11 @@
       toast.timer = setTimeout(() => el.classList.add('hidden'), 4000);
     }
 
-    async function api(path, { method = 'GET', body, raw = false } = {}) {
+    async function api(path, { method = 'GET', body, raw = false, keepSession = false } = {}) {
       const headers = { Authorization: `Bearer ${token}` };
       if (body !== undefined) headers['Content-Type'] = 'application/json';
       const res = await fetch(path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
-      if (res.status === 401) { logout('Session expirée, reconnectez-vous.'); throw new Error('Session expirée'); }
+      if (res.status === 401 && !keepSession) { logout('Session expirée, reconnectez-vous.'); throw new Error('Session expirée'); }
       if (raw) return res;
       if (res.status === 204) return null;
       const data = await res.json().catch(() => ({}));
@@ -438,7 +438,7 @@
         return;
       }
       try {
-        await api('/api/admin/password', { method: 'POST', body: { password: $('change-current').value, newPassword: $('change-new').value } });
+        await api('/api/admin/password', { method: 'POST', keepSession: true, body: { password: $('change-current').value, newPassword: $('change-new').value } });
         for (const id of ['change-current', 'change-new', 'change-confirm']) $(id).value = '';
         $('change-error').textContent = '';
         toast('Mot de passe enregistré.');
