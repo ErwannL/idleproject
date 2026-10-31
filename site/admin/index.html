@@ -290,6 +290,11 @@
     // Jeton en mémoire seulement : il disparaît à la fermeture de la page.
     let token = null;
     let me = null;
+    // Session gardée dans l'onglet : un rafraîchissement ne déconnecte plus.
+    const SESSION_KEY = 'idle-rpg-admin';
+    const saveSession = (t, name) => { try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ token: t, me: name })); } catch { /* indisponible */ } };
+    const readSession = () => { try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); } catch { return null; } };
+    const clearSession = () => { try { sessionStorage.removeItem(SESSION_KEY); } catch { /* indisponible */ } };
     const $ = (id) => document.getElementById(id);
     const fmt = (n) => (n ?? 0).toLocaleString('fr-FR');
     const fmtDate = (ms) => (ms ? new Date(ms).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '—');
@@ -342,6 +347,7 @@
 
     function logout(message = '') {
       token = null; me = null;
+      clearSession();
       show('view-login');
       $('password').value = '';
       $('login-error').textContent = message;
@@ -375,6 +381,7 @@
           show('view-change');
           $('change-new').focus();
         } else {
+          saveSession(token, me);
           enterApp();
         }
       } catch (err) {
@@ -395,12 +402,27 @@
         for (const id of ['change-current', 'change-new', 'change-confirm']) $(id).value = '';
         $('change-error').textContent = '';
         toast('Mot de passe enregistré.');
+        saveSession(token, me);
         enterApp();
       } catch (err) {
         $('change-error').textContent = err.message;
       }
     });
     $('change-cancel').addEventListener('click', () => logout());
+
+    // Au chargement : reprendre la session de l'onglet si elle est encore valide.
+    (async () => {
+      const saved = readSession();
+      if (!saved?.token) return;
+      token = saved.token;
+      me = saved.me;
+      try {
+        await api('/api/admin/stats');
+        enterApp();
+      } catch {
+        token = null; me = null; clearSession();
+      }
+    })();
     $('logout').addEventListener('click', () => logout());
 
     // ---- Navigation ----
