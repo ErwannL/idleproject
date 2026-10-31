@@ -253,7 +253,7 @@ select { padding: 3px 6px; }
 #panel header { display: flex; align-items: center; gap: 6px; padding: 5px 8px; background: linear-gradient(#16233c, #101a2e); border-bottom: 1px solid var(--line); }
 #panel-icon { width: 16px; height: 16px; }
 #panel h2 { margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gold-text); }
-#panel-extra { margin-left: auto; color: var(--muted); font-size: 11px; display: flex; align-items: center; gap: 4px; }
+#panel-extra { margin-left: auto; color: var(--muted); font-size: 11px; display: flex; align-items: center; gap: 4px; white-space: nowrap; flex: none; }
 #panel-extra img { width: 12px; height: 12px; }
 #panel-body { padding: 7px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 7px; container-type: inline-size; }
 
@@ -2046,7 +2046,7 @@ html.fx-calm .hero-banner::after { animation: none; }
 .key-btn.armed { border-color: var(--gold); color: var(--gold-text); }
 /* Contraste élevé : textes secondaires plus clairs, pas de décor. */
 .contrast-high { --muted: #c6d2ea !important; --dim: #aab6cf !important; }
-.contrast-high .theme-deco { display: none !important; }
+.contrast-high .theme-deco, .contrast-high #panel-crest { display: none !important; }
 .contrast-high .card, .contrast-high .fold { border-color: #6d84b5 !important; }
 .search-list { display: flex; flex-direction: column; gap: 4px; margin: 6px 0; max-height: 50vh; overflow-y: auto; }
 .search-hit { display: flex; justify-content: space-between; gap: 10px; text-align: left; }

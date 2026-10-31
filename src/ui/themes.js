@@ -96,7 +96,7 @@ function applyDecor(theme) {
     const sprite = assetUrl(theme.id, i % 3 === 2 ? 'particle2.png' : 'particle1.png');
     parts.push(`<i class="p ${fx.motion}" style="--x:${r(0, 100).toFixed(1)}%;--y:${r(0, 100).toFixed(1)}%;--t:${r(...fx.speed).toFixed(1)}s;--d:-${r(0, fx.speed[1]).toFixed(1)}s;--sc:${r(0.7, 1.3).toFixed(2)};--sw:${r(10, 34).toFixed(0)}px;background-image:url('${sprite}')"></i>`);
   }
-  deco.innerHTML = `<i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i><i class="crest"></i><div class="fx">${parts.join('')}</div>`;
+  deco.innerHTML = `<i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i><div class="fx">${parts.join('')}</div>`;
   panel.appendChild(deco);
 }
 
