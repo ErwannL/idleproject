@@ -286,6 +286,39 @@ async function applyNow(id) {
   applyDecor(theme);
   if (theme.radius !== undefined) document.documentElement.style.setProperty('--radius', `${theme.radius}px`);
   else document.documentElement.style.removeProperty('--radius');
+  contrastFloor();
+}
+
+// v9.1.0 : plancher de contraste 4,5:1 pour --muted et --dim sur le fond des panneaux, quel que soit le thème
+// (Sakura descendait à 2,2:1). La couleur est éclaircie juste assez.
+const hexRgb = (c) => {
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(c).trim());
+  if (m) return [0, 2, 4].map((i) => parseInt(m[1].slice(i, i + 2), 16));
+  const r = /rgba?\(([^)]+)\)/.exec(String(c));
+  return r ? r[1].split(',').slice(0, 3).map((x) => Number(x)) : null;
+};
+const lum = ([r, g, b]) => {
+  const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+};
+export const contrastRatio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+export function liftToContrast(color, bg, min = 4.5) {
+  let c = [...color];
+  for (let i = 0; i < 40 && contrastRatio(c, bg) < min; i++) c = c.map((v) => Math.min(255, Math.round(v + (255 - v) * 0.08)));
+  return c;
+}
+function contrastFloor() {
+  const root = document.documentElement;
+  root.style.removeProperty('--muted');
+  root.style.removeProperty('--dim');
+  const cs = getComputedStyle(root);
+  const bg = hexRgb(cs.getPropertyValue('--bg-2')) ?? hexRgb(cs.getPropertyValue('--bg-1'));
+  if (!bg) return;
+  for (const name of ['--muted', '--dim']) {
+    const c = hexRgb(cs.getPropertyValue(name));
+    if (!c || contrastRatio(c, bg) >= 4.5) continue;
+    root.style.setProperty(name, `rgb(${liftToContrast(c, bg).join(', ')})`);
+  }
 }
 
 // Aperçu d'un thème (pastilles) : fond, acier, dorure, bouton principal.

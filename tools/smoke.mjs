@@ -45,7 +45,7 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 const game = (fn, arg) => page.evaluate(fn, arg);
-// v9.0.6 : les panneaux sont regroupés en 6 menus (barre verticale) avec des sous-onglets : clic sur le menu,
+// v9.1.0 : les panneaux sont regroupés en 4 menus (barre verticale) avec des onglets : clic sur le menu,
 // puis sur le sous-onglet ; un clic sur le sous-onglet déjà ouvert referme le panneau (comme avant sur l'onglet).
 async function clickTab(tab) {
   const open = await game((t) => __idle.ui.tab === t, tab);
@@ -122,16 +122,19 @@ await check('onglets avec icône et état actif distinct', async () => {
     menu: b.dataset.menu, icon: b.querySelector('img')?.naturalWidth > 0, active: b.classList.contains('active'),
     hidden: b.classList.contains('hidden'),
   })));
-  assert(tabs.length === 5 && tabs.every((t) => t.icon && !t.hidden), JSON.stringify(tabs));
-  assert(tabs.filter((t) => t.active).map((t) => t.menu).join() === 'character', JSON.stringify(tabs));
-  // Sous-onglets débloqués progressivement : compagnons, arbre, donjons, tour et boss cachés en début de partie.
+  // v9.1.0 : 4 menus (Héros, Aventure, Équipe, Objectifs). En début de partie, Équipe est encore caché.
+  assert(tabs.length === 4 && tabs.every((t) => t.icon), JSON.stringify(tabs));
+  assert(tabs.filter((t) => t.active).map((t) => t.menu).join() === 'hero', JSON.stringify(tabs));
   const hidden = await game(() => Object.entries(__idle.ui.tabVisible).filter(([, v]) => v === false).map(([k]) => k).sort().join());
-  assert(hidden === 'boss,companions,dungeons,tower,tree', `sous-onglets cachés : ${hidden}`);
+  assert(hidden.includes('tree') && hidden.includes('dungeons') && hidden.includes('tower'), `onglets cachés : ${hidden}`);
+  // Le bouton « Prochaine action » est là et propose une seule chose.
+  const next = await page.textContent('#next-action');
+  assert(next.trim().length > 3, `prochaine action : ${next}`);
 });
 
 await check('filtres par type et tri par niveau', async () => {
   await game(() => { __idle.addItem('iron_helm', 'common', 1); __idle.addItem('dagger', 'common', 7); });
-  await page.click('.inv-filters [data-value="weapon"]');
+  await page.selectOption('[data-action="filter-select"]', 'weapon');
   await page.waitForTimeout(150);
   const slots = await game(() => [...document.querySelectorAll('.inv-grid [data-id]')]
     .map((el) => __idle.state.inventory.find((i) => i.id === el.dataset.id)?.slot));
@@ -141,7 +144,7 @@ await check('filtres par type et tri par niveau', async () => {
   const levels = await game(() => [...document.querySelectorAll('.inv-grid [data-id]')]
     .map((el) => __idle.state.inventory.find((i) => i.id === el.dataset.id).level));
   assert(levels.every((l, i) => i === 0 || levels[i - 1] >= l), JSON.stringify(levels));
-  await page.click('.inv-filters [data-value="all"]');
+  await page.selectOption('[data-action="filter-select"]', 'all');
   await page.waitForTimeout(150);
 });
 
@@ -157,6 +160,9 @@ await check('recyclage groupé : confirmation et objets protégés', async () =>
     const upgrade = __idle.addItem('chainmail', 'common', 1);
     return { weak: weak.id, weakRare: weakRare.id, epic: epic.id, upgrade: upgrade.id };
   });
+  await page.waitForTimeout(150);
+  // v9.1.0 : le recyclage en lot est dans « Réglages du sac » (replié).
+  if (!(await page.$('[data-action="bulk-rarity"]'))) await page.click('[data-action="toggle-section"][data-value="bag-settings"]');
   await page.waitForTimeout(150);
   await page.selectOption('[data-action="bulk-rarity"]', 'rare');
   await page.click('[data-action="bulk-recycle"]');
@@ -271,7 +277,8 @@ await check('compétences : un point par niveau, apprendre Tourbillon', async ()
 
 await check('invocation : un ticket donne un héros ou un compagnon', async () => {
   await game(() => { __idle.state.tickets = Math.max(1, __idle.state.tickets); });
-  await page.click('[data-open="summon"]');
+  await waitFor(() => __idle.ui.tabVisible.summon !== false, 3000);
+  await game(() => __idle.ui.openTab('summon'));
   await page.waitForTimeout(300);
   const before = await game(() => ({ t: __idle.state.tickets, n: __idle.state.summon.total }));
   await page.click('[data-action="summon"][data-currency="tickets"]');
@@ -291,20 +298,22 @@ await check('invocation : un ticket donne un héros ou un compagnon', async () =
 
 await check('contrats et récompenses : réclamer un contrat et un coffre', async () => {
   const id = await game(() => { const c = __idle.state.contracts[0]; c.progress = c.target; return c.id; });
-  await page.click('[data-open="contracts"]');
-  await page.click('[data-action="mission-tab"][data-value="contracts"]');
+  await waitFor(() => __idle.ui.tabVisible.contracts !== false, 3000);
+  await page.keyboard.press('m');
+  await page.click('[data-action="mission-tab"][data-value="today"]');
   await page.waitForTimeout(1200);
   const gems = await game(() => __idle.state.gems);
   await page.click(`[data-action="claim-contract"][data-value="${id}"]`);
   const after = await game(() => ({ gems: __idle.state.gems, ids: __idle.state.contracts.map((c) => c.id) }));
   assert(!after.ids.includes(id) && after.ids.length === 3, JSON.stringify(after));
   await game(() => { __idle.state.nextEventId += 1; __idle.state.inbox.push({ id: __idle.state.nextEventId, type: 'gems', stage: 1, reward: { gems: 7 } }); });
-  await page.click('[data-open="inbox"]');
-  await page.waitForTimeout(300);
-  const before = await game(() => __idle.state.gems);
-  await page.click('[data-action="claim-event"]');
-  const gained = await game((b) => __idle.state.gems - b, before);
-  assert(gained === 7 && after.gems >= gems, `gemmes +${gained}`);
+  await game(() => __idle.ui.openTab('inbox'));
+  await page.waitForTimeout(1200);
+  const before = await game(() => ({ gems: __idle.state.gems, inbox: __idle.state.inbox.length }));
+  // v9.1.0 : À récupérer — un seul bouton pour tout.
+  await page.click('#panel-body [data-action="claim-everything"]');
+  const got = await game((b) => ({ gems: __idle.state.gems - b.gems, inbox: __idle.state.inbox.length }), before);
+  assert(got.gems >= 7 && got.inbox === 0 && after.gems >= gems, JSON.stringify(got));
 });
 
 await check('paramètres : version lancée et mise à jour détectée (GitHub simulé)', async () => {
@@ -323,13 +332,17 @@ await check('paramètres : version lancée et mise à jour détectée (GitHub si
 await check('forge : fabriquer un objet avec des éclats', async () => {
   await game(() => { __idle.state.materials.shards += 500; __idle.state.gold += 1e6; });
   await clickTab('inventory');
-  await page.click('[data-action="inv-tab"][data-value="forge"]');
+  await page.click('[data-action="inv-view"][data-value="forge"]');
   await page.waitForTimeout(300);
+  if (!(await page.$('[data-action="craft-slot"]'))) await page.click('[data-action="toggle-section"][data-value="forge-craft"]');
+  await page.waitForTimeout(200);
+  await page.selectOption('[data-action="craft-slot"]', 'helmet');
+  await page.waitForTimeout(200);
   const count = await game(() => __idle.state.inventory.length);
-  await page.click('[data-action="craft"][data-value="helmet"]');
+  await page.click('[data-action="craft"][data-tier="rare"]');
   const after = await game(() => __idle.state.inventory.length);
   assert(after === count + 1, `inventaire ${count} -> ${after}`);
-  await page.click('[data-action="inv-tab"][data-value="bag"]');
+  await page.click('[data-action="inv-view"][data-value=""]');
 });
 
 await check('vitesse ×10 : l’inventaire reste cliquable (pas de redessin pendant le clic)', async () => {
@@ -352,9 +365,9 @@ await check('vitesse ×10 : l’inventaire reste cliquable (pas de redessin pend
 });
 
 await check('clavier : onglet par touche, flèches entre les boutons, Entrée maintenue = achat en continu', async () => {
-  await game(() => { __idle.state.gold += 1e40; __idle.ui.closePanel(); __idle.ui.lastSub = { character: 'upgrades' }; });
+  await game(() => { __idle.state.gold += 1e40; __idle.ui.closePanel(); __idle.ui.lastSub = { hero: 'upgrades' }; });
   await page.click('#scene', { position: { x: 5, y: 5 } }).catch(() => {});
-  await page.keyboard.press('2'); // v9.0.6 : 2e catégorie = Personnage
+  await page.keyboard.press('1'); // v9.1.0 : 1 = Héros (chiffre fixe par menu)
   await page.waitForTimeout(300);
   const tab = await game(() => __idle.ui.tab);
   assert(tab === 'upgrades', `onglet ${tab}`);
@@ -392,8 +405,8 @@ await check('donjon : entrer avec une clé puis abandonner', async () => {
 await check('Renaissance : confirmation, réinitialisation et conservation des déblocages', async () => {
   await game(() => { __idle.state.maxStage = 31; });
   await waitFor(() => __idle.ui.tabVisible['tree'] !== false, 3000);
-  await clickTab('tree');
-  await page.waitForTimeout(150);
+  await game(() => __idle.ui.openTab('tree', { treeSeg: 'rebirth' }));
+  await page.waitForTimeout(300);
   await page.click('[data-action="rebirth"]');
   await page.waitForSelector('#modal:not(.hidden)');
   const text = await page.textContent('#modal-card');
@@ -408,6 +421,8 @@ await check('Renaissance : confirmation, réinitialisation et conservation des d
   assert(after.stage === 1 && after.gold === 0 && after.fragments > 0 && after.rebirths === 1, JSON.stringify(after));
   assert(after.powers === before.powers && after.weapon === before.weapon, 'déblocage perdu');
   const fragments = after.fragments;
+  await page.click('[data-action="tree-seg"][data-value="tree"]').catch(() => {});
+  await page.waitForTimeout(300);
   await page.click('[data-action="buy-talent"][data-key="core"]');
   await page.waitForTimeout(150);
   const talent = await game(() => [__idle.state.talents.core, __idle.state.fragments]);

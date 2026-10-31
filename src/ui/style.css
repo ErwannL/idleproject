@@ -11,7 +11,7 @@
   --gold-text: #f2d083;
   --text: #e6ecf6;
   --muted: #8e9db8;
-  --dim: #5c6b87;
+  --dim: #7f8fab; /* v9.1.0 : contraste 4,5:1 au moins sur le fond */
   --blue: #3d7be0;
   --good: #63d98a;
   --bad: #ff6b6b;
@@ -247,7 +247,6 @@ select { padding: 3px 6px; }
   box-shadow: inset 0 -2px 0 var(--gold), 0 0 0 1px rgba(232, 182, 74, 0.15);
 }
 #tabs .badge { position: absolute; top: 2px; right: 3px; width: 7px; height: 7px; border-radius: 50%; background: #ff4d5e; box-shadow: 0 0 0 1px #0b1120; }
-@media (max-width: 380px) { #tabs button span { display: none; } }
 
 /* --- Panneau --- */
 #panel { background: var(--bg-1); display: flex; flex-direction: column; min-height: 0; }
@@ -2034,3 +2033,89 @@ html.fx-calm .hero-banner::after { animation: none; }
 .featured-line canvas, .featured-line img { height: 40px; width: auto; }
 .summon-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
 .region-goal { display: inline-flex; gap: 4px; align-items: baseline; margin-right: 10px; font-size: 12px; }
+.world-picker { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 6px; }
+.world-picker select { flex: 1 1 160px; }
+.retry-box { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px; background: #2a1a10; border: 1px solid #6a4a20; }
+.retry-box > div { flex: 1 1 220px; font-size: 12px; }
+/* v9.1.0 : réduire les animations (réglage ou préférence du système) : plus rien ne boucle. */
+.reduce-motion *, .reduce-motion *::before, .reduce-motion *::after { animation-duration: 0s !important; animation-iteration-count: 1 !important; transition-duration: 0s !important; }
+.reduce-motion #boss-flash { display: none; }
+.pref-grid { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 10px; align-items: center; margin: 6px 0; }
+.key-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 4px 12px; }
+.key-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.key-btn.armed { border-color: var(--gold); color: var(--gold-text); }
+/* Contraste élevé : textes secondaires plus clairs, pas de décor. */
+.contrast-high { --muted: #c6d2ea !important; --dim: #aab6cf !important; }
+.contrast-high .theme-deco { display: none !important; }
+.contrast-high .card, .contrast-high .fold { border-color: #6d84b5 !important; }
+.search-list { display: flex; flex-direction: column; gap: 4px; margin: 6px 0; max-height: 50vh; overflow-y: auto; }
+.search-hit { display: flex; justify-content: space-between; gap: 10px; text-align: left; }
+.search-hit.first { border-color: var(--gold-2); }
+.tip-bubble { position: fixed; z-index: 9800; padding: 6px 9px; border-radius: 6px; background: #0b1324; border: 1px solid var(--gold-2);
+  color: var(--text); font-size: 12px; line-height: 1.35; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6); pointer-events: none; }
+.tip-bubble.hidden { display: none; }
+#panel-help { border-color: var(--gold-2); color: var(--gold-text); font-weight: 800; }
+
+/* --- v9.1.0 : lot 6 — téléphone et accessibilité ---------------------------------------------------------- */
+html, body { touch-action: manipulation; overscroll-behavior: none; }
+#app { height: 100vh; height: 100dvh; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); box-sizing: border-box; }
+@media (max-width: 560px) {
+  #topbar { padding-top: max(4px, env(safe-area-inset-top)); }
+  #app > #tabs { padding-bottom: max(4px, env(safe-area-inset-bottom)); }
+  .top-xp { display: block !important; width: 52px; }
+}
+/* Téléphone (tactile et étroit) : panneau plein écran, petite bande de combat (96 px), cibles de 44 px. */
+@media (pointer: coarse) and (max-width: 560px) {
+  .panel-open #play { flex: none; height: 96px; }
+  .panel-open #hud, .panel-open #zone-card, .panel-open #boost-group, .panel-open #skill-bar, .panel-open #scene-bottom,
+  .panel-open #auto-toggle, .panel-open #speed-toggle, .panel-open #next-action { display: none !important; }
+  .panel-open #panel { border: 4px solid var(--edge, #2a3654); }
+  .layout-tall .panel-open #panel, #app.panel-open #panel { flex: 1; }
+  .btn, .chip-btn, select, .icon-btn, .seg-btn, .subtab, .scene-btn, .fold-head, .rush-btn, .skill-btn, .item-frame, .enc-tab, .m-tab,
+  #tabs button, #portrait, #topbar .chip, .tnode { min-height: 44px; }
+  .btn, .chip-btn, .seg-btn, .subtab { min-width: 44px; }
+  .icon-btn { min-width: 44px; }
+  .inv-grid { grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)) !important; }
+  .rush-key { display: none; }
+  /* Fiche d'objet / de compagnon : en bas, à portée de pouce (45 % de l'écran au plus, défilement interne). */
+  .inv.inv3, .comp-layout { display: flex !important; flex-direction: column; }
+  .inv3 .inv-list { order: 1; }
+  .inv3 .inv-equip { order: 2; }
+  .inv3 .inv-detail { order: 3; }
+  .sheet.sheet-open { position: sticky; bottom: 0; z-index: 4; max-height: 45vh; overflow-y: auto; box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.6); }
+  .sheet.sheet-open .sheet-close { display: inline-flex; position: sticky; top: 0; float: right; z-index: 2; }
+  .sheet:not(.sheet-open) { display: none; }
+  /* L'action principale de l'écran reste collée en bas du panneau. */
+  .phone-action { position: sticky; bottom: 0; z-index: 3; display: flex; gap: 6px; padding: 6px 0 2px; background: linear-gradient(transparent, var(--bg-1) 30%); }
+  .phone-action .btn { flex: 1; min-height: 48px; font-size: 14px; }
+  #panel-body { touch-action: pan-y; }
+}
+.phone-action { display: none; }
+@media (pointer: coarse) and (max-width: 560px) { .phone-action { display: flex; } }
+/* Texte : 12 px au minimum pour les libellés courants, 10 px pour les marqueurs sur icône. */
+.section-title { font-size: 11.5px; }
+#tabs button span, #panel-subtabs .subtab span { font-size: max(11px, 1em); }
+.muted { font-size: max(12px, 1em); }
+small, .tt-sub, .upg-level, .item-sub, .stat-list li, .compare, .cost-missing, .exp-reward, .upg-profit, .upg-desc { font-size: max(11.5px, 1em); }
+.item-frame .eq, .plus-lv, .grade, .rar-letter { font-size: 10px !important; }
+.item-frame .eq { line-height: 12px; }
+@media (max-width: 560px) { #app > #tabs button span { font-size: 11px !important; height: 13px !important; line-height: 13px !important; } }
+
+/* v9.1.0 : vraie disposition large (fenêtre d'au moins 1100 × 600) — combat à gauche, panneau à droite. */
+.layout-tall.wide #content { flex-direction: row; }
+.layout-tall.wide #main-col { flex: 1; }
+.layout-tall.wide #play { height: auto !important; flex: 1; }
+.layout-tall.wide #panel { flex: none; width: clamp(440px, 46%, 780px); border-top: none; border-left: 2px solid var(--edge, #2a3654); }
+@media (max-width: 560px) {
+  #panel header { gap: 4px; padding: 4px 6px; }
+  #panel h2 { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #panel-extra { flex: 0 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; font-size: 11px; }
+  #panel-help, #panel-close { flex: none; }
+}
+@media (pointer: coarse) and (max-width: 560px) {
+  .inv3 .inv-detail:has(.sheet-open) { position: sticky; bottom: 0; z-index: 4; }
+  .inv3 .inv-detail .sheet.sheet-open { position: static; }
+  #panel-body:has(.sheet-open) .phone-action { display: none; }
+}
+@media (max-width: 560px) { .help-word { display: none; } }
+.phone-action.hidden { display: none !important; }

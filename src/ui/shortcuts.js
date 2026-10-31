@@ -5,6 +5,42 @@
 import { RUSHES } from '../data/rushes.js';
 import { holdKeys } from './hold.js';
 
+// v9.1.0 : raccourcis configurables (Paramètres › Interface). Touche = caractère produit (e.key, en minuscule),
+// gardée dans les réglages de l'appareil. Les chiffres des menus, les flèches, Entrée, Espace, Tab et Échap ne
+// se changent pas.
+export const DEFAULT_KEYS = {
+  auto: 'a', speed: 'v', claim: 'g', missions: 'm', inbox: 'n', options: 'p', journal: 'j', help: 'k',
+  session: 's', next: 'c', search: 'f', boost0: 'q', boost1: 'w', boost2: 'e', boost3: 'r', boost4: 't',
+};
+export const KEY_LABELS = {
+  auto: 'Avance automatique', speed: 'Vitesse des combats', claim: 'Tout récupérer', missions: 'Missions', inbox: 'À récupérer',
+  options: 'Paramètres', journal: 'Journal de la session', help: 'Aide des raccourcis', session: 'Retour de session',
+  next: 'Prochaine action', search: 'Recherche rapide', boost0: 'Boost 1 (Rage)', boost1: 'Boost 2 (Frénésie)', boost2: 'Boost 3 (Midas)',
+  boost3: 'Boost 4 (Œil)', boost4: 'Boost 5 (Lame)',
+};
+let customKeys = {};
+export function setCustomKeys(keys) { customKeys = keys && typeof keys === 'object' ? keys : {}; }
+export function keyFor(action) { return customKeys[action] ?? DEFAULT_KEYS[action]; }
+export function keyLabel(action) {
+  const k = keyFor(action);
+  return k === ' ' ? 'Espace' : k.length === 1 ? k.toUpperCase() : k;
+}
+// Action liée à une touche (ou null).
+function actionForKey(key) {
+  for (const action of Object.keys(DEFAULT_KEYS)) if (keyFor(action) === key) return action;
+  return null;
+}
+// Une touche est libre si aucune autre action ne l'utilise et qu'elle n'est pas réservée.
+export const RESERVED_KEYS = ['enter', ' ', 'tab', 'escape', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', '[', ']', '?', 'f9', 'f11', 'pageup', 'pagedown'];
+export function keyConflict(action, key) {
+  if (/^[0-9]$/.test(key) || RESERVED_KEYS.includes(key.toLowerCase())) return 'Touche réservée';
+  const other = actionForKey(key);
+  return other && other !== action ? `Déjà utilisée : ${KEY_LABELS[other]}` : null;
+}
+export function boostKeys() {
+  return [0, 1, 2, 3, 4].map((i) => keyLabel(`boost${i}`));
+}
+
 // v9.1.0 : nombre de menus fourni par l'interface (texte « 1 … 4 » toujours juste, chiffres fixes par menu).
 let menuCount = 4;
 export function setMenuCount(n) { menuCount = n; }
@@ -18,18 +54,21 @@ export function shortcutsList() {
     ['[ ] (^ $ en AZERTY) ou Page préc. / suiv.', 'Onglet précédent / suivant'],
     ['Tab', 'Élément suivant (Maj + Tab : précédent)'],
     ['Échap', 'Fermer la fenêtre, puis le panneau'],
-    ['A (ou Espace sans sélection)', 'Avance automatique / rester sur l\'étape'],
-    ['V', 'Vitesse des combats (si débloquée)'],
-    ['Q W E R T', 'Lancer les boosts (Rage, Frénésie, Midas, Œil, Lame)'],
-    ['G', 'Tout récupérer'],
-    ['M · N · P', 'Missions · À récupérer · Paramètres'],
-    ['J', 'Journal de la session (ce qui s\'est passé depuis le lancement)'],
-    ['K ou ?', 'Afficher cette aide'],
+    [`${keyLabel('auto')} (ou Espace sans sélection)`, 'Avance automatique / rester sur l\'étape'],
+    [keyLabel('speed'), 'Vitesse des combats (si débloquée)'],
+    [boostKeys().join(' '), 'Lancer les boosts (Rage, Frénésie, Midas, Œil, Lame)'],
+    [keyLabel('claim'), 'Tout récupérer'],
+    [keyLabel('next'), 'Prochaine action'],
+    [keyLabel('session'), 'Retour de session (tout récupérer, équiper, améliorer, répartir)'],
+    [keyLabel('search'), 'Recherche rapide d\'un écran'],
+    [`${keyLabel('missions')} · ${keyLabel('inbox')} · ${keyLabel('options')}`, 'Missions · À récupérer · Paramètres'],
+    [keyLabel('journal'), 'Journal de la session (ce qui s\'est passé depuis le lancement)'],
+    [`${keyLabel('help')} ou ?`, 'Afficher cette aide'],
   ];
 }
 
 export function shortcutsSummary() {
-  return `1…${menuCount} menus · Espace avance auto · Q W E R T boosts · G tout récupérer…`;
+  return `1…${menuCount} menus · Espace avance auto · ${boostKeys().join(' ')} boosts · ${keyLabel('claim')} tout récupérer…`;
 }
 
 // Chiffre tapé (AZERTY compris : la position de la touche compte, pas le caractère), sinon null.
@@ -50,7 +89,6 @@ export function bracketOf(e) {
   return 0;
 }
 
-export const BOOST_KEYS = ['Q', 'W', 'E', 'R', 'T'];
 const FOCUSABLE = 'button:not([disabled]), select:not([disabled]), input:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
 const ARROWS = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
 
@@ -131,6 +169,17 @@ export function installShortcuts(ui) {
       if (!['Enter', ' ', 'Tab'].includes(e.key)) e.preventDefault();
       return;
     }
+    // Fenêtre ouverte : Tab boucle dans la fenêtre (le focus n'en sort pas).
+    if (e.key === 'Tab' && !ui.$('modal').classList.contains('hidden')) {
+      const list = focusables(ui);
+      if (list.length) {
+        const i = list.indexOf(document.activeElement);
+        const next = e.shiftKey ? (i <= 0 ? list.length - 1 : i - 1) : (i < 0 || i >= list.length - 1 ? 0 : i + 1);
+        e.preventDefault();
+        list[next].focus();
+      }
+      return;
+    }
     if (typing) {
       if (e.key === 'Escape') { e.preventDefault(); t.blur(); return; }
       // Codes secrets (version dev) : Entrée valide (et répète tant qu'elle est maintenue).
@@ -158,7 +207,7 @@ export function installShortcuts(ui) {
       if (onControl && focused.tagName === 'SELECT' && (key === 'ArrowUp' || key === 'ArrowDown')) return; // choix de la liste
       if (onControl && focused.type === 'range' && (key === 'ArrowLeft' || key === 'ArrowRight')) return; // curseur de volume
       // Carte et arbre : les flèches font défiler la zone quand rien n'y est sélectionné.
-      const scroller = !onButton && !onControl && ui.root.querySelector('#panel-body .map-scroll, #panel-body .tree-scroll');
+      const scroller = !onButton && !onControl && ui.root.querySelector('#panel-body .map-viewport, #panel-body .tree-viewport');
       if (scroller && !modalOpen) {
         e.preventDefault();
         const [dx, dy] = ARROWS[key];
@@ -192,20 +241,29 @@ export function installShortcuts(ui) {
       cycleSub(ui, bracket);
       focusPanelStart(ui);
     } else if (altGr) handled = false;
-    else if (key === ' ' || key === 'a') click('#auto-toggle');
-    else if (key === 'v') click('#speed-toggle');
-    else if (key.length === 1 && BOOST_KEYS.includes(key.toUpperCase())) {
-      const rush = RUSHES[BOOST_KEYS.indexOf(key.toUpperCase())];
-      const btn = rush && ui.root.querySelector(`#rush-bar [data-value="${rush.id}"]`);
-      if (btn) btn.click(); else handled = false;
-    } else if (key === 'g') ui.claimEverything?.();
-    else if (key === 'm') open('contracts');
-    else if (key === 'n') open('inbox');
-    else if (key === 'p') open('options');
-    else if (key === 'k' || key === '?') ui.showShortcuts();
-    else if (key === 'j') ui.showJournal(ui.sessionJournal?.() ?? {});
-    else if (ui.extraShortcut?.(key)) handled = true;
-    else handled = false;
+    else if (key === ' ') click('#auto-toggle');
+    else if (key === '?') ui.showShortcuts();
+    else {
+      // v9.1.0 : touches configurables.
+      const action = key.length === 1 ? actionForKey(key) : null;
+      if (!action) handled = false;
+      else if (action === 'auto') click('#auto-toggle');
+      else if (action === 'speed') click('#speed-toggle');
+      else if (action.startsWith('boost')) {
+        const rush = RUSHES[Number(action.slice(5))];
+        const btn = rush && ui.root.querySelector(`#rush-bar [data-value="${rush.id}"]`);
+        if (btn) btn.click(); else handled = false;
+      } else if (action === 'claim') ui.claimEverything?.();
+      else if (action === 'missions') open('contracts');
+      else if (action === 'inbox') open('inbox');
+      else if (action === 'options') open('options');
+      else if (action === 'help') ui.showShortcuts();
+      else if (action === 'journal') ui.showJournal(ui.sessionJournal?.() ?? {});
+      else if (action === 'session') ui.actions.sessionReturn?.();
+      else if (action === 'next') ui.runNextAction?.();
+      else if (action === 'search') ui.openSearch?.();
+      else handled = false;
+    }
     if (handled) e.preventDefault();
   });
 }

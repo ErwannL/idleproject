@@ -1,37 +1,29 @@
-// Découverte guidée (v9.0.6) : un pas-à-pas qui éclaire chaque zone de l'interface (le reste est assombri)
-// avec une bulle d'explication — « Suivant », « Passer ». Lancé à la première partie ; proposé une fois aux
-// joueurs existants pour la nouvelle interface ; rejouable depuis Paramètres.
-// state.ui.tour : 'done' (vu ou passé) ; absent = jamais vu.
+// Tutoriel (v9.1.0) : 3 messages courts, puis le joueur apprend en faisant — le bouton « Prochaine action » le guide
+// (équiper un objet, acheter une amélioration, apprendre une compétence, battre le premier mini-boss, puis invoquer).
+// Les anciens joueurs voient une seule carte « où est passé quoi ». Rejouable depuis Paramètres › Général.
+// state.ui.tour : 'done' (vu ou passé) ; state.ui.tourV : version du tutoriel vue (2 = menus de la v9.1.0).
+import { BALANCE } from '../data/balance.js';
+import { MENUS } from './nav.js';
 
-// target : sélecteur CSS de la zone à éclairer ; open : panneau ouvert avant l'étape (null = panneau fermé).
+export const TOUR_VERSION = 2;
+
+// target : zone à éclairer (sélecteur CSS) ; open : onglet ouvert pendant l'étape (null = panneau fermé).
 const STEPS = [
   { target: '#stage-area', open: null, title: 'Votre héros combat tout seul',
-    text: 'Le combat est automatique, même fenêtre réduite : laissez tourner le jeu pendant que vous travaillez. Au retour, un résumé de ce que vous avez gagné vous attend.' },
-  { target: '#topbar', open: null, title: 'L\'essentiel en haut',
-    text: 'Niveau, étape, or, gemmes et tickets. À droite : missions, récompenses reçues et paramètres.' },
-  { target: '#tabs', open: null, title: '5 catégories, c\'est tout',
-    text: 'Aventure, Personnage, Invocation, Événements, Progression. Chaque catégorie a ses sous-onglets en haut du panneau. Une pastille rouge = une récompense à récupérer.' },
-  { target: '#panel', open: 'campaign', title: 'Aventure : où j\'en suis',
-    text: 'Votre monde, le prochain boss, la prévision du combat et les conseils du moment — un clic sur un conseil ouvre le bon écran.' },
-  { target: '#panel', open: 'upgrades', title: 'Personnage : devenir plus fort',
-    text: 'Dépensez l\'or en améliorations (le coût et le gain sont écrits sur le bouton). Équipement, compétences et compagnons sont dans les onglets voisins.' },
-  { target: '#panel', open: 'hero', heroTab: 'class', title: 'Choisissez votre classe',
-    text: 'Chevalier, Archer, Mage de feu… et 7 autres à débloquer. Chacune a ses armes, sa portée et sa façon de combattre. Changement gratuit, à tout moment.' },
-  { target: '#skill-bar, #rush-bar', open: null, title: 'Compétences et boosts',
-    text: 'À gauche, vos compétences se lancent toutes seules. À droite, les boosts se déclenchent d\'un clic (ou Q W E R T) quand ils brillent.' },
-  { target: '#panel', open: 'summon', title: 'Invocation',
-    text: 'Gemmes et tickets se gagnent en jouant. Probabilités et garanties sont toujours affichées ; le héros en vedette change chaque lundi.' },
-  { target: '#tabs', open: null, title: 'Événements et Progression',
-    text: 'Donjons, Tour et missions s\'ouvrent avec la progression. La Renaissance, les passifs des boss et les collections vous donnent de nouveaux objectifs. Bonne aventure !' },
+    text: `Le combat est automatique. Même jeu fermé, il gagne encore (${Math.round(BALANCE.offline.farmMultiplier * 100)} % du rythme, ${BALANCE.offline.capHours} h au plus) : un résumé vous attend au retour.` },
+  { target: '#next-action', open: null, title: 'Que faire ? Suivez ce bouton',
+    text: 'Il propose toujours une seule chose utile : équiper un objet, acheter une amélioration, récupérer une récompense… Un appui y mène.' },
+  { target: '#tabs', open: null, title: 'Les menus s\'ouvrent avec la progression',
+    text: 'Héros et Aventure pour commencer ; Équipe et Objectifs arrivent ensuite. Une pastille rouge = une récompense à récupérer ; un point or = ce qui est conseillé.' },
 ];
-
-// Joueurs existants : seulement la nouvelle interface.
-const NEW_UI_STEPS = [2, 3, 5, 7, 8];
 
 let current = null;
 
-function place(root, el, step, index, total, steps) {
-  // Plusieurs zones possibles (ex. compétences + boosts) : on éclaire le rectangle qui les englobe toutes.
+export function tourActive() {
+  return Boolean(current);
+}
+
+function place(root, el, step, index, total) {
   const rects = [...root.querySelectorAll(step.target)].map((t) => t.getBoundingClientRect()).filter((b) => b.width > 0);
   const r = rects.length ? rects.reduce((a, b) => {
     const left = Math.min(a.left, b.left), top = Math.min(a.top, b.top);
@@ -44,10 +36,9 @@ function place(root, el, step, index, total, steps) {
     const pad = 4;
     Object.assign(hole.style, { left: `${r.left - pad}px`, top: `${r.top - pad}px`, width: `${r.width + pad * 2}px`, height: `${r.height + pad * 2}px`, display: 'block' });
   } else hole.style.display = 'none';
-  bubble.innerHTML = `<div class="tour-step">${index + 1} / ${total}</div><div class="tour-title">${step.title}</div><p>${step.text}</p>
+  bubble.innerHTML = `<div class="tour-step">${index + 1} / ${total}</div><div class="tour-title" id="tour-title">${step.title}</div><p>${step.text}</p>
     <div class="tour-actions"><button class="btn small" data-tour="skip">Passer</button>
-      <button class="btn btn-primary" data-tour="next">${index + 1 === total ? 'Terminer' : 'Suivant ▶'}</button></div>`;
-  // Bulle sous la zone si elle tient, sinon au-dessus, sinon au centre ; jamais hors de l'écran.
+      <button class="btn btn-primary" data-tour="next">${index + 1 === total ? 'C\'est parti !' : 'Suivant ▶'}</button></div>`;
   const bw = Math.min(340, window.innerWidth - 24);
   bubble.style.width = `${bw}px`;
   const bh = bubble.offsetHeight || 160;
@@ -57,35 +48,36 @@ function place(root, el, step, index, total, steps) {
   let left = r ? r.left + r.width / 2 - bw / 2 : (window.innerWidth - bw) / 2;
   left = Math.max(12, Math.min(window.innerWidth - bw - 12, left));
   Object.assign(bubble.style, { top: `${Math.round(top)}px`, left: `${Math.round(left)}px` });
-  void steps;
+  // Clavier : le focus va sur « Suivant » (Entrée avance, Échap passe — shortcuts.js).
+  bubble.querySelector('[data-tour="next"]')?.focus({ preventScroll: true });
 }
 
-export function startTour(ui, state, { newUiOnly = false } = {}) {
+export function startTour(ui, state) {
   if (current) return;
-  const steps = newUiOnly ? NEW_UI_STEPS.map((i) => STEPS[i]) : STEPS;
+  const steps = STEPS;
   const el = document.createElement('div');
   el.className = 'tour';
+  el.setAttribute('role', 'dialog');
+  el.setAttribute('aria-modal', 'true');
+  el.setAttribute('aria-labelledby', 'tour-title');
   el.innerHTML = '<div class="tour-hole"></div><div class="tour-bubble"></div>';
   document.body.appendChild(el);
   let index = 0;
   const show = () => {
     const step = steps[index];
-    if (step.open) {
-      ui.openTab(step.open);
-      if (step.heroTab) { ui.view.heroTab = step.heroTab; ui.invalidate(); }
-    } else ui.closePanel();
-    // Laisse le panneau s'ouvrir (et la fenêtre s'agrandir) avant de mesurer la zone à éclairer.
-    setTimeout(() => place(ui.root, el, step, index, steps.length, steps), 260);
+    if (step.open) ui.openTab(step.open); else ui.closePanel();
+    setTimeout(() => place(ui.root, el, step, index, steps.length), 260);
   };
   const finish = () => {
     el.remove();
     current = null;
     window.removeEventListener('resize', onResize);
     state.ui.tour = 'done';
+    state.ui.tourV = TOUR_VERSION;
     ui.closePanel();
     ui.actions.skipTour?.();
   };
-  const onResize = () => place(ui.root, el, steps[index], index, steps.length, steps);
+  const onResize = () => place(ui.root, el, steps[index], index, steps.length);
   window.addEventListener('resize', onResize);
   el.addEventListener('click', (e) => {
     const action = e.target.closest('[data-tour]')?.dataset.tour;
@@ -99,15 +91,32 @@ export function startTour(ui, state, { newUiOnly = false } = {}) {
   show();
 }
 
-// Au démarrage : première partie → visite complète ; partie existante → proposition de découvrir la nouvelle interface.
+// Carte unique pour les anciens joueurs : où est passé quoi (menus de la v9.1.0).
+export function showWhatMoved(ui, state) {
+  const menus = MENUS.map((m, i) => `<li><b>${i + 1}. ${m.label}</b></li>`).join('');
+  ui.openModal(`<h2 id="modal-title">Nouveaux menus</h2>
+    <p>Les menus sont rangés autrement : <b>4 menus</b> au lieu de 5, et les touches 1 à 4 ont changé (Héros = 1).</p>
+    <ul class="moved-list">${menus}</ul>
+    <ul class="moved-list muted">
+      <li>Équipement, Améliorations, Compétences, Talents (et la Renaissance) : <b>Héros</b>.</li>
+      <li>Carte, Donjons (et le Défi), Tour, Boss : <b>Aventure</b>.</li>
+      <li>Compagnons (Composition), Invocation, Expéditions : <b>Équipe</b>.</li>
+      <li>À récupérer (ancienne boîte de récompenses), Missions, Collections (et le Musée) : <b>Objectifs</b>.</li>
+      <li>Votre fiche, la classe, l'apparence et les records : <b>le portrait en haut à gauche</b>.</li>
+      <li>Les Configurations s'appellent <b>Builds</b> (Héros › Équipement).</li>
+    </ul>
+    <p class="muted">Perdu ? Touche <b>F</b> pour chercher un écran, et le bouton sous le combat propose toujours la prochaine chose utile.</p>
+    <div class="detail-actions"><button class="btn btn-primary" data-action="tour-later">Compris</button></div>`);
+  void state;
+}
+
+// Au démarrage : première partie → tutoriel ; partie existante d'avant la v9.1.0 → carte « où est passé quoi ».
 export function maybeStartTour(ui, state) {
-  if (state.ui.tour === 'done' || document.querySelector('.summon-fx')) return;
+  if (document.querySelector('.summon-fx')) return;
+  if (state.ui.tour === 'done') {
+    if ((state.ui.tourV ?? 1) < TOUR_VERSION) showWhatMoved(ui, state);
+    return;
+  }
   const veteran = (state.records?.kills ?? 0) > 200 || (state.maxStage ?? 1) > 10;
-  if (!veteran) { startTour(ui, state); return; }
-  ui.$('modal-card').innerHTML = `<h2>Nouvelle interface</h2>
-    <p>Les menus sont regroupés en <b>5 catégories</b> (barre de gauche), votre héros a maintenant une <b>classe</b>
-      et des <b>apparences</b> à collectionner. Une visite rapide (5 étapes) ?</p>
-    <div class="detail-actions"><button class="btn" data-action="tour-later">Non merci</button>
-      <button class="btn btn-primary" data-action="tour-new">Visiter</button></div>`;
-  ui.$('modal').classList.remove('hidden');
+  if (veteran) showWhatMoved(ui, state); else startTour(ui, state);
 }

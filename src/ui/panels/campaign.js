@@ -5,7 +5,8 @@ import { bossesForStage, bossTierForStage, cycleForStage, stageLabel, stagesPerC
 import { BOSSES } from '../../data/enemies.js';
 
 const TIER_LABELS = { mini: 'Mini-boss', mid: 'Boss', hard: 'Boss redoutable', mega: 'MÉGA BOSS' };
-import { bossForecast, escapeHtml, forecastHtml, img, progressBar } from '../common.js';
+import { bossForecast, escapeHtml, fold, forecastHtml, img, progressBar } from '../common.js';
+import { bossRetryPct } from '../../core/guide.js';
 
 // v9.0.6 : écran Aventure — « où j'en suis » en un coup d'œil : monde et étape, prochain boss, prévision,
 // avance automatique et la prochaine chose utile à faire (un clic ouvre le bon écran).
@@ -29,14 +30,23 @@ function summary(ui, state) {
         <div class="adv-auto">${state.autoAdvance ? '<span class="good">▶ Avance automatique</span>' : '<button class="btn btn-primary small" data-action="advance">Avancer ▶</button>'}</div></div>
       ${progressBar(pos / len, `${pos} / ${len}`)}
       ${forecastHtml(bossForecast(state, () => ui.invalidate()))}
+      ${retryBox(state)}
     </div>`;
+}
+
+// Boss trop fort (v9.1.0) : c'est normal, et on le dit ; le bouton pour le retenter reste ici aussi.
+function retryBox(state) {
+  const r = state.bossRetry;
+  if (!r || state.stage !== r.stage - 1) return '';
+  const pct = bossRetryPct(state);
+  return `<div class="retry-box"><div><b>Boss trop fort pour l'instant.</b> Normal : le héros s'entraîne à l'étape d'avant et retentera seul.
+      Pour aller plus vite : améliorez vos dégâts.</div>
+    <button class="btn btn-gold small" data-action="retry-boss">Retenter le boss (${pct >= 100 ? 'prêt' : `${pct} %`})</button></div>`;
 }
 
 // Positions des zones sur la carte peinte (assets/ui/worldmap.png, générée par tools/art/worldmap.py).
 // (tools/art/worldmap_nodes.json, positions relatives des 11 régions sur la carte peinte)
 let mapCenteredAt = null;
-// Largeur de la carte à 100 % (comme l'arbre de talents : taille fixe, zoom 50–250 %, fenêtre qui défile).
-const MAP_PX = 720;
 const MAP_NODES = [
   { x: 0.09, y: 0.8 },
   { x: 0.18, y: 0.56 },
@@ -53,7 +63,7 @@ const MAP_NODES = [
 
 export default {
   id: 'campaign',
-  title: 'Carte du monde',
+  title: 'Carte',
   icon: 'icon_map',
   extra: (ui, state) => `Étape max ${stageLabel(state.maxStage)}`,
   afterRender(ui, body) {
@@ -72,6 +82,7 @@ export default {
       }
     };
     const pic = vp.querySelector('img');
+    if (!pic) return;
     if (pic.complete) restore(); else pic.addEventListener('load', restore, { once: true });
     vp.addEventListener('scroll', () => { ui.view.mapScroll = [vp.scrollLeft, vp.scrollTop]; });
     vp.addEventListener('wheel', (e) => {
@@ -105,8 +116,6 @@ export default {
     const currentZone = cycleForStage(state.stage) === cycle ? zoneIndexForStage(state.stage) : -1;
     const lastZone = cycle < maxCycle ? ZONES.length - 1 : zoneIndexForStage(state.maxStage);
     const sel = Number.isInteger(ui.view.zoneSel) && ui.view.zoneSel <= lastZone ? ui.view.zoneSel : Math.max(0, currentZone);
-    const cycles = maxCycle > 0 ? `<div class="chip-row cycle-row">${Array.from({ length: maxCycle + 1 }, (_, c) => `<button class="btn chip-btn${c === cycle ? ' active' : ''}"
-      data-action="cycle-sel" data-value="${c}">Difficulté ×${c + 1}</button>`).join('')}</div>` : '';
     const markers = ZONES.map((zone, i) => {
       const locked = i > lastZone;
       const cleared = state.maxStage >= offset + zoneStartStage(i) + zoneLength(zone);
@@ -125,20 +134,30 @@ export default {
       buttons.push(`<button class="${classes}" data-action="stage" data-stage="${stage}" ${stage > state.maxStage ? 'disabled' : ''}
         title="${escapeHtml(title)} · ${stageLabel(stage)}">${stage - first + 1}${tier ? img('icon_skull') : ''}</button>`);
     }
-    // Zoom (boutons, molette sur la carte) : la carte s'agrandit dans une fenêtre qu'on fait défiler.
+    // v9.1.0 : d'abord le résumé, le choix du monde et de la difficulté, la liste d'étapes ; la grande carte est
+    // repliée derrière un bouton (sa largeur suit le panneau, zoom 50–250 %).
     const zoom = ui.view.mapZoom ?? 1;
-    const tools = `<div class="tree-tools map-tools"><button class="btn small" data-action="map-zoom" data-value="out" title="Dézoomer">−</button>
-        <span class="muted" title="Ctrl + molette pour zoomer, glisser pour déplacer">${Math.round(zoom * 100)} %</span>
-        <button class="btn small" data-action="map-zoom" data-value="in" title="Zoomer">+</button>
-        <button class="btn small" data-action="map-zoom" data-value="reset" title="Taille normale">⟲</button></div>`;
-    return `${summary(ui, state)}${cycles}${tools}<div class="map-viewport" data-sel="${sel}"><div class="world-map" style="width:${Math.round(MAP_PX * zoom)}px">
-      <img class="px" src="assets/ui/worldmap.png" alt="Carte du monde">${markers}</div></div>
+    const worldPicker = `<div class="world-picker">
+        <button class="btn small" data-action="zone-sel" data-value="${sel - 1}" ${sel > 0 ? '' : 'disabled'} aria-label="Monde précédent">◀</button>
+        <select data-action="zone-select" aria-label="Monde">${ZONES.map((z, i) => `<option value="${i}" ${i === sel ? 'selected' : ''} ${i > lastZone ? 'disabled' : ''}>${i + 1}. ${escapeHtml(z.name)}${i > lastZone ? ' (bloqué)' : ''}</option>`).join('')}</select>
+        <button class="btn small" data-action="zone-sel" data-value="${sel + 1}" ${sel < lastZone ? '' : 'disabled'} aria-label="Monde suivant">▶</button>
+        ${maxCycle > 0 ? `<select data-action="cycle-select" aria-label="Cycle">${Array.from({ length: maxCycle + 1 }, (_, c) => `<option value="${c}" ${c === cycle ? 'selected' : ''}>Cycle ×${c + 1}</option>`).join('')}</select>` : ''}
+      </div>`;
+    const tools = `<div class="tree-tools map-tools"><button class="btn small" data-action="map-zoom" data-value="out" aria-label="Dézoomer">−</button>
+        <span class="muted">${Math.round(zoom * 100)} %</span>
+        <button class="btn small" data-action="map-zoom" data-value="in" aria-label="Zoomer">+</button>
+        <button class="btn small" data-action="map-zoom" data-value="reset" aria-label="Taille normale">⟲</button></div>`;
+    const map = () => `${tools}<div class="map-viewport" data-sel="${sel}"><div class="world-map" style="width:${Math.round(zoom * 100)}%">
+      <img class="px" src="assets/ui/worldmap.png" alt="Carte du monde">${markers}</div></div>`;
+    return `${summary(ui, state)}
       <div class="card zone-card">
+        ${worldPicker}
         <div class="row-between"><b>${sel + 1}. ${escapeHtml(ZONES[sel].name)}${cycle ? ` <span class="bad">×${cycle + 1}</span>` : ''}</b>
           <label class="toggle"><input type="checkbox" data-action="auto" ${state.autoAdvance ? 'checked' : ''}> Avancer automatiquement</label></div>
         <div class="stage-grid">${buttons.join('')}</div>
-        ${state.autoAdvance ? '' : `<div class="row-between"><span class="muted">Mode farm : le chevalier reste sur l'étape actuelle.</span>
+        ${state.autoAdvance ? '' : `<div class="row-between"><span class="muted">Le héros reste sur l'étape actuelle.</span>
           <button class="btn btn-primary small" data-action="advance">Avancer ▶</button></div>`}
-      </div>`;
+      </div>
+      ${fold(ui, 'world-map', 'Grande carte du monde', map)}`;
   },
 };

@@ -1,5 +1,5 @@
 // Pont minimal entre la page du jeu et la fenêtre bureau (aucun accès Node exposé).
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webFrame } = require('electron');
 
 contextBridge.exposeInMainWorld('desktop', {
   getInfo: () => ipcRenderer.invoke('desktop:getInfo'),
@@ -12,4 +12,6 @@ contextBridge.exposeInMainWorld('desktop', {
   openReleases: () => ipcRenderer.invoke('desktop:openReleases'),
   installUpdate: (token) => ipcRenderer.invoke('desktop:installUpdate', token),
   retryInstaller: () => ipcRenderer.invoke('desktop:retryInstaller'),
+  // v9.1.0 : taille de l'interface (Paramètres › Interface).
+  setZoom: (factor) => webFrame.setZoomFactor(Math.max(0.5, Math.min(3, Number(factor) || 1))),
 });

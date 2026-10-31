@@ -1,7 +1,6 @@
-// Compétences (v9.0.6, façon Tap Titans) : deux listes simples, une ligne par pouvoir — icône, nom et niveau,
-// effet en une ligne, et un gros bouton d'action à droite (coût ou condition de déblocage écrits dessus).
-//   Sorts  : appris avec les points de compétence, lancés automatiquement (barre « Compétences » de la scène).
-//   Boosts : améliorés avec l'or, lancés d'un clic (barre « Boosts » de la scène, touches Q W E R T) ou en auto.
+// Compétences (v9.0.6, façon Tap Titans ; v9.1.0) : points restants et « Répartir mes points » d'abord, puis deux
+// listes — Compétences (apprises avec les points, lancées automatiquement) et Boosts (améliorés avec l'or, lancés
+// d'un clic ou de Q W E R T, ou en auto). La recharge et le détail de chaque ligne sont dans « Détails ».
 import { SKILLS } from '../../data/skills.js';
 import { RUSHES, RUSH_RULES } from '../../data/rushes.js';
 import { skillCooldown, skillPointCost, skillPointsAvailable, skillValue } from '../../core/skills.js';
@@ -11,7 +10,7 @@ import { coin, effectText, escapeHtml, formatDecimal, formatNumber, img } from '
 
 const time = (s) => (s >= 60 ? `${Math.ceil(s / 60)} min` : `${Math.ceil(s)} s`);
 
-function skillRows(state) {
+function skillRows(state, compact, details) {
   const points = skillPointsAvailable(state);
   const bonus = computeHeroStats(state).bonus;
   return SKILLS.map((skill) => {
@@ -31,12 +30,12 @@ function skillRows(state) {
     return `<div class="tt-row${locked ? ' locked' : ''}">
       <div class="tt-icon">${img(skill.icon)}</div>
       <div class="tt-main"><div class="tt-name">${escapeHtml(skill.name)} <span class="tt-lv">Niv. ${level}</span></div>
-        <div class="tt-effect">${effect}</div><div class="tt-sub">Recharge ${formatDecimal(skillCooldown(skill, bonus))} s · lancement automatique</div></div>
+        ${compact ? '' : `<div class="tt-effect">${effect}</div>`}${details ? `<div class="tt-sub">Recharge ${formatDecimal(skillCooldown(skill, bonus))} s · lancement automatique</div>` : ''}</div>
       ${button}</div>`;
   }).join('');
 }
 
-function rushRows(state) {
+function rushRows(state, compact, details) {
   return RUSHES.map((rush) => {
     const open = rushUnlocked(state, rush);
     const level = rushLevel(state, rush.id);
@@ -54,7 +53,7 @@ function rushRows(state) {
     return `<div class="tt-row${open ? '' : ' locked'}">
       <div class="tt-icon" style="--rush:${rush.color}">${img(rush.icon)}</div>
       <div class="tt-main"><div class="tt-name">${escapeHtml(rush.name)} <span class="tt-lv">Niv. ${level}/${RUSH_RULES.maxLevel}</span></div>
-        <div class="tt-effect">${eff} pendant ${rushDuration(state, rush)} s</div><div class="tt-sub">Recharge ${Math.round(rush.cooldown / 60)} min</div></div>
+        ${compact ? '' : `<div class="tt-effect">${eff} pendant ${rushDuration(state, rush)} s</div>`}${details ? `<div class="tt-sub">Recharge ${Math.round(rush.cooldown / 60)} min</div>` : ''}</div>
       ${up}${use}</div>`;
   }).join('');
 }
@@ -65,11 +64,18 @@ export default {
   icon: 'skill_quick',
   extra: (ui, state) => `Points : <b class="gold-text">${skillPointsAvailable(state)}</b>`,
   render(ui, state) {
-    return `<div class="tt-head"><span class="tt-title">Sorts</span><span class="muted">1 point par niveau du héros · lancés automatiquement</span>
+    const points = skillPointsAvailable(state);
+    const compact = ui.compact;
+    const details = !compact && (ui.view.open?.has('skill-details') ?? false);
+    return `<div class="card skills-top"><div class="row-between"><span>Points de compétence : <b class="gold-text">${points}</b> <span class="muted">(1 par niveau du héros)</span></span>
+        <button class="btn btn-gold primary-action" data-action="distribute-skills" ${points ? '' : 'disabled'}>Répartir mes points</button></div>
+        <div class="muted">« Répartir » donne chaque point à la compétence apprise la moins haute (répartition équilibrée).</div>
+        <label class="toggle"><input type="checkbox" data-action="skill-details" ${details ? 'checked' : ''}> Afficher la recharge et le détail</label></div>
+      <div class="tt-head"><span class="tt-title">Compétences</span><span class="muted">lancées automatiquement</span>
         <label class="toggle"><input type="checkbox" data-action="skill-auto" ${state.skillAuto ? 'checked' : ''}> Auto</label></div>
-      <div class="tt-list">${skillRows(state)}</div>
-      <div class="tt-head"><span class="tt-title">Boosts</span><span class="muted">un clic (ou Q W E R T) · améliorés avec l'or</span>
+      <div class="tt-list">${skillRows(state, compact, details)}</div>
+      <div class="tt-head"><span class="tt-title">Boosts</span><span class="muted">un clic${ui.phone ? '' : ' (ou Q W E R T)'} · améliorés avec l'or</span>
         <label class="toggle"><input type="checkbox" data-action="rush-auto" ${state.rushes.auto ? 'checked' : ''}> Auto</label></div>
-      <div class="tt-list">${rushRows(state)}</div>`;
+      <div class="tt-list">${rushRows(state, compact, details)}</div>`;
   },
 };

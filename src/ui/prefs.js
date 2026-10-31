@@ -32,12 +32,22 @@ export function setPref(name, value) {
   try { localStorage.setItem(KEY, JSON.stringify(p)); } catch { /* stockage indisponible : réglage gardé pour la session */ }
 }
 
-// Réduction des animations : réglage explicite, sinon la préférence du système.
+// Réduction des animations : réglage explicite, sinon la préférence du système (suivie quand elle change).
+let systemReduce = false;
+try {
+  const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  systemReduce = mq.matches;
+  mq.addEventListener?.('change', (e) => { systemReduce = e.matches; });
+} catch { /* hors navigateur (tests) */ }
 export function reduceMotion() {
   const m = pref('motion');
   if (m === 'reduce') return true;
   if (m === 'full') return false;
-  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
+  return systemReduce;
+}
+
+export function hasPref(name) {
+  try { return name in (JSON.parse(localStorage.getItem(KEY) ?? '{}') ?? {}); } catch { return false; }
 }
 
 // Écran tactile étroit (téléphone) : pointeur grossier et largeur de téléphone.

@@ -20,10 +20,11 @@ import { TRANSCEND } from '../data/transcend.js';
 import { rewardText } from '../core/rewards.js';
 import { skillCooldown, skillPointsAvailable } from '../core/skills.js';
 import { computeHeroStats } from '../core/stats.js';
-import { BOOST_KEYS, focusables, installShortcuts, setMenuCount, shortcutsHtml } from './shortcuts.js';
+import { KEY_LABELS, boostKeys, cycleSub, focusables, installShortcuts, keyConflict, keyLabel, setCustomKeys, setMenuCount, shortcutsHtml } from './shortcuts.js';
 import { installHoldToRepeat, selectorFor } from './hold.js';
+import { installTips } from './tip.js';
 import { playSummonReveal } from './summon-fx.js';
-import { coin, effectText, escapeHtml, icon, img, itemFrame, missingText } from './common.js';
+import { coin, effectText, escapeHtml, fold, icon, img, itemFrame, missingText } from './common.js';
 import { GAME_VERSION } from '../version.js';
 import { mutationById } from '../core/mutations.js';
 import boss from './panels/boss.js';
@@ -59,7 +60,8 @@ import { dungeonById } from '../core/dungeon.js';
 import { newItemsInBag } from '../core/journal.js';
 import { measureFarmRate } from '../core/offline.js';
 import { claimables, claimablesByTab } from '../core/claimables.js';
-import { isPhone, pref } from './prefs.js';
+import { isPhone, pref, reduceMotion, setPref } from './prefs.js';
+import { openSearch } from './search.js';
 import { setById } from '../core/sets.js';
 import { availableForExpedition, readyExpeditions } from '../core/expeditions.js';
 import { bountyReady } from '../core/bounty.js';
@@ -198,7 +200,7 @@ export class UI {
       closed: new Set(['weekly', 'monthly']), // sections repliées (missions…)
       open: new Set(), // v9.1.0 : blocs repliés par défaut que le joueur a ouverts
       upgradeCat: 'combat', invTab: 'bag', selectedItemId: null, bulkRarity: 'common', bulkArmed: false,
-      heroSel: null, companionSel: null, talentSel: null, zoneSel: null, dungeonSlot: 'any', dungeonPath: 'gold',
+      heroSel: null, companionSel: null, talentSel: null, zoneSel: null,
       oddsOpen: new Set(), lastSummon: null,
     };
 
@@ -227,15 +229,52 @@ export class UI {
     });
     root.addEventListener('click', (e) => this.onClick(e));
     root.addEventListener('change', (e) => this.onChange(e));
+    // Saisie d'une nouvelle touche (Paramètres › Interface) : capturée avant les raccourcis.
+    window.addEventListener('keydown', (e) => {
+      const action = this.view.keyCapture;
+      if (!action) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if (e.key === 'Escape') { this.view.keyCapture = null; this.invalidate(); return; }
+      if (e.key.length !== 1) return;
+      const key = e.key.toLowerCase();
+      const conflict = keyConflict(action, key);
+      if (conflict) { this.toast(`${conflict}.`, '#ff8a8a'); return; }
+      setPref('keys', { ...(pref('keys') ?? {}), [action]: key });
+      setCustomKeys(pref('keys'));
+      this.view.keyCapture = null;
+      delete this.lastHud.rushTime;
+      this.invalidate();
+    }, { capture: true });
     root.addEventListener('input', (e) => {
       if (e.target.id === 'reset-confirm') this.$('confirm-reset').disabled = !/^(EFFACER|ERASE)$/i.test(e.target.value.trim());
     });
     new ResizeObserver(() => this.updateLayout()).observe(root);
     this.updateLayout();
     setMenuCount(MENUS.length);
+    setCustomKeys(pref('keys'));
+    this.restoreNav();
+    this.applyPrefs();
+    window.addEventListener('pagehide', () => this.saveNav());
+    window.addEventListener('resize', () => { if (pref('uiScale') === 'auto') this.applyZoom(); });
     root.querySelectorAll('#tabs button').forEach((b) => { b.dataset.key = String(MENUS.findIndex((m) => m.id === b.dataset.menu) + 1); });
     installShortcuts(this);
     installHoldToRepeat(root);
+    installTips(root);
+    // Balayage horizontal entre onglets (tactile seulement), hors carte, arbre et barre d'onglets.
+    let swipe = null;
+    this.$('panel-body').addEventListener('touchstart', (e) => {
+      const t = e.touches[0];
+      swipe = e.touches.length === 1 && !e.target.closest('.map-viewport, .tree-viewport, #panel-subtabs, input, select, textarea') ? { x: t.clientX, y: t.clientY } : null;
+    }, { passive: true });
+    this.$('panel-body').addEventListener('touchend', (e) => {
+      if (!swipe) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - swipe.x;
+      const dy = t.clientY - swipe.y;
+      swipe = null;
+      if (Math.abs(dx) > 60 && Math.abs(dy) < 40) cycleSub(this, dx < 0 ? 1 : -1);
+    }, { passive: true });
   }
 
 
@@ -283,6 +322,98 @@ export class UI {
     this.openModal(`<h2>Raccourcis clavier</h2>${shortcutsHtml()}
       <p class="muted">Astuce : maintenez le clic sur un bouton (acheter, améliorer…) — quand l'anneau est plein, il est cliqué en continu jusqu'à ce que vous bougiez la souris.</p>
       <div class="detail-actions"><button class="btn btn-primary" data-action="close-modal">OK</button></div>`);
+  }
+
+  // --- Réglages de l'appareil (v9.1.0) -------------------------------------------------------------------
+  applyPrefs() {
+    const root = document.documentElement;
+    this.compact = pref('compact') === true;
+    this.phone = isPhone();
+    this.root.classList.toggle('compact', this.compact);
+    this.root.classList.toggle('color-aid', pref('colorAid') === true);
+    root.classList.toggle('contrast-high', pref('contrast') === true);
+    root.classList.toggle('combat-full', pref('combat') === 'full');
+    this.applyZoom();
+    delete this.lastHud.rushTime;
+    delete this.lastHud.skillTime;
+    this.invalidate();
+  }
+
+  // Taille de l'interface : Auto (plus grand sur très grand écran), 100 à 200 %. Bureau : facteur de zoom de la
+  // fenêtre ; navigateur : zoom CSS de la page.
+  applyZoom() {
+    const v = pref('uiScale');
+    const auto = window.screen?.width >= 2400 && window.innerWidth >= 2000 ? 1.5 : window.innerWidth >= 1800 && window.innerHeight >= 1000 ? 1.25 : 1;
+    const zoom = v === 'auto' || !Number(v) ? auto : Number(v) / 100;
+    if (zoom === this.uiZoom) return;
+    this.uiZoom = zoom;
+    if (window.desktop?.setZoom) window.desktop.setZoom(zoom);
+    else document.documentElement.style.zoom = zoom === 1 ? '' : String(zoom);
+  }
+
+  setDevicePref(name, value) {
+    setPref(name, value);
+    this.applyPrefs();
+  }
+
+  // Mémoire de navigation (v9.1.0, clé locale) : dernier onglet de chaque menu, filtres, tris, quantités, blocs
+  // ouverts et position de défilement. Une valeur inconnue revient au défaut.
+  restoreNav() {
+    const nav = pref('nav') ?? {};
+    const okTab = (t) => typeof t === 'string' && PANELS[t];
+    for (const [menu, tab] of Object.entries(nav.lastSub ?? {})) if (MENUS.some((m) => m.id === menu && m.tabs.includes(tab))) this.lastSub[menu] = tab;
+    const v = nav.view ?? {};
+    const pick = (key, allowed) => { if (allowed(v[key])) this.view[key] = v[key]; };
+    pick('upgradeCat', (x) => ['combat', 'survival', 'resources', 'all'].includes(x));
+    pick('upgradeSort', (x) => ['profit', 'cost'].includes(x));
+    pick('buyAmount', (x) => ['1', '10', '100', 'max'].includes(x));
+    pick('missionTab', (x) => ['today', 'week', 'achievements'].includes(x));
+    pick('invTab', (x) => ['bag', 'stash'].includes(x));
+    pick('encSec', (x) => ['monsters', 'bosses', 'mutations', 'items', 'companions', 'museum'].includes(x));
+    pick('summonPool', (x) => ['hero', 'ally', 'pet'].includes(x));
+    pick('treeSeg', (x) => ['tree', 'rebirth'].includes(x));
+    pick('heroTab', (x) => ['hero', 'class', 'look', 'records'].includes(x));
+    pick('optTab', (x) => ['general', 'interface', 'sound', 'window'].includes(x));
+    pick('encSlot', (x) => typeof x === 'string' && x.length < 16);
+    if (Array.isArray(nav.open)) this.view.open = new Set(nav.open.filter((x) => typeof x === 'string').slice(0, 64));
+    if (Array.isArray(nav.closed)) this.view.closed = new Set(nav.closed.filter((x) => typeof x === 'string').slice(0, 64));
+    for (const [tab, top] of Object.entries(nav.scroll ?? {})) if (okTab(tab) && Number.isFinite(top)) this.scrollMem[tab] = top;
+  }
+
+  saveNav() {
+    if (this.tab) this.scrollMem[this.tab] = this.$('panel-body').scrollTop;
+    const keys = ['upgradeCat', 'upgradeSort', 'buyAmount', 'missionTab', 'invTab', 'encSec', 'summonPool', 'treeSeg', 'heroTab', 'optTab', 'encSlot'];
+    setPref('nav', {
+      lastSub: this.lastSub,
+      view: Object.fromEntries(keys.filter((k) => this.view[k] !== undefined && this.view[k] !== null).map((k) => [k, this.view[k]])),
+      open: [...(this.view.open ?? [])], closed: [...this.view.closed],
+      scroll: this.scrollMem,
+    });
+  }
+
+  // Paramètres › Interface : réglages propres à cet appareil (mode compact, combat, animations, taille…).
+  interfaceExtra() {
+    const sel = (name, options) => `<select data-action="device-pref" data-key="${name}" aria-label="${escapeHtml(options.label)}">${options.items.map(([v, l]) => `<option value="${v}" ${String(pref(name)) === String(v) ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
+    const check = (name, label) => `<label class="toggle"><input type="checkbox" data-action="device-pref" data-key="${name}" ${pref(name) === true ? 'checked' : ''}> ${label}</label>`;
+    const keys = Object.keys(KEY_LABELS).map((action) => `<div class="key-row"><span>${KEY_LABELS[action]}</span>
+      <button class="btn small key-btn${this.view.keyCapture === action ? ' armed' : ''}" data-action="capture-key" data-value="${action}">${this.view.keyCapture === action ? 'Appuyez sur une touche…' : `<kbd>${escapeHtml(keyLabel(action))}</kbd>`}</button></div>`).join('');
+    return `<div class="card"><div class="section-title">Cet appareil</div>
+        <div class="muted">Ces réglages restent sur cet appareil (PC ou téléphone), hors de la sauvegarde.</div>
+        <div class="pref-grid">
+          <span>Combat</span>${sel('combat', { label: 'Combat', items: [['simple', 'Simple (l\'essentiel)'], ['full', 'Complet (tout afficher)']] })}
+          <span>Animations</span>${sel('motion', { label: 'Réduire les animations', items: [['auto', 'Auto (réglage du système)'], ['reduce', 'Réduites'], ['full', 'Complètes']] })}
+          <span>Taille de l'interface</span>${sel('uiScale', { label: 'Taille de l\'interface', items: [['auto', 'Auto'], [100, '100 %'], [125, '125 %'], [150, '150 %'], [200, '200 %']] })}
+        </div>
+        ${check('compact', '<b>Mode compact</b> : listes serrées, sans descriptions (joueurs expérimentés)')}
+        ${check('colorAid', '<b>Aide aux couleurs</b> : lettre de rareté sur les objets (C, R, É, L), pastilles en anneau')}
+        ${check('contrast', '<b>Contraste élevé</b> : textes plus contrastés, sans décor animé')}
+      </div>
+      ${fold(this, 'keys', 'Raccourcis clavier : changer une touche', `<div class="muted">Cliquez une touche puis appuyez sur la nouvelle. Une touche déjà utilisée est refusée.</div>
+        <div class="key-grid">${keys}</div><button class="btn small" data-action="reset-keys">Touches par défaut</button>`)}`;
+  }
+
+  openSearch() {
+    openSearch(this);
   }
 
   // Touche G : tout ce qui est réclamable d'un coup.
@@ -337,6 +468,9 @@ export class UI {
       this.layout = layout;
       this.invalidate();
     }
+    this.root.classList.toggle('wide', layout === 'tall' && w >= 1100 && h >= 600);
+    const phone = isPhone();
+    if (phone !== this.phone) { this.phone = phone; this.invalidate(); delete this.lastHud.rushTime; }
     if (layout === 'mini') {
       // Le panneau recouvre la scène mais laisse la barre du haut et les onglets visibles.
       const rootTop = this.root.getBoundingClientRect().top;
@@ -432,7 +566,10 @@ export class UI {
     const menu = menuOf(tab);
     if (menu) this.lastSub[menu.id] = tab;
     this.lastOpened = tab;
-    this.root.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('active', b.dataset.menu === menu?.id));
+    this.root.querySelectorAll('#tabs button').forEach((b) => {
+      b.classList.toggle('active', b.dataset.menu === menu?.id);
+      if (b.dataset.menu === menu?.id) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
     this.renderSubtabs();
     this.root.querySelectorAll('[data-open]').forEach((b) => b.classList.toggle('active', b.dataset.open === tab));
     this.lastHud.tabs = null;
@@ -444,7 +581,7 @@ export class UI {
     this.tab = null;
     this.$('panel').classList.add('hidden');
     this.root.classList.remove('panel-open');
-    this.root.querySelectorAll('#tabs button, [data-open]').forEach((b) => b.classList.remove('active'));
+    this.root.querySelectorAll('#tabs button, [data-open]').forEach((b) => { b.classList.remove('active'); b.removeAttribute('aria-current'); });
     this.lastHud.tabs = null;
   }
 
@@ -498,6 +635,7 @@ export class UI {
       case 'advance': a.advance(); break;
       case 'toggle-auto': a.setAutoAdvance(!this.state.autoAdvance); break;
       case 'learn-skill': a.learnSkill(key); break;
+      case 'distribute-skills': a.distributeSkills(); break;
       case 'hero-sel': local(() => { v.heroSel = value; }); break;
       case 'set-hero': a.setHero(value); break;
       case 'companion-sel': local(() => { v.companionSel = value; v.sheetOpen = 'companion'; }); break;
@@ -578,12 +716,11 @@ export class UI {
       case 'claim-mastery': a.claimMastery(bossId); break;
       case 'show-odds': local(() => { if (v.oddsOpen.has(bossId)) v.oddsOpen.delete(bossId); else v.oddsOpen.add(bossId); }); break;
       case 'dungeon-slot': local(() => { v.dungeonSlot = value; }); break;
-      case 'dungeon-path-pre': local(() => { v.dungeonPath = value; }); break;
+      case 'dungeon-path-pre': local(() => { v.dungeonPath = value; a.rememberDungeonChoice('path', value); }); break;
       case 'dungeon-path': a.setDungeonPath(value); break;
-      case 'enter-dungeon': a.enterDungeon(value, v.dungeonSlot, v.dungeonPath, el.dataset.diff ?? v.dungeonDiff ?? 'easy'); break;
+      case 'enter-dungeon': a.enterDungeon(value, v.dungeonSlot ?? this.state.ui.dungeonSlot ?? 'any', v.dungeonPath ?? this.state.ui.dungeonPath ?? 'gold', el.dataset.diff ?? v.dungeonDiff ?? 'easy'); break;
       case 'dungeon-sel': local(() => { v.dungeonSel = value; v.dungeonDiff = null; }); break;
       case 'dungeon-diff': local(() => { v.dungeonDiff = value; }); break;
-      case 'dungeon-filter': local(() => { v.dungeonFilter = value; }); break;
       case 'abandon-dungeon': a.abandonDungeon(); break;
       case 'claim-contract': a.claimContract(Number(value)); break;
       case 'claim-mission': { const [period, id] = value.split('|'); a.claimMission(period, id); break; }
@@ -626,11 +763,11 @@ export class UI {
       case 'hero-tab': local(() => { v.heroTab = value; }); break;
       case 'measure-farm': local(() => { v.farmRate = measureFarmRate(this.state, BALANCE, 120); }); break;
       case 'set-class': a.setHeroClass(value); break;
-      case 'tour-new': a.startTour(true); break;
-      case 'tour-full': a.startTour(false); break;
+      case 'tour-full': a.startTour(); break;
       case 'tour-later': a.skipTour(); break;
       case 'open-summon-hero': local(() => { v.summonPool = 'hero'; }); this.openTab('summon'); break;
       case 'claim-bounty': a.claimBounty(); break;
+      case 'bounty-go': a.goToStage(Number(value)); break;
       case 'toggle-tips': event.preventDefault(); local(() => { v.tipsOpen = v.tipsOpen === false; }); break;
       case 'to-mannequin': a.toMannequin(id); break;
       case 'from-mannequin': { const [setId, slot] = value.split('|'); a.fromMannequin(setId, slot); break; }
@@ -662,6 +799,8 @@ export class UI {
         if (/^(EFFACER|ERASE)$/i.test(this.$('reset-confirm')?.value.trim() ?? '')) { this.closeModal(); a.reset(); }
         break;
       case 'opt-tab': local(() => { v.optTab = value; v.importOpen = false; v.exportCode = null; }); break;
+      case 'capture-key': local(() => { v.keyCapture = v.keyCapture === value ? null : value; }); break;
+      case 'reset-keys': setPref('keys', {}); setCustomKeys({}); this.invalidate(); break;
       case 'export-save': a.exportSave(value); break;
       case 'import-open': local(() => { v.importOpen = !v.importOpen; }); break;
       case 'import-save': this.importFromPanel(); break;
@@ -686,6 +825,14 @@ export class UI {
     if (action === 'filter-select') this.actions.setFilter(el.value);
     if (action === 'upgrade-cat-select') { this.view.upgradeCat = el.value; this.invalidate(); }
     if (action === 'upgrade-sort') { this.view.upgradeSort = el.value || null; this.invalidate(); }
+    if (action === 'zone-select') { this.view.zoneSel = Number(el.value); this.invalidate(); }
+    if (action === 'cycle-select') { this.view.cycleSel = Number(el.value); this.view.zoneSel = null; this.invalidate(); }
+    if (action === 'dungeon-slot-select') { this.view.dungeonSlot = el.value; this.actions.rememberDungeonChoice('slot', el.value); this.invalidate(); }
+    if (action === 'skill-details') { this.view.open ??= new Set(); if (el.checked) this.view.open.add('skill-details'); else this.view.open.delete('skill-details'); this.invalidate(); }
+    if (action === 'device-pref') {
+      const name = el.dataset.key;
+      this.setDevicePref(name, el.type === 'checkbox' ? el.checked : el.value);
+    }
     if (action === 'tree-buyable') { this.view.treeBuyable = el.checked; this.invalidate(); }
     if (action === 'enc-slot-select') { this.view.encSlot = el.value; this.invalidate(); }
     if (action === 'craft-slot') { this.view.craftSlot = el.value; this.invalidate(); }
@@ -698,9 +845,7 @@ export class UI {
     if (action === 'mute') this.sound?.setMuted(el.checked);
     if (action === 'notify') this.actions.setNotify(el.dataset.key, el.checked);
     if (action === 'cloud-listed') this.actions.cloudListed(el.checked);
-    if (action === 'focus') this.actions.setFocus(el.checked);
     if (action === 'cinematics') this.actions.setCinematics(el.checked);
-    if (action === 'theme-fx') this.actions.setThemeFx(el.checked);
     if (action === 'auto-recycle') this.actions.setAutoRecycle(el.value);
     if (action === 'recycle-mode') this.actions.setRecycleRule('mode', el.value);
     if (action === 'exp-pick') {
@@ -767,7 +912,8 @@ export class UI {
         const trait = bossTrait(event.kind);
         this.banner(`${label} — ${BOSSES[event.kind].name}`, `boss tier-${tier}`);
         if (trait) this.news(`${BOSSES[event.kind].name} — ${trait.name} : ${trait.text}. Contre : ${trait.counter}.`, trait.color, 2);
-        if (tier === 'mega' || tier === 'hard') {
+        if (tier === 'mega' || tier === 'hard') this.announce(`${label} : ${BOSSES[event.kind].name}`);
+        if ((tier === 'mega' || tier === 'hard') && !this.calm) {
           const flash = this.$('boss-flash');
           flash.className = `tier-${tier}`;
           void flash.offsetWidth;
@@ -980,9 +1126,11 @@ export class UI {
     this.speed = simSpeed(state);
     this.$('speed-toggle').classList.toggle('hidden', unlockedSpeeds(state).length < 2 && !state.cheats.skipBattle);
     this.root.classList.toggle('speed-max', simSpeed(state) >= 100);
-    // v9.0.4 : particules et lueurs animées des thèmes coupées à ×100 ou par l'option « Effets animés »
-    // (le mode concentration ne les coupait sans le dire).
-    document.documentElement.classList.toggle('fx-calm', state.ui.themeFx === false || simSpeed(state) >= 100);
+    // v9.1.0 : « Réduire les animations » (réglage de l'appareil, sinon préférence du système) coupe aussi les
+    // animations de l'interface, le flash des boss et le décor des thèmes ; ×100 fait de même.
+    this.calm = reduceMotion() || simSpeed(state) >= 100;
+    document.documentElement.classList.toggle('fx-calm', this.calm || pref('contrast') === true);
+    document.documentElement.classList.toggle('reduce-motion', this.calm);
     this.$('speed-toggle').classList.toggle('fast', simSpeed(state) > 1);
     this.$('auto-toggle').classList.toggle('off', !state.autoAdvance);
     this.$('auto-toggle').classList.toggle('hidden', Boolean(state.dungeon || state.tower || state.challenge));
@@ -1148,8 +1296,8 @@ export class UI {
       bar.innerHTML = open.map(([r, i]) => {
         const unlocked = rushUnlocked(state, r);
         return `<button class="rush-btn${unlocked ? '' : ' locked'}" data-action="rush" data-value="${r.id}" style="--rush:${r.color}"
-          title="${r.name} — ${r.text}. ${unlocked ? `Touche ${BOOST_KEYS[i]}.` : `Débloqué au niveau ${r.unlockLevel} du héros.`}" aria-label="${r.name}">${img(r.icon)}
-          ${phoneLayout() ? '' : `<span class="rush-key">${BOOST_KEYS[i]}</span>`}<span class="rush-time"></span></button>`;
+          title="${r.name} — ${r.text}. ${unlocked ? `Touche ${boostKeys()[i]}.` : `Débloqué au niveau ${r.unlockLevel} du héros.`}" aria-label="${r.name}">${img(r.icon)}
+          ${phoneLayout() ? '' : `<span class="rush-key">${boostKeys()[i]}</span>`}<span class="rush-time"></span></button>`;
       }).join('') + (boostOn ? '<button class="boost-chip" data-action="show-boost" id="boost-chip">⚡<span id="boost"></span></button>' : '');
       delete this.lastHud.boost;
     }
@@ -1277,14 +1425,6 @@ export class UI {
         ${reachable ? `<button class="btn btn-primary" data-action="currency-go" data-value="${id}">Aller à ${escapeHtml(navPath(c.tab))}</button>` : ''}</div>`);
   }
 
-  // Raccourcis ajoutés (v9.1.0) : S Retour de session, C Prochaine action, F recherche rapide.
-  extraShortcut(key) {
-    if (key === 's') { this.actions.sessionReturn(); return true; }
-    if (key === 'c') { this.runNextAction(); return true; }
-    if (key === 'f') { this.openSearch?.(); return true; }
-    return false;
-  }
-
   // Récapitulatif du Retour de session.
   showSessionReturn(r) {
     const ratio = r.before > 0 ? r.after / r.before : 1;
@@ -1377,8 +1517,11 @@ export class UI {
     const focused = document.activeElement && body.contains(document.activeElement) ? document.activeElement : null;
     const focusSel = focused ? selectorFor(focused) : null;
     const focusIndex = focused ? focusables(this).indexOf(focused) : -1;
-    const help = this.view.helpOpen === this.tab && PANEL_HELP[this.tab]
-      ? `<div class="card panel-help-card"><b>Comment ça marche ?</b> ${PANEL_HELP[this.tab]}</div>` : '';
+    const h = PANEL_HELP[this.tab];
+    const device = h && (this.phone ? h.touch : h.mouse);
+    const help = this.view.helpOpen === this.tab && h
+      ? `<div class="card panel-help-card"><b>Comment ça marche ?</b> ${h.short}${device ? ` ${device}` : ''}
+          ${h.more ? fold(this, `help-${this.tab}`, 'En savoir plus', `<div>${h.more}</div>`) : ''}</div>` : '';
     body.innerHTML = help + this.introCard(this.tab, state) + panel.render(this, state);
     body.scrollTop = this.pendingScroll ?? scroll;
     this.pendingScroll = null;
@@ -1391,10 +1534,34 @@ export class UI {
       if (el) el.scrollTop = top;
     }
     panel.afterRender?.(this, body);
+    this.phoneAction(body);
     this.lastHud.extra = panel.extra ? panel.extra(this, state) : '';
     this.$('panel-extra').innerHTML = this.lastHud.extra;
     this.lastHud.live = this.liveKey(state);
     this.dirty = false;
+  }
+
+  // Téléphone (v9.1.0) : l'action principale de l'écran (première .primary-action) est reprise dans une barre collée
+  // en bas du panneau, toujours à portée de pouce. Le bouton d'origine reste en place (même action, même état).
+  phoneAction(body) {
+    body.querySelector('.phone-action')?.remove();
+    if (!this.phone) return;
+    const main = body.querySelector('.primary-action');
+    if (!main) return;
+    const bar = document.createElement('div');
+    bar.className = 'phone-action';
+    const proxy = document.createElement('button');
+    proxy.className = main.className.replace('primary-action', '').trim();
+    proxy.innerHTML = main.innerHTML;
+    proxy.disabled = main.disabled;
+    proxy.addEventListener('click', () => main.click());
+    bar.appendChild(proxy);
+    body.appendChild(bar);
+    this.phoneMain = [main, proxy];
+    // Inutile quand le vrai bouton est déjà à l'écran : la barre n'apparaît que s'il est hors de vue.
+    this.phoneObserver?.disconnect();
+    this.phoneObserver = new IntersectionObserver(([entry]) => bar.classList.toggle('hidden', entry.isIntersecting), { root: body, threshold: 0.6 });
+    this.phoneObserver.observe(main);
   }
 
   // Active ou désactive les boutons d'achat selon les monnaies, sans redessiner le panneau.
@@ -1415,6 +1582,10 @@ export class UI {
         if (note.textContent !== text) note.textContent = text;
       }
     });
+    if (this.phoneMain) {
+      const [main, proxy] = this.phoneMain;
+      if (main.isConnected && proxy.disabled !== main.disabled) proxy.disabled = main.disabled;
+    }
     const extra = PANELS[this.tab].extra;
     if (extra) {
       const html = extra(this, state);

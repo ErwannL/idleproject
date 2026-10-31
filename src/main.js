@@ -6,7 +6,7 @@ import { BOSSES } from './data/enemies.js';
 import { changeStage, createCombat, currentEncounter, cycleForStage, resetWave, resumeAdvance, stageLabel, step } from './core/combat.js';
 import { ZONES } from './data/zones.js';
 import { playCinematic, playTransition, worldCinematic } from './ui/cinematic.js';
-import { maybeStartTour, startTour } from './ui/onboarding.js';
+import { TOUR_VERSION, maybeStartTour, startTour } from './ui/onboarding.js';
 import { activeSynergies, companionById, onExpedition, replaceCompanion, toggleCompanion, upgradeCompanion } from './core/companions.js';
 import { claimContract } from './core/contracts.js';
 import { claimAchievement, claimableAchievements } from './core/achievements.js';
@@ -47,6 +47,7 @@ import { exposeAll, museumDuplicates, putInMuseum, takeFromMuseum } from './core
 import { createJournal, journalSummary, noteDrop, noteFused, noteRecycled } from './core/journal.js';
 import { SceneRenderer } from './render/scene.js';
 import { UI } from './ui/ui.js';
+import { hasPref, setPref } from './ui/prefs.js';
 import { animateMenus } from './ui/animator.js';
 import { createGameAudio } from './audio/game-audio.js';
 import { simSpeed, unlockedSpeeds } from './core/cheats.js';
@@ -288,6 +289,11 @@ const actions = {
     done(true, 'Retour à la campagne');
   },
   setDungeonPath(path) { done(setDungeonPath(state, path)); },
+  // v9.1.0 : butin ciblé et chemin des donjons mémorisés dans la sauvegarde.
+  rememberDungeonChoice(kind, value) {
+    if (kind === 'slot') state.ui.dungeonSlot = value; else state.ui.dungeonPath = value;
+    save();
+  },
   claimMission(period, id) {
     const given = claimMission(state, period, id);
     done(Boolean(given), given ? `Mission accomplie : ${rewardText(given)}` : null, '#7fd4ff');
@@ -551,6 +557,14 @@ const actions = {
     save();
     ui.invalidate();
   },
+  // Prime du jour : aller sur l'étape du monde visé ; l'avance automatique s'arrête (« Avancer ▶ » pour reprendre).
+  goToStage(stage) {
+    if (state.tower || state.challenge || state.dungeon || stage > state.maxStage) return;
+    state.autoAdvance = false;
+    state.farmBoss = null;
+    changeStage(state, world, stage);
+    done(true, `Étape ${stageLabel(stage)} : le héros y reste. « Avancer ▶ » pour reprendre la progression.`);
+  },
   retryBoss() {
     const r = state.bossRetry;
     if (!r) return;
@@ -590,7 +604,6 @@ const actions = {
     done(true, swept.count ? `${swept.count} objet${swept.count > 1 ? 's' : ''} recyclé${swept.count > 1 ? 's' : ''} (+${formatNumber(swept.gold)} or)` : null);
   },
   setLanguage(lang) { setLang(lang); ui.invalidate(); },
-  setThemeFx(on) { state.ui.themeFx = on; done(true); },
   setTheme(id) { state.ui.theme = themeById(id).id; applyTheme(state.ui.theme).then(() => ui.invalidate()); done(true); },
   // Vitesses débloquées par code (v8.4) ; ×100 demande une confirmation (effets visuels coupés).
   cycleSpeed() {
@@ -713,10 +726,9 @@ const actions = {
     done(true);
   },
   setNotify(key, on) { state.ui.notify = { ...state.ui.notify, [key]: on }; done(true); },
-  setFocus(on) { state.ui.focus = on; done(true); },
   setCinematics(on) { state.ui.cinematics = on; done(true); },
-  startTour(newUiOnly = false) { ui.closeModal(); startTour(ui, state, { newUiOnly }); },
-  skipTour() { state.ui.tour = 'done'; ui.closeModal(); save(); },
+  startTour() { ui.closeModal(); startTour(ui, state); },
+  skipTour() { state.ui.tour = 'done'; state.ui.tourV = TOUR_VERSION; ui.closeModal(); save(); },
   setAutoRecycle(value) {
     state.ui.autoRecycle = value;
     ui.invalidate();
@@ -938,6 +950,10 @@ const journals = () => (awayJournal ? [sessionJournal, awayJournal] : [sessionJo
 ui.sessionJournal = () => journalSummary(sessionJournal, state);
 // Langue (français / anglais) : la page entière est traduite à la volée.
 startAutoTranslate(document.body);
+// v9.1.0 : « Mode concentration » et « Effets animés » deviennent « Réduire les animations » (réglage de l'appareil).
+if ((state.ui.focus || state.ui.themeFx === false) && !hasPref('motion')) setPref('motion', 'reduce');
+state.ui.focus = false;
+delete state.ui.themeFx;
 // Thème d'interface (v9.0).
 if (state.ui.theme && state.ui.theme !== 'knight') applyTheme(state.ui.theme);
 
@@ -996,7 +1012,7 @@ if (state.migrationRefund) {
 }
 // v9.0.6 : découverte guidée — après la cinématique et une fois les fenêtres d'accueil (absence, annonces) fermées.
 // Jamais pendant les tests automatisés (sauf ?tour dans l'adresse).
-if (state.ui.tour !== 'done' && (!navigator.webdriver || location.search.includes('tour'))) {
+if ((state.ui.tour !== 'done' || (state.ui.tourV ?? 1) < TOUR_VERSION) && (!navigator.webdriver || location.search.includes('tour'))) {
   let waited = 0;
   const tryTour = () => {
     waited += 1;
@@ -1146,6 +1162,7 @@ function frame(ts) {
   sound.update(state, world, currentEncounter(state).zoneIndex, dt);
   world.events.length = 0;
   watchWorldChange();
+  renderer.calm = ui.calm;
   renderer.render(state, world, dt);
   ui.update(state, world);
   animateMenus(document.body, state, ts);

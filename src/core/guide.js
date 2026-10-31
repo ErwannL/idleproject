@@ -70,9 +70,12 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
   if (state.tower) return { id: 'mode-tower', text: 'Tour en cours', tab: 'tower' };
   if (state.challenge) return { id: 'mode-challenge', text: 'Défi en cours', tab: 'dungeons' };
   const claims = (ctx.claims ?? claimables(state, Date.now(), balance)).filter((c) => !c.blocked);
-  if (claims.length) return { id: 'claim', text: claims.length > 1 ? `Tout récupérer (${claims.length})` : `Récupérer : ${claims[0].label}`, action: 'claim-everything', tab: claims[0].tab };
+  // v9.1.0 : parcours guidé du débutant (avant le premier mini-boss) — équiper un objet, apprendre une compétence,
+  // acheter une amélioration, puis battre le mini-boss ; les récompenses attendent la fin de ce parcours.
+  if ((state.records.bossesDefeated ?? 0) === 0) return beginnerAction(state, ctx, balance) ?? (claims.length ? claimAction(claims) : goalAction(state, balance));
+  if (claims.length) return claimAction(claims);
   const better = ctx.betterItem !== undefined ? ctx.betterItem : betterItem(state, balance);
-  if (better) return { id: 'equip', text: `Équipez : ${better.name}`, tab: 'inventory', view: { invTab: 'bag', selectedItemId: better.id } };
+  if (better) return { id: 'equip', text: `Équipez : ${better.name}`, tab: 'inventory', view: { invTab: 'bag', invView: null, selectedItemId: better.id } };
   const points = skillPointsAvailable(state);
   if (points >= 1) return { id: 'skills', text: `${points} point${points > 1 ? 's' : ''} de compétence à dépenser`, tab: 'skills' };
   const best = bestUpgrade(state, balance);
@@ -98,6 +101,24 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
   return { id: 'goal', text: boss ? `Objectif : battre ${boss}` : 'Objectif : avancer', tab: 'campaign' };
 }
 
+function claimAction(claims) {
+  return { id: 'claim', text: claims.length > 1 ? `Tout récupérer (${claims.length})` : `Récupérer : ${claims[0].label}`, action: 'claim-everything', tab: claims[0].tab };
+}
+
+function goalAction(state, balance) {
+  const boss = nextBossName(state, balance);
+  return { id: 'goal', text: boss ? `Objectif : battre ${boss}` : 'Objectif : avancer', tab: 'campaign' };
+}
+
+function beginnerAction(state, ctx, balance) {
+  const better = ctx.betterItem !== undefined ? ctx.betterItem : betterItem(state, balance);
+  if (better) return { id: 'equip', text: `Équipez : ${better.name}`, tab: 'inventory', view: { invTab: 'bag', invView: null, selectedItemId: better.id } };
+  if (skillPointsAvailable(state) >= 1) return { id: 'skills', text: 'Apprenez une compétence', tab: 'skills' };
+  const best = bestUpgrade(state, balance);
+  if (best && state.gold >= best.cost) return { id: 'upgrade', text: `Améliorez : ${balance.upgrades[best.key].label}`, tab: 'upgrades' };
+  return null;
+}
+
 // Objet du sac qui améliore le plus le héros (le premier trouvé), ou null.
 export function betterItem(state, balance = BALANCE, current = computeHeroStats(state, balance)) {
   return state.inventory.find((i) => isUpgrade(state, i, balance, current)) ?? null;
@@ -118,21 +139,73 @@ function nextBossName(state, balance) {
 
 const formatMult = (x) => x.toFixed(2).replace(/0$/, '').replace('.', ',');
 
-// Aide « ? » de chaque panneau : les règles en quelques lignes.
+// Aide « ? » de chaque écran (v9.1.0) : 3 lignes au plus (`short`), le détail dans « En savoir plus » (`more`).
+// Les textes suivent le lexique du jeu (Compétences, Boosts, Pouvoirs, Talents, Builds…).
 export const PANEL_HELP = {
-  upgrades: 'L\'or achète des améliorations. Dégâts et Points de vie gagnent ×1,35/×1,4 tous les 10 niveaux et ×1,75 tous les 25 niveaux : visez ces paliers. « Max » achète tout ce que vous pouvez.',
-  inventory: 'La flèche verte marque un objet meilleur que celui porté. Les objets grandissent avec leur niveau : réaffûtez-les (Forge) pour les remettre au niveau de votre étape. Recyclage et fusion automatiques se règlent ici.',
-  hero: 'La fiche du héros détaille chaque source de bonus. La Puissance résume dégâts × robustesse ; la prévision du prochain boss simule le vrai combat.',
-  summon: 'Gemmes et tickets s\'obtiennent en jouant. La bannière de la semaine augmente les chances d\'un SSR. Garanties : Épique au plus tard toutes les 10 invocations, Légendaire toutes les 60.',
-  skills: 'Un point par niveau du héros. Les compétences se lancent toutes seules (barre « Compétences » en haut à gauche de la scène). À ne pas confondre avec les boosts (Améliorer → Boosts), qui se lancent d\'un clic en haut à droite de la scène ou avec Q W E R T.',
-  tree: 'Plus de 500 talents permanents, achetés avec les fragments anciens (Renaissance, donjons, Tour, défi, expéditions). Un talent s\'apprend dès qu\'un voisin est appris ; cliquez un talent lointain puis « Chemin » pour apprendre la route la moins chère. Les clés de voûte demandent des points dans leur région. La Renaissance remet l\'étape à 1 mais multiplie dégâts, PV et or ×1,5 pour toujours.',
-  campaign: 'Chaque monde a 20 étapes et 4 boss. Si un boss vous bat, le chevalier refarme l\'étape d\'avant et le retente quand il est 15 % plus fort (ou bouton « Retenter le boss »).',
-  dungeons: 'Une clé par expédition. Facile = sous votre étape max ; réussir une difficulté débloque la suivante, donjon par donjon. En haut : le défi de la semaine (3 tentatives, règles qui changent chaque lundi, sans clé).',
-  companions: 'Deux compagnons et un familier. Leurs rôles forment des synergies (bonus + effets visuels). Améliorez-les avec l\'or. Ceux qui restent sur le banc partent en expédition (1 h, 4 h, 12 h, même jeu fermé) et rapportent or, matériaux, gemmes, clés et fragments.',
-  tower: 'Une ascension par semaine (lundi). Un boss par étage ; récompenses au meilleur étage de la semaine et à chaque record absolu. La tour s\'effondre après 10 h de combat (chaque nouvel étage rajoute un peu de temps).',
-  boss: 'Chaque méga boss vaincu donne un pouvoir ancestral ; les collections rapportent des récompenses.',
-  encyclopedia: 'Tout ce que vous rencontrez ou obtenez s\'y inscrit : monstres (et leurs variantes Élite et Mutée), boss, mutations, chaque équipement dans chaque rareté, compagnons et familiers. Cliquez une case pour sa fiche ; les « ??? » restent à découvrir. Le pourcentage de complétion débloque des paliers de récompenses.',
-  contracts: 'Missions quotidiennes, hebdomadaires et mensuelles, contrats et hauts faits (bonus permanents). « Tout récupérer » ou la touche G.',
-  inbox: 'Coffres, marchands et gemmes trouvés pendant le farm attendent ici.',
-  options: 'Sauvegarde, langue, son, mises à jour et codes secrets.',
+  upgrades: {
+    short: 'L\'or achète des améliorations. « Acheter le plus rentable » choisit celle qui donne le plus de dégâts/s par pièce d\'or.',
+    more: 'Dégâts et Points de vie gagnent ×1,35 / ×1,4 tous les 10 niveaux et ×1,75 tous les 25 niveaux : visez ces paliers. ×10, ×100 et Max achètent plusieurs niveaux d\'un coup. PV, armure, régénération et or ne sont jamais achetés automatiquement.',
+  },
+  inventory: {
+    short: 'La flèche verte marque un objet meilleur que celui porté. « Équiper le meilleur » équipe tout d\'un coup.',
+    more: 'Les objets grandissent avec leur niveau : Réaffûter remonte un objet au niveau de votre étape max. Le Coffre garde des objets jamais recyclés ; les Mannequins rangent les pièces d\'un ensemble ; les Builds enregistrent équipe, équipement, classe, pouvoirs et compétences. Recyclage et fusion automatiques : Réglages du sac.',
+  },
+  hero: {
+    short: 'Votre fiche : dégâts/s, niveau et équipement. Classe, Apparence et Records sont dans les segments du haut.',
+    more: 'Les blocs repliés détaillent chaque source de bonus. Records garde l\'historique de la Tour, du défi et des donjons, et mesure votre rythme (or et XP par heure).',
+  },
+  summon: {
+    short: 'Gemmes et tickets s\'obtiennent en jouant. Garanties : Épique au plus tard toutes les 10 invocations, Légendaire toutes les 60.',
+    more: 'Le compteur des garanties est commun aux trois invocations. La vedette de la semaine représente 50 % des Légendaires obtenus dans son invocation (elle n\'augmente pas la chance d\'un Légendaire). Doublon : +1 étoile, puis des gemmes.',
+  },
+  skills: {
+    short: 'Un point par niveau du héros. Les compétences se lancent toutes seules ; « Répartir mes points » les monte de façon équilibrée.',
+    more: 'Les Boosts (en bas de cet écran) sont différents : améliorés avec l\'or, lancés d\'un appui sur le combat (ou au clavier), ou en Auto.',
+  },
+  tree: {
+    short: 'Les fragments anciens achètent des talents permanents. Un talent s\'apprend dès qu\'un voisin est appris.',
+    more: 'L\'arbre se dévoile au fur et à mesure (la recherche ne porte que sur ce qui est visible). Les clés de voûte demandent des points dans leur région : la légende donne l\'objectif de chaque région. Petits nœuds : 3 niveaux · ◆ notables · ⬢ clés de voûte. La Renaissance (segment Renaissance) remet l\'étape à 1 contre des fragments et un bonus permanent de dégâts, PV et or.',
+    mouse: 'Glissez ou utilisez la molette pour vous déplacer, Ctrl + molette pour zoomer.',
+    touch: 'Glissez du doigt pour vous déplacer ; les boutons − et + zooment.',
+  },
+  campaign: {
+    short: 'Votre monde, le prochain boss et la prévision du combat. L\'avance automatique passe d\'une étape à l\'autre.',
+    more: 'La plupart des mondes ont 20 étapes et 4 boss (le monde 11 en a 10). Si un boss vous bat, le héros s\'entraîne à l\'étape d\'avant et le retente seul quand il est 15 % plus fort (ou « Retenter le boss »).',
+  },
+  dungeons: {
+    short: 'Une clé par tentative. Réussir une difficulté débloque la suivante, donjon par donjon.',
+    more: 'Chaque fiche dit la mécanique du boss final et ce qui la contre. Le butin ciblé et le chemin sont mémorisés. Le défi de la semaine (carte repliée en haut, à partir de son étape) se joue sans clé, 3 tentatives par semaine.',
+  },
+  companions: {
+    short: 'Deux compagnons et un familier combattent avec vous. Leurs rôles forment des synergies.',
+    more: 'Améliorez-les avec l\'or ; les doublons d\'invocation ajoutent des étoiles. Ceux qui restent hors de l\'équipe peuvent partir en expédition (onglet Expéditions).',
+  },
+  expeditions: {
+    short: 'Les compagnons hors de l\'équipe partent 1 h, 4 h ou 12 h, même jeu fermé, et rapportent des ressources.',
+    more: 'La récompense prévue est écrite sous chaque durée. « Repartir » relance la dernière expédition de chaque place (même compagnon, même durée). Rappeler abandonne sans récompense.',
+  },
+  tower: {
+    short: 'Une ascension par semaine : un boss par étage, toujours plus fort. Chaque record rapporte des récompenses.',
+    more: 'La tour s\'effondre après 10 h de combat (chaque nouvel étage rajoute un peu de temps). La liste des étages donne les récompenses de semaine et de record.',
+  },
+  boss: {
+    short: 'Chaque boss vaincu donne un pouvoir. Réaffrontez-le pour sa maîtrise et des charges de changement de pouvoir.',
+    more: 'Deux pouvoirs de la même famille donnent un bonus de famille (+50 % d\'effet). Les collections du Codex sont dans Objectifs › Collections.',
+  },
+  encyclopedia: {
+    short: 'Tout ce que vous découvrez s\'inscrit ici ; le pourcentage débloque des paliers de récompenses.',
+    more: 'Trois systèmes séparés : l\'encyclopédie (pourcentage), le Codex (collections avec leurs paliers) et le Musée (un objet ancestral par vitrine, bonus permanent, sans effet sur le pourcentage).',
+  },
+  contracts: {
+    short: 'Missions du jour et de la semaine, contrats, prime du jour et hauts faits (bonus permanents). Tout récupérer : touche G.',
+    more: 'Les contrats progressent seuls, même jeu fermé ; un contrat rempli est remplacé. La prime du jour donne une pièce d\'ensemble Épique ou mieux.',
+  },
+  inbox: {
+    short: 'Tout ce qui est prêt à être récupéré, au même endroit. Un seul bouton (ou la touche G).',
+    more: 'Les trouvailles (coffres, gemmes, portails) arrivent pendant le combat. Sac plein : les récompenses avec un objet attendent ici. Les marchands proposent un achat, à votre choix.',
+  },
+  options: {
+    short: 'Langue, sauvegarde (export et import), compte, mises à jour ; Interface, Son et Fenêtre dans les onglets.',
+    more: 'C\'est quoi un idle ? Le jeu avance tout seul, même fermé : vous revenez de temps en temps pour améliorer votre héros. Lexique — Compétences : lancées seules ; Boosts : lancés d\'un appui ; Pouvoirs : bonus des boss ; Talents : arbre permanent ; Builds : équipement enregistré ; Mannequins : rangement par ensemble.',
+  },
 };

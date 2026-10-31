@@ -540,8 +540,9 @@ export class SceneRenderer {
     this.time += dt;
     this.frameNo = (this.frameNo ?? 0) + 1;
     const ctx = this.ctx;
-    // Mode concentration : pas de secousses ni de particules d'ambiance, effets allégés.
-    this.focus = Boolean(state.ui?.focus);
+    // Réduire les animations (v9.1.0, réglage de l'appareil ou préférence du système ; ancien « mode concentration ») :
+    // pas de secousses ni de particules d'ambiance, effets allégés.
+    this.focus = Boolean(state.ui?.focus) || Boolean(this.calm);
     if (this.focus) this.shake = 0;
     const zoneIndex = currentEncounter(state).zoneIndex;
     if (zoneIndex !== this.lastZone) {

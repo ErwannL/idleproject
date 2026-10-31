@@ -1,15 +1,16 @@
-// Missions (connexion, journalières, hebdomadaires, mensuelles) et contrats d'aventure, en onglets.
+// Objectifs › Missions : connexion, journalières, hebdomadaires, mensuelles, contrats, prime du jour, hauts faits.
 import { BOUNTY, bountyProgress, dailyBounty } from '../../core/bounty.js';
 import { ENEMIES } from '../../data/enemies.js';
 import { ZONES } from '../../data/zones.js';
 import { ITEM_SETS } from '../../data/sets.js';
 import { animCanvas } from '../animator.js';
 import { contractLabel, contractTitle } from '../../core/contracts.js';
-import { bonusReady, loginDay, loginReady, missionsClaimable, missionStatus, periodRemaining } from '../../core/missions.js';
+import { bonusReady, loginDay, loginReady, missionStatus, periodRemaining } from '../../core/missions.js';
 import { rewardText } from '../../core/rewards.js';
 import { LOGIN_CALENDAR, MISSION_PERIODS } from '../../data/missions.js';
-import { escapeHtml, formatNumber, img, progressBar } from '../common.js';
-import { ACHIEVEMENT_BONUS, ACHIEVEMENTS, achievementCount, achievementProgress, claimableAchievements } from '../../core/achievements.js';
+import { escapeHtml, fold, formatNumber, img, progressBar, segment } from '../common.js';
+import { stageLabel, zoneStartStage } from '../../core/combat.js';
+import { ACHIEVEMENT_BONUS, ACHIEVEMENTS, achievementCount, achievementProgress } from '../../core/achievements.js';
 
 // Hauts faits (v8.3) : défis permanents, gemmes à réclamer et bonus permanent par haut fait obtenu.
 function achievementsTab(state) {
@@ -98,41 +99,49 @@ function bountyCard(state) {
   const enemy = ENEMIES[b.type];
   const done = bountyProgress(state);
   const set = ITEM_SETS.find((x) => x.id === ZONES[b.zone].id);
+  // Étape du monde de la prime (premier passage) : on peut y aller si elle est atteinte.
+  const stage = zoneStartStage(b.zone) + 1;
+  const reachable = stage <= state.maxStage && !state.dungeon && !state.tower && !state.challenge;
   return `<div class="card bounty-card">
     <div class="bounty-portrait">${animCanvas(`foe:${enemy.sprite}`, 48, 40, 1)}</div>
     <div class="grow"><div class="row-between"><b class="gold-text">🎯 Prime du jour : ${escapeHtml(enemy.name)}</b><span class="muted">${escapeHtml(ZONES[b.zone].name)}</span></div>
       ${progressBar(done / b.target, `${done}/${b.target} vaincus`)}
       <div class="muted">Récompense : une pièce Épique ou mieux de l'ensemble <b style="color:${set?.color ?? '#fff'}">${escapeHtml(set?.name ?? '')}</b> et ${BOUNTY.gems} gemmes. Nouvelle prime chaque jour.</div></div>
     ${b.claimed ? '<button class="btn" disabled>Récupérée ✔</button>'
-      : `<button class="btn ${done >= b.target ? 'btn-gold' : ''}" data-action="claim-bounty" ${done >= b.target ? '' : 'disabled'}>Récupérer</button>`}
+      : done >= b.target ? '<button class="btn btn-gold" data-action="claim-bounty">Récupérer</button>'
+        : reachable ? `<button class="btn small" data-action="bounty-go" data-value="${stage}">Aller sur l'étape</button>`
+          : `<button class="btn small" disabled>Aller sur l'étape</button><span class="muted">Atteignez l'étape ${stageLabel(stage)}</span>`}
   </div>`;
 }
 
+// v9.1.0 : trois parties — Aujourd'hui (journalières, connexion, prime, contrats), Cette semaine (hebdomadaires,
+// mensuelles repliées), Hauts faits. « Tout récupérer » est dans l'en-tête du panneau (toujours visible).
 export default {
   id: 'contracts',
-  title: 'Missions & contrats',
+  title: 'Missions',
   icon: 'icon_trophy',
-  extra: (ui, state) => `${state.records.contractsDone} contrats remplis`,
+  extra: (ui) => {
+    const n = ui.claims.filter((c) => !c.blocked && c.tab === 'contracts').length;
+    return n ? `<button class="btn btn-gold small" data-action="claim-everything">Tout récupérer (${n})</button>` : '';
+  },
   render(ui, state) {
-    // Nombre de récompenses prêtes par onglet (pastilles).
-    const ready = {
-      login: loginReady(state) ? 1 : 0,
-      contracts: state.contracts.filter((c) => c.progress >= c.target).length,
-      achievements: claimableAchievements(state).length,
-    };
-    for (const p of MISSION_PERIODS) {
-      ready[p.id] = p.missions.filter((m) => { const st = missionStatus(state, p.id, m); return st.done && !st.claimed; }).length + (bonusReady(state, p.id) ? 1 : 0);
+    const count = (ids) => ui.claims.filter((c) => c.tab === 'contracts' && ids.includes(c.period ?? c.kind)).length;
+    const parts = [['today', 'Aujourd\'hui', 'icon_book'], ['week', 'Cette semaine', 'icon_map'], ['achievements', 'Hauts faits', 'icon_star']];
+    const ready = { today: count(['daily', 'login', 'contract', 'bounty']), week: count(['weekly', 'monthly']), achievements: count(['achievement']) };
+    const tab = parts.some(([id]) => id === ui.view.missionTab) ? ui.view.missionTab : 'today';
+    const seg = segment(parts.map(([id, label, icon]) => [id, ready[id] ? `${label} (${ready[id]})` : label, icon]), 'mission-tab', tab);
+    const period = (id) => MISSION_PERIODS.find((p) => p.id === id);
+    let body;
+    if (tab === 'achievements') body = `<div class="card m-body">${achievementsTab(state)}</div>`;
+    else if (tab === 'week') {
+      body = `<div class="card m-body"><div class="section-title">${period('weekly').label}</div>${periodTab(state, period('weekly'))}</div>
+        ${fold(ui, 'monthly', period('monthly').label, () => periodTab(state, period('monthly')), { extra: ready.week && count(['monthly']) ? `<span class="good">${count(['monthly'])} prête${count(['monthly']) > 1 ? 's' : ''}</span>` : '' })}`;
+    } else {
+      body = `<div class="card m-body"><div class="section-title">${period('daily').label}</div>${periodTab(state, period('daily'))}</div>
+        ${fold(ui, 'login', 'Connexion', () => loginTab(state), { open: loginReady(state), extra: loginReady(state) ? '<span class="good">à récupérer</span>' : '' })}
+        ${bountyCard(state)}
+        <div class="card m-body"><div class="section-title">Contrats</div>${contractsTab(state)}</div>`;
     }
-    const tabs = [['daily', 'Journalières', 'icon_book'], ['weekly', 'Hebdomadaires', 'icon_map'], ['monthly', 'Mensuelles', 'icon_trophy'],
-      ['login', 'Connexion', 'icon_gem'], ['contracts', 'Contrats', 'icon_chest'], ['achievements', 'Hauts faits', 'icon_star']];
-    const tab = tabs.some(([id]) => id === ui.view.missionTab) ? ui.view.missionTab : 'daily';
-    const head = tabs.map(([id, label, icon]) => `<button class="btn m-tab${id === tab ? ' active' : ''}" data-action="mission-tab" data-value="${id}">
-      ${img(icon)}<span>${label}</span>${ready[id] ? `<i class="fold-ready">${ready[id]}</i>` : ''}</button>`).join('');
-    const period = MISSION_PERIODS.find((p) => p.id === tab);
-    const body = tab === 'login' ? loginTab(state) : tab === 'contracts' ? contractsTab(state)
-      : tab === 'achievements' ? achievementsTab(state) : periodTab(state, period);
-    const any = missionsClaimable(state) || ready.contracts > 0 || ready.achievements > 0;
-    return `${bountyCard(state)}<div class="m-tabs">${head}<button class="btn ${any ? 'btn-gold' : ''} claim-all" data-action="claim-all" ${any ? '' : 'disabled'}>Tout récupérer</button></div>
-      <div class="card m-body">${body}</div>`;
+    return seg + body;
   },
 };
