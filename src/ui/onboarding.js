@@ -91,6 +91,9 @@ export function startTour(ui, state) {
   show();
 }
 
+// Sortie des menus de la v9.1.0 (31/10/2026) : les parties créées avant ont connu les anciens menus.
+const MENUS_910_AT = Date.UTC(2026, 9, 31, 17, 0);
+
 // Carte unique pour les anciens joueurs : où est passé quoi (menus de la v9.1.0).
 export function showWhatMoved(ui, state) {
   const menus = MENUS.map((m, i) => `<li><b>${i + 1}. ${m.label}</b></li>`).join('');
@@ -117,6 +120,9 @@ export function maybeStartTour(ui, state) {
     if ((state.ui.tourV ?? 1) < TOUR_VERSION) showWhatMoved(ui, state);
     return;
   }
-  const veteran = (state.records?.kills ?? 0) > 200 || (state.maxStage ?? 1) > 10;
+  // « Où est passé quoi » : seulement pour une partie commencée avant la v9.1.0 (anciens menus). Une partie récente qui
+  // a dépassé l'étape 10 sans finir le tutoriel ne l'a jamais connue : elle n'a plus rien de neuf à apprendre.
+  const veteran = (state.createdAt ?? 0) < MENUS_910_AT && ((state.records?.kills ?? 0) > 200 || (state.maxStage ?? 1) > 10);
+  if (!veteran && ((state.records?.kills ?? 0) > 200 || (state.maxStage ?? 1) > 10)) { state.ui.tour = 'done'; state.ui.tourV = TOUR_VERSION; return; }
   if (veteran) showWhatMoved(ui, state); else startTour(ui, state);
 }

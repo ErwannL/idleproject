@@ -1,3 +1,23 @@
+## Idle RPG v9.1.4 — Renaissances sauvegardées en ligne, classement lisible
+
+**Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.4-setup.exe).
+
+### Sauvegarde en ligne
+- Après une **Renaissance** (niveau remis à 1), le serveur refusait la sauvegarde jusqu'à ce que vous dépassiez votre
+  ancien niveau record. Il compare maintenant le temps de jeu cumulé, qui ne recule jamais : la partie est
+  sauvegardée normalement après une Renaissance ou une Transcendance.
+- Plus de plafond d'étape côté serveur : au-delà de l'étape 2000 (6-10 ×10), les sauvegardes étaient refusées.
+
+### Classement et administration
+- L'étape s'affiche comme dans le jeu (« 7-6 ×8 ») au lieu du numéro brut (1596).
+- Le texte en bas du classement reste lisible sur le décor.
+
+### Confort
+- Fenêtre « Bon retour » : icônes d'or et de gemmes à la taille du texte (elles étaient énormes en fenêtre basse).
+- Jeu du site : la section Version n'affiche plus « GitHub injoignable » (il est toujours à jour).
+- La carte « Nouveaux menus » n'apparaît plus pour une partie commencée après la v9.1.0.
+- Traductions anglaises des nouveaux messages.
+
 ## Idle RPG v9.1.3 — Sauvegarde en ligne fiable, formulaires de compte, décors
 
 **Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.3-setup.exe).
