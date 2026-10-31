@@ -251,8 +251,28 @@ export class UI {
       delete this.lastHud.rushTime;
       this.invalidate();
     }, { capture: true });
+    // v9.1.3 : texte tapé dans un champ du panneau (nom, mot de passe, recherche…), remis en place après chaque
+    // redessin. Sans cela, le redessin périodique vidait les champs dès qu'ils perdaient le focus : on cliquait
+    // « Créer mon compte joueur » avec des champs vides.
+    this.typed = {};
     root.addEventListener('input', (e) => {
+      const f = e.target;
+      if (f.id && (f.tagName === 'TEXTAREA' || (f.tagName === 'INPUT' && /^(text|password|search|email|number)$/.test(f.type))) && this.$('panel-body')?.contains(f)) {
+        this.typed[f.id] = f.value;
+      }
       if (e.target.id === 'reset-confirm') this.$('confirm-reset').disabled = !/^(EFFACER|ERASE)$/i.test(e.target.value.trim());
+    });
+    // Entrée dans un formulaire de compte = clic sur son bouton (jamais pour la suppression du compte).
+    root.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' || e.target.tagName !== 'INPUT') return;
+      const form = { 'cloud-claim-': 'cloud-claim', 'cloud-rename-': 'cloud-rename', 'cloud-pseudo': null, 'cloud-password': null };
+      const prefix = Object.keys(form).find((p) => e.target.id.startsWith(p));
+      if (!prefix) return;
+      const action = form[prefix] ?? (e.target.closest('.row')?.parentElement?.querySelector('[data-action="cloud-login"], [data-action="cloud-register"]')?.dataset.action);
+      const button = action && this.$('panel-body')?.querySelector(`[data-action="${action}"]`);
+      if (!button || button.disabled) return;
+      e.preventDefault();
+      button.click();
     });
     new ResizeObserver(() => this.updateLayout()).observe(root);
     this.updateLayout();
@@ -558,6 +578,7 @@ export class UI {
     if (view) Object.assign(this.view, view);
     // Chaque onglet retrouve sa position de défilement (v9.1.0, mémoire de navigation).
     if (tab !== this.tab) {
+      this.typed = {};
       if (this.tab) this.scrollMem[this.tab] = this.$('panel-body').scrollTop;
       this.pendingScroll = view ? 0 : this.scrollMem[tab] ?? 0;
     }
@@ -1532,6 +1553,10 @@ export class UI {
       ? `<div class="card panel-help-card"><b>Comment ça marche ?</b> ${h.short}${device ? ` ${device}` : ''}
           ${h.more ? fold(this, `help-${this.tab}`, 'En savoir plus', `<div>${h.more}</div>`) : ''}</div>` : '';
     body.innerHTML = help + this.introCard(this.tab, state) + panel.render(this, state);
+    for (const [id, value] of Object.entries(this.typed)) {
+      const field = body.querySelector(`#${CSS.escape(id)}`);
+      if (field && field.value !== value) field.value = value;
+    }
     body.scrollTop = this.pendingScroll ?? scroll;
     this.pendingScroll = null;
     if (focused) {

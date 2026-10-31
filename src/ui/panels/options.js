@@ -70,8 +70,8 @@ function cloudOptions(ui) {
       <div class="muted">Pour choisir votre nom et retrouver votre partie sur un autre appareil, créez votre compte joueur. Votre progression le suit.</div>
       <div><b>Créer mon compte joueur</b></div>
       <div class="row"><input id="cloud-claim-pseudo" class="grow" type="text" value="${escapeHtml(c.draft?.['cloud-claim-pseudo'] ?? '')}" maxlength="20" placeholder="Nom d'utilisateur (3 à 20 caractères)" autocomplete="username" aria-label="Nom d'utilisateur"></div>
-      <div class="row"><input id="cloud-claim-password" class="grow" type="password" maxlength="200" placeholder="Mot de passe (8 caractères min.)" autocomplete="new-password" aria-label="Mot de passe">
-        <input id="cloud-claim-confirm" class="grow" type="password" maxlength="200" placeholder="Confirmer le mot de passe" autocomplete="new-password" aria-label="Confirmer le mot de passe"></div>
+      <div class="row"><input id="cloud-claim-password" class="grow" type="password" maxlength="200" placeholder="Mot de passe (8 caractères min.)" autocomplete="new-password" aria-label="Mot de passe"></div>
+      <div class="row"><input id="cloud-claim-confirm" class="grow" type="password" maxlength="200" placeholder="Confirmer le mot de passe" autocomplete="new-password" aria-label="Confirmer le mot de passe"></div>
       <div class="options-row">
         <button class="btn small btn-primary" data-action="cloud-claim" ${busy}>Créer mon compte joueur</button>
         <button class="btn small" data-action="cloud-sync" ${busy}>Synchroniser maintenant</button>

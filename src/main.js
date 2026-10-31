@@ -819,7 +819,7 @@ const actions = {
   },
   cloudDelete(password) {
     cloud.deleteAccount(password)
-      .then(() => setCloudMessage('Compte et sauvegarde cloud supprimés. La partie reste sur cet appareil.'))
+      .then(() => { ui.typed = {}; setCloudMessage('Compte et sauvegarde cloud supprimés. La partie reste sur cet appareil.'); })
       .catch((err) => setCloudMessage(err.message || 'Suppression impossible', true));
   },
   setGithubToken(value) {
@@ -978,6 +978,7 @@ async function cloudAuth(call, okText, preferRemote = false) {
     return;
   }
   cloudView.busy = false;
+  ui.typed = {}; // formulaire envoyé avec succès : nom et mot de passe ne restent pas dans les champs
   await cloudSync(false, preferRemote);
   if (!cloudView.error) setCloudMessage(okText);
 }
