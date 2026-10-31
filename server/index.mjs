@@ -15,10 +15,11 @@ export function startServer({
   webDir = process.env.WEB_DIR || resolve(ROOT, 'dist', 'web'),
   trustProxy = process.env.TRUST_PROXY === '1',
   adminPasswordHash = process.env.ADMIN_PASSWORD_HASH || '',
+  gameWeb = process.env.GAME_WEB === '1',
 } = {}) {
   const db = openDatabase(dbFile);
   const log = (line) => console.log(`${new Date().toISOString()} ${line}`);
-  const server = createServer(createApp({ db, siteDir, webDir, trustProxy, adminPasswordHash, log }));
+  const server = createServer(createApp({ db, siteDir, webDir, trustProxy, adminPasswordHash, gameWeb, log }));
   server.listen(port, host, () => log(`écoute sur ${host}:${port}`));
   const close = () => {
     server.close(() => {

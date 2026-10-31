@@ -29,6 +29,14 @@ CREATE TABLE IF NOT EXISTS saves (
   kills INTEGER NOT NULL DEFAULT 0,
   bosses_defeated INTEGER NOT NULL DEFAULT 0
 );
+CREATE TABLE IF NOT EXISTS admin_users (
+  id INTEGER PRIMARY KEY,
+  username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+  password_hash TEXT NOT NULL,
+  must_change INTEGER NOT NULL DEFAULT 1,
+  created_at INTEGER NOT NULL,
+  last_login_at INTEGER
+);
 CREATE TABLE IF NOT EXISTS preregistrations (
   email TEXT PRIMARY KEY,
   consent_version TEXT NOT NULL,

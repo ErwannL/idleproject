@@ -1,3 +1,18 @@
+## Idle RPG v9.0.9 — compte, sauvegarde cloud, classement, version publique
+
+**Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.9-setup.exe). Votre partie est conservée.
+
+### Nouveau
+- **Compte et sauvegarde cloud** (Paramètres → Compte et sauvegarde cloud) : créez un compte pseudo + mot de passe pour retrouver votre progression sur un autre PC ou après avoir vidé le cache. Facultatif : sans compte, tout reste sur ce PC.
+- **Synchronisation automatique** : à l'ouverture, toutes les minutes et à la fermeture. Une nouvelle partie ne remplace jamais une sauvegarde cloud.
+- **Classement public** : étape max, niveau et boss vaincus. Vous pouvez choisir de ne pas y apparaître (Paramètres).
+
+### Équilibrage
+- **Montée de niveau plus lente** : le premier niveau coûte deux fois plus d'XP, et les niveaux élevés coûtent environ quatre fois plus qu'avant. Vos niveaux déjà acquis sont conservés.
+
+### Version publique
+- **Les codes de triche sont retirés** de cette version. Les sauvegardes qui en contiennent sont refusées par le serveur, et les classements restent équitables.
+
 ## Idle RPG v9.0.8 — animations plus vivantes, équipe bien rangée
 
 **Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.8-setup.exe). Votre partie est conservée.

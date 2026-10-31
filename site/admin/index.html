@@ -17,7 +17,7 @@
     button.primary { background:var(--gold); color:#2a1600; border-color:#7a3d00; font-weight:700; }
     button.danger { background:#5a1d28; border-color:#a0404f; }
     button:disabled { opacity:.5; cursor:default; }
-    input[type=password], input[type=search] { min-width:220px; }
+    input[type=password], input[type=search], input[type=text] { min-width:220px; }
     .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:14px; }
     .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px; }
     .stat { background:var(--panel-2); border-radius:10px; padding:10px 12px; }
@@ -27,7 +27,7 @@
     .tabs button.active { background:var(--gold); color:#2a1600; font-weight:700; }
     .toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
     .table-wrap { overflow-x:auto; border:1px solid var(--line); border-radius:10px; }
-    table { width:100%; border-collapse:collapse; min-width:760px; }
+    table { width:100%; border-collapse:collapse; min-width:700px; }
     th, td { padding:9px 10px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; }
     th { background:var(--panel-2); color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; position:sticky; top:0; }
     tbody tr { cursor:pointer; }
@@ -42,7 +42,7 @@
     dd { margin:0; font-variant-numeric: tabular-nums; }
     .pager { display:flex; gap:8px; align-items:center; margin-top:10px; flex-wrap:wrap; }
     .hidden { display:none !important; }
-    @media (max-width: 600px) { input[type=password], input[type=search] { min-width:0; width:100%; } }
+    @media (max-width: 600px) { input[type=password], input[type=search], input[type=text] { min-width:0; width:100%; } }
   </style>
 </head>
 <body>
@@ -55,10 +55,23 @@
     <section id="login" class="card" style="max-width:420px">
       <h2 style="margin-top:0">Connexion</h2>
       <form id="login-form" class="toolbar" style="flex-direction:column; align-items:stretch">
-        <input id="password" type="password" placeholder="Mot de passe administrateur" autocomplete="current-password" required>
+        <input id="username" type="text" placeholder="Identifiant (ex. Erwann)" autocomplete="username" required>
+        <input id="password" type="password" placeholder="Mot de passe" autocomplete="current-password" required>
         <button class="primary" type="submit">Entrer</button>
       </form>
       <p class="msg err" id="login-msg"></p>
+    </section>
+
+    <section id="change" class="card hidden" style="max-width:420px">
+      <h2 style="margin-top:0">Nouveau mot de passe</h2>
+      <p class="muted">Votre mot de passe est temporaire. Choisissez-en un nouveau (12 caractères minimum) pour continuer.</p>
+      <form id="change-form" class="toolbar" style="flex-direction:column; align-items:stretch">
+        <input id="change-current" type="password" placeholder="Mot de passe temporaire" autocomplete="current-password" required>
+        <input id="change-new" type="password" minlength="12" placeholder="Nouveau mot de passe" autocomplete="new-password" required>
+        <input id="change-confirm" type="password" minlength="12" placeholder="Répétez le nouveau mot de passe" autocomplete="new-password" required>
+        <button class="primary" type="submit">Enregistrer</button>
+      </form>
+      <p class="msg err" id="change-msg"></p>
     </section>
 
     <section id="app" class="hidden">
@@ -66,6 +79,7 @@
         <button data-tab="stats" class="active">Vue d'ensemble</button>
         <button data-tab="players">Joueurs</button>
         <button data-tab="prereg">Préinscriptions</button>
+        <button data-tab="team">Équipe</button>
       </div>
 
       <section data-panel="stats">
@@ -116,6 +130,24 @@
           <button id="prereg-prev">Précédent</button><button id="prereg-next">Suivant</button><span class="muted" id="prereg-page"></span>
         </div>
       </section>
+
+      <section data-panel="team" class="hidden">
+        <div class="card">
+          <h3 style="margin-top:0">Ajouter un membre</h3>
+          <p class="muted">Un mot de passe temporaire est créé. Le membre devra le changer à sa première connexion.</p>
+          <div class="toolbar">
+            <input id="new-name" type="text" maxlength="20" placeholder="Prénom (ex. Akan)">
+            <button class="primary" id="add-member">Créer</button>
+          </div>
+        </div>
+        <div id="temp-box" class="card hidden"></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Identifiant</th><th>Créé le</th><th>Dernière connexion</th><th>Mot de passe</th><th></th></tr></thead>
+            <tbody id="team-body"></tbody>
+          </table>
+        </div>
+      </section>
       <p class="msg" id="app-msg"></p>
     </section>
   </main>
@@ -158,32 +190,58 @@
     function logout(message = '') {
       token = null;
       $('app').classList.add('hidden');
+      $('change').classList.add('hidden');
       $('logout').classList.add('hidden');
       $('login').classList.remove('hidden');
       $('password').value = '';
       setMsg($('login-msg'), message, 'err');
     }
 
+    function enterApp() {
+      $('login').classList.add('hidden');
+      $('change').classList.add('hidden');
+      $('app').classList.remove('hidden');
+      $('logout').classList.remove('hidden');
+      loadStats();
+    }
+
     $('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       try {
-        const data = await fetch('/api/admin/login', {
+        const res = await fetch('/api/admin/login', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: $('password').value }),
+          body: JSON.stringify({ username: $('username').value.trim(), password: $('password').value }),
         });
-        const json = await data.json().catch(() => ({}));
-        if (!data.ok) throw new Error(json.error || 'Connexion refusée');
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(json.error || 'Connexion refusée');
         token = json.token;
-        $('login').classList.add('hidden');
-        $('app').classList.remove('hidden');
-        $('logout').classList.remove('hidden');
         setMsg($('login-msg'), '');
-        loadStats();
+        $('login').classList.add('hidden');
+        if (json.mustChange) {
+          $('change-current').value = $('password').value;
+          $('change').classList.remove('hidden');
+          return;
+        }
+        enterApp();
       } catch (err) {
         setMsg($('login-msg'), err.message, 'err');
       }
     });
     $('logout').addEventListener('click', () => logout());
+
+    $('change-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const next = $('change-new').value;
+      if (next !== $('change-confirm').value) return setMsg($('change-msg'), 'Les deux mots de passe ne correspondent pas.', 'err');
+      try {
+        await api('/api/admin/password', { method: 'POST', body: { password: $('change-current').value, newPassword: next } });
+        for (const id of ['change-new', 'change-confirm', 'change-current', 'password']) $(id).value = '';
+        setMsg($('change-msg'), '');
+        enterApp();
+      } catch (err) {
+        setMsg($('change-msg'), err.message, 'err');
+      }
+    });
 
     // ---- Onglets ----
     document.querySelectorAll('[data-tab]').forEach((btn) => btn.addEventListener('click', () => {
@@ -192,6 +250,7 @@
       if (btn.dataset.tab === 'stats') loadStats();
       if (btn.dataset.tab === 'players') loadPlayers();
       if (btn.dataset.tab === 'prereg') loadPrereg();
+      if (btn.dataset.tab === 'team') loadTeam();
     }));
 
     // ---- Vue d'ensemble ----
@@ -366,6 +425,69 @@
         a.download = `preinscriptions-${new Date().toISOString().slice(0, 10)}.csv`;
         a.click();
         URL.revokeObjectURL(url);
+      } catch (err) {
+        setMsg($('app-msg'), err.message, 'err');
+      }
+    });
+
+    // ---- Équipe ----
+    function tempBox(username, password) {
+      const box = $('temp-box');
+      box.innerHTML = '';
+      const p = document.createElement('p');
+      p.textContent = `Mot de passe temporaire de ${username} (affiché une seule fois, à transmettre en main propre) :`;
+      const code = document.createElement('code');
+      code.style.fontSize = '18px';
+      code.textContent = password;
+      box.append(p, code);
+      box.classList.remove('hidden');
+    }
+
+    async function loadTeam() {
+      try {
+        const { users } = await api('/api/admin/users');
+        const body = $('team-body');
+        body.innerHTML = '';
+        for (const u of users) {
+          const tr = document.createElement('tr');
+          const cells = [u.username, fmtDate(u.createdAt), fmtRel(u.lastLoginAt), u.mustChange ? 'temporaire' : 'personnel'];
+          for (const text of cells) { const td = document.createElement('td'); td.textContent = text; tr.append(td); }
+          const actions = document.createElement('td');
+          const reset = document.createElement('button');
+          reset.textContent = 'Nouveau temporaire';
+          reset.addEventListener('click', async () => {
+            if (!confirm(`Réinitialiser le mot de passe de ${u.username} ? Sa session sera fermée.`)) return;
+            try {
+              const r = await api(`/api/admin/users/${u.id}/reset`, { method: 'POST' });
+              tempBox(u.username, r.temporaryPassword);
+              loadTeam();
+            } catch (err) { setMsg($('app-msg'), err.message, 'err'); }
+          });
+          const del = document.createElement('button');
+          del.className = 'danger';
+          del.textContent = 'Supprimer';
+          del.addEventListener('click', async () => {
+            if (!confirm(`Supprimer l'accès de ${u.username} ?`)) return;
+            try {
+              await api(`/api/admin/users/${u.id}`, { method: 'DELETE' });
+              loadTeam();
+            } catch (err) { setMsg($('app-msg'), err.message, 'err'); }
+          });
+          actions.append(reset, ' ', del);
+          tr.append(actions);
+          body.append(tr);
+        }
+      } catch (err) {
+        setMsg($('app-msg'), err.message, 'err');
+      }
+    }
+
+    $('add-member').addEventListener('click', async () => {
+      try {
+        const r = await api('/api/admin/users', { method: 'POST', body: { username: $('new-name').value.trim() } });
+        $('new-name').value = '';
+        tempBox(r.username, r.temporaryPassword);
+        loadTeam();
       } catch (err) {
         setMsg($('app-msg'), err.message, 'err');
       }

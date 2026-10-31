@@ -41,6 +41,12 @@ const LEADERBOARD_SORTS = {
 };
 
 const PSEUDO_RE = /^[A-Za-z0-9_-]{3,20}$/;
+const ADMIN_NAME_RE = /^[A-Za-z]{2,20}$/;
+
+// Mot de passe temporaire : 12 caractères, communiqué une seule fois. Doit être changé au premier login.
+function temporaryPassword() {
+  return randomBytes(9).toString('base64url');
+}
 const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,24}$/;
 const SCRYPT_PARAMS = { N: 16384, r: 8, p: 1 };
 
@@ -177,15 +183,27 @@ export function createApp({
   siteDir,
   webDir,
   adminPasswordHash = '',
+  gameWeb = false,
   trustProxy = false,
   now = () => Date.now(),
   log = () => {},
 }) {
   const authLimit = createRateLimiter(LIMITS.authAttempts, now);
   const preregLimit = createRateLimiter(LIMITS.preregAttempts, now);
-  const adminTokens = new Map(); // hash du jeton admin -> expiration (en mémoire : perdu au redémarrage)
+  // Sessions admin (en mémoire : perdues au redémarrage) : hash du jeton -> { username, mustChange, expires }.
+  const adminSessions = new Map();
+
+  // Premier démarrage : le mot de passe admin historique devient le compte « erwann ».
+  if (adminPasswordHash && db.prepare('SELECT COUNT(*) AS n FROM admin_users').get().n === 0) {
+    db.prepare('INSERT INTO admin_users (username, password_hash, must_change, created_at) VALUES (?, ?, 0, ?)')
+      .run('erwann', adminPasswordHash, now());
+  }
 
   const q = {
+    findAdmin: db.prepare('SELECT id, username, password_hash, must_change FROM admin_users WHERE username = ?'),
+    touchAdmin: db.prepare('UPDATE admin_users SET last_login_at = ? WHERE id = ?'),
+    insertAdmin: db.prepare('INSERT INTO admin_users (username, password_hash, must_change, created_at) VALUES (?, ?, ?, ?)'),
+    setAdminPassword: db.prepare('UPDATE admin_users SET password_hash = ?, must_change = ? WHERE id = ?'),
     insertSession: db.prepare('INSERT INTO sessions (token_hash, account_id, expires_at) VALUES (?, ?, ?)'),
     findSession: db.prepare(
       'SELECT a.id AS id, a.pseudo AS pseudo FROM sessions s JOIN accounts a ON a.id = s.account_id WHERE s.token_hash = ? AND s.expires_at > ?',
@@ -221,10 +239,19 @@ export function createApp({
     return token;
   }
 
-  function requireAdmin(req) {
+  function issueAdminToken(admin) {
+    const token = randomBytes(32).toString('base64url');
+    adminSessions.set(hashToken(token), { username: admin.username, mustChange: admin.must_change === 1, expires: now() + LIMITS.adminSessionMs });
+    return token;
+  }
+
+  // Tant que le mot de passe est temporaire, seule la route de changement de mot de passe répond.
+  function requireAdmin(req, { allowChange = false } = {}) {
     const token = bearer(req);
-    const expires = token ? adminTokens.get(hashToken(token)) : undefined;
-    if (!expires || expires < now()) throw new HttpError(401, 'Accès administrateur requis');
+    const session = token ? adminSessions.get(hashToken(token)) : undefined;
+    if (!session || session.expires < now()) throw new HttpError(401, 'Accès administrateur requis');
+    if (session.mustChange && !allowChange) throw new HttpError(403, 'Changez votre mot de passe temporaire avant de continuer');
+    return session;
   }
 
   function rateLimit(limiter, key) {
@@ -384,16 +411,71 @@ export function createApp({
     { method: 'GET', path: /^\/api\/health$/, handler: () => ({ body: { ok: true } }) },
 
     // ---- Administration ----
+    // Connexion d'un membre de l'équipe : pseudo + mot de passe. mustChange = mot de passe temporaire.
     { method: 'POST', path: /^\/api\/admin\/login$/, handler: async ({ req }) => {
-      if (!adminPasswordHash) throw new HttpError(404, 'Route inconnue');
       rateLimit(authLimit, `admin:${clientIp(req, trustProxy)}`);
-      const { password } = await readJson(req);
-      if (typeof password !== 'string' || !(await verifyPassword(password, adminPasswordHash))) {
-        throw new HttpError(401, 'Mot de passe incorrect');
+      const { username, password } = await readJson(req);
+      const admin = typeof username === 'string' ? q.findAdmin.get(username) : undefined;
+      if (typeof password !== 'string' || !admin || !(await verifyPassword(password, admin.password_hash))) {
+        throw new HttpError(401, 'Identifiant ou mot de passe incorrect');
       }
-      const token = randomBytes(32).toString('base64url');
-      adminTokens.set(hashToken(token), now() + LIMITS.adminSessionMs);
-      return { body: { token } };
+      q.touchAdmin.run(now(), admin.id);
+      const token = issueAdminToken(admin);
+      return { body: { token, username: admin.username, mustChange: admin.must_change === 1 } };
+    } },
+
+    // Changement du mot de passe (obligatoire au premier login). Autorisé même si mustChange.
+    { method: 'POST', path: /^\/api\/admin\/password$/, handler: async ({ req }) => {
+      const session = requireAdmin(req, { allowChange: true });
+      const { password, newPassword } = await readJson(req);
+      const admin = q.findAdmin.get(session.username);
+      if (typeof password !== 'string' || !admin || !(await verifyPassword(password, admin.password_hash))) {
+        throw new HttpError(401, 'Mot de passe actuel incorrect');
+      }
+      if (typeof newPassword !== 'string' || newPassword.length < 12 || newPassword.length > 200) {
+        throw new HttpError(400, 'Nouveau mot de passe : 12 caractères minimum');
+      }
+      if (newPassword === password) throw new HttpError(400, 'Le nouveau mot de passe doit être différent');
+      q.setAdminPassword.run(await hashPassword(newPassword), 0, admin.id);
+      session.mustChange = false;
+      return { status: 204 };
+    } },
+
+    // Équipe : liste, création et réinitialisation avec mot de passe temporaire (affiché une seule fois).
+    { method: 'GET', path: /^\/api\/admin\/users$/, handler: ({ req }) => {
+      requireAdmin(req);
+      const rows = db.prepare('SELECT id, username, must_change, created_at, last_login_at FROM admin_users ORDER BY username').all();
+      return { body: { users: rows.map((r) => ({ id: r.id, username: r.username, mustChange: r.must_change === 1, createdAt: r.created_at, lastLoginAt: r.last_login_at })) } };
+    } },
+
+    { method: 'POST', path: /^\/api\/admin\/users$/, handler: async ({ req }) => {
+      requireAdmin(req);
+      const { username } = await readJson(req);
+      if (typeof username !== 'string' || !ADMIN_NAME_RE.test(username)) throw new HttpError(400, 'Nom : 2 à 20 lettres ou chiffres');
+      if (q.findAdmin.get(username)) throw new HttpError(409, 'Ce nom existe déjà');
+      const temp = temporaryPassword();
+      q.insertAdmin.run(username, await hashPassword(temp), 1, now());
+      return { status: 201, body: { username, temporaryPassword: temp } };
+    } },
+
+    { method: 'POST', path: /^\/api\/admin\/users\/(\d+)\/reset$/, handler: async ({ req, params }) => {
+      requireAdmin(req);
+      const admin = db.prepare('SELECT id, username FROM admin_users WHERE id = ?').get(Number(params[0]));
+      if (!admin) throw new HttpError(404, 'Membre introuvable');
+      const temp = temporaryPassword();
+      q.setAdminPassword.run(await hashPassword(temp), 1, admin.id);
+      for (const [hash, s] of adminSessions) if (s.username === admin.username) adminSessions.delete(hash);
+      return { body: { username: admin.username, temporaryPassword: temp } };
+    } },
+
+    { method: 'DELETE', path: /^\/api\/admin\/users\/(\d+)$/, handler: ({ req, params }) => {
+      const session = requireAdmin(req);
+      const admin = db.prepare('SELECT id, username FROM admin_users WHERE id = ?').get(Number(params[0]));
+      if (!admin) throw new HttpError(404, 'Membre introuvable');
+      if (admin.username === session.username) throw new HttpError(400, 'Vous ne pouvez pas supprimer votre propre compte');
+      db.prepare('DELETE FROM admin_users WHERE id = ?').run(admin.id);
+      for (const [hash, s] of adminSessions) if (s.username === admin.username) adminSessions.delete(hash);
+      return { status: 204 };
     } },
 
     { method: 'GET', path: /^\/api\/admin\/stats$/, handler: ({ req }) => {
@@ -494,6 +576,8 @@ export function createApp({
   async function serveStatic(req, res, pathname) {
     // /play/... sert le jeu compilé (webDir), le reste sert le site (siteDir).
     const isGame = pathname === '/play' || pathname.startsWith('/play/');
+    // Le jeu web n'est servi que si GAME_WEB=1 (pas encore publié).
+    if (isGame && !gameWeb) return send(res, 404, { error: 'Introuvable' });
     const dir = isGame ? webDir : siteDir;
     const rel = isGame ? pathname.slice('/play'.length) || '/' : pathname;
     if (!dir) return send(res, 404, { error: 'Introuvable' });

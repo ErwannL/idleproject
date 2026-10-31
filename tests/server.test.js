@@ -179,7 +179,7 @@ test('retrait de la liste de préinscription', async (t) => {
 });
 
 test('fichiers statiques : site, /play, pas de traversée de dossier', async (t) => {
-  const s = await setup();
+  const s = await setup({ gameWeb: true });
   t.after(() => s.close());
   const base = s.url();
   const home = await fetch(base + '/');
@@ -199,9 +199,9 @@ test('admin : stats, liste joueurs, suppression, export CSV', async (t) => {
   await call(base, 'POST', '/api/preregister', { email: 'ami@exemple.fr', consent: true });
 
   assert.equal((await call(base, 'GET', '/api/admin/stats')).status, 401);
-  const bad = await call(base, 'POST', '/api/admin/login', { password: 'nope-nope-nope' });
+  const bad = await call(base, 'POST', '/api/admin/login', { username: 'erwann', password: 'nope-nope-nope' });
   assert.equal(bad.status, 401);
-  const admin = (await call(base, 'POST', '/api/admin/login', { password: 'mot-de-passe-admin' })).body.token;
+  const admin = (await call(base, 'POST', '/api/admin/login', { username: 'erwann', password: 'mot-de-passe-admin' })).body.token;
   const h = (path, method = 'GET', body) => call(base, method, path, body, admin);
 
   const stats = (await h('/api/admin/stats')).body;
@@ -226,10 +226,39 @@ test('admin : stats, liste joueurs, suppression, export CSV', async (t) => {
   assert.equal((await call(base, 'GET', '/api/preregister/count')).body.count, 1);
 });
 
-test('admin désactivé sans hash configuré', async (t) => {
+test('admin : aucun compte sans bootstrap ; jeu web désactivé par défaut', async (t) => {
   const s = await setup();
   t.after(() => s.close());
-  assert.equal((await call(s.url(), 'POST', '/api/admin/login', { password: 'x' })).status, 404);
+  assert.equal((await call(s.url(), 'POST', '/api/admin/login', { username: 'erwann', password: 'x' })).status, 401);
+  assert.equal((await fetch(s.url() + '/play/')).status, 404);
+});
+
+test('admin : mot de passe temporaire, changement obligatoire au premier login', async (t) => {
+  const s = await setup({ adminPasswordHash: await hashPassword('mot-de-passe-admin') });
+  t.after(() => s.close());
+  const base = s.url();
+  const owner = (await call(base, 'POST', '/api/admin/login', { username: 'erwann', password: 'mot-de-passe-admin' })).body.token;
+  const created = await call(base, 'POST', '/api/admin/users', { username: 'Pierre' }, owner);
+  assert.equal(created.status, 201);
+  const temp = created.body.temporaryPassword;
+  const login = await call(base, 'POST', '/api/admin/login', { username: 'pierre', password: temp });
+  assert.equal(login.status, 200);
+  assert.equal(login.body.mustChange, true);
+  const pierre = login.body.token;
+  assert.equal((await call(base, 'GET', '/api/admin/stats', undefined, pierre)).status, 403);
+  assert.equal((await call(base, 'POST', '/api/admin/password', { password: temp, newPassword: 'court' }, pierre)).status, 400);
+  assert.equal((await call(base, 'POST', '/api/admin/password', { password: 'faux-temp-xx', newPassword: 'nouveau-mdp-solide' }, pierre)).status, 401);
+  assert.equal((await call(base, 'POST', '/api/admin/password', { password: temp, newPassword: 'nouveau-mdp-solide' }, pierre)).status, 204);
+  assert.equal((await call(base, 'GET', '/api/admin/stats', undefined, pierre)).status, 200);
+  const again = await call(base, 'POST', '/api/admin/login', { username: 'Pierre', password: 'nouveau-mdp-solide' });
+  assert.equal(again.body.mustChange, false);
+  // Réinitialisation par l'équipe : nouveau temporaire, session coupée.
+  const id = (await call(base, 'GET', '/api/admin/users', undefined, owner)).body.users.find((u) => u.username === 'Pierre').id;
+  const reset = await call(base, 'POST', `/api/admin/users/${id}/reset`, undefined, owner);
+  assert.ok(reset.body.temporaryPassword);
+  assert.equal((await call(base, 'GET', '/api/admin/stats', undefined, pierre)).status, 401);
+  assert.equal((await call(base, 'POST', '/api/admin/users', { username: 'Pierre' }, owner)).status, 409);
+  assert.equal((await call(base, 'DELETE', `/api/admin/users/1`, undefined, owner)).status, 400);
 });
 
 test('classement : tri, joueurs masqués, nouvelle partie exclue', async (t) => {
