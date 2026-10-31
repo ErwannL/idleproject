@@ -40,6 +40,8 @@ html, body {
 }
 
 img.px { image-rendering: pixelated; object-fit: contain; } /* jamais déformée : les sprites longs (épée…) gardent leurs proportions */
+/* Icône dans une phrase de fenêtre (or, gemmes du « Bon retour »…) : à la taille du texte, pas à sa taille brute (28–40 px). */
+#modal-card p > img.px { width: 1.35em; height: 1.35em; vertical-align: -0.3em; }
 .hidden { display: none !important; }
 .muted { color: var(--muted); }
 .good { color: var(--good); }
