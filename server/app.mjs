@@ -44,6 +44,27 @@ const PSEUDO_RE = /^[A-Za-z0-9_-]{3,20}$/;
 const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,24}$/;
 const SCRYPT_PARAMS = { N: 16384, r: 8, p: 1 };
 
+// Contrôles anti-triche côté serveur. Ils ne peuvent pas tout voir (le navigateur reste modifiable) :
+// ils refusent ce qui est impossible dans la version publique, et ce qui régresse.
+// Renvoie la raison du refus, ou null si la sauvegarde est acceptable.
+export function checkSave(parsed, summary, current) {
+  const cheats = parsed.cheats;
+  if (cheats && typeof cheats === 'object') {
+    const used = Object.values(cheats).some((v) => (Array.isArray(v) ? v.length > 0 : typeof v === 'object' && v !== null ? Object.keys(v).length > 0 : Boolean(v)));
+    if (used) return 'Sauvegarde refusée : codes de triche détectés';
+  }
+  const inRange = (v, max) => Number.isInteger(v) && v >= 0 && v <= max;
+  if (!inRange(summary.level, LIMITS_GAME.maxLevel) || summary.level < 1) return 'Sauvegarde refusée : niveau impossible';
+  if (!inRange(summary.maxStage, LIMITS_GAME.maxStage) || summary.maxStage < 1) return 'Sauvegarde refusée : étape impossible';
+  if (!Number.isFinite(summary.gold) || summary.gold < 0 || summary.gold > LIMITS_GAME.maxCurrency) return 'Sauvegarde refusée : or impossible';
+  if (!Number.isFinite(summary.gems) || summary.gems < 0 || summary.gems > LIMITS_GAME.maxCurrency) return 'Sauvegarde refusée : gemmes impossibles';
+  if (current && summary.level < current.level) return 'Sauvegarde refusée : niveau inférieur à celui du serveur';
+  return null;
+}
+
+// Bornes du jeu (version publique). À garder alignées sur src/data/balance.js (level.maxLevel).
+const LIMITS_GAME = { maxLevel: 1000, maxStage: 2000, maxCurrency: 1e15 };
+
 export class HttpError extends Error {
   constructor(status, message, extra = {}) {
     super(message);
@@ -174,11 +195,11 @@ export function createApp({
     insertAccount: db.prepare('INSERT INTO accounts (pseudo, password_hash, created_at, last_seen_at) VALUES (?, ?, ?, ?)'),
     touchAccount: db.prepare('UPDATE accounts SET last_seen_at = ? WHERE id = ?'),
     deleteAccount: db.prepare('DELETE FROM accounts WHERE id = ?'),
-    findSave: db.prepare('SELECT data, version, updated_at FROM saves WHERE account_id = ?'),
+    findSave: db.prepare('SELECT data, version, updated_at, level FROM saves WHERE account_id = ?'),
     upsertSave: db.prepare(`INSERT INTO saves (account_id, data, version, updated_at, level, max_stage, gold, gems, kills, bosses_defeated)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(account_id) DO UPDATE SET data = excluded.data, version = excluded.version, updated_at = excluded.updated_at,
-        level = excluded.level, max_stage = excluded.max_stage, gold = excluded.gold, gems = excluded.gems,
+        level = MAX(saves.level, excluded.level), max_stage = MAX(saves.max_stage, excluded.max_stage), gold = excluded.gold, gems = excluded.gems,
         kills = excluded.kills, bosses_defeated = excluded.bosses_defeated`),
     upsertPrereg: db.prepare('INSERT INTO preregistrations (email, consent_version, consent_at) VALUES (?, ?, ?) ON CONFLICT(email) DO NOTHING'),
     deletePrereg: db.prepare('DELETE FROM preregistrations WHERE email = ?'),
@@ -291,6 +312,11 @@ export function createApp({
       }
       const next = currentVersion + 1;
       const s = summarizeSave(parsed);
+      const reason = checkSave(parsed, s, current);
+      if (reason) {
+        log(`sauvegarde refusée pour le compte ${account.id} : ${reason}`);
+        throw new HttpError(422, reason);
+      }
       q.upsertSave.run(account.id, data, next, now(), s.level, s.maxStage, s.gold, s.gems, s.kills, s.bossesDefeated);
       return { body: { version: next } };
     } },
