@@ -135,6 +135,25 @@ export function createRateLimiter({ max, windowMs }, now = () => Date.now()) {
   };
 }
 
+// Compte uniquement les ÉCHECS : une connexion réussie ne consomme pas de tentative.
+export function createFailureLimiter({ max, windowMs }, now = () => Date.now()) {
+  const fails = new Map();
+  const current = (key) => {
+    const entry = fails.get(key);
+    if (!entry || now() - entry.start > windowMs) return null;
+    return entry;
+  };
+  return {
+    blocked: (key) => (current(key)?.count ?? 0) >= max,
+    fail: (key) => {
+      const entry = current(key);
+      if (entry) entry.count += 1;
+      else fails.set(key, { start: now(), count: 1 });
+    },
+    clear: (key) => fails.delete(key),
+  };
+}
+
 // Extrait les champs de suivi d'une partie (format du jeu) ; tout champ absent vaut 0.
 export function summarizeSave(parsed) {
   const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
@@ -212,6 +231,7 @@ export function createApp({
   log = () => {},
 }) {
   const authLimit = createRateLimiter(LIMITS.authAttempts, now);
+  const failures = createFailureLimiter(LIMITS.authAttempts, now);
   const preregLimit = createRateLimiter(LIMITS.preregAttempts, now);
   const guestLimit = createRateLimiter(LIMITS.guestAttempts, now);
   // Sessions admin (en mémoire : perdues au redémarrage) : hash du jeton -> { username, mustChange, expires }.
@@ -401,11 +421,16 @@ export function createApp({
     } },
 
     { method: 'POST', path: /^\/api\/login$/, handler: async ({ req }) => {
-      rateLimit(authLimit, `login:${clientIp(req, trustProxy)}`);
+      const key = `login:${clientIp(req, trustProxy)}`;
+      if (failures.blocked(key)) throw new HttpError(429, 'Trop de tentatives, réessayez plus tard');
       const { pseudo, password } = await readJson(req);
       const account = typeof pseudo === 'string' ? q.findAccount.get(pseudo) : undefined;
       const ok = typeof password === 'string' && account ? await verifyPassword(password, account.password_hash) : false;
-      if (!ok) throw new HttpError(401, "Nom d'utilisateur ou mot de passe incorrect");
+      if (!ok) {
+        failures.fail(key);
+        throw new HttpError(401, "Nom d'utilisateur ou mot de passe incorrect");
+      }
+      failures.clear(key);
       q.touchAccount.run(now(), account.id);
       return { body: { token: issueSession(account.id), pseudo: account.pseudo, guest: false } };
     } },
@@ -520,12 +545,15 @@ export function createApp({
     // ---- Administration ----
     // Connexion d'un membre de l'équipe : pseudo + mot de passe. mustChange = mot de passe temporaire.
     { method: 'POST', path: /^\/api\/admin\/login$/, handler: async ({ req }) => {
-      rateLimit(authLimit, `admin:${clientIp(req, trustProxy)}`);
+      const key = `admin:${clientIp(req, trustProxy)}`;
+      if (failures.blocked(key)) throw new HttpError(429, 'Trop de tentatives, réessayez plus tard');
       const { username, password } = await readJson(req);
       const admin = typeof username === 'string' ? q.findAdmin.get(username) : undefined;
       if (typeof password !== 'string' || !admin || !(await verifyPassword(password, admin.password_hash))) {
+        failures.fail(key);
         throw new HttpError(401, 'Identifiant ou mot de passe incorrect');
       }
+      failures.clear(key);
       q.touchAdmin.run(now(), admin.id);
       const token = issueAdminToken(admin);
       return { body: { token, username: admin.username, mustChange: admin.must_change === 1 } };

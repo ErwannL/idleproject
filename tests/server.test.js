@@ -445,3 +445,18 @@ test("anti-triche : l'or d'un idle n'a pas de plafond (refusé à tort au-delà 
   const bad = { level: 37, maxStage: 48, gold: Infinity };
   assert.match(checkSave(bad, summarizeSave({ ...bad, gold: -1 }), null), /or impossible/);
 });
+
+test('connexions réussies sans limite ; seuls les échecs comptent', async (t) => {
+  const s = await setup({ adminPasswordHash: await hashPassword('mot-de-passe-admin') });
+  t.after(() => s.close());
+  const base = s.url();
+  await call(base, 'POST', '/api/register', { pseudo: 'Fidele', password: 'motdepasse1' });
+  for (let i = 0; i < LIMITS.authAttempts.max + 3; i += 1) {
+    assert.equal((await call(base, 'POST', '/api/login', { pseudo: 'Fidele', password: 'motdepasse1' })).status, 200);
+  }
+  for (let i = 0; i < LIMITS.authAttempts.max; i += 1) {
+    await call(base, 'POST', '/api/admin/login', { username: 'erwann', password: 'faux-mdp-xxxx' });
+  }
+  assert.equal((await call(base, 'POST', '/api/admin/login', { username: 'erwann', password: 'faux-mdp-xxxx' })).status, 429);
+  assert.equal((await call(base, 'POST', '/api/login', { pseudo: 'Fidele', password: 'motdepasse1' })).status, 200);
+});
