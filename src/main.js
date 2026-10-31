@@ -63,6 +63,7 @@ import { GAME_VERSION } from './version.js';
 import { applyTheme, themeById } from './ui/themes.js';
 import { BUILT_IN_TOKEN } from './core/update-token.js';
 import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagList, updateStatus } from './core/update.js';
+import { playsOnSite } from './ui/panels/options.js';
 
 const SIM_INTERVAL_MS = 100;
 const formatRatio = (x) => (x >= 100 ? formatNumber(Math.round(x)) : x.toFixed(2).replace('.', ','));
@@ -1023,7 +1024,8 @@ if (window.desktop) {
 }
 // Vérification discrète des mises à jour au lancement.
 // (désactivée pendant les tests automatisés : pas d'appel réseau réel, voir tools/smoke.mjs).
-setTimeout(() => { if (!navigator.webdriver && !ui.desktop?.smoke) actions.checkUpdate(true); }, 4000);
+// Jeu du site : toujours à jour, aucune vérification GitHub.
+setTimeout(() => { if (!navigator.webdriver && !ui.desktop?.smoke && !playsOnSite(ui)) actions.checkUpdate(true); }, 4000);
 
 // Gains hors ligne depuis la dernière sauvegarde.
 // v9.0.3 : exposition auto des objets ancestraux déjà dans le sac ou le coffre.

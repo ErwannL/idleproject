@@ -148,9 +148,18 @@ function privateRepoHelp(u) {
     </details>`;
 }
 
+export const playsOnSite = (ui) => !ui.desktop && !globalThis.Capacitor?.isNativePlatform?.() && globalThis.location?.pathname.startsWith('/play');
+
 // Version lancée + dernière version publiée sur GitHub (github.com/ErwannL/idleproject).
 function versionOptions(ui) {
   const current = ui.desktop?.version ?? GAME_VERSION;
+  // Jeu du site (/play/) : servi par le serveur, toujours à jour ; pas de vérification GitHub (dépôt privé : 404).
+  if (playsOnSite(ui)) {
+    return `<div class="card">
+      <div class="section-title">Version et mises à jour</div>
+      <div>Version : <b class="num">${escapeHtml(current)}</b> (site). Le jeu du site est toujours à la dernière version.</div>
+    </div>`;
+  }
   const u = ui.updateInfo ?? {};
   const rel = u.release;
   let status = '<span class="muted">Pas encore vérifié.</span>';
