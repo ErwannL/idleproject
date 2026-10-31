@@ -48,6 +48,7 @@ export function openDatabase(file) {
   db.exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;');
   db.exec(SCHEMA);
   addColumnIfMissing(db, 'accounts', 'last_seen_at', 'INTEGER');
+  addColumnIfMissing(db, 'accounts', 'listed', 'INTEGER NOT NULL DEFAULT 1');
   for (const col of ['level', 'max_stage', 'kills', 'bosses_defeated']) addColumnIfMissing(db, 'saves', col, 'INTEGER NOT NULL DEFAULT 0');
   addColumnIfMissing(db, 'saves', 'gold', 'REAL NOT NULL DEFAULT 0');
   addColumnIfMissing(db, 'saves', 'gems', 'INTEGER NOT NULL DEFAULT 0');

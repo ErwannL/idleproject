@@ -33,6 +33,13 @@ const TYPES = {
   '.webp': 'image/webp',
 };
 
+// Tris du classement : liste fermée, jamais de texte de requête dans le SQL.
+const LEADERBOARD_SORTS = {
+  stage: 's.max_stage DESC, s.level DESC, s.updated_at ASC',
+  level: 's.level DESC, s.max_stage DESC, s.updated_at ASC',
+  bosses: 's.bosses_defeated DESC, s.max_stage DESC, s.updated_at ASC',
+};
+
 const PSEUDO_RE = /^[A-Za-z0-9_-]{3,20}$/;
 const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,24}$/;
 const SCRYPT_PARAMS = { N: 16384, r: 8, p: 1 };
@@ -320,6 +327,33 @@ export function createApp({
 
     // Compteur public (agrégé) pour la barre de progression de la page d'accueil.
     { method: 'GET', path: /^\/api\/preregister\/count$/, handler: () => ({ body: { count: q.countPrereg.get().n } }) },
+
+    // Classement public : joueurs ayant choisi d'apparaître (listed = 1) et ayant commencé à jouer.
+    { method: 'GET', path: /^\/api\/leaderboard$/, handler: ({ url }) => {
+      const sort = LEADERBOARD_SORTS[url.searchParams.get('sort')] ? url.searchParams.get('sort') : 'stage';
+      const limit = Math.min(Math.max(Number(url.searchParams.get('limit')) || 100, 1), 100);
+      const rows = db.prepare(`SELECT a.pseudo, s.level, s.max_stage, s.bosses_defeated, s.updated_at
+        FROM saves s JOIN accounts a ON a.id = s.account_id
+        WHERE a.listed = 1 AND (s.level > 1 OR s.max_stage > 1 OR s.bosses_defeated > 0)
+        ORDER BY ${LEADERBOARD_SORTS[sort]} LIMIT ?`).all(limit);
+      return {
+        body: {
+          sort,
+          players: rows.map((r, i) => ({
+            rank: i + 1, pseudo: r.pseudo, level: r.level, maxStage: r.max_stage, bossesDefeated: r.bosses_defeated, updatedAt: r.updated_at,
+          })),
+        },
+      };
+    } },
+
+    // Visibilité au classement (par défaut : oui). Authentifié.
+    { method: 'PUT', path: /^\/api\/account\/listed$/, handler: async ({ req }) => {
+      const account = authenticate(req);
+      const { listed } = await readJson(req);
+      if (typeof listed !== 'boolean') throw new HttpError(400, 'Valeur attendue : true ou false');
+      db.prepare('UPDATE accounts SET listed = ? WHERE id = ?').run(listed ? 1 : 0, account.id);
+      return { body: { listed } };
+    } },
 
     { method: 'GET', path: /^\/api\/health$/, handler: () => ({ body: { ok: true } }) },
 

@@ -231,3 +231,26 @@ test('admin désactivé sans hash configuré', async (t) => {
   t.after(() => s.close());
   assert.equal((await call(s.url(), 'POST', '/api/admin/login', { password: 'x' })).status, 404);
 });
+
+test('classement : tri, joueurs masqués, nouvelle partie exclue', async (t) => {
+  const s = await setup();
+  t.after(() => s.close());
+  const base = s.url();
+  const a = (await call(base, 'POST', '/api/register', { pseudo: 'Top_one', password: 'motdepasse1' })).body.token;
+  const b = (await call(base, 'POST', '/api/register', { pseudo: 'Second_2', password: 'motdepasse1' })).body.token;
+  const c = (await call(base, 'POST', '/api/register', { pseudo: 'Cache_3', password: 'motdepasse1' })).body.token;
+  await call(base, 'POST', '/api/register', { pseudo: 'Neuf_44', password: 'motdepasse1' });
+  await call(base, 'PUT', '/api/save', { version: 0, data: JSON.stringify({ level: 9, maxStage: 40, records: { bossesDefeated: 1 } }) }, a);
+  await call(base, 'PUT', '/api/save', { version: 0, data: JSON.stringify({ level: 15, maxStage: 20, records: { bossesDefeated: 4 } }) }, b);
+  await call(base, 'PUT', '/api/save', { version: 0, data: JSON.stringify({ level: 30, maxStage: 50, records: { bossesDefeated: 9 } }) }, c);
+  assert.equal((await call(base, 'PUT', '/api/account/listed', { listed: false }, c)).status, 200);
+
+  const byStage = (await call(base, 'GET', '/api/leaderboard?sort=stage')).body.players;
+  assert.deepEqual(byStage.map((p) => p.pseudo), ['Top_one', 'Second_2']);
+  assert.equal(byStage[0].rank, 1);
+  const byLevel = (await call(base, 'GET', '/api/leaderboard?sort=level')).body.players;
+  assert.equal(byLevel[0].pseudo, 'Second_2');
+  const byBosses = (await call(base, 'GET', '/api/leaderboard?sort=bosses')).body.players;
+  assert.equal(byBosses[0].pseudo, 'Second_2');
+  assert.equal((await call(base, 'PUT', '/api/account/listed', { listed: 'oui' }, c)).status, 400);
+});
