@@ -344,6 +344,17 @@
     const clearSession = () => { try { sessionStorage.removeItem(SESSION_KEY); } catch { /* indisponible */ } };
     const $ = (id) => document.getElementById(id);
     const fmt = (n) => (n ?? 0).toLocaleString('fr-FR');
+    // Or et gemmes : mêmes unités que dans le jeu (K, M, B, T, puis aa, ab…), sinon 1e24 s'affiche en 25 chiffres.
+    const fmtBig = (value) => {
+      if (!Number.isFinite(value)) return '0';
+      if (Math.abs(value) < 1e6) return fmt(Math.floor(value));
+      let i = Math.floor(Math.log10(Math.abs(value)) / 3);
+      let v = value / 10 ** (i * 3);
+      if (Math.abs(v) >= 1000) { v /= 1000; i += 1; }
+      const n = i - 5, L = 'abcdefghijklmnopqrstuvwxyz';
+      const unit = i < 5 ? ['', 'K', 'M', 'B', 'T'][i] : L[Math.floor(n / 26) % 26] + L[n % 26];
+      return `${(Math.floor(v * 10) / 10).toFixed(1).replace('.', ',').replace(/,0$/, '')} ${unit}`;
+    };
     const fmtDate = (ms) => (ms ? new Date(ms).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '—');
     const fmtRel = (ms) => {
       if (!ms) return 'jamais';
@@ -529,8 +540,8 @@
           const cells = [
             [p.pseudo, ''], [p.guest ? 'Invité' : 'Joueur', ''], [PLATFORM_LABEL[p.platform] ?? '—', ''], [p.gameVersion ?? '—', ''],
             [fmtDate(p.createdAt), ''], [fmtRel(p.lastSeenAt), ''],
-            [fmt(p.level), 'num'], [fmt(p.maxStage), 'num'], [fmt(Math.floor(p.gold)), 'num'],
-            [fmt(p.gems), 'num'], [fmt(p.bossesDefeated), 'num'], [p.hasSave ? fmtDate(p.saveUpdatedAt) : 'aucune', ''],
+            [fmt(p.level), 'num'], [fmt(p.maxStage), 'num'], [fmtBig(p.gold), 'num'],
+            [fmtBig(p.gems), 'num'], [fmt(p.bossesDefeated), 'num'], [p.hasSave ? fmtDate(p.saveUpdatedAt) : 'aucune', ''],
           ];
           for (const [text, cls] of cells) {
             const td = document.createElement('td');
@@ -567,8 +578,8 @@
           ['Plateforme', PLATFORM_LABEL[p.platform] ?? '—'], ['Version du jeu (appareil)', p.gameVersion ?? '—'],
           ['Inscrit le', fmtDate(p.createdAt)], ['Dernière activité', fmtRel(p.lastSeenAt)],
           ['Jours joués', fmt(p.activity?.daysPlayed)], ['Temps de jeu (≈)', fmtMinutes(p.activity?.minutesPlayed)],
-          ['Niveau', fmt(p.level)], ['Étape max', fmt(p.maxStage)], ['Or', fmt(Math.floor(p.gold))],
-          ['Gemmes', fmt(p.gems)], ['Ennemis vaincus', fmt(p.kills)], ['Boss vaincus', fmt(p.bossesDefeated)],
+          ['Niveau', fmt(p.level)], ['Étape max', fmt(p.maxStage)], ['Or', fmtBig(p.gold)],
+          ['Gemmes', fmtBig(p.gems)], ['Ennemis vaincus', fmt(p.kills)], ['Boss vaincus', fmt(p.bossesDefeated)],
         ];
         if (p.progress) {
           rows.push(['Héros possédés', fmt(p.progress.heroes)], ['Compagnons', fmt(p.progress.companions)],
@@ -628,7 +639,9 @@
     // Histogramme par jour ; keys = séries côte à côte (1re en doré, 2e en bleu). Valeur au survol (title).
     function barChart(series, keys, { height = 180 } = {}) {
       const W = 720, H = height, pad = { l: 34, r: 6, t: 8, b: 22 };
-      const max = Math.max(1, ...series.flatMap((d) => keys.map((k) => d[k] ?? 0)));
+      // Maximum pair (≥ 2) : la graduation du milieu reste un entier distinct (sinon « 0, 1, 1 »).
+      const peak = Math.max(2, ...series.flatMap((d) => keys.map((k) => d[k] ?? 0)));
+      const max = Math.ceil(peak / 2) * 2;
       const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, class: 'chart', role: 'img' });
       const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
       for (const f of [0, 0.5, 1]) {
