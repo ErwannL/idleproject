@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin · Idle RPG</title>
+  <style>
+    :root { --bg:#0d1528; --panel:#131e38; --panel-2:#1a2847; --line:#2e3d63; --text:#eef3ff; --muted:#9aa8c7; --gold:#f2b43a; --ok:#5fdc7a; --bad:#ff7a8a; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui, sans-serif; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+    header h1 { font-size:18px; margin:0; color:var(--gold); }
+    main { padding:16px; max-width:1200px; margin:0 auto; }
+    button, select, input { font:inherit; color:var(--text); background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:8px 12px; }
+    button { cursor:pointer; }
+    button.primary { background:var(--gold); color:#2a1600; border-color:#7a3d00; font-weight:700; }
+    button.danger { background:#5a1d28; border-color:#a0404f; }
+    button:disabled { opacity:.5; cursor:default; }
+    input[type=password], input[type=search] { min-width:220px; }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:14px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px; }
+    .stat { background:var(--panel-2); border-radius:10px; padding:10px 12px; }
+    .stat .k { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+    .stat .v { font-size:22px; font-weight:800; margin-top:2px; }
+    .tabs { display:flex; gap:8px; margin:6px 0 14px; flex-wrap:wrap; }
+    .tabs button.active { background:var(--gold); color:#2a1600; font-weight:700; }
+    .toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+    .table-wrap { overflow-x:auto; border:1px solid var(--line); border-radius:10px; }
+    table { width:100%; border-collapse:collapse; min-width:760px; }
+    th, td { padding:9px 10px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; }
+    th { background:var(--panel-2); color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; position:sticky; top:0; }
+    tbody tr { cursor:pointer; }
+    tbody tr:hover { background:rgba(242,180,58,.06); }
+    td.num { text-align:right; font-variant-numeric: tabular-nums; }
+    .muted { color:var(--muted); }
+    .msg { min-height:1.4em; margin:8px 0; }
+    .msg.err { color:var(--bad); }
+    .msg.ok { color:var(--ok); }
+    dl { display:grid; grid-template-columns:max-content 1fr; gap:6px 14px; margin:0; }
+    dt { color:var(--muted); }
+    dd { margin:0; font-variant-numeric: tabular-nums; }
+    .pager { display:flex; gap:8px; align-items:center; margin-top:10px; flex-wrap:wrap; }
+    .hidden { display:none !important; }
+    @media (max-width: 600px) { input[type=password], input[type=search] { min-width:0; width:100%; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Idle RPG · Administration</h1>
+    <button id="logout" class="hidden">Se déconnecter</button>
+  </header>
+
+  <main>
+    <section id="login" class="card" style="max-width:420px">
+      <h2 style="margin-top:0">Connexion</h2>
+      <form id="login-form" class="toolbar" style="flex-direction:column; align-items:stretch">
+        <input id="password" type="password" placeholder="Mot de passe administrateur" autocomplete="current-password" required>
+        <button class="primary" type="submit">Entrer</button>
+      </form>
+      <p class="msg err" id="login-msg"></p>
+    </section>
+
+    <section id="app" class="hidden">
+      <div class="tabs">
+        <button data-tab="stats" class="active">Vue d'ensemble</button>
+        <button data-tab="players">Joueurs</button>
+        <button data-tab="prereg">Préinscriptions</button>
+      </div>
+
+      <section data-panel="stats">
+        <div class="toolbar"><button id="refresh-stats">Actualiser</button><span class="muted" id="stats-time"></span></div>
+        <div class="grid" id="stats-grid"></div>
+      </section>
+
+      <section data-panel="players" class="hidden">
+        <div class="toolbar">
+          <input id="search" type="search" maxlength="20" placeholder="Rechercher un pseudo">
+          <select id="sort">
+            <option value="recent">Dernière activité</option>
+            <option value="created">Date d'inscription</option>
+            <option value="level">Niveau</option>
+            <option value="stage">Étape max</option>
+            <option value="gold">Or</option>
+          </select>
+          <button id="search-btn">Rechercher</button>
+          <span class="muted" id="players-total"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Pseudo</th><th>Inscrit</th><th>Vu</th><th class="num">Niveau</th><th class="num">Étape max</th>
+              <th class="num">Or</th><th class="num">Gemmes</th><th class="num">Boss</th><th>Sauvegarde</th>
+            </tr></thead>
+            <tbody id="players-body"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <button id="prev">Précédent</button><button id="next">Suivant</button><span class="muted" id="page-info"></span>
+        </div>
+        <div class="card hidden" id="detail" style="margin-top:14px"></div>
+      </section>
+
+      <section data-panel="prereg" class="hidden">
+        <div class="toolbar">
+          <button id="export">Exporter en CSV</button>
+          <span class="muted" id="prereg-total"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Email</th><th>Consentement</th><th>Version du texte</th><th></th></tr></thead>
+            <tbody id="prereg-body"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <button id="prereg-prev">Précédent</button><button id="prereg-next">Suivant</button><span class="muted" id="prereg-page"></span>
+        </div>
+      </section>
+      <p class="msg" id="app-msg"></p>
+    </section>
+  </main>
+
+  <script>
+    // Le jeton reste en mémoire : il disparaît à la fermeture de la page.
+    let token = null;
+    const $ = (id) => document.getElementById(id);
+    const fmt = (n) => (n ?? 0).toLocaleString('fr-FR');
+    const fmtDate = (ms) => (ms ? new Date(ms).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '—');
+    const fmtRel = (ms) => {
+      if (!ms) return 'jamais';
+      const min = Math.round((Date.now() - ms) / 60000);
+      if (min < 1) return "à l'instant";
+      if (min < 60) return `il y a ${min} min`;
+      if (min < 1440) return `il y a ${Math.round(min / 60)} h`;
+      return `il y a ${Math.round(min / 1440)} j`;
+    };
+
+    async function api(path, { method = 'GET', body, raw = false } = {}) {
+      const headers = { Authorization: `Bearer ${token}` };
+      if (body !== undefined) headers['Content-Type'] = 'application/json';
+      const res = await fetch(path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+      if (res.status === 401) {
+        logout('Session expirée, reconnectez-vous.');
+        throw new Error('401');
+      }
+      if (raw) return res;
+      if (res.status === 204) return null;
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`);
+      return data;
+    }
+
+    function setMsg(el, text, kind = '') {
+      el.textContent = text;
+      el.className = `msg ${kind}`;
+    }
+
+    function logout(message = '') {
+      token = null;
+      $('app').classList.add('hidden');
+      $('logout').classList.add('hidden');
+      $('login').classList.remove('hidden');
+      $('password').value = '';
+      setMsg($('login-msg'), message, 'err');
+    }
+
+    $('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const data = await fetch('/api/admin/login', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: $('password').value }),
+        });
+        const json = await data.json().catch(() => ({}));
+        if (!data.ok) throw new Error(json.error || 'Connexion refusée');
+        token = json.token;
+        $('login').classList.add('hidden');
+        $('app').classList.remove('hidden');
+        $('logout').classList.remove('hidden');
+        setMsg($('login-msg'), '');
+        loadStats();
+      } catch (err) {
+        setMsg($('login-msg'), err.message, 'err');
+      }
+    });
+    $('logout').addEventListener('click', () => logout());
+
+    // ---- Onglets ----
+    document.querySelectorAll('[data-tab]').forEach((btn) => btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-tab]').forEach((b) => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('[data-panel]').forEach((p) => p.classList.toggle('hidden', p.dataset.panel !== btn.dataset.tab));
+      if (btn.dataset.tab === 'stats') loadStats();
+      if (btn.dataset.tab === 'players') loadPlayers();
+      if (btn.dataset.tab === 'prereg') loadPrereg();
+    }));
+
+    // ---- Vue d'ensemble ----
+    const STAT_CARDS = [
+      ['Comptes', 'accounts', fmt], ['Actifs 24 h', 'active24h', fmt], ['Actifs 7 j', 'active7d', fmt],
+      ['Nouveaux 7 j', 'new7d', fmt], ['Avec sauvegarde', 'withSave', fmt], ['Ont vaincu un boss', 'withBoss', fmt],
+      ['Préinscrits', 'preregistrations', fmt], ['Préinscrits 7 j', 'preregistrations7d', fmt],
+      ['Niveau max', 'maxLevel', fmt], ['Niveau moyen', 'avgLevel', (n) => Math.round(n)],
+      ['Étape max', 'maxStage', fmt], ['Étape moyenne', 'avgStage', (n) => Math.round(n)],
+      ['Joueurs à l’étape 10+', 'atStage10', fmt], ['Joueurs à l’étape 25+', 'atStage25', fmt],
+      ['Joueurs à l’étape 50+', 'atStage50', fmt],
+    ];
+    async function loadStats() {
+      try {
+        const s = await api('/api/admin/stats');
+        $('stats-grid').innerHTML = '';
+        for (const [label, key, f] of STAT_CARDS) {
+          const card = document.createElement('div');
+          card.className = 'stat';
+          const k = document.createElement('div'); k.className = 'k'; k.textContent = label;
+          const v = document.createElement('div'); v.className = 'v'; v.textContent = f(s[key]);
+          card.append(k, v);
+          $('stats-grid').append(card);
+        }
+        $('stats-time').textContent = `Mis à jour ${fmtDate(s.now)}`;
+      } catch (err) {
+        setMsg($('app-msg'), err.message, 'err');
+      }
+    }
+    $('refresh-stats').addEventListener('click', loadStats);
+
+    // ---- Joueurs ----
+    let page = 0;
+    const PAGE = 50;
+    let total = 0;
+    async function loadPlayers() {
+      const q = encodeURIComponent($('search').value.trim());
+      const sort = $('sort').value;
+      try {
+        const data = await api(`/api/admin/players?sort=${sort}&q=${q}&limit=${PAGE}&offset=${page * PAGE}`);
+        total = data.total;
+        $('players-total').textContent = `${fmt(total)} joueur${total > 1 ? 's' : ''}`;
+        const body = $('players-body');
+        body.innerHTML = '';
+        for (const p of data.players) {
+          const tr = document.createElement('tr');
+          tr.addEventListener('click', () => showDetail(p.id));
+          const cells = [
+            [p.pseudo, ''], [fmtDate(p.createdAt), ''], [fmtRel(p.lastSeenAt), ''],
+            [fmt(p.level), 'num'], [fmt(p.maxStage), 'num'], [fmt(Math.floor(p.gold)), 'num'],
+            [fmt(p.gems), 'num'], [fmt(p.bossesDefeated), 'num'], [p.hasSave ? fmtDate(p.saveUpdatedAt) : 'aucune', ''],
+          ];
+          for (const [text, cls] of cells) {
+            const td = document.createElement('td');
+            td.textContent = text;
+            if (cls) td.className = cls;
+            tr.append(td);
+          }
+          body.append(tr);
+        }
+        if (!data.players.length) {
+          const tr = document.createElement('tr');
+          const td = document.createElement('td'); td.colSpan = 9; td.className = 'muted'; td.textContent = 'Aucun joueur.';
+          tr.append(td); body.append(tr);
+        }
+        $('page-info').textContent = `Page ${page + 1} / ${Math.max(1, Math.ceil(total / PAGE))}`;
+        $('prev').disabled = page === 0;
+        $('next').disabled = (page + 1) * PAGE >= total;
+      } catch (err) {
+        setMsg($('app-msg'), err.message, 'err');
+      }
+    }
+    $('search-btn').addEventListener('click', () => { page = 0; loadPlayers(); });
+    $('search').addEventListener('keydown', (e) => { if (e.key === 'Enter') { page = 0; loadPlayers(); } });
+    $('sort').addEventListener('change', () => { page = 0; loadPlayers(); });
+    $('prev').addEventListener('click', () => { page -= 1; loadPlayers(); });
+    $('next').addEventListener('click', () => { page += 1; loadPlayers(); });
+
+    async function showDetail(id) {
+      try {
+        const p = await api(`/api/admin/players/${id}`);
+        const box = $('detail');
+        box.innerHTML = '';
+        const title = document.createElement('h3');
+        title.style.marginTop = '0';
+        title.textContent = `Joueur ${p.pseudo}`;
+        const rows = [
+          ['Inscrit le', fmtDate(p.createdAt)], ['Dernière activité', fmtRel(p.lastSeenAt)],
+          ['Niveau', fmt(p.level)], ['Étape max', fmt(p.maxStage)], ['Or', fmt(Math.floor(p.gold))],
+          ['Gemmes', fmt(p.gems)], ['Ennemis vaincus', fmt(p.kills)], ['Boss vaincus', fmt(p.bossesDefeated)],
+        ];
+        if (p.progress) {
+          rows.push(['Héros possédés', fmt(p.progress.heroes)], ['Compagnons', fmt(p.progress.companions)],
+            ['Renaissances', fmt(p.progress.rebirths)], ['Invocations', fmt(p.progress.summons)],
+            ['Dernière sauvegarde', fmtDate(p.progress.lastSaved)], ['Version du jeu', p.progress.gameVersion ?? '—']);
+        }
+        const dl = document.createElement('dl');
+        for (const [k, v] of rows) {
+          const dt = document.createElement('dt'); dt.textContent = k;
+          const dd = document.createElement('dd'); dd.textContent = v;
+          dl.append(dt, dd);
+        }
+        const del = document.createElement('button');
+        del.className = 'danger';
+        del.style.marginTop = '12px';
+        del.textContent = 'Supprimer ce compte et sa sauvegarde';
+        del.addEventListener('click', async () => {
+          if (!confirm(`Supprimer définitivement le compte « ${p.pseudo} » et toute sa progression ?`)) return;
+          try {
+            await api(`/api/admin/players/${id}`, { method: 'DELETE' });
+            box.classList.add('hidden');
+            setMsg($('app-msg'), `Compte « ${p.pseudo} » supprimé.`, 'ok');
+            loadPlayers();
+          } catch (err) {
+            setMsg($('app-msg'), err.message, 'err');
+          }
+        });
+        box.append(title, dl, del);
+        box.classList.remove('hidden');
+        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } catch (err) {
+        setMsg($('app-msg'), err.message, 'err');
+      }
+    }
+
+    // ---- Préinscriptions ----
+    let pPage = 0;
+    async function loadPrereg() {
+      try {
+        const data = await api(`/api/admin/preregistrations?limit=100&offset=${pPage * 100}`);
+        $('prereg-total').textContent = `${fmt(data.total)} préinscrit${data.total > 1 ? 's' : ''}`;
+        const body = $('prereg-body');
+        body.innerHTML = '';
+        for (const r of data.items) {
+          const tr = document.createElement('tr');
+          const td1 = document.createElement('td'); td1.textContent = r.email;
+          const td2 = document.createElement('td'); td2.textContent = fmtDate(r.consentAt);
+          const td3 = document.createElement('td'); td3.textContent = r.consentVersion;
+          const td4 = document.createElement('td');
+          const del = document.createElement('button');
+          del.className = 'danger';
+          del.textContent = 'Retirer';
+          del.addEventListener('click', async () => {
+            if (!confirm(`Retirer ${r.email} de la liste ?`)) return;
+            try {
+              await api(`/api/admin/preregistrations/${encodeURIComponent(r.email)}`, { method: 'DELETE' });
+              loadPrereg();
+            } catch (err) {
+              setMsg($('app-msg'), err.message, 'err');
+            }
+          });
+          td4.append(del);
+          tr.append(td1, td2, td3, td4);
+          body.append(tr);
+        }
+        $('prereg-page').textContent = `Page ${pPage + 1}`;
+        $('prereg-prev').disabled = pPage === 0;
+        $('prereg-next').disabled = (pPage + 1) * 100 >= data.total;
+      } catch (err) {
+        setMsg($('app-msg'), err.message, 'err');
+      }
+    }
+    $('prereg-prev').addEventListener('click', () => { pPage -= 1; loadPrereg(); });
+    $('prereg-next').addEventListener('click', () => { pPage += 1; loadPrereg(); });
+    $('export').addEventListener('click', async () => {
+      try {
+        const res = await api('/api/admin/preregistrations.csv', { raw: true });
+        if (!res.ok) throw new Error(`Erreur ${res.status}`);
+        const url = URL.createObjectURL(await res.blob());
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `preinscriptions-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        setMsg($('app-msg'), err.message, 'err');
+      }
+    });
+  </script>
+</body>
+</html>

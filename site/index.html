@@ -3,83 +3,327 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Idle RPG</title>
-  <meta name="description" content="Idle RPG : un RPG idle en pixel art, à jouer dans le navigateur ou sur PC.">
-  <link rel="icon" href="/assets/icon.png">
+  <title>Idle RPG · Préinscriptions</title>
+  <meta name="description" content="Idle RPG : un RPG idle en pixel art. Préinscrivez-vous pour être prévenu du lancement et débloquer des récompenses.">
+  <link rel="icon" href="assets/icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
   <style>
-    :root { --bg: #f6f3ec; --fg: #1d1b18; --accent: #7a4a1c; --muted: #6b6258; --card: #ffffff; --line: #d9d1c3; }
-    @media (prefers-color-scheme: dark) {
-      :root:not([data-theme="light"]) { --bg: #16140f; --fg: #f1ebe0; --accent: #e0a458; --muted: #aaa093; --card: #221f19; --line: #3a352b; }
+    :root {
+      --navy: #0d1528;
+      --panel: #131e38;
+      --panel-2: #1a2847;
+      --gold: #f2b43a;
+      --gold-soft: #ffd77a;
+      --ice: #9fe0ff;
+      --text: #eef3ff;
+      --muted: #a9b6d3;
+      --ok: #5fdc7a;
+      --line: #3a4a72;
+      --pixel: 'Press Start 2P', monospace;
+      --body: 'Nunito', system-ui, sans-serif;
     }
-    :root[data-theme="dark"] { --bg: #16140f; --fg: #f1ebe0; --accent: #e0a458; --muted: #aaa093; --card: #221f19; --line: #3a352b; }
     * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 system-ui, sans-serif; }
-    main { max-width: 720px; margin: 0 auto; padding: 48px 16px; }
-    h1 { font-size: 2.2rem; margin: 0 0 8px; }
-    .lead { color: var(--muted); font-size: 1.1rem; margin: 0 0 24px; }
-    .btn { display: inline-block; background: var(--accent); color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; border: 0; cursor: pointer; font-size: 1rem; }
-    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin: 32px 0; }
-    .card h2 { margin: 0 0 8px; font-size: 1.2rem; }
-    label.consent { display: flex; gap: 10px; align-items: flex-start; margin: 14px 0; }
-    input[type="email"] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-size: 1rem; }
-    .status { min-height: 1.5em; margin-top: 10px; }
-    footer { color: var(--muted); font-size: 0.9rem; margin-top: 48px; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--navy);
+      color: var(--text);
+      font: 16px/1.5 var(--body);
+      overflow-x: hidden;
+    }
+    img { image-rendering: pixelated; }
+    a { color: var(--gold-soft); }
+    .wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+
+    /* Bandeau d'accueil : paysage pixel art en couches */
+    .hero {
+      position: relative;
+      min-height: 420px;
+      padding: 40px 0 0;
+      background:
+        linear-gradient(180deg, rgba(13,21,40,0) 40%, var(--navy) 100%),
+        url('assets/sky_far.png') center top / cover no-repeat;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; inset: auto 0 0 0; height: 60%;
+      background: url('assets/mountains_far.png') center bottom / 900px auto repeat-x;
+      opacity: .9; pointer-events: none;
+    }
+    .hero::after {
+      content: ''; position: absolute; inset: auto 0 0 0; height: 40%;
+      background: url('assets/mountains_front.png') center bottom / 700px auto repeat-x;
+      pointer-events: none;
+    }
+    .heroes-row {
+      position: absolute; left: 0; right: 0; bottom: 28px;
+      display: flex; justify-content: space-between; align-items: flex-end;
+      padding: 0 12px; z-index: 1; pointer-events: none;
+    }
+    .heroes-row img { height: 110px; width: auto; }
+    .heroes-row .monsters img { height: 96px; }
+    .banner {
+      position: relative; z-index: 2; text-align: center;
+      background: linear-gradient(180deg, rgba(19,30,56,.96), rgba(13,21,40,.96));
+      border: 3px solid var(--gold); border-radius: 18px;
+      box-shadow: 0 0 0 3px #1d2a4a inset, 0 18px 40px rgba(0,0,0,.45);
+      padding: 22px 16px 26px; max-width: 760px; margin: 0 auto;
+    }
+    .banner h1 {
+      font: 900 clamp(26px, 6vw, 56px)/1.05 var(--body);
+      letter-spacing: 1px; text-transform: uppercase; margin: 0;
+      color: var(--gold); text-shadow: 3px 3px 0 #7a3d00, 0 0 18px rgba(255,190,60,.35);
+    }
+    .banner .sub { font: 800 clamp(14px, 2.6vw, 20px)/1.3 var(--body); text-transform: uppercase; color: var(--ice); margin: 10px 0 0; }
+    .banner .big { font: 900 clamp(34px, 9vw, 76px)/1 var(--body); color: var(--gold-soft); margin: 8px 0 2px; text-shadow: 3px 3px 0 #6b3a00; }
+    .banner .lead { color: var(--muted); margin: 6px auto 0; max-width: 560px; }
+    .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      font: 800 16px/1 var(--body); text-decoration: none; cursor: pointer;
+      color: #2a1600; background: linear-gradient(180deg, #ffd45c, #e8900f);
+      border: 2px solid #7a3d00; border-radius: 12px; padding: 13px 22px;
+      box-shadow: 0 4px 0 #7a3d00, 0 8px 16px rgba(0,0,0,.35);
+    }
+    .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #7a3d00; }
+    .btn.ghost { color: var(--text); background: var(--panel-2); border-color: var(--line); box-shadow: 0 4px 0 #0b1224; }
+
+    /* Compteur et barre de progression */
+    .counter { margin: 34px auto 0; max-width: 760px; text-align: center; }
+    .counter .label { font: 800 14px var(--body); color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+    .counter .value { font: 900 34px var(--body); color: var(--gold-soft); margin-top: 4px; }
+    .bar { position: relative; height: 16px; background: #0a1020; border: 2px solid var(--line); border-radius: 10px; margin: 12px 0 0; overflow: hidden; }
+    .bar > span { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #2fb7ff, var(--gold)); border-radius: 10px; }
+    .counter .hint { color: var(--muted); font-size: 14px; margin-top: 8px; }
+
+    /* Paliers */
+    .tiers { margin: 40px 0 0; }
+    .tiers h2 { font: 14px var(--pixel); color: var(--gold-soft); text-align: center; margin: 0 0 22px; letter-spacing: .05em; }
+    .tier-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+    .tier {
+      position: relative; background: linear-gradient(180deg, var(--panel-2), var(--panel));
+      border: 2px solid var(--line); border-radius: 14px; padding: 12px 10px 14px;
+      text-align: center; display: flex; flex-direction: column; min-height: 230px;
+    }
+    .tier.reached { border-color: var(--ok); box-shadow: 0 0 0 1px rgba(95,220,122,.25), 0 0 18px rgba(95,220,122,.12); }
+    .tier.next { border-color: var(--gold); }
+    .tier .milestone {
+      font: 800 13px/1 var(--body); color: #2a1600; background: var(--gold-soft);
+      border-radius: 8px; padding: 5px 8px; align-self: center; margin-top: -24px;
+      border: 2px solid #7a3d00;
+    }
+    .tier.reached .milestone { background: var(--ok); color: #06210e; border-color: #1e5e2d; }
+    .tier .art { height: 78px; display: flex; align-items: center; justify-content: center; margin: 12px 0 8px; }
+    .tier .art img { height: 78px; width: auto; max-width: 100%; }
+    .tier .name { font: 800 15px/1.25 var(--body); }
+    .tier .tag { display: inline-block; margin-top: 6px; font: 800 10px/1 var(--body); text-transform: uppercase; letter-spacing: .05em; padding: 4px 6px; border-radius: 6px; background: #3b2a6b; color: #e7d8ff; }
+    .tier .tag.excl { background: #6b4a00; color: #ffe6a6; }
+    .tier .detail { color: var(--muted); font-size: 13px; margin-top: auto; padding-top: 8px; }
+    .tier .status { font-size: 12px; font-weight: 800; color: var(--muted); margin-top: 8px; }
+    .tier.reached .status { color: var(--ok); }
+    .tier.next .status { color: var(--gold-soft); }
+
+    /* Formulaire */
+    .signup { margin: 44px auto 0; max-width: 620px; background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 2px solid var(--gold); border-radius: 16px; padding: 22px; }
+    .signup h2 { font: 14px/1.5 var(--pixel); color: var(--gold-soft); margin: 0 0 8px; text-align: center; }
+    .signup p { color: var(--muted); margin: 0 0 14px; text-align: center; }
+    .signup form { display: grid; gap: 12px; }
+    .signup input[type="email"] {
+      font: 700 16px var(--body); color: var(--text); background: #0a1020;
+      border: 2px solid var(--line); border-radius: 10px; padding: 12px 14px; width: 100%;
+    }
+    .signup input[type="email"]:focus { outline: none; border-color: var(--gold); }
+    .consent { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; color: var(--muted); cursor: pointer; }
+    .consent input { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--gold); flex: none; }
+    .status-line { min-height: 1.5em; text-align: center; font-weight: 800; margin: 2px 0 0; }
+    .status-line.ok { color: var(--ok); }
+    .status-line.err { color: #ff9aa8; }
+
+    /* Pied : avantages */
+    .perks { margin: 44px 0 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .perk { background: rgba(19,30,56,.8); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+    .perk h3 { font: 800 15px/1.3 var(--body); color: var(--gold-soft); margin: 0 0 6px; text-transform: uppercase; }
+    .perk p { margin: 0; color: var(--muted); font-size: 14px; }
+    footer { text-align: center; color: var(--muted); font-size: 14px; margin: 36px 0 28px; }
     footer a { color: var(--muted); }
+
+    @media (max-width: 960px) {
+      .tier-grid { grid-template-columns: repeat(3, 1fr); }
+      .perks { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .hero { min-height: 0; padding-top: 24px; padding-bottom: 150px; }
+      .heroes-row img { height: 72px; }
+      .heroes-row .monsters img { height: 64px; }
+      .heroes-row .monsters img:nth-child(n+3) { display: none; }
+      .banner { padding: 18px 12px 20px; }
+      .tier-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .tier { min-height: 0; }
+      .perks { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
-  <main>
-    <h1>Idle RPG</h1>
-    <p class="lead">Un RPG idle en pixel art : recrutez des compagnons, affrontez des boss et laissez votre équipe progresser, même quand vous ne jouez pas.</p>
-    <a class="btn" href="/play/">Jouer</a>
+  <header class="hero">
+    <div class="heroes-row" aria-hidden="true">
+      <div class="team">
+        <img src="assets/hd_ally_squire.png" alt="">
+        <img src="assets/hd_ally_azure_paladin.png" alt="">
+        <img src="assets/hd_ally_elf_archer.png" alt="">
+        <img src="assets/hd_ally_priestess.png" alt="">
+      </div>
+      <div class="monsters">
+        <img src="assets/boss_ash_dragon.png" alt="">
+        <img src="assets/wolf_ice.png" alt="">
+        <img src="assets/slime_blue.png" alt="">
+      </div>
+    </div>
+    <div class="wrap">
+      <div class="banner">
+        <h1>Préinscriptions</h1>
+        <p class="sub">Aidez-nous à atteindre les</p>
+        <p class="big">100 000</p>
+        <p class="sub">aventuriers !</p>
+        <p class="lead">Plus nous sommes nombreux, plus les récompenses sont grandes pour tous les joueurs.</p>
+        <div class="cta">
+          <a class="btn" href="#inscription">Me préinscrire</a>
+          <a class="btn ghost" href="play/">Jouer maintenant</a>
+        </div>
+      </div>
+    </div>
+  </header>
 
-    <section class="card" aria-labelledby="prereg-title">
-      <h2 id="prereg-title">Être prévenu du lancement</h2>
-      <p>Laissez votre adresse pour recevoir une seule info : la date de sortie.</p>
-      <form id="prereg">
-        <label for="email">Adresse email</label>
-        <input id="email" type="email" required maxlength="254" autocomplete="email">
+  <main class="wrap">
+    <section class="counter" aria-live="polite">
+      <div class="label">Aventuriers préinscrits</div>
+      <div class="value" id="count">…</div>
+      <div class="bar" role="progressbar" aria-label="Progression vers 100 000" aria-valuemin="0" aria-valuemax="100000" aria-valuenow="0"><span id="bar" style="width:0%"></span></div>
+      <div class="hint" id="hint">Chargement…</div>
+    </section>
+
+    <section class="tiers" aria-labelledby="tiers-title">
+      <h2 id="tiers-title">Récompenses par palier</h2>
+      <div class="tier-grid" id="tiers"></div>
+    </section>
+
+    <section class="signup" id="inscription" aria-labelledby="signup-title">
+      <h2 id="signup-title">Être prévenu du lancement</h2>
+      <p>Une seule information : la date de sortie. Vous recevrez aussi votre récompense de palier au lancement.</p>
+      <form id="prereg" novalidate>
+        <label for="email" class="sr-only" style="position:absolute;left:-9999px">Adresse email</label>
+        <input id="email" type="email" required maxlength="254" autocomplete="email" placeholder="votre@email.fr">
         <label class="consent">
           <input id="consent" type="checkbox" required>
           <span>J'accepte d'être contacté au sujet du lancement du jeu</span>
         </label>
-        <button class="btn" type="submit">M'inscrire</button>
-        <p class="status" id="status" role="status"></p>
+        <button class="btn" type="submit">Je me préinscris</button>
+        <p class="status-line" id="status" role="status"></p>
       </form>
-      <p>Vous pouvez retirer votre adresse à tout moment. Détails dans la <a href="/confidentialite.html">politique de confidentialité</a>.</p>
+    </section>
+
+    <section class="perks" aria-label="Avantages">
+      <div class="perk"><h3>Récompenses pour tous</h3><p>Chaque joueur reçoit les récompenses débloquées dès le lancement du jeu.</p></div>
+      <div class="perk"><h3>Rejoignez l'aventure</h3><p>Plus nous sommes nombreux, plus le monde s'agrandit : héros, boss et zones.</p></div>
+      <div class="perk"><h3>Suivez les actus</h3><p>Infos, bonus et annonces du lancement : restez à l'affût.</p></div>
+      <div class="perk"><h3>Merci pour votre soutien</h3><p>Chaque préinscription compte et nous aide à bâtir un jeu toujours plus grand.</p></div>
     </section>
 
     <footer>
-      <p>© <span id="year"></span> <span id="site-name">Idle RPG</span> · <a href="/confidentialite.html">Confidentialité</a></p>
+      <p>© <span id="year"></span> <span id="site-name">Idle RPG</span> · <a href="play/">Jouer</a> · <a href="confidentialite.html">Confidentialité</a></p>
     </footer>
   </main>
+
   <script type="module">
     import { SITE } from './config.js';
+
+    const GOAL = 100000;
+    const TIERS = [
+      { at: 10000, label: '10K', name: '500 gemmes', detail: 'Monnaie premium', img: 'assets/icon_gem.png' },
+      { at: 20000, label: '20K', name: '250 K or', detail: "Pièces d'or", img: 'assets/icon_chest.png' },
+      { at: 30000, label: '30K', name: '1 familier', detail: 'Slime doré', tag: 'Exclusif', excl: true, img: 'assets/hd_pet_golden_slime.png' },
+      { at: 40000, label: '40K', name: '1 000 gemmes', detail: 'Monnaie premium', img: 'assets/icon_gem.png' },
+      { at: 50000, label: '50K', name: '1 compagnon', detail: 'Lame rose', tag: 'SR · Exclusif', excl: true, img: 'assets/hd_ally_rose_blade.png' },
+      { at: 60000, label: '60K', name: '1 500 gemmes', detail: '+ 500 K or', img: 'assets/icon_gem.png' },
+      { at: 70000, label: '70K', name: '1 héros SSR', detail: 'Lilith la Diablesse', tag: 'SSR · Exclusif', excl: true, img: 'assets/hd_demoness.png' },
+      { at: 80000, label: '80K', name: '10 tickets', detail: "d'invocation", img: 'assets/icon_chest.png' },
+      { at: 90000, label: '90K', name: '1 héros SSR', detail: 'Roi Grombar', tag: 'SSR · Exclusif', excl: true, img: 'assets/hd_grombar.png' },
+      { at: 100000, label: '100K', name: '2 500 gemmes', detail: '+ 1 M or + 1 ticket SSR garanti', tag: 'Méga pack', excl: true, img: 'assets/icon_chest.png' },
+    ];
+
     document.getElementById('site-name').textContent = SITE.name;
     document.getElementById('year').textContent = new Date().getFullYear();
+
+    const fmt = (n) => n.toLocaleString('fr-FR');
+    function renderTiers(count) {
+      const nextIndex = TIERS.findIndex((t) => count < t.at);
+      document.getElementById('tiers').innerHTML = TIERS.map((t, i) => {
+        const reached = count >= t.at;
+        const cls = reached ? 'reached' : i === nextIndex ? 'next' : '';
+        const status = reached ? '✓ Débloqué' : i === nextIndex ? `Encore ${fmt(t.at - count)}` : `À ${fmt(t.at)} préinscrits`;
+        const tag = t.tag ? `<span class="tag ${t.excl ? 'excl' : ''}">${t.tag}</span>` : '';
+        return `<article class="tier ${cls}">
+          <span class="milestone">${t.label}</span>
+          <div class="art"><img src="${t.img}" alt=""></div>
+          <div class="name">${t.name}</div>
+          ${tag}
+          <div class="detail">${t.detail}</div>
+          <div class="status">${status}</div>
+        </article>`;
+      }).join('');
+    }
+
+    async function loadCount() {
+      try {
+        const res = await fetch('api/preregister/count');
+        const { count } = await res.json();
+        document.getElementById('count').textContent = fmt(count);
+        const pct = Math.min(100, (count / GOAL) * 100);
+        document.getElementById('bar').style.width = `${pct}%`;
+        document.querySelector('.bar').setAttribute('aria-valuenow', String(count));
+        const next = TIERS.find((t) => count < t.at);
+        document.getElementById('hint').textContent = next
+          ? `Encore ${fmt(next.at - count)} aventuriers pour débloquer le palier ${next.label}.`
+          : 'Objectif atteint, merci à tous !';
+        renderTiers(count);
+      } catch {
+        document.getElementById('count').textContent = '—';
+        document.getElementById('hint').textContent = 'Compteur indisponible pour le moment.';
+        renderTiers(0);
+      }
+    }
+    loadCount();
 
     const form = document.getElementById('prereg');
     const status = document.getElementById('status');
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
+      status.className = 'status-line';
+      const email = document.getElementById('email').value.trim();
+      const consent = document.getElementById('consent').checked;
+      if (!email) return fail('Renseignez votre adresse email.');
+      if (!consent) return fail('Cochez la case de consentement pour vous préinscrire.');
       status.textContent = 'Envoi…';
       try {
-        const res = await fetch('/api/preregister', {
+        const res = await fetch('api/preregister', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: document.getElementById('email').value,
-            consent: document.getElementById('consent').checked,
-          }),
+          body: JSON.stringify({ email, consent }),
         });
-        if (res.status === 429) throw new Error('Trop de tentatives, réessayez plus tard.');
-        if (!res.ok) throw new Error('Adresse invalide ou consentement manquant.');
+        if (res.status === 429) return fail('Trop de tentatives, réessayez plus tard.');
+        if (!res.ok) return fail('Adresse email invalide.');
         form.reset();
-        status.textContent = 'Merci ! Vous serez prévenu au lancement.';
-      } catch (error) {
-        status.textContent = error.message || 'Une erreur est survenue, réessayez.';
+        status.className = 'status-line ok';
+        status.textContent = 'Merci ! Vous êtes préinscrit.';
+        loadCount();
+      } catch {
+        fail('Connexion impossible, réessayez.');
       }
     });
+    function fail(message) {
+      status.className = 'status-line err';
+      status.textContent = message;
+    }
   </script>
 </body>
 </html>
