@@ -267,6 +267,12 @@ export const EXACT_910 = {
   'Apparaître dans le classement public (pseudo, niveau, étape, boss)': 'Appear in the public leaderboard (username, level, stage, bosses)',
   'Les fragments anciens achètent des talents permanents. Un talent s\'apprend dès qu\'un voisin est appris. Glissez ou utilisez la molette pour vous déplacer, Ctrl + molette pour zoomer.': 'Ancient fragments buy permanent talents. A talent can be learned as soon as a neighbour is learned. Drag or use the wheel to move, Ctrl + wheel to zoom.',
   'Les fragments anciens achètent des talents permanents. Un talent s\'apprend dès qu\'un voisin est appris. Glissez du doigt pour vous déplacer ; les boutons − et + zooment.': 'Ancient fragments buy permanent talents. A talent can be learned as soon as a neighbour is learned. Drag with your finger to move; the − and + buttons zoom.',
+  // v9.1.3
+  'Version :': 'Version:', '(site). Le jeu du site est toujours à la dernière version.': '(website). The website game is always on the latest version.',
+  'Sauvegarde refusée : or impossible': 'Save refused: impossible gold', 'Sauvegarde refusée : gemmes impossibles': 'Save refused: impossible gems',
+  'Sauvegarde refusée : niveau impossible': 'Save refused: impossible level', 'Sauvegarde refusée : étape impossible': 'Save refused: impossible stage',
+  'Sauvegarde refusée : codes de triche détectés': 'Save refused: cheat codes detected',
+  'Sauvegarde refusée : niveau inférieur à celui du serveur': 'Save refused: level lower than on the server',
   'Des vagues de 8 ennemis toujours plus forts (90 s par vague), un boss toutes les 5 vagues (sauf règle contraire). Une défaite termine la tentative. Récompenses à chaque nouveau meilleur score de la semaine et à chaque record absolu.': 'Waves of 8 ever-stronger enemies (90 s per wave), a boss every 5 waves (unless a rule says otherwise). A defeat ends the attempt. Rewards for each new best score of the week and each all-time record.',
 };
 
@@ -276,6 +282,8 @@ export function setTranslator(fn) { tr = fn; }
 
 // Textes construits avec des valeurs.
 export const PATTERNS_910 = [
+  // v9.1.3 : refus du serveur (raison traduite) + partie gardée sur l'appareil.
+  [/^(.+)\. La partie est sauvegardée sur cet appareil\.$/, (m) => `${tr(m[1])}. The game is saved on this device.`],
   [/^Compte joueur créé : vous êtes maintenant (.+)$/, 'Player account created: you are now $1'],
   [/^Nom changé : vous êtes maintenant (.+)$/, 'Name changed: you are now $1'],
   [/^Partie exportée : (.+)$/, 'Game exported: $1'],
