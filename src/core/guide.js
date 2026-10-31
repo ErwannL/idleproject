@@ -190,7 +190,7 @@ export const PANEL_HELP = {
   },
   boss: {
     short: 'Chaque boss vaincu donne un pouvoir. Réaffrontez-le pour sa maîtrise et des charges de changement de pouvoir.',
-    more: 'Deux pouvoirs de la même famille donnent un bonus de famille (+50 % d\'effet). Les collections du Codex sont dans Objectifs › Collections.',
+    more: 'Deux pouvoirs de la même famille donnent un bonus de famille (effets +25 %). Les collections du Codex sont dans Objectifs › Collections.',
   },
   encyclopedia: {
     short: 'Tout ce que vous découvrez s\'inscrit ici ; le pourcentage débloque des paliers de récompenses.',

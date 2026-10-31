@@ -441,6 +441,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
         mode: rec.mode,
         rarities: Array.isArray(rec.rarities) ? rec.rarities.filter((r) => ['common', 'rare', 'epic', 'legendary'].includes(r)) : ['common'],
         slots: Array.isArray(rec.slots) ? rec.slots.filter((s) => s in SLOTS) : Object.keys(SLOTS),
+        keepAffixes: Array.isArray(rec.keepAffixes) ? rec.keepAffixes.filter((a) => a in AFFIXES) : [],
       };
     }
     const af = raw.ui.autoFuse;

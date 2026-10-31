@@ -167,3 +167,24 @@ test('lot 0 : clavier AZERTY — chiffres et crochets par position, AltGr sans e
   assert.equal(bracketOf(ev({ code: 'KeyA', key: 'PageDown' })), 1);
   assert.equal(bracketOf(ev({ code: 'KeyA', key: 'a' })), 0);
 });
+
+test('lot 4 : textes de l\'interface v9.1.0 — aucun ne reste en français une fois traduit', async () => {
+  globalThis.localStorage ??= { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+  const { translate } = await import('../src/i18n/en.js');
+  const { MENUS, SUB_LABELS, navPath } = await import('../src/ui/nav.js');
+  const { PANEL_HELP } = await import('../src/core/guide.js');
+  const { CURRENCIES } = await import('../src/data/currencies.js');
+  const { KEY_LABELS, shortcutsList } = await import('../src/ui/shortcuts.js');
+  const { searchIndex } = await import('../src/ui/search.js');
+  const { KEEP_AFFIX_LABELS } = await import('../src/core/inventory.js');
+  const texts = [
+    ...MENUS.map((m) => m.label), ...Object.values(SUB_LABELS), ...MENUS.flatMap((m) => m.tabs.map((t) => navPath(t))),
+    ...Object.values(PANEL_HELP).flatMap((h) => [h.short, h.more, h.mouse, h.touch]),
+    ...Object.values(CURRENCIES).flatMap((c) => [c.name, c.use, c.gain]),
+    ...Object.values(KEY_LABELS), ...shortcutsList().map(([, d]) => d),
+    ...searchIndex().flatMap((e) => [e.label, e.path]), ...Object.values(KEEP_AFFIX_LABELS),
+  ].filter(Boolean);
+  const FRENCH = /[éèàçùêâîôûœ«»]/i;
+  const left = [...new Set(texts)].filter((s) => FRENCH.test(translate(s)));
+  assert.deepEqual(left, []);
+});

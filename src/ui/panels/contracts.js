@@ -89,7 +89,7 @@ function contractsTab(state) {
     done: c.progress >= c.target, claimed: false, action: 'claim-contract', value: c.id,
     sub: `<span class="contract-title${c.rare ? ' rare' : ''}">${escapeHtml(contractTitle(c))}</span>`,
   })).join('');
-  return `<div class="muted">Les contrats progressent tout seuls pendant le farm, même hors ligne. Un nouveau contrat remplace chaque contrat rempli ;
+  return `<div class="muted">Les contrats progressent tout seuls pendant le combat, même hors ligne. Un nouveau contrat remplace chaque contrat rempli ;
     parfois un <b class="rare-text">contrat rare</b> apparaît (objectif doublé, récompenses triplées).</div>${rows}`;
 }
 

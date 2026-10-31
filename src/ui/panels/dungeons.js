@@ -67,7 +67,7 @@ function runsBlock(state, d, diffId) {
   const info = dungeonRunInfo(state, d.id, diffId);
   if (!info || (!info.last && !info.best)) return '';
   const same = info.best && info.last && info.best.at === info.last.at;
-  return `<div class="card-sub run-block"><div class="section-title">Vos expéditions · ${DUNGEON_DIFFICULTIES[diffId].label} <span class="muted">(${info.tries} essai${info.tries > 1 ? 's' : ''})</span></div>
+  return `<div class="card-sub run-block"><div class="section-title">Vos tentatives · ${DUNGEON_DIFFICULTIES[diffId].label} <span class="muted">(${info.tries} essai${info.tries > 1 ? 's' : ''})</span></div>
     <div class="run-cols">${runCard(info.last, same ? 'Dernière et meilleure tentative' : 'Dernière tentative')}${same ? '' : runCard(info.best, 'Meilleure tentative')}</div></div>`;
 }
 

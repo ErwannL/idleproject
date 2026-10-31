@@ -104,7 +104,7 @@ function powerChoice(state) {
   const ids = Object.keys(state.powers);
   if (ids.length <= 1) return '';
   const first = state.equippedPowers[0] ?? ids[0];
-  return `<div class="keep-power"><div class="section-title">Pouvoir ancestral conservé (un seul)</div>${ids.map((id) => {
+  return `<div class="keep-power"><div class="section-title">Pouvoir conservé (un seul)</div>${ids.map((id) => {
     const p = powerById(state.powers[id].current);
     return `<label class="toggle"><input type="radio" name="keep-power" value="${id}" ${id === first ? 'checked' : ''}>
       <b>${BOSSES[id].name}</b> : ${p ? `${p.name} (${effectText(p.effects)})` : '—'}</label>`;
@@ -292,7 +292,7 @@ export class UI {
   // v8.5 : annonce du nouvel arbre (fragments de l'ancien rendus).
   showTreeNotice(refund) {
     this.openModal(`<h2>🌳 Un arbre mastodonte (v8.5)</h2>
-      <p>L'arbre de talents passe de 25 à plus de 500 talents : 6 régions autour du Cœur du chevalier, des branches
+      <p>L'arbre de talents passe de 25 à plus de 500 talents : 6 régions autour du Cœur, des branches
         qui se divisent et se rejoignent, des ponts entre régions, des notables et des clés de voûte.</p>
       <p>Vos anciens talents ont été remboursés : <b class="gold-text">+${formatNumber(refund)} fragments anciens</b>. Replantez-les où vous voulez !</p>
       <div class="detail-actions"><button class="btn btn-gold" data-action="open-tab" data-value="tree">Voir l'arbre</button></div>`);
@@ -940,7 +940,7 @@ export class UI {
         break;
       case 'powerUnlocked': {
         const power = powerById(event.powerId);
-        this.banner(`Pouvoir ancestral : ${power.name}`, 'win');
+        this.banner(`Pouvoir : ${power.name}`, 'win');
         this.news(`${BOSSES[event.bossId].name} : ${power.name} (${effectText(power.effects)}) · +${BALANCE.summon.firstBossGems} gemmes`, '#e8b64a');
         this.newTabs.add('boss');
         if (this.tab === 'boss') this.invalidate();
@@ -1019,15 +1019,15 @@ export class UI {
         this.invalidate();
         break;
       case 'dungeonFailed':
-        this.banner('Expédition échouée', 'lose');
+        this.banner('Tentative échouée', 'lose');
         this.news(`Défaite ${event.bossHpPct !== null && event.bossHpPct !== undefined ? `face au boss final (encore ${formatNumber(event.bossHpPct)} % de PV)` : `en salle ${event.room}`}. Conservé : ${rewardText(event.earned, formatNumber) || 'rien'} — détails dans l'onglet Donjons.`);
         this.invalidate();
         break;
       case 'heroDeath':
         this.banner(`Vaincu… retour à l'étape ${stageLabel(event.to)}`, 'lose');
-        this.news(state?.autoAdvance === false ? 'Mode farm : améliorez le chevalier puis appuyez sur « Avancer ».'
-          : event.boss ? 'Le chevalier refarme l\'étape précédente et retentera le boss quand il sera 15 % plus fort (ou « Retenter le boss »).'
-            : 'Le chevalier refait l\'étape précédente puis retente automatiquement.');
+        this.news(state?.autoAdvance === false ? 'Le héros reste sur l\'étape : améliorez-le puis appuyez sur « Avancer ».'
+          : event.boss ? 'Normal : le héros s\'entraîne à l\'étape d\'avant et retentera le boss quand il sera 15 % plus fort. Pour aller plus vite : améliorez vos dégâts.'
+            : 'Le héros refait l\'étape précédente puis retente automatiquement.', null, 2);
         if (this.tab === 'campaign') this.invalidate();
         break;
       default:
@@ -1638,7 +1638,7 @@ export class UI {
       ${keepResetLists()}
       ${powerChoice(state)}
       <p><b class="good">Après cette Renaissance : dégâts, PV et or ×${(PRESTIGE.rebirthMultiplier ** rebirthGain(state)).toFixed(2).replace('.', ',')} pour toujours</b> (cumulatif).</p>
-      ${rebirthGain(state) < 1 ? `<p class="muted">Une Renaissance ne vaut pleinement ×${String(PRESTIGE.rebirthMultiplier).replace('.', ',')} qu'à partir de l'étape ${REBIRTH.fullPowerStage + 1} ; plus tôt, au prorata de votre étape maximale.</p>` : ''}
+      ${rebirthGain(state) < 1 ? `<p class="muted">Une Renaissance ne vaut pleinement ×${String(PRESTIGE.rebirthMultiplier).replace('.', ',')} qu'à partir de l'étape ${stageLabel(REBIRTH.fullPowerStage + 1)} ; plus tôt, au prorata de votre étape maximale.</p>` : ''}
       <p class="muted">Les boss ne se renforcent que de ${BALANCE.stages.rebirthBossPct} % par Renaissance, et leurs récompenses augmentent.</p>
       <div class="detail-actions">
         <button class="btn" data-action="close-modal">Annuler</button>

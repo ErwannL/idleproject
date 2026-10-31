@@ -58,7 +58,7 @@ export default {
         : `<div class="team-slot empty" title="${kind === 'ally' ? 'Place de compagnon' : 'Place de familier'}">${kind === 'ally' ? 'Compagnon' : 'Familier'}</div>`;
     };
     const team = `<div class="team-bar">
-      <div class="team-slot hero" title="Le chevalier (toujours présent)">${animCanvas('hero', 64, 58, 1)}</div>
+      <div class="team-slot hero" title="Le héros (toujours présent)">${animCanvas('hero', 64, 58, 1)}</div>
       ${Array.from({ length: BALANCE.teamSlots.ally }, (_, i) => slot('ally', i)).join('')}
       <span class="team-sep"></span>${Array.from({ length: BALANCE.teamSlots.pet }, (_, i) => slot('pet', i)).join('')}
     </div>`;

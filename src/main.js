@@ -266,7 +266,7 @@ const actions = {
     state.autoAdvance = false;
     state.farmBoss = bossId;
     changeStage(state, world, stage);
-    done(true, `${BOSSES[bossId].name} : le chevalier l'affronte en boucle (mode farm) — bouton « Arrêter » sur la scène pour reprendre`);
+    done(true, `${BOSSES[bossId].name} : le héros l'affronte en boucle — bouton « Arrêter » sur la scène pour reprendre`);
   },
   // v9.0.4 : fin du combat en boucle lancé depuis le Codex : retour à l'étape max, avance auto.
   stopFarmBoss() {
@@ -280,7 +280,7 @@ const actions = {
     resetWave(world);
     const d = dungeonById(id);
     placeTransition(`Donjon · ${DUNGEON_DIFFICULTIES[difficulty]?.label ?? ''}`, d.name, d.description, ZONES[d.zone]?.id);
-    done(true, 'Expédition lancée');
+    done(true, 'Tentative lancée');
   },
   abandonDungeon() {
     abandonDungeon(state);
@@ -570,7 +570,7 @@ const actions = {
     if (!r) return;
     state.bossRetry = null;
     changeStage(state, world, r.stage);
-    done(true, 'Le chevalier retente le boss !', '#ffd35a');
+    done(true, 'Le héros retente le boss !', '#ffd35a');
   },
   advance() {
     state.farmBoss = null;
@@ -595,7 +595,7 @@ const actions = {
   },
   // Règles de recyclage automatique : mode, ou bascule d'une rareté / d'un type d'objet.
   setRecycleRule(group, value) {
-    const rules = { ...recycleRules(state) };
+    const rules = { keepAffixes: [], ...recycleRules(state) };
     if (group === 'mode') rules.mode = value;
     else rules[group] = rules[group].includes(value) ? rules[group].filter((v) => v !== value) : [...rules[group], value];
     state.ui.recycle = rules;
@@ -993,8 +993,8 @@ const cinematicsOn = () => state.ui.cinematics !== false && !navigator.webdriver
 setTimeout(() => {
   if (!cinematicsOn()) return;
   const zone = ZONES[currentEncounter(state).zoneIndex];
-  if (loaded.source === 'new') playCinematic({ kicker: 'Une nouvelle légende', title: 'Idle RPG', line: 'Un chevalier, une épée, et onze mondes à libérer.' });
-  else playCinematic({ kicker: 'Bon retour, chevalier', title: zone.name, line: `Étape ${stageLabel(state.stage)} — la bataille continue.`, zone: zone.id });
+  if (loaded.source === 'new') playCinematic({ kicker: 'Une nouvelle légende', title: 'Idle RPG', line: 'Un héros, une épée, et onze mondes à libérer.' });
+  else playCinematic({ kicker: 'Bon retour', title: zone.name, line: `Étape ${stageLabel(state.stage)} — la bataille continue.`, zone: zone.id });
 }, 600);
 // v8.4 : sauvegarde d'avant le nouvel équilibrage → or des améliorations remboursé, on l'annonce.
 // v8.5 : nouvel arbre de talents → fragments de l'ancien rendus, on l'annonce.

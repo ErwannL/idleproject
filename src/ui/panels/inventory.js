@@ -5,7 +5,7 @@ import { BOSSES } from '../../data/enemies.js';
 import { ACCESSORY_SLOTS, GEAR_SLOTS, RARITIES, SLOTS, STAT_LABELS } from '../../data/items.js';
 import { formatStat } from '../../core/format.js';
 import { canReforge, craftCost, fusionGroups, maxUpgrades, sharpenCost, upgradeCost } from '../../core/forge.js';
-import { bulkRecycleCandidates, isUpgrade, listInventory, RECYCLE_MODES, recycleRules } from '../../core/inventory.js';
+import { KEEP_AFFIX_LABELS, bulkRecycleCandidates, isUpgrade, listInventory, RECYCLE_MODES, recycleRules } from '../../core/inventory.js';
 import { itemBase, rarityById, recycleMaterials, recycleValue } from '../../core/loot.js';
 import { computeHeroStats, statsWithItem } from '../../core/stats.js';
 import { slotIconName } from '../../render/pixel.js';
@@ -340,7 +340,8 @@ function recycleRuleEditor(state) {
     <label class="inv-rule"><span>Recyclage auto :</span>
       <select data-action="recycle-mode" aria-label="Recyclage automatique">${Object.entries(RECYCLE_MODES)
         .map(([v, l]) => `<option value="${v}" ${v === rules.mode ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
-    ${rules.mode === 'off' ? '' : `<div class="chip-row">${rarities}</div><div class="chip-row">${slots}</div>`}
+    ${rules.mode === 'off' ? '' : `<div class="chip-row">${rarities}</div><div class="chip-row">${slots}</div>
+      <div class="section-title">Garder si l'objet a…</div><div class="chip-row">${Object.entries(KEEP_AFFIX_LABELS).map(([k, l]) => chip('keepAffixes', k, l, (rules.keepAffixes ?? []).includes(k))).join('')}</div>`}
     <label class="inv-rule" title="Une pièce d'ensemble est gardée dès que vous en avez 2 emplacements différents (la meilleure par emplacement).">
       <span>Ensembles :</span><button class="btn chip-btn small${state.ui.keepSets !== false ? ' active' : ''}" data-action="keep-sets">${state.ui.keepSets !== false ? 'Garder les pièces utiles' : 'Recycler comme le reste'}</button></label>
     ${autoFuseEditor(state)}

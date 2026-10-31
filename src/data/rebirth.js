@@ -18,12 +18,12 @@ export const REBIRTH = {
 export const REBIRTH_RESETS = [
   'Étapes et progression de campagne', 'Or courant', 'Améliorations (Dégâts, Vitesse, Vitalité)',
   'Niveau du héros et compétences', 'Niveau des compagnons et familiers (retour au niveau 1)',
-  'Pouvoirs ancestraux : un seul est conservé',
+  'Pouvoirs : un seul est conservé',
 ];
 export const REBIRTH_KEEPS = [
   'Équipement porté, sac et matériaux',
   'Compagnons et familiers (étoiles conservées), gemmes et tickets',
-  'Le pouvoir ancestral choisi, Codex',
+  'Le pouvoir choisi, Codex',
   'Talents et fragments anciens',
   'Statistiques et exploits',
 ];

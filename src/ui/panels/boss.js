@@ -108,12 +108,12 @@ function bossDetail(ui, state, bossId) {
       <div class="boss-big">${entry ? portrait(bossId, true, 2) : `<img class="px" src="${portrait(bossId, false)}" alt="">`}</div>
       <div class="grow"><div class="row"><span class="boss-title">${entry ? escapeHtml(boss.name) : '???'}</span><span class="badge-ancestral">Boss ancestral</span></div>
         <div class="muted">📍 ${escapeHtml(where)}</div>
-        <p class="lore">${entry ? escapeHtml(BOSS_LORE[bossId] ?? '') : 'Vainquez ce boss pour découvrir son histoire et son pouvoir ancestral.'}</p>
+        <p class="lore">${entry ? escapeHtml(BOSS_LORE[bossId] ?? '') : 'Vainquez ce boss pour découvrir son histoire et son pouvoir.'}</p>
         ${bossTrait(bossId) ? `<div class="trait-box" style="--trait:${bossTrait(bossId).color}"><b>${escapeHtml(bossTrait(bossId).name)}</b> : ${escapeHtml(bossTrait(bossId).text)}. <span class="muted">Contre : ${escapeHtml(bossTrait(bossId).counter)}</span></div>` : ''}</div>
     </div>`;
   if (!entry) {
-    return `${header}<div class="power-box unknown"><div class="section-title">Pouvoir ancestral</div><div class="power-name">À découvrir</div>
-        <div class="muted">Vainquez ce boss pour obtenir un pouvoir ancestral unique.</div></div>
+    return `${header}<div class="power-box unknown"><div class="section-title">Pouvoir</div><div class="power-name">À découvrir</div>
+        <div class="muted">Vainquez ce boss pour obtenir un pouvoir unique.</div></div>
       ${rechallengeButton(state, bossId, '⚔ Combattre ce boss')}
       <div class="card-sub"><div class="section-title">Récompenses possibles</div><div class="reward-row">${rewards}</div></div>`;
   }
@@ -123,20 +123,20 @@ function bossDetail(ui, state, bossId) {
   const cost = rerollCost(state, bossId);
   const charges = entry.charges;
   const offer = entry.pending
-    ? `<div class="power-offer"><div class="offer-cols">${powerBox(current, 'Pouvoir ancestral actuel')}<div class="offer-arrow">»</div>${powerBox(powerById(entry.pending), 'Nouveau pouvoir proposé')}</div>
+    ? `<div class="power-offer"><div class="offer-cols">${powerBox(current, 'Pouvoir actuel')}<div class="offer-arrow">»</div>${powerBox(powerById(entry.pending), 'Nouveau pouvoir proposé')}</div>
       <div class="detail-actions">
         <button class="btn btn-gold" data-action="take-power" data-boss="${bossId}">Prendre le nouveau</button>
         <button class="btn btn-primary" data-action="keep-power" data-boss="${bossId}">Conserver le pouvoir actuel</button></div></div>`
-    : `${powerBox(current, 'Pouvoir ancestral actuel')}
+    : `${powerBox(current, 'Pouvoir actuel')}
       <div class="detail-actions">
         <button class="btn btn-gold num" data-action="reroll" data-boss="${bossId}" data-cost="${cost}" data-needs-charge="${charges}"
           ${state.gold < cost || charges < 1 ? 'disabled' : ''}
-          title="${charges < 1 ? 'Réaffrontez ce boss pour gagner une charge de relance' : 'Propose un autre pouvoir ; vous choisirez ensuite'}">Relancer ${coin()} ${formatNumber(cost)}</button>
+>Changer le pouvoir ${coin()} ${formatNumber(cost)}</button>
         ${rechallengeButton(state, bossId, '⚔ Réaffronter')}
         <button class="btn small${active ? ' btn-primary' : ''}" data-action="toggle-power" data-boss="${bossId}">${active ? 'Actif ✓' : 'Activer'}</button>
       </div>
-      <div class="muted pity">Charges de relance : <b class="${charges ? 'good' : 'bad'}">${charges}/${POWER_RULES.maxCharges}</b> (1 par nouvelle victoire)
-        · ${pity === 0 ? 'prochaine relance Épique+ garantie' : `Épique+ garanti dans ${pity} relance${pity > 1 ? 's' : ''}`}</div>`;
+      <div class="muted pity">Charges de changement : <b class="${charges ? 'good' : 'bad'}">${charges}/${POWER_RULES.maxCharges}</b> (1 par nouvelle victoire)
+        · ${pity === 0 ? 'prochain changement Épique+ garanti' : `Épique+ garanti dans ${pity} changement${pity > 1 ? 's' : ''}`}</div>`;
   // Piste de maîtrise : paliers de victoires et leurs récompenses.
   const tiers = BALANCE.mastery;
   const last = tiers[tiers.length - 1].victories;

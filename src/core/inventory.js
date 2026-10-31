@@ -59,8 +59,15 @@ export function recycleRules(state) {
   return { mode: 'pickup', rarities: legacy === 'rare' ? ['common', 'rare'] : ['common'], slots: Object.keys(SLOTS) };
 }
 
+// v9.1.0 : filtres enregistrés « garder si… » : un objet qui porte l'un de ces effets n'est jamais recyclé automatiquement.
+export const KEEP_AFFIX_LABELS = {
+  critChance: 'Coup critique', lifesteal: 'Vol de vie', thorns: 'Épines', goldPct: 'Or', damageVsBossPct: 'Dégâts contre les boss',
+  damageVsNormalPct: 'Dégâts contre les ennemis', regenPct: 'Régénération', dropChance: 'Chance de butin',
+};
+
 export function matchesRecycleRule(state, item, rules = recycleRules(state)) {
   if (item.locked || itemBase(item.baseId).signature) return false;
+  if ((rules.keepAffixes ?? []).length && (item.affixes ?? []).some((a) => rules.keepAffixes.includes(a.type))) return false;
   if (usefulSetPiece(state, item, itemPower)) return false; // v8.5 : pièce d'un ensemble en cours de collecte
   if (!rules.rarities.includes(item.rarity) || !rules.slots.includes(item.slot)) return false;
   return !isUpgrade(state, item);

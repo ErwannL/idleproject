@@ -7,6 +7,8 @@
 // - translate() ajoute des règles génériques : listes « a · b », « libellé : valeur », parenthèses,
 //   symboles en tête ou en fin (✦, ▶, !, ✓…) et nombres seuls.
 
+import { EXACT_910, PATTERNS_910, setTranslator } from './en-910.js';
+
 // --- Dictionnaire exact ---------------------------------------------------------------------------
 
 export const EXACT = {
@@ -1136,10 +1138,10 @@ export const EXACT = {
   "Améliorations (Dégâts, Vitesse, Vitalité)": "Upgrades (Damage, Speed, Vitality)",
   "Niveau du héros et compétences": "Hero level and skills",
   "Niveau des compagnons et familiers (retour au niveau 1)": "Companion and pet levels (back to level 1)",
-  "Pouvoirs ancestraux : un seul est conservé": "Ancestral powers: only one is kept",
+  "Pouvoirs : un seul est conservé": "Powers: only one is kept",
   "Équipement porté, sac et matériaux": "Equipped gear, bag and materials",
   "Compagnons et familiers (étoiles conservées), gemmes et tickets": "Companions and pets (stars kept), gems and tickets",
-  "Le pouvoir ancestral choisi, Codex": "The chosen ancestral power, Codex",
+  "Le pouvoir choisi, Codex": "The chosen power, Codex",
   "Talents et fragments anciens": "Talents and ancient fragments",
   "Statistiques et exploits": "Stats and achievements",
   "Tout ce que réinitialise la Renaissance (niveaux, pouvoirs sauf un…)": "Everything Rebirth resets (levels, powers except one…)",
@@ -2057,6 +2059,11 @@ export function lookup(s, depth = 0) {
 }
 
 // Traduit une chaîne (espaces internes normalisés) ; renvoie l'original si aucune règle ne s'applique.
+// v9.1.0 : textes de la grosse mise à jour (fichier à part, ajouté ici).
+Object.assign(EXACT, EXACT_910);
+PATTERNS.unshift(...PATTERNS_910);
+setTranslator((s) => translate(s));
+
 export function translate(text) {
   const s = String(text ?? '').replace(/\s+/g, ' ').trim();
   if (!s) return String(text ?? '');
