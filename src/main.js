@@ -956,9 +956,12 @@ async function cloudSync(manual = false, preferRemote = false) {
       setCloudMessage('Session expirée : reconnectez-vous.', true);
     } else {
       // 404 sur /api/guest : serveur pas encore en 9.1.1 (pas de compte automatique) ; il reste la création de compte.
-      setCloudMessage(err instanceof CloudError && err.status === 404
+      // Serveur joint mais requête refusée (sauvegarde refusée, 409…) : afficher sa raison, pas « injoignable ».
+      const reached = err instanceof CloudError && err.status !== 0;
+      setCloudMessage(reached && err.status === 404
         ? 'Compte automatique indisponible sur ce serveur : créez un compte joueur ci-dessous. La partie est sauvegardée sur cet appareil.'
-        : 'Serveur injoignable : la partie est sauvegardée sur cet appareil.', true);
+        : reached ? `${err.message}. La partie est sauvegardée sur cet appareil.`
+          : 'Serveur injoignable : la partie est sauvegardée sur cet appareil.', true);
     }
   }
 }

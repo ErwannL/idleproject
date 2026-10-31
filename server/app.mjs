@@ -91,7 +91,8 @@ export function checkSave(parsed, summary, current) {
 }
 
 // Bornes du jeu (version publique). À garder alignées sur src/data/balance.js (level.maxLevel).
-const LIMITS_GAME = { maxLevel: 1000, maxStage: 2000, maxCurrency: 1e15 };
+// L'or et les gemmes n'ont pas de plafond dans le jeu (croissance exponentielle d'un idle) : seulement fini et positif.
+const LIMITS_GAME = { maxLevel: 1000, maxStage: 2000, maxCurrency: Number.MAX_VALUE };
 
 export class HttpError extends Error {
   constructor(status, message, extra = {}) {

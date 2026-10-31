@@ -5,7 +5,7 @@ import { createServer } from 'node:http';
 import { mkdtempSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createApp, hashPassword, LIMITS } from '../server/app.mjs';
+import { checkSave, createApp, hashPassword, LIMITS, summarizeSave } from '../server/app.mjs';
 import { openDatabase } from '../server/db.mjs';
 
 async function setup(extra = {}) {
@@ -437,4 +437,11 @@ test('plateforme et version transmises avec la sauvegarde (sans en-tête personn
   await call(base, 'PUT', '/api/save', { version: 0, data: SAVE(2, 2, 1), platform: 'android', gameVersion: '9.1.1' }, reg.body.token);
   const row = s.db.prepare('SELECT platform, game_version FROM accounts WHERE pseudo = ?').get('Ancien');
   assert.deepEqual({ ...row }, { platform: 'android', game_version: '9.1.1' });
+});
+
+test("anti-triche : l'or d'un idle n'a pas de plafond (refusé à tort au-delà de 1e15 en 9.1.2)", () => {
+  const save = { level: 37, maxStage: 48, gold: 4.2e31, gems: 1e18 };
+  assert.equal(checkSave(save, summarizeSave(save), null), null);
+  const bad = { level: 37, maxStage: 48, gold: Infinity };
+  assert.match(checkSave(bad, summarizeSave({ ...bad, gold: -1 }), null), /or impossible/);
 });
