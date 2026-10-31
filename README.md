@@ -317,3 +317,19 @@ Voir [`.env.example`](.env.example). Aucun secret n'est nécessaire pour le mome
 | `POST /api/preregister/remove` | non | retire un email de la liste |
 
 Les journaux ne contiennent ni email, ni mot de passe, ni contenu de sauvegarde.
+
+### Administration
+
+- Panneau : `/admin/` (site). Connexion par mot de passe administrateur ; le jeton reste en mémoire et expire après 12 h.
+- Vue d'ensemble (comptes, joueurs actifs, progression), liste des joueurs (recherche, tri, fiche détaillée, suppression), préinscriptions (liste, retrait, export CSV).
+- Activation : définir `ADMIN_PASSWORD_HASH` dans l'environnement du serveur. Le hash se produit ainsi, sans mot de passe dans l'historique du shell :
+
+```bash
+node tools/hash-password.mjs < fichier-contenant-le-mot-de-passe
+```
+
+Sans cette variable, les routes d'administration répondent 404.
+
+### Compte et synchronisation dans le jeu
+
+Menu Options → « Compte et sauvegarde cloud ». Une fois connecté, la partie se synchronise à l'ouverture, toutes les minutes et à la sortie de l'onglet. Une nouvelle partie jamais jouée ne remplace jamais une sauvegarde cloud.

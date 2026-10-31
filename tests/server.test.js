@@ -5,7 +5,7 @@ import { createServer } from 'node:http';
 import { mkdtempSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createApp, LIMITS } from '../server/app.mjs';
+import { createApp, hashPassword, LIMITS } from '../server/app.mjs';
 import { openDatabase } from '../server/db.mjs';
 
 async function setup(extra = {}) {
@@ -188,4 +188,46 @@ test('fichiers statiques : site, /play, pas de traversée de dossier', async (t)
   assert.match(await (await fetch(base + '/play/')).text(), /jeu/);
   assert.equal((await fetch(base + '/play/..%2F..%2Fetc%2Fpasswd')).status, 403);
   assert.equal((await fetch(base + '/api/inconnue')).status, 404);
+});
+
+test('admin : stats, liste joueurs, suppression, export CSV', async (t) => {
+  const s = await setup({ adminPasswordHash: await hashPassword('mot-de-passe-admin') });
+  t.after(() => s.close());
+  const base = s.url();
+  const { token } = (await call(base, 'POST', '/api/register', { pseudo: 'Alice', password: 'motdepasse1' })).body;
+  await call(base, 'PUT', '/api/save', { version: 0, data: JSON.stringify({ level: 12, maxStage: 30, gold: 500, gems: 3, records: { bossesDefeated: 2 } }) }, token);
+  await call(base, 'POST', '/api/preregister', { email: 'ami@exemple.fr', consent: true });
+
+  assert.equal((await call(base, 'GET', '/api/admin/stats')).status, 401);
+  const bad = await call(base, 'POST', '/api/admin/login', { password: 'nope-nope-nope' });
+  assert.equal(bad.status, 401);
+  const admin = (await call(base, 'POST', '/api/admin/login', { password: 'mot-de-passe-admin' })).body.token;
+  const h = (path, method = 'GET', body) => call(base, method, path, body, admin);
+
+  const stats = (await h('/api/admin/stats')).body;
+  assert.equal(stats.accounts, 1);
+  assert.equal(stats.withSave, 1);
+  assert.equal(stats.maxLevel, 12);
+  assert.equal(stats.preregistrations, 1);
+
+  const list = (await h('/api/admin/players?sort=level')).body;
+  assert.equal(list.total, 1);
+  assert.equal(list.players[0].pseudo, 'Alice');
+  assert.equal(list.players[0].level, 12);
+  assert.equal(list.players[0].bossesDefeated, 2);
+  const id = list.players[0].id;
+  assert.equal((await h(`/api/admin/players/${id}`)).body.progress.heroes, 0);
+
+  const csv = await fetch(`${base}/api/admin/preregistrations.csv`, { headers: { Authorization: `Bearer ${admin}` } });
+  assert.match(await csv.text(), /ami@exemple\.fr/);
+
+  assert.equal((await h(`/api/admin/players/${id}`, 'DELETE')).status, 204);
+  assert.equal((await h('/api/admin/players')).body.total, 0);
+  assert.equal((await call(base, 'GET', '/api/preregister/count')).body.count, 1);
+});
+
+test('admin désactivé sans hash configuré', async (t) => {
+  const s = await setup();
+  t.after(() => s.close());
+  assert.equal((await call(s.url(), 'POST', '/api/admin/login', { password: 'x' })).status, 404);
 });

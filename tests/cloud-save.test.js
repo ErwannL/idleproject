@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createApp } from '../server/app.mjs';
 import { openDatabase } from '../server/db.mjs';
-import { createCloudClient, CloudError, reconcile, syncOnce } from '../src/core/cloud-save.js';
+import { createCloudClient, CloudError, isFreshSave, reconcile, syncOnce } from '../src/core/cloud-save.js';
 import { SAVE_KEY } from '../src/core/save.js';
 
 function memoryStorage() {
@@ -31,8 +31,8 @@ async function startApi(t) {
 }
 
 test('reconcile : la partie la plus récente gagne', () => {
-  const old = JSON.stringify({ lastSaved: 100 });
-  const recent = JSON.stringify({ lastSaved: 200 });
+  const old = JSON.stringify({ lastSaved: 100, kills: 5, maxStage: 3 });
+  const recent = JSON.stringify({ lastSaved: 200, kills: 9, maxStage: 4 });
   assert.equal(reconcile(null, null), 'none');
   assert.equal(reconcile(old, null), 'push');
   assert.equal(reconcile(null, recent), 'pull');
@@ -61,6 +61,14 @@ test('cycle complet : compte, push depuis un appareil, pull sur un autre', async
   const second = await syncOnce({ client: clientB, storage: deviceB });
   assert.equal(second.action, 'pull');
   assert.equal(deviceB.getItem(SAVE_KEY), JSON.stringify({ lastSaved: 500, gold: 42 }));
+});
+
+test('une nouvelle partie locale ne remplace jamais la sauvegarde cloud', () => {
+  const fresh = JSON.stringify({ lastSaved: 900, stage: 1, maxStage: 1, level: 1, kills: 0 });
+  const cloud = JSON.stringify({ lastSaved: 100, maxStage: 20, level: 8, kills: 300 });
+  assert.equal(isFreshSave(fresh), true);
+  assert.equal(isFreshSave(cloud), false);
+  assert.equal(reconcile(fresh, cloud), 'pull');
 });
 
 test('hors ligne : erreur réseau explicite, sauvegarde locale intacte', async () => {

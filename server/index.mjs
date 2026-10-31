@@ -14,10 +14,11 @@ export function startServer({
   siteDir = process.env.SITE_DIR || resolve(ROOT, 'site'),
   webDir = process.env.WEB_DIR || resolve(ROOT, 'dist', 'web'),
   trustProxy = process.env.TRUST_PROXY === '1',
+  adminPasswordHash = process.env.ADMIN_PASSWORD_HASH || '',
 } = {}) {
   const db = openDatabase(dbFile);
   const log = (line) => console.log(`${new Date().toISOString()} ${line}`);
-  const server = createServer(createApp({ db, siteDir, webDir, trustProxy, log }));
+  const server = createServer(createApp({ db, siteDir, webDir, trustProxy, adminPasswordHash, log }));
   server.listen(port, host, () => log(`écoute sur ${host}:${port}`));
   const close = () => {
     server.close(() => {

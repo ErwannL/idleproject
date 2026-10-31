@@ -1,4 +1,4 @@
-// API de sauvegarde cloud et de préinscription, plus service des pages statiques.
+// API de sauvegarde cloud, comptes, préinscription et administration ; service des pages statiques.
 // Aucune dépendance : node:http, node:crypto, node:sqlite.
 // Ne jamais journaliser de corps de requête, d'email, de mot de passe ni de jeton.
 import { randomBytes, createHash, scrypt as scryptCb, timingSafeEqual } from 'node:crypto';
@@ -13,6 +13,7 @@ export const LIMITS = {
   jsonBody: 4 * 1024,
   saveBody: 2 * 1024 * 1024,
   sessionMs: 30 * 24 * 3600 * 1000,
+  adminSessionMs: 12 * 3600 * 1000,
   authAttempts: { max: 10, windowMs: 15 * 60 * 1000 },
   preregAttempts: { max: 20, windowMs: 60 * 60 * 1000 },
 };
@@ -34,6 +35,7 @@ const TYPES = {
 
 const PSEUDO_RE = /^[A-Za-z0-9_-]{3,20}$/;
 const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,24}$/;
+const SCRYPT_PARAMS = { N: 16384, r: 8, p: 1 };
 
 export class HttpError extends Error {
   constructor(status, message, extra = {}) {
@@ -47,21 +49,21 @@ export function hashToken(token) {
   return createHash('sha256').update(token).digest('hex');
 }
 
-async function hashPassword(password) {
+export async function hashPassword(password) {
   const salt = randomBytes(16);
-  const key = await scrypt(password, salt, 64, { N: 16384, r: 8, p: 1 });
-  return `scrypt$16384$${salt.toString('base64')}$${key.toString('base64')}`;
+  const key = await scrypt(password, salt, 64, SCRYPT_PARAMS);
+  return `scrypt$${SCRYPT_PARAMS.N}$${salt.toString('base64')}$${key.toString('base64')}`;
 }
 
-async function verifyPassword(password, stored) {
-  const [scheme, , saltB64, keyB64] = stored.split('$');
-  if (scheme !== 'scrypt') return false;
+export async function verifyPassword(password, stored) {
+  const [scheme, , saltB64, keyB64] = (stored ?? '').split('$');
+  if (scheme !== 'scrypt' || !saltB64 || !keyB64) return false;
   const expected = Buffer.from(keyB64, 'base64');
-  const key = await scrypt(password, Buffer.from(saltB64, 'base64'), expected.length, { N: 16384, r: 8, p: 1 });
+  const key = await scrypt(password, Buffer.from(saltB64, 'base64'), expected.length, SCRYPT_PARAMS);
   return key.length === expected.length && timingSafeEqual(key, expected);
 }
 
-// Limiteur simple en mémoire par IP et par route (suffisant pour une seule instance).
+// Limiteur simple en mémoire par clé (IP + route). Suffisant pour une seule instance.
 export function createRateLimiter({ max, windowMs }, now = () => Date.now()) {
   const hits = new Map();
   return (key) => {
@@ -76,6 +78,19 @@ export function createRateLimiter({ max, windowMs }, now = () => Date.now()) {
   };
 }
 
+// Extrait les champs de suivi d'une partie (format du jeu) ; tout champ absent vaut 0.
+export function summarizeSave(parsed) {
+  const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+  return {
+    level: num(parsed.level),
+    maxStage: num(parsed.maxStage),
+    gold: num(parsed.gold),
+    gems: num(parsed.gems),
+    kills: num(parsed.kills),
+    bossesDefeated: num(parsed.records?.bossesDefeated),
+  };
+}
+
 function send(res, status, body, headers = {}) {
   const payload = body === undefined ? '' : JSON.stringify(body);
   res.writeHead(status, {
@@ -85,6 +100,11 @@ function send(res, status, body, headers = {}) {
     ...headers,
   });
   res.end(payload);
+}
+
+function sendText(res, status, text, type, headers = {}) {
+  res.writeHead(status, { 'Content-Type': type, 'Cache-Control': 'no-store', ...headers });
+  res.end(text);
 }
 
 async function readBody(req, limit) {
@@ -118,46 +138,98 @@ function clientIp(req, trustProxy) {
   return req.socket.remoteAddress ?? 'unknown';
 }
 
-export function createApp({ db, siteDir, webDir, trustProxy = false, now = () => Date.now(), log = () => {} }) {
+function bearer(req) {
+  const header = req.headers.authorization ?? '';
+  return header.startsWith('Bearer ') ? header.slice(7) : '';
+}
+
+// Routes : { method, path: RegExp, handler(ctx) } ; ctx = { req, res, params, url }.
+export function createApp({
+  db,
+  siteDir,
+  webDir,
+  adminPasswordHash = '',
+  trustProxy = false,
+  now = () => Date.now(),
+  log = () => {},
+}) {
   const authLimit = createRateLimiter(LIMITS.authAttempts, now);
   const preregLimit = createRateLimiter(LIMITS.preregAttempts, now);
+  const adminTokens = new Map(); // hash du jeton admin -> expiration (en mémoire : perdu au redémarrage)
 
-  const insertSession = db.prepare('INSERT INTO sessions (token_hash, account_id, expires_at) VALUES (?, ?, ?)');
-  const findSession = db.prepare(
-    'SELECT a.id AS id, a.pseudo AS pseudo, a.password_hash AS password_hash FROM sessions s JOIN accounts a ON a.id = s.account_id WHERE s.token_hash = ? AND s.expires_at > ?',
-  );
-  const deleteSession = db.prepare('DELETE FROM sessions WHERE token_hash = ?');
-  const findAccount = db.prepare('SELECT id, pseudo, password_hash FROM accounts WHERE pseudo = ?');
-  const insertAccount = db.prepare('INSERT INTO accounts (pseudo, password_hash, created_at) VALUES (?, ?, ?)');
-  const deleteAccount = db.prepare('DELETE FROM accounts WHERE id = ?');
-  const findSave = db.prepare('SELECT data, version, updated_at FROM saves WHERE account_id = ?');
-  const upsertSave = db.prepare(
-    'INSERT INTO saves (account_id, data, version, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(account_id) DO UPDATE SET data = excluded.data, version = excluded.version, updated_at = excluded.updated_at',
-  );
-  const upsertPrereg = db.prepare(
-    'INSERT INTO preregistrations (email, consent_version, consent_at) VALUES (?, ?, ?) ON CONFLICT(email) DO NOTHING',
-  );
-  const deletePrereg = db.prepare('DELETE FROM preregistrations WHERE email = ?');
+  const q = {
+    insertSession: db.prepare('INSERT INTO sessions (token_hash, account_id, expires_at) VALUES (?, ?, ?)'),
+    findSession: db.prepare(
+      'SELECT a.id AS id, a.pseudo AS pseudo FROM sessions s JOIN accounts a ON a.id = s.account_id WHERE s.token_hash = ? AND s.expires_at > ?',
+    ),
+    deleteSession: db.prepare('DELETE FROM sessions WHERE token_hash = ?'),
+    findAccount: db.prepare('SELECT id, pseudo, password_hash FROM accounts WHERE pseudo = ?'),
+    insertAccount: db.prepare('INSERT INTO accounts (pseudo, password_hash, created_at, last_seen_at) VALUES (?, ?, ?, ?)'),
+    touchAccount: db.prepare('UPDATE accounts SET last_seen_at = ? WHERE id = ?'),
+    deleteAccount: db.prepare('DELETE FROM accounts WHERE id = ?'),
+    findSave: db.prepare('SELECT data, version, updated_at FROM saves WHERE account_id = ?'),
+    upsertSave: db.prepare(`INSERT INTO saves (account_id, data, version, updated_at, level, max_stage, gold, gems, kills, bosses_defeated)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(account_id) DO UPDATE SET data = excluded.data, version = excluded.version, updated_at = excluded.updated_at,
+        level = excluded.level, max_stage = excluded.max_stage, gold = excluded.gold, gems = excluded.gems,
+        kills = excluded.kills, bosses_defeated = excluded.bosses_defeated`),
+    upsertPrereg: db.prepare('INSERT INTO preregistrations (email, consent_version, consent_at) VALUES (?, ?, ?) ON CONFLICT(email) DO NOTHING'),
+    deletePrereg: db.prepare('DELETE FROM preregistrations WHERE email = ?'),
+    countPrereg: db.prepare('SELECT COUNT(*) AS n FROM preregistrations'),
+  };
 
   function authenticate(req) {
-    const header = req.headers.authorization ?? '';
-    const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+    const token = bearer(req);
     if (!token) throw new HttpError(401, 'Connexion requise');
-    const row = findSession.get(hashToken(token), now());
+    const row = q.findSession.get(hashToken(token), now());
     if (!row) throw new HttpError(401, 'Session expirée');
+    q.touchAccount.run(now(), row.id);
     return row;
   }
 
   function issueSession(accountId) {
     const token = randomBytes(32).toString('base64url');
-    insertSession.run(hashToken(token), accountId, now() + LIMITS.sessionMs);
+    q.insertSession.run(hashToken(token), accountId, now() + LIMITS.sessionMs);
     return token;
   }
 
-  const routes = {
-    'POST /api/register': async (req) => {
-      const ip = clientIp(req, trustProxy);
-      if (!authLimit(`register:${ip}`)) throw new HttpError(429, 'Trop de tentatives, réessayez plus tard');
+  function requireAdmin(req) {
+    const token = bearer(req);
+    const expires = token ? adminTokens.get(hashToken(token)) : undefined;
+    if (!expires || expires < now()) throw new HttpError(401, 'Accès administrateur requis');
+  }
+
+  function rateLimit(limiter, key) {
+    if (!limiter(key)) throw new HttpError(429, 'Trop de tentatives, réessayez plus tard');
+  }
+
+  // Liste de joueurs : tri et recherche, pour le panneau admin.
+  const SORTS = {
+    recent: 'COALESCE(a.last_seen_at, a.created_at) DESC',
+    created: 'a.created_at DESC',
+    level: 's.level DESC, s.max_stage DESC',
+    stage: 's.max_stage DESC, s.level DESC',
+    gold: 's.gold DESC',
+  };
+
+  const playerRow = (r) => ({
+    id: r.id,
+    pseudo: r.pseudo,
+    createdAt: r.created_at,
+    lastSeenAt: r.last_seen_at,
+    hasSave: r.version !== null,
+    saveUpdatedAt: r.updated_at ?? null,
+    level: r.level ?? 0,
+    maxStage: r.max_stage ?? 0,
+    gold: r.gold ?? 0,
+    gems: r.gems ?? 0,
+    kills: r.kills ?? 0,
+    bossesDefeated: r.bosses_defeated ?? 0,
+  });
+
+  const routes = [
+    { method: 'POST', path: /^\/api\/register$/, handler: async ({ req }) => {
+      rateLimit(authLimit, `register:${clientIp(req, trustProxy)}`);
       const { pseudo, password } = await readJson(req);
       if (typeof pseudo !== 'string' || !PSEUDO_RE.test(pseudo)) {
         throw new HttpError(400, 'Pseudo : 3 à 20 caractères (lettres, chiffres, _ ou -)');
@@ -165,48 +237,39 @@ export function createApp({ db, siteDir, webDir, trustProxy = false, now = () =>
       if (typeof password !== 'string' || password.length < 8 || password.length > 200) {
         throw new HttpError(400, 'Mot de passe : 8 caractères minimum');
       }
-      if (findAccount.get(pseudo)) throw new HttpError(409, 'Ce pseudo est déjà pris');
-      const info = insertAccount.run(pseudo, await hashPassword(password), now());
-      const token = issueSession(Number(info.lastInsertRowid));
-      return { status: 201, body: { token, pseudo } };
-    },
+      if (q.findAccount.get(pseudo)) throw new HttpError(409, 'Ce pseudo est déjà pris');
+      const info = q.insertAccount.run(pseudo, await hashPassword(password), now(), now());
+      return { status: 201, body: { token: issueSession(Number(info.lastInsertRowid)), pseudo } };
+    } },
 
-    'POST /api/login': async (req) => {
-      const ip = clientIp(req, trustProxy);
-      if (!authLimit(`login:${ip}`)) throw new HttpError(429, 'Trop de tentatives, réessayez plus tard');
+    { method: 'POST', path: /^\/api\/login$/, handler: async ({ req }) => {
+      rateLimit(authLimit, `login:${clientIp(req, trustProxy)}`);
       const { pseudo, password } = await readJson(req);
-      const account = typeof pseudo === 'string' ? findAccount.get(pseudo) : undefined;
-      const ok = typeof password === 'string' && account
-        ? await verifyPassword(password, account.password_hash)
-        : false;
+      const account = typeof pseudo === 'string' ? q.findAccount.get(pseudo) : undefined;
+      const ok = typeof password === 'string' && account ? await verifyPassword(password, account.password_hash) : false;
       if (!ok) throw new HttpError(401, 'Pseudo ou mot de passe incorrect');
+      q.touchAccount.run(now(), account.id);
       return { body: { token: issueSession(account.id), pseudo: account.pseudo } };
-    },
+    } },
 
-    'POST /api/logout': (req) => {
-      const token = (req.headers.authorization ?? '').slice(7);
-      if (token) deleteSession.run(hashToken(token));
+    { method: 'POST', path: /^\/api\/logout$/, handler: ({ req }) => {
+      const token = bearer(req);
+      if (token) q.deleteSession.run(hashToken(token));
       return { status: 204 };
-    },
+    } },
 
-    'GET /api/save': (req) => {
+    { method: 'GET', path: /^\/api\/save$/, handler: ({ req }) => {
       const account = authenticate(req);
-      const row = findSave.get(account.id);
+      const row = q.findSave.get(account.id);
       if (!row) return { body: { data: null, version: 0 } };
       return { body: { data: row.data, version: row.version, updatedAt: row.updated_at } };
-    },
+    } },
 
-    // Corps : { version, data } où data est la chaîne JSON de la partie.
-    // version = version connue du client ; refus 409 si la sauvegarde a changé entre-temps.
-    'PUT /api/save': async (req) => {
+    // Corps : { version, data } ; data = chaîne JSON de la partie. 409 si la version serveur a changé.
+    { method: 'PUT', path: /^\/api\/save$/, handler: async ({ req }) => {
       const account = authenticate(req);
       const { version, data } = await readJson(req, LIMITS.saveBody);
       if (typeof data !== 'string' || data.length === 0) throw new HttpError(400, 'Sauvegarde manquante');
-      const current = findSave.get(account.id);
-      const currentVersion = current?.version ?? 0;
-      if (version !== currentVersion) {
-        throw new HttpError(409, 'Sauvegarde plus récente sur le serveur', { version: currentVersion });
-      }
       let parsed;
       try {
         parsed = JSON.parse(data);
@@ -214,51 +277,162 @@ export function createApp({ db, siteDir, webDir, trustProxy = false, now = () =>
         throw new HttpError(400, 'Sauvegarde invalide');
       }
       if (!parsed || typeof parsed !== 'object') throw new HttpError(400, 'Sauvegarde invalide');
+      const current = q.findSave.get(account.id);
+      const currentVersion = current?.version ?? 0;
+      if (version !== currentVersion) {
+        throw new HttpError(409, 'Sauvegarde plus récente sur le serveur', { version: currentVersion });
+      }
       const next = currentVersion + 1;
-      upsertSave.run(account.id, data, next, now());
+      const s = summarizeSave(parsed);
+      q.upsertSave.run(account.id, data, next, now(), s.level, s.maxStage, s.gold, s.gems, s.kills, s.bossesDefeated);
       return { body: { version: next } };
-    },
+    } },
 
-    // Suppression du compte et de toutes ses données (RGPD, droit à l'effacement).
-    // Exige le mot de passe pour éviter une suppression par un tiers avec un jeton volé.
-    'DELETE /api/account': async (req) => {
+    // Suppression du compte et de toutes ses données (RGPD). Mot de passe requis.
+    { method: 'DELETE', path: /^\/api\/account$/, handler: async ({ req }) => {
       const account = authenticate(req);
       const { password } = await readJson(req);
-      const full = findAccount.get(account.pseudo);
+      const full = q.findAccount.get(account.pseudo);
       if (typeof password !== 'string' || !full || !(await verifyPassword(password, full.password_hash))) {
         throw new HttpError(401, 'Mot de passe incorrect');
       }
-      deleteAccount.run(account.id);
+      q.deleteAccount.run(account.id);
       return { status: 204 };
-    },
+    } },
 
-    // Préinscription : consentement explicite requis. Réponse identique, que l'email existe ou non.
-    'POST /api/preregister': async (req) => {
-      const ip = clientIp(req, trustProxy);
-      if (!preregLimit(`prereg:${ip}`)) throw new HttpError(429, 'Trop de tentatives, réessayez plus tard');
+    { method: 'POST', path: /^\/api\/preregister$/, handler: async ({ req }) => {
+      rateLimit(preregLimit, `prereg:${clientIp(req, trustProxy)}`);
       const { email, consent } = await readJson(req);
       if (typeof email !== 'string' || email.length > 254 || !EMAIL_RE.test(email.trim())) {
         throw new HttpError(400, 'Adresse email invalide');
       }
       if (consent !== true) throw new HttpError(400, 'Le consentement est requis');
-      upsertPrereg.run(email.trim().toLowerCase(), CONSENT_VERSION, now());
+      q.upsertPrereg.run(email.trim().toLowerCase(), CONSENT_VERSION, now());
       return { status: 202, body: { ok: true } };
-    },
+    } },
 
-    // Retrait de la liste de préinscription. Réponse identique, que l'email existe ou non.
-    'POST /api/preregister/remove': async (req) => {
-      const ip = clientIp(req, trustProxy);
-      if (!preregLimit(`prereg:${ip}`)) throw new HttpError(429, 'Trop de tentatives, réessayez plus tard');
+    { method: 'POST', path: /^\/api\/preregister\/remove$/, handler: async ({ req }) => {
+      rateLimit(preregLimit, `prereg:${clientIp(req, trustProxy)}`);
       const { email } = await readJson(req);
-      if (typeof email === 'string') deletePrereg.run(email.trim().toLowerCase());
+      if (typeof email === 'string') q.deletePrereg.run(email.trim().toLowerCase());
       return { status: 202, body: { ok: true } };
-    },
+    } },
 
-    'GET /api/health': () => ({ body: { ok: true } }),
-  };
+    // Compteur public (agrégé) pour la barre de progression de la page d'accueil.
+    { method: 'GET', path: /^\/api\/preregister\/count$/, handler: () => ({ body: { count: q.countPrereg.get().n } }) },
+
+    { method: 'GET', path: /^\/api\/health$/, handler: () => ({ body: { ok: true } }) },
+
+    // ---- Administration ----
+    { method: 'POST', path: /^\/api\/admin\/login$/, handler: async ({ req }) => {
+      if (!adminPasswordHash) throw new HttpError(404, 'Route inconnue');
+      rateLimit(authLimit, `admin:${clientIp(req, trustProxy)}`);
+      const { password } = await readJson(req);
+      if (typeof password !== 'string' || !(await verifyPassword(password, adminPasswordHash))) {
+        throw new HttpError(401, 'Mot de passe incorrect');
+      }
+      const token = randomBytes(32).toString('base64url');
+      adminTokens.set(hashToken(token), now() + LIMITS.adminSessionMs);
+      return { body: { token } };
+    } },
+
+    { method: 'GET', path: /^\/api\/admin\/stats$/, handler: ({ req }) => {
+      requireAdmin(req);
+      const t = now();
+      const day = 24 * 3600 * 1000;
+      const row = db.prepare(`SELECT
+          (SELECT COUNT(*) FROM accounts) AS accounts,
+          (SELECT COUNT(*) FROM accounts WHERE last_seen_at > ?) AS active24h,
+          (SELECT COUNT(*) FROM accounts WHERE last_seen_at > ?) AS active7d,
+          (SELECT COUNT(*) FROM accounts WHERE created_at > ?) AS new7d,
+          (SELECT COUNT(*) FROM saves) AS withSave,
+          (SELECT COUNT(*) FROM preregistrations) AS preregistrations,
+          (SELECT COUNT(*) FROM preregistrations WHERE consent_at > ?) AS preregistrations7d,
+          (SELECT COALESCE(MAX(level), 0) FROM saves) AS maxLevel,
+          (SELECT COALESCE(MAX(max_stage), 0) FROM saves) AS maxStage,
+          (SELECT COALESCE(AVG(level), 0) FROM saves) AS avgLevel,
+          (SELECT COALESCE(AVG(max_stage), 0) FROM saves) AS avgStage`).get(t - day, t - 7 * day, t - 7 * day, t - 7 * day);
+      const bySize = db.prepare(`SELECT
+          SUM(CASE WHEN max_stage >= 10 THEN 1 ELSE 0 END) AS atStage10,
+          SUM(CASE WHEN max_stage >= 25 THEN 1 ELSE 0 END) AS atStage25,
+          SUM(CASE WHEN max_stage >= 50 THEN 1 ELSE 0 END) AS atStage50,
+          SUM(CASE WHEN bosses_defeated >= 1 THEN 1 ELSE 0 END) AS withBoss
+        FROM saves`).get();
+      return { body: { ...row, ...bySize, now: t } };
+    } },
+
+    { method: 'GET', path: /^\/api\/admin\/players$/, handler: ({ req, url }) => {
+      requireAdmin(req);
+      const sort = SORTS[url.searchParams.get('sort')] ? url.searchParams.get('sort') : 'recent';
+      const search = (url.searchParams.get('q') ?? '').slice(0, 20).replace(/[%_]/g, '');
+      const limit = Math.min(Math.max(Number(url.searchParams.get('limit')) || 50, 1), 200);
+      const offset = Math.max(Number(url.searchParams.get('offset')) || 0, 0);
+      const where = search ? 'WHERE a.pseudo LIKE ?' : '';
+      const args = search ? [`%${search}%`] : [];
+      const rows = db.prepare(`SELECT a.id, a.pseudo, a.created_at, a.last_seen_at, s.version, s.updated_at,
+          s.level, s.max_stage, s.gold, s.gems, s.kills, s.bosses_defeated
+        FROM accounts a LEFT JOIN saves s ON s.account_id = a.id ${where}
+        ORDER BY ${SORTS[sort]} LIMIT ? OFFSET ?`).all(...args, limit, offset);
+      const total = db.prepare(`SELECT COUNT(*) AS n FROM accounts a ${where}`).get(...args).n;
+      return { body: { total, players: rows.map(playerRow) } };
+    } },
+
+    { method: 'GET', path: /^\/api\/admin\/players\/(\d+)$/, handler: ({ req, params }) => {
+      requireAdmin(req);
+      const r = db.prepare(`SELECT a.id, a.pseudo, a.created_at, a.last_seen_at, s.version, s.updated_at,
+          s.level, s.max_stage, s.gold, s.gems, s.kills, s.bosses_defeated
+        FROM accounts a LEFT JOIN saves s ON s.account_id = a.id WHERE a.id = ?`).get(Number(params[0]));
+      if (!r) throw new HttpError(404, 'Joueur introuvable');
+      const player = playerRow(r);
+      const save = q.findSave.get(r.id);
+      if (save) {
+        const parsed = JSON.parse(save.data);
+        player.progress = {
+          stage: parsed.stage ?? null,
+          heroes: Object.keys(parsed.heroes?.owned ?? {}).length,
+          companions: Object.keys(parsed.companions?.owned ?? {}).length,
+          rebirths: parsed.records?.rebirths ?? 0,
+          summons: parsed.records?.summons ?? 0,
+          createdAt: parsed.createdAt ?? null,
+          lastSaved: parsed.lastSaved ?? null,
+          gameVersion: parsed.version ?? null,
+        };
+      }
+      return { body: player };
+    } },
+
+    { method: 'DELETE', path: /^\/api\/admin\/players\/(\d+)$/, handler: ({ req, params }) => {
+      requireAdmin(req);
+      const info = q.deleteAccount.run(Number(params[0]));
+      if (!info.changes) throw new HttpError(404, 'Joueur introuvable');
+      return { status: 204 };
+    } },
+
+    { method: 'GET', path: /^\/api\/admin\/preregistrations$/, handler: ({ req, url }) => {
+      requireAdmin(req);
+      const limit = Math.min(Math.max(Number(url.searchParams.get('limit')) || 100, 1), 1000);
+      const offset = Math.max(Number(url.searchParams.get('offset')) || 0, 0);
+      const rows = db.prepare('SELECT email, consent_version, consent_at FROM preregistrations ORDER BY consent_at DESC LIMIT ? OFFSET ?')
+        .all(limit, offset);
+      return { body: { total: q.countPrereg.get().n, items: rows.map((r) => ({ email: r.email, consentVersion: r.consent_version, consentAt: r.consent_at })) } };
+    } },
+
+    { method: 'GET', path: /^\/api\/admin\/preregistrations\.csv$/, handler: ({ req }) => {
+      requireAdmin(req);
+      const rows = db.prepare('SELECT email, consent_version, consent_at FROM preregistrations ORDER BY consent_at').all();
+      const lines = ['email,consent_version,consent_at_iso', ...rows.map((r) => `${r.email},${r.consent_version},${new Date(r.consent_at).toISOString()}`)];
+      return { raw: lines.join('\n') + '\n', type: 'text/csv; charset=utf-8' };
+    } },
+
+    { method: 'DELETE', path: /^\/api\/admin\/preregistrations\/([^/]+)$/, handler: ({ req, params }) => {
+      requireAdmin(req);
+      q.deletePrereg.run(decodeURIComponent(params[0]).trim().toLowerCase());
+      return { status: 204 };
+    } },
+  ];
 
   async function serveStatic(req, res, pathname) {
-    // /play/... sert le jeu compilé (webDir), tout le reste sert le site (siteDir).
+    // /play/... sert le jeu compilé (webDir), le reste sert le site (siteDir).
     const isGame = pathname === '/play' || pathname.startsWith('/play/');
     const dir = isGame ? webDir : siteDir;
     const rel = isGame ? pathname.slice('/play'.length) || '/' : pathname;
@@ -282,8 +456,11 @@ export function createApp({ db, siteDir, webDir, trustProxy = false, now = () =>
 
   return async function handle(req, res) {
     const started = now();
+    // Jetons en en-tête Authorization (pas de cookies) : CORS ouvert sans identifiants est sans risque.
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     const url = new URL(req.url, 'http://localhost');
-    const key = `${req.method} ${url.pathname}`;
     // Journal : méthode, chemin (sans requête), code, durée. Jamais de corps ni d'email.
     const finish = (code) => {
       log(`${req.method} ${url.pathname} ${code} ${now() - started}ms`);
@@ -294,14 +471,20 @@ export function createApp({ db, siteDir, webDir, trustProxy = false, now = () =>
         res.writeHead(204).end();
         return finish(204);
       }
-      const route = routes[key];
-      if (route) {
-        const result = await route(req, res);
-        const code = result?.status ?? 200;
-        send(res, code, result?.body, result?.headers);
-        return finish(code);
-      }
       if (url.pathname.startsWith('/api/')) {
+        for (const route of routes) {
+          if (route.method !== req.method) continue;
+          const match = route.path.exec(url.pathname);
+          if (!match) continue;
+          const result = await route.handler({ req, res, url, params: match.slice(1) });
+          if (result?.raw !== undefined) {
+            sendText(res, result.status ?? 200, result.raw, result.type);
+            return finish(result.status ?? 200);
+          }
+          const code = result?.status ?? 200;
+          send(res, code, result?.body);
+          return finish(code);
+        }
         send(res, 404, { error: 'Route inconnue' });
         return finish(404);
       }
@@ -316,7 +499,7 @@ export function createApp({ db, siteDir, webDir, trustProxy = false, now = () =>
         send(res, error.status, { error: error.message, ...error.extra });
         return finish(error.status);
       }
-      log(`${key} erreur interne`);
+      log(`${req.method} ${url.pathname} erreur interne`);
       send(res, 500, { error: 'Erreur interne' });
       return finish(500);
     }
