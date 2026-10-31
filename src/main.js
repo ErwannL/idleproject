@@ -53,6 +53,8 @@ import { claimCollection } from './core/codex.js';
 import { claimEncyclopedia } from './core/encyclopedia.js';
 import { activeClass, canEquip, setHeroClass, weaponClass } from './core/classes.js';
 import { setLang, startAutoTranslate, t } from './i18n/i18n.js';
+import { CloudError, createCloudClient, syncOnce } from './core/cloud-save.js';
+import { CLOUD_BASE } from './core/cloud-config.js';
 import { GAME_VERSION } from './version.js';
 import { applyTheme, themeById } from './ui/themes.js';
 import { BUILT_IN_TOKEN } from './core/update-token.js';
@@ -645,6 +647,15 @@ const actions = {
     if (!r?.ok) { ui.toast(r?.error ?? 'Installateur introuvable.', '#ff8a8a'); this.openReleases(); }
   },
   // Jeton GitHub (dépôt privé) : gardé uniquement dans ce navigateur / ce PC, jamais dans la sauvegarde.
+  cloudRegister(pseudo, password) { cloudAuth(() => cloud.register(pseudo, password), 'Compte créé, progression envoyée'); },
+  cloudLogin(pseudo, password) { cloudAuth(() => cloud.login(pseudo, password), 'Connecté'); },
+  cloudLogout() { cloud.logout().then(() => setCloudMessage('Déconnecté. La partie reste sur cet appareil.')); },
+  cloudSync() { cloudSync(true); },
+  cloudDelete(password) {
+    cloud.deleteAccount(password)
+      .then(() => setCloudMessage('Compte et sauvegarde cloud supprimés. La partie reste sur cet appareil.'))
+      .catch((err) => setCloudMessage(err.message || 'Suppression impossible', true));
+  },
   setGithubToken(value) {
     const token = String(value ?? '').trim();
     try {
@@ -680,6 +691,59 @@ const actions = {
 };
 
 const ui = new UI(document.getElementById('app'), actions);
+
+// Compte et sauvegarde cloud (optionnels) : le jeu fonctionne sans, via localStorage.
+const cloud = createCloudClient({ baseUrl: CLOUD_BASE, storage: store });
+const cloudView = { busy: false, message: '', error: false };
+ui.cloud = cloudView;
+function setCloudMessage(text, error = false) {
+  cloudView.busy = false;
+  cloudView.loggedIn = cloud.isLoggedIn();
+  cloudView.pseudo = cloud.pseudo() ?? '';
+  cloudView.message = text;
+  cloudView.error = error;
+  ui.invalidate();
+}
+// Recharge la partie depuis le localStorage (après une synchronisation qui a ramené une partie plus récente).
+function reloadFromStore() {
+  state = loadGame(store, BALANCE, Date.now()).state;
+  world = createCombat(state);
+  ui.invalidate();
+}
+async function cloudSync(manual = false) {
+  if (!cloud.isLoggedIn() || cloudView.busy) return;
+  cloudView.busy = true;
+  save();
+  try {
+    const { action } = await syncOnce({ client: cloud, storage: store });
+    if (action === 'pull') reloadFromStore();
+    cloudView.busy = false;
+    const when = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    setCloudMessage(manual || action !== 'none' ? `Synchronisé à ${when}` : cloudView.message);
+  } catch (err) {
+    if (err instanceof CloudError && err.status === 401) {
+      cloud.logout();
+      setCloudMessage('Session expirée : reconnectez-vous.', true);
+    } else {
+      setCloudMessage('Serveur injoignable : la partie est sauvegardée sur cet appareil.', true);
+    }
+  }
+}
+async function cloudAuth(call, okText) {
+  cloudView.message = '';
+  try {
+    await call();
+  } catch (err) {
+    setCloudMessage(err instanceof CloudError && err.status !== 0 ? err.message : 'Serveur injoignable.', true);
+    return;
+  }
+  await cloudSync();
+  setCloudMessage(okText);
+}
+// Synchronisation périodique et au retour sur l'onglet ; une fois au lancement si déjà connecté.
+setInterval(() => cloudSync(), 60 * 1000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') cloudSync(); });
+cloudSync();
 // Journal de session (v8.5) : depuis le lancement, et pendant la dernière absence.
 const sessionJournal = createJournal(state);
 let awayJournal = null;

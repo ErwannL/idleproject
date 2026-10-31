@@ -478,6 +478,11 @@ export class UI {
         else if (this.state.farmBoss) a.stopFarmBoss();
         break;
       case 'github-token': a.setGithubToken(this.$('github-token')?.value); break;
+      case 'cloud-register': a.cloudRegister(this.$('cloud-pseudo')?.value, this.$('cloud-password')?.value); break;
+      case 'cloud-login': a.cloudLogin(this.$('cloud-pseudo')?.value, this.$('cloud-password')?.value); break;
+      case 'cloud-logout': a.cloudLogout(); break;
+      case 'cloud-sync': a.cloudSync(); break;
+      case 'cloud-delete': a.cloudDelete(this.$('cloud-delete-password')?.value); break;
       case 'install-update': a.installUpdate(); break;
       case 'retry-installer': this.closeModal(); a.retryInstaller(); break;
       case 'open-releases': a.openReleases(); break;

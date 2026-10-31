@@ -101,11 +101,17 @@ export function createCloudClient({ baseUrl = '', storage, fetchImpl = globalThi
   };
 }
 
+// Partie jamais jouée (nouvelle partie) : ne doit jamais écraser une sauvegarde cloud.
+export function isFreshSave(json) {
+  const s = JSON.parse(json);
+  return (s.kills ?? 0) === 0 && (s.records?.kills ?? 0) === 0 && (s.maxStage ?? 1) <= 1 && (s.level ?? 1) <= 1;
+}
+
 // Compare la partie locale et la partie cloud (champ lastSaved) et dit quoi faire.
 // Renvoie 'none' | 'push' | 'pull'.
 export function reconcile(localJson, cloudJson) {
   if (!cloudJson) return localJson ? 'push' : 'none';
-  if (!localJson) return 'pull';
+  if (!localJson || isFreshSave(localJson)) return 'pull';
   const local = Number(JSON.parse(localJson).lastSaved) || 0;
   const cloud = Number(JSON.parse(cloudJson).lastSaved) || 0;
   if (cloud > local) return 'pull';

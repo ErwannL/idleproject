@@ -33,6 +33,39 @@ function soundOptions(ui) {
     </div>`;
 }
 
+// Compte et sauvegarde cloud : pseudo + mot de passe. Optionnel : sans compte, tout reste local.
+function cloudOptions(ui) {
+  const c = ui.cloud ?? {};
+  const msg = c.message ? `<div style="${c.error ? 'color:#ff9aa8' : 'color:#7fe08f'}">${escapeHtml(c.message)}</div>` : '';
+  if (c.loggedIn) {
+    return `<div class="card">
+      <div class="section-title">Compte et sauvegarde cloud</div>
+      <div>Connecté en tant que <b>${escapeHtml(c.pseudo)}</b>. La partie est synchronisée automatiquement (toutes les minutes et à la fermeture de l'onglet).</div>
+      <div class="options-row">
+        <button class="btn small" data-action="cloud-sync" ${c.busy ? 'disabled' : ''}>Synchroniser maintenant</button>
+        <button class="btn small" data-action="cloud-logout">Se déconnecter</button>
+      </div>
+      ${msg}
+      <details class="update-notes"><summary>Supprimer mon compte</summary>
+        <div class="muted">Efface le compte et la progression sur le serveur. Votre partie reste sur cet appareil.</div>
+        <div class="row"><input id="cloud-delete-password" class="grow" type="password" maxlength="200" placeholder="Mot de passe du compte" autocomplete="current-password">
+          <button class="btn small btn-danger" data-action="cloud-delete">Supprimer</button></div>
+      </details>
+    </div>`;
+  }
+  return `<div class="card">
+      <div class="section-title">Compte et sauvegarde cloud</div>
+      <div class="muted">Créez un compte pour retrouver votre progression sur un autre appareil ou après avoir vidé le cache. Facultatif : le jeu fonctionne sans compte.</div>
+      <div class="row"><input id="cloud-pseudo" class="grow" type="text" maxlength="20" placeholder="Pseudo (3 à 20 caractères)" autocomplete="username">
+        <input id="cloud-password" class="grow" type="password" maxlength="200" placeholder="Mot de passe (8 caractères min.)" autocomplete="current-password"></div>
+      <div class="options-row">
+        <button class="btn small" data-action="cloud-login" ${c.busy ? 'disabled' : ''}>Se connecter</button>
+        <button class="btn small" data-action="cloud-register" ${c.busy ? 'disabled' : ''}>Créer un compte</button>
+      </div>
+      ${msg}
+    </div>`;
+}
+
 function windowOptions(ui) {
   if (!ui.desktop) {
     return `<div class="card"><div class="section-title">Fenêtre</div>
@@ -159,6 +192,7 @@ export default {
           <button class="btn small" data-action="cheat" title="Entrée pour valider · bouton maintenu = validations en continu">Valider</button></div>
         ${activeCodes(state)}
       </div>
+      ${cloudOptions(ui)}
       ${windowOptions(ui)}
       <div class="card">
         <div class="section-title">Test des gains hors ligne</div>
