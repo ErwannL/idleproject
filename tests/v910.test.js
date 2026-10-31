@@ -150,7 +150,7 @@ test('lot 0 : version publique — les codes ne sont pas livrés', () => {
   for (const code of ['GEMRAIN', 'TURBO100', 'GODMODE', 'TOWERPASS']) assert.ok(!cheats.includes(code), code);
   assert.deepEqual(sanitizeCheats({ effects: [{ code: 'X', kind: 'boost', mult: 100, count: 2 }] }).effects, []);
   // Aucune aide développeur ni test hors ligne dans les Paramètres du joueur.
-  const options = readFileSync(new URL('../src/ui/panels/options.js', import.meta.url), 'utf8');
+  const options = readFileSync(new URL('../src/ui/panels/options.js', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
   assert.match(options, /function privateRepoHelp\(u\) \{\n {2}if \(!BUILD\.cheats\) return '';/);
   assert.match(options, /function devOfflineCard\(\) \{\n {2}if \(!BUILD\.cheats\) return '';/);
 });
