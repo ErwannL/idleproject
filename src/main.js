@@ -55,6 +55,7 @@ import { activeClass, canEquip, setHeroClass, weaponClass } from './core/classes
 import { setLang, startAutoTranslate, t } from './i18n/i18n.js';
 import { CloudError, createCloudClient, syncOnce } from './core/cloud-save.js';
 import { CLOUD_BASE } from './core/cloud-config.js';
+import { BUILD } from './core/build-info.js';
 import { GAME_VERSION } from './version.js';
 import { applyTheme, themeById } from './ui/themes.js';
 import { BUILT_IN_TOKEN } from './core/update-token.js';
@@ -720,7 +721,7 @@ function reloadFromStore() {
   ui.invalidate();
 }
 async function cloudSync(manual = false) {
-  if (!cloud.isLoggedIn() || cloudView.busy) return;
+  if (!BUILD.cloud || !cloud.isLoggedIn() || cloudView.busy) return;
   cloudView.busy = true;
   save();
   try {

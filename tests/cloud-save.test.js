@@ -52,7 +52,7 @@ test('cycle complet : compte, push depuis un appareil, pull sur un autre', async
   assert.equal(clientA.isLoggedIn(), true);
   assert.equal(clientA.pseudo(), 'Joueur_1');
 
-  deviceA.setItem(SAVE_KEY, JSON.stringify({ lastSaved: 500, gold: 42 }));
+  deviceA.setItem(SAVE_KEY, JSON.stringify({ lastSaved: 500, gold: 42, level: 1, maxStage: 1 }));
   const first = await syncOnce({ client: clientA, storage: deviceA });
   assert.equal(first.action, 'push');
   assert.equal(first.version, 1);
@@ -60,7 +60,7 @@ test('cycle complet : compte, push depuis un appareil, pull sur un autre', async
   await clientB.login('joueur_1', 'motdepasse1');
   const second = await syncOnce({ client: clientB, storage: deviceB });
   assert.equal(second.action, 'pull');
-  assert.equal(deviceB.getItem(SAVE_KEY), JSON.stringify({ lastSaved: 500, gold: 42 }));
+  assert.equal(deviceB.getItem(SAVE_KEY), JSON.stringify({ lastSaved: 500, gold: 42, level: 1, maxStage: 1 }));
 });
 
 test('une nouvelle partie locale ne remplace jamais la sauvegarde cloud', () => {

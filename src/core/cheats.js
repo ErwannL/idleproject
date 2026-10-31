@@ -5,6 +5,7 @@
 // Les multiplicateurs sont plafonnés (×1e60 par type) pour ne jamais faire « déborder » les nombres du jeu.
 import { towerWeek } from './tower.js';
 import { BALANCE } from '../data/balance.js';
+import { BUILD } from './build-info.js';
 
 // kind : boost (or, XP, événements) · damage · hp · godmode (dégâts et PV) · loot (chaque ennemi lâche un
 // objet) · luck (rareté minimale du butin).
@@ -70,6 +71,7 @@ export function unlockedSpeeds(state) {
 
 // Applique un code `times` fois ; renvoie le message de succès, ou null si le code est inconnu.
 export function applyCheat(state, code, times = 1) {
+  if (!BUILD.cheats) return null; // version publique : aucun code n'est accepté
   const key = String(code ?? '').trim().toUpperCase();
   const n = cheatTimes(times);
   if (key === 'ORACLE') {
@@ -143,7 +145,8 @@ export function cheatLoot(state) {
 
 export function sanitizeCheats(raw) {
   const out = { effects: [], reveal: false, speeds: [], skipBattle: false };
-  if (!raw || typeof raw !== 'object') return out;
+  // Version publique : tout état de triche venant d'une sauvegarde est ignoré.
+  if (!BUILD.cheats || !raw || typeof raw !== 'object') return out;
   if (Array.isArray(raw.speeds)) out.speeds = raw.speeds.filter((v) => SPEEDS.includes(v));
   // ≤ v8.6 : une entrée par saisie (avec une durée) → regroupées par code, sans durée.
   if (Array.isArray(raw.effects)) {

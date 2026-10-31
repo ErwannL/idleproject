@@ -1,3 +1,6 @@
+import { BUILD } from '../src/core/build-info.js';
+// Ces tests vérifient la logique des codes : ils tournent en version dev (les codes sont absents de la version publique).
+BUILD.cheats = true;
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createNewState, sanitizeState } from '../src/core/state.js';

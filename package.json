@@ -13,6 +13,8 @@
   "scripts": {
     "start": "node tools/serve.mjs",
     "build:web": "node tools/build-web.mjs",
+    "build:dev": "node tools/build-web.mjs --dev",
+    "serve:dev": "node tools/serve-dev.mjs",
     "server": "node server/index.mjs",
     "app": "node tools/launch.mjs",
     "desktop": "electron .",

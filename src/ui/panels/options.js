@@ -7,6 +7,7 @@ import { THEMES, themeSwatches } from '../themes.js';
 import { GAME_VERSION } from '../../version.js';
 import { BUILT_IN_TOKEN } from '../../core/update-token.js';
 import { activeCheats, cheatLabel } from '../../core/cheats.js';
+import { BUILD } from '../../core/build-info.js';
 
 // Codes actifs (v8.7) : sans durée ; nombre de saisies par code, retrait de N saisies, d'un code ou de tout.
 function activeCodes(state) {
@@ -33,8 +34,23 @@ function soundOptions(ui) {
     </div>`;
 }
 
+// Codes de triche : uniquement dans la version dev (BUILD.cheats).
+function cheatCard(state, ui) {
+  if (!BUILD.cheats) return '';
+  return `<div class="card">
+        <div class="section-title">Code secret</div>
+        <div class="row"><input id="cheat-code" class="grow" type="text" maxlength="24" placeholder="Entrer un code…" autocomplete="off" value="${escapeHtml(ui.view.cheatCode ?? '')}">
+          <span>×</span><input id="cheat-times" type="text" inputmode="numeric" maxlength="13" value="${escapeHtml(ui.view.cheatTimes ?? '1')}"
+            title="Nombre de fois (jusqu'à 1 000 000 000)" aria-label="Nombre de fois" style="width:110px">
+          <button class="btn small" data-action="cheat" title="Entrée pour valider · bouton maintenu = validations en continu">Valider</button></div>
+        ${activeCodes(state)}
+
+      </div>`;
+}
+
 // Compte et sauvegarde cloud : pseudo + mot de passe. Optionnel : sans compte, tout reste local.
 function cloudOptions(ui) {
+  if (!BUILD.cloud) return '';
   const c = ui.cloud ?? {};
   const msg = c.message ? `<div style="${c.error ? 'color:#ff9aa8' : 'color:#7fe08f'}">${escapeHtml(c.message)}</div>` : '';
   if (c.loggedIn) {
@@ -185,14 +201,7 @@ export default {
         <div class="row-between"><span class="muted">Étapes, boss, or, objets ramassés, recyclés et fusionnés depuis le lancement du jeu.</span>
           <button class="btn small" data-action="show-journal">📜 Ouvrir (J)</button></div>
       </div>
-      <div class="card">
-        <div class="section-title">Code secret</div>
-        <div class="row"><input id="cheat-code" class="grow" type="text" maxlength="24" placeholder="Entrer un code…" autocomplete="off" value="${escapeHtml(ui.view.cheatCode ?? '')}">
-          <span>×</span><input id="cheat-times" type="text" inputmode="numeric" maxlength="13" value="${escapeHtml(ui.view.cheatTimes ?? '1')}"
-            title="Nombre de fois (jusqu'à 1 000 000 000)" aria-label="Nombre de fois" style="width:110px">
-          <button class="btn small" data-action="cheat" title="Entrée pour valider · bouton maintenu = validations en continu">Valider</button></div>
-        ${activeCodes(state)}
-      </div>
+      ${cheatCard(state, ui)}
       ${cloudOptions(ui)}
       ${windowOptions(ui)}
       <div class="card">

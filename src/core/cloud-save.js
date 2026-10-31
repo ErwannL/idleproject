@@ -121,10 +121,19 @@ export function reconcile(localJson, cloudJson) {
   return 'none';
 }
 
+// Retire l'état de triche avant envoi : le serveur refuse les sauvegardes qui en contiennent.
+export function stripCheats(json) {
+  if (!json) return json;
+  const save = JSON.parse(json);
+  if (!save.cheats) return json;
+  save.cheats = { effects: [], reveal: false, speeds: [], skipBattle: false };
+  return JSON.stringify(save);
+}
+
 // Synchronisation complète au lancement ou à la connexion. Renvoie l'action effectuée.
 export async function syncOnce({ client, storage, version = 0 }) {
   const remote = await client.pull();
-  const local = storage.getItem(SAVE_KEY);
+  const local = stripCheats(storage.getItem(SAVE_KEY));
   const action = reconcile(local, remote.data);
   if (action === 'pull') {
     storage.setItem(SAVE_KEY, remote.data);
