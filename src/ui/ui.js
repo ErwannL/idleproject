@@ -691,7 +691,7 @@ export class UI {
         else if (this.state.farmBoss) a.stopFarmBoss();
         break;
       case 'github-token': a.setGithubToken(this.$('github-token')?.value); break;
-      case 'cloud-register': a.cloudRegister(this.$('cloud-pseudo')?.value, this.$('cloud-password')?.value); break;
+      case 'cloud-register': this.cloudDraft('cloud-pseudo'); a.cloudRegister(this.$('cloud-pseudo')?.value, this.$('cloud-password')?.value); break;
       // Garde le nom tapé si le panneau est redessiné (message d'erreur) ; jamais les mots de passe.
       case 'cloud-login': this.cloudDraft('cloud-pseudo'); a.cloudLogin(this.$('cloud-pseudo')?.value, this.$('cloud-password')?.value); break;
       case 'cloud-claim': this.cloudDraft('cloud-claim-pseudo'); a.cloudClaim(this.$('cloud-claim-pseudo')?.value?.trim(), this.$('cloud-claim-password')?.value, this.$('cloud-claim-confirm')?.value); break;

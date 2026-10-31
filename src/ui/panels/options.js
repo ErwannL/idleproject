@@ -108,8 +108,10 @@ function cloudOptions(ui) {
   }
   return `<div class="card">
       <div class="section-title">Compte et sauvegarde en ligne</div>
-      <div class="muted">${c.optedOut ? 'Déconnecté : la partie est sauvegardée seulement sur cet appareil.' : 'Connexion au serveur en cours… La partie est sauvegardée sur cet appareil en attendant.'}</div>
-      ${loginForm}
+      <div class="muted">${c.optedOut ? 'Déconnecté : la partie est sauvegardée seulement sur cet appareil.' : c.error ? 'Pas de sauvegarde en ligne pour le moment : la partie est sauvegardée sur cet appareil.' : 'Connexion au serveur en cours… La partie est sauvegardée sur cet appareil en attendant.'}</div>
+      ${loginForm.replace('</button></div>', `</button>
+        <button class="btn small btn-primary" data-action="cloud-register" ${busy}>Créer un compte joueur</button></div>`)}
+      <div class="muted">Pas encore de compte ? Choisissez un nom d'utilisateur et un mot de passe (8 caractères min.), puis « Créer un compte joueur ».</div>
       ${c.optedOut ? `<div class="options-row"><button class="btn small" data-action="cloud-resume" ${busy}>Sauvegarder en ligne sans compte</button></div>` : ''}
       ${msg}
     </div>`;

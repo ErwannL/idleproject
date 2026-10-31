@@ -955,7 +955,10 @@ async function cloudSync(manual = false, preferRemote = false) {
       cloud.logout();
       setCloudMessage('Session expirée : reconnectez-vous.', true);
     } else {
-      setCloudMessage('Serveur injoignable : la partie est sauvegardée sur cet appareil.', true);
+      // 404 sur /api/guest : serveur pas encore en 9.1.1 (pas de compte automatique) ; il reste la création de compte.
+      setCloudMessage(err instanceof CloudError && err.status === 404
+        ? 'Compte automatique indisponible sur ce serveur : créez un compte joueur ci-dessous. La partie est sauvegardée sur cet appareil.'
+        : 'Serveur injoignable : la partie est sauvegardée sur cet appareil.', true);
     }
   }
 }
@@ -979,8 +982,10 @@ async function cloudAuth(call, okText, preferRemote = false) {
 setInterval(() => cloudSync(), 60 * 1000);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') cloudSync(); });
 // Nom et type de compte à jour (renommé depuis un autre appareil), puis première synchronisation.
-if (BUILD.cloud && cloud.isLoggedIn()) cloud.refresh().catch(() => {}).finally(() => { setCloudMessage(''); cloudSync(); });
-else cloudSync().then(() => setCloudMessage(''));
+// Ne pas effacer un message d'erreur posé par la synchronisation (serveur injoignable, pas à jour…).
+const refreshCloudView = () => { if (!cloudView.error) setCloudMessage(''); };
+if (BUILD.cloud && cloud.isLoggedIn()) cloud.refresh().catch(() => {}).finally(() => { refreshCloudView(); cloudSync(); });
+else cloudSync().then(refreshCloudView);
 // Journal de session (v8.5) : depuis le lancement, et pendant la dernière absence.
 const sessionJournal = createJournal(state);
 let awayJournal = null;

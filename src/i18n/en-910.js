@@ -235,6 +235,11 @@ export const EXACT_910 = {
   "sous 50 % de ses PV, frappe 60 % plus fort et 30 % plus vite — sauf contre une armure solide (40 % l'annule)": 'under 50 % HP, hits 60 % harder and 30 % faster — except against solid armor (40 % cancels it)',
   'Build à équiper': 'Build to equip', 'Catégorie': 'Category', 'Emplacement à fabriquer': 'Slot to craft', 'Fermer la fiche': 'Close the sheet', 'Quantité': 'Quantity',
   'Mot de passe (8 caractères min.)': 'Password (8 characters min.)', 'Pseudo (3 à 20 caractères)': 'Username (3 to 20 characters)',
+  'Créer un compte joueur': 'Create a player account',
+  'Pas de sauvegarde en ligne pour le moment : la partie est sauvegardée sur cet appareil.': 'No online save for now: the game is saved on this device.',
+  "Pas encore de compte ? Choisissez un nom d'utilisateur et un mot de passe (8 caractères min.), puis « Créer un compte joueur ».": 'No account yet? Choose a username and a password (8 characters min.), then "Create a player account".',
+  'Compte automatique indisponible sur ce serveur : créez un compte joueur ci-dessous. La partie est sauvegardée sur cet appareil.': 'Automatic account unavailable on this server: create a player account below. The game is saved on this device.',
+  'Pseudo ou mot de passe incorrect': 'Wrong username or password',
   // v9.1.1 : compte invité, compte joueur, changement de nom.
   'Compte et sauvegarde en ligne': 'Account and online save', 'Votre nom :': 'Your name:', 'Créer mon compte joueur': 'Create my player account',
   'Votre progression est sauvegardée sur le serveur automatiquement.': 'Your progress is saved on the server automatically.',

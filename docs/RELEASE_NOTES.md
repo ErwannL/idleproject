@@ -1,3 +1,11 @@
+## Idle RPG v9.1.2 — Création de compte et messages de connexion
+
+- Sans compte, Paramètres → Compte et sauvegarde en ligne propose de nouveau **Créer un compte joueur**
+  (nom d'utilisateur + mot de passe) à côté de **Se connecter** : seule la connexion était proposée.
+- Le jeu bureau joint bien le serveur de sauvegarde (il était bloqué par la politique de sécurité du jeu).
+- Messages clairs : « Pas de sauvegarde en ligne pour le moment » au lieu de « Connexion en cours… » quand le serveur
+  ne répond pas, et explication si le serveur ne propose pas encore le compte automatique.
+
 ## Idle RPG v9.1.1 — Progression sauvegardée en ligne, compte joueur
 
 **Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.1-setup.exe).
