@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Idle RPG</title>
+  <meta name="description" content="Idle RPG : un RPG idle en pixel art, à jouer dans le navigateur ou sur PC.">
+  <link rel="icon" href="/assets/icon.png">
+  <style>
+    :root { --bg: #f6f3ec; --fg: #1d1b18; --accent: #7a4a1c; --muted: #6b6258; --card: #ffffff; --line: #d9d1c3; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) { --bg: #16140f; --fg: #f1ebe0; --accent: #e0a458; --muted: #aaa093; --card: #221f19; --line: #3a352b; }
+    }
+    :root[data-theme="dark"] { --bg: #16140f; --fg: #f1ebe0; --accent: #e0a458; --muted: #aaa093; --card: #221f19; --line: #3a352b; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 system-ui, sans-serif; }
+    main { max-width: 720px; margin: 0 auto; padding: 48px 16px; }
+    h1 { font-size: 2.2rem; margin: 0 0 8px; }
+    .lead { color: var(--muted); font-size: 1.1rem; margin: 0 0 24px; }
+    .btn { display: inline-block; background: var(--accent); color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; border: 0; cursor: pointer; font-size: 1rem; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin: 32px 0; }
+    .card h2 { margin: 0 0 8px; font-size: 1.2rem; }
+    label.consent { display: flex; gap: 10px; align-items: flex-start; margin: 14px 0; }
+    input[type="email"] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-size: 1rem; }
+    .status { min-height: 1.5em; margin-top: 10px; }
+    footer { color: var(--muted); font-size: 0.9rem; margin-top: 48px; }
+    footer a { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Idle RPG</h1>
+    <p class="lead">Un RPG idle en pixel art : recrutez des compagnons, affrontez des boss et laissez votre équipe progresser, même quand vous ne jouez pas.</p>
+    <a class="btn" href="/play/">Jouer</a>
+
+    <section class="card" aria-labelledby="prereg-title">
+      <h2 id="prereg-title">Être prévenu du lancement</h2>
+      <p>Laissez votre adresse pour recevoir une seule info : la date de sortie.</p>
+      <form id="prereg">
+        <label for="email">Adresse email</label>
+        <input id="email" type="email" required maxlength="254" autocomplete="email">
+        <label class="consent">
+          <input id="consent" type="checkbox" required>
+          <span>J'accepte d'être contacté au sujet du lancement du jeu</span>
+        </label>
+        <button class="btn" type="submit">M'inscrire</button>
+        <p class="status" id="status" role="status"></p>
+      </form>
+      <p>Vous pouvez retirer votre adresse à tout moment. Détails dans la <a href="/confidentialite.html">politique de confidentialité</a>.</p>
+    </section>
+
+    <footer>
+      <p>© <span id="year"></span> <span id="site-name">Idle RPG</span> · <a href="/confidentialite.html">Confidentialité</a></p>
+    </footer>
+  </main>
+  <script type="module">
+    import { SITE } from './config.js';
+    document.getElementById('site-name').textContent = SITE.name;
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    const form = document.getElementById('prereg');
+    const status = document.getElementById('status');
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      status.textContent = 'Envoi…';
+      try {
+        const res = await fetch('/api/preregister', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: document.getElementById('email').value,
+            consent: document.getElementById('consent').checked,
+          }),
+        });
+        if (res.status === 429) throw new Error('Trop de tentatives, réessayez plus tard.');
+        if (!res.ok) throw new Error('Adresse invalide ou consentement manquant.');
+        form.reset();
+        status.textContent = 'Merci ! Vous serez prévenu au lancement.';
+      } catch (error) {
+        status.textContent = error.message || 'Une erreur est survenue, réessayez.';
+      }
+    });
+  </script>
+</body>
+</html>

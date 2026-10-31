@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Confidentialité · Idle RPG</title>
+  <style>
+    :root { --bg: #f6f3ec; --fg: #1d1b18; --accent: #7a4a1c; --muted: #6b6258; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) { --bg: #16140f; --fg: #f1ebe0; --accent: #e0a458; --muted: #aaa093; }
+    }
+    :root[data-theme="dark"] { --bg: #16140f; --fg: #f1ebe0; --accent: #e0a458; --muted: #aaa093; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, sans-serif; }
+    main { max-width: 720px; margin: 0 auto; padding: 40px 16px; }
+    a { color: var(--accent); }
+    h1 { font-size: 1.9rem; }
+    h2 { font-size: 1.2rem; margin-top: 32px; }
+    code { background: rgba(127,127,127,.15); padding: 1px 5px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <main>
+    <p><a href="/">← Retour à l'accueil</a></p>
+    <h1>Politique de confidentialité</h1>
+    <p>Dernière mise à jour : 31 octobre 2026. Responsable du traitement : le responsable du site Idle RPG, joignable à <span data-contact>contact@TON-DOMAINE.xyz</span>.</p>
+
+    <h2>Ce qui est collecté</h2>
+    <ul>
+      <li><strong>Préinscription</strong> : votre adresse email, la date et l'heure de votre consentement, et la version du texte de consentement.</li>
+      <li><strong>Compte de sauvegarde (facultatif)</strong> : un pseudo et un mot de passe (stocké sous forme d'empreinte irréversible, jamais en clair), ainsi que votre progression de jeu.</li>
+      <li><strong>Technique</strong> : le serveur journalise la méthode, le chemin, le code de réponse et la durée de chaque requête, sans adresse email, mot de passe ni contenu de sauvegarde. Ces journaux sont conservés le temps du dépannage.</li>
+    </ul>
+    <p>Le jeu fonctionne entièrement en local : sans compte et sans préinscription, rien n'est envoyé au serveur.</p>
+
+    <h2>Pourquoi</h2>
+    <ul>
+      <li>Préinscription : vous prévenir du lancement, sur la base de votre consentement.</li>
+      <li>Compte : retrouver votre progression sur un autre appareil. Aucun usage publicitaire, aucun partage avec des tiers.</li>
+      <li>Journaux : sécurité et dépannage.</li>
+    </ul>
+
+    <h2>Combien de temps</h2>
+    <p>Les préinscriptions sont conservées jusqu'à votre demande de retrait ou jusqu'au lancement du jeu, si vous ne demandez rien. Les comptes restent actifs tant que vous ne les supprimez pas. Les sessions de connexion expirent au bout de 30 jours.</p>
+
+    <h2>Comment les supprimer</h2>
+    <ul>
+      <li><strong>Préinscription</strong> : retirez votre adresse depuis le lien présent dans chaque email, ou écrivez à <span data-contact>contact@TON-DOMAINE.xyz</span>.</li>
+      <li><strong>Compte et sauvegardes</strong> : écrivez à <span data-contact>contact@TON-DOMAINE.xyz</span> en indiquant votre pseudo. Le compte, le mot de passe et la progression sur le serveur sont supprimés. Les sauvegardes locales restent sur votre appareil ; vous pouvez les effacer depuis le navigateur.</li>
+    </ul>
+
+    <h2>Vos droits</h2>
+    <p>Vous pouvez accéder à vos données, les corriger ou les supprimer, et introduire une réclamation auprès de la CNIL (cnil.fr).</p>
+
+    <h2>Hébergement</h2>
+    <p>Le site et le serveur sont hébergés sur une machine personnelle en France. Les données ne sont pas confiées à un sous-traitant d'hébergement.</p>
+  </main>
+  <script type="module">
+    import { SITE } from './config.js';
+    for (const el of document.querySelectorAll('[data-contact]')) el.textContent = SITE.contactEmail;
+  </script>
+</body>
+</html>
