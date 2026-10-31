@@ -692,10 +692,8 @@ const actions = {
   reset() {
     if (!window.confirm(t('Effacer définitivement la progression ?'))) return;
     clearSave(store);
-    state = createNewState(Date.now());
-    world = createCombat(state);
-    save();
-    ui.invalidate();
+    // Rechargement : journal, prévision et tutoriel repartent de zéro (v9.1, lot 0).
+    location.reload();
   },
 };
 
@@ -788,7 +786,9 @@ setTimeout(() => { if (!navigator.webdriver && !ui.desktop?.smoke) actions.check
 // Gains hors ligne depuis la dernière sauvegarde.
 // v9.0.3 : exposition auto des objets ancestraux déjà dans le sac ou le coffre.
 if (state.ui.autoMuseum !== false) exposeAll(state);
-if (loaded.source !== 'new') runOffline(state.lastSaved, Date.now());
+// Sauvegarde d'une version plus récente : on ne la touche pas, on prévient le joueur.
+if (loaded.source === 'newer') setTimeout(() => ui.toast('Cette sauvegarde vient d'une version plus récente du jeu. Mettez le jeu à jour pour la retrouver : rien n'a été écrasé.', '#ff8a8a'), 1500);
+else if (loaded.source !== 'new') runOffline(state.lastSaved, Date.now());
 else save();
 
 // Cinématiques (v8.1) : au lancement, puis à chaque arrivée dans un nouveau monde (en avançant).
