@@ -284,7 +284,7 @@ test('classement : tri, joueurs masqués, nouvelle partie exclue', async (t) => 
   assert.equal((await call(base, 'PUT', '/api/account/listed', { listed: 'oui' }, c)).status, 400);
 });
 
-test('anti-triche : codes refusés, régression de niveau refusée, meilleure étape conservée', async (t) => {
+test('anti-triche : codes refusés, partie plus ancienne refusée, renaissance acceptée, meilleure étape conservée', async (t) => {
   const s = await setup();
   t.after(() => s.close());
   const base = s.url();
@@ -292,16 +292,20 @@ test('anti-triche : codes refusés, régression de niveau refusée, meilleure é
   const cheated = await call(base, 'PUT', '/api/save', { version: 0, data: JSON.stringify({ level: 5, maxStage: 5, cheats: { effects: [{ code: 'TURBO100' }], reveal: false, speeds: [] } }) }, token);
   assert.equal(cheated.status, 422);
   assert.match(cheated.body.error, /triche/);
-  const clean = { level: 10, maxStage: 40, cheats: { effects: [], reveal: false, speeds: [], skipBattle: false } };
+  const clean = { level: 10, maxStage: 40, playSeconds: 1000, cheats: { effects: [], reveal: false, speeds: [], skipBattle: false } };
   assert.equal((await call(base, 'PUT', '/api/save', { version: 0, data: JSON.stringify(clean) }, token)).status, 200);
-  const lower = await call(base, 'PUT', '/api/save', { version: 1, data: JSON.stringify({ level: 3, maxStage: 40 }) }, token);
-  assert.equal(lower.status, 422);
-  assert.equal((await call(base, 'PUT', '/api/save', { version: 1, data: JSON.stringify({ level: 10, maxStage: 2.5 }) }, token)).status, 422);
-  assert.equal((await call(base, 'PUT', '/api/save', { version: 1, data: JSON.stringify({ level: 10, maxStage: 12, gold: -4 }) }, token)).status, 422);
-  // Renaissance : l'étape repart de 1, mais le classement garde la meilleure étape.
-  assert.equal((await call(base, 'PUT', '/api/save', { version: 1, data: JSON.stringify({ level: 10, maxStage: 1 }) }, token)).status, 200);
+  // Partie plus ancienne (moins de temps de jeu) : refusée.
+  const older = await call(base, 'PUT', '/api/save', { version: 1, data: JSON.stringify({ level: 10, maxStage: 40, playSeconds: 100 }) }, token);
+  assert.equal(older.status, 422);
+  assert.match(older.body.error, /plus ancienne/);
+  assert.equal((await call(base, 'PUT', '/api/save', { version: 1, data: JSON.stringify({ level: 10, maxStage: 2.5, playSeconds: 1100 }) }, token)).status, 422);
+  assert.equal((await call(base, 'PUT', '/api/save', { version: 1, data: JSON.stringify({ level: 10, maxStage: 12, gold: -4, playSeconds: 1100 }) }, token)).status, 422);
+  // Renaissance : niveau remis à 1 et étape repartie de 1 (refusée en 9.1.2) ; le classement garde la meilleure étape.
+  assert.equal((await call(base, 'PUT', '/api/save', { version: 1, data: JSON.stringify({ level: 1, maxStage: 1, playSeconds: 1200 }) }, token)).status, 200);
   const board = (await call(base, 'GET', '/api/leaderboard?sort=stage')).body.players;
   assert.equal(board[0].maxStage, 40);
+  // Pas de plafond d'étape : cycles de difficulté sans fin (2001 = 6-11 ×10 était refusée).
+  assert.equal((await call(base, 'PUT', '/api/save', { version: 2, data: JSON.stringify({ level: 900, maxStage: 5000, playSeconds: 1300 }) }, token)).status, 200);
 });
 
 // ---- v9.1.1 : comptes invités, compte joueur, changement de nom, analytique ----

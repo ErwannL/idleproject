@@ -86,13 +86,19 @@ export function checkSave(parsed, summary, current) {
   if (!inRange(summary.maxStage, LIMITS_GAME.maxStage) || summary.maxStage < 1) return 'Sauvegarde refusée : étape impossible';
   if (!Number.isFinite(summary.gold) || summary.gold < 0 || summary.gold > LIMITS_GAME.maxCurrency) return 'Sauvegarde refusée : or impossible';
   if (!Number.isFinite(summary.gems) || summary.gems < 0 || summary.gems > LIMITS_GAME.maxCurrency) return 'Sauvegarde refusée : gemmes impossibles';
-  if (current && summary.level < current.level) return 'Sauvegarde refusée : niveau inférieur à celui du serveur';
+  // Partie plus ancienne que celle du serveur : le temps de jeu cumulé ne recule jamais (il survit aux renaissances et
+  // transcendances, contrairement au niveau, remis à 1 : en 9.1.2 toute sauvegarde après une renaissance était refusée).
+  // Une minute de marge (arrondis, sauvegarde envoyée pendant un pas de jeu).
+  if (current && (current.play_seconds ?? 0) > 0 && summary.playSeconds + 60 < current.play_seconds) {
+    return 'Sauvegarde refusée : partie plus ancienne que celle du serveur';
+  }
   return null;
 }
 
 // Bornes du jeu (version publique). À garder alignées sur src/data/balance.js (level.maxLevel).
-// L'or et les gemmes n'ont pas de plafond dans le jeu (croissance exponentielle d'un idle) : seulement fini et positif.
-const LIMITS_GAME = { maxLevel: 1000, maxStage: 2000, maxCurrency: Number.MAX_VALUE };
+// Étape, or et gemmes n'ont pas de plafond dans le jeu (cycles de difficulté ×2, ×3… sans fin ; croissance
+// exponentielle d'un idle) : seulement entiers / finis et positifs. En 9.1.2, l'étape 2001 (6-11 ×10) était refusée.
+const LIMITS_GAME = { maxLevel: 1000, maxStage: Number.MAX_SAFE_INTEGER, maxCurrency: Number.MAX_VALUE };
 
 export class HttpError extends Error {
   constructor(status, message, extra = {}) {
@@ -164,6 +170,7 @@ export function summarizeSave(parsed) {
     gems: num(parsed.gems),
     kills: num(parsed.kills),
     bossesDefeated: num(parsed.records?.bossesDefeated),
+    playSeconds: num(parsed.playSeconds),
   };
 }
 
@@ -265,12 +272,12 @@ export function createApp({
     insertAccount: db.prepare('INSERT INTO accounts (pseudo, password_hash, created_at, last_seen_at, claimed_at) VALUES (?, ?, ?, ?, ?)'),
     touchAccount: db.prepare('UPDATE accounts SET last_seen_at = ? WHERE id = ?'),
     deleteAccount: db.prepare('DELETE FROM accounts WHERE id = ?'),
-    findSave: db.prepare('SELECT data, version, updated_at, level FROM saves WHERE account_id = ?'),
-    upsertSave: db.prepare(`INSERT INTO saves (account_id, data, version, updated_at, level, max_stage, gold, gems, kills, bosses_defeated)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    findSave: db.prepare('SELECT data, version, updated_at, level, play_seconds FROM saves WHERE account_id = ?'),
+    upsertSave: db.prepare(`INSERT INTO saves (account_id, data, version, updated_at, level, max_stage, gold, gems, kills, bosses_defeated, play_seconds)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(account_id) DO UPDATE SET data = excluded.data, version = excluded.version, updated_at = excluded.updated_at,
         level = MAX(saves.level, excluded.level), max_stage = MAX(saves.max_stage, excluded.max_stage), gold = excluded.gold, gems = excluded.gems,
-        kills = excluded.kills, bosses_defeated = excluded.bosses_defeated`),
+        kills = excluded.kills, bosses_defeated = excluded.bosses_defeated, play_seconds = excluded.play_seconds`),
     upsertPrereg: db.prepare('INSERT INTO preregistrations (email, consent_version, consent_at) VALUES (?, ?, ?) ON CONFLICT(email) DO NOTHING'),
     deletePrereg: db.prepare('DELETE FROM preregistrations WHERE email = ?'),
     countPrereg: db.prepare('SELECT COUNT(*) AS n FROM preregistrations'),
@@ -476,7 +483,7 @@ export function createApp({
         log(`sauvegarde refusée pour le compte ${account.id} : ${reason}`);
         throw new HttpError(422, reason);
       }
-      q.upsertSave.run(account.id, data, next, now(), s.level, s.maxStage, s.gold, s.gems, s.kills, s.bossesDefeated);
+      q.upsertSave.run(account.id, data, next, now(), s.level, s.maxStage, s.gold, s.gems, s.kills, s.bossesDefeated, s.playSeconds);
       return { body: { version: next } };
     } },
 

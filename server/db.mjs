@@ -72,5 +72,7 @@ export function openDatabase(file) {
   addColumnIfMissing(db, 'accounts', 'game_version', 'TEXT');
   addColumnIfMissing(db, 'accounts', 'claimed_at', 'INTEGER');
   addColumnIfMissing(db, 'saves', 'gems', 'INTEGER NOT NULL DEFAULT 0');
+  // v9.1.3 : temps de jeu cumulé de la dernière sauvegarde (refus d'une partie plus ancienne, survit aux renaissances).
+  addColumnIfMissing(db, 'saves', 'play_seconds', 'REAL NOT NULL DEFAULT 0');
   return db;
 }
