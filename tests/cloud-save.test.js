@@ -138,3 +138,12 @@ test('déconnexion volontaire : plus d\'invité automatique jusqu\'à une nouvel
   client.forget();
   assert.equal(client.optedOut(), false);
 });
+
+test('la politique de sécurité (CSP) du jeu autorise le serveur de sauvegarde', async () => {
+  const { readFileSync } = await import('node:fs');
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const csp = html.match(/connect-src ([^";]+)/)[1].split(/\s+/);
+  const cfg = readFileSync(new URL('../src/core/cloud-config.js', import.meta.url), 'utf8');
+  const origin = new URL(cfg.match(/'(https:\/\/[^']+)'/)[1]).origin;
+  assert.ok(csp.includes(origin), `${origin} absent de connect-src`);
+});
