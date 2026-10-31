@@ -457,8 +457,9 @@ export function createApp({
       const session = requireAdmin(req, { allowChange: true });
       const { password, newPassword } = await readJson(req);
       const admin = q.findAdmin.get(session.username);
+      // 403 et non 401 : le 401 signifie « session expirée » pour l'interface.
       if (typeof password !== 'string' || !admin || !(await verifyPassword(password, admin.password_hash))) {
-        throw new HttpError(401, 'Mot de passe actuel incorrect');
+        throw new HttpError(403, 'Mot de passe actuel incorrect');
       }
       if (typeof newPassword !== 'string' || newPassword.length < 12 || newPassword.length > 200) {
         throw new HttpError(400, 'Nouveau mot de passe : 12 caractères minimum');
