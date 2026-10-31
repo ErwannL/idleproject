@@ -188,3 +188,159 @@ test('lot 4 : textes de l\'interface v9.1.0 — aucun ne reste en français une 
   const left = [...new Set(texts)].filter((s) => FRENCH.test(translate(s)));
   assert.deepEqual(left, []);
 });
+
+import { claimables, claimablesByTab } from '../src/core/claimables.js';
+import { betterItem, nextAction } from '../src/core/guide.js';
+import { buyMostProfitable, upgradeProfits } from '../src/core/profit.js';
+import { relaunchExpeditions, relaunchable, startExpedition } from '../src/core/expeditions.js';
+import { distributeSkillPoints, skillPointsAvailable } from '../src/core/skills.js';
+import { matchesRecycleRule } from '../src/core/inventory.js';
+
+test('lot 1 : À récupérer — une seule liste, sac plein signalé, pastilles par onglet', () => {
+  const s = createNewState(NOW);
+  s.contracts[0].progress = s.contracts[0].target;
+  s.inbox.push({ id: 900, type: 'gems', stage: 1, reward: { gems: 5 }, seen: false });
+  s.inbox.push({ id: 901, type: 'merchant', stage: 1, reward: {}, price: 10, item: makeItem(s, 'leather_hood', 'rare', 1) });
+  s.inbox.push({ id: 902, type: 'chest', stage: 1, reward: { gold: 3 }, item: makeItem(s, 'leather_hood', 'common', 1) });
+  let list = claimables(s, NOW);
+  assert.ok(list.some((c) => c.kind === 'contract'));
+  assert.ok(list.some((c) => c.key === 'event:900'));
+  assert.ok(!list.some((c) => c.key === 'event:901'), 'un marchand n\'est pas une récompense');
+  assert.equal(list.find((c) => c.key === 'event:902').blocked, null);
+  while (s.inventory.length < BALANCE.loot.inventorySize) s.inventory.push(makeItem(s, 'leather_hood', 'common', 1));
+  list = claimables(s, NOW);
+  assert.equal(list.find((c) => c.key === 'event:902').blocked, 'Sac plein');
+  const byTab = claimablesByTab(list);
+  assert.ok(byTab.contracts >= 1 && byTab.inbox === 1, JSON.stringify(byTab));
+});
+
+test('lot 1 : Prochaine action — un seul conseil, dans l\'ordre prévu', () => {
+  const s = createNewState(NOW);
+  // Débutant : objectif simple, puis amélioration abordable.
+  assert.equal(nextAction(s, { claims: [] }).id, 'goal');
+  s.gold = 1000;
+  assert.equal(nextAction(s, { claims: [] }).id, 'upgrade');
+  s.inventory.push(makeItem(s, 'iron_helm', 'epic', 10));
+  assert.equal(nextAction(s, { claims: [] }).id, 'equip');
+  // Après le premier mini-boss : à récupérer passe devant l'objet meilleur.
+  s.records.bossesDefeated = 1;
+  s.contracts[0].progress = s.contracts[0].target;
+  assert.equal(nextAction(s).id, 'claim');
+  assert.equal(nextAction(s).action, 'claim-everything');
+  // Mode en cours : toujours en premier.
+  s.tower = { floor: 2, startPlay: 0 };
+  assert.equal(nextAction(s).id, 'mode-tower');
+  s.tower = null;
+  // L'objet meilleur mène au bon onglet et à la bonne vue.
+  s.contracts[0].progress = 0;
+  const n = nextAction(s);
+  assert.equal(n.id, 'equip');
+  assert.equal(n.view.selectedItemId, betterItem(s).id);
+});
+
+test('lot 1 : rentabilité — seules les lignes de dégâts, achat du plus rentable sans dépasser l\'or', () => {
+  const s = createNewState(NOW);
+  const p = upgradeProfits(s);
+  assert.deepEqual(Object.keys(p).sort(), ['attackSpeed', 'crit', 'damage']);
+  s.gold = 5000;
+  const r = buyMostProfitable(s);
+  assert.ok(r.spent > 0 && r.spent <= 5000 && s.gold >= 0);
+  assert.ok(r.dpsAfter > r.dpsBefore);
+  assert.equal(s.upgrades.vitality, 0, 'PV jamais achetés automatiquement');
+  assert.equal(s.upgrades.goldFind, 0);
+});
+
+test('lot 5 : expéditions — Repartir refait la dernière expédition de chaque place', () => {
+  const s = createNewState(NOW);
+  s.companions.owned.cat = { level: 1, stars: 1 };
+  s.companions.owned.owl = { level: 1, stars: 1 };
+  assert.ok(startExpedition(s, 1, 'owl', 'patrol', NOW));
+  s.expeditions.slots[1] = null; // terminée et récupérée
+  assert.equal(relaunchable(s), 1);
+  assert.equal(relaunchExpeditions(s, NOW + 1000), 1);
+  assert.equal(s.expeditions.slots[1].companionId, 'owl', 'la place choisie est respectée');
+  const back = sanitizeState(JSON.parse(JSON.stringify(s)), BALANCE, NOW);
+  assert.equal(back.expeditions.last[1].companionId, 'owl');
+});
+
+test('lot 5 : « Répartir mes points » équilibre entre les compétences apprises', () => {
+  const s = createNewState(NOW);
+  s.level = 20;
+  s.skills = { quick: 1 };
+  const n = distributeSkillPoints(s);
+  assert.ok(n > 0);
+  assert.equal(skillPointsAvailable(s) < 2, true);
+  const levels = Object.values(s.skills);
+  assert.ok(Math.max(...levels) - Math.min(...levels) <= 1, JSON.stringify(s.skills));
+});
+
+test('lot 7 : filtre de recyclage « garder si… » protège les objets avec cet effet', () => {
+  const s = createNewState(NOW);
+  s.equipment.helmet = makeItem(s, 'iron_helm', 'legendary', 99);
+  const item = makeItem(s, 'leather_hood', 'common', 1);
+  item.affixes = [{ type: 'lifesteal', value: 2 }];
+  s.ui.recycle = { mode: 'full', rarities: ['common'], slots: ['helmet'], keepAffixes: [] };
+  assert.equal(matchesRecycleRule(s, item), true);
+  s.ui.recycle.keepAffixes = ['lifesteal'];
+  assert.equal(matchesRecycleRule(s, item), false);
+  const back = sanitizeState(JSON.parse(JSON.stringify(s)), BALANCE, NOW);
+  assert.deepEqual(back.ui.recycle.keepAffixes, ['lifesteal']);
+});
+
+test('lot 3 : meilleure étape gardée après une Renaissance, estimée pour une ancienne partie', () => {
+  const s = createNewState(NOW);
+  s.maxStage = 80; s.stage = 80; s.records.bestStage = 80;
+  performRebirth(s);
+  assert.equal(s.maxStage, 1);
+  assert.equal(s.records.bestStage, 80);
+  const old = sanitizeState({ version: 7, maxStage: 3, stage: 3, level: 5, equipment: {}, records: { rebirths: 2, kills: 50 }, towerBest: 4 }, BALANCE, NOW);
+  assert.ok(old.records.bestStage >= 30, `estimée : ${old.records.bestStage}`);
+  assert.equal(old.ui.goalsOpen, true, 'partie existante : Objectifs ouverts');
+});
+
+test('sauvegarde : les nouveaux champs survivent à deux rechargements', () => {
+  let s = createNewState(NOW);
+  Object.assign(s.ui, { tourV: 2, goalsOpen: true, seenTabs: ['summon', 'tree'], dungeonSlot: 'helmet', dungeonPath: 'gold' });
+  s.loadouts[0] = { name: 'Boss', team: [], gear: {}, heroClass: 'knight', powers: [], skills: { quick: 2 } };
+  for (let i = 0; i < 2; i++) s = sanitizeState(JSON.parse(JSON.stringify(s)), BALANCE, NOW);
+  assert.equal(s.ui.tourV, 2);
+  assert.equal(s.ui.goalsOpen, true);
+  assert.deepEqual(s.ui.seenTabs, ['summon', 'tree']);
+  assert.equal(s.ui.dungeonSlot, 'helmet');
+  assert.equal(s.loadouts[0].name, 'Boss');
+  assert.deepEqual(s.loadouts[0].skills, { quick: 2 });
+});
+
+test('migration : une partie de chaque format (v1 à v7) se charge sans rien perdre d\'essentiel', () => {
+  for (let version = 1; version <= SAVE_VERSION; version++) {
+    const raw = { version, maxStage: 12, stage: 10, level: 9, gold: 1234, gems: 56, equipment: {}, inventory: [], records: { kills: 300 }, upgrades: { damage: 4 } };
+    const storage = memoryStorage({ [SAVE_KEY]: JSON.stringify(raw) });
+    const r = loadGame(storage, BALANCE, NOW);
+    assert.equal(r.source, 'main', `v${version}`);
+    assert.ok(r.state.level === 9 && r.state.gems === 56, `v${version}`);
+    assert.ok(r.state.maxStage >= 12 || version < 5, `v${version} étape ${r.state.maxStage}`);
+    if (version < SAVE_VERSION) assert.ok(storage.getItem(preMigrationKey(version)), `copie pre-v${version}`);
+  }
+  // Sauvegarde corrompue : la copie de secours prend le relais.
+  const good = JSON.stringify({ version: SAVE_VERSION, maxStage: 4, level: 3, equipment: {} });
+  const r = loadGame(memoryStorage({ [SAVE_KEY]: '{corrompu', [BACKUP_KEY]: good }), BALANCE, NOW);
+  assert.equal(r.source, 'backup');
+  assert.equal(r.state.level, 3);
+});
+
+test('lot 1 : boss bloquant — « Améliorer les dégâts » passe devant les petits objets, puis « Retenter »', () => {
+  const s = createNewState(NOW);
+  s.records.bossesDefeated = 3;
+  s.maxStage = 15; s.stage = 14;
+  s.bossRetry = { stage: 15, power: 1e12 };
+  s.inventory.push(makeItem(s, 'iron_helm', 'epic', 10));
+  s.gold = 1e6;
+  assert.equal(nextAction(s, { claims: [] }).text, 'Améliorer les dégâts');
+  s.gold = 0;
+  assert.equal(nextAction(s, { claims: [] }).id, 'equip');
+  s.inventory = [];
+  s.skills = { quick: s.level };
+  const n = nextAction(s, { claims: [] });
+  assert.equal(n.id, 'retry');
+  assert.equal(n.action, 'retry-boss');
+});

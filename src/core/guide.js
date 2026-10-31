@@ -61,9 +61,9 @@ export function forecastBoss(state, balance = BALANCE) {
   }
 }
 
-// v9.1.0 : « Prochaine action » — UN seul conseil, dans cet ordre : mode en cours ; à récupérer ; objet meilleur ;
-// points de compétence ; amélioration la plus rentable ; boss bloquant ; contenu optionnel ; sinon l'objectif
-// simple du moment (prochain boss). Chaque conseil : { id, text, tab?, view?, action? }.
+// v9.1.0 : « Prochaine action » — UN seul conseil, dans cet ordre : mode en cours ; à récupérer ; boss bloquant (si une
+// amélioration de dégâts est abordable) ; objet meilleur ; points de compétence ; amélioration la plus rentable ;
+// retenter le boss ; contenu optionnel ; sinon l'objectif simple du moment (prochain boss). Chaque conseil : { id, text, tab?, view?, action? }.
 // `ctx` permet de partager des calculs déjà faits (claims, betterItem) avec les pastilles.
 export function nextAction(state, ctx = {}, balance = BALANCE) {
   if (state.dungeon) return { id: 'mode-dungeon', text: 'Donjon en cours', tab: 'dungeons' };
@@ -74,20 +74,22 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
   // acheter une amélioration, puis battre le mini-boss ; les récompenses attendent la fin de ce parcours.
   if ((state.records.bossesDefeated ?? 0) === 0) return beginnerAction(state, ctx, balance) ?? (claims.length ? claimAction(claims) : goalAction(state, balance));
   if (claims.length) return claimAction(claims);
+  // Boss trop fort (v9.1.0) : passe devant l'objet meilleur et les points, sinon le joueur, qui reçoit sans cesse de
+  // petits objets, ne se voyait jamais conseiller ce qui fait tomber le boss (améliorer les dégâts, puis le retenter).
+  const best = bestUpgrade(state, balance);
+  const blocking = state.bossRetry && state.stage === state.bossRetry.stage - 1 ? bossRetryPct(state, balance) : null;
+  if (blocking !== null) {
+    if (best && state.gold >= best.cost) return { id: 'upgrade', text: 'Améliorer les dégâts', tab: 'upgrades' };
+    if (blocking < 70 && canRebirth(state) && !rebirthBlocked(state) && rebirthGain(state) >= 0.5) {
+      return { id: 'rebirth', text: `Renaissance : ×${formatMult(PRESTIGE.rebirthMultiplier ** rebirthGain(state))} pour toujours`, tab: 'tree', view: { treeSeg: 'rebirth' } };
+    }
+  }
   const better = ctx.betterItem !== undefined ? ctx.betterItem : betterItem(state, balance);
   if (better) return { id: 'equip', text: `Équipez : ${better.name}`, tab: 'inventory', view: { invTab: 'bag', invView: null, selectedItemId: better.id } };
   const points = skillPointsAvailable(state);
   if (points >= 1) return { id: 'skills', text: `${points} point${points > 1 ? 's' : ''} de compétence à dépenser`, tab: 'skills' };
-  const best = bestUpgrade(state, balance);
-  const blocking = state.bossRetry && state.stage === state.bossRetry.stage - 1 ? bossRetryPct(state, balance) : null;
-  // Boss trop fort : on propose d'abord ce qui le fait tomber (amélioration abordable), puis de le retenter.
-  if (best && state.gold >= best.cost) return { id: 'upgrade', text: blocking !== null ? 'Améliorer les dégâts' : `Améliorer : ${balance.upgrades[best.key].label}`, tab: 'upgrades' };
-  if (blocking !== null) {
-    if (blocking < 70 && canRebirth(state) && !rebirthBlocked(state) && rebirthGain(state) >= 0.5) {
-      return { id: 'rebirth', text: `Renaissance : ×${formatMult(PRESTIGE.rebirthMultiplier ** rebirthGain(state))} pour toujours`, tab: 'tree', view: { treeSeg: 'rebirth' } };
-    }
-    return { id: 'retry', text: blocking >= 100 ? 'Retenter le boss (prêt)' : `Retenter le boss (${blocking} %)`, action: 'retry-boss' };
-  }
+  if (best && state.gold >= best.cost) return { id: 'upgrade', text: `Améliorer : ${balance.upgrades[best.key].label}`, tab: 'upgrades' };
+  if (blocking !== null) return { id: 'retry', text: blocking >= 100 ? 'Retenter le boss (prêt)' : `Retenter le boss (${blocking} %)`, action: 'retry-boss' };
   if (TALENTS.some((t) => (state.talents[t.id] ?? 0) < t.max && talentUnlocked(state, t) && state.fragments >= talentCost(t, state.talents[t.id] ?? 0))) {
     return { id: 'talent', text: 'Talent à apprendre', tab: 'tree', view: { treeSeg: 'tree' } };
   }

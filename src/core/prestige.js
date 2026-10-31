@@ -1,31 +1,10 @@
-// Bonus éternels (fusionnés dans la Renaissance) ; performPrestige reste pour les anciennes sauvegardes.
+// Bonus éternels (fusionnés dans la Renaissance). v9.1.0 : l'ancien Prestige (canPrestige, performPrestige), sans
+// appel depuis la v7.7, est retiré ; prestige.count et les bonus achetés restent lus dans les sauvegardes.
 import { rebirthPower } from './rebirth.js';
 import { PRESTIGE, PRESTIGE_PERKS } from '../data/prestige.js';
-import { performRebirth } from './rebirth.js';
 
 export function prestigePerk(id) {
   return PRESTIGE_PERKS.find((p) => p.id === id);
-}
-
-export function canPrestige(state) {
-  return state.maxStage >= PRESTIGE.minStage;
-}
-
-export function prestigeReward(state) {
-  if (!canPrestige(state)) return 0;
-  return PRESTIGE.starsBase + Math.floor((state.maxStage - PRESTIGE.minStage) / PRESTIGE.starsPerStages);
-}
-
-// Effectue le Prestige : Renaissance (fragments compris) + remise à zéro des fragments et talents.
-export function performPrestige(state) {
-  const stars = prestigeReward(state);
-  if (stars <= 0) return 0;
-  performRebirth(state);
-  state.fragments = 0;
-  state.talents = {};
-  state.prestige.count += 1;
-  state.prestige.stars += stars;
-  return stars;
 }
 
 export function perkCost(level) {

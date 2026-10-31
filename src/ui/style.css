@@ -2119,3 +2119,22 @@ small, .tt-sub, .upg-level, .item-sub, .stat-list li, .compare, .cost-missing, .
 }
 @media (max-width: 560px) { .help-word { display: none; } }
 .phone-action.hidden { display: none !important; }
+/* v9.1.0 : mode compact (joueurs expérimentés) — marges et descriptions réduites, jamais les tailles minimales. */
+.compact #panel-body { gap: 4px; padding: 5px; }
+.compact .card { padding: 4px 6px; }
+.compact .upg-desc, .compact .tt-effect, .compact .compare .section-title, .compact .intro-card, .compact .exp-reward + .muted { display: none; }
+.compact .tt-row { padding: 3px 5px; }
+.compact .tt-icon { width: 34px; height: 34px; }
+.compact .inv-grid { gap: 2px; }
+.compact .m-row { padding: 2px 4px; }
+.compact .m-row .mini-bar { margin: 1px 0; }
+.compact .dungeon-item .boss-thumb { display: none; }
+.compact .dungeon-item { padding: 3px 6px; }
+.compact .claim-row { padding: 2px 6px; }
+@media (pointer: coarse) and (max-width: 560px) { .buy-amounts .chip-btn { min-width: 44px !important; } }
+.inv3 .doll canvas { max-height: 150px; width: auto; }
+.inv3 .equip-doll { align-items: center; }
+.world-picker select { flex: 1 1 0; min-width: 0; }
+@media (max-width: 560px) {
+  #panel-extra:not(:has(button)) { display: none; }
+}
