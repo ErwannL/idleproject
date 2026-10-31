@@ -12,6 +12,8 @@
   },
   "scripts": {
     "start": "node tools/serve.mjs",
+    "build:web": "node tools/build-web.mjs",
+    "server": "node server/index.mjs",
     "app": "node tools/launch.mjs",
     "desktop": "electron .",
     "test": "node --test",

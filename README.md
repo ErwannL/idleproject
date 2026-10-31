@@ -276,3 +276,44 @@ arbre de talents, 6 zones et carte du monde, donjon, contrats, événements, ma�
 
 Décisions encore ouvertes (`src/data/powers.js`) : nombre d'emplacements, coût de relance fixe
 ou progressif (`rerollCostGrowth`), tirage unique ou choix entre plusieurs résultats.
+
+## Site, préinscription et sauvegarde cloud
+
+- **Site** (`site/`) : page d'accueil avec le bouton « Jouer » (`/play/`), formulaire de préinscription (email + consentement explicite) et [politique de confidentialité](site/confidentialite.html). Le domaine se règle dans `site/config.js` (placeholder `TON-DOMAINE.xyz`).
+- **Serveur** (`server/`) : Node 22+, sans dépendance (SQLite intégré via `node:sqlite`). Il sert le site, l'API de sauvegarde et la préinscription.
+- **Sauvegarde cloud** (`src/core/cloud-save.js`) : optionnelle. Le jeu reste jouable en local (`localStorage`) si le serveur est indisponible. Pseudo + mot de passe ; suppression du compte et de toutes ses données via `DELETE /api/account`.
+
+### Commandes
+
+```bash
+npm run server        # démarre le serveur (écoute 127.0.0.1:8787 par défaut)
+npm run build:web     # prépare la version web du jeu dans dist/web (servie sur /play/)
+npm test              # tests, dont server.test.js et cloud-save.test.js
+```
+
+### Variables d'environnement
+
+Voir [`.env.example`](.env.example). Aucun secret n'est nécessaire pour le moment. Ne jamais committer de `.env`, de base de données (`data/`) ni de jeton.
+
+| Variable | Rôle | Défaut |
+|---|---|---|
+| `PORT` | port d'écoute | `8787` |
+| `HOST` | adresse d'écoute | `127.0.0.1` |
+| `DB_FILE` | fichier SQLite | `data/games.sqlite` |
+| `SITE_DIR` / `WEB_DIR` | dossiers statiques (site, jeu compilé) | `site/` / `dist/web/` |
+| `TRUST_PROXY` | `1` derrière un tunnel de confiance (limitation par IP réelle) | `0` |
+
+### API
+
+| Route | Auth | Rôle |
+|---|---|---|
+| `POST /api/register` | non | crée un compte `{pseudo, password}` |
+| `POST /api/login` | non | renvoie un jeton de session (30 jours) |
+| `POST /api/logout` | oui | révoque le jeton |
+| `GET /api/save` | oui | `{data, version}` (`data` = JSON de la partie) |
+| `PUT /api/save` | oui | `{version, data}` ; 409 si la version serveur a changé |
+| `DELETE /api/account` | oui | supprime le compte et ses données (`{password}` requis) |
+| `POST /api/preregister` | non | `{email, consent: true}` ; réponse identique que l'email existe ou non |
+| `POST /api/preregister/remove` | non | retire un email de la liste |
+
+Les journaux ne contiennent ni email, ni mot de passe, ni contenu de sauvegarde.
