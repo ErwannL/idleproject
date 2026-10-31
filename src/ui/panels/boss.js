@@ -18,6 +18,15 @@ import { collectionMissing, collectionStatus } from '../../core/codex.js';
 import { coin, effectText, escapeHtml, formatNumber, icon, img, progressBar, rarityLabel } from '../common.js';
 import { animCanvas } from '../animator.js';
 
+// v9.1.0 : un boss hors de portée n'est plus « combattu » (le jeu restait à l'étape max et coupait l'avance auto).
+function rechallengeButton(state, bossId, label) {
+  const stage = bossDungeon(bossId) ? null : bossFirstStage(bossId);
+  if (stage !== null && stage > state.maxStage) {
+    return `<button class="btn" disabled>${label}</button><span class="muted"> Atteignez l'étape ${stageLabel(stage)}</span>`;
+  }
+  return `<button class="btn" data-action="rechallenge" data-boss="${bossId}">${label}</button>`;
+}
+
 function powerBox(power, label) {
   const family = POWER_FAMILIES[power.family];
   return `<div class="power-box r-${power.rarity}">
@@ -105,7 +114,7 @@ function bossDetail(ui, state, bossId) {
   if (!entry) {
     return `${header}<div class="power-box unknown"><div class="section-title">Pouvoir ancestral</div><div class="power-name">À découvrir</div>
         <div class="muted">Vainquez ce boss pour obtenir un pouvoir ancestral unique.</div></div>
-      <button class="btn" data-action="rechallenge" data-boss="${bossId}">⚔ Combattre ce boss</button>
+      ${rechallengeButton(state, bossId, '⚔ Combattre ce boss')}
       <div class="card-sub"><div class="section-title">Récompenses possibles</div><div class="reward-row">${rewards}</div></div>`;
   }
   const current = powerById(entry.current);
@@ -123,7 +132,7 @@ function bossDetail(ui, state, bossId) {
         <button class="btn btn-gold num" data-action="reroll" data-boss="${bossId}" data-cost="${cost}" data-needs-charge="${charges}"
           ${state.gold < cost || charges < 1 ? 'disabled' : ''}
           title="${charges < 1 ? 'Réaffrontez ce boss pour gagner une charge de relance' : 'Propose un autre pouvoir ; vous choisirez ensuite'}">Relancer ${coin()} ${formatNumber(cost)}</button>
-        <button class="btn" data-action="rechallenge" data-boss="${bossId}">⚔ Réaffronter</button>
+        ${rechallengeButton(state, bossId, '⚔ Réaffronter')}
         <button class="btn small${active ? ' btn-primary' : ''}" data-action="toggle-power" data-boss="${bossId}">${active ? 'Actif ✓' : 'Activer'}</button>
       </div>
       <div class="muted pity">Charges de relance : <b class="${charges ? 'good' : 'bad'}">${charges}/${POWER_RULES.maxCharges}</b> (1 par nouvelle victoire)

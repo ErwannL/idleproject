@@ -5,21 +5,50 @@
 import { RUSHES } from '../data/rushes.js';
 import { holdKeys } from './hold.js';
 
-export const SHORTCUTS = [
-  ['← ↑ → ↓', 'Se déplacer entre les boutons (la sélection est encadrée en or)'],
-  ['Entrée ou Espace', 'Activer le bouton sélectionné'],
-  ['Entrée maintenue', 'Comme le clic maintenu : achète / améliore en continu'],
-  ['1 … 6', 'Ouvrir / fermer les menus (dans l\'ordre de la barre)'],
-  ['[ ] ou Page préc. / suiv.', 'Sous-onglet précédent / suivant'],
-  ['Tab', 'Élément suivant (Maj + Tab : précédent)'],
-  ['Échap', 'Fermer le panneau ou la fenêtre'],
-  ['A (ou Espace sans sélection)', 'Avance automatique / mode farm'],
-  ['Q W E R T', 'Lancer les boosts (Rage, Frénésie, Midas, Œil, Lame)'],
-  ['G', 'Tout récupérer (missions et récompenses)'],
-  ['M · N · P', 'Missions · Récompenses · Paramètres'],
-  ['J', 'Journal de la session (ce qui s\'est passé depuis le lancement)'],
-  ['K ou ?', 'Afficher cette aide'],
-];
+// v9.1.0 : nombre de menus fourni par l'interface (texte « 1 … 4 » toujours juste, chiffres fixes par menu).
+let menuCount = 4;
+export function setMenuCount(n) { menuCount = n; }
+
+export function shortcutsList() {
+  return [
+    ['← ↑ → ↓', 'Se déplacer entre les boutons (la sélection est encadrée en or)'],
+    ['Entrée ou Espace', 'Activer le bouton sélectionné'],
+    ['Entrée maintenue', 'Comme le clic maintenu : achète / améliore en continu'],
+    [`1 … ${menuCount}`, 'Ouvrir / fermer les menus (toujours le même chiffre pour le même menu)'],
+    ['[ ] (^ $ en AZERTY) ou Page préc. / suiv.', 'Onglet précédent / suivant'],
+    ['Tab', 'Élément suivant (Maj + Tab : précédent)'],
+    ['Échap', 'Fermer la fenêtre, puis le panneau'],
+    ['A (ou Espace sans sélection)', 'Avance automatique / rester sur l\'étape'],
+    ['V', 'Vitesse des combats (si débloquée)'],
+    ['Q W E R T', 'Lancer les boosts (Rage, Frénésie, Midas, Œil, Lame)'],
+    ['G', 'Tout récupérer'],
+    ['M · N · P', 'Missions · À récupérer · Paramètres'],
+    ['J', 'Journal de la session (ce qui s\'est passé depuis le lancement)'],
+    ['K ou ?', 'Afficher cette aide'],
+  ];
+}
+
+export function shortcutsSummary() {
+  return `1…${menuCount} menus · Espace avance auto · Q W E R T boosts · G tout récupérer…`;
+}
+
+// Chiffre tapé (AZERTY compris : la position de la touche compte, pas le caractère), sinon null.
+// AltGr + 5 (« [ » en AZERTY) n'ouvre pas de menu.
+export function digitOf(e) {
+  if (e.getModifierState?.('AltGraph')) return null;
+  const m = /^(?:Digit|Numpad)([0-9])$/.exec(e.code ?? '');
+  if (m) return Number(m[1]);
+  return /^[0-9]$/.test(e.key) ? Number(e.key) : null;
+}
+
+// [ ] : par position (touches ^ et $ en AZERTY, ^ étant une touche morte), ou par caractère (AltGr compris).
+export function bracketOf(e) {
+  if (e.code === 'BracketLeft' || e.key === '[') return -1;
+  if (e.code === 'BracketRight' || e.key === ']') return 1;
+  if (e.key === 'PageUp') return -1;
+  if (e.key === 'PageDown') return 1;
+  return 0;
+}
 
 export const BOOST_KEYS = ['Q', 'W', 'E', 'R', 'T'];
 const FOCUSABLE = 'button:not([disabled]), select:not([disabled]), input:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
@@ -84,23 +113,38 @@ export function installShortcuts(ui) {
   window.addEventListener('keyup', (e) => { if (e.key === 'Enter' || e.key === ' ') holdKeys.keyUp(); });
   window.addEventListener('keydown', (e) => {
     ui.userAt = performance.now(); // action du joueur : le panneau se redessine tout de suite
-    if (e.ctrlKey || e.altKey || e.metaKey) return;
+    const altGr = e.getModifierState?.('AltGraph');
+    if (e.metaKey || ((e.ctrlKey || e.altKey) && !altGr)) return;
     const t = e.target;
-    const typing = t && (t.tagName === 'INPUT' && t.type !== 'checkbox' && t.type !== 'range' || t.tagName === 'TEXTAREA' || t.isContentEditable);
+    const typing = t && (t.tagName === 'INPUT' && !['checkbox', 'range', 'radio', 'file'].includes(t.type) || t.tagName === 'TEXTAREA' || t.isContentEditable);
+    // v9.1.0 : Échap dans cet ordre — animation d'invocation, champ de saisie, fenêtre, puis panneau (un seul à la fois).
+    const fx = document.querySelector('.summon-fx');
+    if (fx && (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape')) {
+      e.preventDefault();
+      if (!e.repeat) fx.click();
+      return;
+    }
+    const tour = document.querySelector('.tour');
+    if (tour) {
+      // Tutoriel : seuls Entrée, Espace et Tab passent ; Échap le passe.
+      if (e.key === 'Escape') { e.preventDefault(); tour.querySelector('[data-tour="skip"]')?.click(); return; }
+      if (!['Enter', ' ', 'Tab'].includes(e.key)) e.preventDefault();
+      return;
+    }
     if (typing) {
-      if (e.key === 'Escape') t.blur();
-      // Codes secrets : Entrée valide (et répète tant qu'elle est maintenue).
+      if (e.key === 'Escape') { e.preventDefault(); t.blur(); return; }
+      // Codes secrets (version dev) : Entrée valide (et répète tant qu'elle est maintenue).
       if (e.key === 'Enter' && (t.id === 'cheat-code' || t.id === 'cheat-times')) {
         e.preventDefault();
         ui.root.querySelector('[data-action="cheat"]')?.click();
       }
       return;
     }
-    // Animation d'invocation ouverte : Entrée / Espace / Échap la font avancer.
-    const fx = document.querySelector('.summon-fx');
-    if (fx && (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape')) {
+    const modalOpen = !ui.$('modal').classList.contains('hidden');
+    if (e.key === 'Escape') {
       e.preventDefault();
-      if (!e.repeat) fx.click();
+      if (modalOpen) ui.closeModal();
+      else if (ui.tab) ui.closePanel();
       return;
     }
     const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
@@ -108,11 +152,19 @@ export function installShortcuts(ui) {
     if (key === 'F9') { e.preventDefault(); ui.togglePerf(); return; }
     const focused = document.activeElement;
     const onButton = focused && focused !== document.body && ui.root.contains(focused) && focused.matches('button, summary');
-    const onControl = focused && focused !== document.body && ui.root.contains(focused) && focused.matches('select, input');
+    const onControl = focused && focused !== document.body && ui.root.contains(focused) && focused.matches('select, input, textarea');
 
     if (ARROWS[key]) {
       if (onControl && focused.tagName === 'SELECT' && (key === 'ArrowUp' || key === 'ArrowDown')) return; // choix de la liste
       if (onControl && focused.type === 'range' && (key === 'ArrowLeft' || key === 'ArrowRight')) return; // curseur de volume
+      // Carte et arbre : les flèches font défiler la zone quand rien n'y est sélectionné.
+      const scroller = !onButton && !onControl && ui.root.querySelector('#panel-body .map-scroll, #panel-body .tree-scroll');
+      if (scroller && !modalOpen) {
+        e.preventDefault();
+        const [dx, dy] = ARROWS[key];
+        scroller.scrollBy({ left: dx * 60, top: dy * 60 });
+        return;
+      }
       e.preventDefault();
       moveFocus(ui, ...ARROWS[key]);
       return;
@@ -124,45 +176,54 @@ export function installShortcuts(ui) {
     }
     if (key === ' ' && (onButton || onControl)) return; // Espace active l'élément sélectionné
     if (e.repeat) return;
+    // v9.1.0 : fenêtre ouverte → aucun raccourci n'agit derrière elle (seuls flèches, Entrée, Espace, Tab, Échap).
+    if (modalOpen) return;
 
-    const tabs = [...ui.root.querySelectorAll('#tabs button:not(.hidden)')];
     const click = (sel) => ui.root.querySelector(sel)?.click();
+    const open = (tab) => { ui.toggleTab(tab); if (ui.tab) focusPanelStart(ui); };
     let handled = true;
-    if (/^[0-9]$/.test(key)) {
-      const btn = tabs[key === '0' ? 9 : Number(key) - 1];
+    const digit = digitOf(e);
+    const bracket = bracketOf(e);
+    if (digit !== null) {
+      // Chiffre fixe par menu (data-menu) : un menu encore caché ne décale pas les suivants.
+      const btn = ui.root.querySelector(`#tabs button[data-key="${digit}"]:not(.hidden)`);
       if (btn) { btn.click(); if (ui.tab) focusPanelStart(ui); } else handled = false;
-    } else if (key === ' ' || key === 'a') click('#auto-toggle');
+    } else if (bracket) {
+      cycleSub(ui, bracket);
+      focusPanelStart(ui);
+    } else if (altGr) handled = false;
+    else if (key === ' ' || key === 'a') click('#auto-toggle');
     else if (key === 'v') click('#speed-toggle');
     else if (key.length === 1 && BOOST_KEYS.includes(key.toUpperCase())) {
       const rush = RUSHES[BOOST_KEYS.indexOf(key.toUpperCase())];
       const btn = rush && ui.root.querySelector(`#rush-bar [data-value="${rush.id}"]`);
       if (btn) btn.click(); else handled = false;
-    } else if (key === 'g') {
-      ui.actions.claimAll?.();
-      ui.actions.claimAllEvents?.();
-    } else if (key === 'm') { ui.toggleTab('contracts'); if (ui.tab) focusPanelStart(ui); }
-    else if (key === 'n') { ui.toggleTab('inbox'); if (ui.tab) focusPanelStart(ui); }
-    else if (key === 'p') { ui.toggleTab('options'); if (ui.tab) focusPanelStart(ui); }
-    else if (key === ']' || key === '[' || key === 'PageDown' || key === 'PageUp') {
-      // v9.0.6 : sous-onglet précédent / suivant du menu ouvert (sinon menu précédent / suivant).
-      const subs = [...ui.root.querySelectorAll('#panel-subtabs [data-sub]')];
-      const fwd = key === ']' || key === 'PageDown';
-      if (ui.tab && subs.length > 1) {
-        const i = subs.findIndex((b) => b.dataset.sub === ui.tab);
-        subs[(i + (fwd ? 1 : -1) + subs.length) % subs.length].click();
-      } else {
-        if (!tabs.length) return;
-        const i = tabs.findIndex((b) => b.classList.contains('active'));
-        tabs[(i + (fwd ? 1 : -1) + tabs.length) % tabs.length].click();
-      }
-      focusPanelStart(ui);
-    } else if (key === 'k' || key === '?') ui.showShortcuts();
+    } else if (key === 'g') ui.claimEverything?.();
+    else if (key === 'm') open('contracts');
+    else if (key === 'n') open('inbox');
+    else if (key === 'p') open('options');
+    else if (key === 'k' || key === '?') ui.showShortcuts();
     else if (key === 'j') ui.showJournal(ui.sessionJournal?.() ?? {});
+    else if (ui.extraShortcut?.(key)) handled = true;
     else handled = false;
     if (handled) e.preventDefault();
   });
 }
 
+// Onglet précédent / suivant du menu ouvert (sinon menu précédent / suivant). Partagé avec le balayage tactile.
+export function cycleSub(ui, dir) {
+  const subs = [...ui.root.querySelectorAll('#panel-subtabs [data-sub]')];
+  if (ui.tab && subs.length > 1) {
+    const i = subs.findIndex((b) => b.dataset.sub === ui.tab);
+    subs[(i + dir + subs.length) % subs.length].click();
+    return;
+  }
+  const tabs = [...ui.root.querySelectorAll('#tabs button:not(.hidden)')];
+  if (!tabs.length) return;
+  const i = tabs.findIndex((b) => b.classList.contains('active'));
+  tabs[(i + dir + tabs.length) % tabs.length].click();
+}
+
 export function shortcutsHtml() {
-  return `<table class="shortcuts">${SHORTCUTS.map(([k, d]) => `<tr><td><kbd>${k}</kbd></td><td>${d}</td></tr>`).join('')}</table>`;
+  return `<table class="shortcuts">${shortcutsList().map(([k, d]) => `<tr><td><kbd>${k}</kbd></td><td>${d}</td></tr>`).join('')}</table>`;
 }

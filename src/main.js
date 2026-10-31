@@ -35,7 +35,7 @@ import { generateItem, itemPower, makeItem, rarityById } from './core/loot.js';
 import { STAT_LABELS } from './data/items.js';
 import { applyOfflineRewards, computeOfflineRewards } from './core/offline.js';
 import { Rng } from './core/rng.js';
-import { clearSave, loadGame, saveGame } from './core/save.js';
+import { SAVE_KEY, clearSave, encodeSaveCode, loadGame, parseImport, saveGame, writeImported } from './core/save.js';
 import { createNewState } from './core/state.js';
 import { computeHeroStats } from './core/stats.js';
 import { formatNumber } from './core/format.js';
@@ -47,12 +47,12 @@ import { SceneRenderer } from './render/scene.js';
 import { UI } from './ui/ui.js';
 import { animateMenus } from './ui/animator.js';
 import { createGameAudio } from './audio/game-audio.js';
-import { applyCheat, removeCheat, simSpeed, unlockedSpeeds } from './core/cheats.js';
-import { applyLoadout, saveLoadout } from './core/loadouts.js';
+import { simSpeed, unlockedSpeeds } from './core/cheats.js';
+import { applyLoadout, renameLoadout, saveLoadout } from './core/loadouts.js';
 import { claimCollection } from './core/codex.js';
 import { claimEncyclopedia } from './core/encyclopedia.js';
 import { activeClass, canEquip, setHeroClass, weaponClass } from './core/classes.js';
-import { setLang, startAutoTranslate, t } from './i18n/i18n.js';
+import { setLang, startAutoTranslate } from './i18n/i18n.js';
 import { CloudError, createCloudClient, syncOnce } from './core/cloud-save.js';
 import { CLOUD_BASE } from './core/cloud-config.js';
 import { BUILD } from './core/build-info.js';
@@ -62,12 +62,19 @@ import { BUILT_IN_TOKEN } from './core/update-token.js';
 import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagList, updateStatus } from './core/update.js';
 
 const SIM_INTERVAL_MS = 100;
+// v9.1.0 : codes de triche chargés seulement dans la version dev (fichier absent de la version publique).
+let cheatCodes = null;
 
+let storageMissing = false;
 function storage() {
   try {
-    return window.localStorage;
+    const s = window.localStorage;
+    s.setItem('idle-rpg.probe', '1');
+    s.removeItem('idle-rpg.probe');
+    return s;
   } catch {
-    // Stockage indisponible : la partie fonctionne mais n'est pas conservée.
+    // Stockage indisponible : la partie fonctionne mais n'est pas conservée (v9.1.0 : le joueur est prévenu).
+    storageMissing = true;
     const map = new Map();
     return { getItem: (k) => map.get(k) ?? null, setItem: (k, v) => map.set(k, v), removeItem: (k) => map.delete(k) };
   }
@@ -86,9 +93,23 @@ new ResizeObserver(() => renderer.resize(stageArea.clientWidth, stageArea.client
 renderer.resize(stageArea.clientWidth, stageArea.clientHeight);
 
 let lastSave = Date.now();
+// v9.1.0 : écriture bloquée quand la sauvegarde vient d'une version plus récente (rien n'est écrasé) ou pendant
+// un rechargement (réinitialisation, import : la partie en mémoire ne doit plus être écrite).
+let saveBlocked = loaded.source === 'newer';
+let saveFailedAt = 0;
 function save() {
-  saveGame(state, store, Date.now());
   lastSave = Date.now();
+  if (saveBlocked) return false;
+  const ok = saveGame(state, store, Date.now());
+  if (!ok && Date.now() - saveFailedAt > 60000) {
+    saveFailedAt = Date.now();
+    setTimeout(() => ui.toast('⚠ Sauvegarde impossible (stockage plein ou bloqué) : exportez votre partie (Paramètres → Général).', '#ff8a8a'), 0);
+  }
+  return ok;
+}
+function reloadPage() {
+  saveBlocked = true;
+  location.reload();
 }
 
 function runOffline(fromMs, nowMs, journal = null) {
@@ -155,8 +176,18 @@ const actions = {
     if (!toggleCompanion(state, id)) ui.toast(onExpedition(state, id) ? 'Ce compagnon est en expédition.' : `Deux compagnons au maximum : retirez-en un d'abord.`);
     else done(true);
   },
-  saveLoadout(i) { done(saveLoadout(state, i), `Configuration « ${state.loadouts[i].name} » enregistrée`); },
-  applyLoadout(i) { done(applyLoadout(state, i), `Configuration « ${state.loadouts[i].name} » équipée`); },
+  saveLoadout(i) { done(saveLoadout(state, i), `Build « ${state.loadouts[i].name} » enregistré`); },
+  applyLoadout(i) {
+    const r = applyLoadout(state, i, BALANCE, itemPower);
+    if (!r) { ui.toast('Ce build est vide : équipez-vous puis « Enregistrer ».'); return; }
+    const notes = [r.missing ? `${r.missing} objet${r.missing > 1 ? 's' : ''} introuvable${r.missing > 1 ? 's' : ''}` : '',
+      r.refused ? `${r.refused} arme${r.refused > 1 ? 's' : ''} d'une autre classe` : ''].filter(Boolean).join(', ');
+    done(true, `Build « ${state.loadouts[i].name} » équipé${notes ? ` (${notes})` : ''}`, notes ? '#ffb36b' : null);
+  },
+  renameLoadout(i, name) {
+    if (!renameLoadout(state, i, name)) { ui.toast('Nom vide.'); return; }
+    done(true, `Build renommé : ${state.loadouts[i].name}`);
+  },
   claimEncyclopedia() {
     const given = claimEncyclopedia(state);
     done(Boolean(given), given ? `Encyclopédie : ${rewardText(given)}` : null, '#f2d083');
@@ -213,9 +244,14 @@ const actions = {
       ui.toast("Terminez d'abord le donjon, la tour ou le défi.");
       return;
     }
+    const stage = bossFirstStage(bossId);
+    if (stage === null || stage > state.maxStage) {
+      ui.toast(`Atteignez d'abord l'étape ${stageLabel(stage ?? state.maxStage)}.`);
+      return;
+    }
     state.autoAdvance = false;
     state.farmBoss = bossId;
-    changeStage(state, world, bossFirstStage(bossId));
+    changeStage(state, world, stage);
     done(true, `${BOSSES[bossId].name} : le chevalier l'affronte en boucle (mode farm) — bouton « Arrêter » sur la scène pour reprendre`);
   },
   // v9.0.4 : fin du combat en boucle lancé depuis le Codex : retour à l'étape max, avance auto.
@@ -263,6 +299,11 @@ const actions = {
     }
     if (!n) ui.toast('Rien à récupérer pour le moment.');
     else done(true, `Tout récupéré : ${rewardText(total)}`, '#7fd4ff');
+  },
+  // Touche G (v9.1.0 : complétée au lot 2 par tout ce qui est réclamable).
+  claimEverything() {
+    this.claimAll();
+    this.claimAllEvents();
   },
   claimAchievement(id) {
     const a = claimAchievement(state, id);
@@ -316,6 +357,7 @@ const actions = {
   recycle(id) {
     const gold = recycleItem(state, id);
     if (gold > 0) {
+      for (const j of journals()) noteRecycled(j, 1, gold);
       ui.toast(`Recyclé : +${formatNumber(gold)} or`);
       save();
       ui.invalidate();
@@ -326,6 +368,7 @@ const actions = {
     const ids = new Set(bulkRecycleCandidates(state, maxRarity).map((i) => i.id));
     const { gold, count } = recycleMatching(state, (i) => ids.has(i.id));
     if (count > 0) {
+      for (const j of journals()) noteRecycled(j, count, gold);
       ui.toast(`${count} objets recyclés : +${formatNumber(gold)} or`);
       save();
       ui.invalidate();
@@ -368,8 +411,8 @@ const actions = {
   },
   buyTalentMax(id) { done(buyTalentMax(state, id) > 0); },
   // Transcendance (v8.8).
-  transcend() {
-    const stars = performTranscend(state, performRebirth);
+  transcend(keepPower) {
+    const stars = performTranscend(state, performRebirth, keepPower);
     if (!stars) return;
     world = createCombat(state);
     resetWave(world);
@@ -411,12 +454,12 @@ const actions = {
   upgradeRush(id) { done(upgradeRush(state, id)); },
   setRushAuto(on) { state.rushes.auto = on; done(true); },
   cheat(code, times = 1) {
-    const msg = applyCheat(state, code, times);
+    const msg = cheatCodes?.applyCheat(state, code, times);
     if (msg) done(true, msg, '#ffe08a');
     else ui.toast('Code inconnu.', '#ff8a8a');
   },
   removeCheat(code, times) {
-    done(removeCheat(state, code, times), `Code ${code} retiré${Number.isFinite(times) ? ` (×${formatNumber(times)})` : ''}.`);
+    done(Boolean(cheatCodes?.removeCheat(state, code, times)), `Code ${code} retiré${Number.isFinite(times) ? ` (×${formatNumber(times)})` : ''}.`);
   },
   buyPerk(id) { done(buyPerk(state, id), 'Bonus éternel amélioré', '#ffe08a'); },
   // Tour de l'Éternité (v8.2).
@@ -567,6 +610,7 @@ const actions = {
     let gold = 0;
     let n = 0;
     for (const item of museumDuplicates(state)) { gold += recycleItem(state, item.id); n += 1; }
+    for (const j of journals()) noteRecycled(j, n, gold);
     done(n > 0, n ? `${n} doublon${n > 1 ? 's' : ''} du Musée recyclé${n > 1 ? 's' : ''} : +${formatNumber(gold)} or` : null, '#ffe08a');
   },
   exposeAll() {
@@ -678,28 +722,69 @@ const actions = {
     else window.open(ui.updateInfo?.release?.url ?? RELEASES_PAGE, '_blank', 'noopener');
   },
   setWindowSize(preset) {
-    window.desktop?.setSizePreset(preset);
+    if (!window.desktop) return;
+    ui.forgetSideGrow();
+    window.desktop.setSizePreset(preset);
   },
   saveNow() {
     save();
     ui.toast('Partie sauvegardée');
     ui.invalidate();
   },
+  // Test des gains hors ligne : version dev seulement (il applique les vrais gains, sans limite).
   simulateAbsence(seconds) {
+    if (!BUILD.cheats) return;
     const now = Date.now();
     runOffline(now - seconds * 1000, now);
   },
+  // v9.1.0 : réinitialisation confirmée par la saisie de EFFACER (fenêtre du jeu), puis rechargement : journal,
+  // état de l'interface, prévision et tutoriel repartent de zéro.
   reset() {
-    if (!window.confirm(t('Effacer définitivement la progression ?'))) return;
     clearSave(store);
     state = createNewState(Date.now());
-    world = createCombat(state);
+    saveGame(state, store, Date.now());
+    reloadPage();
+  },
+  // Export : fichier .json (téléchargé) ou code à copier.
+  exportSave(kind = 'file') {
     save();
-    ui.invalidate();
+    const json = store.getItem(SAVE_KEY) ?? JSON.stringify(state);
+    if (kind === 'code') {
+      const code = encodeSaveCode(json);
+      ui.view.exportCode = code;
+      navigator.clipboard?.writeText(code).then(() => ui.toast('Code de sauvegarde copié.', '#8ef0a0'), () => ui.toast('Code affiché ci-dessous : copiez-le.'));
+      ui.invalidate();
+      return;
+    }
+    const d = new Date();
+    const name = `idle-rpg-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-niv${state.level}.json`;
+    const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    ui.toast(`Partie exportée : ${name}`, '#8ef0a0');
+  },
+  // Import : la partie est validée, l'actuelle est copiée à part, puis le jeu redémarre sur la partie importée.
+  importSave(text) {
+    const r = parseImport(text, BALANCE, Date.now());
+    if (r.error) { ui.toast(r.error, '#ff8a8a'); return false; }
+    try {
+      if (!writeImported(r.state, store)) throw new Error('écriture');
+    } catch {
+      ui.toast('Import impossible : stockage plein ou bloqué.', '#ff8a8a');
+      return false;
+    }
+    reloadPage();
+    return true;
   },
 };
 
 const ui = new UI(document.getElementById('app'), actions);
+if (BUILD.cheats) import('./core/cheat-codes.js').then((m) => { cheatCodes = m; ui.cheatCodes = m; ui.invalidate(); });
 
 // Compte et sauvegarde cloud (optionnels) : le jeu fonctionne sans, via localStorage.
 const cloud = createCloudClient({ baseUrl: CLOUD_BASE, storage: store });
@@ -716,7 +801,9 @@ function setCloudMessage(text, error = false) {
 }
 // Recharge la partie depuis le localStorage (après une synchronisation qui a ramené une partie plus récente).
 function reloadFromStore() {
-  state = loadGame(store, BALANCE, Date.now()).state;
+  const next = loadGame(store, BALANCE, Date.now());
+  if (next.source === 'newer') return;
+  state = next.state;
   world = createCombat(state);
   ui.invalidate();
 }
@@ -788,8 +875,12 @@ setTimeout(() => { if (!navigator.webdriver && !ui.desktop?.smoke) actions.check
 // Gains hors ligne depuis la dernière sauvegarde.
 // v9.0.3 : exposition auto des objets ancestraux déjà dans le sac ou le coffre.
 if (state.ui.autoMuseum !== false) exposeAll(state);
-if (loaded.source !== 'new') runOffline(state.lastSaved, Date.now());
+if (loaded.source === 'main' || loaded.source === 'backup') runOffline(state.lastSaved, Date.now());
 else save();
+// v9.1.0 : le joueur est prévenu quand sa partie n'est pas lue normalement.
+if (loaded.source === 'newer') setTimeout(() => ui.showNewerSave(loaded.newerVersion), 300);
+else if (loaded.source === 'backup') setTimeout(() => ui.toast('Sauvegarde principale illisible : la partie a repris sur la copie de secours.', '#ffb36b'), 2500);
+if (storageMissing) setTimeout(() => ui.toast('⚠ Stockage indisponible : la partie ne sera pas conservée à la fermeture.', '#ff8a8a'), 3000);
 
 // Cinématiques (v8.1) : au lancement, puis à chaque arrivée dans un nouveau monde (en avançant).
 const cinematicsOn = () => state.ui.cinematics !== false && !navigator.webdriver && !ui.desktop?.smoke;
@@ -1000,25 +1091,35 @@ document.addEventListener('visibilitychange', () => {
 window.addEventListener('pagehide', save);
 
 // Points d'accès pour les tests automatisés (tools/smoke.mjs, desktop/main.cjs --smoke).
-// Utilisés aussi par la version bureau pour sauvegarder à la fermeture.
+// v9.1.0 : la version publique n'expose que la sauvegarde (appelée par la version bureau à la fermeture),
+// l'origine de la partie et une copie des compteurs (test de l'exe) ; l'état et les actions restent réservés
+// à la version dev et aux tests automatisés (navigateur piloté).
+const DEV_ACCESS = BUILD.cheats || navigator.webdriver === true;
 window.__idle = {
-  get state() { return state; },
-  get world() { return world; },
-  ui,
-  renderer, // v9.0.6 : rendu de la scène (tests, captures)
   loadSource: loaded.source,
   save,
-  actions,
-  addItem(baseId, rarity = 'common', level = 1) {
-    const item = makeItem(state, baseId, rarity, level);
-    addToInventory(state, item);
-    ui.invalidate();
-    return item;
-  },
-  addRandomItem(minRarity = 'common') {
-    const item = generateItem(state, rng, { level: state.stage, minRarity });
-    addToInventory(state, item);
-    ui.invalidate();
-    return item;
-  },
+  get records() { return { ...state.records }; },
 };
+if (DEV_ACCESS) {
+  Object.defineProperties(window.__idle, {
+    state: { get: () => state },
+    world: { get: () => world },
+  });
+  Object.assign(window.__idle, {
+    ui,
+    renderer, // v9.0.6 : rendu de la scène (tests, captures)
+    actions,
+    addItem(baseId, rarity = 'common', level = 1) {
+      const item = makeItem(state, baseId, rarity, level);
+      addToInventory(state, item);
+      ui.invalidate();
+      return item;
+    },
+    addRandomItem(minRarity = 'common') {
+      const item = generateItem(state, rng, { level: state.stage, minRarity });
+      addToInventory(state, item);
+      ui.invalidate();
+      return item;
+    },
+  });
+}

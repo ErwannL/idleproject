@@ -22,7 +22,13 @@ export function createJournal(state, now = Date.now()) {
 
 // Objet ramassé : recyclé tout de suite (règle de recyclage, sac plein) ou rangé dans le sac.
 export function noteDrop(journal, event) {
-  if (!journal || !event.autoRecycled) return;
+  if (!journal) return;
+  // v9.1.0 : objets recyclés pour faire de la place dans le sac (sac plein) : comptés avec leur or.
+  if (event.freed?.count) {
+    journal.recycled += event.freed.count;
+    journal.recycledGold += event.freed.gold ?? 0;
+  }
+  if (!event.autoRecycled) return;
   journal.recycled += 1;
   journal.recycledGold += event.recycledGold ?? 0;
 }

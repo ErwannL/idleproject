@@ -5,7 +5,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createNewState, sanitizeState } from '../src/core/state.js';
 import { formatNumber } from '../src/core/format.js';
-import { applyCheat, unlockedSpeeds } from '../src/core/cheats.js';
+import { unlockedSpeeds } from '../src/core/cheats.js';
+import { applyCheat } from '../src/core/cheat-codes.js';
 import { startTower, clearTowerFloor, endTower, climbsLeft, towerWeek } from '../src/core/tower.js';
 import { BALANCE } from '../src/data/balance.js';
 

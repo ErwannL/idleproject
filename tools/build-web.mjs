@@ -15,7 +15,10 @@ await cp(resolve(ROOT, 'index.html'), resolve(OUT, 'index.html'));
 await cp(resolve(ROOT, 'src'), resolve(OUT, 'src'), { recursive: true });
 await cp(resolve(ROOT, 'assets'), resolve(OUT, 'assets'), { recursive: true });
 
-if (DEV) {
+if (!DEV) {
+  // v9.1.0 : les codes de triche ne sont jamais livrés dans la version publique.
+  await rm(resolve(OUT, 'src', 'core', 'cheat-codes.js'), { force: true });
+} else {
   // Seul fichier réécrit : les valeurs de build. Le reste du code est identique à la version publique.
   const file = resolve(OUT, 'src', 'core', 'build-info.js');
   const source = await readFile(file, 'utf8');

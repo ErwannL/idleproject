@@ -2,7 +2,7 @@
 import { HD_REAL } from '../data/hd-real.js';
 import { AFFIXES, SLOTS } from '../data/items.js';
 import { EFFECT_LABELS } from '../data/powers.js';
-import { forecastSteps } from '../core/guide.js';
+import { forecastSteps, nextBossStage } from '../core/guide.js';
 import { stageLabel } from '../core/combat.js';
 import { setById } from '../core/sets.js';
 import { simSpeed } from '../core/cheats.js';
@@ -92,12 +92,17 @@ export function bossForecast(state, onReady = null) {
   const key = `${state.stage}|${JSON.stringify(state.upgrades)}|${Object.values(state.equipment).map((i) => i?.id).join()}|${state.level}|${state.companions.equipped.join()}|${Object.keys(state.talents).length}`;
   const now = Date.now();
   const fresh = forecastCache.key === key && now - forecastCache.at < 20000;
-  if (!fresh && forecastJob?.key !== key) {
-    forecastJob = { key, gen: forecastSteps(state), onReady };
-    setTimeout(runForecastJob, 0);
+  // v9.1.0 : le rappel de fin de calcul est gardé sur le calcul en cours (avant, un calcul lancé sans rappel
+  // ignorait celui d'un appel suivant : « (mise à jour…) » restait affiché).
+  if (!fresh) {
+    if (forecastJob?.key !== key) {
+      forecastJob = { key, gen: forecastSteps(state), onReady };
+      setTimeout(runForecastJob, 0);
+    } else if (onReady) forecastJob.onReady = onReady;
   }
   if (forecastCache.key === key) return forecastCache.value;
-  return forecastCache.value ? { ...forecastCache.value, stale: true } : { pending: true };
+  // Ancien résultat : seulement s'il concerne le même boss (sinon on affichait l'ancienne étape).
+  return forecastCache.value?.stage === nextBossStage(state) ? { ...forecastCache.value, stale: true } : { pending: true };
 }
 
 export function forecastHtml(f) {

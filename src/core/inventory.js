@@ -72,16 +72,19 @@ export function shouldAutoRecycle(state, item) {
 }
 
 // Sac plein (mode « quand le sac est plein ») : recycle les objets du sac qui correspondent aux règles.
+// v9.1.0 : renvoie { gold, count } (avant, seul l'or remontait et il était perdu pour le journal).
 export function recycleForSpace(state, balance = BALANCE) {
   const rules = recycleRules(state);
-  if (rules.mode !== 'full') return 0;
+  if (rules.mode !== 'full') return { gold: 0, count: 0 };
   let gold = 0;
+  let count = 0;
   for (const item of [...state.inventory]) {
     if (!matchesRecycleRule(state, item, rules)) continue;
     state.inventory.splice(state.inventory.indexOf(item), 1);
     gold += salvage(state, item, balance);
+    count += 1;
   }
-  return gold;
+  return { gold, count };
 }
 
 // Ramassage d'un objet : recyclé automatiquement selon la règle, sinon rangé dans le sac.
@@ -109,8 +112,9 @@ export function collectItem(state, item, balance = BALANCE) {
     const freed = recycleForSpace(state, balance);
     if (recycleRules(state).mode === 'full' && matchesRecycleRule(state, item) && state.inventory.length >= balance.loot.inventorySize) {
       state.records.itemsFound += 1;
-      return { added: false, auto: true, recycledGold: freed + salvage(state, item, balance) };
+      return { added: false, auto: true, recycledGold: salvage(state, item, balance), freed };
     }
+    return { ...addToInventory(state, item, balance), freed };
   }
   return addToInventory(state, item, balance);
 }

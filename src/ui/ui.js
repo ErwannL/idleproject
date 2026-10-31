@@ -13,14 +13,14 @@ import { upgradeCost } from '../core/economy.js';
 import { xpForLevel } from '../core/level.js';
 import { rarityById } from '../core/loot.js';
 import { powerById } from '../core/powers.js';
-import { canRebirth, fragmentsSpent, rebirthGain, rebirthReward, respecCost } from '../core/rebirth.js';
+import { canRebirth, fragmentsSpent, rebirthBlocked, rebirthGain, rebirthReward, respecCost } from '../core/rebirth.js';
 import { REBIRTH } from '../data/rebirth.js';
 import { keptRebirthShare, transcendReward } from '../core/transcend.js';
 import { TRANSCEND } from '../data/transcend.js';
 import { rewardText } from '../core/rewards.js';
 import { skillCooldown, skillPointsAvailable } from '../core/skills.js';
 import { computeHeroStats } from '../core/stats.js';
-import { BOOST_KEYS, focusables, installShortcuts, shortcutsHtml } from './shortcuts.js';
+import { BOOST_KEYS, focusables, installShortcuts, setMenuCount, shortcutsHtml } from './shortcuts.js';
 import { installHoldToRepeat, selectorFor } from './hold.js';
 import { playSummonReveal } from './summon-fx.js';
 import { coin, effectText, escapeHtml, icon, img, itemFrame } from './common.js';
@@ -119,7 +119,7 @@ export function journalHtml(j) {
     j.kills && ['skill_quick', 'Ennemis vaincus', formatNumber(j.kills)],
     j.gold && ['coin', 'Or gagné', `+${formatNumber(j.gold)}`],
     j.items && ['icon_bag', 'Objets ramassés', `${formatNumber(j.items)} — ${formatNumber(j.inBag)} encore dans le sac`],
-    j.recycled && ['icon_shard', 'Recyclés automatiquement', `${formatNumber(j.recycled)} (+${formatNumber(j.recycledGold)} or)`],
+    j.recycled && ['icon_shard', 'Objets recyclés', `${formatNumber(j.recycled)} (+${formatNumber(j.recycledGold)} or)`],
     j.fused && ['icon_anvil', 'Fusions automatiques', formatNumber(j.fused)],
     j.tower && ['icon_star', 'Tour de l\'Éternité', `+${j.tower} étage${j.tower > 1 ? 's' : ''} de record`],
   ].filter(Boolean);
@@ -180,7 +180,8 @@ export class UI {
     };
 
     root.querySelectorAll('img[data-icon]').forEach((el) => { el.src = icon(el.dataset.icon); });
-    if (!window.desktop) root.querySelector('.strip-btn')?.remove(); // agrandir la fenêtre : version bureau seulement
+    // Mode barre : ☰ et ⤢ agrandissent la fenêtre bureau ; en navigateur, ils n'ont pas de sens (v9.1.0 : les deux retirés).
+    if (!window.desktop) root.querySelectorAll('.strip-btn').forEach((b) => b.remove());
     this.lastSub = {}; // dernier sous-onglet ouvert de chaque menu
     this.tabVisible = {};
     this.tabBadges = {};
@@ -198,13 +199,13 @@ export class UI {
     });
     root.addEventListener('click', (e) => this.onClick(e));
     root.addEventListener('change', (e) => this.onChange(e));
-    window.addEventListener('keydown', (e) => {
-      if (e.key !== 'Escape') return;
-      if (!this.$('modal').classList.contains('hidden')) this.closeModal();
-      else this.closePanel();
+    root.addEventListener('input', (e) => {
+      if (e.target.id === 'reset-confirm') this.$('confirm-reset').disabled = !/^(EFFACER|ERASE)$/i.test(e.target.value.trim());
     });
     new ResizeObserver(() => this.updateLayout()).observe(root);
     this.updateLayout();
+    setMenuCount(MENUS.length);
+    root.querySelectorAll('#tabs button').forEach((b) => { b.dataset.key = String(MENUS.findIndex((m) => m.id === b.dataset.menu) + 1); });
     installShortcuts(this);
     installHoldToRepeat(root);
   }
@@ -273,6 +274,47 @@ export class UI {
       <p class="muted">Astuce : maintenez le clic sur un bouton (acheter, améliorer…) — quand l'anneau est plein, il est cliqué en continu jusqu'à ce que vous bougiez la souris.</p>
       <div class="detail-actions"><button class="btn btn-primary" data-action="close-modal">OK</button></div>`;
     this.$('modal').classList.remove('hidden');
+  }
+
+  // Touche G : tout ce qui est réclamable d'un coup.
+  claimEverything() {
+    this.actions.claimEverything?.();
+  }
+
+  // v9.1.0 : réinitialisation isolée — ce qui est perdu, export proposé, bouton actif après la saisie de EFFACER.
+  showResetConfirm() {
+    this.$('modal-card').innerHTML = `<h2>⚠ Réinitialiser la partie</h2>
+      <p>Tout est effacé sur cet appareil : niveau, or, gemmes, objets, compagnons, talents, Renaissances, records et la copie de
+        secours. <b class="bad">C'est définitif.</b></p>
+      <div class="options-row"><button class="btn small" data-action="export-save" data-value="file">Exporter ma partie d'abord</button></div>
+      <p>Pour confirmer, tapez <b>EFFACER</b> :</p>
+      <input id="reset-confirm" class="confirm-input" type="text" autocomplete="off" spellcheck="false" maxlength="12" aria-label="Tapez EFFACER pour confirmer">
+      <div class="detail-actions"><button class="btn btn-primary" data-action="close-modal">Annuler</button>
+        <button class="btn btn-danger" data-action="confirm-reset" id="confirm-reset" disabled>Tout effacer</button></div>`;
+    this.$('modal').classList.remove('hidden');
+    setTimeout(() => this.$('reset-confirm')?.focus(), 30);
+  }
+
+  // v9.1.0 : sauvegarde écrite par une version plus récente : rien n'est chargé ni écrasé.
+  showNewerSave(version) {
+    this.$('modal-card').innerHTML = `<h2>Sauvegarde d'une version plus récente</h2>
+      <p>Votre partie a été enregistrée par une version plus récente du jeu (format ${escapeHtml(String(version))}). Cette version ne sait pas
+        la lire. <b>Rien n'a été effacé</b> : mettez le jeu à jour pour la retrouver.</p>
+      <p class="muted">En attendant, la partie affichée n'est pas sauvegardée.</p>
+      <div class="detail-actions"><button class="btn btn-gold" data-action="check-update">Chercher la mise à jour</button>
+        <button class="btn" data-action="close-modal">Fermer</button></div>`;
+    this.$('modal').classList.remove('hidden');
+  }
+
+  // Import depuis l'onglet Général : fichier choisi, sinon le texte collé.
+  importFromPanel() {
+    const file = this.$('import-file')?.files?.[0];
+    if (file) {
+      if (file.size > 20e6) { this.toast('Fichier trop gros pour une sauvegarde.', '#ff8a8a'); return; }
+      file.text().then((text) => this.actions.importSave(text));
+      return;
+    }
+    this.actions.importSave(this.$('import-text')?.value ?? '');
   }
 
   // --- Disposition selon la taille de la fenêtre ---
@@ -349,6 +391,12 @@ export class UI {
         window.desktop.growLeft(SIDE_PANEL_W + RAIL_W * (fromStrip ? 1 : 0), dh);
       } else if (!want && this.sideGrown) { this.sideGrown = false; window.desktop.restoreGrow(); }
     }
+  }
+
+  // Préréglage de fenêtre choisi : l'agrandissement du menu est oublié (la fenêtre a sa nouvelle taille).
+  forgetSideGrow() {
+    this.sideGrown = false;
+    this.root.classList.remove('side-open');
   }
 
   openTab(tab) {
@@ -510,7 +558,7 @@ export class UI {
       case 'dungeon-slot': local(() => { v.dungeonSlot = value; }); break;
       case 'dungeon-path-pre': local(() => { v.dungeonPath = value; }); break;
       case 'dungeon-path': a.setDungeonPath(value); break;
-      case 'enter-dungeon': a.enterDungeon(value, v.dungeonSlot, v.dungeonPath, v.dungeonDiff ?? 'easy'); break;
+      case 'enter-dungeon': a.enterDungeon(value, v.dungeonSlot, v.dungeonPath, el.dataset.diff ?? v.dungeonDiff ?? 'easy'); break;
       case 'dungeon-sel': local(() => { v.dungeonSel = value; v.dungeonDiff = null; }); break;
       case 'dungeon-diff': local(() => { v.dungeonDiff = value; }); break;
       case 'dungeon-filter': local(() => { v.dungeonFilter = value; }); break;
@@ -531,7 +579,12 @@ export class UI {
       case 'buy-tperk': a.buyTranscendPerk(key); break;
       case 'buy-tperk-max': a.buyTranscendPerk(key, true); break;
       case 'transcend': this.showTranscendConfirm(this.state); break;
-      case 'confirm-transcend': this.closeModal(); a.transcend(); break;
+      case 'confirm-transcend': {
+        const keep = this.$('modal-card').querySelector('input[name="keep-power"]:checked')?.value;
+        this.closeModal();
+        a.transcend(keep);
+        break;
+      }
       case 'start-expedition': { const [cid, type] = value.split('|'); a.startExpedition(cid, type); break; }
       case 'claim-expedition': a.claimExpedition(Number(value)); break;
       case 'recall-expedition': a.recallExpedition(Number(value)); break;
@@ -569,13 +622,20 @@ export class UI {
       case 'dismiss-event': a.dismissEvent(Number(value)); break;
       case 'save': a.saveNow(); break;
       case 'simulate': a.simulateAbsence(Number(seconds)); break;
-      case 'reset': a.reset(); break;
+      case 'reset': this.showResetConfirm(); break;
+      case 'confirm-reset':
+        if (/^(EFFACER|ERASE)$/i.test(this.$('reset-confirm')?.value.trim() ?? '')) { this.closeModal(); a.reset(); }
+        break;
+      case 'opt-tab': local(() => { v.optTab = value; v.importOpen = false; v.exportCode = null; }); break;
+      case 'export-save': a.exportSave(value); break;
+      case 'import-open': local(() => { v.importOpen = !v.importOpen; }); break;
+      case 'import-save': this.importFromPanel(); break;
       case 'close-modal': this.closeModal(); break;
       case 'show-shortcuts': this.showShortcuts(); break;
       case 'show-journal': this.showJournal(this.sessionJournal?.() ?? {}); break;
       case 'confirm-speed100': this.closeModal(); a.setSpeed(100); break;
       case 'window-size': a.setWindowSize(preset); break;
-      case 'strip-menu': this.toggleMenu(MENUS.find((m) => m.tabs.includes(this.lastOpened))?.id ?? 'hero'); break;
+      case 'strip-menu': this.toggleMenu(menuOf(this.lastOpened)?.id ?? MENUS[0].id); break;
       default: break;
     }
   }
@@ -641,6 +701,7 @@ export class UI {
             ? `Sac plein : ${event.item.name} recyclé (+${formatNumber(event.recycledGold)} or)`
             : `Butin : ${event.item.name} (${rarity.label})`, event.byRule ? '#8e9db8' : rarity.color);
         if (this.tab === 'inventory' || this.tab === 'hero') this.invalidate();
+        if (event.freed?.count) this.noteRecycled(event.freed.count, event.freed.gold);
         if (event.mannequin || event.museum) break;
         if (!event.byRule && !event.autoRecycled) this.addLootPopup(event.item);
         else this.noteRecycled(1, event.recycledGold ?? 0);
@@ -1220,7 +1281,7 @@ export class UI {
     const visible = {
       companions: Object.keys(state.companions.owned).length > 0 || state.records.bossesDefeated > 0,
       // v7.7 : déblocages plus tôt et plus prévisibles (identiques d'une partie à l'autre).
-      tree: state.maxStage >= 10 || state.fragments > 0 || state.records.rebirths > 0 || (state.prestige?.count ?? 0) > 0,
+      tree: state.maxStage >= 10 || state.fragments > 0 || state.records.rebirths > 0 || (state.prestige?.count ?? 0) > 0 || (state.transcend?.count ?? 0) > 0,
       dungeons: state.maxStage >= DUNGEONS[0].unlockStage - 10 || Object.keys(state.dungeonsCleared).length > 0,
       boss: state.records.bossesDefeated > 0 || Object.keys(state.powers).length > 0,
       tower: towerUnlocked(state) || (state.towerBest ?? 0) > 0,
@@ -1303,11 +1364,12 @@ export class UI {
 
   showTranscendConfirm(state) {
     const stars = transcendReward(state);
-    if (!stars) return;
+    if (!stars || rebirthBlocked(state)) return;
     this.$('modal-card').innerHTML = `<h2>✧ Transcendance</h2>
       <p>Vous gagnerez <b class="gold-text">+${formatNumber(stars)} Étoiles</b> et dégâts, PV et or <b>×${TRANSCEND.powerPerTranscend}</b> pour toujours.</p>
       <p>Tout repart de l'étape 1 : Renaissances (${Math.round(keptRebirthShare(state) * 100)} % conservées), arbre de talents et fragments anciens
         sont remis à zéro. L'équipement, les compagnons, les gemmes et les bonus éternels sont conservés.</p>
+      ${powerChoice(state)}
       <div class="detail-actions"><button class="btn" data-action="close-modal">Annuler</button>
         <button class="btn btn-gold" data-action="confirm-transcend">Transcender</button></div>`;
     this.$('modal').classList.remove('hidden');
@@ -1324,7 +1386,7 @@ export class UI {
   }
 
   showRebirthConfirm(state) {
-    if (!canRebirth(state)) return;
+    if (!canRebirth(state) || rebirthBlocked(state)) return;
     this.$('modal-card').innerHTML = `<h2>Renaissance</h2>
       <p>Vous gagnerez <b class="gold-text">+${rebirthReward(state)} fragments anciens</b> à investir dans l'arbre de talents.</p>
       ${keepResetLists()}

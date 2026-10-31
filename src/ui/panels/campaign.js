@@ -10,7 +10,7 @@ import { advice } from '../../core/guide.js';
 
 // v9.0.6 : écran Aventure — « où j'en suis » en un coup d'œil : monde et étape, prochain boss, prévision,
 // avance automatique et la prochaine chose utile à faire (un clic ouvre le bon écran).
-function summary(state) {
+function summary(ui, state) {
   if (state.dungeon || state.tower || state.challenge) {
     return `<div class="card adv-summary"><b>${state.dungeon ? 'Donjon en cours' : state.tower ? 'Tour de l\'Éternité en cours' : 'Défi de la semaine en cours'}</b>
       <span class="muted">— la campagne reprend à la fin (bouton rouge sous la scène pour revenir).</span></div>`;
@@ -30,7 +30,7 @@ function summary(state) {
         <div class="muted">Étape ${pos} / ${len}${boss ? ` · ${next === state.stage ? 'boss en cours' : `prochain boss dans ${next - state.stage} étape${next - state.stage > 1 ? 's' : ''}`} : <b>${escapeHtml(boss.name)}</b> (${TIER_LABELS[tier]})` : ''}</div></div>
         <div class="adv-auto">${state.autoAdvance ? '<span class="good">▶ Avance automatique</span>' : '<button class="btn btn-primary small" data-action="advance">Avancer ▶</button>'}</div></div>
       ${progressBar(pos / len, `${pos} / ${len}`)}
-      ${forecastHtml(bossForecast(state))}
+      ${forecastHtml(bossForecast(state, () => ui.invalidate()))}
       ${tips ? `<div class="chip-row adv-tips">${tips}</div>` : ''}
     </div>`;
 }
@@ -134,12 +134,11 @@ export default {
         <span class="muted" title="Ctrl + molette pour zoomer, glisser pour déplacer">${Math.round(zoom * 100)} %</span>
         <button class="btn small" data-action="map-zoom" data-value="in" title="Zoomer">+</button>
         <button class="btn small" data-action="map-zoom" data-value="reset" title="Taille normale">⟲</button></div>`;
-    return `${summary(state)}${cycles}${tools}<div class="map-viewport" data-sel="${sel}"><div class="world-map" style="width:${Math.round(MAP_PX * zoom)}px">
+    return `${summary(ui, state)}${cycles}${tools}<div class="map-viewport" data-sel="${sel}"><div class="world-map" style="width:${Math.round(MAP_PX * zoom)}px">
       <img class="px" src="assets/ui/worldmap.png" alt="Carte du monde">${markers}</div></div>
       <div class="card zone-card">
         <div class="row-between"><b>${sel + 1}. ${escapeHtml(ZONES[sel].name)}${cycle ? ` <span class="bad">×${cycle + 1}</span>` : ''}</b>
           <label class="toggle"><input type="checkbox" data-action="auto" ${state.autoAdvance ? 'checked' : ''}> Avancer automatiquement</label></div>
-        ${state.dungeon || state.tower || state.challenge ? '' : forecastHtml(bossForecast(state, () => ui.invalidate()))}
         <div class="stage-grid">${buttons.join('')}</div>
         ${state.autoAdvance ? '' : `<div class="row-between"><span class="muted">Mode farm : le chevalier reste sur l'étape actuelle.</span>
           <button class="btn btn-primary small" data-action="advance">Avancer ▶</button></div>`}

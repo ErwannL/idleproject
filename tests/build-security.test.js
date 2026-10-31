@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { BUILD } from '../src/core/build-info.js';
-import { applyCheat, sanitizeCheats } from '../src/core/cheats.js';
+import { sanitizeCheats } from '../src/core/cheats.js';
+import { applyCheat } from '../src/core/cheat-codes.js';
 import { stripCheats } from '../src/core/cloud-save.js';
 import { createNewState, sanitizeState } from '../src/core/state.js';
 

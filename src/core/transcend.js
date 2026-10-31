@@ -81,13 +81,15 @@ export function buyTranscendPerkMax(state, id) {
 
 // Transcendance : `rebirth` = performRebirth (passé par l'appelant pour éviter une dépendance circulaire).
 // Renvoie le nombre d'Étoiles gagnées (0 si impossible).
-export function performTranscend(state, rebirth) {
+export function performTranscend(state, rebirth, keepPower = undefined) {
   const stars = transcendReward(state);
   if (stars <= 0) return 0;
+  if (state.dungeon || state.tower || state.challenge) return 0; // v9.1.0 : jamais en plein mode
+
   state.tower = null;
   state.dungeon = null;
   state.challenge = null;
-  rebirth(state);
+  rebirth(state, keepPower);
   const t = state.transcend;
   // v9.0.6 : Renaissances comptées au prorata de leur profondeur (state.rebirthPower).
   const power = Number.isFinite(state.rebirthPower) ? state.rebirthPower : state.records.rebirths ?? 0;

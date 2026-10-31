@@ -307,6 +307,11 @@ function createWindow() {
     const size = SIZE_PRESETS[preset];
     if (!size) return false;
     if (win.isMaximized()) win.unmaximize();
+    // v9.1.0 : une taille choisie remplace tout agrandissement du menu (sinon, refermer le panneau retirait
+    // encore cet agrandissement : Mini → Standard → fermeture donnait 260 px de large).
+    grown = null;
+    sideExtra = 0;
+    sideExtraH = 0;
     win.setSize(size[0], size[1]);
     return true;
   });
@@ -408,8 +413,8 @@ function runSmokeTest(win) {
           const desktop = await window.desktop.getInfo();
           return {
             source: window.__idle.loadSource,
-            kills: window.__idle.state.records.kills,
-            goldEarned: window.__idle.state.records.goldEarned,
+            kills: window.__idle.records.kills,
+            goldEarned: window.__idle.records.goldEarned,
             saved: localStorage.getItem('idle-rpg.save') !== null,
             canvasWidth: document.querySelector('#scene').width,
             desktop,

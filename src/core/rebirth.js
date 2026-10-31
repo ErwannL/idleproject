@@ -200,6 +200,14 @@ export function canRebirth(state) {
   return state.maxStage >= REBIRTH.minStage;
 }
 
+// v9.1.0 : pas de Renaissance (ni de Transcendance) pendant un donjon, la Tour ou le défi : renvoie le motif.
+export function rebirthBlocked(state) {
+  if (state.dungeon) return 'Terminez ou abandonnez d\'abord le donjon en cours.';
+  if (state.tower) return 'Quittez d\'abord la Tour de l\'Éternité.';
+  if (state.challenge) return 'Terminez d\'abord le défi de la semaine.';
+  return null;
+}
+
 export function rebirthReward(state) {
   if (!canRebirth(state)) return 0;
   const prestigeBonus = 1 + (PRESTIGE.fragmentBonusPct * (state.prestige?.count ?? 0)) / 100;
@@ -210,7 +218,7 @@ export function rebirthReward(state) {
 // Renvoie le nombre de fragments gagnés (0 si la Renaissance n'est pas possible).
 export function performRebirth(state, keepPower = state.equippedPowers?.[0]) {
   const reward = rebirthReward(state);
-  if (reward <= 0) return 0;
+  if (reward <= 0 || rebirthBlocked(state)) return 0;
   state.rebirthPower = rebirthPower(state) + rebirthGain(state);
   // Un seul pouvoir ancestral conservé (celui choisi, sinon le premier actif).
   const kept = state.powers?.[keepPower] ? keepPower : Object.keys(state.powers ?? {})[0];
@@ -231,5 +239,7 @@ export function performRebirth(state, keepPower = state.equippedPowers?.[0]) {
   state.maxStage = 1;
   state.kills = 0;
   state.autoAdvance = true;
+  state.farmBoss = null; // v9.1.0 : plus de boss en boucle ni de « retenter » sur une étape qui n'existe plus
+  state.bossRetry = null;
   return reward;
 }

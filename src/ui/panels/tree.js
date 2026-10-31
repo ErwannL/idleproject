@@ -7,7 +7,7 @@ import { TRANSCEND, TRANSCEND_KEEPS, TRANSCEND_PERKS, TRANSCEND_RESETS } from '.
 import { canTranscend, keptRebirthShare, perkLevel, stellarMultiplier, transcendPerkCost, transcendReward } from '../../core/transcend.js';
 import { stageLabel } from '../../core/combat.js';
 import {
-  canRebirth, fragmentsSpent, pathCost, rebirthReward, regionPoints, respecCost, talentById, talentConnected, talentCost,
+  canRebirth, fragmentsSpent, rebirthBlocked, pathCost, rebirthReward, regionPoints, respecCost, talentById, talentConnected, talentCost,
   talentLevelEffects, talentPath, talentsOwned, talentUnlocked,
 } from '../../core/rebirth.js';
 import { perkCost } from '../../core/prestige.js';
@@ -227,6 +227,7 @@ export default {
 
     const reward = rebirthReward(state);
     const can = canRebirth(state);
+    const blocked = rebirthBlocked(state);
     const spent = fragmentsSpent(state);
     const respec = respecCost(state);
     return `<div class="card tree-card rune-card">${tree}</div>
@@ -243,7 +244,8 @@ export default {
             : `Atteignez l'étape ${stageLabel(REBIRTH.minStage)} pour renaître (actuelle ${stageLabel(state.maxStage)}).`}</div>
         </div></div>
         ${keepResetLists()}
-        <button class="btn btn-gold" data-action="rebirth" ${can ? '' : 'disabled'}>Renaître (+${reward} ${fragment()})</button>
+        ${blocked && can ? `<div class="bad">${blocked}</div>` : ''}
+        <button class="btn btn-gold" data-action="rebirth" ${can && !blocked ? '' : 'disabled'}>Renaître (+${reward} ${fragment()})</button>
       </div>
       ${transcendCard(state)}
       ${eternalCard(state)}`;
@@ -273,7 +275,8 @@ function transcendCard(state) {
       <div><div class="section-title">Réinitialisé</div><ul>${TRANSCEND_RESETS.map((x) => `<li class="bad">${x}</li>`).join('')}</ul></div>
       <div><div class="section-title">Conservé</div><ul>${TRANSCEND_KEEPS.map((x) => `<li class="good">${x}</li>`).join('')}</ul></div>
     </div>
-    <button class="btn btn-gold" data-action="transcend" ${reward > 0 ? '' : 'disabled'}>Transcender (+${formatNumber(reward)} ✧)</button>
+    ${reward > 0 && rebirthBlocked(state) ? `<div class="bad">${rebirthBlocked(state)}</div>` : ''}
+    <button class="btn btn-gold" data-action="transcend" ${reward > 0 && !rebirthBlocked(state) ? '' : 'disabled'}>Transcender (+${formatNumber(reward)} ✧)</button>
     <div class="section-title">Bonus stellaires</div>${perks}
   </div>`;
 }

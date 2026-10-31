@@ -7,7 +7,7 @@ import { test } from 'node:test';
 import { BALANCE } from '../src/data/balance.js';
 import { BOSSES } from '../src/data/enemies.js';
 import { ZONES } from '../src/data/zones.js';
-import { applyCheat } from '../src/core/cheats.js';
+import { applyCheat } from '../src/core/cheat-codes.js';
 import { claimCollection, collectionStatus } from '../src/core/codex.js';
 import { COLLECTIONS } from '../src/data/codex.js';
 import { bossesForStage, createCombat, isGauntletStage, rebirthHeat, step, zoneStartStage } from '../src/core/combat.js';

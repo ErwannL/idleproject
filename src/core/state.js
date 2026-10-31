@@ -261,6 +261,8 @@ function cleanActivities(state, raw) {
       id: run.id, room: int(run.room, 1, 1), kills: int(run.kills, 0), slot: run.slot in SLOTS ? run.slot : 'any',
       path: run.path, level: int(run.level, 1, 1), earned: { ...obj(run.earned) },
       difficulty: ['easy', 'normal', 'hard'].includes(run.difficulty) ? run.difficulty : 'easy',
+      // v9.1.0 : début de la tentative conservé (sinon sa durée valait 0 s après un rechargement).
+      startPlay: Number.isFinite(run.startPlay) && run.startPlay >= 0 ? run.startPlay : (Number(raw.playSeconds) || 0),
     };
   }
   for (const d of DUNGEONS) {

@@ -1,9 +1,15 @@
-// Configurations d'équipe (v7.7) : enregistrer puis rappeler l'équipe (compagnons + familier)
-// et l'équipement porté, pour changer vite de farm (monstres, or, boss…).
+// Builds (v7.7 « configurations ») : enregistrer puis rappeler l'équipe (compagnons + familier) et l'équipement
+// porté, pour changer vite de farm (monstres, or, boss…).
+// v9.1.0 : un build garde aussi la classe, les pouvoirs actifs et la répartition des compétences ; le rappel
+// cherche les objets dans le sac, au coffre et sur les mannequins, et compte vraiment ceux qui manquent.
+import { BALANCE } from '../data/balance.js';
 import { SLOTS } from '../data/items.js';
 import { LOADOUT_NAMES } from '../data/synergies.js';
+import { SKILLS } from '../data/skills.js';
 import { clampTeam, onExpedition } from './companions.js';
 import { equipItem } from './inventory.js';
+import { classById, classUnlocked, setHeroClass } from './classes.js';
+import { powerSlots } from './powers.js';
 
 export function emptyLoadouts() {
   return LOADOUT_NAMES.map((name) => ({ name, team: null, gear: null }));
@@ -14,16 +20,58 @@ export function saveLoadout(state, index) {
   if (!slot) return false;
   slot.team = [...state.companions.equipped];
   slot.gear = Object.fromEntries(Object.keys(SLOTS).map((s) => [s, state.equipment[s]?.id ?? null]));
+  slot.heroClass = state.heroClass;
+  slot.powers = [...state.equippedPowers];
+  slot.skills = { ...state.skills };
   return true;
 }
 
-// Rappelle une configuration : les objets recyclés depuis sont simplement ignorés.
-export function applyLoadout(state, index) {
+export function renameLoadout(state, index, name) {
   const slot = state.loadouts[index];
-  if (!slot?.team) return false;
-  state.companions.equipped = clampTeam(slot.team.filter((id) => state.companions.owned[id] && !onExpedition(state, id)));
-  for (const id of Object.values(slot.gear ?? {})) if (id) equipItem(state, id);
+  const clean = String(name ?? '').replace(/\s+/g, ' ').trim().slice(0, 24);
+  if (!slot || !clean) return false;
+  slot.name = clean;
   return true;
+}
+
+// Sort un objet du coffre ou d'un mannequin vers le sac (s'il y a la place). Renvoie vrai s'il y est.
+function fetchToBag(state, id, balance) {
+  if (state.inventory.some((i) => i.id === id)) return true;
+  if (state.inventory.length >= balance.loot.inventorySize) return false;
+  const si = state.stash.findIndex((i) => i.id === id);
+  if (si >= 0) { state.inventory.push(state.stash.splice(si, 1)[0]); return true; }
+  for (const m of Object.values(state.mannequins ?? {})) {
+    for (const [slot, item] of Object.entries(m)) {
+      if (item?.id === id) { delete m[slot]; state.inventory.push(item); return true; }
+    }
+  }
+  return false;
+}
+
+// Rappelle un build. Renvoie null si le build est vide, sinon { missing, refused } : objets introuvables (recyclés
+// depuis, ou sac plein pour les sortir du coffre) et objets refusés (arme d'une autre classe).
+export function applyLoadout(state, index, balance = BALANCE, itemPower = () => 0) {
+  const slot = state.loadouts[index];
+  if (!slot?.team) return null;
+  if (slot.heroClass && classById(slot.heroClass) && classUnlocked(state, slot.heroClass)) setHeroClass(state, slot.heroClass, itemPower);
+  state.companions.equipped = clampTeam(slot.team.filter((id) => state.companions.owned[id] && !onExpedition(state, id)));
+  let missing = 0;
+  let refused = 0;
+  for (const id of Object.values(slot.gear ?? {})) {
+    if (!id) continue;
+    if (Object.values(state.equipment).some((i) => i?.id === id)) continue; // déjà porté
+    if (!fetchToBag(state, id, balance)) { missing += 1; continue; }
+    if (!equipItem(state, id)) refused += 1;
+  }
+  if (Array.isArray(slot.powers)) {
+    const wanted = slot.powers.filter((id) => state.powers[id]);
+    if (wanted.length) state.equippedPowers = wanted.slice(0, powerSlots(state));
+  }
+  if (slot.skills) {
+    const spent = Object.values(slot.skills).reduce((a, b) => a + b, 0);
+    if (spent <= state.level) state.skills = { ...slot.skills };
+  }
+  return { missing, refused };
 }
 
 export function sanitizeLoadouts(raw) {
@@ -35,6 +83,17 @@ export function sanitizeLoadouts(raw) {
     if (Array.isArray(l.team)) out[i].team = l.team.filter((id) => typeof id === 'string').slice(0, 6);
     if (l.gear && typeof l.gear === 'object') {
       out[i].gear = Object.fromEntries(Object.keys(SLOTS).map((s) => [s, typeof l.gear[s] === 'string' ? l.gear[s] : null]));
+    }
+    // v9.1.0 : champs ajoutés (absents des anciens builds : le rappel les ignore alors).
+    if (typeof l.heroClass === 'string' && classById(l.heroClass)) out[i].heroClass = l.heroClass;
+    if (Array.isArray(l.powers)) out[i].powers = l.powers.filter((id) => typeof id === 'string').slice(0, 8);
+    if (l.skills && typeof l.skills === 'object') {
+      const skills = {};
+      for (const sk of SKILLS) {
+        const v = l.skills[sk.id];
+        if (Number.isInteger(v) && v > 0) skills[sk.id] = Math.min(v, sk.maxLevel);
+      }
+      out[i].skills = skills;
     }
   });
   return out;

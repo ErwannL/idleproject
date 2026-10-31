@@ -42,7 +42,7 @@ export function* forecastSteps(state, balance = BALANCE, chunk = 200) {
     const b = w.enemies.find((e) => e.boss && !e.summoned);
     if (b) bossHpPct = Math.max(0, (b.hp / b.maxHp) * 100);
     for (const e of w.events) {
-      if (e.type === 'bossDefeated') return { stage, win: true, bossHpPct: 0, seconds: Math.round(i * dt) };
+      if (e.type === 'bossDefeated' && !e.summoned) return { stage, win: true, bossHpPct: 0, seconds: Math.round(i * dt) };
       if (e.type === 'heroDeath') return { stage, win: false, bossHpPct: Math.round(bossHpPct), seconds: Math.round(i * dt) };
     }
     w.events.length = 0;

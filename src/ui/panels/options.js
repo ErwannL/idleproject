@@ -1,4 +1,5 @@
-// Options : sauvegarde, fenêtre (version bureau), test hors ligne, réinitialisation.
+// Paramètres (v9.1.0 : 4 onglets) : Général (langue, sauvegarde, export / import, compte, version, tutoriel,
+// zone de danger), Interface, Son, Fenêtre (version bureau).
 import { BALANCE } from '../../data/balance.js';
 import { formatDuration } from '../../core/format.js';
 import { escapeHtml, formatNumber } from '../common.js';
@@ -6,11 +7,13 @@ import { getLang } from '../../i18n/i18n.js';
 import { THEMES, themeSwatches } from '../themes.js';
 import { GAME_VERSION } from '../../version.js';
 import { BUILT_IN_TOKEN } from '../../core/update-token.js';
-import { activeCheats, cheatLabel } from '../../core/cheats.js';
+import { activeCheats } from '../../core/cheats.js';
 import { BUILD } from '../../core/build-info.js';
+import { shortcutsSummary } from '../shortcuts.js';
 
 // Codes actifs (v8.7) : sans durée ; nombre de saisies par code, retrait de N saisies, d'un code ou de tout.
-function activeCodes(state) {
+function activeCodes(state, ui) {
+  const cheatLabel = (code) => ui.cheatCodes?.cheatLabel(code) ?? code;
   const rows = activeCheats(state).map((e) => `<div class="cheat-row"><b>${escapeHtml(e.code)}</b>
       <span class="muted grow">${escapeHtml(cheatLabel(e.code))} · ×${formatNumber(e.count)} saisie${e.count > 1 ? 's' : ''}</span>
       <button class="btn small" data-action="cheat-remove" data-value="${escapeHtml(e.code)}" title="Retire le nombre de saisies indiqué dans « × fois »">Retirer</button>
@@ -43,7 +46,7 @@ function cheatCard(state, ui) {
           <span>×</span><input id="cheat-times" type="text" inputmode="numeric" maxlength="13" value="${escapeHtml(ui.view.cheatTimes ?? '1')}"
             title="Nombre de fois (jusqu'à 1 000 000 000)" aria-label="Nombre de fois" style="width:110px">
           <button class="btn small" data-action="cheat" title="Entrée pour valider · bouton maintenu = validations en continu">Valider</button></div>
-        ${activeCodes(state)}
+        ${activeCodes(state, ui)}
 
       </div>`;
 }
@@ -84,10 +87,7 @@ function cloudOptions(ui) {
 }
 
 function windowOptions(ui) {
-  if (!ui.desktop) {
-    return `<div class="card"><div class="section-title">Fenêtre</div>
-      <div class="muted">« Toujours au premier plan » est disponible dans la version bureau (Idle RPG.exe).</div></div>`;
-  }
+  if (!ui.desktop) return '';
   return `<div class="card">
       <div class="section-title">Fenêtre</div>
       <label class="toggle"><input type="checkbox" data-action="on-top" ${ui.desktop.alwaysOnTop ? 'checked' : ''}>
@@ -102,19 +102,16 @@ function windowOptions(ui) {
     </div>`;
 }
 
-// Dépôt GitHub privé : sans identification, GitHub répond « 404 » à tout le monde. Deux solutions :
-// rendre le dépôt public, ou coller ici un jeton GitHub en lecture seule (gardé uniquement sur ce PC).
+// Dépôt GitHub privé (version dev) : jeton en lecture seule collé ici, gardé uniquement sur ce PC.
+// v9.1.0 : retiré de la version joueur (il parlait de Settings et de Danger Zone à un joueur).
 function privateRepoHelp(u) {
+  if (!BUILD.cheats) return '';
   let has = false;
   try { has = Boolean(localStorage.getItem('idle-rpg.github-token')); } catch { /* indisponible */ }
-  if (BUILT_IN_TOKEN && !has && u.status !== 'error') return ''; // jeton intégré à l'installateur : rien à faire
+  if (BUILT_IN_TOKEN && !has && u.status !== 'error') return '';
   const show = has || (u.status === 'error' && /404/.test(u.error ?? ''));
   if (!show) return '';
-  return `<details class="update-notes" ${has ? '' : 'open'}><summary>Dépôt privé : comment activer les mises à jour</summary>
-      <div class="muted">Le dépôt GitHub du jeu est privé : sans identification, GitHub répond « 404 ». Deux solutions :
-        <b>1.</b> rendre le dépôt public (GitHub → Settings → Danger Zone → Change visibility) ;
-        <b>2.</b> créer un jeton « fine-grained » en <b>lecture seule</b> limité à ce dépôt (GitHub → Settings → Developer settings →
-        Personal access tokens → Fine-grained, droit « Contents : Read-only ») et le coller ici. Il reste uniquement sur ce PC.</div>
+  return `<details class="update-notes" ${has ? '' : 'open'}><summary>Dépôt privé : jeton GitHub (version dev)</summary>
       <div class="row"><input id="github-token" class="grow" type="password" maxlength="255" placeholder="${has ? 'Jeton enregistré (laisser vide pour le supprimer)' : 'github_pat_…'}" autocomplete="off">
         <button class="btn small" data-action="github-token">${has ? 'Remplacer' : 'Enregistrer'}</button></div>
     </details>`;
@@ -149,19 +146,16 @@ function versionOptions(ui) {
     </div>`;
 }
 
-export default {
-  id: 'options',
-  title: 'Paramètres',
-  icon: 'icon_gear',
-  render(ui, state) {
-    const ago = Math.max(0, (Date.now() - state.lastSaved) / 1000);
-    return `${versionOptions(ui)}<div class="card">
-        <div class="section-title">Sauvegarde</div>
-        <div class="row-between"><span>Dernière sauvegarde : il y a ${formatDuration(ago)}</span>
-          <button class="btn small" data-action="save">Sauvegarder</button></div>
-        <div class="muted">Automatique toutes les ${BALANCE.autosaveSeconds} s, à chaque action et à la fermeture.</div>
-      </div>
-      <div class="card">
+// v9.1.0 : Paramètres en 4 onglets (au plus un segment visible). Son et Fenêtre n'apparaissent que s'ils
+// ont un contenu (moteur de son prêt ; version bureau).
+export function optionTabs(ui) {
+  return [['general', 'Général'], ['interface', 'Interface'], ...(soundOptions(ui) ? [['sound', 'Son']] : []), ...(ui.desktop ? [['window', 'Fenêtre']] : [])];
+}
+
+function generalTab(ui, state) {
+  const ago = Math.max(0, (Date.now() - state.lastSaved) / 1000);
+  const code = ui.view.exportCode;
+  return `<div class="card">
         <div class="section-title">Langue · Language</div>
         <div class="chip-row" data-no-i18n>
           <button class="btn chip-btn${getLang() === 'fr' ? ' active' : ''}" data-action="lang" data-value="fr">🇫🇷 Français</button>
@@ -169,54 +163,92 @@ export default {
         </div>
       </div>
       <div class="card">
-        <div class="section-title">Interface</div>
-        <div class="row-between"><span class="muted">Style des menus (les couleurs des raretés ne changent pas). Chevalier est le style sobre : les
-          ornements et effets animés (particules, lueurs) viennent avec les autres thèmes.</span>
-          <label class="toggle"><input type="checkbox" data-action="theme-fx" ${state.ui.themeFx !== false ? 'checked' : ''}> Effets animés</label></div>
+        <div class="section-title">Sauvegarde</div>
+        <div class="row-between"><span>Dernière sauvegarde : il y a ${formatDuration(ago)}</span>
+          <button class="btn small" data-action="save">Sauvegarder</button></div>
+        <div class="muted">Automatique toutes les ${BALANCE.autosaveSeconds} s, à chaque action et à la fermeture. Jeu fermé, le héros gagne
+          encore ${BALANCE.offline.farmMultiplier * 100} % de son rythme, ${BALANCE.offline.capHours} h au plus.</div>
+        <div class="options-row">
+          <button class="btn small" data-action="export-save" data-value="file">Exporter (fichier)</button>
+          <button class="btn small" data-action="export-save" data-value="code">Copier le code</button>
+          <button class="btn small" data-action="import-open">Importer…</button>
+        </div>
+        ${code ? `<textarea class="save-code" readonly rows="3" aria-label="Code de sauvegarde">${escapeHtml(code)}</textarea>` : ''}
+        ${ui.view.importOpen ? `<div class="import-box">
+          <div class="muted">Collez un code de sauvegarde, ou choisissez un fichier .json exporté. La partie actuelle est d'abord copiée
+            à part, puis le jeu redémarre sur la partie importée.</div>
+          <textarea id="import-text" rows="3" placeholder="Code ou contenu du fichier…" aria-label="Sauvegarde à importer"></textarea>
+          <div class="options-row"><input id="import-file" type="file" accept=".json,application/json" aria-label="Fichier de sauvegarde">
+            <button class="btn btn-gold small" data-action="import-save">Importer</button>
+            <button class="btn small" data-action="import-open">Annuler</button></div>
+        </div>` : ''}
+      </div>
+      ${cloudOptions(ui)}
+      ${versionOptions(ui)}
+      <div class="card">
+        <div class="section-title">Tutoriel</div>
+        <div class="row-between"><span class="muted">Revoir la présentation du jeu.</span>
+          <button class="btn small" data-action="tour-full">Revoir le tutoriel</button></div>
+      </div>
+      ${cheatCard(state, ui)}
+      ${devOfflineCard()}
+      <div class="card danger-zone">
+        <div class="section-title">Zone de danger</div>
+        <div class="row-between"><span class="muted">Efface toute la progression de cet appareil. Exportez votre partie avant.</span>
+          <button class="btn btn-danger small" data-action="reset">Réinitialiser la partie…</button></div>
+      </div>`;
+}
+
+// Test des gains hors ligne : version dev seulement (il applique les vrais gains, sans limite).
+function devOfflineCard() {
+  if (!BUILD.cheats) return '';
+  return `<div class="card">
+        <div class="section-title">Test des gains hors ligne (dev)</div>
+        <div class="options-row">
+          <button class="btn small" data-action="simulate" data-seconds="3600">1 h</button>
+          <button class="btn small" data-action="simulate" data-seconds="28800">8 h</button>
+          <button class="btn small" data-action="simulate" data-seconds="86400">24 h</button>
+        </div>
+      </div>`;
+}
+
+function interfaceTab(ui, state) {
+  return `<div class="card">
+        <div class="section-title">Thème</div>
+        <div class="muted">Style des menus (les couleurs des raretés ne changent pas). Chevalier est le style sobre.</div>
         <div class="theme-grid">${THEMES.map((t) => `<button class="btn theme-btn${(state.ui.theme ?? 'knight') === t.id ? ' active' : ''}" data-action="theme" data-value="${t.id}">
           <span class="theme-swatches">${themeSwatches(t.id).map((c) => `<i style="background:${c}"></i>`).join('')}</span>
           <b>${escapeHtml(t.name)}</b><span class="muted">${escapeHtml(t.text)}</span></button>`).join('')}</div>
       </div>
-      ${soundOptions(ui)}
+      ${ui.interfaceExtra?.(state) ?? ''}
       <div class="card">
-        <div class="section-title">Notifications et confort</div>
-        <label class="toggle"><input type="checkbox" data-action="notify" data-key="loot" ${state.ui.notify?.loot !== false ? 'checked' : ''}> Pop-up « nouveaux objets dans l'inventaire »</label>
+        <div class="section-title">Notifications</div>
         <label class="toggle"><input type="checkbox" data-action="notify" data-key="boss" ${state.ui.notify?.boss !== false ? 'checked' : ''}> Bannières d'arrivée des boss</label>
         <label class="toggle"><input type="checkbox" data-action="notify" data-key="events" ${state.ui.notify?.events !== false ? 'checked' : ''}> Messages des événements (coffres, marchands…)</label>
         <label class="toggle"><input type="checkbox" data-action="cinematics" ${state.ui.cinematics !== false ? 'checked' : ''}> Cinématiques (lancement du jeu, nouveau monde)</label>
-        <label class="toggle"><input type="checkbox" data-action="focus" ${state.ui.focus ? 'checked' : ''}> <b>Mode concentration</b> : moins d'effets visuels et de messages (le jeu continue normalement)</label>
-      </div>
-      <div class="card">
-        <div class="section-title">Découverte guidée</div>
-        <div class="row-between"><span class="muted">Revoir le tour de l'interface : catégories, classes, compétences, invocation.</span>
-          <button class="btn small" data-action="tour-full">Revoir le tutoriel</button></div>
       </div>
       <div class="card">
         <div class="section-title">Raccourcis clavier</div>
-        <div class="row-between"><span class="muted">1…5 catégories · Espace avance auto · Q W E R T boosts · G tout récupérer…</span>
+        <div class="row-between"><span class="muted">${shortcutsSummary()}</span>
           <button class="btn small" data-action="show-shortcuts">Tout voir (K)</button></div>
       </div>
       <div class="card">
         <div class="section-title">Journal de la session</div>
         <div class="row-between"><span class="muted">Étapes, boss, or, objets ramassés, recyclés et fusionnés depuis le lancement du jeu.</span>
           <button class="btn small" data-action="show-journal">📜 Ouvrir (J)</button></div>
-      </div>
-      ${cheatCard(state, ui)}
-      ${cloudOptions(ui)}
-      ${windowOptions(ui)}
-      <div class="card">
-        <div class="section-title">Test des gains hors ligne</div>
-        <div class="muted">Applique le vrai calcul hors ligne comme si le jeu avait été fermé.</div>
-        <div class="options-row">
-          <button class="btn small" data-action="simulate" data-seconds="3600">1 h</button>
-          <button class="btn small" data-action="simulate" data-seconds="28800">8 h</button>
-          <button class="btn small" data-action="simulate" data-seconds="86400">24 h</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="section-title">Partie</div>
-        <button class="btn btn-danger small" data-action="reset">Réinitialiser la partie</button>
-      </div>
-      <div class="muted">Gains hors ligne : ${BALANCE.offline.farmMultiplier * 100} % du rythme actif, ${BALANCE.offline.capHours} h max.</div>`;
+      </div>`;
+}
+
+export default {
+  id: 'options',
+  title: 'Paramètres',
+  icon: 'icon_gear',
+  render(ui, state) {
+    const tabs = optionTabs(ui);
+    const tab = tabs.some(([id]) => id === ui.view.optTab) ? ui.view.optTab : 'general';
+    const seg = `<div class="seg" role="tablist">${tabs.map(([id, label]) => `<button class="seg-btn${id === tab ? ' active' : ''}" role="tab"
+      aria-selected="${id === tab}" data-action="opt-tab" data-value="${id}">${label}</button>`).join('')}</div>`;
+    const body = tab === 'interface' ? interfaceTab(ui, state) : tab === 'sound' ? soundOptions(ui) : tab === 'window' ? windowOptions(ui) : generalTab(ui, state);
+    return seg + body;
   },
 };
