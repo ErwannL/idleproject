@@ -1,5 +1,6 @@
 // Transcendance (v8.8) : voir src/data/transcend.js.
 import { BALANCE } from '../data/balance.js';
+import { noteTranscend } from './times.js';
 import { TRANSCEND, TRANSCEND_PERKS } from '../data/transcend.js';
 
 export function emptyTranscend() {
@@ -90,6 +91,7 @@ export function performTranscend(state, rebirth, keepPower = undefined) {
   state.dungeon = null;
   state.challenge = null;
   rebirth(state, keepPower);
+  noteTranscend(state);
   const t = state.transcend;
   // v9.0.6 : Renaissances comptées au prorata de leur profondeur (state.rebirthPower).
   const power = Number.isFinite(state.rebirthPower) ? state.rebirthPower : state.records.rebirths ?? 0;

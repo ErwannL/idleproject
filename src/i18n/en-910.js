@@ -3,7 +3,15 @@
 
 export const EXACT_910 = {
   // Menus et onglets.
-  // v9.1.6 : classement et amis.
+  // v9.1.6 : classement et amis ; v9.1.7 : statistiques de temps.
+  'Statistiques': 'Statistics', 'Renaissance éclair': 'Fastest rebirth', 'Transcendance éclair': 'Fastest transcendence', 'Course aux mondes': 'World race',
+  'Atteint en': 'Reached in', 'Durée': 'Duration', 'Le plus court gagne.': 'Shortest wins.', 'Temps de jeu actif': 'Active play time',
+  'Hors jeu (récompenses au retour)': 'Offline (rewards on return)', 'Séance en cours': 'Current session', 'Plus longue séance': 'Longest session',
+  'Lancements du jeu': 'Game launches', 'Séance moyenne': 'Average session', 'Par activité': 'By activity', 'Campagne': 'Campaign',
+  'Par cycle de difficulté': 'By difficulty cycle', 'Premier passage dans chaque monde': 'First visit to each world', 'Tous les mondes': 'All worlds',
+  'Temps passé': 'Time spent', 'Atteint pour la première fois': 'First reached', 'Cycles joués': 'Cycles played', 'Temps par cycle': 'Time per cycle',
+  'Pas encore atteint': 'Not reached yet', 'Avant la 9.1.7': 'Before 9.1.7', 'avant la 9.1.7': 'before 9.1.7', 'En cours depuis': 'Running for',
+  'La plus rapide': 'Fastest', 'Moyenne': 'Average', 'La dernière': 'Last one', 'Nombre': 'Count', 'Transcendances': 'Transcendences',
   'Classement': 'Leaderboard', 'Tout le monde': 'Everyone', 'Mes amis': 'My friends', 'Ennemis': 'Enemies', 'Or gagné': 'Gold earned',
   'Tour': 'Tower', 'Renaissances': 'Rebirths', 'Temps de jeu': 'Play time', 'Joueur': 'Player', 'Étage': 'Floor', 'Renaiss.': 'Rebirths',
   'Créer mon compte': 'Create my account', 'Ajouter': 'Add', 'Accepter': 'Accept', 'Refuser': 'Decline', 'Demandes reçues': 'Requests received',

@@ -1,7 +1,9 @@
 // Objectifs > Classement (v9.1.5, amis et statistiques en v9.1.6). Chargé à l'ouverture de l'onglet et à chaque
 // changement de tri ou de portée ; `ui.ranking` = { sort, scope, players, me, error } et `ui.friends` =
 // { friends, incoming, outgoing, message, error }. Un invité (joueurXXXXXX) est invité à créer son compte.
+import { ZONES } from '../../data/zones.js';
 import { escapeHtml, formatNumber } from '../common.js';
+import { formatDuration } from './stats.js';
 
 export const RANKING_SORTS = {
   stage: { label: 'Étape', head: 'Étape' },
@@ -12,6 +14,9 @@ export const RANKING_SORTS = {
   tower: { label: 'Tour', head: 'Étage' },
   rebirths: { label: 'Renaissances', head: 'Renaiss.' },
   playtime: { label: 'Temps de jeu', head: 'Temps' },
+  rebirthFast: { label: 'Renaissance éclair', head: 'Durée', time: true },
+  transcendFast: { label: 'Transcendance éclair', head: 'Durée', time: true },
+  reach: { label: 'Course aux mondes', head: 'Atteint en', time: true },
 };
 
 function duration(seconds) {
@@ -22,6 +27,7 @@ function duration(seconds) {
 function value(sort, p) {
   if (sort === 'stage') return escapeHtml(p.stageLabel ?? String(p.maxStage));
   if (sort === 'playtime') return duration(p.value);
+  if (RANKING_SORTS[sort]?.time) return formatDuration(p.value);
   return formatNumber(p.value ?? 0);
 }
 
@@ -67,6 +73,10 @@ export default {
       <button class="btn${scope === 'friends' ? ' btn-gold' : ''}" data-action="ranking-scope" data-value="friends" ${member ? '' : 'disabled title="Créez votre compte pour ajouter des amis"'}>Mes amis</button></div>`;
     const sorts = `<div class="row ranking-sorts">${Object.entries(RANKING_SORTS).map(([k, s]) =>
       `<button class="btn btn-small${sort === k ? ' btn-gold' : ''}" data-action="ranking-sort" data-value="${k}">${s.label}</button>`).join('')}</div>`;
+    const world = r.world ?? 2;
+    const worldPick = sort === 'reach' ? `<div class="row ranking-world"><label>Temps pour atteindre le monde <select data-action="ranking-world" aria-label="Monde à atteindre">
+      ${ZONES.slice(1).map((z, i) => `<option value="${i + 2}"${world === i + 2 ? ' selected' : ''}>${i + 2}. ${escapeHtml(z.name)}</option>`).join('')}</select></label></div>`
+      : RANKING_SORTS[sort].time ? '<div class="muted">Le plus court gagne.</div>' : '';
     let body;
     if (r.error) body = `<div class="card bad">${escapeHtml(r.error)} <button class="btn" data-action="ranking-sort" data-value="${sort}">Réessayer</button></div>`;
     else if (!r.players) body = '<div class="card muted">Chargement du classement…</div>';
@@ -76,6 +86,6 @@ export default {
       body = `<div class="card"><table class="ranking-table"><thead><tr><th>#</th><th>Joueur</th><th>${RANKING_SORTS[sort].head}</th></tr></thead>
         <tbody>${r.players.map((p) => row(sort, p)).join('')}</tbody>${mine}</table></div>`;
     }
-    return invite + scopes + sorts + body + (member && scope === 'friends' ? friendsBlock(ui.friends) : '');
+    return invite + scopes + sorts + worldPick + body + (member && scope === 'friends' ? friendsBlock(ui.friends) : '');
   },
 };

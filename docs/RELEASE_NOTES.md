@@ -1,3 +1,17 @@
+## Idle RPG v9.1.7 — Statistiques de temps
+
+**Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.7-setup.exe).
+
+- **Objectifs › Statistiques :** temps de jeu actif, temps hors jeu, séances (en cours, plus longue, moyenne, nombre),
+  temps par activité (campagne, donjons, Tour, défi), par monde et par cycle de difficulté (normal, ×2, ×3…).
+- **Filtre par monde :** choisissez un monde (ou touchez-le dans la liste) pour son temps total, son temps par cycle et
+  le moment où vous l'avez atteint.
+- **Renaissances et Transcendances :** durée de la course en cours, la plus rapide, la moyenne, la dernière et l'historique.
+- **Nouveaux classements de temps :** Renaissance éclair, Transcendance éclair et Course aux mondes (temps pour atteindre
+  le monde 2, 3… 11). Le plus court gagne.
+- Les parties d'avant cette version n'ont pas de date pour les mondes déjà atteints : elles entrent dans la Course aux mondes
+  à partir du prochain monde découvert.
+
 ## Idle RPG v9.1.6 — Amis et classements
 
 **Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.6-setup.exe).

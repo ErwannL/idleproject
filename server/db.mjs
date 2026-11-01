@@ -86,5 +86,8 @@ export function openDatabase(file) {
   // v9.1.6 : statistiques du classement.
   for (const col of ['rebirths', 'tower_best']) addColumnIfMissing(db, 'saves', col, 'INTEGER NOT NULL DEFAULT 0');
   addColumnIfMissing(db, 'saves', 'gold_earned', 'REAL NOT NULL DEFAULT 0');
+  // v9.1.7 : classements de temps (0 = inconnu) ; first_zone = JSON { monde: secondes de jeu au premier passage }.
+  for (const col of ['best_rebirth', 'best_transcend']) addColumnIfMissing(db, 'saves', col, 'REAL NOT NULL DEFAULT 0');
+  addColumnIfMissing(db, 'saves', 'first_zone', "TEXT NOT NULL DEFAULT '{}'");
   return db;
 }

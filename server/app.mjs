@@ -44,10 +44,16 @@ const LEADERBOARD_SORTS = {
   rebirths: 's.rebirths DESC, s.max_stage DESC, s.updated_at ASC',
   tower: 's.tower_best DESC, s.max_stage DESC, s.updated_at ASC',
   playtime: 's.play_seconds DESC, s.max_stage DESC, s.updated_at ASC',
+  // v9.1.7 : temps, le plus court gagne (0 = jamais fait, exclu).
+  rebirthFast: 's.best_rebirth ASC, s.updated_at ASC',
+  transcendFast: 's.best_transcend ASC, s.updated_at ASC',
+  reach: 'reach ASC, s.updated_at ASC',
 };
+// Filtre propre à chaque tri de temps (les joueurs sans valeur n'y figurent pas).
+const LEADERBOARD_FILTER = { rebirthFast: 's.best_rebirth > 0', transcendFast: 's.best_transcend > 0', reach: 'reach IS NOT NULL AND reach >= 0' };
 // Valeur affichée pour chaque tri (colonne de la table saves).
 const LEADERBOARD_VALUE = {
-  stage: 'max_stage', level: 'level', bosses: 'bosses_defeated', kills: 'kills', gold: 'gold_earned', rebirths: 'rebirths', tower: 'tower_best', playtime: 'play_seconds',
+  stage: 'max_stage', level: 'level', bosses: 'bosses_defeated', kills: 'kills', gold: 'gold_earned', rebirths: 'rebirths', tower: 'tower_best', playtime: 'play_seconds', rebirthFast: 'best_rebirth', transcendFast: 'best_transcend', reach: 'reach',
 };
 const MAX_FRIENDS = 100;
 
@@ -197,6 +203,10 @@ export function summarizeSave(parsed) {
     rebirths: num(parsed.records?.rebirths),
     towerBest: num(parsed.towerBest),
     goldEarned: num(parsed.records?.goldEarned),
+    bestRebirth: num(parsed.times?.bestRebirth),
+    bestTranscend: num(parsed.times?.bestTranscend),
+    firstZone: JSON.stringify(Object.fromEntries(Object.entries(parsed.times?.firstZone ?? {})
+      .filter(([k, v]) => /^\d{1,2}$/.test(k) && Number.isFinite(v) && v >= 0).slice(0, 20))),
   };
 }
 
@@ -299,12 +309,13 @@ export function createApp({
     touchAccount: db.prepare('UPDATE accounts SET last_seen_at = ? WHERE id = ?'),
     deleteAccount: db.prepare('DELETE FROM accounts WHERE id = ?'),
     findSave: db.prepare('SELECT data, version, updated_at, level, play_seconds FROM saves WHERE account_id = ?'),
-    upsertSave: db.prepare(`INSERT INTO saves (account_id, data, version, updated_at, level, max_stage, gold, gems, kills, bosses_defeated, play_seconds, rebirths, tower_best, gold_earned)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    upsertSave: db.prepare(`INSERT INTO saves (account_id, data, version, updated_at, level, max_stage, gold, gems, kills, bosses_defeated, play_seconds, rebirths, tower_best, gold_earned, best_rebirth, best_transcend, first_zone)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(account_id) DO UPDATE SET data = excluded.data, version = excluded.version, updated_at = excluded.updated_at,
         level = MAX(saves.level, excluded.level), max_stage = MAX(saves.max_stage, excluded.max_stage), gold = excluded.gold, gems = excluded.gems,
         kills = excluded.kills, bosses_defeated = excluded.bosses_defeated, play_seconds = excluded.play_seconds,
-        rebirths = excluded.rebirths, tower_best = MAX(saves.tower_best, excluded.tower_best), gold_earned = excluded.gold_earned`),
+        rebirths = excluded.rebirths, tower_best = MAX(saves.tower_best, excluded.tower_best), gold_earned = excluded.gold_earned,
+        best_rebirth = excluded.best_rebirth, best_transcend = excluded.best_transcend, first_zone = excluded.first_zone`),
     upsertPrereg: db.prepare('INSERT INTO preregistrations (email, consent_version, consent_at) VALUES (?, ?, ?) ON CONFLICT(email) DO NOTHING'),
     deletePrereg: db.prepare('DELETE FROM preregistrations WHERE email = ?'),
     countPrereg: db.prepare('SELECT COUNT(*) AS n FROM preregistrations'),
@@ -511,7 +522,7 @@ export function createApp({
         log(`sauvegarde refusée pour le compte ${account.id} : ${reason}`);
         throw new HttpError(422, reason);
       }
-      q.upsertSave.run(account.id, data, next, now(), s.level, s.maxStage, s.gold, s.gems, s.kills, s.bossesDefeated, s.playSeconds, s.rebirths, s.towerBest, s.goldEarned);
+      q.upsertSave.run(account.id, data, next, now(), s.level, s.maxStage, s.gold, s.gems, s.kills, s.bossesDefeated, s.playSeconds, s.rebirths, s.towerBest, s.goldEarned, s.bestRebirth, s.bestTranscend, s.firstZone);
       return { body: { version: next } };
     } },
 
@@ -564,9 +575,13 @@ export function createApp({
         ? `(a.id = :me OR a.id IN (SELECT addressee_id FROM friendships WHERE requester_id = :me AND status = 'accepted'
             UNION SELECT requester_id FROM friendships WHERE addressee_id = :me AND status = 'accepted'))`
         : 'a.listed = 1 AND a.guest = 0 AND (s.level > 1 OR s.max_stage > 1 OR s.bosses_defeated > 0)';
-      const base = `FROM saves s JOIN accounts a ON a.id = s.account_id WHERE ${where} ORDER BY ${LEADERBOARD_SORTS[sort]}`;
+      // Temps pour atteindre le monde n (2..11) : index n - 1 dans first_zone. Nombre validé, jamais de texte libre.
+      const world = Math.min(11, Math.max(2, Math.floor(Number(url.searchParams.get('world')) || 2)));
+      const reachSql = `json_extract(s.first_zone, '$."${world - 1}"')`;
+      const filter = LEADERBOARD_FILTER[sort] ? ` AND ${LEADERBOARD_FILTER[sort].replaceAll('reach', reachSql)}` : '';
+      const base = `FROM saves s JOIN accounts a ON a.id = s.account_id WHERE (${where})${filter} ORDER BY ${LEADERBOARD_SORTS[sort].replace('reach', reachSql)}`;
       const params = scope === 'friends' ? { me: viewer.id } : {};
-      const rows = db.prepare(`SELECT a.id AS aid, a.pseudo, s.* ${base} LIMIT :limit`).all({ ...params, limit });
+      const rows = db.prepare(`SELECT a.id AS aid, a.pseudo, s.*, ${reachSql} AS reach ${base} LIMIT :limit`).all({ ...params, limit });
       const row = (r, rank) => ({
         rank, pseudo: r.pseudo, level: r.level, maxStage: r.max_stage, stageLabel: stageLabel(r.max_stage), bossesDefeated: r.bosses_defeated,
         value: r[LEADERBOARD_VALUE[sort]], me: viewer ? r.aid === viewer.id : false, updatedAt: r.updated_at,
@@ -575,9 +590,9 @@ export function createApp({
       if (viewer && scope === 'all' && !viewer.guest && !rows.some((r) => r.aid === viewer.id)) {
         const ids = db.prepare(`SELECT a.id AS aid ${base}`).all();
         const i = ids.findIndex((r) => r.aid === viewer.id);
-        if (i >= 0) me = row(db.prepare('SELECT a.id AS aid, a.pseudo, s.* FROM saves s JOIN accounts a ON a.id = s.account_id WHERE a.id = ?').get(viewer.id), i + 1);
+        if (i >= 0) me = row(db.prepare(`SELECT a.id AS aid, a.pseudo, s.*, ${reachSql} AS reach FROM saves s JOIN accounts a ON a.id = s.account_id WHERE a.id = ?`).get(viewer.id), i + 1);
       }
-      return { body: { sort, scope, players: rows.map((r, i) => row(r, i + 1)), me } };
+      return { body: { sort, scope, world: sort === 'reach' ? world : undefined, players: rows.map((r, i) => row(r, i + 1)), me } };
     } },
 
     // ---- Amis (v9.1.6) ---- Réservé aux comptes créés (pas aux invités joueurXXXXXX).

@@ -1,4 +1,7 @@
 // État persistant de la partie (tout ce qui est sauvegardé) et validation au chargement.
+import { locateStage, stagesPerCycle } from './combat.js';
+import { ZONES } from '../data/zones.js';
+import { emptyTimes, sanitizeTimes } from './times.js';
 import { BALANCE } from '../data/balance.js';
 import { AFFIXES, SLOTS, STARTER_WEAPON, STAT_LABELS } from '../data/items.js';
 import { BOSSES } from '../data/enemies.js';
@@ -101,6 +104,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     loadouts: emptyLoadouts(),
     codex: emptyCodex(),
     playSeconds: 0, // temps de jeu cumulé (boost des premières heures)
+    times: emptyTimes(), // v9.1.7 : statistiques de temps (core/times.js)
     expeditions: emptyExpeditions(), // v8.5 : compagnons en mission
     challenge: null, // v8.5 : défi de la semaine en cours { wave, kills, startPlay }
     challengeWeek: null, // { week, best, tries, extra }
@@ -247,6 +251,14 @@ function cleanActivities(state, raw) {
   state.heroClass = sanitizeHeroClass(raw.heroClass);
   if (Number.isFinite(raw.rebirthPower) && raw.rebirthPower >= 0) state.rebirthPower = raw.rebirthPower; // v9.0.6
   state.playSeconds = Math.max(0, Number(raw.playSeconds) || 0);
+  state.times = sanitizeTimes(raw.times);
+  // v9.1.7 : partie d'avant les statistiques de temps — les mondes déjà atteints le sont à une date inconnue (-1),
+  // pour ne pas compter le temps total d'aujourd'hui comme temps pour les atteindre.
+  if (!raw.times) {
+    const best = state.records.bestStage;
+    const reached = best > stagesPerCycle() ? ZONES.length - 1 : locateStage(best).zone;
+    if (best > 1 || (state.playSeconds ?? 0) > 0) for (let z = 0; z <= reached; z++) state.times.firstZone[z] = -1;
+  }
 
   state.nextEventId = int(raw.nextEventId, 0);
   if (Array.isArray(raw.inbox)) {

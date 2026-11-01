@@ -4,6 +4,7 @@
 import { LEGACY_TALENTS, REBIRTH, TALENT_RESPEC, TALENTS } from '../data/rebirth.js';
 import { PRESTIGE } from '../data/prestige.js';
 import { fragmentBonus, memoryShare } from './transcend.js';
+import { noteRebirth } from './times.js';
 
 const BY_ID = new Map(TALENTS.map((t) => [t.id, t]));
 
@@ -231,6 +232,7 @@ export function performRebirth(state, keepPower = state.equippedPowers?.[0]) {
   for (const c of Object.values(state.companions?.owned ?? {})) c.level = 1;
   state.fragments += reward;
   state.records.rebirths += 1;
+  noteRebirth(state);
   state.gold = 0;
   // v8.8 : « Mémoire du guerrier » (Transcendance) conserve une partie des niveaux d'amélioration.
   const keep = memoryShare(state);

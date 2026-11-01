@@ -104,6 +104,7 @@ export function applyOfflineRewards(state, rewards, balance = BALANCE) {
   const before = { shards: state.materials.shards, essence: state.materials.essence };
   const gold = addGold(state, rewards.gold + rewards.excessGold);
   state.records.kills += rewards.kills;
+  if (state.times) state.times.offline += Math.max(0, rewards.elapsedSeconds ?? 0);
   state.gems += rewards.gems ?? 0;
   const levelsGained = addXp(state, rewards.xp);
   trackContracts(state, 'kills', rewards.kills);

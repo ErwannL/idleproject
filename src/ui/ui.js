@@ -46,6 +46,7 @@ import { heroPower } from '../core/combat.js';
 import hero from './panels/hero.js';
 import inbox from './panels/inbox.js';
 import ranking from './panels/ranking.js';
+import stats from './panels/stats.js';
 import inventory, { visibleItems } from './panels/inventory.js';
 import options from './panels/options.js';
 import skills from './panels/skills.js';
@@ -73,12 +74,12 @@ import { MENUS, SUB_LABELS, navPath } from './nav.js';
 
 export { MENUS };
 
-const PANELS = Object.fromEntries([upgrades, inventory, hero, companions, expeditions, skills, tree, campaign, dungeons, tower, boss, encyclopedia, summon, contracts, inbox, ranking, options]
+const PANELS = Object.fromEntries([upgrades, inventory, hero, companions, expeditions, skills, tree, campaign, dungeons, tower, boss, encyclopedia, summon, contracts, inbox, ranking, stats, options]
   .map((p) => [p.id, p]));
 const SUB_ICONS = {
   upgrades: 'icon_upgrade', skills: 'skill_quick', tree: 'icon_tree', hero: 'icon_hero', inventory: 'icon_bag',
   companions: 'icon_paw', expeditions: 'icon_chest', summon: 'icon_summon', campaign: 'icon_map', dungeons: 'icon_dungeon', tower: 'icon_star',
-  boss: 'icon_boss', encyclopedia: 'icon_book', contracts: 'icon_trophy', inbox: 'icon_mail', ranking: 'icon_trophy',
+  boss: 'icon_boss', encyclopedia: 'icon_book', contracts: 'icon_trophy', inbox: 'icon_mail', ranking: 'icon_trophy', stats: 'icon_book',
 };
 // v9.1.0 : présentation courte en haut de l'onglet, à sa première ouverture (plus de bulle « Nouveau »).
 const UNLOCK_INFO = {
@@ -98,7 +99,7 @@ const TALL_MIN_HEIGHT = 420;
 const STRIP_MAX_HEIGHT = 190; // en dessous : mode barre (seulement la scène, comme une barre des tâches)
 const BULK_CONFIRM_MS = 4000;
 // Panneaux dont le contenu évolue pendant le farm : réaffichés au plus une fois par seconde.
-const LIVE_PANELS = new Set(['contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'upgrades', 'companions', 'expeditions', 'encyclopedia', 'inbox', 'ranking']);
+const LIVE_PANELS = new Set(['contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'upgrades', 'companions', 'expeditions', 'encyclopedia', 'inbox', 'ranking', 'stats']);
 
 // Renaissance : choix du seul pouvoir ancestral conservé.
 function powerChoice(state) {
@@ -681,6 +682,7 @@ export class UI {
         }, 250);
         break;
       }
+      case 'stats-zone': this.view.statsZone = value; this.pendingScroll = 0; this.invalidate(); break;
       case 'ranking-scope': this.actions.loadRanking(undefined, value); break;
       case 'friend-add': this.actions.friendAction('add', this.$('friend-pseudo')?.value); break;
       case 'friend-accept': this.actions.friendAction('accept', value); break;
@@ -881,6 +883,8 @@ export class UI {
       this.setDevicePref(name, el.type === 'checkbox' ? el.checked : el.value);
     }
     if (action === 'tree-buyable') { this.view.treeBuyable = el.checked; this.invalidate(); }
+    if (action === 'ranking-world') this.actions.loadRanking(undefined, undefined, Number(el.value));
+    if (action === 'stats-zone-select') { this.view.statsZone = el.value; this.invalidate(); }
     if (action === 'enc-slot-select') { this.view.encSlot = el.value; this.invalidate(); }
     if (action === 'craft-slot') { this.view.craftSlot = el.value; this.invalidate(); }
     if (action === 'build-select') { this.view.buildSel = Number(el.value); this.actions.applyLoadout(Number(el.value)); }
@@ -1234,7 +1238,8 @@ export class UI {
       case 'boss': return Object.values(state.powers).map((p) => `${p.victories}${p.charges}${p.pending}`).join();
       case 'hero': return `${state.level}|${Math.floor(state.xp / 5)}|${state.heroes.active}|${Object.keys(state.heroes.owned).length}`;
       case 'encyclopedia': return String(encyclopediaProgress(state).found);
-      case 'ranking': return `${JSON.stringify(this.friends ?? null)}|${this.cloud?.guest}|${this.cloud?.loggedIn}|${this.ranking?.scope}|${this.ranking?.sort}|${this.ranking?.players?.length ?? -1}|${this.ranking?.error ?? ''}|${this.ranking?.players?.[0]?.updatedAt ?? ''}`;
+      case 'stats': return String(Math.floor(Date.now() / 5000));
+      case 'ranking': return `${JSON.stringify(this.friends ?? null)}|${this.cloud?.guest}|${this.cloud?.loggedIn}|${this.ranking?.scope}|${this.ranking?.sort}|${this.ranking?.world}|${this.ranking?.players?.length ?? -1}|${this.ranking?.error ?? ''}|${this.ranking?.players?.[0]?.updatedAt ?? ''}`;
       default: return '';
     }
   }
@@ -1522,6 +1527,7 @@ export class UI {
       inbox: Boolean(state.ui.goalsOpen),
       contracts: Boolean(state.ui.goalsOpen),
       encyclopedia: boss,
+      stats: Boolean(state.ui.goalsOpen),
       ranking: Boolean(state.ui.goalsOpen) && Boolean(this.actions.loadRanking) && this.cloud?.enabled !== false,
     };
     const key = `${JSON.stringify(visible)}|${this.tab}|${[...this.newTabs].join()}`;

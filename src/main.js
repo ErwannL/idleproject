@@ -37,6 +37,7 @@ import { STAT_LABELS } from './data/items.js';
 import { applyOfflineRewards, computeOfflineRewards } from './core/offline.js';
 import { Rng } from './core/rng.js';
 import { SAVE_KEY, clearSave, encodeSaveCode, loadGame, parseImport, saveGame, writeImported } from './core/save.js';
+import { startSession } from './core/times.js';
 import { createNewState } from './core/state.js';
 import { computeHeroStats } from './core/stats.js';
 import { formatNumber } from './core/format.js';
@@ -88,6 +89,7 @@ function storage() {
 const store = storage();
 const loaded = loadGame(store, BALANCE, Date.now());
 let state = loaded.state;
+startSession(state);
 let world = createCombat(state);
 const rng = new Rng((state.rngSeed ^ Date.now()) >>> 0);
 
@@ -810,14 +812,14 @@ const actions = {
   },
   cloudResume() { cloudAuth(() => cloud.guest(), 'Sauvegarde en ligne réactivée'); },
   cloudSync() { cloudSync(true); },
-  loadRanking(sort = ui.ranking?.sort ?? 'stage', scope = ui.ranking?.scope ?? 'all') {
+  loadRanking(sort = ui.ranking?.sort ?? 'stage', scope = ui.ranking?.scope ?? 'all', world = ui.ranking?.world ?? 2) {
     if (scope === 'friends' && (!cloud.isLoggedIn() || cloud.isGuest())) scope = 'all';
-    const same = ui.ranking?.sort === sort && ui.ranking?.scope === scope;
-    ui.ranking = { sort, scope, players: same ? ui.ranking.players : null, me: same ? ui.ranking.me : null };
+    const same = ui.ranking?.sort === sort && ui.ranking?.scope === scope && ui.ranking?.world === world;
+    ui.ranking = { sort, scope, world, players: same ? ui.ranking.players : null, me: same ? ui.ranking.me : null };
     ui.invalidate();
-    cloud.leaderboard(sort, scope)
-      .then((res) => { if (ui.ranking.sort === sort && ui.ranking.scope === scope) ui.ranking = { sort, scope, players: res.players, me: res.me }; })
-      .catch((err) => { ui.ranking = { sort, scope, error: err.status ? err.message : 'Serveur injoignable : classement indisponible.' }; })
+    cloud.leaderboard(sort, scope, world)
+      .then((res) => { if (ui.ranking.sort === sort && ui.ranking.scope === scope && ui.ranking.world === world) ui.ranking = { sort, scope, world, players: res.players, me: res.me }; })
+      .catch((err) => { ui.ranking = { sort, scope, world, error: err.status ? err.message : 'Serveur injoignable : classement indisponible.' }; })
       .finally(() => ui.invalidate());
     if (scope === 'friends' || !ui.friends) this.loadFriends();
   },

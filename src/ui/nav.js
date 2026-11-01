@@ -5,12 +5,12 @@ export const MENUS = [
   { id: 'hero', label: 'Héros', tabs: ['inventory', 'upgrades', 'skills', 'tree'] },
   { id: 'adventure', label: 'Aventure', tabs: ['campaign', 'dungeons', 'tower', 'boss'] },
   { id: 'team', label: 'Équipe', tabs: ['companions', 'summon', 'expeditions'] },
-  { id: 'goals', label: 'Objectifs', tabs: ['inbox', 'contracts', 'encyclopedia', 'ranking'] },
+  { id: 'goals', label: 'Objectifs', tabs: ['inbox', 'contracts', 'encyclopedia', 'ranking', 'stats'] },
 ];
 export const SUB_LABELS = {
   upgrades: 'Améliorations', skills: 'Compétences', tree: 'Talents', hero: 'Fiche', inventory: 'Équipement',
   companions: 'Composition', expeditions: 'Expéditions', summon: 'Invocation', campaign: 'Carte', dungeons: 'Donjons', tower: 'Tour',
-  boss: 'Boss', encyclopedia: 'Collections', contracts: 'Missions', inbox: 'À récupérer', ranking: 'Classement', options: 'Paramètres',
+  boss: 'Boss', encyclopedia: 'Collections', contracts: 'Missions', inbox: 'À récupérer', ranking: 'Classement', stats: 'Statistiques', options: 'Paramètres',
 };
 // Chemin écrit d'un écran (« Héros › Équipement »), construit depuis MENUS : jamais écrit en dur.
 // La fiche du héros et les Paramètres sont hors menu : on dit comment les ouvrir (portrait, engrenage).

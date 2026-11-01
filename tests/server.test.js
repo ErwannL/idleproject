@@ -331,6 +331,27 @@ test('classement v9.1.6 : nouvelles stats, invités exclus, mon rang, classement
   }
 });
 
+test('classement v9.1.7 : temps (renaissance la plus rapide, temps pour atteindre un monde)', async (t) => {
+  const s = await setup();
+  t.after(() => s.close());
+  const base = s.url();
+  const reg = async (pseudo) => (await call(base, 'POST', '/api/register', { pseudo, password: 'motdepasse1' })).body.token;
+  const [a, b, c] = [await reg('Rapide_1'), await reg('Lent_2'), await reg('Ancien_3')];
+  const save = (tok, times) => call(base, 'PUT', '/api/save', { version: 0, data: JSON.stringify({ level: 5, maxStage: 50, records: {}, times }) }, tok);
+  await save(a, { bestRebirth: 3600, firstZone: { 0: 0, 1: 900, 2: 2000 } });
+  await save(b, { bestRebirth: 7200, firstZone: { 0: 0, 1: 600 } });
+  await save(c, { firstZone: { 0: -1, 1: -1, 2: -1 } }); // partie d'avant 9.1.7 : dates inconnues, jamais classée
+  const board = async (q) => (await call(base, 'GET', `/api/leaderboard?${q}`)).body;
+  assert.deepEqual((await board('sort=rebirthFast')).players.map((p) => [p.pseudo, p.value]), [['Rapide_1', 3600], ['Lent_2', 7200]]);
+  assert.deepEqual((await board('sort=reach&world=2')).players.map((p) => p.pseudo), ['Lent_2', 'Rapide_1']);
+  const w3 = await board('sort=reach&world=3');
+  assert.equal(w3.world, 3);
+  assert.deepEqual(w3.players.map((p) => [p.pseudo, p.value]), [['Rapide_1', 2000]]);
+  assert.equal((await board('sort=reach&world=99')).world, 11); // borné, jamais de texte dans le SQL
+  assert.equal((await board("sort=reach&world=2'--")).world, 2);
+  assert.equal((await board('sort=transcendFast')).players.length, 0);
+});
+
 test('anti-triche : codes refusés, partie plus ancienne refusée, renaissance acceptée, meilleure étape conservée', async (t) => {
   const s = await setup();
   t.after(() => s.close());

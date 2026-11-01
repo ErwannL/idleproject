@@ -2166,3 +2166,20 @@ small, .tt-sub, .upg-level, .item-sub, .stat-list li, .compare, .cost-missing, .
 .friends-card .row { gap: 6px; }
 .friend-row { display: flex; align-items: center; gap: 6px; padding: 3px 0; border-bottom: 1px solid #ffffff10; }
 .friend-pending { margin: 4px 0; }
+
+/* Statistiques de temps (v9.1.7) */
+.stats-filter select { margin-left: 6px; max-width: 100%; }
+.stat-line { display: flex; align-items: baseline; gap: 8px; padding: 2px 0; border-bottom: 1px solid #ffffff0d; }
+.stat-line span { flex: 1; }
+.stat-line small { flex: none; }
+.time-bars { display: flex; flex-direction: column; gap: 3px; }
+.time-bar { display: grid; grid-template-columns: minmax(0, 9em) 1fr auto 3em; align-items: center; gap: 6px; font-size: 12px; }
+.time-bar[data-action] { cursor: pointer; }
+.time-bar[data-action]:hover .tb-label { text-decoration: underline; }
+.time-bar .tb-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.time-bar .tb-track { height: 8px; border-radius: 4px; background: #ffffff14; overflow: hidden; }
+.time-bar .tb-track i { display: block; height: 100%; background: linear-gradient(90deg, #7a5cff, #c9a2ff); border-radius: 4px; }
+.time-bar .tb-val { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.time-bar small { text-align: right; }
+.runs-spark { display: flex; align-items: flex-end; gap: 2px; height: 36px; margin-top: 6px; }
+.runs-spark i { flex: 1; background: #c9a2ff99; border-radius: 2px 2px 0 0; }

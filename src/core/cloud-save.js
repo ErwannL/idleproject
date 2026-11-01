@@ -134,7 +134,7 @@ export function createCloudClient({ baseUrl = '', storage, fetchImpl = globalThi
     push: (version, data) => request('PUT', '/api/save', { body: { version, data, platform: client.platform, gameVersion: client.version } }),
     // Classement public (sans connexion).
     // Classement (v9.1.6) : scope 'all' (connexion facultative, donne alors votre rang) ou 'friends'.
-    leaderboard: (sort = 'stage', scope = 'all') => request('GET', `/api/leaderboard?sort=${encodeURIComponent(sort)}&scope=${scope}&limit=100`,
+    leaderboard: (sort = 'stage', scope = 'all', world = 2) => request('GET', `/api/leaderboard?sort=${encodeURIComponent(sort)}&scope=${scope}&world=${Number(world) || 2}&limit=100`,
       { auth: scope === 'friends' ? true : 'optional' }),
     // Amis (v9.1.6).
     friends: () => request('GET', '/api/friends'),
