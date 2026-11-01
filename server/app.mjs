@@ -191,7 +191,7 @@ export function summarizeSave(parsed) {
     maxStage: num(parsed.maxStage),
     gold: num(parsed.gold),
     gems: num(parsed.gems),
-    kills: num(parsed.kills),
+    kills: Math.max(num(parsed.kills), num(parsed.records?.kills)), // total cumulé (survit aux renaissances)
     bossesDefeated: num(parsed.records?.bossesDefeated),
     playSeconds: num(parsed.playSeconds),
     rebirths: num(parsed.records?.rebirths),
