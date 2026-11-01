@@ -45,6 +45,7 @@ import { PANEL_HELP, betterItem, nextAction } from '../core/guide.js';
 import { heroPower } from '../core/combat.js';
 import hero from './panels/hero.js';
 import inbox from './panels/inbox.js';
+import ranking from './panels/ranking.js';
 import inventory, { visibleItems } from './panels/inventory.js';
 import options from './panels/options.js';
 import skills from './panels/skills.js';
@@ -72,12 +73,12 @@ import { MENUS, SUB_LABELS, navPath } from './nav.js';
 
 export { MENUS };
 
-const PANELS = Object.fromEntries([upgrades, inventory, hero, companions, expeditions, skills, tree, campaign, dungeons, tower, boss, encyclopedia, summon, contracts, inbox, options]
+const PANELS = Object.fromEntries([upgrades, inventory, hero, companions, expeditions, skills, tree, campaign, dungeons, tower, boss, encyclopedia, summon, contracts, inbox, ranking, options]
   .map((p) => [p.id, p]));
 const SUB_ICONS = {
   upgrades: 'icon_upgrade', skills: 'skill_quick', tree: 'icon_tree', hero: 'icon_hero', inventory: 'icon_bag',
   companions: 'icon_paw', expeditions: 'icon_chest', summon: 'icon_summon', campaign: 'icon_map', dungeons: 'icon_dungeon', tower: 'icon_star',
-  boss: 'icon_boss', encyclopedia: 'icon_book', contracts: 'icon_trophy', inbox: 'icon_mail',
+  boss: 'icon_boss', encyclopedia: 'icon_book', contracts: 'icon_trophy', inbox: 'icon_mail', ranking: 'icon_trophy',
 };
 // v9.1.0 : présentation courte en haut de l'onglet, à sa première ouverture (plus de bulle « Nouveau »).
 const UNLOCK_INFO = {
@@ -97,7 +98,7 @@ const TALL_MIN_HEIGHT = 420;
 const STRIP_MAX_HEIGHT = 190; // en dessous : mode barre (seulement la scène, comme une barre des tâches)
 const BULK_CONFIRM_MS = 4000;
 // Panneaux dont le contenu évolue pendant le farm : réaffichés au plus une fois par seconde.
-const LIVE_PANELS = new Set(['contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'upgrades', 'companions', 'expeditions', 'encyclopedia', 'inbox']);
+const LIVE_PANELS = new Set(['contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'upgrades', 'companions', 'expeditions', 'encyclopedia', 'inbox', 'ranking']);
 
 // Renaissance : choix du seul pouvoir ancestral conservé.
 function powerChoice(state) {
@@ -582,6 +583,7 @@ export class UI {
       if (this.tab) this.scrollMem[this.tab] = this.$('panel-body').scrollTop;
       this.pendingScroll = view ? 0 : this.scrollMem[tab] ?? 0;
     }
+    if (tab === 'ranking') this.actions.loadRanking?.();
     this.tab = tab;
     this.view.bulkArmed = false;
     this.newTabs.delete(tab);
@@ -668,6 +670,7 @@ export class UI {
       case 'toggle-companion': a.toggleCompanion(value); break;
       case 'upgrade-companion': a.upgradeCompanion(value); break;
       case 'open-tab': if (el.closest('#modal')) this.closeModal(); this.openTab(value); break;
+      case 'ranking-sort': this.actions.loadRanking(value); break;
       case 'summon': {
         const res = a.summon(Number(value), currency, el.dataset.pool);
         if (res) { v.lastSummon = res; playSummonReveal(res); }
@@ -1217,6 +1220,7 @@ export class UI {
       case 'boss': return Object.values(state.powers).map((p) => `${p.victories}${p.charges}${p.pending}`).join();
       case 'hero': return `${state.level}|${Math.floor(state.xp / 5)}|${state.heroes.active}|${Object.keys(state.heroes.owned).length}`;
       case 'encyclopedia': return String(encyclopediaProgress(state).found);
+      case 'ranking': return `${this.ranking?.sort}|${this.ranking?.players?.length ?? -1}|${this.ranking?.error ?? ''}|${this.ranking?.players?.[0]?.updatedAt ?? ''}`;
       default: return '';
     }
   }
@@ -1504,6 +1508,7 @@ export class UI {
       inbox: Boolean(state.ui.goalsOpen),
       contracts: Boolean(state.ui.goalsOpen),
       encyclopedia: boss,
+      ranking: Boolean(state.ui.goalsOpen) && Boolean(this.actions.loadRanking) && this.cloud?.enabled !== false,
     };
     const key = `${JSON.stringify(visible)}|${this.tab}|${[...this.newTabs].join()}`;
     if (this.lastHud.tabs === key) return;

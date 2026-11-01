@@ -1,3 +1,11 @@
+## Idle RPG v9.1.5 — Classement dans le jeu, pastilles des objets dans leur case
+
+**Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.5-setup.exe).
+
+- **Classement dans le jeu :** Objectifs › Classement, trié par étape, niveau ou boss. Votre ligne est en or.
+- Les pastilles des objets (« +10 », « É », ensemble, cadenas) restent dans la case, même avec les thèmes à bordure épaisse.
+- Le jeu se joue sur PC et téléphone uniquement : la version navigateur est retirée du serveur.
+
 ## Idle RPG v9.1.4 — Renaissances sauvegardées en ligne, classement lisible
 
 **Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.4-setup.exe).

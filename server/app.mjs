@@ -802,7 +802,7 @@ export function createApp({
   async function serveStatic(req, res, pathname) {
     // /play/... sert le jeu compilé (webDir), le reste sert le site (siteDir).
     const isGame = pathname === '/play' || pathname.startsWith('/play/');
-    // Le jeu web n'est servi que si GAME_WEB=1 (pas encore publié).
+    // Le jeu se joue sur PC (exe) et téléphone (APK) uniquement : /play/ n'est servi qu'en local (GAME_WEB=1, tests).
     if (isGame && !gameWeb) return send(res, 404, { error: 'Introuvable' });
     const dir = isGame ? webDir : siteDir;
     const rel = isGame ? pathname.slice('/play'.length) || '/' : pathname;

@@ -132,6 +132,8 @@ export function createCloudClient({ baseUrl = '', storage, fetchImpl = globalThi
     // `version` = version connue lors du dernier pull/push. Lève CloudError(409) si périmée.
     // Plateforme et version dans le corps (pas d'en-tête personnalisé : un ancien serveur refuserait la requête CORS).
     push: (version, data) => request('PUT', '/api/save', { body: { version, data, platform: client.platform, gameVersion: client.version } }),
+    // Classement public (sans connexion).
+    leaderboard: (sort = 'stage') => request('GET', `/api/leaderboard?sort=${encodeURIComponent(sort)}&limit=100`, { auth: false }),
     // Apparaître ou non dans le classement public.
     setListed: (listed) => request('PUT', '/api/account/listed', { body: { listed } }),
     // Suppression du compte et de toutes ses données sur le serveur (RGPD).

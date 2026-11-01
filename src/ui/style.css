@@ -2140,3 +2140,19 @@ small, .tt-sub, .upg-level, .item-sub, .stat-list li, .compare, .cost-missing, .
 @media (max-width: 560px) {
   #panel-extra:not(:has(button)) { display: none; }
 }
+
+/* Classement (v9.1.5) */
+.ranking-sorts { gap: 6px; margin-bottom: 6px; }
+.ranking-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.ranking-table th, .ranking-table td { padding: 3px 6px; text-align: left; border-bottom: 1px solid #ffffff14; white-space: nowrap; }
+.ranking-table td:nth-child(2) { white-space: normal; overflow-wrap: anywhere; }
+.ranking-table th { color: #c8b8ff; font-weight: 700; }
+.ranking-table tr.me td { color: #ffd76a; font-weight: 700; }
+
+/* v9.1.5 : pastilles des objets dans la case, jamais sur la bordure (les thèmes ont des bordures épaisses). */
+.item-frame .plus-lv { top: 1px; left: 1px; padding: 0 2px; line-height: 11px; border-radius: 3px; background: rgba(8, 10, 20, 0.78); }
+.item-frame .eq { bottom: 1px; right: 1px; }
+.item-frame .up { top: 1px; right: 2px; }
+.item-frame img.set-ico { left: 1px; bottom: 1px; }
+.item-frame img.lock { top: 1px; left: auto; right: 1px; }
+.item-frame .plus-lv ~ img.lock { top: auto; bottom: 1px; right: auto; left: 50%; transform: translateX(-50%); }

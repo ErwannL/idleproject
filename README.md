@@ -270,7 +270,7 @@ puis grande mise à jour de confort : 4 menus, bouton « Prochaine action », t�
 puis sauvegarde en ligne automatique, compte joueur et analytique admin (v9.1.1),
 puis création de compte toujours possible et messages de connexion clairs (v9.1.2),
 puis sauvegarde en ligne qui ne refuse plus les grosses parties, formulaires de compte fiables et décors corrigés (v9.1.3),
-puis sauvegarde en ligne qui accepte les renaissances et les étapes au-delà de 2000, classement au format du jeu (v9.1.4) :
+puis sauvegarde en ligne qui accepte les renaissances et les étapes au-delà de 2000, classement au format du jeu (v9.1.5) :
 voir `docs/RELEASE_NOTES.md`.
 
 ## v4

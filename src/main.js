@@ -810,6 +810,14 @@ const actions = {
   },
   cloudResume() { cloudAuth(() => cloud.guest(), 'Sauvegarde en ligne réactivée'); },
   cloudSync() { cloudSync(true); },
+  loadRanking(sort = ui.ranking?.sort ?? 'stage') {
+    ui.ranking = { sort, players: ui.ranking?.sort === sort ? ui.ranking.players : null };
+    ui.invalidate();
+    cloud.leaderboard(sort)
+      .then((res) => { ui.ranking = { sort, players: res.players }; })
+      .catch((err) => { ui.ranking = { sort, error: err.status ? err.message : 'Serveur injoignable : classement indisponible.' }; })
+      .finally(() => ui.invalidate());
+  },
   cloudListed(listed) {
     cloud.setListed(listed)
       .then(() => {
@@ -903,7 +911,7 @@ if (BUILD.cheats) import('./core/cheat-codes.js').then((m) => { cheatCodes = m; 
 // Compte et sauvegarde cloud (optionnels) : le jeu fonctionne sans, via localStorage.
 const platform = window.desktop ? 'windows' : window.Capacitor?.isNativePlatform?.() ? 'android' : 'web';
 const cloud = createCloudClient({ baseUrl: CLOUD_BASE, storage: store, client: { platform, version: GAME_VERSION } });
-const cloudView = { busy: false, message: '', error: false };
+const cloudView = { busy: false, message: '', error: false, enabled: BUILD.cloud };
 ui.cloud = cloudView;
 function setCloudMessage(text, error = false) {
   cloudView.busy = false;
