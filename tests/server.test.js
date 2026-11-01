@@ -285,6 +285,52 @@ test('classement : tri, joueurs masqués, nouvelle partie exclue', async (t) => 
   assert.equal((await call(base, 'PUT', '/api/account/listed', { listed: 'oui' }, c)).status, 400);
 });
 
+test('classement v9.1.6 : nouvelles stats, invités exclus, mon rang, classement entre amis', async (t) => {
+  const s = await setup();
+  t.after(() => s.close());
+  const base = s.url();
+  const reg = async (pseudo) => (await call(base, 'POST', '/api/register', { pseudo, password: 'motdepasse1' })).body.token;
+  const [a, b, c] = [await reg('Alpha_1'), await reg('Bravo_2'), await reg('Charl_3')];
+  const save = (tok, o) => call(base, 'PUT', '/api/save', { version: 0, data: JSON.stringify(o) }, tok);
+  await save(a, { level: 5, maxStage: 30, kills: 900, towerBest: 2, playSeconds: 50, records: { rebirths: 0, goldEarned: 1e6, bossesDefeated: 1 } });
+  await save(b, { level: 9, maxStage: 20, kills: 100, towerBest: 7, playSeconds: 500, records: { rebirths: 3, goldEarned: 1e9, bossesDefeated: 2 } });
+  await save(c, { level: 2, maxStage: 10, kills: 5, playSeconds: 5, records: {} });
+  const top = async (sort, tok, scope = 'all') => (await call(base, 'GET', `/api/leaderboard?sort=${sort}&scope=${scope}`, undefined, tok)).body;
+  assert.equal((await top('kills')).players[0].pseudo, 'Alpha_1');
+  for (const sort of ['gold', 'rebirths', 'tower', 'playtime']) assert.equal((await top(sort)).players[0].pseudo, 'Bravo_2', sort);
+  assert.equal((await top('gold')).players[0].value, 1e9);
+  // Mon rang hors de la liste : limit=1.
+  const mine = (await call(base, 'GET', '/api/leaderboard?sort=stage&limit=1', undefined, c)).body;
+  assert.equal(mine.players.length, 1);
+  assert.equal(mine.me.rank, 3);
+  assert.equal(mine.me.pseudo, 'Charl_3');
+
+  // Amis : demande, liste, acceptation croisée, classement entre amis, retrait.
+  assert.equal((await call(base, 'GET', '/api/leaderboard?scope=friends')).status, 401);
+  assert.equal((await call(base, 'POST', '/api/friends', { pseudo: 'Inconnu' }, a)).status, 404);
+  assert.equal((await call(base, 'POST', '/api/friends', { pseudo: 'alpha_1' }, a)).status, 400);
+  assert.equal((await call(base, 'POST', '/api/friends', { pseudo: 'bravo_2' }, a)).body.status, 'sent');
+  assert.deepEqual((await call(base, 'GET', '/api/friends', undefined, b)).body.incoming, ['Alpha_1']);
+  assert.deepEqual((await call(base, 'GET', '/api/friends', undefined, a)).body.outgoing, ['Bravo_2']);
+  assert.deepEqual((await top('stage', a, 'friends')).players.map((p) => p.pseudo), ['Alpha_1']);
+  assert.equal((await call(base, 'POST', '/api/friends/accept', { pseudo: 'Alpha_1' }, b)).body.status, 'friends');
+  assert.deepEqual((await top('stage', a, 'friends')).players.map((p) => p.pseudo), ['Alpha_1', 'Bravo_2']);
+  assert.equal((await top('stage', a, 'friends')).players[0].me, true);
+  // Demande croisée : C demande à A, A demande à C → amis directement.
+  await call(base, 'POST', '/api/friends', { pseudo: 'Alpha_1' }, c);
+  assert.equal((await call(base, 'POST', '/api/friends', { pseudo: 'Charl_3' }, a)).body.status, 'friends');
+  assert.equal((await call(base, 'GET', '/api/friends', undefined, a)).body.friends.length, 2);
+  assert.equal((await call(base, 'DELETE', '/api/friends/Bravo_2', undefined, a)).status, 204);
+  assert.deepEqual((await top('stage', b, 'friends')).players.map((p) => p.pseudo), ['Bravo_2']);
+  // Invité : absent du classement public, pas de demande d'ami.
+  const guest = (await call(base, 'POST', '/api/guest', {})).body;
+  if (guest?.token) {
+    await call(base, 'PUT', '/api/save', { version: 0, data: JSON.stringify({ level: 99, maxStage: 999, records: {} }) }, guest.token);
+    assert.ok(!(await top('stage')).players.some((p) => p.pseudo === guest.pseudo));
+    assert.equal((await call(base, 'POST', '/api/friends', { pseudo: 'Alpha_1' }, guest.token)).status, 403);
+  }
+});
+
 test('anti-triche : codes refusés, partie plus ancienne refusée, renaissance acceptée, meilleure étape conservée', async (t) => {
   const s = await setup();
   t.after(() => s.close());

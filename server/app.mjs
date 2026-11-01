@@ -39,7 +39,17 @@ const LEADERBOARD_SORTS = {
   stage: 's.max_stage DESC, s.level DESC, s.updated_at ASC',
   level: 's.level DESC, s.max_stage DESC, s.updated_at ASC',
   bosses: 's.bosses_defeated DESC, s.max_stage DESC, s.updated_at ASC',
+  kills: 's.kills DESC, s.max_stage DESC, s.updated_at ASC',
+  gold: 's.gold_earned DESC, s.max_stage DESC, s.updated_at ASC',
+  rebirths: 's.rebirths DESC, s.max_stage DESC, s.updated_at ASC',
+  tower: 's.tower_best DESC, s.max_stage DESC, s.updated_at ASC',
+  playtime: 's.play_seconds DESC, s.max_stage DESC, s.updated_at ASC',
 };
+// Valeur affichée pour chaque tri (colonne de la table saves).
+const LEADERBOARD_VALUE = {
+  stage: 'max_stage', level: 'level', bosses: 'bosses_defeated', kills: 'kills', gold: 'gold_earned', rebirths: 'rebirths', tower: 'tower_best', playtime: 'play_seconds',
+};
+const MAX_FRIENDS = 100;
 
 const PSEUDO_RE = /^[A-Za-z0-9_-]{3,20}$/;
 // Noms automatiques des comptes invités (v9.1.1) : réservés, un joueur ne peut pas les choisir.
@@ -184,6 +194,9 @@ export function summarizeSave(parsed) {
     kills: num(parsed.kills),
     bossesDefeated: num(parsed.records?.bossesDefeated),
     playSeconds: num(parsed.playSeconds),
+    rebirths: num(parsed.records?.rebirths),
+    towerBest: num(parsed.towerBest),
+    goldEarned: num(parsed.records?.goldEarned),
   };
 }
 
@@ -286,11 +299,12 @@ export function createApp({
     touchAccount: db.prepare('UPDATE accounts SET last_seen_at = ? WHERE id = ?'),
     deleteAccount: db.prepare('DELETE FROM accounts WHERE id = ?'),
     findSave: db.prepare('SELECT data, version, updated_at, level, play_seconds FROM saves WHERE account_id = ?'),
-    upsertSave: db.prepare(`INSERT INTO saves (account_id, data, version, updated_at, level, max_stage, gold, gems, kills, bosses_defeated, play_seconds)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    upsertSave: db.prepare(`INSERT INTO saves (account_id, data, version, updated_at, level, max_stage, gold, gems, kills, bosses_defeated, play_seconds, rebirths, tower_best, gold_earned)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(account_id) DO UPDATE SET data = excluded.data, version = excluded.version, updated_at = excluded.updated_at,
         level = MAX(saves.level, excluded.level), max_stage = MAX(saves.max_stage, excluded.max_stage), gold = excluded.gold, gems = excluded.gems,
-        kills = excluded.kills, bosses_defeated = excluded.bosses_defeated, play_seconds = excluded.play_seconds`),
+        kills = excluded.kills, bosses_defeated = excluded.bosses_defeated, play_seconds = excluded.play_seconds,
+        rebirths = excluded.rebirths, tower_best = MAX(saves.tower_best, excluded.tower_best), gold_earned = excluded.gold_earned`),
     upsertPrereg: db.prepare('INSERT INTO preregistrations (email, consent_version, consent_at) VALUES (?, ?, ?) ON CONFLICT(email) DO NOTHING'),
     deletePrereg: db.prepare('DELETE FROM preregistrations WHERE email = ?'),
     countPrereg: db.prepare('SELECT COUNT(*) AS n FROM preregistrations'),
@@ -497,7 +511,7 @@ export function createApp({
         log(`sauvegarde refusée pour le compte ${account.id} : ${reason}`);
         throw new HttpError(422, reason);
       }
-      q.upsertSave.run(account.id, data, next, now(), s.level, s.maxStage, s.gold, s.gems, s.kills, s.bossesDefeated, s.playSeconds);
+      q.upsertSave.run(account.id, data, next, now(), s.level, s.maxStage, s.gold, s.gems, s.kills, s.bossesDefeated, s.playSeconds, s.rebirths, s.towerBest, s.goldEarned);
       return { body: { version: next } };
     } },
 
@@ -534,22 +548,92 @@ export function createApp({
     // Compteur public (agrégé) pour la barre de progression de la page d'accueil.
     { method: 'GET', path: /^\/api\/preregister\/count$/, handler: () => ({ body: { count: q.countPrereg.get().n } }) },
 
-    // Classement public : joueurs ayant choisi d'apparaître (listed = 1) et ayant commencé à jouer.
-    { method: 'GET', path: /^\/api\/leaderboard$/, handler: ({ url }) => {
+    // Classement (v9.1.6) : tous les joueurs (comptes créés, listed = 1) ou soi et ses amis (scope=friends, connecté).
+    // Connecté : `me` donne aussi votre propre rang, même hors des 100 premiers.
+    { method: 'GET', path: /^\/api\/leaderboard$/, handler: ({ req, url }) => {
       const sort = LEADERBOARD_SORTS[url.searchParams.get('sort')] ? url.searchParams.get('sort') : 'stage';
+      const scope = url.searchParams.get('scope') === 'friends' ? 'friends' : 'all';
       const limit = Math.min(Math.max(Number(url.searchParams.get('limit')) || 100, 1), 100);
-      const rows = db.prepare(`SELECT a.pseudo, s.level, s.max_stage, s.bosses_defeated, s.updated_at
-        FROM saves s JOIN accounts a ON a.id = s.account_id
-        WHERE a.listed = 1 AND (s.level > 1 OR s.max_stage > 1 OR s.bosses_defeated > 0)
-        ORDER BY ${LEADERBOARD_SORTS[sort]} LIMIT ?`).all(limit);
-      return {
-        body: {
-          sort,
-          players: rows.map((r, i) => ({
-            rank: i + 1, pseudo: r.pseudo, level: r.level, maxStage: r.max_stage, stageLabel: stageLabel(r.max_stage), bossesDefeated: r.bosses_defeated, updatedAt: r.updated_at,
-          })),
-        },
-      };
+      let viewer = null;
+      try {
+        if (req.headers.authorization || scope === 'friends') viewer = authenticate(req);
+      } catch (err) {
+        if (scope === 'friends') throw err; // classement public : une session expirée n'empêche pas de le voir
+      }
+      const where = scope === 'friends'
+        ? `(a.id = :me OR a.id IN (SELECT addressee_id FROM friendships WHERE requester_id = :me AND status = 'accepted'
+            UNION SELECT requester_id FROM friendships WHERE addressee_id = :me AND status = 'accepted'))`
+        : 'a.listed = 1 AND a.guest = 0 AND (s.level > 1 OR s.max_stage > 1 OR s.bosses_defeated > 0)';
+      const base = `FROM saves s JOIN accounts a ON a.id = s.account_id WHERE ${where} ORDER BY ${LEADERBOARD_SORTS[sort]}`;
+      const params = scope === 'friends' ? { me: viewer.id } : {};
+      const rows = db.prepare(`SELECT a.id AS aid, a.pseudo, s.* ${base} LIMIT :limit`).all({ ...params, limit });
+      const row = (r, rank) => ({
+        rank, pseudo: r.pseudo, level: r.level, maxStage: r.max_stage, stageLabel: stageLabel(r.max_stage), bossesDefeated: r.bosses_defeated,
+        value: r[LEADERBOARD_VALUE[sort]], me: viewer ? r.aid === viewer.id : false, updatedAt: r.updated_at,
+      });
+      let me = null;
+      if (viewer && scope === 'all' && !viewer.guest && !rows.some((r) => r.aid === viewer.id)) {
+        const ids = db.prepare(`SELECT a.id AS aid ${base}`).all();
+        const i = ids.findIndex((r) => r.aid === viewer.id);
+        if (i >= 0) me = row(db.prepare('SELECT a.id AS aid, a.pseudo, s.* FROM saves s JOIN accounts a ON a.id = s.account_id WHERE a.id = ?').get(viewer.id), i + 1);
+      }
+      return { body: { sort, scope, players: rows.map((r, i) => row(r, i + 1)), me } };
+    } },
+
+    // ---- Amis (v9.1.6) ---- Réservé aux comptes créés (pas aux invités joueurXXXXXX).
+    { method: 'GET', path: /^\/api\/friends$/, handler: ({ req }) => {
+      const me = authenticate(req);
+      const friends = db.prepare(`SELECT a.pseudo, s.level, s.max_stage FROM friendships f
+        JOIN accounts a ON a.id = CASE WHEN f.requester_id = :me THEN f.addressee_id ELSE f.requester_id END
+        LEFT JOIN saves s ON s.account_id = a.id
+        WHERE f.status = 'accepted' AND (f.requester_id = :me OR f.addressee_id = :me) ORDER BY a.pseudo`).all({ me: me.id });
+      const incoming = db.prepare("SELECT a.pseudo FROM friendships f JOIN accounts a ON a.id = f.requester_id WHERE f.addressee_id = ? AND f.status = 'pending' ORDER BY f.created_at").all(me.id);
+      const outgoing = db.prepare("SELECT a.pseudo FROM friendships f JOIN accounts a ON a.id = f.addressee_id WHERE f.requester_id = ? AND f.status = 'pending' ORDER BY f.created_at").all(me.id);
+      return { body: {
+        friends: friends.map((f) => ({ pseudo: f.pseudo, level: f.level ?? 0, stageLabel: stageLabel(f.max_stage || 1) })),
+        incoming: incoming.map((r) => r.pseudo), outgoing: outgoing.map((r) => r.pseudo),
+      } };
+    } },
+    // Demande d'ami par nom ; si l'autre vous avait déjà demandé, vous devenez amis directement.
+    { method: 'POST', path: /^\/api\/friends$/, handler: async ({ req }) => {
+      const me = authenticate(req);
+      if (me.guest) throw new HttpError(403, 'Créez votre compte pour ajouter des amis');
+      const { pseudo } = await readJson(req);
+      const other = typeof pseudo === 'string' ? q.findAccount.get(pseudo.trim()) : null;
+      if (!other || other.guest) throw new HttpError(404, 'Joueur introuvable');
+      if (other.id === me.id) throw new HttpError(400, 'Vous ne pouvez pas vous ajouter vous-même');
+      const link = db.prepare('SELECT requester_id, status FROM friendships WHERE (requester_id = ? AND addressee_id = ?) OR (requester_id = ? AND addressee_id = ?)')
+        .get(me.id, other.id, other.id, me.id);
+      if (link?.status === 'accepted') return { body: { status: 'friends', pseudo: other.pseudo } };
+      if (link && link.requester_id === me.id) return { body: { status: 'sent', pseudo: other.pseudo } };
+      if (link) {
+        db.prepare("UPDATE friendships SET status = 'accepted' WHERE requester_id = ? AND addressee_id = ?").run(other.id, me.id);
+        return { body: { status: 'friends', pseudo: other.pseudo } };
+      }
+      const count = db.prepare('SELECT COUNT(*) AS n FROM friendships WHERE requester_id = ? OR addressee_id = ?').get(me.id, me.id).n;
+      if (count >= MAX_FRIENDS) throw new HttpError(409, `Limite de ${MAX_FRIENDS} amis et demandes atteinte`);
+      db.prepare("INSERT INTO friendships (requester_id, addressee_id, status, created_at) VALUES (?, ?, 'pending', ?)").run(me.id, other.id, now());
+      return { status: 201, body: { status: 'sent', pseudo: other.pseudo } };
+    } },
+    { method: 'POST', path: /^\/api\/friends\/accept$/, handler: async ({ req }) => {
+      const me = authenticate(req);
+      const { pseudo } = await readJson(req);
+      const other = typeof pseudo === 'string' ? q.findAccount.get(pseudo.trim()) : null;
+      const info = other
+        ? db.prepare("UPDATE friendships SET status = 'accepted' WHERE requester_id = ? AND addressee_id = ? AND status = 'pending'").run(other.id, me.id)
+        : { changes: 0 };
+      if (!info.changes) throw new HttpError(404, 'Demande introuvable');
+      return { body: { status: 'friends', pseudo: other.pseudo } };
+    } },
+    // Retirer un ami, refuser une demande reçue ou annuler une demande envoyée.
+    { method: 'DELETE', path: /^\/api\/friends\/([^/]+)$/, handler: ({ req, params }) => {
+      const me = authenticate(req);
+      const other = q.findAccount.get(decodeURIComponent(params[0]));
+      if (other) {
+        db.prepare('DELETE FROM friendships WHERE (requester_id = ? AND addressee_id = ?) OR (requester_id = ? AND addressee_id = ?)')
+          .run(me.id, other.id, other.id, me.id);
+      }
+      return { status: 204 };
     } },
 
     // Visibilité au classement (par défaut : oui). Authentifié.

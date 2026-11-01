@@ -3,6 +3,16 @@
 
 export const EXACT_910 = {
   // Menus et onglets.
+  // v9.1.6 : classement et amis.
+  'Classement': 'Leaderboard', 'Tout le monde': 'Everyone', 'Mes amis': 'My friends', 'Ennemis': 'Enemies', 'Or gagné': 'Gold earned',
+  'Tour': 'Tower', 'Renaissances': 'Rebirths', 'Temps de jeu': 'Play time', 'Joueur': 'Player', 'Étage': 'Floor', 'Renaiss.': 'Rebirths',
+  'Créer mon compte': 'Create my account', 'Ajouter': 'Add', 'Accepter': 'Accept', 'Refuser': 'Decline', 'Demandes reçues': 'Requests received',
+  'Nom du joueur': 'Player name', 'Chargement du classement…': 'Loading the leaderboard…', 'Chargement des amis…': 'Loading friends…',
+  'Ajoutez des amis pour vous comparer à eux.': 'Add friends to compare yourself with them.',
+  "Personne au classement pour l'instant.": 'Nobody on the leaderboard yet.',
+  "Pas encore d'amis : ajoutez un joueur par son nom.": 'No friends yet: add a player by name.',
+  'Créez votre compte pour apparaître au classement, voir votre rang et ajouter des amis.': 'Create your account to appear on the leaderboard, see your rank and add friends.',
+  "Vous n'êtes pas connecté.": 'You are not signed in.',
   'Mannequins': 'Mannequins', 'Builds': 'Builds', 'Renommer': 'Rename', 'Composition': 'Team', 'Objectifs': 'Goals', 'Fiche': 'Sheet',
   'Achetables': 'Buyable', 'À récupérer': 'To claim', "Aujourd'hui": 'Today', 'Cette semaine': 'This week', 'Apparences': 'Looks',
   'Prime du jour': 'Daily bounty', 'Arbre': 'Tree', 'Expéditions': 'Expeditions', 'Équipe': 'Team', 'Héros': 'Hero',

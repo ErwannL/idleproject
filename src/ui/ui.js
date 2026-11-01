@@ -266,7 +266,7 @@ export class UI {
     // Entrée dans un formulaire de compte = clic sur son bouton (jamais pour la suppression du compte).
     root.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter' || e.target.tagName !== 'INPUT') return;
-      const form = { 'cloud-claim-': 'cloud-claim', 'cloud-rename-': 'cloud-rename', 'cloud-pseudo': null, 'cloud-password': null };
+      const form = { 'friend-pseudo': 'friend-add', 'cloud-claim-': 'cloud-claim', 'cloud-rename-': 'cloud-rename', 'cloud-pseudo': null, 'cloud-password': null };
       const prefix = Object.keys(form).find((p) => e.target.id.startsWith(p));
       if (!prefix) return;
       const action = form[prefix] ?? (e.target.closest('.row')?.parentElement?.querySelector('[data-action="cloud-login"], [data-action="cloud-register"]')?.dataset.action);
@@ -671,6 +671,20 @@ export class UI {
       case 'upgrade-companion': a.upgradeCompanion(value); break;
       case 'open-tab': if (el.closest('#modal')) this.closeModal(); this.openTab(value); break;
       case 'ranking-sort': this.actions.loadRanking(value); break;
+      case 'open-account': {
+        this.openTab('options', { optTab: 'general' });
+        // Après le dessin du panneau : jusqu'au formulaire de compte.
+        setTimeout(() => {
+          const field = this.$('cloud-claim-pseudo') ?? this.$('cloud-pseudo');
+          field?.scrollIntoView({ block: 'center' });
+          field?.focus({ preventScroll: true });
+        }, 250);
+        break;
+      }
+      case 'ranking-scope': this.actions.loadRanking(undefined, value); break;
+      case 'friend-add': this.actions.friendAction('add', this.$('friend-pseudo')?.value); break;
+      case 'friend-accept': this.actions.friendAction('accept', value); break;
+      case 'friend-remove': this.actions.friendAction('remove', value); break;
       case 'summon': {
         const res = a.summon(Number(value), currency, el.dataset.pool);
         if (res) { v.lastSummon = res; playSummonReveal(res); }
@@ -1220,7 +1234,7 @@ export class UI {
       case 'boss': return Object.values(state.powers).map((p) => `${p.victories}${p.charges}${p.pending}`).join();
       case 'hero': return `${state.level}|${Math.floor(state.xp / 5)}|${state.heroes.active}|${Object.keys(state.heroes.owned).length}`;
       case 'encyclopedia': return String(encyclopediaProgress(state).found);
-      case 'ranking': return `${this.ranking?.sort}|${this.ranking?.players?.length ?? -1}|${this.ranking?.error ?? ''}|${this.ranking?.players?.[0]?.updatedAt ?? ''}`;
+      case 'ranking': return `${JSON.stringify(this.friends ?? null)}|${this.cloud?.guest}|${this.cloud?.loggedIn}|${this.ranking?.scope}|${this.ranking?.sort}|${this.ranking?.players?.length ?? -1}|${this.ranking?.error ?? ''}|${this.ranking?.players?.[0]?.updatedAt ?? ''}`;
       default: return '';
     }
   }

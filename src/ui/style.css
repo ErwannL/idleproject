@@ -2156,3 +2156,13 @@ small, .tt-sub, .upg-level, .item-sub, .stat-list li, .compare, .cost-missing, .
 .item-frame img.set-ico { left: 1px; bottom: 1px; }
 .item-frame img.lock { top: 1px; left: auto; right: 1px; }
 .item-frame .plus-lv ~ img.lock { top: auto; bottom: 1px; right: auto; left: 50%; transform: translateX(-50%); }
+.ranking-scopes, .ranking-sorts { flex-wrap: wrap; }
+.btn.btn-small { min-height: 0; padding: 2px 7px; font-size: 11px; }
+.ranking-table .rk-rank { width: 2.4em; text-align: center; }
+.ranking-table .rk-val { text-align: right; }
+.ranking-table .rk-name .muted { font-size: 10px; font-weight: 400; }
+.ranking-table .rk-gap td { text-align: center; color: #8a86a8; border-bottom: none; }
+.ranking-invite { border-color: var(--gold-2, #c9a24a); }
+.friends-card .row { gap: 6px; }
+.friend-row { display: flex; align-items: center; gap: 6px; padding: 3px 0; border-bottom: 1px solid #ffffff10; }
+.friend-pending { margin: 4px 0; }

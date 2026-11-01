@@ -1,3 +1,12 @@
+## Idle RPG v9.1.6 — Amis et classements
+
+**Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.6-setup.exe).
+
+- **8 classements :** étape, niveau, boss, ennemis vaincus, or gagné, étage de la Tour, renaissances et temps de jeu.
+- **Tout le monde ou Mes amis :** comparez-vous à tous les joueurs ou seulement à vos amis. Votre rang s'affiche même hors des 100 premiers.
+- **Amis :** ajoutez un joueur par son nom, acceptez ou refusez les demandes reçues, retirez un ami.
+- **Invités :** une partie sans compte (joueurXXXXXX) n'apparaît pas au classement ; l'onglet propose de créer son compte.
+
 ## Idle RPG v9.1.5 — Classement dans le jeu, pastilles des objets dans leur case
 
 **Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.5-setup.exe).

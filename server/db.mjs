@@ -44,6 +44,15 @@ CREATE TABLE IF NOT EXISTS admin_users (
   created_at INTEGER NOT NULL,
   last_login_at INTEGER
 );
+-- Amis (v9.1.6) : une ligne par demande ; status 'pending' puis 'accepted'. Supprimée au refus ou au retrait.
+CREATE TABLE IF NOT EXISTS friendships (
+  requester_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+  addressee_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+  status TEXT NOT NULL DEFAULT 'pending',
+  created_at INTEGER NOT NULL,
+  PRIMARY KEY (requester_id, addressee_id)
+);
+CREATE INDEX IF NOT EXISTS friendships_addressee ON friendships (addressee_id);
 CREATE TABLE IF NOT EXISTS preregistrations (
   email TEXT PRIMARY KEY,
   consent_version TEXT NOT NULL,
@@ -74,5 +83,8 @@ export function openDatabase(file) {
   addColumnIfMissing(db, 'saves', 'gems', 'INTEGER NOT NULL DEFAULT 0');
   // v9.1.3 : temps de jeu cumulé de la dernière sauvegarde (refus d'une partie plus ancienne, survit aux renaissances).
   addColumnIfMissing(db, 'saves', 'play_seconds', 'REAL NOT NULL DEFAULT 0');
+  // v9.1.6 : statistiques du classement.
+  for (const col of ['rebirths', 'tower_best']) addColumnIfMissing(db, 'saves', col, 'INTEGER NOT NULL DEFAULT 0');
+  addColumnIfMissing(db, 'saves', 'gold_earned', 'REAL NOT NULL DEFAULT 0');
   return db;
 }

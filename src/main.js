@@ -810,13 +810,36 @@ const actions = {
   },
   cloudResume() { cloudAuth(() => cloud.guest(), 'Sauvegarde en ligne réactivée'); },
   cloudSync() { cloudSync(true); },
-  loadRanking(sort = ui.ranking?.sort ?? 'stage') {
-    ui.ranking = { sort, players: ui.ranking?.sort === sort ? ui.ranking.players : null };
+  loadRanking(sort = ui.ranking?.sort ?? 'stage', scope = ui.ranking?.scope ?? 'all') {
+    if (scope === 'friends' && (!cloud.isLoggedIn() || cloud.isGuest())) scope = 'all';
+    const same = ui.ranking?.sort === sort && ui.ranking?.scope === scope;
+    ui.ranking = { sort, scope, players: same ? ui.ranking.players : null, me: same ? ui.ranking.me : null };
     ui.invalidate();
-    cloud.leaderboard(sort)
-      .then((res) => { ui.ranking = { sort, players: res.players }; })
-      .catch((err) => { ui.ranking = { sort, error: err.status ? err.message : 'Serveur injoignable : classement indisponible.' }; })
+    cloud.leaderboard(sort, scope)
+      .then((res) => { if (ui.ranking.sort === sort && ui.ranking.scope === scope) ui.ranking = { sort, scope, players: res.players, me: res.me }; })
+      .catch((err) => { ui.ranking = { sort, scope, error: err.status ? err.message : 'Serveur injoignable : classement indisponible.' }; })
       .finally(() => ui.invalidate());
+    if (scope === 'friends' || !ui.friends) this.loadFriends();
+  },
+  loadFriends(message = '', error = false) {
+    if (!cloud.isLoggedIn() || cloud.isGuest()) return;
+    cloud.friends()
+      .then((res) => { ui.friends = { ...res, message, error }; })
+      .catch((err) => { ui.friends = { ...(ui.friends ?? { friends: [], incoming: [], outgoing: [] }), message: err.message || 'Amis indisponibles', error: true }; })
+      .finally(() => ui.invalidate());
+  },
+  friendAction(kind, pseudo) {
+    const name = String(pseudo ?? '').trim();
+    if (!name) return;
+    const call = kind === 'add' ? cloud.addFriend(name) : kind === 'accept' ? cloud.acceptFriend(name) : cloud.removeFriend(name);
+    call
+      .then((res) => {
+        const text = kind === 'remove' ? `${name} retiré.` : res?.status === 'friends' ? `Vous êtes maintenant ami avec ${res.pseudo}.` : `Demande envoyée à ${res?.pseudo ?? name}.`;
+        ui.typed = {};
+        this.loadFriends(text);
+        if (ui.ranking?.scope === 'friends') this.loadRanking();
+      })
+      .catch((err) => { ui.friends = { ...(ui.friends ?? {}), message: err.message || 'Action impossible', error: true }; ui.invalidate(); });
   },
   cloudListed(listed) {
     cloud.setListed(listed)
@@ -997,7 +1020,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 // Nom et type de compte à jour (renommé depuis un autre appareil), puis première synchronisation.
 // Ne pas effacer un message d'erreur posé par la synchronisation (serveur injoignable, pas à jour…).
 const refreshCloudView = () => { if (!cloudView.error) setCloudMessage(''); };
-if (BUILD.cloud && cloud.isLoggedIn()) cloud.refresh().catch(() => {}).finally(() => { refreshCloudView(); cloudSync(); });
+if (BUILD.cloud && cloud.isLoggedIn()) cloud.refresh().catch(() => {}).finally(() => { refreshCloudView(); cloudSync(); actions.loadFriends(); });
 else cloudSync().then(refreshCloudView);
 // Journal de session (v8.5) : depuis le lancement, et pendant la dernière absence.
 const sessionJournal = createJournal(state);

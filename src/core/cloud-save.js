@@ -49,8 +49,8 @@ export function createCloudClient({ baseUrl = '', storage, fetchImpl = globalThi
     if (body !== undefined) headers['Content-Type'] = 'application/json';
     if (auth) {
       const token = readToken();
-      if (!token) throw new CloudError(401, 'Connexion requise');
-      headers.Authorization = `Bearer ${token}`;
+      if (!token && auth !== 'optional') throw new CloudError(401, 'Connexion requise');
+      if (token) headers.Authorization = `Bearer ${token}`;
     }
     let res;
     try {
@@ -133,7 +133,14 @@ export function createCloudClient({ baseUrl = '', storage, fetchImpl = globalThi
     // Plateforme et version dans le corps (pas d'en-tête personnalisé : un ancien serveur refuserait la requête CORS).
     push: (version, data) => request('PUT', '/api/save', { body: { version, data, platform: client.platform, gameVersion: client.version } }),
     // Classement public (sans connexion).
-    leaderboard: (sort = 'stage') => request('GET', `/api/leaderboard?sort=${encodeURIComponent(sort)}&limit=100`, { auth: false }),
+    // Classement (v9.1.6) : scope 'all' (connexion facultative, donne alors votre rang) ou 'friends'.
+    leaderboard: (sort = 'stage', scope = 'all') => request('GET', `/api/leaderboard?sort=${encodeURIComponent(sort)}&scope=${scope}&limit=100`,
+      { auth: scope === 'friends' ? true : 'optional' }),
+    // Amis (v9.1.6).
+    friends: () => request('GET', '/api/friends'),
+    addFriend: (pseudo) => request('POST', '/api/friends', { body: { pseudo } }),
+    acceptFriend: (pseudo) => request('POST', '/api/friends/accept', { body: { pseudo } }),
+    removeFriend: (pseudo) => request('DELETE', `/api/friends/${encodeURIComponent(pseudo)}`),
     // Apparaître ou non dans le classement public.
     setListed: (listed) => request('PUT', '/api/account/listed', { body: { listed } }),
     // Suppression du compte et de toutes ses données sur le serveur (RGPD).
