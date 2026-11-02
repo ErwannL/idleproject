@@ -194,8 +194,8 @@ for (let h = 0; h < HOURS; h++) {
   pay('événement', ev.item);
   wrap('événement', () => claimEvent(s, ev.id));
   wrap('Forge', () => pay('Forge', craftItem(s, 'helmet', rng))); // refusée sac plein : rien n'est payé
-  const g = fusionGroups(s, BALANCE, fusionKeep(s))[0];
-  if (g) wrap('fusion (choix du joueur)', () => pay('fusion', fuseItems(s, g.slot, g.rarity, rng, BALANCE, fusionKeep(s))));
+  const g = fusionGroups(s, BALANCE, fusionKeep(s)).find((x) => x.auto); // v9.1.3 (doc3 lot 2) : { ok, item }
+  if (g) wrap('fusion (choix du joueur)', () => pay('fusion', fuseItems(s, g.slot, g.rarity, rng, BALANCE, fusionKeep(s))?.item));
   const cls = CLASSES.filter((c) => classUnlocked(s, c.id) && c.id !== s.heroClass)[h % 3];
   if (cls) wrap('classe', () => { const w = s.equipment.weapon; if (setHeroClass(s, cls.id, itemPower) && w) pay('classe (arme portée avant)', w); });
 }

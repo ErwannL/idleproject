@@ -218,6 +218,15 @@ export const BALANCE = {
     upgradeGoldKills: 6, // coût en or = 6 × (niveau + 1) × l'or d'un ennemi au niveau de l'objet
     upgradeShards: 2, // éclats = 2 × (niveau + 1)
     fusionCount: 5, // 5 objets d'une rareté (même emplacement) → 1 objet de la rareté suivante
+    // v9.1.3 (doc3 lot 2) : fusion à pourcentage. Une rareté absente n'est pas fusionnable. rate = chance de la mise
+    // de 5 ; stakes = mises courtes (chance de base) ; pityStep = jauge gagnée à l'échec (par emplacement + rareté).
+    // Ne pas changer sans recalcul (doc3) : 125 Communs par Légendaire en mise de 5, 130 à 4, 133 à 3 ; pire cas 11.
+    fusion: {
+      common: { rate: 100 }, rare: { rate: 100 },
+      epic: { rate: 100, stakes: { 3: 30, 4: 65 }, pityStep: 20 },
+      // plus tard : legendary: { rate: 60, pityStep: 20 }, mise de 5 seulement
+    },
+    sharpenRarityFactor: { common: 1, rare: 2, epic: 3, legendary: 5 }, // réaffûtage : facteur de rareté
   },
 
   // Événements discrets pendant le farm (aucun ne demande de surveiller l'écran).

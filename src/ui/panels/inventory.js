@@ -5,7 +5,7 @@ import { BALANCE } from '../../data/balance.js';
 import { BOSSES } from '../../data/enemies.js';
 import { ACCESSORY_SLOTS, GEAR_SLOTS, RARITIES, SLOTS, STAT_LABELS } from '../../data/items.js';
 import { formatStat } from '../../core/format.js';
-import { canReforge, craftCost, fusionGroups, fusionKeep, maxUpgrades, sharpenCost, upgradeCost } from '../../core/forge.js';
+import { canReforge, craftCost, fusableRarities, fusionChance, fusionGroups, fusionKeep, fusionPity, maxUpgrades, sharpenCost, upgradeCost } from '../../core/forge.js';
 import { KEEP_AFFIX_LABELS, bulkRecycleCandidates, isUpgrade, listInventory, RECYCLE_MODES, recycleRules } from '../../core/inventory.js';
 import { itemBase, rarityById, recycleLevelOf, recycleMaterials, recycleValue } from '../../core/loot.js';
 import { computeHeroStats, statsWithItem } from '../../core/stats.js';
@@ -317,21 +317,21 @@ function buildsBar(ui, state) {
 
 function forge(ui, state) {
   const full = state.inventory.length >= BALANCE.loot.inventorySize;
-  const groups = fusionGroups(state, BALANCE, fusionKeep(state));
-  // v9.1.3 : « Fusionner tout » se confirme en deux appuis ; objets renforcés, meilleurs que l'équipé ou utiles à
-  // un ensemble jamais fusionnés (comme la fusion automatique).
-  const n = groups.reduce((t, g) => t + Math.floor(g.count / BALANCE.forge.fusionCount) * BALANCE.forge.fusionCount, 0);
-  const fusion = groups.length
+  // v9.1.3 (doc3 lot 2) : écran de fusion à pourcentage. « Fusionner tout » (deux appuis) = mises de 5 à 100 %,
+  // jamais un objet protégé. Commun/Rare : une ligne et « Fusionner ». Épique : ligne repliée, puis jauge, objets
+  // protégés (raison, « Inclure » d'un appui), texte d'échec (absent à 100 %) et une mise par bouton : aucune mise
+  // n'est présélectionnée.
+  const keep = fusionKeep(state);
+  const groups = fusionGroups(state, BALANCE, keep);
+  const count = BALANCE.forge.fusionCount;
+  const auto = groups.filter((g) => g.auto);
+  const n = auto.reduce((t, g) => t + Math.floor(g.usable / count) * count, 0);
+  const all = auto.length
     ? `<button class="btn btn-gold primary-action${ui.view.fuseArmed ? ' armed' : ''}" data-action="fuse-all">${ui.view.fuseArmed
-      ? `Confirmer : fusionner ${n} objets ?` : `Fusionner tout (${groups.length} groupe${groups.length > 1 ? 's' : ''})`}</button>
-      <div class="muted">Protégés : objets verrouillés, renforcés, meilleurs que l'équipé, utiles à un ensemble, ancestraux.</div>`
-      // v9.1.3 : les groupes un par un sont repliés sous « Fusionner tout ».
-      + fold(ui, 'fusion-groups', `Fusionner un seul groupe (${groups.length})`, () => groups.map((g) => `<div class="fusion-row">
-        <span>${img(slotIconName(g.slot))} ${BALANCE.forge.fusionCount} × ${SLOTS[g.slot]}
-          <b class="r-${g.rarity} rarity-text">${rarityLabel(g.rarity)}</b> → 1 <b class="r-${g.next} rarity-text">${rarityLabel(g.next)}</b>
-          <span class="muted">(${g.count} dans le sac)</span></span>
-        <button class="btn btn-gold small" data-action="fuse" data-value="${g.slot}|${g.rarity}">Fusionner</button></div>`).join(''))
-    : `<div class="muted">Aucune fusion possible : il faut ${BALANCE.forge.fusionCount} objets du même emplacement et de la même rareté
+      ? `Confirmer : fusionner ${n} objets ?` : `Fusionner tout · ${auto.length} groupe${auto.length > 1 ? 's' : ''}`}</button>` : '';
+  const fusion = groups.length
+    ? `${all}${ui.view.fuseMsg ? `<div class="bad" role="status">${escapeHtml(ui.view.fuseMsg)}</div>` : ''}<div class="fusion-list">${groups.map((g) => fusionRow(ui, state, g, keep)).join('')}</div>`
+    : `<div class="muted">Aucune fusion possible : il faut ${count} objets du même emplacement et de la même rareté
         (non verrouillés, hors objets ancestraux).</div>`;
   // Fabrication ciblée : l'emplacement en liste, puis deux boutons (Rare+ et Épique+).
   const slot = SLOTS[ui.view.craftSlot] ? ui.view.craftSlot : 'weapon';
@@ -346,7 +346,8 @@ function forge(ui, state) {
       <div class="options-row">${craftBtn('rare')}${craftBtn('epic')}</div>${full ? '<div class="bad">Sac plein.</div>' : ''}`;
   return `<div class="card">
       <div class="section-title">Fusion</div>
-      <div class="muted">${BALANCE.forge.fusionCount} objets de même emplacement et de même rareté → 1 objet de la rareté suivante, au niveau du meilleur.</div>
+      <div class="muted">${BALANCE.forge.fusionCount} objets de même emplacement et de même rareté → 1 objet de la rareté suivante, au niveau du meilleur.
+        <span>Épique : 5 objets = sûr, ou tenter avec moins.</span></div>
       ${fusion}
     </div>
     ${fold(ui, 'forge-craft', 'Fabrication ciblée', craft)}
@@ -356,11 +357,49 @@ function forge(ui, state) {
         les effets se font depuis la fiche d'un objet (Détails).</div></div>`;
 }
 
+// v9.1.3 (doc3 lot 2) : raisons de protection affichées (fusionKeep(state).reason).
+const PROTECT_LABELS = { upgraded: 'renforcé', better: "meilleur que l'équipé", set: 'utile à un ensemble', affix: 'effet gardé', build: 'dans un build' };
+
+// Une ligne de fusion : titre (emplacement · rareté → suivante, objets du sac) ; Épique repliée.
+function fusionRow(ui, state, g, keep) {
+  const key = `${g.slot}|${g.rarity}`;
+  const count = BALANCE.forge.fusionCount;
+  const included = Boolean(ui.view.fusionInclude?.[key]);
+  const avail = g.usable + (included ? g.protected : 0);
+  const title = `<span>${img(slotIconName(g.slot))} ${SLOTS[g.slot]} · <b class="r-${g.rarity} rarity-text">${rarityLabel(g.rarity)}</b>
+    → <b class="r-${g.next} rarity-text">${rarityLabel(g.next)}</b> <span class="muted">${g.bag} dans le sac</span></span>`;
+  const reasons = () => [...new Set(state.inventory.filter((i) => i.slot === g.slot && i.rarity === g.rarity && keep(i))
+    .map((i) => keep.reason(i)).filter((r) => PROTECT_LABELS[r]).map((r) => PROTECT_LABELS[r]))].join(', ');
+  const protectedLine = g.protected
+    ? `<span class="muted">${g.protected} objet${g.protected > 1 ? 's' : ''} protégé${g.protected > 1 ? 's' : ''} (${reasons()})</span>
+      <button class="btn small${included ? ' active' : ''}" data-action="fuse-include" data-value="${key}" aria-pressed="${included}">${included ? 'Inclus' : 'Inclure'}</button>` : '';
+  const stakeBtn = (stake) => {
+    const chance = fusionChance(state, g.slot, g.rarity, stake);
+    const label = chance >= 100 ? `Fusionner ${stake} · 100 %` : `Tenter à ${stake} · ${chance} %`;
+    return `<button class="btn ${chance >= 100 ? 'btn-gold' : ''} small" data-action="fuse" data-value="${key}" data-stake="${stake}">${label}</button>`;
+  };
+  if (g.stakes.length === 1) {
+    const btn = avail >= count ? `<button class="btn btn-gold small" data-action="fuse" data-value="${key}">Fusionner</button>` : '';
+    return `<div class="fusion-row">${title}${btn}</div>${avail < count || included ? `<div class="fusion-sub">${protectedLine}</div>` : ''}`;
+  }
+  const open = ui.view.fuseOpen === key;
+  const head = `<button class="fusion-row fusion-head" data-action="fuse-open" data-value="${key}" aria-expanded="${open}">${title}<span aria-hidden="true">${open ? '▾' : '▸'}</span></button>`;
+  if (!open) return head;
+  const stakes = g.stakes.filter((s) => s <= avail);
+  const risky = stakes.some((s) => fusionChance(state, g.slot, g.rarity, s) < 100);
+  const step = BALANCE.forge.fusion[g.rarity]?.pityStep ?? 0;
+  return `${head}<div class="fusion-detail">
+    <div class="fusion-sub"><span class="muted">Jauge +${fusionPity(state, g.slot, g.rarity)}</span>${protectedLine ? `<span class="muted" aria-hidden="true">·</span>${protectedLine}` : ''}</div>
+    ${risky ? `<div class="muted">Si échec : 1 objet rendu, jauge +${step}</div>` : ''}
+    <div class="options-row">${stakes.map(stakeBtn).join('') || `<span class="muted">Il faut au moins ${g.stakes[0]} objets utilisables.</span>`}</div></div>`;
+}
+
 // Fusion automatique (v8.1) : 5 objets identiques (emplacement + rareté) → 1 objet de rareté supérieure.
 function autoFuseEditor(state) {
   const f = state.ui.autoFuse ?? { on: false, rarities: ['common'] };
-  const chips = RARITIES.slice(0, 3).map((r) => `<button class="btn chip-btn small${f.rarities.includes(r.id) ? ' active' : ''}" data-action="autofuse" data-group="rarities" data-value="${r.id}">${r.label}</button>`).join('');
-  return `<label class="inv-rule" title="Jamais fusionné : objet verrouillé, ancestral, ou meilleur que l'objet porté."><span>Fusion auto :</span>
+  const chips = RARITIES.filter((r) => fusableRarities().includes(r.id)).map( // v9.1.3 (doc3 lot 2) : raretés de BALANCE.forge.fusion
+    (r) => `<button class="btn chip-btn small${f.rarities.includes(r.id) ? ' active' : ''}" data-action="autofuse" data-group="rarities" data-value="${r.id}">${r.label}</button>`).join('');
+  return `<label class="inv-rule" title="Mise de 5 à 100 % seulement. Jamais fusionné : objet verrouillé, ancestral, renforcé, meilleur que l'objet porté, utile à un ensemble, effet gardé ou dans un build."><span>Fusion auto :</span>
       <button class="btn chip-btn small${f.on ? ' active' : ''}" data-action="autofuse" data-group="on">${f.on ? 'Activée' : 'Désactivée'}</button></label>
     ${f.on ? `<div class="chip-row">${chips}</div>` : ''}`;
 }

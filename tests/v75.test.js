@@ -48,7 +48,8 @@ test('fusion : 5 objets gris d\'un emplacement donnent 1 objet bleu (niveau le p
   state.inventory[0].locked = true; // un objet verrouillé n'est jamais fusionné
   const groups = fusionGroups(state);
   assert.deepEqual(groups.map((g) => [g.slot, g.rarity, g.count, g.next]), [['helmet', 'common', 5, 'rare']]);
-  const item = fuseItems(state, 'helmet', 'common', rng);
+  const { ok, item } = fuseItems(state, 'helmet', 'common', rng); // v9.1.3 (doc3 lot 2) : { ok, item, ... }
+  assert.ok(ok);
   assert.equal(item.rarity, 'rare');
   assert.equal(item.slot, 'helmet');
   assert.equal(item.level, 8);

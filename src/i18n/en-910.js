@@ -2,6 +2,9 @@
 // Ajoutée au dictionnaire principal par ./en.js.
 
 export const EXACT_910 = {
+  // v9.1.3 (doc3 lot 2) : fusion à pourcentage.
+  'Inclure': 'Include', 'Inclus': 'Included', 'Épique : 5 objets = sûr, ou tenter avec moins.': 'Epic: 5 items = safe, or try with fewer.',
+  "Mise de 5 à 100 % seulement. Jamais fusionné : objet verrouillé, ancestral, renforcé, meilleur que l'objet porté, utile à un ensemble, effet gardé ou dans un build.": 'Stake of 5 at 100% only. Never fused: locked, ancestral or reinforced items, items better than the worn one, useful to a set, with a kept effect or in a build.',
   // v9.1.3 (chantier 3) : Classe, Mesurer, Améliorations, Compétences en grille, Talents, Renaissance, Interface.
   "Changement gratuit : l'arme portée devient la meilleure de la classe, ou est reforgée sans perte.": 'Free change: the worn weapon becomes the best of the class, or is reforged without loss.',
   'Dégâts directs': 'Direct damage', '(part de chacun, soutiens non comptés)': '(share of each, supports not counted)',
@@ -393,8 +396,23 @@ const UNITS_913 = { or: 'gold', gemme: 'gem', gemmes: 'gems', fragment: 'fragmen
   essence: 'essence', essences: 'essences', ticket: 'ticket', tickets: 'tickets', 'Étoile': 'Star', 'Étoiles': 'Stars' };
 const UNIT_RE = '(or|gemmes?|fragments?|éclats?|essences?|tickets?|Étoiles?)';
 
+// v9.1.3 (doc3 lot 2) : raisons de protection des objets à la fusion.
+const FUSION_REASONS = { 'renforcé': 'reinforced', "meilleur que l'équipé": 'better than worn', 'utile à un ensemble': 'useful to a set',
+  'effet gardé': 'kept effect', 'dans un build': 'in a build' };
+
 // Textes construits avec des valeurs.
 export const PATTERNS_910 = [
+  // v9.1.3 (doc3 lot 2) : fusion à pourcentage.
+  [/^Fusionner tout · (\d+) groupes?$/, (m) => `Fuse all · ${m[1]} group${m[1] === '1' ? '' : 's'}`],
+  [/^(\d+) dans le sac$/, '$1 in the bag'],
+  [/^Jauge \+(\d+)$/, 'Gauge +$1'],
+  [/^(\d+) objets? protégés? \((.+)\)$/, (m) => `${m[1]} protected item${m[1] === '1' ? '' : 's'} (${m[2].split(', ').map((r) => FUSION_REASONS[r] ?? tr(r)).join(', ')})`],
+  [/^Si échec : 1 objet rendu, jauge \+(\d+)$/, 'If it fails: 1 item returned, gauge +$1'],
+  [/^Tenter à (\d+) · (\d+) %$/, 'Try with $1 · $2%'],
+  [/^Fusionner (\d+) · 100 %$/, 'Fuse $1 · 100%'],
+  [/^Il faut au moins (\d+) objets utilisables\.$/, 'At least $1 usable items needed.'],
+  [/^Échec \((\d+) %\) : (\d+) objets? perdus?, (.+) rendue?s?, jauge (.+) \+(\d+)$/,
+    (m) => `Failed (${m[1]}%): ${m[2]} item${m[2] === '1' ? '' : 's'} lost, ${tr(m[3])} returned, ${tr(m[4])} gauge +${m[5]}`],
   // v9.1.3 (doc3 lot 1).
   [/^(\d+) récompenses? avec un objet en attente \(sac et coffre pleins\) : Objectifs › À récupérer\.$/, (m) => `${m[1]} reward${m[1] > 1 ? 's' : ''} with an item on hold (bag and chest full): Goals › Claims.`],
   // v9.1.3 (chantier 6) : textes des chantiers restés en français (relevés par le parcours anglais).

@@ -6,6 +6,8 @@ import { referenceKillGold } from './combat.js';
 import { addToInventory, isUpgrade, keptByAffix, recycleRules } from './inventory.js';
 import { generateItem, itemBase, itemPower, makeItem, rarityIndex, refreshItemStats, rerollAffixes } from './loot.js';
 import { trackMissions } from './missions.js';
+import { CLASS_WEAPON_DROP } from '../data/classes.js';
+import { activeClass, canEquip, classWeaponBases } from './classes.js';
 import { usefulSetPiece } from './sets.js';
 
 // tier 'rare' : Rare ou mieux (or + éclats) ; 'epic' : Épique ou mieux (or + plus d'éclats ; v9.1.3 : plus d'essences).
@@ -49,11 +51,10 @@ export function reforgeItem(state, id, rng, balance = BALANCE) {
   return true;
 }
 
-const RARITY_FACTOR = { common: 1, rare: 2, epic: 3, legendary: 5 };
 
 export function sharpenCost(state, item, balance = BALANCE) {
   if (!item || item.level >= state.maxStage) return 0;
-  return balance.forge.sharpenShardsPerLevel * (state.maxStage - item.level) * RARITY_FACTOR[item.rarity];
+  return balance.forge.sharpenShardsPerLevel * (state.maxStage - item.level) * (balance.forge.sharpenRarityFactor[item.rarity] ?? 1); // v9.1.3 (doc3 lot 2) : table dans BALANCE
 }
 
 export function sharpenItem(state, id, balance = BALANCE) {
@@ -109,70 +110,178 @@ export function upgradeItem(state, id, rng, balance = BALANCE) {
 }
 
 // --- Fusion : 5 objets d'un même emplacement et d'une même rareté → 1 objet de la rareté suivante. ---
+// v9.1.3 (doc3 lot 2) : fusion à pourcentage. Table `BALANCE.forge.fusion` : une rareté absente n'est pas
+// fusionnable ; `rate` = chance de la mise de 5, `stakes` = mises plus courtes (chance de base), `pityStep` = jauge
+// gagnée à l'échec. Commun et Rare : 5 pour 1, sûr. Épique : 5 = 100 %, 4 = 65 %, 3 = 30 %.
+export function fusionRule(rarity, balance = BALANCE) {
+  const rule = balance.forge.fusion?.[rarity];
+  return rule && rarityIndex(rarity) >= 0 && rarityIndex(rarity) < RARITIES.length - 1 ? rule : null;
+}
+export const fusableRarities = (balance = BALANCE) => RARITIES.map((r) => r.id).filter((r) => fusionRule(r, balance));
+
+// Mises possibles d'une rareté, de la plus courte à 5.
+export function fusionStakes(rarity, balance = BALANCE) {
+  const rule = fusionRule(rarity, balance);
+  if (!rule) return [];
+  const n = balance.forge.fusionCount;
+  return [...Object.keys(rule.stakes ?? {}).map(Number).filter((k) => k > 0 && k < n), n].sort((a, b) => a - b);
+}
+
+export const pityKey = (slot, rarity) => `${slot}|${rarity}`;
+export const fusionPity = (state, slot, rarity) => state.fusionPity?.[pityKey(slot, rarity)] ?? 0;
+
+// Chance d'une mise en % : base + jauge, au plus 100. `base` seule : sans la jauge. null = mise impossible.
+export function fusionChance(state, slot, rarity, stake, balance = BALANCE, { base = false } = {}) {
+  const rule = fusionRule(rarity, balance);
+  if (!rule) return null;
+  const rate = stake === balance.forge.fusionCount ? rule.rate : rule.stakes?.[stake];
+  if (!Number.isFinite(rate)) return null;
+  return Math.min(100, rate + (base ? 0 : fusionPity(state, slot, rarity)));
+}
+
 const fusable = (item) => !item.locked && !itemBase(item.baseId).signature;
 
 // v9.1.3 : la fusion à la main (un groupe ou « Fusionner tout ») protège comme l'automatique — objet meilleur que
 // l'équipé, pièce d'ensemble utile — et en plus tout objet payé (renforcé avec de l'or et des éclats).
 // v9.1.3 (doc3 lot 1, point 4) : et le filtre « garder si tel effet » des règles de recyclage.
-export function fusionKeep(state) {
+// v9.1.3 (doc3 lot 2) : une seule protection pour tout (groupes, écran, main.js, fusion auto). Toujours exclus :
+// verrouillés et ancestraux. Exclus sauf « Inclure » (à la main seulement) : renforcés, meilleurs que l'équipé,
+// pièces d'ensemble utiles, effets à garder, objets d'un build. `fusionKeep(state)` = automatique et « Fusionner
+// tout » ; `{ include: ['weapon|epic'] }` = groupes dont le joueur a inclus les objets protégés.
+// Le prédicat porte `reason(item)` : 'locked', 'ancestral', 'upgraded', 'better', 'set', 'affix', 'build' ou null.
+export function fusionKeep(state, { include = [] } = {}) {
   const rules = recycleRules(state);
-  return (i) => (i.upgrades ?? 0) > 0 || keptByAffix(rules, i) || isUpgrade(state, i) || usefulSetPiece(state, i, itemPower);
+  const inBuild = new Set((state.loadouts ?? []).flatMap((l) => Object.values(l?.gear ?? {})).filter(Boolean));
+  const included = new Set(include);
+  const reason = (i) => {
+    if (i.locked) return 'locked';
+    if (itemBase(i.baseId).signature) return 'ancestral';
+    if ((i.upgrades ?? 0) > 0) return 'upgraded';
+    if (inBuild.has(i.id)) return 'build';
+    if (keptByAffix(rules, i)) return 'affix';
+    if (usefulSetPiece(state, i, itemPower)) return 'set';
+    if (isUpgrade(state, i)) return 'better';
+    return null;
+  };
+  const keep = (i) => {
+    const r = reason(i);
+    if (!r) return false;
+    if (r === 'locked' || r === 'ancestral') return true;
+    return !included.has(pityKey(i.slot, i.rarity));
+  };
+  keep.reason = reason;
+  return keep;
 }
 
-// Groupes disponibles dans le sac : [{ slot, rarity, count, next }] (seulement s'il y a assez d'objets).
+// Groupes du sac : [{ slot, rarity, next, bag, usable, protected, auto, stakes }].
+// bag = objets du sac de ce couple ; usable = ceux que `keep` laisse passer ; protected = protégés qu'un appui
+// sur « Inclure » rend utilisables (hors verrouillés et ancestraux). Seuil d'écran : la plus petite mise (3 pour
+// l'Épique, 5 ailleurs) en objets utilisables ou incluables. auto = « Fusionner tout » / fusion auto possibles
+// (5 utilisables et 100 % de base).
 export function fusionGroups(state, balance = BALANCE, keep = null) {
+  const n = balance.forge.fusionCount;
   const groups = new Map();
   for (const item of state.inventory) {
-    if (!fusable(item) || keep?.(item) || item.rarity === RARITIES[RARITIES.length - 1].id) continue;
-    const key = `${item.slot}|${item.rarity}`;
-    groups.set(key, (groups.get(key) ?? 0) + 1);
+    if (!fusionRule(item.rarity, balance)) continue;
+    const key = pityKey(item.slot, item.rarity);
+    if (!groups.has(key)) groups.set(key, { slot: item.slot, rarity: item.rarity, bag: 0, usable: 0, protected: 0 });
+    const g = groups.get(key);
+    g.bag += 1;
+    if (!fusable(item)) continue;
+    if (!keep?.(item)) g.usable += 1;
+    else if (!['locked', 'ancestral'].includes(keep.reason?.(item))) g.protected += 1;
   }
-  return [...groups.entries()]
-    .map(([key, count]) => {
-      const [slot, rarity] = key.split('|');
-      return { slot, rarity, count, next: RARITIES[rarityIndex(rarity) + 1].id };
+  return [...groups.values()]
+    .map((g) => {
+      const stakes = fusionStakes(g.rarity, balance);
+      return { ...g, count: g.usable, next: RARITIES[rarityIndex(g.rarity) + 1].id, stakes,
+        auto: g.usable >= n && fusionChance(state, g.slot, g.rarity, n, balance, { base: true }) >= 100 };
     })
-    .filter((g) => g.count >= balance.forge.fusionCount)
+    .filter((g) => g.usable + g.protected >= g.stakes[0])
     .sort((a, b) => rarityIndex(a.rarity) - rarityIndex(b.rarity) || a.slot.localeCompare(b.slot));
 }
 
-// Fusionne les 5 objets les plus faibles du groupe ; le nouvel objet prend le niveau le plus haut.
-export function fuseItems(state, slot, rarity, rng, balance = BALANCE, keep = null) {
-  const n = balance.forge.fusionCount;
-  const pool = state.inventory.filter((i) => i.slot === slot && i.rarity === rarity && fusable(i) && !keep?.(i))
-    .sort((a, b) => itemPower(a) - itemPower(b));
-  if (pool.length < n || rarityIndex(rarity) >= RARITIES.length - 1) return null;
-  const used = pool.slice(0, n);
+// Objets qu'une mise consommerait : armes non portables d'abord, puis niveau croissant.
+export function fusionPool(state, slot, rarity, keep = null) {
+  return state.inventory.filter((i) => i.slot === slot && i.rarity === rarity && fusable(i) && !keep?.(i))
+    .sort((a, b) => Number(canEquip(state, a)) - Number(canEquip(state, b)) || a.level - b.level);
+}
+
+// Fusionne `stake` objets du groupe (5 par défaut). null = fusion impossible (rareté non fusionnable, mise
+// inconnue, pas assez d'objets). Sinon { ok, item, returned, lost, chance } :
+// - réussite : nouvel objet au niveau du meilleur ; jauge remise à 0, sauf si la mise de 5 était à 100 % sans elle ;
+// - échec : l'objet de plus haut niveau reste dans le sac (jamais retiré : pas de faux objet trouvé), les autres
+//   sont perdus (`lost` = leur nombre), jauge +pityStep (au plus 100).
+// v9.1.3 (doc3 lot 2) : une arme fusionnée suit la règle du butin (70 % de modèles de la classe active).
+export function fuseItems(state, slot, rarity, rng, balance = BALANCE, keep = null, stake = balance.forge.fusionCount) {
+  const chance = fusionChance(state, slot, rarity, stake, balance);
+  if (chance === null) return null;
+  const pool = fusionPool(state, slot, rarity, keep);
+  if (pool.length < stake) return null;
+  const used = pool.slice(0, stake);
+  const rule = fusionRule(rarity, balance);
+  const key = pityKey(slot, rarity);
+  state.fusionPity ??= {};
+  const success = chance >= 100 || rng.next() * 100 < chance;
+  if (!success) {
+    const returned = used.reduce((best, i) => (i.level > best.level ? i : best), used[0]);
+    const ids = new Set(used.filter((i) => i !== returned).map((i) => i.id));
+    state.inventory = state.inventory.filter((i) => !ids.has(i.id));
+    state.fusionPity[key] = Math.min(100, fusionPity(state, slot, rarity) + (rule.pityStep ?? 0));
+    return { ok: false, item: null, returned, lost: ids.size, chance };
+  }
   const ids = new Set(used.map((i) => i.id));
   state.inventory = state.inventory.filter((i) => !ids.has(i.id));
+  const safe = stake === balance.forge.fusionCount && rule.rate >= 100;
+  if (!safe) delete state.fusionPity[key];
   const level = Math.max(...used.map((i) => i.level));
-  const bases = ITEM_BASES.filter((b) => b.slot === slot);
-  const base = bases[Math.floor(rng.next() * bases.length)];
+  const classPool = slot === 'weapon' ? classWeaponBases(activeClass(state).id) : [];
+  const base = classPool.length && rng.next() < CLASS_WEAPON_DROP
+    ? rng.pick(classPool) : rng.pick(ITEM_BASES.filter((b) => b.slot === slot));
   const item = makeItem(state, base.id, RARITIES[rarityIndex(rarity) + 1].id, level, balance, rng);
   addToInventory(state, item, balance);
-  return item;
+  return { ok: true, item, returned: null, lost: 0, chance };
 }
 
 // Fusion automatique (v8.1) : dès que 5 objets du même emplacement et de la même rareté (parmi les raretés
-// choisies) sont dans le sac, ils sont fusionnés. Jamais un objet verrouillé, ancestral ou meilleur que l'équipé.
+// choisies) sont dans le sac, ils sont fusionnés. v9.1.3 (doc3 lot 2) : mise de 5 seulement, à 100 % de base
+// seulement, jamais un objet protégé (`fusionKeep`). Renvoie les objets créés.
 export function autoFuse(state, rng, _isUpgrade = null, balance = BALANCE) { // v9.1.3 : 3e paramètre gardé pour les appelants
   const rules = state.ui?.autoFuse;
   if (!rules?.on || !rules.rarities?.length) return [];
   const made = [];
   for (let guard = 0; guard < 50; guard++) {
-    const keep = fusionKeep(state); // v9.1.3 (doc3 lot 1) : même protection que la fusion à la main
-    const counts = new Map();
-    for (const i of state.inventory) {
-      if (!rules.rarities.includes(i.rarity) || !fusable(i) || keep(i)) continue;
-      const k = `${i.slot}|${i.rarity}`;
-      counts.set(k, (counts.get(k) ?? 0) + 1);
-    }
-    const next = [...counts].find(([, c]) => c >= balance.forge.fusionCount);
-    if (!next) break;
-    const [slot, rarity] = next[0].split('|');
-    const item = fuseItems(state, slot, rarity, rng, balance, keep);
-    if (!item) break;
-    made.push(item);
+    const keep = fusionKeep(state);
+    const g = fusionGroups(state, balance, keep).find((x) => x.auto && rules.rarities.includes(x.rarity));
+    if (!g) break;
+    const r = fuseItems(state, g.slot, g.rarity, rng, balance, keep);
+    if (!r?.ok) break;
+    made.push(r.item);
   }
   return made;
+}
+
+// « Fusionner tout » : mêmes règles que l'automatique, toutes raretés. Renvoie le nombre de fusions réussies.
+export function fuseAll(state, rng, balance = BALANCE) {
+  let n = 0;
+  for (let guard = 0; guard < 500; guard++) {
+    const keep = fusionKeep(state);
+    const g = fusionGroups(state, balance, keep).find((x) => x.auto);
+    if (!g) break;
+    const r = fuseItems(state, g.slot, g.rarity, rng, balance, keep);
+    if (!r?.ok) break;
+    n += 1;
+  }
+  return n;
+}
+
+// v9.1.3 (doc3 lot 2) : message d'échec, ex. « Échec (65 %) : 3 objets perdus, Hache rendue, jauge Arme +20 ».
+const FEMININE = new Set(['Épée', 'Hache', 'Dague', 'Massue', 'Lance', 'Hallebarde', 'Arbalète', 'Baguette', 'Faux', 'Faucheuse',
+  'Cuirasse', 'Robe', 'Chevalière', 'Créoles']);
+export function fusionFailText(result, slotLabel, step) {
+  const word = String(result.returned?.name ?? '').split(' ')[0];
+  const plural = /s$/.test(word) && word !== 'Faux';
+  const given = `rendu${FEMININE.has(word) ? 'e' : ''}${plural ? 's' : ''}`;
+  const n = result.lost;
+  return `Échec (${result.chance} %) : ${n} objet${n > 1 ? 's' : ''} perdu${n > 1 ? 's' : ''}, ${result.returned?.name} ${given}, jauge ${slotLabel} +${step}`;
 }

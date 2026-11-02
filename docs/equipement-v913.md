@@ -127,3 +127,59 @@ réaffûter 2 × niveaux × facteur de rareté, renforcer 2 × n éclats + 6 × 
 - Point 7 : `refreshItemStats` seul ne suffisait pas (la valeur d'origine `base` de l'ancien effet restait) : elle est remise à zéro à la relance.
 - Point 5 : « jamais de perte de puissance » ne peut pas être garanti au chiffre près entre deux modèles (vitesse et dégâts
   différents) : l'arme garde rareté, niveau, effets et renforcements, et la plus puissante des armes de la classe est retenue.
+
+# Lot 2 « fusion à pourcentage »
+
+Règles du doc3 appliquées telles quelles (`BALANCE.forge.fusion`, core/forge.js). Mesures :
+`tools/measure-fusion-v913.mjs` (moteur réel, graine fixe ; l'« avant » lancé sur le commit 5376985). Tests :
+`tests/v913-fusion.test.js`.
+
+| Point | Maintenant |
+|---|---|
+| Commun, Rare | 5 pour 1, sûr, un appui (inchangé) |
+| Épique → Légendaire | 5 = 100 % ; tenter à 4 (65 %) ou 3 (30 %) ; échec : l'objet de plus haut niveau reste dans le sac (jamais retiré), les autres perdus, jauge +20 |
+| Jauge | `fusionPity["emplacement|rareté"]`, bornée 0–100 au chargement, sans expiration, gardée à la Renaissance, remise à 0 après une réussite à 3 ou 4 (pas à 5, déjà à 100 % sans elle) ; sans montée de SAVE_VERSION |
+| Garanties | mise de 3 : 30/50/70/90/100 (5 essais au plus) ; mise de 4 : 65/85/100 (3 essais au plus) — testées avec un tirage toujours perdant |
+| « Fusionner tout », fusion auto | mise de 5 et 100 % de base seulement, `fusionKeep` sans inclusion |
+| `fusionKeep` | unique (groupes, écran, main.js, fusion auto) ; toujours exclus : verrouillés, ancestraux ; protégés : renforcés, meilleurs que l'équipé (`isUpgrade`), pièces d'ensemble utiles, effets gardés, objets d'un build ; à la main : raison affichée + « Inclure » d'un appui (le groupe seulement, retombe après la fusion) |
+| Ordre de consommation | armes non portables, puis niveau croissant |
+| Résultat | niveau du meilleur objet ; arme : 70 % de modèles de la classe (règle du butin) |
+| Technique | `fuseItems` → `null` (impossible) ou `{ ok, item, returned, lost, chance }` ; `fusionGroups(keep)` : `bag`, `usable`, `protected`, `auto`, seuil d'écran = plus petite mise (3 Épique, 5 sinon) ; `fuse` retiré de `REPEATABLE` ; fusions à la main comptées pour la mission dans main.js ; listes de raretés en dur remplacées (autoFuse dans state.js, puces de la fusion auto, `RARITY_FACTOR` → `BALANCE.forge.sharpenRarityFactor`) |
+
+Écran (téléphone 375×812) : « Fusionner tout · N groupes » (deux appuis), Commun/Rare en une ligne avec « Fusionner »,
+Épique replié ; un appui l'ouvre : « Jauge +N · 1 objet protégé (renforcé) [Inclure] », « Si échec : 1 objet rendu,
+jauge +20 » (absent si toutes les mises affichées sont à 100 %), un bouton par mise, aucune présélectionnée. Message
+d'échec dans le fil et dans l'écran : « Échec (65 %) : 3 objets perdus, Hache de guerre rendue, jauge Arme +20 ».
+
+## Mesures
+
+Légendaires (armes) pour 1 000 objets ramassés, fusion auto de toutes les raretés (3 graines × 100 000 objets) :
+
+| | Par la fusion | dont portables | Tombés directement (portables) | **Total portables** |
+|---|---|---|---|---|
+| Avant (modèle au hasard) | 7,71 | 0,76 | 1,93 | **2,69** |
+| Après (70 % de la classe) | 7,69 | 5,67 | 1,89 | **7,56** |
+
+×2,81 (le doc annonçait 2,77 → 7,65, ×2,76) : vrai changement d'équilibrage, conforme.
+
+Épique → Légendaire selon la mise (100 000 Légendaires, jauge comprise) :
+
+| Mise | Épiques / Légendaire | Communs / Légendaire | Essais max | Pire cas (Épiques consommés) |
+|---|---|---|---|---|
+| 5 | 5,00 | 125 | 1 | 5 |
+| 4 | 5,21 | 130 | 3 | 10 |
+| 3 | 5,32 | 133 | 5 | 11 |
+
+Boucle fusion → recyclage (or et éclats rendus par le recyclage du résultat ÷ recyclage direct des objets consommés) :
+
+| Fusion | Mise | Niv. 200 : or | éclats | Après Renaissance (plafond étape 1) : or | éclats |
+|---|---|---|---|---|---|
+| Commun | 5 | 0,92 | 0,60 | 0,80 | 0,60 |
+| Rare | 5 | 0,92 | 1,20 | 0,80 | 1,20 |
+| Épique | 5 | 0,86 | 0,56 | 0,75 | 0,56 |
+| Épique | 4 | 0,82 | 0,57 | 0,74 | 0,57 |
+| Épique | 3 | 0,81 | 0,61 | 0,75 | 0,61 |
+
+Aucune boucle ne rapporte d'or : fusionner puis recycler rend toujours moins d'or que recycler directement, avant
+comme après Renaissance. Seule exception en éclats : 5 Rares (15 éclats) → 1 Épique (18), +3 éclats par fusion,
+déjà vrai avant ce lot (Rare 5 pour 1 inchangé) et payé par 5 objets : signalé, pas modifié.

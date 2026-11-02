@@ -116,7 +116,7 @@ test('source fusion : protège « garder si tel effet », renforcés ; l\'objet 
   assert.equal(sweepInventory(s).count, 0, 'balayage : effet gardé');
   for (const h of s.inventory) h.affixes = [{ type: 'thorns', value: 5 }];
   const made = fuseItems(s, 'helmet', 'rare', rng, BALANCE, fusionKeep(s));
-  assert.ok(made && s.inventory.some((i) => i.id === made.id));
+  assert.ok(made?.ok && s.inventory.some((i) => i.id === made.item.id)); // v9.1.3 (doc3 lot 2) : { ok, item }
 });
 
 test('source événements : coffre et marchand passent au coffre quand le sac est plein, refus si tout est plein', () => {

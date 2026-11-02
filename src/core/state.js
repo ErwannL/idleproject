@@ -1,6 +1,6 @@
 // État persistant de la partie (tout ce qui est sauvegardé) et validation au chargement.
 import { BALANCE } from '../data/balance.js';
-import { AFFIXES, SLOTS, STARTER_WEAPON, STAT_LABELS } from '../data/items.js';
+import { AFFIXES, RARITIES, SLOTS, STARTER_WEAPON, STAT_LABELS } from '../data/items.js';
 import { BOSSES } from '../data/enemies.js';
 import { COMPANIONS } from '../data/companions.js';
 import { CONTRACT_TYPES } from '../data/contracts.js';
@@ -104,6 +104,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     rushes: { levels: {}, active: {}, cooldown: {}, auto: false }, // boosts à durée limitée
     cheats: { effects: [], reveal: false, speeds: [] },
     loadouts: emptyLoadouts(),
+    fusionPity: {}, // v9.1.3 (doc3 lot 2) : jauge de fusion « emplacement|rareté » → points (0 à 100), gardée à la Renaissance
     codex: emptyCodex(),
     playSeconds: 0, // temps de jeu cumulé (boost des premières heures)
     expeditions: emptyExpeditions(), // v8.5 : compagnons en mission
@@ -241,6 +242,7 @@ function cleanActivities(state, raw) {
   state.bossRetry = br && Number.isInteger(br.stage) && br.stage > 0 && Number.isFinite(br.power) && br.power > 0 ? { stage: br.stage, power: br.power } : null;
   if (state.tower && raw.dungeon) state.tower = null; // jamais les deux à la fois
   state.loadouts = sanitizeLoadouts(raw.loadouts);
+  state.fusionPity = sanitizeFusionPity(raw.fusionPity);
   state.expeditions = sanitizeExpeditions(raw.expeditions, state);
   // Jamais à la fois dans l'équipe et en expédition.
   state.companions.equipped = state.companions.equipped.filter((id) => !state.expeditions.slots.some((s) => s?.companionId === id));
@@ -316,6 +318,24 @@ function migrateTo20Stages(raw) {
   }
   if (Array.isArray(raw.inbox)) out.inbox = raw.inbox.map((e) => (e && typeof e === 'object' ? { ...e, item: item(e.item), stage: oldStageToNew(e.stage) } : e));
   if (raw.dungeon && typeof raw.dungeon === 'object') out.dungeon = { ...raw.dungeon, level: oldStageToNew(raw.dungeon.level) };
+  return out;
+}
+
+// v9.1.3 (doc3 lot 2) : rareté fusionnable = présente dans BALANCE.forge.fusion et pas la dernière.
+const fusionRarity = (r, balance) => Boolean(balance.forge.fusion?.[r]) && RARITIES.findIndex((x) => x.id === r) >= 0
+  && RARITIES.findIndex((x) => x.id === r) < RARITIES.length - 1;
+
+// v9.1.3 (doc3 lot 2) : jauge de fusion, clés « emplacement|rareté » valides, points entiers bornés de 0 à 100
+// (sans montée de SAVE_VERSION : champ absent = jauges vides).
+export function sanitizeFusionPity(raw, balance = BALANCE) {
+  const out = {};
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+  for (const [key, value] of Object.entries(raw)) {
+    const [slot, rarity, extra] = key.split('|');
+    const v = Math.round(Number(value));
+    if (extra !== undefined || !(slot in SLOTS) || !fusionRarity(rarity, balance) || !Number.isFinite(v) || v <= 0) continue;
+    out[key] = Math.min(100, v);
+  }
   return out;
 }
 
@@ -454,14 +474,14 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     if (rec && typeof rec === 'object' && ['off', 'pickup', 'full'].includes(rec.mode)) {
       state.ui.recycle = {
         mode: rec.mode,
-        rarities: Array.isArray(rec.rarities) ? rec.rarities.filter((r) => ['common', 'rare', 'epic', 'legendary'].includes(r)) : ['common'],
+        rarities: Array.isArray(rec.rarities) ? rec.rarities.filter((r) => RARITIES.some((x) => x.id === r)) : ['common'],
         slots: Array.isArray(rec.slots) ? rec.slots.filter((s) => s in SLOTS) : Object.keys(SLOTS),
         keepAffixes: Array.isArray(rec.keepAffixes) ? rec.keepAffixes.filter((a) => a in AFFIXES) : [],
       };
     }
     const af = raw.ui.autoFuse;
     if (af && typeof af === 'object') {
-      state.ui.autoFuse = { on: af.on === true, rarities: Array.isArray(af.rarities) ? af.rarities.filter((r) => ['common', 'rare', 'epic'].includes(r)) : ['common'] };
+      state.ui.autoFuse = { on: af.on === true, rarities: Array.isArray(af.rarities) ? af.rarities.filter((r) => fusionRarity(r, balance)) : ['common'] };
     }
     if (typeof raw.ui.notify === 'object' && raw.ui.notify) state.ui.notify = { ...state.ui.notify, ...raw.ui.notify };
     state.ui.focus = raw.ui.focus === true;

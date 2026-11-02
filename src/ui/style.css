@@ -949,6 +949,11 @@ canvas.anim { display: block; image-rendering: pixelated; }
 .upgrade-row .btn { flex: 1; }
 .fusion-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 4px 0; border-top: 1px solid var(--line); font-size: 11.5px; }
 .fusion-row img { width: 16px; height: 16px; vertical-align: -3px; }
+/* v9.1.3 (doc3 lot 2) : ligne Épique repliée (bouton pleine largeur), détail avec jauge, protégés et mises. */
+.fusion-head { width: 100%; background: none; border: 0; border-top: 1px solid var(--line); color: inherit; font: inherit; font-size: 11.5px; text-align: left; cursor: pointer; min-height: 32px; }
+.fusion-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 11.5px; padding: 2px 0; }
+.fusion-detail { padding: 0 0 6px; font-size: 11.5px; }
+.fusion-detail .options-row { flex-wrap: wrap; }
 @container (max-width: 340px) { .inv { grid-template-columns: 104px 1fr; } }
 .inv-rule { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
 .inv-rule select { flex: 1; min-width: 0; }

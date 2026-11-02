@@ -678,7 +678,14 @@ export class UI {
       case 'lock': a.toggleLock(id); break;
       case 'sharpen': a.sharpen(id); break;
       case 'upgrade-item': a.upgradeItem(id); break;
-      case 'fuse': a.fuse(...value.split('|')); break;
+      case 'fuse': { // v9.1.3 (doc3 lot 2) : mise choisie (data-stake), 5 par défaut ; l'inclusion retombe après
+        const [slot, rarity] = value.split('|');
+        a.fuse(slot, rarity, Number(el.dataset.stake) || undefined, Boolean(v.fusionInclude?.[value]));
+        if (v.fusionInclude) delete v.fusionInclude[value];
+        break;
+      }
+      case 'fuse-open': local(() => { v.fuseOpen = v.fuseOpen === value ? null : value; }); break; // v9.1.3 (doc3 lot 2)
+      case 'fuse-include': local(() => { v.fusionInclude = { ...(v.fusionInclude ?? {}), [value]: !v.fusionInclude?.[value] }; }); break;
       case 'reforge': a.reforge(id); break;
       case 'craft': a.craft(value, el.dataset.tier); break;
       case 'stage': a.selectStage(Number(stage)); break;

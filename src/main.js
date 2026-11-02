@@ -10,7 +10,7 @@ import { TOUR_VERSION, maybeStartTour, startTour } from './ui/onboarding.js';
 import { activeSynergies, companionById, onExpedition, replaceCompanion, toggleCompanion, upgradeCompanion } from './core/companions.js';
 import { claimContract } from './core/contracts.js';
 import { claimAchievement, claimableAchievements } from './core/achievements.js';
-import { claimAllMissions, claimLogin, claimMission, claimMissionBonus, claimTrackTier, mergeReward, refreshMissions } from './core/missions.js';
+import { claimAllMissions, claimLogin, claimMission, claimMissionBonus, claimTrackTier, mergeReward, refreshMissions, trackMissions } from './core/missions.js';
 import { abandonDungeon, dungeonById, setDungeonPath, startDungeon } from './core/dungeon.js';
 import { DUNGEON_DIFFICULTIES } from './data/dungeons.js';
 import { buyUpgradeBulk } from './core/economy.js';
@@ -18,7 +18,7 @@ import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
 import { endTower, startTower } from './core/tower.js';
 import { claimExpedition, expeditionType, relaunchExpeditions, startExpedition } from './core/expeditions.js';
 import { endChallenge, startChallenge } from './core/challenge.js';
-import { autoFuse, craftItem, fuseItems, fusionGroups, fusionKeep, reforgeItem, sharpenItem, upgradeItem } from './core/forge.js';
+import { autoFuse, craftItem, fuseAll, fuseItems, fusionFailText, fusionKeep, reforgeItem, sharpenItem, upgradeItem } from './core/forge.js';
 import { summon } from './core/gacha.js';
 import { setActiveHero } from './core/heroes.js';
 import { addToInventory, bulkRecycleCandidates, equipBest, equipItem, isUpgrade, recycleItem, recycleMatching, recycleRules, sweepInventory, toggleLock } from './core/inventory.js';
@@ -30,7 +30,7 @@ import { activateRush, rushById, upgradeRush } from './core/rushes.js';
 import { grantReward, rewardText } from './core/rewards.js';
 import { learnSkill } from './core/skills.js';
 import { generateItem, itemPower, makeItem, rarityById } from './core/loot.js';
-import { STAT_LABELS } from './data/items.js';
+import { SLOTS, STAT_LABELS } from './data/items.js';
 import { applyOfflineRewards, computeOfflineRewards } from './core/offline.js';
 import { Rng } from './core/rng.js';
 import { SAVE_KEY, clearSave, encodeSaveCode, loadGame, parseImport, saveGame, writeImported } from './core/save.js';
@@ -224,21 +224,30 @@ const actions = {
     if (!stat) ui.toast('Renforcement impossible (or ou éclats insuffisants, ou maximum atteint).', '#ff8a8a');
     done(Boolean(stat), stat ? `Renforcé : ${label} +${BALANCE.forge.upgradeBoostPct} %` : null, '#7fe08f');
   },
-  fuse(slot, rarity) {
-    const item = fuseItems(state, slot, rarity, rng, BALANCE, fusionKeep(state));
-    if (item) sound.play('loot', { rarity: item.rarity });
-    if (item) ui.view.selectedItemId = item.id;
-    done(Boolean(item), item ? `Fusion : ${item.name} (${rarityById(item.rarity).label})` : null, rarityById(item?.rarity ?? 'common').color);
-  },
-  fuseAll() {
-    let n = 0;
-    for (let guard = 0; guard < 500; guard++) {
-      const keep = fusionKeep(state);
-      const g = fusionGroups(state, BALANCE, keep)[0];
-      if (!g || !fuseItems(state, g.slot, g.rarity, rng, BALANCE, keep)) break;
-      n += 1;
+  // v9.1.3 (doc3 lot 2) : mise choisie (5 = sûr ; 3 ou 4 en Épique = tentative) ; `include` = objets protégés du
+  // groupe inclus d'un appui. Les fusions à la main comptent pour la mission (pas la fusion auto).
+  fuse(slot, rarity, stake = BALANCE.forge.fusionCount, include = false) {
+    const keep = fusionKeep(state, { include: include ? [`${slot}|${rarity}`] : [] });
+    const r = fuseItems(state, slot, rarity, rng, BALANCE, keep, stake);
+    if (!r) return done(false);
+    trackMissions(state, 'upgrades', 1);
+    if (!r.ok) {
+      const text = fusionFailText(r, SLOTS[slot], BALANCE.forge.fusion[rarity].pityStep ?? 0);
+      ui.toast(text, '#ff8a8a');
+      ui.view.fuseMsg = text; // v9.1.3 (doc3 lot 2) : aussi dans l'écran de fusion (le fil est caché sur téléphone)
+      save();
+      ui.invalidate();
+      return false;
     }
-    if (n) sound.play('loot', { rarity: 'epic' });
+    sound.play('loot', { rarity: r.item.rarity });
+    ui.view.selectedItemId = r.item.id;
+    ui.view.fuseMsg = null;
+    return done(true, `Fusion : ${r.item.name} (${rarityById(r.item.rarity).label})`, rarityById(r.item.rarity).color);
+  },
+  // « Fusionner tout » : mise de 5 à 100 % seulement, jamais un objet protégé (core/forge.js fuseAll).
+  fuseAll() {
+    const n = fuseAll(state, rng);
+    if (n) { sound.play('loot', { rarity: 'epic' }); trackMissions(state, 'upgrades', n); }
     done(n > 0, n ? `${n} fusion${n > 1 ? 's' : ''} faite${n > 1 ? 's' : ''}` : null, '#c9a6ff');
   },
   claimMastery(bossId) {
