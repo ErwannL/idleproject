@@ -10,6 +10,7 @@ import { collectItem } from './inventory.js';
 import { addXp } from './level.js';
 import { generateItem, recycleValue } from './loot.js';
 import { Rng } from './rng.js';
+import { endWorldRun } from './banner.js';
 
 function measureAt(state, stage, balance, seconds) {
   const clone = structuredClone(state);
@@ -17,6 +18,7 @@ function measureAt(state, stage, balance, seconds) {
   clone.dungeon = null; // donjon ou tour en cours : mis en pause, on mesure le farm de campagne
   clone.tower = null;
   clone.challenge = null;
+  endWorldRun(clone, 'left'); // v9.1.3 (doc4 lot 6) : mode monde neutralisé (équipe d'avant l'essai, sans essai gratuit)
   clone.inventory = [];
   clone.stage = stage;
   if (isBossStage(stage, balance)) clone.stage = Math.max(1, stage - 1); // jamais de boss hors ligne

@@ -56,7 +56,7 @@ import { CloudError, createCloudClient, syncOnce } from './core/cloud-save.js';
 import { CLOUD_BASE } from './core/cloud-config.js';
 import { BUILD } from './core/build-info.js';
 import { startDemoBanner } from './data/banners.js';
-import { claimReleaseGift } from './core/banner.js';
+import { claimReleaseGift, endWorldRun, startWorldRun } from './core/banner.js';
 import { GAME_VERSION } from './version.js';
 import { applyTheme, themeById } from './ui/themes.js';
 import { BUILT_IN_TOKEN } from './core/update-token.js';
@@ -548,6 +548,25 @@ const actions = {
     resetWave(world);
     placeTransition('Ascension de la semaine', 'Tour de l\'Éternité', 'Un boss par étage. La tour s\'effondre au bout de 10 h de combat.');
     done(true, 'Ascension de la Tour de l\'Éternité : étage 1 !', '#c9a6ff');
+  },
+  // v9.1.3 (doc4 lot 6) : mode monde d'un perso de bannière (niveau, palier du boss, score).
+  enterWorld(id, kind, n, trial) {
+    if (state.dungeon || state.tower || state.challenge) { ui.toast("Terminez d'abord le donjon, la Tour ou le défi."); return; }
+    const r = startWorldRun(state, world, id, kind, Number(n) || 1, { trial: Boolean(trial) });
+    if (!r.ok) {
+      ui.toast(r.text ?? (r.error === 'score' ? 'Score : le perso doit être possédé et dans l\'équipe.' : 'Pas encore ouvert.'), '#ff8a8a');
+      return;
+    }
+    const unit = companionById(id);
+    placeTransition(kind === 'score' ? 'Score' : kind === 'tier' ? `Palier ${n}` : `Niveau ${n}`, `Monde : ${unit.name}`, '', ZONES[currentEncounter(state).zoneIndex].id);
+    ui.openTab('world');
+    done(true);
+  },
+  leaveWorld() {
+    const r = endWorldRun(state, 'left');
+    resetWave(world);
+    if (r) backToCampaign();
+    done(Boolean(r));
   },
   setArchiveTarget(id) {
     state.summon.archiveTarget = id;
@@ -1091,7 +1110,7 @@ function backToCampaign() {
   const zone = ZONES[currentEncounter(state).zoneIndex];
   placeTransition('Retour à la campagne', zone.name, `Étape ${stageLabel(state.stage)}`, zone.id);
 }
-const RETURN_EVENTS = new Set(['dungeonComplete', 'dungeonFailed', 'towerFailed', 'towerCollapsed', 'challengeFailed']);
+const RETURN_EVENTS = new Set(['dungeonComplete', 'dungeonFailed', 'towerFailed', 'towerCollapsed', 'challengeFailed', 'worldEnded']);
 // Animation de changement de monde : en campagne (nouveau monde en avançant) et, v8.7, dans la Tour de
 // l'Éternité (nouveau décor tous les 10 étages). Au plus une toutes les 15 s (combats passés, ×100…).
 function watchWorldChange() {

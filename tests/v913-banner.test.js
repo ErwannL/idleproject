@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { BANNER_RULES, BANNER_UNITS, UNITS, setBannersEnabled } from '../src/data/banners.js';
+import { BANNER_RULES, BANNER_UNITS, UNITS, setBannersEnabled, startDemoBanner } from '../src/data/banners.js';
 import { COMPANIONS } from '../src/data/companions.js';
 import { BALANCE } from '../src/data/balance.js';
 import { COMPANION_ROLES } from '../src/data/synergies.js';
@@ -11,14 +11,19 @@ import { AURA_COLORS } from '../src/data/auras.js';
 import { createNewState, sanitizeState, SAVE_VERSION } from '../src/core/state.js';
 import { featuredUnit, summon, summonOdds, summonPool } from '../src/core/gacha.js';
 import { Rng } from '../src/core/rng.js';
-import { archiveTargets, budget, claimReleaseGift, currentBanner, lastBanner, nextBanner, releaseIndex, } from '../src/core/banner.js';
+import { archiveTargets, budget, claimReleaseGift, currentBanner, lastBanner, nextBanner, releaseIndex, startWorldRun, worldStatus } from '../src/core/banner.js';
 import { companionMultiplier, companionSkillMultiplier, companionById } from '../src/core/companions.js';
 import { sectionProgress } from '../src/core/encyclopedia.js';
+import { createCombat, currentEncounter, step } from '../src/core/combat.js';
+import { measureFarmRate } from '../src/core/offline.js';
+import { TOWER_BOSSES, towerBoss } from '../src/core/tower.js';
+import { BOSSES } from '../src/data/enemies.js';
 import { SAVE_KEY, loadGame } from '../src/core/save.js';
 
 const DAY = 86400000;
 const START = new Date(`${BANNER_RULES.start}T00:00:00`).getTime();
 const J = (d) => START + (d - 1) * DAY + 12 * 3600000; // midi du jour J de la sortie 1
+const REF = JSON.parse(readFileSync(new URL('./helpers/v913-comptes-reference.json', import.meta.url), 'utf8'));
 
 test('drapeau coupé (défaut) : aucun perso de bannière, aucune bannière, budget 100, bassin et rotation inchangés', () => {
   setBannersEnabled(false);
@@ -238,7 +243,112 @@ test('lot 5 : calendrier — J-7 aperçu, fin de bannière, aucun badge ni tri d
   assert.equal(currentBanner(J(14)).day, 14);
   assert.equal(currentBanner(J(15)), null);
   assert.equal(lastBanner(J(15)).unit.id, 'demo_ssr');
-  const src = readFileSync(new URL('../src/ui/panels/summon.js', import.meta.url), 'utf8');
+  const src = readFileSync(new URL('../src/ui/panels/summon.js', import.meta.url), 'utf8') + readFileSync(new URL('../src/ui/panels/world.js', import.meta.url), 'utf8');
   for (const word of ['recommand', 'Conseillé', 'conseillé', 'meilleur choix', 'rentable', '.sort(']) assert.ok(!src.includes(word), `aucun « ${word} »`);
+});
+
+// ——— Lot 6 : mode monde et score ———
+function account(name, now) {
+  const s = sanitizeState(JSON.parse(JSON.stringify(REF[name])), BALANCE, now);
+  s.companions.owned = { demo_ssr: { stars: 1, level: 1 }, shadow_lord: { stars: 1, level: 1 }, wisp: { stars: 1, level: 1 } };
+  s.companions.equipped = ['shadow_lord', 'demo_ssr', 'wisp'];
+  return s;
+}
+function runUntilEnd(s, w, rng, max = 4000) {
+  let ev = null;
+  for (let i = 0; i < max && s.worldRun; i++) {
+    step(s, w, BALANCE.simulation.tickSeconds, rng);
+    ev = w.events.find((e) => e.type === 'worldEnded') ?? ev;
+    w.events.length = 0;
+  }
+  return ev;
+}
+
+test('lot 6 : mode à part — branche de currentEncounter, campagne et Tour inchangées, neutralisé dans la mesure hors ligne', () => {
+  startDemoBanner(J(9), 9);
+  const s = account('moyen', J(9));
+  const stage = s.stage;
+  const w = createCombat(s);
+  assert.ok(startWorldRun(s, w, 'demo_ssr', 'level', 1, {}, J(9)).ok);
+  const enc = currentEncounter(s);
+  assert.equal(enc.world, true);
+  assert.equal(enc.boss, false);
+  assert.equal(s.stage, stage);
+  const rate = measureFarmRate(s, BALANCE, 10);
+  assert.ok(rate.goldPerSecond > 0);
+  assert.ok(s.worldRun, 'la mesure travaille sur une copie');
+  assert.equal(TOWER_BOSSES.length, 46);
+  assert.ok(TOWER_BOSSES.every((id) => BOSSES[id]));
+  assert.equal(towerBoss(10), 'slime_king');
+});
+
+test('lot 6 : calendrier du monde (J1, J4, J8, J10) et affinité étendue (×6 chez lui)', () => {
+  startDemoBanner(J(1), 1);
+  const s = createNewState(J(1));
+  assert.deepEqual([worldStatus(s, 'demo_ssr', J(1)).tiersOpen, worldStatus(s, 'demo_ssr', J(4)).tiersOpen, worldStatus(s, 'demo_ssr', J(8)).tiersOpen], [0, 3, 5]);
+  assert.deepEqual([worldStatus(s, 'demo_ssr', J(9)).levelsOpen, worldStatus(s, 'demo_ssr', J(10)).levelsOpen], [9, 10]);
+  assert.equal(worldStatus(s, 'demo_ssr', J(2)).trial, true);
+  assert.equal(worldStatus(s, 'demo_ssr', J(20)).trial, false, 'plus d\'essai après la bannière');
+  assert.equal(worldStatus(s, 'demo_ssr', J(20)).tiersOpen, 5);
+  s.companions.owned.demo_ssr = { stars: 1, level: 1 };
+  const c = companionById('demo_ssr');
+  const out = companionSkillMultiplier(s, c, 'hit', false);
+  s.worldRun = { unit: 'demo_ssr', kind: 'level', n: 1, kills: 0, damage: 0, prevEquipped: [], deadline: 1e9 };
+  const home = companionSkillMultiplier(s, c, 'hit', (s.worldRun.unit === c.id));
+  assert.ok(Math.abs(home / out - BALANCE.dungeonAffinity.skillMultiplier) < 1e-9);
+});
+
+test('lot 6 : score identique à entrée identique, sur deux phases différentes (minuteries et effets remis à zéro)', () => {
+  startDemoBanner(J(9), 9);
+  for (const name of ['bas', 'moyen']) {
+    const base = account(name, J(9));
+    const scores = [];
+    for (const warm of [0, 23.35]) {
+      const s = structuredClone(base);
+      const w = createCombat(s);
+      const tmp = structuredClone(base);
+      const rng = new Rng(11);
+      for (let t = 0; t < warm; t += BALANCE.simulation.tickSeconds) step(tmp, w, BALANCE.simulation.tickSeconds, rng); // combat en cours, autre phase
+      w.events.length = 0;
+      s.playSeconds = tmp.playSeconds;
+      assert.ok(startWorldRun(s, w, 'demo_ssr', 'score', 1, {}, J(9)).ok);
+      const ev = runUntilEnd(s, w, rng);
+      assert.ok(ev.score.damage > 0);
+      scores.push(ev.score.damage);
+      assert.equal(s.worlds.demo_ssr.score.damage, ev.score.damage, 'record local');
+      assert.deepEqual([s.worlds.demo_ssr.score.stars, s.worlds.demo_ssr.score.level], [0, 1]);
+    }
+    assert.equal(scores[0], scores[1], name);
+  }
+});
+
+test('lot 6 : un 0★ niveau 1 offensif bat le palier 5 sur les comptes de référence bas, moyen et haut ; essai gratuit exclu du palier 5', () => {
+  startDemoBanner(J(9), 9);
+  for (const name of ['bas', 'moyen', 'haut']) {
+    const s = account(name, J(9));
+    s.worlds = { demo_ssr: { levels: 0, tiers: 4, decor: true, title: false, score: null } };
+    const w = createCombat(s);
+    assert.ok(startWorldRun(s, w, 'demo_ssr', 'tier', 5, {}, J(9)).ok, name);
+    const ev = runUntilEnd(s, w, new Rng(3));
+    assert.equal(ev?.won, true, `${name} : palier 5`);
+    assert.equal(s.worlds.demo_ssr.title, true);
+  }
+  // Essai gratuit : palier 4 oui, palier 5 non ; l'équipe d'avant revient ; l'essai n'est pas un exemplaire.
+  const t = account('moyen', J(9));
+  delete t.companions.owned.demo_ssr;
+  t.companions.equipped = ['shadow_lord', 'wisp'];
+  t.worlds = { demo_ssr: { levels: 0, tiers: 4, decor: false, title: false, score: null } };
+  const w = createCombat(t);
+  assert.equal(startWorldRun(t, w, 'demo_ssr', 'tier', 5, { trial: true }, J(9)).error, 'condition');
+  t.worlds.demo_ssr.tiers = 3;
+  assert.ok(startWorldRun(t, w, 'demo_ssr', 'tier', 4, { trial: true }, J(9)).ok);
+  assert.equal(t.companions.owned.demo_ssr.trial, true);
+  const saved = sanitizeState(JSON.parse(JSON.stringify(t)), BALANCE, J(9));
+  assert.equal(saved.companions.owned.demo_ssr, undefined, 'essai jamais sauvegardé comme exemplaire');
+  assert.deepEqual(saved.companions.equipped, ['shadow_lord', 'wisp']);
+  runUntilEnd(t, w, new Rng(2));
+  assert.equal(t.companions.owned.demo_ssr, undefined);
+  assert.deepEqual(t.companions.equipped, ['shadow_lord', 'wisp']);
+  assert.equal(startWorldRun(t, w, 'demo_ssr', 'score', 1, { trial: true }, J(9)).error, 'score', 'score : perso possédé seulement');
 });
 

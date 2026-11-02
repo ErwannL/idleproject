@@ -35,8 +35,17 @@ export function weeklyReward(floor) {
   return { gems: 5 + floor, fragments: floor % 5 === 0 ? Math.ceil(floor / 2) : 0 };
 }
 
-// Ordre des boss de la tour : déterministe, tous les boss du jeu, les méga boss tous les 10 étages.
-const ALL = Object.keys(BOSSES);
+// Ordre des boss de la tour : déterministe, les méga boss tous les 10 étages.
+// v9.1.3 (doc4 lot 6) : liste figée (les 46 boss de la v9.1.3) : un boss ajouté plus tard (monde d'un perso, nouveau
+// monde) ne décale plus les étages. Un boss retiré des données est sauté (filtre).
+export const TOWER_BOSSES = ['slime_king', 'alpha_wolf', 'bone_lord', 'spectral_queen', 'ash_dragon', 'fallen_knight', 'demon_king',
+  'rotting_dryad', 'magma_colossus', 'frost_wyrm', 'obsidian_tyrant', 'crypt_archlich', 'mini_goblin_warlord', 'mini_treant',
+  'mini_crystal_golem', 'mini_pharaoh', 'mini_frost_witch', 'mini_reaper', 'mid_boar_titan', 'mid_giant_spider', 'mid_crystal_bat',
+  'mid_sand_worm', 'mid_mammoth', 'mid_hellhound', 'hard_scarecrow', 'hard_werewolf', 'hard_necromancer', 'hard_anubis',
+  'hard_frost_giant', 'hard_demon_general', 'mini_toad_king', 'mid_hydra', 'hard_plague_doctor', 'boss_swamp_behemoth',
+  'mini_harpy_queen', 'mid_thunder_griffin', 'hard_storm_valkyrie', 'boss_sky_titan', 'mini_salamander_chief', 'mid_lava_golem',
+  'hard_flame_djinn', 'boss_phoenix', 'mini_void_watcher', 'mid_star_devourer', 'hard_void_knight', 'boss_void_emperor'];
+const ALL = TOWER_BOSSES.filter((id) => BOSSES[id]);
 const MEGA = ALL.filter((id) => !/^(mini|mid|hard)_/.test(id));
 const OTHERS = ALL.filter((id) => /^(mini|mid|hard)_/.test(id));
 

@@ -2,6 +2,7 @@
 import { BALANCE } from '../data/balance.js';
 import { bossesForStage, createCombat, heroPower, isBossStage, step } from './combat.js';
 import { Rng } from './rng.js';
+import { endWorldRun } from './banner.js';
 import { isUpgrade } from './inventory.js';
 import { BOSSES } from '../data/enemies.js';
 import { claimables } from './claimables.js';
@@ -23,6 +24,7 @@ export function* forecastSteps(state, balance = BALANCE, chunk = 200) {
   const stage = nextBossStage(state, balance);
   const t = structuredClone(state);
   t.stage = stage; t.autoAdvance = false; t.dungeon = null; t.tower = null; t.challenge = null; t.inventory = [];
+  endWorldRun(t, 'left'); // v9.1.3 (doc4 lot 6) : mode monde neutralisé (équipe d'avant l'essai, sans essai gratuit)
   const w = createCombat(t, balance);
   const rng = new Rng(stage * 7919);
   const dt = balance.simulation.tickSeconds;
@@ -57,6 +59,7 @@ export function forecastBoss(state, balance = BALANCE) {
 export function nextAction(state, ctx = {}, balance = BALANCE) {
   if (state.dungeon) return { id: 'mode-dungeon', text: 'Donjon en cours', tab: 'dungeons' };
   if (state.tower) return { id: 'mode-tower', text: 'Tour en cours', tab: 'tower' };
+  if (state.worldRun) return { id: 'mode-world', text: 'Monde en cours', tab: 'world' }; // v9.1.3 (doc4 lot 6)
   if (state.challenge) return { id: 'mode-challenge', text: 'Défi en cours', tab: 'tower', view: { defiTab: 'challenge' } };
   const claims = (ctx.claims ?? claimables(state, Date.now(), balance)).filter((c) => !c.blocked);
   // v9.1.3 : « Prochaine action » ne recommande plus d'achat (ni amélioration, ni compétence, ni talent, ni mode de

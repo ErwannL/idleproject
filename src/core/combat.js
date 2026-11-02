@@ -26,6 +26,7 @@ import { BOSS_TRAITS, TRAITS, traitAttack, traitDamageTaken } from './boss-trait
 import { DUNGEON_DIFFICULTIES } from '../data/dungeons.js';
 import { enemyScaleFactor } from './transcend.js';
 import { clearTowerFloor, endTower, towerBoss, towerLevel, towerTimeLeft } from './tower.js';
+import { endWorldRun, worldEncounter, worldKill, worldTimeLeft } from './banner.js';
 import { CHALLENGE, challengeBosses, challengeKill, challengeLevel, challengeRule, challengeTimeUp, clearChallengeWave, endChallenge, isBossWave } from './challenge.js';
 
 const MAX_EVENTS = 300;
@@ -160,6 +161,8 @@ export function referenceKillGold(stage, balance = BALANCE) {
 
 // Rencontre en cours : campagne (étape) ou donjon (salle).
 export function currentEncounter(state, balance = BALANCE) {
+  // v9.1.3 (doc4 lot 6) : mode monde (un mode à part : ZONES ne bouge pas, la campagne ne se décale pas).
+  if (state.worldRun) return worldEncounter(state);
   if (state.tower) {
     // Tour de l'Éternité : un boss par étage, décor qui change tous les 10 étages.
     const floor = state.tower.floor;
@@ -273,6 +276,8 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
     s.damage *= challengeRule(state, 'enemyDamage') ?? 1;
     s.attackInterval /= challengeRule(state, 'enemyAttackSpeed') ?? 1;
   }
+  // v9.1.3 (doc4 lot 6) : paliers du boss du monde (×0,6 à ×1,3 des PV du boss de l'étape record).
+  if (enc.world) s.hp *= enc.hpMult ?? 1;
   if (boss) {
     // Les boss s'adaptent aux Renaissances : plus durs, mais plus généreux.
     const heat = rebirthHeat(state, balance);
@@ -301,6 +306,8 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
     summons: boss && enc.gauntlet ? [...enc.summons] : [],
     trait: boss ? BOSS_TRAITS[type] ?? null : null, // v9.0.6 : mécanique du boss (core/boss-traits.js)
   };
+  // v9.1.3 (doc4 lot 6) : score — boss qui ne meurt pas (60 s, score = dégâts infligés), sans mécanique d'invocation.
+  if (boss && enc.score) Object.assign(enemy, { hp: 1e300, maxHp: 1e300, trait: null, scoreTarget: true });
   if (enemy.trait === 'summoner') enemy.summonTimer = TRAITS.summoner.every / 2;
   // v9.0.4 : ennemis mutés (campagne, donjons, défi ; jamais dans la Tour).
   const mutation = !boss && !elite && !enc.tower ? maybeMutate(state, enemy, rng) : null;
@@ -416,7 +423,7 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
   const dropChance = enemy.boss || enemy.elite || enemy.mutation ? 1 : balance.loot.dropChance + stats.bonus.dropChance / 100 + boost.dropChance;
   if (rng.next() < dropChance) {
     // v9.0.6 : boss réaffronté (boucle, étape déjà franchie) → objet ancestral 5 fois plus rare.
-    const farmed = enemy.boss && (Boolean(state.farmBoss) || (!enc.dungeon && !enc.tower && !enc.challenge && state.stage < state.maxStage));
+    const farmed = enemy.boss && (Boolean(state.farmBoss) || enc.world || (!enc.dungeon && !enc.tower && !enc.challenge && state.stage < state.maxStage));
     const signature = enemy.boss && rng.next() < balance.loot.signatureChance * (farmed ? 0.2 : 1)
       ? makeSignatureItem(state, enemy.type, enc.level, rng, balance) : null;
     const base = enemy.boss || enemy.elite ? balance.loot.bossMinRarity : 'common';
@@ -429,7 +436,7 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
   if (enemy.elite) {
     state.gems += balance.events.eliteGems;
     emit(world, 'eliteDefeated', { gems: balance.events.eliteGems });
-  } else if (!enemy.boss && !enc.dungeon && !enc.tower && !enc.challenge) {
+  } else if (!enemy.boss && !enc.dungeon && !enc.tower && !enc.challenge && !enc.world) {
     const event = rollEvent(state, world, rng, balance, boost.events);
     if (event) emit(world, 'worldEvent', { eventType: event.type });
   }
@@ -452,7 +459,7 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
     state.materials.shards += shards;
     // v9.0.6 : un boss déjà battu, réaffronté (boucle depuis le Codex ou étape inférieure au record), ne donne
     // plus de gemmes — seulement son butin, ses éclats et sa maîtrise (avant : 33 600 gemmes/h).
-    const replay = Boolean(state.farmBoss) || (!enc.dungeon && !enc.tower && !enc.challenge && state.stage < state.maxStage);
+    const replay = Boolean(state.farmBoss) || enc.world || (!enc.dungeon && !enc.tower && !enc.challenge && state.stage < state.maxStage);
     const bonusGems = replay ? 0 : boost.bossGems; // v9.1.3 : bonus de démarrage en gemmes (ancien ticket)
     state.gems += bonusGems;
     emit(world, 'bossLoot', { shards, gems: bonusGems });
@@ -466,12 +473,17 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
     state.gems += gems;
     if (gems) emit(world, 'gems', { gems, x: enemy.x });
     // Méga boss (et boss de donjon) — première victoire : pouvoir ancestral ; ensuite : charge de relance.
-    if (tier === 'mega' && !enc.tower && !enc.challenge) {
+    if (tier === 'mega' && !enc.tower && !enc.challenge && !enc.world) {
       const power = recordBossVictory(state, enemy.type, rng, balance);
       if (power) emit(world, 'powerUnlocked', { bossId: enemy.type, powerId: power.id });
       else emit(world, 'rerollCharge', { bossId: enemy.type });
     }
-    if (enc.challenge) {
+    if (enc.world) {
+      // v9.1.3 (doc4 lot 6) : boss du monde vaincu (niveau ou palier) : récompense de la première fois.
+      const result = endWorldRun(state, 'won');
+      resetWave(world, balance);
+      emit(world, 'worldEnded', result);
+    } else if (enc.challenge) {
       const result = clearChallengeWave(state);
       resetWave(world, balance);
       emit(world, 'challengeWave', result);
@@ -486,6 +498,9 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
     } else {
       clearStage(state, world, balance);
     }
+  } else if (enc.world) {
+    worldKill(state);
+    if (state.worldRun?.kills === enc.killsNeeded) world.enemies = world.enemies.filter((e) => e.boss);
   } else if (enc.challenge && !enemy.elite) {
     const result = challengeKill(state);
     if (result) {
@@ -533,6 +548,7 @@ function hitEnemy(state, world, enemy, damage, rng, balance, stats, enc, source,
   if (!world.enemies.includes(enemy)) return;
   damage = mutationDamageTaken(enemy, damage);
   damage = traitDamageTaken(enemy, damage);
+  if (enemy.scoreTarget && state.worldRun?.kind === 'score') state.worldRun.damage += damage; // v9.1.3 (doc4 lot 6)
   const dealt = world.counters?.damage ? Math.max(0, Math.min(damage, enemy.hp)) : 0;
   if (dealt > 0) world.counters.damage[unitId] = (world.counters.damage[unitId] ?? 0) + dealt;
   enemy.hp -= damage;
@@ -619,6 +635,11 @@ function heroDies(state, world, balance) {
   const boss = state.dungeon || state.tower || state.challenge ? world.enemies.find((e) => e.boss && !e.summoned) : null;
   const bossHpPct = boss ? Math.max(0, Math.round((boss.hp / boss.maxHp) * 1000) / 10) : null;
   resetWave(world, balance);
+  if (state.worldRun) {
+    // v9.1.3 (doc4 lot 6) : défaite dans le monde (un score s'arrête et compte les dégâts déjà infligés).
+    emit(world, 'worldEnded', endWorldRun(state, 'lost'));
+    return;
+  }
   if (state.challenge) {
     const result = endChallenge(state);
     emit(world, 'challengeFailed', { ...result, bossHpPct });
@@ -642,6 +663,8 @@ function heroDies(state, world, balance) {
 }
 
 export function step(state, world, dt, rng, balance = BALANCE) {
+  // v9.1.3 (doc4 lot 6) : le score tire son hasard d'une graine fixe (posée à l'entrée) : même entrée, même score.
+  if (state.worldRun?.kind === 'score' && world.scoreRng) rng = world.scoreRng;
   world.time += dt;
   state.playSeconds = (state.playSeconds ?? 0) + dt;
   // Positions du pas précédent : le rendu interpole entre les deux (sans effet sur la partie).
@@ -682,6 +705,12 @@ export function step(state, world, dt, rng, balance = BALANCE) {
     resetWave(world, balance);
     const result = endTower(state, { defeated: false, collapsed: true });
     emit(world, 'towerCollapsed', result);
+    return;
+  }
+  // v9.1.3 (doc4 lot 6) : temps du monde écoulé (score : fin normale ; niveau ou palier : échec).
+  if (enc.world && worldTimeLeft(state) <= 0) {
+    resetWave(world, balance);
+    emit(world, 'worldEnded', endWorldRun(state, state.worldRun.kind === 'score' ? 'time' : 'lost'));
     return;
   }
   // Défi de la semaine : temps limité par vague.

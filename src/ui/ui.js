@@ -36,6 +36,8 @@ import expeditions from './panels/expeditions.js';
 import contracts from './panels/contracts.js';
 import dungeons from './panels/dungeons.js';
 import tower from './panels/tower.js';
+import worldPanel from './panels/world.js';
+import { BANNER_RULES } from '../data/banners.js';
 import { TOWER, towerTimeLeft } from '../core/tower.js';
 import { cheatTimes, simSpeed, unlockedSpeeds } from '../core/cheats.js';
 import { PRESTIGE } from '../data/prestige.js';
@@ -66,7 +68,7 @@ import { MENUS, SUB_LABELS, navPath } from './nav.js';
 
 export { MENUS };
 
-const PANELS = Object.fromEntries([upgrades, inventory, hero, companions, expeditions, skills, tree, campaign, dungeons, tower, boss, encyclopedia, summon, contracts, inbox, options]
+const PANELS = Object.fromEntries([upgrades, inventory, hero, companions, expeditions, skills, tree, campaign, dungeons, tower, boss, encyclopedia, summon, contracts, inbox, options, worldPanel]
   .map((p) => [p.id, p]));
 const SUB_ICONS = {
   upgrades: 'icon_upgrade', skills: 'skill_quick', tree: 'icon_tree', hero: 'icon_hero', inventory: 'icon_bag',
@@ -91,7 +93,7 @@ const TALL_MIN_HEIGHT = 420;
 const STRIP_MAX_HEIGHT = 190; // en dessous : mode barre (seulement la scène, comme une barre des tâches)
 const BULK_CONFIRM_MS = 4000;
 // Panneaux dont le contenu évolue pendant le farm : réaffichés au plus une fois par seconde.
-const LIVE_PANELS = new Set(['contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'upgrades', 'companions', 'expeditions', 'encyclopedia', 'inbox']);
+const LIVE_PANELS = new Set(['world', 'contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'upgrades', 'companions', 'expeditions', 'encyclopedia', 'inbox']);
 
 // Renaissance : choix du seul pouvoir ancestral conservé.
 function powerChoice(state) {
@@ -748,6 +750,11 @@ export class UI {
       case 'autofuse': a.setAutoFuse(el.dataset.group, value); break;
       case 'check-update': a.checkUpdate(); break;
       case 'enter-tower': a.enterTower(); break;
+      // v9.1.3 (doc4 lots 4 à 6) : Archives, mode monde, essai gratuit, score.
+      case 'archive-target': a.setArchiveTarget(value); break;
+      case 'open-world': this.openTab('world', { worldSel: value }); break;
+      case 'enter-world': a.enterWorld(el.dataset.unit, el.dataset.kind, el.dataset.n, el.dataset.trial === '1'); break;
+      case 'leave-world': a.leaveWorld(); break;
       case 'leave-tower': a.leaveTower(); break;
       case 'leave-mode':
         if (this.state.tower) a.leaveTower();
@@ -1089,6 +1096,15 @@ export class UI {
         this.news(`${event.timeout ? 'Temps écoulé ! ' : ''}Défi de la semaine : ${event.waves} vague${event.waves > 1 ? 's' : ''} franchie${event.waves > 1 ? 's' : ''}. Record de la semaine : ${state.challengeWeek?.best ?? 0} · absolu : ${state.challengeBest ?? 0}.`, '#ffb36b');
         this.invalidate();
         break;
+      case 'worldEnded': { // v9.1.3 (doc4 lot 6)
+        if (!event.unit) break;
+        const what = event.kind === 'score' ? 'Score' : event.kind === 'tier' ? `Palier ${event.n}` : `Niveau ${event.n}`;
+        this.banner(event.won ? `${what} réussi !` : `${what} terminé`, event.won || event.kind === 'score' ? 'win' : 'lose');
+        if (event.score) this.news(`Score : ${formatNumber(event.score.damage)} dégâts en ${BANNER_RULES.scoreSeconds} s${event.record ? ' · nouveau record personnel' : ''}`, '#9fd8ff');
+        else if (event.reward && Object.keys(event.reward).length) this.news(`${what} : ${rewardText(event.reward, formatNumber)}`, '#9fd8ff');
+        this.invalidate();
+        break;
+      }
       case 'towerCollapsed':
         this.banner('La tour s\'effondre !', 'lose');
         this.news(`Tour de l'Éternité : temps écoulé, la tour s'effondre à l'étage ${event.floors + 1}. Record : ${state.towerBest}.`, '#c9a6ff');
@@ -1258,6 +1274,8 @@ export class UI {
   liveKey(state) {
     switch (this.tab) {
       case 'contracts': return state.contracts.map((c) => `${c.id}:${c.progress}`).join() + JSON.stringify(state.missions);
+      // v9.1.3 (doc4 lot 6) : temps restant et ennemis vaincus pendant un essai dans un monde.
+      case 'world': return `${state.worldRun ? `${state.worldRun.kills}|${Math.ceil(state.worldRun.deadline - (state.playSeconds ?? 0))}` : ''}|${JSON.stringify(state.worlds)}|${state.companions.equipped.join()}`;
       case 'dungeons': return `${JSON.stringify(state.dungeon)}|${JSON.stringify(state.challenge)}|${state.challengeWeek?.best}`;
       // Expéditions : la barre de progression avance (au plus une fois toutes les 30 s) et « Récupérer » apparaît.
       case 'expeditions': return `${Math.floor(Date.now() / 30000)}|${readyExpeditions(state)}|${state.expeditions.slots.map((x) => x?.companionId ?? '').join()}`;

@@ -10,7 +10,7 @@ export const MENUS = [
 export const SUB_LABELS = {
   upgrades: 'Améliorations', skills: 'Compétences', tree: 'Talents', hero: 'Fiche', inventory: 'Équipement',
   companions: 'Composition', expeditions: 'Expéditions', summon: 'Invocation', campaign: 'Carte', dungeons: 'Donjons', tower: 'Défis',
-  boss: 'Boss', encyclopedia: 'Collections', contracts: 'Missions', inbox: 'À récupérer', options: 'Paramètres',
+  boss: 'Boss', world: 'Monde', encyclopedia: 'Collections', contracts: 'Missions', inbox: 'À récupérer', options: 'Paramètres',
 };
 // Chemin écrit d'un écran (« Héros › Équipement »), construit depuis MENUS : jamais écrit en dur.
 // La fiche du héros et les Paramètres sont hors menu : on dit comment les ouvrir (portrait, engrenage).
