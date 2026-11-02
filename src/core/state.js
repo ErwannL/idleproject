@@ -213,7 +213,7 @@ function cleanCollections(state, raw) {
   state.summon = { total: int(summon.total, 0), sinceEpic: int(summon.sinceEpic, 0), sinceLegendary: int(summon.sinceLegendary, 0) };
   if (Array.isArray(summon.history)) {
     state.summon.history = summon.history.filter((h) => h && typeof h.id === 'string' && typeof h.rarity === 'string')
-      .slice(0, 60).map((h) => ({ id: h.id, rarity: h.rarity, at: int(h.at, 0) }));
+      .slice(0, 60).map((h) => ({ id: h.id, ...(['hero', 'companion'].includes(h.kind) ? { kind: h.kind } : {}), rarity: h.rarity, at: int(h.at, 0) })); // v9.1.3 : kind
   }
 }
 

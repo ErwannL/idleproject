@@ -19,7 +19,7 @@ import { endTower, startTower } from './core/tower.js';
 import { claimExpedition, expeditionType, relaunchExpeditions, startExpedition } from './core/expeditions.js';
 import { endChallenge, startChallenge } from './core/challenge.js';
 import { autoFuse, craftItem, fuseAll, fuseItems, fusionFailText, fusionKeep, reforgeItem, sharpenItem, targetReroll, upgradeItem } from './core/forge.js';
-import { summon } from './core/gacha.js';
+import { normalizePool, summon } from './core/gacha.js';
 import { setActiveHero } from './core/heroes.js';
 import { addToInventory, bulkRecycleCandidates, equipBest, equipItem, isUpgrade, recycleItem, recycleMatching, recycleRules, sweepInventory, toggleLock } from './core/inventory.js';
 import { bossDungeon, bossFirstStage, claimMastery, powerById, powerSlots, rerollPower, resolveReroll, setPowerActive } from './core/powers.js';
@@ -202,7 +202,7 @@ const actions = {
   upgradeCompanion(id) { done(upgradeCompanion(state, id)); },
   summon(count, currency, pool = 'ally') {
     // v9.1.3 : l'onglet Apparences passait 'hero' et recevait des compagnons (seuls 'pet' et 'ally' étaient reconnus).
-    const results = summon(state, rng, count, currency, BALANCE, ['hero', 'pet'].includes(pool) ? pool : 'ally');
+    const results = summon(state, rng, count, currency, BALANCE, normalizePool(pool));
     if (!results) return null;
     state.records.summons += results.length;
     const best = ['legendary', 'epic', 'rare', 'common'].find((r) => results.some((u) => u.rarity === r));

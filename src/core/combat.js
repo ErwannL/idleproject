@@ -584,7 +584,7 @@ function castCompanion(state, world, companion, skill, stats, rng, balance, enc,
   } else if (skill.type === 'heal') {
     world.hero.hp = Math.min(stats.maxHp, world.hero.hp + (stats.maxHp * skill.value * Math.min(aff, 3)) / 100);
   } else if (skill.type === 'shield') {
-    world.buffs.shield = skill.duration ?? 6;
+    world.buffs.shield = Math.max(world.buffs.shield, skill.duration ?? 6); // v9.1.3 : un bouclier court n'écourte plus un long
     world.buffs.shieldPct = Math.max(world.buffs.shield > 0 ? world.buffs.shieldPct : 0, Math.min(90, skill.value));
   } else if (skill.type === 'rally') {
     world.buffs.cry = Math.max(world.buffs.cry, skill.duration ?? 6);

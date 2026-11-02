@@ -1,7 +1,7 @@
 // Invocation : gemmes gagnées en jouant (v9.1.3 : tickets fondus dans les gemmes), probabilités et garanties affichées.
 import { navPath } from '../nav.js';
 import { BALANCE } from '../../data/balance.js';
-import { FEATURED_SHARE, featuredUnit, summonOdds } from '../../core/gacha.js';
+import { FEATURED_SHARE, featuredUnit, normalizePool, summonOdds } from '../../core/gacha.js';
 import { heroById } from '../../core/heroes.js';
 import { companionById } from '../../core/companions.js';
 import { animCanvas } from '../animator.js';
@@ -44,7 +44,8 @@ function historyBlock(state) {
   const h = state.summon.history ?? [];
   if (!h.length) return '';
   const rows = h.slice(0, 30).map((e) => {
-    const c = companionById(e.id) ?? heroById(e.id);
+    // v9.1.3 : `kind` (absent des anciennes entrées : compagnon d'abord, comme avant).
+    const c = e.kind === 'hero' ? heroById(e.id) : companionById(e.id) ?? heroById(e.id);
     // v9.1.3 (A21) : petit portrait fixe dans la puce (compagnons et familiers ; les apparences n'ont pas d'icône).
     const face = c?.sprite && c.kind ? `<img class="px" src="${icon(c.sprite, c.kind === 'ally' ? 1 : 2)}" alt="">` : '';
     return c ? `<span class="hist r-${e.rarity}" title="${escapeHtml(c.name)}">${face}${escapeHtml(c.name)}</span>` : '';
@@ -103,7 +104,7 @@ export default {
         ${open ? `<div class="summon-odds"><p class="muted">${what} Compteur des garanties commun aux trois invocations. Doublon : +1 étoile (max ${s.maxStars}), puis +${s.duplicateRefundGems} gemmes.</p>
           ${f ? `<p class="muted">★ En vedette : ${escapeHtml(f.name)}, ${Math.round(FEATURED_SHARE * 100)} % des Légendaires obtenus · change chaque lundi.</p>` : ''}
           ${pool === 'hero' ? fold(ui, 'summon-banner', 'Apparence en vedette : détails', () => heroBanner(state)) : ''}${odds(pool)}</div>` : ''}
-        ${results && ui.view.summonPool === pool ? `<div class="summon-results">${results}</div>` : ''}
+        ${results && normalizePool(ui.view.summonPool) === pool ? `<div class="summon-results">${results}</div>` : ''}
       </div>`;
     }).join('');
     const pity = `<div class="summon-pity" role="status">Épique dans <b>${s.pity.epicAfter - state.summon.sinceEpic}</b> · Légendaire dans <b>${s.pity.legendaryAfter - state.summon.sinceLegendary}</b></div>`;

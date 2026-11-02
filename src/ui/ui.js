@@ -7,6 +7,7 @@ import { bossTrait } from '../core/boss-traits.js';
 import { DUNGEONS } from '../data/dungeons.js';
 import { bossTierForStage, currentEncounter, difficultyForStage, isBossStage, stageLabel, zoneForStage, zoneIndexForStage } from '../core/combat.js';
 import { eventLabel } from '../core/events.js';
+import { SUMMON_POOLS, normalizePool } from '../core/gacha.js';
 import { formatDuration, formatNumber } from '../core/format.js';
 import { xpForLevel } from '../core/level.js';
 import { rarityById } from '../core/loot.js';
@@ -372,7 +373,7 @@ export class UI {
     pick('missionTab', (x) => ['today', 'week', 'achievements'].includes(x));
     pick('invTab', (x) => ['bag', 'stash'].includes(x));
     pick('encSec', (x) => ['monsters', 'bosses', 'mutations', 'items', 'companions', 'museum'].includes(x));
-    pick('summonPool', (x) => ['hero', 'ally', 'pet'].includes(x));
+    pick('summonPool', (x) => SUMMON_POOLS.includes(x));
     pick('treeSeg', (x) => ['tree', 'region', 'rebirth'].includes(x));
     pick('heroTab', (x) => ['hero', 'class', 'look', 'records'].includes(x));
     pick('optTab', (x) => ['general', 'interface', 'sound', 'window'].includes(x));
@@ -709,7 +710,7 @@ export class UI {
       case 'open-tab': if (el.closest('#modal')) this.closeModal(); this.openTab(value); break;
       case 'summon': {
         const res = a.summon(Number(value), currency, el.dataset.pool);
-        if (res) { v.lastSummon = res; v.summonPool = el.dataset.pool; playSummonReveal(res); }
+        if (res) { v.lastSummon = res; v.summonPool = normalizePool(el.dataset.pool); playSummonReveal(res); }
         this.invalidate();
         break;
       }

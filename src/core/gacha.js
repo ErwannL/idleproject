@@ -28,6 +28,13 @@ export function featuredUnit(pool = 'ally', now = Date.now()) {
   return legends[((n % legends.length) + legends.length) % legends.length];
 }
 
+// v9.1.3 : une seule normalisation du bassin d'invocation (main.js, ui.js, panneau Invocation). Tout bassin inconnu
+// devient 'ally' ; 'hero' (Apparences) et 'pet' (Familiers) sont respectés.
+export const SUMMON_POOLS = ['hero', 'ally', 'pet'];
+export function normalizePool(pool) {
+  return SUMMON_POOLS.includes(pool) ? pool : 'ally';
+}
+
 // v7.6 : le chevalier est le seul héros (plus de variantes à invoquer) ; on invoque des personnages
 // (héros alliés R/SR/SSR) et des compagnons (familiers).
 // Bassins d'invocation : 'ally' (compagnons humains R/SR/SSR) ou 'pet' (familiers animaux).
@@ -114,7 +121,8 @@ export function summon(state, rng, count = 1, currency = 'gems', balance = BALAN
     result.stars = store[unit.id].stars;
     results.push(result);
     // Historique des 60 dernières invocations.
-    p.history = [{ id: unit.id, rarity, at: Date.now() }, ...(p.history ?? [])].slice(0, 60);
+    // v9.1.3 : `kind` distingue un skin d'un compagnon de même identifiant (fairy, witch, ninja).
+    p.history = [{ id: unit.id, kind: unit.kind, rarity, at: Date.now() }, ...(p.history ?? [])].slice(0, 60);
   }
   return results;
 }
