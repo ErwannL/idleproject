@@ -170,7 +170,11 @@ export default {
     const sel = BOSSES[ui.view.bossSel] && order.includes(ui.view.bossSel) ? ui.view.bossSel : (order.find((id) => state.powers[id]) ?? order[0]);
     const synergies = synergyFamilies(state).map((f) => POWER_FAMILIES[f].label);
     // v9.1.0 : les collections du Codex sont dans Objectifs › Collections ; ici, victoires, maîtrise et pouvoirs.
-    return `<div class="muted">Boss découverts : ${known}/${order.length} · ${powerSlots(state)} pouvoirs actifs à la fois.</div>
+    // v9.1.3 (doc2, idée TT) : une barre et une phrase en tête — couronnes de maîtrise obtenues sur toutes celles possibles.
+    const crownsMax = order.length * BALANCE.mastery.length;
+    const crownsGot = order.reduce((n, id) => n + (state.powers[id]?.masteryClaimed ?? 0), 0);
+    return `<div class="mastery-head">${progressBar(crownsGot / crownsMax, `♛ ${crownsGot} / ${crownsMax}`)}
+        <div class="muted">Maîtrise : ${crownsGot} couronne${crownsGot > 1 ? 's' : ''} sur ${crownsMax} · ${known}/${order.length} boss découverts · ${powerSlots(state)} pouvoirs actifs à la fois.</div></div>
       <div class="codex">
         <div class="codex-list">${order.map((id) => bossListItem(ui, state, id, sel)).join('')}</div>
         <div class="card codex-detail sheet${ui.view.sheetOpen === 'boss' ? ' sheet-open' : ''}">

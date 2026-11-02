@@ -79,3 +79,22 @@ export function sanitizeAchievements(raw) {
   for (const [id, v] of Object.entries(raw?.claimed ?? {})) if (v === true && ACHIEVEMENTS.some((a) => a.id === id)) claimed[id] = true;
   return { claimed };
 }
+
+// v9.1.3 (A8) : hauts faits regroupés par métrique (une ligne par métrique). `claimed` reste par id ;
+// le palier affiché est le plus bas prêt à récupérer, sinon le prochain à atteindre, sinon le dernier.
+export function achievementGroups(state) {
+  const groups = [];
+  for (const metric of Object.keys(METRICS)) {
+    const tiers = ACHIEVEMENTS.filter((a) => a.metric === metric);
+    if (!tiers.length) continue;
+    const progress = tiers.map((a) => achievementProgress(state, a));
+    let idx = progress.findIndex((p) => p.done && !p.claimed);
+    const ready = idx >= 0;
+    if (!ready) idx = progress.findIndex((p) => !p.claimed);
+    const allDone = idx < 0;
+    if (allDone) idx = tiers.length - 1;
+    groups.push({ metric, label: METRICS[metric].label, tiers, tier: tiers[idx], index: idx, progress: progress[idx], ready,
+      allDone, claimedCount: progress.filter((p) => p.claimed).length, readyCount: progress.filter((p) => p.done && !p.claimed).length });
+  }
+  return groups;
+}

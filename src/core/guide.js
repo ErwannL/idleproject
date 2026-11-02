@@ -57,7 +57,7 @@ export function forecastBoss(state, balance = BALANCE) {
 export function nextAction(state, ctx = {}, balance = BALANCE) {
   if (state.dungeon) return { id: 'mode-dungeon', text: 'Donjon en cours', tab: 'dungeons' };
   if (state.tower) return { id: 'mode-tower', text: 'Tour en cours', tab: 'tower' };
-  if (state.challenge) return { id: 'mode-challenge', text: 'Défi en cours', tab: 'dungeons' };
+  if (state.challenge) return { id: 'mode-challenge', text: 'Défi en cours', tab: 'tower', view: { defiTab: 'challenge' } };
   const claims = (ctx.claims ?? claimables(state, Date.now(), balance)).filter((c) => !c.blocked);
   // v9.1.3 : « Prochaine action » ne recommande plus d'achat (ni amélioration, ni compétence, ni talent, ni mode de
   // jeu) : seulement ce qui est factuel — récupérer ce qui est prêt, équiper un objet meilleur que l'équipé, retenter
@@ -136,7 +136,7 @@ export const PANEL_HELP = {
   },
   dungeons: {
     short: 'Une clé par tentative. Réussir une difficulté débloque la suivante, donjon par donjon.',
-    more: 'Chaque fiche dit la mécanique du boss final et ce qui la contre. Le butin ciblé et le chemin sont mémorisés. Le défi de la semaine (carte repliée en haut, à partir de son étape) se joue sans clé, 3 tentatives par semaine.',
+    more: 'Chaque fiche dit la mécanique du boss final et ce qui la contre. Le butin ciblé et le chemin sont mémorisés.',
   },
   companions: {
     short: 'Deux compagnons et un familier combattent avec vous. Leurs rôles forment des synergies.',
@@ -147,8 +147,8 @@ export const PANEL_HELP = {
     more: 'La récompense prévue est écrite sous chaque durée. « Repartir » relance la dernière expédition de chaque place (même compagnon, même durée). Rappeler abandonne sans récompense.',
   },
   tower: {
-    short: 'Une ascension par semaine : un boss par étage, toujours plus fort. Chaque record rapporte des récompenses.',
-    more: 'La tour s\'effondre après 10 h de combat (chaque nouvel étage rajoute un peu de temps). La liste des étages donne les récompenses de semaine et de record.',
+    short: 'Tour : une ascension par semaine, un boss par étage, toujours plus fort. Défi de la semaine : des vagues sous des règles qui changent chaque lundi, sans clé, 3 tentatives.',
+    more: 'La tour s\'effondre après 10 h de combat (chaque nouvel étage rajoute un peu de temps) et un méga boss garde chaque 10e étage. Chaque nouveau meilleur score de la semaine et chaque record rapportent des récompenses (liste des étages).',
   },
   boss: {
     short: 'Chaque boss vaincu donne un pouvoir. Réaffrontez-le pour sa maîtrise et des charges de changement de pouvoir.',

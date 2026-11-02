@@ -8,6 +8,7 @@ import { setById } from '../core/sets.js';
 import { simSpeed } from '../core/cheats.js';
 import { formatDecimal, formatNumber } from '../core/format.js';
 import { isUpgrade } from '../core/inventory.js';
+import { rewardText } from '../core/rewards.js';
 import { itemBase, rarityById } from '../core/loot.js';
 import { itemIconUrl, spriteUrl } from '../render/pixel.js';
 
@@ -171,4 +172,14 @@ export function fold(ui, id, title, body, { open = false, extra = '', cls = '' }
 export function segment(items, action, active, attrs = '') {
   return `<div class="seg" role="tablist" ${attrs}>${items.map(([id, label, ic]) => `<button class="seg-btn${id === active ? ' active' : ''}" role="tab"
     aria-selected="${id === active}" data-action="${action}" data-value="${id}">${ic ? img(ic) : ''}<span>${label}</span></button>`).join('')}</div>`;
+}
+
+// v9.1.3 (A7) : récompense en icônes (icône + nombre). Le texte complet (rewardText) reste dans title et aria-label.
+const REWARD_ICONS = { gold: 'coin', gems: 'icon_gem', tickets: 'icon_ticket', keys: 'icon_key', fragments: 'icon_fragment', shards: 'icon_shard', essence: 'icon_essence' };
+export function rewardIcons(reward, cls = '') {
+  const parts = Object.entries(reward ?? {}).filter(([k, v]) => v > 0 && REWARD_ICONS[k])
+    .map(([k, v]) => `<span class="rw"><img class="px" src="${icon(REWARD_ICONS[k])}" alt="">${formatNumber(Math.floor(v))}</span>`);
+  if (!parts.length) return '';
+  const text = rewardText(reward, formatNumber);
+  return `<span class="rw-icons ${cls}" title="${escapeHtml(text)}" role="img" aria-label="${escapeHtml(text)}">${parts.join('')}</span>`;
 }

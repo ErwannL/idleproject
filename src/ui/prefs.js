@@ -10,6 +10,9 @@ const DEFAULTS = {
   contrast: false, // contraste élevé (sans décor)
   qtyMenu: false, // v9.1.3 (A22, essai) : un seul bouton de quantité qui se déplie
   skillGrid: true, // v9.1.3 (essai) : Compétences et Boosts en grille de 9 icônes (défaut choisi sur mesure)
+  bossFocus: true, // v9.1.3 (essai) : mode boss réduit (boutons autour de la scène estompés pendant un boss)
+  panelFold: false, // v9.1.3 (essai) : panneau à deux hauteurs (▼), défaut = bande actuelle
+  panelLow: {}, // v9.1.3 : écrans dont le panneau est rétracté { tab: true }
   keys: {}, // raccourcis modifiés : { action: code }
   nav: {}, // mémoire de navigation : { lastSub, view, scroll }
 };

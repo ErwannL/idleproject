@@ -1265,7 +1265,7 @@ body .item-frame img.lock { position: absolute; top: 1px; left: 1px; width: 8px;
 .m-tabs .claim-all { width: auto; margin: 0 0 0 auto; }
 .m-body { display: flex; flex-direction: column; gap: 6px; }
 .m-reset { text-align: right; color: #7fb0ff; }
-.m-row { display: grid; grid-template-columns: 40px 1fr minmax(90px, auto) 96px; align-items: center; gap: 8px; padding: 6px; border-radius: 6px;
+.m-row { display: grid; grid-template-columns: 40px 1fr 96px; align-items: center; gap: 8px; padding: 6px; border-radius: 6px;
   background: linear-gradient(180deg, #1a2140, #131a32); border: 1px solid #2c3a62; }
 .m-row.claimed { opacity: 0.55; }
 .m-icon { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 6px; background: #0e1326; border: 1px solid #3a4a7a; }
@@ -1277,7 +1277,7 @@ body .item-frame img.lock { position: absolute; top: 1px; left: 1px; width: 8px;
 .m-done { color: #5ad46a; font-weight: 900; font-size: 16px; }
 .m-chest { border-color: #c9a040; background: linear-gradient(180deg, #2a2418, #1a1610); }
 .contract-title.rare, .rare-text { color: #d8a6ff; }
-@container (max-width: 520px) { .m-row { grid-template-columns: 34px 1fr 80px; } .m-reward { display: none; } }
+@container (max-width: 520px) { .m-row { grid-template-columns: 34px 1fr 80px; } }
 .offline-rare { padding: 6px; border: 1px solid #c9a040; border-radius: 6px; background: rgba(242,192,96,0.08); margin: 4px 0; }
 /* v7.8 : la barre des boosts ne recouvre plus la barre de niveau : en haut à droite, sous « Avance auto ». */
 #rush-bar { top: 40px; bottom: auto; right: 6px; }
@@ -2044,6 +2044,16 @@ html.fx-calm .hero-banner::after { animation: none; }
 .summon-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
 .region-goal { display: inline-flex; gap: 4px; align-items: baseline; margin-right: 10px; font-size: 12px; }
 .world-picker { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 6px; }
+/* v9.1.3 (A20) : carte peinte cliquable par monde, à la place du menu déroulant */
+.mini-map { position: relative; margin-bottom: 6px; border: 2px solid var(--edge, #5c4a2c); border-radius: 6px; overflow: hidden; max-width: 420px; }
+.mini-map > img { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+.map-dot { position: absolute; transform: translate(-50%, -50%); width: 26px; height: 26px; padding: 0; border-radius: 50%; border: 2px solid #1a1206;
+  background: #3a2c16; color: #fff2d0; font-size: 11px; font-weight: 800; cursor: pointer; box-shadow: inset 0 0 0 1px #a8824a; }
+.map-dot.cleared { background: #2f4a2a; }
+.map-dot.locked { background: #222; color: #777; box-shadow: none; cursor: default; }
+.map-dot.current { box-shadow: inset 0 0 0 1px #a8824a, 0 0 0 2px #f2d083; }
+.map-dot.selected { background: var(--gold, #e8b84a); color: #1a1206; }
+.world-name { flex: 1 1 0; min-width: 0; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .world-picker select { flex: 1 1 160px; }
 .retry-box { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px; background: #2a1a10; border: 1px solid #6a4a20; }
 .retry-box > div { flex: 1 1 220px; font-size: 12px; }
@@ -2151,11 +2161,14 @@ small, .tt-sub, .upg-level, .item-sub, .stat-list li, .compare, .cost-missing, .
 
 /* --- v9.1.3 : allègement (bilan Slayer Legend, lot B) ------------------------------------------------- */
 /* Récompense de mission dans le bouton ; la colonne séparée devient inutile. */
-.m-claim { display: flex; flex-direction: column; align-items: center; gap: 1px; line-height: 1.15; white-space: normal; }
-.m-claim-reward { font-size: 10px; font-weight: 700; }
-.m-row { grid-template-columns: 34px 1fr 110px; }
-.m-row .m-reward { display: none; }
-.m-btn .btn.m-claim { min-height: 40px; }
+.m-row { grid-template-columns: 34px 1fr 88px; }
+/* v9.1.3 (A7) : récompenses en icônes (icône + nombre) */
+.rw-icons { display: inline-flex; flex-wrap: wrap; gap: 2px 8px; align-items: center; font-weight: 700; color: var(--gold-text, #f2d083); font-size: 12px; }
+.rw-icons .rw { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
+.rw-icons img { width: 16px; height: 16px; }
+.rw-icons.rw-col { flex-direction: column; gap: 1px; font-size: 10px; }
+.rw-icons.rw-col img { width: 14px; height: 14px; }
+.m-label { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; }
 /* Fiches Boss et Collections sur une colonne quand le panneau est étroit (téléphone en hauteur). */
 @container (max-width: 560px) { .codex, .codex.enc-body { grid-template-columns: 1fr; } .codex-list { max-height: 36vh; } }
 /* Sac en pleine largeur sur téléphone : 5 colonnes. */
@@ -2292,3 +2305,35 @@ button[data-action="learn-skill"], button[data-action="buy-talent"] { -webkit-us
 .rb-detail { margin-bottom: 6px; }
 .rebirth-card > .row-between img { width: 20px; height: 20px; vertical-align: -4px; }
 .upg-main .upg-profit { white-space: nowrap; }
+/* v9.1.3 : expéditions en une ligne par place, durée commune */
+.exp-dur { display: flex; gap: 6px; align-items: center; margin-top: 6px; }
+.exp-dur .seg { flex: 1 1 auto; }
+.exp-form { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; min-width: 0; }
+.exp-form select { flex: 1 1 120px; min-width: 0; max-width: 100%; }
+.exp-form .exp-dur-sel { flex: 0 0 auto; }
+.exp-slot .rw-icons { font-size: 11px; }
+/* v9.1.3 : invocation en 3 lignes */
+.summon-pity { position: sticky; top: 0; z-index: 3; padding: 4px 8px; margin-bottom: 4px; border-radius: 6px; background: var(--panel-2, #16203a); font-size: 12px; text-align: center; }
+.summon-row { display: flex; flex-direction: column; gap: 6px; padding: 8px; }
+.summon-row-head { display: flex; align-items: center; gap: 6px; }
+.summon-row-head > img { width: 20px; height: 20px; }
+.summon-feat { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--gold-text, #f2d083); font-size: 11.5px; }
+.summon-row .summon-buttons { flex-wrap: nowrap; }
+.summon-row .summon-buttons .btn { flex: 1 1 0; min-width: 0; padding-left: 4px; padding-right: 4px; white-space: nowrap; }
+.summon-odds { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 4px; }
+.hist img { height: 14px; width: auto; vertical-align: -3px; margin-right: 2px; }
+/* v9.1.3 (essai) : mode boss réduit — opacité seulement, aucune place gagnée ni perdue */
+#zone-card, #next-action, #skill-bar, #topbar .chip, #topbar .icon-btn, #topbar #hero-chip { transition: opacity 0.4s; }
+#app[data-boss-focus] #zone-card, #app[data-boss-focus] #next-action, #app[data-boss-focus] #skill-bar,
+#app[data-boss-focus] #topbar .chip, #app[data-boss-focus] #topbar .icon-btn { opacity: 0.5; }
+#app[data-boss-focus="mega"] #zone-card, #app[data-boss-focus="mega"] #next-action, #app[data-boss-focus="mega"] #skill-bar,
+#app[data-boss-focus="mega"] #topbar .chip, #app[data-boss-focus="mega"] #topbar .icon-btn { opacity: 0.15; }
+#app[data-boss-focus] #zone-card:hover, #app[data-boss-focus] #next-action:hover, #app[data-boss-focus] #next-action:focus-visible { opacity: 1; }
+/* v9.1.3 (essai) : panneau rétracté (▼) : la scène prend la place, le panneau garde au moins sa barre et une ligne */
+.layout-tall:not(.wide).panel-open.panel-low #play { height: clamp(260px, 58vh, 560px); }
+.offline-gains { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; }
+.offline-more summary { cursor: pointer; color: var(--muted, #9aa); margin: 4px 0; }
+/* v9.1.3 (S5) : prochain déblocage d'onglet */
+.next-unlock { align-self: center; font-size: 11px; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1 1 auto; }
+.mastery-head { margin-bottom: 6px; }
+.offline-gains img { width: 20px; height: 20px; vertical-align: -4px; }

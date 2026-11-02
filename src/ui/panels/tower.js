@@ -1,11 +1,12 @@
 // Tour de l'Éternité (v8.2) : défi sans fin, un boss par étage ; récompenses à chaque nouveau record.
 import { BOSSES, ENEMIES } from '../../data/enemies.js';
 import { formatDuration } from '../../core/format.js';
-import { rewardText } from '../../core/rewards.js';
 import { TOWER, climbsLeft, towerBoss, towerLevel, towerReward, towerTimeLeft, towerUnlocked, towerWeek, weeklyReward } from '../../core/tower.js';
 import { stageLabel } from '../../core/combat.js';
 import { animCanvas } from '../animator.js';
-import { escapeHtml, fold, formatNumber, img } from '../common.js';
+import { escapeHtml, fold, formatNumber, img, rewardIcons, segment } from '../common.js';
+import { challengeTriesLeft, challengeUnlocked } from '../../core/challenge.js';
+import { challengeCard } from './dungeons.js';
 import { bossTrait } from '../../core/boss-traits.js';
 
 const bossName = (floor) => BOSSES[towerBoss(floor)]?.name ?? '?';
@@ -20,8 +21,8 @@ function floorsList(state, from) {
     const current = state.tower?.floor === f;
     const mega = f % TOWER.milestone === 0;
     // v8.4 : deux récompenses distinctes — record à vie (une seule fois) et meilleur étage de la semaine.
-    const record = f <= best ? '<span class="muted">Record : récompense déjà récupérée</span>' : `<span>Record : ${rewardText(towerReward(f), formatNumber)}</span>`;
-    const weekly = f <= weekBest ? '<span class="good">✔ Semaine : récupérée</span>' : `<span>Semaine : ${rewardText(weeklyReward(f), formatNumber)}</span>`;
+    const record = f <= best ? '<span class="muted">Record ✔</span>' : `<span>Record ${rewardIcons(towerReward(f))}</span>`;
+    const weekly = f <= weekBest ? '<span class="good">Semaine ✔</span>' : `<span>Semaine ${rewardIcons(weeklyReward(f))}</span>`;
     rows.push(`<div class="tower-floor${current ? ' current' : ''}${f <= weekBest ? ' done' : ''}${mega ? ' mega' : ''}">
       <span class="tf-num">${f}</span>
       <span class="tf-boss">${mega ? '👑 ' : ''}${escapeHtml(bossName(f))} <span class="muted">niv. ${formatNumber(towerLevel(state, f))}</span></span>
@@ -37,12 +38,25 @@ function nextReset() {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() + days);
 }
 
+// v9.1.3 : onglet « Défis » = Tour de l'Éternité + Défi de la semaine (venu de Donjons). Visible dès que l'un des
+// deux est ouvert ; le verrou de la Tour ne bloque plus le Défi.
 export default {
   id: 'tower',
-  title: 'Tour',
+  title: 'Défis',
   icon: 'icon_star',
-  extra: (ui, state) => `Record : <b class="num">${state.towerBest ?? 0}</b>`,
+  extra: (ui, state) => (towerUnlocked(state) ? `Record : <b class="num">${state.towerBest ?? 0}</b>` : ''),
   render(ui, state) {
+    const chOpen = challengeUnlocked(state) || Boolean(state.challenge);
+    const parts = [['tower', 'Tour', 'icon_star'], ...(chOpen ? [['challenge', 'Défi de la semaine', 'icon_skull']] : [])];
+    const forced = state.challenge ? 'challenge' : state.tower ? 'tower' : null;
+    const tab = forced ?? (parts.some(([id]) => id === ui.view.defiTab) ? ui.view.defiTab : (towerUnlocked(state) || !chOpen ? 'tower' : 'challenge'));
+    const seg = parts.length > 1 ? segment(parts.map(([id, l, ic]) => [id, id === 'challenge' && !state.challenge ? `${l} (${challengeTriesLeft(state)})` : l, ic]), 'defi-tab', tab) : '';
+    if (tab === 'challenge') return `${seg}<div class="card">${challengeCard(state)}</div>`;
+    return seg + towerBody(ui, state);
+  },
+};
+
+function towerBody(ui, state) {
     if (!towerUnlocked(state)) {
       return `<div class="card muted">La Tour de l'Éternité s'ouvre à l'étape ${stageLabel(TOWER.unlockStage)}.</div>`;
     }
@@ -69,10 +83,6 @@ export default {
           ${action}
           ${trait ? `<div class="trait-box" style="--trait:${trait.color}"><b>Étage ${floor} — ${escapeHtml(bossName(floor))} · ${escapeHtml(trait.name)}</b> : ${escapeHtml(trait.text)}. <span class="muted">Contre : ${escapeHtml(trait.counter)}</span></div>` : ''}
         </div></div>`;
-    const rules = `Un boss par étage, toujours plus fort (+${TOWER.floorLevel} niveaux par étage, et la pente s'accentue en montant), un méga boss tous les ${TOWER.milestone}.
-      Une ascension par semaine (remise à zéro le lundi). Récompenses : chaque nouveau meilleur étage de la semaine, plus un bonus à chaque record absolu.
-      Une défaite termine l'ascension ; la tour s'effondre au bout de ${TOWER.timeLimit / 3600} h de combat (+${TOWER.floorBonus / 60} min par nouvel étage, de moins en moins).`;
-    return `${head}${fold(ui, 'tower-floors', 'Étages et récompenses', () => `<div class="tower-floors">${floorsList(state, floor)}</div>`)}
-      ${fold(ui, 'tower-rules', 'Règles de la Tour', `<div class="muted">${rules}</div>`)}`;
-  },
-};
+    // v9.1.3 : les règles ne sont plus répétées ici (doublon de l'aide « ? »).
+    return `${head}${fold(ui, 'tower-floors', 'Étages et récompenses', () => `<div class="tower-floors">${floorsList(state, floor)}</div>`)}`;
+}

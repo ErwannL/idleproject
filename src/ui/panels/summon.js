@@ -5,7 +5,7 @@ import { FEATURED_SHARE, featuredUnit, summonOdds } from '../../core/gacha.js';
 import { heroById } from '../../core/heroes.js';
 import { companionById } from '../../core/companions.js';
 import { animCanvas } from '../animator.js';
-import { effectText, escapeHtml, fold, hdArt, formatDecimal, formatNumber, gem, img, progressBar, rarityLabel, segment, stars } from '../common.js';
+import { effectText, escapeHtml, fold, hdArt, formatDecimal, formatNumber, gem, icon, img, rarityLabel, stars } from '../common.js';
 
 function unitPortrait(result) {
   if (result.kind === 'hero') return animCanvas(`hero:${result.id}`, 48, 52, 1);
@@ -45,7 +45,9 @@ function historyBlock(state) {
   if (!h.length) return '';
   const rows = h.slice(0, 30).map((e) => {
     const c = companionById(e.id) ?? heroById(e.id);
-    return c ? `<span class="hist r-${e.rarity}" title="${escapeHtml(c.name)}">${escapeHtml(c.name)}</span>` : '';
+    // v9.1.3 (A21) : petit portrait fixe dans la puce (compagnons et familiers ; les apparences n'ont pas d'icône).
+    const face = c?.sprite && c.kind ? `<img class="px" src="${icon(c.sprite, c.kind === 'ally' ? 1 : 2)}" alt="">` : '';
+    return c ? `<span class="hist r-${e.rarity}" title="${escapeHtml(c.name)}">${face}${escapeHtml(c.name)}</span>` : '';
   }).join('');
   const legend = h.filter((e) => e.rarity === 'legendary').length;
   return `<div class="card"><div class="section-title">Historique (${h.length} dernières) · ${legend} Légendaire${legend > 1 ? 's' : ''}</div>
@@ -59,12 +61,12 @@ export default {
   extra: (ui, state) => `${gem()}<b class="num">${formatNumber(state.gems)}</b> ${img('icon_ticket')}<b class="num">${state.tickets}</b>`,
   // v9.1.0 : choix (Apparences, Compagnons, Familiers), ×1, ×10 et garanties visibles sans défiler ; bannière réduite
   // à une ligne de vedette ; probabilités, « À obtenir aussi » et historique repliés ; dernière invocation après un tirage.
+  // v9.1.3 (doc1 « Invocation ») : les 3 bassins sur un écran, une ligne chacun (plus d'onglets) ; garanties en une
+  // ligne collée en haut ; règles et probabilités derrière le « ? » de chaque bassin.
   render(ui, state) {
     const s = BALANCE.summon;
-    const pool = ['ally', 'pet'].includes(ui.view.summonPool) ? ui.view.summonPool : 'hero';
-    const tabs = segment(Object.entries(s.pools).map(([id, p]) => [id, p.label, id === 'hero' ? 'icon_hero' : id === 'ally' ? 'icon_summon' : 'icon_paw']), 'summon-pool', pool);
     const ownedOf = (u) => (u.kind === 'hero' ? state.heroes.owned : state.companions.owned)[u.id];
-    const odds = () => summonOdds(pool).filter((r) => r.units.length).reverse().map((r) => {
+    const odds = (pool) => summonOdds(pool).filter((r) => r.units.length).reverse().map((r) => {
       const units = r.units.map((u) => {
         const owned = ownedOf(u);
         return `<div class="odds-unit${owned ? ' owned' : ''}${u.featured ? ' featured-unit' : ''}">
@@ -78,36 +80,35 @@ export default {
     const results = (ui.view.lastSummon ?? []).map((r) => `<div class="summon-result r-${r.rarity}${r.isNew ? ' new' : ''}">
       ${unitPortrait(r)}<span>${escapeHtml(r.name)}</span>
       ${r.isNew ? '<b class="good">Nouveau !</b>' : r.refund ? `<span class="muted">+${r.refund} gemmes</span>` : stars(r.stars)}</div>`).join('');
-    const btn = (count, currency, cost, label) => {
+    const btn = (pool, count, currency, cost, label, aria) => {
       const missing = cost - state[currency];
-      return `<div class="cost-wrap"><button class="btn btn-gold primary-action" data-action="summon" data-value="${count}" data-currency="${currency}" data-pool="${pool}"
-        ${missing > 0 ? 'disabled' : ''}>${label}</button>${missing > 0 ? `<span class="cost-missing">Il manque ${formatNumber(missing)} ${currency === 'gems' ? 'gemme' : 'ticket'}${missing > 1 ? 's' : ''}</span>` : ''}</div>`;
+      return `<button class="btn btn-gold" data-action="summon" data-value="${count}" data-currency="${currency}" data-pool="${pool}"
+        aria-label="${escapeHtml(aria)}" title="${escapeHtml(missing > 0 ? `Il manque ${formatNumber(missing)} ${currency === 'gems' ? 'gemme' : 'ticket'}${missing > 1 ? 's' : ''}` : aria)}" ${missing > 0 ? 'disabled' : ''}>${label}</button>`;
     };
-    // Vedette seulement si plusieurs Légendaires : avec un seul, il n'y a ni part réservée ni rotation du lundi.
-    const legends = summonOdds(pool).find((r) => r.rarity === 'legendary')?.units.length ?? 0;
-    const f = legends > 1 ? featuredUnit(pool) : null;
-    const featured = f ? `<div class="featured-line">${unitPortrait(f)}<span><b class="gold-text">★ En vedette : ${escapeHtml(f.name)}</b>
-      <span class="muted">— ${Math.round(FEATURED_SHARE * 100)} % des Légendaires obtenus · change chaque lundi</span></span></div>` : '';
-    const what = pool === 'hero' ? `Apparences du héros : chacune change son allure et apporte un bonus (${navPath('hero', 'Apparence')}).`
-      : pool === 'ally' ? 'Compagnons : ils combattent aux côtés du héros (2 places dans l\'équipe).'
-        : 'Familiers : petits alliés aux bonus passifs (1 place dans l\'équipe).';
-    return `${tabs}
-      <div class="card summon-banner banner-${pool}">
-        ${featured}
+    const rows = Object.entries(s.pools).map(([pool, p]) => {
+      const legends = summonOdds(pool).find((r) => r.rarity === 'legendary')?.units.length ?? 0;
+      const f = legends > 1 ? featuredUnit(pool) : null;
+      const what = pool === 'hero' ? `Apparences du héros : chacune change son allure et apporte un bonus (${navPath('hero', 'Apparence')}).`
+        : pool === 'ally' ? 'Compagnons : ils combattent aux côtés du héros (2 places dans l\'équipe).'
+          : 'Familiers : petits alliés aux bonus passifs (1 place dans l\'équipe).';
+      const open = ui.view.summonOdds === pool;
+      return `<div class="card summon-row banner-${pool}">
+        <div class="summon-row-head">${img(pool === 'hero' ? 'icon_hero' : pool === 'ally' ? 'icon_summon' : 'icon_paw')}<b>${p.label}</b>
+          ${f ? `<span class="summon-feat" title="${escapeHtml(`En vedette : ${f.name} — ${Math.round(FEATURED_SHARE * 100)} % des Légendaires obtenus, change chaque lundi`)}">★ ${escapeHtml(f.name)}</span>` : '<span class="grow"></span>'}
+          <button class="btn small help-q${open ? ' active' : ''}" data-action="summon-odds" data-value="${pool}" aria-expanded="${open}" aria-label="Règles et probabilités : ${escapeHtml(p.label)}">?</button></div>
         <div class="summon-buttons">
-          ${btn(1, 'tickets', 1, `×1 ${img('icon_ticket')} 1`)}
-          ${btn(1, 'gems', s.gemCost, `×1 ${gem()} ${s.gemCost}`)}
-          ${btn(10, 'gems', s.tenPullGemCost, `×10 ${gem()} ${s.tenPullGemCost}`)}
+          ${btn(pool, 1, 'tickets', 1, `×1 ${img('icon_ticket')} 1`, `${p.label} ×1 : 1 ticket`)}
+          ${btn(pool, 1, 'gems', s.gemCost, `×1 ${gem()} ${s.gemCost}`, `${p.label} ×1 : ${s.gemCost} gemmes`)}
+          ${btn(pool, 10, 'gems', s.tenPullGemCost, `×10 ${gem()} ${s.tenPullGemCost}`, `${p.label} ×10 : ${s.tenPullGemCost} gemmes`)}
         </div>
-        <div class="pity">
-          <div><span>Épique garanti dans <b>${s.pity.epicAfter - state.summon.sinceEpic}</b></span>${progressBar(state.summon.sinceEpic / s.pity.epicAfter)}</div>
-          <div><span>Légendaire garanti dans <b>${s.pity.legendaryAfter - state.summon.sinceLegendary}</b></span>${progressBar(state.summon.sinceLegendary / s.pity.legendaryAfter)}</div>
-        </div>
-        <div class="muted">Compteur commun aux trois invocations. ${what} Doublon : +1 étoile (max ${s.maxStars}), puis +${s.duplicateRefundGems} gemmes.</div>
-      </div>
-      ${results ? `<div class="card"><div class="section-title">Dernière invocation</div><div class="summon-results">${results}</div></div>` : ''}
-      ${pool === 'hero' ? fold(ui, 'summon-banner', 'Apparence en vedette : détails', () => heroBanner(state)) : ''}
-      ${fold(ui, `odds-${pool}`, `Probabilités et à obtenir aussi — ${s.pools[pool].label.toLowerCase()}`, odds)}
+        ${open ? `<div class="summon-odds"><p class="muted">${what} Compteur des garanties commun aux trois invocations. Doublon : +1 étoile (max ${s.maxStars}), puis +${s.duplicateRefundGems} gemmes.</p>
+          ${f ? `<p class="muted">★ En vedette : ${escapeHtml(f.name)}, ${Math.round(FEATURED_SHARE * 100)} % des Légendaires obtenus · change chaque lundi.</p>` : ''}
+          ${pool === 'hero' ? fold(ui, 'summon-banner', 'Apparence en vedette : détails', () => heroBanner(state)) : ''}${odds(pool)}</div>` : ''}
+        ${results && ui.view.summonPool === pool ? `<div class="summon-results">${results}</div>` : ''}
+      </div>`;
+    }).join('');
+    const pity = `<div class="summon-pity" role="status">Épique dans <b>${s.pity.epicAfter - state.summon.sinceEpic}</b> · Légendaire dans <b>${s.pity.legendaryAfter - state.summon.sinceLegendary}</b></div>`;
+    return `${pity}${rows}
       ${(state.summon.history ?? []).length ? fold(ui, 'summon-history', 'Historique', () => historyBlock(state)) : ''}`;
   },
 };

@@ -2,7 +2,8 @@
 // zone de danger), Interface, Son, Fenêtre (version bureau).
 import { BALANCE } from '../../data/balance.js';
 import { formatDuration } from '../../core/format.js';
-import { escapeHtml, formatNumber } from '../common.js';
+import { escapeHtml, fold, formatNumber } from '../common.js';
+import { isPhone } from '../prefs.js';
 import { getLang } from '../../i18n/i18n.js';
 import { THEMES, themeSwatches } from '../themes.js';
 import { GAME_VERSION } from '../../version.js';
@@ -243,30 +244,28 @@ function devOfflineCard() {
       </div>`;
 }
 
+// v9.1.3 (doc1 « Paramètres ») : Interface allégée — thème et notifications repliés, touches clavier masquées sur
+// téléphone (aucun clavier).
 function interfaceTab(ui, state) {
-  return `<div class="card">
-        <div class="section-title">Thème</div>
-        <div class="muted">Style des menus (les couleurs des raretés ne changent pas). Chevalier est le style sobre.</div>
+  const phone = isPhone();
+  const theme = THEMES.find((t) => t.id === (state.ui.theme ?? 'knight'));
+  return `${fold(ui, 'opt-theme', 'Thème', () => `<div class="muted">Style des menus (les couleurs des raretés ne changent pas). Chevalier est le style sobre.</div>
         <div class="theme-grid">${THEMES.map((t) => `<button class="btn theme-btn${(state.ui.theme ?? 'knight') === t.id ? ' active' : ''}" data-action="theme" data-value="${t.id}">
           <span class="theme-swatches">${themeSwatches(t.id).map((c) => `<i style="background:${c}"></i>`).join('')}</span>
-          <b>${escapeHtml(t.name)}</b><span class="muted">${escapeHtml(t.text)}</span></button>`).join('')}</div>
-      </div>
+          <b>${escapeHtml(t.name)}</b><span class="muted">${escapeHtml(t.text)}</span></button>`).join('')}</div>`, { extra: escapeHtml(theme?.name ?? '') })}
       ${ui.interfaceExtra?.(state) ?? ''}
-      <div class="card">
-        <div class="section-title">Notifications</div>
+      ${fold(ui, 'opt-notify', 'Notifications', () => `
         <label class="toggle"><input type="checkbox" data-action="notify" data-key="boss" ${state.ui.notify?.boss !== false ? 'checked' : ''}> Bannières d'arrivée des boss</label>
         <label class="toggle"><input type="checkbox" data-action="notify" data-key="events" ${state.ui.notify?.events !== false ? 'checked' : ''}> Messages des événements (coffres, marchands…)</label>
-        <label class="toggle"><input type="checkbox" data-action="cinematics" ${state.ui.cinematics !== false ? 'checked' : ''}> Cinématiques (lancement du jeu, nouveau monde)</label>
-      </div>
-      <div class="card">
+        <label class="toggle"><input type="checkbox" data-action="cinematics" ${state.ui.cinematics !== false ? 'checked' : ''}> Cinématiques (lancement du jeu, nouveau monde)</label>`)}
+      ${phone ? '' : `<div class="card">
         <div class="section-title">Raccourcis clavier</div>
         <div class="row-between"><span class="muted">${shortcutsSummary()}</span>
           <button class="btn small" data-action="show-shortcuts">Tout voir (K)</button></div>
-      </div>
+      </div>`}
       <div class="card">
-        <div class="section-title">Journal de la session</div>
-        <div class="row-between"><span class="muted">Étapes, boss, or, objets ramassés, recyclés et fusionnés depuis le lancement du jeu.</span>
-          <button class="btn small" data-action="show-journal">📜 Ouvrir (J)</button></div>
+        <div class="row-between"><span><b>Journal de la session</b> <span class="muted">étapes, boss, or et objets depuis le lancement.</span></span>
+          <button class="btn small" data-action="show-journal">📜 Ouvrir${phone ? '' : ' (J)'}</button></div>
       </div>`;
 }
 

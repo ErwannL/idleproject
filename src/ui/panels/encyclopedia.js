@@ -24,7 +24,7 @@ import { rewardText } from '../../core/rewards.js';
 import { itemIconUrl } from '../../render/pixel.js';
 import { animCanvas } from '../animator.js';
 import { AFFIXES } from '../../data/items.js';
-import { effectText, escapeHtml, fold, formatNumber, icon, img, progressBar, rarityLabel, stars } from '../common.js';
+import { effectText, escapeHtml, fold, formatNumber, icon, img, progressBar, rarityLabel, rewardIcons, stars } from '../common.js';
 
 const SHADOW = { tint: { color: '#2e3a52', alpha: 1 } };
 const TIERS = { mini: 'Mini-boss', mid: 'Boss', hard: 'Boss redoutable', dungeon: 'Boss de donjon' };
@@ -247,8 +247,8 @@ function milestones(state, progress) {
       ${ready && next?.index === i ? '<button class="btn btn-gold small" data-action="enc-claim">!</button>' : `<span>${got ? '✔' : img('icon_chest')}</span>`}<small>${m.pct} %</small></div>`;
   }).join('');
   const label = next ? (next.ready
-    ? `<button class="btn btn-gold small" data-action="enc-claim">Récupérer : ${rewardText(next.reward, formatNumber)}</button>`
-    : `<span class="muted">Palier ${next.pct} % : ${rewardText(next.reward, formatNumber)}</span>`) : '<span class="good">Tous les paliers récupérés ✔</span>';
+    ? `<button class="btn btn-gold small" data-action="enc-claim" aria-label="Récupérer : ${rewardText(next.reward, formatNumber)}">Récupérer ${rewardIcons(next.reward)}</button>`
+    : `<span class="muted">Palier ${next.pct} % : ${rewardIcons(next.reward)}</span>`) : '<span class="good">Tous les paliers récupérés ✔</span>';
   return `<div class="row-between"><div class="section-title">Encyclopédie complétée à ${pct(progress.pct)}</div>${label}</div>
     <div class="m-track enc-track"><div class="m-fill" style="width:${Math.min(100, progress.pct)}%"></div>${steps}</div>`;
 }

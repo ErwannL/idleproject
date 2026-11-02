@@ -8,24 +8,26 @@ import { contractLabel, contractTitle } from '../../core/contracts.js';
 import { bonusReady, loginPending, missionStatus, periodRemaining } from '../../core/missions.js';
 import { rewardText } from '../../core/rewards.js';
 import { LOGIN_CALENDAR, MISSION_PERIODS } from '../../data/missions.js';
-import { escapeHtml, fold, formatNumber, img, progressBar, segment } from '../common.js';
+import { escapeHtml, fold, formatNumber, img, progressBar, rewardIcons, segment } from '../common.js';
 import { stageLabel, zoneStartStage } from '../../core/combat.js';
-import { ACHIEVEMENT_BONUS, ACHIEVEMENTS, achievementCount, achievementProgress } from '../../core/achievements.js';
+import { ACHIEVEMENT_BONUS, ACHIEVEMENTS, achievementCount, achievementGroups } from '../../core/achievements.js';
 
 // Hauts faits (v8.3) : défis permanents, gemmes à réclamer et bonus permanent par haut fait obtenu.
 function achievementsTab(state) {
   const n = achievementCount(state);
-  const rows = ACHIEVEMENTS.map((a) => {
-    const p = achievementProgress(state, a);
-    const cls = p.claimed ? ' done' : p.done ? ' ready' : '';
-    return `<div class="ach${cls}"><span class="ach-icon">${p.done ? img('icon_trophy', 'ico20', p.claimed ? 'Obtenu' : 'À réclamer') : img('icon_lock', 'ico-lock', 'Verrouillé')}</span>
-      <div class="grow"><b>${escapeHtml(a.name)}</b> <span class="muted">${a.label} : ${formatNumber(Math.min(p.value, a.target))} / ${formatNumber(a.target)}</span>
-        ${progressBar(p.ratio)}</div>
-      ${p.claimed ? '<span class="good">Obtenu</span>'
-        : `<button class="btn small${p.done ? ' btn-gold' : ''}" data-action="claim-achievement" data-value="${a.id}" ${p.done ? '' : 'disabled'}>+${a.gems} ${img('icon_gem')}</button>`}</div>`;
+  // v9.1.3 (A8) : une ligne par métrique, nom du palier courant, le bouton récupère le palier prêt le plus bas.
+  const rows = achievementGroups(state).map((g) => {
+    const a = g.tier;
+    const p = g.progress;
+    const cls = g.allDone ? ' done' : g.ready ? ' ready' : '';
+    const step = `${Math.min(g.claimedCount + 1, g.tiers.length)}/${g.tiers.length}`;
+    return `<div class="ach${cls}"><span class="ach-icon">${g.ready || g.allDone ? img('icon_trophy', 'ico20', g.allDone ? 'Obtenu' : 'À réclamer') : img('icon_lock', 'ico-lock', 'Verrouillé')}</span>
+      <div class="grow"><b>${escapeHtml(a.name)}</b> <span class="muted">${a.label} · palier ${g.allDone ? `${g.tiers.length}/${g.tiers.length}` : step}</span>
+        ${progressBar(p.ratio, `${formatNumber(Math.min(p.value, a.target))} / ${formatNumber(a.target)}`)}</div>
+      ${g.allDone ? '<span class="good">Obtenu</span>'
+        : `<button class="btn small${g.ready ? ' btn-gold' : ''}" data-action="claim-achievement" data-value="${a.id}" ${g.ready ? '' : 'disabled'}>+${a.gems} ${img('icon_gem', '', 'gemmes')}</button>`}</div>`;
   }).join('');
-  return `<div class="row-between"><b>${n} / ${ACHIEVEMENTS.length} hauts faits</b>
-      <span class="muted">Bonus permanent : +${n * ACHIEVEMENT_BONUS.damagePct} % dégâts · +${n * ACHIEVEMENT_BONUS.goldPct} % or (+1 % chacun par haut fait)</span></div>
+  return `<div class="muted">${n} / ${ACHIEVEMENTS.length} paliers · bonus permanent +${n * ACHIEVEMENT_BONUS.damagePct} % dégâts et +${n * ACHIEVEMENT_BONUS.goldPct} % or (+1 % chacun par palier)</div>
     <div class="ach-list">${rows}</div>`;
 }
 
@@ -43,13 +45,12 @@ function remainingText(ms) {
 
 // Ligne de mission : icône, intitulé + barre, récompense, bouton.
 function row({ icon, label, progress, target, reward, done, claimed, action, value, sub = '' }) {
+  // v9.1.3 (A7) : un seul emplacement pour la récompense, en icônes sur la ligne du libellé ; bouton court.
   const btn = claimed ? '<span class="m-done">✔</span>'
-    // v9.1.3 : la récompense est écrite dans le bouton (lisible aussi sur téléphone, où la colonne est masquée).
-    : `<button class="btn ${done ? 'btn-gold' : ''} small m-claim" data-action="${action}" data-value="${value}" ${done ? '' : 'disabled'}>${done ? 'Récupérer' : '<span class="muted">À gagner</span>'}<span class="m-claim-reward">${rewardText(reward, formatNumber)}</span></button>`;
+    : `<button class="btn ${done ? 'btn-gold' : ''} small" data-action="${action}" data-value="${value}" ${done ? '' : 'disabled'} aria-label="Récupérer : ${rewardText(reward, formatNumber)}">Récupérer</button>`;
   return `<div class="m-row${claimed ? ' claimed' : ''}">
     <div class="m-icon">${img(icon)}</div>
-    <div class="m-main">${sub}<b>${escapeHtml(label)}</b>${progressBar(progress / target, `${formatNumber(progress)} / ${formatNumber(target)}`)}</div>
-    <div class="m-reward">${rewardText(reward, formatNumber).replaceAll(' · ', '<br>')}</div>
+    <div class="m-main">${sub}<div class="m-label"><b>${escapeHtml(label)}</b>${rewardIcons(reward)}</div>${progressBar(progress / target, `${formatNumber(progress)} / ${formatNumber(target)}`)}</div>
     <div class="m-btn">${btn}</div>
   </div>`;
 }
@@ -62,7 +63,7 @@ function loginTab(state) {
   const got = pending ? login.claimed % n : login.claimed > 0 ? ((login.claimed - 1) % n) + 1 : 0;
   const cells = LOGIN_CALENDAR.map((r, i) => {
     const st = i < got ? 'got' : i < got + pending ? 'today' : '';
-    return `<div class="login-day ${st}"><b>J${i + 1}</b><span>${rewardText(r, formatNumber).replaceAll(' · ', '<br>')}</span></div>`;
+    return `<div class="login-day ${st}"><b>J${i + 1}</b>${rewardIcons(r, 'rw-col')}</div>`;
   }).join('');
   return `<div class="muted">Jours de connexion : ${login.days}. Un jour manqué ne remet pas le calendrier à zéro.</div>
     <div class="login-cal">${cells}</div>
@@ -80,8 +81,7 @@ function periodTab(state, period) {
   const ready = bonusReady(state, period.id);
   const chest = `<div class="m-row m-chest${run.bonus ? ' claimed' : ''}">
     <div class="m-icon">${img('icon_chest')}</div>
-    <div class="m-main"><b>Récompense complète (${claimedCount}/${period.missions.length})</b>${progressBar(claimedCount / period.missions.length, `${claimedCount} / ${period.missions.length}`)}</div>
-    <div class="m-reward">${rewardText(period.bonus, formatNumber).replaceAll(' · ', '<br>')}</div>
+    <div class="m-main"><div class="m-label"><b>Récompense complète</b>${rewardIcons(period.bonus)}</div>${progressBar(claimedCount / period.missions.length, `${claimedCount} / ${period.missions.length}`)}</div>
     <div class="m-btn">${run.bonus ? '<span class="m-done">✔</span>' : `<button class="btn ${ready ? 'btn-gold' : ''} small" data-action="claim-mission-bonus" data-value="${period.id}" ${ready ? '' : 'disabled'}>Ouvrir</button>`}</div>
   </div>`;
   return `<div class="m-reset muted">${period.reset} · dans ${remainingText(periodRemaining(period.id))}</div>${rows}${chest}`;
@@ -93,8 +93,8 @@ function contractsTab(state) {
     done: c.progress >= c.target, claimed: false, action: 'claim-contract', value: c.id,
     sub: `<span class="contract-title${c.rare ? ' rare' : ''}">${escapeHtml(contractTitle(c))}</span>`,
   })).join('');
-  return `<div class="muted">Les contrats progressent tout seuls pendant le combat, même hors ligne. Un nouveau contrat remplace chaque contrat rempli ;
-    parfois un <b class="rare-text">contrat rare</b> apparaît (objectif doublé, récompenses triplées).</div>${rows}`;
+  // v9.1.3 : l'explication (déjà dans l'aide « ? ») n'est plus répétée ici.
+  return rows;
 }
 
 // Prime du jour (v8.9).

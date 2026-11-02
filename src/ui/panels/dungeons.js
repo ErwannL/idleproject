@@ -108,11 +108,8 @@ export default {
   extra: (ui, state) => `${img('icon_key')}<b class="num">${state.keys}</b> clé${state.keys > 1 ? 's' : ''}`,
   render(ui, state) {
     if (state.dungeon) return running(ui, state);
-    // Défi de la semaine : carte repliée, seulement à partir de son étape (ou s'il est en cours / déjà joué).
-    const challenge = challengeUnlocked(state)
-      ? fold(ui, 'challenge', '⚔ Défi de la semaine', () => challengeCard(state), { open: Boolean(state.challenge), extra: state.challenge ? '<span class="good">en cours</span>' : `${challengeTriesLeft(state)} tentative${challengeTriesLeft(state) > 1 ? 's' : ''}` })
-      : '';
-    return challenge + dungeonsList(ui, state);
+    // v9.1.3 : le Défi de la semaine est passé dans Aventure › Défis (avec la Tour).
+    return dungeonsList(ui, state);
   },
 };
 
@@ -123,7 +120,7 @@ function nextMonday() {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() + days);
 }
 
-function challengeCard(state) {
+export function challengeCard(state) {
   const week = challengeWeek(state);
   const setup = weeklySetup(week.week);
   const run = state.challenge;
@@ -196,16 +193,16 @@ function dungeonsList(ui, state) {
   const enter = locked ? `<div class="bad">Débloqué à l'étape ${stageLabel(sel.unlockStage)}.</div>`
     : `<button class="btn btn-gold enter-btn primary-action" data-action="enter-dungeon" data-value="${sel.id}" data-diff="${diffId}" ${canEnterDungeon(state, sel.id) ? '' : 'disabled'}>Entrer · ${diff.label} — 1 ${img('icon_key')} <span class="key-stock">(${state.keys} en stock)</span></button>
       ${state.tower ? '<div class="bad">Vous êtes dans la Tour : quittez-la d\'abord.</div>' : ''}
-      ${state.challenge ? '<div class="bad">Défi de la semaine en cours : terminez-le d\'abord.</div>' : ''}
-      ${state.keys < 1 ? '<div class="bad">Aucune clé. Clés : missions, contrats, expéditions, Tour, défi.</div>' : ''}`;
+      ${state.challenge ? '<div class="bad">Défi de la semaine en cours (Aventure › Défis) : terminez-le d\'abord.</div>' : ''}
+      ${state.keys < 1 ? '<div class="bad">Aucune clé. Clés : missions, contrats, expéditions, Défis.</div>' : ''}`;
   const detail = `<div class="card dungeon-detail">
       <div class="dungeon-head">${img('icon_dungeon')}<div class="grow"><div class="boss-title">${escapeHtml(sel.name)}</div>
         <div class="muted">${escapeHtml(sel.description)}</div></div></div>
       <div class="diff-box"><div class="section-title">Difficulté</div><div class="diff-row">${diffs}</div>${unlockHint}
         <div class="muted">♛ ${cleared} victoire${cleared > 1 ? 's' : ''} · ennemis niv. ${Math.max(1, state.maxStage + sel.levelOffset + diff.levelBonus)} · PV ×${diff.hp}</div></div>
       ${mechanicLine(sel)}
-      <div class="row dungeon-target"><span class="section-title">Butin ciblé</span>${slotSelect}</div>
-      <div class="section-title">Chemin</div><div class="path-row">${paths}</div>
+      ${fold(ui, 'dungeon-choice', `Butin : ${slot === 'any' ? 'tout' : escapeHtml(SLOTS[slot] ?? slot).toLowerCase()} · Chemin : ${({ gold: 'or', relics: 'reliques' })[path] ?? escapeHtml(path)}`, () => `<div class="row dungeon-target"><span class="section-title">Butin ciblé</span>${slotSelect}</div>
+      <div class="section-title">Chemin</div><div class="path-row">${paths}</div>`)}
       ${enter}
       ${fold(ui, 'dungeon-more', 'Récompenses, salles, tentatives', () => `<div class="reward-grid">${rewards}</div>
         ${affinityLine(state, sel)}

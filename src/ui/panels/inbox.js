@@ -3,7 +3,7 @@
 // Dessous, les marchands (un achat reste une décision). Rien n'apparaît deux fois.
 import { BALANCE } from '../../data/balance.js';
 import { rewardText } from '../../core/rewards.js';
-import { coin, escapeHtml, formatNumber, img, itemFrame, rarityLabel } from '../common.js';
+import { coin, escapeHtml, formatNumber, img, itemFrame, rarityLabel, rewardIcons } from '../common.js';
 
 const KIND_ICONS = {
   login: 'icon_star', mission: 'icon_trophy', missionBonus: 'icon_chest', contract: 'icon_trophy', achievement: 'icon_star',
@@ -23,7 +23,7 @@ export default {
     const ready = list.filter((c) => !c.blocked);
     const full = state.inventory.length >= BALANCE.loot.inventorySize;
     const rows = list.map((c) => `<div class="claim-row${c.blocked ? ' blocked' : ''}">${img(KIND_ICONS[c.kind] ?? 'icon_chest')}
-        <div class="grow"><b>${escapeHtml(c.label)}</b><div class="gold-text">${rewardText(c.reward, formatNumber) || (c.item ? 'Un objet' : '')}${c.item && rewardText(c.reward, formatNumber) ? ' · un objet' : ''}</div></div>
+        <div class="grow"><b>${escapeHtml(c.label)}</b><div class="gold-text">${rewardIcons(c.reward) || (c.item ? 'Un objet' : '')}${c.item && rewardText(c.reward, formatNumber) ? ' · un objet' : ''}</div></div>
         ${c.itemRef ? itemFrame(c.itemRef, { tag: 'div' }) : ''}${c.blocked ? `<span class="bad">${c.blocked}</span>` : ''}</div>`).join('');
     const merchants = state.inbox.filter((e) => e.type === 'merchant').map((e) => `<div class="card inbox-item"><div class="row">${itemFrame(e.item, { tag: 'div' })}
         <div class="grow"><b class="r-${e.item.rarity} rarity-text">${escapeHtml(e.item.name)}</b><div class="muted">${rarityLabel(e.item.rarity)} · niv. ${e.item.level}</div></div></div>

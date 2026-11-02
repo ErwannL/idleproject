@@ -5,7 +5,7 @@ import { BALANCE } from '../data/balance.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
 import { bossTrait } from '../core/boss-traits.js';
 import { DUNGEONS } from '../data/dungeons.js';
-import { currentEncounter, difficultyForStage, isBossStage, stageLabel, zoneForStage, zoneIndexForStage } from '../core/combat.js';
+import { bossTierForStage, currentEncounter, difficultyForStage, isBossStage, stageLabel, zoneForStage, zoneIndexForStage } from '../core/combat.js';
 import { eventLabel } from '../core/events.js';
 import { formatDecimal, formatDuration, formatNumber } from '../core/format.js';
 import { isUpgrade } from '../core/inventory.js';
@@ -24,7 +24,7 @@ import { KEY_LABELS, boostKeys, cycleSub, focusables, installShortcuts, keyConfl
 import { installHoldToRepeat, selectorFor, holdFiredRecently } from './hold.js';
 import { installTips } from './tip.js';
 import { playSummonReveal } from './summon-fx.js';
-import { coin, effectText, escapeHtml, fold, icon, img, itemFrame, missingText } from './common.js';
+import { coin, effectText, escapeHtml, fold, icon, img, itemFrame, missingText, rewardIcons } from './common.js';
 import { GAME_VERSION } from '../version.js';
 import { mutationById } from '../core/mutations.js';
 import boss from './panels/boss.js';
@@ -65,7 +65,7 @@ import { openSearch } from './search.js';
 import { setById } from '../core/sets.js';
 import { availableForExpedition, readyExpeditions } from '../core/expeditions.js';
 import { bountyReady } from '../core/bounty.js';
-import { CHALLENGE, bossEvery } from '../core/challenge.js';
+import { CHALLENGE, bossEvery, challengeUnlocked } from '../core/challenge.js';
 import { ZONES } from '../data/zones.js';
 import { CURRENCIES, currencyAmount } from '../data/currencies.js';
 import { MENUS, SUB_LABELS, navPath } from './nav.js';
@@ -87,7 +87,7 @@ const UNLOCK_INFO = {
   tree: 'les fragments anciens achètent des talents permanents. La Renaissance s\'ouvre plus tard dans ce même onglet.',
   dungeons: 'une clé par tentative : de vrais combats de boss qui donnent fragments et équipement.',
   boss: 'chaque boss vaincu laisse un pouvoir. Réaffrontez-les pour leur butin et leur maîtrise.',
-  tower: 'une ascension par semaine : chaque nouvel étage record rapporte gemmes, fragments et tickets.',
+  tower: 'le Défi de la semaine (3 tentatives, sans clé) puis, plus loin, la Tour de l\'Éternité : chaque record rapporte des récompenses.',
   encyclopedia: 'tout ce que vous découvrez est répertorié ; chaque palier rapporte une récompense.',
   inbox: 'tout ce qui est prêt à être récupéré, au même endroit (touche G).',
 };
@@ -227,6 +227,7 @@ export class UI {
     this.$('panel-close').addEventListener('click', () => this.closePanel());
     this.$('next-action').addEventListener('click', () => this.runNextAction());
     root.querySelectorAll('[data-currency]').forEach((btn) => btn.addEventListener('click', () => this.showCurrency(btn.dataset.currency)));
+    this.$('panel-fold')?.addEventListener('click', () => this.togglePanelLow());
     this.$('panel-help').addEventListener('click', () => {
       this.view.helpOpen = this.view.helpOpen === this.tab ? null : this.tab;
       this.userAt = performance.now();
@@ -339,6 +340,8 @@ export class UI {
     this.root.classList.toggle('color-aid', pref('colorAid') === true);
     root.classList.toggle('contrast-high', pref('contrast') === true);
     root.classList.toggle('combat-full', pref('combat') === 'full');
+    if (pref('bossFocus') === false) delete this.root.dataset.bossFocus;
+    this.updatePanelLow?.();
     this.applyZoom();
     delete this.lastHud.rushTime;
     delete this.lastHud.skillTime;
@@ -413,10 +416,12 @@ export class UI {
         ${check('compact', '<b>Mode compact</b> : listes serrées, sans descriptions (joueurs expérimentés)')}
         ${check('qtyMenu', '<b>Quantité en un bouton</b> (essai) : Max, ×100, ×10, ×1 se déplient d\'un bouton dans Améliorations')}
         ${check('skillGrid', '<b>Compétences en grille</b> (essai) : 9 icônes avec niveau et +, le texte au toucher')}
+        ${check('bossFocus', '<b>Mode boss réduit</b> (essai) : pendant un boss, les boutons autour de la scène s\'estompent (complet au méga boss)')}
+        ${check('panelFold', '<b>Panneau à deux hauteurs</b> (essai) : ▼ rétracte le panneau pour agrandir la scène, choix mémorisé par écran')}
         ${check('colorAid', '<b>Aide aux couleurs</b> : lettre de rareté sur les objets (C, R, É, L), pastilles en anneau')}
         ${check('contrast', '<b>Contraste élevé</b> : textes plus contrastés, sans décor animé')}
       </div>
-      ${fold(this, 'keys', 'Raccourcis clavier : changer une touche', `<div class="muted">Cliquez une touche puis appuyez sur la nouvelle. Une touche déjà utilisée est refusée.</div>
+      ${isPhone() ? '' : fold(this, 'keys', 'Raccourcis clavier : changer une touche', `<div class="muted">Cliquez une touche puis appuyez sur la nouvelle. Une touche déjà utilisée est refusée.</div>
         <div class="key-grid">${keys}</div><button class="btn small" data-action="reset-keys">Touches par défaut</button>`)}`;
   }
 
@@ -509,10 +514,14 @@ export class UI {
     const tabs = menu ? menu.tabs.filter((t) => this.tabVisible[t] !== false) : [];
     // v9.1.3 : plus de point or « conseillé » (aucune recommandation) : rouge = à récupérer, anneau = nouveau.
     const mark = (t) => (this.tabBadges[t] ? 'red' : this.newTabs.has(t) ? 'new' : '');
-    const key = `${this.tab}|${tabs.join()}|${tabs.map(mark).join()}`;
+    // v9.1.3 (S5, décision 7) : le prochain onglet de ce menu qui s'ouvre à une étape est annoncé, en texte neutre.
+    const STAGE_UNLOCKS = { tree: 10, dungeons: DUNGEONS[0].unlockStage, tower: CHALLENGE.unlockStage };
+    const nextTab = menu?.tabs.find((t) => this.tabVisible[t] === false && STAGE_UNLOCKS[t]);
+    const next = nextTab ? `<span class="next-unlock muted">Prochain : ${SUB_LABELS[nextTab]} à l'étape ${STAGE_UNLOCKS[nextTab]}</span>` : '';
+    const key = `${this.tab}|${tabs.join()}|${tabs.map(mark).join()}|${nextTab}`;
     if (this.lastHud.subtabs === key) return;
     this.lastHud.subtabs = key;
-    el.classList.toggle('hidden', tabs.length < 2);
+    el.classList.toggle('hidden', tabs.length < 2 && !next);
     el.setAttribute('role', 'tablist');
     el.innerHTML = tabs.map((t) => {
       const m = mark(t);
@@ -520,7 +529,7 @@ export class UI {
         : m === 'new' ? '<i class="badge badge-ring" aria-label="Nouveau"></i>' : '';
       return `<button class="subtab${t === this.tab ? ' active' : ''}" role="tab" aria-selected="${t === this.tab}" data-sub="${t}">
       <img class="px" src="${icon(SUB_ICONS[t])}" alt=""><span>${SUB_LABELS[t]}</span>${badge}</button>`;
-    }).join('');
+    }).join('') + next;
   }
 
   // Aucun onglet ouvert par défaut : un clic ouvre l'onglet, un second clic le referme.
@@ -582,7 +591,32 @@ export class UI {
     this.renderSubtabs();
     this.root.querySelectorAll('[data-open]').forEach((b) => b.classList.toggle('active', b.dataset.open === tab));
     this.lastHud.tabs = null;
+    this.updatePanelLow();
     this.invalidate();
+  }
+
+  // v9.1.3 (essai, doc1 4a) : panneau à deux hauteurs. ▼ rétracte le panneau (scène agrandie), choix mémorisé par
+  // écran ; sans le réglage, la bande actuelle reste la seule hauteur.
+  updatePanelLow() {
+    const on = pref('panelFold') === true;
+    const low = on && Boolean(this.tab) && pref('panelLow')?.[this.tab] === true;
+    this.root.classList.toggle('panel-low', low);
+    const b = this.$('panel-fold');
+    if (b) {
+      b.classList.toggle('hidden', !on);
+      b.textContent = low ? '▲' : '▼';
+      b.setAttribute('aria-label', low ? 'Agrandir le panneau' : 'Rétracter le panneau (agrandir la scène)');
+      b.setAttribute('aria-pressed', String(low));
+    }
+  }
+
+  togglePanelLow() {
+    if (!this.tab) return;
+    const map = { ...(pref('panelLow') ?? {}) };
+    if (map[this.tab]) delete map[this.tab]; else map[this.tab] = true;
+    setPref('panelLow', map);
+    this.updatePanelLow();
+    this.layoutChanged?.();
   }
 
   closePanel() {
@@ -590,6 +624,7 @@ export class UI {
     this.tab = null;
     this.$('panel').classList.add('hidden');
     this.root.classList.remove('panel-open');
+    this.updatePanelLow();
     this.root.querySelectorAll('#tabs button, [data-open]').forEach((b) => { b.classList.remove('active'); b.removeAttribute('aria-current'); });
     this.lastHud.tabs = null;
   }
@@ -657,11 +692,12 @@ export class UI {
       case 'open-tab': if (el.closest('#modal')) this.closeModal(); this.openTab(value); break;
       case 'summon': {
         const res = a.summon(Number(value), currency, el.dataset.pool);
-        if (res) { v.lastSummon = res; playSummonReveal(res); }
+        if (res) { v.lastSummon = res; v.summonPool = el.dataset.pool; playSummonReveal(res); }
         this.invalidate();
         break;
       }
       case 'summon-pool': local(() => { v.summonPool = value; v.lastSummon = null; }); break;
+      case 'summon-odds': local(() => { v.summonOdds = v.summonOdds === value ? null : value; }); break; // v9.1.3 : « ? » d'un bassin
       case 'talent-sel': local(() => { v.talentSel = value; }); break;
       case 'buy-talent': a.buyTalent(key); break;
       case 'rebirth': this.showRebirthConfirm(this.state); break;
@@ -685,6 +721,9 @@ export class UI {
       case 'enc-claim': a.claimEncyclopedia(); break;
       case 'recycle-toggle': a.setRecycleRule(el.dataset.group, value); break;
       case 'mission-tab': local(() => { v.missionTab = value; }); break;
+      case 'exp-dur': local(() => { v.expDur = value; }); break; // v9.1.3 : durée commune des expéditions
+      case 'exp-per-slot': local(() => { v.expPerSlot = !v.expPerSlot; }); break;
+      case 'defi-tab': local(() => { v.defiTab = value; }); break; // v9.1.3 : Défis › Tour / Défi de la semaine
       case 'lang': a.setLanguage(value); break;
       case 'theme': a.setTheme(value); break;
       case 'speed': a.cycleSpeed(); break;
@@ -868,6 +907,7 @@ export class UI {
     if (action === 'cinematics') this.actions.setCinematics(el.checked);
     if (action === 'auto-recycle') this.actions.setAutoRecycle(el.value);
     if (action === 'recycle-mode') this.actions.setRecycleRule('mode', el.value);
+    if (action === 'exp-dur-slot') { this.view.expDurSlot = { ...(this.view.expDurSlot ?? {}), [el.dataset.slot]: el.value }; this.invalidate(); }
     if (action === 'exp-pick') {
       this.view.expPick = { ...(this.view.expPick ?? {}), [el.dataset.slot]: el.value };
       this.invalidate();
@@ -1200,7 +1240,7 @@ export class UI {
       case 'expeditions': return `${Math.floor(Date.now() / 30000)}|${readyExpeditions(state)}|${state.expeditions.slots.map((x) => x?.companionId ?? '').join()}`;
       case 'companions': return `${state.companions.equipped.join()}|${Object.keys(state.companions.owned).length}`;
       case 'inbox': return this.claims.map((c) => c.key).join() + (state.inbox.length);
-      case 'tower': return `${JSON.stringify(state.tower)}|${state.towerBest}`;
+      case 'tower': return `${JSON.stringify(state.tower)}|${state.towerBest}|${JSON.stringify(state.challenge)}|${state.challengeWeek?.best}`;
       // Achat « Max » : le nombre de niveaux abordables change avec l'or.
       case 'upgrades': return this.view.buyAmount === 'max' ? String(Math.floor(Math.log10(state.gold + 1) * 8)) : '';
       case 'skills': return `${state.level}|${Math.floor(state.xp)}|${Object.values(state.rushes.active).map(Math.ceil).join()}|${Object.values(state.rushes.cooldown).map((c) => Math.ceil(c / 10)).join()}`;
@@ -1276,6 +1316,12 @@ export class UI {
     const progress = this.$('progress');
     let ratio;
     let text;
+    // v9.1.3 (doc1 « Combat », essai) : mode boss réduit — pendant un boss, les boutons autour de la scène s'estompent
+    // (opacité seulement : aucun saut de mise en page) ; effet complet au méga boss. Auto, vitesse, Boosts et sortie restent.
+    const focusBoss = enc.boss && pref('bossFocus') !== false ? world.enemies.find((e) => e.boss) : null;
+    const focus = !enc.boss || pref('bossFocus') === false ? ''
+      : (BOSSES[focusBoss?.type]?.tier === 'mega' || (!state.tower && !state.dungeon && !state.challenge && bossTierForStage(state.stage) === 'mega')) ? 'mega' : 'boss';
+    if (this.root.dataset.bossFocus !== focus) { if (focus) this.root.dataset.bossFocus = focus; else delete this.root.dataset.bossFocus; }
     if (enc.boss) {
       const b = world.enemies.find((e) => e.boss);
       progress.classList.add('boss');
@@ -1481,7 +1527,8 @@ export class UI {
     const visible = {
       tree: best >= 10 || state.fragments > 0 || state.records.rebirths > 0 || (state.prestige?.count ?? 0) > 0 || (state.transcend?.count ?? 0) > 0,
       dungeons: best >= DUNGEONS[0].unlockStage || Object.keys(state.dungeonsCleared).length > 0 || Boolean(state.dungeon),
-      tower: best >= TOWER_UNLOCK || (state.towerBest ?? 0) > 0 || Boolean(state.tower),
+      // v9.1.3 : l'onglet Défis s'ouvre avec la Tour ou avec le Défi de la semaine (étape plus basse).
+      tower: best >= TOWER_UNLOCK || (state.towerBest ?? 0) > 0 || Boolean(state.tower) || challengeUnlocked(state) || Boolean(state.challenge),
       boss: boss || Object.keys(state.powers).length > 0,
       companions: boss || Object.keys(state.companions.owned).length > 0,
       summon: boss || Object.keys(state.companions.owned).length > 0,
@@ -1686,20 +1733,22 @@ export class UI {
     const mats = summary.materials ?? {};
     const recycled = summary.excessDrops + summary.autoRecycledCount;
     const paused = { tower: 'la Tour de l\'Éternité', challenge: 'le défi de la semaine', dungeon: 'un donjon' }[summary.paused];
+    // v9.1.3 (doc1 4a) : fenêtre réduite à l'essentiel — temps, or et XP, objets rares ; le reste dans « Détails ».
+    const matIcons = rewardIcons({ shards: mats.shards, essence: mats.essence, gems: summary.gems });
     this.openModal(`<h2>Bon retour !</h2>
         <p>Absence : <b>${formatDuration(summary.elapsedSeconds)}</b>${summary.capped ? ` <span class="muted">(gains limités à ${BALANCE.offline.capHours} h)</span>` : ''}</p>
-        <p>Or gagné : <b class="gold-text">+${formatNumber(summary.totalGold)}</b> ${coin()}</p>
-        ${summary.gems ? `<p>Gemmes : <b>+${formatNumber(summary.gems)}</b> ${img('icon_gem')}</p>` : ''}
-        <p>Expérience : <b>+${formatNumber(summary.xp)}</b>${summary.levelsGained ? ` · <b class="good">+${summary.levelsGained} niveau${summary.levelsGained > 1 ? 'x' : ''}</b>` : ''}</p>
-        <p>Ennemis vaincus : ~${formatNumber(summary.kills)} · Objets : ${summary.items.length - summary.autoRecycledCount}
-          ${recycled ? `<span class="muted">(+${recycled} convertis en or)</span>` : ''}</p>
-        ${rareItems ? `<div class="offline-rare"><b class="gold-text">★ Objets rares obtenus</b><div class="loot-row">${rareItems}</div></div>` : ''}
-        ${items ? `<div class="loot-row">${items}</div>` : ''}
-        ${mats.shards || mats.essence ? `<p>Matériaux : ${mats.shards ? `+${formatNumber(mats.shards)} éclats` : ''}${mats.shards && mats.essence ? ' · ' : ''}${mats.essence ? `+${formatNumber(mats.essence)} essences` : ''}</p>` : ''}
+        <p class="offline-gains"><span>${coin()} <b class="gold-text">+${formatNumber(summary.totalGold)}</b></span>
+          <span>XP <b>+${formatNumber(summary.xp)}</b>${summary.levelsGained ? ` · <b class="good">+${summary.levelsGained} niveau${summary.levelsGained > 1 ? 'x' : ''}</b>` : ''}</span>${matIcons}</p>
+        ${rareItems ? `<div class="offline-rare"><b class="gold-text">★ Objets rares</b><div class="loot-row">${rareItems}</div></div>` : ''}
         ${paused ? `<p class="bad">Vous étiez dans ${paused} : il ne progresse pas hors ligne (il reprend à votre retour).</p>` : ''}
-        ${journal ? `<div class="section-title">Avant de passer hors ligne</div>${journalHtml(journal)}` : ''}
-        <p class="muted">Hors ligne, le héros reste sur l'étape ${stageLabel(summary.stage)} (la meilleure où il gagne vraiment) à
-          ${BALANCE.offline.farmMultiplier * 100} % de son rythme, sans affronter de boss.</p>
+        <details class="offline-more"><summary>Détails</summary>
+          <p>Ennemis vaincus : ~${formatNumber(summary.kills)} · Objets : ${summary.items.length - summary.autoRecycledCount}
+            ${recycled ? `<span class="muted">(+${recycled} convertis en or)</span>` : ''}</p>
+          ${items ? `<div class="loot-row">${items}</div>` : ''}
+          ${journal ? `<div class="section-title">Avant de passer hors ligne</div>${journalHtml(journal)}` : ''}
+          <p class="muted">Hors ligne, le héros reste sur l'étape ${stageLabel(summary.stage)} (la meilleure où il gagne vraiment) à
+            ${BALANCE.offline.farmMultiplier * 100} % de son rythme, sans affronter de boss.</p>
+        </details>
         <div class="detail-actions"><button class="btn" data-action="close-modal">Continuer</button>
           <button class="btn btn-gold" data-action="session-return">${img('icon_bolt', 'ico20')} Retour de session (S)</button></div>`);
   }
