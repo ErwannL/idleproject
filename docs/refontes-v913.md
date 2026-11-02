@@ -150,3 +150,38 @@ peut fabriquer 4,3 Épiques par heure au lieu de 1,5, alors que le butin en donn
 - **Critère d'abandon :** fabrications Épiques en fin de partie au-delà de 10 % des Épiques obtenus par heure, ou retours
   de joueurs sur la disparition de l'essence de boss. **Annuler :** réintroduire `materials.essence` dans une 9.1.4
   (sans reprendre les éclats donnés).
+
+## Lot F — Missions : journalières + hauts faits + une piste du mois (fait, simulation d'abord)
+
+Les hebdomadaires et les mensuelles sont fondues dans **la piste du mois** (`MISSION_TRACK`, `data/missions.js`) : 7
+objectifs cumulés sur le mois (connexions 15, monstres 15 000, boss 87, donjons 17, invocations 50, objets Rares+ 130,
+améliorations 43 — à chaque fois le plus exigeant de l'ancien objectif mensuel ou de 4,33 × l'hebdomadaire, puisqu'une
+même victoire comptait pour les deux). La piste avance de la moyenne des objectifs (chacun plafonné) et paie 10 paliers
+croissants (300 → 2 100 gemmes, 18 clés, 500 éclats en tout). Journalières, connexion, contrats, prime et hauts faits
+ne changent pas. Onglet « Cette semaine » → « Piste du mois ».
+
+Valeurs visées (bilan `docs/mesures-v913.md`, anciens tickets comptés à 100 gemmes depuis le lot E) : journalières
+200 + 100 = 300 gemmes par jour (inchangé), hebdomadaires 770 + 500 = 1 270 par semaine, mensuelles 2 900 + 1 600 =
+4 500 par mois, soit 1 270 × 4,33 + 4 500 ≈ 10 000 gemmes par mois pour un joueur qui faisait tout. Simulation
+(`node tools/sim-missions-v913.mjs`, moteur réel pour la piste, 6 mois de calendrier, journalières à part) :
+
+| Profil (2 h par jour joué) | Gemmes/semaine avant → après | Gemmes/mois avant → après | Clés/mois | Éclats/mois |
+|---|---|---|---|---|
+| tous les jours, 4 boss/jour | 2 327 → 2 320 | 10 028 → 10 000 | 18 → 18 | 495 → 500 |
+| tous les jours, 3 boss/jour | 2 299 → 2 239 | 9 908 → 9 650 | 18 → 17 | 495 → 492 |
+| 5 jours sur 7 | 2 321 → 2 077 | 10 003 → 8 950 | 18 → 16 | 477 → 475 |
+| 3 jours sur 7 | 244 → 1 330 | 1 050 → 5 733 | 0 → 13 | 477 → 383 |
+| week-end seulement | 244 → 882 | 1 050 → 3 800 | 0 → 10 | 477 → 308 |
+
+Lecture : le joueur quotidien garde ses gemmes (−0 à −3 %), le joueur de 5 jours perd ~10 % (il n'atteint plus tout à
+fait 100 %), les joueurs occasionnels gagnent beaucoup : l'ancien système ne payait presque rien sous 4 jours par
+semaine (boss et améliorations hebdomadaires hors d'atteinte, pas de coffre). Les paliers croissants limitent ce gain
+(paliers égaux : 6 667 et 5 167 gemmes par mois pour 3 jours et le week-end). Perte assumée : le rendez-vous du lundi.
+
+- **Compteurs convertis** (`migrateMissionTrack`) : mission hebdomadaire ou mensuelle remplie mais pas récupérée, et
+  coffre prêt, versés tout de suite (partie de fin de référence : +1 000 gemmes, +110 éclats) ; la piste reprend les
+  compteurs du mois en cours (et de la semaine pour objets Rares et améliorations) ; les paliers déjà atteints sont
+  marqués récupérés, parce que l'ancien système les a payés ce mois-ci (pas de double récompense).
+- **Critère d'abandon :** gemmes de missions par joueur quotidien en baisse de plus de 10 % sur un mois, ou dépense
+  d'invocations des joueurs occasionnels multipliée par plus de 3 (inflation). **Annuler :** remettre
+  `MISSION_PERIODS` weekly/monthly (les compteurs de la piste peuvent repartir de zéro le mois suivant).

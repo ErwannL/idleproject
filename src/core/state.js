@@ -12,7 +12,7 @@ import { REBIRTH, TALENTS } from '../data/rebirth.js';
 import { legacyTalentRefund } from './rebirth.js';
 import { SKILLS } from '../data/skills.js';
 import { ensureContracts } from './contracts.js';
-import { emptyMissions, sanitizeMissions } from './missions.js';
+import { emptyMissions, periodKey, sanitizeMissions } from './missions.js';
 import { itemBase, makeItem, rarityById, refreshItemStats } from './loot.js';
 import { bossDungeon, bossFirstStage, powerSlots, rollPower } from './powers.js';
 import { Rng } from './rng.js';
@@ -35,7 +35,9 @@ import { museumItems } from './museum.js';
 import { sanitizeBounty } from './bounty.js';
 import { emptyTranscend, sanitizeTranscend } from './transcend.js';
 import { sanitizeChallenge } from './challenge.js';
-import { migrateCodex, migrateEssence, migrateTickets } from './migrations-v913.js';
+import { migrateCodex, migrateEssence, migrateMissionTrack, migrateTickets } from './migrations-v913.js';
+import { MISSION_TRACK } from '../data/missions.js';
+import { grantReward } from './rewards.js';
 import { ENCYCLOPEDIA_SECTIONS } from './encyclopedia.js';
 
 // v1 : prototype · v2 (format identique) · v3 : pouvoirs, Renaissance, verrou
@@ -434,6 +436,8 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   cleanPowers(state, raw);
   cleanCollections(state, raw);
   cleanActivities(state, raw);
+  // v9.1.3 (lot F) : hebdomadaires et mensuelles → piste du mois (après les missions, gemmes, clés et éclats : elle peut en verser).
+  migrateMissionTrack(state, raw.missions, periodKey('monthly', now), MISSION_TRACK, (r) => grantReward(state, r));
 
   // Identifiants uniques : nextItemId dépasse tous les identifiants existants (sac, équipement, boîte).
   const used = [...state.inventory, ...Object.values(state.equipment), ...state.inbox.map((e) => e.item), ...state.stash, ...mannequinItems(state), ...museumItems(state)]

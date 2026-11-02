@@ -1,13 +1,13 @@
-// Objectifs › Missions : connexion, journalières, hebdomadaires, mensuelles, contrats, prime du jour, hauts faits.
+// Objectifs › Missions : connexion, journalières, piste du mois (v9.1.3), contrats, prime du jour, hauts faits.
 import { BOUNTY, bountyProgress, dailyBounty } from '../../core/bounty.js';
 import { ENEMIES } from '../../data/enemies.js';
 import { ZONES } from '../../data/zones.js';
 import { ITEM_SETS } from '../../data/sets.js';
 import { animCanvas } from '../animator.js';
 import { contractLabel, contractTitle } from '../../core/contracts.js';
-import { bonusReady, loginPending, missionStatus, periodRemaining } from '../../core/missions.js';
+import { bonusReady, loginPending, missionStatus, periodRemaining, trackNext, trackPct } from '../../core/missions.js';
 import { rewardText } from '../../core/rewards.js';
-import { LOGIN_CALENDAR, MISSION_PERIODS } from '../../data/missions.js';
+import { LOGIN_CALENDAR, MISSION_PERIODS, MISSION_TRACK } from '../../data/missions.js';
 import { escapeHtml, fold, formatNumber, img, progressBar, rewardIcons, segment } from '../common.js';
 import { stageLabel, zoneStartStage } from '../../core/combat.js';
 import { ACHIEVEMENT_BONUS, ACHIEVEMENTS, achievementCount, achievementGroups } from '../../core/achievements.js';
@@ -87,6 +87,28 @@ function periodTab(state, period) {
   return `<div class="m-reset muted">${period.reset} · dans ${remainingText(periodRemaining(period.id))}</div>${rows}${chest}`;
 }
 
+// v9.1.3 (lot F) : piste du mois — hebdomadaires et mensuelles fondues. Une barre à 10 paliers, puis les objectifs.
+function trackTab(state) {
+  const pct = trackPct(state);
+  const next = trackNext(state);
+  const claimed = state.missions.track.claimed;
+  const steps = MISSION_TRACK.tiers.map((t, i) => {
+    const got = i < claimed;
+    const ready = !got && pct >= t.pct - 1e-9;
+    return `<div class="m-step${got ? ' got' : ready ? ' ready' : ''}" style="left:${t.pct}%" title="${t.pct} % : ${escapeHtml(rewardText(t.reward, formatNumber))}">
+      <span>${got ? '✔' : img('icon_chest')}</span><small>${t.pct}</small></div>`;
+  }).join('');
+  const head = next ? (next.ready
+    ? `<button class="btn btn-gold small" data-action="claim-track" aria-label="Récupérer : ${escapeHtml(rewardText(next.reward, formatNumber))}">Récupérer ${rewardIcons(next.reward)}</button>`
+    : `<span class="muted">Palier ${next.pct} % : ${rewardIcons(next.reward)}</span>`) : '<span class="good">Piste terminée ✔</span>';
+  const p = state.missions.track.progress;
+  const rows = MISSION_TRACK.goals.map((g) => `<div class="m-row${(p[g.id] ?? 0) >= g.target ? ' claimed' : ''}"><div class="m-icon">${img(TYPE_ICONS[g.type] ?? 'icon_star')}</div>
+    <div class="m-main"><div class="m-label"><b>${escapeHtml(g.label)}</b></div>${progressBar(Math.min(1, (p[g.id] ?? 0) / g.target), `${formatNumber(p[g.id] ?? 0)} / ${formatNumber(g.target)}`)}</div></div>`).join('');
+  return `<div class="row-between"><b>${MISSION_TRACK.label} : ${Math.floor(pct)} %</b>${head}</div>
+    <div class="m-track enc-track"><div class="m-fill" style="width:${Math.min(100, pct)}%"></div>${steps}</div>
+    <div class="m-reset muted">${MISSION_TRACK.reset} · dans ${remainingText(periodRemaining('monthly'))} · chaque objectif compte pour 1/${MISSION_TRACK.goals.length}</div>${rows}`;
+}
+
 function contractsTab(state) {
   const rows = state.contracts.map((c) => row({
     icon: TYPE_ICONS[c.type] ?? 'icon_trophy', label: contractLabel(c), progress: c.progress, target: c.target, reward: c.reward,
@@ -118,8 +140,8 @@ function bountyCard(state) {
   </div>`;
 }
 
-// v9.1.0 : trois parties — Aujourd'hui (journalières, connexion, prime, contrats), Cette semaine (hebdomadaires,
-// mensuelles repliées), Hauts faits. « Tout récupérer » est dans l'en-tête du panneau (toujours visible).
+// v9.1.0 : trois parties — Aujourd'hui (journalières, connexion, prime, contrats), Piste du mois (v9.1.3 : hebdomadaires et
+// mensuelles fondues), Hauts faits. « Tout récupérer » est dans l'en-tête du panneau (toujours visible).
 export default {
   id: 'contracts',
   title: 'Missions',
@@ -130,16 +152,15 @@ export default {
   },
   render(ui, state) {
     const count = (ids) => ui.claims.filter((c) => c.tab === 'contracts' && ids.includes(c.period ?? c.kind)).length;
-    const parts = [['today', 'Aujourd\'hui', 'icon_book'], ['week', 'Cette semaine', 'icon_map'], ['achievements', 'Hauts faits', 'icon_star']];
-    const ready = { today: count(['daily', 'login', 'contract', 'bounty']), week: count(['weekly', 'monthly']), achievements: count(['achievement']) };
+    const parts = [['today', 'Aujourd\'hui', 'icon_book'], ['week', 'Piste du mois', 'icon_map'], ['achievements', 'Hauts faits', 'icon_star']];
+    const ready = { today: count(['daily', 'login', 'contract', 'bounty']), week: count(['track']), achievements: count(['achievement']) };
     const tab = parts.some(([id]) => id === ui.view.missionTab) ? ui.view.missionTab : 'today';
     const seg = segment(parts.map(([id, label, icon]) => [id, ready[id] ? `${label} (${ready[id]})` : label, icon]), 'mission-tab', tab);
     const period = (id) => MISSION_PERIODS.find((p) => p.id === id);
     let body;
     if (tab === 'achievements') body = `<div class="card m-body">${achievementsTab(state)}</div>`;
     else if (tab === 'week') {
-      body = `<div class="card m-body"><div class="section-title">${period('weekly').label}</div>${periodTab(state, period('weekly'))}</div>
-        ${fold(ui, 'monthly', period('monthly').label, () => periodTab(state, period('monthly')), { extra: ready.week && count(['monthly']) ? `<span class="good">${count(['monthly'])} prête${count(['monthly']) > 1 ? 's' : ''}</span>` : '' })}`;
+      body = `<div class="card m-body">${trackTab(state)}</div>`;
     } else {
       body = `<div class="card m-body"><div class="section-title">${period('daily').label}</div>${periodTab(state, period('daily'))}</div>
         ${fold(ui, 'login', 'Connexion', () => loginTab(state), { open: (loginPending(state) > 0), extra: (loginPending(state) > 0) ? '<span class="good">à récupérer</span>' : '' })}

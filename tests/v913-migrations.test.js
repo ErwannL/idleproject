@@ -2,7 +2,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { SAVE_VERSION, sanitizeState } from '../src/core/state.js';
-import { migrateCodex, migrateEssence, migrateTickets } from '../src/core/migrations-v913.js';
+import { migrateCodex, migrateEssence, migrateMissionTrack, migrateTickets } from '../src/core/migrations-v913.js';
+import { MISSION_TRACK } from '../src/data/missions.js';
+import { claimTrackTier, emptyMissions, periodKey, trackNext, trackPct } from '../src/core/missions.js';
 import { ENCYCLOPEDIA_SECTIONS, claimSection, sectionStatus } from '../src/core/encyclopedia.js';
 import { BALANCE, ESSENCE_SHARDS, TICKET_GEMS } from '../src/data/balance.js';
 import { allItems, endSave, oldSave, NOW } from './helpers/v913-saves.js';
@@ -40,7 +42,9 @@ test('lot E : tickets → gemmes (1 ticket = 100 gemmes), seul et dans la migrat
   assert.equal('tickets' in s, false);
   const end = endSave();
   const e = load(end);
-  assert.equal(e.gems, end.gems + end.tickets * 100);
+  // + 1 000 gemmes : missions de la semaine remplies mais pas récupérées (300 + 100) et leur coffre (600), versés à la
+  // conversion des missions (test plus bas).
+  assert.equal(e.gems, end.gems + end.tickets * 100 + 1000);
   assert.equal(load(e).gems, e.gems, 'rejouée : rien de plus');
 });
 
@@ -70,11 +74,52 @@ test('lot F : essences → éclats (1 essence = 10 éclats), coût des recettes 
   assert.equal(migrateEssence(state, { essence: 'x' }), 0);
   const end = endSave();
   const e = load(end);
-  assert.equal(e.materials.shards, end.materials.shards + end.materials.essence * 10);
+  assert.equal(e.materials.shards, end.materials.shards + end.materials.essence * 10 + 110); // + mission « 30 Rares »
   assert.equal('essence' in e.materials, false);
   assert.equal(load(e).materials.shards, e.materials.shards, 'rejouée : rien de plus');
   // Recettes : ancien coût total (éclats + essences × 10) = nouveau coût.
   assert.equal(BALANCE.forge.epicCraft.shards, 60 + 6 * 10);
   assert.equal(BALANCE.forge.reforgeShards, 10 + 1 * 10);
   assert.deepEqual(BALANCE.materials.shards, { common: 1, rare: 3, epic: 8 + 10, legendary: 20 + 30 });
+});
+
+test('lot F : missions — hebdomadaires et mensuelles converties en piste du mois, sans perte ni double récompense', () => {
+  const month = periodKey('monthly', NOW);
+  // Seule : une mission hebdo remplie non récupérée est versée ; les compteurs du mois passent sur la piste.
+  const state = { missions: emptyMissions() };
+  const paid = [];
+  const raw = {
+    weekly: { key: 'x', progress: { kills: 3000, rareLoot: 12 }, claimed: [], bonus: false },
+    monthly: { key: month, progress: { logins: 15, kills: 15000, bosses: 87, dungeons: 17, summons: 50 }, claimed: ['logins'], bonus: false },
+  };
+  const given = migrateMissionTrack(state, raw, month, MISSION_TRACK, (r) => { paid.push(r); return r; });
+  assert.equal(given.gems, 150 + 400 + 600 + 300 + 500 + 2000, 'remplies et pas récupérées : versées, coffre du mois compris');
+  assert.equal(given.keys, 5);
+  assert.equal(state.missions.track.progress.kills, 15000);
+  assert.equal(state.missions.track.progress.rareLoot, 12, 'semaine en cours pour les objectifs seulement hebdomadaires');
+  const pct = (5 + 12 / 130) / 7 * 100;
+  assert.equal(state.missions.track.claimed, MISSION_TRACK.tiers.filter((t) => pct >= t.pct).length, 'paliers déjà payés marqués');
+  assert.equal(migrateMissionTrack(state, { daily: {} }, month, MISSION_TRACK, () => ({})), null, 'format 8 : rien');
+  // Migration complète sur les deux sauvegardes de référence.
+  const s = load(oldSave());
+  assert.equal(s.missions.weekly, undefined);
+  assert.equal(s.missions.track.key, month);
+  assert.equal(s.missions.track.progress.kills, 9000);
+  const e = load(endSave());
+  assert.ok(trackPct(e) > 0);
+  const before = e.gems;
+  const next = trackNext(e);
+  if (next?.ready) assert.fail('aucun palier déjà payé ne doit être prêt');
+  e.missions.track.progress = Object.fromEntries(MISSION_TRACK.goals.map((g) => [g.id, g.target]));
+  let n = 0;
+  while (claimTrackTier(e)) n += 1;
+  assert.equal(n, MISSION_TRACK.tiers.length - load(endSave()).missions.track.claimed);
+  assert.equal(e.gems - before, MISSION_TRACK.tiers.slice(-n).reduce((a, t) => a + t.reward.gems, 0));
+});
+
+test('lot F : piste du mois — totaux par mois proches des anciennes hebdomadaires × 4,33 + mensuelles', () => {
+  const sum = (k) => MISSION_TRACK.tiers.reduce((a, t) => a + (t.reward[k] ?? 0), 0);
+  assert.equal(sum('gems'), 10000); // 1 270 × 52/12 + 4 500 = 10 003
+  assert.equal(sum('keys'), 18); // 3 × 52/12 + 5 = 18
+  assert.equal(sum('shards'), 500); // 110 × 52/12 = 477
 });

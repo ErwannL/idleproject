@@ -202,7 +202,7 @@ export class UI {
       }, { capture: true });
     }
     this.view = {
-      closed: new Set(['weekly', 'monthly']), // sections repliées (missions…)
+      closed: new Set(), // sections repliées (missions…)
       open: new Set(), // v9.1.0 : blocs repliés par défaut que le joueur a ouverts
       upgradeCat: 'combat', invTab: 'bag', selectedItemId: null, bulkRarity: 'common', bulkArmed: false,
       heroSel: null, companionSel: null, talentSel: null, zoneSel: null,
@@ -781,6 +781,7 @@ export class UI {
       case 'claim-contract': a.claimContract(Number(value)); break;
       case 'claim-mission': { const [period, id] = value.split('|'); a.claimMission(period, id); break; }
       case 'claim-mission-bonus': a.claimMissionBonus(value); break;
+      case 'claim-track': a.claimTrack(); break;
       case 'claim-login': a.claimLogin(); break;
       case 'claim-all': a.claimAll(); break;
       case 'claim-everything': a.claimEverything(); break;

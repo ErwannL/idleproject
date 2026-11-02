@@ -14,7 +14,7 @@ import { createNewState, sanitizeState } from '../src/core/state.js';
 
 const day = (y, m, d, h = 12) => new Date(y, m - 1, d, h).getTime();
 
-test('missions : réinitialisation quotidienne, hebdomadaire (lundi) et mensuelle', () => {
+test('missions : réinitialisation quotidienne et piste du mois (v9.1.3 : hebdo et mensuel fondus)', () => {
   assert.equal(periodKey('weekly', day(2026, 10, 25)), '2026-10-19'); // dimanche → lundi précédent
   assert.equal(periodKey('weekly', day(2026, 10, 26)), '2026-10-26');
   assert.equal(periodKey('monthly', day(2026, 10, 25)), '2026-10');
@@ -22,11 +22,13 @@ test('missions : réinitialisation quotidienne, hebdomadaire (lundi) et mensuell
   refreshMissions(state, day(2026, 10, 25));
   trackContracts(state, 'kills', 500);
   assert.equal(state.missions.daily.progress.kills, 300);
-  assert.equal(state.missions.weekly.progress.kills, 500);
+  assert.equal(state.missions.track.progress.kills, 500);
   refreshMissions(state, day(2026, 10, 26));
   assert.equal(state.missions.daily.progress.kills, undefined);
-  assert.equal(state.missions.weekly.progress.kills, undefined); // lundi : nouvelle semaine
-  assert.equal(state.missions.monthly.progress.kills, 500);
+  assert.equal(state.missions.track.progress.kills, 500); // même mois
+  refreshMissions(state, day(2026, 11, 1));
+  assert.equal(state.missions.track.progress.kills, undefined); // 1er du mois : nouvelle piste
+  assert.equal(state.missions.weekly, undefined);
 });
 
 test('missions : récompenses en gemmes, coffre bonus quand tout est récupéré', () => {
@@ -58,7 +60,7 @@ test('connexion (v9.1.3) : jour compté à l\'ouverture, sans remise à zéro, c
   assert.equal(loginDay(state), 1);
   refreshMissions(state, day(2026, 10, 5)); // jours manqués : pas de retour au jour 1
   assert.equal(state.missions.login.days, 3);
-  assert.equal(state.missions.monthly.progress.logins, 3);
+  assert.equal(state.missions.track.progress.logins, 3);
   const gems = state.gems;
   const given = claimLogin(state); // jours 2 et 3 d'un coup (v9.1.3 : l'ancien ticket du jour 2 vaut 100 gemmes)
   assert.deepEqual(given, { gems: 150 });

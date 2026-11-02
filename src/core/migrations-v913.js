@@ -42,3 +42,61 @@ export function migrateEssence(state, rawMaterials) {
   delete state.materials.essence;
   return essence;
 }
+
+// Lot F — Missions : hebdomadaires et mensuelles fondues dans la piste du mois. Compteurs convertis :
+// - une mission hebdomadaire ou mensuelle remplie mais pas récupérée, ou un coffre bonus prêt, est versé tout de suite
+//   (rien de perdu) ;
+// - la piste reprend les compteurs du mois en cours (mensuels ; ceux qui n'existaient qu'en hebdomadaire — objets Rares,
+//   améliorations — reprennent la semaine en cours) ;
+// - les paliers déjà atteints par ces compteurs sont marqués récupérés : l'ancien système les a payés ce mois-ci
+//   (pas de double récompense). Le reste du mois paie les paliers restants.
+// Abandon et retour arrière : docs/refontes-v913.md (missions).
+export function migrateMissionTrack(state, rawMissions, monthKey, track, grant) {
+  const old = rawMissions && typeof rawMissions === 'object' ? rawMissions : null;
+  if (!old || (!old.weekly && !old.monthly)) return null;
+  const given = {};
+  const add = (r) => { for (const [k, v] of Object.entries(r ?? {})) given[k] = (given[k] ?? 0) + v; };
+  for (const [id, period] of Object.entries(LEGACY_PERIODS)) {
+    const run = old[id];
+    if (!run || typeof run !== 'object') continue;
+    const claimed = new Set(Array.isArray(run.claimed) ? run.claimed : []);
+    const done = period.missions.filter((m) => count(run.progress?.[m.id]) >= m.target);
+    for (const m of done) if (!claimed.has(m.id)) { add(grant(m.reward)); claimed.add(m.id); }
+    if (run.bonus !== true && period.missions.every((m) => claimed.has(m.id))) add(grant(period.bonus));
+  }
+  const month = old.monthly?.key === monthKey ? old.monthly : null;
+  const week = old.weekly;
+  const t = state.missions.track;
+  t.key = monthKey;
+  for (const g of track.goals) {
+    const v = Math.max(count(month?.progress?.[g.id]), g.id === 'rareLoot' || g.id === 'upgrades' ? count(week?.progress?.[g.id]) : 0);
+    t.progress[g.id] = Math.min(g.target, Math.max(t.progress[g.id] ?? 0, v));
+  }
+  const pct = (track.goals.reduce((s, g) => s + Math.min(1, (t.progress[g.id] ?? 0) / g.target), 0) / track.goals.length) * 100;
+  t.claimed = Math.max(t.claimed ?? 0, track.tiers.filter((x) => pct >= x.pct - 1e-9).length);
+  return given;
+}
+
+// Anciennes missions hebdomadaires et mensuelles (v9.1.2, tickets déjà en gemmes), pour la conversion seulement.
+const LEGACY_PERIODS = {
+  weekly: {
+    missions: [
+      { id: 'kills', target: 3000, reward: { gems: 150 } },
+      { id: 'bosses', target: 20, reward: { gems: 120, keys: 3 } },
+      { id: 'dungeons', target: 4, reward: { gems: 300 } },
+      { id: 'rareLoot', target: 30, reward: { shards: 110 } },
+      { id: 'upgrades', target: 10, reward: { gems: 100 } },
+    ],
+    bonus: { gems: 600 },
+  },
+  monthly: {
+    missions: [
+      { id: 'logins', target: 15, reward: { gems: 700 } },
+      { id: 'kills', target: 15000, reward: { gems: 400 } },
+      { id: 'bosses', target: 80, reward: { gems: 600 } },
+      { id: 'dungeons', target: 15, reward: { gems: 300, keys: 5 } },
+      { id: 'summons', target: 50, reward: { gems: 500 } },
+    ],
+    bonus: { gems: 2000 },
+  },
+};

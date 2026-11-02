@@ -10,7 +10,7 @@ import { TOUR_VERSION, maybeStartTour, startTour } from './ui/onboarding.js';
 import { activeSynergies, companionById, onExpedition, replaceCompanion, toggleCompanion, upgradeCompanion } from './core/companions.js';
 import { claimContract } from './core/contracts.js';
 import { claimAchievement, claimableAchievements } from './core/achievements.js';
-import { claimAllMissions, claimLogin, claimMission, claimMissionBonus, mergeReward, refreshMissions } from './core/missions.js';
+import { claimAllMissions, claimLogin, claimMission, claimMissionBonus, claimTrackTier, mergeReward, refreshMissions } from './core/missions.js';
 import { abandonDungeon, dungeonById, setDungeonPath, startDungeon } from './core/dungeon.js';
 import { DUNGEON_DIFFICULTIES } from './data/dungeons.js';
 import { buyUpgradeBulk } from './core/economy.js';
@@ -300,6 +300,10 @@ const actions = {
     const given = claimMissionBonus(state, period);
     done(Boolean(given), given ? `Coffre de missions : ${rewardText(given)}` : null, '#7fd4ff');
   },
+  claimTrack() { // v9.1.3 : palier de la piste du mois
+    const given = claimTrackTier(state);
+    done(Boolean(given), given ? `Piste du mois : ${rewardText(given)}` : null, '#7fd4ff');
+  },
   claimLogin() {
     const given = claimLogin(state);
     done(Boolean(given), given ? `Connexion : ${rewardText(given)}` : null, '#7fd4ff');
@@ -332,6 +336,7 @@ const actions = {
         case 'login': add(claimLogin(state)); break;
         case 'mission': add(claimMission(state, c.period, c.id)); break;
         case 'missionBonus': add(claimMissionBonus(state, c.period)); break;
+        case 'track': add(claimTrackTier(state)); break;
         case 'contract': add(claimContract(state, c.id, rng)); break;
         case 'achievement': { const a = claimAchievement(state, c.id); if (a) add({ gems: a.gems }); break; }
         case 'event': { const g = claimEvent(state, c.id); if (g) { add(g); if (g.item) items += 1; } break; }

@@ -7,13 +7,17 @@ import { createNewState } from '../../src/core/state.js';
 import { makeItem } from '../../src/core/loot.js';
 import { ITEM_BASES, SIGNATURE_ITEMS } from '../../src/data/items.js';
 import { ITEM_SETS } from '../../src/data/sets.js';
+import { periodKey } from '../../src/core/missions.js';
 
 const NOW = new Date(2026, 9, 21, 12).getTime();
 const v7 = (s) => {
   const raw = JSON.parse(JSON.stringify(s));
   raw.version = 7;
+  delete raw.missions.track; // format 7 : hebdomadaires et mensuelles, pas de piste
   return raw;
 };
+// Missions au format 7 (périodes de la semaine et du mois de NOW).
+const period = (id, progress, claimed = [], bonus = false) => ({ key: periodKey(id, NOW), progress, claimed, bonus });
 
 export function oldSave() {
   const s = createNewState(NOW - 86400e3, 11);
@@ -26,8 +30,8 @@ export function oldSave() {
   s.inventory[1].upgrades = 3; s.inventory[1].boosts = { atk: 3 };
   s.companions.owned.cat = { level: 10, stars: 2 };
   s.missions.daily.progress = { kills: 120, bosses: 2 };
-  s.missions.weekly.progress = { kills: 2000, bosses: 12, dungeons: 3 };
-  s.missions.monthly.progress = { logins: 9, kills: 9000, bosses: 40 };
+  s.missions.weekly = period('weekly', { kills: 2000, bosses: 12, dungeons: 3 });
+  s.missions.monthly = period('monthly', { logins: 9, kills: 9000, bosses: 40 });
   return v7(s);
 }
 
@@ -58,10 +62,9 @@ export function endSave() {
   s.rushes.levels = { gold: 8, xp: 6, loot: 5 };
   s.skills = { quick: 1 };
   s.powers.slime_king = { current: 'p1', pending: null, victories: 40, rerolls: 6, sinceHigh: 4, charges: 3, masteryClaimed: 4 };
-  s.missions.weekly.progress = { kills: 2500, bosses: 18, dungeons: 4, rareLoot: 30, upgrades: 10 };
-  s.missions.weekly.claimed = ['kills', 'bosses'];
-  s.missions.monthly.progress = { logins: 14, kills: 15000, bosses: 80, dungeons: 10, summons: 30 };
-  s.missions.monthly.claimed = ['kills', 'bosses'];
+  // Semaine : 3 missions remplies mais pas récupérées (donjons, objets Rares, améliorations).
+  s.missions.weekly = period('weekly', { kills: 3000, bosses: 20, dungeons: 4, rareLoot: 30, upgrades: 10 }, ['kills', 'bosses']);
+  s.missions.monthly = period('monthly', { logins: 14, kills: 15000, bosses: 80, dungeons: 10, summons: 30 }, ['kills', 'bosses']);
   return v7(s);
 }
 

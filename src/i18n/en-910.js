@@ -356,6 +356,10 @@ export const EXACT_910 = {
   'Une charge par changement ; 1 charge par nouvelle victoire sur ce boss': 'One charge per change; 1 charge per new victory on this boss',
   'Règles du changement de pouvoir': 'Power change rules',
   "Le recyclage et les boss rendent des éclats. Renforcer, Réaffûter et Relancer les effets se font depuis la fiche d'un objet (Détails).": "Recycling and bosses give shards. Upgrade, Sharpen and Reroll effects are done from an item's sheet (Details).",
+  'Missions du jour, piste du mois, contrats, prime du jour et hauts faits (bonus permanents). Tout récupérer : touche G.': 'Daily missions, monthly track, contracts, daily bounty and achievements (permanent bonuses). Claim all: G key.',
+  'Piste du mois': 'Monthly track', 'Piste terminée ✔': 'Track complete ✔', 'Jours de connexion': 'Login days', 'Monstres vaincus': 'Monsters defeated',
+  'Boss vaincus': 'Bosses defeated', 'Donjons terminés': 'Dungeons cleared', 'Invocations': 'Summons', 'Objets Rares ou mieux': 'Rare or better items',
+  'Améliorations ou fusions': 'Upgrades or fusions',
   'Outils du Musée': 'Museum tools', 'auto désactivée': 'auto off',
 };
 
@@ -529,6 +533,10 @@ export const PATTERNS_910 = [
   [/^Durée, place (\d+)$/, 'Duration, slot $1'],
   [/^Palier (\d+) % :$/, 'Tier $1 %:'],
   [/^Palier (\d+)\/(\d+)$/, 'Tier $1/$2'],
+  [/^Piste du mois : (\d+) %$/, 'Monthly track: $1 %'],
+  [/^Piste du mois : palier (\d+) %$/, 'Monthly track: tier $1 %'],
+  [/^Piste du mois : (.+)$/, (m) => `Monthly track: ${tr(m[1])}`],
+  [/^(.+) · dans (.+) · chaque objectif compte pour 1\/(\d+)$/, (m) => `${tr(m[1])} · in ${tr(m[2])} · each goal counts for 1/${m[3]}`],
   [/^Butin du boss : \+([\d\s.,]+[KMBT]?) éclats$/, 'Boss loot: +$1 shards'],
   [/^\+(\d+) charges? de relance au plus$/, (m) => `+${m[1]} max reroll charge${m[1] === '1' ? '' : 's'}`],
   [/^Changer le pouvoir \((\d+)\/(\d+)\)$/, 'Change power ($1/$2)'],

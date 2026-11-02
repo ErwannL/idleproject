@@ -159,7 +159,7 @@ export const PANEL_HELP = {
     more: 'Deux systèmes : l\'encyclopédie (pourcentage global et paliers de chaque section) et le Musée (un objet ancestral par vitrine, bonus permanent, sans effet sur le pourcentage).',
   },
   contracts: {
-    short: 'Missions du jour et de la semaine, contrats, prime du jour et hauts faits (bonus permanents). Tout récupérer : touche G.',
+    short: 'Missions du jour, piste du mois, contrats, prime du jour et hauts faits (bonus permanents). Tout récupérer : touche G.',
     more: 'Les contrats progressent seuls, même jeu fermé ; un contrat rempli est remplacé. La prime du jour donne une pièce d\'ensemble Épique ou mieux.',
   },
   inbox: {
