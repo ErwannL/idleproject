@@ -17,7 +17,7 @@ export const TRANSCEND_RESETS = [
   'Renaissances (une partie est conservée)', 'Arbre de talents', 'Fragments anciens',
 ];
 export const TRANSCEND_KEEPS = [
-  'Équipement, sac, matériaux et ensembles', 'Compagnons, familiers et expéditions', 'Gemmes, tickets et clés',
+  'Équipement, sac, matériaux et ensembles', 'Compagnons, familiers et expéditions', 'Gemmes et clés',
   'Bonus éternels, hauts faits, records', 'Étoiles et bonus stellaires',
 ];
 

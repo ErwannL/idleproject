@@ -49,8 +49,7 @@ import { animateMenus } from './ui/animator.js';
 import { createGameAudio } from './audio/game-audio.js';
 import { simSpeed, unlockedSpeeds } from './core/cheats.js';
 import { applyLoadout, renameLoadout, saveLoadout } from './core/loadouts.js';
-import { claimCollection } from './core/codex.js';
-import { claimEncyclopedia } from './core/encyclopedia.js';
+import { claimEncyclopedia, claimSection } from './core/encyclopedia.js';
 import { activeClass, canEquip, setHeroClass, weaponClass } from './core/classes.js';
 import { setLang, startAutoTranslate } from './i18n/i18n.js';
 import { CloudError, createCloudClient, syncOnce } from './core/cloud-save.js';
@@ -194,7 +193,7 @@ const actions = {
     done(Boolean(given), given ? `Encyclopédie : ${rewardText(given)}` : null, '#f2d083');
   },
   claimCollection(id) {
-    const given = claimCollection(state, id);
+    const given = claimSection(state, id); // v9.1.3 : palier de section de l'encyclopédie (ancien Codex)
     done(Boolean(given), given ? `Collection : ${rewardText(given)}` : null, '#f2d083');
   },
   replaceCompanion(newId, oldId) {
@@ -338,7 +337,7 @@ const actions = {
         case 'event': { const g = claimEvent(state, c.id); if (g) { add(g); if (g.item) items += 1; } break; }
         case 'expedition': add(claimExpedition(state, c.slot, Date.now(), grantReward)); break;
         case 'encyclopedia': add(claimEncyclopedia(state)); break;
-        case 'collection': add(claimCollection(state, c.id)); break;
+        case 'collection': add(claimSection(state, c.id)); break;
         case 'mastery': add(claimMastery(state, c.bossId)); break;
         case 'bounty': { const r = claimBounty(state, rng); if (r) { add({ gems: r.gems }); items += 1; } break; }
         default: break;

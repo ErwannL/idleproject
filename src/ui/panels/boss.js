@@ -11,10 +11,8 @@ import {
 import { rewardText } from '../../core/rewards.js';
 import { itemIconUrl } from '../../render/pixel.js';
 import { ZONES } from '../../data/zones.js';
-import { COLLECTIONS } from '../../data/codex.js';
 import { BOSS_LORE } from '../../data/lore.js';
 import { bossTrait } from '../../core/boss-traits.js';
-import { collectionMissing, collectionStatus } from '../../core/codex.js';
 import { coin, effectText, escapeHtml, fold, formatNumber, icon, img, progressBar, rarityLabel } from '../common.js';
 import { animCanvas } from '../animator.js';
 
@@ -42,32 +40,6 @@ function portrait(bossId, known, scale = 1) {
   if (known) return animCanvas(`foe:${boss.sprite ?? ENEMIES[boss.base].sprite}`, 124, 80, scale);
   const sprite = boss.sprite ?? ENEMIES[boss.base].sprite;
   return icon(sprite, 1, known ? (boss.palette ? { colors: boss.palette } : {}) : { tint: { color: '#4a5a78', alpha: 1 } });
-}
-
-// Collections du Codex : paliers de découverte et récompenses.
-export function collections(ui, state) {
-  return `<div class="collections">${COLLECTIONS.map((c) => {
-    const st = collectionStatus(state, c);
-    const goal = Math.min(st.next ?? c.milestones[c.milestones.length - 1], st.total);
-    return `<div class="collection">${img(c.icon)}<div class="grow"><b>${c.label}</b> <span class="muted coll-text">${c.text}</span>
-        ${progressBar(Math.min(1, st.found / goal), `${st.found} / ${goal}`)}</div>
-      ${st.next === null ? '<span class="good">✔</span>' : st.ready
-        ? `<button class="btn small btn-gold" data-action="claim-collection" data-value="${c.id}" title="${rewardText(c.reward)}">Récupérer</button>`
-        : `<span class="muted coll-next" title="Récompense du palier ${goal}">à ${goal} : ${rewardText(c.reward)}</span>`}
-      ${st.found < st.total ? `<button class="btn small" data-action="collection-missing" data-value="${c.id}" title="Ce qu'il reste à découvrir">Manquants (${st.total - st.found})</button>` : ''}</div>
-      ${ui.view.collOpen === c.id ? missingList(state, c.id) : ''}`;
-  }).join('')}</div>`;
-}
-
-// v9.0 : liste de ce qu'il reste à découvrir (le bouton « … » ne faisait rien).
-function missingList(state, id) {
-  const list = collectionMissing(state, id);
-  const cells = list.map((m) => {
-    const pic = m.kind === 'item' ? `<img class="px" src="${itemIconUrl({ baseId: m.id, rarity: 'common', slot: m.slot })}" alt="">`
-      : m.kind === 'enemy' && m.sprite ? `<img class="px" src="${icon(m.sprite, 1)}" alt="">` : '';
-    return `<span class="missing-chip">${pic}${escapeHtml(m.name)}</span>`;
-  }).join('');
-  return `<div class="missing-list">${cells || '<span class="muted">Rien à découvrir.</span>'}</div>`;
 }
 
 // Couronnes de maîtrise : une par palier récupéré.

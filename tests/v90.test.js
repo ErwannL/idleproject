@@ -55,26 +55,18 @@ test('v9.0 : 10 thèmes d\'interface ; « Chevalier » ne change rien, les autre
   }
 });
 
-test('v9.0 : collections du Codex — paliers atteignables, ancestraux comptés, liste des manquants', async () => {
-  const { COLLECTIONS } = await import('../src/data/codex.js');
-  const { collectionMissing, collectionProgress, collectionStatus } = await import('../src/core/codex.js');
+test('v9.0 / v9.1.3 : paliers de section de l\'encyclopédie (ancien Codex) atteignables, ancestraux comptés', async () => {
+  const { SECTIONS_WITH_MILESTONES, sectionProgress, sectionStatus } = await import('../src/core/encyclopedia.js');
   const s = createNewState(NOW, 4);
-  for (const c of COLLECTIONS) {
-    const { total } = collectionProgress(s, c.id);
+  for (const c of SECTIONS_WITH_MILESTONES) {
+    const { total } = sectionProgress(s, c.id);
     assert.ok(c.milestones.every((m) => m <= total), `${c.id} : palier > ${total}`);
-    assert.equal(collectionMissing(s, c.id).length, total - collectionProgress(s, c.id).found, c.id);
-    assert.ok(c.text, c.id);
   }
   s.codex.items.slime_crown = 1;
-  assert.equal(collectionProgress(s, 'items').found, 2); // v9.0.5 : l'épée de départ compte aussi
   const back = sanitizeState(JSON.parse(JSON.stringify(s)));
   assert.equal(back.codex.items.slime_crown, 1);
-  // Une ancienne partie ayant récupéré 4 paliers « Équipements » (75) : le prochain est plafonné au total.
-  const items = COLLECTIONS.find((c) => c.id === 'items');
-  s.codex.claimed.items = 4;
-  assert.equal(collectionStatus(s, items).next, collectionProgress(s, 'items').total);
   s.codex.claimed.items = 5;
-  assert.equal(collectionStatus(s, items).next, null);
+  assert.equal(sectionStatus(s, 'items').next, null);
 });
 
 test('v9.0.3 : « Exposer tout » expose les objets ancestraux déjà dans le sac et le coffre', async () => {

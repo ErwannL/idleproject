@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import { EXACT, PATTERNS, translate } from '../src/i18n/en.js';
 import { getLang, setLang, t } from '../src/i18n/i18n.js';
 import { BALANCE } from '../src/data/balance.js';
-import { COLLECTIONS } from '../src/data/codex.js';
+import { ENCYCLOPEDIA_SECTIONS as COLLECTIONS } from '../src/core/encyclopedia.js';
 import { COMPANIONS } from '../src/data/companions.js';
 import { CONTRACT_TYPES } from '../src/data/contracts.js';
 import { DUNGEON_DIFFICULTIES, DUNGEON_PATHS, DUNGEONS } from '../src/data/dungeons.js';

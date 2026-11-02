@@ -120,7 +120,7 @@ export function weeklyChallengeReward(wave) {
   return { gems: 4 + wave, fragments: wave % 5 === 0 ? Math.ceil(wave / 2) : 0, keys: wave % 10 === 0 ? 1 : 0 };
 }
 export function recordChallengeReward(wave) {
-  return { gems: 10 + wave * 2, tickets: wave % 10 === 0 ? 1 : 0 };
+  return { gems: 10 + wave * 2 + (wave % 10 === 0 ? 100 : 0) }; // v9.1.3 : ancien ticket = 100 gemmes
 }
 
 // Chaque vague a 90 s : un boss impossible à tuer (mais qui ne tue pas le héros) termine la tentative.

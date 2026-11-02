@@ -10,7 +10,6 @@ const EXTRA = [
   ['Builds', 'inventory', { invTab: 'bag', invView: null }],
   ['Réglages du sac', 'inventory', { invTab: 'bag', invView: null }, 'bag-settings'],
   ['Musée', 'encyclopedia', { encSec: 'museum' }],
-  ['Codex', 'encyclopedia', {}, 'codex-collections'],
   ['Classe', 'hero', { heroTab: 'class' }],
   ['Apparence', 'hero', { heroTab: 'look' }],
   ['Records', 'hero', { heroTab: 'records' }],

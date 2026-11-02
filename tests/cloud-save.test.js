@@ -162,3 +162,18 @@ test('v9.1.3 : partie en ligne d\'une version plus récente — ni chargée, ni 
   assert.equal(JSON.parse(st.getItem(SAVE_KEY)).version, 7, 'rien chargé');
   assert.equal(JSON.parse((await client.pull()).data).version, 99, 'rien écrasé');
 });
+
+test('v9.1.3 : un jeu 9.1.2 (format 7, sans blocage « newer ») ne peut pas écraser une partie migrée (format 8)', async (t) => {
+  const baseUrl = await startApi(t);
+  const st = memoryStorage();
+  const client = createCloudClient({ baseUrl, storage: st });
+  await client.register('Migre_1', 'motdepasse1');
+  const migrated = JSON.stringify({ version: 8, level: 50, maxStage: 90, gold: 1, gems: 0, kills: 3, lastSaved: 5, records: {} });
+  const { version } = await client.push(0, migrated);
+  // Le jeu 9.1.2 ignore maxSaveVersion : sa partie locale (plus récente) part vers le serveur.
+  st.setItem(SAVE_KEY, JSON.stringify({ version: 7, level: 50, maxStage: 90, kills: 50, lastSaved: 999, records: {} }));
+  await assert.rejects(() => syncOnce({ client, storage: st }), /trop ancienne/);
+  const remote = await client.pull();
+  assert.equal(remote.version, version);
+  assert.equal(JSON.parse(remote.data).version, 8, 'partie migrée intacte');
+});

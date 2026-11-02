@@ -451,11 +451,11 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
     const essence = Math.round(bossEssence(enc.level, balance) * rebirthHeat(state, balance).reward);
     state.materials.essence += essence;
     // v9.0.6 : un boss déjà battu, réaffronté (boucle depuis le Codex ou étape inférieure au record), ne donne
-    // plus ni gemmes ni tickets — seulement son butin, ses essences et sa maîtrise (avant : 33 600 gemmes/h).
+    // plus de gemmes — seulement son butin, ses essences et sa maîtrise (avant : 33 600 gemmes/h).
     const replay = Boolean(state.farmBoss) || (!enc.dungeon && !enc.tower && !enc.challenge && state.stage < state.maxStage);
-    const tickets = replay ? 0 : boost.bossTickets;
-    state.tickets += tickets; // bonus de démarrage : un ticket d'invocation par boss
-    emit(world, 'bossLoot', { essence, tickets });
+    const bonusGems = replay ? 0 : boost.bossGems; // v9.1.3 : bonus de démarrage en gemmes (ancien ticket)
+    state.gems += bonusGems;
+    emit(world, 'bossLoot', { essence, gems: bonusGems });
     state.records.bossesDefeated += 1;
     trackContracts(state, 'bosses', 1);
     emit(world, 'bossDefeated', { kind: enemy.type, stage: enc.level });

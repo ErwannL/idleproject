@@ -35,10 +35,13 @@ import { museumItems } from './museum.js';
 import { sanitizeBounty } from './bounty.js';
 import { emptyTranscend, sanitizeTranscend } from './transcend.js';
 import { sanitizeChallenge } from './challenge.js';
+import { migrateCodex, migrateTickets } from './migrations-v913.js';
+import { ENCYCLOPEDIA_SECTIONS } from './encyclopedia.js';
 
 // v1 : prototype · v2 (format identique) · v3 : pouvoirs, Renaissance, verrou
 // v4 : niveau, compétences, héros, compagnons, invocation, contrats, événements, matériaux, donjons.
-export const SAVE_VERSION = 7; // v8.4 : nouvel équilibrage (remboursement des améliorations) · v8.5 : arbre de 500 talents (fragments remboursés)
+// v8 (v9.1.3) : refontes du lot E et F, conversions indépendantes dans core/migrations-v913.js.
+export const SAVE_VERSION = 8; // v8.4 : nouvel équilibrage (remboursement des améliorations) · v8.5 : arbre de 500 talents (fragments remboursés)
 export const SORT_OPTIONS = ['rarity', 'level', 'power', 'recent'];
 
 export function createNewState(now = Date.now(), seed = Math.floor(Math.random() * 2 ** 32)) {
@@ -76,8 +79,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     talents: {},
     heroes: { active: STARTER_HERO, owned: { [STARTER_HERO]: { stars: 1 } } },
     companions: { owned: {}, equipped: [] },
-    gems: 0,
-    tickets: BALANCE.summon.startingTickets,
+    gems: BALANCE.summon.startingGems,
     keys: STARTING_KEYS,
     materials: { shards: 0, essence: 0 },
     summon: { total: 0, sinceEpic: 0, sinceLegendary: 0 },
@@ -245,6 +247,7 @@ function cleanActivities(state, raw) {
   state.transcend = sanitizeTranscend(raw.transcend);
   state.bounty = sanitizeBounty(raw.bounty);
   state.codex = sanitizeCodex(raw.codex);
+  migrateCodex(state, ENCYCLOPEDIA_SECTIONS); // v9.1.3 (lot E)
   state.heroClass = sanitizeHeroClass(raw.heroClass);
   if (Number.isFinite(raw.rebirthPower) && raw.rebirthPower >= 0) state.rebirthPower = raw.rebirthPower; // v9.0.6
   state.playSeconds = Math.max(0, Number(raw.playSeconds) || 0);
@@ -418,7 +421,8 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     if (Object.values(state.skills).reduce((s, v) => s + v, 0) > state.level) state.skills = { quick: 1 };
   }
   state.skillAuto = raw.skillAuto !== false;
-  for (const key of ['gems', 'tickets', 'keys']) state[key] = int(raw[key], state[key]);
+  for (const key of ['gems', 'keys']) state[key] = int(raw[key], state[key]);
+  migrateTickets(state, raw); // v9.1.3 (lot E)
   const materials = obj(raw.materials);
   state.materials = { shards: int(materials.shards, 0), essence: int(materials.essence, 0) };
 

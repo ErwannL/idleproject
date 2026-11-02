@@ -55,12 +55,12 @@ export function towerLevel(state, floor) {
   return Math.max(20, Math.round(state.maxStage * 0.5)) + floor * TOWER.floorLevel + Math.floor((floor * floor) / TOWER.steepness);
 }
 
-// Récompense d'un nouveau record : gemmes à chaque étage, fragments tous les 5, ticket + clé tous les 10.
+// Récompense d'un nouveau record : gemmes à chaque étage, fragments tous les 5, gemmes en plus + clé tous les 10
+// (v9.1.3 : l'ancien ticket vaut 100 gemmes).
 export function towerReward(floor) {
   return {
-    gems: 10 + floor * 2,
+    gems: 10 + floor * 2 + (floor % 10 === 0 ? 100 * (1 + Math.floor(floor / 30)) : 0),
     fragments: floor % 5 === 0 ? 5 + floor : 0,
-    tickets: floor % 10 === 0 ? 1 + Math.floor(floor / 30) : 0,
     keys: floor % 10 === 0 ? 1 : 0,
   };
 }

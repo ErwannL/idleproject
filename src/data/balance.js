@@ -1,6 +1,11 @@
 // Paramètres d'équilibrage centralisés.
 // Modifier ces valeurs plutôt que la logique de jeu.
 
+// v9.1.3 (lot E) : les tickets d'invocation sont fondus dans les gemmes. 1 ticket = 1 invocation ×1 = 100 gemmes
+// (90 seulement dans un ×10 à 900) : on garde le taux le plus favorable au joueur, aucune invocation n'est perdue.
+// Critère d'abandon : voir docs/refontes-v913.md (lot E, tickets).
+export const TICKET_GEMS = 100;
+
 export const BALANCE = {
   simulation: {
     tickSeconds: 0.05, // pas fixe de la simulation
@@ -248,7 +253,7 @@ export const BALANCE = {
     maxStars: 5,
     duplicateRefundGems: 20, // doublon d'une unité déjà à 5 étoiles
     firstBossGems: 50,
-    startingTickets: 1,
+    startingGems: 100, // v9.1.3 : ancien ticket de départ, versé en gemmes
   },
   // 5 premières heures : progression très rapide, beaucoup de butin et d'invocations, puis normal.
   earlyBoost: {
@@ -257,7 +262,7 @@ export const BALANCE = {
     xpMultiplier: 3,
     extraDropChance: 0.15, // +15 points de chance de butin au début
     eventMultiplier: 4, // coffres, gemmes, marchands… 4 fois plus fréquents
-    bossTickets: 1, // chaque victoire contre un boss donne un ticket d'invocation tant que le bonus dure
+    bossGems: 100, // v9.1.3 : chaque victoire contre un boss donne 100 gemmes (ancien ticket) tant que le bonus dure
   },
   // Week-end (samedi + dimanche, 48 h) : or, XP, butin et événements ×2, cumulable avec le démarrage.
   weekendBoost: { multiplier: 2 },
@@ -282,8 +287,8 @@ export const BALANCE = {
   // Maîtrise des boss : paliers de victoires et récompenses.
   mastery: [
     { victories: 3, gems: 20 },
-    { victories: 10, gems: 40, tickets: 1 },
+    { victories: 10, gems: 140 },
     { victories: 25, gems: 60, essence: 2 },
-    { victories: 50, gems: 100, tickets: 2 },
+    { victories: 50, gems: 300 },
   ],
 };

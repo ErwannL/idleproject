@@ -1,7 +1,7 @@
 // Expéditions (v8.5) : les compagnons et familiers qui ne sont pas dans l'équipe partent en mission
 // (1 h, 4 h ou 12 h, en temps réel : elles avancent aussi jeu fermé) et rapportent or, matériaux, gemmes,
 // clés et fragments anciens. Un compagnon en expédition ne peut pas être équipé.
-import { BALANCE } from '../data/balance.js';
+import { BALANCE, TICKET_GEMS } from '../data/balance.js';
 import { COMPANIONS } from '../data/companions.js';
 import { referenceKillGold } from './combat.js';
 
@@ -44,8 +44,8 @@ export function expeditionReward(state, companionId, typeId, balance = BALANCE) 
     gems: h >= 4 ? Math.round(3 * h * p) : 0,
     keys: h >= 12 ? 1 + (p >= 3 ? 1 : 0) : h >= 4 && p >= 2 ? 1 : 0,
     fragments: h >= 12 ? Math.round((2 + stage / 60) * p) : h >= 4 ? Math.round((stage / 150) * p) : 0,
-    tickets: h >= 12 && p >= 3.5 ? 1 : 0,
   };
+  if (h >= 12 && p >= 3.5) reward.gems += TICKET_GEMS; // v9.1.3 : ancien ticket
   return Object.fromEntries(Object.entries(reward).filter(([, v]) => v > 0));
 }
 
@@ -120,7 +120,11 @@ export function sanitizeExpeditions(raw, state) {
     if (!s || typeof s !== 'object' || !state.companions.owned[s.companionId] || seen.has(s.companionId) || !expeditionType(s.type)) return;
     if (!Number.isFinite(s.start) || !Number.isFinite(s.end) || s.end < s.start) return;
     const reward = {};
-    for (const [k, v] of Object.entries(s.reward ?? {})) if (['gold', 'shards', 'essence', 'gems', 'keys', 'fragments', 'tickets'].includes(k) && Number.isFinite(v) && v > 0) reward[k] = v;
+    for (const [k, v] of Object.entries(s.reward ?? {})) {
+      if (!Number.isFinite(v) || !(v > 0)) continue;
+      if (['gold', 'shards', 'essence', 'gems', 'keys', 'fragments'].includes(k)) reward[k] = (reward[k] ?? 0) + v;
+      else if (k === 'tickets') reward.gems = (reward.gems ?? 0) + v * TICKET_GEMS; // v9.1.3 : ancien ticket en gemmes
+    }
     seen.add(s.companionId);
     out.slots[i] = { companionId: s.companionId, type: s.type, start: s.start, end: s.end, reward };
   });

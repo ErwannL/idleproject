@@ -22,7 +22,7 @@ export const REBIRTH_RESETS = [
 ];
 export const REBIRTH_KEEPS = [
   'Équipement porté, sac et matériaux',
-  'Compagnons et familiers (étoiles conservées), gemmes et tickets',
+  'Compagnons et familiers (étoiles conservées), gemmes',
   'Le pouvoir choisi, Codex',
   'Talents et fragments anciens',
   'Statistiques et exploits',

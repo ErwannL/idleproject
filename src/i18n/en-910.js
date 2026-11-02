@@ -343,6 +343,14 @@ export const EXACT_910 = {
   'Record': 'Record',
   'Semaine': 'Week',
   'Vide : équipez-vous puis « Enregistrer ».': 'Empty: gear up, then “Save”.', 'sans équipe': 'no team', 'Synergies': 'Synergies',
+  // v9.1.3 (chantier 5 : refontes)
+  'Gemmes et clés': 'Gems and keys',
+  'Compagnons et familiers (étoiles conservées), gemmes': 'Companions and pets (stars kept), gems',
+  "Les gemmes s'obtiennent en jouant. Garanties : Épique au plus tard toutes les 10 invocations, Légendaire toutes les 60.": 'Gems are earned by playing. Guarantees: Epic at most every 10 summons, Legendary every 60.',
+  '— les gemmes invoquent des compagnons, des familiers et des apparences.': '— gems summon companions, pets and looks.',
+  'Deux pouvoirs de la même famille donnent un bonus de famille (effets +25 %).': 'Two powers of the same family grant a family bonus (effects +25 %).',
+  "Deux systèmes : l'encyclopédie (pourcentage global et paliers de chaque section) et le Musée (un objet ancestral par vitrine, bonus permanent, sans effet sur le pourcentage).": 'Two systems: the encyclopedia (overall percentage and tiers of each section) and the Museum (one ancestral item per showcase, permanent bonus, no effect on the percentage).',
+  'Paliers ✔': 'Tiers ✔',
 };
 
 // Traduction d'un morceau (nom de boost, de boss…) : fournie par ./en.js.
@@ -514,6 +522,8 @@ export const PATTERNS_910 = [
   [/^En vedette : (.+) — (\d+) % des Légendaires obtenus, change chaque lundi$/, 'Featured: $1 — $2 % of Legendaries obtained, changes every Monday'],
   [/^Durée, place (\d+)$/, 'Duration, slot $1'],
   [/^Palier (\d+) % :$/, 'Tier $1 %:'],
+  [/^Palier (\d+)\/(\d+)$/, 'Tier $1/$2'],
+  [/^Collections : (.+) \((\d+)\)$/, (m) => `Collections: ${tr(m[1])} (${m[2]})`],
   // v9.1.3 (chantier 3).
   [/^(\d+) pts$/, '$1 pts'],
   [/^Actif (.+)$/, 'Active $1'],

@@ -117,7 +117,7 @@ export const PANEL_HELP = {
     more: 'Les blocs repliés détaillent chaque source de bonus. Records garde l\'historique de la Tour, du défi et des donjons, et mesure votre rythme (or et XP par heure).',
   },
   summon: {
-    short: 'Gemmes et tickets s\'obtiennent en jouant. Garanties : Épique au plus tard toutes les 10 invocations, Légendaire toutes les 60.',
+    short: 'Les gemmes s\'obtiennent en jouant. Garanties : Épique au plus tard toutes les 10 invocations, Légendaire toutes les 60.',
     more: 'Le compteur des garanties est commun aux trois invocations. La vedette de la semaine représente 50 % des Légendaires obtenus dans son invocation (elle n\'augmente pas la chance d\'un Légendaire). Doublon : +1 étoile, puis des gemmes.',
   },
   skills: {
@@ -152,11 +152,11 @@ export const PANEL_HELP = {
   },
   boss: {
     short: 'Chaque boss vaincu donne un pouvoir. Réaffrontez-le pour sa maîtrise et des charges de changement de pouvoir.',
-    more: 'Deux pouvoirs de la même famille donnent un bonus de famille (effets +25 %). Les collections du Codex sont dans Objectifs › Collections.',
+    more: 'Deux pouvoirs de la même famille donnent un bonus de famille (effets +25 %).',
   },
   encyclopedia: {
     short: 'Tout ce que vous découvrez s\'inscrit ici ; le pourcentage débloque des paliers de récompenses.',
-    more: 'Trois systèmes séparés : l\'encyclopédie (pourcentage), le Codex (collections avec leurs paliers) et le Musée (un objet ancestral par vitrine, bonus permanent, sans effet sur le pourcentage).',
+    more: 'Deux systèmes : l\'encyclopédie (pourcentage global et paliers de chaque section) et le Musée (un objet ancestral par vitrine, bonus permanent, sans effet sur le pourcentage).',
   },
   contracts: {
     short: 'Missions du jour et de la semaine, contrats, prime du jour et hauts faits (bonus permanents). Tout récupérer : touche G.',

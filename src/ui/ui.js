@@ -30,7 +30,6 @@ import { mutationById } from '../core/mutations.js';
 import boss from './panels/boss.js';
 import encyclopedia from './panels/encyclopedia.js';
 import { encyclopediaNext, encyclopediaProgress } from '../core/encyclopedia.js';
-import { collectionsClaimable } from '../core/codex.js';
 import campaign from './panels/campaign.js';
 import companions from './panels/companions.js';
 import expeditions from './panels/expeditions.js';
@@ -82,7 +81,7 @@ const SUB_ICONS = {
 // v9.1.0 : présentation courte en haut de l'onglet, à sa première ouverture (plus de bulle « Nouveau »).
 const UNLOCK_INFO = {
   companions: 'vos compagnons combattent à vos côtés : deux compagnons et un familier.',
-  summon: 'gemmes et tickets invoquent des compagnons, des familiers et des apparences.',
+  summon: 'les gemmes invoquent des compagnons, des familiers et des apparences.',
   expeditions: 'les compagnons hors de l\'équipe partent en mission, même jeu fermé, et rapportent des ressources.',
   tree: 'les fragments anciens achètent des talents permanents. La Renaissance s\'ouvre plus tard dans ce même onglet.',
   dungeons: 'une clé par tentative : de vrais combats de boss qui donnent fragments et équipement.',
@@ -713,7 +712,6 @@ export class UI {
       case 'save-loadout': a.saveLoadout(Number(value)); break;
       case 'apply-loadout': a.applyLoadout(Number(value)); break;
       case 'claim-collection': a.claimCollection(value); break;
-      case 'collection-missing': local(() => { v.collOpen = v.collOpen === value ? null : value; }); break;
       case 'boss-sel': local(() => { v.bossSel = value; v.sheetOpen = 'boss'; }); break; // v9.1.3 : fiche en feuille du bas
       case 'enc-sec': local(() => { v.encSec = value; }); break;
       case 'enc-sel': local(() => { v.encSel = value; }); break;
@@ -1630,7 +1628,7 @@ export class UI {
   // Active ou désactive les boutons d'achat selon les monnaies, sans redessiner le panneau.
   refreshCosts(state) {
     const have = {
-      gold: state.gold, gems: state.gems, tickets: state.tickets, fragments: state.fragments,
+      gold: state.gold, gems: state.gems, fragments: state.fragments,
       shards: state.materials.shards, essence: state.materials.essence, stars: state.transcend?.stars ?? 0,
     };
     this.$('panel-body').querySelectorAll('[data-cost]').forEach((btn) => {

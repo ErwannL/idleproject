@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { BALANCE } from '../src/data/balance.js';
 import { BUILD } from '../src/core/build-info.js';
 import { sanitizeCheats } from '../src/core/cheats.js';
 import { applyCheat } from '../src/core/cheat-codes.js';
@@ -17,7 +18,7 @@ test('version publique : aucun code n\'est appliqué, même saisi directement', 
   assert.equal(applyCheat(state, 'GEMRAIN', 1000), null);
   assert.equal(applyCheat(state, 'SKIPBATTLE', 1), null);
   assert.equal(applyCheat(state, 'TURBO100', 1), null);
-  assert.equal(state.gems, 0);
+  assert.equal(state.gems, BALANCE.summon.startingGems);
   assert.equal(state.cheats.skipBattle, undefined);
 });
 

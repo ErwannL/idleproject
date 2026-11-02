@@ -87,6 +87,9 @@ export function checkSave(parsed, summary, current) {
   if (!Number.isFinite(summary.gold) || summary.gold < 0 || summary.gold > LIMITS_GAME.maxCurrency) return 'Sauvegarde refusée : or impossible';
   if (!Number.isFinite(summary.gems) || summary.gems < 0 || summary.gems > LIMITS_GAME.maxCurrency) return 'Sauvegarde refusée : gemmes impossibles';
   if (current && summary.level < current.level) return 'Sauvegarde refusée : niveau inférieur à celui du serveur';
+  // v9.1.3 : format de sauvegarde (SAVE_VERSION) plus ancien que celui du serveur : un jeu non mis à jour (9.1.2,
+  // format 7) écraserait une partie déjà migrée (format 8). Refusé ; ce jeu garde sa copie locale.
+  if (current && saveFormat(parsed) < saveFormat(current.data)) return 'Sauvegarde refusée : version du jeu trop ancienne, mettez le jeu à jour';
   return null;
 }
 
@@ -135,6 +138,16 @@ export function createRateLimiter({ max, windowMs }, now = () => Date.now()) {
 }
 
 // Extrait les champs de suivi d'une partie (format du jeu) ; tout champ absent vaut 0.
+// v9.1.3 : format (SAVE_VERSION) d'une partie, objet ou chaîne JSON ; 0 si illisible.
+export function saveFormat(data) {
+  try {
+    const v = Number((typeof data === 'string' ? JSON.parse(data) : data)?.version);
+    return Number.isFinite(v) ? v : 0;
+  } catch {
+    return 0;
+  }
+}
+
 export function summarizeSave(parsed) {
   const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
   return {

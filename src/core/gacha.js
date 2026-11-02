@@ -1,4 +1,4 @@
-// Invocation de héros et de compagnons (gemmes ou tickets gagnés en jouant).
+// Invocation de héros et de compagnons (gemmes gagnées en jouant).
 // Probabilités affichées et garanties : Épique ou mieux toutes les 10 invocations au plus,
 // Légendaire toutes les 60 au plus. Doublon = +1 étoile (max 5), puis remboursement en gemmes.
 import { BALANCE } from '../data/balance.js';
@@ -71,12 +71,12 @@ function rollRarity(rng, minRarity, weights) {
 }
 
 export function summonCost(count, currency, balance = BALANCE) {
-  if (currency === 'tickets') return count;
   return count >= 10 ? balance.summon.tenPullGemCost : balance.summon.gemCost * count;
 }
 
-// count = 1 ou 10 ; currency = 'gems' | 'tickets'. Renvoie la liste des résultats, ou null.
+// count = 1 ou 10 ; currency = 'gems' (v9.1.3 : tickets fondus dans les gemmes). Renvoie la liste des résultats, ou null.
 export function summon(state, rng, count = 1, currency = 'gems', balance = BALANCE, pool = 'ally') {
+  if (currency !== 'gems') return null; // v9.1.3 : plus de tickets
   const cost = summonCost(count, currency, balance);
   if (state[currency] < cost) return null;
   state[currency] -= cost;

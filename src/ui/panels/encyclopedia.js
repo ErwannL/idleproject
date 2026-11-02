@@ -1,10 +1,7 @@
 // Encyclopédie (v9.0.5) : bestiaire, boss, mutations, équipements (une entrée par rareté) et compagnons.
 // Ce qui n'a pas encore été découvert apparaît en silhouette « ??? ». Chaque entrée a sa fiche détaillée.
-import { collections } from './boss.js';
 import { museumView } from './inventory.js';
 import { MUSEUM_PIECES, museumCount } from '../../core/museum.js';
-import { COLLECTIONS } from '../../data/codex.js';
-import { collectionStatus } from '../../core/codex.js';
 import { BALANCE } from '../../data/balance.js';
 import { COMPANIONS } from '../../data/companions.js';
 import { DUNGEONS } from '../../data/dungeons.js';
@@ -16,7 +13,7 @@ import { ZONES } from '../../data/zones.js';
 import { MULTIPLICATIVE } from '../../core/companions.js';
 import {
   ENCYCLOPEDIA_MILESTONES, ENCYCLOPEDIA_SECTIONS, MONSTER_VARIANTS, SIGNATURE_RARITIES, encyclopediaNext,
-  encyclopediaProgress, variantFound,
+  encyclopediaProgress, sectionStatus, variantFound,
 } from '../../core/encyclopedia.js';
 import { itemBase, itemStatValue, rarityById } from '../../core/loot.js';
 import { MUTATIONS, MUTATION_RULES, mutationChance } from '../../core/mutations.js';
@@ -253,8 +250,21 @@ function milestones(state, progress) {
     <div class="m-track enc-track"><div class="m-fill" style="width:${Math.min(100, progress.pct)}%"></div>${steps}</div>`;
 }
 
-// v9.1.0 : trois systèmes sur un écran, dans cet ordre — en-tête (pourcentage et paliers de l'encyclopédie, pour ses
-// 5 sections seulement), bloc Codex replié (paliers propres), sections, puis le Musée (compteur propre, sans effet
+// v9.1.3 (lot E) : palier de la section ouverte (ancien Codex), compté sur le même nombre que l'onglet.
+function sectionMilestone(state, id) {
+  const sec = ENCYCLOPEDIA_SECTIONS.find((s) => s.id === id);
+  if (!sec?.milestones) return '';
+  const st = sectionStatus(state, id);
+  const goal = st.next ?? st.total;
+  const right = st.next === null ? '<span class="good">Paliers ✔</span>' : st.ready
+    ? `<button class="btn small btn-gold" data-action="claim-collection" data-value="${id}" aria-label="Récupérer : ${escapeHtml(rewardText(st.reward, formatNumber))}">Récupérer ${rewardIcons(st.reward)}</button>`
+    : `<span class="muted">à ${goal} : ${rewardIcons(st.reward)}</span>`;
+  return `<div class="card enc-sec-ms row-between"><span>Palier ${Math.min(st.claimed + 1, sec.milestones.length)}/${sec.milestones.length}</span>
+    <span class="grow">${progressBar(Math.min(1, st.found / Math.max(1, goal)), `${st.found} / ${goal}`)}</span>${right}</div>`;
+}
+
+// v9.1.0 : deux systèmes sur un écran, dans cet ordre — en-tête (pourcentage et paliers de l'encyclopédie, pour ses
+// 5 sections seulement), sections avec leur palier (v9.1.3 : ancien Codex), puis le Musée (compteur propre, sans effet
 // sur le pourcentage). Le Musée n'est pas une section de l'encyclopédie (core/encyclopedia.js ne le compte pas).
 export default {
   id: 'encyclopedia',
@@ -266,12 +276,9 @@ export default {
     const progress = encyclopediaProgress(state);
     const sec = v.encSec === 'museum' || ENCYCLOPEDIA_SECTIONS.some((s) => s.id === v.encSec) ? v.encSec : 'monsters';
     const tabs = progress.sections.map((s) => `<button class="enc-tab${s.id === sec ? ' active' : ''}" data-action="enc-sec" data-value="${s.id}">
-      ${img(s.icon)}<span>${s.label}</span><small>${s.found}/${s.total}</small>${progressBar(s.found / s.total)}</button>`).join('')
+      ${img(s.icon)}<span>${s.label}</span><small>${s.found}/${s.total}${s.milestones && sectionStatus(state, s.id).ready ? ' <b class="good">!</b>' : ''}</small>${progressBar(s.found / s.total)}</button>`).join('')
       + `<button class="enc-tab museum-tab${sec === 'museum' ? ' active' : ''}" data-action="enc-sec" data-value="museum">
       ${img('icon_trophy')}<span>Musée</span><small>${museumCount(state)}/${MUSEUM_PIECES.length}</small>${progressBar(museumCount(state) / MUSEUM_PIECES.length)}</button>`;
-    const codexReady = COLLECTIONS.filter((c) => collectionStatus(state, c).ready).length;
-    const codex = fold(ui, 'codex-collections', 'Codex : collections et paliers', () => collections(ui, state),
-      { extra: codexReady ? `<span class="good">${codexReady} prête${codexReady > 1 ? 's' : ''}</span>` : '' });
     let body;
     if (sec === 'museum') body = museumView(ui, state);
     else {
@@ -280,6 +287,6 @@ export default {
         items: () => itemList(state, sel, v.encSlot ?? 'all'), companions: () => companionList(state, sel) }[sec]();
       body = `<div class="codex enc-body"><div class="card enc-list">${list}</div><div class="card codex-detail">${detail(state, sel)}</div></div>`;
     }
-    return `<div class="card">${milestones(state, progress)}</div>${codex}<div class="enc-tabs">${tabs}</div>${body}`;
+    return `<div class="card">${milestones(state, progress)}</div><div class="enc-tabs">${tabs}</div>${sec === 'museum' ? '' : sectionMilestone(state, sec)}${body}`;
   },
 };

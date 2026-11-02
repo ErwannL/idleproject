@@ -18,22 +18,27 @@ export const MONSTER_VARIANTS = [
   { id: 'mutant', label: 'Muté' },
 ];
 
+// v9.1.3 (lot E) : le Codex est fondu dans l'encyclopédie. Ses paliers deviennent les paliers de section, comptés sur
+// le compteur de la section (un seul nombre par section au lieu de deux). Seuils et récompenses identiques à ceux du
+// Codex (paliers précoces gardés) ; comme la section compte au moins autant que l'ancienne collection (variantes,
+// raretés), aucun palier n'arrive plus tard. Les paliers déjà réclamés (`codex.claimed`, même champ) restent acquis :
+// pas de double récompense (core/migrations-v913.js migrateCodex). Critère d'abandon : docs/refontes-v913.md.
 export const ENCYCLOPEDIA_SECTIONS = [
-  { id: 'monsters', label: 'Monstres', icon: 'icon_skull' },
-  { id: 'bosses', label: 'Boss', icon: 'icon_boss' },
+  { id: 'monsters', label: 'Monstres', icon: 'icon_skull', milestones: [5, 10, 20, 30, 41], reward: { gems: 25, shards: 20 } },
+  { id: 'bosses', label: 'Boss', icon: 'icon_boss', milestones: [3, 6, 12, 24, 41], reward: { gems: 140 } },
   { id: 'mutations', label: 'Mutations', icon: 'icon_star' },
-  { id: 'items', label: 'Équipements', icon: 'icon_bag' },
-  { id: 'companions', label: 'Compagnons et familiers', icon: 'icon_paw' },
+  { id: 'items', label: 'Équipements', icon: 'icon_bag', milestones: [10, 25, 40, 60, 78], reward: { gems: 30, essence: 2 } },
+  { id: 'companions', label: 'Compagnons et familiers', icon: 'icon_paw', milestones: [3, 6, 10, 15, 26], reward: { gems: 150 } },
 ];
 
 // Paliers de complétion (pourcentage de toutes les entrées, variantes comprises).
 export const ENCYCLOPEDIA_MILESTONES = [
   { pct: 10, reward: { gems: 50, shards: 20 } },
-  { pct: 25, reward: { gems: 120, tickets: 2 } },
-  { pct: 40, reward: { gems: 200, tickets: 3, shards: 60 } },
-  { pct: 60, reward: { gems: 350, tickets: 4, essence: 5 } },
-  { pct: 80, reward: { gems: 600, tickets: 6, essence: 10 } },
-  { pct: 100, reward: { gems: 1500, tickets: 15, essence: 25 } },
+  { pct: 25, reward: { gems: 320 } },
+  { pct: 40, reward: { gems: 500, shards: 60 } },
+  { pct: 60, reward: { gems: 750, essence: 5 } },
+  { pct: 80, reward: { gems: 1200, essence: 10 } },
+  { pct: 100, reward: { gems: 3000, essence: 25 } },
 ];
 
 export function itemEntries() {
@@ -76,6 +81,26 @@ export function encyclopediaProgress(state) {
   const total = sections.reduce((n, s) => n + s.total, 0);
   return { sections, found, total, pct: total ? (found / total) * 100 : 0 };
 }
+
+// v9.1.3 : palier de section (ancien Codex) : { found, total, claimed, next, ready } ; next = null quand tout est pris.
+export function sectionStatus(state, id) {
+  const sec = ENCYCLOPEDIA_SECTIONS.find((s) => s.id === id);
+  const { found, total } = sectionProgress(state, id);
+  const claimed = state.codex.claimed?.[id] ?? 0;
+  const ms = sec?.milestones ?? [];
+  const raw = ms[claimed];
+  const next = raw === undefined || (claimed > 0 && Math.min(ms[claimed - 1], total) >= total) ? null : Math.min(raw, total);
+  return { found, total, claimed, next, ready: next !== null && found >= next, reward: sec?.reward ?? {} };
+}
+
+export function claimSection(state, id) {
+  const st = sectionStatus(state, id);
+  if (!st.ready) return null;
+  state.codex.claimed[id] = st.claimed + 1;
+  return grantReward(state, st.reward);
+}
+
+export const SECTIONS_WITH_MILESTONES = ENCYCLOPEDIA_SECTIONS.filter((s) => s.milestones);
 
 // Prochain palier : { index, pct, reward, ready } ou null quand tout est récupéré.
 export function encyclopediaNext(state) {

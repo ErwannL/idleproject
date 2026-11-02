@@ -8,8 +8,7 @@ import { BALANCE } from '../src/data/balance.js';
 import { BOSSES } from '../src/data/enemies.js';
 import { ZONES } from '../src/data/zones.js';
 import { applyCheat } from '../src/core/cheat-codes.js';
-import { claimCollection, collectionStatus } from '../src/core/codex.js';
-import { COLLECTIONS } from '../src/data/codex.js';
+import { claimSection, sectionStatus } from '../src/core/encyclopedia.js';
 import { bossesForStage, createCombat, isGauntletStage, rebirthHeat, step, zoneStartStage } from '../src/core/combat.js';
 import { activeSynergies, companionEffects, replaceCompanion } from '../src/core/companions.js';
 import { completeDungeon, startDungeon, unlockedDifficulties } from '../src/core/dungeon.js';
@@ -100,15 +99,14 @@ test('synergies, remplacement et configurations d’équipe', () => {
   assert.deepEqual(state.companions.equipped, ['pyromancer', 'priestess']);
 });
 
-test('codex : collections avec paliers de récompenses', () => {
+test('encyclopédie (v9.1.3, ancien Codex) : paliers de section avec récompenses', () => {
   const state = createNewState(NOW, 7);
   for (const id of ['slime', 'goblin', 'boar', 'mandrake', 'wolf']) state.codex.kills[id] = 1;
-  const monsters = COLLECTIONS.find((c) => c.id === 'monsters');
-  assert.ok(collectionStatus(state, monsters).ready);
+  assert.ok(sectionStatus(state, 'monsters').ready);
   const gems = state.gems;
-  assert.ok(claimCollection(state, 'monsters'));
+  assert.ok(claimSection(state, 'monsters'));
   assert.ok(state.gems > gems);
-  assert.equal(claimCollection(state, 'monsters'), null);
+  assert.equal(claimSection(state, 'monsters'), null);
   const back = sanitizeState(JSON.parse(JSON.stringify(state)), BALANCE, NOW);
   assert.deepEqual(back.codex, state.codex);
 });

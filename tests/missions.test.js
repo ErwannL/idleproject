@@ -60,11 +60,9 @@ test('connexion (v9.1.3) : jour compté à l\'ouverture, sans remise à zéro, c
   assert.equal(state.missions.login.days, 3);
   assert.equal(state.missions.monthly.progress.logins, 3);
   const gems = state.gems;
-  const tickets = state.tickets;
-  const given = claimLogin(state); // jours 2 et 3 d'un coup
-  assert.deepEqual(given, { tickets: 1, gems: 50 });
-  assert.equal(state.gems, gems + 50);
-  assert.equal(state.tickets, tickets + 1);
+  const given = claimLogin(state); // jours 2 et 3 d'un coup (v9.1.3 : l'ancien ticket du jour 2 vaut 100 gemmes)
+  assert.deepEqual(given, { gems: 150 });
+  assert.equal(state.gems, gems + 150);
   assert.equal(loginDay(state), 3);
   // Au plus un cycle en attente.
   for (let d = 6; d < 20; d++) refreshMissions(state, day(2026, 10, d));
@@ -84,12 +82,12 @@ test('démarrage rapide : bonus fort au début, disparu après 5 h de jeu', () =
   const weekday = new Date(2026, 9, 21, 12).getTime(); // un mercredi (pas de bonus de week-end)
   const start = earlyBoost(state, BALANCE, weekday);
   assert.equal(start.gold, BALANCE.earlyBoost.goldMultiplier);
-  assert.ok(start.dropChance > 0 && start.bossTickets > 0);
+  assert.ok(start.dropChance > 0 && start.bossGems > 0);
   state.playSeconds = BALANCE.earlyBoost.hours * 3600;
   const later = earlyBoost(state, BALANCE, weekday);
   assert.equal(later.gold, 1);
   assert.equal(later.dropChance, 0);
-  assert.equal(later.bossTickets, 0);
+  assert.equal(later.bossGems, 0);
 });
 
 test('donjons : chaque SSR a son donjon et y écrase tout', () => {

@@ -14,7 +14,7 @@ export const PRESTIGE = {
 };
 
 export const PRESTIGE_RESETS = ['Tout ce que réinitialise la Renaissance (niveaux, pouvoirs sauf un…)', 'Fragments anciens', 'Talents'];
-export const PRESTIGE_KEEPS = ['Équipement, sac et matériaux', 'Compagnons et familiers (étoiles)', 'Un pouvoir ancestral au choix', 'Gemmes, tickets et clés'];
+export const PRESTIGE_KEEPS = ['Équipement, sac et matériaux', 'Compagnons et familiers (étoiles)', 'Un pouvoir ancestral au choix', 'Gemmes et clés'];
 
 // Bonus éternels achetés avec les fragments anciens.
 export const PRESTIGE_PERKS = [

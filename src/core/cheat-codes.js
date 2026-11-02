@@ -23,7 +23,7 @@ const STACKS = {
 const GIFTS = {
   GEMRAIN: { label: (n) => `+${fmt(1000 * n)} gemmes`, give: (s, n) => { s.gems += 1000 * n; } },
   DIAMONDS: { label: (n) => `+${fmt(10000 * n)} gemmes`, give: (s, n) => { s.gems += 10000 * n; } },
-  TICKETS: { label: (n) => `+${fmt(50 * n)} tickets d'invocation`, give: (s, n) => { s.tickets += 50 * n; } },
+  TICKETS: { label: (n) => `+${fmt(5000 * n)} gemmes`, give: (s, n) => { s.gems += 5000 * n; } }, // v9.1.3 : tickets fondus
   KEYMASTER: { label: (n) => `+${fmt(10 * n)} clés de donjon`, give: (s, n) => { s.keys += 10 * n; } },
   ANCIENT: { label: (n) => `+${fmt(500 * n)} fragments anciens`, give: (s, n) => { s.fragments += 500 * n; } },
   FORGE: { label: (n) => `+${fmt(5000 * n)} éclats et +${fmt(500 * n)} essences`, give: (s, n) => { s.materials.shards += 5000 * n; s.materials.essence += 500 * n; } },

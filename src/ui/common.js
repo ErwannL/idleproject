@@ -50,7 +50,7 @@ export function itemFrame(item, { selected = false, showUp = false, equipped = f
 // v9.1.0 : sous un bouton grisé faute de monnaie, ce qui manque (« Il manque 12 éclats ») ; mis à jour par
 // refreshCosts (ui.js) sans redessiner le panneau.
 export const CURRENCY_WORDS = { gold: ['or', 'or'], gems: ['gemme', 'gemmes'], fragments: ['fragment', 'fragments'], shards: ['éclat', 'éclats'],
-  essence: ['essence', 'essences'], tickets: ['ticket', 'tickets'], stars: ['Étoile', 'Étoiles'] };
+  essence: ['essence', 'essences'], stars: ['Étoile', 'Étoiles'] };
 export function missingText(cost, have, currency) {
   const n = Math.ceil(cost - have);
   if (!(n > 0)) return '';
@@ -59,7 +59,7 @@ export function missingText(cost, have, currency) {
 }
 
 export function costButton({ action, cost, have, label = '', currency = 'gold', attrs = '', cls = 'btn-gold', max = false, locked = false }) {
-  const iconHtml = { gold: coin(), gems: gem(), fragments: fragment(), shards: shard(), essence: essence(), tickets: img('icon_ticket', '', 'tickets'), stars: '<span class="star-cur" aria-hidden="true">✧</span>' }[currency];
+  const iconHtml = { gold: coin(), gems: gem(), fragments: fragment(), shards: shard(), essence: essence(), stars: '<span class="star-cur" aria-hidden="true">✧</span>' }[currency];
   if (max) return `<button class="btn ${cls}" disabled>Max</button>`;
   // v9.1.3 (A2) : la monnaie est nommée (bulle et nom accessible), pas seulement « 1 200 » à côté d'une icône.
   const [one, many] = CURRENCY_WORDS[currency] ?? ['', ''];
@@ -175,7 +175,7 @@ export function segment(items, action, active, attrs = '') {
 }
 
 // v9.1.3 (A7) : récompense en icônes (icône + nombre). Le texte complet (rewardText) reste dans title et aria-label.
-const REWARD_ICONS = { gold: 'coin', gems: 'icon_gem', tickets: 'icon_ticket', keys: 'icon_key', fragments: 'icon_fragment', shards: 'icon_shard', essence: 'icon_essence' };
+const REWARD_ICONS = { gold: 'coin', gems: 'icon_gem', keys: 'icon_key', fragments: 'icon_fragment', shards: 'icon_shard', essence: 'icon_essence' };
 export function rewardIcons(reward, cls = '') {
   const parts = Object.entries(reward ?? {}).filter(([k, v]) => v > 0 && REWARD_ICONS[k])
     .map(([k, v]) => `<span class="rw"><img class="px" src="${icon(REWARD_ICONS[k])}" alt="">${formatNumber(Math.floor(v))}</span>`);

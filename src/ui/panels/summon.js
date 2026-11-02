@@ -1,4 +1,4 @@
-// Invocation : gemmes ou tickets gagnés en jouant, probabilités et garanties affichées.
+// Invocation : gemmes gagnées en jouant (v9.1.3 : tickets fondus dans les gemmes), probabilités et garanties affichées.
 import { navPath } from '../nav.js';
 import { BALANCE } from '../../data/balance.js';
 import { FEATURED_SHARE, featuredUnit, summonOdds } from '../../core/gacha.js';
@@ -58,7 +58,7 @@ export default {
   id: 'summon',
   title: 'Invocation',
   icon: 'icon_summon',
-  extra: (ui, state) => `${gem()}<b class="num">${formatNumber(state.gems)}</b> ${img('icon_ticket')}<b class="num">${state.tickets}</b>`,
+  extra: (ui, state) => `${gem()}<b class="num">${formatNumber(state.gems)}</b>`,
   // v9.1.0 : choix (Apparences, Compagnons, Familiers), ×1, ×10 et garanties visibles sans défiler ; bannière réduite
   // à une ligne de vedette ; probabilités, « À obtenir aussi » et historique repliés ; dernière invocation après un tirage.
   // v9.1.3 (doc1 « Invocation ») : les 3 bassins sur un écran, une ligne chacun (plus d'onglets) ; garanties en une
@@ -83,7 +83,7 @@ export default {
     const btn = (pool, count, currency, cost, label, aria) => {
       const missing = cost - state[currency];
       return `<button class="btn btn-gold" data-action="summon" data-value="${count}" data-currency="${currency}" data-pool="${pool}"
-        aria-label="${escapeHtml(aria)}" title="${escapeHtml(missing > 0 ? `Il manque ${formatNumber(missing)} ${currency === 'gems' ? 'gemme' : 'ticket'}${missing > 1 ? 's' : ''}` : aria)}" ${missing > 0 ? 'disabled' : ''}>${label}</button>`;
+        aria-label="${escapeHtml(aria)}" title="${escapeHtml(missing > 0 ? `Il manque ${formatNumber(missing)} gemme${missing > 1 ? 's' : ''}` : aria)}" ${missing > 0 ? 'disabled' : ''}>${label}</button>`;
     };
     const rows = Object.entries(s.pools).map(([pool, p]) => {
       const legends = summonOdds(pool).find((r) => r.rarity === 'legendary')?.units.length ?? 0;
@@ -97,7 +97,6 @@ export default {
           ${f ? `<span class="summon-feat" title="${escapeHtml(`En vedette : ${f.name} — ${Math.round(FEATURED_SHARE * 100)} % des Légendaires obtenus, change chaque lundi`)}">★ ${escapeHtml(f.name)}</span>` : '<span class="grow"></span>'}
           <button class="btn small help-q${open ? ' active' : ''}" data-action="summon-odds" data-value="${pool}" aria-expanded="${open}" aria-label="Règles et probabilités : ${escapeHtml(p.label)}">?</button></div>
         <div class="summon-buttons">
-          ${btn(pool, 1, 'tickets', 1, `×1 ${img('icon_ticket')} 1`, `${p.label} ×1 : 1 ticket`)}
           ${btn(pool, 1, 'gems', s.gemCost, `×1 ${gem()} ${s.gemCost}`, `${p.label} ×1 : ${s.gemCost} gemmes`)}
           ${btn(pool, 10, 'gems', s.tenPullGemCost, `×10 ${gem()} ${s.tenPullGemCost}`, `${p.label} ×10 : ${s.tenPullGemCost} gemmes`)}
         </div>

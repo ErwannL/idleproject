@@ -7,9 +7,7 @@ export const CURRENCIES = {
   gems: { name: 'Gemmes', icon: 'icon_gem', tab: 'summon',
     use: 'Invocation, réinitialisation des talents.',
     gain: 'Monstres, niveaux, nouvelles étapes, boss, missions, contrats, hauts faits, prime, donjons, Tour, défi, expéditions, collections.' },
-  tickets: { name: 'Tickets d\'invocation', icon: 'icon_ticket', tab: 'summon',
-    use: 'Une invocation par ticket.',
-    gain: 'Missions, premier donjon, démarrage rapide, Tour, défi, expéditions, collections, maîtrise.' },
+  // v9.1.3 (lot E) : plus de tickets d'invocation, fondus dans les gemmes (1 ticket = 100 gemmes).
   fragments: { name: 'Fragments anciens', icon: 'icon_fragment', tab: 'tree',
     use: 'Talents, bonus éternels.',
     gain: 'Renaissance, donjons, Tour, défi, expéditions.' },

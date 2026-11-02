@@ -99,8 +99,10 @@ test('invocation : coût, probabilités affichées, garantie et doublons', () =>
   const odds = summonOdds();
   assert.ok(Math.abs(odds.reduce((s, r) => s + r.chance, 0) - 1) < 1e-9);
   const state = createNewState(NOW, 1);
+  assert.equal(state.gems, 100, 'v9.1.3 : ancien ticket de départ versé en gemmes');
+  state.gems = 0;
   assert.equal(summon(state, new Rng(1), 1, 'gems'), null, 'pas assez de gemmes');
-  assert.ok(summon(state, new Rng(1), 1, 'tickets'), 'ticket de départ');
+  assert.equal(summon(state, new Rng(1), 1, 'tickets'), null, 'v9.1.3 : plus de tickets');
   state.gems = 900 * 7;
   const results = [];
   for (let i = 0; i < 7; i++) results.push(...summon(state, new Rng(i + 10), 10, 'gems'));

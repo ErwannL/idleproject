@@ -3,14 +3,12 @@
 // Seulement des récompenses : ni messages non lus, ni marchands (un achat reste une décision).
 import { BALANCE } from '../data/balance.js';
 import { MISSION_PERIODS, LOGIN_CALENDAR } from '../data/missions.js';
-import { COLLECTIONS } from '../data/codex.js';
 import { BOSSES } from '../data/enemies.js';
 import { bonusReady, loginDay, loginPending, loginPendingReward, loginReady, missionStatus } from './missions.js';
 import { claimableAchievements } from './achievements.js';
 import { BOUNTY, bountyReady } from './bounty.js';
 import { expeditionDone } from './expeditions.js';
-import { encyclopediaNext } from './encyclopedia.js';
-import { collectionStatus } from './codex.js';
+import { SECTIONS_WITH_MILESTONES, encyclopediaNext, sectionStatus } from './encyclopedia.js';
 import { nextMasteryTier } from './powers.js';
 import { companionById } from './companions.js';
 import { eventLabel } from './events.js';
@@ -45,8 +43,9 @@ export function claimables(state, now = Date.now(), balance = BALANCE) {
   const enc = state.codex ? encyclopediaNext(state) : null;
   if (enc?.ready) push({ key: 'encyclopedia', kind: 'encyclopedia', label: `Collections : palier ${Math.round(enc.pct)} %`, reward: enc.reward, tab: 'encyclopedia' });
   if (state.codex) {
-    for (const c of COLLECTIONS) {
-      if (collectionStatus(state, c).ready) push({ key: `collection:${c.id}`, kind: 'collection', id: c.id, label: `Codex : ${c.label}`, reward: c.reward, tab: 'encyclopedia' });
+    for (const c of SECTIONS_WITH_MILESTONES) { // v9.1.3 : paliers de section (ancien Codex)
+      const st = sectionStatus(state, c.id);
+      if (st.ready) push({ key: `collection:${c.id}`, kind: 'collection', id: c.id, label: `Collections : ${c.label} (${st.next})`, reward: st.reward, tab: 'encyclopedia' });
     }
   }
   for (const [bossId, entry] of Object.entries(state.powers ?? {})) {

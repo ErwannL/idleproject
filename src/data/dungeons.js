@@ -82,7 +82,7 @@ export const DUNGEON_PATHS = {
 };
 
 // Récompense finale : objet Épique ou mieux de l'emplacement choisi (butin ciblé).
-export const DUNGEON_REWARD = { minRarity: 'epic', gems: 25, essence: 2, firstClearTickets: 1 };
+export const DUNGEON_REWARD = { minRarity: 'epic', gems: 25, essence: 2, firstClearGems: 100 }; // v9.1.3 : ancien ticket du premier donjon
 export const STARTING_KEYS = 1;
 
 // v7.7 : trois difficultés, bien plus dures que la campagne (niveau d'ennemi au-dessus de l'étape max,

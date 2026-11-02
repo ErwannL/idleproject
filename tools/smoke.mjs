@@ -278,15 +278,15 @@ await check('compétences : un point par niveau, apprendre Tourbillon', async ()
   assert(level === 1, `tourbillon ${level}`);
 });
 
-await check('invocation : un ticket donne un héros ou un compagnon', async () => {
-  await game(() => { __idle.state.tickets = Math.max(1, __idle.state.tickets); });
+await check('invocation : 100 gemmes donnent un héros ou un compagnon', async () => { // v9.1.3 : tickets fondus
+  await game(() => { __idle.state.gems = Math.max(100, __idle.state.gems); });
   await waitFor(() => __idle.ui.tabVisible.summon !== false, 3000);
   await game(() => __idle.ui.openTab('summon'));
   await page.waitForTimeout(300);
-  const before = await game(() => ({ t: __idle.state.tickets, n: __idle.state.summon.total }));
-  await page.click('[data-action="summon"][data-currency="tickets"]');
-  const after = await game(() => ({ t: __idle.state.tickets, n: __idle.state.summon.total }));
-  assert(after.t === before.t - 1 && after.n === before.n + 1, JSON.stringify({ before, after }));
+  const before = await game(() => ({ n: __idle.state.summon.total }));
+  await page.click('[data-action="summon"][data-currency="gems"][data-value="1"]');
+  const after = await game(() => ({ n: __idle.state.summon.total }));
+  assert(after.n === before.n + 1, JSON.stringify({ before, after }));
   // Animation d'invocation : un clic révèle tout, un second ferme.
   // L'animation ne se joue que pour une nouveauté.
   if (await game(() => __idle.ui.view.lastSummon?.some((r) => r.isNew))) {
