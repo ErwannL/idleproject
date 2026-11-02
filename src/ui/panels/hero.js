@@ -5,6 +5,7 @@ import { activeClass, classUnlocked, classWeaponBases } from '../../core/classes
 import { bonusSources } from '../../core/bonuses.js';
 import { stageLabel } from '../../core/combat.js';
 import { heroById, heroEffects } from '../../core/heroes.js';
+import { companionById } from '../../core/companions.js';
 import { xpForLevel } from '../../core/level.js';
 import { computeHeroStats } from '../../core/stats.js';
 import { heroPortraitUrl, itemIconUrl, slotIconName } from '../../render/pixel.js';
@@ -56,22 +57,24 @@ function classView(state) {
   const cards = CLASSES.map((c) => {
     const open = classUnlocked(state, c.id);
     const active = c.id === current.id;
-    const weapons = classWeaponBases(c.id).map((b) => b.name).join(', ');
-    const icon = classWeaponBases(c.id)[0];
+    // v9.1.3 (doc2 plan pixel) : armes de la classe en icônes (nom en title / aria-label) au lieu de la liste de noms.
+    const bases = classWeaponBases(c.id);
+    const weapons = bases.map((b) => `<img class="px class-weapon" src="${itemIconUrl({ baseId: b.id, rarity: 'common', slot: 'weapon' }, 22)}" alt="${escapeHtml(b.name)}" title="${escapeHtml(b.name)}">`).join('');
+    const icon = bases[0];
     const pic = icon ? `<img class="px" src="${itemIconUrl({ baseId: icon.id, rarity: 'legendary', slot: 'weapon' }, 40)}" alt="">` : '';
     return `<div class="class-card${active ? ' active' : ''}${open ? '' : ' locked'}" style="--cls:${c.color}">
       <div class="class-pic">${pic}</div>
       <div class="grow"><b class="class-name">${escapeHtml(c.name)}</b> <span class="class-style">${STYLE_LABEL[c.style]}</span>
         <div class="class-text">${escapeHtml(c.text)}</div>
         <div class="good class-fx">${effectText(c.effects)}</div>
-        <div class="muted class-weapons">Armes : ${escapeHtml(weapons)}</div></div>
+        <div class="class-weapons" role="img" aria-label="Armes : ${escapeHtml(bases.map((b) => b.name).join(', '))}">${weapons}</div></div>
       ${active ? '<span class="class-on">Active ✓</span>' : open
         ? `<button class="btn btn-primary small" data-action="set-class" data-value="${c.id}">Choisir</button>`
         : `<span class="muted class-lock">${img('icon_lock')} étape ${stageLabel(c.unlockStage)}</span>`}</div>`;
   }).join('');
-  return `<div class="card"><div class="row-between"><div class="section-title">Classe du héros</div><span class="muted">Changement gratuit et instantané</span></div>
-      <div class="muted">Chaque classe a ses armes (les autres ne s'équipent pas), sa portée, sa façon de frapper et ses animations.
-      En changeant de classe, l'arme portée est remplacée par la meilleure arme de la classe dans le sac, ou reforgée sans perte de puissance.</div>
+  // v9.1.3 : texte d'en-tête en une phrase (l'écran Classe faisait 383 mots) ; la phrase de chaque classe dit son style (A19).
+  return `<div class="card"><div class="section-title">Classe du héros</div>
+      <div class="muted">Changement gratuit : l'arme portée devient la meilleure de la classe, ou est reforgée sans perte.</div>
       <div class="class-grid">${cards}</div></div>`;
 }
 
@@ -104,7 +107,17 @@ function farmStats(ui, state) {
       ${line('icon_upgrade', 'XP par heure', formatNumber(f.xpPerSecond * 3600))}
       ${line('icon_skull', 'Ennemis par minute', formatDecimal(f.killsPerSecond * 60))}
       ${line('weapon_sword', 'Dégâts/s (calculés)', formatDecimal(computeHeroStats(state).dps))}
-    </div><div class="options-row">${btn}</div></div>`;
+    </div>${damageShareHtml(f)}<div class="options-row">${btn}</div></div>`;
+}
+
+// v9.1.3 (S3) : part des dégâts directs par unité, mesurée pendant le même combat simulé. Seulement ici, loin de tout
+// bouton d'achat ; un soutien (soin, bouclier, or) ne frappe pas et n'y figure donc presque pas.
+function damageShareHtml(f) {
+  const parts = f.damageShare ?? [];
+  if (!parts.length) return '';
+  const name = (id) => (id === 'hero' ? 'Héros' : companionById(id)?.name ?? id);
+  const rows = parts.map((x) => `<span>${escapeHtml(name(x.id))}</span><span class="v">${formatDecimal(x.share * 100)} %</span>`).join('');
+  return `<div class="section-title">Dégâts directs <span class="muted">(part de chacun, soutiens non comptés)</span></div><div class="stats-grid share-grid">${rows}</div>`;
 }
 
 function recordsView(ui, state) {

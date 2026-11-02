@@ -2,6 +2,17 @@
 // Ajoutée au dictionnaire principal par ./en.js.
 
 export const EXACT_910 = {
+  // v9.1.3 (chantier 3) : Classe, Mesurer, Améliorations, Compétences en grille, Talents, Renaissance, Interface.
+  "Changement gratuit : l'arme portée devient la meilleure de la classe, ou est reforgée sans perte.": 'Free change: the worn weapon becomes the best of the class, or is reforged without loss.',
+  'Dégâts directs': 'Direct damage', '(part de chacun, soutiens non comptés)': '(share of each, supports not counted)',
+  'Touchez une case pour lire son effet.': 'Tap a slot to read its effect.', 'Utiliser': 'Use', 'Outils': 'Tools', 'Région': 'Region',
+  'filtre actif': 'filter on', "Touchez une clé de voûte pour la voir dans l'arbre.": 'Tap a keystone to see it in the tree.',
+  'Bonus éternels et stellaires': 'Eternal and stellar bonuses', 'Prestige actuel': 'Current prestige', 'dégâts, PV et or': 'damage, HP and gold',
+  'pour toujours': 'forever', 'pouvoir conservé': 'power kept', "Retour à l'étape 1 ; le détail est dans la confirmation.": 'Back to stage 1; details in the confirmation.',
+  'Quantité en un bouton': 'Quantity in one button', "(essai) : Max, ×100, ×10, ×1 se déplient d'un bouton dans Améliorations": '(trial): Max, ×100, ×10, ×1 unfold from one button in Upgrades',
+  'Compétences en grille': 'Skills as a grid',
+  "L'or achète des améliorations. Chaque ligne indique son gain en dégâts/s : à vous de choisir. Gardez le doigt sur un bouton d'achat : après l'anneau, il achète en continu, de plus en plus vite.": 'Gold buys upgrades. Each line shows its damage/s gain: your choice. Keep your finger on a buy button: once the ring fills, it buys continuously, faster and faster.',
+  "Gardez le doigt sur un bouton d'achat : après l'anneau, il achète en continu, de plus en plus vite.": 'Keep your finger on a buy button: once the ring fills, it buys continuously, faster and faster.', '(essai) : 9 icônes avec niveau et +, le texte au toucher': '(trial): 9 icons with level and +, text on tap',
   // Menus et onglets.
   'Mannequins': 'Mannequins', 'Builds': 'Builds', 'Renommer': 'Rename', 'Composition': 'Team', 'Objectifs': 'Goals', 'Fiche': 'Sheet',
   'Achetables': 'Buyable', 'À récupérer': 'To claim', "Aujourd'hui": 'Today', 'Cette semaine': 'This week', 'Apparences': 'Looks',
@@ -175,11 +186,11 @@ export const EXACT_910 = {
   'Gemmes et tickets s\'obtiennent en jouant. Garanties : Épique au plus tard toutes les 10 invocations, Légendaire toutes les 60.': 'Gems and tickets are earned by playing. Guarantees: Epic at most every 10 summons, Legendary every 60.',
   'Le compteur des garanties est commun aux trois invocations. La vedette de la semaine représente 50 % des Légendaires obtenus dans son invocation (elle n\'augmente pas la chance d\'un Légendaire). Doublon : +1 étoile, puis des gemmes.': "The guarantee counter is shared by the three summons. The week's featured unit is 50 % of the Legendaries obtained in its summon (it does not raise the chance of a Legendary). Duplicate: +1 star, then gems.",
   'Un point par niveau du héros. Les compétences se lancent toutes seules ; « Répartir mes points » les monte de façon équilibrée.': 'One point per hero level. Skills cast on their own; “Spend my points” raises them evenly.',
-  'Les Boosts (en bas de cet écran) sont différents : améliorés avec l\'or, lancés d\'un appui sur le combat (ou au clavier), ou en Auto.': 'Boosts (at the bottom of this screen) are different: upgraded with gold, used with a tap on the combat (or the keyboard), or on Auto.',
+  'Les Boosts (en bas de cet écran, ou les 5 dernières cases de la grille) sont différents : améliorés avec l\'or, lancés d\'un appui sur le combat (ou au clavier), ou en Auto.': 'Boosts (at the bottom of this screen, or the last 5 slots of the grid) are different: upgraded with gold, used with a tap on the combat (or the keyboard), or on Auto.',
   'Les fragments anciens achètent des talents permanents. Un talent s\'apprend dès qu\'un voisin est appris.': 'Ancient fragments buy permanent talents. A talent can be learned as soon as a neighbour is learned.',
   'L\'arbre se dévoile au fur et à mesure (la recherche ne porte que sur ce qui est visible). Les clés de voûte demandent des points dans leur région : la légende donne l\'objectif de chaque région. Petits nœuds : 3 niveaux · ◆ notables · ⬢ clés de voûte. La Renaissance (segment Renaissance) remet l\'étape à 1 contre des fragments et un bonus permanent de dégâts, PV et or.': 'The tree reveals itself as you go (search only covers what is visible). Keystones need points in their region: the legend gives each region\'s goal. Small nodes: 3 levels · ◆ notables · ⬢ keystones. Rebirth (Rebirth segment) resets the stage to 1 for fragments and a permanent damage, HP and gold bonus.',
   'Glissez ou utilisez la molette pour vous déplacer, Ctrl + molette pour zoomer.': 'Drag or use the wheel to move, Ctrl + wheel to zoom.',
-  'Glissez du doigt pour vous déplacer ; les boutons − et + zooment.': 'Drag with your finger to move; the − and + buttons zoom.',
+  'Glissez du doigt pour vous déplacer ; les boutons − et + (dans Outils) zooment.': 'Drag with your finger to move; the − and + buttons (in Tools) zoom.',
   'Votre monde, le prochain boss et la prévision du combat. L\'avance automatique passe d\'une étape à l\'autre.': 'Your world, the next boss and the combat forecast. Auto advance moves from stage to stage.',
   'La plupart des mondes ont 20 étapes et 4 boss (le monde 11 en a 10). Si un boss vous bat, le héros s\'entraîne à l\'étape d\'avant et le retente seul quand il est 15 % plus fort (ou « Retenter le boss »).': 'Most worlds have 20 stages and 4 bosses (world 11 has 10). If a boss beats you, the hero trains on the previous stage and retries on its own once 15 % stronger (or “Retry the boss”).',
   'Une clé par tentative. Réussir une difficulté débloque la suivante, donjon par donjon.': 'One key per attempt. Clearing a difficulty unlocks the next, dungeon by dungeon.',
@@ -277,7 +288,7 @@ export const EXACT_910 = {
   'Efface le compte et la progression sur le serveur. Votre partie reste sur cet appareil.': 'Deletes the account and the progress on the server. Your game stays on this device.',
   'Apparaître dans le classement public (pseudo, niveau, étape, boss)': 'Appear in the public leaderboard (username, level, stage, bosses)',
   'Les fragments anciens achètent des talents permanents. Un talent s\'apprend dès qu\'un voisin est appris. Glissez ou utilisez la molette pour vous déplacer, Ctrl + molette pour zoomer.': 'Ancient fragments buy permanent talents. A talent can be learned as soon as a neighbour is learned. Drag or use the wheel to move, Ctrl + wheel to zoom.',
-  'Les fragments anciens achètent des talents permanents. Un talent s\'apprend dès qu\'un voisin est appris. Glissez du doigt pour vous déplacer ; les boutons − et + zooment.': 'Ancient fragments buy permanent talents. A talent can be learned as soon as a neighbour is learned. Drag with your finger to move; the − and + buttons zoom.',
+  'Les fragments anciens achètent des talents permanents. Un talent s\'apprend dès qu\'un voisin est appris. Glissez du doigt pour vous déplacer ; les boutons − et + (dans Outils) zooment.': 'Ancient fragments buy permanent talents. A talent can be learned as soon as a neighbour is learned. Drag with your finger to move; the − and + buttons (in Tools) zoom.',
   'Des vagues de 8 ennemis toujours plus forts (90 s par vague), un boss toutes les 5 vagues (sauf règle contraire). Une défaite termine la tentative. Récompenses à chaque nouveau meilleur score de la semaine et à chaque record absolu.': 'Waves of 8 ever-stronger enemies (90 s per wave), a boss every 5 waves (unless a rule says otherwise). A defeat ends the attempt. Rewards for each new best score of the week and each all-time record.',
   // v9.1.3 (chantier 2) : fiches, équipement, compagnons, boss.
   'Comparer': 'Compare', 'Ranger': 'Store', 'Histoire': 'Story', 'Bonus de famille': 'Family bonus', 'Formule de puissance': 'Power formula',
@@ -303,6 +314,8 @@ const UNIT_RE = '(or|gemmes?|fragments?|éclats?|essences?|tickets?|Étoiles?)';
 
 // Textes construits avec des valeurs.
 export const PATTERNS_910 = [
+  // v9.1.3 (chantier 3) : avant « Atteignez l'étape … » (plus général).
+  [/^Atteignez l'étape (.+) pour renaître \(max (.+)\)\.$/, 'Reach stage $1 to be reborn (max $2).'],
   [new RegExp(`^Coût : ([\\d\\s.,]+\\s?[a-zA-Z]*) ${UNIT_RE}$`), (m) => `Cost: ${m[1]} ${UNITS_913[m[2]]}`],
   [new RegExp(`^(.+) : ([\\d\\s.,]+\\s?[a-zA-Z]*) ${UNIT_RE}$`), (m) => `${/^[+\\d]/.test(m[1]) ? m[1] : tr(m[1])}: ${m[2]} ${UNITS_913[m[3]]}`],
   [new RegExp(`^${UNIT_RE}$`), (m) => UNITS_913[m[1]]],
@@ -442,6 +455,18 @@ export const PATTERNS_910 = [
   [/^Déjà utilisée : (.+)\.$/, 'Already used: $1.'],
   [/^(.+) — (.+)\. Touche (.+)\.$/, (m) => `${tr(m[1])} — ${tr(m[2])}. Key ${m[3]}.`],
   [/^(.+) — (.+)\. Débloqué au niveau (\d+) du héros\.$/, (m) => `${tr(m[1])} — ${tr(m[2])}. Unlocked at hero level ${m[3]}.`],
+  // v9.1.3 (chantier 3).
+  [/^(\d+) pts$/, '$1 pts'],
+  [/^Actif (.+)$/, 'Active $1'],
+  [/^Recharge (\d+) (s|min)$/, 'Cooldown $1 $2'],
+  [/^, toutes les ([\d,]+) s\.$/, (m) => `, every ${m[1].replace(',', '.')} s.`],
+  [/^, recharge (\d+) min\.$/, ', cooldown $1 min.'],
+  [/^ · (.+) pendant (\d+) s$/, (m) => ` · ${tr(m[1])} for ${m[2]} s`],
+  [/^Retour à l'étape 1 \((\d+) % des améliorations gardés\) ; le détail est dans la confirmation\.$/, 'Back to stage 1 ($1 % of upgrades kept); details in the confirmation.'],
+  [/^Renaissance ×([^ ]+) × Transcendance ×([^ ]+) × Puissance stellaire ×([^ ]+)\s*=$/, 'Rebirth ×$1 × Transcendence ×$2 × Stellar power ×$3 ='],
+  [/^\. Chaque Renaissance vaut ×([\d,]+) ; les boss ne se renforcent que de (\d+) %\.$/, '. Each Rebirth is worth ×$1; bosses only get $2 % stronger.'],
+  [/^Recommencez tout \(Renaissances comprises, (\d+) % gardées\) contre des$/, 'Start over (Rebirths included, $1 % kept) for'],
+  [/^; chaque Transcendance multiplie aussi dégâts, PV et or ×(\d+) pour toujours\.$/, '; each Transcendence also multiplies damage, HP and gold ×$1 forever.'],
   // v9.1.3 (chantier 2) : fiches, équipement, compagnons, boss.
   [/^Raretés recyclées · (.+)$/, (m) => `Recycled rarities · ${tr(m[1])}`],
   [/^Fusionner un seul groupe \((\d+)\)$/, 'Fuse a single group ($1)'],

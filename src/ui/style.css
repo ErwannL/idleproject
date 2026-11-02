@@ -2235,3 +2235,60 @@ small, .tt-sub, .upg-level, .item-sub, .stat-list li, .compare, .cost-missing, .
 .codex-detail .boss-big canvas, .codex-detail .boss-big img { max-width: 92px; max-height: 82px; width: auto; }
 .codex-detail .boss-hero .row { flex-wrap: wrap; gap: 4px; }
 .codex-detail .boss-hero .grow { min-width: 0; }
+/* v9.1.3 : appui maintenu au doigt — pas de sélection ni de bulle système (iOS/Android) sur les boutons répétables. */
+button[data-action="buy"], button[data-action="upgrade-companion"], button[data-action="upgrade-item"],
+button[data-action="learn-skill"], button[data-action="buy-talent"] { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+/* v9.1.3 : armes de classe en icônes ; part des dégâts directs (Records › Mesurer) */
+.class-weapons { display: flex; gap: 3px; margin-top: 2px; }
+.class-weapons img.class-weapon { width: 22px; height: 22px; }
+.stats-grid.share-grid { grid-template-columns: 1fr auto; }
+/* v9.1.3 : ligne d'amélioration en 2 lignes (nom + palier, puis avant → après et +x % dégâts/s) */
+.upg-main { min-width: 0; }
+.upg-main .upg-effect { text-align: left; white-space: normal; grid-column: auto; grid-row: auto; }
+.upg-main .upg-profit { display: inline; }
+.upg-name .tag { display: inline-block; margin-left: 4px; padding: 0 4px; border-radius: 3px; background: #3a2c12; color: var(--gold-text); font-size: 10px; font-weight: 800; }
+.upg-card .btn-gold { grid-row: auto !important; }
+@media (max-width: 560px) { .upg-card .btn-gold { grid-column: 3; } }
+/* v9.1.3 (A22) : bouton de quantité unique */
+.upg-dps-row { align-items: center; }
+.qty-menu { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.qty-pop { display: inline-flex; gap: 4px; }
+/* v9.1.3 (essai) : Compétences et Boosts en grille de 9 cases */
+.sk-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 6px 0; }
+.sk-cell { position: relative; display: flex; flex-direction: column; align-items: stretch; gap: 3px; padding: 5px; border-radius: 6px; background: #0b1324; border: 1px solid var(--line-2); }
+.sk-cell.rush { background: #10172b; }
+.sk-cell.sel { border-color: var(--gold-2); box-shadow: 0 0 0 1px var(--gold-2) inset; }
+.sk-cell.locked .sk-pick img { filter: grayscale(1) brightness(0.6); }
+.sk-pick { position: relative; display: grid; place-items: center; height: 46px; background: none; border: 0; color: inherit; cursor: pointer; padding: 0; }
+.sk-pick img { width: 32px; height: 32px; image-rendering: pixelated; }
+.sk-lv { position: absolute; left: 2px; bottom: 0; font-weight: 800; font-size: 12px; color: var(--cream); text-shadow: 0 1px 0 #000; }
+.sk-state { position: absolute; right: 2px; top: 0; font-size: 10.5px; color: var(--muted); }
+.sk-state.on { color: var(--good); }
+.sk-plus { display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 32px; border-radius: 5px; border: 1px solid var(--gold-2); background: #3a2c12; color: var(--gold-text); font-weight: 800; font-size: 16px; cursor: pointer; }
+.sk-plus small { font-size: 11px; display: inline-flex; align-items: center; gap: 2px; }
+.sk-plus small img { width: 14px; height: 14px; }
+.sk-plus:disabled { opacity: 0.45; cursor: default; }
+.sk-lock { display: flex; align-items: center; justify-content: center; gap: 3px; min-height: 32px; font-size: 11px; color: var(--muted); }
+.sk-lock img { width: 14px; height: 14px; }
+.sk-window { min-height: 44px; gap: 8px; }
+/* v9.1.3 : Talents — outils repliés, vue Région (A18) */
+.tree-tools-fold .tree-head input { flex: 1; max-width: none; }
+.region-view { display: flex; flex-direction: column; gap: 4px; }
+.region-row { display: grid; grid-template-columns: minmax(0, 1fr) 92px 92px; gap: 6px; align-items: center; padding: 3px 6px; border-radius: 6px; border-left: 3px solid var(--branch); background: #0b1324; }
+.region-name { display: flex; flex-direction: column; }
+.region-key { display: flex; align-items: center; gap: 4px; padding: 2px 4px; min-height: 44px; border-radius: 6px; border: 1px solid var(--line-2); background: #10172b; color: var(--muted); font-size: 11px; cursor: pointer; }
+.region-key img { width: 36px; height: 36px; image-rendering: pixelated; filter: grayscale(0.9) brightness(0.6); }
+.region-key.ready { border-color: var(--branch); color: var(--gold-text); }
+.region-key.ready img { filter: none; opacity: 0.85; }
+.region-key.owned { border-color: var(--branch); background: color-mix(in srgb, var(--branch) 18%, #10172b); color: var(--good); }
+.region-key.owned img { filter: none; }
+/* v9.1.3 : Renaissance en 3 cartes */
+.rb-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 6px 0; }
+.rb-tile { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px; border-radius: 6px; background: #0b1324; border: 1px solid var(--line-2); text-align: center; }
+.rb-tile img { width: 24px; height: 24px; }
+.rb-tile b { font-size: 15px; color: var(--gold-text); }
+.rb-tile .muted { font-size: 11px; }
+.rb-total { margin-top: 6px; }
+.rb-detail { margin-bottom: 6px; }
+.rebirth-card > .row-between img { width: 20px; height: 20px; vertical-align: -4px; }
+.upg-main .upg-profit { white-space: nowrap; }

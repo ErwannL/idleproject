@@ -8,6 +8,8 @@ const DEFAULTS = {
   uiScale: 'auto', // 'auto' | 100 | 125 | 150 | 200
   colorAid: false, // lettre de rareté sur les objets, pastilles en anneau
   contrast: false, // contraste élevé (sans décor)
+  qtyMenu: false, // v9.1.3 (A22, essai) : un seul bouton de quantité qui se déplie
+  skillGrid: true, // v9.1.3 (essai) : Compétences et Boosts en grille de 9 icônes (défaut choisi sur mesure)
   keys: {}, // raccourcis modifiés : { action: code }
   nav: {}, // mémoire de navigation : { lastSub, view, scroll }
 };

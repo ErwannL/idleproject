@@ -34,7 +34,16 @@ function measureAt(state, stage, balance, seconds) {
     xpPerSecond: world.counters.xp / seconds,
     stage: start,
     died: clone.stage < start,
+    damageShare: damageShare(world.counters.damage),
   };
+}
+
+// v9.1.3 (S3) : part des dégâts directs par unité (héros, compagnons), triée, en fractions de 0 à 1. Un soutien
+// (soin, bouclier, or) n'y figure pas : il ne frappe pas directement.
+export function damageShare(damage = {}) {
+  const total = Object.values(damage).reduce((a, b) => a + b, 0);
+  if (!(total > 0)) return [];
+  return Object.entries(damage).map(([id, v]) => ({ id, share: v / total })).sort((a, b) => b.share - a.share);
 }
 
 // v8.4 : on farme la meilleure étape VRAIMENT farmable (avant : l'étape actuelle, même si le héros

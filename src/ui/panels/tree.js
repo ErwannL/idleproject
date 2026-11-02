@@ -15,27 +15,6 @@ import { PRESTIGE, PRESTIGE_PERKS } from '../../data/prestige.js';
 import { costButton, effectText, escapeHtml, fold, fragment, formatNumber, img, segment } from '../common.js';
 import { memoryShare } from '../../core/transcend.js';
 
-// Bonus éternels (achetés avec les fragments) et bonus permanent gagné à chaque Renaissance.
-function eternalCard(state) {
-  const p = state.prestige;
-  const n = state.records.rebirths + p.count;
-  const perks = PRESTIGE_PERKS.map((perk) => {
-    const level = p.perks[perk.id] ?? 0;
-    const maxed = level >= perk.max;
-    const eff = Object.fromEntries(Object.entries(perk.effect).map(([k, v]) => [k, v * Math.max(1, level)]));
-    return `<div class="perk-row">${img(perk.icon)}<div class="grow"><b>${perk.name}</b> <span class="muted">${level}/${perk.max}</span>
-        <div class="${level ? 'good' : 'muted'}">${effectText(eff)}${level ? '' : ' (au niveau 1)'}</div></div>
-      ${costButton({ action: 'buy-perk', cost: perkCost(level), have: state.fragments, currency: 'fragments', attrs: `data-key="${perk.id}"`, cls: 'btn-gold small', max: maxed })}</div>`;
-  }).join('');
-  const mult = rebirthMultiplier(state); // v8.8 : Renaissances (+ conservées) × Transcendance
-  return `<div class="card prestige-card">
-    <div class="row-between"><b class="prestige-title">✦ Bonus éternels</b>${n || state.transcend?.count ? `<span class="good">Renaissances et Transcendances : dégâts, PV et or ×${mult < 1000 ? mult.toFixed(2).replace('.', ',') : formatNumber(mult)}</span>` : ''}</div>
-    <div class="muted">Chaque Renaissance <b>multiplie</b> dégâts, PV et or par ${String(PRESTIGE.rebirthMultiplier).replace('.', ',')} pour toujours (cumulatif : ×1,5 · ×2,25 · ×3,4…),
-      et les boss ne se renforcent que de ${BALANCE.stages.rebirthBossPct} % par Renaissance. Les bonus éternels s'achètent avec les fragments anciens.</div>
-    ${perks}
-  </div>`;
-}
-
 export function keepResetLists() {
   return `<div class="keep-reset">
     <div><div class="section-title">Réinitialisé</div><ul>${REBIRTH_RESETS.map((t) => `<li class="bad">${t}</li>`).join('')}</ul></div>
@@ -97,9 +76,32 @@ function regionSummary(state) {
   return TALENT_BRANCHES.filter((b) => b.id !== 'bridge').map((b) => {
     const pts = regionPoints(state, b.id);
     const goal = TALENTS.filter((t) => t.region === b.id && t.gate && !(state.talents[t.id] ?? 0)).sort((x, y) => x.gate - y.gate)[0];
-    return `<span class="region-goal" style="--branch:${b.color}"><b style="color:${b.color}">● ${b.label} ${pts}</b>
+    return `<span class="region-goal" style="--branch:${b.color}"><b style="color:${b.color}">${b.label} ${pts}</b>
       ${goal ? `<span class="muted">→ ${escapeHtml(goal.name)} : ${pts >= goal.gate ? '<span class="good">prête</span>' : `${goal.gate - pts} point${goal.gate - pts > 1 ? 's' : ''}`}</span>` : ''}</span>`;
   }).join('');
+}
+
+// v9.1.3 (A18, essai) : vue Région — par région, ses points et ses clés de voûte en grandes icônes, avec l'état en
+// un mot (apprise, prête, points manquants). Lecture seule, aucune donnée nouvelle ; un appui ouvre l'arbre dessus.
+// Critère écrit avant l'essai : sur 375×812, les 6 régions et leurs 12 clés de voûte tiennent sans défiler dans le
+// panneau, en moins de 80 mots, sans aucun bouton d'achat.
+export function regionRows(state) {
+  return TALENT_BRANCHES.filter((b) => b.id !== 'bridge').map((b) => {
+    const pts = regionPoints(state, b.id);
+    const keys = TALENTS.filter((t) => t.region === b.id && t.kind === 'keystone').sort((x, y) => x.gate - y.gate).map((t) => {
+      const owned = (state.talents[t.id] ?? 0) > 0;
+      return { t, status: owned ? 'owned' : pts >= t.gate ? 'ready' : 'far', missing: Math.max(0, t.gate - pts) };
+    });
+    return { branch: b, pts, keys };
+  });
+}
+
+function regionView(state) {
+  const rows = regionRows(state).map(({ branch: b, pts, keys }) => `<div class="region-row" style="--branch:${b.color}">
+      <div class="region-name"><b style="color:${b.color}">${b.label}</b><span class="muted">${pts} pts</span></div>
+      ${keys.map(({ t, status, missing }) => `<button class="region-key ${status}" data-action="region-key" data-value="${t.id}" title="${escapeHtml(t.name)}" aria-label="${escapeHtml(t.name)}">
+        ${img(t.icon)}<span>${status === 'owned' ? '✔' : status === 'ready' ? 'prête' : `${missing} pts`}</span></button>`).join('')}</div>`).join('');
+  return `<div class="card region-view"><div class="muted">Touchez une clé de voûte pour la voir dans l'arbre.</div>${rows}</div>`;
 }
 
 function regionBuy(state) {
@@ -166,7 +168,9 @@ export default {
     vp.addEventListener('wheel', (e) => {
       e.preventDefault();
       if (e.ctrlKey) {
-        body.querySelector(`[data-action="tree-zoom"][data-value="${e.deltaY < 0 ? 'in' : 'out'}"]`)?.click();
+        const z = body.querySelector(`[data-action="tree-zoom"][data-value="${e.deltaY < 0 ? 'in' : 'out'}"]`);
+        if (z) z.click();
+        else { ui.view.treeZoom = Math.min(2, Math.max(0.3, (ui.view.treeZoom ?? DEFAULT_ZOOM) * (e.deltaY < 0 ? 1.25 : 0.8))); ui.invalidate(); } // v9.1.3 : outils repliés
         return;
       }
       vp.scrollLeft += e.shiftKey ? e.deltaY : e.deltaX;
@@ -201,9 +205,13 @@ export default {
   },
   render(ui, state) {
     const segOpen = rebirthSegmentOpen(state);
-    const seg = segOpen && ui.view.treeSeg === 'rebirth' ? 'rebirth' : 'tree';
-    const head = segOpen ? segment([['tree', 'Arbre', 'icon_tree'], ['rebirth', 'Renaissance', 'icon_rebirth']], 'tree-seg', seg) : '';
+    // v9.1.3 (A18, essai) : vue « Région » (lecture seule) dès qu'un talent est appris.
+    const regionOpen = talentsOwned(state) > 0;
+    const seg = segOpen && ui.view.treeSeg === 'rebirth' ? 'rebirth' : regionOpen && ui.view.treeSeg === 'region' ? 'region' : 'tree';
+    const items = [['tree', 'Arbre', 'icon_tree'], ...(regionOpen ? [['region', 'Région', 'icon_map']] : []), ...(segOpen ? [['rebirth', 'Renaissance', 'icon_rebirth']] : [])];
+    const head = items.length > 1 ? segment(items, 'tree-seg', seg) : '';
     if (seg === 'rebirth') return head + rebirthView(ui, state);
+    if (seg === 'region') return head + regionView(state);
     return head + treeView(ui, state);
   },
 };
@@ -233,18 +241,23 @@ function treeView(ui, state) {
         title="${escapeHtml(t.name)} · ${level}/${t.max} — ${escapeHtml(effectText(talentLevelEffects(t, Math.max(1, level))))}">${inner}</button>`;
     }).join('');
     const total = TALENTS.length;
-    const tree = `<div class="tree-head">
-        <span><b>${talentsOwned(state)}</b>/${total} talents · ${formatNumber(fragmentsSpent(state))} ${fragment()} investis
-          ${total - shown.size > 0 ? `<span class="muted">· ${total - shown.size} encore cachés</span>` : ''}</span>
-        <span class="grow"></span>
-        <button class="btn btn-gold small" data-action="ask-buy-talents" data-value="">Tout apprendre…</button>
+    // v9.1.3 (doc1 « Talents ») : Recherche, Achetables, zoom et Tout apprendre sont repliés dans « Outils » ;
+    // l'arbre, le compteur et les fragments restent seuls à l'ouverture.
+    const tools = fold(ui, 'tree-tools', 'Outils', () => `<div class="tree-head">
         <input id="tree-search" type="search" placeholder="Chercher (or, critique, PV…)" value="${escapeHtml(ui.view.treeSearch ?? '')}" autocomplete="off" aria-label="Chercher un talent"><span class="tree-hits muted"></span>
         <label class="toggle"><input type="checkbox" data-action="tree-buyable" ${ui.view.treeBuyable ? 'checked' : ''}> Achetables</label>
       </div>
-      <div class="tree-tools"><button class="btn small" data-action="tree-zoom" data-value="out" title="Dézoomer">−</button>
+      <div class="tree-tools"><button class="btn btn-gold small" data-action="ask-buy-talents" data-value="">Tout apprendre…</button><span class="grow"></span>
+        <button class="btn small" data-action="tree-zoom" data-value="out" title="Dézoomer">−</button>
         <span class="muted">${Math.round(zoom * 100)} %</span>
         <button class="btn small" data-action="tree-zoom" data-value="in" title="Zoomer">+</button>
-        <button class="btn small" data-action="tree-zoom" data-value="reset" title="Taille normale, centrée sur le talent choisi">⟲</button></div>
+        <button class="btn small" data-action="tree-zoom" data-value="reset" title="Taille normale, centrée sur le talent choisi">⟲</button></div>`,
+    { cls: 'tree-tools-fold', extra: ui.view.treeSearch || ui.view.treeBuyable ? 'filtre actif' : '' });
+    const tree = `<div class="tree-head">
+        <span><b>${talentsOwned(state)}</b>/${total} talents · ${formatNumber(fragmentsSpent(state))} ${fragment()} investis
+          ${total - shown.size > 0 ? `<span class="muted">· ${total - shown.size} encore cachés</span>` : ''}</span>
+      </div>
+      ${tools}
       <div class="tree-wrap"><div class="tree-viewport"><div class="rune-tree" style="width:${Math.round(TREE_PX * zoom)}px;height:${Math.round(TREE_PX * zoom)}px">
       <svg viewBox="0 0 ${SPAN} ${SPAN}" preserveAspectRatio="none" aria-hidden="true">${links}</svg>${nodes}</div></div></div>
       <div class="tree-legend">${regionSummary(state)}</div>`;
@@ -258,54 +271,87 @@ function treeView(ui, state) {
           <button class="btn small btn-danger" data-action="respec-talents" ${spent > 0 && state.gems >= respec ? '' : 'disabled'}>${respec ? `${formatNumber(respec)} gemmes` : 'Gratuit (1re fois)'}</button></div>`)}`;
 }
 
-// Segment Renaissance (v9.1.0) : d'abord gagné, gardé, perdu et le bouton ; puis bonus éternels et Transcendance.
+// v9.1.3 (doc1 E) : les 3 multiplicateurs de prestige regroupés à l'affichage — Renaissances (et conservées),
+// Transcendances, Puissance stellaire. Leur produit est rebirthMultiplier (core/stats.js).
+export function prestigeFactors(state) {
+  const total = rebirthMultiplier(state);
+  const transcend = TRANSCEND.powerPerTranscend ** (state.transcend?.count ?? 0);
+  const stellar = stellarMultiplier(state) / transcend;
+  return { total, rebirth: total / (transcend * stellar), transcend, stellar };
+}
+const mult = (x) => (x < 1000 ? x.toFixed(2).replace('.', ',') : formatNumber(x));
+
+// Segment Renaissance (v9.1.3, doc1 « Renaissance en 3 blocs » + doc2 A9) : 3 cartes (fragments, multiplicateur,
+// pouvoir conservé), le retour à l'étape 1 en une ligne, le bouton ; total de prestige en une ligne ; Bonus
+// (éternels + stellaires en une liste) et Transcendance repliés. Gardé / perdu : seulement dans la confirmation.
 function rebirthView(ui, state) {
   const reward = rebirthReward(state);
   const can = canRebirth(state);
   const blocked = rebirthBlocked(state);
   const gain = PRESTIGE.rebirthMultiplier ** rebirthGain(state);
   const keep = memoryShare(state);
+  const tile = (icon, value, label) => `<div class="rb-tile">${img(icon)}<b>${value}</b><span class="muted">${label}</span></div>`;
+  const f = prestigeFactors(state);
+  const total = f.total > 1 ? `<div class="rb-total"><span class="muted">Prestige actuel</span> <b class="good">×${mult(f.total)}</b> <span class="muted">dégâts, PV et or</span></div>` : '';
   return `<div class="card rebirth-card">
-      <div class="rebirth-head">${img('icon_rebirth')}<div>
-        <div><b>Renaissance</b> · ${state.records.rebirths} effectuée${state.records.rebirths > 1 ? 's' : ''}</div>
-        <div>${can
-          ? `<b class="gold-text">+${formatNumber(reward)} fragments</b> et dégâts, PV et or <b class="good">×${gain.toFixed(2).replace('.', ',')} pour toujours</b>.`
-          : `Atteignez l'étape ${stageLabel(REBIRTH.minStage)} pour renaître (étape max actuelle ${stageLabel(state.maxStage)}).`}</div>
-        ${can && rebirthGain(state) < 1 ? `<div class="muted">×${String(PRESTIGE.rebirthMultiplier).replace('.', ',')} complet à partir de l'étape ${stageLabel(REBIRTH.fullPowerStage + 1)} ; plus tôt, au prorata de votre étape max.</div>` : ''}
-      </div></div>
-      ${keepResetLists()}
-      <div class="muted">Toutes les améliorations repartent de zéro${keep > 0 ? `, sauf ${Math.round(keep * 100)} % de leurs niveaux (Mémoire du guerrier)` : ''}. Les clés sont gardées ; les donjons se referment jusqu'à leur étape.</div>
+      <div class="row-between"><b>${img('icon_rebirth')} Renaissance</b><span class="muted">${state.records.rebirths} effectuée${state.records.rebirths > 1 ? 's' : ''}</span></div>
+      ${can ? `<div class="rb-tiles">${tile('icon_fragment', `+${formatNumber(reward)}`, 'fragments')}${tile('weapon_sword', `×${gain.toFixed(2).replace('.', ',')}`, 'pour toujours')}${tile('icon_boss', '1', 'pouvoir conservé')}</div>`
+        : `<div>Atteignez l'étape ${stageLabel(REBIRTH.minStage)} pour renaître (max ${stageLabel(state.maxStage)}).</div>`}
+      <div class="muted">Retour à l'étape 1${keep > 0 ? ` (${Math.round(keep * 100)} % des améliorations gardés)` : ''} ; le détail est dans la confirmation.</div>
       ${blocked && can ? `<div class="bad">${blocked}</div>` : ''}
       <button class="btn btn-gold primary-action" data-action="rebirth" ${can && !blocked ? '' : 'disabled'}>Renaître (+${formatNumber(reward)} ${fragment()})</button>
+      ${total}
     </div>
-    ${eternalCard(state)}
-    ${transcendCard(state)}`;
+    ${fold(ui, 'rebirth-bonus', 'Bonus éternels et stellaires', () => bonusList(state))}
+    ${transcendFold(ui, state)}`;
 }
 
-// Transcendance (v8.8) : Étoiles et bonus stellaires.
-function transcendCard(state) {
+// v9.1.3 (doc1 F, essai) : bonus éternels (fragments) et stellaires (Étoiles) en une seule liste ; chaque prix
+// garde sa monnaie. Le détail des 3 multiplicateurs est en tête.
+function bonusList(state) {
+  const p = state.prestige;
   const t = state.transcend;
-  // v9.1.0 : la Transcendance n'apparaît que lorsqu'elle concerne le joueur.
-  if (!canTranscend(state) && !t.count && !t.stars) return '';
-  const reward = transcendReward(state);
-  const perks = TRANSCEND_PERKS.map((perk) => {
+  const f = prestigeFactors(state);
+  const detail = `<div class="muted rb-detail">Renaissance ×${mult(f.rebirth)} × Transcendance ×${mult(f.transcend)} × Puissance stellaire ×${mult(f.stellar)}
+    = <b class="good">×${mult(f.total)}</b>. Chaque Renaissance vaut ×${String(PRESTIGE.rebirthMultiplier).replace('.', ',')} ; les boss ne se renforcent que de ${BALANCE.stages.rebirthBossPct} %.</div>`;
+  const eternal = PRESTIGE_PERKS.map((perk) => {
+    const level = p.perks[perk.id] ?? 0;
+    const maxed = level >= perk.max;
+    const eff = Object.fromEntries(Object.entries(perk.effect).map(([k, v]) => [k, v * Math.max(1, level)]));
+    return `<div class="perk-row">${img(perk.icon)}<div class="grow"><b>${perk.name}</b> <span class="muted">${level}/${perk.max}</span>
+        <div class="${level ? 'good' : 'muted'}">${effectText(eff)}${level ? '' : ' (au niveau 1)'}</div></div>
+      ${costButton({ action: 'buy-perk', cost: perkCost(level), have: state.fragments, currency: 'fragments', attrs: `data-key="${perk.id}"`, cls: 'btn-gold small', max: maxed })}</div>`;
+  }).join('');
+  const showStellar = t && (canTranscend(state) || t.count || t.stars);
+  const stellar = !showStellar ? '' : TRANSCEND_PERKS.map((perk) => {
     const level = perkLevel(state, perk.id);
     const maxed = level >= perk.max;
-    return `<div class="perk-row">${img(perk.icon)}<div class="grow"><b>${escapeHtml(perk.name)}</b> <span class="muted">${level}/${perk.max}</span>
+    return `<div class="perk-row">${img(perk.icon)}<div class="grow"><b>${escapeHtml(perk.name)}</b> <span class="muted">${level}/${perk.max} ✧</span>
         <div class="${level ? 'good' : 'muted'}">${perk.text(Math.max(1, level))}${level ? '' : ' (au niveau 1)'}</div></div>
       ${costButton({ action: 'buy-tperk', cost: transcendPerkCost(perk, level), have: t.stars, currency: 'stars', attrs: `data-key="${perk.id}"`, cls: 'btn-gold small', max: maxed })}
       ${maxed ? '' : `<button class="btn small" data-action="buy-tperk-max" data-key="${perk.id}">Max</button>`}</div>`;
   }).join('');
-  return `<div class="card transcend-card">
-    <div class="row-between"><b class="transcend-title">✧ Transcendance</b><span>${t.count} effectuée${t.count > 1 ? 's' : ''} · <b class="gold-text">${formatNumber(t.stars)} ✧</b></span></div>
-    <div class="muted">Recommencez tout (Renaissances comprises, ${Math.round(keptRebirthShare(state) * 100)} % gardées) contre des <b>Étoiles</b>. Chaque Transcendance
-      multiplie aussi dégâts, PV et or ×${TRANSCEND.powerPerTranscend} pour toujours (actuellement ×${formatNumber(stellarMultiplier(state))}).</div>
-    <div class="keep-reset">
+  return `${detail}${eternal}${stellar}`;
+}
+
+// Transcendance (v8.8) : Étoiles. v9.1.3 : repliée ; ses bonus stellaires sont dans la liste des bonus, gardé / perdu
+// dans sa confirmation.
+function transcendFold(ui, state) {
+  const t = state.transcend;
+  // v9.1.0 : la Transcendance n'apparaît que lorsqu'elle concerne le joueur.
+  if (!canTranscend(state) && !t.count && !t.stars) return '';
+  const reward = transcendReward(state);
+  return fold(ui, 'rebirth-transcend', 'Transcendance', () => `
+    <div class="muted">Recommencez tout (Renaissances comprises, ${Math.round(keptRebirthShare(state) * 100)} % gardées) contre des <b>Étoiles</b> ;
+      chaque Transcendance multiplie aussi dégâts, PV et or ×${TRANSCEND.powerPerTranscend} pour toujours.</div>
+    ${reward > 0 && rebirthBlocked(state) ? `<div class="bad">${rebirthBlocked(state)}</div>` : ''}
+    <button class="btn btn-gold" data-action="transcend" ${reward > 0 && !rebirthBlocked(state) ? '' : 'disabled'}>Transcender (+${formatNumber(reward)} ✧)</button>`,
+  { extra: `${t.count} · ${formatNumber(t.stars)} ✧` });
+}
+
+export function transcendKeepResetLists() {
+  return `<div class="keep-reset">
       <div><div class="section-title">Réinitialisé</div><ul>${TRANSCEND_RESETS.map((x) => `<li class="bad">${x}</li>`).join('')}</ul></div>
       <div><div class="section-title">Conservé</div><ul>${TRANSCEND_KEEPS.map((x) => `<li class="good">${x}</li>`).join('')}</ul></div>
-    </div>
-    ${reward > 0 && rebirthBlocked(state) ? `<div class="bad">${rebirthBlocked(state)}</div>` : ''}
-    <button class="btn btn-gold" data-action="transcend" ${reward > 0 && !rebirthBlocked(state) ? '' : 'disabled'}>Transcender (+${formatNumber(reward)} ✧)</button>
-    <div class="section-title">Bonus stellaires</div>${perks}
-  </div>`;
+    </div>`;
 }

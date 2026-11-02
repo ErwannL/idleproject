@@ -21,7 +21,7 @@ import { rewardText } from '../core/rewards.js';
 import { skillCooldown, skillPointsAvailable } from '../core/skills.js';
 import { computeHeroStats } from '../core/stats.js';
 import { KEY_LABELS, boostKeys, cycleSub, focusables, installShortcuts, keyConflict, keyLabel, setCustomKeys, setMenuCount, shortcutsHtml } from './shortcuts.js';
-import { installHoldToRepeat, selectorFor } from './hold.js';
+import { installHoldToRepeat, selectorFor, holdFiredRecently } from './hold.js';
 import { installTips } from './tip.js';
 import { playSummonReveal } from './summon-fx.js';
 import { coin, effectText, escapeHtml, fold, icon, img, itemFrame, missingText } from './common.js';
@@ -49,7 +49,7 @@ import inventory, { visibleItems } from './panels/inventory.js';
 import options from './panels/options.js';
 import skills from './panels/skills.js';
 import summon from './panels/summon.js';
-import tree, { DEFAULT_ZOOM as TREE_ZOOM, keepResetLists, recenterTree } from './panels/tree.js';
+import tree, { DEFAULT_ZOOM as TREE_ZOOM, keepResetLists, recenterTree, transcendKeepResetLists } from './panels/tree.js';
 import upgrades from './panels/upgrades.js';
 import { missionsClaimable } from '../core/missions.js';
 import { earlyBoost } from '../core/boost.js';
@@ -278,6 +278,7 @@ export class UI {
       const dx = t.clientX - swipe.x;
       const dy = t.clientY - swipe.y;
       swipe = null;
+      if (holdFiredRecently()) return; // v9.1.3 : la fin d'un appui maintenu ne change pas d'onglet
       if (Math.abs(dx) > 60 && Math.abs(dy) < 40) cycleSub(this, dx < 0 ? 1 : -1);
     }, { passive: true });
   }
@@ -376,7 +377,7 @@ export class UI {
     pick('invTab', (x) => ['bag', 'stash'].includes(x));
     pick('encSec', (x) => ['monsters', 'bosses', 'mutations', 'items', 'companions', 'museum'].includes(x));
     pick('summonPool', (x) => ['hero', 'ally', 'pet'].includes(x));
-    pick('treeSeg', (x) => ['tree', 'rebirth'].includes(x));
+    pick('treeSeg', (x) => ['tree', 'region', 'rebirth'].includes(x));
     pick('heroTab', (x) => ['hero', 'class', 'look', 'records'].includes(x));
     pick('optTab', (x) => ['general', 'interface', 'sound', 'window'].includes(x));
     pick('encSlot', (x) => typeof x === 'string' && x.length < 16);
@@ -410,6 +411,8 @@ export class UI {
           <span>Taille de l'interface</span>${sel('uiScale', { label: 'Taille de l\'interface', items: [['auto', 'Auto'], [100, '100 %'], [125, '125 %'], [150, '150 %'], [200, '200 %']] })}
         </div>
         ${check('compact', '<b>Mode compact</b> : listes serrées, sans descriptions (joueurs expérimentés)')}
+        ${check('qtyMenu', '<b>Quantité en un bouton</b> (essai) : Max, ×100, ×10, ×1 se déplient d\'un bouton dans Améliorations')}
+        ${check('skillGrid', '<b>Compétences en grille</b> (essai) : 9 icônes avec niveau et +, le texte au toucher')}
         ${check('colorAid', '<b>Aide aux couleurs</b> : lettre de rareté sur les objets (C, R, É, L), pastilles en anneau')}
         ${check('contrast', '<b>Contraste élevé</b> : textes plus contrastés, sans décor animé')}
       </div>
@@ -605,7 +608,9 @@ export class UI {
     const local = (fn) => { fn(); this.invalidate(); };
     switch (action) {
       case 'buy': a.buy(key, el.dataset.amount ?? '1'); break;
-      case 'buy-amount': local(() => { v.buyAmount = value; }); break;
+      case 'buy-amount': local(() => { v.buyAmount = value; v.qtyOpen = false; }); break;
+      case 'skill-sel': local(() => { v.skillSel = v.skillSel === value ? null : value; }); break; // v9.1.3 : case de la grille
+      case 'qty-toggle': local(() => { v.qtyOpen = !v.qtyOpen; }); break; // v9.1.3 (A22)
       case 'upgrade-cat': local(() => { v.upgradeCat = value; }); break;
       case 'inv-tab': local(() => { v.invTab = value; }); break;
       case 'craft-tier': local(() => { v.craftTier = value; }); break;
@@ -753,6 +758,8 @@ export class UI {
       case 'buy-talents-all': this.closeModal(); a.buyTalentsAll(value || null); break;
       case 'ask-buy-talents': this.showBuyTalents(value || null); break;
       case 'tree-seg': local(() => { v.treeSeg = value; }); break;
+      // v9.1.3 (A18) : une clé de voûte de la vue Région ouvre l'arbre centré sur elle.
+      case 'region-key': local(() => { v.talentSel = value; v.treeSeg = 'tree'; recenterTree(); }); break;
       case 'buy-tperk': a.buyTranscendPerk(key); break;
       case 'buy-tperk-max': a.buyTranscendPerk(key, true); break;
       case 'transcend': this.showTranscendConfirm(this.state); break;
@@ -853,6 +860,7 @@ export class UI {
     if (action === 'on-top') this.actions.setAlwaysOnTop(el.checked);
     if (action === 'skill-auto') this.actions.setSkillAuto(el.checked);
     if (action === 'rush-auto') this.actions.setRushAuto(el.checked);
+    if (action === 'skills-auto-all') { this.actions.setSkillAuto(el.checked); this.actions.setRushAuto(el.checked); } // v9.1.3 : un seul Auto (grille)
     if (action === 'volume') this.sound?.setVolume(el.dataset.kind, Number(el.value) / 100);
     if (action === 'mute') this.sound?.setMuted(el.checked);
     if (action === 'notify') this.actions.setNotify(el.dataset.key, el.checked);
@@ -1611,6 +1619,7 @@ export class UI {
       <p>Vous gagnerez <b class="gold-text">+${formatNumber(stars)} Étoiles</b> et dégâts, PV et or <b>×${TRANSCEND.powerPerTranscend}</b> pour toujours.</p>
       <p>Tout repart de l'étape 1 : Renaissances (${Math.round(keptRebirthShare(state) * 100)} % conservées), arbre de talents et fragments anciens
         sont remis à zéro. L'équipement, les compagnons, les gemmes et les bonus éternels sont conservés.</p>
+      ${transcendKeepResetLists()}
       ${powerChoice(state)}
       <div class="detail-actions"><button class="btn" data-action="close-modal">Annuler</button>
         <button class="btn btn-gold" data-action="confirm-transcend">Transcender</button></div>`);

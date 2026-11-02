@@ -214,7 +214,7 @@ export function createCombat(state, balance = BALANCE) {
     goldWave: 0, // ennemis restants de la vague spéciale (or doublé)
     events: [],
     recordEvents: true,
-    counters: { gold: 0, kills: 0, drops: 0, xp: 0 },
+    counters: { gold: 0, kills: 0, drops: 0, xp: 0, damage: {} },
   };
 }
 
@@ -527,10 +527,14 @@ export function classAttackTargets(heroClass, world, front, damage, count) {
   return { hits, special };
 }
 
-function hitEnemy(state, world, enemy, damage, rng, balance, stats, enc, source) {
+// v9.1.3 (S3) : unitId = compagnon qui frappe (sinon le héros) ; les dégâts réellement retirés sont comptés par
+// unité (« dégâts directs »), lus seulement par la mesure « Mesurer » (core/offline.js).
+function hitEnemy(state, world, enemy, damage, rng, balance, stats, enc, source, unitId = 'hero') {
   if (!world.enemies.includes(enemy)) return;
   damage = mutationDamageTaken(enemy, damage);
   damage = traitDamageTaken(enemy, damage);
+  const dealt = world.counters?.damage ? Math.max(0, Math.min(damage, enemy.hp)) : 0;
+  if (dealt > 0) world.counters.damage[unitId] = (world.counters.damage[unitId] ?? 0) + dealt;
   enemy.hp -= damage;
   if (stats.lifesteal > 0 && source !== 'thorns' && !(enc?.challenge && challengeRule(state, 'noHeal'))) {
     world.hero.hp = Math.min(stats.maxHp, world.hero.hp + (damage * stats.lifesteal) / 100);
@@ -586,9 +590,9 @@ function castCompanion(state, world, companion, skill, stats, rng, balance, enc,
     world.buffs.cry = Math.max(world.buffs.cry, skill.duration ?? 6);
     world.buffs.cryPct = Math.max(world.buffs.cryPct, skill.value * Math.min(aff, 3));
   } else if (skill.type === 'hit' && front) {
-    hitEnemy(state, world, front, stats.damage * skill.value * aff, rng, balance, stats, enc, 'companion');
+    hitEnemy(state, world, front, stats.damage * skill.value * aff, rng, balance, stats, enc, 'companion', companion.id);
   } else if (skill.type === 'burst') {
-    for (const enemy of [...world.enemies]) hitEnemy(state, world, enemy, stats.damage * skill.value * aff, rng, balance, stats, enc, 'companion');
+    for (const enemy of [...world.enemies]) hitEnemy(state, world, enemy, stats.damage * skill.value * aff, rng, balance, stats, enc, 'companion', companion.id);
   }
   emit(world, 'companionSkill', { companionId: companion.id, skill: skill.index, skillType: skill.type, ultimate: Boolean(skill.ultimate) });
 }

@@ -106,6 +106,7 @@ export const PANEL_HELP = {
   upgrades: {
     short: 'L\'or achète des améliorations. Chaque ligne indique son gain en dégâts/s : à vous de choisir.',
     more: 'Dégâts et Points de vie gagnent ×1,35 / ×1,4 tous les 10 niveaux et ×1,75 tous les 25 niveaux : visez ces paliers. ×10, ×100 et Max achètent plusieurs niveaux d\'un coup.',
+    touch: 'Gardez le doigt sur un bouton d\'achat : après l\'anneau, il achète en continu, de plus en plus vite.',
   },
   inventory: {
     short: 'La flèche verte marque un objet meilleur que celui porté. « Équiper le meilleur » équipe tout d\'un coup.',
@@ -121,13 +122,13 @@ export const PANEL_HELP = {
   },
   skills: {
     short: 'Un point par niveau du héros, à placer où vous voulez. Les compétences se lancent toutes seules.',
-    more: 'Les Boosts (en bas de cet écran) sont différents : améliorés avec l\'or, lancés d\'un appui sur le combat (ou au clavier), ou en Auto.',
+    more: 'Les Boosts (en bas de cet écran, ou les 5 dernières cases de la grille) sont différents : améliorés avec l\'or, lancés d\'un appui sur le combat (ou au clavier), ou en Auto.',
   },
   tree: {
     short: 'Les fragments anciens achètent des talents permanents. Un talent s\'apprend dès qu\'un voisin est appris.',
     more: 'L\'arbre se dévoile au fur et à mesure (la recherche ne porte que sur ce qui est visible). Les clés de voûte demandent des points dans leur région : la légende donne l\'objectif de chaque région. Petits nœuds : 3 niveaux · ◆ notables · ⬢ clés de voûte. La Renaissance (segment Renaissance) remet l\'étape à 1 contre des fragments et un bonus permanent de dégâts, PV et or.',
     mouse: 'Glissez ou utilisez la molette pour vous déplacer, Ctrl + molette pour zoomer.',
-    touch: 'Glissez du doigt pour vous déplacer ; les boutons − et + zooment.',
+    touch: 'Glissez du doigt pour vous déplacer ; les boutons − et + (dans Outils) zooment.',
   },
   campaign: {
     short: 'Votre monde, le prochain boss et la prévision du combat. L\'avance automatique passe d\'une étape à l\'autre.',

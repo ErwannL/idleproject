@@ -1,6 +1,8 @@
 // Infobulle unique (v9.1.0) : le texte d'un attribut title (ou data-tip) affiché dans une bulle, au toucher par un
 // appui long (450 ms, sans déclencher le clic au relâchement) et au clavier quand l'élément reçoit le focus.
 // La bulle est hors de #panel-body (redessiné en innerHTML) : elle n'est jamais effacée par un redessin.
+import { canHold } from './hold.js';
+
 const LONG_PRESS_MS = 450;
 
 export function installTips(root) {
@@ -32,6 +34,8 @@ export function installTips(root) {
     const el = e.target.closest('[title], [data-tip]');
     clearTimeout(timer);
     if (!el) { hide(); return; }
+    // v9.1.3 : un bouton qu'on peut maintenir au doigt garde l'appui long pour la répétition, pas pour l'infobulle.
+    if (canHold(e.target.closest('button[data-action]'), 'touch')) return;
     timer = setTimeout(() => { show(el); swallowClick = true; }, LONG_PRESS_MS);
   }, { capture: true });
   const cancel = () => clearTimeout(timer);
