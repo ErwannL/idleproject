@@ -63,3 +63,19 @@ d'invocation, et le stock converti s'utilise aussi en ×10 (10 % de mieux qu'ava
   où Monstres et Boss sont complets).
 - **Critère d'abandon :** moins de paliers de section réclamés par joueur qu'avant sur la même durée de jeu, ou joueurs
   qui ne trouvent plus les paliers. **Annuler :** remettre le bloc Codex, le champ n'a pas changé.
+
+## Lot F — Musée en possession : option sans migration (fait), version « modèle obtenu » (non faite)
+
+- Fait : l'exposition auto reste activée par défaut (`state.ui.autoMuseum` absent = activée, et `exposeAll` au
+  chargement) ; « Exposition auto », « Exposer tout » et « Recycler les doublons » sont repliés dans **Outils du Musée**
+  (repli mémorisé). L'écran du Musée n'a plus qu'une phrase, le compteur et les vitrines. Aucune sauvegarde touchée.
+- **Non fait : « modèle obtenu + meilleure rareté » (vitrine allumée et pièce portable).** Le brief demande de ne la
+  faire que si la puissance reste identique ou mieux justifiée. Or le bilan du doc (`core/bonuses.js`,
+  `core/stats.js`) donne un gain net de ×1,44 à ×3,05 en dégâts selon les autres multiplicateurs, car la même pièce
+  compterait deux fois (portée + bonus de vitrine). Garder la puissance identique demanderait de diviser le bonus par
+  pièce selon la part portée, ce qui dépend du build et ne peut pas être fixé à un chiffre ; baisser le bonus pour
+  tous pénaliserait les joueurs qui exposent sans porter. Il faudrait aussi rendre jusqu'à 18 objets vers un sac ou un
+  coffre peut-être pleins. Sans mesure sur parties réelles, la refonte n'est pas justifiable : on garde le dilemme
+  porter / exposer, que l'option sans migration rend moins coûteux en appuis.
+- **Critère d'abandon (option faite) :** joueurs qui ne trouvent plus « Exposer tout » (retours) ; annuler = sortir les
+  boutons du repli, rien à migrer.

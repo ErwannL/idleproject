@@ -184,14 +184,20 @@ export function museumView(ui, state) {
   const n = museumCount(state);
   const dupes = museumDuplicates(state).length;
   const total = effectText(museumEffects(state));
-  return `<div class="card"><div class="row-between"><span class="muted">Le Musée expose vos objets ancestraux, un par vitrine. Chaque pièce exposée :
+  // v9.1.3 (lot F, « Musée en possession », option sans migration) : l'exposition auto reste activée par défaut et
+  // fait le travail ; le réglage, « Exposer tout » et les doublons sont repliés dans « Outils du Musée ».
+  // La version « modèle obtenu + meilleure rareté » n'est pas faite : voir docs/refontes-v913.md.
+  const tools = fold(ui, 'museum-tools', 'Outils du Musée', () => `<div class="row-between">
+      <button class="btn chip-btn small${auto ? ' active' : ''}" data-action="auto-museum" title="Les objets ancestraux ramassés vont dans leur vitrine si elle est vide ou s'ils sont meilleurs (l'ancien retourne au sac)">${auto ? 'Exposition auto : activée' : 'Exposition auto : désactivée'}</button>
+      <button class="btn btn-gold small" data-action="expose-all" title="Expose les objets ancestraux du sac et du coffre (pas ceux que porte le héros)">Exposer tout (sac + coffre)</button>
+      ${dupes ? `<button class="btn btn-danger small" data-action="recycle-museum-dupes" title="Objets ancestraux du sac moins bons que l'exemplaire exposé (les verrouillés sont gardés)">Recycler les doublons (${dupes})</button>` : ''}</div>
+      ${dupes ? `<div class="muted">${dupes} objet${dupes > 1 ? 's' : ''} ancestra${dupes > 1 ? 'ux' : 'l'} du sac ${dupes > 1 ? 'sont des doublons' : 'est un doublon'} : la vitrine expose déjà un exemplaire au moins aussi bon. Les objets ancestraux ne sont jamais recyclés automatiquement.</div>` : ''}`,
+  { extra: !auto ? '<span class="muted">auto désactivée</span>' : dupes ? `<span class="muted">${dupes} doublon${dupes > 1 ? 's' : ''}</span>` : '' });
+  return `<div class="card"><span class="muted">Le Musée expose vos objets ancestraux, un par vitrine, dès qu'ils sont ramassés. Chaque pièce exposée :
       dégâts, PV et or ${pct(per.damageMultPct)} (multiplicatif, ×2 si Légendaire). Collection complète : dégâts et PV +${MUSEUM.complete.damageMultPct} % de plus.
       Une pièce exposée n'est pas portée : reprenez-la (↩) pour l'équiper.</span>
-      <button class="btn chip-btn small${auto ? ' active' : ''}" data-action="auto-museum" title="Les objets ancestraux ramassés vont dans leur vitrine si elle est vide ou s'ils sont meilleurs (l'ancien retourne au sac)">${auto ? 'Exposition auto : activée' : 'Exposition auto : désactivée'}</button></div>
-      <div class="row-between museum-total"><span><b>${n}/${MUSEUM_PIECES.length}</b> pièces exposées${total ? ` · <span class="good">${total}</span>` : ''}</span>
-        <span><button class="btn btn-gold small" data-action="expose-all" title="Expose les objets ancestraux du sac et du coffre (pas ceux que porte le héros)">Exposer tout (sac + coffre)</button>
-        ${dupes ? `<button class="btn btn-danger small" data-action="recycle-museum-dupes" title="Objets ancestraux du sac moins bons que l'exemplaire exposé (les verrouillés sont gardés)">Recycler les doublons (${dupes})</button>` : ''}</span></div>
-      ${dupes ? `<div class="muted">${dupes} objet${dupes > 1 ? 's' : ''} ancestra${dupes > 1 ? 'ux' : 'l'} du sac ${dupes > 1 ? 'sont des doublons' : 'est un doublon'} : la vitrine expose déjà un exemplaire au moins aussi bon. Les objets ancestraux ne sont jamais recyclés automatiquement.</div>` : ''}</div>
+      <div class="museum-total"><b>${n}/${MUSEUM_PIECES.length}</b> pièces exposées${n && total ? ` · <span class="good">${total}</span>` : ''}</div>
+      ${tools}</div>
     <div class="museum">${cases}</div>`;
 }
 

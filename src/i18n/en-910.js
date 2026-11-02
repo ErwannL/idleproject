@@ -351,6 +351,7 @@ export const EXACT_910 = {
   'Deux pouvoirs de la même famille donnent un bonus de famille (effets +25 %).': 'Two powers of the same family grant a family bonus (effects +25 %).',
   "Deux systèmes : l'encyclopédie (pourcentage global et paliers de chaque section) et le Musée (un objet ancestral par vitrine, bonus permanent, sans effet sur le pourcentage).": 'Two systems: the encyclopedia (overall percentage and tiers of each section) and the Museum (one ancestral item per showcase, permanent bonus, no effect on the percentage).',
   'Paliers ✔': 'Tiers ✔',
+  'Outils du Musée': 'Museum tools', 'auto désactivée': 'auto off',
 };
 
 // Traduction d'un morceau (nom de boost, de boss…) : fournie par ./en.js.
@@ -523,6 +524,8 @@ export const PATTERNS_910 = [
   [/^Durée, place (\d+)$/, 'Duration, slot $1'],
   [/^Palier (\d+) % :$/, 'Tier $1 %:'],
   [/^Palier (\d+)\/(\d+)$/, 'Tier $1/$2'],
+  [/^(\d+) doublons?$/, (m) => `${m[1]} duplicate${m[1] === '1' ? '' : 's'}`],
+  [/^Le Musée expose vos objets ancestraux, un par vitrine, dès qu'ils sont ramassés\. Chaque pièce exposée : dégâts, PV et or \+(\d+) % \(multiplicatif, ×2 si Légendaire\)\. Collection complète : dégâts et PV \+(\d+) % de plus\. Une pièce exposée n'est pas portée : reprenez-la \(↩\) pour l'équiper\.$/, 'The Museum displays your ancestral items, one per case, as soon as they are picked up. Each displayed piece: damage, HP and gold +$1% (multiplicative, ×2 if Legendary). Full collection: damage and HP +$2% more. A displayed piece is not worn: take it back (↩) to equip it.'],
   [/^Collections : (.+) \((\d+)\)$/, (m) => `Collections: ${tr(m[1])} (${m[2]})`],
   // v9.1.3 (chantier 3).
   [/^(\d+) pts$/, '$1 pts'],
