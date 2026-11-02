@@ -44,7 +44,8 @@ function remainingText(ms) {
 // Ligne de mission : icône, intitulé + barre, récompense, bouton.
 function row({ icon, label, progress, target, reward, done, claimed, action, value, sub = '' }) {
   const btn = claimed ? '<span class="m-done">✔</span>'
-    : `<button class="btn ${done ? 'btn-gold' : ''} small" data-action="${action}" data-value="${value}" ${done ? '' : 'disabled'}>${done ? 'Récupérer' : 'En cours'}</button>`;
+    // v9.1.3 : la récompense est écrite dans le bouton (lisible aussi sur téléphone, où la colonne est masquée).
+    : `<button class="btn ${done ? 'btn-gold' : ''} small m-claim" data-action="${action}" data-value="${value}" ${done ? '' : 'disabled'}>${done ? 'Récupérer' : '<span class="muted">À gagner</span>'}<span class="m-claim-reward">${rewardText(reward, formatNumber)}</span></button>`;
   return `<div class="m-row${claimed ? ' claimed' : ''}">
     <div class="m-icon">${img(icon)}</div>
     <div class="m-main">${sub}<b>${escapeHtml(label)}</b>${progressBar(progress / target, `${formatNumber(progress)} / ${formatNumber(target)}`)}</div>

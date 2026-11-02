@@ -250,6 +250,7 @@ export const EXACT_910 = {
   "Rien n'est acheté : votre or, vos gemmes et vos points de compétence restent à votre choix.": 'Nothing is bought: your gold, gems and skill points stay your choice.',
   'Rien à récupérer ni à équiper.': 'Nothing to collect or equip.',
   "Votre partie en ligne vient d'une version plus récente du jeu : mettez le jeu à jour. Rien n'est écrasé.": 'Your online game comes from a newer version: update the game. Nothing is overwritten.',
+  'À gagner': 'To earn',
   // v9.1.1 : compte invité, compte joueur, changement de nom.
   'Compte et sauvegarde en ligne': 'Account and online save', 'Votre nom :': 'Your name:', 'Créer mon compte joueur': 'Create my player account',
   'Votre progression est sauvegardée sur le serveur automatiquement.': 'Your progress is saved on the server automatically.',
@@ -286,6 +287,8 @@ export function setTranslator(fn) { tr = fn; }
 
 // Textes construits avec des valeurs.
 export const PATTERNS_910 = [
+  [/^Ensembles pas encore commencés \((\d+)\)$/, 'Sets not started yet ($1)'],
+  [/^\((\d+) en stock\)$/, '($1 in stock)'],
   [/^Confirmer : fusionner (\d+) objets \?$/, 'Confirm: fuse $1 items?'],
   [/^Fusionner tout \((\d+) groupes?\)$/, 'Fuse all ($1 group(s))'],
   [/^(\d+) pièces? · bonus complet à (\d+)$/, '$1 piece(s) · full bonus at $2'],

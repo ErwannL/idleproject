@@ -155,8 +155,8 @@ function heroView(ui, state) {
     .filter(([, eff]) => Object.values(eff).some((v) => v))
     .map(([k, eff]) => `<div><span class="muted">${SOURCE_LABELS[k]} :</span> ${effectText(eff)}</div>`).join('');
   const heroBonus = effectText(heroEffects(state));
-  const dps = `<div class="card hero-dps"><span class="muted">Dégâts/s</span> <b class="big-num">${formatDecimal(s.dps)}</b>
-      <span class="muted">· ${formatNumber(s.damage)} dégâts × ${formatDecimal(s.attacksPerSecond, 2)} att./s, critique ${formatDecimal(s.critChance)} %</span></div>`;
+  // v9.1.3 : un seul Dégâts/s ; le détail (dégâts, attaques/s, critique, PV) n'est plus répété : il est dans Statistiques.
+  const dps = `<div class="card hero-dps"><span class="muted">Dégâts/s</span> <b class="big-num">${formatDecimal(s.dps)}</b></div>`;
   return `${dps}<div class="card hero-main r-${hero.rarity}">
         <div class="pedestal">${animCanvas('hero', 64, 58, 3)}</div>
         <div class="grow">
@@ -179,7 +179,7 @@ function heroView(ui, state) {
       ${line('icon_shield', 'Armure', `${formatDecimal(s.armor)} %`)}
       ${line('pet_fairy', 'Régénération', `${formatDecimal(s.regenPerSecond)} PV/s`)}
       ${line('coin', 'Or bonus', `+${formatDecimal(s.goldPct)} %`)}
-    </div>`, { extra: `Dégâts ${formatNumber(s.damage)} · PV ${formatNumber(s.maxHp)}` })}
+    </div>`)}
     ${fold(ui, 'hero-sets', 'Ensembles d\'équipement', () => setsCard(state))}
     ${sources ? fold(ui, 'hero-bonus', 'Sources de bonus (boosts actifs compris)', `<div class="bonus-sources">${sources}</div>`) : ''}
     ${fold(ui, 'hero-feats', 'Exploits', () => `<div class="stats-grid">

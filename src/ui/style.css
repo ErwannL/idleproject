@@ -1730,8 +1730,10 @@ table.records td { padding: 2px 4px; border-top: 1px solid rgba(255, 255, 255, 0
   #app > #tabs button { flex: 1 1 0; min-height: 0; height: 100%; }
   #app > #tabs button img { width: 22px !important; height: 22px !important; }
   #app > #tabs button span { font-size: 9.5px; }
-  #panel-subtabs .subtab span { display: none; }
-  #panel-subtabs .subtab.active span { display: inline; }
+  /* v9.1.3 (R4) : noms des sous-onglets toujours affichés (et non seulement l'actif) ; la rangée défile au besoin. */
+  #panel-subtabs { overflow-x: auto; scrollbar-width: none; }
+  #panel-subtabs .subtab { flex: 0 0 auto; }
+  #panel-subtabs .subtab span { font-size: 10px; white-space: nowrap; overflow: visible; text-overflow: clip; }
   /* Barre du haut : seulement le niveau, l'or, les gemmes et les boutons (le reste est dans les menus). */
   #top-stage, #boost-chip, #fragments-chip, .chip-ticket, .top-xp { display: none !important; }
 }
@@ -2138,3 +2140,16 @@ small, .tt-sub, .upg-level, .item-sub, .stat-list li, .compare, .cost-missing, .
 @media (max-width: 560px) {
   #panel-extra:not(:has(button)) { display: none; }
 }
+
+/* --- v9.1.3 : allègement (bilan Slayer Legend, lot B) ------------------------------------------------- */
+/* Récompense de mission dans le bouton ; la colonne séparée devient inutile. */
+.m-claim { display: flex; flex-direction: column; align-items: center; gap: 1px; line-height: 1.15; white-space: normal; }
+.m-claim-reward { font-size: 10px; font-weight: 700; }
+.m-row { grid-template-columns: 34px 1fr 110px; }
+.m-row .m-reward { display: none; }
+.m-btn .btn.m-claim { min-height: 40px; }
+/* Fiches Boss et Collections sur une colonne quand le panneau est étroit (téléphone en hauteur). */
+@container (max-width: 560px) { .codex, .codex.enc-body { grid-template-columns: 1fr; } .codex-list { max-height: 36vh; } }
+/* Sac en pleine largeur sur téléphone : 5 colonnes. */
+@media (max-width: 600px) { .inv-grid { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; } }
+.key-stock { font-weight: 700; opacity: .85; }

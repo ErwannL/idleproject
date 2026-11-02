@@ -187,7 +187,9 @@ export function museumView(ui, state) {
 
 function mannequinsView(ui, state) {
   const auto = state.ui.autoMannequin !== false;
-  const cards = ITEM_SETS.map((set) => {
+  // v9.1.3 : ensembles commencés d'abord ; les autres sont repliés dans un seul bloc.
+  const pieces = (set) => Object.values(state.mannequins[set.id] ?? {}).filter(Boolean).length;
+  const card = (set) => {
     const m = state.mannequins[set.id] ?? {};
     const n = Object.values(m).filter(Boolean).length;
     const slots = Object.keys(SLOTS).map((slot) => (m[slot]
@@ -198,7 +200,11 @@ function mannequinsView(ui, state) {
       <div class="row-between"><b style="color:${set.color}">${img(`set_${set.id}`)} ${escapeHtml(set.name)}</b><span class="muted">${n} pièce${n > 1 ? 's' : ''} · bonus complet à ${SET_PIECES[SET_PIECES.length - 1]}</span></div>
       <div class="mq-slots">${slots}</div><div class="mq-tiers">${tiers}</div>
       <button class="btn btn-gold small" data-action="wear-mannequin" data-value="${set.id}" ${n ? '' : 'disabled'}>Porter cet ensemble</button></div>`;
-  }).join('');
+  };
+  const started = ITEM_SETS.filter((set) => pieces(set) > 0).sort((a, b) => pieces(b) - pieces(a));
+  const empty = ITEM_SETS.filter((set) => pieces(set) === 0);
+  const cards = started.map(card).join('')
+    + (empty.length ? `</div>${fold(ui, 'mq-empty', `Ensembles pas encore commencés (${empty.length})`, () => `<div class="mannequins">${empty.map(card).join('')}</div>`)}<div class="mannequins">` : '');
   return `<div class="card row-between"><span class="muted">Un mannequin par ensemble : il garde la meilleure pièce de chaque emplacement. « Porter » échange tout l'ensemble avec votre équipement.</span>
       <button class="btn chip-btn small${auto ? ' active' : ''}" data-action="auto-mannequin" title="Les pièces d'ensemble ramassées vont sur leur mannequin si elles sont meilleures (l'ancienne est recyclée)">${auto ? 'Rangement auto : activé' : 'Rangement auto : désactivé'}</button></div>
     <div class="mannequins">${cards}</div>`;
@@ -377,7 +383,7 @@ export default {
         <button class="btn btn-primary primary-action${anyUpgrade ? ' pulse-gold' : ''}" data-action="equip-best" ${anyUpgrade ? '' : 'disabled'}>⬆ Équiper le meilleur</button>
         <button class="btn small" data-action="inv-view" data-value="mannequins">${img('icon_hero')} Mannequins</button>
         <button class="btn small" data-action="inv-view" data-value="forge">${img('icon_anvil')} Forge</button>
-      </div>${buildsBar(ui, state)}`;
+      </div>${fold(ui, 'inv-builds', 'Builds', () => buildsBar(ui, state), { extra: state.loadouts[Math.max(0, ui.view.buildSel ?? 0)]?.name ?? '' })}`;
     return head + (tab === 'stash' ? stashView(ui, state) : bag(ui, state));
   },
 };

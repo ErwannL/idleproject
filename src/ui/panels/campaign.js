@@ -152,11 +152,9 @@ export default {
     return `${summary(ui, state)}
       <div class="card zone-card">
         ${worldPicker}
-        <div class="row-between"><b>${sel + 1}. ${escapeHtml(ZONES[sel].name)}${cycle ? ` <span class="bad">×${cycle + 1}</span>` : ''}</b>
+        <div class="row-between"><span>${cycle ? `<b class="bad">Cycle ×${cycle + 1}</b>` : ''}</span>
           <label class="toggle"><input type="checkbox" data-action="auto" ${state.autoAdvance ? 'checked' : ''}> Avancer automatiquement</label></div>
         <div class="stage-grid">${buttons.join('')}</div>
-        ${state.autoAdvance ? '' : `<div class="row-between"><span class="muted">Le héros reste sur l'étape actuelle.</span>
-          <button class="btn btn-primary small" data-action="advance">Avancer ▶</button></div>`}
       </div>
       ${fold(ui, 'world-map', 'Grande carte du monde', map)}`;
   },
