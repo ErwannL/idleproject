@@ -1204,6 +1204,8 @@ export class UI {
     this.speed = simSpeed(state);
     this.$('speed-toggle').classList.toggle('hidden', unlockedSpeeds(state).length < 2 && !state.cheats.skipBattle);
     this.root.classList.toggle('speed-max', simSpeed(state) >= 100);
+    // v9.1.3 (doc3 lot 4) : mode débutant (aucun boss vaincu, comme Améliorations) : le mot reste visible à côté des icônes seules.
+    this.root.classList.toggle('beginner', (state.records?.bossesDefeated ?? 0) === 0);
     // v9.1.0 : « Réduire les animations » (réglage de l'appareil, sinon préférence du système) coupe aussi les
     // animations de l'interface, le flash des boss et le décor des thèmes ; ×100 fait de même.
     this.calm = reduceMotion() || simSpeed(state) >= 100;

@@ -77,7 +77,7 @@ function detail(ui, state, item) {
   const mats = recycleMaterials(item);
   // v9.1.3 : verrou en icône dans l'en-tête de la fiche (plus de grand bouton texte).
   const lock = `<button class="btn icon-btn lock-btn${item.locked ? ' on' : ''}" data-action="lock" data-id="${item.id}" aria-pressed="${item.locked}"
-      aria-label="${item.locked ? 'Déverrouiller' : 'Verrouiller'}" title="${item.locked ? 'Verrouillé : jamais recyclé ni fusionné (appuyer pour déverrouiller)' : 'Verrouiller : jamais recyclé ni fusionné'}">${img('icon_lock')}</button>`;
+      aria-label="${item.locked ? 'Déverrouiller' : 'Verrouiller'}" title="${item.locked ? 'Verrouillé : jamais recyclé ni fusionné (appuyer pour déverrouiller)' : 'Verrouiller : jamais recyclé ni fusionné'}">${img('icon_lock')}<span class="icon-word" aria-hidden="true">Verrou</span></button>`;
   const sharpen = sharpenCost(state, item);
   // Amélioration : +12 % sur une statistique au hasard, 5 fois (Commun, Rare) ou 10 fois (Épique, Légendaire).
   const ups = item.upgrades ?? 0;
@@ -244,9 +244,10 @@ function bag(ui, state) {
     return `<div class="slot" title="${label}">${frame}</div>`;
   };
   // v9.1.3 (doc2 A13) : filtre d'emplacement en icônes sur la ligne du tri (il tient sans prendre de hauteur).
-  const FILTERS = [['all', 'Tous les objets', null], ['weapon', 'Armes', 'weapon'], ['helmet', 'Casques', 'helmet'], ['armor', 'Armures', 'armor'], ['accessory', 'Accessoires', 'ring']];
-  const filterChips = FILTERS.map(([v, l, slot]) => `<button class="btn chip-btn filter-chip${(state.ui.slotFilter ?? 'all') === v ? ' active' : ''}" data-action="filter" data-value="${v}"
-      aria-label="${l}" title="${l}" aria-pressed="${(state.ui.slotFilter ?? 'all') === v}">${slot ? img(slotIconName(slot)) : '<b>Tous</b>'}</button>`).join('');
+  // v9.1.3 (doc3 lot 4) : icône seule = aria-label ; en mode débutant, le mot court reste visible sous l'icône.
+  const FILTERS = [['all', 'Tous les objets', null, 'Tous'], ['weapon', 'Armes', 'weapon', 'Armes'], ['helmet', 'Casques', 'helmet', 'Casques'], ['armor', 'Armures', 'armor', 'Armures'], ['accessory', 'Accessoires', 'ring', 'Bijoux']];
+  const filterChips = FILTERS.map(([v, l, slot, word]) => `<button class="btn chip-btn filter-chip${(state.ui.slotFilter ?? 'all') === v ? ' active' : ''}" data-action="filter" data-value="${v}"
+      aria-label="${l}" title="${l}" aria-pressed="${(state.ui.slotFilter ?? 'all') === v}">${slot ? `${img(slotIconName(slot))}<span class="icon-word" aria-hidden="true">${word}</span>` : '<b>Tous</b>'}</button>`).join('');
   const sortOptions = Object.entries(SORT_LABELS)
     .map(([v, l]) => `<option value="${v}" ${v === state.ui.sortBy ? 'selected' : ''}>${l}</option>`).join('');
   const full = state.inventory.length >= BALANCE.loot.inventorySize;
@@ -319,7 +320,7 @@ function buildsBar(ui, state) {
       <div class="row-between"><b>${escapeHtml(l.name)}</b>
         <span class="build-btns">${l.team ? `<button class="btn small btn-primary" data-action="apply-build" data-value="${i}">Équiper</button>` : ''}
         <button class="btn small" data-action="save-loadout" data-value="${i}">Enregistrer</button>
-        <button class="btn small" data-action="rename-build" data-value="${i}" aria-label="Renommer" title="Renommer">✎</button></span></div>
+        <button class="btn small" data-action="rename-build" data-value="${i}" aria-label="Renommer" title="Renommer">✎<span class="icon-word" aria-hidden="true"> Renommer</span></button></span></div>
       <div class="muted">${summary}</div>
       ${renaming ? `<div class="row"><input id="build-name" type="text" maxlength="24" value="${escapeHtml(l.name)}" aria-label="Nouveau nom">
         <button class="btn small btn-primary" data-action="confirm-rename-build" data-value="${i}">OK</button></div>` : ''}

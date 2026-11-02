@@ -5,7 +5,7 @@ export const EXACT_910 = {
   // v9.1.3 (doc3 lot 3) : relance orientée, monde de la prime.
   'Relancer vers': 'Reroll to', 'Confirmer': 'Confirm', "Impose la 1re ligne d'effet (les autres au hasard). Valeur ±20 %.": 'Sets the 1st effect line (the others at random). Value ±20%.',
   "Impose l'effet spécial. Valeur ±20 %.": 'Sets the special effect. Value ±20%.', 'Effet voulu': 'Wanted effect', 'Effet relancé': 'Effect rerolled',
-  'Monde de la prime': 'Bounty world', 'Monde de la prime choisi': 'Bounty world chosen',
+  'Monde de la prime': 'Bounty world', 'Bijoux': 'Jewels', 'Verrou': 'Lock', 'Monde de la prime choisi': 'Bounty world chosen',
   // v9.1.3 (doc3 lot 2) : fusion à pourcentage.
   'Inclure': 'Include', 'Inclus': 'Included', 'Épique : 5 objets = sûr, ou tenter avec moins.': 'Epic: 5 items = safe, or try with fewer.',
   "Mise de 5 à 100 % seulement. Jamais fusionné : objet verrouillé, ancestral, renforcé, meilleur que l'objet porté, utile à un ensemble, effet gardé ou dans un build.": 'Stake of 5 at 100% only. Never fused: locked, ancestral or reinforced items, items better than the worn one, useful to a set, with a kept effect or in a build.',

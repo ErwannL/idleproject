@@ -235,3 +235,22 @@ effets tirés ; le 2e choix ne s'en écarte que d'un palier. Sur le Collier, auc
 (critique déjà au plafond, les autres effets hors du score). Ce n'est pas une décision, c'est un bonus (×2 environ
 sur le gain du « au hasard » : 41 % contre 20 %, 153 % contre 65 %) : **non implémenté**, à trancher par le développeur
 (par exemple si les effets spéciaux comptaient dans un score d'activité : boss, farm, or).
+
+# Lot 4 « lisibilité de l'écran Équipement »
+
+Chaque point du doc vérifié sur l'écran actuel (téléphone 375×812, sauvegarde de milieu de partie et la même en mode
+débutant = aucun boss vaincu, comme Améliorations). Captures avant/après : `/tmp/claude-0/-home-user-idleproject/dd35360c-d79d-5fd7-bdfc-2303b86f9079/scratchpad/v913/lot4/avant` et `/tmp/claude-0/-home-user-idleproject/dd35360c-d79d-5fd7-bdfc-2303b86f9079/scratchpad/v913/lot4/apres`
+(`mid-bag`, `mid-sheet`, `mid-stash`, `mid-forge`, `beg-bag`, `beg-sheet`).
+
+| Point du doc | État trouvé | Fait dans ce lot |
+|---|---|---|
+| Fiche en onglets Comparer/Améliorer/Ranger, feuille du bas | déjà fait (chantier 2) | — |
+| Comparaison et Équiper visibles sans défiler | vérifié : Équiper finit à 515 px, la comparaison à 694 px, barre du bas à 754 px | — |
+| 7 cases portées, ligne Sac/Coffre/Forge, grille 5 colonnes, Builds repliés | déjà fait | — |
+| Réglages du sac en 3 replis, recyclage en 3 entrées | déjà fait (chantier 2) | — |
+| Rangement du mannequin en double | sans objet : mannequins fondus dans le Coffre | — |
+| Ligne type des listes (image ≥ 20 px, nom, un chiffre, bouton avec prix) | lignes de fusion : icône 16 px ; filtre 18 px | icônes à 20 px ; les lignes de fusion gardent un seul chiffre (« N dans le sac ») et le bouton (la fusion n'a pas de prix) |
+| Une image à un seul sens, pas d'emoji quand un sprite existe | « 🎯 Prime du jour » à côté du portrait du monstre | 🎯 retiré (le portrait suffit) ; ✦/✕/✔ sont des signes de texte, gardés |
+| Icône seule : aria-label + mot visible en débutant | aria-label partout ; aucun mot en débutant | classe `beginner` sur la racine : mot sous les icônes du filtre (Armes, Casques, Armures, Bijoux), « Verrou » à côté du cadenas, « Forge » sur le bouton enclume, « Renommer » à côté de ✎ |
+
+Action courante sur téléphone : équiper = 2 appuis (case, Équiper) ; relance orientée = liste + 2 appuis ; fusion sûre = 1 appui (« Fusionner tout » : 2) ; Prime : 1 choix dans la liste.

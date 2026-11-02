@@ -136,7 +136,7 @@ function bountyCard(state) {
     : `<span class="muted">${escapeHtml(ZONES[b.zone].name)}</span>`;
   return `<div class="card bounty-card">
     <div class="bounty-portrait">${animCanvas(`foe:${enemy.sprite}`, 48, 40, 1)}</div>
-    <div class="grow"><div class="row-between"><b class="gold-text">🎯 Prime du jour : ${escapeHtml(enemy.name)}</b>${zonePick}</div>
+    <div class="grow"><div class="row-between"><b class="gold-text">Prime du jour : ${escapeHtml(enemy.name)}</b>${zonePick}</div>
       ${progressBar(done / b.target, `${done}/${b.target} vaincus`)}
       <div class="muted">Récompense : une pièce Épique ou mieux de l'ensemble <b style="color:${set?.color ?? '#fff'}">${escapeHtml(set?.name ?? '')}</b> et ${BOUNTY.gems} gemmes. Nouvelle prime chaque jour.</div></div>
     ${b.claimed ? '<button class="btn" disabled>Récupérée ✔</button>'

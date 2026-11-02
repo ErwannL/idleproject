@@ -1945,6 +1945,7 @@ export const PATTERNS = [
   [/^Tour de l'Éternité · étage (\d+)$/, 'Tower of Eternity · floor $1'],
   [/^\+(.+) Étoiles · dégâts, PV et or ×(.+)$/, '+$1 Stars · damage, HP and gold ×$2'],
   [/^🎯 Prime du jour : (.+)$/, (m) => `🎯 Daily bounty: ${tr(m[1])}`],
+  [/^Prime du jour : ([^()]+)$/, (m) => `Daily bounty: ${tr(m[1])}`], // v9.1.3 (doc3 lot 4) : sans 🎯
   [/^Prime du jour : (.+) \((.+)\) et \+(\d+) gemmes$/, (m) => `Daily bounty: ${tr(m[1])} (${tr(m[2])}) and +${m[3]} gems`],
   [/^(\d+)\/(\d+) vaincus$/, '$1/$2 defeated'],
   [/^et (\d+) gemmes\. Nouvelle prime chaque jour\.$/, 'and $1 gems. New bounty every day.'],
