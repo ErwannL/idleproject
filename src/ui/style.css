@@ -2389,3 +2389,10 @@ button[data-action="learn-skill"], button[data-action="buy-talent"] { -webkit-us
 .world-run { border-color: rgba(159, 216, 255, 0.6); display: flex; flex-direction: column; gap: 4px; }
 .bn-facts img { width: 16px; height: 16px; vertical-align: -3px; }
 .bn-net .muted { font-size: 11px; }
+
+/* Coréen (langue en préparation) : les polices du jeu n'ont pas le hangeul → pile de polices système
+   coréennes, aussi pour les titres (la police du thème est écrasée). Coupure des lignes entre mots. */
+html[lang="ko"] { --ko-font: system-ui, "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; }
+html[lang="ko"] body, html[lang="ko"] button, html[lang="ko"] select, html[lang="ko"] input,
+html[lang="ko"] #panel header h2, html[lang="ko"] .section-title, html[lang="ko"] .hero-title { font-family: var(--ko-font); }
+html[lang="ko"] body { word-break: keep-all; overflow-wrap: anywhere; }

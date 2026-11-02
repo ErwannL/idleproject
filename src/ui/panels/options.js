@@ -4,7 +4,7 @@ import { BALANCE } from '../../data/balance.js';
 import { formatDuration } from '../../core/format.js';
 import { escapeHtml, fold, formatNumber } from '../common.js';
 import { isPhone } from '../prefs.js';
-import { getLang } from '../../i18n/i18n.js';
+import { availableLangs, getLang } from '../../i18n/i18n.js';
 import { THEMES, themeSwatches } from '../themes.js';
 import { GAME_VERSION } from '../../version.js';
 import { BUILT_IN_TOKEN } from '../../core/update-token.js';
@@ -190,8 +190,7 @@ function generalTab(ui, state) {
   return `<div class="card">
         <div class="section-title">Langue · Language</div>
         <div class="chip-row" data-no-i18n>
-          <button class="btn chip-btn${getLang() === 'fr' ? ' active' : ''}" data-action="lang" data-value="fr">🇫🇷 Français</button>
-          <button class="btn chip-btn${getLang() === 'en' ? ' active' : ''}" data-action="lang" data-value="en">🇬🇧 English</button>
+          ${availableLangs().map((l) => `<button class="btn chip-btn${getLang() === l.code ? ' active' : ''}" data-action="lang" data-value="${l.code}">${l.flag} ${l.label}</button>`).join('')}
         </div>
       </div>
       <div class="card">

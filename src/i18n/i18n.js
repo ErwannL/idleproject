@@ -1,26 +1,63 @@
-// Couche de traduction (français → anglais) appliquée au DOM à la volée.
-// Les gabarits de l'interface restent écrits en français ; en anglais, un MutationObserver traduit
-// chaque nœud texte ajouté ou modifié (et les attributs title, placeholder, aria-label, alt).
+// Couche de traduction (français → autres langues) appliquée au DOM à la volée.
+// Les gabarits de l'interface restent écrits en français ; dans une autre langue, un MutationObserver
+// traduit chaque nœud texte ajouté ou modifié (et les attributs title, placeholder, aria-label, alt).
 // Les chaînes contenant du HTML ne passent pas par t() : on traduit le DOM après insertion.
+// Chaque langue a son dictionnaire et ses motifs (./en.js, ./ko.js), sur le moteur commun ./engine.js.
 import { translate as translateEn } from './en.js';
+import { translate as translateKo } from './ko.js';
+import { BUILD } from '../core/build-info.js';
 
 const STORAGE_KEY = 'idle-rpg.lang';
-export const LANGS = ['fr', 'en'];
+
+// Langues connues. `enabled: false` : langue en préparation, invisible pour les joueurs ; elle reste
+// utilisable dans la version dev (BUILD.cheats) ou en test via l'adresse « ?lang=ko ».
+// La police propre à une langue (coréen) est choisie par la feuille de style via html[lang].
+export const LANGS = {
+  fr: { label: 'Français', flag: '🇫🇷', enabled: true, translate: null },
+  en: { label: 'English', flag: '🇬🇧', enabled: true, translate: translateEn },
+  ko: { label: '한국어', flag: '🇰🇷', enabled: false, translate: translateKo },
+};
+export const SOURCE_LANG = 'fr';
+
 const ATTRS = ['title', 'placeholder', 'aria-label', 'alt'];
 const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'TEXTAREA', 'CODE', 'PRE', 'NOSCRIPT', 'CANVAS', 'SVG']);
 const HAS_TEXT = /[\p{L}\p{N}]/u;
 const CACHE_MAX = 8000;
 
 let lang = null;
-const cache = new Map(); // texte normalisé → traduction (ou null : rien à traduire)
-const outputs = new Set(); // traductions déjà produites (évite de retraduire un texte anglais)
+let cache = new Map(); // texte normalisé → traduction (ou null : rien à traduire), pour la langue courante
+let outputs = new Set(); // traductions déjà produites (évite de retraduire un texte déjà traduit)
+
+// Langue demandée dans l'adresse (« ?lang=ko ») : pour tester une langue pas encore ouverte.
+function urlLang() {
+  try {
+    const v = new URLSearchParams(globalThis.location?.search ?? '').get('lang');
+    return Object.hasOwn(LANGS, v ?? '') ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+// Une langue est proposée si elle est ouverte, ou en version dev, ou demandée par l'adresse.
+export function isLangAvailable(code) {
+  const l = LANGS[code];
+  if (!l) return false;
+  return l.enabled || BUILD.cheats === true || urlLang() === code;
+}
+
+// Langues à proposer dans Paramètres : [{ code, label, flag }].
+export function availableLangs() {
+  return Object.entries(LANGS).filter(([code]) => isLangAvailable(code)).map(([code, l]) => ({ code, label: l.label, flag: l.flag }));
+}
 
 function readStoredLang() {
+  const fromUrl = urlLang();
+  if (fromUrl) return fromUrl;
   try {
     const v = globalThis.localStorage?.getItem(STORAGE_KEY);
-    return LANGS.includes(v) ? v : 'fr';
+    return isLangAvailable(v) ? v : SOURCE_LANG;
   } catch {
-    return 'fr';
+    return SOURCE_LANG;
   }
 }
 
@@ -29,9 +66,9 @@ export function getLang() {
   return lang;
 }
 
-// Change la langue, la mémorise et met à jour les arbres observés (traduction ou retour au français).
+// Change la langue, la mémorise et met à jour les arbres observés (retour au français, puis traduction).
 export function setLang(next) {
-  const value = LANGS.includes(next) ? next : 'fr';
+  const value = isLangAvailable(next) ? next : SOURCE_LANG;
   const changed = value !== getLang();
   lang = value;
   try {
@@ -41,9 +78,11 @@ export function setLang(next) {
   }
   if (typeof document !== 'undefined' && document.documentElement) document.documentElement.lang = value;
   if (changed) {
+    cache = new Map();
+    outputs = new Set();
     for (const root of observed.keys()) {
-      if (value === 'en') translateTree(root);
-      else restoreTree(root);
+      restoreTree(root);
+      if (value !== SOURCE_LANG) translateTree(root);
     }
     try {
       globalThis.dispatchEvent?.(new CustomEvent('idle-rpg:lang', { detail: { lang: value } }));
@@ -59,7 +98,7 @@ function translateKey(key) {
   if (cache.has(key)) return cache.get(key);
   let out = null;
   if (!outputs.has(key)) {
-    const r = translateEn(key);
+    const r = LANGS[getLang()]?.translate?.(key) ?? key;
     if (r !== key) out = r;
   }
   if (cache.size >= CACHE_MAX) cache.clear();
@@ -71,13 +110,13 @@ function translateKey(key) {
 // Traduit une chaîne (dictionnaire exact, puis motifs, sinon l'original) ; les espaces autour sont
 // conservés. En français, renvoie le texte tel quel.
 export function t(text) {
-  if (getLang() !== 'en' || text === null || text === undefined) return text;
+  if (getLang() === SOURCE_LANG || text === null || text === undefined) return text;
   const s = String(text);
   if (!HAS_TEXT.test(s)) return s;
   const key = s.replace(/\s+/g, ' ').trim();
   const out = translateKey(key);
   if (out === null) return s;
-  // « </b> : suite » → « </b>: rest » : pas d'espace avant la ponctuation en anglais.
+  // « </b> : suite » → « </b>: rest » : pas d'espace avant la ponctuation (anglais, coréen).
   const lead = /^[:;!?]/.test(out) ? '' : s.match(/^\s*/)[0];
   const trail = s.slice(lead.length).match(/\s*$/)[0];
   return `${lead}${out}${trail}`;
@@ -130,7 +169,7 @@ function translateElementAttrs(el) {
 
 // Traduit les nœuds texte et les attributs (title, placeholder, aria-label, alt) d'un sous-arbre.
 export function translateTree(root) {
-  if (!root || getLang() !== 'en') return;
+  if (!root || getLang() === SOURCE_LANG) return;
   if (root.nodeType === 3) {
     translateTextNode(root);
     return;
@@ -143,7 +182,7 @@ export function translateTree(root) {
   root.querySelectorAll?.('[title],[placeholder],[aria-label],[alt]').forEach(translateElementAttrs);
 }
 
-// Remet le français là où la traduction est encore en place (retour à 'fr').
+// Remet le français là où la traduction est encore en place (retour à 'fr' ou changement de langue).
 function restoreTree(root) {
   if (!root) return;
   const doc = root.ownerDocument ?? root;
@@ -170,7 +209,7 @@ function restoreTree(root) {
 const observed = new Map(); // racine → MutationObserver
 
 function onMutations(records) {
-  if (getLang() !== 'en') return;
+  if (getLang() === SOURCE_LANG) return;
   for (const r of records) {
     if (r.type === 'childList') {
       for (const n of r.addedNodes) {
@@ -185,7 +224,7 @@ function onMutations(records) {
   }
 }
 
-// Traduit tout l'existant puis tout ce qui est ajouté ou modifié sous `root` (quand la langue est 'en').
+// Traduit tout l'existant puis tout ce qui est ajouté ou modifié sous `root` (langue autre que le français).
 // Renvoie une fonction qui arrête l'observation.
 export function startAutoTranslate(root = globalThis.document?.body) {
   if (!root || typeof MutationObserver === 'undefined') return () => {};

@@ -149,3 +149,37 @@ test('données du jeu : tous les noms et libellés sont traduits', () => {
     'Domination', 'Carnage', 'Lamentation', 'Rage', 'Exploration'].includes(s)), []);
   for (const s of texts) assert.ok(!FRENCH.test(translate(s)), `traduction encore française : ${s} → ${translate(s)}`);
 });
+
+// v9.1.4 : plusieurs langues (fr source, en, ko en préparation derrière un interrupteur).
+test('langues : le coréen est fermé aux joueurs tant que LANGS.ko.enabled est faux', async () => {
+  const { LANGS, availableLangs, isLangAvailable } = await import('../src/i18n/i18n.js');
+  assert.deepEqual(Object.keys(LANGS), ['fr', 'en', 'ko']);
+  assert.equal(LANGS.ko.enabled, false);
+  assert.equal(isLangAvailable('ko'), false); // version publique (BUILD.cheats faux), sans « ?lang=ko »
+  assert.deepEqual(availableLangs().map((l) => l.code), ['fr', 'en']);
+  setLang('ko');
+  assert.equal(getLang(), 'fr', 'langue fermée : retour au français');
+  setLang('en');
+  assert.equal(t('Inventaire'), 'Inventory');
+});
+
+test('coréen : dictionnaire, motifs et règles génériques', async () => {
+  const { EXACT: KO, translate: ko } = await import('../src/i18n/ko.js');
+  for (const [fr, v] of Object.entries(KO)) {
+    assert.ok(typeof v === 'string' && v.trim(), fr);
+    assert.equal(fr, fr.replace(/\s+/g, ' ').trim(), `clé non normalisée : « ${fr} »`);
+  }
+  const cases = {
+    'Paramètres': '설정', 'Renaissance': '환생', 'Légendaire': '전설', 'Niv. 12': 'Lv.12',
+    'Désert brûlant 4-14': '불타는 사막 4-14', '+10 % PV max · +5,5 % or': '최대 HP +10% · 골드 +5.5%',
+    'Tout récupérer (3)': '모두 받기 (3)', 'Dernière sauvegarde : il y a 2 min 05 s': '마지막 저장: 2분 05초 전',
+  };
+  for (const [fr, v] of Object.entries(cases)) assert.equal(ko(fr), v, fr);
+  // le menu principal et les monnaies sont entièrement traduits
+  const { MENUS, SUB_LABELS } = await import('../src/ui/nav.js');
+  const { CURRENCIES } = await import('../src/data/currencies.js');
+  const { ZONES } = await import('../src/data/zones.js');
+  const texts = [...MENUS.map((m) => m.label), ...Object.values(SUB_LABELS), ...Object.values(CURRENCIES).map((c) => c.name),
+    ...RARITIES.map((r) => r.label), ...Object.values(STAT_LABELS), ...Object.values(SLOTS), ...ZONES.map((z) => z.name)];
+  assert.deepEqual(texts.filter((s) => /[A-Za-zÀ-ÿ]{2}/.test(ko(s).replace(/\b(?:HP|Lv|XP)\b/g, ''))), []);
+});
