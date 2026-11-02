@@ -1,4 +1,4 @@
-// Pouvoirs ancestraux : déblocage à la première victoire, relance contre de l'or,
+// Pouvoirs ancestraux : déblocage à la première victoire, relance contre une charge (v9.1.3 : plus d'or),
 // choix explicite entre l'ancien et le nouveau, emplacements actifs limités.
 // Le pouvoir actuel n'est jamais remplacé sans l'accord du joueur.
 import { BALANCE } from '../data/balance.js';
@@ -7,7 +7,7 @@ import { RARITIES } from '../data/items.js';
 import { DUNGEONS } from '../data/dungeons.js';
 import { BOSS_POWERS, POWER_RULES } from '../data/powers.js';
 import { ZONES } from '../data/zones.js';
-import { enemyStats, zoneStartStage } from './combat.js';
+import { zoneStartStage } from './combat.js';
 import { rarityIndex } from './loot.js';
 import { talentEffects } from './rebirth.js';
 import { grantReward } from './rewards.js';
@@ -97,7 +97,7 @@ export function recordBossVictory(state, bossId, rng, balance = BALANCE) {
   let entry = state.powers[bossId];
   if (entry) {
     entry.victories += 1;
-    entry.charges = Math.min(POWER_RULES.maxCharges, entry.charges + POWER_RULES.chargesPerVictory);
+    entry.charges = Math.min(maxCharges(state), entry.charges + POWER_RULES.chargesPerVictory);
     return null;
   }
   entry = { current: rollPower(bossId, rng), pending: null, victories: 1, rerolls: 0, sinceHigh: 0, charges: 0, masteryClaimed: 0 };
@@ -123,11 +123,9 @@ export function claimMastery(state, bossId, balance = BALANCE) {
   return grantReward(state, reward);
 }
 
-export function rerollCost(state, bossId, balance = BALANCE) {
-  const entry = state.powers[bossId];
-  const base = enemyStats(bossFirstStage(bossId, balance), bossId, true, balance).gold * POWER_RULES.rerollCostBossGold;
-  const discount = (talentEffects(state).rerollDiscountPct ?? 0) / 100;
-  return Math.max(1, Math.floor(base * POWER_RULES.rerollCostGrowth ** (entry?.rerolls ?? 0) * (1 - discount)));
+// v9.1.3 : charges au plus (3, +1 avec le talent Héritage II).
+export function maxCharges(state) {
+  return POWER_RULES.maxCharges + (talentEffects(state).rerollMaxCharges ?? 0);
 }
 
 // Relances restantes avant la garantie de rareté.
@@ -136,13 +134,10 @@ export function pityRemaining(state, bossId) {
   return Math.max(0, POWER_RULES.pity.after - (entry?.sinceHigh ?? 0));
 }
 
-// Dépense l'or et crée une proposition. Le pouvoir actuel reste en place.
-export function rerollPower(state, bossId, rng, balance = BALANCE) {
+// Dépense une charge et crée une proposition. Le pouvoir actuel reste en place.
+export function rerollPower(state, bossId, rng) {
   const entry = state.powers[bossId];
   if (!entry || entry.pending || entry.charges < 1) return null;
-  const cost = rerollCost(state, bossId, balance);
-  if (state.gold < cost) return null;
-  state.gold -= cost;
   entry.charges -= 1;
   const guaranteed = pityRemaining(state, bossId) === 0;
   const minRarity = guaranteed ? POWER_RULES.pity.minRarity : 'common';
@@ -150,7 +145,7 @@ export function rerollPower(state, bossId, rng, balance = BALANCE) {
   entry.rerolls += 1;
   const high = rarityIndex(powerById(entry.pending).rarity) >= rarityIndex(POWER_RULES.pity.minRarity);
   entry.sinceHigh = high ? 0 : entry.sinceHigh + 1;
-  return { pending: powerById(entry.pending), cost, guaranteed };
+  return { pending: powerById(entry.pending), guaranteed };
 }
 
 // accept = true : le nouveau remplace l'actuel ; false : on garde l'actuel.

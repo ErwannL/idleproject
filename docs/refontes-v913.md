@@ -79,3 +79,42 @@ d'invocation, et le stock converti s'utilise aussi en ×10 (10 % de mieux qu'ava
   porter / exposer, que l'option sans migration rend moins coûteux en appuis.
 - **Critère d'abandon (option faite) :** joueurs qui ne trouvent plus « Exposer tout » (retours) ; annuler = sortir les
   boutons du repli, rien à migrer.
+
+## Lot F — Relance de pouvoir à une seule barrière (fait : l'or est retiré, la charge reste)
+
+Avant : une relance demandait une **charge** (1 par victoire sur le boss réaffronté, 3 au plus) **et de l'or**
+(3 × l'or du boss à sa première étape). Simulation d'abord : `node tools/sim-reroll-v913.mjs` (moteur réel, joueur
+automatique, 10 min de boucle sur chaque boss battu, sur les sauvegardes début, milieu et fin) :
+
+| Sauvegarde | Boss mesurés | Victoires (charges) / h en boucle | Relances / h payées par l'or de la boucle | Temps pour 1 charge / 1 relance payée |
+|---|---|---|---|---|
+| début (étape 54) | 2 | 24 à 780 | 96 à 463 | 0,1 à 2,5 min / 0,1 à 0,6 min |
+| milieu (étape 120) | 5 | 768 à 1 062 | 572 à 757 | 0,1 min / 0,1 min |
+| fin (étape 370) | 10 | 786 à 1 074 | 567 000 à 776 000 | 0,1 min / instantané |
+
+Lecture : une relance coûte quelques secondes de boucle dans les deux cas ; en fin de partie l'or ne compte plus du tout
+(le coût reste celui de la première étape du boss), et au milieu il ne pèse que si le joueur dépense **seulement** l'or
+gagné pendant la boucle (son stock, 5e7 dans la sauvegarde de milieu, paie des milliers de relances). La charge, elle,
+est ce qui relie la relance au fait de réaffronter le boss (le point que le doc demande de garder). **Barrière retirée :
+l'or.** Rythme : inchangé en fin de partie, au plus +35 % de relances par heure de boucle au milieu (de ~650 à ~880),
+toujours plafonné par les charges (3 au plus).
+
+- Bouton « Changer le pouvoir (2/3) » : le compte de charges est dans le bouton ; plus de prix en or.
+- Compteur de garantie (Épique+ dans N changements) et règle des charges derrière un « ? ».
+- Le talent Héritage II (« -25 % coût de relance ») devient « +1 charge de relance au plus ».
+- Sauvegarde : rien à convertir (`rerolls`, `sinceHigh`, `charges` gardent leur sens ; borne des charges à 4 pour le
+  talent).
+- **Critère d'abandon :** relances par joueur et par jour multipliées par plus de 2 sur les parties de milieu, ou part
+  des pouvoirs Légendaires actifs qui double en 2 semaines. **Annuler :** remettre `rerollCost` (fonction et bouton),
+  rien à migrer.
+
+## Lot F — Déblocage progressif de Coffre, Mannequins, Forge (fait)
+
+`core/unlocks.js` : Forge à l'étape 10, Coffre à l'étape 20, Mannequins à l'étape 30 (record d'étape, donc rien ne se
+referme après une Renaissance). **Toujours visible si déjà utilisé :** coffre non vide, pièce sur un mannequin, objet
+renforcé, ou vue déjà ouverte (`state.ui.invUsed`, sauvegardé). Avant l'ouverture des mannequins, les pièces d'ensemble
+restent dans le sac (pas de rangement auto caché). Une ligne neutre annonce la suite (« Prochain : Coffre à l'étape 20 »).
+Chiffres : le joueur automatique atteint l'étape 54 en 30 min, donc les 3 portes ne manquent que pendant les premières
+minutes, quand le sac (100 places) est loin d'être plein. Anciennes sauvegardes : tout reste ouvert (testé).
+- **Critère d'abandon :** joueurs qui demandent où est le coffre avant l'étape 20, ou sac plein avant l'étape 20 dans
+  les mesures. **Annuler :** seuils à 1 (aucune migration).

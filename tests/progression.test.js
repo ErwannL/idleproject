@@ -10,7 +10,7 @@ import { makeItem, rarityIndex } from '../src/core/loot.js';
 import { measureFarmRate } from '../src/core/offline.js';
 import {
   activePowers, bossFirstStage, powerById, powerProbabilities, powerSlots, recordBossVictory,
-  rerollCost, rerollPower, resolveReroll, setPowerActive,
+  maxCharges, rerollPower, resolveReroll, setPowerActive,
 } from '../src/core/powers.js';
 import { buyTalent, canRebirth, performRebirth, rebirthReward, talentCost } from '../src/core/rebirth.js';
 import { Rng } from '../src/core/rng.js';
@@ -76,7 +76,7 @@ test('combat : vaincre le boss débloque son pouvoir et émet un événement', (
   assert.ok(world.events.some((e) => e.type === 'powerUnlocked' && e.bossId === 'slime_king'));
 });
 
-test('relance : il faut réaffronter le boss (charge) et payer de l\'or', () => {
+test('relance : il faut réaffronter le boss (charge) — v9.1.3 : une seule barrière, plus d\'or', () => {
   const state = stateWithPower();
   state.gold = 1e9;
   const rng = new Rng(3);
@@ -91,20 +91,16 @@ test('relance : il faut réaffronter le boss (charge) et payer de l\'or', () => 
   assert.equal(state.powers.slime_king.charges, POWER_RULES.maxCharges, 'charges plafonnées');
 });
 
-test('relance : coûte de l\'or, propose sans remplacer, refus et acceptation', () => {
+test('relance : une charge, sans or (v9.1.3), propose sans remplacer, refus et acceptation', () => {
   const state = stateWithPower('slime_king', 1, 3);
   const rng = new Rng(9);
   const before = state.powers.slime_king.current;
-  const cost = rerollCost(state, 'slime_king');
-  assert.ok(cost > 0);
-
-  assert.equal(rerollPower(state, 'slime_king', rng), null, 'or insuffisant');
-  assert.equal(state.powers.slime_king.pending, null);
-
-  state.gold = cost * 3;
+  state.gold = 0;
+  const charges = state.powers.slime_king.charges;
   const offer = rerollPower(state, 'slime_king', rng);
-  assert.ok(offer);
-  assert.equal(state.gold, cost * 2);
+  assert.ok(offer, 'possible sans or');
+  assert.equal(state.gold, 0);
+  assert.equal(state.powers.slime_king.charges, charges - 1);
   assert.equal(state.powers.slime_king.current, before, 'jamais remplacé automatiquement');
   assert.notEqual(offer.pending.id, before, 'proposition toujours différente');
   assert.equal(rerollPower(state, 'slime_king', rng), null, 'une seule proposition à la fois');
@@ -273,10 +269,9 @@ test('talents : coût, plafond, effets et emplacement de pouvoir supplémentaire
   state.fragments = 1e6;
   assert.ok(buyTalent(state, legacy.id), 'relié par un voisin');
   assert.equal(powerSlots(state), slots + 1);
-  const cost = rerollCost(stateWithPower(), 'slime_king');
-  const discounted = stateWithPower();
-  discounted.talents = { [TALENTS.find((t) => t.name === 'Héritage II').id]: 1 };
-  assert.ok(rerollCost(discounted, 'slime_king') < cost);
+  const more = stateWithPower();
+  more.talents = { [TALENTS.find((t) => t.name === 'Héritage II').id]: 1 };
+  assert.equal(maxCharges(more), maxCharges(stateWithPower()) + 1, 'v9.1.3 : Héritage II = +1 charge');
 
   while (buyTalent(state, 'combat_1_0'));
   assert.equal(state.talents.combat_1_0, node.max);

@@ -210,7 +210,7 @@ await check('pouvoir ancestral : débloqué au premier boss et affiché dans le 
 });
 
 await check('changer de pouvoir exige de réaffronter le boss', async () => {
-  await game(() => { __idle.state.gold += 1e6; __idle.state.powers.slime_king.pending = null; __idle.state.powers.slime_king.charges = 0; });
+  await game(() => { __idle.state.powers.slime_king.pending = null; __idle.state.powers.slime_king.charges = 0; });
   await page.waitForTimeout(1200);
   const disabled = await page.$eval('[data-action="reroll"][data-boss="slime_king"]', (b) => b.disabled);
   assert(disabled, 'relance possible sans nouvelle victoire');

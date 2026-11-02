@@ -2337,3 +2337,8 @@ button[data-action="learn-skill"], button[data-action="buy-talent"] { -webkit-us
 .next-unlock { align-self: center; font-size: 11px; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1 1 auto; }
 .mastery-head { margin-bottom: 6px; }
 .offline-gains img { width: 20px; height: 20px; vertical-align: -4px; }
+/* v9.1.3 (lot F) : règles du changement de pouvoir derrière « ? ». */
+.power-rules { font-size: 11px; margin-top: 4px; }
+.power-rules .help-q { margin: 0 4px 0 0; }
+.inv-bag-count { display: inline-flex; align-items: center; gap: 4px; }
+.inv-bag-count img { width: 20px; height: 20px; }

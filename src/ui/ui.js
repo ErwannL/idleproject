@@ -12,7 +12,8 @@ import { isUpgrade } from '../core/inventory.js';
 import { upgradeCost } from '../core/economy.js';
 import { xpForLevel } from '../core/level.js';
 import { rarityById } from '../core/loot.js';
-import { powerById } from '../core/powers.js';
+import { maxCharges, powerById } from '../core/powers.js';
+import { markInvUsed } from '../core/unlocks.js';
 import { buyTalentsCheapest, canRebirth, fragmentsSpent, rebirthBlocked, rebirthGain, rebirthReward, respecCost } from '../core/rebirth.js';
 import { REBIRTH, TALENT_BRANCHES } from '../data/rebirth.js';
 import { keptRebirthShare, transcendReward } from '../core/transcend.js';
@@ -646,10 +647,10 @@ export class UI {
       case 'skill-sel': local(() => { v.skillSel = v.skillSel === value ? null : value; }); break; // v9.1.3 : case de la grille
       case 'qty-toggle': local(() => { v.qtyOpen = !v.qtyOpen; }); break; // v9.1.3 (A22)
       case 'upgrade-cat': local(() => { v.upgradeCat = value; }); break;
-      case 'inv-tab': local(() => { v.invTab = value; }); break;
+      case 'inv-tab': if (value === 'stash') markInvUsed(this.state, 'stash'); local(() => { v.invTab = value; }); break;
       case 'craft-tier': local(() => { v.craftTier = value; }); break;
       case 'select-item': local(() => { v.selectedItemId = id; v.sheetOpen = 'item'; }); break;
-      case 'inv-view': local(() => { v.invView = value || null; }); break;
+      case 'inv-view': if (value) markInvUsed(this.state, value); local(() => { v.invView = value || null; }); break;
       case 'apply-build': v.buildSel = Number(value); a.applyLoadout(Number(value)); break; // v9.1.3 : cartes de builds
       case 'item-tab': local(() => { v.itemTab = value; }); break; // v9.1.3 : onglets de la fiche d'objet
       case 'fuse-all':
@@ -697,6 +698,7 @@ export class UI {
       }
       case 'summon-pool': local(() => { v.summonPool = value; v.lastSummon = null; }); break;
       case 'summon-odds': local(() => { v.summonOdds = v.summonOdds === value ? null : value; }); break; // v9.1.3 : « ? » d'un bassin
+      case 'power-pity': local(() => { v.powerPity = v.powerPity === value ? null : value; }); break; // v9.1.3 : garantie derrière « ? »
       case 'talent-sel': local(() => { v.talentSel = value; }); break;
       case 'buy-talent': a.buyTalent(key); break;
       case 'rebirth': this.showRebirthConfirm(this.state); break;
@@ -1006,7 +1008,7 @@ export class UI {
       }
       case 'rerollCharge': {
         const entry = state.powers[event.bossId];
-        this.news(`${BOSSES[event.bossId].name} réaffronté : charge de relance ${entry.charges}/3`, '#f2d083');
+        this.news(`${BOSSES[event.bossId].name} réaffronté : charge de relance ${entry.charges}/${maxCharges(state)}`, '#f2d083');
         if (this.tab === 'boss') this.invalidate();
         break;
       }

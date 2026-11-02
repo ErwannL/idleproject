@@ -64,7 +64,7 @@ export const LEGACY_TALENTS = [
   // Spécial
   {
     id: 'legacy', name: 'Héritage', branch: 'special', row: 0, col: 1, x: 0, y: -1, icon: 'icon_fragment', max: 3, costBase: 3, costStep: 2,
-    levels: [{ powerSlots: 1 }, { rerollDiscountPct: 25 }, { powerSlots: 1 }], requires: { id: 'core', level: 1 },
+    levels: [{ powerSlots: 1 }, { rerollMaxCharges: 1 }, { powerSlots: 1 }], requires: { id: 'core', level: 1 },
   },
   { id: 'beast_bond', name: 'Lien animal', branch: 'special', row: 1, col: 0, x: 0, y: -2, icon: 'pet_cat', max: 5, costBase: 2, costStep: 2, perLevel: { companionPct: 10 }, requires: { id: 'legacy', level: 1 } },
   { id: 'ancestral_echo', name: 'Écho ancestral', branch: 'special', row: 1, col: 2, x: -1, y: -2, icon: 'icon_rebirth', max: 4, costBase: 3, costStep: 2, perLevel: { damagePct: 5, maxHpPct: 5 }, requires: { id: 'legacy', level: 1 } },

@@ -20,6 +20,7 @@ import { STASH_SIZE } from '../../core/stash.js';
 import { MUSEUM, MUSEUM_PIECES, isMuseumDuplicate, museumCount, museumDuplicates, museumEffects } from '../../core/museum.js';
 import { itemIconUrl } from '../../render/pixel.js';
 import { animCanvas } from '../animator.js';
+import { invFeatureOpen, nextInvUnlock } from '../../core/unlocks.js';
 
 const STAT_ICONS = { damage: 'weapon_sword', attackSpeed: 'icon_bolt', maxHp: 'icon_heart', armor: 'icon_shield' };
 const SORT_LABELS = { rarity: 'Rareté', level: 'Niveau', power: 'Puissance', recent: 'Récent' };
@@ -417,19 +418,23 @@ export default {
   // le Musée est dans Objectifs › Collections ; les builds en liste déroulante.
   render(ui, state) {
     const extra = ui.view.invView;
-    if (extra === 'forge' || extra === 'mannequins') {
+    if ((extra === 'forge' || extra === 'mannequins') && invFeatureOpen(state, extra)) {
       const back = `<div class="row-between"><button class="btn small" data-action="inv-view" data-value="">← Retour au sac</button>
         <b>${extra === 'forge' ? 'Forge' : 'Mannequins'}</b></div>`;
       return back + (extra === 'forge' ? forge(ui, state) : mannequinsView(ui, state));
     }
-    const tab = ui.view.invTab === 'stash' ? 'stash' : 'bag';
+    // v9.1.3 (lot F) : Coffre, Mannequins et Forge s'ouvrent à un seuil (core/unlocks.js), puis restent visibles.
+    const open = (id) => invFeatureOpen(state, id);
+    const tab = ui.view.invTab === 'stash' && open('stash') ? 'stash' : 'bag';
+    const nextUnlock = nextInvUnlock(state);
     const st = computeHeroStats(state);
     const anyUpgrade = tab === 'bag' && state.inventory.some((i) => isUpgrade(state, i, undefined, st));
     // v9.1.3 : une seule ligne Sac/Coffre/Mannequins/Forge ; « Équiper le meilleur » seulement s'il sert.
     const head = `<div class="inv-head">
-        ${segment([['bag', `Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}`, 'icon_bag'], ['stash', `Coffre ${state.stash.length}/${STASH_SIZE}`, 'icon_chest']], 'inv-tab', tab)}
-        <button class="btn small" data-action="inv-view" data-value="mannequins" aria-label="Mannequins" title="Mannequins">${img('icon_hero')}<span class="wide-label"> Mannequins</span></button>
-        <button class="btn small" data-action="inv-view" data-value="forge" aria-label="Forge" title="Forge">${img('icon_anvil')}<span class="wide-label"> Forge</span></button>
+        ${open('stash') ? segment([['bag', `Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}`, 'icon_bag'], ['stash', `Coffre ${state.stash.length}/${STASH_SIZE}`, 'icon_chest']], 'inv-tab', tab) : `<b class="inv-bag-count">${img('icon_bag')} Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}</b>`}
+        ${open('mannequins') ? `<button class="btn small" data-action="inv-view" data-value="mannequins" aria-label="Mannequins" title="Mannequins">${img('icon_hero')}<span class="wide-label"> Mannequins</span></button>` : ''}
+        ${open('forge') ? `<button class="btn small" data-action="inv-view" data-value="forge" aria-label="Forge" title="Forge">${img('icon_anvil')}<span class="wide-label"> Forge</span></button>` : ''}
+        ${nextUnlock ? `<span class="next-unlock muted">Prochain : ${nextUnlock.label} à l'étape ${nextUnlock.stage}</span>` : ''}
         ${anyUpgrade ? '<button class="btn btn-primary primary-action pulse-gold equip-best" data-action="equip-best">⬆ Équiper le meilleur</button>' : ''}
       </div>${fold(ui, 'inv-builds', 'Builds', () => buildsBar(ui, state), { extra: state.loadouts[Math.max(0, ui.view.buildSel ?? 0)]?.name ?? '' })}`;
     return head + (tab === 'stash' ? stashView(ui, state) : bag(ui, state));

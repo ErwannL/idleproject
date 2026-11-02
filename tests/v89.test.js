@@ -37,6 +37,7 @@ test('v8.9 : 4 compétences par compagnon, la 4e avec 3 doublons, +15 % par éto
 
 test('v8.9 : coffre et mannequins (un par ensemble, porter d\'un clic, rangement auto)', () => {
   const s = createNewState(NOW, 2);
+  s.records.bestStage = 30; // v9.1.3 : mannequins ouverts (rangement auto seulement après le seuil)
   const a = makeItem(s, 'dagger', 'rare', 5, BALANCE, null, 'caves');
   const b = makeItem(s, 'iron_helm', 'rare', 5, BALANCE, null, 'caves');
   s.inventory.push(a, b);

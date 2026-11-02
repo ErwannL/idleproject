@@ -11,8 +11,10 @@ export const POWER_RULES = {
   // Tirage : on choisit d'abord une rareté (poids ci-dessous), puis un pouvoir de cette rareté.
   rarityWeights: { common: 55, rare: 30, epic: 12, legendary: 3 },
   baseSlots: 2, // pouvoirs actifs en même temps (le talent Héritage en ajoute)
-  rerollCostBossGold: 3, // coût de relance = 3 × l'or donné par le boss à sa première étape
-  rerollCostGrowth: 1, // 1 = coût fixe ; >1 = coût qui augmente à chaque relance
+  // v9.1.3 (lot F, une seule barrière) : la relance ne coûte plus d'or, seulement une charge. Simulation
+  // (tools/sim-reroll-v913.mjs) : en boucle sur le boss, l'or d'une relance (3 × l'or du boss à sa première étape)
+  // est gagné aussi vite ou plus vite qu'une charge sur 14 des 15 boss mesurés ; l'or ne limitait donc presque jamais.
+  // La charge garde le lien « réaffronter le boss pour relancer ». Critère d'abandon : docs/refontes-v913.md.
   pity: { after: 6, minRarity: 'epic' }, // après 6 relances sans Épique+, la suivante en garantit un
   lowHpThreshold: 0.3,
   // Relancer exige d'avoir réaffronté le boss : chaque nouvelle victoire donne une charge.
@@ -131,7 +133,7 @@ export const EFFECT_LABELS = {
   companionPct: (v) => `${sg(v)} % effets des compagnons`,
   skillCooldownPct: (v) => `-${String(v).replace('.', ',')} % recharge des compétences`,
   powerSlots: (v) => `+${v} emplacement${v > 1 ? 's' : ''} de pouvoir`,
-  rerollDiscountPct: (v) => `-${v} % coût de relance`,
+  rerollMaxCharges: (v) => `+${v} charge${v > 1 ? 's' : ''} de relance au plus`, // v9.1.3 : remplace la remise sur l'or
   damageMultPct: (v) => `dégâts ×${mult(v)}`,
   maxHpMultPct: (v) => `PV max ×${mult(v)}`,
   goldMultPct: (v) => `or ×${mult(v)}`,

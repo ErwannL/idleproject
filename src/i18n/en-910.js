@@ -351,6 +351,10 @@ export const EXACT_910 = {
   'Deux pouvoirs de la même famille donnent un bonus de famille (effets +25 %).': 'Two powers of the same family grant a family bonus (effects +25 %).',
   "Deux systèmes : l'encyclopédie (pourcentage global et paliers de chaque section) et le Musée (un objet ancestral par vitrine, bonus permanent, sans effet sur le pourcentage).": 'Two systems: the encyclopedia (overall percentage and tiers of each section) and the Museum (one ancestral item per showcase, permanent bonus, no effect on the percentage).',
   'Paliers ✔': 'Tiers ✔',
+  'Prochain changement : Épique ou mieux garanti.': 'Next change: Epic or better guaranteed.',
+  'Réaffrontez ce boss : 1 charge par victoire.': 'Fight this boss again: 1 charge per victory.',
+  'Une charge par changement ; 1 charge par nouvelle victoire sur ce boss': 'One charge per change; 1 charge per new victory on this boss',
+  'Règles du changement de pouvoir': 'Power change rules',
   'Outils du Musée': 'Museum tools', 'auto désactivée': 'auto off',
 };
 
@@ -524,6 +528,10 @@ export const PATTERNS_910 = [
   [/^Durée, place (\d+)$/, 'Duration, slot $1'],
   [/^Palier (\d+) % :$/, 'Tier $1 %:'],
   [/^Palier (\d+)\/(\d+)$/, 'Tier $1/$2'],
+  [/^\+(\d+) charges? de relance au plus$/, (m) => `+${m[1]} max reroll charge${m[1] === '1' ? '' : 's'}`],
+  [/^Changer le pouvoir \((\d+)\/(\d+)\)$/, 'Change power ($1/$2)'],
+  [/^Chaque changement coûte une charge \((\d+) au plus, 1 par nouvelle victoire sur ce boss\)\. (.+)$/, (m) => `Each change costs one charge (${m[1]} max, 1 per new victory on this boss). ${tr(m[2])}`],
+  [/^Épique ou mieux garanti dans (\d+) changements?\.$/, (m) => `Epic or better guaranteed in ${m[1]} change${m[1] === '1' ? '' : 's'}.`],
   [/^(\d+) doublons?$/, (m) => `${m[1]} duplicate${m[1] === '1' ? '' : 's'}`],
   [/^Le Musée expose vos objets ancestraux, un par vitrine, dès qu'ils sont ramassés\. Chaque pièce exposée : dégâts, PV et or \+(\d+) % \(multiplicatif, ×2 si Légendaire\)\. Collection complète : dégâts et PV \+(\d+) % de plus\. Une pièce exposée n'est pas portée : reprenez-la \(↩\) pour l'équiper\.$/, 'The Museum displays your ancestral items, one per case, as soon as they are picked up. Each displayed piece: damage, HP and gold +$1% (multiplicative, ×2 if Legendary). Full collection: damage and HP +$2% more. A displayed piece is not worn: take it back (↩) to equip it.'],
   [/^Collections : (.+) \((\d+)\)$/, (m) => `Collections: ${tr(m[1])} (${m[2]})`],

@@ -167,7 +167,7 @@ function cleanPowers(state, raw) {
         rerolls: int(entry.rerolls, 0),
         sinceHigh: int(entry.sinceHigh, 0),
         // v3 → v4 : une charge offerte pour ne pas bloquer les relances déjà possibles.
-        charges: Math.min(POWER_RULES.maxCharges, int(entry.charges, beforeV4 ? 1 : 0)),
+        charges: Math.min(POWER_RULES.maxCharges + 1, int(entry.charges, beforeV4 ? 1 : 0)),
         masteryClaimed: int(entry.masteryClaimed, 0),
       };
     }
@@ -473,6 +473,8 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     // v9.1.0 : champs ajoutés (sans eux, ils disparaîtraient au rechargement).
     if (Number.isInteger(raw.ui.tourV) && raw.ui.tourV > 0) state.ui.tourV = raw.ui.tourV;
     if (raw.ui.goalsOpen === true) state.ui.goalsOpen = true;
+    // v9.1.3 : portes du sac déjà ouvertes (Coffre, Mannequins, Forge restent visibles).
+    if (Array.isArray(raw.ui.invUsed)) state.ui.invUsed = raw.ui.invUsed.filter((t) => ['stash', 'mannequins', 'forge'].includes(t));
     if (Array.isArray(raw.ui.seenTabs)) state.ui.seenTabs = raw.ui.seenTabs.filter((t) => typeof t === 'string' && /^[a-z]{2,16}$/.test(t)).slice(0, 32);
     if (raw.ui.guide && typeof raw.ui.guide === 'object') {
       state.ui.guide = Object.fromEntries(Object.entries(raw.ui.guide).filter(([k, v]) => /^[a-z]{2,16}$/.test(k) && v === true).slice(0, 32));

@@ -61,7 +61,7 @@ const NOTABLE_NAMES = {
 // Notables spéciaux de l'Héritage : emplacements de pouvoir et relances moins chères (ancien talent « Héritage »).
 const SPECIAL_NOTABLES = {
   'Héritage I': { powerSlots: 1 },
-  'Héritage II': { rerollDiscountPct: 25 },
+  'Héritage II': { rerollMaxCharges: 1 }, // v9.1.3 : la relance ne coûte plus d'or
   'Héritage III': { powerSlots: 1 },
 };
 

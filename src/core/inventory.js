@@ -10,6 +10,7 @@ import { canEquip } from './classes.js';
 import { usefulSetPiece } from './sets.js';
 import { autoMannequin } from './stash.js';
 import { autoMuseum } from './museum.js';
+import { invFeatureOpen } from './unlocks.js';
 
 // Inventaire plein : l'objet est recyclé en or plutôt que perdu.
 export function addToInventory(state, item, balance = BALANCE) {
@@ -104,7 +105,7 @@ export function collectItem(state, item, balance = BALANCE) {
     return { added: false, museum: true, recycledGold: 0 };
   }
   // v8.9 : pièce d'ensemble meilleure que celle de son mannequin → directement dessus (l'ancienne est recyclée).
-  if (state.mannequins) {
+  if (state.mannequins && invFeatureOpen(state, 'mannequins')) { // v9.1.3 : pas avant l'ouverture des mannequins
     const replaced = autoMannequin(state, item);
     if (replaced !== false) {
       state.records.itemsFound += 1;

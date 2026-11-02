@@ -6,14 +6,14 @@ import { stageLabel } from '../../core/combat.js';
 import { itemBase, signatureItemFor } from '../../core/loot.js';
 import {
   bossDungeon, bossFirstStage, bossesInOrder, pityRemaining, powerById, powerSlots,
-  rerollCost, synergyFamilies,
+  maxCharges, synergyFamilies,
 } from '../../core/powers.js';
 import { rewardText } from '../../core/rewards.js';
 import { itemIconUrl } from '../../render/pixel.js';
 import { ZONES } from '../../data/zones.js';
 import { BOSS_LORE } from '../../data/lore.js';
 import { bossTrait } from '../../core/boss-traits.js';
-import { coin, effectText, escapeHtml, fold, formatNumber, icon, img, progressBar, rarityLabel } from '../common.js';
+import { effectText, escapeHtml, fold, formatNumber, icon, img, progressBar, rarityLabel } from '../common.js';
 import { animCanvas } from '../animator.js';
 
 // v9.1.0 : un boss hors de portée n'est plus « combattu » (le jeu restait à l'étape max et coupait l'avance auto).
@@ -95,8 +95,9 @@ function bossDetail(ui, state, bossId) {
   const current = powerById(entry.current);
   const active = state.equippedPowers.includes(bossId);
   const pity = pityRemaining(state, bossId);
-  const cost = rerollCost(state, bossId);
   const charges = entry.charges;
+  const maxC = maxCharges(state);
+  const pityOpen = ui.view.powerPity === bossId;
   const offer = entry.pending
     ? `<div class="power-offer"><div class="offer-cols">${powerBox(current, 'Pouvoir actuel')}<div class="offer-arrow">»</div>${powerBox(powerById(entry.pending), 'Nouveau pouvoir proposé')}</div>
       <div class="detail-actions">
@@ -104,14 +105,13 @@ function bossDetail(ui, state, bossId) {
         <button class="btn btn-primary" data-action="keep-power" data-boss="${bossId}">Conserver le pouvoir actuel</button></div></div>`
     : `${powerBox(current, 'Pouvoir actuel')}
       <div class="detail-actions">
-        <button class="btn btn-gold num" data-action="reroll" data-boss="${bossId}" data-cost="${cost}" data-needs-charge="${charges}"
-          ${state.gold < cost || charges < 1 ? 'disabled' : ''}
->Changer le pouvoir ${coin()} ${formatNumber(cost)}</button>
+        <button class="btn btn-gold num" data-action="reroll" data-boss="${bossId}" ${charges < 1 ? 'disabled' : ''}
+          title="Une charge par changement ; 1 charge par nouvelle victoire sur ce boss">Changer le pouvoir (${charges}/${maxC})</button>
         ${rechallengeButton(state, bossId, '⚔ Réaffronter')}
         <button class="btn small${active ? ' btn-primary' : ''}" data-action="toggle-power" data-boss="${bossId}">${active ? 'Actif ✓' : 'Activer'}</button>
       </div>
-      <div class="muted pity">Charges de changement : <b class="${charges ? 'good' : 'bad'}">${charges}/${POWER_RULES.maxCharges}</b> (1 par nouvelle victoire)
-        · ${pity === 0 ? 'prochain changement Épique+ garanti' : `Épique+ garanti dans ${pity} changement${pity > 1 ? 's' : ''}`}</div>`;
+      <div class="muted power-rules">${charges ? '' : 'Réaffrontez ce boss : 1 charge par victoire. '}<button class="btn small help-q${pityOpen ? ' active' : ''}" data-action="power-pity" data-value="${bossId}" aria-expanded="${pityOpen}" aria-label="Règles du changement de pouvoir">?</button>
+        ${pityOpen ? `<span>Chaque changement coûte une charge (${maxC} au plus, 1 par nouvelle victoire sur ce boss). ${pity === 0 ? 'Prochain changement : Épique ou mieux garanti.' : `Épique ou mieux garanti dans ${pity} changement${pity > 1 ? 's' : ''}.`}</span>` : ''}</div>`;
   // Piste de maîtrise : paliers de victoires et leurs récompenses.
   const tiers = BALANCE.mastery;
   const last = tiers[tiers.length - 1].victories;
