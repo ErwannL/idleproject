@@ -51,3 +51,17 @@ export function addGold(state, amount) {
   state.records.goldEarned += gained;
   return gained;
 }
+
+// v9.1.3 (A5) : paliers multiplicateurs (Dégâts, PV) — produit des paliers atteints en passant de `from` à `to`
+// (cumul aux niveaux communs, ex. 50 : ×1,35 × ×1,75), et le prochain palier au-delà de `to`.
+export function upgradeMilestones(key, from, to, balance = BALANCE) {
+  const up = balance.upgrades[key];
+  if (!up?.milestoneEvery) return null;
+  const at = (lv) => (lv % up.milestoneEvery === 0 ? up.milestoneMultiplier : 1)
+    * (up.bigMilestoneEvery && lv % up.bigMilestoneEvery === 0 ? up.bigMilestoneMultiplier : 1);
+  let reached = 1;
+  for (let lv = from + 1; lv <= to; lv++) reached *= at(lv);
+  let nextLevel = to + 1;
+  while (at(nextLevel) === 1) nextLevel += 1;
+  return { reached, nextLevel, nextMult: at(nextLevel) };
+}

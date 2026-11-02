@@ -18,7 +18,7 @@ function achievementsTab(state) {
   const rows = ACHIEVEMENTS.map((a) => {
     const p = achievementProgress(state, a);
     const cls = p.claimed ? ' done' : p.done ? ' ready' : '';
-    return `<div class="ach${cls}"><span class="ach-icon">${p.claimed ? '🏆' : p.done ? '✨' : '🔒'}</span>
+    return `<div class="ach${cls}"><span class="ach-icon">${p.done ? img('icon_trophy', 'ico20', p.claimed ? 'Obtenu' : 'À réclamer') : img('icon_lock', 'ico-lock', 'Verrouillé')}</span>
       <div class="grow"><b>${escapeHtml(a.name)}</b> <span class="muted">${a.label} : ${formatNumber(Math.min(p.value, a.target))} / ${formatNumber(a.target)}</span>
         ${progressBar(p.ratio)}</div>
       ${p.claimed ? '<span class="good">Obtenu</span>'

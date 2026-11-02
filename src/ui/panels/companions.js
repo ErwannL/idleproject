@@ -28,7 +28,7 @@ function skillsBlock(state, c, owned) {
       ${img(sk.ultimate ? 'icon_star' : 'skill_quick')} <b>${escapeHtml(sk.name)}</b> <span class="muted">toutes les ${sk.every} s</span>
       ${sk.ultimate ? `<span class="tag-ult">${unlocked(sk) ? 'Ultime' : `Ultime · ${SKILL_RULES.ultimateStars} étoiles (3 doublons)`}</span>` : ''}
       <div class="muted">${escapeHtml(sk.text)}</div></div>`).join('');
-  return `<div class="cstats"><span>⚔ Attaque <b>${formatNumber(dps)}</b>/s</span><span>🛡 Défense <b>${def || shields ? [def, shields].filter(Boolean).join(' · ') : '—'}</b></span></div>
+  return `<div class="cstats"><span>⚔ Attaque <b>${formatNumber(dps)}</b>/s</span><span>${img('icon_shield', 'ico20')} Défense <b>${def || shields ? [def, shields].filter(Boolean).join(' · ') : '—'}</b></span></div>
     <div class="section-title">Compétences <span class="muted">(puissance ×${String(Math.round(power * 100) / 100).replace('.', ',')} : rareté × ${stars} étoile${stars > 1 ? 's' : ''} — chaque doublon +${Math.round(SKILL_RULES.powerPerStar * 100)} %)</span></div>
     ${rows}
     ${stars >= BALANCE.summon.maxStars ? '<div class="good">✦ Étoiles au maximum : ce compagnon brille d\'une aura sur la scène.</div>' : ''}`;

@@ -47,3 +47,16 @@ test('S1b : migration — record de niveau initialisé depuis l\'état et les ha
   assert.equal(back.records.bestLevel, 100);
   assert.ok(back.records.bestStage >= 141);
 });
+
+import { upgradeMilestones } from '../src/core/economy.js';
+
+test('A5 : paliers de Dégâts et PV selon la quantité, cumul aux niveaux communs', () => {
+  assert.deepEqual(upgradeMilestones('damage', 0, 1), { reached: 1, nextLevel: 10, nextMult: 1.35 });
+  assert.equal(upgradeMilestones('damage', 9, 10).reached, 1.35);
+  assert.equal(upgradeMilestones('damage', 21, 22).nextMult, 1.75); // 25 : ×1,75
+  assert.equal(upgradeMilestones('damage', 41, 42).nextLevel, 50);
+  assert.ok(Math.abs(upgradeMilestones('damage', 41, 42).nextMult - 1.35 * 1.75) < 1e-9); // 50 : cumul
+  assert.ok(Math.abs(upgradeMilestones('vitality', 0, 10).reached - 1.4) < 1e-9);
+  assert.ok(Math.abs(upgradeMilestones('damage', 0, 100).reached - 1.35 ** 10 * 1.75 ** 4) < 1e-6);
+  assert.equal(upgradeMilestones('attackSpeed', 0, 10), null);
+});

@@ -177,11 +177,11 @@ function dungeonsList(ui, state) {
     const ok = unlocked.includes(id);
     const done = i <= (state.dungeonBest[sel.id] ?? -1);
     return `<button class="btn diff-btn${id === diffId ? ' active' : ''}${done ? ' done' : ''}" data-action="dungeon-diff" data-value="${id}" ${ok ? '' : 'disabled'}>
-      <span class="skulls">${'☠'.repeat(dd.skulls)}</span><span>${ok ? '' : '🔒 '}${dd.label}${done ? ' ✔' : ''}</span></button>`;
+      <span class="skulls">${img('icon_skull', 'ico20')}×${dd.skulls}</span><span>${ok ? '' : `${img('icon_lock', 'ico-lock', 'Verrouillé')} `}${dd.label}${done ? ' ✔' : ''}</span></button>`;
   }).join('');
   const nextLocked = DIFFICULTY_ORDER.find((id) => !unlocked.includes(id));
   const unlockHint = nextLocked
-    ? `<div class="muted small-note">🔒 ${DUNGEON_DIFFICULTIES[nextLocked].label} : terminez ce donjon en ${DUNGEON_DIFFICULTIES[DIFFICULTY_ORDER[DIFFICULTY_ORDER.indexOf(nextLocked) - 1]].label}.</div>`
+    ? `<div class="muted small-note">${img('icon_lock', 'ico-lock', 'Verrouillé')} ${DUNGEON_DIFFICULTIES[nextLocked].label} : terminez ce donjon en ${DUNGEON_DIFFICULTIES[DIFFICULTY_ORDER[DIFFICULTY_ORDER.indexOf(nextLocked) - 1]].label}.</div>`
     : '';
   const roles = (sel.roles ?? []).map((r) => `<div class="role-chip" style="--role:${ROLES[r].color}">${img(ROLES[r].icon)}<span>${ROLES[r].label}</span></div>`).join('');
   const slot = ui.view.dungeonSlot ?? state.ui.dungeonSlot ?? 'any';

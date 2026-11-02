@@ -48,7 +48,7 @@ export const BALANCE = {
   upgrades: {
     damage: {
       label: 'Dégâts',
-      description: '+3 dégâts par niveau, ×1,35 tous les 10 niveaux, ×1,75 tous les 25 niveaux',
+      description: '+3 dégâts par niveau', // v9.1.3 (A5) : les paliers sont affichés sur la ligne
       baseCost: 10,
       costGrowth: 1.13, // v8.4 : 1,17 → 1,13 (réglé par simulation : progression qui ralentit sans mur)
       oldCostGrowth: 1.17, // pour rembourser l'or dépensé avant la v8.4
@@ -68,7 +68,7 @@ export const BALANCE = {
     },
     vitality: {
       label: 'Points de vie',
-      description: '+20 PV max par niveau, ×1,4 tous les 10 niveaux, ×1,75 tous les 25 niveaux',
+      description: '+20 PV max par niveau', // v9.1.3 (A5) : idem
       baseCost: 15,
       costGrowth: 1.13,
       oldCostGrowth: 1.16,

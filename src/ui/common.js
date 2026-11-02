@@ -14,11 +14,12 @@ import { itemIconUrl, spriteUrl } from '../render/pixel.js';
 export const escapeHtml = (text) => String(text).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 export const icon = (name, scale = 2, options = {}) => spriteUrl(name, scale, options);
 export const img = (name, cls = '', alt = '') => `<img class="px ${cls}" src="${icon(name)}" alt="${alt}">`;
-export const coin = () => img('coin');
-export const gem = () => img('icon_gem');
-export const fragment = () => img('icon_fragment');
-export const shard = () => img('icon_shard');
-export const essence = () => img('icon_essence');
+// v9.1.3 : les icônes de monnaie portent leur nom (lu par les lecteurs d'écran, affiché au survol).
+export const coin = () => img('coin', '', 'or');
+export const gem = () => img('icon_gem', '', 'gemmes');
+export const fragment = () => img('icon_fragment', '', 'fragments');
+export const shard = () => img('icon_shard', '', 'éclats');
+export const essence = () => img('icon_essence', '', 'essences');
 
 // « +10 % dégâts · +5 % or » — valeurs arrondies pour l'affichage.
 export const effectText = (effects) => Object.entries(effects)
@@ -57,9 +58,13 @@ export function missingText(cost, have, currency) {
 }
 
 export function costButton({ action, cost, have, label = '', currency = 'gold', attrs = '', cls = 'btn-gold', max = false, locked = false }) {
-  const iconHtml = { gold: coin(), gems: gem(), fragments: fragment(), shards: shard(), essence: essence(), tickets: img('icon_ticket'), stars: '<span class="star-cur">✧</span>' }[currency];
+  const iconHtml = { gold: coin(), gems: gem(), fragments: fragment(), shards: shard(), essence: essence(), tickets: img('icon_ticket', '', 'tickets'), stars: '<span class="star-cur" aria-hidden="true">✧</span>' }[currency];
   if (max) return `<button class="btn ${cls}" disabled>Max</button>`;
+  // v9.1.3 (A2) : la monnaie est nommée (bulle et nom accessible), pas seulement « 1 200 » à côté d'une icône.
+  const [one, many] = CURRENCY_WORDS[currency] ?? ['', ''];
+  const named = `${formatNumber(cost)} ${cost > 1 ? many : one}`;
   return `<span class="cost-wrap"><button class="btn ${cls} num" data-action="${action}" data-cost="${cost}" data-currency="${currency}" ${attrs}
+    title="Coût : ${named}" aria-label="${escapeHtml(`${label.trim() ? `${label.trim()} : ` : ''}${named}`)}"
     ${locked ? 'data-locked="1"' : ''} ${locked || have < cost ? 'disabled' : ''}>${label}${iconHtml} ${formatNumber(cost)}</button><small class="cost-missing">${locked ? '' : missingText(cost, have, currency)}</small></span>`;
 }
 

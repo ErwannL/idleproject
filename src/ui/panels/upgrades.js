@@ -1,6 +1,6 @@
 // Améliorations achetées avec l'or.
 import { BALANCE } from '../../data/balance.js';
-import { bulkPlan, upgradeCost } from '../../core/economy.js';
+import { bulkPlan, upgradeCost, upgradeMilestones } from '../../core/economy.js';
 import { computeHeroStats } from '../../core/stats.js';
 import { bossForecast, coin, costButton, escapeHtml, fold, forecastHtml, formatDecimal, formatNumber, img } from '../common.js';
 import { upgradeProfits } from '../../core/profit.js';
@@ -58,8 +58,13 @@ export default {
       const cost = plan.count ? plan.cost : upgradeCost(key, level);
       const next = computeHeroStats({ ...state, upgrades: { ...state.upgrades, [key]: level + count } });
       const [from, to, unit] = effect(key, current, next);
-      const milestone = key === 'damage' && (level + 1) % up.milestoneEvery === 0
-        ? `<span class="tag">×${formatDecimal(up.milestoneMultiplier)}</span>` : '';
+      // v9.1.3 (A5) : palier visible à l'avance, selon la quantité choisie (Dégâts et PV) : multiplicateur atteint par
+      // cet achat, sinon le prochain palier et son niveau (cumul ×1,35 × ×1,75 aux niveaux communs).
+      const ms = max ? null : upgradeMilestones(key, level, level + count);
+      const mult = (x) => (x >= 1000 ? formatNumber(x) : String(Math.round(x * 100) / 100).replace('.', ','));
+      const milestone = !ms ? ''
+        : ms.reached > 1 ? `<span class="tag ms-hit">×${mult(ms.reached)}</span>`
+          : `<span class="tag ms-next">×${mult(ms.nextMult)} niv. ${ms.nextLevel}</span>`;
       const p = profits[key];
       // v9.1.3 : gain en dégâts/s affiché neutre (aucune « meilleure » amélioration désignée) ; la description ne
       // s'affiche qu'au début (avant le premier mini-boss), ensuite au survol / appui long sur le nom.
@@ -76,7 +81,10 @@ export default {
     const filters = `<div class="row upg-filters"><select data-action="upgrade-cat-select" aria-label="Catégorie"><option value="all">Toutes les catégories</option>${cats.map((c) => `<option value="${c.id}" ${cat?.id === c.id ? 'selected' : ''}>${c.label}</option>`).join('')}</select>
       <select data-action="upgrade-sort" aria-label="Trier"><option value="">Tri : par défaut</option><option value="profit" ${ui.view.upgradeSort === 'profit' ? 'selected' : ''}>Tri : rentabilité</option><option value="cost" ${ui.view.upgradeSort === 'cost' ? 'selected' : ''}>Tri : coût</option></select></div>`;
     const forecast = state.dungeon || state.tower || state.challenge ? '' : forecastHtml(bossForecast(state, () => ui.invalidate()));
-    return `<div class="card upg-top">${forecast}${amounts ? `<div class="row-between">${amounts}</div>` : ''}</div>
+    // v9.1.3 (A6) : Dégâts/s en en-tête (même calcul que la Fiche, déjà fait pour les lignes : aucun coût en plus) ;
+    // le panneau est redessiné à chaque achat, le chiffre bouge donc avec lui.
+    const dpsHead = `<div class="upg-dps"><span class="muted">Dégâts/s</span> <b class="num">${formatDecimal(current.dps)}</b></div>`;
+    return `<div class="card upg-top">${dpsHead}${forecast}${amounts ? `<div class="row-between">${amounts}</div>` : ''}</div>
       ${beginner ? '' : fold(ui, 'upg-filters', 'Filtrer et trier', filters, { extra: cat ? cat.label : '' })}
       <div class="upg-list">${cards.join('')}</div>
       ${beginner ? '<div class="muted">D\'autres améliorations (critique, armure, régénération, or) s\'ouvrent après le premier mini-boss.</div>' : ''}`;

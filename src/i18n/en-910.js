@@ -41,7 +41,7 @@ export const EXACT_910 = {
   'Remonte l\'objet au niveau de votre étape max.': 'Raises the item to your max stage level.', 'Change les effets spéciaux au hasard.': 'Rerolls the special effects at random.',
   'Relancer les effets': 'Reroll effects', 'Aucun effet à relancer': 'No effect to reroll', 'Réaffûter (déjà au niveau)': 'Resharpen (already at level)',
   'Un objet porté ne se recycle pas.': 'A worn item cannot be recycled.', 'Objet verrouillé : jamais recyclé.': 'Locked item: never recycled.',
-  'Verrouiller': 'Lock', 'Verrouillé': 'Locked', 'Aucun changement.': 'No change.', 'Reprendre au sac': 'Take back to the bag',
+  'Verrouiller': 'Lock', 'Verrouillé': 'Locked', 'À réclamer': 'To claim', '+3 dégâts par niveau': '+3 damage per level', '+20 PV max par niveau': '+20 max HP per level', 'Aucun changement.': 'No change.', 'Reprendre au sac': 'Take back to the bag',
   'Le coffre garde 300 objets de plus que le sac,': 'The stash holds 300 more items than the bag,', 'jamais recyclés ni fusionnés': 'never recycled or fused',
   '. Rangez-y un objet depuis sa fiche (Détails).': '. Store an item from its sheet (Details).',
   'Fusionner tout': 'Fuse all', 'Fabrication ciblée': 'Targeted crafting', 'Matériaux': 'Materials',
@@ -285,8 +285,18 @@ export const EXACT_910 = {
 let tr = (s) => s;
 export function setTranslator(fn) { tr = fn; }
 
+// v9.1.3 (A2) : monnaies nommées des boutons de coût.
+const UNITS_913 = { or: 'gold', gemme: 'gem', gemmes: 'gems', fragment: 'fragment', fragments: 'fragments', 'éclat': 'shard', 'éclats': 'shards',
+  essence: 'essence', essences: 'essences', ticket: 'ticket', tickets: 'tickets', 'Étoile': 'Star', 'Étoiles': 'Stars' };
+const UNIT_RE = '(or|gemmes?|fragments?|éclats?|essences?|tickets?|Étoiles?)';
+
 // Textes construits avec des valeurs.
 export const PATTERNS_910 = [
+  [new RegExp(`^Coût : ([\\d\\s.,]+\\s?[a-zA-Z]*) ${UNIT_RE}$`), (m) => `Cost: ${m[1]} ${UNITS_913[m[2]]}`],
+  [new RegExp(`^(.+) : ([\\d\\s.,]+\\s?[a-zA-Z]*) ${UNIT_RE}$`), (m) => `${/^[+\\d]/.test(m[1]) ? m[1] : tr(m[1])}: ${m[2]} ${UNITS_913[m[3]]}`],
+  [new RegExp(`^${UNIT_RE}$`), (m) => UNITS_913[m[1]]],
+  [/^×([\d,]+) niv\. (\d+)$/, (m) => `×${m[1].replace(',', '.')} lv. ${m[2]}`],
+  [/^(\d+) · (Mini-boss|Boss|Boss redoutable|MÉGA BOSS)$/, (m) => `${m[1]} · ${tr(m[2])}`],
   [/^Ensembles pas encore commencés \((\d+)\)$/, 'Sets not started yet ($1)'],
   [/^\((\d+) en stock\)$/, '($1 in stock)'],
   [/^Confirmer : fusionner (\d+) objets \?$/, 'Confirm: fuse $1 items?'],

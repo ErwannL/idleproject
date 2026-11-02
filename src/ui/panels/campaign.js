@@ -132,7 +132,8 @@ export default {
       const classes = ['btn', tier ? `boss tier-${tier}` : '', stage === state.stage && !state.dungeon ? 'current' : '', stage < state.maxStage ? 'cleared' : ''].join(' ');
       const title = tier ? `${TIER_LABELS[tier]} : ${BOSSES[bossesForStage(stage)[0]].name}` : 'Étape';
       buttons.push(`<button class="${classes}" data-action="stage" data-stage="${stage}" ${stage > state.maxStage ? 'disabled' : ''}
-        title="${escapeHtml(title)} · ${stageLabel(stage)}">${stage - first + 1}${tier ? img('icon_skull') : ''}</button>`);
+        title="${escapeHtml(title)} · ${stageLabel(stage)}" aria-label="${escapeHtml(tier ? `${stage - first + 1} · ${TIER_LABELS[tier]}` : String(stage - first + 1))}">${stage - first + 1}</button>`);
+      // v9.1.3 (A4) : plus de crâne de 9×8 px ; les étapes de boss se lisent à la forme (bordure épaisse, numéro en gras).
     }
     // v9.1.0 : d'abord le résumé, le choix du monde et de la difficulté, la liste d'étapes ; la grande carte est
     // repliée derrière un bouton (sa largeur suit le panneau, zoom 50–250 %).

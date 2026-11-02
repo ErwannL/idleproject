@@ -1308,7 +1308,7 @@ export class UI {
         return `<button class="rush-btn${unlocked ? '' : ' locked'}" data-action="rush" data-value="${r.id}" style="--rush:${r.color}"
           title="${r.name} — ${r.text}. ${unlocked ? `Touche ${boostKeys()[i]}.` : `Débloqué au niveau ${r.unlockLevel} du héros.`}" aria-label="${r.name}">${img(r.icon)}
           ${phoneLayout() ? '' : `<span class="rush-key">${boostKeys()[i]}</span>`}<span class="rush-time"></span></button>`;
-      }).join('') + (boostOn ? '<button class="boost-chip" data-action="show-boost" id="boost-chip">⚡<span id="boost"></span></button>' : '');
+      }).join('') + (boostOn ? `<button class="boost-chip" data-action="show-boost" id="boost-chip">${img('icon_bolt', 'ico20')}<span id="boost"></span></button>` : '');
       delete this.lastHud.boost;
     }
     const group = this.$('boost-group');
@@ -1440,7 +1440,7 @@ export class UI {
       r.claimsLeft ? `<li class="bad">${r.claimsLeft} récompense${r.claimsLeft > 1 ? 's' : ''} avec un objet en attente (sac plein) : Objectifs › À récupérer.</li>` : '',
       r.equipped ? `<li>${r.equipped} objet${r.equipped > 1 ? 's' : ''} équipé${r.equipped > 1 ? 's' : ''}</li>` : '',
     ].join('') || '<li class="muted">Rien à récupérer ni à équiper.</li>';
-    this.openModal(`<h2 id="modal-title">⚡ Retour de session</h2><ul class="session-list">${rows}</ul>
+    this.openModal(`<h2 id="modal-title">${img('icon_bolt', 'ico20')} Retour de session</h2><ul class="session-list">${rows}</ul>
       <p>Dégâts/s : <b>${formatNumber(r.before)}</b> → <b class="good">${formatNumber(r.after)}</b>${ratio > 1.0001 ? ` (×${ratio >= 100 ? formatNumber(Math.round(ratio)) : ratio.toFixed(2).replace('.', ',')})` : ''}</p>
       <p class="muted">Rien n'est acheté : votre or, vos gemmes et vos points de compétence restent à votre choix.</p>
       <div class="detail-actions"><button class="btn btn-primary" data-action="close-modal">Continuer</button></div>`);
@@ -1455,7 +1455,7 @@ export class UI {
       b.weekend ? `<li>Week-end : ×${BALANCE.weekendBoost.multiplier} en plus, encore ${boostDuration(b.weekendSecondsLeft)}.</li>` : '',
       b.cheat > 1 ? `<li>Code (version dev) : ${m(b.cheat)}.</li>` : '',
     ].join('');
-    this.openModal(`<h2 id="modal-title">⚡ Bonus du moment</h2>
+    this.openModal(`<h2 id="modal-title">${img('icon_bolt', 'ico20')} Bonus du moment</h2>
       <p>Or <b class="gold-text">${m(b.gold)}</b> · Expérience <b>${m(b.xp)}</b> · Événements <b>${m(b.events)}</b></p>
       <ul>${parts}</ul>
       <div class="detail-actions"><button class="btn btn-primary" data-action="close-modal">OK</button></div>`);
@@ -1689,7 +1689,7 @@ export class UI {
         <p class="muted">Hors ligne, le héros reste sur l'étape ${stageLabel(summary.stage)} (la meilleure où il gagne vraiment) à
           ${BALANCE.offline.farmMultiplier * 100} % de son rythme, sans affronter de boss.</p>
         <div class="detail-actions"><button class="btn" data-action="close-modal">Continuer</button>
-          <button class="btn btn-gold" data-action="session-return">⚡ Retour de session (S)</button></div>`);
+          <button class="btn btn-gold" data-action="session-return">${img('icon_bolt', 'ico20')} Retour de session (S)</button></div>`);
   }
 
   // v9.1.0 : une seule façon d'ouvrir une fenêtre — rôle dialog, focus sur le premier bouton, Tab qui boucle
