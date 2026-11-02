@@ -110,9 +110,10 @@ toujours plafonné par les charges (3 au plus).
 
 ## Lot F — Déblocage progressif de Coffre, Mannequins, Forge (fait)
 
-`core/unlocks.js` : Forge à l'étape 10, Coffre à l'étape 20, Mannequins à l'étape 30 (record d'étape, donc rien ne se
+`core/unlocks.js` : Forge à l'étape 10, Coffre à l'étape 20 (Mannequins à l'étape 30 jusqu'à leur fusion dans le
+coffre, plus bas ; le coffre ouvre donc aussi les ensembles). Record d'étape, donc rien ne se
 referme après une Renaissance). **Toujours visible si déjà utilisé :** coffre non vide, pièce sur un mannequin, objet
-renforcé, ou vue déjà ouverte (`state.ui.invUsed`, sauvegardé). Avant l'ouverture des mannequins, les pièces d'ensemble
+renforcé, ou vue déjà ouverte (`state.ui.invUsed`, sauvegardé). Avant l'ouverture du coffre, les pièces d'ensemble
 restent dans le sac (pas de rangement auto caché). Une ligne neutre annonce la suite (« Prochain : Coffre à l'étape 20 »).
 Chiffres : le joueur automatique atteint l'étape 54 en 30 min, donc les 3 portes ne manquent que pendant les premières
 minutes, quand le sac (100 places) est loin d'être plein. Anciennes sauvegardes : tout reste ouvert (testé).
