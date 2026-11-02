@@ -23,7 +23,7 @@ function slotHtml(ui, state, run, i, now) {
       : free.some((c) => c.id === last?.companionId) ? last.companionId : free[i % free.length].id;
     // La récompense prévue est écrite en clair (avant : seulement au survol).
     return `<div class="exp-slot empty"><div class="grow">
-        <label class="muted">Place ${i + 1} : <select data-action="exp-pick" data-slot="${i}" aria-label="Compagnon à envoyer, place ${i + 1}">${free.map((c) => `<option value="${c.id}" ${c.id === pick ? 'selected' : ''}>${escapeHtml(c.name)} (${rarityLabel(c.rarity)} · ${stars(state.companions.owned[c.id].stars).replace(/<[^>]+>/g, '')})</option>`).join('')}</select></label>
+        <label class="muted">Place ${i + 1} : <select data-action="exp-pick" data-slot="${i}" aria-label="Compagnon à envoyer, place ${i + 1}">${free.map((c) => `<option value="${c.id}" ${c.id === pick ? 'selected' : ''}>${escapeHtml(c.name)} (${rarityLabel(c.rarity)} · ${'★'.repeat(state.companions.owned[c.id].stars)})</option>`).join('')}</select></label>
         <div class="exp-types">${EXPEDITION_TYPES.map((t) => `<div class="exp-type"><button class="btn small" data-action="start-expedition" data-value="${pick}|${t.id}|${i}">${t.label} · ${t.hours} h</button>
           <span class="muted">${rewardText(expeditionReward(state, pick, t.id), formatNumber)}</span></div>`).join('')}</div></div></div>`;
   }

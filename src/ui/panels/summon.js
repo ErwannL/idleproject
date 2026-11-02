@@ -83,7 +83,9 @@ export default {
       return `<div class="cost-wrap"><button class="btn btn-gold primary-action" data-action="summon" data-value="${count}" data-currency="${currency}" data-pool="${pool}"
         ${missing > 0 ? 'disabled' : ''}>${label}</button>${missing > 0 ? `<span class="cost-missing">Il manque ${formatNumber(missing)} ${currency === 'gems' ? 'gemme' : 'ticket'}${missing > 1 ? 's' : ''}</span>` : ''}</div>`;
     };
-    const f = featuredUnit(pool);
+    // Vedette seulement si plusieurs Légendaires : avec un seul, il n'y a ni part réservée ni rotation du lundi.
+    const legends = summonOdds(pool).find((r) => r.rarity === 'legendary')?.units.length ?? 0;
+    const f = legends > 1 ? featuredUnit(pool) : null;
     const featured = f ? `<div class="featured-line">${unitPortrait(f)}<span><b class="gold-text">★ En vedette : ${escapeHtml(f.name)}</b>
       <span class="muted">— ${Math.round(FEATURED_SHARE * 100)} % des Légendaires obtenus · change chaque lundi</span></span></div>` : '';
     const what = pool === 'hero' ? `Apparences du héros : chacune change son allure et apporte un bonus (${navPath('hero', 'Apparence')}).`

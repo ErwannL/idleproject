@@ -4,7 +4,7 @@ import { BALANCE } from '../../data/balance.js';
 import { BOSSES } from '../../data/enemies.js';
 import { ACCESSORY_SLOTS, GEAR_SLOTS, RARITIES, SLOTS, STAT_LABELS } from '../../data/items.js';
 import { formatStat } from '../../core/format.js';
-import { canReforge, craftCost, fusionGroups, maxUpgrades, sharpenCost, upgradeCost } from '../../core/forge.js';
+import { canReforge, craftCost, fusionGroups, fusionKeep, maxUpgrades, sharpenCost, upgradeCost } from '../../core/forge.js';
 import { KEEP_AFFIX_LABELS, bulkRecycleCandidates, isUpgrade, listInventory, RECYCLE_MODES, recycleRules } from '../../core/inventory.js';
 import { itemBase, rarityById, recycleMaterials, recycleValue } from '../../core/loot.js';
 import { computeHeroStats, statsWithItem } from '../../core/stats.js';
@@ -195,7 +195,7 @@ function mannequinsView(ui, state) {
       : `<div class="mq-slot empty" title="${SLOTS[slot]} : vide"><div class="item-frame empty">${img(slotIconName(slot))}</div></div>`)).join('');
     const tiers = SET_PIECES.map((p) => `<span class="${n >= p ? 'good' : 'muted'}">${p} : ${effectText(set.bonuses[p])}</span>`).join(' · ');
     return `<div class="card mannequin" style="--set:${set.color}">
-      <div class="row-between"><b style="color:${set.color}">${img(`set_${set.id}`)} ${escapeHtml(set.name)}</b><span class="muted">${n}/${Object.keys(SLOTS).length} pièces</span></div>
+      <div class="row-between"><b style="color:${set.color}">${img(`set_${set.id}`)} ${escapeHtml(set.name)}</b><span class="muted">${n} pièce${n > 1 ? 's' : ''} · bonus complet à ${SET_PIECES[SET_PIECES.length - 1]}</span></div>
       <div class="mq-slots">${slots}</div><div class="mq-tiers">${tiers}</div>
       <button class="btn btn-gold small" data-action="wear-mannequin" data-value="${set.id}" ${n ? '' : 'disabled'}>Porter cet ensemble</button></div>`;
   }).join('');
@@ -289,9 +289,14 @@ function buildsBar(ui, state) {
 
 function forge(ui, state) {
   const full = state.inventory.length >= BALANCE.loot.inventorySize;
-  const groups = fusionGroups(state);
+  const groups = fusionGroups(state, BALANCE, fusionKeep(state));
+  // v9.1.3 : « Fusionner tout » se confirme en deux appuis ; objets renforcés, meilleurs que l'équipé ou utiles à
+  // un ensemble jamais fusionnés (comme la fusion automatique).
+  const n = groups.reduce((t, g) => t + Math.floor(g.count / BALANCE.forge.fusionCount) * BALANCE.forge.fusionCount, 0);
   const fusion = groups.length
-    ? `<button class="btn btn-gold primary-action" data-action="fuse-all">Fusionner tout (${groups.length} groupe${groups.length > 1 ? 's' : ''})</button>` + groups.map((g) => `<div class="fusion-row">
+    ? `<button class="btn btn-gold primary-action${ui.view.fuseArmed ? ' armed' : ''}" data-action="fuse-all">${ui.view.fuseArmed
+      ? `Confirmer : fusionner ${n} objets ?` : `Fusionner tout (${groups.length} groupe${groups.length > 1 ? 's' : ''})`}</button>
+      <div class="muted">Protégés : objets verrouillés, renforcés, meilleurs que l'équipé, utiles à un ensemble, ancestraux.</div>` + groups.map((g) => `<div class="fusion-row">
         <span>${img(slotIconName(g.slot))} ${BALANCE.forge.fusionCount} × ${SLOTS[g.slot]}
           <b class="r-${g.rarity} rarity-text">${rarityLabel(g.rarity)}</b> → 1 <b class="r-${g.next} rarity-text">${rarityLabel(g.next)}</b>
           <span class="muted">(${g.count} dans le sac)</span></span>

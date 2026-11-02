@@ -18,26 +18,23 @@ import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
 import { endTower, startTower } from './core/tower.js';
 import { claimExpedition, expeditionType, relaunchExpeditions, startExpedition } from './core/expeditions.js';
 import { endChallenge, startChallenge } from './core/challenge.js';
-import { autoFuse, craftItem, fuseItems, fusionGroups, reforgeItem, sharpenItem, upgradeItem } from './core/forge.js';
+import { autoFuse, craftItem, fuseItems, fusionGroups, fusionKeep, reforgeItem, sharpenItem, upgradeItem } from './core/forge.js';
 import { summon } from './core/gacha.js';
 import { setActiveHero } from './core/heroes.js';
 import { addToInventory, bulkRecycleCandidates, equipBest, equipItem, isUpgrade, recycleItem, recycleMatching, recycleRules, sweepInventory, toggleLock } from './core/inventory.js';
-import {
-  bossDungeon, bossFirstStage, claimMastery, powerById, powerSlots, rerollPower, resolveReroll, setPowerActive,
-} from './core/powers.js';
+import { bossDungeon, bossFirstStage, claimMastery, powerById, powerSlots, rerollPower, resolveReroll, setPowerActive } from './core/powers.js';
 import { buyTalent, buyTalentMax, buyTalentPath, buyTalentsCheapest, performRebirth, respecTalents } from './core/rebirth.js';
 import { buyTranscendPerk, buyTranscendPerkMax, performTranscend, stellarMultiplier } from './core/transcend.js';
 import { buyPerk } from './core/prestige.js';
 import { activateRush, rushById, upgradeRush } from './core/rushes.js';
 import { grantReward, rewardText } from './core/rewards.js';
-import { distributeSkillPoints, learnSkill } from './core/skills.js';
-import { buyMostProfitable } from './core/profit.js';
+import { learnSkill } from './core/skills.js';
 import { generateItem, itemPower, makeItem, rarityById } from './core/loot.js';
 import { STAT_LABELS } from './data/items.js';
 import { applyOfflineRewards, computeOfflineRewards } from './core/offline.js';
 import { Rng } from './core/rng.js';
 import { SAVE_KEY, clearSave, encodeSaveCode, loadGame, parseImport, saveGame, writeImported } from './core/save.js';
-import { createNewState } from './core/state.js';
+import { SAVE_VERSION, createNewState } from './core/state.js';
 import { computeHeroStats } from './core/stats.js';
 import { formatNumber } from './core/format.js';
 import { claimBounty } from './core/bounty.js';
@@ -206,7 +203,8 @@ const actions = {
   },
   upgradeCompanion(id) { done(upgradeCompanion(state, id)); },
   summon(count, currency, pool = 'ally') {
-    const results = summon(state, rng, count, currency, BALANCE, pool === 'pet' ? 'pet' : 'ally');
+    // v9.1.3 : l'onglet Apparences passait 'hero' et recevait des compagnons (seuls 'pet' et 'ally' étaient reconnus).
+    const results = summon(state, rng, count, currency, BALANCE, ['hero', 'pet'].includes(pool) ? pool : 'ally');
     if (!results) return null;
     state.records.summons += results.length;
     const best = ['legendary', 'epic', 'rare', 'common'].find((r) => results.some((u) => u.rarity === r));
@@ -229,7 +227,7 @@ const actions = {
     done(Boolean(stat), stat ? `Renforcé : ${label} +${BALANCE.forge.upgradeBoostPct} %` : null, '#7fe08f');
   },
   fuse(slot, rarity) {
-    const item = fuseItems(state, slot, rarity, rng);
+    const item = fuseItems(state, slot, rarity, rng, BALANCE, fusionKeep(state));
     if (item) sound.play('loot', { rarity: item.rarity });
     if (item) ui.view.selectedItemId = item.id;
     done(Boolean(item), item ? `Fusion : ${item.name} (${rarityById(item.rarity).label})` : null, rarityById(item?.rarity ?? 'common').color);
@@ -237,8 +235,9 @@ const actions = {
   fuseAll() {
     let n = 0;
     for (let guard = 0; guard < 500; guard++) {
-      const g = fusionGroups(state)[0];
-      if (!g || !fuseItems(state, g.slot, g.rarity, rng)) break;
+      const keep = fusionKeep(state);
+      const g = fusionGroups(state, BALANCE, keep)[0];
+      if (!g || !fuseItems(state, g.slot, g.rarity, rng, BALANCE, keep)) break;
       n += 1;
     }
     if (n) sound.play('loot', { rarity: 'epic' });
@@ -350,35 +349,19 @@ const actions = {
     const text = [rewardText(total, formatNumber), items ? `${items} objet${items > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ');
     done(true, `Tout récupéré : ${text}${left ? ` (${left} en attente : sac plein)` : ''}`, '#7fd4ff');
   },
-  distributeSkills() {
-    const n = distributeSkillPoints(state);
-    if (!n) ui.toast('Aucun point de compétence à répartir.');
-    done(n > 0, n ? `${n} niveau${n > 1 ? 'x' : ''} de compétence appris` : null, '#f2d083');
-  },
-  buyBestUpgrades() {
-    const r = buyMostProfitable(state);
-    const n = Object.values(r.bought).reduce((a, b) => a + b, 0);
-    if (!n) { ui.toast('Pas assez d\'or pour la prochaine amélioration de dégâts.'); return; }
-    sound.play('upgrade', { volume: 0.6 });
-    done(true, `${n} amélioration${n > 1 ? 's' : ''} achetée${n > 1 ? 's' : ''} : dégâts/s ×${formatRatio(r.dpsAfter / r.dpsBefore)}`, '#7fe08f');
-  },
-  // Retour de session (v9.1.0, touche S) : récupérer tout, équiper le meilleur, dépenser l'or dans les améliorations
-  // de dégâts les plus rentables, répartir les points de compétence, puis un récapitulatif. Jamais de gemmes.
+  // Retour de session (v9.1.0, touche S) : récupérer tout et équiper le meilleur, puis un récapitulatif.
+  // v9.1.3 : plus d'achat automatique d'améliorations ni de répartition des points : l'or et les points restent
+  // au choix du joueur.
   sessionReturn() {
     const before = computeHeroStats(state).dps;
     const claimsBefore = claimables(state).length;
     this.claimEverything();
     const claimsLeft = claimables(state).length;
     const equipped = equipBest(state);
-    const bought = buyMostProfitable(state);
-    const levels = Object.values(bought.bought).reduce((a, b) => a + b, 0);
-    const points = distributeSkillPoints(state);
     const after = computeHeroStats(state).dps;
     save();
     ui.invalidate();
-    ui.showSessionReturn({
-      claimed: claimsBefore - claimsLeft, claimsLeft, equipped, levels, spent: bought.spent, points, before, after,
-    });
+    ui.showSessionReturn({ claimed: claimsBefore - claimsLeft, claimsLeft, equipped, before, after });
   },
   claimAchievement(id) {
     const a = claimAchievement(state, id);
@@ -942,8 +925,18 @@ async function cloudSync(manual = false, preferRemote = false) {
     if (!cloud.isLoggedIn()) { cloudView.busy = false; return; }
     // Sauvegarde locale juste avant l'envoi (jamais avant le calcul hors ligne du lancement : sans compte et
     // sans invité possible, on est sorti plus haut).
+    // v9.1.3 : jamais d'envoi quand l'écriture est bloquée (partie d'une version plus récente) : la partie en
+    // mémoire est périmée et écraserait la migration faite ailleurs.
+    if (saveBlocked) { cloudView.busy = false; return; }
     save();
-    const { action } = await syncOnce({ client: cloud, storage: store, preferRemote });
+    const { action, newerVersion } = await syncOnce({ client: cloud, storage: store, preferRemote, maxSaveVersion: SAVE_VERSION });
+    if (action === 'newer') {
+      saveBlocked = true;
+      cloudView.busy = false;
+      setCloudMessage('Votre partie en ligne vient d\'une version plus récente du jeu : mettez le jeu à jour. Rien n\'est écrasé.', true);
+      ui.showNewerSave(newerVersion);
+      return;
+    }
     if (action === 'pull') reloadFromStore();
     cloudView.busy = false;
     const when = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });

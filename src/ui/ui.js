@@ -504,7 +504,8 @@ export class UI {
     const menu = menuOf(this.tab);
     const el = this.$('panel-subtabs');
     const tabs = menu ? menu.tabs.filter((t) => this.tabVisible[t] !== false) : [];
-    const mark = (t) => (this.tabBadges[t] ? 'red' : this.adviceTab === t ? 'gold' : this.newTabs.has(t) ? 'new' : '');
+    // v9.1.3 : plus de point or « conseillé » (aucune recommandation) : rouge = à récupérer, anneau = nouveau.
+    const mark = (t) => (this.tabBadges[t] ? 'red' : this.newTabs.has(t) ? 'new' : '');
     const key = `${this.tab}|${tabs.join()}|${tabs.map(mark).join()}`;
     if (this.lastHud.subtabs === key) return;
     this.lastHud.subtabs = key;
@@ -512,7 +513,7 @@ export class UI {
     el.setAttribute('role', 'tablist');
     el.innerHTML = tabs.map((t) => {
       const m = mark(t);
-      const badge = m === 'red' ? '<i class="badge" aria-label="À récupérer"></i>' : m === 'gold' ? '<i class="badge hint" aria-label="Conseillé"></i>'
+      const badge = m === 'red' ? '<i class="badge" aria-label="À récupérer"></i>'
         : m === 'new' ? '<i class="badge badge-ring" aria-label="Nouveau"></i>' : '';
       return `<button class="subtab${t === this.tab ? ' active' : ''}" role="tab" aria-selected="${t === this.tab}" data-sub="${t}">
       <img class="px" src="${icon(SUB_ICONS[t])}" alt=""><span>${SUB_LABELS[t]}</span>${badge}</button>`;
@@ -604,14 +605,15 @@ export class UI {
     const local = (fn) => { fn(); this.invalidate(); };
     switch (action) {
       case 'buy': a.buy(key, el.dataset.amount ?? '1'); break;
-      case 'buy-best': a.buyBestUpgrades(); break;
       case 'buy-amount': local(() => { v.buyAmount = value; }); break;
       case 'upgrade-cat': local(() => { v.upgradeCat = value; }); break;
       case 'inv-tab': local(() => { v.invTab = value; }); break;
       case 'craft-tier': local(() => { v.craftTier = value; }); break;
       case 'select-item': local(() => { v.selectedItemId = id; v.sheetOpen = 'item'; }); break;
       case 'inv-view': local(() => { v.invView = value || null; }); break;
-      case 'fuse-all': a.fuseAll(); break;
+      case 'fuse-all':
+        if (!v.fuseArmed) { local(() => { v.fuseArmed = true; }); clearTimeout(this.fuseTimer); this.fuseTimer = setTimeout(() => { v.fuseArmed = false; this.invalidate(); }, BULK_CONFIRM_MS); break; }
+        clearTimeout(this.fuseTimer); v.fuseArmed = false; a.fuseAll(); break;
       case 'rename-build': local(() => { v.buildRename = v.buildRename === Number(value) ? null : Number(value); }); break;
       case 'confirm-rename-build': a.renameLoadout(Number(value), this.$('build-name')?.value); v.buildRename = null; break;
       case 'equip': a.equip(id); break;
@@ -640,7 +642,6 @@ export class UI {
       case 'advance': a.advance(); break;
       case 'toggle-auto': a.setAutoAdvance(!this.state.autoAdvance); break;
       case 'learn-skill': a.learnSkill(key); break;
-      case 'distribute-skills': a.distributeSkills(); break;
       case 'hero-sel': local(() => { v.heroSel = value; }); break;
       case 'set-hero': a.setHero(value); break;
       case 'companion-sel': local(() => { v.companionSel = value; v.sheetOpen = 'companion'; }); break;
@@ -1370,15 +1371,12 @@ export class UI {
     this.tabBadges = byTab;
     const current = computeHeroStats(state);
     this.next = nextAction(state, { claims: this.claims, betterItem: betterItem(state, BALANCE, current) });
-    this.adviceTab = this.next.tab && !this.next.action ? this.next.tab : null;
     for (const menu of MENUS) {
       const red = menu.tabs.some((t) => byTab[t] && this.tabVisible[t] !== false);
-      const gold = !red && this.adviceTab && menu.tabs.includes(this.adviceTab);
       const el = this.$(`badge-${menu.id}`);
       if (el) {
-        el.classList.toggle('hidden', !red && !gold);
-        el.classList.toggle('hint', Boolean(gold));
-        el.setAttribute('aria-label', red ? 'À récupérer' : gold ? 'Conseillé' : '');
+        el.classList.toggle('hidden', !red);
+        el.setAttribute('aria-label', red ? 'À récupérer' : '');
       }
     }
     // Objets neufs : trouvés depuis la dernière ouverture d'Équipement (et encore dans le sac).
@@ -1441,12 +1439,10 @@ export class UI {
       r.claimed ? `<li>${r.claimed} récompense${r.claimed > 1 ? 's' : ''} récupérée${r.claimed > 1 ? 's' : ''}</li>` : '',
       r.claimsLeft ? `<li class="bad">${r.claimsLeft} récompense${r.claimsLeft > 1 ? 's' : ''} avec un objet en attente (sac plein) : Objectifs › À récupérer.</li>` : '',
       r.equipped ? `<li>${r.equipped} objet${r.equipped > 1 ? 's' : ''} équipé${r.equipped > 1 ? 's' : ''}</li>` : '',
-      r.levels ? `<li>${r.levels} niveau${r.levels > 1 ? 'x' : ''} d'amélioration (${coin()} ${formatNumber(r.spent)})</li>` : '<li class="muted">Pas assez d\'or pour une amélioration de dégâts.</li>',
-      r.points ? `<li>${r.points} niveau${r.points > 1 ? 'x' : ''} de compétence (répartis entre les compétences apprises)</li>` : '',
-    ].join('');
+    ].join('') || '<li class="muted">Rien à récupérer ni à équiper.</li>';
     this.openModal(`<h2 id="modal-title">⚡ Retour de session</h2><ul class="session-list">${rows}</ul>
       <p>Dégâts/s : <b>${formatNumber(r.before)}</b> → <b class="good">${formatNumber(r.after)}</b>${ratio > 1.0001 ? ` (×${ratio >= 100 ? formatNumber(Math.round(ratio)) : ratio.toFixed(2).replace('.', ',')})` : ''}</p>
-      <p class="muted">Aucune gemme n'est dépensée. Les améliorations de PV, d'armure, de régénération et d'or restent à votre choix.</p>
+      <p class="muted">Rien n'est acheté : votre or, vos gemmes et vos points de compétence restent à votre choix.</p>
       <div class="detail-actions"><button class="btn btn-primary" data-action="close-modal">Continuer</button></div>`);
   }
 

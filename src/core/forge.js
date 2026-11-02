@@ -3,7 +3,7 @@
 import { BALANCE } from '../data/balance.js';
 import { ITEM_BASES, RARITIES } from '../data/items.js';
 import { referenceKillGold } from './combat.js';
-import { addToInventory } from './inventory.js';
+import { addToInventory, isUpgrade } from './inventory.js';
 import { generateItem, itemBase, itemPower, makeItem, rarityIndex, refreshItemStats, rerollAffixes } from './loot.js';
 import { trackMissions } from './missions.js';
 import { usefulSetPiece } from './sets.js';
@@ -108,11 +108,17 @@ export function upgradeItem(state, id, rng, balance = BALANCE) {
 // --- Fusion : 5 objets d'un même emplacement et d'une même rareté → 1 objet de la rareté suivante. ---
 const fusable = (item) => !item.locked && !itemBase(item.baseId).signature;
 
+// v9.1.3 : la fusion à la main (un groupe ou « Fusionner tout ») protège comme l'automatique — objet meilleur que
+// l'équipé, pièce d'ensemble utile — et en plus tout objet payé (renforcé avec de l'or et des éclats).
+export function fusionKeep(state) {
+  return (i) => (i.upgrades ?? 0) > 0 || isUpgrade(state, i) || usefulSetPiece(state, i, itemPower);
+}
+
 // Groupes disponibles dans le sac : [{ slot, rarity, count, next }] (seulement s'il y a assez d'objets).
-export function fusionGroups(state, balance = BALANCE) {
+export function fusionGroups(state, balance = BALANCE, keep = null) {
   const groups = new Map();
   for (const item of state.inventory) {
-    if (!fusable(item) || item.rarity === RARITIES[RARITIES.length - 1].id) continue;
+    if (!fusable(item) || keep?.(item) || item.rarity === RARITIES[RARITIES.length - 1].id) continue;
     const key = `${item.slot}|${item.rarity}`;
     groups.set(key, (groups.get(key) ?? 0) + 1);
   }

@@ -16,7 +16,7 @@ export const REBIRTH = {
 // compagnons et familiers, et ne garde qu'UN pouvoir ancestral (au choix). En échange, les boss
 // s'adaptent : plus durs, mais leurs récompenses augmentent à chaque Renaissance.
 export const REBIRTH_RESETS = [
-  'Étapes et progression de campagne', 'Or courant', 'Améliorations (Dégâts, Vitesse, Vitalité)',
+  'Étapes et progression de campagne', 'Or courant', 'Améliorations (toutes, sauf la part gardée par la Mémoire du guerrier)',
   'Niveau du héros et compétences', 'Niveau des compagnons et familiers (retour au niveau 1)',
   'Pouvoirs : un seul est conservé',
 ];

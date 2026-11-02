@@ -67,9 +67,7 @@ export default {
     const points = skillPointsAvailable(state);
     const compact = ui.compact;
     const details = !compact && (ui.view.open?.has('skill-details') ?? false);
-    return `<div class="card skills-top"><div class="row-between"><span>Points de compétence : <b class="gold-text">${points}</b> <span class="muted">(1 par niveau du héros)</span></span>
-        <button class="btn btn-gold primary-action" data-action="distribute-skills" ${points ? '' : 'disabled'}>Répartir mes points</button></div>
-        <div class="muted">« Répartir » donne chaque point à la compétence apprise la moins haute (répartition équilibrée).</div>
+    return `<div class="card skills-top"><div class="row-between"><span>Points de compétence : <b class="gold-text">${points}</b> <span class="muted">(1 par niveau du héros)</span></span></div>
         <label class="toggle"><input type="checkbox" data-action="skill-details" ${details ? 'checked' : ''}> Afficher la recharge et le détail</label></div>
       <div class="tt-head"><span class="tt-title">Compétences</span><span class="muted">lancées automatiquement</span>
         <label class="toggle"><input type="checkbox" data-action="skill-auto" ${state.skillAuto ? 'checked' : ''}> Auto</label></div>

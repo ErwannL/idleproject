@@ -214,24 +214,19 @@ test('lot 1 : À récupérer — une seule liste, sac plein signalé, pastilles 
   assert.ok(byTab.contracts >= 1 && byTab.inbox === 1, JSON.stringify(byTab));
 });
 
-test('lot 1 : Prochaine action — un seul conseil, dans l\'ordre prévu', () => {
+test('v9.1.3 : Prochaine action — récupérer, objet meilleur, boss à retenter, objectif ; jamais d\'achat conseillé', () => {
   const s = createNewState(NOW);
-  // Débutant : objectif simple, puis amélioration abordable.
   assert.equal(nextAction(s, { claims: [] }).id, 'goal');
-  s.gold = 1000;
-  assert.equal(nextAction(s, { claims: [] }).id, 'upgrade');
+  s.gold = 1e9;
+  assert.equal(nextAction(s, { claims: [] }).id, 'goal', 'beaucoup d\'or : aucune amélioration conseillée');
   s.inventory.push(makeItem(s, 'iron_helm', 'epic', 10));
   assert.equal(nextAction(s, { claims: [] }).id, 'equip');
-  // Après le premier mini-boss : à récupérer passe devant l'objet meilleur.
-  s.records.bossesDefeated = 1;
   s.contracts[0].progress = s.contracts[0].target;
   assert.equal(nextAction(s).id, 'claim');
   assert.equal(nextAction(s).action, 'claim-everything');
-  // Mode en cours : toujours en premier.
   s.tower = { floor: 2, startPlay: 0 };
   assert.equal(nextAction(s).id, 'mode-tower');
   s.tower = null;
-  // L'objet meilleur mène au bon onglet et à la bonne vue.
   s.contracts[0].progress = 0;
   const n = nextAction(s);
   assert.equal(n.id, 'equip');
@@ -328,18 +323,15 @@ test('migration : une partie de chaque format (v1 à v7) se charge sans rien per
   assert.equal(r.state.level, 3);
 });
 
-test('lot 1 : boss bloquant — « Améliorer les dégâts » passe devant les petits objets, puis « Retenter »', () => {
+test('v9.1.3 : boss bloquant — objet meilleur d\'abord, puis « Retenter » ; pas de conseil d\'achat', () => {
   const s = createNewState(NOW);
   s.records.bossesDefeated = 3;
   s.maxStage = 15; s.stage = 14;
   s.bossRetry = { stage: 15, power: 1e12 };
   s.inventory.push(makeItem(s, 'iron_helm', 'epic', 10));
   s.gold = 1e6;
-  assert.equal(nextAction(s, { claims: [] }).text, 'Améliorer les dégâts');
-  s.gold = 0;
   assert.equal(nextAction(s, { claims: [] }).id, 'equip');
   s.inventory = [];
-  s.skills = { quick: s.level };
   const n = nextAction(s, { claims: [] });
   assert.equal(n.id, 'retry');
   assert.equal(n.action, 'retry-boss');

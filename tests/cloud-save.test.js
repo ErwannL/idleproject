@@ -147,3 +147,18 @@ test('la politique de sécurité (CSP) du jeu autorise le serveur de sauvegarde'
   const origin = new URL(cfg.match(/'(https:\/\/[^']+)'/)[1]).origin;
   assert.ok(csp.includes(origin), `${origin} absent de connect-src`);
 });
+
+test('v9.1.3 : partie en ligne d\'une version plus récente — ni chargée, ni écrasée', async (t) => {
+  const baseUrl = await startApi(t);
+  const st = memoryStorage();
+  const client = createCloudClient({ baseUrl, storage: st });
+  await client.register('Neuf_1', 'motdepasse1');
+  const future = JSON.stringify({ version: 99, level: 9, maxStage: 9, gold: 1, gems: 0, kills: 3, lastSaved: 5, records: {} });
+  await client.push(0, future);
+  st.setItem(SAVE_KEY, JSON.stringify({ version: 7, level: 1, maxStage: 1, kills: 50, lastSaved: 999, records: {} }));
+  const r = await syncOnce({ client, storage: st, maxSaveVersion: 7 });
+  assert.equal(r.action, 'newer');
+  assert.equal(r.newerVersion, 99);
+  assert.equal(JSON.parse(st.getItem(SAVE_KEY)).version, 7, 'rien chargé');
+  assert.equal(JSON.parse((await client.pull()).data).version, 99, 'rien écrasé');
+});

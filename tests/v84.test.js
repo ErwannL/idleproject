@@ -114,5 +114,6 @@ test('v8.4 : prévision du prochain boss et conseils', async () => {
   assert.equal(strong.win, true);
   assert.ok(!weak.win || weak.seconds >= strong.seconds);
   s.gold = 1e30;
-  assert.equal(nextAction(s).tab, 'upgrades'); // v9.1.0 : un seul conseil (ici, l'amélioration la plus rentable)
+  // v9.1.3 : aucun achat recommandé, même avec beaucoup d'or : l'objectif reste affiché.
+  assert.notEqual(nextAction(s).tab, 'upgrades');
 });

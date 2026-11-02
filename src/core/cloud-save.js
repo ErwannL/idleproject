@@ -174,8 +174,15 @@ export function stripCheats(json) {
 // preferRemote (connexion à un compte existant) : la partie du compte l'emporte toujours si elle existe ;
 // celle de l'appareil est gardée en copie (BEFORE_LOGIN_KEY). Sans cela, quelques minutes jouées sur un
 // nouvel appareil (plus récentes) écraseraient des semaines de progression.
-export async function syncOnce({ client, storage, version = 0, preferRemote = false }) {
+// maxSaveVersion : format le plus récent que ce jeu sait lire. Une partie du serveur plus récente (enregistrée par
+// un appareil mis à jour) n'est ni chargée ni écrasée : action 'newer', et le jeu doit bloquer ses écritures.
+export async function syncOnce({ client, storage, version = 0, preferRemote = false, maxSaveVersion = Infinity }) {
   const remote = await client.pull();
+  if (remote.data) {
+    let v = 0;
+    try { v = Number(JSON.parse(remote.data).version) || 0; } catch { v = 0; }
+    if (v > maxSaveVersion) return { action: 'newer', version: remote.version, newerVersion: v };
+  }
   const local = stripCheats(storage.getItem(SAVE_KEY));
   let action = reconcile(local, remote.data);
   if (preferRemote && remote.data) {

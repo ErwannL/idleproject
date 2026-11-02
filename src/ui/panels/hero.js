@@ -181,7 +181,7 @@ function heroView(ui, state) {
       ${line('coin', 'Or bonus', `+${formatDecimal(s.goldPct)} %`)}
     </div>`, { extra: `Dégâts ${formatNumber(s.damage)} · PV ${formatNumber(s.maxHp)}` })}
     ${fold(ui, 'hero-sets', 'Ensembles d\'équipement', () => setsCard(state))}
-    ${sources ? fold(ui, 'hero-bonus', 'Bonus permanents', `<div class="bonus-sources">${sources}</div>`) : ''}
+    ${sources ? fold(ui, 'hero-bonus', 'Sources de bonus (boosts actifs compris)', `<div class="bonus-sources">${sources}</div>`) : ''}
     ${fold(ui, 'hero-feats', 'Exploits', () => `<div class="stats-grid">
       ${line('icon_skull', 'Ennemis vaincus', formatNumber(state.records.kills))}
       ${line('icon_boss', 'Boss vaincus', formatNumber(state.records.bossesDefeated))}

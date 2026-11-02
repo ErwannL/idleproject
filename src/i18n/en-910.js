@@ -148,7 +148,7 @@ export const EXACT_910 = {
   'Votre héros combat tout seul': 'Your hero fights on its own', 'Que faire ? Suivez ce bouton': 'What to do? Follow this button',
   'Il propose toujours une seule chose utile : équiper un objet, acheter une amélioration, récupérer une récompense… Un appui y mène.': 'It always suggests one useful thing: equip an item, buy an upgrade, claim a reward… One tap takes you there.',
   "Les menus s'ouvrent avec la progression": 'Menus open as you progress',
-  'Héros et Aventure pour commencer ; Équipe et Objectifs arrivent ensuite. Une pastille rouge = une récompense à récupérer ; un point or = ce qui est conseillé.': 'Hero and Adventure to start; Team and Goals come next. A red badge = a reward to claim; a gold dot = what is advised.',
+  'Héros et Aventure pour commencer ; Équipe et Objectifs arrivent ensuite. Une pastille rouge = une récompense à récupérer.': 'Hero and Adventure to start; Team and Goals come next. A red badge = a reward to claim.',
   "C'est parti !": "Let's go!", 'Passer': 'Skip', 'Suivant ▶': 'Next ▶',
   // Monnaies.
   'Or': 'Gold', 'Gemmes': 'Gems', "Tickets d'invocation": 'Summon tickets', 'Fragments anciens': 'Ancient fragments', 'Éclats': 'Shards', 'Essences': 'Essences',
@@ -240,6 +240,16 @@ export const EXACT_910 = {
   "Pas encore de compte ? Choisissez un nom d'utilisateur et un mot de passe (8 caractères min.), puis « Créer un compte joueur ».": 'No account yet? Choose a username and a password (8 characters min.), then "Create a player account".',
   'Compte automatique indisponible sur ce serveur : créez un compte joueur ci-dessous. La partie est sauvegardée sur cet appareil.': 'Automatic account unavailable on this server: create a player account below. The game is saved on this device.',
   'Pseudo ou mot de passe incorrect': 'Wrong username or password',
+  'Améliorations (toutes, sauf la part gardée par la Mémoire du guerrier)': 'Upgrades (all, except the share kept by Warrior memory)',
+  'Sources de bonus (boosts actifs compris)': 'Bonus sources (active boosts included)',
+  'Protégés : objets verrouillés, renforcés, meilleurs que l\'équipé, utiles à un ensemble, ancestraux.': 'Protected: locked, upgraded, better-than-equipped, useful set pieces, ancestral items.',
+  "L'or achète des améliorations. Chaque ligne indique son gain en dégâts/s : à vous de choisir.": 'Gold buys upgrades. Each row shows its gain in damage/s: your choice.',
+  "Dégâts et Points de vie gagnent ×1,35 / ×1,4 tous les 10 niveaux et ×1,75 tous les 25 niveaux : visez ces paliers. ×10, ×100 et Max achètent plusieurs niveaux d'un coup.": 'Damage and Hit points gain ×1.35 / ×1.4 every 10 levels and ×1.75 every 25 levels: aim for these tiers. ×10, ×100 and Max buy several levels at once.',
+  'Un point par niveau du héros, à placer où vous voulez. Les compétences se lancent toutes seules.': 'One point per hero level, to place wherever you like. Skills cast on their own.',
+  "Il montre une seule chose à la fois : une récompense prête, un objet meilleur que l'équipé, un boss à retenter, sinon votre objectif. Un appui y mène.": 'It shows one thing at a time: a reward ready, an item better than the equipped one, a boss to retry, otherwise your goal. One tap takes you there.',
+  "Rien n'est acheté : votre or, vos gemmes et vos points de compétence restent à votre choix.": 'Nothing is bought: your gold, gems and skill points stay your choice.',
+  'Rien à récupérer ni à équiper.': 'Nothing to collect or equip.',
+  "Votre partie en ligne vient d'une version plus récente du jeu : mettez le jeu à jour. Rien n'est écrasé.": 'Your online game comes from a newer version: update the game. Nothing is overwritten.',
   // v9.1.1 : compte invité, compte joueur, changement de nom.
   'Compte et sauvegarde en ligne': 'Account and online save', 'Votre nom :': 'Your name:', 'Créer mon compte joueur': 'Create my player account',
   'Votre progression est sauvegardée sur le serveur automatiquement.': 'Your progress is saved on the server automatically.',
@@ -276,6 +286,9 @@ export function setTranslator(fn) { tr = fn; }
 
 // Textes construits avec des valeurs.
 export const PATTERNS_910 = [
+  [/^Confirmer : fusionner (\d+) objets \?$/, 'Confirm: fuse $1 items?'],
+  [/^Fusionner tout \((\d+) groupes?\)$/, 'Fuse all ($1 group(s))'],
+  [/^(\d+) pièces? · bonus complet à (\d+)$/, '$1 piece(s) · full bonus at $2'],
   [/^Compte joueur créé : vous êtes maintenant (.+)$/, 'Player account created: you are now $1'],
   [/^Nom changé : vous êtes maintenant (.+)$/, 'Name changed: you are now $1'],
   [/^Partie exportée : (.+)$/, 'Game exported: $1'],

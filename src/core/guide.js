@@ -3,20 +3,9 @@ import { BALANCE } from '../data/balance.js';
 import { bossesForStage, createCombat, heroPower, isBossStage, step } from './combat.js';
 import { Rng } from './rng.js';
 import { isUpgrade } from './inventory.js';
-import { skillPointsAvailable } from './skills.js';
-import { canRebirth, rebirthBlocked, rebirthGain } from './rebirth.js';
-import { climbsLeft, towerUnlocked } from './tower.js';
-import { challengeTriesLeft, challengeUnlocked } from './challenge.js';
-import { DUNGEONS } from '../data/dungeons.js';
 import { BOSSES } from '../data/enemies.js';
-import { PRESTIGE } from '../data/prestige.js';
 import { claimables } from './claimables.js';
-import { bestUpgrade } from './profit.js';
-import { canEnterDungeon } from './dungeon.js';
-import { availableForExpedition } from './expeditions.js';
 import { computeHeroStats } from './stats.js';
-import { TALENTS } from '../data/rebirth.js';
-import { talentCost, talentUnlocked } from './rebirth.js';
 
 // Prochain boss : la première étape de boss à partir de l'étape actuelle.
 export function nextBossStage(state, balance = BALANCE) {
@@ -70,37 +59,16 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
   if (state.tower) return { id: 'mode-tower', text: 'Tour en cours', tab: 'tower' };
   if (state.challenge) return { id: 'mode-challenge', text: 'Défi en cours', tab: 'dungeons' };
   const claims = (ctx.claims ?? claimables(state, Date.now(), balance)).filter((c) => !c.blocked);
-  // v9.1.0 : parcours guidé du débutant (avant le premier mini-boss) — équiper un objet, apprendre une compétence,
-  // acheter une amélioration, puis battre le mini-boss ; les récompenses attendent la fin de ce parcours.
-  if ((state.records.bossesDefeated ?? 0) === 0) return beginnerAction(state, ctx, balance) ?? (claims.length ? claimAction(claims) : goalAction(state, balance));
+  // v9.1.3 : « Prochaine action » ne recommande plus d'achat (ni amélioration, ni compétence, ni talent, ni mode de
+  // jeu) : seulement ce qui est factuel — récupérer ce qui est prêt, équiper un objet meilleur que l'équipé, retenter
+  // un boss qui bloque, sinon l'objectif.
   if (claims.length) return claimAction(claims);
-  // Boss trop fort (v9.1.0) : passe devant l'objet meilleur et les points, sinon le joueur, qui reçoit sans cesse de
-  // petits objets, ne se voyait jamais conseiller ce qui fait tomber le boss (améliorer les dégâts, puis le retenter).
-  const best = bestUpgrade(state, balance);
-  const blocking = state.bossRetry && state.stage === state.bossRetry.stage - 1 ? bossRetryPct(state, balance) : null;
-  if (blocking !== null) {
-    if (best && state.gold >= best.cost) return { id: 'upgrade', text: 'Améliorer les dégâts', tab: 'upgrades' };
-    if (blocking < 70 && canRebirth(state) && !rebirthBlocked(state) && rebirthGain(state) >= 0.5) {
-      return { id: 'rebirth', text: `Renaissance : ×${formatMult(PRESTIGE.rebirthMultiplier ** rebirthGain(state))} pour toujours`, tab: 'tree', view: { treeSeg: 'rebirth' } };
-    }
-  }
   const better = ctx.betterItem !== undefined ? ctx.betterItem : betterItem(state, balance);
   if (better) return { id: 'equip', text: `Équipez : ${better.name}`, tab: 'inventory', view: { invTab: 'bag', invView: null, selectedItemId: better.id, sheetOpen: 'item' } };
-  const points = skillPointsAvailable(state);
-  if (points >= 1) return { id: 'skills', text: `${points} point${points > 1 ? 's' : ''} de compétence à dépenser`, tab: 'skills' };
-  if (best && state.gold >= best.cost) return { id: 'upgrade', text: `Améliorer : ${balance.upgrades[best.key].label}`, tab: 'upgrades' };
+  const blocking = state.bossRetry && state.stage === state.bossRetry.stage - 1 ? bossRetryPct(state, balance) : null;
   if (blocking !== null) return { id: 'retry', text: blocking >= 100 ? 'Retenter le boss (prêt)' : `Retenter le boss (${blocking} %)`, action: 'retry-boss' };
-  if (TALENTS.some((t) => (state.talents[t.id] ?? 0) < t.max && talentUnlocked(state, t) && state.fragments >= talentCost(t, state.talents[t.id] ?? 0))) {
-    return { id: 'talent', text: 'Talent à apprendre', tab: 'tree', view: { treeSeg: 'tree' } };
-  }
-  if (towerUnlocked(state) && climbsLeft(state) > 0) return { id: 'tower', text: 'Ascension de la Tour disponible', tab: 'tower' };
-  if (challengeUnlocked(state) && challengeTriesLeft(state) > 0) return { id: 'challenge', text: 'Défi de la semaine disponible', tab: 'dungeons' };
-  if (state.keys > 0 && DUNGEONS.some((d) => canEnterDungeon(state, d.id))) return { id: 'dungeon', text: `${state.keys} clé${state.keys > 1 ? 's' : ''} : faire un donjon`, tab: 'dungeons' };
-  if (availableForExpedition(state).length && state.expeditions.slots.some((x) => !x)) return { id: 'expedition', text: 'Envoyer un compagnon en expédition', tab: 'expeditions' };
-  if (state.tickets > 0 && (state.records.bossesDefeated ?? 0) > 0) return { id: 'summon', text: `Invoquer (${state.tickets} ticket${state.tickets > 1 ? 's' : ''})`, tab: 'summon' };
   if (!state.autoAdvance && !state.farmBoss) return { id: 'advance', text: 'Reprendre l\'avance', action: 'advance' };
-  const boss = nextBossName(state, balance);
-  return { id: 'goal', text: boss ? `Objectif : battre ${boss}` : 'Objectif : avancer', tab: 'campaign' };
+  return goalAction(state, balance);
 }
 
 function claimAction(claims) {
@@ -110,15 +78,6 @@ function claimAction(claims) {
 function goalAction(state, balance) {
   const boss = nextBossName(state, balance);
   return { id: 'goal', text: boss ? `Objectif : battre ${boss}` : 'Objectif : avancer', tab: 'campaign' };
-}
-
-function beginnerAction(state, ctx, balance) {
-  const better = ctx.betterItem !== undefined ? ctx.betterItem : betterItem(state, balance);
-  if (better) return { id: 'equip', text: `Équipez : ${better.name}`, tab: 'inventory', view: { invTab: 'bag', invView: null, selectedItemId: better.id, sheetOpen: 'item' } };
-  if (skillPointsAvailable(state) >= 1) return { id: 'skills', text: 'Apprenez une compétence', tab: 'skills' };
-  const best = bestUpgrade(state, balance);
-  if (best && state.gold >= best.cost) return { id: 'upgrade', text: `Améliorez : ${balance.upgrades[best.key].label}`, tab: 'upgrades' };
-  return null;
 }
 
 // Objet du sac qui améliore le plus le héros (le premier trouvé), ou null.
@@ -145,8 +104,8 @@ const formatMult = (x) => x.toFixed(2).replace(/0$/, '').replace('.', ',');
 // Les textes suivent le lexique du jeu (Compétences, Boosts, Pouvoirs, Talents, Builds…).
 export const PANEL_HELP = {
   upgrades: {
-    short: 'L\'or achète des améliorations. « Acheter le plus rentable » choisit celle qui donne le plus de dégâts/s par pièce d\'or.',
-    more: 'Dégâts et Points de vie gagnent ×1,35 / ×1,4 tous les 10 niveaux et ×1,75 tous les 25 niveaux : visez ces paliers. ×10, ×100 et Max achètent plusieurs niveaux d\'un coup. PV, armure, régénération et or ne sont jamais achetés automatiquement.',
+    short: 'L\'or achète des améliorations. Chaque ligne indique son gain en dégâts/s : à vous de choisir.',
+    more: 'Dégâts et Points de vie gagnent ×1,35 / ×1,4 tous les 10 niveaux et ×1,75 tous les 25 niveaux : visez ces paliers. ×10, ×100 et Max achètent plusieurs niveaux d\'un coup.',
   },
   inventory: {
     short: 'La flèche verte marque un objet meilleur que celui porté. « Équiper le meilleur » équipe tout d\'un coup.',
@@ -161,7 +120,7 @@ export const PANEL_HELP = {
     more: 'Le compteur des garanties est commun aux trois invocations. La vedette de la semaine représente 50 % des Légendaires obtenus dans son invocation (elle n\'augmente pas la chance d\'un Légendaire). Doublon : +1 étoile, puis des gemmes.',
   },
   skills: {
-    short: 'Un point par niveau du héros. Les compétences se lancent toutes seules ; « Répartir mes points » les monte de façon équilibrée.',
+    short: 'Un point par niveau du héros, à placer où vous voulez. Les compétences se lancent toutes seules.',
     more: 'Les Boosts (en bas de cet écran) sont différents : améliorés avec l\'or, lancés d\'un appui sur le combat (ou au clavier), ou en Auto.',
   },
   tree: {
