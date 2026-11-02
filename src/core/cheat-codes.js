@@ -26,7 +26,7 @@ const GIFTS = {
   TICKETS: { label: (n) => `+${fmt(5000 * n)} gemmes`, give: (s, n) => { s.gems += 5000 * n; } }, // v9.1.3 : tickets fondus
   KEYMASTER: { label: (n) => `+${fmt(10 * n)} clés de donjon`, give: (s, n) => { s.keys += 10 * n; } },
   ANCIENT: { label: (n) => `+${fmt(500 * n)} fragments anciens`, give: (s, n) => { s.fragments += 500 * n; } },
-  FORGE: { label: (n) => `+${fmt(5000 * n)} éclats et +${fmt(500 * n)} essences`, give: (s, n) => { s.materials.shards += 5000 * n; s.materials.essence += 500 * n; } },
+  FORGE: { label: (n) => `+${fmt(10000 * n)} éclats`, give: (s, n) => { s.materials.shards += 10000 * n; } }, // v9.1.3 : essences fondues
   VITESSE2: { label: () => 'Vitesse ×2 débloquée (bouton ⏩)', give: (s) => unlockSpeed(s, 2) },
   VITESSE5: { label: () => 'Vitesse ×5 débloquée (bouton ⏩)', give: (s) => unlockSpeed(s, 5) },
   VITESSE10: { label: () => 'Vitesse ×10 débloquée (bouton ⏩)', give: (s) => unlockSpeed(s, 10) },

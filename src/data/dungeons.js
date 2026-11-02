@@ -82,7 +82,7 @@ export const DUNGEON_PATHS = {
 };
 
 // Récompense finale : objet Épique ou mieux de l'emplacement choisi (butin ciblé).
-export const DUNGEON_REWARD = { minRarity: 'epic', gems: 25, essence: 2, firstClearGems: 100 }; // v9.1.3 : ancien ticket du premier donjon
+export const DUNGEON_REWARD = { minRarity: 'epic', gems: 25, shards: 20, firstClearGems: 100 }; // v9.1.3 : 2 essences → 20 éclats ; ancien ticket du premier donjon → 100 gemmes
 export const STARTING_KEYS = 1;
 
 // v7.7 : trois difficultés, bien plus dures que la campagne (niveau d'ennemi au-dessus de l'étape max,
@@ -90,8 +90,8 @@ export const STARTING_KEYS = 1;
 // Normal se débloque après une victoire en Facile, Difficile après une victoire en Normal.
 export const DUNGEON_DIFFICULTIES = {
   // v8.3 : Facile = un peu en dessous de votre étape max (avant : au-dessus, PV ×2 — bien plus dur que la campagne).
-  easy: { label: 'Facile', skulls: 1, levelBonus: -8, hp: 1, damage: 1, fragments: 4, gems: 1, essence: 1 },
-  normal: { label: 'Normal', skulls: 3, levelBonus: 2, hp: 1.6, damage: 1.5, fragments: 12, gems: 1.6, essence: 2 },
-  hard: { label: 'Difficile', skulls: 5, levelBonus: 12, hp: 3, damage: 2.5, fragments: 30, gems: 2.5, essence: 3 },
+  easy: { label: 'Facile', skulls: 1, levelBonus: -8, hp: 1, damage: 1, fragments: 4, gems: 1, shards: 1 },
+  normal: { label: 'Normal', skulls: 3, levelBonus: 2, hp: 1.6, damage: 1.5, fragments: 12, gems: 1.6, shards: 2 },
+  hard: { label: 'Difficile', skulls: 5, levelBonus: 12, hp: 3, damage: 2.5, fragments: 30, gems: 2.5, shards: 3 },
 };
 export const DIFFICULTY_ORDER = ['easy', 'normal', 'hard'];

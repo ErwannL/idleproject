@@ -155,7 +155,7 @@ export function recycleValue(item, balance = BALANCE) {
 }
 
 export function recycleMaterials(item, balance = BALANCE) {
-  return { shards: balance.materials.shards[item.rarity] ?? 0, essence: balance.materials.essence[item.rarity] ?? 0 };
+  return { shards: balance.materials.shards[item.rarity] ?? 0 }; // v9.1.3 : essences fondues dans les éclats
 }
 
 // Score simple pour trier par puissance.

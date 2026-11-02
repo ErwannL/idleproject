@@ -127,11 +127,10 @@ export function collectItem(state, item, balance = BALANCE) {
   return addToInventory(state, item, balance);
 }
 
-// Recyclage : or + matériaux (éclats, essences) ; compte pour les contrats.
+// Recyclage : or + éclats ; compte pour les contrats.
 function salvage(state, item, balance) {
   const materials = recycleMaterials(item, balance);
   state.materials.shards += materials.shards;
-  state.materials.essence += materials.essence;
   trackContracts(state, 'recycle', 1);
   return addGold(state, recycleValue(item, balance));
 }

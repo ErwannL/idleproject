@@ -187,7 +187,7 @@ function dungeonsList(ui, state) {
     <b>${p.label}</b><span class="muted">${p.text}</span></button>`).join('');
   const rewards = [
     ['icon_bag', 'Équipement Épique ou mieux', 'r-epic'], ['icon_fragment', `${diff.fragments} fragments anciens`, 'r-legendary'],
-    ['icon_gem', `${Math.round(DUNGEON_REWARD.gems * diff.gems)} gemmes`, 'r-rare'], ['icon_essence', `${Math.round(DUNGEON_REWARD.essence * diff.essence)} essences`, 'r-epic'],
+    ['icon_gem', `${Math.round(DUNGEON_REWARD.gems * diff.gems)} gemmes`, 'r-rare'], ['icon_shard', `${Math.round(DUNGEON_REWARD.shards * diff.shards)} éclats`, 'r-epic'],
   ].map(([ic, t, r]) => `<div class="reward-icon ${r}">${img(ic)}</div><span class="reward-label">${t}</span>`).join('');
   const cleared = state.dungeonsCleared[sel.id] ?? 0;
   const enter = locked ? `<div class="bad">Débloqué à l'étape ${stageLabel(sel.unlockStage)}.</div>`

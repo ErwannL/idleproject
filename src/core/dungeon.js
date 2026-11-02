@@ -74,7 +74,7 @@ export function completeDungeon(state, rng, balance = BALANCE) {
   const diff = DUNGEON_DIFFICULTIES[run.difficulty] ?? DUNGEON_DIFFICULTIES.easy;
   // Fragments anciens (arbre de talents) : la récompense phare des donjons, plus la difficulté est haute.
   const reward = {
-    gems: DUNGEON_REWARD.gems * diff.gems + (first ? DUNGEON_REWARD.firstClearGems : 0), essence: DUNGEON_REWARD.essence * diff.essence,
+    gems: DUNGEON_REWARD.gems * diff.gems + (first ? DUNGEON_REWARD.firstClearGems : 0), shards: DUNGEON_REWARD.shards * diff.shards, // v9.1.3 : essences fondues dans les éclats
     fragments: diff.fragments,
   };
   const given = grantReward(state, reward);

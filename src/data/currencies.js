@@ -13,10 +13,8 @@ export const CURRENCIES = {
     gain: 'Renaissance, donjons, Tour, défi, expéditions.' },
   shards: { name: 'Éclats', icon: 'icon_shard', tab: 'inventory', view: { invView: 'forge' },
     use: 'Forge (renforcer, réaffûter, relancer les effets, fabriquer).',
-    gain: 'Recyclage, expéditions, collections.' },
-  essence: { name: 'Essences', icon: 'icon_essence', tab: 'inventory', view: { invView: 'forge' },
-    use: 'Forge (relancer les effets, fabriquer).',
     gain: 'Recyclage, boss, donjons, expéditions, collections.' },
+  // v9.1.3 (lot F) : plus d'essences, fondues dans les éclats (1 essence = 10 éclats).
   keys: { name: 'Clés de donjon', icon: 'icon_key', tab: 'dungeons',
     use: 'Une tentative de donjon par clé.',
     gain: 'Missions, contrats, expéditions, Tour, défi (1 au départ).' },
@@ -28,7 +26,6 @@ export const CURRENCIES = {
 export function currencyAmount(state, id) {
   switch (id) {
     case 'shards': return state.materials.shards;
-    case 'essence': return state.materials.essence;
     case 'stars': return state.transcend?.stars ?? 0;
     default: return state[id] ?? 0;
   }

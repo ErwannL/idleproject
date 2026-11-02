@@ -118,3 +118,35 @@ Chiffres : le joueur automatique atteint l'étape 54 en 30 min, donc les 3 porte
 minutes, quand le sac (100 places) est loin d'être plein. Anciennes sauvegardes : tout reste ouvert (testé).
 - **Critère d'abandon :** joueurs qui demandent où est le coffre avant l'étape 20, ou sac plein avant l'étape 20 dans
   les mesures. **Annuler :** seuils à 1 (aucune migration).
+
+## Lot F — Essences → éclats (fait, après le bilan des matériaux)
+
+**Taux : 1 essence = 10 éclats** (`ESSENCE_SHARDS`). C'est le prix que la forge donnait déjà à l'essence dans les deux
+seules recettes qui en demandaient : fabrication Épique 60 éclats + 6 essences, relance des effets 10 + 1. Chaque
+recette garde donc son coût total (Épique : 120 éclats ; relance : 20) et le stock garde son pouvoir d'achat.
+
+Bilan (`docs/mesures-v913.md`, section 2) avant / après, en éclats par heure de jeu actif :
+
+| Sauvegarde | Éclats/h | Essences/h | Éclats/h après fusion | Fabrications Épiques/h avant (limite) | après |
+|---|---|---|---|---|---|
+| début | 488 | 75 | 1 238 | 8,1 (éclats) | 10,3 |
+| milieu | 508 | 17 | 678 | 2,8 (essences) | 5,7 |
+| fin | 422 | 9 | 512 | 1,5 (essences) | 4,3 |
+
+Pourquoi le bilan le permet : la fusion enlève la limite « la plus rare des deux » ; au pire, en fin de partie, on
+peut fabriquer 4,3 Épiques par heure au lieu de 1,5, alors que le butin en donne déjà ~88 par heure (7,6 % de
+1 164 objets) et que tout est recyclé au ramassage : +3 Épiques/h ne change pas la progression. Le renforcement
+(2 × (niveau + 1) éclats) reste un puits sans fond qui absorbe le surplus.
+
+- Sources réécrites au même taux : recyclage (Épique 8 + 1 × 10 = 18 éclats, Légendaire 20 + 3 × 10 = 50), boss
+  (« essences » du boss × 10 en éclats), donjons (20 éclats × difficulté), expéditions (+15 éclats/h × qualité),
+  contrats (Collectionneur, Pilleur : +10 ; contrat rare : +20), mission « Trouver 30 Rares » (110 éclats), boss
+  errant (30), maîtrise palier 25 (20), paliers de section et de l'encyclopédie (essences × 10). Une récompense
+  « essence » restée dans une donnée en cours est versée en éclats (`grantReward`, expéditions).
+- Stock : `shards += essence × 10`, le champ disparaît (`migrateEssence`). Partie de fin : 3 100 essences →
+  +31 000 éclats. Interface : plus d'icône ni de compteur d'essences (forge, en-tête du sac, fiche d'objet, retour hors
+  ligne, donjons, boss), `data/currencies.js` sans essences.
+- Perte assumée : le « matériau rare des boss ». Les boss donnent toujours plus que les monstres (éclats garantis).
+- **Critère d'abandon :** fabrications Épiques en fin de partie au-delà de 10 % des Épiques obtenus par heure, ou retours
+  de joueurs sur la disparition de l'essence de boss. **Annuler :** réintroduire `materials.essence` dans une 9.1.4
+  (sans reprendre les éclats donnés).

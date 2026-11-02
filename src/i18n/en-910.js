@@ -355,6 +355,7 @@ export const EXACT_910 = {
   'Réaffrontez ce boss : 1 charge par victoire.': 'Fight this boss again: 1 charge per victory.',
   'Une charge par changement ; 1 charge par nouvelle victoire sur ce boss': 'One charge per change; 1 charge per new victory on this boss',
   'Règles du changement de pouvoir': 'Power change rules',
+  "Le recyclage et les boss rendent des éclats. Renforcer, Réaffûter et Relancer les effets se font depuis la fiche d'un objet (Détails).": "Recycling and bosses give shards. Upgrade, Sharpen and Reroll effects are done from an item's sheet (Details).",
   'Outils du Musée': 'Museum tools', 'auto désactivée': 'auto off',
 };
 
@@ -528,6 +529,7 @@ export const PATTERNS_910 = [
   [/^Durée, place (\d+)$/, 'Duration, slot $1'],
   [/^Palier (\d+) % :$/, 'Tier $1 %:'],
   [/^Palier (\d+)\/(\d+)$/, 'Tier $1/$2'],
+  [/^Butin du boss : \+([\d\s.,]+[KMBT]?) éclats$/, 'Boss loot: +$1 shards'],
   [/^\+(\d+) charges? de relance au plus$/, (m) => `+${m[1]} max reroll charge${m[1] === '1' ? '' : 's'}`],
   [/^Changer le pouvoir \((\d+)\/(\d+)\)$/, 'Change power ($1/$2)'],
   [/^Chaque changement coûte une charge \((\d+) au plus, 1 par nouvelle victoire sur ce boss\)\. (.+)$/, (m) => `Each change costs one charge (${m[1]} max, 1 per new victory on this boss). ${tr(m[2])}`],

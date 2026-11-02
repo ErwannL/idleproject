@@ -961,7 +961,7 @@ export class UI {
         this.banner(`${BOSSES[event.kind].name} enrage !`, 'boss tier-mega');
         break;
       case 'bossLoot':
-        this.news(`Butin du boss : +${event.essence} essences`, '#e27bff');
+        this.news(`Butin du boss : +${event.shards} éclats`, '#e27bff');
         break;
       case 'bossSpawn':
       {
@@ -1631,7 +1631,7 @@ export class UI {
   refreshCosts(state) {
     const have = {
       gold: state.gold, gems: state.gems, fragments: state.fragments,
-      shards: state.materials.shards, essence: state.materials.essence, stars: state.transcend?.stars ?? 0,
+      shards: state.materials.shards, stars: state.transcend?.stars ?? 0,
     };
     this.$('panel-body').querySelectorAll('[data-cost]').forEach((btn) => {
       if (btn.dataset.locked) return;
@@ -1734,7 +1734,7 @@ export class UI {
     const recycled = summary.excessDrops + summary.autoRecycledCount;
     const paused = { tower: 'la Tour de l\'Éternité', challenge: 'le défi de la semaine', dungeon: 'un donjon' }[summary.paused];
     // v9.1.3 (doc1 4a) : fenêtre réduite à l'essentiel — temps, or et XP, objets rares ; le reste dans « Détails ».
-    const matIcons = rewardIcons({ shards: mats.shards, essence: mats.essence, gems: summary.gems });
+    const matIcons = rewardIcons({ shards: mats.shards, gems: summary.gems });
     this.openModal(`<h2>Bon retour !</h2>
         <p>Absence : <b>${formatDuration(summary.elapsedSeconds)}</b>${summary.capped ? ` <span class="muted">(gains limités à ${BALANCE.offline.capHours} h)</span>` : ''}</p>
         <p class="offline-gains"><span>${coin()} <b class="gold-text">+${formatNumber(summary.totalGold)}</b></span>

@@ -5,6 +5,10 @@
 // (90 seulement dans un ×10 à 900) : on garde le taux le plus favorable au joueur, aucune invocation n'est perdue.
 // Critère d'abandon : voir docs/refontes-v913.md (lot E, tickets).
 export const TICKET_GEMS = 100;
+// v9.1.3 (lot F) : les essences sont fondues dans les éclats. 1 essence = 10 éclats : c'est le prix qu'en donnaient
+// les deux recettes qui en demandaient (fabrication Épique 60 éclats + 6 essences, relance des effets 10 + 1), donc
+// chaque recette garde son coût total. Bilan et critère d'abandon : docs/refontes-v913.md.
+export const ESSENCE_SHARDS = 10;
 
 export const BALANCE = {
   simulation: {
@@ -180,7 +184,7 @@ export const BALANCE = {
     recycleGoldShare: 0.5, // étape 4 : part de l'or d'étape (voir recycleValue)
     inventorySize: 100, // au-delà, les nouveaux objets sont recyclés en or
     signatureChance: 0.15, // chance qu'un boss lâche son objet signature
-    bossEssence: 2, // essences garanties par boss (+1 par zone)
+    bossEssence: 2, // « essences » garanties par boss (+1 par zone), versées en éclats (× ESSENCE_SHARDS) depuis la v9.1.3
     // Poids de chaque emplacement dans le butin (accessoires ≈ 1/3 des objets).
     slotWeights: { weapon: 3, helmet: 2, armor: 2, amulet: 1, earring: 1, ring: 1, bracelet: 1 },
     // Effets spéciaux : nombre d'effets par rareté.
@@ -191,8 +195,7 @@ export const BALANCE = {
 
   // Recyclage : matériaux rendus en plus de l'or, par rareté.
   materials: {
-    shards: { common: 1, rare: 3, epic: 8, legendary: 20 },
-    essence: { common: 0, rare: 0, epic: 1, legendary: 3 },
+    shards: { common: 1, rare: 3, epic: 18, legendary: 50 }, // v9.1.3 : + les anciennes essences (1 et 3) × 10
   },
 
   // Forge : fabrication ciblée, relance des effets, réaffûtage au niveau actuel.
@@ -200,10 +203,9 @@ export const BALANCE = {
     craftShards: 25,
     craftGoldKills: 25, // coût en or = 25 × l'or d'un ennemi de l'étape max
     craftMinRarity: 'rare',
-    // Fabrication épique : Épique ou mieux, payée aussi en essences (butin des boss).
-    epicCraft: { shards: 60, essence: 6, goldKills: 60 },
-    reforgeShards: 10,
-    reforgeEssence: 1,
+    // Fabrication épique : Épique ou mieux (v9.1.3 : 60 éclats + 6 essences → 120 éclats).
+    epicCraft: { shards: 120, goldKills: 60 },
+    reforgeShards: 20, // v9.1.3 : 10 éclats + 1 essence
     sharpenShardsPerLevel: 2, // réaffûtage : éclats par niveau gagné × facteur de rareté
     // Amélioration d'un objet : chaque niveau augmente une de ses statistiques (au hasard) de 12 %.
     maxUpgrades: { common: 5, rare: 5, epic: 10, legendary: 10 },
@@ -288,7 +290,7 @@ export const BALANCE = {
   mastery: [
     { victories: 3, gems: 20 },
     { victories: 10, gems: 140 },
-    { victories: 25, gems: 60, essence: 2 },
+    { victories: 25, gems: 60, shards: 20 },
     { victories: 50, gems: 300 },
   ],
 };

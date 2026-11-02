@@ -27,7 +27,7 @@ export const ENCYCLOPEDIA_SECTIONS = [
   { id: 'monsters', label: 'Monstres', icon: 'icon_skull', milestones: [5, 10, 20, 30, 41], reward: { gems: 25, shards: 20 } },
   { id: 'bosses', label: 'Boss', icon: 'icon_boss', milestones: [3, 6, 12, 24, 41], reward: { gems: 140 } },
   { id: 'mutations', label: 'Mutations', icon: 'icon_star' },
-  { id: 'items', label: 'Équipements', icon: 'icon_bag', milestones: [10, 25, 40, 60, 78], reward: { gems: 30, essence: 2 } },
+  { id: 'items', label: 'Équipements', icon: 'icon_bag', milestones: [10, 25, 40, 60, 78], reward: { gems: 30, shards: 20 } },
   { id: 'companions', label: 'Compagnons et familiers', icon: 'icon_paw', milestones: [3, 6, 10, 15, 26], reward: { gems: 150 } },
 ];
 
@@ -36,9 +36,9 @@ export const ENCYCLOPEDIA_MILESTONES = [
   { pct: 10, reward: { gems: 50, shards: 20 } },
   { pct: 25, reward: { gems: 320 } },
   { pct: 40, reward: { gems: 500, shards: 60 } },
-  { pct: 60, reward: { gems: 750, essence: 5 } },
-  { pct: 80, reward: { gems: 1200, essence: 10 } },
-  { pct: 100, reward: { gems: 3000, essence: 25 } },
+  { pct: 60, reward: { gems: 750, shards: 50 } },
+  { pct: 80, reward: { gems: 1200, shards: 100 } },
+  { pct: 100, reward: { gems: 3000, shards: 250 } },
 ];
 
 export function itemEntries() {

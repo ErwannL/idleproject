@@ -35,7 +35,7 @@ import { museumItems } from './museum.js';
 import { sanitizeBounty } from './bounty.js';
 import { emptyTranscend, sanitizeTranscend } from './transcend.js';
 import { sanitizeChallenge } from './challenge.js';
-import { migrateCodex, migrateTickets } from './migrations-v913.js';
+import { migrateCodex, migrateEssence, migrateTickets } from './migrations-v913.js';
 import { ENCYCLOPEDIA_SECTIONS } from './encyclopedia.js';
 
 // v1 : prototype · v2 (format identique) · v3 : pouvoirs, Renaissance, verrou
@@ -81,7 +81,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     companions: { owned: {}, equipped: [] },
     gems: BALANCE.summon.startingGems,
     keys: STARTING_KEYS,
-    materials: { shards: 0, essence: 0 },
+    materials: { shards: 0 }, // v9.1.3 : essences fondues dans les éclats
     summon: { total: 0, sinceEpic: 0, sinceLegendary: 0 },
     contracts: [],
     nextContractId: 0,
@@ -424,7 +424,8 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   for (const key of ['gems', 'keys']) state[key] = int(raw[key], state[key]);
   migrateTickets(state, raw); // v9.1.3 (lot E)
   const materials = obj(raw.materials);
-  state.materials = { shards: int(materials.shards, 0), essence: int(materials.essence, 0) };
+  state.materials = { shards: int(materials.shards, 0) };
+  migrateEssence(state, materials); // v9.1.3 (lot F)
 
   // v8.4 : statistiques des objets recalculées (croissance exponentielle avec le niveau).
   if (int(raw.version, 1) < 6) {

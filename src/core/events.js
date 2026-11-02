@@ -56,8 +56,8 @@ export function rollEvent(state, world, rng, balance = BALANCE, multiplier = 1) 
     // Salle au trésor : beaucoup d'or, des éclats et quelques gemmes.
     event.reward = { gold: Math.floor(killGold * e.portalGoldKills), shards: 25, gems: 15 };
   } else if (type === 'wanderer') {
-    // Boss errant (rare) : essences, gemmes et un objet Épique ou mieux.
-    event.reward = { essence: 3, gems: 30 };
+    // Boss errant (rare) : éclats, gemmes et un objet Épique ou mieux.
+    event.reward = { shards: 30, gems: 30 }; // v9.1.3 : 3 essences → 30 éclats
     event.item = generateItem(state, rng, { level: state.stage, minRarity: 'epic' }, balance);
   } else if (type === 'merchant') {
     event.item = generateItem(state, rng, { level: state.stage, minRarity: 'epic' }, balance);

@@ -72,7 +72,7 @@ function bossDetail(ui, state, bossId) {
   const rewards = [
     signature ? `<div class="reward-icon r-legendary" title="${escapeHtml(itemBase(signature.id).name)} (objet ancestral, ${Math.round(BALANCE.loot.signatureChance * 100)} %)"><img class="px" src="${itemIconUrl({ baseId: signature.id, rarity: 'legendary', slot: signature.slot })}" alt=""></div>` : '',
     `<div class="reward-icon r-epic" title="Objet Rare ou mieux garanti">${img('icon_bag')}</div>`,
-    `<div class="reward-icon r-rare" title="Essences">${img('icon_essence')}</div>`,
+    `<div class="reward-icon r-rare" title="Éclats">${img('icon_shard')}</div>`,
     `<div class="reward-icon r-rare" title="Gemmes">${img('icon_gem')}</div>`,
     `<div class="reward-icon r-common" title="Or">${img('coin')}</div>`,
   ].join('');

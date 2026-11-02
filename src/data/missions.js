@@ -24,7 +24,7 @@ export const MISSION_PERIODS = [
       { id: 'kills', type: 'kills', target: 3000, label: 'Vaincre 3 000 monstres', reward: { gems: 150 } },
       { id: 'bosses', type: 'bosses', target: 20, label: 'Vaincre 20 boss', reward: { gems: 120, keys: 3 } },
       { id: 'dungeons', type: 'dungeons', target: 4, label: 'Terminer 4 donjons', reward: { gems: 300 } },
-      { id: 'rareLoot', type: 'rareLoot', target: 30, label: 'Trouver 30 objets Rares ou mieux', reward: { essence: 5, shards: 60 } },
+      { id: 'rareLoot', type: 'rareLoot', target: 30, label: 'Trouver 30 objets Rares ou mieux', reward: { shards: 110 } },
       { id: 'upgrades', type: 'upgrades', target: 10, label: 'Améliorer ou fusionner 10 fois', reward: { gems: 100 } },
     ],
     bonus: { gems: 600 },

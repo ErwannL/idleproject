@@ -8,21 +8,20 @@ import { generateItem, itemBase, itemPower, makeItem, rarityIndex, refreshItemSt
 import { trackMissions } from './missions.js';
 import { usefulSetPiece } from './sets.js';
 
-// tier 'rare' : Rare ou mieux (or + éclats) ; 'epic' : Épique ou mieux (or + éclats + essences des boss).
+// tier 'rare' : Rare ou mieux (or + éclats) ; 'epic' : Épique ou mieux (or + plus d'éclats ; v9.1.3 : plus d'essences).
 export function craftCost(state, balance = BALANCE, tier = 'rare') {
   const f = balance.forge;
   const kill = referenceKillGold(state.maxStage, balance);
-  if (tier === 'epic') return { gold: Math.floor(f.epicCraft.goldKills * kill), shards: f.epicCraft.shards, essence: f.epicCraft.essence };
-  return { gold: Math.floor(f.craftGoldKills * kill), shards: f.craftShards, essence: 0 };
+  if (tier === 'epic') return { gold: Math.floor(f.epicCraft.goldKills * kill), shards: f.epicCraft.shards };
+  return { gold: Math.floor(f.craftGoldKills * kill), shards: f.craftShards };
 }
 
 export function craftItem(state, slot, rng, balance = BALANCE, tier = 'rare') {
   const cost = craftCost(state, balance, tier);
-  if (state.gold < cost.gold || state.materials.shards < cost.shards || state.materials.essence < cost.essence) return null;
+  if (state.gold < cost.gold || state.materials.shards < cost.shards) return null;
   if (state.inventory.length >= balance.loot.inventorySize) return null;
   state.gold -= cost.gold;
   state.materials.shards -= cost.shards;
-  state.materials.essence -= cost.essence;
   const minRarity = tier === 'epic' ? 'epic' : balance.forge.craftMinRarity;
   const item = generateItem(state, rng, { level: state.maxStage, minRarity, slot }, balance);
   addToInventory(state, item, balance);
@@ -39,9 +38,8 @@ export function canReforge(item) {
 export function reforgeItem(state, id, rng, balance = BALANCE) {
   const item = findItem(state, id);
   const f = balance.forge;
-  if (!canReforge(item) || state.materials.shards < f.reforgeShards || state.materials.essence < f.reforgeEssence) return false;
+  if (!canReforge(item) || state.materials.shards < f.reforgeShards) return false;
   state.materials.shards -= f.reforgeShards;
-  state.materials.essence -= f.reforgeEssence;
   rerollAffixes(item, rng, balance);
   return true;
 }

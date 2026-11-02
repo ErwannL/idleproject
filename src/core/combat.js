@@ -1,7 +1,7 @@
 // Simulation du combat automatique, à pas fixe et sans dépendance au rendu.
 // `state` = données sauvegardées ; `world` = état transitoire du combat (positions, PV, minuteries).
 // La simulation émet des événements (world.events) que le rendu et l'interface consomment.
-import { BALANCE } from '../data/balance.js';
+import { BALANCE, ESSENCE_SHARDS } from '../data/balance.js';
 import { maybeMutate, mutationDamageTaken, mutationOnHit, mutationTick, splitChildren } from './mutations.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
 import { POWER_RULES } from '../data/powers.js';
@@ -447,15 +447,15 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
     if (enemy.berserk) world.enemies = world.enemies.filter((e) => !e.summoned);
     // v9.0.6 : les serviteurs d'un boss invocateur disparaissent avec lui.
     world.enemies = world.enemies.filter((e) => e.minionOf !== enemy.id);
-    // Table de butin des boss : matériau rare (essences) en plus de l'objet Rare+ garanti.
-    const essence = Math.round(bossEssence(enc.level, balance) * rebirthHeat(state, balance).reward);
-    state.materials.essence += essence;
+    // Table de butin des boss : éclats en plus de l'objet Rare+ garanti (v9.1.3 : ex-essences × ESSENCE_SHARDS).
+    const shards = Math.round(bossEssence(enc.level, balance) * rebirthHeat(state, balance).reward) * ESSENCE_SHARDS;
+    state.materials.shards += shards;
     // v9.0.6 : un boss déjà battu, réaffronté (boucle depuis le Codex ou étape inférieure au record), ne donne
-    // plus de gemmes — seulement son butin, ses essences et sa maîtrise (avant : 33 600 gemmes/h).
+    // plus de gemmes — seulement son butin, ses éclats et sa maîtrise (avant : 33 600 gemmes/h).
     const replay = Boolean(state.farmBoss) || (!enc.dungeon && !enc.tower && !enc.challenge && state.stage < state.maxStage);
     const bonusGems = replay ? 0 : boost.bossGems; // v9.1.3 : bonus de démarrage en gemmes (ancien ticket)
     state.gems += bonusGems;
-    emit(world, 'bossLoot', { essence, gems: bonusGems });
+    emit(world, 'bossLoot', { shards, gems: bonusGems });
     state.records.bossesDefeated += 1;
     trackContracts(state, 'bosses', 1);
     emit(world, 'bossDefeated', { kind: enemy.type, stage: enc.level });

@@ -11,7 +11,7 @@ import { itemBase, rarityById, recycleMaterials, recycleValue } from '../../core
 import { computeHeroStats, statsWithItem } from '../../core/stats.js';
 import { slotIconName } from '../../render/pixel.js';
 import {
-  affixText, coin, costButton, effectText, escapeHtml, essence, fold, formatDecimal, formatNumber, img, itemFrame, rarityLabel, segment, shard,
+  affixText, coin, costButton, effectText, escapeHtml, fold, formatDecimal, formatNumber, img, itemFrame, rarityLabel, segment, shard,
 } from '../common.js';
 import { navPath } from '../nav.js';
 import { setById, setCounts } from '../../core/sets.js';
@@ -93,14 +93,14 @@ function detail(ui, state, item) {
     ? costButton({ action: 'sharpen', cost: sharpen, have: state.materials.shards, currency: 'shards', attrs: `data-id="${item.id}"`, cls: 'small', label: `Réaffûter niv. ${state.maxStage} ` })
     : '<button class="btn small" disabled>Réaffûter (déjà au niveau)</button>';
   const reforgeBtn = `<button class="btn small" data-action="reforge" data-id="${item.id}"
-      ${!canReforge(item) || state.materials.shards < BALANCE.forge.reforgeShards || state.materials.essence < BALANCE.forge.reforgeEssence ? 'disabled' : ''}
->${canReforge(item) ? 'Relancer les effets' : 'Aucun effet à relancer'} ${shard()}${BALANCE.forge.reforgeShards} ${essence()}${BALANCE.forge.reforgeEssence}</button>`;
+      ${!canReforge(item) || state.materials.shards < BALANCE.forge.reforgeShards ? 'disabled' : ''}
+>${canReforge(item) ? 'Relancer les effets' : 'Aucun effet à relancer'} ${shard()}${BALANCE.forge.reforgeShards}</button>`;
   // v9.1.0 : toujours visibles (même dans la fiche du téléphone) : Équiper et Recycler (le verrou est dans l'en-tête).
   const actions = `<div class="action-grid main-actions">
       ${isEquipped ? '<button class="btn btn-primary" disabled>Équipé</button>' : canEquip(state, item)
         ? `<button class="btn btn-primary primary-action" data-action="equip" data-id="${item.id}">Équiper</button>`
         : `<button class="btn" disabled>Arme de ${escapeHtml(weaponClass(item.baseId).name)}</button>`}
-      <button class="btn btn-outline-gold" data-action="recycle" data-id="${item.id}" ${item.locked || isEquipped ? 'disabled' : ''}>Recycler +${formatNumber(recycleValue(item))} ${coin()}${mats.shards ? ` +${mats.shards}${shard()}` : ''}${mats.essence ? ` +${mats.essence}${essence()}` : ''}</button>
+      <button class="btn btn-outline-gold" data-action="recycle" data-id="${item.id}" ${item.locked || isEquipped ? 'disabled' : ''}>Recycler +${formatNumber(recycleValue(item))} ${coin()}${mats.shards ? ` +${mats.shards}${shard()}` : ''}</button>
     </div>
     ${!isEquipped && !canEquip(state, item) ? `<div class="muted">Changez de classe pour la porter : ${navPath('hero', 'Classe')}.</div>` : ''}`;
   // v9.1.3 (doc1 « Équipement : Fiche ») : trois onglets au lieu d'un long repli « Détails ».
@@ -351,9 +351,9 @@ function forge(ui, state) {
   const slot = SLOTS[ui.view.craftSlot] ? ui.view.craftSlot : 'weapon';
   const craftBtn = (tier) => {
     const cost = craftCost(state, undefined, tier);
-    const short = state.gold < cost.gold || state.materials.shards < cost.shards || state.materials.essence < cost.essence;
+    const short = state.gold < cost.gold || state.materials.shards < cost.shards;
     return `<button class="btn ${tier === 'epic' ? 'btn-gold' : 'btn-primary'}" data-action="craft" data-value="${slot}" data-tier="${tier}" ${short || full ? 'disabled' : ''}>
-      Fabriquer ${tier === 'epic' ? 'Épique+' : 'Rare+'} · ${coin()} ${formatNumber(cost.gold)} ${shard()} ${cost.shards}${cost.essence ? ` ${essence()} ${cost.essence}` : ''}</button>`;
+      Fabriquer ${tier === 'epic' ? 'Épique+' : 'Rare+'} · ${coin()} ${formatNumber(cost.gold)} ${shard()} ${cost.shards}</button>`;
   };
   const craft = () => `<div class="muted">L'objet est garanti de la rareté choisie ou mieux, au niveau de votre étape max (${state.maxStage}), avec ses effets.</div>
       <div class="row"><select data-action="craft-slot" aria-label="Emplacement à fabriquer">${Object.entries(SLOTS).map(([k, l]) => `<option value="${k}" ${k === slot ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
@@ -365,8 +365,8 @@ function forge(ui, state) {
     </div>
     ${fold(ui, 'forge-craft', 'Fabrication ciblée', craft)}
     <div class="card"><div class="section-title">Matériaux</div>
-      <div>${shard()} <b>${formatNumber(state.materials.shards)}</b> éclats · ${essence()} <b>${formatNumber(state.materials.essence)}</b> essences</div>
-      <div class="muted">Le recyclage rend des éclats (toutes raretés) et des essences (Épique et Légendaire). Renforcer, Réaffûter et Relancer
+      <div>${shard()} <b>${formatNumber(state.materials.shards)}</b> éclats</div>
+      <div class="muted">Le recyclage et les boss rendent des éclats. Renforcer, Réaffûter et Relancer
         les effets se font depuis la fiche d'un objet (Détails).</div></div>`;
 }
 
@@ -412,7 +412,6 @@ export default {
   title: 'Équipement',
   icon: 'icon_bag',
   extra: (ui, state) => `${shard()}<span class="num">${formatNumber(state.materials.shards)}</span>
-    ${essence()}<span class="num">${formatNumber(state.materials.essence)}</span>
     <span class="num">· ${state.inventory.length}/${BALANCE.loot.inventorySize}</span>`,
   // v9.1.0 : un seul segment (Sac / Coffre) ; Mannequins et Forge s'ouvrent par un bouton (retour au sac en un clic) ;
   // le Musée est dans Objectifs › Collections ; les builds en liste déroulante.

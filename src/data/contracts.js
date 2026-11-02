@@ -4,7 +4,7 @@
 export const CONTRACT_COUNT = 3;
 
 // v7.7 : contrats thématiques (titre) ; un contrat sur 8 est « rare » (objectif ×2, récompense ×3).
-export const RARE_CONTRACT = { chance: 0.125, targetMultiplier: 2, rewardMultiplier: 3, bonus: { gems: 100, essence: 2 } };
+export const RARE_CONTRACT = { chance: 0.125, targetMultiplier: 2, rewardMultiplier: 3, bonus: { gems: 100, shards: 20 } };
 
 export const CONTRACT_TYPES = {
   kills: {
@@ -23,7 +23,7 @@ export const CONTRACT_TYPES = {
     title: 'Collectionneur',
     label: (n) => `Trouver ${n} objets Rares ou mieux`,
     amount: () => 3,
-    reward: { gems: 25, essence: 1 },
+    reward: { gems: 25, shards: 10 },
   },
   bosses: {
     title: 'Tueur de boss',
@@ -47,6 +47,6 @@ export const CONTRACT_TYPES = {
     title: 'Pilleur',
     label: (n) => `Récupérer ${n} objets`,
     amount: () => 20,
-    reward: { gems: 20, essence: 1 },
+    reward: { gems: 20, shards: 10 },
   },
 };

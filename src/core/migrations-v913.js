@@ -2,7 +2,7 @@
 // séparément (tests/v913-migrations.test.js). Toutes passent dans la même montée de SAVE_VERSION (7 → 8).
 // Chacune est idempotente : rejouée sur une sauvegarde déjà convertie, elle ne change rien.
 // Critères d'abandon et retour arrière : docs/refontes-v913.md.
-import { TICKET_GEMS } from '../data/balance.js';
+import { ESSENCE_SHARDS, TICKET_GEMS } from '../data/balance.js';
 
 const count = (v) => (Number.isFinite(v) && v > 0 ? Math.floor(v) : 0);
 
@@ -29,4 +29,16 @@ export function migrateCodex(state, sections) {
     if (!ms) delete claimed[id];
     else claimed[id] = Math.min(claimed[id], ms.length);
   }
+}
+
+// Lot F — Essences → éclats. 1 essence = 10 éclats : prix implicite des deux recettes qui en demandaient (fabrication
+// Épique 60 + 6, relance des effets 10 + 1). Le stock garde exactement son pouvoir d'achat dans la forge.
+// Abandon : si la fabrication Épique dépasse ~10 % des objets Épiques obtenus par heure en fin de partie (mesure), ou
+// si les joueurs regrettent l'essence de boss. Retour arrière : réintroduire `materials.essence` (le stock converti
+// reste en éclats ; ne rien reprendre).
+export function migrateEssence(state, rawMaterials) {
+  const essence = count(rawMaterials?.essence);
+  if (essence) state.materials.shards += essence * ESSENCE_SHARDS;
+  delete state.materials.essence;
+  return essence;
 }

@@ -106,13 +106,14 @@ test('règle de collecte : recycler au ramassage sans jamais jeter une améliora
   assert.ok(collectItem(state, helm).added, 'emplacement vide : objet gardé');
 });
 
-test('boss : essences garanties, et fabrication épique', () => {
+test('boss : éclats garantis (ex-essences), et fabrication épique', () => {
   assert.equal(bossEssence(5), 2);
   assert.equal(bossEssence(45), 4);
   assert.equal(bossEssence(125), 8); // difficulté ×2 : +6
   const state = rich(12);
-  state.materials.essence = 100;
+  state.materials.shards = 1000;
   const item = craftItem(state, 'ring', new Rng(1), undefined, 'epic');
   assert.ok(['epic', 'legendary'].includes(item.rarity) && item.slot === 'ring');
-  assert.equal(state.materials.essence, 100 - craftCost(state, undefined, 'epic').essence);
+  assert.equal(state.materials.shards, 1000 - craftCost(state, undefined, 'epic').shards);
+  assert.equal(craftCost(state, undefined, 'epic').shards, 120, 'v9.1.3 : 60 éclats + 6 essences × 10');
 });

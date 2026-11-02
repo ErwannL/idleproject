@@ -2,9 +2,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { SAVE_VERSION, sanitizeState } from '../src/core/state.js';
-import { migrateCodex, migrateTickets } from '../src/core/migrations-v913.js';
+import { migrateCodex, migrateEssence, migrateTickets } from '../src/core/migrations-v913.js';
 import { ENCYCLOPEDIA_SECTIONS, claimSection, sectionStatus } from '../src/core/encyclopedia.js';
-import { TICKET_GEMS } from '../src/data/balance.js';
+import { BALANCE, ESSENCE_SHARDS, TICKET_GEMS } from '../src/data/balance.js';
 import { allItems, endSave, oldSave, NOW } from './helpers/v913-saves.js';
 
 const load = (raw) => sanitizeState(JSON.parse(JSON.stringify(raw)), undefined, NOW);
@@ -60,4 +60,21 @@ test('lot E : Codex fondu dans l\'encyclopédie — paliers réclamés gardés, 
   }
   // Paliers précoces gardés : seuils identiques à ceux du Codex.
   assert.deepEqual(ENCYCLOPEDIA_SECTIONS.find((x) => x.id === 'bosses').milestones, [3, 6, 12, 24, 41]);
+});
+
+test('lot F : essences → éclats (1 essence = 10 éclats), coût des recettes inchangé', () => {
+  assert.equal(ESSENCE_SHARDS, 10);
+  const state = { materials: { shards: 5, essence: 0 } };
+  assert.equal(migrateEssence(state, { shards: 5, essence: 7 }), 7);
+  assert.deepEqual(state.materials, { shards: 75 });
+  assert.equal(migrateEssence(state, { essence: 'x' }), 0);
+  const end = endSave();
+  const e = load(end);
+  assert.equal(e.materials.shards, end.materials.shards + end.materials.essence * 10);
+  assert.equal('essence' in e.materials, false);
+  assert.equal(load(e).materials.shards, e.materials.shards, 'rejouée : rien de plus');
+  // Recettes : ancien coût total (éclats + essences × 10) = nouveau coût.
+  assert.equal(BALANCE.forge.epicCraft.shards, 60 + 6 * 10);
+  assert.equal(BALANCE.forge.reforgeShards, 10 + 1 * 10);
+  assert.deepEqual(BALANCE.materials.shards, { common: 1, rare: 3, epic: 8 + 10, legendary: 20 + 30 });
 });

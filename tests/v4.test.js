@@ -201,17 +201,17 @@ test('événements discrets : coffre, marchand, élite et vague, jamais bloquant
   if (left) assert.ok(dismissEvent(state, left.id));
 });
 
-test('recyclage : éclats et essences ; forge : fabrication ciblée, relance d\'effets, réaffûtage', () => {
+test('recyclage : éclats (v9.1.3 : essences fondues) ; forge : fabrication ciblée, relance d\'effets, réaffûtage', () => {
   const state = createNewState(NOW, 1);
   const epic = makeItem(state, 'dagger', 'epic', 1, BALANCE, new Rng(1));
   addToInventory(state, epic);
   recycleItem(state, epic.id);
   assert.equal(state.materials.shards, BALANCE.materials.shards.epic);
-  assert.equal(state.materials.essence, BALANCE.materials.essence.epic);
+  assert.equal('essence' in state.materials, false);
 
   state.maxStage = 10;
   state.gold = 1e9;
-  state.materials = { shards: 500, essence: 5 };
+  state.materials = { shards: 500 };
   const crafted = craftItem(state, 'armor', new Rng(2));
   assert.equal(crafted.slot, 'armor');
   assert.equal(crafted.level, 10);
