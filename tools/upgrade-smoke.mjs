@@ -34,7 +34,7 @@ function installations() {
     .map((root) => (root.endsWith(':') ? `${root}\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*` : `${root}\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*`))
     .map((k) => `'${k}'`).join(',');
   const out = powershell(`Get-ItemProperty ${keys} -ErrorAction SilentlyContinue |
-    Where-Object { $_.DisplayName -like 'Idle RPG*' } |
+    Where-Object { $_.DisplayName -like 'Idle RPG*' -or $_.DisplayName -like 'Ascendrya*' } |
     Select-Object DisplayName, DisplayVersion, InstallLocation, UninstallString | ConvertTo-Json -Compress`).trim();
   if (!out) return [];
   const parsed = JSON.parse(out);
