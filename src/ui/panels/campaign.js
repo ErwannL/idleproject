@@ -1,5 +1,4 @@
 // Carte du monde : zones reliées par un chemin, étapes de la zone choisie, avance automatique.
-import { BALANCE } from '../../data/balance.js';
 import { ZONES } from '../../data/zones.js';
 import { bossesForStage, bossTierForStage, cycleForStage, stageLabel, stagesPerCycle, zoneIndexForStage, zoneLength, zoneStartStage } from '../../core/combat.js';
 import { BOSSES } from '../../data/enemies.js';

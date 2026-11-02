@@ -219,16 +219,34 @@ semaine (boss et améliorations hebdomadaires hors d'atteinte, pas de coffre). L
 - **Critère d'abandon :** joueurs qui perdent leurs ensembles de vue, ou coffre plein (≥ 300) chez plus de 20 % des
   parties de fin. **Annuler :** recréer les mannequins depuis `bestSetPiece` de chaque ensemble (aucune donnée perdue).
 
-## Lot F — Compétences et Boosts en un seul système (non fait)
+## Lot F — Compétences et Boosts en un seul système (étudié au chantier 6 : gardés séparés)
 
-Le doc le classe « Tester, après l'essai de la grille » avec un risque élevé (Renaissance touchée). La grille de
-compétences n'existe que depuis le chantier 3, en essai derrière un réglage, sans retour de joueurs : la condition
-préalable n'est pas remplie. Techniquement, les deux systèmes n'ont ni la même monnaie (points de niveau, rendus et
-redistribués à chaque Renaissance, contre or, gardé), ni le même rythme (compétences lancées seules, boosts d'un
-appui, recharge de 5 à 10 min), ni le même cycle de vie (les niveaux de boosts survivent à la Renaissance, les points
-de compétence sont recalculés depuis le niveau). Fusionner impose de choisir la monnaie restante et de rembourser l'autre
-(or → points, ou points → or) avec un taux qui n'a pas de base dans le bilan (aucune mesure de la valeur d'un niveau de
-boost contre un point de compétence), et de réécrire la Renaissance et les builds (qui gardent la répartition des
-compétences). Sans mesure ni essai de la grille, le risque de casser le retour après Renaissance (41 min à 1 h 57
-mesurés) est trop grand pour un chantier : à reprendre avec une mesure dédiée (outil du même type que
-`tools/sim-reroll-v913.mjs`) après le retour sur la grille.
+La grille de compétences est maintenant l'affichage par défaut ; la condition préalable du doc (« après l'essai de la
+grille ») est remplie, la fusion a donc été chiffrée sur le moteur réel avant d'être écrite. Conclusion : **elle
+détruit le rythme manuel des boosts et leur progression ; les deux systèmes restent séparés** (aucune conversion dans
+`core/migrations-v913.js`, aucune donnée touchée).
+
+Chiffres (données `data/skills.js`, `data/rushes.js`, sauvegardes de `docs/mesures-v913.md`) :
+
+| | Compétences | Boosts |
+|---|---|---|
+| Monnaie | points = niveau du héros (26 / 59 / 120 sur les sauvegardes début / milieu / fin) | or |
+| Coût du maximum | 4 × 150 = **600 points** | 5 × 25 = 125 niveaux, coût ×1,35 par niveau |
+| Après une Renaissance | niveau 1 → points rendus, à regagner | niveaux **gardés** (13 Renaissances sur la sauvegarde de fin) |
+| Déclenchement | automatique : 600 + 300 + 180 + 120 = **1 200 lancers/h** | au doigt : 12 + 12 + 7,5 + 10 + 6 = **47,5 appuis/h** (recharges 5 à 10 min) |
+
+- **Une monnaie = points :** même en fin de partie, le héros n'a que 120 points pour 600 de compétences (20 %) ;
+  y ajouter 125 niveaux de boosts (≥ 1 point chacun) les met en concurrence directe avec les compétences, et chaque
+  Renaissance remettrait les boosts à 0 (aujourd'hui gardés) : la Rage niveau 25 (+460 % de dégâts pendant 54 s)
+  redeviendrait +100 % pendant 30 s à chaque Renaissance, alors que le retour à l'étape max (41 min à 1 h 57) repose
+  précisément sur ces boosts.
+- **Une monnaie = or :** les compétences deviendraient un puits d'or comme les améliorations, en concurrence avec
+  l'achat de dégâts ; il faudrait inventer un taux points → or sans base mesurée et rembourser 600 points par partie.
+- **Un seul déclenchement :** une grille unique impose une seule règle. Tout automatique supprime les 47,5 décisions
+  par heure des boosts (le mode auto existe déjà en option, c'est le choix du joueur) ; tout manuel est impossible
+  (1 200 lancers/h). Garder deux règles dans une même grille annule le gain conceptuel visé par le doc.
+
+**Critère d'abandon (et de reprise) :** la fusion n'est reprise que si (a) plus de 80 % des parties de milieu et de fin
+ont le mode auto des boosts activé en permanence (le rythme manuel n'est alors plus joué) **et** (b) une simulation
+du type `tools/sim-reroll-v913.mjs` montre un retour après Renaissance qui ne s'allonge pas de plus de 10 % avec des
+boosts remis à zéro. Tant que l'une des deux conditions manque, Compétences et Boosts restent deux systèmes.

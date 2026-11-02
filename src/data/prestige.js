@@ -18,10 +18,10 @@ export const PRESTIGE_KEEPS = ['Équipement, sac et matériaux', 'Compagnons et 
 
 // Bonus éternels achetés avec les fragments anciens.
 export const PRESTIGE_PERKS = [
-  { id: 'power', name: 'Puissance éternelle', icon: 'weapon_sword', max: 20, effect: { damagePct: 30 } },
+  { id: 'power', name: 'Puissance éternelle', icon: 'icon_damage', max: 20, effect: { damagePct: 30 } },
   { id: 'fortune', name: 'Fortune éternelle', icon: 'coin', max: 20, effect: { goldPct: 30 } },
   { id: 'vitality', name: 'Vitalité éternelle', icon: 'icon_heart', max: 20, effect: { maxHpPct: 30 } },
-  { id: 'wisdom', name: 'Sagesse éternelle', icon: 'icon_star', max: 20, effect: { xpPct: 25 } },
+  { id: 'wisdom', name: 'Sagesse éternelle', icon: 'icon_xp', max: 20, effect: { xpPct: 25 } },
   { id: 'luck', name: 'Chance éternelle', icon: 'icon_chest', max: 10, effect: { dropChance: 2 } },
   { id: 'haste', name: 'Célérité éternelle', icon: 'icon_bolt', max: 10, effect: { attackSpeedPct: 5 } },
 ];

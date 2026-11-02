@@ -18,7 +18,7 @@ export const CURRENCIES = {
   keys: { name: 'Clés de donjon', icon: 'icon_key', tab: 'dungeons',
     use: 'Une tentative de donjon par clé.',
     gain: 'Missions, contrats, expéditions, Tour, défi (1 au départ).' },
-  stars: { name: 'Étoiles', icon: 'icon_star', tab: 'tree', view: { treeSeg: 'rebirth' },
+  stars: { name: 'Étoiles', icon: 'icon_stars', tab: 'tree', view: { treeSeg: 'rebirth' },
     use: 'Bonus stellaires.',
     gain: 'Transcendance.' },
 };

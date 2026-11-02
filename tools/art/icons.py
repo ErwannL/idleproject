@@ -1324,6 +1324,231 @@ def set_void():
     return c
 
 
+# ------------------------------------------------------------------ v9.1.3 : icônes de menu (doc2 §4)
+def icon_crit():
+    """Critique : cible rouge percée d'un éclat (ne se confond plus avec la compétence Frappe rapide)."""
+    c = cv()
+    R = shape(lambda m, k: m.ellipse(10, 10, 8.6, 8.6, k))
+    for (x, y) in R:
+        d = math.hypot(x + 0.5 - 10, y + 0.5 - 10)
+        lit = (x + y) < 19
+        if d > 6.6:
+            col = RED[3] if lit else RED[2]
+        elif d > 4.4:
+            col = BONE[3] if lit else BONE[2]
+        elif d > 2.3:
+            col = RED[2] if lit else RED[1]
+        else:
+            col = YELLOW[3]
+        c.set(x, y, col)
+    # réticule
+    for i in range(0, 20):
+        if i < 4 or i > 15:
+            c.set(i, 10, OUT)
+            c.set(10, i, OUT)
+    done(c)
+    for p in ((10, 9), (9, 10), (10, 10)):
+        c.set(*p, WHITE)
+    for p in ((10, 8), (8, 10), (12, 10), (10, 12)):
+        c.set(*p, YELLOW[4])
+    c.set(5, 5, RED[4])
+    c.set(6, 4, RED[4])
+    return c
+
+
+def icon_regen():
+    """Régénération : goutte verte frappée d'une croix de soin."""
+    c = cv()
+    P = shape(lambda m, k: (m.ellipse(10, 12.2, 6.6, 6.4, k), m.poly([(10, 0.8), (16.0, 10.5), (4.0, 10.5)], k)))
+    sfill(c, P, GREEN, 8.6, 10.0, 8.5, 9.5, bias=0.05)
+    edge_light(c, P, None, GREEN[1])
+    for x in range(7, 13):
+        for y in (12, 13):
+            c.set(x, y, WHITE if x < 11 else GREEN[4])
+    for y in range(9, 17):
+        for x in (9, 10):
+            c.set(x, y, WHITE if y < 14 or x == 9 else GREEN[4])
+    done(c)
+    c.set(6, 8, GREEN[4])
+    c.set(7, 6, GREEN[4])
+    return c
+
+
+def icon_tower():
+    """Tour de l'Éternité : donjon de pierre crénelé, fenêtre violette."""
+    c = cv()
+    body = shape(lambda m, k: m.rect(5, 6, 10, 13, k))
+    fill(c, body, STONE, grad=1.0)
+    top = shape(lambda m, k: (m.rect(3, 2, 14, 5, k)))
+    top -= {(x, 2) for x in (6, 7, 12, 13)}
+    top -= {(x, 3) for x in (6, 7, 12, 13)}
+    fill(c, top, STONE, grad=1.0, bias=0.1)
+    for x in range(4, 16):
+        c.set(x, 6, STONE[0])
+    # rangées de briques
+    for y in (10, 14):
+        for x in range(6, 14):
+            c.setf(x, y, STONE[1])
+    for (x, y) in ((8, 11), (12, 12), (7, 15), (11, 16)):
+        c.setf(x, y, STONE[1])
+    # fenêtre et porte
+    for (x, y) in ((9, 8), (10, 8), (9, 9), (10, 9)):
+        c.set(x, y, PURPLE[3] if y == 8 else PURPLE[2])
+    for y in range(15, 19):
+        for x in (9, 10):
+            c.set(x, y, '#2a1830')
+    c.set(9, 8, MAGENTA[4])
+    done(c)
+    return c
+
+
+def icon_expedition():
+    """Expéditions : fanion planté sur un chemin (plus le coffre, qui reste le Coffre)."""
+    c = cv()
+    pole = shape(lambda m, k: m.rect(5, 2, 2, 16, k))
+    fill(c, pole, WOOD, grad=1.0)
+    flag = shape(lambda m, k: m.poly([(7, 2.2), (17.6, 4.6), (12.6, 7.2), (17.6, 10.2), (7, 11.2)], k))
+    fill(c, flag, RED, grad=1.0, bias=0.05)
+    for p in ((9, 5), (9, 6), (10, 5)):
+        c.set(*p, GOLD[3])
+    ground = shape(lambda m, k: m.ellipse(8, 18.2, 7.4, 1.6, k))
+    for (x, y) in ground:
+        c.set(x, y, GREEN[2] if x < 8 else GREEN[1])
+    c.set(5, 2, GOLD[4])
+    c.set(6, 2, GOLD[3])
+    c.set(5, 1, GOLD[3])
+    done(c)
+    return c
+
+
+def icon_stars():
+    """Étoiles de Transcendance : grande étoile violette et petite étoile glacée (≠ icon_star doré)."""
+    c = cv()
+    P = shape(lambda m, k: m.poly(star_pts(8.4, 10.6, 8.2, 3.4), k))
+    fill(c, P, PURPLE, grad=1.0, bias=0.08)
+    S = shape(lambda m, k: m.poly(star_pts(15.6, 4.6, 4.2, 1.7, n=4, a0=-90), k))
+    fill(c, S, ICE, grad=1.0, bias=0.1)
+    done(c)
+    c.set(7, 8, PURPLE[4])
+    c.set(7, 9, WHITE)
+    c.set(15, 4, WHITE)
+    return c
+
+
+def icon_xp():
+    """Expérience : orbe bleu marqué « XP »."""
+    c = cv()
+    P = shape(lambda m, k: m.ellipse(10, 10, 8.7, 8.7, k))
+    sfill(c, P, BLUE, 9.0, 9.0, 10.5, bias=-0.05)
+    X = ((4, 7), (4, 8), (5, 9), (6, 10), (7, 11), (8, 12), (8, 13),
+         (8, 7), (8, 8), (7, 9), (5, 11), (4, 12), (4, 13))
+    for p in X:
+        c.set(*p, WHITE)
+    for y in range(7, 14):
+        c.set(10, y, WHITE)
+    for p in ((11, 7), (12, 7), (13, 7), (14, 8), (14, 9), (13, 10), (12, 10), (11, 10)):
+        c.set(*p, WHITE)
+    done(c)
+    c.set(5, 4, BLUE[4])
+    c.set(6, 3, BLUE[4])
+    return c
+
+
+def icon_crown():
+    """Couronne de maîtrise (remplace 👑)."""
+    c = cv()
+    P = shape(lambda m, k: m.poly([(2, 6), (6, 10), (10, 3), (14, 10), (18, 6), (16.6, 15), (3.4, 15)], k))
+    fill(c, P, GOLD, grad=1.0)
+    band = shape(lambda m, k: m.rect(3, 15, 14, 3, k))
+    fill(c, band, GOLD, grad=1.0, bias=-0.1)
+    for (x, y, col) in ((6, 16, RED[3]), (10, 16, GEM[3]), (14, 16, RED[3]), (13, 16, RED[2]), (5, 16, RED[3]),
+                        (9, 16, GEM[3]), (10, 12, GEM[2]), (10, 11, GEM[3])):
+        c.set(x, y, col)
+    for (x, y) in ((2, 5), (10, 2), (18, 5)):
+        c.set(x, y, GOLD[4])
+    done(c)
+    c.set(10, 1, WHITE)
+    c.set(2, 4, WHITE)
+    c.set(18, 4, WHITE)
+    return c
+
+
+def icon_timer():
+    """Minuteur : sablier (remplace ⌛)."""
+    c = cv()
+    frame = shape(lambda m, k: (m.rect(3, 1, 14, 2, k), m.rect(3, 17, 14, 2, k)))
+    fill(c, frame, WOOD, grad=1.0, bias=0.1)
+    glass = shape(lambda m, k: (m.poly([(5, 3), (15, 3), (11, 10), (9, 10)], k),
+                                m.poly([(9, 10), (11, 10), (15, 17), (5, 17)], k)))
+    for (x, y) in glass:
+        c.set(x, y, ICE[4] if x < 9 else ICE[3])
+    sand = shape(lambda m, k: (m.poly([(7.5, 5.5), (12.5, 5.5), (10.6, 9.5), (9.4, 9.5)], k),
+                               m.poly([(10, 12), (14.2, 17), (5.8, 17)], k)))
+    for (x, y) in sand:
+        c.set(x, y, YELLOW[3] if x < 10 else YELLOW[2])
+    c.set(9, 10, YELLOW[3])
+    c.set(9, 11, YELLOW[3])
+    done(c)
+    return c
+
+
+def icon_alert():
+    """Alerte : triangle jaune et « ! » (remplace ⚠)."""
+    c = cv()
+    P = shape(lambda m, k: m.poly([(10, 0.8), (19.2, 18.4), (0.8, 18.4)], k))
+    fill(c, P, YELLOW, grad=1.0)
+    edge_light(c, P, YELLOW[4], ORANGE[2])
+    for y in range(6, 13):
+        c.set(9, y, OUT)
+        c.set(10, y, OUT)
+    for p in ((9, 14), (10, 14), (9, 15), (10, 15)):
+        c.set(*p, OUT)
+    done(c)
+    return c
+
+
+def icon_gold():
+    """Or 20×20 pour les menus : pile de pièces (le `coin` 14×14 reste pour les boutons de coût)."""
+    c = cv()
+    for (y, x0) in ((15, 2), (12, 3), (9, 2)):
+        P = shape(lambda m, k: m.ellipse(x0 + 6.5, y + 1.5, 6.5, 2.6, k))
+        sfill(c, P, GOLD, x0 + 5.5, y + 0.5, 7.5, 3.4)
+        for x in range(x0 + 1, x0 + 13):
+            c.set(x, y + 3, GOLD[1])
+    top = shape(lambda m, k: m.ellipse(13, 6.5, 5.6, 5.6, k))
+    sfill(c, top, GOLD, 12, 5.5, 6.2)
+    face = shape(lambda m, k: m.ellipse(13, 6.5, 3.4, 3.4, k))
+    for (x, y) in face:
+        if (x - 1, y) not in face or (x, y - 1) not in face:
+            c.set(x, y, GOLD[1])
+    for p in ((12, 5), (13, 6), (12, 6), (13, 5)):
+        c.set(*p, GOLD[4])
+    done(c)
+    c.set(10, 3, WHITE)
+    c.set(4, 9, GOLD[4])
+    return c
+
+
+def icon_damage():
+    """Dégâts : épée en diagonale dans un carré 20×20 (weapon_sword fait 12×28)."""
+    c = cv()
+    blade = [(17.8, 1.2), (18.8, 2.2), (8.2, 12.8), (6.2, 10.8)]
+    B = shape(lambda m, k: m.poly(blade, k))
+    for (x, y) in B:
+        side = (x + y) - 19
+        c.set(x, y, STEEL[4] if side < -0.5 else STEEL[3] if side < 0.6 else STEEL[2])
+    guard = shape(lambda m, k: m.poly([(3.0, 10.4), (5.0, 8.4), (11.6, 15.0), (9.6, 17.0)], k))
+    fill(c, guard, GOLD, grad=1.0)
+    grip = shape(lambda m, k: m.poly([(5.6, 13.0), (7.0, 14.4), (3.4, 18.0), (2.0, 16.6)], k))
+    fill(c, grip, LEATHER, grad=1.0)
+    c.set(2, 18, GOLD[3])
+    c.set(1, 18, GOLD[2])
+    c.set(2, 17, GOLD[3])
+    done(c)
+    c.set(17, 2, WHITE)
+    return c
+
+
 # ------------------------------------------------------------------ export
 ICONS = [
     ('coin', coin), ('icon_gem', icon_gem), ('icon_ticket', icon_ticket), ('icon_fragment', icon_fragment),
@@ -1343,6 +1568,11 @@ ICONS = [
     ('set_plains', set_plains), ('set_forest', set_forest), ('set_caves', set_caves), ('set_desert', set_desert),
     ('set_mountains', set_mountains), ('set_cursed', set_cursed), ('set_swamp', set_swamp), ('set_sky', set_sky),
     ('set_volcano', set_volcano), ('set_void', set_void),
+    # v9.1.3 : icônes de menu (doc2 §4)
+    ('icon_crit', icon_crit), ('icon_regen', icon_regen), ('icon_tower', icon_tower),
+    ('icon_expedition', icon_expedition), ('icon_stars', icon_stars), ('icon_xp', icon_xp),
+    ('icon_crown', icon_crown), ('icon_timer', icon_timer), ('icon_alert', icon_alert),
+    ('icon_gold', icon_gold), ('icon_damage', icon_damage),
 ]
 
 

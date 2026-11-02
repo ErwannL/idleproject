@@ -21,7 +21,7 @@ import { rewardText } from '../../core/rewards.js';
 import { itemIconUrl } from '../../render/pixel.js';
 import { animCanvas } from '../animator.js';
 import { AFFIXES } from '../../data/items.js';
-import { effectText, escapeHtml, fold, formatNumber, icon, img, progressBar, rarityLabel, rewardIcons, stars } from '../common.js';
+import { effectText, escapeHtml, formatNumber, icon, img, progressBar, rarityLabel, rewardIcons, stars } from '../common.js';
 
 const SHADOW = { tint: { color: '#2e3a52', alpha: 1 } };
 const TIERS = { mini: 'Mini-boss', mid: 'Boss', hard: 'Boss redoutable', dungeon: 'Boss de donjon' };

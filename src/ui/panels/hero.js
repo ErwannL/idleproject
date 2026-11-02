@@ -106,7 +106,7 @@ function farmStats(ui, state) {
       ${line('coin', 'Or par heure', formatNumber(f.goldPerSecond * 3600))}
       ${line('icon_upgrade', 'XP par heure', formatNumber(f.xpPerSecond * 3600))}
       ${line('icon_skull', 'Ennemis par minute', formatDecimal(f.killsPerSecond * 60))}
-      ${line('weapon_sword', 'Dégâts/s (calculés)', formatDecimal(computeHeroStats(state).dps))}
+      ${line('icon_damage', 'Dégâts/s (calculés)', formatDecimal(computeHeroStats(state).dps))}
     </div>${damageShareHtml(f)}<div class="options-row">${btn}</div></div>`;
 }
 
@@ -139,10 +139,10 @@ function recordsView(ui, state) {
   const line = (iconName, label, value) => `${img(iconName)}<span>${label}</span><span class="v">${value}</span>`;
   return `${farmStats(ui, state)}<div class="card"><div class="section-title">Records</div><div class="stats-grid">
       ${line('icon_map', 'Étape max', stageLabel(state.maxStage))}
-      ${line('icon_star', 'Tour de l\'Éternité', `étage ${state.towerBest ?? 0}`)}
+      ${line('icon_tower', 'Tour de l\'Éternité', `étage ${state.towerBest ?? 0}`)}
       ${line('icon_trophy', 'Défi de la semaine', `${state.challengeBest ?? 0} vagues`)}
       ${line('icon_rebirth', 'Renaissances', formatNumber(state.records.rebirths))}
-      ${line('icon_star', 'Transcendances', formatNumber(state.transcend?.count ?? 0))}
+      ${line('icon_stars', 'Transcendances', formatNumber(state.transcend?.count ?? 0))}
       ${line('icon_dungeon', 'Donjons terminés', formatNumber(Object.values(state.dungeonsCleared).reduce((a, b) => a + b, 0)))}
     </div></div>
     <div class="card"><div class="section-title">Tour de l'Éternité — dernières ascensions</div>
@@ -185,12 +185,12 @@ function heroView(ui, state) {
       <div class="gear-row" style="margin-top:5px">${gear}</div>
     </div>
     ${fold(ui, 'hero-stats', 'Statistiques', () => `<div class="stats-grid">
-      ${line('weapon_sword', 'Dégâts', formatNumber(s.damage))}
+      ${line('icon_damage', 'Dégâts', formatNumber(s.damage))}
       ${line('icon_bolt', 'Attaques / s', formatDecimal(s.attacksPerSecond, 2))}
-      ${line('skill_quick', 'Coup critique', `${formatDecimal(s.critChance)} %`)}
+      ${line('icon_crit', 'Coup critique', `${formatDecimal(s.critChance)} %`)}
       ${line('icon_heart', 'PV max', formatNumber(s.maxHp))}
       ${line('icon_shield', 'Armure', `${formatDecimal(s.armor)} %`)}
-      ${line('pet_fairy', 'Régénération', `${formatDecimal(s.regenPerSecond)} PV/s`)}
+      ${line('icon_regen', 'Régénération', `${formatDecimal(s.regenPerSecond)} PV/s`)}
       ${line('coin', 'Or bonus', `+${formatDecimal(s.goldPct)} %`)}
     </div>`)}
     ${fold(ui, 'hero-sets', 'Ensembles d\'équipement', () => setsCard(state))}

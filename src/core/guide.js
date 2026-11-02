@@ -98,7 +98,6 @@ function nextBossName(state, balance) {
   return id ? BOSSES[id]?.name ?? null : null;
 }
 
-const formatMult = (x) => x.toFixed(2).replace(/0$/, '').replace('.', ',');
 
 // Aide « ? » de chaque écran (v9.1.0) : 3 lignes au plus (`short`), le détail dans « En savoir plus » (`more`).
 // Les textes suivent le lexique du jeu (Compétences, Boosts, Pouvoirs, Talents, Builds…).
@@ -110,7 +109,7 @@ export const PANEL_HELP = {
   },
   inventory: {
     short: 'La flèche verte marque un objet meilleur que celui porté. « Équiper le meilleur » équipe tout d\'un coup.',
-    more: 'Les objets grandissent avec leur niveau : Réaffûter remonte un objet au niveau de votre étape max. Le Coffre garde des objets jamais recyclés et les meilleures pièces d\'ensemble (filtre Ensemble, « Porter ») ; les Builds enregistrent équipe, équipement, classe, pouvoirs et compétences. Recyclage et fusion automatiques : Réglages du sac.',
+    more: 'Les objets grandissent avec leur niveau : Réaffûter remonte un objet au niveau de votre étape max. La Forge s\'ouvre à l\'étape 10 et le Coffre à l\'étape 20 : il garde des objets jamais recyclés et les meilleures pièces d\'ensemble (filtre Ensemble, « Porter ») ; les Builds enregistrent équipe, équipement, classe, pouvoirs et compétences. Recyclage et fusion automatiques : Réglages du sac.',
   },
   hero: {
     short: 'Votre fiche : dégâts/s, niveau et équipement. Classe, Apparence et Records sont dans les segments du haut.',
@@ -163,11 +162,11 @@ export const PANEL_HELP = {
     more: 'Les contrats progressent seuls, même jeu fermé ; un contrat rempli est remplacé. La prime du jour donne une pièce d\'ensemble Épique ou mieux.',
   },
   inbox: {
-    short: 'Tout ce qui est prêt à être récupéré, au même endroit. Un seul bouton (ou la touche G).',
-    more: 'Les trouvailles (coffres, gemmes, portails) arrivent pendant le combat. Sac plein : les récompenses avec un objet attendent ici. Les marchands proposent un achat, à votre choix.',
+    short: 'Vue d\'ensemble de tout ce qui est prêt à être récupéré (touche N, ou depuis Missions). Tout récupérer : touche G.',
+    more: 'Les trouvailles (coffres, gemmes, portails) arrivent pendant le combat. Sac plein : les récompenses avec un objet attendent ici. Les marchands sont dans Missions › Aujourd\'hui.',
   },
   options: {
-    short: 'Langue, sauvegarde (export et import), compte, mises à jour ; Interface, Son et Fenêtre dans les onglets.',
+    short: 'Langue, sauvegarde (export et import), compte, mises à jour ; Interface (dont les essais d\'affichage), Son et Fenêtre dans les onglets.',
     more: 'C\'est quoi un idle ? Le jeu avance tout seul, même fermé : vous revenez de temps en temps pour améliorer votre héros. Lexique — Compétences : lancées seules ; Boosts : lancés d\'un appui ; Pouvoirs : bonus des boss ; Talents : arbre permanent ; Builds : équipement enregistré ; Coffre : rangement, ensembles compris.',
   },
 };

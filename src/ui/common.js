@@ -20,6 +20,9 @@ export const coin = () => img('coin', '', 'or');
 export const gem = () => img('icon_gem', '', 'gemmes');
 export const fragment = () => img('icon_fragment', '', 'fragments');
 export const shard = () => img('icon_shard', '', 'éclats');
+// v9.1.3 (doc2 §4) : étoiles de Transcendance en icône (plus de symbole texte) ; icône décorative à côté d'un texte.
+export const starsIcon = () => img('icon_stars', 'glyph');
+export const glyph = (name) => img(name, 'glyph');
 
 // « +10 % dégâts · +5 % or » — valeurs arrondies pour l'affichage.
 export const effectText = (effects) => Object.entries(effects)
@@ -58,7 +61,7 @@ export function missingText(cost, have, currency) {
 }
 
 export function costButton({ action, cost, have, label = '', currency = 'gold', attrs = '', cls = 'btn-gold', max = false, locked = false }) {
-  const iconHtml = { gold: coin(), gems: gem(), fragments: fragment(), shards: shard(), stars: '<span class="star-cur" aria-hidden="true">✧</span>' }[currency];
+  const iconHtml = { gold: coin(), gems: gem(), fragments: fragment(), shards: shard(), stars: starsIcon() }[currency];
   if (max) return `<button class="btn ${cls}" disabled>Max</button>`;
   // v9.1.3 (A2) : la monnaie est nommée (bulle et nom accessible), pas seulement « 1 200 » à côté d'une icône.
   const [one, many] = CURRENCY_WORDS[currency] ?? ['', ''];

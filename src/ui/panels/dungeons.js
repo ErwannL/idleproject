@@ -10,9 +10,8 @@ import { canEnterDungeon, dungeonById, dungeonRunInfo, unlockedDifficulties } fr
 import { formatDuration } from '../../core/format.js';
 import { itemIconUrl } from '../../render/pixel.js';
 import { rewardText } from '../../core/rewards.js';
-import { slotIconName } from '../../render/pixel.js';
 import { animCanvas } from '../animator.js';
-import { CHALLENGE, challengeTriesLeft, challengeUnlocked, challengeWeek, modifierById, weeklySetup } from '../../core/challenge.js';
+import { CHALLENGE, challengeTriesLeft, challengeWeek, modifierById, weeklySetup } from '../../core/challenge.js';
 import { ZONES } from '../../data/zones.js';
 import { escapeHtml, fold, formatNumber, img, progressBar } from '../common.js';
 import { bossTrait } from '../../core/boss-traits.js';

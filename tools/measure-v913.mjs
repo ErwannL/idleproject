@@ -20,7 +20,7 @@ let seed = 0x9e3779b9;
 Math.random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 2 ** 32; };
 
 const { BALANCE } = await import('../src/data/balance.js');
-const { LOGIN_CALENDAR, MISSION_PERIODS } = await import('../src/data/missions.js');
+const { LOGIN_CALENDAR, MISSION_PERIODS, MISSION_TRACK } = await import('../src/data/missions.js');
 const { DUNGEON_REWARD, DUNGEON_DIFFICULTIES } = await import('../src/data/dungeons.js');
 const { TALENT_RESPEC, REBIRTH } = await import('../src/data/rebirth.js');
 const { BOUNTY } = await import('../src/core/bounty.js');
@@ -131,6 +131,8 @@ for (const [k, s] of Object.entries(S)) {
 const sumGems = (rewards) => rewards.reduce((a, r) => a + (r?.gems ?? 0), 0);
 const missionGems = Object.fromEntries(MISSION_PERIODS.map((p) => [p.id, sumGems(p.missions.map((m) => m.reward)) + (p.bonus?.gems ?? 0)]));
 const loginCycle = sumGems(LOGIN_CALENDAR);
+// v9.1.3 (chantier 5) : hebdomadaires et mensuelles fondues dans la piste du mois (tous les paliers).
+const trackGems = sumGems(MISSION_TRACK.tiers.map((t) => t.reward));
 const achievementGems = ACHIEVEMENTS.reduce((a, x) => a + x.gems, 0);
 const ACTIVE_H = 2; // hypothèse : 2 h de jeu actif par jour
 const OFFLINE_H = 22;
@@ -146,8 +148,7 @@ function gemTable(key) {
     ['Hors ligne (22 h, part des gemmes de kill)', offlineDay, offlineDay * 7, offlineDay * 30],
     ['Connexion (cycle de 7 jours, sans remise à zéro)', loginCycle / 7, loginCycle, (loginCycle / 7) * 30],
     ['Missions du jour (toutes + coffre)', missionGems.daily, missionGems.daily * 7, missionGems.daily * 30],
-    ['Missions de la semaine (toutes + coffre)', missionGems.weekly / 7, missionGems.weekly, (missionGems.weekly / 7) * 30],
-    ['Missions du mois (toutes + coffre)', (missionGems.monthly ?? 0) / 30, ((missionGems.monthly ?? 0) / 30) * 7, missionGems.monthly ?? 0],
+    ['Piste du mois (tous les paliers)', trackGems / 30, (trackGems / 30) * 7, trackGems],
     ['Prime du jour', BOUNTY.gems, BOUNTY.gems * 7, BOUNTY.gems * 30],
     [`Donjons (1 clé/jour, Facile)`, DUNGEON_REWARD.gems * DUNGEON_DIFFICULTIES.easy.gems, DUNGEON_REWARD.gems * DUNGEON_DIFFICULTIES.easy.gems * 7, DUNGEON_REWARD.gems * DUNGEON_DIFFICULTIES.easy.gems * 30],
   ];
@@ -248,13 +249,13 @@ P();
 P(`Puits de gemmes du jeu : invocation (${BALANCE.summon.gemCost} l'unité, ${BALANCE.summon.tenPullGemCost} les 10) et réinitialisation des talents (${TALENT_RESPEC.gems}). Gains uniques : hauts faits ${fmt(achievementGems)} gemmes au total, premier boss ${BALANCE.summon.firstBossGems}.`);
 P(`Connexion (S2b) : un cycle de 7 jours donne ${loginCycle} gemmes ; sans remise à zéro, un joueur qui vient 4 jours sur 7 gagne ${fmt(loginCycle * 4 / 7)} gemmes par semaine au lieu de rester sur les premières cases (${sumGems(LOGIN_CALENDAR.slice(0, 2)) * 2} pour 2 séries de 2 jours).`);
 P();
-P('## 2. Éclats et essences');
+P('## 2. Éclats (essences fondues dans les éclats)');
 P();
-P('| Sauvegarde | Éclats / h | Essences / h | Recyclés auto / h | Fusions / h |');
-P('|---|---|---|---|---|');
-for (const k of Object.keys(S)) P(`| ${k} | ${fmt(hourly[k].shards)} | ${fmt(hourly[k].essence)} | ${fmt(hourly[k].fate.recycle + hourly[k].swept)} | ${fmt(hourly[k].fused)} |`);
+P('| Sauvegarde | Éclats / h | Recyclés auto / h | Fusions / h |');
+P('|---|---|---|---|');
+for (const k of Object.keys(S)) P(`| ${k} | ${fmt(hourly[k].shards)} | ${fmt(hourly[k].fate.recycle + hourly[k].swept)} | ${fmt(hourly[k].fused)} |`);
 P();
-P(`Puits (forge) : fabriquer un Rare ${f.craftShards} éclats, un Épique ${f.epicCraft.shards} éclats + ${f.epicCraft.essence} essences, relancer les effets ${f.reforgeShards} éclats + ${f.reforgeEssence} essences, renforcer ${f.upgradeShards} × (niveau + 1) éclats.`);
+P(`Puits (forge) : fabriquer un Rare ${f.craftShards} éclats, un Épique ${f.epicCraft.shards} éclats, relancer les effets ${f.reforgeShards} éclats, renforcer ${f.upgradeShards} × (niveau + 1) éclats.`);
 P();
 P('## 3. Part de l\'équipement dans la puissance');
 P();

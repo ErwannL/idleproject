@@ -15,7 +15,7 @@ import {
 } from '../common.js';
 import { navPath } from '../nav.js';
 import { setById, setCounts } from '../../core/sets.js';
-import { ITEM_SETS, SET_PIECES } from '../../data/sets.js';
+import { SET_PIECES } from '../../data/sets.js';
 import { STASH_SIZE, stashSets } from '../../core/stash.js';
 import { MUSEUM, MUSEUM_PIECES, isMuseumDuplicate, museumCount, museumDuplicates, museumEffects } from '../../core/museum.js';
 import { itemIconUrl } from '../../render/pixel.js';

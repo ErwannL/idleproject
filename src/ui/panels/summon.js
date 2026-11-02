@@ -16,8 +16,8 @@ function unitPortrait(result) {
 // v9.0.6 : bannière du héros en vedette (grand portrait animé, titre, rôles, bonus, citation), façon
 // « Nouveau héros » des jeux gacha — les boutons d'invocation restent dessous, jamais recouverts.
 const ICON_FOR = {
-  damagePct: 'weapon_sword', critChance: 'skill_quick', attackSpeedPct: 'icon_bolt', maxHpPct: 'icon_heart', armor: 'icon_shield',
-  regenPct: 'pet_fairy', lifesteal: 'icon_heart', damageVsBossPct: 'icon_boss', xpPct: 'icon_star', goldPct: 'coin', dropChance: 'icon_bag',
+  damagePct: 'icon_damage', critChance: 'icon_crit', attackSpeedPct: 'icon_bolt', maxHpPct: 'icon_heart', armor: 'icon_shield',
+  regenPct: 'icon_regen', lifesteal: 'icon_heart', damageVsBossPct: 'icon_boss', xpPct: 'icon_xp', goldPct: 'icon_gold', dropChance: 'icon_bag',
 };
 function heroBanner(state) {
   const f = featuredUnit('hero');

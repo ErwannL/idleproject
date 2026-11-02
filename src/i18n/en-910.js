@@ -365,9 +365,17 @@ export const EXACT_910 = {
   "Équipe la meilleure pièce de chaque emplacement ; l'objet porté prend sa place au coffre": 'Equips the best piece of each slot; the worn item takes its place in the stash',
   "Une pièce d'ensemble ramassée, meilleure que la meilleure du coffre pour son emplacement, y va (l'ancienne est recyclée, sauf verrouillée)": 'A picked-up set piece better than the best one in the stash for its slot goes there (the old one is recycled unless locked)',
   "Coffre au-delà de 300 (pièces des anciens mannequins) : rien n'est perdu, mais rien n'y entre tant qu'il n'est pas redescendu.": 'Stash above 300 (pieces from the former mannequins): nothing is lost, but nothing goes in until it drops back.',
-  "Les objets grandissent avec leur niveau : Réaffûter remonte un objet au niveau de votre étape max. Le Coffre garde des objets jamais recyclés et les meilleures pièces d'ensemble (filtre Ensemble, « Porter ») ; les Builds enregistrent équipe, équipement, classe, pouvoirs et compétences. Recyclage et fusion automatiques : Réglages du sac.": 'Items grow with their level: Sharpen raises an item to your max stage level. The Stash keeps items that are never recycled and the best set pieces (Set filter, “Wear”); Builds save team, gear, class, powers and skills. Automatic recycling and fusion: Bag settings.',
+  "Les objets grandissent avec leur niveau : Réaffûter remonte un objet au niveau de votre étape max. La Forge s'ouvre à l'étape 10 et le Coffre à l'étape 20 : il garde des objets jamais recyclés et les meilleures pièces d'ensemble (filtre Ensemble, « Porter ») ; les Builds enregistrent équipe, équipement, classe, pouvoirs et compétences. Recyclage et fusion automatiques : Réglages du sac.": 'Items grow with their level: Sharpen raises an item to your max stage level. The Forge opens at stage 10 and the Stash at stage 20: it keeps items that are never recycled and the best set pieces (Set filter, “Wear”); Builds save team, gear, class, powers and skills. Automatic recycling and fusion: Bag settings.',
   "C'est quoi un idle ? Le jeu avance tout seul, même fermé : vous revenez de temps en temps pour améliorer votre héros. Lexique — Compétences : lancées seules ; Boosts : lancés d'un appui ; Pouvoirs : bonus des boss ; Talents : arbre permanent ; Builds : équipement enregistré ; Coffre : rangement, ensembles compris.": "What's an idle game? The game plays on its own, even when closed: you come back now and then to improve your hero. Glossary — Skills: cast on their own; Boosts: triggered with a tap; Powers: boss bonuses; Talents: permanent tree; Builds: saved gear; Stash: storage, sets included.",
   'Outils du Musée': 'Museum tools', 'auto désactivée': 'auto off',
+  // v9.1.3 (doc2 §4) : titres dont l'emoji est devenu une icône.
+  'Vitesse ×100': 'Speed ×100', 'La mise à jour n\'a pas pu s\'installer': 'The update could not be installed',
+  'Durée': 'Duration',
+  'Effondrement dans': 'Collapses in', 'de combat.': 'of fighting.',
+  // v9.1.3 (chantier 6) : aide des panneaux déplacés.
+  'Vue d\'ensemble de tout ce qui est prêt à être récupéré (touche N, ou depuis Missions). Tout récupérer : touche G.': 'Overview of everything ready to claim (N key, or from Missions). Claim all: G key.',
+  'Les trouvailles (coffres, gemmes, portails) arrivent pendant le combat. Sac plein : les récompenses avec un objet attendent ici. Les marchands sont dans Missions › Aujourd\'hui.': 'Finds (chests, gems, portals) arrive during combat. Bag full: rewards with an item wait here. Merchants are in Missions › Today.',
+  'Langue, sauvegarde (export et import), compte, mises à jour ; Interface (dont les essais d\'affichage), Son et Fenêtre dans les onglets.': 'Language, save (export and import), account, updates; Interface (including display trials), Sound and Window in the tabs.',
 };
 
 // Traduction d'un morceau (nom de boost, de boss…) : fournie par ./en.js.
@@ -381,6 +389,20 @@ const UNIT_RE = '(or|gemmes?|fragments?|éclats?|essences?|tickets?|Étoiles?)';
 
 // Textes construits avec des valeurs.
 export const PATTERNS_910 = [
+  // v9.1.3 (chantier 6) : textes des chantiers restés en français (relevés par le parcours anglais).
+  [/^(\d+) objets? neufs?$/, (m) => `${m[1]} new item${m[1] === '1' ? '' : 's'}`],
+  [/^Améliorer (.+) \((\d+) pts?\)$/, (m) => `Upgrade ${tr(m[1])} (${m[2]} pt${m[2] === '1' ? '' : 's'})`],
+  [/^Améliorer (.+) \(([\d  ,.]+\s?[KMBT]?|[\d.e+]+)\)$/, (m) => `Upgrade ${tr(m[1])} (${m[2]})`],
+  [/^(.+), niveau (\d+)$/, (m) => `${tr(m[1])}, level ${m[2]}`],
+  [/^Région (.+)$/, (m) => `${tr(m[1])} region`],
+  [/^(Puissance|Chasse|Fortune|Héritage|Arcanes|Endurance|Pont) (\d+)$/, (m) => `${tr(m[1])} ${m[2]}`],
+  [/^→ (.+) : (\d+) points?$/, (m) => `→ ${tr(m[1])}: ${m[2]} point${m[2] === '1' ? '' : 's'}`],
+  [/^→ (.+) :$/, (m) => `→ ${tr(m[1])}:`],
+  [/^Rend les (.+) fragments investis\.$/, (m) => `Refunds the ${m[1]} invested fragments.`],
+  [/^à (\d+) :$/, (m) => `at ${m[1]}:`],
+  [/^(\d+)\. (.+) \((terminé|bloqué)\)$/, (m) => `${m[1]}. ${tr(m[2])} (${m[3] === 'terminé' ? 'cleared' : 'locked'})`],
+  [/^Maîtrise : (\d+) couronnes? sur (\d+) · (\d+)\/(\d+) boss découverts · (\d+) pouvoirs actifs à la fois\.$/, (m) => `Mastery: ${m[1]} crown${m[1] === '1' ? '' : 's'} of ${m[2]} · ${m[3]}/${m[4]} bosses discovered · ${m[5]} powers active at once.`],
+
   // v9.1.3 (chantier 3) : avant « Atteignez l'étape … » (plus général).
   [/^Atteignez l'étape (.+) pour renaître \(max (.+)\)\.$/, 'Reach stage $1 to be reborn (max $2).'],
   [new RegExp(`^Coût : ([\\d\\s.,]+\\s?[a-zA-Z]*) ${UNIT_RE}$`), (m) => `Cost: ${m[1]} ${UNITS_913[m[2]]}`],

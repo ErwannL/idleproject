@@ -7,8 +7,9 @@ import { upgradeProfits } from '../../core/profit.js';
 import { pref } from '../prefs.js';
 
 const ICONS = {
-  damage: 'weapon_sword', attackSpeed: 'icon_bolt', crit: 'skill_quick', vitality: 'icon_heart',
-  armor: 'icon_shield', regen: 'pet_fairy', goldFind: 'coin',
+  // v9.1.3 (doc2 §4) : icônes 20×20 dédiées (Critique ≠ Frappe rapide, Régénération ≠ fée, Dégâts et Or carrés).
+  damage: 'icon_damage', attackSpeed: 'icon_bolt', crit: 'icon_crit', vitality: 'icon_heart',
+  armor: 'icon_shield', regen: 'icon_regen', goldFind: 'icon_gold',
 };
 
 // Valeur affichée « actuel → suivant » pour chaque amélioration.

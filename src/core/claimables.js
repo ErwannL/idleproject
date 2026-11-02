@@ -2,7 +2,7 @@
 // action », aux pastilles rouges, à l'écran Objectifs > À récupérer et à la touche G — rien n'apparaît deux fois.
 // Seulement des récompenses : ni messages non lus, ni marchands (un achat reste une décision).
 import { BALANCE } from '../data/balance.js';
-import { MISSION_PERIODS, LOGIN_CALENDAR } from '../data/missions.js';
+import { MISSION_PERIODS } from '../data/missions.js';
 import { BOSSES } from '../data/enemies.js';
 import { bonusReady, loginDay, loginPending, loginPendingReward, loginReady, missionStatus, trackNext } from './missions.js';
 import { claimableAchievements } from './achievements.js';

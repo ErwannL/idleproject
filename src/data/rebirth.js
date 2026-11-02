@@ -45,14 +45,14 @@ export const LEGACY_TALENTS = [
   { id: 'core', name: 'Cœur du chevalier', branch: 'core', row: -1, col: 1, x: 0, y: 0, icon: 'icon_hero', max: 5, costBase: 1, costStep: 1, perLevel: { damagePct: 3, maxHpPct: 3 } },
   // Combat
   { id: 'power', name: 'Puissance', branch: 'combat', row: 0, col: 1, x: -1, y: 0, icon: 'skill_mastery', max: 10, costBase: 1, costStep: 1, perLevel: { damagePct: 10 }, requires: { id: 'core', level: 1 } },
-  { id: 'crit_master', name: "Maître d'armes", branch: 'combat', row: 1, col: 0, x: -2, y: 0, icon: 'skill_quick', max: 5, costBase: 2, costStep: 1, perLevel: { critChance: 2 }, requires: { id: 'power', level: 3 } },
+  { id: 'crit_master', name: "Maître d'armes", branch: 'combat', row: 1, col: 0, x: -2, y: 0, icon: 'icon_crit', max: 5, costBase: 2, costStep: 1, perLevel: { critChance: 2 }, requires: { id: 'power', level: 3 } },
   { id: 'giant_slayer', name: 'Tueur de géants', branch: 'combat', row: 1, col: 2, x: -2, y: -1, icon: 'icon_boss', max: 5, costBase: 2, costStep: 1, perLevel: { damageVsBossPct: 6 }, requires: { id: 'power', level: 3 } },
   { id: 'skill_mastery', name: 'Technique', branch: 'combat', row: 2, col: 0, x: -3, y: 0, icon: 'skill_whirl', max: 4, costBase: 3, costStep: 2, perLevel: { skillCooldownPct: 5 }, requires: { id: 'crit_master', level: 2 } },
   { id: 'swiftness', name: 'Célérité', branch: 'combat', row: 2, col: 2, x: -3, y: -1, icon: 'icon_bolt', max: 5, costBase: 3, costStep: 2, perLevel: { attackSpeedPct: 4 }, requires: { id: 'giant_slayer', level: 2 } },
   // Survie
   { id: 'endurance', name: 'Endurance', branch: 'survival', row: 0, col: 1, x: 0, y: 1, icon: 'icon_heart', max: 10, costBase: 1, costStep: 1, perLevel: { maxHpPct: 10 }, requires: { id: 'core', level: 1 } },
   { id: 'bulwark', name: 'Rempart', branch: 'survival', row: 1, col: 0, x: 0, y: 2, icon: 'icon_shield', max: 5, costBase: 2, costStep: 1, perLevel: { armor: 2 }, requires: { id: 'endurance', level: 3 } },
-  { id: 'second_wind', name: 'Second souffle', branch: 'survival', row: 1, col: 2, x: 1, y: 2, icon: 'pet_fairy', max: 4, costBase: 3, costStep: 2, perLevel: { regenPct: 0.5 }, requires: { id: 'endurance', level: 3 } },
+  { id: 'second_wind', name: 'Second souffle', branch: 'survival', row: 1, col: 2, x: 1, y: 2, icon: 'icon_regen', max: 4, costBase: 3, costStep: 2, perLevel: { regenPct: 0.5 }, requires: { id: 'endurance', level: 3 } },
   { id: 'spikes', name: 'Hérisson', branch: 'survival', row: 2, col: 0, x: 0, y: 3, icon: 'skill_cry', max: 5, costBase: 3, costStep: 2, perLevel: { thorns: 6 }, requires: { id: 'bulwark', level: 2 } },
   { id: 'vampirism', name: 'Soif de vie', branch: 'survival', row: 2, col: 2, x: 1, y: 3, icon: 'icon_essence', max: 5, costBase: 3, costStep: 2, perLevel: { lifesteal: 1 }, requires: { id: 'second_wind', level: 2 } },
   // Ressources

@@ -1,3 +1,45 @@
+## Idle RPG v9.1.3 — Écrans allégés, fiches, récompenses en icônes
+
+**Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.3-setup.exe). Votre partie
+est convertie automatiquement (une copie d'avant la mise à jour est gardée à part). **Serveur :** mettez le serveur à
+jour avant le jeu : la nouvelle version refuse une sauvegarde d'un format plus ancien que le sien.
+
+### Moins de texte, moins de conseils
+- Écrans allégés : Améliorations sur 2 lignes, sac plus compact (5 colonnes sur téléphone), Builds en cartes et repliés,
+  Talents, Renaissance (3 cartes) et Paramètres raccourcis ; les blocs repliés restent repliés d'une session à l'autre.
+- **Plus de recommandations** : plus de « le plus rentable », de « Conseillé », de « Répartir mes points » ni de
+  compagnons conseillés. Le bouton « Prochaine action » montre seulement : récupérer, objet meilleur, boss à retenter,
+  objectif. Le tri par rentabilité reste disponible comme simple outil.
+- Les onglets encore fermés annoncent le prochain déblocage (« Prochain : X à l'étape N »).
+
+### Fiches et icônes
+- **Fiches en feuille du bas** partout (objets, compagnons, boss) : même hauteur, ✕ toujours au même endroit ; la fiche
+  d'objet est rangée en onglets.
+- **Récompenses en icônes** (missions, connexion, Tour, expéditions) au lieu de longues phrases.
+- Nouvelles icônes pixel : Critique, Régénération, Dégâts, Or, Tour, Expéditions, Étoiles, XP, couronne, minuteur et
+  alerte (une icône = un seul sens).
+- Compétences et Boosts en grille, invocation en 3 lignes, expéditions en une ligne par place, carte du monde peinte.
+
+### Modes et objectifs
+- **Défis** : la Tour de l'Éternité et le Défi de la semaine réunis dans un même onglet.
+- **Missions** : missions du jour, **piste du mois** (remplace les missions de la semaine et du mois, progression
+  conservée) et hauts faits. La vue « À récupérer » s'ouvre en fenêtre (touche N), les marchands sont dans Aujourd'hui.
+- Changement de pouvoir de boss : une seule barrière, les charges (plus d'or) ; la garantie est expliquée derrière « ? ».
+
+### Monnaies et rangement
+- **Tickets convertis en gemmes** (1 ticket = 100 gemmes) et **essences converties en éclats** (1 essence = 10 éclats) :
+  rien n'est perdu.
+- **Mannequins rangés dans le Coffre** : filtre Ensemble et bouton « Porter » ; vos builds retrouvent leurs pièces.
+- **Forge et Coffre se débloquent à l'étape 10 et 20** (toujours ouverts si vous les utilisiez déjà).
+- Codex fondu dans l'encyclopédie, Musée en exposition automatique.
+
+### Confort
+- **Appui maintenu** au doigt sur les boutons d'achat : achat en continu, de plus en plus vite.
+- Hauts faits d'étape et de niveau corrigés, jours de connexion comptés sans remise à zéro.
+- **Essais d'affichage** (mode boss réduit, panneau à deux hauteurs, grille de compétences) dans Paramètres › Interface.
+- Corrections : Invocation › Apparences, fusion manuelle protégée, synchronisation bloquée si la sauvegarde en ligne
+  est plus récente.
+
 ## Idle RPG v9.1.2 — Création de compte et messages de connexion
 
 - Sans compte, Paramètres → Compte et sauvegarde en ligne propose de nouveau **Créer un compte joueur**

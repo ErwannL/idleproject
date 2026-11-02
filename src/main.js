@@ -61,7 +61,6 @@ import { BUILT_IN_TOKEN } from './core/update-token.js';
 import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagList, updateStatus } from './core/update.js';
 
 const SIM_INTERVAL_MS = 100;
-const formatRatio = (x) => (x >= 100 ? formatNumber(Math.round(x)) : x.toFixed(2).replace('.', ','));
 // v9.1.0 : codes de triche chargés seulement dans la version dev (fichier absent de la version publique).
 let cheatCodes = null;
 

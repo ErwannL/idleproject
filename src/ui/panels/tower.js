@@ -4,7 +4,7 @@ import { formatDuration } from '../../core/format.js';
 import { TOWER, climbsLeft, towerBoss, towerLevel, towerReward, towerTimeLeft, towerUnlocked, towerWeek, weeklyReward } from '../../core/tower.js';
 import { stageLabel } from '../../core/combat.js';
 import { animCanvas } from '../animator.js';
-import { escapeHtml, fold, formatNumber, img, rewardIcons, segment } from '../common.js';
+import { escapeHtml, fold, formatNumber, glyph, img, rewardIcons, segment } from '../common.js';
 import { challengeTriesLeft, challengeUnlocked } from '../../core/challenge.js';
 import { challengeCard } from './dungeons.js';
 import { bossTrait } from '../../core/boss-traits.js';
@@ -25,7 +25,7 @@ function floorsList(state, from) {
     const weekly = f <= weekBest ? '<span class="good">Semaine ✔</span>' : `<span>Semaine ${rewardIcons(weeklyReward(f))}</span>`;
     rows.push(`<div class="tower-floor${current ? ' current' : ''}${f <= weekBest ? ' done' : ''}${mega ? ' mega' : ''}">
       <span class="tf-num">${f}</span>
-      <span class="tf-boss">${mega ? '👑 ' : ''}${escapeHtml(bossName(f))} <span class="muted">niv. ${formatNumber(towerLevel(state, f))}</span></span>
+      <span class="tf-boss">${mega ? `${glyph('icon_crown')} ` : ''}${escapeHtml(bossName(f))} <span class="muted">niv. ${formatNumber(towerLevel(state, f))}</span></span>
       <span class="tf-reward">${weekly}${record}</span></div>`);
   }
   return rows.join('');
@@ -43,11 +43,11 @@ function nextReset() {
 export default {
   id: 'tower',
   title: 'Défis',
-  icon: 'icon_star',
+  icon: 'icon_tower',
   extra: (ui, state) => (towerUnlocked(state) ? `Record : <b class="num">${state.towerBest ?? 0}</b>` : ''),
   render(ui, state) {
     const chOpen = challengeUnlocked(state) || Boolean(state.challenge);
-    const parts = [['tower', 'Tour', 'icon_star'], ...(chOpen ? [['challenge', 'Défi de la semaine', 'icon_skull']] : [])];
+    const parts = [['tower', 'Tour', 'icon_tower'], ...(chOpen ? [['challenge', 'Défi de la semaine', 'icon_skull']] : [])];
     const forced = state.challenge ? 'challenge' : state.tower ? 'tower' : null;
     const tab = forced ?? (parts.some(([id]) => id === ui.view.defiTab) ? ui.view.defiTab : (towerUnlocked(state) || !chOpen ? 'tower' : 'challenge'));
     const seg = parts.length > 1 ? segment(parts.map(([id, l, ic]) => [id, id === 'challenge' && !state.challenge ? `${l} (${challengeTriesLeft(state)})` : l, ic]), 'defi-tab', tab) : '';
@@ -69,7 +69,7 @@ function towerBody(ui, state) {
     const action = run
       ? `<div class="row-between"><b class="gold-text">Étage ${run.floor} : ${escapeHtml(bossName(run.floor))}</b>
           <button class="btn btn-danger small" data-action="leave-tower">Quitter la tour</button></div>
-        <div>⌛ Effondrement dans <b>${formatDuration(towerTimeLeft(state))}</b> de combat.</div>`
+        <div>${glyph('icon_timer')} Effondrement dans <b>${formatDuration(towerTimeLeft(state))}</b> de combat.</div>`
       : climbsLeft(state) > 0
         ? `<button class="btn btn-gold enter-btn primary-action" data-action="enter-tower" ${state.dungeon || state.challenge ? 'disabled' : ''}>Monter (${climbsLeft(state)} ascension${climbsLeft(state) > 1 ? 's' : ''} cette semaine)</button>
           ${state.dungeon || state.challenge ? '<div class="bad">Terminez d\'abord le donjon ou le défi.</div>' : ''}`

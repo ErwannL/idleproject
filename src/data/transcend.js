@@ -23,7 +23,7 @@ export const TRANSCEND_KEEPS = [
 
 // Bonus stellaires (achetés avec les Étoiles). Coût du niveau n = base + step × n.
 export const TRANSCEND_PERKS = [
-  { id: 'stellar', name: 'Puissance stellaire', icon: 'icon_star', max: 100, base: 1, step: 0.34, text: (lv) => `Dégâts, PV et or ×${fmt(1.5 ** lv)}` },
+  { id: 'stellar', name: 'Puissance stellaire', icon: 'icon_stars', max: 100, base: 1, step: 0.34, text: (lv) => `Dégâts, PV et or ×${fmt(1.5 ** lv)}` },
   { id: 'scaling', name: 'Entropie', icon: 'icon_skull', max: 10, base: 5, step: 3, text: (lv) => `Les ennemis grandissent ${lv * 2} % moins vite par étape` },
   { id: 'rebirth', name: 'Renaissance sublimée', icon: 'icon_rebirth', max: 10, base: 3, step: 2, text: (lv) => `Chaque Renaissance multiplie par ${fmt(1.5 + 0.05 * lv)} au lieu de 1,5` },
   { id: 'memory', name: 'Mémoire du guerrier', icon: 'icon_upgrade', max: 10, base: 2, step: 1, text: (lv) => `Après une Renaissance, ${lv * 5} % des niveaux d'amélioration sont conservés` },

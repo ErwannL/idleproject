@@ -32,7 +32,6 @@ export default {
   render(ui, state) {
     const list = ui.claims;
     const ready = list.filter((c) => !c.blocked);
-    const full = state.inventory.length >= BALANCE.loot.inventorySize;
     const rows = list.map((c) => `<div class="claim-row${c.blocked ? ' blocked' : ''}">${img(KIND_ICONS[c.kind] ?? 'icon_chest')}
         <div class="grow"><b>${escapeHtml(c.label)}</b><div class="gold-text">${rewardIcons(c.reward) || (c.item ? 'Un objet' : '')}${c.item && rewardText(c.reward, formatNumber) ? ' · un objet' : ''}</div></div>
         ${c.itemRef ? itemFrame(c.itemRef, { tag: 'div' }) : ''}${c.blocked ? `<span class="bad">${c.blocked}</span>` : ''}</div>`).join('');

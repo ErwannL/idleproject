@@ -12,7 +12,7 @@ import {
 } from '../../core/rebirth.js';
 import { perkCost } from '../../core/prestige.js';
 import { PRESTIGE, PRESTIGE_PERKS } from '../../data/prestige.js';
-import { costButton, effectText, escapeHtml, fold, fragment, formatNumber, img, segment } from '../common.js';
+import { costButton, effectText, escapeHtml, fold, fragment, formatNumber, img, segment, starsIcon } from '../common.js';
 import { memoryShare } from '../../core/transcend.js';
 
 export function keepResetLists() {
@@ -295,7 +295,7 @@ function rebirthView(ui, state) {
   const total = f.total > 1 ? `<div class="rb-total"><span class="muted">Prestige actuel</span> <b class="good">×${mult(f.total)}</b> <span class="muted">dégâts, PV et or</span></div>` : '';
   return `<div class="card rebirth-card">
       <div class="row-between"><b>${img('icon_rebirth')} Renaissance</b><span class="muted">${state.records.rebirths} effectuée${state.records.rebirths > 1 ? 's' : ''}</span></div>
-      ${can ? `<div class="rb-tiles">${tile('icon_fragment', `+${formatNumber(reward)}`, 'fragments')}${tile('weapon_sword', `×${gain.toFixed(2).replace('.', ',')}`, 'pour toujours')}${tile('icon_boss', '1', 'pouvoir conservé')}</div>`
+      ${can ? `<div class="rb-tiles">${tile('icon_fragment', `+${formatNumber(reward)}`, 'fragments')}${tile('icon_damage', `×${gain.toFixed(2).replace('.', ',')}`, 'pour toujours')}${tile('icon_boss', '1', 'pouvoir conservé')}</div>`
         : `<div>Atteignez l'étape ${stageLabel(REBIRTH.minStage)} pour renaître (max ${stageLabel(state.maxStage)}).</div>`}
       <div class="muted">Retour à l'étape 1${keep > 0 ? ` (${Math.round(keep * 100)} % des améliorations gardés)` : ''} ; le détail est dans la confirmation.</div>
       ${blocked && can ? `<div class="bad">${blocked}</div>` : ''}
@@ -326,7 +326,7 @@ function bonusList(state) {
   const stellar = !showStellar ? '' : TRANSCEND_PERKS.map((perk) => {
     const level = perkLevel(state, perk.id);
     const maxed = level >= perk.max;
-    return `<div class="perk-row">${img(perk.icon)}<div class="grow"><b>${escapeHtml(perk.name)}</b> <span class="muted">${level}/${perk.max} ✧</span>
+    return `<div class="perk-row">${img(perk.icon)}<div class="grow"><b>${escapeHtml(perk.name)}</b> <span class="muted">${level}/${perk.max}</span> ${starsIcon()}
         <div class="${level ? 'good' : 'muted'}">${perk.text(Math.max(1, level))}${level ? '' : ' (au niveau 1)'}</div></div>
       ${costButton({ action: 'buy-tperk', cost: transcendPerkCost(perk, level), have: t.stars, currency: 'stars', attrs: `data-key="${perk.id}"`, cls: 'btn-gold small', max: maxed })}
       ${maxed ? '' : `<button class="btn small" data-action="buy-tperk-max" data-key="${perk.id}">Max</button>`}</div>`;
@@ -345,8 +345,8 @@ function transcendFold(ui, state) {
     <div class="muted">Recommencez tout (Renaissances comprises, ${Math.round(keptRebirthShare(state) * 100)} % gardées) contre des <b>Étoiles</b> ;
       chaque Transcendance multiplie aussi dégâts, PV et or ×${TRANSCEND.powerPerTranscend} pour toujours.</div>
     ${reward > 0 && rebirthBlocked(state) ? `<div class="bad">${rebirthBlocked(state)}</div>` : ''}
-    <button class="btn btn-gold" data-action="transcend" ${reward > 0 && !rebirthBlocked(state) ? '' : 'disabled'}>Transcender (+${formatNumber(reward)} ✧)</button>`,
-  { extra: `${t.count} · ${formatNumber(t.stars)} ✧` });
+    <button class="btn btn-gold" data-action="transcend" ${reward > 0 && !rebirthBlocked(state) ? '' : 'disabled'}>Transcender <b class="num">+${formatNumber(reward)}</b> ${starsIcon()}</button>`,
+  { extra: `${t.count} · ${formatNumber(t.stars)} ${starsIcon()}` });
 }
 
 export function transcendKeepResetLists() {

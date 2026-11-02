@@ -7,9 +7,7 @@ import { bossTrait } from '../core/boss-traits.js';
 import { DUNGEONS } from '../data/dungeons.js';
 import { bossTierForStage, currentEncounter, difficultyForStage, isBossStage, stageLabel, zoneForStage, zoneIndexForStage } from '../core/combat.js';
 import { eventLabel } from '../core/events.js';
-import { formatDecimal, formatDuration, formatNumber } from '../core/format.js';
-import { isUpgrade } from '../core/inventory.js';
-import { upgradeCost } from '../core/economy.js';
+import { formatDuration, formatNumber } from '../core/format.js';
 import { xpForLevel } from '../core/level.js';
 import { rarityById } from '../core/loot.js';
 import { maxCharges, powerById } from '../core/powers.js';
@@ -19,18 +17,18 @@ import { REBIRTH, TALENT_BRANCHES } from '../data/rebirth.js';
 import { keptRebirthShare, transcendReward } from '../core/transcend.js';
 import { TRANSCEND } from '../data/transcend.js';
 import { rewardText } from '../core/rewards.js';
-import { skillCooldown, skillPointsAvailable } from '../core/skills.js';
+import { skillCooldown } from '../core/skills.js';
 import { computeHeroStats } from '../core/stats.js';
 import { KEY_LABELS, boostKeys, cycleSub, focusables, installShortcuts, keyConflict, keyLabel, setCustomKeys, setMenuCount, shortcutsHtml } from './shortcuts.js';
 import { installHoldToRepeat, selectorFor, holdFiredRecently } from './hold.js';
 import { installTips } from './tip.js';
 import { playSummonReveal } from './summon-fx.js';
-import { coin, effectText, escapeHtml, fold, icon, img, itemFrame, missingText, rewardIcons } from './common.js';
+import { coin, effectText, escapeHtml, fold, glyph, icon, img, itemFrame, missingText, rewardIcons } from './common.js';
 import { GAME_VERSION } from '../version.js';
 import { mutationById } from '../core/mutations.js';
 import boss from './panels/boss.js';
 import encyclopedia from './panels/encyclopedia.js';
-import { encyclopediaNext, encyclopediaProgress } from '../core/encyclopedia.js';
+import { encyclopediaProgress } from '../core/encyclopedia.js';
 import campaign from './panels/campaign.js';
 import companions from './panels/companions.js';
 import expeditions from './panels/expeditions.js';
@@ -38,11 +36,9 @@ import contracts from './panels/contracts.js';
 import dungeons from './panels/dungeons.js';
 import tower from './panels/tower.js';
 import { TOWER, towerTimeLeft } from '../core/tower.js';
-import { claimableAchievements } from '../core/achievements.js';
 import { cheatTimes, simSpeed, unlockedSpeeds } from '../core/cheats.js';
 import { PRESTIGE } from '../data/prestige.js';
 import { PANEL_HELP, betterItem, nextAction } from '../core/guide.js';
-import { heroPower } from '../core/combat.js';
 import hero from './panels/hero.js';
 import inbox from './panels/inbox.js';
 import inventory, { visibleItems } from './panels/inventory.js';
@@ -51,12 +47,10 @@ import skills from './panels/skills.js';
 import summon from './panels/summon.js';
 import tree, { DEFAULT_ZOOM as TREE_ZOOM, keepResetLists, recenterTree, transcendKeepResetLists } from './panels/tree.js';
 import upgrades from './panels/upgrades.js';
-import { missionsClaimable } from '../core/missions.js';
 import { earlyBoost } from '../core/boost.js';
 import { RUSHES } from '../data/rushes.js';
 import { SKILLS } from '../data/skills.js';
 import { rushUnlocked } from '../core/rushes.js';
-import { dungeonById } from '../core/dungeon.js';
 import { newItemsInBag } from '../core/journal.js';
 import { measureFarmRate } from '../core/offline.js';
 import { claimables, claimablesByTab } from '../core/claimables.js';
@@ -64,7 +58,6 @@ import { isPhone, pref, reduceMotion, setPref } from './prefs.js';
 import { openSearch } from './search.js';
 import { setById } from '../core/sets.js';
 import { availableForExpedition, readyExpeditions } from '../core/expeditions.js';
-import { bountyReady } from '../core/bounty.js';
 import { CHALLENGE, bossEvery, challengeUnlocked } from '../core/challenge.js';
 import { ZONES } from '../data/zones.js';
 import { CURRENCIES, currencyAmount } from '../data/currencies.js';
@@ -76,7 +69,7 @@ const PANELS = Object.fromEntries([upgrades, inventory, hero, companions, expedi
   .map((p) => [p.id, p]));
 const SUB_ICONS = {
   upgrades: 'icon_upgrade', skills: 'skill_quick', tree: 'icon_tree', hero: 'icon_hero', inventory: 'icon_bag',
-  companions: 'icon_paw', expeditions: 'icon_chest', summon: 'icon_summon', campaign: 'icon_map', dungeons: 'icon_dungeon', tower: 'icon_star',
+  companions: 'icon_paw', expeditions: 'icon_expedition', summon: 'icon_summon', campaign: 'icon_map', dungeons: 'icon_dungeon', tower: 'icon_tower',
   boss: 'icon_boss', encyclopedia: 'icon_book', contracts: 'icon_trophy', inbox: 'icon_mail',
 };
 // v9.1.0 : présentation courte en haut de l'onglet, à sa première ouverture (plus de bulle « Nouveau »).
@@ -114,15 +107,15 @@ function powerChoice(state) {
 // Lignes du journal de session (seules les valeurs non nulles).
 export function journalHtml(j) {
   const rows = [
-    j.stages && ['icon_star', 'Étapes conquises', `+${formatNumber(j.stages)} (record ${stageLabel(j.maxStage)})`],
+    j.stages && ['icon_map', 'Étapes conquises', `+${formatNumber(j.stages)} (record ${stageLabel(j.maxStage)})`],
     j.levels && ['icon_upgrade', 'Niveaux du héros', `+${formatNumber(j.levels)}`],
     j.bosses && ['icon_skull', 'Boss vaincus', formatNumber(j.bosses)],
-    j.kills && ['skill_quick', 'Ennemis vaincus', formatNumber(j.kills)],
-    j.gold && ['coin', 'Or gagné', `+${formatNumber(j.gold)}`],
+    j.kills && ['icon_damage', 'Ennemis vaincus', formatNumber(j.kills)],
+    j.gold && ['icon_gold', 'Or gagné', `+${formatNumber(j.gold)}`],
     j.items && ['icon_bag', 'Objets ramassés', `${formatNumber(j.items)} — ${formatNumber(j.inBag)} encore dans le sac`],
     j.recycled && ['icon_shard', 'Objets recyclés', `${formatNumber(j.recycled)} (+${formatNumber(j.recycledGold)} or)`],
     j.fused && ['icon_anvil', 'Fusions automatiques', formatNumber(j.fused)],
-    j.tower && ['icon_star', 'Tour de l\'Éternité', `+${j.tower} étage${j.tower > 1 ? 's' : ''} de record`],
+    j.tower && ['icon_tower', 'Tour de l\'Éternité', `+${j.tower} étage${j.tower > 1 ? 's' : ''} de record`],
   ].filter(Boolean);
   if (!rows.length) return '<p class="muted">Rien de notable pour l\'instant.</p>';
   return `<div class="journal">${rows.map(([ic, label, value]) => `<div class="journal-row">${img(ic)}<span>${label}</span><b>${value}</b></div>`).join('')}</div>`;
@@ -306,7 +299,7 @@ export class UI {
   }
 
   showSpeedWarning() {
-    this.openModal(`<h2>⚠ Vitesse ×100</h2>
+    this.openModal(`<h2>${glyph('icon_alert')} Vitesse ×100</h2>
       <p>À cette vitesse, les combats défilent extrêmement vite. Pour éviter les clignotements (personnes sensibles
         à l'épilepsie photosensible), <b>les effets visuels sont coupés</b> : plus de flashs, de chiffres de dégâts,
         de secousses ni de bannières.</p>
@@ -317,7 +310,7 @@ export class UI {
 
   // v9.0.2 : mise à jour lancée mais version inchangée au redémarrage.
   showUpdateFailed(info) {
-    this.openModal(`<h2>⚠ La mise à jour n'a pas pu s'installer</h2>
+    this.openModal(`<h2>${glyph('icon_alert')} La mise à jour n'a pas pu s'installer</h2>
       <p>La version ${escapeHtml(info.version)} a été téléchargée, mais le jeu est toujours en version ${escapeHtml(GAME_VERSION)}.</p>
       <p class="muted">Causes possibles : place disque insuffisante, antivirus qui bloque l'installateur, ou fermeture
       de l'installateur. Relancez-le : cette fois sa fenêtre s'affiche et indique le problème éventuel. Votre partie est conservée.</p>
@@ -444,7 +437,7 @@ export class UI {
 
   // v9.1.0 : réinitialisation isolée — ce qui est perdu, export proposé, bouton actif après la saisie de EFFACER.
   showResetConfirm() {
-    this.openModal(`<h2>⚠ Réinitialiser la partie</h2>
+    this.openModal(`<h2>${glyph('icon_alert')} Réinitialiser la partie</h2>
       <p>Tout est effacé sur cet appareil : niveau, or, gemmes, objets, compagnons, talents, Renaissances, records et la copie de
         secours. <b class="bad">C'est définitif.</b></p>
       <div class="options-row"><button class="btn small" data-action="export-save" data-value="file">Exporter ma partie d'abord</button></div>
@@ -1676,7 +1669,7 @@ export class UI {
   showTranscendConfirm(state) {
     const stars = transcendReward(state);
     if (!stars || rebirthBlocked(state)) return;
-    this.openModal(`<h2>✧ Transcendance</h2>
+    this.openModal(`<h2>${glyph('icon_stars')} Transcendance</h2>
       <p>Vous gagnerez <b class="gold-text">+${formatNumber(stars)} Étoiles</b> et dégâts, PV et or <b>×${TRANSCEND.powerPerTranscend}</b> pour toujours.</p>
       <p>Tout repart de l'étape 1 : Renaissances (${Math.round(keptRebirthShare(state) * 100)} % conservées), arbre de talents et fragments anciens
         sont remis à zéro. L'équipement, les compagnons, les gemmes et les bonus éternels sont conservés.</p>
