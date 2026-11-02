@@ -47,18 +47,36 @@ test('missions : récompenses en gemmes, coffre bonus quand tout est récupéré
   assert.deepEqual(back.missions, state.missions);
 });
 
-test('connexion : série de jours consécutifs, remise à zéro après un jour manqué', () => {
+test('connexion (v9.1.3) : jour compté à l\'ouverture, sans remise à zéro, cases non récupérées gardées', () => {
   const state = createNewState(0, 5);
   refreshMissions(state, day(2026, 10, 1));
   assert.equal(loginDay(state), 0);
   assert.ok(claimLogin(state));
   assert.equal(claimLogin(state), null);
-  refreshMissions(state, day(2026, 10, 2));
-  assert.equal(state.missions.login.streak, 2);
+  refreshMissions(state, day(2026, 10, 2)); // ouvert sans récupérer
+  assert.equal(state.missions.login.days, 2);
   assert.equal(loginDay(state), 1);
-  refreshMissions(state, day(2026, 10, 5)); // jours manqués
-  assert.equal(state.missions.login.streak, 1);
+  refreshMissions(state, day(2026, 10, 5)); // jours manqués : pas de retour au jour 1
+  assert.equal(state.missions.login.days, 3);
   assert.equal(state.missions.monthly.progress.logins, 3);
+  const gems = state.gems;
+  const tickets = state.tickets;
+  const given = claimLogin(state); // jours 2 et 3 d'un coup
+  assert.deepEqual(given, { tickets: 1, gems: 50 });
+  assert.equal(state.gems, gems + 50);
+  assert.equal(state.tickets, tickets + 1);
+  assert.equal(loginDay(state), 3);
+  // Au plus un cycle en attente.
+  for (let d = 6; d < 20; d++) refreshMissions(state, day(2026, 10, d));
+  assert.equal(state.missions.login.days - state.missions.login.claimed, 7);
+});
+
+test('connexion (v9.1.3) : migration de l\'ancienne série', () => {
+  const old = (login) => sanitizeState({ ...JSON.parse(JSON.stringify(createNewState(0, 5))), missions: { login } }, BALANCE, 0).missions.login;
+  // Jour du dernier lancement non récupéré : il reste à récupérer.
+  assert.deepEqual(old({ lastDay: '2026-10-02', streak: 2, claimedDay: '2026-10-01' }), { lastDay: '2026-10-02', days: 2, claimed: 1 });
+  assert.deepEqual(old({ lastDay: '2026-10-02', streak: 2, claimedDay: '2026-10-02' }), { lastDay: '2026-10-02', days: 2, claimed: 2 });
+  assert.deepEqual(old({ lastDay: '', streak: 0, claimedDay: '' }), { lastDay: '', days: 0, claimed: 0 });
 });
 
 test('démarrage rapide : bonus fort au début, disparu après 5 h de jeu', () => {

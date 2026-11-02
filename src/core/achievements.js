@@ -1,14 +1,18 @@
 // Hauts faits (v8.3) : défis permanents mesurés sur toute la partie (jamais réinitialisés).
 // Chacun se réclame une fois contre des gemmes, et chaque haut fait obtenu donne un petit bonus
 // permanent : +1 % de dégâts et +1 % d'or (source « Hauts faits » dans la fiche du héros).
+import { COMPANIONS } from '../data/companions.js';
+
 const totalCleared = (s) => Object.values(s.dungeonsCleared ?? {}).reduce((a, b) => a + b, 0);
-const owned = (s) => Object.keys(s.companions?.owned ?? {}).length;
+// v9.1.3 : seuls les compagnons et familiers qui existent comptent (COMPANIONS contient les deux).
+const owned = (s) => COMPANIONS.filter((c) => s.companions?.owned?.[c.id]).length;
 
 const METRICS = {
   kills: { label: 'Ennemis vaincus', value: (s) => s.records.kills },
   bosses: { label: 'Boss vaincus', value: (s) => s.records.bossesDefeated },
-  stage: { label: 'Étape maximale', value: (s) => s.maxStage },
-  level: { label: 'Niveau du héros', value: (s) => s.level },
+  // v9.1.3 : records qui ne retombent pas après une Renaissance (S1b).
+  stage: { label: 'Étape maximale', value: (s) => Math.max(s.records.bestStage ?? 0, s.maxStage) },
+  level: { label: 'Niveau du héros', value: (s) => Math.max(s.records.bestLevel ?? 0, s.level) },
   items: { label: 'Objets trouvés', value: (s) => s.records.itemsFound },
   summons: { label: 'Invocations', value: (s) => s.records.summons },
   rebirths: { label: 'Renaissances', value: (s) => s.records.rebirths },
@@ -33,7 +37,7 @@ const LIST = [
   ['sum1', 'Premier appel', 'summons', 10, 20], ['sum2', 'Invocateur', 'summons', 200, 100], ['sum3', 'Maître des portails', 'summons', 1000, 300],
   ['reb1', 'Renaissance', 'rebirths', 1, 50], ['reb2', 'Phénix', 'rebirths', 10, 200], ['reb3', 'Éternel retour', 'rebirths', 50, 500],
   ['tow1', 'Grimpeur', 'tower', 10, 60], ['tow2', 'Cime des nuages', 'tower', 30, 200], ['tow3', 'Gardien de l\'Éternité', 'tower', 75, 500],
-  ['team1', 'Compagnie', 'team', 5, 30], ['team2', 'Légion', 'team', 15, 120], ['team3', 'Ménagerie complète', 'team', 30, 350],
+  ['team1', 'Compagnie', 'team', 5, 30], ['team2', 'Légion', 'team', 15, 120], ['team3', 'Ménagerie complète', 'team', COMPANIONS.length, 350],
   ['dun1', 'Explorateur', 'dungeons', 1, 30], ['dun2', 'Pilleur de cryptes', 'dungeons', 25, 120], ['dun3', 'Seigneur des profondeurs', 'dungeons', 150, 350],
   ['con1', 'Mercenaire', 'contracts', 10, 30], ['con2', 'Homme de parole', 'contracts', 150, 150],
   ['gold1', 'Bourse pleine', 'gold', 1e6, 20], ['gold2', 'Trésorier', 'gold', 1e12, 100], ['gold3', 'Roi Midas', 'gold', 1e24, 400],

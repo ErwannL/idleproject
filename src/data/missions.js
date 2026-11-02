@@ -44,8 +44,8 @@ export const MISSION_PERIODS = [
   },
 ];
 
-// Calendrier de connexion : une récompense par jour consécutif, puis le cycle recommence.
-// Manquer un jour ramène au jour 1.
+// Calendrier de connexion : une récompense par jour de connexion, puis le cycle recommence.
+// v9.1.3 : un jour manqué ne remet plus le calendrier à zéro (les jours comptent, pas la série).
 export const LOGIN_CALENDAR = [
   { gems: 30 },
   { tickets: 1 },

@@ -1878,7 +1878,6 @@ export const PATTERNS = [
   [/^Terminer (\d+) donjons$/, 'Clear $1 dungeons'],
   [/^Faire (\d+) invocations$/, 'Do $1 summons'],
   [/^Se connecter (\d+) jours$/, 'Log in on $1 days'],
-  [/^Série : (\d+) jour\(s\) consécutif\(s\)\. Manquer un jour ramène au jour 1\.$/, 'Streak: $1 day(s) in a row. Missing a day sends you back to day 1.'],
   [/^J(\d+)$/, 'D$1'],
   [/^Récompense complète \((\d+)\/(\d+)\)$/, 'Full reward ($1/$2)'],
   [/^dans (.+)$/, (m) => (/\d/.test(m[1]) ? `in ${dur(m[1])}` : null)],

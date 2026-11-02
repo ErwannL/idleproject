@@ -22,7 +22,7 @@ import { PRESTIGE } from '../data/prestige.js';
 import { sanitizeRushes } from './rushes.js';
 import { sanitizeCheats, unlockedSpeeds } from './cheats.js';
 import { TOWER, sanitizeTower } from './tower.js';
-import { sanitizeAchievements } from './achievements.js';
+import { ACHIEVEMENTS, sanitizeAchievements } from './achievements.js';
 import { emptyLoadouts, sanitizeLoadouts } from './loadouts.js';
 import { emptyCodex, sanitizeCodex } from './codex.js';
 import { sanitizeHeroClass } from './classes.js';
@@ -60,6 +60,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     records: {
       goldEarned: 0, kills: 0, bossesDefeated: 0, itemsFound: 0, rebirths: 0, contractsDone: 0, summons: 0,
       bestStage: 1, // v9.1.0 : meilleure étape jamais atteinte (la Renaissance ne la remet pas à zéro)
+      bestLevel: 1, // v9.1.3 : meilleur niveau du héros jamais atteint (idem)
     },
     ui: { slotFilter: 'all', sortBy: 'rarity', autoRecycle: 'off',
       // Étape 3 (gains UX) : nouvelle partie → les Communs moins bons que l'équipé sont recyclés quand le sac est plein.
@@ -401,6 +402,11 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   state.talentRespecs = int(raw.talentRespecs, 0);
 
   state.level = Math.min(int(raw.level, 1, 1), balance.level.maxLevel);
+  // v9.1.3 : record de niveau et d'étape, au moins le niveau actuel et les paliers de hauts faits déjà réclamés.
+  const rawClaimed = sanitizeAchievements(raw.achievements).claimed;
+  const claimedTarget = (metric) => Math.max(1, ...ACHIEVEMENTS.filter((a) => a.metric === metric && rawClaimed[a.id]).map((a) => a.target));
+  state.records.bestLevel = Math.min(balance.level.maxLevel, Math.max(state.records.bestLevel, state.level, claimedTarget('level')));
+  state.records.bestStage = Math.max(state.records.bestStage, claimedTarget('stage'));
   state.xp = num(raw.xp, 0);
   if (raw.skills && typeof raw.skills === 'object') {
     state.skills = {};

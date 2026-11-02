@@ -5,7 +5,7 @@ import { ZONES } from '../../data/zones.js';
 import { ITEM_SETS } from '../../data/sets.js';
 import { animCanvas } from '../animator.js';
 import { contractLabel, contractTitle } from '../../core/contracts.js';
-import { bonusReady, loginDay, loginReady, missionStatus, periodRemaining } from '../../core/missions.js';
+import { bonusReady, loginPending, missionStatus, periodRemaining } from '../../core/missions.js';
 import { rewardText } from '../../core/rewards.js';
 import { LOGIN_CALENDAR, MISSION_PERIODS } from '../../data/missions.js';
 import { escapeHtml, fold, formatNumber, img, progressBar, segment } from '../common.js';
@@ -55,15 +55,18 @@ function row({ icon, label, progress, target, reward, done, claimed, action, val
 }
 
 function loginTab(state) {
-  const day = loginDay(state);
-  const ready = loginReady(state);
+  const login = state.missions.login;
+  const pending = loginPending(state);
+  const n = LOGIN_CALENDAR.length;
+  // v9.1.3 : cases déjà récupérées dans le cycle en cours (le cycle complet reste affiché jusqu'au jour suivant).
+  const got = pending ? login.claimed % n : login.claimed > 0 ? ((login.claimed - 1) % n) + 1 : 0;
   const cells = LOGIN_CALENDAR.map((r, i) => {
-    const st = i < day || (i === day && !ready) ? 'got' : i === day ? 'today' : '';
+    const st = i < got ? 'got' : i < got + pending ? 'today' : '';
     return `<div class="login-day ${st}"><b>J${i + 1}</b><span>${rewardText(r, formatNumber).replaceAll(' · ', '<br>')}</span></div>`;
   }).join('');
-  return `<div class="muted">Série : ${state.missions.login.streak} jour(s) consécutif(s). Manquer un jour ramène au jour 1.</div>
+  return `<div class="muted">Jours de connexion : ${login.days}. Un jour manqué ne remet pas le calendrier à zéro.</div>
     <div class="login-cal">${cells}</div>
-    <button class="btn ${ready ? 'btn-gold' : ''}" data-action="claim-login" ${ready ? '' : 'disabled'}>${ready ? 'Récupérer' : 'Revenez demain'}</button>`;
+    <button class="btn ${pending ? 'btn-gold' : ''}" data-action="claim-login" ${pending ? '' : 'disabled'}>${pending > 1 ? `Récupérer ${pending} jours` : pending ? 'Récupérer' : 'Revenez demain'}</button>`;
 }
 
 function periodTab(state, period) {
@@ -139,7 +142,7 @@ export default {
         ${fold(ui, 'monthly', period('monthly').label, () => periodTab(state, period('monthly')), { extra: ready.week && count(['monthly']) ? `<span class="good">${count(['monthly'])} prête${count(['monthly']) > 1 ? 's' : ''}</span>` : '' })}`;
     } else {
       body = `<div class="card m-body"><div class="section-title">${period('daily').label}</div>${periodTab(state, period('daily'))}</div>
-        ${fold(ui, 'login', 'Connexion', () => loginTab(state), { open: loginReady(state), extra: loginReady(state) ? '<span class="good">à récupérer</span>' : '' })}
+        ${fold(ui, 'login', 'Connexion', () => loginTab(state), { open: (loginPending(state) > 0), extra: (loginPending(state) > 0) ? '<span class="good">à récupérer</span>' : '' })}
         ${bountyCard(state)}
         <div class="card m-body"><div class="section-title">Contrats</div>${contractsTab(state)}</div>`;
     }

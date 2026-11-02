@@ -21,5 +21,7 @@ export function addXp(state, amount, balance = BALANCE) {
     gained += 1;
   }
   if (state.level >= balance.level.maxLevel) state.xp = 0;
+  // v9.1.3 : record de niveau (la Renaissance remet le niveau à 1, pas le record).
+  if (state.records && state.level > (state.records.bestLevel ?? 0)) state.records.bestLevel = state.level;
   return gained;
 }

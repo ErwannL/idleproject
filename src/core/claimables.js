@@ -5,7 +5,7 @@ import { BALANCE } from '../data/balance.js';
 import { MISSION_PERIODS, LOGIN_CALENDAR } from '../data/missions.js';
 import { COLLECTIONS } from '../data/codex.js';
 import { BOSSES } from '../data/enemies.js';
-import { bonusReady, loginDay, loginReady, missionStatus } from './missions.js';
+import { bonusReady, loginDay, loginPending, loginPendingReward, loginReady, missionStatus } from './missions.js';
 import { claimableAchievements } from './achievements.js';
 import { BOUNTY, bountyReady } from './bounty.js';
 import { expeditionDone } from './expeditions.js';
@@ -21,7 +21,7 @@ export function claimables(state, now = Date.now(), balance = BALANCE) {
   const full = state.inventory.length >= balance.loot.inventorySize;
   const push = (entry) => out.push({ item: false, reward: {}, ...entry, blocked: entry.item && full ? 'Sac plein' : null });
   if (state.missions) {
-    if (loginReady(state)) push({ key: 'login', kind: 'login', label: `Connexion : jour ${loginDay(state) + 1}`, reward: LOGIN_CALENDAR[loginDay(state)], tab: 'contracts' });
+    if (loginReady(state)) push({ key: 'login', kind: 'login', label: loginPending(state) > 1 ? `Connexion : ${loginPending(state)} jours` : `Connexion : jour ${loginDay(state) + 1}`, reward: loginPendingReward(state), tab: 'contracts' });
     for (const p of MISSION_PERIODS) {
       for (const m of p.missions) {
         const st = missionStatus(state, p.id, m);

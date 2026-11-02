@@ -29,13 +29,10 @@ export function periodRemaining(period, now = Date.now()) {
 export function emptyMissions() {
   return {
     ...Object.fromEntries(MISSION_PERIODS.map((p) => [p.id, { key: '', progress: {}, claimed: [], bonus: false }])),
-    login: { lastDay: '', streak: 0, claimedDay: '' },
+    // v9.1.3 : `days` = jours de connexion comptés (à l'ouverture du jeu, sans remise à zéro quand un jour manque),
+    // `claimed` = cases du calendrier déjà récupérées ; une case non récupérée reste récupérable (7 au plus en attente).
+    login: { lastDay: '', days: 0, claimed: 0 },
   };
-}
-
-function previousDay(key) {
-  const [y, m, d] = key.split('-').map(Number);
-  return dayKey(new Date(y, m - 1, d - 1));
 }
 
 // À appeler régulièrement : réinitialise les périodes échues et compte la connexion du jour.
@@ -48,7 +45,8 @@ export function refreshMissions(state, now = Date.now()) {
   const today = periodKey('daily', now);
   const login = state.missions.login;
   if (login.lastDay !== today) {
-    login.streak = login.lastDay === previousDay(today) ? login.streak + 1 : 1;
+    login.days += 1;
+    login.claimed = Math.max(login.claimed, login.days - LOGIN_CALENDAR.length);
     login.lastDay = today;
     trackMissions(state, 'login', 1);
   }
@@ -96,20 +94,38 @@ export function claimMissionBonus(state, periodId) {
   return grantReward(state, missionPeriod(periodId).bonus);
 }
 
-// Jour du calendrier (0..6) correspondant à la série actuelle.
+// Jour du calendrier (0..6) de la prochaine case à récupérer.
 export function loginDay(state) {
-  return (Math.max(1, state.missions.login.streak) - 1) % LOGIN_CALENDAR.length;
+  return state.missions.login.claimed % LOGIN_CALENDAR.length;
+}
+
+// v9.1.3 : nombre de cases de connexion en attente (jours ouverts mais pas encore récupérés).
+export function loginPending(state) {
+  const login = state.missions.login;
+  return Math.max(0, login.days - login.claimed);
 }
 
 export function loginReady(state) {
-  const login = state.missions.login;
-  return login.lastDay !== '' && login.claimedDay !== login.lastDay;
+  return loginPending(state) > 0;
 }
 
+// Récompense de toutes les cases en attente, sans les récupérer.
+export function loginPendingReward(state) {
+  const total = {};
+  for (let i = 0; i < loginPending(state); i++) mergeReward(total, LOGIN_CALENDAR[(state.missions.login.claimed + i) % LOGIN_CALENDAR.length]);
+  return total;
+}
+
+// v9.1.3 : récupère toutes les cases en attente d'un coup ; renvoie le total donné (ou null).
 export function claimLogin(state) {
   if (!loginReady(state)) return null;
-  state.missions.login.claimedDay = state.missions.login.lastDay;
-  return grantReward(state, LOGIN_CALENDAR[loginDay(state)]);
+  const total = {};
+  while (loginReady(state)) {
+    const reward = LOGIN_CALENDAR[loginDay(state)];
+    state.missions.login.claimed += 1;
+    mergeReward(total, grantReward(state, reward));
+  }
+  return total;
 }
 
 // Quelque chose à récupérer ? (badge de l'interface)
@@ -142,8 +158,16 @@ export function sanitizeMissions(raw) {
   }
   const l = raw.login;
   if (l && typeof l === 'object') {
-    const streak = Number(l.streak);
-    out.login = { lastDay: str(l.lastDay), streak: Number.isInteger(streak) && streak > 0 ? Math.min(streak, 100000) : 0, claimedDay: str(l.claimedDay) };
+    const count = (v) => { const n = Number(v); return Number.isInteger(n) && n > 0 ? Math.min(n, 100000) : 0; };
+    const lastDay = str(l.lastDay);
+    if ('days' in l) {
+      const days = count(l.days);
+      out.login = { lastDay, days, claimed: Math.min(days, Math.max(count(l.claimed), days - LOGIN_CALENDAR.length)) };
+    } else {
+      // v9.1.3 : ancienne série → jours comptés ; la case du dernier jour reste à récupérer si elle ne l'a pas été.
+      const days = count(l.streak);
+      out.login = { lastDay, days, claimed: days > 0 && str(l.claimedDay) !== lastDay ? days - 1 : days };
+    }
   }
   return out;
 }
