@@ -227,9 +227,9 @@ const actions = {
   },
   // v9.1.3 (doc3 lot 2) : mise choisie (5 = sûr ; 3 ou 4 en Épique = tentative) ; `include` = objets protégés du
   // groupe inclus d'un appui. Les fusions à la main comptent pour la mission (pas la fusion auto).
-  fuse(slot, rarity, stake = BALANCE.forge.fusionCount, include = false) {
+  fuse(slot, rarity, stake = BALANCE.forge.fusionCount, include = false, inherit = 'auto') { // v9.1.3 (doc3 lot 5) : inherit
     const keep = fusionKeep(state, { include: include ? [`${slot}|${rarity}`] : [] });
-    const r = fuseItems(state, slot, rarity, rng, BALANCE, keep, stake);
+    const r = fuseItems(state, slot, rarity, rng, BALANCE, keep, stake, inherit);
     if (!r) return done(false);
     trackMissions(state, 'upgrades', 1);
     if (!r.ok) {

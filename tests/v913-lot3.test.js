@@ -83,3 +83,40 @@ test('Prime du jour : monde choisi parmi les mondes atteints (record), progressi
   s.bounty.claimed = true;
   assert.equal(setBountyZone(s, b.zone, NOW), false, 'prime récupérée : plus de changement');
 });
+
+// v9.1.3 (doc3 lot 5) : héritage d'ensemble en fusion, rôles des ensembles.
+import { fuseItems, fusionInheritOptions } from '../src/core/forge.js';
+import { ITEM_SETS } from '../src/data/sets.js';
+
+test('lot 5 : héritage d\'ensemble — min(pièces × 20, 40) %, « Aucun », garanties inchangées', () => {
+  const mk = (s, sets) => sets.forEach((set) => { const i = makeItem(s, 'leather_hood', 'common', 10, BALANCE, new Rng(1), set); s.inventory.push(i); });
+  assert.deepEqual(fusionInheritOptions([{ set: 'plains' }, {}, {}, {}, {}]).map((o) => o.chance), [20]);
+  assert.deepEqual(fusionInheritOptions([{ set: 'plains' }, { set: 'plains' }, { set: 'plains' }, { set: 'forest' }, {}]).map((o) => [o.set, o.chance]), [['plains', 40], ['forest', 20]]);
+  let got = 0;
+  let none = 0;
+  const N = 2000;
+  for (let n = 0; n < N; n++) {
+    const s = createNewState(NOW, 3);
+    mk(s, ['plains', null, null, null, null]);
+    const r = fuseItems(s, 'helmet', 'common', new Rng(n + 1));
+    assert.ok(r.ok, 'Commun : toujours réussi');
+    if (r.item.set === 'plains') got += 1;
+    const t = createNewState(NOW, 3);
+    mk(t, ['plains', 'plains', null, null, null]);
+    if (fuseItems(t, 'helmet', 'common', new Rng(n + 1), BALANCE, null, 5, null).item.set) none += 1;
+  }
+  assert.ok(Math.abs(got / N - 0.2) < 0.03, `1 pièce ≈ 20 % (${got / N})`);
+  assert.equal(none, 0, '« Aucun » : jamais d\'ensemble');
+  // Un ensemble choisi qui n'est pas parmi les objets consommés : rien.
+  const s = createNewState(NOW, 3);
+  mk(s, ['plains', 'plains', null, null, null]);
+  assert.equal(fuseItems(s, 'helmet', 'common', new Rng(5), BALANCE, null, 5, 'void').item.set, undefined);
+});
+
+test('lot 5 : les premiers ensembles ne donnent plus de multiplicateur de dégâts, chacun garde un rôle', () => {
+  const byId = Object.fromEntries(ITEM_SETS.map((x) => [x.id, x]));
+  assert.equal(byId.plains.bonuses[6].damageMultPct, undefined);
+  assert.ok(byId.plains.bonuses[6].xpPct > 0);
+  assert.ok(byId.forest.bonuses[6].damageVsNormalPct > 0);
+  assert.ok(byId.void.bonuses[6].maxHpMultPct > 0 && byId.void.bonuses[6].damageMultPct < byId.volcano.bonuses[6].damageMultPct + byId.volcano.bonuses[2].damagePct);
+});

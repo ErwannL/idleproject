@@ -2357,3 +2357,6 @@ button[data-action="learn-skill"], button[data-action="buy-talent"] { -webkit-us
 .beginner .inv-tools .filter-chip .icon-word { display: block; font-size: 8.5px; margin-top: 1px; }
 .beginner .lock-btn { width: auto; padding: 0 6px; gap: 3px; }
 .beginner .lock-btn .icon-word { font-size: 10px; }
+/* v9.1.3 (doc3 lot 5) : héritage d'ensemble en fusion, sur une ligne quand ça tient. */
+.fusion-sub.inherit-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.inherit-row .chip-btn img { width: 16px; height: 16px; vertical-align: -3px; }

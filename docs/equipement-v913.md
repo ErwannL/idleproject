@@ -254,3 +254,151 @@ débutant = aucun boss vaincu, comme Améliorations). Captures avant/après : `/
 | Icône seule : aria-label + mot visible en débutant | aria-label partout ; aucun mot en débutant | classe `beginner` sur la racine : mot sous les icônes du filtre (Armes, Casques, Armures, Bijoux), « Verrou » à côté du cadenas, « Forge » sur le bouton enclume, « Renommer » à côté de ✎ |
 
 Action courante sur téléphone : équiper = 2 appuis (case, Équiper) ; relance orientée = liste + 2 appuis ; fusion sûre = 1 appui (« Fusionner tout » : 2) ; Prime : 1 choix dans la liste.
+
+# Lot 5 « ensembles avec un rôle »
+
+Seuls les chiffres de `data/sets.js` changent. Mesure : `tools/measure-sets-v913.mjs` (moteur réel, 900 s de
+combat par ensemble porté à 6 pièces sur l'étape de farm la plus haute que le héros sans ensemble tient ; mêmes
+objets, seul le champ `set` change ; indices, 100 = sans ensemble). Builds : sauvegardes « milieu » et « fin »
+(Chevalier), et « fin » passée en Archer. « Équilibre » = dégâts/s × robustesse (le score d'`isUpgrade`).
+Tests : `tests/v913-lot3.test.js` (lot 5).
+
+| Ensemble | Avant | Maintenant | Rôle |
+|---|---|---|---|
+| Panoplie du Pré | 2 : PV +15 % · 4 : or +30 % · 6 : dégâts ×1,3 | 6 : **XP +100 %** | niveaux au farm (XP/s ×2 en milieu de partie, ×1,67 en fin) |
+| Parure du Chasseur | 2 : dégâts ordinaires +20 % · 4 : vitesse +10 % · 6 : dégâts ×1,35 | 2 : **+40 %** · 4 : **vitesse +15 %** · 6 : **dégâts ordinaires +120 %** | ennemis ordinaires et vitesse (dégâts/s ordinaires ×2,04 / ×1,74, victoires ×1,30 quand le héros ne tue pas d'un coup) |
+| Éclat du Néant | 6 : dégâts et PV ×1,5 | 6 : **×1,6 / ×1,6** | équilibre (ne gagne plus seulement contre le Cristal en fin de partie) |
+| Autres | inchangés | inchangés | Désert : or ; Cristal : robustesse ; Linceul, Volcan : boss |
+
+## Avant
+
+### milieu (étape max 130, farm à l'étape 125)
+
+| Ensemble (6 pièces) | Or/s | XP/s | Victoires/s | Objets/s | Dégâts/s ordinaires | Boss (dégâts/s) | Robustesse | Équilibre | Meilleur en |
+|---|---|---|---|---|---|---|---|---|---|
+| Sans ensemble | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | — |
+| Panoplie du Pré | 125 | 105 | 105 | 105 | 130 | 130 | 112 | 146 | — |
+| Parure du Chasseur | 106 | 106 | 106 | 106 | 155 | 138 | 100 | 138 | — |
+| Armure de cristal | 100 | 100 | 100 | 100 | 100 | 100 | 184 | 184 | robustesse |
+| Atours du désert | 186 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | or |
+| Harnois du givre | 100 | 100 | 100 | 100 | 100 | 100 | 174 | 174 | — |
+| Linceul maudit | 107 | 108 | 108 | 108 | 145 | 168 | 100 | 145 | — |
+| Cuir des marais | 100 | 100 | 100 | 100 | 100 | 100 | 155 | 155 | — |
+| Plumage céleste | 107 | 107 | 107 | 107 | 158 | 158 | 100 | 158 | — |
+| Forge du volcan | 111 | 112 | 112 | 112 | 203 | 245 | 100 | 203 | XP, victoires, butin, ordinaires, boss |
+| Éclat du Néant | 107 | 107 | 107 | 107 | 150 | 150 | 150 | 225 | équilibre |
+
+### fin (étape max 494, farm à l'étape 489)
+
+| Ensemble (6 pièces) | Or/s | XP/s | Victoires/s | Objets/s | Dégâts/s ordinaires | Boss (dégâts/s) | Robustesse | Équilibre | Meilleur en |
+|---|---|---|---|---|---|---|---|---|---|
+| Sans ensemble | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | — |
+| Panoplie du Pré | 126 | 101 | 101 | 114 | 113 | 113 | 111 | 125 | butin |
+| Parure du Chasseur | 100 | 101 | 101 | 114 | 126 | 115 | 100 | 115 | — |
+| Armure de cristal | 100 | 100 | 100 | 100 | 100 | 100 | 150 | 150 | robustesse, équilibre |
+| Atours du désert | 152 | 100 | 100 | 102 | 100 | 100 | 100 | 100 | or |
+| Harnois du givre | 100 | 100 | 100 | 100 | 100 | 100 | 139 | 139 | — |
+| Linceul maudit | 100 | 101 | 101 | 114 | 119 | 135 | 100 | 119 | butin |
+| Cuir des marais | 100 | 100 | 100 | 100 | 100 | 100 | 123 | 123 | — |
+| Plumage céleste | 100 | 101 | 101 | 114 | 123 | 123 | 100 | 123 | butin |
+| Forge du volcan | 100 | 101 | 101 | 114 | 144 | 170 | 100 | 144 | ordinaires, boss |
+| Éclat du Néant | 101 | 101 | 101 | 102 | 121 | 121 | 121 | 147 | XP, victoires |
+
+### fin, Archer (étape max 494, farm à l'étape 454)
+
+| Ensemble (6 pièces) | Or/s | XP/s | Victoires/s | Objets/s | Dégâts/s ordinaires | Boss (dégâts/s) | Robustesse | Équilibre | Meilleur en |
+|---|---|---|---|---|---|---|---|---|---|
+| Sans ensemble (fini à 453) | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | — |
+| Panoplie du Pré (fini à 453) | 141 | 109 | 109 | 110 | 113 | 113 | 113 | 127 | — |
+| Parure du Chasseur (fini à 452) | 112 | 112 | 112 | 106 | 126 | 115 | 100 | 115 | — |
+| Armure de cristal (fini à 453) | 100 | 100 | 100 | 100 | 100 | 100 | 156 | 156 | robustesse, équilibre |
+| Atours du désert (fini à 452) | 151 | 100 | 100 | 102 | 100 | 100 | 100 | 100 | or |
+| Harnois du givre (fini à 453) | 100 | 100 | 100 | 100 | 100 | 100 | 142 | 142 | — |
+| Linceul maudit (fini à 452) | 112 | 112 | 112 | 116 | 119 | 135 | 100 | 119 | butin |
+| Cuir des marais (fini à 453) | 100 | 100 | 100 | 100 | 100 | 100 | 123 | 123 | — |
+| Plumage céleste | 123 | 111 | 111 | 111 | 123 | 123 | 100 | 123 | — |
+| Forge du volcan (fini à 453) | 125 | 122 | 122 | 115 | 146 | 171 | 100 | 146 | XP, victoires, ordinaires, boss |
+| Éclat du Néant | 118 | 112 | 112 | 108 | 121 | 121 | 121 | 147 | — |
+
+## Maintenant
+
+### milieu (étape max 130, farm à l'étape 125)
+
+| Ensemble (6 pièces) | Or/s | XP/s | Victoires/s | Objets/s | Dégâts/s ordinaires | Boss (dégâts/s) | Robustesse | Équilibre | Meilleur en |
+|---|---|---|---|---|---|---|---|---|---|
+| Sans ensemble | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | — |
+| Panoplie du Pré | 120 | 200 | 100 | 100 | 100 | 100 | 112 | 112 | XP |
+| Parure du Chasseur | 99 | 100 | 100 | 100 | 204 | 103 | 100 | 103 | ordinaires |
+| Armure de cristal | 100 | 100 | 100 | 100 | 100 | 100 | 184 | 184 | robustesse |
+| Atours du désert | 186 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | or |
+| Harnois du givre | 100 | 100 | 100 | 100 | 100 | 100 | 174 | 174 | — |
+| Linceul maudit | 107 | 108 | 108 | 108 | 145 | 168 | 100 | 145 | — |
+| Cuir des marais | 100 | 100 | 100 | 100 | 100 | 100 | 155 | 155 | — |
+| Plumage céleste | 107 | 107 | 107 | 107 | 158 | 158 | 100 | 158 | — |
+| Forge du volcan | 111 | 112 | 112 | 112 | 203 | 245 | 100 | 203 | victoires, butin, boss |
+| Éclat du Néant | 107 | 108 | 108 | 108 | 160 | 160 | 160 | 256 | équilibre |
+
+### fin (étape max 494, farm à l'étape 489)
+
+| Ensemble (6 pièces) | Or/s | XP/s | Victoires/s | Objets/s | Dégâts/s ordinaires | Boss (dégâts/s) | Robustesse | Équilibre | Meilleur en |
+|---|---|---|---|---|---|---|---|---|---|
+| Sans ensemble | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | — |
+| Panoplie du Pré | 126 | 167 | 100 | 100 | 100 | 100 | 111 | 111 | XP |
+| Parure du Chasseur | 100 | 101 | 101 | 114 | 174 | 100 | 100 | 100 | victoires, butin, ordinaires |
+| Armure de cristal | 100 | 100 | 100 | 100 | 100 | 100 | 150 | 150 | robustesse |
+| Atours du désert | 152 | 100 | 100 | 102 | 100 | 100 | 100 | 100 | or |
+| Harnois du givre | 100 | 100 | 100 | 100 | 100 | 100 | 139 | 139 | — |
+| Linceul maudit | 100 | 101 | 101 | 114 | 119 | 135 | 100 | 119 | butin |
+| Cuir des marais | 100 | 100 | 100 | 100 | 100 | 100 | 123 | 123 | — |
+| Plumage céleste | 100 | 101 | 101 | 114 | 123 | 123 | 100 | 123 | butin |
+| Forge du volcan | 100 | 101 | 101 | 114 | 144 | 170 | 100 | 144 | victoires, boss |
+| Éclat du Néant | 105 | 101 | 101 | 104 | 126 | 126 | 126 | 158 | équilibre |
+
+### fin, Archer (étape max 494, farm à l'étape 454)
+
+| Ensemble (6 pièces) | Or/s | XP/s | Victoires/s | Objets/s | Dégâts/s ordinaires | Boss (dégâts/s) | Robustesse | Équilibre | Meilleur en |
+|---|---|---|---|---|---|---|---|---|---|
+| Sans ensemble (fini à 453) | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | — |
+| Panoplie du Pré (fini à 453) | 128 | 167 | 100 | 96 | 100 | 100 | 113 | 113 | XP |
+| Parure du Chasseur (fini à 453) | 132 | 130 | 130 | 126 | 174 | 100 | 100 | 100 | victoires, butin, ordinaires |
+| Armure de cristal (fini à 453) | 100 | 100 | 100 | 100 | 100 | 100 | 156 | 156 | robustesse |
+| Atours du désert (fini à 452) | 151 | 100 | 100 | 102 | 100 | 100 | 100 | 100 | or |
+| Harnois du givre (fini à 453) | 100 | 100 | 100 | 100 | 100 | 100 | 142 | 142 | — |
+| Linceul maudit (fini à 452) | 112 | 112 | 112 | 116 | 119 | 135 | 100 | 119 | — |
+| Cuir des marais (fini à 453) | 100 | 100 | 100 | 100 | 100 | 100 | 123 | 123 | — |
+| Plumage céleste | 123 | 111 | 111 | 111 | 123 | 123 | 100 | 123 | — |
+| Forge du volcan (fini à 453) | 125 | 122 | 122 | 115 | 146 | 171 | 100 | 146 | boss |
+| Éclat du Néant (fini à 453) | 120 | 114 | 114 | 112 | 126 | 126 | 126 | 158 | équilibre |
+
+**Volcan contre Néant** : avant, le Volcan était le meilleur en XP, victoires, butin, dégâts ordinaires et boss sur
+deux builds sur trois, et le Néant ne gagnait l'équilibre qu'en milieu de partie (le Cristal le battait en fin, critique
+du Néant déjà au plafond). Maintenant le Volcan garde le boss (et, en milieu de partie seulement, victoires et objets +12 %), le Néant
+gagne l'équilibre sur les trois builds, le Chasseur les dégâts ordinaires, le Pré l'XP, le Désert l'or.
+**Aucun ensemble n'est le meilleur partout.** Limites : victoires et objets/s plafonnent quand le héros tue d'un coup
+(fin de partie, Chevalier) ; Givre (armure sous 30 % PV) et Marais (régénération, épines) ont des effets que l'outil
+ne mesure pas, ils perdent la robustesse brute face au Cristal (inchangé, signalé) ; objets/s est bruité (±5 %).
+
+## Héritage d'ensemble en fusion (option, faite)
+
+Après une **réussite** seulement, le résultat appartient à l'ensemble choisi avec la chance min(pièces × 20, 40) %
+(pièces = objets de cet ensemble parmi les objets consommés ; `BALANCE.forge.fusionSetInherit`). Écran de fusion :
+« Ensemble hérité : [Pré · 40 %] [Aucun] » quand le groupe contient des pièces (un appui ; par défaut l'ensemble le
+plus présent). « Fusionner tout » et la fusion auto prennent ce défaut. Garanties du lot 2 intactes : chances,
+jauge, mises et protection (`fusionKeep`, dont les pièces d'ensemble utiles) ne changent pas, le tirage d'héritage
+a lieu après le résultat et seulement s'il y a des pièces (les tests du lot 2 passent sans retouche).
+
+# Critères de fin (doc3)
+
+- [x] Aucune perte d'objet payé ou verrouillé sur 24 h simulées, sac plein compris (lot 1, mesure 4 : 0 perte).
+- [x] Un test à graine fixe par source de butin (`tests/v913-equipement.test.js`).
+- [x] Fusion : 3 essais à 4 objets ou 5 essais à 3 objets aboutissent toujours (`tests/v913-fusion.test.js`, tirage toujours perdant).
+- [x] « Fusionner tout » et la fusion auto ne font jamais de tentative risquée et ne consomment aucun objet protégé (lot 2).
+- [x] Aucune boucle fusion, recyclage ou Renaissance ne rapporte d'or anormal (lot 1 faille d'or, lot 2 boucles).
+- [x] Une action courante tient en un ou deux appuis sur téléphone (375 × 812), sans rien de coupé : équiper 2 (case,
+  Équiper ; comparaison et Équiper visibles sans défiler), fusion sûre 1 (« Fusionner tout » 2), relance orientée
+  liste + 2, monde de la Prime 1 choix, héritage 1 appui (captures lot 4 et lot 5).
+- [x] Tout le texte nouveau est traduit (`src/i18n/en-910.js`, vérifié avec `translate`), et les anciennes sauvegardes
+  se chargent sans perte : aucune montée de SAVE_VERSION dans les lots 3 à 5 (Prime : champ `zone` existant, départ
+  négatif gardé ; héritage : champ `set` existant), migrations v8 testées (`tests/v913-migrations.test.js`).
+- [x] Le bilan des matériaux et les prix retenus sont livrés au développeur (lot 1 bilan des éclats ; prix : `BALANCE.forge`, lot 3).
+- [ ] Test final avec 3 ou 4 vrais joueurs (viser un ensemble, relancer un effet, tenter une fusion) : **non fait**, à organiser par le développeur.

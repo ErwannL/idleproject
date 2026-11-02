@@ -231,6 +231,8 @@ export const BALANCE = {
       epic: { rate: 100, stakes: { 3: 30, 4: 65 }, pityStep: 20 },
       // plus tard : legendary: { rate: 60, pityStep: 20 }, mise de 5 seulement
     },
+    // v9.1.3 (doc3 lot 5) : héritage d'ensemble en fusion : chance min(pièces × 20, 40) % (« Aucun » possible).
+    fusionSetInherit: { perPiece: 20, max: 40 },
     sharpenRarityFactor: { common: 1, rare: 2, epic: 3, legendary: 5 }, // réaffûtage : facteur de rareté
   },
 

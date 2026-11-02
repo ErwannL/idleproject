@@ -241,7 +241,25 @@ export function fusionPool(state, slot, rarity, keep = null) {
 // - échec : l'objet de plus haut niveau reste dans le sac (jamais retiré : pas de faux objet trouvé), les autres
 //   sont perdus (`lost` = leur nombre), jauge +pityStep (au plus 100).
 // v9.1.3 (doc3 lot 2) : une arme fusionnée suit la règle du butin (70 % de modèles de la classe active).
-export function fuseItems(state, slot, rarity, rng, balance = BALANCE, keep = null, stake = balance.forge.fusionCount) {
+// v9.1.3 (doc3 lot 5) : héritage d'ensemble. Ensembles présents parmi les objets consommés, avec la chance
+// min(pièces × perPiece, max) % que le résultat en fasse partie : [{ set, n, chance }], le plus fréquent d'abord.
+export function fusionInheritOptions(used, balance = BALANCE) {
+  const rule = balance.forge.fusionSetInherit;
+  if (!rule) return [];
+  const counts = new Map();
+  for (const i of used) if (i.set) counts.set(i.set, (counts.get(i.set) ?? 0) + 1);
+  return [...counts].map(([set, n]) => ({ set, n, chance: Math.min(rule.max, n * rule.perPiece) }))
+    .sort((a, b) => b.n - a.n || a.set.localeCompare(b.set));
+}
+// Objets qu'une mise consommerait (pour l'écran : chance d'héritage de la mise la plus haute possible).
+export function fusionUsed(state, slot, rarity, keep, stake) {
+  return fusionPool(state, slot, rarity, keep).slice(0, stake);
+}
+
+// `inherit` (lot 5) : 'auto' = ensemble le plus fréquent parmi les objets consommés, un id = cet ensemble,
+// null = « Aucun ». Le tirage d'héritage n'a lieu qu'après une réussite et seulement s'il y a des pièces :
+// chances, jauge et garanties du lot 2 inchangées.
+export function fuseItems(state, slot, rarity, rng, balance = BALANCE, keep = null, stake = balance.forge.fusionCount, inherit = 'auto') {
   const chance = fusionChance(state, slot, rarity, stake, balance);
   if (chance === null) return null;
   const pool = fusionPool(state, slot, rarity, keep);
@@ -267,6 +285,11 @@ export function fuseItems(state, slot, rarity, rng, balance = BALANCE, keep = nu
   const base = classPool.length && rng.next() < CLASS_WEAPON_DROP
     ? rng.pick(classPool) : rng.pick(ITEM_BASES.filter((b) => b.slot === slot));
   const item = makeItem(state, base.id, RARITIES[rarityIndex(rarity) + 1].id, level, balance, rng);
+  if (inherit !== null) {
+    const opts = fusionInheritOptions(used, balance);
+    const pick = inherit === 'auto' ? opts[0] : opts.find((o) => o.set === inherit);
+    if (pick && rng.next() * 100 < pick.chance) item.set = pick.set;
+  }
   addToInventory(state, item, balance);
   return { ok: true, item, returned: null, lost: 0, chance };
 }

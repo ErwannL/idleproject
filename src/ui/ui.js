@@ -680,11 +680,13 @@ export class UI {
       case 'upgrade-item': a.upgradeItem(id); break;
       case 'fuse': { // v9.1.3 (doc3 lot 2) : mise choisie (data-stake), 5 par défaut ; l'inclusion retombe après
         const [slot, rarity] = value.split('|');
-        a.fuse(slot, rarity, Number(el.dataset.stake) || undefined, Boolean(v.fusionInclude?.[value]));
+        const inh = v.fuseSet?.[value]; // v9.1.3 (doc3 lot 5) : ensemble hérité choisi ('none' = Aucun)
+        a.fuse(slot, rarity, Number(el.dataset.stake) || undefined, Boolean(v.fusionInclude?.[value]), inh === 'none' ? null : inh ?? 'auto');
         if (v.fusionInclude) delete v.fusionInclude[value];
         break;
       }
       case 'fuse-open': local(() => { v.fuseOpen = v.fuseOpen === value ? null : value; }); break; // v9.1.3 (doc3 lot 2)
+      case 'fuse-set': local(() => { v.fuseSet = { ...(v.fuseSet ?? {}), [value]: el.dataset.set }; }); break; // v9.1.3 (doc3 lot 5)
       case 'fuse-include': local(() => { v.fusionInclude = { ...(v.fusionInclude ?? {}), [value]: !v.fusionInclude?.[value] }; }); break;
       case 'reforge': a.reforge(id); break;
       case 'target-reroll': { // v9.1.3 (doc3 lot 3) : relance orientée, 1er appui arme, 2e confirme

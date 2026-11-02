@@ -5,7 +5,7 @@ import { BALANCE } from '../../data/balance.js';
 import { BOSSES } from '../../data/enemies.js';
 import { ACCESSORY_SLOTS, GEAR_SLOTS, RARITIES, SLOTS, STAT_LABELS } from '../../data/items.js';
 import { formatStat } from '../../core/format.js';
-import { canReforge, canTargetReroll, craftCost, targetRerollChoices, targetRerollCost, fusableRarities, fusionChance, fusionGroups, fusionKeep, fusionPity, maxUpgrades, sharpenCost, upgradeCost } from '../../core/forge.js';
+import { canReforge, canTargetReroll, craftCost, fusionInheritOptions, fusionUsed, targetRerollChoices, targetRerollCost, fusableRarities, fusionChance, fusionGroups, fusionKeep, fusionPity, maxUpgrades, sharpenCost, upgradeCost } from '../../core/forge.js';
 import { KEEP_AFFIX_LABELS, bulkRecycleCandidates, isUpgrade, listInventory, RECYCLE_MODES, recycleRules } from '../../core/inventory.js';
 import { itemBase, rarityById, recycleLevelOf, recycleMaterials, recycleValue } from '../../core/loot.js';
 import { computeHeroStats, statsWithItem } from '../../core/stats.js';
@@ -392,9 +392,17 @@ function fusionRow(ui, state, g, keep) {
     const label = chance >= 100 ? `Fusionner ${stake} · 100 %` : `Tenter à ${stake} · ${chance} %`;
     return `<button class="btn ${chance >= 100 ? 'btn-gold' : ''} small" data-action="fuse" data-value="${key}" data-stake="${stake}">${label}</button>`;
   };
+  // v9.1.3 (doc3 lot 5) : héritage d'ensemble — un appui par ensemble présent, ou « Aucun » (chance de la plus haute mise possible).
+  const top = Math.min(count, avail);
+  const opts = top > 0 ? fusionInheritOptions(fusionUsed(state, g.slot, g.rarity, included ? fusionKeep(state, { include: [key] }) : keep, top)) : [];
+  const chosen = ui.view.fuseSet?.[key] ?? opts[0]?.set;
+  const inheritLine = opts.length ? `<div class="fusion-sub inherit-row"><span class="muted">Ensemble hérité :</span>${opts.map((o) => {
+    const set = setById(o.set);
+    return `<button class="btn chip-btn small${chosen === o.set ? ' active' : ''}" data-action="fuse-set" data-value="${key}" data-set="${o.set}" aria-pressed="${chosen === o.set}">${img(`set_${o.set}`)} ${escapeHtml(set?.name ?? o.set)} · ${o.chance} %</button>`;
+  }).join('')}<button class="btn chip-btn small${chosen === 'none' ? ' active' : ''}" data-action="fuse-set" data-value="${key}" data-set="none" aria-pressed="${chosen === 'none'}">Aucun</button></div>` : '';
   if (g.stakes.length === 1) {
     const btn = avail >= count ? `<button class="btn btn-gold small" data-action="fuse" data-value="${key}">Fusionner</button>` : '';
-    return `<div class="fusion-row">${title}${btn}</div>${avail < count || included ? `<div class="fusion-sub">${protectedLine}</div>` : ''}`;
+    return `<div class="fusion-row">${title}${btn}</div>${avail < count || included ? `<div class="fusion-sub">${protectedLine}</div>` : ''}${avail >= count ? inheritLine : ''}`;
   }
   const open = ui.view.fuseOpen === key;
   const head = `<button class="fusion-row fusion-head" data-action="fuse-open" data-value="${key}" aria-expanded="${open}">${title}<span aria-hidden="true">${open ? '▾' : '▸'}</span></button>`;
@@ -404,7 +412,7 @@ function fusionRow(ui, state, g, keep) {
   const step = BALANCE.forge.fusion[g.rarity]?.pityStep ?? 0;
   return `${head}<div class="fusion-detail">
     <div class="fusion-sub"><span class="muted">Jauge +${fusionPity(state, g.slot, g.rarity)}</span>${protectedLine ? `<span class="muted" aria-hidden="true">·</span>${protectedLine}` : ''}</div>
-    ${risky ? `<div class="muted">Si échec : 1 objet rendu, jauge +${step}</div>` : ''}
+    ${risky ? `<div class="muted">Si échec : 1 objet rendu, jauge +${step}</div>` : ''}${inheritLine}
     <div class="options-row">${stakes.map(stakeBtn).join('') || `<span class="muted">Il faut au moins ${g.stakes[0]} objets utilisables.</span>`}</div></div>`;
 }
 
