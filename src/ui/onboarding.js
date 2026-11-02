@@ -12,7 +12,7 @@ const STEPS = [
   { target: '#stage-area', open: null, title: 'Votre héros combat tout seul',
     text: `Le combat est automatique. Même jeu fermé, il gagne encore (${Math.round(BALANCE.offline.farmMultiplier * 100)} % du rythme, ${BALANCE.offline.capHours} h au plus) : un résumé vous attend au retour.` },
   { target: '#next-action', open: null, title: 'Que faire ? Suivez ce bouton',
-    text: 'Il montre une seule chose à la fois : une récompense prête, un objet meilleur que l'équipé, un boss à retenter, sinon votre objectif. Un appui y mène.' },
+    text: 'Il montre une seule chose à la fois : une récompense prête, un objet meilleur que l\'équipé, un boss à retenter, sinon votre objectif. Un appui y mène.' },
   { target: '#tabs', open: null, title: 'Les menus s\'ouvrent avec la progression',
     text: 'Héros et Aventure pour commencer ; Équipe et Objectifs arrivent ensuite. Une pastille rouge = une récompense à récupérer.' },
 ];
