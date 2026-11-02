@@ -37,7 +37,7 @@ export function claimables(state, now = Date.now(), balance = BALANCE) {
   if (bountyReady(state, now)) push({ key: 'bounty', kind: 'bounty', label: 'Prime du jour', reward: { gems: BOUNTY.gems }, item: true, tab: 'contracts' });
   for (const e of state.inbox ?? []) {
     if (e.type === 'merchant') continue;
-    push({ key: `event:${e.id}`, kind: 'event', id: e.id, label: `Trouvaille : ${eventLabel(e.type)}`, reward: e.reward ?? {}, item: Boolean(e.item), itemRef: e.item ?? null, tab: 'inbox' });
+    push({ key: `event:${e.id}`, kind: 'event', id: e.id, label: `Trouvaille : ${eventLabel(e.type)}`, reward: e.reward ?? {}, item: Boolean(e.item), itemRef: e.item ?? null, tab: 'contracts' }); // v9.1.3 : plus d'onglet À récupérer
   }
   (state.expeditions?.slots ?? []).forEach((run, slot) => {
     if (expeditionDone(run, now)) push({ key: `expedition:${slot}`, kind: 'expedition', slot, label: `Expédition terminée : ${companionById(run.companionId)?.name ?? ''}`, reward: run.reward ?? {}, tab: 'expeditions' });

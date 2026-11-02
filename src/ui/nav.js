@@ -5,7 +5,7 @@ export const MENUS = [
   { id: 'hero', label: 'Héros', tabs: ['inventory', 'upgrades', 'skills', 'tree'] },
   { id: 'adventure', label: 'Aventure', tabs: ['campaign', 'dungeons', 'tower', 'boss'] },
   { id: 'team', label: 'Équipe', tabs: ['companions', 'summon', 'expeditions'] },
-  { id: 'goals', label: 'Objectifs', tabs: ['inbox', 'contracts', 'encyclopedia'] },
+  { id: 'goals', label: 'Objectifs', tabs: ['contracts', 'encyclopedia'] }, // v9.1.3 : À récupérer en fenêtre (touche N)
 ];
 export const SUB_LABELS = {
   upgrades: 'Améliorations', skills: 'Compétences', tree: 'Talents', hero: 'Fiche', inventory: 'Équipement',

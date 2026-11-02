@@ -185,3 +185,15 @@ semaine (boss et améliorations hebdomadaires hors d'atteinte, pas de coffre). L
 - **Critère d'abandon :** gemmes de missions par joueur quotidien en baisse de plus de 10 % sur un mois, ou dépense
   d'invocations des joueurs occasionnels multipliée par plus de 3 (inflation). **Annuler :** remettre
   `MISSION_PERIODS` weekly/monthly (les compteurs de la piste peuvent repartir de zéro le mois suivant).
+
+## Lot F — « À récupérer » fondu dans Missions (fait)
+
+- Objectifs passe de 3 onglets à 2 (Missions, Collections). La **vue d'ensemble** reste : fenêtre « À récupérer »
+  (touche N, ou bouton enveloppe dans l'en-tête de Missions), même liste qu'avant, avec « Tout récupérer » et les objets
+  bloqués par un sac plein ; elle se met à jour quand la liste change. La touche G récupère toujours tout.
+- **Marchands relogés** dans Missions › Aujourd'hui (sous la prime du jour), et rappelés dans la fenêtre.
+- Les trouvailles (coffres, gemmes) comptent dans la pastille de Missions. Un ancien lien vers l'onglet `inbox`
+  (recherche, conseil, raccourci) ouvre la fenêtre. Aucune sauvegarde touchée.
+- **Critère d'abandon :** trouvailles ou marchands qui restent plus longtemps non récupérés qu'avant (mesure du nombre
+  d'entrées en attente à l'ouverture), ou joueurs qui ne trouvent plus la liste. **Annuler :** remettre `inbox` dans
+  `nav.js`.

@@ -8,6 +8,7 @@ import { contractLabel, contractTitle } from '../../core/contracts.js';
 import { bonusReady, loginPending, missionStatus, periodRemaining, trackNext, trackPct } from '../../core/missions.js';
 import { rewardText } from '../../core/rewards.js';
 import { LOGIN_CALENDAR, MISSION_PERIODS, MISSION_TRACK } from '../../data/missions.js';
+import { merchantsHtml } from './inbox.js';
 import { escapeHtml, fold, formatNumber, img, progressBar, rewardIcons, segment } from '../common.js';
 import { stageLabel, zoneStartStage } from '../../core/combat.js';
 import { ACHIEVEMENT_BONUS, ACHIEVEMENTS, achievementCount, achievementGroups } from '../../core/achievements.js';
@@ -148,7 +149,8 @@ export default {
   icon: 'icon_trophy',
   extra: (ui) => {
     const n = ui.claims.filter((c) => !c.blocked && c.tab === 'contracts').length;
-    return n ? `<button class="btn btn-gold small" data-action="claim-everything">Tout récupérer (${n})</button>` : '';
+    // v9.1.3 : « À récupérer » fondu dans Missions — la vue d'ensemble s'ouvre en fenêtre (touche N).
+    return `${n ? `<button class="btn btn-gold small" data-action="claim-everything">Tout récupérer (${n})</button>` : ''}<button class="btn small" data-action="open-claims" title="Tout ce qui est prêt, au même endroit (touche N)" aria-label="À récupérer">${img('icon_mail')}</button>`;
   },
   render(ui, state) {
     const count = (ids) => ui.claims.filter((c) => c.tab === 'contracts' && ids.includes(c.period ?? c.kind)).length;
@@ -157,6 +159,7 @@ export default {
     const tab = parts.some(([id]) => id === ui.view.missionTab) ? ui.view.missionTab : 'today';
     const seg = segment(parts.map(([id, label, icon]) => [id, ready[id] ? `${label} (${ready[id]})` : label, icon]), 'mission-tab', tab);
     const period = (id) => MISSION_PERIODS.find((p) => p.id === id);
+    const merchants = merchantsHtml(state);
     let body;
     if (tab === 'achievements') body = `<div class="card m-body">${achievementsTab(state)}</div>`;
     else if (tab === 'week') {
@@ -165,6 +168,7 @@ export default {
       body = `<div class="card m-body"><div class="section-title">${period('daily').label}</div>${periodTab(state, period('daily'))}</div>
         ${fold(ui, 'login', 'Connexion', () => loginTab(state), { open: (loginPending(state) > 0), extra: (loginPending(state) > 0) ? '<span class="good">à récupérer</span>' : '' })}
         ${bountyCard(state)}
+        ${merchants ? `<div class="section-title">Marchands</div>${merchants}` : ''}
         <div class="card m-body"><div class="section-title">Contrats</div>${contractsTab(state)}</div>`;
     }
     return seg + body;

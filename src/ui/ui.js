@@ -434,6 +434,14 @@ export class UI {
     this.actions.claimEverything?.();
   }
 
+  // v9.1.3 (lot F, « À récupérer fondu dans Missions ») : la vue d'ensemble de tout ce qui est prêt reste, en fenêtre.
+  openClaims(state = this.state) {
+    if (!state) return;
+    this.openModal(`<h2>À récupérer</h2><div class="claims-window">${inbox.render(this, state)}</div>
+      <div class="detail-actions"><button class="btn btn-primary" data-action="close-modal">Fermer</button></div>`);
+    this.claimsOpen = true;
+  }
+
   // v9.1.0 : réinitialisation isolée — ce qui est perdu, export proposé, bouton actif après la saisie de EFFACER.
   showResetConfirm() {
     this.openModal(`<h2>⚠ Réinitialiser la partie</h2>
@@ -565,6 +573,8 @@ export class UI {
 
   // `view` (v9.1.0) : vue à montrer (segment, objet choisi…) — un conseil arrive ainsi au bon endroit.
   openTab(tab, view = null) {
+    // v9.1.3 (lot F) : « À récupérer » n'est plus un onglet, c'est une fenêtre (touche N, bouton de Missions).
+    if (tab === 'inbox') { this.openClaims(); return; }
     if (!PANELS[tab] || this.tabVisible[tab] === false) return;
     this.sidePanel(true);
     if (tab === 'inventory') this.seenItemsUntil = this.state?.nextItemId ?? this.seenItemsUntil;
@@ -864,6 +874,7 @@ export class UI {
       case 'import-open': local(() => { v.importOpen = !v.importOpen; }); break;
       case 'import-save': this.importFromPanel(); break;
       case 'close-modal': this.closeModal(); break;
+      case 'open-claims': this.openClaims(); break;
       case 'show-boost': this.showBoost(this.state); break;
       case 'toggle-boosts': this.boostsOpen = !this.boostsOpen; delete this.lastHud.rushTime; break;
       case 'close-sheet': local(() => { v.sheetOpen = null; }); break;
@@ -1424,6 +1435,10 @@ export class UI {
     if (now - (this.lastHud.badgeTime ?? 0) < 500) return;
     this.lastHud.badgeTime = now;
     this.claims = claimables(state);
+    // v9.1.3 : fenêtre « À récupérer » ouverte → mise à jour quand la liste change.
+    const claimsKey = this.claims.map((c) => c.key).join() + state.inbox.length;
+    if (this.claimsOpen && claimsKey !== this.claimsKey && !this.$('modal').classList.contains('hidden')) this.openClaims(state);
+    this.claimsKey = claimsKey;
     const byTab = claimablesByTab(this.claims);
     this.tabBadges = byTab;
     const current = computeHeroStats(state);
@@ -1534,7 +1549,6 @@ export class UI {
       companions: boss || Object.keys(state.companions.owned).length > 0,
       summon: boss || Object.keys(state.companions.owned).length > 0,
       expeditions: availableForExpedition(state).length > 0 || state.expeditions.slots.some(Boolean) || state.expeditions.done > 0,
-      inbox: Boolean(state.ui.goalsOpen),
       contracts: Boolean(state.ui.goalsOpen),
       encyclopedia: boss,
     };
@@ -1771,6 +1785,7 @@ export class UI {
   }
 
   closeModal() {
+    this.claimsOpen = false;
     this.$('modal').classList.add('hidden');
     const back = this.modalReturn;
     this.modalReturn = null;

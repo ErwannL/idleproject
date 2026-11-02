@@ -211,7 +211,7 @@ test('lot 1 : À récupérer — une seule liste, sac plein signalé, pastilles 
   list = claimables(s, NOW);
   assert.equal(list.find((c) => c.key === 'event:902').blocked, 'Sac plein');
   const byTab = claimablesByTab(list);
-  assert.ok(byTab.contracts >= 1 && byTab.inbox === 1, JSON.stringify(byTab));
+  assert.ok(byTab.contracts >= 2 && !byTab.inbox, JSON.stringify(byTab)); // v9.1.3 : trouvailles dans Missions (plus d'onglet À récupérer)
 });
 
 test('v9.1.3 : Prochaine action — récupérer, objet meilleur, boss à retenter, objectif ; jamais d\'achat conseillé', () => {

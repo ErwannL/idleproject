@@ -313,10 +313,11 @@ await check('contrats et récompenses : réclamer un contrat et un coffre', asyn
   await game(() => __idle.ui.openTab('inbox'));
   await page.waitForTimeout(1200);
   const before = await game(() => ({ gems: __idle.state.gems, inbox: __idle.state.inbox.length }));
-  // v9.1.0 : À récupérer — un seul bouton pour tout.
-  await page.click('#panel-body [data-action="claim-everything"]');
+  // v9.1.0 : À récupérer — un seul bouton pour tout (v9.1.3 : dans une fenêtre, plus un onglet).
+  await page.click('#modal-card [data-action="claim-everything"]');
   const got = await game((b) => ({ gems: __idle.state.gems - b.gems, inbox: __idle.state.inbox.length }), before);
   assert(got.gems >= 7 && got.inbox === 0 && after.gems >= gems, JSON.stringify(got));
+  await page.click('#modal-card [data-action="close-modal"]');
 });
 
 await check('paramètres : version lancée et mise à jour détectée (GitHub simulé)', async () => {
@@ -333,7 +334,8 @@ await check('paramètres : version lancée et mise à jour détectée (GitHub si
 });
 
 await check('forge : fabriquer un objet avec des éclats', async () => {
-  await game(() => { __idle.state.materials.shards += 500; __idle.state.gold += 1e6; });
+  // v9.1.3 : la Forge s'ouvre à l'étape 10 (core/unlocks.js).
+  await game(() => { __idle.state.materials.shards += 500; __idle.state.gold += 1e6; __idle.state.records.bestStage = Math.max(10, __idle.state.records.bestStage); });
   await clickTab('inventory');
   await page.click('[data-action="inv-view"][data-value="forge"]');
   await page.waitForTimeout(300);
