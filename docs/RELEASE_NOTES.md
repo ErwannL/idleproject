@@ -6,6 +6,8 @@ jour avant le jeu : la nouvelle version refuse une sauvegarde d'un format plus a
 
 **Le jeu s'appelle maintenant Ascendrya.** Votre partie, vos réglages et l'installation restent les mêmes.
 
+- Nouveau design des monstres et boss des mondes 2 à 10 et des donjons.
+
 ### Équipement
 - **Plus aucun objet perdu** : sac plein, un objet gagné ou payé va au coffre, puis attend dans « À récupérer » ; les
   ancestraux et objets verrouillés ne sont jamais recyclés ; le recyclage rend toujours or et éclats.

@@ -37,7 +37,11 @@ function drawSprite(ctx, canvas, name, t, phase, hop) {
   const frame = frames[Math.floor(t * 3 + phase) % frames.length];
   const img = spriteCanvas(frame);
   // v9.0.7 : sprite en pleine définition → facteur d'échelle propre (le canvas a plus de pixels, rien n'est perdu).
-  const scale = (Number(canvas.dataset.scale) || 2) * (SPRITES[frame]?.scale ?? 1);
+  let scale = (Number(canvas.dataset.scale) || 2) * (SPRITES[frame]?.scale ?? 1);
+  // v9.1.3 : les grands boss redessinés (jusqu'à 96 px) sont réduits pour tenir dans le cadre (pas de tête coupée).
+  const room = canvas.height - 3 * (Number(canvas.dataset.scale) || 2);
+  if (img.height * scale > room) scale = room / img.height;
+  if (img.width * scale > canvas.width) scale = canvas.width / img.width;
   const bob = hop ? Math.round(Math.abs(Math.sin(t * 3 + phase)) * 2) : Math.round((Math.sin(t * 2 + phase) + 1) * 0.5);
   const w = img.width * scale;
   const h = img.height * scale;
