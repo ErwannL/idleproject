@@ -6,6 +6,19 @@ jour avant le jeu : la nouvelle version refuse une sauvegarde d'un format plus a
 
 **Le jeu s'appelle maintenant Ascendrya.** Votre partie, vos réglages et l'installation restent les mêmes.
 
+### Équipement
+- **Plus aucun objet perdu** : sac plein, un objet gagné ou payé va au coffre, puis attend dans « À récupérer » ; les
+  ancestraux et objets verrouillés ne sont jamais recyclés ; le recyclage rend toujours or et éclats.
+- **Fusion Épique → Légendaire à pourcentage** : 5 objets = sûr, ou tentez avec 4 (65 %) ou 3 (30 %) ; une jauge par
+  emplacement garantit la réussite (3 essais à 4, 5 essais à 3). « Fusionner tout » ne prend jamais de risque.
+  Une arme fusionnée est le plus souvent pour votre classe ; l'ensemble peut être hérité (ou « Aucun »).
+- **Relance orientée** (Épique et Légendaire) : choisissez l'effet voulu, puis confirmez.
+- **Prime du jour** : choisissez le monde (et donc l'ensemble) que vous chassez.
+- **Ensembles avec un rôle** : Pré pour l'expérience, Chasseur contre les ennemis ordinaires, Volcan contre les boss,
+  Néant pour l'équilibre.
+- Corrections : faille d'or du recyclage après une Renaissance, changement de classe sans perte, butin hors ligne avec
+  pièces d'ensemble, comparaison juste entre accessoires.
+
 ### Moins de texte, moins de conseils
 - Écrans allégés : Améliorations sur 2 lignes, sac plus compact (5 colonnes sur téléphone), Builds en cartes et repliés,
   Talents, Renaissance (3 cartes) et Paramètres raccourcis ; les blocs repliés restent repliés d'une session à l'autre.
