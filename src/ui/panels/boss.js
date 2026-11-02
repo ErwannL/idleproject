@@ -15,7 +15,7 @@ import { COLLECTIONS } from '../../data/codex.js';
 import { BOSS_LORE } from '../../data/lore.js';
 import { bossTrait } from '../../core/boss-traits.js';
 import { collectionMissing, collectionStatus } from '../../core/codex.js';
-import { coin, effectText, escapeHtml, formatNumber, icon, img, progressBar, rarityLabel } from '../common.js';
+import { coin, effectText, escapeHtml, fold, formatNumber, icon, img, progressBar, rarityLabel } from '../common.js';
 import { animCanvas } from '../animator.js';
 
 // v9.1.0 : un boss hors de portée n'est plus « combattu » (le jeu restait à l'étape max et coupait l'avance auto).
@@ -104,18 +104,21 @@ function bossDetail(ui, state, bossId) {
     `<div class="reward-icon r-rare" title="Gemmes">${img('icon_gem')}</div>`,
     `<div class="reward-icon r-common" title="Or">${img('coin')}</div>`,
   ].join('');
+  // v9.1.3 (doc1 « Aventure : Boss ») : une colonne ; l'histoire, les récompenses et les familles sont repliées.
+  const trait = bossTrait(bossId);
   const header = `<div class="boss-hero">
-      <div class="boss-big">${entry ? portrait(bossId, true, 2) : `<img class="px" src="${portrait(bossId, false)}" alt="">`}</div>
+      <div class="boss-big">${entry ? portrait(bossId, true, 1) : `<img class="px" src="${portrait(bossId, false)}" alt="">`}</div>
       <div class="grow"><div class="row"><span class="boss-title">${entry ? escapeHtml(boss.name) : '???'}</span><span class="badge-ancestral">Boss ancestral</span></div>
-        <div class="muted">📍 ${escapeHtml(where)}</div>
-        <p class="lore">${entry ? escapeHtml(BOSS_LORE[bossId] ?? '') : 'Vainquez ce boss pour découvrir son histoire et son pouvoir.'}</p>
-        ${bossTrait(bossId) ? `<div class="trait-box" style="--trait:${bossTrait(bossId).color}"><b>${escapeHtml(bossTrait(bossId).name)}</b> : ${escapeHtml(bossTrait(bossId).text)}. <span class="muted">Contre : ${escapeHtml(bossTrait(bossId).counter)}</span></div>` : ''}</div>
-    </div>`;
+        <div class="muted">📍 ${escapeHtml(where)}</div></div>
+    </div>
+    ${trait ? `<div class="trait-box" style="--trait:${trait.color}"><b>${escapeHtml(trait.name)}</b> : ${escapeHtml(trait.text)}. <span class="muted">Contre : ${escapeHtml(trait.counter)}</span></div>` : ''}`;
+  const lore = entry && BOSS_LORE[bossId] ? fold(ui, 'boss-lore', 'Histoire', `<p class="lore">${escapeHtml(BOSS_LORE[bossId])}</p>`) : '';
+  const rewardFold = fold(ui, 'boss-rewards', 'Récompenses possibles', `<div class="reward-row">${rewards}</div>`);
   if (!entry) {
     return `${header}<div class="power-box unknown"><div class="section-title">Pouvoir</div><div class="power-name">À découvrir</div>
         <div class="muted">Vainquez ce boss pour obtenir un pouvoir unique.</div></div>
       ${rechallengeButton(state, bossId, '⚔ Combattre ce boss')}
-      <div class="card-sub"><div class="section-title">Récompenses possibles</div><div class="reward-row">${rewards}</div></div>`;
+      ${rewardFold}`;
   }
   const current = powerById(entry.current);
   const active = state.equippedPowers.includes(bossId);
@@ -150,10 +153,10 @@ function bossDetail(ui, state, bossId) {
   }).join('');
   return `${header}${offer}
     <div class="boss-bottom">
-      <div class="card-sub"><div class="section-title">Récompenses possibles</div><div class="reward-row">${rewards}</div></div>
       <div class="card-sub"><div class="row-between"><div class="section-title">Maîtrise du boss</div><span class="muted">${entry.victories} victoire${entry.victories > 1 ? 's' : ''}</span></div>
         <div class="m-track"><div class="m-fill" style="width:${Math.min(100, (entry.victories / last) * 100)}%"></div>${track}</div></div>
-    </div>`;
+    </div>
+    ${lore}${rewardFold}`;
 }
 
 export default {
@@ -170,9 +173,10 @@ export default {
     return `<div class="muted">Boss découverts : ${known}/${order.length} · ${powerSlots(state)} pouvoirs actifs à la fois.</div>
       <div class="codex">
         <div class="codex-list">${order.map((id) => bossListItem(ui, state, id, sel)).join('')}</div>
-        <div class="card codex-detail">${bossDetail(ui, state, sel)}
-          <div class="muted codex-help">Bonus de famille : 2 pouvoirs de la même famille = effets +${POWER_RULES.synergy.bonusPct} %.
-            ${synergies.length ? `<span class="good">Bonus de famille actif : ${synergies.join(', ')}</span>` : ''}</div></div>
+        <div class="card codex-detail sheet${ui.view.sheetOpen === 'boss' ? ' sheet-open' : ''}">
+          <button class="btn small sheet-close" data-action="close-sheet" aria-label="Fermer la fiche">✕</button>
+          ${bossDetail(ui, state, sel)}
+          ${fold(ui, 'boss-families', `Bonus de famille${synergies.length ? ` : <span class="good">${synergies.join(', ')}</span>` : ''}`, `<div class="muted codex-help">2 pouvoirs de la même famille = effets +${POWER_RULES.synergy.bonusPct} %.</div>`)}</div>
       </div>`;
   },
 };

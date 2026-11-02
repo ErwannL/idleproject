@@ -134,7 +134,7 @@ await check('onglets avec icône et état actif distinct', async () => {
 
 await check('filtres par type et tri par niveau', async () => {
   await game(() => { __idle.addItem('iron_helm', 'common', 1); __idle.addItem('dagger', 'common', 7); });
-  await page.selectOption('[data-action="filter-select"]', 'weapon');
+  await page.click('[data-action="filter"][data-value="weapon"]'); // v9.1.3 : filtre en icônes
   await page.waitForTimeout(150);
   const slots = await game(() => [...document.querySelectorAll('.inv-grid [data-id]')]
     .map((el) => __idle.state.inventory.find((i) => i.id === el.dataset.id)?.slot));
@@ -144,7 +144,7 @@ await check('filtres par type et tri par niveau', async () => {
   const levels = await game(() => [...document.querySelectorAll('.inv-grid [data-id]')]
     .map((el) => __idle.state.inventory.find((i) => i.id === el.dataset.id).level));
   assert(levels.every((l, i) => i === 0 || levels[i - 1] >= l), JSON.stringify(levels));
-  await page.selectOption('[data-action="filter-select"]', 'all');
+  await page.click('[data-action="filter"][data-value="all"]');
   await page.waitForTimeout(150);
 });
 
@@ -163,6 +163,9 @@ await check('recyclage groupé : confirmation et objets protégés', async () =>
   await page.waitForTimeout(150);
   // v9.1.0 : le recyclage en lot est dans « Réglages du sac » (replié).
   if (!(await page.$('[data-action="bulk-rarity"]'))) await page.click('[data-action="toggle-section"][data-value="bag-settings"]');
+  await page.waitForTimeout(150);
+  // v9.1.3 : « Recycler en lot » est un repli des réglages du sac.
+  if (!(await page.$('[data-action="bulk-rarity"]'))) await page.click('[data-action="toggle-section"][data-value="bag-lot"]');
   await page.waitForTimeout(150);
   await page.selectOption('[data-action="bulk-rarity"]', 'rare');
   await page.click('[data-action="bulk-recycle"]');

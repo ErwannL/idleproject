@@ -1,5 +1,6 @@
 // Inventaire en 3 zones (équipement porté · fiche de l'objet · grille) et Forge.
-import { canEquip, weaponClass } from '../../core/classes.js';
+import { canEquip, classById, weaponClass } from '../../core/classes.js';
+import { companionById } from '../../core/companions.js';
 import { BALANCE } from '../../data/balance.js';
 import { BOSSES } from '../../data/enemies.js';
 import { ACCESSORY_SLOTS, GEAR_SLOTS, RARITIES, SLOTS, STAT_LABELS } from '../../data/items.js';
@@ -73,7 +74,9 @@ function detail(ui, state, item) {
     </div>`;
   }
   const mats = recycleMaterials(item);
-  const lock = `<button class="btn lock-btn${item.locked ? ' on' : ''}" data-action="lock" data-id="${item.id}" aria-pressed="${item.locked}">${img('icon_lock')} ${item.locked ? 'Verrouillé' : 'Verrouiller'}</button>`;
+  // v9.1.3 : verrou en icône dans l'en-tête de la fiche (plus de grand bouton texte).
+  const lock = `<button class="btn icon-btn lock-btn${item.locked ? ' on' : ''}" data-action="lock" data-id="${item.id}" aria-pressed="${item.locked}"
+      aria-label="${item.locked ? 'Déverrouiller' : 'Verrouiller'}" title="${item.locked ? 'Verrouillé : jamais recyclé ni fusionné (appuyer pour déverrouiller)' : 'Verrouiller : jamais recyclé ni fusionné'}">${img('icon_lock')}</button>`;
   const sharpen = sharpenCost(state, item);
   // Amélioration : +12 % sur une statistique au hasard, 5 fois (Commun, Rare) ou 10 fois (Épique, Légendaire).
   const ups = item.upgrades ?? 0;
@@ -91,38 +94,45 @@ function detail(ui, state, item) {
   const reforgeBtn = `<button class="btn small" data-action="reforge" data-id="${item.id}"
       ${!canReforge(item) || state.materials.shards < BALANCE.forge.reforgeShards || state.materials.essence < BALANCE.forge.reforgeEssence ? 'disabled' : ''}
 >${canReforge(item) ? 'Relancer les effets' : 'Aucun effet à relancer'} ${shard()}${BALANCE.forge.reforgeShards} ${essence()}${BALANCE.forge.reforgeEssence}</button>`;
-  // v9.1.0 : toujours visibles (même dans la fiche du téléphone) : Équiper, Recycler, Verrouiller. Le reste sous « Détails ».
+  // v9.1.0 : toujours visibles (même dans la fiche du téléphone) : Équiper et Recycler (le verrou est dans l'en-tête).
   const actions = `<div class="action-grid main-actions">
       ${isEquipped ? '<button class="btn btn-primary" disabled>Équipé</button>' : canEquip(state, item)
         ? `<button class="btn btn-primary primary-action" data-action="equip" data-id="${item.id}">Équiper</button>`
         : `<button class="btn" disabled>Arme de ${escapeHtml(weaponClass(item.baseId).name)}</button>`}
       <button class="btn btn-outline-gold" data-action="recycle" data-id="${item.id}" ${item.locked || isEquipped ? 'disabled' : ''}>Recycler +${formatNumber(recycleValue(item))} ${coin()}${mats.shards ? ` +${mats.shards}${shard()}` : ''}${mats.essence ? ` +${mats.essence}${essence()}` : ''}</button>
-      ${lock}
     </div>
-    ${!isEquipped && !canEquip(state, item) ? `<div class="muted">Changez de classe pour la porter : ${navPath('hero', 'Classe')}.</div>` : ''}
-    ${isEquipped ? '<div class="muted">Un objet porté ne se recycle pas.</div>' : item.locked ? '<div class="muted">Objet verrouillé : jamais recyclé.</div>' : ''}`;
-  const details = () => `<div class="span2 upgrade-line">${upgradeBtn}<span class="muted num">${ups}/${maxUp}</span></div>
+    ${!isEquipped && !canEquip(state, item) ? `<div class="muted">Changez de classe pour la porter : ${navPath('hero', 'Classe')}.</div>` : ''}`;
+  // v9.1.3 (doc1 « Équipement : Fiche ») : trois onglets au lieu d'un long repli « Détails ».
+  const tab = ['compare', 'upgrade', 'store'].includes(ui.view.itemTab) ? ui.view.itemTab : 'compare';
+  const tabs = `<div class="item-tabs" role="tablist">${[['compare', 'Comparer'], ['upgrade', 'Améliorer'], ['store', 'Ranger']].map(([k, l]) => `<button class="btn chip-btn small${k === tab ? ' active' : ''}"
+      role="tab" aria-selected="${k === tab}" data-action="item-tab" data-value="${k}">${l}</button>`).join('')}</div>`;
+  const stash = state.stash.length >= STASH_SIZE;
+  let body;
+  if (tab === 'upgrade') {
+    body = `<div class="upgrade-line">${upgradeBtn}<span class="muted num">${ups}/${maxUp}</span></div>
       <div class="muted">Renforcer : une statistique au hasard +${BALANCE.forge.upgradeBoostPct} %.</div>
       <div class="tool-line">${sharpenBtn}<span class="muted">Remonte l'objet au niveau de votre étape max.</span></div>
-      <div class="tool-line">${reforgeBtn}<span class="muted">Change les effets spéciaux au hasard.</span></div>
-      ${isEquipped ? '' : `<div class="tool-line">
-        <button class="btn small" data-action="to-stash" data-id="${item.id}" ${state.stash.length >= STASH_SIZE ? 'disabled' : ''}>Ranger au coffre (${state.stash.length}/${STASH_SIZE})</button>
-        ${item.set ? `<button class="btn small" data-action="to-mannequin" data-id="${item.id}">Mettre sur le mannequin</button>` : ''}
-        ${base.signature ? `<button class="btn small btn-gold" data-action="to-museum" data-id="${item.id}">Exposer au Musée</button>` : ''}</div>`}
-      <div class="section-title">Statistiques de l'objet</div>
-      <ul class="stat-list">${stats}${affixes}</ul>
-      ${setBlock(state, item)}`;
+      <div class="tool-line">${reforgeBtn}<span class="muted">Change les effets spéciaux au hasard.</span></div>`;
+  } else if (tab === 'store') {
+    body = isEquipped ? '<div class="muted">Un objet porté ne se range pas : retirez-le d\'abord en équipant un autre objet.</div>'
+      : `<div class="tool-line"><button class="btn small" data-action="to-stash" data-id="${item.id}" ${stash ? 'disabled' : ''}>Ranger au coffre (${state.stash.length}/${STASH_SIZE})</button>
+        <span class="muted">Jamais recyclé ni fusionné.</span></div>
+      ${item.set ? `<div class="tool-line"><button class="btn small" data-action="to-mannequin" data-id="${item.id}">Mettre sur le mannequin</button></div>` : ''}
+      ${base.signature ? `<div class="tool-line"><button class="btn small btn-gold" data-action="to-museum" data-id="${item.id}">Exposer au Musée</button></div>` : ''}`;
+  } else {
+    body = `${compare}<ul class="stat-list">${stats}${affixes}</ul>${setBlock(state, item)}`;
+  }
   return `<div class="card item-detail r-${item.rarity} sheet${ui.view.sheetOpen === 'item' ? ' sheet-open' : ''}">
     <button class="btn small sheet-close" data-action="close-sheet" aria-label="Fermer la fiche">✕</button>
     <div class="detail-head">${itemFrame(item, { tag: 'div' })}
-      <div><div class="item-name">${escapeHtml(item.name)}${ups ? ` <span class="plus-lv">+${ups}</span>` : ''}</div>
+      <div class="grow"><div class="item-name">${escapeHtml(item.name)}${ups ? ` <span class="plus-lv">+${ups}</span>` : ''}</div>
         <div class="item-sub">${SLOTS[item.slot]} · <span class="rarity-text">${rarity.label}</span> · niv. ${item.level}</div>
         <div class="tags">${isEquipped ? '<span class="equipped-tag">Équipé</span>' : ''}
         ${base.signature ? `<span class="signature-tag">Objet ancestral · butin de ${escapeHtml(BOSSES[base.signature].name)}</span>` : ''}
-        ${isMuseumDuplicate(state, item) ? '<span class="tag-dupe">Doublon du Musée</span>' : ''}</div></div></div>
-    ${compare}
+        ${isMuseumDuplicate(state, item) ? '<span class="tag-dupe">Doublon du Musée</span>' : ''}</div></div>${lock}</div>
     ${actions}
-    ${fold(ui, 'item-details', 'Détails : renforcer, réaffûter, ranger…', details)}
+    ${tabs}
+    <div class="item-tab-body">${body}</div>
   </div>`;
 }
 
@@ -227,48 +237,50 @@ function bag(ui, state) {
       : `<div class="item-frame empty" title="${label} : aucun">${img(slotIconName(slot))}</div>`;
     return `<div class="slot" title="${label}">${frame}</div>`;
   };
-  // v9.1.0 : emplacement et tri en listes déroulantes (plus de rangée de filtres toujours visible).
-  const filterOptions = [['all', 'Tous les objets'], ['weapon', 'Armes'], ['helmet', 'Casques'], ['armor', 'Armures'], ['accessory', 'Accessoires']]
-    .map(([v, l]) => `<option value="${v}" ${state.ui.slotFilter === v ? 'selected' : ''}>${l}</option>`).join('');
+  // v9.1.3 (doc2 A13) : filtre d'emplacement en icônes sur la ligne du tri (il tient sans prendre de hauteur).
+  const FILTERS = [['all', 'Tous les objets', null], ['weapon', 'Armes', 'weapon'], ['helmet', 'Casques', 'helmet'], ['armor', 'Armures', 'armor'], ['accessory', 'Accessoires', 'ring']];
+  const filterChips = FILTERS.map(([v, l, slot]) => `<button class="btn chip-btn filter-chip${(state.ui.slotFilter ?? 'all') === v ? ' active' : ''}" data-action="filter" data-value="${v}"
+      aria-label="${l}" title="${l}" aria-pressed="${(state.ui.slotFilter ?? 'all') === v}">${slot ? img(slotIconName(slot)) : '<b>Tous</b>'}</button>`).join('');
   const sortOptions = Object.entries(SORT_LABELS)
-    .map(([v, l]) => `<option value="${v}" ${v === state.ui.sortBy ? 'selected' : ''}>Tri : ${l}</option>`).join('');
+    .map(([v, l]) => `<option value="${v}" ${v === state.ui.sortBy ? 'selected' : ''}>${l}</option>`).join('');
   const full = state.inventory.length >= BALANCE.loot.inventorySize;
   const previewEq = selected ? { ...state.equipment, [selected.slot]: selected } : state.equipment;
   const st = computeHeroStats(state);
-  const anyUpgrade = state.inventory.some((i) => isUpgrade(state, i, undefined, st));
   const equipCol = `<div class="card inv-equip"><div class="section-title">Équipement porté</div>
       <div class="equip-doll"><div class="slot-col">${GEAR_SLOTS.map(slotFrame).join('')}</div>
         <div class="doll" title="Aperçu avec l'objet sélectionné">${animCanvas('hero', 64, 58, 2, `data-preview="${escapeHtml(JSON.stringify(previewEq))}"`)}</div>
         <div class="slot-col acc">${ACCESSORY_SLOTS.map(slotFrame).join('')}</div></div>
       <div class="mini-stats"><span>${img('weapon_sword')} ${formatDecimal(st.dps)} dégâts/s</span><span>${img('icon_heart')} ${formatNumber(st.maxHp)}</span></div></div>`;
+  // v9.1.3 (doc1 « Équipement : Sac ») : sur téléphone, les 7 cases portées en une ligne compacte en haut du sac
+  // (comme la ligne d'équipement de la Fiche du héros) au lieu du mannequin placé sous la grille.
+  const gearRow = `<div class="inv-gear-row" aria-label="Équipement porté">${Object.keys(SLOTS).map(slotFrame).join('')}</div>`;
   return `<div class="inv inv3">
     ${equipCol}
     <div class="inv-detail">${selected ? detail(ui, state, selected) : '<div class="card muted">Aucun objet.</div>'}</div>
     <div class="card inv-list">
-      <div class="row-between"><div class="section-title">Sac</div><span class="inv-count${full ? ' full' : ''}">${state.inventory.length}/${BALANCE.loot.inventorySize}</span></div>
-      <div class="inv-tools"><select data-action="filter-select" aria-label="Emplacement">${filterOptions}</select>
+      ${gearRow}
+      <div class="inv-tools"><div class="filter-chips" role="group" aria-label="Emplacement">${filterChips}</div>
         <select data-action="sort" aria-label="Trier">${sortOptions}</select></div>
       <div class="inv-grid">${items.map((i) => itemFrame(i, { selected: i.id === ui.view.selectedItemId, showUp: true, state, current: st })).join('')
         || '<div class="inv-empty">Aucun objet ici. Les ennemis laissent parfois tomber de l\'équipement.</div>'}</div>
       ${full ? '<div class="bad">Sac plein : recyclez, rangez au coffre ou réglez le recyclage automatique (Réglages du sac).</div>' : ''}
     </div>
   </div>
-  ${fold(ui, 'bag-settings', 'Réglages du sac : recyclage, fusion, rangement', () => bagSettings(ui, state))}`;
+  ${fold(ui, 'bag-settings', 'Réglages du sac', () => bagSettings(ui, state))}`;
 }
 
 // Réglages du sac (v9.1.0) : un seul écran replié pour tous les automatismes et le recyclage en lot.
+// v9.1.3 (doc1 « Équipement : autres », recyclage en 3 entrées) : une phrase et 3 replis. Recycler un objet seul
+// se fait depuis sa fiche ; ici le lot, la règle automatique (raretés) et, en avancé, le mode et les filtres.
+// Le rangement auto des mannequins n'est plus répété ici : il reste dans l'écran Mannequins.
 function bagSettings(ui, state) {
   const candidates = bulkRecycleCandidates(state, ui.view.bulkRarity);
   const bulkGold = candidates.reduce((s, i) => s + recycleValue(i), 0);
   const bulkLabel = ui.view.bulkArmed
     ? `Confirmer : ${candidates.length} objet${candidates.length > 1 ? 's' : ''} (+${formatNumber(bulkGold)} or)`
     : `Recycler (${candidates.length}) +${formatNumber(bulkGold)}`;
-  const autoM = state.ui.autoMannequin !== false;
-  return `${recycleRuleEditor(state)}
-    <label class="inv-rule"><span>Mannequins :</span><button class="btn chip-btn small${autoM ? ' active' : ''}" data-action="auto-mannequin">${autoM ? 'Rangement auto : activé' : 'Rangement auto : désactivé'}</button></label>
-    <div class="muted">Jamais recyclé ni fusionné automatiquement : objet porté, verrouillé, ancestral, ou meilleur que l'objet porté.</div>
-    <div class="section-title">Recyclage en lot</div>
-    <div class="inv-bulk">
+  const rules = recycleRules(state);
+  const lot = () => `<div class="inv-bulk">
       <select data-action="bulk-rarity" aria-label="Rareté maximale à recycler">
         <option value="common" ${ui.view.bulkRarity === 'common' ? 'selected' : ''}>Communs</option>
         <option value="rare" ${ui.view.bulkRarity === 'rare' ? 'selected' : ''}>+ Rares</option>
@@ -276,21 +288,38 @@ function bagSettings(ui, state) {
         <option value="legendary" ${ui.view.bulkRarity === 'legendary' ? 'selected' : ''}>+ Légendaires</option>
       </select>
       <button class="btn btn-outline-gold${ui.view.bulkArmed ? ' armed' : ''}" data-action="bulk-recycle" ${candidates.length ? '' : 'disabled'}>${bulkLabel}</button>
-    </div><div class="muted">Une confirmation est demandée (second clic).</div>`;
+    </div><div class="muted">Une confirmation est demandée (second appui).</div>`;
+  const ruleSummary = rules.mode === 'off' ? 'Désactivé' : RARITIES.filter((r) => rules.rarities.includes(r.id)).map((r) => r.label).join(', ') || 'Aucune rareté';
+  return `<div class="muted">Jamais recyclé ni fusionné automatiquement : objet porté, verrouillé, ancestral, ou meilleur que l'objet porté. Un objet seul se recycle depuis sa fiche.</div>
+    ${fold(ui, 'bag-lot', 'Recycler en lot', lot)}
+    ${fold(ui, 'bag-rule', 'Recyclage automatique', () => recycleRuleEditor(state), { extra: escapeHtml(ruleSummary) })}
+    ${fold(ui, 'bag-advanced', 'Réglages avancés : mode, emplacements, effets, fusion auto', () => recycleAdvanced(state))}`;
 }
 
-// Builds (v9.1.0) : liste déroulante (choisir = équiper), Enregistrer et Renommer.
+// Builds (v9.1.0) : Enregistrer et Renommer. v9.1.3 (doc2 A11) : une carte par build, résumé d'un coup d'œil
+// (classe, équipe, objets, pouvoirs) et « Équiper » sur la carte, au lieu d'une liste déroulante.
 function buildsBar(ui, state) {
   const sel = Math.min(state.loadouts.length - 1, Math.max(0, ui.view.buildSel ?? 0));
-  const options = state.loadouts.map((l, i) => `<option value="${i}" ${i === sel ? 'selected' : ''}>${escapeHtml(l.name)}${l.team ? '' : ' (vide)'}</option>`).join('');
-  const renaming = ui.view.buildRename === sel;
-  return `<div class="build-bar"><label class="muted" for="build-select">Builds</label>
-      <select id="build-select" data-action="build-select" aria-label="Build à équiper">${options}</select>
-      <button class="btn small" data-action="save-loadout" data-value="${sel}">Enregistrer</button>
-      <button class="btn small" data-action="rename-build" data-value="${sel}">Renommer</button>
-      ${renaming ? `<input id="build-name" type="text" maxlength="24" value="${escapeHtml(state.loadouts[sel].name)}" aria-label="Nouveau nom">
-        <button class="btn small btn-primary" data-action="confirm-rename-build" data-value="${sel}">OK</button>` : ''}
+  const card = (l, i) => {
+    const renaming = ui.view.buildRename === i;
+    const team = (l.team ?? []).map((id) => companionById(id)).filter(Boolean);
+    const items = Object.values(l.gear ?? {}).filter(Boolean).length;
+    const summary = l.team
+      ? [l.heroClass && classById(l.heroClass) ? escapeHtml(classById(l.heroClass).name) : '',
+        ...(team.length ? team.map((c) => escapeHtml(c.name)) : ['sans équipe']),
+        `${items}/${Object.keys(SLOTS).length} objets`, (l.powers ?? []).length ? `${l.powers.length} pouvoir${l.powers.length > 1 ? 's' : ''}` : ''].filter(Boolean).map((x) => `<span>${x}</span>`).join(' · ')
+      : 'Vide : équipez-vous puis « Enregistrer ».';
+    return `<div class="card build-card${i === sel ? ' selected' : ''}">
+      <div class="row-between"><b>${escapeHtml(l.name)}</b>
+        <span class="build-btns">${l.team ? `<button class="btn small btn-primary" data-action="apply-build" data-value="${i}">Équiper</button>` : ''}
+        <button class="btn small" data-action="save-loadout" data-value="${i}">Enregistrer</button>
+        <button class="btn small" data-action="rename-build" data-value="${i}" aria-label="Renommer" title="Renommer">✎</button></span></div>
+      <div class="muted">${summary}</div>
+      ${renaming ? `<div class="row"><input id="build-name" type="text" maxlength="24" value="${escapeHtml(l.name)}" aria-label="Nouveau nom">
+        <button class="btn small btn-primary" data-action="confirm-rename-build" data-value="${i}">OK</button></div>` : ''}
     </div>`;
+  };
+  return `<div class="build-cards">${state.loadouts.map(card).join('')}</div>`;
 }
 
 function forge(ui, state) {
@@ -302,11 +331,13 @@ function forge(ui, state) {
   const fusion = groups.length
     ? `<button class="btn btn-gold primary-action${ui.view.fuseArmed ? ' armed' : ''}" data-action="fuse-all">${ui.view.fuseArmed
       ? `Confirmer : fusionner ${n} objets ?` : `Fusionner tout (${groups.length} groupe${groups.length > 1 ? 's' : ''})`}</button>
-      <div class="muted">Protégés : objets verrouillés, renforcés, meilleurs que l'équipé, utiles à un ensemble, ancestraux.</div>` + groups.map((g) => `<div class="fusion-row">
+      <div class="muted">Protégés : objets verrouillés, renforcés, meilleurs que l'équipé, utiles à un ensemble, ancestraux.</div>`
+      // v9.1.3 : les groupes un par un sont repliés sous « Fusionner tout ».
+      + fold(ui, 'fusion-groups', `Fusionner un seul groupe (${groups.length})`, () => groups.map((g) => `<div class="fusion-row">
         <span>${img(slotIconName(g.slot))} ${BALANCE.forge.fusionCount} × ${SLOTS[g.slot]}
           <b class="r-${g.rarity} rarity-text">${rarityLabel(g.rarity)}</b> → 1 <b class="r-${g.next} rarity-text">${rarityLabel(g.next)}</b>
           <span class="muted">(${g.count} dans le sac)</span></span>
-        <button class="btn btn-gold small" data-action="fuse" data-value="${g.slot}|${g.rarity}">Fusionner</button></div>`).join('')
+        <button class="btn btn-gold small" data-action="fuse" data-value="${g.slot}|${g.rarity}">Fusionner</button></div>`).join(''))
     : `<div class="muted">Aucune fusion possible : il faut ${BALANCE.forge.fusionCount} objets du même emplacement et de la même rareté
         (non verrouillés, hors objets ancestraux).</div>`;
   // Fabrication ciblée : l'emplacement en liste, puis deux boutons (Rare+ et Épique+).
@@ -341,17 +372,27 @@ function autoFuseEditor(state) {
     ${f.on ? `<div class="chip-row">${chips}</div>` : ''}`;
 }
 
-// Recyclage automatique : quand (ramassage / sac plein), quelles raretés, quels types d'objets.
+// Recyclage automatique (règle unique) : les raretés recyclées. Le mode (au ramassage / sac plein) est en avancé.
 function recycleRuleEditor(state) {
   const rules = recycleRules(state);
   const chip = (group, value, label, on) => `<button class="btn chip-btn small${on ? ' active' : ''}" data-action="recycle-toggle" data-group="${group}" data-value="${value}">${label}</button>`;
-  const rarities = RARITIES.map((r) => chip('rarities', r.id, r.label, rules.rarities.includes(r.id))).join('');
+  if (rules.mode === 'off') {
+    return `<div class="row"><span class="muted">Désactivé.</span><button class="btn small" data-action="recycle-toggle" data-group="mode" data-value="pickup">Activer au ramassage</button></div>`;
+  }
+  return `<div class="muted">Raretés recyclées · ${RECYCLE_MODES[rules.mode]}</div>
+    <div class="chip-row">${RARITIES.map((r) => chip('rarities', r.id, r.label, rules.rarities.includes(r.id))).join('')}</div>`;
+}
+
+// Réglages avancés : mode, emplacements, effets à garder, ensembles, fusion automatique.
+function recycleAdvanced(state) {
+  const rules = recycleRules(state);
+  const chip = (group, value, label, on) => `<button class="btn chip-btn small${on ? ' active' : ''}" data-action="recycle-toggle" data-group="${group}" data-value="${value}">${label}</button>`;
   const slots = Object.entries(SLOTS).map(([s, l]) => chip('slots', s, l, rules.slots.includes(s))).join('');
-  return `<div class="recycle-rules" title="Jamais recyclé : objet équipé, verrouillé, ancestral, ou meilleur que l'objet porté.">
+  return `<div class="recycle-rules">
     <label class="inv-rule"><span>Recyclage auto :</span>
       <select data-action="recycle-mode" aria-label="Recyclage automatique">${Object.entries(RECYCLE_MODES)
         .map(([v, l]) => `<option value="${v}" ${v === rules.mode ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
-    ${rules.mode === 'off' ? '' : `<div class="chip-row">${rarities}</div><div class="chip-row">${slots}</div>
+    ${rules.mode === 'off' ? '' : `<div class="chip-row">${slots}</div>
       <div class="section-title">Garder si l'objet a…</div><div class="chip-row">${Object.entries(KEEP_AFFIX_LABELS).map(([k, l]) => chip('keepAffixes', k, l, (rules.keepAffixes ?? []).includes(k))).join('')}</div>`}
     <label class="inv-rule" title="Une pièce d'ensemble est gardée dès que vous en avez 2 emplacements différents (la meilleure par emplacement).">
       <span>Ensembles :</span><button class="btn chip-btn small${state.ui.keepSets !== false ? ' active' : ''}" data-action="keep-sets">${state.ui.keepSets !== false ? 'Garder les pièces utiles' : 'Recycler comme le reste'}</button></label>
@@ -378,11 +419,12 @@ export default {
     const tab = ui.view.invTab === 'stash' ? 'stash' : 'bag';
     const st = computeHeroStats(state);
     const anyUpgrade = tab === 'bag' && state.inventory.some((i) => isUpgrade(state, i, undefined, st));
+    // v9.1.3 : une seule ligne Sac/Coffre/Mannequins/Forge ; « Équiper le meilleur » seulement s'il sert.
     const head = `<div class="inv-head">
         ${segment([['bag', `Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}`, 'icon_bag'], ['stash', `Coffre ${state.stash.length}/${STASH_SIZE}`, 'icon_chest']], 'inv-tab', tab)}
-        <button class="btn btn-primary primary-action${anyUpgrade ? ' pulse-gold' : ''}" data-action="equip-best" ${anyUpgrade ? '' : 'disabled'}>⬆ Équiper le meilleur</button>
-        <button class="btn small" data-action="inv-view" data-value="mannequins">${img('icon_hero')} Mannequins</button>
-        <button class="btn small" data-action="inv-view" data-value="forge">${img('icon_anvil')} Forge</button>
+        <button class="btn small" data-action="inv-view" data-value="mannequins" aria-label="Mannequins" title="Mannequins">${img('icon_hero')}<span class="wide-label"> Mannequins</span></button>
+        <button class="btn small" data-action="inv-view" data-value="forge" aria-label="Forge" title="Forge">${img('icon_anvil')}<span class="wide-label"> Forge</span></button>
+        ${anyUpgrade ? '<button class="btn btn-primary primary-action pulse-gold equip-best" data-action="equip-best">⬆ Équiper le meilleur</button>' : ''}
       </div>${fold(ui, 'inv-builds', 'Builds', () => buildsBar(ui, state), { extra: state.loadouts[Math.max(0, ui.view.buildSel ?? 0)]?.name ?? '' })}`;
     return head + (tab === 'stash' ? stashView(ui, state) : bag(ui, state));
   },

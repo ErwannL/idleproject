@@ -5,7 +5,6 @@ import { BOSSES, ENEMIES } from '../../data/enemies.js';
 import { COMPANIONS } from '../../data/companions.js';
 import { DIFFICULTY_ORDER, DUNGEON_DIFFICULTIES, DUNGEON_PATHS, DUNGEON_REWARD, DUNGEONS } from '../../data/dungeons.js';
 import { SLOTS } from '../../data/items.js';
-import { ROLES } from '../../data/synergies.js';
 import { stageLabel } from '../../core/combat.js';
 import { canEnterDungeon, dungeonById, dungeonRunInfo, unlockedDifficulties } from '../../core/dungeon.js';
 import { formatDuration } from '../../core/format.js';
@@ -183,7 +182,7 @@ function dungeonsList(ui, state) {
   const unlockHint = nextLocked
     ? `<div class="muted small-note">${img('icon_lock', 'ico-lock', 'Verrouillé')} ${DUNGEON_DIFFICULTIES[nextLocked].label} : terminez ce donjon en ${DUNGEON_DIFFICULTIES[DIFFICULTY_ORDER[DIFFICULTY_ORDER.indexOf(nextLocked) - 1]].label}.</div>`
     : '';
-  const roles = (sel.roles ?? []).map((r) => `<div class="role-chip" style="--role:${ROLES[r].color}">${img(ROLES[r].icon)}<span>${ROLES[r].label}</span></div>`).join('');
+  // v9.1.3 (décision) : plus de « Compagnons conseillés » (aucune recommandation).
   const slot = ui.view.dungeonSlot ?? state.ui.dungeonSlot ?? 'any';
   const path = ui.view.dungeonPath ?? state.ui.dungeonPath ?? 'gold';
   const slotSelect = `<select data-action="dungeon-slot-select" aria-label="Butin ciblé">${[['any', 'Tout emplacement'], ...Object.entries(SLOTS)].map(([v, l]) => `<option value="${v}" ${slot === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
@@ -208,8 +207,7 @@ function dungeonsList(ui, state) {
       <div class="row dungeon-target"><span class="section-title">Butin ciblé</span>${slotSelect}</div>
       <div class="section-title">Chemin</div><div class="path-row">${paths}</div>
       ${enter}
-      ${fold(ui, 'dungeon-more', 'Récompenses, salles, compagnons conseillés, tentatives', () => `<div class="reward-grid">${rewards}</div>
-        ${roles ? `<div class="row"><span class="section-title">Compagnons conseillés</span>${roles}</div>` : ''}
+      ${fold(ui, 'dungeon-more', 'Récompenses, salles, tentatives', () => `<div class="reward-grid">${rewards}</div>
         ${affinityLine(state, sel)}
         ${roomPath(sel)}
         ${runsBlock(state, sel, diffId)}`)}

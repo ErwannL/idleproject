@@ -279,6 +279,17 @@ export const EXACT_910 = {
   'Les fragments anciens achètent des talents permanents. Un talent s\'apprend dès qu\'un voisin est appris. Glissez ou utilisez la molette pour vous déplacer, Ctrl + molette pour zoomer.': 'Ancient fragments buy permanent talents. A talent can be learned as soon as a neighbour is learned. Drag or use the wheel to move, Ctrl + wheel to zoom.',
   'Les fragments anciens achètent des talents permanents. Un talent s\'apprend dès qu\'un voisin est appris. Glissez du doigt pour vous déplacer ; les boutons − et + zooment.': 'Ancient fragments buy permanent talents. A talent can be learned as soon as a neighbour is learned. Drag with your finger to move; the − and + buttons zoom.',
   'Des vagues de 8 ennemis toujours plus forts (90 s par vague), un boss toutes les 5 vagues (sauf règle contraire). Une défaite termine la tentative. Récompenses à chaque nouveau meilleur score de la semaine et à chaque record absolu.': 'Waves of 8 ever-stronger enemies (90 s per wave), a boss every 5 waves (unless a rule says otherwise). A defeat ends the attempt. Rewards for each new best score of the week and each all-time record.',
+  // v9.1.3 (chantier 2) : fiches, équipement, compagnons, boss.
+  'Comparer': 'Compare', 'Ranger': 'Store', 'Histoire': 'Story', 'Bonus de famille': 'Family bonus', 'Formule de puissance': 'Power formula',
+  'Récompenses, salles, tentatives': 'Rewards, rooms, attempts', 'Recycler en lot': 'Bulk recycle', 'Activer au ramassage': 'Turn on at pickup', 'Désactivé.': 'Off.', 'Aucune rareté': 'No rarity',
+  'Réglages avancés : mode, emplacements, effets, fusion auto': 'Advanced settings: mode, slots, effects, auto fusion',
+  'Une confirmation est demandée (second appui).': 'A confirmation is asked (second tap).',
+  'Jamais recyclé ni fusionné automatiquement : objet porté, verrouillé, ancestral, ou meilleur que l\'objet porté. Un objet seul se recycle depuis sa fiche.': 'Never recycled or fused automatically: worn, locked or ancestral items, or items better than the worn one. A single item is recycled from its sheet.',
+  'Jamais recyclé ni fusionné.': 'Never recycled or fused.',
+  'Un objet porté ne se range pas : retirez-le d\'abord en équipant un autre objet.': 'A worn item cannot be stored: first replace it by equipping another item.',
+  'Verrouillé : jamais recyclé ni fusionné (appuyer pour déverrouiller)': 'Locked: never recycled or fused (tap to unlock)',
+  'Verrouiller : jamais recyclé ni fusionné': 'Lock: never recycled or fused',
+  'Vide : équipez-vous puis « Enregistrer ».': 'Empty: gear up, then “Save”.', 'sans équipe': 'no team', 'Synergies': 'Synergies',
 };
 
 // Traduction d'un morceau (nom de boost, de boss…) : fournie par ./en.js.
@@ -431,4 +442,16 @@ export const PATTERNS_910 = [
   [/^Déjà utilisée : (.+)\.$/, 'Already used: $1.'],
   [/^(.+) — (.+)\. Touche (.+)\.$/, (m) => `${tr(m[1])} — ${tr(m[2])}. Key ${m[3]}.`],
   [/^(.+) — (.+)\. Débloqué au niveau (\d+) du héros\.$/, (m) => `${tr(m[1])} — ${tr(m[2])}. Unlocked at hero level ${m[3]}.`],
+  // v9.1.3 (chantier 2) : fiches, équipement, compagnons, boss.
+  [/^Raretés recyclées · (.+)$/, (m) => `Recycled rarities · ${tr(m[1])}`],
+  [/^Fusionner un seul groupe \((\d+)\)$/, 'Fuse a single group ($1)'],
+  [/^Compétences de (.+) \((\d+)\)$/, (m) => `${m[1] === 'familier' ? 'Pet' : tr(m[1])} skills (${m[2]})`],
+  [/^Synergies du (.+) \((\d+)\)$/, (m) => `${tr(m[1])} synergies (${m[2]})`],
+  [/^Niv\. (\d+) ▶ (\d+)$/, 'Lv. $1 ▶ $2'],
+  [/^Puissance ×([\d,]+) : rareté × (\d+) étoiles? — chaque doublon \+(\d+) %\.$/, (m) => `Power ×${m[1].replace(',', '.')}: rarity × ${m[2]} star${m[2] === '1' ? '' : 's'} — each duplicate +${m[3]}%.`],
+  [/^2 pouvoirs de la même famille = effets \+(\d+) %\.$/, '2 powers of the same family = effects +$1 %.'],
+  [/^(\d+)\/(\d+) objets$/, '$1/$2 items'],
+  [/^(\d+) pouvoirs?$/, (m) => `${m[1]} power${m[1] === '1' ? '' : 's'}`],
+  [/^niv\. (\d+) · (\d+)★$/, 'lv. $1 · $2★'],
+  [/^([\d\s.,]+\s?[KMBTa-z]*) dégâts\/s$/, '$1 damage/s'],
 ];

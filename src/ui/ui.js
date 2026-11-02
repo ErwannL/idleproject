@@ -611,6 +611,8 @@ export class UI {
       case 'craft-tier': local(() => { v.craftTier = value; }); break;
       case 'select-item': local(() => { v.selectedItemId = id; v.sheetOpen = 'item'; }); break;
       case 'inv-view': local(() => { v.invView = value || null; }); break;
+      case 'apply-build': v.buildSel = Number(value); a.applyLoadout(Number(value)); break; // v9.1.3 : cartes de builds
+      case 'item-tab': local(() => { v.itemTab = value; }); break; // v9.1.3 : onglets de la fiche d'objet
       case 'fuse-all':
         if (!v.fuseArmed) { local(() => { v.fuseArmed = true; }); clearTimeout(this.fuseTimer); this.fuseTimer = setTimeout(() => { v.fuseArmed = false; this.invalidate(); }, BULK_CONFIRM_MS); break; }
         clearTimeout(this.fuseTimer); v.fuseArmed = false; a.fuseAll(); break;
@@ -671,7 +673,7 @@ export class UI {
       case 'apply-loadout': a.applyLoadout(Number(value)); break;
       case 'claim-collection': a.claimCollection(value); break;
       case 'collection-missing': local(() => { v.collOpen = v.collOpen === value ? null : value; }); break;
-      case 'boss-sel': local(() => { v.bossSel = value; }); break;
+      case 'boss-sel': local(() => { v.bossSel = value; v.sheetOpen = 'boss'; }); break; // v9.1.3 : fiche en feuille du bas
       case 'enc-sec': local(() => { v.encSec = value; }); break;
       case 'enc-sel': local(() => { v.encSel = value; }); break;
       case 'enc-slot': local(() => { v.encSlot = value; }); break;
@@ -1551,7 +1553,8 @@ export class UI {
   phoneAction(body) {
     body.querySelector('.phone-action')?.remove();
     if (!this.phone) return;
-    const main = body.querySelector('.primary-action');
+    // v9.1.3 : seulement une action affichée (pas celle d'une fiche fermée, masquée sur téléphone).
+    const main = [...body.querySelectorAll('.primary-action')].find((b) => b.offsetParent !== null);
     if (!main) return;
     const bar = document.createElement('div');
     bar.className = 'phone-action';

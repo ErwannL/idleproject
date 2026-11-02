@@ -6,12 +6,17 @@ import {
 } from '../../core/expeditions.js';
 import { rewardText } from '../../core/rewards.js';
 import { formatDuration } from '../../core/format.js';
-import { escapeHtml, formatNumber, progressBar, rarityLabel, stars } from '../common.js';
+import { escapeHtml, formatNumber, icon, progressBar, rarityLabel, stars } from '../common.js';
 import { animCanvas } from '../animator.js';
 
 export function companionPortrait(c, big = false) {
   if (c.kind === 'ally') return animCanvas(`foe:${c.sprite}`, 64, 56, big ? 2 : 1);
   return animCanvas(`pet:${c.sprite}`, big ? 26 : 24, big ? 26 : 24, 2);
+}
+
+// v9.1.3 (décision portraits) : image fixe dans les grilles et listes ; seule l'unité sélectionnée est animée.
+export function companionStill(c) {
+  return `<img class="px still" src="${icon(c.sprite, c.kind === 'ally' ? 1 : 3)}" alt="">`;
 }
 
 function slotHtml(ui, state, run, i, now) {
@@ -32,7 +37,7 @@ function slotHtml(ui, state, run, i, now) {
   const done = expeditionDone(run, now);
   const ratio = Math.min(1, (now - run.start) / (run.end - run.start));
   return `<div class="exp-slot${done ? ' done' : ''}">
-      <div class="exp-who">${companionPortrait(c)}</div>
+      <div class="exp-who">${companionStill(c)}</div>
       <div class="grow"><b>${escapeHtml(c.name)}</b> <span class="muted">· ${type.label} (${type.hours} h)</span>
         ${progressBar(ratio, done ? 'Terminée !' : `encore ${formatDuration((run.end - now) / 1000)}`, done ? 'xp' : '')}
         <div class="exp-reward">${rewardText(run.reward, formatNumber)}</div></div>
