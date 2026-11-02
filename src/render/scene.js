@@ -10,6 +10,7 @@ import { RARITIES } from '../data/items.js';
 import { ZONES } from '../data/zones.js';
 import { currentEncounter } from '../core/combat.js';
 import { companionById, equippedCompanions } from '../core/companions.js';
+import { COMPANION_RULES } from '../data/companions.js';
 import { formatNumber } from '../core/format.js';
 import { activeHero } from '../core/heroes.js';
 import { activeClass } from '../core/classes.js';
@@ -1082,7 +1083,7 @@ export class SceneRenderer {
 
   // v8.9 : compagnon aux étoiles maximales → aura lumineuse (couleur de sa rareté) et étincelles qui montent.
   maxStars(companion) {
-    return (this.state?.companions.owned[companion.id]?.stars ?? 0) >= BALANCE.summon.maxStars;
+    return (this.state?.companions.owned[companion.id]?.stars ?? 0) >= COMPANION_RULES.maxCopies; // v9.1.3 : 5★ = 6 exemplaires
   }
 
   // v9.0.5 : aura façon « Super guerrier » — flammes en pixels qui montent autour du personnage, aux couleurs

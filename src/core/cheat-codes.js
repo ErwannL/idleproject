@@ -2,6 +2,7 @@
 // BUILD.cheats est vrai ; il n'est pas copié dans la version publique (tools/build-web.mjs, package.json « files »).
 import { towerWeek } from './tower.js';
 import { BALANCE } from '../data/balance.js';
+import { COMPANION_RULES } from '../data/companions.js';
 import { BUILD } from './build-info.js';
 import { MAX_TIMES, MULT_CAP, cheatMultiplier, cheatTimes } from './cheats.js';
 
@@ -33,7 +34,7 @@ const GIFTS = {
   VITESSE100: { label: () => 'Vitesse ×100 débloquée (bouton ⏩) — effets visuels coupés à cette vitesse', give: (s) => unlockSpeed(s, 100) },
   // v9.0.4 : Étoiles de Transcendance, et étoiles des compagnons / familiers.
   ETOILES: { label: (n) => `+${fmt(10 * n)} Étoiles de Transcendance`, give: (s, n) => { if (s.transcend) s.transcend.stars = Math.min(1e15, s.transcend.stars + 10 * n); } },
-  SUPERNOVA: { label: () => `Tous vos compagnons et familiers passent à ${BALANCE.summon.maxStars} étoiles`, give: (s) => { for (const o of Object.values(s.companions.owned)) o.stars = BALANCE.summon.maxStars; } },
+  SUPERNOVA: { label: () => `Tous vos compagnons et familiers passent à ${BALANCE.summon.maxStars} étoiles`, give: (s) => { for (const o of Object.values(s.companions.owned)) o.stars = COMPANION_RULES.maxCopies; } }, // v9.1.3 : 5★ = 6 exemplaires
   TOWERPASS: { label: (n) => `+${fmt(n)} ascension${n > 1 ? 's' : ''} de la Tour cette semaine`, give: (s, n) => { towerWeek(s).extra = Math.min(1e6, (towerWeek(s).extra ?? 0) + n); } },
 };
 

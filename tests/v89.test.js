@@ -13,7 +13,7 @@ import { Rng } from '../src/core/rng.js';
 
 const NOW = Date.now();
 
-test('v8.9 : 4 compétences par compagnon, la 4e avec 3 doublons, +15 % par étoile', () => {
+test('v8.9 : 4 compétences par compagnon, la 4e avec 3 doublons, +5 % par doublon (v9.1.3)', () => {
   const s = createNewState(NOW, 1);
   s.companions.owned = { archangel: { stars: 1, level: 1 }, cat: { stars: 5, level: 1 } };
   assert.equal(allCompanionSkills('archangel').length, 4);
@@ -21,7 +21,8 @@ test('v8.9 : 4 compétences par compagnon, la 4e avec 3 doublons, +15 % par éto
   s.companions.owned.archangel.stars = 4;
   assert.equal(companionSkills(s, 'archangel').length, 4);
   assert.ok(companionSkills(s, 'archangel').at(-1).ultimate);
-  assert.ok(Math.abs(skillPower(s, 'archangel') - 1.45) < 1e-9);
+  // v9.1.3 (doc4) : 4 exemplaires = 3 doublons ; soin × 4/3 × 1,15.
+  assert.ok(Math.abs(skillPower(s, 'archangel', 'heal') - (4 / 3) * 1.15) < 1e-9);
   // Les compagnons lancent bien plusieurs compétences en combat.
   s.companions.equipped = ['archangel', 'cat'];
   const w = createCombat(s);

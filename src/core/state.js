@@ -2,7 +2,7 @@
 import { BALANCE } from '../data/balance.js';
 import { AFFIXES, RARITIES, SLOTS, STARTER_WEAPON, STAT_LABELS } from '../data/items.js';
 import { BOSSES } from '../data/enemies.js';
-import { COMPANIONS } from '../data/companions.js';
+import { COMPANIONS, COMPANION_RULES } from '../data/companions.js';
 import { CONTRACT_TYPES } from '../data/contracts.js';
 import { DUNGEON_PATHS, DUNGEONS, STARTING_KEYS } from '../data/dungeons.js';
 import { HEROES, STARTER_HERO } from '../data/heroes.js';
@@ -35,7 +35,7 @@ import { museumItems } from './museum.js';
 import { sanitizeBounty } from './bounty.js';
 import { emptyTranscend, sanitizeTranscend } from './transcend.js';
 import { sanitizeChallenge } from './challenge.js';
-import { migrateBagOverflow, migrateCodex, migrateEssence, migrateMannequins, migrateMissionTrack, migrateTickets } from './migrations-v913.js';
+import { migrateBagOverflow, migrateCodex, migrateCopies, migrateEssence, migrateMannequins, migrateMissionTrack, migrateTickets } from './migrations-v913.js';
 import { MISSION_TRACK } from '../data/missions.js';
 import { grantReward } from './rewards.js';
 import { ENCYCLOPEDIA_SECTIONS } from './encyclopedia.js';
@@ -202,10 +202,11 @@ function cleanCollections(state, raw) {
     const owned = obj(companions.owned)[c.id];
     if (!owned) continue;
     state.companions.owned[c.id] = {
-      stars: Math.min(int(owned.stars, 1, 1), BALANCE.summon.maxStars),
+      stars: Math.min(int(owned.stars, 1, 1), COMPANION_RULES.maxCopies), // v9.1.3 : 6 exemplaires (skins : 5)
       level: Math.min(int(owned.level, 1, 1), 20),
     };
   }
+  migrateCopies(state, int(raw.version, 1)); // v9.1.3 (doc4 lot 1) : 5 exemplaires → 6, une seule fois (v7 → v8)
   const equipped = Array.isArray(companions.equipped) ? companions.equipped : [];
   state.companions.equipped = clampTeam([...new Set(equipped)].filter((id) => state.companions.owned[id]));
 

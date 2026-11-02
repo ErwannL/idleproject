@@ -1,10 +1,13 @@
 // Compagnons : bonus passif + compétence automatique simple.
-// Les effets passifs sont multipliés par (1 + levelBonusPct × (niveau - 1)) × (1 + starBonusPct × (étoiles - 1)).
+// Les effets passifs sont multipliés par (1 + levelBonusPct × (niveau - 1)) × (passiveBase + passivePerDuplicate × D).
+// v9.1.3 (doc4 lot 1) : D = doublons (0 à 5). ×1,5 dès l'obtention, ×1,8 à 4 doublons (= l'ancien maximum), ×1,875 à 5.
 
 export const COMPANION_RULES = {
   maxLevel: 20,
   levelBonusPct: 0.08,
-  starBonusPct: 0.2,
+  passiveBase: 1.5,
+  passivePerDuplicate: 0.075,
+  maxCopies: 6, // v9.1.3 : 1 exemplaire + 5 doublons (les skins restent à 5 : BALANCE.summon.maxStars)
   upgradeCostKills: 15, // coût du niveau n = 15 × or d'un ennemi de l'étape max × 1,25^(n-1)
   upgradeCostGrowth: 1.25,
 };

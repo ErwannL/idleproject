@@ -172,7 +172,10 @@ test('v9.1.3 : un jeu 9.1.2 (format 7, sans blocage « newer ») ne peut pas éc
   const { version } = await client.push(0, migrated);
   // Le jeu 9.1.2 ignore maxSaveVersion : sa partie locale (plus récente) part vers le serveur.
   st.setItem(SAVE_KEY, JSON.stringify({ version: 7, level: 50, maxStage: 90, kills: 50, lastSaved: 999, records: {} }));
-  await assert.rejects(() => syncOnce({ client, storage: st }), /trop ancienne/);
+  // v9.1.3 (doc4 lot 1) : ce jeu-ci ne pousse plus un format inférieur (reconcile → 'none') ; le jeu 9.1.2, lui, pousse
+  // quand même, et c'est le serveur qui refuse.
+  assert.equal((await syncOnce({ client, storage: st })).action, 'none');
+  await assert.rejects(() => client.push(version, st.getItem(SAVE_KEY)), /trop ancienne/);
   const remote = await client.pull();
   assert.equal(remote.version, version);
   assert.equal(JSON.parse(remote.data).version, 8, 'partie migrée intacte');

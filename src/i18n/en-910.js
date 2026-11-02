@@ -631,6 +631,9 @@ export const PATTERNS_910 = [
   [/^(\d+) pouvoirs?$/, (m) => `${m[1]} power${m[1] === '1' ? '' : 's'}`],
   [/^niv\. (\d+) · (\d+)★$/, 'lv. $1 · $2★'],
   [/^([\d\s.,]+\s?[KMBTa-z]*) dégâts\/s$/, '$1 damage/s'],
+  // v9.1.3 (doc4 : héros, doublons).
+  [/^Ultime à (\d+) doublons?$/, (m) => `Ultimate at ${m[1]} duplicate${m[1] === '1' ? '' : 's'}`],
+  [/^Rareté ×([\d,]+) · (\d+) doublons? sur (\d+) — chaque doublon \+(\d+) % aux compétences\.$/, (m) => `Rarity ×${m[1].replace(',', '.')} · ${m[2]} duplicate${m[2] === '1' ? '' : 's'} of ${m[3]} — each duplicate +${m[4]}% to skills.`],
   // v9.1.3 : « Ensemble (3/7) » du coffre — motif large, gardé en dernier.
   [/^(.+) \((\d+)\/(\d+)\)$/, (m) => `${tr(m[1])} (${m[2]}/${m[3]})`],
 ];

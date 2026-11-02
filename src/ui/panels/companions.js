@@ -2,7 +2,7 @@
 // v9.1.0 : expéditions dans leur propre onglet, builds dans Équipement, synergies repliées (actives visibles).
 import { BALANCE } from '../../data/balance.js';
 import { COMPANION_RULES, COMPANIONS } from '../../data/companions.js';
-import { MULTIPLICATIVE, RARITY_SKILL, activeSynergies, allCompanionSkills, companionById, companionMultiplier, companionUpgradeCost, equippedOfKind, teamKind } from '../../core/companions.js';
+import { MULTIPLICATIVE, RARITY_SKILL, activeSynergies, allCompanionSkills, companionById, companionMultiplier, companionSkillMultiplier, companionUpgradeCost, duplicates, equippedOfKind, teamKind, ultimateUnlocked } from '../../core/companions.js';
 import { COMPANION_ROLES, ROLES, SYNERGIES } from '../../data/synergies.js';
 import { costButton, effectText, escapeHtml, fold, hdArt, formatNumber, icon, img, rarityLabel, stars } from '../common.js';
 import { animCanvas } from '../animator.js';
@@ -12,33 +12,38 @@ import { computeHeroStats } from '../../core/stats.js';
 import { expeditionDone, expeditionType, isAway } from '../../core/expeditions.js';
 import { companionPortrait, companionStill } from './expeditions.js';
 
-// Compétences (v8.9) : 4 par compagnon, la 4e avec 3 doublons ; chaque étoile les renforce de +15 %.
+// Compétences (v8.9) : 4 par compagnon, la 4e à 3 doublons. v9.1.3 (doc4 lot 1) : chaque doublon +5 % (formule unique
+// de core/companions.js : companionSkillMultiplier) ; aperçu d'une unité non possédée à 0 doublon.
 // Attaque = dégâts par seconde de ses compétences offensives.
 // v9.1.3 (doc1 « Compagnons ») : la ligne « Défense » répétait le bonus passif (retirée) ; la formule de puissance
 // est derrière « ? » ; les 2 compétences de rôle sont repliées (compétence propre et ultime visibles).
 function skillsBlock(ui, state, c, owned) {
-  const stars = owned?.stars ?? 1;
-  const power = (RARITY_SKILL[c.rarity] ?? 1) * (1 + SKILL_RULES.powerPerStar * (stars - 1));
+  const own = owned ?? { stars: 1, level: 1 };
+  const dup = duplicates(own);
+  const maxDup = COMPANION_RULES.maxCopies - 1;
   const hero = computeHeroStats(state);
   const list = allCompanionSkills(c.id);
-  const unlocked = (sk) => !sk.ultimate || stars >= SKILL_RULES.ultimateStars;
-  const dps = list.filter((sk) => unlocked(sk) && (sk.type === 'hit' || sk.type === 'burst')).reduce((sum, sk) => sum + (hero.damage * sk.value * power) / sk.every, 0);
+  const unlocked = (sk) => !sk.ultimate || ultimateUnlocked(own);
+  const mult = (sk) => companionSkillMultiplier(state, c, sk.type, false, BALANCE, own);
+  const dps = list.filter((sk) => unlocked(sk) && (sk.type === 'hit' || sk.type === 'burst')).reduce((sum, sk) => sum + (hero.damage * sk.value * mult(sk)) / sk.every, 0);
+  const ultDup = SKILL_RULES.ultimateCopies - 1;
   const row = (sk) => `<div class="cskill${unlocked(sk) ? '' : ' locked'}${sk.ultimate ? ' ult' : ''}">
       ${img(sk.ultimate ? 'icon_star' : 'skill_quick')} <b>${escapeHtml(sk.name)}</b> <span class="muted">toutes les ${sk.every} s</span>
-      ${sk.ultimate ? `<span class="tag-ult">${unlocked(sk) ? 'Ultime' : `Ultime · ${SKILL_RULES.ultimateStars} étoiles (3 doublons)`}</span>` : ''}
+      ${sk.ultimate ? `<span class="tag-ult">${unlocked(sk) ? 'Ultime' : `Ultime à ${ultDup} doublons`}</span>` : ''}
       <div class="muted">${escapeHtml(sk.text)}</div></div>`;
   const roleSkills = list.filter((sk) => !sk.own && !sk.ultimate && sk.index > 0);
   const main = list.filter((sk) => !roleSkills.includes(sk));
   const formulaOpen = ui.view.open?.has('comp-formula');
   const role = COMPANION_ROLES[c.id] ? ROLES[COMPANION_ROLES[c.id]].label : 'familier';
+  const fmt = (x) => String(Math.round(x * 100) / 100).replace('.', ',');
   return `<div class="cstats"><span>⚔ Attaque <b>${formatNumber(dps)}</b>/s</span></div>
     <div class="section-title">Compétences <button class="btn tiny help-q" data-action="toggle-section" data-value="comp-formula" data-expanded="${Boolean(formulaOpen)}"
       aria-expanded="${Boolean(formulaOpen)}" aria-label="Formule de puissance" title="Formule de puissance">?</button></div>
-    ${formulaOpen ? `<div class="muted">Puissance ×${String(Math.round(power * 100) / 100).replace('.', ',')} : rareté × ${stars} étoile${stars > 1 ? 's' : ''} — chaque doublon +${Math.round(SKILL_RULES.powerPerStar * 100)} %.</div>` : ''}
+    ${formulaOpen ? `<div class="muted">Rareté ×${fmt(RARITY_SKILL[c.rarity] ?? 1)} · ${dup} doublon${dup > 1 ? 's' : ''} sur ${maxDup} — chaque doublon +${Math.round(SKILL_RULES.powerPerDuplicate * 100)} % aux compétences.</div>` : ''}
     ${main.filter((sk) => !sk.ultimate).map(row).join('')}
     ${roleSkills.length ? fold(ui, 'comp-role-skills', `Compétences de ${escapeHtml(role)} (${roleSkills.length})`, () => roleSkills.map(row).join('')) : ''}
     ${main.filter((sk) => sk.ultimate).map(row).join('')}
-    ${stars >= BALANCE.summon.maxStars ? '<div class="good">✦ Étoiles au maximum : ce compagnon brille d\'une aura sur la scène.</div>' : ''}`;
+    ${dup >= maxDup ? '<div class="good">✦ Étoiles au maximum : ce compagnon brille d\'une aura sur la scène.</div>' : ''}`;
 }
 
 // v9.1.3 : synergies sans phrase d'ambiance (gardée en infobulle), actives en or.
@@ -84,14 +89,14 @@ export default {
         ${owned ? (c.id === sel.id ? portrait(c) : companionStill(c)) : `<img class="px" src="${icon(c.sprite, c.kind === 'ally' ? 1 : 3, { tint: { color: '#3a4a66', alpha: 1 } })}" alt="">`}
         <span class="rar-letter" aria-hidden="true">${rarityLabel(c.rarity).slice(0, 1)}</span>
         ${COMPANION_ROLES[c.id] ? `<span class="role-dot" style="background:${ROLES[COMPANION_ROLES[c.id]].color}" title="${ROLES[COMPANION_ROLES[c.id]].label}"></span>` : ''}
-        <span class="pet-label"><b>${escapeHtml(c.name)}</b><small>${owned ? `niv. ${owned.level} · ${owned.stars}★` : 'non obtenu'}</small></span>
+        <span class="pet-label"><b>${escapeHtml(c.name)}</b><small>${owned ? `niv. ${owned.level} · ${duplicates(owned)}★` : 'non obtenu'}</small></span>
         ${equipped ? '<span class="eq" title="Dans l\'équipe">✓</span>' : ''}${isAway(state, c.id) ? '<span class="away" title="En expédition">⚑</span>' : ''}</button>`;
     };
     const allies = COMPANIONS.filter((c) => teamKind(c) === 'ally');
     const pets = COMPANIONS.filter((c) => teamKind(c) === 'pet');
     const owned = state.companions.owned[sel.id];
     const equipped = state.companions.equipped.includes(sel.id);
-    const m = owned ? companionMultiplier(state, sel.id) : 1;
+    const m = companionMultiplier(state, sel.id, owned ?? { stars: 1, level: 1 }); // v9.1.3 : aperçu non possédé ×1,5
     const passive = Object.fromEntries(Object.entries(sel.passive).map(([k, v]) => [MULTIPLICATIVE[k] ?? k, v * m]));
     let actions;
     let upgradeLine = '';
@@ -145,7 +150,7 @@ export default {
         <div class="detail-head pet-head">
           ${art ? `<div class="pet-art-box">${art}</div>` : `<div class="pet-portrait">${owned ? portrait(sel, true) : `<img class="px" src="${icon(sel.sprite, sel.kind === 'ally' ? 1 : 4, { tint: { color: '#3a4a66', alpha: 1 } })}" alt="">`}</div>`}
           <div class="grow"><div class="item-name">${escapeHtml(sel.name)}</div>
-            <div class="item-sub"><span class="rarity-text">${rarityLabel(sel.rarity)}</span>${owned ? ` · niv. ${owned.level}/${COMPANION_RULES.maxLevel} ${stars(owned.stars)}` : ' · non obtenu'}</div>
+            <div class="item-sub"><span class="rarity-text">${rarityLabel(sel.rarity)}</span>${owned ? ` · niv. ${owned.level}/${COMPANION_RULES.maxLevel} ${stars(duplicates(owned))}` : ' · non obtenu'}</div>
             ${selRole ? `<div>Rôle : <b style="color:${ROLES[selRole].color}">${ROLES[selRole].label}</b></div>` : ''}
             <div class="detail-actions">${actions}</div>${upgradeLine}</div>
         </div>

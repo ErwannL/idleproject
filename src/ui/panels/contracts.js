@@ -155,7 +155,7 @@ export default {
   extra: (ui) => {
     const n = ui.claims.filter((c) => !c.blocked && c.tab === 'contracts').length;
     // v9.1.3 : « À récupérer » fondu dans Missions — la vue d'ensemble s'ouvre en fenêtre (touche N).
-    return `${n ? `<button class="btn btn-gold small" data-action="claim-everything">Tout récupérer (${n})</button>` : ''}<button class="btn small" data-action="open-claims" title="Tout ce qui est prêt, au même endroit (touche N)" aria-label="À récupérer">${img('icon_mail')}</button>`;
+    return `${n ? `<button class="btn btn-gold small" data-action="claim-everything" aria-label="Tout récupérer (${n})">Tout<span class="lbl-long"> récupérer</span> (${n})</button>` : ''}<button class="btn small" data-action="open-claims" title="Tout ce qui est prêt, au même endroit (touche N)" aria-label="À récupérer">${img('icon_mail')}</button>`;
   },
   render(ui, state) {
     const count = (ids) => ui.claims.filter((c) => c.tab === 'contracts' && ids.includes(c.period ?? c.kind)).length;

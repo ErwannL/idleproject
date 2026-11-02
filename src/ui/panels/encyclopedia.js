@@ -3,14 +3,14 @@
 import { museumView } from './inventory.js';
 import { MUSEUM_PIECES, museumCount } from '../../core/museum.js';
 import { BALANCE } from '../../data/balance.js';
-import { COMPANIONS } from '../../data/companions.js';
+import { COMPANIONS, COMPANION_RULES } from '../../data/companions.js';
 import { DUNGEONS } from '../../data/dungeons.js';
 import { BOSSES, ENEMIES } from '../../data/enemies.js';
 import { RARITIES, SIGNATURE_ITEMS, SLOTS, STAT_LABELS, PERCENT_STATS, ITEM_BASES } from '../../data/items.js';
 import { BOSS_LORE } from '../../data/lore.js';
 import { bossTrait } from '../../core/boss-traits.js';
 import { ZONES } from '../../data/zones.js';
-import { MULTIPLICATIVE } from '../../core/companions.js';
+import { MULTIPLICATIVE, duplicates } from '../../core/companions.js';
 import {
   ENCYCLOPEDIA_MILESTONES, ENCYCLOPEDIA_SECTIONS, MONSTER_VARIANTS, SIGNATURE_RARITIES, encyclopediaNext,
   encyclopediaProgress, sectionStatus, variantFound,
@@ -202,10 +202,10 @@ function companionCard(state, id) {
   const owned = state.companions.owned[id];
   const grade = rarityLabel(c.rarity);
   if (!owned) return unknownCard(`${c.kind === 'ally' ? 'Compagnon' : 'Familier'} ${grade}. S'obtient par l'Invocation.`, spritePic(c.sprite, false, c.kind === 'ally' ? 2 : 4));
-  const passive = Object.fromEntries(Object.entries(c.passive).map(([k, v]) => [MULTIPLICATIVE[k] ?? k, v]));
+  const passive = Object.fromEntries(Object.entries(c.passive).map(([k, v]) => [MULTIPLICATIVE[k] ?? k, v * COMPANION_RULES.passiveBase]));
   return `<div class="enc-card"><div class="enc-portrait">${c.kind === 'ally' ? animCanvas(`foe:${c.sprite}`, 96, 72, 2) : animCanvas(`pet:${c.sprite}`, 64, 56, 3)}</div>
     <div class="enc-title rarity-text r-${c.rarity}">${escapeHtml(c.name)}</div>
-    <div class="muted">${c.kind === 'ally' ? 'Compagnon' : 'Familier'} · <b class="rarity-text r-${c.rarity}">${grade}</b> · ${stars(owned.stars ?? 0, BALANCE.summon.maxStars)}</div>
+    <div class="muted">${c.kind === 'ally' ? 'Compagnon' : 'Familier'} · <b class="rarity-text r-${c.rarity}">${grade}</b> · ${stars(duplicates(owned))}</div>
     <div class="enc-stats">${statRow('Niveau', owned.level ?? 1)}${statRow('Passif (niv. 1)', effectText(passive))}
       ${statRow('Compétence', escapeHtml(c.skill?.name ?? '—'))}</div>
     ${c.skill?.text ? `<p class="muted">${escapeHtml(c.skill.text)}.</p>` : ''}
@@ -276,7 +276,7 @@ export default {
     const progress = encyclopediaProgress(state);
     const sec = v.encSec === 'museum' || ENCYCLOPEDIA_SECTIONS.some((s) => s.id === v.encSec) ? v.encSec : 'monsters';
     const tabs = progress.sections.map((s) => `<button class="enc-tab${s.id === sec ? ' active' : ''}" data-action="enc-sec" data-value="${s.id}">
-      ${img(s.icon)}<span>${s.label}</span><small>${s.found}/${s.total}${s.milestones && sectionStatus(state, s.id).ready ? ' <b class="good">!</b>' : ''}</small>${progressBar(s.found / s.total)}</button>`).join('')
+      ${img(s.icon)}<span>${s.label}</span><small>${s.found}/${s.total}</small>${s.milestones && sectionStatus(state, s.id).ready ? '<i class="badge enc-ready-dot" aria-label="À récupérer"></i>' : ''}${progressBar(s.found / s.total)}</button>`).join('')
       + `<button class="enc-tab museum-tab${sec === 'museum' ? ' active' : ''}" data-action="enc-sec" data-value="museum">
       ${img('icon_trophy')}<span>Musée</span><small>${museumCount(state)}/${MUSEUM_PIECES.length}</small>${progressBar(museumCount(state) / MUSEUM_PIECES.length)}</button>`;
     let body;

@@ -27,7 +27,8 @@ export function expeditionPower(state, companionId) {
   const c = COMPANIONS.find((x) => x.id === companionId);
   const owned = state.companions.owned[companionId];
   if (!c || !owned) return 0;
-  return (RARITY_POWER[c.rarity] ?? 1) * (1 + 0.2 * (owned.stars - 1)) * (1 + 0.05 * (owned.level - 1));
+  return (RARITY_POWER[c.rarity] ?? 1) * (1 + 0.2 * (Math.min(owned.stars, 5) - 1)) // v9.1.3 : inchangé, le 6e exemplaire ne compte pas ici
+    * (1 + 0.05 * (owned.level - 1));
 }
 
 // Récompense prévue (fixée au départ) : elle grandit avec la durée, la puissance et l'étape max.

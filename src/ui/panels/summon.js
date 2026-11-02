@@ -3,7 +3,7 @@ import { navPath } from '../nav.js';
 import { BALANCE } from '../../data/balance.js';
 import { FEATURED_SHARE, featuredUnit, normalizePool, summonOdds } from '../../core/gacha.js';
 import { heroById } from '../../core/heroes.js';
-import { companionById } from '../../core/companions.js';
+import { companionById, duplicates } from '../../core/companions.js';
 import { animCanvas } from '../animator.js';
 import { effectText, escapeHtml, fold, hdArt, formatDecimal, formatNumber, gem, icon, img, rarityLabel, stars } from '../common.js';
 
@@ -73,14 +73,14 @@ export default {
         return `<div class="odds-unit${owned ? ' owned' : ''}${u.featured ? ' featured-unit' : ''}">
           ${unitPortrait(u)}<span class="rar-letter" aria-hidden="true">${rarityLabel(u.rarity).slice(0, 1)}</span>
           <span class="odds-name">${escapeHtml(u.name)}</span><span class="muted">${formatDecimal(u.chance * 100, 2)} %</span>
-          ${owned ? stars(owned.stars) : ''}</div>`;
+          ${owned ? stars(u.kind === 'hero' ? owned.stars : duplicates(owned)) : ''}</div>`;
       }).join('');
       return `<div class="odds-group r-${r.rarity}"><div class="row-between"><b class="rarity-text">${rarityLabel(r.rarity)}</b>
         <b class="num">${formatDecimal(r.chance * 100)} %</b></div><div class="odds-units">${units}</div></div>`;
     }).join('');
     const results = (ui.view.lastSummon ?? []).map((r) => `<div class="summon-result r-${r.rarity}${r.isNew ? ' new' : ''}">
       ${unitPortrait(r)}<span>${escapeHtml(r.name)}</span>
-      ${r.isNew ? '<b class="good">Nouveau !</b>' : r.refund ? `<span class="muted">+${r.refund} gemmes</span>` : stars(r.stars)}</div>`).join('');
+      ${r.isNew ? '<b class="good">Nouveau !</b>' : r.refund ? `<span class="muted">+${r.refund} gemmes</span>` : stars(r.kind === 'hero' ? r.stars : duplicates({ stars: r.stars }))}</div>`).join('');
     const btn = (pool, count, currency, cost, label, aria) => {
       const missing = cost - state[currency];
       return `<button class="btn btn-gold" data-action="summon" data-value="${count}" data-currency="${currency}" data-pool="${pool}"
@@ -101,7 +101,7 @@ export default {
           ${btn(pool, 1, 'gems', s.gemCost, `×1 ${gem()} ${s.gemCost}`, `${p.label} ×1 : ${s.gemCost} gemmes`)}
           ${btn(pool, 10, 'gems', s.tenPullGemCost, `×10 ${gem()} ${s.tenPullGemCost}`, `${p.label} ×10 : ${s.tenPullGemCost} gemmes`)}
         </div>
-        ${open ? `<div class="summon-odds"><p class="muted">${what} Compteur des garanties commun aux trois invocations. Doublon : +1 étoile (max ${s.maxStars}), puis +${s.duplicateRefundGems} gemmes.</p>
+        ${open ? `<div class="summon-odds"><p class="muted">${what} Compteur des garanties commun aux trois invocations. Doublon : +1 étoile (max 5), puis +${s.duplicateRefundGems} gemmes.</p>
           ${f ? `<p class="muted">★ En vedette : ${escapeHtml(f.name)}, ${Math.round(FEATURED_SHARE * 100)} % des Légendaires obtenus · change chaque lundi.</p>` : ''}
           ${pool === 'hero' ? fold(ui, 'summon-banner', 'Apparence en vedette : détails', () => heroBanner(state)) : ''}${odds(pool)}</div>` : ''}
         ${results && normalizePool(ui.view.summonPool) === pool ? `<div class="summon-results">${results}</div>` : ''}

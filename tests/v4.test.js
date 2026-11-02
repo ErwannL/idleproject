@@ -115,7 +115,7 @@ test('invocation : coût, probabilités affichées, garantie et doublons', () =>
   assert.ok(results.some((r) => !r.isNew), 'des doublons');
   for (const r of results) {
     const owned = (r.kind === 'hero' ? state.heroes.owned : state.companions.owned)[r.id];
-    assert.ok(owned.stars >= 1 && owned.stars <= BALANCE.summon.maxStars);
+    assert.ok(owned.stars >= 1 && owned.stars <= (r.kind === 'hero' ? BALANCE.summon.maxStars : 6)); // v9.1.3 : 6 exemplaires
   }
 });
 

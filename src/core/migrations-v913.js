@@ -129,3 +129,17 @@ export function migrateBagOverflow(state, extra) {
   for (const it of extra ?? []) state.stash.push(it);
   return (extra ?? []).length;
 }
+
+// v9.1.3 (doc4 lot 1) — Étoiles des compagnons et familiers : 1 exemplaire = 0★, maximum 6 exemplaires (5 doublons).
+// Une unité déjà au maximum (5 exemplaires) reçoit gratuitement le 6e : elle reste au maximum, aura comprise. Les autres
+// gardent leur nombre d'exemplaires (puissance identique ou plus haute, affichage −1★). Appliquée seulement aux
+// sauvegardes d'avant le format 8 : un second chargement (déjà en v8) ne rajoute rien. Copie d'avant migration :
+// save.js keepPreMigrationCopy. Abandon : retours de joueurs perdus par le nouveau compte d'étoiles.
+export function migrateCopies(state, rawVersion) {
+  if (rawVersion >= 8) return 0;
+  let given = 0;
+  for (const owned of Object.values(state.companions.owned)) {
+    if (owned.stars === 5) { owned.stars = 6; given += 1; }
+  }
+  return given;
+}

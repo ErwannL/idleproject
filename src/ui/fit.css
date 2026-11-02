@@ -1,0 +1,45 @@
+/* v9.1.3 : textes qui ne sortent jamais de leur case (contrôle automatique tools/audit-overflow : téléphone et PC,
+   français et anglais). Chargé après style.css et themes.css. */
+
+/* En-tête du panneau sur téléphone : le titre garde sa place, les boutons d'en-tête se compactent. */
+@media (max-width: 560px) {
+  #panel h2 { flex: 0 1 auto; min-width: 4.5em; }
+  #panel-extra { flex: 1 1 auto; justify-content: flex-end; overflow: visible; }
+  #panel-extra .btn { padding: 4px 7px; font-size: 11px; white-space: nowrap; }
+  #panel-extra .lbl-long { display: none; }
+}
+
+/* Sous-onglets : icône et nom empilés (bilan TT : 20 px + nom dans 44 px) — les 4 tiennent sur 360 px. */
+@media (max-width: 560px) {
+  #panel-subtabs .subtab { flex: 1 1 0; min-width: 0; flex-direction: column; gap: 1px; padding: 3px 2px; min-height: 44px; }
+  #panel-subtabs .subtab img { width: 20px; height: 20px; }
+  #panel-subtabs .subtab span { display: block; font-size: 10px; line-height: 12px; white-space: normal; text-align: center;
+    overflow-wrap: anywhere; hyphens: auto; }
+}
+
+/* Place d'équipe vide : un « + » lisible au lieu d'un mot coupé (le nom reste dans title / aria-label). */
+.team-slot.empty { font-size: 0; }
+.team-slot.empty::before { content: '+'; font-size: 22px; line-height: 1; color: var(--muted, #8a93a3); }
+
+/* Noms longs (compagnons, encyclopédie) : retour à la ligne au lieu de « … ». */
+.pet-label b, .enc-cell small {
+  white-space: normal !important; overflow: visible !important; text-overflow: clip !important; overflow-wrap: anywhere; line-height: 1.15; }
+
+/* Grille des étapes : 5 colonnes minimum sur téléphone, jamais plus large que la carte. */
+@media (max-width: 560px) { .stage-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } .stage-grid .btn { min-width: 0 !important; } }
+
+/* Pastille « prêt à récupérer » des sections de l'encyclopédie : dans le coin, hors du texte. */
+.enc-ready-dot { position: absolute; top: 3px; right: 3px; }
+.enc-tab { position: relative; }
+
+.pet-label b { font-size: 11px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+/* En-tête du panneau sur téléphone : quand l'en-tête porte des boutons, le nom du panneau (déjà écrit dans le
+   sous-onglet actif) laisse la place ; l'icône reste. */
+@media (max-width: 560px) { #panel header:has(#panel-extra button) #panel-title { display: none; } }
+
+/* Onglets de l'encyclopédie : nom et compteur sur deux lignes, jamais hors de la case. */
+.enc-tab { grid-template-columns: auto minmax(0, 1fr); min-width: 0; }
+.enc-tab span, .enc-tab small { min-width: 0; overflow-wrap: anywhere; }
+.enc-tab small { grid-column: 2; white-space: nowrap; }
+.enc-tab .mini-bar { grid-column: 1 / -1; }

@@ -151,13 +151,17 @@ export function isFreshSave(json) {
 
 // Compare la partie locale et la partie cloud (champ lastSaved) et dit quoi faire.
 // Renvoie 'none' | 'push' | 'pull'.
+// v9.1.3 (doc4 lot 1) : ne pousse jamais un format de sauvegarde inférieur à celui du cloud (un appareil pas encore
+// rechargé dans le nouveau format écraserait la partie convertie). Il peut seulement tirer, ou ne rien faire.
 export function reconcile(localJson, cloudJson) {
   if (!cloudJson) return localJson ? 'push' : 'none';
   if (!localJson || isFreshSave(localJson)) return 'pull';
-  const local = Number(JSON.parse(localJson).lastSaved) || 0;
-  const cloud = Number(JSON.parse(cloudJson).lastSaved) || 0;
+  const l = JSON.parse(localJson);
+  const c = JSON.parse(cloudJson);
+  const local = Number(l.lastSaved) || 0;
+  const cloud = Number(c.lastSaved) || 0;
   if (cloud > local) return 'pull';
-  if (local > cloud) return 'push';
+  if (local > cloud) return (Number(l.version) || 1) < (Number(c.version) || 1) ? 'none' : 'push';
   return 'none';
 }
 

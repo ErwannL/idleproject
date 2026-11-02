@@ -1,8 +1,9 @@
 // Invocation de héros et de compagnons (gemmes gagnées en jouant).
 // Probabilités affichées et garanties : Épique ou mieux toutes les 10 invocations au plus,
-// Légendaire toutes les 60 au plus. Doublon = +1 étoile (max 5), puis remboursement en gemmes.
+// Légendaire toutes les 60 au plus. Doublon = +1 étoile, puis remboursement en gemmes.
+// v9.1.3 (doc4 lot 1) : compagnons et familiers jusqu'à 6 exemplaires (0★ à 5★ : 5 doublons) ; skins jusqu'à 5 (1★ à 5★).
 import { BALANCE } from '../data/balance.js';
-import { COMPANIONS } from '../data/companions.js';
+import { COMPANIONS, COMPANION_RULES } from '../data/companions.js';
 import { HEROES } from '../data/heroes.js';
 import { RARITIES } from '../data/items.js';
 import { rarityIndex } from './loot.js';
@@ -112,7 +113,7 @@ export function summon(state, rng, count = 1, currency = 'gems', balance = BALAN
     const result = { ...unit, guaranteed: min !== 'common', isNew: !owned, refund: 0 };
     if (!owned) {
       store[unit.id] = unit.kind === 'hero' ? { stars: 1 } : { stars: 1, level: 1 };
-    } else if (owned.stars < maxStars) {
+    } else if (owned.stars < (unit.kind === 'hero' ? maxStars : COMPANION_RULES.maxCopies)) {
       owned.stars += 1;
     } else {
       result.refund = duplicateRefundGems;

@@ -6,7 +6,7 @@ import { maybeMutate, mutationDamageTaken, mutationOnHit, mutationTick, splitChi
 import { BOSSES, ENEMIES } from '../data/enemies.js';
 import { POWER_RULES } from '../data/powers.js';
 import { ZONES } from '../data/zones.js';
-import { RARITY_SKILL, companionSkills, dungeonAffinity, dungeonDamageTaken, equippedCompanions, skillPower } from './companions.js';
+import { companionSkillMultiplier, companionSkills, dungeonAffinity, dungeonDamageTaken, equippedCompanions } from './companions.js';
 import { trackContracts } from './contracts.js';
 import { completeDungeon, dungeonById, dungeonKill, failDungeon } from './dungeon.js';
 import { addGold } from './economy.js';
@@ -576,19 +576,19 @@ function castSkill(state, world, skill, stats, rng, balance, enc, front) {
 }
 
 function castCompanion(state, world, companion, skill, stats, rng, balance, enc, front) {
-  // v8.9 : × rareté × étoiles (chaque doublon renforce les compétences).
-  const aff = (dungeonAffinity(state, companion.id, balance) ? balance.dungeonAffinity.skillMultiplier : 1)
-    * (RARITY_SKILL[companion.rarity] ?? 1) * skillPower(state, companion.id);
+  // v9.1.3 (doc4 lot 1) : d × rareté × puissance du type (kh/kb pour hit/burst, 4/3 pour soin et rally, plafond 3) ;
+  // bouclier et or sans étoile.
+  const aff = companionSkillMultiplier(state, companion, skill.type, dungeonAffinity(state, companion.id, balance), balance);
   if (skill.type === 'gold') {
     gainGold(state, world, referenceKillGold(enc.level, balance) * skill.value * (1 + stats.goldPct / 100) * (stats.goldMult ?? 1) * earlyBoost(state, balance).gold);
   } else if (skill.type === 'heal') {
-    world.hero.hp = Math.min(stats.maxHp, world.hero.hp + (stats.maxHp * skill.value * Math.min(aff, 3)) / 100);
+    world.hero.hp = Math.min(stats.maxHp, world.hero.hp + (stats.maxHp * skill.value * aff) / 100);
   } else if (skill.type === 'shield') {
     world.buffs.shield = Math.max(world.buffs.shield, skill.duration ?? 6); // v9.1.3 : un bouclier court n'écourte plus un long
     world.buffs.shieldPct = Math.max(world.buffs.shield > 0 ? world.buffs.shieldPct : 0, Math.min(90, skill.value));
   } else if (skill.type === 'rally') {
     world.buffs.cry = Math.max(world.buffs.cry, skill.duration ?? 6);
-    world.buffs.cryPct = Math.max(world.buffs.cryPct, skill.value * Math.min(aff, 3));
+    world.buffs.cryPct = Math.max(world.buffs.cryPct, skill.value * aff);
   } else if (skill.type === 'hit' && front) {
     hitEnemy(state, world, front, stats.damage * skill.value * aff, rng, balance, stats, enc, 'companion', companion.id);
   } else if (skill.type === 'burst') {

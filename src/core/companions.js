@@ -5,43 +5,79 @@ import { referenceKillGold } from './combat.js';
 import { talentEffects } from './rebirth.js';
 import { DUNGEONS } from '../data/dungeons.js';
 import { COMPANION_ROLES, SYNERGIES } from '../data/synergies.js';
-import { SKILL_RULES, companionSkillList } from '../data/companion-skills.js';
+import { SKILL_RULES, companionSkillList, skillScales } from '../data/companion-skills.js';
 
 export const MULTIPLICATIVE = { damagePct: 'damageMultPct', maxHpPct: 'maxHpMultPct', goldPct: 'goldMultPct' };
 
 // v8.8 : puissance des compétences selon la rareté (un SSR frappe nettement plus fort qu'un R).
 export const RARITY_SKILL = { common: 1, rare: 1, epic: 1.3, legendary: 1.8 };
 
-// v8.9 : 4 compétences par compagnon (la 4e avec 3 doublons), renforcées à chaque étoile.
+// v9.1.3 (doc4 lot 1) : `owned.stars` reste le nombre d'exemplaires (1 à 6) ; les étoiles affichées comptent les
+// doublons (0★ à l'obtention, 5★ au bout). Seul endroit où ce calcul est fait.
+export function duplicates(owned) {
+  return owned ? Math.max(0, Math.min(COMPANION_RULES.maxCopies - 1, (owned.stars ?? 1) - 1)) : 0;
+}
+
+// v8.9 : 4 compétences par compagnon (la 4e avec 3 doublons).
 const SKILL_CACHE = new Map();
-export function companionSkills(state, id) {
+function skillList(id) {
   let list = SKILL_CACHE.get(id);
   if (!list) {
     list = companionSkillList(companionById(id), COMPANION_ROLES[id] ?? 'pet');
     SKILL_CACHE.set(id, list);
   }
-  const stars = state.companions.owned[id]?.stars ?? 1;
-  return list.filter((sk) => !sk.ultimate || stars >= SKILL_RULES.ultimateStars);
+  return list;
+}
+
+export function ultimateUnlocked(owned) {
+  return (owned?.stars ?? 1) >= SKILL_RULES.ultimateCopies;
+}
+
+export function companionSkills(state, id) {
+  const owned = state.companions.owned[id];
+  return skillList(id).filter((sk) => !sk.ultimate || ultimateUnlocked(owned));
 }
 
 export function allCompanionSkills(id) {
-  return companionSkillList(companionById(id), COMPANION_ROLES[id] ?? 'pet');
+  return skillList(id);
 }
 
-export function skillPower(state, id) {
-  return 1 + SKILL_RULES.powerPerStar * ((state.companions.owned[id]?.stars ?? 1) - 1);
+// kh et kb d'une unité (cache, calculés une fois depuis ses données).
+const SCALE_CACHE = new Map();
+export function companionScales(id) {
+  let k = SCALE_CACHE.get(id);
+  if (!k) {
+    k = skillScales(skillList(id));
+    SCALE_CACHE.set(id, k);
+  }
+  return k;
+}
+
+// Puissance par type (hors d et rareté) : hit/burst × kh/kb × (1 + 0,05 D) ; soin et rally × 4/3 × (1 + 0,05 D) ;
+// bouclier et or : 1 (sans étoile). `owned` facultatif (aperçu d'une unité non possédée : 0 doublon).
+export function skillPower(state, id, type = 'hit', owned = state.companions.owned[id]) {
+  const step = 1 + SKILL_RULES.powerPerDuplicate * duplicates(owned);
+  if (type === 'hit' || type === 'burst') return companionScales(id)[type] * step;
+  if (type === 'heal' || type === 'rally') return SKILL_RULES.supportFactor * step;
+  return 1;
+}
+
+// Multiplicateur complet d'une compétence : d (donjon) × rareté × puissance ; soin et rally plafonnés à 3.
+export function companionSkillMultiplier(state, companion, type, home = false, balance = BALANCE, owned = state.companions.owned[companion.id]) {
+  const m = (home ? balance.dungeonAffinity.skillMultiplier : 1) * (RARITY_SKILL[companion.rarity] ?? 1) * skillPower(state, companion.id, type, owned);
+  return type === 'heal' || type === 'rally' ? Math.min(m, SKILL_RULES.supportCap) : m;
 }
 
 export function companionById(id) {
   return COMPANIONS.find((c) => c.id === id);
 }
 
-export function companionMultiplier(state, id) {
-  const owned = state.companions.owned[id];
+// v9.1.3 (doc4 lot 1) : × (1,5 + 0,075 D). `owned` facultatif : aperçu d'une unité non possédée (niv. 1, 0 doublon).
+export function companionMultiplier(state, id, owned = state.companions.owned[id]) {
   if (!owned) return 0;
   const bond = (talentEffects(state).companionPct ?? 0) / 100;
-  return (1 + COMPANION_RULES.levelBonusPct * (owned.level - 1))
-    * (1 + COMPANION_RULES.starBonusPct * (owned.stars - 1)) * (1 + bond);
+  return (1 + COMPANION_RULES.levelBonusPct * ((owned.level ?? 1) - 1))
+    * (COMPANION_RULES.passiveBase + COMPANION_RULES.passivePerDuplicate * duplicates(owned)) * (1 + bond);
 }
 
 export function equippedCompanions(state) {

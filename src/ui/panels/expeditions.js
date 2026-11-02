@@ -1,6 +1,6 @@
 // Équipe > Expéditions (v9.1.0, sorti de Compagnons) : 3 places ; les compagnons hors de l'équipe partent 1 h, 4 h
 // ou 12 h (elles avancent aussi jeu fermé). D'abord : places, temps restant, Tout récupérer, Repartir.
-import { companionById } from '../../core/companions.js';
+import { companionById, duplicates } from '../../core/companions.js';
 import {
   EXPEDITION_TYPES, availableForExpedition, expeditionDone, expeditionReward, expeditionType, readyExpeditions, relaunchable,
 } from '../../core/expeditions.js';
@@ -31,7 +31,7 @@ function slotHtml(ui, state, run, i, now, dur) {
     const durSel = ui.view.expPerSlot ? `<select class="exp-dur-sel" data-action="exp-dur-slot" data-slot="${i}" aria-label="Durée, place ${i + 1}">${EXPEDITION_TYPES.map((t) => `<option value="${t.id}" ${t.id === type ? 'selected' : ''}>${t.hours} h</option>`).join('')}</select>` : '';
     return `<div class="exp-slot empty">
         <div class="exp-who">${companionStill(companionById(pick))}</div>
-        <div class="grow exp-form"><select data-action="exp-pick" data-slot="${i}" aria-label="Compagnon à envoyer, place ${i + 1}">${free.map((c) => `<option value="${c.id}" ${c.id === pick ? 'selected' : ''}>${escapeHtml(c.name)} ${'★'.repeat(state.companions.owned[c.id].stars)}</option>`).join('')}</select>${durSel}
+        <div class="grow exp-form"><select data-action="exp-pick" data-slot="${i}" aria-label="Compagnon à envoyer, place ${i + 1}">${free.map((c) => `<option value="${c.id}" ${c.id === pick ? 'selected' : ''}>${escapeHtml(c.name)} ${duplicates(state.companions.owned[c.id])}★</option>`).join('')}</select>${durSel}
           ${rewardIcons(expeditionReward(state, pick, type))}</div>
         <button class="btn btn-primary small" data-action="start-expedition" data-value="${pick}|${type}|${i}">Envoyer</button>
       </div>`;
