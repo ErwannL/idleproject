@@ -1518,7 +1518,7 @@ export const EXACT = {
   "Musique": "Music",
   "Effets": "Effects",
   "Fenêtre": "Window",
-  "« Toujours au premier plan » est disponible dans la version bureau (Idle RPG.exe).": "“Always on top” is available in the desktop version (Idle RPG.exe).",
+  "« Toujours au premier plan » est disponible dans la version bureau (Ascendrya).": "“Always on top” is available in the desktop version (Ascendrya).",
   "Garder la fenêtre au premier plan": "Keep the window on top",
   "Une simple barre, comme dans la barre des tâches": "A simple bar, like in the taskbar",
   "Barre": "Bar",

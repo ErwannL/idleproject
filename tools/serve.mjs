@@ -53,5 +53,5 @@ export function startServer(port = Number(process.env.PORT) || 5173, host = '127
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const server = await startServer();
   const { port } = server.address();
-  console.log(`Idle RPG : http://localhost:${port}  (Ctrl+C pour arrêter)`);
+  console.log(`Ascendrya : http://localhost:${port}  (Ctrl+C pour arrêter)`);
 }

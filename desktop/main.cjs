@@ -2,7 +2,7 @@
 // Ouvre le jeu dans une petite fenêtre, mémorise sa position/taille et l'option
 // « toujours au premier plan », et garantit la sauvegarde à la fermeture.
 //
-// Mode test : `Idle RPG.exe --smoke=<fichier.json> [--smoke-fresh]` lance le jeu,
+// Mode test : `Idle RPG.exe (nom de l'exécutable gardé) --smoke=<fichier.json> [--smoke-fresh]` lance le jeu,
 // le laisse tourner quelques secondes, écrit un rapport JSON puis quitte.
 const { app, BrowserWindow, Menu, ipcMain, net, protocol, screen, shell } = require('electron');
 const { spawn } = require('node:child_process');
@@ -77,6 +77,10 @@ const smokeFile = smokeArg ? smokeArg.slice('--smoke='.length) : null;
 protocol.registerSchemesAsPrivileged([
   { scheme: SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true } },
 ]);
+
+// v9.1.3 : le jeu s'appelle Ascendrya, mais le dossier de données reste « %APPDATA%\\Idle RPG » (sauvegarde,
+// window.json, verrou d'instance unique) : sans ça, changer productName ouvrirait un dossier vide.
+if (!smokeFile) app.setPath('userData', path.join(app.getPath('appData'), 'Idle RPG'));
 
 let duplicate = false; // une autre instance tourne déjà : aucune fenêtre ici
 if (smokeFile) {
@@ -171,7 +175,7 @@ function createWindow() {
     y: bounds.y,
     minWidth: 260,
     minHeight: 110,
-    title: 'Idle RPG',
+    title: 'Ascendrya',
     icon: path.join(ROOT, 'assets', 'icon.png'),
     backgroundColor: '#15111d',
     alwaysOnTop: Boolean(settings.alwaysOnTop),

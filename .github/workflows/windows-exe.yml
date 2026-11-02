@@ -1,6 +1,6 @@
 name: Windows exe
 
-# Construit l'installateur Windows d'Idle RPG, le teste (lancement réel, sauvegarde,
+# Construit l'installateur Windows d'Ascendrya, le teste (lancement réel, sauvegarde,
 # mise à jour d'une installation précédente), puis publie la release correspondant
 # à la version de package.json (ex. v7.0.0).
 on:
@@ -142,4 +142,4 @@ jobs:
           VERSION="v$(node -p "require('./package.json').version")"
           # La release suit toujours la dernière construction validée de cette version.
           gh release delete "$VERSION" --cleanup-tag --yes 2>/dev/null || true
-          gh release create "$VERSION" assets/idle-rpg-windows/*-setup.exe assets/idle-rpg-android/*.apk             --target "$GITHUB_SHA"             --title "Idle RPG $VERSION"             --notes-file docs/RELEASE_NOTES.md             --latest
+          gh release create "$VERSION" assets/idle-rpg-windows/*-setup.exe assets/idle-rpg-android/*.apk             --target "$GITHUB_SHA"             --title "Ascendrya $VERSION"             --notes-file docs/RELEASE_NOTES.md             --latest

@@ -85,7 +85,7 @@ export function parseImport(text, balance = BALANCE, now = Date.now()) {
     }
   }
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return { error: 'Ce n\'est pas une sauvegarde valide.' };
-  if (!Number.isFinite(parsed.maxStage) || !Number.isFinite(parsed.level) || !parsed.equipment) return { error: 'Ce n\'est pas une sauvegarde d\'Idle RPG.' };
+  if (!Number.isFinite(parsed.maxStage) || !Number.isFinite(parsed.level) || !parsed.equipment) return { error: 'Ce n\'est pas une sauvegarde d\'Ascendrya.' };
   if (Number.isInteger(parsed.version) && parsed.version > SAVE_VERSION) return { error: 'Sauvegarde d\'une version plus récente du jeu : mettez le jeu à jour d\'abord.' };
   const state = sanitizeState(parsed, balance, now);
   state.lastSaved = now;

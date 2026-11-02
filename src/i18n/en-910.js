@@ -224,7 +224,7 @@ export const EXACT_910 = {
   '— tout ce qui est prêt à être récupéré, au même endroit (touche G).': '— everything ready to be claimed, in one place (G key).',
   'Objets recyclés': 'Items recycled',
   'Code de sauvegarde copié.': 'Save code copied.', 'Code affiché ci-dessous : copiez-le.': 'Code shown below: copy it.',
-  'Aucune sauvegarde à importer.': 'No save to import.', "Ce n'est pas une sauvegarde valide.": 'This is not a valid save.', "Ce n'est pas une sauvegarde d'Idle RPG.": 'This is not an Idle RPG save.',
+  'Aucune sauvegarde à importer.': 'No save to import.', "Ce n'est pas une sauvegarde valide.": 'This is not a valid save.', "Ce n'est pas une sauvegarde d'Ascendrya.": 'This is not an Ascendrya save.',
   "Sauvegarde d'une version plus récente du jeu : mettez le jeu à jour d'abord.": 'Save from a newer version of the game: update the game first.',
   'Import impossible : stockage plein ou bloqué.': 'Import failed: storage full or blocked.',
   'Sauvegarde principale illisible : la partie a repris sur la copie de secours.': 'Main save unreadable: the game resumed from the backup copy.',

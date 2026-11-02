@@ -1,4 +1,4 @@
-# Idle RPG — prototype jouable
+# Ascendrya — prototype jouable
 
 RPG idle 2D en vue de côté et en pixel art, pensé pour tourner dans une petite fenêtre de bureau
 pendant que vous faites autre chose. Le héros combat seul, avance dans la campagne et ramasse de l'or
@@ -17,7 +17,8 @@ Téléchargez la dernière version dans **Releases** du dépôt GitHub :
 - `IdleRPG-3.0.0-setup.exe` : installateur avec raccourcis Bureau et menu Démarrer.
 
 **Mise à jour :** lancez simplement le nouveau `setup.exe` (jeu fermé). Il remplace la version installée
-(même identifiant d'application) et conserve la partie, stockée à part dans `%APPDATA%\Idle RPG`.
+(même identifiant d'application) et conserve la partie, stockée à part dans `%APPDATA%\Idle RPG`
+(dossier gardé à l'ancien nom du jeu, de même que l'exécutable `Idle RPG.exe` et les clés `idle-rpg.*`).
 La CI le vérifie à chaque construction : installation de la v1, partie sauvegardée, installation de la
 nouvelle version par-dessus, puis contrôle d'une seule installation à jour qui reprend la sauvegarde.
 

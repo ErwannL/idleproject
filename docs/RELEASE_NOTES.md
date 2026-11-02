@@ -1,8 +1,10 @@
-## Idle RPG v9.1.3 — Écrans allégés, fiches, récompenses en icônes
+## Ascendrya v9.1.3 — Écrans allégés, fiches, récompenses en icônes
 
 **Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.3-setup.exe). Votre partie
 est convertie automatiquement (une copie d'avant la mise à jour est gardée à part). **Serveur :** mettez le serveur à
 jour avant le jeu : la nouvelle version refuse une sauvegarde d'un format plus ancien que le sien.
+
+**Le jeu s'appelle maintenant Ascendrya.** Votre partie, vos réglages et l'installation restent les mêmes.
 
 ### Moins de texte, moins de conseils
 - Écrans allégés : Améliorations sur 2 lignes, sac plus compact (5 colonnes sur téléphone), Builds en cartes et repliés,

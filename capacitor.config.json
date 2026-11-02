@@ -1,6 +1,6 @@
 {
   "appId": "com.erwannl.idlerpg",
-  "appName": "Idle RPG",
+  "appName": "Ascendrya",
   "webDir": "dist/web",
   "server": {
     "androidScheme": "https"

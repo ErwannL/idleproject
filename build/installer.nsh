@@ -1,4 +1,4 @@
-; Idle RPG — une seule installation à la fois.
+; Ascendrya — une seule installation à la fois.
 ; L'installateur est « en un clic », toujours pour l'utilisateur courant : une nouvelle version
 ; remplace l'ancienne au même endroit. Une ancienne installation « pour tous les utilisateurs »
 ; (choix possible dans les versions 1 à 6) est d'abord désinstallée, pour ne pas avoir deux jeux.
@@ -22,7 +22,7 @@
   ${ifNot} ${Errors}
   ${andif} $7 < 500
     ; v9.0.2 : message toujours affiché, même en installation silencieuse (avant : abandon sans un mot).
-    MessageBox MB_OK|MB_ICONEXCLAMATION "Espace disque insuffisant sur $6 : $7 Mo libres, il en faut environ 500 Mo pour installer Idle RPG.$\r$\n$\r$\nVidez la Corbeille ou supprimez des fichiers (Parametres Windows > Stockage), puis relancez l'installation. Votre partie est conservee."
+    MessageBox MB_OK|MB_ICONEXCLAMATION "Espace disque insuffisant sur $6 : $7 Mo libres, il en faut environ 500 Mo pour installer Ascendrya.$\r$\n$\r$\nVidez la Corbeille ou supprimez des fichiers (Parametres Windows > Stockage), puis relancez l'installation. Votre partie est conservee."
     SetErrorLevel 3
     Quit
   ${endif}

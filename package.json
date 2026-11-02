@@ -1,6 +1,6 @@
 {
   "name": "idle-rpg",
-  "productName": "Idle RPG",
+  "productName": "Ascendrya",
   "version": "9.1.3",
   "private": true,
   "description": "RPG idle 2D en pixel art pour PC (fenêtre compacte).",
@@ -35,7 +35,8 @@
   },
   "build": {
     "appId": "com.erwannl.idlerpg",
-    "productName": "Idle RPG",
+    "productName": "Ascendrya",
+    "executableName": "Idle RPG",
     "copyright": "ErwannL",
     "directories": {
       "output": "dist",
@@ -64,7 +65,7 @@
       "oneClick": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Idle RPG",
+      "shortcutName": "Ascendrya",
       "deleteAppDataOnUninstall": false,
       "perMachine": false,
       "include": "build/installer.nsh",

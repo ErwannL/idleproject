@@ -1025,7 +1025,7 @@ const cinematicsOn = () => state.ui.cinematics !== false && !navigator.webdriver
 setTimeout(() => {
   if (!cinematicsOn()) return;
   const zone = ZONES[currentEncounter(state).zoneIndex];
-  if (loaded.source === 'new') playCinematic({ kicker: 'Une nouvelle légende', title: 'Idle RPG', line: 'Un héros, une épée, et onze mondes à libérer.' });
+  if (loaded.source === 'new') playCinematic({ kicker: 'Une nouvelle légende', title: 'Ascendrya', line: 'Un héros, une épée, et onze mondes à libérer.' });
   else playCinematic({ kicker: 'Bon retour', title: zone.name, line: `Étape ${stageLabel(state.stage)} — la bataille continue.`, zone: zone.id });
 }, 600);
 // v8.4 : sauvegarde d'avant le nouvel équilibrage → or des améliorations remboursé, on l'annonce.

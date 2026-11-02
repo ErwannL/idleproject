@@ -46,7 +46,7 @@ if (!browser) {
     '--no-first-run',
     '--no-default-browser-check',
   ], { stdio: 'ignore' });
-  console.log(`Idle RPG lancé (${url}). Fermez la fenêtre du jeu pour quitter.`);
+  console.log(`Ascendrya lancé (${url}). Fermez la fenêtre du jeu pour quitter.`);
   child.on('exit', () => {
     server.close();
     process.exit(0);
