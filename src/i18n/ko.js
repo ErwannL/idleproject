@@ -1,5 +1,5 @@
-// Traduction coréenne de l'interface (couche i18n, voir ./i18n.js) — EN PRÉPARATION.
-// Langue fermée aux joueurs (LANGS.ko.enabled = false dans ./i18n.js) : visible en version dev ou avec
+// Traduction coréenne de l'interface (couche i18n, voir ./i18n.js) — ouverte à tous en v9.1.8.
+// Choisie dans Paramètres › Langue (LANGS.ko.enabled dans ./i18n.js) ou avec
 // « ?lang=ko ». Même principe que ./en.js : dictionnaire exact + motifs, moteur commun ./engine.js.
 // Style : interface de jeu mobile coréen (libellés courts, 「Lv.」, verbes en nom : 받기, 강화, 장착).
 // Glossaire et reste à faire : docs/coreen.md. Couverture : node tools/i18n-coverage.mjs.
@@ -195,6 +195,9 @@ export const EXACT = {
   "Carte, Donjons (et le Défi), Défis (l'ancienne Tour), Boss, Monde :": '지도, 던전(도전 포함), 도전(예전 탑), 보스, 월드:',
   'Missions (avec À récupérer, aussi touche N), Collections (et le Musée), Classement, Statistiques :': '미션(받을 보상 포함, N 키), 컬렉션(박물관 포함), 랭킹, 통계:',
   'Votre fiche, la classe, l\'apparence et les records :': '내 정보, 클래스, 외형, 기록:',
+  'Apparaître dans le classement public (nom, niveau, étape, boss)': '공개 랭킹에 표시 (이름, 레벨, 스테이지, 보스)',
+  'La partie est sauvegardée sur le serveur automatiquement (toutes les minutes et à la fermeture).': '게임은 서버에 자동 저장돼요 (1분마다, 종료할 때).',
+  'Version :': '버전:', '(site). Le jeu du site est toujours à la dernière version.': '(사이트). 사이트 게임은 항상 최신 버전이에요.',
   // v9.1.8 : Objectifs › Classement, amis et Statistiques (venus de la 9.1.5–9.1.7).
   'Classement': '랭킹', 'Statistiques': '통계', 'Étape': '스테이지', 'Niveau': '레벨', 'Ennemis': '처치 수', 'Or gagné': '획득 골드',
   'Étage': '층', 'Renaiss.': '환생', 'Temps de jeu': '플레이 시간', 'Temps': '시간', 'Renaissance éclair': '최단 환생',
@@ -304,6 +307,7 @@ export const PATTERNS = [
   [/^⚔ Prochain boss \(étape ([\d-]+)\) : pas encore — il lui resterait$/, '⚔ 다음 보스 (스테이지 $1): 아직 — 남는 HP'],
   [/^de PV\. Améliorez Dégâts \/ PV, l'équipement ou l'équipe\.$/, '. 공격력/HP, 장비, 팀을 강화하세요.'],
   // v9.1.8 : classement et statistiques
+  [/^Synchronisé à (.+)$/, '$1 동기화됨'],
   [/^niv\. (\d[\d\s.,]*)$/, 'Lv.$1'],
   [/^(.+) · niv\. (\d[\d\s.,]*)$/, (m) => `${trOr(m[1])} · Lv.${m[2]}`],
   [/^(\d+) demandes?$/, '요청 $1개'],

@@ -1,3 +1,38 @@
+## Ascendrya v9.1.8 — Les deux 9.1 réunies, langue coréenne
+
+**Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.8-setup.exe). Votre partie
+est convertie automatiquement (une copie d'avant la mise à jour est gardée à part). **Serveur :** mettez le serveur à jour
+avant le jeu (nouvelles tables et colonnes ajoutées d'elles-mêmes, aucune donnée perdue).
+
+**Vous jouiez en 9.1.7 ?** Deux versions 9.1 avaient avancé chacune de leur côté. La 9.1.8 les réunit : vous gardez tout
+ce que la 9.1.4 à la 9.1.7 ont apporté (classement dans le jeu, amis, 8 classements, statistiques de temps, renaissances
+sauvegardées en ligne, thèmes, formulaires de compte) et vous recevez en plus tout le contenu de la 9.1.3 « Ascendrya »
+et la langue coréenne. Votre partie, vos statistiques de temps, votre compte et vos amis sont conservés.
+
+**Attention :** une fois votre partie envoyée en ligne par la 9.1.8, un appareil resté en 9.1.7 ne peut plus la sauvegarder
+en ligne (« version du jeu trop ancienne ») : mettez à jour tous vos appareils.
+
+### Nouveau pour vous : le contenu de la 9.1.3 « Ascendrya »
+- **Le jeu s'appelle Ascendrya.** Partie, réglages et installation restent les mêmes. Nouveaux monstres et boss des mondes 2 à 10.
+- **Équipement :** plus aucun objet perdu (coffre puis « À récupérer »), fusion Épique → Légendaire à pourcentage avec
+  jauge garantie, relance orientée, prime du jour au choix du monde, ensembles avec un rôle.
+- **Compagnons :** les étoiles comptent les doublons (0★ à 5★, 6 exemplaires) ; aucun compagnon ne perd de puissance, ceux
+  qui étaient au maximum reçoivent le 6e exemplaire ; ultimes propres aux Légendaires, plus rares mais plus marqués.
+- **Bannière et mode monde :** une bannière à la fois avec filet de sécurité, Archives, mode monde avec score par personnage.
+- **Écrans allégés :** fiches en feuille du bas, récompenses en icônes, nouvelles icônes, compétences en grille, moins de conseils.
+- **Modes :** Défis (Tour de l'Éternité et Défi de la semaine réunis), piste du mois dans Missions, « À récupérer » en fenêtre (touche N).
+- **Monnaies :** tickets convertis en gemmes (1 = 100), essences en éclats (1 = 10), mannequins rangés dans le Coffre.
+- **Confort :** appui maintenu pour acheter en continu, essais d'affichage dans Paramètres › Interface.
+
+### Nouveau pour tous : le coréen
+- **한국어 :** Paramètres › Langue propose maintenant le coréen (police système coréenne).
+
+### Gardé de la 9.1.4 à la 9.1.7
+- Objectifs › **Classement** (Tout le monde / Mes amis, 8 classements et classements de temps, votre rang) et **amis**.
+- Objectifs › **Statistiques** (temps par monde, cycle, activité, renaissances, transcendances, séances).
+- Serveur : sauvegarde acceptée après une Renaissance, plus de plafond d'étape ni d'or, admin et thèmes corrigés.
+- La carte « Nouveaux menus » ne s'affiche que pour les parties d'avant la 9.1.0 ; elle cite maintenant Défis, Classement et Statistiques.
+
 ## Idle RPG v9.1.7 — Statistiques de temps
 
 **Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.7-setup.exe).

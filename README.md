@@ -271,8 +271,9 @@ puis grande mise à jour de confort : 4 menus, bouton « Prochaine action », t�
 puis sauvegarde en ligne automatique, compte joueur et analytique admin (v9.1.1),
 puis création de compte toujours possible et messages de connexion clairs (v9.1.2),
 puis écrans allégés, fiches en feuille du bas, récompenses en icônes, Défis et piste du mois (v9.1.3),
-puis sauvegarde en ligne qui ne refuse plus les grosses parties, formulaires de compte fiables et décors corrigés (v9.1.3),
-puis sauvegarde en ligne qui accepte les renaissances et les étapes au-delà de 2000, classement au format du jeu (v9.1.7) :
+et en parallèle sauvegarde en ligne qui ne refuse plus les grosses parties, formulaires de compte fiables et décors corrigés,
+renaissances sauvegardées, classement dans le jeu, amis et statistiques de temps (v9.1.3 à v9.1.7),
+puis les deux réunies, avec la langue coréenne (v9.1.8) :
 voir `docs/RELEASE_NOTES.md`.
 
 ## v4

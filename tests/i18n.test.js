@@ -150,15 +150,16 @@ test('données du jeu : tous les noms et libellés sont traduits', () => {
   for (const s of texts) assert.ok(!FRENCH.test(translate(s)), `traduction encore française : ${s} → ${translate(s)}`);
 });
 
-// v9.1.4 : plusieurs langues (fr source, en, ko en préparation derrière un interrupteur).
-test('langues : le coréen est fermé aux joueurs tant que LANGS.ko.enabled est faux', async () => {
+// v9.1.4 : plusieurs langues (fr source, en, ko) ; v9.1.8 : le coréen est ouvert à tous.
+test('langues : le coréen est proposé aux joueurs (v9.1.8)', async () => {
   const { LANGS, availableLangs, isLangAvailable } = await import('../src/i18n/i18n.js');
   assert.deepEqual(Object.keys(LANGS), ['fr', 'en', 'ko']);
-  assert.equal(LANGS.ko.enabled, false);
-  assert.equal(isLangAvailable('ko'), false); // version publique (BUILD.cheats faux), sans « ?lang=ko »
-  assert.deepEqual(availableLangs().map((l) => l.code), ['fr', 'en']);
+  assert.equal(LANGS.ko.enabled, true);
+  assert.equal(isLangAvailable('ko'), true); // version publique (BUILD.cheats faux), sans « ?lang=ko »
+  assert.deepEqual(availableLangs().map((l) => l.code), ['fr', 'en', 'ko']);
   setLang('ko');
-  assert.equal(getLang(), 'fr', 'langue fermée : retour au français');
+  assert.equal(getLang(), 'ko');
+  assert.equal(t('Paramètres'), '설정');
   setLang('en');
   assert.equal(t('Inventaire'), 'Inventory');
 });

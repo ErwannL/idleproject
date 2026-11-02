@@ -9,13 +9,13 @@ import { BUILD } from '../core/build-info.js';
 
 const STORAGE_KEY = 'idle-rpg.lang';
 
-// Langues connues. `enabled: false` : langue en préparation, invisible pour les joueurs ; elle reste
+// Langues connues (coréen ouvert à tous en v9.1.8). `enabled: false` : langue en préparation, invisible pour les joueurs ; elle reste
 // utilisable dans la version dev (BUILD.cheats) ou en test via l'adresse « ?lang=ko ».
 // La police propre à une langue (coréen) est choisie par la feuille de style via html[lang].
 export const LANGS = {
   fr: { label: 'Français', flag: '🇫🇷', enabled: true, translate: null },
   en: { label: 'English', flag: '🇬🇧', enabled: true, translate: translateEn },
-  ko: { label: '한국어', flag: '🇰🇷', enabled: false, translate: translateKo },
+  ko: { label: '한국어', flag: '🇰🇷', enabled: true, translate: translateKo },
 };
 export const SOURCE_LANG = 'fr';
 
