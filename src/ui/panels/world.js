@@ -6,6 +6,7 @@ import { releasedUnits, tierCondition, worldLevel, worldReward, worldStatus, wor
 import { companionById, duplicates } from '../../core/companions.js';
 import { animCanvas } from '../animator.js';
 import { escapeHtml, formatDecimal, formatNumber, rewardIcons, stars } from '../common.js';
+import { scoreBoard } from '../score-board.js';
 
 const dateText = (ms) => { const d = new Date(ms); return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`; };
 
@@ -72,6 +73,7 @@ export default {
       <div class="card"><div class="section-title">Score</div>
         <div class="muted">${`Dégâts infligés au boss du monde en ${BANNER_RULES.scoreSeconds} s, le perso possédé et dans l'équipe. Les étoiles s'affichent ; aucune autre puissance.`}</div>
         ${sc ? `<div><span>Record personnel :</span> <b class="num">${formatNumber(sc.damage)}</b> ${stars(sc.stars)} <span>${`niv. ${sc.level}`}</span> <span class="muted">${dateText(sc.at)}</span></div>` : '<div class="muted">Pas encore de score.</div>'}
-        ${enter('score', 1, 'Lancer le score', !canScore)}</div>`;
+        ${enter('score', 1, 'Lancer le score', !canScore)}
+        ${scoreBoard(ui, c.id)}</div>`;
   },
 };

@@ -2,7 +2,8 @@
 
 **Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.3-setup.exe). Votre partie
 est convertie automatiquement (une copie d'avant la mise à jour est gardée à part). **Serveur :** mettez le serveur à
-jour avant le jeu : la nouvelle version refuse une sauvegarde d'un format plus ancien que le sien.
+jour avant le jeu : la nouvelle version refuse une sauvegarde d'un format plus ancien que le sien. Elle garde aussi le meilleur score du mode monde par
+personnage (nouvelle table, vide pour l'instant).
 
 **Le jeu s'appelle maintenant Ascendrya.** Votre partie, vos réglages et l'installation restent les mêmes.
 

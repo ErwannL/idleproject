@@ -44,6 +44,16 @@ CREATE TABLE IF NOT EXISTS admin_users (
   created_at INTEGER NOT NULL,
   last_login_at INTEGER
 );
+-- v9.1.3 (doc4 lot 7) : meilleur score par perso (mode monde, 60 s), extrait et validé de la sauvegarde envoyée.
+CREATE TABLE IF NOT EXISTS world_scores (
+  account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+  unit TEXT NOT NULL,
+  damage REAL NOT NULL,
+  stars INTEGER NOT NULL,
+  level INTEGER NOT NULL,
+  at INTEGER NOT NULL,
+  PRIMARY KEY (account_id, unit)
+);
 CREATE TABLE IF NOT EXISTS preregistrations (
   email TEXT PRIMARY KEY,
   consent_version TEXT NOT NULL,

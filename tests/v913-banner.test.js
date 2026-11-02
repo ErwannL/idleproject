@@ -19,6 +19,7 @@ import { measureFarmRate } from '../src/core/offline.js';
 import { TOWER_BOSSES, towerBoss } from '../src/core/tower.js';
 import { BOSSES } from '../src/data/enemies.js';
 import { SAVE_KEY, loadGame } from '../src/core/save.js';
+import { extractScores, scoreCap } from '../server/app.mjs';
 
 const DAY = 86400000;
 const START = new Date(`${BANNER_RULES.start}T00:00:00`).getTime();
@@ -352,3 +353,19 @@ test('lot 6 : un 0★ niveau 1 offensif bat le palier 5 sur les comptes de réf�
   assert.equal(startWorldRun(t, w, 'demo_ssr', 'score', 1, { trial: true }, J(9)).error, 'score', 'score : perso possédé seulement');
 });
 
+// ——— Lot 7 : score en ligne (validation serveur) ———
+test('lot 7 : scores extraits de la sauvegarde, bornés et cohérents (étoiles ≤ doublons, niveau ≤ niveau possédé, perso possédé)', () => {
+  const now = Date.UTC(2026, 10, 20);
+  const save = (score, owned = { stars: 4, level: 12 }) => ({ maxStage: 100, records: { bestStage: 120 }, companions: { owned: { demo_ssr: owned } }, worlds: { demo_ssr: { score } } });
+  const ok = { damage: 1e12, stars: 3, level: 12, team: ['demo_ssr'], at: now - 1000 };
+  assert.deepEqual(extractScores(save(ok), now), [{ unit: 'demo_ssr', damage: 1e12, stars: 3, level: 12, at: now - 1000 }]);
+  assert.deepEqual(extractScores(save({ ...ok, stars: 4 }), now), [], 'plus d\'étoiles que de doublons');
+  assert.deepEqual(extractScores(save({ ...ok, stars: 6 }, { stars: 6, level: 20 }), now), [], 'au-delà de 5★');
+  assert.deepEqual(extractScores(save({ ...ok, level: 13 }), now), [], 'niveau supérieur au niveau possédé');
+  assert.deepEqual(extractScores(save({ ...ok, damage: scoreCap(120) * 2 }), now), [], 'dégâts impossibles');
+  assert.deepEqual(extractScores(save({ ...ok, damage: Number.NaN }), now), []);
+  assert.deepEqual(extractScores(save(ok, { stars: 1, level: 1, trial: true }), now), [], 'essai gratuit');
+  assert.deepEqual(extractScores(save({ ...ok, team: ['shadow_lord'] }), now), [], 'perso hors équipe');
+  assert.deepEqual(extractScores(save({ ...ok, at: now + 3 * DAY }), now), [], 'date future');
+  assert.deepEqual(extractScores({ worlds: { 'x y': { score: ok } } }, now), []);
+});

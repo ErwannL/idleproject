@@ -1,6 +1,7 @@
-# Héros, doublons et invocation — v9.1.3 (doc4, partie A)
+# Héros, doublons et invocation — v9.1.3 (doc4, parties A et B)
 
-Lots 0 à 3 faits (un commit chacun). Partie B (lots 4 à 7) : pas commencée, comme prévu.
+Lots 0 à 3 faits (un commit chacun). Partie B (lots 4 à 7) faite aussi, **derrière un drapeau coupé** : voir en fin
+de document.
 
 ## Ce qui a changé
 
@@ -131,3 +132,95 @@ Pyromancienne « Boule de feu » → « Gerbe de flammes », Prêtresse « Priè
 - Le texte de `core/guide.js` (« Doublon : +1 étoile, puis des gemmes ») et « Doublon : +1 étoile (max 5) » de
   l'invocation restent justes (5★ au maximum pour les deux sortes d'unités) : inchangés.
 - Effet `also` sans étoile (valeur fixe), pour que le texte de la fiche reste exact ; « à caler en jeu ».
+
+# Partie B : bannières, mode monde, score (lots 4 à 7)
+
+**Tout est inerte pour les joueurs** : `BANNER_RULES.enabled = false` (`data/banners.js`). Tant qu'il l'est, aucun perso
+`bannerOnly` n'existe pour le jeu, aucune bannière ni Archives, budget B = 100 partout. Un seul perso de démonstration,
+`demo_ssr` (« Lame du crépuscule », Assassin, sortie n° 1, sprite du Seigneur de l'ombre), sert aux tests et à la
+version dev : `npm run build:dev`, puis `/play/?banniere=demo&jour=N` (N de −6 à 15 : J−7 aperçu, J1 à J14, J15 fin).
+Pour lancer les sorties : régler `BANNER_RULES.start` (J1 de la sortie 1, minuit local), passer `enabled` à `true`,
+remplacer le perso de démonstration par les vrais (un par `release`).
+
+## Préalables
+
+**Revenu réel en tirages sur 14 jours** (`tools/measure-revenu-v913.mjs`, moteur réel, 14 vrais jours : connexion,
+combat actif, hors ligne réel, missions et piste, prime, expéditions, 1 donjon Facile/jour, Défi et Tour hebdo ; le
+joueur invoque tout ce qu'il gagne, les remboursements de doublons au maximum compris) :
+
+| Sauvegarde | 30 min/jour | 1 h/jour | 2 h/jour |
+|---|---|---|---|
+| début (étape 45) | 283 | 298 | 315 |
+| milieu (étape 130) | 214 | 251 | 262 |
+| fin (étape 494) | 242 | 250 | 265 |
+
+Postes principaux (milieu, 1 h) : piste du mois et missions ≈ 6 900 gemmes, hors ligne ≈ 5 900, expéditions ≈ 3 300,
+combat ≈ 2 600, connexion 1 820. Sans les remboursements de doublons : environ −30 tirages.
+**Plus de 130 tirages partout (214 à 315) : à signaler au développeur** (tableau du brief) — le 3★ (≈ 154 tirages) ne
+sera plus un vrai choix, et le 5★ (seuil ≈ 163) non plus. Aucun réglage n'est appliqué (le brief n'en propose aucun
+au-delà de 130). Le cadeau de sortie (3 000 gemmes) s'y ajoute : ≈ 244 à 345 tirages par bannière.
+
+**Code serveur** (`server/app.mjs`) : il ne lit de la sauvegarde que niveau, étape, or, gemmes, victoires et triche
+(`summarizeSave`, `checkSave`) et refuse un format plus ancien que le sien. Le classement ne lit que ces colonnes.
+
+## Décisions
+
+- **`SAVE_VERSION` reste à 8** (une seule montée pour la v9.1.3, non publiée). La montée 8 → 9 du brief servait à
+  empêcher un client ancien d'effacer un perso inconnu. Ici le problème est réglé à la source : `sanitizeState` ne
+  l'efface plus, il le garde tel quel dans `companions.unknown` (borné à 100) et le rend au client qui le connaît.
+  Un client 9.1.3 qui lit la sauvegarde d'une version future (même format 8) ne perd donc rien ; tous les clients du
+  format 8 connaissent déjà `demo_ssr`. Une montée à 9 ne serait nécessaire que pour un changement de format réel.
+  (Les clients 9.1.2, format 7, sont déjà bloqués par la montée 7 → 8 et par le serveur.)
+- **Tickets** : « 30 tickets d'événement par sortie » → **3 000 gemmes** par sortie (1 ticket = 100 gemmes, même taux
+  que la migration du lot E), versées une fois au premier passage pendant la bannière (`claimReleaseGift`).
+- **Budget B** (`budget()`, `core/banner.js`) : × B/100 sur le passif et sur hit, burst, soin et rally (plafond soin
+  et rally 3 × B/100) ; bouclier et or sans budget (comme sans étoile).
+- **Archives** : cibles = 5 SSR permanents + persos dont la bannière est finie ; bassin = permanent + cible.
+- **Mode monde** : niveaux (12 ennemis puis le boss du monde, niveau d'ennemi = étape record × (0,5 + 0,05 n)),
+  paliers (boss de l'étape record × 0,6 / 0,8 / 1,0 / 1,3 / 1,0 en PV, 120 s), score (60 s, boss qui ne meurt pas,
+  sans mécanique d'invocation, hasard à graine fixe). Monde = décor et ennemis d'un monde existant (`world.zone`) :
+  aucun nouveau boss, et la liste de la Tour est figée (`TOWER_BOSSES`). Un essai en cours n'est jamais repris au
+  chargement (équipe d'avant rendue). Essai gratuit : 0★ niveau 1 à la place du 2e compagnon, niveaux et paliers 1–4.
+- **Récompenses** : niveaux (première fois) 30 + 10n gemmes et 20n éclats ; paliers 1–3 gemmes, clés, éclats
+  (fragments au 3) ; palier 4 « Décor » et palier 5 « Titre » : enregistrés et affichés dans l'écran du monde
+  seulement (il n'existe pas encore de système de décors ni de titres ailleurs dans le jeu).
+- **Score en ligne** : le jeu n'envoie rien de plus ; le serveur lit `worlds[perso].score` dans la sauvegarde poussée,
+  le valide (perso possédé hors essai, étoiles ≤ doublons possédés et ≤ 5, niveau ≤ niveau possédé et ≤ 20, perso
+  dans l'équipe, date non future, dégâts ≤ 1e10 × 1,075^étape record) et garde le meilleur par compte et par perso
+  (table `world_scores`). Un score refusé est ignoré, la sauvegarde passe. `GET /api/scores?unit=` : joueurs listés.
+
+## Ce qui est fait (lot par lot)
+
+- **Lot 4** : bassins `banner` et `archive` déclarés dans `BALANCE.summon.pools` ; vedette par `featuredUnit` et
+  `summonPool` (donc dans `summonOdds`) ; Légendaire perdu → la vedette (mémoire commune, consommée une fois) ; filet
+  50 sur la 1re copie (compteur gardé, figé si possédée, remis à 0 à l'obtention) ; garantie à 60 partagée ; bassin
+  permanent gelé (`COMPANIONS`, 8 R / 7 SR / 5 SSR) et rotation hebdomadaire inchangée ; `UNITS` = unités connues ;
+  encyclopédie et hauts faits sur les 26 permanents ; textes « trois invocations » → « toutes les invocations ».
+  Mesuré : filet 32,85 tirages en moyenne (max 50, P90 50), 3★ 153,7 (P90 220) — conforme au brief.
+- **Lot 5** : façade (visage, monde, signature + « Ultime à 3 doublons », filet x/50 avec « Le filet garantit le perso,
+  pas sa montée. », stock de tirages) ; « Détails » (rôle, passif à 0★/3★/5★, `skillsBlock`, boss et essai, coûts
+  moyens, unités du rôle, synergies avec l'équipe) ; aperçu J−7 et message de fin hors de la fiche ; Archives.
+- **Lot 6** : `worldRun` (branche de `currentEncounter`), affinité étendue (×6, passif ×4, équipe +150 %, dégâts
+  subis −60 %), neutralisé dans `measureAt` et `forecastSteps`, calendrier J1/J4/J8/J10/J15, paliers calés sur
+  `records.bestStage`, Titre, score reproductible (minuteries, effets et hasard remis à zéro), record local.
+- **Lot 7** : serveur (table, extraction validée, route), client (`cloud.scores`, repli « Score en ligne »).
+
+## Vérifié
+
+Tests `tests/v913-banner.test.js` (17) et `tests/server.test.js` (score en ligne) : filet 32,7 ± 0,5 et max 50,
+compteur figé/gardé/remis à 0, mémoire consommée une fois, garantie partagée, aucun décalage du bassin ni de la
+rotation, rôle/aura/sprite de chaque `bannerOnly`, vedette dans `summonOdds`, encyclopédie 100 % sans `bannerOnly`,
+sauvegarde v8 identique et perso inconnu gardé, aucun mot de recommandation dans les écrans, score identique sur deux
+phases, palier 5 battu par un 0★ niveau 1 offensif sur les comptes de référence bas (étape 45), moyen (130) et haut
+(494) — **tous les paliers y sont réussis, y compris ×1,3 : à recaler en jeu** —, validation serveur bornée.
+Captures 375×812 de la version dev (bannière J9 et J13, Détails, Archives J15, aperçu J−7, monde, en français et en
+anglais : aucun texte français restant).
+
+## Limites et questions au développeur
+
+1. Revenu > 130 tirages / 14 jours (214 à 315) : à trancher (le brief ne propose pas de réglage).
+2. Paliers trop faciles sur les comptes de référence (même ×1,3) : cible « meilleure équipe sans le perso » non
+   mesurable directement ; les multiples s'appliquent au boss de l'étape record.
+3. Décor et Titre : pas de système d'affichage ailleurs (profil, scène) ; noms provisoires.
+4. Horloge locale : la bannière suit l'heure de l'appareil (prolongeable en changeant l'heure), comme la Tour.
+5. Liste à suivre pour chaque nouveau SSR : `data/banners.js` (en-tête), test de rôle, aura et sprite.

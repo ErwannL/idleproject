@@ -438,3 +438,30 @@ test('plateforme et version transmises avec la sauvegarde (sans en-tête personn
   const row = s.db.prepare('SELECT platform, game_version FROM accounts WHERE pseudo = ?').get('Ancien');
   assert.deepEqual({ ...row }, { platform: 'android', game_version: '9.1.1' });
 });
+
+// ---- v9.1.3 (doc4 lot 7) : score en ligne par perso (mode monde) ----
+test('score en ligne : extrait de la sauvegarde, validé, meilleur gardé, joueurs listés seulement, sauvegarde jamais bloquée', async (t) => {
+  const s = await setup();
+  t.after(() => s.close());
+  const base = s.url();
+  const at = Date.UTC(2026, 9, 31, 11);
+  const game = (damage, extra = {}) => JSON.stringify({ level: 30, maxStage: 100, records: { bestStage: 120 },
+    companions: { owned: { demo_ssr: { stars: 4, level: 12 } } },
+    worlds: { demo_ssr: { levels: 2, tiers: 1, score: { damage, stars: 3, level: 12, team: ['demo_ssr'], at, ...extra } } } });
+  const a = (await call(base, 'POST', '/api/register', { pseudo: 'Lame_un', password: 'motdepasse1' })).body.token;
+  const b = (await call(base, 'POST', '/api/register', { pseudo: 'Lame_deux', password: 'motdepasse1' })).body.token;
+  const c = (await call(base, 'POST', '/api/register', { pseudo: 'Lame_cache', password: 'motdepasse1' })).body.token;
+  assert.equal((await call(base, 'PUT', '/api/save', { version: 0, data: game(5e12) }, a)).status, 200);
+  assert.equal((await call(base, 'PUT', '/api/save', { version: 0, data: game(9e12) }, b)).status, 200);
+  assert.equal((await call(base, 'PUT', '/api/save', { version: 0, data: game(1e13) }, c)).status, 200);
+  await call(base, 'PUT', '/api/account/listed', { listed: false }, c);
+  // Score plus bas ensuite : le meilleur reste ; score impossible (étoiles > doublons) : ignoré, sauvegarde acceptée.
+  assert.equal((await call(base, 'PUT', '/api/save', { version: 1, data: game(1e12) }, a)).status, 200);
+  assert.equal((await call(base, 'PUT', '/api/save', { version: 2, data: game(8e13, { stars: 5 }) }, a)).status, 200);
+  assert.equal((await call(base, 'PUT', '/api/save', { version: 3, data: game(1e300) }, a)).status, 200);
+  const board = (await call(base, 'GET', '/api/scores?unit=demo_ssr')).body.players;
+  assert.deepEqual(board.map((p) => [p.pseudo, p.damage, p.stars, p.level]), [['Lame_deux', 9e12, 3, 12], ['Lame_un', 5e12, 3, 12]]);
+  assert.equal(board[0].rank, 1);
+  assert.equal((await call(base, 'GET', '/api/scores?unit=../x')).status, 400);
+  assert.deepEqual((await call(base, 'GET', '/api/scores?unit=shadow_lord')).body.players, []);
+});

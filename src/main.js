@@ -925,6 +925,8 @@ const platform = window.desktop ? 'windows' : window.Capacitor?.isNativePlatform
 const cloud = createCloudClient({ baseUrl: CLOUD_BASE, storage: store, client: { platform, version: GAME_VERSION } });
 const cloudView = { busy: false, message: '', error: false };
 ui.cloud = cloudView;
+// v9.1.3 (doc4 lot 7) : score en ligne d'un perso (lu par ui/score-board.js) ; jamais en version dev (cloud coupé).
+ui.fetchScores = BUILD.cloud ? (unit) => cloud.scores(unit) : null;
 function setCloudMessage(text, error = false) {
   cloudView.busy = false;
   cloudView.loggedIn = cloud.isLoggedIn();

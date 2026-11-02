@@ -96,6 +96,40 @@ export function checkSave(parsed, summary, current) {
 // Bornes du jeu (version publique). À garder alignées sur src/data/balance.js (level.maxLevel).
 const LIMITS_GAME = { maxLevel: 1000, maxStage: 2000, maxCurrency: 1e15 };
 
+// v9.1.3 (doc4 lot 7) : scores du mode monde (un par perso). Le serveur ne rejoue pas le combat : il refuse ce qui est
+// impossible ou incohérent avec la sauvegarde envoyée. Un score refusé n'empêche jamais la sauvegarde (il est ignoré).
+// À garder alignées sur le jeu : 6 exemplaires au plus (0★ à 5★), niveau 20 (data/companions.js), croissance des PV
+// des ennemis 1,075 par étape (data/balance.js enemyScaling.hpGrowth). Plafond des dégâts : 1e10 × 1,075^étape record,
+// soit environ 3e6 fois les PV du boss de cette étape, 5 000 à 200 000 fois les scores mesurés (comptes de référence de tests/helpers, mode monde) (marge large : Renaissances, Transcendance).
+export const SCORE_RULES = { maxUnits: 50, maxStars: 5, maxLevel: 20, unitRe: /^[a-z0-9_]{2,32}$/, damageBase: 1e10, hpGrowth: 1.075, futureMs: 24 * 3600 * 1000 };
+export function scoreCap(bestStage) {
+  return SCORE_RULES.damageBase * SCORE_RULES.hpGrowth ** Math.max(1, Math.min(LIMITS_GAME.maxStage, bestStage));
+}
+
+// Extrait les scores valides d'une sauvegarde (objet de jeu). Renvoie [{ unit, damage, stars, level, at }].
+export function extractScores(parsed, now = Date.now()) {
+  const worlds = parsed?.worlds;
+  if (!worlds || typeof worlds !== 'object' || Array.isArray(worlds)) return [];
+  const owned = parsed.companions?.owned && typeof parsed.companions.owned === 'object' ? parsed.companions.owned : {};
+  const best = Math.max(Number(parsed.records?.bestStage) || 0, Number(parsed.maxStage) || 0, 1);
+  const out = [];
+  for (const [unit, rec] of Object.entries(worlds).slice(0, SCORE_RULES.maxUnits)) {
+    const s = rec?.score;
+    if (!SCORE_RULES.unitRe.test(unit) || !s || typeof s !== 'object') continue;
+    const o = owned[unit];
+    if (!o || typeof o !== 'object' || o.trial === true) continue; // perso possédé (l'essai gratuit ne compte pas)
+    const copies = Number(o.stars);
+    const { damage, stars, level, at } = s;
+    if (!Number.isFinite(damage) || damage <= 0 || damage > scoreCap(best)) continue;
+    if (!Number.isInteger(stars) || stars < 0 || stars > SCORE_RULES.maxStars || stars > copies - 1) continue; // étoiles ≤ doublons possédés
+    if (!Number.isInteger(level) || level < 1 || level > SCORE_RULES.maxLevel || level > Number(o.level)) continue;
+    if (!Number.isFinite(at) || at <= 0 || at > now + SCORE_RULES.futureMs) continue;
+    if (Array.isArray(s.team) && !s.team.includes(unit)) continue; // le perso était dans l'équipe
+    out.push({ unit, damage: Math.floor(damage), stars, level, at: Math.floor(at) });
+  }
+  return out;
+}
+
 export class HttpError extends Error {
   constructor(status, message, extra = {}) {
     super(message);
@@ -266,6 +300,10 @@ export function createApp({
     upsertPrereg: db.prepare('INSERT INTO preregistrations (email, consent_version, consent_at) VALUES (?, ?, ?) ON CONFLICT(email) DO NOTHING'),
     deletePrereg: db.prepare('DELETE FROM preregistrations WHERE email = ?'),
     countPrereg: db.prepare('SELECT COUNT(*) AS n FROM preregistrations'),
+    // v9.1.3 (doc4 lot 7) : meilleur score par perso (on ne garde que le plus haut).
+    upsertScore: db.prepare(`INSERT INTO world_scores (account_id, unit, damage, stars, level, at) VALUES (?, ?, ?, ?, ?, ?)
+      ON CONFLICT(account_id, unit) DO UPDATE SET damage = excluded.damage, stars = excluded.stars, level = excluded.level, at = excluded.at
+      WHERE excluded.damage > world_scores.damage`),
   };
 
   // Plateforme et version annoncées par le jeu (en-têtes), filtrées : jamais de texte libre en base.
@@ -464,6 +502,7 @@ export function createApp({
         throw new HttpError(422, reason);
       }
       q.upsertSave.run(account.id, data, next, now(), s.level, s.maxStage, s.gold, s.gems, s.kills, s.bossesDefeated);
+      for (const sc of extractScores(parsed, now())) q.upsertScore.run(account.id, sc.unit, sc.damage, sc.stars, sc.level, sc.at);
       return { body: { version: next } };
     } },
 
@@ -499,6 +538,16 @@ export function createApp({
 
     // Compteur public (agrégé) pour la barre de progression de la page d'accueil.
     { method: 'GET', path: /^\/api\/preregister\/count$/, handler: () => ({ body: { count: q.countPrereg.get().n } }) },
+
+    // v9.1.3 (doc4 lot 7) : score en ligne d'un perso (mode monde, 60 s) : dégâts, étoiles, niveau ; joueurs listés.
+    { method: 'GET', path: /^\/api\/scores$/, handler: ({ url }) => {
+      const unit = url.searchParams.get('unit') ?? '';
+      if (!SCORE_RULES.unitRe.test(unit)) throw new HttpError(400, 'Perso inconnu');
+      const limit = Math.min(Math.max(Number(url.searchParams.get('limit')) || 50, 1), 100);
+      const rows = db.prepare(`SELECT a.pseudo, w.damage, w.stars, w.level, w.at FROM world_scores w JOIN accounts a ON a.id = w.account_id
+        WHERE a.listed = 1 AND w.unit = ? ORDER BY w.damage DESC, w.at ASC LIMIT ?`).all(unit, limit);
+      return { body: { unit, players: rows.map((r, i) => ({ rank: i + 1, pseudo: r.pseudo, damage: r.damage, stars: r.stars, level: r.level, at: r.at })) } };
+    } },
 
     // Classement public : joueurs ayant choisi d'apparaître (listed = 1) et ayant commencé à jouer.
     { method: 'GET', path: /^\/api\/leaderboard$/, handler: ({ url }) => {
