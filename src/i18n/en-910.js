@@ -389,6 +389,8 @@ export const EXACT_910 = {
   'Sac et coffre pleins : les récompenses avec un objet attendent ici. Recyclez des objets.': 'Bag and chest full: rewards with an item wait here. Recycle some items.',
   'Sac et coffre pleins : recyclez un objet pour acheter.': 'Bag and chest full: recycle an item to buy.',
   'Sac et coffre pleins : libérez de la place pour récupérer les objets.': 'Bag and chest full: free some space to claim the items.',
+  // v9.1.3 (doc4 : héros, doublons).
+  'Doublons': 'Duplicates', 'Ultime débloquée': 'Ultimate unlocked',
 };
 
 // Traduction d'un morceau (nom de boost, de boss…) : fournie par ./en.js.
@@ -406,6 +408,7 @@ const FUSION_REASONS = { 'renforcé': 'reinforced', "meilleur que l'équipé": '
 
 // Textes construits avec des valeurs.
 export const PATTERNS_910 = [
+  [/^· version lancée :$/, '· running version:'],
   // v9.1.3 (doc3 lot 2) : fusion à pourcentage.
   [/^Fusionner tout · (\d+) groupes?$/, (m) => `Fuse all · ${m[1]} group${m[1] === '1' ? '' : 's'}`],
   [/^(\d+) dans le sac$/, '$1 in the bag'],
@@ -632,6 +635,7 @@ export const PATTERNS_910 = [
   [/^niv\. (\d+) · (\d+)★$/, 'lv. $1 · $2★'],
   [/^([\d\s.,]+\s?[KMBTa-z]*) dégâts\/s$/, '$1 damage/s'],
   // v9.1.3 (doc4 : héros, doublons).
+  [/^Doublons (\d+)\/(\d+)$/, 'Duplicates $1/$2'],
   [/^Ultime à (\d+) doublons?$/, (m) => `Ultimate at ${m[1]} duplicate${m[1] === '1' ? '' : 's'}`],
   [/^Rareté ×([\d,]+) · (\d+) doublons? sur (\d+) — chaque doublon \+(\d+) % aux compétences\.$/, (m) => `Rarity ×${m[1].replace(',', '.')} · ${m[2]} duplicate${m[2] === '1' ? '' : 's'} of ${m[3]} — each duplicate +${m[4]}% to skills.`],
   // v9.1.3 : « Ensemble (3/7) » du coffre — motif large, gardé en dernier.

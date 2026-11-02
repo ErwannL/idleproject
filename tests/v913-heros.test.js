@@ -242,3 +242,30 @@ test('lot 1 : sauvegarde v8 sur un client v7 simulé : bloquée ; reconcile ne p
   st2.setItem(SAVE_KEY, JSON.stringify({ version: 99 }));
   assert.equal(loadGame(st2, undefined, NOW).source, 'newer');
 });
+
+// ——— Lot 2 : 3★ et 5★ visibles ———
+import { skillTextAt } from '../src/data/companion-skills.js';
+
+test('lot 2 : « Ultime débloquée » au 4e exemplaire d\'un compagnon, jamais pour un skin', () => {
+  const s = createNewState(NOW);
+  for (const u of COMPANIONS) s.companions.owned[u.id] = { stars: 3, level: 1 };
+  for (const h of Object.keys(s.heroes.owned)) s.heroes.owned[h].stars = 3;
+  s.gems = 1e6;
+  const res = summon(s, new Rng(9), 10, 'gems', undefined, 'ally');
+  const flagged = res.filter((r) => r.ultimateUnlocked);
+  assert.ok(flagged.length >= 1);
+  assert.ok(flagged.every((r) => r.stars === 4));
+  const h = createNewState(NOW);
+  h.gems = 1e6;
+  for (let i = 0; i < 20; i++) assert.ok(summon(h, new Rng(50 + i), 10, 'gems', undefined, 'hero').every((r) => !r.ultimateUnlocked));
+});
+
+test('lot 2 : textes à valeur réelle, arrondis, verbe propre gardé', () => {
+  const dq = COMPANIONS.find((c) => c.id === 'demon_queen');
+  assert.equal(skillTextAt(dq.skill, 1.8 * 1.825), 'Embrase tous les ennemis (361 % des dégâts)');
+  assert.equal(skillTextAt({ type: 'heal', value: 15, text: 'Soigne 15 % des PV' }, 1.333), 'Soigne 20 % des PV');
+  assert.equal(skillTextAt({ type: 'shield', value: 40, duration: 4, text: 'Réduit les dégâts de 40 % pendant 4 s' }, 3), 'Réduit les dégâts de 40 % pendant 4 s');
+  for (const c of COMPANIONS) {
+    for (const sk of allCompanionSkills(c.id)) assert.doesNotMatch(skillTextAt(sk, 1.37), /\d[.,]\d/, `${c.id} : nombre non arrondi`);
+  }
+});

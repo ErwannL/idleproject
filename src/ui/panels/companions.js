@@ -7,7 +7,7 @@ import { COMPANION_ROLES, ROLES, SYNERGIES } from '../../data/synergies.js';
 import { costButton, effectText, escapeHtml, fold, hdArt, formatNumber, icon, img, rarityLabel, stars } from '../common.js';
 import { animCanvas } from '../animator.js';
 import { DUNGEONS } from '../../data/dungeons.js';
-import { SKILL_RULES } from '../../data/companion-skills.js';
+import { SKILL_RULES, skillTextAt } from '../../data/companion-skills.js';
 import { computeHeroStats } from '../../core/stats.js';
 import { expeditionDone, expeditionType, isAway } from '../../core/expeditions.js';
 import { companionPortrait, companionStill } from './expeditions.js';
@@ -30,7 +30,7 @@ function skillsBlock(ui, state, c, owned) {
   const row = (sk) => `<div class="cskill${unlocked(sk) ? '' : ' locked'}${sk.ultimate ? ' ult' : ''}">
       ${img(sk.ultimate ? 'icon_star' : 'skill_quick')} <b>${escapeHtml(sk.name)}</b> <span class="muted">toutes les ${sk.every} s</span>
       ${sk.ultimate ? `<span class="tag-ult">${unlocked(sk) ? 'Ultime' : `Ultime à ${ultDup} doublons`}</span>` : ''}
-      <div class="muted">${escapeHtml(sk.text)}</div></div>`;
+      <div class="muted">${escapeHtml(skillTextAt(sk, mult(sk)))}</div></div>`; // v9.1.3 : valeur réelle, arrondie
   const roleSkills = list.filter((sk) => !sk.own && !sk.ultimate && sk.index > 0);
   const main = list.filter((sk) => !roleSkills.includes(sk));
   const formulaOpen = ui.view.open?.has('comp-formula');
@@ -84,7 +84,7 @@ export default {
     const thumb = (c) => {
       const owned = state.companions.owned[c.id];
       const equipped = state.companions.equipped.includes(c.id);
-      return `<button class="pet-thumb r-${c.rarity}${c.id === sel.id ? ' selected' : ''}${owned ? '' : ' unowned'}"
+      return `<button class="pet-thumb r-${c.rarity}${c.id === sel.id ? ' selected' : ''}${owned ? '' : ' unowned'}${duplicates(owned) >= COMPANION_RULES.maxCopies - 1 ? ' dup-max' : ''}"
         data-action="companion-sel" data-value="${c.id}" title="${c.name}">
         ${owned ? (c.id === sel.id ? portrait(c) : companionStill(c)) : `<img class="px" src="${icon(c.sprite, c.kind === 'ally' ? 1 : 3, { tint: { color: '#3a4a66', alpha: 1 } })}" alt="">`}
         <span class="rar-letter" aria-hidden="true">${rarityLabel(c.rarity).slice(0, 1)}</span>
@@ -145,12 +145,14 @@ export default {
     // v9.1.3 (doc2 A12) : l'illustration, à pleine opacité, remplace le portrait dans l'en-tête de la fiche ;
     // Équiper et Améliorer sont à côté, donc visibles sans défiler (fiche en feuille du bas sur téléphone).
     const art = hdArt(sel, owned ? 'pet-art' : 'pet-art locked');
-    const detail = `<div class="card pet-detail r-${sel.rarity} sheet${ui.view.sheetOpen === 'companion' ? ' sheet-open' : ''}">
+    const dupMax = COMPANION_RULES.maxCopies - 1;
+    const detail = `<div class="card pet-detail r-${sel.rarity}${duplicates(owned) >= dupMax ? ' dup-max' : ''} sheet${ui.view.sheetOpen === 'companion' ? ' sheet-open' : ''}">
         <button class="btn small sheet-close" data-action="close-sheet" aria-label="Fermer la fiche">✕</button>
         <div class="detail-head pet-head">
           ${art ? `<div class="pet-art-box">${art}</div>` : `<div class="pet-portrait">${owned ? portrait(sel, true) : `<img class="px" src="${icon(sel.sprite, sel.kind === 'ally' ? 1 : 4, { tint: { color: '#3a4a66', alpha: 1 } })}" alt="">`}</div>`}
           <div class="grow"><div class="item-name">${escapeHtml(sel.name)}</div>
             <div class="item-sub"><span class="rarity-text">${rarityLabel(sel.rarity)}</span>${owned ? ` · niv. ${owned.level}/${COMPANION_RULES.maxLevel} ${stars(duplicates(owned))}` : ' · non obtenu'}</div>
+            ${owned ? `<div class="dup-count">Doublons ${duplicates(owned)}/${dupMax}</div>` : ''}
             ${selRole ? `<div>Rôle : <b style="color:${ROLES[selRole].color}">${ROLES[selRole].label}</b></div>` : ''}
             <div class="detail-actions">${actions}</div>${upgradeLine}</div>
         </div>

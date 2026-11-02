@@ -4,6 +4,7 @@
 // v9.1.3 (doc4 lot 1) : compagnons et familiers jusqu'à 6 exemplaires (0★ à 5★ : 5 doublons) ; skins jusqu'à 5 (1★ à 5★).
 import { BALANCE } from '../data/balance.js';
 import { COMPANIONS, COMPANION_RULES } from '../data/companions.js';
+import { SKILL_RULES } from '../data/companion-skills.js';
 import { HEROES } from '../data/heroes.js';
 import { RARITIES } from '../data/items.js';
 import { rarityIndex } from './loot.js';
@@ -120,6 +121,8 @@ export function summon(state, rng, count = 1, currency = 'gems', balance = BALAN
       state.gems += duplicateRefundGems;
     }
     result.stars = store[unit.id].stars;
+    // v9.1.3 (doc4 lot 2) : ce doublon débloque l'ultime (3 doublons). Jamais pour un skin (ses étoiles sont autres).
+    result.ultimateUnlocked = unit.kind !== 'hero' && !result.isNew && !result.refund && result.stars === SKILL_RULES.ultimateCopies;
     results.push(result);
     // Historique des 60 dernières invocations.
     // v9.1.3 : `kind` distingue un skin d'un compagnon de même identifiant (fairy, witch, ninja).

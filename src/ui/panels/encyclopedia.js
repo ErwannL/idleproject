@@ -10,7 +10,8 @@ import { RARITIES, SIGNATURE_ITEMS, SLOTS, STAT_LABELS, PERCENT_STATS, ITEM_BASE
 import { BOSS_LORE } from '../../data/lore.js';
 import { bossTrait } from '../../core/boss-traits.js';
 import { ZONES } from '../../data/zones.js';
-import { MULTIPLICATIVE, duplicates } from '../../core/companions.js';
+import { MULTIPLICATIVE, allCompanionSkills, companionSkillMultiplier, duplicates, ultimateUnlocked } from '../../core/companions.js';
+import { SKILL_RULES, skillTextAt } from '../../data/companion-skills.js';
 import {
   ENCYCLOPEDIA_MILESTONES, ENCYCLOPEDIA_SECTIONS, MONSTER_VARIANTS, SIGNATURE_RARITIES, encyclopediaNext,
   encyclopediaProgress, sectionStatus, variantFound,
@@ -207,8 +208,15 @@ function companionCard(state, id) {
     <div class="enc-title rarity-text r-${c.rarity}">${escapeHtml(c.name)}</div>
     <div class="muted">${c.kind === 'ally' ? 'Compagnon' : 'Familier'} · <b class="rarity-text r-${c.rarity}">${grade}</b> · ${stars(duplicates(owned))}</div>
     <div class="enc-stats">${statRow('Niveau', owned.level ?? 1)}${statRow('Passif (niv. 1)', effectText(passive))}
-      ${statRow('Compétence', escapeHtml(c.skill?.name ?? '—'))}</div>
-    ${c.skill?.text ? `<p class="muted">${escapeHtml(c.skill.text)}.</p>` : ''}
+      ${statRow('Doublons', `${duplicates(owned)}/${COMPANION_RULES.maxCopies - 1}`)}</div>
+    <div class="section-title">Compétences</div>
+    ${allCompanionSkills(c.id).map((sk) => {
+      // v9.1.3 (doc4 lot 2) : les 4 compétences, valeurs réelles arrondies ; l'ultime verrouillée l'indique.
+      const open = !sk.ultimate || ultimateUnlocked(owned);
+      const v = skillTextAt(sk, companionSkillMultiplier(state, c, sk.type, false, BALANCE, owned));
+      return `<div class="enc-skill${open ? '' : ' muted'}"><b>${escapeHtml(sk.name)}</b>${sk.ultimate ? ` <span class="tag-ult">${open ? 'Ultime' : `Ultime à ${SKILL_RULES.ultimateCopies - 1} doublons`}</span>` : ''}
+        <div class="muted">${escapeHtml(v)} · toutes les ${sk.every} s</div></div>`;
+    }).join('')}
     <p class="muted">À 5 étoiles, une aura de flammes à ses couleurs l'entoure en combat.</p></div>`;
 }
 

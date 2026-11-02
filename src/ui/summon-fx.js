@@ -30,7 +30,8 @@ export function playSummonReveal(results) {
       <div class="sfx-card r-${r.rarity}" style="--i:${i}">
         <div class="sfx-back"><span>?</span></div>
         <div class="sfx-face">${portrait(r)}<b>${escapeHtml(r.name)}</b><span class="sfx-grade">${grade(r)}</span>
-          ${r.isNew ? '<em>Nouveau !</em>' : r.refund ? `<small>+${r.refund} gemmes</small>` : '<small>+1 ★</small>'}</div>
+          ${r.isNew ? '<em>Nouveau !</em>' : r.refund ? `<small>+${r.refund} gemmes</small>` : '<small>+1 ★</small>'}
+          ${r.ultimateUnlocked ? '<em class="sfx-ult">Ultime débloquée</em>' : ''}</div>
       </div>`).join('')}</div>
     <div class="sfx-hint">Cliquez pour tout révéler</div>`;
   document.body.appendChild(el);

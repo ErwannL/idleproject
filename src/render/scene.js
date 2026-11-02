@@ -302,6 +302,16 @@ export class SceneRenderer {
         } else {
           this.effects.push({ kind: 'ring', x: heroX - 28, y: this.groundY - 14, color: '#9cf08a', life: 0.5, max: 0.5, r: 10 });
         }
+        // v9.1.3 (doc4 lot 2) : effet générique d'ultime (rare : 30 s), aux couleurs du compagnon — colonne de
+        // lumière sur la cible, gerbe d'étincelles et petite secousse. Sans texte (la scène n'est pas traduite).
+        if (event.ultimate) {
+          const color = companion?.fx ?? '#ffd23f';
+          const x = Math.round(world.enemies[0] ? this.wx(world.enemies[0].x) : heroX + 60);
+          this.effects.push({ kind: 'beam', x, color, life: 0.9, max: 0.9, wide: true });
+          this.effects.push({ kind: 'ring', x, y: this.groundY - 18, color, life: 0.6, max: 0.6, r: 22 });
+          this.burst(x, this.groundY - 24, color, 16, 52);
+          this.shake = Math.max(this.shake, 2);
+        }
         break;
       }
       case 'levelUp':

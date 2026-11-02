@@ -81,6 +81,17 @@ export function skillText(skill) {
 
 export const SKILL_TEMPLATES = TEMPLATES;
 
+// v9.1.3 (doc4 lot 2) : texte d'une compétence avec sa valeur réelle (× puissance), arrondie à l'entier (les motifs de
+// traduction n'acceptent que des entiers). Garde le verbe propre (« Embrase », « Gèle », « Tire »…) : seul le premier
+// nombre change. Bouclier et or : sans étoile, texte inchangé.
+export function skillTextAt(skill, mult) {
+  const text = skill.text ?? skillText(skill);
+  let v = null;
+  if (skill.type === 'hit' || skill.type === 'burst') v = pct(skill.value * mult);
+  else if (skill.type === 'heal' || skill.type === 'rally') v = Math.round(skill.value * mult);
+  return v === null ? text : text.replace(/\d+(?:[.,]\d+)?/, String(v));
+}
+
 // Les 4 compétences d'un compagnon (rôle = celui des synergies ; familiers = 'pet').
 export function companionSkillList(companion, role) {
   const tpl = TEMPLATES[role] ?? TEMPLATES.pet;

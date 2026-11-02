@@ -80,7 +80,8 @@ export default {
     }).join('');
     const results = (ui.view.lastSummon ?? []).map((r) => `<div class="summon-result r-${r.rarity}${r.isNew ? ' new' : ''}">
       ${unitPortrait(r)}<span>${escapeHtml(r.name)}</span>
-      ${r.isNew ? '<b class="good">Nouveau !</b>' : r.refund ? `<span class="muted">+${r.refund} gemmes</span>` : stars(r.kind === 'hero' ? r.stars : duplicates({ stars: r.stars }))}</div>`).join('');
+      ${r.isNew ? '<b class="good">Nouveau !</b>' : r.refund ? `<span class="muted">+${r.refund} gemmes</span>` : stars(r.kind === 'hero' ? r.stars : duplicates({ stars: r.stars }))}
+      ${r.ultimateUnlocked ? '<b class="ult-new">Ultime débloquée</b>' : ''}</div>`).join(''); // v9.1.3 : aussi en clic maintenu (pas d'animation)
     const btn = (pool, count, currency, cost, label, aria) => {
       const missing = cost - state[currency];
       return `<button class="btn btn-gold" data-action="summon" data-value="${count}" data-currency="${currency}" data-pool="${pool}"
