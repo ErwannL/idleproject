@@ -391,6 +391,9 @@ export const EXACT_910 = {
   'Sac et coffre pleins : libérez de la place pour récupérer les objets.': 'Bag and chest full: free some space to claim the items.',
   // v9.1.3 (doc4 : héros, doublons).
   'Doublons': 'Duplicates', 'Ultime débloquée': 'Ultimate unlocked',
+  'Piqué nocturne': 'Night Dive', 'Tir du rôdeur': "Ranger's Shot", 'Gerbe de flammes': 'Flame Spray', 'Prière de l\'aube': 'Dawn Prayer',
+  'Valse des épines': 'Thorn Waltz', 'Rayon sacré': 'Sacred Ray', 'Aile protectrice': 'Guarding Wing', 'Couronne de cendres': 'Crown of Ashes',
+  'Hiver éternel': 'Eternal Winter', 'Éclipse du néant': 'Void Eclipse', 'Récolte sylvestre': 'Sylvan Harvest',
 };
 
 // Traduction d'un morceau (nom de boost, de boss…) : fournie par ./en.js.
@@ -636,6 +639,7 @@ export const PATTERNS_910 = [
   [/^([\d\s.,]+\s?[KMBTa-z]*) dégâts\/s$/, '$1 damage/s'],
   // v9.1.3 (doc4 : héros, doublons).
   [/^Doublons (\d+)\/(\d+)$/, 'Duplicates $1/$2'],
+  [/^(.+), et (soigne (\d+) % des PV|bouclier de (\d+) % \((\d+) s\)|fait tomber l'or de (\d+) ennemis)$/, (m) => `${tr(m[1])}, and ${m[3] ? `heals ${m[3]}% of HP` : m[4] ? `${m[4]}% shield (${m[5]} s)` : `drops the gold of ${m[6]} enemies`}`],
   [/^Ultime à (\d+) doublons?$/, (m) => `Ultimate at ${m[1]} duplicate${m[1] === '1' ? '' : 's'}`],
   [/^Rareté ×([\d,]+) · (\d+) doublons? sur (\d+) — chaque doublon \+(\d+) % aux compétences\.$/, (m) => `Rarity ×${m[1].replace(',', '.')} · ${m[2]} duplicate${m[2] === '1' ? '' : 's'} of ${m[3]} — each duplicate +${m[4]}% to skills.`],
   // v9.1.3 : « Ensemble (3/7) » du coffre — motif large, gardé en dernier.

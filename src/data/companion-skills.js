@@ -97,6 +97,8 @@ export function companionSkillList(companion, role) {
   const tpl = TEMPLATES[role] ?? TEMPLATES.pet;
   const own = companion.skill ? [{ ...companion.skill, own: true }] : [{ ...tpl[0] }];
   const extra = companion.skill ? [tpl[0], tpl[1]] : [tpl[1]];
-  const list = [...own, ...extra.map((s) => ({ ...s, text: skillText(s) })), { ...tpl[2], text: skillText(tpl[2]), ultimate: true }];
+  // v9.1.3 (doc4 lot 3) : signature des SSR (companion.ultimate) à la place de l'ultime de rôle.
+  const ult = companion.ultimate ? { ...companion.ultimate, signature: true } : { ...tpl[2] };
+  const list = [...own, ...extra.map((s) => ({ ...s, text: skillText(s) })), { ...ult, text: skillText(ult) + (ult.alsoText ? `, et ${ult.alsoText}` : ''), ultimate: true }];
   return list.map((s, i) => ({ ...s, index: i, text: s.text ?? skillText(s) }));
 }

@@ -269,3 +269,38 @@ test('lot 2 : textes à valeur réelle, arrondis, verbe propre gardé', () => {
     for (const sk of allCompanionSkills(c.id)) assert.doesNotMatch(skillTextAt(sk, 1.37), /\d[.,]\d/, `${c.id} : nombre non arrondi`);
   }
 });
+
+// ——— Lot 3 : des kits qui se distinguent ———
+test('lot 3 : signatures SSR — `also` seulement heal, shield ou gold ; base = ultime du rôle', () => {
+  const ssr = COMPANIONS.filter((c) => c.kind === 'ally' && c.rarity === 'legendary');
+  assert.equal(ssr.length, 5);
+  for (const c of COMPANIONS) {
+    const ult = allCompanionSkills(c.id).at(-1);
+    assert.ok(ult.ultimate);
+    if (c.ultimate) {
+      assert.ok(['heal', 'shield', 'gold'].includes(c.ultimate.also?.type), c.id);
+      const { type, every, value } = SKILL_TEMPLATES[roleOf(c.id)].at(-1);
+      assert.deepEqual({ type: ult.type, every: ult.every, value: ult.value }, { type, every, value }, c.id);
+    }
+    for (const sk of allCompanionSkills(c.id)) if (sk.also) assert.notEqual(sk.also.type, 'rally');
+  }
+  for (const c of ssr) assert.ok(c.ultimate, `${c.id} sans signature`);
+  assert.ok(COMPANIONS.filter((c) => c.ultimate).every((c) => c.rarity === 'legendary' && c.kind === 'ally'));
+});
+
+test('lot 3 : chaque unité a 4 compétences, aucun nom en double dans un kit ; ranger, shadow et owl relevés', () => {
+  const s = createNewState(NOW);
+  for (const c of COMPANIONS) {
+    const list = allCompanionSkills(c.id);
+    assert.equal(list.length, 4, c.id);
+    assert.equal(new Set(list.map((sk) => sk.name)).size, 4, `${c.id} : ${list.map((sk) => sk.name).join(', ')}`);
+  }
+  for (const id of RAISED) {
+    const c = COMPANIONS.find((x) => x.id === id);
+    for (const n of [1, 3, 8]) assert.ok(newDps(s, c, 5, n) > oldDps(c, 5, n), `${id} relevé`);
+  }
+  const own = (id) => COMPANIONS.find((c) => c.id === id).skill;
+  assert.deepEqual([own('ranger').value, own('ranger').every], [1, 5]);
+  assert.deepEqual([own('shadow').value, own('shadow').every], [0.8, 4]);
+  assert.ok(own('owl'));
+});

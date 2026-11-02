@@ -594,6 +594,15 @@ function castCompanion(state, world, companion, skill, stats, rng, balance, enc,
   } else if (skill.type === 'burst') {
     for (const enemy of [...world.enemies]) hitEnemy(state, world, enemy, stats.damage * skill.value * aff, rng, balance, stats, enc, 'companion', companion.id);
   }
+  // v9.1.3 (doc4 lot 3) : effet `also` des signatures SSR (heal, shield ou gold ; valeur fixe, sans étoile).
+  const also = skill.also;
+  if (also?.type === 'heal') world.hero.hp = Math.min(stats.maxHp, world.hero.hp + (stats.maxHp * also.value) / 100);
+  else if (also?.type === 'shield') {
+    world.buffs.shield = Math.max(world.buffs.shield, also.duration ?? 5);
+    world.buffs.shieldPct = Math.max(world.buffs.shieldPct, Math.min(90, also.value));
+  } else if (also?.type === 'gold') {
+    gainGold(state, world, referenceKillGold(enc.level, balance) * also.value * (1 + stats.goldPct / 100) * (stats.goldMult ?? 1) * earlyBoost(state, balance).gold);
+  }
   emit(world, 'companionSkill', { companionId: companion.id, skill: skill.index, skillType: skill.type, ultimate: Boolean(skill.ultimate) });
 }
 
