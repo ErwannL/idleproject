@@ -5,7 +5,7 @@ import { BALANCE } from '../src/data/balance.js';
 import { makeItem } from '../src/core/loot.js';
 import { collectItem } from '../src/core/inventory.js';
 import { companionSkills, allCompanionSkills, skillPower } from '../src/core/companions.js';
-import { moveToStash, takeFromStash, putOnMannequin, wearMannequin, mannequinCount, STASH_SIZE } from '../src/core/stash.js';
+import { moveToStash, takeFromStash, wearSet, bestSetPiece, STASH_SIZE } from '../src/core/stash.js';
 import { dailyBounty, bountyProgress, claimBounty } from '../src/core/bounty.js';
 import { startTower, endTower } from '../src/core/tower.js';
 import { createCombat, step } from '../src/core/combat.js';
@@ -35,32 +35,41 @@ test('v8.9 : 4 compétences par compagnon, la 4e avec 3 doublons, +15 % par éto
   assert.ok(seen.size >= 5, [...seen].join());
 });
 
-test('v8.9 : coffre et mannequins (un par ensemble, porter d\'un clic, rangement auto)', () => {
+test('v8.9 / v9.1.3 : coffre avec ensembles (mannequins fondus) : porter d\'un clic, garde de la meilleure pièce', () => {
   const s = createNewState(NOW, 2);
-  s.records.bestStage = 30; // v9.1.3 : mannequins ouverts (rangement auto seulement après le seuil)
+  s.records.bestStage = 30; // coffre ouvert (rangement auto seulement après le seuil)
   const a = makeItem(s, 'dagger', 'rare', 5, BALANCE, null, 'caves');
   const b = makeItem(s, 'iron_helm', 'rare', 5, BALANCE, null, 'caves');
   s.inventory.push(a, b);
   assert.ok(moveToStash(s, a.id));
   assert.equal(s.stash.length, 1);
   assert.ok(takeFromStash(s, a.id));
-  assert.ok(putOnMannequin(s, a.id));
-  assert.ok(putOnMannequin(s, b.id));
-  assert.equal(mannequinCount(s, 'caves'), 2);
+  assert.ok(moveToStash(s, a.id) && moveToStash(s, b.id));
   const oldWeapon = s.equipment.weapon;
-  assert.equal(wearMannequin(s, 'caves'), 2);
+  assert.equal(wearSet(s, 'caves'), 2);
   assert.equal(s.equipment.weapon.id, a.id);
-  assert.ok(s.inventory.some((i) => i.id === oldWeapon.id), 'l\'ancienne arme revient au sac');
-  // Rangement auto : une meilleure pièce va sur le mannequin, une moins bonne non.
+  assert.ok(s.stash.some((i) => i.id === oldWeapon.id), 'l\'ancienne arme prend sa place au coffre');
+  assert.equal(s.stash.length, 1, 'porter ne fait jamais déborder le coffre');
+  // Garde de la meilleure pièce : une meilleure pièce va au coffre et l'ancienne est recyclée, une moins bonne non.
+  const first = makeItem(s, 'chainmail', 'rare', 5, BALANCE, null, 'forest');
+  assert.equal(collectItem(s, first).mannequin, true);
   const better = makeItem(s, 'chainmail', 'epic', 20, BALANCE, null, 'forest');
-  assert.equal(collectItem(s, better).mannequin, true);
-  assert.equal(s.mannequins.forest.armor.id, better.id);
+  const r = collectItem(s, better);
+  assert.equal(r.mannequin, true);
+  assert.ok(r.recycledGold > 0, 'l\'ancienne meilleure est recyclée');
+  assert.equal(bestSetPiece(s, 'forest', 'armor').id, better.id);
+  assert.ok(!s.stash.some((i) => i.id === first.id));
   const worse = makeItem(s, 'chainmail', 'common', 1, BALANCE, null, 'forest');
   assert.notEqual(collectItem(s, worse).mannequin, true);
+  // Une ancienne meilleure verrouillée reste au coffre.
+  better.locked = true;
+  const best2 = makeItem(s, 'chainmail', 'legendary', 30, BALANCE, null, 'forest');
+  collectItem(s, best2);
+  assert.ok(s.stash.some((i) => i.id === better.id) && s.stash.some((i) => i.id === best2.id));
   // Sauvegarde.
   const back = sanitizeState(JSON.parse(JSON.stringify(s)));
-  assert.equal(back.mannequins.forest.armor.id, better.id);
-  assert.ok(back.nextItemId > Number(better.id.slice(2)));
+  assert.equal(bestSetPiece(back, 'forest', 'armor').id, best2.id);
+  assert.ok(back.nextItemId > Number(best2.id.slice(2)));
   assert.equal(STASH_SIZE, 300);
 });
 

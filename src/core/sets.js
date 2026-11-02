@@ -59,8 +59,8 @@ export function activeSets(equipment) {
 export function usefulSetPiece(state, item, power = (i) => i.level) {
   if (!item.set || state.ui?.keepSets === false || !BY_ID.has(item.set)) return false;
   const worn = Object.values(state.equipment).filter(Boolean);
-  const dummy = Object.values(state.mannequins?.[item.set] ?? {}).filter(Boolean);
-  const all = [...worn, ...state.inventory, ...dummy].filter((i) => i.set === item.set);
+  // v9.1.3 : les pièces gardées au coffre comptent (elles remplacent les mannequins).
+  const all = [...worn, ...state.inventory, ...(state.stash ?? [])].filter((i) => i.set === item.set);
   if (new Set(all.map((i) => i.slot)).size < 2) return false;
   return !all.some((i) => i !== item && i.slot === item.slot && power(i) > power(item));
 }

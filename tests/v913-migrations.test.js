@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { SAVE_VERSION, sanitizeState } from '../src/core/state.js';
-import { migrateCodex, migrateEssence, migrateMissionTrack, migrateTickets } from '../src/core/migrations-v913.js';
+import { migrateCodex, migrateEssence, migrateMannequins, migrateMissionTrack, migrateTickets } from '../src/core/migrations-v913.js';
 import { MISSION_TRACK } from '../src/data/missions.js';
 import { claimTrackTier, emptyMissions, periodKey, trackNext, trackPct } from '../src/core/missions.js';
 import { ENCYCLOPEDIA_SECTIONS, claimSection, sectionStatus } from '../src/core/encyclopedia.js';
@@ -123,3 +123,40 @@ test('lot F : piste du mois — totaux par mois proches des anciennes hebdomadai
   assert.equal(sum('keys'), 18); // 3 × 52/12 + 5 = 18
   assert.equal(sum('shards'), 500); // 110 × 52/12 = 477
 });
+
+test('lot F : mannequins fondus dans le coffre — dépassement géré, builds retrouvés, garde testée dans v89', async () => {
+  const { STASH_SIZE, STASH_OVERFLOW } = await import('../src/core/stash.js');
+  const { applyLoadout } = await import('../src/core/loadouts.js');
+  // Seule.
+  const st = { stash: [], inventory: [] };
+  const piece = (id, set = 'plains') => ({ id, set, slot: 'helmet' });
+  assert.equal(migrateMannequins(st, { plains: { helmet: piece('a') }, junk: { armor: { id: 'z' } } },
+    { stashSize: 1, bagSize: 1, isValid: (x) => Boolean(x?.id), clean: (x) => x }), 1);
+  assert.deepEqual(st.stash.map((x) => x.id), ['a']);
+  const st2 = { stash: [{ id: 's' }], inventory: [{ id: 'b' }] };
+  migrateMannequins(st2, { plains: { helmet: piece('c') } }, { stashSize: 1, bagSize: 1, isValid: (x) => Boolean(x?.id), clean: (x) => x });
+  assert.deepEqual(st2.stash.map((x) => x.id), ['s', 'c'], 'sac et coffre pleins : le coffre déborde, rien n\'est perdu');
+  // Partie de fin, coffre presque plein et sac plein : tout est gardé, au-delà de 300 si besoin.
+  const raw = endSave();
+  const extra = createFiller(raw, 295 - raw.stash.length);
+  raw.stash.push(...extra);
+  const mannequinIds = Object.values(raw.mannequins).flatMap((m) => Object.values(m)).map((x) => x.id);
+  // Un build enregistré qui porte une pièce d'un mannequin.
+  raw.loadouts[0].team = [];
+  raw.loadouts[0].gear = { helmet: mannequinIds[1] };
+  const e = load(raw);
+  assert.ok(e.stash.length > STASH_SIZE && e.stash.length <= STASH_SIZE + STASH_OVERFLOW, `coffre ${e.stash.length}`);
+  for (const id of mannequinIds) assert.ok(e.stash.some((x) => x.id === id) || e.inventory.some((x) => x.id === id), id);
+  assert.equal(e.mannequins, undefined);
+  const again = load(JSON.parse(JSON.stringify(e)));
+  assert.equal(again.stash.length, e.stash.length, 'rechargée : rien n\'est coupé');
+  e.inventory.length = 50; // de la place pour sortir l'objet du coffre
+  const r = applyLoadout(e, 0);
+  assert.equal(r.missing, 0, 'le build retrouve la pièce de l\'ancien mannequin au coffre');
+  assert.equal(e.equipment.helmet.id, mannequinIds[1]);
+});
+
+function createFiller(raw, n) {
+  const base = raw.stash[0];
+  return Array.from({ length: Math.max(0, n) }, (_, i) => ({ ...base, id: `it${90000 + i}`, locked: false, set: undefined }));
+}

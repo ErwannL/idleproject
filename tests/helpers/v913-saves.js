@@ -45,7 +45,9 @@ export function endSave() {
   const bases = ITEM_BASES;
   for (let i = 0; i < 100; i++) s.inventory.push(makeItem(s, bases[i % bases.length].id, ['rare', 'epic', 'legendary'][i % 3], 300 + i));
   for (let i = 0; i < 250; i++) s.stash.push(makeItem(s, bases[(i * 7) % bases.length].id, ['epic', 'legendary'][i % 2], 250 + i));
+  s.mannequins = {}; // format 7
   for (const set of ITEM_SETS.slice(0, 6)) {
+    s.mannequins[set.id] = {};
     for (const slot of ['weapon', 'helmet', 'armor', 'ring']) {
       const base = bases.find((b) => b.slot === slot);
       if (base) s.mannequins[set.id][slot] = makeItem(s, base.id, 'legendary', 350, undefined, null, set.id);

@@ -5,7 +5,7 @@ import { escapeHtml } from './common.js';
 
 const EXTRA = [
   ['Coffre', 'inventory', { invTab: 'stash', invView: null }],
-  ['Mannequins', 'inventory', { invView: 'mannequins' }],
+  ['Mannequins', 'inventory', { invTab: 'stash', invView: null }], // v9.1.3 : fondus dans le coffre (filtre Ensemble)
   ['Forge', 'inventory', { invView: 'forge' }],
   ['Builds', 'inventory', { invTab: 'bag', invView: null }],
   ['Réglages du sac', 'inventory', { invTab: 'bag', invView: null }, 'bag-settings'],

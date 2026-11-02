@@ -838,9 +838,7 @@ export class UI {
       case 'claim-bounty': a.claimBounty(); break;
       case 'bounty-go': a.goToStage(Number(value)); break;
       case 'toggle-tips': event.preventDefault(); local(() => { v.tipsOpen = v.tipsOpen === false; }); break;
-      case 'to-mannequin': a.toMannequin(id); break;
-      case 'from-mannequin': { const [setId, slot] = value.split('|'); a.fromMannequin(setId, slot); break; }
-      case 'wear-mannequin': a.wearMannequin(value); break;
+      case 'wear-set': a.wearSet(value); break; // v9.1.3 : mannequins fondus dans le coffre
       case 'auto-mannequin': a.setAutoMannequin(this.state.ui.autoMannequin === false); break;
       case 'to-museum': a.toMuseum(id); break;
       case 'from-museum': a.fromMuseum(value); break;
@@ -906,6 +904,7 @@ export class UI {
     if (action === 'tree-buyable') { this.view.treeBuyable = el.checked; this.invalidate(); }
     if (action === 'enc-slot-select') { this.view.encSlot = el.value; this.invalidate(); }
     if (action === 'craft-slot') { this.view.craftSlot = el.value; this.invalidate(); }
+    if (action === 'stash-set') { this.view.stashSet = el.value || null; this.view.stashSel = null; this.invalidate(); } // v9.1.3
     if (action === 'build-select') { this.view.buildSel = Number(el.value); this.actions.applyLoadout(Number(el.value)); }
     if (action === 'auto') this.actions.setAutoAdvance(el.checked);
     if (action === 'on-top') this.actions.setAlwaysOnTop(el.checked);
@@ -959,7 +958,7 @@ export class UI {
         const added = !event.autoRecycled || event.mannequin || event.museum;
         if (added && event.item.rarity !== 'common') {
           this.news(event.museum ? `${event.item.name} exposé au Musée`
-            : event.mannequin ? `${event.item.name} rangé sur le mannequin « ${setById(event.item.set)?.name ?? ''} »`
+            : event.mannequin ? `${event.item.name} rangé au coffre (ensemble « ${setById(event.item.set)?.name ?? ''} »)`
               : `Butin : ${event.item.name} (${rarity.label})`, rarity.color);
           if (event.item.rarity === 'legendary') this.announce(`Objet légendaire : ${event.item.name}`);
         }

@@ -8,7 +8,7 @@ import { computeHeroStats, statsWithItem } from './stats.js';
 import { recordItem } from './codex.js';
 import { canEquip } from './classes.js';
 import { usefulSetPiece } from './sets.js';
-import { autoMannequin } from './stash.js';
+import { autoStashSet } from './stash.js';
 import { autoMuseum } from './museum.js';
 import { invFeatureOpen } from './unlocks.js';
 
@@ -104,9 +104,10 @@ export function collectItem(state, item, balance = BALANCE) {
     state.records.itemsFound += 1;
     return { added: false, museum: true, recycledGold: 0 };
   }
-  // v8.9 : pièce d'ensemble meilleure que celle de son mannequin → directement dessus (l'ancienne est recyclée).
-  if (state.mannequins && invFeatureOpen(state, 'mannequins')) { // v9.1.3 : pas avant l'ouverture des mannequins
-    const replaced = autoMannequin(state, item);
+  // v8.9 : pièce d'ensemble meilleure que la meilleure gardée → rangée d'elle-même (l'ancienne est recyclée).
+  // v9.1.3 : au coffre (mannequins fondus), et pas avant l'ouverture du coffre.
+  if (state.stash && invFeatureOpen(state, 'stash')) {
+    const replaced = autoStashSet(state, item);
     if (replaced !== false) {
       state.records.itemsFound += 1;
       return { added: false, mannequin: true, recycledGold: replaced ? salvage(state, replaced, balance) : 0 };

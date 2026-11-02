@@ -110,7 +110,7 @@ export const PANEL_HELP = {
   },
   inventory: {
     short: 'La flèche verte marque un objet meilleur que celui porté. « Équiper le meilleur » équipe tout d\'un coup.',
-    more: 'Les objets grandissent avec leur niveau : Réaffûter remonte un objet au niveau de votre étape max. Le Coffre garde des objets jamais recyclés ; les Mannequins rangent les pièces d\'un ensemble ; les Builds enregistrent équipe, équipement, classe, pouvoirs et compétences. Recyclage et fusion automatiques : Réglages du sac.',
+    more: 'Les objets grandissent avec leur niveau : Réaffûter remonte un objet au niveau de votre étape max. Le Coffre garde des objets jamais recyclés et les meilleures pièces d\'ensemble (filtre Ensemble, « Porter ») ; les Builds enregistrent équipe, équipement, classe, pouvoirs et compétences. Recyclage et fusion automatiques : Réglages du sac.',
   },
   hero: {
     short: 'Votre fiche : dégâts/s, niveau et équipement. Classe, Apparence et Records sont dans les segments du haut.',
@@ -168,6 +168,6 @@ export const PANEL_HELP = {
   },
   options: {
     short: 'Langue, sauvegarde (export et import), compte, mises à jour ; Interface, Son et Fenêtre dans les onglets.',
-    more: 'C\'est quoi un idle ? Le jeu avance tout seul, même fermé : vous revenez de temps en temps pour améliorer votre héros. Lexique — Compétences : lancées seules ; Boosts : lancés d\'un appui ; Pouvoirs : bonus des boss ; Talents : arbre permanent ; Builds : équipement enregistré ; Mannequins : rangement par ensemble.',
+    more: 'C\'est quoi un idle ? Le jeu avance tout seul, même fermé : vous revenez de temps en temps pour améliorer votre héros. Lexique — Compétences : lancées seules ; Boosts : lancés d\'un appui ; Pouvoirs : bonus des boss ; Talents : arbre permanent ; Builds : équipement enregistré ; Coffre : rangement, ensembles compris.',
   },
 };

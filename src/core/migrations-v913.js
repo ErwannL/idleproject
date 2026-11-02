@@ -100,3 +100,24 @@ const LEGACY_PERIODS = {
     bonus: { gems: 2000 },
   },
 };
+
+// Lot F — Mannequins fondus dans le coffre. Chaque pièce posée sur un mannequin part au coffre ; au-delà de 300, elle
+// va au sac s'il a de la place, sinon le coffre déborde (jusqu'à STASH_OVERFLOW de plus : rien n'est perdu, plus rien
+// n'y entre tant qu'il n'est pas redescendu sous 300). Les builds retrouvent ces objets au coffre (même id).
+// Abandon : joueurs qui perdent leurs ensembles de vue (retours), ou coffre plein chez plus de 20 % des parties de fin.
+// Retour arrière : recréer les mannequins depuis les meilleures pièces d'ensemble du coffre (bestSetPiece).
+export function migrateMannequins(state, rawMannequins, { stashSize, bagSize, isValid, clean }) {
+  let moved = 0;
+  if (!rawMannequins || typeof rawMannequins !== 'object') return 0;
+  for (const m of Object.values(rawMannequins)) {
+    for (const item of Object.values(m && typeof m === 'object' ? m : {})) {
+      if (!isValid(item) || !item.set) continue;
+      const it = clean(item);
+      if (state.stash.length < stashSize) state.stash.push(it);
+      else if (state.inventory.length < bagSize) state.inventory.push(it);
+      else state.stash.push(it); // dépassement géré (au plus 77 objets)
+      moved += 1;
+    }
+  }
+  return moved;
+}

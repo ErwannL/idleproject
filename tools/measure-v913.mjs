@@ -54,7 +54,7 @@ function play(state, seconds, { rebirth = false, stopAt = null, rngSeed = 1 } = 
   const acc = { seconds: 0, gems: 0, shards: 0, essence: 0, drops: { monstres: 0, boss: 0 }, fate: { sac: 0, recycle: 0, mannequin: 0, musee: 0 },
     rarities: {}, equipped: 0, swept: 0, fused: 0, rebirths: 0, kills: 0 };
   const g0 = state.gems;
-  const m0 = { ...state.materials };
+  const m0 = { essence: 0, ...state.materials }; // v9.1.3 : plus d'essences (fondues dans les éclats)
   const k0 = state.records.kills;
   let lastBest = state.maxStage;
   let stall = 0;
@@ -96,7 +96,7 @@ function play(state, seconds, { rebirth = false, stopAt = null, rngSeed = 1 } = 
   }
   acc.gems = state.gems - g0;
   acc.shards = state.materials.shards - m0.shards;
-  acc.essence = state.materials.essence - m0.essence;
+  acc.essence = (state.materials.essence ?? 0) - m0.essence;
   acc.kills = state.records.kills - k0;
   return acc;
 }

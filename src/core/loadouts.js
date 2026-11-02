@@ -1,7 +1,8 @@
 // Builds (v7.7 « configurations ») : enregistrer puis rappeler l'équipe (compagnons + familier) et l'équipement
 // porté, pour changer vite de farm (monstres, or, boss…).
 // v9.1.0 : un build garde aussi la classe, les pouvoirs actifs et la répartition des compétences ; le rappel
-// cherche les objets dans le sac, au coffre et sur les mannequins, et compte vraiment ceux qui manquent.
+// cherche les objets dans le sac et au coffre (v9.1.3 : mannequins fondus dans le coffre), et compte vraiment ceux
+// qui manquent.
 import { BALANCE } from '../data/balance.js';
 import { SLOTS } from '../data/items.js';
 import { LOADOUT_NAMES } from '../data/synergies.js';
@@ -35,17 +36,12 @@ export function renameLoadout(state, index, name) {
   return true;
 }
 
-// Sort un objet du coffre ou d'un mannequin vers le sac (s'il y a la place). Renvoie vrai s'il y est.
+// Sort un objet du coffre vers le sac (s'il y a la place). Renvoie vrai s'il y est.
 function fetchToBag(state, id, balance) {
   if (state.inventory.some((i) => i.id === id)) return true;
   if (state.inventory.length >= balance.loot.inventorySize) return false;
   const si = state.stash.findIndex((i) => i.id === id);
   if (si >= 0) { state.inventory.push(state.stash.splice(si, 1)[0]); return true; }
-  for (const m of Object.values(state.mannequins ?? {})) {
-    for (const [slot, item] of Object.entries(m)) {
-      if (item?.id === id) { delete m[slot]; state.inventory.push(item); return true; }
-    }
-  }
   return false;
 }
 

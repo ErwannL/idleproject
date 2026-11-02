@@ -30,12 +30,12 @@ import { STARTER_CLASS } from '../data/classes.js';
 import { seedEncyclopedia } from './encyclopedia.js';
 import { emptyExpeditions, sanitizeExpeditions } from './expeditions.js';
 import { setById } from './sets.js';
-import { STASH_SIZE, emptyMannequins, mannequinItems } from './stash.js';
+import { STASH_OVERFLOW, STASH_SIZE } from './stash.js';
 import { museumItems } from './museum.js';
 import { sanitizeBounty } from './bounty.js';
 import { emptyTranscend, sanitizeTranscend } from './transcend.js';
 import { sanitizeChallenge } from './challenge.js';
-import { migrateCodex, migrateEssence, migrateMissionTrack, migrateTickets } from './migrations-v913.js';
+import { migrateCodex, migrateEssence, migrateMannequins, migrateMissionTrack, migrateTickets } from './migrations-v913.js';
 import { MISSION_TRACK } from '../data/missions.js';
 import { grantReward } from './rewards.js';
 import { ENCYCLOPEDIA_SECTIONS } from './encyclopedia.js';
@@ -114,7 +114,6 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     talentRespecs: 0,
     transcend: emptyTranscend(), // v8.8 : Transcendance (Étoiles, bonus stellaires)
     stash: [], // v8.9 : coffre (300 places, jamais recyclé)
-    mannequins: emptyMannequins(), // v8.9 : un mannequin par ensemble { setId: { slot: objet } }
     museum: {}, // v9.0 : Musée des objets ancestraux { baseId: objet }
     bounty: null, // v8.9 : prime du jour
     heroClass: STARTER_CLASS, // v9.0.6 : classe du héros
@@ -370,13 +369,10 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   }
   const items = Array.isArray(raw.inventory) ? raw.inventory.filter(isValidItem) : [];
   state.inventory = items.slice(0, balance.loot.inventorySize).map(cleanItem);
-  state.stash = (Array.isArray(raw.stash) ? raw.stash.filter(isValidItem) : []).slice(0, STASH_SIZE).map(cleanItem);
-  const mann = raw.mannequins && typeof raw.mannequins === 'object' ? raw.mannequins : {};
-  for (const setId of Object.keys(state.mannequins)) {
-    for (const [slot, item] of Object.entries(obj(mann[setId]))) {
-      if (slot in SLOTS && isValidItem(item) && item.slot === slot && item.set === setId) state.mannequins[setId][slot] = cleanItem(item);
-    }
-  }
+  // v9.1.3 : le coffre peut déborder (mannequins convertis), jusqu'à STASH_OVERFLOW objets de plus.
+  state.stash = (Array.isArray(raw.stash) ? raw.stash.filter(isValidItem) : []).slice(0, STASH_SIZE + STASH_OVERFLOW).map(cleanItem);
+  // v9.1.3 (lot F) : mannequins fondus dans le coffre.
+  migrateMannequins(state, raw.mannequins, { stashSize: STASH_SIZE, bagSize: balance.loot.inventorySize, isValid: isValidItem, clean: cleanItem });
   // v9.0 : Musée (un objet ancestral par vitrine).
   for (const [baseId, item] of Object.entries(obj(raw.museum))) {
     if (isValidItem(item) && item.baseId === baseId && itemBase(baseId)?.signature) state.museum[baseId] = cleanItem(item);
@@ -440,7 +436,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   migrateMissionTrack(state, raw.missions, periodKey('monthly', now), MISSION_TRACK, (r) => grantReward(state, r));
 
   // Identifiants uniques : nextItemId dépasse tous les identifiants existants (sac, équipement, boîte).
-  const used = [...state.inventory, ...Object.values(state.equipment), ...state.inbox.map((e) => e.item), ...state.stash, ...mannequinItems(state), ...museumItems(state)]
+  const used = [...state.inventory, ...Object.values(state.equipment), ...state.inbox.map((e) => e.item), ...state.stash, ...museumItems(state)]
     .filter(Boolean)
     .map((i) => Number.parseInt(i.id.slice(2), 10));
   state.nextItemId = Math.max(int(raw.nextItemId, 1, 1), ...used.map((n) => n + 1), 1);
@@ -478,8 +474,8 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     // v9.1.0 : champs ajoutés (sans eux, ils disparaîtraient au rechargement).
     if (Number.isInteger(raw.ui.tourV) && raw.ui.tourV > 0) state.ui.tourV = raw.ui.tourV;
     if (raw.ui.goalsOpen === true) state.ui.goalsOpen = true;
-    // v9.1.3 : portes du sac déjà ouvertes (Coffre, Mannequins, Forge restent visibles).
-    if (Array.isArray(raw.ui.invUsed)) state.ui.invUsed = raw.ui.invUsed.filter((t) => ['stash', 'mannequins', 'forge'].includes(t));
+    // v9.1.3 : portes du sac déjà ouvertes (Coffre et Forge restent visibles).
+    if (Array.isArray(raw.ui.invUsed)) state.ui.invUsed = raw.ui.invUsed.filter((t) => ['stash', 'forge'].includes(t));
     if (Array.isArray(raw.ui.seenTabs)) state.ui.seenTabs = raw.ui.seenTabs.filter((t) => typeof t === 'string' && /^[a-z]{2,16}$/.test(t)).slice(0, 32);
     if (raw.ui.guide && typeof raw.ui.guide === 'object') {
       state.ui.guide = Object.fromEntries(Object.entries(raw.ui.guide).filter(([k, v]) => /^[a-z]{2,16}$/.test(k) && v === true).slice(0, 32));

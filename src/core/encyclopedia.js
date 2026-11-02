@@ -7,7 +7,6 @@ import { ITEM_BASES, RARITIES, SIGNATURE_ITEMS } from '../data/items.js';
 import { MUTATIONS } from './mutations.js';
 import { recordItem } from './codex.js';
 import { grantReward } from './rewards.js';
-import { mannequinItems } from './stash.js';
 import { museumItems } from './museum.js';
 
 // Les objets ancestraux tombent Épiques, parfois Légendaires : pas d'entrée Commune ni Rare pour eux.
@@ -118,10 +117,10 @@ export function claimEncyclopedia(state) {
   return grantReward(state, next.reward);
 }
 
-// Au chargement : les objets déjà possédés (sac, coffre, équipement, mannequins, Musée, boîte) sont découverts.
+// Au chargement : les objets déjà possédés (sac, coffre, équipement, Musée, boîte) sont découverts.
 export function seedEncyclopedia(state) {
   if (!state.codex) return;
   const owned = [...state.inventory, ...(state.stash ?? []), ...Object.values(state.equipment ?? {}),
-    ...(state.inbox ?? []).map((e) => e.item), ...mannequinItems(state), ...museumItems(state)];
+    ...(state.inbox ?? []).map((e) => e.item), ...museumItems(state)];
   for (const item of owned) if (item?.baseId && item.rarity) recordItem(state, item);
 }

@@ -360,6 +360,13 @@ export const EXACT_910 = {
   'Piste du mois': 'Monthly track', 'Piste terminée ✔': 'Track complete ✔', 'Jours de connexion': 'Login days', 'Monstres vaincus': 'Monsters defeated',
   'Boss vaincus': 'Bosses defeated', 'Donjons terminés': 'Dungeons cleared', 'Invocations': 'Summons', 'Objets Rares ou mieux': 'Rare or better items',
   'Améliorations ou fusions': 'Upgrades or fusions',
+  ". Les pièces d'ensemble meilleures y vont d'elles-mêmes.": '. Better set pieces go there by themselves.',
+  'Porter': 'Wear', 'Ensemble': 'Set',
+  "Équipe la meilleure pièce de chaque emplacement ; l'objet porté prend sa place au coffre": 'Equips the best piece of each slot; the worn item takes its place in the stash',
+  "Une pièce d'ensemble ramassée, meilleure que la meilleure du coffre pour son emplacement, y va (l'ancienne est recyclée, sauf verrouillée)": 'A picked-up set piece better than the best one in the stash for its slot goes there (the old one is recycled unless locked)',
+  "Coffre au-delà de 300 (pièces des anciens mannequins) : rien n'est perdu, mais rien n'y entre tant qu'il n'est pas redescendu.": 'Stash above 300 (pieces from the former mannequins): nothing is lost, but nothing goes in until it drops back.',
+  "Les objets grandissent avec leur niveau : Réaffûter remonte un objet au niveau de votre étape max. Le Coffre garde des objets jamais recyclés et les meilleures pièces d'ensemble (filtre Ensemble, « Porter ») ; les Builds enregistrent équipe, équipement, classe, pouvoirs et compétences. Recyclage et fusion automatiques : Réglages du sac.": 'Items grow with their level: Sharpen raises an item to your max stage level. The Stash keeps items that are never recycled and the best set pieces (Set filter, “Wear”); Builds save team, gear, class, powers and skills. Automatic recycling and fusion: Bag settings.',
+  "C'est quoi un idle ? Le jeu avance tout seul, même fermé : vous revenez de temps en temps pour améliorer votre héros. Lexique — Compétences : lancées seules ; Boosts : lancés d'un appui ; Pouvoirs : bonus des boss ; Talents : arbre permanent ; Builds : équipement enregistré ; Coffre : rangement, ensembles compris.": "What's an idle game? The game plays on its own, even when closed: you come back now and then to improve your hero. Glossary — Skills: cast on their own; Boosts: triggered with a tap; Powers: boss bonuses; Talents: permanent tree; Builds: saved gear; Stash: storage, sets included.",
   'Outils du Musée': 'Museum tools', 'auto désactivée': 'auto off',
 };
 
@@ -533,6 +540,8 @@ export const PATTERNS_910 = [
   [/^Durée, place (\d+)$/, 'Duration, slot $1'],
   [/^Palier (\d+) % :$/, 'Tier $1 %:'],
   [/^Palier (\d+)\/(\d+)$/, 'Tier $1/$2'],
+  [/^Tous les objets \((\d+)\)$/, 'All items ($1)'],
+  [/^(.+) rangé au coffre \(ensemble « (.+) »\)$/, (m) => `${m[1]} stored in the stash (set “${tr(m[2])}”)`],
   [/^Piste du mois : (\d+) %$/, 'Monthly track: $1 %'],
   [/^Piste du mois : palier (\d+) %$/, 'Monthly track: tier $1 %'],
   [/^Piste du mois : (.+)$/, (m) => `Monthly track: ${tr(m[1])}`],
@@ -569,4 +578,6 @@ export const PATTERNS_910 = [
   [/^(\d+) pouvoirs?$/, (m) => `${m[1]} power${m[1] === '1' ? '' : 's'}`],
   [/^niv\. (\d+) · (\d+)★$/, 'lv. $1 · $2★'],
   [/^([\d\s.,]+\s?[KMBTa-z]*) dégâts\/s$/, '$1 damage/s'],
+  // v9.1.3 : « Ensemble (3/7) » du coffre — motif large, gardé en dernier.
+  [/^(.+) \((\d+)\/(\d+)\)$/, (m) => `${tr(m[1])} (${m[2]}/${m[3]})`],
 ];

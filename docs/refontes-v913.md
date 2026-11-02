@@ -197,3 +197,37 @@ semaine (boss et améliorations hebdomadaires hors d'atteinte, pas de coffre). L
 - **Critère d'abandon :** trouvailles ou marchands qui restent plus longtemps non récupérés qu'avant (mesure du nombre
   d'entrées en attente à l'ouverture), ou joueurs qui ne trouvent plus la liste. **Annuler :** remettre `inbox` dans
   `nav.js`.
+
+## Lot F — Mannequins fondus dans le coffre (fait : la garde de la meilleure pièce est reconstruite)
+
+- **Garde reconstruite** (`autoStashSet`, `core/stash.js`) : une pièce d'ensemble ramassée, meilleure que la meilleure
+  pièce du coffre pour son ensemble et son emplacement, va au coffre ; l'ancienne meilleure est recyclée comme avant
+  sur le mannequin, **sauf si elle est verrouillée** (elle reste). Une pièce moins bonne suit le chemin normal. Réglage
+  « Rangement auto » gardé (même champ `ui.autoMannequin`), dans le coffre. Pas avant l'ouverture du coffre (étape 20).
+- **Filtre Ensemble** (liste « Tous les objets / Panoplie du Pré (4/7)… ») et **bouton Porter** : chaque emplacement
+  reçoit la meilleure pièce de l'ensemble au coffre, l'objet porté prend sa place au coffre (jamais de débordement).
+  Paliers de l'ensemble affichés sous le filtre. L'écran et le bouton Mannequins disparaissent (un lieu en moins) ;
+  la recherche « Mannequins » mène au coffre.
+- **Conversion** (`migrateMannequins`) : chaque pièce des mannequins va au coffre ; au-delà de 300, au sac s'il a de la
+  place, sinon le coffre **déborde** (jusqu'à 77 objets de plus = 11 ensembles × 7 emplacements ; rien n'y entre tant
+  qu'il est au-dessus de 300, message dans le coffre). Le chargement garde ce dépassement (pas de coupe à 300). Partie
+  de fin de référence : 24 pièces → coffre 274/300 ; coffre rempli à 295 + sac plein : coffre à 319, rien de perdu.
+- **Rappel des builds** adapté (`loadouts.js` cherche au sac et au coffre) et testé : un build qui portait une pièce de
+  mannequin la retrouve au coffre après conversion. Le recyclage automatique compte les pièces d'ensemble du coffre
+  (`usefulSetPiece`).
+- **Critère d'abandon :** joueurs qui perdent leurs ensembles de vue, ou coffre plein (≥ 300) chez plus de 20 % des
+  parties de fin. **Annuler :** recréer les mannequins depuis `bestSetPiece` de chaque ensemble (aucune donnée perdue).
+
+## Lot F — Compétences et Boosts en un seul système (non fait)
+
+Le doc le classe « Tester, après l'essai de la grille » avec un risque élevé (Renaissance touchée). La grille de
+compétences n'existe que depuis le chantier 3, en essai derrière un réglage, sans retour de joueurs : la condition
+préalable n'est pas remplie. Techniquement, les deux systèmes n'ont ni la même monnaie (points de niveau, rendus et
+redistribués à chaque Renaissance, contre or, gardé), ni le même rythme (compétences lancées seules, boosts d'un
+appui, recharge de 5 à 10 min), ni le même cycle de vie (les niveaux de boosts survivent à la Renaissance, les points
+de compétence sont recalculés depuis le niveau). Fusionner impose de choisir la monnaie restante et de rembourser l'autre
+(or → points, ou points → or) avec un taux qui n'a pas de base dans le bilan (aucune mesure de la valeur d'un niveau de
+boost contre un point de compétence), et de réécrire la Renaissance et les builds (qui gardent la répartition des
+compétences). Sans mesure ni essai de la grille, le risque de casser le retour après Renaissance (41 min à 1 h 57
+mesurés) est trop grand pour un chantier : à reprendre avec une mesure dédiée (outil du même type que
+`tools/sim-reroll-v913.mjs`) après le retour sur la grille.

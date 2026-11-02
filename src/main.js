@@ -39,7 +39,7 @@ import { computeHeroStats } from './core/stats.js';
 import { formatNumber } from './core/format.js';
 import { claimBounty } from './core/bounty.js';
 import { claimables } from './core/claimables.js';
-import { moveToStash, putOnMannequin, takeFromMannequin, takeFromStash, wearMannequin } from './core/stash.js';
+import { moveToStash, takeFromStash, wearSet } from './core/stash.js';
 import { exposeAll, museumDuplicates, putInMuseum, takeFromMuseum } from './core/museum.js';
 import { createJournal, journalSummary, noteDrop, noteFused, noteRecycled } from './core/journal.js';
 import { SceneRenderer } from './render/scene.js';
@@ -659,22 +659,15 @@ const actions = {
     const r = claimBounty(state, rng);
     done(Boolean(r), r ? `Prime du jour : ${r.item.name} (${rarityById(r.item.rarity).label}) et +${r.gems} gemmes` : null, '#ffe08a');
   },
-  // Coffre et mannequins (v8.9).
+  // Coffre (v8.9).
   toStash(id) { done(moveToStash(state, id), 'Rangé au coffre'); },
   fromStash(id) {
     if (!takeFromStash(state, id)) ui.toast('Sac plein.', '#ff8a8a');
     else done(true, 'Repris dans le sac');
   },
-  toMannequin(id) {
-    if (!putOnMannequin(state, id)) ui.toast('Impossible : pas une pièce d\'ensemble, ou sac et coffre pleins.', '#ff8a8a');
-    else done(true, 'Posé sur le mannequin', '#ffe08a');
-  },
-  fromMannequin(setId, slot) {
-    if (!takeFromMannequin(state, setId, slot)) ui.toast('Sac et coffre pleins.', '#ff8a8a');
-    else done(true);
-  },
-  wearMannequin(setId) {
-    const n = wearMannequin(state, setId);
+  // v9.1.3 : mannequins fondus dans le coffre — « Porter » un ensemble depuis le coffre.
+  wearSet(setId) {
+    const n = wearSet(state, setId);
     done(n > 0, n ? `${n} pièce${n > 1 ? 's' : ''} d'ensemble équipée${n > 1 ? 's' : ''}` : null, '#ffe08a');
   },
   setAutoMannequin(on) { state.ui.autoMannequin = on; done(true); },
