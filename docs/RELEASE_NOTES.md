@@ -19,6 +19,22 @@ jour avant le jeu : la nouvelle version refuse une sauvegarde d'un format plus a
 - Corrections : faille d'or du recyclage après une Renaissance, changement de classe sans perte, butin hors ligne avec
   pièces d'ensemble, comparaison juste entre accessoires.
 
+### Compagnons et familiers : nouveau compte d'étoiles
+- **Les étoiles comptent les doublons** : un compagnon obtenu est à **0★**, chaque doublon ajoute une étoile, jusqu'à
+  **5★ (5 doublons, 6 exemplaires)**. La fiche affiche « Doublons 3/5 ». La 4e compétence (l'ultime) se débloque
+  toujours au 4e exemplaire : « Ultime à 3 doublons », annoncée à l'invocation par « Ultime débloquée ».
+- **Vos compagnons ne perdent rien** : chacun garde ses exemplaires et sa puissance (identique à 5 exemplaires, plus
+  haute en dessous). L'affichage perd une étoile : un 3★ d'hier est un 2★ aujourd'hui. Ceux qui étaient au maximum
+  (5 exemplaires) reçoivent **gratuitement le 6e** : ils restent au maximum, aura comprise, avec un dernier palier.
+- **Un seul exemplaire suffit** : dès l'obtention, compétences et passif sont nettement plus forts (passif ×1,5) ;
+  chaque doublon ajoute ensuite environ +5 % aux compétences.
+- **Ultime moins fréquent, plus marqué** : les ultimes offensifs reviennent toutes les 30 s (au lieu de 14 à 20 s),
+  avec un effet visible ; ils frappent parfois moins fort, compensé par les autres sorts. Exemple, Reine démone à 5
+  exemplaires : son ultime passe de 10,08 × les dégâts du héros toutes les 20 s à 7,24 × toutes les 30 s.
+- **Signatures** : chaque Légendaire a un ultime propre, avec un effet en plus (soin, bouclier ou or). Le Hibou érudit
+  a sa propre compétence ; le Rôdeur et l'Ombre frappent plus fort ; cinq compétences au nom en double sont renommées.
+- Cadre doré à 5★ ; les fiches montrent les valeurs réelles des compétences. Expéditions et apparences inchangées.
+
 ### Moins de texte, moins de conseils
 - Écrans allégés : Améliorations sur 2 lignes, sac plus compact (5 colonnes sur téléphone), Builds en cartes et repliés,
   Talents, Renaissance (3 cartes) et Paramètres raccourcis ; les blocs repliés restent repliés d'une session à l'autre.
