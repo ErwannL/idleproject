@@ -327,7 +327,7 @@ await check('paramètres : version lancée et mise à jour détectée (GitHub si
   await page.click('[data-open="options"]');
   await page.waitForTimeout(300);
   const version = await page.textContent('#panel-body');
-  assert(/Version lancée/.test(version), 'version absente');
+  assert(/[Vv]ersion lancée/.test(version), 'version absente');
   await page.click('[data-action="check-update"]');
   await page.waitForFunction(() => /Nouvelle version 99\.0\.0/.test(document.querySelector('#panel-body').textContent), null, { timeout: 5000 });
   await page.unroute('https://api.github.com/**');
