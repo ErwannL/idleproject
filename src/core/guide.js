@@ -117,7 +117,7 @@ export const PANEL_HELP = {
   },
   summon: {
     short: 'Les gemmes s\'obtiennent en jouant. Garanties : Épique au plus tard toutes les 10 invocations, Légendaire toutes les 60.',
-    more: 'Le compteur des garanties est commun aux trois invocations. La vedette de la semaine représente 50 % des Légendaires obtenus dans son invocation (elle n\'augmente pas la chance d\'un Légendaire). Doublon : +1 étoile, puis des gemmes.',
+    more: 'Le compteur des garanties est commun à toutes les invocations. La vedette représente 50 % des Légendaires obtenus dans son invocation (elle n\'augmente pas la chance d\'un Légendaire). Doublon : +1 étoile, puis des gemmes.',
   },
   skills: {
     short: 'Un point par niveau du héros, à placer où vous voulez. Les compétences se lancent toutes seules.',

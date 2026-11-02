@@ -55,6 +55,8 @@ import { setLang, startAutoTranslate } from './i18n/i18n.js';
 import { CloudError, createCloudClient, syncOnce } from './core/cloud-save.js';
 import { CLOUD_BASE } from './core/cloud-config.js';
 import { BUILD } from './core/build-info.js';
+import { startDemoBanner } from './data/banners.js';
+import { claimReleaseGift } from './core/banner.js';
 import { GAME_VERSION } from './version.js';
 import { applyTheme, themeById } from './ui/themes.js';
 import { BUILT_IN_TOKEN } from './core/update-token.js';
@@ -79,6 +81,12 @@ function storage() {
   }
 }
 
+// v9.1.3 (doc4 partie B) : version dev seulement — `?banniere=demo` (et `&jour=N`) active le perso de démonstration
+// (BANNER_RULES.enabled reste faux dans les données : rien ne change pour les joueurs).
+if (BUILD.name === 'dev') {
+  const q = new URLSearchParams(location.search);
+  if (q.get('banniere') === 'demo') startDemoBanner(Date.now(), Number(q.get('jour') ?? 1));
+}
 const store = storage();
 const loaded = loadGame(store, BALANCE, Date.now());
 let state = loaded.state;
@@ -540,6 +548,10 @@ const actions = {
     resetWave(world);
     placeTransition('Ascension de la semaine', 'Tour de l\'Éternité', 'Un boss par étage. La tour s\'effondre au bout de 10 h de combat.');
     done(true, 'Ascension de la Tour de l\'Éternité : étage 1 !', '#c9a6ff');
+  },
+  setArchiveTarget(id) {
+    state.summon.archiveTarget = id;
+    done(true);
   },
   leaveTower() {
     const r = endTower(state, { defeated: false });
@@ -1122,6 +1134,9 @@ function tick() {
   if (now - lastMissionCheck >= 1000) {
     lastMissionCheck = now;
     refreshMissions(state, now);
+    // v9.1.3 (doc4 lot 4) : cadeau de sortie (ancien « 30 tickets d'événement », en gemmes), une fois par bannière.
+    const gift = claimReleaseGift(state, now);
+    if (gift) { ui.toast(`Nouvelle bannière : +${formatNumber(gift)} gemmes`, '#9fd8ff'); ui.invalidate(); }
   }
   let dt = (now - lastWall) / 1000;
   lastWall = now;

@@ -3,7 +3,13 @@ import { navPath } from '../nav.js';
 import { BALANCE } from '../../data/balance.js';
 import { FEATURED_SHARE, featuredUnit, normalizePool, summonOdds } from '../../core/gacha.js';
 import { heroById } from '../../core/heroes.js';
-import { companionById, duplicates } from '../../core/companions.js';
+import { MULTIPLICATIVE, activeSynergies, companionById, companionMultiplier, duplicates, equippedOfKind } from '../../core/companions.js';
+import { BANNER_RULES, UNITS } from '../../data/banners.js';
+import { archiveTargets, currentBanner, lastBanner, nextBanner, worldStatus } from '../../core/banner.js';
+import { COMPANION_ROLES, ROLES, SYNERGIES } from '../../data/synergies.js';
+import { SKILL_RULES } from '../../data/companion-skills.js';
+import { BOSSES } from '../../data/enemies.js';
+import { skillsBlock } from './companions.js';
 import { animCanvas } from '../animator.js';
 import { effectText, escapeHtml, fold, hdArt, formatDecimal, formatNumber, gem, icon, img, rarityLabel, stars } from '../common.js';
 
@@ -37,6 +43,93 @@ function heroBanner(state) {
       <div class="hb-stage">${hdArt(h, 'hb-hd')}${animCanvas(`hero:${h.id}`, 96, 74, 4)}</div>
       
     </div>`;
+}
+
+// v9.1.3 (doc4 lot 5) : écran avant de tirer. En façade, 5 éléments seulement : visage, monde, signature (« Ultime à
+// 3 doublons »), filet « 37/50 », stock de tirages. Le reste derrière « Détails » (faits seulement : aucun badge, tri,
+// verdict ni comparaison). Hors de la fiche : aperçu du suivant à J-7 et message de fin de bannière.
+const dateText = (ms) => { const d = new Date(ms); return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`; };
+const DAY = 86400000;
+function bannerFace(c) {
+  return `<span class="bn-face">${animCanvas(`foe:${c.sprite}`, 64, 56, 1)}</span>`;
+}
+function passiveAt(state, c, copies) {
+  const m = companionMultiplier(state, c.id, { stars: copies, level: 1 });
+  return effectText(Object.fromEntries(Object.entries(c.passive).map(([k, v]) => [MULTIPLICATIVE[k] ?? k, v * m])));
+}
+function bannerDetails(ui, state, b) {
+  const c = companionById(b.unit.id);
+  const owned = state.companions.owned[c.id];
+  const own = owned && !owned.trial ? owned : null;
+  const role = COMPANION_ROLES[c.id];
+  const sameRole = UNITS.filter((u) => u.id !== c.id && COMPANION_ROLES[u.id] === role && state.companions.owned[u.id] && !state.companions.owned[u.id].trial);
+  // Synergies qui seraient actives avec l'équipe actuelle et ce perso (faits, sans conseil).
+  const team = ['guardian', ...equippedOfKind(state, 'ally').map((x) => COMPANION_ROLES[x.id]).filter(Boolean), role];
+  const now = new Set(activeSynergies(state).map((s) => s.id));
+  const would = SYNERGIES.filter((syn) => { const pool = [...team]; return syn.roles.every((r) => { const i = pool.indexOf(r); if (i < 0) return false; pool.splice(i, 1); return true; }); });
+  const st = worldStatus(state, c.id);
+  const boss = st ? BOSSES[st.boss] : null;
+  const ult = SKILL_RULES.ultimateCopies - 1;
+  return `<div class="bn-details">
+    <div><b>${escapeHtml(ROLES[role]?.label ?? '')}</b></div>
+    ${[[0, 1], [ult, ult + 1], [5, 6]].map(([d, copies]) => `<div><span>Passif à ${d}★ :</span> <span class="good">${passiveAt(state, c, copies)}</span></div>`).join('')}
+    ${skillsBlock(ui, state, c, own ?? { stars: 1, level: 1 })}
+    ${boss ? `<div><span>Boss du monde :</span> <b>${escapeHtml(boss.name)}</b></div>
+      <div>${st.trial ? 'Essai gratuit pendant la bannière : 0★, niveau 1, dans son monde (niveaux et paliers 1 à 4).' : 'Essai gratuit : perso déjà possédé.'}</div>` : ''}
+    <div>${`Coût moyen sur la bannière : ${formatDecimal(BANNER_RULES.cost.first)} tirages pour l'obtenir (${BANNER_RULES.netPulls} au plus avec le filet), ${formatNumber(BANNER_RULES.cost.third)} pour ${ult}★.`}</div>
+    <div><span>${`Déjà possédés dans ce rôle : ${sameRole.length}`}</span>${sameRole.length ? ` <span>${sameRole.map((u) => `<b>${escapeHtml(u.name)}</b>`).join(' ')}</span>` : ''}</div>
+    <div><span>Synergies avec l'équipe actuelle :</span> ${would.length ? would.map((s) => `<b>${escapeHtml(s.name)}</b>${now.has(s.id) ? ' <span class="muted">(déjà active)</span>' : ''}`).join(' ') : '<span>aucune</span>'}</div>
+    <div class="muted">Le filet garantit le perso, pas sa montée.</div>
+  </div>`;
+}
+function bannerBlock(ui, state, btn) {
+  if (!BANNER_RULES.enabled) return '';
+  const b = currentBanner();
+  const next = nextBanner();
+  const last = lastBanner();
+  const s = BALANCE.summon;
+  const pulls = Math.floor(state.gems / s.gemCost);
+  const preview = next ? `<div class="card bn-next">${bannerFace(next.unit)}<span>Le ${dateText(next.start)} : <b>${escapeHtml(next.unit.name)}</b></span></div>` : '';
+  let main = '';
+  if (b) {
+    const c = b.unit;
+    const owned = state.companions.owned[c.id];
+    const has = owned && !owned.trial;
+    const ultOpen = has && owned.stars >= SKILL_RULES.ultimateCopies;
+    const zone = worldStatus(state, c.id)?.zone;
+    const sig = c.ultimate;
+    const ending = b.day >= BANNER_RULES.periodDays - 2;
+    main = `<div class="card summon-row banner-banner">
+      <div class="summon-row-head">${img('icon_summon')}<b>Bannière</b><span class="grow"></span><span class="muted">${`Jusqu'au ${dateText(b.end - DAY)}`}</span></div>
+      <div class="bn-face-row">${bannerFace(c)}<div><div class="bn-name">${escapeHtml(c.name)}${has ? ` ${stars(duplicates(owned))}` : ''}</div>
+        <button class="btn small" data-action="open-world" data-value="${c.id}">Monde : ${escapeHtml(zone?.name ?? '')} ›</button></div></div>
+      <div class="bn-sig">${img('icon_star')} <b>${escapeHtml(sig.name)}</b> <span class="tag-ult">${ultOpen ? 'Ultime' : `Ultime à ${SKILL_RULES.ultimateCopies - 1} doublons`}</span></div>
+      <div class="bn-facts"><span class="bn-net">Filet <b class="num">${has ? '—' : `${state.summon.net ?? 0}/${BANNER_RULES.netPulls}`}</b> <span class="muted">Le filet garantit le perso, pas sa montée.</span></span>
+        <span>${gem()} <b class="num">${formatNumber(pulls)}</b> <span>${pulls > 1 ? 'tirages' : 'tirage'}</span></span></div>
+      <div class="summon-buttons">
+        ${btn('banner', 1, 'gems', s.gemCost, `×1 ${gem()} ${s.gemCost}`, `Bannière ×1 : ${s.gemCost} gemmes`)}
+        ${btn('banner', 10, 'gems', s.tenPullGemCost, `×10 ${gem()} ${s.tenPullGemCost}`, `Bannière ×10 : ${s.tenPullGemCost} gemmes`)}
+      </div>
+      ${fold(ui, 'banner-details', 'Détails', () => bannerDetails(ui, state, b))}
+      ${ui.view.lastSummon && normalizePool(ui.view.summonPool) === 'banner' ? `<div class="summon-results">${ui.view.bannerResults ?? ''}</div>` : ''}
+    </div>
+    ${ending ? `<div class="muted bn-end">Tes gemmes et ton filet restent. Monde ouvert. Archives dès le ${dateText(b.end)}.</div>` : ''}`;
+  } else if (last && Date.now() - last.end < BANNER_RULES.periodDays * DAY) {
+    main = `<div class="muted bn-end">Bannière de ${escapeHtml(last.unit.name)} terminée. Tes gemmes et ton filet restent. Monde ouvert. Archives dès le ${dateText(last.end)}.</div>`;
+  }
+  // Archives : cible au choix (5 SSR permanents et persos des bannières finies), mêmes taux, sans filet.
+  const targets = archiveTargets();
+  const sel = state.summon.archiveTarget;
+  const archives = targets.length ? `<div class="card summon-row banner-archive">
+      <div class="summon-row-head">${img('icon_book')}<b>Archives</b><span class="grow"></span><span class="muted">mêmes taux, sans filet</span></div>
+      <div class="bn-targets">${targets.map((u) => `<button class="btn small${u.id === sel ? ' active' : ''}" data-action="archive-target" data-value="${u.id}" aria-pressed="${u.id === sel}">${escapeHtml(u.name)}</button>`).join('')}</div>
+      <div class="summon-buttons">
+        ${btn('archive', 1, 'gems', s.gemCost, `×1 ${gem()} ${s.gemCost}`, `Archives ×1 : ${s.gemCost} gemmes`, !targets.some((u) => u.id === sel))}
+        ${btn('archive', 10, 'gems', s.tenPullGemCost, `×10 ${gem()} ${s.tenPullGemCost}`, `Archives ×10 : ${s.tenPullGemCost} gemmes`, !targets.some((u) => u.id === sel))}
+      </div>
+      ${ui.view.lastSummon && normalizePool(ui.view.summonPool) === 'archive' ? `<div class="summon-results">${ui.view.bannerResults ?? ''}</div>` : ''}
+    </div>` : '';
+  return `${main}${preview}${BANNER_RULES.enabled && (b || last) ? archives : ''}`;
 }
 
 // Historique des invocations (v8.4).
@@ -82,12 +175,13 @@ export default {
       ${unitPortrait(r)}<span>${escapeHtml(r.name)}</span>
       ${r.isNew ? '<b class="good">Nouveau !</b>' : r.refund ? `<span class="muted">+${r.refund} gemmes</span>` : stars(r.kind === 'hero' ? r.stars : duplicates({ stars: r.stars }))}
       ${r.ultimateUnlocked ? '<b class="ult-new">Ultime débloquée</b>' : ''}</div>`).join(''); // v9.1.3 : aussi en clic maintenu (pas d'animation)
-    const btn = (pool, count, currency, cost, label, aria) => {
+    const btn = (pool, count, currency, cost, label, aria, off = false) => {
       const missing = cost - state[currency];
       return `<button class="btn btn-gold" data-action="summon" data-value="${count}" data-currency="${currency}" data-pool="${pool}"
-        aria-label="${escapeHtml(aria)}" title="${escapeHtml(missing > 0 ? `Il manque ${formatNumber(missing)} gemme${missing > 1 ? 's' : ''}` : aria)}" ${missing > 0 ? 'disabled' : ''}>${label}</button>`;
+        aria-label="${escapeHtml(aria)}" title="${escapeHtml(missing > 0 ? `Il manque ${formatNumber(missing)} gemme${missing > 1 ? 's' : ''}` : aria)}" ${missing > 0 || off ? 'disabled' : ''}>${label}</button>`;
     };
-    const rows = Object.entries(s.pools).map(([pool, p]) => {
+    ui.view.bannerResults = results; // v9.1.3 (doc4 lot 5) : résultats sous la bannière ou les Archives
+    const rows = Object.entries(s.pools).filter(([pool]) => pool !== 'banner' && pool !== 'archive').map(([pool, p]) => {
       const legends = summonOdds(pool).find((r) => r.rarity === 'legendary')?.units.length ?? 0;
       const f = legends > 1 ? featuredUnit(pool) : null;
       const what = pool === 'hero' ? `Apparences du héros : chacune change son allure et apporte un bonus (${navPath('hero', 'Apparence')}).`
@@ -104,14 +198,14 @@ export default {
           ${btn(pool, 1, 'gems', s.gemCost, `×1 ${gem()} ${s.gemCost}`, `${p.label} ×1 : ${s.gemCost} gemmes`)}
           ${btn(pool, 10, 'gems', s.tenPullGemCost, `×10 ${gem()} ${s.tenPullGemCost}`, `${p.label} ×10 : ${s.tenPullGemCost} gemmes`)}
         </div>
-        ${open ? `<div class="summon-odds"><p class="muted">${what} Compteur des garanties commun aux trois invocations. Doublon : +1 étoile (max 5), puis +${s.duplicateRefundGems} gemmes.</p>
+        ${open ? `<div class="summon-odds"><p class="muted">${what} Compteur des garanties commun à toutes les invocations. Doublon : +1 étoile (max 5), puis +${s.duplicateRefundGems} gemmes.</p>
           ${odds(pool)}</div>` : ''}
         ${pool === 'hero' && f ? fold(ui, 'summon-banner', 'Apparence en vedette : détails', () => heroBanner(state)) : ''}
         ${results && normalizePool(ui.view.summonPool) === pool ? `<div class="summon-results">${results}</div>` : ''}
       </div>`;
     }).join('');
     const pity = `<div class="summon-pity" role="status">Épique dans <b>${s.pity.epicAfter - state.summon.sinceEpic}</b> · Légendaire dans <b>${s.pity.legendaryAfter - state.summon.sinceLegendary}</b></div>`;
-    return `${pity}${rows}
+    return `${pity}${bannerBlock(ui, state, btn)}${rows}
       ${(state.summon.history ?? []).length ? fold(ui, 'summon-history', 'Historique', () => historyBlock(state)) : ''}`;
   },
 };

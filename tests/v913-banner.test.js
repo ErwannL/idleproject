@@ -11,7 +11,7 @@ import { AURA_COLORS } from '../src/data/auras.js';
 import { createNewState, sanitizeState, SAVE_VERSION } from '../src/core/state.js';
 import { featuredUnit, summon, summonOdds, summonPool } from '../src/core/gacha.js';
 import { Rng } from '../src/core/rng.js';
-import { archiveTargets, budget, claimReleaseGift, currentBanner, releaseIndex, } from '../src/core/banner.js';
+import { archiveTargets, budget, claimReleaseGift, currentBanner, lastBanner, nextBanner, releaseIndex, } from '../src/core/banner.js';
 import { companionMultiplier, companionSkillMultiplier, companionById } from '../src/core/companions.js';
 import { sectionProgress } from '../src/core/encyclopedia.js';
 import { SAVE_KEY, loadGame } from '../src/core/save.js';
@@ -229,5 +229,16 @@ test('lot 4 : sauvegarde v8 — étoiles et niveaux identiques ; perso inconnu d
   const storage = { getItem: (k) => st.get(k) ?? null, setItem: (k, v) => st.set(k, v), removeItem: (k) => st.delete(k) };
   storage.setItem(SAVE_KEY, JSON.stringify({ ...raw, version: SAVE_VERSION + 1 }));
   assert.equal(loadGame(storage, BALANCE, J(3)).source, 'newer');
+});
+
+test('lot 5 : calendrier — J-7 aperçu, fin de bannière, aucun badge ni tri de recommandation dans l\'écran', () => {
+  setBannersEnabled(true);
+  assert.equal(nextBanner(START - 8 * DAY), null);
+  assert.equal(nextBanner(START - 6 * DAY)?.unit.id, 'demo_ssr');
+  assert.equal(currentBanner(J(14)).day, 14);
+  assert.equal(currentBanner(J(15)), null);
+  assert.equal(lastBanner(J(15)).unit.id, 'demo_ssr');
+  const src = readFileSync(new URL('../src/ui/panels/summon.js', import.meta.url), 'utf8');
+  for (const word of ['recommand', 'Conseillé', 'conseillé', 'meilleur choix', 'rentable', '.sort(']) assert.ok(!src.includes(word), `aucun « ${word} »`);
 });
 

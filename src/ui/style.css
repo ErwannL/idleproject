@@ -2367,3 +2367,25 @@ button[data-action="learn-skill"], button[data-action="buy-talent"] { -webkit-us
 .dup-count { font-size: 11px; color: var(--muted, #9aa7c0); }
 .pet-detail.dup-max .dup-count { color: #ffd23f; }
 .summon-result .ult-new, .sfx-face .sfx-ult { color: #ffd23f; font-weight: 900; font-style: normal; font-size: 10px; }
+
+/* v9.1.3 (doc4 lots 5 et 6) : bannière (5 éléments en façade), Archives, mode monde. */
+.banner-banner { border-color: rgba(208, 123, 255, 0.55); }
+.bn-face-row { display: flex; align-items: center; gap: 10px; }
+.bn-face canvas, .bn-face img { height: 56px; width: auto; display: block; }
+.bn-name { font-weight: 900; font-size: 15px; margin-bottom: 4px; }
+.bn-sig { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.bn-sig > img { width: 16px; height: 16px; }
+.bn-facts { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.bn-net b { color: #d9b8ff; }
+.bn-details { display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
+.bn-end { padding: 4px 8px; font-size: 12px; }
+.bn-next { display: flex; align-items: center; gap: 8px; padding: 6px 8px; }
+.bn-next canvas, .bn-next img { height: 36px; width: auto; }
+.bn-targets { display: flex; flex-wrap: wrap; gap: 4px; }
+.bn-targets .btn.active { outline: 2px solid #d9b8ff; }
+.world-row { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 6px; padding: 3px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+.world-row.done { opacity: 0.75; }
+.world-cond { grid-column: 1 / -1; font-size: 11px; }
+.world-run { border-color: rgba(159, 216, 255, 0.6); display: flex; flex-direction: column; gap: 4px; }
+.bn-facts img { width: 16px; height: 16px; vertical-align: -3px; }
+.bn-net .muted { font-size: 11px; }
