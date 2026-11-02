@@ -38,7 +38,7 @@ test('v8.9 : 4 compétences par compagnon, la 4e avec 3 doublons, +15 % par éto
 test('v8.9 / v9.1.3 : coffre avec ensembles (mannequins fondus) : porter d\'un clic, garde de la meilleure pièce', () => {
   const s = createNewState(NOW, 2);
   s.records.bestStage = 30; // coffre ouvert (rangement auto seulement après le seuil)
-  const a = makeItem(s, 'dagger', 'rare', 5, BALANCE, null, 'caves');
+  const a = makeItem(s, 'short_sword', 'rare', 5, BALANCE, null, 'caves'); // v9.1.3 : arme de la classe (Porter vérifie canEquip)
   const b = makeItem(s, 'iron_helm', 'rare', 5, BALANCE, null, 'caves');
   s.inventory.push(a, b);
   assert.ok(moveToStash(s, a.id));

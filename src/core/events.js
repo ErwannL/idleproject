@@ -4,6 +4,7 @@
 import { BALANCE } from '../data/balance.js';
 import { referenceKillGold } from './combat.js';
 import { addToInventory } from './inventory.js';
+import { STASH_SIZE } from './stash.js';
 import { generateItem } from './loot.js';
 import { grantReward } from './rewards.js';
 
@@ -15,6 +16,7 @@ const EVENT_LABELS = {
   gems: 'Gemmes trouvées',
   portal: 'Portail vers une salle au trésor',
   wanderer: 'Boss errant vaincu',
+  held: 'Objet en attente (sac et coffre pleins)', // v9.1.3 (doc3 lot 1)
 };
 
 export function eventLabel(type) {
@@ -69,12 +71,18 @@ export function rollEvent(state, world, rng, balance = BALANCE, multiplier = 1) 
   return event;
 }
 
+// v9.1.3 (doc3 lot 1) : place pour un objet reçu — au sac, ou au coffre.
+export function hasRoom(state, balance = BALANCE) {
+  return state.inventory.length < balance.loot.inventorySize || (state.stash ?? []).length < STASH_SIZE;
+}
+
 // Récupère un coffre ou des gemmes. Renvoie la récompense, ou null.
+// v9.1.3 : sac plein → l'objet va au coffre ; refusé seulement si les deux sont pleins (l'objet reste en attente).
 export function claimEvent(state, id, balance = BALANCE) {
   const index = state.inbox.findIndex((e) => e.id === id);
   const event = state.inbox[index];
   if (!event || event.type === 'merchant') return null;
-  if (event.item && state.inventory.length >= balance.loot.inventorySize) return null;
+  if (event.item && !hasRoom(state, balance)) return null;
   state.inbox.splice(index, 1);
   const given = grantReward(state, event.reward);
   if (event.item) addToInventory(state, event.item, balance);
@@ -84,7 +92,7 @@ export function claimEvent(state, id, balance = BALANCE) {
 export function buyFromMerchant(state, id, balance = BALANCE) {
   const index = state.inbox.findIndex((e) => e.id === id && e.type === 'merchant');
   const event = state.inbox[index];
-  if (!event || state.gold < event.price || state.inventory.length >= balance.loot.inventorySize) return false;
+  if (!event || state.gold < event.price || !hasRoom(state, balance)) return false;
   state.gold -= event.price;
   addToInventory(state, event.item, balance);
   state.inbox.splice(index, 1);
@@ -93,7 +101,7 @@ export function buyFromMerchant(state, id, balance = BALANCE) {
 
 export function dismissEvent(state, id) {
   const index = state.inbox.findIndex((e) => e.id === id);
-  if (index < 0) return false;
+  if (index < 0 || state.inbox[index].type === 'held') return false; // v9.1.3 : un objet en attente ne se jette pas
   state.inbox.splice(index, 1);
   return true;
 }

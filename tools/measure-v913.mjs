@@ -119,6 +119,8 @@ play(late, (QUICK ? 6 : 24) * 3600, { rebirth: true, rngSeed: 3 });
 play(late, 2 * 3600, { rebirth: false, rngSeed: 4 }); // fin de cycle : la sauvegarde est prise au plus haut, pas juste après une Renaissance
 S.fin = clone(late);
 const buildSeconds = (Date.now() - t) / 1000; // (temps simulé, pas le temps machine)
+// v9.1.3 (doc3 lot 1) : sauvegardes réutilisables par tools/measure-equipement-v913.mjs.
+if (args.includes('--dump-saves')) writeFileSync(path.resolve(args[args.indexOf('--dump-saves') + 1]), JSON.stringify(S));
 
 // --- 1. Bilan des gemmes ------------------------------------------------------------------------------------
 // Combat : gemmes gagnées pendant 1 h de jeu actif mesurée sur chaque sauvegarde (monstres, niveaux,
@@ -162,7 +164,9 @@ const f = BALANCE.forge;
 // --- 3. Part de l'équipement dans la puissance ------------------------------------------------------------
 function gearShare(s) {
   const withGear = computeHeroStats(s);
-  const naked = computeHeroStats({ ...s, equipment: Object.fromEntries(Object.keys(s.equipment).map((k) => [k, null])), mannequins: {}, museum: {} });
+  // v9.1.3 (doc3 lot 1) : le Musée n'est pas porté, il reste dans les deux calculs (avant, il était retiré du héros
+  // « nu », ce qui gonflait le rapport : ×3 624 au lieu de ×1 542 sur la sauvegarde de fin).
+  const naked = computeHeroStats(s, BALANCE, Object.fromEntries(Object.keys(s.equipment).map((k) => [k, null])));
   return { dps: withGear.dps / naked.dps, hp: withGear.maxHp / naked.maxHp };
 }
 

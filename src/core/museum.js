@@ -4,7 +4,15 @@
 // Une pièce exposée n'est plus portée : pour la porter, on la reprend dans le sac.
 import { BALANCE } from '../data/balance.js';
 import { SIGNATURE_ITEMS } from '../data/items.js';
-import { itemBase, itemPower } from './loot.js';
+import { itemBase, itemPower, rarityIndex } from './loot.js';
+import { storeItem } from './stash.js';
+
+// v9.1.3 (doc3 lot 1) : un exemplaire en remplace un autre d'abord à la rareté (c'est elle qui fixe le bonus,
+// doublé en Légendaire), puis à la puissance. Avant : à la puissance seule, un Épique chassait un Légendaire.
+export function museumBetter(a, b) {
+  const r = rarityIndex(a.rarity) - rarityIndex(b.rarity);
+  return r !== 0 ? r > 0 : itemPower(a) > itemPower(b);
+}
 
 export const MUSEUM = {
   perPiece: { damageMultPct: 5, maxHpMultPct: 5, goldMultPct: 5 }, // ×2 pour une pièce Légendaire
@@ -44,11 +52,7 @@ function takeFrom(list, id) {
   return i < 0 ? null : list.splice(i, 1)[0];
 }
 
-function store(state, item, balance) {
-  if (state.inventory.length < balance.loot.inventorySize) { state.inventory.push(item); return true; }
-  if (state.stash && state.stash.length < 300) { state.stash.push(item); return true; }
-  return false;
-}
+const store = (state, item, balance) => Boolean(storeItem(state, item, balance)); // v9.1.3 : partagée (stash.js)
 
 // Expose un objet ancestral (du sac ou du coffre) ; l'exemplaire déjà exposé retourne au sac.
 export function putInMuseum(state, id, balance = BALANCE) {
@@ -76,10 +80,10 @@ export function exposeAll(state, balance = BALANCE) {
   if (!state.museum) return 0;
   let n = 0;
   const candidates = [...state.inventory, ...(state.stash ?? [])].filter((i) => isAncestral(i))
-    .sort((a, b) => itemPower(b) - itemPower(a));
+    .sort((a, b) => (museumBetter(a, b) ? -1 : museumBetter(b, a) ? 1 : 0));
   for (const item of candidates) {
     const old = state.museum[item.baseId];
-    if (old && itemPower(old) >= itemPower(item)) continue;
+    if (old && !museumBetter(item, old)) continue;
     if (putInMuseum(state, item.id, balance)) n += 1;
   }
   return n;
@@ -89,12 +93,12 @@ export function exposeAll(state, balance = BALANCE) {
 // exemplaire au moins aussi bon. Ils ne sont jamais recyclés automatiquement ; ce bouton le fait à la demande.
 export function museumDuplicates(state) {
   return state.inventory.filter((i) => isAncestral(i) && !i.locked && state.museum?.[i.baseId]
-    && itemPower(state.museum[i.baseId]) >= itemPower(i));
+    && !museumBetter(i, state.museum[i.baseId]));
 }
 
 export function isMuseumDuplicate(state, item) {
   return isAncestral(item) && Boolean(state.museum?.[item.baseId]) && state.museum[item.baseId].id !== item.id
-    && itemPower(state.museum[item.baseId]) >= itemPower(item);
+    && !museumBetter(item, state.museum[item.baseId]);
 }
 
 // Ramassage : un objet ancestral va dans sa vitrine si elle est vide ou s'il est meilleur ; l'ancien exemplaire
@@ -102,7 +106,7 @@ export function isMuseumDuplicate(state, item) {
 export function autoMuseum(state, item, balance = BALANCE) {
   if (!isAncestral(item) || !state.museum || state.ui?.autoMuseum === false) return false;
   const old = state.museum[item.baseId];
-  if (old && itemPower(old) >= itemPower(item)) return false;
+  if (old && !museumBetter(item, old)) return false;
   if (old && !store(state, old, balance)) return false;
   state.museum[item.baseId] = item;
   return true;

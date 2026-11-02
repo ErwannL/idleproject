@@ -3,23 +3,40 @@ import { BALANCE } from '../data/balance.js';
 import { ACCESSORY_SLOTS, SLOTS } from '../data/items.js';
 import { addGold } from './economy.js';
 import { trackContracts } from './contracts.js';
-import { itemBase, itemPower, rarityIndex, recycleMaterials, recycleValue } from './loot.js';
+import { itemBase, itemPower, rarityIndex, recycleLevelOf, recycleMaterials, recycleValue } from './loot.js';
 import { computeHeroStats, statsWithItem } from './stats.js';
 import { recordItem } from './codex.js';
 import { canEquip } from './classes.js';
 import { usefulSetPiece } from './sets.js';
-import { autoStashSet } from './stash.js';
-import { autoMuseum } from './museum.js';
+import { autoStashSet, placeItem, storeItem } from './stash.js';
+import { autoMuseum, isAncestral } from './museum.js';
 import { invFeatureOpen } from './unlocks.js';
 
-// Inventaire plein : l'objet est recyclé en or plutôt que perdu.
+// v9.1.3 (doc3 lot 1, point 9) : Codex, Musée et garde des pièces d'ensemble sont séparés de la décision de
+// recyclage : tout objet reçu (butin, Forge, donjon, coffre, marchand, Prime, fusion) passe par là.
+// Renvoie un résultat si l'objet a été rangé ainsi, sinon null.
+function intake(state, item, balance) {
+  if (state.codex) recordItem(state, item);
+  // v9.0 : objet ancestral → sa vitrine du Musée (si elle est vide ou s'il est meilleur).
+  if (state.museum && autoMuseum(state, item, balance)) return { added: false, museum: true, recycledGold: 0 };
+  // v8.9 : pièce d'ensemble meilleure que la meilleure gardée → rangée d'elle-même (l'ancienne est recyclée).
+  // v9.1.3 : au coffre (mannequins fondus), et pas avant l'ouverture du coffre.
+  if (state.stash && invFeatureOpen(state, 'stash')) {
+    const replaced = autoStashSet(state, item);
+    if (replaced !== false) return { added: false, mannequin: true, recycledGold: replaced ? salvage(state, replaced, balance) : 0, recycled: Boolean(replaced) };
+  }
+  return null;
+}
+
+// Objet payé ou donné (Forge, donjon, coffre, marchand, Prime, fusion, classe) : toujours reçu.
+// v9.1.3 (doc3 lot 1) : sac plein → coffre ; coffre plein → en attente dans « À récupérer ». Avant : recyclé en
+// or seulement (sans éclats), même un Légendaire payé.
 export function addToInventory(state, item, balance = BALANCE) {
   state.records.itemsFound += 1;
-  if (state.inventory.length >= balance.loot.inventorySize) {
-    return { added: false, recycledGold: addGold(state, recycleValue(item, balance)) };
-  }
-  state.inventory.push(item);
-  return { added: true, recycledGold: 0 };
+  const kept = intake(state, item, balance);
+  if (kept) return kept;
+  const where = placeItem(state, item, balance);
+  return { added: where === 'bag', stored: where === 'stash', held: where === 'held', recycledGold: 0 };
 }
 
 export function equipItem(state, itemId) {
@@ -66,9 +83,14 @@ export const KEEP_AFFIX_LABELS = {
   damageVsNormalPct: 'Dégâts contre les ennemis', regenPct: 'Régénération', dropChance: 'Chance de butin',
 };
 
+// v9.1.3 (doc3 lot 1, point 4) : filtre « garder si tel effet », partagé par la règle, le balayage et la fusion auto.
+export function keptByAffix(rules, item) {
+  return Boolean((rules?.keepAffixes ?? []).length && (item.affixes ?? []).some((a) => rules.keepAffixes.includes(a.type)));
+}
+
 export function matchesRecycleRule(state, item, rules = recycleRules(state)) {
   if (item.locked || itemBase(item.baseId).signature) return false;
-  if ((rules.keepAffixes ?? []).length && (item.affixes ?? []).some((a) => rules.keepAffixes.includes(a.type))) return false;
+  if (keptByAffix(rules, item)) return false;
   if (usefulSetPiece(state, item, itemPower)) return false; // v8.5 : pièce d'un ensemble en cours de collecte
   if (!rules.rarities.includes(item.rarity) || !rules.slots.includes(item.slot)) return false;
   return !isUpgrade(state, item);
@@ -96,44 +118,45 @@ export function recycleForSpace(state, balance = BALANCE) {
 }
 
 // Ramassage d'un objet : recyclé automatiquement selon la règle, sinon rangé dans le sac.
+// v9.1.3 (doc3 lot 1) : butin libre (combat, hors ligne). Sac plein : ancestraux et pièces d'ensemble utiles vont au
+// coffre (ou en attente), le reste est recyclé complètement (or + éclats). Avant : tout en or sans éclats.
 export function collectItem(state, item, balance = BALANCE) {
   trackContracts(state, 'items', 1);
-  if (state.codex) recordItem(state, item);
-  // v9.0 : objet ancestral → sa vitrine du Musée (si elle est vide ou s'il est meilleur).
-  if (state.museum && autoMuseum(state, item, balance)) {
-    state.records.itemsFound += 1;
-    return { added: false, museum: true, recycledGold: 0 };
+  state.records.itemsFound += 1;
+  const kept = intake(state, item, balance);
+  if (kept) return kept;
+  if (shouldAutoRecycle(state, item)) return { added: false, auto: true, recycled: true, recycledGold: salvage(state, item, balance) };
+  if (state.inventory.length < balance.loot.inventorySize) {
+    state.inventory.push(item);
+    return { added: true, recycledGold: 0 };
   }
-  // v8.9 : pièce d'ensemble meilleure que la meilleure gardée → rangée d'elle-même (l'ancienne est recyclée).
-  // v9.1.3 : au coffre (mannequins fondus), et pas avant l'ouverture du coffre.
-  if (state.stash && invFeatureOpen(state, 'stash')) {
-    const replaced = autoStashSet(state, item);
-    if (replaced !== false) {
-      state.records.itemsFound += 1;
-      return { added: false, mannequin: true, recycledGold: replaced ? salvage(state, replaced, balance) : 0 };
-    }
+  const freed = recycleForSpace(state, balance);
+  if (state.inventory.length < balance.loot.inventorySize) {
+    state.inventory.push(item);
+    return { added: true, recycledGold: 0, freed };
   }
-  if (shouldAutoRecycle(state, item)) {
-    state.records.itemsFound += 1;
-    return { added: false, auto: true, recycledGold: salvage(state, item, balance) };
+  const rule = recycleRules(state).mode === 'full' && matchesRecycleRule(state, item);
+  // Ancestral ou verrouillé : jamais recyclé (coffre, sinon en attente). Pièce utile : au coffre s'il a de la place.
+  if (!rule && (item.locked || isAncestral(item))) {
+    const where = placeItem(state, item, balance);
+    return { added: where === 'bag', stored: where === 'stash', held: where === 'held', recycledGold: 0, freed };
   }
-  if (state.inventory.length >= balance.loot.inventorySize) {
-    const freed = recycleForSpace(state, balance);
-    if (recycleRules(state).mode === 'full' && matchesRecycleRule(state, item) && state.inventory.length >= balance.loot.inventorySize) {
-      state.records.itemsFound += 1;
-      return { added: false, auto: true, recycledGold: salvage(state, item, balance), freed };
-    }
-    return { ...addToInventory(state, item, balance), freed };
-  }
-  return addToInventory(state, item, balance);
+  if (!rule && usefulSetPiece(state, item, itemPower) && storeItem(state, item, balance)) return { added: false, stored: true, recycledGold: 0, freed };
+  return { added: false, auto: rule, full: !rule, recycled: true, recycledGold: salvage(state, item, balance), freed };
 }
 
 // Recyclage : or + éclats ; compte pour les contrats.
+// v9.1.3 (doc3 lot 1) : or plafonné au niveau de l'étape max de la partie en cours (faille d'or après Renaissance).
 function salvage(state, item, balance) {
   const materials = recycleMaterials(item, balance);
   state.materials.shards += materials.shards;
   trackContracts(state, 'recycle', 1);
-  return addGold(state, recycleValue(item, balance));
+  return addGold(state, recycleValue(item, balance, recycleLevelOf(state, balance)));
+}
+
+// Or de recyclage affiché (même plafond que salvage).
+export function recycleGoldOf(state, item, balance = BALANCE) {
+  return recycleValue(item, balance, recycleLevelOf(state, balance));
 }
 
 export function recycleMatching(state, predicate, balance = BALANCE) {
@@ -215,7 +238,7 @@ export function sweepInventory(state, balance = BALANCE) {
   if (rules.mode !== 'pickup') return { gold: 0, count: 0 };
   const current = computeHeroStats(state, balance);
   const doomed = new Set(state.inventory.filter((item) => !item.locked && !itemBase(item.baseId).signature
-    && rules.rarities.includes(item.rarity) && rules.slots.includes(item.slot)
+    && !keptByAffix(rules, item) && rules.rarities.includes(item.rarity) && rules.slots.includes(item.slot)
     && !usefulSetPiece(state, item, itemPower) && !isUpgrade(state, item, balance, current)).map((i) => i.id));
   return doomed.size ? recycleMatching(state, (i) => doomed.has(i.id), balance) : { gold: 0, count: 0 };
 }
@@ -232,8 +255,9 @@ export function bulkRecycleCandidates(state, maxRarity = 'common', balance = BAL
 }
 
 // Verrouiller un objet le protège de tout recyclage (simple ou groupé).
+// v9.1.3 (doc3 lot 1, point 10) : aussi au coffre.
 export function toggleLock(state, itemId) {
-  const item = [...state.inventory, ...Object.values(state.equipment)].find((i) => i?.id === itemId);
+  const item = [...state.inventory, ...Object.values(state.equipment), ...(state.stash ?? [])].find((i) => i?.id === itemId);
   if (!item) return null;
   item.locked = !item.locked;
   return item.locked;

@@ -92,13 +92,16 @@ test('inventaire : équiper, comparer, recycler', () => {
   assert.equal(recycleItem(state, 'it999'), 0);
 });
 
-test('inventaire plein : le nouvel objet est recyclé en or', () => {
+test('inventaire plein : un objet reçu va au coffre (v9.1.3 : plus recyclé en or)', () => {
   const state = createNewState(NOW, 1);
   for (let i = 0; i < BALANCE.loot.inventorySize; i++) addToInventory(state, makeItem(state, 'dagger', 'common', 1));
-  const result = addToInventory(state, makeItem(state, 'dagger', 'rare', 1));
+  const item = makeItem(state, 'dagger', 'rare', 1);
+  const result = addToInventory(state, item);
   assert.equal(result.added, false);
-  assert.ok(result.recycledGold > 0);
+  assert.equal(result.stored, true);
+  assert.equal(result.recycledGold, 0);
   assert.equal(state.inventory.length, BALANCE.loot.inventorySize);
+  assert.ok(state.stash.some((i) => i.id === item.id));
 });
 
 test('tri et filtre du sac', () => {

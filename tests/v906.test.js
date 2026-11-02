@@ -38,14 +38,20 @@ test('v9.0.6 : armes réservées à la classe ; changer de classe reforge l\'arm
   assert.ok(setHeroClass(s, 'archer', itemPower).swapped);
   assert.equal(s.equipment.weapon.id, bow.id);
   assert.ok(s.inventory.some((i) => i.id === sword.id));
-  // Mage de feu sans bâton : l'arc est reforgé en bâton, mêmes niveau, rareté et statistiques.
-  const before = { level: s.equipment.weapon.level, rarity: s.equipment.weapon.rarity, stats: { ...s.equipment.weapon.stats } };
+  // Mage de feu sans bâton : l'arc est reforgé en bâton, mêmes niveau, rareté, effets et renforcements ;
+  // v9.1.3 (doc3 lot 1) : statistiques de la nouvelle base (avant : celles de l'arc gardées).
+  const w0 = s.equipment.weapon;
+  const before = { id: w0.id, level: w0.level, rarity: w0.rarity, affixes: JSON.stringify(w0.affixes), upgrades: w0.upgrades };
   const r = setHeroClass(s, 'pyromancer', itemPower);
   assert.ok(r.reforged);
   assert.equal(weaponClass(s.equipment.weapon.baseId).id, 'pyromancer');
+  assert.equal(s.equipment.weapon.id, before.id);
   assert.equal(s.equipment.weapon.level, before.level);
   assert.equal(s.equipment.weapon.rarity, before.rarity);
-  assert.deepEqual(s.equipment.weapon.stats, before.stats);
+  assert.equal(JSON.stringify(s.equipment.weapon.affixes), before.affixes);
+  assert.equal(s.equipment.weapon.upgrades, before.upgrades);
+  const fresh = makeItem(s, s.equipment.weapon.baseId, before.rarity, before.level);
+  assert.deepEqual(s.equipment.weapon.stats, fresh.stats);
   // Sauvegarde : la classe est conservée.
   const back = sanitizeState(JSON.parse(JSON.stringify(s)));
   assert.equal(back.heroClass, 'pyromancer');

@@ -14,7 +14,7 @@ test('v8.2 : « Améliorer » marche aussi sur un objet sans statistique de base
   const base = SIGNATURE_ITEMS.find((b) => b.id === 'void_signet');
   const item = makeItem(s, base.id, 'legendary', 50, undefined, new Rng(3));
   if (!item.affixes.length) item.affixes = [{ type: 'critChance', value: 12 }];
-  addToInventory(s, item);
+  s.inventory.push(item); // v9.1.3 : addToInventory l'exposerait au Musée
   s.gold = 1e15; s.materials.shards = 1e6;
   const before = item.affixes.map((a) => a.value);
   let ok = 0;

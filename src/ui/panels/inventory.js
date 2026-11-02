@@ -7,7 +7,7 @@ import { ACCESSORY_SLOTS, GEAR_SLOTS, RARITIES, SLOTS, STAT_LABELS } from '../..
 import { formatStat } from '../../core/format.js';
 import { canReforge, craftCost, fusionGroups, fusionKeep, maxUpgrades, sharpenCost, upgradeCost } from '../../core/forge.js';
 import { KEEP_AFFIX_LABELS, bulkRecycleCandidates, isUpgrade, listInventory, RECYCLE_MODES, recycleRules } from '../../core/inventory.js';
-import { itemBase, rarityById, recycleMaterials, recycleValue } from '../../core/loot.js';
+import { itemBase, rarityById, recycleLevelOf, recycleMaterials, recycleValue } from '../../core/loot.js';
 import { computeHeroStats, statsWithItem } from '../../core/stats.js';
 import { slotIconName } from '../../render/pixel.js';
 import {
@@ -100,7 +100,7 @@ function detail(ui, state, item) {
       ${isEquipped ? '<button class="btn btn-primary" disabled>Équipé</button>' : canEquip(state, item)
         ? `<button class="btn btn-primary primary-action" data-action="equip" data-id="${item.id}">Équiper</button>`
         : `<button class="btn" disabled>Arme de ${escapeHtml(weaponClass(item.baseId).name)}</button>`}
-      <button class="btn btn-outline-gold" data-action="recycle" data-id="${item.id}" ${item.locked || isEquipped ? 'disabled' : ''}>Recycler +${formatNumber(recycleValue(item))} ${coin()}${mats.shards ? ` +${mats.shards}${shard()}` : ''}</button>
+      <button class="btn btn-outline-gold" data-action="recycle" data-id="${item.id}" ${item.locked || isEquipped ? 'disabled' : ''}>Recycler +${formatNumber(recycleValue(item, BALANCE, recycleLevelOf(state)))} ${coin()}${mats.shards ? ` +${mats.shards}${shard()}` : ''}</button>
     </div>
     ${!isEquipped && !canEquip(state, item) ? `<div class="muted">Changez de classe pour la porter : ${navPath('hero', 'Classe')}.</div>` : ''}`;
   // v9.1.3 (doc1 « Équipement : Fiche ») : trois onglets au lieu d'un long repli « Détails ».
@@ -268,7 +268,7 @@ function bag(ui, state) {
 // Le rangement auto des pièces d'ensemble n'est plus répété ici : il est dans le Coffre (v9.1.3).
 function bagSettings(ui, state) {
   const candidates = bulkRecycleCandidates(state, ui.view.bulkRarity);
-  const bulkGold = candidates.reduce((s, i) => s + recycleValue(i), 0);
+  const bulkGold = candidates.reduce((s, i) => s + recycleValue(i, BALANCE, recycleLevelOf(state)), 0); // v9.1.3 : même plafond que le recyclage
   const bulkLabel = ui.view.bulkArmed
     ? `Confirmer : ${candidates.length} objet${candidates.length > 1 ? 's' : ''} (+${formatNumber(bulkGold)} or)`
     : `Recycler (${candidates.length}) +${formatNumber(bulkGold)}`;

@@ -372,7 +372,7 @@ function dropItem(state, world, item, x, balance) {
   world.counters.drops += 1;
   const result = collectItem(state, item, balance);
   if (rarityIndex(item.rarity) >= 1) trackContracts(state, 'rareLoot', 1);
-  emit(world, 'drop', { item, x, autoRecycled: !result.added && !result.mannequin && !result.museum, byRule: Boolean(result.auto), mannequin: Boolean(result.mannequin), museum: Boolean(result.museum), recycledGold: result.recycledGold, freed: result.freed?.count ? result.freed : null });
+  emit(world, 'drop', { item, x, autoRecycled: Boolean(result.recycled) && !result.mannequin, stored: Boolean(result.stored || result.held), byRule: Boolean(result.auto), mannequin: Boolean(result.mannequin), museum: Boolean(result.museum), recycledGold: result.recycledGold, freed: result.freed?.count ? result.freed : null });
 }
 
 function killEnemy(state, world, enemy, rng, balance, stats, enc) {

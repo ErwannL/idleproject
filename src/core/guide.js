@@ -163,7 +163,7 @@ export const PANEL_HELP = {
   },
   inbox: {
     short: 'Vue d\'ensemble de tout ce qui est prêt à être récupéré (touche N, ou depuis Missions). Tout récupérer : touche G.',
-    more: 'Les trouvailles (coffres, gemmes, portails) arrivent pendant le combat. Sac plein : les récompenses avec un objet attendent ici. Les marchands sont dans Missions › Aujourd\'hui.',
+    more: 'Les trouvailles (coffres, gemmes, portails) arrivent pendant le combat. Sac plein : les objets vont au coffre ; sac et coffre pleins : les récompenses avec un objet attendent ici. Les marchands sont dans Missions › Aujourd\'hui.',
   },
   options: {
     short: 'Langue, sauvegarde (export et import), compte, mises à jour ; Interface (dont les essais d\'affichage), Son et Fenêtre dans les onglets.',

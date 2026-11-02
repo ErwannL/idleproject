@@ -376,6 +376,12 @@ export const EXACT_910 = {
   'Vue d\'ensemble de tout ce qui est prêt à être récupéré (touche N, ou depuis Missions). Tout récupérer : touche G.': 'Overview of everything ready to claim (N key, or from Missions). Claim all: G key.',
   'Les trouvailles (coffres, gemmes, portails) arrivent pendant le combat. Sac plein : les récompenses avec un objet attendent ici. Les marchands sont dans Missions › Aujourd\'hui.': 'Finds (chests, gems, portals) arrive during combat. Bag full: rewards with an item wait here. Merchants are in Missions › Today.',
   'Langue, sauvegarde (export et import), compte, mises à jour ; Interface (dont les essais d\'affichage), Son et Fenêtre dans les onglets.': 'Language, save (export and import), account, updates; Interface (including display trials), Sound and Window in the tabs.',
+  // v9.1.3 (doc3 lot 1) : objets jamais perdus (sac plein → coffre → en attente).
+  'Les trouvailles (coffres, gemmes, portails) arrivent pendant le combat. Sac plein : les objets vont au coffre ; sac et coffre pleins : les récompenses avec un objet attendent ici. Les marchands sont dans Missions › Aujourd\'hui.': 'Finds (chests, gems, portals) arrive during combat. Bag full: items go to the chest; bag and chest full: rewards with an item wait here. Merchants are in Missions › Today.',
+  'Objet en attente (sac et coffre pleins)': 'Item on hold (bag and chest full)', 'Sac et coffre pleins': 'Bag and chest full',
+  'Sac et coffre pleins : les récompenses avec un objet attendent ici. Recyclez des objets.': 'Bag and chest full: rewards with an item wait here. Recycle some items.',
+  'Sac et coffre pleins : recyclez un objet pour acheter.': 'Bag and chest full: recycle an item to buy.',
+  'Sac et coffre pleins : libérez de la place pour récupérer les objets.': 'Bag and chest full: free some space to claim the items.',
 };
 
 // Traduction d'un morceau (nom de boost, de boss…) : fournie par ./en.js.
@@ -389,6 +395,8 @@ const UNIT_RE = '(or|gemmes?|fragments?|éclats?|essences?|tickets?|Étoiles?)';
 
 // Textes construits avec des valeurs.
 export const PATTERNS_910 = [
+  // v9.1.3 (doc3 lot 1).
+  [/^(\d+) récompenses? avec un objet en attente \(sac et coffre pleins\) : Objectifs › À récupérer\.$/, (m) => `${m[1]} reward${m[1] > 1 ? 's' : ''} with an item on hold (bag and chest full): Goals › Claims.`],
   // v9.1.3 (chantier 6) : textes des chantiers restés en français (relevés par le parcours anglais).
   [/^(\d+) objets? neufs?$/, (m) => `${m[1]} new item${m[1] === '1' ? '' : 's'}`],
   [/^Améliorer (.+) \((\d+) pts?\)$/, (m) => `Upgrade ${tr(m[1])} (${m[2]} pt${m[2] === '1' ? '' : 's'})`],
@@ -525,6 +533,7 @@ export const PATTERNS_910 = [
   [/^(\d+) fusions? faites?$/, '$1 fusion(s) done'],
   [/^(\d+) niveaux? de compétence appris$/, '$1 skill level(s) learned'],
   [/^(\d+) améliorations? achetées? : dégâts\/s ×(.+)$/, '$1 upgrade(s) bought: damage/s ×$2'],
+  [/^(.+) \((\d+) en attente : sac et coffre pleins\)$/, (m) => `${tr(m[1])} (${m[2]} on hold: bag and chest full)`], // v9.1.3 (doc3)
   [/^Tout récupéré : (.+)$/, 'All claimed: $1'],
   [/^Place (\d+) :$/, 'Slot $1:'],
   [/^Place (\d+) libre — aucun compagnon disponible \(ceux de l'équipe ne partent pas\)\.$/, 'Slot $1 free — no companion available (team members do not leave).'],

@@ -4,8 +4,34 @@ import { BALANCE } from '../data/balance.js';
 import { ITEM_SETS } from '../data/sets.js';
 import { SLOTS } from '../data/items.js';
 import { itemPower } from './loot.js';
+import { canEquip } from './classes.js';
 
-export const STASH_SIZE = 300;
+// v9.1.3 (doc3 lot 1) : constante unique (BALANCE.loot.stashSize), aussi utilisée par le Musée.
+export const STASH_SIZE = BALANCE.loot.stashSize;
+
+// v9.1.3 (doc3 lot 1) : range un objet reçu — au sac s'il a de la place, sinon au coffre. Renvoie 'bag', 'stash'
+// ou false (sac et coffre pleins). Partagée par le Musée (ancienne copie locale `store`, avec 300 en dur).
+export function storeItem(state, item, balance = BALANCE) {
+  if (state.inventory.length < balance.loot.inventorySize) { state.inventory.push(item); return 'bag'; }
+  if (state.stash && state.stash.length < STASH_SIZE) { state.stash.push(item); return 'stash'; }
+  return false;
+}
+
+// v9.1.3 (doc3 lot 1) : sac et coffre pleins — un objet payé ou verrouillé ne disparaît jamais : il attend dans
+// « À récupérer » (comme un coffre d'événement), au-delà de la limite de la boîte, et ne peut pas être jeté.
+export function holdItem(state, item) {
+  state.nextEventId = (state.nextEventId ?? 0) + 1;
+  state.inbox.push({ id: state.nextEventId, type: 'held', item, reward: {}, stage: state.stage });
+  return 'held';
+}
+
+// Range ou met en attente : renvoie 'bag', 'stash' ou 'held' (jamais de perte).
+export function placeItem(state, item, balance = BALANCE) {
+  return storeItem(state, item, balance) || holdItem(state, item);
+}
+
+// v9.1.3 (doc3 lot 1) : une arme d'une autre classe ne compte pas pour la garde ni pour « Porter ».
+const wearable = (state, x) => canEquip(state, x);
 
 // v9.1.3 : dépassement géré — après la conversion des mannequins, le coffre peut garder jusqu'à 77 objets de plus
 // (11 ensembles × 7 emplacements) ; rien n'y entre tant qu'il est au-dessus de 300, rien n'est perdu.
@@ -43,9 +69,10 @@ export function takeFromStash(state, id, balance = BALANCE) {
 // docs/refontes-v913.md.
 
 // Meilleure pièce du coffre pour un ensemble et un emplacement (ou null).
+// v9.1.3 (doc3 lot 1) : seulement les pièces portables par la classe active.
 export function bestSetPiece(state, setId, slot) {
   let best = null;
-  for (const x of state.stash ?? []) if (x.set === setId && x.slot === slot && (!best || itemPower(x) > itemPower(best))) best = x;
+  for (const x of state.stash ?? []) if (x.set === setId && x.slot === slot && wearable(state, x) && (!best || itemPower(x) > itemPower(best))) best = x;
   return best;
 }
 
@@ -77,11 +104,13 @@ export function wearSet(state, setId) {
 // directement ; l'ancienne meilleure est rendue pour être recyclée, sauf si elle est verrouillée (elle reste).
 // Renvoie la pièce remplacée (à recycler), null s'il n'y en avait pas, false si l'objet n'a pas été pris
 // (rangement auto désactivé, pièce moins bonne, coffre plein).
+// v9.1.3 (doc3 lot 1) : une arme d'une autre classe n'est pas gardée (elle suit le chemin normal) ; l'ancienne
+// meilleure reste au coffre si elle est verrouillée ou renforcée (payée), jamais recyclée.
 export function autoStashSet(state, item) {
-  if (!item.set || state.ui?.autoMannequin === false || !state.stash) return false;
+  if (!item.set || state.ui?.autoMannequin === false || !state.stash || !wearable(state, item)) return false;
   const old = bestSetPiece(state, item.set, item.slot);
   if (old && itemPower(old) >= itemPower(item)) return false;
-  const replace = old && !old.locked;
+  const replace = old && !old.locked && !((old.upgrades ?? 0) > 0);
   if (!replace && state.stash.length >= STASH_SIZE) return false;
   if (replace) state.stash[state.stash.indexOf(old)] = item;
   else state.stash.push(item);

@@ -1,8 +1,8 @@
 // À récupérer (v9.1.0 ; v9.1.3 : fenêtre ouverte par la touche N ou le bouton de Missions, plus un onglet) : une seule liste de tout ce qui est réclamable (missions, contrats, hauts faits,
 // prime, trouvailles, expéditions, collections, maîtrises) et un seul bouton — la touche G fait la même chose.
 // Dessous, les marchands (un achat reste une décision). Rien n'apparaît deux fois.
-import { BALANCE } from '../../data/balance.js';
 import { rewardText } from '../../core/rewards.js';
+import { hasRoom } from '../../core/events.js';
 import { coin, escapeHtml, formatNumber, img, itemFrame, rarityLabel, rewardIcons } from '../common.js';
 
 const KIND_ICONS = {
@@ -12,13 +12,13 @@ const KIND_ICONS = {
 
 // v9.1.3 : marchands, affichés dans Missions › Aujourd'hui (et dans la fenêtre À récupérer).
 export function merchantsHtml(state) {
-  const full = state.inventory.length >= BALANCE.loot.inventorySize;
+  const full = !hasRoom(state); // v9.1.3 (doc3 lot 1) : sac plein → l'achat va au coffre
   return state.inbox.filter((e) => e.type === 'merchant').map((e) => `<div class="card inbox-item"><div class="row">${itemFrame(e.item, { tag: 'div' })}
       <div class="grow"><b class="r-${e.item.rarity} rarity-text">${escapeHtml(e.item.name)}</b><div class="muted">${rarityLabel(e.item.rarity)} · niv. ${e.item.level}</div></div></div>
       <div class="detail-actions"><button class="btn btn-gold" data-action="buy-merchant" data-value="${e.id}" data-cost="${e.price}" ${state.gold < e.price || full ? 'disabled' : ''}>
         Acheter ${coin()} ${formatNumber(e.price)}</button>
         <button class="btn" data-action="dismiss-event" data-value="${e.id}">Ignorer</button></div>
-      ${full ? '<div class="bad">Sac plein : recyclez un objet pour acheter.</div>' : ''}</div>`).join('');
+      ${full ? '<div class="bad">Sac et coffre pleins : recyclez un objet pour acheter.</div>' : ''}</div>`).join('');
 }
 
 export default {
@@ -38,7 +38,7 @@ export default {
     const merchants = merchantsHtml(state);
     const head = list.length
       ? `<div class="card claim-card"><button class="btn btn-gold primary-action claim-all" data-action="claim-everything" ${ready.length ? '' : 'disabled'}>Tout récupérer${ready.length ? ` (${ready.length})` : ''}</button>
-          ${list.length > ready.length ? '<div class="bad">Sac plein : les récompenses avec un objet attendent ici. Recyclez ou rangez des objets.</div>' : ''}
+          ${list.length > ready.length ? '<div class="bad">Sac et coffre pleins : les récompenses avec un objet attendent ici. Recyclez des objets.</div>' : ''}
           <div class="claim-list">${rows}</div></div>`
       : `<div class="card muted">Rien à récupérer pour l'instant. Missions remplies, coffres trouvés au combat, expéditions terminées et
           paliers de collection arrivent ici.</div>`;

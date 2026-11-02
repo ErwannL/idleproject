@@ -35,7 +35,7 @@ import { museumItems } from './museum.js';
 import { sanitizeBounty } from './bounty.js';
 import { emptyTranscend, sanitizeTranscend } from './transcend.js';
 import { sanitizeChallenge } from './challenge.js';
-import { migrateCodex, migrateEssence, migrateMannequins, migrateMissionTrack, migrateTickets } from './migrations-v913.js';
+import { migrateBagOverflow, migrateCodex, migrateEssence, migrateMannequins, migrateMissionTrack, migrateTickets } from './migrations-v913.js';
 import { MISSION_TRACK } from '../data/missions.js';
 import { grantReward } from './rewards.js';
 import { ENCYCLOPEDIA_SECTIONS } from './encyclopedia.js';
@@ -255,10 +255,11 @@ function cleanActivities(state, raw) {
 
   state.nextEventId = int(raw.nextEventId, 0);
   if (Array.isArray(raw.inbox)) {
-    state.inbox = raw.inbox
-      .filter((e) => e && Number.isInteger(e.id) && ['chest', 'merchant', 'gems', 'portal', 'wanderer'].includes(e.type))
-      .filter((e) => !e.item || isValidItem(e.item))
-      .slice(0, BALANCE.events.inboxSize)
+    // v9.1.3 (doc3 lot 1) : 'held' = objet reçu en attente (sac et coffre pleins), jamais rogné par la limite.
+    const valid = raw.inbox
+      .filter((e) => e && Number.isInteger(e.id) && ['chest', 'merchant', 'gems', 'portal', 'wanderer', 'held'].includes(e.type))
+      .filter((e) => (e.type === 'held' ? isValidItem(e.item) : !e.item || isValidItem(e.item)));
+    state.inbox = [...valid.filter((e) => e.type !== 'held').slice(0, BALANCE.events.inboxSize), ...valid.filter((e) => e.type === 'held')]
       .map((e) => ({ ...e, item: e.item ? cleanItem(e.item) : undefined, reward: obj(e.reward), price: num(e.price, 0), seen: e.seen === true }));
   }
 
@@ -371,6 +372,9 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   state.inventory = items.slice(0, balance.loot.inventorySize).map(cleanItem);
   // v9.1.3 : le coffre peut déborder (mannequins convertis), jusqu'à STASH_OVERFLOW objets de plus.
   state.stash = (Array.isArray(raw.stash) ? raw.stash.filter(isValidItem) : []).slice(0, STASH_SIZE + STASH_OVERFLOW).map(cleanItem);
+  // v9.1.3 (doc3 lot 1, point 5) : un sac au-delà de sa taille (ancien changement de classe) n'est plus rogné :
+  // le surplus passe au coffre (même dépassement géré).
+  migrateBagOverflow(state, items.slice(balance.loot.inventorySize).map(cleanItem));
   // v9.1.3 (lot F) : mannequins fondus dans le coffre.
   migrateMannequins(state, raw.mannequins, { stashSize: STASH_SIZE, bagSize: balance.loot.inventorySize, isValid: isValidItem, clean: cleanItem });
   // v9.0 : Musée (un objet ancestral par vitrine).

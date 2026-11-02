@@ -121,3 +121,11 @@ export function migrateMannequins(state, rawMannequins, { stashSize, bagSize, is
   }
   return moved;
 }
+
+// v9.1.3 (doc3 lot 1) — Sac au-delà de sa taille (un ancien changement de classe poussait l'arme ancestrale sans
+// contrôle de place ; le chargement rognait ensuite le sac à 100 objets). Le surplus va au coffre, rien n'est perdu.
+// Idempotente : un sac déjà à la bonne taille ne déplace rien. Pas de montée de SAVE_VERSION.
+export function migrateBagOverflow(state, extra) {
+  for (const it of extra ?? []) state.stash.push(it);
+  return (extra ?? []).length;
+}

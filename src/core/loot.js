@@ -145,12 +145,14 @@ export function refreshItemStats(item, balance = BALANCE) {
   });
 }
 
-export function recycleValue(item, balance = BALANCE) {
+// v9.1.3 : `maxLevel` (étape max de la partie en cours, voir recycleLevelOf) plafonne le niveau compté.
+export function recycleValue(item, balance = BALANCE, maxLevel = Infinity) {
   const rarity = rarityById(item.rarity);
-  const linear = rarity.recycleGold * (1 + balance.loot.recycleLevelGrowth * (item.level - 1));
+  const level = Math.max(1, Math.min(item.level, maxLevel));
+  const linear = rarity.recycleGold * (1 + balance.loot.recycleLevelGrowth * (level - 1));
   // Étape 4 : indexé sur l'or des ennemis du même niveau (avant : sans valeur passé l'étape ~80) —
   // un Commun vaut ~1 ennemi, un Légendaire ~60 ennemis de son étape.
-  const indexed = rarity.recycleGold * balance.loot.recycleGoldShare * balance.enemyScaling.goldGrowth ** Math.max(0, item.level - 1);
+  const indexed = rarity.recycleGold * balance.loot.recycleGoldShare * balance.enemyScaling.goldGrowth ** Math.max(0, level - 1);
   return Math.floor(Math.max(linear, indexed));
 }
 
@@ -158,9 +160,22 @@ export function recycleMaterials(item, balance = BALANCE) {
   return { shards: balance.materials.shards[item.rarity] ?? 0 }; // v9.1.3 : essences fondues dans les éclats
 }
 
+// v9.1.3 (doc3 lot 1) : plafond de niveau du recyclage pour cette partie (étape max en cours, faille d'or).
+export function recycleLevelOf(state, balance = BALANCE) {
+  return balance.loot.recycleLevelCap === 'maxStage' ? Math.max(1, state?.maxStage ?? 1) : Infinity;
+}
+
 // Score simple pour trier par puissance.
+// v9.1.3 (doc3 lot 1) : chaque effet compte en valeur / valeur de base (avant : valeur brute, un Collier à +2 %
+// de critique écrasait un Pendentif à +0,5 % PV/s de même rareté). Poids 4 : un effet de base 2 garde son ancien score.
+const AFFIX_WEIGHT = 4;
+function affixBase(base, a, i) {
+  if (base?.mainAffix && i === 0 && a.type === base.mainAffix.type) return base.mainAffix.base;
+  return AFFIXES[a.type]?.base || 1;
+}
 export function itemPower(item) {
   const s = item.stats;
-  const affixScore = (item.affixes ?? []).reduce((sum, a) => sum + a.value * 2, 0);
+  const base = itemBase(item.baseId);
+  const affixScore = (item.affixes ?? []).reduce((sum, a, i) => sum + (a.value / affixBase(base, a, i)) * AFFIX_WEIGHT, 0);
   return (s.damage ?? 0) * 3 + (s.maxHp ?? 0) * 0.5 + (s.armor ?? 0) * 4 + (s.attackSpeed ?? 0) * 1.5 + affixScore;
 }

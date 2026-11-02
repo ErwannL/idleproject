@@ -3,7 +3,7 @@
 // (sans rendu) sur une copie de la partie : les gains hors ligne suivent donc
 // exactement les mêmes règles que le farm actif, sans simuler des heures d'animation.
 import { BALANCE } from '../data/balance.js';
-import { createCombat, isBossStage, step } from './combat.js';
+import { createCombat, isBossStage, step, zoneIndexForStage } from './combat.js';
 import { addGold } from './economy.js';
 import { trackContracts } from './contracts.js';
 import { collectItem } from './inventory.js';
@@ -86,7 +86,9 @@ export function computeOfflineRewards(state, fromMs, nowMs, rng, balance = BALAN
   const dropCount = Math.floor(rate.dropsPerSecond * factor);
   const itemCount = Math.min(dropCount, balance.offline.maxItems);
   const items = [];
-  for (let i = 0; i < itemCount; i++) items.push(generateItem(state, rng, { level: rate.stage }, balance));
+  // v9.1.3 (doc3, décision) : le butin hors ligne donne aussi des pièces d'ensemble du monde farmé, comme le combat.
+  const setZone = zoneIndexForStage(rate.stage);
+  for (let i = 0; i < itemCount; i++) items.push(generateItem(state, rng, { level: rate.stage, setZone }, balance));
   const excessDrops = dropCount - itemCount;
   const excessGold = excessDrops * recycleValue({ rarity: 'common', level: rate.stage }, balance);
 
@@ -121,7 +123,7 @@ export function applyOfflineRewards(state, rewards, balance = BALANCE) {
   let autoRecycledCount = 0;
   for (const item of rewards.items) {
     const result = collectItem(state, item, balance);
-    if (!result.added) {
+    if (result.recycled) { // v9.1.3 : un objet rangé au coffre ou au Musée n'est pas « recyclé »
       autoRecycledGold += result.recycledGold;
       autoRecycledCount += 1;
     }

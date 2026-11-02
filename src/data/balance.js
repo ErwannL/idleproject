@@ -182,7 +182,12 @@ export const BALANCE = {
     stagePowerExp: 1.03, // v8.4 : croissance exponentielle (×1,03 par niveau d'objet)
     recycleLevelGrowth: 0.05,
     recycleGoldShare: 0.5, // étape 4 : part de l'or d'étape (voir recycleValue)
-    inventorySize: 100, // au-delà, les nouveaux objets sont recyclés en or
+    inventorySize: 100, // v9.1.3 : au-delà, recyclage complet (or + éclats) ; ancestraux et pièces utiles au coffre
+    stashSize: 300, // v9.1.3 : places du coffre (constante unique, voir core/stash.js STASH_SIZE)
+    // v9.1.3 (doc3 lot 1, faille d'or) : l'or de recyclage suit min(niveau de l'objet, étape max de la partie en
+    // cours). Après une Renaissance, un vieil objet de niveau 300 ne rend plus l'or de l'étape 300 à l'étape 5.
+    // Mesure : docs/equipement-v913.md.
+    recycleLevelCap: 'maxStage',
     signatureChance: 0.15, // chance qu'un boss lâche son objet signature
     bossEssence: 2, // « essences » garanties par boss (+1 par zone), versées en éclats (× ESSENCE_SHARDS) depuis la v9.1.3
     // Poids de chaque emplacement dans le butin (accessoires ≈ 1/3 des objets).

@@ -1501,7 +1501,7 @@ export class UI {
     const ratio = r.before > 0 ? r.after / r.before : 1;
     const rows = [
       r.claimed ? `<li>${r.claimed} récompense${r.claimed > 1 ? 's' : ''} récupérée${r.claimed > 1 ? 's' : ''}</li>` : '',
-      r.claimsLeft ? `<li class="bad">${r.claimsLeft} récompense${r.claimsLeft > 1 ? 's' : ''} avec un objet en attente (sac plein) : Objectifs › À récupérer.</li>` : '',
+      r.claimsLeft ? `<li class="bad">${r.claimsLeft} récompense${r.claimsLeft > 1 ? 's' : ''} avec un objet en attente (sac et coffre pleins) : Objectifs › À récupérer.</li>` : '',
       r.equipped ? `<li>${r.equipped} objet${r.equipped > 1 ? 's' : ''} équipé${r.equipped > 1 ? 's' : ''}</li>` : '',
     ].join('') || '<li class="muted">Rien à récupérer ni à équiper.</li>';
     this.openModal(`<h2 id="modal-title">${img('icon_bolt', 'ico20')} Retour de session</h2><ul class="session-list">${rows}</ul>

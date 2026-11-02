@@ -5,7 +5,7 @@ import { ENEMIES } from '../data/enemies.js';
 import { ZONES } from '../data/zones.js';
 import { zoneIndexForStage } from './combat.js';
 import { generateItem } from './loot.js';
-import { collectItem } from './inventory.js';
+import { addToInventory } from './inventory.js';
 
 export const BOUNTY = { target: 150, gems: 60 };
 
@@ -51,7 +51,7 @@ export function claimBounty(state, rng, now = Date.now(), balance = BALANCE) {
   let item = null;
   for (let i = 0; i < 40 && !item?.set; i++) item = generateItem(state, rng, { level: Math.max(1, state.maxStage), minRarity: 'epic', setZone: b.zone }, balance);
   if (!item.set) item.set = ZONES[b.zone].id;
-  collectItem(state, item, balance);
+  addToInventory(state, item, balance); // v9.1.3 (doc3 lot 1) : objet gagné, jamais recyclé (sac plein → coffre)
   state.gems += BOUNTY.gems;
   return { item, gems: BOUNTY.gems };
 }

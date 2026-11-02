@@ -7,61 +7,61 @@ Les sauvegardes sont fabriquées par un joueur automatique (achat au meilleur ga
 
 | Sauvegarde | Temps de jeu | Étape max | Record | Niveau | Renaissances | Dégâts/s |
 |---|---|---|---|---|---|---|
-| debut | 30 min | 60 | 60 | 26 | 0 | 30 467 |
-| milieu | 6 h 30 | 115 | 115 | 55 | 0 | 8.88e6 |
-| fin | 32 h 30 | 370 | 370 | 125 | 12 | 2.52e15 |
+| debut | 30 min | 45 | 45 | 25 | 0 | 24 065 |
+| milieu | 6 h 30 | 130 | 130 | 59 | 0 | 1.76e7 |
+| fin | 32 h 30 | 494 | 494 | 152 | 13 | 7.50e18 |
 
 ## 1. Bilan des gemmes
 
 Hypothèse : 2 h de jeu actif par jour, le reste hors ligne (plafond 24 h), toutes les missions faites, une clé de donjon par jour. Gains uniques à part.
 
-### Sauvegarde « debut » (étape 60)
+### Sauvegarde « debut » (étape 45)
 
 | Source | Jour | Semaine | Mois |
 |---|---|---|---|
-| Combat actif (2 h/jour, mesuré) | 2 722 | 19 054 | 81 660 |
-| Hors ligne (22 h, part des gemmes de kill) | 388 | 2 714 | 11 629 |
+| Combat actif (2 h/jour, mesuré) | 2 438 | 17 066 | 73 140 |
+| Hors ligne (22 h, part des gemmes de kill) | 402 | 2 814 | 12 062 |
 | Connexion (cycle de 7 jours, sans remise à zéro) | 130 | 910 | 3 900 |
 | Missions du jour (toutes + coffre) | 300 | 2 100 | 9 000 |
 | Piste du mois (tous les paliers) | 333 | 2 333 | 10 000 |
 | Prime du jour | 60 | 420 | 1 800 |
 | Donjons (1 clé/jour, Facile) | 25 | 175 | 750 |
-| **Total** | **3 958** | **27 706** | **118 739** |
-| Puits : invocations ×1 (100) / ×10 (900) | 39,6 invoc. | 30,8 × 10 | 132 × 10 |
+| **Total** | **3 688** | **25 819** | **110 652** |
+| Puits : invocations ×1 (100) / ×10 (900) | 36,9 invoc. | 28,7 × 10 | 123 × 10 |
 
-Combat mesuré sur 1 h : 1 361 gemmes (2 259 monstres).
+Combat mesuré sur 1 h : 1 219 gemmes (2 343 monstres).
 
-### Sauvegarde « milieu » (étape 115)
+### Sauvegarde « milieu » (étape 130)
 
 | Source | Jour | Semaine | Mois |
 |---|---|---|---|
-| Combat actif (2 h/jour, mesuré) | 248 | 1 736 | 7 440 |
-| Hors ligne (22 h, part des gemmes de kill) | 444 | 3 108 | 13 318 |
+| Combat actif (2 h/jour, mesuré) | 270 | 1 890 | 8 100 |
+| Hors ligne (22 h, part des gemmes de kill) | 442 | 3 097 | 13 272 |
 | Connexion (cycle de 7 jours, sans remise à zéro) | 130 | 910 | 3 900 |
 | Missions du jour (toutes + coffre) | 300 | 2 100 | 9 000 |
 | Piste du mois (tous les paliers) | 333 | 2 333 | 10 000 |
 | Prime du jour | 60 | 420 | 1 800 |
 | Donjons (1 clé/jour, Facile) | 25 | 175 | 750 |
-| **Total** | **1 540** | **10 782** | **46 208** |
-| Puits : invocations ×1 (100) / ×10 (900) | 15,4 invoc. | 12 × 10 | 51,3 × 10 |
+| **Total** | **1 561** | **10 925** | **46 822** |
+| Puits : invocations ×1 (100) / ×10 (900) | 15,6 invoc. | 12,1 × 10 | 52 × 10 |
 
-Combat mesuré sur 1 h : 124 gemmes (2 587 monstres).
+Combat mesuré sur 1 h : 135 gemmes (2 578 monstres).
 
-### Sauvegarde « fin » (étape 370)
+### Sauvegarde « fin » (étape 494)
 
 | Source | Jour | Semaine | Mois |
 |---|---|---|---|
-| Combat actif (2 h/jour, mesuré) | 302 | 2 114 | 9 060 |
-| Hors ligne (22 h, part des gemmes de kill) | 444 | 3 109 | 13 323 |
+| Combat actif (2 h/jour, mesuré) | 730 | 5 110 | 21 900 |
+| Hors ligne (22 h, part des gemmes de kill) | 438 | 3 067 | 13 143 |
 | Connexion (cycle de 7 jours, sans remise à zéro) | 130 | 910 | 3 900 |
 | Missions du jour (toutes + coffre) | 300 | 2 100 | 9 000 |
 | Piste du mois (tous les paliers) | 333 | 2 333 | 10 000 |
 | Prime du jour | 60 | 420 | 1 800 |
 | Donjons (1 clé/jour, Facile) | 25 | 175 | 750 |
-| **Total** | **1 594** | **11 161** | **47 833** |
-| Puits : invocations ×1 (100) / ×10 (900) | 15,9 invoc. | 12,4 × 10 | 53,1 × 10 |
+| **Total** | **2 016** | **14 115** | **60 493** |
+| Puits : invocations ×1 (100) / ×10 (900) | 20,2 invoc. | 15,7 × 10 | 67,2 × 10 |
 
-Combat mesuré sur 1 h : 151 gemmes (2 588 monstres).
+Combat mesuré sur 1 h : 365 gemmes (2 553 monstres).
 
 Puits de gemmes du jeu : invocation (100 l'unité, 900 les 10) et réinitialisation des talents (300). Gains uniques : hauts faits 6 495 gemmes au total, premier boss 50.
 Connexion (S2b) : un cycle de 7 jours donne 910 gemmes ; sans remise à zéro, un joueur qui vient 4 jours sur 7 gagne 520 gemmes par semaine au lieu de rester sur les premières cases (260 pour 2 séries de 2 jours).
@@ -70,9 +70,9 @@ Connexion (S2b) : un cycle de 7 jours donne 910 gemmes ; sans remise à zéro, u
 
 | Sauvegarde | Éclats / h | Recyclés auto / h | Fusions / h |
 |---|---|---|---|
-| debut | 757 | 388 | 0 |
-| milieu | 313 | 274 | 0 |
-| fin | 230 | 668 | 0 |
+| debut | 764 | 436 | 0 |
+| milieu | 458 | 431 | 0 |
+| fin | 4 026 | 641 | 0 |
 
 Puits (forge) : fabriquer un Rare 25 éclats, un Épique 120 éclats, relancer les effets 20 éclats, renforcer 2 × (niveau + 1) éclats.
 
@@ -80,24 +80,24 @@ Puits (forge) : fabriquer un Rare 25 éclats, un Épique 120 éclats, relancer l
 
 | Sauvegarde | Dégâts/s avec / sans équipement | PV avec / sans |
 |---|---|---|
-| debut | ×1,8 | ×5 |
-| milieu | ×4,5 | ×43,5 |
-| fin | ×523 | ×9 916 |
+| debut | ×1,6 | ×5,2 |
+| milieu | ×5,9 | ×79,2 |
+| fin | ×1 542 | ×27 417 |
 
 ## 4. Chemins de butin (1 h de jeu actif)
 
 | Sauvegarde | Objets | dont boss | Sac | Recyclés au ramassage | Mannequins | Musée | Raretés |
 |---|---|---|---|---|---|---|---|
-| debut | 585 | 3 | 183 | 388 | 13 | 1 | Rare 26,7 %, Légendaire 1,7 %, Commun 66,3 %, Épique 5,3 % |
-| milieu | 401 | 0 | 124 | 274 | 3 | 0 | Commun 68,3 %, Épique 6 %, Rare 25,2 %, Légendaire 0,5 % |
-| fin | 670 | 0 | 0 | 668 | 2 | 0 | Commun 67,9 %, Rare 24,2 %, Épique 7,3 %, Légendaire 0,6 % |
+| debut | 643 | 4 | 191 | 436 | 16 | 0 | Épique 6,7 %, Rare 24,9 %, Commun 67,8 %, Légendaire 0,6 % |
+| milieu | 587 | 0 | 150 | 431 | 6 | 0 | Commun 73,4 %, Rare 20,3 %, Épique 5,6 %, Légendaire 0,7 % |
+| fin | 652 | 2 | 1 | 641 | 9 | 1 | Commun 68,9 %, Épique 6,7 %, Rare 23,2 %, Légendaire 1,2 % |
 
 ## 5. Temps de jeu pour revenir à l'étape max après une Renaissance
 
 | Sauvegarde | Étape max | Fragments gagnés | Retour (talents achetés) | Retour (sans talents) |
 |---|---|---|---|---|
-| milieu | 115 | 23 | 41 min | 41 min |
-| fin | 370 | 108 | 1 h 57 | 2 h 13 |
+| milieu | 130 | 27 | 2 h 08 | 1 h 06 |
+| fin | 494 | 158 | 2 h 34 | 2 h 35 |
 
 Renaissance possible dès l'étape 30. Le temps est du temps de combat simulé à ×1.
 
@@ -105,7 +105,7 @@ Renaissance possible dès l'étape 30. Le temps est du temps de combat simulé �
 
 | Parcours | Appuis | Détail |
 |---|---|---|
-| Réinvestir après une Renaissance | 19 | Renaître (2 : bouton + confirmation), Arbre (1), talents « Tout apprendre » : 1 région(s) × 2, compétences (2 : onglet + « Tout apprendre »), Améliorations (2 : onglet + Max), puis 1 appui par amélioration (7) dès que l'or revient |
+| Réinvestir après une Renaissance | 21 | Renaître (2 : bouton + confirmation), Arbre (1), talents « Tout apprendre » : 2 région(s) × 2, compétences (2 : onglet + « Tout apprendre »), Améliorations (2 : onglet + Max), puis 1 appui par amélioration (7) dès que l'or revient |
 | Changer de build (build enregistré) | 4 | Héros (1), Équipement (1), déplier « Builds » (1), charger (1) ; sans build enregistré : 1 appui par objet à porter (jusqu'à 7) + choix des pouvoirs |
 | Relancer un pouvoir | 5 | Aventure (1), Boss (1), boss (1), « Relancer » (1), garder ou remplacer (1) ; il faut d'abord une charge (réaffronter le boss) |
 | Trier un sac plein | 25 | Héros (1), Équipement (1), recyclage groupé jusqu'à Épique (3 : bouton, rareté, confirmation) qui retire 0 objet(s) sur 100 ; 100 restent (verrouillés, meilleurs ou utiles), 2 appuis par objet examiné (10 au plus comptés) |

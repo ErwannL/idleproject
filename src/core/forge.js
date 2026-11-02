@@ -3,7 +3,7 @@
 import { BALANCE } from '../data/balance.js';
 import { ITEM_BASES, RARITIES } from '../data/items.js';
 import { referenceKillGold } from './combat.js';
-import { addToInventory, isUpgrade } from './inventory.js';
+import { addToInventory, isUpgrade, keptByAffix, recycleRules } from './inventory.js';
 import { generateItem, itemBase, itemPower, makeItem, rarityIndex, refreshItemStats, rerollAffixes } from './loot.js';
 import { trackMissions } from './missions.js';
 import { usefulSetPiece } from './sets.js';
@@ -29,7 +29,8 @@ export function craftItem(state, slot, rng, balance = BALANCE, tier = 'rare') {
   return item;
 }
 
-const findItem = (state, id) => [...state.inventory, ...Object.values(state.equipment)].find((i) => i?.id === id);
+// v9.1.3 (doc3 lot 1, point 10) : la Forge voit aussi le coffre.
+const findItem = (state, id) => [...state.inventory, ...Object.values(state.equipment), ...(state.stash ?? [])].find((i) => i?.id === id);
 
 export function canReforge(item) {
   return Boolean(item) && rarityIndex(item.rarity) >= 1 && !itemBase(item.baseId).signature;
@@ -41,6 +42,10 @@ export function reforgeItem(state, id, rng, balance = BALANCE) {
   if (!canReforge(item) || state.materials.shards < f.reforgeShards) return false;
   state.materials.shards -= f.reforgeShards;
   rerollAffixes(item, rng, balance);
+  // v9.1.3 (doc3 lot 1, point 7) : les renforcements d'effets s'appliquent tout de suite aux nouveaux effets
+  // (avant, ils semblaient perdus jusqu'au prochain recalcul).
+  for (const a of item.affixes ?? []) delete a.base;
+  refreshItemStats(item, balance);
   return true;
 }
 
@@ -108,8 +113,10 @@ const fusable = (item) => !item.locked && !itemBase(item.baseId).signature;
 
 // v9.1.3 : la fusion à la main (un groupe ou « Fusionner tout ») protège comme l'automatique — objet meilleur que
 // l'équipé, pièce d'ensemble utile — et en plus tout objet payé (renforcé avec de l'or et des éclats).
+// v9.1.3 (doc3 lot 1, point 4) : et le filtre « garder si tel effet » des règles de recyclage.
 export function fusionKeep(state) {
-  return (i) => (i.upgrades ?? 0) > 0 || isUpgrade(state, i) || usefulSetPiece(state, i, itemPower);
+  const rules = recycleRules(state);
+  return (i) => (i.upgrades ?? 0) > 0 || keptByAffix(rules, i) || isUpgrade(state, i) || usefulSetPiece(state, i, itemPower);
 }
 
 // Groupes disponibles dans le sac : [{ slot, rarity, count, next }] (seulement s'il y a assez d'objets).
@@ -148,12 +155,12 @@ export function fuseItems(state, slot, rarity, rng, balance = BALANCE, keep = nu
 
 // Fusion automatique (v8.1) : dès que 5 objets du même emplacement et de la même rareté (parmi les raretés
 // choisies) sont dans le sac, ils sont fusionnés. Jamais un objet verrouillé, ancestral ou meilleur que l'équipé.
-export function autoFuse(state, rng, isUpgrade, balance = BALANCE) {
+export function autoFuse(state, rng, _isUpgrade = null, balance = BALANCE) { // v9.1.3 : 3e paramètre gardé pour les appelants
   const rules = state.ui?.autoFuse;
   if (!rules?.on || !rules.rarities?.length) return [];
   const made = [];
   for (let guard = 0; guard < 50; guard++) {
-    const keep = (i) => isUpgrade(state, i) || usefulSetPiece(state, i, itemPower);
+    const keep = fusionKeep(state); // v9.1.3 (doc3 lot 1) : même protection que la fusion à la main
     const counts = new Map();
     for (const i of state.inventory) {
       if (!rules.rarities.includes(i.rarity) || !fusable(i) || keep(i)) continue;

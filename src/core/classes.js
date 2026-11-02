@@ -1,7 +1,8 @@
 // Classes du héros (v9.0.6) : classe active, armes autorisées, changement de classe.
 import { CLASSES, STARTER_CLASS } from '../data/classes.js';
 import { ITEM_BASES } from '../data/items.js';
-import { itemBase, makeItem } from './loot.js';
+import { itemBase, itemPower, makeItem, refreshItemStats } from './loot.js';
+import { placeItem } from './stash.js';
 
 export const classById = (id) => CLASSES.find((c) => c.id === id) ?? null;
 
@@ -56,17 +57,40 @@ export function setHeroClass(state, id, power = () => 0) {
     state.equipment.weapon = best;
     return { changed: true, swapped: best };
   }
-  const base = classWeaponBases(id)[0];
-  if (!base) return { changed: true };
-  // Une arme ancestrale garde son identité : elle retourne au sac et une arme neuve de la classe (même rareté
-  // et niveau) la remplace.
-  if (itemBase(weapon.baseId)?.signature) {
-    state.inventory.push(weapon);
-    state.equipment.weapon = makeItem(state, base.id, weapon.rarity, weapon.level);
-    return { changed: true, reforged: state.equipment.weapon };
+  const reforged = reforgeForClass(state, weapon, id);
+  if (!reforged) return { changed: true };
+  // Une arme ancestrale garde son identité : elle retourne au sac (v9.1.3 : ou au coffre, ou en attente — jamais
+  // perdue ni rognée au chargement) et une arme de la classe la remplace.
+  if (itemBase(weapon.baseId)?.signature) placeItem(state, weapon);
+  state.equipment.weapon = reforged;
+  return { changed: true, reforged };
+}
+
+// v9.1.3 (doc3 lot 1, point 5) : arme de remplacement sans perte. Même rareté, niveau, effets, renforcements et
+// verrou ; statistiques recalculées sur la nouvelle base (avant : `{ ...weapon, baseId }` gardait celles de l'ancienne
+// base, et l'arme neuve d'un ancestral n'avait ni effets ni renforcements). Les renforcements d'une statistique
+// absente de la nouvelle base passent aux dégâts. Parmi les armes de la classe, la plus puissante est retenue.
+// Une arme ancestrale reste au sac : sa copie prend un nouvel identifiant.
+export function reforgeForClass(state, weapon, classId) {
+  const ancestral = Boolean(itemBase(weapon.baseId)?.signature);
+  let best = null;
+  for (const base of classWeaponBases(classId)) {
+    const boosts = {};
+    for (const [k, n] of Object.entries(weapon.boosts ?? {})) {
+      const key = k.startsWith('affix:') || k === 'main' || (base.stats[k] ?? 0) > 0 ? k : 'damage';
+      boosts[key] = (boosts[key] ?? 0) + n;
+    }
+    const fresh = makeItem(state, base.id, weapon.rarity, weapon.level);
+    state.nextItemId -= 1; // identifiant attribué une seule fois, après le choix
+    const item = {
+      ...fresh, id: weapon.id, locked: Boolean(weapon.locked), upgrades: weapon.upgrades ?? 0,
+      boosts, affixes: (weapon.affixes ?? []).map((a) => ({ ...a })), ...(weapon.set ? { set: weapon.set } : {}),
+    };
+    refreshItemStats(item);
+    if (!best || itemPower(item) > itemPower(best)) best = item;
   }
-  state.equipment.weapon = { ...weapon, baseId: base.id, name: base.name };
-  return { changed: true, reforged: state.equipment.weapon };
+  if (best && ancestral) { best.id = `it${state.nextItemId}`; state.nextItemId += 1; }
+  return best;
 }
 
 export function sanitizeHeroClass(raw) {

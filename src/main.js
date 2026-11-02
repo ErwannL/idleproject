@@ -348,9 +348,9 @@ const actions = {
       }
     }
     const left = claimables(state).length;
-    if (!n) { ui.toast(left ? 'Sac plein : libérez de la place pour récupérer les objets.' : 'Rien à récupérer pour le moment.'); return; }
+    if (!n) { ui.toast(left ? 'Sac et coffre pleins : libérez de la place pour récupérer les objets.' : 'Rien à récupérer pour le moment.'); return; }
     const text = [rewardText(total, formatNumber), items ? `${items} objet${items > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ');
-    done(true, `Tout récupéré : ${text}${left ? ` (${left} en attente : sac plein)` : ''}`, '#7fd4ff');
+    done(true, `Tout récupéré : ${text}${left ? ` (${left} en attente : sac et coffre pleins)` : ''}`, '#7fd4ff');
   },
   // Retour de session (v9.1.0, touche S) : récupérer tout et équiper le meilleur, puis un récapitulatif.
   // v9.1.3 : plus d'achat automatique d'améliorations ni de répartition des points : l'or et les points restent
@@ -389,7 +389,7 @@ const actions = {
   },
   claimEvent(id) {
     const given = claimEvent(state, id);
-    done(Boolean(given), given ? `Récupéré : ${rewardText(given) || given.item?.name}` : 'Sac plein');
+    done(Boolean(given), given ? `Récupéré : ${rewardText(given) || given.item?.name}` : 'Sac et coffre pleins');
   },
   buyMerchant(id) { done(buyFromMerchant(state, id), 'Objet acheté'); },
   dismissEvent(id) { done(dismissEvent(state, id)); },
