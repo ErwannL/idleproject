@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 function files(dir) {
   return readdirSync(dir).flatMap((f) => {
@@ -15,7 +16,7 @@ function files(dir) {
 
 test('syntaxe valide pour chaque fichier de src/', () => {
   const bad = [];
-  for (const f of files(new URL('../src', import.meta.url).pathname)) {
+  for (const f of files(fileURLToPath(new URL('../src', import.meta.url)))) {
     try { execFileSync(process.execPath, ['--check', f], { stdio: 'pipe' }); } catch (e) { bad.push(`${f}: ${String(e.stderr).split('\n')[0]}`); }
   }
   assert.deepEqual(bad, []);
