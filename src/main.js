@@ -18,7 +18,7 @@ import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
 import { endTower, startTower } from './core/tower.js';
 import { claimExpedition, expeditionType, relaunchExpeditions, startExpedition } from './core/expeditions.js';
 import { endChallenge, startChallenge } from './core/challenge.js';
-import { autoFuse, craftItem, fuseAll, fuseItems, fusionFailText, fusionKeep, reforgeItem, sharpenItem, upgradeItem } from './core/forge.js';
+import { autoFuse, craftItem, fuseAll, fuseItems, fusionFailText, fusionKeep, reforgeItem, sharpenItem, targetReroll, upgradeItem } from './core/forge.js';
 import { summon } from './core/gacha.js';
 import { setActiveHero } from './core/heroes.js';
 import { addToInventory, bulkRecycleCandidates, equipBest, equipItem, isUpgrade, recycleItem, recycleMatching, recycleRules, sweepInventory, toggleLock } from './core/inventory.js';
@@ -37,7 +37,7 @@ import { SAVE_KEY, clearSave, encodeSaveCode, loadGame, parseImport, saveGame, w
 import { SAVE_VERSION, createNewState } from './core/state.js';
 import { computeHeroStats } from './core/stats.js';
 import { formatNumber } from './core/format.js';
-import { claimBounty } from './core/bounty.js';
+import { claimBounty, setBountyZone } from './core/bounty.js';
 import { claimables } from './core/claimables.js';
 import { moveToStash, takeFromStash, wearSet } from './core/stash.js';
 import { exposeAll, museumDuplicates, putInMuseum, takeFromMuseum } from './core/museum.js';
@@ -216,6 +216,7 @@ const actions = {
     done(Boolean(item), item ? `Forgé : ${item.name}` : null);
   },
   reforge(id) { done(reforgeItem(state, id, rng), 'Effets spéciaux relancés'); },
+  targetReroll(id, type) { done(targetReroll(state, id, type, rng), 'Effet relancé'); }, // v9.1.3 (doc3 lot 3), hors REPEATABLE
   sharpen(id) { done(sharpenItem(state, id), 'Objet réaffûté'); },
   upgradeItem(id) {
     const stat = upgradeItem(state, id, rng);
@@ -663,6 +664,7 @@ const actions = {
     done(Boolean(r), r ? `Défi terminé : ${r.waves} vague${r.waves > 1 ? 's' : ''} franchie${r.waves > 1 ? 's' : ''}.` : null);
   },
   // Prime du jour (v8.9).
+  setBountyZone(zone) { done(setBountyZone(state, zone), 'Monde de la prime choisi'); }, // v9.1.3 (doc3 lot 3)
   claimBounty() {
     const r = claimBounty(state, rng);
     done(Boolean(r), r ? `Prime du jour : ${r.item.name} (${rarityById(r.item.rarity).label}) et +${r.gems} gemmes` : null, '#ffe08a');

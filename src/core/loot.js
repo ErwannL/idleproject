@@ -63,13 +63,15 @@ function mainAffixValue(main, rarity, level) {
 
 // Effets spéciaux tirés au hasard parmi ceux autorisés pour l'emplacement (sans doublon).
 // `exclude` : types déjà présents (effet principal d'un accessoire).
-export function rollAffixes(slot, rarityId, rng, balance = BALANCE, exclude = []) {
+// v9.1.3 (doc3 lot 3) : `forced` = type imposé à la première ligne (relance orientée), même aléa de ±20 %.
+export function rollAffixes(slot, rarityId, rng, balance = BALANCE, exclude = [], forced = null) {
   const count = balance.loot.affixCount[rarityId] ?? 0;
   const rarity = rarityById(rarityId);
   const pool = Object.entries(AFFIXES).filter(([type, a]) => a.slots.includes(slot) && !exclude.includes(type)).map(([type]) => type);
   const affixes = [];
   for (let i = 0; i < count && pool.length; i++) {
-    const type = pool.splice(Math.floor(rng.next() * pool.length), 1)[0];
+    const at = i === 0 && forced && pool.includes(forced) ? pool.indexOf(forced) : Math.floor(rng.next() * pool.length);
+    const type = pool.splice(at, 1)[0];
     const raw = AFFIXES[type].base * rarity.statMultiplier * (0.8 + 0.4 * rng.next());
     affixes.push({ type, value: raw < 3 ? Math.round(raw * 10) / 10 : Math.round(raw) });
   }
@@ -118,11 +120,11 @@ export function makeSignatureItem(state, bossId, level, rng, balance = BALANCE) 
   return makeItem(state, base.id, rng.next() < 0.25 ? 'legendary' : 'epic', Math.max(1, level), balance);
 }
 
-export function rerollAffixes(item, rng, balance = BALANCE) {
+export function rerollAffixes(item, rng, balance = BALANCE, forced = null) {
   const base = itemBase(item.baseId);
   // L'effet principal d'un accessoire est conservé.
   const main = base.mainAffix ? [item.affixes[0]] : [];
-  item.affixes = [...main, ...rollAffixes(item.slot, item.rarity, rng, balance, main.map((a) => a.type))];
+  item.affixes = [...main, ...rollAffixes(item.slot, item.rarity, rng, balance, main.map((a) => a.type), forced)];
 }
 
 // Recalcule les statistiques après un changement de niveau (réaffûtage) ou une amélioration.

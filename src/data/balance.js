@@ -211,6 +211,11 @@ export const BALANCE = {
     // Fabrication épique : Épique ou mieux (v9.1.3 : 60 éclats + 6 essences → 120 éclats).
     epicCraft: { shards: 120, goldKills: 60 },
     reforgeShards: 20, // v9.1.3 : 10 éclats + 1 essence
+    // v9.1.3 (doc3 lot 3) : relance orientée (Épique et Légendaire) : le joueur choisit l'effet de la 1re ligne.
+    // Prix du doc convertis en éclats (1 essence = 10 éclats) : 50 + 5 → 100, 70 + 7 → 140, 30 + 3 → 60, 40 + 4 → 80.
+    // gear = arme, casque, armure ; accessory = collier, boucles, bague, bracelet. Provisoires.
+    targetReroll: { epic: { gear: 100, accessory: 140 }, legendary: { gear: 60, accessory: 80 } },
+    targetRerollExcluded: ['dropChance'], // additif (core/combat.js) : changerait toute l'échelle du butin
     sharpenShardsPerLevel: 2, // réaffûtage : éclats par niveau gagné × facteur de rareté
     // Amélioration d'un objet : chaque niveau augmente une de ses statistiques (au hasard) de 12 %.
     maxUpgrades: { common: 5, rare: 5, epic: 10, legendary: 10 },

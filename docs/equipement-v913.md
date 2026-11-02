@@ -183,3 +183,55 @@ Boucle fusion → recyclage (or et éclats rendus par le recyclage du résultat 
 Aucune boucle ne rapporte d'or : fusionner puis recycler rend toujours moins d'or que recycler directement, avant
 comme après Renaissance. Seule exception en éclats : 5 Rares (15 éclats) → 1 Épique (18), +3 éclats par fusion,
 déjà vrai avant ce lot (Rare 5 pour 1 inchangé) et payé par 5 objets : signalé, pas modifié.
+
+# Lot 3 « des choix sur les stats »
+
+Tests : `tests/v913-lot3.test.js`. Prix dans `BALANCE.forge` (data/balance.js), provisoires.
+
+| Point | Maintenant |
+|---|---|
+| Relance orientée | Épique et Légendaire (pas les ancestraux). Fiche › Améliorer : liste de l'effet voulu, « Relancer vers » puis « Confirmer » (2e appui, 4 s). La 1re ligne d'effet tirée (après l'effet principal d'un accessoire) devient l'effet choisi, valeur ±20 % comme le butin ; sur Légendaire la 2e ligne reste au hasard. `dropChance` jamais proposé ni accepté. Action `target-reroll`, hors `REPEATABLE` (testé). |
+| Prix (éclats seuls, 1 essence = 10 éclats) | arme/casque/armure Épique **100**, accessoire Épique **140**, Légendaire **60** / **80** (`forge.targetReroll`). Relance au hasard gardée à **20** (10 éclats + 1 essence, déjà converti à la fusion des monnaies, `forge.reforgeShards`). |
+| Monde de la Prime | Liste dans la carte de la Prime (tant qu'elle n'est pas récupérée) : mondes atteints selon `records.bestStage` (pas `maxStage`, qui retombe à 1 à la Renaissance). Le monstre devient un monstre du monde choisi ; les victoires déjà comptées sont gardées (`start` peut devenir négatif, gardé au chargement). Champ `zone` déjà sauvegardé : pas de migration. |
+| Renforcement ciblé | **Non implémenté** : le test ci-dessous montre qu'une même règle gagne partout (voir conclusion). Signalé au développeur. |
+
+## Renforcement ciblé : le test d'abord
+
+`tools/measure-renfort-v913.mjs` : Légendaires au niveau de l'étape max, 3 tirages d'effets par modèle, toutes les
+répartitions de 10 renforcements (hors `dropChance`), score d'`isUpgrade` (core/inventory.js : log dégâts/s + log
+robustesse) sur le héros des sauvegardes « milieu » et « fin ». Plafond du doc : 4 lignes ou plus → 5 par ligne.
+Pourcentages : gain de score (dégâts/s × robustesse) par rapport à l'objet sans renforcement.
+
+| Sauvegarde | Objet (effets) | Lignes | Meilleure sans plafond | Meilleure avec plafond | 2e avec plafond (écart) | Au hasard (moy.) |
+|---|---|---|---|---|---|---|
+| milieu | Dague (dégâts contre les boss, vol de vie) | 4 | 10 dégâts (72,9 %) | 5 dégâts + 5 vitesse (41,5 %) | 5 dégâts + 4 vitesse + 1 dégâts contre les boss (−0,6 %) | 20,0 % |
+| milieu | Dague (dégâts contre les ennemis, vol de vie) | 4 | 10 dégâts (72,9 %) | 5 dégâts + 5 vitesse (41,5 %) | 5 dégâts + 4 vitesse + 1 dégâts contre les ennemis (−0,6 %) | 20,0 % |
+| milieu | Dague (dégâts contre les ennemis, or) | 4 | 10 dégâts (72,9 %) | 5 dégâts + 5 vitesse (41,5 %) | 5 dégâts + 4 vitesse + 1 dégâts contre les ennemis (−0,6 %) | 20,0 % |
+| milieu | Massue (dégâts contre les boss, vol de vie) | 4 | 10 dégâts (94,0 %) | 5 dégâts + 5 PV (64,1 %) | 5 dégâts + 4 PV + 1 dégâts contre les boss (−2,1 %) | 29,9 % |
+| milieu | Massue (dégâts contre les ennemis, vol de vie) | 4 | 10 dégâts (94,0 %) | 5 dégâts + 5 PV (64,1 %) | 5 dégâts + 4 PV + 1 dégâts contre les ennemis (−2,1 %) | 29,9 % |
+| milieu | Massue (dégâts contre les ennemis, or) | 4 | 10 dégâts (94,0 %) | 5 dégâts + 5 PV (64,1 %) | 5 dégâts + 4 PV + 1 dégâts contre les ennemis (−2,1 %) | 29,9 % |
+| milieu | Cuirasse (régénération, or) | 4 | 2 PV + 8 armure (79,4 %) | 5 PV + 5 armure (69,9 %) | 4 PV + 5 armure + 1 régénération (−4,8 %) | 30,1 % |
+| milieu | Cuirasse (chance de butin, or) | 3 | 2 PV + 8 armure (79,4 %) | 5 PV + 5 armure (69,9 %) | 4 PV + 5 armure + 1 or (−4,8 %) | 42,4 % |
+| milieu | Cuirasse (chance de butin, dégâts contre les ennemis) | 3 | 2 PV + 8 armure (79,4 %) | 5 PV + 5 armure (69,9 %) | 4 PV + 5 armure + 1 dégâts contre les ennemis (−4,8 %) | 42,4 % |
+| milieu | Collier (coup critique, dégâts contre les ennemis, or) | 3 | aucune ligne ne compte (0,0 %) | aucune ligne ne compte (0,0 %) | aucune ligne ne compte (−0,0 %) | 0,0 % |
+| milieu | Collier (coup critique, chance de butin, or) | 2 | aucune ligne ne compte (0,0 %) | aucune ligne ne compte (0,0 %) | aucune ligne ne compte (−0,0 %) | 0,0 % |
+| milieu | Collier (coup critique, chance de butin, dégâts contre les boss) | 2 | aucune ligne ne compte (0,0 %) | aucune ligne ne compte (0,0 %) | aucune ligne ne compte (−0,0 %) | 0,0 % |
+| fin | Dague (dégâts contre les boss, vol de vie) | 4 | 10 dégâts (120,0 %) | 5 dégâts + 5 vitesse (60,0 %) | 5 dégâts + 4 vitesse + 1 dégâts contre les boss (−0,0 %) | 29,0 % |
+| fin | Dague (dégâts contre les ennemis, vol de vie) | 4 | 10 dégâts (120,0 %) | 5 dégâts + 5 vitesse (60,0 %) | 5 dégâts + 4 vitesse + 1 dégâts contre les ennemis (−0,0 %) | 29,0 % |
+| fin | Dague (dégâts contre les ennemis, or) | 4 | 10 dégâts (120,0 %) | 5 dégâts + 5 vitesse (60,0 %) | 5 dégâts + 4 vitesse + 1 dégâts contre les ennemis (−0,0 %) | 29,0 % |
+| fin | Massue (dégâts contre les boss, vol de vie) | 4 | 5 dégâts + 5 PV (153,1 %) | 5 dégâts + 5 PV (153,1 %) | 5 dégâts + 4 PV + 1 dégâts contre les boss (−7,9 %) | 64,9 % |
+| fin | Massue (dégâts contre les ennemis, vol de vie) | 4 | 5 dégâts + 5 PV (153,1 %) | 5 dégâts + 5 PV (153,1 %) | 5 dégâts + 4 PV + 1 dégâts contre les ennemis (−7,9 %) | 64,9 % |
+| fin | Massue (dégâts contre les ennemis, or) | 4 | 5 dégâts + 5 PV (153,1 %) | 5 dégâts + 5 PV (153,1 %) | 5 dégâts + 4 PV + 1 dégâts contre les ennemis (−7,9 %) | 64,9 % |
+| fin | Cuirasse (régénération, or) | 4 | 10 PV (119,4 %) | 5 PV + 5 armure (104,5 %) | 5 PV + 4 armure + 1 régénération (−5,6 %) | 44,8 % |
+| fin | Cuirasse (chance de butin, or) | 3 | 10 PV (119,4 %) | 5 PV + 5 armure (104,5 %) | 5 PV + 4 armure + 1 or (−5,6 %) | 63,2 % |
+| fin | Cuirasse (chance de butin, dégâts contre les ennemis) | 3 | 10 PV (119,4 %) | 5 PV + 5 armure (104,5 %) | 5 PV + 4 armure + 1 dégâts contre les ennemis (−5,6 %) | 63,2 % |
+| fin | Collier (coup critique, dégâts contre les ennemis, or) | 3 | aucune ligne ne compte (0,0 %) | aucune ligne ne compte (0,0 %) | aucune ligne ne compte (−0,0 %) | 0,0 % |
+| fin | Collier (coup critique, chance de butin, or) | 2 | aucune ligne ne compte (0,0 %) | aucune ligne ne compte (0,0 %) | aucune ligne ne compte (−0,0 %) | 0,0 % |
+| fin | Collier (coup critique, chance de butin, dégâts contre les boss) | 2 | aucune ligne ne compte (0,0 %) | aucune ligne ne compte (0,0 %) | aucune ligne ne compte (−0,0 %) | 0,0 % |
+
+**Conclusion : la même répartition gagne partout.** Avec le plafond, le meilleur choix est toujours « 5 + 5 sur les
+deux statistiques de base » (dégâts + vitesse, dégâts + PV, PV + armure), aucun effet spécial, quels que soient les
+effets tirés ; le 2e choix ne s'en écarte que d'un palier. Sur le Collier, aucune ligne ne compte pour ce score
+(critique déjà au plafond, les autres effets hors du score). Ce n'est pas une décision, c'est un bonus (×2 environ
+sur le gain du « au hasard » : 41 % contre 20 %, 153 % contre 65 %) : **non implémenté**, à trancher par le développeur
+(par exemple si les effets spéciaux comptaient dans un score d'activité : boss, farm, or).

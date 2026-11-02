@@ -1,5 +1,5 @@
 // Objectifs › Missions : connexion, journalières, piste du mois (v9.1.3), contrats, prime du jour, hauts faits.
-import { BOUNTY, bountyProgress, dailyBounty } from '../../core/bounty.js';
+import { BOUNTY, bountyProgress, bountyZones, dailyBounty } from '../../core/bounty.js';
 import { ENEMIES } from '../../data/enemies.js';
 import { ZONES } from '../../data/zones.js';
 import { ITEM_SETS } from '../../data/sets.js';
@@ -129,9 +129,14 @@ function bountyCard(state) {
   // Étape du monde de la prime (premier passage) : on peut y aller si elle est atteinte.
   const stage = zoneStartStage(b.zone) + 1;
   const reachable = stage <= state.maxStage && !state.dungeon && !state.tower && !state.challenge;
+  // v9.1.3 (doc3 lot 3) : monde choisi (mondes atteints selon le record), tant que la prime n'est pas récupérée.
+  const zones = bountyZones(state);
+  const zonePick = !b.claimed && zones.length > 1
+    ? `<select data-action="bounty-zone" aria-label="Monde de la prime">${zones.map((z) => `<option value="${z}"${z === b.zone ? ' selected' : ''}>${escapeHtml(ZONES[z].name)}</option>`).join('')}</select>`
+    : `<span class="muted">${escapeHtml(ZONES[b.zone].name)}</span>`;
   return `<div class="card bounty-card">
     <div class="bounty-portrait">${animCanvas(`foe:${enemy.sprite}`, 48, 40, 1)}</div>
-    <div class="grow"><div class="row-between"><b class="gold-text">🎯 Prime du jour : ${escapeHtml(enemy.name)}</b><span class="muted">${escapeHtml(ZONES[b.zone].name)}</span></div>
+    <div class="grow"><div class="row-between"><b class="gold-text">🎯 Prime du jour : ${escapeHtml(enemy.name)}</b>${zonePick}</div>
       ${progressBar(done / b.target, `${done}/${b.target} vaincus`)}
       <div class="muted">Récompense : une pièce Épique ou mieux de l'ensemble <b style="color:${set?.color ?? '#fff'}">${escapeHtml(set?.name ?? '')}</b> et ${BOUNTY.gems} gemmes. Nouvelle prime chaque jour.</div></div>
     ${b.claimed ? '<button class="btn" disabled>Récupérée ✔</button>'

@@ -5,7 +5,7 @@ import { BALANCE } from '../../data/balance.js';
 import { BOSSES } from '../../data/enemies.js';
 import { ACCESSORY_SLOTS, GEAR_SLOTS, RARITIES, SLOTS, STAT_LABELS } from '../../data/items.js';
 import { formatStat } from '../../core/format.js';
-import { canReforge, craftCost, fusableRarities, fusionChance, fusionGroups, fusionKeep, fusionPity, maxUpgrades, sharpenCost, upgradeCost } from '../../core/forge.js';
+import { canReforge, canTargetReroll, craftCost, targetRerollChoices, targetRerollCost, fusableRarities, fusionChance, fusionGroups, fusionKeep, fusionPity, maxUpgrades, sharpenCost, upgradeCost } from '../../core/forge.js';
 import { KEEP_AFFIX_LABELS, bulkRecycleCandidates, isUpgrade, listInventory, RECYCLE_MODES, recycleRules } from '../../core/inventory.js';
 import { itemBase, rarityById, recycleLevelOf, recycleMaterials, recycleValue } from '../../core/loot.js';
 import { computeHeroStats, statsWithItem } from '../../core/stats.js';
@@ -95,6 +95,18 @@ function detail(ui, state, item) {
   const reforgeBtn = `<button class="btn small" data-action="reforge" data-id="${item.id}"
       ${!canReforge(item) || state.materials.shards < BALANCE.forge.reforgeShards ? 'disabled' : ''}
 >${canReforge(item) ? 'Relancer les effets' : 'Aucun effet à relancer'} ${shard()}${BALANCE.forge.reforgeShards}</button>`;
+  // v9.1.3 (doc3 lot 3) : relance orientée — choix de l'effet dans une liste, puis un 2e appui confirme.
+  let targetLine = '';
+  if (canTargetReroll(item)) {
+    const choices = targetRerollChoices(item);
+    const sel = choices.includes(ui.view.rerollType) ? ui.view.rerollType : choices[0];
+    const cost = targetRerollCost(item);
+    const armed = ui.view.rerollArmed === `${item.id}|${sel}`;
+    const what = item.rarity === 'legendary' ? 'Impose la 1re ligne d\'effet (les autres au hasard). Valeur ±20 %.' : 'Impose l\'effet spécial. Valeur ±20 %.';
+    targetLine = `<div class="tool-line target-reroll"><select data-action="reroll-type" aria-label="Effet voulu">${choices.map((t) => `<option value="${t}"${t === sel ? ' selected' : ''}>${escapeHtml(KEEP_AFFIX_LABELS[t] ?? t)}</option>`).join('')}</select>
+      <button class="btn small${armed ? ' btn-gold' : ''}" data-action="target-reroll" data-id="${item.id}" data-value="${sel}" ${state.materials.shards < cost ? 'disabled' : ''}>${armed ? 'Confirmer' : 'Relancer vers'} ${shard()}${cost}</button>
+      <span class="muted">${what}</span></div>`;
+  }
   // v9.1.0 : toujours visibles (même dans la fiche du téléphone) : Équiper et Recycler (le verrou est dans l'en-tête).
   const actions = `<div class="action-grid main-actions">
       ${isEquipped ? '<button class="btn btn-primary" disabled>Équipé</button>' : canEquip(state, item)
@@ -113,7 +125,8 @@ function detail(ui, state, item) {
     body = `<div class="upgrade-line">${upgradeBtn}<span class="muted num">${ups}/${maxUp}</span></div>
       <div class="muted">Renforcer : une statistique au hasard +${BALANCE.forge.upgradeBoostPct} %.</div>
       <div class="tool-line">${sharpenBtn}<span class="muted">Remonte l'objet au niveau de votre étape max.</span></div>
-      <div class="tool-line">${reforgeBtn}<span class="muted">Change les effets spéciaux au hasard.</span></div>`;
+      <div class="tool-line">${reforgeBtn}<span class="muted">Change les effets spéciaux au hasard.</span></div>
+      ${targetLine}`;
   } else if (tab === 'store') {
     body = isEquipped ? '<div class="muted">Un objet porté ne se range pas : retirez-le d\'abord en équipant un autre objet.</div>'
       : `<div class="tool-line"><button class="btn small" data-action="to-stash" data-id="${item.id}" ${stash ? 'disabled' : ''}>Ranger au coffre (${state.stash.length}/${STASH_SIZE})</button>

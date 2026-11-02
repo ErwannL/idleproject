@@ -1,7 +1,7 @@
 // Forge : fabrication ciblée (choix de l'emplacement), relance des effets spéciaux,
 // réaffûtage d'un objet au niveau de l'étape maximale, amélioration et fusion.
 import { BALANCE } from '../data/balance.js';
-import { ITEM_BASES, RARITIES } from '../data/items.js';
+import { ACCESSORY_SLOTS, AFFIXES, ITEM_BASES, RARITIES } from '../data/items.js';
 import { referenceKillGold } from './combat.js';
 import { addToInventory, isUpgrade, keptByAffix, recycleRules } from './inventory.js';
 import { generateItem, itemBase, itemPower, makeItem, rarityIndex, refreshItemStats, rerollAffixes } from './loot.js';
@@ -51,6 +51,34 @@ export function reforgeItem(state, id, rng, balance = BALANCE) {
   return true;
 }
 
+// v9.1.3 (doc3 lot 3) : relance orientée. Épique et Légendaire seulement (pas les ancestraux, effets fixes) ;
+// la 1re ligne d'effet tirée (après l'effet principal d'un accessoire) devient l'effet choisi, valeur ±20 % ;
+// les autres lignes (Légendaire) restent au hasard. `dropChance` n'est jamais une cible.
+export function targetRerollCost(item, balance = BALANCE) {
+  const row = balance.forge.targetReroll?.[item?.rarity];
+  if (!row) return null;
+  return ACCESSORY_SLOTS.includes(item.slot) ? row.accessory : row.gear;
+}
+export function canTargetReroll(item, balance = BALANCE) {
+  return canReforge(item) && targetRerollCost(item, balance) !== null;
+}
+// Effets proposés pour la 1re ligne : ceux de l'emplacement, hors effet principal et hors exclus.
+export function targetRerollChoices(item, balance = BALANCE) {
+  if (!canTargetReroll(item, balance)) return [];
+  const main = itemBase(item.baseId).mainAffix?.type;
+  const excluded = new Set(balance.forge.targetRerollExcluded ?? []);
+  return Object.entries(AFFIXES).filter(([type, a]) => a.slots.includes(item.slot) && type !== main && !excluded.has(type)).map(([type]) => type);
+}
+export function targetReroll(state, id, type, rng, balance = BALANCE) {
+  const item = findItem(state, id);
+  const cost = targetRerollCost(item, balance);
+  if (!canTargetReroll(item, balance) || !targetRerollChoices(item, balance).includes(type) || state.materials.shards < cost) return false;
+  state.materials.shards -= cost;
+  rerollAffixes(item, rng, balance, type);
+  for (const a of item.affixes ?? []) delete a.base;
+  refreshItemStats(item, balance);
+  return true;
+}
 
 export function sharpenCost(state, item, balance = BALANCE) {
   if (!item || item.level >= state.maxStage) return 0;
@@ -79,7 +107,7 @@ export function upgradeCost(item, balance = BALANCE) {
 }
 
 // Statistiques améliorables : les statistiques positives et l'effet principal d'un accessoire.
-function upgradableStats(item) {
+export function upgradableStats(item) { // v9.1.3 (doc3 lot 3) : exportée pour l'outil de mesure
   const base = itemBase(item.baseId);
   const stats = Object.entries(base.stats).filter(([, v]) => v > 0).map(([k]) => k);
   if (base.mainAffix) stats.push('main');

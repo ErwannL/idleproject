@@ -687,6 +687,11 @@ export class UI {
       case 'fuse-open': local(() => { v.fuseOpen = v.fuseOpen === value ? null : value; }); break; // v9.1.3 (doc3 lot 2)
       case 'fuse-include': local(() => { v.fusionInclude = { ...(v.fusionInclude ?? {}), [value]: !v.fusionInclude?.[value] }; }); break;
       case 'reforge': a.reforge(id); break;
+      case 'target-reroll': { // v9.1.3 (doc3 lot 3) : relance orientée, 1er appui arme, 2e confirme
+        const k = `${id}|${value}`;
+        if (v.rerollArmed !== k) { local(() => { v.rerollArmed = k; }); clearTimeout(this.rerollTimer); this.rerollTimer = setTimeout(() => { v.rerollArmed = null; this.invalidate(); }, BULK_CONFIRM_MS); break; }
+        clearTimeout(this.rerollTimer); v.rerollArmed = null; a.targetReroll(id, value); break;
+      }
       case 'craft': a.craft(value, el.dataset.tier); break;
       case 'stage': a.selectStage(Number(stage)); break;
       case 'zone-sel': local(() => { v.zoneSel = Number(value); }); break;
@@ -903,6 +908,8 @@ export class UI {
     }
     if (action === 'tree-buyable') { this.view.treeBuyable = el.checked; this.invalidate(); }
     if (action === 'enc-slot-select') { this.view.encSlot = el.value; this.invalidate(); }
+    if (action === 'reroll-type') { this.view.rerollType = el.value; this.view.rerollArmed = null; this.invalidate(); } // v9.1.3 (doc3 lot 3)
+    if (action === 'bounty-zone') this.actions.setBountyZone(Number(el.value)); // v9.1.3 (doc3 lot 3)
     if (action === 'craft-slot') { this.view.craftSlot = el.value; this.invalidate(); }
     if (action === 'stash-set') { this.view.stashSet = el.value || null; this.view.stashSel = null; this.invalidate(); } // v9.1.3
     if (action === 'build-select') { this.view.buildSel = Number(el.value); this.actions.applyLoadout(Number(el.value)); }
