@@ -18,6 +18,7 @@ export const COMPANION_ROLES = {
   shadow: 'assassin', ninja: 'assassin', rose_blade: 'assassin', shadow_lord: 'assassin',
   priestess: 'healer', high_priest: 'healer', sylvan_guardian: 'healer', archangel: 'healer',
   mercenary: 'berserker', barbarian: 'berserker',
+  demo_ssr: 'assassin', // v9.1.3 (doc4 partie B) : perso de bannière de démonstration (data/banners.js, inactif par défaut)
 };
 
 // `roles` : rôles requis dans l'équipe (le chevalier compte comme Gardien).

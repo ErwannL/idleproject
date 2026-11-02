@@ -1,11 +1,13 @@
 // Compagnons : bonus passifs (selon niveau, étoiles et talents) et compétence automatique.
 import { BALANCE } from '../data/balance.js';
-import { COMPANION_RULES, COMPANIONS } from '../data/companions.js';
+import { COMPANION_RULES } from '../data/companions.js';
 import { referenceKillGold } from './combat.js';
 import { talentEffects } from './rebirth.js';
 import { DUNGEONS } from '../data/dungeons.js';
 import { COMPANION_ROLES, SYNERGIES } from '../data/synergies.js';
 import { SKILL_RULES, companionSkillList, skillScales } from '../data/companion-skills.js';
+import { UNITS } from '../data/banners.js';
+import { budget } from './banner.js';
 
 export const MULTIPLICATIVE = { damagePct: 'damageMultPct', maxHpPct: 'maxHpMultPct', goldPct: 'goldMultPct' };
 
@@ -63,13 +65,18 @@ export function skillPower(state, id, type = 'hit', owned = state.companions.own
 }
 
 // Multiplicateur complet d'une compétence : d (donjon) × rareté × puissance ; soin et rally plafonnés à 3.
+// v9.1.3 (doc4 lot 4) : budget B (core/banner.js) : × B/100, plafond soin et rally 3 × B/100 (B = 100 sans bannière) ;
+// bouclier et or restent sans budget, comme sans étoile.
 export function companionSkillMultiplier(state, companion, type, home = false, balance = BALANCE, owned = state.companions.owned[companion.id]) {
-  const m = (home ? balance.dungeonAffinity.skillMultiplier : 1) * (RARITY_SKILL[companion.rarity] ?? 1) * skillPower(state, companion.id, type, owned);
-  return type === 'heal' || type === 'rally' ? Math.min(m, SKILL_RULES.supportCap) : m;
+  if (type !== 'hit' && type !== 'burst' && type !== 'heal' && type !== 'rally') return (home ? balance.dungeonAffinity.skillMultiplier : 1) * (RARITY_SKILL[companion.rarity] ?? 1);
+  const b = budget(companion) / 100;
+  const m = (home ? balance.dungeonAffinity.skillMultiplier : 1) * (RARITY_SKILL[companion.rarity] ?? 1) * skillPower(state, companion.id, type, owned) * b;
+  return type === 'heal' || type === 'rally' ? Math.min(m, SKILL_RULES.supportCap * b) : m;
 }
 
+// v9.1.3 (partie B) : unités connues (permanentes + persos de bannière quand le drapeau est actif).
 export function companionById(id) {
-  return COMPANIONS.find((c) => c.id === id);
+  return UNITS.find((c) => c.id === id);
 }
 
 // v9.1.3 (doc4 lot 1) : × (1,5 + 0,075 D). `owned` facultatif : aperçu d'une unité non possédée (niv. 1, 0 doublon).
@@ -77,7 +84,8 @@ export function companionMultiplier(state, id, owned = state.companions.owned[id
   if (!owned) return 0;
   const bond = (talentEffects(state).companionPct ?? 0) / 100;
   return (1 + COMPANION_RULES.levelBonusPct * ((owned.level ?? 1) - 1))
-    * (COMPANION_RULES.passiveBase + COMPANION_RULES.passivePerDuplicate * duplicates(owned)) * (1 + bond);
+    * (COMPANION_RULES.passiveBase + COMPANION_RULES.passivePerDuplicate * duplicates(owned)) * (1 + bond)
+    * budget(companionById(id)) / 100; // v9.1.3 (doc4 lot 4) : budget B
 }
 
 export function equippedCompanions(state) {
@@ -85,14 +93,16 @@ export function equippedCompanions(state) {
 }
 
 // Héros adapté au donjon en cours (DUNGEONS[].ally) : il y écrase tout.
+// v9.1.3 (doc4 lot 6) : affinité étendue au mode monde (le perso dans son monde : ×6, passif ×4, équipe +150 %).
 export function dungeonAffinity(state, id) {
+  if (state.worldRun) return state.worldRun.unit === id;
   if (!state.dungeon) return false;
   return DUNGEONS.find((d) => d.id === state.dungeon.id)?.ally === id;
 }
 
 // Multiplicateur des dégâts subis : réduits quand le héros adapté au donjon fait partie de l'équipe.
 export function dungeonDamageTaken(state, balance = BALANCE) {
-  const ally = state.dungeon && DUNGEONS.find((d) => d.id === state.dungeon.id)?.ally;
+  const ally = state.worldRun ? state.worldRun.unit : state.dungeon && DUNGEONS.find((d) => d.id === state.dungeon.id)?.ally;
   return ally && state.companions.equipped.includes(ally) ? 1 - balance.dungeonAffinity.damageTakenPct / 100 : 1;
 }
 

@@ -2,7 +2,7 @@
 // (1 h, 4 h ou 12 h, en temps réel : elles avancent aussi jeu fermé) et rapportent or, matériaux, gemmes,
 // clés et fragments anciens. Un compagnon en expédition ne peut pas être équipé.
 import { BALANCE, ESSENCE_SHARDS, TICKET_GEMS } from '../data/balance.js';
-import { COMPANIONS } from '../data/companions.js';
+import { UNITS } from '../data/banners.js'; // v9.1.3 (partie B) : persos de bannière compris
 import { referenceKillGold } from './combat.js';
 
 export const EXPEDITION_RULES = { slots: 3 };
@@ -24,7 +24,7 @@ export function expeditionType(id) {
 
 // Puissance d'un compagnon en expédition : rareté, étoiles et niveau.
 export function expeditionPower(state, companionId) {
-  const c = COMPANIONS.find((x) => x.id === companionId);
+  const c = UNITS.find((x) => x.id === companionId);
   const owned = state.companions.owned[companionId];
   if (!c || !owned) return 0;
   return (RARITY_POWER[c.rarity] ?? 1) * (1 + 0.2 * (Math.min(owned.stars, 5) - 1)) // v9.1.3 : inchangé, le 6e exemplaire ne compte pas ici
@@ -61,7 +61,7 @@ export function isAway(state, companionId) {
 // Compagnons disponibles : obtenus, hors de l'équipe et pas déjà partis.
 export function availableForExpedition(state) {
   const away = companionsAway(state);
-  return COMPANIONS.filter((c) => state.companions.owned[c.id] && !state.companions.equipped.includes(c.id) && !away.has(c.id));
+  return UNITS.filter((c) => state.companions.owned[c.id] && !state.companions.owned[c.id].trial && !state.companions.equipped.includes(c.id) && !away.has(c.id));
 }
 
 export function startExpedition(state, slot, companionId, typeId, now = Date.now(), balance = BALANCE) {

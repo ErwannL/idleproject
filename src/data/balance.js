@@ -270,6 +270,10 @@ export const BALANCE = {
       hero: { label: 'Apparences', rarityWeights: { rare: 76, epic: 21, legendary: 3 } }, // v9.0.6 : skins de héros
       ally: { label: 'Compagnons', rarityWeights: { rare: 76, epic: 21, legendary: 3 } },
       pet: { label: 'Familiers', rarityWeights: { common: 60, rare: 30, epic: 8.5, legendary: 1.5 } },
+      // v9.1.3 (doc4 lot 4) : bannière du perso de la sortie et Archives, mêmes taux que les compagnons (déclarés ici,
+      // sinon poolWeights retomberait sur l'ancien tirage unique avec des Communs, et l'unité serait indéfinie).
+      banner: { label: 'Bannière', rarityWeights: { rare: 76, epic: 21, legendary: 3 } },
+      archive: { label: 'Archives', rarityWeights: { rare: 76, epic: 21, legendary: 3 } },
     },
     rarityWeights: { common: 60, rare: 30, epic: 8.5, legendary: 1.5 }, // (ancien tirage unique)
     pity: { epicAfter: 10, legendaryAfter: 60 }, // garanties

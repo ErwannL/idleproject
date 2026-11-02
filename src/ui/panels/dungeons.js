@@ -2,7 +2,7 @@
 // Bien plus durs que la campagne ; ils rapportent les fragments anciens de l'arbre de talents.
 import { BALANCE } from '../../data/balance.js';
 import { BOSSES, ENEMIES } from '../../data/enemies.js';
-import { COMPANIONS } from '../../data/companions.js';
+import { UNITS as COMPANIONS } from '../../data/banners.js'; // v9.1.3 (partie B)
 import { DIFFICULTY_ORDER, DUNGEON_DIFFICULTIES, DUNGEON_PATHS, DUNGEON_REWARD, DUNGEONS } from '../../data/dungeons.js';
 import { SLOTS } from '../../data/items.js';
 import { stageLabel } from '../../core/combat.js';

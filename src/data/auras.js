@@ -31,6 +31,7 @@ export const AURA_COLORS = {
   demon_queen: ['#ffd0e0', '#ff2a4a', '#8a1aff'],
   ice_empress: ['#ffffff', '#8ff0ff', '#3f6bff'],
   shadow_lord: ['#efe0ff', '#a64bff', '#3a1490'],
+  demo_ssr: ['#f5e6ff', '#d07bff', '#4a1870'], // v9.1.3 (partie B) : perso de bannière de démonstration
   sylvan_guardian: ['#f2ffd8', '#7fe07a', '#1f8a4a'],
 };
 

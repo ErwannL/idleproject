@@ -1,7 +1,8 @@
 // Équipe > Composition : le héros + 2 compagnons + 1 familier ; collection, niveaux, capacités.
 // v9.1.0 : expéditions dans leur propre onglet, builds dans Équipement, synergies repliées (actives visibles).
 import { BALANCE } from '../../data/balance.js';
-import { COMPANION_RULES, COMPANIONS } from '../../data/companions.js';
+import { COMPANION_RULES } from '../../data/companions.js';
+import { UNITS as COMPANIONS } from '../../data/banners.js'; // v9.1.3 (partie B) : persos de bannière compris quand actifs
 import { MULTIPLICATIVE, RARITY_SKILL, activeSynergies, allCompanionSkills, companionById, companionMultiplier, companionSkillMultiplier, companionUpgradeCost, duplicates, equippedOfKind, teamKind, ultimateUnlocked } from '../../core/companions.js';
 import { COMPANION_ROLES, ROLES, SYNERGIES } from '../../data/synergies.js';
 import { costButton, effectText, escapeHtml, fold, hdArt, formatNumber, icon, img, rarityLabel, stars } from '../common.js';
@@ -17,7 +18,7 @@ import { companionPortrait, companionStill } from './expeditions.js';
 // Attaque = dégâts par seconde de ses compétences offensives.
 // v9.1.3 (doc1 « Compagnons ») : la ligne « Défense » répétait le bonus passif (retirée) ; la formule de puissance
 // est derrière « ? » ; les 2 compétences de rôle sont repliées (compétence propre et ultime visibles).
-function skillsBlock(ui, state, c, owned) {
+export function skillsBlock(ui, state, c, owned) { // v9.1.3 (doc4 lot 5) : réutilisée par « Détails » de la bannière
   const own = owned ?? { stars: 1, level: 1 };
   const dup = duplicates(own);
   const maxDup = COMPANION_RULES.maxCopies - 1;

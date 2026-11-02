@@ -2,7 +2,9 @@
 import { BALANCE } from '../data/balance.js';
 import { AFFIXES, RARITIES, SLOTS, STARTER_WEAPON, STAT_LABELS } from '../data/items.js';
 import { BOSSES } from '../data/enemies.js';
-import { COMPANIONS, COMPANION_RULES } from '../data/companions.js';
+import { COMPANION_RULES } from '../data/companions.js';
+import { BANNER_RULES, UNITS } from '../data/banners.js';
+import { sanitizeWorlds } from './banner.js';
 import { CONTRACT_TYPES } from '../data/contracts.js';
 import { DUNGEON_PATHS, DUNGEONS, STARTING_KEYS } from '../data/dungeons.js';
 import { HEROES, STARTER_HERO } from '../data/heroes.js';
@@ -84,7 +86,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     gems: BALANCE.summon.startingGems,
     keys: STARTING_KEYS,
     materials: { shards: 0 }, // v9.1.3 : essences fondues dans les éclats
-    summon: { total: 0, sinceEpic: 0, sinceLegendary: 0 },
+    summon: { total: 0, sinceEpic: 0, sinceLegendary: 0, net: 0, lostLegend: false }, // v9.1.3 (doc4 lot 4) : filet et Légendaire perdu
     contracts: [],
     nextContractId: 0,
     inbox: [],
@@ -118,6 +120,8 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     museum: {}, // v9.0 : Musée des objets ancestraux { baseId: objet }
     bounty: null, // v8.9 : prime du jour
     heroClass: STARTER_CLASS, // v9.0.6 : classe du héros
+    worlds: {}, // v9.1.3 (doc4 lot 6) : mode monde par perso { levels, tiers, decor, title, score }
+    worldRun: null, // essai en cours dans un monde (jamais gardé au chargement)
   };
   state.equipment.weapon = makeItem(state, STARTER_WEAPON, 'common', 1);
   seedEncyclopedia(state);
@@ -198,20 +202,35 @@ function cleanCollections(state, raw) {
   if (state.heroes.owned[heroes.active]) state.heroes.active = heroes.active;
 
   const companions = obj(raw.companions);
-  for (const c of COMPANIONS) {
-    const owned = obj(companions.owned)[c.id];
-    if (!owned) continue;
-    state.companions.owned[c.id] = {
-      stars: Math.min(int(owned.stars, 1, 1), COMPANION_RULES.maxCopies), // v9.1.3 : 6 exemplaires (skins : 5)
-      level: Math.min(int(owned.level, 1, 1), 20),
-    };
+  // v9.1.3 (doc4 partie B) : unités connues = permanentes + persos de bannière actifs. Un perso inconnu de ce client
+  // (sortie plus récente, ou drapeau coupé) n'est plus effacé : il est gardé tel quel dans `companions.unknown`
+  // (borné) et revient dès que le client le connaît. L'essai gratuit (`trial`) n'est jamais un exemplaire.
+  const clean = (owned) => ({
+    stars: Math.min(int(owned.stars, 1, 1), COMPANION_RULES.maxCopies), // v9.1.3 : 6 exemplaires (skins : 5)
+    level: Math.min(int(owned.level, 1, 1), 20),
+  });
+  const rawOwned = { ...obj(companions.unknown), ...obj(companions.owned) };
+  for (const [id, owned] of Object.entries(rawOwned)) {
+    if (!owned || typeof owned !== 'object' || owned.trial === true) continue;
+    if (UNITS.some((c) => c.id === id)) state.companions.owned[id] = clean(owned);
+    else if (/^[a-z0-9_]{2,32}$/.test(id) && Object.keys(state.companions.unknown ?? {}).length < 100) {
+      state.companions.unknown ??= {};
+      state.companions.unknown[id] = clean(owned);
+    }
   }
   migrateCopies(state, int(raw.version, 1)); // v9.1.3 (doc4 lot 1) : 5 exemplaires → 6, une seule fois (v7 → v8)
-  const equipped = Array.isArray(companions.equipped) ? companions.equipped : [];
+  // v9.1.3 (doc4 lot 6) : un essai dans un monde n'est jamais repris au chargement ; l'équipe d'avant l'essai revient.
+  const run = obj(raw.worldRun);
+  const equipped = Array.isArray(run.prevEquipped) ? run.prevEquipped : Array.isArray(companions.equipped) ? companions.equipped : [];
   state.companions.equipped = clampTeam([...new Set(equipped)].filter((id) => state.companions.owned[id]));
 
   const summon = obj(raw.summon);
-  state.summon = { total: int(summon.total, 0), sinceEpic: int(summon.sinceEpic, 0), sinceLegendary: int(summon.sinceLegendary, 0) };
+  state.summon = { total: int(summon.total, 0), sinceEpic: int(summon.sinceEpic, 0), sinceLegendary: int(summon.sinceLegendary, 0),
+    // v9.1.3 (doc4 lot 4) : filet (0 à 49), Légendaire perdu, cible des Archives, dernière sortie dont le cadeau est versé.
+    net: Math.min(int(summon.net, 0), BANNER_RULES.netPulls - 1), lostLegend: summon.lostLegend === true };
+  if (typeof summon.archiveTarget === 'string' && /^[a-z0-9_]{2,32}$/.test(summon.archiveTarget)) state.summon.archiveTarget = summon.archiveTarget;
+  if (int(summon.gift, 0) > 0) state.summon.gift = int(summon.gift, 0);
+  state.worlds = sanitizeWorlds(raw.worlds);
   if (Array.isArray(summon.history)) {
     state.summon.history = summon.history.filter((h) => h && typeof h.id === 'string' && typeof h.rarity === 'string')
       .slice(0, 60).map((h) => ({ id: h.id, ...(['hero', 'companion'].includes(h.kind) ? { kind: h.kind } : {}), rarity: h.rarity, at: int(h.at, 0) })); // v9.1.3 : kind

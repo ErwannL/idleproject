@@ -22,10 +22,10 @@ function ally(id, name, rarity, fx, passive, skill, ultimate) {
 // jamais rally, qui prolonge le Cri du héros sans borne). L'effet `also` ne prend pas les étoiles (valeur fixe, à caler
 // en jeu). Noms provisoires : le développeur choisit (liste proposée dans docs/heros-v913.md).
 const ALSO_TEXT = { heal: (a) => `soigne ${a.value} % des PV`, shield: (a) => `bouclier de ${a.value} % (${a.duration} s)`, gold: (a) => `fait tomber l'or de ${a.value} ennemis` };
-function signature(name, base, also) {
+export function signature(name, base, also) { // v9.1.3 (partie B) : exportée pour les persos de bannière (data/banners.js)
   return { ...base, name, also, alsoText: ALSO_TEXT[also.type](also) };
 }
-const HIT_30 = { type: 'hit', every: 30, value: 3.5 }; // ultime Assassin
+export const HIT_30 = { type: 'hit', every: 30, value: 3.5 }; // ultime Assassin
 const BURST_30 = { type: 'burst', every: 30, value: 1.8375 }; // ultime Mage
 const HEAL_25 = { type: 'heal', every: 25, value: 40 }; // ultime Soutien
 
