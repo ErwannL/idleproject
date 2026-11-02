@@ -1,3 +1,82 @@
+## Idle RPG v9.1.7 — Statistiques de temps
+
+**Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.7-setup.exe).
+
+- **Objectifs › Statistiques :** temps de jeu actif, temps hors jeu, séances (en cours, plus longue, moyenne, nombre),
+  temps par activité (campagne, donjons, Tour, défi), par monde et par cycle de difficulté (normal, ×2, ×3…).
+- **Filtre par monde :** choisissez un monde (ou touchez-le dans la liste) pour son temps total, son temps par cycle et
+  le moment où vous l'avez atteint.
+- **Renaissances et Transcendances :** durée de la course en cours, la plus rapide, la moyenne, la dernière et l'historique.
+- **Nouveaux classements de temps :** Renaissance éclair, Transcendance éclair et Course aux mondes (temps pour atteindre
+  le monde 2, 3… 11). Le plus court gagne.
+- Les parties d'avant cette version n'ont pas de date pour les mondes déjà atteints : elles entrent dans la Course aux mondes
+  à partir du prochain monde découvert.
+
+## Idle RPG v9.1.6 — Amis et classements
+
+**Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.6-setup.exe).
+
+- **8 classements :** étape, niveau, boss, ennemis vaincus, or gagné, étage de la Tour, renaissances et temps de jeu.
+- **Tout le monde ou Mes amis :** comparez-vous à tous les joueurs ou seulement à vos amis. Votre rang s'affiche même hors des 100 premiers.
+- **Amis :** ajoutez un joueur par son nom, acceptez ou refusez les demandes reçues, retirez un ami.
+- **Invités :** une partie sans compte (joueurXXXXXX) n'apparaît pas au classement ; l'onglet propose de créer son compte.
+
+## Idle RPG v9.1.5 — Classement dans le jeu, pastilles des objets dans leur case
+
+**Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.5-setup.exe).
+
+- **Classement dans le jeu :** Objectifs › Classement, trié par étape, niveau ou boss. Votre ligne est en or.
+- Les pastilles des objets (« +10 », « É », ensemble, cadenas) restent dans la case, même avec les thèmes à bordure épaisse.
+- Le jeu se joue sur PC et téléphone uniquement : la version navigateur est retirée du serveur.
+
+## Idle RPG v9.1.4 — Renaissances sauvegardées en ligne, classement lisible
+
+**Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.4-setup.exe).
+
+### Sauvegarde en ligne
+- Après une **Renaissance** (niveau remis à 1), le serveur refusait la sauvegarde jusqu'à ce que vous dépassiez votre
+  ancien niveau record. Il compare maintenant le temps de jeu cumulé, qui ne recule jamais : la partie est
+  sauvegardée normalement après une Renaissance ou une Transcendance.
+- Plus de plafond d'étape côté serveur : au-delà de l'étape 2000 (6-10 ×10), les sauvegardes étaient refusées.
+
+### Classement et administration
+- L'étape s'affiche comme dans le jeu (« 7-6 ×8 ») au lieu du numéro brut (1596).
+- Le texte en bas du classement reste lisible sur le décor.
+
+### Confort
+- Fenêtre « Bon retour » : icônes d'or et de gemmes à la taille du texte (elles étaient énormes en fenêtre basse).
+- Jeu du site : la section Version n'affiche plus « GitHub injoignable » (il est toujours à jour).
+- La carte « Nouveaux menus » n'apparaît plus pour une partie commencée après la v9.1.0.
+- Traductions anglaises des nouveaux messages.
+
+## Idle RPG v9.1.3 — Sauvegarde en ligne fiable, formulaires de compte, décors
+
+**Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.3-setup.exe).
+
+### Sauvegarde en ligne
+- Les parties avec beaucoup d'or (au-delà de 1 aa, soit 10¹⁵) étaient refusées par le serveur : le jeu affichait
+  « Serveur injoignable » alors que vous étiez connecté. L'or et les gemmes n'ont plus de plafond côté serveur.
+- Quand le serveur refuse une sauvegarde, le jeu affiche maintenant sa vraie raison au lieu de « Serveur injoignable ».
+
+### Compte joueur
+- Le nom et le mot de passe tapés dans **Créer mon compte joueur**, **Se connecter** ou **Changer de nom** ne
+  s'effacent plus tout seuls quelques secondes après la saisie : on envoyait parfois le formulaire vide.
+- **Entrée** valide ces formulaires ; le mot de passe et sa confirmation sont sur deux lignes (plus de texte coupé).
+
+### Affichage
+- Forêt (et piliers, forge) : les arbres ne sont plus coupés net en haut dans une fenêtre haute.
+- Thèmes : l'emblème (torii du thème Sakura…) est dans l'en-tête du panneau, entre le titre et les compteurs ; il ne
+  déborde plus au-dessus du panneau et ne couvre plus les compteurs. Coins plus discrets, ornement de l'onglet actif
+  au-dessus de son icône.
+- Version navigateur (/play/) : les thèmes chargent enfin leurs propres cadres dessinés.
+
+### Administration
+- Menu de gauche toujours visible quand la page défile ; session conservée au rafraîchissement.
+- Or et gemmes affichés comme dans le jeu (1 aa, 10 ab…) au lieu de 25 chiffres ; graduations des graphiques sans doublon.
+- Sur téléphone : bouton de déconnexion accessible, statistiques sur deux colonnes.
+- Connexion : seuls les échecs comptent dans la limite de tentatives ; mauvais mot de passe actuel = 403 (l'interface
+  ne vous déconnecte plus pendant un changement de mot de passe).
+
 ## Ascendrya v9.1.3 — Écrans allégés, fiches, récompenses en icônes
 
 **Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.3-setup.exe). Votre partie

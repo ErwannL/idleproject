@@ -192,6 +192,28 @@ export const EXACT = {
   'Récupérer 20 objets': '아이템 20개 획득', 'Portrait du héros › Classe': '영웅 초상화 › 클래스', 'Contre': '상성', 'Massacre': '대학살',
   'Midas': '미다스', 'Âme de la meute': '무리의 영혼', 'Maître des runes': '룬의 대가', 'Colosse': '거신', 'Puissance': '전투력',
   'Chasse': '사냥', 'Fortune': '행운', 'Héritage': '유산', 'Arcanes': '비전', 'Endurance': '인내', 'Cœur': '심장', 'Trouver un écran…': '화면 찾기…',
+  "Carte, Donjons (et le Défi), Défis (l'ancienne Tour), Boss, Monde :": '지도, 던전(도전 포함), 도전(예전 탑), 보스, 월드:',
+  'Missions (avec À récupérer, aussi touche N), Collections (et le Musée), Classement, Statistiques :': '미션(받을 보상 포함, N 키), 컬렉션(박물관 포함), 랭킹, 통계:',
+  'Votre fiche, la classe, l\'apparence et les records :': '내 정보, 클래스, 외형, 기록:',
+  // v9.1.8 : Objectifs › Classement, amis et Statistiques (venus de la 9.1.5–9.1.7).
+  'Classement': '랭킹', 'Statistiques': '통계', 'Étape': '스테이지', 'Niveau': '레벨', 'Ennemis': '처치 수', 'Or gagné': '획득 골드',
+  'Étage': '층', 'Renaiss.': '환생', 'Temps de jeu': '플레이 시간', 'Temps': '시간', 'Renaissance éclair': '최단 환생',
+  'Transcendance éclair': '최단 초월', 'Durée': '소요 시간', 'Course aux mondes': '월드 레이스', 'Atteint en': '도달 시간', 'Joueur': '플레이어',
+  '(vous)': '(나)', 'Chargement des amis…': '친구 불러오는 중…', 'Demandes reçues': '받은 요청', 'Accepter': '수락', 'Refuser': '거절',
+  'Annuler la demande': '요청 취소', 'Retirer de mes amis': '친구 삭제', "Pas encore d'amis : ajoutez un joueur par son nom.": '아직 친구가 없어요. 이름으로 플레이어를 추가하세요.',
+  'Mes amis': '내 친구', 'Nom du joueur': '플레이어 이름', 'Nom du joueur à ajouter': '추가할 플레이어 이름', 'Ajouter': '추가',
+  "Vous n'êtes pas connecté.": '로그인하지 않았어요.', 'Créez votre compte pour apparaître au classement, voir votre rang et ajouter des amis.': '계정을 만들면 랭킹에 표시되고, 내 순위를 보고, 친구를 추가할 수 있어요.',
+  'Créer mon compte': '계정 만들기', 'Tout le monde': '전체', 'Créez votre compte pour ajouter des amis': '친구를 추가하려면 계정을 만드세요',
+  'Temps pour atteindre le monde': '월드 도달 시간', 'Monde à atteindre': '도달할 월드', 'Le plus court gagne.': '가장 짧은 기록이 승리해요.',
+  'Réessayer': '다시 시도', 'Chargement du classement…': '랭킹 불러오는 중…', 'Ajoutez des amis pour vous comparer à eux.': '친구를 추가해 기록을 비교해 보세요.',
+  "Personne au classement pour l'instant.": '아직 랭킹에 아무도 없어요.', 'Campagne': '캠페인',
+  'Nombre': '횟수', 'En cours depuis': '진행 시간', 'La plus rapide': '최단 기록', 'Moyenne': '평균', 'La dernière': '최근 기록', 'Durée des dernières': '최근 소요 시간',
+  'Filtrer par monde': '월드별 필터', 'Tous les mondes': '모든 월드', 'Pas encore atteint': '아직 도달하지 않음', 'Avant la 9.1.7': '9.1.7 이전',
+  'avant la 9.1.7': '9.1.7 이전', 'Dès le début': '처음부터', 'Temps passé': '보낸 시간', 'Atteint pour la première fois': '첫 도달',
+  'Cycles joués': '플레이한 주기', 'Temps par cycle': '주기별 시간', 'normal': '보통', 'Temps de jeu actif': '실제 플레이 시간',
+  'Hors jeu (récompenses au retour)': '오프라인 (복귀 보상)', 'Séance en cours': '현재 세션', 'Plus longue séance': '최장 세션',
+  'Lancements du jeu': '게임 실행 횟수', 'Séance moyenne': '평균 세션', 'Par activité': '활동별', 'Par monde': '월드별',
+  '(touchez un monde pour le détail)': '(월드를 누르면 상세 보기)', 'Par cycle de difficulté': '난이도 주기별', 'Premier passage dans chaque monde': '월드별 첫 도달',
 };
 
 // --- Motifs ---------------------------------------------------------------------------------------
@@ -281,6 +303,17 @@ export const PATTERNS = [
   [/^Des vagues de (\d+) ennemis toujours plus forts \((\d+) s par vague\), un boss toutes les (\d+) vagues \(sauf règle contraire\)\. Une défaite termine la tentative\.?(.*)$/, (m) => `점점 강해지는 적 $1명씩 몰려오는 웨이브(웨이브당 $2초), $3웨이브마다 보스(규칙이 다르면 예외). 패배하면 도전이 끝나요.`.replace('$1', m[1]).replace('$2', m[2]).replace('$3', m[3]) + (m[4] ? ` ${trOr(m[4].trim())}` : '')],
   [/^⚔ Prochain boss \(étape ([\d-]+)\) : pas encore — il lui resterait$/, '⚔ 다음 보스 (스테이지 $1): 아직 — 남는 HP'],
   [/^de PV\. Améliorez Dégâts \/ PV, l'équipement ou l'équipe\.$/, '. 공격력/HP, 장비, 팀을 강화하세요.'],
+  // v9.1.8 : classement et statistiques
+  [/^niv\. (\d[\d\s.,]*)$/, 'Lv.$1'],
+  [/^(.+) · niv\. (\d[\d\s.,]*)$/, (m) => `${trOr(m[1])} · Lv.${m[2]}`],
+  [/^(\d+) demandes?$/, '요청 $1개'],
+  [/^Mes amis \((\d+)\)$/, '내 친구 ($1)'],
+  [/^En attente : (.*)$/, '대기 중: $1'],
+  [/^Vous jouez en invité \((.+)\)\.$/, '게스트로 플레이 중이에요 ($1).'],
+  [/^sur les (\d+) dernières$/, '최근 $1회 기준'],
+  [/^(\d+ %) de la campagne$/, '캠페인의 $1'],
+  [/^après (.+) de jeu$/, (m) => `플레이 ${dur(m[1])} 후`],
+  [/^Monde$/, '월드'],
   // Durées seules
   [/^\d+ (?:h|min|s|j)(?: \d+(?: min| s)?)?$/, (m) => dur(m[0])],
 ];

@@ -34,6 +34,7 @@ import { SLOTS, STAT_LABELS } from './data/items.js';
 import { applyOfflineRewards, computeOfflineRewards } from './core/offline.js';
 import { Rng } from './core/rng.js';
 import { SAVE_KEY, clearSave, encodeSaveCode, loadGame, parseImport, saveGame, writeImported } from './core/save.js';
+import { startSession } from './core/times.js';
 import { SAVE_VERSION, createNewState } from './core/state.js';
 import { computeHeroStats } from './core/stats.js';
 import { formatNumber } from './core/format.js';
@@ -61,6 +62,7 @@ import { GAME_VERSION } from './version.js';
 import { applyTheme, themeById } from './ui/themes.js';
 import { BUILT_IN_TOKEN } from './core/update-token.js';
 import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagList, updateStatus } from './core/update.js';
+import { playsOnSite } from './ui/panels/options.js';
 
 const SIM_INTERVAL_MS = 100;
 // v9.1.0 : codes de triche chargés seulement dans la version dev (fichier absent de la version publique).
@@ -90,6 +92,7 @@ if (BUILD.name === 'dev') {
 const store = storage();
 const loaded = loadGame(store, BALANCE, Date.now());
 let state = loaded.state;
+startSession(state);
 let world = createCombat(state);
 const rng = new Rng((state.rngSeed ^ Date.now()) >>> 0);
 
@@ -830,6 +833,37 @@ const actions = {
   },
   cloudResume() { cloudAuth(() => cloud.guest(), 'Sauvegarde en ligne réactivée'); },
   cloudSync() { cloudSync(true); },
+  loadRanking(sort = ui.ranking?.sort ?? 'stage', scope = ui.ranking?.scope ?? 'all', world = ui.ranking?.world ?? 2) {
+    if (scope === 'friends' && (!cloud.isLoggedIn() || cloud.isGuest())) scope = 'all';
+    const same = ui.ranking?.sort === sort && ui.ranking?.scope === scope && ui.ranking?.world === world;
+    ui.ranking = { sort, scope, world, players: same ? ui.ranking.players : null, me: same ? ui.ranking.me : null };
+    ui.invalidate();
+    cloud.leaderboard(sort, scope, world)
+      .then((res) => { if (ui.ranking.sort === sort && ui.ranking.scope === scope && ui.ranking.world === world) ui.ranking = { sort, scope, world, players: res.players, me: res.me }; })
+      .catch((err) => { ui.ranking = { sort, scope, world, error: err.status ? err.message : 'Serveur injoignable : classement indisponible.' }; })
+      .finally(() => ui.invalidate());
+    if (scope === 'friends' || !ui.friends) this.loadFriends();
+  },
+  loadFriends(message = '', error = false) {
+    if (!cloud.isLoggedIn() || cloud.isGuest()) return;
+    cloud.friends()
+      .then((res) => { ui.friends = { ...res, message, error }; })
+      .catch((err) => { ui.friends = { ...(ui.friends ?? { friends: [], incoming: [], outgoing: [] }), message: err.message || 'Amis indisponibles', error: true }; })
+      .finally(() => ui.invalidate());
+  },
+  friendAction(kind, pseudo) {
+    const name = String(pseudo ?? '').trim();
+    if (!name) return;
+    const call = kind === 'add' ? cloud.addFriend(name) : kind === 'accept' ? cloud.acceptFriend(name) : cloud.removeFriend(name);
+    call
+      .then((res) => {
+        const text = kind === 'remove' ? `${name} retiré.` : res?.status === 'friends' ? `Vous êtes maintenant ami avec ${res.pseudo}.` : `Demande envoyée à ${res?.pseudo ?? name}.`;
+        ui.typed = {};
+        this.loadFriends(text);
+        if (ui.ranking?.scope === 'friends') this.loadRanking();
+      })
+      .catch((err) => { ui.friends = { ...(ui.friends ?? {}), message: err.message || 'Action impossible', error: true }; ui.invalidate(); });
+  },
   cloudListed(listed) {
     cloud.setListed(listed)
       .then(() => {
@@ -840,7 +874,7 @@ const actions = {
   },
   cloudDelete(password) {
     cloud.deleteAccount(password)
-      .then(() => setCloudMessage('Compte et sauvegarde cloud supprimés. La partie reste sur cet appareil.'))
+      .then(() => { ui.typed = {}; setCloudMessage('Compte et sauvegarde cloud supprimés. La partie reste sur cet appareil.'); })
       .catch((err) => setCloudMessage(err.message || 'Suppression impossible', true));
   },
   setGithubToken(value) {
@@ -923,7 +957,7 @@ if (BUILD.cheats) import('./core/cheat-codes.js').then((m) => { cheatCodes = m; 
 // Compte et sauvegarde cloud (optionnels) : le jeu fonctionne sans, via localStorage.
 const platform = window.desktop ? 'windows' : window.Capacitor?.isNativePlatform?.() ? 'android' : 'web';
 const cloud = createCloudClient({ baseUrl: CLOUD_BASE, storage: store, client: { platform, version: GAME_VERSION } });
-const cloudView = { busy: false, message: '', error: false };
+const cloudView = { busy: false, message: '', error: false, enabled: BUILD.cloud };
 ui.cloud = cloudView;
 // v9.1.3 (doc4 lot 7) : score en ligne d'un perso (lu par ui/score-board.js) ; jamais en version dev (cloud coupé).
 ui.fetchScores = BUILD.cloud ? (unit) => cloud.scores(unit) : null;
@@ -989,9 +1023,12 @@ async function cloudSync(manual = false, preferRemote = false) {
       setCloudMessage('Session expirée : reconnectez-vous.', true);
     } else {
       // 404 sur /api/guest : serveur pas encore en 9.1.1 (pas de compte automatique) ; il reste la création de compte.
-      setCloudMessage(err instanceof CloudError && err.status === 404
+      // Serveur joint mais requête refusée (sauvegarde refusée, 409…) : afficher sa raison, pas « injoignable ».
+      const reached = err instanceof CloudError && err.status !== 0;
+      setCloudMessage(reached && err.status === 404
         ? 'Compte automatique indisponible sur ce serveur : créez un compte joueur ci-dessous. La partie est sauvegardée sur cet appareil.'
-        : 'Serveur injoignable : la partie est sauvegardée sur cet appareil.', true);
+        : reached ? `${err.message}. La partie est sauvegardée sur cet appareil.`
+          : 'Serveur injoignable : la partie est sauvegardée sur cet appareil.', true);
     }
   }
 }
@@ -1008,6 +1045,7 @@ async function cloudAuth(call, okText, preferRemote = false) {
     return;
   }
   cloudView.busy = false;
+  ui.typed = {}; // formulaire envoyé avec succès : nom et mot de passe ne restent pas dans les champs
   await cloudSync(false, preferRemote);
   if (!cloudView.error) setCloudMessage(okText);
 }
@@ -1017,7 +1055,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 // Nom et type de compte à jour (renommé depuis un autre appareil), puis première synchronisation.
 // Ne pas effacer un message d'erreur posé par la synchronisation (serveur injoignable, pas à jour…).
 const refreshCloudView = () => { if (!cloudView.error) setCloudMessage(''); };
-if (BUILD.cloud && cloud.isLoggedIn()) cloud.refresh().catch(() => {}).finally(() => { refreshCloudView(); cloudSync(); });
+if (BUILD.cloud && cloud.isLoggedIn()) cloud.refresh().catch(() => {}).finally(() => { refreshCloudView(); cloudSync(); actions.loadFriends(); });
 else cloudSync().then(refreshCloudView);
 // Journal de session (v8.5) : depuis le lancement, et pendant la dernière absence.
 const sessionJournal = createJournal(state);
@@ -1052,7 +1090,8 @@ if (window.desktop) {
 }
 // Vérification discrète des mises à jour au lancement.
 // (désactivée pendant les tests automatisés : pas d'appel réseau réel, voir tools/smoke.mjs).
-setTimeout(() => { if (!navigator.webdriver && !ui.desktop?.smoke) actions.checkUpdate(true); }, 4000);
+// Jeu du site : toujours à jour, aucune vérification GitHub.
+setTimeout(() => { if (!navigator.webdriver && !ui.desktop?.smoke && !playsOnSite(ui)) actions.checkUpdate(true); }, 4000);
 
 // Gains hors ligne depuis la dernière sauvegarde.
 // v9.0.3 : exposition auto des objets ancestraux déjà dans le sac ou le coffre.

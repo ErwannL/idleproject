@@ -44,6 +44,8 @@ import { PRESTIGE } from '../data/prestige.js';
 import { PANEL_HELP, betterItem, nextAction } from '../core/guide.js';
 import hero from './panels/hero.js';
 import inbox from './panels/inbox.js';
+import ranking from './panels/ranking.js';
+import stats from './panels/stats.js';
 import inventory, { visibleItems } from './panels/inventory.js';
 import options from './panels/options.js';
 import skills from './panels/skills.js';
@@ -68,12 +70,12 @@ import { MENUS, SUB_LABELS, navPath } from './nav.js';
 
 export { MENUS };
 
-const PANELS = Object.fromEntries([upgrades, inventory, hero, companions, expeditions, skills, tree, campaign, dungeons, tower, boss, encyclopedia, summon, contracts, inbox, options, worldPanel]
+const PANELS = Object.fromEntries([upgrades, inventory, hero, companions, expeditions, skills, tree, campaign, dungeons, tower, boss, encyclopedia, summon, contracts, inbox, ranking, stats, options, worldPanel]
   .map((p) => [p.id, p]));
 const SUB_ICONS = {
   upgrades: 'icon_upgrade', skills: 'skill_quick', tree: 'icon_tree', hero: 'icon_hero', inventory: 'icon_bag',
   companions: 'icon_paw', expeditions: 'icon_expedition', summon: 'icon_summon', campaign: 'icon_map', dungeons: 'icon_dungeon', tower: 'icon_tower',
-  boss: 'icon_boss', encyclopedia: 'icon_book', contracts: 'icon_trophy', inbox: 'icon_mail',
+  boss: 'icon_boss', encyclopedia: 'icon_book', contracts: 'icon_trophy', inbox: 'icon_mail', ranking: 'icon_trophy', stats: 'icon_book',
 };
 // v9.1.0 : présentation courte en haut de l'onglet, à sa première ouverture (plus de bulle « Nouveau »).
 const UNLOCK_INFO = {
@@ -93,7 +95,7 @@ const TALL_MIN_HEIGHT = 420;
 const STRIP_MAX_HEIGHT = 190; // en dessous : mode barre (seulement la scène, comme une barre des tâches)
 const BULK_CONFIRM_MS = 4000;
 // Panneaux dont le contenu évolue pendant le farm : réaffichés au plus une fois par seconde.
-const LIVE_PANELS = new Set(['world', 'contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'upgrades', 'companions', 'expeditions', 'encyclopedia', 'inbox']);
+const LIVE_PANELS = new Set(['world', 'contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'upgrades', 'companions', 'expeditions', 'encyclopedia', 'inbox', 'ranking', 'stats']);
 
 // Renaissance : choix du seul pouvoir ancestral conservé.
 function powerChoice(state) {
@@ -248,8 +250,28 @@ export class UI {
       delete this.lastHud.rushTime;
       this.invalidate();
     }, { capture: true });
+    // v9.1.3 : texte tapé dans un champ du panneau (nom, mot de passe, recherche…), remis en place après chaque
+    // redessin. Sans cela, le redessin périodique vidait les champs dès qu'ils perdaient le focus : on cliquait
+    // « Créer mon compte joueur » avec des champs vides.
+    this.typed = {};
     root.addEventListener('input', (e) => {
+      const f = e.target;
+      if (f.id && (f.tagName === 'TEXTAREA' || (f.tagName === 'INPUT' && /^(text|password|search|email|number)$/.test(f.type))) && this.$('panel-body')?.contains(f)) {
+        this.typed[f.id] = f.value;
+      }
       if (e.target.id === 'reset-confirm') this.$('confirm-reset').disabled = !/^(EFFACER|ERASE)$/i.test(e.target.value.trim());
+    });
+    // Entrée dans un formulaire de compte = clic sur son bouton (jamais pour la suppression du compte).
+    root.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' || e.target.tagName !== 'INPUT') return;
+      const form = { 'friend-pseudo': 'friend-add', 'cloud-claim-': 'cloud-claim', 'cloud-rename-': 'cloud-rename', 'cloud-pseudo': null, 'cloud-password': null };
+      const prefix = Object.keys(form).find((p) => e.target.id.startsWith(p));
+      if (!prefix) return;
+      const action = form[prefix] ?? (e.target.closest('.row')?.parentElement?.querySelector('[data-action="cloud-login"], [data-action="cloud-register"]')?.dataset.action);
+      const button = action && this.$('panel-body')?.querySelector(`[data-action="${action}"]`);
+      if (!button || button.disabled) return;
+      e.preventDefault();
+      button.click();
     });
     new ResizeObserver(() => this.updateLayout()).observe(root);
     this.updateLayout();
@@ -577,9 +599,11 @@ export class UI {
     if (view) Object.assign(this.view, view);
     // Chaque onglet retrouve sa position de défilement (v9.1.0, mémoire de navigation).
     if (tab !== this.tab) {
+      this.typed = {};
       if (this.tab) this.scrollMem[this.tab] = this.$('panel-body').scrollTop;
       this.pendingScroll = view ? 0 : this.scrollMem[tab] ?? 0;
     }
+    if (tab === 'ranking') this.actions.loadRanking?.();
     this.tab = tab;
     this.view.bulkArmed = false;
     this.newTabs.delete(tab);
@@ -710,6 +734,22 @@ export class UI {
       case 'toggle-companion': a.toggleCompanion(value); break;
       case 'upgrade-companion': a.upgradeCompanion(value); break;
       case 'open-tab': if (el.closest('#modal')) this.closeModal(); this.openTab(value); break;
+      case 'ranking-sort': this.actions.loadRanking(value); break;
+      case 'open-account': {
+        this.openTab('options', { optTab: 'general' });
+        // Après le dessin du panneau : jusqu'au formulaire de compte.
+        setTimeout(() => {
+          const field = this.$('cloud-claim-pseudo') ?? this.$('cloud-pseudo');
+          field?.scrollIntoView({ block: 'center' });
+          field?.focus({ preventScroll: true });
+        }, 250);
+        break;
+      }
+      case 'stats-zone': this.view.statsZone = value; this.pendingScroll = 0; this.invalidate(); break;
+      case 'ranking-scope': this.actions.loadRanking(undefined, value); break;
+      case 'friend-add': this.actions.friendAction('add', this.$('friend-pseudo')?.value); break;
+      case 'friend-accept': this.actions.friendAction('accept', value); break;
+      case 'friend-remove': this.actions.friendAction('remove', value); break;
       case 'summon': {
         const res = a.summon(Number(value), currency, el.dataset.pool);
         if (res) { v.lastSummon = res; v.summonPool = normalizePool(el.dataset.pool); playSummonReveal(res); }
@@ -917,6 +957,8 @@ export class UI {
       this.setDevicePref(name, el.type === 'checkbox' ? el.checked : el.value);
     }
     if (action === 'tree-buyable') { this.view.treeBuyable = el.checked; this.invalidate(); }
+    if (action === 'ranking-world') this.actions.loadRanking(undefined, undefined, Number(el.value));
+    if (action === 'stats-zone-select') { this.view.statsZone = el.value; this.invalidate(); }
     if (action === 'enc-slot-select') { this.view.encSlot = el.value; this.invalidate(); }
     if (action === 'reroll-type') { this.view.rerollType = el.value; this.view.rerollArmed = null; this.invalidate(); } // v9.1.3 (doc3 lot 3)
     if (action === 'bounty-zone') this.actions.setBountyZone(Number(el.value)); // v9.1.3 (doc3 lot 3)
@@ -1288,6 +1330,8 @@ export class UI {
       case 'boss': return Object.values(state.powers).map((p) => `${p.victories}${p.charges}${p.pending}`).join();
       case 'hero': return `${state.level}|${Math.floor(state.xp / 5)}|${state.heroes.active}|${Object.keys(state.heroes.owned).length}`;
       case 'encyclopedia': return String(encyclopediaProgress(state).found);
+      case 'stats': return String(Math.floor(Date.now() / 5000));
+      case 'ranking': return `${JSON.stringify(this.friends ?? null)}|${this.cloud?.guest}|${this.cloud?.loggedIn}|${this.ranking?.scope}|${this.ranking?.sort}|${this.ranking?.world}|${this.ranking?.players?.length ?? -1}|${this.ranking?.error ?? ''}|${this.ranking?.players?.[0]?.updatedAt ?? ''}`;
       default: return '';
     }
   }
@@ -1580,6 +1624,8 @@ export class UI {
       expeditions: availableForExpedition(state).length > 0 || state.expeditions.slots.some(Boolean) || state.expeditions.done > 0,
       contracts: Boolean(state.ui.goalsOpen),
       encyclopedia: boss,
+      stats: Boolean(state.ui.goalsOpen),
+      ranking: Boolean(state.ui.goalsOpen) && Boolean(this.actions.loadRanking) && this.cloud?.enabled !== false,
     };
     const key = `${JSON.stringify(visible)}|${this.tab}|${[...this.newTabs].join()}`;
     if (this.lastHud.tabs === key) return;
@@ -1629,6 +1675,10 @@ export class UI {
       ? `<div class="card panel-help-card"><b>Comment ça marche ?</b> ${h.short}${device ? ` ${device}` : ''}
           ${h.more ? fold(this, `help-${this.tab}`, 'En savoir plus', `<div>${h.more}</div>`) : ''}</div>` : '';
     body.innerHTML = help + this.introCard(this.tab, state) + panel.render(this, state);
+    for (const [id, value] of Object.entries(this.typed)) {
+      const field = body.querySelector(`#${CSS.escape(id)}`);
+      if (field && field.value !== value) field.value = value;
+    }
     body.scrollTop = this.pendingScroll ?? scroll;
     this.pendingScroll = null;
     if (focused) {

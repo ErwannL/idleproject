@@ -21,6 +21,10 @@ import { HERO_ANCHOR, drawBigText, heroComposite, itemDropCanvas, spriteCanvas, 
 // Vue resserrée : le chevalier (≈ 40 px) occupe un bon tiers de la hauteur de la scène.
 export const MIN_VIEW_HEIGHT = 96;
 const GROUND_DEPTH = 18; // hauteur du sol sous la ligne des pieds
+// Hauteur logique maximale : les plus hauts calques peints (forêt, piliers, forge : 322 px posés à 320 px
+// au-dessus du sol) doivent toucher le haut de la scène. Au-delà, on zoome au lieu de montrer leur bord
+// coupé net (arbres « tranchés » dans une fenêtre haute, v9.1.3).
+export const MAX_VIEW_HEIGHT = 320 + GROUND_DEPTH;
 const MIN_VIEW_WIDTH = 160; // largeur logique minimale (zoom : le chevalier reste grand)
 const MAX_SCALE = 3; // zoom maximal : une grande fenêtre montre plus de décor
 // Les positions de la simulation (BALANCE.world) sont agrandies à l'affichage pour
@@ -222,7 +226,7 @@ export class SceneRenderer {
     const minWidth = cssWidth < 560 && cssHeight > cssWidth * 0.45 ? 215 : MIN_VIEW_WIDTH;
     let scale = Math.min(cssHeight / MIN_VIEW_HEIGHT, cssWidth / minWidth, MAX_SCALE);
     if (scale >= 3) scale = Math.floor(scale);
-    scale = Math.max(0.5, scale);
+    scale = Math.max(0.5, scale, cssHeight / MAX_VIEW_HEIGHT);
     this.width = Math.max(120, Math.floor(cssWidth / scale));
     this.height = Math.max(MIN_VIEW_HEIGHT, Math.floor(cssHeight / scale));
     this.groundY = this.height - GROUND_DEPTH;

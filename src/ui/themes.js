@@ -96,7 +96,7 @@ function applyDecor(theme) {
     const sprite = assetUrl(theme.id, i % 3 === 2 ? 'particle2.png' : 'particle1.png');
     parts.push(`<i class="p ${fx.motion}" style="--x:${r(0, 100).toFixed(1)}%;--y:${r(0, 100).toFixed(1)}%;--t:${r(...fx.speed).toFixed(1)}s;--d:-${r(0, fx.speed[1]).toFixed(1)}s;--sc:${r(0.7, 1.3).toFixed(2)};--sw:${r(10, 34).toFixed(0)}px;background-image:url('${sprite}')"></i>`);
   }
-  deco.innerHTML = `<i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i><i class="crest"></i><div class="fx">${parts.join('')}</div>`;
+  deco.innerHTML = `<i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i><div class="fx">${parts.join('')}</div>`;
   panel.appendChild(deco);
 }
 
@@ -206,7 +206,7 @@ function snapshot() {
         const value = style.getPropertyValue(prop);
         if (KEEP_VARS.has(prop)) continue;
         if (!HAS_COLOR.test(value) && !value.includes('/frames/')) continue;
-        originals.push({ style, prop, value, priority: style.getPropertyPriority(prop) });
+        originals.push({ style, prop, value, priority: style.getPropertyPriority(prop), base: sheet.href ?? document.baseURI });
       }
     }
   }
@@ -261,17 +261,19 @@ async function applyNow(id) {
   const list = snapshot();
   const frames = new Map();
   if (theme.id !== 'knight') {
-    const urls = new Set();
-    for (const o of list) for (const m of o.value.matchAll(URL_RX)) urls.add(m[2]);
+    // Adresse absolue de chaque cadre : « ../../assets/… » est relatif à la feuille de style, pas à la page
+    // (sous /play/, résolu depuis la page, il pointait vers /assets/… : 404 et cadres du thème absents).
+    const urls = new Map();
+    for (const o of list) for (const m of o.value.matchAll(URL_RX)) urls.set(m[2], new URL(m[2], o.base).href);
     // v9.0.1 : chaque thème a ses propres cadres dessinés (assets/ui/themes/<id>/), d'un style différent ;
     // à défaut, les cadres du Chevalier sont recolorés.
-    await Promise.all([...urls].map(async (u) => {
-      const own = u.replace('/frames/', `/themes/${theme.id}/`);
+    await Promise.all([...urls].map(async ([u, abs]) => {
+      const own = abs.replace('/frames/', `/themes/${theme.id}/`);
       try {
         await loadImage(own);
         frames.set(u, own);
       } catch {
-        try { frames.set(u, await themedFrame(theme, u)); } catch { /* cadre introuvable : on garde l'original */ }
+        try { frames.set(u, await themedFrame(theme, abs)); } catch { /* cadre introuvable : on garde l'original */ }
       }
     }));
   }

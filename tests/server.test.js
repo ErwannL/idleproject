@@ -5,7 +5,8 @@ import { createServer } from 'node:http';
 import { mkdtempSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createApp, hashPassword, LIMITS } from '../server/app.mjs';
+import { checkSave, createApp, hashPassword, LIMITS, stageLabel, summarizeSave } from '../server/app.mjs';
+import { stageLabel as gameStageLabel } from '../src/core/combat.js';
 import { openDatabase } from '../server/db.mjs';
 
 async function setup(extra = {}) {
@@ -247,7 +248,7 @@ test('admin : mot de passe temporaire, changement obligatoire au premier login',
   const pierre = login.body.token;
   assert.equal((await call(base, 'GET', '/api/admin/stats', undefined, pierre)).status, 403);
   assert.equal((await call(base, 'POST', '/api/admin/password', { password: temp, newPassword: 'court' }, pierre)).status, 400);
-  assert.equal((await call(base, 'POST', '/api/admin/password', { password: 'faux-temp-xx', newPassword: 'nouveau-mdp-solide' }, pierre)).status, 401);
+  assert.equal((await call(base, 'POST', '/api/admin/password', { password: 'faux-temp-xx', newPassword: 'nouveau-mdp-solide' }, pierre)).status, 403);
   assert.equal((await call(base, 'POST', '/api/admin/password', { password: temp, newPassword: 'nouveau-mdp-solide' }, pierre)).status, 204);
   assert.equal((await call(base, 'GET', '/api/admin/stats', undefined, pierre)).status, 200);
   const again = await call(base, 'POST', '/api/admin/login', { username: 'Pierre', password: 'nouveau-mdp-solide' });
@@ -284,7 +285,74 @@ test('classement : tri, joueurs masqués, nouvelle partie exclue', async (t) => 
   assert.equal((await call(base, 'PUT', '/api/account/listed', { listed: 'oui' }, c)).status, 400);
 });
 
-test('anti-triche : codes refusés, régression de niveau refusée, meilleure étape conservée', async (t) => {
+test('classement v9.1.6 : nouvelles stats, invités exclus, mon rang, classement entre amis', async (t) => {
+  const s = await setup();
+  t.after(() => s.close());
+  const base = s.url();
+  const reg = async (pseudo) => (await call(base, 'POST', '/api/register', { pseudo, password: 'motdepasse1' })).body.token;
+  const [a, b, c] = [await reg('Alpha_1'), await reg('Bravo_2'), await reg('Charl_3')];
+  const save = (tok, o) => call(base, 'PUT', '/api/save', { version: 0, data: JSON.stringify(o) }, tok);
+  await save(a, { level: 5, maxStage: 30, kills: 900, towerBest: 2, playSeconds: 50, records: { rebirths: 0, goldEarned: 1e6, bossesDefeated: 1 } });
+  await save(b, { level: 9, maxStage: 20, kills: 100, towerBest: 7, playSeconds: 500, records: { rebirths: 3, goldEarned: 1e9, bossesDefeated: 2 } });
+  await save(c, { level: 2, maxStage: 10, kills: 5, playSeconds: 5, records: {} });
+  const top = async (sort, tok, scope = 'all') => (await call(base, 'GET', `/api/leaderboard?sort=${sort}&scope=${scope}`, undefined, tok)).body;
+  assert.equal((await top('kills')).players[0].pseudo, 'Alpha_1');
+  for (const sort of ['gold', 'rebirths', 'tower', 'playtime']) assert.equal((await top(sort)).players[0].pseudo, 'Bravo_2', sort);
+  assert.equal((await top('gold')).players[0].value, 1e9);
+  // Mon rang hors de la liste : limit=1.
+  const mine = (await call(base, 'GET', '/api/leaderboard?sort=stage&limit=1', undefined, c)).body;
+  assert.equal(mine.players.length, 1);
+  assert.equal(mine.me.rank, 3);
+  assert.equal(mine.me.pseudo, 'Charl_3');
+
+  // Amis : demande, liste, acceptation croisée, classement entre amis, retrait.
+  assert.equal((await call(base, 'GET', '/api/leaderboard?scope=friends')).status, 401);
+  assert.equal((await call(base, 'POST', '/api/friends', { pseudo: 'Inconnu' }, a)).status, 404);
+  assert.equal((await call(base, 'POST', '/api/friends', { pseudo: 'alpha_1' }, a)).status, 400);
+  assert.equal((await call(base, 'POST', '/api/friends', { pseudo: 'bravo_2' }, a)).body.status, 'sent');
+  assert.deepEqual((await call(base, 'GET', '/api/friends', undefined, b)).body.incoming, ['Alpha_1']);
+  assert.deepEqual((await call(base, 'GET', '/api/friends', undefined, a)).body.outgoing, ['Bravo_2']);
+  assert.deepEqual((await top('stage', a, 'friends')).players.map((p) => p.pseudo), ['Alpha_1']);
+  assert.equal((await call(base, 'POST', '/api/friends/accept', { pseudo: 'Alpha_1' }, b)).body.status, 'friends');
+  assert.deepEqual((await top('stage', a, 'friends')).players.map((p) => p.pseudo), ['Alpha_1', 'Bravo_2']);
+  assert.equal((await top('stage', a, 'friends')).players[0].me, true);
+  // Demande croisée : C demande à A, A demande à C → amis directement.
+  await call(base, 'POST', '/api/friends', { pseudo: 'Alpha_1' }, c);
+  assert.equal((await call(base, 'POST', '/api/friends', { pseudo: 'Charl_3' }, a)).body.status, 'friends');
+  assert.equal((await call(base, 'GET', '/api/friends', undefined, a)).body.friends.length, 2);
+  assert.equal((await call(base, 'DELETE', '/api/friends/Bravo_2', undefined, a)).status, 204);
+  assert.deepEqual((await top('stage', b, 'friends')).players.map((p) => p.pseudo), ['Bravo_2']);
+  // Invité : absent du classement public, pas de demande d'ami.
+  const guest = (await call(base, 'POST', '/api/guest', {})).body;
+  if (guest?.token) {
+    await call(base, 'PUT', '/api/save', { version: 0, data: JSON.stringify({ level: 99, maxStage: 999, records: {} }) }, guest.token);
+    assert.ok(!(await top('stage')).players.some((p) => p.pseudo === guest.pseudo));
+    assert.equal((await call(base, 'POST', '/api/friends', { pseudo: 'Alpha_1' }, guest.token)).status, 403);
+  }
+});
+
+test('classement v9.1.7 : temps (renaissance la plus rapide, temps pour atteindre un monde)', async (t) => {
+  const s = await setup();
+  t.after(() => s.close());
+  const base = s.url();
+  const reg = async (pseudo) => (await call(base, 'POST', '/api/register', { pseudo, password: 'motdepasse1' })).body.token;
+  const [a, b, c] = [await reg('Rapide_1'), await reg('Lent_2'), await reg('Ancien_3')];
+  const save = (tok, times) => call(base, 'PUT', '/api/save', { version: 0, data: JSON.stringify({ level: 5, maxStage: 50, records: {}, times }) }, tok);
+  await save(a, { bestRebirth: 3600, firstZone: { 0: 0, 1: 900, 2: 2000 } });
+  await save(b, { bestRebirth: 7200, firstZone: { 0: 0, 1: 600 } });
+  await save(c, { firstZone: { 0: -1, 1: -1, 2: -1 } }); // partie d'avant 9.1.7 : dates inconnues, jamais classée
+  const board = async (q) => (await call(base, 'GET', `/api/leaderboard?${q}`)).body;
+  assert.deepEqual((await board('sort=rebirthFast')).players.map((p) => [p.pseudo, p.value]), [['Rapide_1', 3600], ['Lent_2', 7200]]);
+  assert.deepEqual((await board('sort=reach&world=2')).players.map((p) => p.pseudo), ['Lent_2', 'Rapide_1']);
+  const w3 = await board('sort=reach&world=3');
+  assert.equal(w3.world, 3);
+  assert.deepEqual(w3.players.map((p) => [p.pseudo, p.value]), [['Rapide_1', 2000]]);
+  assert.equal((await board('sort=reach&world=99')).world, 11); // borné, jamais de texte dans le SQL
+  assert.equal((await board("sort=reach&world=2'--")).world, 2);
+  assert.equal((await board('sort=transcendFast')).players.length, 0);
+});
+
+test('anti-triche : codes refusés, partie plus ancienne refusée, renaissance acceptée, meilleure étape conservée', async (t) => {
   const s = await setup();
   t.after(() => s.close());
   const base = s.url();
@@ -292,16 +360,20 @@ test('anti-triche : codes refusés, régression de niveau refusée, meilleure é
   const cheated = await call(base, 'PUT', '/api/save', { version: 0, data: JSON.stringify({ level: 5, maxStage: 5, cheats: { effects: [{ code: 'TURBO100' }], reveal: false, speeds: [] } }) }, token);
   assert.equal(cheated.status, 422);
   assert.match(cheated.body.error, /triche/);
-  const clean = { level: 10, maxStage: 40, cheats: { effects: [], reveal: false, speeds: [], skipBattle: false } };
+  const clean = { level: 10, maxStage: 40, playSeconds: 1000, cheats: { effects: [], reveal: false, speeds: [], skipBattle: false } };
   assert.equal((await call(base, 'PUT', '/api/save', { version: 0, data: JSON.stringify(clean) }, token)).status, 200);
-  const lower = await call(base, 'PUT', '/api/save', { version: 1, data: JSON.stringify({ level: 3, maxStage: 40 }) }, token);
-  assert.equal(lower.status, 422);
-  assert.equal((await call(base, 'PUT', '/api/save', { version: 1, data: JSON.stringify({ level: 10, maxStage: 2.5 }) }, token)).status, 422);
-  assert.equal((await call(base, 'PUT', '/api/save', { version: 1, data: JSON.stringify({ level: 10, maxStage: 12, gold: -4 }) }, token)).status, 422);
-  // Renaissance : l'étape repart de 1, mais le classement garde la meilleure étape.
-  assert.equal((await call(base, 'PUT', '/api/save', { version: 1, data: JSON.stringify({ level: 10, maxStage: 1 }) }, token)).status, 200);
+  // Partie plus ancienne (moins de temps de jeu) : refusée.
+  const older = await call(base, 'PUT', '/api/save', { version: 1, data: JSON.stringify({ level: 10, maxStage: 40, playSeconds: 100 }) }, token);
+  assert.equal(older.status, 422);
+  assert.match(older.body.error, /plus ancienne/);
+  assert.equal((await call(base, 'PUT', '/api/save', { version: 1, data: JSON.stringify({ level: 10, maxStage: 2.5, playSeconds: 1100 }) }, token)).status, 422);
+  assert.equal((await call(base, 'PUT', '/api/save', { version: 1, data: JSON.stringify({ level: 10, maxStage: 12, gold: -4, playSeconds: 1100 }) }, token)).status, 422);
+  // Renaissance : niveau remis à 1 et étape repartie de 1 (refusée en 9.1.2) ; le classement garde la meilleure étape.
+  assert.equal((await call(base, 'PUT', '/api/save', { version: 1, data: JSON.stringify({ level: 1, maxStage: 1, playSeconds: 1200 }) }, token)).status, 200);
   const board = (await call(base, 'GET', '/api/leaderboard?sort=stage')).body.players;
   assert.equal(board[0].maxStage, 40);
+  // Pas de plafond d'étape : cycles de difficulté sans fin (2001 = 6-11 ×10 était refusée).
+  assert.equal((await call(base, 'PUT', '/api/save', { version: 2, data: JSON.stringify({ level: 900, maxStage: 5000, playSeconds: 1300 }) }, token)).status, 200);
 });
 
 // ---- v9.1.1 : comptes invités, compte joueur, changement de nom, analytique ----
@@ -464,4 +536,30 @@ test('score en ligne : extrait de la sauvegarde, validé, meilleur gardé, joueu
   assert.equal(board[0].rank, 1);
   assert.equal((await call(base, 'GET', '/api/scores?unit=../x')).status, 400);
   assert.deepEqual((await call(base, 'GET', '/api/scores?unit=shadow_lord')).body.players, []);
+});
+
+test("anti-triche : l'or d'un idle n'a pas de plafond (refusé à tort au-delà de 1e15 en 9.1.2)", () => {
+  const save = { level: 37, maxStage: 48, gold: 4.2e31, gems: 1e18 };
+  assert.equal(checkSave(save, summarizeSave(save), null), null);
+  const bad = { level: 37, maxStage: 48, gold: Infinity };
+  assert.match(checkSave(bad, summarizeSave({ ...bad, gold: -1 }), null), /or impossible/);
+});
+
+test('connexions réussies sans limite ; seuls les échecs comptent', async (t) => {
+  const s = await setup({ adminPasswordHash: await hashPassword('mot-de-passe-admin') });
+  t.after(() => s.close());
+  const base = s.url();
+  await call(base, 'POST', '/api/register', { pseudo: 'Fidele', password: 'motdepasse1' });
+  for (let i = 0; i < LIMITS.authAttempts.max + 3; i += 1) {
+    assert.equal((await call(base, 'POST', '/api/login', { pseudo: 'Fidele', password: 'motdepasse1' })).status, 200);
+  }
+  for (let i = 0; i < LIMITS.authAttempts.max; i += 1) {
+    await call(base, 'POST', '/api/admin/login', { username: 'erwann', password: 'faux-mdp-xxxx' });
+  }
+  assert.equal((await call(base, 'POST', '/api/admin/login', { username: 'erwann', password: 'faux-mdp-xxxx' })).status, 429);
+  assert.equal((await call(base, 'POST', '/api/login', { pseudo: 'Fidele', password: 'motdepasse1' })).status, 200);
+});
+
+test("libellé d'étape du serveur identique à celui du jeu (classement, admin)", () => {
+  for (let stage = 1; stage <= 3000; stage += 1) assert.equal(stageLabel(stage), gameStageLabel(stage), `étape ${stage}`);
 });

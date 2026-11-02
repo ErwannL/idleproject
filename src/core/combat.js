@@ -27,6 +27,7 @@ import { DUNGEON_DIFFICULTIES } from '../data/dungeons.js';
 import { enemyScaleFactor } from './transcend.js';
 import { clearTowerFloor, endTower, towerBoss, towerLevel, towerTimeLeft } from './tower.js';
 import { endWorldRun, worldEncounter, worldKill, worldTimeLeft } from './banner.js';
+import { tickTimes } from './times.js';
 import { CHALLENGE, challengeBosses, challengeKill, challengeLevel, challengeRule, challengeTimeUp, clearChallengeWave, endChallenge, isBossWave } from './challenge.js';
 
 const MAX_EVENTS = 300;
@@ -667,6 +668,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
   if (state.worldRun?.kind === 'score' && world.scoreRng) rng = world.scoreRng;
   world.time += dt;
   state.playSeconds = (state.playSeconds ?? 0) + dt;
+  tickTimes(state, dt, balance);
   // Positions du pas précédent : le rendu interpole entre les deux (sans effet sur la partie).
   world.prevScroll = world.scroll;
   for (const enemy of world.enemies) {
