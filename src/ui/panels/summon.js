@@ -96,15 +96,17 @@ export default {
       const open = ui.view.summonOdds === pool;
       return `<div class="card summon-row banner-${pool}">
         <div class="summon-row-head">${img(pool === 'hero' ? 'icon_hero' : pool === 'ally' ? 'icon_summon' : 'icon_paw')}<b>${p.label}</b>
-          ${f ? `<span class="summon-feat" title="${escapeHtml(`En vedette : ${f.name} — ${Math.round(FEATURED_SHARE * 100)} % des Légendaires obtenus, change chaque lundi`)}">★ ${escapeHtml(f.name)}</span>` : '<span class="grow"></span>'}
+          <span class="grow"></span>
           <button class="btn small help-q${open ? ' active' : ''}" data-action="summon-odds" data-value="${pool}" aria-expanded="${open}" aria-label="Règles et probabilités : ${escapeHtml(p.label)}">?</button></div>
+        ${f ? `<div class="featured-line">${unitPortrait(f)}<span><b class="gold-text">★ En vedette : ${escapeHtml(f.name)}</b>
+          <span class="muted">— ${Math.round(FEATURED_SHARE * 100)} % des Légendaires obtenus · change chaque lundi</span></span></div>` : ''}
         <div class="summon-buttons">
           ${btn(pool, 1, 'gems', s.gemCost, `×1 ${gem()} ${s.gemCost}`, `${p.label} ×1 : ${s.gemCost} gemmes`)}
           ${btn(pool, 10, 'gems', s.tenPullGemCost, `×10 ${gem()} ${s.tenPullGemCost}`, `${p.label} ×10 : ${s.tenPullGemCost} gemmes`)}
         </div>
         ${open ? `<div class="summon-odds"><p class="muted">${what} Compteur des garanties commun aux trois invocations. Doublon : +1 étoile (max 5), puis +${s.duplicateRefundGems} gemmes.</p>
-          ${f ? `<p class="muted">★ En vedette : ${escapeHtml(f.name)}, ${Math.round(FEATURED_SHARE * 100)} % des Légendaires obtenus · change chaque lundi.</p>` : ''}
-          ${pool === 'hero' ? fold(ui, 'summon-banner', 'Apparence en vedette : détails', () => heroBanner(state)) : ''}${odds(pool)}</div>` : ''}
+          ${odds(pool)}</div>` : ''}
+        ${pool === 'hero' && f ? fold(ui, 'summon-banner', 'Apparence en vedette : détails', () => heroBanner(state)) : ''}
         ${results && normalizePool(ui.view.summonPool) === pool ? `<div class="summon-results">${results}</div>` : ''}
       </div>`;
     }).join('');
