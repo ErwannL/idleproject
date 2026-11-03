@@ -12,6 +12,7 @@ import { createTranslator, num } from './engine.js';
 import { EXACT_920_OCEAN } from './en-920-ocean.js'; // v9.2.0 (monde marin)
 import { EXACT_919, PATTERNS_919, setEnLookup } from './en-919.js';
 import { EXACT_920_UPG, patterns920Upg } from './en-920-upg.js'; // v9.2.0
+import { EXACT_921, patterns921 } from './en-921.js'; // v9.2.1
 
 // --- Dictionnaire exact ---------------------------------------------------------------------------
 
@@ -1993,3 +1994,7 @@ export function translate(text) {
 // v9.2.0 : nouvelles améliorations (./en-920-upg.js).
 Object.assign(EXACT, EXACT_920_UPG);
 PATTERNS.unshift(...patterns920Upg(lookup));
+
+// v9.2.1 : malus d'environnement (./en-921.js).
+Object.assign(EXACT, EXACT_921);
+PATTERNS.unshift(...patterns921(lookup));

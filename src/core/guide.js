@@ -108,6 +108,8 @@ export const PANEL_HELP = {
   upgrades: {
     short: 'L\'or achète des améliorations. Chaque ligne indique son gain en dégâts/s : à vous de choisir.',
     more: 'Dégâts et Points de vie gagnent ×1,35 / ×1,4 tous les 10 niveaux et ×1,75 tous les 25 niveaux : visez ces paliers. ×10, ×100 et Max achètent plusieurs niveaux d\'un coup.',
+    // v9.2.1
+    env: 'Dans les mondes 2 à 12, l\'environnement gêne le héros : la mention « contre … » marque l\'amélioration qui réduit ce malus (annulé à son niveau complet).',
     touch: 'Gardez le doigt sur un bouton d\'achat : après l\'anneau, il achète en continu, de plus en plus vite.',
   },
   inventory: {
@@ -135,6 +137,8 @@ export const PANEL_HELP = {
   campaign: {
     short: 'Votre monde, le prochain boss et la prévision du combat. L\'avance automatique passe d\'une étape à l\'autre.',
     more: 'La plupart des mondes ont 20 étapes et 4 boss (le monde 11 en a 10). Si un boss vous bat, le héros s\'entraîne à l\'étape d\'avant et le retente seul quand il est 15 % plus fort (ou « Retenter le boss »).',
+    // v9.2.1
+    env: 'Dès le monde 2, chaque monde a un malus d\'environnement (Pénombre, Lave…), un peu plus fort à chaque cycle. Une amélioration à l\'or le réduit selon son niveau : la fiche du monde et la pastille en bas à gauche du combat disent laquelle et la part contrée.',
   },
   dungeons: {
     short: 'Une clé par tentative. Réussir une difficulté débloque la suivante, donjon par donjon.',

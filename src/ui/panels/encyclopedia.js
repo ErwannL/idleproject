@@ -22,7 +22,9 @@ import { rewardText } from '../../core/rewards.js';
 import { itemIconUrl } from '../../render/pixel.js';
 import { animCanvas } from '../animator.js';
 import { AFFIXES } from '../../data/items.js';
-import { effectText, escapeHtml, formatNumber, icon, img, progressBar, rarityLabel, rewardIcons, stars } from '../common.js';
+import { ENVIRONMENTS } from '../../data/environment.js'; // v9.2.1
+import { envEffectText } from '../../core/environment.js';
+import { effectText, escapeHtml, fold, formatNumber, icon, img, progressBar, rarityLabel, rewardIcons, stars } from '../common.js';
 
 const SHADOW = { tint: { color: '#2e3a52', alpha: 1 } };
 const TIERS = { mini: 'Mini-boss', mid: 'Boss', hard: 'Boss redoutable', dungeon: 'Boss de donjon' };
@@ -271,6 +273,19 @@ function sectionMilestone(state, id) {
     <span class="grow">${progressBar(Math.min(1, st.found / Math.max(1, goal)), `${st.found} / ${goal}`)}</span>${right}</div>`;
 }
 
+// v9.2.1 : malus d'environnement des mondes 2 à 12 (valeur au cycle 1) et amélioration qui le contre ; les mondes
+// pas encore atteints restent « ? ».
+function envTable(state) {
+  const best = Math.max(state.maxStage ?? 1, state.records?.bestStage ?? 1);
+  const rows = ENVIRONMENTS.map((e) => {
+    const zi = ZONES.findIndex((z) => z.id === e.zone);
+    const seen = best > zi * 20; // étape record au-delà du monde précédent (mondes de 20 étapes avant l'Abysse)
+    if (!seen) return `<div class="env-row muted">${zi + 1}. ?</div>`;
+    return `<div class="env-row">${img(e.icon, 'ico16')} <b>${zi + 1}. ${escapeHtml(e.name)}</b> — ${escapeHtml(envEffectText(e, e.base))} · contré par ${escapeHtml(BALANCE.upgrades[e.counter].label)} (complet au niveau ${e.fullAt})</div>`;
+  }).join('');
+  return `<div class="muted">Le malus grandit de 25 % par cycle (×2 au plus) et baisse selon le niveau de l'amélioration qui le contre.</div>${rows}`;
+}
+
 // v9.1.0 : deux systèmes sur un écran, dans cet ordre — en-tête (pourcentage et paliers de l'encyclopédie, pour ses
 // 5 sections seulement), sections avec leur palier (v9.1.3 : ancien Codex), puis le Musée (compteur propre, sans effet
 // sur le pourcentage). Le Musée n'est pas une section de l'encyclopédie (core/encyclopedia.js ne le compte pas).
@@ -295,6 +310,7 @@ export default {
         items: () => itemList(state, sel, v.encSlot ?? 'all'), companions: () => companionList(state, sel) }[sec]();
       body = `<div class="codex enc-body"><div class="card enc-list">${list}</div><div class="card codex-detail">${detail(state, sel)}</div></div>`;
     }
-    return `<div class="card">${milestones(state, progress)}</div><div class="enc-tabs">${tabs}</div>${sec === 'museum' ? '' : sectionMilestone(state, sec)}${body}`;
+    return `<div class="card">${milestones(state, progress)}</div><div class="enc-tabs">${tabs}</div>${sec === 'museum' ? '' : sectionMilestone(state, sec)}${body}
+      ${fold(ui, 'enc-env', 'Environnements des mondes', envTable(state))}`;
   },
 };

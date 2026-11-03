@@ -6,6 +6,7 @@ import { BOSSES } from '../../data/enemies.js';
 const TIER_LABELS = { mini: 'Mini-boss', mid: 'Boss', hard: 'Boss redoutable', mega: 'MÉGA BOSS' };
 import { bossForecast, escapeHtml, forecastHtml, progressBar } from '../common.js';
 import { bossRetryPct } from '../../core/guide.js';
+import { envLine, environmentFor } from '../../core/environment.js'; // v9.2.1
 
 // v9.0.6 : écran Aventure — « où j'en suis » en un coup d'œil : monde et étape, prochain boss, prévision,
 // avance automatique et la prochaine chose utile à faire (un clic ouvre le bon écran).
@@ -31,6 +32,13 @@ function summary(ui, state) {
       ${forecastHtml(bossForecast(state, () => ui.invalidate()))}
       ${retryBox(state)}
     </div>`;
+}
+
+// v9.2.1 : malus d'environnement du monde choisi (au cycle choisi) et amélioration qui le contre.
+function envHtml(state, zi, cycle) {
+  const env = environmentFor(state, zi, cycle + 1);
+  if (!env) return '<div class="muted env-line">Environnement : aucun malus dans ce monde.</div>';
+  return `<div class="env-line${env.countered >= 100 ? ' countered' : ''}">${escapeHtml(envLine(env))}</div>`;
 }
 
 // Boss trop fort (v9.1.0) : c'est normal, et on le dit ; le bouton pour le retenter reste ici aussi.
@@ -109,6 +117,7 @@ export default {
         ${worldPicker}
         <div class="row-between"><span>${cycle ? `<b class="bad">Cycle ×${cycle + 1}</b>` : ''}</span>
           <label class="toggle"><input type="checkbox" data-action="auto" ${state.autoAdvance ? 'checked' : ''}> Avancer automatiquement</label></div>
+        ${envHtml(state, sel, cycle)}
         <div class="stage-grid">${buttons.join('')}</div>
       </div>`;
   },

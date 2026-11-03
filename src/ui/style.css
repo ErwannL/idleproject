@@ -2516,3 +2516,16 @@ html[lang="ko"] body { word-break: keep-all; overflow-wrap: anywhere; }
 .sr-buttons { display: flex; gap: 8px; margin-top: 6px; align-items: center; }
 .sr-buttons .class-on { color: var(--rarity); }
 .reduce-motion .skin-reveal, .reduce-motion .skin-reveal-card { transition: none; transform: none; }
+
+/* v9.2.1 : malus d'environnement — pastille en bas à gauche de la scène, au-dessus des PV (part contrée ; infobulle = effet complet). */
+#env-chip { position: absolute; bottom: 34px; left: 6px; z-index: 3; display: inline-flex; align-items: center; gap: 3px;
+  padding: 1px 7px 1px 4px; border-radius: 999px; border: 1px solid #8a4a20; background: rgba(40, 16, 6, 0.85);
+  color: #ffc08a; font: inherit; font-size: 10.5px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+#env-chip.countered { border-color: #3f7a4a; background: rgba(8, 30, 14, 0.85); color: #9cf08a; }
+#env-chip.hidden { display: none; }
+img.ico16 { width: 16px; height: 16px; vertical-align: middle; }
+.layout-strip #env-chip { display: none; }
+.tag.env-counter { background: #3a1f0c; color: #ffc08a; border: 1px solid #8a4a20; }
+.env-line { font-size: 12px; color: #ffc08a; }
+.env-line.countered { color: #9cf08a; }
+.env-row { font-size: 12px; padding: 2px 0; }

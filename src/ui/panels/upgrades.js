@@ -6,6 +6,7 @@ import { bossForecast, coin, costButton, escapeHtml, fold, forecastHtml, formatD
 import { upgradeProfits } from '../../core/profit.js';
 import { pref } from '../prefs.js';
 import { BASE_UPGRADES, nextUpgradeUnlock, openUpgrades } from '../../core/unlocks.js';
+import { currentEnvironment } from '../../core/combat.js'; // v9.2.1
 
 const ICONS = {
   // v9.1.3 (doc2 §4) : icônes 20×20 dédiées (Critique ≠ Frappe rapide, Régénération ≠ fée, Dégâts et Or carrés).
@@ -53,6 +54,7 @@ export default {
     const current = computeHeroStats(state);
     const profits = upgradeProfits(state);
     let keys = (beginner ? BASE_UPGRADES : openUpgrades(state, BALANCE)).filter((k) => !cat || cat.keys.includes(k));
+    const env = currentEnvironment(state); // v9.2.1 : malus du monde actuel (mention neutre sur la ligne qui le contre)
     const nextUp = beginner ? null : nextUpgradeUnlock(state, BALANCE);
     if (ui.view.upgradeSort === 'profit') keys = [...keys].sort((x, y) => (profits[y]?.score ?? -1) - (profits[x]?.score ?? -1));
     else if (ui.view.upgradeSort === 'cost') keys = [...keys].sort((x, y) => upgradeCost(x, state.upgrades[x]) - upgradeCost(y, state.upgrades[y]));
@@ -93,7 +95,7 @@ export default {
       // est dans le nom), +x % dégâts/s neutre sur la même ligne, bouton avec prix : 2 lignes au lieu de 3.
       return `<div class="card upg-card${compact ? ' compact' : ''}">
         <div class="upg-icon">${img(ICONS[key])}</div>
-        <div class="upg-main"><div class="upg-name" title="${escapeHtml(up.description)}">${escapeHtml(up.label)} <span class="upg-level">niv. ${level}${up.maxLevel ? `/${up.maxLevel}` : ''}</span>${milestone}</div>
+        <div class="upg-main"><div class="upg-name" title="${escapeHtml(up.description)}">${escapeHtml(up.label)} <span class="upg-level">niv. ${level}${up.maxLevel ? `/${up.maxLevel}` : ''}</span>${milestone}${env?.counter === key ? `<span class="tag env-counter" title="${escapeHtml(`Contré : ${Math.round(env.countered)} % (complet au niveau ${env.fullAt})`)}">contre ${escapeHtml(env.name)}</span>` : ''}</div>
         ${compact || !beginner ? '' : `<div class="muted upg-desc">${escapeHtml(up.description)}</div>`}
         <div class="upg-effect num">${max ? `<span class="to">${from}</span>`
           : `<span class="from">${from}</span> → <span class="to">${to}</span>`}${gain}</div></div>

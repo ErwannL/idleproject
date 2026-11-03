@@ -18,6 +18,7 @@ import { cheatLoot } from './cheats.js';
 import { recordBossVictory } from './powers.js';
 import { activeSkills, skillCooldown, skillValue } from './skills.js';
 import { computeHeroStats } from './stats.js';
+import { applyEnvironment, environmentFor } from './environment.js'; // v9.2.1
 import { earlyBoost } from './boost.js';
 import { phantomHitPct, rushById, tickRushes } from './rushes.js';
 import { recordKill } from './codex.js';
@@ -217,6 +218,15 @@ export function currentEncounter(state, balance = BALANCE) {
     gauntlet: Boolean(zone.gauntlet),
     summons: zone.gauntlet ? Object.values(ZONES[stageInZone(state.stage, balance) - 1].tierBosses ?? {}) : [],
   };
+}
+
+// v9.2.1 : malus d'environnement de la rencontre en cours (campagne, donjons et défi de leur monde ; ni la Tour ni le
+// mode monde, qui ont leurs propres règles). Le cycle de difficulté ne compte qu'en campagne.
+export function currentEnvironment(state, balance = BALANCE) {
+  if (state.tower || state.worldRun) return null;
+  const enc = currentEncounter(state, balance);
+  const campaign = !enc.dungeon && !enc.challenge;
+  return environmentFor(state, enc.zoneIndex, campaign ? difficultyForStage(state.stage, balance) : 1);
 }
 
 export function createCombat(state, balance = BALANCE) {
@@ -594,7 +604,7 @@ function heroDamage(stats, enemy, world, rng, balance) {
   const cry = world.buffs.cry > 0 ? world.buffs.cryPct : 0;
   const crit = rng.next() < stats.critChance / 100;
   // v9.2.0 : multiplicateur critique de l'amélioration « Dégâts critiques », facteur « Tueur de boss » à part.
-  const slayer = enemy.boss ? 1 + (stats.bossDamagePct ?? 0) / 100 : 1;
+  const slayer = enemy.boss ? (1 + (stats.bossDamagePct ?? 0) / 100) * (stats.bossMult ?? 1) : 1; // v9.2.1 : Distorsion
   const damage = stats.damage * (1 + versus / 100) * slayer * (1 + cry / 100) * (crit ? stats.critMultiplier ?? balance.hero.critMultiplier : 1);
   return { damage, crit };
 }
@@ -622,7 +632,7 @@ function castCompanion(state, world, companion, skill, stats, rng, balance, enc,
   // bouclier et or sans étoile.
   // v9.2.0 : « Lien des compagnons » renforce coups, soins et cris (pas le bouclier ni l'or).
   const aff = companionSkillMultiplier(state, companion, skill.type, dungeonAffinity(state, companion.id, balance), balance)
-    * (1 + (stats.companionPowerPct ?? 0) / 100);
+    * (1 + (stats.companionPowerPct ?? 0) / 100) * (stats.companionMult ?? 1); // v9.2.1 : Corruption
   if (skill.type === 'gold') {
     gainGold(state, world, referenceKillGold(enc.level, balance) * skill.value * (1 + stats.goldPct / 100) * (stats.goldMult ?? 1) * earlyBoost(state, balance).gold);
   } else if (skill.type === 'heal') {
@@ -709,7 +719,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
     for (const id of started) emit(world, 'rushStart', { id });
     for (const id of ended) emit(world, 'rushEnd', { id });
   }
-  const stats = computeHeroStats(state, balance);
+  const stats = applyEnvironment(computeHeroStats(state, balance), currentEnvironment(state, balance)); // v9.2.1
   world.heroStats = stats;
 
   if (hero.dead) {
@@ -723,6 +733,8 @@ export function step(state, world, dt, rng, balance = BALANCE) {
     return;
   }
   if (!state.challenge || !challengeRule(state, 'noHeal')) hero.hp = Math.min(stats.maxHp, hero.hp + stats.regenPerSecond * dt);
+  // v9.2.1 : brûlure (Lave) — jamais mortelle seule, elle s'arrête à 1 PV.
+  if (stats.burnPerSecond > 0) hero.hp = Math.max(Math.min(hero.hp, 1), hero.hp - stats.burnPerSecond * dt);
   world.buffs.cry = Math.max(0, world.buffs.cry - dt);
   world.buffs.shield = Math.max(0, world.buffs.shield - dt);
   if (world.buffs.cry <= 0) world.buffs.cryPct = 0;
@@ -797,16 +809,21 @@ export function step(state, world, dt, rng, balance = BALANCE) {
     hero.attackTimer -= dt;
     if (hero.attackTimer <= 0) {
       hero.attackTimer += stats.attackInterval;
-      const { damage, crit } = heroDamage(stats, front, world, rng, balance);
-      world.attackCount = (world.attackCount ?? 0) + 1;
-      if (crit) front.critAt = world.time; // v9.2.0 (monde marin) : un critique arrête la Marée
-      const extra = classAttackTargets(heroClass, world, front, damage, world.attackCount);
-      emit(world, 'heroAttack', {
-        enemyId: front.id, damage, crit, x: front.x, boss: front.boss, kind: heroClass.attack.kind,
-        special: extra.special, targets: extra.hits.map((h) => ({ id: h.enemy.id, x: h.enemy.x })),
-      });
-      hitEnemy(state, world, front, damage, rng, balance, stats, enc, 'attack');
-      for (const h of extra.hits) hitEnemy(state, world, h.enemy, h.damage, rng, balance, stats, enc, 'attack');
+      // v9.2.1 : Pénombre — une part des coups manque (tirage seulement sous ce malus).
+      if (stats.missPct > 0 && rng.next() < stats.missPct / 100) {
+        emit(world, 'heroMiss', { enemyId: front.id, x: front.x });
+      } else {
+        const { damage, crit } = heroDamage(stats, front, world, rng, balance);
+        world.attackCount = (world.attackCount ?? 0) + 1;
+        if (crit) front.critAt = world.time; // v9.2.0 (monde marin) : un critique arrête la Marée
+        const extra = classAttackTargets(heroClass, world, front, damage, world.attackCount);
+        emit(world, 'heroAttack', {
+          enemyId: front.id, damage, crit, x: front.x, boss: front.boss, kind: heroClass.attack.kind,
+          special: extra.special, targets: extra.hits.map((h) => ({ id: h.enemy.id, x: h.enemy.x })),
+        });
+        hitEnemy(state, world, front, damage, rng, balance, stats, enc, 'attack');
+        for (const h of extra.hits) hitEnemy(state, world, h.enemy, h.damage, rng, balance, stats, enc, 'attack');
+      }
     }
   } else {
     hero.attackTimer = Math.min(hero.attackTimer, 0.25);
@@ -904,7 +921,8 @@ export function step(state, world, dt, rng, balance = BALANCE) {
         attacker.enraged = true;
         emit(world, 'bossEnrage', { enemyId: attacker.id, kind: attacker.type });
       }
-      const damage = attacker.damage * rage * traitAtk.damage * (1 - armor / 100) * (1 - shield / 100) * dungeonDamageTaken(state, balance);
+      const damage = attacker.damage * rage * traitAtk.damage * (1 - armor / 100) * (1 - shield / 100) * dungeonDamageTaken(state, balance)
+        * (stats.hurtMult ?? 1); // v9.2.1 : Éclats de cristal
       hero.hp -= damage;
       mutationOnHit(attacker, damage);
       emit(world, 'heroHit', { enemyId: attacker.id, damage, boss: attacker.boss });

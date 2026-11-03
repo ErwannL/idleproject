@@ -5,7 +5,8 @@ import { BALANCE } from '../data/balance.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
 import { bossTrait } from '../core/boss-traits.js';
 import { DUNGEONS } from '../data/dungeons.js';
-import { bossTierForStage, currentEncounter, difficultyForStage, isBossStage, stageLabel, zoneForStage, zoneIndexForStage } from '../core/combat.js';
+import { envLine } from '../core/environment.js'; // v9.2.1
+import { bossTierForStage, currentEncounter, currentEnvironment, difficultyForStage, isBossStage, stageLabel, zoneForStage, zoneIndexForStage } from '../core/combat.js';
 import { eventLabel } from '../core/events.js';
 import { SUMMON_POOLS, normalizePool } from '../core/gacha.js';
 import { formatDuration, formatNumber } from '../core/format.js';
@@ -1123,6 +1124,9 @@ export class UI {
         if (event.zoneChanged) {
           const d = difficultyForStage(event.stage);
           this.banner(`Monde ${zoneIndexForStage(event.stage) + 1} — ${zoneForStage(event.stage).name}${d > 1 ? ` · difficulté ×${d}` : ''}`, 'zone');
+          // v9.2.1 : malus d'environnement du monde, dans le fil (priorité des messages d'action).
+          const env = currentEnvironment(state);
+          if (env) this.news(envLine(env), '#f0a860', 1);
         }
         if (this.tab === 'campaign') this.invalidate();
         break;
@@ -1296,6 +1300,7 @@ export class UI {
     this.$('auto-toggle').classList.toggle('hidden', Boolean(state.dungeon || state.tower || state.challenge));
 
     this.updateZoneCard(state);
+    this.updateEnvChip(state); // v9.2.1
     this.updateProgress(state, world);
     this.$('advance-btn').classList.toggle('hidden', state.autoAdvance || Boolean(state.dungeon || state.tower || state.challenge));
     // v8.7 : sortie toujours visible quand on est dans la Tour, le défi ou un donjon.
@@ -1369,6 +1374,33 @@ export class UI {
     if (!el) return;
     el.textContent = '';
     setTimeout(() => { el.textContent = text; }, 30);
+  }
+
+  // v9.2.1 : icône du malus d'environnement sur la scène (en bas à gauche, au-dessus des PV) : part contrée, infobulle complète,
+  // appui = Carte (fiche du monde). Rien dans le monde 1, la Tour et le mode monde.
+  updateEnvChip(state) {
+    const now = performance.now();
+    if (now - (this.lastHud.envAt ?? 0) < 400) return;
+    this.lastHud.envAt = now;
+    const env = currentEnvironment(state);
+    let el = this.$('env-chip');
+    if (!el) {
+      el = document.createElement('button');
+      el.id = 'env-chip';
+      el.dataset.open = 'campaign';
+      el.addEventListener('click', () => this.toggleTab('campaign'));
+      this.$('stage-area').appendChild(el);
+    }
+    const key = env ? `${env.zone}|${Math.round(env.countered)}|${Math.round(env.pct * 10)}` : '';
+    if (el.dataset.key === key) return;
+    el.dataset.key = key;
+    el.classList.toggle('hidden', !env);
+    if (!env) return;
+    const done = env.countered >= 100;
+    el.classList.toggle('countered', done);
+    el.title = envLine(env);
+    el.setAttribute('aria-label', envLine(env));
+    el.innerHTML = `${img(env.icon, 'ico16')}<span>contré ${Math.round(env.countered)} %</span>`;
   }
 
   updateZoneCard(state) {
@@ -1692,7 +1724,7 @@ export class UI {
     const device = h && (this.phone ? h.touch : h.mouse);
     const help = this.view.helpOpen === this.tab && h
       ? `<div class="card panel-help-card"><b>Comment ça marche ?</b> ${h.short}${device ? ` ${device}` : ''}
-          ${h.more ? fold(this, `help-${this.tab}`, 'En savoir plus', `<div>${h.more}</div>`) : ''}</div>` : '';
+          ${h.more ? fold(this, `help-${this.tab}`, 'En savoir plus', `<div>${h.more}</div>${h.env ? `<div>${h.env}</div>` : ''}`) : ''}</div>` : ''; // v9.2.1 : env
     body.innerHTML = help + this.introCard(this.tab, state) + panel.render(this, state);
     for (const [id, value] of Object.entries(this.typed)) {
       const field = body.querySelector(`#${CSS.escape(id)}`);
