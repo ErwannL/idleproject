@@ -1982,8 +1982,8 @@ PATTERNS.unshift(...PATTERNS_910);
 setTranslator((s) => translate(s));
 // v9.1.9 : textes complétés (./en-919.js) ; les motifs passent en tête.
 Object.assign(EXACT, EXACT_919);
-PATTERNS.unshift(...PATTERNS_919);
 Object.assign(EXACT, EXACT_920_OCEAN); // v9.2.0 (monde marin) : Royaume englouti
+PATTERNS.unshift(...PATTERNS_919);
 setEnLookup(lookup);
 
 export function translate(text) {

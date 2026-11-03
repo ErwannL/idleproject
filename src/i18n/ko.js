@@ -327,8 +327,8 @@ export const PATTERNS = [
 
 // v9.1.9 : textes complétés (./ko-919.js), placés avant les motifs plus généraux.
 Object.assign(EXACT, EXACT_919);
-PATTERNS.unshift(...PATTERNS_919);
 Object.assign(EXACT, EXACT_920_OCEAN); // v9.2.0 (monde marin) : Royaume englouti
+PATTERNS.unshift(...PATTERNS_919);
 
 const engine = createTranslator(EXACT, PATTERNS);
 export const lookup = engine.lookup;

@@ -799,11 +799,11 @@ export function step(state, world, dt, rng, balance = BALANCE) {
       hero.attackTimer += stats.attackInterval;
       const { damage, crit } = heroDamage(stats, front, world, rng, balance);
       world.attackCount = (world.attackCount ?? 0) + 1;
+      if (crit) front.critAt = world.time; // v9.2.0 (monde marin) : un critique arrête la Marée
       const extra = classAttackTargets(heroClass, world, front, damage, world.attackCount);
       emit(world, 'heroAttack', {
         enemyId: front.id, damage, crit, x: front.x, boss: front.boss, kind: heroClass.attack.kind,
         special: extra.special, targets: extra.hits.map((h) => ({ id: h.enemy.id, x: h.enemy.x })),
-      if (crit) front.critAt = world.time; // v9.2.0 (monde marin) : un critique arrête la Marée
       });
       hitEnemy(state, world, front, damage, rng, balance, stats, enc, 'attack');
       for (const h of extra.hits) hitEnemy(state, world, h.enemy, h.damage, rng, balance, stats, enc, 'attack');
@@ -854,11 +854,11 @@ export function step(state, world, dt, rng, balance = BALANCE) {
   // Seul l'ennemi au contact frappe.
   const attacker = world.enemies[0];
   if (attacker?.engaged) attacker.age = (attacker.age ?? 0) + dt;
+  tickTide(world, dt); // v9.2.0 (monde marin) : boss à la Marée (régénération)
   // v9.0.6 : boss invocateur — des serviteurs surgissent devant lui à intervalles réguliers.
   for (const boss of [...world.enemies]) {
     if (boss.trait !== 'summoner' || boss.hp <= 0) continue;
     boss.summonTimer -= dt;
-  tickTide(world, dt); // v9.2.0 (monde marin) : boss à la Marée (régénération)
     if (boss.summonTimer > 0) continue;
     const t = { ...TRAITS.summoner, minion: BOSS_MINIONS[boss.type] ?? TRAITS.summoner.minion }; // v9.2.0 (monde marin)
     boss.summonTimer = t.every;
