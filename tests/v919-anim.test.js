@@ -29,3 +29,14 @@ test('matrice de Bayer 4×4 complète', () => {
   const s = new Set(); for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) s.add(bayer(x, y));
   assert.equal(s.size, 16);
 });
+
+test('éléments : couleur → élément, et poses d’arme par type', async () => {
+  const { elementOfColor, ELEMENTS } = await import('../src/render/element-fx.js');
+  assert.equal(elementOfColor('#ff6a1a'), 'fire');
+  assert.equal(elementOfColor('#5fe0a0'), 'poison');
+  assert.equal(elementOfColor('#ffe27a'), 'holy');
+  assert.equal(elementOfColor('#b07bff'), 'shadow');
+  assert.equal(elementOfColor('#7fc8ff'), 'ice');
+  assert.equal(elementOfColor('#ffffff'), null);
+  assert.deepEqual(Object.keys(ELEMENTS).sort(), ['fire', 'holy', 'ice', 'poison', 'shadow', 'thunder']);
+});

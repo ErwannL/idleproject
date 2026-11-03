@@ -95,7 +95,7 @@ export function installClassFx(proto, { HERO_X, ATTACK_TIME, CAST_TIME }) {
           const pts = [{ x: hx + 4, y: hy - 8 }, { x: tx, y: G - 12 }, ...others.map((t) => ({ x: t.x, y: G - 12 }))];
           this.effects.push({ kind: 'zap', pts, life: 0.22, max: 0.22, color: '#e8f8ff' });
           this.effects.push({ kind: 'flash', color: '#bfe8ff', life: 0.08, max: 0.08 });
-          react(tx - 4, G - 12, '#9fe0ff');
+          react(tx - 4, G - 12, '#9fe0ff', { element: 'thunder' }); // v9.1.9 : étincelles de foudre
           splash('#9fe0ff', 0.04);
           break;
         }

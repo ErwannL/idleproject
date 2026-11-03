@@ -6,6 +6,7 @@ import { BALANCE } from '../data/balance.js';
 import { drawTeamFx } from './team-fx.js';
 import { installClassFx } from './class-fx.js';
 import { armSwing, attackCurve, dissolveFrames } from './enemy-anim.js';
+import { elementOfColor, installElementFx } from './element-fx.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
 import { RARITIES } from '../data/items.js';
 import { ZONES } from '../data/zones.js';
@@ -414,7 +415,7 @@ export class SceneRenderer {
 
   // v9.0.6 : impact d'un coup du héros sur un ennemi — éclair blanc, recul, écrasement, étincelles dans le sens du
   // coup, chiffre ; sur un critique : arrêt sur image, anneau, secousse et étincelles dorées.
-  hitReact(enemyId, x, { crit = false, boss = false, damage = 0, color = '#ffffff', y = null } = {}) {
+  hitReact(enemyId, x, { crit = false, boss = false, damage = 0, color = '#ffffff', y = null, element = null } = {}) {
     const fx = this.enemyFx.get(enemyId);
     const G = this.groundY;
     const ix = fx?.seen > this.time - 0.2 ? fx.edge + 2 : x - 6;
@@ -436,6 +437,9 @@ export class SceneRenderer {
       this.effects.push({ kind: 'ring', x: ix, y: iy, color: '#ffd23f', life: 0.25, max: 0.25, r: 12 });
       this.shake = Math.max(this.shake, boss ? 3 : 2);
     } else if (boss) this.shake = Math.max(this.shake, 1);
+    // v9.1.9 : impact élémentaire selon la couleur du coup (feu, glace, poison, sacré, ombre) ou l'élément donné.
+    const el = element ?? elementOfColor(color);
+    if (el) this.elementFx(ix, iy, el, crit || boss);
     if (damage) this.addText(formatNumber(damage), x, G - (boss ? 58 : 36), crit ? '#ffd23f' : '#ffffff', crit ? '#fff6c8' : '#ffffff', crit);
   }
 
@@ -504,6 +508,7 @@ export class SceneRenderer {
       const target = Math.round(this.wx(event.x));
       this.effects.push({ kind: 'beam', x: target, color: '#ffe680', life: 0.8, max: 0.8, wide: true });
       this.sprite(['fx_burst'], target, G + 1, 0.5, { tint: '#ffe680' });
+      this.elementFx(target, G - 14, 'holy', true);
       this.shake = Math.max(this.shake, 2);
     }
   }
@@ -730,8 +735,8 @@ export class SceneRenderer {
       const atk = fx.lunge > 0 ? attackCurve(1 - fx.lunge / ENEMY_ATK) : null;
       const lunge = atk ? (this.focus ? Math.max(0, atk.dx) >> 1 : atk.dx) : 0;
       // v9.1.9 : entrée des boss (chute depuis le haut, atterrissage lourd), pas en mode « réduire les animations ».
-      if (enemy.boss && fx.entry === undefined) fx.entry = this.focus ? 0 : BOSS_ENTRY;
-      const entryK = fx.entry > 0 ? fx.entry / BOSS_ENTRY : 0;
+      if (enemy.boss && fx.entry === undefined && ex < this.width * 0.8) fx.entry = this.focus ? 0 : BOSS_ENTRY; // dès qu'il est bien visible
+      const entryK = enemy.boss && fx.entry === undefined && !this.focus ? 1 : fx.entry > 0 ? fx.entry / BOSS_ENTRY : 0; // en attente : hors champ, en haut
       if (fx.entry > 0) {
         fx.entry = Math.max(0, fx.entry - dt);
         if (fx.entry === 0) { this.shake = Math.max(this.shake, 3); this.dust(ex - 10, 4); this.dust(ex + 10, 4); this.burst(ex, this.groundY - 4, '#e8d8b0', 10, 40); }
@@ -769,10 +774,8 @@ export class SceneRenderer {
         }
         if (fx.squash > 0) {
           // Écrasement à l'impact (ancré aux pieds) : plus large et plus bas, très bref.
-          const k = fx.squash / 0.14;
-          const w2 = Math.round(w * (1 + 0.12 * k));
-          const h2 = Math.round(h * (1 - 0.14 * k));
-          ctx.drawImage(img, x - Math.round((w2 - w) / 2), y + (h - h2), w2, h2);
+          // v9.1.9 : pixel-perfect : plus d'étirement non entier, le corps s'affaisse d'1 px puis revient.
+          ctx.drawImage(img, x, y + (fx.squash > 0.07 ? 1 : 0), w, h);
         } else if (atk && atk.arm && hd && !heroLike && !def.flyHeight && SPRITES[sprite]?.gait === 'walk') {
           // v9.1.9 : le bras/l'arme bouge (segment tourné autour de l'épaule, voir enemy-anim.js).
           const sw = armSwing(img, atk.arm, -1);
@@ -1328,6 +1331,9 @@ export class SceneRenderer {
           ctx.fillStyle = fx.color;
           ctx.fillRect(0, 0, this.width, this.height);
           break;
+        case 'epx': case 'eglow': case 'elinger':
+          this.drawElementEffect(ctx, fx, t, dt);
+          break;
         case 'particle':
           fx.vy += 120 * dt;
           fx.x += fx.vx * dt;
@@ -1551,3 +1557,4 @@ export class SceneRenderer {
 
 // Attaques de classe (render/class-fx.js).
 installClassFx(SceneRenderer.prototype, { HERO_X, ATTACK_TIME, CAST_TIME });
+installElementFx(SceneRenderer.prototype);

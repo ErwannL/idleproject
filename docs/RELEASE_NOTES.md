@@ -2,6 +2,9 @@
 
 - Ennemis : attaque en trois temps (préparation, coup avec traînée de frappe, retour) ; les ennemis et compagnons à pied lèvent puis abattent le bras/l'arme (segment tourné au pixel autour de l'épaule).
 - Morts : le corps se dissout en tramage pixel avec des étincelles qui montent (plus d'écrasement flou).
+- Héros : l'arme suit de vraies poses de bras selon son type (épée, espadon, hache, marteau, masse, lance, hallebarde, dague, katar, fouet, bâton, baguette) : armé derrière la tête, frappe, suivi ; rotation au pixel, reflet du métal à l'impact ; contour sombre d'1 px pour la lisibilité (calques, recoloriage et skins inchangés).
+- Éléments : feu, glace, foudre, poison, sacré et ombre ont leurs particules pixel, leur lueur et leur rémanence à l'impact (héros, classes, compagnons).
+- Pixel-perfect : plus d'étirement non entier à l'impact sur les ennemis.
 - Boss : entrée en chute avec atterrissage lourd (secousse, poussière), coups plus lourds (secousse, traînée rouge). Tout est allégé en « réduire les animations ».
 
 ## Ascendrya v9.1.8 — Les deux 9.1 réunies, langue coréenne
