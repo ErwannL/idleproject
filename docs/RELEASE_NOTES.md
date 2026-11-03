@@ -7,6 +7,9 @@
 - Arrivée dans le monde : la transition se fait par une vague bleue chargée de bulles. Son : musique étouffée sous l'eau et bulles génératives.
 - « Réduire les animations » : ni ondulation ni rayons mobiles, ni poissons ni caustiques, bulles rares.
 - Sauvegardes : une partie au-delà du monde 10 garde exactement sa place (même monde, même étape, même difficulté) et la même puissance d'ennemis ; le cycle passe de 210 à 230 étapes (Transcendance à l'étape 691, mêmes conditions qu'avant).
+- Améliorations à l'or : 13 au lieu de 7. Nouvelles : Dégâts critiques (×2 → ×4), Tueur de boss (+100 % contre les boss au plafond), Lien des compagnons (+300 % de puissance des compétences des compagnons), Vol de vie (3 %), Esquive (20 %, moitié contre les boss), Savoir (+150 % d'XP). Toutes plafonnées, rangées dans Combat / Survie / Ressources.
+- Les nouvelles améliorations s'ouvrent une à une avec l'étape record (15, 20, 30, 40, 50, 60), annoncées par « Nouvelle amélioration » ; le panneau affiche la suivante (« Prochain : X à l'étape N »). Le début reste à 3 lignes.
+- Régénération PV : paliers ×1,1 tous les 10 niveaux, comme Dégâts et Points de vie.
 
 ## Ascendrya v9.1.9 — Apparences, alerte de boss, butin, animations, traductions
 

@@ -5,7 +5,7 @@ import { BALANCE } from '../data/balance.js';
 import { computeHeroStats } from './stats.js';
 import { upgradeCost } from './economy.js';
 
-export const DPS_UPGRADES = ['damage', 'attackSpeed', 'crit'];
+export const DPS_UPGRADES = ['damage', 'attackSpeed', 'crit', 'critDamage']; // v9.2.0 : + Dégâts critiques
 
 let cache = { key: '', value: null };
 const stateKey = (state) => `${JSON.stringify(state.upgrades)}|${Object.values(state.equipment).map((i) => i?.id).join()}|${state.level}|${state.heroClass}|${Object.keys(state.talents).length}|${state.companions.equipped.join()}|${state.equippedPowers.join()}|${state.rebirthPower ?? 0}`;

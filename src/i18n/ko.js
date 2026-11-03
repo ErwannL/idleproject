@@ -6,6 +6,7 @@
 import { createTranslator, num } from './engine.js';
 import { EXACT_920_OCEAN } from './ko-920-ocean.js'; // v9.2.0 (monde marin)
 import { EXACT_919, NUM as NUM_919, PATTERNS_919, setKoLookup } from './ko-919.js';
+import { EXACT_920_UPG, patterns920Upg } from './ko-920-upg.js'; // v9.2.0
 
 // --- Dictionnaire exact ---------------------------------------------------------------------------
 
@@ -344,3 +345,7 @@ Object.assign(EXACT, {
 PATTERNS.push(
   [/^Mes apparences \((\d+)\) ›$/, '내 외형 ($1) ›'],
 );
+
+// v9.2.0 : nouvelles améliorations (./ko-920-upg.js).
+Object.assign(EXACT, EXACT_920_UPG);
+PATTERNS.unshift(...patterns920Upg(lookup));

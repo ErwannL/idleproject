@@ -12,7 +12,7 @@ import { formatDuration, formatNumber } from '../core/format.js';
 import { xpForLevel } from '../core/level.js';
 import { rarityById } from '../core/loot.js';
 import { maxCharges, powerById } from '../core/powers.js';
-import { markInvUsed } from '../core/unlocks.js';
+import { markInvUsed, openUpgrades } from '../core/unlocks.js';
 import { buyTalentsCheapest, canRebirth, fragmentsSpent, rebirthBlocked, rebirthGain, rebirthReward, respecCost } from '../core/rebirth.js';
 import { REBIRTH, TALENT_BRANCHES } from '../data/rebirth.js';
 import { keptRebirthShare, transcendReward } from '../core/transcend.js';
@@ -1111,7 +1111,15 @@ export class UI {
         if (this.tab === 'inbox') this.invalidate();
         break;
       }
-      case 'stage':
+      case 'stage': {
+        // v9.2.0 : annonce « Nouvelle amélioration » quand une ligne s'ouvre (étape record ou premier boss).
+        const openUp = openUpgrades(state, BALANCE);
+        if (this.knownUpgrades) {
+          for (const k of openUp.filter((x) => !this.knownUpgrades.includes(x))) this.news(`Nouvelle amélioration : ${BALANCE.upgrades[k].label}`, '#f2d083');
+          if (openUp.length !== this.knownUpgrades.length && this.tab === 'upgrades') this.invalidate();
+        }
+        this.knownUpgrades = openUp;
+      }
         if (event.zoneChanged) {
           const d = difficultyForStage(event.stage);
           this.banner(`Monde ${zoneIndexForStage(event.stage) + 1} — ${zoneForStage(event.stage).name}${d > 1 ? ` · difficulté ×${d}` : ''}`, 'zone');
@@ -1255,6 +1263,7 @@ export class UI {
 
   // --- Mise à jour à chaque image ---
   update(state, world) {
+    this.knownUpgrades ??= openUpgrades(state, BALANCE); // v9.2.0 : base de l'annonce « Nouvelle amélioration »
     this.state = state;
     this.updateRushBar(state);
     this.updateSkillBar(state, world);

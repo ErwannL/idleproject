@@ -593,7 +593,9 @@ function heroDamage(stats, enemy, world, rng, balance) {
   const versus = enemy.boss ? stats.bonus.damageVsBossPct : stats.bonus.damageVsNormalPct;
   const cry = world.buffs.cry > 0 ? world.buffs.cryPct : 0;
   const crit = rng.next() < stats.critChance / 100;
-  const damage = stats.damage * (1 + versus / 100) * (1 + cry / 100) * (crit ? balance.hero.critMultiplier : 1);
+  // v9.2.0 : multiplicateur critique de l'amélioration « Dégâts critiques », facteur « Tueur de boss » à part.
+  const slayer = enemy.boss ? 1 + (stats.bossDamagePct ?? 0) / 100 : 1;
+  const damage = stats.damage * (1 + versus / 100) * slayer * (1 + cry / 100) * (crit ? stats.critMultiplier ?? balance.hero.critMultiplier : 1);
   return { damage, crit };
 }
 
@@ -618,7 +620,9 @@ function castSkill(state, world, skill, stats, rng, balance, enc, front) {
 function castCompanion(state, world, companion, skill, stats, rng, balance, enc, front) {
   // v9.1.3 (doc4 lot 1) : d × rareté × puissance du type (kh/kb pour hit/burst, 4/3 pour soin et rally, plafond 3) ;
   // bouclier et or sans étoile.
-  const aff = companionSkillMultiplier(state, companion, skill.type, dungeonAffinity(state, companion.id, balance), balance);
+  // v9.2.0 : « Lien des compagnons » renforce coups, soins et cris (pas le bouclier ni l'or).
+  const aff = companionSkillMultiplier(state, companion, skill.type, dungeonAffinity(state, companion.id, balance), balance)
+    * (1 + (stats.companionPowerPct ?? 0) / 100);
   if (skill.type === 'gold') {
     gainGold(state, world, referenceKillGold(enc.level, balance) * skill.value * (1 + stats.goldPct / 100) * (stats.goldMult ?? 1) * earlyBoost(state, balance).gold);
   } else if (skill.type === 'heal') {
@@ -880,6 +884,12 @@ export function step(state, world, dt, rng, balance = BALANCE) {
     if (before > ENEMY_WINDUP && attacker.attackTimer <= ENEMY_WINDUP && attacker.attackTimer > 0) emit(world, 'enemyWindup', { enemyId: attacker.id, boss: attacker.boss });
     if (attacker.attackTimer <= 0) {
       attacker.attackTimer += attacker.attackInterval;
+      // v9.2.0 : Esquive (moitié contre les boss) ; tirage seulement si l'amélioration est achetée.
+      const dodge = (stats.dodgePct ?? 0) * (attacker.boss ? 0.5 : 1);
+      if (dodge > 0 && rng.next() < dodge / 100) {
+        emit(world, 'heroDodge', { enemyId: attacker.id, boss: attacker.boss });
+        return;
+      }
       const lowHp = hero.hp < stats.maxHp * POWER_RULES.lowHpThreshold ? stats.bonus.lowHpArmor : 0;
       const st = balance.stages;
       const armor = Math.min(balance.hero.armorCapPct, stats.armor + lowHp) * (attacker.boss ? 1 - st.bossArmorPierce : 1);

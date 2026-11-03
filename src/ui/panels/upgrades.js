@@ -5,11 +5,14 @@ import { computeHeroStats } from '../../core/stats.js';
 import { bossForecast, coin, costButton, escapeHtml, fold, forecastHtml, formatDecimal, formatNumber, img } from '../common.js';
 import { upgradeProfits } from '../../core/profit.js';
 import { pref } from '../prefs.js';
+import { BASE_UPGRADES, nextUpgradeUnlock, openUpgrades } from '../../core/unlocks.js';
 
 const ICONS = {
   // v9.1.3 (doc2 §4) : icônes 20×20 dédiées (Critique ≠ Frappe rapide, Régénération ≠ fée, Dégâts et Or carrés).
   damage: 'icon_damage', attackSpeed: 'icon_bolt', crit: 'icon_crit', vitality: 'icon_heart',
   armor: 'icon_shield', regen: 'icon_regen', goldFind: 'icon_gold',
+  // v9.2.0 : icônes existantes réutilisées (aucune nouvelle image).
+  critDamage: 'icon_skull', bossDamage: 'icon_boss', companionPower: 'icon_paw', lifesteal: 'icon_essence', dodge: 'skill_quick', xpGain: 'icon_xp',
 };
 
 // Valeur affichée « actuel → suivant » pour chaque amélioration.
@@ -22,6 +25,13 @@ function effect(key, cur, next) {
     case 'armor': return [`${formatDecimal(cur.armor)} %`, `${formatDecimal(next.armor)} %`, 'armure'];
     case 'regen': return [formatDecimal(cur.regenPerSecond), formatDecimal(next.regenPerSecond), 'PV/s'];
     case 'goldFind': return [`+${formatDecimal(cur.goldPct)} %`, `+${formatDecimal(next.goldPct)} %`, 'or'];
+    // v9.2.0
+    case 'critDamage': return [`×${formatDecimal(cur.critMultiplier, 2)}`, `×${formatDecimal(next.critMultiplier, 2)}`, 'critique'];
+    case 'bossDamage': return [`+${formatDecimal(cur.bossDamagePct)} %`, `+${formatDecimal(next.bossDamagePct)} %`, 'boss'];
+    case 'companionPower': return [`+${formatDecimal(cur.companionPowerPct)} %`, `+${formatDecimal(next.companionPowerPct)} %`, 'compagnons'];
+    case 'lifesteal': return [`${formatDecimal(cur.lifesteal)} %`, `${formatDecimal(next.lifesteal)} %`, 'vol de vie'];
+    case 'dodge': return [`${formatDecimal(cur.dodgePct)} %`, `${formatDecimal(next.dodgePct)} %`, 'esquive'];
+    case 'xpGain': return [`+${formatDecimal(cur.xpPct)} %`, `+${formatDecimal(next.xpPct)} %`, 'XP'];
     default: return ['', '', ''];
   }
 }
@@ -29,8 +39,7 @@ function effect(key, cur, next) {
 // v9.1.0 : une seule liste (catégorie en filtre replié), quantité mémorisée, « Acheter le plus rentable » (dégâts/s
 // gagnés par or, core/profit.js). Au début, 3 lignes seulement (Dégâts, Vitesse, PV) ; ×10, ×100 et Max quand l'or
 // atteint 10 fois le moins cher. Mode compact : une ligne par amélioration, sans description.
-const BEGINNER_KEYS = ['damage', 'attackSpeed', 'vitality'];
-const ORDER = ['damage', 'attackSpeed', 'crit', 'vitality', 'armor', 'regen', 'goldFind'];
+// v9.2.0 : ordre et déblocage progressif dans core/unlocks.js (13 améliorations).
 
 export default {
   id: 'upgrades',
@@ -43,10 +52,11 @@ export default {
     const cat = cats.find((c) => c.id === ui.view.upgradeCat) ?? null; // null = toutes
     const current = computeHeroStats(state);
     const profits = upgradeProfits(state);
-    let keys = ORDER.filter((k) => !beginner || BEGINNER_KEYS.includes(k)).filter((k) => !cat || cat.keys.includes(k));
+    let keys = (beginner ? BASE_UPGRADES : openUpgrades(state, BALANCE)).filter((k) => !cat || cat.keys.includes(k));
+    const nextUp = beginner ? null : nextUpgradeUnlock(state, BALANCE);
     if (ui.view.upgradeSort === 'profit') keys = [...keys].sort((x, y) => (profits[y]?.score ?? -1) - (profits[x]?.score ?? -1));
     else if (ui.view.upgradeSort === 'cost') keys = [...keys].sort((x, y) => upgradeCost(x, state.upgrades[x]) - upgradeCost(y, state.upgrades[y]));
-    const cheapest = Math.min(...keys.map((k) => upgradeCost(k, state.upgrades[k])));
+    const cheapest = Math.min(Infinity, ...keys.map((k) => upgradeCost(k, state.upgrades[k])));
     const bulkOpen = !beginner || state.gold >= cheapest * 10;
     const amount = bulkOpen ? ui.view.buyAmount ?? '1' : '1';
     const amountLabel = (a) => (a === 'max' ? 'Max' : `×${a}`);
@@ -100,6 +110,7 @@ export default {
     return `<div class="card upg-top">${top}</div>
       ${beginner ? '' : fold(ui, 'upg-filters', 'Filtrer et trier', filters, { extra: cat ? cat.label : '' })}
       <div class="upg-list">${cards.join('')}</div>
-      ${beginner ? '<div class="muted">D\'autres améliorations (critique, armure, régénération, or) s\'ouvrent après le premier mini-boss.</div>' : ''}`;
+      ${beginner ? '<div class="muted">D\'autres améliorations (critique, armure, régénération, or) s\'ouvrent après le premier mini-boss.</div>' : ''}
+      ${nextUp ? `<div class="muted next-unlock">Prochain : ${escapeHtml(nextUp.label)} à l'étape ${nextUp.stage}</div>` : ''}`;
   },
 };

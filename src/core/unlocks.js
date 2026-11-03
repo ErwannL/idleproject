@@ -36,3 +36,30 @@ export function markInvUsed(state, id) {
   if (!INV_UNLOCKS.some((u) => u.id === id)) return;
   state.ui.invUsed = [...new Set([...(state.ui.invUsed ?? []), id])];
 }
+
+// v9.2.0 : déblocage progressif des améliorations. Débutant (aucun boss vaincu) : Dégâts, Vitesse, PV ; après le
+// premier boss : Critique, Armure, Régénération, Or ; les nouvelles à leur étape record (`unlockStage`). Une ligne
+// déjà achetée reste toujours visible.
+export const BASE_UPGRADES = ['damage', 'attackSpeed', 'vitality'];
+export const UPGRADE_ORDER = ['damage', 'attackSpeed', 'crit', 'critDamage', 'bossDamage', 'companionPower',
+  'vitality', 'armor', 'regen', 'lifesteal', 'dodge', 'goldFind', 'xpGain'];
+
+export function upgradeOpen(state, key, balance) {
+  const up = balance.upgrades[key];
+  if (!up) return false;
+  if (BASE_UPGRADES.includes(key) || (state.upgrades?.[key] ?? 0) > 0) return true;
+  if ((state.records?.bossesDefeated ?? 0) === 0) return false;
+  const best = Math.max(state.maxStage ?? 1, state.records?.bestStage ?? 1);
+  return best >= (up.unlockStage ?? 0);
+}
+
+export function openUpgrades(state, balance) {
+  return UPGRADE_ORDER.filter((k) => k in balance.upgrades && upgradeOpen(state, k, balance));
+}
+
+// Prochaine amélioration fermée (texte neutre « Prochain : X à l'étape N »), ou null.
+export function nextUpgradeUnlock(state, balance) {
+  const closed = UPGRADE_ORDER.filter((k) => balance.upgrades[k]?.unlockStage && !upgradeOpen(state, k, balance));
+  return closed.map((k) => ({ key: k, label: balance.upgrades[k].label, stage: balance.upgrades[k].unlockStage }))
+    .sort((a, b) => a.stage - b.stage)[0] ?? null;
+}

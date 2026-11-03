@@ -63,26 +63,38 @@ export function computeHeroStats(state, balance = BALANCE, equipment = state.equ
     * (vit.milestoneMultiplier ?? 1) ** hpMilestones * big(vit, ups.vitality) * reborn * (1 + bonus.maxHpPct / 100) * (1 + (balance.level.hpPctPerLevel * levelBonus) / 100)) * cheatMultiplier(state, 'hp')
     * Math.max(0.1, 1 + (bonus.maxHpMultPct ?? 0) / 100) * (state.challenge ? challengeRule(state, 'heroHp') ?? 1 : 1);
   const armor = Math.min(hero.armorCapPct, Math.max(0, gear.armor + bonus.armor + (ups.armor ?? 0) * upgrades.armor.perLevel));
-  const regenPct = hero.regenPerSecondPct + bonus.regenPct + (ups.regen ?? 0) * upgrades.regen.perLevel;
+  // v9.2.0 : paliers de la Régénération (×1,1 tous les 10 niveaux, sur la part achetée seulement).
+  const rg = upgrades.regen;
+  const regenPct = hero.regenPerSecondPct + bonus.regenPct
+    + (ups.regen ?? 0) * rg.perLevel * (rg.milestoneMultiplier ?? 1) ** (rg.milestoneEvery ? Math.floor((ups.regen ?? 0) / rg.milestoneEvery) : 0);
   const critChance = Math.min(hero.critCapPct, bonus.critChance + (ups.crit ?? 0) * upgrades.crit.perLevel);
+
+  // v9.2.0 : nouvelles améliorations (niveau borné par maxLevel, même sur une sauvegarde trafiquée).
+  const lv = (k) => Math.min(upgrades[k]?.maxLevel ?? Infinity, Math.max(0, ups[k] ?? 0));
+  const per = (k) => lv(k) * (upgrades[k]?.perLevel ?? 0);
+  const critMultiplier = hero.critMultiplier + per('critDamage') / 100; // ×2 → ×4 au niveau 100
 
   return {
     damage,
     attackInterval,
     attacksPerSecond: 1 / attackInterval,
     // DPS moyen, coups critiques compris (hors compétences).
-    dps: (damage / attackInterval) * (1 + (critChance / 100) * (hero.critMultiplier - 1)),
+    dps: (damage / attackInterval) * (1 + (critChance / 100) * (critMultiplier - 1)),
+    critMultiplier,
     maxHp,
     armor,
     regenPerSecond: (maxHp * regenPct) / 100,
     critChance,
-    lifesteal: bonus.lifesteal,
+    lifesteal: bonus.lifesteal + per('lifesteal'),
+    dodgePct: Math.min(20, per('dodge')), // v9.2.0 : moitié contre les boss (core/combat.js)
+    bossDamagePct: per('bossDamage'), // facteur à part, en plus des « dégâts contre les boss » des talents/objets
+    companionPowerPct: per('companionPower'),
     thorns: bonus.thorns,
     goldPct: bonus.goldPct + (ups.goldFind ?? 0) * upgrades.goldFind.perLevel,
     // Multiplicateur d'or (Renaissances × paliers du Butin d'or), appliqué en plus du goldPct.
     goldMult: reborn * big(upgrades.goldFind, ups.goldFind ?? 0) * Math.max(0.1, 1 + (bonus.goldMultPct ?? 0) / 100),
     rebirthMult: reborn,
-    xpPct: bonus.xpPct,
+    xpPct: bonus.xpPct + per('xpGain'),
     bonus,
   };
 }

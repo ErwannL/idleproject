@@ -239,7 +239,7 @@ test('v9.1.3 : Prochaine action — récupérer, objet meilleur, boss à retente
 test('lot 1 : rentabilité — seules les lignes de dégâts, achat du plus rentable sans dépasser l\'or', () => {
   const s = createNewState(NOW);
   const p = upgradeProfits(s);
-  assert.deepEqual(Object.keys(p).sort(), ['attackSpeed', 'crit', 'damage']);
+  assert.deepEqual(Object.keys(p).sort(), ['attackSpeed', 'crit', 'critDamage', 'damage']);
   s.gold = 5000;
   const r = buyMostProfitable(s);
   assert.ok(r.spent > 0 && r.spent <= 5000 && s.gold >= 0);
