@@ -1,4 +1,4 @@
-## Ascendrya v9.2.1
+## Ascendrya v9.2.1 — Malus d'environnement, déplacements par monde et nage améliorée
 
 - Environnements : dans chaque monde sauf le premier, le lieu gêne le héros — Pénombre (coups manqués), Éclats de cristal (dégâts reçus), Soif (régénération), Froid mordant (PV max), Malédiction (dégâts), Boue (vitesse d'attaque), Rafales (critique), Lave (PV perdus chaque seconde, jamais mortelle seule), Distorsion (dégâts contre les boss), Pression (PV max), Corruption (puissance des compagnons). Un peu plus fort à chaque cycle (×2 au plus). Campagne, donjons et défi du monde, hors ligne et prévision de boss compris ; ni Tour ni mode monde.
 - Chaque malus est contré par une amélioration à l'or existante (Coup critique, Armure, Régénération PV, Points de vie, Dégâts, Vitesse d'attaque, Dégâts critiques, Tueur de boss, Lien des compagnons) : il baisse avec son niveau et disparaît à son niveau complet. Affiché à l'entrée du monde (fil), sur la scène (pastille « contré x % »), dans la fiche du monde (Carte), sur la ligne d'amélioration concernée (« contre Lave », mention neutre), dans l'aide et dans Collections. Détail : docs/environnement-v921.md.
