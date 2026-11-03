@@ -1,4 +1,4 @@
-## Ascendrya v9.2.0 (en préparation)
+## Ascendrya v9.2.0 — Royaume englouti (monde sous-marin) et 13 améliorations
 
 - Nouveau monde 11 : le Royaume englouti, une cité engloutie sous les vagues (20 étapes). Le Trône de l'Abysse devient le monde 12. Décor sous-marin en parallaxe : falaises lointaines, colonnes et temple effondré, épave, récifs de coraux, kelp qui ondule, rayons de lumière qui oscillent, caustiques, bulles qui montent, particules en suspension, bancs de poissons au loin.
 - On y nage : le héros et les compagnons flottent et ondulent (cape et cheveux qui flottent), bulles à la bouche, battements plus lents ; chaque attaque soulève un remous de bulles, les projectiles laissent une traînée de bulles. Les monstres nagent : la queue des poissons bat, la méduse pulse, l'anguille et le triton ondulent, le crabe marche sur le fond.
