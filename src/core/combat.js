@@ -29,6 +29,7 @@ import { clearTowerFloor, endTower, towerBoss, towerLevel, towerTimeLeft } from 
 import { endWorldRun, worldEncounter, worldKill, worldTimeLeft } from './banner.js';
 import { tickTimes } from './times.js';
 import { CHALLENGE, challengeBosses, challengeKill, challengeLevel, challengeRule, challengeTimeUp, clearChallengeWave, endChallenge, isBossWave } from './challenge.js';
+const ENEMY_WINDUP = 0.25; // v9.1.9 : avance de l'événement « enemyWindup » sur le coup ennemi (s)
 
 const MAX_EVENTS = 300;
 
@@ -853,7 +854,10 @@ export function step(state, world, dt, rng, balance = BALANCE) {
     if (attacker.attackTimer <= 0) {
       attacker.attackTimer += attacker.attackInterval;
       const lowHp = hero.hp < stats.maxHp * POWER_RULES.lowHpThreshold ? stats.bonus.lowHpArmor : 0;
+    const before = attacker.attackTimer;
       const st = balance.stages;
+    // v9.1.9 : préparation visible ~0,25 s avant le coup (affichage seul : ni dégâts ni rythme changés).
+    if (before > ENEMY_WINDUP && attacker.attackTimer <= ENEMY_WINDUP && attacker.attackTimer > 0) emit(world, 'enemyWindup', { enemyId: attacker.id, boss: attacker.boss });
       const armor = Math.min(balance.hero.armorCapPct, stats.armor + lowHp) * (attacker.boss ? 1 - st.bossArmorPierce : 1);
       const shield = world.buffs.shield > 0 ? world.buffs.shieldPct : 0;
       // Rage : un boss qui dure trop longtemps frappe de plus en plus fort.

@@ -111,12 +111,13 @@ POSES = {
     'walk2':   ((0, 0), (0, -1), (0, 3), (0, 0), (32, 35), 0, 'low'),
     'walk3':   ((0, 1), (0, 1), (4, 0), (-4, 0), (33, 35), 0, 'low'),
     'walk4':   ((0, 0), (0, -1), (0, 0), (0, 3), (32, 35), 0, 'low'),
-    'attack1': ((-1, 0), (-3, 0), (-3, 0), (3, 0), (34, 24), 0, 'back'),
-    'attack2': ((1, 1), (2, 1), (-4, 0), (5, 0), (35, 30), 90, 'back'),
-    'attack3': ((2, 2), (3, 3), (-4, 0), (5, 0), (34, 37), 90, 'back'),
+    # v9.1.9 : poses plus marquées (armé ramassé, fente plus longue, suivi plongé) ; mains inchangées.
+    'attack1': ((-2, 1), (-4, 1), (-4, 0), (2, 0), (34, 24), 0, 'back'),
+    'attack2': ((1, 1), (3, 1), (-5, 0), (7, 0), (35, 30), 90, 'back'),
+    'attack3': ((2, 2), (4, 3), (-5, 0), (6, 0), (34, 37), 90, 'back'),
     'cast':    ((0, 0), (-1, 0), (-3, 0), (3, 0), (34, 27), 0, 'forward'),
-    'hurt':    ((-2, 1), (-4, 2), (-2, 0), (2, 1), (29, 34), 0, 'flail'),
-    'victory': ((0, -1), (-1, -1), (-1, 0), (1, 0), (35, 21), 0, 'hip'),
+    'hurt':    ((-2, 1), (-5, 2), (-3, 0), (2, 2), (29, 34), 0, 'flail'),
+    'victory': ((0, -1), (0, -2), (-2, 0), (2, 0), (35, 21), 0, 'hip'),
 }
 
 HIP_Y = 38
@@ -182,6 +183,13 @@ def torso(c, ox, oy):
     for y in range(24 + oy, 32 + oy):
         part.setf(22 + ox, y, STEEL[2])
     part.setf(17 + ox, 26 + oy, STEEL[4]); part.setf(17 + ox, 27 + oy, STEEL[4]); part.setf(18 + ox, 26 + oy, STEEL[4])
+    # v9.1.9 : reflet en bande le long de l'arête + point de lumière, ombre portée sous la poitrine
+    for y in range(25 + oy, 30 + oy):
+        part.setf(21 + ox, y, STEEL[3])
+    part.setf(21 + ox, 25 + oy, STEEL[4]); part.setf(16 + ox, 28 + oy, STEEL[3])
+    for x in range(16 + ox, 26 + ox):
+        if part.get(x, 31 + oy) is not None:
+            part.setf(x, 31 + oy, STEEL[1])
     # ceinture de cuir, boucle dorée
     for x in range(13 + ox, 29 + ox):
         part.setf(x, 32 + oy, LEATHER[1]); part.setf(x, 33 + oy, LEATHER[0])
@@ -203,6 +211,7 @@ def pauldron_front(c, ox, oy, colors=STEEL, trim=TRIM):
     part.setf(23 + ox, 29 + oy, trim[2]); part.setf(24 + ox, 29 + oy, trim[2])
     part.setf(25 + ox, 24 + oy, colors[4]); part.setf(26 + ox, 24 + oy, colors[4]); part.setf(25 + ox, 25 + oy, colors[4])
     part.setf(28 + ox, 27 + oy, trim[1])  # rivet
+    part.setf(24 + ox, 25 + oy, colors[4]); part.setf(30 + ox, 28 + oy, colors[1])  # v9.1.9 : éclat et bord ombré
     stamp(c, part)
 
 
@@ -336,12 +345,19 @@ def lock_shade(t, s, x, y):
     return PLUME_D if t > 0.75 else PLUME
 
 
-def plume(c, shade=plume_shade, spine=PLUME_SPINE, widths=PLUME_W):
+def swayed(spine, sway):
+    """v9.1.9 : balancement du panache — la pointe se déplace le plus, la base reste fixée au cimier."""
+    n = len(spine) - 1
+    return [(x + sway * (i / n) ** 1.5 * 1.6, y + abs(sway) * (i / n) ** 2 * 0.8) for i, (x, y) in enumerate(spine)]
+
+
+def plume(c, shade=plume_shade, spine=PLUME_SPINE, widths=PLUME_W, sway=0):
     part = layer()
     if spine is PLUME_SPINE:
-        spine_fill(part, LOCK_SPINE, LOCK_W, lock_shade)
+        spine_fill(part, swayed(LOCK_SPINE, sway * 0.7), LOCK_W, lock_shade)
         stamp(c, part)
         part = layer()
+        spine = swayed(spine, sway)
     spine_fill(part, spine, widths, shade)
     stamp(c, part)
 
@@ -350,9 +366,9 @@ def dome(c, colors):
     ball(c, HEAD_C[0], HEAD_C[1], HEAD_R[0], HEAD_R[1], colors)
 
 
-def helmet_default():
+def helmet_default(sway=0):
     c = layer()
-    plume(c)
+    plume(c, sway=sway)
     part = layer()
     dome(part, STEEL)
     # bourrelet inférieur / gorgerin évasé
@@ -727,12 +743,13 @@ def armor_robe():
 def cape(frame):
     """Grande cape derrière le chevalier, 3 images d'ondulation (a, b, c en boucle)."""
     c = layer()
-    k = {'a': 0, 'b': 1, 'c': 2}[frame]
-    ph = k * 2.1
+    # v9.1.9 : 6 images (a-f) sur un cycle complet, ondulation plus ample (bord et ourlet).
+    k = 'abcdef'.index(frame)
+    ph = k * math.pi / 3
     left = []
     for y in range(24, 43):
         u = (y - 24) / 18
-        x = 10 - 8.2 * math.sin(u * math.pi / 2) ** 0.8 + 1.1 * math.sin(y * 0.55 + ph) * u  # bord gauche dans le calque
+        x = 10 - 8.2 * math.sin(u * math.pi / 2) ** 0.8 + 2.0 * math.sin(y * 0.5 + ph) * u  # bord gauche dans le calque
         left.append((x, y))
     hem = []
     x0 = left[-1][0]
@@ -740,7 +757,7 @@ def cape(frame):
         x = x0 + i
         if x > 23:
             break
-        hem.append((x, 43.5 + 1.3 * math.sin(x * 0.7 - ph) * (1 - i / 30)))
+        hem.append((x, 43.5 + 1.9 * math.sin(x * 0.7 - ph) * (1 - i / 30)))
     pts = [(13, 23), (25, 23), (25, 32), (23.5, 40)] + hem[::-1] + left[::-1]
     part = layer()
     part.poly(pts, HERO[2])
@@ -752,7 +769,7 @@ def cape(frame):
     # plis en éventail depuis l'épaule : creux sombre + arête claire
     for i, fx in enumerate((2.5, 7.5, 12.5, 17.5)):
         tx = fx + 1.2 * math.sin(fx * 0.7 - ph)
-        y1 = 43.5 + 1.3 * math.sin(fx * 0.7 - ph) - 1
+        y1 = 43.5 + 1.9 * math.sin(fx * 0.7 - ph) - 1
         x_start = 11 + i * 1.5
         part.line(x_start, 26, tx, y1, HERO[1])
         part.line(x_start + 1, 27, tx + 1, y1, HERO[0] if i % 2 else HERO[1])
@@ -1302,6 +1319,10 @@ def build():
     # casque par défaut : le panache dépasse au-dessus du calque -> calque plus haut, remonté par oy (< 0)
     tall = _tall(helmet_default)
     out['helmet_default'] = (tall, {'oy': H - tall.h})
+    # v9.1.9 : panache animé (balancé vers l'arrière puis vers l'avant), même hauteur de calque.
+    for suf, sway in (('b', -1.4), ('c', 1.0)):
+        t2 = _tall(lambda: helmet_default(sway))
+        out[f'helmet_default_{suf}'] = (t2, {'oy': H - t2.h})
     out['helmet_helm'] = (helmet_helm(), {'oy': 0})
     out['helmet_hood'] = (helmet_hood(), {'oy': 0})
     out['armor_mail'] = (armor_mail(), {'oy': 0})
@@ -1310,7 +1331,7 @@ def build():
     out['helmet_circlet'] = (helmet_circlet(), {'oy': 0})
     out['armor_plate'] = (armor_plate(), {'oy': 0})
     out['armor_robe'] = (armor_robe(), {'oy': 0})
-    for f in 'abc':
+    for f in 'abcdef':
         out[f'cape_{f}'] = (cape(f), {'oy': 0})
     out['shield'] = (shield(), {'x': SHIELD_POS[0], 'y': SHIELD_POS[1]})
     for name, fn in (('weapon_sword', weapon_sword), ('weapon_axe', weapon_axe), ('weapon_dagger', weapon_dagger),

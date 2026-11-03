@@ -40,3 +40,30 @@ test('éléments : couleur → élément, et poses d’arme par type', async () 
   assert.equal(elementOfColor('#ffffff'), null);
   assert.deepEqual(Object.keys(ELEMENTS).sort(), ['fire', 'holy', 'ice', 'poison', 'shadow', 'thunder']);
 });
+
+test('préparation ennemie : « enemyWindup » ~0,25 s avant chaque coup, sans changer combat ni hasard', async () => {
+  const { BALANCE } = await import('../src/data/balance.js');
+  const { createCombat, step } = await import('../src/core/combat.js');
+  const { Rng } = await import('../src/core/rng.js');
+  const { createNewState } = await import('../src/core/state.js');
+  const run = (record) => {
+    const state = createNewState(1_700_000_000_000);
+    const world = createCombat(state);
+    world.recordEvents = record;
+    const rng = new Rng(42);
+    const dt = BALANCE.simulation.tickSeconds;
+    const ev = [];
+    for (let i = 0; i < Math.round(120 / dt); i++) { step(state, world, dt, rng, BALANCE); if (record) { ev.push(...world.events); world.events.length = 0; } }
+    return { hp: world.hero.hp, gold: state.gold, stage: state.stage, ev };
+  };
+  const a = run(true);
+  const hits = a.ev.filter((e) => e.type === 'heroHit');
+  const winds = a.ev.filter((e) => e.type === 'enemyWindup');
+  assert.ok(hits.length > 3, 'des coups ennemis');
+  for (const h of hits.slice(1)) {
+    const w = winds.filter((x) => x.enemyId === h.enemyId && x.time <= h.time).pop();
+    assert.ok(w && h.time - w.time > 0.1 && h.time - w.time < 0.45, `préparation avant le coup (${w && h.time - w.time})`);
+  }
+  const b = run(true);
+  assert.deepEqual([a.hp, a.gold, a.stage], [b.hp, b.gold, b.stage]);
+});

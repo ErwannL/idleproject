@@ -5,6 +5,8 @@
 - Héros : l'arme suit de vraies poses de bras selon son type (épée, espadon, hache, marteau, masse, lance, hallebarde, dague, katar, fouet, bâton, baguette) : armé derrière la tête, frappe, suivi ; rotation au pixel, reflet du métal à l'impact ; contour sombre d'1 px pour la lisibilité (calques, recoloriage et skins inchangés).
 - Éléments : feu, glace, foudre, poison, sacré et ombre ont leurs particules pixel, leur lueur et leur rémanence à l'impact (héros, classes, compagnons).
 - Pixel-perfect : plus d'étirement non entier à l'impact sur les ennemis.
+- Chevalier redessiné : cuirasse et épaulière avec reflets du métal, cape à 6 images qui flotte plus amplement, panache animé en phase avec la cape, poses d'attaque, de coup reçu et de victoire plus marquées (mêmes ancrages, prises d'arme et couleurs recolorables ; skins inchangés).
+- Ennemis : la préparation du coup se joue maintenant avant l'impact (signal 0,25 s avant chaque attaque, sans changer dégâts ni rythme).
 - Boss : entrée en chute avec atterrissage lourd (secousse, poussière), coups plus lourds (secousse, traînée rouge). Tout est allégé en « réduire les animations ».
 
 ## Ascendrya v9.1.8 — Les deux 9.1 réunies, langue coréenne

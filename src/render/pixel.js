@@ -125,7 +125,7 @@ function itemSpriteName(item) {
 const BODY_OFFSET = { x: 10, y: 16 };
 export const HERO_SIZE = { w: 92, h: 66 };
 export const HERO_ANCHOR = { x: BODY_OFFSET.x + HERO_FOOT.x, y: BODY_OFFSET.y + HERO_FOOT.y };
-export const CAPE_FRAMES = ['a', 'b', 'c'];
+export const CAPE_FRAMES = ['a', 'b', 'c', 'd', 'e', 'f']; // v9.1.9 : 6 images d'ondulation
 
 // Point de prise après `turns` quarts de tour horaires d'une grille de largeur w et hauteur h.
 function rotatedGrip(grip, w, h, turns) {
@@ -264,7 +264,9 @@ export function heroComposite(frame, equipment, flash = false, cape = 'a', palet
     if (behind) drawWeapon(ctx, equipment.weapon, body, frame, ox, oy); // v9.1.9 : armé derrière le corps
     layer(name, colors, 0, 0);
     if (equipment.armor) layer(itemSpriteName(equipment.armor), { ...colors, ...itemColors(equipment.armor) }, torso.x, torso.y);
-    const helmet = equipment.helmet ? itemSpriteName(equipment.helmet) : 'helmet_default';
+    // v9.1.9 : panache animé, en phase avec la cape (a-b : repos, c-d : balancé en arrière, e-f : en avant).
+    const sway = { c: '_b', d: '_b', e: '_c', f: '_c' }[cape] ?? '';
+    const helmet = equipment.helmet ? itemSpriteName(equipment.helmet) : SPRITES[`helmet_default${sway}`] ? `helmet_default${sway}` : 'helmet_default';
     layer(helmet, equipment.helmet ? { ...colors, ...itemColors(equipment.helmet) } : colors, head.x, head.y);
     if (equipment.weapon && !behind) drawWeapon(ctx, equipment.weapon, body, frame, ox, oy);
   }

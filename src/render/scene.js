@@ -327,9 +327,21 @@ export class SceneRenderer {
         this.burst(heroX, this.groundY - 28, '#ffd23f', 14, 46);
         for (let i = 0; i < 5; i++) this.sprite(['fx_spark'], heroX - 16 + i * 8, this.groundY - 30 - (i % 2) * 14, 0.6, { delay: i * 0.08 });
         break;
+      case 'enemyWindup': {
+        const efx = this.enemyFxFor(event.enemyId);
+        efx.windup = 0.25;
+        efx.wound = true;
+        break;
+      }
       case 'heroHit':
         this.hero.hurt = 0.18;
-        this.enemyFxFor(event.enemyId).lunge = ENEMY_ATK; // v9.1.9 : préparation → coup → retour
+        {
+          // v9.1.9 : la préparation a déjà été jouée (événement enemyWindup) : on reprend au coup.
+          const efx = this.enemyFxFor(event.enemyId);
+          efx.lunge = efx.windup > 0 || efx.wound ? ENEMY_ATK * 0.7 : ENEMY_ATK;
+          efx.windup = 0;
+          efx.wound = false;
+        }
         this.addText(formatNumber(Math.max(1, Math.round(event.damage))), heroX - 4, this.groundY - 48, '#ff5a5a', '#ffb0a8');
         if (event.boss) this.shake = Math.max(this.shake, 2);
         break;
@@ -732,7 +744,8 @@ export class SceneRenderer {
       const bob = moving && !def.flyHeight && !hd && step % 2 ? 1 : 0;
       const hover = def.flyHeight ? def.flyHeight * WORLD_SCALE + this.snap(Math.sin(this.time * 4 + enemy.id) * 3) : 0;
       // v9.1.9 : attaque en trois temps (préparation, coup, retour) au lieu d'un simple glissement.
-      const atk = fx.lunge > 0 ? attackCurve(1 - fx.lunge / ENEMY_ATK) : null;
+      fx.windup = Math.max(0, (fx.windup ?? 0) - dt);
+      const atk = fx.lunge > 0 ? attackCurve(1 - fx.lunge / ENEMY_ATK) : fx.windup > 0 ? attackCurve(0.3 * (1 - fx.windup / 0.25)) : null;
       const lunge = atk ? (this.focus ? Math.max(0, atk.dx) >> 1 : atk.dx) : 0;
       // v9.1.9 : entrée des boss (chute depuis le haut, atterrissage lourd), pas en mode « réduire les animations ».
       if (enemy.boss && fx.entry === undefined && ex < this.width * 0.8) fx.entry = this.focus ? 0 : BOSS_ENTRY; // dès qu'il est bien visible
@@ -873,9 +886,9 @@ export class SceneRenderer {
     const blink = this.hero.respawn > 0 && Math.floor(this.time * 12) % 2 === 0;
     if (blink) return;
     // Cape : flotte au vent en marchant, ondule doucement à l'arrêt.
-    const cape = hero.walking
-      ? ['c', 'a'][Math.floor(this.time * 6) % 2]
-      : ['a', 'b'][Math.floor(this.time * 2.5) % 2];
+    // v9.1.9 : cycle de 6 images (plus rapide en marche) ; « réduire les animations » : 2 images lentes.
+    const cape = this.focus ? ['a', 'b'][Math.floor(this.time * 2) % 2]
+      : 'abcdef'[Math.floor(this.time * (hero.walking ? 12 : 5)) % 6];
     const img = heroComposite(frame, state.equipment, this.hero.hurt > 0.1, cape, palette);
     const jump = this.hero.victory > 0 ? Math.round(Math.abs(Math.sin(this.hero.victory * Math.PI * 2.5)) * 6) : 0;
     // v9.0.6 : corps à corps — le héros bondit vers l'ennemi pour frapper puis revient (aller-retour en cloche).
