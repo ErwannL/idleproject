@@ -6,6 +6,7 @@ import { Rng } from '../core/rng.js';
 export const SFX_NAMES = [
   'hit', 'crit', 'enemyHit', 'kill', 'coin', 'loot', 'levelUp', 'bossSpawn', 'bossDefeated',
   'skill', 'summon', 'click', 'claim', 'step', 'wing', 'boost', 'upgrade', 'error',
+  'bubble', // v9.2.0 (monde marin)
 ];
 
 const RARITY_LEVEL = { common: 0, rare: 1, epic: 2, legendary: 3 };
@@ -714,6 +715,18 @@ function buildEngine(ctx, { seed = 1, crackle = true } = {}) {
       noiseHit(t, 0.035, 0.05, 'lowpass', 500 + srnd() * 500, 0.8, out, 0.004);
       return 0.05;
     },
+    // v9.2.0 (monde marin) : bulle — sinus bref qui monte (« bloup »), parfois doublé.
+    bubble(t) {
+      const n = srnd() < 0.4 ? 2 : 1;
+      for (let i = 0; i < n; i++) {
+        const at = t + i * (0.05 + srnd() * 0.06);
+        const o = osc('sine', 260 + srnd() * 320, at); const g = gain(0);
+        o.frequency.exponentialRampToValueAtTime(900 + srnd() * 700, at + 0.07);
+        g.gain.setValueAtTime(MIN, at); g.gain.linearRampToValueAtTime(0.05, at + 0.008); g.gain.exponentialRampToValueAtTime(MIN, at + 0.09);
+        chain(o, g, out); o.start(at); o.stop(at + 0.12);
+      }
+      return 0.2;
+    },
     wing(t) {
       const p = vary(0.1);
       for (const [d, v] of [[0, 0.06], [0.07, 0.035]]) {
@@ -784,6 +797,8 @@ function buildEngine(ctx, { seed = 1, crackle = true } = {}) {
     ctx, master, musicVol, sfxVol, seq, scheduleMusic, startMusic, changeScene, playSfx,
     setCrackle(on) { crackleOn = !!on; updateCrackle(); },
     setMusicEnabled(on) { seq.enabled = !!on; },
+    // v9.2.0 (monde marin) : sous l'eau, la musique passe derrière un passe-bas (son étouffé), en fondu.
+    setUnderwater(on) { lofi.frequency.setTargetAtTime(on ? 650 : 3000, ctx.currentTime, 0.6); },
   };
 }
 
@@ -800,7 +815,7 @@ function normScene(scene = {}) {
 export function createAudio({ seed = (Date.now() & 0xffff) + 1, crackle = true } = {}) {
   const AC = audioContextClass();
   const volumes = { master: 0.8, music: 0.6, sfx: 0.8 };
-  let muted = false; let hidden = false; let crackleOn = crackle;
+  let muted = false; let hidden = false; let crackleOn = crackle; let underwater = false; // v9.2.0 : passe-bas sous l'eau
   let scene = { ...NOOP_SCENE };
   let engine = null; let timer = null; let suspendTimer = null;
 
@@ -849,6 +864,7 @@ export function createAudio({ seed = (Date.now() & 0xffff) + 1, crackle = true }
         engine = buildEngine(ctx, { seed, crackle: crackleOn });
         applyVolumes(0.01);
         engine.startMusic(scene.world, scene.mode, ctx.currentTime);
+        if (underwater) engine.setUnderwater(true);
         refreshRunState();
       } catch {
         engine = null; // Web Audio indisponible ou refusé : on reste silencieux
@@ -880,6 +896,7 @@ export function createAudio({ seed = (Date.now() & 0xffff) + 1, crackle = true }
 
     setMuted(on) { muted = !!on; refreshRunState(); },
     setCrackle(on) { crackleOn = !!on; engine?.setCrackle(crackleOn); },
+    setUnderwater(on) { underwater = !!on; try { engine?.setUnderwater(underwater); } catch { /* ignoré */ } }, // v9.2.0
     suspend() { hidden = true; refreshRunState(); },
     resume() { hidden = false; refreshRunState(); },
   };

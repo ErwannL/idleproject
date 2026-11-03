@@ -44,7 +44,7 @@ function retryBox(state) {
 }
 
 // Positions des zones sur la carte peinte (assets/ui/worldmap.png, générée par tools/art/worldmap.py).
-// (tools/art/worldmap_nodes.json, positions relatives des 11 régions sur la carte peinte)
+// (tools/art/worldmap_nodes.json, positions relatives des 12 régions sur la carte peinte ; v9.2.0 (monde marin) : 11e = Royaume englouti)
 const MAP_NODES = [
   { x: 0.09, y: 0.8 },
   { x: 0.18, y: 0.56 },
@@ -56,6 +56,7 @@ const MAP_NODES = [
   { x: 0.91, y: 0.58 },
   { x: 0.81, y: 0.3 },
   { x: 0.61, y: 0.28 },
+  { x: 0.5, y: 0.13 },
   { x: 0.38, y: 0.3 },
 ];
 

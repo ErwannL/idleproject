@@ -3,7 +3,7 @@
 import { BALANCE } from '../data/balance.js';
 import { DIFFICULTY_ORDER, DUNGEON_DIFFICULTIES, DUNGEON_PATHS, DUNGEON_REWARD, DUNGEONS } from '../data/dungeons.js';
 import { SLOTS } from '../data/items.js';
-import { referenceKillGold } from './combat.js';
+import { levelForStage, referenceKillGold } from './combat.js'; // v9.2.0 (monde marin) : niveau des étapes
 import { addToInventory } from './inventory.js';
 import { generateItem } from './loot.js';
 import { grantReward } from './rewards.js';
@@ -31,7 +31,7 @@ export function startDungeon(state, id, slot = 'any', path = 'gold', difficulty 
   state.keys -= 1;
   state.dungeon = {
     id, room: 1, kills: 0, slot: slot in SLOTS ? slot : 'any', path: path in DUNGEON_PATHS ? path : 'gold', difficulty,
-    level: Math.max(1, state.maxStage + d.levelOffset + diff.levelBonus), earned: {},
+    level: Math.max(1, levelForStage(state.maxStage) + d.levelOffset + diff.levelBonus), earned: {},
     startPlay: state.playSeconds ?? 0,
   };
   return true;

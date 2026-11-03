@@ -727,5 +727,58 @@ export const BG = {
         "front": true
       }
     ]
+  },
+  "ocean": {
+    "sky": [
+      "#04121e",
+      "#06243a",
+      "#0a3a58",
+      "#135a7a"
+    ],
+    "ground": "#04121e",
+    "layers": [
+      {
+        "file": "ocean_far.png",
+        "factor": 0.06,
+        "anchor": "ground",
+        "y": -178,
+        "front": false
+      },
+      {
+        "file": "ocean_city.png",
+        "factor": 0.2,
+        "anchor": "ground",
+        "y": -148,
+        "front": false
+      },
+      {
+        "file": "ocean_reef.png",
+        "factor": 0.45,
+        "anchor": "ground",
+        "y": -108,
+        "front": false
+      },
+      {
+        "file": "ocean_near.png",
+        "factor": 0.7,
+        "anchor": "ground",
+        "y": -62,
+        "front": false
+      },
+      {
+        "file": "ocean_ground.png",
+        "factor": 1.0,
+        "anchor": "ground",
+        "y": -8,
+        "front": false
+      },
+      {
+        "file": "ocean_front.png",
+        "factor": 1.25,
+        "anchor": "ground",
+        "y": 7,
+        "front": true
+      }
+    ]
   }
 };

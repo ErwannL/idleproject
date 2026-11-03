@@ -3,6 +3,7 @@
 // Une défaite termine l'ascension ; l'étage atteint et la meilleure ascension sont gardés.
 import { BOSSES } from '../data/enemies.js';
 import { grantReward } from './rewards.js';
+import { levelForStage } from './combat.js'; // v9.2.0 (monde marin) : niveau de puissance des étapes
 
 export const TOWER = {
   unlockStage: 60, floorLevel: 3, milestone: 10, climbsPerWeek: 1, steepness: 40, // étape 5 : déblocage 40 → 60 (calendrier étalé)
@@ -61,7 +62,7 @@ export function towerBoss(floor) {
 // Niveau des ennemis : part d'environ la moitié de l'étape max, +3 niveaux par étage, et (v8.7) une pente qui
 // s'accentue : +f²/40 niveaux (étage 100 : +250, étage 400 : +4 000). Une ascension finit toujours par s'arrêter.
 export function towerLevel(state, floor) {
-  return Math.max(20, Math.round(state.maxStage * 0.5)) + floor * TOWER.floorLevel + Math.floor((floor * floor) / TOWER.steepness);
+  return Math.max(20, Math.round(levelForStage(state.maxStage) * 0.5)) + floor * TOWER.floorLevel + Math.floor((floor * floor) / TOWER.steepness);
 }
 
 // Récompense d'un nouveau record : gemmes à chaque étage, fragments tous les 5, gemmes en plus + clé tous les 10

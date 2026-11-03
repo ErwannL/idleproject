@@ -31,10 +31,10 @@ test('mondes de 20 étapes : mini-boss (5), boss (10), boss dur (15), méga boss
   }
   // Un méga boss est plus coriace qu'un mini-boss au même niveau.
   assert.ok(enemyStats(20, 'slime_king', true).hp > enemyStats(20, 'mini_goblin_warlord', true).hp);
-  // Monde 11 : chaque étape est le méga boss d'un monde ; ensuite retour au monde 1.
-  assert.deepEqual(bossesForStage(201), ZONES[0].bosses);
-  assert.deepEqual(bossesForStage(210), ZONES[9].bosses);
-  assert.deepEqual(bossesForStage(230), ZONES[0].bosses);
+  // Monde 12 (v9.2.0 : après le Royaume englouti) : chaque étape est le méga boss d'un monde ; ensuite retour au monde 1.
+  assert.deepEqual(bossesForStage(221), ZONES[0].bosses);
+  assert.deepEqual(bossesForStage(230), ZONES[9].bosses);
+  assert.deepEqual(bossesForStage(250), ZONES[0].bosses);
 });
 
 test('ancienne sauvegarde (10 étapes par monde) convertie sans perdre la progression', () => {

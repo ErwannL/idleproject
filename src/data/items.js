@@ -229,6 +229,11 @@ export const SIGNATURE_ITEMS = [
     id: 'void_signet', name: 'Sceau du Néant', slot: 'ring', sprite: 'signet', signature: 'boss_void_emperor',
     colors: { main: '#3a2a6a', shade: '#1e1440', light: '#7a5ac9', dark: '#120a26', gem: '#c9a6ff' }, stats: {}, affixes: [{ type: 'critChance', value: 12 }, { type: 'damageVsBossPct', value: 20 }],
   },
+  // v9.2.0 (monde marin) : objet ancestral du Léviathan (Musée).
+  {
+    id: 'leviathan_pearl', name: 'Perle du Léviathan', slot: 'amulet', sprite: 'pendant', signature: 'boss_leviathan',
+    colors: { main: '#1a6a8a', shade: '#0e3a52', light: '#5ad0e8', dark: '#06202e', gem: '#e8f8ff' }, stats: { maxHp: 70 }, affixes: [{ type: 'critChance', value: 8 }, { type: 'regenPct', value: 3 }],
+  },
   // Étape 4 : une arme ancestrale pour chaque classe (avant, 6 sur 7 allaient au Chevalier, à l'Assassin ou au Berserker).
   {
     id: 'scarecrow_bow', name: "Arc de l'Épouvantail", slot: 'weapon', sprite: 'bow', signature: 'hard_scarecrow',

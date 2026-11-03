@@ -1590,6 +1590,16 @@ kbd { display: inline-block; min-width: 18px; padding: 1px 5px; border: 1px soli
 .cloud-bank.right { right: 0; transform: translateX(105%); border-radius: 40% 0 0 40%; }
 .cloud-transition.closing .cloud-bank { transform: translateX(0); }
 .cloud-transition.lifting .cloud-bank { transform: translateY(-120%); transition-duration: 0.9s; transition-timing-function: cubic-bezier(.5,0,.8,.4); }
+/* v9.2.0 (monde marin) : transition vers le Royaume englouti — la vague monte, bulles, titre sur fond bleuté. */
+.cloud-transition.water .cloud-bank { border-radius: 0;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.7) 0 2%, transparent 3%), radial-gradient(circle at 70% 55%, rgba(255,255,255,.6) 0 1.5%, transparent 2.5%),
+    radial-gradient(circle at 45% 80%, rgba(200,244,255,.7) 0 2.5%, transparent 3.5%), linear-gradient(#2a9ad0, #0a3a68 70%, #04182e); }
+.cloud-transition.water.lifting .cloud-bank { transform: translateY(120%); }
+.sea-bubbles { position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(220,250,255,.85) 0 2px, transparent 3px), radial-gradient(circle, rgba(220,250,255,.6) 0 1px, transparent 2px);
+  background-size: 37px 53px, 23px 31px; animation: sea-rise 1.8s linear forwards; opacity: 0; }
+@keyframes sea-rise { 0% { opacity: 0; background-position: 0 100%, 10px 100%; } 30% { opacity: 1; } 100% { opacity: 0; background-position: 0 -200px, 10px -320px; } }
+.cinematic.zone-ocean { background: radial-gradient(ellipse at center, rgba(10, 80, 130, 0.2), rgba(2, 20, 40, 0.65)); }
+@media (prefers-reduced-motion: reduce) { .sea-bubbles { animation: none; } }
 table.records { width: 100%; border-collapse: collapse; font-size: 11.5px; }
 table.records td { padding: 2px 4px; border-top: 1px solid rgba(255, 255, 255, 0.06); }
 

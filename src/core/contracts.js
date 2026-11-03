@@ -1,7 +1,7 @@
 // Contrats d'aventure : 3 objectifs actifs qui progressent automatiquement.
 import { CONTRACT_COUNT, CONTRACT_TYPES, RARE_CONTRACT } from '../data/contracts.js';
 import { BALANCE } from '../data/balance.js';
-import { referenceKillGold } from './combat.js';
+import { levelForStage, referenceKillGold } from './combat.js'; // v9.2.0 (monde marin) : niveau des étapes
 import { trackMissions } from './missions.js';
 import { grantReward } from './rewards.js';
 
@@ -11,7 +11,7 @@ export function newContract(state, rng, balance = BALANCE) {
   const type = types[Math.floor(rng.next() * types.length)] ?? 'kills';
   const def = CONTRACT_TYPES[type];
   const rare = rng.next() < RARE_CONTRACT.chance;
-  const base = Math.max(1, Math.round(def.amount(state, { killGold: referenceKillGold(state.maxStage, balance) })));
+  const base = Math.max(1, Math.round(def.amount(state, { killGold: referenceKillGold(levelForStage(state.maxStage, balance), balance) })));
   const target = rare ? base * RARE_CONTRACT.targetMultiplier : base;
   const reward = Object.fromEntries(Object.entries(def.reward).map(([k, v]) => [k, rare ? v * RARE_CONTRACT.rewardMultiplier : v]));
   if (rare) for (const [k, v] of Object.entries(RARE_CONTRACT.bonus)) reward[k] = (reward[k] ?? 0) + v;

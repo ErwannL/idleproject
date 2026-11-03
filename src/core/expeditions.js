@@ -3,7 +3,7 @@
 // clés et fragments anciens. Un compagnon en expédition ne peut pas être équipé.
 import { BALANCE, ESSENCE_SHARDS, TICKET_GEMS } from '../data/balance.js';
 import { UNITS } from '../data/banners.js'; // v9.1.3 (partie B) : persos de bannière compris
-import { referenceKillGold } from './combat.js';
+import { levelForStage, referenceKillGold } from './combat.js';
 
 export const EXPEDITION_RULES = { slots: 3 };
 export const EXPEDITION_TYPES = [
@@ -37,7 +37,7 @@ export function expeditionReward(state, companionId, typeId, balance = BALANCE) 
   const p = expeditionPower(state, companionId);
   if (!type || !p) return null;
   const h = type.hours;
-  const stage = Math.max(1, state.maxStage);
+  const stage = levelForStage(Math.max(1, state.maxStage), balance); // v9.2.0 (monde marin) : niveau de l'étape max
   const reward = {
     gold: Math.floor(referenceKillGold(stage, balance) * 40 * h * p),
     shards: Math.round(15 * h * p) + Math.round(1.5 * h * p) * ESSENCE_SHARDS,

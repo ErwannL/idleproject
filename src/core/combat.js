@@ -22,7 +22,7 @@ import { earlyBoost } from './boost.js';
 import { phantomHitPct, rushById, tickRushes } from './rushes.js';
 import { recordKill } from './codex.js';
 import { activeClass, classRange } from './classes.js';
-import { BOSS_TRAITS, TRAITS, traitAttack, traitDamageTaken } from './boss-traits.js';
+import { BOSS_MINIONS, BOSS_TRAITS, TRAITS, tickTide, traitAttack, traitDamageTaken } from './boss-traits.js'; // v9.2.0 (monde marin) : Marée
 import { DUNGEON_DIFFICULTIES } from '../data/dungeons.js';
 import { enemyScaleFactor } from './transcend.js';
 import { clearTowerFloor, endTower, towerBoss, towerLevel, towerTimeLeft } from './tower.js';
@@ -132,6 +132,23 @@ export function enemyDefinition(type, boss) {
 }
 
 
+// v9.2.0 (monde marin) : niveau de puissance d'une étape (ennemis, butin, or, XP). Un monde peut couvrir moins de
+// niveaux que d'étapes (`levels`) et ne pas faire avancer le compteur (`advance: 0`) : le Royaume englouti (20 étapes)
+// parcourt les niveaux 201 à 210, comme le Trône de l'Abysse qui le suit. Ainsi, une étape d'avant la 9.2.0 garde
+// exactement sa puissance après la migration (même monde, même étape dans le monde).
+const zoneLevels = (z, balance) => z.levels ?? zoneLength(z, balance);
+export function levelsPerCycle(balance = BALANCE) {
+  return ZONES.reduce((sum, z) => sum + (z.advance ?? zoneLevels(z, balance)), 0);
+}
+export function levelForStage(stage, balance = BALANCE) {
+  const n = Math.max(1, Math.floor(Number(stage) || 1));
+  const { zone, inZone } = locateStage(n, balance);
+  let start = 0;
+  for (let i = 0; i < zone; i++) start += ZONES[i].advance ?? zoneLevels(ZONES[i], balance);
+  const z = ZONES[zone];
+  return cycleForStage(n, balance) * levelsPerCycle(balance) + start + Math.ceil((inZone * zoneLevels(z, balance)) / zoneLength(z, balance));
+}
+
 // Étape 4 : ×hpBase atteint progressivement (première minute vive, puis début disputé).
 const hpBaseFactor = (n, g) => 1 + ((g.hpBase ?? 1) - 1) * Math.min(1, n / (g.hpBaseRamp ?? 1));
 
@@ -192,7 +209,8 @@ export function currentEncounter(state, balance = BALANCE) {
   }
   const zone = zoneForStage(state.stage, balance);
   return {
-    level: state.stage, boss: isBossStage(state.stage, balance), enemies: zone.enemies,
+    // v9.2.0 (monde marin) : niveau de puissance de l'étape (identique à l'étape hors du Royaume englouti, cycle 1).
+    level: levelForStage(state.stage, balance), boss: isBossStage(state.stage, balance), enemies: zone.enemies,
     bosses: bossesForStage(state.stage, balance),
     killsNeeded: balance.stages.killsPerStage, zoneIndex: zoneIndexForStage(state.stage, balance), dungeon: null,
     // Monde 11 : le méga boss (berserk) invoque les boss 5/10/15 de son monde quand ses PV baissent.
@@ -781,6 +799,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
       emit(world, 'heroAttack', {
         enemyId: front.id, damage, crit, x: front.x, boss: front.boss, kind: heroClass.attack.kind,
         special: extra.special, targets: extra.hits.map((h) => ({ id: h.enemy.id, x: h.enemy.x })),
+      if (crit) front.critAt = world.time; // v9.2.0 (monde marin) : un critique arrête la Marée
       });
       hitEnemy(state, world, front, damage, rng, balance, stats, enc, 'attack');
       for (const h of extra.hits) hitEnemy(state, world, h.enemy, h.damage, rng, balance, stats, enc, 'attack');
@@ -835,8 +854,9 @@ export function step(state, world, dt, rng, balance = BALANCE) {
   for (const boss of [...world.enemies]) {
     if (boss.trait !== 'summoner' || boss.hp <= 0) continue;
     boss.summonTimer -= dt;
+  tickTide(world, dt); // v9.2.0 (monde marin) : boss à la Marée (régénération)
     if (boss.summonTimer > 0) continue;
-    const t = TRAITS.summoner;
+    const t = { ...TRAITS.summoner, minion: BOSS_MINIONS[boss.type] ?? TRAITS.summoner.minion }; // v9.2.0 (monde marin)
     boss.summonTimer = t.every;
     // Serviteurs : ennemis ordinaires (pas de gemmes de boss), placés juste devant leur maître (la file ne recule
     // pas), et jamais plus de `maxAlive` à la fois — sinon la file pouvait s'allonger sans fin et bloquer le jeu.

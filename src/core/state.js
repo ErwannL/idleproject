@@ -1,6 +1,7 @@
 // État persistant de la partie (tout ce qui est sauvegardé) et validation au chargement.
 import { locateStage, stagesPerCycle } from './combat.js';
 import { ZONES } from '../data/zones.js';
+import { migrateOceanWorld } from './migrations-v920.js';
 import { emptyTimes, sanitizeTimes } from './times.js';
 import { BALANCE } from '../data/balance.js';
 import { AFFIXES, RARITIES, SLOTS, STARTER_WEAPON, STAT_LABELS } from '../data/items.js';
@@ -48,7 +49,8 @@ import { ENCYCLOPEDIA_SECTIONS } from './encyclopedia.js';
 // v1 : prototype · v2 (format identique) · v3 : pouvoirs, Renaissance, verrou
 // v4 : niveau, compétences, héros, compagnons, invocation, contrats, événements, matériaux, donjons.
 // v8 (v9.1.3) : refontes du lot E et F, conversions indépendantes dans core/migrations-v913.js.
-export const SAVE_VERSION = 8; // v8.4 : nouvel équilibrage (remboursement des améliorations) · v8.5 : arbre de 500 talents (fragments remboursés)
+// v9 (v9.2.0, monde marin) : Royaume englouti inséré en monde 11 (étapes > 200 converties, core/migrations-v920.js).
+export const SAVE_VERSION = 9; // v8.4 : nouvel équilibrage (remboursement des améliorations) · v8.5 : arbre de 500 talents (fragments remboursés)
 export const SORT_OPTIONS = ['rarity', 'level', 'power', 'recent'];
 
 export function createNewState(now = Date.now(), seed = Math.floor(Math.random() * 2 ** 32)) {
@@ -378,6 +380,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   const state = createNewState(now);
   if (!raw || typeof raw !== 'object') return state;
   if (int(raw.version, 1) < 5) raw = migrateTo20Stages(raw);
+  if (int(raw.version, 1) < 9) raw = migrateOceanWorld(raw); // v9.2.0 (monde marin)
 
   state.createdAt = num(raw.createdAt, now);
   state.lastSaved = num(raw.lastSaved, now);

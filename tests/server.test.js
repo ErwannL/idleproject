@@ -347,7 +347,7 @@ test('classement v9.1.7 : temps (renaissance la plus rapide, temps pour atteindr
   const w3 = await board('sort=reach&world=3');
   assert.equal(w3.world, 3);
   assert.deepEqual(w3.players.map((p) => [p.pseudo, p.value]), [['Rapide_1', 2000]]);
-  assert.equal((await board('sort=reach&world=99')).world, 11); // borné, jamais de texte dans le SQL
+  assert.equal((await board('sort=reach&world=99')).world, 12); // v9.2.0 : 12 mondes ; borné, jamais de texte dans le SQL
   assert.equal((await board("sort=reach&world=2'--")).world, 2);
   assert.equal((await board('sort=transcendFast')).players.length, 0);
 });

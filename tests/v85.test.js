@@ -117,7 +117,7 @@ test('v8.5 : ensembles d\'équipement — butin, bonus 2/4/6, pièces gardées p
   const inSet = items.filter((i) => i.set === 'caves').length;
   assert.ok(inSet > 30 && inSet < 200, String(inSet));
   assert.ok(items.every((i) => !i.set || i.set === 'caves'));
-  assert.ok(Array.from({ length: 50 }, () => generateItem(s, rng, { level: 10, setZone: 10 })).every((i) => !i.set), 'monde 11 : aucun ensemble');
+  assert.ok(Array.from({ length: 50 }, () => generateItem(s, rng, { level: 10, setZone: 11 })).every((i) => !i.set), 'monde 12 (Abysse, v9.2.0) : aucun ensemble');
   // Bonus.
   const set = ITEM_SETS.find((x) => x.id === 'caves');
   const eq = { ...s.equipment };

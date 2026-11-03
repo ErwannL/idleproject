@@ -5,6 +5,7 @@
 import { ZONES } from '../data/zones.js';
 import { weekKey } from './tower.js';
 import { grantReward } from './rewards.js';
+import { levelForStage } from './combat.js'; // v9.2.0 (monde marin) : niveau de puissance des étapes
 
 // Étape 5 : calendrier de déblocages étalé (Donjons 25, Renaissance 30, Défi 45, Tour 60) — avant, tout arrivait entre 25 et 40.
 export const CHALLENGE = { unlockStage: 45, triesPerWeek: 3, killsPerWave: 8, bossEvery: 5, levelPerWave: 2, history: 8, modifiers: 3, waveSeconds: 90 };
@@ -86,7 +87,7 @@ export function challengeTriesLeft(state, now = Date.now()) {
 }
 
 export function challengeLevel(state, wave) {
-  return Math.max(20, Math.round(state.maxStage * 0.7)) + wave * CHALLENGE.levelPerWave;
+  return Math.max(20, Math.round(levelForStage(state.maxStage) * 0.7)) + wave * CHALLENGE.levelPerWave;
 }
 
 export function bossEvery(state) {

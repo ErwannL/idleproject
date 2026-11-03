@@ -20,7 +20,7 @@ modules = [knight]
 for name in ('enemies', 'icons', 'accessories', 'allies_r', 'allies_sr', 'allies_ssr',
              'bosses_mega', 'bosses_classic', 'brutes', 'minibosses', 'bosses_mid', 'bosses_hard',
              'enemies2', 'bosses_w78', 'bosses_w910', 'allies_anim', 'fixes2', 'megaboss3', 'bosses_dungeon', 'classes_gear', 'fixes',
-             'skins_a', 'skins_b', 'pixellab'):  # les derniers remplacent les anciens sprites
+             'skins_a', 'skins_b', 'pixellab', 'ocean'):  # v9.2.0 (monde marin) : ocean  # les derniers remplacent les anciens sprites
     try:
         modules.append(__import__(name))
     except ImportError:

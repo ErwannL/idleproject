@@ -6,6 +6,7 @@ import { ZONES } from '../data/zones.js';
 import { BALANCE } from '../data/balance.js';
 import { grantReward } from './rewards.js';
 import { Rng } from './rng.js';
+import { levelForStage } from './combat.js'; // v9.2.0 (monde marin) : niveau de puissance des étapes
 
 const DAY = 86400000;
 let startCache = null;
@@ -145,7 +146,7 @@ export function tierCondition(state, unit, tier, { trial = false } = {}) {
 
 // Niveau des ennemis : calé sur la meilleure étape (records.bestStage), car leurs PV ne connaissent pas la puissance.
 export function worldLevel(state, kind, n) {
-  const best = Math.max(1, state.records?.bestStage ?? 1, state.maxStage ?? 1);
+  const best = levelForStage(Math.max(1, state.records?.bestStage ?? 1, state.maxStage ?? 1)); // v9.2.0 (monde marin)
   return kind === 'level' ? Math.max(1, Math.round(best * (0.5 + 0.05 * n))) : best;
 }
 

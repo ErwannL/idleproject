@@ -109,6 +109,14 @@ export const BOSS_POWERS = {
     { id: 'cosmic_hoard', name: 'Trésor cosmique', rarity: 'epic', family: 'fortune', effects: { goldPct: 30, dropChance: 3 } },
     { id: 'emperor_decree', name: "Décret de l'Empereur", rarity: 'legendary', family: 'combat', effects: { damagePct: 30, damageVsBossPct: 20 } },
   ],
+  // v9.2.0 (monde marin) : pouvoirs ancestraux du Léviathan.
+  boss_leviathan: [
+    { id: 'sea_spray', name: 'Embruns', rarity: 'common', family: 'survival', effects: { regenPct: 2 } },
+    { id: 'riptide', name: 'Courant de retour', rarity: 'rare', family: 'combat', effects: { attackSpeedPct: 8 } },
+    { id: 'abyssal_scales', name: 'Écailles abyssales', rarity: 'rare', family: 'survival', effects: { armor: 10, maxHpPct: 10 } },
+    { id: 'sunken_treasure', name: 'Trésor englouti', rarity: 'epic', family: 'fortune', effects: { goldPct: 30, dropChance: 3 } },
+    { id: 'leviathan_tide', name: 'Marée du Léviathan', rarity: 'legendary', family: 'combat', effects: { damagePct: 30, critChance: 8 } },
+  ],
 };
 
 // Libellés des effets (affichage).

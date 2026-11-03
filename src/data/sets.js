@@ -18,4 +18,6 @@ export const ITEM_SETS = [
   { id: 'sky', zone: 7, name: 'Plumage céleste', color: '#bfe7ff', bonuses: { 2: { attackSpeedPct: 8 }, 4: { critChance: 8 }, 6: { damageMultPct: 55 } } },
   { id: 'volcano', zone: 8, name: 'Forge du volcan', color: '#ff7a3d', bonuses: { 2: { damagePct: 25 }, 4: { damageVsBossPct: 40 }, 6: { damageMultPct: 65 } } },
   { id: 'void', zone: 9, name: 'Éclat du Néant', color: '#9a7bff', bonuses: { 2: { critChance: 6 }, 4: { skillCooldownPct: 15 }, 6: { damageMultPct: 60, maxHpMultPct: 60 } } }, // v9.1.3 (doc3 lot 5) : rôle équilibre dégâts × robustesse (avant 50 / 50)
+  // v9.2.0 (monde marin) : Parure des marées — rôle régénération et critiques (le contre de la Marée du Léviathan).
+  { id: 'ocean', zone: 10, name: 'Parure des marées', color: '#3ad0e0', bonuses: { 2: { regenPct: 1.5 }, 4: { critChance: 8 }, 6: { damageMultPct: 62, maxHpMultPct: 50 } } },
 ];

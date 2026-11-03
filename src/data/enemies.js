@@ -54,6 +54,16 @@ export const ENEMIES = {
   star_stalker: { name: 'Rôdeur stellaire', sprite: 'star_stalker', hp: 34, damage: 10, gold: 9, speed: 32, attackInterval: 0.9, range: 18 },
   shadow_knight: { name: "Chevalier d'ombre", sprite: 'shadow_knight', hp: 50, damage: 9, gold: 10, speed: 14, attackInterval: 1.4, range: 20 },
   voidling: { name: 'Rejeton du néant', sprite: 'voidling', hp: 26, damage: 9, gold: 8, speed: 26, attackInterval: 1.0, range: 16 },
+  // v9.2.0 (monde marin) — Monde 11 : Royaume englouti. `swim` : façon de nager (src/render/ocean-fx.js) —
+  // fish (queue qui bat), jelly (cloche qui pulse), eel (ondulation de tout le corps), crawl (marche sur le fond).
+  sea_bladefish: { name: 'Poisson-lame', sprite: 'sea_bladefish', hp: 26, damage: 10, gold: 9, speed: 34, attackInterval: 0.9, range: 18, flyHeight: 10, swim: 'fish' },
+  sea_jelly: { name: 'Méduse spectrale', sprite: 'sea_jelly', hp: 24, damage: 10, gold: 9, speed: 14, attackInterval: 1.1, range: 20, flyHeight: 16, swim: 'jelly' },
+  sea_crab: { name: 'Crabe des récifs', sprite: 'sea_crab', hp: 50, damage: 9, gold: 10, speed: 18, attackInterval: 1.4, range: 18, swim: 'crawl' },
+  sea_eel: { name: 'Anguille électrique', sprite: 'sea_eel', hp: 30, damage: 11, gold: 9, speed: 28, attackInterval: 1.0, range: 22, flyHeight: 8, swim: 'eel' },
+  sea_puffer: { name: 'Poisson-globe', sprite: 'sea_puffer', hp: 36, damage: 9, gold: 9, speed: 16, attackInterval: 1.3, range: 18, flyHeight: 12, swim: 'fish' },
+  sea_octopus: { name: 'Poulpe des grottes', sprite: 'sea_octopus', hp: 40, damage: 10, gold: 10, speed: 16, attackInterval: 1.3, range: 22, flyHeight: 3, swim: 'jelly' },
+  sea_shark: { name: 'Requin de récif', sprite: 'sea_shark', hp: 38, damage: 11, gold: 10, speed: 32, attackInterval: 1.0, range: 20, flyHeight: 10, swim: 'fish' },
+  sea_merfolk: { name: 'Triton guerrier', sprite: 'sea_merfolk', hp: 46, damage: 10, gold: 10, speed: 20, attackInterval: 1.2, range: 24, flyHeight: 6, swim: 'eel' },
 };
 
 // Deux images de marche (ou de vol) par ennemi : `sprite` et `sprite_b`.
@@ -113,4 +123,9 @@ export const BOSSES = {
   mid_star_devourer: { name: "Dévoreur d'étoiles", base: 'star_stalker', sprite: 'mid_star_devourer', tier: 'mid' },
   hard_void_knight: { name: 'Chevalier du néant', base: 'shadow_knight', sprite: 'hard_void_knight', tier: 'hard' },
   boss_void_emperor: { name: 'Empereur du Néant', base: 'shadow_knight', sprite: 'boss_void_emperor' },
+  // v9.2.0 (monde marin) — monde 11 (Royaume englouti).
+  mini_crab_king: { name: 'Roi crabe', base: 'sea_crab', sprite: 'mini_crab_king', tier: 'mini' },
+  mid_kraken: { name: 'Kraken des grottes', base: 'sea_octopus', sprite: 'mid_kraken', tier: 'mid' },
+  hard_megalodon: { name: 'Mégalodon', base: 'sea_shark', sprite: 'hard_megalodon', tier: 'hard' },
+  boss_leviathan: { name: 'Léviathan', base: 'sea_eel', sprite: 'boss_leviathan' },
 };

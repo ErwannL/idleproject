@@ -215,7 +215,8 @@ export function createFailureLimiter({ max, windowMs }, now = () => Date.now()) 
 
 // Libellé d'étape du jeu (« 7-6 ×8 » = monde 7, étape 6, difficulté ×8), comme src/core/combat.js stageLabel.
 // Étapes par monde de src/data/zones.js (tests/server.test.js vérifie l'égalité avec le jeu).
-export const ZONE_STAGES = [20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 10];
+// v9.2.0 (monde marin) : Royaume englouti inséré en monde 11 (20 étapes), l'Abysse devient le monde 12.
+export const ZONE_STAGES = [20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 10];
 export function stageLabel(stage) {
   const cycle = ZONE_STAGES.reduce((a, b) => a + b, 0);
   if (!Number.isInteger(stage) || stage < 1) return '—';
@@ -637,8 +638,8 @@ export function createApp({
         ? `(a.id = :me OR a.id IN (SELECT addressee_id FROM friendships WHERE requester_id = :me AND status = 'accepted'
             UNION SELECT requester_id FROM friendships WHERE addressee_id = :me AND status = 'accepted'))`
         : 'a.listed = 1 AND a.guest = 0 AND (s.level > 1 OR s.max_stage > 1 OR s.bosses_defeated > 0)';
-      // Temps pour atteindre le monde n (2..11) : index n - 1 dans first_zone. Nombre validé, jamais de texte libre.
-      const world = Math.min(11, Math.max(2, Math.floor(Number(url.searchParams.get('world')) || 2)));
+      // Temps pour atteindre le monde n (2..12, v9.2.0 : monde marin) : index n - 1 dans first_zone. Nombre validé, jamais de texte libre.
+      const world = Math.min(12, Math.max(2, Math.floor(Number(url.searchParams.get('world')) || 2)));
       const reachSql = `json_extract(s.first_zone, '$."${world - 1}"')`;
       const filter = LEADERBOARD_FILTER[sort] ? ` AND ${LEADERBOARD_FILTER[sort].replaceAll('reach', reachSql)}` : '';
       const base = `FROM saves s JOIN accounts a ON a.id = s.account_id WHERE (${where})${filter} ORDER BY ${LEADERBOARD_SORTS[sort].replace('reach', reachSql)}`;

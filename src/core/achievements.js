@@ -30,8 +30,11 @@ const LIST = [
   ['boss1', 'Tueur de boss', 'bosses', 10, 30], ['boss2', 'Chasseur de légendes', 'bosses', 150, 90],
   ['boss3', 'Terreur des trônes', 'bosses', 1500, 250],
   ['stage1', 'Hors des plaines', 'stage', 21, 30], ['stage2', 'Au cœur des ténèbres', 'stage', 101, 80],
-  ['stage3', 'Les mondes célestes', 'stage', 141, 150], ['stage4', "Maître de l'Abysse", 'stage', 211, 300],
-  ['stage5', 'Au-delà de tout', 'stage', 421, 600],
+  ['stage3', 'Les mondes célestes', 'stage', 141, 150],
+  // v9.2.0 (monde marin) : entrée dans le Royaume englouti (monde 11) ; le cycle passe à 230 étapes (211 → 231, 421 → 461 :
+  // mêmes paliers, les étapes des sauvegardes sont converties de la même façon, core/migrations-v920.js).
+  ['stage_sea', 'Vingt mille lieues', 'stage', 201, 200], ['stage4', "Maître de l'Abysse", 'stage', 231, 300],
+  ['stage5', 'Au-delà de tout', 'stage', 461, 600],
   ['lvl1', 'Aguerri', 'level', 25, 25], ['lvl2', 'Vétéran', 'level', 100, 80], ['lvl3', 'Légende vivante', 'level', 300, 250],
   ['item1', 'Ramasseur', 'items', 100, 20], ['item2', 'Collectionneur', 'items', 2000, 80], ['item3', 'Dragon du trésor', 'items', 25000, 250],
   ['sum1', 'Premier appel', 'summons', 10, 20], ['sum2', 'Invocateur', 'summons', 200, 100], ['sum3', 'Maître des portails', 'summons', 1000, 300],

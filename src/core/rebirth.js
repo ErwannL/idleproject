@@ -5,6 +5,7 @@ import { LEGACY_TALENTS, REBIRTH, TALENT_RESPEC, TALENTS } from '../data/rebirth
 import { PRESTIGE } from '../data/prestige.js';
 import { fragmentBonus, memoryShare } from './transcend.js';
 import { noteRebirth } from './times.js';
+import { levelForStage } from './combat.js'; // v9.2.0 (monde marin) : niveau de puissance des étapes
 
 const BY_ID = new Map(TALENTS.map((t) => [t.id, t]));
 
@@ -194,7 +195,7 @@ export function rebirthPower(state) {
   return Number.isFinite(state.rebirthPower) ? state.rebirthPower : state.records?.rebirths ?? 0;
 }
 export function rebirthGain(state) {
-  return Math.min(1, Math.max(0, (state.maxStage - 1) / REBIRTH.fullPowerStage));
+  return Math.min(1, Math.max(0, (levelForStage(state.maxStage) - 1) / REBIRTH.fullPowerStage));
 }
 
 export function canRebirth(state) {
@@ -212,7 +213,7 @@ export function rebirthBlocked(state) {
 export function rebirthReward(state) {
   if (!canRebirth(state)) return 0;
   const prestigeBonus = 1 + (PRESTIGE.fragmentBonusPct * (state.prestige?.count ?? 0)) / 100;
-  return Math.floor(((state.maxStage - 1) / REBIRTH.divisor) ** REBIRTH.exponent * prestigeBonus * fragmentBonus(state));
+  return Math.floor(((levelForStage(state.maxStage) - 1) / REBIRTH.divisor) ** REBIRTH.exponent * prestigeBonus * fragmentBonus(state));
 }
 
 // Réinitialise la campagne, l'or et les améliorations ; conserve tout le reste.

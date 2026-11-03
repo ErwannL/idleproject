@@ -2,6 +2,7 @@
 // du combat, ambiance musicale selon le monde (boss, donjon) et pas du chevalier.
 import { BOSSES } from '../data/enemies.js';
 import { createAudio } from './audio.js';
+import { ZONES } from '../data/zones.js';
 
 const KEY = 'idle-rpg.audio';
 const DEFAULTS = { master: 0.8, music: 0.6, sfx: 0.8, muted: false };
@@ -21,6 +22,7 @@ export function createGameAudio() {
   audio.setMuted(settings.muted);
   let scene = '';
   let stepTimer = 0;
+  let underwater = false; let bubbleTimer = 2; // v9.2.0 (monde marin)
 
   const save = () => {
     try { localStorage.setItem(KEY, JSON.stringify(settings)); } catch { /* stockage indisponible */ }
@@ -65,14 +67,21 @@ export function createGameAudio() {
     update(state, world, zoneIndex, dt) {
       const berserk = world.enemies.some((e) => e.berserk);
       const mode = state.dungeon ? 'dungeon' : berserk ? 'berserk' : world.enemies.some((e) => e.boss) ? 'boss' : 'normal';
-      // Mondes 7 à 11 : ambiance la plus proche parmi les 6 thèmes musicaux.
-      const theme = [0, 1, 2, 3, 4, 5, 1, 0, 5, 2, 5][zoneIndex] ?? 0;
+      // Mondes 7 à 12 : ambiance la plus proche parmi les 6 thèmes musicaux (v9.2.0 : 11 = Royaume englouti, cristallin).
+      const theme = [0, 1, 2, 3, 4, 5, 1, 0, 5, 2, 2, 5][zoneIndex] ?? 0;
+      // v9.2.0 (monde marin) : musique étouffée (passe-bas) et bulles génératives, au lieu des pas.
+      const wet = Boolean(ZONES[zoneIndex]?.underwater) && !state.dungeon && !state.tower;
+      if (wet !== underwater) { underwater = wet; audio.setUnderwater(wet); }
+      if (wet) {
+        bubbleTimer -= dt;
+        if (bubbleTimer <= 0) { bubbleTimer = 0.8 + Math.random() * 2.6; audio.play('bubble', { volume: 0.35 + Math.random() * 0.4 }); }
+      }
       const key = `${theme}|${mode}`;
       if (key !== scene) {
         scene = key;
         audio.setScene({ world: theme, mode });
       }
-      if (world.hero.walking && !world.hero.dead) {
+      if (world.hero.walking && !world.hero.dead && !underwater) {
         stepTimer -= dt;
         if (stepTimer <= 0) {
           stepTimer = 0.36;

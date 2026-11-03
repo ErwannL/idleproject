@@ -4,8 +4,8 @@
 // plus forte…). Elle s'ouvre après le monde 11 en difficulté ×3.
 
 export const TRANSCEND = {
-  minStage: 631, // étape 630 = dernier méga boss du monde 11 en difficulté ×3
-  starsScale: 2, // Étoiles = floor(2 × (étape max / 210)^1,3)
+  minStage: 691, // étape 690 = dernier méga boss du Trône de l'Abysse en difficulté ×3 (v9.2.0, monde marin : 631 avant, cycle de 230 étapes)
+  starsScale: 2, // Étoiles = floor(2 × (niveau de l'étape max / 210)^1,3) — v9.2.0 (monde marin) : 210 niveaux par cycle
   starsDivisor: 210,
   starsExponent: 1.3,
   keepRebirthsPct: 25, // part des Renaissances conservée (multiplicateur ×1,5 chacune), +5 % par niveau d'« Héritage stellaire »

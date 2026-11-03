@@ -12,7 +12,7 @@ import { allItems, endSave, oldSave, NOW } from './helpers/v913-saves.js';
 const load = (raw) => sanitizeState(JSON.parse(JSON.stringify(raw)), undefined, NOW);
 
 test('v9.1.3 : une seule montée de SAVE_VERSION (7 → 8)', () => {
-  assert.equal(SAVE_VERSION, 8);
+  assert.equal(SAVE_VERSION, 9); // v9.2.0 (monde marin) : 8 → 9 (Royaume englouti, étapes converties)
 });
 
 test('v9.1.3 : aucun objet perdu (ni verrouillé, ni renforcé) en migrant une vieille sauvegarde et une partie de fin', () => {

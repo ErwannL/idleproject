@@ -1,3 +1,13 @@
+## Ascendrya v9.2.0 (en préparation)
+
+- Nouveau monde 11 : le Royaume englouti, une cité engloutie sous les vagues (20 étapes). Le Trône de l'Abysse devient le monde 12. Décor sous-marin en parallaxe : falaises lointaines, colonnes et temple effondré, épave, récifs de coraux, kelp qui ondule, rayons de lumière qui oscillent, caustiques, bulles qui montent, particules en suspension, bancs de poissons au loin.
+- On y nage : le héros et les compagnons flottent et ondulent (cape et cheveux qui flottent), bulles à la bouche, battements plus lents ; chaque attaque soulève un remous de bulles, les projectiles laissent une traînée de bulles. Les monstres nagent : la queue des poissons bat, la méduse pulse, l'anguille et le triton ondulent, le crabe marche sur le fond.
+- 8 monstres (Poisson-lame, Méduse spectrale, Crabe des récifs, Anguille électrique, Poisson-globe, Poulpe des grottes, Requin de récif, Triton guerrier) et 4 boss : Roi crabe (Carapace), Kraken des grottes (Invocateur de méduses), Mégalodon (Désespoir) et le Léviathan, méga boss à la nouvelle mécanique « Marée » (il se régénère ; un coup critique l'arrête 3 s).
+- Avec le monde : ensemble « Parure des marées » (régénération et critiques), objet ancestral « Perle du Léviathan » au Musée, 5 pouvoirs ancestraux, textes du Codex, marqueur sur la carte du monde, prime et défi de la semaine dans ce monde, haut fait « Vingt mille lieues ».
+- Arrivée dans le monde : la transition se fait par une vague bleue chargée de bulles. Son : musique étouffée sous l'eau et bulles génératives.
+- « Réduire les animations » : ni ondulation ni rayons mobiles, ni poissons ni caustiques, bulles rares.
+- Sauvegardes : une partie au-delà du monde 10 garde exactement sa place (même monde, même étape, même difficulté) et la même puissance d'ennemis ; le cycle passe de 210 à 230 étapes (Transcendance à l'étape 691, mêmes conditions qu'avant).
+
 ## Ascendrya v9.1.9 — Apparences, alerte de boss, butin, animations, traductions
 
 - Ennemis : attaque en trois temps (préparation, coup avec traînée de frappe, retour) ; les ennemis et compagnons à pied lèvent puis abattent le bras/l'arme (segment tourné au pixel autour de l'épaule).

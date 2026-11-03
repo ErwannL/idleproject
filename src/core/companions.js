@@ -1,7 +1,7 @@
 // Compagnons : bonus passifs (selon niveau, étoiles et talents) et compétence automatique.
 import { BALANCE } from '../data/balance.js';
 import { COMPANION_RULES } from '../data/companions.js';
-import { referenceKillGold } from './combat.js';
+import { levelForStage, referenceKillGold } from './combat.js'; // v9.2.0 (monde marin) : niveau des étapes
 import { talentEffects } from './rebirth.js';
 import { DUNGEONS } from '../data/dungeons.js';
 import { COMPANION_ROLES, SYNERGIES } from '../data/synergies.js';
@@ -148,7 +148,7 @@ export function companionEffects(state, balance = BALANCE) {
 export function companionUpgradeCost(state, id, balance = BALANCE) {
   const owned = state.companions.owned[id];
   if (!owned) return Infinity;
-  return Math.floor(COMPANION_RULES.upgradeCostKills * referenceKillGold(state.maxStage, balance)
+  return Math.floor(COMPANION_RULES.upgradeCostKills * referenceKillGold(levelForStage(state.maxStage, balance), balance)
     * COMPANION_RULES.upgradeCostGrowth ** (owned.level - 1));
 }
 

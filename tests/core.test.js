@@ -199,7 +199,7 @@ test('les ennemis deviennent plus forts avec les étapes', () => {
   assert.equal(stageLabel(34), '2-14');
   assert.equal(stageLabel(121), '7-1');
   assert.equal(stageLabel(210), '11-10'); // monde 11 : 10 étapes
-  assert.equal(stageLabel(211), '1-1 ×2'); // après le dernier monde : retour au monde 1, difficulté ×2
+  assert.equal(stageLabel(231), '1-1 ×2'); // après le dernier monde : retour au monde 1, difficulté ×2 (v9.2.0 : cycle de 230)
   assert.ok(enemyStats(211, 'slime', false).hp > enemyStats(210, 'slime', false).hp);
 });
 

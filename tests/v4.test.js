@@ -30,8 +30,8 @@ const run = (state, world, seconds, rng) => {
   for (let i = 0; i < seconds * 20; i++) step(state, world, 0.05, rng);
 };
 
-test('11 mondes, chacun avec ses ennemis, son boss et son décor', () => {
-  assert.equal(ZONES.length, 11);
+test('12 mondes, chacun avec ses ennemis, son boss et son décor', () => {
+  assert.equal(ZONES.length, 12); // v9.2.0 (monde marin)
   for (const zone of ZONES) assert.ok(zone.enemies.length >= 2 && zone.bosses.length === 1, zone.id);
 });
 

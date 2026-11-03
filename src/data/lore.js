@@ -16,6 +16,7 @@ export const BOSS_LORE = {
   boss_sky_titan: 'Gardien des îles célestes, sculpté dans le marbre et animé par la foudre.',
   boss_phoenix: 'Oiseau de feu éternel qui renaît de ses cendres au cœur du volcan.',
   boss_void_emperor: 'Souverain du néant, il porte une couronne d’étoiles mortes.',
+  boss_leviathan: 'Serpent des grands fonds, il dort dans les ruines d’une cité engloutie ; chaque marée est son souffle.',
 };
 
 // Cinématiques (v8.1) : une phrase d'ambiance à l'arrivée dans chaque monde.
@@ -30,5 +31,6 @@ export const ZONE_INTRO = {
   sky: 'Au-dessus des nuages, des îles flottent sous la foudre d’un titan de marbre.',
   volcano: 'La roche fond, le ciel rougit : le phénix renaît encore et encore.',
   void: 'Plus de sol, plus d’étoiles. Seul l’empereur du néant règne ici.',
+  ocean: 'Sous les vagues, une cité engloutie. Retenez votre souffle : le Léviathan s’éveille.',
   abyss: 'Le trône de l’Abysse. Tous les maîtres des mondes reviennent, déchaînés.',
 };

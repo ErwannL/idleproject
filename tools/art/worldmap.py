@@ -1,4 +1,4 @@
-"""Carte du monde peinte (assets/ui/worldmap.png), 240×130 : 11 régions reliées par un chemin.
+"""Carte du monde peinte (assets/ui/worldmap.png), 240×130 : 12 régions reliées par un chemin.
 
 Centres des régions, positions relatives (x, y entre 0 et 1), dans l'ordre des mondes
 (à reprendre dans MAP_NODES de src/ui/panels/campaign.js ; copie dans tools/art/worldmap_nodes.json) :
@@ -12,7 +12,8 @@ Centres des régions, positions relatives (x, y entre 0 et 1), dans l'ordre des 
    8 îles célestes        (0.91, 0.58)
    9 cœur du volcan       (0.81, 0.30)
   10 royaume du néant     (0.61, 0.28)
-  11 trône de l'abysse    (0.38, 0.30)  <- point final
+  11 royaume englouti     (0.50, 0.13)  (v9.2.0, monde marin)
+  12 trône de l'abysse    (0.38, 0.30)  <- point final
 """
 import math
 from lib import Canvas, ramp, shift, mix, rng
@@ -21,7 +22,7 @@ import scenery2 as sc2
 
 W, H = 240, 130
 NODES = [(0.09, 0.80), (0.18, 0.56), (0.29, 0.82), (0.41, 0.60), (0.53, 0.84), (0.65, 0.62),
-         (0.78, 0.84), (0.91, 0.58), (0.81, 0.30), (0.61, 0.28), (0.38, 0.30)]
+         (0.78, 0.84), (0.91, 0.58), (0.81, 0.30), (0.61, 0.28), (0.50, 0.13), (0.38, 0.30)]
 REGION = [
     ramp('#5aae4a', 4, 0.18),  # plaines
     ramp('#2f7a44', 4, 0.18),  # forêt
@@ -33,9 +34,10 @@ REGION = [
     ramp('#5c9ce4', 4, 0.14),  # îles célestes (ciel et nuages)
     ramp('#4a2c28', 4, 0.16),  # volcan
     ramp('#2c1c58', 4, 0.16),  # néant
+    ramp('#1a6a8a', 4, 0.16),  # royaume englouti (v9.2.0)
     ramp('#2a0e12', 4, 0.14),  # trône de l'abysse
 ]
-SPECKS = {6: ('#2a4a34', 0.06), 7: ('#e8f4ff', 0.07), 8: ('#ff7a20', 0.025), 9: ('#e8dcff', 0.05), 10: ('#ff4a14', 0.04)}
+SPECKS = {6: ('#2a4a34', 0.06), 7: ('#e8f4ff', 0.07), 8: ('#ff7a20', 0.025), 9: ('#e8dcff', 0.05), 10: ('#8af0ff', 0.06), 11: ('#ff4a14', 0.04)}
 
 
 def pyramid(c, x, base, h, colors):
@@ -156,8 +158,20 @@ def build(path):
     sc2.void_platform(c, x, y + 2, 26, 9, ramp('#5a4e90', 5, 0.24), 10, ramp('#5af0ff', 4, 0.3))
     sc2.obelisk(c, x - 5, y + 1, 16, 5, ramp('#5a4e90', 5, 0.24), ramp('#5af0ff', 4, 0.3), 2, gap=2)
     sc2.reality_shard(c, x + 10, y - 8, 4, 7, 'meadow')
-    # 11 trône de l'abysse (point final) : tête de démon, braseros, lave
-    x, y = px[10]
+    # 11 royaume englouti (v9.2.0, monde marin) : arches d'une cité engloutie, coraux, bulles
+    x, y = px[10][0], px[10][1] + 9
+    ruin = ramp('#8ab0b8', 4, 0.2)
+    for dx, h in ((-12, 12), (-2, 16), (8, 12)):
+        c.rect(x + dx, y + 8 - h, 3, h, ruin[2]); c.rect(x + dx, y + 8 - h, 1, h, ruin[3])
+    c.rect(x - 13, y - 9, 25, 2, ruin[1]); c.rect(x - 13, y - 9, 25, 1, ruin[3])
+    for dx, col in ((-18, '#ff6a8a'), (14, '#ffb04a'), (-7, '#e05ab0')):
+        for k in range(5):
+            c.set(x + dx + (k % 2), y + 8 - k, col)
+        c.set(x + dx - 1, y + 5, col); c.set(x + dx + 2, y + 6, col)
+    for k, (dx, dy) in enumerate(((4, -14), (6, -18), (3, -22), (-9, -15))):
+        c.set(x + dx, y + dy, '#e8f8ff'); c.set(x + dx + 1, y + dy - 1, '#8ad8f0')
+    # 12 trône de l'abysse (point final) : tête de démon, braseros, lave
+    x, y = px[11]
     c.ellipse(x, y + 8, 16, 3, '#ff6a1a'); c.ellipse(x, y + 8, 13, 2, '#ffc040')
     sc.place(c, x, y + 8, 34, 32, sc.demon_head, 0.5, ramp('#2a1e22', 5, 0.16), ['#ff4a1a', '#ffc030', '#fff4b0'])
     for dx in (-15, 15):

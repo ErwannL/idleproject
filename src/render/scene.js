@@ -17,6 +17,7 @@ import { formatNumber } from '../core/format.js';
 import { activeHero } from '../core/heroes.js';
 import { activeClass } from '../core/classes.js';
 import { BG } from './bg.js';
+import { addBubble, drawOceanBack, drawOceanFront, swimBob, swimDraw, swirl } from './ocean-fx.js'; // v9.2.0 (monde marin)
 import { FONT_BIG, SPRITES } from './sprites.js';
 import { HERO_ANCHOR, drawBigText, heroComposite, itemDropCanvas, spriteCanvas, textWidth } from './pixel.js';
 
@@ -73,6 +74,7 @@ const AMBIENT = {
   volcano: { colors: ['#ff6a2a', '#ffb43a', '#ff3a1a'], count: 24, vx: -4, vy: -16, wobble: 4, size: 1, glow: true }, // braises
   void: { colors: ['#c9a6ff', '#7fd4ff', '#ffffff'], count: 20, vx: -1, vy: -2, wobble: 12, size: 1, glow: true }, // poussière d'étoiles
   abyss: { colors: ['#ff3a3a', '#ff8a3a', '#7a1a2a'], count: 22, vx: -2, vy: -10, wobble: 6, size: 1, glow: true }, // cendres rouges
+  ocean: { colors: ['#9fe8ff', '#d8fbff', '#5ab8d8'], count: 26, vx: -1, vy: -2, wobble: 10, size: 1, glow: true }, // v9.2.0 : particules en suspension
 };
 
 // Calques de décor (PNG générés par tools/art/scenery.py), chargés à la demande.
@@ -271,6 +273,7 @@ export class SceneRenderer {
     switch (event.type) {
       case 'heroAttack': {
         this.hero.attack = ATTACK_TIME;
+        if (this.underwater) swirl(this, event.x - 6, this.groundY - 14, event.crit ? 9 : 5); // v9.2.0 : remous de bulles
         // v9.0.6 : chaque classe a sa propre attaque (voir classAttack()).
         if (event.kind && event.kind !== 'slash') {
           // Tir et magie : pas d'élan d'épée (poses de tir / de sort à la place).
@@ -335,6 +338,7 @@ export class SceneRenderer {
       }
       case 'heroHit':
         this.hero.hurt = 0.18;
+        if (this.underwater) swirl(this, HERO_X + 12, this.groundY - 16, 4); // v9.2.0 : la morsure brasse l'eau
         {
           // v9.1.9 : la préparation a déjà été jouée (événement enemyWindup) : on reprend au coup.
           const efx = this.enemyFxFor(event.enemyId);
@@ -589,6 +593,8 @@ export class SceneRenderer {
     this.focus = Boolean(state.ui?.focus) || Boolean(this.calm);
     if (this.focus) this.shake = 0;
     const zoneIndex = currentEncounter(state).zoneIndex;
+    this.underwater = Boolean(ZONES[zoneIndex]?.underwater); // v9.2.0 (monde marin) : on nage
+    this.dt = dt;
     if (zoneIndex !== this.lastZone) {
       if (this.lastZone >= 0) this.zoneFade = 1;
       this.lastZone = zoneIndex;
@@ -661,7 +667,9 @@ export class SceneRenderer {
       const y = l.anchor === 'top' ? l.y : G + l.y;
       this.drawLayer(ctx, layer(l.file), scroll * l.factor + this.time * (l.drift ?? 0), y);
     }
+    if (!front && zone.underwater) drawOceanBack(this, ctx, scroll); // v9.2.0 : rayons, poissons de fond, kelp
     if (front) this.drawAmbient(ctx, zone, scroll, true);
+    if (front && zone.underwater) drawOceanFront(this, ctx, scroll, this.dt ?? 0); // caustiques, bulles, voile bleu
   }
 
   // Particules d'ambiance : positions calculées à partir du temps (aucun état à garder).
@@ -794,6 +802,9 @@ export class SceneRenderer {
           const sw = armSwing(img, atk.arm, -1);
           if (sw) ctx.drawImage(sw.canvas, x - sw.pad * scale, y - sw.pad * scale, sw.canvas.width * scale, sw.canvas.height * scale);
           else ctx.drawImage(img, x, y, w, h);
+        } else if (this.underwater && def.swim) {
+          // v9.2.0 (monde marin) : nage propre à chaque créature (queue, cloche, anguille ; le crabe marche).
+          swimDraw(ctx, img, x, y, w, h, { time: this.time, phase: enemy.id * 0.9, amp: def.swim === 'eel' ? 2 : 1.5, mode: def.swim, focus: this.focus });
         } else ctx.drawImage(img, x, y, w, h);
       });
       if (atk?.phase === 'strike' && !fx.smeared) {
@@ -881,7 +892,7 @@ export class SceneRenderer {
     } else if (this.hero.cast > 0) frame = 'cast';
     else if (this.hero.hurt > 0) frame = 'hurt';
     else if (this.hero.victory > 0) frame = 'victory';
-    else if (hero.walking) frame = `walk${1 + (Math.floor(this.time * 9) % 4)}`;
+    else if (hero.walking) frame = `walk${1 + (Math.floor(this.time * (this.underwater ? 4 : 9)) % 4)}`; // v9.2.0 : battements de nage plus lents
 
     const blink = this.hero.respawn > 0 && Math.floor(this.time * 12) % 2 === 0;
     if (blink) return;
@@ -916,7 +927,17 @@ export class SceneRenderer {
       ctx.drawImage(aura, Math.round(HERO_X + 4 - aura.width / 2), this.groundY - aura.height + 1 - jump);
       ctx.globalAlpha = 1;
     }
-    ctx.drawImage(img, baseX + lean, baseY - jump);
+    if (this.underwater) {
+      // v9.2.0 (monde marin) : le héros nage — flottement lent, corps qui ondule (cheveux, cape), bulles à la bouche.
+      const bob = Math.round(swimBob(this.time, 0, this.focus));
+      swimDraw(ctx, img, baseX + lean, baseY - jump - bob, img.width, img.height, { time: this.time, amp: hero.walking ? 2 : 1.2, mode: 'body', focus: this.focus });
+      this.mouthBubble = (this.mouthBubble ?? 1) - (this.dt ?? 0);
+      if (this.mouthBubble <= 0) {
+        this.mouthBubble = (this.focus ? 3 : 1.1) + Math.random() * 1.2;
+        addBubble(this, HERO_X + 5, baseY - jump - bob + 10, { vy: -16, r: 1, life: 2.2 });
+        if (Math.random() < 0.5) addBubble(this, HERO_X + 6, baseY - jump - bob + 7, { vy: -18, r: 2, life: 2.4 });
+      }
+    } else ctx.drawImage(img, baseX + lean, baseY - jump);
 
     const stats = world.heroStats;
     if (stats) this.drawBar(ctx, HERO_X - 11 + dash, baseY - 2 - jump, 22, hero.hp / stats.maxHp, '#5ad07a');
@@ -1143,6 +1164,7 @@ export class SceneRenderer {
     // v9.1.9 : compagnon à pied qui frappe : son bras/arme tourne autour de l'épaule (voir enemy-anim.js).
     const sw = pose.arm && SPRITES[frame]?.gait === 'walk' ? armSwing(img, pose.arm, 1) : null;
     if (sw) ctx.drawImage(sw.canvas, Math.round(x - sw.pad * sc), Math.round(y - sw.pad * sc), sw.canvas.width * sc, sw.canvas.height * sc);
+    else if (this.underwater) swimDraw(ctx, img, x, y - Math.round(swimBob(this.time, i * 1.9 + 1, this.focus)), w, h, { time: this.time, phase: i * 1.3, amp: 1.5, mode: 'body', focus: this.focus }); // v9.2.0 : nage
     else ctx.drawImage(img, x, y, w, h);
   }
 
@@ -1484,6 +1506,7 @@ export class SceneRenderer {
             spawned.push({ kind: 'ember', x: x - img.width / 2 + Math.random() * 3, y: y + (Math.random() * 4 - 2), vy: fx.trailVy ?? -10,
               color: fx.trail[Math.floor(Math.random() * fx.trail.length)], life: 0.25, max: 0.25 });
           }
+          if (this.underwater && Math.random() < (this.focus ? 0.15 : 0.6)) addBubble(this, x - img.width / 2, y + (Math.random() * 4 - 2), { vy: -10, r: Math.random() < 0.3 ? 2 : 1, life: 0.9 }); // v9.2.0
           ctx.globalAlpha = 1;
           ctx.drawImage(img, Math.round(x - img.width / 2), Math.round(y - img.height / 2));
           break;

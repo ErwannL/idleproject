@@ -3,7 +3,7 @@
 // (sans rendu) sur une copie de la partie : les gains hors ligne suivent donc
 // exactement les mêmes règles que le farm actif, sans simuler des heures d'animation.
 import { BALANCE } from '../data/balance.js';
-import { createCombat, isBossStage, step, zoneIndexForStage } from './combat.js';
+import { createCombat, isBossStage, levelForStage, step, zoneIndexForStage } from './combat.js'; // v9.2.0 (monde marin) : levelForStage
 import { addGold } from './economy.js';
 import { trackContracts } from './contracts.js';
 import { collectItem } from './inventory.js';
@@ -90,10 +90,10 @@ export function computeOfflineRewards(state, fromMs, nowMs, rng, balance = BALAN
   const items = [];
   // v9.1.3 (doc3, décision) : le butin hors ligne donne aussi des pièces d'ensemble du monde farmé, comme le combat.
   const setZone = zoneIndexForStage(rate.stage);
-  for (let i = 0; i < itemCount; i++) items.push(generateItem(state, rng, { level: rate.stage, setZone, weights: balance.loot.dropRarityWeights }, balance));
+  for (let i = 0; i < itemCount; i++) items.push(generateItem(state, rng, { level: levelForStage(rate.stage, balance), setZone, weights: balance.loot.dropRarityWeights }, balance));
   const excessDrops = dropCount - itemCount;
   // v9.1.9 : surplus compté comme avant la baisse du butin (÷ dropScale) : l'or hors ligne ne baisse pas.
-  const excessGold = (excessDrops / (balance.loot.dropScale ?? 1)) * recycleValue({ rarity: 'common', level: rate.stage }, balance);
+  const excessGold = (excessDrops / (balance.loot.dropScale ?? 1)) * recycleValue({ rarity: 'common', level: levelForStage(rate.stage, balance) }, balance);
 
   return {
     ...result,

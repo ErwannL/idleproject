@@ -40,8 +40,10 @@ export function playTransition(opts) {
   if (!host || document.querySelector('#app.layout-strip')) return;
   host.querySelector('.cloud-transition')?.remove();
   const el = document.createElement('div');
-  el.className = 'cloud-transition';
-  el.innerHTML = '<i class="cloud-bank left"></i><i class="cloud-bank right"></i>';
+  // v9.2.0 (monde marin) : vers le Royaume englouti, une vague d'eau bleue chargée de bulles remplace les nuages.
+  const water = opts.zone === 'ocean';
+  el.className = `cloud-transition${water ? ' water' : ''}`;
+  el.innerHTML = `<i class="cloud-bank left"></i><i class="cloud-bank right"></i>${water ? '<i class="sea-bubbles"></i>' : ''}`;
   host.appendChild(el);
   requestAnimationFrame(() => el.classList.add('closing'));
   setTimeout(() => {

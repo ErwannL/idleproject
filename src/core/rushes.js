@@ -1,7 +1,7 @@
 // Boosts à durée limitée : déclenchement, durée, recharge, niveaux et effets.
 import { BALANCE } from '../data/balance.js';
 import { RUSH_RULES, RUSHES } from '../data/rushes.js';
-import { referenceKillGold } from './combat.js';
+import { levelForStage, referenceKillGold } from './combat.js'; // v9.2.0 (monde marin) : niveau des étapes
 
 export function rushById(id) {
   return RUSHES.find((r) => r.id === id);
@@ -74,7 +74,7 @@ export function rushEffects(state) {
 
 export function rushUpgradeCost(state, id, balance = BALANCE) {
   const lv = rushLevel(state, id);
-  return Math.floor(RUSH_RULES.costKills * referenceKillGold(state.maxStage, balance) * RUSH_RULES.costGrowth ** (lv - 1));
+  return Math.floor(RUSH_RULES.costKills * referenceKillGold(levelForStage(state.maxStage, balance), balance) * RUSH_RULES.costGrowth ** (lv - 1));
 }
 
 export function upgradeRush(state, id, balance = BALANCE) {

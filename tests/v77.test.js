@@ -24,10 +24,11 @@ import { createNewState, sanitizeState } from '../src/core/state.js';
 
 const NOW = new Date(2026, 9, 21, 12).getTime(); // un mercredi
 
-test('11 mondes : le monde 11 a 10 étapes, chacune contre un méga boss berserk qui invoque ses boss', () => {
-  assert.equal(ZONES.length, 11);
-  const start = zoneStartStage(10);
-  assert.equal(start, 201);
+// v9.2.0 (monde marin) : le Trône de l'Abysse devient le monde 12 (index 11), après le Royaume englouti.
+test('12 mondes : le monde 12 a 10 étapes, chacune contre un méga boss berserk qui invoque ses boss', () => {
+  assert.equal(ZONES.length, 12);
+  const start = zoneStartStage(11);
+  assert.equal(start, 221);
   assert.ok(isGauntletStage(start) && isGauntletStage(start + 9) && !isGauntletStage(start + 10));
   assert.deepEqual(bossesForStage(start + 6), ZONES[6].bosses);
   for (const z of ZONES.slice(0, 10)) {

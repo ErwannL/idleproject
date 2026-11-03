@@ -2,7 +2,7 @@
 // Coffres, marchands et gemmes attendent dans la boîte de récompenses (jamais perdus) ;
 // élite et vague se déroulent directement pendant le farm.
 import { BALANCE } from '../data/balance.js';
-import { referenceKillGold } from './combat.js';
+import { levelForStage, referenceKillGold } from './combat.js'; // v9.2.0 (monde marin) : niveau des étapes
 import { addToInventory } from './inventory.js';
 import { STASH_SIZE } from './stash.js';
 import { generateItem } from './loot.js';
@@ -39,7 +39,7 @@ export function rollEvent(state, world, rng, balance = BALANCE, multiplier = 1) 
   if (rng.next() >= balance.events.chancePerKill * multiplier) return null;
   const type = pickType(rng, balance);
   const e = balance.events;
-  const killGold = referenceKillGold(state.stage, balance);
+  const killGold = referenceKillGold(levelForStage(state.stage, balance), balance);
   if (type === 'elite') {
     world.pendingElite = true;
     return { type };
@@ -53,16 +53,16 @@ export function rollEvent(state, world, rng, balance = BALANCE, multiplier = 1) 
   const event = { id: state.nextEventId, type, stage: state.stage };
   if (type === 'chest') {
     event.reward = { gold: Math.floor(killGold * e.chestGoldKills), shards: 5 };
-    event.item = generateItem(state, rng, { level: state.stage, minRarity: 'rare' }, balance);
+    event.item = generateItem(state, rng, { level: levelForStage(state.stage, balance), minRarity: 'rare' }, balance);
   } else if (type === 'portal') {
     // Salle au trésor : beaucoup d'or, des éclats et quelques gemmes.
     event.reward = { gold: Math.floor(killGold * e.portalGoldKills), shards: 25, gems: 15 };
   } else if (type === 'wanderer') {
     // Boss errant (rare) : éclats, gemmes et un objet Épique ou mieux.
     event.reward = { shards: 30, gems: 30 }; // v9.1.3 : 3 essences → 30 éclats
-    event.item = generateItem(state, rng, { level: state.stage, minRarity: 'epic' }, balance);
+    event.item = generateItem(state, rng, { level: levelForStage(state.stage, balance), minRarity: 'epic' }, balance);
   } else if (type === 'merchant') {
-    event.item = generateItem(state, rng, { level: state.stage, minRarity: 'epic' }, balance);
+    event.item = generateItem(state, rng, { level: levelForStage(state.stage, balance), minRarity: 'epic' }, balance);
     event.price = Math.floor(killGold * e.merchantPriceKills);
   } else {
     event.reward = { gems: e.gems[0] + Math.floor(rng.next() * (e.gems[1] - e.gems[0] + 1)) };

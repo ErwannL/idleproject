@@ -2,7 +2,7 @@
 // réaffûtage d'un objet au niveau de l'étape maximale, amélioration et fusion.
 import { BALANCE } from '../data/balance.js';
 import { ACCESSORY_SLOTS, AFFIXES, ITEM_BASES, RARITIES } from '../data/items.js';
-import { referenceKillGold } from './combat.js';
+import { levelForStage, referenceKillGold } from './combat.js'; // v9.2.0 (monde marin) : niveau des étapes
 import { addToInventory, isUpgrade, keptByAffix, recycleRules } from './inventory.js';
 import { generateItem, itemBase, itemPower, makeItem, rarityIndex, refreshItemStats, rerollAffixes } from './loot.js';
 import { trackMissions } from './missions.js';
@@ -13,7 +13,7 @@ import { usefulSetPiece } from './sets.js';
 // tier 'rare' : Rare ou mieux (or + éclats) ; 'epic' : Épique ou mieux (or + plus d'éclats ; v9.1.3 : plus d'essences).
 export function craftCost(state, balance = BALANCE, tier = 'rare') {
   const f = balance.forge;
-  const kill = referenceKillGold(state.maxStage, balance);
+  const kill = referenceKillGold(levelForStage(state.maxStage, balance), balance);
   if (tier === 'epic') return { gold: Math.floor(f.epicCraft.goldKills * kill), shards: f.epicCraft.shards };
   return { gold: Math.floor(f.craftGoldKills * kill), shards: f.craftShards };
 }
@@ -25,7 +25,7 @@ export function craftItem(state, slot, rng, balance = BALANCE, tier = 'rare') {
   state.gold -= cost.gold;
   state.materials.shards -= cost.shards;
   const minRarity = tier === 'epic' ? 'epic' : balance.forge.craftMinRarity;
-  const item = generateItem(state, rng, { level: state.maxStage, minRarity, slot }, balance);
+  const item = generateItem(state, rng, { level: levelForStage(state.maxStage, balance), minRarity, slot }, balance);
   addToInventory(state, item, balance);
   trackMissions(state, 'upgrades', 1);
   return item;
@@ -81,8 +81,8 @@ export function targetReroll(state, id, type, rng, balance = BALANCE) {
 }
 
 export function sharpenCost(state, item, balance = BALANCE) {
-  if (!item || item.level >= state.maxStage) return 0;
-  return balance.forge.sharpenShardsPerLevel * (state.maxStage - item.level) * (balance.forge.sharpenRarityFactor[item.rarity] ?? 1); // v9.1.3 (doc3 lot 2) : table dans BALANCE
+  if (!item || item.level >= levelForStage(state.maxStage)) return 0; // v9.2.0 (monde marin) : niveau de l'étape max
+  return balance.forge.sharpenShardsPerLevel * (levelForStage(state.maxStage) - item.level) * (balance.forge.sharpenRarityFactor[item.rarity] ?? 1); // v9.1.3 (doc3 lot 2) : table dans BALANCE
 }
 
 export function sharpenItem(state, id, balance = BALANCE) {
@@ -90,7 +90,7 @@ export function sharpenItem(state, id, balance = BALANCE) {
   const cost = sharpenCost(state, item, balance);
   if (!cost || state.materials.shards < cost) return false;
   state.materials.shards -= cost;
-  item.level = state.maxStage;
+  item.level = levelForStage(state.maxStage); // v9.2.0 (monde marin)
   refreshItemStats(item, balance);
   return true;
 }

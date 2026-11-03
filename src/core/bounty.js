@@ -3,7 +3,7 @@
 import { BALANCE } from '../data/balance.js';
 import { ENEMIES } from '../data/enemies.js';
 import { ZONES } from '../data/zones.js';
-import { zoneIndexForStage } from './combat.js';
+import { levelForStage, zoneIndexForStage } from './combat.js'; // v9.2.0 (monde marin) : levelForStage
 import { generateItem } from './loot.js';
 import { addToInventory } from './inventory.js';
 
@@ -70,7 +70,7 @@ export function claimBounty(state, rng, now = Date.now(), balance = BALANCE) {
   b.claimed = true;
   // Pièce d'ensemble garantie : on retire jusqu'à obtenir une pièce de l'ensemble du monde (Épique ou mieux).
   let item = null;
-  for (let i = 0; i < 40 && !item?.set; i++) item = generateItem(state, rng, { level: Math.max(1, state.maxStage), minRarity: 'epic', setZone: b.zone }, balance);
+  for (let i = 0; i < 40 && !item?.set; i++) item = generateItem(state, rng, { level: levelForStage(Math.max(1, state.maxStage), balance), minRarity: 'epic', setZone: b.zone }, balance);
   if (!item.set) item.set = ZONES[b.zone].id;
   addToInventory(state, item, balance); // v9.1.3 (doc3 lot 1) : objet gagné, jamais recyclé (sac plein → coffre)
   state.gems += BOUNTY.gems;

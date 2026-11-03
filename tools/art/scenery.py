@@ -1961,6 +1961,9 @@ def build(out_dir):
         veil.update(scenery2.NEAR_VEIL)
     except ImportError:
         pass
+    import ocean_scenery  # v9.2.0 (monde marin)
+    zones.update(ocean_scenery.ZONES)
+    veil.update(ocean_scenery.NEAR_VEIL)
     for zone, fn in zones.items():
         sky, ground, layers = fn()
         entries = []

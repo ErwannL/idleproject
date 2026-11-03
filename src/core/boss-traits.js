@@ -25,7 +25,16 @@ export const TRAITS = {
     text: 'sous 50 % de ses PV, frappe 60 % plus fort et 30 % plus vite — sauf contre une armure solide (40 % l\'annule)',
     below: 0.5, damage: 1.6, speed: 1.3, armorNullifies: 40, // étape 4 : l'armure devient le vrai contre
   },
+  // v9.2.0 (monde marin) : Marée — le boss se régénère tant qu'aucun coup critique ne le touche.
+  tidal: {
+    name: 'Marée', color: '#4ad0ff', counter: 'Coups critiques',
+    text: 'régénère 1 % de ses PV max par seconde ; un coup critique arrête la marée 3 s',
+    regenPct: 1, critPause: 3,
+  },
 };
+
+// v9.2.0 (monde marin) : serviteurs propres à un boss invocateur (sinon TRAITS.summoner.minion).
+export const BOSS_MINIONS = { mid_kraken: 'sea_jelly' };
 
 export const BOSS_TRAITS = {
   // Golems
@@ -36,7 +45,19 @@ export const BOSS_TRAITS = {
   ash_dragon: 'escalate', boss_phoenix: 'escalate', hard_flame_djinn: 'escalate', frost_wyrm: 'escalate',
   // Démons
   demon_king: 'desperate', hard_demon_general: 'desperate', mid_hellhound: 'desperate', obsidian_tyrant: 'desperate',
+  // v9.2.0 (monde marin) : Royaume englouti — une mécanique par boss, chacune avec son contre.
+  mini_crab_king: 'armored', mid_kraken: 'summoner', hard_megalodon: 'desperate', boss_leviathan: 'tidal',
 };
+
+// v9.2.0 (monde marin) : Marée (régénération), appelée à chaque pas ; `critAt` = moment du dernier coup critique reçu.
+export function tickTide(world, dt) {
+  const t = TRAITS.tidal;
+  for (const e of world.enemies) {
+    if (e.trait !== 'tidal' || e.hp <= 0 || e.hp >= e.maxHp) continue;
+    if (e.critAt !== undefined && world.time - e.critAt < t.critPause) continue;
+    e.hp = Math.min(e.maxHp, e.hp + (e.maxHp * t.regenPct * dt) / 100);
+  }
+}
 
 export const bossTrait = (type) => TRAITS[BOSS_TRAITS[type]] ?? null;
 

@@ -5,6 +5,7 @@ import { activeClass, classWeaponBases } from './classes.js';
 import { BALANCE } from '../data/balance.js';
 import { AFFIXES, ITEM_BASES, PERCENT_STATS, RARITIES, SIGNATURE_ITEMS } from '../data/items.js';
 import { rollSet } from './sets.js';
+import { levelForStage } from './combat.js'; // v9.2.0 (monde marin) : niveau de puissance des étapes
 
 const ALL_BASES = [...ITEM_BASES, ...SIGNATURE_ITEMS];
 
@@ -167,7 +168,7 @@ export function recycleMaterials(item, balance = BALANCE) {
 
 // v9.1.3 (doc3 lot 1) : plafond de niveau du recyclage pour cette partie (étape max en cours, faille d'or).
 export function recycleLevelOf(state, balance = BALANCE) {
-  return balance.loot.recycleLevelCap === 'maxStage' ? Math.max(1, state?.maxStage ?? 1) : Infinity;
+  return balance.loot.recycleLevelCap === 'maxStage' ? levelForStage(Math.max(1, state?.maxStage ?? 1), balance) : Infinity;
 }
 
 // Score simple pour trier par puissance.

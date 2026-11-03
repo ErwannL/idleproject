@@ -76,7 +76,20 @@ export const ZONES = [
     bosses: ['boss_void_emperor'],
     tierBosses: { mini: 'mini_void_watcher', mid: 'mid_star_devourer', hard: 'hard_void_knight' },
   },
-  // Monde 11 : Trône de l'Abysse — 10 étapes, chacune contre le méga boss d'un monde en mode berserk,
+  // v9.2.0 (monde marin) : monde 11, le Royaume englouti — on y nage (src/render/ocean-fx.js). 20 étapes qui couvrent
+  // les niveaux de puissance 201 à 210 (`levels`) sans faire avancer le compteur (`advance: 0`) : le Trône de l'Abysse
+  // garde ses niveaux d'avant la 9.2.0 (voir levelForStage, core/combat.js). Sauvegardes : core/migrations-v920.js.
+  {
+    id: 'ocean',
+    name: 'Royaume englouti',
+    underwater: true,
+    levels: 10,
+    advance: 0,
+    enemies: ['sea_bladefish', 'sea_jelly', 'sea_crab', 'sea_eel', 'sea_puffer', 'sea_octopus', 'sea_shark', 'sea_merfolk'],
+    bosses: ['boss_leviathan'],
+    tierBosses: { mini: 'mini_crab_king', mid: 'mid_kraken', hard: 'hard_megalodon' },
+  },
+  // Monde 12 (monde 11 avant la 9.2.0) : Trône de l'Abysse — 10 étapes, chacune contre le méga boss d'un monde en mode berserk,
   // qui invoque ses boss des étapes 5, 10 et 15 (berserk eux aussi) quand ses PV baissent.
   {
     id: 'abyss',

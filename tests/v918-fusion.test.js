@@ -14,7 +14,7 @@ test('9.1.7 → 9.1.8 : sauvegarde au format 7 migrée en format 8, statistiques
   assert.equal(raw.version, 7);
   const s = sanitizeState(structuredClone(raw));
   assert.equal(s.version, SAVE_VERSION);
-  assert.equal(SAVE_VERSION, 8);
+  assert.equal(SAVE_VERSION, 9); // v9.2.0 (monde marin) : 8 → 9 (Royaume englouti, étapes converties)
   for (const k of ['level', 'maxStage', 'gold', 'playSeconds']) assert.equal(s[k], raw[k], k);
   assert.ok(s.gems >= raw.gems, 'gemmes (les tickets du format 7 sont convertis)');
   for (const k of Object.keys(raw.records)) assert.ok(s.records[k] >= raw.records[k], `records.${k}`);

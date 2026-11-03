@@ -1,6 +1,7 @@
 // Transcendance (v8.8) : voir src/data/transcend.js.
 import { BALANCE } from '../data/balance.js';
 import { noteTranscend } from './times.js';
+import { levelForStage } from './combat.js'; // v9.2.0 (monde marin) : niveau de puissance des étapes
 import { TRANSCEND, TRANSCEND_PERKS } from '../data/transcend.js';
 
 export function emptyTranscend() {
@@ -25,7 +26,7 @@ export function canTranscend(state) {
 
 export function transcendReward(state) {
   if (!canTranscend(state)) return 0;
-  return Math.floor(TRANSCEND.starsScale * (state.maxStage / TRANSCEND.starsDivisor) ** TRANSCEND.starsExponent);
+  return Math.floor(TRANSCEND.starsScale * (levelForStage(state.maxStage) / TRANSCEND.starsDivisor) ** TRANSCEND.starsExponent);
 }
 
 // Part des Renaissances conservée à la Transcendance (0..1).
