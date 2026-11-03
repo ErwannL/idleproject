@@ -28,7 +28,7 @@ export function installTraversalFx(proto) {
         const f = ((this.time + seed * 0.21) / HOP) % 1;
         return 5 + Math.round(Math.sin(f * Math.PI) * 11);
       }
-      if (tr.gait === 'float') return this.focus ? tr.lift : tr.lift + Math.round(Math.sin(this.time * 1.6 + seed) * 1.5);
+      if (tr.gait === 'float') return this.focus ? tr.lift : tr.lift + Math.round(Math.sin(this.time * 1.6 + seed) * 3); // v9.2.1 : balancement ±3 px
       return tr.lift;
     },
 
@@ -72,14 +72,14 @@ export function installTraversalFx(proto) {
         case 'glint':
           if (plant) {
             fx({ kind: 'sprite', frames: ['fx_spark'], x: x - 2, y: G + 2, life: 0.22, max: 0.22, delay: 0, tint: c[2], vx: 0 });
-            for (let i = 0; i < n; i++) fx({ kind: 'ember', x: x - 4 + Math.random() * 8, y: G - 1, vx: (Math.random() - 0.5) * 16, vy: -14, color: pick(), life: 0.45, max: 0.45 });
-          } else if (every(1.1)) fx({ kind: 'ember', x: x - 6 + Math.random() * 12, y: G - 1, vy: -6, color: pick(), life: 0.6, max: 0.6 }); // reflets du cristal au sol
+            for (let i = 0; i < n + 3; i++) fx({ kind: 'particle', x: x - 4 + Math.random() * 8, y: G - 2, vx: (Math.random() - 0.5) * 40, vy: -40 - Math.random() * 20, color: pick(), life: 0.5, max: 0.5, size: 2 });
+          } else if (every(0.45)) fx({ kind: 'sprite', frames: ['fx_spark'], x: x - 6 + Math.random() * 12, y: G + 1, life: 0.3, max: 0.3, delay: 0, tint: pick(), vx: 0 }); // reflets du cristal au sol
           break;
         case 'sand':
           if (plant) {
-            for (let i = 0; i < n + 1; i++) fx({ kind: 'puff', x: x - 2 + Math.random() * 4, y: G - 1, vx: -18 - Math.random() * 18, vy: -6 - Math.random() * 8, color: pick(), life: 0.55, max: 0.55 });
+            for (let i = 0; i < n + 4; i++) fx({ kind: 'puff', x: x - 2 + Math.random() * 4, y: G - 1 - Math.random() * 3, vx: -18 - Math.random() * 18, vy: -6 - Math.random() * 8, color: pick(), life: 0.55, max: 0.55 });
             this.travMark(x, 'print', tr.prints, 2.2);
-          } else if (every(0.7)) fx({ kind: 'puff', x: x - 6 + Math.random() * 12, y: G - 1, vx: -14, vy: -2, color: pick(), life: 0.8, max: 0.8 }); // sable que le vent soulève
+          } else if (every(0.25)) fx({ kind: 'puff', x: x - 6 + Math.random() * 12, y: G - 1, vx: -14, vy: -2, color: pick(), life: 0.8, max: 0.8 }); // sable que le vent soulève
           break;
         case 'snow':
           if (walking && step === 0 && every(0.05)) fx({ kind: 'particle', x: x - 4, y: G - 1, vx: -30 - Math.random() * 20, vy: -20 - Math.random() * 15, color: pick(), life: 0.4, max: 0.4, size: 2 });
@@ -88,7 +88,7 @@ export function installTraversalFx(proto) {
           if (!walking && every(1)) fx({ kind: 'puff', x: x + 4, y: G - 30, vx: 8, vy: -3, color: '#ffffff', life: 0.7, max: 0.7 }); // souffle givré
           break;
         case 'mist':
-          if (every(walking ? 0.12 : 0.3)) fx({ kind: 'puff', x: x - 6 + Math.random() * 12, y: G - 1, vx: walking ? -12 : (Math.random() - 0.5) * 6, vy: -4 - Math.random() * 4, color: pick(), life: 1, max: 1 });
+          if (every(walking ? 0.04 : 0.08)) fx({ kind: 'puff', x: x - 8 + Math.random() * 16, y: G - 1 - Math.random() * 4, vx: walking ? -12 : (Math.random() - 0.5) * 6, vy: -4 - Math.random() * 4, color: pick(), life: 1, max: 1 });
           break;
         case 'splash':
           if (plant) {
@@ -110,7 +110,8 @@ export function installTraversalFx(proto) {
           } else if (every(0.6)) fx({ kind: 'ember', x: x - 4 + Math.random() * 8, y: G - 1, vy: -12, color: c[1], life: 0.6, max: 0.6 });
           break;
         case 'stars':
-          if (every(walking ? 0.07 : 0.22)) fx({ kind: 'ember', x: x - 4 + Math.random() * 8, y: G - this.travLift(seed) + 1, vx: walking ? -26 : 0, vy: 6, color: pick(), life: 0.7, max: 0.7 });
+          if (every(walking ? 0.04 : 0.1)) fx({ kind: 'puff', x: x - 5 + Math.random() * 10, y: G - this.travLift(seed) + 1, vx: walking ? -30 : 0, vy: 8, color: pick(), life: 0.8, max: 0.8 });
+          if (every(0.12)) this.travMark(x, 'halo', c[2], 0.12, small ? 6 : 9); // halo de lévitation sous les pieds
           break;
         case 'shadow':
           if (plant) this.travMark(x, 'ripple', c[2], 0.9);
@@ -166,6 +167,13 @@ export function installTraversalFx(proto) {
           ctx.fillRect(x - r, G - 1, 2, 1); ctx.fillRect(x + r - 1, G - 1, 2, 1);
           ctx.fillRect(x - r + 2, G - 2, r * 2 - 4, 1);
           ctx.fillRect(x - r + 2, G, r * 2 - 4, 1);
+        } else if (m.kind === 'halo') {
+          // Halo de lévitation : anneau de pixels au sol, sous le personnage qui flotte.
+          const w = m.size;
+          ctx.globalAlpha = 0.75;
+          ctx.fillRect(x - w + 2, G - 1, w * 2 - 4, 1); ctx.fillRect(x - w + 2, G + 1, w * 2 - 4, 1);
+          ctx.fillRect(x - w, G, 2, 1); ctx.fillRect(x + w - 2, G, 2, 1);
+          ctx.fillStyle = '#ffffff'; ctx.fillRect(x - 1 + Math.round(Math.sin(this.time * 4) * (w - 2)), G - 1, 2, 1);
         } else if (m.kind === 'cloud') {
           // Petit nuage en pixels (3 rangées), qui se dissout en fin de vie.
           const w = m.size || 8;

@@ -7,7 +7,7 @@
 // « Réduire les animations » (scene.focus) : ni ondulation, ni rayons mobiles, ni poissons, ni caustiques ; bulles
 // rares. Coût mesuré : quelques dizaines de fillRect/drawImage par image (voir tools/ocean-perf.mjs).
 
-const MAX_BUBBLES = 60;
+const MAX_BUBBLES = 120; // v9.2.1 : accents d'attaque plus fournis
 
 // Phase de flottement d'un nageur (px, en pixels de jeu) : lent et doux, jamais sous le sol.
 export function swimBob(time, seed = 0, focus = false) {

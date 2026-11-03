@@ -33,7 +33,7 @@ export function waterAccent(scene, ctx, fx, dt, t) {
     fx.wake = (fx.wake ?? 0) - dt;
     if (fx.wake <= 0) {
       fx.wake = 0.03;
-      addBubble(scene, fx.cx - 2, fx.cy + Math.random() * 3 - 1, { vx: -14, vy: -8 - Math.random() * 8, r: Math.random() < 0.35 ? 2 : 1, life: 0.7 });
+      addBubble(scene, fx.cx - 2, fx.cy + Math.random() * 3 - 1, { vx: -14, vy: -8 - Math.random() * 8, r: Math.random() < 0.6 ? 2 : 1, life: 1 });
     }
   }
   if (fx.wet) return false;
@@ -45,11 +45,11 @@ export function waterAccent(scene, ctx, fx, dt, t) {
       if (name.startsWith('fx_slash')) {
         // Arc de taille : le tranchant fend l'eau — croissant de bulles et remous à sa pointe.
         const crit = name === 'fx_slash_crit';
-        for (let i = 0; i < (crit ? 9 : 6); i++) {
-          const a = -1.2 + (i / 5) * 2.4;
-          addBubble(scene, fx.x + Math.cos(a) * 10, fx.y - 12 + Math.sin(a) * 10, { vx: 20 + Math.cos(a) * 14, vy: -8 + Math.sin(a) * 10, r: i % 3 ? 1 : 2, life: 0.8 });
+        for (let i = 0; i < (crit ? 16 : 11); i++) {
+          const a = -1.2 + (i / 10) * 2.4;
+          addBubble(scene, fx.x + Math.cos(a) * 10, fx.y - 12 + Math.sin(a) * 10, { vx: 20 + Math.cos(a) * 14, vy: -8 + Math.sin(a) * 10, r: i % 2 ? 1 : 2, life: 1.1 });
         }
-        eddy(scene, fx.x + 8, fx.y - 12, fx.tint ?? '#bff4ff', crit ? 9 : 6);
+        eddy(scene, fx.x + 8, fx.y - 12, fx.tint ?? '#bff4ff', crit ? 12 : 9, 0.6);
       } else if (name.startsWith('fx_whirl')) {
         for (let i = 0; i < 14; i++) {
           const a = (i / 14) * Math.PI * 2;
@@ -63,8 +63,8 @@ export function waterAccent(scene, ctx, fx, dt, t) {
         eddy(scene, fx.x, fx.y - 10, '#bff4ff', 7);
         fx.trailing = true;
       } else if (name === 'fx_hit') {
-        eddy(scene, fx.x - 2, fx.y - 6, fx.tint ?? '#d8fbff', 5, 0.35);
-        addBubble(scene, fx.x, fx.y - 8, { vx: 10, vy: -16, r: 2, life: 0.8 });
+        eddy(scene, fx.x - 2, fx.y - 6, fx.tint ?? '#d8fbff', 8, 0.5);
+        for (let i = 0; i < 5; i++) addBubble(scene, fx.x + Math.random() * 6 - 3, fx.y - 8 + Math.random() * 6 - 3, { vx: 10 + Math.random() * 20, vy: -16 - Math.random() * 14, r: i % 2 ? 1 : 2, life: 1 });
       } else if (name === 'fx_spark' && Math.random() < 0.5) addBubble(scene, fx.x, fx.y - 4, { vy: -12, r: 1, life: 0.8 });
       break;
     }

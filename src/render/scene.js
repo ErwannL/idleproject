@@ -1423,9 +1423,10 @@ export class SceneRenderer {
     // v9.2.1 : sous l'eau, les corps sont couchés : chaque case prend la largeur de la pose de nage réellement
     // dessinée (nageur agrandi, compagnons penchés, familier), 4 px d'écart pour l'élan des brasses.
     const wet = this.underwater;
+    let wetAllies = 0;
     if (wet) {
       const sw = heroSwim(0, state.equipment, activeHero(state).palette, false);
-      cursor = HERO_X - SWIM_BODY.x - SWIM_AXIS.x + opaqueSpan(sw).l - GAP - 2;
+      cursor = HERO_X - SWIM_BODY.x - SWIM_AXIS.x + opaqueSpan(sw).l - GAP;
     }
     const slots = new Map();
     const place = (c) => {
@@ -1436,9 +1437,12 @@ export class SceneRenderer {
         const fly = ally ? SPRITES[c.sprite]?.gait === 'fly' : FLYING_PETS.has(c.id);
         const pose = swimPose(img, { tilt: ally ? (fly ? 55 : SWIM_TILT - 15) : fly ? 15 : -6 });
         const span = opaqueSpan(pose.canvas);
-        const x = cursor - (span.r + 1) * sc + pose.ox * sc - 2;
+        // v9.2.1 : le 2e compagnon nage plus bas que le 1er (SWIM_DEPTH) : il peut glisser de 60 % sous lui, ce qui
+        // garde de la place aux ennemis sur téléphone sans que les corps se recouvrent.
+        const tuck = ally && wetAllies++ > 0 ? Math.round((span.r - span.l + 1) * sc * 0.6) : 0;
+        const x = cursor - (span.r + 1) * sc + pose.ox * sc - 2 + tuck;
         slots.set(c.id, { x, cx: x + (img.width / 2) * sc });
-        cursor = x - pose.ox * sc + span.l * sc - GAP - 2;
+        cursor = x - pose.ox * sc + span.l * sc - GAP;
         return;
       }
       const span = opaqueSpan(img);
