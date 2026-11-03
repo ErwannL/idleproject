@@ -1,3 +1,9 @@
+## Ascendrya v9.1.9 — (en préparation)
+
+- Ennemis : attaque en trois temps (préparation, coup avec traînée de frappe, retour) ; les ennemis et compagnons à pied lèvent puis abattent le bras/l'arme (segment tourné au pixel autour de l'épaule).
+- Morts : le corps se dissout en tramage pixel avec des étincelles qui montent (plus d'écrasement flou).
+- Boss : entrée en chute avec atterrissage lourd (secousse, poussière), coups plus lourds (secousse, traînée rouge). Tout est allégé en « réduire les animations ».
+
 ## Ascendrya v9.1.8 — Les deux 9.1 réunies, langue coréenne
 
 **Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.8-setup.exe). Votre partie

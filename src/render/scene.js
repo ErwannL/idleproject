@@ -5,6 +5,7 @@ import { auraColors } from '../data/auras.js';
 import { BALANCE } from '../data/balance.js';
 import { drawTeamFx } from './team-fx.js';
 import { installClassFx } from './class-fx.js';
+import { armSwing, attackCurve, dissolveFrames } from './enemy-anim.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
 import { RARITIES } from '../data/items.js';
 import { ZONES } from '../data/zones.js';
@@ -89,6 +90,8 @@ const MAX_FLOATING_TEXTS = 6;
 const FLYING_PETS = new Set(['owl', 'fairy', 'wisp']);
 const STALE_EVENT_SECONDS = 1.5;
 const ATTACK_TIME = 0.3; // durée de l'animation d'attaque (élan, frappe, suite)
+const ENEMY_ATK = 0.32; // v9.1.9 : attaque ennemie (préparation, coup, retour)
+const BOSS_ENTRY = 0.7; // v9.1.9 : chute d'entrée des boss
 const CAST_TIME = 0.35; // durée de la pose de sort
 
 const mixCache = new Map();
@@ -325,7 +328,7 @@ export class SceneRenderer {
         break;
       case 'heroHit':
         this.hero.hurt = 0.18;
-        this.enemyFxFor(event.enemyId).lunge = 0.14;
+        this.enemyFxFor(event.enemyId).lunge = ENEMY_ATK; // v9.1.9 : préparation → coup → retour
         this.addText(formatNumber(Math.max(1, Math.round(event.damage))), heroX - 4, this.groundY - 48, '#ff5a5a', '#ffb0a8');
         if (event.boss) this.shake = Math.max(this.shake, 2);
         break;
@@ -448,6 +451,15 @@ export class SceneRenderer {
       kind: 'corpse', img, x: this.wx(event.x), w: img.width * scale, h: img.height * scale,
       fly: this.flyHeight(event.kind, event.boss), life: 0.3, max: 0.3,
     });
+    if (!this.focus && fxe?.img) {
+      // v9.1.9 : mort plus vivante : le corps se dissout (tramage) et des étincelles montent.
+      const last = this.effects[this.effects.length - 1];
+      Object.assign(last, { img: fxe.img, frames: dissolveFrames(fxe.img), life: event.boss ? 0.9 : 0.5, max: event.boss ? 0.9 : 0.5 });
+      for (let i = 0; i < (event.boss ? 16 : 6); i++) {
+        this.effects.push({ kind: 'particle', x: fxe.sx + Math.random() * fxe.sw, y: fxe.sy + fxe.sh * (0.2 + Math.random() * 0.7),
+          vx: (Math.random() - 0.5) * 10, vy: -14 - Math.random() * 20, color: i % 2 ? '#ffffff' : '#c8b8ff', life: 0.7, max: 0.7 });
+      }
+    }
     this.enemyFx.delete(event.enemyId);
     const coins = event.boss ? 12 : Math.min(4, 1 + Math.floor(event.gold / 20));
     for (let i = 0; i < coins; i++) {
@@ -714,10 +726,19 @@ export class SceneRenderer {
       const hd = Boolean(SPRITES[sprite]?.scale);
       const bob = moving && !def.flyHeight && !hd && step % 2 ? 1 : 0;
       const hover = def.flyHeight ? def.flyHeight * WORLD_SCALE + this.snap(Math.sin(this.time * 4 + enemy.id) * 3) : 0;
-      const lunge = fx.lunge > 0 ? this.snap(Math.sin((fx.lunge / 0.14) * Math.PI) * 6) : 0;
+      // v9.1.9 : attaque en trois temps (préparation, coup, retour) au lieu d'un simple glissement.
+      const atk = fx.lunge > 0 ? attackCurve(1 - fx.lunge / ENEMY_ATK) : null;
+      const lunge = atk ? (this.focus ? Math.max(0, atk.dx) >> 1 : atk.dx) : 0;
+      // v9.1.9 : entrée des boss (chute depuis le haut, atterrissage lourd), pas en mode « réduire les animations ».
+      if (enemy.boss && fx.entry === undefined) fx.entry = this.focus ? 0 : BOSS_ENTRY;
+      const entryK = fx.entry > 0 ? fx.entry / BOSS_ENTRY : 0;
+      if (fx.entry > 0) {
+        fx.entry = Math.max(0, fx.entry - dt);
+        if (fx.entry === 0) { this.shake = Math.max(this.shake, 3); this.dust(ex - 10, 4); this.dust(ex + 10, 4); this.burst(ex, this.groundY - 4, '#e8d8b0', 10, 40); }
+      }
       // Les grands sprites (boss, ogre…) restent devant le chevalier sans le chevaucher.
       const x = this.snap(Math.max(ex - w / 2, HERO_X + 12) - lunge + (fx.knock > 0.5 ? fx.knock : 0));
-      const y = this.groundY - h - bob - hover + 1;
+      const y = this.groundY - h - bob - hover + 1 - Math.round(entryK * entryK * 90);
       // Géométrie à l'écran (projectiles qui visent la cible, impacts, ennemi figé à la mort).
       Object.assign(fx, { sx: x, sy: y, sw: w, sh: h, seen: this.time, img, edge: x + bodyEdge(img) * scale });
 
@@ -725,7 +746,7 @@ export class SceneRenderer {
       this.drawShadow(ctx, ex, Math.max(6, w * 0.7));
       if (enemy.boss) this.drawBossAura(ctx, enemy, sprite, colors, x, y, w, h, fx.appear);
       // v9.0.8 : corps animé en continu (marche, sauts des gluants, trot, respiration ; buste projeté à l'attaque).
-      const attackK = fx.lunge > 0 ? Math.sin((fx.lunge / 0.14) * Math.PI) : 0;
+      const attackK = atk?.phase === 'strike' ? 1 : 0;
       const stepping = moving && hd && ['walk', 'quad'].includes(SPRITES[sprite]?.gait); // les images de pas suffisent
       const motion = def.flyHeight || heroLike || stepping ? { sx: 1, sy: 1, dy: 0, rot: 0 }
         : bodyMotion(sprite, this.time * (enemy.boss ? 0.75 : 1) + enemy.id * 0.61, moving, -1);
@@ -752,8 +773,20 @@ export class SceneRenderer {
           const w2 = Math.round(w * (1 + 0.12 * k));
           const h2 = Math.round(h * (1 - 0.14 * k));
           ctx.drawImage(img, x - Math.round((w2 - w) / 2), y + (h - h2), w2, h2);
+        } else if (atk && atk.arm && hd && !heroLike && !def.flyHeight && SPRITES[sprite]?.gait === 'walk') {
+          // v9.1.9 : le bras/l'arme bouge (segment tourné autour de l'épaule, voir enemy-anim.js).
+          const sw = armSwing(img, atk.arm, -1);
+          if (sw) ctx.drawImage(sw.canvas, x - sw.pad * scale, y - sw.pad * scale, sw.canvas.width * scale, sw.canvas.height * scale);
+          else ctx.drawImage(img, x, y, w, h);
         } else ctx.drawImage(img, x, y, w, h);
       });
+      if (atk?.phase === 'strike' && !fx.smeared) {
+        // Traînée de frappe (arc de pixels) devant l'ennemi, une fois par coup.
+        fx.smeared = true;
+        this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], x - 4, this.groundY + 1, 0.16, { tint: enemy.boss ? '#ff6a5a' : '#f0e6d0' });
+        if (enemy.boss && !this.focus) this.shake = Math.max(this.shake, 2);
+      }
+      if (!atk) fx.smeared = false;
       if (mutation) {
         // Marqueur : losange de couleur au-dessus de la tête.
         const mx = Math.round(ex);
@@ -959,7 +992,8 @@ export class SceneRenderer {
         switch (a.kind) {
           case 'melee': // élan (recul d'un pas), puis pas en avant et frappe : on reste au sol
             return { dx: k < 0.25 ? -1.5 * (k / 0.25) : -1.5 + arc(0.25, 0.8, 3.5) + 1.5 * Math.min(1, (k - 0.25) / 0.2),
-              dy: arc(0.3, 0.6, 2), glow: 0, ghosts: k > 0.3 && k < 0.6, lunge: k > 0.25 && k < 0.7, color: a.color };
+              dy: arc(0.3, 0.6, 2), glow: 0, ghosts: k > 0.3 && k < 0.6, lunge: k > 0.25 && k < 0.7, color: a.color,
+              arm: k < 0.25 ? -25 : k < 0.55 ? 40 : k < 0.7 ? 20 : 0 }; // v9.1.9 : bras qui frappe
           case 'burst':
             return { dx: arc(0.15, 0.75, 1), dy: k < 0.15 ? -1 : arc(0.15, 0.75, 10), glow: arc(0.1, 0.9, 0.9), ghosts: k > 0.2 && k < 0.7, color: a.color };
           case 'archer': // recul au tir, puis retour
@@ -1090,7 +1124,10 @@ export class SceneRenderer {
       ctx.globalAlpha = 1;
     }
     this.drawStarOutline(ctx, companion, frame, x, y, w, h);
-    ctx.drawImage(img, x, y, w, h);
+    // v9.1.9 : compagnon à pied qui frappe : son bras/arme tourne autour de l'épaule (voir enemy-anim.js).
+    const sw = pose.arm && SPRITES[frame]?.gait === 'walk' ? armSwing(img, pose.arm, 1) : null;
+    if (sw) ctx.drawImage(sw.canvas, Math.round(x - sw.pad * sc), Math.round(y - sw.pad * sc), sw.canvas.width * sc, sw.canvas.height * sc);
+    else ctx.drawImage(img, x, y, w, h);
   }
 
 
@@ -1489,6 +1526,12 @@ export class SceneRenderer {
           break;
         }
         case 'corpse': {
+          if (fx.frames) {
+            // v9.1.9 : dissolution tramée (pixels qui s'éteignent), sans écrasement flou.
+            const k = Math.min(fx.frames.length - 1, Math.floor((1 - t) * fx.frames.length));
+            ctx.drawImage(fx.frames[k], Math.round(fx.x - fx.w / 2), Math.round(this.groundY - fx.h - fx.fly + 1), fx.w, fx.h);
+            break;
+          }
           ctx.globalAlpha = t;
           const h = Math.max(1, Math.round(fx.h * t));
           ctx.drawImage(fx.img, Math.round(fx.x - fx.w / 2), this.groundY - h - fx.fly + 1, fx.w, h);
