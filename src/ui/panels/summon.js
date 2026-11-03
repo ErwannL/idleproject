@@ -198,6 +198,7 @@ export default {
           ${btn(pool, 1, 'gems', s.gemCost, `×1 ${gem()} ${s.gemCost}`, `${p.label} ×1 : ${s.gemCost} gemmes`)}
           ${btn(pool, 10, 'gems', s.tenPullGemCost, `×10 ${gem()} ${s.tenPullGemCost}`, `${p.label} ×10 : ${s.tenPullGemCost} gemmes`)}
         </div>
+        ${pool === 'hero' ? `<button class="btn small look-link" data-action="open-looks">${img('icon_hero')} Mes apparences (${Object.keys(state.heroes.owned).length}) ›</button>` : ''}
         ${open ? `<div class="summon-odds"><p class="muted">${what} Compteur des garanties commun à toutes les invocations. Doublon : +1 étoile (max 5), puis +${s.duplicateRefundGems} gemmes.</p>
           ${odds(pool)}</div>` : ''}
         ${pool === 'hero' && f ? fold(ui, 'summon-banner', 'Apparence en vedette : détails', () => heroBanner(state)) : ''}

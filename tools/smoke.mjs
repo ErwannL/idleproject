@@ -296,6 +296,12 @@ await check('invocation : 100 gemmes donnent un héros ou un compagnon', async (
   }
   for (let i = 0; i < 2 && (await page.$('.summon-fx')); i++) await page.click('.summon-fx');
   assert(!(await page.$('.summon-fx')), 'animation d\'invocation non fermée');
+  // v9.1.9 : une apparence neuve ouvre « Nouvelle apparence débloquée ! » après l'animation : « Porter maintenant » puis fermer.
+  if (await page.waitForSelector('.skin-reveal', { timeout: 1500 }).catch(() => null)) {
+    await page.$eval('.skin-reveal [data-sr="wear"]', (b) => b.click());
+    for (let i = 0; i < 12 && (await page.$('.skin-reveal')); i++) await page.$eval('.skin-reveal [data-sr="close"]', (b) => b.click());
+    assert(!(await page.$('.skin-reveal')), 'révélation d\'apparence non fermée');
+  }
   await page.screenshot({ path: `${outDir}/compact-summon.png` });
 });
 

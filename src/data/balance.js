@@ -177,6 +177,14 @@ export const BALANCE = {
 
   loot: {
     dropChance: 0.1,
+    // v9.1.9 : le sac se remplissait en quelques minutes. Butin des monstres ordinaires (combat et hors ligne) :
+    // chance × dropScale (−70 % d'objets) et rareté tirée avec dropRarityWeights : autant d'Épiques et de Légendaires
+    // par heure (rapport 7 : 1 gardé), deux fois moins de Rares, ~6 fois moins de Communs. Compensations : pièces
+    // d'ensemble (setChance.rare ×2) et éclats (killShardChance : +1 éclat, à la place des Communs et Rares recyclés).
+    // Mesures avant/après : docs/butin-v919.md (tools/measure-butin-v919.mjs).
+    dropScale: 0.3,
+    dropRarityWeights: { common: 36.7, rare: 36.7, epic: 23.3, legendary: 3.3 },
+    killShardChance: 0.14, // v9.1.9 : chance d'un éclat par monstre ordinaire vaincu (compense les objets en moins)
     bossMinRarity: 'rare',
     stagePowerGrowth: 0.045, // +4,5 % de stats par niveau d'objet (linéaire jusqu'à la v8.3)
     stagePowerExp: 1.03, // v8.4 : croissance exponentielle (×1,03 par niveau d'objet)
@@ -195,7 +203,7 @@ export const BALANCE = {
     // Effets spéciaux : nombre d'effets par rareté.
     affixCount: { common: 0, rare: 1, epic: 1, legendary: 2 },
     // v8.5 : chance qu'un objet appartienne à l'ensemble de son monde, par rareté.
-    setChance: { common: 0, rare: 0.12, epic: 0.25, legendary: 0.4 },
+    setChance: { common: 0, rare: 0.24, epic: 0.25, legendary: 0.4 }, // v9.1.9 : Rare 0,12 → 0,24 (deux fois moins de Rares)
   },
 
   // Recyclage : matériaux rendus en plus de l'or, par rareté.
@@ -306,7 +314,7 @@ export const BALANCE = {
     capHours: 24,
     farmMultiplier: 0.65, // hors ligne = 65 % du rythme de farm actif mesuré (35 % de moins)
     measureSeconds: 180, // durée de combat simulée pour mesurer ce rythme
-    maxItems: 10, // objets réellement générés ; le surplus est converti en or
+    maxItems: 3, // objets réellement générés ; le surplus est converti en or (v9.1.9 : 10 × loot.dropScale, mêmes Épiques)
     gemShare: 0.3, // étape 4 : 30 % des gemmes de kill gagnées aussi hors ligne
     minSecondsForSummary: 60,
   },

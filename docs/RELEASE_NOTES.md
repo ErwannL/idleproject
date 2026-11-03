@@ -8,6 +8,9 @@
 - Chevalier redessiné : cuirasse et épaulière avec reflets du métal, cape à 6 images qui flotte plus amplement, panache animé en phase avec la cape, poses d'attaque, de coup reçu et de victoire plus marquées (mêmes ancrages, prises d'arme et couleurs recolorables ; skins inchangés).
 - Ennemis : la préparation du coup se joue maintenant avant l'impact (signal 0,25 s avant chaque attaque, sans changer dégâts ni rythme).
 - Boss : entrée en chute avec atterrissage lourd (secousse, poussière), coups plus lourds (secousse, traînée rouge). Tout est allégé en « réduire les animations ».
+- Apparences : une apparence obtenue par invocation (aussi pendant un ×10) s'annonce « Nouvelle apparence débloquée ! » — cadre de sa rareté, héros animé avec ce skin, bonus et bouton « Porter maintenant ». Nouvel écran Apparences (Héros › Fiche › Apparence, ou « Mes apparences » dans Invocation › Apparences) : apparence portée en grand, cartes encadrées avec portrait animé, bonus, étoiles et doublons ; une carte obtenue se porte d'un appui, une carte verrouillée montre sa silhouette (« Obtenu par invocation »). La Fiche nomme l'apparence portée (« Changer › »).
+- Alerte de boss : à l'arrivée d'un boss (mini, boss, redoutable, méga, donjon, Tour), bandeau rouge « ⚠ BOSS » ou « ⚠ DANGER » avec son nom, scène assombrie et légère secousse pendant ~2 s, sans gêner les boutons. Version courte quand le même boss revient en boucle, sobre en « réduire les animations », rien en ×100.
+- Butin : environ 3 fois moins d'objets sur les monstres ordinaires (combat et hors ligne), presque plus de Communs, mais autant d'Épiques, de Légendaires et de pièces d'ensemble par heure ; un éclat tombe parfois des monstres pour garder le même gain d'éclats. Le sac se remplit beaucoup moins vite. Boss, élites et Musée inchangés. Détail : docs/butin-v919.md.
 
 ## Ascendrya v9.1.8 — Les deux 9.1 réunies, langue coréenne
 

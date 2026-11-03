@@ -422,7 +422,11 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
   emit(world, 'kill', { enemyId: enemy.id, kind: enemy.type, boss: enemy.boss, elite: enemy.elite, gold, x: enemy.x });
 
   // Butin : objet signature possible sur les boss (butin ciblé), objet Rare+ garanti sur les boss et élites.
-  const dropChance = enemy.boss || enemy.elite || enemy.mutation ? 1 : balance.loot.dropChance + stats.bonus.dropChance / 100 + boost.dropChance;
+  // v9.1.9 : butin courant (monstre ordinaire) × dropScale, tiré avec dropRarityWeights (moins d'objets, mieux rangés).
+  const common = !(enemy.boss || enemy.elite || enemy.mutation);
+  const dropChance = !common ? 1 : (balance.loot.dropChance + stats.bonus.dropChance / 100 + boost.dropChance) * (balance.loot.dropScale ?? 1);
+  // v9.1.9 : éclat de compensation (moins d'objets courants à recycler).
+  if (common && balance.loot.killShardChance && rng.next() < balance.loot.killShardChance) state.materials.shards += 1;
   if (rng.next() < dropChance) {
     // v9.0.6 : boss réaffronté (boucle, étape déjà franchie) → objet ancestral 5 fois plus rare.
     const farmed = enemy.boss && (Boolean(state.farmBoss) || enc.world || (!enc.dungeon && !enc.tower && !enc.challenge && state.stage < state.maxStage));
@@ -431,7 +435,7 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
     const base = enemy.boss || enemy.elite ? balance.loot.bossMinRarity : 'common';
     const luck = cheatLoot(state).minRarity;
     const minRarity = luck && rarityIndex(luck) > rarityIndex(base) ? luck : base;
-    const item = signature ?? generateItem(state, rng, { level: enc.level, minRarity, setZone: enc.tower ? null : enc.zoneIndex }, balance);
+    const item = signature ?? generateItem(state, rng, { level: enc.level, minRarity, setZone: enc.tower ? null : enc.zoneIndex, weights: common ? balance.loot.dropRarityWeights : null }, balance);
     dropItem(state, world, item, enemy.x, balance);
   }
 
@@ -850,14 +854,14 @@ export function step(state, world, dt, rng, balance = BALANCE) {
   }
   const traitAtk = attacker?.trait ? traitAttack(attacker, stats.armor) : { damage: 1, speed: 1 };
   if (attacker?.engaged) {
+    const before = attacker.attackTimer;
     attacker.attackTimer -= dt * traitAtk.speed;
+    // v9.1.9 : préparation visible ~0,25 s avant le coup (affichage seul : ni dégâts ni rythme changés).
+    if (before > ENEMY_WINDUP && attacker.attackTimer <= ENEMY_WINDUP && attacker.attackTimer > 0) emit(world, 'enemyWindup', { enemyId: attacker.id, boss: attacker.boss });
     if (attacker.attackTimer <= 0) {
       attacker.attackTimer += attacker.attackInterval;
       const lowHp = hero.hp < stats.maxHp * POWER_RULES.lowHpThreshold ? stats.bonus.lowHpArmor : 0;
-    const before = attacker.attackTimer;
       const st = balance.stages;
-    // v9.1.9 : préparation visible ~0,25 s avant le coup (affichage seul : ni dégâts ni rythme changés).
-    if (before > ENEMY_WINDUP && attacker.attackTimer <= ENEMY_WINDUP && attacker.attackTimer > 0) emit(world, 'enemyWindup', { enemyId: attacker.id, boss: attacker.boss });
       const armor = Math.min(balance.hero.armorCapPct, stats.armor + lowHp) * (attacker.boss ? 1 - st.bossArmorPierce : 1);
       const shield = world.buffs.shield > 0 ? world.buffs.shieldPct : 0;
       // Rage : un boss qui dure trop longtemps frappe de plus en plus fort.

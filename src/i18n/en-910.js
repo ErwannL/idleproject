@@ -791,3 +791,17 @@ export const PATTERNS_910 = [
   // v9.1.3 : « Ensemble (3/7) » du coffre — motif large, gardé en dernier.
   [/^(.+) \((\d+)\/(\d+)\)$/, (m) => `${tr(m[1])} (${m[2]}/${m[3]})`],
 ];
+
+// v9.1.9 (apparences, alerte de boss) : textes nouveaux.
+Object.assign(EXACT_910, {
+  '⚠ DANGER': '⚠ DANGER', '⚠ BOSS': '⚠ BOSS', 'Boss du donjon': 'Dungeon boss', 'Boss de la Tour': 'Tower boss', 'Mini-boss': 'Mini-boss',
+  'Boss redoutable': 'Fearsome boss', 'MÉGA BOSS': 'MEGA BOSS',
+  '✦ Nouvelle apparence débloquée ! ✦': '✦ New look unlocked! ✦', 'Porter maintenant': 'Wear now', 'Suivante ›': 'Next ›',
+  'Apparence portée': 'Worn look', 'Touchez une apparence obtenue pour la porter. Bonus +20 % par étoile.': 'Tap an owned look to wear it. Bonus +20% per star.',
+  'aucun doublon': 'no duplicate', 'Porté ✓': 'Worn ✓', 'Obtenu par invocation': 'Obtained by summoning', 'Invoquer': 'Summon', 'Changer ›': 'Change ›',
+});
+PATTERNS_910.push(
+  [/^(\d+)\/(\d+) obtenues$/, '$1/$2 owned'],
+  [/^Mes apparences \((\d+)\) ›$/, 'My looks ($1) ›'],
+  [/^Porter (.+)$/, (m) => { const t = tr(m[1]); return t ? `Wear ${t}` : null; }], // aria-label des cartes d'apparence
+);

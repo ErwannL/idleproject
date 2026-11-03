@@ -90,9 +90,10 @@ export function computeOfflineRewards(state, fromMs, nowMs, rng, balance = BALAN
   const items = [];
   // v9.1.3 (doc3, décision) : le butin hors ligne donne aussi des pièces d'ensemble du monde farmé, comme le combat.
   const setZone = zoneIndexForStage(rate.stage);
-  for (let i = 0; i < itemCount; i++) items.push(generateItem(state, rng, { level: rate.stage, setZone }, balance));
+  for (let i = 0; i < itemCount; i++) items.push(generateItem(state, rng, { level: rate.stage, setZone, weights: balance.loot.dropRarityWeights }, balance));
   const excessDrops = dropCount - itemCount;
-  const excessGold = excessDrops * recycleValue({ rarity: 'common', level: rate.stage }, balance);
+  // v9.1.9 : surplus compté comme avant la baisse du butin (÷ dropScale) : l'or hors ligne ne baisse pas.
+  const excessGold = (excessDrops / (balance.loot.dropScale ?? 1)) * recycleValue({ rarity: 'common', level: rate.stage }, balance);
 
   return {
     ...result,

@@ -24,6 +24,8 @@ import { KEY_LABELS, boostKeys, cycleSub, focusables, installShortcuts, keyConfl
 import { installHoldToRepeat, selectorFor, holdFiredRecently } from './hold.js';
 import { installTips } from './tip.js';
 import { playSummonReveal } from './summon-fx.js';
+import { bossWarningPlan, showBossWarning } from './boss-warning.js'; // v9.1.9
+import { queueSkinReveals } from './skin-reveal.js'; // v9.1.9
 import { coin, effectText, escapeHtml, fold, glyph, icon, img, itemFrame, missingText, rewardIcons } from './common.js';
 import { GAME_VERSION } from '../version.js';
 import { mutationById } from '../core/mutations.js';
@@ -752,7 +754,10 @@ export class UI {
       case 'friend-remove': this.actions.friendAction('remove', value); break;
       case 'summon': {
         const res = a.summon(Number(value), currency, el.dataset.pool);
-        if (res) { v.lastSummon = res; v.summonPool = normalizePool(el.dataset.pool); playSummonReveal(res); }
+        if (res) {
+          v.lastSummon = res; v.summonPool = normalizePool(el.dataset.pool); playSummonReveal(res);
+          queueSkinReveals(res, () => this.state, (id) => { a.setHero(id); this.invalidate(); }); // v9.1.9
+        }
         this.invalidate();
         break;
       }
@@ -890,6 +895,7 @@ export class UI {
       case 'tour-full': a.startTour(); break;
       case 'tour-later': a.skipTour(); break;
       case 'open-summon-hero': local(() => { v.summonPool = 'hero'; }); this.openTab('summon'); break;
+      case 'open-looks': if (el.closest('#modal')) this.closeModal(); this.openTab('hero', { heroTab: 'look' }); break; // v9.1.9 : écran Apparences
       case 'claim-bounty': a.claimBounty(); break;
       case 'bounty-go': a.goToStage(Number(value)); break;
       case 'toggle-tips': event.preventDefault(); local(() => { v.tipsOpen = v.tipsOpen === false; }); break;
@@ -1040,7 +1046,11 @@ export class UI {
         const label = { mini: 'Mini-boss', mid: 'Boss', hard: 'Boss redoutable', mega: 'MÉGA BOSS' }[tier];
         // v9.0.6 : mécanique du boss annoncée (et ce qui la contre) dans les nouvelles.
         const trait = bossTrait(event.kind);
-        this.banner(`${label} — ${BOSSES[event.kind].name}`, `boss tier-${tier}`);
+        // v9.1.9 : alerte « ⚠ BOSS / DANGER » sur la scène (une par arrivée, courte en boucle, sobre si animations réduites).
+        this.bossMemory ??= {};
+        const plan = bossWarningPlan(this.bossMemory, { tier, kind: event.kind, enemyId: event.enemyId, name: BOSSES[event.kind].name,
+          mode: state.dungeon ? 'dungeon' : state.tower ? 'tower' : 'stage', now: Date.now(), calm: reduceMotion(), fast: (this.speed ?? 1) >= 100 });
+        if (plan) showBossWarning(plan);
         if (trait) this.news(`${BOSSES[event.kind].name} — ${trait.name} : ${trait.text}. Contre : ${trait.counter}.`, trait.color, 2);
         if (tier === 'mega' || tier === 'hard') this.announce(`${label} : ${BOSSES[event.kind].name}`);
         if ((tier === 'mega' || tier === 'hard') && !this.calm) {

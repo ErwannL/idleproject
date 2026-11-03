@@ -24,12 +24,15 @@ export function signatureItemFor(bossId) {
   return SIGNATURE_ITEMS.find((b) => b.signature === bossId) ?? null;
 }
 
-export function rollRarity(rng, minRarity = 'common') {
+// v9.1.9 : `weights` (facultatif, { common, rare, epic, legendary }) remplace les poids de RARITIES — butin courant
+// des monstres (balance.loot.dropRarityWeights), moins fréquent mais de meilleure rareté.
+export function rollRarity(rng, minRarity = 'common', weights = null) {
   const pool = RARITIES.slice(Math.max(0, rarityIndex(minRarity)));
-  const total = pool.reduce((sum, r) => sum + r.weight, 0);
+  const w = (r) => weights?.[r.id] ?? r.weight;
+  const total = pool.reduce((sum, r) => sum + w(r), 0);
   let roll = rng.next() * total;
   for (const rarity of pool) {
-    roll -= rarity.weight;
+    roll -= w(rarity);
     if (roll < 0) return rarity.id;
   }
   return pool[pool.length - 1].id;
@@ -98,7 +101,7 @@ export function makeItem(state, baseId, rarityId, level, balance = BALANCE, rng 
 // Sans emplacement imposé, on tire d'abord l'emplacement (poids de balance.loot.slotWeights), puis un
 // modèle : les accessoires, déclinés en plusieurs couleurs, ne remplissent pas tout le butin.
 // options.setZone (v8.5) : monde d'origine → l'objet peut appartenir à l'ensemble de ce monde.
-export function generateItem(state, rng, { level, minRarity = 'common', slot, setZone = null } = {}, balance = BALANCE) {
+export function generateItem(state, rng, { level, minRarity = 'common', slot, setZone = null, weights = null } = {}, balance = BALANCE) {
   let chosen = slot;
   if (!chosen) {
     const weights = Object.entries(balance.loot.slotWeights);
@@ -108,7 +111,7 @@ export function generateItem(state, rng, { level, minRarity = 'common', slot, se
   // v9.0.6 : la plupart des armes tombent dans la classe active (les autres restent possibles).
   const classPool = chosen === 'weapon' && state ? classWeaponBases(activeClass(state).id) : [];
   const base = classPool.length && rng.next() < CLASS_WEAPON_DROP ? rng.pick(classPool) : rng.pick(ITEM_BASES.filter((b) => b.slot === chosen));
-  const rarity = rollRarity(rng, minRarity);
+  const rarity = rollRarity(rng, minRarity, weights);
   const set = setZone === null || setZone === undefined ? null : rollSet(setZone, rarity, rng, balance);
   return makeItem(state, base.id, rarity, Math.max(1, level), balance, rng, set);
 }
