@@ -1,4 +1,4 @@
-## Ascendrya v9.1.9 — (en préparation)
+## Ascendrya v9.1.9 — Apparences, alerte de boss, butin, animations, traductions
 
 - Ennemis : attaque en trois temps (préparation, coup avec traînée de frappe, retour) ; les ennemis et compagnons à pied lèvent puis abattent le bras/l'arme (segment tourné au pixel autour de l'épaule).
 - Morts : le corps se dissout en tramage pixel avec des étincelles qui montent (plus d'écrasement flou).
