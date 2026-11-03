@@ -17,7 +17,7 @@ import { formatNumber } from '../core/format.js';
 import { activeHero } from '../core/heroes.js';
 import { activeClass } from '../core/classes.js';
 import { BG } from './bg.js';
-import { addBubble, drawOceanBack, drawOceanFront, swimBob, swimDraw, swirl } from './ocean-fx.js'; // v9.2.0 (monde marin)
+import { addBubble, drawOceanBack, drawOceanFront, kickFrame, STROKE, strokeStep, swimDraw, swimFloat, swimPose, swirl, SWIM_DEPTH, SWIM_TILT } from './ocean-fx.js'; // v9.2.0 (monde marin)
 import { FONT_BIG, SPRITES } from './sprites.js';
 import { HERO_ANCHOR, drawBigText, heroComposite, itemDropCanvas, spriteCanvas, textWidth } from './pixel.js';
 
@@ -286,8 +286,8 @@ export class SceneRenderer {
         // Arc de taille dessiné (bleu, ou doré et plus grand sur un coup critique), puis impact.
         const sx = this.dashReach(event.x);
         this.dust(HERO_X - 4, 3);
-        if (event.crit) this.sprite(['fx_slash_crit'], heroX + 18 + sx, this.groundY + 4, 0.22, { delay: 0.07, tint: '#ffd23f' });
-        else this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], heroX + 14 + sx, this.groundY + 1, 0.18, { delay: 0.07 });
+        if (event.crit) this.sprite(['fx_slash_crit'], heroX + 18 + sx, this.groundY + 4 - this.waterLift(), 0.22, { delay: 0.07, tint: '#ffd23f' });
+        else this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], heroX + 14 + sx, this.groundY + 1 - this.waterLift(), 0.18, { delay: 0.07 });
         // L'impact (éclair blanc, recul, étincelles, chiffre) tombe quand la lame touche, pas au début du geste.
         this.later(0.09, () => this.hitReact(event.enemyId, event.x, { crit: event.crit, boss: event.boss, damage: event.damage, color: '#ffffff' }));
         break;
@@ -810,7 +810,7 @@ export class SceneRenderer {
       if (atk?.phase === 'strike' && !fx.smeared) {
         // Traînée de frappe (arc de pixels) devant l'ennemi, une fois par coup.
         fx.smeared = true;
-        this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], x - 4, this.groundY + 1, 0.16, { tint: enemy.boss ? '#ff6a5a' : '#f0e6d0' });
+        this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], x - 4, this.groundY + 1 - this.waterLift(), 0.16, { tint: enemy.boss ? '#ff6a5a' : '#f0e6d0' });
         if (enemy.boss && !this.focus) this.shake = Math.max(this.shake, 2);
       }
       if (!atk) fx.smeared = false;
@@ -861,6 +861,11 @@ export class SceneRenderer {
     }
   }
 
+  // v9.2.0 (nage) : hauteur moyenne du groupe au-dessus du sol sous l'eau (traînées de coups à cette profondeur).
+  waterLift() {
+    return this.underwater ? 2 : 0;
+  }
+
   drawHero(ctx, state, world) {
     const hero = world.hero;
     const baseX = HERO_X - HERO_ANCHOR.x;
@@ -892,14 +897,19 @@ export class SceneRenderer {
     } else if (this.hero.cast > 0) frame = 'cast';
     else if (this.hero.hurt > 0) frame = 'hurt';
     else if (this.hero.victory > 0) frame = 'victory';
-    else if (hero.walking) frame = `walk${1 + (Math.floor(this.time * (this.underwater ? 4 : 9)) % 4)}`; // v9.2.0 : battements de nage plus lents
+    else if (hero.walking) frame = `walk${1 + (Math.floor(this.time * 9) % 4)}`;
+    // v9.2.0 (nage) : hors frappe/sort/coup reçu, le héros nage toujours — les images de pas servent de brasse
+    // (le bras libre pagaie), plus lentes ; la visée des tireurs est gardée.
+    // v9.2.0 (nage) : crawl en 6 temps (STROKE) ; sur place, même nage plus lente. Le tir visé reste (redressé).
+    const swimStep = strokeStep(this.time, hero.walking ? 8 : 5, 0, this.focus);
+    if (this.underwater && (['idle', 'idle2', 'victory'].includes(frame) || frame.startsWith('walk'))) frame = STROKE[swimStep][0];
 
     const blink = this.hero.respawn > 0 && Math.floor(this.time * 12) % 2 === 0;
     if (blink) return;
     // Cape : flotte au vent en marchant, ondule doucement à l'arrêt.
     // v9.1.9 : cycle de 6 images (plus rapide en marche) ; « réduire les animations » : 2 images lentes.
     const cape = this.focus ? ['a', 'b'][Math.floor(this.time * 2) % 2]
-      : 'abcdef'[Math.floor(this.time * (hero.walking ? 12 : 5)) % 6];
+      : 'abcdef'[Math.floor(this.time * (this.underwater ? 3 : hero.walking ? 12 : 5)) % 6]; // v9.2.0 : sous l'eau, la cape flotte lentement
     const img = heroComposite(frame, state.equipment, this.hero.hurt > 0.1, cape, palette);
     const jump = this.hero.victory > 0 ? Math.round(Math.abs(Math.sin(this.hero.victory * Math.PI * 2.5)) * 6) : 0;
     // v9.0.6 : corps à corps — le héros bondit vers l'ennemi pour frapper puis revient (aller-retour en cloche).
@@ -918,7 +928,7 @@ export class SceneRenderer {
       ctx.globalAlpha = 1;
     }
 
-    this.drawShadow(ctx, HERO_X, 22);
+    this.drawShadow(ctx, HERO_X, this.underwater ? 14 : 22); // v9.2.0 : ombre réduite sous le nageur
     // Cri de guerre : aura dorée ; Rempart du golem : aura bleue (flammes d'énergie derrière le chevalier).
     for (const [active, tint] of [[world.buffs?.cry > 0, { color: '#ffc23a', alpha: 0.75 }], [world.buffs?.shield > 0, null]]) {
       if (!active) continue;
@@ -927,20 +937,37 @@ export class SceneRenderer {
       ctx.drawImage(aura, Math.round(HERO_X + 4 - aura.width / 2), this.groundY - aura.height + 1 - jump);
       ctx.globalAlpha = 1;
     }
+    let lift = 0;
     if (this.underwater) {
-      // v9.2.0 (monde marin) : le héros nage — flottement lent, corps qui ondule (cheveux, cape), bulles à la bouche.
-      const bob = Math.round(swimBob(this.time, 0, this.focus));
-      swimDraw(ctx, img, baseX + lean, baseY - jump - bob, img.width, img.height, { time: this.time, amp: hero.walking ? 2 : 1.2, mode: 'body', focus: this.focus });
+      // v9.2.0 (nage) : le héros nage couché (tête devant, ~80°), crawl en 6 temps avec un petit élan à chaque
+      // traction, jambes en ciseaux, cape/plumet qui traînent dans l'axe du corps, sillage de bulles derrière les
+      // pieds ; balancement d'1 px au plus. Pour frapper il se redresse (coup), puis se recouche.
+      // Pose calculée au pixel entier (swimPose : ciseaux + rotation Scale2x, mise en cache).
+      lift = swimFloat(SWIM_DEPTH.hero, this.time, 0, this.focus);
+      const striking = this.hero.attack > 0 || this.hero.cast > 0;
+      const aiming = style === 'ranged' && engaged;
+      const swimming = !striking && !aiming && this.hero.hurt <= 0;
+      const tilt = this.hero.hurt > 0 ? 45 : striking ? (frame === 'attack1' ? 35 : 10) : aiming ? 0 : SWIM_TILT;
+      const [back, front] = swimming ? kickFrame(this.time, hero.walking ? 10 : 6, 0, this.focus, 1.5) : [0, 0];
+      const pose = swimPose(img, { tilt, back, front, legFrac: 0.3 });
+      const surge = swimming ? STROKE[swimStep][1] : 0;
+      if (striking && !this.swimStrike) { this.swimStrike = true; swirl(this, HERO_X - 8, baseY - lift + 26, 6); } // remous du redressement
+      if (!striking) this.swimStrike = false;
+      const px = baseX + lean + surge - pose.ox, py = baseY - jump - lift - pose.oy;
+      if (swimming) swimDraw(ctx, pose.canvas, px, py, pose.canvas.width, pose.canvas.height, { time: this.time, amp: 1, mode: 'dolphin', focus: this.focus });
+      else ctx.drawImage(pose.canvas, px, py);
       this.mouthBubble = (this.mouthBubble ?? 1) - (this.dt ?? 0);
-      if (this.mouthBubble <= 0) {
-        this.mouthBubble = (this.focus ? 3 : 1.1) + Math.random() * 1.2;
-        addBubble(this, HERO_X + 5, baseY - jump - bob + 10, { vy: -16, r: 1, life: 2.2 });
-        if (Math.random() < 0.5) addBubble(this, HERO_X + 6, baseY - jump - bob + 7, { vy: -18, r: 2, life: 2.4 });
+      if (this.mouthBubble <= 0 && !this.focus) {
+        this.mouthBubble = (hero.walking ? 0.25 : 0.5) + Math.random() * 0.3;
+        // Sillage derrière les pieds (le corps couché : pieds à gauche, à mi-hauteur).
+        const midY = baseY - lift + HERO_ANCHOR.y / 2 + 6;
+        addBubble(this, HERO_X - 24 + surge, midY + (Math.random() * 6 - 3), { vx: -22, vy: -6, r: Math.random() < 0.3 ? 2 : 1, life: 1.1 });
+        if (Math.random() < 0.3) addBubble(this, HERO_X + 16, midY - 6, { vy: -16, r: 1, life: 2 }); // bouche
       }
     } else ctx.drawImage(img, baseX + lean, baseY - jump);
 
     const stats = world.heroStats;
-    if (stats) this.drawBar(ctx, HERO_X - 11 + dash, baseY - 2 - jump, 22, hero.hp / stats.maxHp, '#5ad07a');
+    if (stats) this.drawBar(ctx, HERO_X - 11 + dash, baseY - 2 - jump - lift, 22, hero.hp / stats.maxHp, '#5ad07a');
   }
 
   // Compagnons : suivent le chevalier, les volants planent au-dessus de son épaule.
@@ -961,7 +988,7 @@ export class SceneRenderer {
     const front = world.enemies[0];
     const tx = front ? this.wx(front.x) - 4 : heroX + 40;
     const hit = (x) => {
-      this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], x, G + 1, 0.2, { tint: color });
+      this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], x, G + 1 - this.waterLift(), 0.2, { tint: color });
       this.burst(x, G - 16, color, 8, 30);
       if (front) this.hitReact(front.id, x, { color });
     };
@@ -1061,6 +1088,12 @@ export class SceneRenderer {
     const walking = world.hero.walking;
     const hd = Boolean(SPRITES[s]?.scale);
     const pose = this.allyPose(companion, walking, i);
+    // v9.2.0 (nage) : sous l'eau, pas de pas au sol — les images de pas battent lentement (brasse) et tout le
+    // corps flotte à sa propre profondeur (voir plus bas).
+    const swimming = this.underwater;
+    if (swimming && pose.step !== undefined) pose.step = Math.floor(this.time * 6);
+    else if (swimming && SPRITES[s]?.gait === 'walk' && !this.allyAnims?.get(companion.id)) pose.step = Math.floor(this.time * 5);
+    if (swimming && !this.allyAnims?.get(companion.id) && SPRITES[s]?.gait !== 'fly') pose.dy = 0;
     // Anciens sprites (dessinés image par image) : leurs propres images de marche et d'attaque.
     let frame = s;
     if (pose.flap !== undefined && SPRITES[`${s}_f1`]) {
@@ -1084,20 +1117,21 @@ export class SceneRenderer {
     const x0 = slot ? slot.x : HERO_X - 26 - i * 24 - w / 2;
     const cx0 = slot ? slot.cx : x0 + w / 2;
     const x = x0 + pose.dx;
-    const y = this.groundY + 1 - h - pose.dy;
+    const lift = swimming ? swimFloat(SWIM_DEPTH[`ally${i}`] ?? 13, this.time, i * 2.1 + 1.3, this.focus) : 0;
+    const y = this.groundY + 1 - h - pose.dy - lift;
     // Poussière à chaque pas de marche.
     if (pose.step !== undefined) {
       this.allySteps ??= new Map();
       if (this.allySteps.get(companion.id) !== pose.step) {
         this.allySteps.set(companion.id, pose.step);
-        if (!this.focus && pose.step % 4 === 1) this.dust(cx0 - 3, 1);
+        if (!this.focus && !swimming && pose.step % 4 === 1) this.dust(cx0 - 3, 1);
       }
     }
     // Ailés : souffle au sol à chaque coup d'aile vers le bas (traits et poussière chassés des deux côtés).
     if (pose.flap !== undefined) {
       this.allyFlaps ??= new Map();
       const down = pose.flap >= 0.5 && pose.flap < 0.8;
-      if (down && !this.allyFlaps.get(companion.id) && !this.focus) {
+      if (down && !this.allyFlaps.get(companion.id) && !this.focus && !swimming) {
         const gx = cx0 + pose.dx;
         this.effects.push({ kind: 'gust', x: gx, y: this.groundY - 1, color: '#f4fbff', life: 0.45, max: 0.45 });
         // Filets d'air qui descendent sous le personnage vers le sol.
@@ -1140,12 +1174,12 @@ export class SceneRenderer {
       }
     }
     // Ombre au sol : plus petite et plus claire quand le personnage est en l'air.
-    ctx.globalAlpha = Math.max(0.35, 1 - pose.dy / 18);
-    this.drawShadow(ctx, cx0 + pose.dx, Math.max(10, w * 0.5 - pose.dy));
+    ctx.globalAlpha = Math.max(0.35, 1 - (pose.dy + lift) / 18);
+    this.drawShadow(ctx, cx0 + pose.dx, Math.max(10, w * 0.5 - pose.dy - lift / 2));
     ctx.globalAlpha = 1;
     if (this.maxStars(companion)) this.drawStarAura(ctx, cx0 + pose.dx, y, w, h, companion);
     // Images rémanentes du saut, de la couleur du compagnon.
-    if (pose.ghosts) {
+    if (pose.ghosts && !swimming) {
       const ghost = spriteCanvas(frame, { tint: { color: pose.color, alpha: 1 } });
       for (const [f, al] of [[0.45, 0.22], [0.8, 0.12]]) {
         ctx.globalAlpha = al;
@@ -1154,18 +1188,55 @@ export class SceneRenderer {
       ctx.globalAlpha = 1;
     }
     // Halo de sort : silhouette lumineuse de sa couleur autour du corps.
-    if (pose.glow > 0.02) {
+    if (pose.glow > 0.02 && !swimming) {
       const glow = spriteCanvas(frame, { tint: { color: pose.color, alpha: 1 } });
       ctx.globalAlpha = 0.65 * pose.glow;
       for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1]]) ctx.drawImage(glow, x + dx, y + dy, w, h);
       ctx.globalAlpha = 1;
     }
-    this.drawStarOutline(ctx, companion, frame, x, y, w, h);
+    if (!swimming) this.drawStarOutline(ctx, companion, frame, x, y, w, h);
     // v9.1.9 : compagnon à pied qui frappe : son bras/arme tourne autour de l'épaule (voir enemy-anim.js).
     const sw = pose.arm && SPRITES[frame]?.gait === 'walk' ? armSwing(img, pose.arm, 1) : null;
-    if (sw) ctx.drawImage(sw.canvas, Math.round(x - sw.pad * sc), Math.round(y - sw.pad * sc), sw.canvas.width * sc, sw.canvas.height * sc);
-    else if (this.underwater) swimDraw(ctx, img, x, y - Math.round(swimBob(this.time, i * 1.9 + 1, this.focus)), w, h, { time: this.time, phase: i * 1.3, amp: 1.5, mode: 'body', focus: this.focus }); // v9.2.0 : nage
+    if (swimming) this.drawSwimmer(ctx, sw ? sw.canvas : img, sw ? Math.round(x - sw.pad * sc) : x, sw ? Math.round(y - sw.pad * sc) : y, sc, {
+      gait: SPRITES[s]?.gait, gesture: Boolean(this.allyAnims?.get(companion.id)), walking, seed: i * 1.7 + 0.8, glow: pose.glow, color: pose.color, mouth: { x: cx0 + pose.dx - w * 0.6, y: y + h * 0.6 } });
+    else if (sw) ctx.drawImage(sw.canvas, Math.round(x - sw.pad * sc), Math.round(y - sw.pad * sc), sw.canvas.width * sc, sw.canvas.height * sc);
     else ctx.drawImage(img, x, y, w, h);
+  }
+
+  // v9.2.0 (nage) : compagnon sous l'eau — penché vers l'avant, jambes (ou queue) en ciseaux, cheveux/robe qui
+  // flottent ; les volants planent en ondulant sans se pencher ; l'attaque part de la nage (moins penché).
+  drawSwimmer(ctx, img, x, y, sc, { gait, gesture, walking, seed, mouth, glow = 0, color = '#ffffff' }) {
+    const fly = gait === 'fly';
+    const glide = gait === 'glide';
+    // Couchés tête devant (vol plané horizontal pour les volants, un peu moins couchés) ; redressés pour frapper.
+    const tilt = gesture ? 15 : fly ? 60 : SWIM_TILT;
+    const [back, front] = fly || glide || gesture ? [0, 0] : kickFrame(this.time, walking ? 10 : 6, seed * 3, this.focus, 1.5);
+    const pose = swimPose(img, { tilt, back, front, legFrac: 0.3 });
+    const surge = gesture || fly ? 0 : STROKE[strokeStep(this.time, walking ? 8 : 5, seed * 2, this.focus)][1];
+    const px = x - pose.ox * sc + surge, py = y - pose.oy * sc;
+    const w = pose.canvas.width * sc, h = pose.canvas.height * sc;
+    if (glow > 0.02) {
+      // Halo de sort autour de la pose de nage (silhouette teintée de sa couleur).
+      const tint = document.createElement('canvas');
+      tint.width = pose.canvas.width; tint.height = pose.canvas.height;
+      const t = tint.getContext('2d');
+      t.drawImage(pose.canvas, 0, 0);
+      t.globalCompositeOperation = 'source-in';
+      t.fillStyle = color;
+      t.fillRect(0, 0, tint.width, tint.height);
+      ctx.globalAlpha = 0.65 * glow;
+      for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.drawImage(tint, px + dx, py + dy, w, h);
+      ctx.globalAlpha = 1;
+    }
+    // Cheveux/robe : bandes de 2 px qui ondulent (haut pour les cheveux ; ourlet pour une robe ; tout le corps en vol).
+    // Ondulation du corps couché depuis la tête : robe en queue de sirène (ample), cheveux/jambes (légère).
+    swimDraw(ctx, pose.canvas, px, py, w, h, { time: this.time, phase: seed, amp: gesture ? 0 : glide ? 2.5 : 1, mode: 'dolphin', focus: this.focus || gesture });
+    this.allyBubbles ??= new Map();
+    const next = this.allyBubbles.get(seed) ?? this.time + 0.5;
+    if (!this.focus && this.time >= next) {
+      this.allyBubbles.set(seed, this.time + 0.35 + Math.random() * 0.4);
+      addBubble(this, mouth.x, mouth.y, { vx: -20, vy: -6, r: Math.random() < 0.4 ? 2 : 1, life: 1.2 }); // sillage derrière les pieds
+    } else if (!this.allyBubbles.has(seed)) this.allyBubbles.set(seed, next);
   }
 
 
@@ -1250,6 +1321,7 @@ export class SceneRenderer {
     const walking = world.hero.walking;
     const slot = this.layout?.slots.get(companion.id); // v9.0.8 : sa propre case, entre le chevalier et les compagnons
     const x = slot ? slot.x : HERO_X - 6 - img.width / 2;
+    if (this.underwater) { this.drawSwimPet(ctx, companion, img, x, flying, walking); return; } // v9.2.0 (nage)
     if (flying) {
       const hover = 30 + Math.sin(this.time * 3) * 3;
       // Battement d'ailes : écrasement vertical rapide autour du centre du sprite.
@@ -1279,6 +1351,36 @@ export class SceneRenderer {
     this.drawStarOutline(ctx, companion, companion.sprite, -img.width / 2, -img.height);
     ctx.drawImage(img, -img.width / 2, -img.height);
     ctx.restore();
+  }
+
+  // v9.2.0 (nage) : familier sous l'eau — chat/golem pagaient (avant relevé, tête hors de l'eau façon nage du
+  // chien, pattes qui battent vite), les volants ondulent plus haut, le slime flotte et pulse (cloche qui ondule).
+  drawSwimPet(ctx, companion, img, x, flying, walking) {
+    const slime = companion.id === 'golden_slime';
+    const lift = swimFloat(flying ? SWIM_DEPTH.pet + 20 : SWIM_DEPTH.pet, this.time, 2.6, this.focus);
+    let canvas = img, ox = 0, oy = 0, mode = 'body', amp = 0, surge = 0;
+    if (flying) { ({ canvas, ox, oy } = swimPose(img, { tilt: 15 })); mode = 'dolphin'; amp = 2; } // vol plané penché
+    else if (slime) { mode = 'jelly'; amp = 1.5; surge = !this.focus && Math.floor(this.time * 3) % 2 ? 1 : 0; } // avance par contractions
+    else {
+      // Nage du chien en ligne : tête devant à peine relevée, pattes qui pagaient vite.
+      const [back, front] = kickFrame(this.time, walking ? 12 : 8, 1, this.focus, 1);
+      ({ canvas, ox, oy } = swimPose(img, { tilt: -6, back, front, legFrac: 0.4 }));
+      surge = STROKE[strokeStep(this.time, walking ? 10 : 7, 1, this.focus)][1] > 0 ? 1 : 0;
+    }
+    // Pulsation du slime : il se tasse d'1 px puis se relâche (sans étirement).
+    const pulse = slime && !this.focus && Math.floor(this.time * 3) % 2 ? 1 : 0;
+    const px = this.snap(x) - ox + surge, py = this.groundY + 1 - img.height - lift - oy + pulse;
+    ctx.globalAlpha = 0.6;
+    this.drawShadow(ctx, x + img.width / 2, img.width * 0.6);
+    ctx.globalAlpha = 1;
+    if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, py + oy, img.width, img.height, companion);
+    if (canvas === img) this.drawStarOutline(ctx, companion, companion.sprite, px, py);
+    swimDraw(ctx, canvas, px, py, canvas.width, canvas.height, { time: this.time, phase: 2.2, amp, mode, focus: this.focus || amp === 0 });
+    this.petBubble = (this.petBubble ?? 0.7) - (this.dt ?? 0);
+    if (this.petBubble <= 0 && !this.focus) {
+      this.petBubble = 1 + Math.random();
+      addBubble(this, x + img.width * 0.8, py + oy + 2, { vy: -14, r: 1, life: 1.8 });
+    }
   }
 
   // v9.0.8 : rang de l'équipe, de droite à gauche — chevalier | familier | 1er compagnon | 2e compagnon. Chaque
@@ -1506,7 +1608,7 @@ export class SceneRenderer {
             spawned.push({ kind: 'ember', x: x - img.width / 2 + Math.random() * 3, y: y + (Math.random() * 4 - 2), vy: fx.trailVy ?? -10,
               color: fx.trail[Math.floor(Math.random() * fx.trail.length)], life: 0.25, max: 0.25 });
           }
-          if (this.underwater && Math.random() < (this.focus ? 0.15 : 0.6)) addBubble(this, x - img.width / 2, y + (Math.random() * 4 - 2), { vy: -10, r: Math.random() < 0.3 ? 2 : 1, life: 0.9 }); // v9.2.0
+          if (this.underwater && !this.focus && Math.random() < 0.6) addBubble(this, x - img.width / 2, y + (Math.random() * 4 - 2), { vy: -10, r: Math.random() < 0.3 ? 2 : 1, life: 0.9 }); // v9.2.0
           ctx.globalAlpha = 1;
           ctx.drawImage(img, Math.round(x - img.width / 2), Math.round(y - img.height / 2));
           break;
