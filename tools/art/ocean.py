@@ -17,8 +17,91 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from enemies import Canvas, OUT, INK, WHITE, shade_mask, dk, GOLD  # noqa: E402
-from enemies2 import ell, rell, tube, rshade, rball, shade, lay, poly, triple  # noqa: E402
+from enemies import Canvas as _Canvas, OUT, INK, WHITE, shade_mask, dk, GOLD  # noqa: E402
+import enemies2 as _e2  # noqa: E402
+from enemies2 import triple  # noqa: E402
+
+# Facteur de dessin : les monstres communs sont redessinés à 1,6× (plus grands ET plus détaillés : les formes sont
+# recalculées à la nouvelle taille, les détails gardent 1 px — aucun agrandissement d'image, aucun flou). Les boss : 1.
+S = 1.0
+
+
+class Canvas(_Canvas):
+    """Canvas en coordonnées « logiques » (× S) ; les remplissages de masques (déjà en pixels) passent par raw."""
+
+    def __init__(self, w, h):
+        super().__init__(int(round(w * S)), int(round(h * S)))
+        self.raw = False
+
+    def set(self, x, y, c):
+        if self.raw:
+            return super().set(x, y, c)
+        return super().set(int(round(x * S)), int(round(y * S)), c)
+
+    def setf(self, x, y, c):
+        if self.raw:
+            return super().setf(x, y, c)
+        return super().setf(int(round(x * S)), int(round(y * S)), c)
+
+    def line(self, x0, y0, x1, y1, c, width=1):
+        self.raw = True
+        try:
+            _Canvas.line(self, x0 * S, y0 * S, x1 * S, y1 * S, c, width)
+        finally:
+            self.raw = False
+
+    def rect(self, x, y, w, h, c):
+        self.raw = True
+        try:
+            _Canvas.rect(self, int(round(x * S)), int(round(y * S)), max(1, int(round(w * S))), max(1, int(round(h * S))), c)
+        finally:
+            self.raw = False
+
+    def poly(self, pts, c, only_inside=False):
+        self.raw = True
+        try:
+            _Canvas.poly(self, [(x * S, y * S) for x, y in pts], c, only_inside)
+        finally:
+            self.raw = False
+
+
+def _raw(fn):
+    def w(c, *a, **k):
+        old = getattr(c, 'raw', False)
+        c.raw = True
+        try:
+            return fn(c, *a, **k)
+        finally:
+            c.raw = old
+    return w
+
+
+def ell(cx, cy, rx, ry):
+    return _e2.ell(cx * S, cy * S, rx * S, ry * S)
+
+
+def rell(cx, cy, rx, ry, ang):
+    return _e2.rell(cx * S, cy * S, rx * S, ry * S, ang)
+
+
+def tube(pts, widths):
+    return _e2.tube([(x * S, y * S) for x, y in pts], [w * S for w in widths])
+
+
+def poly(pts):
+    return _e2.poly([(x * S, y * S) for x, y in pts])
+
+
+shade = _raw(_e2.shade)
+lay = _e2.lay
+
+
+def rshade(c, mask, cx, cy, rx, ry, R, **kw):
+    return _raw(_e2.rshade)(c, mask, cx * S, cy * S, rx * S, ry * S, R, **kw)
+
+
+def rball(c, cx, cy, rx, ry, R):
+    rshade(c, ell(cx, cy, rx, ry), cx, cy, rx, ry, R)
 
 # ------------------------------------------------------------------ palettes
 SILVER = ['#1c2a44', '#2e4a72', '#4a78a8', '#7eb0d4', '#c8e6f4']
@@ -51,8 +134,13 @@ MOUTH = ['#2a0a12', '#5a1424', '#8a2a3a']
 
 # ------------------------------------------------------------------ outils
 
+def _px(f):
+    return lambda X: f(X / S) * S
+
+
 def body_mask(x0, x1, yc, rt, rb):
     """Corps défini par une ligne médiane yc(x) et des demi-épaisseurs dessus rt(x) / dessous rb(x)."""
+    x0, x1, yc, rt, rb = x0 * S, x1 * S, _px(yc), _px(rt), _px(rb)
     m = set()
     for x in range(int(math.floor(x0)), int(math.ceil(x1)) + 1):
         c, a, b = yc(x + 0.5), rt(x + 0.5), rb(x + 0.5)
@@ -66,6 +154,8 @@ def body_mask(x0, x1, yc, rt, rb):
 
 def countershade(c, mask, yc, rt, rb, BACK, BELLY, x_front=None, shine=True):
     """Dos sombre → flanc → ventre clair ; reflet sur le dos, avant un peu plus lumineux (lumière en haut à gauche)."""
+    old, c.raw = c.raw, True
+    yc, rt, rb = _px(yc), _px(rt), _px(rb)
     xs = [p[0] for p in mask]
     xa, xb = min(xs), max(xs)
     for (x, y) in mask:
@@ -89,6 +179,7 @@ def countershade(c, mask, yc, rt, rb, BACK, BELLY, x_front=None, shine=True):
             y = int(math.floor(cy - a * 0.55))
             if (x, y) in mask and (x + y) % 5:
                 c.set(x, y, BACK[-1])
+    c.raw = old
 
 
 def eye(c, x, y, size=2, iris='#ffe25a', glow=False):
@@ -122,8 +213,8 @@ def bubbles(c, pts):
             c.set(x, y, '#c8f4ff')
         else:
             for (px, py) in ell(x, y, r, r):
-                if abs(math.hypot(px + 0.5 - x, py + 0.5 - y) - r) < 0.75:
-                    c.set(px, py, '#a8e8ff')
+                if abs(math.hypot(px + 0.5 - x * S, py + 0.5 - y * S) - r * S) < 0.75:
+                    _raw(lambda cc: cc.set(px, py, '#a8e8ff'))(c)
             c.set(x - r * 0.4, y - r * 0.4, '#ffffff')
 
 
@@ -205,7 +296,7 @@ def sea_jelly_draw(f):
         x = cx - 1 + math.sin(k * 0.9 + f) * 1.5 - (k * 0.6 if atk else 0)
         c.rect(int(x), int(cy + 4 + k * 2), 2, 2, JELLY[1] if k % 2 else JELLY[2])
     # cloche
-    bell = {(x, y) for (x, y) in ell(cx, cy, bw, bh) if y <= cy + 3}
+    bell = {(x, y) for (x, y) in ell(cx, cy, bw, bh) if y <= (cy + 3) * S}
     rshade(c, bell, cx, cy, bw, bh, JELLY)
     # bord festonné
     for x in range(int(cx - bw) + 1, int(cx + bw)):
@@ -327,8 +418,8 @@ def sea_puffer_draw(f):
     rshade(c, body, cx, cy, r, r, PUFF)
     # ventre clair
     for (x, y) in body:
-        if y > cy + r * 0.35:
-            c.set(x, y, PUFF_B[1] if y < cy + r * 0.7 else PUFF_B[0])
+        if y > (cy + r * 0.35) * S:
+            _raw(lambda cc: cc.set(x, y, PUFF_B[1] if y < (cy + r * 0.7) * S else PUFF_B[0]))(c)
     # taches
     for (x, y) in ((cx + 2, cy - 5), (cx + 5, cy - 2), (cx - 1, cy - 3), (cx + 4, cy + 2)):
         c.setf(x, y, PUFF[1])
@@ -459,7 +550,7 @@ def sea_merfolk_draw(f):
     shade(c, m, MER, contrast=0.32)
     for (x, y) in m:
         if (x + y * 2) % 5 == 0:
-            c.set(x, y, MER[4])
+            _raw(lambda cc: cc.set(x, y, MER[4]))(c)
     tx, ty = pts[-1]
     fin(c, [(tx, ty), (tx + 7, ty - 2 + sw), (tx + 3, ty + 4), (tx - 3, ty + 5 - sw)], LEVI_FIN[1:])
     # bras arrière
@@ -725,11 +816,14 @@ NAMES = ['sea_bladefish', 'sea_jelly', 'sea_crab', 'sea_eel', 'sea_puffer', 'sea
 def build():
     g = globals()
     out = {}
+    global S
     for name in NAMES:
+        S = 1.0 if '_' in name and not name.startswith('sea_') else 1.6
         a, b, k = triple(g[name + '_draw'])
         out[name] = (a, {})
         out[name + '_b'] = (b, {})
         out[name + '_atk'] = (k, {})
+    S = 1.0
     out['set_ocean'] = (set_ocean(), {})
     return out
 
