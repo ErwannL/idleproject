@@ -5,7 +5,7 @@ import { BALANCE } from '../data/balance.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
 import { bossTrait } from '../core/boss-traits.js';
 import { DUNGEONS } from '../data/dungeons.js';
-import { envLine } from '../core/environment.js'; // v9.2.1
+import { envLine, envChipText } from '../core/environment.js'; // v9.2.1
 import { bossTierForStage, currentEncounter, currentEnvironment, difficultyForStage, isBossStage, stageLabel, zoneForStage, zoneIndexForStage } from '../core/combat.js';
 import { eventLabel } from '../core/events.js';
 import { SUMMON_POOLS, normalizePool } from '../core/gacha.js';
@@ -1052,7 +1052,7 @@ export class UI {
         const plan = bossWarningPlan(this.bossMemory, { tier, kind: event.kind, enemyId: event.enemyId, name: BOSSES[event.kind].name,
           mode: state.dungeon ? 'dungeon' : state.tower ? 'tower' : 'stage', now: Date.now(), calm: reduceMotion(), fast: (this.speed ?? 1) >= 100 });
         if (plan) showBossWarning(plan);
-        if (trait) this.news(`${BOSSES[event.kind].name} — ${trait.name} : ${trait.text}. Contre : ${trait.counter}.`, trait.color, 2);
+        if (trait) this.news(`${BOSSES[event.kind].name} — ${trait.name} : ${trait.short}`, trait.color, 2);
         if (tier === 'mega' || tier === 'hard') this.announce(`${label} : ${BOSSES[event.kind].name}`);
         if ((tier === 'mega' || tier === 'hard') && !this.calm) {
           const flash = this.$('boss-flash');
@@ -1400,7 +1400,7 @@ export class UI {
     el.classList.toggle('countered', done);
     el.title = envLine(env);
     el.setAttribute('aria-label', envLine(env));
-    el.innerHTML = `${img(env.icon, 'ico16')}<span>contré ${Math.round(env.countered)} %</span>`;
+    el.innerHTML = `${img(env.icon, 'ico16')}<span>${envChipText(env)}</span>`;
   }
 
   updateZoneCard(state) {

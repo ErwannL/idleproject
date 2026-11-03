@@ -1,6 +1,8 @@
 // v9.2.1 : coréen des malus d'environnement et de leurs mentions. Branché à la fin de ./ko.js.
 export const EXACT_921 = {
   Environnement: '환경',
+  'réduit les dégâts reçus': '받는 피해 감소', 'invoque des serviteurs': '하수인 소환', 'frappe de plus en plus fort': '점점 더 강하게 공격',
+  'enragé sous 50 % de PV': 'HP 50% 미만에서 격노', 'se régénère sans critiques': '치명타가 없으면 재생',
   'Pénombre': '어스름', 'Éclats de cristal': '수정 파편', Soif: '갈증', 'Froid mordant': '살을 에는 추위',
   'Malédiction': '저주', Boue: '진흙', Rafales: '돌풍', Lave: '용암', Distorsion: '왜곡', Pression: '수압', Corruption: '타락',
   'Environnements des mondes': '월드 환경',
@@ -30,6 +32,8 @@ export const patterns921 = (lookup) => [
   ...EFFECTS,
   [/^contré par (.+) \((\d+) %\)$/, (m) => { const w = lookup(m[1]); return w === null ? null : `${w}(으)로 대응 (${m[2]}%)`; }],
   [/^contré par (.+) \(complet au niveau (\d+)\)$/, (m) => { const w = lookup(m[1]); return w === null ? null : `${w}(으)로 대응 (레벨 ${m[2]}에서 완성)`; }],
+  [/^(Pénombre|Éclats de cristal|Soif|Froid mordant|Malédiction|Boue|Rafales|Lave|Distorsion|Pression|Corruption) : annulé$/, (m) => { const w = lookup(m[1]); return w === null ? null : `${w}: 무효`; }],
+  [/^(Pénombre|Éclats de cristal|Soif|Froid mordant|Malédiction|Boue|Rafales|Lave|Distorsion|Pression|Corruption) : (\+|−)([\d,]+) % (de ratés|dégâts reçus|régénération|PV max|dégâts|vitesse|critique|PV\/s|contre boss|armure|compagnons)$/, (m) => { const w = lookup(m[1]); const u = { 'de ratés': '빗나감', 'dégâts reçus': '받는 피해', 'régénération': '재생', 'PV max': '최대 HP', 'dégâts': '피해', vitesse: '속도', critique: '치명타', 'PV/s': 'HP/초', 'contre boss': '보스 대상', armure: '방어구', compagnons: '동료' }[m[4]]; return w === null ? null : `${w}: ${u} ${m[2] === '+' ? '+' : m[4] === 'de ratés' ? '' : '−'}${m[3].replace(',', '.')}%`; }],
   [/^contré (\d+) %$/, (m) => `대응 ${m[1]}%`],
   [/^contre (.+)$/, (m) => { const w = lookup(m[1]); return w === null ? null : `${w} 대응`; }],
   [/^Contré : (\d+) % \(complet au niveau (\d+)\)$/, (m) => `대응: ${m[1]}% (레벨 ${m[2]}에서 완성)`],

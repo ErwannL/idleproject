@@ -69,6 +69,18 @@ export function envEffectText(env, pct = env.pct) {
   }
 }
 
+// v9.2.1 : version courte pour la pastille du combat (« Boue : −23 % vitesse », « Boue : annulé »).
+export function envChipText(env) {
+  if (env.countered >= 100 || env.pct <= 0) return `${env.name} : annulé`;
+  const v = Math.max(1, Math.round(env.pct));
+  const t = {
+    miss: `${v} % de ratés`, hurt: `+${v} % dégâts reçus`, regen: `−${v} % régénération`, maxHp: `−${v} % PV max`,
+    damage: `−${v} % dégâts`, speed: `−${v} % vitesse`, crit: `−${v} % critique`, burn: `−${v} % PV/s`,
+    boss: `−${v} % contre boss`, armor: `−${v} % armure`, companion: `−${v} % compagnons`,
+  }[env.kind] ?? '';
+  return `${env.name} : ${t}`;
+}
+
 // Ligne complète (bannière d'entrée, infobulle du HUD, fiche du monde) : valeur en vigueur et part contrée.
 export function envLine(env) {
   return `Environnement : ${env.name} — ${envEffectText(env)} · contré par ${env.counterLabel} (${Math.round(env.countered)} %)`;

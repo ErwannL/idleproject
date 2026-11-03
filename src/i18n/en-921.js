@@ -2,6 +2,8 @@
 // Branché à la fin de ./en.js comme ./en-920-upg.js.
 export const EXACT_921 = {
   Environnement: 'Environment',
+  'réduit les dégâts reçus': 'reduces damage taken', 'invoque des serviteurs': 'summons minions', 'frappe de plus en plus fort': 'hits harder and harder',
+  'enragé sous 50 % de PV': 'enraged below 50% HP', 'se régénère sans critiques': 'regenerates without crits',
   'Pénombre': 'Gloom', 'Éclats de cristal': 'Crystal shards', Soif: 'Thirst', 'Froid mordant': 'Biting cold',
   'Malédiction': 'Curse', Boue: 'Mud', Rafales: 'Gusts', Lave: 'Lava', Distorsion: 'Distortion', Pression: 'Pressure', Corruption: 'Corruption',
   'Environnements des mondes': 'World environments',
@@ -31,6 +33,8 @@ export const patterns921 = (lookup) => [
   ...EFFECTS,
   [/^contré par (.+) \((\d+) %\)$/, (m) => { const w = lookup(m[1]); return w === null ? null : `countered by ${w} (${m[2]}%)`; }],
   [/^contré par (.+) \(complet au niveau (\d+)\)$/, (m) => { const w = lookup(m[1]); return w === null ? null : `countered by ${w} (full at level ${m[2]})`; }],
+  [/^(Pénombre|Éclats de cristal|Soif|Froid mordant|Malédiction|Boue|Rafales|Lave|Distorsion|Pression|Corruption) : annulé$/, (m) => { const w = lookup(m[1]); return w === null ? null : `${w}: cancelled`; }],
+  [/^(Pénombre|Éclats de cristal|Soif|Froid mordant|Malédiction|Boue|Rafales|Lave|Distorsion|Pression|Corruption) : (\+|−)([\d,]+) % (de ratés|dégâts reçus|régénération|PV max|dégâts|vitesse|critique|PV\/s|contre boss|armure|compagnons)$/, (m) => { const w = lookup(m[1]); const u = { 'de ratés': 'misses', 'dégâts reçus': 'damage taken', 'régénération': 'regen', 'PV max': 'max HP', 'dégâts': 'damage', vitesse: 'speed', critique: 'crit', 'PV/s': 'HP/s', 'contre boss': 'vs bosses', armure: 'armor', compagnons: 'companions' }[m[4]]; return w === null ? null : `${w}: ${m[2] === '+' ? '+' : m[4] === 'de ratés' ? '' : '−'}${m[3].replace(',', '.')}% ${u}`; }],
   [/^contré (\d+) %$/, (m) => `countered ${m[1]}%`],
   [/^contre (.+)$/, (m) => { const w = lookup(m[1]); return w === null ? null : `counters ${w}`; }],
   [/^Contré : (\d+) % \(complet au niveau (\d+)\)$/, (m) => `Countered: ${m[1]}% (full at level ${m[2]})`],

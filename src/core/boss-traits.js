@@ -6,28 +6,28 @@
 //   Désespoir  : plus dangereux sous la moitié de ses PV → armure, PV.
 export const TRAITS = {
   armored: {
-    name: 'Carapace', color: '#b8c8e0', counter: 'Vitesse d\'attaque, coups multiples',
+    name: 'Carapace', short: 'réduit les dégâts reçus', color: '#b8c8e0', counter: 'Vitesse d\'attaque, coups multiples',
     text: 'encaisse −60 % des dégâts ; chaque coup reçu use sa carapace de 1,5 point',
     shell: 60, wear: 1.5, // étape 4 : 3 → 1,5 — il faut ~40 coups : la vitesse d'attaque fait vraiment la différence
   },
   summoner: {
-    name: 'Invocatrice', color: '#9fe6ff', counter: 'Dégâts de zone, perçants ou en chaîne',
+    name: 'Invocatrice', short: 'invoque des serviteurs', color: '#9fe6ff', counter: 'Dégâts de zone, perçants ou en chaîne',
     text: 'fait surgir 2 serviteurs toutes les 12 s, qui se placent devant elle',
     every: 12, count: 2, maxAlive: 4, minionHpPct: 3, minion: 'wraith',
   },
   escalate: {
-    name: 'Fournaise', color: '#ff7a3a', counter: 'PV, régénération, vol de vie',
+    name: 'Fournaise', short: 'frappe de plus en plus fort', color: '#ff7a3a', counter: 'PV, régénération, vol de vie',
     text: 'ses dégâts augmentent de 6 % toutes les 3 s de combat (jusqu\'à ×2,5)',
     stepSeconds: 3, stepPct: 6, maxDamage: 2.5, // étape 4 : plafonné (la rage s'en charge déjà)
   },
   desperate: {
-    name: 'Désespoir', color: '#ff4a6a', counter: 'Armure, PV',
+    name: 'Désespoir', short: 'enragé sous 50 % de PV', color: '#ff4a6a', counter: 'Armure, PV',
     text: 'sous 50 % de ses PV, frappe 60 % plus fort et 30 % plus vite — sauf contre une armure solide (40 % l\'annule)',
     below: 0.5, damage: 1.6, speed: 1.3, armorNullifies: 40, // étape 4 : l'armure devient le vrai contre
   },
   // v9.2.0 (monde marin) : Marée — le boss se régénère tant qu'aucun coup critique ne le touche.
   tidal: {
-    name: 'Marée', color: '#4ad0ff', counter: 'Coups critiques',
+    name: 'Marée', short: 'se régénère sans critiques', color: '#4ad0ff', counter: 'Coups critiques',
     text: 'régénère 1 % de ses PV max par seconde ; un coup critique arrête la marée 3 s',
     regenPct: 1, critPause: 3,
   },
