@@ -275,6 +275,36 @@ export function heroComposite(frame, equipment, flash = false, cape = 'a', palet
   return canvas;
 }
 
+// v9.2.0 (nage) : héros en crawl (sprites dessinés hero_swim1..6 / skin_<id>_swim1..6, couchés tête à droite),
+// arme tenue le long du dos (quart de tour au pixel entier, lame vers l'arrière). Repère : corps posé en
+// SWIM_BODY dans un cadre SWIM_SIZE ; l'axe du corps est à y = SWIM_BODY.y + 14.
+export const SWIM_SIZE = { w: 72, h: 34 };
+export const SWIM_BODY = { x: 14, y: 4 };
+export function heroSwim(step, equipment, palette = null, flash = false) {
+  const gear = equipment.weapon ? `${equipment.weapon.baseId}/${equipment.weapon.rarity}` : '-';
+  const key = `heroswim|${step}|${gear}|${flash}|${palette ? JSON.stringify(palette) : ''}`;
+  let canvas = cache.get(key);
+  if (canvas) return canvas;
+  if (flash) canvas = tinted(heroSwim(step, equipment, palette), '#ffffff', 1);
+  else {
+    canvas = createCanvas(SWIM_SIZE.w, SWIM_SIZE.h);
+    const ctx = canvas.getContext('2d');
+    const n = (step % 6) + 1;
+    const skin = palette?.skin && SPRITES[`skin_${palette.skin}_swim${n}`] ? `skin_${palette.skin}_swim${n}` : null;
+    if (equipment.weapon) {
+      const wname = itemSpriteName(equipment.weapon);
+      const def = SPRITES[wname];
+      const img = spriteCanvas(wname, { colors: itemColors(equipment.weapon), rotate: 3 });
+      const grip = rotatedGrip(def.grip, def.rows[0].length, def.rows.length, 3);
+      ctx.drawImage(img, SWIM_BODY.x + 34 - grip.x, SWIM_BODY.y + 6 - grip.y); // poignée à l'épaule, lame derrière le dos (le corps passe devant)
+    }
+    ctx.drawImage(skin ? spriteCanvas(skin) : spriteCanvas(`hero_swim${n}`, { colors: heroColors(palette) }), SWIM_BODY.x, SWIM_BODY.y);
+    canvas = outlined(canvas);
+  }
+  cache.set(key, canvas);
+  return canvas;
+}
+
 // Rectangle des pixels opaques (pour recadrer les calques d'équipement en icônes).
 function opaqueBounds(canvas) {
   const { data, width, height } = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);

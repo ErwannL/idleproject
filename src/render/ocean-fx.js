@@ -310,7 +310,7 @@ export function strokeStep(time, speed = 6, phase = 0, focus = false) {
 
 // Profondeur de nage (px au-dessus de la position debout) : chacun la sienne, décalées pour que les corps couchés
 // ne se recouvrent pas. Balancement d'1 px au plus (on nage, on ne flotte pas).
-export const SWIM_DEPTH = { hero: -12, pet: 6, ally0: 22, ally1: -6 };
+export const SWIM_DEPTH = { hero: 4, pet: 14, ally0: 22, ally1: -6 };
 export const SWIM_TILT = 80; // corps couché, tête devant
 export function swimFloat(base, time, seed = 0, focus = false) {
   if (focus) return base;

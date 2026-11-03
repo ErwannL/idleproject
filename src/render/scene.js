@@ -19,7 +19,7 @@ import { activeClass } from '../core/classes.js';
 import { BG } from './bg.js';
 import { addBubble, drawOceanBack, drawOceanFront, kickFrame, STROKE, strokeStep, swimDraw, swimFloat, swimPose, swirl, SWIM_DEPTH, SWIM_TILT } from './ocean-fx.js'; // v9.2.0 (monde marin)
 import { FONT_BIG, SPRITES } from './sprites.js';
-import { HERO_ANCHOR, drawBigText, heroComposite, itemDropCanvas, spriteCanvas, textWidth } from './pixel.js';
+import { HERO_ANCHOR, SWIM_BODY, drawBigText, heroComposite, heroSwim, itemDropCanvas, spriteCanvas, textWidth } from './pixel.js';
 
 // Vue resserrée : le chevalier (≈ 40 px) occupe un bon tiers de la hauteur de la scène.
 export const MIN_VIEW_HEIGHT = 96;
@@ -938,36 +938,42 @@ export class SceneRenderer {
       ctx.globalAlpha = 1;
     }
     let lift = 0;
+    let barY = baseY - 2 - jump;
     if (this.underwater) {
-      // v9.2.0 (nage) : le héros nage couché (tête devant, ~80°), crawl en 6 temps avec un petit élan à chaque
-      // traction, jambes en ciseaux, cape/plumet qui traînent dans l'axe du corps, sillage de bulles derrière les
-      // pieds ; balancement d'1 px au plus. Pour frapper il se redresse (coup), puis se recouche.
-      // Pose calculée au pixel entier (swimPose : ciseaux + rotation Scale2x, mise en cache).
+      // v9.2.0 (nage) : le héros nage couché, tête devant — sprites de crawl dessinés (tools/art/swim.py, 6 images :
+      // bras qui tirent, jambes en ciseaux, cape et plumet qui traînent), petit élan à chaque traction, sillage de
+      // bulles derrière les pieds ; balancement d'1 px au plus. Pour frapper/viser il se redresse, puis se recouche.
       lift = swimFloat(SWIM_DEPTH.hero, this.time, 0, this.focus);
       const striking = this.hero.attack > 0 || this.hero.cast > 0;
       const aiming = style === 'ranged' && engaged;
       const swimming = !striking && !aiming && this.hero.hurt <= 0;
-      const tilt = this.hero.hurt > 0 ? 45 : striking ? (frame === 'attack1' ? 35 : 10) : aiming ? 0 : SWIM_TILT;
-      const [back, front] = swimming ? kickFrame(this.time, hero.walking ? 10 : 6, 0, this.focus, 1.5) : [0, 0];
-      const pose = swimPose(img, { tilt, back, front, legFrac: 0.3 });
+      const tilt = this.hero.hurt > 0 ? 20 : striking ? (frame === 'attack1' ? 15 : 5) : 0;
       const surge = swimming ? STROKE[swimStep][1] : 0;
       if (striking && !this.swimStrike) { this.swimStrike = true; swirl(this, HERO_X - 8, baseY - lift + 26, 6); } // remous du redressement
       if (!striking) this.swimStrike = false;
-      const px = baseX + lean + surge - pose.ox, py = baseY - jump - lift - pose.oy;
-      if (swimming) swimDraw(ctx, pose.canvas, px, py, pose.canvas.width, pose.canvas.height, { time: this.time, amp: 1, mode: 'dolphin', focus: this.focus });
-      else ctx.drawImage(pose.canvas, px, py);
+      if (swimming) {
+        // Crawl dessiné (6 images), arme le long du dos ; ondulation douce depuis la tête (cape, jambes).
+        const sw = heroSwim(swimStep, state.equipment, palette, false);
+        const px = HERO_X - SWIM_BODY.x - 30 + surge, py = this.groundY - 22 - lift - SWIM_BODY.y - 14;
+        swimDraw(ctx, sw, px, py, sw.width, sw.height, { time: this.time, amp: 1, mode: 'dolphin', focus: this.focus });
+        barY = this.groundY - 22 - lift - 20;
+      } else {
+        // Redressé pour frapper / viser / encaisser (pose debout, à peine penchée), puis retour à la nage.
+        const pose = swimPose(img, { tilt });
+        ctx.drawImage(pose.canvas, baseX + lean - pose.ox, baseY - jump - lift - pose.oy);
+      }
       this.mouthBubble = (this.mouthBubble ?? 1) - (this.dt ?? 0);
       if (this.mouthBubble <= 0 && !this.focus) {
         this.mouthBubble = (hero.walking ? 0.25 : 0.5) + Math.random() * 0.3;
         // Sillage derrière les pieds (le corps couché : pieds à gauche, à mi-hauteur).
-        const midY = baseY - lift + HERO_ANCHOR.y / 2 + 6;
+        const midY = this.groundY - 22 - lift;
         addBubble(this, HERO_X - 24 + surge, midY + (Math.random() * 6 - 3), { vx: -22, vy: -6, r: Math.random() < 0.3 ? 2 : 1, life: 1.1 });
         if (Math.random() < 0.3) addBubble(this, HERO_X + 16, midY - 6, { vy: -16, r: 1, life: 2 }); // bouche
       }
     } else ctx.drawImage(img, baseX + lean, baseY - jump);
 
     const stats = world.heroStats;
-    if (stats) this.drawBar(ctx, HERO_X - 11 + dash, baseY - 2 - jump - lift, 22, hero.hp / stats.maxHp, '#5ad07a');
+    if (stats) this.drawBar(ctx, HERO_X - 11 + dash, barY === baseY - 2 - jump ? barY - lift : barY, 22, hero.hp / stats.maxHp, '#5ad07a');
   }
 
   // Compagnons : suivent le chevalier, les volants planent au-dessus de son épaule.
@@ -1209,7 +1215,7 @@ export class SceneRenderer {
     const fly = gait === 'fly';
     const glide = gait === 'glide';
     // Couchés tête devant (vol plané horizontal pour les volants, un peu moins couchés) ; redressés pour frapper.
-    const tilt = gesture ? 15 : fly ? 60 : SWIM_TILT;
+    const tilt = gesture ? 15 : fly ? 55 : SWIM_TILT - 15; // ~65° : visage et bras restent lisibles sur les grands sprites
     const [back, front] = fly || glide || gesture ? [0, 0] : kickFrame(this.time, walking ? 10 : 6, seed * 3, this.focus, 1.5);
     const pose = swimPose(img, { tilt, back, front, legFrac: 0.3 });
     const surge = gesture || fly ? 0 : STROKE[strokeStep(this.time, walking ? 8 : 5, seed * 2, this.focus)][1];

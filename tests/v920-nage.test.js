@@ -50,3 +50,18 @@ test('battement en 4 images ; flottement déphasé ±5 px ; « réduire les anim
   assert.equal(swimFloat(SWIM_DEPTH.hero, 1.7, 0, true), SWIM_DEPTH.hero);
   assert.notEqual(SWIM_DEPTH.ally0, SWIM_DEPTH.ally1);
 });
+
+test('sprites de nage dessinés : 6 images de crawl pour le chevalier et pour chacun des 8 skins, couchés', async () => {
+  const { ART } = await import('../src/render/art.js');
+  for (const who of ['hero', 'skin_demoness', 'skin_fairy', 'skin_grombar', 'skin_ninja', 'skin_seraph', 'skin_valkyrie', 'skin_vampire', 'skin_witch']) {
+    const frames = [1, 2, 3, 4, 5, 6].map((n) => ART[`${who}_swim${n}`]);
+    for (const f of frames) {
+      assert.ok(f, who);
+      assert.ok(f.rows[0].length > f.rows.length * 1.6, `${who} : silhouette horizontale`);
+    }
+    assert.equal(new Set(frames.map((f) => f.rows.join())).size, 6, `${who} : 6 images différentes`);
+  }
+  // Le chevalier garde ses couleurs recolorables (tabard B, dorure W, plumet K, acier I).
+  const rows = ART.hero_swim1.rows.join('');
+  for (const ch of 'BWKI') assert.ok(rows.includes(ch), ch);
+});
