@@ -1,3 +1,11 @@
+## Ascendrya v9.2.1
+
+- Royaume englouti : l'équipe nage enfin en rang — chaque nageur a sa place à la largeur de son corps couché (plus de compagnons collés l'un sur l'autre ni coupés au bord gauche), toute l'équipe tient dans le cadre sur téléphone (375×812) comme sur PC (1280×720).
+- Le chevalier nageur est redessiné plus grand (×1,3, retracé à la nouvelle taille et posé au pixel entier) : même carrure que les compagnons, pour le chevalier et les 8 skins.
+- Attaques sous l'eau aussi riches que sur terre, adaptées à l'eau : arcs de taille qui fendent l'eau (croissant de bulles et remous), sillage de bulles derrière chaque projectile, remous aux impacts, colonnes de bulles sous les rayons, éclairs qui font bouillonner l'eau, feu qui siffle en vapeur, vase soulevée au lieu de poussière, éclats freinés par l'eau ; pour le héros, les compagnons, les ennemis et les boss.
+- Chaque monde a sa façon d'avancer (héros, compagnons, familiers) : pas feutrés et feuilles mortes en forêt, éclats de cristal dans les grottes, sable soulevé, empreintes et mirage dans le désert, glissade sur la neige, brume maudite aux chevilles, on patauge dans le marais (eau jusqu'aux mollets, éclaboussures, pas lents), on saute de nuage en nuage dans les Îles célestes, pas prudents et empreintes brûlantes sur la lave, lévitation dans le Néant, pas lourds dans l'ombre de l'Abysse. Détail : docs/deplacements-v921.md. « Réduire les animations » : hauteurs fixes, ni particules ni traces.
+- Performances : temps d'image inchangé sur téléphone simulé (processeur ÷4, 375×812 : 20–28 ms en moyenne avant comme après, 95e centile identique).
+
 ## Ascendrya v9.2.0 — Royaume englouti (monde sous-marin) et 13 améliorations
 
 - Nouveau monde 11 : le Royaume englouti, une cité engloutie sous les vagues (20 étapes). Le Trône de l'Abysse devient le monde 12. Décor sous-marin en parallaxe : falaises lointaines, colonnes et temple effondré, épave, récifs de coraux, kelp qui ondule, rayons de lumière qui oscillent, caustiques, bulles qui montent, particules en suspension, bancs de poissons au loin.

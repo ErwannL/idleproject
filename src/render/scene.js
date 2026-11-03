@@ -5,6 +5,7 @@ import { auraColors } from '../data/auras.js';
 import { BALANCE } from '../data/balance.js';
 import { drawTeamFx } from './team-fx.js';
 import { installClassFx } from './class-fx.js';
+import { installTraversalFx } from './traversal-fx.js'; // v9.2.1 : déplacement propre à chaque monde
 import { armSwing, attackCurve, dissolveFrames } from './enemy-anim.js';
 import { elementOfColor, installElementFx } from './element-fx.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
@@ -17,9 +18,10 @@ import { formatNumber } from '../core/format.js';
 import { activeHero } from '../core/heroes.js';
 import { activeClass } from '../core/classes.js';
 import { BG } from './bg.js';
+import { waterAccent } from './water-fx.js'; // v9.2.1
 import { addBubble, drawOceanBack, drawOceanFront, kickFrame, STROKE, strokeStep, swimDraw, swimFloat, swimPose, swirl, SWIM_DEPTH, SWIM_TILT } from './ocean-fx.js'; // v9.2.0 (monde marin)
 import { FONT_BIG, SPRITES } from './sprites.js';
-import { HERO_ANCHOR, SWIM_BODY, drawBigText, heroComposite, heroSwim, itemDropCanvas, spriteCanvas, textWidth } from './pixel.js';
+import { HERO_ANCHOR, SWIM_AXIS, SWIM_BODY, drawBigText, heroComposite, heroSwim, itemDropCanvas, spriteCanvas, textWidth } from './pixel.js';
 
 // Vue resserrée : le chevalier (≈ 40 px) occupe un bon tiers de la hauteur de la scène.
 export const MIN_VIEW_HEIGHT = 96;
@@ -595,6 +597,8 @@ export class SceneRenderer {
     const zoneIndex = currentEncounter(state).zoneIndex;
     this.underwater = Boolean(ZONES[zoneIndex]?.underwater); // v9.2.0 (monde marin) : on nage
     this.dt = dt;
+    this.setTraversal(ZONES[zoneIndex]); // v9.2.1
+    this.travWalking = Boolean(world.hero.walking);
     if (zoneIndex !== this.lastZone) {
       if (this.lastZone >= 0) this.zoneFade = 1;
       this.lastZone = zoneIndex;
@@ -621,10 +625,14 @@ export class SceneRenderer {
     ctx.save();
     ctx.translate(shift, 0);
     this.drawEnemies(ctx, world, dt);
+    // v9.2.1 (marais) : l'équipe patauge — corps enfoncés (travLift) et coupés à la surface de l'eau.
+    const wade = this.trav?.wade;
+    if (wade) { ctx.save(); ctx.beginPath(); ctx.rect(-shift - 8, 0, this.width + 16, this.groundY - 2); ctx.clip(); }
     this.drawCompanions(ctx, state, world, dt);
     const pet = world.hero.dead ? null : equippedCompanions(state).find((c) => c.kind !== 'ally');
     if (pet) this.drawPet(ctx, world, pet);
     this.drawHero(ctx, state, world);
+    if (wade) ctx.restore();
     drawTeamFx(this, ctx, state, world, HERO_X);
     ctx.restore();
     this.drawBackground(ctx, ZONES[zoneIndex], this.smoothScroll(world), true); // premier plan
@@ -632,6 +640,7 @@ export class SceneRenderer {
     ctx.translate(shift, 0);
     // Effets au ras du sol (halo des robes, souffle des ailes) : par-dessus les herbes du premier plan.
     for (const draw of this.groundFx ?? []) draw(ctx);
+    this.drawTravGround(ctx, this.smoothScroll(world), dt); // v9.2.1 : traces, nuages, surface du marais
     this.groundFx = [];
     this.drawEffects(ctx, dt);
     ctx.restore();
@@ -897,7 +906,7 @@ export class SceneRenderer {
     } else if (this.hero.cast > 0) frame = 'cast';
     else if (this.hero.hurt > 0) frame = 'hurt';
     else if (this.hero.victory > 0) frame = 'victory';
-    else if (hero.walking) frame = `walk${1 + (Math.floor(this.time * 9) % 4)}`;
+    else if (hero.walking) { const k = this.travWalk(0, true); frame = k ? `walk${k}` : 'idle'; } // v9.2.1 : cadence/glisse/saut du monde
     // v9.2.0 (nage) : hors frappe/sort/coup reçu, le héros nage toujours — les images de pas servent de brasse
     // (le bras libre pagaie), plus lentes ; la visée des tireurs est gardée.
     // v9.2.0 (nage) : crawl en 6 temps (STROKE) ; sur place, même nage plus lente. Le tir visé reste (redressé).
@@ -954,9 +963,9 @@ export class SceneRenderer {
       if (swimming) {
         // Crawl dessiné (6 images), arme le long du dos ; ondulation douce depuis la tête (cape, jambes).
         const sw = heroSwim(swimStep, state.equipment, palette, false);
-        const px = HERO_X - SWIM_BODY.x - 30 + surge, py = this.groundY - 22 - lift - SWIM_BODY.y - 14;
+        const px = HERO_X - SWIM_BODY.x - SWIM_AXIS.x + surge, py = this.groundY - 22 - lift - SWIM_BODY.y - SWIM_AXIS.y; // v9.2.1 : dessin agrandi
         swimDraw(ctx, sw, px, py, sw.width, sw.height, { time: this.time, amp: 1, mode: 'dolphin', focus: this.focus });
-        barY = this.groundY - 22 - lift - 20;
+        barY = this.groundY - 22 - lift - 24;
       } else {
         // Redressé pour frapper / viser / encaisser (pose debout, à peine penchée), puis retour à la nage.
         const pose = swimPose(img, { tilt });
@@ -967,10 +976,15 @@ export class SceneRenderer {
         this.mouthBubble = (hero.walking ? 0.25 : 0.5) + Math.random() * 0.3;
         // Sillage derrière les pieds (le corps couché : pieds à gauche, à mi-hauteur).
         const midY = this.groundY - 22 - lift;
-        addBubble(this, HERO_X - 24 + surge, midY + (Math.random() * 6 - 3), { vx: -22, vy: -6, r: Math.random() < 0.3 ? 2 : 1, life: 1.1 });
-        if (Math.random() < 0.3) addBubble(this, HERO_X + 16, midY - 6, { vy: -16, r: 1, life: 2 }); // bouche
+        addBubble(this, HERO_X - 34 + surge, midY + (Math.random() * 6 - 3), { vx: -22, vy: -6, r: Math.random() < 0.3 ? 2 : 1, life: 1.1 });
+        if (Math.random() < 0.3) addBubble(this, HERO_X + 22, midY - 7, { vy: -16, r: 1, life: 2 }); // bouche
       }
-    } else ctx.drawImage(img, baseX + lean, baseY - jump);
+    } else {
+      // v9.2.1 : hauteur propre au monde (nuage, lévitation, enfoncé dans le marais) et effets aux pieds.
+      lift = this.travLift(0);
+      ctx.drawImage(img, baseX + lean, baseY - jump - lift);
+      this.travFeet('hero', HERO_X - 2, hero.walking, 0);
+    }
 
     const stats = world.heroStats;
     if (stats) this.drawBar(ctx, HERO_X - 11 + dash, barY === baseY - 2 - jump ? barY - lift : barY, 22, hero.hp / stats.maxHp, '#5ad07a');
@@ -1085,6 +1099,12 @@ export class SceneRenderer {
     // Robe longue : flotte en permanence 2 à 3 px au-dessus du sol (balancement plus ample en avançant).
     if (gait === 'glide') return { dx: 0, dy: 4 + Math.sin(t * (walking ? 4.5 : 2)) * (walking ? 1 : 0.8), glow: 0, glide: true };
     if (walking && gait === 'hop') return { dx: 0, dy: Math.abs(Math.sin(t * 6)) * 4, glow: 0 };
+    if (walking && this.trav && !this.underwater) {
+      // v9.2.1 : cadence du monde (pas lents du marais, prudents sur la lave…) ; glisse, saut ou lévitation = pose de repos.
+      const seed = (companion.id.length % 3) + 1;
+      if (!this.travWalk(seed, true)) return { dx: 0, dy: 0, glow: 0 };
+      return { dx: 0, dy: 0, glow: 0, step: Math.floor(this.time * 9 * this.trav.rate) };
+    }
     if (walking) return { dx: 0, dy: 0, glow: 0, step: Math.floor(this.time * 9) }; // les images de pas portent le mouvement
     return { dx: 0, dy: (Math.sin(t * 2.2) + 1) * 0.35, glow: 0 };
   }
@@ -1124,7 +1144,10 @@ export class SceneRenderer {
     const cx0 = slot ? slot.cx : x0 + w / 2;
     const x = x0 + pose.dx;
     const lift = swimming ? swimFloat(SWIM_DEPTH[`ally${i}`] ?? 13, this.time, i * 2.1 + 1.3, this.focus) : 0;
-    const y = this.groundY + 1 - h - pose.dy - lift;
+    // v9.2.1 : hauteur propre au monde (sauf volants) et effets aux pieds.
+    const tl = swimming || SPRITES[s]?.gait === 'fly' ? 0 : this.travLift((companion.id.length % 3) + 1);
+    const y = this.groundY + 1 - h - pose.dy - lift - tl;
+    if (!swimming && SPRITES[s]?.gait !== 'fly') this.travFeet(companion.id, cx0, walking, (companion.id.length % 3) + 1);
     // Poussière à chaque pas de marche.
     if (pose.step !== undefined) {
       this.allySteps ??= new Map();
@@ -1347,7 +1370,8 @@ export class SceneRenderer {
     const phase = Math.abs(Math.sin(this.time * (walking ? 9 : 2.5)));
     // v9.0.8 : seul le slime avance par sauts ; chat et golem trottinent (petit balancement d'un pixel).
     const hopper = companion.id === 'golden_slime';
-    const hop = walking ? phase * (hopper ? 4 : 1) : phase * 0.6;
+    const hop = (walking ? phase * (hopper ? 4 : 1) : phase * 0.6) + this.travLift(2.5); // v9.2.1 : hauteur du monde
+    this.travFeet(companion.id, x + img.width / 2, walking, 2.5, true);
     const squash = 1; // v9.0.8 : bonds sans écrasement du dessin
     this.drawShadow(ctx, x + img.width / 2, img.width * 0.8 - hop);
     if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, this.groundY - img.height, img.width, img.height, companion);
@@ -1396,10 +1420,27 @@ export class SceneRenderer {
     const team = equippedCompanions(state);
     const heroImg = heroComposite('idle', state.equipment, false, 'a', activeHero(state).palette);
     let cursor = HERO_X - HERO_ANCHOR.x + opaqueSpan(heroImg).l - GAP;
+    // v9.2.1 : sous l'eau, les corps sont couchés : chaque case prend la largeur de la pose de nage réellement
+    // dessinée (nageur agrandi, compagnons penchés, familier), 4 px d'écart pour l'élan des brasses.
+    const wet = this.underwater;
+    if (wet) {
+      const sw = heroSwim(0, state.equipment, activeHero(state).palette, false);
+      cursor = HERO_X - SWIM_BODY.x - SWIM_AXIS.x + opaqueSpan(sw).l - GAP - 2;
+    }
     const slots = new Map();
     const place = (c) => {
       const img = spriteCanvas(c.sprite);
       const sc = SPRITES[c.sprite]?.scale ?? 1;
+      if (wet && !(c.kind !== 'ally' && c.id === 'golden_slime')) {
+        const ally = c.kind === 'ally';
+        const fly = ally ? SPRITES[c.sprite]?.gait === 'fly' : FLYING_PETS.has(c.id);
+        const pose = swimPose(img, { tilt: ally ? (fly ? 55 : SWIM_TILT - 15) : fly ? 15 : -6 });
+        const span = opaqueSpan(pose.canvas);
+        const x = cursor - (span.r + 1) * sc + pose.ox * sc - 2;
+        slots.set(c.id, { x, cx: x + (img.width / 2) * sc });
+        cursor = x - pose.ox * sc + span.l * sc - GAP - 2;
+        return;
+      }
       const span = opaqueSpan(img);
       const x = cursor - (span.r + 1) * sc; // bord opaque droit du personnage collé à la case précédente
       slots.set(c.id, { x, cx: x + ((span.l + span.r + 1) / 2) * sc });
@@ -1444,6 +1485,7 @@ export class SceneRenderer {
   drawEffects(ctx, dt) {
     const coin = spriteCanvas('coin');
     const spawned = []; // particules créées pendant le parcours (ajoutées après le filtrage)
+    this.spawnSink = spawned; // v9.2.1 : remous créés par water-fx.js pendant le parcours
     const finished = []; // appels de fin d'effet (impacts…), exécutés après le filtrage
     this.effects = this.effects.filter((fx) => {
       fx.life -= dt;
@@ -1455,6 +1497,7 @@ export class SceneRenderer {
         return false;
       }
       const t = fx.life / fx.max;
+      if (this.underwater && waterAccent(this, ctx, fx, dt, t)) return true; // v9.2.1 : accents aquatiques des attaques
       switch (fx.kind) {
         case 'text':
           fx.y -= (fx.life > fx.max - 0.12 ? 60 : 14) * dt; // petit rebond puis montée lente (positions au pixel d'écran)
@@ -1702,3 +1745,4 @@ export class SceneRenderer {
 // Attaques de classe (render/class-fx.js).
 installClassFx(SceneRenderer.prototype, { HERO_X, ATTACK_TIME, CAST_TIME });
 installElementFx(SceneRenderer.prototype);
+installTraversalFx(SceneRenderer.prototype);

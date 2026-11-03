@@ -6,13 +6,15 @@
   skin_<id>_swim1..6 : même silhouette pour les 8 skins (leurs couleurs et leur élément clé : cheveux, capuche,
                       casque ailé…).
 L'arme n'est pas dessinée : le jeu la pose le long du dos (tournée d'un quart de tour, au pixel entier).
-Cadre 56×28, axe du corps sur y≈14.
+v9.2.1 : dessin agrandi (×1,3, retracé à la nouvelle taille — formes recalculées, pas d'image agrandie) pour que le
+nageur ait la carrure des compagnons ; le jeu le pose à l'échelle 1. Cadre 73×37, axe du corps sur y≈18.
 """
 import math
 
 from lib import Canvas, tag, ramp
 
-W, H = 56, 28
+S = 1.3  # v9.2.1 : facteur de tracé (les coordonnées ci-dessous restent celles du cadre 56×28 d'origine)
+W, H = math.ceil(56 * S), math.ceil(28 * S)
 OUT = '#1a1226'
 SKIN = ['#a8604e', '#e39a78', '#ffcfa6']
 EYE = '#1a1226'
@@ -154,8 +156,48 @@ def tail(c, f, P):
         c.set(x + 0.5, y + w / 2 - 0.4, h[0])
 
 
+class Scaled:
+    """v9.2.1 : trace les formes du dessin d'origine à l'échelle S (ellipses, lignes, polygones recalculés au pixel
+    près) ; les pixels de détail (set/setf) deviennent des blocs de 1 à 2 px sans trou."""
+
+    def __init__(self, c):
+        self.c = c
+
+    def _block(self, x, y):
+        x, y = int(round(x)), int(round(y))
+        return range(math.floor(x * S), max(math.floor(x * S) + 1, math.floor((x + 1) * S))), \
+            range(math.floor(y * S), max(math.floor(y * S) + 1, math.floor((y + 1) * S)))
+
+    def set(self, x, y, col):
+        xs, ys = self._block(x, y)
+        for yy in ys:
+            for xx in xs:
+                self.c.set(xx, yy, col)
+
+    def setf(self, x, y, col):
+        xs, ys = self._block(x, y)
+        for yy in ys:
+            for xx in xs:
+                self.c.setf(xx, yy, col)
+
+    def ellipse(self, cx, cy, rx, ry, col, only_inside=False):
+        self.c.ellipse(cx * S, cy * S, rx * S, ry * S, col, only_inside)
+
+    def line(self, x0, y0, x1, y1, col, width=1):
+        self.c.line(x0 * S, y0 * S, x1 * S, y1 * S, col, width=width * S if width > 1 else 1)
+
+    def poly(self, pts, col, only_inside=False):
+        self.c.poly([(x * S, y * S) for x, y in pts], col, only_inside)
+
+    def rect(self, x, y, w, h, col):
+        for yy in range(y, y + h):
+            for xx in range(x, x + w):
+                self.set(xx, yy, col)
+
+
 def swimmer(f, P):
-    c = Canvas(W, H)
+    base = Canvas(W, H)
+    c = Scaled(base)
     hand = HANDS[f % 6]
     far_hand = HANDS[(f + 3) % 6]
     kick = math.sin(f / 6 * 2 * math.pi * 2) * 3.5  # deux battements par brasse
@@ -172,8 +214,8 @@ def swimmer(f, P):
         for k in range(3):
             c.line(38 - k, 7, 33 - k * 3, 2 + k, w)
     arm(c, (36, 13), hand, False, P)
-    c.outline(OUT)
-    return c
+    base.outline(OUT)
+    return base
 
 
 def skin_palette(outfit, accent, hair, skin=None, helm=False, **kw):
@@ -208,6 +250,7 @@ def build():
 
 
 if __name__ == '__main__':
+    import os
     from lib import sheet
     b = build()
-    sheet([(k, v[0]) for k, v in b.items() if k.startswith('hero_') or k.endswith('swim1') or k.endswith('swim4')], '/tmp/claude-0/-home-user-idleproject/dd35360c-d79d-5fd7-bdfc-2303b86f9079/scratchpad/920/nage/swim_sheet.png', scale=5, cols=6)
+    sheet([(k, v[0]) for k, v in b.items() if k.startswith('hero_') or k.endswith('swim1') or k.endswith('swim4')], os.environ.get('SWIM_SHEET', '/tmp/swim_sheet.png'), scale=5, cols=6)

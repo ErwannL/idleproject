@@ -278,8 +278,10 @@ export function heroComposite(frame, equipment, flash = false, cape = 'a', palet
 // v9.2.0 (nage) : héros en crawl (sprites dessinés hero_swim1..6 / skin_<id>_swim1..6, couchés tête à droite),
 // arme tenue le long du dos (quart de tour au pixel entier, lame vers l'arrière). Repère : corps posé en
 // SWIM_BODY dans un cadre SWIM_SIZE ; l'axe du corps est à y = SWIM_BODY.y + 14.
-export const SWIM_SIZE = { w: 72, h: 34 };
-export const SWIM_BODY = { x: 14, y: 4 };
+// v9.2.1 : dessin agrandi (73×37, swim.py) ; SWIM_AXIS = centre du corps dans le dessin (x milieu du torse, y axe).
+export const SWIM_SIZE = { w: 96, h: 44 };
+export const SWIM_BODY = { x: 16, y: 4 };
+export const SWIM_AXIS = { x: 39, y: 18 };
 export function heroSwim(step, equipment, palette = null, flash = false) {
   const gear = equipment.weapon ? `${equipment.weapon.baseId}/${equipment.weapon.rarity}` : '-';
   const key = `heroswim|${step}|${gear}|${flash}|${palette ? JSON.stringify(palette) : ''}`;
@@ -296,7 +298,7 @@ export function heroSwim(step, equipment, palette = null, flash = false) {
       const def = SPRITES[wname];
       const img = spriteCanvas(wname, { colors: itemColors(equipment.weapon), rotate: 3 });
       const grip = rotatedGrip(def.grip, def.rows[0].length, def.rows.length, 3);
-      ctx.drawImage(img, SWIM_BODY.x + 34 - grip.x, SWIM_BODY.y + 6 - grip.y); // poignée à l'épaule, lame derrière le dos (le corps passe devant)
+      ctx.drawImage(img, SWIM_BODY.x + 44 - grip.x, SWIM_BODY.y + 8 - grip.y); // poignée à l'épaule, lame derrière le dos (le corps passe devant)
     }
     ctx.drawImage(skin ? spriteCanvas(skin) : spriteCanvas(`hero_swim${n}`, { colors: heroColors(palette) }), SWIM_BODY.x, SWIM_BODY.y);
     canvas = outlined(canvas);
