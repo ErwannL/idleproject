@@ -4,6 +4,7 @@
 // Style : interface de jeu mobile coréen (libellés courts, 「Lv.」, verbes en nom : 받기, 강화, 장착).
 // Glossaire et reste à faire : docs/coreen.md. Couverture : node tools/i18n-coverage.mjs.
 import { createTranslator, num } from './engine.js';
+import { EXACT_919, NUM as NUM_919, PATTERNS_919, setKoLookup } from './ko-919.js';
 
 // --- Dictionnaire exact ---------------------------------------------------------------------------
 
@@ -221,7 +222,7 @@ export const EXACT = {
 
 // --- Motifs ---------------------------------------------------------------------------------------
 
-const NUM = '([+\\-−~]?\\d+(?:[,.]\\d+)?(?: (?:K|M|B|T|Qa|Qi))?)';
+const NUM = NUM_919; // v9.1.9 : grands nombres « 232,3 ai » compris
 const rx = (src) => new RegExp(src.replaceAll('#', NUM));
 // Traduit une capture (nom propre, libellé…) ; null si inconnue, pour laisser la main au motif suivant.
 const tr = (s) => lookup(s);
@@ -322,6 +323,22 @@ export const PATTERNS = [
   [/^\d+ (?:h|min|s|j)(?: \d+(?: min| s)?)?$/, (m) => dur(m[0])],
 ];
 
+// v9.1.9 : textes complétés (./ko-919.js), placés avant les motifs plus généraux.
+Object.assign(EXACT, EXACT_919);
+PATTERNS.unshift(...PATTERNS_919);
+
 const engine = createTranslator(EXACT, PATTERNS);
 export const lookup = engine.lookup;
+setKoLookup(lookup);
 export const translate = (s) => engine.translate(s);
+
+// v9.1.9 (apparences, alerte de boss) : textes nouveaux.
+Object.assign(EXACT, {
+  '⚠ DANGER': '⚠ 위험', '⚠ BOSS': '⚠ 보스', 'Boss du donjon': '던전 보스', 'Boss de la Tour': '탑 보스', 'Mini-boss': '미니 보스',
+  'Boss redoutable': '강력한 보스', 'MÉGA BOSS': '메가 보스',
+  '✦ Nouvelle apparence débloquée ! ✦': '✦ 새 외형 해금! ✦', 'Porter maintenant': '지금 착용', 'Plus tard': '나중에', 'Suivante ›': '다음 ›',
+  'Portée ✓': '착용 중 ✓', 'aucun doublon': '중복 없음',
+});
+PATTERNS.push(
+  [/^Mes apparences \((\d+)\) ›$/, '내 외형 ($1) ›'],
+);

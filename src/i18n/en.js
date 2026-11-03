@@ -9,6 +9,7 @@
 
 import { EXACT_910, PATTERNS_910, setTranslator } from './en-910.js';
 import { createTranslator, num } from './engine.js';
+import { EXACT_919, PATTERNS_919, setEnLookup } from './en-919.js';
 
 // --- Dictionnaire exact ---------------------------------------------------------------------------
 
@@ -1977,6 +1978,10 @@ export const lookup = engine.lookup;
 Object.assign(EXACT, EXACT_910);
 PATTERNS.unshift(...PATTERNS_910);
 setTranslator((s) => translate(s));
+// v9.1.9 : textes complétés (./en-919.js) ; les motifs passent en tête.
+Object.assign(EXACT, EXACT_919);
+PATTERNS.unshift(...PATTERNS_919);
+setEnLookup(lookup);
 
 export function translate(text) {
   return engine.translate(text);

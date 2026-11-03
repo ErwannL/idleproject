@@ -25,7 +25,8 @@ function splitTop(s, sep) {
 }
 
 const HAS_LETTER = /\p{L}/u;
-const UNITS = /\b(?:K|M|B|T|Qa|Qi|s|m|XP)\b/g;
+// v9.1.9 : grands nombres « 232,3 ai » (unités aa…zz après un chiffre).
+const UNITS = /\b(?:K|M|B|T|Qa|Qi|s|m|XP)\b|(?<=\d )[a-z]{2}\b/g;
 // Texte sans mot à traduire : nombres, symboles, unités.
 const isNeutral = (s) => !HAS_LETTER.test(s.replace(UNITS, ''));
 const neutral = (s) => num(s).replace(/(\d) %/g, '$1%');
@@ -69,6 +70,8 @@ export function createTranslator(exact, patterns) {
     // Listes et séparateurs (rewardText, effectText, « Nom · Rareté · niv. 5 », « A — B »…).
     if ((r = joinParts(lookup, s, ' · ', ' · ', depth)) !== null) return r;
     if ((r = joinParts(lookup, s, ' — ', ' — ', depth)) !== null) return r;
+    // v9.1.9 : chemins d'écran « Héros › Améliorations »
+    if ((r = joinParts(lookup, s, ' › ', ' › ', depth)) !== null) return r;
     if ((r = joinParts(lookup, s, ' : ', ': ', depth)) !== null) return r;
     if ((r = joinParts(lookup, s, ', ', ', ', depth)) !== null) return r;
     if ((r = joinParts(lookup, s, ' + ', ' + ', depth)) !== null) return r;
@@ -107,4 +110,35 @@ export function createTranslator(exact, patterns) {
     return r === null ? String(text) : r;
   }
   return { lookup, translate };
+}
+
+// v9.1.9 : petit langage pour écrire les motifs d'une langue : P(français, traduction).
+// Dans le français : « # » nombre (NUM de la langue), « @ » texte libre, « ~s » lettre facultative (pluriel).
+// Dans la traduction : $1 = nombre (virgule → point), %1 = texte traduit par `getLookup()` (sinon le motif ne
+// s'applique pas), &1 = durée passée à `dur`. Une fonction en traduction reçoit le résultat de `match`.
+export function makeP(NUM, getLookup, dur = (x) => x) {
+  const esc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return function P(fr, out) {
+    let src = '';
+    for (const part of fr.split(/(#|@|~[a-zé])/)) {
+      if (part === '#') src += NUM;
+      else if (part === '@') src += '(.+?)';
+      else if (/^~.$/.test(part)) src += `${part[1]}?`;
+      else src += esc(part);
+    }
+    const re = new RegExp(`^${src}$`);
+    if (typeof out === 'function') return [re, out];
+    return [re, (m) => {
+      let ok = true;
+      const r = out.replace(/([$%&])(\d)/g, (_, k, i) => {
+        const v = (m[Number(i)] ?? '').trim();
+        if (k === '$') return num(v);
+        if (k === '&') return dur(v);
+        const x = getLookup()(v);
+        if (x === null) { ok = false; return v; }
+        return x;
+      });
+      return ok ? r : null;
+    }];
+  };
 }

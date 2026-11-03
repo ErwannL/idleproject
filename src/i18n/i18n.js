@@ -129,9 +129,11 @@ const textApplied = new WeakMap(); // nœud texte → dernier texte écrit par l
 const attrOriginal = new WeakMap(); // élément → { attribut: texte français }
 const attrApplied = new WeakMap(); // élément → { attribut: dernier texte écrit }
 
-function skipped(el) {
+// v9.1.9 : `attr` — pour les attributs, un <canvas> ou un <svg> garde son aria-label / title traduisible
+// (seul leur contenu est ignoré).
+function skipped(el, attr = false) {
   for (let e = el; e && e.nodeType === 1; e = e.parentElement) {
-    if (SKIP_TAGS.has(e.tagName.toUpperCase())) return true;
+    if (SKIP_TAGS.has(e.tagName.toUpperCase()) && !(attr && e === el)) return true;
     if (e.hasAttribute('data-no-i18n') || e.getAttribute('translate') === 'no') return true;
   }
   return false;
@@ -154,7 +156,7 @@ function translateAttr(el, name) {
   if (value === null || !HAS_TEXT.test(value)) return;
   const applied = attrApplied.get(el);
   if (applied?.[name] === value) return;
-  if (skipped(el)) return;
+  if (skipped(el, true)) return;
   const out = t(value);
   const orig = attrOriginal.get(el) ?? {};
   orig[name] = value;

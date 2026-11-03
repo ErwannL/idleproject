@@ -78,7 +78,13 @@ function isFrench(s) {
   if (/^[\w$.\-/:#@?=&%*,]+$/.test(t) && !/[éèêàâçùûôîœ]/i.test(t) && !/^[A-ZÉÈÀ][a-zéèêàâçùûôîœ]+$/.test(t)) return false;
   if (/^(?:[a-z-]+\s*)+$/.test(t) && !FR_WORD.test(t)) return false; // classes CSS « btn small active »
   if (/[{};=]|=>|\(\)|^\.|^#|^\[|https?:|\.(?:png|js|json|css|mp3|ogg)\b/.test(t)) return false;
-  if (/^(?:rgba?|hsla?|var|translate|scale|rotate|linear-gradient|calc)\(/.test(t)) return false;
+  if (/^(?:rgba?|hsla?|var|translate|scale|rotate|linear-gradient|calc|url)\(/.test(t)) return false;
+  // v9.1.9 : code qui passait le filtre — dessins en caractères (render/art.js), clés de cache « hero|12|12 »,
+  // sélecteurs CSS (« button, summary », « canvas[data-anim] »), requêtes média, classes avec valeurs, polices.
+  if (!/\s/.test(t) && /[<>~^|@*&#!]/.test(t)) return false;
+  if (/^[\w-]+(?:\|\w+)+$/.test(t) || /^\(?[a-z-]+(?:\[[^\]]*\])?(?:, ?[a-z-]+(?:\[[^\]]*\])?)*\)?$/.test(t) && !FR_WORD.test(t)) return false;
+  if (/^\((?:prefers|pointer|max|min)-/.test(t) || /^(?:[a-z-]+ )*[a-z-]+-12\d*$/.test(t) || /serif$|^"?Trebuchet|^Georgia/.test(t)) return false;
+  if (/^(?:Bearer|on v-)\b/.test(t) || /^[a-z]+_[a-z_…]+$/.test(t)) return false;
   return /[a-zà-ÿ]/i.test(t);
 }
 
@@ -107,10 +113,24 @@ for (const file of walk(SRC)) {
   }
 }
 
+// v9.1.9 : textes de la page (index.html) : nœuds texte et attributs traduits.
+{
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<!--[\s\S]*?-->/g, '');
+  for (const p of templateTexts(html)) {
+    const t = p.replace(/\s+/g, ' ').trim();
+    if (!isFrench(t) || (fileFilter && !'index.html'.includes(fileFilter))) continue;
+    if (!entries.has(t)) entries.set(t, []);
+    entries.get(t).push('index.html');
+  }
+}
+
 const total = entries.size;
 const stats = {};
 for (const [code, fn] of Object.entries(LANGS)) {
-  const missing = [...entries.keys()].filter((t) => fn(t) === null);
+  // v9.1.9 : « 12 » collé au bord vient souvent d'une icône (« ${img(…)} Titre ») ou d'un élément à part
+  // (« texte.${span} ») : on accepte aussi la traduction du texte sans lui.
+  const ok = (t) => fn(t) !== null || [t.replace(/^12 ?(?=[^\d\s])/, ''), t.replace(/(?<=[^\d\s])\s?12$/, ''), t.replace(/^12 ?/, '').replace(/ ?12$/, '')].some((u) => u !== t && u.trim() && fn(u.trim()) !== null);
+  const missing = [...entries.keys()].filter((t) => !ok(t));
   stats[code] = { done: total - missing.length, missing };
 }
 
