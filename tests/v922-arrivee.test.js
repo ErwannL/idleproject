@@ -81,3 +81,46 @@ test('équipe très forte : les ennemis se ruent et meurent près du contact', (
   }
   assert.ok(kills > 5);
 });
+
+// v9.2.2 : battements d'ailes (wings.js) et nouvelles séquences d'arrivée.
+import { WING_RIGS, floatOffset, wingAngles, wingOwner, wingPixels, wingPose, wingRig } from '../src/render/wings.js';
+
+test('ailes : gabarit pour chaque volant ailé, 4 poses, ~8 battements/s', () => {
+  for (const [id, a] of [...Object.entries(ENEMY_ARRIVALS), ...Object.entries(BOSS_ARRIVALS)]) {
+    if (a.style !== 'wings') continue;
+    const sprite = (BOSSES[id]?.sprite) ?? ENEMIES[id]?.sprite ?? id;
+    assert.ok(wingRig(sprite), `gabarit d'ailes pour ${id}`);
+  }
+  assert.equal(wingRig('boss_ash_dragon_w1'), WING_RIGS.boss_ash_dragon);
+  const poses = new Set(); let changes = 0, prev = wingPose(0);
+  for (let t = 0; t < 1; t += 1 / 240) { const p = wingPose(t); poses.add(p); if (p !== prev) changes++; prev = p; }
+  assert.equal(poses.size, 4);
+  assert.ok(changes >= 40); // 8 cycles × 6 changements
+  for (const r of Object.values(WING_RIGS)) { const a = wingAngles(r); assert.equal(a.length, 4); assert.ok(a[0] > a[3]); }
+});
+
+test('ailes : la pose haute lève la pointe de l\'aile gauche, le corps reste en place', () => {
+  const rig = { wings: [[0, 4, 3, 5, 4, 4, -1]], body: [] };
+  const w = 8, h = 8, src = new Uint8ClampedArray(w * h * 4);
+  for (let x = 0; x < 8; x++) src[(4 * w + x) * 4 + 3] = 255; // barre horizontale : aile x<4, corps x≥4
+  assert.equal(wingOwner(rig, 1, 4), 0);
+  assert.equal(wingOwner(rig, 6, 4), -1);
+  const { data, W } = wingPixels(src, w, h, rig, 45, 4);
+  const at = (x, y) => data[((y + 4) * W + x + 4) * 4 + 3];
+  assert.equal(at(6, 4), 255); // corps intact
+  assert.equal(at(1, 1), 255); // pointe levée (rotation de 45° autour de (4, 4))
+  assert.equal(at(1, 4), 0);
+});
+
+test('ondulation : le bas ondule et traîne plus que le haut ; sol et portail en étapes', () => {
+  assert.equal(floatOffset(0, 30, 0, 0, 0, 10), 0);
+  assert.equal(floatOffset(29, 30, 0, 0, 0, 10), 9);
+  const b = (k) => arrivalPose({ mode: 'burrow' }, k, { focus: true });
+  assert.ok(b(0.1).crack > 0 && b(0.1).buried === 1); // le sol se fend avant que l'ennemi sorte
+  assert.ok(b(0.45).buried > 0 && b(0.45).buried < 1);
+  assert.ok(b(0.4).buried > b(0.6).buried);
+  const p = (k) => arrivalPose({ mode: 'portal' }, k);
+  assert.ok(p(0.1).portal > 0 && p(0.1).portal < p(0.4).portal);
+  assert.ok(p(0.9).portal < 0.3);
+  assert.equal(arrivalFor('frost_wyrm', true).style, 'float');
+});

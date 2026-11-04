@@ -27,7 +27,8 @@ export function stripOffset(mode, y, h, time, phase, amp) {
 }
 
 // Dessine img (taille d'origine iw×ih) à (x, y) en w×h, ondulé. mode : body | jelly | fish | eel | crawl.
-export function swimDraw(ctx, img, x, y, w, h, { time = 0, phase = 0, amp = 1.5, mode = 'body', focus = false } = {}) {
+// v9.2.2 : `body` (0 → 1) : l'onde parcourt aussi le corps d'un poisson (arrivée à la nage), pas seulement la queue.
+export function swimDraw(ctx, img, x, y, w, h, { time = 0, phase = 0, amp = 1.5, mode = 'body', focus = false, body = 0 } = {}) {
   const iw = img.width, ih = img.height;
   if (focus || amp <= 0 || mode === 'crawl') { ctx.drawImage(img, x, y, w, h); return; }
   const sx = w / iw, sy = h / ih;
@@ -37,7 +38,8 @@ export function swimDraw(ctx, img, x, y, w, h, { time = 0, phase = 0, amp = 1.5,
     for (let cx = 0; cx < iw; cx += 2) {
       const t = cx / iw;
       // v9.2.0 (nage) : 'dolphin' = nageur couché tête à droite, l'onde part de la tête et grandit vers les pieds.
-      const k = mode === 'eel' ? 0.35 + t : mode === 'dolphin' ? Math.max(0, (0.6 - t) / 0.6) : Math.max(0, (t - 0.55) / 0.45);
+      const tail = mode === 'eel' ? 0.35 + t : mode === 'dolphin' ? Math.max(0, (0.6 - t) / 0.6) : Math.max(0, (t - 0.55) / 0.45);
+      const k = mode === 'fish' ? Math.max(tail, body * (0.3 + t * 0.5)) : tail;
       const dy = Math.round(Math.sin(time * (mode === 'eel' ? 5 : 7) + phase + (mode === 'dolphin' ? cx * 0.2 : -cx * (mode === 'eel' ? 0.22 : 0.12))) * amp * k);
       const cw = Math.min(2, iw - cx);
       ctx.drawImage(img, cx, 0, cw, ih, x + cx * sx, y + dy * sy, cw * sx, h);

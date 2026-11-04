@@ -7,8 +7,10 @@ import { drawTeamFx } from './team-fx.js';
 import { installClassFx } from './class-fx.js';
 import { installTraversalFx } from './traversal-fx.js'; // v9.2.1 : déplacement propre à chaque monde
 import { armSwing, attackCurve, dissolveFrames } from './enemy-anim.js';
-import { arrivalPose, arrivalProgress } from './arrival.js'; // v9.2.2 : arrivée des ennemis
+import { ARRIVE_SECONDS_BY_MODE, arrivalPose, arrivalProgress } from './arrival.js'; // v9.2.2 : arrivée des ennemis
 import { arrivalFor } from '../data/arrivals.js';
+import { drawArrivalFx } from './arrival-fx.js'; // v9.2.2 : sol qui se fend, portail
+import { WING_LIFT, floatDraw, wingFrames, wingPose, wingRig } from './wings.js'; // v9.2.2 : ailes, ondulation
 import { elementOfColor, installElementFx } from './element-fx.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
 import { RARITIES } from '../data/items.js';
@@ -429,44 +431,12 @@ export class SceneRenderer {
   }
 
   // Petits nuages de poussière aux pieds (bond, réception).
-  // v9.2.2 : effets d'arrivée — monticule de terre et mottes qui sautent (sortie du sol), portail (anneau ovale
-  // vertical qui s'ouvre puis se referme), sillage de bulles à la nage. Rien en « réduire les animations ».
-  arrivalFx(enemy, fx, arrival, pose, ex, w, h) {
+  // v9.2.2 : effets d'arrivée (arrival-fx.js) ; sillage de bulles à la nage, filets d'air en vol.
+  arrivalFx(enemy, fx, arrival, pose, k, ex, w, h) {
     if (this.focus) return;
-    const ctx = this.ctx;
-    const G = this.groundY;
-    if (arrival.mode === 'burrow' && pose.buried > 0) {
-      const mw = Math.max(6, Math.round(w * 0.6));
-      ctx.fillStyle = '#5a4630';
-      ctx.fillRect(Math.round(ex - mw / 2), G - 1, mw, 2);
-      ctx.fillStyle = '#7a6244';
-      ctx.fillRect(Math.round(ex - mw / 2 + 2), G - 2, Math.max(2, mw - 4), 1);
-      if ((this.frameNo + enemy.id) % (pose.buried < 0.95 ? 2 : 5) === 0) {
-        this.effects.push({ kind: 'particle', x: ex + (Math.random() - 0.5) * mw, y: G - 2, vx: (Math.random() - 0.5) * 30, vy: -30 - Math.random() * 30,
-          color: Math.random() < 0.5 ? '#6a543a' : '#a08660', life: 0.4, max: 0.4, size: 2 });
-      }
-    } else if (arrival.mode === 'portal' && pose.portal > 0) {
-      const px = Math.round(fx.portalX ?? ex);
-      const ph = Math.max(2, Math.round((h + 8) * pose.portal));
-      const pw = Math.max(2, Math.round(Math.min(18, w * 0.5) * pose.portal));
-      const cy = G - Math.round(h / 2);
-      const ring = (rw, rh, color) => {
-        ctx.fillStyle = color;
-        for (let i = 0; i < 24; i++) {
-          const a = (i / 24) * Math.PI * 2 + this.time * 3;
-          ctx.fillRect(Math.round(px + Math.cos(a) * rw) - 1, Math.round(cy + Math.sin(a) * rh) - 1, 2, 2);
-        }
-      };
-      ctx.globalAlpha = 0.35 * pose.portal;
-      ctx.fillStyle = '#2a0a4a';
-      ctx.fillRect(px - Math.round(pw * 0.7), cy - Math.round(ph * 0.4), Math.round(pw * 1.4), Math.round(ph * 0.8));
-      ctx.globalAlpha = 0.9 * pose.portal;
-      ring(pw, ph / 2, '#b46aff');
-      ring(Math.max(1, pw - 3), Math.max(1, ph / 2 - 3), '#ffd0ff');
-      ctx.globalAlpha = 1;
-    } else if ((arrival.mode === 'swim' || arrival.mode === 'fly') && pose.dy > 6 && (this.frameNo + enemy.id) % 4 === 0) {
-      // Sillage : bulles sous l'eau, petits filets d'air (vol) derrière l'ennemi.
-      const y = G - h / 2 - pose.dy;
+    drawArrivalFx(this, this.ctx, enemy, fx, arrival, pose, k, w, h);
+    if ((arrival.mode === 'swim' || arrival.mode === 'fly') && pose.dy > 6 && (this.frameNo + enemy.id) % 4 === 0) {
+      const y = this.groundY - h / 2 - pose.dy;
       this.effects.push({ kind: 'particle', x: ex + w / 2 + pose.dx, y, vx: 14, vy: arrival.mode === 'swim' ? -12 : -4,
         color: arrival.mode === 'swim' ? '#bfe8ff' : '#e8f0ff', life: 0.35, max: 0.35 });
     }
@@ -798,6 +768,7 @@ export class SceneRenderer {
   }
 
   drawEnemies(ctx, world, dt) {
+    const scrollPx = this.smoothScroll(world); // v9.2.2 : sol qui défile (trou, portail)
     for (let i = world.enemies.length - 1; i >= 0; i--) {
       const enemy = world.enemies[i];
       const fx = this.enemyFxFor(enemy.id);
@@ -834,13 +805,38 @@ export class SceneRenderer {
       // Remplace la chute depuis le haut de tous les boss (v9.1.9), incohérente pour un marcheur.
       const arrival = arrivalFor(enemy.type, enemy.boss, { underwater: this.underwater });
       const startX = this.width + 16;
-      if (fx.arriveAt === undefined && ex < startX) { fx.arriveAt = this.time; fx.portalX = Math.min(ex - 6, this.width - 30); } // portail bien visible
+      if (fx.arriveAt === undefined && ex < startX) {
+        // Point de sortie du sol / portail fixe et bien visible à l'écran ; l'ennemi rejoint ensuite sa position.
+        fx.arriveAt = this.time;
+        fx.portalX = Math.min(ex, this.width - 20);
+        fx.burrowX = Math.min(ex, this.width - w / 2 - 6);
+        fx.anchor = scrollPx;
+      }
+      // Le trou et le portail restent attachés au sol quand le décor défile.
+      if (fx.anchor !== undefined) { fx.bx = fx.burrowX - (scrollPx - fx.anchor); fx.px = fx.portalX - (scrollPx - fx.anchor); }
       // Fini d'arriver avant d'être touchable (portée de la ruée, BALANCE.rush.reach) : jamais tué en plein vol.
       const contactX = this.wx(BALANCE.world.heroX + BALANCE.world.meleeOffset + (def.range ?? 16) + (enemy.boss ? 8 : 0) + (BALANCE.rush?.reach ?? 0)) + 2;
-      let k = fx.arriveAt === undefined ? 0 : arrivalProgress(this.time - fx.arriveAt, ex, startX, contactX);
-      if (arrival.mode === 'portal' && ex > fx.portalX && k < 1) k = Math.min(k, 0.2); // caché tant qu'il n'a pas franchi le portail
-      const pose = arrivalPose(arrival, k, { height: enemy.boss ? 90 : 70, time: this.time, phase: enemy.id, focus: this.focus });
-      if (k < 1 && !fx.landed) this.arrivalFx(enemy, fx, arrival, pose, ex, w, h);
+      let k = fx.arriveAt === undefined ? 0 : arrivalProgress(this.time - fx.arriveAt, ex, startX, contactX, ARRIVE_SECONDS_BY_MODE[arrival.mode]);
+      const pose = arrivalPose(arrival, k, { height: enemy.boss ? 90 : 70, time: this.time, focus: this.focus });
+      if (k < 1 && !fx.landed) this.arrivalFx(enemy, fx, arrival, pose, k, ex, w, h);
+      // v9.2.2 : position dessinée : sort du sol sur place, ou du portail (part de l'intérieur), puis rejoint ex.
+      let exd = ex;
+      if (k < 1 && arrival.mode === 'burrow' && fx.bx !== undefined) exd = fx.bx + (ex - fx.bx) * pose.settle;
+      if (k < 1 && arrival.mode === 'portal' && fx.px !== undefined) exd = fx.px + w * 0.5 + (ex - fx.px - w * 0.5) * pose.settle;
+      // v9.2.2 : battements d'ailes (wings.js) tant qu'il vole : à l'arrivée, et en combat s'il vole (flyHeight).
+      const flying = !heroLike && arrival.mode === 'fly' && (k < 1 || def.flyHeight > 0);
+      const rig = flying && arrival.style === 'wings' ? wingRig(sprite) : null;
+      const wp = rig ? wingPose(this.time, enemy.id * 0.7, this.focus) : 0;
+      const floating = flying && !rig && !(this.underwater && def.swim);
+      const paint = (canvas, px, py) => {
+        if (rig) {
+          const fr = wingFrames(canvas, rig)?.[wp];
+          if (fr) { ctx.drawImage(fr.canvas, px - fr.pad * scale, py - fr.pad * scale, fr.canvas.width * scale, fr.canvas.height * scale); return; }
+        }
+        // Ondulation : balancement, bas qui ondule et traîne derrière pendant l'arrivée.
+        if (floating) { floatDraw(ctx, canvas, px, py, w, h, { time: this.time, phase: enemy.id, amp: this.focus ? 0.6 : 2 + 4 * pose.wave, trail: this.focus ? 0 : 10 * pose.wave }); return; }
+        ctx.drawImage(canvas, px, py, w, h);
+      };
       if (k >= 1 && !fx.landed) {
         fx.landed = true;
         if (enemy.boss && !this.focus && arrival.mode !== 'walk' && !def.flyHeight && !this.underwater) {
@@ -850,15 +846,18 @@ export class SceneRenderer {
       // v9.2.2 : ruée (équipe bien plus forte) : course rapide, poussière derrière.
       if (enemy.rush && moving && k > 0.3 && !this.focus && !def.flyHeight && !this.underwater && (this.frameNo + enemy.id) % 3 === 0) this.dust(ex + w / 2, 1);
       // Les grands sprites (boss, ogre…) restent devant le chevalier sans le chevaucher.
-      const x = this.snap(Math.max(ex - w / 2, HERO_X + 12) - lunge + (fx.knock > 0.5 ? fx.knock : 0) + pose.dx);
-      const y = this.groundY - h - bob - hover + 1 - pose.dy - pose.flap + Math.round(pose.buried * h);
+      const x = this.snap(Math.max(exd - w / 2, HERO_X + 12) - lunge + (fx.knock > 0.5 ? fx.knock : 0) + pose.dx);
+      const y = this.groundY - h - bob - hover + 1 - pose.dy - (rig && !this.focus ? WING_LIFT[wp] : 0) + Math.round(pose.buried * h);
       // Géométrie à l'écran (projectiles qui visent la cible, impacts, ennemi figé à la mort).
       Object.assign(fx, { sx: x, sy: y, sw: w, sh: h, seen: this.time, img, edge: x + bodyEdge(img) * scale });
 
       ctx.globalAlpha = fx.appear * pose.alpha;
-      if (pose.buried < 0.6 && pose.alpha > 0.3) this.drawShadow(ctx, ex + pose.dx, Math.max(6, w * 0.7 * (1 - Math.min(0.6, pose.dy / 120))));
-      if (pose.buried > 0) { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, this.width, this.groundY + 1); ctx.clip(); } // v9.2.2 : sort du sol
-      if (enemy.boss) this.drawBossAura(ctx, enemy, sprite, colors, x, y, w, h, fx.appear);
+      if (pose.buried < 0.6 && pose.alpha > 0.3) this.drawShadow(ctx, exd + pose.dx, Math.max(6, w * 0.7 * (1 - Math.min(0.6, pose.dy / 120))));
+      // v9.2.2 : sort du sol (seule la partie au-dessus de la ligne du sol se voit) ou du portail (partie sortie).
+      const clipW = arrival.mode === 'portal' && k < 1 && !this.focus ? fx.px + Math.max(0, (k - 0.6) / 0.4) * w * 1.5 : this.width; // la partie encore dans le portail reste cachée
+      const clipped = pose.buried > 0 || clipW < this.width;
+      if (clipped) { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, clipW, pose.buried > 0 ? this.groundY + 1 : this.height); ctx.clip(); }
+      if (enemy.boss) this.drawBossAura(ctx, enemy, sprite, colors, x, y, w, h, fx.appear, paint);
       // v9.0.8 : corps animé en continu (marche, sauts des gluants, trot, respiration ; buste projeté à l'attaque).
       const attackK = atk?.phase === 'strike' ? 1 : 0;
       const stepping = moving && hd && ['walk', 'quad'].includes(SPRITES[sprite]?.gait); // les images de pas suffisent
@@ -871,14 +870,14 @@ export class SceneRenderer {
           // Élite errante : halo rouge pulsant.
           const glow = spriteCanvas(sprite, { colors, tint: { color: '#ff3b3b', alpha: 1 } });
           ctx.globalAlpha = fx.appear * (0.5 + 0.3 * Math.sin(this.time * 8));
-          for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.drawImage(glow, x + dx, y + dy, w, h);
+          for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) paint(glow, x + dx, y + dy);
           ctx.globalAlpha = fx.appear * pose.alpha;
         }
         if (mutation) {
           // v9.0.4 : ennemi muté — contour de la couleur de sa mutation, pulsé (géant : un peu plus grand).
           const glow = spriteCanvas(sprite, { colors, tint: { color: mutation.color, alpha: 1 } });
           ctx.globalAlpha = fx.appear * (0.55 + 0.35 * Math.sin(this.time * 6 + enemy.id));
-          for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1]]) ctx.drawImage(glow, x + dx, y + dy, w, h);
+          for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1]]) paint(glow, x + dx, y + dy);
           ctx.globalAlpha = fx.appear * pose.alpha;
         }
         if (fx.squash > 0) {
@@ -892,10 +891,11 @@ export class SceneRenderer {
           else ctx.drawImage(img, x, y, w, h);
         } else if (this.underwater && def.swim) {
           // v9.2.0 (monde marin) : nage propre à chaque créature (queue, cloche, anguille ; le crabe marche).
-          swimDraw(ctx, img, x, y, w, h, { time: this.time, phase: enemy.id * 0.9, amp: def.swim === 'eel' ? 2 : 1.5, mode: def.swim, focus: this.focus });
-        } else ctx.drawImage(img, x, y, w, h);
+          // v9.2.2 : ondulation bien plus ample pendant l'arrivée (corps et queue).
+          swimDraw(ctx, img, x, y, w, h, { time: this.time, phase: enemy.id * 0.9, amp: (def.swim === 'eel' ? 2 : 1.5) * (1 + 2.5 * pose.wave), mode: def.swim, focus: this.focus, body: pose.wave });
+        } else paint(img, x, y);
       });
-      if (pose.buried > 0) ctx.restore();
+      if (clipped) ctx.restore();
       if (atk?.phase === 'strike' && !fx.smeared) {
         // Traînée de frappe (arc de pixels) devant l'ennemi, une fois par coup.
         fx.smeared = true;
@@ -905,7 +905,7 @@ export class SceneRenderer {
       if (!atk) fx.smeared = false;
       if (mutation) {
         // Marqueur : losange de couleur au-dessus de la tête.
-        const mx = Math.round(ex);
+        const mx = Math.round(exd);
         const my = Math.round(y - 11 + Math.sin(this.time * 4 + enemy.id) * 1.5);
         ctx.fillStyle = '#0c0d10';
         ctx.fillRect(mx - 3, my - 1, 7, 3);
@@ -922,9 +922,9 @@ export class SceneRenderer {
         ctx.fillStyle = '#ff4d6d';
         ctx.fillRect(x + 2, this.groundY + 1, w - 4, 1);
         ctx.globalAlpha = 1;
-        this.drawBar(ctx, Math.round(ex - 16), y - 6, 32, enemy.hp / enemy.maxHp, '#e84a5f');
+        this.drawBar(ctx, Math.round(exd - 16), y - 6, 32, enemy.hp / enemy.maxHp, '#e84a5f');
       } else if (enemy.elite || enemy.mutation || enemy.hp < enemy.maxHp) {
-        this.drawBar(ctx, Math.round(ex - 9), y - 5, 18, enemy.hp / enemy.maxHp, enemy.elite ? '#ff9a3d' : mutation ? mutation.color : '#e84a5f');
+        this.drawBar(ctx, Math.round(exd - 9), y - 5, 18, enemy.hp / enemy.maxHp, enemy.elite ? '#ff9a3d' : mutation ? mutation.color : '#e84a5f');
       }
       ctx.globalAlpha = 1;
     }
@@ -932,14 +932,14 @@ export class SceneRenderer {
 
   // Aura des boss selon leur rang : contour lumineux pulsant (plus épais et plus rouge pour les méga boss),
   // braises qui montent autour des boss durs et méga boss.
-  drawBossAura(ctx, enemy, sprite, colors, x, y, w, h, appear) {
+  drawBossAura(ctx, enemy, sprite, colors, x, y, w, h, appear, paint = (c, px, py) => ctx.drawImage(c, px, py, w, h)) {
     const tier = enemy.berserk ? 'berserk' : BOSSES[enemy.type]?.tier ?? 'mega';
     const look = BOSS_AURAS[tier];
     const glow = spriteCanvas(sprite, { colors, tint: { color: look.color, alpha: 1 } });
     const pulse = 0.5 + 0.5 * Math.sin(this.time * look.speed + enemy.id);
     ctx.globalAlpha = appear * (look.alpha + 0.25 * pulse);
     for (let r = 1; r <= look.width; r++) {
-      for (const [dx, dy] of [[-r, 0], [r, 0], [0, -r], [0, r]]) ctx.drawImage(glow, x + dx, y + dy, w, h);
+      for (const [dx, dy] of [[-r, 0], [r, 0], [0, -r], [0, r]]) paint(glow, x + dx, y + dy); // v9.2.2 : suit les ailes
     }
     ctx.globalAlpha = 1;
     if (look.embers && Math.random() < look.embers) {

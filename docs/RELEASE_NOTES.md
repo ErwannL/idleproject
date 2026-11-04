@@ -1,7 +1,8 @@
 ## Ascendrya v9.2.2 — Apparences dans le menu Héros, arrivée des ennemis selon leur nature
 
 - Apparences : nouveau sous-onglet visible Héros › Apparences (apparence équipée en haut, grille avec aperçu, bonus, état Équipée / Possédée / Verrouillée, bouton Équiper ou Invoquer). Plus de chemin caché dans la fiche du héros ; rien ne change dans les apparences possédées.
-- Arrivée des ennemis selon leur nature : les volants arrivent en vol (battements d'ailes ou ondulation, trajectoire courbe), les créatures marines à la nage, d'autres sortent du sol ou d'un portail, les autres arrivent à pied par la droite. Fini les ennemis qui tombent du ciel sans raison.
+- Arrivée des ennemis selon leur nature : les volants arrivent en vol par une trajectoire courbe, les créatures marines à la nage, d'autres sortent du sol ou d'un portail, les autres arrivent à pied par la droite. Fini les ennemis qui tombent du ciel sans raison.
+- Vraies animations : les volants ailés (chauves-souris, harpies, griffons, dragon, phénix, valkyrie…) battent des ailes (4 poses, ~8 battements/s, aussi en combat tant qu'ils volent) ; fantômes, esprits et œil ondulent avec une traîne ; les nageurs ondulent du corps et de la queue. Sortie du sol en séquence : le sol se fend et tremble, des mottes sautent, l'ennemi émerge peu à peu par la ligne du sol avec une secousse, puis la poussière retombe. Le portail s'ouvre, tourbillonne et se referme. Sobre en « réduire les animations ».
 - Butin : il part de l'endroit où l'ennemi meurt et retombe au sol.
 - Quand l'équipe tue d'un coup, les ennemis se ruent vers elle : on voit les coups et les morts au lieu de les tuer hors champ (rythme de progression inchangé, ±1 %).
 - Carte : pendant un donjon, la Tour ou le défi, les étapes sont grisées et un encadré explique pourquoi on ne peut pas voyager.

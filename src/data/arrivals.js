@@ -42,10 +42,10 @@ export const ENEMY_ARRIVALS = {
   sea_bladefish: SWIM, sea_jelly: SWIM, sea_crab: W, sea_eel: SWIM, sea_puffer: SWIM, sea_octopus: SWIM, sea_shark: SWIM, sea_merfolk: SWIM,
 };
 
-// Boss (toutes les clés de BOSSES).
+// Boss (toutes les clés de BOSSES). v9.2.2 : le Wyrm de givre (serpent sans ailes) ondule au lieu de battre des ailes.
 export const BOSS_ARRIVALS = {
   slime_king: W, alpha_wolf: W, bone_lord: BURROW, spectral_queen: FLOAT, ash_dragon: WINGS, fallen_knight: W, demon_king: PORTAL,
-  rotting_dryad: BURROW, magma_colossus: BURROW, frost_wyrm: WINGS, obsidian_tyrant: W, crypt_archlich: PORTAL,
+  rotting_dryad: BURROW, magma_colossus: BURROW, frost_wyrm: FLOAT, obsidian_tyrant: W, crypt_archlich: PORTAL,
   mini_goblin_warlord: W, mini_treant: BURROW, mini_crystal_golem: BURROW, mini_pharaoh: BURROW, mini_frost_witch: PORTAL, mini_reaper: FLOAT,
   mid_boar_titan: W, mid_giant_spider: W, mid_crystal_bat: WINGS, mid_sand_worm: BURROW, mid_mammoth: W, mid_hellhound: PORTAL,
   hard_scarecrow: BURROW, hard_werewolf: W, hard_necromancer: PORTAL, hard_anubis: W, hard_frost_giant: W, hard_demon_general: PORTAL,
