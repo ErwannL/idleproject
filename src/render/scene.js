@@ -8,7 +8,7 @@ import { installClassFx } from './class-fx.js';
 import { installTraversalFx } from './traversal-fx.js'; // v9.2.1 : déplacement propre à chaque monde
 import { armSwing, attackCurve, dissolveFrames } from './enemy-anim.js';
 import { ARRIVE_SECONDS_BY_MODE, arrivalPose, arrivalProgress } from './arrival.js'; // v9.2.2 : arrivée des ennemis
-import { arrivalFor } from '../data/arrivals.js';
+import { arrivalFor, WINGED_LANDERS } from '../data/arrivals.js';
 import { drawArrivalFx } from './arrival-fx.js'; // v9.2.2 : sol qui se fend, portail
 import { WING_LIFT, floatDraw, wingFrames, wingPose, wingRig } from './wings.js'; // v9.2.2 : ailes, ondulation
 import { elementOfColor, installElementFx } from './element-fx.js';
@@ -824,7 +824,7 @@ export class SceneRenderer {
       if (k < 1 && arrival.mode === 'burrow' && fx.bx !== undefined) exd = fx.bx + (ex - fx.bx) * pose.settle;
       if (k < 1 && arrival.mode === 'portal' && fx.px !== undefined) exd = fx.px + w * 0.5 + (ex - fx.px - w * 0.5) * pose.settle;
       // v9.2.2 : battements d'ailes (wings.js) tant qu'il vole : à l'arrivée, et en combat s'il vole (flyHeight).
-      const flying = !heroLike && arrival.mode === 'fly' && (k < 1 || def.flyHeight > 0);
+      const flying = !heroLike && arrival.mode === 'fly' && (k < 1 || def.flyHeight > 0 || (arrival.style === 'wings' && !WINGED_LANDERS.has(enemy.type)));
       const rig = flying && arrival.style === 'wings' ? wingRig(sprite) : null;
       const wp = rig ? wingPose(this.time, enemy.id * 0.7, this.focus) : 0;
       const floating = flying && !rig && !(this.underwater && def.swim);

@@ -17,6 +17,9 @@ const BURROW = { mode: 'burrow' };
 const PORTAL = { mode: 'portal' };
 
 // Ennemis ordinaires (toutes les clés de ENEMIES).
+// v9.2.2 : ailés qui se posent et marchent une fois au contact (quadrupèdes) ; les autres battent des ailes tout le combat.
+export const WINGED_LANDERS = new Set(['griffin_cub', 'mid_thunder_griffin', 'ash_dragon']);
+
 export const ENEMY_ARRIVALS = {
   // Plaines
   slime: W, goblin: W, boar: W, mandrake: BURROW,
