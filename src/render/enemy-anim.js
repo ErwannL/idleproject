@@ -142,3 +142,16 @@ export function attackCurve(p) {
   if (p < 0.55) return { phase: 'strike', dx: Math.round(-2 + 9 * ((p - 0.3) / 0.25)), arm: 40 };
   return { phase: 'recover', dx: Math.round(7 * (1 - (p - 0.55) / 0.45)), arm: p < 0.75 ? 20 : 0 };
 }
+
+// v9.2.3 : animation dessinée image par image (src/render/art-anim.js) quand le sprite en a une, sinon null
+// (repli sur les déformations procédurales). Priorité : sortie du sol, attaque (atkP : avancement 0–1), vol, marche.
+export function pickAnimFrame(set, { emerge = null, atkP = null, flying = false, moving = false, time = 0, phase = 0 } = {}) {
+  if (!set) return null;
+  const at = (anim, k) => ({ anim, key: anim.frames[Math.max(0, Math.min(anim.frames.length - 1, Math.floor(k * anim.frames.length)))] });
+  if (set.emerge && emerge !== null) return at(set.emerge, emerge);
+  if (set.attack && atkP !== null) return at(set.attack, atkP);
+  const loop = (anim) => ({ anim, key: anim.frames[Math.floor(time * anim.fps + phase) % anim.frames.length] });
+  if (set.fly && flying) return loop(set.fly);
+  if (set.walk && moving) return loop(set.walk);
+  return null;
+}

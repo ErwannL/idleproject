@@ -6,7 +6,8 @@ import { BALANCE } from '../data/balance.js';
 import { drawTeamFx } from './team-fx.js';
 import { installClassFx } from './class-fx.js';
 import { installTraversalFx } from './traversal-fx.js'; // v9.2.1 : déplacement propre à chaque monde
-import { armSwing, attackCurve, dissolveFrames } from './enemy-anim.js';
+import { armSwing, attackCurve, dissolveFrames, pickAnimFrame } from './enemy-anim.js';
+import { ENEMY_ANIMS } from './art-anim.js'; // v9.2.3 : bat, harpy, skeleton dessinés image par image
 import { ARRIVE_SECONDS_BY_MODE, arrivalPose, arrivalProgress } from './arrival.js'; // v9.2.2 : arrivée des ennemis
 import { arrivalFor, WINGED_LANDERS } from '../data/arrivals.js';
 import { drawArrivalFx } from './arrival-fx.js'; // v9.2.2 : sol qui se fend, portail
@@ -825,10 +826,17 @@ export class SceneRenderer {
       if (k < 1 && arrival.mode === 'portal' && fx.px !== undefined) exd = fx.px + w * 0.5 + (ex - fx.px - w * 0.5) * pose.settle;
       // v9.2.2 : battements d'ailes (wings.js) tant qu'il vole : à l'arrivée, et en combat s'il vole (flyHeight).
       const flying = !heroLike && arrival.mode === 'fly' && (k < 1 || def.flyHeight > 0 || (arrival.style === 'wings' && !WINGED_LANDERS.has(enemy.type)));
-      const rig = flying && arrival.style === 'wings' ? wingRig(sprite) : null;
+      // v9.2.3 : images dessinées (PixelLab) pour quelques ennemis ; les autres gardent les déformations procédurales.
+      const atkP = fx.lunge > 0 ? 1 - fx.lunge / ENEMY_ATK : fx.windup > 0 ? 0.3 * (1 - fx.windup / 0.25) : null;
+      const drawn = enemy.boss || heroLike || (this.underwater && def.swim) ? null : pickAnimFrame(ENEMY_ANIMS[def.sprite], {
+        emerge: arrival.mode === 'burrow' && k < 1 ? pose.emerge : null, atkP, flying, moving, time: this.time, phase: enemy.id * 0.7,
+      });
+      if (drawn?.anim === ENEMY_ANIMS[def.sprite]?.emerge) { pose.buried = 0; pose.dx = 0; pose.dy = 0; } // la sortie est dessinée
+      const rig = flying && arrival.style === 'wings' && !drawn ? wingRig(sprite) : null;
       const wp = rig ? wingPose(this.time, enemy.id * 0.7, this.focus) : 0;
-      const floating = flying && !rig && !(this.underwater && def.swim);
+      const floating = flying && !rig && !drawn && !(this.underwater && def.swim);
       const paint = (canvas, px, py) => {
+        if (drawn) { ctx.drawImage(canvas, px + drawn.anim.ox * scale, py + drawn.anim.oy * scale, canvas.width * scale, canvas.height * scale); return; }
         if (rig) {
           const fr = wingFrames(canvas, rig)?.[wp];
           if (fr) { ctx.drawImage(fr.canvas, px - fr.pad * scale, py - fr.pad * scale, fr.canvas.width * scale, fr.canvas.height * scale); return; }
@@ -868,19 +876,21 @@ export class SceneRenderer {
       withMotion(ctx, x + w / 2, y + h, motion, () => {
         if (enemy.elite) {
           // Élite errante : halo rouge pulsant.
-          const glow = spriteCanvas(sprite, { colors, tint: { color: '#ff3b3b', alpha: 1 } });
+          const glow = spriteCanvas(drawn?.key ?? sprite, { colors, tint: { color: '#ff3b3b', alpha: 1 } });
           ctx.globalAlpha = fx.appear * (0.5 + 0.3 * Math.sin(this.time * 8));
           for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) paint(glow, x + dx, y + dy);
           ctx.globalAlpha = fx.appear * pose.alpha;
         }
         if (mutation) {
           // v9.0.4 : ennemi muté — contour de la couleur de sa mutation, pulsé (géant : un peu plus grand).
-          const glow = spriteCanvas(sprite, { colors, tint: { color: mutation.color, alpha: 1 } });
+          const glow = spriteCanvas(drawn?.key ?? sprite, { colors, tint: { color: mutation.color, alpha: 1 } });
           ctx.globalAlpha = fx.appear * (0.55 + 0.35 * Math.sin(this.time * 6 + enemy.id));
           for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1]]) paint(glow, x + dx, y + dy);
           ctx.globalAlpha = fx.appear * pose.alpha;
         }
-        if (fx.squash > 0) {
+        if (drawn) {
+          paint(spriteCanvas(drawn.key, { colors, flash: fx.hit > 0 }), x, y + (fx.squash > 0.07 ? 1 : 0)); // v9.2.3
+        } else if (fx.squash > 0) {
           // Écrasement à l'impact (ancré aux pieds) : plus large et plus bas, très bref.
           // v9.1.9 : pixel-perfect : plus d'étirement non entier, le corps s'affaisse d'1 px puis revient.
           ctx.drawImage(img, x, y + (fx.squash > 0.07 ? 1 : 0), w, h);
