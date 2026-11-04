@@ -1127,7 +1127,7 @@ export class UI {
           this.banner(`Monde ${zoneIndexForStage(event.stage) + 1} — ${zoneForStage(event.stage).name}${d > 1 ? ` · difficulté ×${d}` : ''}`, 'zone');
           // v9.2.1 : malus d'environnement du monde, dans le fil (priorité des messages d'action).
           const env = currentEnvironment(state);
-          if (env) this.news(envLine(env), '#f0a860', 1);
+          if (env) this.news(envChipText(env), '#f0a860', 1);
         }
         if (this.tab === 'campaign') this.invalidate();
         break;

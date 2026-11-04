@@ -1,3 +1,13 @@
+## Ascendrya v9.2.2 — Apparences dans le menu Héros, arrivée des ennemis selon leur nature
+
+- Apparences : nouveau sous-onglet visible Héros › Apparences (apparence équipée en haut, grille avec aperçu, bonus, état Équipée / Possédée / Verrouillée, bouton Équiper ou Invoquer). Plus de chemin caché dans la fiche du héros ; rien ne change dans les apparences possédées.
+- Arrivée des ennemis selon leur nature : les volants arrivent en vol (battements d'ailes ou ondulation, trajectoire courbe), les créatures marines à la nage, d'autres sortent du sol ou d'un portail, les autres arrivent à pied par la droite. Fini les ennemis qui tombent du ciel sans raison.
+- Butin : il part de l'endroit où l'ennemi meurt et retombe au sol.
+- Quand l'équipe tue d'un coup, les ennemis se ruent vers elle : on voit les coups et les morts au lieu de les tuer hors champ (rythme de progression inchangé, ±1 %).
+- Carte : pendant un donjon, la Tour ou le défi, les étapes sont grisées et un encadré explique pourquoi on ne peut pas voyager.
+- Pastille d'environnement lisible (« Boue : −23 % vitesse », « annulé » une fois contré) et bandeaux courts (environnement, mécanique de boss) qui tiennent sur une ligne.
+- Rayons de lumière sur toute la hauteur, estompés vers le haut.
+
 ## Ascendrya v9.2.1 — Malus d'environnement, déplacements par monde et nage améliorée
 
 - Environnements : dans chaque monde sauf le premier, le lieu gêne le héros — Pénombre (coups manqués), Éclats de cristal (dégâts reçus), Soif (régénération), Froid mordant (PV max), Malédiction (dégâts), Boue (vitesse d'attaque), Rafales (critique), Lave (PV perdus chaque seconde, jamais mortelle seule), Distorsion (dégâts contre les boss), Pression (PV max), Corruption (puissance des compagnons). Un peu plus fort à chaque cycle (×2 au plus). Campagne, donjons et défi du monde, hors ligne et prévision de boss compris ; ni Tour ni mode monde.
