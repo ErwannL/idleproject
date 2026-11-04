@@ -10,13 +10,13 @@ import { fileURLToPath } from 'node:url';
 function files(dir) {
   return readdirSync(dir).flatMap((f) => {
     const p = join(dir, f);
-    return statSync(p).isDirectory() ? files(p) : p.endsWith('.js') ? [p] : [];
+    return statSync(p).isDirectory() ? files(p) : p.endsWith('.js') || p.endsWith('.mjs') ? [p] : [];
   });
 }
 
-test('syntaxe valide pour chaque fichier de src/', () => {
+test('syntaxe valide pour chaque fichier de src/, server/ et site/', () => {
   const bad = [];
-  for (const f of files(fileURLToPath(new URL('../src', import.meta.url)))) {
+  for (const f of ['src', 'server', 'site'].flatMap((d) => files(fileURLToPath(new URL(`../${d}`, import.meta.url))))) {
     try { execFileSync(process.execPath, ['--check', f], { stdio: 'pipe' }); } catch (e) { bad.push(`${f}: ${String(e.stderr).split('\n')[0]}`); }
   }
   assert.deepEqual(bad, []);
