@@ -787,7 +787,7 @@ setTimeout(() => { if (!navigator.webdriver && !ui.desktop?.smoke) actions.check
 // v9.0.3 : exposition auto des objets ancestraux déjà dans le sac ou le coffre.
 if (state.ui.autoMuseum !== false) exposeAll(state);
 // Sauvegarde d'une version plus récente : on ne la touche pas, on prévient le joueur.
-if (loaded.source === 'newer') setTimeout(() => ui.toast('Cette sauvegarde vient d'une version plus récente du jeu. Mettez le jeu à jour pour la retrouver : rien n'a été écrasé.', '#ff8a8a'), 1500);
+if (loaded.source === 'newer') setTimeout(() => ui.toast("Cette sauvegarde vient d'une version plus récente du jeu. Mettez le jeu à jour pour la retrouver : rien n'a été écrasé.", '#ff8a8a'), 1500);
 else if (loaded.source !== 'new') runOffline(state.lastSaved, Date.now());
 else save();
 
