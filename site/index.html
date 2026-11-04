@@ -88,17 +88,11 @@
       .hero .banner { max-width: none; margin: 0 auto; text-align: center; }
       .hero .banner .cta { justify-content: center; }
       .reel { top: 0; bottom: auto; height: 250px; }
-      .reel-hud span { font-size: 11px; padding: 6px 9px; }
-    }
-    /* Aperçu du jeu : scène animée derrière le bandeau */
+      }
+    /* Aperçu du jeu : vidéo de partie derrière le bandeau */
     .reel { position: absolute; inset: 0; z-index: 0; overflow: hidden; background: #0b1222; }
-    .reel canvas { width: 100%; height: 100%; display: block; }
+    .reel video { width: 100%; height: 100%; object-fit: cover; display: block; }
     .reel-shade { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 35%, rgba(11,18,34,.55), rgba(11,18,34,0) 60%), linear-gradient(180deg, rgba(11,18,34,0) 70%, rgba(11,18,34,.35) 100%); pointer-events: none; }
-    .reel-hud { position: absolute; top: 14px; left: 14px; right: 14px; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; pointer-events: none; }
-    .reel-hud span { font: 800 13px/1 var(--body); color: #fff; background: rgba(11,18,34,.7); border: 1px solid rgba(242,180,58,.45); border-radius: 999px; padding: 7px 12px; text-shadow: 0 1px 2px #000; }
-    #reel-level { color: var(--gold-soft); }
-    .reel-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: rgba(255,255,255,.08); }
-    .reel-progress span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #2fb7ff, var(--gold)); }
 
     /* Compteur et barre de progression */
     .counter { margin: 34px auto 0; max-width: 760px; text-align: center; }
@@ -204,14 +198,9 @@
 </head>
 <body>
   <header class="hero">
-    <div class="reel" aria-hidden="true">
-      <canvas id="reel"></canvas>
+    <div class="reel">
+      <video src="assets/gameplay.webm" poster="assets/gameplay-poster.png" autoplay muted loop playsinline preload="auto" aria-label="Aperçu du jeu : combats, boss et progression, en vidéo"></video>
       <div class="reel-shade"></div>
-      <div class="reel-hud">
-        <span id="reel-world">Idle RPG</span>
-        <span id="reel-level"></span>
-      </div>
-      <div class="reel-progress"><span id="reel-bar"></span></div>
     </div>
     <div class="wrap" style="position:relative; z-index:1">
       <div class="banner">
@@ -296,7 +285,6 @@
     </footer>
   </main>
 
-  <script type="module" src="reel.js"></script>
   <script type="module">
     import { SITE } from './config.js';
 
