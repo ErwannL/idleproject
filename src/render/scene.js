@@ -820,7 +820,8 @@ export class SceneRenderer {
       const contactX = this.wx(BALANCE.world.heroX + BALANCE.world.meleeOffset + (def.range ?? 16) + (enemy.boss ? 8 : 0) + (BALANCE.rush?.reach ?? 0)) + 2;
       let k = fx.arriveAt === undefined ? 0 : arrivalProgress(this.time - fx.arriveAt, ex, startX, contactX, ARRIVE_SECONDS_BY_MODE[arrival.mode]);
       const pose = arrivalPose(arrival, k, { height: enemy.boss ? 90 : 70, time: this.time, focus: this.focus });
-      if (k < 1 && !fx.landed) this.arrivalFx(enemy, fx, arrival, pose, k, ex, w, h);
+      // v9.2.3 : portail dessiné (PixelLab) : pas de second portail procédural.
+      if (k < 1 && !fx.landed && !(arrival.mode === 'portal' && !heroLike && ENEMY_ANIMS[base]?.portal)) this.arrivalFx(enemy, fx, arrival, pose, k, ex, w, h);
       // v9.2.2 : position dessinée : sort du sol sur place, ou du portail (part de l'intérieur), puis rejoint ex.
       let exd = ex;
       if (k < 1 && arrival.mode === 'burrow' && fx.bx !== undefined) exd = fx.bx + (ex - fx.bx) * pose.settle;
@@ -839,14 +840,16 @@ export class SceneRenderer {
       const drawnPortal = drawn?.anim === anims?.portal;
       const rig = flying && arrival.style === 'wings' && !drawn ? wingRig(sprite) : null;
       const wp = rig ? wingPose(this.time, enemy.id * 0.7, this.focus) : 0;
-      const floating = flying && !rig && !drawn && !(this.underwater && def.swim);
+      // v9.2.3 : un flottement dessiné (`float`) garde l'ondulation procédurale par-dessus (balancement, traîne).
+      const floating = flying && !rig && (!drawn || drawn.anim === anims?.float) && !(this.underwater && def.swim);
       const paint = (canvas, px, py) => {
-        if (drawn) { ctx.drawImage(canvas, px + drawn.anim.ox * scale, py + drawn.anim.oy * scale, canvas.width * scale, canvas.height * scale); return; }
+        if (drawn && !floating) { ctx.drawImage(canvas, px + drawn.anim.ox * scale, py + drawn.anim.oy * scale, canvas.width * scale, canvas.height * scale); return; }
         if (rig) {
           const fr = wingFrames(canvas, rig)?.[wp];
           if (fr) { ctx.drawImage(fr.canvas, px - fr.pad * scale, py - fr.pad * scale, fr.canvas.width * scale, fr.canvas.height * scale); return; }
         }
         // Ondulation : balancement, bas qui ondule et traîne derrière pendant l'arrivée.
+        if (floating && drawn) { floatDraw(ctx, canvas, px + drawn.anim.ox * scale, py + drawn.anim.oy * scale, canvas.width * scale, canvas.height * scale, { time: this.time, phase: enemy.id, amp: this.focus ? 0.6 : 2 + 4 * pose.wave, trail: this.focus ? 0 : 10 * pose.wave }); return; }
         if (floating) { floatDraw(ctx, canvas, px, py, w, h, { time: this.time, phase: enemy.id, amp: this.focus ? 0.6 : 2 + 4 * pose.wave, trail: this.focus ? 0 : 10 * pose.wave }); return; }
         ctx.drawImage(canvas, px, py, w, h);
       };
