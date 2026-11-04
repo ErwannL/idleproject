@@ -184,7 +184,7 @@ export default {
     const rows = Object.entries(s.pools).filter(([pool]) => pool !== 'banner' && pool !== 'archive').map(([pool, p]) => {
       const legends = summonOdds(pool).find((r) => r.rarity === 'legendary')?.units.length ?? 0;
       const f = legends > 1 ? featuredUnit(pool) : null;
-      const what = pool === 'hero' ? `Apparences du héros : chacune change son allure et apporte un bonus (${navPath('hero', 'Apparence')}).`
+      const what = pool === 'hero' ? `Apparences du héros : chacune change son allure et apporte un bonus (${navPath('looks')}).`
         : pool === 'ally' ? 'Compagnons : ils combattent aux côtés du héros (2 places dans l\'équipe).'
           : 'Familiers : petits alliés aux bonus passifs (1 place dans l\'équipe).';
       const open = ui.view.summonOdds === pool;

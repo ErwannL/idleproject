@@ -58,8 +58,8 @@ test('écran Apparences : aperçu porté, cartes encadrées, Porter en un appui,
   const s = createNewState(NOW);
   s.heroes.owned.fairy = { stars: 3 };
   const html = hero.render(uiWith({ heroTab: 'look' }), s);
-  assert.match(html, /Apparence portée/);
-  assert.match(html, /Porté ✓/);
+  assert.match(html, /Apparence équipée/); // v9.2.2 : « Équiper » au lieu de « Porter »
+  assert.match(html, /Équipée ✓/);
   assert.match(html, /data-action="set-hero" data-value="fairy"/);
   assert.match(html, /2 doublons/);
   assert.match(html, /Obtenu par invocation/);
@@ -67,7 +67,7 @@ test('écran Apparences : aperçu porté, cartes encadrées, Porter en un appui,
   // Fiche : apparence portée nommée, avec un lien vers l'écran.
   const sheet = hero.render(uiWith({ heroTab: 'hero' }), s);
   assert.match(sheet, /Apparence : <b[^>]*>Chevalier/);
-  assert.match(sheet, /data-action="hero-tab" data-value="look"/);
+  assert.match(sheet, /data-action="open-looks"/); // v9.2.2 : vers Héros › Apparences
   // Invocation › Apparences : lien vers l'écran.
   assert.match(summonPanel.render(uiWith(), s), /data-action="open-looks"/);
 });

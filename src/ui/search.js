@@ -11,7 +11,7 @@ const EXTRA = [
   ['Réglages du sac', 'inventory', { invTab: 'bag', invView: null }, 'bag-settings'],
   ['Musée', 'encyclopedia', { encSec: 'museum' }],
   ['Classe', 'hero', { heroTab: 'class' }],
-  ['Apparence', 'hero', { heroTab: 'look' }],
+  ['Apparences', 'looks', {}], // v9.2.2 : sous-onglet Héros › Apparences
   ['Records', 'hero', { heroTab: 'records' }],
   ['Fiche du héros', 'hero', { heroTab: 'hero' }],
   ['Renaissance', 'tree', { treeSeg: 'rebirth' }],

@@ -43,7 +43,9 @@ export default {
   extra: (ui, state) => `Niv. <b class="gold-text">${state.level}</b>`,
   render(ui, state) {
     const tab = ['class', 'look', 'records'].includes(ui.view.heroTab) ? ui.view.heroTab : 'hero';
-    const tabs = segment([['hero', 'Fiche', 'icon_hero'], ['class', 'Classe', 'weapon_sword'], ['look', 'Apparence', 'icon_summon'], ['records', 'Records', 'icon_trophy']], 'hero-tab', tab);
+    // v9.2.2 : plus de segment « Apparence » ici : les apparences ont leur sous-onglet visible Héros › Apparences
+    // (panels/looks.js). Une ancienne navigation mémorisée sur 'look' l'affiche encore, sans perte.
+    const tabs = segment([['hero', 'Fiche', 'icon_hero'], ['class', 'Classe', 'weapon_sword'], ['records', 'Records', 'icon_trophy']], 'hero-tab', tab);
     if (tab === 'records') return tabs + recordsView(ui, state);
     if (tab === 'class') return tabs + classView(state);
     if (tab === 'look') return tabs + lookView(ui, state);
@@ -83,7 +85,8 @@ function classView(state) {
 // v9.1.9 : vrai écran « Apparences » — aperçu de l'apparence portée en tête, grille de cartes encadrées (rareté,
 // portrait animé, nom, bonus, étoiles et doublons) ; une carte possédée se porte en un appui ; verrouillée = silhouette
 // et « Obtenu par invocation ».
-function lookView(ui, state) {
+// v9.2.2 : exportée pour le sous-onglet Héros › Apparences ; état écrit sur chaque carte et bouton « Équiper ».
+export function lookView(ui, state) {
   const maxStars = BALANCE.summon.maxStars;
   const worn = heroById(state.heroes.active) ?? HEROES[0];
   const wornStars = state.heroes.owned[worn.id]?.stars ?? 1;
@@ -94,25 +97,26 @@ function lookView(ui, state) {
     const active = state.heroes.active === h.id;
     const n = owned?.stars ?? 1;
     const dup = n - 1;
-    const attrs = owned && !active ? ` data-action="set-hero" data-value="${h.id}" role="button" tabindex="0" aria-label="Porter ${escapeHtml(h.name)}"` : '';
+    const attrs = owned && !active ? ` data-action="set-hero" data-value="${h.id}" role="button" tabindex="0" aria-label="Équiper ${escapeHtml(h.name)}"` : '';
+    const status = active ? '<span class="look-status on">Équipée</span>' : owned ? '<span class="look-status owned">Possédée</span>' : `<span class="look-status locked">${img('icon_lock')} Verrouillée</span>`;
     return `<div class="look-card r-${h.rarity}${active ? ' active' : ''}${owned ? ' owned' : ' locked'}"${attrs}>
-      <span class="look-badge">${rarityLabel(h.rarity)}</span>
+      <span class="look-badge">${rarityLabel(h.rarity)}</span>${status}
       <div class="look-pic">${hdArt(h, owned ? 'look-hd' : 'look-hd locked')}${owned ? animCanvas(`hero:${h.id}`, 64, 58, 2) : `<img class="px look-shadow" src="${heroPortraitUrl({}, 2, h.palette, '#2e3a52')}" alt="">`}</div>
       <div class="look-name">${escapeHtml(h.name)}</div>
       <div class="muted look-role">${escapeHtml(h.title ?? h.role)}</div>
       <div class="good look-fx">${effectText(h.bonus)}</div>
       ${owned ? `<div class="look-stars">${stars(n, maxStars)} <span class="muted">${dup ? `${dup} doublon${dup > 1 ? 's' : ''}` : 'aucun doublon'}</span></div>
-        ${active ? '<span class="look-on">Porté ✓</span>' : '<span class="btn btn-primary small look-wear">Porter</span>'}`
+        ${active ? '<span class="look-on">Équipée ✓</span>' : `<button class="btn btn-primary small look-wear" data-action="set-hero" data-value="${h.id}">Équiper</button>`}`
         : `<div class="muted look-lock">${img('icon_lock')} Obtenu par invocation</div>
         ${canSummon && h.summon ? `<button class="btn small" data-action="open-summon-hero">${img('icon_summon')} Invoquer</button>` : ''}`}</div>`;
   }).join('');
   const preview = `<div class="card look-preview r-${worn.rarity}">
       <div class="look-preview-pic">${hdArt(worn, 'look-hd')}${animCanvas('hero', 64, 58, 3)}</div>
-      <div class="grow"><div class="muted">Apparence portée</div>
+      <div class="grow"><div class="muted">Apparence équipée</div>
         <div class="look-preview-name">${escapeHtml(worn.name)} <span class="rarity-text">${rarityLabel(worn.rarity)}</span></div>
         ${stars(wornStars, maxStars)}
         <div class="good">${effectText(heroEffects(state))}</div>
-        <div class="muted look-help">Touchez une apparence obtenue pour la porter. Bonus +${HERO_STAR_BONUS_PCT} % par étoile.</div></div>
+        <div class="muted look-help">Touchez une apparence possédée pour l'équiper. Bonus +${HERO_STAR_BONUS_PCT} % par étoile.</div></div>
     </div>`;
   return `${preview}<div class="card"><div class="row-between"><div class="section-title">Apparences</div><span class="muted">${ownedCount}/${HEROES.length} obtenues</span></div>
     <div class="look-grid">${cards}</div></div>`;
@@ -198,7 +202,7 @@ function heroView(ui, state) {
         <div class="grow">
           <div class="hero-title">${escapeHtml(hero.name)}</div>
           <div class="hero-look">Apparence : <b class="rarity-text r-${hero.rarity}">${escapeHtml(hero.name)}</b> ${stars(state.heroes.owned[hero.id]?.stars ?? 1, BALANCE.summon.maxStars)}
-            <button class="btn small" data-action="hero-tab" data-value="look">Changer ›</button></div>
+            <button class="btn small" data-action="open-looks">Changer ›</button></div>
           <div class="muted">Classe : <b style="color:${activeClass(state).color}">${escapeHtml(activeClass(state).name)}</b> · ${hero.role}</div>
           <div class="hero-desc">${escapeHtml(hero.description)}</div>
           ${heroBonus ? `<div class="hero-bonus">${heroBonus}</div>` : ''}

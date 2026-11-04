@@ -2,13 +2,13 @@
 // v9.1.0 : 4 menus aux noms honnêtes (onglets en haut du panneau). La fiche du héros (portrait) et les
 // Paramètres (engrenage) sont hors menu. Les identifiants des panneaux ne changent pas.
 export const MENUS = [
-  { id: 'hero', label: 'Héros', tabs: ['inventory', 'upgrades', 'skills', 'tree'] },
+  { id: 'hero', label: 'Héros', tabs: ['inventory', 'looks', 'upgrades', 'skills', 'tree'] }, // v9.2.2 : Apparences visibles
   { id: 'adventure', label: 'Aventure', tabs: ['campaign', 'dungeons', 'tower', 'boss'] },
   { id: 'team', label: 'Équipe', tabs: ['companions', 'summon', 'expeditions'] },
   { id: 'goals', label: 'Objectifs', tabs: ['contracts', 'encyclopedia', 'ranking', 'stats'] }, // v9.1.3 : À récupérer en fenêtre (touche N)
 ];
 export const SUB_LABELS = {
-  upgrades: 'Améliorations', skills: 'Compétences', tree: 'Talents', hero: 'Fiche', inventory: 'Équipement',
+  upgrades: 'Améliorations', skills: 'Compétences', tree: 'Talents', hero: 'Fiche', inventory: 'Équipement', looks: 'Apparences',
   companions: 'Composition', expeditions: 'Expéditions', summon: 'Invocation', campaign: 'Carte', dungeons: 'Donjons', tower: 'Défis',
   boss: 'Boss', world: 'Monde', encyclopedia: 'Collections', contracts: 'Missions', inbox: 'À récupérer', ranking: 'Classement', stats: 'Statistiques', options: 'Paramètres',
 };

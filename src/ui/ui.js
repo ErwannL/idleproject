@@ -46,6 +46,7 @@ import { cheatTimes, simSpeed, unlockedSpeeds } from '../core/cheats.js';
 import { PRESTIGE } from '../data/prestige.js';
 import { PANEL_HELP, betterItem, nextAction } from '../core/guide.js';
 import hero from './panels/hero.js';
+import looks from './panels/looks.js'; // v9.2.2
 import inbox from './panels/inbox.js';
 import ranking from './panels/ranking.js';
 import stats from './panels/stats.js';
@@ -73,10 +74,10 @@ import { MENUS, SUB_LABELS, navPath } from './nav.js';
 
 export { MENUS };
 
-const PANELS = Object.fromEntries([upgrades, inventory, hero, companions, expeditions, skills, tree, campaign, dungeons, tower, boss, encyclopedia, summon, contracts, inbox, ranking, stats, options, worldPanel]
+const PANELS = Object.fromEntries([upgrades, inventory, hero, looks, companions, expeditions, skills, tree, campaign, dungeons, tower, boss, encyclopedia, summon, contracts, inbox, ranking, stats, options, worldPanel]
   .map((p) => [p.id, p]));
 const SUB_ICONS = {
-  upgrades: 'icon_upgrade', skills: 'skill_quick', tree: 'icon_tree', hero: 'icon_hero', inventory: 'icon_bag',
+  upgrades: 'icon_upgrade', skills: 'skill_quick', tree: 'icon_tree', hero: 'icon_hero', inventory: 'icon_bag', looks: 'icon_summon',
   companions: 'icon_paw', expeditions: 'icon_expedition', summon: 'icon_summon', campaign: 'icon_map', dungeons: 'icon_dungeon', tower: 'icon_tower',
   boss: 'icon_boss', encyclopedia: 'icon_book', contracts: 'icon_trophy', inbox: 'icon_mail', ranking: 'icon_trophy', stats: 'icon_book',
 };
@@ -98,7 +99,7 @@ const TALL_MIN_HEIGHT = 420;
 const STRIP_MAX_HEIGHT = 190; // en dessous : mode barre (seulement la scène, comme une barre des tâches)
 const BULK_CONFIRM_MS = 4000;
 // Panneaux dont le contenu évolue pendant le farm : réaffichés au plus une fois par seconde.
-const LIVE_PANELS = new Set(['world', 'contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'upgrades', 'companions', 'expeditions', 'encyclopedia', 'inbox', 'ranking', 'stats']);
+const LIVE_PANELS = new Set(['world', 'contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'looks', 'upgrades', 'companions', 'expeditions', 'encyclopedia', 'inbox', 'ranking', 'stats']);
 
 // Renaissance : choix du seul pouvoir ancestral conservé.
 function powerChoice(state) {
@@ -896,7 +897,7 @@ export class UI {
       case 'tour-full': a.startTour(); break;
       case 'tour-later': a.skipTour(); break;
       case 'open-summon-hero': local(() => { v.summonPool = 'hero'; }); this.openTab('summon'); break;
-      case 'open-looks': if (el.closest('#modal')) this.closeModal(); this.openTab('hero', { heroTab: 'look' }); break; // v9.1.9 : écran Apparences
+      case 'open-looks': if (el.closest('#modal')) this.closeModal(); this.openTab('looks'); break; // v9.2.2 : sous-onglet Héros › Apparences
       case 'claim-bounty': a.claimBounty(); break;
       case 'bounty-go': a.goToStage(Number(value)); break;
       case 'toggle-tips': event.preventDefault(); local(() => { v.tipsOpen = v.tipsOpen === false; }); break;
@@ -1352,6 +1353,7 @@ export class UI {
       case 'upgrades': return this.view.buyAmount === 'max' ? String(Math.floor(Math.log10(state.gold + 1) * 8)) : '';
       case 'skills': return `${state.level}|${Math.floor(state.xp)}|${Object.values(state.rushes.active).map(Math.ceil).join()}|${Object.values(state.rushes.cooldown).map((c) => Math.ceil(c / 10)).join()}`;
       case 'boss': return Object.values(state.powers).map((p) => `${p.victories}${p.charges}${p.pending}`).join();
+      case 'looks': return `${state.heroes.active}|${Object.entries(state.heroes.owned).map(([k, o]) => `${k}${o.stars}`).join()}`; // v9.2.2
       case 'hero': return `${state.level}|${Math.floor(state.xp / 5)}|${state.heroes.active}|${Object.keys(state.heroes.owned).length}`;
       case 'encyclopedia': return String(encyclopediaProgress(state).found);
       case 'stats': return String(Math.floor(Date.now() / 5000));
