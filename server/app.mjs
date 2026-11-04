@@ -31,6 +31,8 @@ const TYPES = {
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
   '.webp': 'image/webp',
+  '.webm': 'video/webm',
+  '.mp4': 'video/mp4',
 };
 
 // Tris du classement : liste fermée, jamais de texte de requête dans le SQL.
