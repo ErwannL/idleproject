@@ -1,6 +1,9 @@
 // v9.2.1 : anglais des malus d'environnement (data/environment.js, core/environment.js) et de leurs mentions.
 // Branché à la fin de ./en.js comme ./en-920-upg.js.
 export const EXACT_921 = {
+  'Voyage impossible pendant un donjon : terminez-le ou quittez-le (bouton rouge sous la scène).': 'Travel unavailable during a dungeon: finish or leave it (red button under the scene).',
+  "Voyage impossible pendant la Tour de l'Éternité : terminez ou quittez la montée (bouton rouge sous la scène).": 'Travel unavailable during the Tower of Eternity: finish or leave the climb (red button under the scene).',
+  'Voyage impossible pendant le défi de la semaine : terminez-le ou quittez-le (bouton rouge sous la scène).': 'Travel unavailable during the weekly challenge: finish or leave it (red button under the scene).',
   Environnement: 'Environment',
   'réduit les dégâts reçus': 'reduces damage taken', 'invoque des serviteurs': 'summons minions', 'frappe de plus en plus fort': 'hits harder and harder',
   'enragé sous 50 % de PV': 'enraged below 50% HP', 'se régénère sans critiques': 'regenerates without crits',

@@ -95,11 +95,14 @@ export default {
     }).join('');
     const first = offset + zoneStartStage(sel);
     const buttons = [];
+    // v9.2.2 : pas de voyage pendant un donjon, la Tour ou le défi — on le dit au lieu de boutons qui ne répondent pas.
+    const busy = state.dungeon ? 'dungeon' : state.tower ? 'tower' : state.challenge ? 'challenge' : '';
+    const busyNote = busy ? `<div class="notice warn">${busy === 'dungeon' ? 'Voyage impossible pendant un donjon : terminez-le ou quittez-le (bouton rouge sous la scène).' : busy === 'tower' ? 'Voyage impossible pendant la Tour de l\'Éternité : terminez ou quittez la montée (bouton rouge sous la scène).' : 'Voyage impossible pendant le défi de la semaine : terminez-le ou quittez-le (bouton rouge sous la scène).'}</div>` : '';
     for (let stage = first; stage < first + zoneLength(ZONES[sel]); stage++) {
       const tier = bossTierForStage(stage);
       const classes = ['btn', tier ? `boss tier-${tier}` : '', stage === state.stage && !state.dungeon ? 'current' : '', stage < state.maxStage ? 'cleared' : ''].join(' ');
       const title = tier ? `${TIER_LABELS[tier]} : ${BOSSES[bossesForStage(stage)[0]].name}` : 'Étape';
-      buttons.push(`<button class="${classes}" data-action="stage" data-stage="${stage}" ${stage > state.maxStage ? 'disabled' : ''}
+      buttons.push(`<button class="${classes}" data-action="stage" data-stage="${stage}" ${stage > state.maxStage || busy ? 'disabled' : ''}
         title="${escapeHtml(title)} · ${stageLabel(stage)}" aria-label="${escapeHtml(tier ? `${stage - first + 1} · ${TIER_LABELS[tier]}` : String(stage - first + 1))}">${stage - first + 1}</button>`);
       // v9.1.3 (A4) : plus de crâne de 9×8 px ; les étapes de boss se lisent à la forme (bordure épaisse, numéro en gras).
     }
@@ -118,6 +121,7 @@ export default {
         <div class="row-between"><span>${cycle ? `<b class="bad">Cycle ×${cycle + 1}</b>` : ''}</span>
           <label class="toggle"><input type="checkbox" data-action="auto" ${state.autoAdvance ? 'checked' : ''}> Avancer automatiquement</label></div>
         ${envHtml(state, sel, cycle)}
+        ${busyNote}
         <div class="stage-grid">${buttons.join('')}</div>
       </div>`;
   },

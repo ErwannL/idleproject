@@ -1,5 +1,8 @@
 // v9.2.1 : coréen des malus d'environnement et de leurs mentions. Branché à la fin de ./ko.js.
 export const EXACT_921 = {
+  'Voyage impossible pendant un donjon : terminez-le ou quittez-le (bouton rouge sous la scène).': '던전 진행 중에는 이동할 수 없습니다: 끝내거나 나가세요 (장면 아래 빨간 버튼).',
+  "Voyage impossible pendant la Tour de l'Éternité : terminez ou quittez la montée (bouton rouge sous la scène).": '영원의 탑 진행 중에는 이동할 수 없습니다: 등반을 끝내거나 나가세요 (장면 아래 빨간 버튼).',
+  'Voyage impossible pendant le défi de la semaine : terminez-le ou quittez-le (bouton rouge sous la scène).': '주간 도전 중에는 이동할 수 없습니다: 끝내거나 나가세요 (장면 아래 빨간 버튼).',
   Environnement: '환경',
   'réduit les dégâts reçus': '받는 피해 감소', 'invoque des serviteurs': '하수인 소환', 'frappe de plus en plus fort': '점점 더 강하게 공격',
   'enragé sous 50 % de PV': 'HP 50% 미만에서 격노', 'se régénère sans critiques': '치명타가 없으면 재생',
