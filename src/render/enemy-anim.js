@@ -144,14 +144,17 @@ export function attackCurve(p) {
 }
 
 // v9.2.3 : animation dessinée image par image (src/render/art-anim.js) quand le sprite en a une, sinon null
-// (repli sur les déformations procédurales). Priorité : sortie du sol, attaque (atkP : avancement 0–1), vol, marche.
-export function pickAnimFrame(set, { emerge = null, atkP = null, flying = false, moving = false, time = 0, phase = 0 } = {}) {
+// (repli sur les déformations procédurales). Priorité : sortie du sol ou du portail, attaque (atkP : avancement 0–1),
+// nage (sous l'eau, en continu), vol (battements d'ailes `fly` ou flottement `float`), marche.
+export function pickAnimFrame(set, { emerge = null, portal = null, atkP = null, flying = false, swimming = false, moving = false, time = 0, phase = 0 } = {}) {
   if (!set) return null;
   const at = (anim, k) => ({ anim, key: anim.frames[Math.max(0, Math.min(anim.frames.length - 1, Math.floor(k * anim.frames.length)))] });
   if (set.emerge && emerge !== null) return at(set.emerge, emerge);
+  if (set.portal && portal !== null) return at(set.portal, portal);
   if (set.attack && atkP !== null) return at(set.attack, atkP);
   const loop = (anim) => ({ anim, key: anim.frames[Math.floor(time * anim.fps + phase) % anim.frames.length] });
-  if (set.fly && flying) return loop(set.fly);
+  if (set.swim && swimming) return loop(set.swim);
+  if (flying && (set.fly || set.float)) return loop(set.fly ?? set.float);
   if (set.walk && moving) return loop(set.walk);
   return null;
 }

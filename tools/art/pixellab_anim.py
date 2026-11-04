@@ -24,11 +24,65 @@ from lib import to_grid  # noqa: E402
 from pixellab import GAIT, MARGIN, MAX_COLORS, SRC, TARGET, _canvas, _frame  # noqa: E402
 
 # Images par seconde de chaque animation (le jeu peut aussi piloter l'image par la phase : attaque, sortie du sol).
-ANIMS = {
-    'bat': {'fly': 14},
-    'harpy': {'fly': 12},
-    'skeleton': {'walk': 12, 'attack': 25, 'emerge': 12},
-}
+# v9.2.3 : animations trouvées dans tools/art/pixellab/anim/<sprite>_<anim>/ (tous les ennemis et boss des mondes 1 à 12).
+FPS = {'walk': 12, 'fly': 12, 'attack': 25, 'emerge': 12, 'portal': 12, 'swim': 10, 'float': 8}
+FPS_SPRITE = {('bat', 'fly'): 14}
+ANIM_NAMES = tuple(FPS)
+
+
+def _discover():
+    out = {}
+    for d in sorted(glob.glob(os.path.join(SRC, 'anim', '*_*'))):
+        key, _, anim = os.path.basename(d).rpartition('_')
+        if anim in ANIM_NAMES and glob.glob(os.path.join(d, 'f*.png')):
+            out.setdefault(key, {})[anim] = FPS_SPRITE.get((key, anim), FPS[anim])
+    return out
+
+
+ANIMS = _discover()
+BG = os.path.join(ROOT, 'assets', 'bg')
+
+
+def _ground_ramp(zone, n=4):
+    """v9.2.3 : couleurs de la terre de la zone (sous la surface du sol), de la plus sombre à la plus claire."""
+    g = Image.open(os.path.join(BG, f'{zone}_ground.png')).convert('RGB')
+    g = g.crop((0, 8, g.width, g.height))
+    q = g.quantize(colors=n, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert('RGB')
+    return sorted(set(_pixels(q)), key=lambda c: 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2])
+
+
+def _recolor_earth(frames, base_pal, zone):
+    """Les couleurs absentes du sprite (terre, mottes) prennent la couleur du sol de la zone, à luminosité égale."""
+    ramp = _ground_ramp(zone)
+    lum = lambda c: 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2]
+    extra = sorted({p[:3] for f in frames for p in _pixels(f) if p[3] and p[:3] not in base_pal}, key=lum)
+    if not extra:
+        return frames
+    lo, hi = lum(extra[0]), lum(extra[-1])
+    m = {c: ramp[min(len(ramp) - 1, int((lum(c) - lo) / max(1, hi - lo + 1) * len(ramp)))] for c in extra}
+    for f in frames:
+        px = f.load()
+        for y in range(f.height):
+            for x in range(f.width):
+                p = px[x, y]
+                if p[3] and p[:3] in m:
+                    px[x, y] = m[p[:3]] + (255,)
+    return frames
+
+
+def _base(key):
+    """Vue de référence (cadre de génération), sprite de jeu, coin du sprite dans la vue, échelle.
+    Sprites PixelLab : direction 7 de la planche ; sprites faits main (monde marin…) : anim/_ref/<sprite>.png (+ .json)."""
+    ref = os.path.join(SRC, 'anim', '_ref', f'{key}.json')
+    if os.path.exists(ref):
+        meta = json.load(open(ref))
+        view = Image.open(ref[:-5] + '.png').convert('RGBA')
+        return view, view.crop((meta['ox'], meta['oy'], meta['ox'] + meta['w'], meta['oy'] + meta['h'])), (meta['ox'], meta['oy']), None
+    sheet = Image.open(os.path.join(SRC, f'{key}.png')).convert('RGBA')
+    view = sheet.crop((7 * 64, 0, 8 * 64, 64))
+    bx0, by0 = view.getbbox()[:2]
+    base = _frame(key)
+    return view, base, (bx0 - MARGIN, by0), round(TARGET[key] / base.height, 4)
 MIN_SPECK = 4  # amas détachés de moins de 4 pixels : poussières de génération
 
 
@@ -107,34 +161,46 @@ def _remap(frames, base_pal, extra=12, near=48 ** 2):
     return out
 
 
+def _plain(img):
+    """Sprite fait main (sans échelle) : grille brute, sans la marge des sprites PixelLab."""
+    from lib import Canvas, rgb2hex
+    c = Canvas(img.width, img.height)
+    px = img.load()
+    for y in range(img.height):
+        for x in range(img.width):
+            if px[x, y][3]:
+                c.px[y][x] = rgb2hex(px[x, y][:3])
+    return c
+
+
 def build():
     """Entrées de sprites (une par image) et index des animations."""
     sprites, index = {}, {}
     for key, anims in ANIMS.items():
-        sheet = Image.open(os.path.join(SRC, f'{key}.png')).convert('RGBA')
-        view = sheet.crop((7 * 64, 0, 8 * 64, 64))
-        bx0, by0 = view.getbbox()[:2]
-        base = _frame(key)
-        scale = round(TARGET[key] / base.height, 4)
+        view, base, (bx, by), scale = _base(key)
         base_pal = _palette(base)
         for anim, fps in anims.items():
             paths = sorted(glob.glob(os.path.join(SRC, 'anim', f'{key}_{anim}', 'f*.png')), key=lambda p: int(os.path.basename(p)[1:-4]))
             frames = [_drop_specks(_clean_alpha(Image.open(p))) for p in paths]
             frames = _remap(frames, base_pal)
+            meta = os.path.join(SRC, 'anim', f'{key}_{anim}', 'meta.json')
+            if os.path.exists(meta) and json.load(open(meta)).get('ground'):
+                frames = _recolor_earth(frames, base_pal, json.load(open(meta))['ground'])
             boxes = [f.getbbox() for f in frames if f.getbbox()]
             ux0, uy0 = min(b[0] for b in boxes), min(b[1] for b in boxes)
             ux1, uy1 = max(b[2] for b in boxes), max(b[3] for b in boxes)
             names = []
             for i, f in enumerate(frames):
                 name = f'{key}__{anim}{i}'
-                sprites[name] = (_canvas(f.crop((ux0, uy0, ux1, uy1))), {'scale': scale, 'gait': GAIT.get(key, 'walk')})
+                crop = f.crop((ux0, uy0, ux1, uy1))
+                sprites[name] = (_canvas(crop), {'scale': scale, 'gait': GAIT.get(key, 'walk')}) if scale else (_plain(crop), {})
                 names.append(name)
                 if os.environ.get('PREVIEW_DIR'):  # images nettoyées, pour les planches de contrôle
                     d = os.path.join(os.environ['PREVIEW_DIR'], f'{key}_{anim}')
                     os.makedirs(d, exist_ok=True)
                     f.crop((ux0, uy0, ux1, uy1)).save(os.path.join(d, f'f{i}.png'))
             # Décalage par rapport à l'image de base (cadre : boîte de la vue, plus MARGIN à gauche).
-            index.setdefault(key, {})[anim] = {'frames': names, 'ox': ux0 - (bx0 - MARGIN), 'oy': uy0 - by0, 'fps': fps}
+            index.setdefault(key, {})[anim] = {'frames': names, 'ox': ux0 - bx, 'oy': uy0 - by, 'fps': fps}
     return sprites, index
 
 
@@ -142,7 +208,7 @@ if __name__ == '__main__':
     sprites, index = build()
     lines = [
         '// FICHIER GÉNÉRÉ par tools/art/pixellab_anim.py — ne pas modifier à la main.',
-        '// v9.2.3 : animations dessinées image par image (PixelLab) : bat, harpy, skeleton.',
+        '// v9.2.3 : animations dessinées image par image (PixelLab) des ennemis et boss des mondes 1 à 12.',
         'export const ANIM_ART = {',
     ]
     for name in sorted(sprites):

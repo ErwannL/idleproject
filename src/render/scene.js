@@ -606,7 +606,8 @@ export class SceneRenderer {
     return {
       step,
       // v9.0.7 : un sprite en pleine définition (chara design PixelLab) porte son propre facteur d'échelle.
-      def, sprite, heroLike: Boolean(bossDef?.heroLike), scale: (bossDef ? bossDef.scale ?? 1 : 1) * (SPRITES[sprite]?.scale ?? 1),
+      // v9.2.3 : `base` choisit les animations dessinées (boss compris).
+      def, sprite, base, heroLike: Boolean(bossDef?.heroLike), scale: (bossDef ? bossDef.scale ?? 1 : 1) * (SPRITES[sprite]?.scale ?? 1),
       colors: (bossDef ? bossDef.palette : def.palette) ?? null,
     };
   }
@@ -784,7 +785,7 @@ export class SceneRenderer {
       const alpha = Math.min(1, world.alpha ?? 1);
       const ex = this.wx((enemy.prevX ?? enemy.x) + (enemy.x - (enemy.prevX ?? enemy.x)) * alpha);
 
-      const { def, sprite, scale, colors, heroLike, step } = this.enemyLook(enemy.type, enemy.boss, fx.lunge > 0, enemy.id * 0.37, moving,
+      const { def, sprite, base, scale, colors, heroLike, step } = this.enemyLook(enemy.type, enemy.boss, fx.lunge > 0, enemy.id * 0.37, moving,
         enemy.rush && moving ? 2.2 : 1);
       // Le Chevalier déchu utilise le corps du héros, retourné, avec une épée sombre.
       const img = heroLike
@@ -828,10 +829,14 @@ export class SceneRenderer {
       const flying = !heroLike && arrival.mode === 'fly' && (k < 1 || def.flyHeight > 0 || (arrival.style === 'wings' && !WINGED_LANDERS.has(enemy.type)));
       // v9.2.3 : images dessinées (PixelLab) pour quelques ennemis ; les autres gardent les déformations procédurales.
       const atkP = fx.lunge > 0 ? 1 - fx.lunge / ENEMY_ATK : fx.windup > 0 ? 0.3 * (1 - fx.windup / 0.25) : null;
-      const drawn = enemy.boss || heroLike || (this.underwater && def.swim) ? null : pickAnimFrame(ENEMY_ANIMS[def.sprite], {
-        emerge: arrival.mode === 'burrow' && k < 1 ? pose.emerge : null, atkP, flying, moving, time: this.time, phase: enemy.id * 0.7,
+      // v9.2.3 : tous les ennemis et boss des mondes 1 à 12 (boss compris) ; nage sous l'eau, sortie du sol ou du portail dessinées.
+      const anims = heroLike ? null : ENEMY_ANIMS[base];
+      const drawn = pickAnimFrame(anims, {
+        emerge: arrival.mode === 'burrow' && k < 1 ? pose.emerge : null, portal: arrival.mode === 'portal' && k < 1 ? Math.min(1, k / 0.85) : null,
+        atkP, flying, swimming: this.underwater && arrival.mode === 'swim', moving, time: this.time, phase: enemy.id * 0.7,
       });
-      if (drawn?.anim === ENEMY_ANIMS[def.sprite]?.emerge) { pose.buried = 0; pose.dx = 0; pose.dy = 0; } // la sortie est dessinée
+      if (drawn && (drawn.anim === anims.emerge || drawn.anim === anims.portal)) { pose.buried = 0; pose.dx = 0; pose.dy = 0; pose.alpha = 1; } // la sortie est dessinée
+      const drawnPortal = drawn?.anim === anims?.portal;
       const rig = flying && arrival.style === 'wings' && !drawn ? wingRig(sprite) : null;
       const wp = rig ? wingPose(this.time, enemy.id * 0.7, this.focus) : 0;
       const floating = flying && !rig && !drawn && !(this.underwater && def.swim);
@@ -862,14 +867,14 @@ export class SceneRenderer {
       ctx.globalAlpha = fx.appear * pose.alpha;
       if (pose.buried < 0.6 && pose.alpha > 0.3) this.drawShadow(ctx, exd + pose.dx, Math.max(6, w * 0.7 * (1 - Math.min(0.6, pose.dy / 120))));
       // v9.2.2 : sort du sol (seule la partie au-dessus de la ligne du sol se voit) ou du portail (partie sortie).
-      const clipW = arrival.mode === 'portal' && k < 1 && !this.focus ? fx.px + Math.max(0, (k - 0.6) / 0.4) * w * 1.5 : this.width; // la partie encore dans le portail reste cachée
+      const clipW = arrival.mode === 'portal' && k < 1 && !this.focus && !drawnPortal ? fx.px + Math.max(0, (k - 0.6) / 0.4) * w * 1.5 : this.width; // la partie encore dans le portail reste cachée
       const clipped = pose.buried > 0 || clipW < this.width;
       if (clipped) { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, clipW, pose.buried > 0 ? this.groundY + 1 : this.height); ctx.clip(); }
-      if (enemy.boss) this.drawBossAura(ctx, enemy, sprite, colors, x, y, w, h, fx.appear, paint);
+      if (enemy.boss) this.drawBossAura(ctx, enemy, drawn?.key ?? sprite, colors, x, y, w, h, fx.appear, paint); // v9.2.3 : l'aura suit l'image dessinée
       // v9.0.8 : corps animé en continu (marche, sauts des gluants, trot, respiration ; buste projeté à l'attaque).
       const attackK = atk?.phase === 'strike' ? 1 : 0;
       const stepping = moving && hd && ['walk', 'quad'].includes(SPRITES[sprite]?.gait); // les images de pas suffisent
-      const motion = def.flyHeight || heroLike || stepping ? { sx: 1, sy: 1, dy: 0, rot: 0 }
+      const motion = def.flyHeight || heroLike || stepping || drawn ? { sx: 1, sy: 1, dy: 0, rot: 0 }
         : bodyMotion(sprite, this.time * (enemy.boss ? 0.75 : 1) + enemy.id * 0.61, moving, -1);
       if (attackK > 0) motion.dy += attackK * 2; // petit saut en frappant (le recul/élan horizontal existe déjà)
       const mutation = enemy.mutation ? mutationById(enemy.mutation) : null;
