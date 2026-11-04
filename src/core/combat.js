@@ -405,11 +405,11 @@ function gainGold(state, world, amount) {
   return gold;
 }
 
-function dropItem(state, world, item, x, balance) {
+function dropItem(state, world, item, x, balance, enemyId = null) {
   world.counters.drops += 1;
   const result = collectItem(state, item, balance);
   if (rarityIndex(item.rarity) >= 1) trackContracts(state, 'rareLoot', 1);
-  emit(world, 'drop', { item, x, autoRecycled: Boolean(result.recycled) && !result.mannequin, stored: Boolean(result.stored || result.held), byRule: Boolean(result.auto), mannequin: Boolean(result.mannequin), museum: Boolean(result.museum), recycledGold: result.recycledGold, freed: result.freed?.count ? result.freed : null });
+  emit(world, 'drop', { item, x, enemyId, autoRecycled: Boolean(result.recycled) && !result.mannequin, stored: Boolean(result.stored || result.held), byRule: Boolean(result.auto), mannequin: Boolean(result.mannequin), museum: Boolean(result.museum), recycledGold: result.recycledGold, freed: result.freed?.count ? result.freed : null });
 }
 
 function killEnemy(state, world, enemy, rng, balance, stats, enc) {
@@ -464,7 +464,7 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
     const luck = cheatLoot(state).minRarity;
     const minRarity = luck && rarityIndex(luck) > rarityIndex(base) ? luck : base;
     const item = signature ?? generateItem(state, rng, { level: enc.level, minRarity, setZone: enc.tower ? null : enc.zoneIndex, weights: common ? balance.loot.dropRarityWeights : null }, balance);
-    dropItem(state, world, item, enemy.x, balance);
+    dropItem(state, world, item, enemy.x, balance, enemy.id); // v9.2.2 : le rendu part de la position réelle à la mort
   }
 
   if (enemy.elite) {
@@ -578,8 +578,22 @@ export function classAttackTargets(heroClass, world, front, damage, count) {
 
 // v9.1.3 (S3) : unitId = compagnon qui frappe (sinon le héros) ; les dégâts réellement retirés sont comptés par
 // unité (« dégâts directs »), lus seulement par la mesure « Mesurer » (core/offline.js).
+// v9.2.2 : ruée des ennemis ordinaires quand l'équipe les tue d'un coup (voir BALANCE.rush).
+export function isRushing(heroDamage, enemy, balance = BALANCE) {
+  const r = balance.rush;
+  return Boolean(r && !enemy.boss && !enemy.summoned && heroDamage >= r.oneShot * enemy.maxHp);
+}
+
+// Un ennemi qui se rue n'est touchable qu'arrivé près du contact (sinon il mourrait hors champ, sans animation).
+export function canHit(enemy, balance = BALANCE) {
+  if (!enemy.rush) return true;
+  const W = balance.world;
+  return enemy.x <= W.heroX + W.meleeOffset + enemy.range + (balance.rush?.reach ?? 0);
+}
+
 function hitEnemy(state, world, enemy, damage, rng, balance, stats, enc, source, unitId = 'hero') {
   if (!world.enemies.includes(enemy)) return;
+  if (!canHit(enemy, balance)) return; // v9.2.2 : pas encore arrivé (ruée)
   damage = mutationDamageTaken(enemy, damage);
   damage = traitDamageTaken(enemy, damage);
   if (enemy.scoreTarget && state.worldRun?.kind === 'score') state.worldRun.damage += damage; // v9.1.3 (doc4 lot 6)
@@ -791,18 +805,21 @@ export function step(state, world, dt, rng, balance = BALANCE) {
   // v9.0.6 : portée selon la classe (l'archer s'arrête et tire de loin, le lancier frappe avec allonge).
   const range = classRange(state, balance);
   const heroClass = activeClass(state);
-  hero.walking = !front || front.x - W.heroX > range;
+  // v9.2.2 : ruée — décidée une fois par ennemi, d'après le coup moyen du héros.
+  for (const enemy of world.enemies) if (enemy.rush === undefined) enemy.rush = isRushing(stats.damage, enemy, balance);
+  hero.walking = !front || front.x - W.heroX > range || !canHit(front, balance);
   const scroll = hero.walking ? W.scrollSpeed : 0;
   world.scroll += scroll * dt;
   world.enemies.forEach((enemy, i) => {
     const prev = world.enemies[i - 1];
     const gap = W.enemyGap * (enemy.boss || prev?.boss ? 2 : 1);
     const stopX = prev ? prev.x + gap : W.heroX + W.meleeOffset + enemy.range;
-    enemy.x = Math.max(stopX, enemy.x - (enemy.speed + scroll) * dt);
+    const speed = enemy.rush ? enemy.speed * (balance.rush?.speedMult ?? 1) : enemy.speed;
+    enemy.x = Math.max(stopX, enemy.x - (speed + scroll) * dt);
     enemy.engaged = !prev && enemy.x <= stopX + 0.01;
   });
 
-  const inRange = front && front.x - W.heroX <= range;
+  const inRange = front && front.x - W.heroX <= range && canHit(front, balance);
 
   // Attaque automatique du héros sur l'ennemi le plus proche.
   if (inRange) {
@@ -847,7 +864,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
     for (const skill of activeSkills(state)) {
       world.skillTimers[skill.id] = (world.skillTimers[skill.id] ?? 1) - dt;
       const target = world.enemies[0];
-      if (world.skillTimers[skill.id] <= 0 && target && target.x - W.heroX <= range) {
+      if (world.skillTimers[skill.id] <= 0 && target && target.x - W.heroX <= range && canHit(target, balance)) {
         castSkill(state, world, skill, stats, rng, balance, enc, target);
         world.skillTimers[skill.id] = skillCooldown(skill, stats.bonus);
       }
@@ -861,7 +878,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
       world.companionTimers[key] = (world.companionTimers[key] ?? skill.every / 2 + skill.index) - dt;
       const target = world.enemies[0];
       const needsTarget = ['hit', 'burst'].includes(skill.type);
-      if (world.companionTimers[key] <= 0 && (!needsTarget || (target && target.x - W.heroX <= range + 20))) {
+      if (world.companionTimers[key] <= 0 && (!needsTarget || (target && target.x - W.heroX <= range + 20 && canHit(target, balance)))) {
         castCompanion(state, world, companion, skill, stats, rng, balance, enc, target);
         world.companionTimers[key] = skill.every;
       }

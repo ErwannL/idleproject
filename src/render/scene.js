@@ -7,6 +7,8 @@ import { drawTeamFx } from './team-fx.js';
 import { installClassFx } from './class-fx.js';
 import { installTraversalFx } from './traversal-fx.js'; // v9.2.1 : déplacement propre à chaque monde
 import { armSwing, attackCurve, dissolveFrames } from './enemy-anim.js';
+import { arrivalPose, arrivalProgress } from './arrival.js'; // v9.2.2 : arrivée des ennemis
+import { arrivalFor } from '../data/arrivals.js';
 import { elementOfColor, installElementFx } from './element-fx.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
 import { RARITIES } from '../data/items.js';
@@ -96,7 +98,6 @@ const FLYING_PETS = new Set(['owl', 'fairy', 'wisp']);
 const STALE_EVENT_SECONDS = 1.5;
 const ATTACK_TIME = 0.3; // durée de l'animation d'attaque (élan, frappe, suite)
 const ENEMY_ATK = 0.32; // v9.1.9 : attaque ennemie (préparation, coup, retour)
-const BOSS_ENTRY = 0.7; // v9.1.9 : chute d'entrée des boss
 const CAST_TIME = 0.35; // durée de la pose de sort
 
 const mixCache = new Map();
@@ -364,10 +365,14 @@ export class SceneRenderer {
       case 'drop': {
         const color = rarityColor(event.item.rarity);
         const big = event.item.rarity === 'legendary' || event.item.rarity === 'epic';
-        this.effects.push({ kind: 'beam', x: Math.round(event.x), color, life: 1.4, max: 1.4, wide: big });
+        // v9.2.2 : l'objet part de la position réelle de l'ennemi à sa mort (volant, encore en l'air, sprite décalé
+        // devant le chevalier), puis retombe au sol. Avant : x de la simulation, toujours au sol.
+        const at = this.deathSpot(event.enemyId) ?? { x: event.x, y: this.groundY - 2 };
+        const x0 = Math.max(HERO_X + 16, Math.min(this.width - 20, at.x));
+        this.effects.push({ kind: 'beam', x: Math.round(x0), color, life: 1.4, max: 1.4, wide: big });
         // L'objet jaillit du monstre, retombe en brillant, puis file vers le sac du chevalier.
-        this.effects.push({ kind: 'loot', item: event.item, color, x0: event.x, x: event.x, y: this.groundY, life: LOOT_LIFE, max: LOOT_LIFE });
-        this.burst(event.x, this.groundY - 6, color, big ? 14 : 6, 50);
+        this.effects.push({ kind: 'loot', item: event.item, color, x0, x: x0, y0: at.y, y: at.y, life: LOOT_LIFE, max: LOOT_LIFE });
+        this.burst(x0, at.y - 4, color, big ? 14 : 6, 50);
         if (event.item.rarity === 'legendary') this.shake = Math.max(this.shake, 3);
         break;
       }
@@ -424,6 +429,49 @@ export class SceneRenderer {
   }
 
   // Petits nuages de poussière aux pieds (bond, réception).
+  // v9.2.2 : effets d'arrivée — monticule de terre et mottes qui sautent (sortie du sol), portail (anneau ovale
+  // vertical qui s'ouvre puis se referme), sillage de bulles à la nage. Rien en « réduire les animations ».
+  arrivalFx(enemy, fx, arrival, pose, ex, w, h) {
+    if (this.focus) return;
+    const ctx = this.ctx;
+    const G = this.groundY;
+    if (arrival.mode === 'burrow' && pose.buried > 0) {
+      const mw = Math.max(6, Math.round(w * 0.6));
+      ctx.fillStyle = '#5a4630';
+      ctx.fillRect(Math.round(ex - mw / 2), G - 1, mw, 2);
+      ctx.fillStyle = '#7a6244';
+      ctx.fillRect(Math.round(ex - mw / 2 + 2), G - 2, Math.max(2, mw - 4), 1);
+      if ((this.frameNo + enemy.id) % (pose.buried < 0.95 ? 2 : 5) === 0) {
+        this.effects.push({ kind: 'particle', x: ex + (Math.random() - 0.5) * mw, y: G - 2, vx: (Math.random() - 0.5) * 30, vy: -30 - Math.random() * 30,
+          color: Math.random() < 0.5 ? '#6a543a' : '#a08660', life: 0.4, max: 0.4, size: 2 });
+      }
+    } else if (arrival.mode === 'portal' && pose.portal > 0) {
+      const px = Math.round(fx.portalX ?? ex);
+      const ph = Math.max(2, Math.round((h + 8) * pose.portal));
+      const pw = Math.max(2, Math.round(Math.min(18, w * 0.5) * pose.portal));
+      const cy = G - Math.round(h / 2);
+      const ring = (rw, rh, color) => {
+        ctx.fillStyle = color;
+        for (let i = 0; i < 24; i++) {
+          const a = (i / 24) * Math.PI * 2 + this.time * 3;
+          ctx.fillRect(Math.round(px + Math.cos(a) * rw) - 1, Math.round(cy + Math.sin(a) * rh) - 1, 2, 2);
+        }
+      };
+      ctx.globalAlpha = 0.35 * pose.portal;
+      ctx.fillStyle = '#2a0a4a';
+      ctx.fillRect(px - Math.round(pw * 0.7), cy - Math.round(ph * 0.4), Math.round(pw * 1.4), Math.round(ph * 0.8));
+      ctx.globalAlpha = 0.9 * pose.portal;
+      ring(pw, ph / 2, '#b46aff');
+      ring(Math.max(1, pw - 3), Math.max(1, ph / 2 - 3), '#ffd0ff');
+      ctx.globalAlpha = 1;
+    } else if ((arrival.mode === 'swim' || arrival.mode === 'fly') && pose.dy > 6 && (this.frameNo + enemy.id) % 4 === 0) {
+      // Sillage : bulles sous l'eau, petits filets d'air (vol) derrière l'ennemi.
+      const y = G - h / 2 - pose.dy;
+      this.effects.push({ kind: 'particle', x: ex + w / 2 + pose.dx, y, vx: 14, vy: arrival.mode === 'swim' ? -12 : -4,
+        color: arrival.mode === 'swim' ? '#bfe8ff' : '#e8f0ff', life: 0.35, max: 0.35 });
+    }
+  }
+
   dust(x, count) {
     for (let i = 0; i < count; i++) {
       this.effects.push({ kind: 'puff', x: x + (Math.random() * 6 - 3), y: this.groundY - 1, vx: -10 - Math.random() * 16, vy: -4 - Math.random() * 6,
@@ -470,7 +518,7 @@ export class SceneRenderer {
       ? heroComposite('idle', { weapon: { baseId: 'fallen_blade', rarity: 'epic' } }, true, 'b', colors, true)
       : spriteCanvas(sprite, { flash: true });
     this.effects.push({
-      kind: 'corpse', img, x: this.wx(event.x), w: img.width * scale, h: img.height * scale,
+      kind: 'corpse', img, x: fxe?.img ? fxe.sx + fxe.sw / 2 : this.wx(event.x), top: fxe?.img ? fxe.sy : undefined, w: img.width * scale, h: img.height * scale,
       fly: this.flyHeight(event.kind, event.boss), life: 0.3, max: 0.3,
     });
     if (!this.focus && fxe?.img) {
@@ -482,14 +530,30 @@ export class SceneRenderer {
           vx: (Math.random() - 0.5) * 10, vy: -14 - Math.random() * 20, color: i % 2 ? '#ffffff' : '#c8b8ff', life: 0.7, max: 0.7 });
       }
     }
+    // v9.2.2 : position réelle à la mort (centre du sprite à l'écran), pour le butin et les pièces.
+    if (fxe?.img) {
+      this.deaths ??= new Map();
+      this.deaths.set(event.enemyId, { x: fxe.sx + fxe.sw / 2, y: Math.min(this.groundY - 2, fxe.sy + fxe.sh * 0.6), t: this.time });
+      for (const [id, d] of this.deaths) if (this.time - d.t > 5) this.deaths.delete(id);
+    }
     this.enemyFx.delete(event.enemyId);
+    const spot = this.deathSpot(event.enemyId);
     const coins = event.boss ? 12 : Math.min(4, 1 + Math.floor(event.gold / 20));
     for (let i = 0; i < coins; i++) {
       this.effects.push({
-        kind: 'coin', x: this.wx(event.x) + (Math.random() * 10 - 5), y: this.groundY - 14,
+        kind: 'coin', x: (spot?.x ?? this.wx(event.x)) + (Math.random() * 10 - 5), y: spot ? Math.min(spot.y, this.groundY - 14) : this.groundY - 14,
         vx: Math.random() * 40 - 20, vy: -40 - Math.random() * 30, life: 0.8, max: 0.8,
       });
     }
+  }
+
+  // v9.2.2 : où l'ennemi est mort (ou se trouve encore, s'il attend un projectile en vol), à l'écran.
+  deathSpot(enemyId) {
+    if (enemyId == null) return null;
+    const d = this.deaths?.get(enemyId);
+    if (d) return d;
+    const fx = this.enemyFx.get(enemyId);
+    return fx?.img ? { x: fx.sx + fx.sw / 2, y: Math.min(this.groundY - 2, fx.sy + fx.sh * 0.6) } : null;
   }
 
   shatter(fx) {
@@ -554,7 +618,7 @@ export class SceneRenderer {
 
   // Apparence d'un ennemi : sprite, échelle, palette (boss et variantes comme le loup des glaces).
   // Images : repos / marche (<nom>, <nom>_b) et attaque (<nom>_atk) quand elles existent.
-  enemyLook(type, boss, attacking = false, phase = 0, moving = true) {
+  enemyLook(type, boss, attacking = false, phase = 0, moving = true, pace = 1) {
     const bossDef = boss ? BOSSES[type] : null;
     const def = boss ? ENEMIES[bossDef.base] : ENEMIES[type];
     const base = bossDef?.sprite ?? def.sprite;
@@ -563,7 +627,7 @@ export class SceneRenderer {
     if (moving && SPRITES[base]?.scale && SPRITES[`${base}_w1`]) frames = [base, `${base}_w1`, base, `${base}_w2`];
     if (frames.length === 1 && SPRITES[`${base}_b`]) frames = [base, `${base}_b`];
     // Marche : 6 images/s (4 pour les boss) ; au contact, respiration plus lente.
-    const fps = moving ? (boss ? 4 : 6) : 2.5;
+    const fps = (moving ? (boss ? 4 : 6) : 2.5) * pace; // v9.2.2 : `pace` (ruée, battements d'ailes à l'arrivée)
     const step = Math.floor(this.time * fps + phase);
     let sprite = frames[step % frames.length];
     if (attacking && SPRITES[`${base}_atk`]) sprite = `${base}_atk`;
@@ -748,7 +812,8 @@ export class SceneRenderer {
       const alpha = Math.min(1, world.alpha ?? 1);
       const ex = this.wx((enemy.prevX ?? enemy.x) + (enemy.x - (enemy.prevX ?? enemy.x)) * alpha);
 
-      const { def, sprite, scale, colors, heroLike, step } = this.enemyLook(enemy.type, enemy.boss, fx.lunge > 0, enemy.id * 0.37, moving);
+      const { def, sprite, scale, colors, heroLike, step } = this.enemyLook(enemy.type, enemy.boss, fx.lunge > 0, enemy.id * 0.37, moving,
+        enemy.rush && moving ? 2.2 : 1);
       // Le Chevalier déchu utilise le corps du héros, retourné, avec une épée sombre.
       const img = heroLike
         ? heroComposite(fx.lunge > 0 ? 'attack' : moving ? ['walk1', 'walk2'][Math.floor(this.time * 6) % 2] : 'idle',
@@ -764,21 +829,35 @@ export class SceneRenderer {
       fx.windup = Math.max(0, (fx.windup ?? 0) - dt);
       const atk = fx.lunge > 0 ? attackCurve(1 - fx.lunge / ENEMY_ATK) : fx.windup > 0 ? attackCurve(0.3 * (1 - fx.windup / 0.25)) : null;
       const lunge = atk ? (this.focus ? Math.max(0, atk.dx) >> 1 : atk.dx) : 0;
-      // v9.1.9 : entrée des boss (chute depuis le haut, atterrissage lourd), pas en mode « réduire les animations ».
-      if (enemy.boss && fx.entry === undefined && ex < this.width * 0.8) fx.entry = this.focus ? 0 : BOSS_ENTRY; // dès qu'il est bien visible
-      const entryK = enemy.boss && fx.entry === undefined && !this.focus ? 1 : fx.entry > 0 ? fx.entry / BOSS_ENTRY : 0; // en attente : hors champ, en haut
-      if (fx.entry > 0) {
-        fx.entry = Math.max(0, fx.entry - dt);
-        if (fx.entry === 0) { this.shake = Math.max(this.shake, 3); this.dust(ex - 10, 4); this.dust(ex + 10, 4); this.burst(ex, this.groundY - 4, '#e8d8b0', 10, 40); }
+      // v9.2.2 : arrivée selon la nature de l'ennemi (src/data/arrivals.js) : à pied, en vol (descente en courbe
+      // depuis le haut, battements d'ailes ou ondulation), à la nage, en sortant du sol ou d'un portail.
+      // Remplace la chute depuis le haut de tous les boss (v9.1.9), incohérente pour un marcheur.
+      const arrival = arrivalFor(enemy.type, enemy.boss, { underwater: this.underwater });
+      const startX = this.width + 16;
+      if (fx.arriveAt === undefined && ex < startX) { fx.arriveAt = this.time; fx.portalX = Math.min(ex - 6, this.width - 30); } // portail bien visible
+      // Fini d'arriver avant d'être touchable (portée de la ruée, BALANCE.rush.reach) : jamais tué en plein vol.
+      const contactX = this.wx(BALANCE.world.heroX + BALANCE.world.meleeOffset + (def.range ?? 16) + (enemy.boss ? 8 : 0) + (BALANCE.rush?.reach ?? 0)) + 2;
+      let k = fx.arriveAt === undefined ? 0 : arrivalProgress(this.time - fx.arriveAt, ex, startX, contactX);
+      if (arrival.mode === 'portal' && ex > fx.portalX && k < 1) k = Math.min(k, 0.2); // caché tant qu'il n'a pas franchi le portail
+      const pose = arrivalPose(arrival, k, { height: enemy.boss ? 90 : 70, time: this.time, phase: enemy.id, focus: this.focus });
+      if (k < 1 && !fx.landed) this.arrivalFx(enemy, fx, arrival, pose, ex, w, h);
+      if (k >= 1 && !fx.landed) {
+        fx.landed = true;
+        if (enemy.boss && !this.focus && arrival.mode !== 'walk' && !def.flyHeight && !this.underwater) {
+          this.shake = Math.max(this.shake, 3); this.dust(ex - 10, 4); this.dust(ex + 10, 4); this.burst(ex, this.groundY - 4, '#e8d8b0', 10, 40);
+        }
       }
+      // v9.2.2 : ruée (équipe bien plus forte) : course rapide, poussière derrière.
+      if (enemy.rush && moving && k > 0.3 && !this.focus && !def.flyHeight && !this.underwater && (this.frameNo + enemy.id) % 3 === 0) this.dust(ex + w / 2, 1);
       // Les grands sprites (boss, ogre…) restent devant le chevalier sans le chevaucher.
-      const x = this.snap(Math.max(ex - w / 2, HERO_X + 12) - lunge + (fx.knock > 0.5 ? fx.knock : 0));
-      const y = this.groundY - h - bob - hover + 1 - Math.round(entryK * entryK * 90);
+      const x = this.snap(Math.max(ex - w / 2, HERO_X + 12) - lunge + (fx.knock > 0.5 ? fx.knock : 0) + pose.dx);
+      const y = this.groundY - h - bob - hover + 1 - pose.dy - pose.flap + Math.round(pose.buried * h);
       // Géométrie à l'écran (projectiles qui visent la cible, impacts, ennemi figé à la mort).
       Object.assign(fx, { sx: x, sy: y, sw: w, sh: h, seen: this.time, img, edge: x + bodyEdge(img) * scale });
 
-      ctx.globalAlpha = fx.appear;
-      this.drawShadow(ctx, ex, Math.max(6, w * 0.7));
+      ctx.globalAlpha = fx.appear * pose.alpha;
+      if (pose.buried < 0.6 && pose.alpha > 0.3) this.drawShadow(ctx, ex + pose.dx, Math.max(6, w * 0.7 * (1 - Math.min(0.6, pose.dy / 120))));
+      if (pose.buried > 0) { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, this.width, this.groundY + 1); ctx.clip(); } // v9.2.2 : sort du sol
       if (enemy.boss) this.drawBossAura(ctx, enemy, sprite, colors, x, y, w, h, fx.appear);
       // v9.0.8 : corps animé en continu (marche, sauts des gluants, trot, respiration ; buste projeté à l'attaque).
       const attackK = atk?.phase === 'strike' ? 1 : 0;
@@ -793,14 +872,14 @@ export class SceneRenderer {
           const glow = spriteCanvas(sprite, { colors, tint: { color: '#ff3b3b', alpha: 1 } });
           ctx.globalAlpha = fx.appear * (0.5 + 0.3 * Math.sin(this.time * 8));
           for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.drawImage(glow, x + dx, y + dy, w, h);
-          ctx.globalAlpha = fx.appear;
+          ctx.globalAlpha = fx.appear * pose.alpha;
         }
         if (mutation) {
           // v9.0.4 : ennemi muté — contour de la couleur de sa mutation, pulsé (géant : un peu plus grand).
           const glow = spriteCanvas(sprite, { colors, tint: { color: mutation.color, alpha: 1 } });
           ctx.globalAlpha = fx.appear * (0.55 + 0.35 * Math.sin(this.time * 6 + enemy.id));
           for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1]]) ctx.drawImage(glow, x + dx, y + dy, w, h);
-          ctx.globalAlpha = fx.appear;
+          ctx.globalAlpha = fx.appear * pose.alpha;
         }
         if (fx.squash > 0) {
           // Écrasement à l'impact (ancré aux pieds) : plus large et plus bas, très bref.
@@ -816,6 +895,7 @@ export class SceneRenderer {
           swimDraw(ctx, img, x, y, w, h, { time: this.time, phase: enemy.id * 0.9, amp: def.swim === 'eel' ? 2 : 1.5, mode: def.swim, focus: this.focus });
         } else ctx.drawImage(img, x, y, w, h);
       });
+      if (pose.buried > 0) ctx.restore();
       if (atk?.phase === 'strike' && !fx.smeared) {
         // Traînée de frappe (arc de pixels) devant l'ennemi, une fois par coup.
         fx.smeared = true;
@@ -1604,10 +1684,12 @@ export class SceneRenderer {
           let x = fx.x0;
           let y;
           if (age < 0.5) {
-            // Saut en cloche, un peu vers l'avant.
+            // Saut en cloche, un peu vers l'avant. v9.2.2 : depuis la hauteur réelle de l'ennemi, retombe au sol.
             const k = age / 0.5;
+            const g = this.groundY - 2;
+            const y0 = Math.min(g, fx.y0 ?? g);
             x = fx.x0 + 14 * k;
-            y = this.groundY - 2 - Math.sin(k * Math.PI) * 26;
+            y = y0 + (g - y0) * k * k - Math.sin(k * Math.PI) * (y0 < g - 20 ? 10 : 26);
           } else if (age < LOOT_LIFE - 0.5) {
             // Posé au sol (le décor défile : il suit le sol), avec un petit rebond à l'atterrissage.
             x = fx.x0 + 14;
@@ -1712,21 +1794,23 @@ export class SceneRenderer {
           break;
         }
         case 'beam': {
-          ctx.globalAlpha = Math.min(1, t * 1.5) * 0.7;
-          ctx.fillStyle = fx.color;
-          const w = fx.wide ? 7 : 4;
-          const top = Math.max(0, this.groundY - 90); // colonne de lumière bornée : pas de trait sur tout l'écran
-          ctx.fillRect(fx.x - Math.floor(w / 2), top, w, this.groundY - top);
-          ctx.globalAlpha = Math.min(1, t * 1.5);
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(fx.x, top, 1, this.groundY - top);
+          // v9.2.2 : colonne de lumière sur toute la hauteur, qui s'estompe vers le haut (plus de trait coupé net).
+          const w = fx.wide ? 7 : 4, G = this.groundY, a = Math.min(1, t * 1.5);
+          const fade = (c, k) => { const g = ctx.createLinearGradient(0, 0, 0, G); g.addColorStop(0, c + '00'); g.addColorStop(0.45, c + Math.round(k * 160).toString(16).padStart(2, '0')); g.addColorStop(1, c + Math.round(k * 255).toString(16).padStart(2, '0')); return g; };
+          const col = /^#[0-9a-f]{6}$/i.test(fx.color) ? fx.color : '#ffffff';
+          ctx.globalAlpha = a * 0.7;
+          ctx.fillStyle = fade(col, 1);
+          ctx.fillRect(fx.x - Math.floor(w / 2), 0, w, G);
+          ctx.globalAlpha = a;
+          ctx.fillStyle = fade('#ffffff', 1);
+          ctx.fillRect(fx.x, 0, 1, G);
           break;
         }
         case 'corpse': {
           if (fx.frames) {
             // v9.1.9 : dissolution tramée (pixels qui s'éteignent), sans écrasement flou.
             const k = Math.min(fx.frames.length - 1, Math.floor((1 - t) * fx.frames.length));
-            ctx.drawImage(fx.frames[k], Math.round(fx.x - fx.w / 2), Math.round(this.groundY - fx.h - fx.fly + 1), fx.w, fx.h);
+            ctx.drawImage(fx.frames[k], Math.round(fx.x - fx.w / 2), Math.round(fx.top ?? this.groundY - fx.h - fx.fly + 1), fx.w, fx.h); // v9.2.2 : là où il est mort
             break;
           }
           ctx.globalAlpha = t;

@@ -229,6 +229,11 @@ export const BALANCE = {
     goldGrowth: 1.0724,
   },
 
+  // v9.2.2 : ruée — quand un coup du héros vaut au moins `oneShot` fois les PV d'un ennemi ordinaire, celui-ci se
+  // rue vers l'équipe (vitesse × `speedMult`) et ne peut être touché qu'une fois à portée visible du contact
+  // (`reach` unités au-delà de sa distance de frappe) : on voit les coups et la mort au lieu d'un ennemi tué hors champ.
+  rush: { oneShot: 1, speedMult: 4, reach: 8 },
+
   spawn: {
     intervalSeconds: 1.4,
     maxAlive: 3,
