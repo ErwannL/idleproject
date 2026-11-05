@@ -1937,6 +1937,8 @@ html.fx-calm .hero-banner::after { animation: none; }
 .look-pic .look-hd.locked ~ .look-shadow { display: none; }
 .pet-detail > :not(.pet-hd) { position: relative; z-index: 1; }
 .hd-art.real { image-rendering: auto; }
+/* v9.2.4 : illustrations générées déjà agrandies au plus proche voisin : réduction lissée à l'affichage. */
+.hd-art.px-hd { image-rendering: auto; }
 
 /* --- v9.1.0 : segment unique (au plus un par écran), zone de danger, export / import --- */
 .seg { display: flex; flex-wrap: wrap; gap: 0; margin-bottom: 6px; border: 1px solid var(--line-2); border-radius: 6px; overflow: hidden; flex-shrink: 0; }
