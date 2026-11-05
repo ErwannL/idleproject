@@ -1,5 +1,5 @@
 import { ART } from './art.js';
-import { ANIM_ART } from './art-anim.js'; // v9.2.3 : animations image par image (PixelLab)
+import { ANIM_ART, ANIM_PALS } from './art-anim.js'; // v9.2.3 : animations image par image (PixelLab)
 
 // Assets pixel art, dessinés pour le projet (aucun asset externe).
 //
@@ -24,7 +24,10 @@ export const HERO_FRAME_SIZE = { w: 48, h: 48 };
 // Position des pieds du chevalier dans ses images (milieu des pieds, ligne du sol).
 export const HERO_FOOT = { x: 20, y: 47 };
 
-export const SPRITES = { ...ART, ...ANIM_ART };
+// v9.2.3 : les images d'animation sont compressées par suites (`cN` = N fois le caractère c, voir pixellab_anim.py).
+export const expandRow = (row) => row.replace(/`(.)(\d+)`/g, (_, c, n) => c.repeat(Number(n)));
+const ANIM_EXPANDED = Object.fromEntries(Object.entries(ANIM_ART).map(([k, v]) => [k, { ...v, rows: v.rows.map(expandRow), pal: ANIM_PALS[v.pr] }]));
+export const SPRITES = { ...ART, ...ANIM_EXPANDED };
 
 export function normalizeRows(rows) {
   const width = Math.max(...rows.map((r) => r.length));

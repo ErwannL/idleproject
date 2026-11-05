@@ -161,6 +161,19 @@ def _remap(frames, base_pal, extra=12, near=48 ** 2):
     return out
 
 
+def _rle(row):
+    """v9.2.3 : poids du bundle : une suite d'au moins 5 pixels identiques s'écrit `cN` (c : caractère, N : nombre),
+    le jeu la développe au chargement (expandRow de src/render/sprites.js). Le caractère ` n'est dans aucune palette."""
+    out, i = [], 0
+    while i < len(row):
+        j = i
+        while j < len(row) and row[j] == row[i]:
+            j += 1
+        out.append(f'`{row[i]}{j - i}`' if j - i >= 5 else row[i] * (j - i))
+        i = j
+    return ''.join(out)
+
+
 def _plain(img):
     """Sprite fait main (sans échelle) : grille brute, sans la marge des sprites PixelLab."""
     from lib import Canvas, rgb2hex
@@ -211,14 +224,31 @@ if __name__ == '__main__':
         '// v9.2.3 : animations dessinées image par image (PixelLab) des ennemis et boss des mondes 1 à 12.',
         'export const ANIM_ART = {',
     ]
+    # v9.2.3 : une palette par animation (partagée par ses images), écrite une fois dans ANIM_PALS.
+    from lib import FREE_CHARS
+    pals = {}
     for name in sorted(sprites):
-        rows, pal = to_grid(sprites[name][0])
-        entry = {'rows': rows}
-        if pal:
-            entry['pal'] = pal
+        canvas = sprites[name][0]
+        group = name.rstrip('0123456789')
+        pal = pals.setdefault(group, {})
+        rows = []
+        for y in range(canvas.h):
+            row = []
+            for x in range(canvas.w):
+                c = canvas.px[y][x]
+                if c is None:
+                    row.append('.')
+                    continue
+                if c not in pal:
+                    pal[c] = FREE_CHARS[len(pal)] if len(pal) < len(FREE_CHARS) else pal[min(pal, key=lambda k: sum((int(k[i:i + 2], 16) - int(c[i:i + 2], 16)) ** 2 for i in (1, 3, 5)))]
+                row.append(pal[c])
+            rows.append(''.join(row))
+        entry = {'rows': [_rle(r) for r in rows], 'pr': group}
         entry.update(sprites[name][1])
         lines.append(f'  {json.dumps(name)}: {json.dumps(entry, ensure_ascii=False, separators=(",", ":"))},')
     lines.append('};')
+    lines.append('// Palettes des animations (caractère → couleur), partagées par toutes les images d\'une animation.')
+    lines.append('export const ANIM_PALS = ' + json.dumps({g: {ch: c for c, ch in p.items()} for g, p in pals.items()}, ensure_ascii=False, separators=(',', ':')) + ';')
     lines.append('// Animations par sprite : images, décalage (ox, oy) par rapport au sprite de base, images par seconde.')
     lines.append('export const ENEMY_ANIMS = ' + json.dumps(index, ensure_ascii=False, separators=(',', ':')) + ';')
     lines.append('')

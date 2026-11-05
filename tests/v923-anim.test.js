@@ -25,3 +25,30 @@ test('v9.2.3 : choix de l\'image (sortie du sol > attaque > vol > marche) et rep
   assert.equal(pickAnimFrame(ENEMY_ANIMS.bat, { flying: true }).anim, ENEMY_ANIMS.bat.fly);
   assert.equal(pickAnimFrame(ENEMY_ANIMS.__aucun__, { moving: true }), null); // autres ennemis : procédural
 });
+
+test('v9.2.3 : images compressées par suites et palette partagée par animation', async () => {
+  const { expandRow } = await import('../src/render/sprites.js');
+  assert.equal(expandRow('ab`.7`c`x5`'), 'ab.......cxxxxx');
+  for (const [sprite, set] of Object.entries(ENEMY_ANIMS)) {
+    for (const anim of Object.values(set)) {
+      const w = SPRITES[anim.frames[0]].rows[0].length;
+      for (const key of anim.frames) {
+        const s = SPRITES[key];
+        assert.ok(s.pal, `${sprite} ${key}`);
+        assert.equal(s.pal, SPRITES[anim.frames[0]].pal); // une palette par animation
+        for (const r of s.rows) { assert.equal(r.length, w); assert.ok(!r.includes('`')); }
+      }
+    }
+  }
+});
+
+test('v9.2.3 : tous les mondes 1 à 12 ont des animations dessinées', async () => {
+  const { ZONES } = await import('../src/data/zones.js');
+  const { BOSSES, ENEMIES } = await import('../src/data/enemies.js');
+  let withAnim = 0, total = 0;
+  for (const z of ZONES.slice(0, 12)) {
+    for (const t of z.enemies) { total++; if (ENEMY_ANIMS[ENEMIES[t].sprite]) withAnim++; }
+    for (const t of [...Object.values(z.tierBosses ?? {}), ...z.bosses]) { total++; if (ENEMY_ANIMS[BOSSES[t].sprite ?? ENEMIES[BOSSES[t].base].sprite]) withAnim++; }
+  }
+  assert.ok(withAnim / total > 0.9, `${withAnim}/${total}`);
+});
