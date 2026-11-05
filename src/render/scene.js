@@ -29,7 +29,9 @@ import { BG } from './bg.js';
 import { waterAccent } from './water-fx.js'; // v9.2.1
 import { addBubble, drawOceanBack, drawOceanFront, kickFrame, STROKE, strokeStep, swimDraw, swimFloat, swimPose, swirl, SWIM_DEPTH, SWIM_TILT } from './ocean-fx.js'; // v9.2.0 (monde marin)
 import { FONT_BIG, SPRITES } from './sprites.js';
-import { HERO_ANCHOR, SWIM_AXIS, SWIM_BODY, drawBigText, heroComposite, heroSwim, itemDropCanvas, spriteCanvas, textWidth } from './pixel.js';
+import { HERO_ANCHOR, SWIM_AXIS, SWIM_BODY, drawBigText, heroAnimCanvas, heroBackWeapon, heroComposite, heroSwim, itemDropCanvas, spriteCanvas, textWidth } from './pixel.js';
+import { ALLY_ANIMS, heroAnimKey, loopFrame, pickAllyAnim, pickHeroAnim } from './ally-anim.js'; // v9.2.3 : alliés animés (PixelLab)
+import { itemBase } from '../core/loot.js';
 
 // Vue resserrée : le chevalier (≈ 40 px) occupe un bon tiers de la hauteur de la scène.
 export const MIN_VIEW_HEIGHT = 96;
@@ -1084,7 +1086,11 @@ export class SceneRenderer {
         // Crawl dessiné (6 images), arme le long du dos ; ondulation douce depuis la tête (cape, jambes).
         const sw = heroSwim(swimStep, state.equipment, palette, false);
         const px = HERO_X - SWIM_BODY.x - SWIM_AXIS.x + surge, py = this.groundY - 22 - lift - SWIM_BODY.y - SWIM_AXIS.y; // v9.2.1 : dessin agrandi
-        swimDraw(ctx, sw, px, py, sw.width, sw.height, { time: this.time, amp: 1, mode: 'dolphin', focus: this.focus });
+        const swim = ALLY_ANIMS[heroAnimKey(palette)]?.swim; // v9.2.3 : vrai crawl PixelLab (bras et jambes qui battent)
+        if (swim) {
+          ctx.drawImage(heroBackWeapon(state.equipment, 'swim'), px, py);
+          ctx.drawImage(heroAnimCanvas(loopFrame(swim, this.time, hero.walking ? 1 : 0.7), palette), px + swim.ox, py + swim.oy);
+        } else swimDraw(ctx, sw, px, py, sw.width, sw.height, { time: this.time, amp: 1, mode: 'dolphin', focus: this.focus });
         barY = this.groundY - 22 - lift - 24;
       } else {
         // Redressé pour frapper / viser / encaisser (pose debout, à peine penchée), puis retour à la nage.
@@ -1102,7 +1108,13 @@ export class SceneRenderer {
     } else {
       // v9.2.1 : hauteur propre au monde (nuage, lévitation, enfoncé dans le marais) et effets aux pieds.
       lift = this.travLift(0);
-      ctx.drawImage(img, baseX + lean, baseY - jump - lift);
+      // v9.2.3 : marche et attaque dessinées image par image (PixelLab, ally-anim.js), arme dans le dos en marchant.
+      const anim = pickHeroAnim({ palette, classId: activeClass(state).id, style, weapon: state.equipment.weapon && itemBase(state.equipment.weapon.baseId)?.sprite,
+        walking: frame.startsWith('walk'), engaged, attack: this.hero.attack, shoot: this.hero.shoot, aim: this.hero.aim, cast: this.hero.cast,
+        hurt: this.hero.hurt, victory: this.hero.victory, time: this.time, attackTime: ATTACK_TIME, castTime: CAST_TIME }, (this.heroAnimMem ??= {}));
+      if (anim?.back) ctx.drawImage(heroBackWeapon(state.equipment), baseX + lean, baseY - jump - lift);
+      if (anim) ctx.drawImage(heroAnimCanvas(anim.name, palette), baseX + lean + anim.ox, baseY - jump - lift + anim.oy);
+      else ctx.drawImage(img, baseX + lean, baseY - jump - lift);
       this.travFeet('hero', HERO_X - 2, hero.walking, 0);
     }
 
@@ -1255,6 +1267,10 @@ export class SceneRenderer {
       else if (walking && SPRITES[`${s}_w1`]) frame = [s, `${s}_w1`, s, `${s}_w2`][Math.floor(this.time * 9 + i * 2) % 4];
       else if (Math.floor(this.time * 2 + i) % 2 && SPRITES[`${s}_b`]) frame = `${s}_b`;
     }
+    // v9.2.3 : marche, geste et nage dessinés image par image (PixelLab) : placés depuis le sprite de repos.
+    const a0 = this.allyAnims?.get(companion.id);
+    const pa = pickAllyAnim({ sprite: s, walking, swimming, gesture: a0 ? { kind: a0.kind, k: Math.min(1, (this.time - a0.start) / a0.max) } : null, time: this.time, seed: i * 0.37 });
+    if (pa) frame = s;
     const img = spriteCanvas(frame);
     const sc = SPRITES[frame]?.scale ?? 1;
     const w = img.width * sc;
@@ -1346,7 +1362,10 @@ export class SceneRenderer {
     if (!swimming) this.drawStarOutline(ctx, companion, frame, x, y, w, h);
     // v9.1.9 : compagnon à pied qui frappe : son bras/arme tourne autour de l'épaule (voir enemy-anim.js).
     const sw = pose.arm && SPRITES[frame]?.gait === 'walk' ? armSwing(img, pose.arm, 1) : null;
-    if (swimming) this.drawSwimmer(ctx, sw ? sw.canvas : img, sw ? Math.round(x - sw.pad * sc) : x, sw ? Math.round(y - sw.pad * sc) : y, sc, {
+    if (pa) {
+      const ai = spriteCanvas(pa.name);
+      ctx.drawImage(ai, Math.round(x + pa.ox * sc), Math.round(y + pa.oy * sc), ai.width * sc, ai.height * sc);
+    } else if (swimming) this.drawSwimmer(ctx, sw ? sw.canvas : img, sw ? Math.round(x - sw.pad * sc) : x, sw ? Math.round(y - sw.pad * sc) : y, sc, {
       gait: SPRITES[s]?.gait, gesture: Boolean(this.allyAnims?.get(companion.id)), walking, seed: i * 1.7 + 0.8, glow: pose.glow, color: pose.color, mouth: { x: cx0 + pose.dx - w * 0.6, y: y + h * 0.6 } });
     else if (sw) ctx.drawImage(sw.canvas, Math.round(x - sw.pad * sc), Math.round(y - sw.pad * sc), sw.canvas.width * sc, sw.canvas.height * sc);
     else ctx.drawImage(img, x, y, w, h);
@@ -1471,6 +1490,11 @@ export class SceneRenderer {
     const slot = this.layout?.slots.get(companion.id); // v9.0.8 : sa propre case, entre le chevalier et les compagnons
     const x = slot ? slot.x : HERO_X - 6 - img.width / 2;
     if (this.underwater) { this.drawSwimPet(ctx, companion, img, x, flying, walking); return; } // v9.2.0 (nage)
+    // v9.2.3 : familier animé image par image (PixelLab) : marche/vol en boucle, geste ; placé depuis le sprite de repos.
+    const a0 = this.allyAnims?.get(companion.id);
+    const pa = pickAllyAnim({ sprite: companion.sprite, walking, swimming: false, always: true, time: this.time, seed: 0.5,
+      gesture: a0 ? { kind: a0.kind, k: Math.min(1, (this.time - a0.start) / a0.max) } : null });
+    const petImg = (dx, dy) => (pa ? ctx.drawImage(spriteCanvas(pa.name), dx + pa.ox, dy + pa.oy) : ctx.drawImage(img, dx, dy));
     if (flying) {
       const hover = 30 + Math.sin(this.time * 3) * 3;
       // Battement d'ailes : écrasement vertical rapide autour du centre du sprite.
@@ -1482,7 +1506,7 @@ export class SceneRenderer {
       ctx.translate(this.snap(x + img.width / 2), this.snap(cy));
       ctx.scale(1, flap);
       this.drawStarOutline(ctx, companion, companion.sprite, -img.width / 2, -img.height / 2);
-      ctx.drawImage(img, -img.width / 2, -img.height / 2);
+      petImg(-img.width / 2, -img.height / 2);
       ctx.restore();
       return;
     }
@@ -1499,7 +1523,7 @@ export class SceneRenderer {
     ctx.translate(this.snap(x + img.width / 2), this.groundY + 1 - this.snap(hop));
     ctx.scale(2 - squash, squash);
     this.drawStarOutline(ctx, companion, companion.sprite, -img.width / 2, -img.height);
-    ctx.drawImage(img, -img.width / 2, -img.height);
+    petImg(-img.width / 2, -img.height);
     ctx.restore();
   }
 
@@ -1525,7 +1549,9 @@ export class SceneRenderer {
     ctx.globalAlpha = 1;
     if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, py + oy, img.width, img.height, companion);
     if (canvas === img) this.drawStarOutline(ctx, companion, companion.sprite, px, py);
-    swimDraw(ctx, canvas, px, py, canvas.width, canvas.height, { time: this.time, phase: 2.2, amp, mode, focus: this.focus || amp === 0 });
+    const pa = pickAllyAnim({ sprite: companion.sprite, walking, swimming: true, time: this.time, seed: 0.5 }); // v9.2.3 : nage PixelLab
+    if (pa) ctx.drawImage(spriteCanvas(pa.name), this.snap(x) + pa.ox, this.groundY + 1 - img.height - lift + pa.oy);
+    else swimDraw(ctx, canvas, px, py, canvas.width, canvas.height, { time: this.time, phase: 2.2, amp, mode, focus: this.focus || amp === 0 });
     this.petBubble = (this.petBubble ?? 0.7) - (this.dt ?? 0);
     if (this.petBubble <= 0 && !this.focus) {
       this.petBubble = 1 + Math.random();

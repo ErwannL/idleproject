@@ -2,6 +2,7 @@
 import { RARITIES } from '../data/items.js';
 import { itemBase } from '../core/loot.js';
 import { BASE_PALETTE, FONT, FONT_BIG, HERO_FOOT, SPRITES, normalizeRows, rotateRowsCW } from './sprites.js';
+import './ally-anim.js'; // v9.2.3 : images PixelLab des alliés ajoutées aux SPRITES
 
 const cache = new Map();
 
@@ -301,6 +302,35 @@ export function heroSwim(step, equipment, palette = null, flash = false) {
       ctx.drawImage(img, SWIM_BODY.x + 44 - grip.x, SWIM_BODY.y + 8 - grip.y); // poignée à l'épaule, lame derrière le dos (le corps passe devant)
     }
     ctx.drawImage(skin ? spriteCanvas(skin) : spriteCanvas(`hero_swim${n}`, { colors: heroColors(palette) }), SWIM_BODY.x, SWIM_BODY.y);
+    canvas = outlined(canvas);
+  }
+  cache.set(key, canvas);
+  return canvas;
+}
+
+// v9.2.3 : image d'animation PixelLab du héros (art-anim-allies.js) : le chevalier garde les couleurs de son héros
+// (caractères B, P, W, K et nuances), les apparences gardent les leurs ; contour déjà présent dans les images.
+export function heroAnimCanvas(name, palette = null, flash = false) {
+  return spriteCanvas(name, { colors: palette?.skin ? null : heroColors(palette), flash });
+}
+
+// v9.2.3 : arme portée dans le dos (marche et nage animées : les mains sont libres), à dessiner derrière le corps.
+// mode 'walk' : cadre de heroComposite, arme droite derrière l'épaule ; 'swim' : cadre de heroSwim (lame vers l'arrière).
+export function heroBackWeapon(equipment, mode = 'walk') {
+  const weapon = equipment.weapon;
+  const key = `heroback|${mode}|${weapon ? `${weapon.baseId}/${weapon.rarity}` : '-'}`;
+  let canvas = cache.get(key);
+  if (canvas) return canvas;
+  const size = mode === 'swim' ? SWIM_SIZE : HERO_SIZE;
+  canvas = createCanvas(size.w, size.h);
+  if (weapon) {
+    const wname = itemSpriteName(weapon);
+    const def = SPRITES[wname];
+    const turns = mode === 'swim' ? 3 : 0;
+    const img = spriteCanvas(wname, { colors: itemColors(weapon), rotate: turns });
+    const grip = rotatedGrip(def.grip, def.rows[0].length, def.rows.length, turns);
+    const at = mode === 'swim' ? { x: SWIM_BODY.x + 44, y: SWIM_BODY.y + 8 } : { x: BODY_OFFSET.x + 13, y: BODY_OFFSET.y + 34 };
+    canvas.getContext('2d').drawImage(img, at.x - grip.x, at.y - grip.y);
     canvas = outlined(canvas);
   }
   cache.set(key, canvas);
