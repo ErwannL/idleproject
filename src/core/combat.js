@@ -421,7 +421,7 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
   if (children.length) {
     world.nextEnemyId += children.length;
     world.enemies.splice(index, 0, ...children);
-    emit(world, 'mutantSplit', { enemyId: enemy.id, kind: enemy.type, x: enemy.x });
+    emit(world, 'mutantSplit', { enemyId: enemy.id, kind: enemy.type, x: enemy.x, children: children.map((c) => c.id) }); // v9.2.5 : doubles cachés jusqu'à l'atterrissage
   }
 
   const wave = world.goldWave > 0 && !enemy.boss ? balance.events.waveGoldMultiplier : 1;

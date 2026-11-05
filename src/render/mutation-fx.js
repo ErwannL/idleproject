@@ -11,10 +11,19 @@ import { mutationById } from '../core/mutations.js';
 import { formatNumber } from '../core/format.js';
 import { t } from '../i18n/i18n.js';
 import { capeCanvas, mutatedCanvas } from './mutation-look.js';
+import { boxOf } from './enemy-anchor.js';
 
 const FONT = '700 5px system-ui, "Noto Sans KR", "Malgun Gothic", sans-serif';
 const FONT_BIG = '800 6px system-ui, "Noto Sans KR", "Malgun Gothic", sans-serif';
-const SPLIT_LIFE = 0.75;
+// v9.2.5 : division en deux temps : fente (SPLIT_CRACK du temps), puis les deux moitiés bondissent en arc et atterrissent
+// exactement sur les deux doubles, cachés jusque-là (fx.hold), qui prennent leur place à l'atterrissage.
+export const SPLIT_LIFE = 0.85;
+export const SPLIT_CRACK = 0.2;
+// Trajectoire d'une moitié (fonction pure, testée) : q 0 → 1, départ (x0, y0) et arrivée (x1, y1) au bas du corps.
+export function halfPath(q, x0, y0, x1, y1, lift = 14) {
+  const e = q < 0 ? 0 : q > 1 ? 1 : q;
+  return { x: x0 + (x1 - x0) * e, y: y0 + (y1 - y0) * e - lift * 4 * e * (1 - e) };
+}
 const BANNER_LIFE = 1.8;
 
 // Étiquette : fond sombre, bord de couleur, losange puis texte. (cx, bottom) : centre et bas de l'étiquette.
@@ -63,7 +72,11 @@ export function installMutationFx(proto, { HERO_X }) {
           // v9.2.4 : l'image affichée (image dessinée PixelLab comprise), pas l'image de base.
           const v = fx?.vis;
           const at = v ? { x: v.x, y: v.y, w: v.w, h: v.h } : { x: event.x - 8, y: this.groundY - 16, w: 16, h: 16 };
-          this.mutFxList().push({ kind: 'split', img: v?.img ?? null, ...at, color: m.color, life: SPLIT_LIFE, max: SPLIT_LIFE });
+          // v9.2.5 : les deux doubles restent invisibles jusqu'à l'atterrissage des moitiés.
+          const kids = event.children ?? [];
+          (this.splitGone ??= new Set()).add(event.enemyId);
+          for (const id of kids) { const c = this.enemyFxFor(id); c.hold = SPLIT_LIFE; c.appear = 0; }
+          this.mutFxList().push({ kind: 'split', img: v?.img ? mutatedCanvas(v.img, 'split') : null, ...at, kids, color: m.color, life: SPLIT_LIFE, max: SPLIT_LIFE });
           this.mutFxList().push({ kind: 'word', text: 'Se divise !', x: at.x + at.w / 2, y: at.y - 8, color: m.color, big: true, life: 1.3, max: 1.3 });
           if (!this.focus) {
             this.burst(at.x + at.w / 2, at.y + at.h / 2, m.color, 14, 48);
@@ -124,13 +137,11 @@ export function installMutationFx(proto, { HERO_X }) {
         }
       }
       if (m.id === 'split') {
-        // Membrane : contour qui ondule (décalages qui tournent), plus large que le corps.
-        ctx.globalAlpha = appear * 0.55;
-        const t = this.focus ? 0 : this.time * 7 + enemy.id;
-        for (let i = 0; i < 6; i++) {
-          const a = t + i * (Math.PI / 3);
-          paint(glow, x + Math.round(Math.cos(a) * 2), y + Math.round(Math.sin(a * 1.3) * 2));
-        }
+        // Membrane : contour qui ondule. v9.2.5 : un seul calque décalé au pixel près qui fait le tour (net), au lieu de
+        // six calques superposés qui donnaient un halo flou autour du corps en marche.
+        ctx.globalAlpha = appear * 0.5;
+        const t = this.focus ? 0 : this.time * 5 + enemy.id;
+        paint(glow, x + Math.round(Math.cos(t) * 2), y + Math.round(Math.sin(t) * 1.5));
       }
       if (m.id === 'regen') {
         // Lueur verte qui pulse lentement (halo large).
@@ -176,6 +187,23 @@ export function installMutationFx(proto, { HERO_X }) {
       }
     },
 
+    // v9.2.5 : Scissipare en marche : fente lumineuse au milieu du corps (par-dessus), qui annonce la division et pulse ;
+    // le corps se pince légèrement à cet endroit au rythme du pas. look : { src, x, y, scale, ox, oy }.
+    drawSplitSeam(ctx, enemy, look, appear) {
+      const b = look.src ? boxOf(look.src) : null;
+      if (!b) return;
+      const k = look.scale;
+      const sx = Math.round(look.x + look.ox + b.cx * k);
+      const top = look.y + look.oy + (b.top + (b.bottom - b.top) * 0.15) * k;
+      const bot = look.y + look.oy + (b.top + (b.bottom - b.top) * 0.9) * k;
+      const pulse = this.focus ? 0.5 : 0.5 + 0.5 * Math.sin(this.time * 6 + enemy.id);
+      ctx.save();
+      ctx.globalAlpha = appear * (0.35 + 0.4 * pulse);
+      ctx.fillStyle = '#e8ffe0';
+      for (let yy = Math.round(top), i = 0; yy < bot; yy += 2, i++) ctx.fillRect(sx + (i % 2 ? 0 : -1), yy, 1, 2);
+      ctx.restore();
+    },
+
     // Étiquette au-dessus de la barre de PV (cx : centre, barY : haut de la barre), et chiffres de soin du régénérant.
     drawMutationTag(ctx, enemy, m, cx, barY, appear) {
       // Dessinée après les chiffres de dégâts (drawMutationFx), sinon ils la cachent au contact.
@@ -208,33 +236,74 @@ export function installMutationFx(proto, { HERO_X }) {
           const pop = this.focus ? 0 : Math.round(k * (e.rise ?? 6));
           drawTag(ctx, t(e.text), e.x, e.y - pop, e.color, { big: e.big, alpha: a, diamond: false });
         } else if (e.kind === 'split') {
-          // Éclat blanc, fente lumineuse, puis les deux moitiés qui s'écartent en pâlissant.
-          const cx = e.x + e.w / 2;
-          const gap = this.focus ? 2 : Math.round(2 + k * 10);
-          const a = 1 - Math.max(0, (k - 0.45) / 0.55);
+          // v9.2.5 : fente lumineuse (le corps tremble), puis les deux moitiés bondissent en arc chacune vers son double,
+          // rapetissent à sa taille, se fondent en lui et atterrissent (poussière) : le double apparaît à cet endroit.
+          const crack = Math.min(1, k / SPLIT_CRACK);
+          const q = Math.max(0, (k - SPLIT_CRACK) / (1 - SPLIT_CRACK));
+          const eb = e.img ? boxOf(e.img) : null;
+          const pad = e.img && eb ? (e.img.height - eb.bottom - 1) / e.img.height : 0; // marge sous les pieds (part de la hauteur)
+          const feet = e.y + e.h * (1 - pad);
+          // Coupe au milieu de la silhouette (et non du cadre, dont les marges diffèrent d'une image dessinée à l'autre).
+          const cut = eb ? eb.cx : (e.img?.width ?? 2) / 2; // colonne de coupe, en pixels de l'image
+          const kx = e.img ? e.w / e.img.width : 1;
+          const cx = e.x + cut * kx;
           if (e.img) {
-            ctx.globalAlpha = a;
-            for (const side of [-1, 1]) {
+            [-1, 1].forEach((side, i) => {
+              const kid = this.enemyFx.get(e.kids?.[i]);
+              const v = kid?.vis;
+              // Arrivée : bas-centre du double à cet instant (il marche peut-être déjà), sinon un bond de côté.
+              // Hauteurs aux pieds (bas opaque), pas au bas du cadre : les images dessinées ont des marges différentes.
+              const vb = v?.img ? boxOf(v.img) : null;
+              // Le centre de la moitié (et non son bord coupé) arrive sur le centre du double.
+              const sEnd = v ? v.w / e.w : 0.85;
+              const halfW = eb ? (side < 0 ? cut - eb.left : eb.right + 1 - cut) * kx * sEnd : 0;
+              const x1 = (v ? v.x + (vb ? vb.cx : v.img.width / 2) * (v.w / v.img.width) : cx + side * 14) - side * (halfW / 2);
+              const y1 = v ? v.y + (vb ? vb.bottom + 1 : v.img.height) * (v.h / v.img.height) : feet;
+              const x0 = cx + side * (this.focus ? 1 : Math.round(crack * 2));
+              // Vol jusqu'à 80 % de la seconde phase, puis posé au sol (écrasé à l'impact) le temps de se fondre dans le double.
+              const fly = Math.min(1, q / 0.8);
+              const land = Math.max(0, (q - 0.8) / 0.2);
+              const p = this.focus ? { x: x0 + (x1 - x0) * fly, y: feet + (y1 - feet) * fly } : halfPath(fly, x0, feet, x1, y1, 5 + e.h * 0.2);
+              const s = 1 + (sEnd - 1) * fly; // rapetisse jusqu'à la taille du double
+              const squash = this.focus || !land ? 0 : Math.sin(Math.PI * Math.min(1, land * 2)) * 0.18;
+              const hh = e.h * s * (1 - squash);
+              const part = side < 0 ? cut : e.img.width - cut; // largeur de la moitié, en pixels de l'image
+              const hw = part * kx * s * (1 + squash);
+              const shake = !this.focus && k < SPLIT_CRACK ? (this.frameNo % 2 ? 1 : -1) * side : 0;
               ctx.save();
-              ctx.beginPath();
-              ctx.rect(side < 0 ? e.x - 20 : cx, e.y - 20, e.w / 2 + 20, e.h + 40);
-              ctx.clip();
-              const tilt = this.focus ? 0 : side * k * 0.25;
-              ctx.translate(cx + side * gap, e.y + e.h);
-              ctx.rotate(tilt);
-              ctx.drawImage(e.img, -e.w / 2, -e.h, e.w, e.h);
+              ctx.globalAlpha = 1 - land;
+              ctx.translate(Math.round(p.x + shake), Math.round(p.y + pad * hh));
+              if (!this.focus) ctx.rotate(side * Math.sin(Math.PI * fly) * 0.3); // bascule vers l'extérieur, se redresse en atterrissant
+              // Moitié gauche (ou droite) de l'image, posée par son bord coupé ; elle bondit vers le centre de son double
+              // (décalée d'un quart de silhouette pour que les deux moitiés réunies y forment le double).
+              const sx = side < 0 ? 0 : cut;
+              ctx.drawImage(e.img, sx, 0, part, e.img.height, side < 0 ? -hw : 0, -hh, hw, hh);
               ctx.restore();
-            }
+              // Fondu dans le double (qui reste caché jusqu'à la fin) puis poussière à l'atterrissage.
+              if (v?.img && land > 0) {
+                ctx.globalAlpha = land;
+                ctx.drawImage(v.img, v.x, v.y, v.w, v.h);
+              }
+              if (fly >= 1 && !e.landed?.[i] && !this.focus) {
+                (e.landed ??= [])[i] = true;
+                this.dust(x1, 3);
+                this.burst(x1, y1 - 3, e.color, 5, 26);
+              }
+            });
           }
-          // Fente : trait vertical en zigzag, de la couleur de la mutation puis blanc.
-          ctx.globalAlpha = Math.max(0, 1 - k * 1.6);
-          ctx.fillStyle = k < 0.25 ? '#ffffff' : e.color;
-          for (let yy = 0; yy < e.h; yy += 2) ctx.fillRect(Math.round(cx + ((yy / 2) % 2 ? 1 : -1) * 0.5) - 0.5, Math.round(e.y + yy), 1, 2);
-          if (k < 0.2) {
-            ctx.globalAlpha = (0.2 - k) / 0.2 * 0.8;
+          // Fente : trait vertical en zigzag, blanc puis de la couleur de la mutation, qui s'ouvre.
+          if (k < SPLIT_CRACK * 1.3) {
+            ctx.globalAlpha = Math.max(0, 1 - k / (SPLIT_CRACK * 1.3));
+            ctx.fillStyle = crack < 0.6 ? '#ffffff' : e.color;
+            const bodyH = eb ? (eb.bottom + 1 - eb.top) * (e.h / e.img.height) : e.h;
+            const reach = bodyH * Math.min(1, crack * 1.5);
+            for (let yy = 0; yy < reach; yy += 2) ctx.fillRect(Math.round(cx + ((yy / 2) % 2 ? 1 : -1) * 0.5) - 0.5, Math.round(feet - yy - 2), 1, 2);
+          }
+          if (k < SPLIT_CRACK && !this.focus) {
+            ctx.globalAlpha = (1 - crack) * 0.7;
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
-            ctx.arc(cx, e.y + e.h / 2, 4 + k * 40, 0, Math.PI * 2);
+            ctx.arc(cx, feet - (eb ? (eb.bottom + 1 - eb.top) * (e.h / e.img.height) : e.h) / 2, 3 + crack * 8, 0, Math.PI * 2);
             ctx.fill();
           }
         } else if (e.kind === 'drain') {

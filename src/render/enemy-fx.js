@@ -11,10 +11,9 @@ export const ENEMY_POWERS = {
   ash_dragon: { kind: 'breath', colors: ['#fff4c0', '#ffb040', '#e2481e'] },
   mid_hellhound: { kind: 'breath', colors: ['#fff0b0', '#ff9a30', '#d63a1a'] },
   salamander: { kind: 'breath', colors: ['#fff0b0', '#ffa040', '#e05020'] },
-  mini_salamander_chief: { kind: 'breath', colors: ['#fff0b0', '#ffa040', '#e05020'] },
-  phoenix: { kind: 'breath', colors: ['#ffffff', '#ffd050', '#ff6a20'] },
-  boss_phoenix: { kind: 'breath', colors: ['#ffffff', '#ffd050', '#ff6a20'] },
-  mid_hydra: { kind: 'breath', colors: ['#e8ffb0', '#9ad040', '#4e8a20'] },
+  // v9.2.5 : phénix et chef salamandre retirés : leur attaque PixelLab dessine déjà la flamme (croissant de feu,
+  // torche balancée) ; un souffle procédural par-dessus faisait deux flammes.
+  mid_hydra: { kind: 'breath', colors: ['#e8ffb0', '#9ad040', '#4e8a20'], heads: 3 }, // v9.2.5 : une bouche sur trois, à tour de rôle
   toad: { kind: 'breath', colors: ['#e8ffb0', '#9ad040', '#4e8a20'], short: true },
   mid_star_devourer: { kind: 'breath', colors: ['#ffffff', '#c890ff', '#6a30c0'] },
   frost_wyrm: { kind: 'breath', colors: ['#ffffff', '#a8e4ff', '#4a90d0'] },
@@ -56,6 +55,39 @@ export function powerPoints(alpha, w, h) {
   let tip = null;
   for (let y = top; y <= bottom && !tip; y++) for (let x = left; x <= cx; x++) if (alpha[y * w + x]) { tip = [x, y]; break; }
   return { mouth: mouth ?? [left, top + Math.round(H * 0.3)], tip: tip ?? [left, top] };
+}
+
+// v9.2.5 : bouches des trois têtes de l'hydre, image par image de son attaque PixelLab (pixels de l'image, de gauche à
+// droite ; sur les images 4 à 6 la troisième tête est cachée derrière la deuxième). Relevées à la main sur la planche
+// agrandie : un repérage automatique confondait les têtes qui se chevauchent.
+export const HEAD_MOUTHS = {
+  mid_hydra: [
+    [[2, 22], [21, 19], [37, 25]], [[7, 20], [22, 13], [40, 19]], [[10, 16], [26, 11], [43, 20]], [[7, 19], [19, 14], [35, 18]],
+    [[3, 18], [22, 21], [22, 21]], [[3, 17], [20, 22], [20, 22]], [[5, 22], [25, 25], [25, 25]], [[5, 21], [15, 21], [32, 23]],
+  ],
+};
+
+// Bouche de la tête `head` sur l'image `key` (« <sprite>__attack<n> »), ou null si l'image n'est pas une attaque annotée.
+export function headMouth(key, head) {
+  const m = /^(.+)__attack(\d+)$/.exec(key ?? '');
+  const table = m && HEAD_MOUTHS[m[1]];
+  const row = table?.[Number(m[2])];
+  return row ? row[head % row.length] : null;
+}
+
+// v9.2.5 : images d'attaque PixelLab qui dessinaient déjà une flamme (chien de l'enfer : flamme dans la gueule) :
+// remplacées par les images sans flamme de la même animation, pour une seule flamme, celle du souffle qui part de la
+// gueule. Indices des images à jouer à la place des 8 images d'origine. (Dragon : flamme dessinée près des pattes
+// retirée des images sources elles-mêmes, sprite de base compris : tools/art/pixellab/.)
+export const BREATH_FRAME_MAP = {
+  mid_hellhound: [0, 1, 2, 3, 3, 3, 7, 7],
+};
+const safeCache = new Map();
+export function breathSafeAnims(base, anims) {
+  const map = BREATH_FRAME_MAP[base];
+  if (!anims || !map || !anims.attack) return anims;
+  if (!safeCache.has(base)) safeCache.set(base, { ...anims, attack: { ...anims.attack, frames: map.map((i) => anims.attack.frames[i]) } });
+  return safeCache.get(base);
 }
 
 export function powerPointsOf(img) {

@@ -9,7 +9,8 @@ import { installMutationFx } from './mutation-fx.js'; // v9.2.3 : ennemis mutés
 import { MUTATION_PACE, SHEEN_STEPS, mutatedCanvas, mutationSize } from './mutation-look.js'; // v9.2.3 : apparence des mutations
 import { installTraversalFx } from './traversal-fx.js'; // v9.2.1 : déplacement propre à chaque monde
 import { DRAWN_TRAIL, HURT_COOLDOWN, HURT_TIME, armSwing, attackCurve, dissolveFrames, pickAnimFrame } from './enemy-anim.js';
-import { BREATH_START, CAST_RELEASE, drawBreath, drawOrbGlow, powerOf, powerPointsOf } from './enemy-fx.js'; // v9.2.3
+import { animBoxes, anchorOffset, boxOf } from './enemy-anchor.js'; // v9.2.5 : calage des images dessinées
+import { BREATH_START, CAST_RELEASE, breathSafeAnims, drawBreath, drawOrbGlow, headMouth, powerOf, powerPointsOf } from './enemy-fx.js'; // v9.2.3
 import { HERO_HEIGHT, sizeFactor, visibleSize } from '../data/enemy-sizes.js'; // v9.2.3 : table d'échelle (v9.2.4 : taille visible)
 import { ENEMY_ANIMS } from './art-anim.js'; // v9.2.3 : bat, harpy, skeleton dessinés image par image
 import { ARRIVE_SECONDS_BY_MODE, arrivalPose, arrivalProgress } from './arrival.js'; // v9.2.2 : arrivée des ennemis
@@ -500,7 +501,10 @@ export class SceneRenderer {
 
   killEffect(event) {
     // Éclatement en pixels : quelques pixels du sprite volent en éclats (couleurs réelles du monstre).
-    const fxe = this.enemyFx.get(event.enemyId);
+    // v9.2.5 : scissipare divisé : ses deux moitiés sont son corps (mutation-fx.js), pas de chute ni de corps en plus.
+    const split = Boolean(this.splitGone?.delete(event.enemyId));
+    const fxe0 = this.enemyFx.get(event.enemyId);
+    const fxe = split ? (fxe0 ? { ...fxe0, img: null } : fxe0) : fxe0;
     if (fxe?.img && !this.focus) this.shatter(fxe);
     const { sprite, scale, heroLike, colors, base } = this.enemyLook(event.kind, event.boss);
     // v9.2.3 : mort dessinée (PixelLab) : le monstre s'effondre là où il est mort, puis s'efface.
@@ -508,8 +512,11 @@ export class SceneRenderer {
     if (death) {
       const k = fxe.sw / fxe.img.width; // échelle réelle à l'écran (géant, scissipare compris)
       // v9.2.4 : un volant tué en l'air tombe jusqu'au sol pendant sa chute dessinée (au lieu de s'allonger dans le vide).
-      const drop = Math.max(0, this.groundY + 1 - (fxe.sy + fxe.sh));
-      this.effects.push({ kind: 'death', anim: death, colors, x: fxe.sx, y: fxe.sy, k, drop, life: event.boss ? 1.3 : 0.9, max: event.boss ? 1.3 : 0.9 });
+      // v9.2.5 : chute recalée sur le sprite de base (corps couché sur le sol, pas au-dessus ni dedans).
+      const bb = boxOf(spriteCanvas(base, { colors }));
+      const at = anchorOffset(bb, animBoxes(death, (key) => spriteCanvas(key, { colors })), 0, 'death', death);
+      const drop = Math.max(0, this.groundY + 1 - (fxe.sy + (bb ? (bb.bottom + 1) * k : fxe.sh)));
+      this.effects.push({ kind: 'death', anim: death, colors, x: fxe.sx, y: fxe.sy, k, drop, ox: at.ox, oy: at.oy, life: event.boss ? 1.3 : 0.9, max: event.boss ? 1.3 : 0.9 });
     }
     // v9.2.4 : même image que celle affichée à l'instant de la mort (image dessinée comprise), à la même place.
     const vis = fxe?.vis;
@@ -517,11 +524,11 @@ export class SceneRenderer {
       ? heroComposite('idle', { weapon: { baseId: 'fallen_blade', rarity: 'epic' } }, true, 'b', colors, true)
       : spriteCanvas(vis?.key ?? sprite, { colors, flash: true });
     const k0 = vis && !heroLike ? vis.w / vis.img.width : scale;
-    this.effects.push({
+    if (!split) this.effects.push({
       kind: 'corpse', img, x: vis ? vis.x + vis.w / 2 : this.wx(event.x), top: vis ? vis.y : undefined, w: img.width * k0, h: img.height * k0,
       fly: this.flyHeight(event.kind, event.boss), life: 0.3, max: 0.3,
     });
-    if (death) this.effects.splice(this.effects.length - 1, 1); // pas de second corps
+    if (death && !split) this.effects.splice(this.effects.length - 1, 1); // pas de second corps
     if (!this.focus && fxe?.img && !death) {
       // v9.1.9 : mort plus vivante : le corps se dissout (tramage) et des étincelles montent.
       const last = this.effects[this.effects.length - 1];
@@ -532,9 +539,9 @@ export class SceneRenderer {
       }
     }
     // v9.2.2 : position réelle à la mort (centre du sprite à l'écran), pour le butin et les pièces.
-    if (fxe?.img) {
+    if (fxe0?.img) {
       this.deaths ??= new Map();
-      this.deaths.set(event.enemyId, { x: fxe.sx + fxe.sw / 2, y: Math.min(this.groundY - 2, fxe.sy + fxe.sh * 0.6), t: this.time });
+      this.deaths.set(event.enemyId, { x: fxe0.sx + fxe0.sw / 2, y: Math.min(this.groundY - 2, fxe0.sy + fxe0.sh * 0.6), t: this.time });
       for (const [id, d] of this.deaths) if (this.time - d.t > 5) this.deaths.delete(id);
     }
     this.enemyFx.delete(event.enemyId);
@@ -831,6 +838,8 @@ export class SceneRenderer {
       const { def, sprite, base, scale: lookScale, colors, heroLike, step } = this.enemyLook(enemy.type, enemy.boss, fx.lunge > 0, enemy.id * 0.37, moving,
         (enemy.rush && moving ? 2.2 : 1) * mPace);
       const scale = lookScale * mutationSize(enemy);
+      // v9.2.5 : double de scissipare caché tant que sa moitié est en l'air (mutation-fx.js), visible d'un coup à l'atterrissage.
+      if (fx.hold > 0) { fx.hold -= dt; fx.appear = fx.hold > 0 ? 0 : 1; }
       const mutLook = (c) => (mutation && !heroLike && fx.hit <= 0 ? mutatedCanvas(c, mutation.id, Math.floor(this.time * 5 + enemy.id) % (SHEEN_STEPS * 3)) : c);
       // Le Chevalier déchu utilise le corps du héros, retourné, avec une épée sombre.
       const img = heroLike
@@ -876,7 +885,7 @@ export class SceneRenderer {
       // v9.2.3 : images dessinées (PixelLab) pour quelques ennemis ; les autres gardent les déformations procédurales.
       const atkP = fx.lunge > 0 ? 1 - fx.lunge / ENEMY_ATK : fx.windup > 0 ? 0.3 * (1 - fx.windup / 0.25) : null;
       // v9.2.3 : tous les ennemis et boss des mondes 1 à 12 (boss compris) ; nage sous l'eau, sortie du sol ou du portail dessinées.
-      const anims = heroLike ? null : ENEMY_ANIMS[base];
+      const anims = heroLike ? null : breathSafeAnims(base, ENEMY_ANIMS[base]); // v9.2.5 : sans la flamme dessinée en double
       const drawn = pickAnimFrame(anims, {
         emerge: arrival.mode === 'burrow' && k < 1 ? pose.emerge : null, portal: arrival.mode === 'portal' && k < 1 ? Math.min(1, k / 0.85) : null,
         atkP, hurtP: fx.hurt > 0 && !this.focus ? 1 - fx.hurt / HURT_TIME : null, flying, swimming: this.underwater && arrival.mode === 'swim', moving, time: this.time * mPace, phase: enemy.id * 0.7,
@@ -888,18 +897,27 @@ export class SceneRenderer {
       // v9.2.3 : un flottement dessiné (`float`) garde l'ondulation procédurale par-dessus (balancement, traîne).
       const floating = flying && !rig && (!drawn || drawn.anim === anims?.float) && !(this.underwater && def.swim);
       const paint = (canvas, px, py) => {
-        if (drawn && !floating) { ctx.drawImage(canvas, px + drawn.anim.ox * scale, py + drawn.anim.oy * scale, canvas.width * scale, canvas.height * scale); return; }
+        if (drawn && !floating) { ctx.drawImage(canvas, px + dox * scale, py + doy * scale, canvas.width * scale, canvas.height * scale); return; }
         if (rig) {
           const fr = wingFrames(canvas, rig)?.[wp];
           if (fr) { ctx.drawImage(fr.canvas, px - fr.pad * scale, py - fr.pad * scale, fr.canvas.width * scale, fr.canvas.height * scale); return; }
         }
         // Ondulation : balancement, bas qui ondule et traîne derrière pendant l'arrivée.
-        if (floating && drawn) { floatDraw(ctx, canvas, px + drawn.anim.ox * scale, py + drawn.anim.oy * scale, canvas.width * scale, canvas.height * scale, { time: this.time, phase: enemy.id, amp: this.focus ? 0.6 : 2 + 4 * pose.wave, trail: this.focus ? 0 : 10 * pose.wave }); return; }
+        if (floating && drawn) { floatDraw(ctx, canvas, px + dox * scale, py + doy * scale, canvas.width * scale, canvas.height * scale, { time: this.time, phase: enemy.id, amp: this.focus ? 0.6 : 2 + 4 * pose.wave, trail: this.focus ? 0 : 10 * pose.wave }); return; }
         if (floating) { floatDraw(ctx, canvas, px, py, w, h, { time: this.time, phase: enemy.id, amp: this.focus ? 0.6 : 2 + 4 * pose.wave, trail: this.focus ? 0 : 10 * pose.wave }); return; }
         ctx.drawImage(canvas, px, py, w, h);
       };
       if (k >= 1 && !fx.landed) {
         fx.landed = true;
+      // v9.2.5 : images dessinées recalées sur le sprite de base (pieds sur le sol, centre stable : enemy-anchor.js),
+      // sauf en vol et à la nage (hauteur voulue).
+      const baseBox = heroLike ? null : boxOf(spriteCanvas(base, { colors }));
+      let dox = 0, doy = 0;
+      if (drawn) {
+        const name = Object.keys(anims).find((n) => anims[n] === drawn.anim);
+        ({ ox: dox, oy: doy } = anchorOffset(baseBox, animBoxes(drawn.anim, (key) => spriteCanvas(key, { colors })), drawn.anim.frames.indexOf(drawn.key), name, drawn.anim,
+          !flying && !def.flyHeight && !(this.underwater && arrival.mode === 'swim')));
+      }
         if (enemy.boss && !this.focus && arrival.mode !== 'walk' && !def.flyHeight && !this.underwater) {
           this.shake = Math.max(this.shake, 3); this.dust(ex - 10, 4); this.dust(ex + 10, 4); this.burst(ex, this.groundY - 4, '#e8d8b0', 10, 40);
         }
@@ -908,14 +926,18 @@ export class SceneRenderer {
       if (enemy.rush && moving && k > 0.3 && !this.focus && !def.flyHeight && !this.underwater && (this.frameNo + enemy.id) % 3 === 0) this.dust(ex + w / 2, 1);
       // Les grands sprites (boss, ogre…) restent devant le chevalier sans le chevaucher.
       const x = this.snap(Math.max(exd - w / 2, HERO_X + 12) - lunge + (fx.knock > 0.5 ? fx.knock : 0) + pose.dx);
-      const y = this.groundY - h - bob - hover + 1 - pose.dy - (rig && !this.focus ? WING_LIFT[wp] : 0) + Math.round(pose.buried * h);
+      // v9.2.5 : pieds réels (bas opaque du sprite de base) sur le sol, et non le bas du cadre.
+      // Images de pas (_w1/_w2) sans image dessinée : le pied au sol de chaque image reste sur la ligne du sol.
+      const stepBox = !drawn && !heroLike && !flying && sprite !== base ? boxOf(spriteCanvas(sprite, { colors })) : null;
+      const footH = baseBox && !heroLike ? (baseBox.bottom + 1) * scale + (stepBox ? (stepBox.bottom - baseBox.bottom) * scale : 0) : h;
+      const y = this.groundY - footH - bob - hover + 1 - pose.dy - (rig && !this.focus ? WING_LIFT[wp] : 0) + Math.round(pose.buried * h);
       // Géométrie à l'écran (projectiles qui visent la cible, impacts, ennemi figé à la mort).
       Object.assign(fx, { sx: x, sy: y, sw: w, sh: h, seen: this.time, img, edge: x + bodyEdge(img) * scale });
       // v9.2.4 : image réellement affichée (image dessinée PixelLab et son décalage, ou sprite de base) : le corps figé,
       // la dissolution, les éclats et la division la reprennent, au lieu de superposer l'image de base décalée.
       const shown = drawn ? spriteCanvas(drawn.key, { colors }) : img;
       fx.vis = drawn
-        ? { key: drawn.key, img: shown, x: x + drawn.anim.ox * scale, y: y + drawn.anim.oy * scale, w: shown.width * scale, h: shown.height * scale }
+        ? { key: drawn.key, img: shown, x: x + dox * scale, y: y + doy * scale, w: shown.width * scale, h: shown.height * scale }
         : { key: heroLike ? null : sprite, img, x, y, w, h };
 
       ctx.globalAlpha = fx.appear * pose.alpha;
@@ -942,7 +964,7 @@ export class SceneRenderer {
         if (mutation) {
           // v9.0.4 : ennemi muté — contour de la couleur de sa mutation ; v9.2.3 : plus épais et propre à chacune.
           const glow = spriteCanvas(drawn?.key ?? sprite, { colors, tint: { color: mutation.color, alpha: 1 } });
-          this.drawMutationAura(ctx, enemy, mutation, glow, x, y, fx.appear * pose.alpha, paint, fx, { src: drawn ? spriteCanvas(drawn.key, { colors }) : heroLike ? img : spriteCanvas(sprite, { colors }), scale, moving, w, h, ox: drawn ? drawn.anim.ox * scale : 0, oy: drawn ? drawn.anim.oy * scale : 0 });
+          this.drawMutationAura(ctx, enemy, mutation, glow, x, y, fx.appear * pose.alpha, paint, fx, { src: drawn ? spriteCanvas(drawn.key, { colors }) : heroLike ? img : spriteCanvas(sprite, { colors }), scale, moving, w, h, ox: drawn ? dox * scale : 0, oy: drawn ? doy * scale : 0 });
           ctx.globalAlpha = fx.appear * pose.alpha;
         }
         if (drawn) {
@@ -969,7 +991,7 @@ export class SceneRenderer {
       if (power && atkP !== null && !this.focus) {
         const shown = drawn ? spriteCanvas(drawn.key, { colors }) : img;
         const pts = powerPointsOf(shown);
-        const ox = x + (drawn ? drawn.anim.ox * scale : 0), oy = y + (drawn ? drawn.anim.oy * scale : 0);
+        const ox = x + (drawn ? dox * scale : 0), oy = y + (drawn ? doy * scale : 0);
         const G = this.groundY;
         if (pts && power.kind === 'cast') {
           const tx = ox + pts.tip[0] * scale, ty = oy + pts.tip[1] * scale;
@@ -978,14 +1000,19 @@ export class SceneRenderer {
             fx.cast = true;
             this.projectile(CAST_ORB[power.orb] ?? ['fx_spark'], tx, ty, HERO_X + 8, G - 20, 0.12, { trail: [power.colors[1]] });
             this.later(0.12, () => this.burst(HERO_X + 8, G - 20, power.colors[1], 8, 34));
+        // v9.2.5 : fente du Scissipare, par-dessus le corps (mutation-fx.js).
+        if (mutation?.id === 'split' && !heroLike) this.drawSplitSeam(ctx, enemy, { src: drawn ? spriteCanvas(drawn.key, { colors }) : img, x, y, scale, ox: drawn ? dox * scale : 0, oy: drawn ? doy * scale : 0 }, fx.appear * pose.alpha);
           }
         } else if (pts && power.kind === 'breath' && atkP >= BREATH_START && !fx.breathed) {
           fx.breathed = true;
-          const mx = ox + pts.mouth[0] * scale, my = oy + pts.mouth[1] * scale;
+          // v9.2.5 : hydre : une des trois bouches, à tour de rôle (enemy-fx.js HEAD_MOUTHS).
+          const head = power.heads ? (fx.headNo = ((fx.headNo ?? -1) + 1) % power.heads) : null;
+          const mp = (head !== null && headMouth(drawn?.key, head)) || pts.mouth;
+          const mx = ox + mp[0] * scale, my = oy + mp[1] * scale;
           // v9.2.4 : la gueule suit l'ennemi pendant le souffle (recul, élan, déplacement) : le jet s'allonge ou se raccourcit
           // à chaque image selon la distance réelle jusqu'au héros.
           this.effects.push({ kind: 'breath', x0: mx, y0: my, x1: HERO_X + 6, y1: G - 18, colors: power.colors, short: power.short, life: 0.42, max: 0.42,
-            enemyId: enemy.id, dx0: mx - x, dy0: my - y });
+            enemyId: enemy.id, dx0: mx - x, dy0: my - y, head });
         }
       }
       if (atkP === null) { fx.cast = false; fx.breathed = false; }
@@ -997,7 +1024,21 @@ export class SceneRenderer {
       }
       if (!atk) fx.smeared = false;
       // v9.2.3 : étiquette de la mutation (losange + nom) au-dessus de la barre de PV, à la place du seul losange.
-      if (mutation) this.drawMutationTag(ctx, enemy, mutation, Math.round(exd), y - 6, fx.appear * pose.alpha);
+      // v9.2.5 : étiquette et barre centrées sur la silhouette réelle, juste au-dessus de la tête (haut opaque du sprite
+      // de base, sans le rebond ni l'élan de l'attaque), au lieu du centre et du haut du cadre.
+      // Suit l'image affichée (tête réelle de l'image dessinée), lissé pour ne pas trembler d'une image à l'autre.
+      const vb = heroLike ? null : boxOf(fx.vis.img);
+      if (vb) {
+        const kv = fx.vis.h / fx.vis.img.height;
+        const tx = fx.vis.x + vb.cx * kv + lunge, ty = fx.vis.y + vb.top * kv + bob;
+        // Lissage du décalage par rapport au corps (et non de la position : il suivrait l'ennemi avec retard).
+        const a = fx.headDx === undefined ? 1 : Math.min(1, dt * 30);
+        fx.headDx = fx.headDx === undefined ? tx - x : fx.headDx + (tx - x - fx.headDx) * a;
+        fx.headDy = fx.headDy === undefined ? ty - y : fx.headDy + (ty - y - fx.headDy) * a;
+      }
+      const headX = vb ? Math.round(x + fx.headDx) : Math.round(exd);
+      const headY = vb ? Math.round(y + fx.headDy) : y;
+      if (mutation) this.drawMutationTag(ctx, enemy, mutation, headX, headY - 6, fx.appear * pose.alpha);
 
       if (enemy.boss) {
         // Aura pulsante et barre de vie large.
@@ -1005,9 +1046,9 @@ export class SceneRenderer {
         ctx.fillStyle = '#ff4d6d';
         ctx.fillRect(x + 2, this.groundY + 1, w - 4, 1);
         ctx.globalAlpha = 1;
-        this.drawBar(ctx, Math.round(exd - 16), y - 6, 32, enemy.hp / enemy.maxHp, '#e84a5f');
+        this.drawBar(ctx, headX - 16, headY - 6, 32, enemy.hp / enemy.maxHp, '#e84a5f');
       } else if (enemy.elite || enemy.mutation || enemy.hp < enemy.maxHp) {
-        this.drawBar(ctx, Math.round(exd - 9), y - 5, 18, enemy.hp / enemy.maxHp, enemy.elite ? '#ff9a3d' : mutation ? mutation.color : '#e84a5f');
+        this.drawBar(ctx, headX - 9, headY - 5, 18, enemy.hp / enemy.maxHp, enemy.elite ? '#ff9a3d' : mutation ? mutation.color : '#e84a5f');
       }
       ctx.globalAlpha = 1;
     }
@@ -1733,7 +1774,14 @@ export class SceneRenderer {
           break;
         case 'breath': { // v9.2.3
           const src = this.enemyFx.get(fx.enemyId);
-          if (src?.seen > this.time - 0.1) { fx.x0 = src.sx + fx.dx0; fx.y0 = src.sy + fx.dy0; } // v9.2.4 : suit la gueule
+          if (src?.seen > this.time - 0.1) {
+            // v9.2.5 : la gueule (ou la tête choisie de l'hydre) est relue sur l'image affichée à chaque image : le jet
+            // suit la tête pendant l'animation ; image sans repère : même décalage qu'à l'image précédente.
+            const v = src.vis;
+            const p = v?.img ? (fx.head !== null && fx.head !== undefined ? headMouth(v.key, fx.head) : powerPointsOf(v.img)?.mouth) : null;
+            if (p) { fx.x0 = v.x + (p[0] * v.w) / v.img.width; fx.y0 = v.y + (p[1] * v.h) / v.img.height; fx.dx0 = fx.x0 - src.sx; fx.dy0 = fx.y0 - src.sy; }
+            else { fx.x0 = src.sx + fx.dx0; fx.y0 = src.sy + fx.dy0; }
+          }
           drawBreath(ctx, fx, t, this.time);
           break;
         }
@@ -1955,7 +2003,7 @@ export class SceneRenderer {
           const c = spriteCanvas(key, { colors: fx.colors });
           ctx.globalAlpha = p < 0.75 ? 1 : Math.max(0, 1 - (p - 0.75) / 0.25);
           const fall = (fx.drop ?? 0) * Math.min(1, p / 0.75) ** 2; // v9.2.4
-          ctx.drawImage(c, Math.round(fx.x + fx.anim.ox * fx.k), Math.round(fx.y + fall + fx.anim.oy * fx.k), c.width * fx.k, c.height * fx.k);
+          ctx.drawImage(c, Math.round(fx.x + (fx.ox ?? fx.anim.ox) * fx.k), Math.round(fx.y + fall + (fx.oy ?? fx.anim.oy) * fx.k), c.width * fx.k, c.height * fx.k);
           break;
         }
         case 'corpse': {

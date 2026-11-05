@@ -69,9 +69,11 @@ export function mutationOnHit(enemy, damage) {
 }
 
 // Dédoublement : deux petits doubles (40 % des PV max, sans mutation) prennent sa place.
+// v9.2.5 : l'un là où il est mort, l'autre un bond derrière (les deux moitiés s'écartent et y atterrissent).
+export const SPLIT_OFFSETS = [0, 16];
 export function splitChildren(enemy, nextId) {
   if (enemy.mutation !== 'split') return [];
-  return [6, 18].map((dx, i) => ({
+  return SPLIT_OFFSETS.map((dx, i) => ({
     ...enemy,
     id: nextId + i,
     mutation: null,

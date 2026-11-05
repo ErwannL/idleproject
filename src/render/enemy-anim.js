@@ -147,7 +147,8 @@ export function attackCurve(p) {
 // (repli sur les déformations procédurales). Priorité : sortie du sol ou du portail, attaque (atkP : avancement 0–1),
 // nage (sous l'eau, en continu), vol (battements d'ailes `fly` ou flottement `float`), marche.
 // v9.2.3 : attaques PixelLab qui dessinent déjà leur traînée de coup (arc) : pas de seconde traînée procédurale.
-export const DRAWN_TRAIL = new Set(['boss_bone_lord', 'mini_crab_king', 'mid_giant_spider', 'boss_swamp_behemoth']);
+// v9.2.5 : phénix (croissant de feu) et chef salamandre (torche) : leur flamme dessinée tient lieu de traînée et de souffle.
+export const DRAWN_TRAIL = new Set(['boss_phoenix', 'mini_salamander_chief', 'boss_bone_lord', 'mini_crab_king', 'mid_giant_spider', 'boss_swamp_behemoth']);
 // v9.2.3 : durée de l'animation de coup reçu (PixelLab) et délai minimal entre deux (sinon un boss frappé sans cesse
 // ne ferait plus que tressaillir).
 export const HURT_TIME = 0.4;
