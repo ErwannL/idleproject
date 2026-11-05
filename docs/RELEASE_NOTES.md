@@ -1,3 +1,10 @@
+## Ascendrya v9.2.3 — Vraies animations pour tous les ennemis (PixelLab)
+
+- Tous les ennemis et boss des mondes 1 à 12 ont des animations dessinées image par image : marche ou vol avec de vrais battements d'ailes, attaque (on lève l'arme, on frappe, on revient en garde), nage dans le Royaume englouti, flottement des spectres.
+- Sorties de terre dessinées (le crâne pointe, une main agrippe le sol, l'ennemi s'extrait) avec une terre à la couleur du sol de chaque monde, et sorties de portail dessinées.
+- Aura des boss et contour des élites qui suivent l'animation.
+- Quelques animations restent calculées par le jeu quand le dessin n'était pas meilleur (certains poissons, crabes, spectres).
+
 ## Ascendrya v9.2.2 — Apparences dans le menu Héros, arrivée des ennemis selon leur nature
 
 - Apparences : nouveau sous-onglet visible Héros › Apparences (apparence équipée en haut, grille avec aperçu, bonus, état Équipée / Possédée / Verrouillée, bouton Équiper ou Invoquer). Plus de chemin caché dans la fiche du héros ; rien ne change dans les apparences possédées.
