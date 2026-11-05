@@ -105,6 +105,8 @@ SKIP = {
     'hero_valkyrie_sweep': (3, 4, 5, 6), 'hero_vampire_raise_staff': (4, 5, 6), 'hero_vampire_sweep': (3, 4, 5, 6, 7, 8, 9, 10),
     'hero_witch_palm_push': (3, 9, 10), 'hero_witch_raise_staff': (4, 5), 'hero_witch_sweep': (3, 4, 5, 6, 7, 8, 9), 'hero_witch_roar': (7,),
     'pet_slime_howl': (3,), 'ally_shadow_twin_slash': (2, 3, 5), 'hero_grombar_palm_push': (4, 5, 6, 7, 8), 'ally_ice_empress_cast_forward': (6, 7, 8, 9, 10),
+    # v9.2.5 : lame du mercenaire en travers du visage (contrôle « visage visible », tests/v925-skills.test.js).
+    'ally_mercenary_slash': (4,), 'ally_mercenary_ground_smash': (1, 2),
 }
 
 

@@ -97,3 +97,35 @@ test('v9.2.5 : geste du barbare — même hache qu\'en marche et en attaque (ges
   assert.ok(F.unitSkillAnim('ally_barbarian', 'roar'));
   assert.notEqual(F.unitSkillAnim('ally_mercenary', 'blade_dance'), ALLY_ANIMS.ally_mercenary.attack);
 });
+
+// v9.2.5 : visage des compagnons jamais caché par l'arme — attaque et gestes : dans la tête de chaque image (haut de
+// la silhouette, même hauteur que la tête de marche), les couleurs de peau et des yeux présentes dans toutes les images
+// de marche gardent au moins 40 % de leur surface. Écarts relevés et regardés (planche) : têtes de trois quarts gardées.
+test('v9.2.5 : visage des compagnons visible sur toutes les images d\'attaque et de geste', async () => {
+  const { SoftCanvas, installSoftCanvas } = await import('./helpers/softcanvas.js');
+  installSoftCanvas();
+  const P = await import('../src/render/pixel.js');
+  const F = await import('../src/render/skill-fx.js');
+  const W = 200, H = 160;
+  const place = (a, f) => { const cv = new SoftCanvas(W, H); cv.getContext('2d').drawImage(P.heroAnimCanvas(f, null), 40 + a.ox, 30 + a.oy); return cv; };
+  const skin = (d, i) => d[i] > 150 && d[i] > d[i + 2] + 30 && d[i + 1] > 90 && d[i] >= d[i + 1];
+  const top = (cv) => { for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (cv.data[(y * W + x) * 4 + 3] > 100) return y; return 0; };
+  // Regardés à l'œil : bouclier levé (pas l'arme) et tête de trois quarts (à garder), arc d'effet devant le masque, tête baissée sous la traînée (Carnage).
+  const SEEN = /^(ally_azure_paladin\/raise_shield|ally_ice_empress\/(cast_forward|raise_staff)|ally_ninja\/leap_slash|ally_mercenary\/ground_smash)#/;
+  const fails = [];
+  for (const [k, set] of Object.entries(ALLY_ANIMS)) {
+    if (!k.startsWith('ally_') || !set.walk || !set.attack) continue;
+    const rest = place(set.walk, set.walk.frames[0]);
+    let y1 = 0; for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (rest.data[(y * W + x) * 4 + 3] > 100) y1 = y;
+    const hh = Math.round((y1 - top(rest)) * 0.42);
+    const head = (cv) => { const t = top(cv), s = new Map(); for (let y = t; y < t + hh; y++) for (let x = 0; x < W; x++) { const i = (y * W + x) * 4; if (cv.data[i + 3] < 100 || !skin(cv.data, i)) continue; const c = cv.data[i] << 16 | cv.data[i + 1] << 8 | cv.data[i + 2]; s.set(c, (s.get(c) ?? 0) + 1); } return s; };
+    const wh = set.walk.frames.map((f) => head(place(set.walk, f)));
+    const pal = new Set([...wh[0].keys()].filter((c) => wh.every((h) => h.has(c))));
+    const n = (h) => [...h].reduce((s, [c, v]) => s + (pal.has(c) ? v : 0), 0);
+    const ref = Math.min(...wh.map(n));
+    if (ref < 12) continue; // visage masqué (casque fermé)
+    const anims = [['attack', set.attack], ...Object.keys(F.SKILL_ANIMS[k] ?? {}).map((m) => [m, F.unitSkillAnim(k, m)])];
+    for (const [m, a] of anims) a.frames.forEach((f, i) => { const v = n(head(place(a, f))); if (v < ref * 0.4 && !SEEN.test(`${k}/${m}#${i}`)) fails.push(`${k}/${m}#${i} : ${v}/${ref}`); });
+  }
+  assert.deepEqual(fails, []);
+});
