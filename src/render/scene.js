@@ -8,6 +8,8 @@ import { installClassFx } from './class-fx.js';
 import { installMutationFx } from './mutation-fx.js'; // v9.2.3 : ennemis mutés lisibles
 import { installTraversalFx } from './traversal-fx.js'; // v9.2.1 : déplacement propre à chaque monde
 import { armSwing, attackCurve, dissolveFrames, pickAnimFrame } from './enemy-anim.js';
+import { BREATH_START, CAST_RELEASE, drawBreath, drawOrbGlow, powerOf, powerPointsOf } from './enemy-fx.js'; // v9.2.3
+import { sizeFactor } from '../data/enemy-sizes.js'; // v9.2.3 : table d'échelle
 import { ENEMY_ANIMS } from './art-anim.js'; // v9.2.3 : bat, harpy, skeleton dessinés image par image
 import { ARRIVE_SECONDS_BY_MODE, arrivalPose, arrivalProgress } from './arrival.js'; // v9.2.2 : arrivée des ennemis
 import { arrivalFor, WINGED_LANDERS } from '../data/arrivals.js';
@@ -605,11 +607,16 @@ export class SceneRenderer {
     let sprite = frames[step % frames.length];
     if (attacking && SPRITES[`${base}_atk`]) sprite = `${base}_atk`;
     if (!SPRITES[sprite]) sprite = SPRITES[base] ? base : def.sprite;
+    // v9.2.3 : table d'échelle (src/data/enemy-sizes.js) : taille crédible par rapport au héros, boss plus grands.
+    const bossScale = bossDef ? bossDef.scale ?? 1 : 1;
+    const ref = SPRITES[base] ?? SPRITES[sprite];
+    const natural = (bossDef?.heroLike ? 48 : (ref?.rows.length ?? 0) * (ref?.scale ?? 1)) * bossScale;
+    const fit = sizeFactor(type, boss, bossDef?.tier, natural);
     return {
       step,
       // v9.0.7 : un sprite en pleine définition (chara design PixelLab) porte son propre facteur d'échelle.
       // v9.2.3 : `base` choisit les animations dessinées (boss compris).
-      def, sprite, base, heroLike: Boolean(bossDef?.heroLike), scale: (bossDef ? bossDef.scale ?? 1 : 1) * (SPRITES[sprite]?.scale ?? 1),
+      def, sprite, base, heroLike: Boolean(bossDef?.heroLike), scale: bossScale * (SPRITES[sprite]?.scale ?? 1) * fit,
       colors: (bossDef ? bossDef.palette : def.palette) ?? null,
     };
   }
@@ -916,7 +923,30 @@ export class SceneRenderer {
         } else paint(img, x, y);
       });
       if (clipped) ctx.restore();
-      if (atk?.phase === 'strike' && !fx.smeared) {
+      // v9.2.3 : pouvoir de l'ennemi (src/render/enemy-fx.js) : l'orbe du bâton brille à la préparation, le sort part
+      // au coup ; le souffle sort de la gueule et va jusqu'au héros (longueur = distance, cône plus ouvert de loin).
+      const power = heroLike ? null : powerOf(enemy.type);
+      if (power && atkP !== null && !this.focus) {
+        const shown = drawn ? spriteCanvas(drawn.key, { colors }) : img;
+        const pts = powerPointsOf(shown);
+        const ox = x + (drawn ? drawn.anim.ox * scale : 0), oy = y + (drawn ? drawn.anim.oy * scale : 0);
+        const G = this.groundY;
+        if (pts && power.kind === 'cast') {
+          const tx = ox + pts.tip[0] * scale, ty = oy + pts.tip[1] * scale;
+          if (atkP < CAST_RELEASE) drawOrbGlow(ctx, tx, ty, power.colors, atkP / CAST_RELEASE, this.time);
+          else if (!fx.cast) {
+            fx.cast = true;
+            this.projectile(CAST_ORB[power.orb] ?? ['fx_spark'], tx, ty, HERO_X + 8, G - 20, 0.12, { trail: [power.colors[1]] });
+            this.later(0.12, () => this.burst(HERO_X + 8, G - 20, power.colors[1], 8, 34));
+          }
+        } else if (pts && power.kind === 'breath' && atkP >= BREATH_START && !fx.breathed) {
+          fx.breathed = true;
+          const mx = ox + pts.mouth[0] * scale, my = oy + pts.mouth[1] * scale;
+          this.effects.push({ kind: 'breath', x0: mx, y0: my, x1: HERO_X + 6, y1: G - 18, colors: power.colors, short: power.short, life: 0.42, max: 0.42 });
+        }
+      }
+      if (atkP === null) { fx.cast = false; fx.breathed = false; }
+      if (atk?.phase === 'strike' && !fx.smeared && !power) {
         // Traînée de frappe (arc de pixels) devant l'ennemi, une fois par coup.
         fx.smeared = true;
         this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], x - 4, this.groundY + 1 - this.waterLift(), 0.16, { tint: enemy.boss ? '#ff6a5a' : '#f0e6d0' });
@@ -1605,6 +1635,9 @@ export class SceneRenderer {
             drawBigText(ctx, fx.text, -Math.round(wText / 2), -4, fx.color, fx.light);
             ctx.restore();
           } else drawBigText(ctx, fx.text, Math.round(fx.x), this.snap(fx.y), fx.color, fx.light);
+          break;
+        case 'breath': // v9.2.3
+          drawBreath(ctx, fx, t, this.time);
           break;
         case 'flash':
           ctx.globalAlpha = t * 0.35;

@@ -186,6 +186,49 @@ def _plain(img):
     return c
 
 
+AIR = ('fly', 'float', 'swim')
+FREE = ('emerge', 'portal')  # v9.2.3 : sorties (du sol, du portail) : le déplacement est voulu, pas de recalage
+
+
+def _metrics(img, band=0.25):
+    """v9.2.3 : ligne de pied (dernière rangée opaque), centre horizontal de la bande des pieds (quart bas de la
+    silhouette) et centre de masse (x, y) de toute la silhouette."""
+    px = img.load()
+    pts = [(x, y) for y in range(img.height) for x in range(img.width) if px[x, y][3]]
+    if not pts:
+        return None
+    y0, y1 = min(p[1] for p in pts), max(p[1] for p in pts)
+    lim = y1 - max(1, round((y1 - y0 + 1) * band))
+    feet = [p[0] for p in pts if p[1] > lim]
+    return {'foot': y1, 'fx': sum(feet) / len(feet), 'cx': sum(p[0] for p in pts) / len(pts), 'cy': sum(p[1] for p in pts) / len(pts)}
+
+
+PAD = 32  # v9.2.3 : marge du recalage (une image décalée ne perd aucun pixel au bord du cadre de 64)
+
+
+def _align(frames, view, air, hop=False):
+    """v9.2.3 : recale chaque image sur la vue de base (même cadre de génération) : au sol, pieds sur la même ligne et
+    bande des pieds centrée au même x ; en vol ou à la nage, centre de masse au même point. Plus de saut entre images."""
+    ref = _metrics(_clean_alpha(view.copy()))
+    out = []
+    for f in frames:
+        m = _metrics(f)
+        g = Image.new('RGBA', (f.width + 2 * PAD, f.height + 2 * PAD), (0, 0, 0, 0))
+        if not m or not ref:
+            g.alpha_composite(f, (PAD, PAD))
+            out.append(g)
+            continue
+        if air:
+            dx, dy = round(ref['cx'] - m['cx']), round(ref['cy'] - m['cy'])
+        else:
+            dx, dy = round(ref['fx'] - m['fx']), ref['foot'] - m['foot']
+            if hop and dy > 0:  # bond d'un sauteur (gluant, crapaud) : il peut quitter le sol, jamais s'y enfoncer
+                dy = 0
+        g.alpha_composite(f, (PAD + dx, PAD + dy))
+        out.append(g)
+    return out
+
+
 def build():
     """Entrées de sprites (une par image) et index des animations."""
     sprites, index = {}, {}
@@ -199,6 +242,12 @@ def build():
             meta = os.path.join(SRC, 'anim', f'{key}_{anim}', 'meta.json')
             if os.path.exists(meta) and json.load(open(meta)).get('ground'):
                 frames = _recolor_earth(frames, base_pal, json.load(open(meta))['ground'])
+            if anim not in FREE:
+                air = anim in AIR or bool(set(anims) & set(AIR)) or GAIT.get(key) == 'fly'
+                frames = _align(frames, view, air, hop=GAIT.get(key) == 'hop')
+                pad = PAD
+            else:
+                pad = 0
             boxes = [f.getbbox() for f in frames if f.getbbox()]
             ux0, uy0 = min(b[0] for b in boxes), min(b[1] for b in boxes)
             ux1, uy1 = max(b[2] for b in boxes), max(b[3] for b in boxes)
@@ -213,7 +262,7 @@ def build():
                     os.makedirs(d, exist_ok=True)
                     f.crop((ux0, uy0, ux1, uy1)).save(os.path.join(d, f'f{i}.png'))
             # Décalage par rapport à l'image de base (cadre : boîte de la vue, plus MARGIN à gauche).
-            index.setdefault(key, {})[anim] = {'frames': names, 'ox': ux0 - bx, 'oy': uy0 - by, 'fps': fps}
+            index.setdefault(key, {})[anim] = {'frames': names, 'ox': ux0 - pad - bx, 'oy': uy0 - pad - by, 'fps': fps}
     return sprites, index
 
 
