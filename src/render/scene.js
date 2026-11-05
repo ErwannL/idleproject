@@ -9,7 +9,7 @@ import { installMutationFx } from './mutation-fx.js'; // v9.2.3 : ennemis mutés
 import { MUTATION_PACE, SHEEN_STEPS, mutatedCanvas, mutationSize } from './mutation-look.js'; // v9.2.3 : apparence des mutations
 import { installTraversalFx } from './traversal-fx.js'; // v9.2.1 : déplacement propre à chaque monde
 import { DRAWN_TRAIL, HURT_COOLDOWN, HURT_TIME, armSwing, attackCurve, dissolveFrames, pickAnimFrame } from './enemy-anim.js';
-import { animBoxes, anchorOffset, boxOf } from './enemy-anchor.js'; // v9.2.5 : calage des images dessinées
+import { animBoxes, animStride, anchorOffset, boxOf, groundLegs, QUADRUPEDS as LEG_GROUNDED } from './enemy-anchor.js'; // v9.2.5 : calage des images dessinées
 import { BREATH_START, CAST_RELEASE, breathSafeAnims, drawBreath, drawOrbGlow, headMouth, powerOf, powerPointsOf } from './enemy-fx.js'; // v9.2.3
 import { HERO_HEIGHT, sizeFactor, visibleSize } from '../data/enemy-sizes.js'; // v9.2.3 : table d'échelle (v9.2.4 : taille visible)
 import { ENEMY_ANIMS } from './art-anim.js'; // v9.2.3 : bat, harpy, skeleton dessinés image par image
@@ -847,7 +847,9 @@ export class SceneRenderer {
       fx.knock = (fx.knock ?? 0) * Math.exp(-dt * 14); // recul qui revient en douceur
       // En marche tant qu'il n'est pas au contact (état de la simulation, stable d'une image à l'autre :
       // comparer les positions entre deux images faisait clignoter l'animation, la simulation avançant par pas).
-      const moving = !enemy.engaged;
+      // v9.2.5 : bloqué dans la file derrière un ennemi arrêté (`queued`, combat.js) : pose d'attente (respiration), sans
+      // jouer la marche sur place ; il repart en marche dès que la file avance.
+      const moving = !enemy.engaged && !enemy.queued;
       const alpha = Math.min(1, world.alpha ?? 1);
       const ex = this.wx((enemy.prevX ?? enemy.x) + (enemy.x - (enemy.prevX ?? enemy.x)) * alpha);
 
@@ -857,12 +859,16 @@ export class SceneRenderer {
       const { def, sprite, base, scale: lookScale, colors, heroLike, step } = this.enemyLook(enemy.type, enemy.boss, fx.lunge > 0, enemy.id * 0.37, moving,
         (enemy.rush && moving ? 2.2 : 1) * mPace);
       const scale = lookScale * mutationSize(enemy);
+      // v9.2.5 : quadrupèdes : pattes du fond posées sur le sol (enemy-anchor.js groundLegs), hors marche (le pas lève les pattes).
+      const quad = LEG_GROUNDED.has(base);
+      const ecv = (key, o) => (quad && !/__walk\d+$/.test(key) && !/_w\d$/.test(key) ? groundLegs(spriteCanvas(key, o), spriteCanvas(key, { colors })) : spriteCanvas(key, o));
+      this.enemyCanvas = ecv;
       const mutLook = (c) => (mutation && !heroLike && fx.hit <= 0 ? mutatedCanvas(c, mutation.id, Math.floor(this.time * 5 + enemy.id) % (SHEEN_STEPS * 3)) : c);
       // Le Chevalier déchu utilise le corps du héros, retourné, avec une épée sombre.
       const img = heroLike
         ? heroComposite(fx.lunge > 0 ? 'attack' : moving ? ['walk1', 'walk2'][Math.floor(this.time * 6) % 2] : 'idle',
           { weapon: { baseId: 'fallen_blade', rarity: 'epic' } }, fx.hit > 0, 'b', colors, true)
-        : mutLook(spriteCanvas(sprite, { colors, flash: fx.hit > 0 }));
+        : mutLook(ecv(sprite, { colors, flash: fx.hit > 0 }));
       const w = img.width * scale;
       const h = img.height * scale;
       // Rebond synchronisé sur l'image de marche (1 px sur la 2e image), jamais pour les volants.
@@ -903,19 +909,36 @@ export class SceneRenderer {
       const atkP = fx.lunge > 0 ? 1 - fx.lunge / ENEMY_ATK : fx.windup > 0 ? 0.3 * (1 - fx.windup / 0.25) : null;
       // v9.2.3 : tous les ennemis et boss des mondes 1 à 12 (boss compris) ; nage sous l'eau, sortie du sol ou du portail dessinées.
       const anims = heroLike ? null : breathSafeAnims(base, ENEMY_ANIMS[base]); // v9.2.5 : sans la flamme dessinée en double
+      // v9.2.5 : cadence de marche accordée à l'avance réelle par rapport au sol (pieds immobiles pendant l'appui) :
+      // vitesse à l'écran moins le défilement du sol, lissée, divisée par le pas mesuré de l'animation (enemy-anchor.js).
+      if (fx.lastEx !== undefined && dt > 0) {
+        const v = Math.max(0, (fx.lastEx - ex - (scrollPx - fx.lastScroll)) / dt);
+        fx.vRel = fx.vRel === undefined ? v : fx.vRel + (v - fx.vRel) * Math.min(1, dt * 8);
+      }
+      fx.lastEx = ex; fx.lastScroll = scrollPx;
+      let walkStep = null;
+      if (anims?.walk && moving) {
+        const stride = animStride(anims.walk, (key) => ecv(key, { colors }));
+        // Pas trop court pour être mesuré (gluants, robes, champignons : pas de pied posé) : cadence d'origine.
+        // Cadence bornée entre la moitié et 4 fois celle dessinée (départ, arrêt, ruée, approche de loin où l'écran est resserré : wx).
+        if (stride >= 1.5) {
+          const fps = Math.max(anims.walk.fps * 0.5, Math.min(anims.walk.fps * 4, (fx.vRel ?? 0) / (stride * scale)));
+          fx.walkStep = (fx.walkStep ?? enemy.id * 0.7) + dt * fps; walkStep = fx.walkStep;
+        }
+      }
       const drawn = pickAnimFrame(anims, {
         emerge: arrival.mode === 'burrow' && k < 1 ? pose.emerge : null, portal: arrival.mode === 'portal' && k < 1 ? Math.min(1, k / 0.85) : null,
-        atkP, hurtP: fx.hurt > 0 && !this.focus ? 1 - fx.hurt / HURT_TIME : null, flying, swimming: this.underwater && arrival.mode === 'swim', moving, time: this.time * mPace, phase: enemy.id * 0.7,
+        atkP, hurtP: fx.hurt > 0 && !this.focus ? 1 - fx.hurt / HURT_TIME : null, flying, swimming: this.underwater && arrival.mode === 'swim', moving, time: this.time * mPace, phase: enemy.id * 0.7, walkStep,
       });
       if (drawn && (drawn.anim === anims.emerge || drawn.anim === anims.portal)) { pose.buried = 0; pose.dx = 0; pose.dy = 0; pose.alpha = 1; } // la sortie est dessinée
       const drawnPortal = drawn?.anim === anims?.portal;
       // v9.2.5 : images dessinées recalées sur le sprite de base (pieds sur le sol, centre stable : enemy-anchor.js),
       // sauf en vol et à la nage (hauteur voulue).
-      const baseBox = heroLike ? null : boxOf(spriteCanvas(base, { colors }));
+      const baseBox = heroLike ? null : boxOf(ecv(base, { colors }));
       let dox = 0, doy = 0;
       if (drawn) {
         const name = Object.keys(anims).find((n) => anims[n] === drawn.anim);
-        ({ ox: dox, oy: doy } = anchorOffset(baseBox, animBoxes(drawn.anim, (key) => spriteCanvas(key, { colors })), drawn.anim.frames.indexOf(drawn.key), name, drawn.anim,
+        ({ ox: dox, oy: doy } = anchorOffset(baseBox, animBoxes(drawn.anim, (key) => ecv(key, { colors })), drawn.anim.frames.indexOf(drawn.key), name, drawn.anim,
           !flying && !def.flyHeight && !(this.underwater && arrival.mode === 'swim')));
       }
       const rig = flying && arrival.style === 'wings' && !drawn ? wingRig(sprite) : null;
@@ -945,14 +968,14 @@ export class SceneRenderer {
       const x = this.snap(Math.max(exd - w / 2, HERO_X + 12) - lunge + (fx.knock > 0.5 ? fx.knock : 0) + pose.dx);
       // v9.2.5 : pieds réels (bas opaque du sprite de base) sur le sol, et non le bas du cadre.
       // Images de pas (_w1/_w2) sans image dessinée : le pied au sol de chaque image reste sur la ligne du sol.
-      const stepBox = !drawn && !heroLike && !flying && sprite !== base ? boxOf(spriteCanvas(sprite, { colors })) : null;
+      const stepBox = !drawn && !heroLike && !flying && sprite !== base ? boxOf(ecv(sprite, { colors })) : null;
       const footH = baseBox && !heroLike ? (baseBox.bottom + 1) * scale + (stepBox ? (stepBox.bottom - baseBox.bottom) * scale : 0) : h;
       const y = this.groundY - footH - bob - hover + 1 - pose.dy - (rig && !this.focus ? WING_LIFT[wp] : 0) + Math.round(pose.buried * h);
       // Géométrie à l'écran (projectiles qui visent la cible, impacts, ennemi figé à la mort).
       Object.assign(fx, { sx: x, sy: y, sw: w, sh: h, seen: this.time, img, edge: x + bodyEdge(img) * scale });
       // v9.2.4 : image réellement affichée (image dessinée PixelLab et son décalage, ou sprite de base) : le corps figé,
       // la dissolution, les éclats et la division la reprennent, au lieu de superposer l'image de base décalée.
-      const shown = drawn ? spriteCanvas(drawn.key, { colors }) : img;
+      const shown = drawn ? ecv(drawn.key, { colors }) : img;
       fx.vis = drawn
         ? { key: drawn.key, img: shown, x: x + dox * scale, y: y + doy * scale, w: shown.width * scale, h: shown.height * scale }
         : { key: heroLike ? null : sprite, img, x, y, w, h };
@@ -973,19 +996,19 @@ export class SceneRenderer {
       withMotion(ctx, x + w / 2, y + h, motion, () => {
         if (enemy.elite) {
           // Élite errante : halo rouge pulsant.
-          const glow = spriteCanvas(drawn?.key ?? sprite, { colors, tint: { color: '#ff3b3b', alpha: 1 } });
+          const glow = ecv(drawn?.key ?? sprite, { colors, tint: { color: '#ff3b3b', alpha: 1 } });
           ctx.globalAlpha = fx.appear * (0.5 + 0.3 * Math.sin(this.time * 8));
           for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) paint(glow, x + dx, y + dy);
           ctx.globalAlpha = fx.appear * pose.alpha;
         }
         if (mutation) {
           // v9.0.4 : ennemi muté — contour de la couleur de sa mutation ; v9.2.3 : plus épais et propre à chacune.
-          const glow = spriteCanvas(drawn?.key ?? sprite, { colors, tint: { color: mutation.color, alpha: 1 } });
-          this.drawMutationAura(ctx, enemy, mutation, glow, x, y, fx.appear * pose.alpha, paint, fx, { src: drawn ? spriteCanvas(drawn.key, { colors }) : heroLike ? img : spriteCanvas(sprite, { colors }), scale, moving, w, h, ox: drawn ? dox * scale : 0, oy: drawn ? doy * scale : 0 });
+          const glow = ecv(drawn?.key ?? sprite, { colors, tint: { color: mutation.color, alpha: 1 } });
+          this.drawMutationAura(ctx, enemy, mutation, glow, x, y, fx.appear * pose.alpha, paint, fx, { src: drawn ? ecv(drawn.key, { colors }) : heroLike ? img : ecv(sprite, { colors }), scale, moving, w, h, ox: drawn ? dox * scale : 0, oy: drawn ? doy * scale : 0 });
           ctx.globalAlpha = fx.appear * pose.alpha;
         }
         if (drawn) {
-          paint(mutLook(spriteCanvas(drawn.key, { colors, flash: fx.hit > 0 })), x, y + (fx.squash > 0.07 ? 1 : 0)); // v9.2.3
+          paint(mutLook(ecv(drawn.key, { colors, flash: fx.hit > 0 })), x, y + (fx.squash > 0.07 ? 1 : 0)); // v9.2.3
         } else if (fx.squash > 0) {
           // Écrasement à l'impact (ancré aux pieds) : plus large et plus bas, très bref.
           // v9.1.9 : pixel-perfect : plus d'étirement non entier, le corps s'affaisse d'1 px puis revient.
@@ -1001,14 +1024,14 @@ export class SceneRenderer {
           swimDraw(ctx, img, x, y, w, h, { time: this.time, phase: enemy.id * 0.9, amp: (def.swim === 'eel' ? 2 : 1.5) * (1 + 2.5 * pose.wave), mode: def.swim, focus: this.focus, body: pose.wave });
         } else paint(img, x, y);
         // v9.2.5 : fente du Scissipare, par-dessus le corps (mutation-fx.js).
-        if (mutation?.id === 'split' && !heroLike) this.drawSplitSeam(ctx, enemy, { src: drawn ? spriteCanvas(drawn.key, { colors }) : img, x, y, scale, ox: drawn ? dox * scale : 0, oy: drawn ? doy * scale : 0 }, fx.appear * pose.alpha);
+        if (mutation?.id === 'split' && !heroLike) this.drawSplitSeam(ctx, enemy, { src: drawn ? ecv(drawn.key, { colors }) : img, x, y, scale, ox: drawn ? dox * scale : 0, oy: drawn ? doy * scale : 0 }, fx.appear * pose.alpha);
       });
       if (clipped) ctx.restore();
       // v9.2.3 : pouvoir de l'ennemi (src/render/enemy-fx.js) : l'orbe du bâton brille à la préparation, le sort part
       // au coup ; le souffle sort de la gueule et va jusqu'au héros (longueur = distance, cône plus ouvert de loin).
       const power = heroLike ? null : powerOf(enemy.type);
       if (power && atkP !== null && !this.focus) {
-        const shown = drawn ? spriteCanvas(drawn.key, { colors }) : img;
+        const shown = drawn ? ecv(drawn.key, { colors }) : img;
         const pts = powerPointsOf(shown);
         const ox = x + (drawn ? dox * scale : 0), oy = y + (drawn ? doy * scale : 0);
         const G = this.groundY;
@@ -1024,7 +1047,7 @@ export class SceneRenderer {
           fx.breathed = true;
           // v9.2.5 : hydre : une des trois bouches, à tour de rôle (enemy-fx.js HEAD_MOUTHS).
           const head = power.heads ? (fx.headNo = ((fx.headNo ?? -1) + 1) % power.heads) : null;
-          const mp = (head !== null && headMouth(drawn?.key, head)) || pts.mouth;
+          const mp = headMouth(drawn?.key ?? sprite, head) || pts.mouth; // v9.2.5 : gueule relevée à la main (MOUTHS)
           const mx = ox + mp[0] * scale, my = oy + mp[1] * scale;
           // v9.2.4 : la gueule suit l'ennemi pendant le souffle (recul, élan, déplacement) : le jet s'allonge ou se raccourcit
           // à chaque image selon la distance réelle jusqu'au héros.
@@ -1076,7 +1099,7 @@ export class SceneRenderer {
   drawBossAura(ctx, enemy, sprite, colors, x, y, w, h, appear, paint = (c, px, py) => ctx.drawImage(c, px, py, w, h)) {
     const tier = enemy.berserk ? 'berserk' : BOSSES[enemy.type]?.tier ?? 'mega';
     const look = BOSS_AURAS[tier];
-    const glow = spriteCanvas(sprite, { colors, tint: { color: look.color, alpha: 1 } });
+    const glow = (this.enemyCanvas ?? spriteCanvas)(sprite, { colors, tint: { color: look.color, alpha: 1 } }); // v9.2.5 : même image que le corps
     const pulse = 0.5 + 0.5 * Math.sin(this.time * look.speed + enemy.id);
     ctx.globalAlpha = appear * (look.alpha + 0.25 * pulse);
     for (let r = 1; r <= look.width; r++) {
@@ -1805,7 +1828,7 @@ export class SceneRenderer {
             // v9.2.5 : la gueule (ou la tête choisie de l'hydre) est relue sur l'image affichée à chaque image : le jet
             // suit la tête pendant l'animation ; image sans repère : même décalage qu'à l'image précédente.
             const v = src.vis;
-            const p = v?.img ? (fx.head !== null && fx.head !== undefined ? headMouth(v.key, fx.head) : powerPointsOf(v.img)?.mouth) : null;
+            const p = v?.img ? (headMouth(v.key, fx.head) ?? powerPointsOf(v.img)?.mouth) : null; // v9.2.5 : gueule relevée (MOUTHS)
             if (p) { fx.x0 = v.x + (p[0] * v.w) / v.img.width; fx.y0 = v.y + (p[1] * v.h) / v.img.height; fx.dx0 = fx.x0 - src.sx; fx.dy0 = fx.y0 - src.sy; }
             else { fx.x0 = src.sx + fx.dx0; fx.y0 = src.sy + fx.dy0; }
           }

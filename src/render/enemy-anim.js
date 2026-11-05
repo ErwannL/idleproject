@@ -154,7 +154,8 @@ export const DRAWN_TRAIL = new Set(['boss_phoenix', 'mini_salamander_chief', 'bo
 export const HURT_TIME = 0.4;
 export const HURT_COOLDOWN = 2.5;
 
-export function pickAnimFrame(set, { emerge = null, portal = null, atkP = null, hurtP = null, flying = false, swimming = false, moving = false, time = 0, phase = 0 } = {}) {
+// v9.2.5 : `walkStep` (image de marche, nombre réel) : cadence accordée à la vitesse d'avance (pieds fixes au sol).
+export function pickAnimFrame(set, { emerge = null, portal = null, atkP = null, hurtP = null, flying = false, swimming = false, moving = false, time = 0, phase = 0, walkStep = null } = {}) {
   if (!set) return null;
   const at = (anim, k) => ({ anim, key: anim.frames[Math.max(0, Math.min(anim.frames.length - 1, Math.floor(k * anim.frames.length)))] });
   if (set.emerge && emerge !== null) return at(set.emerge, emerge);
@@ -164,6 +165,7 @@ export function pickAnimFrame(set, { emerge = null, portal = null, atkP = null, 
   const loop = (anim) => ({ anim, key: anim.frames[Math.floor(time * anim.fps + phase) % anim.frames.length] });
   if (set.swim && swimming) return loop(set.swim);
   if (flying && (set.fly || set.float)) return loop(set.fly ?? set.float);
+  if (set.walk && moving && walkStep !== null) return { anim: set.walk, key: set.walk.frames[((Math.floor(walkStep) % set.walk.frames.length) + set.walk.frames.length) % set.walk.frames.length] };
   if (set.walk && moving) return loop(set.walk);
   return null;
 }

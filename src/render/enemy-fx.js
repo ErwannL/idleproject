@@ -67,12 +67,34 @@ export const HEAD_MOUTHS = {
   ],
 };
 
-// Bouche de la tête `head` sur l'image `key` (« <sprite>__attack<n> »), ou null si l'image n'est pas une attaque annotée.
+// v9.2.5 : gueule relevée à la main, image par image, sur les planches agrandies (pixels de l'image), pour tous les
+// ennemis à souffle : le repérage automatique (pixel le plus en avant du haut de la silhouette) prenait l'aile ou le
+// cou du dragon (retour joueur « flamme pas gueule dragon »). `base` : sprite de base (corps au repos entre deux
+// attaques) ; les autres : animation PixelLab (indices d'origine des images).
+export const MOUTHS = {
+  boss_ash_dragon: { base: [8, 40], attack: [[9, 32], [11, 11], [10, 11], [10, 11], [9, 12], [1, 33], [3, 34], [6, 36]] },
+  mid_hellhound: { base: [6, 28], attack: [[11, 30], [13, 28], [17, 26], [16, 27], [9, 34], [6, 33], [8, 34], [11, 33]] },
+  salamander: { base: [8, 45], attack: [[4, 41], [4, 41], [4, 38], [7, 33], [3, 37], [4, 36], [5, 35], [5, 41]] },
+  toad: { base: [10, 19], attack: [[10, 31], [14, 32], [16, 34], [10, 27], [4, 19], [5, 22], [14, 36], [11, 33]] },
+  mid_star_devourer: { base: [5, 41], attack: [[10, 45], [9, 45], [8, 47], [11, 44], [10, 42], [10, 43], [11, 45], [9, 44]] },
+  boss_frost_wyrm: { base: [8, 22] },
+};
+
+// Bouche de la tête `head` (hydre) ou gueule relevée (MOUTHS) sur l'image `key` (« <sprite>__<anim><n> » ou nom du
+// sprite de base), ou null si l'image n'est pas annotée.
 export function headMouth(key, head) {
   const m = /^(.+)__attack(\d+)$/.exec(key ?? '');
   const table = m && HEAD_MOUTHS[m[1]];
   const row = table?.[Number(m[2])];
-  return row ? row[head % row.length] : null;
+  if (row) return row[(head ?? 0) % row.length];
+  return mouthAt(key);
+}
+
+export function mouthAt(key) {
+  if (!key) return null;
+  if (MOUTHS[key]?.base) return MOUTHS[key].base;
+  const m = /^(.+)__([a-z]+)(\d+)$/.exec(key);
+  return (m && MOUTHS[m[1]]?.[m[2]]?.[Number(m[3])]) ?? null;
 }
 
 // v9.2.5 : images d'attaque PixelLab qui dessinaient déjà une flamme (chien de l'enfer : flamme dans la gueule) :
@@ -81,6 +103,8 @@ export function headMouth(key, head) {
 // retirée des images sources elles-mêmes, sprite de base compris : tools/art/pixellab/.)
 export const BREATH_FRAME_MAP = {
   mid_hellhound: [0, 1, 2, 3, 3, 3, 7, 7],
+  // v9.2.5 : dragon : il se cabre (tête en haut) puis baisse la tête ; le souffle (à 30 %) part tête baissée, gueule en avant.
+  boss_ash_dragon: [1, 3, 5, 5, 6, 6, 7, 7],
 };
 const safeCache = new Map();
 export function breathSafeAnims(base, anims) {

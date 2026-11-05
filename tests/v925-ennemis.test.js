@@ -55,7 +55,7 @@ test('hydre : trois bouches par image d\'attaque, choisies à tour de rôle', ()
   assert.ok(m0[0] < m2[0]); // de gauche à droite
   assert.deepEqual(headMouth('mid_hydra__attack1', 4), headMouth('mid_hydra__attack1', 1));
   assert.equal(headMouth('mid_hydra__walk0', 0), null);
-  assert.equal(headMouth('boss_ash_dragon__attack1', 0), null);
+  assert.deepEqual(headMouth('boss_ash_dragon__attack5', 0), [1, 33]); // v9.2.5 : gueule du dragon relevée à la main
 });
 
 test('Scissipare : les doubles naissent où les moitiés atterrissent, trajectoire en arc', () => {
@@ -65,4 +65,52 @@ test('Scissipare : les doubles naissent où les moitiés atterrissent, trajectoi
   const a = halfPath(0, 10, 50, 30, 50), b = halfPath(1, 10, 50, 30, 50), m = halfPath(0.5, 10, 50, 30, 50, 14);
   assert.deepEqual([a.x, a.y, b.x, b.y], [10, 50, 30, 50]);
   assert.equal(m.y, 50 - 14);
+});
+
+// v9.2.5 (retours joueur : souffle, pattes, glisse, file d'attente)
+test('gueules relevées à la main : chaque image d\'attaque des ennemis à souffle annotée', async () => {
+  const { MOUTHS, mouthAt } = await import('../src/render/enemy-fx.js');
+  for (const [base, t] of Object.entries(MOUTHS)) {
+    if (t.attack) assert.equal(t.attack.length, ENEMY_ANIMS[base].attack.frames.length, base);
+    assert.ok(mouthAt(base), base);
+  }
+  assert.deepEqual(mouthAt('mid_hellhound__attack0'), [11, 30]);
+  assert.equal(mouthAt('wolf__attack0'), null);
+});
+
+test('pattes : le côté resté en l\'air descend jusqu\'au sol, effets ignorés', async () => {
+  const { solidMask, legPlan, legSource, footRow, isFirePixel } = await import('../src/render/enemy-anchor.js');
+  const w = 20, h = 20, d = new Uint8ClampedArray(w * h * 4);
+  const put = (x, y, rgb = [80, 50, 40]) => d.set([...rgb, 255], (y * w + x) * 4);
+  for (let y = 4; y < 12; y++) for (let x = 2; x < 18; x++) put(x, y); // corps
+  for (let y = 12; y < 19; y++) { put(3, y); put(4, y); } // patte avant, jusqu'au sol (18)
+  for (let y = 12; y < 15; y++) { put(15, y); put(16, y); } // patte arrière levée (14)
+  put(10, 19, [255, 200, 40]); // étincelle de feu sous le corps : ignorée
+  assert.ok(isFirePixel(255, 200, 40));
+  const m = solidMask(d, w, h);
+  assert.equal(footRow(m, w, h), 18);
+  const p = legPlan(m, w, h);
+  assert.equal(p.sides.length, 1); assert.equal(p.sides[0].dir, 1); assert.equal(p.sides[0].gap, 4);
+  // La patte arrière touche maintenant le sol : la ligne 18 de la colonne 16 vient d'un pixel de la patte.
+  const sy = legSource(p, 16, 18);
+  assert.ok(sy >= 12 && sy <= 14);
+});
+
+test('pas de marche mesuré : pied d\'appui qui recule de 3 px par image', async () => {
+  const { strideOf } = await import('../src/render/enemy-anchor.js');
+  const w = 40, h = 10;
+  const frame = (x0) => { const mask = new Uint8Array(w * h); for (let y = 7; y < 10; y++) for (let x = x0; x < x0 + 4; x++) mask[y * w + x] = 1; return { mask, w, h, foot: 9 }; };
+  assert.equal(strideOf([frame(5), frame(8), frame(11), frame(14), frame(17), frame(20)]), 3);
+});
+
+test('file : un ennemi bloqué derrière un ennemi au contact attend sans marcher', async () => {
+  const { BALANCE } = await import('../src/data/balance.js');
+  const W = BALANCE.world;
+  const a = { x: W.heroX + W.meleeOffset + 16, range: 16, speed: 20 }, b = { x: a.x + W.enemyGap, range: 16, speed: 20 };
+  // reproduit la règle de combat.js (file)
+  const step = (list) => list.forEach((e, i) => { const prev = list[i - 1]; const stopX = prev ? prev.x + W.enemyGap : W.heroX + W.meleeOffset + e.range; e.x = Math.max(stopX, e.x - e.speed * 0.1); e.engaged = !prev && e.x <= stopX + 0.01; e.queued = Boolean(prev) && e.x <= stopX + 0.01 && Boolean(prev.engaged || prev.queued); });
+  step([a, b]);
+  assert.ok(a.engaged); assert.ok(b.queued);
+  const src = (await import('node:fs')).readFileSync(new URL('../src/core/combat.js', import.meta.url), 'utf8');
+  assert.match(src, /enemy\.queued = Boolean\(prev\) && enemy\.x <= stopX \+ 0\.01 && Boolean\(prev\.engaged \|\| prev\.queued\)/);
 });

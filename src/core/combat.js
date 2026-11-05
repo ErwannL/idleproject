@@ -817,6 +817,8 @@ export function step(state, world, dt, rng, balance = BALANCE) {
     const speed = enemy.rush ? enemy.speed * (balance.rush?.speedMult ?? 1) : enemy.speed;
     enemy.x = Math.max(stopX, enemy.x - (speed + scroll) * dt);
     enemy.engaged = !prev && enemy.x <= stopX + 0.01;
+    // v9.2.5 : bloqué dans la file derrière un ennemi lui-même arrêté (au contact ou bloqué) : attend sans marcher.
+    enemy.queued = Boolean(prev) && enemy.x <= stopX + 0.01 && Boolean(prev.engaged || prev.queued);
   });
 
   const inRange = front && front.x - W.heroX <= range && canHit(front, balance);
