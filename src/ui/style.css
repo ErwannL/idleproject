@@ -2620,8 +2620,8 @@ img.ico16 { width: 16px; height: 16px; vertical-align: middle; }
 .vt-skill b { color: var(--gold-text); }
 .vt-rate { display: flex; flex-direction: column; font-size: 11px; color: #ffe9b0; }
 .vt-rate b { font-size: 20px; color: #ffd54a; text-shadow: 0 0 8px #f2b44099; }
-.vt-pity { display: flex; flex-wrap: wrap; column-gap: 8px; row-gap: 3px; align-items: baseline; font-size: 12px; }
-.vt-pity .vt-bar { flex: 1 0 100%; }
+.vt-pity { display: flex; flex-direction: column; gap: 3px; font-size: 12px; } /* v9.2.5 : sur deux lignes, jamais sous l'illustration */
+.vt-pity .vt-bar { flex: none; width: 100%; }
 .vt-pity small { color: var(--muted); }
 .vt-bar { display: block; height: 7px; border-radius: 4px; background: #0009; border: 1px solid #ffffff25; overflow: hidden; }
 .vt-bar i { display: block; height: 100%; background: linear-gradient(90deg, #f2b440, #ffe08a); }
@@ -2633,12 +2633,12 @@ img.ico16 { width: 16px; height: 16px; vertical-align: middle; }
 .vt-odds { grid-area: odds; } .vt-results { grid-area: res; }
 /* v9.2.5 : illustration derrière, à droite, sur téléphone comme sur PC. */
   .summon-row.vt { grid-template-columns: minmax(0, 1fr); grid-template-areas: "info" "act" "odds" "res"; min-height: 0; padding: 10px; }
-  .vt-stage { position: absolute; right: -6px; top: 4px; width: 50%; height: 300px; min-height: 0; z-index: 0; }
+  .vt-stage { position: absolute; right: -6px; top: 4px; width: 46%; height: 300px; min-height: 0; z-index: 0; }
   .vt-stage .vt-art { max-height: 300px; }
-  .vt-info { max-width: 60%; gap: 5px; min-height: 290px; }
+  .vt-info { max-width: 54%; gap: 5px; min-height: 290px; }
   .vt-rays, .vt-glow { left: 76%; top: 34%; }
   .vt-ribbon { font-size: 9.5px; padding: 2px 7px; }
   .vt-name { font-size: 20px; } .vt-stars { font-size: 14px; }
   .vt-skill { font-size: 11px; padding: 4px 6px; }
   .vt-rate b { font-size: 17px; } .vt-rate { font-size: 10.5px; }
-@container (min-width: 620px) { .vt-stage { width: 42%; } .vt-info { max-width: 56%; } }
+@container (min-width: 620px) { .vt-stage { width: 40%; } .vt-info { max-width: 58%; } }
