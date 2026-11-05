@@ -25,7 +25,7 @@ from pixellab import GAIT, MARGIN, MAX_COLORS, SRC, TARGET, _canvas, _frame  # n
 
 # Images par seconde de chaque animation (le jeu peut aussi piloter l'image par la phase : attaque, sortie du sol).
 # v9.2.3 : animations trouvées dans tools/art/pixellab/anim/<sprite>_<anim>/ (tous les ennemis et boss des mondes 1 à 12).
-FPS = {'walk': 12, 'fly': 12, 'attack': 25, 'emerge': 12, 'portal': 12, 'swim': 10, 'float': 8}
+FPS = {'walk': 12, 'fly': 12, 'attack': 25, 'emerge': 12, 'portal': 12, 'swim': 10, 'float': 8, 'hurt': 20, 'death': 10}  # v9.2.3 : coup reçu, mort
 FPS_SPRITE = {('bat', 'fly'): 14}
 ANIM_NAMES = tuple(FPS)
 

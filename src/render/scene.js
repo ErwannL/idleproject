@@ -8,7 +8,7 @@ import { installClassFx } from './class-fx.js';
 import { installMutationFx } from './mutation-fx.js'; // v9.2.3 : ennemis mutés lisibles
 import { MUTATION_PACE, SHEEN_STEPS, mutatedCanvas, mutationSize } from './mutation-look.js'; // v9.2.3 : apparence des mutations
 import { installTraversalFx } from './traversal-fx.js'; // v9.2.1 : déplacement propre à chaque monde
-import { DRAWN_TRAIL, armSwing, attackCurve, dissolveFrames, pickAnimFrame } from './enemy-anim.js';
+import { DRAWN_TRAIL, HURT_COOLDOWN, HURT_TIME, armSwing, attackCurve, dissolveFrames, pickAnimFrame } from './enemy-anim.js';
 import { BREATH_START, CAST_RELEASE, drawBreath, drawOrbGlow, powerOf, powerPointsOf } from './enemy-fx.js'; // v9.2.3
 import { sizeFactor } from '../data/enemy-sizes.js'; // v9.2.3 : table d'échelle
 import { ENEMY_ANIMS } from './art-anim.js'; // v9.2.3 : bat, harpy, skeleton dessinés image par image
@@ -466,6 +466,8 @@ export class SceneRenderer {
     const iy = y ?? (fx?.seen > this.time - 0.2 ? fx.sy + fx.sh * 0.5 : G - 12);
     if (fx) {
       fx.hit = crit ? 0.13 : 0.08;
+      // v9.2.3 : coup reçu dessiné (PixelLab) : sur un critique, ou au plus une fois toutes les HURT_COOLDOWN secondes.
+      if ((crit || this.time - (fx.hurtAt ?? -99) > HURT_COOLDOWN) && !(fx.lunge > 0) && !(fx.windup > 0)) { fx.hurt = HURT_TIME; fx.hurtAt = this.time; }
       fx.knock = Math.min(boss ? 4 : 8, (fx.knock ?? 0) + (crit ? 5 : 3) * (boss ? 0.5 : 1));
       fx.squash = 0.14;
       if (crit && !this.focus) this.hitstop = Math.max(this.hitstop ?? 0, 0.06);
@@ -491,7 +493,13 @@ export class SceneRenderer {
     // Éclatement en pixels : quelques pixels du sprite volent en éclats (couleurs réelles du monstre).
     const fxe = this.enemyFx.get(event.enemyId);
     if (fxe?.img && !this.focus) this.shatter(fxe);
-    const { sprite, scale, heroLike, colors } = this.enemyLook(event.kind, event.boss);
+    const { sprite, scale, heroLike, colors, base } = this.enemyLook(event.kind, event.boss);
+    // v9.2.3 : mort dessinée (PixelLab) : le monstre s'effondre là où il est mort, puis s'efface.
+    const death = !heroLike && !this.focus && fxe?.img ? ENEMY_ANIMS[base]?.death : null;
+    if (death) {
+      const k = fxe.sw / fxe.img.width; // échelle réelle à l'écran (géant, scissipare compris)
+      this.effects.push({ kind: 'death', anim: death, colors, x: fxe.sx, y: fxe.sy, k, life: event.boss ? 1.3 : 0.9, max: event.boss ? 1.3 : 0.9 });
+    }
     const img = heroLike
       ? heroComposite('idle', { weapon: { baseId: 'fallen_blade', rarity: 'epic' } }, true, 'b', colors, true)
       : spriteCanvas(sprite, { flash: true });
@@ -499,7 +507,8 @@ export class SceneRenderer {
       kind: 'corpse', img, x: fxe?.img ? fxe.sx + fxe.sw / 2 : this.wx(event.x), top: fxe?.img ? fxe.sy : undefined, w: img.width * scale, h: img.height * scale,
       fly: this.flyHeight(event.kind, event.boss), life: 0.3, max: 0.3,
     });
-    if (!this.focus && fxe?.img) {
+    if (death) this.effects.splice(this.effects.length - 1, 1); // pas de second corps
+    if (!this.focus && fxe?.img && !death) {
       // v9.1.9 : mort plus vivante : le corps se dissout (tramage) et des étincelles montent.
       const last = this.effects[this.effects.length - 1];
       Object.assign(last, { img: fxe.img, frames: dissolveFrames(fxe.img), life: event.boss ? 0.9 : 0.5, max: event.boss ? 0.9 : 0.5 });
@@ -789,6 +798,7 @@ export class SceneRenderer {
       const fx = this.enemyFxFor(enemy.id);
       fx.appear = Math.min(1, fx.appear + dt * 5);
       fx.hit = Math.max(0, fx.hit - dt);
+      fx.hurt = Math.max(0, (fx.hurt ?? 0) - dt);
       fx.lunge = Math.max(0, fx.lunge - dt);
       fx.squash = Math.max(0, (fx.squash ?? 0) - dt);
       fx.knock = (fx.knock ?? 0) * Math.exp(-dt * 14); // recul qui revient en douceur
@@ -852,7 +862,7 @@ export class SceneRenderer {
       const anims = heroLike ? null : ENEMY_ANIMS[base];
       const drawn = pickAnimFrame(anims, {
         emerge: arrival.mode === 'burrow' && k < 1 ? pose.emerge : null, portal: arrival.mode === 'portal' && k < 1 ? Math.min(1, k / 0.85) : null,
-        atkP, flying, swimming: this.underwater && arrival.mode === 'swim', moving, time: this.time * mPace, phase: enemy.id * 0.7,
+        atkP, hurtP: fx.hurt > 0 && !this.focus ? 1 - fx.hurt / HURT_TIME : null, flying, swimming: this.underwater && arrival.mode === 'swim', moving, time: this.time * mPace, phase: enemy.id * 0.7,
       });
       if (drawn && (drawn.anim === anims.emerge || drawn.anim === anims.portal)) { pose.buried = 0; pose.dx = 0; pose.dy = 0; pose.alpha = 1; } // la sortie est dessinée
       const drawnPortal = drawn?.anim === anims?.portal;
@@ -1882,6 +1892,16 @@ export class SceneRenderer {
           ctx.globalAlpha = a;
           ctx.fillStyle = fade('#ffffff', 1);
           ctx.fillRect(fx.x, 0, 1, G);
+          break;
+        }
+        case 'death': {
+          // v9.2.3 : chute dessinée image par image (75 % du temps), puis le corps s'efface.
+          const p = 1 - t;
+          const n = fx.anim.frames.length;
+          const key = fx.anim.frames[Math.min(n - 1, Math.floor(Math.min(1, p / 0.75) * n))];
+          const c = spriteCanvas(key, { colors: fx.colors });
+          ctx.globalAlpha = p < 0.75 ? 1 : Math.max(0, 1 - (p - 0.75) / 0.25);
+          ctx.drawImage(c, Math.round(fx.x + fx.anim.ox * fx.k), Math.round(fx.y + fx.anim.oy * fx.k), c.width * fx.k, c.height * fx.k);
           break;
         }
         case 'corpse': {

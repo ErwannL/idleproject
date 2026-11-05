@@ -147,14 +147,19 @@ export function attackCurve(p) {
 // (repli sur les déformations procédurales). Priorité : sortie du sol ou du portail, attaque (atkP : avancement 0–1),
 // nage (sous l'eau, en continu), vol (battements d'ailes `fly` ou flottement `float`), marche.
 // v9.2.3 : attaques PixelLab qui dessinent déjà leur traînée de coup (arc) : pas de seconde traînée procédurale.
-export const DRAWN_TRAIL = new Set(['boss_bone_lord', 'mini_crab_king', 'mid_giant_spider']);
+export const DRAWN_TRAIL = new Set(['boss_bone_lord', 'mini_crab_king', 'mid_giant_spider', 'boss_swamp_behemoth']);
+// v9.2.3 : durée de l'animation de coup reçu (PixelLab) et délai minimal entre deux (sinon un boss frappé sans cesse
+// ne ferait plus que tressaillir).
+export const HURT_TIME = 0.4;
+export const HURT_COOLDOWN = 2.5;
 
-export function pickAnimFrame(set, { emerge = null, portal = null, atkP = null, flying = false, swimming = false, moving = false, time = 0, phase = 0 } = {}) {
+export function pickAnimFrame(set, { emerge = null, portal = null, atkP = null, hurtP = null, flying = false, swimming = false, moving = false, time = 0, phase = 0 } = {}) {
   if (!set) return null;
   const at = (anim, k) => ({ anim, key: anim.frames[Math.max(0, Math.min(anim.frames.length - 1, Math.floor(k * anim.frames.length)))] });
   if (set.emerge && emerge !== null) return at(set.emerge, emerge);
   if (set.portal && portal !== null) return at(set.portal, portal);
   if (set.attack && atkP !== null) return at(set.attack, atkP);
+  if (set.hurt && hurtP !== null) return at(set.hurt, hurtP); // v9.2.3 : coup reçu
   const loop = (anim) => ({ anim, key: anim.frames[Math.floor(time * anim.fps + phase) % anim.frames.length] });
   if (set.swim && swimming) return loop(set.swim);
   if (flying && (set.fly || set.float)) return loop(set.fly ?? set.float);
