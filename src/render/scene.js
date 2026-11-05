@@ -30,7 +30,7 @@ import { BG } from './bg.js';
 import { waterAccent } from './water-fx.js'; // v9.2.1
 import { addBubble, drawOceanBack, drawOceanFront, kickFrame, STROKE, strokeStep, swimDraw, swimFloat, swimPose, swirl, SWIM_DEPTH, SWIM_TILT } from './ocean-fx.js'; // v9.2.0 (monde marin)
 import { FONT_BIG, SPRITES } from './sprites.js';
-import { HERO_ANCHOR, SWIM_AXIS, SWIM_BODY, drawBigText, heroAnimCanvas, heroBackWeapon, heroComposite, heroSwim, itemDropCanvas, spriteCanvas, textWidth } from './pixel.js';
+import { HERO_ANCHOR, SWIM_AXIS, SWIM_BODY, drawBigText, heroAnimCanvas, heroBackWeapon, heroComposite, heroHeldWeapon, heroSwim, itemDropCanvas, spriteCanvas, textWidth } from './pixel.js';
 import { ALLY_ANIMS, heroAnimKey, loopFrame, pickAllyAnim, pickHeroAnim } from './ally-anim.js'; // v9.2.3 : alliés animés (PixelLab)
 import { itemBase } from '../core/loot.js';
 
@@ -1113,13 +1113,17 @@ export class SceneRenderer {
     } else {
       // v9.2.1 : hauteur propre au monde (nuage, lévitation, enfoncé dans le marais) et effets aux pieds.
       lift = this.travLift(0);
-      // v9.2.3 : marche et attaque dessinées image par image (PixelLab, ally-anim.js), arme dans le dos en marchant.
+      // v9.2.3 : marche et attaque dessinées image par image (PixelLab, ally-anim.js), arme en main.
       const anim = pickHeroAnim({ palette, classId: activeClass(state).id, style, weapon: state.equipment.weapon && itemBase(state.equipment.weapon.baseId)?.sprite,
         walking: frame.startsWith('walk'), engaged, attack: this.hero.attack, shoot: this.hero.shoot, aim: this.hero.aim, cast: this.hero.cast,
         hurt: this.hero.hurt, victory: this.hero.victory, time: this.time, attackTime: ATTACK_TIME, castTime: CAST_TIME }, (this.heroAnimMem ??= {}));
-      if (anim?.back) ctx.drawImage(heroBackWeapon(state.equipment), baseX + lean, baseY - jump - lift);
-      if (anim) ctx.drawImage(heroAnimCanvas(anim.name, palette), baseX + lean + anim.ox, baseY - jump - lift + anim.oy);
-      else ctx.drawImage(img, baseX + lean, baseY - jump - lift);
+      // v9.2.3 : l'arme vraiment équipée (forme, rareté) est posée sur la prise de l'image, devant ou derrière le corps.
+      const held = anim?.weapon && heroHeldWeapon(state.equipment, anim.weapon.deg);
+      const hx = baseX + lean, hy = baseY - jump - lift;
+      if (held && anim.weapon.back) ctx.drawImage(held.canvas, hx + anim.weapon.x - held.x, hy + anim.weapon.y - held.y);
+      if (anim) ctx.drawImage(heroAnimCanvas(anim.name, palette), hx + anim.ox, hy + anim.oy);
+      if (held && !anim.weapon.back) ctx.drawImage(held.canvas, hx + anim.weapon.x - held.x, hy + anim.weapon.y - held.y);
+      if (!anim) ctx.drawImage(img, baseX + lean, baseY - jump - lift);
       this.travFeet('hero', HERO_X - 2, hero.walking, 0);
     }
 

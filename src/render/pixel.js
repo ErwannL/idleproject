@@ -314,6 +314,30 @@ export function heroAnimCanvas(name, palette = null, flash = false) {
   return spriteCanvas(name, { colors: palette?.skin ? null : heroColors(palette), flash });
 }
 
+// v9.2.3 : arme VRAIMENT équipée (forme et couleurs de rareté) à poser sur une image d'animation PixelLab, dont
+// l'arme de génération a été effacée (tools/art/weapon_anchor.py). deg : angle horaire depuis « pointe en haut »
+// (rotation libre au plus proche voisin, comme les frappes composées). Renvoie { canvas, x, y } : la prise est en
+// (x, y) dans canvas ; null sans arme. Contour d'1 px comme le héros composé.
+export function heroHeldWeapon(equipment, deg = 0) {
+  const weapon = equipment.weapon;
+  if (!weapon) return null;
+  const a = ((Math.round(deg) % 360) + 360) % 360;
+  const key = `heroheld|${weapon.baseId}/${weapon.rarity}|${a}`;
+  let out = cache.get(key);
+  if (out) return out;
+  const wname = itemSpriteName(weapon);
+  const def = SPRITES[wname];
+  const base = spriteCanvas(wname, { colors: itemColors(weapon) });
+  const rot = a ? rotateFree(base, def.grip, a) : { img: base, grip: def.grip };
+  if (!rot) return null;
+  // Marge d'1 px pour le contour.
+  const pad = createCanvas(rot.img.width + 2, rot.img.height + 2);
+  pad.getContext('2d').drawImage(rot.img, 1, 1);
+  out = { canvas: outlined(pad), x: rot.grip.x + 1, y: rot.grip.y + 1 };
+  cache.set(key, out);
+  return out;
+}
+
 // v9.2.3 : arme portée dans le dos (marche et nage animées : les mains sont libres), à dessiner derrière le corps.
 // mode 'walk' : cadre de heroComposite, arme droite derrière l'épaule ; 'swim' : cadre de heroSwim (lame vers l'arrière).
 export function heroBackWeapon(equipment, mode = 'walk') {

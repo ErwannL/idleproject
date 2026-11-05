@@ -11,6 +11,11 @@ Stabilité : chaque image de marche/attaque est recalée pour que ses pieds (der
 ligne des pieds de la vue ; la marche garde aussi l'axe des jambes ; la nage garde le centre du corps. Le cadre est
 commun à toutes les images d'une animation (décalage ox, oy par rapport au sprite de jeu).
 
+v9.2.3 : arme séparée du corps (weapon_anchor.py) — l'arme de génération est repérée dans chaque image d'attaque du
+héros (prise, angle, devant/derrière), effacée, et le jeu y pose l'arme vraiment équipée (forme, rareté) ; la marche
+garde la main suivie image par image (arme en main). Entrées 'w' des animations : [x, y, angle, derrière] (attaque)
+ou [x, y] (marche), prise par rapport au coin du sprite de jeu.
+
 Écrit src/render/art-anim-allies.js. Usage : python3 tools/art/pixellab_allies.py
 """
 import glob
@@ -27,6 +32,7 @@ sys.path.insert(0, HERE)
 from lib import Canvas, FREE_CHARS, rgb2hex  # noqa: E402
 from pixellab import MAX_COLORS  # noqa: E402
 from pixellab_anim import _clean_alpha, _drop_specks, _palette, _remap, _rle  # noqa: E402
+import weapon_anchor as wa  # noqa: E402
 
 SRC = os.path.join(HERE, 'pixellab', 'anim_allies')
 FPS = {'walk': 12, 'swim': 9, 'attack': 24}
@@ -131,7 +137,58 @@ def _grid(img):
     return c
 
 
+def _find(args):
+    img, cls = args
+    return wa.find_weapon(img, wa.weapons()[cls])
+
+
+def _body_pal(look):
+    im = Image.open(os.path.join(SRC, '_ref', f'{look}.png')).convert('RGBA')
+    return sorted({p[:3] for p in im.get_flattened_data() if p[3]})
+
+
+def separate_weapon(frames, key, cls, pool):
+    """v9.2.3 : arme repérée puis effacée de chaque image ; renvoie les poses [x, y, angle, derrière] (cadre de la vue)."""
+    w = wa.weapons()[cls]
+    found = pool.map(_find, [(f, cls) for f in frames])
+    poses = []
+    for f, (score, x, y, deg) in zip(frames, found):
+        hit, hidden = wa.weapon_mask(f, w, x, y, deg)
+        ok = score >= 0.3 and len(hit) >= 8
+        if ok:
+            wa.erase_weapon(f, hit, _body_pal(key), w, x, y, deg)
+        poses.append([x, y, deg, int(hidden > 1.2 * len(hit))] if ok else None)
+    # Images où l'arme n'est pas reconnue (traînée, arme masquée) : interpolation entre les voisines.
+    known = [i for i, p in enumerate(poses) if p]
+    print(f'  {key}_{cls} : arme reconnue sur {len(known)}/{len(poses)} images ' + ' '.join(f'{s:.2f}' for s, *_ in found))
+    if not known:
+        x, y = hand_of(key)
+        return [[x, y, 0, 0] for _ in poses]
+    for i, p in enumerate(poses):
+        if p:
+            continue
+        a = max([k for k in known if k < i], default=None)
+        b = min([k for k in known if k > i], default=None)
+        if a is None or b is None:
+            poses[i] = list(poses[a if b is None else b])
+            continue
+        t = (i - a) / (b - a)
+        pa, pb = poses[a], poses[b]
+        dd = ((pb[2] - pa[2] + 180) % 360) - 180
+        poses[i] = [round(pa[0] + (pb[0] - pa[0]) * t), round(pa[1] + (pb[1] - pa[1]) * t), round(pa[2] + dd * t) % 360, pa[3]]
+    return poses
+
+
+def hand_of(key):
+    """Main de la vue de repos (prise de l'épée du chevalier dans la vue corps + épée)."""
+    ref = Image.open(os.path.join(SRC, '_ref', f'{key}_knight.png')).convert('RGBA')
+    _, x, y, _ = wa.find_weapon(ref, wa.weapons()['knight'])
+    return x, y
+
+
 def build():
+    from multiprocessing import Pool
+    pool = Pool()
     sprites, index = {}, {}
     for d in sorted(glob.glob(os.path.join(SRC, '*_*'))):
         name = os.path.basename(d)
@@ -150,8 +207,27 @@ def build():
         if anim in LOOPS:
             paths = paths[:-1]
         frames = [drop_fx(_drop_specks(_clean_alpha(Image.open(p))), ref) for p in paths]
+        frames = stabilize(frames, ref, anim)  # v9.2.3 : recalage avant le repérage de l'arme (couleurs d'origine)
+        hit = _hit_frame(frames, ref) if anim == 'attack' else None  # avant l'effacement de l'arme
+        weapon = None
+        if key.startswith('hero_') and anim == 'attack' and cls:
+            weapon = separate_weapon(frames, key, cls, pool)
+            # Pieds recalés sur la vue sans arme (l'arme effacée pouvait descendre sous les pieds : bâton, faux).
+            fy0, _ = _feet(_clean_alpha(Image.open(os.path.join(SRC, '_ref', f'{key}.png'))))
+            for i, f in enumerate(frames):
+                fy, _ = _feet(f)
+                if fy is not None and fy != fy0:
+                    frames[i] = _shift(f, 0, fy0 - fy)
+                    weapon[i][1] += fy0 - fy
+        elif key.startswith('hero_') and anim == 'walk':
+            body = _clean_alpha(Image.open(os.path.join(SRC, '_ref', f'{key}.png')))
+            hand = hand_of(key)
+            raw = [wa.track_hand(body, f, hand) for f in frames]
+            # Main suivie : écart borné (3 px) puis lissage circulaire sur 3 images (pas de saut d'une image à l'autre).
+            cl = [(hand[0] + max(-3, min(3, x - hand[0])), hand[1] + max(-3, min(3, y - hand[1]))) for x, y in raw]
+            n = len(cl)
+            weapon = [[round((cl[i - 1][k] + 2 * cl[i][k] + cl[(i + 1) % n][k]) / 4) for k in (0, 1)] for i in range(n)]
         frames = _remap(frames, _palette(_limit(ref)))
-        frames = stabilize(frames, ref, anim)
         boxes = [f.getbbox() for f in frames if f.getbbox()]
         ux0, uy0 = min(b[0] for b in boxes), min(b[1] for b in boxes)
         ux1, uy1 = max(b[2] for b in boxes), max(b[3] for b in boxes)
@@ -167,8 +243,10 @@ def build():
                 os.makedirs(p, exist_ok=True)
                 crop.save(os.path.join(p, f'f{i}.png'))
         entry = {'frames': names, 'ox': ux0 - meta['ox'], 'oy': uy0 - meta['oy'], 'fps': FPS[anim]}
+        if weapon:
+            entry['w'] = [[p[0] - meta['ox'], p[1] - meta['oy'], *p[2:]] for p in weapon]
         if anim == 'attack':
-            entry['hit'] = _hit_frame(frames, ref)
+            entry['hit'] = hit
         if anim == 'swim':  # repère : centre du corps de la vue, par rapport au coin du sprite de jeu
             cx, cy = _center(ref)
             entry.update(cx=round(cx - meta['ox'], 1), cy=round(cy - meta['oy'], 1))

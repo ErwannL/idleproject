@@ -40,16 +40,29 @@ test('marche et attaque : pieds sur la même ligne à chaque image ; nage : corp
   }
 });
 
-test("l'image du coup tombe à l'impact ; arme d'une autre forme : pose composée par le jeu", () => {
+test("l'image du coup tombe à l'impact ; v9.2.3 : toute arme suit l'attaque, posée sur la prise de l'image", () => {
   const a = { frames: new Array(9).fill('x'), hit: 4 };
   assert.equal(phaseFrame(a, 0, 0.3), 0);
   assert.equal(phaseFrame(a, 0.3, 0.3), 4);
   assert.equal(phaseFrame(a, 0.999, 0.3), 8);
-  assert.equal(heroAttackAnim(null, 'knight', 'greatsword'), null);
-  if (ALLY_ANIMS.hero_knight?.attack_knight) {
-    assert.ok(heroAttackAnim(null, 'knight', 'sword'));
-    const o = { palette: null, classId: 'knight', style: 'melee', weapon: 'sword', attack: 0.3, time: 0, attackTime: 0.3, castTime: 0.35 };
-    assert.equal(pickHeroAnim(o, {}).name, ALLY_ANIMS.hero_knight.attack_knight.frames[0]);
-    assert.equal(pickHeroAnim({ ...o, attack: 0, hurt: 0.2 }, {}), null);
+  const o = { palette: null, classId: 'knight', style: 'melee', weapon: 'greatsword', attack: 0.3, time: 0, attackTime: 0.3, castTime: 0.35 };
+  const p = pickHeroAnim(o, {});
+  assert.equal(p.name, ALLY_ANIMS.hero_knight.attack_knight.frames[0]);
+  assert.ok(p.weapon && Number.isFinite(p.weapon.x) && Number.isFinite(p.weapon.deg), 'prise de l\'arme');
+  assert.equal(pickHeroAnim({ ...o, attack: 0, hurt: 0.2 }, {}), null);
+  // Marche : arme en main (prise suivie), jamais dans le dos.
+  const w = pickHeroAnim({ ...o, attack: 0, walking: true, time: 0.2 }, {});
+  assert.ok(w.weapon && !w.weapon.back);
+});
+
+test("v9.2.3 : chaque attaque et chaque marche du héros a une prise d'arme par image, proche de la main au repos", () => {
+  for (const [key, anims] of Object.entries(ALLY_ANIMS)) {
+    if (!key.startsWith('hero_')) continue;
+    for (const [anim, a] of Object.entries(anims)) {
+      if (anim === 'swim') continue;
+      assert.equal(a.w?.length, a.frames.length, `${key}.${anim} : prises`);
+      // Première image = pose de repos : main du héros composé (42, 51) à 3 px près.
+      assert.ok(Math.abs(a.w[0][0] - 42) <= 3 && Math.abs(a.w[0][1] - 51) <= 3, `${key}.${anim} : main au repos ${a.w[0]}`);
+    }
   }
 });

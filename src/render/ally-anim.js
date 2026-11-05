@@ -24,13 +24,6 @@ for (const [k, v] of Object.entries(decodeAllyFrames())) if (!SPRITES[k]) SPRITE
 
 export { ALLY_ANIMS };
 
-// Arme de génération de chaque classe (sprite de l'arme tenue dans les images d'attaque) : si le héros porte une
-// autre arme de sa classe (espadon, arc long…), l'attaque reste celle d'origine (arme composée par le jeu).
-export const HERO_ANIM_WEAPON = {
-  knight: 'sword', archer: 'bow', pyromancer: 'staff', berserker: 'axe', lancer: 'spear', paladin: 'mace',
-  assassin: 'dagger', crossbowman: 'crossbow', stormcaller: 'wand', necromancer: 'scythe',
-};
-
 // Moment de l'impact (fraction du geste) : corps à corps 0,09 s sur 0,3 s ; tirs et sorts partent au début du
 // geste (le projectile est lancé à l'événement) ; gestes des compagnons : instants des effets de scene.allyGesture.
 export const ALLY_HIT_K = { melee: 0.39, archer: 0.33, cast: 0.42, burst: 0.375, support: 0.35 };
@@ -51,21 +44,30 @@ export function loopFrame(anim, t, rate = 1) {
 
 export const heroAnimKey = (palette) => `hero_${palette?.skin ?? 'knight'}`;
 
-// Attaque du héros pour sa classe et son arme : null si l'arme portée n'est pas celle des images.
-export function heroAttackAnim(palette, classId, weaponSprite) {
-  if (weaponSprite && HERO_ANIM_WEAPON[classId] !== weaponSprite) return null;
+// v9.2.3 : attaque du héros pour sa classe. L'arme a été retirée des images (tools/art/weapon_anchor.py) : le jeu
+// pose l'arme vraiment équipée sur la prise de chaque image (entrée w), donc toute arme suit l'animation.
+export function heroAttackAnim(palette, classId) {
   return ALLY_ANIMS[heroAnimKey(palette)]?.[`attack_${classId}`] ?? null;
 }
 
+// v9.2.3 : prise de l'arme pour l'image i d'une animation : { x, y, deg, back } par rapport au coin du sprite de jeu
+// (cadre de heroComposite). Marche : main suivie, arme droite comme au repos (pas de saut à l'arrêt).
+export function weaponPose(anim, i) {
+  const w = anim?.w?.[i];
+  if (!w) return null;
+  return { x: w[0], y: w[1], deg: w[2] ?? 0, back: !!w[3] };
+}
+
 // Image animée du héros pour l'instant présent, ou null (pose composée par le jeu : coup reçu, victoire, sort
-// d'une classe d'armes, arme différente de celle des images…). `mem` garde l'instant du dernier tir (visée tenue).
+// d'une classe d'armes…). `mem` garde l'instant du dernier tir (visée tenue). Résultat : { name, ox, oy, weapon }
+// (weapon : prise de l'arme à dessiner, voir weaponPose).
 // o : { palette, classId, style, weapon (sprite), walking, engaged, attack, shoot, aim, cast, hurt, victory,
-//       time, attackTime, castTime }
+//       time, attackTime, castTime }  (weapon n'est plus utilisé : v9.2.3, arme séparée du corps)
 export function pickHeroAnim(o, mem) {
   const set = ALLY_ANIMS[heroAnimKey(o.palette)];
   if (!set || o.hurt > 0 || o.victory > 0) return null;
-  const pick = (anim, i, back = false) => ({ name: anim.frames[i], ox: anim.ox, oy: anim.oy, back });
-  const atk = heroAttackAnim(o.palette, o.classId, o.weapon);
+  const pick = (anim, i) => ({ name: anim.frames[i], ox: anim.ox, oy: anim.oy, weapon: weaponPose(anim, i) });
+  const atk = heroAttackAnim(o.palette, o.classId);
   const fire = o.shoot > 0 ? o.shoot / o.attackTime : o.aim > 0 ? o.aim / o.attackTime : o.cast > 0 && o.style === 'magic' ? o.cast / o.castTime : 0;
   if (atk && o.attack > 0 && o.style !== 'ranged' && o.style !== 'magic') {
     return pick(atk, phaseFrame(atk, 1 - o.attack / o.attackTime, 0.3));
@@ -81,7 +83,7 @@ export function pickHeroAnim(o, mem) {
     const since = o.time - (mem.fired ?? -9);
     return pick(atk, Math.max(0, Math.min(atk.hit - 1, Math.floor(since * atk.fps * 0.6))));
   }
-  if (o.walking && set.walk) return pick(set.walk, Math.floor(o.time * set.walk.fps) % set.walk.frames.length, true);
+  if (o.walking && set.walk) return pick(set.walk, Math.floor(o.time * set.walk.fps) % set.walk.frames.length);
   return null;
 }
 
