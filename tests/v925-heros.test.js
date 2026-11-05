@@ -19,6 +19,7 @@ const { KNIGHT_HEAD } = await import('../src/render/knight-gear.js');
 const it = (baseId) => (baseId ? { baseId, rarity: 'epic' } : null);
 const HELMETS = [null, ...ITEM_BASES.filter((b) => b.slot === 'helmet' && !b.signature).map((b) => b.id)];
 const weaponFor = (cls) => ITEM_BASES.find((b) => b.slot === 'weapon' && cls.weapons.includes(b.sprite)).id;
+const weaponsFor = (cls) => ITEM_BASES.filter((b) => b.slot === 'weapon' && !b.signature && cls.weapons.includes(b.sprite)).map((b) => b.id);
 const PALETTES = HEROES.map((h) => [h.id, h.palette ?? null]);
 const alpha = (cv, x, y) => (x < 0 || y < 0 || x >= cv.width || y >= cv.height ? 0 : cv.data[(y * cv.width + x) * 4 + 3]);
 const opaque = (cv) => { let n = 0; for (let i = 3; i < cv.data.length; i += 4) if (cv.data[i] > 100) n++; return n; };
@@ -115,8 +116,8 @@ test("v9.2.5 : prise de l'arme — poing redessiné par-dessus la poignée, arme
   const fails = [];
   for (const [hid, palette] of PALETTES) {
     const set = A.ALLY_ANIMS[A.heroAnimKey(palette)];
-    for (const cls of CLASSES) {
-      const eq = { weapon: it(weaponFor(cls)) };
+    for (const cls of CLASSES) for (const wid of weaponsFor(cls)) {
+      const eq = { weapon: it(wid) };
       for (const key of ['walk', `attack_${cls.id}`]) {
         const anim = set[key];
         anim.frames.forEach((name, i) => {
@@ -132,8 +133,21 @@ test("v9.2.5 : prise de l'arme — poing redessiné par-dessus la poignée, arme
           let near = false;
           for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) if (alpha(body, gx + dx, gy + dy) > 100) near = true;
           if (!near) fails.push(`${hid}/${key}#${i} : arme loin de la main`);
+          // v9.2.5 : en marche et au repos, aucune arme ne recouvre le visage (pixels du corps à plus de 30 px
+          // au-dessus des pieds identiques avec et sans arme).
+          if (key === 'walk' || i === 0 || i === anim.frames.length - 1) {
+            let feet = -1;
+            for (let y = 0; y < 140; y++) for (let x = 0; x < 160; x++) if (alpha(body, x, y) > 100) feet = y;
+            let hid2 = 0;
+            for (let y = 0; y < feet - 30; y++) for (let x = 0; x < 160; x++) {
+              if (alpha(body, x, y) < 100) continue;
+              const o = (y * 160 + x) * 4;
+              if ([0, 1, 2].some((j) => body.data[o + j] !== full.data[o + j])) hid2++;
+            }
+            if (hid2 >= 3) fails.push(`${hid}/${key}#${i} : arme sur le visage (${hid2} px)`);
+          }
           // Main devant : autour de la prise, les pixels du corps restent ceux du corps (le poing couvre la poignée).
-          if (!wp.back) {
+          if (!wp.back && !held.behind) {
             for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
               if (Math.hypot(dx, dy) > D.HAND_R) continue;
               const x = gx + dx, y = gy + dy;

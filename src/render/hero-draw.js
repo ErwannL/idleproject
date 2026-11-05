@@ -7,7 +7,7 @@
 //   4. poing redessiné PAR-DESSUS la poignée : les pixels du corps autour de la prise (disque de HAND_R px) sont
 //      reposés après l'arme, la poignée passe donc dans la main au lieu d'être collée sur elle.
 import { heroAnimCanvas, heroHeldWeapon, knightGearCanvas } from './pixel.js';
-import { KNIGHT_NECK, KNIGHT_PIVOT, heroWearsGear } from './ally-anim.js';
+import { ALLY_ANIMS, KNIGHT_NECK, KNIGHT_PIVOT, heroWearsGear } from './ally-anim.js';
 
 export const HAND_R = 2.3;
 const handCache = new Map();
@@ -79,6 +79,42 @@ export function snapGrip(body, key, gx, gy) {
   return out;
 }
 
+const WALKS = new Set(Object.values(ALLY_ANIMS).map((set) => set.walk).filter(Boolean));
+const isWalk = (anim) => WALKS.has(anim);
+const alphaOf = (c) => { try { return c.getContext('2d').getImageData(0, 0, c.width, c.height).data; } catch { return null; } };
+// Visage : pixels du corps à plus de 30 px au-dessus des pieds (tête, cheveux, casque), repère du calque du corps.
+const faceCache = new Map();
+export function faceRows(body) {
+  let out = faceCache.get(body);
+  if (out) return out;
+  const d = alphaOf(body), w = body.width, h = body.height;
+  out = { d, w, h, top: -1 };
+  if (d) {
+    let feet = -1;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (d[(y * w + x) * 4 + 3] > 100) feet = y;
+    out.top = feet - 30;
+  }
+  faceCache.set(body, out);
+  return out;
+}
+// L'arme (posée en (ax, ay) dans le repère du corps) recouvre-t-elle au moins 3 pixels du visage ?
+const coverCache = new Map();
+function coversFace(body, held, ax, ay) {
+  const k = `${body.key}|${held.canvas.width}x${held.canvas.height}|${ax},${ay}|${held.x}`;
+  if (coverCache.has(k)) return coverCache.get(k);
+  const f = faceRows(body.canvas), wd = alphaOf(held.canvas);
+  let n = 0;
+  if (f.d && wd) for (let y = 0; y < held.canvas.height; y++) for (let x = 0; x < held.canvas.width; x++) {
+    if (wd[(y * held.canvas.width + x) * 4 + 3] < 100) continue;
+    const bx = ax + x, by = ay + y;
+    if (by < 0 || by >= f.top || bx < 0 || bx >= f.w) continue;
+    if (f.d[(by * f.w + bx) * 4 + 3] > 100) n++;
+  }
+  if (coverCache.size > 4000) coverCache.clear();
+  coverCache.set(k, n >= 3);
+  return n >= 3;
+}
+
 // pick : résultat de ally-anim.js pickHeroAnim ({ name, anim, ox, oy, weapon, head }) ; (x, y) : coin du sprite de jeu.
 // opts.weapon = false : corps seul (contrôles de tête).
 export function drawHeroPick(ctx, pick, equipment, palette, x, y, opts = {}) {
@@ -90,12 +126,21 @@ export function drawHeroPick(ctx, pick, equipment, palette, x, y, opts = {}) {
   if (!held) { ctx.drawImage(body.canvas, bx, by); return null; }
   const [gx, gy] = snapGrip(body.canvas, body.key, wp.x - ox, wp.y - oy);
   const wx = bx + gx - held.x, wy = by + gy - held.y;
-  if (wp.back) ctx.drawImage(held.canvas, wx, wy);
+  // v9.2.5 : en marche et au repos (première et dernière image d'un geste), une arme qui recouvrirait le visage
+  // (hache, marteau tenus droits) passe derrière la tête et le corps ; le poing reste par-dessus la poignée.
+  const i = pick.anim.frames.indexOf(pick.name);
+  const calm = pick.anim.frames.length && (i === 0 || i === pick.anim.frames.length - 1 || isWalk(pick.anim));
+  const behind = wp.back || (calm && coversFace(body, held, gx - held.x, gy - held.y));
+  if (behind) ctx.drawImage(held.canvas, wx, wy);
   ctx.drawImage(body.canvas, bx, by);
-  if (!wp.back) {
+  if (behind && !wp.back) {
+    const hand = handLayer(body.canvas, body.key, gx, gy);
+    if (hand) ctx.drawImage(hand.canvas, bx + gx - hand.r, by + gy - hand.r);
+  }
+  if (!behind) {
     ctx.drawImage(held.canvas, wx, wy);
     const hand = handLayer(body.canvas, body.key, gx, gy);
     if (hand) ctx.drawImage(hand.canvas, bx + gx - hand.r, by + gy - hand.r);
   }
-  return { ...held, gx: gx + ox, gy: gy + oy };
+  return { ...held, gx: gx + ox, gy: gy + oy, behind };
 }
