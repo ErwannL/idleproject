@@ -1,63 +1,90 @@
-// v9.2.3 : table d'échelle des ennemis et boss (taille à l'écran, en pixels de jeu ; silhouette du héros : 27 px
-// visibles dans son cadre de 48).
-// Chaque ennemi garde sa taille dessinée tant qu'elle tombe dans la fourchette de sa catégorie ; sinon elle y est
-// ramenée (la magicienne n'est plus deux fois plus haute que le squelette, les boss restent nettement plus grands).
+// v9.2.4 : table d'échelle des ennemis et boss par créature réelle (taille à l'écran, en pixels de jeu ; silhouette du
+// héros : 27 px de corps dans son cadre de 48, une cinquantaine avec la cape et le chapeau à l'écran).
+// La « taille » d'un ennemi est mesurée sur sa silhouette opaque (sans les marges transparentes du cadre) :
+// max(hauteur visible, moitié de la largeur visible), pour qu'une anguille ou un requin, longs et bas, ne soient pas
+// comptés comme minuscules. Chaque ennemi est ramené exactement à la taille de référence de sa créature.
+// Échelle de référence (ennemis ordinaires) : chauve-souris, moustique < gluant < araignée, scorpion < loup, sanglier
+// < gobelin < squelette, humain < ours, golem < géant < dragon. Aucun ennemi ordinaire sous MIN_SIZE (lisibilité).
 export const HERO_HEIGHT = 27;
+export const MIN_SIZE = 26;
 
-export const SIZE_CLASSES = {
-  petite_bete: { label: 'petite bête', min: 16, max: 28 },
-  petit_humanoide: { label: 'petit humanoïde', min: 24, max: 30 },
-  humanoide: { label: 'humanoïde', min: 28, max: 36 },
-  grosse_bete: { label: 'grosse bête', min: 36, max: 46 },
-  mini_humanoide: { label: 'mini-boss humanoïde', min: 40, max: 46 },
-  mini_bete: { label: 'mini-boss bête', min: 44, max: 52 },
-  boss_moyen: { label: 'boss intermédiaire', min: 48, max: 58 },
-  boss_dur_humanoide: { label: 'boss redoutable humanoïde', min: 44, max: 50 },
-  boss_dur_bete: { label: 'boss redoutable bête', min: 52, max: 62 },
-  boss_humanoide: { label: 'boss de monde humanoïde', min: 50, max: 58 },
-  boss_bete: { label: 'boss de monde bête', min: 64, max: 82 },
+// Paliers de créatures réelles (ennemis ordinaires).
+export const SIZE_LADDER = {
+  minuscule: { label: 'chauve-souris, moustique, rejeton', size: 27 },
+  gluant: { label: 'gluant', size: 29 },
+  insecte: { label: 'araignée, scorpion, scarabée, crapaud, crabe', size: 31 },
+  petit_humanoide: { label: 'gobelin, diablotin, champignon, spectre', size: 32 },
+  bete: { label: 'loup, sanglier, jeune griffon', size: 34 },
+  humain: { label: 'squelette, humain, momie, harpie', size: 38 },
+  grand_humain: { label: 'liche, homme-lézard, chevalier, triton', size: 40 },
+  ours: { label: 'ours, golem, yéti, automate', size: 46 },
+  geant: { label: 'ogre, requin', size: 50 },
 };
 
-// Ennemis ordinaires (par type) ; sans entrée : humanoïde.
-const ENEMY_CLASS = {
-  petite_bete: ['slime', 'slime_blue', 'slime_ice', 'slime_fire', 'magma_slime', 'mandrake', 'boar', 'wolf', 'ice_wolf', 'bat',
-    'scorpion', 'salamander', 'obsidian_beetle', 'voidling', 'toad', 'leech_fly', 'cloud_spirit', 'griffin_cub', 'sea_eel',
-    'sea_bladefish', 'sea_crab'],
+const ENEMY_LADDER = {
+  minuscule: ['bat', 'leech_fly', 'voidling', 'mandrake'],
+  gluant: ['slime', 'slime_blue', 'slime_ice', 'slime_fire', 'magma_slime', 'cloud_spirit'],
+  insecte: ['scorpion', 'obsidian_beetle', 'salamander', 'toad', 'sea_crab', 'sea_puffer', 'sea_eel', 'sea_bladefish'],
   petit_humanoide: ['goblin', 'goblin_shaman', 'goblin_armored', 'imp', 'mushroom', 'mushroom_green', 'wraith', 'ash_wraith'],
-  grosse_bete: ['golem', 'yeti', 'ogre', 'sky_automaton', 'void_eye', 'sea_jelly', 'sea_puffer', 'sea_octopus', 'sea_shark', 'sea_merfolk'],
+  bete: ['wolf', 'ice_wolf', 'boar', 'griffin_cub'],
+  humain: ['skeleton', 'skeleton_shield', 'skeleton_archer', 'mummy', 'bog_zombie', 'harpy', 'star_stalker', 'void_eye', 'sea_jelly'],
+  grand_humain: ['lich', 'lizardman', 'shadow_knight', 'sea_merfolk', 'sea_octopus'],
+  ours: ['golem', 'yeti', 'sky_automaton'],
+  geant: ['ogre', 'sea_shark'],
 };
+const BY_TYPE = Object.fromEntries(Object.entries(ENEMY_LADDER).flatMap(([c, list]) => list.map((t) => [t, c])));
 
-// Boss humanoïdes (les autres, par rang, sont des bêtes).
-const HUMANOID_BOSSES = new Set(['mini_goblin_warlord', 'mini_pharaoh', 'mini_frost_witch', 'mini_reaper', 'mini_salamander_chief',
-  'mini_harpy_queen', 'hard_scarecrow', 'hard_necromancer', 'hard_anubis', 'hard_demon_general', 'hard_plague_doctor',
-  'hard_storm_valkyrie', 'hard_flame_djinn', 'hard_void_knight', 'bone_lord', 'fallen_knight', 'boss_void_emperor', 'spectral_queen',
-  'crypt_archlich']);
+// Boss : taille de référence propre (créature réelle × rang : mini < boss < redoutable < boss de monde).
+// Dragon, léviathan, béhémoth et wyrm en haut ; humanoïdes plus petits que les grandes bêtes du même rang.
+export const BOSS_SIZE = {
+  // mini-boss
+  mini_goblin_warlord: 40, mini_frost_witch: 40, mini_pharaoh: 42, mini_salamander_chief: 42, mini_reaper: 44,
+  mini_harpy_queen: 44, mini_crab_king: 44, mini_void_watcher: 46, mini_toad_king: 46, mini_crystal_golem: 50, mini_treant: 50,
+  // boss intermédiaires
+  mid_crystal_bat: 44, mid_giant_spider: 46, mid_hellhound: 50, mid_boar_titan: 52, mid_star_devourer: 52,
+  mid_sand_worm: 56, mid_thunder_griffin: 56, mid_kraken: 56, mid_lava_golem: 58, mid_mammoth: 60, mid_hydra: 60,
+  // boss redoutables
+  hard_necromancer: 44, hard_scarecrow: 46, hard_plague_doctor: 46, hard_anubis: 48, hard_storm_valkyrie: 48,
+  hard_flame_djinn: 48, hard_void_knight: 50, hard_werewolf: 52, hard_demon_general: 52, hard_megalodon: 52, hard_frost_giant: 64,
+  // boss de monde et de donjon
+  bone_lord: 54, spectral_queen: 54, slime_king: 56, crypt_archlich: 56, alpha_wolf: 58, boss_void_emperor: 60,
+  demon_king: 64, boss_leviathan: 64, boss_sky_titan: 70, rotting_dryad: 70, boss_swamp_behemoth: 76,
+  boss_phoenix: 76, magma_colossus: 76, obsidian_tyrant: 76, frost_wyrm: 80, ash_dragon: 82,
+};
+// Boss sans entrée : selon le rang.
+const BOSS_DEFAULT = { mini: 44, mid: 52, hard: 50, dungeon: 66, mega: 60 };
 
-const BY_TYPE = Object.fromEntries(Object.entries(ENEMY_CLASS).flatMap(([c, list]) => list.map((t) => [t, c])));
-
-// Catégorie d'un ennemi (`tier` : rang du boss, mini/mid/hard ou absent pour un boss de monde).
-export function sizeClass(type, boss = false, tier = null) {
-  if (!boss) return BY_TYPE[type] ?? 'humanoide';
-  const h = HUMANOID_BOSSES.has(type);
-  if (tier === 'mini') return h ? 'mini_humanoide' : 'mini_bete';
-  if (tier === 'mid') return 'boss_moyen';
-  if (tier === 'hard') return h ? 'boss_dur_humanoide' : 'boss_dur_bete';
-  return h ? 'boss_humanoide' : 'boss_bete';
+// Taille visible d'un sprite (en pixels du sprite) : max(hauteur, largeur / 2) de la silhouette opaque. Mise en cache.
+const visCache = new WeakMap();
+export function visibleSize(sprite) {
+  if (!sprite?.rows) return 0;
+  if (visCache.has(sprite)) return visCache.get(sprite);
+  let top = Infinity, bottom = -1, left = Infinity, right = -1;
+  sprite.rows.forEach((row, y) => {
+    for (let x = 0; x < row.length; x++) {
+      if (row[x] === '.' || row[x] === ' ') continue;
+      if (y < top) top = y;
+      if (y > bottom) bottom = y;
+      if (x < left) left = x;
+      if (x > right) right = x;
+    }
+  });
+  const v = bottom < 0 ? 0 : Math.max(bottom - top + 1, (right - left + 1) / 2);
+  visCache.set(sprite, v);
+  return v;
 }
 
-// Hauteur à l'écran retenue pour une hauteur dessinée `natural`.
-export function sizedHeight(natural, cls) {
-  const c = SIZE_CLASSES[cls] ?? SIZE_CLASSES.humanoide;
-  return Math.max(c.min, Math.min(c.max, natural));
+// Taille de référence (pixels de jeu) d'un ennemi (`tier` : rang du boss, absent pour un boss de monde).
+export function targetSize(type, boss = false, tier = null) {
+  if (boss) return BOSS_SIZE[type] ?? BOSS_DEFAULT[tier ?? 'mega'] ?? 60;
+  return Math.max(MIN_SIZE, SIZE_LADDER[BY_TYPE[type] ?? 'humain'].size);
 }
 
-// v9.2.3 : plafonds propres à quelques ennemis dont la silhouette dessinée paraît trop grande dans leur catégorie
-// (magicienne de glace : chapeau pointu et bâton, 1,3 fois le squelette ; ramenée à ~1,1 fois).
-export const HEIGHT_CAP = { mini_frost_witch: 40 };
+// Palier d'un ennemi ordinaire (pour les planches et les tests).
+export const sizeClass = (type) => BY_TYPE[type] ?? 'humain';
 
-// Facteur à appliquer à l'échelle de dessin (1 si la taille dessinée convient déjà).
+// Facteur à appliquer à l'échelle de dessin pour une taille visible `natural` (pixels de jeu, à l'échelle actuelle).
 export function sizeFactor(type, boss, tier, natural) {
   if (!natural) return 1;
-  const h = Math.min(sizedHeight(natural, sizeClass(type, boss, tier)), HEIGHT_CAP[type] ?? Infinity);
-  return h / natural;
+  return targetSize(type, boss, tier) / natural;
 }

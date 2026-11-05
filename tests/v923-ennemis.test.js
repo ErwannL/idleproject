@@ -1,17 +1,30 @@
 // v9.2.3 : table d'échelle des ennemis, souffle et incantation (géométrie pure).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { sizeClass, sizedHeight, sizeFactor, SIZE_CLASSES } from '../src/data/enemy-sizes.js';
+import { BOSS_SIZE, MIN_SIZE, sizeFactor, targetSize, visibleSize } from '../src/data/enemy-sizes.js';
 import { breathShape, powerPoints, powerOf } from '../src/render/enemy-fx.js';
 
+// v9.2.4 : table par créature réelle (remplace les fourchettes par catégorie de la v9.2.3).
 test('échelle : la magicienne et le nécromancien restent proches du squelette, les boss plus grands', () => {
-  const skel = sizedHeight(38, sizeClass('skeleton'));
-  const witch = sizedHeight(65, sizeClass('mini_frost_witch', true, 'mini'));
-  const necro = sizedHeight(76, sizeClass('hard_necromancer', true, 'hard'));
+  const skel = targetSize('skeleton');
+  const witch = targetSize('mini_frost_witch', true, 'mini');
+  const necro = targetSize('hard_necromancer', true, 'hard');
   assert.ok(witch / skel < 1.35 && necro / skel < 1.45, `${skel} ${witch} ${necro}`);
-  assert.ok(sizedHeight(87, sizeClass('ash_dragon', true)) > necro);
-  assert.equal(sizeFactor('slime', false, null, 20), 1);
-  for (const c of Object.values(SIZE_CLASSES)) assert.ok(c.min <= c.max);
+  assert.ok(targetSize('ash_dragon', true) > necro);
+  assert.equal(sizeFactor('slime', false, null, targetSize('slime')), 1);
+  assert.equal(sizeFactor('slime', false, null, 0), 1);
+});
+
+test('échelle v9.2.4 : ordre des créatures réelles et minimum lisible', () => {
+  const t = (x) => targetSize(x);
+  assert.ok(t('bat') < t('slime') && t('slime') < t('scorpion') && t('scorpion') < t('wolf') && t('wolf') < t('skeleton'));
+  assert.ok(t('skeleton') < t('golem') && t('golem') < t('ogre'));
+  assert.ok(targetSize('hard_frost_giant', true, 'hard') < targetSize('ash_dragon', true));
+  for (const x of ['bat', 'leech_fly', 'voidling', 'mandrake', 'slime', 'goblin', 'imp', 'sea_eel']) assert.ok(t(x) >= MIN_SIZE, x);
+  for (const v of Object.values(BOSS_SIZE)) assert.ok(v > t('skeleton'));
+  // Taille visible : silhouette opaque, max(hauteur, largeur / 2).
+  assert.equal(visibleSize({ rows: ['....', '.ab.', '.ab.', '....'] }), 2);
+  assert.equal(visibleSize({ rows: ['abcdefgh', '........'] }), 4);
 });
 
 test('souffle : longueur = distance, cône plus ouvert de loin', () => {

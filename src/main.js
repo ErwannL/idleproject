@@ -1224,6 +1224,9 @@ function tick() {
   }
   // Le PC ne suit pas : le retard au-delà de ce plafond est abandonné (la vitesse réelle baisse, sans gel).
   accumulator = state.cheats.skipBattle ? 0 : Math.min(accumulator, Math.max(BALANCE.simulation.maxCatchUpSeconds, MAX_BACKLOG_SECONDS * speed));
+  // v9.2.4 : fraction du pas en cours, pour que le rendu interpole ennemis et décor entre deux pas (20 pas/s) :
+  // sans elle, tout avançait par bonds de 3 images à 60 i/s (marche des ennemis saccadée).
+  world.alpha = Math.max(0, Math.min(1, accumulator / stepSeconds));
   const spent = performance.now() - t0;
   perf.steps = steps;
   perf.simulated += steps * stepSeconds;

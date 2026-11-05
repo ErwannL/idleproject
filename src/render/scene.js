@@ -10,7 +10,7 @@ import { MUTATION_PACE, SHEEN_STEPS, mutatedCanvas, mutationSize } from './mutat
 import { installTraversalFx } from './traversal-fx.js'; // v9.2.1 : déplacement propre à chaque monde
 import { DRAWN_TRAIL, HURT_COOLDOWN, HURT_TIME, armSwing, attackCurve, dissolveFrames, pickAnimFrame } from './enemy-anim.js';
 import { BREATH_START, CAST_RELEASE, drawBreath, drawOrbGlow, powerOf, powerPointsOf } from './enemy-fx.js'; // v9.2.3
-import { sizeFactor } from '../data/enemy-sizes.js'; // v9.2.3 : table d'échelle
+import { HERO_HEIGHT, sizeFactor, visibleSize } from '../data/enemy-sizes.js'; // v9.2.3 : table d'échelle (v9.2.4 : taille visible)
 import { ENEMY_ANIMS } from './art-anim.js'; // v9.2.3 : bat, harpy, skeleton dessinés image par image
 import { ARRIVE_SECONDS_BY_MODE, arrivalPose, arrivalProgress } from './arrival.js'; // v9.2.2 : arrivée des ennemis
 import { arrivalFor, WINGED_LANDERS } from '../data/arrivals.js';
@@ -367,7 +367,8 @@ export class SceneRenderer {
         const pending = this.inFlight?.get(event.enemyId);
         if (pending && pending > this.time) {
           const fx = this.enemyFx.get(event.enemyId);
-          if (fx?.img) this.effects.push({ kind: 'ghost', img: fx.img, x: fx.sx, y: fx.sy, w: fx.sw, h: fx.sh, life: pending - this.time, max: pending - this.time });
+          const v = fx?.vis; // v9.2.4 : l'image affichée, pas l'image de base
+          if (v) this.effects.push({ kind: 'ghost', img: v.img, x: v.x, y: v.y, w: v.w, h: v.h, life: pending - this.time, max: pending - this.time });
           this.later(pending - this.time, () => this.killEffect(event));
         } else this.killEffect(event);
         break;
@@ -498,20 +499,25 @@ export class SceneRenderer {
     const death = !heroLike && !this.focus && fxe?.img ? ENEMY_ANIMS[base]?.death : null;
     if (death) {
       const k = fxe.sw / fxe.img.width; // échelle réelle à l'écran (géant, scissipare compris)
-      this.effects.push({ kind: 'death', anim: death, colors, x: fxe.sx, y: fxe.sy, k, life: event.boss ? 1.3 : 0.9, max: event.boss ? 1.3 : 0.9 });
+      // v9.2.4 : un volant tué en l'air tombe jusqu'au sol pendant sa chute dessinée (au lieu de s'allonger dans le vide).
+      const drop = Math.max(0, this.groundY + 1 - (fxe.sy + fxe.sh));
+      this.effects.push({ kind: 'death', anim: death, colors, x: fxe.sx, y: fxe.sy, k, drop, life: event.boss ? 1.3 : 0.9, max: event.boss ? 1.3 : 0.9 });
     }
+    // v9.2.4 : même image que celle affichée à l'instant de la mort (image dessinée comprise), à la même place.
+    const vis = fxe?.vis;
     const img = heroLike
       ? heroComposite('idle', { weapon: { baseId: 'fallen_blade', rarity: 'epic' } }, true, 'b', colors, true)
-      : spriteCanvas(sprite, { flash: true });
+      : spriteCanvas(vis?.key ?? sprite, { colors, flash: true });
+    const k0 = vis && !heroLike ? vis.w / vis.img.width : scale;
     this.effects.push({
-      kind: 'corpse', img, x: fxe?.img ? fxe.sx + fxe.sw / 2 : this.wx(event.x), top: fxe?.img ? fxe.sy : undefined, w: img.width * scale, h: img.height * scale,
+      kind: 'corpse', img, x: vis ? vis.x + vis.w / 2 : this.wx(event.x), top: vis ? vis.y : undefined, w: img.width * k0, h: img.height * k0,
       fly: this.flyHeight(event.kind, event.boss), life: 0.3, max: 0.3,
     });
     if (death) this.effects.splice(this.effects.length - 1, 1); // pas de second corps
     if (!this.focus && fxe?.img && !death) {
       // v9.1.9 : mort plus vivante : le corps se dissout (tramage) et des étincelles montent.
       const last = this.effects[this.effects.length - 1];
-      Object.assign(last, { img: fxe.img, frames: dissolveFrames(fxe.img), life: event.boss ? 0.9 : 0.5, max: event.boss ? 0.9 : 0.5 });
+      Object.assign(last, { img: vis.img, frames: dissolveFrames(vis.img), life: event.boss ? 0.9 : 0.5, max: event.boss ? 0.9 : 0.5 });
       for (let i = 0; i < (event.boss ? 16 : 6); i++) {
         this.effects.push({ kind: 'particle', x: fxe.sx + Math.random() * fxe.sw, y: fxe.sy + fxe.sh * (0.2 + Math.random() * 0.7),
           vx: (Math.random() - 0.5) * 10, vy: -14 - Math.random() * 20, color: i % 2 ? '#ffffff' : '#c8b8ff', life: 0.7, max: 0.7 });
@@ -543,7 +549,8 @@ export class SceneRenderer {
     return fx?.img ? { x: fx.sx + fx.sw / 2, y: Math.min(this.groundY - 2, fx.sy + fx.sh * 0.6) } : null;
   }
 
-  shatter(fx) {
+  shatter(fx0) {
+    const fx = fx0.vis ? { img: fx0.vis.img, sx: fx0.vis.x, sy: fx0.vis.y, sw: fx0.vis.w } : fx0; // v9.2.4 : image affichée
     const img = fx.img;
     let data;
     try { data = img.getContext('2d').getImageData(0, 0, img.width, img.height).data; } catch { return; }
@@ -622,7 +629,9 @@ export class SceneRenderer {
     // v9.2.3 : table d'échelle (src/data/enemy-sizes.js) : taille crédible par rapport au héros, boss plus grands.
     const bossScale = bossDef ? bossDef.scale ?? 1 : 1;
     const ref = SPRITES[base] ?? SPRITES[sprite];
-    const natural = (bossDef?.heroLike ? 48 : (ref?.rows.length ?? 0) * (ref?.scale ?? 1)) * bossScale;
+    // v9.2.4 : taille mesurée sur la silhouette visible (sans les marges du cadre), ramenée à la taille de référence de
+    // sa créature (héros : 27 px visibles).
+    const natural = (bossDef?.heroLike ? HERO_HEIGHT : visibleSize(ref) * (ref?.scale ?? 1)) * bossScale;
     const fit = sizeFactor(type, boss, bossDef?.tier, natural);
     return {
       step,
@@ -894,6 +903,12 @@ export class SceneRenderer {
       const y = this.groundY - h - bob - hover + 1 - pose.dy - (rig && !this.focus ? WING_LIFT[wp] : 0) + Math.round(pose.buried * h);
       // Géométrie à l'écran (projectiles qui visent la cible, impacts, ennemi figé à la mort).
       Object.assign(fx, { sx: x, sy: y, sw: w, sh: h, seen: this.time, img, edge: x + bodyEdge(img) * scale });
+      // v9.2.4 : image réellement affichée (image dessinée PixelLab et son décalage, ou sprite de base) : le corps figé,
+      // la dissolution, les éclats et la division la reprennent, au lieu de superposer l'image de base décalée.
+      const shown = drawn ? spriteCanvas(drawn.key, { colors }) : img;
+      fx.vis = drawn
+        ? { key: drawn.key, img: shown, x: x + drawn.anim.ox * scale, y: y + drawn.anim.oy * scale, w: shown.width * scale, h: shown.height * scale }
+        : { key: heroLike ? null : sprite, img, x, y, w, h };
 
       ctx.globalAlpha = fx.appear * pose.alpha;
       if (pose.buried < 0.6 && pose.alpha > 0.3) this.drawShadow(ctx, exd + pose.dx, Math.max(6, w * 0.7 * (1 - Math.min(0.6, pose.dy / 120))));
@@ -959,7 +974,10 @@ export class SceneRenderer {
         } else if (pts && power.kind === 'breath' && atkP >= BREATH_START && !fx.breathed) {
           fx.breathed = true;
           const mx = ox + pts.mouth[0] * scale, my = oy + pts.mouth[1] * scale;
-          this.effects.push({ kind: 'breath', x0: mx, y0: my, x1: HERO_X + 6, y1: G - 18, colors: power.colors, short: power.short, life: 0.42, max: 0.42 });
+          // v9.2.4 : la gueule suit l'ennemi pendant le souffle (recul, élan, déplacement) : le jet s'allonge ou se raccourcit
+          // à chaque image selon la distance réelle jusqu'au héros.
+          this.effects.push({ kind: 'breath', x0: mx, y0: my, x1: HERO_X + 6, y1: G - 18, colors: power.colors, short: power.short, life: 0.42, max: 0.42,
+            enemyId: enemy.id, dx0: mx - x, dy0: my - y });
         }
       }
       if (atkP === null) { fx.cast = false; fx.breathed = false; }
@@ -1681,9 +1699,12 @@ export class SceneRenderer {
             ctx.restore();
           } else drawBigText(ctx, fx.text, Math.round(fx.x), this.snap(fx.y), fx.color, fx.light);
           break;
-        case 'breath': // v9.2.3
+        case 'breath': { // v9.2.3
+          const src = this.enemyFx.get(fx.enemyId);
+          if (src?.seen > this.time - 0.1) { fx.x0 = src.sx + fx.dx0; fx.y0 = src.sy + fx.dy0; } // v9.2.4 : suit la gueule
           drawBreath(ctx, fx, t, this.time);
           break;
+        }
         case 'flash':
           ctx.globalAlpha = t * 0.35;
           ctx.fillStyle = fx.color;
@@ -1901,7 +1922,8 @@ export class SceneRenderer {
           const key = fx.anim.frames[Math.min(n - 1, Math.floor(Math.min(1, p / 0.75) * n))];
           const c = spriteCanvas(key, { colors: fx.colors });
           ctx.globalAlpha = p < 0.75 ? 1 : Math.max(0, 1 - (p - 0.75) / 0.25);
-          ctx.drawImage(c, Math.round(fx.x + fx.anim.ox * fx.k), Math.round(fx.y + fx.anim.oy * fx.k), c.width * fx.k, c.height * fx.k);
+          const fall = (fx.drop ?? 0) * Math.min(1, p / 0.75) ** 2; // v9.2.4
+          ctx.drawImage(c, Math.round(fx.x + fx.anim.ox * fx.k), Math.round(fx.y + fall + fx.anim.oy * fx.k), c.width * fx.k, c.height * fx.k);
           break;
         }
         case 'corpse': {

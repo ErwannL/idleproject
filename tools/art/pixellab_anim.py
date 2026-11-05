@@ -40,6 +40,21 @@ def _discover():
 
 
 ANIMS = _discover()
+
+# v9.2.4 : images générées tournées vers la droite (dos au héros) : PixelLab fait souvent pivoter le personnage pendant
+# le coup reçu ou l'élan. Repérées par tools/art/check_orientation.py (silhouette et couleurs comparées à l'image de base
+# et à son miroir) puis vérifiées à l'œil ; elles sont retournées horizontalement avant le recalage.
+R14 = (1, 2, 3, 4)
+MIRROR = {
+    ('boss_ash_dragon', 'hurt'): R14, ('boss_bone_lord', 'hurt'): R14, ('boss_demon_king', 'hurt'): R14,
+    ('boss_phoenix', 'hurt'): (1, 2, 3), ('boss_sky_titan', 'hurt'): R14, ('boss_swamp_behemoth', 'hurt'): (1, 2, 3),
+    ('hard_anubis', 'hurt'): (1, 2, 3), ('hard_flame_djinn', 'hurt'): (1, 2, 3), ('hard_frost_giant', 'hurt'): R14,
+    ('hard_necromancer', 'hurt'): (1, 2, 3), ('hard_scarecrow', 'hurt'): R14, ('hard_werewolf', 'hurt'): R14,
+    ('mid_boar_titan', 'hurt'): (1,), ('mid_hellhound', 'hurt'): (1, 2, 3), ('mid_hydra', 'hurt'): R14,
+    ('mid_thunder_griffin', 'hurt'): R14, ('mini_frost_witch', 'hurt'): R14, ('mini_harpy_queen', 'hurt'): R14,
+    ('mini_pharaoh', 'hurt'): R14,
+    ('hard_void_knight', 'attack'): (2, 3, 4), ('wraith', 'attack'): (1, 2, 3, 4, 6),    ('mini_salamander_chief', 'attack'): (3, 4),
+}
 BG = os.path.join(ROOT, 'assets', 'bg')
 
 
@@ -238,6 +253,8 @@ def build():
         for anim, fps in anims.items():
             paths = sorted(glob.glob(os.path.join(SRC, 'anim', f'{key}_{anim}', 'f*.png')), key=lambda p: int(os.path.basename(p)[1:-4]))
             frames = [_drop_specks(_clean_alpha(Image.open(p))) for p in paths]
+            flip = MIRROR.get((key, anim), ())
+            frames = [f.transpose(Image.FLIP_LEFT_RIGHT) if i in flip else f for i, f in enumerate(frames)]  # v9.2.4
             frames = _remap(frames, base_pal)
             meta = os.path.join(SRC, 'anim', f'{key}_{anim}', 'meta.json')
             if os.path.exists(meta) and json.load(open(meta)).get('ground'):

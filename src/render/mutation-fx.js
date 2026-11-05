@@ -60,8 +60,10 @@ export function installMutationFx(proto, { HERO_X }) {
         case 'mutantSplit': {
           const fx = this.enemyFx.get(event.enemyId);
           const m = mutationById('split');
-          const at = fx?.img ? { x: fx.sx, y: fx.sy, w: fx.sw, h: fx.sh } : { x: event.x - 8, y: this.groundY - 16, w: 16, h: 16 };
-          this.mutFxList().push({ kind: 'split', img: fx?.img ?? null, ...at, color: m.color, life: SPLIT_LIFE, max: SPLIT_LIFE });
+          // v9.2.4 : l'image affichée (image dessinée PixelLab comprise), pas l'image de base.
+          const v = fx?.vis;
+          const at = v ? { x: v.x, y: v.y, w: v.w, h: v.h } : { x: event.x - 8, y: this.groundY - 16, w: 16, h: 16 };
+          this.mutFxList().push({ kind: 'split', img: v?.img ?? null, ...at, color: m.color, life: SPLIT_LIFE, max: SPLIT_LIFE });
           this.mutFxList().push({ kind: 'word', text: 'Se divise !', x: at.x + at.w / 2, y: at.y - 8, color: m.color, big: true, life: 1.3, max: 1.3 });
           if (!this.focus) {
             this.burst(at.x + at.w / 2, at.y + at.h / 2, m.color, 14, 48);

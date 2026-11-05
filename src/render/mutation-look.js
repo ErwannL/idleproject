@@ -1,3 +1,4 @@
+import { visibleSize } from '../data/enemy-sizes.js'; // v9.2.4 : taille visible (table d'échelle)
 // v9.2.3 : apparence propre à chaque mutation (retour joueur : « le Géant, bah il est de la même taille que les autres »).
 // Traitement procédural des images du monstre (toutes ses images : repos, marche, attaque PixelLab) :
 // - Géant : ×1,6 (taille, ombre, portée : voir MUTATION_SIZE et core/mutations.js), pas lourds ;
@@ -204,7 +205,7 @@ export function mutantPortraitUrl({ spriteCanvas, sizeFactor, SPRITES }, type, s
   const key = `${type}|${m.id}|${scale}|${ghost}`;
   if (urls.has(key)) return urls.get(key);
   const src = spriteCanvas(sprite);
-  const natural = src.height * (SPRITES[sprite]?.scale ?? 1);
+  const natural = visibleSize(SPRITES[sprite]) * (SPRITES[sprite]?.scale ?? 1); // v9.2.4 : taille visible, comme en combat
   const k0 = (SPRITES[sprite]?.scale ?? 1) * sizeFactor(type, false, null, natural); // pixels d'image → pixels de jeu
   const k = k0 * (MUTATION_SIZE[m.id] ?? 1);
   const two = ghost && m.id in MUTATION_SIZE;
