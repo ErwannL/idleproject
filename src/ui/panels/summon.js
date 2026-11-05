@@ -132,6 +132,45 @@ function bannerBlock(ui, state, btn) {
   return `${main}${preview}${BANNER_RULES.enabled && (b || last) ? archives : ''}`;
 }
 
+// v9.2.5 (I) : vitrine — le compagnon en vedette en grand (illustration HD), nom, étoiles de rareté, rôle, compétence,
+// taux augmenté, compteur de pitié et ×1 / ×10 mis en avant. Même tirage que la ligne Compagnons (bassin 'ally').
+const RARITY_STARS = { common: 2, rare: 3, epic: 4, legendary: 5 };
+function showcase(ui, state, f, pool, p, btn, results, oddsHtml) {
+  const c = companionById(f.id) ?? f;
+  const s = BALANCE.summon;
+  const role = ROLES[COMPANION_ROLES[c.id]];
+  const legend = summonOdds(pool).find((r) => r.rarity === 'legendary');
+  const mine = legend?.units.find((u) => u.id === c.id);
+  const base = legend && legend.units.length ? legend.chance / legend.units.length : 0;
+  const owned = state.companions.owned[c.id];
+  const leftL = s.pity.legendaryAfter - state.summon.sinceLegendary;
+  const leftE = s.pity.epicAfter - state.summon.sinceEpic;
+  const open = ui.view.summonOdds === pool;
+  const parts = Array.from({ length: 14 }, (_, i) => `<i style="--i:${i}"></i>`).join('');
+  return `<div class="card summon-row vt banner-${pool}" style="--vt:${c.color ?? c.fx ?? '#f2c060'}">
+    <div class="vt-bg" aria-hidden="true"><span class="vt-rays"></span><span class="vt-glow"></span><span class="vt-parts">${parts}</span></div>
+    <div class="vt-stage">${hdArt(c, 'vt-art') || unitPortrait(f)}</div>
+    <div class="vt-info">
+      <div class="vt-ribbon">✦ En vedette · taux augmenté ✦</div>
+      <div class="vt-name">${escapeHtml(c.name)}</div>
+      <div class="vt-stars" aria-label="${rarityLabel(c.rarity)}">${'★'.repeat(RARITY_STARS[c.rarity] ?? 3)} <span class="vt-rar r-${c.rarity} rarity-text">${rarityLabel(c.rarity)}</span>${owned && !owned.trial ? ` <span class="vt-owned">obtenu ${stars(duplicates(owned))}</span>` : ''}</div>
+      ${role ? `<div class="vt-role">${img(role.icon)}<span>${escapeHtml(role.label)}</span></div>` : ''}
+      ${c.skill ? `<div class="vt-skill"><b>${escapeHtml(c.skill.name)}</b><span>${escapeHtml(c.skill.text ?? '')}</span></div>` : ''}
+      <div class="vt-rate"><b class="num">${formatDecimal((mine?.chance ?? 0) * 100, 2)} %</b><span>${`par tirage (×${formatDecimal(base ? (mine?.chance ?? 0) / base : 1, 1)}) · ${Math.round(FEATURED_SHARE * 100)} % des Légendaires`}</span></div>
+      <div class="vt-pity"><span>${`Légendaire garanti dans ${leftL}`}</span><small>${`Épique dans ${leftE}`}</small><span class="vt-bar"><i style="width:${Math.round(100 * (1 - leftL / s.pity.legendaryAfter))}%"></i></span></div>
+    </div>
+    <div class="vt-actions">
+      <div class="summon-buttons vt-buttons">
+        ${btn(pool, 1, 'gems', s.gemCost, `<span class="vt-x">×1</span> ${gem()} ${s.gemCost}`, `${p.label} ×1 : ${s.gemCost} gemmes`)}
+        ${btn(pool, 10, 'gems', s.tenPullGemCost, `<span class="vt-x">×10</span> ${gem()} ${s.tenPullGemCost}`, `${p.label} ×10 : ${s.tenPullGemCost} gemmes`)}
+      </div>
+      <button class="btn small help-q${open ? ' active' : ''}" data-action="summon-odds" data-value="${pool}" aria-expanded="${open}" aria-label="Règles et probabilités : ${escapeHtml(p.label)}">?</button>
+    </div>
+    ${open ? `<div class="summon-odds vt-odds">${oddsHtml}</div>` : ''}
+    ${results && normalizePool(ui.view.summonPool) === pool ? `<div class="summon-results vt-results">${results}</div>` : ''}
+  </div>`;
+}
+
 // Historique des invocations (v8.4).
 function historyBlock(state) {
   const h = state.summon.history ?? [];
@@ -181,9 +220,14 @@ export default {
         aria-label="${escapeHtml(aria)}" title="${escapeHtml(missing > 0 ? `Il manque ${formatNumber(missing)} gemme${missing > 1 ? 's' : ''}` : aria)}" ${missing > 0 || off ? 'disabled' : ''}>${label}</button>`;
     };
     ui.view.bannerResults = results; // v9.1.3 (doc4 lot 5) : résultats sous la bannière ou les Archives
-    const rows = Object.entries(s.pools).filter(([pool]) => pool !== 'banner' && pool !== 'archive').map(([pool, p]) => {
+    // v9.2.5 (I) : la vitrine (Compagnons) passe en tête.
+    const pools = Object.entries(s.pools).filter(([pool]) => pool !== 'banner' && pool !== 'archive');
+    const rows = [...pools.filter(([k]) => k === 'ally'), ...pools.filter(([k]) => k !== 'ally')].map(([pool, p]) => {
       const legends = summonOdds(pool).find((r) => r.rarity === 'legendary')?.units.length ?? 0;
       const f = legends > 1 ? featuredUnit(pool) : null;
+      if (pool === 'ally' && f) {
+        return showcase(ui, state, f, pool, p, btn, results, `<p class="muted">Compagnons : ils combattent aux côtés du héros (2 places dans l'équipe). Compteur des garanties commun à toutes les invocations. Doublon : +1 étoile (max 5), puis +${s.duplicateRefundGems} gemmes.</p>${odds(pool)}`);
+      }
       const what = pool === 'hero' ? `Apparences du héros : chacune change son allure et apporte un bonus (${navPath('looks')}).`
         : pool === 'ally' ? 'Compagnons : ils combattent aux côtés du héros (2 places dans l\'équipe).'
           : 'Familiers : petits alliés aux bonus passifs (1 place dans l\'équipe).';
@@ -206,7 +250,8 @@ export default {
       </div>`;
     }).join('');
     const pity = `<div class="summon-pity" role="status">Épique dans <b>${s.pity.epicAfter - state.summon.sinceEpic}</b> · Légendaire dans <b>${s.pity.legendaryAfter - state.summon.sinceLegendary}</b></div>`;
-    return `${pity}${bannerBlock(ui, state, btn)}${rows}
+    // v9.2.5 (I) : la vitrine porte déjà le compteur de pitié.
+    return `${rows.includes('summon-row vt') ? '' : pity}${bannerBlock(ui, state, btn)}${rows}
       ${(state.summon.history ?? []).length ? fold(ui, 'summon-history', 'Historique', () => historyBlock(state)) : ''}`;
   },
 };

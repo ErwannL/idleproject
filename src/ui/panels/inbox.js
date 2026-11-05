@@ -3,12 +3,34 @@
 // Dessous, les marchands (un achat reste une décision). Rien n'apparaît deux fois.
 import { rewardText } from '../../core/rewards.js';
 import { hasRoom } from '../../core/events.js';
+import { navPath } from '../nav.js';
 import { coin, escapeHtml, formatNumber, img, itemFrame, rarityLabel, rewardIcons } from '../common.js';
 
 const KIND_ICONS = {
   login: 'icon_star', mission: 'icon_trophy', missionBonus: 'icon_chest', contract: 'icon_trophy', achievement: 'icon_star',
-  bounty: 'icon_skull', event: 'icon_chest', expedition: 'icon_paw', encyclopedia: 'icon_book', collection: 'icon_book', mastery: 'icon_boss',
+  bounty: 'icon_skull', event: 'icon_chest', expedition: 'icon_paw', encyclopedia: 'icon_book', collection: 'icon_book', mastery: 'icon_boss', track: 'icon_map',
 };
+
+// v9.2.5 : origine de chaque récompense (onglet › section), pour qu'un compteur global dise où se trouve chaque chose.
+export function claimOrigin(c) {
+  const today = "Missions › Aujourd'hui";
+  switch (c.kind) {
+    case 'login': return `${today} › Connexion`;
+    case 'mission': case 'missionBonus': return `${today} › Journalières`;
+    case 'contract': return `${today} › Contrats`;
+    case 'bounty': return `${today} › Prime du jour`;
+    case 'event': return `${today} › Trouvailles`;
+    case 'track': return 'Missions › Piste du mois';
+    case 'achievement': return 'Missions › Hauts faits';
+    default: return navPath(c.tab);
+  }
+}
+// v9.2.5 : liste « ce qui sera récupéré » (survol du bouton Tout récupérer, ou appui sur ▾).
+export function claimPeekList(list) {
+  return `<div class="peek-rows">${list.map((c) => `<div class="peek-row${c.blocked ? ' blocked' : ''}">${img(KIND_ICONS[c.kind] ?? 'icon_chest')}
+    <span class="grow"><b>${escapeHtml(c.label)}</b><small class="peek-origin">${escapeHtml(claimOrigin(c))}</small></span>
+    <span class="gold-text">${rewardIcons(c.reward) || (c.item ? 'Un objet' : '')}</span></div>`).join('')}</div>`;
+}
 
 // v9.1.3 : marchands, affichés dans Missions › Aujourd'hui (et dans la fenêtre À récupérer).
 export function merchantsHtml(state) {
@@ -33,7 +55,7 @@ export default {
     const list = ui.claims;
     const ready = list.filter((c) => !c.blocked);
     const rows = list.map((c) => `<div class="claim-row${c.blocked ? ' blocked' : ''}">${img(KIND_ICONS[c.kind] ?? 'icon_chest')}
-        <div class="grow"><b>${escapeHtml(c.label)}</b><div class="gold-text">${rewardIcons(c.reward) || (c.item ? 'Un objet' : '')}${c.item && rewardText(c.reward, formatNumber) ? ' · un objet' : ''}</div></div>
+        <div class="grow"><b>${escapeHtml(c.label)}</b><small class="peek-origin">${escapeHtml(claimOrigin(c))}</small><div class="gold-text">${rewardIcons(c.reward) || (c.item ? 'Un objet' : '')}${c.item && rewardText(c.reward, formatNumber) ? ' · un objet' : ''}</div></div>
         ${c.itemRef ? itemFrame(c.itemRef, { tag: 'div' }) : ''}${c.blocked ? `<span class="bad">${c.blocked}</span>` : ''}</div>`).join('');
     const merchants = merchantsHtml(state);
     const head = list.length

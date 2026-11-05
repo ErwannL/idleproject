@@ -10,6 +10,7 @@ import { EXACT_920_UPG, patterns920Upg } from './ko-920-upg.js'; // v9.2.0
 import { EXACT_921, patterns921 } from './ko-921.js'; // v9.2.1
 import { EXACT_922, patterns922 } from './ko-922.js'; // v9.2.2
 import { EXACT_923, patterns923 } from './ko-923.js'; // v9.2.3
+import { EXACT_925, patterns925 } from './ko-925.js'; // v9.2.5
 
 // --- Dictionnaire exact ---------------------------------------------------------------------------
 
@@ -364,3 +365,7 @@ PATTERNS.unshift(...patterns922(lookup));
 // v9.2.3 : ennemis mutés lisibles (./ko-923.js).
 Object.assign(EXACT, EXACT_923);
 PATTERNS.unshift(...patterns923(lookup));
+
+// v9.2.5 : vitrine d'invocation, « Tout récupérer » qui dit où (./ko-925.js).
+Object.assign(EXACT, EXACT_925);
+PATTERNS.unshift(...patterns925(lookup));

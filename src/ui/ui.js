@@ -788,6 +788,7 @@ export class UI {
       case 'enc-claim': a.claimEncyclopedia(); break;
       case 'recycle-toggle': a.setRecycleRule(el.dataset.group, value); break;
       case 'mission-tab': local(() => { v.missionTab = value; }); break;
+      case 'claim-peek': local(() => { v.claimPeek = !v.claimPeek; }); break; // v9.2.5 : liste de « Tout récupérer »
       case 'exp-dur': local(() => { v.expDur = value; }); break; // v9.1.3 : durée commune des expéditions
       case 'exp-per-slot': local(() => { v.expPerSlot = !v.expPerSlot; }); break;
       case 'defi-tab': local(() => { v.defiTab = value; }); break; // v9.1.3 : Défis › Tour / Défi de la semaine

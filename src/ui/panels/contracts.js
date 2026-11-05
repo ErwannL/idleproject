@@ -8,7 +8,7 @@ import { contractLabel, contractTitle } from '../../core/contracts.js';
 import { bonusReady, loginPending, missionStatus, periodRemaining, trackNext, trackPct } from '../../core/missions.js';
 import { rewardText } from '../../core/rewards.js';
 import { LOGIN_CALENDAR, MISSION_PERIODS, MISSION_TRACK } from '../../data/missions.js';
-import { merchantsHtml } from './inbox.js';
+import { claimPeekList, merchantsHtml } from './inbox.js';
 import { escapeHtml, fold, formatNumber, img, progressBar, rewardIcons, segment } from '../common.js';
 import { stageLabel, zoneStartStage } from '../../core/combat.js';
 import { ACHIEVEMENT_BONUS, ACHIEVEMENTS, achievementCount, achievementGroups } from '../../core/achievements.js';
@@ -26,7 +26,7 @@ function achievementsTab(state) {
       <div class="grow"><b>${escapeHtml(a.name)}</b> <span class="muted">${a.label} · palier ${g.allDone ? `${g.tiers.length}/${g.tiers.length}` : step}</span>
         ${progressBar(p.ratio, `${formatNumber(Math.min(p.value, a.target))} / ${formatNumber(a.target)}`)}</div>
       ${g.allDone ? '<span class="good">Obtenu</span>'
-        : `<button class="btn small${g.ready ? ' btn-gold' : ''}" data-action="claim-achievement" data-value="${a.id}" ${g.ready ? '' : 'disabled'}>+${a.gems} ${img('icon_gem', '', 'gemmes')}</button>`}</div>`;
+        : `<button class="btn small${g.ready ? ' btn-gold' : ''}" data-action="claim-achievement" data-value="${a.id}" ${g.ready ? '' : 'disabled'}>${g.ready ? 'Récupérer ' : ''}+${a.gems} ${img('icon_gem', '', 'gemmes')}</button>`}</div>`;
   }).join('');
   return `<div class="muted">${n} / ${ACHIEVEMENTS.length} paliers · bonus permanent +${n * ACHIEVEMENT_BONUS.damagePct} % dégâts et +${n * ACHIEVEMENT_BONUS.goldPct} % or (+1 % chacun par palier)</div>
     <div class="ach-list">${rows}</div>`;
@@ -49,7 +49,8 @@ function row({ icon, label, progress, target, reward, done, claimed, action, val
   // v9.1.3 (A7) : un seul emplacement pour la récompense, en icônes sur la ligne du libellé ; bouton court.
   const btn = claimed ? '<span class="m-done">✔</span>'
     : `<button class="btn ${done ? 'btn-gold' : ''} small" data-action="${action}" data-value="${value}" ${done ? '' : 'disabled'} aria-label="Récupérer : ${rewardText(reward, formatNumber)}">Récupérer</button>`;
-  return `<div class="m-row${claimed ? ' claimed' : ''}">
+  // v9.2.5 : ligne récupérable mise en évidence (liseré doré).
+  return `<div class="m-row${claimed ? ' claimed' : done ? ' ready' : ''}">
     <div class="m-icon">${img(icon)}</div>
     <div class="m-main">${sub}<div class="m-label"><b>${escapeHtml(label)}</b>${rewardIcons(reward)}</div>${progressBar(progress / target, `${formatNumber(progress)} / ${formatNumber(target)}`)}</div>
     <div class="m-btn">${btn}</div>
@@ -120,6 +121,16 @@ function contractsTab(state) {
   return rows;
 }
 
+// v9.2.5 : trouvailles du combat (coffres, objets) : elles comptaient dans « Tout récupérer » sans être visibles ici.
+function findsCard(ui) {
+  const list = ui.claims.filter((c) => c.kind === 'event');
+  if (!list.length) return '';
+  return `<div class="card m-body"><div class="section-title">Trouvailles <span class="pill-n">${list.length}</span></div>${list.map((c) => `<div class="m-row${c.blocked ? '' : ' ready'}">
+    <div class="m-icon">${img('icon_chest')}</div><div class="m-main"><div class="m-label"><b>${escapeHtml(c.label)}</b>${rewardIcons(c.reward)}${c.item ? ' <span class="muted">+ un objet</span>' : ''}</div>
+    ${c.blocked ? `<span class="bad">${c.blocked}</span>` : ''}</div>
+    <div class="m-btn"><button class="btn btn-gold small" data-action="claim-event" data-value="${c.id}" ${c.blocked ? 'disabled' : ''}>Récupérer</button></div></div>`).join('')}</div>`;
+}
+
 // Prime du jour (v8.9).
 function bountyCard(state) {
   const b = dailyBounty(state);
@@ -134,7 +145,7 @@ function bountyCard(state) {
   const zonePick = !b.claimed && zones.length > 1
     ? `<select data-action="bounty-zone" aria-label="Monde de la prime">${zones.map((z) => `<option value="${z}"${z === b.zone ? ' selected' : ''}>${escapeHtml(ZONES[z].name)}</option>`).join('')}</select>`
     : `<span class="muted">${escapeHtml(ZONES[b.zone].name)}</span>`;
-  return `<div class="card bounty-card">
+  return `<div class="card bounty-card${!b.claimed && done >= b.target ? ' ready' : ''}">
     <div class="bounty-portrait">${animCanvas(`foe:${enemy.sprite}`, 48, 40, 1)}</div>
     <div class="grow"><div class="row-between"><b class="gold-text">Prime du jour : ${escapeHtml(enemy.name)}</b>${zonePick}</div>
       ${progressBar(done / b.target, `${done}/${b.target} vaincus`)}
@@ -153,29 +164,40 @@ export default {
   title: 'Missions',
   icon: 'icon_trophy',
   extra: (ui) => {
-    const n = ui.claims.filter((c) => !c.blocked && c.tab === 'contracts').length;
+    const list = ui.claims.filter((c) => c.tab === 'contracts');
+    const n = list.filter((c) => !c.blocked).length;
     // v9.1.3 : « À récupérer » fondu dans Missions — la vue d'ensemble s'ouvre en fenêtre (touche N).
-    return `${n ? `<button class="btn btn-gold small" data-action="claim-everything" aria-label="Tout récupérer (${n})">Tout<span class="lbl-long"> récupérer</span> (${n})</button>` : ''}<button class="btn small" data-action="open-claims" title="Tout ce qui est prêt, au même endroit (touche N)" aria-label="À récupérer">${img('icon_mail')}</button>`;
+    // v9.2.5 : au survol (PC) la liste de ce qui sera récupéré, avec sa section ; ▾ l'ouvre dans le panneau (téléphone).
+    const open = Boolean(ui.view.claimPeek);
+    return `${n ? `<span class="claim-peek"><button class="btn btn-gold small" data-action="claim-everything" aria-label="Tout récupérer (${n})">Tout<span class="lbl-long"> récupérer</span> (${n})</button><button class="btn small peek-toggle${open ? ' active' : ''}" data-action="claim-peek" aria-expanded="${open}" aria-label="Voir ce qui sera récupéré">${open ? '▴' : '▾'}</button>
+      <span class="peek-pop" role="tooltip"><b>Sera récupéré :</b>${claimPeekList(list)}</span></span>` : ''}<button class="btn small" data-action="open-claims" title="Tout ce qui est prêt, au même endroit (touche N)" aria-label="À récupérer">${img('icon_mail')}</button>`;
   },
   render(ui, state) {
     const count = (ids) => ui.claims.filter((c) => c.tab === 'contracts' && ids.includes(c.period ?? c.kind)).length;
     const parts = [['today', 'Aujourd\'hui', 'icon_book'], ['week', 'Piste du mois', 'icon_map'], ['achievements', 'Hauts faits', 'icon_star']];
-    const ready = { today: count(['daily', 'login', 'contract', 'bounty']), week: count(['track']), achievements: count(['achievement']) };
+    const ready = { today: count(['daily', 'login', 'contract', 'bounty', 'event']), week: count(['track']), achievements: count(['achievement']) };
     const tab = parts.some(([id]) => id === ui.view.missionTab) ? ui.view.missionTab : 'today';
-    const seg = segment(parts.map(([id, label, icon]) => [id, ready[id] ? `${label} (${ready[id]})` : label, icon]), 'mission-tab', tab);
+    const seg = segment(parts.map(([id, label, icon]) => [id, ready[id] ? `${label}<i class="pill-n" aria-label="${ready[id]} à récupérer">${ready[id]}</i>` : label, icon]), 'mission-tab', tab);
     const period = (id) => MISSION_PERIODS.find((p) => p.id === id);
     const merchants = merchantsHtml(state);
+    // v9.2.5 : liste dépliée par ▾ (en haut du panneau, tient sur téléphone).
+    const peekList = ui.claims.filter((c) => c.tab === 'contracts');
+    const peek = ui.view.claimPeek && peekList.length ? `<div class="card peek-card"><div class="row-between"><b>Sera récupéré (${peekList.filter((c) => !c.blocked).length})</b>
+      <button class="btn btn-gold small" data-action="claim-everything">Tout récupérer</button></div>${claimPeekList(peekList)}</div>` : '';
+    const sec = (title, n) => `${title}${n ? ` <i class="pill-n">${n}</i>` : ''}`;
+    const nOf = (k) => ui.claims.filter((c) => c.tab === 'contracts' && (c.period ?? c.kind) === k && !c.blocked).length;
     let body;
     if (tab === 'achievements') body = `<div class="card m-body">${achievementsTab(state)}</div>`;
     else if (tab === 'week') {
       body = `<div class="card m-body">${trackTab(state)}</div>`;
     } else {
-      body = `<div class="card m-body"><div class="section-title">${period('daily').label}</div>${periodTab(state, period('daily'))}</div>
-        ${fold(ui, 'login', 'Connexion', () => loginTab(state), { open: (loginPending(state) > 0), extra: (loginPending(state) > 0) ? '<span class="good">à récupérer</span>' : '' })}
+      body = `<div class="card m-body"><div class="section-title">${sec(period('daily').label, nOf('daily'))}</div>${periodTab(state, period('daily'))}</div>
+        ${fold(ui, 'login', sec('Connexion', nOf('login')), () => loginTab(state), { open: (loginPending(state) > 0), extra: (loginPending(state) > 0) ? '<span class="good">à récupérer</span>' : '' })}
+        ${findsCard(ui)}
         ${bountyCard(state)}
         ${merchants ? `<div class="section-title">Marchands</div>${merchants}` : ''}
-        <div class="card m-body"><div class="section-title">Contrats</div>${contractsTab(state)}</div>`;
+        <div class="card m-body"><div class="section-title">${sec('Contrats', nOf('contract'))}</div>${contractsTab(state)}</div>`;
     }
-    return seg + body;
+    return seg + peek + body;
   },
 };
