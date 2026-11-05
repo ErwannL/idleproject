@@ -163,3 +163,45 @@ test("v9.2.5 : prise de l'arme — poing redessiné par-dessus la poignée, arme
   if (process.env.DUMP) console.log([...new Set(fails)].join("\n"));
   assert.deepEqual(fails.slice(0, 20), [], `${fails.length} échecs`);
 });
+
+// v9.2.5 : gestes de compétence (skill-fx.js) : le chevalier garde son casque et son armure, jamais sans tête,
+// et l'arme dessinée est toujours l'arme équipée (posée par le jeu sur la prise, ou rangée dans le dos).
+test('v9.2.5 : gestes de compétence — jamais sans tête, casque porté présent, arme équipée', async () => {
+  const S = await import('../src/render/skill-fx.js');
+  const fails = [];
+  let n = 0;
+  const skills = Object.keys(S.HERO_SKILL_MOTIFS);
+  for (const [hid, palette] of PALETTES) for (const helmet of HELMETS.slice(0, 4)) for (const skill of skills) {
+    const cls = CLASSES.find((c) => c.id === (skill === 'meteor' ? 'pyromancer' : skill === 'volley' ? 'archer' : 'knight'));
+    const eq = { weapon: it(weaponFor(cls)), helmet: it(helmet), armor: it(helmet ? 'chainmail' : null) };
+    const scene = { time: 0, groundY: 120, focus: true, shake: 0, underwater: false, layout: null, wx: (x) => x, hitReact() {}, burst() {}, dust() {} };
+    assert.ok(S.castHeroSkill(scene, A.heroAnimKey(palette), skill, { src: { x: 0, y: 0 }, foes: [], team: [0], hero: 0, front: 60, far: 60, mid: 60 }));
+    const g = scene.heroSkill;
+    assert.ok(g.anim, `${hid}/${skill} : geste`);
+    const feet = feetOf(g.anim);
+    for (let i = 0; i < g.anim.frames.length; i++) {
+      scene.time = g.start + ((i + 0.5) / g.anim.frames.length) * g.dur;
+      scene.heroSkill = g;
+      const pick = S.heroGesturePick(scene);
+      n++;
+      if (!pick) { fails.push(`${hid}/${skill}#${i} : pas d'image`); continue; }
+      if (!palette?.skin && !pick.head) fails.push(`${hid}/${skill}#${i} : tête non suivie`);
+      const err = animHeadOk(pick, eq, palette, feet);
+      if (err) fails.push(`${hid}/${skill}/${helmet ?? 'aucun'}#${i} : ${err}`);
+      if (helmet && !palette?.skin) {
+        // Casque porté présent : la tête rendue diffère de celle du chevalier PixelLab de base.
+        const a1 = new SoftCanvas(140, 120), a2 = new SoftCanvas(140, 120);
+        D.drawHeroPick(a1.getContext('2d'), pick, eq, palette, 30, 20, { weapon: false });
+        D.drawHeroPick(a2.getContext('2d'), pick, {}, palette, 30, 20, { weapon: false });
+        let diff = 0;
+        for (let j = 0; j < a1.data.length; j += 4) if (Math.abs(a1.data[j] - a2.data[j]) + Math.abs(a1.data[j + 1] - a2.data[j + 1]) + Math.abs(a1.data[j + 3] - a2.data[j + 3]) > 40) diff++;
+        if (diff < 30) fails.push(`${hid}/${skill}/${helmet}#${i} : casque absent (${diff} px)`);
+      }
+      if (S.HELD_MOTIFS.has(g.motif) && !pick.weapon) fails.push(`${hid}/${skill}#${i} : arme tenue sans prise`);
+      if (!S.HELD_MOTIFS.has(g.motif) && pick.weapon) fails.push(`${hid}/${skill}#${i} : arme en main hors geste tenu`);
+    }
+  }
+  assert.ok(n > 500, `${n} rendus`);
+  if (process.env.DUMP) console.log([...new Set(fails)].join('\n'));
+  assert.deepEqual(fails.slice(0, 20), [], `${fails.length} échecs`);
+});

@@ -6,6 +6,8 @@
 // Tout est dessiné en pixels de jeu (fillRect sur des coordonnées entières) pour rester dans le style du jeu.
 import { HERO_SKILL_MOTIFS, SKILL_ANIM_ART, SKILL_ANIM_PALS, SKILL_ANIMS, UNIT_SKILL_MOTIFS } from './art-anim-skills.js';
 import { SPRITES, expandRow } from './sprites.js';
+import { ALLY_ANIMS, knightHead, weaponPose } from './ally-anim.js';
+import { KNIGHT_HEAD } from './knight-gear.js';
 
 // Images ajoutées aux SPRITES au chargement (même encodage que les animations des alliés : une ligne vide reprend la
 // même ligne de l'image précédente).
@@ -38,7 +40,33 @@ export function gestureFrame(g, time) {
   const k = (time - g.start) / g.dur;
   if (k < 0 || k >= 1) return null;
   const a = g.anim;
-  return { name: a.frames[Math.min(a.frames.length - 1, Math.floor(k * a.frames.length))], ox: a.ox, oy: a.oy };
+  const i = Math.min(a.frames.length - 1, Math.floor(k * a.frames.length));
+  return { name: a.frames[i], ox: a.ox, oy: a.oy, i, k };
+}
+
+// v9.2.5 : gestes où l'arme équipée reste en main (prise suivie image par image) ; les autres la rangent dans le dos.
+export const HELD_MOTIFS = new Set(['raise_staff', 'attack_archer']);
+// Arc de la pluie de flèches incliné vers le ciel (degrés, sens horaire négatif = vers le haut).
+const AIM_UP = { attack_archer: -50 };
+// Tourbillon : le corps se retourne en miroir plusieurs fois au milieu du geste (rotation sur place) ; vues de dos
+// écartées à la génération (tools/art/pixellab_skills.py SKIP), la rotation est rendue par ce miroir alterné.
+export function spinFlip(g, k) {
+  return g?.motif === 'sweep' && k > 0.2 && k < 0.7 && Math.floor((k - 0.2) / 0.0625) % 2 === 1;
+}
+
+// Image du geste du héros au format de ally-anim.js pickHeroAnim ({ name, anim, ox, oy, weapon, head }), pour
+// hero-draw.js drawHeroPick : le chevalier y porte son vrai casque et sa vraie armure (tête suivie : knight-gear.js,
+// clés skill_<motif>), l'arme vraiment équipée est posée sur la prise (gestes tenus) ; null hors geste.
+export function heroGesturePick(scene) {
+  const g = scene.heroSkill;
+  const f = heroGesture(scene);
+  if (!f) return null;
+  const a = g.anim;
+  const own = g.key === 'hero_knight' && !Object.values(ALLY_ANIMS.hero_knight ?? {}).includes(a);
+  const head = own ? KNIGHT_HEAD.heads[`skill_${g.motif}`]?.[f.i] ?? null : knightHead(a, f.i);
+  let weapon = HELD_MOTIFS.has(g.motif) ? weaponPose(a, f.i) : null;
+  if (weapon && AIM_UP[g.motif]) weapon = { ...weapon, deg: (weapon.deg + AIM_UP[g.motif] * Math.sin(Math.min(1, f.k * 2.5) * Math.PI * 0.5) + 360) % 360 };
+  return { name: f.name, anim: a, ox: a.ox, oy: a.oy, weapon, head, held: HELD_MOTIFS.has(g.motif), flip: spinFlip(g, f.k) };
 }
 
 // --- Lancement ---------------------------------------------------------------------------------------------------
@@ -49,9 +77,10 @@ export function castHeroSkill(scene, key, skill, ctxInfo) {
   const entry = HERO_SKILL_MOTIFS[skill];
   if (!entry || scene.underwater) return false;
   const [motif, fx] = entry;
-  const anim = SKILL_ANIMS[key]?.[motif] ?? null;
+  // v9.2.5 : un geste peut reprendre une animation PixelLab des alliés (attack_archer pour la pluie de flèches).
+  const anim = SKILL_ANIMS[key]?.[motif] ?? ALLY_ANIMS[key]?.[motif] ?? null;
   const dur = gestureTime(anim);
-  scene.heroSkill = { anim, motif, start: scene.time, dur };
+  scene.heroSkill = { anim, motif, key, start: scene.time, dur };
   run(scene, fx, { ...ctxInfo, release: dur * RELEASE_K, dur });
   return true;
 }

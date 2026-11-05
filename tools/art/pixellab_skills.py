@@ -37,7 +37,10 @@ HERO_SKILLS = {
     'cry': ['roar', 'war_cry', ''],
     'holy': ['smite', 'holy_smite', ''],
     'meteor': ['raise_staff', 'meteor', '_pyromancer'],
-    'volley': ['shoot_up', 'arrow_rain', '_archer'],
+    # v9.2.5 : la pluie de flèches reprend le tir PixelLab de l'archer (attack_archer, arme déjà séparée : l'arc
+    # vraiment équipé y est posé), arc incliné vers le ciel par le jeu ; les gestes « shoot_up » générés gardaient
+    # leur propre arc (forme différente, mal repéré par weapon_anchor.py) et ne servent plus au héros.
+    'volley': ['attack_archer', 'arrow_rain', '_archer'],
 }
 HERO_LOOKS = ('knight', 'demoness', 'fairy', 'grombar', 'ninja', 'seraph', 'valkyrie', 'vampire', 'witch')
 
@@ -101,7 +104,7 @@ SKIP = {
     'hero_seraph_sweep': (2, 3, 4, 5, 6, 7, 8, 9), 'hero_seraph_palm_push': (3,), 'hero_valkyrie_raise_staff': (6, 7),
     'hero_valkyrie_sweep': (3, 4, 5, 6), 'hero_vampire_raise_staff': (4, 5, 6), 'hero_vampire_sweep': (3, 4, 5, 6, 7, 8, 9, 10),
     'hero_witch_palm_push': (3, 9, 10), 'hero_witch_raise_staff': (4, 5), 'hero_witch_sweep': (3, 4, 5, 6, 7, 8, 9), 'hero_witch_roar': (7,),
-    'pet_slime_howl': (3,), 'hero_grombar_palm_push': (4, 5, 6, 7, 8), 'ally_ice_empress_cast_forward': (6, 7, 8, 9, 10),
+    'pet_slime_howl': (3,), 'ally_shadow_twin_slash': (2, 3, 5), 'hero_grombar_palm_push': (4, 5, 6, 7, 8), 'ally_ice_empress_cast_forward': (6, 7, 8, 9, 10),
 }
 
 
@@ -128,15 +131,23 @@ def _keep_body(frames, ref, skip):
     return out
 
 
+# Gestes où le héros garde son arme en main (classe dont l'arme a servi à la génération) ; les autres : arme dans le dos.
+HOLD = {'raise_staff': 'pyromancer'}
+
+
 def _used():
-    used = {f'hero_{look}': {v[0] for v in HERO_SKILLS.values()} for look in HERO_LOOKS}
+    used = {f'hero_{look}': {v[0] for v in HERO_SKILLS.values()} - {'attack_archer'} for look in HERO_LOOKS}
     for u, t in UNIT_SKILLS.items():
         used[_key(u)] = {m for m, _ in t.values()}
     return used
 
 
 def build():
+    from multiprocessing import Pool
+    import pixellab_allies as pa
+    import weapon_anchor as wa
     from pixellab_allies import _grid, _limit, drop_fx, stabilize
+    pool = Pool()
     from pixellab_anim import _clean_alpha, _drop_specks, _palette, _remap
     sprites, index = {}, {}
     for d in sorted(glob.glob(os.path.join(SRC, '*'))):
@@ -157,7 +168,23 @@ def build():
         frames = [drop_fx(_drop_specks(_clean_alpha(Image.open(p))), ref) for p in paths]
         frames = stabilize(frames, ref, 'attack')
         frames = _keep_body(frames, ref, SKIP.get(name, ()))
+        # v9.2.5 : héros qui tient son arme pendant le geste (bâton levé du météore, arc de la pluie de flèches) :
+        # l'arme dessinée par PixelLab est repérée et effacée de chaque image (weapon_anchor.py, comme les attaques) ;
+        # le jeu pose à sa place l'arme vraiment équipée, sur la prise de chaque image (entrée w).
+        weapon = None
+        cls = HOLD.get(motif) if key.startswith('hero_') else None
+        if cls:
+            weapon = pa.separate_weapon(frames, key, cls, pool)
+            fy0, _ = pa._feet(_clean_alpha(Image.open(os.path.join(REF, f'{key}.png'))))
+            for i, f in enumerate(frames):
+                fy, _ = pa._feet(f)
+                if fy is not None and fy != fy0:
+                    frames[i] = pa._shift(f, 0, fy0 - fy)
+                    weapon[i][1] += fy0 - fy
         frames = _remap(frames, _palette(_limit(ref)))
+        if weapon:
+            rest = pa.hand_of(key)
+            weapon = [wa.snap_grip(f, p, rest) for f, p in zip(frames, weapon)]
         boxes = [f.getbbox() for f in frames if f.getbbox()]
         ux0, uy0 = min(b[0] for b in boxes), min(b[1] for b in boxes)
         ux1, uy1 = max(b[2] for b in boxes), max(b[3] for b in boxes)
@@ -171,7 +198,10 @@ def build():
                 p = os.path.join(os.environ['PREVIEW_DIR'], name)
                 os.makedirs(p, exist_ok=True)
                 crop.save(os.path.join(p, f'f{i}.png'))
-        index.setdefault(key, {})[motif] = {'frames': names, 'ox': ux0 - meta['ox'], 'oy': uy0 - meta['oy'], 'fps': FPS}
+        entry = {'frames': names, 'ox': ux0 - meta['ox'], 'oy': uy0 - meta['oy'], 'fps': FPS}
+        if weapon:
+            entry['w'] = [[p[0] - meta['ox'], p[1] - meta['oy'], *p[2:]] for p in weapon]
+        index.setdefault(key, {})[motif] = entry
     return sprites, index
 
 

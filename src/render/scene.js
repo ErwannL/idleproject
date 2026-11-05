@@ -35,7 +35,7 @@ import { drawHeroPick } from './hero-draw.js'; // v9.2.5 : arme tenue (poing sur
 import { HERO_ANCHOR, SWIM_AXIS, SWIM_BODY, drawBigText, heroAnimCanvas, heroBackWeapon, heroComposite, heroSwim, itemDropCanvas, knightGearCanvas, spriteCanvas, textWidth } from './pixel.js';
 import { ALLY_ANIMS, KNIGHT_NECK, KNIGHT_PIVOT, heroAnimKey, heroWearsGear, knightHead, loopFrame, pickAllyAnim, pickHeroAnim } from './ally-anim.js'; // v9.2.3 : alliés animés (PixelLab)
 import { itemBase } from '../core/loot.js';
-import { castHeroSkill, castUnitSkill, drawSkillFx, fxContext, heroGesture, unitGesture } from './skill-fx.js'; // v9.2.5 : gestes et effets de compétence
+import { castHeroSkill, castUnitSkill, drawSkillFx, fxContext, heroGesturePick, unitGesture } from './skill-fx.js'; // v9.2.5 : gestes et effets de compétence
 import { companionSkillList } from '../data/companion-skills.js';
 import { COMPANION_ROLES } from '../data/synergies.js';
 
@@ -1210,10 +1210,15 @@ export class SceneRenderer {
       // v9.2.1 : hauteur propre au monde (nuage, lévitation, enfoncé dans le marais) et effets aux pieds.
       lift = this.travLift(0);
       // v9.2.3 : marche et attaque dessinées image par image (PixelLab, ally-anim.js), arme en main.
-      const sg = heroGesture(this); // v9.2.5 : geste de compétence (arme rangée dans le dos, sauf arc et bâton tenus)
+      // v9.2.5 : geste de compétence, avec le vrai casque, la vraie armure et l'arme vraiment équipée (en main pour le
+      // bâton et l'arc, rangée dans le dos sinon) ; Tourbillon : miroir alterné autour du corps (rotation).
+      const sg = heroGesturePick(this);
       if (sg) {
-        if (!['raise_staff', 'shoot_up'].includes(this.heroSkill.motif)) ctx.drawImage(heroBackWeapon(state.equipment), baseX, baseY - lift);
-        ctx.drawImage(heroAnimCanvas(sg.name, palette), baseX + sg.ox, baseY - lift + sg.oy);
+        ctx.save();
+        if (sg.flip) { ctx.translate(2 * HERO_X, 0); ctx.scale(-1, 1); }
+        if (!sg.held) ctx.drawImage(heroBackWeapon(state.equipment), baseX, baseY - lift);
+        drawHeroPick(ctx, sg, state.equipment, palette, baseX, baseY - lift);
+        ctx.restore();
       }
       const anim = sg ? null : pickHeroAnim({ palette, equipment: state.equipment, classId: activeClass(state).id, style, weapon: state.equipment.weapon && itemBase(state.equipment.weapon.baseId)?.sprite,
         // v9.2.4 : marche PixelLab seulement au pas (glissade, sauts de nuage : poses composées), sans clignoter entre

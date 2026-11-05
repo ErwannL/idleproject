@@ -7,6 +7,7 @@ import { COMPANION_ROLES } from '../src/data/synergies.js';
 import { SKILLS } from '../src/data/skills.js';
 import { FX_NAMES, HERO_SKILL_MOTIFS, SKILL_ANIMS, UNIT_SKILL_MOTIFS, castHeroSkill, castUnitSkill, drawSkillFx, fxContext, gestureFrame, heroGesture, unitGesture } from '../src/render/skill-fx.js';
 import { SPRITES } from '../src/render/sprites.js';
+import { ALLY_ANIMS } from '../src/render/ally-anim.js';
 
 const LOOKS = ['knight', 'demoness', 'fairy', 'grombar', 'ninja', 'seraph', 'valkyrie', 'vampire', 'witch'];
 
@@ -14,7 +15,7 @@ test('chaque compétence (héros, spéciales de classe, compagnons, ultimes comp
   for (const s of [...SKILLS.map((x) => x.id), 'meteor', 'volley']) {
     const [motif, fx] = HERO_SKILL_MOTIFS[s];
     assert.ok(FX_NAMES.includes(fx), `${s} : effet ${fx}`);
-    for (const look of LOOKS) assert.ok(SKILL_ANIMS[`hero_${look}`]?.[motif], `hero_${look} : geste ${motif}`);
+    for (const look of LOOKS) assert.ok(SKILL_ANIMS[`hero_${look}`]?.[motif] ?? ALLY_ANIMS[`hero_${look}`]?.[motif], `hero_${look} : geste ${motif}`);
   }
   for (const c of COMPANIONS) {
     for (const sk of companionSkillList(c, COMPANION_ROLES[c.id] ?? 'pet')) {

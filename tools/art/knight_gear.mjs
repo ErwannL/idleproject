@@ -13,7 +13,13 @@ const { decodeAllyFrames, ALLY_ANIMS } = await import(path.join(ROOT, 'src/rende
 const { SPRITES } = await import(path.join(ROOT, 'src/render/sprites.js'));
 const F = decodeAllyFrames();
 const PLUME = new Set(['K', '4', '8']);
-const set = ALLY_ANIMS.hero_knight;
+// v9.2.5 : gestes de compétence du chevalier (src/render/art-anim-skills.js) suivis aussi, sous la clé skill_<motif>.
+const { SKILL_ANIMS } = await import(path.join(ROOT, 'src/render/skill-fx.js'));
+const set = { ...ALLY_ANIMS.hero_knight };
+for (const [motif, a] of Object.entries(SKILL_ANIMS.hero_knight ?? {})) {
+  set[`skill_${motif}`] = a;
+  for (const f of a.frames) F[f] = SPRITES[f];
+}
 const col = (f, x, y) => { const r = f.rows[y]; const c = r && r[x]; return !c || c === '.' ? null : f.pal[c] ?? c; };
 
 // Modèle : pixels opaques de la vue de repos sous le masque du casque de base (casque composé à (10, 16 + oy)).
@@ -90,6 +96,9 @@ for (const [k, a] of Object.entries(set)) {
       return [Math.round(sx / n) + a.ox, Math.round(sy / n) + a.oy, 90, 100];
     });
   } else out[k] = track(a, land, 9);
+  // v9.2.5 : geste (bouche ouverte du cri, mains jointes devant le visage) : correspondance faible, l'angle trouvé
+  // y tremble d'une image à l'autre ; la tête y reste droite (seule sa position suit).
+  if (k.startsWith('skill_')) out[k] = out[k].map((p) => (p[3] < 60 ? [p[0], p[1], 0, p[3]] : p));
 }
 // Lissage léger (moyenne 1-2-1 de l'angle et de la position) sans toucher la première ni la dernière image.
 for (const k of Object.keys(out)) {
