@@ -2,18 +2,32 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ALLY_ANIMS } from '../src/render/art-anim-allies.js';
-import { decodeAllyFrames, heroWearsGear, phaseFrame, pickAllyAnim, pickHeroAnim } from '../src/render/ally-anim.js';
+import { KNIGHT_PIVOT, decodeAllyFrames, heroWearsGear, knightHead, phaseFrame, pickAllyAnim, pickHeroAnim } from '../src/render/ally-anim.js';
 
 const FRAMES = decodeAllyFrames();
 const base = { classId: 'knight', style: 'melee', time: 0, attackTime: 0.3, castTime: 0.35 };
 
-test('chevalier avec casque ou armure : corps composé (équipement visible) en marche et en frappe', () => {
+test('chevalier avec casque ou armure : animation PixelLab gardée, tête suivie sur chaque image pour le casque porté', () => {
   const helm = { helmet: { baseId: 'iron_helm', rarity: 'epic' } };
   assert.equal(heroWearsGear(null, helm), true);
   assert.equal(heroWearsGear({ skin: 'valkyrie' }, helm), false);
   assert.equal(heroWearsGear(null, {}), false);
-  assert.equal(pickHeroAnim({ ...base, palette: null, equipment: helm, attack: 0.2 }, {}), null);
-  assert.equal(pickHeroAnim({ ...base, palette: null, equipment: helm, walking: true }, {}), null);
+  const atk = pickHeroAnim({ ...base, palette: null, equipment: helm, attack: 0.2 }, {});
+  assert.ok(atk?.name.startsWith('hero_knight_knight_attack') && atk.head, 'attaque PixelLab + tête');
+  const walk = pickHeroAnim({ ...base, palette: null, equipment: helm, walking: true }, {});
+  assert.ok(walk?.name.startsWith('hero_knight_walk') && walk.head, 'marche PixelLab + tête');
+  for (const [name, a] of Object.entries(ALLY_ANIMS.hero_knight)) {
+    a.frames.forEach((f, i) => {
+      const h = knightHead(a, i);
+      assert.ok(h && h.every(Number.isFinite), `${name}[${i}] : tête`);
+      if (name !== 'swim') assert.ok(Math.hypot(h[0] - KNIGHT_PIVOT[0], h[1] - KNIGHT_PIVOT[1]) <= 16 && Math.abs(h[2]) <= 30, `${name}[${i}] : tête à ${h}`);
+    });
+    // Pas de saut de la tête d'une image à la suivante (au plus 8 px).
+    for (let i = 1; i < a.frames.length; i++) {
+      const p = knightHead(a, i - 1), q = knightHead(a, i);
+      assert.ok(Math.hypot(q[0] - p[0], q[1] - p[1]) <= 8, `${name}[${i}] : saut de la tête`);
+    }
+  }
   // Une apparence garde ses propres images, avec ou sans équipement, pour chaque classe.
   for (const sk of ['demoness', 'fairy', 'grombar', 'ninja', 'seraph', 'valkyrie', 'vampire', 'witch']) {
     for (const cls of ['knight', 'berserker', 'lancer', 'paladin', 'assassin']) {

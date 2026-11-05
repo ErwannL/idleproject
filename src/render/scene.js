@@ -30,8 +30,8 @@ import { BG } from './bg.js';
 import { waterAccent } from './water-fx.js'; // v9.2.1
 import { addBubble, drawOceanBack, drawOceanFront, kickFrame, STROKE, strokeStep, swimDraw, swimFloat, swimPose, swirl, SWIM_DEPTH, SWIM_TILT } from './ocean-fx.js'; // v9.2.0 (monde marin)
 import { FONT_BIG, SPRITES } from './sprites.js';
-import { HERO_ANCHOR, SWIM_AXIS, SWIM_BODY, drawBigText, heroAnimCanvas, heroBackWeapon, heroComposite, heroHeldWeapon, heroSwim, itemDropCanvas, spriteCanvas, textWidth } from './pixel.js';
-import { ALLY_ANIMS, heroAnimKey, loopFrame, pickAllyAnim, pickHeroAnim } from './ally-anim.js'; // v9.2.3 : alliés animés (PixelLab)
+import { HERO_ANCHOR, SWIM_AXIS, SWIM_BODY, drawBigText, heroAnimCanvas, heroBackWeapon, heroComposite, heroHeldWeapon, heroSwim, itemDropCanvas, knightGearCanvas, spriteCanvas, textWidth } from './pixel.js';
+import { ALLY_ANIMS, KNIGHT_NECK, KNIGHT_PIVOT, heroAnimKey, heroWearsGear, knightHead, loopFrame, pickAllyAnim, pickHeroAnim } from './ally-anim.js'; // v9.2.3 : alliés animés (PixelLab)
 import { itemBase } from '../core/loot.js';
 
 // Vue resserrée : le chevalier (≈ 40 px) occupe un bon tiers de la hauteur de la scène.
@@ -105,6 +105,7 @@ function layer(file) {
 const MAX_FLOATING_TEXTS = 6;
 const FLYING_PETS = new Set(['owl', 'fairy', 'wisp']);
 const STALE_EVENT_SECONDS = 1.5;
+const HERO_FADE = 0.07; // v9.2.4 : fondu marche -> frappe (s)
 const ATTACK_TIME = 0.3; // durée de l'animation d'attaque (élan, frappe, suite)
 const ENEMY_ATK = 0.32; // v9.1.9 : attaque ennemie (préparation, coup, retour)
 const CAST_TIME = 0.35; // durée de la pose de sort
@@ -1128,7 +1129,8 @@ export class SceneRenderer {
         const swim = ALLY_ANIMS[heroAnimKey(palette)]?.swim; // v9.2.3 : vrai crawl PixelLab (bras et jambes qui battent)
         if (swim) {
           ctx.drawImage(heroBackWeapon(state.equipment, 'swim'), px, py);
-          ctx.drawImage(heroAnimCanvas(loopFrame(swim, this.time, hero.walking ? 1 : 0.7), palette), px + swim.ox, py + swim.oy);
+          const sf = loopFrame(swim, this.time, hero.walking ? 1 : 0.7);
+          this.drawHeroFrame(ctx, sf, swim, knightHead(swim, swim.frames.indexOf(sf)), state.equipment, palette, px + swim.ox, py + swim.oy); // v9.2.4 : équipement porté
         } else swimDraw(ctx, sw, px, py, sw.width, sw.height, { time: this.time, amp: 1, mode: 'dolphin', focus: this.focus });
         barY = this.groundY - 22 - lift - 24;
       } else {
@@ -1158,14 +1160,36 @@ export class SceneRenderer {
       const held = anim?.weapon && heroHeldWeapon(state.equipment, anim.weapon.deg);
       const hx = baseX + lean, hy = baseY - jump - lift;
       if (held && anim.weapon.back) ctx.drawImage(held.canvas, hx + anim.weapon.x - held.x, hy + anim.weapon.y - held.y);
-      if (anim) ctx.drawImage(heroAnimCanvas(anim.name, palette), hx + anim.ox, hy + anim.oy);
+      if (anim) this.drawHeroFrame(ctx, anim.name, anim.anim, anim.head, state.equipment, palette, hx + anim.ox, hy + anim.oy);
       if (held && !anim.weapon.back) ctx.drawImage(held.canvas, hx + anim.weapon.x - held.x, hy + anim.weapon.y - held.y);
       if (!anim) ctx.drawImage(img, baseX + lean, baseY - jump - lift);
+      // v9.2.4 : frappe lancée en plein pas : la dernière image de marche (arme comprise) s'efface en 0,07 s
+      // par-dessus la première image du geste, au lieu d'un saut de quelques pixels d'une image à l'autre.
+      const kind = !anim ? 'pose' : anim.anim === ALLY_ANIMS[heroAnimKey(palette)]?.walk ? 'walk' : 'attack';
+      if (this.heroLast?.kind === 'walk' && kind === 'attack') this.heroFade = { ...this.heroLast, left: HERO_FADE };
+      if (kind !== 'attack') this.heroFade = null;
+      if (this.heroFade && this.heroFade.left > 0) {
+        const f = this.heroFade;
+        ctx.globalAlpha = f.left / HERO_FADE;
+        if (f.held) ctx.drawImage(f.held.canvas, hx + f.anim.weapon.x - f.held.x, hy + f.anim.weapon.y - f.held.y);
+        this.drawHeroFrame(ctx, f.anim.name, f.anim.anim, f.anim.head, state.equipment, palette, hx + f.anim.ox, hy + f.anim.oy);
+        ctx.globalAlpha = 1;
+        f.left -= this.dt ?? 0;
+      }
+      this.heroLast = { kind, anim, held };
       this.travFeet('hero', HERO_X - 2, hero.walking, 0);
     }
 
     const stats = world.heroStats;
     if (stats) this.drawBar(ctx, HERO_X - 11 + dash, barY === baseY - 2 - jump ? barY - lift : barY, 22, hero.hp / stats.maxHp, '#5ad07a');
+  }
+
+  // v9.2.4 : image PixelLab du héros ; le chevalier y porte son vrai casque et sa vraie armure (pixel.js knightGearCanvas).
+  drawHeroFrame(ctx, name, anim, head, equipment, palette, x, y) {
+    if (heroWearsGear(palette, equipment) && head) {
+      const g = knightGearCanvas(name, anim, head, KNIGHT_PIVOT, KNIGHT_NECK, equipment, palette);
+      ctx.drawImage(g.canvas, x - g.m, y - g.m);
+    } else ctx.drawImage(heroAnimCanvas(name, palette), x, y);
   }
 
   // Compagnons : suivent le chevalier, les volants planent au-dessus de son épaule.

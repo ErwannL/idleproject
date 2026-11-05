@@ -314,6 +314,109 @@ export function heroAnimCanvas(name, palette = null, flash = false) {
   return spriteCanvas(name, { colors: palette?.skin ? null : heroColors(palette), flash });
 }
 
+// v9.2.4 : équipement VRAIMENT porté posé sur une image PixelLab du chevalier (comme l'arme, voir heroHeldWeapon).
+//   casque : le plumet (K, 8 et ses reflets 4 au-dessus de la tête) et son contour orphelin sont effacés côté tête,
+//            puis le casque porté (forme, couleurs de rareté) est posé sur la tête suivie (head = [x, y, angle],
+//            tools/art/knight_gear.mjs), tourné autour du centre de la tête ;
+//   armure : l'acier du corps (couleurs peu saturées, sous la ligne du cou) prend la rampe de couleurs de l'armure
+//            portée, les dorures sa couleur de rareté.
+// Renvoie { canvas, m } : l'image est décalée de m px (marge du casque qui dépasse) par rapport au cadre de l'animation.
+const GEAR_MARGIN = 16;
+const steelRamp = new Map();
+function steelChars(pal) {
+  let ramp = steelRamp.get(pal);
+  if (ramp) return ramp;
+  const steel = [];
+  for (const [ch, hex] of Object.entries(pal)) {
+    if (!/^#[0-9a-f]{6}$/i.test(hex) || 'BPWK45678'.includes(ch)) continue;
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2;
+    const sat = mx === mn ? 0 : (mx - mn) / (1 - Math.abs(2 * l - 1));
+    if (sat < 0.25 && l > 0.3 && l < 0.97) steel.push([ch, l]);
+  }
+  steel.sort((a, b) => b[1] - a[1]);
+  ramp = new Map(steel.map(([ch], i) => [ch, ['1', 'a', 'A', '2'][Math.min(3, Math.floor((i * 4) / steel.length))]]));
+  steelRamp.set(pal, ramp);
+  return ramp;
+}
+export function knightGearCanvas(name, anim, head, pivot, neck, equipment, palette) {
+  const helmet = equipment?.helmet, armor = equipment?.armor;
+  const key = `kgear|${name}|${helmet ? `${helmet.baseId}/${helmet.rarity}` : '-'}|${armor ? `${armor.baseId}/${armor.rarity}` : '-'}|${palette ? JSON.stringify(palette) : ''}|${head}`;
+  let out = cache.get(key);
+  if (out) return out;
+  const sprite = SPRITES[name];
+  const grid = normalizeRows(sprite.rows).map((r) => [...r]);
+  const H = grid.length, W = grid[0].length;
+  const a = ((head?.[2] ?? 0) * Math.PI) / 180, cs = Math.cos(a), sn = Math.sin(a);
+  // Coordonnées dans le repère de la tête (pivot, non tourné) : v < neck = côté tête.
+  const local = (x, y) => { const dx = x + anim.ox - head[0], dy = y + anim.oy - head[1]; return [dx * cs + dy * sn, -dx * sn + dy * cs]; };
+  const pal = { ...BASE_PALETTE, ...(sprite.pal ?? {}), ...(heroColors(palette) ?? {}) };
+  if (armor) {
+    const ic = itemColors(armor);
+    Object.assign(pal, { '①': ic[1], '②': ic.a, '③': ic.A, '④': ic[2], '⑤': ic.r });
+    const ramp = steelChars(sprite.pal ?? {}), to = { 1: '①', a: '②', A: '③', 2: '④' };
+    // Armures d'étoffe (tabard, robe) : le tissu du buste (devant la cape) prend aussi la couleur de l'objet.
+    const cloth = ['tunic', 'robe'].includes(itemBase(armor.baseId)?.sprite);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const ch = grid[y][x];
+      if (ch === '.') continue;
+      const [u, v] = head ? local(x, y) : [0, 99];
+      if (v < neck) continue;
+      if (ramp.has(ch)) grid[y][x] = to[ramp.get(ch)];
+      else if (ch === 'W') grid[y][x] = '⑤';
+      else if (cloth && u >= -4 && v <= neck + 16 && (ch === 'B' || ch === '4')) grid[y][x] = '②';
+      else if (cloth && u >= -4 && v <= neck + 16 && (ch === 'P' || ch === '5')) grid[y][x] = '③';
+    }
+  }
+  if (helmet && head) {
+    const gone = [];
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const ch = grid[y][x];
+      if (!'K84B5P'.includes(ch)) continue;
+      const [, v] = local(x, y);
+      // Plumet : K et 8 (couleurs du seul plumet) partout ; ses reflets et ombres (4, B, P, 5, couleurs de la cape)
+      // seulement au-dessus de la mâchoire d'une tête droite, là où la cape ne monte pas.
+      if ('K8'.includes(ch) || (v < neck - 3 && Math.abs(head[2]) <= 45)) { grid[y][x] = '.'; gone.push([x, y]); } // K, 8 : plumet seul
+    }
+    // Miettes isolées côté tête (au plus un voisin opaque) : retirées.
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      if (grid[y][x] === '.' || local(x, y)[1] >= neck) continue;
+      let k = 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if ((dx || dy) && grid[y + dy]?.[x + dx] && grid[y + dy][x + dx] !== '.') k++;
+      if (k <= 1) { grid[y][x] = '.'; gone.push([x, y]); }
+    }
+    // Contour sombre qui ne bordait que le plumet : effacé (2 passes autour des pixels retirés).
+    const dark = (ch) => ch === 'b' || ch === 'c';
+    for (let pass = 0; pass < 2; pass++) {
+      const drop = [];
+      for (const [gx, gy] of gone) for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const x = gx + dx, y = gy + dy;
+        if (x < 0 || y < 0 || x >= W || y >= H || !dark(grid[y][x])) continue;
+        let body = false;
+        for (const [ex, ey] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const c = grid[y + ey]?.[x + ex]; if (c && c !== '.' && !dark(c)) body = true; }
+        if (!body) drop.push([x, y]);
+      }
+      for (const [x, y] of drop) { grid[y][x] = '.'; gone.push([x, y]); }
+    }
+  }
+  const body = paint(grid.map((r) => r.join('')), pal);
+  const canvas = createCanvas(W + 2 * GEAR_MARGIN, H + 2 * GEAR_MARGIN);
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(body, GEAR_MARGIN, GEAR_MARGIN);
+  if (helmet && head) {
+    const hname = itemSpriteName(helmet), hdef = SPRITES[hname];
+    const himg = outlined(spriteCanvas(hname, { colors: { ...(heroColors(palette) ?? {}), ...itemColors(helmet) } }));
+    // Casque composé posé à (BODY_OFFSET.x, BODY_OFFSET.y + oy) au repos : sa prise est le pivot de la tête.
+    const grip = { x: pivot[0] - BODY_OFFSET.x, y: pivot[1] - BODY_OFFSET.y - (hdef.oy ?? 0) };
+    const deg = Math.round(head[2] ?? 0);
+    const rot = deg ? rotateFree(himg, grip, ((deg % 360) + 360) % 360) : { img: himg, grip };
+    if (rot) ctx.drawImage(rot.img, GEAR_MARGIN + head[0] - anim.ox - rot.grip.x, GEAR_MARGIN + head[1] - anim.oy - rot.grip.y);
+  }
+  out = { canvas, m: GEAR_MARGIN };
+  cache.set(key, out);
+  return out;
+}
+
 // v9.2.3 : arme VRAIMENT équipée (forme et couleurs de rareté) à poser sur une image d'animation PixelLab, dont
 // l'arme de génération a été effacée (tools/art/weapon_anchor.py). deg : angle horaire depuis « pointe en haut »
 // (rotation libre au plus proche voisin, comme les frappes composées). Renvoie { canvas, x, y } : la prise est en

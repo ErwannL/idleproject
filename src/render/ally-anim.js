@@ -4,6 +4,7 @@
 // Chaque animation porte son décalage (ox, oy) par rapport au sprite de jeu : pieds et cadre stables entre images.
 import { ALLY_ANIM_ART, ALLY_ANIM_PALS, ALLY_ANIMS } from './art-anim-allies.js';
 import { SPRITES, expandRow } from './sprites.js';
+import { KNIGHT_HEAD } from './knight-gear.js'; // v9.2.4 : tête suivie (casque porté)
 
 // Poids du bundle : une ligne vide ('') reprend la même ligne de l'image précédente de l'animation.
 export function decodeAllyFrames(art = ALLY_ANIM_ART) {
@@ -47,8 +48,17 @@ export function loopFrame(anim, t, rate = 1) {
   return anim.frames[Math.floor(t * anim.fps * rate) % anim.frames.length];
 }
 
-// v9.2.4 : chevalier (sans apparence) dont l'équipement visible diffère du chevalier des animations PixelLab.
+// v9.2.4 : chevalier (sans apparence) dont l'équipement visible (casque, armure) diffère du chevalier PixelLab : le
+// jeu pose cet équipement sur les images (pixel.js knightGearCanvas) au lieu de montrer le plumet et l'acier de base.
 export const heroWearsGear = (palette, equipment) => !palette?.skin && Boolean(equipment?.helmet || equipment?.armor);
+
+// v9.2.4 : tête du chevalier à l'image i d'une de ses animations : [x, y, angle] (coin du sprite de jeu), ou null.
+const KNIGHT_KEYS = new Map(Object.entries(ALLY_ANIMS.hero_knight ?? {}).map(([k, a]) => [a, k]));
+export const KNIGHT_PIVOT = KNIGHT_HEAD.pivot, KNIGHT_NECK = KNIGHT_HEAD.neck;
+export function knightHead(anim, i) {
+  const k = KNIGHT_KEYS.get(anim);
+  return k ? KNIGHT_HEAD.heads[k]?.[i] ?? null : null;
+}
 
 export const heroAnimKey = (palette) => `hero_${palette?.skin ?? 'knight'}`;
 
@@ -74,11 +84,8 @@ export function weaponPose(anim, i) {
 export function pickHeroAnim(o, mem) {
   const set = ALLY_ANIMS[heroAnimKey(o.palette)];
   if (!set || o.hurt > 0 || o.victory > 0) return null;
-  // v9.2.4 : le chevalier PixelLab porte le casque à plumet et l'armure de base. Avec un casque ou une armure
-  // équipés (casque à cornes, auréole…), il remplaçait l'allure du joueur pendant la marche et la frappe : le
-  // corps composé (équipement visible) est gardé dans toutes les poses, comme au repos.
-  if (heroWearsGear(o.palette, o.equipment)) return null;
-  const pick = (anim, i) => ({ name: anim.frames[i], ox: anim.ox, oy: anim.oy, weapon: weaponPose(anim, i) });
+  // v9.2.4 : head = tête suivie (chevalier seulement) pour y poser le casque porté (pixel.js knightGearCanvas).
+  const pick = (anim, i) => ({ name: anim.frames[i], ox: anim.ox, oy: anim.oy, weapon: weaponPose(anim, i), anim, head: knightHead(anim, i) });
   const atk = heroAttackAnim(o.palette, o.classId);
   const fire = o.shoot > 0 ? o.shoot / o.attackTime : o.aim > 0 ? o.aim / o.attackTime : o.cast > 0 && o.style === 'magic' ? o.cast / o.castTime : 0;
   if (atk && o.attack > 0 && o.style !== 'ranged' && o.style !== 'magic') {
