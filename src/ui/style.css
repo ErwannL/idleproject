@@ -2538,3 +2538,23 @@ img.ico16 { width: 16px; height: 16px; vertical-align: middle; }
 
 /* v9.2.2 : avertissement de la carte (voyage impossible pendant un donjon, la Tour ou le défi). */
 .notice.warn { margin: 6px 0; padding: 6px 8px; border: 1px solid #ff9a3a; border-radius: 6px; background: rgba(255, 140, 40, 0.14); color: #ffd2a8; font-size: 0.85em; }
+
+/* v9.2.3 : grilles de vignettes stables. Avant, `auto-fill` recalculait le nombre de colonnes dès que la largeur
+   bougeait de quelques pixels : ouvrir un repli plus bas (« Environnements des mondes ») faisait apparaître la barre
+   de défilement, et la grille des Mutations passait de 4 à 3 colonnes plus larges. Désormais : place de la barre
+   toujours réservée sur les panneaux qui défilent, et nombre de colonnes fixé par paliers de largeur du conteneur
+   (même échelle pour toutes les vignettes : Collections, compagnons, invocation, apparences). */
+#panel-body, #modal-card, .enc-list, .codex-list, .dungeon-list, .hero-roster, .search-list, .sheet.sheet-open { scrollbar-gutter: stable; }
+.enc-list { container-type: inline-size; }
+.enc-grid, .enc-grid.big, .pet-grid.pet-cards, .summon-results, .odds-units {
+  --thumb-cols: 3; grid-template-columns: repeat(var(--thumb-cols), minmax(0, 1fr)); }
+@container (min-width: 380px) { .enc-grid, .enc-grid.big, .pet-grid.pet-cards, .summon-results, .odds-units { --thumb-cols: 4; } }
+@container (min-width: 480px) { .enc-grid, .enc-grid.big, .pet-grid.pet-cards, .summon-results, .odds-units { --thumb-cols: 5; } }
+@container (min-width: 580px) { .enc-grid, .enc-grid.big, .pet-grid.pet-cards, .summon-results, .odds-units { --thumb-cols: 6; } }
+@container (min-width: 700px) { .enc-grid, .enc-grid.big, .pet-grid.pet-cards, .summon-results, .odds-units { --thumb-cols: 7; } }
+@container (min-width: 820px) { .enc-grid, .enc-grid.big, .pet-grid.pet-cards, .summon-results, .odds-units { --thumb-cols: 8; } }
+.enc-cell { min-width: 0; min-height: 84px; }
+.look-grid { --look-cols: 2; grid-template-columns: repeat(var(--look-cols), minmax(0, 1fr)); }
+@container (min-width: 480px) { .look-grid { --look-cols: 3; } }
+@container (min-width: 660px) { .look-grid { --look-cols: 4; } }
+@container (min-width: 840px) { .look-grid { --look-cols: 5; } }

@@ -160,15 +160,28 @@ function bossCard(state, id) {
       ${sig ? statRow('Objet ancestral', `<span class="rarity-text r-legendary">${escapeHtml(sig.name)}</span>`) : ''}</div></div>`;
 }
 
+// v9.2.3 : comment reconnaître chaque mutation en combat (retour joueur : la division passait pour un bug).
+const MUTATION_CUES = {
+  split: 'À sa mort, il se fend en deux petits doubles (40 % de ses PV chacun) et « Se divise ! » s\'affiche : ce n\'est pas un bug.',
+  regen: 'Des chiffres verts montrent les PV qu\'il regagne.',
+  armored: '« Bloqué » s\'affiche quand sa cuirasse absorbe un coup (tant qu\'il a plus de la moitié de ses PV).',
+  frenzied: 'Son aura rouge pulse vite et des braises jaillissent de lui.',
+  vampire: 'Un trait rouge relie le chevalier au monstre quand il vole de la vie.',
+  giant: 'Contour doré plus épais ; il avance lentement.',
+};
+function mutationCue(m) {
+  return `<div class="trait-box" style="--trait:${m.color}"><b>En combat :</b> <span>étiquette de sa couleur au-dessus de sa barre de vie, contour de la même couleur.</span> <span>${escapeHtml(MUTATION_CUES[m.id] ?? '')}</span></div>`;
+}
+
 function mutationCard(state, id) {
   const m = MUTATIONS.find((x) => x.id === id);
   const known = Boolean(state.codex.mutants[id]);
   const chance = mutationChance(state);
   const rule = `Chance qu'un monstre ordinaire soit muté : ${pct(chance * 100)} actuellement (${pct(MUTATION_RULES.chance * 100)} sans Transcendance, +${pct(MUTATION_RULES.chancePerTranscend * 100)} par Transcendance, ${pct(MUTATION_RULES.maxChance * 100)} au plus ; à partir du monde 2).`;
-  if (!known) return unknownCard(`Vainquez un monstre porteur de cette mutation. ${rule}`, mutantPic(m, false, 4));
+  if (!known) return unknownCard(`Vainquez un monstre porteur de cette mutation. ${rule}`, mutantPic(m, false, 4)).replace(/<\/div>$/, `${mutationCue(m)}</div>`);
   return `<div class="enc-card"><div class="enc-portrait">${mutantPic(m, true, 4)}</div>
     <div class="enc-title" style="color:${m.color}">${escapeHtml(m.name)}</div>
-    <p>Le monstre ${escapeHtml(m.text)}.</p>
+    <p>Le monstre ${escapeHtml(m.text)}.</p>${mutationCue(m)}
     <div class="enc-stats">${statRow('Vaincus', formatNumber(state.codex.mutants[id]))}${statRow('PV', `×${String(MUTATION_RULES.hpMultiplier).replace('.', ',')}`)}
       ${statRow('Or', `×${MUTATION_RULES.goldMultiplier}`)}${statRow('Butin', 'objet garanti')}</div>
     <p class="muted">${rule}</p></div>`;

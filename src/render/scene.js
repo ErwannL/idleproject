@@ -5,6 +5,7 @@ import { auraColors } from '../data/auras.js';
 import { BALANCE } from '../data/balance.js';
 import { drawTeamFx } from './team-fx.js';
 import { installClassFx } from './class-fx.js';
+import { installMutationFx } from './mutation-fx.js'; // v9.2.3 : ennemis mutés lisibles
 import { installTraversalFx } from './traversal-fx.js'; // v9.2.1 : déplacement propre à chaque monde
 import { armSwing, attackCurve, dissolveFrames, pickAnimFrame } from './enemy-anim.js';
 import { ENEMY_ANIMS } from './art-anim.js'; // v9.2.3 : bat, harpy, skeleton dessinés image par image
@@ -276,6 +277,7 @@ export class SceneRenderer {
     if (world.time - raw.time > STALE_EVENT_SECONDS) return;
     const event = raw.x === undefined ? raw : { ...raw, x: this.wx(raw.x) };
     const heroX = HERO_X;
+    this.mutationEvent(event, world); // v9.2.3 : apparition, division, « Bloqué », vol de vie des mutés
     switch (event.type) {
       case 'heroAttack': {
         this.hero.attack = ATTACK_TIME;
@@ -679,6 +681,7 @@ export class SceneRenderer {
     this.drawTravGround(ctx, this.smoothScroll(world), dt); // v9.2.1 : traces, nuages, surface du marais
     this.groundFx = [];
     this.drawEffects(ctx, dt);
+    this.drawMutationFx(ctx, dt); // v9.2.3
     ctx.restore();
     ctx.restore();
 
@@ -890,10 +893,9 @@ export class SceneRenderer {
           ctx.globalAlpha = fx.appear * pose.alpha;
         }
         if (mutation) {
-          // v9.0.4 : ennemi muté — contour de la couleur de sa mutation, pulsé (géant : un peu plus grand).
+          // v9.0.4 : ennemi muté — contour de la couleur de sa mutation ; v9.2.3 : plus épais et propre à chacune.
           const glow = spriteCanvas(drawn?.key ?? sprite, { colors, tint: { color: mutation.color, alpha: 1 } });
-          ctx.globalAlpha = fx.appear * (0.55 + 0.35 * Math.sin(this.time * 6 + enemy.id));
-          for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1]]) paint(glow, x + dx, y + dy);
+          this.drawMutationAura(ctx, enemy, mutation, glow, x, y, fx.appear * pose.alpha, paint, fx);
           ctx.globalAlpha = fx.appear * pose.alpha;
         }
         if (drawn) {
@@ -921,18 +923,8 @@ export class SceneRenderer {
         if (enemy.boss && !this.focus) this.shake = Math.max(this.shake, 2);
       }
       if (!atk) fx.smeared = false;
-      if (mutation) {
-        // Marqueur : losange de couleur au-dessus de la tête.
-        const mx = Math.round(exd);
-        const my = Math.round(y - 11 + Math.sin(this.time * 4 + enemy.id) * 1.5);
-        ctx.fillStyle = '#0c0d10';
-        ctx.fillRect(mx - 3, my - 1, 7, 3);
-        ctx.fillRect(mx - 1, my - 3, 3, 7);
-        ctx.fillStyle = mutation.color;
-        ctx.fillRect(mx - 2, my, 5, 1);
-        ctx.fillRect(mx, my - 2, 1, 5);
-        ctx.fillRect(mx - 1, my - 1, 3, 3);
-      }
+      // v9.2.3 : étiquette de la mutation (losange + nom) au-dessus de la barre de PV, à la place du seul losange.
+      if (mutation) this.drawMutationTag(ctx, enemy, mutation, Math.round(exd), y - 6, fx.appear * pose.alpha);
 
       if (enemy.boss) {
         // Aura pulsante et barre de vie large.
@@ -1850,5 +1842,6 @@ export class SceneRenderer {
 
 // Attaques de classe (render/class-fx.js).
 installClassFx(SceneRenderer.prototype, { HERO_X, ATTACK_TIME, CAST_TIME });
+installMutationFx(SceneRenderer.prototype, { HERO_X });
 installElementFx(SceneRenderer.prototype);
 installTraversalFx(SceneRenderer.prototype);
