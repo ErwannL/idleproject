@@ -35,6 +35,9 @@ import { drawHeroPick } from './hero-draw.js'; // v9.2.5 : arme tenue (poing sur
 import { HERO_ANCHOR, SWIM_AXIS, SWIM_BODY, drawBigText, heroAnimCanvas, heroBackWeapon, heroComposite, heroSwim, itemDropCanvas, knightGearCanvas, spriteCanvas, textWidth } from './pixel.js';
 import { ALLY_ANIMS, KNIGHT_NECK, KNIGHT_PIVOT, heroAnimKey, heroWearsGear, knightHead, loopFrame, pickAllyAnim, pickHeroAnim } from './ally-anim.js'; // v9.2.3 : alliés animés (PixelLab)
 import { itemBase } from '../core/loot.js';
+import { castHeroSkill, castUnitSkill, drawSkillFx, fxContext, heroGesture, unitGesture } from './skill-fx.js'; // v9.2.5 : gestes et effets de compétence
+import { companionSkillList } from '../data/companion-skills.js';
+import { COMPANION_ROLES } from '../data/synergies.js';
 
 // Vue resserrée : le chevalier (≈ 40 px) occupe un bon tiers de la hauteur de la scène.
 export const MIN_VIEW_HEIGHT = 96;
@@ -300,7 +303,9 @@ export class SceneRenderer {
         if (event.kind && event.kind !== 'slash') {
           // Tir et magie : pas d'élan d'épée (poses de tir / de sort à la place).
           if (['arrow', 'bolt', 'fireball', 'lightning', 'soul'].includes(event.kind)) this.hero.attack = 0;
-          this.classAttack(event);
+          // v9.2.5 : météore et pluie de flèches : geste du héros et effet synchronisé (skill-fx.js).
+          const special = event.special && castHeroSkill(this, this.skillKey, event.special, fxContext(this, world, { x: HERO_X + 4, y: this.groundY - 22 }, HERO_X));
+          this.classAttack(special ? { ...event, special: null } : event);
           break;
         }
         this.hero.dash = ATTACK_TIME;
@@ -325,10 +330,20 @@ export class SceneRenderer {
         }
         break;
       case 'skill':
+        // v9.2.5 : geste propre à la compétence et effet synchronisé (skill-fx.js) ; ancien effet en repli.
+        if (castHeroSkill(this, this.skillKey, event.skillId, fxContext(this, world, { x: HERO_X + 4, y: this.groundY - 22 }, HERO_X))) break;
         this.skillEffect(event);
         break;
       case 'companionSkill': {
         const companion = companionById(event.companionId);
+        // v9.2.5 : chaque compétence (ultime comprise) a son geste et son effet (skill-fx.js).
+        const known = companion && companionSkillList(companion, COMPANION_ROLES[companion.id] ?? 'pet')[event.skill];
+        if (known) {
+          const slot = this.layout?.slots.get(companion.id);
+          const sx = slot?.cx ?? heroX - 30;
+          castUnitSkill(this, companion, known.name, event.skillType ?? known.type, fxContext(this, world, { x: sx, y: this.groundY - 22 }, heroX));
+          break;
+        }
         if (companion?.kind === 'ally') {
           // v9.0.8 : geste propre au compagnon (saut d'attaque, tir, sort, soutien), l'effet part de sa place.
           this.allyGesture(companion, world, heroX, event.skillType);
@@ -674,6 +689,7 @@ export class SceneRenderer {
     // Réduire les animations (v9.1.0, réglage de l'appareil ou préférence du système ; ancien « mode concentration ») :
     // pas de secousses ni de particules d'ambiance, effets allégés.
     this.focus = Boolean(state.ui?.focus) || Boolean(this.calm);
+    this.skillKey = heroAnimKey(activeHero(state).palette); // v9.2.5 : gestes de compétence du héros
     if (this.focus) this.shake = 0;
     const zoneIndex = currentEncounter(state).zoneIndex;
     this.underwater = Boolean(ZONES[zoneIndex]?.underwater); // v9.2.0 (monde marin) : on nage
@@ -724,6 +740,7 @@ export class SceneRenderer {
     this.drawTravGround(ctx, this.smoothScroll(world), dt); // v9.2.1 : traces, nuages, surface du marais
     this.groundFx = [];
     this.drawEffects(ctx, dt);
+    drawSkillFx(this, ctx); // v9.2.5 : effets de compétence
     this.drawMutationFx(ctx, dt); // v9.2.3
     ctx.restore();
     ctx.restore();
@@ -1193,7 +1210,12 @@ export class SceneRenderer {
       // v9.2.1 : hauteur propre au monde (nuage, lévitation, enfoncé dans le marais) et effets aux pieds.
       lift = this.travLift(0);
       // v9.2.3 : marche et attaque dessinées image par image (PixelLab, ally-anim.js), arme en main.
-      const anim = pickHeroAnim({ palette, equipment: state.equipment, classId: activeClass(state).id, style, weapon: state.equipment.weapon && itemBase(state.equipment.weapon.baseId)?.sprite,
+      const sg = heroGesture(this); // v9.2.5 : geste de compétence (arme rangée dans le dos, sauf arc et bâton tenus)
+      if (sg) {
+        if (!['raise_staff', 'shoot_up'].includes(this.heroSkill.motif)) ctx.drawImage(heroBackWeapon(state.equipment), baseX, baseY - lift);
+        ctx.drawImage(heroAnimCanvas(sg.name, palette), baseX + sg.ox, baseY - lift + sg.oy);
+      }
+      const anim = sg ? null : pickHeroAnim({ palette, equipment: state.equipment, classId: activeClass(state).id, style, weapon: state.equipment.weapon && itemBase(state.equipment.weapon.baseId)?.sprite,
         // v9.2.4 : marche PixelLab seulement au pas (glissade, sauts de nuage : poses composées), sans clignoter entre
         // la marche dessinée et la pose de repos à chaque temps de glisse ; cadence du monde (rate).
         walking: frame.startsWith('walk'), walkRate: this.trav?.rate ?? 1,
@@ -1203,7 +1225,7 @@ export class SceneRenderer {
       // v9.2.5 : arme derrière ou devant selon la main, poing redessiné par-dessus la poignée (hero-draw.js).
       const hx = baseX + lean, hy = baseY - jump - lift;
       const held = anim ? drawHeroPick(ctx, anim, state.equipment, palette, hx, hy) : null;
-      if (!anim) ctx.drawImage(img, baseX + lean, baseY - jump - lift);
+      if (!anim && !sg) ctx.drawImage(img, baseX + lean, baseY - jump - lift);
       // v9.2.4 : frappe lancée en plein pas : la dernière image de marche (arme comprise) s'efface en 0,07 s
       // par-dessus la première image du geste, au lieu d'un saut de quelques pixels d'une image à l'autre.
       const kind = !anim ? 'pose' : anim.anim === ALLY_ANIMS[heroAnimKey(palette)]?.walk ? 'walk' : 'attack';
@@ -1379,7 +1401,7 @@ export class SceneRenderer {
     }
     // v9.2.3 : marche, geste et nage dessinés image par image (PixelLab) : placés depuis le sprite de repos.
     const a0 = this.allyAnims?.get(companion.id);
-    const pa = pickAllyAnim({ sprite: s, walking, swimming, gesture: a0 ? { kind: a0.kind, k: Math.min(1, (this.time - a0.start) / a0.max) } : null, time: this.time, seed: i * 0.37 });
+    const pa = unitGesture(this, companion.id) ?? pickAllyAnim({ sprite: s, walking, swimming, gesture: a0 ? { kind: a0.kind, k: Math.min(1, (this.time - a0.start) / a0.max) } : null, time: this.time, seed: i * 0.37 });
     if (pa) frame = s;
     const img = spriteCanvas(frame);
     const sc = SPRITES[frame]?.scale ?? 1;
@@ -1602,7 +1624,7 @@ export class SceneRenderer {
     if (this.underwater) { this.drawSwimPet(ctx, companion, img, x, flying, walking); return; } // v9.2.0 (nage)
     // v9.2.3 : familier animé image par image (PixelLab) : marche/vol en boucle, geste ; placé depuis le sprite de repos.
     const a0 = this.allyAnims?.get(companion.id);
-    const pa = pickAllyAnim({ sprite: companion.sprite, walking, swimming: false, always: true, time: this.time, seed: 0.5,
+    const pa = unitGesture(this, companion.id) ?? pickAllyAnim({ sprite: companion.sprite, walking, swimming: false, always: true, time: this.time, seed: 0.5,
       gesture: a0 ? { kind: a0.kind, k: Math.min(1, (this.time - a0.start) / a0.max) } : null });
     const petImg = (dx, dy) => (pa ? ctx.drawImage(spriteCanvas(pa.name), dx + pa.ox, dy + pa.oy) : ctx.drawImage(img, dx, dy));
     if (flying) {
