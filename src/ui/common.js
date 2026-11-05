@@ -153,7 +153,7 @@ export function hdArtUrl(unit, thumb = false) {
   const id = hdArtId(unit);
   if (!id) return null;
   if (HD_REAL.has(id)) return `assets/hd/real/${id}.png`;
-  // v9.2.4 : illustration pixel générée (≥ 1024 px) ; `thumb` = taille d'origine pour les vignettes.
+  // v9.2.4 : illustration pixel générée (v9.2.5 : ×3, ~700 px) ; `thumb` = taille d'origine pour les vignettes.
   if (HD_PX.has(id)) return thumb ? `assets/hd/px/thumb/${id}.webp` : `assets/hd/px/${id}.webp`;
   return `assets/hd/${id}.png`;
 }

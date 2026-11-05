@@ -168,8 +168,9 @@ export default {
     const n = list.filter((c) => !c.blocked).length;
     // v9.1.3 : « À récupérer » fondu dans Missions — la vue d'ensemble s'ouvre en fenêtre (touche N).
     // v9.2.5 : au survol (PC) la liste de ce qui sera récupéré, avec sa section ; ▾ l'ouvre dans le panneau (téléphone).
+    // v9.2.5 : libellé complet partout ; icône + nombre seulement quand la place manque (fit.css).
     const open = Boolean(ui.view.claimPeek);
-    return `${n ? `<span class="claim-peek"><button class="btn btn-gold small" data-action="claim-everything" aria-label="Tout récupérer (${n})">Tout<span class="lbl-long"> récupérer</span> (${n})</button><button class="btn small peek-toggle${open ? ' active' : ''}" data-action="claim-peek" aria-expanded="${open}" aria-label="Voir ce qui sera récupéré">${open ? '▴' : '▾'}</button>
+    return `${n ? `<span class="claim-peek"><button class="btn btn-gold small" data-action="claim-everything" aria-label="Tout récupérer (${n})"><span class="lbl-ico" aria-hidden="true">${img('icon_chest')}</span><span class="lbl-txt">Tout<span class="lbl-long"> récupérer</span></span> (${n})</button><button class="btn small peek-toggle${open ? ' active' : ''}" data-action="claim-peek" aria-expanded="${open}" aria-label="Voir ce qui sera récupéré">${open ? '▴' : '▾'}</button>
       <span class="peek-pop" role="tooltip"><b>Sera récupéré :</b>${claimPeekList(list)}</span></span>` : ''}<button class="btn small" data-action="open-claims" title="Tout ce qui est prêt, au même endroit (touche N)" aria-label="À récupérer">${img('icon_mail')}</button>`;
   },
   render(ui, state) {

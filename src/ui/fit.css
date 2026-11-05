@@ -6,7 +6,20 @@
   #panel h2 { flex: 0 1 auto; min-width: 4.5em; }
   #panel-extra { flex: 1 1 auto; justify-content: flex-end; overflow: visible; }
   #panel-extra .btn { padding: 4px 7px; font-size: 11px; white-space: nowrap; }
-  #panel-extra .lbl-long { display: none; }
+}
+/* v9.2.5 : « Tout récupérer » des Missions — libellé complet, jamais tronqué ni collé au bord du panneau : sur
+   téléphone l'en-tête réduit ses marges d'ornement et l'icône du panneau s'efface ; en dessous de 360 px de large
+   (ou en zoom fort), icône + nombre. Les boutons ne rétrécissent plus (plus de chevauchement). */
+.claim-peek .lbl-ico { display: none; }
+.claim-peek .lbl-ico img { width: 14px; height: 14px; vertical-align: -2px; }
+@media (max-width: 560px) {
+  html #panel header:has(.claim-peek) { padding-left: 12px; padding-right: 18px; }
+  #panel header:has(.claim-peek) #panel-icon { display: none; }
+  #panel header:has(.claim-peek) #panel-extra { flex: none; overflow: visible; }
+}
+@media (max-width: 359px) {
+  .claim-peek .lbl-txt { display: none; }
+  .claim-peek .lbl-ico { display: inline; }
 }
 
 /* Sous-onglets : icône et nom empilés (bilan TT : 20 px + nom dans 44 px) — les 4 tiennent sur 360 px. */
