@@ -1,3 +1,13 @@
+## Ascendrya v9.2.4 — Héros fidèle à son équipement, ennemis bien orientés, illustrations HD
+
+- Le héros ne redevient plus le chevalier de base quand il frappe : son vrai casque et son armure (forme et couleurs de rareté) suivent l'animation en marche, en attaque et à la nage ; l'arme reste dans la main sur chaque image.
+- Animations plus fluides : le décor et les ennemis n'avancent plus par à-coups (60 images/s réelles), cadence régulière des gestes du héros et des compagnons, transition douce entre marche et attaque.
+- Tous les ennemis font face au héros dans toutes leurs animations ; plus d'ancien sprite dessiné par-dessus le nouveau (mort, éclats, division).
+- Tailles logiques entre les ennemis (chauve-souris < gluant < araignée < loup < squelette < golem < ogre < dragon), aucun ennemi trop petit.
+- Souffles qui suivent la gueule et s'allongent ou raccourcissent selon la distance.
+- Morts dessinées pour 49 ennemis ordinaires ; les volants tués en l'air tombent au sol.
+- Illustrations HD pour les 40 héros, apparences, compagnons et familiers (invocation, bannière, apparences, fiches, site).
+
 ## Ascendrya v9.2.3 — Vraies animations pour tous les ennemis (PixelLab)
 
 - Tous les ennemis et boss des mondes 1 à 12 ont des animations dessinées image par image : marche ou vol avec de vrais battements d'ailes, attaque (on lève l'arme, on frappe, on revient en garde), nage dans le Royaume englouti, flottement des spectres.
