@@ -8,6 +8,10 @@
 - « Tout récupérer » montre ce qui sera récupéré et d'où ; pastilles chiffrées sur les onglets et sections concernés.
 - Grands écrans : l'interface tient exactement dans la fenêtre (plus de débordement à 1920×1080 et au-delà).
 - Site : bande-annonce filmée dans le vrai jeu.
+- Armes tenues penchées vers l'avant, poignée dans le poing ; plus d'arme devant le visage, même en frappe (héros et compagnons) ; le barbare garde sa hache dans ses compétences.
+- Ennemis : souffle qui part vraiment de la gueule, quadrupèdes posés au sol sur leurs quatre pattes, pas accordés à l'avance (plus de glissade), pose d'attente pour les ennemis bloqués dans la file.
+- Toutes les illustrations HD refaites dans le style de l'Archange et du Paladin d'azur.
+- Bouton « Tout récupérer » lisible à toutes les tailles d'écran.
 
 ## Ascendrya v9.2.4 — Héros fidèle à son équipement, ennemis bien orientés, illustrations HD
 
