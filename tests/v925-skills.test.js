@@ -89,3 +89,11 @@ test('image du geste : défile du début à la fin puis s\'arrête', () => {
   assert.equal(gestureFrame(g, 0.8).name, 'd');
   assert.equal(gestureFrame(g, 1), null);
 });
+
+test('v9.2.5 : geste du barbare — même hache qu\'en marche et en attaque (geste à épée remplacé)', async () => {
+  const F = await import('../src/render/skill-fx.js');
+  const { ALLY_ANIMS } = await import('../src/render/ally-anim.js');
+  for (const m of ['blade_dance', 'ground_smash']) assert.equal(F.unitSkillAnim('ally_barbarian', m), ALLY_ANIMS.ally_barbarian.attack);
+  assert.ok(F.unitSkillAnim('ally_barbarian', 'roar'));
+  assert.notEqual(F.unitSkillAnim('ally_mercenary', 'blade_dance'), ALLY_ANIMS.ally_mercenary.attack);
+});

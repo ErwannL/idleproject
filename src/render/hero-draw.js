@@ -8,6 +8,7 @@
 //      reposés après l'arme, la poignée passe donc dans la main au lieu d'être collée sur elle.
 import { heroAnimCanvas, heroHeldWeapon, knightGearCanvas } from './pixel.js';
 import { ALLY_ANIMS, KNIGHT_NECK, KNIGHT_PIVOT, heroWearsGear } from './ally-anim.js';
+import { itemBase } from '../core/loot.js'; // v9.2.5 : angle de port selon l'arme
 
 export const HAND_R = 2.3;
 const handCache = new Map();
@@ -79,6 +80,8 @@ export function snapGrip(body, key, gx, gy) {
   return out;
 }
 
+// v9.2.5 : angle de port (degrés horaires depuis « pointe en haut ») des armes tenues au repos et en marche.
+export const CARRY_TILT = { sword: 30, greatsword: 30, axe: 45, mace: 45, hammer: 50, dagger: 35, katar: 35, scythe: 45, whip: 30 };
 const WALKS = new Set(Object.values(ALLY_ANIMS).map((set) => set.walk).filter(Boolean));
 const isWalk = (anim) => WALKS.has(anim);
 const alphaOf = (c) => { try { return c.getContext('2d').getImageData(0, 0, c.width, c.height).data; } catch { return null; } };
@@ -100,8 +103,11 @@ export function faceRows(body) {
 // L'arme (posée en (ax, ay) dans le repère du corps) recouvre-t-elle au moins 3 pixels du visage ?
 const coverCache = new Map();
 function coversFace(body, held, ax, ay) {
-  const k = `${body.key}|${held.canvas.width}x${held.canvas.height}|${ax},${ay}|${held.x}`;
-  if (coverCache.has(k)) return coverCache.get(k);
+  const k = `${body.key}|${held.canvas.width}x${held.canvas.height}|${ax},${ay}|${held.x},${held.y}|${held.canvas.key ?? ''}`;
+  // v9.2.5 : la clé inclut la prise verticale ; l'objet arme sert aussi de clé (angle, forme)
+  const byHeld = coverCache.get(held) ?? new Map();
+  coverCache.set(held, byHeld);
+  if (byHeld.has(k)) return byHeld.get(k);
   const f = faceRows(body.canvas), wd = alphaOf(held.canvas);
   let n = 0;
   if (f.d && wd) for (let y = 0; y < held.canvas.height; y++) for (let x = 0; x < held.canvas.width; x++) {
@@ -110,16 +116,23 @@ function coversFace(body, held, ax, ay) {
     if (by < 0 || by >= f.top || bx < 0 || bx >= f.w) continue;
     if (f.d[(by * f.w + bx) * 4 + 3] > 100) n++;
   }
-  if (coverCache.size > 4000) coverCache.clear();
-  coverCache.set(k, n >= 3);
-  return n >= 3;
+  if (coverCache.size > 400) coverCache.clear();
+  byHeld.set(k, n >= 1); // v9.2.5 : un seul pixel suffit (contour compris)
+  return n >= 1;
 }
 
 // pick : résultat de ally-anim.js pickHeroAnim ({ name, anim, ox, oy, weapon, head }) ; (x, y) : coin du sprite de jeu.
 // opts.weapon = false : corps seul (contrôles de tête).
 export function drawHeroPick(ctx, pick, equipment, palette, x, y, opts = {}) {
   const wp = opts.weapon === false ? null : pick.weapon;
-  const held = wp && heroHeldWeapon(equipment, wp.deg);
+  // v9.2.5 : en marche et au repos (première et dernière image d'un geste), une lame tenue droite montait derrière
+  // le casque (casque à cornes : seule la garde restait visible, « épée posée en bas ») : lame portée vers le haut et
+  // l'avant (30°), devant le corps. Bâtons, arcs, lances, arbalètes restent droits.
+  const tilt = wp && !wp.back && CARRY_TILT[itemBase(equipment.weapon?.baseId)?.sprite];
+  const fi = pick.anim.frames.indexOf(pick.name);
+  const calm0 = pick.anim.frames.length && (fi === 0 || fi === pick.anim.frames.length - 1 || isWalk(pick.anim));
+  const deg = tilt && calm0 && (wp.deg <= 10 || wp.deg >= 350) ? tilt : wp?.deg;
+  const held = wp && heroHeldWeapon(equipment, deg);
   const body = bodyOf(pick, equipment, palette);
   const ox = pick.anim.ox - body.m, oy = pick.anim.oy - body.m; // repère du calque du corps
   const bx = x + ox, by = y + oy;
@@ -130,7 +143,9 @@ export function drawHeroPick(ctx, pick, equipment, palette, x, y, opts = {}) {
   // (hache, marteau tenus droits) passe derrière la tête et le corps ; le poing reste par-dessus la poignée.
   const i = pick.anim.frames.indexOf(pick.name);
   const calm = pick.anim.frames.length && (i === 0 || i === pick.anim.frames.length - 1 || isWalk(pick.anim));
-  const behind = wp.back || (calm && coversFace(body, held, gx - held.x, gy - held.y));
+  // v9.2.5 : contrôle étendu à toutes les images (frappes comprises) : jamais d'arme devant le visage.
+  void calm;
+  const behind = wp.back || coversFace(body, held, gx - held.x, gy - held.y);
   if (behind) ctx.drawImage(held.canvas, wx, wy);
   ctx.drawImage(body.canvas, bx, by);
   if (behind && !wp.back) {

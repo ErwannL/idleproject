@@ -205,3 +205,39 @@ test('v9.2.5 : gestes de compétence — jamais sans tête, casque porté prése
   if (process.env.DUMP) console.log([...new Set(fails)].join('\n'));
   assert.deepEqual(fails.slice(0, 20), [], `${fails.length} échecs`);
 });
+
+// v9.2.5 : « l'épée est bien ? » — en marche et en garde, la lame est portée vers le haut et l'avant, devant le corps
+// (casque à cornes compris) ; et aucune arme devant le visage, sur TOUTES les images d'attaque (frappes comprises).
+test('v9.2.5 : arme portée en marche (lame vers l\'avant, visible) et jamais sur le visage en attaque', () => {
+  const fails = [];
+  const set = A.ALLY_ANIMS[A.heroAnimKey(null)];
+  for (const cls of CLASSES) for (const wid of weaponsFor(cls)) for (const helmet of ['horned_helm', null]) {
+    const eq = { weapon: it(wid), helmet: it(helmet), armor: it('chainmail') };
+    for (const key of ['walk', `attack_${cls.id}`]) {
+      const anim = set[key];
+      anim.frames.forEach((name, i) => {
+        const pick = { name, anim, weapon: A.weaponPose(anim, i), head: A.knightHead(anim, i) };
+        const cv = new SoftCanvas(140, 120);
+        const r = D.drawHeroPick(cv.getContext('2d'), pick, eq, null, 30, 20);
+        if (!r) return;
+        const sprite = ITEM_BASES.find((b) => b.id === wid).sprite;
+        if (key === 'walk' && D.CARRY_TILT[sprite] && r.behind) fails.push(`${wid}/${helmet}/marche#${i} : arme cachée derrière`);
+        if (!r.behind) {
+          // pixels de l'arme posés sur le visage du corps
+          const body = new SoftCanvas(140, 120);
+          D.drawHeroPick(body.getContext('2d'), pick, eq, null, 30, 20, { weapon: false });
+          const f = D.faceRows(body);
+          const wx = 30 + r.gx - r.x, wy = 20 + r.gy - r.y;
+          let n = 0;
+          for (let y = 0; y < r.canvas.height; y++) for (let x = 0; x < r.canvas.width; x++) {
+            if (alpha(r.canvas, x, y) < 100) continue;
+            const X = wx + x, Y = wy + y;
+            if (Y < f.top && alpha(body, X, Y) > 100) n++;
+          }
+          if (n >= 3) fails.push(`${wid}/${helmet}/${key}#${i} : ${n} px sur le visage`);
+        }
+      });
+    }
+  }
+  assert.deepEqual(fails, []);
+});

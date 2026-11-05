@@ -85,11 +85,19 @@ export function castHeroSkill(scene, key, skill, ctxInfo) {
   return true;
 }
 
+// v9.2.5 : gestes PixelLab dont l'arme change de forme (le barbare y tient une épée au lieu de sa hache ; relevé sur
+// planches agrandies de tous les gestes) : le compagnon rejoue son attaque, même arme qu'en marche.
+export const WEAPON_SHAPE_SWAP = { ally_barbarian: ['blade_dance', 'ground_smash'] };
+export function unitSkillAnim(sprite, motif) {
+  if (WEAPON_SHAPE_SWAP[sprite]?.includes(motif) && ALLY_ANIMS[sprite]?.attack) return ALLY_ANIMS[sprite].attack;
+  return SKILL_ANIMS[sprite]?.[motif] ?? null;
+}
+
 // Compagnon (héros allié ou familier) : `name` = nom de la compétence lancée, `type` = son type.
 export function castUnitSkill(scene, companion, name, type, ctxInfo) {
   const entry = UNIT_SKILL_MOTIFS[companion.sprite]?.[name] ?? BY_TYPE[type] ?? BY_TYPE.hit;
   const [motif, fx] = entry;
-  const anim = scene.underwater ? null : SKILL_ANIMS[companion.sprite]?.[motif] ?? null;
+  const anim = scene.underwater ? null : unitSkillAnim(companion.sprite, motif);
   const dur = gestureTime(anim);
   (scene.unitSkills ??= new Map()).set(companion.id, { anim, start: scene.time, dur });
   run(scene, fx, { ...ctxInfo, release: dur * RELEASE_K, dur });
