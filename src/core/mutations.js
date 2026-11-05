@@ -41,7 +41,11 @@ export function maybeMutate(state, enemy, rng) {
     enemy.hp *= 3;
     enemy.maxHp *= 3;
     enemy.speed *= 0.7;
+    // v9.2.3 : dessiné ×1,6 (render/mutation-look.js) : il s'arrête plus loin, son corps touche le chevalier
+    // au lieu de le chevaucher, et ses coups partent de son bord avant.
+    if (enemy.range !== undefined) enemy.range += 6;
   }
+  if (m.id === 'split' && enemy.range !== undefined) enemy.range = Math.max(4, enemy.range - 2); // v9.2.3 : plus petit (×0,8)
   if (m.id === 'frenzied') {
     enemy.attackInterval /= 2;
     enemy.attackTimer /= 2;

@@ -10,6 +10,7 @@
 import { mutationById } from '../core/mutations.js';
 import { formatNumber } from '../core/format.js';
 import { t } from '../i18n/i18n.js';
+import { capeCanvas, mutatedCanvas } from './mutation-look.js';
 
 const FONT = '700 5px system-ui, "Noto Sans KR", "Malgun Gothic", sans-serif';
 const FONT_BIG = '800 6px system-ui, "Noto Sans KR", "Malgun Gothic", sans-serif';
@@ -77,7 +78,12 @@ export function installMutationFx(proto, { HERO_X }) {
           const m = mutationById('armored');
           const cx = fx.sx !== undefined ? fx.sx + fx.sw / 2 : event.x;
           this.mutFxList().push({ kind: 'word', text: 'Bloqué', x: cx - 6, y: (fx.sy ?? this.groundY - 20) + 4, color: m.color, life: 0.7, max: 0.7, rise: 8 });
-          if (!this.focus) this.burst(cx - 6, (fx.sy ?? this.groundY - 20) + (fx.sh ?? 16) / 2, '#e8f0ff', 3, 26);
+          if (!this.focus) {
+            // v9.2.3 : étincelles jaunes et blanches qui jaillissent de la cuirasse.
+            const sy = (fx.sy ?? this.groundY - 20) + (fx.sh ?? 16) / 2;
+            this.burst(cx - 6, sy, '#fff2a0', 6, 46);
+            this.burst(cx - 6, sy, '#ffffff', 4, 30);
+          }
           break;
         }
         case 'heroHit': {
@@ -98,21 +104,73 @@ export function installMutationFx(proto, { HERO_X }) {
 
     // Contour de la mutation (à la place de l'ancien liseré d'1 px) : 2 px, pulsé ; frénétique : rouge et rapide,
     // plus vif quand il prépare un coup ; géant : doré et plus épais.
-    drawMutationAura(ctx, enemy, m, glow, x, y, appear, paint, fx) {
+    // v9.2.3 : plus une surcouche propre à chaque mutation (apparence : mutation-look.js) :
+    // géant : pas lourds (secousse, poussière) ; vampirique : cape d'ombre ; frénétique : vapeur et yeux qui brillent ;
+    // régénérant : lueur verte qui pulse et feuilles ; scissipare : membrane qui ondule et bulles.
+    drawMutationAura(ctx, enemy, m, glow, x, y, appear, paint, fx, look = {}) {
       const frenzied = m.id === 'frenzied';
       const speed = frenzied ? 16 : 6;
       const pulse = this.focus ? 0.5 : 0.5 + 0.5 * Math.sin(this.time * speed + enemy.id);
       const hot = frenzied && (fx?.windup > 0 || fx?.lunge > 0) ? 0.25 : 0;
+      const sw = look.w ?? fx?.sw ?? 16, sh = look.h ?? fx?.sh ?? 16, scale = look.scale ?? 1;
+      if (m.id === 'vampire' && look.src) {
+        const cape = capeCanvas(look.src);
+        if (cape) {
+          const flap = this.focus ? 0 : Math.round(Math.sin(this.time * 5 + enemy.id) * scale);
+          ctx.globalAlpha = appear * 0.95;
+          paint(cape, x - cape.pad * scale + flap, y - cape.pad * scale);
+        }
+      }
+      if (m.id === 'split') {
+        // Membrane : contour qui ondule (décalages qui tournent), plus large que le corps.
+        ctx.globalAlpha = appear * 0.55;
+        const t = this.focus ? 0 : this.time * 7 + enemy.id;
+        for (let i = 0; i < 6; i++) {
+          const a = t + i * (Math.PI / 3);
+          paint(glow, x + Math.round(Math.cos(a) * 2), y + Math.round(Math.sin(a * 1.3) * 2));
+        }
+      }
+      if (m.id === 'regen') {
+        // Lueur verte qui pulse lentement (halo large).
+        const p = this.focus ? 0.5 : 0.5 + 0.5 * Math.sin(this.time * 3 + enemy.id);
+        ctx.globalAlpha = appear * (0.15 + 0.3 * p);
+        for (const [dx, dy] of [[-3, 0], [3, 0], [0, -3], [-2, -2], [2, -2], [-2, 2], [2, 2]]) paint(glow, x + dx, y + dy);
+      }
       ctx.globalAlpha = appear * Math.min(1, 0.75 + 0.25 * pulse + hot);
       for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]]) paint(glow, x + dx, y + dy);
       ctx.globalAlpha = appear * (0.25 + 0.3 * pulse + hot);
       const r = m.id === 'giant' ? 3 : 2;
       for (const [dx, dy] of [[-r, 0], [r, 0], [0, -r], [0, r]]) paint(glow, x + dx, y + dy);
-      // Frénétique : braises rouges qui jaillissent vite ; régénérant : petites croix vertes qui montent.
-      if (!this.focus && (this.frameNo + enemy.id) % (frenzied ? 4 : 14) === 0 && (frenzied || m.id === 'regen')) {
-        const px = x + Math.random() * (fx?.sw ?? 16);
-        const py = y + Math.random() * (fx?.sh ?? 16) * 0.6;
-        this.mutFxList().push({ kind: 'mote', x: px, y: py, color: frenzied ? '#ff3a2a' : m.color, cross: !frenzied, life: frenzied ? 0.35 : 0.8, max: frenzied ? 0.35 : 0.8, vy: frenzied ? -40 : -12 });
+      if (this.focus) return;
+      const tick = (n) => (this.frameNo + enemy.id) % n === 0;
+      if (frenzied) {
+        // Braises rouges qui jaillissent vite, vapeur qui monte de la tête, yeux qui brillent.
+        if (tick(4)) this.mutFxList().push({ kind: 'mote', x: x + Math.random() * sw, y: y + Math.random() * sh * 0.6, color: '#ff3a2a', life: 0.35, max: 0.35, vy: -40 });
+        if (tick(6)) this.mutFxList().push({ kind: 'steam', x: x + sw * (0.25 + Math.random() * 0.5), y: y + 2, life: 0.9, max: 0.9, vx: 6 + Math.random() * 6 });
+        const eyes = look.src ? mutatedCanvas(look.src, 'frenzied').eyes ?? [] : [];
+        ctx.globalAlpha = appear * (0.55 + 0.45 * pulse);
+        ctx.fillStyle = '#ffe14a';
+        for (const [ex, ey] of eyes) {
+          const px = x + (look.ox ?? 0) + ex * scale, py = y + (look.oy ?? 0) + ey * scale;
+          ctx.fillRect(Math.round(px - scale), Math.round(py - scale / 2), Math.max(2, Math.round(scale * 3)), Math.max(1, Math.round(scale * 2)));
+        }
+      } else if (m.id === 'regen') {
+        if (tick(10)) this.mutFxList().push({ kind: 'mote', x: x + Math.random() * sw, y: y + Math.random() * sh * 0.6, color: m.color, cross: true, life: 0.8, max: 0.8, vy: -12 });
+        if (tick(14)) this.mutFxList().push({ kind: 'leaf', x: x + Math.random() * sw, y: y + sh * 0.2, life: 1.2, max: 1.2, vx: 4 - Math.random() * 8 });
+      } else if (m.id === 'split') {
+        if (tick(9)) this.mutFxList().push({ kind: 'bubble', x: x + Math.random() * sw, y: y + sh * (0.4 + Math.random() * 0.5), life: 1, max: 1 });
+      } else if (m.id === 'vampire') {
+        if (tick(16)) this.mutFxList().push({ kind: 'mote', x: x + sw * (0.3 + Math.random() * 0.6), y: y + sh * 0.9, color: '#9a3ac8', life: 0.9, max: 0.9, vy: -10 });
+      } else if (m.id === 'giant' && look.moving) {
+        // Pas lourds : à chaque pas, petite secousse et poussière sous ses pieds.
+        const stepNo = Math.floor(this.time * 2.6 + enemy.id);
+        if (fx.giantStep !== stepNo) {
+          fx.giantStep = stepNo;
+          if (x < this.width - 10) {
+            this.shake = Math.max(this.shake, 1.5);
+            this.dust(x + sw * (stepNo % 2 ? 0.3 : 0.7), 3);
+          }
+        }
       }
     },
 
@@ -180,9 +238,9 @@ export function installMutationFx(proto, { HERO_X }) {
         } else if (e.kind === 'drain') {
           // Trait de vol de vie : du chevalier vers le vampire, avec trois gouttes qui filent.
           ctx.globalAlpha = Math.min(1, e.life / 0.25);
-          ctx.strokeStyle = e.color;
-          ctx.lineWidth = 1;
-          ctx.setLineDash([2, 2]);
+          ctx.strokeStyle = '#d0102a';
+          ctx.lineWidth = 2; // v9.2.3 : filet de sang plus épais, bien visible
+          ctx.setLineDash([3, 2]);
           ctx.lineDashOffset = -this.time * 30;
           ctx.beginPath();
           const mx = (e.x0 + e.x1) / 2;
@@ -200,6 +258,30 @@ export function installMutationFx(proto, { HERO_X }) {
               ctx.fillRect(Math.round(px) - 1, Math.round(py) - 1, 2, 2);
             }
           }
+        } else if (e.kind === 'steam') {
+          // v9.2.3 : vapeur du frénétique : petites bouffées grises qui montent et grossissent.
+          e.y -= 14 * dt; e.x += (e.vx ?? 0) * dt;
+          ctx.globalAlpha = 0.5 * (e.life / e.max);
+          ctx.fillStyle = '#e8d8d8';
+          const r = 1 + Math.round(k * 2);
+          ctx.fillRect(Math.round(e.x) - r, Math.round(e.y) - r, r * 2, r * 2);
+        } else if (e.kind === 'leaf') {
+          // v9.2.3 : feuille du régénérant qui descend en se balançant.
+          e.y += 10 * dt; e.x += Math.sin((e.max - e.life) * 6) * 12 * dt + (e.vx ?? 0) * dt;
+          ctx.globalAlpha = Math.min(1, e.life / 0.4);
+          ctx.fillStyle = '#5fe07a';
+          ctx.fillRect(Math.round(e.x), Math.round(e.y), 2, 1);
+          ctx.fillStyle = '#2f9a4a';
+          ctx.fillRect(Math.round(e.x) + 1, Math.round(e.y) + 1, 1, 1);
+        } else if (e.kind === 'bubble') {
+          // v9.2.3 : bulle verte du scissipare (anneau qui monte puis éclate).
+          e.y -= 9 * dt;
+          ctx.globalAlpha = 0.8 * Math.min(1, e.life / 0.3);
+          ctx.strokeStyle = '#a8ff9a';
+          ctx.lineWidth = 0.6;
+          ctx.beginPath();
+          ctx.arc(e.x, e.y, 1 + k * 1.5, 0, Math.PI * 2);
+          ctx.stroke();
         } else if (e.kind === 'mote') {
           e.y += (e.vy ?? -12) * dt;
           ctx.globalAlpha = e.life / e.max;

@@ -19,7 +19,10 @@ import {
 import { itemBase, itemStatValue, rarityById } from '../../core/loot.js';
 import { MUTATIONS, MUTATION_RULES, mutationChance } from '../../core/mutations.js';
 import { rewardText } from '../../core/rewards.js';
-import { itemIconUrl } from '../../render/pixel.js';
+import { itemIconUrl, spriteCanvas } from '../../render/pixel.js';
+import { SPRITES } from '../../render/sprites.js';
+import { sizeFactor } from '../../data/enemy-sizes.js';
+import { mutantPortraitUrl } from '../../render/mutation-look.js'; // v9.2.3
 import { animCanvas } from '../animator.js';
 import { AFFIXES } from '../../data/items.js';
 import { ENVIRONMENTS } from '../../data/environment.js'; // v9.2.1
@@ -75,10 +78,14 @@ function bossList(state, sel) {
 }
 
 // Un monstre représentatif de chaque mutation, cerné de la couleur de la mutation (comme en combat).
+// v9.2.3 : avec l'apparence réelle de la mutation (render/mutation-look.js : taille, couleurs, cape, yeux…).
 const MUTATION_LOOK = { split: 'slime', regen: 'mushroom_green', armored: 'skeleton_shield', frenzied: 'wolf', vampire: 'bat', giant: 'ogre' };
 function mutantPic(m, known, scale = 2) {
-  const sprite = ENEMIES[MUTATION_LOOK[m.id]]?.sprite ?? 'slime';
-  return known ? `<img class="px enc-mutant" style="--mut:${m.color}" src="${icon(sprite, scale)}" alt="">` : spritePic(sprite, false, scale);
+  const type = MUTATION_LOOK[m.id];
+  const sprite = ENEMIES[type]?.sprite ?? 'slime';
+  if (!known) return spritePic(sprite, false, scale);
+  const url = mutantPortraitUrl({ spriteCanvas, sizeFactor, SPRITES }, type, sprite, m, { scale: scale >= 4 ? 2 : 1, ghost: scale >= 4 });
+  return `<img class="px enc-mutant-real" src="${url}" alt="">`;
 }
 
 function mutationList(state, sel) {
@@ -162,12 +169,12 @@ function bossCard(state, id) {
 
 // v9.2.3 : comment reconnaître chaque mutation en combat (retour joueur : la division passait pour un bug).
 const MUTATION_CUES = {
-  split: 'À sa mort, il se fend en deux petits doubles (40 % de ses PV chacun) et « Se divise ! » s\'affiche : ce n\'est pas un bug.',
-  regen: 'Des chiffres verts montrent les PV qu\'il regagne.',
-  armored: '« Bloqué » s\'affiche quand sa cuirasse absorbe un coup (tant qu\'il a plus de la moitié de ses PV).',
-  frenzied: 'Son aura rouge pulse vite et des braises jaillissent de lui.',
-  vampire: 'Un trait rouge relie le chevalier au monstre quand il vole de la vie.',
-  giant: 'Contour doré plus épais ; il avance lentement.',
+  split: 'Plus petit, vert et translucide, sa membrane ondule. À sa mort, il se fend en deux petits doubles (40 % de ses PV chacun) et « Se divise ! » s\'affiche : ce n\'est pas un bug.',
+  regen: 'Une lueur verte pulse autour de lui et des feuilles tombent. Des chiffres verts montrent les PV qu\'il regagne.',
+  armored: 'Couvert de plaques d\'acier qui brillent. « Bloqué » s\'affiche quand sa cuirasse absorbe un coup (tant qu\'il a plus de la moitié de ses PV).',
+  frenzied: 'Teinté de rouge, les yeux brillants, il fume et bouge plus vite ; son aura pulse et des braises jaillissent de lui.',
+  vampire: 'Pâle et violet, drapé d\'une cape d\'ombre. Un filet rouge relie le chevalier au monstre quand il vole de la vie.',
+  giant: 'Une fois et demie plus grand que ses semblables, contour doré ; le sol tremble à chacun de ses pas lourds.',
 };
 function mutationCue(m) {
   return `<div class="trait-box" style="--trait:${m.color}"><b>En combat :</b> <span>étiquette de sa couleur au-dessus de sa barre de vie, contour de la même couleur.</span> <span>${escapeHtml(MUTATION_CUES[m.id] ?? '')}</span></div>`;

@@ -6,6 +6,7 @@ import { BALANCE } from '../data/balance.js';
 import { drawTeamFx } from './team-fx.js';
 import { installClassFx } from './class-fx.js';
 import { installMutationFx } from './mutation-fx.js'; // v9.2.3 : ennemis mutés lisibles
+import { MUTATION_PACE, SHEEN_STEPS, mutatedCanvas, mutationSize } from './mutation-look.js'; // v9.2.3 : apparence des mutations
 import { installTraversalFx } from './traversal-fx.js'; // v9.2.1 : déplacement propre à chaque monde
 import { armSwing, attackCurve, dissolveFrames, pickAnimFrame } from './enemy-anim.js';
 import { BREATH_START, CAST_RELEASE, drawBreath, drawOrbGlow, powerOf, powerPointsOf } from './enemy-fx.js'; // v9.2.3
@@ -797,13 +798,18 @@ export class SceneRenderer {
       const alpha = Math.min(1, world.alpha ?? 1);
       const ex = this.wx((enemy.prevX ?? enemy.x) + (enemy.x - (enemy.prevX ?? enemy.x)) * alpha);
 
-      const { def, sprite, base, scale, colors, heroLike, step } = this.enemyLook(enemy.type, enemy.boss, fx.lunge > 0, enemy.id * 0.37, moving,
-        enemy.rush && moving ? 2.2 : 1);
+      // v9.2.3 : apparence des mutations (mutation-look.js) : taille (géant ×1,6, scissipare plus petit), cadence.
+      const mutation = enemy.mutation ? mutationById(enemy.mutation) : null;
+      const mPace = this.focus ? 1 : MUTATION_PACE[enemy.mutation] ?? 1;
+      const { def, sprite, base, scale: lookScale, colors, heroLike, step } = this.enemyLook(enemy.type, enemy.boss, fx.lunge > 0, enemy.id * 0.37, moving,
+        (enemy.rush && moving ? 2.2 : 1) * mPace);
+      const scale = lookScale * mutationSize(enemy);
+      const mutLook = (c) => (mutation && !heroLike && fx.hit <= 0 ? mutatedCanvas(c, mutation.id, Math.floor(this.time * 5 + enemy.id) % (SHEEN_STEPS * 3)) : c);
       // Le Chevalier déchu utilise le corps du héros, retourné, avec une épée sombre.
       const img = heroLike
         ? heroComposite(fx.lunge > 0 ? 'attack' : moving ? ['walk1', 'walk2'][Math.floor(this.time * 6) % 2] : 'idle',
           { weapon: { baseId: 'fallen_blade', rarity: 'epic' } }, fx.hit > 0, 'b', colors, true)
-        : spriteCanvas(sprite, { colors, flash: fx.hit > 0 });
+        : mutLook(spriteCanvas(sprite, { colors, flash: fx.hit > 0 }));
       const w = img.width * scale;
       const h = img.height * scale;
       // Rebond synchronisé sur l'image de marche (1 px sur la 2e image), jamais pour les volants.
@@ -846,7 +852,7 @@ export class SceneRenderer {
       const anims = heroLike ? null : ENEMY_ANIMS[base];
       const drawn = pickAnimFrame(anims, {
         emerge: arrival.mode === 'burrow' && k < 1 ? pose.emerge : null, portal: arrival.mode === 'portal' && k < 1 ? Math.min(1, k / 0.85) : null,
-        atkP, flying, swimming: this.underwater && arrival.mode === 'swim', moving, time: this.time, phase: enemy.id * 0.7,
+        atkP, flying, swimming: this.underwater && arrival.mode === 'swim', moving, time: this.time * mPace, phase: enemy.id * 0.7,
       });
       if (drawn && (drawn.anim === anims.emerge || drawn.anim === anims.portal)) { pose.buried = 0; pose.dx = 0; pose.dy = 0; pose.alpha = 1; } // la sortie est dessinée
       const drawnPortal = drawn?.anim === anims?.portal;
@@ -892,7 +898,6 @@ export class SceneRenderer {
       const motion = def.flyHeight || heroLike || stepping || drawn ? { sx: 1, sy: 1, dy: 0, rot: 0 }
         : bodyMotion(sprite, this.time * (enemy.boss ? 0.75 : 1) + enemy.id * 0.61, moving, -1);
       if (attackK > 0) motion.dy += attackK * 2; // petit saut en frappant (le recul/élan horizontal existe déjà)
-      const mutation = enemy.mutation ? mutationById(enemy.mutation) : null;
       withMotion(ctx, x + w / 2, y + h, motion, () => {
         if (enemy.elite) {
           // Élite errante : halo rouge pulsant.
@@ -904,11 +909,11 @@ export class SceneRenderer {
         if (mutation) {
           // v9.0.4 : ennemi muté — contour de la couleur de sa mutation ; v9.2.3 : plus épais et propre à chacune.
           const glow = spriteCanvas(drawn?.key ?? sprite, { colors, tint: { color: mutation.color, alpha: 1 } });
-          this.drawMutationAura(ctx, enemy, mutation, glow, x, y, fx.appear * pose.alpha, paint, fx);
+          this.drawMutationAura(ctx, enemy, mutation, glow, x, y, fx.appear * pose.alpha, paint, fx, { src: drawn ? spriteCanvas(drawn.key, { colors }) : heroLike ? img : spriteCanvas(sprite, { colors }), scale, moving, w, h, ox: drawn ? drawn.anim.ox * scale : 0, oy: drawn ? drawn.anim.oy * scale : 0 });
           ctx.globalAlpha = fx.appear * pose.alpha;
         }
         if (drawn) {
-          paint(spriteCanvas(drawn.key, { colors, flash: fx.hit > 0 }), x, y + (fx.squash > 0.07 ? 1 : 0)); // v9.2.3
+          paint(mutLook(spriteCanvas(drawn.key, { colors, flash: fx.hit > 0 })), x, y + (fx.squash > 0.07 ? 1 : 0)); // v9.2.3
         } else if (fx.squash > 0) {
           // Écrasement à l'impact (ancré aux pieds) : plus large et plus bas, très bref.
           // v9.1.9 : pixel-perfect : plus d'étirement non entier, le corps s'affaisse d'1 px puis revient.
