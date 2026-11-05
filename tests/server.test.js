@@ -563,3 +563,18 @@ test('connexions réussies sans limite ; seuls les échecs comptent', async (t) 
 test("libellé d'étape du serveur identique à celui du jeu (classement, admin)", () => {
   for (let stage = 1; stage <= 3000; stage += 1) assert.equal(stageLabel(stage), gameStageLabel(stage), `étape ${stage}`);
 });
+
+test('connexions réussies sans limite ; seuls les échecs comptent', async (t) => {
+  const s = await setup({ adminPasswordHash: await hashPassword('mot-de-passe-admin') });
+  t.after(() => s.close());
+  const base = s.url();
+  await call(base, 'POST', '/api/register', { pseudo: 'Fidele', password: 'motdepasse1' });
+  for (let i = 0; i < LIMITS.authAttempts.max + 3; i += 1) {
+    assert.equal((await call(base, 'POST', '/api/login', { pseudo: 'Fidele', password: 'motdepasse1' })).status, 200);
+  }
+  for (let i = 0; i < LIMITS.authAttempts.max; i += 1) {
+    await call(base, 'POST', '/api/admin/login', { username: 'erwann', password: 'faux-mdp-xxxx' });
+  }
+  assert.equal((await call(base, 'POST', '/api/admin/login', { username: 'erwann', password: 'faux-mdp-xxxx' })).status, 429);
+  assert.equal((await call(base, 'POST', '/api/login', { pseudo: 'Fidele', password: 'motdepasse1' })).status, 200);
+});

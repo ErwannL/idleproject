@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>Bande-annonce</title>
+<style>html,body{margin:0;background:#000}canvas{display:block;width:100vw;image-rendering:pixelated}</style>
+</head><body><canvas id="c" width="1280" height="720"></canvas>
+<script type="module">
+// Bande-annonce du site : l'équipe traverse les mondes, affronte ennemis et boss.
+// Enregistrée par tools/record-trailer.mjs → site/assets/trailer.webm. ?t=12.5 fige l'image à 12,5 s.
+import { BG } from '/src/render/bg.js';
+
+const W = 1280, H = 720, S = 3;               // échelle pixel art
+const LW = W / S, LH = H / S, GROUND = 200;   // monde logique 427×240
+const SCENE = 4.2;                            // durée d'une scène (s)
+const SCENES = [
+  { world: 'plains', party: ['hero', 'ally_squire', 'ally_elf_archer', 'pet_slime'], foes: ['slime_blue', 'goblin', 'mushroom'] },
+  { world: 'forest', party: ['skin_ninja', 'ally_ranger', 'ally_sylvan_guardian', 'pet_fairy'], foes: ['wolf', 'boar'], boss: 'mini_treant' },
+  { world: 'desert', party: ['skin_valkyrie', 'ally_lancer', 'ally_priestess', 'pet_cat'], foes: ['scorpion', 'mummy'] , boss: 'mini_pharaoh' },
+  { world: 'mountains', party: ['hero', 'ally_azure_paladin', 'ally_dwarf', 'pet_owl'], foes: ['wolf_ice', 'yeti'], boss: 'boss_frost_wyrm' },
+  { world: 'swamp', party: ['skin_witch', 'ally_witch', 'ally_rose_blade', 'pet_wisp'], foes: ['toad', 'bog_zombie', 'leech_fly'] },
+  { world: 'volcano', party: ['skin_grombar', 'ally_pyromancer', 'ally_barbarian', 'pet_golem'], foes: ['magma_slime', 'salamander'], boss: 'boss_ash_dragon' },
+  { world: 'sky', party: ['skin_seraph', 'ally_archangel', 'ally_high_priest', 'pet_fairy'], foes: ['harpy', 'cloud_spirit'], boss: 'boss_sky_titan' },
+  { world: 'void', party: ['skin_demoness', 'ally_shadow_lord', 'ally_demon_queen', 'pet_wisp'], foes: ['voidling', 'void_eye'], boss: 'boss_void_emperor' },
+];
+const TOTAL = SCENES.length * SCENE;
+
+const img = new Map();
+const load = (path) => new Promise((ok) => {
+  const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = path;
+}).then((i) => img.set(path, i));
+const sp = (name) => img.get(`/assets/sprites/${name}.png`);
+
+// Images d'animation d'un membre de l'équipe : héros/skins (walk1-4, attack1-3), alliés (_w1/_w2 ou _f1/_f2).
+function frames(name) {
+  if (name === 'hero' || name.startsWith('skin_')) {
+    return { walk: [1, 2, 3, 4].map((n) => `${name}_walk${n}`), atk: [1, 2, 3].map((n) => `${name}_attack${n}`) };
+  }
+  if (name.startsWith('pet_')) return { walk: [name], atk: [name] };
+  const w = [`${name}_w1`, `${name}_w2`], f = [`${name}_f1`, `${name}_f2`];
+  return { walk: [name, ...w, ...f], atk: [`${name}_atk`, name] };
+}
+
+async function preload() {
+  const names = new Set(['coin', 'fx_slash1', 'fx_slash2', 'fx_slash3', 'fx_slash_crit', 'fx_hit', 'fx_burst', 'fx_fireball1', 'fx_arrow', 'fx_spark']);
+  for (const s of SCENES) {
+    for (const p of s.party) { const f = frames(p); f.walk.concat(f.atk).forEach((n) => names.add(n)); }
+    for (const e of [...s.foes, s.boss].filter(Boolean)) { names.add(e); names.add(`${e}_b`); names.add(`${e}_atk`); }
+  }
+  const jobs = [...names].map((n) => load(`/assets/sprites/${n}.png`));
+  for (const s of SCENES) for (const l of BG[s.world].layers) jobs.push(load(`/assets/bg/${l.file}`));
+  await Promise.all(jobs);
+}
+const pick = (list) => list.map(sp).filter(Boolean);
+
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+function drawWorld(world, camX, front) {
+  const bg = BG[world];
+  if (!front) {
+    const g = ctx.createLinearGradient(0, 0, 0, GROUND);
+    bg.sky.forEach((c, i) => g.addColorStop(i / (bg.sky.length - 1), c));
+    ctx.fillStyle = g; ctx.fillRect(0, 0, LW, LH);
+    ctx.fillStyle = bg.ground; ctx.fillRect(0, GROUND, LW, LH - GROUND);
+  }
+  for (const l of bg.layers) {
+    if (!!l.front !== front) continue;
+    const im = img.get(`/assets/bg/${l.file}`);
+    if (!im) continue;
+    const y = l.anchor === 'top' ? l.y : GROUND + l.y;
+    let x = -((camX * l.factor + (l.drift || 0) * camX * 0.02) % im.width);
+    if (x > 0) x -= im.width;
+    for (; x < LW; x += im.width) ctx.drawImage(im, Math.round(x), Math.round(y));
+  }
+}
+
+// Pseudo-aléatoire stable : la vidéo est identique d'un rendu à l'autre.
+const rnd = (n) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+
+function drawSprite(im, x, y, { flip = false, scale = 1, alpha = 1, flash = 0 } = {}) {
+  if (!im) return;
+  const w = im.width * scale, h = im.height * scale;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(Math.round(x), Math.round(y));
+  if (flip) ctx.scale(-1, 1);
+  ctx.drawImage(im, -w / 2, -h, w, h);
+  if (flash) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = alpha * flash; ctx.drawImage(im, -w / 2, -h, w, h); }
+  ctx.restore();
+}
+
+function text(str, x, y, size, fill, alpha = 1) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.font = `${size}px 'Press Start 2P', monospace`;
+  ctx.textAlign = 'center';
+  ctx.lineWidth = Math.max(2, size / 3); ctx.strokeStyle = '#1a0d00'; ctx.lineJoin = 'round';
+  ctx.strokeText(str, x, y); ctx.fillStyle = fill; ctx.fillText(str, x, y);
+  ctx.restore();
+}
+
+// Une scène : l'équipe avance, une vague d'ennemis arrive et tombe sous les coups, puis le boss.
+function drawScene(i, t) {
+  const s = SCENES[i];
+  const cam = t * 34 + i * 900;
+  drawWorld(s.world, cam, false);
+
+  // Équipe : marche puis combat
+  const fighting = t > 1.1;
+  const baseX = 140;
+  const order = [...s.party].reverse();
+  order.forEach((name, k) => {
+    const idx = s.party.length - 1 - k;
+    const f = frames(name);
+    const walk = pick(f.walk), atk = pick(f.atk);
+    const pet = name.startsWith('pet_');
+    const x = baseX - idx * 30 - (pet ? 4 : 0);
+    const bob = pet ? Math.sin(t * 6 + idx) * 3 - 10 : 0;
+    const phase = Math.floor(t * 8 + idx * 2);
+    const attacking = fighting && !pet && Math.floor(t * 3 + idx) % 2 === 0;
+    const set = attacking && atk.length ? atk : walk;
+    drawSprite(set[phase % set.length], x, GROUND + 4 + bob, { scale: pet ? 1.3 : 1 });
+  });
+
+  // Ennemis : chacun approche, prend des coups, disparaît
+  const foes = s.foes.map((n, k) => ({ n, k, born: 0.4 + k * 0.9, boss: false }));
+  if (s.boss) foes.push({ n: s.boss, k: 9, born: 2.2, boss: true });
+  for (const e of foes) {
+    const life = t - e.born;
+    if (life < 0) continue;
+    const dieAt = e.boss ? 99 : 1.5;
+    if (life > dieAt + 0.5) continue;
+    const scale = e.boss ? 1.6 : 1.15;
+    const stopX = e.boss ? 330 : 205 + e.k * 30;
+    const x = Math.max(stopX, LW + 40 - life * 230);
+    const arrived = x <= stopX + 0.5;
+    const hitT = (life * 4) % 1;
+    const dying = life > dieAt;
+    const frame = sp(Math.floor(life * 6) % 2 ? `${e.n}_b` : e.n) || sp(e.n);
+    drawSprite(arrived && hitT < 0.3 && sp(`${e.n}_atk`) && e.boss ? sp(`${e.n}_atk`) : frame,
+      x + (arrived && hitT < 0.15 ? 3 : 0), GROUND + 4 - (dying ? (life - dieAt) * 30 : 0) + (e.boss ? 0 : 0),
+      { flip: true, scale, alpha: dying ? 1 - (life - dieAt) * 2 : 1, flash: arrived && hitT < 0.15 ? 0.8 : 0 });
+
+    if (arrived && !dying) {
+      // Impacts et dégâts
+      const fx = ['fx_slash1', 'fx_slash2', 'fx_slash3', 'fx_hit'];
+      const n = Math.floor(life * 4);
+      const crit = rnd(n + e.k * 7 + i * 31) > 0.7;
+      if (hitT < 0.35) drawSprite(sp(crit ? 'fx_slash_crit' : fx[n % fx.length]), x - 4, GROUND - 14, { scale: e.boss ? 1.8 : 1.2, alpha: 1 - hitT * 2.5 });
+      for (let d = 0; d < 3; d++) {
+        const m = n - d; if (m < 0) continue;
+        const age = (life * 4 - m) / 4;
+        if (age > 0.75) continue;
+        const c = rnd(m + e.k * 7 + i * 31) > 0.7;
+        const base = (e.boss ? 48000 : 1200) * (1 + i * 1.7);
+        const dmg = Math.round(base * (0.6 + rnd(m * 3.1 + i) * 0.8) * (c ? 3 : 1));
+        const fmt = dmg >= 1e6 ? `${(dmg / 1e6).toFixed(1)}M` : dmg >= 1e3 ? `${(dmg / 1e3).toFixed(1)}K` : `${dmg}`;
+        text(c ? `${fmt}!` : fmt, x + (rnd(m * 1.7 + e.k) - 0.5) * 50, GROUND - (e.boss ? 125 : 55) - age * 70, c ? 12 : 9, c ? '#ffd23f' : '#ffffff', 1 - age / 0.75);
+      }
+      // Barre de vie du boss
+      if (e.boss) {
+        const hp = Math.max(0.04, 1 - life / 2.2);
+        const by = GROUND - 150, bx = Math.round(x) - 40;
+        ctx.fillStyle = '#1a0d00'; ctx.fillRect(bx - 2, by - 2, 84, 8);
+        ctx.fillStyle = '#5a0f1a'; ctx.fillRect(bx, by, 80, 4);
+        ctx.fillStyle = '#ff4060'; ctx.fillRect(bx, by, 80 * hp, 4);
+        text('BOSS', bx + 40, by - 5, 7, '#ff8090');
+      }
+    }
+    // Pièces au moment de la défaite
+    if (dying) {
+      for (let c = 0; c < 6; c++) {
+        const a = life - dieAt;
+        const vx = (rnd(c + e.k) - 0.3) * 120, vy = -90 - rnd(c * 2 + e.k) * 60;
+        drawSprite(sp('coin'), x + vx * a, GROUND - 10 + vy * a + 260 * a * a, { alpha: 1 - a * 2 });
+      }
+    }
+  }
+  drawWorld(s.world, cam, true);
+}
+
+function render(time) {
+  const t = ((time % TOTAL) + TOTAL) % TOTAL;
+  const i = Math.floor(t / SCENE), local = t - i * SCENE;
+  ctx.setTransform(S, 0, 0, S, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  drawScene(i, local);
+  // Fondu au noir entre deux mondes
+  const edge = Math.min(local, SCENE - local);
+  if (edge < 0.25) { ctx.fillStyle = `rgba(5,8,18,${1 - edge / 0.25})`; ctx.fillRect(0, 0, LW, LH); }
+  // Vignette douce
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const v = ctx.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, H * 0.95);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.45)');
+  ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+}
+
+// Une boucle complète, image par image (30 i/s), envoyée à tools/record-trailer.mjs pour l'encodage.
+async function record() {
+  const jpeg = () => new Promise((ok) => cv.toBlob(ok, 'image/jpeg', 0.92));
+  render(7.6);
+  await fetch('/save/trailer-poster.jpg', { method: 'POST', body: await jpeg() });
+  await fetch('/video/start', { method: 'POST' });
+  for (let f = 0; f < TOTAL * 30; f++) {
+    render(f / 30);
+    await fetch('/video/frame', { method: 'POST', body: await jpeg() });
+    document.title = `${f}`;
+  }
+  await fetch('/video/end', { method: 'POST' });
+  window.RECORDED = true;
+}
+
+await document.fonts.load("12px 'Press Start 2P'").catch(() => {});
+await preload();
+const fixed = new URLSearchParams(location.search).get('t');
+window.TRAILER = { TOTAL, render };
+if (fixed !== null) render(Number(fixed));
+else if (new URLSearchParams(location.search).has('record')) record();
+else { const t0 = performance.now(); const loop = () => { render((performance.now() - t0) / 1000); requestAnimationFrame(loop); }; loop(); }
+window.READY = true;
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</body></html>
