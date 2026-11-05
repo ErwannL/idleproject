@@ -838,6 +838,8 @@ export class SceneRenderer {
       const enemy = world.enemies[i];
       const fx = this.enemyFxFor(enemy.id);
       fx.appear = Math.min(1, fx.appear + dt * 5);
+      // v9.2.5 : double de scissipare caché tant que sa moitié est en l'air (mutation-fx.js), visible d'un coup à l'atterrissage.
+      if (fx.hold > 0) { fx.hold -= dt; fx.appear = fx.hold > 0 ? 0 : 1; }
       fx.hit = Math.max(0, fx.hit - dt);
       fx.hurt = Math.max(0, (fx.hurt ?? 0) - dt);
       fx.lunge = Math.max(0, fx.lunge - dt);
@@ -855,8 +857,6 @@ export class SceneRenderer {
       const { def, sprite, base, scale: lookScale, colors, heroLike, step } = this.enemyLook(enemy.type, enemy.boss, fx.lunge > 0, enemy.id * 0.37, moving,
         (enemy.rush && moving ? 2.2 : 1) * mPace);
       const scale = lookScale * mutationSize(enemy);
-      // v9.2.5 : double de scissipare caché tant que sa moitié est en l'air (mutation-fx.js), visible d'un coup à l'atterrissage.
-      if (fx.hold > 0) { fx.hold -= dt; fx.appear = fx.hold > 0 ? 0 : 1; }
       const mutLook = (c) => (mutation && !heroLike && fx.hit <= 0 ? mutatedCanvas(c, mutation.id, Math.floor(this.time * 5 + enemy.id) % (SHEEN_STEPS * 3)) : c);
       // Le Chevalier déchu utilise le corps du héros, retourné, avec une épée sombre.
       const img = heroLike
@@ -909,6 +909,15 @@ export class SceneRenderer {
       });
       if (drawn && (drawn.anim === anims.emerge || drawn.anim === anims.portal)) { pose.buried = 0; pose.dx = 0; pose.dy = 0; pose.alpha = 1; } // la sortie est dessinée
       const drawnPortal = drawn?.anim === anims?.portal;
+      // v9.2.5 : images dessinées recalées sur le sprite de base (pieds sur le sol, centre stable : enemy-anchor.js),
+      // sauf en vol et à la nage (hauteur voulue).
+      const baseBox = heroLike ? null : boxOf(spriteCanvas(base, { colors }));
+      let dox = 0, doy = 0;
+      if (drawn) {
+        const name = Object.keys(anims).find((n) => anims[n] === drawn.anim);
+        ({ ox: dox, oy: doy } = anchorOffset(baseBox, animBoxes(drawn.anim, (key) => spriteCanvas(key, { colors })), drawn.anim.frames.indexOf(drawn.key), name, drawn.anim,
+          !flying && !def.flyHeight && !(this.underwater && arrival.mode === 'swim')));
+      }
       const rig = flying && arrival.style === 'wings' && !drawn ? wingRig(sprite) : null;
       const wp = rig ? wingPose(this.time, enemy.id * 0.7, this.focus) : 0;
       // v9.2.3 : un flottement dessiné (`float`) garde l'ondulation procédurale par-dessus (balancement, traîne).
@@ -926,15 +935,6 @@ export class SceneRenderer {
       };
       if (k >= 1 && !fx.landed) {
         fx.landed = true;
-      // v9.2.5 : images dessinées recalées sur le sprite de base (pieds sur le sol, centre stable : enemy-anchor.js),
-      // sauf en vol et à la nage (hauteur voulue).
-      const baseBox = heroLike ? null : boxOf(spriteCanvas(base, { colors }));
-      let dox = 0, doy = 0;
-      if (drawn) {
-        const name = Object.keys(anims).find((n) => anims[n] === drawn.anim);
-        ({ ox: dox, oy: doy } = anchorOffset(baseBox, animBoxes(drawn.anim, (key) => spriteCanvas(key, { colors })), drawn.anim.frames.indexOf(drawn.key), name, drawn.anim,
-          !flying && !def.flyHeight && !(this.underwater && arrival.mode === 'swim')));
-      }
         if (enemy.boss && !this.focus && arrival.mode !== 'walk' && !def.flyHeight && !this.underwater) {
           this.shake = Math.max(this.shake, 3); this.dust(ex - 10, 4); this.dust(ex + 10, 4); this.burst(ex, this.groundY - 4, '#e8d8b0', 10, 40);
         }
@@ -1000,6 +1000,8 @@ export class SceneRenderer {
           // v9.2.2 : ondulation bien plus ample pendant l'arrivée (corps et queue).
           swimDraw(ctx, img, x, y, w, h, { time: this.time, phase: enemy.id * 0.9, amp: (def.swim === 'eel' ? 2 : 1.5) * (1 + 2.5 * pose.wave), mode: def.swim, focus: this.focus, body: pose.wave });
         } else paint(img, x, y);
+        // v9.2.5 : fente du Scissipare, par-dessus le corps (mutation-fx.js).
+        if (mutation?.id === 'split' && !heroLike) this.drawSplitSeam(ctx, enemy, { src: drawn ? spriteCanvas(drawn.key, { colors }) : img, x, y, scale, ox: drawn ? dox * scale : 0, oy: drawn ? doy * scale : 0 }, fx.appear * pose.alpha);
       });
       if (clipped) ctx.restore();
       // v9.2.3 : pouvoir de l'ennemi (src/render/enemy-fx.js) : l'orbe du bâton brille à la préparation, le sort part
@@ -1017,8 +1019,6 @@ export class SceneRenderer {
             fx.cast = true;
             this.projectile(CAST_ORB[power.orb] ?? ['fx_spark'], tx, ty, HERO_X + 8, G - 20, 0.12, { trail: [power.colors[1]] });
             this.later(0.12, () => this.burst(HERO_X + 8, G - 20, power.colors[1], 8, 34));
-        // v9.2.5 : fente du Scissipare, par-dessus le corps (mutation-fx.js).
-        if (mutation?.id === 'split' && !heroLike) this.drawSplitSeam(ctx, enemy, { src: drawn ? spriteCanvas(drawn.key, { colors }) : img, x, y, scale, ox: drawn ? dox * scale : 0, oy: drawn ? doy * scale : 0 }, fx.appear * pose.alpha);
           }
         } else if (pts && power.kind === 'breath' && atkP >= BREATH_START && !fx.breathed) {
           fx.breathed = true;
