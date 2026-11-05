@@ -43,3 +43,9 @@
 .enc-tab span, .enc-tab small { min-width: 0; overflow-wrap: anywhere; }
 .enc-tab small { grid-column: 2; white-space: nowrap; }
 .enc-tab .mini-bar { grid-column: 1 / -1; }
+
+/* v9.2.5 : taille « Auto » (zoom CSS 125 % ou 150 % sur grand écran) — l'application tient dans la fenêtre, sans
+   défilement : 100vw / 100vh sont déjà agrandis par le zoom, on les divise. */
+html, body { overflow-x: hidden; }
+#app { width: calc(100vw / var(--ui-zoom, 1)); height: calc(100vh / var(--ui-zoom, 1)); }
+@supports (height: 100dvh) { #app { height: calc(100dvh / var(--ui-zoom, 1)); } }

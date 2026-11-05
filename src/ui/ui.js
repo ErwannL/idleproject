@@ -379,7 +379,11 @@ export class UI {
     if (zoom === this.uiZoom) return;
     this.uiZoom = zoom;
     if (window.desktop?.setZoom) window.desktop.setZoom(zoom);
-    else document.documentElement.style.zoom = zoom === 1 ? '' : String(zoom);
+    else {
+      document.documentElement.style.zoom = zoom === 1 ? '' : String(zoom);
+      // v9.2.5 : sous zoom CSS, 100vw / 100vh sont multipliés par le zoom (scène 2291 px pour 1920) : #app s'y divise.
+      document.documentElement.style.setProperty('--ui-zoom', String(zoom));
+    }
   }
 
   setDevicePref(name, value) {
