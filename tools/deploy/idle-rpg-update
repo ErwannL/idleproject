@@ -1,0 +1,55 @@
+#!/bin/sh
+# Mise à jour automatique du serveur « games » depuis la branche principale du dépôt.
+# Installé dans /usr/local/sbin/idle-rpg-update, lancé toutes les 5 min par idle-rpg-update.timer.
+# Si main a changé : sauvegarde (server, site, base) → copie de server/ et site/ → redémarrage → vérification ;
+# en cas d'échec, l'ancienne version est remise en place.
+set -eu
+REPO=git@github.com:ErwannL/idleproject.git
+BRANCH=claude/new-session-9noo7b
+SRC=/var/lib/idle-rpg-src/repo.git
+APP=/srv/idle-rpg
+DB=/var/lib/idle-rpg/games.sqlite
+STATE=/var/lib/idle-rpg-src/deployed
+export GIT_SSH_COMMAND="ssh -i /root/.ssh/idle-rpg-deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+
+exec 9>/run/idle-rpg-update.lock
+flock -n 9 || exit 0
+
+[ -d "$SRC" ] || git clone -q --bare --single-branch --branch "$BRANCH" "$REPO" "$SRC"
+git -C "$SRC" fetch -q origin "+refs/heads/$BRANCH:refs/heads/$BRANCH"
+NEW=$(git -C "$SRC" rev-parse "refs/heads/$BRANCH")
+[ "$NEW" = "$(cat "$STATE" 2>/dev/null || true)" ] && exit 0
+[ "$NEW" = "$(cat "$STATE.failed" 2>/dev/null || true)" ] && exit 0
+echo "nouvelle version $NEW"
+
+TMP=$(mktemp -d)
+trap 'rm -rf "$TMP"' EXIT
+git -C "$SRC" archive "$NEW" server site | tar -x -C "$TMP"
+for f in $(find "$TMP/server" "$TMP/site" -name '*.mjs' -o -name '*.js'); do node --check "$f"; done
+
+BK=/var/backups/idle-rpg/$(date +%Y%m%d-%H%M%S)
+mkdir -p "$BK"
+cp -a "$APP/server" "$APP/site" "$BK/"
+node --disable-warning=ExperimentalWarning -e "new (require('node:sqlite').DatabaseSync)(process.argv[1], { readOnly: true }).exec(\"VACUUM INTO '\" + process.argv[2] + \"'\")" "$DB" "$BK/games.sqlite"
+
+swap() { rm -rf "$APP/server" "$APP/site"; cp -r "$1/server" "$1/site" "$APP/"; chown -R root:root "$APP/server" "$APP/site"; systemctl restart idle-rpg; }
+healthy() {
+  for i in 1 2 3 4 5 6 7 8 9 10; do
+    sleep 2
+    curl -fsS -o /dev/null http://127.0.0.1:8787/ && curl -fsS -o /dev/null http://127.0.0.1:8787/api/preregister/count && return 0
+  done
+  return 1
+}
+
+swap "$TMP"
+if healthy; then
+  echo "$NEW" > "$STATE"
+  echo "déployé $NEW (sauvegarde $BK)"
+  # On garde les 15 dernières sauvegardes de déploiement.
+  ls -1d /var/backups/idle-rpg/20*-* 2>/dev/null | head -n -15 | xargs -r rm -rf
+else
+  echo "échec de la vérification : retour à la version précédente" >&2
+  swap "$BK"
+  echo "$NEW" > "$STATE.failed"
+  exit 1
+fi

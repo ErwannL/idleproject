@@ -1,0 +1,8 @@
+[Unit]
+Description=Idle RPG : mise à jour depuis la branche principale
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/idle-rpg-update
