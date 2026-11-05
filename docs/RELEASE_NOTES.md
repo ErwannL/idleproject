@@ -1,3 +1,14 @@
+## Ascendrya v9.2.5 — Compétences animées, vitrine d'invocation, illustrations refaites
+
+- Chaque compétence a son geste et son effet : le héros lève les bras et une vraie météorite s'écrase, l'Archange range son épée et joint les mains pour prier, pluie de flèches tirée vers le ciel, tourbillon, dômes, pics de glace, colonnes de feu… pour le héros et les 26 compagnons. Le héros garde son équipement et son arme pendant le geste.
+- Le héros n'apparaît plus jamais sans tête (contrôle automatique sur toutes les classes, apparences, casques et états) ; l'arme est vraiment tenue (poing par-dessus la poignée) et ne couvre plus le visage en marche.
+- Ennemis : une seule flamme pour le dragon, souffle de l'hydre depuis une de ses trois bouches, tous les ennemis posés exactement au sol, étiquettes au-dessus de la vraie tête, division du Scissipare soignée, squelette et moustique redessinés dans le style du jeu.
+- Illustrations HD refaites pour 26 héros, apparences, compagnons et familiers.
+- Invocation : vraie vitrine avec le compagnon en vedette en grand (illustration, rareté, rôle, compétence, taux augmenté, garantie).
+- « Tout récupérer » montre ce qui sera récupéré et d'où ; pastilles chiffrées sur les onglets et sections concernés.
+- Grands écrans : l'interface tient exactement dans la fenêtre (plus de débordement à 1920×1080 et au-delà).
+- Site : bande-annonce filmée dans le vrai jeu.
+
 ## Ascendrya v9.2.4 — Héros fidèle à son équipement, ennemis bien orientés, illustrations HD
 
 - Le héros ne redevient plus le chevalier de base quand il frappe : son vrai casque et son armure (forme et couleurs de rareté) suivent l'animation en marche, en attaque et à la nage ; l'arme reste dans la main sur chaque image.
