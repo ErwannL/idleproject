@@ -51,8 +51,13 @@ export function sizedHeight(natural, cls) {
   return Math.max(c.min, Math.min(c.max, natural));
 }
 
+// v9.2.3 : plafonds propres à quelques ennemis dont la silhouette dessinée paraît trop grande dans leur catégorie
+// (magicienne de glace : chapeau pointu et bâton, 1,3 fois le squelette ; ramenée à ~1,1 fois).
+export const HEIGHT_CAP = { mini_frost_witch: 40 };
+
 // Facteur à appliquer à l'échelle de dessin (1 si la taille dessinée convient déjà).
 export function sizeFactor(type, boss, tier, natural) {
   if (!natural) return 1;
-  return sizedHeight(natural, sizeClass(type, boss, tier)) / natural;
+  const h = Math.min(sizedHeight(natural, sizeClass(type, boss, tier)), HEIGHT_CAP[type] ?? Infinity);
+  return h / natural;
 }

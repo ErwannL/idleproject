@@ -8,7 +8,7 @@ import { installClassFx } from './class-fx.js';
 import { installMutationFx } from './mutation-fx.js'; // v9.2.3 : ennemis mutés lisibles
 import { MUTATION_PACE, SHEEN_STEPS, mutatedCanvas, mutationSize } from './mutation-look.js'; // v9.2.3 : apparence des mutations
 import { installTraversalFx } from './traversal-fx.js'; // v9.2.1 : déplacement propre à chaque monde
-import { armSwing, attackCurve, dissolveFrames, pickAnimFrame } from './enemy-anim.js';
+import { DRAWN_TRAIL, armSwing, attackCurve, dissolveFrames, pickAnimFrame } from './enemy-anim.js';
 import { BREATH_START, CAST_RELEASE, drawBreath, drawOrbGlow, powerOf, powerPointsOf } from './enemy-fx.js'; // v9.2.3
 import { sizeFactor } from '../data/enemy-sizes.js'; // v9.2.3 : table d'échelle
 import { ENEMY_ANIMS } from './art-anim.js'; // v9.2.3 : bat, harpy, skeleton dessinés image par image
@@ -953,7 +953,7 @@ export class SceneRenderer {
         }
       }
       if (atkP === null) { fx.cast = false; fx.breathed = false; }
-      if (atk?.phase === 'strike' && !fx.smeared && !power) {
+      if (atk?.phase === 'strike' && !fx.smeared && !power && !(drawn && DRAWN_TRAIL.has(base))) { // v9.2.3 : traînée déjà dessinée
         // Traînée de frappe (arc de pixels) devant l'ennemi, une fois par coup.
         fx.smeared = true;
         this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], x - 4, this.groundY + 1 - this.waterLift(), 0.16, { tint: enemy.boss ? '#ff6a5a' : '#f0e6d0' });

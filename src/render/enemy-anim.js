@@ -146,6 +146,9 @@ export function attackCurve(p) {
 // v9.2.3 : animation dessinée image par image (src/render/art-anim.js) quand le sprite en a une, sinon null
 // (repli sur les déformations procédurales). Priorité : sortie du sol ou du portail, attaque (atkP : avancement 0–1),
 // nage (sous l'eau, en continu), vol (battements d'ailes `fly` ou flottement `float`), marche.
+// v9.2.3 : attaques PixelLab qui dessinent déjà leur traînée de coup (arc) : pas de seconde traînée procédurale.
+export const DRAWN_TRAIL = new Set(['boss_bone_lord', 'mini_crab_king', 'mid_giant_spider']);
+
 export function pickAnimFrame(set, { emerge = null, portal = null, atkP = null, flying = false, swimming = false, moving = false, time = 0, phase = 0 } = {}) {
   if (!set) return null;
   const at = (anim, k) => ({ anim, key: anim.frames[Math.max(0, Math.min(anim.frames.length - 1, Math.floor(k * anim.frames.length)))] });
