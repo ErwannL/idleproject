@@ -33,7 +33,12 @@ export function phaseFrame(anim, k, hitK = null) {
   const n = anim.frames.length;
   if (hitK === null || anim.hit === undefined) return Math.min(n - 1, Math.max(0, Math.floor(k * n)));
   const h = anim.hit;
-  const i = k < hitK ? (k / hitK) * h : h + ((k - hitK) / (1 - hitK)) * (n - h);
+  // v9.2.4 : cadence constante. L'ancien calage (avant le coup : h images en hitK, après : le reste) faisait
+  // alterner 1 et 3 images d'écran à 60 i/s (élan en accéléré, suite au ralenti). Ici les images défilent au même
+  // rythme (n par geste) et l'image du coup tombe toujours à hitK : le début (repos) est tenu un instant, ou au
+  // plus 1 image d'élan est sautée ; la fin tient la dernière image (retour au repos).
+  const i0 = Math.min(1, h - hitK * n);
+  const i = k < hitK ? i0 + ((h - i0) * k) / hitK : h + (k - hitK) * n;
   return Math.min(n - 1, Math.max(0, Math.floor(i)));
 }
 
@@ -41,6 +46,9 @@ export function phaseFrame(anim, k, hitK = null) {
 export function loopFrame(anim, t, rate = 1) {
   return anim.frames[Math.floor(t * anim.fps * rate) % anim.frames.length];
 }
+
+// v9.2.4 : chevalier (sans apparence) dont l'équipement visible diffère du chevalier des animations PixelLab.
+export const heroWearsGear = (palette, equipment) => !palette?.skin && Boolean(equipment?.helmet || equipment?.armor);
 
 export const heroAnimKey = (palette) => `hero_${palette?.skin ?? 'knight'}`;
 
@@ -61,16 +69,20 @@ export function weaponPose(anim, i) {
 // Image animée du héros pour l'instant présent, ou null (pose composée par le jeu : coup reçu, victoire, sort
 // d'une classe d'armes…). `mem` garde l'instant du dernier tir (visée tenue). Résultat : { name, ox, oy, weapon }
 // (weapon : prise de l'arme à dessiner, voir weaponPose).
-// o : { palette, classId, style, weapon (sprite), walking, engaged, attack, shoot, aim, cast, hurt, victory,
-//       time, attackTime, castTime }  (weapon n'est plus utilisé : v9.2.3, arme séparée du corps)
+// o : { palette, equipment, classId, style, weapon (sprite), walking, engaged, attack, shoot, aim, cast, hurt, victory,
+//       time, attackTime, strikeTime (v9.2.4 : durée du geste en cours), castTime }  (weapon n'est plus utilisé : v9.2.3, arme séparée du corps)
 export function pickHeroAnim(o, mem) {
   const set = ALLY_ANIMS[heroAnimKey(o.palette)];
   if (!set || o.hurt > 0 || o.victory > 0) return null;
+  // v9.2.4 : le chevalier PixelLab porte le casque à plumet et l'armure de base. Avec un casque ou une armure
+  // équipés (casque à cornes, auréole…), il remplaçait l'allure du joueur pendant la marche et la frappe : le
+  // corps composé (équipement visible) est gardé dans toutes les poses, comme au repos.
+  if (heroWearsGear(o.palette, o.equipment)) return null;
   const pick = (anim, i) => ({ name: anim.frames[i], ox: anim.ox, oy: anim.oy, weapon: weaponPose(anim, i) });
   const atk = heroAttackAnim(o.palette, o.classId);
   const fire = o.shoot > 0 ? o.shoot / o.attackTime : o.aim > 0 ? o.aim / o.attackTime : o.cast > 0 && o.style === 'magic' ? o.cast / o.castTime : 0;
   if (atk && o.attack > 0 && o.style !== 'ranged' && o.style !== 'magic') {
-    return pick(atk, phaseFrame(atk, 1 - o.attack / o.attackTime, 0.3));
+    return pick(atk, phaseFrame(atk, 1 - o.attack / (o.strikeTime ?? o.attackTime), 0.3)); // v9.2.4 : durée réelle du geste
   }
   if (atk && fire > 0) {
     mem.fired = o.time;
@@ -83,7 +95,9 @@ export function pickHeroAnim(o, mem) {
     const since = o.time - (mem.fired ?? -9);
     return pick(atk, Math.max(0, Math.min(atk.hit - 1, Math.floor(since * atk.fps * 0.6))));
   }
-  if (o.walking && set.walk) return pick(set.walk, Math.floor(o.time * set.walk.fps) % set.walk.frames.length);
+  // v9.2.4 : glissade et sauts gardent les poses composées (sinon la marche dessinée et le repos alternaient
+  // plusieurs fois par seconde) ; la marche suit la cadence du monde.
+  if (o.walking && set.walk && (o.gait ?? 'walk') === 'walk') return pick(set.walk, Math.floor(o.time * set.walk.fps * (o.walkRate ?? 1)) % set.walk.frames.length);
   return null;
 }
 

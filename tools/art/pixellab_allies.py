@@ -228,6 +228,9 @@ def build():
             n = len(cl)
             weapon = [[round((cl[i - 1][k] + 2 * cl[i][k] + cl[(i + 1) % n][k]) / 4) for k in (0, 1)] for i in range(n)]
         frames = _remap(frames, _palette(_limit(ref)))
+        if weapon:  # v9.2.4 : prise ramenée dans la main sur chaque image (plus d'arme qui flotte à côté du corps)
+            rest = hand_of(key)
+            weapon = [wa.snap_grip(f, p, rest) for f, p in zip(frames, weapon)]
         boxes = [f.getbbox() for f in frames if f.getbbox()]
         ux0, uy0 = min(b[0] for b in boxes), min(b[1] for b in boxes)
         ux1, uy1 = max(b[2] for b in boxes), max(b[3] for b in boxes)

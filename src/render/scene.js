@@ -285,7 +285,13 @@ export class SceneRenderer {
     this.mutationEvent(event, world); // v9.2.3 : apparition, division, « Bloqué », vol de vie des mutés
     switch (event.type) {
       case 'heroAttack': {
-        this.hero.attack = ATTACK_TIME;
+        // v9.2.4 : geste raccourci quand les coups s'enchaînent plus vite que 0,3 s (vitesse d'attaque élevée) : il
+        // recommençait avant la fin et restait figé sur les images d'élan, à saccades. Durée = 90 % de l'écart
+        // précédent entre deux coups, entre 0,12 et 0,3 s ; l'image du coup tombe toujours au même instant relatif.
+        const gap = this.time - (this.hero.lastStrikeAt ?? -9);
+        this.hero.lastStrikeAt = this.time;
+        this.hero.strikeTime = Math.min(ATTACK_TIME, Math.max(0.12, gap * 0.9));
+        this.hero.attack = this.hero.strikeTime;
         if (this.underwater) swirl(this, event.x - 6, this.groundY - 14, event.crit ? 9 : 5); // v9.2.0 : remous de bulles
         // v9.0.6 : chaque classe a sa propre attaque (voir classAttack()).
         if (event.kind && event.kind !== 'slash') {
@@ -1056,7 +1062,7 @@ export class SceneRenderer {
     if (style === 'ranged' && engaged && activeClass(state).id === 'archer') frame = this.hero.shoot > ATTACK_TIME - 0.14 ? 'shoot' : 'aim';
     else if (style === 'ranged' && engaged) frame = 'attack2';
     if (this.hero.attack > 0) {
-      const t = ATTACK_TIME - this.hero.attack;
+      const t = ((this.hero.strikeTime ?? ATTACK_TIME) - this.hero.attack) * (ATTACK_TIME / (this.hero.strikeTime ?? ATTACK_TIME)); // v9.2.4 : geste raccourci
       frame = t < 0.07 ? 'attack1' : t < 0.17 ? 'attack2' : 'attack3';
     } else if (this.hero.cast > 0) frame = 'cast';
     else if (this.hero.hurt > 0) frame = 'hurt';
@@ -1142,9 +1148,12 @@ export class SceneRenderer {
       // v9.2.1 : hauteur propre au monde (nuage, lévitation, enfoncé dans le marais) et effets aux pieds.
       lift = this.travLift(0);
       // v9.2.3 : marche et attaque dessinées image par image (PixelLab, ally-anim.js), arme en main.
-      const anim = pickHeroAnim({ palette, classId: activeClass(state).id, style, weapon: state.equipment.weapon && itemBase(state.equipment.weapon.baseId)?.sprite,
-        walking: frame.startsWith('walk'), engaged, attack: this.hero.attack, shoot: this.hero.shoot, aim: this.hero.aim, cast: this.hero.cast,
-        hurt: this.hero.hurt, victory: this.hero.victory, time: this.time, attackTime: ATTACK_TIME, castTime: CAST_TIME }, (this.heroAnimMem ??= {}));
+      const anim = pickHeroAnim({ palette, equipment: state.equipment, classId: activeClass(state).id, style, weapon: state.equipment.weapon && itemBase(state.equipment.weapon.baseId)?.sprite,
+        // v9.2.4 : marche PixelLab seulement au pas (glissade, sauts de nuage : poses composées), sans clignoter entre
+        // la marche dessinée et la pose de repos à chaque temps de glisse ; cadence du monde (rate).
+        walking: frame.startsWith('walk'), walkRate: this.trav?.rate ?? 1,
+        gait: this.trav?.gait ?? 'walk', engaged, attack: this.hero.attack, shoot: this.hero.shoot, aim: this.hero.aim, cast: this.hero.cast,
+        hurt: this.hero.hurt, victory: this.hero.victory, time: this.time, attackTime: ATTACK_TIME, strikeTime: this.hero.strikeTime ?? ATTACK_TIME, castTime: CAST_TIME }, (this.heroAnimMem ??= {}));
       // v9.2.3 : l'arme vraiment équipée (forme, rareté) est posée sur la prise de l'image, devant ou derrière le corps.
       const held = anim?.weapon && heroHeldWeapon(state.equipment, anim.weapon.deg);
       const hx = baseX + lean, hy = baseY - jump - lift;

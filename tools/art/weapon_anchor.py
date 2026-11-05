@@ -201,3 +201,28 @@ def track_hand(ref, frame, hand, half=3, radius=7):
             if d < best:
                 best, at = d, (x, y)
     return at
+
+
+def snap_grip(img, pose, rest=None, tol=1.5, radius=14):
+    """v9.2.4 : prise ramenée dans la main. Une prise mal repérée (arme de génération mal reconnue, image
+    interpolée, lance tenue loin de sa prise) laissait l'arme flotter à quelques pixels du corps. Si la prise est à
+    plus de tol px du pixel opaque le plus proche, elle est posée sur ce pixel (le bord du corps le plus proche)."""
+    if not pose:
+        return pose
+    # Prise à 3 px au plus de la main de repos (rest) : gardée, la pose de repos composée tient l'arme au même endroit
+    # (sinon l'arme sauterait au passage repos -> animation ; arc : la main effacée sous l'arme de génération).
+    if rest and math.hypot(pose[0] - rest[0], pose[1] - rest[1]) <= 3:
+        return pose
+    _, op = _arr(img)
+    H, W = op.shape
+    x, y = pose[0], pose[1]
+    best, at = 1e9, None
+    for yy in range(max(0, y - radius), min(H, y + radius + 1)):
+        for xx in range(max(0, x - radius), min(W, x + radius + 1)):
+            if op[yy, xx]:
+                d = math.hypot(xx - x, yy - y)
+                if d < best:
+                    best, at = d, (xx, yy)
+    if at is None or best <= tol:
+        return pose
+    return [at[0], at[1], *pose[2:]]

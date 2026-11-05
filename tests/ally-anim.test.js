@@ -42,12 +42,12 @@ test('marche et attaque : pieds sur la même ligne à chaque image ; nage : corp
 
 test("l'image du coup tombe à l'impact ; v9.2.3 : toute arme suit l'attaque, posée sur la prise de l'image", () => {
   const a = { frames: new Array(9).fill('x'), hit: 4 };
-  assert.equal(phaseFrame(a, 0, 0.3), 0);
+  assert.ok(phaseFrame(a, 0, 0.3) <= 1); // v9.2.4 : cadence constante, au plus 1 image d'élan sautée
   assert.equal(phaseFrame(a, 0.3, 0.3), 4);
   assert.equal(phaseFrame(a, 0.999, 0.3), 8);
   const o = { palette: null, classId: 'knight', style: 'melee', weapon: 'greatsword', attack: 0.3, time: 0, attackTime: 0.3, castTime: 0.35 };
   const p = pickHeroAnim(o, {});
-  assert.equal(p.name, ALLY_ANIMS.hero_knight.attack_knight.frames[0]);
+  assert.equal(p.name, ALLY_ANIMS.hero_knight.attack_knight.frames[phaseFrame(ALLY_ANIMS.hero_knight.attack_knight, 0, 0.3)]);
   assert.ok(p.weapon && Number.isFinite(p.weapon.x) && Number.isFinite(p.weapon.deg), 'prise de l\'arme');
   assert.equal(pickHeroAnim({ ...o, attack: 0, hurt: 0.2 }, {}), null);
   // Marche : arme en main (prise suivie), jamais dans le dos.
