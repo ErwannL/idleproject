@@ -3,6 +3,7 @@ import { RARITIES } from '../data/items.js';
 import { itemBase } from '../core/loot.js';
 import { BASE_PALETTE, FONT, FONT_BIG, HERO_FOOT, SPRITES, normalizeRows, rotateRowsCW } from './sprites.js';
 import './ally-anim.js'; // v9.2.3 : images PixelLab des alliés ajoutées aux SPRITES
+import { KNIGHT_HEAD } from './knight-gear.js';
 
 const cache = new Map();
 
@@ -377,6 +378,16 @@ export function knightGearCanvas(name, anim, head, pivot, neck, equipment, palet
       // Plumet : K et 8 (couleurs du seul plumet) partout ; ses reflets et ombres (4, B, P, 5, couleurs de la cape)
       // seulement au-dessus de la mâchoire d'une tête droite, là où la cape ne monte pas.
       if ('K8'.includes(ch) || (v < neck - 3 && Math.abs(head[2]) <= 45)) { grid[y][x] = '.'; gone.push([x, y]); } // K, 8 : plumet seul
+    }
+    // v9.2.5 : la tête d'acier d'origine (masque de la vue de repos, tourné, élargi d'1 px) est effacée aussi : le
+    // casque porté contient sa propre tête (visage, cheveux). Avant, seul le plumet partait : un casque posé un peu à
+    // côté laissait voir deux têtes, ou un capuchon par-dessus un heaume.
+    const mask = new Set();
+    for (const [u, v] of KNIGHT_HEAD.mask ?? []) for (let dv = -1; dv <= 1; dv++) for (let du = -1; du <= 1; du++) mask.add(`${u + du},${v + dv}`);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      if (grid[y][x] === '.') continue;
+      const [u, v] = local(x, y);
+      if (mask.has(`${Math.round(u)},${Math.round(v)}`)) { grid[y][x] = '.'; gone.push([x, y]); }
     }
     // Miettes isolées côté tête (au plus un voisin opaque) : retirées.
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {

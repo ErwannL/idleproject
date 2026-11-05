@@ -31,6 +31,21 @@ const P0 = [tpl.reduce((s, p) => s + p.gx, 0) / tpl.length, tpl.reduce((s, p) =>
 const neck = Math.max(...tpl.map((p) => p.gy)) - P0[1];
 const rel = tpl.map((p) => ({ u: p.gx - P0[0], v: p.gy - P0[1], c: p.c }));
 
+function trackOne(f, anim, degs, R, prev) {
+  let best = [-1];
+  for (const deg of degs) {
+    const a = (deg * Math.PI) / 180, cs = Math.cos(a), sn = Math.sin(a);
+    const pts = rel.map((p) => [Math.round(p.u * cs - p.v * sn), Math.round(p.u * sn + p.v * cs), p.c]);
+    const cx = prev ? prev[0] : P0[0], cy = prev ? prev[1] : P0[1];
+    for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) {
+      let s = 0;
+      for (const [u, v, c] of pts) if (col(f, cx + dx + u - anim.ox, cy + dy + v - anim.oy) === c) s++;
+      s -= 0.02 * (Math.abs(deg) + Math.abs(dx) + Math.abs(dy));
+      if (s > best[0]) best = [s, cx + dx, cy + dy, deg];
+    }
+  }
+  return best;
+}
 function track(anim, degs, R) {
   let prev = null;
   return anim.frames.map((name) => {
@@ -48,6 +63,12 @@ function track(anim, degs, R) {
         s -= 0.02 * (Math.abs(deg) + Math.abs(dx) + Math.abs(dy)); // à égalité : la pose la plus proche
         if (s > best[0]) best = [s, px, py, deg];
       }
+    }
+    // v9.2.5 : correspondance faible (< 60 %) : recherche élargie (±16 px autour du repos, tous les angles), la
+    // tête d'une frappe en fente sortait de la fenêtre de ±9 px et le casque porté se posait à côté (deux têtes).
+    if (best[0] < 0.6 * rel.length && R < 16) {
+      const wide = trackOne(f, anim, degs, 16, null);
+      if (wide[0] > best[0]) best = wide;
     }
     prev = best.slice(1);
     return [best[1], best[2], best[3], Math.round((100 * Math.max(0, best[0])) / rel.length)];
@@ -83,8 +104,9 @@ for (const k of Object.keys(out)) {
 const js = `// FICHIER GÉNÉRÉ par tools/art/knight_gear.mjs — ne pas modifier à la main.
 // v9.2.4 : tête du chevalier PixelLab suivie image par image (casque porté posé sur l'animation).
 // pivot : centre de la tête au repos (coin du sprite de jeu) ; neck : ligne du cou sous le pivot ;
+// mask : pixels de la tête au repos (casque et visage sans plumet), relatifs au pivot (v9.2.5 : effacés sous un casque porté) ;
 // heads[anim][i] = [x, y, angle] : position du pivot et inclinaison (degrés horaires) de la tête à l'image i.
-export const KNIGHT_HEAD = ${JSON.stringify({ pivot: P0, neck, heads: out })};
+export const KNIGHT_HEAD = ${JSON.stringify({ pivot: P0, neck, mask: rel.map((p) => [p.u, p.v]), heads: out })};
 `;
 fs.writeFileSync(path.join(ROOT, 'src/render/knight-gear.js'), js);
 console.log('pivot', P0, 'cou', neck, 'modèle', rel.length, 'px');

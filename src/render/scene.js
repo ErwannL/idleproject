@@ -30,7 +30,8 @@ import { BG } from './bg.js';
 import { waterAccent } from './water-fx.js'; // v9.2.1
 import { addBubble, drawOceanBack, drawOceanFront, kickFrame, STROKE, strokeStep, swimDraw, swimFloat, swimPose, swirl, SWIM_DEPTH, SWIM_TILT } from './ocean-fx.js'; // v9.2.0 (monde marin)
 import { FONT_BIG, SPRITES } from './sprites.js';
-import { HERO_ANCHOR, SWIM_AXIS, SWIM_BODY, drawBigText, heroAnimCanvas, heroBackWeapon, heroComposite, heroHeldWeapon, heroSwim, itemDropCanvas, knightGearCanvas, spriteCanvas, textWidth } from './pixel.js';
+import { drawHeroPick } from './hero-draw.js'; // v9.2.5 : arme tenue (poing sur la poignée)
+import { HERO_ANCHOR, SWIM_AXIS, SWIM_BODY, drawBigText, heroAnimCanvas, heroBackWeapon, heroComposite, heroSwim, itemDropCanvas, knightGearCanvas, spriteCanvas, textWidth } from './pixel.js';
 import { ALLY_ANIMS, KNIGHT_NECK, KNIGHT_PIVOT, heroAnimKey, heroWearsGear, knightHead, loopFrame, pickAllyAnim, pickHeroAnim } from './ally-anim.js'; // v9.2.3 : alliés animés (PixelLab)
 import { itemBase } from '../core/loot.js';
 
@@ -1050,7 +1051,8 @@ export class SceneRenderer {
       ctx.globalAlpha = Math.max(0.2, 1 - this.hero.deathTime);
       ctx.translate(HERO_X, this.groundY);
       ctx.rotate(-Math.PI / 2);
-      ctx.drawImage(img, -HERO_ANCHOR.y + 2, -HERO_ANCHOR.x - 2);
+      // v9.2.5 : couché SUR le sol, tête à gauche (avant, les axes étaient inversés : le corps passait sous le sol).
+      ctx.drawImage(img, -(HERO_ANCHOR.x - 24), -HERO_ANCHOR.y + 2);
       ctx.restore();
       return;
     }
@@ -1157,11 +1159,9 @@ export class SceneRenderer {
         gait: this.trav?.gait ?? 'walk', engaged, attack: this.hero.attack, shoot: this.hero.shoot, aim: this.hero.aim, cast: this.hero.cast,
         hurt: this.hero.hurt, victory: this.hero.victory, time: this.time, attackTime: ATTACK_TIME, strikeTime: this.hero.strikeTime ?? ATTACK_TIME, castTime: CAST_TIME }, (this.heroAnimMem ??= {}));
       // v9.2.3 : l'arme vraiment équipée (forme, rareté) est posée sur la prise de l'image, devant ou derrière le corps.
-      const held = anim?.weapon && heroHeldWeapon(state.equipment, anim.weapon.deg);
+      // v9.2.5 : arme derrière ou devant selon la main, poing redessiné par-dessus la poignée (hero-draw.js).
       const hx = baseX + lean, hy = baseY - jump - lift;
-      if (held && anim.weapon.back) ctx.drawImage(held.canvas, hx + anim.weapon.x - held.x, hy + anim.weapon.y - held.y);
-      if (anim) this.drawHeroFrame(ctx, anim.name, anim.anim, anim.head, state.equipment, palette, hx + anim.ox, hy + anim.oy);
-      if (held && !anim.weapon.back) ctx.drawImage(held.canvas, hx + anim.weapon.x - held.x, hy + anim.weapon.y - held.y);
+      const held = anim ? drawHeroPick(ctx, anim, state.equipment, palette, hx, hy) : null;
       if (!anim) ctx.drawImage(img, baseX + lean, baseY - jump - lift);
       // v9.2.4 : frappe lancée en plein pas : la dernière image de marche (arme comprise) s'efface en 0,07 s
       // par-dessus la première image du geste, au lieu d'un saut de quelques pixels d'une image à l'autre.
@@ -1171,8 +1171,7 @@ export class SceneRenderer {
       if (this.heroFade && this.heroFade.left > 0) {
         const f = this.heroFade;
         ctx.globalAlpha = f.left / HERO_FADE;
-        if (f.held) ctx.drawImage(f.held.canvas, hx + f.anim.weapon.x - f.held.x, hy + f.anim.weapon.y - f.held.y);
-        this.drawHeroFrame(ctx, f.anim.name, f.anim.anim, f.anim.head, state.equipment, palette, hx + f.anim.ox, hy + f.anim.oy);
+        drawHeroPick(ctx, f.anim, state.equipment, palette, hx, hy); // v9.2.5 : même prise que l'image courante
         ctx.globalAlpha = 1;
         f.left -= this.dt ?? 0;
       }

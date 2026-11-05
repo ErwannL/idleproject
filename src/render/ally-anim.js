@@ -21,7 +21,37 @@ export function decodeAllyFrames(art = ALLY_ANIM_ART) {
   }
   return out;
 }
-for (const [k, v] of Object.entries(decodeAllyFrames())) if (!SPRITES[k]) SPRITES[k] = v;
+// v9.2.5 : tête du chevalier réparée : l'effacement de l'arme de génération (tools/art/weapon_anchor.py) mordait
+// parfois sur le visage (attaque du chevalier, images 1 et 2 : 35 % de la tête manquante). Les trous de la tête
+// suivie (masque de la vue de repos, tourné) sont rebouchés avec les pixels de la vue de repos.
+export function repairKnightHeads(frames) {
+  const set = ALLY_ANIMS.hero_knight;
+  const ref = set?.attack_knight, f0 = ref && frames[ref.frames[0]];
+  if (!f0 || !KNIGHT_HEAD.mask) return 0;
+  const [px, py] = KNIGHT_HEAD.pivot;
+  let fixed = 0;
+  for (const [k, a] of Object.entries(set)) {
+    if (k === 'swim') continue;
+    a.frames.forEach((name, i) => {
+      const h = KNIGHT_HEAD.heads[k]?.[i], f = frames[name];
+      if (!h || !f || f.pal !== f0.pal) return;
+      const rad = (h[2] * Math.PI) / 180, c = Math.cos(rad), sn = Math.sin(rad);
+      const rows = f.rows.map((r) => [...r]);
+      let n = 0;
+      for (const [u, v] of KNIGHT_HEAD.mask) {
+        const x = Math.round(h[0] + u * c - v * sn) - a.ox, y = Math.round(h[1] + u * sn + v * c) - a.oy;
+        if (!rows[y] || rows[y][x] !== '.') continue;
+        const ch = f0.rows[py + v - ref.oy]?.[px + u - ref.ox];
+        if (ch && ch !== '.') { rows[y][x] = ch; n++; }
+      }
+      if (n) { f.rows = rows.map((r) => r.join('')); fixed++; }
+    });
+  }
+  return fixed;
+}
+const DECODED = decodeAllyFrames();
+repairKnightHeads(DECODED);
+for (const [k, v] of Object.entries(DECODED)) if (!SPRITES[k]) SPRITES[k] = v;
 
 export { ALLY_ANIMS };
 

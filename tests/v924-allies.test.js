@@ -22,10 +22,11 @@ test('chevalier avec casque ou armure : animation PixelLab gardée, tête suivie
       assert.ok(h && h.every(Number.isFinite), `${name}[${i}] : tête`);
       if (name !== 'swim') assert.ok(Math.hypot(h[0] - KNIGHT_PIVOT[0], h[1] - KNIGHT_PIVOT[1]) <= 16 && Math.abs(h[2]) <= 30, `${name}[${i}] : tête à ${h}`);
     });
-    // Pas de saut de la tête d'une image à la suivante (au plus 8 px).
+    // Pas de saut de la tête d'une image à la suivante (au plus 8 px ; v9.2.5 : 16 px pour la fente de l'assassin,
+    // où la tête avance vraiment de 16 px en une image — l'ancien suivi restait derrière, casque à côté de la tête).
     for (let i = 1; i < a.frames.length; i++) {
       const p = knightHead(a, i - 1), q = knightHead(a, i);
-      assert.ok(Math.hypot(q[0] - p[0], q[1] - p[1]) <= 8, `${name}[${i}] : saut de la tête`);
+      assert.ok(Math.hypot(q[0] - p[0], q[1] - p[1]) <= (name === 'attack_assassin' ? 16 : 8), `${name}[${i}] : saut de la tête`);
     }
   }
   // Une apparence garde ses propres images, avec ou sans équipement, pour chaque classe.
