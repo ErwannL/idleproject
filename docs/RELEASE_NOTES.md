@@ -3,6 +3,10 @@
 - Tous les ennemis et boss des mondes 1 à 12 ont des animations dessinées image par image : marche ou vol avec de vrais battements d'ailes, attaque (on lève l'arme, on frappe, on revient en garde), nage dans le Royaume englouti, flottement des spectres.
 - Sorties de terre dessinées (le crâne pointe, une main agrippe le sol, l'ennemi s'extrait) avec une terre à la couleur du sol de chaque monde, et sorties de portail dessinées.
 - Aura des boss et contour des élites qui suivent l'animation.
+- Héros (10 classes, 8 apparences), compagnons et familiers animés image par image : marche, attaque avec la vraie arme de la classe (épée, arc qui se bande, bâton qui incante…), vraie nage horizontale dans le Royaume englouti.
+- Ennemis : accessoires animés (citrouille et faux de l'épouvantail…), lanceurs de sorts qui incantent avec leur bâton, souffle des dragons qui part de la gueule et atteint le héros (long de loin, court de près), pieds toujours alignés au sol, tailles cohérentes entre ennemis.
+- Mutations lisibles : étiquette au-dessus de la barre de PV, « Mutation : X » à l'apparition, scission visible avec « Se divise ! » pour Scissipare, et un repère pour chaque mutation (soin, « Bloqué », braises, vol de vie).
+- Menus : les grilles de vignettes gardent le même nombre de colonnes (Collections, Compagnons, Invocation, Apparences), barre de défilement ou non.
 - Quelques animations restent calculées par le jeu quand le dessin n'était pas meilleur (certains poissons, crabes, spectres).
 
 ## Ascendrya v9.2.2 — Apparences dans le menu Héros, arrivée des ennemis selon leur nature
