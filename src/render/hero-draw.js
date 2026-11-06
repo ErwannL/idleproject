@@ -157,5 +157,5 @@ export function drawHeroPick(ctx, pick, equipment, palette, x, y, opts = {}) {
     const hand = handLayer(body.canvas, body.key, gx, gy);
     if (hand) ctx.drawImage(hand.canvas, bx + gx - hand.r, by + gy - hand.r);
   }
-  return { ...held, gx: gx + ox, gy: gy + oy, behind };
+  return { ...held, gx: gx + ox, gy: gy + oy, behind, ax: wx + held.x, ay: wy + held.y, tipX: held.tx !== undefined ? wx + held.tx : null, tipY: held.ty !== undefined ? wy + held.ty : null };
 }

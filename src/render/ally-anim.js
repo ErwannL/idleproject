@@ -147,6 +147,9 @@ export function pickAllyAnim(o) {
   if (o.gesture && set.attack) return pick(set.attack, set.attack.frames[phaseFrame(set.attack, o.gesture.k, ALLY_HIT_K[o.gesture.kind] ?? 0.35)], 'attack');
   if (o.swimming && set.swim) return pick(set.swim, loopFrame(set.swim, o.time + o.seed, o.walking ? 1 : 0.7), 'swim');
   if (o.swimming || o.gesture) return null;
+  // v9.2.7 : un volant ne joue jamais de cycle de pas : son vol stationnaire (ailes) s'il existe, sinon ses images d'ailes.
+  if (set.hover) return pick(set.hover, loopFrame(set.hover, o.time + o.seed, o.walking ? 1.2 : 1), 'hover');
+  if (SPRITES[o.sprite]?.gait === 'fly') return null;
   if (set.walk && (o.walking || o.always)) return pick(set.walk, loopFrame(set.walk, o.time + o.seed, o.walking ? 1 : 0.6), 'walk');
   return null;
 }

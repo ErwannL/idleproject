@@ -83,18 +83,18 @@ const HERO_X = BALANCE.world.heroX * WORLD_SCALE;
 // Particules d'ambiance par zone, sur deux profondeurs (derrière et devant les personnages) :
 // elles défilent avec la parallaxe et donnent de la vie au décor même quand le chevalier se bat.
 const AMBIENT = {
-  plains: { colors: ['#fff6b0', '#ffffff', '#c8f08a'], count: 14, vx: -6, vy: -3, wobble: 6, size: 1 }, // pollen
+  plains: { colors: ['#fff6b0', '#ffffff', '#c8f08a'], count: 14, vx: -6, vy: -3, wobble: 6, size: 1, birds: { n: 3, color: '#2a2a3a', size: 1 } }, // pollen + v9.2.7 : vol d'oiseaux
   forest: { colors: ['#e8ff7a', '#b8ff6a', '#fff6a0'], count: 16, vx: -2, vy: -2, wobble: 10, size: 1, glow: true }, // lucioles
-  caves: { colors: ['#9fe8ff', '#e0a8ff', '#ffffff'], count: 12, vx: 0, vy: -4, wobble: 3, size: 1, glow: true }, // éclats
-  desert: { colors: ['#ffe2a8', '#f4c27a'], count: 18, vx: -28, vy: 1, wobble: 2, size: 1 }, // sable
-  mountains: { colors: ['#ffffff', '#e6f2ff'], count: 26, vx: -10, vy: 14, wobble: 8, size: 1 }, // neige
+  caves: { colors: ['#9fe8ff', '#e0a8ff', '#ffffff'], count: 10, vx: 0, vy: -2, wobble: 2, size: 1, glow: true, shape: 'sparkle', back: true }, // v9.2.7 : étincelles en croix, derrière seulement
+  desert: { colors: ['#ffe2a8', '#f4c27a'], count: 22, vx: -70, vy: 0, wobble: 1, size: 1, shape: 'streak', low: 46, birds: { n: 2, color: '#3a1a10', size: 2, circle: true } }, // v9.2.7 : sable rasant + vautours
+  mountains: { colors: ['#ffffff', '#e6f2ff'], count: 26, vx: -10, vy: 14, wobble: 8, size: 1, birds: { n: 1, color: '#2a2a3a', size: 2, circle: true } }, // neige + v9.2.7 : aigle
   cursed: { colors: ['#ff8a3a', '#ffcc4a', '#ff5a2a'], count: 18, vx: -3, vy: -12, wobble: 5, size: 1, glow: true }, // braises
   swamp: { colors: ['#b8ff6a', '#7adf5a', '#d8ff9a'], count: 16, vx: -2, vy: -3, wobble: 9, size: 1, glow: true }, // spores
-  sky: { colors: ['#ffffff', '#fff2c0', '#d8eeff'], count: 14, vx: -16, vy: -1, wobble: 4, size: 1 }, // plumes, vent
+  sky: { colors: ['#ffffff', '#fff2c0', '#d8eeff'], count: 14, vx: -16, vy: -1, wobble: 4, size: 1, birds: { n: 4, color: '#ffffff', size: 1 } }, // plumes, vent + v9.2.7 : oiseaux blancs
   volcano: { colors: ['#ff6a2a', '#ffb43a', '#ff3a1a'], count: 24, vx: -4, vy: -16, wobble: 4, size: 1, glow: true }, // braises
   void: { colors: ['#c9a6ff', '#7fd4ff', '#ffffff'], count: 20, vx: -1, vy: -2, wobble: 12, size: 1, glow: true }, // poussière d'étoiles
   abyss: { colors: ['#ff3a3a', '#ff8a3a', '#7a1a2a'], count: 22, vx: -2, vy: -10, wobble: 6, size: 1, glow: true }, // cendres rouges
-  ocean: { colors: ['#9fe8ff', '#d8fbff', '#5ab8d8'], count: 26, vx: -1, vy: -2, wobble: 10, size: 1, glow: true }, // v9.2.0 : particules en suspension
+  ocean: { colors: ['#9fe8ff', '#d8fbff', '#5ab8d8'], count: 18, vx: -1, vy: -10, wobble: 6, size: 1, shape: 'bubble' }, // v9.2.7 : bulles qui montent ; v9.2.0 : particules en suspension
 };
 
 // Calques de décor (PNG générés par tools/art/scenery.py), chargés à la demande.
@@ -112,7 +112,30 @@ function layer(file) {
 const MAX_FLOATING_TEXTS = 6;
 // v9.2.6 : projectiles dessinés par PixelLab (boucles animées) à la place des anciens sprites fixes.
 const PROJ_VFX = { fx_arrow: 'proj_arrow', fx_arrow_fire1: 'proj_fireball', fx_fireball1: 'proj_fireball', fx_soul1: 'proj_soul', fx_meteor: 'proj_fireball' };
+// v9.2.7 : couleur de la traînée de frappe selon la rareté de l'arme.
+const TRAIL_COLORS = { common: '#dfe8f0', uncommon: '#8af07a', rare: '#6ab8ff', epic: '#c87aff', legendary: '#ffc23a', mythic: '#ff5a6a' };
 const FLYING_PETS = new Set(['owl', 'fairy', 'wisp']);
+// v9.2.7 : volant ou marcheur, sans entre-deux. Les robes longues (« glide ») qui ont un vrai cycle de marche
+// PixelLab marchent, pieds au sol ; seuls les volants (ailes) flottent, avec ombre et sans cycle de pas.
+// v9.2.7 : un ennemi ailé qui ne se pose pas (phénix, valkyrie…) mais hérite d'une base marcheuse vole vraiment :
+// hauteur de vol propre (10 px), ombre, aucun pas — avant, il battait des ailes les pieds au sol.
+const airCache = new Map();
+export function airDef(type, boss, def) {
+  if (def.flyHeight) return def;
+  const key = `${boss ? 'b' : 'e'}:${type}`;
+  let d = airCache.get(key);
+  if (!d) {
+    const a = arrivalFor(type, boss);
+    const winged = a.mode === 'fly' && a.style === 'wings' && !WINGED_LANDERS.has(type);
+    d = winged ? { ...def, flyHeight: 10 } : def;
+    airCache.set(key, d);
+  }
+  return d;
+}
+export function allyGait(sprite) {
+  const g = SPRITES[sprite]?.gait;
+  return g === 'glide' && ALLY_ANIMS[sprite]?.walk ? 'walk' : g;
+}
 const STALE_EVENT_SECONDS = 1.5;
 const HERO_FADE = 0.07; // v9.2.4 : fondu marche -> frappe (s)
 const ATTACK_TIME = 0.3; // durée de l'animation d'attaque (élan, frappe, suite)
@@ -510,7 +533,12 @@ export class SceneRenderer {
       if ((crit || this.time - (fx.hurtAt ?? -99) > HURT_COOLDOWN) && !(fx.lunge > 0) && !(fx.windup > 0)) { fx.hurt = HURT_TIME; fx.hurtAt = this.time; }
       fx.knock = Math.min(boss ? 4 : 8, (fx.knock ?? 0) + (crit ? 5 : 3) * (boss ? 0.5 : 1));
       fx.squash = 0.14;
-      if (crit && !this.focus) this.hitstop = Math.max(this.hitstop ?? 0, 0.06);
+      // v9.2.7 : léger arrêt sur image à chaque coup (le coup « pèse »), plus long sur un critique ; espacé d'au
+      // moins 0,2 s pour ne pas ralentir les vitesses d'attaque élevées.
+      if (!this.focus && (crit || this.time - (this.hitstopAt ?? -9) > 0.2)) {
+        this.hitstop = Math.max(this.hitstop ?? 0, crit ? 0.07 : 0.035);
+        this.hitstopAt = this.time;
+      }
     }
     const sparkColor = crit ? '#ffd23f' : color;
     for (let i = 0; i < (crit ? 9 : 5); i++) {
@@ -699,13 +727,13 @@ export class SceneRenderer {
       step,
       // v9.0.7 : un sprite en pleine définition (chara design PixelLab) porte son propre facteur d'échelle.
       // v9.2.3 : `base` choisit les animations dessinées (boss compris).
-      def, sprite, base, heroLike: Boolean(bossDef?.heroLike), scale: bossScale * (SPRITES[sprite]?.scale ?? 1) * fit,
+      def: airDef(type, boss, def), sprite, base, heroLike: Boolean(bossDef?.heroLike), scale: bossScale * (SPRITES[sprite]?.scale ?? 1) * fit,
       colors: (bossDef ? bossDef.palette : def.palette) ?? null,
     };
   }
 
   flyHeight(type, boss) {
-    const def = boss ? ENEMIES[BOSSES[type].base] : ENEMIES[type];
+    const def = airDef(type, boss, boss ? ENEMIES[BOSSES[type].base] : ENEMIES[type]);
     return (def.flyHeight ?? 0) * WORLD_SCALE;
   }
 
@@ -817,9 +845,11 @@ export class SceneRenderer {
   drawAmbient(ctx, zone, scroll, front) {
     const a = AMBIENT[zone.id];
     if (!a || this.focus) return;
+    if (front && a.back) return; // v9.2.7 : jamais collées sur les personnages (étincelles des grottes)
     const factor = front ? 1.15 : 0.55;
     const W = this.width + 20;
     const H = this.groundY + 4;
+    const top = a.low ? this.groundY - a.low : 0;
     const n = front ? Math.round(a.count / 3) : a.count;
     for (let i = 0; i < n; i++) {
       const seed = i * 97 + (front ? 13 : 0);
@@ -828,19 +858,101 @@ export class SceneRenderer {
       const speed = 0.6 + r2 * 0.8;
       let x = (r1 * W + a.vx * speed * this.time - scroll * factor) % W;
       if (x < 0) x += W;
-      let y = (r2 * H + a.vy * speed * this.time) % H;
-      if (y < 0) y += H;
+      let y = (r2 * (H - top) + a.vy * speed * this.time) % (H - top);
+      if (y < 0) y += H - top;
+      y += top;
       x += Math.sin(this.time * 1.3 + i) * a.wobble * 0.3;
       const color = a.colors[i % a.colors.length];
       const blink = a.glow ? 0.45 + 0.55 * Math.abs(Math.sin(this.time * (1.5 + r1) + i)) : 0.85;
-      ctx.globalAlpha = blink * (front ? 1 : 0.7);
+      const X = Math.round(x - 10), Y = Math.round(y);
       ctx.fillStyle = color;
+      // v9.2.7 : formes lisibles selon le monde.
+      if (a.shape === 'sparkle') {
+        const tw = Math.max(0, Math.sin(this.time * (1.2 + r1) + i * 2.1));
+        if (tw < 0.2) continue;
+        ctx.globalAlpha = tw * 0.9;
+        ctx.fillRect(X, Y, 1, 1);
+        if (tw > 0.6) { ctx.globalAlpha = (tw - 0.5); ctx.fillRect(X - 1, Y, 3, 1); ctx.fillRect(X, Y - 1, 1, 3); }
+        continue;
+      }
+      if (a.shape === 'streak') {
+        const len = 3 + Math.round(r1 * 5);
+        ctx.globalAlpha = 0.35 * (front ? 1.4 : 1);
+        ctx.fillRect(X, Y, len, 1);
+        ctx.globalAlpha = 0.7;
+        ctx.fillRect(X, Y, 1, 1);
+        continue;
+      }
+      if (a.shape === 'bubble') {
+        ctx.globalAlpha = front ? 0.7 : 0.45;
+        if (r2 > 0.5) { ctx.fillRect(X, Y - 1, 1, 1); ctx.fillRect(X - 1, Y, 1, 1); ctx.fillRect(X + 1, Y, 1, 1); ctx.fillRect(X, Y + 1, 1, 1); } else ctx.fillRect(X, Y, 1, 1);
+        continue;
+      }
+      ctx.globalAlpha = blink * (front ? 1 : 0.7);
       const size = front ? 2 : a.size;
-      ctx.fillRect(Math.round(x - 10), Math.round(y), size, size);
+      ctx.fillRect(X, Y, size, size);
       if (a.glow && front) {
         ctx.globalAlpha = blink * 0.25;
-        ctx.fillRect(Math.round(x - 11), Math.round(y - 1), size + 2, size + 2);
+        ctx.fillRect(X - 1, Y - 1, size + 2, size + 2);
       }
+    }
+    if (!front && a.birds) this.drawBirds(ctx, a.birds);
+    ctx.globalAlpha = 1;
+  }
+
+  // v9.2.7 : oiseaux en vol battu, haut dans le ciel (ailes en V, deux poses), en petite troupe ou en cercle (rapaces).
+  drawBirds(ctx, b) {
+    const W = this.width + 40;
+    const skyH = Math.max(20, this.groundY - 90);
+    ctx.fillStyle = b.color;
+    ctx.globalAlpha = 0.85;
+    for (let i = 0; i < b.n; i++) {
+      let x, y;
+      if (b.circle) {
+        const a = this.time * 0.35 + i * 2.4;
+        x = this.width * (0.3 + 0.4 * ((i * 0.37) % 1)) + Math.cos(a) * 30;
+        y = 18 + (i * 13) % skyH * 0.4 + Math.sin(a) * 8;
+      } else {
+        x = W - ((this.time * 14 + i * 9 + 200) % W) + (i % 2) * 6;
+        y = 22 + (i % 3) * 6 + Math.round(Math.sin(this.time * 0.8) * 3);
+      }
+      const up = Math.floor(this.time * (b.circle ? 3 : 7) + i * 1.7) % 2 === 0;
+      const s = b.size, X = Math.round(x), Y = Math.round(y);
+      ctx.fillRect(X, Y, s, s); // corps
+      if (up) { ctx.fillRect(X - s, Y - s, s, s); ctx.fillRect(X - 2 * s, Y - 2 * s, s, s); ctx.fillRect(X + s, Y - s, s, s); ctx.fillRect(X + 2 * s, Y - 2 * s, s, s); } else { ctx.fillRect(X - s, Y, s, s); ctx.fillRect(X - 2 * s, Y + s, s, s); ctx.fillRect(X + s, Y, s, s); ctx.fillRect(X + 2 * s, Y + s, s, s); }
+    }
+  }
+
+  // v9.2.7 : traînée de frappe : ruban qui suit la pointe de l'arme pendant le geste (taille : croissant ; estoc
+  // de lance ou de dague : trait droit), net (couleur pleine, bord clair), qui s'efface en 0,12 s. Coordonnées de
+  // jeu ; l'arme reste dans la main (le ruban part de la moitié de la lame, jamais de la main).
+  weaponTrail(ctx, held, weapon) {
+    const pts = (this.trailPts ??= []);
+    const now = this.time;
+    if (held?.tipX != null && !this.focus) {
+      const last = pts[pts.length - 1];
+      const p = { t: now, x1: held.tipX, y1: held.tipY, x0: held.ax + (held.tipX - held.ax) * 0.7, y0: held.ay + (held.tipY - held.ay) * 0.7 };
+      if (!last || Math.hypot(p.x1 - last.x1, p.y1 - last.y1) > 0.5) pts.push(p);
+    }
+    const LIFE = 0.12;
+    while (pts.length && now - pts[0].t > LIFE) pts.shift();
+    if (pts.length > 12) pts.splice(0, pts.length - 12);
+    if (pts.length < 2) return;
+    const color = TRAIL_COLORS[weapon?.rarity] ?? '#ffffff';
+    for (let i = 1; i < pts.length; i++) {
+      const a = pts[i - 1], b = pts[i];
+      const k = 1 - (now - a.t) / LIFE;
+      if (k <= 0) continue;
+      ctx.globalAlpha = 0.45 * k;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(a.x0, a.y0); ctx.lineTo(a.x1, a.y1); ctx.lineTo(b.x1, b.y1); ctx.lineTo(b.x0, b.y0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.globalAlpha = 0.95 * k;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(a.x1, a.y1); ctx.lineTo(b.x1, b.y1); ctx.stroke();
     }
     ctx.globalAlpha = 1;
   }
@@ -1300,6 +1412,9 @@ export class SceneRenderer {
         f.left -= this.dt ?? 0;
       }
       this.heroLast = { kind, anim, held };
+      // v9.2.7 : traînée seulement pendant la frappe (de l'image qui précède le coup jusqu'au coup), pas pendant l'élan.
+      const fi = anim ? anim.anim.frames.indexOf(anim.name) : -1, hitI = anim?.anim.hit ?? 99;
+      this.weaponTrail(ctx, kind === 'attack' && this.hero.attack > 0 && fi >= hitI - 2 && fi <= hitI + 1 ? held : null, state.equipment.weapon);
       this.travFeet('hero', HERO_X - 2, hero.walking, 0);
     }
 
@@ -1338,6 +1453,8 @@ export class SceneRenderer {
       if (front) this.hitReact(front.id, x, { color });
     };
     if (kind === 'melee') {
+      // v9.2.7 : arc de taille net sur l'arme du compagnon, au moment exact du coup de son geste dessiné.
+      if (!this.focus) this.later(ALLY_GESTURE_TIME.melee * 0.39, () => vfx(this, 'hit_slash', ax + 12, G - 16 - this.waterLift(), { size: 0.8, tint: color === '#ffffff' ? null : color, life: 0.18 }));
       // Saut : l'onde tranchante part au sommet du bond et file jusqu'à l'ennemi.
       this.later(0.24, () => this.projectile(['fx_wave'], ax + 8, G - 30, tx, G - 18, 0.2, {
         targetId: front?.id, trail: [color], trailVy: 0, onHit: () => hit(tx) }));
@@ -1381,12 +1498,14 @@ export class SceneRenderer {
     const t = this.time + i * 0.41;
     const gesture = this.allyGesturePose(companion, a);
     const pose = gesture ?? this.allyMovePose(companion, walking, t);
-    const gait = SPRITES[companion.sprite]?.gait;
+    const gait = allyGait(companion.sprite);
     if (gait === 'fly') {
-      // Battement d'ailes (~4 par seconde) : le corps remonte à chaque coup d'aile vers le bas.
-      const phase = (t * 4) % 1;
+      // Battement d'ailes : le corps remonte à chaque coup d'aile vers le bas. v9.2.7 : vol bien au-dessus du sol
+      // (9 px, ombre au sol), au rythme du cycle de vol stationnaire PixelLab quand il existe.
+      const hz = ALLY_ANIMS[companion.sprite]?.hover ? 1.5 : 4;
+      const phase = (t * hz) % 1;
       pose.flap = phase;
-      pose.dy = (gesture ? pose.dy : 0) + 5 + Math.sin(phase * Math.PI * 2 - Math.PI / 2) * -1.2;
+      pose.dy = (gesture ? pose.dy : 0) + 9 + Math.sin(phase * Math.PI * 2 - Math.PI / 2) * -1.5;
     }
     if (gait === 'glide' && gesture) { pose.dy += 4; pose.glide = true; }
     return pose;
@@ -1419,7 +1538,7 @@ export class SceneRenderer {
 
   // v9.0.8 : démarche selon le personnage — pas de marche (images de pas), vol, glissade ou sauts.
   allyMovePose(companion, walking, t) {
-    const gait = SPRITES[companion.sprite]?.gait;
+    const gait = allyGait(companion.sprite);
     if (gait === 'fly') return { dx: 0, dy: 5, glow: 0 }; // battement et hauteur ajoutés dans allyPose
     // Robe longue : flotte en permanence 2 à 3 px au-dessus du sol (balancement plus ample en avançant).
     if (gait === 'glide') return { dx: 0, dy: 4 + Math.sin(t * (walking ? 4.5 : 2)) * (walking ? 1 : 0.8), glow: 0, glide: true };

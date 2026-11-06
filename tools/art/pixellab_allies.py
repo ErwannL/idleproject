@@ -35,8 +35,8 @@ from pixellab_anim import _clean_alpha, _drop_specks, _palette, _remap, _rle  # 
 import weapon_anchor as wa  # noqa: E402
 
 SRC = os.path.join(HERE, 'pixellab', 'anim_allies')
-FPS = {'walk': 12, 'swim': 9, 'attack': 24}
-LOOPS = ('walk', 'swim')  # la dernière image (= vue) est retirée : le cycle reboucle sur f0
+FPS = {'walk': 12, 'swim': 9, 'attack': 24, 'hover': 12}  # v9.2.7 : vol stationnaire (ailes)
+LOOPS = ('walk', 'swim', 'hover')  # la dernière image (= vue) est retirée : le cycle reboucle sur f0
 
 
 def _shift(img, dx, dy):

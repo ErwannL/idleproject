@@ -448,6 +448,16 @@ export function heroHeldWeapon(equipment, deg = 0) {
   const pad = createCanvas(rot.img.width + 2, rot.img.height + 2);
   pad.getContext('2d').drawImage(rot.img, 1, 1);
   out = { canvas: outlined(pad), x: rot.grip.x + 1, y: rot.grip.y + 1 };
+  // v9.2.7 : pointe de l'arme (pixel opaque le plus loin de la prise) : traînée de frappe (scene.js).
+  try {
+    const c = out.canvas, d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+    let best = -1;
+    for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) {
+      if (d[(y * c.width + x) * 4 + 3] < 128) continue;
+      const r = (x - out.x) ** 2 + (y - out.y) ** 2;
+      if (r > best) { best = r; out.tx = x; out.ty = y; }
+    }
+  } catch { /* sans canvas lisible : pas de traînée */ }
   cache.set(key, out);
   return out;
 }

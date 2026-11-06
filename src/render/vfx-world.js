@@ -91,10 +91,12 @@ export function blockVfx(scene, x, y) { vfx(scene, 'mut_block', x, y); }
 export function drainVfx(scene, x, y) { vfx(scene, 'mut_drain', x, y); }
 
 // Ambiance : une ou deux particules par monde.
+// v9.2.7 : seules les ambiances PixelLab lisibles restent (feuilles, lucioles, neige, bulles, éclair, étoile filante) ;
+// sable, nuages, cristaux, spores, cendres, pollen et feux follets (traits ou pixels isolés illisibles) sont retirés :
+// scene.drawAmbient dessine à la place des particules en forme (étincelles, traînées de sable, oiseaux en vol battu).
 const AMBIENT = {
-  plains: ['amb_pollen', 'amb_fireflies'], forest: ['amb_fireflies', 'amb_leaves'], caves: ['amb_crystal'], desert: ['amb_sand'],
-  mountains: ['amb_snow'], cursed: ['amb_wisps', 'amb_lightning'], swamp: ['amb_spores', 'amb_fireflies'], sky: ['amb_clouds', 'amb_stars'],
-  volcano: ['amb_ash'], void: ['amb_stars', 'amb_wisps'], ocean: ['amb_bubbles'], abyss: ['amb_spores', 'amb_bubbles'],
+  forest: ['amb_leaves', 'amb_fireflies'], mountains: ['amb_snow'], cursed: ['amb_lightning'], swamp: ['amb_fireflies'],
+  sky: ['amb_stars'], void: ['amb_stars'], ocean: ['amb_bubbles'], abyss: ['amb_bubbles'],
 };
 // Malus d'environnement visible sur le héros.
 const ENV_FX = {
@@ -118,7 +120,8 @@ export function drawWorldVfx(scene, ctx, zone, world, heroX, state) {
     scene.ambAt = scene.time + 0.9 + Math.random() * 1.2;
     const name = amb[Math.floor(Math.random() * amb.length)];
     const rare = name === 'amb_lightning' || name === 'amb_stars';
-    if (!rare || Math.random() < 0.3) vfx(scene, name, 20 + Math.random() * (scene.width - 40), 14 + Math.random() * (G - 60), { loop: !rare, life: rare ? undefined : 2.4, alpha: 0.85 });
+    if (!rare || Math.random() < 0.3) vfx(scene, name, 20 + Math.random() * (scene.width - 40), 14 + Math.random() * (G - 80), // v9.2.7 : dans le ciel, jamais sur les personnages
+       { loop: !rare, life: rare ? undefined : 2.4, alpha: 0.85 });
   }
   if (world.hero.dead) return;
   // Malus d'environnement sur le héros, seulement s'il agit encore (pas s'il est entièrement contré) ; plus il est
@@ -136,7 +139,10 @@ export function drawWorldVfx(scene, ctx, zone, world, heroX, state) {
     if (env === 'env_lava') loopAt(scene, ctx, 'poison_bubbles', heroX, G - 46, 0.9, 0.8); // la brûlure ronge les PV
   }
   // Rage du héros : sous 30 % de ses PV max.
-  if (scene.heroHpMax > 0 && world.hero.hp < scene.heroHpMax * 0.3) loopAt(scene, ctx, 'hero_rage', heroX, G + 1, 0.8, 0.8);
+  // v9.2.7 : seulement en vrai combat, PV connus et positifs : une scène sans PV (vitrine, aperçu, héros pas encore
+  // initialisé : hp à 0 ou absent) gardait les flammes de rage allumées aux pieds du héros, même dans les Plaines.
+  const hp = world.hero.hp;
+  if (scene.heroHpMax > 0 && Number.isFinite(hp) && hp > 0 && hp < scene.heroHpMax * 0.3 && world.enemies.length > 0) loopAt(scene, ctx, 'hero_rage', heroX, G + 1, 0.8, 0.8);
   // Boss et mutants : auras propres à leur mécanique.
   for (const e of world.enemies) {
     const fx = scene.enemyFx.get(e.id);
