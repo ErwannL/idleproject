@@ -59,7 +59,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          PREVIOUS: '9.2.4'
+          PREVIOUS: '9.2.3'
         run: |
           gh release download "v$PREVIOUS" --pattern "IdleRPG-$PREVIOUS-setup.exe" --dir previous
           VERSION="$(node -p "require('./package.json').version")"
