@@ -8,7 +8,7 @@ import { canTranscend, keptRebirthShare, perkLevel, stellarMultiplier, transcend
 import { stageLabel } from '../../core/combat.js';
 import {
   canRebirth, fragmentsSpent, rebirthBlocked, rebirthGain, rebirthReward, regionPoints, respecCost, talentById, talentConnected, talentCost,
-  talentLevelEffects, talentPath, talentsOwned, talentUnlocked,
+  talentLevelEffects, talentsOwned, talentUnlocked,
 } from '../../core/rebirth.js';
 import { perkCost } from '../../core/prestige.js';
 import { PRESTIGE, PRESTIGE_PERKS } from '../../data/prestige.js';
@@ -62,23 +62,12 @@ export function visibleTalents(state) {
 
 // Fenêtre centrée sur le Cœur à l'ouverture et à chaque zoom ; Ctrl + molette pour zoomer ; glisser pour se déplacer.
 let centeredAt = null;
-export const DEFAULT_ZOOM = 0.7;
+export const DEFAULT_ZOOM = 1; // v9.2.7 : 1 (avant 0,7) pour lire icônes, valeurs et coûts
 export function recenterTree() { centeredAt = null; }
 
 function nodeState(state, t) {
   const level = state.talents[t.id] ?? 0;
   return level >= t.max ? 'maxed' : level > 0 ? 'owned' : talentUnlocked(state, t) ? 'open' : talentConnected(state, t) ? 'gated' : 'locked';
-}
-
-// Légende (v9.1.0) : points de chaque région et son objectif (prochaine clé de voûte et points requis). Elle
-// n'achète plus rien : l'achat par région est à part, avec confirmation (niveaux et fragments).
-function regionSummary(state) {
-  return TALENT_BRANCHES.filter((b) => b.id !== 'bridge').map((b) => {
-    const pts = regionPoints(state, b.id);
-    const goal = TALENTS.filter((t) => t.region === b.id && t.gate && !(state.talents[t.id] ?? 0)).sort((x, y) => x.gate - y.gate)[0];
-    return `<span class="region-goal" style="--branch:${b.color}"><b style="color:${b.color}">${b.label} ${pts}</b>
-      ${goal ? `<span class="muted">→ ${escapeHtml(goal.name)} : ${pts >= goal.gate ? '<span class="good">prête</span>' : `${goal.gate - pts} point${goal.gate - pts > 1 ? 's' : ''}`}</span>` : ''}</span>`;
-  }).join('');
 }
 
 // v9.1.3 (A18, essai) : vue Région — par région, ses points et ses clés de voûte en grandes icônes, avec l'état en
@@ -109,27 +98,6 @@ function regionBuy(state) {
     style="color:${b.color}">Région ${b.label}</button>`).join('')}</div><div class="muted">Apprend le moins cher d'abord, tant que les fragments suffisent (une confirmation suit).</div>`;
 }
 
-function detailCard(state, sel) {
-  const level = state.talents[sel.id] ?? 0;
-  const unlocked = talentUnlocked(state, sel);
-  const connected = talentConnected(state, sel);
-  const maxed = level >= sel.max;
-  const region = TALENT_BRANCHES.find((b) => b.id === sel.region);
-  const gate = sel.gate && regionPoints(state, sel.region) < sel.gate
-    ? `<div class="bad">Clé de voûte : dépensez ${sel.gate} points dans la région ${region?.label ?? ''} (actuellement ${regionPoints(state, sel.region)}).</div>` : '';
-  return `<div class="card talent-detail">
-      <div class="row-between"><b class="gold-text">${escapeHtml(sel.name)}</b><span class="muted">${KIND_LABEL[sel.kind]}${region ? ` · <span style="color:${region.color}">${region.label}</span>` : ''} · niv. ${level}/${sel.max}</span></div>
-      <div>${level ? effectText(talentLevelEffects(sel, level)) : '<span class="muted">Pas encore appris</span>'}</div>
-      ${maxed ? '' : `<div class="muted">${level ? 'Prochain niveau' : 'Au niveau 1'} : <span class="good">${effectText(talentLevelEffects(sel, level + 1))}</span></div>`}
-      ${connected || level ? '' : '<div class="bad">Pas encore relié : apprenez d\'abord un talent voisin.</div>'}
-      ${gate}
-      <div class="detail-actions">
-        ${costButton({ action: 'buy-talent', cost: talentCost(sel, level), have: state.fragments, currency: 'fragments', attrs: `data-key="${sel.id}"`, label: 'Apprendre ', max: maxed, locked: !unlocked })}
-        ${sel.max > 1 && !maxed && unlocked ? `<button class="btn small" data-action="buy-talent-max" data-key="${sel.id}">Max</button>` : ''}
-      </div>
-    </div>`;
-}
-
 // v9.1.0 : le segment Renaissance existe dès que la Renaissance concerne le joueur (étape 30 atteinte une fois,
 // ou déjà renée / transcendée) ; avant, l'onglet Talents ne montre que l'arbre.
 export function rebirthSegmentOpen(state) {
@@ -144,52 +112,109 @@ export default {
   afterRender(ui, body) {
     const vp = body.querySelector('.tree-viewport');
     if (!vp) return;
-    const zoom = ui.view.treeZoom ?? DEFAULT_ZOOM;
-    // v8.6 : la fenêtre de l'arbre remplit exactement la hauteur du panneau (avant, le panneau défilait
-    // aussi et cachait le haut ou le bas de l'arbre sous la barre de titre).
-    const top = vp.getBoundingClientRect().top - body.getBoundingClientRect().top + body.scrollTop;
-    const below = (body.querySelector('.tree-legend')?.offsetHeight ?? 0) + (body.querySelector('.tree-hint')?.offsetHeight ?? 0) + 28;
-    vp.style.height = `${Math.round(Math.max(200, Math.min(1200, body.clientHeight - top - below)))}px`;
-    // Centre sur la partie de l'arbre réellement visible (le panneau peut couper le bas de la fenêtre).
-    const centerOn = (ux, uy) => {
-      const visibleH = Math.max(60, Math.min(vp.clientHeight, body.getBoundingClientRect().bottom - vp.getBoundingClientRect().top));
-      vp.scrollLeft = ((ux + EXTENT) / SPAN) * vp.scrollWidth - vp.clientWidth / 2;
-      vp.scrollTop = ((uy + EXTENT) / SPAN) * vp.scrollHeight - visibleH / 2;
+    const tree = vp.querySelector('.rune-tree');
+    let zoom = ui.view.treeZoom ?? DEFAULT_ZOOM;
+    // v9.2.7 : la fenêtre de l'arbre laisse voir la barre de sélection (bouton d'achat) sous elle.
+    const below = (body.querySelector('.tree-sel')?.offsetHeight ?? 0) + 22;
+    const k = body.getBoundingClientRect().height / (body.offsetHeight || 1) || 1; // l'interface peut être agrandie (transform)
+    const vis = (body.getBoundingClientRect().bottom - vp.getBoundingClientRect().top) / k - below;
+    const inCard = (vp.getBoundingClientRect().top - (body.querySelector('.tree-card')?.getBoundingClientRect().top ?? 0)) / k + 4;
+    vp.style.height = `${Math.round(Math.max(220, Math.min(1200, vis >= 300 ? vis : body.clientHeight - inCard - below)))}px`;
+    const centerOn = (ux, uy, smooth = false) => {
+      const left = ((ux + EXTENT) / SPAN) * tree.offsetWidth - vp.clientWidth / 2;
+      const topPx = ((uy + EXTENT) / SPAN) * tree.offsetHeight - vp.clientHeight / 2;
+      vp.scrollTo({ left, top: topPx, behavior: smooth ? 'smooth' : 'auto' });
     };
     if (centeredAt !== zoom) {
       centeredAt = zoom;
+      // v9.2.7 : à l'ouverture, si l'arbre et sa barre d'achat ne tiennent pas, le panneau défile jusqu'à l'arbre.
+      const card = body.querySelector('.tree-card');
+      const bar = body.querySelector('.tree-sel');
+      if (card && bar && bar.getBoundingClientRect().bottom > body.getBoundingClientRect().bottom) body.scrollTop += (card.getBoundingClientRect().top - body.getBoundingClientRect().top) / k - 4;
       const sel = talentById(ui.view.talentSel) ?? talentById('core');
       centerOn(sel.x, sel.y);
     } else if (ui.view.treeScroll) {
       [vp.scrollLeft, vp.scrollTop] = ui.view.treeScroll;
     }
-    vp.addEventListener('scroll', () => { ui.view.treeScroll = [vp.scrollLeft, vp.scrollTop]; });
-    // Molette : déplace l'arbre (Maj = horizontalement), Ctrl + molette : zoom. Le panneau ne défile pas.
+    vp.addEventListener('scroll', () => { ui.view.treeScroll = [vp.scrollLeft, vp.scrollTop]; }, { passive: true });
+    // v9.2.7 : zoom fluide sans redessiner le panneau, autour du point visé (curseur, pincement ou centre).
+    let anim = 0;
+    const applyZoom = (z, fx, fy) => {
+      const w = tree.offsetWidth;
+      const ux = (vp.scrollLeft + fx) / w;
+      const uy = (vp.scrollTop + fy) / w;
+      const px = Math.round(TREE_PX * z);
+      tree.style.width = tree.style.height = `${px}px`;
+      tree.style.setProperty('--tz', z);
+      vp.scrollLeft = ux * px - fx;
+      vp.scrollTop = uy * px - fy;
+      zoom = z;
+      ui.view.treeZoom = z;
+      centeredAt = z;
+      tree.classList.toggle('far', z < 0.5);
+    };
+    const zoomTo = (target, fx = vp.clientWidth / 2, fy = vp.clientHeight / 2, instant = false) => {
+      target = Math.min(2, Math.max(0.3, target));
+      cancelAnimationFrame(anim);
+      if (instant || document.documentElement.classList.contains('reduce-motion')) { applyZoom(target, fx, fy); return; }
+      const from = zoom;
+      const t0 = performance.now();
+      const step = (now) => {
+        const k = Math.min(1, (now - t0) / 180);
+        applyZoom(from + (target - from) * (1 - (1 - k) ** 3), fx, fy);
+        if (k < 1) anim = requestAnimationFrame(step);
+      };
+      anim = requestAnimationFrame(step);
+    };
+    tree.classList.toggle('far', zoom < 0.5);
+    body.querySelector('.tree-zoom')?.addEventListener('click', (e) => {
+      const b = e.target.closest('.tz-btn');
+      if (!b) return;
+      e.stopPropagation();
+      if (b.dataset.z === 'center') {
+        const sel = talentById(ui.view.talentSel) ?? talentById('core');
+        centerOn(sel.x, sel.y, true);
+      } else zoomTo(zoom * (b.dataset.z === 'in' ? 1.3 : 1 / 1.3));
+    });
+    // Molette : défile ; Ctrl + molette (ou pincement du pavé) : zoom autour du curseur.
     vp.addEventListener('wheel', (e) => {
       e.preventDefault();
-      if (e.ctrlKey) {
-        const z = body.querySelector(`[data-action="tree-zoom"][data-value="${e.deltaY < 0 ? 'in' : 'out'}"]`);
-        if (z) z.click();
-        else { ui.view.treeZoom = Math.min(2, Math.max(0.3, (ui.view.treeZoom ?? DEFAULT_ZOOM) * (e.deltaY < 0 ? 1.25 : 0.8))); ui.invalidate(); } // v9.1.3 : outils repliés
-        return;
-      }
+      const r = vp.getBoundingClientRect();
+      if (e.ctrlKey) { zoomTo(zoom * Math.exp(-e.deltaY * 0.004), e.clientX - r.left, e.clientY - r.top, true); return; }
       vp.scrollLeft += e.shiftKey ? e.deltaY : e.deltaX;
       vp.scrollTop += e.shiftKey ? 0 : e.deltaY;
     }, { passive: false });
-    // Glisser le fond de l'arbre pour se déplacer (comme une carte).
+    // Glisser pour se déplacer ; deux doigts pour zoomer.
+    const pts = new Map();
     let drag = null;
+    let pinch = null;
     vp.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0 || e.target.closest('button')) return;
+      if (e.button !== 0) return;
+      pts.set(e.pointerId, [e.clientX, e.clientY]);
+      if (pts.size === 2) {
+        const [a, b] = [...pts.values()];
+        const r = vp.getBoundingClientRect();
+        pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), z: zoom, fx: (a[0] + b[0]) / 2 - r.left, fy: (a[1] + b[1]) / 2 - r.top };
+        drag = null;
+        return;
+      }
+      if (e.target.closest('button')) return;
       drag = { x: e.clientX, y: e.clientY, left: vp.scrollLeft, top: vp.scrollTop };
       vp.setPointerCapture(e.pointerId);
       vp.classList.add('dragging');
     });
     vp.addEventListener('pointermove', (e) => {
+      if (pts.has(e.pointerId)) pts.set(e.pointerId, [e.clientX, e.clientY]);
+      if (pinch && pts.size === 2) {
+        const [a, b] = [...pts.values()];
+        applyZoom(Math.min(2, Math.max(0.3, pinch.z * (Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d))), pinch.fx, pinch.fy);
+        return;
+      }
       if (!drag) return;
       vp.scrollLeft = drag.left - (e.clientX - drag.x);
       vp.scrollTop = drag.top - (e.clientY - drag.y);
     });
-    const stop = () => { drag = null; vp.classList.remove('dragging'); };
+    const stop = (e) => { pts.delete(e.pointerId); if (pts.size < 2) pinch = null; drag = null; vp.classList.remove('dragging'); };
     vp.addEventListener('pointerup', stop);
     vp.addEventListener('pointercancel', stop);
     // Recherche : surligne les talents correspondants sans redessiner le panneau.
@@ -216,57 +241,136 @@ export default {
   },
 };
 
+// v9.2.7 : arbre refait pour la lisibilité — chaque nœud montre son icône, sa valeur, son état et son coût ; les
+// régions ont un nom et une couleur dans l'arbre ; le talent choisi montre ce qu'il débloque (nœuds fantômes) ;
+// barre de sélection avec le bouton d'achat juste sous l'arbre ; légende, aide, zoom et défilement fluides.
+const STAT_ICON = {
+  damagePct: 'icon_damage', critChance: 'icon_crit', attackSpeedPct: 'icon_bolt', maxHpPct: 'icon_heart', armor: 'icon_shield',
+  regenPct: 'icon_regen', lifesteal: 'icon_heart', damageVsBossPct: 'icon_boss', xpPct: 'icon_xp', goldPct: 'coin', dropChance: 'icon_bag',
+  damageVsNormalPct: 'icon_damage', companionPct: 'icon_paw', skillCooldownPct: 'icon_book', thorns: 'icon_shield', lowHpArmor: 'icon_shield',
+};
+const nodeIcon = (t) => (t.kind === 'small' ? STAT_ICON[Object.keys(t.perLevel ?? {})[0]] ?? t.icon : t.icon);
+// Valeur courte d'un nœud (« +3 % ») : le total appris, sinon ce que donne le niveau 1.
+function shortValue(t, level) {
+  const m = effectText(talentLevelEffects(t, Math.max(1, level))).match(/[+−-]\s?\d[\d\s.,]*\s?%?/);
+  return m ? m[0].replace(/\s+/g, ' ').trim().replace(/ %$/, '%') : '';
+}
+// Angle moyen de chaque région (pour écrire son nom dans l'arbre).
+const REGION_ANGLE = Object.fromEntries(TALENT_BRANCHES.filter((b) => b.id !== 'bridge').map((b) => {
+  const ns = TALENTS.filter((t) => t.region === b.id);
+  return [b.id, Math.atan2(ns.reduce((s, t) => s + t.y, 0), ns.reduce((s, t) => s + t.x, 0))];
+}));
+const STATE_LABEL = { gated: 'Verrouillé', open: 'Achetable', owned: 'Appris', maxed: 'Maximum', locked: 'Verrouillé' };
+
+function treeNode(state, t, sel, { ghost = false, hit = false } = {}) {
+  const level = state.talents[t.id] ?? 0;
+  const st = nodeState(state, t);
+  const color = REGION_COLOR[t.region] ?? (t.region === 'bridge' ? '#e8e2d0' : '#ffe08a');
+  const cost = talentCost(t, level);
+  const canBuy = (st === 'open' || st === 'owned') && talentUnlocked(state, t);
+  const afford = canBuy && state.fragments >= cost;
+  const val = shortValue(t, level);
+  const badge = st === 'maxed' ? '<span class="tn-badge tn-max">✓</span>' : st === 'gated' || st === 'locked' ? `<span class="tn-badge tn-lock">${img('icon_lock')}</span>` : '';
+  const cls = `tnode k-${t.kind} ${st}${afford ? ' afford' : ''}${ghost ? ' ghost' : ''}${t.id === sel.id ? ' selected' : ''}${hit ? ' hit' : ''}`;
+  return `<button class="${cls}" style="left:${pctX(t).toFixed(2)}%;top:${pctY(t).toFixed(2)}%;--branch:${color}" data-action="talent-sel" data-value="${t.id}"
+    title="${escapeHtml(t.name)} · ${level}/${t.max} — ${escapeHtml(effectText(talentLevelEffects(t, Math.max(1, level))))}">
+    <span class="tn-disc">${img(nodeIcon(t))}</span>${badge}
+    ${t.max > 1 && level ? `<span class="tn-lv">${level}/${t.max}</span>` : ''}
+    ${val ? `<span class="tn-val">${val}</span>` : ''}
+    ${canBuy && !ghost ? `<span class="tn-cost${afford ? '' : ' poor'}">${fragment()}${formatNumber(cost)}</span>` : ''}</button>`;
+}
+
+function selectionBar(state, sel) {
+  const level = state.talents[sel.id] ?? 0;
+  const st = nodeState(state, sel);
+  const unlocked = talentUnlocked(state, sel);
+  const maxed = level >= sel.max;
+  const region = TALENT_BRANCHES.find((b) => b.id === sel.region);
+  const color = region?.color ?? '#ffe08a';
+  const next = sel.links.map((id) => talentById(id)).filter((n) => n && !(state.talents[n.id] ?? 0) && !talentConnected(state, n));
+  const pts = sel.gate ? regionPoints(state, sel.region) : 0;
+  const why = st === 'gated' && sel.gate && pts < sel.gate
+    ? `<div class="bad">Il faut ${sel.gate} points dans ${region?.label ?? ''} (actuellement ${pts}).</div>`
+    : !talentConnected(state, sel) && !level ? '<div class="bad">Apprenez d\'abord un talent relié.</div>' : '';
+  return `<div class="card tree-sel" style="--branch:${color}">
+    <div class="ts-head"><span class="ts-icon">${img(nodeIcon(sel))}</span>
+      <div class="grow"><b>${escapeHtml(sel.name)}</b>
+        <div class="muted ts-sub"><span style="color:${color}">${region?.label ?? KIND_LABEL[sel.kind]}</span> · ${KIND_LABEL[sel.kind]} · <span class="ts-state s-${st}">${STATE_LABEL[st]}</span>${sel.max > 1 ? ` · niv. ${level}/${sel.max}` : ''}</div></div></div>
+    <div class="ts-eff">${level ? `<span>${effectText(talentLevelEffects(sel, level))}</span>` : ''}${maxed ? '' : `${level ? ' <span class="muted">→</span> ' : '<span class="muted">Donne : </span>'}<b class="good">${effectText(talentLevelEffects(sel, level + 1))}</b>`}</div>
+    ${next.length ? `<div class="ts-next muted">Débloque ensuite : ${next.slice(0, 4).map((n) => `<span class="ts-chip">${img(nodeIcon(n))}${escapeHtml(n.name)}</span>`).join('')}${next.length > 4 ? ` +${next.length - 4}` : ''}</div>` : ''}
+    ${why}
+    <div class="detail-actions">
+      ${costButton({ action: 'buy-talent', cost: talentCost(sel, level), have: state.fragments, currency: 'fragments', attrs: `data-key="${sel.id}"`, label: 'Apprendre ', max: maxed, locked: !unlocked })}
+      ${sel.max > 1 && !maxed && unlocked ? `<button class="btn small" data-action="buy-talent-max" data-key="${sel.id}">Max</button>` : ''}
+    </div></div>`;
+}
+
+function treeLegend(state) {
+  const sample = (cls, label) => `<span class="tl-item"><i class="tl-dot ${cls}"></i>${label}</span>`;
+  const branches = TALENT_BRANCHES.filter((b) => b.id !== 'bridge').map((b) => `<span class="tl-branch" style="--branch:${b.color}"><i></i>${b.label} <b>${regionPoints(state, b.id)}</b></span>`).join('');
+  return `<div class="tree-legend2">
+    <div class="tl-row">${sample('afford', 'Achetable')}${sample('open', 'Fragments insuffisants')}${sample('owned', 'Appris')}${sample('maxed', 'Maximum')}${sample('gated', 'Verrouillé')}</div>
+    <div class="tl-row">${branches}</div></div>`;
+}
+
 function treeView(ui, state) {
     const sel = talentById(ui.view.talentSel) ?? talentById('core');
     const zoom = ui.view.treeZoom ?? DEFAULT_ZOOM;
-    const selPath = !(state.talents[sel.id] ?? 0) && !talentConnected(state, sel) ? new Set(talentPath(state, sel.id) ?? []) : new Set();
     // v8.9 : l'arbre se dévoile au fur et à mesure — seuls les talents appris et leurs voisins sont visibles.
     const shown = visibleTalents(state);
+    // v9.2.7 : ce que le talent choisi débloque ensuite apparaît en fantôme.
+    const ghosts = new Set(sel.links.filter((id) => !shown.has(id)));
     const hits = treeSearchHits(ui.view.treeSearch, shown);
     const owned = (id) => (state.talents[id] ?? 0) > 0;
-    // v8.7 : liens appris à la couleur de leur région (plus de mini-carte : l'arbre lui-même est coloré).
-    const links = LINKS.filter(([a, b]) => shown.has(a.id) && shown.has(b.id)).map(([a, b]) => {
-      const cls = owned(a.id) && owned(b.id) ? 'on' : owned(a.id) || owned(b.id) ? 'half' : selPath.has(a.id) && (selPath.has(b.id) || owned(b.id)) ? 'path' : '';
-      const color = cls === 'on' ? REGION_COLOR[a.region] ?? REGION_COLOR[b.region] : null;
-      return `<line x1="${(a.x + EXTENT).toFixed(2)}" y1="${(a.y + EXTENT).toFixed(2)}" x2="${(b.x + EXTENT).toFixed(2)}" y2="${(b.y + EXTENT).toFixed(2)}"${cls ? ` class="${cls}"` : ''}${color ? ` style="stroke:${color}"` : ''}/>`;
+    const links = LINKS.filter(([a, b]) => (shown.has(a.id) || ghosts.has(a.id)) && (shown.has(b.id) || ghosts.has(b.id))).map(([a, b]) => {
+      const ghost = ghosts.has(a.id) || ghosts.has(b.id);
+      const cls = ghost ? 'next' : owned(a.id) && owned(b.id) ? 'on' : owned(a.id) || owned(b.id) ? 'half' : '';
+      const color = cls === 'on' || cls === 'half' ? REGION_COLOR[a.region] ?? REGION_COLOR[b.region] ?? '#e8e2d0' : null;
+      return `<line data-a="${a.id}" data-b="${b.id}" x1="${(a.x + EXTENT).toFixed(2)}" y1="${(a.y + EXTENT).toFixed(2)}" x2="${(b.x + EXTENT).toFixed(2)}" y2="${(b.y + EXTENT).toFixed(2)}"${cls ? ` class="${cls}"` : ''}${color ? ` style="stroke:${color}"` : ''}/>`;
     }).join('');
-    const nodes = TALENTS.filter((t) => shown.has(t.id)).map((t) => {
-      const level = state.talents[t.id] ?? 0;
-      const st = nodeState(state, t);
-      const color = TALENT_BRANCHES.find((br) => br.id === t.region)?.color ?? '#ffe08a';
-      const buyable = ui.view.treeBuyable && st === 'open' && state.fragments >= talentCost(t, level);
-      const cls = `tnode k-${t.kind} ${st}${t.id === sel.id ? ' selected' : ''}${selPath.has(t.id) ? ' path' : ''}${hits?.has(t.id) || buyable ? ' hit' : ''}`;
-      const inner = t.kind === 'small' ? (level ? `<span class="lv">${level}</span>` : '') : `${img(t.icon)}${t.max > 1 ? `<span class="lv">${level}/${t.max}</span>` : ''}`;
-      return `<button class="${cls}" style="left:${pctX(t).toFixed(2)}%;top:${pctY(t).toFixed(2)}%;--branch:${color}" data-action="talent-sel" data-value="${t.id}"
-        title="${escapeHtml(t.name)} · ${level}/${t.max} — ${escapeHtml(effectText(talentLevelEffects(t, Math.max(1, level))))}">${inner}</button>`;
+    // Secteurs colorés et noms des régions, derrière les nœuds.
+    const R = EXTENT - 0.3;
+    const sectors = TALENT_BRANCHES.filter((b) => b.id !== 'bridge').map((b) => {
+      const a = REGION_ANGLE[b.id];
+      const h = (TREE.sector / 2) * (Math.PI / 180);
+      const p = (ang) => `${(EXTENT + R * Math.cos(ang)).toFixed(2)} ${(EXTENT + R * Math.sin(ang)).toFixed(2)}`;
+      return `<path d="M${EXTENT} ${EXTENT} L${p(a - h)} A${R} ${R} 0 0 1 ${p(a + h)} Z" fill="${b.color}" class="sector"/>`;
     }).join('');
+    const labels = TALENT_BRANCHES.filter((b) => b.id !== 'bridge').map((b) => {
+      const a = REGION_ANGLE[b.id];
+      // v9.2.7 : le nom de la région se place juste au-delà de ses talents visibles (jamais sur un nœud).
+      const far = Math.max(1, ...TALENTS.filter((t) => t.region === b.id && (shown.has(t.id) || ghosts.has(t.id))).map((t) => Math.hypot(t.x, t.y)));
+      const pos = (r) => `left:${(((EXTENT + r * Math.cos(a)) / SPAN) * 100).toFixed(2)}%;top:${(((EXTENT + r * Math.sin(a)) / SPAN) * 100).toFixed(2)}%`;
+      return `<span class="region-label" style="${pos(Math.min(EXTENT - 0.6, far + 1.05))};--branch:${b.color}">${b.label}</span>`;
+    }).join('');
+    const nodes = TALENTS.filter((t) => shown.has(t.id) || ghosts.has(t.id)).map((t) => treeNode(state, t, sel, { ghost: ghosts.has(t.id), hit: Boolean(hits?.has(t.id)) })).join('');
     const total = TALENTS.length;
-    // v9.1.3 (doc1 « Talents ») : Recherche, Achetables, zoom et Tout apprendre sont repliés dans « Outils » ;
-    // l'arbre, le compteur et les fragments restent seuls à l'ouverture.
     const tools = fold(ui, 'tree-tools', 'Outils', () => `<div class="tree-head">
         <input id="tree-search" type="search" placeholder="Chercher (or, critique, PV…)" value="${escapeHtml(ui.view.treeSearch ?? '')}" autocomplete="off" aria-label="Chercher un talent"><span class="tree-hits muted"></span>
-        <label class="toggle"><input type="checkbox" data-action="tree-buyable" ${ui.view.treeBuyable ? 'checked' : ''}> Achetables</label>
       </div>
-      <div class="tree-tools"><button class="btn btn-gold small" data-action="ask-buy-talents" data-value="">Tout apprendre…</button><span class="grow"></span>
-        <button class="btn small" data-action="tree-zoom" data-value="out" title="Dézoomer">−</button>
-        <span class="muted">${Math.round(zoom * 100)} %</span>
-        <button class="btn small" data-action="tree-zoom" data-value="in" title="Zoomer">+</button>
-        <button class="btn small" data-action="tree-zoom" data-value="reset" title="Taille normale, centrée sur le talent choisi">⟲</button></div>`,
-    { cls: 'tree-tools-fold', extra: ui.view.treeSearch || ui.view.treeBuyable ? 'filtre actif' : '' });
+      <div class="tree-tools"><button class="btn btn-gold small" data-action="ask-buy-talents" data-value="">Tout apprendre…</button></div>
+      ${regionBuy(state)}`,
+    { cls: 'tree-tools-fold', extra: ui.view.treeSearch ? 'filtre actif' : '' });
+    const help = fold(ui, 'tree-help', 'Aide', () => `<ul class="tree-help">
+        <li>Touchez un talent pour voir ce qu'il donne, puis « Apprendre » juste sous l'arbre.</li>
+        <li>Un talent s'achète dès qu'un talent relié est appris ; les nœuds en pointillés sont ceux qu'il débloque ensuite.</li>
+        <li>Chaque couleur est une région ; les clés de voûte (hexagones) demandent des points dans leur région.</li>
+        <li>Glissez pour vous déplacer, molette ou pincement pour zoomer, ◎ pour recentrer.</li></ul>`);
     const tree = `<div class="tree-head">
         <span><b>${talentsOwned(state)}</b>/${total} talents · ${formatNumber(fragmentsSpent(state))} ${fragment()} investis
           ${total - shown.size > 0 ? `<span class="muted">· ${total - shown.size} encore cachés</span>` : ''}</span>
       </div>
-      ${tools}
-      <div class="tree-wrap"><div class="tree-viewport"><div class="rune-tree" style="width:${Math.round(TREE_PX * zoom)}px;height:${Math.round(TREE_PX * zoom)}px">
-      <svg viewBox="0 0 ${SPAN} ${SPAN}" preserveAspectRatio="none" aria-hidden="true">${links}</svg>${nodes}</div></div></div>
-      <div class="tree-legend">${regionSummary(state)}</div>`;
+      <div class="tree-wrap"><div class="tree-viewport"><div class="rune-tree" style="width:${Math.round(TREE_PX * zoom)}px;height:${Math.round(TREE_PX * zoom)}px;--tz:${zoom}">
+      <svg viewBox="0 0 ${SPAN} ${SPAN}" preserveAspectRatio="none" aria-hidden="true">${sectors}${links}</svg>${labels}${nodes}</div></div>
+      <div class="tree-zoom"><button class="tz-btn" data-z="in" title="Zoomer" aria-label="Zoomer">+</button><button class="tz-btn" data-z="out" title="Dézoomer" aria-label="Dézoomer">−</button><button class="tz-btn" data-z="center" title="Recentrer sur le talent choisi" aria-label="Recentrer sur le talent choisi">◎</button></div></div>
+      ${selectionBar(state, sel)}
+      ${treeLegend(state)}`;
 
     const spent = fragmentsSpent(state);
     const respec = respecCost(state);
     return `<div class="card tree-card rune-card">${tree}</div>
-      ${detailCard(state, sel)}
-      ${fold(ui, 'tree-region-buy', 'Achat par région', () => regionBuy(state))}
+      ${help}
+      ${tools}
       ${fold(ui, 'tree-respec', 'Réinitialiser l\'arbre', () => `<div class="row-between"><span class="muted">Rend les ${formatNumber(spent)} fragments investis.</span>
           <button class="btn small btn-danger" data-action="respec-talents" ${spent > 0 && state.gems >= respec ? '' : 'disabled'}>${respec ? `${formatNumber(respec)} gemmes` : 'Gratuit (1re fois)'}</button></div>`)}`;
 }

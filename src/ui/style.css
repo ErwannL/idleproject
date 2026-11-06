@@ -2736,3 +2736,164 @@ img.ico16 { width: 16px; height: 16px; vertical-align: middle; }
 .reduce-motion .ic-anim + img { visibility: visible; }
 /* v9.2.6 : l'aura et le cadre animés dépassent de la vignette du compagnon. */
 .pet-art-box:has(> .uvfx-loop), .pet-portrait:has(> .uvfx-loop) { overflow: visible; }
+
+/* ===== v9.2.7 : récupérations (monnaies vers leur compteur), menus sobres, arbre de talents lisible ===== */
+.uvfx-cur { image-rendering: pixelated; filter: drop-shadow(0 1px 1px #000); }
+.uvfx-count { font-size: 15px; z-index: 2; text-shadow: 0 1px 0 #000, 0 0 2px #000, 0 0 8px currentColor; }
+.vfx-counter { animation: vfx-counter 0.7s ease-out; }
+@keyframes vfx-counter { 0% { filter: none; } 20% { filter: brightness(1.45) drop-shadow(0 0 7px #ffe7a0); transform: scale(1.08); } 100% { filter: none; transform: none; } }
+/* Menus : plus de cadre à coins ni d'éclat criard ; survol = légère élévation, sélection = pastille douce + barre dorée. */
+#tabs button, #tabs button:hover, #tabs button.active {
+  border-image: none; border: 1px solid transparent; border-radius: 10px; filter: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.25s ease;
+}
+#tabs button { background: rgba(255, 255, 255, 0.025); color: #aebbd6; box-shadow: none; }
+#tabs button:hover { background: rgba(140, 170, 255, 0.09); border-color: rgba(170, 195, 255, 0.18); color: #fff; box-shadow: none; }
+#tabs button.active { background: linear-gradient(180deg, rgba(92, 130, 220, 0.34), rgba(52, 78, 150, 0.30)); border-color: rgba(190, 210, 255, 0.35); color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 2px 10px -4px rgba(90, 140, 255, 0.7); }
+#tabs button::before { content: ''; position: absolute; left: 22%; right: 22%; top: -1px; height: 3px; border-radius: 0 0 3px 3px;
+  background: linear-gradient(90deg, #ffd56a, #ffefb0, #ffd56a); box-shadow: 0 0 8px rgba(255, 210, 110, 0.7);
+  transform: scaleX(0); opacity: 0; transition: transform 0.28s cubic-bezier(.2, .9, .3, 1.2), opacity 0.2s; }
+#app > #tabs button::before { left: -1px; right: auto; top: 20%; bottom: 20%; width: 3px; height: auto; border-radius: 0 3px 3px 0; transform: scaleY(0); }
+#tabs button.active::before { transform: none; opacity: 1; }
+#tabs button img, #tabs button .ic-anim { transition: transform 0.22s cubic-bezier(.2, .9, .3, 1.3); }
+#tabs button:hover img, #tabs button:hover .ic-anim { transform: translateY(-2px) scale(1.06); }
+#tabs button.active img, #tabs button.active .ic-anim { animation: menu-float 2.8s ease-in-out infinite; filter: drop-shadow(0 0 4px rgba(150, 190, 255, 0.55)); }
+@keyframes menu-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.5px); } }
+#tabs button:active { transform: scale(0.96); }
+.subtab:hover { filter: none; }
+/* Ouverture du panneau : glisse et fondu courts, sans rebond ; changement d'onglet : simple fondu. */
+#panel.vfx-open { animation: menu-open 0.26s cubic-bezier(.2, .8, .2, 1); }
+@keyframes menu-open { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+#panel.vfx-tab #panel-body, .vfx-tab { animation: menu-tab 0.18s ease-out; }
+@keyframes menu-tab { from { opacity: 0.35; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { #tabs button.active img, #tabs button::before, #panel.vfx-open { animation: none !important; transition: none !important; } }
+.reduce-motion #tabs button.active img, .reduce-motion #tabs button.active .ic-anim { animation: none; }
+/* Arbre de talents (v9.2.7) : nœud = disque + icône, valeur dessous, coût au-dessus, état lisible. */
+.rune-tree { --fs: calc(5px + 8px * var(--tz, 0.7)); }
+.rune-tree svg .sector { opacity: 0.07; }
+.rune-tree line { stroke: #4b5060; stroke-width: 0.07; opacity: 0.75; animation: none !important; filter: none; }
+.rune-tree line.half { stroke-width: 0.08; opacity: 0.55; }
+.rune-tree line.on { stroke-width: 0.13; opacity: 1; }
+.rune-tree line.next { stroke: #cfd6ea; stroke-width: 0.06; stroke-dasharray: 0.16 0.12; opacity: 0.6; }
+.rune-tree .region-label { position: absolute; transform: translate(-50%, -50%); pointer-events: none; white-space: nowrap; z-index: 0;
+  font: 900 calc(var(--fs) * 1.35)/1 inherit; letter-spacing: 0.06em; text-transform: uppercase; color: var(--branch);
+  text-shadow: 0 1px 0 #000, 0 0 10px #000; opacity: 0.9; }
+.rune-tree .tnode, .rune-tree .tnode.k-small, .rune-tree .tnode.k-notable, .rune-tree .tnode.k-keystone, .rune-tree .tnode.k-core {
+  width: 1.9%; aspect-ratio: 1; padding: 0; border: none; background: none; box-shadow: none; clip-path: none; border-radius: 50%;
+  transform: translate(-50%, -50%); outline: none; z-index: 1; overflow: visible; opacity: 1; transition: transform 0.15s; }
+.rune-tree .tnode.k-notable { width: 2.3%; }
+.rune-tree .tnode.k-keystone { width: 2.8%; }
+.rune-tree .tnode.k-core { width: 2.5%; }
+.rune-tree .tnode:hover { transform: translate(-50%, -50%) scale(1.08); z-index: 4; }
+.rune-tree .tn-disc { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #2c3142, #12141b 75%); border: 2px solid #565c6e; box-shadow: 0 0 0 2px #0a0b10; }
+.rune-tree .k-notable .tn-disc { border-radius: 26%; }
+.rune-tree .k-keystone .tn-disc { border-radius: 0; clip-path: polygon(25% 3%, 75% 3%, 98% 50%, 75% 97%, 25% 97%, 2% 50%); border-width: 3px; }
+.rune-tree .tn-disc img { width: 62%; height: 62%; image-rendering: pixelated; }
+.rune-tree .tnode img { transform: none !important; }
+/* États */
+.rune-tree .tnode.open .tn-disc { border-color: color-mix(in srgb, var(--branch) 55%, #6b7080); }
+.rune-tree .tnode.afford .tn-disc { border-color: var(--branch); box-shadow: 0 0 0 2px #0a0b10, 0 0 0 4px color-mix(in srgb, var(--branch) 35%, transparent), 0 0 12px var(--branch); }
+.rune-tree .tnode.afford::after { content: ''; position: absolute; inset: -5px; border-radius: 50%; border: 2px solid var(--branch); opacity: 0;
+  animation: tn-call 2.2s ease-out infinite; pointer-events: none; }
+@keyframes tn-call { 0% { transform: scale(0.9); opacity: 0.8; } 70%, 100% { transform: scale(1.25); opacity: 0; } }
+.rune-tree .tnode.owned .tn-disc { border-color: color-mix(in srgb, var(--branch) 75%, #fff);
+  background: radial-gradient(circle at 40% 35%, color-mix(in srgb, var(--branch) 70%, #fff), var(--branch) 50%, color-mix(in srgb, var(--branch) 45%, #000)); }
+.rune-tree .tnode.maxed .tn-disc { border-color: #ffe08a;
+  background: radial-gradient(circle at 40% 35%, color-mix(in srgb, var(--branch) 70%, #fff), var(--branch) 50%, color-mix(in srgb, var(--branch) 45%, #000));
+  box-shadow: 0 0 0 2px #0a0b10, 0 0 10px -1px #ffe08a; }
+.rune-tree .tnode.gated .tn-disc, .rune-tree .tnode.locked .tn-disc { filter: grayscale(0.9) brightness(0.6); border-style: dashed; }
+.rune-tree .tnode.ghost { opacity: 0.5; pointer-events: auto; }
+.rune-tree .tnode.ghost .tn-disc { border-style: dashed; border-color: #aab2c8; filter: grayscale(0.6); background: #12141b; }
+.rune-tree .tnode.selected .tn-disc { box-shadow: 0 0 0 2px #0a0b10, 0 0 0 4px #fff, 0 0 14px var(--branch); }
+.rune-tree .tnode.selected { z-index: 5; }
+.rune-tree .tnode.hit .tn-disc { box-shadow: 0 0 0 2px #0a0b10, 0 0 0 4px #7fe0ff; }
+/* Étiquettes : valeur (dessous), coût (dessus), niveau, coche, cadenas. */
+.rune-tree .tn-val, .rune-tree .tn-cost, .rune-tree .tn-lv { position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; pointer-events: none;
+  font: 900 var(--fs)/1.15 inherit; padding: 1px 3px; border-radius: 4px; background: rgba(8, 10, 16, 0.88); color: #f4f1e6; }
+.rune-tree .tn-val { top: calc(100% + 2px); color: color-mix(in srgb, var(--branch) 60%, #fff); }
+.rune-tree .tn-cost { bottom: calc(100% + 2px); display: inline-flex; align-items: center; gap: 1px; color: #b8f5b0; }
+.rune-tree .tn-cost img { width: calc(var(--fs) * 1.1); height: calc(var(--fs) * 1.1); }
+.rune-tree .tn-cost.poor { color: #ff9a9a; }
+.rune-tree .tn-lv { top: 50%; left: 100%; transform: translate(-40%, -50%); font-size: calc(var(--fs) * 0.85); color: #fff; }
+.rune-tree .tn-badge { position: absolute; right: -10%; top: -10%; width: 42%; height: 42%; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; font: 900 calc(var(--fs) * 0.85)/1 inherit; pointer-events: none; }
+.rune-tree .tn-max { background: #ffd56a; color: #2a1b00; box-shadow: 0 0 0 1px #0a0b10; }
+.rune-tree .tn-lock { background: #1a1c24; box-shadow: 0 0 0 1px #0a0b10; }
+.rune-tree .tn-lock img { width: 80%; height: 80%; }
+.rune-tree.far .tn-val, .rune-tree.far .tn-lv { display: none; }
+.rune-tree.far .region-label { font-size: 13px; }
+.tree-wrap { position: relative; }
+.tree-viewport { scroll-behavior: auto; touch-action: none; background: radial-gradient(circle at 50% 50%, #1a2034, #0c0f18 75%); }
+.tree-zoom { position: absolute; right: 8px; top: 8px; display: flex; flex-direction: column; gap: 4px; z-index: 6; }
+.tz-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid rgba(190, 210, 255, 0.3); background: rgba(14, 18, 30, 0.88); color: #fff;
+  font: 900 18px/1 inherit; cursor: pointer; transition: background-color 0.15s; }
+.tz-btn:hover { background: rgba(60, 80, 140, 0.9); }
+/* Barre de sélection, légende, aide */
+.tree-sel { margin-top: 6px; border-left: 4px solid var(--branch) !important; display: flex; flex-direction: column; gap: 4px; }
+.tree-sel .ts-head { display: flex; gap: 8px; align-items: center; }
+.tree-sel .ts-icon { width: 34px; height: 34px; flex: none; display: flex; align-items: center; justify-content: center; border-radius: 50%;
+  background: color-mix(in srgb, var(--branch) 30%, #12141b); border: 2px solid var(--branch); }
+.tree-sel .ts-icon img { width: 22px; height: 22px; }
+.tree-sel .ts-sub { font-size: 11px; }
+.ts-state { font-weight: 900; }
+.ts-state.s-open { color: #b8f5b0; } .ts-state.s-owned { color: #9fd0ff; } .ts-state.s-maxed { color: #ffd56a; } .ts-state.s-gated, .ts-state.s-locked { color: #ff9a9a; }
+.tree-sel .ts-next { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 11px; }
+.ts-chip { display: inline-flex; align-items: center; gap: 2px; padding: 0 4px; border-radius: 4px; background: rgba(255, 255, 255, 0.06); color: #dfe5f2; }
+.ts-chip img { width: 14px; height: 14px; }
+.tree-legend2 { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; font-size: 10.5px; font-weight: 800; }
+.tree-legend2 .tl-row { display: flex; flex-wrap: wrap; gap: 4px 10px; justify-content: center; }
+.tl-item { display: inline-flex; align-items: center; gap: 4px; color: #cdd4e4; }
+.tl-dot { width: 11px; height: 11px; border-radius: 50%; border: 2px solid #565c6e; background: #12141b; display: inline-block; }
+.tl-dot.afford { border-color: #8fe08a; box-shadow: 0 0 6px #8fe08a; }
+.tl-dot.open { border-color: #6b7080; }
+.tl-dot.owned { background: #6fc8ff; border-color: #cfe9ff; }
+.tl-dot.maxed { background: #6fc8ff; border-color: #ffe08a; box-shadow: 0 0 5px #ffe08a; }
+.tl-dot.gated { border-style: dashed; opacity: 0.6; }
+.tl-branch { display: inline-flex; align-items: center; gap: 4px; color: var(--branch); }
+.tl-branch i { width: 9px; height: 9px; border-radius: 2px; background: var(--branch); }
+.tree-help { margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.45; }
+/* Animation d'apprentissage (calque canvas suivant le nœud) */
+.tfx-canvas { position: fixed; pointer-events: none; }
+.reduce-motion .rune-tree .tnode.afford::after { animation: none; }
+.rune-tree .tnode.tfx-bought .tn-disc { animation: tfx-bought 0.5s cubic-bezier(.3, 1.5, .5, 1); }
+@keyframes tfx-bought { 35% { transform: scale(1.18); filter: brightness(1.5); } }
+.rune-tree .tnode.tfx-awake .tn-disc { animation: tfx-awake 0.6s ease-out; }
+@keyframes tfx-awake { 30% { transform: scale(1.12); filter: brightness(1.6); } }
+/* Invocation (v9.2.7) : portail seul au centre (plus d'anneaux en pointillés), rayon qui MONTE du portail avec des
+   bords doux, cartes en grille régulière centrée, textes de doublon dans la carte, fond sombre lisible. */
+.summon-fx { background: radial-gradient(circle at 50% 45%, rgba(30, 24, 70, 0.95), rgba(3, 3, 10, 0.98) 70%); }
+.summon-fx .sfx-portal { display: none; }
+.summon-fx .sfx-beam { display: none; }
+.summon-fx .sfx-px-portal { left: 50%; top: 45%; margin: -108px 0 0 -108px; }
+.summon-fx .sfx-px-beam { left: 50%; top: 0; bottom: auto; height: 45% !important; width: 246px; margin-left: -123px; transform: none; opacity: 0.5;
+  -webkit-mask-image: linear-gradient(to top, transparent 0, #000 22%, #000 40%, transparent 100%), linear-gradient(to right, transparent 0, #000 30%, #000 70%, transparent 100%);
+  -webkit-mask-composite: source-in; mask-image: linear-gradient(to top, transparent 0, #000 22%, #000 40%, transparent 100%), linear-gradient(to right, transparent 0, #000 30%, #000 70%, transparent 100%);
+  mask-composite: intersect; filter: blur(0.6px); }
+.summon-fx .sfx-cards { display: grid; grid-template-columns: repeat(var(--cols, 5), auto); justify-content: center; gap: 8px; max-width: none;
+  padding: 10px; border-radius: 14px; background: rgba(4, 6, 16, 0.55); box-shadow: 0 0 40px 10px rgba(4, 6, 16, 0.55); }
+.summon-fx .sfx-cards.count-1 { --cols: 1; } .summon-fx .sfx-cards.count-2 { --cols: 2; } .summon-fx .sfx-cards.count-3 { --cols: 3; } .summon-fx .sfx-cards.count-4 { --cols: 4; }
+.sfx-face { overflow: hidden; justify-content: center; gap: 2px; }
+.sfx-face small, .sfx-face em { display: block; max-width: 100%; font-size: 9.5px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sfx-face b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sfx-cards.count-10 .sfx-face canvas.anim, .sfx-cards.count-10 .sfx-face img { height: 56px; max-width: 100%; object-fit: contain; }
+@media (max-width: 520px) {
+  .summon-fx .sfx-cards { gap: 5px; padding: 6px; }
+  .summon-fx .sfx-cards.count-10 .sfx-card { width: 62px; height: 98px; }
+  .sfx-cards.count-10 .sfx-face canvas.anim, .sfx-cards.count-10 .sfx-face img { height: 42px; }
+  .sfx-cards.count-10 .sfx-face b { font-size: 9px; }
+  .sfx-cards.count-10 .sfx-face small, .sfx-cards.count-10 .sfx-face em { font-size: 8.5px; }
+}
+/* Fiches (v9.2.7) : illustration contenue et rognée dans sa vignette ; rareté = liseré lumineux autour, jamais dessus. */
+.pet-art-box, .pet-portrait, .pet-art-box:has(> .uvfx-loop), .pet-portrait:has(> .uvfx-loop) { overflow: hidden; }
+.pet-art-box > .uvfx-loop, .pet-portrait > .uvfx-loop, .look-pic > .uvfx-loop, .item-frame > .uvfx-loop { display: none; }
+.pet-art-box .hd-art { object-fit: contain; object-position: 50% 50%; }
+.pet-portrait img, .pet-portrait canvas.anim { max-width: 100%; max-height: 100%; object-fit: contain; }
+.rfx { --rc: #8fa0c0; box-shadow: 0 0 0 2px var(--rc), 0 0 10px -2px var(--rc); }
+.rfx-rare { --rc: #5fa8ff; } .rfx-epic { --rc: #c06bff; } .rfx-legendary { --rc: #ffcf4a; }
+.rfx-epic, .rfx-legendary { animation: rfx-glow 2.6s ease-in-out infinite; }
+@keyframes rfx-glow { 50% { box-shadow: 0 0 0 2px var(--rc), 0 0 16px 1px var(--rc); } }
+.reduce-motion .rfx { animation: none; }
+.rune-tree .k-core .tn-val, .rune-tree .k-core .tn-lv { display: none; } /* le Cœur est entouré de près : son effet est dans la barre */
+.rune-tree .k-core .tn-cost { bottom: auto; top: calc(100% + 2px); }

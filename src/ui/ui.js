@@ -1317,7 +1317,7 @@ export class UI {
     document.documentElement.classList.toggle('reduce-motion', this.calm);
     if (!this.booted) { this.booted = true; uiFx.bootDone(); uiFx.startAmbient(); } // v9.2.6 : écran de chargement
     uiFx.resourcesFx(state); // v9.2.6 : l'or brille quand il augmente
-    uiFx.speedFx(this.$('speed-toggle'), simSpeed(state) > 1); // v9.2.6 : flamme du bonus de vitesse
+    uiFx.speedFx(this.$('speed-toggle')); // v9.2.7 : flamme retirée
     this.$('speed-toggle').classList.toggle('fast', simSpeed(state) > 1);
     this.$('auto-toggle').classList.toggle('off', !state.autoAdvance);
     this.$('auto-toggle').classList.toggle('hidden', Boolean(state.dungeon || state.tower || state.challenge));
@@ -1527,7 +1527,7 @@ export class UI {
       }).join('') + (boostOn ? `<button class="boost-chip" data-action="show-boost" id="boost-chip">${img('icon_bolt', 'ico20')}<span id="boost"></span></button>` : '');
       delete this.lastHud.boost;
     }
-    uiFx.speedFx(this.$('boost-chip'), boostOn); // v9.2.6 : flamme sur le bonus de vitesse actif
+    uiFx.speedFx(this.$('boost-chip')); // v9.2.7 : flamme retirée
     const group = this.$('boost-group');
     const any = open.length > 0 || boostOn;
     group.classList.toggle('hidden', !any);
@@ -1631,7 +1631,12 @@ export class UI {
     const n = this.next;
     if (!n) return;
     this.userAt = performance.now();
-    if (n.action === 'claim-everything') this.actions.claimEverything();
+    if (n.action === 'claim-everything') {
+      // v9.2.7 : les monnaies récupérées volent du bouton vers leurs compteurs.
+      const before = uiFx.snap(this.state);
+      this.actions.claimEverything();
+      uiFx.claimFly(before.cur, uiFx.snap(this.state).cur, this.$('next-action'), true);
+    }
     else if (n.action === 'retry-boss') this.actions.retryBoss();
     else if (n.action === 'advance') this.actions.advance();
     else if (n.tab) {
@@ -1926,7 +1931,7 @@ export class UI {
         </details>
         <div class="detail-actions"><button class="btn" data-action="close-modal">Continuer</button>
           <button class="btn btn-gold" data-action="session-return">${img('icon_bolt', 'ico20')} Retour de session (S)</button></div>`);
-    uiFx.offlineFx(this.$('modal-card')); // v9.2.6 : coffre des gains hors ligne qui s'ouvre, pièces qui tombent
+    uiFx.offlineFx(this.$('modal-card'), { gold: 0, gems: 0, shards: 0 }, { gold: summary.totalGold, gems: summary.gems ?? 0, shards: mats.shards ?? 0 }); // v9.2.7 : seulement les monnaies qui volent vers leurs compteurs
   }
 
   // v9.1.0 : une seule façon d'ouvrir une fenêtre — rôle dialog, focus sur le premier bouton, Tab qui boucle

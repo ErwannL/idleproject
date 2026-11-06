@@ -4,6 +4,9 @@
 // Règles : rien ne capte un clic (calque pointer-events: none), menus ≤ 400 ms, un nombre d'effets borné,
 // et rien du tout en « Réduire les animations » / prefers-reduced-motion (classe .reduce-motion posée par ui.js).
 import { MAP_FX, SHEETS } from './ui-vfx-sheets.js';
+import { CURRENCIES, currencyAmount } from '../data/currencies.js';
+import { formatNumber, icon as iconUrl } from './common.js';
+import { talentById, talentUnlocked } from '../core/rebirth.js';
 
 const MAX_LIVE = 48; // effets simultanés au plus (une avalanche de clics ne ralentit pas l'interface)
 let layer = null;
@@ -16,11 +19,15 @@ export function calm() {
 }
 
 function getLayer() {
-  if (layer?.isConnected) return layer;
+  // v9.2.7 : l'interface peut être agrandie (zoom CSS sur <html>, ex. 1920×1080) alors que les positions viennent de
+  // getBoundingClientRect (pixels à l'écran) : le calque annule ce zoom, sinon les effets tombaient à côté.
+  const z = parseFloat(document.documentElement.style.zoom) || 1;
+  if (layer?.isConnected) { layer.style.zoom = z === 1 ? '' : String(1 / z); return layer; }
   layer = document.createElement('div');
   layer.id = 'ui-vfx';
   layer.setAttribute('aria-hidden', 'true');
   document.body.appendChild(layer);
+  if (z !== 1) layer.style.zoom = String(1 / z);
   return layer;
 }
 
@@ -42,7 +49,7 @@ export function sprite(name, { size, loops = 1, speed = 1, tint = null, parent =
   (parent ?? getLayer()).appendChild(el);
   const dur = (s.n / s.fps) * 1000 / speed;
   const anim = el.animate([{ backgroundPositionX: '0%' }, { backgroundPositionX: '100%' }],
-    { duration: dur, iterations: loops, easing: `steps(${Math.max(1, s.n - 1)}, jump-none)` });
+    { duration: dur, iterations: loops, easing: `steps(${Math.max(2, s.n)}, jump-none)` }); // v9.2.7 : n paliers (avant n − 1 : images à cheval sur deux cases)
   if (loops !== Infinity) setTimeout(() => el.remove(), dur * loops + 40);
   return el;
 }
@@ -85,38 +92,67 @@ export function pulse(el, cls = 'vfx-bump', ms = 450) {
 }
 
 // Pièces ou gemmes qui volent d'un point vers le compteur du haut (courbe, en cascade), éclat à l'arrivée.
-export function flyTo(kind, from, target, count = 6) {
+export function flyTo(kind, from, target, count = 6, label = null) {
   if (calm() || !target?.isConnected) return;
-  const [tx, ty, tr] = center(target);
+  const host = target.closest?.('.chip') ?? target;
+  const [tx, ty, tr] = center(host.querySelector?.('img') ?? host);
   if (!tr.width) return;
   const [fx, fy] = Array.isArray(from) ? from : center(from);
   const n = Math.max(1, Math.min(count, 10, MAX_LIVE - live));
-  const icon = kind === 'gems' ? 'gem' : 'coin';
+  const sheet = kind === 'gems' ? 'gem' : kind === 'gold' ? 'coin' : null;
+  const sz = coinSize();
+  let arrived = 0;
   for (let i = 0; i < n; i++) {
-    const sz = coinSize();
-    const el = sprite(icon, { size: sz, loops: Infinity, speed: 1.6 });
+    let el;
+    if (sheet) el = sprite(sheet, { size: sz, loops: Infinity, speed: 1.6 });
+    else {
+      el = document.createElement('img');
+      el.className = 'uvfx uvfx-cur';
+      el.src = iconUrl(CURRENCIES[kind]?.icon ?? 'coin');
+      Object.assign(el.style, { width: `${sz}px`, height: `${sz}px` });
+      getLayer().appendChild(el);
+    }
     if (!el) return;
     live += 1;
-    const ox = fx + (Math.random() - 0.5) * 36;
-    const oy = fy + (Math.random() - 0.5) * 20;
+    const ox = fx + (Math.random() - 0.5) * 30;
+    const oy = fy + (Math.random() - 0.5) * 14;
     el.style.left = `${ox - sz / 2}px`;
     el.style.top = `${oy - sz / 2}px`;
     const dx = tx - ox;
     const dy = ty - oy;
-    const lift = -40 - Math.random() * 50;
-    const a = el.animate([
-      { transform: 'translate(0,0) scale(.4)', opacity: 0 },
-      { transform: `translate(${(Math.random() - 0.5) * 50}px, ${lift * 0.6}px) scale(1.15)`, opacity: 1, offset: 0.22 },
-      { transform: `translate(${dx * 0.55}px, ${dy * 0.55 + lift}px) scale(1)`, opacity: 1, offset: 0.6 },
-      { transform: `translate(${dx}px, ${dy}px) scale(.7)`, opacity: 0.9 },
-    ], { duration: 620 + i * 25, delay: i * 55, easing: 'cubic-bezier(.45,0,.7,1)', fill: 'both' });
+    const bend = (Math.random() - 0.5) * 60;
+    el.animate([
+      { transform: 'translate(0,0) scale(.5)', opacity: 0 },
+      { transform: `translate(${bend * 0.3}px, -18px) scale(1.1)`, opacity: 1, offset: 0.18 },
+      { transform: `translate(${dx * 0.5 + bend}px, ${dy * 0.5 - 30}px) scale(1)`, opacity: 1, offset: 0.6 },
+      { transform: `translate(${dx}px, ${dy}px) scale(.6)`, opacity: 0.85 },
+    ], { duration: 640, delay: i * 50, easing: 'cubic-bezier(.4,0,.6,1)', fill: 'both' });
     setTimeout(() => {
       el.remove();
       live -= 1;
-      if (i === 0 || i === n - 1) { pulse(target.closest('.chip') ?? target); play('spark', tx, ty, { size: 48 }); play('gold_shine', tx, ty, { size: 48 }); }
-    }, 640 + i * 80); // minuterie plutôt que onfinish : l'effet se retire toujours (onglet en arrière-plan…)
-    void a;
+      arrived += 1;
+      if (arrived === 1) {
+        pulse(host, 'vfx-counter', 700);
+        if (label) countText(label, host, kind);
+      }
+    }, 690 + i * 50); // minuterie plutôt que onfinish : l'effet se retire toujours (onglet en arrière-plan…)
   }
+}
+
+const CUR_COLOR = { gold: '#ffd45a', gems: '#8fe6ff', fragments: '#d6b8ff', shards: '#9fe0ff', keys: '#ffcf7a', stars: '#fff1a8' };
+// « +N » sous le compteur (il reste lisible 1,2 s).
+function countText(text, host, kind) {
+  const r = host.getBoundingClientRect();
+  const el = document.createElement('b');
+  el.className = 'uvfx-num uvfx-count';
+  el.textContent = text;
+  el.style.left = `${r.left + r.width / 2}px`;
+  el.style.top = `${r.bottom + 2}px`;
+  el.style.color = CUR_COLOR[kind] ?? '#ffe28a';
+  getLayer().appendChild(el);
+  el.animate([{ transform: 'translate(-50%,-6px)', opacity: 0 }, { transform: 'translate(-50%,0)', opacity: 1, offset: 0.15 },
+    { transform: 'translate(-50%,0)', opacity: 1, offset: 0.75 }, { transform: 'translate(-50%,4px)', opacity: 0 }], { duration: 1300, easing: 'ease-out' });
+  setTimeout(() => el.remove(), 1320);
 }
 
 // Petit nombre « +N » qui monte (sans texte à traduire).
@@ -135,18 +171,20 @@ export function floatText(text, x, y, color = '#ffe28a') {
 }
 
 // --- Clics : l'état avant / après une action dit ce qui s'est passé (récompense, fusion, renfort, équipement…) ---
-function snap(state) {
+// v9.2.7 : exporté pour « Tout récupérer » de la barre du bas (sans data-action).
+export function snap(state) {
   if (!state) return null;
   return {
     gold: state.gold, gems: state.gems, shards: state.materials?.shards ?? 0, inv: state.inventory?.length ?? 0,
     stash: state.stash?.length ?? 0, next: state.nextItemId ?? 0, lvl: state.level ?? 0,
     eq: Object.values(state.equipment ?? {}).map((i) => i?.id ?? '').join(),
     ach: Object.keys(state.achievements?.claimed ?? {}).length,
+    cur: Object.fromEntries(Object.keys(CURRENCIES).map((k) => { const v = currencyAmount(state, k); return [k, typeof v === 'number' ? v : 0]; })),
   };
 }
 
 const CLAIM_BIG = new Set(['claim-everything', 'claim-all', 'claim-all-expeditions', 'claim-all-events']);
-const CHEST = new Set(['claim-event', 'claim-mission-bonus']);
+const CHEST = new Set(['claim-event', 'claim-mission-bonus']); // récupérations sans préfixe « claim »
 const FORGE = new Set(['upgrade-item', 'sharpen', 'reforge', 'target-reroll', 'craft', 'upgrade-companion']);
 
 export function clickFx(ui, event, run) {
@@ -154,39 +192,30 @@ export function clickFx(ui, event, run) {
   const action = el?.dataset.action;
   const before = action && !calm() ? snap(ui.state) : null;
   const tal = action?.startsWith('buy-talent') ? ui.state?.talents?.[el.dataset.key] ?? 0 : 0;
+  // v9.2.7 : voisins encore fermés avant l'achat (pour faire courir la lumière vers ceux qui s'ouvrent).
+  const closed = tal >= 0 && action?.startsWith('buy-talent') ? (talentById(el.dataset.key)?.links ?? []).filter((id) => !talentUnlocked(ui.state, talentById(id))) : [];
   const pt = [event.clientX, event.clientY];
   const [cx, cy] = el ? center(el) : pt;
   run();
-  if (el && !el.disabled && !calm() && el.isConnected && !el.closest('.summon-fx')) pulse(el, 'vfx-press', 260);
+  if (el && !el.disabled && !calm() && el.isConnected && !el.closest('.summon-fx, #tabs, #panel-subtabs')) pulse(el, 'vfx-press', 260); // v9.2.7 : pas d'éclat sur les menus
   if (!before) return;
   // v9.2.6 (2e vague) : écrans clés.
   if (action === 'enter-dungeon' && (ui.state?.dungeon)) stageFx('dungeon_portal', 192);
   else if (action === 'start-expedition') play('depart', cx, cy, { size: 96 });
   else if ((action === 'buy-talent' || action === 'buy-talent-max') && (ui.state?.talents?.[el.dataset.key] ?? 0) > tal) {
-    const node = document.querySelector(`#panel-body .rune-tree [data-action="talent-sel"][data-value="${CSS.escape(el.dataset.key)}"]`);
-    talentFx(node ?? el);
+    talentFx(el.dataset.key, closed.filter((id) => talentUnlocked(ui.state, talentById(id))));
   } else if (action === 'confirm-rebirth') bigFx('rebirth', '#ff8a3a');
   else if (action === 'confirm-transcend') bigFx('transcend', '#c9a6ff');
-  else if (action === 'open-claims') setTimeout(() => playOn('mail_open', document.querySelector('#modal-card h2'), { size: 96 }), 30);
   const after = snap(ui.state);
   if (!after) return;
   const tint = el ? getComputedStyle(el).getPropertyValue('--rarity').trim() || null : null;
   const dg = after.gold - before.gold;
-  const dm = after.gems - before.gems;
   const gold = document.querySelector('#topbar [data-currency="gold"] span') ?? document.getElementById('strip-gold');
-  const gems = document.querySelector('#topbar [data-currency="gems"] span');
+  // v9.2.7 : récupération = seulement les monnaies qui volent vers LEUR compteur (plus de coffre, confettis ni trophée).
   if (action.startsWith('claim') || action === 'enc-claim' || CHEST.has(action)) {
-    const big = CLAIM_BIG.has(action);
-    const got = dg > 0 || dm > 0 || after.inv + after.stash > before.inv + before.stash || after.ach > before.ach || after.shards > before.shards;
-    if (!got) return;
-    if (el.closest('#modal')) play('mail_open', cx, cy - 20, { size: 80 });
-    if (action.includes('expedition')) play('return', cx, cy, { size: 96 });
-    if (after.ach > before.ach || action === 'claim-achievement') play('trophy', cx, cy, { size: 144 });
-    else if (CHEST.has(action)) play('chest', cx, cy, { size: 128 });
-    else play(big ? 'confetti' : 'burst', cx, cy, { size: big ? 224 : 128 });
-    if (dg > 0) flyTo('gold', [cx, cy], gold, big ? 10 : 5);
-    if (dm > 0) { flyTo('gems', [cx, cy], gems, big ? 8 : 4); floatText(`+${dm}`, cx, cy - 10, '#8fe6ff'); }
-    if (big) pulse(document.getElementById('topbar'), 'vfx-glow', 700);
+    const row = el.closest('.row, li, .claim-row, .mission, .contract, .exp-card, tr');
+    const src = row && row !== el && row.offsetHeight < 140 && !row.contains(document.getElementById('panel-body')) ? row : el;
+    claimFly(before.cur, after.cur, src.isConnected ? src : [cx, cy], CLAIM_BIG.has(action));
     return;
   }
   if (action === 'fuse' || action === 'fuse-all') {
@@ -207,7 +236,7 @@ export function clickFx(ui, event, run) {
   } else if (action === 'recycle' || action === 'bulk-recycle') {
     if (after.inv + after.stash < before.inv + before.stash) {
       play('recycle', cx, cy, { size: 122 });
-      if (dg > 0) flyTo('gold', [cx, cy], gold, 4);
+      if (dg > 0) flyTo('gold', [cx, cy], gold, 4, `+${formatNumber(dg)}`);
     }
   }
 }
@@ -551,37 +580,25 @@ export function startAmbient() {
   }, 3600);
 }
 
-// Bonus de vitesse : petite flamme accrochée au bouton de vitesse tant qu'il est actif.
-export function speedFx(btn, on) {
-  if (!btn) return;
-  const cur = btn.querySelector(':scope > .boost_flame');
-  if (!on || calm()) { cur?.remove(); return; }
-  if (!cur) attachLoop(btn, 'boost_flame', { size: 30, back: false, cls: 'speed-flame' }); // flamme derrière l'éclair
+// v9.2.7 : plus de flamme sur le bonus de vitesse (retour du joueur) ; on retire seulement celle d'une ancienne vue.
+export function speedFx(btn) {
+  btn?.querySelector(':scope > .boost_flame, :scope > .speed-flame')?.remove();
 }
 
 // --- Fiches et écrans (après chaque rendu du panneau) ---
-const AURA = { legendary: 'aura_legend', epic: 'aura_epic' };
 const rarityOf = (el) => (el?.className.match(/\br-(common|rare|epic|legendary)\b/) ?? [])[1] ?? 'common';
 export function decorate(body, tab) {
   if (calm() || !body) return;
-  // Héros : aura de rareté autour du portrait choisi (Apparences) ; compagnon : aura, cadre, étoiles qui brillent.
-  body.querySelectorAll('.look-card.active .look-pic').forEach((pic) => attachLoop(pic, AURA[rarityOf(pic.closest('.look-card'))] ?? 'aura_common', { size: 150 }));
+  // v9.2.7 : plus de sprites d'aura ni de cadre posés SUR l'illustration (ils la coupaient ou la faisaient déborder) :
+  // un liseré lumineux de la rareté AUTOUR de la vignette (CSS .rfx), l'illustration reste contenue.
+  const ring = (el, r) => { if (el && !el.classList.contains('rfx')) el.classList.add('rfx', `rfx-${r}`); };
+  body.querySelectorAll('.look-card.active .look-pic').forEach((pic) => ring(pic, rarityOf(pic.closest('.look-card'))));
   body.querySelectorAll('.pet-detail').forEach((card) => {
-    const r = rarityOf(card);
-    const box = card.querySelector('.pet-art-box, .pet-portrait');
-    if (box) {
-      attachLoop(box, AURA[r] ?? 'aura_common', { size: 160 });
-      if (r === 'legendary' || r === 'epic') attachLoop(box, r === 'legendary' ? 'frame_legend' : 'frame_epic', { back: false, inset: '-6px' });
-    }
+    ring(card.querySelector('.pet-art-box, .pet-portrait'), rarityOf(card));
     const st = card.querySelector('.stars');
     if (st && !st.querySelector('.star_shine')) { st.classList.add('uvfx-host'); attachLoop(st, 'star_shine', { size: 18, back: false, cls: 'star-glint' }); }
   });
-  // Objet : cadre de rareté animé et reflet qui balaie l'objet légendaire.
-  body.querySelectorAll('.item-detail .detail-head > .item-frame').forEach((fr) => {
-    const r = rarityOf(fr);
-    if (r === 'legendary' || r === 'epic') attachLoop(fr, r === 'legendary' ? 'frame_legend' : 'frame_epic', { back: false, inset: '-5px' });
-    if (r === 'legendary') attachLoop(fr, 'sheen', { back: false, inset: '0', cls: 'sheen-slow' });
-  });
+  body.querySelectorAll('.item-detail .detail-head > .item-frame').forEach((fr) => ring(fr, rarityOf(fr)));
   // Tour : fond de runes qui montent.
   if (tab === 'tower') { const c = [...body.querySelectorAll('.card')].find((x) => x.querySelector('[data-action="enter-tower"], [data-action="leave-tower"]')) ?? body.querySelector('.card:last-of-type'); if (c) { c.classList.add('uvfx-host'); attachLoop(c, 'tower_bg', { inset: '0', cls: 'tower-bg' }); } }
 }
@@ -608,44 +625,128 @@ export function bigFx(name, tint) {
   play('burst', innerWidth / 2, innerHeight / 2, { size: 256 });
 }
 
-// Retour hors ligne : coffre qui s'ouvre dans la fenêtre, pièces qui pleuvent puis volent vers le compteur.
-export function offlineFx(modal) {
+// v9.2.7 : compteur d'une monnaie à l'écran (barre du haut, sinon icône visible dans l'en-tête du panneau).
+function counterOf(kind) {
+  const top = document.querySelector(`#topbar [data-currency="${kind}"]`);
+  if (top?.offsetWidth) return top;
+  const icon = CURRENCIES[kind]?.icon;
+  const alt = icon && [...document.querySelectorAll(`#panel-head img[src*="${icon}."], #panel-title img[src*="${icon}."], #topbar img[src*="${icon}."]`)].find((n) => n.offsetWidth);
+  return alt ? alt.parentElement : null;
+}
+// Monnaies gagnées : chacune vole de la source vers son compteur, qui s'illumine, avec un « +N » clair dessous.
+export function claimFly(before, after, from, big = false) {
+  if (calm() || !before || !after) return;
+  let k = 0;
+  for (const kind of Object.keys(CURRENCIES)) {
+    const d = (after[kind] ?? 0) - (before[kind] ?? 0);
+    if (!(d > 0)) continue;
+    const target = counterOf(kind);
+    if (!target) continue;
+    const delay = k++ * 160;
+    setTimeout(() => flyTo(kind, from, target, big ? 9 : 6, `+${formatNumber(d)}`), delay);
+  }
+}
+
+// Retour hors ligne (v9.2.7) : seulement les pièces qui volent des gains vers le compteur d'or (plus de coffre).
+export function offlineFx(modal, before = null, after = null) {
   if (calm() || !modal) return;
   requestAnimationFrame(() => {
-    const h = modal.querySelector('h2') ?? modal;
-    const r = h.getBoundingClientRect();
-    const x = r.left + r.width / 2;
-    const y = r.bottom + 30;
-    play('chest', x, y, { size: 128 });
-    setTimeout(() => play('coin_rain', x, y + 20, { size: 192 }), 500);
-    const g = modal.querySelector('.offline-gains');
-    setTimeout(() => flyTo('gold', g ?? [x, y], document.querySelector('#topbar [data-currency="gold"] span'), 10), 1100);
+    const g = modal.querySelector('.offline-gains') ?? modal.querySelector('h2') ?? modal;
+    setTimeout(() => {
+      if (before && after) claimFly(before, after, g, true);
+      else flyTo('gold', g, counterOf('gold'), 9);
+    }, 350);
   });
 }
 
-// Talent appris : le nœud s'illumine et des éclats courent le long de ses liens.
-export function talentFx(el) {
-  if (calm() || !el) return;
-  playOn('talent_node', el, { size: 96 });
-  const svg = el.closest('.rune-tree')?.querySelector('svg');
-  if (!svg) return;
-  const [cx, cy] = center(el);
-  const sr = svg.getBoundingClientRect();
-  const vb = svg.viewBox.baseVal;
-  const toPx = (x, y) => [sr.left + ((x - vb.x) / vb.width) * sr.width, sr.top + ((y - vb.y) / vb.height) * sr.height];
-  let n = 0;
-  for (const l of svg.querySelectorAll('line')) {
-    const a = toPx(+l.getAttribute('x1'), +l.getAttribute('y1'));
-    const b = toPx(+l.getAttribute('x2'), +l.getAttribute('y2'));
-    const near = (p) => Math.hypot(p[0] - cx, p[1] - cy) < 18;
-    const [from, to] = near(a) ? [a, b] : near(b) ? [b, a] : [null, null];
-    if (!from || n++ >= 4) continue;
-    const sp = sprite('talent_spark', { size: 16, loops: Infinity });
-    if (!sp) return;
-    sp.style.left = `${from[0] - 8}px`;
-    sp.style.top = `${from[1] - 8}px`;
-    sp.animate([{ transform: 'translate(0,0)', opacity: 1 }, { transform: `translate(${to[0] - from[0]}px, ${to[1] - from[1]}px)`, opacity: 0.2 }],
-      { duration: 700, easing: 'ease-in', fill: 'forwards' });
-    setTimeout(() => sp.remove(), 720);
-  }
+// v9.2.7 : talent appris — anneau doux EXACTEMENT sur le nœud acheté, puis une lumière court le long de chaque lien
+// vers les talents qui s'ouvrent, qui s'éclairent à son arrivée. Dessiné sur un canvas posé sur la fenêtre de l'arbre
+// et recalculé à chaque image depuis la position réelle des nœuds (zoom, défilement et rendu du panneau compris).
+const nodeEl = (id) => document.querySelector(`#panel-body .rune-tree .tnode[data-value="${CSS.escape(id)}"]`);
+export function talentFx(id, opened = []) {
+  if (calm() || !id) return;
+  const cv = document.createElement('canvas');
+  cv.className = 'tfx-canvas';
+  getLayer().appendChild(cv);
+  const ctx = cv.getContext('2d');
+  const dpr = Math.min(2, globalThis.devicePixelRatio || 1);
+  const T_RING = 520;
+  const T_TRAVEL = 560;
+  const END = T_RING * 0.5 + T_TRAVEL + 520;
+  const t0 = performance.now();
+  let scrolled = false;
+  const frame = (now) => {
+    const t = now - t0;
+    const vp = document.querySelector('#panel-body .tree-viewport');
+    const node = nodeEl(id);
+    if (!vp || !node || t > END) { cv.remove(); return; }
+    if (!node._b) { node._b = true; pulse(node, 'tfx-bought', 520); }
+    const vr = vp.getBoundingClientRect();
+    // Le nœud hors de la fenêtre (achat depuis la barre après un défilement) : on le ramène au centre d'abord.
+    const nr = node.getBoundingClientRect();
+    if (!scrolled && (nr.right < vr.left || nr.left > vr.right || nr.bottom < vr.top || nr.top > vr.bottom)) {
+      scrolled = true;
+      vp.scrollTo({ left: vp.scrollLeft + nr.left + nr.width / 2 - vr.left - vr.width / 2, top: vp.scrollTop + nr.top + nr.height / 2 - vr.top - vr.height / 2, behavior: 'smooth' });
+    }
+    if (cv.width !== Math.round(vr.width * dpr) || cv.height !== Math.round(vr.height * dpr)) { cv.width = Math.round(vr.width * dpr); cv.height = Math.round(vr.height * dpr); }
+    Object.assign(cv.style, { left: `${vr.left}px`, top: `${vr.top}px`, width: `${vr.width}px`, height: `${vr.height}px` });
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, vr.width, vr.height);
+    // Coupé à la partie visible de la fenêtre (le panneau peut en masquer le haut ou le bas).
+    const pb = document.getElementById('panel-body')?.getBoundingClientRect() ?? vr;
+    const cy0 = Math.max(0, pb.top - vr.top);
+    const cy1 = Math.min(vr.height, pb.bottom - vr.top);
+    cv.style.clipPath = `inset(${cy0}px 0 ${Math.max(0, vr.height - cy1)}px 0)`;
+    const c = (el) => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2 - vr.left, r.top + r.height / 2 - vr.top, r.width / 2]; };
+    const [x, y, rad] = c(node);
+    const color = getComputedStyle(node).getPropertyValue('--branch').trim() || '#ffe08a';
+    ctx.globalCompositeOperation = 'lighter';
+    // 1. Anneau qui s'ouvre et halo sur le nœud.
+    if (t < T_RING) {
+      const k = t / T_RING;
+      const e = 1 - (1 - k) ** 3;
+      const g = ctx.createRadialGradient(x, y, 0, x, y, rad * 2.6);
+      g.addColorStop(0, `rgba(255,250,225,${0.55 * (1 - k)})`);
+      g.addColorStop(1, 'rgba(255,250,225,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(x, y, rad * 2.6, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = color; ctx.globalAlpha = 1 - k; ctx.lineWidth = 3 * (1 - k) + 1;
+      ctx.beginPath(); ctx.arc(x, y, rad * (1 + 1.4 * e), 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = '#fff6d6'; ctx.globalAlpha = 0.7 * (1 - k); ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(x, y, rad * (1 + 0.8 * e), 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+    // 2. Lumière le long des liens vers les talents ouverts, 3. éclat d'arrivée.
+    const ts = t - T_RING * 0.5;
+    if (ts > 0) {
+      for (const nid of opened.slice(0, 8)) {
+        const n = nodeEl(nid);
+        if (!n) continue;
+        const [x2, y2, r2] = c(n);
+        const k = Math.min(1, ts / T_TRAVEL);
+        const e = k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2;
+        const px = x + (x2 - x) * e;
+        const py = y + (y2 - y) * e;
+        const fade = ts > T_TRAVEL ? Math.max(0, 1 - (ts - T_TRAVEL) / 520) : 1;
+        const lg = ctx.createLinearGradient(x, y, px, py);
+        lg.addColorStop(0, 'rgba(255,255,255,0)');
+        lg.addColorStop(1, color);
+        ctx.strokeStyle = lg; ctx.globalAlpha = 0.9 * fade; ctx.lineWidth = Math.max(2, rad * 0.22); ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(px, py); ctx.stroke();
+        if (k < 1) {
+          const g = ctx.createRadialGradient(px, py, 0, px, py, rad * 0.9);
+          g.addColorStop(0, 'rgba(255,255,240,1)'); g.addColorStop(0.35, color); g.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.globalAlpha = 1; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px, py, rad * 0.9, 0, Math.PI * 2); ctx.fill();
+        } else {
+          const a = (ts - T_TRAVEL) / 520;
+          ctx.globalAlpha = Math.max(0, 1 - a); ctx.strokeStyle = color; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(x2, y2, r2 * (1 + 0.9 * a), 0, Math.PI * 2); ctx.stroke();
+          if (!n._lit) { n._lit = true; pulse(n, 'tfx-awake', 600); }
+        }
+        ctx.globalAlpha = 1;
+      }
+    }
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
 }
