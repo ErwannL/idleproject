@@ -5,7 +5,6 @@
 // « Réduire les animations » : pas d'ambiance ; auras et malus figés sur leur première image, très pâles.
 import { VFX, drawVfxFrame, projFrame, vfx, vfxReady } from './vfx.js';
 import { currentEnvironment } from '../core/combat.js';
-import { computeHeroStats } from '../core/stats.js';
 
 // Effet de compétence (skill-fx.js) : où le jouer.
 const SKILL_AT = {
@@ -129,7 +128,6 @@ export function drawWorldVfx(scene, ctx, zone, world, heroX, state) {
   if (scene.time > (scene.envAt ?? 0)) {
     scene.envAt = scene.time + 0.5;
     const cur = state ? currentEnvironment(state) : null;
-    scene.heroHpMax = state ? computeHeroStats(state).maxHp : 0; // PV max réels (rage sous 30 %)
     scene.envFx = cur && cur.pct > 0 ? { name: ENV_FX[id], k: 0.75 + 0.25 * Math.min(1, cur.pct / cur.full) } : null;
   }
   const env = scene.envFx?.name;
@@ -142,7 +140,10 @@ export function drawWorldVfx(scene, ctx, zone, world, heroX, state) {
   // v9.2.7 : seulement en vrai combat, PV connus et positifs : une scène sans PV (vitrine, aperçu, héros pas encore
   // initialisé : hp à 0 ou absent) gardait les flammes de rage allumées aux pieds du héros, même dans les Plaines.
   const hp = world.hero.hp;
-  if (scene.heroHpMax > 0 && Number.isFinite(hp) && hp > 0 && hp < scene.heroHpMax * 0.3 && world.enemies.length > 0) loopAt(scene, ctx, 'hero_rage', heroX, G + 1, 0.8, 0.8);
+  // Les PV max sont ceux du combat lui-même (world.heroStats) : la vitrine (showcase-scene.js) a un héros à 1 PV
+  // sans statistiques, comparé jusqu'ici aux PV max de la vraie partie -> rage permanente.
+  const hpMax = world.heroStats?.maxHp ?? 0;
+  if (hpMax > 0 && Number.isFinite(hp) && hp > 0 && hp < hpMax * 0.3 && world.enemies.length > 0) loopAt(scene, ctx, 'hero_rage', heroX, G + 1, 0.8, 0.8);
   // Boss et mutants : auras propres à leur mécanique.
   for (const e of world.enemies) {
     const fx = scene.enemyFx.get(e.id);
