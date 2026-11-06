@@ -554,9 +554,9 @@ export function startAmbient() {
 // Bonus de vitesse : petite flamme accrochée au bouton de vitesse tant qu'il est actif.
 export function speedFx(btn, on) {
   if (!btn) return;
-  const cur = btn.querySelector(':scope > .speed_flame');
+  const cur = btn.querySelector(':scope > .boost_flame');
   if (!on || calm()) { cur?.remove(); return; }
-  if (!cur) attachLoop(btn, 'speed_flame', { size: 22, back: false, cls: 'speed-flame' });
+  if (!cur) attachLoop(btn, 'boost_flame', { size: 30, back: false, cls: 'speed-flame' }); // flamme derrière l'éclair
 }
 
 // --- Fiches et écrans (après chaque rendu du panneau) ---

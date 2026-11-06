@@ -2716,7 +2716,7 @@ img.ico16 { width: 16px; height: 16px; vertical-align: middle; }
 #tabs .badge:not(.hidden):not(.badge-new), .subtab .badge:not(.badge-ring) { animation: vfx-badge 1.6s ease-in-out infinite; }
 @keyframes vfx-badge { 0%, 100% { box-shadow: 0 0 0 1px #0b1120, 0 0 0 0 rgba(255, 77, 94, 0.7); } 60% { box-shadow: 0 0 0 1px #0b1120, 0 0 0 5px rgba(255, 77, 94, 0); } }
 #speed-toggle, #boost-chip { position: relative; }
-#speed-toggle > .speed-flame, #boost-chip > .speed-flame { position: absolute; left: 3px; top: 50%; margin-top: -13px; z-index: 2; opacity: 0.85; transform: rotate(-90deg); }
+#speed-toggle > .speed-flame, #boost-chip > .speed-flame { position: absolute; left: 1px; top: 50%; margin-top: -17px; z-index: 0; filter: drop-shadow(0 0 3px #ff9a3a); }
 #boost-chip > img { position: relative; z-index: 1; }
 .uvfx-loop { position: absolute; pointer-events: none; }
 .uvfx-back { z-index: -1; left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0.85; }
@@ -2734,3 +2734,5 @@ img.ico16 { width: 16px; height: 16px; vertical-align: middle; }
 @keyframes vfx-march { to { stroke-dashoffset: -6; } }
 .reduce-motion .uvfx-loop, .reduce-motion .ic-anim { display: none; }
 .reduce-motion .ic-anim + img { visibility: visible; }
+/* v9.2.6 : l'aura et le cadre animés dépassent de la vignette du compagnon. */
+.pet-art-box:has(> .uvfx-loop), .pet-portrait:has(> .uvfx-loop) { overflow: visible; }

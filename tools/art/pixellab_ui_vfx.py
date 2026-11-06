@@ -63,6 +63,7 @@ EFFECTS = {
 EFFECTS.update({
     'gold_shine': ('Only light, no object: three small bright white and pale gold four-pointed star glints pop one after another around the center, with a soft warm golden glow pulse, short.', False, 48),
     'gem_twinkle': ('A tiny four-pointed cyan and white star twinkle that flashes on a gemstone facet, short.', False, 24),
+    'boost_flame': ('A bright upright fire flame, yellow-white core, orange and red outer flames, dancing and flickering strongly upward with small embers, readable at small size, looping.', True, 32),
     'speed_flame': ('A small blue and orange speed flame trail flickering fast to the right, looping.', True, 32),
     'aura_common': ('Looping soft aura: a thin ring of gentle pale blue light wisps and sparkles circling around a large empty center (the empty center is 60 percent of the canvas), calm.', True, 96),
     'aura_epic': ('Looping magical aura around an empty center: purple and magenta light flames rising in a ring with sparkles.', True, 96),
