@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 64,
+  "w": 64
+ },
+ "frames": 8,
+ "fps": 8,
+ "loop": true,
+ "anchor": {
+  "x": 32,
+  "y": 32,
+  "kind": "origin"
+ },
+ "message": "A sparse loop of teal bioluminescent spores drifting slowly upward in a 64x64 transparent canvas, 8 frames at 8 fps, with a few twinkling glints among them. The spores are 2 px dots in a four-step teal ramp with a dark outline, and it loops seamlessly. To make it denser or faster, adjust the spore count or the speed sliders on the recipe.",
+ "effect_id": "77972f55-4fbd-4f0f-9930-99bef8c6f78b",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-amb-spores 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-amb-spores 1.png",
+    "frame": {
+     "x": 64,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-amb-spores 2.png",
+    "frame": {
+     "x": 128,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-amb-spores 3.png",
+    "frame": {
+     "x": 0,
+     "y": 64,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-amb-spores 4.png",
+    "frame": {
+     "x": 64,
+     "y": 64,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-amb-spores 5.png",
+    "frame": {
+     "x": 128,
+     "y": 64,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-amb-spores 6.png",
+    "frame": {
+     "x": 0,
+     "y": 128,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-amb-spores 7.png",
+    "frame": {
+     "x": 64,
+     "y": 128,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-amb-spores.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 192,
+    "h": 192
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 32,
+    "y": 32
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-amb-spores",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 72,
+  "w": 112
+ },
+ "frames": 8,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 56,
+  "y": 36,
+  "kind": "origin"
+ },
+ "message": "Here's a sparse 16-bit blowing-sand effect: thin amber streaks and a few fine grains drift left across the frame, looping over 8 frames on a transparent background, with no edge clipping. To tune it, try the streak speed for faster or slower wind, and the streak count to make it sparser or denser.",
+ "effect_id": "753655cd-fc5e-46ff-af88-355c1b0974d5",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-amb-sand 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-sand 1.png",
+    "frame": {
+     "x": 112,
+     "y": 0,
+     "w": 112,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-sand 2.png",
+    "frame": {
+     "x": 224,
+     "y": 0,
+     "w": 112,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-sand 3.png",
+    "frame": {
+     "x": 0,
+     "y": 72,
+     "w": 112,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-sand 4.png",
+    "frame": {
+     "x": 112,
+     "y": 72,
+     "w": 112,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-sand 5.png",
+    "frame": {
+     "x": 224,
+     "y": 72,
+     "w": 112,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-sand 6.png",
+    "frame": {
+     "x": 0,
+     "y": 144,
+     "w": 112,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-sand 7.png",
+    "frame": {
+     "x": 112,
+     "y": 144,
+     "w": 112,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-amb-sand.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 336,
+    "h": 216
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 56,
+    "y": 36
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-amb-sand",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

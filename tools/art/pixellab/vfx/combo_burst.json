@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 64,
+  "w": 64
+ },
+ "frames": 6,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 32,
+  "y": 32,
+  "kind": "origin"
+ },
+ "message": "A 6-frame, 64x64 one-shot combo burst on a transparent background: a small yellow-orange star pops, blooms into a comic impact star with spiky orange rays and fine speed lines, then fades into sparks. The palette is a 5-step orange-to-cream ramp with dark outlines. Try the Speed or Size sliders on the page to make it tighter or bigger.",
+ "effect_id": "af5c19f5-f583-4d4e-9a8f-2b4733da8a80",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-combo-burst 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-combo-burst 1.png",
+    "frame": {
+     "x": 64,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-combo-burst 2.png",
+    "frame": {
+     "x": 128,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-combo-burst 3.png",
+    "frame": {
+     "x": 0,
+     "y": 64,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-combo-burst 4.png",
+    "frame": {
+     "x": 64,
+     "y": 64,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-combo-burst 5.png",
+    "frame": {
+     "x": 128,
+     "y": 64,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-combo-burst.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 192,
+    "h": 128
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 32,
+    "y": 32
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-combo-burst",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

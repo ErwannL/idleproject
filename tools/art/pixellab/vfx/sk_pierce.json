@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 20,
+  "w": 74
+ },
+ "frames": 6,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 58,
+  "y": 28,
+  "kind": "origin"
+ },
+ "message": "A 6-frame crimson spear thrust: a pointed red shock cone snaps out, peaks as a long horizontal streak around frame 2, then thins to a spark by the last frame. It's a one-shot on a 74x20 canvas with a dark outline and a 4-tone red ramp. Try the Size slider for a longer or shorter streak.",
+ "effect_id": "cacf061a-6b53-42ec-a542-2078daeed712",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-pierce 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 20
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 20
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 20
+    },
+    "pivot": {
+     "x": 0.7837837837837838,
+     "y": 1.4
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-pierce 1.png",
+    "frame": {
+     "x": 74,
+     "y": 0,
+     "w": 74,
+     "h": 20
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 20
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 20
+    },
+    "pivot": {
+     "x": 0.7837837837837838,
+     "y": 1.4
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-pierce 2.png",
+    "frame": {
+     "x": 148,
+     "y": 0,
+     "w": 74,
+     "h": 20
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 20
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 20
+    },
+    "pivot": {
+     "x": 0.7837837837837838,
+     "y": 1.4
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-pierce 3.png",
+    "frame": {
+     "x": 0,
+     "y": 20,
+     "w": 74,
+     "h": 20
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 20
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 20
+    },
+    "pivot": {
+     "x": 0.7837837837837838,
+     "y": 1.4
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-pierce 4.png",
+    "frame": {
+     "x": 74,
+     "y": 20,
+     "w": 74,
+     "h": 20
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 20
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 20
+    },
+    "pivot": {
+     "x": 0.7837837837837838,
+     "y": 1.4
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-pierce 5.png",
+    "frame": {
+     "x": 148,
+     "y": 20,
+     "w": 74,
+     "h": 20
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 20
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 20
+    },
+    "pivot": {
+     "x": 0.7837837837837838,
+     "y": 1.4
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-pierce.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 222,
+    "h": 40
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 58,
+    "y": 28
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-pierce",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

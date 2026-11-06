@@ -7,6 +7,7 @@
 // « Réduire les animations » (this.focus) garde les étiquettes et les textes, retire les particules et les mouvements.
 // Les mots sont écrits avec une police système (traduits par t()) : la police pixel de la scène n'a que des chiffres.
 // Installé sur le prototype de la scène (comme class-fx.js) : `this` est la scène.
+import { blockVfx, drainVfx } from './vfx-world.js'; // v9.2.6
 import { mutationById } from '../core/mutations.js';
 import { formatNumber } from '../core/format.js';
 import { t } from '../i18n/i18n.js';
@@ -96,6 +97,7 @@ export function installMutationFx(proto, { HERO_X }) {
           if (!this.focus) {
             // v9.2.3 : étincelles jaunes et blanches qui jaillissent de la cuirasse.
             const sy = (fx.sy ?? this.groundY - 20) + (fx.sh ?? 16) / 2;
+            blockVfx(this, cx - 6, sy); // v9.2.6 : éclat de cuirasse dessiné
             this.burst(cx - 6, sy, '#fff2a0', 6, 46);
             this.burst(cx - 6, sy, '#ffffff', 4, 30);
           }
@@ -108,6 +110,7 @@ export function installMutationFx(proto, { HERO_X }) {
           const m = mutationById('vampire');
           const x1 = fx.sx !== undefined ? fx.sx + fx.sw / 2 : this.wx(enemy.x);
           const y1 = (fx.sy ?? this.groundY - 20) + (fx.sh ?? 16) / 2;
+          drainVfx(this, x1, y1); // v9.2.6
           this.mutFxList().push({ kind: 'drain', x0: HERO_X + 2, y0: this.groundY - 14, x1, y1, color: m.color, life: 0.55, max: 0.55 });
           this.addText(`+${formatNumber(Math.max(1, Math.round(event.damage * 3)))}`, x1, (fx.sy ?? this.groundY - 30) - 10, m.color, '#ffd0da');
           break;

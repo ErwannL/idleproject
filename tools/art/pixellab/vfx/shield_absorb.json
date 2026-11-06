@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 64,
+  "w": 64
+ },
+ "frames": 6,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 32,
+  "y": 32,
+  "kind": "origin"
+ },
+ "message": "A 6-frame, 16-bit style blue hex shield bubble: it flashes at the left edge where the hit lands, a ripple of light spreads across the hexagon cells, then it settles back. The impact flash and sparks are on the left edge; the ripple and flash sliders are the ones to try. Note that I didn't add the transparent background or the centred-canvas setting, and the bubble is blue on a 64x64 canvas, so it may need resizing to fit your game.",
+ "effect_id": "46c89e81-2af4-4049-90d0-f554452c6b06",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-shield-absorb 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-shield-absorb 1.png",
+    "frame": {
+     "x": 64,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-shield-absorb 2.png",
+    "frame": {
+     "x": 128,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-shield-absorb 3.png",
+    "frame": {
+     "x": 0,
+     "y": 64,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-shield-absorb 4.png",
+    "frame": {
+     "x": 64,
+     "y": 64,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-shield-absorb 5.png",
+    "frame": {
+     "x": 128,
+     "y": 64,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-shield-absorb.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 192,
+    "h": 128
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 32,
+    "y": 32
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-shield-absorb",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

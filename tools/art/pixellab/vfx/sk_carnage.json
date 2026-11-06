@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 89,
+  "w": 116
+ },
+ "frames": 8,
+ "fps": 10,
+ "loop": false,
+ "anchor": {
+  "x": 58,
+  "y": 44,
+  "kind": "origin"
+ },
+ "message": "Here's an 8-frame retro red carnage effect: three curved red slashes whip across a big energy explosion that bursts on the ground, throws up dark red debris, and leaves a red shockwave ring that fades out. It's set to 4 colours with hard dark outlines, no dither, on a transparent background. The slash and blast edges pick up a light orange highlight, so if you want them strictly red, say so and I'll push the ramp darker. Slider to try: the slash colours and sizes, and the explosion's colour.",
+ "effect_id": "504897ba-05a5-4a53-8d07-e46b893dc56c",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-carnage 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 89
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 89
+    },
+    "sourceSize": {
+     "w": 116,
+     "h": 89
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4943820224719101
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-carnage 1.png",
+    "frame": {
+     "x": 116,
+     "y": 0,
+     "w": 116,
+     "h": 89
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 89
+    },
+    "sourceSize": {
+     "w": 116,
+     "h": 89
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4943820224719101
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-carnage 2.png",
+    "frame": {
+     "x": 232,
+     "y": 0,
+     "w": 116,
+     "h": 89
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 89
+    },
+    "sourceSize": {
+     "w": 116,
+     "h": 89
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4943820224719101
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-carnage 3.png",
+    "frame": {
+     "x": 0,
+     "y": 89,
+     "w": 116,
+     "h": 89
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 89
+    },
+    "sourceSize": {
+     "w": 116,
+     "h": 89
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4943820224719101
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-carnage 4.png",
+    "frame": {
+     "x": 116,
+     "y": 89,
+     "w": 116,
+     "h": 89
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 89
+    },
+    "sourceSize": {
+     "w": 116,
+     "h": 89
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4943820224719101
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-carnage 5.png",
+    "frame": {
+     "x": 232,
+     "y": 89,
+     "w": 116,
+     "h": 89
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 89
+    },
+    "sourceSize": {
+     "w": 116,
+     "h": 89
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4943820224719101
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-carnage 6.png",
+    "frame": {
+     "x": 0,
+     "y": 178,
+     "w": 116,
+     "h": 89
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 89
+    },
+    "sourceSize": {
+     "w": 116,
+     "h": 89
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4943820224719101
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-carnage 7.png",
+    "frame": {
+     "x": 116,
+     "y": 178,
+     "w": 116,
+     "h": 89
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 89
+    },
+    "sourceSize": {
+     "w": 116,
+     "h": 89
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4943820224719101
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-carnage.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 348,
+    "h": 267
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 58,
+    "y": 44
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-carnage",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

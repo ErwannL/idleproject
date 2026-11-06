@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 104,
+  "w": 95
+ },
+ "frames": 6,
+ "fps": 8,
+ "loop": true,
+ "anchor": {
+  "x": 51,
+  "y": 54,
+  "kind": "origin"
+ },
+ "message": "A looping 6-frame frost effect: pale blue ice crystals cluster at the base and glint, with white snowflakes drifting down and sparkle glints popping around them, in a 4-colour retro palette with a dark outline. It is side view, transparent background, no character. The render's warning about light layers is harmless here: the frost part carries a light that only tints a character, and none is placed. Try the snowfall colour and freeze amount sliders to make the frost thicker or thinner.",
+ "effect_id": "c3677233-72f5-4ea5-9ee8-0a9c612919e3",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-env-frost 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 104
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 104
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 104
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.5192307692307693
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-env-frost 1.png",
+    "frame": {
+     "x": 95,
+     "y": 0,
+     "w": 95,
+     "h": 104
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 104
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 104
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.5192307692307693
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-env-frost 2.png",
+    "frame": {
+     "x": 190,
+     "y": 0,
+     "w": 95,
+     "h": 104
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 104
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 104
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.5192307692307693
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-env-frost 3.png",
+    "frame": {
+     "x": 0,
+     "y": 104,
+     "w": 95,
+     "h": 104
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 104
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 104
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.5192307692307693
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-env-frost 4.png",
+    "frame": {
+     "x": 95,
+     "y": 104,
+     "w": 95,
+     "h": 104
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 104
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 104
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.5192307692307693
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-env-frost 5.png",
+    "frame": {
+     "x": 190,
+     "y": 104,
+     "w": 95,
+     "h": 104
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 104
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 104
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.5192307692307693
+    },
+    "duration": 125
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-env-frost.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 285,
+    "h": 208
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 51,
+    "y": 54
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-env-frost",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 96,
+  "w": 96
+ },
+ "frames": 6,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 48,
+  "y": 88,
+  "kind": "origin"
+ },
+ "message": "Here is a 6-frame looping retro rage effect: two columns of orange and red flame rising from either side of an empty centre, with a faint heat haze above and a few embers. The effect is drawn for a 96x96 canvas with a transparent background and no character. If you want it taller, try the height sliders on the flame layers; if the haze is too strong, lower its strength.",
+ "effect_id": "1d2709f6-3daa-4823-957c-ed72191c653a",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-boss-rage 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9166666666666666
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-boss-rage 1.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9166666666666666
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-boss-rage 2.png",
+    "frame": {
+     "x": 192,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9166666666666666
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-boss-rage 3.png",
+    "frame": {
+     "x": 0,
+     "y": 96,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9166666666666666
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-boss-rage 4.png",
+    "frame": {
+     "x": 96,
+     "y": 96,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9166666666666666
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-boss-rage 5.png",
+    "frame": {
+     "x": 192,
+     "y": 96,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9166666666666666
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-boss-rage.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 288,
+    "h": 192
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 48,
+    "y": 88
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-boss-rage",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

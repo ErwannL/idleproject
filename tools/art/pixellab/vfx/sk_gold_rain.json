@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 131,
+  "w": 58
+ },
+ "frames": 8,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 26,
+  "y": 59,
+  "kind": "origin"
+ },
+ "message": "A rain of gold coins falls from above, bounces on a floor line and settles, with small sparkles twinkling in the fall. It runs 8 frames on a transparent background, with a dark outline on each coin. Try the Coins slider for count and the Speed or gravity to change how fast they drop.",
+ "effect_id": "4e26cb73-3265-4480-a663-669e7440de7f",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-gold-rain 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 58,
+     "h": 131
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 58,
+     "h": 131
+    },
+    "sourceSize": {
+     "w": 58,
+     "h": 131
+    },
+    "pivot": {
+     "x": 0.4482758620689655,
+     "y": 0.45038167938931295
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-gold-rain 1.png",
+    "frame": {
+     "x": 58,
+     "y": 0,
+     "w": 58,
+     "h": 131
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 58,
+     "h": 131
+    },
+    "sourceSize": {
+     "w": 58,
+     "h": 131
+    },
+    "pivot": {
+     "x": 0.4482758620689655,
+     "y": 0.45038167938931295
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-gold-rain 2.png",
+    "frame": {
+     "x": 116,
+     "y": 0,
+     "w": 58,
+     "h": 131
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 58,
+     "h": 131
+    },
+    "sourceSize": {
+     "w": 58,
+     "h": 131
+    },
+    "pivot": {
+     "x": 0.4482758620689655,
+     "y": 0.45038167938931295
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-gold-rain 3.png",
+    "frame": {
+     "x": 0,
+     "y": 131,
+     "w": 58,
+     "h": 131
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 58,
+     "h": 131
+    },
+    "sourceSize": {
+     "w": 58,
+     "h": 131
+    },
+    "pivot": {
+     "x": 0.4482758620689655,
+     "y": 0.45038167938931295
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-gold-rain 4.png",
+    "frame": {
+     "x": 58,
+     "y": 131,
+     "w": 58,
+     "h": 131
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 58,
+     "h": 131
+    },
+    "sourceSize": {
+     "w": 58,
+     "h": 131
+    },
+    "pivot": {
+     "x": 0.4482758620689655,
+     "y": 0.45038167938931295
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-gold-rain 5.png",
+    "frame": {
+     "x": 116,
+     "y": 131,
+     "w": 58,
+     "h": 131
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 58,
+     "h": 131
+    },
+    "sourceSize": {
+     "w": 58,
+     "h": 131
+    },
+    "pivot": {
+     "x": 0.4482758620689655,
+     "y": 0.45038167938931295
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-gold-rain 6.png",
+    "frame": {
+     "x": 0,
+     "y": 262,
+     "w": 58,
+     "h": 131
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 58,
+     "h": 131
+    },
+    "sourceSize": {
+     "w": 58,
+     "h": 131
+    },
+    "pivot": {
+     "x": 0.4482758620689655,
+     "y": 0.45038167938931295
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-gold-rain 7.png",
+    "frame": {
+     "x": 58,
+     "y": 262,
+     "w": 58,
+     "h": 131
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 58,
+     "h": 131
+    },
+    "sourceSize": {
+     "w": 58,
+     "h": 131
+    },
+    "pivot": {
+     "x": 0.4482758620689655,
+     "y": 0.45038167938931295
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-gold-rain.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 174,
+    "h": 393
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 26,
+    "y": 59
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-gold-rain",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

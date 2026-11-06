@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 74,
+  "w": 74
+ },
+ "frames": 8,
+ "fps": 6,
+ "loop": false,
+ "anchor": {
+  "x": 37,
+  "y": 37,
+  "kind": "origin"
+ },
+ "message": "Here's an 8-frame one-shot of a blue hexagonal holy shield bubble: it builds up from the bottom in the first frames, fills out by frame 4, then holds and shimmers. Try the colour and see-through sliders for a brighter or more solid bubble.",
+ "effect_id": "a105186b-1b7d-49d4-831a-2784e09d2a92",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-holy-shield 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 74
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 74
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 74
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-sk-holy-shield 1.png",
+    "frame": {
+     "x": 74,
+     "y": 0,
+     "w": 74,
+     "h": 74
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 74
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 74
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-sk-holy-shield 2.png",
+    "frame": {
+     "x": 148,
+     "y": 0,
+     "w": 74,
+     "h": 74
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 74
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 74
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-sk-holy-shield 3.png",
+    "frame": {
+     "x": 0,
+     "y": 74,
+     "w": 74,
+     "h": 74
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 74
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 74
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-sk-holy-shield 4.png",
+    "frame": {
+     "x": 74,
+     "y": 74,
+     "w": 74,
+     "h": 74
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 74
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 74
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-sk-holy-shield 5.png",
+    "frame": {
+     "x": 148,
+     "y": 74,
+     "w": 74,
+     "h": 74
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 74
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 74
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-sk-holy-shield 6.png",
+    "frame": {
+     "x": 0,
+     "y": 148,
+     "w": 74,
+     "h": 74
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 74
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 74
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-sk-holy-shield 7.png",
+    "frame": {
+     "x": 74,
+     "y": 148,
+     "w": 74,
+     "h": 74
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 74
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 74
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 167
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-holy-shield.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 222,
+    "h": 222
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 37,
+    "y": 37
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-holy-shield",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

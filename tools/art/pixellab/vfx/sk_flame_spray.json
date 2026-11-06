@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 39,
+  "w": 93
+ },
+ "frames": 8,
+ "fps": 12,
+ "loop": true,
+ "anchor": {
+  "x": 8,
+  "y": 20,
+  "kind": "origin"
+ },
+ "message": "A retro 16-bit fire jet spraying right: a bright white-yellow core flowing into orange and dark red tongues, with a dark outline and a few flicking sparks. It is 8 frames and loops, on a transparent background with no character. Try the colour, amount and speed sliders to tune the flame.",
+ "effect_id": "8c7aecc1-a483-425e-8eb8-0e47804f555a",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-flame-spray 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 93,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 93,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 93,
+     "h": 39
+    },
+    "pivot": {
+     "x": 0.08602150537634409,
+     "y": 0.5128205128205128
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-flame-spray 1.png",
+    "frame": {
+     "x": 93,
+     "y": 0,
+     "w": 93,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 93,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 93,
+     "h": 39
+    },
+    "pivot": {
+     "x": 0.08602150537634409,
+     "y": 0.5128205128205128
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-flame-spray 2.png",
+    "frame": {
+     "x": 186,
+     "y": 0,
+     "w": 93,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 93,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 93,
+     "h": 39
+    },
+    "pivot": {
+     "x": 0.08602150537634409,
+     "y": 0.5128205128205128
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-flame-spray 3.png",
+    "frame": {
+     "x": 0,
+     "y": 39,
+     "w": 93,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 93,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 93,
+     "h": 39
+    },
+    "pivot": {
+     "x": 0.08602150537634409,
+     "y": 0.5128205128205128
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-flame-spray 4.png",
+    "frame": {
+     "x": 93,
+     "y": 39,
+     "w": 93,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 93,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 93,
+     "h": 39
+    },
+    "pivot": {
+     "x": 0.08602150537634409,
+     "y": 0.5128205128205128
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-flame-spray 5.png",
+    "frame": {
+     "x": 186,
+     "y": 39,
+     "w": 93,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 93,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 93,
+     "h": 39
+    },
+    "pivot": {
+     "x": 0.08602150537634409,
+     "y": 0.5128205128205128
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-flame-spray 6.png",
+    "frame": {
+     "x": 0,
+     "y": 78,
+     "w": 93,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 93,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 93,
+     "h": 39
+    },
+    "pivot": {
+     "x": 0.08602150537634409,
+     "y": 0.5128205128205128
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-flame-spray 7.png",
+    "frame": {
+     "x": 93,
+     "y": 78,
+     "w": 93,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 93,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 93,
+     "h": 39
+    },
+    "pivot": {
+     "x": 0.08602150537634409,
+     "y": 0.5128205128205128
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-flame-spray.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 279,
+    "h": 117
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 8,
+    "y": 20
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-flame-spray",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

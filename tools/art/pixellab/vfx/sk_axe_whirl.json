@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 56,
+  "w": 64
+ },
+ "frames": 8,
+ "fps": 12,
+ "loop": true,
+ "anchor": {
+  "x": 32,
+  "y": 28,
+  "kind": "origin"
+ },
+ "message": "A looping 8-frame whirlwind of orange axe-slash arcs spinning around a small glowing hub, on a transparent 64x56 canvas with no character. The arcs use a 4-step orange ramp with a dark outline; try the sweep and arc intensity sliders to make the swirl stronger or softer.",
+ "effect_id": "0fc158b0-4076-4e5a-80af-8c202bb41906",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-axe-whirl 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 56
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 56
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 56
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-axe-whirl 1.png",
+    "frame": {
+     "x": 64,
+     "y": 0,
+     "w": 64,
+     "h": 56
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 56
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 56
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-axe-whirl 2.png",
+    "frame": {
+     "x": 128,
+     "y": 0,
+     "w": 64,
+     "h": 56
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 56
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 56
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-axe-whirl 3.png",
+    "frame": {
+     "x": 0,
+     "y": 56,
+     "w": 64,
+     "h": 56
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 56
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 56
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-axe-whirl 4.png",
+    "frame": {
+     "x": 64,
+     "y": 56,
+     "w": 64,
+     "h": 56
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 56
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 56
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-axe-whirl 5.png",
+    "frame": {
+     "x": 128,
+     "y": 56,
+     "w": 64,
+     "h": 56
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 56
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 56
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-axe-whirl 6.png",
+    "frame": {
+     "x": 0,
+     "y": 112,
+     "w": 64,
+     "h": 56
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 56
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 56
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-axe-whirl 7.png",
+    "frame": {
+     "x": 64,
+     "y": 112,
+     "w": 64,
+     "h": 56
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 56
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 56
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-axe-whirl.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 192,
+    "h": 168
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 32,
+    "y": 28
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-axe-whirl",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

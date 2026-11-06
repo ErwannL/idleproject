@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 122,
+  "w": 80
+ },
+ "frames": 8,
+ "fps": 14,
+ "loop": false,
+ "anchor": {
+  "x": 39,
+  "y": 106,
+  "kind": "origin"
+ },
+ "message": "Here's a 16-bit holy pillar: a white-hot column with pale yellow edges, a golden ground ring, and radiant rays with sparks, on a transparent background with no character. It runs 8 frames with a dark outline; the beam peaks around frame 2 and the rays and sparks linger to the end. The page sliders for colour, amount and width are the quickest way to tune the glow.",
+ "effect_id": "f2f83edc-8eaa-4b60-a18c-8521507de8e0",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-divine-light 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 122
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 122
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 122
+    },
+    "pivot": {
+     "x": 0.4875,
+     "y": 0.8688524590163934
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-sk-divine-light 1.png",
+    "frame": {
+     "x": 80,
+     "y": 0,
+     "w": 80,
+     "h": 122
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 122
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 122
+    },
+    "pivot": {
+     "x": 0.4875,
+     "y": 0.8688524590163934
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-sk-divine-light 2.png",
+    "frame": {
+     "x": 160,
+     "y": 0,
+     "w": 80,
+     "h": 122
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 122
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 122
+    },
+    "pivot": {
+     "x": 0.4875,
+     "y": 0.8688524590163934
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-sk-divine-light 3.png",
+    "frame": {
+     "x": 0,
+     "y": 122,
+     "w": 80,
+     "h": 122
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 122
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 122
+    },
+    "pivot": {
+     "x": 0.4875,
+     "y": 0.8688524590163934
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-sk-divine-light 4.png",
+    "frame": {
+     "x": 80,
+     "y": 122,
+     "w": 80,
+     "h": 122
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 122
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 122
+    },
+    "pivot": {
+     "x": 0.4875,
+     "y": 0.8688524590163934
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-sk-divine-light 5.png",
+    "frame": {
+     "x": 160,
+     "y": 122,
+     "w": 80,
+     "h": 122
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 122
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 122
+    },
+    "pivot": {
+     "x": 0.4875,
+     "y": 0.8688524590163934
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-sk-divine-light 6.png",
+    "frame": {
+     "x": 0,
+     "y": 244,
+     "w": 80,
+     "h": 122
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 122
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 122
+    },
+    "pivot": {
+     "x": 0.4875,
+     "y": 0.8688524590163934
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-sk-divine-light 7.png",
+    "frame": {
+     "x": 80,
+     "y": 244,
+     "w": 80,
+     "h": 122
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 122
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 122
+    },
+    "pivot": {
+     "x": 0.4875,
+     "y": 0.8688524590163934
+    },
+    "duration": 71
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-divine-light.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 240,
+    "h": 366
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 39,
+    "y": 106
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-divine-light",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

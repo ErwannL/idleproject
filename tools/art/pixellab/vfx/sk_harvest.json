@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 112,
+  "w": 112
+ },
+ "frames": 8,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 56,
+  "y": 96,
+  "kind": "origin"
+ },
+ "message": "A 16-bit harvest swirl: golden wheat stalks and green leaves spiral up from the ground with white sparkles, on a transparent 112x112 canvas, 8 frames looping at 10 fps. Try the Wheat count, Leaf count and Swirl height sliders to change the density and how far it rises.",
+ "effect_id": "f9ed5b36-5fec-4811-b213-abec28217233",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-harvest 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8571428571428571
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-harvest 1.png",
+    "frame": {
+     "x": 112,
+     "y": 0,
+     "w": 112,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8571428571428571
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-harvest 2.png",
+    "frame": {
+     "x": 224,
+     "y": 0,
+     "w": 112,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8571428571428571
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-harvest 3.png",
+    "frame": {
+     "x": 0,
+     "y": 112,
+     "w": 112,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8571428571428571
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-harvest 4.png",
+    "frame": {
+     "x": 112,
+     "y": 112,
+     "w": 112,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8571428571428571
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-harvest 5.png",
+    "frame": {
+     "x": 224,
+     "y": 112,
+     "w": 112,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8571428571428571
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-harvest 6.png",
+    "frame": {
+     "x": 0,
+     "y": 224,
+     "w": 112,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8571428571428571
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-harvest 7.png",
+    "frame": {
+     "x": 112,
+     "y": 224,
+     "w": 112,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8571428571428571
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-harvest.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 336,
+    "h": 336
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 56,
+    "y": 96
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-harvest",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

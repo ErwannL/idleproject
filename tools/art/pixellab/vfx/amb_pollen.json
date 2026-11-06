@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 96,
+  "w": 96
+ },
+ "frames": 8,
+ "fps": 8,
+ "loop": true,
+ "anchor": {
+  "x": 48,
+  "y": 48,
+  "kind": "origin"
+ },
+ "message": "A sparse loop of small yellow and white pollen motes drifting upward around a point, 8 frames at 8 fps, with a few twinkling sparkles. It's a pixel-art sprite-sized effect on a transparent background, with no character. The Motes Count, Speed and Spread sliders control density and drift.",
+ "effect_id": "093bd002-74ca-41fe-aad6-8a1b9d2156e5",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-amb-pollen 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-amb-pollen 1.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-amb-pollen 2.png",
+    "frame": {
+     "x": 192,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-amb-pollen 3.png",
+    "frame": {
+     "x": 0,
+     "y": 96,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-amb-pollen 4.png",
+    "frame": {
+     "x": 96,
+     "y": 96,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-amb-pollen 5.png",
+    "frame": {
+     "x": 192,
+     "y": 96,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-amb-pollen 6.png",
+    "frame": {
+     "x": 0,
+     "y": 192,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-amb-pollen 7.png",
+    "frame": {
+     "x": 96,
+     "y": 192,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-amb-pollen.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 288,
+    "h": 288
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 48,
+    "y": 48
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-amb-pollen",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

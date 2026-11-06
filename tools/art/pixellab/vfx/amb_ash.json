@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 103,
+  "w": 83
+ },
+ "frames": 8,
+ "fps": 12,
+ "loop": true,
+ "anchor": {
+  "x": 39,
+  "y": 56,
+  "kind": "origin"
+ },
+ "message": "A sparse 8-frame loop of grey ash flakes drifting down and orange-yellow embers floating up, in a small 83x103 canvas with a transparent background. The ash and ember amounts and speeds are on the layers if you want them denser or faster; no character is included, and the look is a 4-colour ramp with a dark outline for the retro feel.",
+ "effect_id": "b57f51aa-12da-41d1-b561-16bc70f5e6d7",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-amb-ash 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 83,
+     "h": 103
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 83,
+     "h": 103
+    },
+    "sourceSize": {
+     "w": 83,
+     "h": 103
+    },
+    "pivot": {
+     "x": 0.46987951807228917,
+     "y": 0.5436893203883495
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-amb-ash 1.png",
+    "frame": {
+     "x": 83,
+     "y": 0,
+     "w": 83,
+     "h": 103
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 83,
+     "h": 103
+    },
+    "sourceSize": {
+     "w": 83,
+     "h": 103
+    },
+    "pivot": {
+     "x": 0.46987951807228917,
+     "y": 0.5436893203883495
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-amb-ash 2.png",
+    "frame": {
+     "x": 166,
+     "y": 0,
+     "w": 83,
+     "h": 103
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 83,
+     "h": 103
+    },
+    "sourceSize": {
+     "w": 83,
+     "h": 103
+    },
+    "pivot": {
+     "x": 0.46987951807228917,
+     "y": 0.5436893203883495
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-amb-ash 3.png",
+    "frame": {
+     "x": 0,
+     "y": 103,
+     "w": 83,
+     "h": 103
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 83,
+     "h": 103
+    },
+    "sourceSize": {
+     "w": 83,
+     "h": 103
+    },
+    "pivot": {
+     "x": 0.46987951807228917,
+     "y": 0.5436893203883495
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-amb-ash 4.png",
+    "frame": {
+     "x": 83,
+     "y": 103,
+     "w": 83,
+     "h": 103
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 83,
+     "h": 103
+    },
+    "sourceSize": {
+     "w": 83,
+     "h": 103
+    },
+    "pivot": {
+     "x": 0.46987951807228917,
+     "y": 0.5436893203883495
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-amb-ash 5.png",
+    "frame": {
+     "x": 166,
+     "y": 103,
+     "w": 83,
+     "h": 103
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 83,
+     "h": 103
+    },
+    "sourceSize": {
+     "w": 83,
+     "h": 103
+    },
+    "pivot": {
+     "x": 0.46987951807228917,
+     "y": 0.5436893203883495
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-amb-ash 6.png",
+    "frame": {
+     "x": 0,
+     "y": 206,
+     "w": 83,
+     "h": 103
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 83,
+     "h": 103
+    },
+    "sourceSize": {
+     "w": 83,
+     "h": 103
+    },
+    "pivot": {
+     "x": 0.46987951807228917,
+     "y": 0.5436893203883495
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-amb-ash 7.png",
+    "frame": {
+     "x": 83,
+     "y": 206,
+     "w": 83,
+     "h": 103
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 83,
+     "h": 103
+    },
+    "sourceSize": {
+     "w": 83,
+     "h": 103
+    },
+    "pivot": {
+     "x": 0.46987951807228917,
+     "y": 0.5436893203883495
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-amb-ash.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 249,
+    "h": 309
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 39,
+    "y": 56
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-amb-ash",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

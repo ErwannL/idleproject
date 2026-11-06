@@ -1,0 +1,225 @@
+{
+ "canvas": {
+  "h": 76,
+  "w": 46
+ },
+ "frames": 7,
+ "fps": 10,
+ "loop": false,
+ "anchor": {
+  "x": 23,
+  "y": 65,
+  "kind": "origin"
+ },
+ "message": "A narrow golden holy beam drops straight down onto a bright ring of light on the ground, with a few sparks, in 7 frames at 10 fps. The effect has faded out by frame 5, so frames 6 and 7 are empty; I could not stretch the tail to fill them without changing the frame count, so trim them in your export if you want it shorter. Beam width and colour are adjustable with the sliders.",
+ "effect_id": "d8b72789-4f3d-4e29-bd3b-f32c8be01754",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-sacred-ray 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 46,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 46,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 46,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8552631578947368
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-sacred-ray 1.png",
+    "frame": {
+     "x": 46,
+     "y": 0,
+     "w": 46,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 46,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 46,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8552631578947368
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-sacred-ray 2.png",
+    "frame": {
+     "x": 92,
+     "y": 0,
+     "w": 46,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 46,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 46,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8552631578947368
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-sacred-ray 3.png",
+    "frame": {
+     "x": 0,
+     "y": 76,
+     "w": 46,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 46,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 46,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8552631578947368
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-sacred-ray 4.png",
+    "frame": {
+     "x": 46,
+     "y": 76,
+     "w": 46,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 46,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 46,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8552631578947368
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-sacred-ray 5.png",
+    "frame": {
+     "x": 92,
+     "y": 76,
+     "w": 46,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 46,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 46,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8552631578947368
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-sacred-ray 6.png",
+    "frame": {
+     "x": 0,
+     "y": 152,
+     "w": 46,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 46,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 46,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8552631578947368
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-sacred-ray.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 138,
+    "h": 228
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 23,
+    "y": 65
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-sacred-ray",
+     "from": 0,
+     "to": 6,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

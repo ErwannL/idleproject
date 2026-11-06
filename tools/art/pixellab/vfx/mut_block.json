@@ -1,0 +1,173 @@
+{
+ "canvas": {
+  "h": 75,
+  "w": 56
+ },
+ "frames": 5,
+ "fps": 9,
+ "loop": false,
+ "anchor": {
+  "x": -11,
+  "y": 33,
+  "kind": "origin"
+ },
+ "message": "A 5-frame one-shot yellow metal block flash: a gold arc of armour clangs with orange sparks, and a small yellow shield icon sits on the impact with blue clang lines radiating from it. The last frame is empty, so you may want to trim it. The clang lines came out blue rather than the white-yellow you might expect; the Ramp and Length sliders on the page can tune them.",
+ "effect_id": "f456d0a7-4284-4e2a-ba78-0845a9c251fa",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-mut-block 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 56,
+     "h": 75
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 56,
+     "h": 75
+    },
+    "sourceSize": {
+     "w": 56,
+     "h": 75
+    },
+    "pivot": {
+     "x": -0.19642857142857142,
+     "y": 0.44
+    },
+    "duration": 111
+   },
+   {
+    "filename": "ascendrya-mut-block 1.png",
+    "frame": {
+     "x": 56,
+     "y": 0,
+     "w": 56,
+     "h": 75
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 56,
+     "h": 75
+    },
+    "sourceSize": {
+     "w": 56,
+     "h": 75
+    },
+    "pivot": {
+     "x": -0.19642857142857142,
+     "y": 0.44
+    },
+    "duration": 111
+   },
+   {
+    "filename": "ascendrya-mut-block 2.png",
+    "frame": {
+     "x": 112,
+     "y": 0,
+     "w": 56,
+     "h": 75
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 56,
+     "h": 75
+    },
+    "sourceSize": {
+     "w": 56,
+     "h": 75
+    },
+    "pivot": {
+     "x": -0.19642857142857142,
+     "y": 0.44
+    },
+    "duration": 111
+   },
+   {
+    "filename": "ascendrya-mut-block 3.png",
+    "frame": {
+     "x": 0,
+     "y": 75,
+     "w": 56,
+     "h": 75
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 56,
+     "h": 75
+    },
+    "sourceSize": {
+     "w": 56,
+     "h": 75
+    },
+    "pivot": {
+     "x": -0.19642857142857142,
+     "y": 0.44
+    },
+    "duration": 111
+   },
+   {
+    "filename": "ascendrya-mut-block 4.png",
+    "frame": {
+     "x": 56,
+     "y": 75,
+     "w": 56,
+     "h": 75
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 56,
+     "h": 75
+    },
+    "sourceSize": {
+     "w": 56,
+     "h": 75
+    },
+    "pivot": {
+     "x": -0.19642857142857142,
+     "y": 0.44
+    },
+    "duration": 111
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-mut-block.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 168,
+    "h": 150
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": -11,
+    "y": 33
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-mut-block",
+     "from": 0,
+     "to": 4,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

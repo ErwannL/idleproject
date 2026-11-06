@@ -1,0 +1,225 @@
+{
+ "canvas": {
+  "h": 79,
+  "w": 48
+ },
+ "frames": 7,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 24,
+  "y": 40,
+  "kind": "origin"
+ },
+ "message": "A 7-frame holy smite: a golden hammer drops down a light column, hits at frame 4, and a four-point cross-shaped burst flares at the impact point, then fades. The effect is 48x79 px with a transparent background and no character. Palette is a four-step gold ramp with a dark outline; the hammer and the beam length are the main things to tweak if you want a bigger or heavier hit.",
+ "effect_id": "34aaa275-dd35-4889-bb7a-350191da1165",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-holy-smite 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 79
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 79
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 79
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5063291139240507
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-holy-smite 1.png",
+    "frame": {
+     "x": 48,
+     "y": 0,
+     "w": 48,
+     "h": 79
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 79
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 79
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5063291139240507
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-holy-smite 2.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 48,
+     "h": 79
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 79
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 79
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5063291139240507
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-holy-smite 3.png",
+    "frame": {
+     "x": 0,
+     "y": 79,
+     "w": 48,
+     "h": 79
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 79
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 79
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5063291139240507
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-holy-smite 4.png",
+    "frame": {
+     "x": 48,
+     "y": 79,
+     "w": 48,
+     "h": 79
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 79
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 79
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5063291139240507
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-holy-smite 5.png",
+    "frame": {
+     "x": 96,
+     "y": 79,
+     "w": 48,
+     "h": 79
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 79
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 79
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5063291139240507
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-holy-smite 6.png",
+    "frame": {
+     "x": 0,
+     "y": 158,
+     "w": 48,
+     "h": 79
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 79
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 79
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5063291139240507
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-holy-smite.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 144,
+    "h": 237
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 24,
+    "y": 40
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-holy-smite",
+     "from": 0,
+     "to": 6,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

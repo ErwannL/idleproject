@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 56,
+  "w": 70
+ },
+ "frames": 6,
+ "fps": 10,
+ "loop": false,
+ "anchor": {
+  "x": 35,
+  "y": 28,
+  "kind": "origin"
+ },
+ "message": "Here's a 6-frame retro mud splash: a brown splash crown and ripple rings burst off the ground, with flecks of mud flying up and falling back, in a 4-tone brown ramp with a dark outline on a transparent background. The last frame is nearly empty as the splatter fades out, which gives a clean end for a game loop. Try the height and amount sliders for a taller or denser splash.",
+ "effect_id": "42b35557-07cf-4429-9f94-0332592839b8",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-env-mud 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 56
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 56
+    },
+    "sourceSize": {
+     "w": 70,
+     "h": 56
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-mud 1.png",
+    "frame": {
+     "x": 70,
+     "y": 0,
+     "w": 70,
+     "h": 56
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 56
+    },
+    "sourceSize": {
+     "w": 70,
+     "h": 56
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-mud 2.png",
+    "frame": {
+     "x": 140,
+     "y": 0,
+     "w": 70,
+     "h": 56
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 56
+    },
+    "sourceSize": {
+     "w": 70,
+     "h": 56
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-mud 3.png",
+    "frame": {
+     "x": 0,
+     "y": 56,
+     "w": 70,
+     "h": 56
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 56
+    },
+    "sourceSize": {
+     "w": 70,
+     "h": 56
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-mud 4.png",
+    "frame": {
+     "x": 70,
+     "y": 56,
+     "w": 70,
+     "h": 56
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 56
+    },
+    "sourceSize": {
+     "w": 70,
+     "h": 56
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-mud 5.png",
+    "frame": {
+     "x": 140,
+     "y": 56,
+     "w": 70,
+     "h": 56
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 56
+    },
+    "sourceSize": {
+     "w": 70,
+     "h": 56
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-env-mud.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 210,
+    "h": 112
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 35,
+    "y": 28
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-env-mud",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

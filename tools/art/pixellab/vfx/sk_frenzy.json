@@ -1,0 +1,225 @@
+{
+ "canvas": {
+  "h": 105,
+  "w": 85
+ },
+ "frames": 7,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 43,
+  "y": 41,
+  "kind": "origin"
+ },
+ "message": "An orange frenzy loop of 7 frames at 10 fps: orange speed-line streaks and bright sparks swirl upward around a centre point, with small embers rising from below. It's a 16-bit style with a four-colour orange ramp and dark outlines, and the canvas is fitted so nothing gets clipped. To adjust, try the speed line count and length, the spark count, or the ember speed. I didn't add a character and didn't set a transparent background; the preview shows a checker, so check the export settings for transparency.",
+ "effect_id": "608baad5-7c64-4869-9d54-d8b179d818ec",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-frenzy 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 85,
+     "h": 105
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 85,
+     "h": 105
+    },
+    "sourceSize": {
+     "w": 85,
+     "h": 105
+    },
+    "pivot": {
+     "x": 0.5058823529411764,
+     "y": 0.3904761904761905
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-frenzy 1.png",
+    "frame": {
+     "x": 85,
+     "y": 0,
+     "w": 85,
+     "h": 105
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 85,
+     "h": 105
+    },
+    "sourceSize": {
+     "w": 85,
+     "h": 105
+    },
+    "pivot": {
+     "x": 0.5058823529411764,
+     "y": 0.3904761904761905
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-frenzy 2.png",
+    "frame": {
+     "x": 170,
+     "y": 0,
+     "w": 85,
+     "h": 105
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 85,
+     "h": 105
+    },
+    "sourceSize": {
+     "w": 85,
+     "h": 105
+    },
+    "pivot": {
+     "x": 0.5058823529411764,
+     "y": 0.3904761904761905
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-frenzy 3.png",
+    "frame": {
+     "x": 0,
+     "y": 105,
+     "w": 85,
+     "h": 105
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 85,
+     "h": 105
+    },
+    "sourceSize": {
+     "w": 85,
+     "h": 105
+    },
+    "pivot": {
+     "x": 0.5058823529411764,
+     "y": 0.3904761904761905
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-frenzy 4.png",
+    "frame": {
+     "x": 85,
+     "y": 105,
+     "w": 85,
+     "h": 105
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 85,
+     "h": 105
+    },
+    "sourceSize": {
+     "w": 85,
+     "h": 105
+    },
+    "pivot": {
+     "x": 0.5058823529411764,
+     "y": 0.3904761904761905
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-frenzy 5.png",
+    "frame": {
+     "x": 170,
+     "y": 105,
+     "w": 85,
+     "h": 105
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 85,
+     "h": 105
+    },
+    "sourceSize": {
+     "w": 85,
+     "h": 105
+    },
+    "pivot": {
+     "x": 0.5058823529411764,
+     "y": 0.3904761904761905
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-frenzy 6.png",
+    "frame": {
+     "x": 0,
+     "y": 210,
+     "w": 85,
+     "h": 105
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 85,
+     "h": 105
+    },
+    "sourceSize": {
+     "w": 85,
+     "h": 105
+    },
+    "pivot": {
+     "x": 0.5058823529411764,
+     "y": 0.3904761904761905
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-frenzy.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 255,
+    "h": 315
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 43,
+    "y": 41
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-frenzy",
+     "from": 0,
+     "to": 6,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

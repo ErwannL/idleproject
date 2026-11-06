@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 51,
+  "w": 99
+ },
+ "frames": 6,
+ "fps": 8,
+ "loop": false,
+ "anchor": {
+  "x": 22,
+  "y": 24,
+  "kind": "origin"
+ },
+ "message": "I made a 6-frame one-shot shield bash at 8 fps: a steel shield jolts forward, then blue radiating lines and a small flash burst out at the impact and fade. It's a rough first pass: the shield is grey steel rather than blue, and the flash and lines are small, so the blue shockwave reads weakly. Try the colour and metal sliders on the page to push the blue further.",
+ "effect_id": "9fe8d7d0-894b-4205-ac30-112fe79e0c77",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-shield-bash 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 99,
+     "h": 51
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 99,
+     "h": 51
+    },
+    "sourceSize": {
+     "w": 99,
+     "h": 51
+    },
+    "pivot": {
+     "x": 0.2222222222222222,
+     "y": 0.47058823529411764
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-sk-shield-bash 1.png",
+    "frame": {
+     "x": 99,
+     "y": 0,
+     "w": 99,
+     "h": 51
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 99,
+     "h": 51
+    },
+    "sourceSize": {
+     "w": 99,
+     "h": 51
+    },
+    "pivot": {
+     "x": 0.2222222222222222,
+     "y": 0.47058823529411764
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-sk-shield-bash 2.png",
+    "frame": {
+     "x": 198,
+     "y": 0,
+     "w": 99,
+     "h": 51
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 99,
+     "h": 51
+    },
+    "sourceSize": {
+     "w": 99,
+     "h": 51
+    },
+    "pivot": {
+     "x": 0.2222222222222222,
+     "y": 0.47058823529411764
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-sk-shield-bash 3.png",
+    "frame": {
+     "x": 0,
+     "y": 51,
+     "w": 99,
+     "h": 51
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 99,
+     "h": 51
+    },
+    "sourceSize": {
+     "w": 99,
+     "h": 51
+    },
+    "pivot": {
+     "x": 0.2222222222222222,
+     "y": 0.47058823529411764
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-sk-shield-bash 4.png",
+    "frame": {
+     "x": 99,
+     "y": 51,
+     "w": 99,
+     "h": 51
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 99,
+     "h": 51
+    },
+    "sourceSize": {
+     "w": 99,
+     "h": 51
+    },
+    "pivot": {
+     "x": 0.2222222222222222,
+     "y": 0.47058823529411764
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-sk-shield-bash 5.png",
+    "frame": {
+     "x": 198,
+     "y": 51,
+     "w": 99,
+     "h": 51
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 99,
+     "h": 51
+    },
+    "sourceSize": {
+     "w": 99,
+     "h": 51
+    },
+    "pivot": {
+     "x": 0.2222222222222222,
+     "y": 0.47058823529411764
+    },
+    "duration": 125
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-shield-bash.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 297,
+    "h": 102
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 22,
+    "y": 24
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-shield-bash",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

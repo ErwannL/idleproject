@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 76,
+  "w": 76
+ },
+ "frames": 8,
+ "fps": 14,
+ "loop": false,
+ "anchor": {
+  "x": 38,
+  "y": 38,
+  "kind": "origin"
+ },
+ "message": "Here's an 8-frame retro fireball impact: a bright flash, an orange-yellow fire burst with a shockwave ring, then dark grey smoke that thins out by the last frame. The smoke reads grey rather than fully black and fades fairly quickly, so the Fireball and smoke colour sliders are the place to darken it or lengthen the smoke.",
+ "effect_id": "2a579fba-6c5a-4a91-875f-844dd765d0ff",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-fireball 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 76,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 76,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 76,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-sk-fireball 1.png",
+    "frame": {
+     "x": 76,
+     "y": 0,
+     "w": 76,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 76,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 76,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-sk-fireball 2.png",
+    "frame": {
+     "x": 152,
+     "y": 0,
+     "w": 76,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 76,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 76,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-sk-fireball 3.png",
+    "frame": {
+     "x": 0,
+     "y": 76,
+     "w": 76,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 76,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 76,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-sk-fireball 4.png",
+    "frame": {
+     "x": 76,
+     "y": 76,
+     "w": 76,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 76,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 76,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-sk-fireball 5.png",
+    "frame": {
+     "x": 152,
+     "y": 76,
+     "w": 76,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 76,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 76,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-sk-fireball 6.png",
+    "frame": {
+     "x": 0,
+     "y": 152,
+     "w": 76,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 76,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 76,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-sk-fireball 7.png",
+    "frame": {
+     "x": 76,
+     "y": 152,
+     "w": 76,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 76,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 76,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 71
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-fireball.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 228,
+    "h": 228
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 38,
+    "y": 38
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-fireball",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

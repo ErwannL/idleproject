@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 63,
+  "w": 51
+ },
+ "frames": 6,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 30,
+  "y": 58,
+  "kind": "origin"
+ },
+ "message": "Here's a 6-frame looping effect: three small flame tongues pop up at feet level in a staggered rhythm, with orange embers drifting up from the ground between them. Try the ember colour and amount sliders to make the sparks denser or brighter, and the ember speed to make them rise faster or slower.",
+ "effect_id": "5ce2bbcf-d2f2-4715-869f-14b8b8bc5ad6",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-env-lava 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 51,
+     "h": 63
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 51,
+     "h": 63
+    },
+    "sourceSize": {
+     "w": 51,
+     "h": 63
+    },
+    "pivot": {
+     "x": 0.5882352941176471,
+     "y": 0.9206349206349206
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-lava 1.png",
+    "frame": {
+     "x": 51,
+     "y": 0,
+     "w": 51,
+     "h": 63
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 51,
+     "h": 63
+    },
+    "sourceSize": {
+     "w": 51,
+     "h": 63
+    },
+    "pivot": {
+     "x": 0.5882352941176471,
+     "y": 0.9206349206349206
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-lava 2.png",
+    "frame": {
+     "x": 102,
+     "y": 0,
+     "w": 51,
+     "h": 63
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 51,
+     "h": 63
+    },
+    "sourceSize": {
+     "w": 51,
+     "h": 63
+    },
+    "pivot": {
+     "x": 0.5882352941176471,
+     "y": 0.9206349206349206
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-lava 3.png",
+    "frame": {
+     "x": 0,
+     "y": 63,
+     "w": 51,
+     "h": 63
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 51,
+     "h": 63
+    },
+    "sourceSize": {
+     "w": 51,
+     "h": 63
+    },
+    "pivot": {
+     "x": 0.5882352941176471,
+     "y": 0.9206349206349206
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-lava 4.png",
+    "frame": {
+     "x": 51,
+     "y": 63,
+     "w": 51,
+     "h": 63
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 51,
+     "h": 63
+    },
+    "sourceSize": {
+     "w": 51,
+     "h": 63
+    },
+    "pivot": {
+     "x": 0.5882352941176471,
+     "y": 0.9206349206349206
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-lava 5.png",
+    "frame": {
+     "x": 102,
+     "y": 63,
+     "w": 51,
+     "h": 63
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 51,
+     "h": 63
+    },
+    "sourceSize": {
+     "w": 51,
+     "h": 63
+    },
+    "pivot": {
+     "x": 0.5882352941176471,
+     "y": 0.9206349206349206
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-env-lava.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 153,
+    "h": 126
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 30,
+    "y": 58
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-env-lava",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

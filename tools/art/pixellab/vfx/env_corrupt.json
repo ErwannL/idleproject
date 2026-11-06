@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 96,
+  "w": 96
+ },
+ "frames": 6,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 48,
+  "y": 48,
+  "kind": "origin"
+ },
+ "message": "Four dark purple-to-black tendrils wriggle up from the ground on a 6-frame seamless loop, with the centre left empty and a transparent background. Outlines are dark and the tendrils taper at the tips; the width and colour ramp are the knobs to tweak if you want them darker or thicker.",
+ "effect_id": "fea332cf-7fde-448c-b0c8-234a1c9a9c86",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-env-corrupt 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-corrupt 1.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-corrupt 2.png",
+    "frame": {
+     "x": 192,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-corrupt 3.png",
+    "frame": {
+     "x": 0,
+     "y": 96,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-corrupt 4.png",
+    "frame": {
+     "x": 96,
+     "y": 96,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-corrupt 5.png",
+    "frame": {
+     "x": 192,
+     "y": 96,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-env-corrupt.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 288,
+    "h": 192
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 48,
+    "y": 48
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-env-corrupt",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

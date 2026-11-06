@@ -72,7 +72,7 @@ export function vfx(scene, name, x, y, opts = {}) {
   scene.effects.push({
     kind: 'vfx', name: n, x, y, life: life + delay, max: life, delay, size: (opts.size ?? 1) * (sober ? 0.8 : 1),
     tint: opts.tint ?? null, flip: Boolean(opts.flip), alpha: (opts.alpha ?? 1) * (sober ? 0.7 : 1), loop: opts.loop ?? e.loop,
-    follow: opts.follow, vx: opts.vx ?? 0, vy: opts.vy ?? 0, sober, rot: opts.rot ?? 0,
+    follow: opts.follow, oy: opts.oy ?? 0, top: Boolean(opts.top), vx: opts.vx ?? 0, vy: opts.vy ?? 0, sober, rot: opts.rot ?? 0,
   });
   return true;
 }
@@ -122,7 +122,7 @@ export function drawVfx(scene, ctx, fx, dt) {
   const age = fx.max - fx.life;
   if (fx.follow != null) {
     const t = scene.enemyFx.get(fx.follow);
-    if (t?.seen > scene.time - 0.1) { fx.x = t.sx + t.sw / 2; fx.y = t.sy + t.sh + (fx.oy ?? 0); }
+    if (t?.seen > scene.time - 0.1) { fx.x = t.sx + t.sw / 2; fx.y = (fx.top ? t.sy : t.sy + t.sh) + fx.oy; }
   }
   fx.x += fx.vx * dt;
   fx.y += fx.vy * dt;

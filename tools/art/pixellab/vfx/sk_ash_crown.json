@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 95,
+  "w": 95
+ },
+ "frames": 8,
+ "fps": 12,
+ "loop": true,
+ "anchor": {
+  "x": 51,
+  "y": 49,
+  "kind": "origin"
+ },
+ "message": "A ring of flames stands on the ground in a circle, with grey ash and sparks drifting down through it, over 8 frames that loop. Try the Flame height and Flicker sliders for the fire, and Ash amount and Ash speed for the falling ash.",
+ "effect_id": "de932f24-9fa2-4f3c-b620-f20170345722",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-ash-crown 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.5157894736842106
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-ash-crown 1.png",
+    "frame": {
+     "x": 95,
+     "y": 0,
+     "w": 95,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.5157894736842106
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-ash-crown 2.png",
+    "frame": {
+     "x": 190,
+     "y": 0,
+     "w": 95,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.5157894736842106
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-ash-crown 3.png",
+    "frame": {
+     "x": 0,
+     "y": 95,
+     "w": 95,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.5157894736842106
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-ash-crown 4.png",
+    "frame": {
+     "x": 95,
+     "y": 95,
+     "w": 95,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.5157894736842106
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-ash-crown 5.png",
+    "frame": {
+     "x": 190,
+     "y": 95,
+     "w": 95,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.5157894736842106
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-ash-crown 6.png",
+    "frame": {
+     "x": 0,
+     "y": 190,
+     "w": 95,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.5157894736842106
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-ash-crown 7.png",
+    "frame": {
+     "x": 95,
+     "y": 190,
+     "w": 95,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.5157894736842106
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-ash-crown.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 285,
+    "h": 285
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 51,
+    "y": 49
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-ash-crown",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

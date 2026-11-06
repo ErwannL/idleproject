@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 106,
+  "w": 124
+ },
+ "frames": 8,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 80,
+  "y": 47,
+  "kind": "origin"
+ },
+ "message": "A sparse loop of 8 frames at 10 fps: green leaves and a few brown leaves falling and twirling on a transparent background, nothing cut off at the edges. Try the Leaf amount slider for more or fewer leaves, and Leaf speed for faster or slower falling.",
+ "effect_id": "46e1ce43-82e6-4e8a-a9ef-8aff4ef23d37",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-amb-leaves 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 124,
+     "h": 106
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 124,
+     "h": 106
+    },
+    "sourceSize": {
+     "w": 124,
+     "h": 106
+    },
+    "pivot": {
+     "x": 0.6451612903225806,
+     "y": 0.44339622641509435
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-leaves 1.png",
+    "frame": {
+     "x": 124,
+     "y": 0,
+     "w": 124,
+     "h": 106
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 124,
+     "h": 106
+    },
+    "sourceSize": {
+     "w": 124,
+     "h": 106
+    },
+    "pivot": {
+     "x": 0.6451612903225806,
+     "y": 0.44339622641509435
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-leaves 2.png",
+    "frame": {
+     "x": 248,
+     "y": 0,
+     "w": 124,
+     "h": 106
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 124,
+     "h": 106
+    },
+    "sourceSize": {
+     "w": 124,
+     "h": 106
+    },
+    "pivot": {
+     "x": 0.6451612903225806,
+     "y": 0.44339622641509435
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-leaves 3.png",
+    "frame": {
+     "x": 0,
+     "y": 106,
+     "w": 124,
+     "h": 106
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 124,
+     "h": 106
+    },
+    "sourceSize": {
+     "w": 124,
+     "h": 106
+    },
+    "pivot": {
+     "x": 0.6451612903225806,
+     "y": 0.44339622641509435
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-leaves 4.png",
+    "frame": {
+     "x": 124,
+     "y": 106,
+     "w": 124,
+     "h": 106
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 124,
+     "h": 106
+    },
+    "sourceSize": {
+     "w": 124,
+     "h": 106
+    },
+    "pivot": {
+     "x": 0.6451612903225806,
+     "y": 0.44339622641509435
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-leaves 5.png",
+    "frame": {
+     "x": 248,
+     "y": 106,
+     "w": 124,
+     "h": 106
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 124,
+     "h": 106
+    },
+    "sourceSize": {
+     "w": 124,
+     "h": 106
+    },
+    "pivot": {
+     "x": 0.6451612903225806,
+     "y": 0.44339622641509435
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-leaves 6.png",
+    "frame": {
+     "x": 0,
+     "y": 212,
+     "w": 124,
+     "h": 106
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 124,
+     "h": 106
+    },
+    "sourceSize": {
+     "w": 124,
+     "h": 106
+    },
+    "pivot": {
+     "x": 0.6451612903225806,
+     "y": 0.44339622641509435
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-leaves 7.png",
+    "frame": {
+     "x": 124,
+     "y": 212,
+     "w": 124,
+     "h": 106
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 124,
+     "h": 106
+    },
+    "sourceSize": {
+     "w": 124,
+     "h": 106
+    },
+    "pivot": {
+     "x": 0.6451612903225806,
+     "y": 0.44339622641509435
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-amb-leaves.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 372,
+    "h": 318
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 80,
+    "y": 47
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-amb-leaves",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

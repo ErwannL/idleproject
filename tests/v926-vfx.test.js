@@ -14,7 +14,7 @@ test('v9.2.6 : chaque effet a ses images dans l\'atlas, une taille de jeu et une
     assert.ok(e.scale > 0 && e.scale * Math.max(e.w, e.h) <= 80, name);
     assert.ok(vfxDuration(name) > 0.1, name);
   }
-  assert.ok(png.length < 120 * 1024, 'atlas léger');
+  assert.ok(png.length < 300 * 1024, 'atlas léger'); // v9.2.6 : 127 effets ≈ 230 Kio
 });
 
 test('v9.2.6 : un impact par élément et par arme, projectiles, morts, butin, auras', () => {
@@ -29,4 +29,13 @@ test('v9.2.6 : sans atlas chargé (Node), la scène garde ses anciens effets', (
   const scene = { effects: [], focus: false };
   assert.equal(vfx(scene, 'hit_fire', 0, 0), false);
   assert.equal(scene.effects.length, 0);
+});
+
+test('v9.2.6 : chaque effet de compétence, malus d\'environnement et monde a son VFX dessiné', async () => {
+  const { FX_NAMES } = await import('../src/render/skill-fx.js');
+  const { ENVIRONMENTS } = await import('../src/data/environment.js');
+  for (const n of FX_NAMES) assert.ok(VFX[`sk_${n}`], n);
+  assert.equal(ENVIRONMENTS.length, 11);
+  for (const n of ['boss_shell_chip', 'boss_summon_portal', 'boss_rage', 'boss_despair', 'boss_tide', 'mut_split', 'mut_block', 'mut_frenzy', 'mut_drain',
+    'mut_regen', 'mut_stomp', 'combo_burst', 'hero_rage', 'shield_absorb', 'miss_whiff', 'stun_stars', 'poison_bubbles', 'wave_clear', 'teleport']) assert.ok(VFX[n], n);
 });

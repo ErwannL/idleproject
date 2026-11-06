@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 80,
+  "w": 80
+ },
+ "frames": 8,
+ "fps": 10,
+ "loop": false,
+ "anchor": {
+  "x": 40,
+  "y": 40,
+  "kind": "origin"
+ },
+ "message": "A golden-green falcon dives diagonally from the upper left across 8 frames, leaves a short trail of sparks, and strikes near the centre-right, where a bright flash bursts with gold feathers and sparks flying off. It's a 4-colour retro palette with dark outlines on a transparent 80x80 canvas. The falcon is a small pixel sprite with no wing flap, so it reads as a bird more than a detailed falcon; the feathers are small, so they may need a larger size if you want them more prominent.",
+ "effect_id": "f86d2531-0642-4f65-bc36-be6e748beffe",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-falcon 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-falcon 1.png",
+    "frame": {
+     "x": 80,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-falcon 2.png",
+    "frame": {
+     "x": 160,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-falcon 3.png",
+    "frame": {
+     "x": 0,
+     "y": 80,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-falcon 4.png",
+    "frame": {
+     "x": 80,
+     "y": 80,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-falcon 5.png",
+    "frame": {
+     "x": 160,
+     "y": 80,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-falcon 6.png",
+    "frame": {
+     "x": 0,
+     "y": 160,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-falcon 7.png",
+    "frame": {
+     "x": 80,
+     "y": 160,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-falcon.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 240,
+    "h": 240
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 40,
+    "y": 40
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-falcon",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

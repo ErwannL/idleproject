@@ -1,0 +1,225 @@
+{
+ "canvas": {
+  "h": 64,
+  "w": 128
+ },
+ "frames": 7,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 64,
+  "y": 32,
+  "kind": "origin"
+ },
+ "message": "A 7-frame one-shot: a glowing beige arrow flies right with a blue wind trail streaking behind it and two shock rings pushing out from its tip. The rings and the trail are the most adjustable parts, so the size and speed can be tuned to taste. The arrow sits centred on a 128x64 transparent canvas with no character.",
+ "effect_id": "77cd265c-a65e-4e6b-b983-1feb25cb5795",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-pierce-arrow 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-pierce-arrow 1.png",
+    "frame": {
+     "x": 128,
+     "y": 0,
+     "w": 128,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-pierce-arrow 2.png",
+    "frame": {
+     "x": 256,
+     "y": 0,
+     "w": 128,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-pierce-arrow 3.png",
+    "frame": {
+     "x": 0,
+     "y": 64,
+     "w": 128,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-pierce-arrow 4.png",
+    "frame": {
+     "x": 128,
+     "y": 64,
+     "w": 128,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-pierce-arrow 5.png",
+    "frame": {
+     "x": 256,
+     "y": 64,
+     "w": 128,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-pierce-arrow 6.png",
+    "frame": {
+     "x": 0,
+     "y": 128,
+     "w": 128,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-pierce-arrow.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 384,
+    "h": 192
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 64,
+    "y": 32
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-pierce-arrow",
+     "from": 0,
+     "to": 6,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

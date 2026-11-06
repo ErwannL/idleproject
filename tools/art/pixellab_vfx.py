@@ -75,6 +75,116 @@ VFX = {
     'dust_land': [28, 'a landing dust cloud: beige and grey dust puffs spreading left and right along the ground, 6 frames, wide and low'],
 }
 
+# v9.2.6 (deuxième vague) : compétences (une par effet de skill-fx.js), mécaniques de boss, malus d'environnement,
+# mutations, ambiance par monde, divers.
+SK = {
+    'meteor': [56, 'a flaming meteor crashing down diagonally from the top left, long fire trail, hits the ground with a fiery explosion and leaves a glowing crater, 10 frames'],
+    'arrow_rain': [48, 'a volley of many arrows raining down vertically onto the ground with small dust impacts, 8 frames'],
+    'prayer': [48, 'a soft golden vertical prayer light ray descending from above onto the ground with feathers of light, 8 frames'],
+    'dawn_prayer': [48, 'a warm peach and pink dawn light beam descending with a sun halo and soft sparkles, 8 frames'],
+    'blessing': [40, 'a golden blessing: glowing rune circle on the ground with rising golden sparkles and a small crown of light, 8 frames'],
+    'divine_light': [48, 'a big divine pillar of white and pale yellow holy light descending from the sky with radiant rays, 8 frames'],
+    'sacred_ray': [48, 'a narrow sacred golden laser ray striking down from above with a bright impact flare on the ground, 7 frames'],
+    'judgement': [52, 'a giant blue and white holy sword of light falling from the sky and stabbing the ground with a shockwave, 9 frames'],
+    'guardian_wings': [48, 'a pair of large translucent pale blue angel wings of light unfolding protectively then fading into feathers, 8 frames'],
+    'frost_nova': [52, 'a frost nova: icy blue ring exploding outward along the ground with ice spikes popping up, 8 frames'],
+    'eternal_winter': [56, 'a blizzard storm of snow and ice crystals swirling wide with tall ice spikes rising from the ground, 9 frames'],
+    'frost_storm': [52, 'a row of sharp ice spikes erupting from the ground one after another, pale blue crystal, 8 frames'],
+    'fireball': [36, 'a large fireball impact explosion with orange flames and black smoke, 8 frames'],
+    'flame_spray': [48, 'a horizontal cone of flames spraying to the right, orange and yellow fire jet, 8 frames'],
+    'hellfire': [56, 'several tall columns of hellfire erupting from the ground, red orange and black flames, 9 frames'],
+    'ash_crown': [48, 'a crown of fire: a ring of flames rising in a circle on the ground with falling ash, 8 frames'],
+    'void_orb': [40, 'a dark purple void orb pulsing then imploding with violet lightning and a black core, 8 frames'],
+    'eclipse': [56, 'an eclipse: a black sun with a glowing purple corona appearing in the sky and casting dark rays down, 9 frames'],
+    'heavy_cut': [44, 'a heavy red sword cleave: a thick crimson vertical slash arc with sparks, 6 frames'],
+    'valiant_cut': [44, 'a valiant blue sword slash: wide bright blue horizontal arc with white edge, 6 frames'],
+    'void_blade': [48, 'a purple void blade slash: dark violet crescent cutting through space leaving a black rift, 7 frames'],
+    'shield_bash': [36, 'a blue shield bash impact: a shield shaped shockwave flash with radiating blue lines, 6 frames'],
+    'taunt': [36, 'a red angry taunt: a pulsing red exclamation shockwave ring with red anger marks, 6 frames'],
+    'rampart': [44, 'a golden stone rampart wall of light rising from the ground as a protective barrier, 8 frames'],
+    'holy_shield': [44, 'a glowing blue hexagonal holy shield bubble appearing around a spot, shimmering, 8 frames'],
+    'pierce_arrow': [48, 'a piercing arrow shot: a glowing beige arrow streak flying right with a long wind trail and shock rings, 7 frames'],
+    'ranger_shot': [44, 'a green magic arrow flying right with leaves trailing behind and a green burst at the end, 7 frames'],
+    'falcon': [44, 'a falcon made of golden green light swooping down diagonally and striking with feathers flying, 8 frames'],
+    'low_strike': [36, 'a quick low purple dagger slash near the ground with a shadow trail, 6 frames'],
+    'blade_dance': [48, 'a blade dance: many crossing pale lilac slashes in an X pattern flurry, 8 frames'],
+    'thorn_waltz': [44, 'a swirl of pink rose petals and thorny vines spinning in a circle, 8 frames'],
+    'blood_whirl': [48, 'a spinning red blood whirlwind slash circle with red droplets, 8 frames'],
+    'execution': [52, 'an execution strike: a huge dark red and crimson vertical sword slash streak from top to bottom with white edge, blood red sparks burst at the bottom, 7 frames'],
+    'twin_blades': [44, 'two crossing purple dagger slashes forming an X with sparks, 6 frames'],
+    'flash_strike': [48, 'a flash strike: a purple lightning fast horizontal dash streak with afterimages, 6 frames'],
+    'pierce': [44, 'a crimson spear thrust shock: long horizontal red streak with a pointed shock cone, 6 frames'],
+    'axe_whirl': [48, 'a spinning orange axe whirlwind: circular orange slash arcs spinning, 8 frames'],
+    'war_howl': [44, 'a red sonic howl: expanding red shockwave arcs going outward with red sparks, 7 frames'],
+    'fury': [40, 'a fury aura: red flames and steam bursting upward around a spot, 8 frames'],
+    'carnage': [52, 'carnage: multiple red slashes and a big red explosion of energy on the ground, 8 frames'],
+    'bite': [28, 'a white animal bite: two rows of white fangs snapping shut with an impact star, 5 frames'],
+    'frenzy': [36, 'orange frenzy: speed lines and orange sparks swirling upward, 7 frames'],
+    'instinct': [36, 'golden instinct: a glowing yellow eye shape flashing with radiating lines, 6 frames'],
+    'gold_rain': [44, 'a rain of shiny gold coins falling from above and bouncing with sparkles, 8 frames'],
+    'claw': [32, 'three white claw slash marks scratching diagonally, 5 frames'],
+    'dive': [40, 'a pale purple owl dive streak from above with feathers, 6 frames'],
+    'fairy_heal': [40, 'fairy healing dust: mint green and pink sparkles swirling down in a spiral, 8 frames'],
+    'sap_of_life': [44, 'green sap of life: glowing green vines and leaves sprouting from the ground with heal sparkles, 8 frames'],
+    'harvest': [44, 'harvest: golden wheat and green leaves swirling upward with sparkles, 8 frames'],
+    'ki_wave': [40, 'a cyan ki energy wave: a horizontal crescent wave of blue energy flying right, 6 frames'],
+    'whirlwind': [44, 'a white grey tornado whirlwind spinning with dust and debris, looping 6 frames'],
+    'war_cry': [44, 'a golden war cry shout: expanding golden shockwave rings with sparks, 7 frames'],
+    'holy_smite': [44, 'a holy smite: a golden hammer of light slamming down with a cross shaped burst, 7 frames'],
+}
+for _k, (_s, _d) in SK.items():
+    VFX['sk_' + _k] = [_s, _d]
+VFX.update({
+    # Mécaniques de boss
+    'boss_shell_chip': [24, 'grey blue stone armor shell fragments chipping off and flying with a small flash, 6 frames'],
+    'boss_summon_portal': [40, 'a cyan magic portal opening vertically with swirling energy, a ghost minion steps out, then closes, 9 frames'],
+    'boss_rage': [44, 'rising orange and red rage flames and heat haze around a spot, looping 6 frames, empty center'],
+    'boss_despair': [48, 'a pulsing crimson red despair aura with dark red smoke wisps rising, looping 6 frames, empty center'],
+    'boss_tide': [44, 'a cyan blue water healing wave rising around a spot with bubbles and droplets, 8 frames'],
+    # Malus d'environnement (sur le héros)
+    'env_gloom': [40, 'a thin gloom veil: sparse wisps of dark purple fog and a few dim shadow particles drifting sideways, mostly empty, looping 6 frames'],
+    'env_crystal': [28, 'small pink and purple crystal shards flying in and hitting with sparkles, 6 frames'],
+    'env_thirst': [32, 'hot white steam vapor rising in wavy wisps, looping 6 frames'],
+    'env_frost': [32, 'frost forming: pale blue ice crystals and snowflakes creeping and glinting, looping 6 frames'],
+    'env_curse': [36, 'purple glowing curse runes circling slowly around a spot, looping 6 frames, empty center'],
+    'env_mud': [28, 'brown mud splashes and drops splattering from the ground, 6 frames'],
+    'env_gust': [40, 'white wind gust streaks and swirling wind lines blowing to the left, looping 6 frames'],
+    'env_lava': [28, 'small orange lava embers and tiny flames popping from the ground at feet level, looping 6 frames'],
+    'env_distort': [36, 'a glitch distortion: magenta and cyan pixel glitch blocks and scanlines flickering, looping 6 frames'],
+    'env_pressure': [32, 'deep sea pressure: small bubbles being squashed and popping, blue, looping 6 frames'],
+    'env_corrupt': [40, 'dark purple and black corruption tendrils wriggling up from the ground, looping 6 frames, empty center'],
+    # Mutations
+    'mut_split': [40, 'a green slime cell splitting in two with goo droplets flying, 8 frames'],
+    'mut_block': [28, 'a yellow metal armor block flash: a shield icon spark with clang lines, 5 frames'],
+    'mut_frenzy': [36, 'red frenzy steam and anger veins pulsing upward, looping 6 frames, empty center'],
+    'mut_drain': [28, 'crimson life drain: red blood orbs streaming and absorbing into a point, 7 frames'],
+    'mut_regen': [32, 'green regeneration: small green plus signs and leaves rising, looping 6 frames'],
+    'mut_stomp': [44, 'a giant stomp: heavy brown ground crack shockwave with rocks and dust spreading sideways, 6 frames, wide and low'],
+    # Ambiance par monde (petites particules en boucle)
+    'amb_fireflies': [24, 'a few glowing yellow green fireflies drifting and blinking, looping 8 frames, sparse'],
+    'amb_pollen': [24, 'small floating white and yellow pollen motes drifting, looping 8 frames, sparse'],
+    'amb_crystal': [24, 'tiny cyan crystal sparkles twinkling in the dark, looping 8 frames, sparse'],
+    'amb_sand': [32, 'thin streaks of blowing sand dust drifting left, looping 8 frames, sparse'],
+    'amb_snow': [32, 'gentle white snowflakes falling, looping 8 frames, sparse'],
+    'amb_wisps': [24, 'small ghostly purple wisps floating, looping 8 frames, sparse'],
+    'amb_leaves': [32, 'a few green and brown leaves falling and twirling, looping 8 frames, sparse'],
+    'amb_clouds': [32, 'tiny white wind wisps and feathers drifting, looping 8 frames, sparse'],
+    'amb_ash': [32, 'falling grey ash flakes and orange embers floating up, looping 8 frames, sparse'],
+    'amb_lightning': [48, 'a distant purple lightning bolt flashing in the sky far away, 6 frames'],
+    'amb_stars': [48, 'a shooting star streaking diagonally across the sky with a sparkle trail, 7 frames'],
+    'amb_bubbles': [24, 'small rising translucent bubbles, looping 8 frames, sparse'],
+    'amb_spores': [24, 'glowing teal bioluminescent spores drifting slowly, looping 8 frames, sparse'],
+    # Divers
+    'combo_burst': [40, 'a combo burst: a yellow and orange comic style impact star explosion with lines, 6 frames'],
+    'hero_rage': [44, 'a red battle rage aura of flames rising around a spot, looping 6 frames, empty center'],
+    'shield_absorb': [36, 'a blue energy shield bubble flashing as it absorbs a hit with hexagon ripples, 6 frames'],
+    'miss_whiff': [28, 'a missed attack whiff: grey swoosh lines with a small puff of air, 5 frames'],
+    'stun_stars': [24, 'dizzy stun: three small yellow stars circling in a ring, looping 6 frames'],
+    'poison_bubbles': [24, 'small toxic green bubbles rising and popping, looping 6 frames'],
+    'wave_clear': [64, 'a wave cleared victory burst: golden firework explosion with confetti stars and sparkles, 9 frames'],
+    'teleport': [44, 'a cyan blue teleport beam: vertical column of light with rings and sparkles materializing, 8 frames'],
+})
+
 
 def _key():
     k = os.environ.get('PIXELLAB_API_KEY')
@@ -140,7 +250,7 @@ def gen(names):
     todo = names or [n for n in VFX if not os.path.exists(os.path.join(SRC, n + '.png'))]
     b0 = balance()
     from concurrent.futures import ThreadPoolExecutor
-    with ThreadPoolExecutor(4) as ex:
+    with ThreadPoolExecutor(6) as ex:
         list(ex.map(gen_one, todo))
     b1 = balance()
     print('coût', b0 - b1, 'générations, reste', b1, flush=True)

@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 65,
+  "w": 46
+ },
+ "frames": 6,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 20,
+  "y": 58,
+  "kind": "origin"
+ },
+ "message": "A 6-frame looping effect of small toxic green bubbles rising, wobbling and popping, in a 46x65 transparent canvas with no character. Try the size and amount sliders on the bubbles part for denser or sparser bubbles, and the speed slider for how fast they rise.",
+ "effect_id": "dd8f5854-6991-4020-900c-88c5711e0a94",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-poison-bubbles 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 46,
+     "h": 65
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 46,
+     "h": 65
+    },
+    "sourceSize": {
+     "w": 46,
+     "h": 65
+    },
+    "pivot": {
+     "x": 0.43478260869565216,
+     "y": 0.8923076923076924
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-poison-bubbles 1.png",
+    "frame": {
+     "x": 46,
+     "y": 0,
+     "w": 46,
+     "h": 65
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 46,
+     "h": 65
+    },
+    "sourceSize": {
+     "w": 46,
+     "h": 65
+    },
+    "pivot": {
+     "x": 0.43478260869565216,
+     "y": 0.8923076923076924
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-poison-bubbles 2.png",
+    "frame": {
+     "x": 92,
+     "y": 0,
+     "w": 46,
+     "h": 65
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 46,
+     "h": 65
+    },
+    "sourceSize": {
+     "w": 46,
+     "h": 65
+    },
+    "pivot": {
+     "x": 0.43478260869565216,
+     "y": 0.8923076923076924
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-poison-bubbles 3.png",
+    "frame": {
+     "x": 0,
+     "y": 65,
+     "w": 46,
+     "h": 65
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 46,
+     "h": 65
+    },
+    "sourceSize": {
+     "w": 46,
+     "h": 65
+    },
+    "pivot": {
+     "x": 0.43478260869565216,
+     "y": 0.8923076923076924
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-poison-bubbles 4.png",
+    "frame": {
+     "x": 46,
+     "y": 65,
+     "w": 46,
+     "h": 65
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 46,
+     "h": 65
+    },
+    "sourceSize": {
+     "w": 46,
+     "h": 65
+    },
+    "pivot": {
+     "x": 0.43478260869565216,
+     "y": 0.8923076923076924
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-poison-bubbles 5.png",
+    "frame": {
+     "x": 92,
+     "y": 65,
+     "w": 46,
+     "h": 65
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 46,
+     "h": 65
+    },
+    "sourceSize": {
+     "w": 46,
+     "h": 65
+    },
+    "pivot": {
+     "x": 0.43478260869565216,
+     "y": 0.8923076923076924
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-poison-bubbles.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 138,
+    "h": 130
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 20,
+    "y": 58
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-poison-bubbles",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

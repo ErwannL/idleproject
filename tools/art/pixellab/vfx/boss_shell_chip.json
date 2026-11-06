@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 72,
+  "w": 61
+ },
+ "frames": 6,
+ "fps": 10,
+ "loop": false,
+ "anchor": {
+  "x": 41,
+  "y": 11,
+  "kind": "origin"
+ },
+ "message": "A 6-frame, 16-bit style burst: a small white-orange flash, then grey-blue stone chunks and a few gold chips flying out, falling and fading. Try the Size and Gravity sliders to change how far the pieces scatter and how fast they drop.",
+ "effect_id": "938bcd76-0a79-4a7a-aeb9-4204a7ea4719",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-boss-shell-chip 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.6721311475409836,
+     "y": 0.1527777777777778
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-boss-shell-chip 1.png",
+    "frame": {
+     "x": 61,
+     "y": 0,
+     "w": 61,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.6721311475409836,
+     "y": 0.1527777777777778
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-boss-shell-chip 2.png",
+    "frame": {
+     "x": 122,
+     "y": 0,
+     "w": 61,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.6721311475409836,
+     "y": 0.1527777777777778
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-boss-shell-chip 3.png",
+    "frame": {
+     "x": 0,
+     "y": 72,
+     "w": 61,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.6721311475409836,
+     "y": 0.1527777777777778
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-boss-shell-chip 4.png",
+    "frame": {
+     "x": 61,
+     "y": 72,
+     "w": 61,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.6721311475409836,
+     "y": 0.1527777777777778
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-boss-shell-chip 5.png",
+    "frame": {
+     "x": 122,
+     "y": 72,
+     "w": 61,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.6721311475409836,
+     "y": 0.1527777777777778
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-boss-shell-chip.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 183,
+    "h": 144
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 41,
+    "y": 11
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-boss-shell-chip",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

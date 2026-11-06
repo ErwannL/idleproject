@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 64,
+  "w": 64
+ },
+ "frames": 6,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 32,
+  "y": 32,
+  "kind": "origin"
+ },
+ "message": "I made a 6-frame looping effect of small blue bubbles rising and squashing, with tiny pop rings where they burst, on a transparent background with no character. The bubbles are small at 1x, so try the count and size sliders to make them read more strongly, and the speed slider to slow or quicken the rise.",
+ "effect_id": "eafe60f9-ac85-44e4-b555-6012530ac595",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-env-pressure 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-pressure 1.png",
+    "frame": {
+     "x": 64,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-pressure 2.png",
+    "frame": {
+     "x": 128,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-pressure 3.png",
+    "frame": {
+     "x": 0,
+     "y": 64,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-pressure 4.png",
+    "frame": {
+     "x": 64,
+     "y": 64,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-pressure 5.png",
+    "frame": {
+     "x": 128,
+     "y": 64,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-env-pressure.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 192,
+    "h": 128
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 32,
+    "y": 32
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-env-pressure",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

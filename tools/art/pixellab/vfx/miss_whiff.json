@@ -1,0 +1,173 @@
+{
+ "canvas": {
+  "h": 31,
+  "w": 68
+ },
+ "frames": 5,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 42,
+  "y": 24,
+  "kind": "origin"
+ },
+ "message": "A 5-frame whiff: two grey swoosh arcs sweep through the air, with a small puff of air drifting off at the start and fading as the swing ends. It's a one-shot on a transparent background, in a dark-outlined grey ramp. The swoosh arc and puff sizes are the easiest things to tune if you want it bigger or softer.",
+ "effect_id": "b4ce20b7-d798-4443-86b4-1ded49bc4700",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-miss-whiff 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 68,
+     "h": 31
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 68,
+     "h": 31
+    },
+    "sourceSize": {
+     "w": 68,
+     "h": 31
+    },
+    "pivot": {
+     "x": 0.6176470588235294,
+     "y": 0.7741935483870968
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-miss-whiff 1.png",
+    "frame": {
+     "x": 68,
+     "y": 0,
+     "w": 68,
+     "h": 31
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 68,
+     "h": 31
+    },
+    "sourceSize": {
+     "w": 68,
+     "h": 31
+    },
+    "pivot": {
+     "x": 0.6176470588235294,
+     "y": 0.7741935483870968
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-miss-whiff 2.png",
+    "frame": {
+     "x": 136,
+     "y": 0,
+     "w": 68,
+     "h": 31
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 68,
+     "h": 31
+    },
+    "sourceSize": {
+     "w": 68,
+     "h": 31
+    },
+    "pivot": {
+     "x": 0.6176470588235294,
+     "y": 0.7741935483870968
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-miss-whiff 3.png",
+    "frame": {
+     "x": 0,
+     "y": 31,
+     "w": 68,
+     "h": 31
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 68,
+     "h": 31
+    },
+    "sourceSize": {
+     "w": 68,
+     "h": 31
+    },
+    "pivot": {
+     "x": 0.6176470588235294,
+     "y": 0.7741935483870968
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-miss-whiff 4.png",
+    "frame": {
+     "x": 68,
+     "y": 31,
+     "w": 68,
+     "h": 31
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 68,
+     "h": 31
+    },
+    "sourceSize": {
+     "w": 68,
+     "h": 31
+    },
+    "pivot": {
+     "x": 0.6176470588235294,
+     "y": 0.7741935483870968
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-miss-whiff.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 204,
+    "h": 62
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 42,
+    "y": 24
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-miss-whiff",
+     "from": 0,
+     "to": 4,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

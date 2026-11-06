@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 64,
+  "w": 64
+ },
+ "frames": 8,
+ "fps": 8,
+ "loop": true,
+ "anchor": {
+  "x": 32,
+  "y": 32,
+  "kind": "origin"
+ },
+ "message": "Three small purple wisps drift upward with a soft ghostly glow, in a 64x64 transparent canvas, looping over 8 frames at 8 fps, side view, four-tone purple ramp with dark outline. Sparse by design; the glow size and the wisp particle count are the knobs to try next.",
+ "effect_id": "f1936f6f-3007-4cac-bbd9-d7bd2c013e93",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-amb-wisps 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-amb-wisps 1.png",
+    "frame": {
+     "x": 64,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-amb-wisps 2.png",
+    "frame": {
+     "x": 128,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-amb-wisps 3.png",
+    "frame": {
+     "x": 0,
+     "y": 64,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-amb-wisps 4.png",
+    "frame": {
+     "x": 64,
+     "y": 64,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-amb-wisps 5.png",
+    "frame": {
+     "x": 128,
+     "y": 64,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-amb-wisps 6.png",
+    "frame": {
+     "x": 0,
+     "y": 128,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-amb-wisps 7.png",
+    "frame": {
+     "x": 64,
+     "y": 128,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-amb-wisps.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 192,
+    "h": 192
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 32,
+    "y": 32
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-amb-wisps",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

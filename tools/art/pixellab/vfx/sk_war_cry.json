@@ -1,0 +1,225 @@
+{
+ "canvas": {
+  "h": 39,
+  "w": 89
+ },
+ "frames": 7,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 127,
+  "y": 84,
+  "kind": "origin"
+ },
+ "message": "A 7-frame golden war cry: a flash at the centre, then two expanding gold shockwave rings with sparks thrown out inside them, fading as they spread. It's on a transparent 89x39 canvas with a dark outline; the rings are drawn as flat ellipses, so they read as ground-level shockwaves in side view. If you want them smaller or bigger, the ring size slider is the one to try.",
+ "effect_id": "680a185c-899c-4835-bea3-4d878c27cd46",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-war-cry 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 89,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 89,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 89,
+     "h": 39
+    },
+    "pivot": {
+     "x": 1.4269662921348314,
+     "y": 2.1538461538461537
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-war-cry 1.png",
+    "frame": {
+     "x": 89,
+     "y": 0,
+     "w": 89,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 89,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 89,
+     "h": 39
+    },
+    "pivot": {
+     "x": 1.4269662921348314,
+     "y": 2.1538461538461537
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-war-cry 2.png",
+    "frame": {
+     "x": 178,
+     "y": 0,
+     "w": 89,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 89,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 89,
+     "h": 39
+    },
+    "pivot": {
+     "x": 1.4269662921348314,
+     "y": 2.1538461538461537
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-war-cry 3.png",
+    "frame": {
+     "x": 0,
+     "y": 39,
+     "w": 89,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 89,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 89,
+     "h": 39
+    },
+    "pivot": {
+     "x": 1.4269662921348314,
+     "y": 2.1538461538461537
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-war-cry 4.png",
+    "frame": {
+     "x": 89,
+     "y": 39,
+     "w": 89,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 89,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 89,
+     "h": 39
+    },
+    "pivot": {
+     "x": 1.4269662921348314,
+     "y": 2.1538461538461537
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-war-cry 5.png",
+    "frame": {
+     "x": 178,
+     "y": 39,
+     "w": 89,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 89,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 89,
+     "h": 39
+    },
+    "pivot": {
+     "x": 1.4269662921348314,
+     "y": 2.1538461538461537
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-war-cry 6.png",
+    "frame": {
+     "x": 0,
+     "y": 78,
+     "w": 89,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 89,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 89,
+     "h": 39
+    },
+    "pivot": {
+     "x": 1.4269662921348314,
+     "y": 2.1538461538461537
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-war-cry.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 267,
+    "h": 117
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 127,
+    "y": 84
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-war-cry",
+     "from": 0,
+     "to": 6,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

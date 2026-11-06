@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 38,
+  "w": 174
+ },
+ "frames": 6,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 103,
+  "y": 14,
+  "kind": "origin"
+ },
+ "message": "A purple lightning flash strike: a fast horizontal dash with two fading afterimages and speed streaks trailing behind, ending in a bright flash on the last frames. It is six frames on a 4-colour purple ramp with a dark outline, and nothing is cut off at the edges. The streak count and speed sliders control how much rush it has.",
+ "effect_id": "e4acb818-eca6-4b2c-b74c-94c5d36a3102",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-flash-strike 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 174,
+     "h": 38
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 174,
+     "h": 38
+    },
+    "sourceSize": {
+     "w": 174,
+     "h": 38
+    },
+    "pivot": {
+     "x": 0.5919540229885057,
+     "y": 0.3684210526315789
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-flash-strike 1.png",
+    "frame": {
+     "x": 174,
+     "y": 0,
+     "w": 174,
+     "h": 38
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 174,
+     "h": 38
+    },
+    "sourceSize": {
+     "w": 174,
+     "h": 38
+    },
+    "pivot": {
+     "x": 0.5919540229885057,
+     "y": 0.3684210526315789
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-flash-strike 2.png",
+    "frame": {
+     "x": 348,
+     "y": 0,
+     "w": 174,
+     "h": 38
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 174,
+     "h": 38
+    },
+    "sourceSize": {
+     "w": 174,
+     "h": 38
+    },
+    "pivot": {
+     "x": 0.5919540229885057,
+     "y": 0.3684210526315789
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-flash-strike 3.png",
+    "frame": {
+     "x": 0,
+     "y": 38,
+     "w": 174,
+     "h": 38
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 174,
+     "h": 38
+    },
+    "sourceSize": {
+     "w": 174,
+     "h": 38
+    },
+    "pivot": {
+     "x": 0.5919540229885057,
+     "y": 0.3684210526315789
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-flash-strike 4.png",
+    "frame": {
+     "x": 174,
+     "y": 38,
+     "w": 174,
+     "h": 38
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 174,
+     "h": 38
+    },
+    "sourceSize": {
+     "w": 174,
+     "h": 38
+    },
+    "pivot": {
+     "x": 0.5919540229885057,
+     "y": 0.3684210526315789
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-flash-strike 5.png",
+    "frame": {
+     "x": 348,
+     "y": 38,
+     "w": 174,
+     "h": 38
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 174,
+     "h": 38
+    },
+    "sourceSize": {
+     "w": 174,
+     "h": 38
+    },
+    "pivot": {
+     "x": 0.5919540229885057,
+     "y": 0.3684210526315789
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-flash-strike.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 522,
+    "h": 76
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 103,
+    "y": 14
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-flash-strike",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

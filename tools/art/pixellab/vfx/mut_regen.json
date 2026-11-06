@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 80,
+  "w": 64
+ },
+ "frames": 6,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 32,
+  "y": 66,
+  "kind": "origin"
+ },
+ "message": "A 6-frame looping green regeneration effect: small green plus signs and leaves rise from a faint green pool at the feet, in a crisp 4-shade green palette with a dark outline on transparent. Try the speed and count sliders to make it livelier or calmer.",
+ "effect_id": "87636aa8-eb3b-4024-8fca-8cb6079c4149",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-mut-regen 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.825
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-mut-regen 1.png",
+    "frame": {
+     "x": 64,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.825
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-mut-regen 2.png",
+    "frame": {
+     "x": 128,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.825
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-mut-regen 3.png",
+    "frame": {
+     "x": 0,
+     "y": 80,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.825
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-mut-regen 4.png",
+    "frame": {
+     "x": 64,
+     "y": 80,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.825
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-mut-regen 5.png",
+    "frame": {
+     "x": 128,
+     "y": 80,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.825
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-mut-regen.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 192,
+    "h": 160
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 32,
+    "y": 66
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-mut-regen",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

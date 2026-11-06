@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 124,
+  "w": 77
+ },
+ "frames": 6,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 37,
+  "y": 94,
+  "kind": "origin"
+ },
+ "message": "A pale purple owl dive streak, 6 frames: falling streaks of light, a bright head diving down through the middle, and feathers drifting off it, in a four-tone purple palette with a dark outline on a transparent background. Try the Streaks and Feathers sliders to thin or thicken the dive.",
+ "effect_id": "486c5745-397c-4373-aa48-efff7ce725e2",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-dive 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 77,
+     "h": 124
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 77,
+     "h": 124
+    },
+    "sourceSize": {
+     "w": 77,
+     "h": 124
+    },
+    "pivot": {
+     "x": 0.4805194805194805,
+     "y": 0.7580645161290323
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-dive 1.png",
+    "frame": {
+     "x": 77,
+     "y": 0,
+     "w": 77,
+     "h": 124
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 77,
+     "h": 124
+    },
+    "sourceSize": {
+     "w": 77,
+     "h": 124
+    },
+    "pivot": {
+     "x": 0.4805194805194805,
+     "y": 0.7580645161290323
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-dive 2.png",
+    "frame": {
+     "x": 154,
+     "y": 0,
+     "w": 77,
+     "h": 124
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 77,
+     "h": 124
+    },
+    "sourceSize": {
+     "w": 77,
+     "h": 124
+    },
+    "pivot": {
+     "x": 0.4805194805194805,
+     "y": 0.7580645161290323
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-dive 3.png",
+    "frame": {
+     "x": 0,
+     "y": 124,
+     "w": 77,
+     "h": 124
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 77,
+     "h": 124
+    },
+    "sourceSize": {
+     "w": 77,
+     "h": 124
+    },
+    "pivot": {
+     "x": 0.4805194805194805,
+     "y": 0.7580645161290323
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-dive 4.png",
+    "frame": {
+     "x": 77,
+     "y": 124,
+     "w": 77,
+     "h": 124
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 77,
+     "h": 124
+    },
+    "sourceSize": {
+     "w": 77,
+     "h": 124
+    },
+    "pivot": {
+     "x": 0.4805194805194805,
+     "y": 0.7580645161290323
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-dive 5.png",
+    "frame": {
+     "x": 154,
+     "y": 124,
+     "w": 77,
+     "h": 124
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 77,
+     "h": 124
+    },
+    "sourceSize": {
+     "w": 77,
+     "h": 124
+    },
+    "pivot": {
+     "x": 0.4805194805194805,
+     "y": 0.7580645161290323
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-dive.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 231,
+    "h": 248
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 37,
+    "y": 94
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-dive",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

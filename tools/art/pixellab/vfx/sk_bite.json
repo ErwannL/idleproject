@@ -1,0 +1,173 @@
+{
+ "canvas": {
+  "h": 65,
+  "w": 49
+ },
+ "frames": 5,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 22,
+  "y": 24,
+  "kind": "origin"
+ },
+ "message": "Here's a 5-frame one-shot bite: two rows of white fangs snap shut with a flash and an impact star, then red drops and bite marks linger and fade out by frame 4. It's centred on a transparent canvas at about 49x65 px, with a dark outline and a 4-colour white-to-grey ramp. The fifth frame is nearly empty as the effect's tail, so trim it if your game doesn't want it.",
+ "effect_id": "001b6e66-df15-4642-a75f-12f16b00b330",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-bite 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 49,
+     "h": 65
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 49,
+     "h": 65
+    },
+    "sourceSize": {
+     "w": 49,
+     "h": 65
+    },
+    "pivot": {
+     "x": 0.4489795918367347,
+     "y": 0.36923076923076925
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-bite 1.png",
+    "frame": {
+     "x": 49,
+     "y": 0,
+     "w": 49,
+     "h": 65
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 49,
+     "h": 65
+    },
+    "sourceSize": {
+     "w": 49,
+     "h": 65
+    },
+    "pivot": {
+     "x": 0.4489795918367347,
+     "y": 0.36923076923076925
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-bite 2.png",
+    "frame": {
+     "x": 98,
+     "y": 0,
+     "w": 49,
+     "h": 65
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 49,
+     "h": 65
+    },
+    "sourceSize": {
+     "w": 49,
+     "h": 65
+    },
+    "pivot": {
+     "x": 0.4489795918367347,
+     "y": 0.36923076923076925
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-bite 3.png",
+    "frame": {
+     "x": 0,
+     "y": 65,
+     "w": 49,
+     "h": 65
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 49,
+     "h": 65
+    },
+    "sourceSize": {
+     "w": 49,
+     "h": 65
+    },
+    "pivot": {
+     "x": 0.4489795918367347,
+     "y": 0.36923076923076925
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-bite 4.png",
+    "frame": {
+     "x": 49,
+     "y": 65,
+     "w": 49,
+     "h": 65
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 49,
+     "h": 65
+    },
+    "sourceSize": {
+     "w": 49,
+     "h": 65
+    },
+    "pivot": {
+     "x": 0.4489795918367347,
+     "y": 0.36923076923076925
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-bite.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 147,
+    "h": 130
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 22,
+    "y": 24
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-bite",
+     "from": 0,
+     "to": 4,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

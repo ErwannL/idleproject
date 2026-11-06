@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 64,
+  "w": 96
+ },
+ "frames": 6,
+ "fps": 8,
+ "loop": true,
+ "anchor": {
+  "x": 48,
+  "y": 32,
+  "kind": "origin"
+ },
+ "message": "I made a 96x64, 6-frame looping gloom veil: a soft dark-purple fog band drifting sideways, with sparse thin wisps and a few dim shadow motes. It stays low and faint, so it reads as a veil rather than a solid cloud. Try the Opacity slider on the fog for a thicker or fainter veil.",
+ "effect_id": "6dc4cee4-f5e2-47cd-bc03-56a9a1afee30",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-env-gloom 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-env-gloom 1.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-env-gloom 2.png",
+    "frame": {
+     "x": 192,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-env-gloom 3.png",
+    "frame": {
+     "x": 0,
+     "y": 64,
+     "w": 96,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-env-gloom 4.png",
+    "frame": {
+     "x": 96,
+     "y": 64,
+     "w": 96,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-env-gloom 5.png",
+    "frame": {
+     "x": 192,
+     "y": 64,
+     "w": 96,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-env-gloom.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 288,
+    "h": 128
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 48,
+    "y": 32
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-env-gloom",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,225 @@
+{
+ "canvas": {
+  "h": 48,
+  "w": 96
+ },
+ "frames": 7,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 48,
+  "y": 24,
+  "kind": "origin"
+ },
+ "message": "A small green magic arrow flies right across 7 frames, shedding green leaves that flutter down behind it, then bursts into a green star-flash on frame 6 and sparkles out on frame 7. It uses a four-colour green ramp with a dark outline and a transparent background. The arrow is quite small at 14 px; if you want it bolder, I can redraw it larger.",
+ "effect_id": "785c9d35-11b0-422f-88e5-fedf03ef278a",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-ranger-shot 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-ranger-shot 1.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 96,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-ranger-shot 2.png",
+    "frame": {
+     "x": 192,
+     "y": 0,
+     "w": 96,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-ranger-shot 3.png",
+    "frame": {
+     "x": 0,
+     "y": 48,
+     "w": 96,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-ranger-shot 4.png",
+    "frame": {
+     "x": 96,
+     "y": 48,
+     "w": 96,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-ranger-shot 5.png",
+    "frame": {
+     "x": 192,
+     "y": 48,
+     "w": 96,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-ranger-shot 6.png",
+    "frame": {
+     "x": 0,
+     "y": 96,
+     "w": 96,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-ranger-shot.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 288,
+    "h": 144
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 48,
+    "y": 24
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-ranger-shot",
+     "from": 0,
+     "to": 6,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,277 @@
+{
+ "canvas": {
+  "h": 160,
+  "w": 128
+ },
+ "frames": 9,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 64,
+  "y": 150,
+  "kind": "origin"
+ },
+ "message": "A blue-and-white holy sword with a gold guard falls from the top of the frame over 9 frames, stabs the ground, and throws a flash, sparkles and two expanding shockwave rings. It is a one-shot on a transparent 128x160 canvas, 4-colour blue ramp with a dark outline. The sword is the strongest piece at about 18x43 px; the sword's fall height and the ring size are the main things to adjust in your engine if you want it bigger.",
+ "effect_id": "2df30855-733f-4d68-9921-85203968ab08",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-judgement 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 160
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 160
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 160
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-judgement 1.png",
+    "frame": {
+     "x": 128,
+     "y": 0,
+     "w": 128,
+     "h": 160
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 160
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 160
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-judgement 2.png",
+    "frame": {
+     "x": 256,
+     "y": 0,
+     "w": 128,
+     "h": 160
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 160
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 160
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-judgement 3.png",
+    "frame": {
+     "x": 0,
+     "y": 160,
+     "w": 128,
+     "h": 160
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 160
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 160
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-judgement 4.png",
+    "frame": {
+     "x": 128,
+     "y": 160,
+     "w": 128,
+     "h": 160
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 160
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 160
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-judgement 5.png",
+    "frame": {
+     "x": 256,
+     "y": 160,
+     "w": 128,
+     "h": 160
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 160
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 160
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-judgement 6.png",
+    "frame": {
+     "x": 0,
+     "y": 320,
+     "w": 128,
+     "h": 160
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 160
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 160
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-judgement 7.png",
+    "frame": {
+     "x": 128,
+     "y": 320,
+     "w": 128,
+     "h": 160
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 160
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 160
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-judgement 8.png",
+    "frame": {
+     "x": 256,
+     "y": 320,
+     "w": 128,
+     "h": 160
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 160
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 160
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9375
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-judgement.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 384,
+    "h": 480
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 64,
+    "y": 150
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-judgement",
+     "from": 0,
+     "to": 8,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

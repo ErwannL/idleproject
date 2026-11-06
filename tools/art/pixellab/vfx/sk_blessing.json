@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 54,
+  "w": 90
+ },
+ "frames": 8,
+ "fps": 12,
+ "loop": true,
+ "anchor": {
+  "x": 109,
+  "y": 70,
+  "kind": "origin"
+ },
+ "message": "A golden blessing in 8 frames: a glowing rune circle on the ground, gold sparkles rising from it, and a small crown of light appearing above it from frame 2 and holding. Try the Scale and Glow sliders on the rune circle to make it smaller or stronger. The crown and sparkles currently use the holy palette, which reads as pale gold-white, so it may need a warmer colour if you want it more golden.",
+ "effect_id": "63aa5c58-c1ba-4015-86bf-90ae23f377cc",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-blessing 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 90,
+     "h": 54
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 90,
+     "h": 54
+    },
+    "sourceSize": {
+     "w": 90,
+     "h": 54
+    },
+    "pivot": {
+     "x": 1.211111111111111,
+     "y": 1.2962962962962963
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-blessing 1.png",
+    "frame": {
+     "x": 90,
+     "y": 0,
+     "w": 90,
+     "h": 54
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 90,
+     "h": 54
+    },
+    "sourceSize": {
+     "w": 90,
+     "h": 54
+    },
+    "pivot": {
+     "x": 1.211111111111111,
+     "y": 1.2962962962962963
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-blessing 2.png",
+    "frame": {
+     "x": 180,
+     "y": 0,
+     "w": 90,
+     "h": 54
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 90,
+     "h": 54
+    },
+    "sourceSize": {
+     "w": 90,
+     "h": 54
+    },
+    "pivot": {
+     "x": 1.211111111111111,
+     "y": 1.2962962962962963
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-blessing 3.png",
+    "frame": {
+     "x": 0,
+     "y": 54,
+     "w": 90,
+     "h": 54
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 90,
+     "h": 54
+    },
+    "sourceSize": {
+     "w": 90,
+     "h": 54
+    },
+    "pivot": {
+     "x": 1.211111111111111,
+     "y": 1.2962962962962963
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-blessing 4.png",
+    "frame": {
+     "x": 90,
+     "y": 54,
+     "w": 90,
+     "h": 54
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 90,
+     "h": 54
+    },
+    "sourceSize": {
+     "w": 90,
+     "h": 54
+    },
+    "pivot": {
+     "x": 1.211111111111111,
+     "y": 1.2962962962962963
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-blessing 5.png",
+    "frame": {
+     "x": 180,
+     "y": 54,
+     "w": 90,
+     "h": 54
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 90,
+     "h": 54
+    },
+    "sourceSize": {
+     "w": 90,
+     "h": 54
+    },
+    "pivot": {
+     "x": 1.211111111111111,
+     "y": 1.2962962962962963
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-blessing 6.png",
+    "frame": {
+     "x": 0,
+     "y": 108,
+     "w": 90,
+     "h": 54
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 90,
+     "h": 54
+    },
+    "sourceSize": {
+     "w": 90,
+     "h": 54
+    },
+    "pivot": {
+     "x": 1.211111111111111,
+     "y": 1.2962962962962963
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-blessing 7.png",
+    "frame": {
+     "x": 90,
+     "y": 108,
+     "w": 90,
+     "h": 54
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 90,
+     "h": 54
+    },
+    "sourceSize": {
+     "w": 90,
+     "h": 54
+    },
+    "pivot": {
+     "x": 1.211111111111111,
+     "y": 1.2962962962962963
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-blessing.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 270,
+    "h": 162
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 109,
+    "y": 70
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-blessing",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 96,
+  "w": 84
+ },
+ "frames": 8,
+ "fps": 10,
+ "loop": false,
+ "anchor": {
+  "x": 43,
+  "y": 58,
+  "kind": "origin"
+ },
+ "message": "A cyan water healing wave: a splash ring spreads from a spot on the ground, with a spout of droplets and rising bubbles, over 8 retro frames in a 4-colour blue ramp with a dark outline. The bubbles and droplets rise and fall away by the last frame. The water splash part's size and the bubbles' amount are the sliders to try.",
+ "effect_id": "4a3f2099-7bdc-45a9-be18-749f2ae745be",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-boss-tide 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5119047619047619,
+     "y": 0.6041666666666666
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-boss-tide 1.png",
+    "frame": {
+     "x": 84,
+     "y": 0,
+     "w": 84,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5119047619047619,
+     "y": 0.6041666666666666
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-boss-tide 2.png",
+    "frame": {
+     "x": 168,
+     "y": 0,
+     "w": 84,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5119047619047619,
+     "y": 0.6041666666666666
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-boss-tide 3.png",
+    "frame": {
+     "x": 0,
+     "y": 96,
+     "w": 84,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5119047619047619,
+     "y": 0.6041666666666666
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-boss-tide 4.png",
+    "frame": {
+     "x": 84,
+     "y": 96,
+     "w": 84,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5119047619047619,
+     "y": 0.6041666666666666
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-boss-tide 5.png",
+    "frame": {
+     "x": 168,
+     "y": 96,
+     "w": 84,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5119047619047619,
+     "y": 0.6041666666666666
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-boss-tide 6.png",
+    "frame": {
+     "x": 0,
+     "y": 192,
+     "w": 84,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5119047619047619,
+     "y": 0.6041666666666666
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-boss-tide 7.png",
+    "frame": {
+     "x": 84,
+     "y": 192,
+     "w": 84,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5119047619047619,
+     "y": 0.6041666666666666
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-boss-tide.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 252,
+    "h": 288
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 43,
+    "y": 58
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-boss-tide",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 48,
+  "w": 64
+ },
+ "frames": 8,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 32,
+  "y": 24,
+  "kind": "origin"
+ },
+ "message": "Sparse cyan crystal sparkles twinkling over a 64x48 transparent canvas, looping over 8 frames at 10 fps, with a 4-tone blue-to-white ramp and a dark outline. Use the sparkle amount slider for density and the colour control to change the crystal tint.",
+ "effect_id": "502c6f19-b3f2-4a3a-ae39-2ac2227c6211",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-amb-crystal 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-crystal 1.png",
+    "frame": {
+     "x": 64,
+     "y": 0,
+     "w": 64,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-crystal 2.png",
+    "frame": {
+     "x": 128,
+     "y": 0,
+     "w": 64,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-crystal 3.png",
+    "frame": {
+     "x": 0,
+     "y": 48,
+     "w": 64,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-crystal 4.png",
+    "frame": {
+     "x": 64,
+     "y": 48,
+     "w": 64,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-crystal 5.png",
+    "frame": {
+     "x": 128,
+     "y": 48,
+     "w": 64,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-crystal 6.png",
+    "frame": {
+     "x": 0,
+     "y": 96,
+     "w": 64,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-crystal 7.png",
+    "frame": {
+     "x": 64,
+     "y": 96,
+     "w": 64,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-amb-crystal.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 192,
+    "h": 144
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 32,
+    "y": 24
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-amb-crystal",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

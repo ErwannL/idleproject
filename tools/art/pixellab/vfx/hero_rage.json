@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 63,
+  "w": 87
+ },
+ "frames": 6,
+ "fps": 9,
+ "loop": true,
+ "anchor": {
+  "x": 44,
+  "y": 45,
+  "kind": "origin"
+ },
+ "message": "A looping 6-frame ring of red-orange flames standing around an empty centre, in a 4-colour retro palette with dark outlines and a transparent background. Try the Flame ring's height and flicker sliders to make the flames taller or calmer, and its colour to shift the red.",
+ "effect_id": "c620e8aa-564e-4b47-a4fb-fd0711989c95",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-hero-rage 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 87,
+     "h": 63
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 87,
+     "h": 63
+    },
+    "sourceSize": {
+     "w": 87,
+     "h": 63
+    },
+    "pivot": {
+     "x": 0.5057471264367817,
+     "y": 0.7142857142857143
+    },
+    "duration": 111
+   },
+   {
+    "filename": "ascendrya-hero-rage 1.png",
+    "frame": {
+     "x": 87,
+     "y": 0,
+     "w": 87,
+     "h": 63
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 87,
+     "h": 63
+    },
+    "sourceSize": {
+     "w": 87,
+     "h": 63
+    },
+    "pivot": {
+     "x": 0.5057471264367817,
+     "y": 0.7142857142857143
+    },
+    "duration": 111
+   },
+   {
+    "filename": "ascendrya-hero-rage 2.png",
+    "frame": {
+     "x": 174,
+     "y": 0,
+     "w": 87,
+     "h": 63
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 87,
+     "h": 63
+    },
+    "sourceSize": {
+     "w": 87,
+     "h": 63
+    },
+    "pivot": {
+     "x": 0.5057471264367817,
+     "y": 0.7142857142857143
+    },
+    "duration": 111
+   },
+   {
+    "filename": "ascendrya-hero-rage 3.png",
+    "frame": {
+     "x": 0,
+     "y": 63,
+     "w": 87,
+     "h": 63
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 87,
+     "h": 63
+    },
+    "sourceSize": {
+     "w": 87,
+     "h": 63
+    },
+    "pivot": {
+     "x": 0.5057471264367817,
+     "y": 0.7142857142857143
+    },
+    "duration": 111
+   },
+   {
+    "filename": "ascendrya-hero-rage 4.png",
+    "frame": {
+     "x": 87,
+     "y": 63,
+     "w": 87,
+     "h": 63
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 87,
+     "h": 63
+    },
+    "sourceSize": {
+     "w": 87,
+     "h": 63
+    },
+    "pivot": {
+     "x": 0.5057471264367817,
+     "y": 0.7142857142857143
+    },
+    "duration": 111
+   },
+   {
+    "filename": "ascendrya-hero-rage 5.png",
+    "frame": {
+     "x": 174,
+     "y": 63,
+     "w": 87,
+     "h": 63
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 87,
+     "h": 63
+    },
+    "sourceSize": {
+     "w": 87,
+     "h": 63
+    },
+    "pivot": {
+     "x": 0.5057471264367817,
+     "y": 0.7142857142857143
+    },
+    "duration": 111
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-hero-rage.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 261,
+    "h": 126
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 44,
+    "y": 45
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-hero-rage",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

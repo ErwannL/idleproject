@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 115,
+  "w": 80
+ },
+ "frames": 8,
+ "fps": 12,
+ "loop": true,
+ "anchor": {
+  "x": 98,
+  "y": 138,
+  "kind": "origin"
+ },
+ "message": "Here's an 8-frame looping fury aura: red-orange flame tongues rise from a fiery ring at the feet, with grey steam puffing up through the middle. I cut the palette to 4 tones for a retro 16-bit look and kept the flames on a fire ramp, so they read orange-yellow more than pure red. The effect is 80x115 on a transparent background. Try the flame and steam colour or height sliders to tune it.",
+ "effect_id": "d242845b-9352-4c40-a2a2-04978e3b2fc4",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-fury 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 115
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 115
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 115
+    },
+    "pivot": {
+     "x": 1.225,
+     "y": 1.2
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-fury 1.png",
+    "frame": {
+     "x": 80,
+     "y": 0,
+     "w": 80,
+     "h": 115
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 115
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 115
+    },
+    "pivot": {
+     "x": 1.225,
+     "y": 1.2
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-fury 2.png",
+    "frame": {
+     "x": 160,
+     "y": 0,
+     "w": 80,
+     "h": 115
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 115
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 115
+    },
+    "pivot": {
+     "x": 1.225,
+     "y": 1.2
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-fury 3.png",
+    "frame": {
+     "x": 0,
+     "y": 115,
+     "w": 80,
+     "h": 115
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 115
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 115
+    },
+    "pivot": {
+     "x": 1.225,
+     "y": 1.2
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-fury 4.png",
+    "frame": {
+     "x": 80,
+     "y": 115,
+     "w": 80,
+     "h": 115
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 115
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 115
+    },
+    "pivot": {
+     "x": 1.225,
+     "y": 1.2
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-fury 5.png",
+    "frame": {
+     "x": 160,
+     "y": 115,
+     "w": 80,
+     "h": 115
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 115
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 115
+    },
+    "pivot": {
+     "x": 1.225,
+     "y": 1.2
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-fury 6.png",
+    "frame": {
+     "x": 0,
+     "y": 230,
+     "w": 80,
+     "h": 115
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 115
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 115
+    },
+    "pivot": {
+     "x": 1.225,
+     "y": 1.2
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-fury 7.png",
+    "frame": {
+     "x": 80,
+     "y": 230,
+     "w": 80,
+     "h": 115
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 115
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 115
+    },
+    "pivot": {
+     "x": 1.225,
+     "y": 1.2
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-fury.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 240,
+    "h": 345
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 98,
+    "y": 138
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-fury",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

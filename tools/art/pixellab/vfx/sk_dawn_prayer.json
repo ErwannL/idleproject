@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 128,
+  "w": 96
+ },
+ "frames": 8,
+ "fps": 10,
+ "loop": false,
+ "anchor": {
+  "x": 48,
+  "y": 64,
+  "kind": "origin"
+ },
+ "message": "A dawn light beam slides down from the top of the frame over 8 frames (one-shot, 10 fps), with a peach-and-pink sun halo behind it and small sparkles and drifting motes around it. The look is four-colour retro with hard edges and no outline, on a transparent background. Try the beam's speed or the halo size to adjust it.",
+ "effect_id": "4d9b332e-d813-47a5-80af-65a194aecc92",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-dawn-prayer 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-dawn-prayer 1.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-dawn-prayer 2.png",
+    "frame": {
+     "x": 192,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-dawn-prayer 3.png",
+    "frame": {
+     "x": 0,
+     "y": 128,
+     "w": 96,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-dawn-prayer 4.png",
+    "frame": {
+     "x": 96,
+     "y": 128,
+     "w": 96,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-dawn-prayer 5.png",
+    "frame": {
+     "x": 192,
+     "y": 128,
+     "w": 96,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-dawn-prayer 6.png",
+    "frame": {
+     "x": 0,
+     "y": 256,
+     "w": 96,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-dawn-prayer 7.png",
+    "frame": {
+     "x": 96,
+     "y": 256,
+     "w": 96,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-dawn-prayer.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 288,
+    "h": 384
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 48,
+    "y": 64
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-dawn-prayer",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

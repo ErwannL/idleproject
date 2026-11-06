@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 96,
+  "w": 128
+ },
+ "frames": 8,
+ "fps": 10,
+ "loop": false,
+ "anchor": {
+  "x": 64,
+  "y": 50,
+  "kind": "origin"
+ },
+ "message": "I made a 8-frame one-shot of pale blue angel wings that unfurl from a small point, hold for a few frames, then fade while small feather flecks drift down. The wings are a flat pale blue with a slight see-through, and the feathers are small custom sprites; the last frame is empty because the effect has fully faded. Things to try: the wing \"spread\" and \"feathers\" count, but I couldn't make the wings look strongly translucent or add a dark outline, so they read more as solid pale shapes than the see-through glass you described.",
+ "effect_id": "b6c40810-0900-4c9b-a30f-0c5e4943e09a",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-guardian-wings 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5208333333333334
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-guardian-wings 1.png",
+    "frame": {
+     "x": 128,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5208333333333334
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-guardian-wings 2.png",
+    "frame": {
+     "x": 256,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5208333333333334
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-guardian-wings 3.png",
+    "frame": {
+     "x": 0,
+     "y": 96,
+     "w": 128,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5208333333333334
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-guardian-wings 4.png",
+    "frame": {
+     "x": 128,
+     "y": 96,
+     "w": 128,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5208333333333334
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-guardian-wings 5.png",
+    "frame": {
+     "x": 256,
+     "y": 96,
+     "w": 128,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5208333333333334
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-guardian-wings 6.png",
+    "frame": {
+     "x": 0,
+     "y": 192,
+     "w": 128,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5208333333333334
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-guardian-wings 7.png",
+    "frame": {
+     "x": 128,
+     "y": 192,
+     "w": 128,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5208333333333334
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-guardian-wings.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 384,
+    "h": 288
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 64,
+    "y": 50
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-guardian-wings",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,277 @@
+{
+ "canvas": {
+  "h": 128,
+  "w": 144
+ },
+ "frames": 9,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 72,
+  "y": 64,
+  "kind": "origin"
+ },
+ "message": "Five hellfire columns rise from a glowing ember pool: a tall centre column flanked by two medium and two smaller ones, in red, orange and dark-red edges with a dark outline, looping over 9 frames at 10 fps. The \"Column height\" slider scales all the columns. The palette runs to deep maroon rather than true black, so if you want more black, I can darken the outer tongues.",
+ "effect_id": "8412978a-cb15-4f3f-acc0-64d56a9b0710",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-hellfire 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 144,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 144,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 144,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-hellfire 1.png",
+    "frame": {
+     "x": 144,
+     "y": 0,
+     "w": 144,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 144,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 144,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-hellfire 2.png",
+    "frame": {
+     "x": 288,
+     "y": 0,
+     "w": 144,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 144,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 144,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-hellfire 3.png",
+    "frame": {
+     "x": 0,
+     "y": 128,
+     "w": 144,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 144,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 144,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-hellfire 4.png",
+    "frame": {
+     "x": 144,
+     "y": 128,
+     "w": 144,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 144,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 144,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-hellfire 5.png",
+    "frame": {
+     "x": 288,
+     "y": 128,
+     "w": 144,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 144,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 144,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-hellfire 6.png",
+    "frame": {
+     "x": 0,
+     "y": 256,
+     "w": 144,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 144,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 144,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-hellfire 7.png",
+    "frame": {
+     "x": 144,
+     "y": 256,
+     "w": 144,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 144,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 144,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-hellfire 8.png",
+    "frame": {
+     "x": 288,
+     "y": 256,
+     "w": 144,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 144,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 144,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-hellfire.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 432,
+    "h": 384
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 72,
+    "y": 64
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-hellfire",
+     "from": 0,
+     "to": 8,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

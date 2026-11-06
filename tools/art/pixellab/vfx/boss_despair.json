@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 64,
+  "w": 66
+ },
+ "frames": 6,
+ "fps": 8,
+ "loop": true,
+ "anchor": {
+  "x": 32,
+  "y": 32,
+  "kind": "origin"
+ },
+ "message": "A looping 6-frame crimson despair aura: a pulsing dark-red ring around an empty centre, with red-black smoke wisps rising from its lower half. The page sliders are the wisp count, the smoke amount and the wisp size if you want it denser or sparser. I kept the outline dark and the palette to four reds; the sprite-free centre stays clear.",
+ "effect_id": "839e4e3f-d362-4429-821a-290775cb07dc",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-boss-despair 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 66,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 66,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 66,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.48484848484848486,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-boss-despair 1.png",
+    "frame": {
+     "x": 66,
+     "y": 0,
+     "w": 66,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 66,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 66,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.48484848484848486,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-boss-despair 2.png",
+    "frame": {
+     "x": 132,
+     "y": 0,
+     "w": 66,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 66,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 66,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.48484848484848486,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-boss-despair 3.png",
+    "frame": {
+     "x": 0,
+     "y": 64,
+     "w": 66,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 66,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 66,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.48484848484848486,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-boss-despair 4.png",
+    "frame": {
+     "x": 66,
+     "y": 64,
+     "w": 66,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 66,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 66,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.48484848484848486,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-boss-despair 5.png",
+    "frame": {
+     "x": 132,
+     "y": 64,
+     "w": 66,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 66,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 66,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.48484848484848486,
+     "y": 0.5
+    },
+    "duration": 125
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-boss-despair.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 198,
+    "h": 128
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 32,
+    "y": 32
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-boss-despair",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 57,
+  "w": 103
+ },
+ "frames": 6,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 52,
+  "y": 26,
+  "kind": "origin"
+ },
+ "message": "Here is a 6-frame looping wind gust: white and pale-blue streaks with bright leading edges sweep left across a small 103x57 canvas, with a few fading wisps. Colours are kept to a short blue-to-white ramp, with the sprite left out as you asked. To adjust it, try the colour, amount and thickness sliders; the streaks are a bit sparse, so raising amount will make the gusts denser.",
+ "effect_id": "354b8ceb-33a5-4577-97c7-b6ef9c30d161",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-env-gust 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 103,
+     "h": 57
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 103,
+     "h": 57
+    },
+    "sourceSize": {
+     "w": 103,
+     "h": 57
+    },
+    "pivot": {
+     "x": 0.5048543689320388,
+     "y": 0.45614035087719296
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-gust 1.png",
+    "frame": {
+     "x": 103,
+     "y": 0,
+     "w": 103,
+     "h": 57
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 103,
+     "h": 57
+    },
+    "sourceSize": {
+     "w": 103,
+     "h": 57
+    },
+    "pivot": {
+     "x": 0.5048543689320388,
+     "y": 0.45614035087719296
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-gust 2.png",
+    "frame": {
+     "x": 206,
+     "y": 0,
+     "w": 103,
+     "h": 57
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 103,
+     "h": 57
+    },
+    "sourceSize": {
+     "w": 103,
+     "h": 57
+    },
+    "pivot": {
+     "x": 0.5048543689320388,
+     "y": 0.45614035087719296
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-gust 3.png",
+    "frame": {
+     "x": 0,
+     "y": 57,
+     "w": 103,
+     "h": 57
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 103,
+     "h": 57
+    },
+    "sourceSize": {
+     "w": 103,
+     "h": 57
+    },
+    "pivot": {
+     "x": 0.5048543689320388,
+     "y": 0.45614035087719296
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-gust 4.png",
+    "frame": {
+     "x": 103,
+     "y": 57,
+     "w": 103,
+     "h": 57
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 103,
+     "h": 57
+    },
+    "sourceSize": {
+     "w": 103,
+     "h": 57
+    },
+    "pivot": {
+     "x": 0.5048543689320388,
+     "y": 0.45614035087719296
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-gust 5.png",
+    "frame": {
+     "x": 206,
+     "y": 57,
+     "w": 103,
+     "h": 57
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 103,
+     "h": 57
+    },
+    "sourceSize": {
+     "w": 103,
+     "h": 57
+    },
+    "pivot": {
+     "x": 0.5048543689320388,
+     "y": 0.45614035087719296
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-env-gust.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 309,
+    "h": 114
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 52,
+    "y": 26
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-env-gust",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

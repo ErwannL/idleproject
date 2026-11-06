@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 48,
+  "w": 48
+ },
+ "frames": 6,
+ "fps": 10,
+ "loop": false,
+ "anchor": {
+  "x": 24,
+  "y": 24,
+  "kind": "origin"
+ },
+ "message": "A 16-bit style glowing yellow eye on a transparent 48x48 canvas: it blinks open, flashes with eight radiating rays that pulse in length, then closes over six frames (one-shot). Try the Ray length slider or a larger canvas if you want the rays to reach further.",
+ "effect_id": "b1a3101a-1be7-4f71-9e85-61fab2a95e39",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-instinct 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-instinct 1.png",
+    "frame": {
+     "x": 48,
+     "y": 0,
+     "w": 48,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-instinct 2.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 48,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-instinct 3.png",
+    "frame": {
+     "x": 0,
+     "y": 48,
+     "w": 48,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-instinct 4.png",
+    "frame": {
+     "x": 48,
+     "y": 48,
+     "w": 48,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-instinct 5.png",
+    "frame": {
+     "x": 96,
+     "y": 48,
+     "w": 48,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-instinct.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 144,
+    "h": 96
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 24,
+    "y": 24
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-instinct",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

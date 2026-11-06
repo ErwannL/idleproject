@@ -1,0 +1,173 @@
+{
+ "canvas": {
+  "h": 42,
+  "w": 39
+ },
+ "frames": 5,
+ "fps": 10,
+ "loop": false,
+ "anchor": {
+  "x": 17,
+  "y": 23,
+  "kind": "origin"
+ },
+ "message": "Three white claw slashes raking diagonally across the centre, 5 frames at 10 fps, one-shot. They start as small specks, peak on frames 2 to 3, and fade out by frame 4-5. Try the claw thickness and colour sliders to adjust them.",
+ "effect_id": "d07755ff-43eb-4fb9-bf88-fcba0cb2d623",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-claw 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 39,
+     "h": 42
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 39,
+     "h": 42
+    },
+    "sourceSize": {
+     "w": 39,
+     "h": 42
+    },
+    "pivot": {
+     "x": 0.4358974358974359,
+     "y": 0.5476190476190477
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-claw 1.png",
+    "frame": {
+     "x": 39,
+     "y": 0,
+     "w": 39,
+     "h": 42
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 39,
+     "h": 42
+    },
+    "sourceSize": {
+     "w": 39,
+     "h": 42
+    },
+    "pivot": {
+     "x": 0.4358974358974359,
+     "y": 0.5476190476190477
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-claw 2.png",
+    "frame": {
+     "x": 78,
+     "y": 0,
+     "w": 39,
+     "h": 42
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 39,
+     "h": 42
+    },
+    "sourceSize": {
+     "w": 39,
+     "h": 42
+    },
+    "pivot": {
+     "x": 0.4358974358974359,
+     "y": 0.5476190476190477
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-claw 3.png",
+    "frame": {
+     "x": 0,
+     "y": 42,
+     "w": 39,
+     "h": 42
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 39,
+     "h": 42
+    },
+    "sourceSize": {
+     "w": 39,
+     "h": 42
+    },
+    "pivot": {
+     "x": 0.4358974358974359,
+     "y": 0.5476190476190477
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-claw 4.png",
+    "frame": {
+     "x": 39,
+     "y": 42,
+     "w": 39,
+     "h": 42
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 39,
+     "h": 42
+    },
+    "sourceSize": {
+     "w": 39,
+     "h": 42
+    },
+    "pivot": {
+     "x": 0.4358974358974359,
+     "y": 0.5476190476190477
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-claw.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 117,
+    "h": 84
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 17,
+    "y": 23
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-claw",
+     "from": 0,
+     "to": 4,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

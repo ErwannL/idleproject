@@ -7,6 +7,7 @@
 import { HERO_SKILL_MOTIFS, SKILL_ANIM_ART, SKILL_ANIM_PALS, SKILL_ANIMS, UNIT_SKILL_MOTIFS } from './art-anim-skills.js';
 import { SPRITES, expandRow } from './sprites.js';
 import { vfx } from './vfx.js'; // v9.2.6
+import { skillVfx } from './vfx-world.js'; // v9.2.6 : effet dessiné propre à chaque compétence
 import { ALLY_ANIMS, knightHead, weaponPose } from './ally-anim.js';
 import { KNIGHT_HEAD } from './knight-gear.js';
 
@@ -915,6 +916,7 @@ function auraFx(scene, name, c) {
 function run(scene, name, c) {
   if (!FX[name]) return;
   auraFx(scene, name, c);
+  skillVfx(scene, name, c);
   if (scene.focus) calm(scene, name, c);
   else FX[name](scene, c);
 }

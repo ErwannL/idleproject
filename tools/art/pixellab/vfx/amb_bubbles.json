@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 48,
+  "w": 29
+ },
+ "frames": 8,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 4,
+  "y": 43,
+  "kind": "origin"
+ },
+ "message": "A sparse 8-frame loop of small translucent blue bubbles rising and wobbling upward, with a dark outline and a 4-colour ramp for the 16-bit look. Try the Amount slider for density, Speed for how fast they rise, and Wobble for the sway; Colour changes the bubble palette.",
+ "effect_id": "4bc697bb-3d01-4e17-8b15-dcf8211f440c",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-amb-bubbles 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 29,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 29,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 29,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.13793103448275862,
+     "y": 0.8958333333333334
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-bubbles 1.png",
+    "frame": {
+     "x": 29,
+     "y": 0,
+     "w": 29,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 29,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 29,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.13793103448275862,
+     "y": 0.8958333333333334
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-bubbles 2.png",
+    "frame": {
+     "x": 58,
+     "y": 0,
+     "w": 29,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 29,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 29,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.13793103448275862,
+     "y": 0.8958333333333334
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-bubbles 3.png",
+    "frame": {
+     "x": 0,
+     "y": 48,
+     "w": 29,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 29,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 29,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.13793103448275862,
+     "y": 0.8958333333333334
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-bubbles 4.png",
+    "frame": {
+     "x": 29,
+     "y": 48,
+     "w": 29,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 29,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 29,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.13793103448275862,
+     "y": 0.8958333333333334
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-bubbles 5.png",
+    "frame": {
+     "x": 58,
+     "y": 48,
+     "w": 29,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 29,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 29,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.13793103448275862,
+     "y": 0.8958333333333334
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-bubbles 6.png",
+    "frame": {
+     "x": 0,
+     "y": 96,
+     "w": 29,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 29,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 29,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.13793103448275862,
+     "y": 0.8958333333333334
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-bubbles 7.png",
+    "frame": {
+     "x": 29,
+     "y": 96,
+     "w": 29,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 29,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 29,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.13793103448275862,
+     "y": 0.8958333333333334
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-amb-bubbles.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 87,
+    "h": 144
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 4,
+    "y": 43
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-amb-bubbles",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

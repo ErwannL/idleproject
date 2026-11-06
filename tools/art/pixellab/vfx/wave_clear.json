@@ -1,0 +1,277 @@
+{
+ "canvas": {
+  "h": 92,
+  "w": 96
+ },
+ "frames": 9,
+ "fps": 7,
+ "loop": false,
+ "anchor": {
+  "x": 47,
+  "y": 42,
+  "kind": "origin"
+ },
+ "message": "A 9-frame wave-clear victory burst: a gold firework bursts from a rising streak, with gold star bursts and white sparkles, and the confetti scatters and fades by the last frame. It's a one-shot with a transparent background, no character, and a dark outline on a 4-tone gold palette. Try the burst size and confetti amount sliders to make it bigger or denser.",
+ "effect_id": "e28ba0ac-6a01-4731-87b2-d03160d0db01",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-wave-clear 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 92
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 92
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 92
+    },
+    "pivot": {
+     "x": 0.4895833333333333,
+     "y": 0.45652173913043476
+    },
+    "duration": 143
+   },
+   {
+    "filename": "ascendrya-wave-clear 1.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 96,
+     "h": 92
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 92
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 92
+    },
+    "pivot": {
+     "x": 0.4895833333333333,
+     "y": 0.45652173913043476
+    },
+    "duration": 143
+   },
+   {
+    "filename": "ascendrya-wave-clear 2.png",
+    "frame": {
+     "x": 192,
+     "y": 0,
+     "w": 96,
+     "h": 92
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 92
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 92
+    },
+    "pivot": {
+     "x": 0.4895833333333333,
+     "y": 0.45652173913043476
+    },
+    "duration": 143
+   },
+   {
+    "filename": "ascendrya-wave-clear 3.png",
+    "frame": {
+     "x": 0,
+     "y": 92,
+     "w": 96,
+     "h": 92
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 92
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 92
+    },
+    "pivot": {
+     "x": 0.4895833333333333,
+     "y": 0.45652173913043476
+    },
+    "duration": 143
+   },
+   {
+    "filename": "ascendrya-wave-clear 4.png",
+    "frame": {
+     "x": 96,
+     "y": 92,
+     "w": 96,
+     "h": 92
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 92
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 92
+    },
+    "pivot": {
+     "x": 0.4895833333333333,
+     "y": 0.45652173913043476
+    },
+    "duration": 143
+   },
+   {
+    "filename": "ascendrya-wave-clear 5.png",
+    "frame": {
+     "x": 192,
+     "y": 92,
+     "w": 96,
+     "h": 92
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 92
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 92
+    },
+    "pivot": {
+     "x": 0.4895833333333333,
+     "y": 0.45652173913043476
+    },
+    "duration": 143
+   },
+   {
+    "filename": "ascendrya-wave-clear 6.png",
+    "frame": {
+     "x": 0,
+     "y": 184,
+     "w": 96,
+     "h": 92
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 92
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 92
+    },
+    "pivot": {
+     "x": 0.4895833333333333,
+     "y": 0.45652173913043476
+    },
+    "duration": 143
+   },
+   {
+    "filename": "ascendrya-wave-clear 7.png",
+    "frame": {
+     "x": 96,
+     "y": 184,
+     "w": 96,
+     "h": 92
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 92
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 92
+    },
+    "pivot": {
+     "x": 0.4895833333333333,
+     "y": 0.45652173913043476
+    },
+    "duration": 143
+   },
+   {
+    "filename": "ascendrya-wave-clear 8.png",
+    "frame": {
+     "x": 192,
+     "y": 184,
+     "w": 96,
+     "h": 92
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 92
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 92
+    },
+    "pivot": {
+     "x": 0.4895833333333333,
+     "y": 0.45652173913043476
+    },
+    "duration": 143
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-wave-clear.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 288,
+    "h": 276
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 47,
+    "y": 42
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-wave-clear",
+     "from": 0,
+     "to": 8,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,277 @@
+{
+ "canvas": {
+  "h": 161,
+  "w": 188
+ },
+ "frames": 9,
+ "fps": 7,
+ "loop": true,
+ "anchor": {
+  "x": 113,
+  "y": 104,
+  "kind": "origin"
+ },
+ "message": "A 9-frame blizzard: swirling frost gusts and snow drift across the scene while three clusters of tall ice spikes rise from the ground, peak around the middle frames, and sink back by the last frame. The snow and gust sliders control density and speed, and the ice spike sliders control each cluster's height and colour.",
+ "effect_id": "3178d541-c0ab-4fbb-bd16-e10a4ca57325",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-eternal-winter 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 188,
+     "h": 161
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 188,
+     "h": 161
+    },
+    "sourceSize": {
+     "w": 188,
+     "h": 161
+    },
+    "pivot": {
+     "x": 0.601063829787234,
+     "y": 0.6459627329192547
+    },
+    "duration": 143
+   },
+   {
+    "filename": "ascendrya-sk-eternal-winter 1.png",
+    "frame": {
+     "x": 188,
+     "y": 0,
+     "w": 188,
+     "h": 161
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 188,
+     "h": 161
+    },
+    "sourceSize": {
+     "w": 188,
+     "h": 161
+    },
+    "pivot": {
+     "x": 0.601063829787234,
+     "y": 0.6459627329192547
+    },
+    "duration": 143
+   },
+   {
+    "filename": "ascendrya-sk-eternal-winter 2.png",
+    "frame": {
+     "x": 376,
+     "y": 0,
+     "w": 188,
+     "h": 161
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 188,
+     "h": 161
+    },
+    "sourceSize": {
+     "w": 188,
+     "h": 161
+    },
+    "pivot": {
+     "x": 0.601063829787234,
+     "y": 0.6459627329192547
+    },
+    "duration": 143
+   },
+   {
+    "filename": "ascendrya-sk-eternal-winter 3.png",
+    "frame": {
+     "x": 0,
+     "y": 161,
+     "w": 188,
+     "h": 161
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 188,
+     "h": 161
+    },
+    "sourceSize": {
+     "w": 188,
+     "h": 161
+    },
+    "pivot": {
+     "x": 0.601063829787234,
+     "y": 0.6459627329192547
+    },
+    "duration": 143
+   },
+   {
+    "filename": "ascendrya-sk-eternal-winter 4.png",
+    "frame": {
+     "x": 188,
+     "y": 161,
+     "w": 188,
+     "h": 161
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 188,
+     "h": 161
+    },
+    "sourceSize": {
+     "w": 188,
+     "h": 161
+    },
+    "pivot": {
+     "x": 0.601063829787234,
+     "y": 0.6459627329192547
+    },
+    "duration": 143
+   },
+   {
+    "filename": "ascendrya-sk-eternal-winter 5.png",
+    "frame": {
+     "x": 376,
+     "y": 161,
+     "w": 188,
+     "h": 161
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 188,
+     "h": 161
+    },
+    "sourceSize": {
+     "w": 188,
+     "h": 161
+    },
+    "pivot": {
+     "x": 0.601063829787234,
+     "y": 0.6459627329192547
+    },
+    "duration": 143
+   },
+   {
+    "filename": "ascendrya-sk-eternal-winter 6.png",
+    "frame": {
+     "x": 0,
+     "y": 322,
+     "w": 188,
+     "h": 161
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 188,
+     "h": 161
+    },
+    "sourceSize": {
+     "w": 188,
+     "h": 161
+    },
+    "pivot": {
+     "x": 0.601063829787234,
+     "y": 0.6459627329192547
+    },
+    "duration": 143
+   },
+   {
+    "filename": "ascendrya-sk-eternal-winter 7.png",
+    "frame": {
+     "x": 188,
+     "y": 322,
+     "w": 188,
+     "h": 161
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 188,
+     "h": 161
+    },
+    "sourceSize": {
+     "w": 188,
+     "h": 161
+    },
+    "pivot": {
+     "x": 0.601063829787234,
+     "y": 0.6459627329192547
+    },
+    "duration": 143
+   },
+   {
+    "filename": "ascendrya-sk-eternal-winter 8.png",
+    "frame": {
+     "x": 376,
+     "y": 322,
+     "w": 188,
+     "h": 161
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 188,
+     "h": 161
+    },
+    "sourceSize": {
+     "w": 188,
+     "h": 161
+    },
+    "pivot": {
+     "x": 0.601063829787234,
+     "y": 0.6459627329192547
+    },
+    "duration": 143
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-eternal-winter.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 564,
+    "h": 483
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 113,
+    "y": 104
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-eternal-winter",
+     "from": 0,
+     "to": 8,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

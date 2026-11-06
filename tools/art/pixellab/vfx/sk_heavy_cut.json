@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 94,
+  "w": 61
+ },
+ "frames": 6,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 7,
+  "y": 79,
+  "kind": "origin"
+ },
+ "message": "Here's a 6-frame retro heavy sword cleave: a thick crimson crescent swings down, hits the ground with a burst of sparks and debris, then the dust settles into a dark line. The palette is dark crimson to pale highlight with a dark outline, and it uses a 4-colour ramp with no dithering. The arc sweeps down at an angle rather than perfectly vertical, and the sparks are fairly small; the Colour and Amount sliders adjust the look.",
+ "effect_id": "2afc9a2d-7a00-49c8-aff5-5c24e7cd23de",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-heavy-cut 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 94
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 94
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 94
+    },
+    "pivot": {
+     "x": 0.11475409836065574,
+     "y": 0.8404255319148937
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-heavy-cut 1.png",
+    "frame": {
+     "x": 61,
+     "y": 0,
+     "w": 61,
+     "h": 94
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 94
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 94
+    },
+    "pivot": {
+     "x": 0.11475409836065574,
+     "y": 0.8404255319148937
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-heavy-cut 2.png",
+    "frame": {
+     "x": 122,
+     "y": 0,
+     "w": 61,
+     "h": 94
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 94
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 94
+    },
+    "pivot": {
+     "x": 0.11475409836065574,
+     "y": 0.8404255319148937
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-heavy-cut 3.png",
+    "frame": {
+     "x": 0,
+     "y": 94,
+     "w": 61,
+     "h": 94
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 94
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 94
+    },
+    "pivot": {
+     "x": 0.11475409836065574,
+     "y": 0.8404255319148937
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-heavy-cut 4.png",
+    "frame": {
+     "x": 61,
+     "y": 94,
+     "w": 61,
+     "h": 94
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 94
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 94
+    },
+    "pivot": {
+     "x": 0.11475409836065574,
+     "y": 0.8404255319148937
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-heavy-cut 5.png",
+    "frame": {
+     "x": 122,
+     "y": 94,
+     "w": 61,
+     "h": 94
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 94
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 94
+    },
+    "pivot": {
+     "x": 0.11475409836065574,
+     "y": 0.8404255319148937
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-heavy-cut.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 183,
+    "h": 188
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 7,
+    "y": 79
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-heavy-cut",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

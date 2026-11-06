@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 28,
+  "w": 44
+ },
+ "frames": 6,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 22,
+  "y": 14,
+  "kind": "origin"
+ },
+ "message": "Here's a 6-frame looping glitch distortion: magenta and cyan pixel blocks flicker and jump around the centre of a 44x28 canvas, with dark scanline bars and white sparks between them. Nothing is cut off at the edges. It's hand-drawn pixel art, so there are no sliders; ask for more blocks, a different colour pair, or a slower flicker if you want changes.",
+ "effect_id": "0a00bbb2-65d8-422b-9d3c-773aebb3e92a",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-env-distort 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 44,
+     "h": 28
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 44,
+     "h": 28
+    },
+    "sourceSize": {
+     "w": 44,
+     "h": 28
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-distort 1.png",
+    "frame": {
+     "x": 44,
+     "y": 0,
+     "w": 44,
+     "h": 28
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 44,
+     "h": 28
+    },
+    "sourceSize": {
+     "w": 44,
+     "h": 28
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-distort 2.png",
+    "frame": {
+     "x": 88,
+     "y": 0,
+     "w": 44,
+     "h": 28
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 44,
+     "h": 28
+    },
+    "sourceSize": {
+     "w": 44,
+     "h": 28
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-distort 3.png",
+    "frame": {
+     "x": 0,
+     "y": 28,
+     "w": 44,
+     "h": 28
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 44,
+     "h": 28
+    },
+    "sourceSize": {
+     "w": 44,
+     "h": 28
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-distort 4.png",
+    "frame": {
+     "x": 44,
+     "y": 28,
+     "w": 44,
+     "h": 28
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 44,
+     "h": 28
+    },
+    "sourceSize": {
+     "w": 44,
+     "h": 28
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-env-distort 5.png",
+    "frame": {
+     "x": 88,
+     "y": 28,
+     "w": 44,
+     "h": 28
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 44,
+     "h": 28
+    },
+    "sourceSize": {
+     "w": 44,
+     "h": 28
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-env-distort.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 132,
+    "h": 56
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 22,
+    "y": 14
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-env-distort",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 69,
+  "w": 116
+ },
+ "frames": 8,
+ "fps": 8,
+ "loop": false,
+ "anchor": {
+  "x": 58,
+  "y": 44,
+  "kind": "origin"
+ },
+ "message": "A frost nova in 8 frames: an icy ring bursts out along the ground, a cluster of ice spikes pops up at its centre, then the ring darkens and the spikes sink to a few glints. It's built with a 4-colour frost palette, hard edges and a dark outline for a 16-bit look. The canvas is cropped to the effect, so the background is clear. Try the spike height and the ring colour sliders to tune it.",
+ "effect_id": "26bbffff-67ea-4299-8431-9827c031b37c",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-frost-nova 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 69
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 69
+    },
+    "sourceSize": {
+     "w": 116,
+     "h": 69
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6376811594202898
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-sk-frost-nova 1.png",
+    "frame": {
+     "x": 116,
+     "y": 0,
+     "w": 116,
+     "h": 69
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 69
+    },
+    "sourceSize": {
+     "w": 116,
+     "h": 69
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6376811594202898
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-sk-frost-nova 2.png",
+    "frame": {
+     "x": 232,
+     "y": 0,
+     "w": 116,
+     "h": 69
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 69
+    },
+    "sourceSize": {
+     "w": 116,
+     "h": 69
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6376811594202898
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-sk-frost-nova 3.png",
+    "frame": {
+     "x": 0,
+     "y": 69,
+     "w": 116,
+     "h": 69
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 69
+    },
+    "sourceSize": {
+     "w": 116,
+     "h": 69
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6376811594202898
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-sk-frost-nova 4.png",
+    "frame": {
+     "x": 116,
+     "y": 69,
+     "w": 116,
+     "h": 69
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 69
+    },
+    "sourceSize": {
+     "w": 116,
+     "h": 69
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6376811594202898
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-sk-frost-nova 5.png",
+    "frame": {
+     "x": 232,
+     "y": 69,
+     "w": 116,
+     "h": 69
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 69
+    },
+    "sourceSize": {
+     "w": 116,
+     "h": 69
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6376811594202898
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-sk-frost-nova 6.png",
+    "frame": {
+     "x": 0,
+     "y": 138,
+     "w": 116,
+     "h": 69
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 69
+    },
+    "sourceSize": {
+     "w": 116,
+     "h": 69
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6376811594202898
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-sk-frost-nova 7.png",
+    "frame": {
+     "x": 116,
+     "y": 138,
+     "w": 116,
+     "h": 69
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 69
+    },
+    "sourceSize": {
+     "w": 116,
+     "h": 69
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6376811594202898
+    },
+    "duration": 125
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-frost-nova.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 348,
+    "h": 207
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 58,
+    "y": 44
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-frost-nova",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

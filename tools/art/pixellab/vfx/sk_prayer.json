@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 122,
+  "w": 72
+ },
+ "frames": 8,
+ "fps": 10,
+ "loop": false,
+ "anchor": {
+  "x": 36,
+  "y": 106,
+  "kind": "origin"
+ },
+ "message": "I made a retro 16-bit golden light ray: a vertical beam with a bright white core and orange edges, a ground ring where it lands, and small feather-like sparks drifting down around it. It runs 8 frames at 10 fps on a transparent background, with a dark outline. Two things to know: the beam lands on the ground rather than visibly sliding down from above, and the feathers read more as short gold streaks than as true feather shapes. Use the Feather count and Beam width sliders to tune it.",
+ "effect_id": "eea8e590-923c-4947-9e77-11c48db449ad",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-prayer 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 122
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 122
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 122
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8688524590163934
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-prayer 1.png",
+    "frame": {
+     "x": 72,
+     "y": 0,
+     "w": 72,
+     "h": 122
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 122
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 122
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8688524590163934
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-prayer 2.png",
+    "frame": {
+     "x": 144,
+     "y": 0,
+     "w": 72,
+     "h": 122
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 122
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 122
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8688524590163934
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-prayer 3.png",
+    "frame": {
+     "x": 0,
+     "y": 122,
+     "w": 72,
+     "h": 122
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 122
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 122
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8688524590163934
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-prayer 4.png",
+    "frame": {
+     "x": 72,
+     "y": 122,
+     "w": 72,
+     "h": 122
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 122
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 122
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8688524590163934
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-prayer 5.png",
+    "frame": {
+     "x": 144,
+     "y": 122,
+     "w": 72,
+     "h": 122
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 122
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 122
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8688524590163934
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-prayer 6.png",
+    "frame": {
+     "x": 0,
+     "y": 244,
+     "w": 72,
+     "h": 122
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 122
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 122
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8688524590163934
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-prayer 7.png",
+    "frame": {
+     "x": 72,
+     "y": 244,
+     "w": 72,
+     "h": 122
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 122
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 122
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8688524590163934
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-prayer.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 216,
+    "h": 366
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 36,
+    "y": 106
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-prayer",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

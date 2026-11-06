@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 53,
+  "w": 72
+ },
+ "frames": 6,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 37,
+  "y": -32,
+  "kind": "origin"
+ },
+ "message": "A grey-white whirlwind with dust and debris swirling round its base, looping over 6 frames on a transparent background, with a dark-outlined grey ramp. It is now fully inside the canvas, but it is a short, squat funnel rather than a tall tornado, and the swirl reads more as a dust cloud than a clear spin. Try the height and the dust amount sliders to adjust.",
+ "effect_id": "5113fe7c-1ca8-4f56-ba4c-c930831be210",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-whirlwind 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 53
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 53
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 53
+    },
+    "pivot": {
+     "x": 0.5138888888888888,
+     "y": -0.6037735849056604
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-whirlwind 1.png",
+    "frame": {
+     "x": 72,
+     "y": 0,
+     "w": 72,
+     "h": 53
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 53
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 53
+    },
+    "pivot": {
+     "x": 0.5138888888888888,
+     "y": -0.6037735849056604
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-whirlwind 2.png",
+    "frame": {
+     "x": 144,
+     "y": 0,
+     "w": 72,
+     "h": 53
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 53
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 53
+    },
+    "pivot": {
+     "x": 0.5138888888888888,
+     "y": -0.6037735849056604
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-whirlwind 3.png",
+    "frame": {
+     "x": 0,
+     "y": 53,
+     "w": 72,
+     "h": 53
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 53
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 53
+    },
+    "pivot": {
+     "x": 0.5138888888888888,
+     "y": -0.6037735849056604
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-whirlwind 4.png",
+    "frame": {
+     "x": 72,
+     "y": 53,
+     "w": 72,
+     "h": 53
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 53
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 53
+    },
+    "pivot": {
+     "x": 0.5138888888888888,
+     "y": -0.6037735849056604
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-whirlwind 5.png",
+    "frame": {
+     "x": 144,
+     "y": 53,
+     "w": 72,
+     "h": 53
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 53
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 53
+    },
+    "pivot": {
+     "x": 0.5138888888888888,
+     "y": -0.6037735849056604
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-whirlwind.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 216,
+    "h": 106
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 37,
+    "y": -32
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-whirlwind",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

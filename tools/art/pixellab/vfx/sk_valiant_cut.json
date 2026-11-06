@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 64,
+  "w": 96
+ },
+ "frames": 6,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 48,
+  "y": 32,
+  "kind": "origin"
+ },
+ "message": "A 6-frame, 16-bit style blue sword slash: a flash on frame 1, then a wide horizontal arc with a bright white edge sweeping across and fading out by the last frame. It's a one-shot on a transparent 96x64 canvas, with the arc's thickness and sweep set in the recipe. The arc is built in the renderer, not from a stock part, so the sweep width and thickness are the easiest things to adjust.",
+ "effect_id": "1785b993-2472-4ddc-80f8-9cac357a7130",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-valiant-cut 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-valiant-cut 1.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-valiant-cut 2.png",
+    "frame": {
+     "x": 192,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-valiant-cut 3.png",
+    "frame": {
+     "x": 0,
+     "y": 64,
+     "w": 96,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-valiant-cut 4.png",
+    "frame": {
+     "x": 96,
+     "y": 64,
+     "w": 96,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-valiant-cut 5.png",
+    "frame": {
+     "x": 192,
+     "y": 64,
+     "w": 96,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-valiant-cut.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 288,
+    "h": 128
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 48,
+    "y": 32
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-valiant-cut",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

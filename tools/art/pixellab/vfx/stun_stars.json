@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 23,
+  "w": 35
+ },
+ "frames": 6,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 17,
+  "y": 15,
+  "kind": "origin"
+ },
+ "message": "Three small yellow stars circle a faint ring in a seamless 6-frame loop, drawn with a 4-colour gold ramp, dark outline and no dithering, on a transparent background with no character. The effect is about 35x23 px, so it stays small at 1x. Use the stun stars' height and colour sliders to lift the ring or recolour it.",
+ "effect_id": "1fb6d1e7-1d36-42ca-a997-ad68dc6616a1",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-stun-stars 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 35,
+     "h": 23
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 35,
+     "h": 23
+    },
+    "sourceSize": {
+     "w": 35,
+     "h": 23
+    },
+    "pivot": {
+     "x": 0.4857142857142857,
+     "y": 0.6521739130434783
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-stun-stars 1.png",
+    "frame": {
+     "x": 35,
+     "y": 0,
+     "w": 35,
+     "h": 23
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 35,
+     "h": 23
+    },
+    "sourceSize": {
+     "w": 35,
+     "h": 23
+    },
+    "pivot": {
+     "x": 0.4857142857142857,
+     "y": 0.6521739130434783
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-stun-stars 2.png",
+    "frame": {
+     "x": 70,
+     "y": 0,
+     "w": 35,
+     "h": 23
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 35,
+     "h": 23
+    },
+    "sourceSize": {
+     "w": 35,
+     "h": 23
+    },
+    "pivot": {
+     "x": 0.4857142857142857,
+     "y": 0.6521739130434783
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-stun-stars 3.png",
+    "frame": {
+     "x": 0,
+     "y": 23,
+     "w": 35,
+     "h": 23
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 35,
+     "h": 23
+    },
+    "sourceSize": {
+     "w": 35,
+     "h": 23
+    },
+    "pivot": {
+     "x": 0.4857142857142857,
+     "y": 0.6521739130434783
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-stun-stars 4.png",
+    "frame": {
+     "x": 35,
+     "y": 23,
+     "w": 35,
+     "h": 23
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 35,
+     "h": 23
+    },
+    "sourceSize": {
+     "w": 35,
+     "h": 23
+    },
+    "pivot": {
+     "x": 0.4857142857142857,
+     "y": 0.6521739130434783
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-stun-stars 5.png",
+    "frame": {
+     "x": 70,
+     "y": 23,
+     "w": 35,
+     "h": 23
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 35,
+     "h": 23
+    },
+    "sourceSize": {
+     "w": 35,
+     "h": 23
+    },
+    "pivot": {
+     "x": 0.4857142857142857,
+     "y": 0.6521739130434783
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-stun-stars.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 105,
+    "h": 46
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 17,
+    "y": 15
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-stun-stars",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

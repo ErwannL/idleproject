@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 101,
+  "w": 95
+ },
+ "frames": 8,
+ "fps": 12,
+ "loop": true,
+ "anchor": {
+  "x": 51,
+  "y": 49,
+  "kind": "origin"
+ },
+ "message": "A sparse, looping 8-frame snowfall: small white snowflakes and dots drift down across the canvas with a few darker-edged accents, in a four-colour retro palette with no character. Try the colour, amount and speed sliders to make it denser, brighter or faster.",
+ "effect_id": "9d0ec4da-2d7a-4931-91e7-5891b783363d",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-amb-snow 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 101
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 101
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 101
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.48514851485148514
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-amb-snow 1.png",
+    "frame": {
+     "x": 95,
+     "y": 0,
+     "w": 95,
+     "h": 101
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 101
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 101
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.48514851485148514
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-amb-snow 2.png",
+    "frame": {
+     "x": 190,
+     "y": 0,
+     "w": 95,
+     "h": 101
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 101
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 101
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.48514851485148514
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-amb-snow 3.png",
+    "frame": {
+     "x": 0,
+     "y": 101,
+     "w": 95,
+     "h": 101
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 101
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 101
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.48514851485148514
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-amb-snow 4.png",
+    "frame": {
+     "x": 95,
+     "y": 101,
+     "w": 95,
+     "h": 101
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 101
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 101
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.48514851485148514
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-amb-snow 5.png",
+    "frame": {
+     "x": 190,
+     "y": 101,
+     "w": 95,
+     "h": 101
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 101
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 101
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.48514851485148514
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-amb-snow 6.png",
+    "frame": {
+     "x": 0,
+     "y": 202,
+     "w": 95,
+     "h": 101
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 101
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 101
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.48514851485148514
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-amb-snow 7.png",
+    "frame": {
+     "x": 95,
+     "y": 202,
+     "w": 95,
+     "h": 101
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 101
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 101
+    },
+    "pivot": {
+     "x": 0.5368421052631579,
+     "y": 0.48514851485148514
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-amb-snow.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 285,
+    "h": 303
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 51,
+    "y": 49
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-amb-snow",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

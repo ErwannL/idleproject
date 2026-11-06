@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 60,
+  "w": 48
+ },
+ "frames": 8,
+ "fps": 12,
+ "loop": true,
+ "anchor": {
+  "x": 24,
+  "y": 8,
+  "kind": "origin"
+ },
+ "message": "Here's a looping 8-frame fairy healing dust effect: mint and pink sparkles spiral down in a side-view column on a transparent background, with a 4-colour retro palette and dark outlines. The sparkles are sized 1 to 2 px for a crisp 16-bit look. Playing with the sparkle count in the layers would make the dust denser or lighter.",
+ "effect_id": "9ab99f8a-b88f-4c4c-8f17-e17f3e0d8532",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-fairy-heal 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 60
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 60
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 60
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.13333333333333333
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-fairy-heal 1.png",
+    "frame": {
+     "x": 48,
+     "y": 0,
+     "w": 48,
+     "h": 60
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 60
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 60
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.13333333333333333
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-fairy-heal 2.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 48,
+     "h": 60
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 60
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 60
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.13333333333333333
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-fairy-heal 3.png",
+    "frame": {
+     "x": 0,
+     "y": 60,
+     "w": 48,
+     "h": 60
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 60
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 60
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.13333333333333333
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-fairy-heal 4.png",
+    "frame": {
+     "x": 48,
+     "y": 60,
+     "w": 48,
+     "h": 60
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 60
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 60
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.13333333333333333
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-fairy-heal 5.png",
+    "frame": {
+     "x": 96,
+     "y": 60,
+     "w": 48,
+     "h": 60
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 60
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 60
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.13333333333333333
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-fairy-heal 6.png",
+    "frame": {
+     "x": 0,
+     "y": 120,
+     "w": 48,
+     "h": 60
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 60
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 60
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.13333333333333333
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-fairy-heal 7.png",
+    "frame": {
+     "x": 48,
+     "y": 120,
+     "w": 48,
+     "h": 60
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 60
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 60
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.13333333333333333
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-fairy-heal.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 144,
+    "h": 180
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 24,
+    "y": 8
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-fairy-heal",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

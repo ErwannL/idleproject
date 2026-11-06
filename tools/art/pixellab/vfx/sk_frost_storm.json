@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 104,
+  "w": 272
+ },
+ "frames": 8,
+ "fps": 10,
+ "loop": false,
+ "anchor": {
+  "x": 8,
+  "y": 92,
+  "kind": "origin"
+ },
+ "message": "Six pale blue ice spikes erupt one after another along the ground, each taller than the last, then flash white and shatter into shards over 8 frames (0.8 s). I cut the palette to four retro-style colours with a dark outline and no dithering. The Height slider changes how tall the spikes grow, and Amount changes how many shards and mist puffs fly off.",
+ "effect_id": "0f890bf1-c744-49d9-bd18-77c2eeb7489c",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-frost-storm 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 272,
+     "h": 104
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 272,
+     "h": 104
+    },
+    "sourceSize": {
+     "w": 272,
+     "h": 104
+    },
+    "pivot": {
+     "x": 0.029411764705882353,
+     "y": 0.8846153846153846
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-frost-storm 1.png",
+    "frame": {
+     "x": 272,
+     "y": 0,
+     "w": 272,
+     "h": 104
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 272,
+     "h": 104
+    },
+    "sourceSize": {
+     "w": 272,
+     "h": 104
+    },
+    "pivot": {
+     "x": 0.029411764705882353,
+     "y": 0.8846153846153846
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-frost-storm 2.png",
+    "frame": {
+     "x": 544,
+     "y": 0,
+     "w": 272,
+     "h": 104
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 272,
+     "h": 104
+    },
+    "sourceSize": {
+     "w": 272,
+     "h": 104
+    },
+    "pivot": {
+     "x": 0.029411764705882353,
+     "y": 0.8846153846153846
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-frost-storm 3.png",
+    "frame": {
+     "x": 0,
+     "y": 104,
+     "w": 272,
+     "h": 104
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 272,
+     "h": 104
+    },
+    "sourceSize": {
+     "w": 272,
+     "h": 104
+    },
+    "pivot": {
+     "x": 0.029411764705882353,
+     "y": 0.8846153846153846
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-frost-storm 4.png",
+    "frame": {
+     "x": 272,
+     "y": 104,
+     "w": 272,
+     "h": 104
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 272,
+     "h": 104
+    },
+    "sourceSize": {
+     "w": 272,
+     "h": 104
+    },
+    "pivot": {
+     "x": 0.029411764705882353,
+     "y": 0.8846153846153846
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-frost-storm 5.png",
+    "frame": {
+     "x": 544,
+     "y": 104,
+     "w": 272,
+     "h": 104
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 272,
+     "h": 104
+    },
+    "sourceSize": {
+     "w": 272,
+     "h": 104
+    },
+    "pivot": {
+     "x": 0.029411764705882353,
+     "y": 0.8846153846153846
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-frost-storm 6.png",
+    "frame": {
+     "x": 0,
+     "y": 208,
+     "w": 272,
+     "h": 104
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 272,
+     "h": 104
+    },
+    "sourceSize": {
+     "w": 272,
+     "h": 104
+    },
+    "pivot": {
+     "x": 0.029411764705882353,
+     "y": 0.8846153846153846
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-frost-storm 7.png",
+    "frame": {
+     "x": 272,
+     "y": 208,
+     "w": 272,
+     "h": 104
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 272,
+     "h": 104
+    },
+    "sourceSize": {
+     "w": 272,
+     "h": 104
+    },
+    "pivot": {
+     "x": 0.029411764705882353,
+     "y": 0.8846153846153846
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-frost-storm.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 816,
+    "h": 312
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 8,
+    "y": 92
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-frost-storm",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

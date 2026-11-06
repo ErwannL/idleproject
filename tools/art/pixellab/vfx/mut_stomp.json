@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 58,
+  "w": 119
+ },
+ "frames": 6,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 58,
+  "y": 27,
+  "kind": "origin"
+ },
+ "message": "A wide, low stomp: a brown ground shockwave ring spreads out with cracks across the ground, rocks and dust kicking out sideways, six frames, transparent background, no character. Caveats: the palette is a tan-and-brown ramp with dark outlines, not the bright saturated fantasy colours you asked for, and the ring reads as a filled disc more than a thin ring. The rocks are soft blobs rather than crisp chunks, and the last frame is empty, so the effect fades out by frame 5. Sliders to try: the ground_cracks and debris_burst amounts, and the crater dust puff for how much dust hangs around.",
+ "effect_id": "3d0f6684-8b4a-4c96-8ead-90d018a3568a",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-mut-stomp 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 119,
+     "h": 58
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 119,
+     "h": 58
+    },
+    "sourceSize": {
+     "w": 119,
+     "h": 58
+    },
+    "pivot": {
+     "x": 0.48739495798319327,
+     "y": 0.46551724137931033
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-mut-stomp 1.png",
+    "frame": {
+     "x": 119,
+     "y": 0,
+     "w": 119,
+     "h": 58
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 119,
+     "h": 58
+    },
+    "sourceSize": {
+     "w": 119,
+     "h": 58
+    },
+    "pivot": {
+     "x": 0.48739495798319327,
+     "y": 0.46551724137931033
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-mut-stomp 2.png",
+    "frame": {
+     "x": 238,
+     "y": 0,
+     "w": 119,
+     "h": 58
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 119,
+     "h": 58
+    },
+    "sourceSize": {
+     "w": 119,
+     "h": 58
+    },
+    "pivot": {
+     "x": 0.48739495798319327,
+     "y": 0.46551724137931033
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-mut-stomp 3.png",
+    "frame": {
+     "x": 0,
+     "y": 58,
+     "w": 119,
+     "h": 58
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 119,
+     "h": 58
+    },
+    "sourceSize": {
+     "w": 119,
+     "h": 58
+    },
+    "pivot": {
+     "x": 0.48739495798319327,
+     "y": 0.46551724137931033
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-mut-stomp 4.png",
+    "frame": {
+     "x": 119,
+     "y": 58,
+     "w": 119,
+     "h": 58
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 119,
+     "h": 58
+    },
+    "sourceSize": {
+     "w": 119,
+     "h": 58
+    },
+    "pivot": {
+     "x": 0.48739495798319327,
+     "y": 0.46551724137931033
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-mut-stomp 5.png",
+    "frame": {
+     "x": 238,
+     "y": 58,
+     "w": 119,
+     "h": 58
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 119,
+     "h": 58
+    },
+    "sourceSize": {
+     "w": 119,
+     "h": 58
+    },
+    "pivot": {
+     "x": 0.48739495798319327,
+     "y": 0.46551724137931033
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-mut-stomp.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 357,
+    "h": 116
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 58,
+    "y": 27
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-mut-stomp",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,225 @@
+{
+ "canvas": {
+  "h": 48,
+  "w": 96
+ },
+ "frames": 7,
+ "fps": 10,
+ "loop": false,
+ "anchor": {
+  "x": 48,
+  "y": 24,
+  "kind": "origin"
+ },
+ "message": "A 7-frame retro shooting star streaks diagonally from upper left to lower right, with a bright white-blue head, a tapered blue tail, and small sparkles shed along the trail. It's on a transparent background with no character. The sparkle count and size sliders (on the sparkle layer) control how dense the trail reads.",
+ "effect_id": "04745f93-6357-462f-9b11-eba38d079c60",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-amb-stars 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-stars 1.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 96,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-stars 2.png",
+    "frame": {
+     "x": 192,
+     "y": 0,
+     "w": 96,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-stars 3.png",
+    "frame": {
+     "x": 0,
+     "y": 48,
+     "w": 96,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-stars 4.png",
+    "frame": {
+     "x": 96,
+     "y": 48,
+     "w": 96,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-stars 5.png",
+    "frame": {
+     "x": 192,
+     "y": 48,
+     "w": 96,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-stars 6.png",
+    "frame": {
+     "x": 0,
+     "y": 96,
+     "w": 96,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-amb-stars.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 288,
+    "h": 144
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 48,
+    "y": 24
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-amb-stars",
+     "from": 0,
+     "to": 6,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

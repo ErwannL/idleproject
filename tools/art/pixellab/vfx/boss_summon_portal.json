@@ -1,0 +1,277 @@
+{
+ "canvas": {
+  "h": 112,
+  "w": 96
+ },
+ "frames": 9,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 48,
+  "y": 62,
+  "kind": "origin"
+ },
+ "message": "A 9-frame, 96x112 cyan portal opens vertically in about three frames, its swirl spins, a small ghost steps out to the right of it, and the portal closes to a flash by the last frame. I shrank the portal so it no longer clips the canvas edge, but that also softened the swirl into a mostly solid glow, so the swirl detail is weaker than I'd like. If you want it more readable, the spiral's radius or arm count are the sliders to tune.",
+ "effect_id": "a0574f0d-9596-4e26-8146-e30759689d57",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-boss-summon-portal 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5535714285714286
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-summon-portal 1.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5535714285714286
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-summon-portal 2.png",
+    "frame": {
+     "x": 192,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5535714285714286
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-summon-portal 3.png",
+    "frame": {
+     "x": 0,
+     "y": 112,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5535714285714286
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-summon-portal 4.png",
+    "frame": {
+     "x": 96,
+     "y": 112,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5535714285714286
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-summon-portal 5.png",
+    "frame": {
+     "x": 192,
+     "y": 112,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5535714285714286
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-summon-portal 6.png",
+    "frame": {
+     "x": 0,
+     "y": 224,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5535714285714286
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-summon-portal 7.png",
+    "frame": {
+     "x": 96,
+     "y": 224,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5535714285714286
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-summon-portal 8.png",
+    "frame": {
+     "x": 192,
+     "y": 224,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5535714285714286
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-boss-summon-portal.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 288,
+    "h": 336
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 48,
+    "y": 62
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-boss-summon-portal",
+     "from": 0,
+     "to": 8,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

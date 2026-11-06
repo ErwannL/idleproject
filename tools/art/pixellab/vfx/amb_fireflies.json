@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 74,
+  "w": 90
+ },
+ "frames": 8,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 43,
+  "y": 31,
+  "kind": "origin"
+ },
+ "message": "A sparse loop of about five yellow-green fireflies drifting and blinking over 8 frames, transparent background, no character. Try the fireflies sliders for colour, amount, speed and blink rate.",
+ "effect_id": "28074902-2afb-4070-8b1d-5955027b62fd",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-amb-fireflies 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 90,
+     "h": 74
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 90,
+     "h": 74
+    },
+    "sourceSize": {
+     "w": 90,
+     "h": 74
+    },
+    "pivot": {
+     "x": 0.4777777777777778,
+     "y": 0.4189189189189189
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-fireflies 1.png",
+    "frame": {
+     "x": 90,
+     "y": 0,
+     "w": 90,
+     "h": 74
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 90,
+     "h": 74
+    },
+    "sourceSize": {
+     "w": 90,
+     "h": 74
+    },
+    "pivot": {
+     "x": 0.4777777777777778,
+     "y": 0.4189189189189189
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-fireflies 2.png",
+    "frame": {
+     "x": 180,
+     "y": 0,
+     "w": 90,
+     "h": 74
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 90,
+     "h": 74
+    },
+    "sourceSize": {
+     "w": 90,
+     "h": 74
+    },
+    "pivot": {
+     "x": 0.4777777777777778,
+     "y": 0.4189189189189189
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-fireflies 3.png",
+    "frame": {
+     "x": 0,
+     "y": 74,
+     "w": 90,
+     "h": 74
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 90,
+     "h": 74
+    },
+    "sourceSize": {
+     "w": 90,
+     "h": 74
+    },
+    "pivot": {
+     "x": 0.4777777777777778,
+     "y": 0.4189189189189189
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-fireflies 4.png",
+    "frame": {
+     "x": 90,
+     "y": 74,
+     "w": 90,
+     "h": 74
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 90,
+     "h": 74
+    },
+    "sourceSize": {
+     "w": 90,
+     "h": 74
+    },
+    "pivot": {
+     "x": 0.4777777777777778,
+     "y": 0.4189189189189189
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-fireflies 5.png",
+    "frame": {
+     "x": 180,
+     "y": 74,
+     "w": 90,
+     "h": 74
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 90,
+     "h": 74
+    },
+    "sourceSize": {
+     "w": 90,
+     "h": 74
+    },
+    "pivot": {
+     "x": 0.4777777777777778,
+     "y": 0.4189189189189189
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-fireflies 6.png",
+    "frame": {
+     "x": 0,
+     "y": 148,
+     "w": 90,
+     "h": 74
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 90,
+     "h": 74
+    },
+    "sourceSize": {
+     "w": 90,
+     "h": 74
+    },
+    "pivot": {
+     "x": 0.4777777777777778,
+     "y": 0.4189189189189189
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-amb-fireflies 7.png",
+    "frame": {
+     "x": 90,
+     "y": 148,
+     "w": 90,
+     "h": 74
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 90,
+     "h": 74
+    },
+    "sourceSize": {
+     "w": 90,
+     "h": 74
+    },
+    "pivot": {
+     "x": 0.4777777777777778,
+     "y": 0.4189189189189189
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-amb-fireflies.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 270,
+    "h": 222
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 43,
+    "y": 31
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-amb-fireflies",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

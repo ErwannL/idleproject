@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 86,
+  "w": 84
+ },
+ "frames": 8,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 43,
+  "y": 35,
+  "kind": "origin"
+ },
+ "message": "A blade dance of four overlapping lilac X-slash flurries over 8 frames at 12 fps, one-shot, on a transparent background, with a sparkle opening and sparks at the end. The palette is 4 retro lilac tones with a dark violet edge. For more or fewer blades, use the per-slash Reach, Thickness and Amount sliders; the slashes' colour and timing can be adjusted on each one.",
+ "effect_id": "57919841-dec0-4506-ba4b-e50d6655e09b",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-blade-dance 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 86
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 86
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 86
+    },
+    "pivot": {
+     "x": 0.5119047619047619,
+     "y": 0.4069767441860465
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-blade-dance 1.png",
+    "frame": {
+     "x": 84,
+     "y": 0,
+     "w": 84,
+     "h": 86
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 86
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 86
+    },
+    "pivot": {
+     "x": 0.5119047619047619,
+     "y": 0.4069767441860465
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-blade-dance 2.png",
+    "frame": {
+     "x": 168,
+     "y": 0,
+     "w": 84,
+     "h": 86
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 86
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 86
+    },
+    "pivot": {
+     "x": 0.5119047619047619,
+     "y": 0.4069767441860465
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-blade-dance 3.png",
+    "frame": {
+     "x": 0,
+     "y": 86,
+     "w": 84,
+     "h": 86
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 86
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 86
+    },
+    "pivot": {
+     "x": 0.5119047619047619,
+     "y": 0.4069767441860465
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-blade-dance 4.png",
+    "frame": {
+     "x": 84,
+     "y": 86,
+     "w": 84,
+     "h": 86
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 86
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 86
+    },
+    "pivot": {
+     "x": 0.5119047619047619,
+     "y": 0.4069767441860465
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-blade-dance 5.png",
+    "frame": {
+     "x": 168,
+     "y": 86,
+     "w": 84,
+     "h": 86
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 86
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 86
+    },
+    "pivot": {
+     "x": 0.5119047619047619,
+     "y": 0.4069767441860465
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-blade-dance 6.png",
+    "frame": {
+     "x": 0,
+     "y": 172,
+     "w": 84,
+     "h": 86
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 86
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 86
+    },
+    "pivot": {
+     "x": 0.5119047619047619,
+     "y": 0.4069767441860465
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-blade-dance 7.png",
+    "frame": {
+     "x": 84,
+     "y": 172,
+     "w": 84,
+     "h": 86
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 86
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 86
+    },
+    "pivot": {
+     "x": 0.5119047619047619,
+     "y": 0.4069767441860465
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-blade-dance.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 252,
+    "h": 258
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 43,
+    "y": 35
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-blade-dance",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

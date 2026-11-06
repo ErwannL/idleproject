@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 64,
+  "w": 96
+ },
+ "frames": 6,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 84,
+  "y": 111,
+  "kind": "origin"
+ },
+ "message": "A low purple dagger slash near the ground: a quick crescent that sweeps across in six frames, with a dark violet shadow trail fading behind it. It is a 96x64 canvas at 12 fps; the slash thickness and sweep sliders are the ones to try. The look is 4 colours with a dark outline. The background is drawn as a dark checker in the preview, so transparency is in the export, not a visible backdrop.",
+ "effect_id": "ea56b607-5ca2-40c4-bd7e-5195bc0fd9ab",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-low-strike 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.875,
+     "y": 1.734375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-low-strike 1.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.875,
+     "y": 1.734375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-low-strike 2.png",
+    "frame": {
+     "x": 192,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.875,
+     "y": 1.734375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-low-strike 3.png",
+    "frame": {
+     "x": 0,
+     "y": 64,
+     "w": 96,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.875,
+     "y": 1.734375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-low-strike 4.png",
+    "frame": {
+     "x": 96,
+     "y": 64,
+     "w": 96,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.875,
+     "y": 1.734375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-low-strike 5.png",
+    "frame": {
+     "x": 192,
+     "y": 64,
+     "w": 96,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.875,
+     "y": 1.734375
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-low-strike.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 288,
+    "h": 128
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 84,
+    "y": 111
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-low-strike",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

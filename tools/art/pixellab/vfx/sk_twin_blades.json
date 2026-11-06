@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 67,
+  "w": 58
+ },
+ "frames": 6,
+ "fps": 8,
+ "loop": false,
+ "anchor": {
+  "x": 29,
+  "y": 26,
+  "kind": "origin"
+ },
+ "message": "Two purple slashes cross into an X with sparks, over 6 frames (0.75 s, one shot). The X forms by frame 3 and the sparks fly out and fade by frame 6. I didn't apply a strict retro colour limit, so the purple shading has more steps than a true 16-bit palette would. Tell me if you want it tightened to fewer colours.",
+ "effect_id": "5412b8ac-223a-4dde-9a60-4e9669a33de2",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-twin-blades 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 58,
+     "h": 67
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 58,
+     "h": 67
+    },
+    "sourceSize": {
+     "w": 58,
+     "h": 67
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.3880597014925373
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-sk-twin-blades 1.png",
+    "frame": {
+     "x": 58,
+     "y": 0,
+     "w": 58,
+     "h": 67
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 58,
+     "h": 67
+    },
+    "sourceSize": {
+     "w": 58,
+     "h": 67
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.3880597014925373
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-sk-twin-blades 2.png",
+    "frame": {
+     "x": 116,
+     "y": 0,
+     "w": 58,
+     "h": 67
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 58,
+     "h": 67
+    },
+    "sourceSize": {
+     "w": 58,
+     "h": 67
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.3880597014925373
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-sk-twin-blades 3.png",
+    "frame": {
+     "x": 0,
+     "y": 67,
+     "w": 58,
+     "h": 67
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 58,
+     "h": 67
+    },
+    "sourceSize": {
+     "w": 58,
+     "h": 67
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.3880597014925373
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-sk-twin-blades 4.png",
+    "frame": {
+     "x": 58,
+     "y": 67,
+     "w": 58,
+     "h": 67
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 58,
+     "h": 67
+    },
+    "sourceSize": {
+     "w": 58,
+     "h": 67
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.3880597014925373
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-sk-twin-blades 5.png",
+    "frame": {
+     "x": 116,
+     "y": 67,
+     "w": 58,
+     "h": 67
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 58,
+     "h": 67
+    },
+    "sourceSize": {
+     "w": 58,
+     "h": 67
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.3880597014925373
+    },
+    "duration": 125
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-twin-blades.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 174,
+    "h": 134
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 29,
+    "y": 26
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-twin-blades",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

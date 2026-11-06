@@ -38,6 +38,7 @@ import { itemBase } from '../core/loot.js';
 import { castHeroSkill, castUnitSkill, drawSkillFx, fxContext, heroGesturePick, unitGesture } from './skill-fx.js'; // v9.2.5 : gestes et effets de compétence
 import { companionSkillList } from '../data/companion-skills.js';
 import { COMPANION_ROLES } from '../data/synergies.js';
+import { drawWorldVfx, eventVfx } from './vfx-world.js'; // v9.2.6 : compétences, boss, environnement, mutations, ambiance
 import { DAMAGE_COLORS, drawDamageText, drawVfx, drawVfxFrame, projFrame, vfx, vfxReady } from './vfx.js'; // v9.2.6 : effets de combat PixelLab
 
 // Vue resserrée : le chevalier (≈ 40 px) occupe un bon tiers de la hauteur de la scène.
@@ -292,6 +293,7 @@ export class SceneRenderer {
     const event = raw.x === undefined ? raw : { ...raw, x: this.wx(raw.x) };
     const heroX = HERO_X;
     this.mutationEvent(event, world); // v9.2.3 : apparition, division, « Bloqué », vol de vie des mutés
+    eventVfx(this, event, world, HERO_X); // v9.2.6
     switch (event.type) {
       case 'heroAttack': {
         // v9.2.4 : geste raccourci quand les coups s'enchaînent plus vite que 0,3 s (vitesse d'attaque élevée) : il
@@ -422,7 +424,6 @@ export class SceneRenderer {
       }
       case 'bossSummon':
         this.shake = Math.max(this.shake, 3);
-        vfx(this, 'boss_appear', HERO_X + 60, this.groundY + 2); // v9.2.6 : cercle d'invocation
         this.burst(HERO_X + 60, this.groundY - 20, '#ff0030', 18, 60);
         break;
       case 'gems':
@@ -773,6 +774,7 @@ export class SceneRenderer {
     this.drawEffects(ctx, dt);
     drawSkillFx(this, ctx); // v9.2.5 : effets de compétence
     this.drawMutationFx(ctx, dt); // v9.2.3
+    drawWorldVfx(this, ctx, ZONES[zoneIndex], world, HERO_X, state); // v9.2.6 : auras, malus, ambiance
     ctx.restore();
     ctx.restore();
 

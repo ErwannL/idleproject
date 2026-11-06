@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 46,
+  "w": 69
+ },
+ "frames": 8,
+ "fps": 10,
+ "loop": false,
+ "anchor": {
+  "x": 32,
+  "y": 13,
+  "kind": "origin"
+ },
+ "message": "A green slime blob splits in two over 8 frames: it wobbles, pulls apart, and flings small goo droplets left, right and up, then the two halves settle. The droplets are small at 1x, so the goo-count and goo-speed sliders are the ones to raise if you want more spray. I used a 4-tone green ramp with a dark outline in a 16-bit style; the background is left clear for your game.",
+ "effect_id": "5387a547-2112-48e7-89f7-3b5552db6569",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-mut-split 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 69,
+     "h": 46
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 69,
+     "h": 46
+    },
+    "sourceSize": {
+     "w": 69,
+     "h": 46
+    },
+    "pivot": {
+     "x": 0.463768115942029,
+     "y": 0.2826086956521739
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-mut-split 1.png",
+    "frame": {
+     "x": 69,
+     "y": 0,
+     "w": 69,
+     "h": 46
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 69,
+     "h": 46
+    },
+    "sourceSize": {
+     "w": 69,
+     "h": 46
+    },
+    "pivot": {
+     "x": 0.463768115942029,
+     "y": 0.2826086956521739
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-mut-split 2.png",
+    "frame": {
+     "x": 138,
+     "y": 0,
+     "w": 69,
+     "h": 46
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 69,
+     "h": 46
+    },
+    "sourceSize": {
+     "w": 69,
+     "h": 46
+    },
+    "pivot": {
+     "x": 0.463768115942029,
+     "y": 0.2826086956521739
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-mut-split 3.png",
+    "frame": {
+     "x": 0,
+     "y": 46,
+     "w": 69,
+     "h": 46
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 69,
+     "h": 46
+    },
+    "sourceSize": {
+     "w": 69,
+     "h": 46
+    },
+    "pivot": {
+     "x": 0.463768115942029,
+     "y": 0.2826086956521739
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-mut-split 4.png",
+    "frame": {
+     "x": 69,
+     "y": 46,
+     "w": 69,
+     "h": 46
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 69,
+     "h": 46
+    },
+    "sourceSize": {
+     "w": 69,
+     "h": 46
+    },
+    "pivot": {
+     "x": 0.463768115942029,
+     "y": 0.2826086956521739
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-mut-split 5.png",
+    "frame": {
+     "x": 138,
+     "y": 46,
+     "w": 69,
+     "h": 46
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 69,
+     "h": 46
+    },
+    "sourceSize": {
+     "w": 69,
+     "h": 46
+    },
+    "pivot": {
+     "x": 0.463768115942029,
+     "y": 0.2826086956521739
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-mut-split 6.png",
+    "frame": {
+     "x": 0,
+     "y": 92,
+     "w": 69,
+     "h": 46
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 69,
+     "h": 46
+    },
+    "sourceSize": {
+     "w": 69,
+     "h": 46
+    },
+    "pivot": {
+     "x": 0.463768115942029,
+     "y": 0.2826086956521739
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-mut-split 7.png",
+    "frame": {
+     "x": 69,
+     "y": 92,
+     "w": 69,
+     "h": 46
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 69,
+     "h": 46
+    },
+    "sourceSize": {
+     "w": 69,
+     "h": 46
+    },
+    "pivot": {
+     "x": 0.463768115942029,
+     "y": 0.2826086956521739
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-mut-split.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 207,
+    "h": 138
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 32,
+    "y": 13
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-mut-split",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 90,
+  "w": 59
+ },
+ "frames": 8,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 29,
+  "y": 76,
+  "kind": "origin"
+ },
+ "message": "A cyan teleport beam over 8 frames: a column of light materialises at the base, with a ground ring spreading out, sparkles rising, and the beam collapsing to a bright orb that fades to a dot. The palette is four cyan-to-white tones with a dark outline, and it's a one-shot on a transparent background with no character. You can tweak the teleport colour and the amount sliders on the page to change its strength.",
+ "effect_id": "cf0fb3bb-8cbe-466f-a8d0-01b9363cd7fd",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-teleport 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 59,
+     "h": 90
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 59,
+     "h": 90
+    },
+    "sourceSize": {
+     "w": 59,
+     "h": 90
+    },
+    "pivot": {
+     "x": 0.4915254237288136,
+     "y": 0.8444444444444444
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-teleport 1.png",
+    "frame": {
+     "x": 59,
+     "y": 0,
+     "w": 59,
+     "h": 90
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 59,
+     "h": 90
+    },
+    "sourceSize": {
+     "w": 59,
+     "h": 90
+    },
+    "pivot": {
+     "x": 0.4915254237288136,
+     "y": 0.8444444444444444
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-teleport 2.png",
+    "frame": {
+     "x": 118,
+     "y": 0,
+     "w": 59,
+     "h": 90
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 59,
+     "h": 90
+    },
+    "sourceSize": {
+     "w": 59,
+     "h": 90
+    },
+    "pivot": {
+     "x": 0.4915254237288136,
+     "y": 0.8444444444444444
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-teleport 3.png",
+    "frame": {
+     "x": 0,
+     "y": 90,
+     "w": 59,
+     "h": 90
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 59,
+     "h": 90
+    },
+    "sourceSize": {
+     "w": 59,
+     "h": 90
+    },
+    "pivot": {
+     "x": 0.4915254237288136,
+     "y": 0.8444444444444444
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-teleport 4.png",
+    "frame": {
+     "x": 59,
+     "y": 90,
+     "w": 59,
+     "h": 90
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 59,
+     "h": 90
+    },
+    "sourceSize": {
+     "w": 59,
+     "h": 90
+    },
+    "pivot": {
+     "x": 0.4915254237288136,
+     "y": 0.8444444444444444
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-teleport 5.png",
+    "frame": {
+     "x": 118,
+     "y": 90,
+     "w": 59,
+     "h": 90
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 59,
+     "h": 90
+    },
+    "sourceSize": {
+     "w": 59,
+     "h": 90
+    },
+    "pivot": {
+     "x": 0.4915254237288136,
+     "y": 0.8444444444444444
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-teleport 6.png",
+    "frame": {
+     "x": 0,
+     "y": 180,
+     "w": 59,
+     "h": 90
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 59,
+     "h": 90
+    },
+    "sourceSize": {
+     "w": 59,
+     "h": 90
+    },
+    "pivot": {
+     "x": 0.4915254237288136,
+     "y": 0.8444444444444444
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-teleport 7.png",
+    "frame": {
+     "x": 59,
+     "y": 180,
+     "w": 59,
+     "h": 90
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 59,
+     "h": 90
+    },
+    "sourceSize": {
+     "w": 59,
+     "h": 90
+    },
+    "pivot": {
+     "x": 0.4915254237288136,
+     "y": 0.8444444444444444
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-teleport.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 177,
+    "h": 270
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 29,
+    "y": 76
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-teleport",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}
