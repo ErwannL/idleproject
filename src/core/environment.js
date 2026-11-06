@@ -20,6 +20,7 @@ export function environmentFor(state, zoneIndex, difficulty = 1, balance = BALAN
   return { ...env, zoneIndex, scale, full, level, countered, pct, counterLabel: balance.upgrades[env.counter]?.label ?? env.counter };
 }
 
+const capShown = (env, pct) => (env.kind === 'hurt' || env.kind === 'burn' ? pct : Math.min(ENV_REDUCE_CAP, pct));
 const cut = (pct) => 1 - Math.min(ENV_REDUCE_CAP, pct) / 100;
 
 // Statistiques du héros sous un malus (copie ; `stats` n'est pas modifié). Champs ajoutés : missPct, hurtMult,
@@ -52,7 +53,8 @@ const fmt = (x) => String(Math.round(x * 10) / 10).replace('.', ',');
 
 // Effet en clair, avec sa valeur (« 10 % de vos coups manquent »). Textes traduits par motifs (i18n/en-921.js).
 export function envEffectText(env, pct = env.pct) {
-  const v = fmt(pct);
+  // v9.2.7 : valeur affichée = valeur appliquée (les « en moins » plafonnent à ENV_REDUCE_CAP, jamais « −113 % »).
+  const v = fmt(capShown(env, pct));
   switch (env.kind) {
     case 'miss': return `${v} % de vos coups manquent`;
     case 'hurt': return `+${v} % de dégâts reçus`;
@@ -72,7 +74,7 @@ export function envEffectText(env, pct = env.pct) {
 // v9.2.1 : version courte pour la pastille du combat (« Boue : −23 % vitesse », « Boue : annulé »).
 export function envChipText(env) {
   if (env.countered >= 100 || env.pct <= 0) return `${env.name} : annulé`;
-  const v = Math.max(1, Math.round(env.pct));
+  const v = Math.max(1, Math.round(capShown(env, env.pct)));
   const t = {
     miss: `${v} % de ratés`, hurt: `+${v} % dégâts reçus`, regen: `−${v} % régénération`, maxHp: `−${v} % PV max`,
     damage: `−${v} % dégâts`, speed: `−${v} % vitesse`, crit: `−${v} % critique`, burn: `−${v} % PV/s`,
