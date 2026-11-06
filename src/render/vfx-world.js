@@ -127,12 +127,12 @@ export function drawWorldVfx(scene, ctx, zone, world, heroX, state) {
     scene.envAt = scene.time + 0.5;
     const cur = state ? currentEnvironment(state) : null;
     scene.heroHpMax = state ? computeHeroStats(state).maxHp : 0; // PV max réels (rage sous 30 %)
-    scene.envFx = cur && cur.pct > 0 ? { name: ENV_FX[id], k: 0.55 + 0.45 * Math.min(1, cur.pct / cur.full) } : null;
+    scene.envFx = cur && cur.pct > 0 ? { name: ENV_FX[id], k: 0.75 + 0.25 * Math.min(1, cur.pct / cur.full) } : null;
   }
   const env = scene.envFx?.name;
   if (env && VFX[env]) {
     const low = env === 'env_lava' || env === 'env_mud' || env === 'env_corrupt' || env === 'env_curse';
-    loopAt(scene, ctx, env, heroX, low ? G + 1 : G - 18, (SEE_THROUGH[env] ?? 1) * scene.envFx.k, env === 'env_thirst' ? 0.6 : 1);
+    loopAt(scene, ctx, env, heroX, low ? G + 1 : G - 18, (SEE_THROUGH[env] ?? 1) * scene.envFx.k, env === 'env_thirst' ? 0.7 : 1.25); // v9.2.6 : un peu plus lisible
     if (env === 'env_lava') loopAt(scene, ctx, 'poison_bubbles', heroX, G - 46, 0.9, 0.8); // la brûlure ronge les PV
   }
   // Rage du héros : sous 30 % de ses PV max.
