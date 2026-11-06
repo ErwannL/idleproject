@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 85,
+  "w": 37
+ },
+ "frames": 8,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 19,
+  "y": 67,
+  "kind": "origin"
+ },
+ "message": "A 16-bit style healing effect: a soft green glow pulses at the base, then green and white plus signs and light motes rise straight up over 8 frames (about 0.7 s, one-shot), fading out at the top. It's a tall 37x85 canvas with the effect centred. The warning about light layers is harmless here: there's no sprite in this effect, so those layers have nothing to light, and the glows and plus signs draw normally.",
+ "effect_id": "5ccf6c94-1648-43ad-8903-d5bec7d388d8",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-heal 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 37,
+     "h": 85
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 37,
+     "h": 85
+    },
+    "sourceSize": {
+     "w": 37,
+     "h": 85
+    },
+    "pivot": {
+     "x": 0.5135135135135135,
+     "y": 0.788235294117647
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-heal 1.png",
+    "frame": {
+     "x": 37,
+     "y": 0,
+     "w": 37,
+     "h": 85
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 37,
+     "h": 85
+    },
+    "sourceSize": {
+     "w": 37,
+     "h": 85
+    },
+    "pivot": {
+     "x": 0.5135135135135135,
+     "y": 0.788235294117647
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-heal 2.png",
+    "frame": {
+     "x": 74,
+     "y": 0,
+     "w": 37,
+     "h": 85
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 37,
+     "h": 85
+    },
+    "sourceSize": {
+     "w": 37,
+     "h": 85
+    },
+    "pivot": {
+     "x": 0.5135135135135135,
+     "y": 0.788235294117647
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-heal 3.png",
+    "frame": {
+     "x": 0,
+     "y": 85,
+     "w": 37,
+     "h": 85
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 37,
+     "h": 85
+    },
+    "sourceSize": {
+     "w": 37,
+     "h": 85
+    },
+    "pivot": {
+     "x": 0.5135135135135135,
+     "y": 0.788235294117647
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-heal 4.png",
+    "frame": {
+     "x": 37,
+     "y": 85,
+     "w": 37,
+     "h": 85
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 37,
+     "h": 85
+    },
+    "sourceSize": {
+     "w": 37,
+     "h": 85
+    },
+    "pivot": {
+     "x": 0.5135135135135135,
+     "y": 0.788235294117647
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-heal 5.png",
+    "frame": {
+     "x": 74,
+     "y": 85,
+     "w": 37,
+     "h": 85
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 37,
+     "h": 85
+    },
+    "sourceSize": {
+     "w": 37,
+     "h": 85
+    },
+    "pivot": {
+     "x": 0.5135135135135135,
+     "y": 0.788235294117647
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-heal 6.png",
+    "frame": {
+     "x": 0,
+     "y": 170,
+     "w": 37,
+     "h": 85
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 37,
+     "h": 85
+    },
+    "sourceSize": {
+     "w": 37,
+     "h": 85
+    },
+    "pivot": {
+     "x": 0.5135135135135135,
+     "y": 0.788235294117647
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-heal 7.png",
+    "frame": {
+     "x": 37,
+     "y": 170,
+     "w": 37,
+     "h": 85
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 37,
+     "h": 85
+    },
+    "sourceSize": {
+     "w": 37,
+     "h": 85
+    },
+    "pivot": {
+     "x": 0.5135135135135135,
+     "y": 0.788235294117647
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-heal.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 111,
+    "h": 255
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 19,
+    "y": 67
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-heal",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

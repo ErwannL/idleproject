@@ -1,0 +1,225 @@
+{
+ "canvas": {
+  "h": 80,
+  "w": 64
+ },
+ "frames": 7,
+ "fps": 10,
+ "loop": false,
+ "anchor": {
+  "x": 32,
+  "y": 58,
+  "kind": "origin"
+ },
+ "message": "A 7-frame retro loot burst: a small gold flash on the ground, then a fountain of golden sparkles and little stars that shoot up and fall back, fading out by the last frame. It's built on a 64x80 transparent canvas with a 4-step gold ramp and a dark outline. Try the Sparks count and Speed to make the fountain taller or denser, and the Stars count for more little stars.",
+ "effect_id": "acf75896-51e2-45fc-9f54-48da186eef12",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-loot-burst 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.725
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-loot-burst 1.png",
+    "frame": {
+     "x": 64,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.725
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-loot-burst 2.png",
+    "frame": {
+     "x": 128,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.725
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-loot-burst 3.png",
+    "frame": {
+     "x": 0,
+     "y": 80,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.725
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-loot-burst 4.png",
+    "frame": {
+     "x": 64,
+     "y": 80,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.725
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-loot-burst 5.png",
+    "frame": {
+     "x": 128,
+     "y": 80,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.725
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-loot-burst 6.png",
+    "frame": {
+     "x": 0,
+     "y": 160,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.725
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-loot-burst.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 192,
+    "h": 240
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 32,
+    "y": 58
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-loot-burst",
+     "from": 0,
+     "to": 6,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

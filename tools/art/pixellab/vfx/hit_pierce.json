@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 48,
+  "w": 64
+ },
+ "frames": 6,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 32,
+  "y": 24,
+  "kind": "origin"
+ },
+ "message": "Here is a 6-frame retro thrust impact: a narrow white-steel spear streak shoots right, hits a small orange-and-yellow star burst at its tip, then the streak pulls back and the burst fades. Adjust the streak length and burst size in the sliders to taste.",
+ "effect_id": "360301ff-d3f4-42fa-bad9-a5c8acbbb844",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-hit-pierce 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-pierce 1.png",
+    "frame": {
+     "x": 64,
+     "y": 0,
+     "w": 64,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-pierce 2.png",
+    "frame": {
+     "x": 128,
+     "y": 0,
+     "w": 64,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-pierce 3.png",
+    "frame": {
+     "x": 0,
+     "y": 48,
+     "w": 64,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-pierce 4.png",
+    "frame": {
+     "x": 64,
+     "y": 48,
+     "w": 64,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-pierce 5.png",
+    "frame": {
+     "x": 128,
+     "y": 48,
+     "w": 64,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-hit-pierce.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 192,
+    "h": 96
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 32,
+    "y": 24
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-hit-pierce",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

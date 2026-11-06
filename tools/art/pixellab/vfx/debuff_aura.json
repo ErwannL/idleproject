@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 66,
+  "w": 55
+ },
+ "frames": 6,
+ "fps": 8,
+ "loop": true,
+ "anchor": {
+  "x": 28,
+  "y": 46,
+  "kind": "origin"
+ },
+ "message": "A looping 6-frame curse aura on the ground: purple wisps and droplets drip down through the empty centre, with a ring of small skulls circling the base and a purple ground ring under them. The palette runs from deep violet to pale lilac on a transparent background. The sliders for wisp, drip and skull counts are on the page; the skulls are small, so raise their size if you want them more readable.",
+ "effect_id": "3866f705-e14b-48de-a2c8-97d241221457",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-debuff-aura 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 55,
+     "h": 66
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 55,
+     "h": 66
+    },
+    "sourceSize": {
+     "w": 55,
+     "h": 66
+    },
+    "pivot": {
+     "x": 0.509090909090909,
+     "y": 0.696969696969697
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-debuff-aura 1.png",
+    "frame": {
+     "x": 55,
+     "y": 0,
+     "w": 55,
+     "h": 66
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 55,
+     "h": 66
+    },
+    "sourceSize": {
+     "w": 55,
+     "h": 66
+    },
+    "pivot": {
+     "x": 0.509090909090909,
+     "y": 0.696969696969697
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-debuff-aura 2.png",
+    "frame": {
+     "x": 110,
+     "y": 0,
+     "w": 55,
+     "h": 66
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 55,
+     "h": 66
+    },
+    "sourceSize": {
+     "w": 55,
+     "h": 66
+    },
+    "pivot": {
+     "x": 0.509090909090909,
+     "y": 0.696969696969697
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-debuff-aura 3.png",
+    "frame": {
+     "x": 0,
+     "y": 66,
+     "w": 55,
+     "h": 66
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 55,
+     "h": 66
+    },
+    "sourceSize": {
+     "w": 55,
+     "h": 66
+    },
+    "pivot": {
+     "x": 0.509090909090909,
+     "y": 0.696969696969697
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-debuff-aura 4.png",
+    "frame": {
+     "x": 55,
+     "y": 66,
+     "w": 55,
+     "h": 66
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 55,
+     "h": 66
+    },
+    "sourceSize": {
+     "w": 55,
+     "h": 66
+    },
+    "pivot": {
+     "x": 0.509090909090909,
+     "y": 0.696969696969697
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-debuff-aura 5.png",
+    "frame": {
+     "x": 110,
+     "y": 66,
+     "w": 55,
+     "h": 66
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 55,
+     "h": 66
+    },
+    "sourceSize": {
+     "w": 55,
+     "h": 66
+    },
+    "pivot": {
+     "x": 0.509090909090909,
+     "y": 0.696969696969697
+    },
+    "duration": 125
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-debuff-aura.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 165,
+    "h": 132
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 28,
+    "y": 46
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-debuff-aura",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

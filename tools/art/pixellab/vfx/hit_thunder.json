@@ -1,0 +1,225 @@
+{
+ "canvas": {
+  "h": 51,
+  "w": 66
+ },
+ "frames": 7,
+ "fps": 13,
+ "loop": false,
+ "anchor": {
+  "x": 26,
+  "y": 22,
+  "kind": "origin"
+ },
+ "message": "A 7-frame retro lightning impact on a transparent 66x51 canvas, centred, with no character: a white-cyan flash opens it, jagged bolts and sparks crackle outward at the peak, then the bolts cool to dark blue and fade. It uses a four-colour electric ramp with dark outline accents and no dithering. Try the Colour or Thickness sliders to make the bolts bolder, or the Jag slider for sharper zigzags.",
+ "effect_id": "def8e7a3-1607-40ed-aa8d-9659cb7cd140",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-hit-thunder 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 66,
+     "h": 51
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 66,
+     "h": 51
+    },
+    "sourceSize": {
+     "w": 66,
+     "h": 51
+    },
+    "pivot": {
+     "x": 0.3939393939393939,
+     "y": 0.43137254901960786
+    },
+    "duration": 77
+   },
+   {
+    "filename": "ascendrya-hit-thunder 1.png",
+    "frame": {
+     "x": 66,
+     "y": 0,
+     "w": 66,
+     "h": 51
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 66,
+     "h": 51
+    },
+    "sourceSize": {
+     "w": 66,
+     "h": 51
+    },
+    "pivot": {
+     "x": 0.3939393939393939,
+     "y": 0.43137254901960786
+    },
+    "duration": 77
+   },
+   {
+    "filename": "ascendrya-hit-thunder 2.png",
+    "frame": {
+     "x": 132,
+     "y": 0,
+     "w": 66,
+     "h": 51
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 66,
+     "h": 51
+    },
+    "sourceSize": {
+     "w": 66,
+     "h": 51
+    },
+    "pivot": {
+     "x": 0.3939393939393939,
+     "y": 0.43137254901960786
+    },
+    "duration": 77
+   },
+   {
+    "filename": "ascendrya-hit-thunder 3.png",
+    "frame": {
+     "x": 0,
+     "y": 51,
+     "w": 66,
+     "h": 51
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 66,
+     "h": 51
+    },
+    "sourceSize": {
+     "w": 66,
+     "h": 51
+    },
+    "pivot": {
+     "x": 0.3939393939393939,
+     "y": 0.43137254901960786
+    },
+    "duration": 77
+   },
+   {
+    "filename": "ascendrya-hit-thunder 4.png",
+    "frame": {
+     "x": 66,
+     "y": 51,
+     "w": 66,
+     "h": 51
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 66,
+     "h": 51
+    },
+    "sourceSize": {
+     "w": 66,
+     "h": 51
+    },
+    "pivot": {
+     "x": 0.3939393939393939,
+     "y": 0.43137254901960786
+    },
+    "duration": 77
+   },
+   {
+    "filename": "ascendrya-hit-thunder 5.png",
+    "frame": {
+     "x": 132,
+     "y": 51,
+     "w": 66,
+     "h": 51
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 66,
+     "h": 51
+    },
+    "sourceSize": {
+     "w": 66,
+     "h": 51
+    },
+    "pivot": {
+     "x": 0.3939393939393939,
+     "y": 0.43137254901960786
+    },
+    "duration": 77
+   },
+   {
+    "filename": "ascendrya-hit-thunder 6.png",
+    "frame": {
+     "x": 0,
+     "y": 102,
+     "w": 66,
+     "h": 51
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 66,
+     "h": 51
+    },
+    "sourceSize": {
+     "w": 66,
+     "h": 51
+    },
+    "pivot": {
+     "x": 0.3939393939393939,
+     "y": 0.43137254901960786
+    },
+    "duration": 77
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-hit-thunder.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 198,
+    "h": 153
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 26,
+    "y": 22
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-hit-thunder",
+     "from": 0,
+     "to": 6,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

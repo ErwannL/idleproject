@@ -1,3 +1,5 @@
+import { vfx } from './vfx.js';
+// v9.2.6 : impacts dessinés (vfx.js) choisis par l'arme : `weapon` transmis à hitReact (estoc, flèche).
 // v9.0.6 : attaques de classe — arc et flèches, arbalète, boules de feu et météore, éclairs en chaîne, âmes,
 // estoc du lancier, fente du berserker, lumière du paladin, pas de l'ombre de l'assassin.
 // Étape 6 : sorti de scene.js (plus de 1 300 lignes). La méthode est ajoutée au prototype de SceneRenderer
@@ -22,7 +24,7 @@ export function installClassFx(proto, { HERO_X, ATTACK_TIME, CAST_TIME }) {
           this.projectile(fire ? ['fx_arrow_fire1', 'fx_arrow_fire2'] : ['fx_arrow'], hx, hy, tx, G - 12, time, {
             arc: 5, targetId: id, trail: fire ? ['#ffb43a', '#ff6a1a', '#ffe08a'] : ['#e8e0c8'], trailVy: fire ? -14 : 0,
             onHit: (x, y) => {
-              react(x, y, fire ? '#ffb43a' : '#e8e0c8');
+              react(x, y, fire ? '#ffb43a' : '#e8e0c8', { weapon: 'arrow' });
               // La flèche se plante dans la cible (et tombe si elle meurt).
               const fx = this.enemyFx.get(id);
               if (fx) this.effects.push({ kind: 'stuck', frame: fire ? 'fx_arrow_fire1' : 'fx_arrow', targetId: id, ox: x - fx.sx, oy: y - fx.sy, x, y, life: 0.6, max: 0.6 });
@@ -49,7 +51,7 @@ export function installClassFx(proto, { HERO_X, ATTACK_TIME, CAST_TIME }) {
           this.projectile(['fx_bolt'], hx + 4, G - 21, tx, G - 21, time, {
             targetId: id, trail: ['#c8a070'], trailVy: 0,
             onHit: (x, y) => {
-              react(x, y, '#e8d0a8');
+              react(x, y, '#e8d0a8', { weapon: 'pierce' });
               // Le carreau transperce : une ligne file à travers toute la file d'ennemis.
               const far = others.length ? Math.max(...others.map((t) => t.x)) + 16 : x + 20;
               this.effects.push({ kind: 'streak', x0: x, x1: far, y: y, color: '#fff2d8', life: 0.14, max: 0.14 });
@@ -95,6 +97,8 @@ export function installClassFx(proto, { HERO_X, ATTACK_TIME, CAST_TIME }) {
           const pts = [{ x: hx + 4, y: hy - 8 }, { x: tx, y: G - 12 }, ...others.map((t) => ({ x: t.x, y: G - 12 }))];
           this.effects.push({ kind: 'zap', pts, life: 0.22, max: 0.22, color: '#e8f8ff' });
           this.effects.push({ kind: 'flash', color: '#bfe8ff', life: 0.08, max: 0.08 });
+          // v9.2.6 : boule électrique dessinée qui file le long de l'éclair.
+          vfx(this, 'proj_bolt', hx + 4, hy - 8, { life: 0.12, vx: (tx - hx - 4) / 0.12, vy: (G - 12 - hy + 8) / 0.12 });
           react(tx - 4, G - 12, '#9fe0ff', { element: 'thunder' }); // v9.1.9 : étincelles de foudre
           splash('#9fe0ff', 0.04);
           break;
@@ -120,7 +124,7 @@ export function installClassFx(proto, { HERO_X, ATTACK_TIME, CAST_TIME }) {
           this.dust(HERO_X - 4, 2);
           const far = others.length ? Math.max(...others.map((t) => t.x)) : tx;
           this.effects.push({ kind: 'streak', x0: hx + 16, x1: far + 6, y: G - 18, color: '#cfefff', life: 0.24, max: 0.16 });
-          this.later(0.09, () => { react(tx, null, '#cfefff'); splash('#cfefff', 0.02); });
+          this.later(0.09, () => { react(tx, null, '#cfefff', { weapon: 'pierce' }); splash('#cfefff', 0.02); });
           break;
         }
         case 'cleave': {

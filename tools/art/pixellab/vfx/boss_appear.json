@@ -1,0 +1,303 @@
+{
+ "canvas": {
+  "h": 152,
+  "w": 142
+ },
+ "frames": 10,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 71,
+  "y": 138,
+  "kind": "origin"
+ },
+ "message": "A 10-frame one-shot boss summoning portal: a dark red and black rune circle on the ground, crimson flames erupting from its rim, and a lightning bolt striking down into the centre with sparks and scorch, fading out by the last frame. The light from the flames only lights a character, so it has no effect here with no sprite. Try the Circle, Flames and Lightning colour sliders to shift the reds, and the Lightning branches slider to make the bolt more or less forked.",
+ "effect_id": "fd668d45-2c90-482e-bd0f-12a2d47dda1b",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-boss-appear 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 142,
+     "h": 152
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 142,
+     "h": 152
+    },
+    "sourceSize": {
+     "w": 142,
+     "h": 152
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9078947368421053
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-appear 1.png",
+    "frame": {
+     "x": 142,
+     "y": 0,
+     "w": 142,
+     "h": 152
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 142,
+     "h": 152
+    },
+    "sourceSize": {
+     "w": 142,
+     "h": 152
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9078947368421053
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-appear 2.png",
+    "frame": {
+     "x": 284,
+     "y": 0,
+     "w": 142,
+     "h": 152
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 142,
+     "h": 152
+    },
+    "sourceSize": {
+     "w": 142,
+     "h": 152
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9078947368421053
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-appear 3.png",
+    "frame": {
+     "x": 426,
+     "y": 0,
+     "w": 142,
+     "h": 152
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 142,
+     "h": 152
+    },
+    "sourceSize": {
+     "w": 142,
+     "h": 152
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9078947368421053
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-appear 4.png",
+    "frame": {
+     "x": 0,
+     "y": 152,
+     "w": 142,
+     "h": 152
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 142,
+     "h": 152
+    },
+    "sourceSize": {
+     "w": 142,
+     "h": 152
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9078947368421053
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-appear 5.png",
+    "frame": {
+     "x": 142,
+     "y": 152,
+     "w": 142,
+     "h": 152
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 142,
+     "h": 152
+    },
+    "sourceSize": {
+     "w": 142,
+     "h": 152
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9078947368421053
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-appear 6.png",
+    "frame": {
+     "x": 284,
+     "y": 152,
+     "w": 142,
+     "h": 152
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 142,
+     "h": 152
+    },
+    "sourceSize": {
+     "w": 142,
+     "h": 152
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9078947368421053
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-appear 7.png",
+    "frame": {
+     "x": 426,
+     "y": 152,
+     "w": 142,
+     "h": 152
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 142,
+     "h": 152
+    },
+    "sourceSize": {
+     "w": 142,
+     "h": 152
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9078947368421053
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-appear 8.png",
+    "frame": {
+     "x": 0,
+     "y": 304,
+     "w": 142,
+     "h": 152
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 142,
+     "h": 152
+    },
+    "sourceSize": {
+     "w": 142,
+     "h": 152
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9078947368421053
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-appear 9.png",
+    "frame": {
+     "x": 142,
+     "y": 304,
+     "w": 142,
+     "h": 152
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 142,
+     "h": 152
+    },
+    "sourceSize": {
+     "w": 142,
+     "h": 152
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.9078947368421053
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-boss-appear.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 568,
+    "h": 456
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 71,
+    "y": 138
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-boss-appear",
+     "from": 0,
+     "to": 9,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

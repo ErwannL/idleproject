@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 80,
+  "w": 80
+ },
+ "frames": 6,
+ "fps": 10,
+ "loop": false,
+ "anchor": {
+  "x": 40,
+  "y": 40,
+  "kind": "origin"
+ },
+ "message": "A 6-frame retro hammer impact on a transparent 80x80 canvas: a yellow-white flash and puff bursts at the centre, a flattened shockwave ring spreads out, and chunky sparkle stars and debris fly out and fall, fading by the last frame. There's no character, and the palette is four warm tones with a dark outline. To tune it, try the ring's size and width, the star count and speed, or the debris gravity.",
+ "effect_id": "6a228075-a9d8-466f-88b9-ae052fff1653",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-hit-blunt 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-hit-blunt 1.png",
+    "frame": {
+     "x": 80,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-hit-blunt 2.png",
+    "frame": {
+     "x": 160,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-hit-blunt 3.png",
+    "frame": {
+     "x": 0,
+     "y": 80,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-hit-blunt 4.png",
+    "frame": {
+     "x": 80,
+     "y": 80,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-hit-blunt 5.png",
+    "frame": {
+     "x": 160,
+     "y": 80,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-hit-blunt.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 240,
+    "h": 160
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 40,
+    "y": 40
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-hit-blunt",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

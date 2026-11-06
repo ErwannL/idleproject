@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 25,
+  "w": 74
+ },
+ "frames": 6,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 63,
+  "y": 13,
+  "kind": "origin"
+ },
+ "message": "A looping 6-frame fireball flying right: a bright yellow core, orange flames and a flickering dark-edged flame trail streaming left, with a few embers. It uses a 4-colour retro palette, hard edges, dark outline and no dithering. Try the speed and length sliders to stretch or shorten the trail.",
+ "effect_id": "debba556-3908-4f86-8f8c-7abfbf6daa34",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-proj-fireball 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 25
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 25
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 25
+    },
+    "pivot": {
+     "x": 0.8513513513513513,
+     "y": 0.52
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-proj-fireball 1.png",
+    "frame": {
+     "x": 74,
+     "y": 0,
+     "w": 74,
+     "h": 25
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 25
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 25
+    },
+    "pivot": {
+     "x": 0.8513513513513513,
+     "y": 0.52
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-proj-fireball 2.png",
+    "frame": {
+     "x": 148,
+     "y": 0,
+     "w": 74,
+     "h": 25
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 25
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 25
+    },
+    "pivot": {
+     "x": 0.8513513513513513,
+     "y": 0.52
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-proj-fireball 3.png",
+    "frame": {
+     "x": 0,
+     "y": 25,
+     "w": 74,
+     "h": 25
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 25
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 25
+    },
+    "pivot": {
+     "x": 0.8513513513513513,
+     "y": 0.52
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-proj-fireball 4.png",
+    "frame": {
+     "x": 74,
+     "y": 25,
+     "w": 74,
+     "h": 25
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 25
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 25
+    },
+    "pivot": {
+     "x": 0.8513513513513513,
+     "y": 0.52
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-proj-fireball 5.png",
+    "frame": {
+     "x": 148,
+     "y": 25,
+     "w": 74,
+     "h": 25
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 25
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 25
+    },
+    "pivot": {
+     "x": 0.8513513513513513,
+     "y": 0.52
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-proj-fireball.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 222,
+    "h": 50
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 63,
+    "y": 13
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-proj-fireball",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

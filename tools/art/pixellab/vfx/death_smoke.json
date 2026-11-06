@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 48,
+  "w": 50
+ },
+ "frames": 8,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 24,
+  "y": 23,
+  "kind": "origin"
+ },
+ "message": "A round grey-lavender smoke poof that bursts out on frame 1, peaks around frames 4-5 with a dark outline, then breaks up and dissipates by frame 8. It's built at 8 frames in a limited 4-colour retro palette. The Colour and Lumpiness sliders adjust the look, and the effect plays once without looping.",
+ "effect_id": "2b45c579-8164-4e5e-b96c-bf25b7dabaec",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-death-smoke 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 50,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 50,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 50,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.48,
+     "y": 0.4791666666666667
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-death-smoke 1.png",
+    "frame": {
+     "x": 50,
+     "y": 0,
+     "w": 50,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 50,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 50,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.48,
+     "y": 0.4791666666666667
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-death-smoke 2.png",
+    "frame": {
+     "x": 100,
+     "y": 0,
+     "w": 50,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 50,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 50,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.48,
+     "y": 0.4791666666666667
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-death-smoke 3.png",
+    "frame": {
+     "x": 0,
+     "y": 48,
+     "w": 50,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 50,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 50,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.48,
+     "y": 0.4791666666666667
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-death-smoke 4.png",
+    "frame": {
+     "x": 50,
+     "y": 48,
+     "w": 50,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 50,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 50,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.48,
+     "y": 0.4791666666666667
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-death-smoke 5.png",
+    "frame": {
+     "x": 100,
+     "y": 48,
+     "w": 50,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 50,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 50,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.48,
+     "y": 0.4791666666666667
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-death-smoke 6.png",
+    "frame": {
+     "x": 0,
+     "y": 96,
+     "w": 50,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 50,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 50,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.48,
+     "y": 0.4791666666666667
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-death-smoke 7.png",
+    "frame": {
+     "x": 50,
+     "y": 96,
+     "w": 50,
+     "h": 48
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 50,
+     "h": 48
+    },
+    "sourceSize": {
+     "w": 50,
+     "h": 48
+    },
+    "pivot": {
+     "x": 0.48,
+     "y": 0.4791666666666667
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-death-smoke.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 150,
+    "h": 144
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 24,
+    "y": 23
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-death-smoke",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

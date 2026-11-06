@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 76,
+  "w": 78
+ },
+ "frames": 8,
+ "fps": 10,
+ "loop": false,
+ "anchor": {
+  "x": 38,
+  "y": 38,
+  "kind": "origin"
+ },
+ "message": "A retro 16-bit fire impact: a white-hot flash and a ring of force, then orange and yellow flames burst outward, curl up and settle into grey smoke with a few embers, all in 8 frames on a transparent background with a dark outline and a 4-colour palette. The smoke reads grey more than dark, and the last frame is empty. Use the fire colour, smoke amount and throw sliders to tune it.",
+ "effect_id": "deeadb2f-d874-43e1-9b51-1dbfb567311a",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-hit-fire 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 78,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 78,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 78,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.48717948717948717,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-hit-fire 1.png",
+    "frame": {
+     "x": 78,
+     "y": 0,
+     "w": 78,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 78,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 78,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.48717948717948717,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-hit-fire 2.png",
+    "frame": {
+     "x": 156,
+     "y": 0,
+     "w": 78,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 78,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 78,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.48717948717948717,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-hit-fire 3.png",
+    "frame": {
+     "x": 0,
+     "y": 76,
+     "w": 78,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 78,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 78,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.48717948717948717,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-hit-fire 4.png",
+    "frame": {
+     "x": 78,
+     "y": 76,
+     "w": 78,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 78,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 78,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.48717948717948717,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-hit-fire 5.png",
+    "frame": {
+     "x": 156,
+     "y": 76,
+     "w": 78,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 78,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 78,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.48717948717948717,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-hit-fire 6.png",
+    "frame": {
+     "x": 0,
+     "y": 152,
+     "w": 78,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 78,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 78,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.48717948717948717,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-hit-fire 7.png",
+    "frame": {
+     "x": 78,
+     "y": 152,
+     "w": 78,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 78,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 78,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.48717948717948717,
+     "y": 0.5
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-hit-fire.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 234,
+    "h": 228
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 38,
+    "y": 38
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-hit-fire",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,173 @@
+{
+ "canvas": {
+  "h": 61,
+  "w": 41
+ },
+ "frames": 5,
+ "fps": 20,
+ "loop": false,
+ "anchor": {
+  "x": 15,
+  "y": 12,
+  "kind": "origin"
+ },
+ "message": "A 5-frame, 20 fps retro arrow impact: a small white-hot flash with beige rays on frame 1–2, then a burst of white and beige sparks and a few dark-outlined wood splinters flying out and falling. Transparent background, no character. Try the Gravity or Speed sliders for the splinters and sparks.",
+ "effect_id": "15c8e913-a88e-4be0-bc7a-8fac27a68f92",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-hit-arrow 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 41,
+     "h": 61
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 41,
+     "h": 61
+    },
+    "sourceSize": {
+     "w": 41,
+     "h": 61
+    },
+    "pivot": {
+     "x": 0.36585365853658536,
+     "y": 0.19672131147540983
+    },
+    "duration": 50
+   },
+   {
+    "filename": "ascendrya-hit-arrow 1.png",
+    "frame": {
+     "x": 41,
+     "y": 0,
+     "w": 41,
+     "h": 61
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 41,
+     "h": 61
+    },
+    "sourceSize": {
+     "w": 41,
+     "h": 61
+    },
+    "pivot": {
+     "x": 0.36585365853658536,
+     "y": 0.19672131147540983
+    },
+    "duration": 50
+   },
+   {
+    "filename": "ascendrya-hit-arrow 2.png",
+    "frame": {
+     "x": 82,
+     "y": 0,
+     "w": 41,
+     "h": 61
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 41,
+     "h": 61
+    },
+    "sourceSize": {
+     "w": 41,
+     "h": 61
+    },
+    "pivot": {
+     "x": 0.36585365853658536,
+     "y": 0.19672131147540983
+    },
+    "duration": 50
+   },
+   {
+    "filename": "ascendrya-hit-arrow 3.png",
+    "frame": {
+     "x": 0,
+     "y": 61,
+     "w": 41,
+     "h": 61
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 41,
+     "h": 61
+    },
+    "sourceSize": {
+     "w": 41,
+     "h": 61
+    },
+    "pivot": {
+     "x": 0.36585365853658536,
+     "y": 0.19672131147540983
+    },
+    "duration": 50
+   },
+   {
+    "filename": "ascendrya-hit-arrow 4.png",
+    "frame": {
+     "x": 41,
+     "y": 61,
+     "w": 41,
+     "h": 61
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 41,
+     "h": 61
+    },
+    "sourceSize": {
+     "w": 41,
+     "h": 61
+    },
+    "pivot": {
+     "x": 0.36585365853658536,
+     "y": 0.19672131147540983
+    },
+    "duration": 50
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-hit-arrow.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 123,
+    "h": 122
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 15,
+    "y": 12
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-hit-arrow",
+     "from": 0,
+     "to": 4,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

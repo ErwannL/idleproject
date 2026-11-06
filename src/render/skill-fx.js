@@ -6,6 +6,7 @@
 // Tout est dessiné en pixels de jeu (fillRect sur des coordonnées entières) pour rester dans le style du jeu.
 import { HERO_SKILL_MOTIFS, SKILL_ANIM_ART, SKILL_ANIM_PALS, SKILL_ANIMS, UNIT_SKILL_MOTIFS } from './art-anim-skills.js';
 import { SPRITES, expandRow } from './sprites.js';
+import { vfx } from './vfx.js'; // v9.2.6
 import { ALLY_ANIMS, knightHead, weaponPose } from './ally-anim.js';
 import { KNIGHT_HEAD } from './knight-gear.js';
 
@@ -900,8 +901,20 @@ function calm(s, name, c) {
 
 export const isSupportFx = (name) => SUPPORT_FX.has(name);
 
+// v9.2.6 : soins et bonus de l'équipe, malus des ennemis : aura dessinée (PixelLab, vfx.js) aux pieds des cibles.
+const HEAL_FX = new Set(['prayer', 'dawn_prayer', 'divine_light', 'sap_of_life', 'fairy_heal', 'harvest']);
+const DEBUFF_FX = new Set(['taunt', 'eclipse', 'frost_nova', 'eternal_winter', 'frost_storm']);
+function auraFx(scene, name, c) {
+  const G = scene.groundY;
+  const at = (fn) => later(scene, c.release ?? 0, fn);
+  if (HEAL_FX.has(name)) at(() => c.team.forEach((x, i) => vfx(scene, 'heal', x, G, { delay: i * 0.06 })));
+  else if (SUPPORT_FX.has(name)) at(() => c.team.forEach((x) => vfx(scene, 'buff_aura', x, G + 1, { life: 1.6, loop: true, size: 0.9 })));
+  if (DEBUFF_FX.has(name)) at(() => c.foes.slice(0, 4).forEach((f) => vfx(scene, 'debuff_aura', f.x, G + 1, { life: 1.4, loop: true, follow: f.id, size: 0.9 })));
+}
+
 function run(scene, name, c) {
   if (!FX[name]) return;
+  auraFx(scene, name, c);
   if (scene.focus) calm(scene, name, c);
   else FX[name](scene, c);
 }

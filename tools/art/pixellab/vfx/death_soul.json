@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 43,
+  "w": 18
+ },
+ "frames": 8,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 9,
+  "y": 18,
+  "kind": "origin"
+ },
+ "message": "A small pale cyan soul wisp rises upward over 8 frames, shrinking and fading into a few trailing motes, on a transparent 18x43 canvas with a dark outline and a four-colour retro ramp. The fade is set by the halo and core dissolve, and the rise is set by the wisp's path, so those are the parts to adjust if you want it taller or slower.",
+ "effect_id": "c25c1459-0777-4559-9a8b-fefe0daf58b1",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-death-soul 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 18,
+     "h": 43
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 18,
+     "h": 43
+    },
+    "sourceSize": {
+     "w": 18,
+     "h": 43
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4186046511627907
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-death-soul 1.png",
+    "frame": {
+     "x": 18,
+     "y": 0,
+     "w": 18,
+     "h": 43
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 18,
+     "h": 43
+    },
+    "sourceSize": {
+     "w": 18,
+     "h": 43
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4186046511627907
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-death-soul 2.png",
+    "frame": {
+     "x": 36,
+     "y": 0,
+     "w": 18,
+     "h": 43
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 18,
+     "h": 43
+    },
+    "sourceSize": {
+     "w": 18,
+     "h": 43
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4186046511627907
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-death-soul 3.png",
+    "frame": {
+     "x": 0,
+     "y": 43,
+     "w": 18,
+     "h": 43
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 18,
+     "h": 43
+    },
+    "sourceSize": {
+     "w": 18,
+     "h": 43
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4186046511627907
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-death-soul 4.png",
+    "frame": {
+     "x": 18,
+     "y": 43,
+     "w": 18,
+     "h": 43
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 18,
+     "h": 43
+    },
+    "sourceSize": {
+     "w": 18,
+     "h": 43
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4186046511627907
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-death-soul 5.png",
+    "frame": {
+     "x": 36,
+     "y": 43,
+     "w": 18,
+     "h": 43
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 18,
+     "h": 43
+    },
+    "sourceSize": {
+     "w": 18,
+     "h": 43
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4186046511627907
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-death-soul 6.png",
+    "frame": {
+     "x": 0,
+     "y": 86,
+     "w": 18,
+     "h": 43
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 18,
+     "h": 43
+    },
+    "sourceSize": {
+     "w": 18,
+     "h": 43
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4186046511627907
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-death-soul 7.png",
+    "frame": {
+     "x": 18,
+     "y": 86,
+     "w": 18,
+     "h": 43
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 18,
+     "h": 43
+    },
+    "sourceSize": {
+     "w": 18,
+     "h": 43
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4186046511627907
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-death-soul.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 54,
+    "h": 129
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 9,
+    "y": 18
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-death-soul",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

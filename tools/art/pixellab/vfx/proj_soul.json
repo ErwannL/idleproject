@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 40,
+  "w": 64
+ },
+ "frames": 6,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 44,
+  "y": 20,
+  "kind": "origin"
+ },
+ "message": "A green soul wisp with a glowing head flying right, a wavy spectral trail streaming behind it, and a few small sparks, looping over 6 frames at 10 fps on a transparent canvas. The head bobs gently and the trail ripples; you can adjust its size and colours from the page's sliders.",
+ "effect_id": "0a9b5197-86e7-4e0d-9e19-6f6936b08a5b",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-proj-soul 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 40
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 40
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 40
+    },
+    "pivot": {
+     "x": 0.6875,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-proj-soul 1.png",
+    "frame": {
+     "x": 64,
+     "y": 0,
+     "w": 64,
+     "h": 40
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 40
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 40
+    },
+    "pivot": {
+     "x": 0.6875,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-proj-soul 2.png",
+    "frame": {
+     "x": 128,
+     "y": 0,
+     "w": 64,
+     "h": 40
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 40
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 40
+    },
+    "pivot": {
+     "x": 0.6875,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-proj-soul 3.png",
+    "frame": {
+     "x": 0,
+     "y": 40,
+     "w": 64,
+     "h": 40
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 40
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 40
+    },
+    "pivot": {
+     "x": 0.6875,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-proj-soul 4.png",
+    "frame": {
+     "x": 64,
+     "y": 40,
+     "w": 64,
+     "h": 40
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 40
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 40
+    },
+    "pivot": {
+     "x": 0.6875,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-proj-soul 5.png",
+    "frame": {
+     "x": 128,
+     "y": 40,
+     "w": 64,
+     "h": 40
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 40
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 40
+    },
+    "pivot": {
+     "x": 0.6875,
+     "y": 0.5
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-proj-soul.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 192,
+    "h": 80
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 44,
+    "y": 20
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-proj-soul",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

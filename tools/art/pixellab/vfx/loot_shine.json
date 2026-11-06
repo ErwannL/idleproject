@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 32,
+  "w": 32
+ },
+ "frames": 6,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 16,
+  "y": 16,
+  "kind": "origin"
+ },
+ "message": "A looping 6-frame twinkle: a thin white-blue four-point star that grows and shrinks, with a few tiny pixel sparkles blinking around it and no ring. The glint size slider scales the star's arms. The effect is small (32x32) on a transparent background, and the sparkles are only 1 px, so they are faint at 1x.",
+ "effect_id": "ab3955a5-6592-492f-a290-9bccbdbc4a82",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-loot-shine 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 32,
+     "h": 32
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 32,
+     "h": 32
+    },
+    "sourceSize": {
+     "w": 32,
+     "h": 32
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-loot-shine 1.png",
+    "frame": {
+     "x": 32,
+     "y": 0,
+     "w": 32,
+     "h": 32
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 32,
+     "h": 32
+    },
+    "sourceSize": {
+     "w": 32,
+     "h": 32
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-loot-shine 2.png",
+    "frame": {
+     "x": 64,
+     "y": 0,
+     "w": 32,
+     "h": 32
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 32,
+     "h": 32
+    },
+    "sourceSize": {
+     "w": 32,
+     "h": 32
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-loot-shine 3.png",
+    "frame": {
+     "x": 0,
+     "y": 32,
+     "w": 32,
+     "h": 32
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 32,
+     "h": 32
+    },
+    "sourceSize": {
+     "w": 32,
+     "h": 32
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-loot-shine 4.png",
+    "frame": {
+     "x": 32,
+     "y": 32,
+     "w": 32,
+     "h": 32
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 32,
+     "h": 32
+    },
+    "sourceSize": {
+     "w": 32,
+     "h": 32
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-loot-shine 5.png",
+    "frame": {
+     "x": 64,
+     "y": 32,
+     "w": 32,
+     "h": 32
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 32,
+     "h": 32
+    },
+    "sourceSize": {
+     "w": 32,
+     "h": 32
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-loot-shine.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 96,
+    "h": 64
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 16,
+    "y": 16
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-loot-shine",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 67,
+  "w": 65
+ },
+ "frames": 8,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 33,
+  "y": 33,
+  "kind": "origin"
+ },
+ "message": "A shadow magic impact over 8 frames: violet motes converge from around the point, a dark-violet void flash bursts with a ring and rays, then a dark smoke cloud spreads and fades. The last frame is blank as a clean end. I used a 4-step violet ramp with a dark outline, but I couldn't make the background transparent or force a true 16-bit look, so check those in your game. Try the page sliders for the converge amount and swirl, the void flash colour, and the cloud's lumpiness.",
+ "effect_id": "71a3e53e-b546-4378-81c7-33b87041f71d",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-hit-shadow 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 65,
+     "h": 67
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 65,
+     "h": 67
+    },
+    "sourceSize": {
+     "w": 65,
+     "h": 67
+    },
+    "pivot": {
+     "x": 0.5076923076923077,
+     "y": 0.4925373134328358
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-shadow 1.png",
+    "frame": {
+     "x": 65,
+     "y": 0,
+     "w": 65,
+     "h": 67
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 65,
+     "h": 67
+    },
+    "sourceSize": {
+     "w": 65,
+     "h": 67
+    },
+    "pivot": {
+     "x": 0.5076923076923077,
+     "y": 0.4925373134328358
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-shadow 2.png",
+    "frame": {
+     "x": 130,
+     "y": 0,
+     "w": 65,
+     "h": 67
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 65,
+     "h": 67
+    },
+    "sourceSize": {
+     "w": 65,
+     "h": 67
+    },
+    "pivot": {
+     "x": 0.5076923076923077,
+     "y": 0.4925373134328358
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-shadow 3.png",
+    "frame": {
+     "x": 0,
+     "y": 67,
+     "w": 65,
+     "h": 67
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 65,
+     "h": 67
+    },
+    "sourceSize": {
+     "w": 65,
+     "h": 67
+    },
+    "pivot": {
+     "x": 0.5076923076923077,
+     "y": 0.4925373134328358
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-shadow 4.png",
+    "frame": {
+     "x": 65,
+     "y": 67,
+     "w": 65,
+     "h": 67
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 65,
+     "h": 67
+    },
+    "sourceSize": {
+     "w": 65,
+     "h": 67
+    },
+    "pivot": {
+     "x": 0.5076923076923077,
+     "y": 0.4925373134328358
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-shadow 5.png",
+    "frame": {
+     "x": 130,
+     "y": 67,
+     "w": 65,
+     "h": 67
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 65,
+     "h": 67
+    },
+    "sourceSize": {
+     "w": 65,
+     "h": 67
+    },
+    "pivot": {
+     "x": 0.5076923076923077,
+     "y": 0.4925373134328358
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-shadow 6.png",
+    "frame": {
+     "x": 0,
+     "y": 134,
+     "w": 65,
+     "h": 67
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 65,
+     "h": 67
+    },
+    "sourceSize": {
+     "w": 65,
+     "h": 67
+    },
+    "pivot": {
+     "x": 0.5076923076923077,
+     "y": 0.4925373134328358
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-shadow 7.png",
+    "frame": {
+     "x": 65,
+     "y": 134,
+     "w": 65,
+     "h": 67
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 65,
+     "h": 67
+    },
+    "sourceSize": {
+     "w": 65,
+     "h": 67
+    },
+    "pivot": {
+     "x": 0.5076923076923077,
+     "y": 0.4925373134328358
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-hit-shadow.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 195,
+    "h": 201
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 33,
+    "y": 33
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-hit-shadow",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

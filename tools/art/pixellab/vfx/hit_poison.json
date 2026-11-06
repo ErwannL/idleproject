@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 63,
+  "w": 53
+ },
+ "frames": 8,
+ "fps": 13,
+ "loop": false,
+ "anchor": {
+  "x": 14,
+  "y": 22,
+  "kind": "origin"
+ },
+ "message": "A poison impact in 8 frames: a toxic green splash with a bright core on the hit, flying droplets and specks, and a small green gas puff that rises and fades. Try the smoke puff's size and lumpiness sliders for a bigger or looser gas cloud, and the splash speed slider for a faster or slower spray.",
+ "effect_id": "891beb06-41be-42e6-a892-687c52784b97",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-hit-poison 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 53,
+     "h": 63
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 53,
+     "h": 63
+    },
+    "sourceSize": {
+     "w": 53,
+     "h": 63
+    },
+    "pivot": {
+     "x": 0.2641509433962264,
+     "y": 0.3492063492063492
+    },
+    "duration": 77
+   },
+   {
+    "filename": "ascendrya-hit-poison 1.png",
+    "frame": {
+     "x": 53,
+     "y": 0,
+     "w": 53,
+     "h": 63
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 53,
+     "h": 63
+    },
+    "sourceSize": {
+     "w": 53,
+     "h": 63
+    },
+    "pivot": {
+     "x": 0.2641509433962264,
+     "y": 0.3492063492063492
+    },
+    "duration": 77
+   },
+   {
+    "filename": "ascendrya-hit-poison 2.png",
+    "frame": {
+     "x": 106,
+     "y": 0,
+     "w": 53,
+     "h": 63
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 53,
+     "h": 63
+    },
+    "sourceSize": {
+     "w": 53,
+     "h": 63
+    },
+    "pivot": {
+     "x": 0.2641509433962264,
+     "y": 0.3492063492063492
+    },
+    "duration": 77
+   },
+   {
+    "filename": "ascendrya-hit-poison 3.png",
+    "frame": {
+     "x": 0,
+     "y": 63,
+     "w": 53,
+     "h": 63
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 53,
+     "h": 63
+    },
+    "sourceSize": {
+     "w": 53,
+     "h": 63
+    },
+    "pivot": {
+     "x": 0.2641509433962264,
+     "y": 0.3492063492063492
+    },
+    "duration": 77
+   },
+   {
+    "filename": "ascendrya-hit-poison 4.png",
+    "frame": {
+     "x": 53,
+     "y": 63,
+     "w": 53,
+     "h": 63
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 53,
+     "h": 63
+    },
+    "sourceSize": {
+     "w": 53,
+     "h": 63
+    },
+    "pivot": {
+     "x": 0.2641509433962264,
+     "y": 0.3492063492063492
+    },
+    "duration": 77
+   },
+   {
+    "filename": "ascendrya-hit-poison 5.png",
+    "frame": {
+     "x": 106,
+     "y": 63,
+     "w": 53,
+     "h": 63
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 53,
+     "h": 63
+    },
+    "sourceSize": {
+     "w": 53,
+     "h": 63
+    },
+    "pivot": {
+     "x": 0.2641509433962264,
+     "y": 0.3492063492063492
+    },
+    "duration": 77
+   },
+   {
+    "filename": "ascendrya-hit-poison 6.png",
+    "frame": {
+     "x": 0,
+     "y": 126,
+     "w": 53,
+     "h": 63
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 53,
+     "h": 63
+    },
+    "sourceSize": {
+     "w": 53,
+     "h": 63
+    },
+    "pivot": {
+     "x": 0.2641509433962264,
+     "y": 0.3492063492063492
+    },
+    "duration": 77
+   },
+   {
+    "filename": "ascendrya-hit-poison 7.png",
+    "frame": {
+     "x": 53,
+     "y": 126,
+     "w": 53,
+     "h": 63
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 53,
+     "h": 63
+    },
+    "sourceSize": {
+     "w": 53,
+     "h": 63
+    },
+    "pivot": {
+     "x": 0.2641509433962264,
+     "y": 0.3492063492063492
+    },
+    "duration": 77
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-hit-poison.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 159,
+    "h": 189
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 14,
+    "y": 22
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-hit-poison",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

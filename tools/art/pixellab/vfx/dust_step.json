@@ -1,0 +1,173 @@
+{
+ "canvas": {
+  "h": 19,
+  "w": 23
+ },
+ "frames": 5,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 12,
+  "y": 11,
+  "kind": "origin"
+ },
+ "message": "A tiny 5-frame dust puff kicked up from the ground, in beige and grey: a small speck, then a puff that grows, peaks around frame 3, and breaks into scattered grit by frame 4, with frame 5 left empty. The puff is one part sized to half, so it stays small at 23x19 px. I did not add the dark outline accents or a retro 4-colour limit; say if you want those.",
+ "effect_id": "113ceb55-7e41-49f2-ace1-20cd53c0cb60",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-dust-step 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 23,
+     "h": 19
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 23,
+     "h": 19
+    },
+    "sourceSize": {
+     "w": 23,
+     "h": 19
+    },
+    "pivot": {
+     "x": 0.5217391304347826,
+     "y": 0.5789473684210527
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-dust-step 1.png",
+    "frame": {
+     "x": 23,
+     "y": 0,
+     "w": 23,
+     "h": 19
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 23,
+     "h": 19
+    },
+    "sourceSize": {
+     "w": 23,
+     "h": 19
+    },
+    "pivot": {
+     "x": 0.5217391304347826,
+     "y": 0.5789473684210527
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-dust-step 2.png",
+    "frame": {
+     "x": 46,
+     "y": 0,
+     "w": 23,
+     "h": 19
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 23,
+     "h": 19
+    },
+    "sourceSize": {
+     "w": 23,
+     "h": 19
+    },
+    "pivot": {
+     "x": 0.5217391304347826,
+     "y": 0.5789473684210527
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-dust-step 3.png",
+    "frame": {
+     "x": 0,
+     "y": 19,
+     "w": 23,
+     "h": 19
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 23,
+     "h": 19
+    },
+    "sourceSize": {
+     "w": 23,
+     "h": 19
+    },
+    "pivot": {
+     "x": 0.5217391304347826,
+     "y": 0.5789473684210527
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-dust-step 4.png",
+    "frame": {
+     "x": 23,
+     "y": 19,
+     "w": 23,
+     "h": 19
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 23,
+     "h": 19
+    },
+    "sourceSize": {
+     "w": 23,
+     "h": 19
+    },
+    "pivot": {
+     "x": 0.5217391304347826,
+     "y": 0.5789473684210527
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-dust-step.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 69,
+    "h": 38
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 12,
+    "y": 11
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-dust-step",
+     "from": 0,
+     "to": 4,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

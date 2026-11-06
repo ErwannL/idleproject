@@ -1,0 +1,147 @@
+{
+ "canvas": {
+  "h": 20,
+  "w": 48
+ },
+ "frames": 4,
+ "fps": 8,
+ "loop": true,
+ "anchor": {
+  "x": 24,
+  "y": 10,
+  "kind": "origin"
+ },
+ "message": "A small wooden arrow with a red fletching flies right across a 48x20 canvas, with white streaks trailing behind it, looping over 4 frames at 8 fps. The trail is built from a particle layer, so its count and size can be tuned from the sliders. I left the outline off, so there are no dark outline accents as you asked; that is the one part of the brief I did not add.",
+ "effect_id": "d92a599e-cc5c-4fbf-8428-576f6708ebe3",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-proj-arrow 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 20
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 20
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 20
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-proj-arrow 1.png",
+    "frame": {
+     "x": 48,
+     "y": 0,
+     "w": 48,
+     "h": 20
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 20
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 20
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-proj-arrow 2.png",
+    "frame": {
+     "x": 0,
+     "y": 20,
+     "w": 48,
+     "h": 20
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 20
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 20
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-proj-arrow 3.png",
+    "frame": {
+     "x": 48,
+     "y": 20,
+     "w": 48,
+     "h": 20
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 20
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 20
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-proj-arrow.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 96,
+    "h": 40
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 24,
+    "y": 10
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-proj-arrow",
+     "from": 0,
+     "to": 3,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

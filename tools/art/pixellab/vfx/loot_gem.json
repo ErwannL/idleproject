@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 40,
+  "w": 40
+ },
+ "frames": 6,
+ "fps": 8,
+ "loop": true,
+ "anchor": {
+  "x": 20,
+  "y": 20,
+  "kind": "origin"
+ },
+ "message": "A small cyan gem crystal that turns over six frames and loops, with a white twinkle flicking on its upper right. The gem is drawn in flat cyan with a dark outline, and the canvas is 40x40 with a transparent background. Its shape narrows and widens to suggest rotation; you can change the timing by adjusting the frame rate.",
+ "effect_id": "95d9606b-575d-448c-92ff-9253f94e5097",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-loot-gem 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 40,
+     "h": 40
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 40,
+     "h": 40
+    },
+    "sourceSize": {
+     "w": 40,
+     "h": 40
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-loot-gem 1.png",
+    "frame": {
+     "x": 40,
+     "y": 0,
+     "w": 40,
+     "h": 40
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 40,
+     "h": 40
+    },
+    "sourceSize": {
+     "w": 40,
+     "h": 40
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-loot-gem 2.png",
+    "frame": {
+     "x": 80,
+     "y": 0,
+     "w": 40,
+     "h": 40
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 40,
+     "h": 40
+    },
+    "sourceSize": {
+     "w": 40,
+     "h": 40
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-loot-gem 3.png",
+    "frame": {
+     "x": 0,
+     "y": 40,
+     "w": 40,
+     "h": 40
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 40,
+     "h": 40
+    },
+    "sourceSize": {
+     "w": 40,
+     "h": 40
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-loot-gem 4.png",
+    "frame": {
+     "x": 40,
+     "y": 40,
+     "w": 40,
+     "h": 40
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 40,
+     "h": 40
+    },
+    "sourceSize": {
+     "w": 40,
+     "h": 40
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-loot-gem 5.png",
+    "frame": {
+     "x": 80,
+     "y": 40,
+     "w": 40,
+     "h": 40
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 40,
+     "h": 40
+    },
+    "sourceSize": {
+     "w": 40,
+     "h": 40
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 125
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-loot-gem.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 120,
+    "h": 80
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 20,
+    "y": 20
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-loot-gem",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

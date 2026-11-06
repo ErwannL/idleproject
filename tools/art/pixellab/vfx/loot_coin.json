@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 16,
+  "w": 16
+ },
+ "frames": 6,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 8,
+  "y": 8,
+  "kind": "origin"
+ },
+ "message": "A small 16x16 spinning gold coin, 6 frames looping at 10 fps: it turns from face-on to edge-on and back, with a dark gold edge and a white glint flicking at its upper right. Transparent background, no character. The glint is the weakest part, so if you want it sharper, say so and I'll make it brighter.",
+ "effect_id": "b774fad4-9d0c-486c-b2d7-7a507358d2b3",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-loot-coin 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 16,
+     "h": 16
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 16,
+     "h": 16
+    },
+    "sourceSize": {
+     "w": 16,
+     "h": 16
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-loot-coin 1.png",
+    "frame": {
+     "x": 16,
+     "y": 0,
+     "w": 16,
+     "h": 16
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 16,
+     "h": 16
+    },
+    "sourceSize": {
+     "w": 16,
+     "h": 16
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-loot-coin 2.png",
+    "frame": {
+     "x": 32,
+     "y": 0,
+     "w": 16,
+     "h": 16
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 16,
+     "h": 16
+    },
+    "sourceSize": {
+     "w": 16,
+     "h": 16
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-loot-coin 3.png",
+    "frame": {
+     "x": 0,
+     "y": 16,
+     "w": 16,
+     "h": 16
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 16,
+     "h": 16
+    },
+    "sourceSize": {
+     "w": 16,
+     "h": 16
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-loot-coin 4.png",
+    "frame": {
+     "x": 16,
+     "y": 16,
+     "w": 16,
+     "h": 16
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 16,
+     "h": 16
+    },
+    "sourceSize": {
+     "w": 16,
+     "h": 16
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-loot-coin 5.png",
+    "frame": {
+     "x": 32,
+     "y": 16,
+     "w": 16,
+     "h": 16
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 16,
+     "h": 16
+    },
+    "sourceSize": {
+     "w": 16,
+     "h": 16
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-loot-coin.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 48,
+    "h": 32
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 8,
+    "y": 8
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-loot-coin",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

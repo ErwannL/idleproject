@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 37,
+  "w": 45
+ },
+ "frames": 6,
+ "fps": 7,
+ "loop": false,
+ "anchor": {
+  "x": 21,
+  "y": 21,
+  "kind": "origin"
+ },
+ "message": "I made a 6-frame landing dust burst in beige and grey on a transparent background, with a bright first puff that spreads out and thins away. It is wider than tall, but it spreads in all directions rather than strictly left and right, so it is not as flat as you asked. The wide-and-low look is the main thing to tune: the spread and squash sliders on the dust layer are the place to start.",
+ "effect_id": "8c57689d-d25f-448c-a4ad-3a17205591aa",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-dust-land 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 45,
+     "h": 37
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 45,
+     "h": 37
+    },
+    "sourceSize": {
+     "w": 45,
+     "h": 37
+    },
+    "pivot": {
+     "x": 0.4666666666666667,
+     "y": 0.5675675675675675
+    },
+    "duration": 143
+   },
+   {
+    "filename": "ascendrya-dust-land 1.png",
+    "frame": {
+     "x": 45,
+     "y": 0,
+     "w": 45,
+     "h": 37
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 45,
+     "h": 37
+    },
+    "sourceSize": {
+     "w": 45,
+     "h": 37
+    },
+    "pivot": {
+     "x": 0.4666666666666667,
+     "y": 0.5675675675675675
+    },
+    "duration": 143
+   },
+   {
+    "filename": "ascendrya-dust-land 2.png",
+    "frame": {
+     "x": 90,
+     "y": 0,
+     "w": 45,
+     "h": 37
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 45,
+     "h": 37
+    },
+    "sourceSize": {
+     "w": 45,
+     "h": 37
+    },
+    "pivot": {
+     "x": 0.4666666666666667,
+     "y": 0.5675675675675675
+    },
+    "duration": 143
+   },
+   {
+    "filename": "ascendrya-dust-land 3.png",
+    "frame": {
+     "x": 0,
+     "y": 37,
+     "w": 45,
+     "h": 37
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 45,
+     "h": 37
+    },
+    "sourceSize": {
+     "w": 45,
+     "h": 37
+    },
+    "pivot": {
+     "x": 0.4666666666666667,
+     "y": 0.5675675675675675
+    },
+    "duration": 143
+   },
+   {
+    "filename": "ascendrya-dust-land 4.png",
+    "frame": {
+     "x": 45,
+     "y": 37,
+     "w": 45,
+     "h": 37
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 45,
+     "h": 37
+    },
+    "sourceSize": {
+     "w": 45,
+     "h": 37
+    },
+    "pivot": {
+     "x": 0.4666666666666667,
+     "y": 0.5675675675675675
+    },
+    "duration": 143
+   },
+   {
+    "filename": "ascendrya-dust-land 5.png",
+    "frame": {
+     "x": 90,
+     "y": 37,
+     "w": 45,
+     "h": 37
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 45,
+     "h": 37
+    },
+    "sourceSize": {
+     "w": 45,
+     "h": 37
+    },
+    "pivot": {
+     "x": 0.4666666666666667,
+     "y": 0.5675675675675675
+    },
+    "duration": 143
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-dust-land.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 135,
+    "h": 74
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 21,
+    "y": 21
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-dust-land",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

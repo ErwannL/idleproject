@@ -1,0 +1,147 @@
+{
+ "canvas": {
+  "h": 38,
+  "w": 79
+ },
+ "frames": 4,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 63,
+  "y": 19,
+  "kind": "origin"
+ },
+ "message": "A 4-frame looping ice shard flying right: a pale blue faceted crystal with a bright tip and a frosty sparkle trail behind it, on a 4-colour retro ramp with a dark outline and no dithering. The sliders for colour, amount and the frost ring are on the page; the frost ring is switched off here so the shard reads cleanly.",
+ "effect_id": "cea52479-6938-46bc-a35c-c40ef7b1bcc6",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-proj-ice 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 79,
+     "h": 38
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 79,
+     "h": 38
+    },
+    "sourceSize": {
+     "w": 79,
+     "h": 38
+    },
+    "pivot": {
+     "x": 0.7974683544303798,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-proj-ice 1.png",
+    "frame": {
+     "x": 79,
+     "y": 0,
+     "w": 79,
+     "h": 38
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 79,
+     "h": 38
+    },
+    "sourceSize": {
+     "w": 79,
+     "h": 38
+    },
+    "pivot": {
+     "x": 0.7974683544303798,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-proj-ice 2.png",
+    "frame": {
+     "x": 0,
+     "y": 38,
+     "w": 79,
+     "h": 38
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 79,
+     "h": 38
+    },
+    "sourceSize": {
+     "w": 79,
+     "h": 38
+    },
+    "pivot": {
+     "x": 0.7974683544303798,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-proj-ice 3.png",
+    "frame": {
+     "x": 79,
+     "y": 38,
+     "w": 79,
+     "h": 38
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 79,
+     "h": 38
+    },
+    "sourceSize": {
+     "w": 79,
+     "h": 38
+    },
+    "pivot": {
+     "x": 0.7974683544303798,
+     "y": 0.5
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-proj-ice.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 158,
+    "h": 76
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 63,
+    "y": 19
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-proj-ice",
+     "from": 0,
+     "to": 3,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

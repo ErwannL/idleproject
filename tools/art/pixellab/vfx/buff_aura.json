@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 64,
+  "w": 48
+ },
+ "frames": 6,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 24,
+  "y": 46,
+  "kind": "origin"
+ },
+ "message": "A subtle golden buff aura: a thin gold ellipse on the ground with a centre left empty, small light motes drifting up, and short vertical light streaks rising from the ring, looping over 6 frames. The motes and streaks sit close to the ring so the effect stays airy; try the Motes count and Speed to make it busier or calmer.",
+ "effect_id": "b3e3766b-78bc-4efe-ab52-42f3d78cf658",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-buff-aura 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.71875
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-buff-aura 1.png",
+    "frame": {
+     "x": 48,
+     "y": 0,
+     "w": 48,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.71875
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-buff-aura 2.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 48,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.71875
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-buff-aura 3.png",
+    "frame": {
+     "x": 0,
+     "y": 64,
+     "w": 48,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.71875
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-buff-aura 4.png",
+    "frame": {
+     "x": 48,
+     "y": 64,
+     "w": 48,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.71875
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-buff-aura 5.png",
+    "frame": {
+     "x": 96,
+     "y": 64,
+     "w": 48,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.71875
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-buff-aura.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 144,
+    "h": 128
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 24,
+    "y": 46
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-buff-aura",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

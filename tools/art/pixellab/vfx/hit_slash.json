@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 77,
+  "w": 74
+ },
+ "frames": 6,
+ "fps": 20,
+ "loop": false,
+ "anchor": {
+  "x": 31,
+  "y": 43,
+  "kind": "origin"
+ },
+ "message": "A 6-frame crescent slash in white and pale blue: it flashes in on frame 1, sweeps across as a diagonal arc with a darker blue inner edge, and fades out by frame 5, with a few small white sparks flying off the arc. The sprite-free canvas is transparent. Try the Sweep and Thickness sliders for a longer or heavier cut, and Angle to tilt the diagonal.",
+ "effect_id": "6ce40eed-ffe4-41c6-aa3d-d7df97a48bb5",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-hit-slash 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 77
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 77
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 77
+    },
+    "pivot": {
+     "x": 0.4189189189189189,
+     "y": 0.5584415584415584
+    },
+    "duration": 50
+   },
+   {
+    "filename": "ascendrya-hit-slash 1.png",
+    "frame": {
+     "x": 74,
+     "y": 0,
+     "w": 74,
+     "h": 77
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 77
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 77
+    },
+    "pivot": {
+     "x": 0.4189189189189189,
+     "y": 0.5584415584415584
+    },
+    "duration": 50
+   },
+   {
+    "filename": "ascendrya-hit-slash 2.png",
+    "frame": {
+     "x": 148,
+     "y": 0,
+     "w": 74,
+     "h": 77
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 77
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 77
+    },
+    "pivot": {
+     "x": 0.4189189189189189,
+     "y": 0.5584415584415584
+    },
+    "duration": 50
+   },
+   {
+    "filename": "ascendrya-hit-slash 3.png",
+    "frame": {
+     "x": 0,
+     "y": 77,
+     "w": 74,
+     "h": 77
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 77
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 77
+    },
+    "pivot": {
+     "x": 0.4189189189189189,
+     "y": 0.5584415584415584
+    },
+    "duration": 50
+   },
+   {
+    "filename": "ascendrya-hit-slash 4.png",
+    "frame": {
+     "x": 74,
+     "y": 77,
+     "w": 74,
+     "h": 77
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 77
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 77
+    },
+    "pivot": {
+     "x": 0.4189189189189189,
+     "y": 0.5584415584415584
+    },
+    "duration": 50
+   },
+   {
+    "filename": "ascendrya-hit-slash 5.png",
+    "frame": {
+     "x": 148,
+     "y": 77,
+     "w": 74,
+     "h": 77
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 74,
+     "h": 77
+    },
+    "sourceSize": {
+     "w": 74,
+     "h": 77
+    },
+    "pivot": {
+     "x": 0.4189189189189189,
+     "y": 0.5584415584415584
+    },
+    "duration": 50
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-hit-slash.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 222,
+    "h": 154
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 31,
+    "y": 43
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-hit-slash",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

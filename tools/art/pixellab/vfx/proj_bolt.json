@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 32,
+  "w": 40
+ },
+ "frames": 6,
+ "fps": 12,
+ "loop": true,
+ "anchor": {
+  "x": 22,
+  "y": 16,
+  "kind": "origin"
+ },
+ "message": "A 6-frame looping electric orb: a white-hot core with cyan crackling rays and orbiting sparks, and a short jagged cyan lightning tail trailing to the left so it reads as flying right. Built on a retro 4-colour cyan ramp with a dark outline on a 40x32 canvas. Try the Crackle and Sparks sliders to tune the energy; the tail is a single bolt, so it will flicker a little differently each frame.",
+ "effect_id": "a5566209-9d87-4f2c-b30c-80304e9f6b2c",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-proj-bolt 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 40,
+     "h": 32
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 40,
+     "h": 32
+    },
+    "sourceSize": {
+     "w": 40,
+     "h": 32
+    },
+    "pivot": {
+     "x": 0.55,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-proj-bolt 1.png",
+    "frame": {
+     "x": 40,
+     "y": 0,
+     "w": 40,
+     "h": 32
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 40,
+     "h": 32
+    },
+    "sourceSize": {
+     "w": 40,
+     "h": 32
+    },
+    "pivot": {
+     "x": 0.55,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-proj-bolt 2.png",
+    "frame": {
+     "x": 80,
+     "y": 0,
+     "w": 40,
+     "h": 32
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 40,
+     "h": 32
+    },
+    "sourceSize": {
+     "w": 40,
+     "h": 32
+    },
+    "pivot": {
+     "x": 0.55,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-proj-bolt 3.png",
+    "frame": {
+     "x": 0,
+     "y": 32,
+     "w": 40,
+     "h": 32
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 40,
+     "h": 32
+    },
+    "sourceSize": {
+     "w": 40,
+     "h": 32
+    },
+    "pivot": {
+     "x": 0.55,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-proj-bolt 4.png",
+    "frame": {
+     "x": 40,
+     "y": 32,
+     "w": 40,
+     "h": 32
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 40,
+     "h": 32
+    },
+    "sourceSize": {
+     "w": 40,
+     "h": 32
+    },
+    "pivot": {
+     "x": 0.55,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-proj-bolt 5.png",
+    "frame": {
+     "x": 80,
+     "y": 32,
+     "w": 40,
+     "h": 32
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 40,
+     "h": 32
+    },
+    "sourceSize": {
+     "w": 40,
+     "h": 32
+    },
+    "pivot": {
+     "x": 0.55,
+     "y": 0.5
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-proj-bolt.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 120,
+    "h": 64
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 22,
+    "y": 16
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-proj-bolt",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 60,
+  "w": 49
+ },
+ "frames": 8,
+ "fps": 14,
+ "loop": false,
+ "anchor": {
+  "x": 25,
+  "y": 36,
+  "kind": "origin"
+ },
+ "message": "A 8-frame holy light impact: a bright golden-white flash that blooms into rays and a ring, with a cross-shaped glint across the middle frames and small light motes rising and fading at the end. The cross is faint behind the ring, so if you want it to read more strongly, try raising the glint's length in the recipe. Transparent background, no character.",
+ "effect_id": "1e9dc7d0-f0e4-4774-9e89-614239ee3556",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-hit-holy 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 49,
+     "h": 60
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 49,
+     "h": 60
+    },
+    "sourceSize": {
+     "w": 49,
+     "h": 60
+    },
+    "pivot": {
+     "x": 0.5102040816326531,
+     "y": 0.6
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-hit-holy 1.png",
+    "frame": {
+     "x": 49,
+     "y": 0,
+     "w": 49,
+     "h": 60
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 49,
+     "h": 60
+    },
+    "sourceSize": {
+     "w": 49,
+     "h": 60
+    },
+    "pivot": {
+     "x": 0.5102040816326531,
+     "y": 0.6
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-hit-holy 2.png",
+    "frame": {
+     "x": 98,
+     "y": 0,
+     "w": 49,
+     "h": 60
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 49,
+     "h": 60
+    },
+    "sourceSize": {
+     "w": 49,
+     "h": 60
+    },
+    "pivot": {
+     "x": 0.5102040816326531,
+     "y": 0.6
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-hit-holy 3.png",
+    "frame": {
+     "x": 0,
+     "y": 60,
+     "w": 49,
+     "h": 60
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 49,
+     "h": 60
+    },
+    "sourceSize": {
+     "w": 49,
+     "h": 60
+    },
+    "pivot": {
+     "x": 0.5102040816326531,
+     "y": 0.6
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-hit-holy 4.png",
+    "frame": {
+     "x": 49,
+     "y": 60,
+     "w": 49,
+     "h": 60
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 49,
+     "h": 60
+    },
+    "sourceSize": {
+     "w": 49,
+     "h": 60
+    },
+    "pivot": {
+     "x": 0.5102040816326531,
+     "y": 0.6
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-hit-holy 5.png",
+    "frame": {
+     "x": 98,
+     "y": 60,
+     "w": 49,
+     "h": 60
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 49,
+     "h": 60
+    },
+    "sourceSize": {
+     "w": 49,
+     "h": 60
+    },
+    "pivot": {
+     "x": 0.5102040816326531,
+     "y": 0.6
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-hit-holy 6.png",
+    "frame": {
+     "x": 0,
+     "y": 120,
+     "w": 49,
+     "h": 60
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 49,
+     "h": 60
+    },
+    "sourceSize": {
+     "w": 49,
+     "h": 60
+    },
+    "pivot": {
+     "x": 0.5102040816326531,
+     "y": 0.6
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-hit-holy 7.png",
+    "frame": {
+     "x": 49,
+     "y": 120,
+     "w": 49,
+     "h": 60
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 49,
+     "h": 60
+    },
+    "sourceSize": {
+     "w": 49,
+     "h": 60
+    },
+    "pivot": {
+     "x": 0.5102040816326531,
+     "y": 0.6
+    },
+    "duration": 71
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-hit-holy.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 147,
+    "h": 180
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 25,
+    "y": 36
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-hit-holy",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

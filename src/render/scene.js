@@ -38,6 +38,7 @@ import { itemBase } from '../core/loot.js';
 import { castHeroSkill, castUnitSkill, drawSkillFx, fxContext, heroGesturePick, unitGesture } from './skill-fx.js'; // v9.2.5 : gestes et effets de compétence
 import { companionSkillList } from '../data/companion-skills.js';
 import { COMPANION_ROLES } from '../data/synergies.js';
+import { DAMAGE_COLORS, drawDamageText, drawVfx, drawVfxFrame, projFrame, vfx, vfxReady } from './vfx.js'; // v9.2.6 : effets de combat PixelLab
 
 // Vue resserrée : le chevalier (≈ 40 px) occupe un bon tiers de la hauteur de la scène.
 export const MIN_VIEW_HEIGHT = 96;
@@ -108,6 +109,8 @@ function layer(file) {
   return img.complete && !img.failed && img.naturalWidth > 0 ? img : null;
 }
 const MAX_FLOATING_TEXTS = 6;
+// v9.2.6 : projectiles dessinés par PixelLab (boucles animées) à la place des anciens sprites fixes.
+const PROJ_VFX = { fx_arrow: 'proj_arrow', fx_arrow_fire1: 'proj_fireball', fx_fireball1: 'proj_fireball', fx_soul1: 'proj_soul', fx_meteor: 'proj_fireball' };
 const FLYING_PETS = new Set(['owl', 'fairy', 'wisp']);
 const STALE_EVENT_SECONDS = 1.5;
 const HERO_FADE = 0.07; // v9.2.4 : fondu marche -> frappe (s)
@@ -313,10 +316,12 @@ export class SceneRenderer {
         // Arc de taille dessiné (bleu, ou doré et plus grand sur un coup critique), puis impact.
         const sx = this.dashReach(event.x);
         this.dust(HERO_X - 4, 3);
-        if (event.crit) this.sprite(['fx_slash_crit'], heroX + 18 + sx, this.groundY + 4 - this.waterLift(), 0.22, { delay: 0.07, tint: '#ffd23f' });
-        else this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], heroX + 14 + sx, this.groundY + 1 - this.waterLift(), 0.18, { delay: 0.07 });
+        // v9.2.6 : arc de taille dessiné (PixelLab), doré et plus grand sur un critique ; ancien arc en repli.
+        const drawnSlash = vfx(this, 'hit_slash', heroX + 22 + sx, this.groundY - 14 - this.waterLift(), { delay: 0.05, size: event.crit ? 1.3 : 1, tint: event.crit ? '#ffd23f' : null, life: 0.22 });
+        if (!drawnSlash && event.crit) this.sprite(['fx_slash_crit'], heroX + 18 + sx, this.groundY + 4 - this.waterLift(), 0.22, { delay: 0.07, tint: '#ffd23f' });
+        else if (!drawnSlash) this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], heroX + 14 + sx, this.groundY + 1 - this.waterLift(), 0.18, { delay: 0.07 });
         // L'impact (éclair blanc, recul, étincelles, chiffre) tombe quand la lame touche, pas au début du geste.
-        this.later(0.09, () => this.hitReact(event.enemyId, event.x, { crit: event.crit, boss: event.boss, damage: event.damage, color: '#ffffff' }));
+        this.later(0.09, () => this.hitReact(event.enemyId, event.x, { crit: event.crit, boss: event.boss, damage: event.damage, color: '#ffffff', weapon: 'none' }));
         break;
       }
       case 'enemyHit':
@@ -324,9 +329,10 @@ export class SceneRenderer {
         if (event.source === 'attack') break;
         this.enemyFxFor(event.enemyId).hit = 0.08;
         this.enemyFxFor(event.enemyId).knock = Math.min(6, (this.enemyFxFor(event.enemyId).knock ?? 0) + 2);
-        if (event.source !== 'hero') this.sprite(['fx_hit'], event.x, this.groundY - 10, 0.14);
+        if (event.source !== 'hero' && !vfx(this, 'hit_blunt', event.x - 4, this.groundY - 14, { size: 0.7 })) this.sprite(['fx_hit'], event.x, this.groundY - 10, 0.14);
         if (event.source === 'skill' || event.source === 'companion') {
-          this.addText(formatNumber(event.damage), event.x, this.groundY - (event.boss ? 64 : 42), event.source === 'skill' ? '#7fd6ff' : '#9cf08a');
+          const [c0, c1] = DAMAGE_COLORS[event.source];
+          this.addText(formatNumber(event.damage), event.x, this.groundY - (event.boss ? 64 : 42), c0, c1);
         }
         break;
       case 'skill':
@@ -363,6 +369,7 @@ export class SceneRenderer {
         break;
       }
       case 'levelUp':
+        vfx(this, 'level_up', heroX, this.groundY + 1, { size: 1 }); // v9.2.6 : colonne dorée dessinée
         this.effects.push({ kind: 'beam', x: heroX, color: '#ffd23f', life: 1, max: 1, wide: true });
         this.burst(heroX, this.groundY - 28, '#ffd23f', 14, 46);
         for (let i = 0; i < 5; i++) this.sprite(['fx_spark'], heroX - 16 + i * 8, this.groundY - 30 - (i % 2) * 14, 0.6, { delay: i * 0.08 });
@@ -383,7 +390,8 @@ export class SceneRenderer {
           efx.windup = 0;
           efx.wound = false;
         }
-        this.addText(formatNumber(Math.max(1, Math.round(event.damage))), heroX - 4, this.groundY - 48, '#ff5a5a', '#ffb0a8');
+        vfx(this, 'hit_blunt', heroX + 8, this.groundY - 20, { size: event.boss ? 1 : 0.7, flip: true }); // v9.2.6 : coup reçu
+        this.addText(formatNumber(Math.max(1, Math.round(event.damage))), heroX - 4, this.groundY - 48, ...DAMAGE_COLORS.hurt);
         if (event.boss) this.shake = Math.max(this.shake, 2);
         break;
       case 'kill': {
@@ -408,21 +416,25 @@ export class SceneRenderer {
         // L'objet jaillit du monstre, retombe en brillant, puis file vers le sac du chevalier.
         this.effects.push({ kind: 'loot', item: event.item, color, x0, x: x0, y0: at.y, y: at.y, life: LOOT_LIFE, max: LOOT_LIFE });
         this.burst(x0, at.y - 4, color, big ? 14 : 6, 50);
+        vfx(this, 'loot_burst', x0, at.y, { tint: color, size: big ? 1.3 : 0.9 }); // v9.2.6 : gerbe d'étincelles de rareté
         if (event.item.rarity === 'legendary') this.shake = Math.max(this.shake, 3);
         break;
       }
       case 'bossSummon':
         this.shake = Math.max(this.shake, 3);
+        vfx(this, 'boss_appear', HERO_X + 60, this.groundY + 2); // v9.2.6 : cercle d'invocation
         this.burst(HERO_X + 60, this.groundY - 20, '#ff0030', 18, 60);
         break;
       case 'gems':
         // Gemmes (cristaux) : petite gemme qui saute et texte bleu.
-        this.sprite(['icon_gem'], event.x, this.groundY - 16, 0.9);
+        if (!vfx(this, 'loot_gem', event.x, this.groundY - 22, { life: 0.9, vy: -12, loop: true })) this.sprite(['icon_gem'], event.x, this.groundY - 16, 0.9);
         this.addText(`+${event.gems}`, event.x, this.groundY - 40, '#6fd6ff', '#d8f6ff');
         this.burst(event.x, this.groundY - 14, '#6fd6ff', 6, 34);
         break;
       case 'bossSpawn':
         this.shake = Math.max(this.shake, 3);
+        // v9.2.6 : cercle d'invocation à l'endroit où le boss surgit.
+        vfx(this, 'boss_appear', Math.min(this.width - 30, event.x ?? HERO_X + 90), this.groundY + 2);
         break;
       case 'bossDefeated':
         this.hero.victory = 0.8;
@@ -443,7 +455,7 @@ export class SceneRenderer {
   addText(text, x, y, color, light = '#ffffff', big = false) {
     const texts = this.effects.filter((e) => e.kind === 'text');
     if (texts.length >= MAX_FLOATING_TEXTS) this.effects.splice(this.effects.indexOf(texts[0]), 1);
-    this.effects.push({ kind: 'text', text, x: x - textWidth(text, FONT_BIG) / 2, y, color, light, life: big ? 0.95 : 0.8, max: big ? 0.95 : 0.8, pop: big });
+    this.effects.push({ kind: 'text', text, x: x - textWidth(text, FONT_BIG) / 2, y, cx: x, y0: y, color, light, life: big ? 0.95 : 0.8, max: big ? 0.95 : 0.8, pop: big });
   }
 
   burst(x, y, color, count, speed = 30) {
@@ -476,6 +488,8 @@ export class SceneRenderer {
   }
 
   dust(x, count) {
+    // v9.2.6 : poussière dessinée — petit nuage de pas, ou nuage d'atterrissage pour un gros appui.
+    if (vfx(this, count >= 4 ? 'dust_land' : 'dust_step', x, this.groundY - (count >= 4 ? 7 : 4), { flip: true, size: count >= 4 ? 0.9 : 1 })) count = Math.min(count, 1);
     for (let i = 0; i < count; i++) {
       this.effects.push({ kind: 'puff', x: x + (Math.random() * 6 - 3), y: this.groundY - 1, vx: -10 - Math.random() * 16, vy: -4 - Math.random() * 6,
         life: 0.35 + Math.random() * 0.2, max: 0.5, color: i % 2 ? '#d8d0b8' : '#a89e86' });
@@ -484,7 +498,7 @@ export class SceneRenderer {
 
   // v9.0.6 : impact d'un coup du héros sur un ennemi — éclair blanc, recul, écrasement, étincelles dans le sens du
   // coup, chiffre ; sur un critique : arrêt sur image, anneau, secousse et étincelles dorées.
-  hitReact(enemyId, x, { crit = false, boss = false, damage = 0, color = '#ffffff', y = null, element = null } = {}) {
+  hitReact(enemyId, x, { crit = false, boss = false, damage = 0, color = '#ffffff', y = null, element = null, weapon = 'slash' } = {}) {
     const fx = this.enemyFx.get(enemyId);
     const G = this.groundY;
     const ix = fx?.seen > this.time - 0.2 ? fx.edge + 2 : x - 6;
@@ -503,15 +517,24 @@ export class SceneRenderer {
       const v = 50 + Math.random() * 70;
       this.effects.push({ kind: 'spark', x: ix, y: iy, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 20, color: i % 3 ? sparkColor : '#ffffff', life: 0.22, max: 0.22 });
     }
-    this.sprite(['fx_hit'], ix + 2, iy + 6, 0.14, { tint: crit ? '#ffd23f' : null });
+    // v9.2.6 : impact dessiné (PixelLab) selon l'élément, sinon selon l'arme (taille, estoc, contondant, flèche) ;
+    // critique : éclat doré et onde. Ancien éclat en repli tant que l'atlas n'est pas chargé.
+    const el = element ?? elementOfColor(color);
+    const big = (crit ? 1.25 : 1) * (boss ? 1.15 : 1);
+    const hitName = el ? `hit_${el}` : weapon === 'none' ? null : `hit_${weapon}`;
+    const drawn = vfxReady();
+    if (hitName) vfx(this, hitName, ix + 2, iy, { size: big });
+    if (crit) { vfx(this, 'crit_flash', ix + 2, iy, { size: boss ? 1.1 : 0.9 }); vfx(this, 'crit_wave', ix + 2, Math.min(G - 2, iy + 10), { size: 0.9 }); }
+    if (!drawn) this.sprite(['fx_hit'], ix + 2, iy + 6, 0.14, { tint: crit ? '#ffd23f' : null });
     if (crit) {
       this.effects.push({ kind: 'ring', x: ix, y: iy, color: '#ffd23f', life: 0.25, max: 0.25, r: 12 });
       this.shake = Math.max(this.shake, boss ? 3 : 2);
     } else if (boss) this.shake = Math.max(this.shake, 1);
     // v9.1.9 : impact élémentaire selon la couleur du coup (feu, glace, poison, sacré, ombre) ou l'élément donné.
-    const el = element ?? elementOfColor(color);
     if (el) this.elementFx(ix, iy, el, crit || boss);
-    if (damage) this.addText(formatNumber(damage), x, G - (boss ? 58 : 36), crit ? '#ffd23f' : '#ffffff', crit ? '#fff6c8' : '#ffffff', crit);
+    // v9.2.6 : couleur du chiffre selon le coup (critique doré, élément, coup simple blanc).
+    const [c0, c1] = DAMAGE_COLORS[crit ? 'crit' : el ?? 'hit'] ?? DAMAGE_COLORS.hit;
+    if (damage) this.addText(formatNumber(damage), x, G - (boss ? 58 : 36), c0, c1, crit);
   }
 
   killEffect(event) {
@@ -553,6 +576,14 @@ export class SceneRenderer {
           vx: (Math.random() - 0.5) * 10, vy: -14 - Math.random() * 20, color: i % 2 ? '#ffffff' : '#c8b8ff', life: 0.7, max: 0.7 });
       }
     }
+    // v9.2.6 : mort dessinée (PixelLab) : bouffée de fumée et âme qui s'échappe ; boss : grande explosion.
+    if (fxe0) {
+      const cx = fxe0.sx + fxe0.sw / 2;
+      const cy = fxe0.sy + fxe0.sh * 0.6;
+      if (event.boss) { vfx(this, 'boss_explode', cx, cy, { size: Math.max(1, fxe0.sh / 60) }); vfx(this, 'death_smoke', cx, this.groundY - 8, { size: 1.4, delay: 0.25 }); }
+      else vfx(this, 'death_smoke', cx, cy, { size: Math.max(0.7, Math.min(1.3, fxe0.sh / 36)), delay: 0.12 });
+      vfx(this, 'death_soul', cx, fxe0.sy + fxe0.sh * 0.4, { delay: 0.2, vy: -16, life: 0.8 });
+    }
     // v9.2.2 : position réelle à la mort (centre du sprite à l'écran), pour le butin et les pièces.
     if (fxe0?.img) {
       this.deaths ??= new Map();
@@ -565,7 +596,7 @@ export class SceneRenderer {
     for (let i = 0; i < coins; i++) {
       this.effects.push({
         kind: 'coin', x: (spot?.x ?? this.wx(event.x)) + (Math.random() * 10 - 5), y: spot ? Math.min(spot.y, this.groundY - 14) : this.groundY - 14,
-        vx: Math.random() * 40 - 20, vy: -40 - Math.random() * 30, life: 0.8, max: 0.8,
+        vx: Math.random() * 40 - 20, vy: -40 - Math.random() * 30, life: 0.8, max: 0.8, seed: i,
       });
     }
   }
@@ -1810,6 +1841,7 @@ export class SceneRenderer {
       if (this.underwater && waterAccent(this, ctx, fx, dt, t)) return true; // v9.2.1 : accents aquatiques des attaques
       switch (fx.kind) {
         case 'text':
+          if (fx.cx !== undefined && drawDamageText(this, ctx, fx)) break; // v9.2.6 : chiffre en cache, rebond
           fx.y -= (fx.life > fx.max - 0.12 ? 60 : 14) * dt; // petit rebond puis montée lente (positions au pixel d'écran)
           ctx.globalAlpha = Math.min(1, t * 2.5);
           if (fx.pop && fx.life > fx.max - 0.16) {
@@ -1835,6 +1867,9 @@ export class SceneRenderer {
           drawBreath(ctx, fx, t, this.time);
           break;
         }
+        case 'vfx': // v9.2.6 : effet dessiné par PixelLab (vfx.js)
+          drawVfx(this, ctx, fx, dt);
+          break;
         case 'flash':
           ctx.globalAlpha = t * 0.35;
           ctx.fillStyle = fx.color;
@@ -1915,7 +1950,9 @@ export class SceneRenderer {
           fx.x += fx.vx * dt;
           fx.y = Math.min(this.groundY - 4, fx.y + fx.vy * dt);
           ctx.globalAlpha = Math.min(1, t * 2);
-          ctx.drawImage(coin, Math.round(fx.x - coin.width / 2), Math.round(fx.y - coin.height / 2));
+          // v9.2.6 : pièce qui tourne (PixelLab) ; sobre : pièce fixe.
+          if (vfxReady() && !this.focus) drawVfxFrame(ctx, 'loot_coin', (projFrame('loot_coin', this.time) + (fx.seed ?? 0)) % 6, fx.x, fx.y, { alpha: Math.min(1, t * 2) });
+          else ctx.drawImage(coin, Math.round(fx.x - coin.width / 2), Math.round(fx.y - coin.height / 2));
           break;
         case 'loot': {
           const img = itemDropCanvas(fx.item);
@@ -1940,7 +1977,8 @@ export class SceneRenderer {
             x = fx.x0 + 14 + (HERO_X - fx.x0 - 14) * e;
             y = this.groundY - 2 - 20 * e - Math.sin(k * Math.PI) * 10;
           }
-          // Halo de rareté qui pulse.
+          // Halo de rareté qui pulse. v9.2.6 : éclat dessiné (PixelLab) teinté de la rareté, derrière l'objet.
+          if (vfxReady() && !this.focus) drawVfxFrame(ctx, 'loot_shine', projFrame('loot_shine', this.time), x, y - img.height / 2, { tint: fx.color, size: 1.2, alpha: 0.9 });
           ctx.globalAlpha = 0.35 + 0.25 * Math.sin(this.time * 12);
           ctx.fillStyle = fx.color;
           ctx.fillRect(this.snap(x - img.width / 2 - 1), Math.round(y - img.height - 1), img.width + 2, img.height + 2);
@@ -1972,6 +2010,7 @@ export class SceneRenderer {
           }
           const name = fx.frames[Math.floor(this.time * 12) % fx.frames.length];
           const img = spriteCanvas(name, fx.rotate ? { rotate: fx.rotate } : {});
+          const pv = vfxReady() && PROJ_VFX[fx.frames[0]]; // v9.2.6 : projectile animé PixelLab
           // La pointe (bord droit du sprite) arrive sur la cible : le projectile ne la traverse pas.
           const tipX = fx.rotate ? 0 : img.width / 2 - 2;
           const x = fx.x0 + (fx.x1 - tipX - fx.x0) * k;
@@ -1984,7 +2023,14 @@ export class SceneRenderer {
           }
           if (this.underwater && !this.focus && Math.random() < 0.6) addBubble(this, x - img.width / 2, y + (Math.random() * 4 - 2), { vy: -10, r: Math.random() < 0.3 ? 2 : 1, life: 0.9 }); // v9.2.0
           ctx.globalAlpha = 1;
-          ctx.drawImage(img, Math.round(x - img.width / 2), Math.round(y - img.height / 2));
+          if (pv) {
+            // Orienté selon sa trajectoire (cloche, chute verticale de la pluie de flèches) ; la pointe en tête.
+            const k2 = Math.min(1, k + 0.02);
+            const nx = fx.x0 + (fx.x1 - tipX - fx.x0) * k2 - x;
+            const ny = fx.y0 + (fx.y1 - fx.y0) * k2 - Math.sin(k2 * Math.PI) * fx.arc - y;
+            const rot = Math.abs(nx) + Math.abs(ny) > 0.01 ? Math.atan2(ny, nx) : 0;
+            drawVfxFrame(ctx, pv, projFrame(pv, this.time), x + tipX, y, { tip: true, rot, size: fx.frames[0] === 'fx_meteor' ? 1.6 : 1 });
+          } else ctx.drawImage(img, Math.round(x - img.width / 2), Math.round(y - img.height / 2));
           break;
         }
         case 'zap': {
