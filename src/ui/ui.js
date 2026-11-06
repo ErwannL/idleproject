@@ -1773,12 +1773,12 @@ export class UI {
       if (el) el.scrollTop = top;
     }
     panel.afterRender?.(this, body);
+    mountShowcase(body, state); // v9.2.7 : une seule vitrine animée, accrochée à la fiche affichée
     if (this.vfxCascade) { this.vfxCascade = false; uiFx.cascadeFx(body); } // v9.2.6
     uiFx.decorate(body, this.tab); // v9.2.6 : auras, cadres et reflets des fiches, fond de la Tour
     this.phoneAction(body);
     this.lastHud.extra = panel.extra ? panel.extra(this, state) : '';
     this.$('panel-extra').innerHTML = this.lastHud.extra;
-    mountShowcase(body, state); // v9.2.7 : une seule vitrine animée, accrochée à la fiche affichée
     this.lastHud.live = this.liveKey(state);
     this.dirty = false;
   }
