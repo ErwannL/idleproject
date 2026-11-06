@@ -1,3 +1,14 @@
+## Ascendrya v9.2.7 — Arbre de talents refait, vitrine d'animations, volants et marcheurs
+
+- Arbre de talents refait : chaque nœud montre ce qu'il donne, son coût et son état, régions nommées et colorées, ce que débloque un talent en pointillés, légende, zoom fluide ; l'animation se joue sur le nœud acheté et court le long des liens.
+- Vitrine animée dans les fiches (compagnons, familiers, apparences, monstres, boss, mutations) : marche, attaque, chaque compétence et ultime, arrivée, mort, mécaniques de boss, avec les vrais effets du jeu.
+- Récupérations : seules les monnaies volent vers leur compteur (« +N »), sans coffre ni feux d'artifice.
+- Invocation centrée et propre ; illustrations contenues dans leur vignette, rareté en liseré autour ; menus plus sobres ; effets placés correctement sur grand écran.
+- Coups d'arme plus percutants (arrêt sur image, traînée à la couleur de la rareté).
+- Les personnages ailés volent vraiment (battements d'ailes, ombre au sol), les autres marchent les pieds au sol ; marches du Paladin d'azur, du Mercenaire et de Grombar refaites.
+- Ambiance des mondes lisible (oiseaux, vautours, aigle, sable, bulles) ; plus de carrés bleus sur les ennemis des grottes ; plus de flammes de rage hors combat.
+- Malus d'environnement affichés à leur vraie valeur (plafond 90 %).
+
 ## Ascendrya v9.2.6 — Effets visuels partout
 
 - Combat : 127 effets dessinés — impacts par arme et par élément, critiques (éclat et onde), projectiles animés, morts (fumée, âme, explosion des boss), butin qui jaillit, montée de niveau, soins, auras, arrivée des boss, poussière des pas ; chiffres de dégâts en police pixel avec rebond et couleur par type.
