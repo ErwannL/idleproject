@@ -17,6 +17,7 @@ import { EXACT_922, patterns922 } from './en-922.js'; // v9.2.2
 import { EXACT_923, patterns923 } from './en-923.js'; // v9.2.3
 import { EXACT_925, patterns925 } from './en-925.js'; // v9.2.5
 import { EXACT_926, patterns926 } from './en-926.js'; // v9.2.6
+import { EXACT_927_SHOWCASE } from './en-927-vitrine.js'; // v9.2.7 : vitrine animée
 
 // --- Dictionnaire exact ---------------------------------------------------------------------------
 
@@ -2017,3 +2018,5 @@ PATTERNS.unshift(...patterns925(lookup));
 // v9.2.6 : effets de l'interface (./en-926.js).
 Object.assign(EXACT, EXACT_926);
 PATTERNS.unshift(...patterns926(lookup));
+// v9.2.7 : vitrine animée des fiches (./en-927-vitrine.js).
+Object.assign(EXACT, EXACT_927_SHOWCASE);

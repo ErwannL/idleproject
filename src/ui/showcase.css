@@ -1,0 +1,30 @@
+/* v9.2.7 : vitrine animée des fiches (src/ui/showcase.js). Une mini-scène du combat, la ligne des animations
+   (défile à l'horizontale sur téléphone, sans prendre de hauteur), puis le nom et la description de la séquence. */
+.showcase-slot { margin: 2px 0 6px; min-width: 0; width: 100%; contain: inline-size; }
+.showcase { display: flex; max-width: 100%; overflow: hidden; flex-direction: column; gap: 5px; min-width: 0; }
+.sc-stage { position: relative; width: 100%; contain: inline-size; min-height: 128px; border: 1px solid var(--line); border-radius: var(--radius);
+  overflow: hidden; background: #0b1020; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5) inset; }
+.sc-canvas { display: block; width: 100% !important; height: auto !important; image-rendering: pixelated; }
+.sc-play { position: absolute; right: 3px; top: 3px; padding: 0 6px; min-height: 0; font-size: 10px; line-height: 18px; opacity: 0.7; }
+.sc-play:hover, .sc-play:focus-visible, .sc-reduced .sc-play { opacity: 1; }
+.sc-reduced .sc-play { border-color: var(--gold); color: var(--gold-text); }
+.sc-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.sc-chip { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 999px; font-size: 11px; line-height: 16px;
+  border: 1px solid var(--line); background: rgba(20, 28, 48, 0.85); color: var(--text); cursor: pointer; white-space: nowrap; max-width: 100%; }
+.sc-chip span:last-child { overflow: hidden; text-overflow: ellipsis; }
+.sc-chip:hover { border-color: var(--muted); }
+.sc-chip.now { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue) inset; }
+.sc-chip.active { border-color: var(--gold); background: rgba(60, 44, 12, 0.75); color: var(--gold-text); }
+.sc-chip.ult .sc-ico { color: #ffd35a; }
+.sc-ico { font-size: 10px; opacity: 0.9; }
+.sc-info { font-size: 12px; min-height: 2.6em; line-height: 1.3; }
+.sc-info .sc-desc { display: block; }
+.look-show { margin: 2px auto 0; display: block; }
+.look-show.active { border-color: var(--gold); color: var(--gold-text); }
+.look-showcase { margin-top: 6px; }
+/* Téléphone : la ligne des animations défile au doigt plutôt que de prendre trois lignes. */
+@media (max-width: 600px) {
+  .sc-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+  .sc-chips::-webkit-scrollbar { display: none; }
+  .sc-chip { flex: 0 0 auto; }
+}

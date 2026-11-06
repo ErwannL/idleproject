@@ -12,6 +12,7 @@ import { EXACT_922, patterns922 } from './ko-922.js'; // v9.2.2
 import { EXACT_923, patterns923 } from './ko-923.js'; // v9.2.3
 import { EXACT_925, patterns925 } from './ko-925.js'; // v9.2.5
 import { EXACT_926, patterns926 } from './ko-926.js'; // v9.2.6
+import { EXACT_927_SHOWCASE } from './ko-927-vitrine.js'; // v9.2.7 : vitrine animée
 
 // --- Dictionnaire exact ---------------------------------------------------------------------------
 
@@ -373,3 +374,5 @@ PATTERNS.unshift(...patterns925(lookup));
 // v9.2.6 : effets de l'interface (./ko-926.js).
 Object.assign(EXACT, EXACT_926);
 PATTERNS.unshift(...patterns926(lookup));
+// v9.2.7 : vitrine animée des fiches (./ko-927-vitrine.js).
+Object.assign(EXACT, EXACT_927_SHOWCASE);

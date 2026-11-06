@@ -7,6 +7,7 @@ import { MULTIPLICATIVE, RARITY_SKILL, activeSynergies, allCompanionSkills, comp
 import { COMPANION_ROLES, ROLES, SYNERGIES } from '../../data/synergies.js';
 import { costButton, effectText, escapeHtml, fold, hdArt, formatNumber, icon, img, rarityLabel, stars } from '../common.js';
 import { animCanvas } from '../animator.js';
+import { showcaseSlot } from '../showcase.js'; // v9.2.7 : vitrine animée
 import { DUNGEONS } from '../../data/dungeons.js';
 import { SKILL_RULES, skillTextAt } from '../../data/companion-skills.js';
 import { computeHeroStats } from '../../core/stats.js';
@@ -157,6 +158,7 @@ export default {
             ${selRole ? `<div>Rôle : <b style="color:${ROLES[selRole].color}">${ROLES[selRole].label}</b></div>` : ''}
             <div class="detail-actions">${actions}</div>${upgradeLine}</div>
         </div>
+        <div class="section-title">Vitrine</div>${showcaseSlot('unit', sel.id)}
         <div class="section-title">Bonus passif</div>
         <div class="good">${effectText(passive)}</div>
         ${dungeonFor(sel, state)}

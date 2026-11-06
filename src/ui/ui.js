@@ -64,6 +64,7 @@ import { newItemsInBag } from '../core/journal.js';
 import { measureFarmRate } from '../core/offline.js';
 import { claimables, claimablesByTab } from '../core/claimables.js';
 import { isPhone, pref, reduceMotion, setPref } from './prefs.js';
+import { mountShowcase } from './showcase.js'; // v9.2.7 : vitrine animée des fiches
 import * as uiFx from './ui-vfx.js'; // v9.2.6 : effets visuels de l'interface
 import { openSearch } from './search.js';
 import { setById } from '../core/sets.js';
@@ -747,6 +748,7 @@ export class UI {
       case 'hero-sel': local(() => { v.heroSel = value; }); break;
       case 'set-hero': a.setHero(value); break;
       case 'companion-sel': local(() => { v.companionSel = value; v.sheetOpen = 'companion'; }); break;
+      case 'look-show': local(() => { v.lookShow = value; }); break; // v9.2.7 : vitrine d'une apparence
       case 'toggle-companion': a.toggleCompanion(value); break;
       case 'upgrade-companion': a.upgradeCompanion(value); break;
       case 'open-tab': if (el.closest('#modal')) this.closeModal(); this.openTab(value); break;
@@ -1771,6 +1773,7 @@ export class UI {
     this.phoneAction(body);
     this.lastHud.extra = panel.extra ? panel.extra(this, state) : '';
     this.$('panel-extra').innerHTML = this.lastHud.extra;
+    mountShowcase(body, state); // v9.2.7 : une seule vitrine animée, accrochée à la fiche affichée
     this.lastHud.live = this.liveKey(state);
     this.dirty = false;
   }

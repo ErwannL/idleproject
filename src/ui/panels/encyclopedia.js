@@ -24,6 +24,7 @@ import { SPRITES } from '../../render/sprites.js';
 import { sizeFactor } from '../../data/enemy-sizes.js';
 import { mutantPortraitUrl } from '../../render/mutation-look.js'; // v9.2.3
 import { animCanvas } from '../animator.js';
+import { showcaseSlot } from '../showcase.js'; // v9.2.7 : vitrine animée
 import { AFFIXES } from '../../data/items.js';
 import { ENVIRONMENTS } from '../../data/environment.js'; // v9.2.1
 import { envEffectText } from '../../core/environment.js';
@@ -148,6 +149,7 @@ function monsterCard(state, id) {
     <div class="enc-stats">${statRow('Vaincus', formatNumber(state.codex.kills[id] ?? 0))}${statRow('Élites vaincues', formatNumber(state.codex.elite[id] ?? 0))}
       ${statRow('PV de base', e.hp)}${statRow('Dégâts de base', e.damage)}${statRow('Vitesse', e.speed)}${statRow('Attaque toutes les', `${String(e.attackInterval).replace('.', ',')} s`)}
       ${e.flyHeight ? statRow('Type', 'Volant') : ''}</div>
+    <div class="section-title">Vitrine</div>${showcaseSlot('monster', id)}
     <div class="section-title">Variantes</div>${variants}</div>`;
 }
 
@@ -164,7 +166,8 @@ function bossCard(state, id) {
     ${BOSS_LORE[id] ? `<p class="lore">${escapeHtml(BOSS_LORE[id])}</p>` : ''}
     ${bossTrait(id) ? `<div class="trait-box" style="--trait:${bossTrait(id).color}"><b>${escapeHtml(bossTrait(id).name)}</b> : ${escapeHtml(bossTrait(id).text)}.<div class="muted">Contre : ${escapeHtml(bossTrait(id).counter)}</div></div>` : ''}
     <div class="enc-stats">${statRow('Vaincu', `${formatNumber(state.codex.kills[id])} fois`)}${statRow('Inspiré du', escapeHtml(ENEMIES[b.base]?.name ?? '—'))}
-      ${sig ? statRow('Objet ancestral', `<span class="rarity-text r-legendary">${escapeHtml(sig.name)}</span>`) : ''}</div></div>`;
+      ${sig ? statRow('Objet ancestral', `<span class="rarity-text r-legendary">${escapeHtml(sig.name)}</span>`) : ''}</div>
+    <div class="section-title">Vitrine</div>${showcaseSlot('boss', id)}</div>`;
 }
 
 // v9.2.3 : comment reconnaître chaque mutation en combat (retour joueur : la division passait pour un bug).
@@ -189,6 +192,7 @@ function mutationCard(state, id) {
   return `<div class="enc-card"><div class="enc-portrait">${mutantPic(m, true, 4)}</div>
     <div class="enc-title" style="color:${m.color}">${escapeHtml(m.name)}</div>
     <p>Le monstre ${escapeHtml(m.text)}.</p>${mutationCue(m)}
+    <div class="section-title">Vitrine</div>${showcaseSlot('mutation', id)}
     <div class="enc-stats">${statRow('Vaincus', formatNumber(state.codex.mutants[id]))}${statRow('PV', `×${String(MUTATION_RULES.hpMultiplier).replace('.', ',')}`)}
       ${statRow('Or', `×${MUTATION_RULES.goldMultiplier}`)}${statRow('Butin', 'objet garanti')}</div>
     <p class="muted">${rule}</p></div>`;
@@ -231,6 +235,7 @@ function companionCard(state, id) {
     <div class="muted">${c.kind === 'ally' ? 'Compagnon' : 'Familier'} · <b class="rarity-text r-${c.rarity}">${grade}</b> · ${stars(duplicates(owned))}</div>
     <div class="enc-stats">${statRow('Niveau', owned.level ?? 1)}${statRow('Passif (niv. 1)', effectText(passive))}
       ${statRow('Doublons', `${duplicates(owned)}/${COMPANION_RULES.maxCopies - 1}`)}</div>
+    <div class="section-title">Vitrine</div>${showcaseSlot('unit', c.id)}
     <div class="section-title">Compétences</div>
     ${allCompanionSkills(c.id).map((sk) => {
       // v9.1.3 (doc4 lot 2) : les 4 compétences, valeurs réelles arrondies ; l'ultime verrouillée l'indique.

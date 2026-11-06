@@ -13,6 +13,7 @@ import { HEROES, HERO_STAR_BONUS_PCT } from '../../data/heroes.js';
 import { BALANCE } from '../../data/balance.js';
 import { effectText, escapeHtml, fold, hdArt, formatDecimal, formatNumber, img, itemFrame, progressBar, rarityLabel, segment, stars } from '../common.js';
 import { animCanvas } from '../animator.js';
+import { showcaseSlot } from '../showcase.js'; // v9.2.7 : vitrine animée
 import { DUNGEONS } from '../../data/dungeons.js';
 import { formatDuration } from '../../core/format.js';
 import { modifierById } from '../../core/challenge.js';
@@ -92,6 +93,8 @@ export function lookView(ui, state) {
   const wornStars = state.heroes.owned[worn.id]?.stars ?? 1;
   const ownedCount = HEROES.filter((h) => state.heroes.owned[h.id]).length;
   const canSummon = ui.tabVisible.summon !== false;
+  // v9.2.7 : vitrine animée d'une apparence (celle portée par défaut, ou celle choisie par « Vitrine » sur sa carte).
+  const shown = heroById(ui.view.lookShow) ?? worn;
   const cards = HEROES.map((h) => {
     const owned = state.heroes.owned[h.id];
     const active = state.heroes.active === h.id;
@@ -103,6 +106,7 @@ export function lookView(ui, state) {
       <span class="look-badge">${rarityLabel(h.rarity)}</span>${status}
       <div class="look-pic">${hdArt(h, owned ? 'look-hd' : 'look-hd locked')}${owned ? animCanvas(`hero:${h.id}`, 64, 58, 2) : `<img class="px look-shadow" src="${heroPortraitUrl({}, 2, h.palette, '#2e3a52')}" alt="">`}</div>
       <div class="look-name">${escapeHtml(h.name)}</div>
+      <button class="btn tiny look-show${shown.id === h.id ? ' active' : ''}" data-action="look-show" data-value="${h.id}" aria-pressed="${shown.id === h.id}">▶ Vitrine</button>
       <div class="muted look-role">${escapeHtml(h.title ?? h.role)}</div>
       <div class="good look-fx">${effectText(h.bonus)}</div>
       ${owned ? `<div class="look-stars">${stars(n, maxStars)} <span class="muted">${dup ? `${dup} doublon${dup > 1 ? 's' : ''}` : 'aucun doublon'}</span></div>
@@ -117,7 +121,8 @@ export function lookView(ui, state) {
         ${stars(wornStars, maxStars)}
         <div class="good">${effectText(heroEffects(state))}</div>
         <div class="muted look-help">Touchez une apparence possédée pour l'équiper. Bonus +${HERO_STAR_BONUS_PCT} % par étoile.</div></div>
-    </div>`;
+    </div>
+    <div class="card look-showcase"><div class="section-title"><span>Vitrine</span> — <span>${escapeHtml(shown.name)}</span></div>${showcaseSlot('hero', shown.id)}</div>`;
   return `${preview}<div class="card"><div class="row-between"><div class="section-title">Apparences</div><span class="muted">${ownedCount}/${HEROES.length} obtenues</span></div>
     <div class="look-grid">${cards}</div></div>`;
 }
