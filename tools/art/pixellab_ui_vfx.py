@@ -59,6 +59,50 @@ EFFECTS = {
 }
 
 
+# v9.2.6 (2e vague) : effets supplémentaires (ressources, fiches, écrans clés, carte, retour hors ligne).
+EFFECTS.update({
+    'gold_shine': ('Only light, no object: three small bright white and pale gold four-pointed star glints pop one after another around the center, with a soft warm golden glow pulse, short.', False, 48),
+    'gem_twinkle': ('A tiny four-pointed cyan and white star twinkle that flashes on a gemstone facet, short.', False, 24),
+    'speed_flame': ('A small blue and orange speed flame trail flickering fast to the right, looping.', True, 32),
+    'aura_common': ('Looping soft aura: a thin ring of gentle pale blue light wisps and sparkles circling around a large empty center (the empty center is 60 percent of the canvas), calm.', True, 96),
+    'aura_epic': ('Looping magical aura around an empty center: purple and magenta light flames rising in a ring with sparkles.', True, 96),
+    'aura_legend': ('Looping powerful aura: a ring of small golden and orange light flames and bright white sparkles circling around a large empty center (the empty center is 60 percent of the canvas).', True, 96),
+    'star_shine': ('A small yellow five-pointed star shines: a white glint flashes on it and tiny sparkles pop around, short.', False, 24),
+    'frame_legend': ('Looping animated square picture frame border made of golden light: sparkles run around the edge of a square, empty center.', True, 96),
+    'frame_epic': ('Looping animated square picture frame border made of violet light: small sparkles run around the edge of a square, empty center.', True, 96),
+    'sheen': ('A diagonal white light sheen stripe sweeps from the left to the right across an empty square, short shine.', False, 64),
+    'tower_bg': ('Looping mystical background ambience: violet and blue magic motes and small runes slowly floating upward, sparse, dark transparent space.', True, 128),
+    'floor_up': ('Floor cleared effect: a violet and gold upward arrow of light with a ring burst and sparkles rising, short.', False, 96),
+    'dungeon_portal': ('A dark stone dungeon doorway portal swirling with red and orange magical energy, looping.', True, 96),
+    'depart': ('Departure effect: a puff of dust clouds and small footprints of light heading to the right, short.', False, 64),
+    'return': ('Return home effect: a green and gold sparkle burst with a small bag icon of light popping up, short.', False, 64),
+    'talent_node': ('Talent unlocked: a small green and gold rune circle lights up with a bright flash and a ring of sparkles, short.', False, 64),
+    'talent_spark': ('A tiny bright golden energy spark orb with a short glowing tail, looping, small.', True, 16),
+    'rebirth': ('Big phoenix rebirth effect: a fiery orange and gold phoenix of flames rises from the center with wings spreading wide, flames and embers burst outward, then fades.', False, 160),
+    'transcend': ('Big transcendence effect: a pillar of white and violet celestial light with an expanding halo ring and constellation stars, ascending energy, then fades.', False, 160),
+    'mail_open': ('A small cream paper envelope with a red wax seal opens its flap and a glowing letter slides up out of it with sparkles.', False, 64),
+    'bird': ('A small white seagull bird flying, flapping its wings, side view, flying to the right, looping.', True, 16),
+    'dragon': ('A tiny red dragon flying with flapping wings, side view facing right, looping.', True, 32),
+    'boat': ('A tiny wooden sailing boat with a white sail, side view, gently rocking up and down; only the boat, no water, no waves, no background, looping.', True, 24),
+    'eruption': ('Small volcano eruption: lava and orange fire bursts upward from a crater point with dark smoke and glowing rocks flying, then fades.', False, 48),
+    'coin_rain': ('Gold coins rain down from the top and bounce, many small shiny coins falling with gravity, short.', False, 96),
+})
+ICONS = ['icon_hero', 'icon_map', 'icon_summon', 'icon_trophy', 'icon_upgrade', 'skill_quick', 'icon_tree', 'icon_bag', 'icon_paw',
+         'icon_expedition', 'icon_dungeon', 'icon_tower', 'icon_boss', 'icon_book', 'icon_mail']
+for _ic in ICONS:  # icône animée : l'icône du jeu, animée sur place (reflet, éclat), 1 génération chacune
+    EFFECTS['ic_' + _ic] = ('Idle animation of this small game menu icon: keep the icon exactly the same shape, colors and position; a bright '
+                            'white shine glint sweeps diagonally across it and a tiny star sparkle twinkles at its corner, then it rests. Looping.', True, 40)
+
+
+def _sprite_b64(name):
+    im = Image.open(os.path.join(ROOT, 'assets', 'sprites', name + '.png')).convert('RGBA')
+    pad = Image.new('RGBA', (40, 40))
+    pad.paste(im, ((40 - im.width) // 2, (40 - im.height) // 2))
+    b = io.BytesIO()
+    pad.save(b, 'PNG')
+    return {'type': 'base64', 'base64': base64.b64encode(b.getvalue()).decode(), 'format': 'png'}
+
+
 def _req(method, url, body=None, auth=True):
     headers = {'Content-Type': 'application/json'}
     if auth:
@@ -75,7 +119,10 @@ def _req(method, url, body=None, auth=True):
 
 def generate(name):
     desc, loop, _ = EFFECTS[name]
-    body = {'description': desc + (' Seamless loop.' if loop else ' Plays once.') + STYLE, 'artist': 'lite', 'name': 'ascendrya_ui_' + name}
+    style = STYLE.replace(' no character,', '')
+    body = {'description': desc + (' Seamless loop.' if loop else ' Plays once.') + style, 'artist': 'lite', 'name': 'ascendrya_ui_' + name}
+    if name.startswith('ic_'):
+        body['sprite'] = _sprite_b64(name[3:])
     for _ in range(40):
         j = _req('POST', '/vfx', body)
         if j.get('error') not in (429, 503):
@@ -139,13 +186,30 @@ def build_sheet(name):
             box = b if box is None else (min(box[0], b[0]), min(box[1], b[1]), max(box[2], b[2]), max(box[3], b[3]))
     if box is None:
         return None
+    if name.startswith('ic_'):
+        # Icône animée : cadre = l'icône d'origine (même taille que assets/sprites/<icône>.png), retrouvée dans la
+        # 1re image ; le reflet est ainsi masqué par le cadre et l'icône remplace l'image fixe sans décalage.
+        src = Image.open(os.path.join(ROOT, 'assets', 'sprites', name[3:] + '.png'))
+        f0 = frames[0]
+        sa = src.convert('RGBA').getchannel('A')
+        bb = f0.getchannel('A').point(lambda v: 255 if v else 0)
+        scores = {}
+        for y in range(0, f0.height - src.height + 1):
+            for x in range(0, f0.width - src.width + 1):
+                c = bb.crop((x, y, x + src.width, y + src.height))
+                scores[(x, y)] = sum(1 for a, b2 in zip(c.tobytes(), sa.tobytes()) if (a > 0) == (b2 > 0))
+        x, y = max(scores, key=scores.get)
+        box = (x, y, x + src.width, y + src.height)
     # Cadre carré centré sur le centre de l'effet (le jeu centre l'effet sur un point).
     cx, cy = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
+    if name.startswith('ic_'):
+        cx, cy = None, None
     if name.startswith('beam'):  # rayon : centré sur sa colonne la plus dense (les étincelles débordent d'un côté)
         cols = [sum(i * v for i, v in enumerate(f.getchannel('A').crop((x, 0, x + 1, f.height)).histogram())) for f in frames[:1] for x in range(f.width)]
         cx = max(range(len(cols)), key=cols.__getitem__) + 0.5
-    half = max(box[2] - box[0], box[3] - box[1]) / 2
-    box = (int(cx - half), int(cy - half), int(cx + half + 0.999), int(cy + half + 0.999))
+    if cx is not None:
+        half = max(box[2] - box[0], box[3] - box[1]) / 2
+        box = (int(cx - half), int(cy - half), int(cx + half + 0.999), int(cy + half + 0.999))
     frames = [f.crop(box) for f in frames]
     w = frames[0].width
     if w > side:  # réduction au plus proche par un facteur entier (garde les pixels nets)

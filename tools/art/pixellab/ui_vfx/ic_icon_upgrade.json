@@ -1,0 +1,443 @@
+{
+ "frames": [
+  {
+   "filename": "ascendrya-ui-ic-icon-upgrade 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 55,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 55,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 55,
+    "h": 52
+   },
+   "pivot": {
+    "x": 0.7090909090909091,
+    "y": 0.9423076923076923
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-upgrade 1.png",
+   "frame": {
+    "x": 55,
+    "y": 0,
+    "w": 55,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 55,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 55,
+    "h": 52
+   },
+   "pivot": {
+    "x": 0.7090909090909091,
+    "y": 0.9423076923076923
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-upgrade 2.png",
+   "frame": {
+    "x": 110,
+    "y": 0,
+    "w": 55,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 55,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 55,
+    "h": 52
+   },
+   "pivot": {
+    "x": 0.7090909090909091,
+    "y": 0.9423076923076923
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-upgrade 3.png",
+   "frame": {
+    "x": 165,
+    "y": 0,
+    "w": 55,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 55,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 55,
+    "h": 52
+   },
+   "pivot": {
+    "x": 0.7090909090909091,
+    "y": 0.9423076923076923
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-upgrade 4.png",
+   "frame": {
+    "x": 0,
+    "y": 52,
+    "w": 55,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 55,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 55,
+    "h": 52
+   },
+   "pivot": {
+    "x": 0.7090909090909091,
+    "y": 0.9423076923076923
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-upgrade 5.png",
+   "frame": {
+    "x": 55,
+    "y": 52,
+    "w": 55,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 55,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 55,
+    "h": 52
+   },
+   "pivot": {
+    "x": 0.7090909090909091,
+    "y": 0.9423076923076923
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-upgrade 6.png",
+   "frame": {
+    "x": 110,
+    "y": 52,
+    "w": 55,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 55,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 55,
+    "h": 52
+   },
+   "pivot": {
+    "x": 0.7090909090909091,
+    "y": 0.9423076923076923
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-upgrade 7.png",
+   "frame": {
+    "x": 165,
+    "y": 52,
+    "w": 55,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 55,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 55,
+    "h": 52
+   },
+   "pivot": {
+    "x": 0.7090909090909091,
+    "y": 0.9423076923076923
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-upgrade 8.png",
+   "frame": {
+    "x": 0,
+    "y": 104,
+    "w": 55,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 55,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 55,
+    "h": 52
+   },
+   "pivot": {
+    "x": 0.7090909090909091,
+    "y": 0.9423076923076923
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-upgrade 9.png",
+   "frame": {
+    "x": 55,
+    "y": 104,
+    "w": 55,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 55,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 55,
+    "h": 52
+   },
+   "pivot": {
+    "x": 0.7090909090909091,
+    "y": 0.9423076923076923
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-upgrade 10.png",
+   "frame": {
+    "x": 110,
+    "y": 104,
+    "w": 55,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 55,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 55,
+    "h": 52
+   },
+   "pivot": {
+    "x": 0.7090909090909091,
+    "y": 0.9423076923076923
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-upgrade 11.png",
+   "frame": {
+    "x": 165,
+    "y": 104,
+    "w": 55,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 55,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 55,
+    "h": 52
+   },
+   "pivot": {
+    "x": 0.7090909090909091,
+    "y": 0.9423076923076923
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-upgrade 12.png",
+   "frame": {
+    "x": 0,
+    "y": 156,
+    "w": 55,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 55,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 55,
+    "h": 52
+   },
+   "pivot": {
+    "x": 0.7090909090909091,
+    "y": 0.9423076923076923
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-upgrade 13.png",
+   "frame": {
+    "x": 55,
+    "y": 156,
+    "w": 55,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 55,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 55,
+    "h": 52
+   },
+   "pivot": {
+    "x": 0.7090909090909091,
+    "y": 0.9423076923076923
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-upgrade 14.png",
+   "frame": {
+    "x": 110,
+    "y": 156,
+    "w": 55,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 55,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 55,
+    "h": 52
+   },
+   "pivot": {
+    "x": 0.7090909090909091,
+    "y": 0.9423076923076923
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-upgrade 15.png",
+   "frame": {
+    "x": 165,
+    "y": 156,
+    "w": 55,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 55,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 55,
+    "h": 52
+   },
+   "pivot": {
+    "x": 0.7090909090909091,
+    "y": 0.9423076923076923
+   },
+   "duration": 83
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "ascendrya-ui-ic-icon-upgrade.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 220,
+   "h": 208
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "feet",
+   "x": 39,
+   "y": 49
+  },
+  "frameTags": [
+   {
+    "name": "ascendrya-ui-ic-icon-upgrade",
+    "from": 0,
+    "to": 15,
+    "direction": "forward"
+   }
+  ]
+ }
+}

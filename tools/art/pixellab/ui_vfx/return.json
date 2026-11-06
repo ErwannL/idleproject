@@ -1,0 +1,235 @@
+{
+ "frames": [
+  {
+   "filename": "ascendrya-ui-return 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.515625,
+    "y": 0.5
+   },
+   "duration": 63
+  },
+  {
+   "filename": "ascendrya-ui-return 1.png",
+   "frame": {
+    "x": 64,
+    "y": 0,
+    "w": 64,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.515625,
+    "y": 0.5
+   },
+   "duration": 63
+  },
+  {
+   "filename": "ascendrya-ui-return 2.png",
+   "frame": {
+    "x": 128,
+    "y": 0,
+    "w": 64,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.515625,
+    "y": 0.5
+   },
+   "duration": 63
+  },
+  {
+   "filename": "ascendrya-ui-return 3.png",
+   "frame": {
+    "x": 0,
+    "y": 60,
+    "w": 64,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.515625,
+    "y": 0.5
+   },
+   "duration": 63
+  },
+  {
+   "filename": "ascendrya-ui-return 4.png",
+   "frame": {
+    "x": 64,
+    "y": 60,
+    "w": 64,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.515625,
+    "y": 0.5
+   },
+   "duration": 63
+  },
+  {
+   "filename": "ascendrya-ui-return 5.png",
+   "frame": {
+    "x": 128,
+    "y": 60,
+    "w": 64,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.515625,
+    "y": 0.5
+   },
+   "duration": 63
+  },
+  {
+   "filename": "ascendrya-ui-return 6.png",
+   "frame": {
+    "x": 0,
+    "y": 120,
+    "w": 64,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.515625,
+    "y": 0.5
+   },
+   "duration": 63
+  },
+  {
+   "filename": "ascendrya-ui-return 7.png",
+   "frame": {
+    "x": 64,
+    "y": 120,
+    "w": 64,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.515625,
+    "y": 0.5
+   },
+   "duration": 63
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "ascendrya-ui-return.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 192,
+   "h": 180
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 33,
+   "y": 30
+  },
+  "frameTags": [
+   {
+    "name": "ascendrya-ui-return",
+    "from": 0,
+    "to": 7,
+    "direction": "forward"
+   }
+  ]
+ }
+}

@@ -1,0 +1,443 @@
+{
+ "frames": [
+  {
+   "filename": "ascendrya-ui-rebirth 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 155,
+    "h": 195
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 155,
+    "h": 195
+   },
+   "sourceSize": {
+    "w": 155,
+    "h": 195
+   },
+   "pivot": {
+    "x": 0.5096774193548387,
+    "y": 0.7487179487179487
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-rebirth 1.png",
+   "frame": {
+    "x": 155,
+    "y": 0,
+    "w": 155,
+    "h": 195
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 155,
+    "h": 195
+   },
+   "sourceSize": {
+    "w": 155,
+    "h": 195
+   },
+   "pivot": {
+    "x": 0.5096774193548387,
+    "y": 0.7487179487179487
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-rebirth 2.png",
+   "frame": {
+    "x": 310,
+    "y": 0,
+    "w": 155,
+    "h": 195
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 155,
+    "h": 195
+   },
+   "sourceSize": {
+    "w": 155,
+    "h": 195
+   },
+   "pivot": {
+    "x": 0.5096774193548387,
+    "y": 0.7487179487179487
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-rebirth 3.png",
+   "frame": {
+    "x": 465,
+    "y": 0,
+    "w": 155,
+    "h": 195
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 155,
+    "h": 195
+   },
+   "sourceSize": {
+    "w": 155,
+    "h": 195
+   },
+   "pivot": {
+    "x": 0.5096774193548387,
+    "y": 0.7487179487179487
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-rebirth 4.png",
+   "frame": {
+    "x": 0,
+    "y": 195,
+    "w": 155,
+    "h": 195
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 155,
+    "h": 195
+   },
+   "sourceSize": {
+    "w": 155,
+    "h": 195
+   },
+   "pivot": {
+    "x": 0.5096774193548387,
+    "y": 0.7487179487179487
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-rebirth 5.png",
+   "frame": {
+    "x": 155,
+    "y": 195,
+    "w": 155,
+    "h": 195
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 155,
+    "h": 195
+   },
+   "sourceSize": {
+    "w": 155,
+    "h": 195
+   },
+   "pivot": {
+    "x": 0.5096774193548387,
+    "y": 0.7487179487179487
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-rebirth 6.png",
+   "frame": {
+    "x": 310,
+    "y": 195,
+    "w": 155,
+    "h": 195
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 155,
+    "h": 195
+   },
+   "sourceSize": {
+    "w": 155,
+    "h": 195
+   },
+   "pivot": {
+    "x": 0.5096774193548387,
+    "y": 0.7487179487179487
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-rebirth 7.png",
+   "frame": {
+    "x": 465,
+    "y": 195,
+    "w": 155,
+    "h": 195
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 155,
+    "h": 195
+   },
+   "sourceSize": {
+    "w": 155,
+    "h": 195
+   },
+   "pivot": {
+    "x": 0.5096774193548387,
+    "y": 0.7487179487179487
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-rebirth 8.png",
+   "frame": {
+    "x": 0,
+    "y": 390,
+    "w": 155,
+    "h": 195
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 155,
+    "h": 195
+   },
+   "sourceSize": {
+    "w": 155,
+    "h": 195
+   },
+   "pivot": {
+    "x": 0.5096774193548387,
+    "y": 0.7487179487179487
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-rebirth 9.png",
+   "frame": {
+    "x": 155,
+    "y": 390,
+    "w": 155,
+    "h": 195
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 155,
+    "h": 195
+   },
+   "sourceSize": {
+    "w": 155,
+    "h": 195
+   },
+   "pivot": {
+    "x": 0.5096774193548387,
+    "y": 0.7487179487179487
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-rebirth 10.png",
+   "frame": {
+    "x": 310,
+    "y": 390,
+    "w": 155,
+    "h": 195
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 155,
+    "h": 195
+   },
+   "sourceSize": {
+    "w": 155,
+    "h": 195
+   },
+   "pivot": {
+    "x": 0.5096774193548387,
+    "y": 0.7487179487179487
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-rebirth 11.png",
+   "frame": {
+    "x": 465,
+    "y": 390,
+    "w": 155,
+    "h": 195
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 155,
+    "h": 195
+   },
+   "sourceSize": {
+    "w": 155,
+    "h": 195
+   },
+   "pivot": {
+    "x": 0.5096774193548387,
+    "y": 0.7487179487179487
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-rebirth 12.png",
+   "frame": {
+    "x": 0,
+    "y": 585,
+    "w": 155,
+    "h": 195
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 155,
+    "h": 195
+   },
+   "sourceSize": {
+    "w": 155,
+    "h": 195
+   },
+   "pivot": {
+    "x": 0.5096774193548387,
+    "y": 0.7487179487179487
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-rebirth 13.png",
+   "frame": {
+    "x": 155,
+    "y": 585,
+    "w": 155,
+    "h": 195
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 155,
+    "h": 195
+   },
+   "sourceSize": {
+    "w": 155,
+    "h": 195
+   },
+   "pivot": {
+    "x": 0.5096774193548387,
+    "y": 0.7487179487179487
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-rebirth 14.png",
+   "frame": {
+    "x": 310,
+    "y": 585,
+    "w": 155,
+    "h": 195
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 155,
+    "h": 195
+   },
+   "sourceSize": {
+    "w": 155,
+    "h": 195
+   },
+   "pivot": {
+    "x": 0.5096774193548387,
+    "y": 0.7487179487179487
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-rebirth 15.png",
+   "frame": {
+    "x": 465,
+    "y": 585,
+    "w": 155,
+    "h": 195
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 155,
+    "h": 195
+   },
+   "sourceSize": {
+    "w": 155,
+    "h": 195
+   },
+   "pivot": {
+    "x": 0.5096774193548387,
+    "y": 0.7487179487179487
+   },
+   "duration": 83
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "ascendrya-ui-rebirth.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 620,
+   "h": 780
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 79,
+   "y": 146
+  },
+  "frameTags": [
+   {
+    "name": "ascendrya-ui-rebirth",
+    "from": 0,
+    "to": 15,
+    "direction": "forward"
+   }
+  ]
+ }
+}

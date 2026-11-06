@@ -93,13 +93,14 @@ export function flyTo(kind, from, target, count = 6) {
   const n = Math.max(1, Math.min(count, 10, MAX_LIVE - live));
   const icon = kind === 'gems' ? 'gem' : 'coin';
   for (let i = 0; i < n; i++) {
-    const el = sprite(icon, { size: 16, loops: Infinity, speed: 1.6 });
+    const sz = coinSize();
+    const el = sprite(icon, { size: sz, loops: Infinity, speed: 1.6 });
     if (!el) return;
     live += 1;
     const ox = fx + (Math.random() - 0.5) * 36;
     const oy = fy + (Math.random() - 0.5) * 20;
-    el.style.left = `${ox - 8}px`;
-    el.style.top = `${oy - 8}px`;
+    el.style.left = `${ox - sz / 2}px`;
+    el.style.top = `${oy - sz / 2}px`;
     const dx = tx - ox;
     const dy = ty - oy;
     const lift = -40 - Math.random() * 50;
@@ -107,12 +108,12 @@ export function flyTo(kind, from, target, count = 6) {
       { transform: 'translate(0,0) scale(.4)', opacity: 0 },
       { transform: `translate(${(Math.random() - 0.5) * 50}px, ${lift * 0.6}px) scale(1.15)`, opacity: 1, offset: 0.22 },
       { transform: `translate(${dx * 0.55}px, ${dy * 0.55 + lift}px) scale(1)`, opacity: 1, offset: 0.6 },
-      { transform: `translate(${dx}px, ${dy}px) scale(.55)`, opacity: 0.9 },
+      { transform: `translate(${dx}px, ${dy}px) scale(.7)`, opacity: 0.9 },
     ], { duration: 620 + i * 25, delay: i * 55, easing: 'cubic-bezier(.45,0,.7,1)', fill: 'both' });
     setTimeout(() => {
       el.remove();
       live -= 1;
-      if (i === 0 || i === n - 1) { pulse(target.closest('.chip') ?? target); play('spark', tx, ty, { size: 32 }); }
+      if (i === 0 || i === n - 1) { pulse(target.closest('.chip') ?? target); play('spark', tx, ty, { size: 48 }); play('gold_shine', tx, ty, { size: 48 }); }
     }, 640 + i * 80); // minuterie plutôt que onfinish : l'effet se retire toujours (onglet en arrière-plan…)
     void a;
   }
@@ -146,17 +147,27 @@ function snap(state) {
 
 const CLAIM_BIG = new Set(['claim-everything', 'claim-all', 'claim-all-expeditions', 'claim-all-events']);
 const CHEST = new Set(['claim-event', 'claim-mission-bonus']);
-const FORGE = new Set(['upgrade-item', 'sharpen', 'reforge', 'target-reroll', 'craft', 'buy-talent', 'upgrade-companion']);
+const FORGE = new Set(['upgrade-item', 'sharpen', 'reforge', 'target-reroll', 'craft', 'upgrade-companion']);
 
 export function clickFx(ui, event, run) {
   const el = event.target.closest?.('[data-action]');
   const action = el?.dataset.action;
   const before = action && !calm() ? snap(ui.state) : null;
+  const tal = action?.startsWith('buy-talent') ? ui.state?.talents?.[el.dataset.key] ?? 0 : 0;
   const pt = [event.clientX, event.clientY];
   const [cx, cy] = el ? center(el) : pt;
   run();
   if (el && !el.disabled && !calm() && el.isConnected && !el.closest('.summon-fx')) pulse(el, 'vfx-press', 260);
   if (!before) return;
+  // v9.2.6 (2e vague) : écrans clés.
+  if (action === 'enter-dungeon' && (ui.state?.dungeon)) stageFx('dungeon_portal', 192);
+  else if (action === 'start-expedition') play('depart', cx, cy, { size: 96 });
+  else if ((action === 'buy-talent' || action === 'buy-talent-max') && (ui.state?.talents?.[el.dataset.key] ?? 0) > tal) {
+    const node = document.querySelector(`#panel-body .rune-tree [data-action="talent-sel"][data-value="${CSS.escape(el.dataset.key)}"]`);
+    talentFx(node ?? el);
+  } else if (action === 'confirm-rebirth') bigFx('rebirth', '#ff8a3a');
+  else if (action === 'confirm-transcend') bigFx('transcend', '#c9a6ff');
+  else if (action === 'open-claims') setTimeout(() => playOn('mail_open', document.querySelector('#modal-card h2'), { size: 96 }), 30);
   const after = snap(ui.state);
   if (!after) return;
   const tint = el ? getComputedStyle(el).getPropertyValue('--rarity').trim() || null : null;
@@ -168,6 +179,8 @@ export function clickFx(ui, event, run) {
     const big = CLAIM_BIG.has(action);
     const got = dg > 0 || dm > 0 || after.inv + after.stash > before.inv + before.stash || after.ach > before.ach || after.shards > before.shards;
     if (!got) return;
+    if (el.closest('#modal')) play('mail_open', cx, cy - 20, { size: 80 });
+    if (action.includes('expedition')) play('return', cx, cy, { size: 96 });
     if (after.ach > before.ach || action === 'claim-achievement') play('trophy', cx, cy, { size: 144 });
     else if (CHEST.has(action)) play('chest', cx, cy, { size: 128 });
     else play(big ? 'confetti' : 'burst', cx, cy, { size: big ? 224 : 128 });
@@ -388,6 +401,16 @@ function drawMap(t) {
       if (age < 1200) drawSprite(ctx, 'unlock', n.x * W, n.y * H, age, 96);
     }
   }
+  // v9.2.6 (2e vague) : bateau sur l'eau du bas, oiseaux et dragon qui traversent, éruption du volcan.
+  drawSprite(ctx, 'boat', ((s * 7) % (W + 80)) - 40, H - 14 + Math.sin(s * 2) * 1.5, t, 30);
+  for (let i = 0; i < 2; i++) {
+    const bx = ((s * (22 + i * 6) + i * 300) % (W + 120)) - 60;
+    drawSprite(ctx, 'bird', bx, 60 + i * 140 + Math.sin(s * 2 + i) * 8, t + i * 200, 18);
+  }
+  const dc = (s % 26) / 9; // un dragon toutes les 26 s, 9 s de traversée
+  if (dc < 1) drawSprite(ctx, 'dragon', -40 + dc * (W + 80), H * 0.18 + Math.sin(dc * 9) * 14, t, 42);
+  const ec = (t % 9000);
+  if (ec < 1500) drawSprite(ctx, 'eruption', 195 * K, 16 * K, ec, 72);
   // Brume basse puis nuages qui dérivent (par-dessus tout).
   for (let i = 0; i < 3; i++) {
     const x = ((s * (6 + i * 3) + i * 260) % (W + 300)) - 150;
@@ -441,4 +464,188 @@ export function attachMap(host, nodes, { cur, last, sel }) {
   if (last > seen) { map.unlocked = last; map.unlockAt = performance.now(); }
   if (calm()) { cancelAnimationFrame(map.raf); map.raf = 0; drawMap(0); return; }
   if (!map.raf) map.raf = requestAnimationFrame(loop);
+}
+
+// ===== v9.2.6 (2e vague) =====
+// Taille des pièces qui volent : plus grandes sur grand écran (lisibles en 1280×720 et plus).
+export const coinSize = () => (globalThis.innerWidth >= 900 ? 28 : 18);
+
+// Boucle calée sur l'horloge : un panneau redessiné ne fait pas repartir l'animation de zéro.
+function syncLoop(el) {
+  const a = el?.getAnimations?.()[0];
+  if (a) a.currentTime = performance.now() % (a.effect.getTiming().duration || 1000);
+}
+
+// Sprite en boucle posé dans un conteneur (fiches, panneaux) : centré, derrière ou devant le contenu.
+export function attachLoop(host, name, { size, cls = '', back = true, inset = null } = {}) {
+  if (calm() || !host || host.querySelector(`:scope > .uvfx-loop.${name}`)) return null;
+  const el = sprite(name, { size, loops: Infinity, parent: host, cls: `uvfx-loop ${name} ${back ? 'uvfx-back' : 'uvfx-front'} ${cls}` });
+  if (!el) return null;
+  if (inset !== null) { el.style.inset = inset; el.style.width = 'auto'; el.style.height = 'auto'; }
+  syncLoop(el);
+  return el;
+}
+
+// --- Icônes animées des menus et sous-onglets (PixelLab) : au survol, et en boucle sur l'onglet choisi ---
+function iconLayer(img) {
+  const name = img?.dataset.icon;
+  if (!name || !SHEETS[`ic_${name}`]) return null;
+  let el = img.previousElementSibling;
+  if (!el?.classList.contains('ic-anim')) {
+    el = sprite(`ic_${name}`, { size: img.offsetWidth || 16, loops: Infinity, parent: img.parentElement, cls: 'ic-anim' });
+    if (!el) return null;
+    img.before(el);
+    el.getAnimations()[0]?.pause();
+  }
+  Object.assign(el.style, { left: `${img.offsetLeft}px`, top: `${img.offsetTop}px`, width: `${img.offsetWidth}px`, height: `${img.offsetHeight}px` });
+  return el;
+}
+
+function setIcon(btn, on) {
+  const img = btn?.querySelector('img[data-icon]');
+  if (!img) return;
+  if (calm()) { img.previousElementSibling?.classList.contains('ic-anim') && img.previousElementSibling.remove(); return; }
+  const el = iconLayer(img);
+  if (!el) return;
+  const a = el.getAnimations()[0];
+  el.classList.toggle('on', on);
+  if (on) { syncLoop(el); a?.play(); } else a?.pause();
+}
+
+const iconHost = (t) => t?.closest?.('#tabs button, #panel-subtabs .subtab');
+export function initIcons(root) {
+  root.addEventListener('pointerover', (e) => { const b = iconHost(e.target); if (b) setIcon(b, true); });
+  root.addEventListener('pointerout', (e) => {
+    const b = iconHost(e.target);
+    if (b && !b.contains(e.relatedTarget)) setIcon(b, b.classList.contains('active'));
+  });
+}
+
+export function syncIcons(root) {
+  root?.querySelectorAll('#tabs button, #panel-subtabs .subtab').forEach((b) => setIcon(b, b.classList.contains('active')));
+}
+
+// --- Ressources du haut : la gemme scintille de temps en temps, l'or brille quand il augmente ---
+let lastGold = null;
+let goldShineAt = 0;
+export function resourcesFx(state) {
+  if (!state) return;
+  const now = performance.now();
+  if (lastGold !== null && state.gold > lastGold && now - goldShineAt > 2600 && !calm() && !document.hidden) {
+    goldShineAt = now;
+    const ic = document.querySelector('#topbar [data-currency="gold"] img');
+    if (ic?.offsetWidth) playOn('gold_shine', ic, { size: 40 });
+  }
+  lastGold = state.gold;
+}
+let twinkle = 0;
+export function startAmbient() {
+  if (twinkle) return;
+  twinkle = setInterval(() => {
+    if (calm() || document.hidden) return;
+    const ic = document.querySelector('#topbar [data-currency="gems"] img');
+    if (ic?.offsetWidth) {
+      const r = ic.getBoundingClientRect();
+      play('gem_twinkle', r.left + r.width * (0.3 + Math.random() * 0.4), r.top + r.height * (0.25 + Math.random() * 0.4), { size: 20 });
+    }
+  }, 3600);
+}
+
+// Bonus de vitesse : petite flamme accrochée au bouton de vitesse tant qu'il est actif.
+export function speedFx(btn, on) {
+  if (!btn) return;
+  const cur = btn.querySelector(':scope > .speed_flame');
+  if (!on || calm()) { cur?.remove(); return; }
+  if (!cur) attachLoop(btn, 'speed_flame', { size: 22, back: false, cls: 'speed-flame' });
+}
+
+// --- Fiches et écrans (après chaque rendu du panneau) ---
+const AURA = { legendary: 'aura_legend', epic: 'aura_epic' };
+const rarityOf = (el) => (el?.className.match(/\br-(common|rare|epic|legendary)\b/) ?? [])[1] ?? 'common';
+export function decorate(body, tab) {
+  if (calm() || !body) return;
+  // Héros : aura de rareté autour du portrait choisi (Apparences) ; compagnon : aura, cadre, étoiles qui brillent.
+  body.querySelectorAll('.look-card.active .look-pic').forEach((pic) => attachLoop(pic, AURA[rarityOf(pic.closest('.look-card'))] ?? 'aura_common', { size: 150 }));
+  body.querySelectorAll('.pet-detail').forEach((card) => {
+    const r = rarityOf(card);
+    const box = card.querySelector('.pet-art-box, .pet-portrait');
+    if (box) {
+      attachLoop(box, AURA[r] ?? 'aura_common', { size: 160 });
+      if (r === 'legendary' || r === 'epic') attachLoop(box, r === 'legendary' ? 'frame_legend' : 'frame_epic', { back: false, inset: '-6px' });
+    }
+    const st = card.querySelector('.stars');
+    if (st && !st.querySelector('.star_shine')) { st.classList.add('uvfx-host'); attachLoop(st, 'star_shine', { size: 18, back: false, cls: 'star-glint' }); }
+  });
+  // Objet : cadre de rareté animé et reflet qui balaie l'objet légendaire.
+  body.querySelectorAll('.item-detail .detail-head > .item-frame').forEach((fr) => {
+    const r = rarityOf(fr);
+    if (r === 'legendary' || r === 'epic') attachLoop(fr, r === 'legendary' ? 'frame_legend' : 'frame_epic', { back: false, inset: '-5px' });
+    if (r === 'legendary') attachLoop(fr, 'sheen', { back: false, inset: '0', cls: 'sheen-slow' });
+  });
+  // Tour : fond de runes qui montent.
+  if (tab === 'tower') { const c = [...body.querySelectorAll('.card')].find((x) => x.querySelector('[data-action="enter-tower"], [data-action="leave-tower"]')) ?? body.querySelector('.card:last-of-type'); if (c) { c.classList.add('uvfx-host'); attachLoop(c, 'tower_bg', { inset: '0', cls: 'tower-bg' }); } }
+}
+
+// Étage de la Tour franchi : flèche de lumière sur la scène.
+export function stageFx(name, size = 160) {
+  const area = document.getElementById('stage-area');
+  if (!area?.offsetWidth) return;
+  const r = area.getBoundingClientRect();
+  play(name, r.left + r.width / 2, r.top + r.height * 0.45, { size });
+}
+
+// Grande animation dédiée (Renaissance, Transcendance) : plein écran, sans bloquer les clics.
+export function bigFx(name, tint) {
+  if (calm()) return;
+  const s = Math.min(innerWidth, innerHeight) * 0.9;
+  const veil = document.createElement('div');
+  veil.className = 'vfx-big-veil';
+  veil.style.setProperty('--tint', tint);
+  getLayer().appendChild(veil);
+  veil.animate([{ opacity: 0 }, { opacity: 0.85, offset: 0.2 }, { opacity: 0 }], { duration: 1600, easing: 'ease-out' });
+  setTimeout(() => veil.remove(), 1650);
+  play(name, innerWidth / 2, innerHeight / 2, { size: Math.round(s / 160) * 160 || 160 });
+  play('burst', innerWidth / 2, innerHeight / 2, { size: 256 });
+}
+
+// Retour hors ligne : coffre qui s'ouvre dans la fenêtre, pièces qui pleuvent puis volent vers le compteur.
+export function offlineFx(modal) {
+  if (calm() || !modal) return;
+  requestAnimationFrame(() => {
+    const h = modal.querySelector('h2') ?? modal;
+    const r = h.getBoundingClientRect();
+    const x = r.left + r.width / 2;
+    const y = r.bottom + 30;
+    play('chest', x, y, { size: 128 });
+    setTimeout(() => play('coin_rain', x, y + 20, { size: 192 }), 500);
+    const g = modal.querySelector('.offline-gains');
+    setTimeout(() => flyTo('gold', g ?? [x, y], document.querySelector('#topbar [data-currency="gold"] span'), 10), 1100);
+  });
+}
+
+// Talent appris : le nœud s'illumine et des éclats courent le long de ses liens.
+export function talentFx(el) {
+  if (calm() || !el) return;
+  playOn('talent_node', el, { size: 96 });
+  const svg = el.closest('.rune-tree')?.querySelector('svg');
+  if (!svg) return;
+  const [cx, cy] = center(el);
+  const sr = svg.getBoundingClientRect();
+  const vb = svg.viewBox.baseVal;
+  const toPx = (x, y) => [sr.left + ((x - vb.x) / vb.width) * sr.width, sr.top + ((y - vb.y) / vb.height) * sr.height];
+  let n = 0;
+  for (const l of svg.querySelectorAll('line')) {
+    const a = toPx(+l.getAttribute('x1'), +l.getAttribute('y1'));
+    const b = toPx(+l.getAttribute('x2'), +l.getAttribute('y2'));
+    const near = (p) => Math.hypot(p[0] - cx, p[1] - cy) < 18;
+    const [from, to] = near(a) ? [a, b] : near(b) ? [b, a] : [null, null];
+    if (!from || n++ >= 4) continue;
+    const sp = sprite('talent_spark', { size: 16, loops: Infinity });
+    if (!sp) return;
+    sp.style.left = `${from[0] - 8}px`;
+    sp.style.top = `${from[1] - 8}px`;
+    sp.animate([{ transform: 'translate(0,0)', opacity: 1 }, { transform: `translate(${to[0] - from[0]}px, ${to[1] - from[1]}px)`, opacity: 0.2 }],
+      { duration: 700, easing: 'ease-in', fill: 'forwards' });
+    setTimeout(() => sp.remove(), 720);
+  }
 }

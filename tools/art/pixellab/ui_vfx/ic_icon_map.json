@@ -1,0 +1,651 @@
+{
+ "frames": [
+  {
+   "filename": "ascendrya-ui-ic-icon-map 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 1.png",
+   "frame": {
+    "x": 40,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 2.png",
+   "frame": {
+    "x": 80,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 3.png",
+   "frame": {
+    "x": 120,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 4.png",
+   "frame": {
+    "x": 160,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 5.png",
+   "frame": {
+    "x": 0,
+    "y": 40,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 6.png",
+   "frame": {
+    "x": 40,
+    "y": 40,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 7.png",
+   "frame": {
+    "x": 80,
+    "y": 40,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 8.png",
+   "frame": {
+    "x": 120,
+    "y": 40,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 9.png",
+   "frame": {
+    "x": 160,
+    "y": 40,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 10.png",
+   "frame": {
+    "x": 0,
+    "y": 80,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 11.png",
+   "frame": {
+    "x": 40,
+    "y": 80,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 12.png",
+   "frame": {
+    "x": 80,
+    "y": 80,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 13.png",
+   "frame": {
+    "x": 120,
+    "y": 80,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 14.png",
+   "frame": {
+    "x": 160,
+    "y": 80,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 15.png",
+   "frame": {
+    "x": 0,
+    "y": 120,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 16.png",
+   "frame": {
+    "x": 40,
+    "y": 120,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 17.png",
+   "frame": {
+    "x": 80,
+    "y": 120,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 18.png",
+   "frame": {
+    "x": 120,
+    "y": 120,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 19.png",
+   "frame": {
+    "x": 160,
+    "y": 120,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 20.png",
+   "frame": {
+    "x": 0,
+    "y": 160,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 21.png",
+   "frame": {
+    "x": 40,
+    "y": 160,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 22.png",
+   "frame": {
+    "x": 80,
+    "y": 160,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-map 23.png",
+   "frame": {
+    "x": 120,
+    "y": 160,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.725
+   },
+   "duration": 83
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "ascendrya-ui-ic-icon-map.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 200,
+   "h": 200
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "feet",
+   "x": 20,
+   "y": 29
+  },
+  "frameTags": [
+   {
+    "name": "ascendrya-ui-ic-icon-map",
+    "from": 0,
+    "to": 23,
+    "direction": "forward"
+   }
+  ]
+ }
+}

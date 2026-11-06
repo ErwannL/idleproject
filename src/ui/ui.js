@@ -237,6 +237,7 @@ export class UI {
       this.invalidate();
     });
     root.addEventListener('click', (e) => uiFx.clickFx(this, e, () => this.onClick(e))); // v9.2.6 : effet selon le résultat
+    uiFx.initIcons(root); // v9.2.6 : icônes animées des menus au survol
     root.addEventListener('change', (e) => this.onChange(e));
     // Saisie d'une nouvelle touche (Paramètres › Interface) : capturée avant les raccourcis.
     window.addEventListener('keydown', (e) => {
@@ -563,8 +564,9 @@ export class UI {
       const badge = m === 'red' ? '<i class="badge" aria-label="À récupérer"></i>'
         : m === 'new' ? '<i class="badge badge-ring" aria-label="Nouveau"></i>' : '';
       return `<button class="subtab${t === this.tab ? ' active' : ''}" role="tab" aria-selected="${t === this.tab}" data-sub="${t}">
-      <img class="px" src="${icon(SUB_ICONS[t])}" alt=""><span>${SUB_LABELS[t]}</span>${badge}</button>`;
+      <img class="px" src="${icon(SUB_ICONS[t])}" data-icon="${SUB_ICONS[t]}" alt=""><span>${SUB_LABELS[t]}</span>${badge}</button>`;
     }).join('') + next;
+    uiFx.syncIcons(this.root); // v9.2.6
   }
 
   // Aucun onglet ouvert par défaut : un clic ouvre l'onglet, un second clic le referme.
@@ -631,6 +633,7 @@ export class UI {
     });
     this.renderSubtabs();
     this.root.querySelectorAll('[data-open]').forEach((b) => b.classList.toggle('active', b.dataset.open === tab));
+    uiFx.syncIcons(this.root); // v9.2.6 : l'icône du menu choisi s'anime
     this.lastHud.tabs = null;
     this.updatePanelLow();
     this.invalidate();
@@ -668,6 +671,7 @@ export class UI {
     this.root.classList.remove('panel-open');
     this.updatePanelLow();
     this.root.querySelectorAll('#tabs button, [data-open]').forEach((b) => { b.classList.remove('active'); b.removeAttribute('aria-current'); });
+    uiFx.syncIcons(this.root); // v9.2.6
     this.lastHud.tabs = null;
   }
 
@@ -1155,6 +1159,7 @@ export class UI {
         break;
       case 'towerFloor':
         this.banner(`Étage ${event.floor} franchi !`, 'win');
+        uiFx.stageFx('floor_up'); // v9.2.6
         this.news(event.record || event.weekly
           ? `${event.record ? 'Nouveau record' : 'Meilleur étage de la semaine'} dans la tour : étage ${event.floor} · ${rewardText(event.reward, formatNumber)}`
           : `Tour : étage ${event.floor} franchi.`, '#c9a6ff');
@@ -1308,7 +1313,9 @@ export class UI {
     this.calm = reduceMotion() || simSpeed(state) >= 100;
     document.documentElement.classList.toggle('fx-calm', this.calm || pref('contrast') === true);
     document.documentElement.classList.toggle('reduce-motion', this.calm);
-    if (!this.booted) { this.booted = true; uiFx.bootDone(); } // v9.2.6 : écran de chargement
+    if (!this.booted) { this.booted = true; uiFx.bootDone(); uiFx.startAmbient(); } // v9.2.6 : écran de chargement
+    uiFx.resourcesFx(state); // v9.2.6 : l'or brille quand il augmente
+    uiFx.speedFx(this.$('speed-toggle'), simSpeed(state) > 1); // v9.2.6 : flamme du bonus de vitesse
     this.$('speed-toggle').classList.toggle('fast', simSpeed(state) > 1);
     this.$('auto-toggle').classList.toggle('off', !state.autoAdvance);
     this.$('auto-toggle').classList.toggle('hidden', Boolean(state.dungeon || state.tower || state.challenge));
@@ -1518,6 +1525,7 @@ export class UI {
       }).join('') + (boostOn ? `<button class="boost-chip" data-action="show-boost" id="boost-chip">${img('icon_bolt', 'ico20')}<span id="boost"></span></button>` : '');
       delete this.lastHud.boost;
     }
+    uiFx.speedFx(this.$('boost-chip'), boostOn); // v9.2.6 : flamme sur le bonus de vitesse actif
     const group = this.$('boost-group');
     const any = open.length > 0 || boostOn;
     group.classList.toggle('hidden', !any);
@@ -1759,6 +1767,7 @@ export class UI {
     }
     panel.afterRender?.(this, body);
     if (this.vfxCascade) { this.vfxCascade = false; uiFx.cascadeFx(body); } // v9.2.6
+    uiFx.decorate(body, this.tab); // v9.2.6 : auras, cadres et reflets des fiches, fond de la Tour
     this.phoneAction(body);
     this.lastHud.extra = panel.extra ? panel.extra(this, state) : '';
     this.$('panel-extra').innerHTML = this.lastHud.extra;
@@ -1914,6 +1923,7 @@ export class UI {
         </details>
         <div class="detail-actions"><button class="btn" data-action="close-modal">Continuer</button>
           <button class="btn btn-gold" data-action="session-return">${img('icon_bolt', 'ico20')} Retour de session (S)</button></div>`);
+    uiFx.offlineFx(this.$('modal-card')); // v9.2.6 : coffre des gains hors ligne qui s'ouvre, pièces qui tombent
   }
 
   // v9.1.0 : une seule façon d'ouvrir une fenêtre — rôle dialog, focus sur le premier bouton, Tab qui boucle

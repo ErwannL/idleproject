@@ -1,0 +1,443 @@
+{
+ "frames": [
+  {
+   "filename": "ascendrya-ui-ic-icon-boss 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.75
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-boss 1.png",
+   "frame": {
+    "x": 40,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.75
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-boss 2.png",
+   "frame": {
+    "x": 80,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.75
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-boss 3.png",
+   "frame": {
+    "x": 120,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.75
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-boss 4.png",
+   "frame": {
+    "x": 0,
+    "y": 40,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.75
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-boss 5.png",
+   "frame": {
+    "x": 40,
+    "y": 40,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.75
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-boss 6.png",
+   "frame": {
+    "x": 80,
+    "y": 40,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.75
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-boss 7.png",
+   "frame": {
+    "x": 120,
+    "y": 40,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.75
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-boss 8.png",
+   "frame": {
+    "x": 0,
+    "y": 80,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.75
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-boss 9.png",
+   "frame": {
+    "x": 40,
+    "y": 80,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.75
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-boss 10.png",
+   "frame": {
+    "x": 80,
+    "y": 80,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.75
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-boss 11.png",
+   "frame": {
+    "x": 120,
+    "y": 80,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.75
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-boss 12.png",
+   "frame": {
+    "x": 0,
+    "y": 120,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.75
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-boss 13.png",
+   "frame": {
+    "x": 40,
+    "y": 120,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.75
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-boss 14.png",
+   "frame": {
+    "x": 80,
+    "y": 120,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.75
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-ic-icon-boss 15.png",
+   "frame": {
+    "x": 120,
+    "y": 120,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.75
+   },
+   "duration": 83
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "ascendrya-ui-ic-icon-boss.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 160,
+   "h": 160
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "feet",
+   "x": 20,
+   "y": 30
+  },
+  "frameTags": [
+   {
+    "name": "ascendrya-ui-ic-icon-boss",
+    "from": 0,
+    "to": 15,
+    "direction": "forward"
+   }
+  ]
+ }
+}
