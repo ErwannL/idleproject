@@ -1,3 +1,11 @@
+## Ascendrya v9.2.6 — Effets visuels partout
+
+- Combat : 127 effets dessinés — impacts par arme et par élément, critiques (éclat et onde), projectiles animés, morts (fumée, âme, explosion des boss), butin qui jaillit, montée de niveau, soins, auras, arrivée des boss, poussière des pas ; chiffres de dégâts en police pixel avec rebond et couleur par type.
+- Un effet propre à chaque compétence et ultime, aux mécaniques de boss (carapace, invocation, fournaise, désespoir, marée), aux malus d'environnement et aux mutations ; ambiance animée dans chacun des 12 mondes ; étourdissement, bouclier, esquive, série de coups, rage, vague gagnée.
+- Interface : 66 effets — récompenses qui volent vers les compteurs, coffres, hauts faits, montée de niveau, forge (fusion, équipement, recyclage), icônes d'onglets animées, pastilles qui pulsent, auras et cadres de rareté, invocation (portail, rayon de rareté, cartes, explosion légendaire), Tour, donjons, expéditions, talents, Renaissance et Transcendance, boîte aux lettres, retour hors ligne, écran de chargement.
+- Carte du monde vivante : nuages, eau, lave, étoiles, bateau, oiseaux, dragon, éruptions, marqueur du monde actuel et chemin vers le monde suivant.
+- « Réduire les animations » coupe ou adoucit tous ces effets ; aucun ne bloque un clic ; fluidité inchangée sur téléphone.
+
 ## Ascendrya v9.2.5 — Compétences animées, vitrine d'invocation, illustrations refaites
 
 - Chaque compétence a son geste et son effet : le héros lève les bras et une vraie météorite s'écrase, l'Archange range son épée et joint les mains pour prier, pluie de flèches tirée vers le ciel, tourbillon, dômes, pics de glace, colonnes de feu… pour le héros et les 26 compagnons. Le héros garde son équipement et son arme pendant le geste.
