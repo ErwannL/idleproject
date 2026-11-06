@@ -7,6 +7,7 @@ const TIER_LABELS = { mini: 'Mini-boss', mid: 'Boss', hard: 'Boss redoutable', m
 import { bossForecast, escapeHtml, forecastHtml, progressBar } from '../common.js';
 import { bossRetryPct } from '../../core/guide.js';
 import { envLine, environmentFor } from '../../core/environment.js'; // v9.2.1
+import { attachMap, pulse } from '../ui-vfx.js'; // v9.2.6
 
 // v9.0.6 : écran Aventure — « où j'en suis » en un coup d'œil : monde et étape, prochain boss, prévision,
 // avance automatique et la prochaine chose utile à faire (un clic ouvre le bon écran).
@@ -68,8 +69,21 @@ const MAP_NODES = [
   { x: 0.38, y: 0.3 },
 ];
 
+let mapView = null;
+let prevSel = null;
+
 export default {
   id: 'campaign',
+  // v9.2.6 : calque animé de la carte (nuages, eau, lave, étoiles, marqueur, chemin) et transition de monde choisi.
+  afterRender(ui, body) {
+    if (!mapView) return;
+    attachMap(body.querySelector('.mini-map'), MAP_NODES, mapView);
+    if (prevSel !== null && prevSel !== mapView.sel) {
+      pulse(body.querySelector('.world-name'), 'vfx-slide', 320);
+      pulse(body.querySelector('.stage-grid'), 'vfx-tab', 320);
+    }
+    prevSel = mapView.sel;
+  },
   title: 'Carte',
   icon: 'icon_map',
   extra: (ui, state) => `Étape max ${stageLabel(state.maxStage)}`,
@@ -108,6 +122,7 @@ export default {
     }
     // v9.1.0 : d'abord le résumé, le choix du monde et de la difficulté, la liste d'étapes ; la grande carte est
     // repliée derrière un bouton (sa largeur suit le panneau, zoom 50–250 %).
+    mapView = { cur: currentZone, last: lastZone, sel }; // v9.2.6 : pour le calque animé (afterRender)
     const worldPicker = `<div class="mini-map"><img class="px" src="assets/ui/worldmap.png" alt="">${markers}</div>
       <div class="world-picker">
         <button class="btn small" data-action="zone-sel" data-value="${sel - 1}" ${sel > 0 ? '' : 'disabled'} aria-label="Monde précédent">◀</button>

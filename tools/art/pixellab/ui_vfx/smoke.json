@@ -1,0 +1,443 @@
+{
+ "frames": [
+  {
+   "filename": "ascendrya-ui-smoke 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 78
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9871794871794872
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-smoke 1.png",
+   "frame": {
+    "x": 28,
+    "y": 0,
+    "w": 28,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 78
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9871794871794872
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-smoke 2.png",
+   "frame": {
+    "x": 56,
+    "y": 0,
+    "w": 28,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 78
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9871794871794872
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-smoke 3.png",
+   "frame": {
+    "x": 84,
+    "y": 0,
+    "w": 28,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 78
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9871794871794872
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-smoke 4.png",
+   "frame": {
+    "x": 0,
+    "y": 78,
+    "w": 28,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 78
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9871794871794872
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-smoke 5.png",
+   "frame": {
+    "x": 28,
+    "y": 78,
+    "w": 28,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 78
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9871794871794872
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-smoke 6.png",
+   "frame": {
+    "x": 56,
+    "y": 78,
+    "w": 28,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 78
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9871794871794872
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-smoke 7.png",
+   "frame": {
+    "x": 84,
+    "y": 78,
+    "w": 28,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 78
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9871794871794872
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-smoke 8.png",
+   "frame": {
+    "x": 0,
+    "y": 156,
+    "w": 28,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 78
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9871794871794872
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-smoke 9.png",
+   "frame": {
+    "x": 28,
+    "y": 156,
+    "w": 28,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 78
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9871794871794872
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-smoke 10.png",
+   "frame": {
+    "x": 56,
+    "y": 156,
+    "w": 28,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 78
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9871794871794872
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-smoke 11.png",
+   "frame": {
+    "x": 84,
+    "y": 156,
+    "w": 28,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 78
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9871794871794872
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-smoke 12.png",
+   "frame": {
+    "x": 0,
+    "y": 234,
+    "w": 28,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 78
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9871794871794872
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-smoke 13.png",
+   "frame": {
+    "x": 28,
+    "y": 234,
+    "w": 28,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 78
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9871794871794872
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-smoke 14.png",
+   "frame": {
+    "x": 56,
+    "y": 234,
+    "w": 28,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 78
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9871794871794872
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-smoke 15.png",
+   "frame": {
+    "x": 84,
+    "y": 234,
+    "w": 28,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 78
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9871794871794872
+   },
+   "duration": 100
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "ascendrya-ui-smoke.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 112,
+   "h": 312
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 14,
+   "y": 77
+  },
+  "frameTags": [
+   {
+    "name": "ascendrya-ui-smoke",
+    "from": 0,
+    "to": 15,
+    "direction": "forward"
+   }
+  ]
+ }
+}

@@ -1,0 +1,339 @@
+{
+ "frames": [
+  {
+   "filename": "ascendrya-ui-aura 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 63
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 63
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 63
+   },
+   "pivot": {
+    "x": 0.5230769230769231,
+    "y": 0.5873015873015873
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-aura 1.png",
+   "frame": {
+    "x": 65,
+    "y": 0,
+    "w": 65,
+    "h": 63
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 63
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 63
+   },
+   "pivot": {
+    "x": 0.5230769230769231,
+    "y": 0.5873015873015873
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-aura 2.png",
+   "frame": {
+    "x": 130,
+    "y": 0,
+    "w": 65,
+    "h": 63
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 63
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 63
+   },
+   "pivot": {
+    "x": 0.5230769230769231,
+    "y": 0.5873015873015873
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-aura 3.png",
+   "frame": {
+    "x": 195,
+    "y": 0,
+    "w": 65,
+    "h": 63
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 63
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 63
+   },
+   "pivot": {
+    "x": 0.5230769230769231,
+    "y": 0.5873015873015873
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-aura 4.png",
+   "frame": {
+    "x": 0,
+    "y": 63,
+    "w": 65,
+    "h": 63
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 63
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 63
+   },
+   "pivot": {
+    "x": 0.5230769230769231,
+    "y": 0.5873015873015873
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-aura 5.png",
+   "frame": {
+    "x": 65,
+    "y": 63,
+    "w": 65,
+    "h": 63
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 63
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 63
+   },
+   "pivot": {
+    "x": 0.5230769230769231,
+    "y": 0.5873015873015873
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-aura 6.png",
+   "frame": {
+    "x": 130,
+    "y": 63,
+    "w": 65,
+    "h": 63
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 63
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 63
+   },
+   "pivot": {
+    "x": 0.5230769230769231,
+    "y": 0.5873015873015873
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-aura 7.png",
+   "frame": {
+    "x": 195,
+    "y": 63,
+    "w": 65,
+    "h": 63
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 63
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 63
+   },
+   "pivot": {
+    "x": 0.5230769230769231,
+    "y": 0.5873015873015873
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-aura 8.png",
+   "frame": {
+    "x": 0,
+    "y": 126,
+    "w": 65,
+    "h": 63
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 63
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 63
+   },
+   "pivot": {
+    "x": 0.5230769230769231,
+    "y": 0.5873015873015873
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-aura 9.png",
+   "frame": {
+    "x": 65,
+    "y": 126,
+    "w": 65,
+    "h": 63
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 63
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 63
+   },
+   "pivot": {
+    "x": 0.5230769230769231,
+    "y": 0.5873015873015873
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-aura 10.png",
+   "frame": {
+    "x": 130,
+    "y": 126,
+    "w": 65,
+    "h": 63
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 63
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 63
+   },
+   "pivot": {
+    "x": 0.5230769230769231,
+    "y": 0.5873015873015873
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-aura 11.png",
+   "frame": {
+    "x": 195,
+    "y": 126,
+    "w": 65,
+    "h": 63
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 65,
+    "h": 63
+   },
+   "sourceSize": {
+    "w": 65,
+    "h": 63
+   },
+   "pivot": {
+    "x": 0.5230769230769231,
+    "y": 0.5873015873015873
+   },
+   "duration": 83
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "ascendrya-ui-aura.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 260,
+   "h": 189
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 34,
+   "y": 37
+  },
+  "frameTags": [
+   {
+    "name": "ascendrya-ui-aura",
+    "from": 0,
+    "to": 11,
+    "direction": "forward"
+   }
+  ]
+ }
+}

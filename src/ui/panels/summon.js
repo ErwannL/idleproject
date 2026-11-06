@@ -148,7 +148,7 @@ function showcase(ui, state, f, pool, p, btn, results, oddsHtml) {
   const open = ui.view.summonOdds === pool;
   const parts = Array.from({ length: 14 }, (_, i) => `<i style="--i:${i}"></i>`).join('');
   return `<div class="card summon-row vt banner-${pool}" style="--vt:${c.color ?? c.fx ?? '#f2c060'}">
-    <div class="vt-bg" aria-hidden="true"><span class="vt-rays"></span><span class="vt-glow"></span><span class="vt-parts">${parts}</span></div>
+    <div class="vt-bg" aria-hidden="true"><span class="vt-rays"></span><span class="vt-glow"></span><span class="vt-parts">${parts}</span><i class="vt-aura" aria-hidden="true"></i></div>
     <div class="vt-stage">${hdArt(c, 'vt-art') || unitPortrait(f)}</div>
     <div class="vt-info">
       <div class="vt-ribbon">✦ En vedette · taux augmenté ✦</div>

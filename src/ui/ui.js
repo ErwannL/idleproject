@@ -64,6 +64,7 @@ import { newItemsInBag } from '../core/journal.js';
 import { measureFarmRate } from '../core/offline.js';
 import { claimables, claimablesByTab } from '../core/claimables.js';
 import { isPhone, pref, reduceMotion, setPref } from './prefs.js';
+import * as uiFx from './ui-vfx.js'; // v9.2.6 : effets visuels de l'interface
 import { openSearch } from './search.js';
 import { setById } from '../core/sets.js';
 import { availableForExpedition, readyExpeditions } from '../core/expeditions.js';
@@ -235,7 +236,7 @@ export class UI {
       this.userAt = performance.now();
       this.invalidate();
     });
-    root.addEventListener('click', (e) => this.onClick(e));
+    root.addEventListener('click', (e) => uiFx.clickFx(this, e, () => this.onClick(e))); // v9.2.6 : effet selon le résultat
     root.addEventListener('change', (e) => this.onChange(e));
     // Saisie d'une nouvelle touche (Paramètres › Interface) : capturée avant les raccourcis.
     window.addEventListener('keydown', (e) => {
@@ -612,6 +613,8 @@ export class UI {
       this.pendingScroll = view ? 0 : this.scrollMem[tab] ?? 0;
     }
     if (tab === 'ranking') this.actions.loadRanking?.();
+    // v9.2.6 : ouverture du panneau (ou changement d'onglet) animée, liste en cascade au prochain rendu.
+    if (tab !== this.tab) { uiFx.panelOpenFx(this.$('panel'), !this.tab); this.vfxCascade = true; }
     this.tab = tab;
     this.view.bulkArmed = false;
     this.newTabs.delete(tab);
@@ -658,6 +661,7 @@ export class UI {
   }
 
   closePanel() {
+    uiFx.panelCloseFx(this.$('panel')); // v9.2.6 : le panneau s'efface (copie figée, les clics passent)
     this.sidePanel(false);
     this.tab = null;
     this.$('panel').classList.add('hidden');
@@ -1101,6 +1105,7 @@ export class UI {
       }
       case 'levelUp':
         this.banner(`Niveau ${event.level} !`, 'win');
+        uiFx.levelUpFx(); // v9.2.6
         this.news(`Niveau ${event.level} : +1 point de compétence`, '#f2d083');
         break;
       case 'worldEvent': {
@@ -1129,6 +1134,7 @@ export class UI {
       }
         if (event.zoneChanged) {
           const d = difficultyForStage(event.stage);
+          uiFx.worldTransitionFx(); // v9.2.6
           this.banner(`Monde ${zoneIndexForStage(event.stage) + 1} — ${zoneForStage(event.stage).name}${d > 1 ? ` · difficulté ×${d}` : ''}`, 'zone');
           // v9.2.1 : malus d'environnement du monde, dans le fil (priorité des messages d'action).
           const env = currentEnvironment(state);
@@ -1223,6 +1229,7 @@ export class UI {
     el.parentElement.classList.remove('flash');
     void el.offsetWidth; // relance l'animation CSS
     el.parentElement.classList.add('flash');
+    uiFx.newsFx(el.parentElement); // v9.2.6
   }
 
   // Les actions de main.js signalent leurs résultats par un message court dans le fil.
@@ -1301,6 +1308,7 @@ export class UI {
     this.calm = reduceMotion() || simSpeed(state) >= 100;
     document.documentElement.classList.toggle('fx-calm', this.calm || pref('contrast') === true);
     document.documentElement.classList.toggle('reduce-motion', this.calm);
+    if (!this.booted) { this.booted = true; uiFx.bootDone(); } // v9.2.6 : écran de chargement
     this.$('speed-toggle').classList.toggle('fast', simSpeed(state) > 1);
     this.$('auto-toggle').classList.toggle('off', !state.autoAdvance);
     this.$('auto-toggle').classList.toggle('hidden', Boolean(state.dungeon || state.tower || state.challenge));
@@ -1693,6 +1701,8 @@ export class UI {
     for (const [tab, show] of Object.entries(visible)) {
       if (show && this.tabVisible[tab] === false && !firstPass && this.tab !== tab) {
         this.newTabs.add(tab);
+        const menuBtn = this.root.querySelector(`#tabs button[data-menu="${MENUS.find((m) => m.tabs.includes(tab))?.id}"]`);
+        setTimeout(() => uiFx.unlockFx(menuBtn), 0); // v9.2.6 : après l'affichage du bouton
         this.news(`Nouvel onglet : ${navPath(tab)}`, '#7fe0a0', 1);
       }
       this.tabVisible[tab] = show;
@@ -1748,6 +1758,7 @@ export class UI {
       if (el) el.scrollTop = top;
     }
     panel.afterRender?.(this, body);
+    if (this.vfxCascade) { this.vfxCascade = false; uiFx.cascadeFx(body); } // v9.2.6
     this.phoneAction(body);
     this.lastHud.extra = panel.extra ? panel.extra(this, state) : '';
     this.$('panel-extra').innerHTML = this.lastHud.extra;

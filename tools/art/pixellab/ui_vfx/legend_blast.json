@@ -1,0 +1,209 @@
+{
+ "frames": [
+  {
+   "filename": "ascendrya-ui-legend-blast 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 259,
+    "h": 302
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 259,
+    "h": 302
+   },
+   "sourceSize": {
+    "w": 259,
+    "h": 302
+   },
+   "pivot": {
+    "x": 0.47876447876447875,
+    "y": 0.41721854304635764
+   },
+   "duration": 63
+  },
+  {
+   "filename": "ascendrya-ui-legend-blast 1.png",
+   "frame": {
+    "x": 259,
+    "y": 0,
+    "w": 259,
+    "h": 302
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 259,
+    "h": 302
+   },
+   "sourceSize": {
+    "w": 259,
+    "h": 302
+   },
+   "pivot": {
+    "x": 0.47876447876447875,
+    "y": 0.41721854304635764
+   },
+   "duration": 63
+  },
+  {
+   "filename": "ascendrya-ui-legend-blast 2.png",
+   "frame": {
+    "x": 518,
+    "y": 0,
+    "w": 259,
+    "h": 302
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 259,
+    "h": 302
+   },
+   "sourceSize": {
+    "w": 259,
+    "h": 302
+   },
+   "pivot": {
+    "x": 0.47876447876447875,
+    "y": 0.41721854304635764
+   },
+   "duration": 63
+  },
+  {
+   "filename": "ascendrya-ui-legend-blast 3.png",
+   "frame": {
+    "x": 0,
+    "y": 302,
+    "w": 259,
+    "h": 302
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 259,
+    "h": 302
+   },
+   "sourceSize": {
+    "w": 259,
+    "h": 302
+   },
+   "pivot": {
+    "x": 0.47876447876447875,
+    "y": 0.41721854304635764
+   },
+   "duration": 63
+  },
+  {
+   "filename": "ascendrya-ui-legend-blast 4.png",
+   "frame": {
+    "x": 259,
+    "y": 302,
+    "w": 259,
+    "h": 302
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 259,
+    "h": 302
+   },
+   "sourceSize": {
+    "w": 259,
+    "h": 302
+   },
+   "pivot": {
+    "x": 0.47876447876447875,
+    "y": 0.41721854304635764
+   },
+   "duration": 63
+  },
+  {
+   "filename": "ascendrya-ui-legend-blast 5.png",
+   "frame": {
+    "x": 518,
+    "y": 302,
+    "w": 259,
+    "h": 302
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 259,
+    "h": 302
+   },
+   "sourceSize": {
+    "w": 259,
+    "h": 302
+   },
+   "pivot": {
+    "x": 0.47876447876447875,
+    "y": 0.41721854304635764
+   },
+   "duration": 63
+  },
+  {
+   "filename": "ascendrya-ui-legend-blast 6.png",
+   "frame": {
+    "x": 0,
+    "y": 604,
+    "w": 259,
+    "h": 302
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 259,
+    "h": 302
+   },
+   "sourceSize": {
+    "w": 259,
+    "h": 302
+   },
+   "pivot": {
+    "x": 0.47876447876447875,
+    "y": 0.41721854304635764
+   },
+   "duration": 63
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "ascendrya-ui-legend-blast.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 777,
+   "h": 906
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 124,
+   "y": 126
+  },
+  "frameTags": [
+   {
+    "name": "ascendrya-ui-legend-blast",
+    "from": 0,
+    "to": 6,
+    "direction": "forward"
+   }
+  ]
+ }
+}

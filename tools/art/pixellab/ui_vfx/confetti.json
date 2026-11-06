@@ -1,0 +1,443 @@
+{
+ "frames": [
+  {
+   "filename": "ascendrya-ui-confetti 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 89
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 89
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 89
+   },
+   "pivot": {
+    "x": 0.4895833333333333,
+    "y": 0.43820224719101125
+   },
+   "duration": 67
+  },
+  {
+   "filename": "ascendrya-ui-confetti 1.png",
+   "frame": {
+    "x": 96,
+    "y": 0,
+    "w": 96,
+    "h": 89
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 89
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 89
+   },
+   "pivot": {
+    "x": 0.4895833333333333,
+    "y": 0.43820224719101125
+   },
+   "duration": 67
+  },
+  {
+   "filename": "ascendrya-ui-confetti 2.png",
+   "frame": {
+    "x": 192,
+    "y": 0,
+    "w": 96,
+    "h": 89
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 89
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 89
+   },
+   "pivot": {
+    "x": 0.4895833333333333,
+    "y": 0.43820224719101125
+   },
+   "duration": 67
+  },
+  {
+   "filename": "ascendrya-ui-confetti 3.png",
+   "frame": {
+    "x": 288,
+    "y": 0,
+    "w": 96,
+    "h": 89
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 89
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 89
+   },
+   "pivot": {
+    "x": 0.4895833333333333,
+    "y": 0.43820224719101125
+   },
+   "duration": 67
+  },
+  {
+   "filename": "ascendrya-ui-confetti 4.png",
+   "frame": {
+    "x": 0,
+    "y": 89,
+    "w": 96,
+    "h": 89
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 89
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 89
+   },
+   "pivot": {
+    "x": 0.4895833333333333,
+    "y": 0.43820224719101125
+   },
+   "duration": 67
+  },
+  {
+   "filename": "ascendrya-ui-confetti 5.png",
+   "frame": {
+    "x": 96,
+    "y": 89,
+    "w": 96,
+    "h": 89
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 89
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 89
+   },
+   "pivot": {
+    "x": 0.4895833333333333,
+    "y": 0.43820224719101125
+   },
+   "duration": 67
+  },
+  {
+   "filename": "ascendrya-ui-confetti 6.png",
+   "frame": {
+    "x": 192,
+    "y": 89,
+    "w": 96,
+    "h": 89
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 89
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 89
+   },
+   "pivot": {
+    "x": 0.4895833333333333,
+    "y": 0.43820224719101125
+   },
+   "duration": 67
+  },
+  {
+   "filename": "ascendrya-ui-confetti 7.png",
+   "frame": {
+    "x": 288,
+    "y": 89,
+    "w": 96,
+    "h": 89
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 89
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 89
+   },
+   "pivot": {
+    "x": 0.4895833333333333,
+    "y": 0.43820224719101125
+   },
+   "duration": 67
+  },
+  {
+   "filename": "ascendrya-ui-confetti 8.png",
+   "frame": {
+    "x": 0,
+    "y": 178,
+    "w": 96,
+    "h": 89
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 89
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 89
+   },
+   "pivot": {
+    "x": 0.4895833333333333,
+    "y": 0.43820224719101125
+   },
+   "duration": 67
+  },
+  {
+   "filename": "ascendrya-ui-confetti 9.png",
+   "frame": {
+    "x": 96,
+    "y": 178,
+    "w": 96,
+    "h": 89
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 89
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 89
+   },
+   "pivot": {
+    "x": 0.4895833333333333,
+    "y": 0.43820224719101125
+   },
+   "duration": 67
+  },
+  {
+   "filename": "ascendrya-ui-confetti 10.png",
+   "frame": {
+    "x": 192,
+    "y": 178,
+    "w": 96,
+    "h": 89
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 89
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 89
+   },
+   "pivot": {
+    "x": 0.4895833333333333,
+    "y": 0.43820224719101125
+   },
+   "duration": 67
+  },
+  {
+   "filename": "ascendrya-ui-confetti 11.png",
+   "frame": {
+    "x": 288,
+    "y": 178,
+    "w": 96,
+    "h": 89
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 89
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 89
+   },
+   "pivot": {
+    "x": 0.4895833333333333,
+    "y": 0.43820224719101125
+   },
+   "duration": 67
+  },
+  {
+   "filename": "ascendrya-ui-confetti 12.png",
+   "frame": {
+    "x": 0,
+    "y": 267,
+    "w": 96,
+    "h": 89
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 89
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 89
+   },
+   "pivot": {
+    "x": 0.4895833333333333,
+    "y": 0.43820224719101125
+   },
+   "duration": 67
+  },
+  {
+   "filename": "ascendrya-ui-confetti 13.png",
+   "frame": {
+    "x": 96,
+    "y": 267,
+    "w": 96,
+    "h": 89
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 89
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 89
+   },
+   "pivot": {
+    "x": 0.4895833333333333,
+    "y": 0.43820224719101125
+   },
+   "duration": 67
+  },
+  {
+   "filename": "ascendrya-ui-confetti 14.png",
+   "frame": {
+    "x": 192,
+    "y": 267,
+    "w": 96,
+    "h": 89
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 89
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 89
+   },
+   "pivot": {
+    "x": 0.4895833333333333,
+    "y": 0.43820224719101125
+   },
+   "duration": 67
+  },
+  {
+   "filename": "ascendrya-ui-confetti 15.png",
+   "frame": {
+    "x": 288,
+    "y": 267,
+    "w": 96,
+    "h": 89
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 89
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 89
+   },
+   "pivot": {
+    "x": 0.4895833333333333,
+    "y": 0.43820224719101125
+   },
+   "duration": 67
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "ascendrya-ui-confetti.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 384,
+   "h": 356
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 47,
+   "y": 39
+  },
+  "frameTags": [
+   {
+    "name": "ascendrya-ui-confetti",
+    "from": 0,
+    "to": 15,
+    "direction": "forward"
+   }
+  ]
+ }
+}

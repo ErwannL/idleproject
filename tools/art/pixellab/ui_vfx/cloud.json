@@ -1,0 +1,443 @@
+{
+ "frames": [
+  {
+   "filename": "ascendrya-ui-cloud 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 38
+   },
+   "pivot": {
+    "x": 0.45454545454545453,
+    "y": 0.9473684210526315
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-cloud 1.png",
+   "frame": {
+    "x": 44,
+    "y": 0,
+    "w": 44,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 38
+   },
+   "pivot": {
+    "x": 0.45454545454545453,
+    "y": 0.9473684210526315
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-cloud 2.png",
+   "frame": {
+    "x": 88,
+    "y": 0,
+    "w": 44,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 38
+   },
+   "pivot": {
+    "x": 0.45454545454545453,
+    "y": 0.9473684210526315
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-cloud 3.png",
+   "frame": {
+    "x": 132,
+    "y": 0,
+    "w": 44,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 38
+   },
+   "pivot": {
+    "x": 0.45454545454545453,
+    "y": 0.9473684210526315
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-cloud 4.png",
+   "frame": {
+    "x": 0,
+    "y": 38,
+    "w": 44,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 38
+   },
+   "pivot": {
+    "x": 0.45454545454545453,
+    "y": 0.9473684210526315
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-cloud 5.png",
+   "frame": {
+    "x": 44,
+    "y": 38,
+    "w": 44,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 38
+   },
+   "pivot": {
+    "x": 0.45454545454545453,
+    "y": 0.9473684210526315
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-cloud 6.png",
+   "frame": {
+    "x": 88,
+    "y": 38,
+    "w": 44,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 38
+   },
+   "pivot": {
+    "x": 0.45454545454545453,
+    "y": 0.9473684210526315
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-cloud 7.png",
+   "frame": {
+    "x": 132,
+    "y": 38,
+    "w": 44,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 38
+   },
+   "pivot": {
+    "x": 0.45454545454545453,
+    "y": 0.9473684210526315
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-cloud 8.png",
+   "frame": {
+    "x": 0,
+    "y": 76,
+    "w": 44,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 38
+   },
+   "pivot": {
+    "x": 0.45454545454545453,
+    "y": 0.9473684210526315
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-cloud 9.png",
+   "frame": {
+    "x": 44,
+    "y": 76,
+    "w": 44,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 38
+   },
+   "pivot": {
+    "x": 0.45454545454545453,
+    "y": 0.9473684210526315
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-cloud 10.png",
+   "frame": {
+    "x": 88,
+    "y": 76,
+    "w": 44,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 38
+   },
+   "pivot": {
+    "x": 0.45454545454545453,
+    "y": 0.9473684210526315
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-cloud 11.png",
+   "frame": {
+    "x": 132,
+    "y": 76,
+    "w": 44,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 38
+   },
+   "pivot": {
+    "x": 0.45454545454545453,
+    "y": 0.9473684210526315
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-cloud 12.png",
+   "frame": {
+    "x": 0,
+    "y": 114,
+    "w": 44,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 38
+   },
+   "pivot": {
+    "x": 0.45454545454545453,
+    "y": 0.9473684210526315
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-cloud 13.png",
+   "frame": {
+    "x": 44,
+    "y": 114,
+    "w": 44,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 38
+   },
+   "pivot": {
+    "x": 0.45454545454545453,
+    "y": 0.9473684210526315
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-cloud 14.png",
+   "frame": {
+    "x": 88,
+    "y": 114,
+    "w": 44,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 38
+   },
+   "pivot": {
+    "x": 0.45454545454545453,
+    "y": 0.9473684210526315
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-ui-cloud 15.png",
+   "frame": {
+    "x": 132,
+    "y": 114,
+    "w": 44,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 38
+   },
+   "pivot": {
+    "x": 0.45454545454545453,
+    "y": 0.9473684210526315
+   },
+   "duration": 100
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "ascendrya-ui-cloud.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 176,
+   "h": 152
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 20,
+   "y": 36
+  },
+  "frameTags": [
+   {
+    "name": "ascendrya-ui-cloud",
+    "from": 0,
+    "to": 15,
+    "direction": "forward"
+   }
+  ]
+ }
+}

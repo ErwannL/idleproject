@@ -4,6 +4,7 @@
 import { companionById } from '../core/companions.js';
 import { animCanvas } from './animator.js';
 import { escapeHtml, rarityLabel } from './common.js';
+import { calm, playOn, sprite } from './ui-vfx.js'; // v9.2.6 : portail, rayon et explosion en pixel art (PixelLab)
 
 const ORDER = ['common', 'rare', 'epic', 'legendary'];
 
@@ -35,6 +36,13 @@ export function playSummonReveal(results) {
       </div>`).join('')}</div>
     <div class="sfx-hint">Cliquez pour tout révéler</div>`;
   document.body.appendChild(el);
+  // v9.2.6 : portail animé au centre, rayon de la meilleure rareté (sprites, rien en animations réduites).
+  if (!calm()) {
+    const portal = sprite('portal', { size: 216, loops: Infinity, cls: 'sfx-px-portal', parent: el });
+    if (portal) el.prepend(portal);
+    const beam = { rare: 'beam_rare', epic: 'beam_epic', legendary: 'beam_legend' }[best];
+    if (beam) sprite(beam, { size: 246, loops: Infinity, cls: 'sfx-px-beam', parent: el });
+  }
   const cards = [...el.querySelectorAll('.sfx-card')];
   const timers = [];
   const finish = () => { el.classList.add('done'); el.querySelector('.sfx-hint').textContent = 'Cliquez pour fermer'; };
@@ -46,6 +54,7 @@ export function playSummonReveal(results) {
     if (rarity === 'legendary') at += 450;
     timers.push(setTimeout(() => {
       card.classList.add('flipped');
+      playOn(rarity === 'legendary' ? 'legend_blast' : 'spark', card, { size: rarity === 'legendary' ? 196 : 48 }); // v9.2.6
       if (rarity === 'legendary' || rarity === 'epic') {
         el.classList.remove('burst-epic', 'burst-legendary');
         void el.offsetWidth;

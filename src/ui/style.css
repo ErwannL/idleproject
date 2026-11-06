@@ -2642,3 +2642,69 @@ img.ico16 { width: 16px; height: 16px; vertical-align: middle; }
   .vt-skill { font-size: 11px; padding: 4px 6px; }
   .vt-rate b { font-size: 17px; } .vt-rate { font-size: 10.5px; }
 @container (min-width: 620px) { .vt-stage { width: 40%; } .vt-info { max-width: 58%; } }
+
+/* ===== v9.2.6 : VFX de l'interface (src/ui/ui-vfx.js, planches assets/ui/vfx/*.webp générées avec PixelLab) ===== */
+#ui-vfx { position: fixed; inset: 0; z-index: 9500; pointer-events: none; overflow: hidden; }
+.uvfx { position: absolute; display: block; pointer-events: none; background-repeat: no-repeat; image-rendering: pixelated;
+  filter: drop-shadow(0 0 3px var(--tint, transparent)); }
+.uvfx-num { position: absolute; font: 900 14px/1 inherit; text-shadow: 0 1px 0 #000, 0 0 6px currentColor; pointer-events: none; white-space: nowrap; }
+.vfx-ghost { position: fixed; margin: 0; z-index: 1; pointer-events: none; overflow: hidden; background: var(--bg-1); }
+/* Menus : ouverture du panneau, changement d'onglet, sous-onglet actif, boutons (lueur au survol, éclat à l'appui). */
+#panel.vfx-open { animation: vfx-open 0.24s cubic-bezier(.2,.8,.3,1); }
+#panel.vfx-tab #panel-body, .vfx-tab { animation: vfx-tab 0.2s ease-out; }
+@keyframes vfx-open { from { opacity: 0.2; transform: translateY(12px) scale(0.985); } to { opacity: 1; transform: none; } }
+@keyframes vfx-tab { from { opacity: 0.4; transform: translateX(8px); } to { opacity: 1; transform: none; } }
+.subtab.active { position: relative; }
+.subtab.active::after { content: ''; position: absolute; left: 15%; right: 15%; bottom: 0; height: 2px; border-radius: 2px;
+  background: var(--gold, #e8b84a); box-shadow: 0 0 6px var(--gold, #e8b84a); animation: vfx-underline 0.25s ease-out; }
+@keyframes vfx-underline { from { left: 50%; right: 50%; opacity: 0; } }
+.btn, #tabs button, .subtab { transition: filter 0.15s, box-shadow 0.15s, transform 0.08s; }
+#tabs button:hover, .subtab:hover { filter: brightness(1.15) drop-shadow(0 0 4px rgba(255, 220, 140, 0.45)); }
+.vfx-press { animation: vfx-press 0.26s ease-out; }
+@keyframes vfx-press { 0% { filter: brightness(1.6); box-shadow: 0 0 0 0 rgba(255, 230, 150, 0.7); } 100% { filter: none; box-shadow: 0 0 0 8px rgba(255, 230, 150, 0); } }
+.btn-gold:not(:disabled):hover, .btn-primary:not(:disabled):hover { box-shadow: 0 0 8px rgba(255, 214, 120, 0.55); }
+/* Récompenses : compteur qui rebondit, barre du haut qui luit, onglet débloqué. */
+.vfx-bump { animation: vfx-bump 0.45s cubic-bezier(.3,1.6,.5,1); }
+@keyframes vfx-bump { 30% { transform: scale(1.18); filter: brightness(1.5) drop-shadow(0 0 6px #ffe08a); } }
+.vfx-glow { animation: vfx-glow 0.8s ease-out; }
+@keyframes vfx-glow { 25% { filter: brightness(1.35) drop-shadow(0 0 10px #ffd86a); } }
+.vfx-unlocked { animation: vfx-unlocked 1.2s ease-out; }
+@keyframes vfx-unlocked { 0%, 50% { box-shadow: 0 0 0 2px #8ff0ff, 0 0 16px #8ff0ff; } 100% { box-shadow: none; } }
+.vfx-shine { animation: vfx-shine 0.6s ease-out; }
+@keyframes vfx-shine { 20% { filter: brightness(1.6) drop-shadow(0 0 6px var(--rarity, #fff)); transform: scale(1.06); } }
+.vfx-slide { animation: vfx-tab 0.25s ease-out; display: inline-block; }
+/* Changement de monde : voile circulaire sur la scène (≤ 400 ms). */
+.vfx-world-veil { position: absolute; inset: 0; z-index: 3; pointer-events: none; background: radial-gradient(circle, #fff6d0 0, #ffd36a55 40%, transparent 70%); }
+/* Carte du monde : calque animé sous les pastilles. */
+.mini-map > canvas.map-fx { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; pointer-events: none; }
+.map-dot { z-index: 1; }
+.map-dot:not(.locked):hover { filter: brightness(1.2) drop-shadow(0 0 5px #ffe08a); }
+/* Invocation : portail et rayon en pixel art sous les cartes. */
+.summon-fx .sfx-px-portal { position: absolute; left: calc(50% - 108px); top: calc(45% - 108px); opacity: 0.9; animation: sfx-px-in 0.8s ease-out both; }
+.summon-fx .sfx-px-beam { position: absolute; left: calc(50% - 123px); top: 0; bottom: 0; height: 100% !important; width: 246px; transform: scaleX(1.6);
+  z-index: 0; opacity: 0.6; animation: sfx-px-in 0.6s ease-out 0.5s both; }
+.summon-fx .sfx-cards, .summon-fx .sfx-hint { z-index: 1; }
+@keyframes sfx-px-in { from { opacity: 0; } }
+.summon-fx.done .sfx-px-portal { opacity: 0.3; transition: opacity 0.6s; }
+/* Vitrine : halo de particules PixelLab autour du compagnon en vedette. */
+.vt-aura { position: absolute; left: 72%; top: 42%; width: 236px; height: 236px; margin: -118px 0 0 -118px; image-rendering: pixelated;
+  background: url(../../assets/ui/vfx/aura.webp) 0 0 / 2832px 236px no-repeat; animation: vfx-aura 1s steps(12) infinite; opacity: 0.9; }
+@keyframes vfx-aura { to { background-position: -2832px 0; } }
+/* Fil d'actualité (toasts) : le message glisse. */
+#news.flash #news-text { display: inline-block; animation: vfx-news 0.3s ease-out; }
+@keyframes vfx-news { from { opacity: 0; transform: translateY(6px); } }
+.toast { animation: vfx-toast-in 0.25s ease-out, toast 3.5s ease-out forwards; }
+@keyframes vfx-toast-in { from { transform: translateX(-12px); } }
+/* Écran de chargement. */
+#boot { position: fixed; inset: 0; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  background: radial-gradient(circle at 50% 45%, #1b2547, #070a16 70%); color: #f2d083; font: 900 22px/1 serif; letter-spacing: 2px; transition: opacity 0.4s; }
+#boot .boot-rune { width: 126px; height: 126px; image-rendering: pixelated; background: url(../../assets/ui/vfx/rune.webp) 0 0 / 1512px 126px no-repeat;
+  animation: vfx-rune 1s steps(12) infinite; filter: drop-shadow(0 0 10px #ffcf6a); }
+@keyframes vfx-rune { to { background-position: -1512px 0; } }
+#boot.boot-out { opacity: 0; pointer-events: none; }
+/* Animations réduites : ni mouvement ni effet. */
+.reduce-motion #ui-vfx, .reduce-motion .map-fx-moving, .reduce-motion .vt-aura, .reduce-motion .sfx-px-portal, .reduce-motion .sfx-px-beam { display: none; }
+.reduce-motion #boot .boot-rune { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .vt-aura, #boot .boot-rune, #panel.vfx-open, .vfx-tab, .subtab.active::after { animation: none !important; }
+}

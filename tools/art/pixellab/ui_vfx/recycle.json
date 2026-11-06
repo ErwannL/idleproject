@@ -1,0 +1,235 @@
+{
+ "frames": [
+  {
+   "filename": "ascendrya-ui-recycle 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 61,
+    "h": 66
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 61,
+    "h": 66
+   },
+   "sourceSize": {
+    "w": 61,
+    "h": 66
+   },
+   "pivot": {
+    "x": 0.4918032786885246,
+    "y": 0.8636363636363636
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-recycle 1.png",
+   "frame": {
+    "x": 61,
+    "y": 0,
+    "w": 61,
+    "h": 66
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 61,
+    "h": 66
+   },
+   "sourceSize": {
+    "w": 61,
+    "h": 66
+   },
+   "pivot": {
+    "x": 0.4918032786885246,
+    "y": 0.8636363636363636
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-recycle 2.png",
+   "frame": {
+    "x": 122,
+    "y": 0,
+    "w": 61,
+    "h": 66
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 61,
+    "h": 66
+   },
+   "sourceSize": {
+    "w": 61,
+    "h": 66
+   },
+   "pivot": {
+    "x": 0.4918032786885246,
+    "y": 0.8636363636363636
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-recycle 3.png",
+   "frame": {
+    "x": 0,
+    "y": 66,
+    "w": 61,
+    "h": 66
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 61,
+    "h": 66
+   },
+   "sourceSize": {
+    "w": 61,
+    "h": 66
+   },
+   "pivot": {
+    "x": 0.4918032786885246,
+    "y": 0.8636363636363636
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-recycle 4.png",
+   "frame": {
+    "x": 61,
+    "y": 66,
+    "w": 61,
+    "h": 66
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 61,
+    "h": 66
+   },
+   "sourceSize": {
+    "w": 61,
+    "h": 66
+   },
+   "pivot": {
+    "x": 0.4918032786885246,
+    "y": 0.8636363636363636
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-recycle 5.png",
+   "frame": {
+    "x": 122,
+    "y": 66,
+    "w": 61,
+    "h": 66
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 61,
+    "h": 66
+   },
+   "sourceSize": {
+    "w": 61,
+    "h": 66
+   },
+   "pivot": {
+    "x": 0.4918032786885246,
+    "y": 0.8636363636363636
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-recycle 6.png",
+   "frame": {
+    "x": 0,
+    "y": 132,
+    "w": 61,
+    "h": 66
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 61,
+    "h": 66
+   },
+   "sourceSize": {
+    "w": 61,
+    "h": 66
+   },
+   "pivot": {
+    "x": 0.4918032786885246,
+    "y": 0.8636363636363636
+   },
+   "duration": 83
+  },
+  {
+   "filename": "ascendrya-ui-recycle 7.png",
+   "frame": {
+    "x": 61,
+    "y": 132,
+    "w": 61,
+    "h": 66
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 61,
+    "h": 66
+   },
+   "sourceSize": {
+    "w": 61,
+    "h": 66
+   },
+   "pivot": {
+    "x": 0.4918032786885246,
+    "y": 0.8636363636363636
+   },
+   "duration": 83
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "ascendrya-ui-recycle.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 183,
+   "h": 198
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 30,
+   "y": 57
+  },
+  "frameTags": [
+   {
+    "name": "ascendrya-ui-recycle",
+    "from": 0,
+    "to": 7,
+    "direction": "forward"
+   }
+  ]
+ }
+}
