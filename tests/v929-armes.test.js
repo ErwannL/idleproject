@@ -58,10 +58,6 @@ test('v9.2.9 : arme visible sur chaque image (marche, repos, attaque de chaque c
 
 // Main de prise = main de frappe : au repos l'arme est dans la main d'avant (prise devant le corps) ; à l'impact
 // elle doit y être encore : prise jamais passée derrière le corps (main arrière), ni à plus de 10 px en arrière.
-// Reste connu : arc et arbalète de la diablesse — l'arme de génération (arc bandé) n'est pas reconnue par
-// tools/art/weapon_anchor.py (score 0,35) ; trois régénérations PixelLab et un repérage par couleur essayés sans
-// résultat propre (trous dans le corps). Prise et image laissées comme en 9.2.8.
-const KNOWN = new Set(['hero_demoness/archer', 'hero_demoness/crossbowman']);
 test('v9.2.9 : main de prise = main de frappe (impact du même côté que la prise au repos)', () => {
   const fails = [];
   for (const [key] of LOOKS) {
@@ -69,7 +65,6 @@ test('v9.2.9 : main de prise = main de frappe (impact du même côté que la pri
     const walk0 = set.walk.w[0];
     for (const c of CLASSES) {
       const a = set[`attack_${c.id}`];
-      if (KNOWN.has(`${key}/${c.id}`)) continue;
       const rest = a.w[0], hit = a.w[a.hit];
       if (rest[3]) fails.push(`${key}/${c.id} : repos dans la main arrière`);
       if (Math.abs(rest[0] - walk0[0]) > 4) fails.push(`${key}/${c.id} : prise du repos ≠ prise de la marche`);

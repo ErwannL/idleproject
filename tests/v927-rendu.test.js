@@ -39,3 +39,33 @@ test('volants et marcheurs : robes longues au sol, ailés en vol stationnaire, p
   assert.ok(airDef('boss_phoenix', true, ENEMIES[BOSSES.boss_phoenix.base]).flyHeight > 0);
   assert.equal(airDef('mid_thunder_griffin', true, ENEMIES[BOSSES.mid_thunder_griffin.base]).flyHeight ?? 0, 0); // se pose
 });
+
+// v9.2.9 : placement à l'écran : le héros est dessiné comme dans scene.js (baseY = sol − HERO_ANCHOR.y + 1) ; pour
+// chaque apparence, la marche et l'attaque de chaque classe posent les pieds comme la pose de repos composée
+// (heroComposite : semelles 2 px dans le bord du sol), à 1 px près.
+test('v9.2.9 : héros posé sur la ligne de sol à l\'écran — chaque apparence, marche et attaque de chaque classe', async () => {
+  const { installSoftCanvas, SoftCanvas } = await import('./helpers/softcanvas.js');
+  installSoftCanvas();
+  const A = await import('../src/render/ally-anim.js');
+  const D = await import('../src/render/hero-draw.js');
+  const { HERO_ANCHOR } = await import('../src/render/pixel.js');
+  const { CLASSES } = await import('../src/data/classes.js');
+  const G = 100, baseY = G - HERO_ANCHOR.y + 1;
+  const bad = [];
+  for (const look of ['knight', 'witch', 'vampire', 'ninja', 'grombar', 'seraph', 'valkyrie', 'demoness', 'fairy']) {
+    const pal = look === 'knight' ? null : { skin: look }, set = A.ALLY_ANIMS[A.heroAnimKey(pal)];
+    for (const k of ['walk', ...CLASSES.map((c) => `attack_${c.id}`)]) {
+      const a = set[k], feet = [];
+      a.frames.forEach((name, i) => {
+        const cv = new SoftCanvas(160, 140);
+        D.drawHeroPick(cv.getContext('2d'), { name, anim: a, weapon: A.weaponPose(a, i), head: A.knightHead(a, i) }, {}, pal, 40, baseY, { weapon: false });
+        let low = -1;
+        for (let y = 0; y < cv.height; y++) for (let x = 0; x < cv.width; x++) if (cv.data[(y * cv.width + x) * 4 + 3] > 100) low = y;
+        feet.push(low - G);
+      });
+      const d = k === 'walk' ? feet : [Math.max(...feet)];
+      if (d.some((x) => Math.abs(x - 2) > 1)) bad.push(`${look} ${k} ${d.join(',')}`);
+    }
+  }
+  assert.deepEqual(bad, []);
+});

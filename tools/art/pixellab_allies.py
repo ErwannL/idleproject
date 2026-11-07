@@ -184,6 +184,25 @@ def separate_weapon(frames, key, cls, pool):
 FRONT_FIX = {('hero_seraph', 'pyromancer'): (3, 4)}
 
 
+# v9.2.9 : attaques générées MAINS VIDES (arc et arbalète de la diablesse : l'arc bandé de génération n'était pas
+# reconnu, donc jamais effacé). Pas d'arme à repérer : la main d'avant est suivie image par image (comme la marche,
+# plus loin : le bras se tend), arme droite, toujours dans la main d'avant.
+EMPTY_HANDS = {('hero_demoness', 'archer'), ('hero_demoness', 'crossbowman')}
+
+
+def front_fist(img, hand):
+    """Poing d'avant d'une image mains vides : pixel opaque le plus en avant (à droite) à hauteur de bras."""
+    px = img.load()
+    best = None
+    for y in range(max(0, hand[1] - 16), min(img.height, hand[1] + 4)):
+        for x in range(img.width - 1, -1, -1):
+            if px[x, y][3] > 100:
+                if not best or x > best[0]:
+                    best = (x, y)
+                break
+    return (best[0] - 2, best[1]) if best else hand
+
+
 def hand_of(key):
     """Main de la vue de repos (prise de l'épée du chevalier dans la vue corps + épée)."""
     ref = Image.open(os.path.join(SRC, '_ref', f'{key}_knight.png')).convert('RGBA')
@@ -216,7 +235,11 @@ def build():
         hit = _hit_frame(frames, ref) if anim == 'attack' else None  # avant l'effacement de l'arme
         weapon = None
         if key.startswith('hero_') and anim == 'attack' and cls:
-            weapon = separate_weapon(frames, key, cls, pool)
+            if (key, cls) in EMPTY_HANDS:
+                weapon = [[*front_fist(f, hand_of(key)), 0, 0] for f in frames]
+                weapon[0][:2] = weapon[-1][:2] = hand_of(key)
+            else:
+                weapon = separate_weapon(frames, key, cls, pool)
             for i in FRONT_FIX.get((key, cls), ()):
                 weapon[i][3] = 0
             # Pieds recalés sur la vue sans arme (l'arme effacée pouvait descendre sous les pieds : bâton, faux).
