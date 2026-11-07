@@ -93,17 +93,19 @@ function play(state, seconds, { player = 'equilibre', rebirth = false, rngSeed =
     if (i % Math.round(60 / DT) === 0) {
       onMinute?.(i * DT, state);
       if (state.maxStage > lastBest) { lastBest = state.maxStage; stall = 0; } else stall += 1;
-      if (rebirth && stall >= 20 && canRebirth(state)) { performRebirth(state); buyTalentsCheapest(state); lastBest = state.maxStage; stall = 0; }
+      if (rebirth && stall >= 20 && canRebirth(state)) { result.firstRebirth ??= Math.round((i * DT) / 60);
+        if (process.env.DEBUG_REBIRTH) { let bs = state.maxStage; while (!isBossStage(bs)) bs += 1; const f = bossFight(state, bs, 900); const g = farm(state); console.error('renaissance', state.maxStage, state.stage, JSON.stringify(hitsToFall(state, state.maxStage)), JSON.stringify(f), JSON.stringify(g), Math.round(computeHeroStats(state).dps)); }
+        performRebirth(state); buyTalentsCheapest(state); lastBest = state.maxStage; stall = 0; }
     }
   }
 }
 
 // Combat de boss réel (90 s au plus) : coups du boss reçus avant la première mort, issue.
-function bossFight(s0, st) {
+function bossFight(s0, st, limit = 90) {
   const s = clone(s0); s.stage = st; s.autoAdvance = false;
   const world = createCombat(s); const rng = new Rng(9);
   let hits = 0;
-  for (let t = 0; t < 90; t += DT) {
+  for (let t = 0; t < limit; t += DT) {
     step(s, world, DT, rng);
     for (const e of world.events) {
       if (e.type === 'heroHit' && e.boss) hits += 1;
@@ -112,7 +114,7 @@ function bossFight(s0, st) {
     }
     world.events.length = 0;
   }
-  return { win: false, t: 90, hits };
+  return { win: false, t: limit, hits };
 }
 // 3 min sur l'étape max : morts, coups reçus.
 function farm(s0) {
@@ -152,7 +154,7 @@ for (const player of WORLDS_ONLY ? [] : ['combat', 'equilibre']) {
 }
 // Temps pour finir chaque monde (joueur équilibré, partie neuve, Renaissances permises).
 {
-  simMs = 0; seed = 0x9e3779b9;
+  simMs = 0; seed = 0x9e3779b9; result.firstRebirth = undefined;
   const s = createNewState(T0, 0xC0FFEE);
   s.ui.recycle = { ...s.ui.recycle, mode: 'pickup' };
   const per = BALANCE.stages.stagesPerZone;
@@ -163,7 +165,7 @@ for (const player of WORLDS_ONLY ? [] : ['combat', 'equilibre']) {
       for (let w = 1; w <= done; w++) {
         if (result.worlds[w] !== undefined) continue;
         const h = hitsToFall(st, st.maxStage);
-        result.worlds[w] = { min: Math.round(t / 60), normal: r1(h.normal), boss: r1(h.boss), level: st.level, rebirths: st.records.rebirths ?? 0 };
+        result.worlds[w] = { min: Math.round(t / 60), normal: r1(h.normal), boss: r1(h.boss), level: st.level, rebirths: st.records.rebirths ?? 0, dps: Math.round(computeHeroStats(st).dps), ups: JSON.stringify(st.upgrades) };
       }
     },
   });
@@ -175,6 +177,8 @@ P('|---|---|---|---|---|---|---|---|---|---|---|---|---|');
 for (const [k, v] of Object.entries(result.saves)) {
   P(`| ${k} | ${v.stage} | ${v.level} | ${v.rebirths} | ${v.maxHp.toLocaleString('fr-FR')} | ${v.dps.toLocaleString('fr-FR')} | ${v.armor} % | ${v.defense} % | ${v.pc ?? '—'} | ${v.hitsNormal} | ${v.hitsBoss} (étape ${v.bossStage}) | ${v.realBossHits} / ${v.bossWin ? `battu en ${v.bossTime} s` : `perdu à ${v.bossTime} s`} | ${v.farmDeaths} |`);
 }
+P();
+P(`Première Renaissance (partie neuve) : ${result.firstRebirth ?? '—'} min de jeu`);
 P();
 P('| Monde terminé | Minutes depuis le début | Niveau | Renaissances | Coups ordinaires | Coups boss |');
 P('|---|---|---|---|---|---|');

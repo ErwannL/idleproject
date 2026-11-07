@@ -80,7 +80,8 @@ test('v9.2.8 : courbe de dégâts — début épargné, puis PV et Défense déc
   const tank = withUps(glass, { vitality: 140, defense: 60, armor: 30 });
   const h1 = hitsToFall({ ...glass, upgrades: tank.upgrades });
   assert.ok(h1.normal >= 4 && h1.boss >= 2, JSON.stringify(h1));
-  assert.ok(h1.bossHit > h1.normalHit, 'un coup de boss reste plus fort');
+  assert.ok(h1.bossHit > h1.normalHit * 0.5, 'un coup de boss reste du même ordre (lent et lourd)');
+  assert.equal(BALANCE.stages.bossAttackInterval, 4.5, 'les boss frappent lentement');
 });
 
 test('v9.2.8 : sauvegarde v9 (avant Défense et Double attaque) — aucune perte, nouvelles lignes à 0', () => {

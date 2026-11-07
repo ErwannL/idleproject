@@ -109,8 +109,8 @@ export const BALANCE = {
     defense: {
       label: 'Défense',
       description: '+10 points de Défense par niveau : réduit les dégâts subis (rendement décroissant, 60 % au plus)',
-      baseCost: 30,
-      costGrowth: 1.15,
+      baseCost: 200,
+      costGrowth: 1.2,
       perLevel: 10,
       capPct: 60,
       halfAt: 600, // 600 points (niveau 60) = 30 % de réduction ; 1 500 points = 43 %
@@ -219,13 +219,16 @@ export const BALANCE = {
     stagesPerZone: 20, // étapes 5, 10, 15, 20 : mini-boss, boss moyen, boss dur, méga boss
     // v7.7 : boss bien plus coriaces (ils étaient balayés en quelques coups).
     bossHpMultiplier: 45, // un boss se gagne aux dégâts…
-    bossDamageMultiplier: 0.9, // …et il frappe fort (v9.2.8 : 2,4 → 0,9, avec la courbe de dégâts damageCurve)
+    bossDamageMultiplier: 0.6, // …et il frappe fort (v9.2.8 : 2,4 → 0,6, avec la courbe de dégâts damageCurve)
+    // v9.2.8 : un boss frappe lourd (3 à 4 coups pour tomber) mais lentement (×1,2 → ×4 l'intervalle de sa base) :
+    // la régénération compte entre deux coups et le mur reste ses PV et sa rage, comme avant (×4,5).
+    bossAttackInterval: 4.5,
     bossArmorPierce: 0.4, // un boss ignore 40 % de l'armure du héros
-    enrageSeconds: 25, // au-delà, le boss enrage : dégâts ×1,3 toutes les 10 s (étape 4 : multiplicatif)
+    enrageSeconds: 60, // v9.2.8 : 25 → 60 s ; au-delà, le boss enrage : dégâts ×1,3 toutes les 10 s (étape 4 : multiplicatif)
     enrageStepSeconds: 10,
-    enragePct: 30, // étape 4 : ×1,3 par palier, multiplicatif (×4,8 à 85 s, ×14 à 125 s)
+    enragePct: 4, // v9.2.8 : 30 → 4 % (un héros équilibré ne tient plus des milliers de coups) ; étape 4 : ×1,3 par palier, multiplicatif (×4,8 à 85 s, ×14 à 125 s)
     // Monde 11 : méga boss berserk (et leurs invocations).
-    berserk: { hp: 1.8, damage: 1.6, speed: 1.3, gold: 2 },
+    berserk: { hp: 1.8, damage: 1, speed: 1.3, gold: 2 }, // v9.2.8 : dégâts 1,6 → 1 (courbe de dégâts damageCurve)
     // Renaissance : les boss s'adaptent (plus durs) mais rapportent plus.
     rebirthBossPct: 5, // v8.4 : 60 → 5 (la Renaissance doit rendre plus fort, pas plus faible)
     rebirthRewardPct: 50, // or, gemmes et essences des boss +50 % par Renaissance
@@ -252,8 +255,9 @@ export const BALANCE = {
     damageGrowth: 1.0583,
     // v9.2.8 : ×coef × étape^exp en plus (×1 au plus bas) : un héros qui achète ses PV et sa Défense encaisse 4 à 6
     // coups ordinaires à son étape record au lieu de milliers (réglage : tools/measure-defense-v928.mjs).
-    // ramp : montée douce sur les 60 premiers niveaux ; au-delà du niveau 240 (cycles ×2…), ×lateGrowth par niveau.
-    damageCurve: { coef: 0.15, exp: 1.6, ramp: 60, knee: 240, lateGrowth: 1.007 },
+    // ramp : montée douce sur les 60 premiers niveaux ; au-delà du niveau 240, ×lateGrowth par niveau ; ×cycleStep
+    // à partir du 3e cycle ; rebirthPow : part du multiplicateur de Renaissance du héros reprise par les coups ennemis.
+    damageCurve: { coef: 0.3, exp: 1.45, ramp: 60, knee: 240, lateGrowth: 1.002, bossPow: 1, rebirthPow: 0.8, cycleStep: 3.85 },
     goldGrowth: 1.0724,
   },
 

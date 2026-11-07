@@ -17,7 +17,7 @@ import { generateItem, makeSignatureItem, rarityIndex } from './loot.js';
 import { cheatLoot } from './cheats.js';
 import { recordBossVictory } from './powers.js';
 import { activeSkills, skillCooldown, skillValue } from './skills.js';
-import { computeHeroStats } from './stats.js';
+import { computeHeroStats, rebirthMultiplier } from './stats.js';
 import { applyEnvironment, environmentFor } from './environment.js'; // v9.2.1
 import { earlyBoost } from './boost.js';
 import { phantomHitPct, rushById, tickRushes } from './rushes.js';
@@ -162,7 +162,15 @@ export function damageCurve(n, growth = BALANCE.enemyScaling) {
   if (!c) return 1;
   const late = c.knee && n > c.knee ? c.lateGrowth ** (n - c.knee) : 1; // au-delà du premier cycle (Renaissances)
   const ramp = c.ramp ? Math.min(1, (n + 1) / c.ramp) : 1; // début de partie épargné (premiers mondes)
-  return Math.max(1, c.coef * (n + 1) ** c.exp * late * ramp);
+  const cycle = c.cycleStep ? (Math.floor(n / levelsPerCycle()) >= 2 ? c.cycleStep : 1) : 1; // marche unique au 3e cycle (difficulté ×3)
+  return Math.max(1, c.coef * (n + 1) ** c.exp * late * ramp * cycle);
+}
+
+// v9.2.8 : les coups ennemis suivent une part (rebirthPow) du multiplicateur de Renaissance du héros : les PV qu'elle
+// donne ne rendent plus le héros intouchable (ses dégâts, eux, en profitent entièrement).
+export function rebirthDamage(state, balance = BALANCE) {
+  const p = balance.enemyScaling.damageCurve?.rebirthPow ?? 0;
+  return p ? rebirthMultiplier(state) ** p : 1;
 }
 
 export function enemyStats(stage, type, boss, balance = BALANCE) {
@@ -173,10 +181,11 @@ export function enemyStats(stage, type, boss, balance = BALANCE) {
   const n = Math.max(0, stage - 1);
   return {
     hp: Math.round(def.hp * hpBaseFactor(n, growth) * growth.hpGrowth ** n * (boss ? st.bossHpMultiplier * tier.hp : 1)),
-    damage: def.damage * growth.damageGrowth ** n * damageCurve(n, growth) * (boss ? st.bossDamageMultiplier * tier.damage : 1),
+    // v9.2.8 : les boss suivent la courbe à une puissance moindre (bossPow) : le mur reste leurs PV et leur rage.
+    damage: def.damage * growth.damageGrowth ** n * damageCurve(n, growth) ** (boss ? growth.damageCurve?.bossPow ?? 1 : 1) * (boss ? st.bossDamageMultiplier * tier.damage : 1),
     gold: Math.max(1, Math.round(def.gold * growth.goldGrowth ** n * (boss ? st.bossGoldMultiplier * tier.gold : 1))),
     speed: def.speed,
-    attackInterval: def.attackInterval * (boss ? 1.2 : 1),
+    attackInterval: def.attackInterval * (boss ? st.bossAttackInterval ?? 1.2 : 1), // v9.2.8 : coups de boss lents et lourds
     range: def.range + (boss ? 8 : 0),
   };
 }
@@ -312,7 +321,7 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
   // Transcendance « Entropie » : ennemis qui grandissent moins vite.
   const entropy = enemyScaleFactor(state, enc.level, balance);
   s.hp *= entropy.hp;
-  s.damage *= entropy.damage;
+  s.damage *= entropy.damage * rebirthDamage(state, balance); // v9.2.8
   if (enc.challenge) {
     s.hp *= challengeRule(state, 'enemyHp') ?? 1;
     s.damage *= challengeRule(state, 'enemyDamage') ?? 1;
@@ -422,7 +431,7 @@ export function hitsToFall(state, stage = state.stage, balance = BALANCE) {
   const zone = zoneForStage(stage, balance);
   const level = levelForStage(stage, balance);
   const ent = enemyScaleFactor(state, level, balance);
-  const hurt = dungeonDamageTaken(s0, balance) * (stats.hurtMult ?? 1);
+  const hurt = dungeonDamageTaken(s0, balance) * (stats.hurtMult ?? 1) * rebirthDamage(state, balance);
   const normalDmg = zone.enemies.reduce((a, t) => a + enemyStats(level, t, false, balance).damage, 0) / zone.enemies.length;
   let bs = stage; while (!isBossStage(bs, balance)) bs += 1;
   const bLevel = levelForStage(bs, balance);
