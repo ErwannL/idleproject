@@ -2897,3 +2897,28 @@ img.ico16 { width: 16px; height: 16px; vertical-align: middle; }
 .reduce-motion .rfx { animation: none; }
 .rune-tree .k-core .tn-val, .rune-tree .k-core .tn-lv { display: none; } /* le Cœur est entouré de près : son effet est dans la barre */
 .rune-tree .k-core .tn-cost { bottom: auto; top: calc(100% + 2px); }
+
+/* v9.2.8 : fiche de stats du héros (PC en grand, deux colonnes Attaque / Défense) et survie dans les améliorations. */
+.stat-sheet { display: flex; flex-direction: column; gap: 6px; }
+.ss-pc { display: flex; align-items: center; gap: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line, #3a2c44); }
+.ss-pc img { width: 24px; height: 24px; }
+.ss-pc-label { font-weight: 700; font-size: 15px; letter-spacing: 0.04em; }
+.ss-pc-v { margin-left: auto; font-size: 24px; color: var(--gold-text); }
+.ss-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 14px; }
+@container (min-width: 520px) { .ss-cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+@media (min-width: 900px) { .ss-cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.ss-row { display: flex; align-items: center; gap: 7px; min-height: 22px; padding: 1px 0; }
+.ss-row img { width: 18px; height: 18px; flex: none; }
+.ss-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ss-v { flex: none; text-align: right; white-space: nowrap; }
+.ss-v small { font-weight: 400; }
+.ss-row.bad .ss-v, .upg-surv.bad b { color: #ff7a6a; }
+.ss-foot { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+.ss-foot img { width: 16px; height: 16px; }
+.upg-dps { flex-wrap: wrap; }
+.upg-surv { display: inline-flex; align-items: baseline; gap: 4px; margin-left: auto; }
+.upg-surv img { width: 14px; height: 14px; align-self: center; }
+.upg-surv b { font-size: 14px; }
+.upg-cats { display: flex; gap: 4px; flex-wrap: nowrap; margin: 2px 0 4px; }
+.upg-cats .chip-btn { flex: 1 1 0; min-width: 0; justify-content: center; padding: 4px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.upg-cats .chip-btn img { width: 14px; height: 14px; flex: none; }

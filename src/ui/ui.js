@@ -54,6 +54,8 @@ import inventory, { visibleItems } from './panels/inventory.js';
 import options from './panels/options.js';
 import skills from './panels/skills.js';
 import summon from './panels/summon.js';
+import shop from './panels/shop.js'; // v9.2.8
+import eventPanel from './panels/event.js'; // v9.2.8
 import tree, { DEFAULT_ZOOM as TREE_ZOOM, keepResetLists, recenterTree, transcendKeepResetLists } from './panels/tree.js';
 import upgrades from './panels/upgrades.js';
 import { earlyBoost } from '../core/boost.js';
@@ -76,17 +78,20 @@ import { MENUS, SUB_LABELS, navPath } from './nav.js';
 
 export { MENUS };
 
-const PANELS = Object.fromEntries([upgrades, inventory, hero, looks, companions, expeditions, skills, tree, campaign, dungeons, tower, boss, encyclopedia, summon, contracts, inbox, ranking, stats, options, worldPanel]
+const PANELS = Object.fromEntries([upgrades, inventory, hero, looks, companions, expeditions, skills, tree, campaign, dungeons, tower, boss, encyclopedia, summon, shop, eventPanel, contracts, inbox, ranking, stats, options, worldPanel]
   .map((p) => [p.id, p]));
 const SUB_ICONS = {
   upgrades: 'icon_upgrade', skills: 'skill_quick', tree: 'icon_tree', hero: 'icon_hero', inventory: 'icon_bag', looks: 'icon_summon',
-  companions: 'icon_paw', expeditions: 'icon_expedition', summon: 'icon_summon', campaign: 'icon_map', dungeons: 'icon_dungeon', tower: 'icon_tower',
+  companions: 'icon_paw', expeditions: 'icon_expedition', summon: 'icon_summon', shop: 'icon_gem', event: 'icon_star', campaign: 'icon_map', dungeons: 'icon_dungeon', tower: 'icon_tower',
   boss: 'icon_boss', encyclopedia: 'icon_book', contracts: 'icon_trophy', inbox: 'icon_mail', ranking: 'icon_trophy', stats: 'icon_book',
 };
 // v9.1.0 : présentation courte en haut de l'onglet, à sa première ouverture (plus de bulle « Nouveau »).
 const UNLOCK_INFO = {
   companions: 'vos compagnons combattent à vos côtés : deux compagnons et un familier.',
-  summon: 'les gemmes invoquent des compagnons, des familiers et des apparences.',
+  // v9.2.8 : trois bannières, tickets et gemmes ; boutique et événements.
+  summon: 'tickets et gemmes invoquent des compagnons (bannières limitée et permanente) ; les tickets familiers invoquent des familiers.',
+  shop: 'prix et contenus des offres ; les achats ne sont pas encore ouverts.',
+  event: 'un grand événement et un petit événement se relaient toutes les deux semaines.',
   expeditions: 'les compagnons hors de l\'équipe partent en mission, même jeu fermé, et rapportent des ressources.',
   tree: 'les fragments anciens achètent des talents permanents. La Renaissance s\'ouvre plus tard dans ce même onglet.',
   dungeons: 'une clé par tentative : de vrais combats de boss qui donnent fragments et équipement.',
@@ -208,7 +213,7 @@ export class UI {
     this.view = {
       closed: new Set(), // sections repliées (missions…)
       open: new Set(), // v9.1.0 : blocs repliés par défaut que le joueur a ouverts
-      upgradeCat: 'combat', invTab: 'bag', selectedItemId: null, bulkRarity: 'common', bulkArmed: false,
+      upgradeCat: 'all', invTab: 'bag', selectedItemId: null, bulkRarity: 'common', bulkArmed: false,
       heroSel: null, companionSel: null, talentSel: null, zoneSel: null,
       oddsOpen: new Set(), lastSummon: null,
     };
@@ -402,7 +407,9 @@ export class UI {
     for (const [menu, tab] of Object.entries(nav.lastSub ?? {})) if (MENUS.some((m) => m.id === menu && m.tabs.includes(tab))) this.lastSub[menu] = tab;
     const v = nav.view ?? {};
     const pick = (key, allowed) => { if (allowed(v[key])) this.view[key] = v[key]; };
-    pick('upgradeCat', (x) => ['combat', 'survival', 'resources', 'all'].includes(x));
+    // v9.2.8 : « Combat » était le filtre par défaut (et mémorisé comme tel) : les PV, l'armure et la régénération
+    // restaient cachés. Le filtre mémorisé avant la 9.2.8 est oublié une fois (retour à « Toutes »).
+    if (v.upgCatV === 928) pick('upgradeCat', (x) => ['combat', 'survival', 'resources', 'all'].includes(x));
     pick('upgradeSort', (x) => ['profit', 'cost'].includes(x));
     pick('buyAmount', (x) => ['1', '10', '100', 'max'].includes(x));
     pick('missionTab', (x) => ['today', 'week', 'achievements'].includes(x));
@@ -423,7 +430,7 @@ export class UI {
     const keys = ['upgradeCat', 'upgradeSort', 'buyAmount', 'missionTab', 'invTab', 'encSec', 'summonPool', 'treeSeg', 'heroTab', 'optTab', 'encSlot'];
     setPref('nav', {
       lastSub: this.lastSub,
-      view: Object.fromEntries(keys.filter((k) => this.view[k] !== undefined && this.view[k] !== null).map((k) => [k, this.view[k]])),
+      view: { ...Object.fromEntries(keys.filter((k) => this.view[k] !== undefined && this.view[k] !== null).map((k) => [k, this.view[k]])), upgCatV: 928 },
       open: [...(this.view.open ?? [])], closed: [...this.view.closed],
       scroll: this.scrollMem,
     });
@@ -606,6 +613,7 @@ export class UI {
     // v9.1.3 (lot F) : « À récupérer » n'est plus un onglet, c'est une fenêtre (touche N, bouton de Missions).
     if (tab === 'inbox') { this.openClaims(); return; }
     if (!PANELS[tab] || this.tabVisible[tab] === false) return;
+    if (this.view.themePreview && tab !== 'shop') this.actions.previewTheme(null); // v9.2.8 : fin de l'aperçu du thème
     this.sidePanel(true);
     if (tab === 'inventory') this.seenItemsUntil = this.state?.nextItemId ?? this.seenItemsUntil;
     if (view) Object.assign(this.view, view);
@@ -778,6 +786,29 @@ export class UI {
         break;
       }
       case 'summon-pool': local(() => { v.summonPool = value; v.lastSummon = null; }); break;
+      // v9.2.8 : économie (wishlist, fragments SSR, boutique sans paiement réel, aperçus, événement).
+      case 'wish-toggle': a.wishToggle(value); break;
+      case 'use-fragment': a.useSsrFragment(value); break;
+      case 'shop-cat': local(() => { v.shopCat = value; }); break;
+      case 'buy-offer': a.buyOffer(value); break;
+      case 'theme-preview': a.previewTheme(value || null); break;
+      case 'look-preview': v.lookShow = value; this.openTab('looks'); break;
+      case 'unequip-look': a.unequipLook(); break;
+      case 'open-shop-skins': v.shopCat = 'skins'; this.openTab('shop'); break;
+      case 'event-fight': {
+        const r = a.eventFight(Number(value));
+        if (r && !r.error) v.eventLast = r.won ? `Victoire : +${r.reward.eventCoins} écus${r.reward.ssrFragment ? ' · fragment SSR universel' : ''}` : 'Défaite : renforcez le héros puis réessayez.';
+        this.invalidate();
+        break;
+      }
+      case 'event-boss': {
+        const r = a.eventBoss();
+        if (r) v.eventLast = `World Boss : ${formatNumber(r.damage)} dégâts · +${r.coins} écus`;
+        this.invalidate();
+        break;
+      }
+      case 'event-buy': a.eventBuy(value); break;
+      case 'event-goal': a.eventGoal(value); break;
       case 'summon-odds': local(() => { v.summonOdds = v.summonOdds === value ? null : value; }); break; // v9.1.3 : « ? » d'un bassin
       case 'power-pity': local(() => { v.powerPity = v.powerPity === value ? null : value; }); break; // v9.1.3 : garantie derrière « ? »
       case 'talent-sel': local(() => { v.talentSel = value; }); break;
@@ -1702,6 +1733,8 @@ export class UI {
       boss: boss || Object.keys(state.powers).length > 0,
       companions: boss || Object.keys(state.companions.owned).length > 0,
       summon: boss || Object.keys(state.companions.owned).length > 0,
+      shop: boss || Object.keys(state.companions.owned).length > 0, // v9.2.8 : avec l'invocation
+      event: boss, // v9.2.8 : événements (après le premier boss)
       expeditions: availableForExpedition(state).length > 0 || state.expeditions.slots.some(Boolean) || state.expeditions.done > 0,
       contracts: Boolean(state.ui.goalsOpen),
       encyclopedia: boss,

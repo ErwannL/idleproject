@@ -153,6 +153,18 @@ export function levelForStage(stage, balance = BALANCE) {
 // Étape 4 : ×hpBase atteint progressivement (première minute vive, puis début disputé).
 const hpBaseFactor = (n, g) => 1 + ((g.hpBase ?? 1) - 1) * Math.min(1, n / (g.hpBaseRamp ?? 1));
 
+// v9.2.8 : courbe de dégâts en plus de la croissance par étape (balance.enemyScaling.damageCurve) : les PV du héros
+// (paliers ×1,4 et ×1,75 des Points de vie) grandissaient bien plus vite que les coups ennemis (18 000 coups
+// encaissés à l'étape 443 pour un héros qui achète ses PV, un seul pour celui qui ne les achète pas). Mesures :
+// tools/measure-defense-v928.mjs.
+export function damageCurve(n, growth = BALANCE.enemyScaling) {
+  const c = growth.damageCurve;
+  if (!c) return 1;
+  const late = c.knee && n > c.knee ? c.lateGrowth ** (n - c.knee) : 1; // au-delà du premier cycle (Renaissances)
+  const ramp = c.ramp ? Math.min(1, (n + 1) / c.ramp) : 1; // début de partie épargné (premiers mondes)
+  return Math.max(1, c.coef * (n + 1) ** c.exp * late * ramp);
+}
+
 export function enemyStats(stage, type, boss, balance = BALANCE) {
   const def = enemyDefinition(type, boss);
   const tier = boss ? balance.stages.tiers[bossTier(type)] : null;
@@ -161,7 +173,7 @@ export function enemyStats(stage, type, boss, balance = BALANCE) {
   const n = Math.max(0, stage - 1);
   return {
     hp: Math.round(def.hp * hpBaseFactor(n, growth) * growth.hpGrowth ** n * (boss ? st.bossHpMultiplier * tier.hp : 1)),
-    damage: def.damage * growth.damageGrowth ** n * (boss ? st.bossDamageMultiplier * tier.damage : 1),
+    damage: def.damage * growth.damageGrowth ** n * damageCurve(n, growth) * (boss ? st.bossDamageMultiplier * tier.damage : 1),
     gold: Math.max(1, Math.round(def.gold * growth.goldGrowth ** n * (boss ? st.bossGoldMultiplier * tier.gold : 1))),
     speed: def.speed,
     attackInterval: def.attackInterval * (boss ? 1.2 : 1),
@@ -393,9 +405,39 @@ function clearStage(state, world, balance) {
 }
 
 // Puissance globale (dégâts × robustesse) : sert à décider quand retenter un boss.
+// v9.2.8 : part des dégâts d'un coup ennemi qui passe : armure en % (percée de 40 % par les boss), puis Défense
+// (réduction à rendement décroissant, voir stats.js defenseReduction ; percée de la même façon par les boss).
+export function damageTakenFactor(stats, boss, balance = BALANCE, extraArmor = 0) {
+  const pierce = boss ? 1 - balance.stages.bossArmorPierce : 1;
+  const armor = Math.min(balance.hero.armorCapPct, (stats.armor ?? 0) + extraArmor) * pierce;
+  return (1 - armor / 100) * (1 - ((stats.defenseReductionPct ?? 0) * pierce) / 100);
+}
+
+// v9.2.8 : coups encaissés à PV pleins (sans régénération ni esquive) contre un ennemi ordinaire moyen de l'étape et
+// contre le boss de la prochaine étape de boss (rang compris, Renaissances comprises), malus du monde compris.
+// Sert à la fiche du héros, à la ligne « Points de vie » et à tools/measure-defense-v928.mjs.
+export function hitsToFall(state, stage = state.stage, balance = BALANCE) {
+  const s0 = { ...state, stage, dungeon: null, tower: null, challenge: null, worldRun: null };
+  const stats = applyEnvironment(computeHeroStats(s0, balance), currentEnvironment(s0, balance));
+  const zone = zoneForStage(stage, balance);
+  const level = levelForStage(stage, balance);
+  const ent = enemyScaleFactor(state, level, balance);
+  const hurt = dungeonDamageTaken(s0, balance) * (stats.hurtMult ?? 1);
+  const normalDmg = zone.enemies.reduce((a, t) => a + enemyStats(level, t, false, balance).damage, 0) / zone.enemies.length;
+  let bs = stage; while (!isBossStage(bs, balance)) bs += 1;
+  const bLevel = levelForStage(bs, balance);
+  const heat = rebirthHeat(state, balance).boss;
+  const bosses = bossesForStage(bs, balance);
+  const berserk = zoneForStage(bs, balance).gauntlet ? balance.stages.berserk.damage : 1;
+  const bossDmg = Math.max(...bosses.map((b) => enemyStats(bLevel, b, true, balance).damage)) * heat * berserk * enemyScaleFactor(state, bLevel, balance).damage;
+  const normalHit = normalDmg * ent.damage * damageTakenFactor(stats, false, balance) * hurt;
+  const bossHit = bossDmg * damageTakenFactor(stats, true, balance) * hurt;
+  return { normal: stats.maxHp / normalHit, boss: stats.maxHp / bossHit, normalHit, bossHit, bossStage: bs, maxHp: stats.maxHp };
+}
+
 export function heroPower(state, balance = BALANCE) {
   const s = computeHeroStats(state, balance);
-  return s.dps * (s.maxHp / Math.max(0.05, 1 - s.armor / 100));
+  return s.dps * Math.min(s.effectiveHp, s.maxHp / 0.05); // v9.2.8 : PV effectifs (armure et Défense)
 }
 
 function gainGold(state, world, amount) {
@@ -842,6 +884,16 @@ export function step(state, world, dt, rng, balance = BALANCE) {
         });
         hitEnemy(state, world, front, damage, rng, balance, stats, enc, 'attack');
         for (const h of extra.hits) hitEnemy(state, world, h.enemy, h.damage, rng, balance, stats, enc, 'attack');
+        // v9.2.8 : Double attaque — un second coup aussitôt (critique tiré à nouveau) sur l'ennemi de tête encore debout.
+        if (stats.doubleAttackPct > 0 && rng.next() < stats.doubleAttackPct / 100) {
+          const target = world.enemies.find((e) => e.hp > 0 && canHit(e, balance) && e.x - W.heroX <= range);
+          if (target) {
+            const second = heroDamage(stats, target, world, rng, balance);
+            if (second.crit) target.critAt = world.time;
+            emit(world, 'heroAttack', { enemyId: target.id, damage: second.damage, crit: second.crit, x: target.x, boss: target.boss, kind: heroClass.attack.kind, double: true, targets: [] });
+            hitEnemy(state, world, target, second.damage, rng, balance, stats, enc, 'attack');
+          }
+        }
       }
     }
   } else {
@@ -928,7 +980,6 @@ export function step(state, world, dt, rng, balance = BALANCE) {
       }
       const lowHp = hero.hp < stats.maxHp * POWER_RULES.lowHpThreshold ? stats.bonus.lowHpArmor : 0;
       const st = balance.stages;
-      const armor = Math.min(balance.hero.armorCapPct, stats.armor + lowHp) * (attacker.boss ? 1 - st.bossArmorPierce : 1);
       const shield = world.buffs.shield > 0 ? world.buffs.shieldPct : 0;
       // Rage : un boss qui dure trop longtemps frappe de plus en plus fort.
       const instant = state.challenge && challengeRule(state, 'instantRage');
@@ -940,8 +991,9 @@ export function step(state, world, dt, rng, balance = BALANCE) {
         attacker.enraged = true;
         emit(world, 'bossEnrage', { enemyId: attacker.id, kind: attacker.type });
       }
-      const damage = attacker.damage * rage * traitAtk.damage * (1 - armor / 100) * (1 - shield / 100) * dungeonDamageTaken(state, balance)
-        * (stats.hurtMult ?? 1); // v9.2.1 : Éclats de cristal
+      // v9.2.8 : armure et Défense dans damageTakenFactor (même calcul pour la fiche et la simulation).
+      const damage = attacker.damage * rage * traitAtk.damage * damageTakenFactor(stats, attacker.boss, balance, lowHp) * (1 - shield / 100)
+        * dungeonDamageTaken(state, balance) * (stats.hurtMult ?? 1); // v9.2.1 : Éclats de cristal
       hero.hp -= damage;
       mutationOnHit(attacker, damage);
       emit(world, 'heroHit', { enemyId: attacker.id, damage, boss: attacker.boss });

@@ -6,7 +6,7 @@ import { bossForecast, coin, costButton, escapeHtml, fold, forecastHtml, formatD
 import { upgradeProfits } from '../../core/profit.js';
 import { pref } from '../prefs.js';
 import { BASE_UPGRADES, nextUpgradeUnlock, openUpgrades } from '../../core/unlocks.js';
-import { currentEnvironment } from '../../core/combat.js'; // v9.2.1
+import { currentEnvironment, hitsToFall } from '../../core/combat.js'; // v9.2.1 · v9.2.8 : coups encaissés
 
 const ICONS = {
   // v9.1.3 (doc2 §4) : icônes 20×20 dédiées (Critique ≠ Frappe rapide, Régénération ≠ fée, Dégâts et Or carrés).
@@ -14,7 +14,11 @@ const ICONS = {
   armor: 'icon_shield', regen: 'icon_regen', goldFind: 'icon_gold',
   // v9.2.0 : icônes existantes réutilisées (aucune nouvelle image).
   critDamage: 'icon_skull', bossDamage: 'icon_boss', companionPower: 'icon_paw', lifesteal: 'icon_essence', dodge: 'skill_quick', xpGain: 'icon_xp',
+  defense: 'shield', doubleAttack: 'skill_whirl', // v9.2.8
 };
+// v9.2.8 : lignes de survie — gain neutre affiché en « PV effectifs » (PV ÷ part des dégâts qui passe), comme
+// « dégâts/s » pour les lignes d'attaque.
+const SURVIVAL = new Set(['vitality', 'defense', 'armor']);
 
 // Valeur affichée « actuel → suivant » pour chaque amélioration.
 function effect(key, cur, next) {
@@ -33,6 +37,9 @@ function effect(key, cur, next) {
     case 'lifesteal': return [`${formatDecimal(cur.lifesteal)} %`, `${formatDecimal(next.lifesteal)} %`, 'vol de vie'];
     case 'dodge': return [`${formatDecimal(cur.dodgePct)} %`, `${formatDecimal(next.dodgePct)} %`, 'esquive'];
     case 'xpGain': return [`+${formatDecimal(cur.xpPct)} %`, `+${formatDecimal(next.xpPct)} %`, 'XP'];
+    // v9.2.8
+    case 'defense': return [`${formatNumber(cur.defense)} (−${formatDecimal(cur.defenseReductionPct)} %)`, `${formatNumber(next.defense)} (−${formatDecimal(next.defenseReductionPct)} %)`, 'défense'];
+    case 'doubleAttack': return [`${formatDecimal(cur.doubleAttackPct)} %`, `${formatDecimal(next.doubleAttackPct)} %`, 'double attaque'];
     default: return ['', '', ''];
   }
 }
@@ -90,7 +97,9 @@ export default {
       const p = profits[key];
       // v9.1.3 : gain en dégâts/s affiché neutre (aucune « meilleure » amélioration désignée) ; la description ne
       // s'affiche qu'au début (avant le premier mini-boss), ensuite au survol / appui long sur le nom.
-      const gain = p ? ` <span class="muted upg-profit">+${formatDecimal(p.pct)} % dégâts/s</span>` : '';
+      const ehp = SURVIVAL.has(key) && !max && current.effectiveHp > 0 ? ((next.effectiveHp - current.effectiveHp) / current.effectiveHp) * 100 : 0;
+      const gain = p ? ` <span class="muted upg-profit">+${formatDecimal(p.pct)} % dégâts/s</span>`
+        : ehp > 0 ? ` <span class="muted upg-profit">+${formatDecimal(ehp)} % PV effectifs</span>` : '';
       // v9.1.3 (ligne type doc2 §3) : icône, nom + niveau (+ palier), un seul chiffre qui bouge (avant → après, l'unité
       // est dans le nom), +x % dégâts/s neutre sur la même ligne, bouton avec prix : 2 lignes au lieu de 3.
       return `<div class="card upg-card${compact ? ' compact' : ''}">
@@ -102,15 +111,25 @@ export default {
         ${costButton({ action: 'buy', cost, have: state.gold, attrs: `data-key="${key}" data-amount="${amount}"`, max, label: count > 1 ? `+${count} ` : '' })}
       </div>`;
     });
-    const filters = `<div class="row upg-filters"><select data-action="upgrade-cat-select" aria-label="Catégorie"><option value="all">Toutes les catégories</option>${cats.map((c) => `<option value="${c.id}" ${cat?.id === c.id ? 'selected' : ''}>${c.label}</option>`).join('')}</select>
+    // v9.2.8 : catégories en onglets toujours visibles (« Défense » ne se cache plus dans un menu replié) ; le tri
+    // reste dans « Trier ».
+    const catTabs = beginner ? '' : `<div class="chip-row upg-cats" role="group" aria-label="Catégorie">${[{ id: 'all', label: 'Toutes', icon: 'icon_upgrade' }, ...cats]
+      .map((c) => { const on = (cat?.id ?? 'all') === c.id; return `<button class="btn chip-btn${on ? ' active' : ''}" data-action="upgrade-cat" data-value="${c.id}" aria-pressed="${on}">${img(c.icon)} ${escapeHtml(c.label)}</button>`; }).join('')}</div>`;
+    const filters = `<div class="row upg-filters">
       <select data-action="upgrade-sort" aria-label="Trier"><option value="">Tri : par défaut</option><option value="profit" ${ui.view.upgradeSort === 'profit' ? 'selected' : ''}>Tri : rentabilité</option><option value="cost" ${ui.view.upgradeSort === 'cost' ? 'selected' : ''}>Tri : coût</option></select></div>`;
     const forecast = state.dungeon || state.tower || state.challenge ? '' : forecastHtml(bossForecast(state, () => ui.invalidate()));
     // v9.1.3 (A6) : Dégâts/s en en-tête (même calcul que la Fiche, déjà fait pour les lignes : aucun coût en plus) ;
     // le panneau est redessiné à chaque achat, le chiffre bouge donc avec lui.
-    const dpsHead = `<div class="upg-dps"><span class="muted">Dégâts/s</span> <b class="num">${formatDecimal(current.dps)}</b></div>`;
+    // v9.2.8 : à côté des dégâts/s, les coups encaissés (ennemi ordinaire de l'étape, boss suivant) : on voit tout de
+    // suite qu'un héros sans PV ni Défense tombe en un coup.
+    const hits = hitsToFall(state);
+    const fmtHits = (h) => (h >= 100 ? '99+' : h < 1 ? '< 1' : formatDecimal(Math.floor(h * 10) / 10));
+    const surv = `<span class="upg-surv${hits.normal < 3 ? ' bad' : ''}" title="${escapeHtml(`PV ${formatNumber(current.maxHp)} · coup ordinaire ${formatNumber(hits.normalHit)} · coup du boss ${formatNumber(hits.bossHit)}`)}">${img('icon_heart')} <span class="muted">Encaisse</span> <b class="num">${fmtHits(hits.normal)}</b> <span class="muted">coups · boss</span> <b class="num">${fmtHits(hits.boss)}</b></span>`;
+    const dpsHead = `<div class="upg-dps"><span class="muted">Dégâts/s</span> <b class="num">${formatDecimal(current.dps)}</b>${beginner ? '' : surv}</div>`;
     const top = qtyMenu ? `<div class="row-between upg-dps-row">${dpsHead}${amounts}</div>${forecast}` : `${dpsHead}${forecast}${amounts ? `<div class="row-between">${amounts}</div>` : ''}`;
     return `<div class="card upg-top">${top}</div>
-      ${beginner ? '' : fold(ui, 'upg-filters', 'Filtrer et trier', filters, { extra: cat ? cat.label : '' })}
+      ${catTabs}
+      ${beginner ? '' : fold(ui, 'upg-filters', 'Trier', filters)}
       <div class="upg-list">${cards.join('')}</div>
       ${beginner ? '<div class="muted">D\'autres améliorations (critique, armure, régénération, or) s\'ouvrent après le premier mini-boss.</div>' : ''}
       ${nextUp ? `<div class="muted next-unlock">Prochain : ${escapeHtml(nextUp.label)} à l'étape ${nextUp.stage}</div>` : ''}`;

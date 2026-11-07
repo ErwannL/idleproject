@@ -73,13 +73,27 @@ export function computeHeroStats(state, balance = BALANCE, equipment = state.equ
   const lv = (k) => Math.min(upgrades[k]?.maxLevel ?? Infinity, Math.max(0, ups[k] ?? 0));
   const per = (k) => lv(k) * (upgrades[k]?.perLevel ?? 0);
   const critMultiplier = hero.critMultiplier + per('critDamage') / 100; // ×2 → ×4 au niveau 100
+  // v9.2.8 : Défense (points → réduction à rendement décroissant) et Double attaque.
+  const defense = (ups.defense ?? 0) * (upgrades.defense?.perLevel ?? 0);
+  const defenseReductionPct = defenseReduction(defense, balance);
+  const doubleAttackPct = Math.min(upgrades.doubleAttack?.capPct ?? 100, per('doubleAttack'));
+  const dps = (damage / attackInterval) * (1 + (critChance / 100) * (critMultiplier - 1)) * (1 + doubleAttackPct / 100);
+  // v9.2.8 : PV effectifs contre un coup ordinaire (armure puis Défense) et Puissance de combat (PC) : moyenne
+  // géométrique des dégâts/s et des PV effectifs, ×10 (un seul nombre qui résume attaque et survie).
+  const effectiveHp = maxHp / Math.max(0.01, (1 - armor / 100) * (1 - defenseReductionPct / 100));
+  const combatPower = Math.round(10 * Math.sqrt(Math.max(0, dps) * effectiveHp));
 
   return {
     damage,
     attackInterval,
     attacksPerSecond: 1 / attackInterval,
-    // DPS moyen, coups critiques compris (hors compétences).
-    dps: (damage / attackInterval) * (1 + (critChance / 100) * (critMultiplier - 1)),
+    // DPS moyen, coups critiques et doubles attaques compris (hors compétences).
+    dps,
+    defense,
+    defenseReductionPct,
+    doubleAttackPct,
+    effectiveHp,
+    combatPower,
     critMultiplier,
     maxHp,
     armor,
@@ -97,6 +111,14 @@ export function computeHeroStats(state, balance = BALANCE, equipment = state.equ
     xpPct: bonus.xpPct + per('xpGain'),
     bonus,
   };
+}
+
+// v9.2.8 : réduction des dégâts subis par la Défense, en % : plafond × D / (D + K). Rendement décroissant : la moitié
+// du plafond à D = K, jamais le plafond lui-même.
+export function defenseReduction(points, balance = BALANCE) {
+  const d = balance.upgrades.defense;
+  if (!d || !(points > 0)) return 0;
+  return (d.capPct * points) / (points + d.halfAt);
 }
 
 // Statistiques si `item` remplaçait l'objet équipé du même emplacement.

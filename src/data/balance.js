@@ -103,6 +103,18 @@ export const BALANCE = {
       perLevel: 1,
       maxLevel: 40,
     },
+    // v9.2.8 : Défense — points qui réduisent les dégâts subis avec un rendement décroissant (stats.js
+    // defenseReduction : capPct × D / (D + halfAt)), en plus de l'armure en %. Percée de 40 % par les boss, comme
+    // l'armure. Ouverte avec Armure et Régénération (après le premier boss), sans plafond de niveau.
+    defense: {
+      label: 'Défense',
+      description: '+10 points de Défense par niveau : réduit les dégâts subis (rendement décroissant, 60 % au plus)',
+      baseCost: 30,
+      costGrowth: 1.15,
+      perLevel: 10,
+      capPct: 60,
+      halfAt: 600, // 600 points (niveau 60) = 30 % de réduction ; 1 500 points = 43 %
+    },
     regen: {
       label: 'Régénération PV',
       description: '+0,2 % des PV max régénérés par seconde, ×1,1 tous les 10 niveaux',
@@ -135,6 +147,17 @@ export const BALANCE = {
       perLevel: 2,
       maxLevel: 100,
       unlockStage: 15,
+    },
+    // v9.2.8 : Double attaque — chance de frapper deux fois (second coup aussitôt, critique tiré à nouveau).
+    doubleAttack: {
+      label: 'Double attaque',
+      description: '+0,4 % de chance de frapper deux fois par niveau (20 % au niveau 50)',
+      baseCost: 180,
+      costGrowth: 1.3,
+      perLevel: 0.4,
+      maxLevel: 50,
+      capPct: 20,
+      unlockStage: 25,
     },
     lifesteal: {
       label: 'Vol de vie',
@@ -183,8 +206,9 @@ export const BALANCE = {
     },
   },
   upgradeCategories: [
-    { id: 'combat', label: 'Combat', icon: 'weapon_sword', keys: ['damage', 'attackSpeed', 'crit', 'critDamage', 'bossDamage', 'companionPower'] },
-    { id: 'survival', label: 'Survie', icon: 'icon_shield', keys: ['vitality', 'armor', 'regen', 'lifesteal', 'dodge'] },
+    // v9.2.8 : « Survie » devient « Défense » (même identifiant : le filtre mémorisé reste valable), avec la Défense.
+    { id: 'combat', label: 'Combat', icon: 'weapon_sword', keys: ['damage', 'attackSpeed', 'crit', 'critDamage', 'doubleAttack', 'bossDamage', 'companionPower'] },
+    { id: 'survival', label: 'Défense', icon: 'icon_shield', keys: ['vitality', 'defense', 'armor', 'regen', 'lifesteal', 'dodge'] },
     { id: 'resources', label: 'Ressources', icon: 'coin', keys: ['goldFind', 'xpGain'] },
     { id: 'rushes', label: 'Boosts', icon: 'skill_cry', keys: [] }, // boosts à durée limitée (core/rushes.js)
   ],
@@ -195,7 +219,7 @@ export const BALANCE = {
     stagesPerZone: 20, // étapes 5, 10, 15, 20 : mini-boss, boss moyen, boss dur, méga boss
     // v7.7 : boss bien plus coriaces (ils étaient balayés en quelques coups).
     bossHpMultiplier: 45, // un boss se gagne aux dégâts…
-    bossDamageMultiplier: 2.4, // …et il frappe fort
+    bossDamageMultiplier: 0.9, // …et il frappe fort (v9.2.8 : 2,4 → 0,9, avec la courbe de dégâts damageCurve)
     bossArmorPierce: 0.4, // un boss ignore 40 % de l'armure du héros
     enrageSeconds: 25, // au-delà, le boss enrage : dégâts ×1,3 toutes les 10 s (étape 4 : multiplicatif)
     enrageStepSeconds: 10,
@@ -226,6 +250,10 @@ export const BALANCE = {
     hpBaseRamp: 25, // ×8 atteint progressivement sur les 25 premières étapes
     hpGrowth: 1.075,
     damageGrowth: 1.0583,
+    // v9.2.8 : ×coef × étape^exp en plus (×1 au plus bas) : un héros qui achète ses PV et sa Défense encaisse 4 à 6
+    // coups ordinaires à son étape record au lieu de milliers (réglage : tools/measure-defense-v928.mjs).
+    // ramp : montée douce sur les 60 premiers niveaux ; au-delà du niveau 240 (cycles ×2…), ×lateGrowth par niveau.
+    damageCurve: { coef: 0.15, exp: 1.6, ramp: 60, knee: 240, lateGrowth: 1.007 },
     goldGrowth: 1.0724,
   },
 

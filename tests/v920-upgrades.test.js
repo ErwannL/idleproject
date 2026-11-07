@@ -18,7 +18,7 @@ const withUp = (s, key, lv) => ({ ...s, upgrades: { ...s.upgrades, [key]: lv } }
 
 test('v9.2.0 : 13 améliorations (entre 10 et 15), chacune rangée dans une catégorie et dans l\'ordre du panneau', () => {
   const keys = Object.keys(BALANCE.upgrades);
-  assert.equal(keys.length, 13);
+  assert.equal(keys.length, 15); // v9.2.8 : + Défense et Double attaque
   assert.deepEqual([...UPGRADE_ORDER].sort(), [...keys].sort());
   const inCats = BALANCE.upgradeCategories.flatMap((c) => c.keys);
   for (const k of keys) assert.equal(inCats.filter((x) => x === k).length, 1, k);
@@ -126,13 +126,13 @@ test('v9.2.0 : déblocage progressif — débutant 3 lignes, puis premier boss, 
   const s = createNewState(NOW);
   assert.deepEqual(openUpgrades(s, BALANCE), BASE_UPGRADES);
   s.records.bossesDefeated = 1;
-  assert.deepEqual(openUpgrades(s, BALANCE), ['damage', 'attackSpeed', 'crit', 'vitality', 'armor', 'regen', 'goldFind']);
+  assert.deepEqual(openUpgrades(s, BALANCE), ['damage', 'attackSpeed', 'crit', 'vitality', 'defense', 'armor', 'regen', 'goldFind']); // v9.2.8 : + Défense
   assert.deepEqual(nextUpgradeUnlock(s, BALANCE), { key: 'critDamage', label: 'Dégâts critiques', stage: 15 });
   s.records.bestStage = 40;
   for (const k of ['critDamage', 'lifesteal', 'companionPower', 'dodge']) assert.ok(upgradeOpen(s, k, BALANCE), k);
   assert.ok(!upgradeOpen(s, 'bossDamage', BALANCE));
   s.records.bestStage = 60;
-  assert.equal(openUpgrades(s, BALANCE).length, 13);
+  assert.equal(openUpgrades(s, BALANCE).length, 15); // v9.2.8
   assert.equal(nextUpgradeUnlock(s, BALANCE), null);
   // Une ligne déjà achetée reste visible.
   const t = createNewState(NOW);

@@ -3,13 +3,14 @@ import { SLOTS } from '../../data/items.js';
 import { CLASSES } from '../../data/classes.js';
 import { activeClass, classUnlocked, classWeaponBases } from '../../core/classes.js';
 import { bonusSources } from '../../core/bonuses.js';
-import { stageLabel } from '../../core/combat.js';
+import { hitsToFall, stageLabel } from '../../core/combat.js';
 import { heroById, heroEffects } from '../../core/heroes.js';
 import { companionById } from '../../core/companions.js';
 import { xpForLevel } from '../../core/level.js';
 import { computeHeroStats } from '../../core/stats.js';
 import { heroPortraitUrl, itemIconUrl, slotIconName } from '../../render/pixel.js';
-import { HEROES, HERO_STAR_BONUS_PCT } from '../../data/heroes.js';
+import { HEROES } from '../../data/heroes.js';
+import { SKIN_TIERS, skinTier } from '../../data/economy.js'; // v9.2.8
 import { BALANCE } from '../../data/balance.js';
 import { effectText, escapeHtml, fold, hdArt, formatDecimal, formatNumber, img, itemFrame, progressBar, rarityLabel, segment, stars } from '../common.js';
 import { animCanvas } from '../animator.js';
@@ -88,39 +89,33 @@ function classView(state) {
 // et « Obtenu par invocation ».
 // v9.2.2 : exportée pour le sous-onglet Héros › Apparences ; état écrit sur chaque carte et bouton « Équiper ».
 export function lookView(ui, state) {
-  const maxStars = BALANCE.summon.maxStars;
   const worn = heroById(state.heroes.active) ?? HEROES[0];
-  const wornStars = state.heroes.owned[worn.id]?.stars ?? 1;
   const ownedCount = HEROES.filter((h) => state.heroes.owned[h.id]).length;
-  const canSummon = ui.tabVisible.summon !== false;
+  const canShop = ui.tabVisible.shop !== false;
   // v9.2.7 : vitrine animée d'une apparence (celle portée par défaut, ou celle choisie par « Vitrine » sur sa carte).
   const shown = heroById(ui.view.lookShow) ?? worn;
   const cards = HEROES.map((h) => {
     const owned = state.heroes.owned[h.id];
     const active = state.heroes.active === h.id;
-    const n = owned?.stars ?? 1;
-    const dup = n - 1;
     const attrs = owned && !active ? ` data-action="set-hero" data-value="${h.id}" role="button" tabindex="0" aria-label="Équiper ${escapeHtml(h.name)}"` : '';
     const status = active ? '<span class="look-status on">Équipée</span>' : owned ? '<span class="look-status owned">Possédée</span>' : `<span class="look-status locked">${img('icon_lock')} Verrouillée</span>`;
+    // v9.2.8 : cosmétique pur (aucun bonus, plus d'étoiles) ; s'obtient en boutique ou en événement.
     return `<div class="look-card r-${h.rarity}${active ? ' active' : ''}${owned ? ' owned' : ' locked'}"${attrs}>
-      <span class="look-badge">${rarityLabel(h.rarity)}</span>${status}
+      <span class="look-badge">${h.id === 'knight' ? 'Base' : SKIN_TIERS[skinTier(h)].name}</span>${status}
       <div class="look-pic">${hdArt(h, owned ? 'look-hd' : 'look-hd locked')}${owned ? animCanvas(`hero:${h.id}`, 64, 58, 2) : `<img class="px look-shadow" src="${heroPortraitUrl({}, 2, h.palette, '#2e3a52')}" alt="">`}</div>
       <div class="look-name">${escapeHtml(h.name)}</div>
       <button class="btn tiny look-show${shown.id === h.id ? ' active' : ''}" data-action="look-show" data-value="${h.id}" aria-pressed="${shown.id === h.id}">▶ Vitrine</button>
       <div class="muted look-role">${escapeHtml(h.title ?? h.role)}</div>
-      <div class="good look-fx">${effectText(h.bonus)}</div>
-      ${owned ? `<div class="look-stars">${stars(n, maxStars)} <span class="muted">${dup ? `${dup} doublon${dup > 1 ? 's' : ''}` : 'aucun doublon'}</span></div>
-        ${active ? '<span class="look-on">Équipée ✓</span>' : `<button class="btn btn-primary small look-wear" data-action="set-hero" data-value="${h.id}">Équiper</button>`}`
-        : `<div class="muted look-lock">${img('icon_lock')} Obtenu par invocation</div>
-        ${canSummon && h.summon ? `<button class="btn small" data-action="open-summon-hero">${img('icon_summon')} Invoquer</button>` : ''}`}</div>`;
+      ${owned ? (active ? (h.id === 'knight' ? '<span class="look-on">Équipée ✓</span>' : '<button class="btn small look-wear" data-action="unequip-look">Retirer</button>') : `<button class="btn btn-primary small look-wear" data-action="set-hero" data-value="${h.id}">Équiper</button>`)
+        : `<div class="muted look-lock">${img('icon_lock')} Boutique › Skins</div>
+        ${canShop ? '<button class="btn small" data-action="open-shop-skins">Voir en boutique</button>' : ''}`}</div>`;
   }).join('');
   const preview = `<div class="card look-preview r-${worn.rarity}">
       <div class="look-preview-pic">${hdArt(worn, 'look-hd')}${animCanvas('hero', 64, 58, 3)}</div>
       <div class="grow"><div class="muted">Apparence équipée</div>
-        <div class="look-preview-name">${escapeHtml(worn.name)} <span class="rarity-text">${rarityLabel(worn.rarity)}</span></div>
-        ${stars(wornStars, maxStars)}
-        <div class="good">${effectText(heroEffects(state))}</div>
-        <div class="muted look-help">Touchez une apparence possédée pour l'équiper. Bonus +${HERO_STAR_BONUS_PCT} % par étoile.</div></div>
+        <div class="look-preview-name">${escapeHtml(worn.name)}</div>
+        <div class="muted look-help">Cosmétique : aucun effet sur les statistiques. Équiper et retirer librement.</div>
+        <div class="good"><span>Bonus du héros (compte) :</span> ${effectText(heroEffects(state))}</div></div>
     </div>
     <div class="card look-showcase"><div class="section-title"><span>Vitrine</span> — <span>${escapeHtml(shown.name)}</span></div>${showcaseSlot('hero', shown.id)}</div>`;
   return `${preview}<div class="card"><div class="row-between"><div class="section-title">Apparences</div><span class="muted">${ownedCount}/${HEROES.length} obtenues</span></div>
@@ -200,13 +195,40 @@ function heroView(ui, state) {
     .filter(([, eff]) => Object.values(eff).some((v) => v))
     .map(([k, eff]) => `<div><span class="muted">${SOURCE_LABELS[k]} :</span> ${effectText(eff)}</div>`).join('');
   const heroBonus = effectText(heroEffects(state));
-  // v9.1.3 : un seul Dégâts/s ; le détail (dégâts, attaques/s, critique, PV) n'est plus répété : il est dans Statistiques.
-  const dps = `<div class="card hero-dps"><span class="muted">Dégâts/s</span> <b class="big-num">${formatDecimal(s.dps)}</b></div>`;
-  return `${dps}<div class="card hero-main r-${hero.rarity}">
+  // v9.2.8 : fiche de stats (modèle des RPG mobiles) : Puissance de combat en grand, puis l'attaque et la défense,
+  // une ligne par statistique avec son icône. Remplace le seul « Dégâts/s » et le bloc replié « Statistiques ».
+  const hits = hitsToFall(state);
+  const fmtHits = (h) => (h >= 100 ? '99+' : h < 1 ? '< 1' : formatDecimal(Math.floor(h * 10) / 10));
+  const row = (iconName, label, value, cls = '') => `<div class="ss-row${cls}">${img(iconName)}<span class="ss-label">${label}</span><b class="ss-v num">${value}</b></div>`;
+  const sheet = `<div class="card stat-sheet">
+      <div class="ss-pc">${img('icon_crown')}<span class="ss-pc-label">PC</span><b class="ss-pc-v num" title="Puissance de combat : moyenne des dégâts/s et des PV effectifs">${formatNumber(s.combatPower)}</b></div>
+      <div class="ss-cols">
+        <div class="ss-col">
+          ${row('icon_damage', 'Attaque', formatNumber(s.damage))}
+          ${row('icon_bolt', 'Vitesse', `${formatDecimal(s.attacksPerSecond, 2)} att./s`)}
+          ${row('icon_crit', 'Chance de critique', `${formatDecimal(s.critChance)} %`)}
+          ${row('icon_skull', 'Dégâts critiques', `${formatDecimal(s.critMultiplier * 100)} %`)}
+          ${row('skill_whirl', 'Double attaque', `${formatDecimal(s.doubleAttackPct)} %`)}
+          ${row('icon_boss', 'Tueur de boss', `+${formatDecimal(s.bossDamagePct)} %`)}
+          ${row('icon_upgrade', 'Dégâts/s', formatDecimal(s.dps))}
+        </div>
+        <div class="ss-col">
+          ${row('icon_heart', 'Santé', formatNumber(s.maxHp))}
+          ${row('shield', 'Défense', `${formatNumber(s.defense)} <small class="muted">(−${formatDecimal(s.defenseReductionPct)} %)</small>`)}
+          ${row('icon_shield', 'Armure', `${formatDecimal(s.armor)} %`)}
+          ${row('skill_quick', 'Esquive', `${formatDecimal(s.dodgePct)} %`)}
+          ${row('icon_regen', 'Régénération', `${formatDecimal(s.regenPerSecond)} PV/s`)}
+          ${row('icon_essence', 'Vol de vie', `${formatDecimal(s.lifesteal)} %`)}
+          ${row('icon_alert', 'Coups encaissés (ennemi · boss)', `${fmtHits(hits.normal)} · ${fmtHits(hits.boss)}`, hits.normal < 3 ? ' bad' : '')}
+        </div>
+      </div>
+      <div class="ss-foot muted">${img('coin')} <span>Or bonus</span> <b>+${formatDecimal(s.goldPct)} %</b></div>
+    </div>`;
+  return `${sheet}<div class="card hero-main r-${hero.rarity}">
         <div class="pedestal">${animCanvas('hero', 64, 58, 3)}</div>
         <div class="grow">
           <div class="hero-title">${escapeHtml(hero.name)}</div>
-          <div class="hero-look">Apparence : <b class="rarity-text r-${hero.rarity}">${escapeHtml(hero.name)}</b> ${stars(state.heroes.owned[hero.id]?.stars ?? 1, BALANCE.summon.maxStars)}
+          <div class="hero-look">Apparence : <b class="rarity-text r-${hero.rarity}">${escapeHtml(hero.name)}</b>
             <button class="btn small" data-action="open-looks">Changer ›</button></div>
           <div class="muted">Classe : <b style="color:${activeClass(state).color}">${escapeHtml(activeClass(state).name)}</b> · ${hero.role}</div>
           <div class="hero-desc">${escapeHtml(hero.description)}</div>
@@ -218,15 +240,6 @@ function heroView(ui, state) {
       ${progressBar(state.xp / xpNeeded, `${formatNumber(Math.floor(state.xp))} / ${formatNumber(xpNeeded)} XP`, 'xp')}
       <div class="gear-row" style="margin-top:5px">${gear}</div>
     </div>
-    ${fold(ui, 'hero-stats', 'Statistiques', () => `<div class="stats-grid">
-      ${line('icon_damage', 'Dégâts', formatNumber(s.damage))}
-      ${line('icon_bolt', 'Attaques / s', formatDecimal(s.attacksPerSecond, 2))}
-      ${line('icon_crit', 'Coup critique', `${formatDecimal(s.critChance)} %`)}
-      ${line('icon_heart', 'PV max', formatNumber(s.maxHp))}
-      ${line('icon_shield', 'Armure', `${formatDecimal(s.armor)} %`)}
-      ${line('icon_regen', 'Régénération', `${formatDecimal(s.regenPerSecond)} PV/s`)}
-      ${line('coin', 'Or bonus', `+${formatDecimal(s.goldPct)} %`)}
-    </div>`)}
     ${fold(ui, 'hero-sets', 'Ensembles d\'équipement', () => setsCard(state))}
     ${sources ? fold(ui, 'hero-bonus', 'Sources de bonus (boosts actifs compris)', `<div class="bonus-sources">${sources}</div>`) : ''}
     ${fold(ui, 'hero-feats', 'Exploits', () => `<div class="stats-grid">

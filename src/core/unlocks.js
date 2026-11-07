@@ -41,8 +41,9 @@ export function markInvUsed(state, id) {
 // premier boss : Critique, Armure, Régénération, Or ; les nouvelles à leur étape record (`unlockStage`). Une ligne
 // déjà achetée reste toujours visible.
 export const BASE_UPGRADES = ['damage', 'attackSpeed', 'vitality'];
-export const UPGRADE_ORDER = ['damage', 'attackSpeed', 'crit', 'critDamage', 'bossDamage', 'companionPower',
-  'vitality', 'armor', 'regen', 'lifesteal', 'dodge', 'goldFind', 'xpGain'];
+// v9.2.8 : + Double attaque (étape 25) et Défense (après le premier boss) : 15 lignes.
+export const UPGRADE_ORDER = ['damage', 'attackSpeed', 'crit', 'critDamage', 'doubleAttack', 'bossDamage', 'companionPower',
+  'vitality', 'defense', 'armor', 'regen', 'lifesteal', 'dodge', 'goldFind', 'xpGain'];
 
 export function upgradeOpen(state, key, balance) {
   const up = balance.upgrades[key];

@@ -14,6 +14,7 @@ import { EXACT_925, patterns925 } from './ko-925.js'; // v9.2.5
 import { EXACT_926, patterns926 } from './ko-926.js'; // v9.2.6
 import { EXACT_927_SHOWCASE } from './ko-927-vitrine.js'; // v9.2.7 : vitrine animée
 import { EXACT_927, patterns927 } from './ko-927.js'; // v9.2.7
+import { EXACT_928, patterns928 } from './ko-928.js'; // v9.2.8
 
 // --- Dictionnaire exact ---------------------------------------------------------------------------
 
@@ -380,3 +381,6 @@ Object.assign(EXACT, EXACT_927);
 PATTERNS.unshift(...patterns927(lookup));
 // v9.2.7 : vitrine animée des fiches (./ko-927-vitrine.js).
 Object.assign(EXACT, EXACT_927_SHOWCASE);
+// v9.2.8 : Défense, Double attaque, fiche de stats (./ko-928.js).
+Object.assign(EXACT, EXACT_928);
+PATTERNS.unshift(...patterns928(lookup));

@@ -24,7 +24,7 @@ test('v9.2.1 : un malus par monde 2 à 12, aucun dans le monde 1, contre = amél
     assert.ok(e.fullAt <= (up.maxLevel ?? Infinity), e.zone);
     assert.ok((up.unlockStage ?? 0) <= zoneStartStage(zi(e.zone)), e.zone);
   }
-  assert.equal(Object.keys(BALANCE.upgrades).length, 13); // aucune nouvelle amélioration
+  assert.equal(Object.keys(BALANCE.upgrades).length, 15); // v9.2.8 : + Défense et Double attaque
   assert.ok(!BALANCE.upgradeCategories.some((c) => c.id === 'adapt'));
 });
 
