@@ -42,8 +42,8 @@ test('v9.0 : le Musée expose un objet ancestral par vitrine et donne un bonus p
 });
 
 test('v9.0 : 10 thèmes d\'interface ; « Chevalier » ne change rien, les autres recolorent', () => {
-  assert.equal(THEMES.length, 10);
-  assert.equal(new Set(THEMES.map((t) => t.id)).size, 10);
+  assert.equal(THEMES.length, 13); // v9.2.8 : + 3 thèmes de boutique
+  assert.equal(new Set(THEMES.map((t) => t.id)).size, 13); // v9.2.8 : + 3 thèmes de boutique
   assert.equal(THEMES[0].id, 'knight');
   assert.equal(colorFamily(0x12, 0x1d, 0x33), 'dark');
   assert.equal(colorFamily(0xe8, 0xb6, 0x4a), 'accent');

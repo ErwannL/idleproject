@@ -2,6 +2,11 @@
 import { locateStage, stagesPerCycle } from './combat.js';
 import { ZONES } from '../data/zones.js';
 import { migrateOceanWorld } from './migrations-v920.js';
+import { migrateEconomy928 } from './migrations-v928.js'; // v9.2.8 : économie du document du producteur
+import { emptyEconomy, sanitizeEconomy } from './wallet.js';
+import { emptyPity } from './invocation.js';
+import { cleanWishlist } from './gacha.js';
+import { sanitizeCosmetics } from './cosmetics.js';
 import { emptyTimes, sanitizeTimes } from './times.js';
 import { BALANCE } from '../data/balance.js';
 import { AFFIXES, RARITIES, SLOTS, STARTER_WEAPON, STAT_LABELS } from '../data/items.js';
@@ -50,7 +55,8 @@ import { ENCYCLOPEDIA_SECTIONS } from './encyclopedia.js';
 // v4 : niveau, compétences, héros, compagnons, invocation, contrats, événements, matériaux, donjons.
 // v8 (v9.1.3) : refontes du lot E et F, conversions indépendantes dans core/migrations-v913.js.
 // v9 (v9.2.0, monde marin) : Royaume englouti inséré en monde 11 (étapes > 200 converties, core/migrations-v920.js).
-export const SAVE_VERSION = 9; // v8.4 : nouvel équilibrage (remboursement des améliorations) · v8.5 : arbre de 500 talents (fragments remboursés)
+// v10 (v9.2.8) : économie du document du producteur (bannières, tickets, cosmétiques sans bonus ; migrations-v928.js).
+export const SAVE_VERSION = 10; // v8.4 : nouvel équilibrage (remboursement des améliorations) · v8.5 : arbre de 500 talents (fragments remboursés)
 export const SORT_OPTIONS = ['rarity', 'level', 'power', 'recent'];
 
 export function createNewState(now = Date.now(), seed = Math.floor(Math.random() * 2 ** 32)) {
@@ -91,7 +97,10 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     gems: BALANCE.summon.startingGems,
     keys: STARTING_KEYS,
     materials: { shards: 0 }, // v9.1.3 : essences fondues dans les éclats
-    summon: { total: 0, sinceEpic: 0, sinceLegendary: 0, net: 0, lostLegend: false }, // v9.1.3 (doc4 lot 4) : filet et Légendaire perdu
+    // v9.2.8 : compteurs par bannière (limitée, permanente, familiers) et wishlist de la permanente.
+    summon: { total: 0, pity: emptyPity(), wishlist: [] },
+    economy: emptyEconomy(), // v9.2.8 : tickets, fragments SSR, écus, revenus du mois, achats, héritage des apparences
+    cosmetics: { themes: {} }, // v9.2.8 : thèmes de boutique possédés (les apparences possédées : heroes.owned)
     contracts: [],
     nextContractId: 0,
     inbox: [],
@@ -199,6 +208,20 @@ function cleanPowers(state, raw) {
   state.equippedPowers = [...new Set(wanted)].filter((id) => state.powers[id]).slice(0, powerSlots(state));
 }
 
+// v9.2.8 : compteurs des bannières, bornés (jamais au-delà de la garantie).
+function cleanPity(raw) {
+  const out = emptyPity();
+  const src = obj(raw);
+  const caps = { limited: 99, permanent: 99, pet: 59 };
+  for (const k of Object.keys(out)) {
+    const p = obj(src[k]);
+    out[k].ssr = Math.min(int(p.ssr, 0), caps[k]);
+    out[k].sr = Math.min(int(p.sr, 0), 9);
+    if (k === 'limited') out[k].guaranteed = p.guaranteed === true;
+  }
+  return out;
+}
+
 function cleanCollections(state, raw) {
   const heroes = obj(raw.heroes);
   for (const hero of HEROES) {
@@ -231,9 +254,8 @@ function cleanCollections(state, raw) {
   state.companions.equipped = clampTeam([...new Set(equipped)].filter((id) => state.companions.owned[id]));
 
   const summon = obj(raw.summon);
-  state.summon = { total: int(summon.total, 0), sinceEpic: int(summon.sinceEpic, 0), sinceLegendary: int(summon.sinceLegendary, 0),
-    // v9.1.3 (doc4 lot 4) : filet (0 à 49), Légendaire perdu, cible des Archives, dernière sortie dont le cadeau est versé.
-    net: Math.min(int(summon.net, 0), BANNER_RULES.netPulls - 1), lostLegend: summon.lostLegend === true };
+  // v9.2.8 : compteurs par bannière (data/economy.js) ; une sauvegarde d'avant est convertie (migrations-v928.js).
+  state.summon = { total: int(summon.total, 0), pity: cleanPity(summon.pity), wishlist: cleanWishlist(summon.wishlist) };
   if (typeof summon.archiveTarget === 'string' && /^[a-z0-9_]{2,32}$/.test(summon.archiveTarget)) state.summon.archiveTarget = summon.archiveTarget;
   if (int(summon.gift, 0) > 0) state.summon.gift = int(summon.gift, 0);
   state.worlds = sanitizeWorlds(raw.worlds);
@@ -490,6 +512,9 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   }
   cleanPowers(state, raw);
   cleanCollections(state, raw);
+  state.economy = sanitizeEconomy(raw.economy); // v9.2.8
+  state.cosmetics = sanitizeCosmetics(raw.cosmetics);
+  if (int(raw.version, 1) < 10) state.migration928 = migrateEconomy928(state, raw); // v9.2.8 : une seule fois
   cleanActivities(state, raw);
   // v9.1.3 (lot F) : hebdomadaires et mensuelles → piste du mois (après les missions, gemmes, clés et éclats : elle peut en verser).
   migrateMissionTrack(state, raw.missions, periodKey('monthly', now), MISSION_TRACK, (r) => grantReward(state, r));

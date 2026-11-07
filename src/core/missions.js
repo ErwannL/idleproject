@@ -2,6 +2,9 @@
 // Les périodes sont des clés de date locales : un changement de clé réinitialise la période.
 import { LOGIN_CALENDAR, MISSION_PERIODS, MISSION_TRACK } from '../data/missions.js';
 import { grantReward } from './rewards.js';
+import { incomeBoss, incomeDungeon, incomeLogin, incomeMissions, incomeTrack } from './income.js'; // v9.2.8
+import { trackEventGoal } from './ancients.js'; // v9.2.8 : objectifs du petit événement
+import { tickSubscriptions } from './store.js'; // v9.2.8 : part du jour d'un abonnement (achat réel seulement)
 
 const pad = (n) => String(n).padStart(2, '0');
 const dayKey = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -52,11 +55,17 @@ export function refreshMissions(state, now = Date.now()) {
     login.claimed = Math.max(login.claimed, login.days - LOGIN_CALENDAR.length);
     login.lastDay = today;
     trackMissions(state, 'login', 1);
+    incomeLogin(state, now); // v9.2.8 : tickets de connexion (plafond mensuel)
+    tickSubscriptions(state, now);
   }
 }
 
 export function trackMissions(state, type, amount = 1) {
   if (!state.missions || !(amount > 0)) return;
+  // v9.2.8 : premier boss / premier donjon du jour (tickets, plafonds mensuels) et objectifs du petit événement.
+  if (type === 'bosses') incomeBoss(state);
+  if (type === 'dungeons') incomeDungeon(state);
+  trackEventGoal(state, type, amount);
   for (const p of MISSION_PERIODS) {
     const run = state.missions[p.id];
     for (const m of p.missions) {
@@ -88,7 +97,7 @@ export function claimTrackTier(state) {
   const next = trackNext(state);
   if (!next?.ready) return null;
   state.missions.track.claimed = next.index + 1;
-  return grantReward(state, next.reward);
+  return mergeReward(grantReward(state, next.reward), incomeTrack(state)); // v9.2.8 : + ticket familier
 }
 
 export function missionPeriod(id) {
@@ -120,7 +129,8 @@ export function bonusReady(state, periodId) {
 export function claimMissionBonus(state, periodId) {
   if (!missionPeriod(periodId) || !bonusReady(state, periodId)) return null;
   state.missions[periodId].bonus = true;
-  return grantReward(state, missionPeriod(periodId).bonus);
+  const given = grantReward(state, missionPeriod(periodId).bonus);
+  return periodId === 'daily' ? mergeReward(given, incomeMissions(state)) : given; // v9.2.8 : tickets des missions
 }
 
 // Jour du calendrier (0..6) de la prochaine case à récupérer.

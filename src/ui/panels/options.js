@@ -2,10 +2,11 @@
 // zone de danger), Interface, Son, Fenêtre (version bureau).
 import { BALANCE } from '../../data/balance.js';
 import { formatDuration } from '../../core/format.js';
-import { escapeHtml, fold, formatNumber } from '../common.js';
+import { escapeHtml, fold, formatNumber, img } from '../common.js';
 import { isPhone } from '../prefs.js';
 import { availableLangs, getLang } from '../../i18n/i18n.js';
 import { THEMES, themeSwatches } from '../themes.js';
+import { ownsTheme } from '../../core/cosmetics.js'; // v9.2.8
 import { GAME_VERSION } from '../../version.js';
 import { BUILT_IN_TOKEN } from '../../core/update-token.js';
 import { activeCheats } from '../../core/cheats.js';
@@ -258,9 +259,10 @@ function interfaceTab(ui, state) {
   const phone = isPhone();
   const theme = THEMES.find((t) => t.id === (state.ui.theme ?? 'knight'));
   return `${fold(ui, 'opt-theme', 'Thème', () => `<div class="muted">Style des menus (les couleurs des raretés ne changent pas). Chevalier est le style sobre.</div>
-        <div class="theme-grid">${THEMES.map((t) => `<button class="btn theme-btn${(state.ui.theme ?? 'knight') === t.id ? ' active' : ''}" data-action="theme" data-value="${t.id}">
+        <div class="theme-grid">${THEMES.map((t) => { const mine = ownsTheme(state, t.id); // v9.2.8 : thèmes de boutique verrouillés tant qu'ils ne sont pas possédés
+          return `<button class="btn theme-btn${(state.ui.theme ?? 'knight') === t.id ? ' active' : ''}${mine ? '' : ' locked'}" data-action="${mine ? 'theme' : 'theme-preview'}" data-value="${t.id}">
           <span class="theme-swatches">${themeSwatches(t.id).map((c) => `<i style="background:${c}"></i>`).join('')}</span>
-          <b>${escapeHtml(t.name)}</b><span class="muted">${escapeHtml(t.text)}</span></button>`).join('')}</div>`, { extra: escapeHtml(theme?.name ?? '') })}
+          <b>${escapeHtml(t.name)}</b><span class="muted">${escapeHtml(t.text)}</span>${mine ? '' : `<span class="muted">${img('icon_lock')} Boutique › Thèmes · Aperçu</span>`}</button>`; }).join('')}</div>`, { extra: escapeHtml(theme?.name ?? '') })}
       ${ui.interfaceExtra?.(state) ?? ''}
       ${fold(ui, 'opt-notify', 'Notifications', () => `
         <label class="toggle"><input type="checkbox" data-action="notify" data-key="boss" ${state.ui.notify?.boss !== false ? 'checked' : ''}> Bannières d'arrivée des boss</label>

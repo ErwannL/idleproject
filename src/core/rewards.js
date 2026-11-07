@@ -2,9 +2,14 @@
 // v9.1.3 (lot E) : plus de tickets ; une récompense « tickets » (ancienne donnée) est versée en gemmes au taux TICKET_GEMS.
 import { addGold } from './economy.js';
 import { ESSENCE_SHARDS, TICKET_GEMS } from '../data/balance.js';
+import { WALLET_KEYS } from '../data/economy.js';
+import { addWallet } from './wallet.js';
 
 const LABELS = {
   gold: 'or', gems: 'gemmes', keys: 'clé(s)', fragments: 'fragments', shards: 'éclats',
+  // v9.2.8 : monnaies de l'économie (tickets, fragments SSR universels, écus d'événement), dans state.economy.wallet.
+  ticketLimited: 'ticket(s) limité(s)', ticketPermanent: 'ticket(s) permanent(s)', ticketPet: 'ticket(s) familier(s)',
+  ssrFragment: 'fragment(s) SSR universel(s)', eventCoins: 'écus',
 };
 
 export function grantReward(state, reward) {
@@ -16,6 +21,7 @@ export function grantReward(state, reward) {
     if (!(value > 0)) continue;
     if (key === 'gold') given.gold = addGold(state, value);
     else if (key === 'shards') state.materials.shards += value;
+    else if (WALLET_KEYS.includes(key)) addWallet(state, key, value); // v9.2.8
     else if (key in LABELS) state[key] += value;
     else continue;
     if (key !== 'gold') given[key] = (given[key] ?? 0) + value;

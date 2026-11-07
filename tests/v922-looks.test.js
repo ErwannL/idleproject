@@ -29,7 +29,7 @@ test('Héros › Apparences : sous-onglet du menu Héros, état et bouton Équip
   assert.match(html, /look-status on">Équipée/);
   assert.match(html, /look-status owned">Possédée/);
   assert.match(html, /Verrouillée/);
-  assert.match(html, /Obtenu par invocation/);
+  assert.match(html, /Boutique › Skins/); // v9.2.8 : verrouillée → boutique (plus d'invocation)
   assert.match(html, /<button[^>]*data-action="set-hero" data-value="fairy">Équiper<\/button>/);
   // La fiche n'a plus de segment Apparence, seulement un raccourci.
   const sheet = hero.render(ui(), s);

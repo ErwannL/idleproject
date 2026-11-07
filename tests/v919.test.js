@@ -30,12 +30,11 @@ const NOW = Date.UTC(2026, 10, 2, 12);
 const uiWith = (view = {}) => ({ view: { open: new Set(), closed: new Set(), ...view }, tabVisible: {} });
 
 test('apparences : une invocation ×10 signale chaque apparence neuve une seule fois', () => {
-  const s = createNewState(NOW);
-  s.gems = 1e6;
-  const res = summon(s, new Rng(11), 10, 'gems', undefined, 'hero');
+  // v9.2.8 : plus d'invocation d'apparences ; la révélation reste pour un skin neuf (boutique, événements).
+  void summon; void Rng;
+  const res = [{ kind: 'hero', id: 'fairy', isNew: true }, { kind: 'hero', id: 'fairy', isNew: true }, { kind: 'hero', id: 'seraph', isNew: true }];
   const ids = newSkins(res);
-  assert.deepEqual(ids, [...new Set(res.filter((r) => r.isNew).map((r) => r.id))]);
-  assert.ok(ids.length > 0);
+  assert.deepEqual(ids, ['fairy', 'seraph']);
   // Les doublons et les compagnons ne déclenchent rien.
   assert.deepEqual(newSkins([{ kind: 'hero', id: 'fairy', isNew: false }, { kind: 'companion', id: 'fairy', isNew: true }]), []);
   const html = skinRevealHtml(heroById(ids[0]));
@@ -61,15 +60,16 @@ test('écran Apparences : aperçu porté, cartes encadrées, Porter en un appui,
   assert.match(html, /Apparence équipée/); // v9.2.2 : « Équiper » au lieu de « Porter »
   assert.match(html, /Équipée ✓/);
   assert.match(html, /data-action="set-hero" data-value="fairy"/);
-  assert.match(html, /2 doublons/);
-  assert.match(html, /Obtenu par invocation/);
+  // v9.2.8 : cosmétiques sans étoiles ni bonus ; verrouillées → boutique.
+  assert.match(html, /Boutique › Skins/);
+  assert.match(html, /aucun effet sur les statistiques/);
   assert.match(html, /look-card r-legendary[^"]* locked/);
   // Fiche : apparence portée nommée, avec un lien vers l'écran.
   const sheet = hero.render(uiWith({ heroTab: 'hero' }), s);
   assert.match(sheet, /Apparence : <b[^>]*>Chevalier/);
   assert.match(sheet, /data-action="open-looks"/); // v9.2.2 : vers Héros › Apparences
-  // Invocation › Apparences : lien vers l'écran.
-  assert.match(summonPanel.render(uiWith(), s), /data-action="open-looks"/);
+  // v9.2.8 : plus d'invocation d'apparences (l'écran Invocation n'y renvoie plus).
+  assert.ok(!/data-action="summon"[^>]*data-pool="hero"/.test(summonPanel.render(uiWith(), s)));
 });
 
 test('alerte de boss : une par arrivée, courte en boucle, sobre si animations réduites, rien à ×100', () => {

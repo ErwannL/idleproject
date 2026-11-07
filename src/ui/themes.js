@@ -53,6 +53,24 @@ export const THEMES = [
     dark: { h: 268, sMul: 0.55, lMul: 0.72 }, steel: { h: 276, sSet: 0.32, lMul: 0.95 },
     accent: { h: 286, sMul: 0.95, lMul: 1.1 }, primary: { h: 272, sMul: 0.95, lMul: 0.9 },
   },
+  // v9.2.8 : thèmes de boutique (`shop` = catégorie, data/economy.js THEME_TIERS) ; les 10 thèmes ci-dessus restent
+  // offerts à tous. Classique : palette ; Premium : palette, arrondis, police et particules ; Légendaire : tout, avec
+  // décor et lueurs. `decoFrom` : décor dessiné repris d'un thème existant ; cadres recolorés (pas de cadres propres).
+  {
+    id: 'dawn', shop: 'classic', name: 'Aurore', text: 'Ciel rose de l\'aube, cuivre doux et or pâle.',
+    dark: { h: 318, sMul: 0.55 }, steel: { h: 22, sSet: 0.32, lMul: 1.1 },
+    accent: { h: 32, sMul: 1.05, lMul: 1.08 }, primary: { h: 338, sMul: 0.85 },
+  },
+  {
+    id: 'abyss', shop: 'premium', radius: 8, name: 'Abysses', text: 'Profondeurs turquoise, nacre et lueurs des grands fonds.',
+    dark: { h: 196, sMul: 1.15, lMul: 0.85 }, steel: { h: 182, sSet: 0.34, lMul: 1.05 },
+    accent: { h: 168, sMul: 1.1, lMul: 1.1 }, primary: { h: 188, sMul: 1.0 }, font: '"Trebuchet MS", Verdana, sans-serif', decoFrom: 'frost',
+  },
+  {
+    id: 'celestial', shop: 'legendary', radius: 9, name: 'Couronne céleste', text: 'Nuit étoilée, or royal et éclats de lumière.',
+    dark: { h: 236, sMul: 1.3, lMul: 1.1 }, steel: { h: 48, sSet: 0.85, lMul: 1.25 },
+    accent: { h: 50, sMul: 1.25, lMul: 1.12 }, primary: { h: 206, sMul: 1.1, lMul: 1.1 }, font: 'Georgia, "Times New Roman", serif', decoFrom: 'royal',
+  },
 ];
 
 export const themeById = (id) => THEMES.find((t) => t.id === id) ?? THEMES[0];
@@ -70,9 +88,12 @@ export const THEME_FX = {
   frost: { glow: '#cdf3ff', motion: 'fall', count: 22, speed: [8, 15] },
   sakura: { glow: '#ff9ccd', motion: 'fall', count: 14, speed: [10, 17] },
   shadow: { glow: '#b26bff', motion: 'rise', count: 12, speed: [8, 14] },
+  abyss: { glow: '#4ff2d8', motion: 'rise', count: 14, speed: [8, 14] }, // v9.2.8
+  celestial: { glow: '#fff0a8', motion: 'twinkle', count: 24, speed: [2, 4.5] }, // v9.2.8
 };
 
 const assetUrl = (theme, file) => new URL(`assets/ui/themes/${theme}/${file}`, document.baseURI).href;
+const decoOf = (theme) => theme.decoFrom ?? theme.id; // v9.2.8 : décor emprunté (thèmes de boutique)
 
 // Couche de décor posée sur le panneau (coins, emblème, particules), recréée à chaque changement de thème.
 function applyDecor(theme) {
@@ -80,7 +101,7 @@ function applyDecor(theme) {
   const panel = document.getElementById('panel');
   const fx = THEME_FX[theme.id];
   for (const [key, file] of [['corner', 'corner.png'], ['crest', 'crest.png'], ['tab', 'tab_deco.png'], ['divider', 'divider.png'], ['texture', 'texture.png']]) {
-    if (fx) root.style.setProperty(`--deco-${key}`, `url("${assetUrl(theme.id, file)}")`);
+    if (fx) root.style.setProperty(`--deco-${key}`, `url("${assetUrl(decoOf(theme), file)}")`);
     else root.style.removeProperty(`--deco-${key}`);
   }
   if (fx) root.style.setProperty('--glow', fx.glow); else root.style.removeProperty('--glow');
@@ -93,7 +114,7 @@ function applyDecor(theme) {
   const parts = [];
   for (let i = 0; i < fx.count; i++) {
     const r = (a, b) => a + Math.random() * (b - a);
-    const sprite = assetUrl(theme.id, i % 3 === 2 ? 'particle2.png' : 'particle1.png');
+    const sprite = assetUrl(decoOf(theme), i % 3 === 2 ? 'particle2.png' : 'particle1.png');
     parts.push(`<i class="p ${fx.motion}" style="--x:${r(0, 100).toFixed(1)}%;--y:${r(0, 100).toFixed(1)}%;--t:${r(...fx.speed).toFixed(1)}s;--d:-${r(0, fx.speed[1]).toFixed(1)}s;--sc:${r(0.7, 1.3).toFixed(2)};--sw:${r(10, 34).toFixed(0)}px;background-image:url('${sprite}')"></i>`);
   }
   deco.innerHTML = `<i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i><div class="fx">${parts.join('')}</div>`;
@@ -270,6 +291,7 @@ async function applyNow(id) {
     await Promise.all([...urls].map(async ([u, abs]) => {
       const own = abs.replace('/frames/', `/themes/${theme.id}/`);
       try {
+        if (theme.shop) throw new Error('recolor'); // v9.2.8 : thèmes de boutique sans cadres propres (pas de 404)
         await loadImage(own);
         frames.set(u, own);
       } catch {

@@ -1,0 +1,57 @@
+/* v9.2.8 : économie — bannières d'invocation, boutique (icônes de la planche du joueur), événement. */
+.shop-ico { image-rendering: auto; vertical-align: middle; object-fit: contain; }
+.shop-ico.s { width: 20px; height: 20px; }
+.shop-ico.shop-big { width: 72px; height: 72px; display: block; margin: 0 auto 4px; filter: drop-shadow(0 3px 4px #0008); }
+.wallet-ico { width: 18px; height: 18px; margin-right: 2px; }
+.eco-chip { display: inline-flex; align-items: center; gap: 2px; margin-left: 8px; padding: 1px 6px; border-radius: 10px; background: #0005; border: 1px solid var(--line); }
+.eco-banner .summon-buttons { margin-top: 4px; }
+.eco-banner .summon-buttons .btn { min-width: 0; }
+.eco-rates { font-size: 12px; margin: 4px 0 2px; line-height: 1.5; }
+.eco-pity { display: flex; flex-direction: column; gap: 3px; font-size: 12px; margin: 4px 0; }
+.eco-pity-row { line-height: 1.4; }
+.eco-soft { color: #ffb84a; margin-left: 4px; }
+.eco-feature { display: flex; gap: 10px; align-items: center; padding: 6px; border-radius: var(--radius); background: radial-gradient(circle at 25% 50%, color-mix(in srgb, var(--vt) 35%, transparent), transparent 70%); }
+.eco-feature-art { width: 96px; height: 96px; display: grid; place-items: center; flex: none; overflow: hidden; }
+.eco-feature-art img, .eco-feature-art canvas { max-width: 96px; max-height: 96px; }
+.eco-feature-info { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.eco-wish-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 4px; margin-top: 4px; }
+.eco-wish-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+.eco-wish-btn { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; }
+.eco-wish-btn canvas { width: 28px !important; height: 25px !important; }
+.eco-wish-btn.active { outline: 2px solid #ff7fb0; }
+.eco-table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 12px; }
+.eco-table th, .eco-table td { padding: 3px 4px; border-bottom: 1px solid var(--line); text-align: center; }
+.eco-table th:first-child { text-align: left; }
+.eco-tiers { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.eco-tier { padding: 2px 8px; border-radius: 10px; border: 1px solid var(--line); font-size: 12px; opacity: .75; }
+.eco-tier.on { opacity: 1; border-color: #f2c060; }
+.shop-note { padding: 6px 8px; margin-bottom: 6px; border-radius: var(--radius); background: #0006; border: 1px dashed var(--line); font-size: 12px; }
+.shop-cats { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; margin-bottom: 6px; }
+.shop-card { display: flex; flex-direction: column; gap: 3px; align-items: stretch; text-align: center; padding: 8px 6px; border-radius: var(--radius); background: var(--bg-2); border: 1px solid var(--line); font-size: 12px; min-width: 0; }
+.shop-card.owned { opacity: .7; }
+.shop-name { font-weight: bold; font-size: 13px; }
+.shop-content { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 6px; }
+.shop-give { display: inline-flex; align-items: center; gap: 2px; }
+.shop-first { color: #7fe0a0; font-size: 11px; }
+.shop-actions { margin-top: auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; padding-top: 4px; }
+.shop-soon { opacity: .85; font-size: 11px; }
+.shop-owned { color: #7fe0a0; font-weight: bold; }
+.shop-card .theme-swatches { justify-content: center; }
+.shop-preview { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 6px; }
+.shop-foot { font-size: 12px; margin: 4px 0; }
+.ev-coins { margin-top: 3px; }
+.ev-map { display: flex; flex-direction: column; gap: 6px; }
+.ev-region-name { font-size: 12px; font-weight: bold; margin-bottom: 2px; }
+.ev-stages { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; }
+.ev-stage { text-align: center; font-size: 11px; padding: 3px 0; border-radius: 4px; background: #0006; border: 1px solid var(--line); }
+.ev-stage.done { background: #2e6b3d; border-color: #7fe0a0; }
+.ev-stage.next { border-color: #f2c060; box-shadow: 0 0 6px #f2c06088; }
+.ev-stage.locked { opacity: .55; }
+.ev-stage.frag { outline: 1px dashed #ffd76a; }
+.ev-stage.boss { outline: 1px dashed #ff7a7a; }
+.ev-fight { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 8px 0 4px; }
+.ev-shop { display: flex; flex-direction: column; gap: 4px; }
+.ev-item, .ev-goal { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 3px 0; border-bottom: 1px solid var(--line); }
+.ev-item .btn, .ev-goal .btn { margin-left: auto; }
+.theme-btn.locked { opacity: .7; }

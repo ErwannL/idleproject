@@ -107,11 +107,10 @@ test('invocation : coût, probabilités affichées, garantie et doublons', () =>
   const results = [];
   for (let i = 0; i < 7; i++) results.push(...summon(state, new Rng(i + 10), 10, 'gems'));
   assert.equal(state.gems, results.reduce((sum, r) => sum + r.refund, 0), 'seuls les remboursements de doublons restent');
-  // Garantie : au moins un Épique+ toutes les 10 invocations, un Légendaire en 60.
+  // Garantie : au moins un Épique+ toutes les 10 invocations (v9.2.8 : SSR au 100, tests/v928-economy.test.js).
   for (let i = 0; i + 10 <= results.length; i += 10) {
     assert.ok(results.slice(i, i + 10).some((r) => ['epic', 'legendary'].includes(r.rarity)), `série ${i}`);
   }
-  assert.ok(results.slice(0, 60).some((r) => r.rarity === 'legendary'));
   assert.ok(results.some((r) => !r.isNew), 'des doublons');
   for (const r of results) {
     const owned = (r.kind === 'hero' ? state.heroes.owned : state.companions.owned)[r.id];
@@ -124,9 +123,10 @@ test('héros : bonus de rôle, étoiles et changement de héros', () => {
   assert.equal(setActiveHero(state, 'berserker'), false, 'héros non possédé');
   state.heroes.owned.berserker = { stars: 1 };
   assert.ok(setActiveHero(state, 'berserker'));
+  // v9.2.8 : les apparences sont des cosmétiques, le bonus du héros ne dépend plus d'elles.
   const one = heroEffects(state).damagePct;
   state.heroes.owned.berserker.stars = 3;
-  assert.ok(heroEffects(state).damagePct > one);
+  assert.equal(heroEffects(state).damagePct, one);
 });
 
 test('compagnons : équipement limité, niveaux et effets', () => {

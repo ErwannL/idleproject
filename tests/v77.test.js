@@ -127,7 +127,9 @@ test('invocations séparées, achat groupé, contrats rares, boss adaptés aux R
   assert.ok(summonPool('pet').every((u) => !u.ally));
   const state = createNewState(NOW, 9);
   state.gems = 900;
-  const pets = summon(state, new Rng(3), 10, 'gems', BALANCE, 'pet');
+  assert.equal(summon(state, new Rng(3), 10, 'gems', BALANCE, 'pet'), null, 'v9.2.8 : familiers jamais en gemmes');
+  state.economy.wallet.ticketPet = 10;
+  const pets = summon(state, new Rng(3), 10, 'ticketPet', BALANCE, 'pet');
   assert.ok(pets.every((u) => !u.ally));
   state.gold = 1e6;
   assert.equal(buyUpgradeBulk(state, 'damage', '10'), 10);

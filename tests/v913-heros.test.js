@@ -8,15 +8,16 @@ import { Rng } from '../src/core/rng.js';
 const NOW = Date.UTC(2026, 10, 2, 12);
 
 test('lot 0 : une seule normalisation du bassin (hero et pet respectés, le reste devient ally)', () => {
-  assert.equal(normalizePool('hero'), 'hero');
+  // v9.2.8 : trois bassins (limitée, permanente, familiers) ; anciens noms convertis, apparences hors invocation.
+  assert.equal(normalizePool('hero'), 'limited');
   assert.equal(normalizePool('pet'), 'pet');
-  assert.equal(normalizePool('ally'), 'ally');
-  for (const x of [undefined, null, '', 'heroes', 'common', 42]) assert.equal(normalizePool(x), 'ally');
-  // Apparences donne des apparences, jamais des compagnons.
+  assert.equal(normalizePool('ally'), 'limited');
+  assert.equal(normalizePool('archive'), 'permanent');
+  for (const x of [undefined, null, '', 'heroes', 'common', 42]) assert.equal(normalizePool(x), 'limited');
   const s = createNewState(NOW);
   s.gems = 1e6;
   const res = summon(s, new Rng(7), 10, 'gems', undefined, normalizePool('hero'));
-  assert.ok(res.every((r) => r.kind === 'hero'));
+  assert.ok(res.every((r) => r.kind === 'companion'));
 });
 
 test('lot 0 : l\'historique garde le type (skin ou compagnon) et le nettoyage le conserve', () => {
@@ -177,22 +178,17 @@ test('lot 1 : un doublon passe de 5 à 6 exemplaires (puis 20 gemmes) ; un skin 
   for (const u of COMPANIONS) s.companions.owned[u.id] = { stars: 5, level: 1 };
   s.gems = 1e6;
   const res = summon(s, new Rng(5), 10, 'gems', undefined, 'ally');
+  const OVER = { rare: 10, epic: 30, legendary: 100 }; // v9.2.8 : conversion par rareté (data/economy.js)
   for (const r of res) {
-    if (r.refund) assert.equal(r.refund, 20);
+    if (r.refund) assert.equal(r.refund, OVER[r.rarity]);
   }
   assert.ok(Object.values(s.companions.owned).some((o) => o.stars === 6));
   assert.ok(Object.values(s.companions.owned).every((o) => o.stars <= 6));
   const g0 = s.gems;
   for (const u of COMPANIONS) s.companions.owned[u.id].stars = 6;
   const res2 = summon(s, new Rng(6), 10, 'gems', undefined, 'ally');
-  assert.equal(s.gems, g0 - 900 + 200);
-  assert.ok(res2.every((r) => r.refund === 20 && r.stars === 6));
-  // Skins : plafond 5.
-  const h = createNewState(NOW);
-  h.gems = 1e6;
-  for (let i = 0; i < 30; i++) summon(h, new Rng(100 + i), 10, 'gems', undefined, 'hero');
-  assert.ok(Object.values(h.heroes.owned).every((o) => o.stars <= 5));
-  assert.ok(Object.values(h.heroes.owned).some((o) => o.stars === 5));
+  assert.equal(s.gems, g0 - 900 + res2.reduce((a, r) => a + OVER[r.rarity], 0));
+  assert.ok(res2.every((r) => r.refund === OVER[r.rarity] && r.stars === 6));
   // Affichage : 1 exemplaire = 0★, 6 = 5★.
   assert.equal(duplicates({ stars: 1 }), 0);
   assert.equal(duplicates({ stars: 6 }), 5);
@@ -255,9 +251,7 @@ test('lot 2 : « Ultime débloquée » au 4e exemplaire d\'un compagnon, jamais 
   const flagged = res.filter((r) => r.ultimateUnlocked);
   assert.ok(flagged.length >= 1);
   assert.ok(flagged.every((r) => r.stars === 4));
-  const h = createNewState(NOW);
-  h.gems = 1e6;
-  for (let i = 0; i < 20; i++) assert.ok(summon(h, new Rng(50 + i), 10, 'gems', undefined, 'hero').every((r) => !r.ultimateUnlocked));
+  // v9.2.8 : plus d'invocation d'apparences (cosmétiques).
 });
 
 test('lot 2 : textes à valeur réelle, arrondis, verbe propre gardé', () => {

@@ -100,7 +100,7 @@ test('v8.4 : bannière de la semaine (Légendaire mis en avant) et historique', 
   let featured = 0; let legends = 0;
   const rng = new Rng(4);
   for (let i = 0; i < 300; i++) for (const r of summon(s, rng, 10, 'gems')) if (r.rarity === 'legendary') { legends += 1; if (r.id === f.id) featured += 1; }
-  assert.ok(legends > 20 && featured / legends > 0.35 && featured / legends < 0.65, `${featured}/${legends}`);
+  assert.ok(legends > 20 && featured / legends > 0.55 && featured / legends < 0.78, `${featured}/${legends}`); // v9.2.8 : 50/50 + garantie ≈ 2/3
   assert.equal(s.summon.history.length, 60);
   assert.equal(sanitizeState(JSON.parse(JSON.stringify(s))).summon.history.length, 60);
 });

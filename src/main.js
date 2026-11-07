@@ -60,6 +60,12 @@ import { startDemoBanner } from './data/banners.js';
 import { claimReleaseGift, endWorldRun, startWorldRun } from './core/banner.js';
 import { GAME_VERSION } from './version.js';
 import { applyTheme, themeById } from './ui/themes.js';
+// v9.2.8 : économie (bannières, boutique sans paiement réel, cosmétiques, événements).
+import { toggleWishlist, useSsrFragment } from './core/gacha.js';
+import { purchase } from './core/store.js';
+import { ownsTheme, unequipSkin, wornTheme } from './core/cosmetics.js';
+import { buyEventItem, claimEventGoal, fightStage, fightWorldBoss } from './core/ancients.js';
+import { bossesForStage, enemyStats } from './core/combat.js';
 import { BUILT_IN_TOKEN } from './core/update-token.js';
 import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagList, updateStatus } from './core/update.js';
 import { playsOnSite } from './ui/panels/options.js';
@@ -634,7 +640,42 @@ const actions = {
     done(true, swept.count ? `${swept.count} objet${swept.count > 1 ? 's' : ''} recyclé${swept.count > 1 ? 's' : ''} (+${formatNumber(swept.gold)} or)` : null);
   },
   setLanguage(lang) { setLang(lang); ui.invalidate(); },
-  setTheme(id) { state.ui.theme = themeById(id).id; applyTheme(state.ui.theme).then(() => ui.invalidate()); done(true); },
+  setTheme(id) {
+    if (!ownsTheme(state, themeById(id).id)) { done(false, 'Thème de boutique : pas encore possédé'); return; } // v9.2.8
+    ui.view.themePreview = null;
+    state.ui.theme = themeById(id).id; applyTheme(state.ui.theme).then(() => ui.invalidate()); done(true);
+  },
+  // v9.2.8 : aperçu d'un thème (boutique) sans l'acheter ni l'équiper ; « Revenir » remet le thème porté.
+  previewTheme(id) {
+    ui.view.themePreview = id ? themeById(id).id : null;
+    applyTheme(ui.view.themePreview ?? wornTheme(state)).then(() => ui.invalidate());
+  },
+  unequipLook() { done(unequipSkin(state), 'Apparence retirée'); },
+  wishToggle(id) { done(toggleWishlist(state, id)); },
+  useSsrFragment(id) {
+    const r = useSsrFragment(state, id);
+    done(Boolean(r), r ? (r.ultimateUnlocked ? 'Fragment utilisé : ultime débloquée' : 'Fragment utilisé : +1 exemplaire') : null, '#f2d083');
+  },
+  // Aucun fournisseur de paiement branché : purchase() refuse et rien n'est donné.
+  async buyOffer(id) {
+    const r = await purchase(state, id);
+    if (!r.ok) { ui.toast(r.reason === 'unavailable' ? 'Bientôt disponible : aucun paiement n\'est encore possible' : 'Achat impossible', '#9fb4d8'); return; }
+    done(true, 'Achat livré');
+  },
+  eventFight(n) {
+    const hpOf = (stage) => enemyStats(stage, bossesForStage(stage)[0], true).hp;
+    const r = fightStage(state, n, { dps: computeHeroStats(state).dps, hpOf });
+    if (r.error) return r;
+    done(true, r.won ? `Étape ${n} réussie` : `Étape ${n} : gardien trop solide`, r.won ? '#7fe0a0' : '#ff8a6a');
+    return r;
+  },
+  eventBoss() {
+    const r = fightWorldBoss(state, computeHeroStats(state).dps);
+    done(Boolean(r), r ? 'World Boss : tentative terminée' : null, '#f2d083');
+    return r;
+  },
+  eventBuy(id) { done(Boolean(buyEventItem(state, id)), 'Échange effectué'); },
+  eventGoal(id) { done(Boolean(claimEventGoal(state, id)), 'Récompense récupérée'); },
   // Vitesses débloquées par code (v8.4) ; ×100 demande une confirmation (effets visuels coupés).
   cycleSpeed() {
     if (state.cheats.skipBattle) {
@@ -1069,7 +1110,7 @@ if ((state.ui.focus || state.ui.themeFx === false) && !hasPref('motion')) setPre
 state.ui.focus = false;
 delete state.ui.themeFx;
 // Thème d'interface (v9.0).
-if (state.ui.theme && state.ui.theme !== 'knight') applyTheme(state.ui.theme);
+if (wornTheme(state) !== 'knight') applyTheme(wornTheme(state)); // v9.2.8 : thème de boutique seulement s'il est possédé
 
 // Musique et sons (moteur procédural) : démarrés au premier geste du joueur (règle des navigateurs).
 const sound = createGameAudio();

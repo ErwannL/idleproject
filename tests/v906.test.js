@@ -86,18 +86,17 @@ test('v9.0.6 : mécaniques de boss (carapace, fournaise, désespoir)', () => {
 });
 
 test('v9.0.6 : invocation de héros — skins, vedette Roi Grombar, sauvegarde', () => {
-  const pool = summonPool('hero');
-  assert.ok(pool.some((u) => u.id === 'grombar') && !pool.some((u) => u.id === 'knight'));
-  for (const r of summonOdds('hero')) assert.ok(r.units.length > 0, r.rarity);
-  assert.equal(featuredUnit('hero', NOW).id, 'grombar');
+  // v9.2.8 : les apparences ne s'invoquent plus (cosmétiques de boutique) ; l'ancien bassin 'hero' devient la limitée.
+  assert.ok(summonPool('hero').every((u) => u.kind === 'companion'));
+  void summonOdds; void featuredUnit;
   for (const h of HEROES.filter((x) => x.skin)) assert.deepEqual(h.palette, { skin: h.skin });
   const s = createNewState(NOW, 9);
+  s.heroes.owned.grombar = { stars: 1 };
   s.gems = 10000;
   const res = summon(s, new Rng(5), 10, 'gems', undefined, 'hero');
-  assert.equal(res.length, 10);
-  assert.ok(res.every((r) => r.kind === 'hero' && s.heroes.owned[r.id]));
+  assert.ok(res.every((r) => r.kind === 'companion'));
   const back = sanitizeState(JSON.parse(JSON.stringify(s)));
-  for (const r of res) assert.ok(back.heroes.owned[r.id], r.id);
+  assert.ok(back.heroes.owned.grombar);
 });
 
 test('v9.0.6 : serviteurs de l\'Invocatrice — au plus 4, jamais de gemmes de boss, la file ne s\'emballe pas', async () => {

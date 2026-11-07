@@ -67,7 +67,7 @@ test('Invocation : 3 bassins visibles, plus d\'onglets, probabilités derrière 
   assert.equal((html.match(/data-action="summon-odds"/g) ?? []).length, 3);
   assert.ok(!/summon-pool/.test(html));
   assert.ok(!/odds-group/.test(html));
-  assert.match(summon.render(uiWith({ summonOdds: 'ally' }), s), /odds-group/);
+  assert.match(summon.render(uiWith({ summonOdds: 'limited' }), s), /odds-group/);
 });
 
 test('Expéditions : une ligne par place, durée commune, plus de formulaire répété', () => {

@@ -78,7 +78,7 @@ test('niveau de puissance : toute ancienne étape garde exactement sa puissance 
 });
 
 test('migration v8 → v9 : ni recul ni saut (même monde, même étape dans le monde, même cycle)', () => {
-  assert.equal(SAVE_VERSION, 9);
+  assert.equal(SAVE_VERSION, 10); // v9.2.8 : 9 → 10 (économie)
   const cases = [[150, 150, 'sky'], [200, 200, 'void'], [205, 225, 'abyss'], [210, 230, 'abyss'], [211, 231, 'plains'], [275, 295, 'desert'], [420, 460, 'abyss']];
   for (const [old, now, zone] of cases) {
     assert.equal(stageTo920(old), now, String(old));
