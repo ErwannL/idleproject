@@ -1,0 +1,225 @@
+{
+ "canvas": {
+  "h": 39,
+  "w": 93
+ },
+ "frames": 7,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 8,
+  "y": 20,
+  "kind": "origin"
+ },
+ "message": "A 7-frame, one-shot dragon fire breath in a crisp 16-bit style: a bright white-hot core and orange flames streaming right, with a dark outline and glowing embers and sparks flying off the stream. It has no character and sits on a transparent background. The embers' count and lifespan are on the embers layer. The light warning is only the fire's glow on a character, which doesn't apply here since there's no sprite.",
+ "effect_id": "ad9e1d51-5149-457e-81a8-7092881d7f46",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-ember-breath 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 93,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 93,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 93,
+     "h": 39
+    },
+    "pivot": {
+     "x": 0.08602150537634409,
+     "y": 0.5128205128205128
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-ember-breath 1.png",
+    "frame": {
+     "x": 93,
+     "y": 0,
+     "w": 93,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 93,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 93,
+     "h": 39
+    },
+    "pivot": {
+     "x": 0.08602150537634409,
+     "y": 0.5128205128205128
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-ember-breath 2.png",
+    "frame": {
+     "x": 186,
+     "y": 0,
+     "w": 93,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 93,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 93,
+     "h": 39
+    },
+    "pivot": {
+     "x": 0.08602150537634409,
+     "y": 0.5128205128205128
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-ember-breath 3.png",
+    "frame": {
+     "x": 0,
+     "y": 39,
+     "w": 93,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 93,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 93,
+     "h": 39
+    },
+    "pivot": {
+     "x": 0.08602150537634409,
+     "y": 0.5128205128205128
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-ember-breath 4.png",
+    "frame": {
+     "x": 93,
+     "y": 39,
+     "w": 93,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 93,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 93,
+     "h": 39
+    },
+    "pivot": {
+     "x": 0.08602150537634409,
+     "y": 0.5128205128205128
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-ember-breath 5.png",
+    "frame": {
+     "x": 186,
+     "y": 39,
+     "w": 93,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 93,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 93,
+     "h": 39
+    },
+    "pivot": {
+     "x": 0.08602150537634409,
+     "y": 0.5128205128205128
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-ember-breath 6.png",
+    "frame": {
+     "x": 0,
+     "y": 78,
+     "w": 93,
+     "h": 39
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 93,
+     "h": 39
+    },
+    "sourceSize": {
+     "w": 93,
+     "h": 39
+    },
+    "pivot": {
+     "x": 0.08602150537634409,
+     "y": 0.5128205128205128
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-ember-breath.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 279,
+    "h": 117
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 8,
+    "y": 20
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-ember-breath",
+     "from": 0,
+     "to": 6,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

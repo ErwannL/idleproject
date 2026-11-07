@@ -1,0 +1,225 @@
+{
+ "canvas": {
+  "h": 64,
+  "w": 64
+ },
+ "frames": 7,
+ "fps": 10,
+ "loop": false,
+ "anchor": {
+  "x": 32,
+  "y": 36,
+  "kind": "origin"
+ },
+ "message": "Blue foxfire, 7 frames at 10 fps, one-shot, on a transparent 64x64 canvas centred on the spot. Four small cyan spirit flames orbit and float upward with a soft blue glow, then burst into a spray of blue sparks that fade out by the last frame. Try the Spark count and Spark speed sliders for a bigger or smaller burst.",
+ "effect_id": "a5550843-108c-4c82-af76-01900a06641f",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-foxfire 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5625
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-foxfire 1.png",
+    "frame": {
+     "x": 64,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5625
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-foxfire 2.png",
+    "frame": {
+     "x": 128,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5625
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-foxfire 3.png",
+    "frame": {
+     "x": 0,
+     "y": 64,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5625
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-foxfire 4.png",
+    "frame": {
+     "x": 64,
+     "y": 64,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5625
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-foxfire 5.png",
+    "frame": {
+     "x": 128,
+     "y": 64,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5625
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-foxfire 6.png",
+    "frame": {
+     "x": 0,
+     "y": 128,
+     "w": 64,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5625
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-foxfire.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 192,
+    "h": 192
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 32,
+    "y": 36
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-foxfire",
+     "from": 0,
+     "to": 6,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

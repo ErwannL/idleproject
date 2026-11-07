@@ -10,14 +10,14 @@ import { currentEnvironment } from '../core/combat.js';
 const SKILL_AT = {
   // Sur l'équipe (soutien)
   team: new Set(['prayer', 'dawn_prayer', 'blessing', 'divine_light', 'guardian_wings', 'rampart', 'holy_shield', 'war_howl', 'fury', 'frenzy',
-    'instinct', 'fairy_heal', 'sap_of_life', 'harvest', 'war_cry', 'sacred_ray']),
+    'instinct', 'fairy_heal', 'sap_of_life', 'harvest', 'war_cry', 'sacred_ray', 'jade_shell', 'jade_sanctuary', 'phoenix_feather', 'rebirth']), // v9.2.9 : + familiers
   // Lancés devant le lanceur, vers la droite
-  ahead: new Set(['flame_spray', 'ki_wave', 'pierce_arrow', 'ranger_shot', 'flash_strike', 'pierce']),
+  ahead: new Set(['flame_spray', 'ki_wave', 'pierce_arrow', 'ranger_shot', 'flash_strike', 'pierce', 'ember_breath']),
   // Au milieu de la file d'ennemis (zone)
-  zone: new Set(['meteor', 'arrow_rain', 'eternal_winter', 'frost_storm', 'hellfire', 'eclipse', 'frost_nova', 'judgement', 'gold_rain', 'carnage', 'ash_crown']),
+  zone: new Set(['meteor', 'arrow_rain', 'eternal_winter', 'frost_storm', 'hellfire', 'eclipse', 'frost_nova', 'judgement', 'gold_rain', 'carnage', 'ash_crown', 'nine_tails']),
 };
 const STUNS = new Set(['shield_bash', 'taunt']);
-const SHIELDS = new Set(['holy_shield', 'rampart', 'guardian_wings']);
+const SHIELDS = new Set(['holy_shield', 'rampart', 'guardian_wings', 'jade_shell']); // v9.2.9 : + carapace de jade
 // Effets qui couvrent le personnage : dessinés en transparence.
 const SEE_THROUGH = { sk_holy_shield: 0.55, shield_absorb: 0.6, env_gloom: 0.6, env_thirst: 0.5, sk_guardian_wings: 0.75 };
 
@@ -34,7 +34,7 @@ export function skillVfx(scene, name, c) {
   const at = (fn) => scene.later(c.release ?? 0, fn);
   const opts = { alpha: SEE_THROUGH[key] ?? 1 };
   if (SKILL_AT.team.has(name)) {
-    at(() => (name === 'guardian_wings' || name === 'rampart' ? [c.hero] : c.team.slice(0, 4)).forEach((x, i) => vfx(scene, key, x, placeY(key, G), { ...opts, delay: i * 0.05, size: i ? 0.8 : 1 })));
+    at(() => (name === 'guardian_wings' || name === 'rampart' || name === 'jade_shell' ? [c.hero] : c.team.slice(0, 4)).forEach((x, i) => vfx(scene, key, x, placeY(key, G), { ...opts, delay: i * 0.05, size: i ? 0.8 : 1 })));
   } else if (SKILL_AT.ahead.has(name)) {
     at(() => vfx(scene, key, (c.src.x + c.front) / 2, G - 18, opts));
   } else if (SKILL_AT.zone.has(name)) {

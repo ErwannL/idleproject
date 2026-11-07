@@ -131,6 +131,16 @@ SK = {
     'whirlwind': [44, 'a white grey tornado whirlwind spinning with dust and debris, looping 6 frames'],
     'war_cry': [44, 'a golden war cry shout: expanding golden shockwave rings with sparks, 7 frames'],
     'holy_smite': [44, 'a holy smite: a golden hammer of light slamming down with a cross shaped burst, 7 frames'],
+    # v9.2.9 : nouveaux familiers
+    'crystal_spikes': [40, 'a burst of sharp pale violet crystal shards flying outward and shattering with lilac sparkles, 7 frames'],
+    'ember_breath': [44, 'a small dragon fire breath: a horizontal stream of glowing embers and orange flames shooting to the right, 7 frames'],
+    'dragon_blaze': [52, 'a dragon blaze: a tall swirling pillar of red and orange dragon fire erupting from the ground with embers, 9 frames'],
+    'jade_shell': [44, 'a jade turtle shell barrier: a translucent green hexagon shell dome forming over a spot with golden rune lines, 8 frames'],
+    'jade_sanctuary': [48, 'a jade sanctuary: a green glowing rune circle on the ground with lotus flowers blooming and soft green light rising, 8 frames'],
+    'foxfire': [36, 'blue foxfire: small floating cyan and blue spirit flames swirling then bursting into blue sparks, 7 frames'],
+    'nine_tails': [48, 'nine tails: a fan of nine blue spirit flame tails sweeping forward as a blue wave with golden sparks, 8 frames'],
+    'phoenix_feather': [40, 'phoenix feathers: glowing golden and red fire feathers drifting down in a spiral with warm healing sparkles, 8 frames'],
+    'rebirth': [52, 'phoenix rebirth: a burst of golden fire wings spreading wide with a rising flame ring and healing embers, 9 frames'],
 }
 for _k, (_s, _d) in SK.items():
     VFX['sk_' + _k] = [_s, _d]

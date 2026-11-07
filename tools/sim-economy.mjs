@@ -22,7 +22,7 @@ const DAYS = 182; // 6 mois
 const MONTHS = 6;
 
 // Contenu : SSR permanents du jeu (5), R/SR du jeu ; un SSR limité toutes les 2 semaines (13 périodes en 182 jours) ;
-// familiers du jeu (R : 4, SR : 1, SSR : 1).
+// familiers du jeu (v9.2.9 : R : 4, SR : 2, SSR : 5 — lus dans data/companions.js).
 const allies = COMPANIONS.filter((c) => c.kind === 'ally');
 const pets = COMPANIONS.filter((c) => c.kind !== 'ally');
 const heroPool = {
@@ -161,6 +161,10 @@ function simulate(profile, seed) {
     gemsLeft: s.gems, ticketsLeft: w.ticketLimited + w.ticketPermanent, petTicketsLeft: w.ticketPet,
     petPulls: st.pullsPet, petSsr: st.ssrPet, petHard: st.petHard, petDistinctSsr: Object.keys(petsOwned).filter((id) => petPool.SSR.some((u) => u.id === id)).length,
     petMaxed: Object.values(petsOwned).filter((p) => p.stars >= COPIES.max).length, petSsrCopies: petPool.SSR.reduce((a2, u) => a2 + (petsOwned[u.id]?.stars ?? 0), 0),
+    // v9.2.9 : SSR familiers au maximum (6 exemplaires) et collection SSR des familiers complète (tous au maximum).
+    petSsrMaxed: petPool.SSR.filter((u) => (petsOwned[u.id]?.stars ?? 0) >= COPIES.max).length,
+    petSsrAllMaxed: petPool.SSR.every((u) => (petsOwned[u.id]?.stars ?? 0) >= COPIES.max) ? 1 : 0,
+    petTicketsIncome: st.pullsPet + w.ticketPet,
     fragments: st.fragments,
   };
 }
@@ -193,6 +197,8 @@ for (const [id, r] of Object.entries(results)) {
   console.log(`\n## ${r.name} — ${f(r.euros, 2)} €/mois`);
   console.log(`Invocations héros : ${f(r.pulls.mean, 0)} (limitée ${f(r.pullsL.mean, 0)}, permanente ${f(r.pullsP.mean, 0)}) · SSR ${f(r.ssr.mean)} [p10 ${r.ssr.p10} – p90 ${r.ssr.p90}] · vedettes ${f(r.featured.mean)} · 50/50 perdus ${f(r.lost.mean)} · garanties ${f(r.viaGuarantee.mean)}`);
   console.log(`Limités distincts ${f(r.limitedDistinct.mean)}/13 · limités max ${f(r.limitedMaxed.mean, 2)} · SSR max ${f(r.ssrMaxed.mean, 2)} · héros max ${f(r.heroesMaxed.mean)} · restes : ${f(r.gemsLeft.mean, 0)} gemmes, ${f(r.ticketsLeft.mean)} tickets`);
-  console.log(`Familiers : ${f(r.petPulls.mean, 0)} invocations · SSR ${f(r.petSsr.mean)} · pity 60 atteinte ${f(r.petHard.mean, 2)} fois · max ${f(r.petMaxed.mean, 2)}`);
+  console.log(`Familiers : ${f(r.petPulls.mean, 0)} invocations · SSR ${f(r.petSsr.mean)} [p10 ${r.petSsr.p10} – p90 ${r.petSsr.p90}] · pity 60 atteinte ${f(r.petHard.mean, 2)} fois · max ${f(r.petMaxed.mean, 2)}`);
+  // v9.2.9 : collection des familiers SSR.
+  console.log(`Familiers SSR (${petPool.SSR.length}) : distincts ${f(r.petDistinctSsr.mean, 2)} · exemplaires ${f(r.petSsrCopies.mean, 1)}/${petPool.SSR.length * COPIES.max} · au maximum ${f(r.petSsrMaxed.mean, 2)} [p90 ${r.petSsrMaxed.p90}] · collection SSR complète ${f(100 * r.petSsrAllMaxed.mean, 1)} %`);
 }
 console.error(`Total : ${out.seconds.toFixed(0)} s`);

@@ -78,6 +78,12 @@ UNITS = {
     'sylvan_guardian': ('healer', {'Sève de vie': ['open_hands', 'sap_of_life'], 'Récolte sylvestre': ['kneel_ground', 'harvest']}, {}),
     'pet_slime': ('pet', {"Pluie d'or": ['howl', 'gold_rain']}, {}), 'pet_cat': ('pet', {'Griffure': ['pounce', 'claw']}, {}), 'pet_owl': ('pet', {'Piqué nocturne': ['charge', 'dive']}, {}),
     'pet_fairy': ('pet', {'Soin': ['howl', 'fairy_heal']}, {}), 'pet_golem': ('pet', {'Rempart': ['howl', 'rampart']}, {}), 'pet_wisp': ('pet', {'Flamme': ['pounce', 'fireball']}, {}),
+    # v9.2.9 : nouveaux familiers (compétence propre et compétence spéciale), effets propres dans skill-fx.js.
+    'pet_crystal_hedgehog': ('pet', {'Piquants de cristal': ['howl', 'crystal_spikes']}, {}),
+    'pet_dragonling': ('pet', {'Souffle de braise': ['pounce', 'ember_breath'], 'Brasier draconique': ['charge', 'dragon_blaze']}, {}),
+    'pet_jade_turtle': ('pet', {'Carapace de jade': ['howl', 'jade_shell'], 'Sanctuaire de jade': ['charge', 'jade_sanctuary']}, {}),
+    'pet_kitsune': ('pet', {'Feux de renard': ['pounce', 'foxfire'], 'Neuf queues': ['charge', 'nine_tails']}, {}),
+    'pet_phoenix': ('pet', {'Plume ardente': ['howl', 'phoenix_feather'], 'Renaissance': ['charge', 'rebirth']}, {}),
 }
 
 

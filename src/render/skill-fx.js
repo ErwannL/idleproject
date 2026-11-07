@@ -834,6 +834,69 @@ const FX = {
     teamAura(s, c.release + 0.3, c, '#63d98a', 1.2);
   },
 
+  // v9.2.9 : nouveaux familiers — effets propres (compétence propre et compétence spéciale du 4e exemplaire).
+  // Hérisson de cristal : éclats violets projetés en éventail sur tous les ennemis.
+  crystal_spikes(s, c) {
+    const G = s.groundY;
+    for (const f of c.foes) fly(s, c.release + Math.random() * 0.08, 0.3, c.src.x, G - 12, f.x, G - 12, (ctx, x, y) => { dot(ctx, x, y, '#e8d8ff', 2); dot(ctx, x - 2, y, '#b48aff'); }, ['#b48aff', '#e8d8ff'], () => s.hitReact(f.id, f.x, { color: '#c8a8ff' }));
+    particles(s, c.release, 0.6, spray(10, c.src.x, G - 14, ['#e8d8ff', '#b48aff'], 50, 40), { gravity: 90, size: 1 });
+  },
+  // Dragonnet : jet de braises qui part de la gueule et embrase la cible.
+  ember_breath(s, c) {
+    const G = s.groundY, y = c.src.y ?? G - 20;
+    add(s, c.release, 0.45, (ctx, k) => {
+      const len = (c.front - c.src.x) * Math.min(1, k * 2.2);
+      ctx.globalAlpha = 1 - Math.max(0, k - 0.6) / 0.4;
+      for (let i = 0; i < 14; i++) { const t = i / 14; dot(ctx, c.src.x + 8 + len * t, y + Math.sin(k * 30 + i) * 2 + t * (G - 14 - y), ['#fff2a8', '#ffb03a', '#ff5a1a'][i % 3], 2); }
+    });
+    later(s, c.release + 0.2, () => strike(s, c, '#ff7a2a', false));
+  },
+  // Brasier draconique : le dragonnet charge, colonne de flammes sur chaque ennemi, écaille de braise sur l'équipe.
+  dragon_blaze(s, c) {
+    const G = s.groundY;
+    c.foes.forEach((f, i) => add(s, c.release + i * 0.06, 0.7, (ctx, k) => column(ctx, f.x, G - 60, G, 10 * (1 - k * 0.5), i % 2 ? '#ff5a1a' : '#ffb03a', 1 - k)));
+    later(s, c.release + 0.15, () => { strike(s, c, '#ff6a1a'); shake(s, 2); });
+    teamAura(s, c.release + 0.3, c, '#ff8a3a');
+  },
+  // Tortue de jade : carapace hexagonale verte qui se referme sur l'équipe.
+  jade_shell(s, c) { FX.rampart(s, c, { color: '#5fe0a0' }); },
+  // Sanctuaire de jade : cercle de runes au sol sous toute l'équipe, lotus qui s'ouvrent, soin et bouclier.
+  jade_sanctuary(s, c) {
+    const G = s.groundY;
+    add(s, c.release, 1.4, (ctx, k) => {
+      ctx.globalAlpha = Math.min(1, k * 4) * (1 - Math.max(0, k - 0.75) / 0.25);
+      for (const x of c.team) { ring(ctx, x, G - 1, 16, 3, '#5fe0a0'); for (let i = 0; i < 6; i++) dot(ctx, x + Math.cos(i + k * 3) * 14, G - 1 + Math.sin(i + k * 3) * 2.5, '#ffe680'); }
+    });
+    particles(s, c.release + 0.2, 1.1, c.team.flatMap((x) => spray(5, x, G - 4, ['#5fe0a0', '#ffffff', '#ffb0d0'], 15, 40)), { gravity: -10, size: 2 });
+    teamAura(s, c.release + 0.3, c, '#5fe0a0', 1.2);
+  },
+  // Renard céleste : feux follets bleus qui tournoient puis filent vers chaque ennemi.
+  foxfire(s, c) {
+    const G = s.groundY;
+    c.foes.forEach((f, i) => fly(s, c.release + i * 0.07, 0.4, c.src.x, G - 26, f.x, G - 12, (ctx, x, y) => { disc(ctx, x, y, 3, '#5ad8ff'); dot(ctx, x, y - 3, '#e8fbff', 2); }, ['#5ad8ff', '#e8fbff'], () => s.hitReact(f.id, f.x, { color: '#5ad8ff' })));
+  },
+  // Neuf queues : neuf flammes bleues en éventail derrière le renard, puis une vague bleue traverse la file ; or.
+  nine_tails(s, c) {
+    const G = s.groundY;
+    add(s, c.release - 0.15, 0.5, (ctx, k) => { ctx.globalAlpha = 1 - k; for (let i = 0; i < 9; i++) { const a = Math.PI * (0.55 + i * 0.1); disc(ctx, c.src.x + Math.cos(a) * 16, G - 12 - Math.sin(a) * 16, 2.5, '#5ad8ff'); } });
+    FX.instinct(s, c, { color: '#5ad8ff' });
+    particles(s, c.release + 0.4, 1, c.foes.slice(0, 3).flatMap((f) => spray(4, f.x, G - 10, ['#ffd23f', '#fff4a0'], 30, 60)), { gravity: 150, size: 2 });
+  },
+  // Petit phénix : plumes de feu qui planent vers chaque allié et le soignent.
+  phoenix_feather(s, c) {
+    for (const x of c.team) fly(s, c.release + Math.random() * 0.1, 0.5, c.src.x, c.src.y - 6, x, s.groundY - 20, (ctx, xx, yy) => { dot(ctx, xx, yy, '#ffd23f', 2); dot(ctx, xx - 2, yy + 1, '#ff5a2a'); }, ['#ff8a3a', '#ffd23f']);
+    teamAura(s, c.release + 0.4, c, '#ffb03a');
+  },
+  // Renaissance : ailes de flammes déployées, anneau de feu qui balaie la file, pluie d'étincelles qui soigne.
+  rebirth(s, c) {
+    const G = s.groundY;
+    add(s, c.release - 0.1, 0.6, (ctx, k) => { ctx.globalAlpha = 1 - k; crescent(ctx, c.src.x, c.src.y ?? G - 24, 14 + k * 8, Math.PI, Math.PI * 2, 3, '#ffb03a', '#fff2a8'); });
+    add(s, c.release + 0.1, 0.5, (ctx, k) => { ctx.globalAlpha = 1 - k; ring(ctx, c.src.x, G - 6, 20 + k * 140, 4 + k * 6, '#ff7a2a'); });
+    later(s, c.release + 0.3, () => strike(s, c, '#ff7a2a'));
+    particles(s, c.release + 0.2, 1.2, c.team.flatMap((x) => spray(5, x, G - 40, ['#ffd23f', '#ff8a3a'], 10, -10)), { gravity: 60, size: 2 });
+    teamAura(s, c.release + 0.4, c, '#ffb03a', 1.2);
+  },
+
   // --- Héros ---
   // Frappe rapide : paume poussée, onde d'énergie bleue qui file et éclate sur la cible.
   ki_wave(s, c) {
@@ -882,9 +945,12 @@ const CALM_COLOR = { meteor: '#ff6a1a', arrow_rain: '#e8e0c8', prayer: '#ffe680'
   pierce_arrow: '#e8e0c8', ranger_shot: '#5ad46a', falcon: '#7fe07a', low_strike: '#b46bff', blade_dance: '#d8b8ff', thorn_waltz: '#ff6fa8',
   blood_whirl: '#ff4a3a', execution: '#ff3a3a', twin_blades: '#b46bff', flash_strike: '#9a5cff', pierce: '#e84a5f', axe_whirl: '#ffa630',
   war_howl: '#ff5a3a', fury: '#ff4a3a', carnage: '#ff3a1a', bite: '#ffffff', frenzy: '#ff8a3a', instinct: '#ffd27a', sap_of_life: '#63d98a',
-  harvest: '#63d98a', gold_rain: '#ffd23f', claw: '#ffffff', dive: '#c8b8ff', fairy_heal: '#7fe0c0', ki_wave: '#7fd6ff', whirlwind: '#e8f4ff', war_cry: '#ffc23a', holy_smite: '#ffe680' };
+  harvest: '#63d98a', gold_rain: '#ffd23f', claw: '#ffffff', dive: '#c8b8ff', fairy_heal: '#7fe0c0', ki_wave: '#7fd6ff', whirlwind: '#e8f4ff', war_cry: '#ffc23a', holy_smite: '#ffe680',
+  // v9.2.9 : nouveaux familiers
+  crystal_spikes: '#c8a8ff', ember_breath: '#ff7a2a', dragon_blaze: '#ff6a1a', jade_shell: '#5fe0a0', jade_sanctuary: '#5fe0a0', foxfire: '#5ad8ff',
+  nine_tails: '#5ad8ff', phoenix_feather: '#ffb03a', rebirth: '#ff7a2a' };
 const SUPPORT_FX = new Set(['prayer', 'dawn_prayer', 'blessing', 'divine_light', 'sacred_ray', 'guardian_wings', 'taunt', 'rampart', 'holy_shield',
-  'war_howl', 'frenzy', 'sap_of_life', 'war_cry', 'fairy_heal']);
+  'war_howl', 'frenzy', 'sap_of_life', 'war_cry', 'fairy_heal', 'jade_shell', 'jade_sanctuary', 'phoenix_feather']); // v9.2.9 : + familiers
 
 // Effet sobre : un halo doux au lanceur et un éclat à la cible (ou sur l'équipe pour un soutien), sans secousse.
 function calm(s, name, c) {
@@ -903,7 +969,7 @@ function calm(s, name, c) {
 export const isSupportFx = (name) => SUPPORT_FX.has(name);
 
 // v9.2.6 : soins et bonus de l'équipe, malus des ennemis : aura dessinée (PixelLab, vfx.js) aux pieds des cibles.
-const HEAL_FX = new Set(['prayer', 'dawn_prayer', 'divine_light', 'sap_of_life', 'fairy_heal', 'harvest']);
+const HEAL_FX = new Set(['prayer', 'dawn_prayer', 'divine_light', 'sap_of_life', 'fairy_heal', 'harvest', 'jade_sanctuary', 'phoenix_feather', 'rebirth']); // v9.2.9 : + familiers
 const DEBUFF_FX = new Set(['taunt', 'eclipse', 'frost_nova', 'eternal_winter', 'frost_storm']);
 function auraFx(scene, name, c) {
   const G = scene.groundY;

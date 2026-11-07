@@ -4,7 +4,7 @@
 // unités derrière « ? ». Les apparences ne s'invoquent plus (Boutique › Skins).
 import { BALANCE } from '../../data/balance.js';
 import { BANNERS, COPIES, WALLET } from '../../data/economy.js';
-import { bannerStats, canPay, featuredEnds, featuredUnit, normalizePool, permanentSsr, summonCost, summonOdds } from '../../core/gacha.js';
+import { bannerStats, canPay, featuredEnds, featuredUnit, normalizePool, permanentSsr, poolContext, summonCost, summonOdds } from '../../core/gacha.js';
 import { companionById, duplicates } from '../../core/companions.js';
 import { walletAmount } from '../../core/wallet.js';
 import { COMPANION_ROLES, ROLES } from '../../data/synergies.js';
@@ -27,7 +27,9 @@ function payButtons(state, pool, currency) {
   const ico = currency === 'gems' ? gem() : walletIcon(currency);
   const b = (n) => {
     const ok = canPay(state, pool, n, currency);
-    const name = currency === 'gems' ? 'gemmes' : WALLET[currency].short.toLowerCase();
+    // v9.2.9 : singulier pour un coût de 1 (« 1 ticket limité », pas « 1 tickets limités »), traduit (en-929-stab.js).
+    const many = currency === 'gems' ? 'gemmes' : WALLET[currency].short.toLowerCase();
+    const name = cost(n) > 1 ? many : many.replace(/s\b/g, '');
     return `<button class="btn btn-gold" data-action="summon" data-value="${n}" data-currency="${currency}" data-pool="${pool}" ${ok ? '' : 'disabled'}
       aria-label="${escapeHtml(`×${n} : ${cost(n)} ${name}`)}"><span class="vt-x">×${n}</span> ${ico} ${formatNumber(cost(n))}</button>`;
   };
@@ -124,8 +126,22 @@ function permanentCard(ui, state) {
   return card(ui, state, 'permanent', `${img('icon_book')}<b>Bannière permanente</b>${walletChip(state, 'ticketPermanent')}`, body);
 }
 
+// v9.2.9 : bannière des familiers — les SSR du bassin (5 depuis la 9.2.9) en tête, avec l'illustration du premier
+// SSR non possédé (sinon du premier) ; les étoiles des SSR possédés.
 function petCard(ui, state) {
-  return card(ui, state, 'pet', `${img('icon_paw')}<b>Familiers</b>${walletChip(state, 'ticketPet')}`, '<div class="muted">Économie séparée : tickets familiers seulement, compteur à part.</div>');
+  const ssr = poolContext('pet', state).SSR.map((u) => companionById(u.id) ?? u);
+  const lead = ssr.find((c) => !state.companions.owned[c.id] || state.companions.owned[c.id].trial) ?? ssr[0];
+  const row = ssr.map((c) => {
+    const own = state.companions.owned[c.id];
+    return `<div class="eco-pet-ssr${own && !own.trial ? ' owned' : ''}">${unitPortrait(c)}<span>${escapeHtml(c.name)}</span></div>`;
+  }).join('');
+  const body = `${lead ? `<div class="eco-feature eco-pet-feature" style="--vt:#ffb03a">
+      <div class="eco-feature-art">${hdArt(lead, 'vt-art') || unitPortrait(lead)}</div>
+      <div class="eco-feature-info"><div class="vt-ribbon">✦ SSR ✦</div><div class="vt-name">${escapeHtml(lead.name)}</div>
+        <div class="muted">${ssr.length} <span>familiers SSR dans le bassin</span></div></div></div>` : ''}
+    <div class="eco-wish-row eco-pet-row">${row}</div>
+    <div class="muted">Économie séparée : tickets familiers seulement, compteur à part.</div>`;
+  return card(ui, state, 'pet', `${img('icon_paw')}<b>Familiers</b>${walletChip(state, 'ticketPet')}`, body);
 }
 
 // Fragments SSR universels : +1 exemplaire à un SSR possédé (jamais un déblocage, jamais au-delà de 6).

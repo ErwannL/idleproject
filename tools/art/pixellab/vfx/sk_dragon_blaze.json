@@ -1,0 +1,277 @@
+{
+ "canvas": {
+  "h": 135,
+  "w": 48
+ },
+ "frames": 9,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 25,
+  "y": 105,
+  "kind": "origin"
+ },
+ "message": "A 9-frame one-shot dragon blaze: a fire column erupts from a glowing ground pool, twin swirling flame strands wind up the pillar, and embers scatter and fade out. It is 48x135 px, transparent, with a dark outline on the flames. Try the ember count and the swirl or column size in the sliders if you want it denser or taller.",
+ "effect_id": "97672bcc-e782-400f-bd60-fbba04002a21",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-dragon-blaze 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 135
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 135
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 135
+    },
+    "pivot": {
+     "x": 0.5208333333333334,
+     "y": 0.7777777777777778
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-dragon-blaze 1.png",
+    "frame": {
+     "x": 48,
+     "y": 0,
+     "w": 48,
+     "h": 135
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 135
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 135
+    },
+    "pivot": {
+     "x": 0.5208333333333334,
+     "y": 0.7777777777777778
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-dragon-blaze 2.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 48,
+     "h": 135
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 135
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 135
+    },
+    "pivot": {
+     "x": 0.5208333333333334,
+     "y": 0.7777777777777778
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-dragon-blaze 3.png",
+    "frame": {
+     "x": 0,
+     "y": 135,
+     "w": 48,
+     "h": 135
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 135
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 135
+    },
+    "pivot": {
+     "x": 0.5208333333333334,
+     "y": 0.7777777777777778
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-dragon-blaze 4.png",
+    "frame": {
+     "x": 48,
+     "y": 135,
+     "w": 48,
+     "h": 135
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 135
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 135
+    },
+    "pivot": {
+     "x": 0.5208333333333334,
+     "y": 0.7777777777777778
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-dragon-blaze 5.png",
+    "frame": {
+     "x": 96,
+     "y": 135,
+     "w": 48,
+     "h": 135
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 135
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 135
+    },
+    "pivot": {
+     "x": 0.5208333333333334,
+     "y": 0.7777777777777778
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-dragon-blaze 6.png",
+    "frame": {
+     "x": 0,
+     "y": 270,
+     "w": 48,
+     "h": 135
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 135
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 135
+    },
+    "pivot": {
+     "x": 0.5208333333333334,
+     "y": 0.7777777777777778
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-dragon-blaze 7.png",
+    "frame": {
+     "x": 48,
+     "y": 270,
+     "w": 48,
+     "h": 135
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 135
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 135
+    },
+    "pivot": {
+     "x": 0.5208333333333334,
+     "y": 0.7777777777777778
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-dragon-blaze 8.png",
+    "frame": {
+     "x": 96,
+     "y": 270,
+     "w": 48,
+     "h": 135
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 48,
+     "h": 135
+    },
+    "sourceSize": {
+     "w": 48,
+     "h": 135
+    },
+    "pivot": {
+     "x": 0.5208333333333334,
+     "y": 0.7777777777777778
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-dragon-blaze.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 144,
+    "h": 405
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 25,
+    "y": 105
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-dragon-blaze",
+     "from": 0,
+     "to": 8,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 96,
+  "w": 72
+ },
+ "frames": 8,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 36,
+  "y": 44,
+  "kind": "origin"
+ },
+ "message": "An 8-frame looping effect of red and gold phoenix feathers drifting down with a wobble, with a warm glow behind and rising healing sparkles. Try the feather count and fall speed sliders to change density and pace; the glow is still a bit brownish, so a brighter ramp would be the next tweak if you want more gold.",
+ "effect_id": "05135c08-a411-4654-843f-d538f38763dd",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-phoenix-feather 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4583333333333333
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-phoenix-feather 1.png",
+    "frame": {
+     "x": 72,
+     "y": 0,
+     "w": 72,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4583333333333333
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-phoenix-feather 2.png",
+    "frame": {
+     "x": 144,
+     "y": 0,
+     "w": 72,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4583333333333333
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-phoenix-feather 3.png",
+    "frame": {
+     "x": 0,
+     "y": 96,
+     "w": 72,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4583333333333333
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-phoenix-feather 4.png",
+    "frame": {
+     "x": 72,
+     "y": 96,
+     "w": 72,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4583333333333333
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-phoenix-feather 5.png",
+    "frame": {
+     "x": 144,
+     "y": 96,
+     "w": 72,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4583333333333333
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-phoenix-feather 6.png",
+    "frame": {
+     "x": 0,
+     "y": 192,
+     "w": 72,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4583333333333333
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-phoenix-feather 7.png",
+    "frame": {
+     "x": 72,
+     "y": 192,
+     "w": 72,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 72,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 72,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.4583333333333333
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-phoenix-feather.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 216,
+    "h": 288
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 36,
+    "y": 44
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-phoenix-feather",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

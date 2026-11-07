@@ -114,7 +114,7 @@ const MAX_FLOATING_TEXTS = 6;
 const PROJ_VFX = { fx_arrow: 'proj_arrow', fx_arrow_fire1: 'proj_fireball', fx_fireball1: 'proj_fireball', fx_soul1: 'proj_soul', fx_meteor: 'proj_fireball' };
 // v9.2.7 : couleur de la traînée de frappe selon la rareté de l'arme.
 const TRAIL_COLORS = { common: '#dfe8f0', uncommon: '#8af07a', rare: '#6ab8ff', epic: '#c87aff', legendary: '#ffc23a', mythic: '#ff5a6a' };
-const FLYING_PETS = new Set(['owl', 'fairy', 'wisp']);
+const FLYING_PETS = new Set(['owl', 'fairy', 'wisp', 'dragonling', 'phoenix']); // v9.2.9 : + dragonnet et phénix (ailés)
 // v9.2.7 : volant ou marcheur, sans entre-deux. Les robes longues (« glide ») qui ont un vrai cycle de marche
 // PixelLab marchent, pieds au sol ; seuls les volants (ailes) flottent, avec ombre et sans cycle de pas.
 // v9.2.7 : un ennemi ailé qui ne se pose pas (phénix, valkyrie…) mais hérite d'une base marcheuse vole vraiment :

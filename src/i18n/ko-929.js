@@ -20,7 +20,26 @@ export const EXACT_929 = {
   'Fureur ancestrale': '태고의 분노',
   'World Boss coopératif (dégâts de tous les joueurs, classement) : prochainement.': '협동 월드 보스 (모든 플레이어의 피해, 순위): 곧 공개.',
 };
+  // v9.2.9 : nouveaux familiers (noms, compétences, bannière des familiers).
+  'Hérisson de cristal': '수정 고슴도치',
+  'Piquants de cristal': '수정 가시',
+  'Dragonnet de braise': '불씨 아기용',
+  'Souffle de braise': '불씨 숨결',
+  'Tortue de jade': '비취 거북',
+  'Carapace de jade': '비취 등껍질',
+  'Renard céleste': '천상의 여우',
+  'Feux de renard': '여우불',
+  'Petit phénix': '아기 불사조',
+  'Plume ardente': '타오르는 깃털',
+  'Brasier draconique': '용의 업화',
+  'Sanctuaire de jade': '비취 성역',
+  'Neuf queues': '아홉 꼬리',
+  'familiers SSR dans le bassin': '풀의 SSR 펫',
 export const patterns929 = () => [
   [/^Combat de (\d+) s avec toute l'équipe\. Phases à 75, 50 et 25 % des PV\.$/, (m) => `팀 전체와 함께하는 ${m[1]}초 전투. HP 75, 50, 25%에서 페이즈 전환.`],
   [/^World Boss : (.+) dégâts$/, (m) => `월드 보스: 피해 ${m[1].replace(',', '.')}`],
 ];
+  // v9.2.9 : textes chiffrés des nouveaux familiers.
+  [/^Projette ses piquants sur tous les ennemis \((\d+) % des dégâts\)$/, (m) => `모든 적에게 가시 발사 (공격력의 ${m[1]}%)`],
+  [/^Crache une flamme à (\d+) % des dégâts du héros$/, (m) => `영웅 공격력의 ${m[1]}%로 불꽃 발사`],
+  [/^Lance des feux de renard sur tous les ennemis \((\d+) % des dégâts\)$/, (m) => `모든 적에게 여우불 (공격력의 ${m[1]}%)`],

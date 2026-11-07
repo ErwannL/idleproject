@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 96,
+  "w": 128
+ },
+ "frames": 8,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 28,
+  "y": 48,
+  "kind": "origin"
+ },
+ "message": "Nine blue spirit flame tails fan out to the right as a blue crescent wave sweeps past, with gold sparks flying off the tips. It's 8 frames, one-shot, on a transparent 128x96 canvas with no character. The fan's flame width and height are the main sliders to play with; the tails reach their longest around frame 3.",
+ "effect_id": "d61ff4c3-1637-41de-b96b-3d077976c7a9",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-nine-tails 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.21875,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-nine-tails 1.png",
+    "frame": {
+     "x": 128,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.21875,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-nine-tails 2.png",
+    "frame": {
+     "x": 256,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.21875,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-nine-tails 3.png",
+    "frame": {
+     "x": 0,
+     "y": 96,
+     "w": 128,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.21875,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-nine-tails 4.png",
+    "frame": {
+     "x": 128,
+     "y": 96,
+     "w": 128,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.21875,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-nine-tails 5.png",
+    "frame": {
+     "x": 256,
+     "y": 96,
+     "w": 128,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.21875,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-nine-tails 6.png",
+    "frame": {
+     "x": 0,
+     "y": 192,
+     "w": 128,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.21875,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-nine-tails 7.png",
+    "frame": {
+     "x": 128,
+     "y": 192,
+     "w": 128,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.21875,
+     "y": 0.5
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-nine-tails.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 384,
+    "h": 288
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 28,
+    "y": 48
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-nine-tails",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

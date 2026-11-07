@@ -48,7 +48,9 @@ const roleOf = (id) => COMPANION_ROLES[id] ?? 'pet';
 const owned = (stars) => ({ stars, level: 1 });
 const at = (n, type) => (type === 'burst' ? n : 1);
 // Unités dont la compétence propre change au lot 3 (relevée ou ajoutée) : nouveau ≥ ancien, pas forcément égal.
+// v9.2.9 : les nouveaux familiers n'ont pas d'« ancien » kit : seulement nouveau ≥ gabarit.
 export const RAISED = new Set(['ranger', 'shadow', 'owl']);
+const NEW_929 = new Set(['crystal_hedgehog', 'dragonling', 'jade_turtle', 'kitsune', 'phoenix']);
 
 function oldDps(c, copies, n) {
   const p = (RARITY_SKILL[c.rarity] ?? 1) * (1 + 0.15 * (copies - 1));
@@ -60,16 +62,16 @@ function newDps(state, c, copies, n, home = false) {
     .reduce((s, sk) => s + (sk.value / sk.every) * at(n, sk.type) * companionSkillMultiplier(state, c, sk.type, home, BALANCE, owned(copies)), 0);
 }
 
-test('lot 1 : 26 unités × 1 à 5 exemplaires × 1, 2, 3, 5, 8 cibles : DPS moyen ≥ actuel, égal à 5 exemplaires (1e-9)', () => {
+test('lot 1 : 31 unités (v9.2.9 : + 5 familiers) × 1 à 5 exemplaires × 1, 2, 3, 5, 8 cibles : DPS moyen ≥ actuel, égal à 5 exemplaires (1e-9)', () => {
   const s = createNewState(NOW);
-  assert.equal(COMPANIONS.length, 26);
+  assert.equal(COMPANIONS.length, 31);
   for (const c of COMPANIONS) {
     for (let copies = 1; copies <= 5; copies++) {
       for (const n of [1, 2, 3, 5, 8]) {
         const before = oldDps(c, copies, n);
         const after = newDps(s, c, copies, n);
         assert.ok(after >= before - 1e-12, `${c.id} ${copies} ex. ${n} cibles : ${after} < ${before}`);
-        if (copies === 5 && !RAISED.has(c.id)) assert.ok(Math.abs(after - before) <= 1e-9 * Math.max(1, before), `${c.id} à 5 ex. : ${after} ≠ ${before}`);
+        if (copies === 5 && !RAISED.has(c.id) && !NEW_929.has(c.id)) assert.ok(Math.abs(after - before) <= 1e-9 * Math.max(1, before), `${c.id} à 5 ex. : ${after} ≠ ${before}`);
       }
     }
   }
@@ -279,7 +281,9 @@ test('lot 3 : signatures SSR — `also` seulement heal, shield ou gold ; base = 
     for (const sk of allCompanionSkills(c.id)) if (sk.also) assert.notEqual(sk.also.type, 'rally');
   }
   for (const c of ssr) assert.ok(c.ultimate, `${c.id} sans signature`);
-  assert.ok(COMPANIONS.filter((c) => c.ultimate).every((c) => c.rarity === 'legendary' && c.kind === 'ally'));
+  // v9.2.9 : les familiers SSR ont aussi leur signature (compétence spéciale au 4e exemplaire).
+  assert.ok(COMPANIONS.filter((c) => c.ultimate).every((c) => c.rarity === 'legendary'));
+  assert.equal(COMPANIONS.filter((c) => c.ultimate && c.kind !== 'ally').length, 4);
 });
 
 test('lot 3 : chaque unité a 4 compétences, aucun nom en double dans un kit ; ranger, shadow et owl relevés', () => {

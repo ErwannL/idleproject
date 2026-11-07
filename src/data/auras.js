@@ -9,6 +9,12 @@ export const AURA_COLORS = {
   fairy: ['#9dffb8'],
   golem: ['#d6f4ff', '#5fc8ff'],
   wisp: ['#ffffff', '#ffd23f', '#ff6a1a'],
+  // v9.2.9 : nouveaux familiers
+  crystal_hedgehog: ['#f0e4ff', '#b48aff'],
+  dragonling: ['#fff2a8', '#ff9a3a', '#e8401a'],
+  jade_turtle: ['#e8fff0', '#5fe0a0', '#1f8a5a'],
+  kitsune: ['#ffffff', '#9ae8ff', '#3aa8ff'],
+  phoenix: ['#fff6c0', '#ffc23a', '#ff4a1a'],
   // Compagnons R
   squire: ['#8fc0ff'],
   mercenary: ['#dfe6ee'],

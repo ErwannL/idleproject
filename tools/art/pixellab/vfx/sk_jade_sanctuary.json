@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 72,
+  "w": 96
+ },
+ "frames": 8,
+ "fps": 10,
+ "loop": false,
+ "anchor": {
+  "x": 48,
+  "y": 56,
+  "kind": "origin"
+ },
+ "message": "I built a jade sanctuary on 8 frames: a green rune circle with a star and rune ring on the ground, and soft green light rising off it. The two lotus flowers are small pixel drawings and read only as blocks at this size, so they are the weak point. Next I'd redraw them larger or add a bloom that opens over the frames. The effect is a one-shot and the background is transparent.",
+ "effect_id": "09b74746-8fdf-4511-b9d0-12c7ddf69ca8",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-jade-sanctuary 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.7777777777777778
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-jade-sanctuary 1.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 96,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.7777777777777778
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-jade-sanctuary 2.png",
+    "frame": {
+     "x": 192,
+     "y": 0,
+     "w": 96,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.7777777777777778
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-jade-sanctuary 3.png",
+    "frame": {
+     "x": 0,
+     "y": 72,
+     "w": 96,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.7777777777777778
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-jade-sanctuary 4.png",
+    "frame": {
+     "x": 96,
+     "y": 72,
+     "w": 96,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.7777777777777778
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-jade-sanctuary 5.png",
+    "frame": {
+     "x": 192,
+     "y": 72,
+     "w": 96,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.7777777777777778
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-jade-sanctuary 6.png",
+    "frame": {
+     "x": 0,
+     "y": 144,
+     "w": 96,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.7777777777777778
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-jade-sanctuary 7.png",
+    "frame": {
+     "x": 96,
+     "y": 144,
+     "w": 96,
+     "h": 72
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 72
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 72
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.7777777777777778
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-jade-sanctuary.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 288,
+    "h": 216
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 48,
+    "y": 56
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-jade-sanctuary",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

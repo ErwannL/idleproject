@@ -2922,3 +2922,10 @@ img.ico16 { width: 16px; height: 16px; vertical-align: middle; }
 .upg-cats { display: flex; gap: 4px; flex-wrap: nowrap; margin: 2px 0 4px; }
 .upg-cats .chip-btn { flex: 1 1 0; min-width: 0; justify-content: center; padding: 4px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .upg-cats .chip-btn img { width: 14px; height: 14px; flex: none; }
+
+/* v9.2.9 : bannière des familiers — rangée des SSR du bassin (même gabarit que la wishlist, sans bouton). */
+.eco-pet-ssr { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 6px; background: rgba(255, 176, 58, 0.08); min-width: 0; }
+.eco-pet-ssr span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+.eco-pet-ssr canvas { width: 28px !important; height: 25px !important; }
+.eco-pet-ssr:not(.owned) { opacity: 0.75; }
+.eco-wish-row.eco-pet-row { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }

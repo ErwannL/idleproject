@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 76,
+  "w": 144
+ },
+ "frames": 8,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 72,
+  "y": 47,
+  "kind": "origin"
+ },
+ "message": "A jade turtle-shell dome, 8-frame seamless loop, with a golden rune ring and glyphs on the ground under it. The shell is translucent green with a hexagon pattern, and the gold ring is solid so it reads over the shell. Try the shell_see and shell_speed sliders to change how see-through it is and how fast the shell turns.",
+ "effect_id": "812b98cf-56ff-43bf-9d9d-cdd967d081fb",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-jade-shell 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 144,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 144,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 144,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.618421052631579
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-jade-shell 1.png",
+    "frame": {
+     "x": 144,
+     "y": 0,
+     "w": 144,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 144,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 144,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.618421052631579
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-jade-shell 2.png",
+    "frame": {
+     "x": 288,
+     "y": 0,
+     "w": 144,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 144,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 144,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.618421052631579
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-jade-shell 3.png",
+    "frame": {
+     "x": 0,
+     "y": 76,
+     "w": 144,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 144,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 144,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.618421052631579
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-jade-shell 4.png",
+    "frame": {
+     "x": 144,
+     "y": 76,
+     "w": 144,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 144,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 144,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.618421052631579
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-jade-shell 5.png",
+    "frame": {
+     "x": 288,
+     "y": 76,
+     "w": 144,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 144,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 144,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.618421052631579
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-jade-shell 6.png",
+    "frame": {
+     "x": 0,
+     "y": 152,
+     "w": 144,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 144,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 144,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.618421052631579
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-jade-shell 7.png",
+    "frame": {
+     "x": 144,
+     "y": 152,
+     "w": 144,
+     "h": 76
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 144,
+     "h": 76
+    },
+    "sourceSize": {
+     "w": 144,
+     "h": 76
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.618421052631579
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-jade-shell.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 432,
+    "h": 228
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 72,
+    "y": 47
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-jade-shell",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

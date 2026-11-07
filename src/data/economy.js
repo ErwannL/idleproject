@@ -80,6 +80,11 @@ export const SSR_FRAGMENT = { perGrandEvent: 1 };
 
 // Revenus mensuels (DOC 5 et 10), mois de 30 jours, joueur F2P très actif. Chaque source a son plafond par mois
 // civil : aucune action ne compte deux fois (le registre `state.economy.ledger` l'impose). Sommes vérifiées par test.
+// v9.2.9 : revenus de tickets familiers revérifiés avec la nouvelle collection (5 SSR au lieu de 1 : dragonnet,
+// tortue de jade, renard céleste, petit phénix, feu follet ; tools/sim-economy.mjs, 10 000 parties par profil, 6 mois).
+// F2P très actif : ~560 invocations familiers, ~21 SSR, ~20 exemplaires SSR sur 30, ~1,3 SSR au maximum, collection SSR
+// complète dans 0 % des parties (avant : le seul SSR était au maximum en 2 mois environ). Cible tenue sans toucher aux
+// revenus : ticketPet reste à 90 par mois.
 export const MONTHLY_TARGETS = {
   ticketLimited: 180, ticketPermanent: 120, ticketPet: 90,
   crystalPulls: 200, // 60 000 cristaux du DOC = 20 000 gemmes : sources de gemmes existantes, inchangées

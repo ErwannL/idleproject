@@ -28,6 +28,8 @@ export function signature(name, base, also) { // v9.1.3 (partie B) : exportée p
 export const HIT_30 = { type: 'hit', every: 30, value: 3.5 }; // ultime Assassin
 const BURST_30 = { type: 'burst', every: 30, value: 1.8375 }; // ultime Mage
 const HEAL_25 = { type: 'heal', every: 25, value: 40 }; // ultime Soutien
+// v9.2.9 : compétence spéciale des familiers SSR = ultime du rôle familier (Instinct sauvage) + effet `also` propre.
+const PET_30 = { type: 'burst', every: 30, value: 35 / 24 };
 
 // Étiquette de rareté des héros alliés (style gacha).
 
@@ -56,6 +58,33 @@ export const COMPANIONS = [
   {
     id: 'wisp', name: 'Feu follet', rarity: 'legendary', sprite: 'pet_wisp',
     passive: { damagePct: 15 }, skill: { name: 'Flamme', type: 'burst', every: 6, value: 0.8, text: 'Brûle tous les ennemis (80 % des dégâts)' },
+  },
+  // v9.2.9 : nouveaux familiers (la collection n'avait qu'un seul SSR). Utiles et complémentaires, jamais
+  // indispensables : chaque SSR couvre un rôle déjà tenu ailleurs (boss, survie, critique, soins), sans bonus d'or ni
+  // d'expérience. Compétence spéciale (4e exemplaire) = signature (`ultimate`), comme les héros SSR.
+  {
+    id: 'crystal_hedgehog', name: 'Hérisson de cristal', rarity: 'epic', sprite: 'pet_crystal_hedgehog',
+    passive: { armor: 3, critChance: 3 }, skill: { name: 'Piquants de cristal', type: 'burst', every: 9, value: 0.7, text: 'Projette ses piquants sur tous les ennemis (70 % des dégâts)' },
+  },
+  {
+    id: 'dragonling', name: 'Dragonnet de braise', rarity: 'legendary', sprite: 'pet_dragonling',
+    passive: { damageVsBossPct: 18, critChance: 2 }, skill: { name: 'Souffle de braise', type: 'hit', every: 6, value: 1.2, text: 'Crache une flamme à 120 % des dégâts du héros' },
+    ultimate: signature('Brasier draconique', PET_30, { type: 'shield', value: 25, duration: 4 }),
+  },
+  {
+    id: 'jade_turtle', name: 'Tortue de jade', rarity: 'legendary', sprite: 'pet_jade_turtle',
+    passive: { armor: 8, maxHpPct: 8 }, skill: { name: 'Carapace de jade', type: 'shield', every: 18, value: 45, duration: 5, text: 'Réduit les dégâts de 45 % pendant 5 s' },
+    ultimate: signature('Sanctuaire de jade', PET_30, { type: 'shield', value: 35, duration: 5 }),
+  },
+  {
+    id: 'kitsune', name: 'Renard céleste', rarity: 'legendary', sprite: 'pet_kitsune',
+    passive: { critChance: 5, attackSpeedPct: 6 }, skill: { name: 'Feux de renard', type: 'burst', every: 7, value: 0.9, text: 'Lance des feux de renard sur tous les ennemis (90 % des dégâts)' },
+    ultimate: signature('Neuf queues', PET_30, { type: 'gold', value: 3 }),
+  },
+  {
+    id: 'phoenix', name: 'Petit phénix', rarity: 'legendary', sprite: 'pet_phoenix',
+    passive: { regenPct: 1, maxHpPct: 6, lifesteal: 1 }, skill: { name: 'Plume ardente', type: 'heal', every: 14, value: 16, text: 'Soigne 16 % des PV' },
+    ultimate: signature('Renaissance', PET_30, { type: 'heal', value: 10 }),
   },
   // Héros alliés invocables (R = Rare, SR = Épique, SSR = Légendaire) : ils combattent aux côtés du
   // chevalier. `kind: 'ally'` : dessinés à taille humaine, avec une pose d'attaque ; `fx` : couleur de leur

@@ -115,13 +115,13 @@ test('lot 4 : cadeau de sortie 3 000 gemmes (30 tickets × 100), une seule fois 
   assert.equal(sanitizeState(JSON.parse(JSON.stringify(s)), BALANCE, J(9)).summon.gift, 1);
 });
 
-test('lot 4 : encyclopédie à 100 % sans aucun bannerOnly ; hauts faits sur les 26 unités permanentes', () => {
+test('lot 4 : encyclopédie à 100 % sans aucun bannerOnly ; hauts faits sur les 31 unités (v9.2.9 : + 5 familiers) permanentes', () => {
   setBannersEnabled(true);
   const s = createNewState(J(3));
   for (const c of COMPANIONS) s.companions.owned[c.id] = { stars: 1, level: 1 };
   const p = sectionProgress(s, 'companions');
   assert.equal(p.found, p.total);
-  assert.equal(p.total, 26);
+  assert.equal(p.total, 31);
 });
 
 test('lot 4 : sauvegarde v8 — étoiles et niveaux identiques ; perso inconnu de ce client gardé (pas de montée à 9)', () => {

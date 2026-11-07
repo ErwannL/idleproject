@@ -1,0 +1,277 @@
+{
+ "canvas": {
+  "h": 112,
+  "w": 128
+ },
+ "frames": 9,
+ "fps": 10,
+ "loop": false,
+ "anchor": {
+  "x": 64,
+  "y": 64,
+  "kind": "origin"
+ },
+ "message": "A retro 16-bit phoenix rebirth on a transparent 128x112 canvas, nine frames: golden fire wings spread wide from the centre, a flame ring rises from the feet, and embers and healing motes drift up. The wings and ring are my own layers, so the wing size, ring speed and ember count are the first things to tweak.",
+ "effect_id": "8df5de1b-c282-490a-83de-7a49efc046d0",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-rebirth 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5714285714285714
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-rebirth 1.png",
+    "frame": {
+     "x": 128,
+     "y": 0,
+     "w": 128,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5714285714285714
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-rebirth 2.png",
+    "frame": {
+     "x": 256,
+     "y": 0,
+     "w": 128,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5714285714285714
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-rebirth 3.png",
+    "frame": {
+     "x": 0,
+     "y": 112,
+     "w": 128,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5714285714285714
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-rebirth 4.png",
+    "frame": {
+     "x": 128,
+     "y": 112,
+     "w": 128,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5714285714285714
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-rebirth 5.png",
+    "frame": {
+     "x": 256,
+     "y": 112,
+     "w": 128,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5714285714285714
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-rebirth 6.png",
+    "frame": {
+     "x": 0,
+     "y": 224,
+     "w": 128,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5714285714285714
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-rebirth 7.png",
+    "frame": {
+     "x": 128,
+     "y": 224,
+     "w": 128,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5714285714285714
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-sk-rebirth 8.png",
+    "frame": {
+     "x": 256,
+     "y": 224,
+     "w": 128,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5714285714285714
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-rebirth.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 384,
+    "h": 336
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 64,
+    "y": 64
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-rebirth",
+     "from": 0,
+     "to": 8,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}
