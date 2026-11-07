@@ -40,6 +40,8 @@ import { companionSkillList } from '../data/companion-skills.js';
 import { COMPANION_ROLES } from '../data/synergies.js';
 import { drawWorldVfx, eventVfx } from './vfx-world.js'; // v9.2.6 : compétences, boss, environnement, mutations, ambiance
 import { DAMAGE_COLORS, drawDamageText, drawVfx, drawVfxFrame, projFrame, vfx, vfxReady } from './vfx.js'; // v9.2.6 : effets de combat PixelLab
+// v9.2.9 : toiles de travail relues par getImageData : mémoire côté processeur (avertissement Chrome « willReadFrequently »).
+const RF = { willReadFrequently: true };
 
 // Vue resserrée : le chevalier (≈ 40 px) occupe un bon tiers de la hauteur de la scène.
 export const MIN_VIEW_HEIGHT = 96;
@@ -163,7 +165,7 @@ function bodyEdge(img) {
   if (edge !== undefined) return edge;
   edge = 0;
   try {
-    const { data, width, height } = img.getContext('2d').getImageData(0, 0, img.width, img.height);
+    const { data, width, height } = img.getContext('2d', RF).getImageData(0, 0, img.width, img.height);
     let best = width;
     for (let y = Math.floor(height * 0.3); y < Math.floor(height * 0.75); y++) {
       for (let x = 0; x < best; x++) if (data[(y * width + x) * 4 + 3] > 0) { best = x; break; }
@@ -181,7 +183,7 @@ function opaqueSpan(img) {
   if (span) return span;
   span = { l: 0, r: img.width - 1 };
   try {
-    const { data, width, height } = img.getContext('2d').getImageData(0, 0, img.width, img.height);
+    const { data, width, height } = img.getContext('2d', RF).getImageData(0, 0, img.width, img.height);
     let l = width;
     let r = -1;
     for (let y = 0; y < height; y++) {
@@ -240,7 +242,7 @@ function spriteCanvasTint(source, color) {
   c = document.createElement('canvas');
   c.width = source.width;
   c.height = source.height;
-  const g = c.getContext('2d');
+  const g = c.getContext('2d', RF);
   g.drawImage(source, 0, 0);
   g.globalCompositeOperation = 'source-atop';
   g.fillStyle = color;
@@ -643,7 +645,7 @@ export class SceneRenderer {
     const fx = fx0.vis ? { img: fx0.vis.img, sx: fx0.vis.x, sy: fx0.vis.y, sw: fx0.vis.w } : fx0; // v9.2.4 : image affichée
     const img = fx.img;
     let data;
-    try { data = img.getContext('2d').getImageData(0, 0, img.width, img.height).data; } catch { return; }
+    try { data = img.getContext('2d', RF).getImageData(0, 0, img.width, img.height).data; } catch { return; }
     const pts = [];
     for (let i = 0; i < 40 && pts.length < 14; i++) {
       const px = Math.floor(Math.random() * img.width);
@@ -1699,7 +1701,7 @@ export class SceneRenderer {
       // Halo de sort autour de la pose de nage (silhouette teintée de sa couleur).
       const tint = document.createElement('canvas');
       tint.width = pose.canvas.width; tint.height = pose.canvas.height;
-      const t = tint.getContext('2d');
+      const t = tint.getContext('2d', RF);
       t.drawImage(pose.canvas, 0, 0);
       t.globalCompositeOperation = 'source-in';
       t.fillStyle = color;

@@ -1,3 +1,5 @@
+// v9.2.9 : toiles de travail relues par getImageData : mémoire côté processeur (avertissement Chrome « willReadFrequently »).
+const RF = { willReadFrequently: true };
 // Thèmes d'interface (v9.0). « Chevalier » est le style d'origine ; les autres recolorent, au chargement,
 // toutes les couleurs de la feuille de style et les cadres en pixel art (même calcul pour les deux).
 // Les couleurs sont rangées en 4 familles d'après la teinte d'origine :
@@ -251,7 +253,7 @@ async function themedFrame(theme, url) {
   const canvas = document.createElement('canvas');
   canvas.width = im.naturalWidth;
   canvas.height = im.naturalHeight;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', RF);
   ctx.drawImage(im, 0, 0);
   const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const px = data.data;

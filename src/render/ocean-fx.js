@@ -1,3 +1,5 @@
+// v9.2.9 : toiles de travail relues par getImageData : mémoire côté processeur (avertissement Chrome « willReadFrequently »).
+const RF = { willReadFrequently: true };
 // v9.2.0 (monde marin) : effets du Royaume englouti (monde 11, zone `underwater`).
 //   - décor animé : rayons de lumière qui oscillent, caustiques au sol et sur la scène, kelp qui ondule,
 //     poissons de fond qui passent, bulles qui montent, teinte bleue ;
@@ -280,12 +282,12 @@ export function swimPose(img, { tilt = 0, back = 0, front = 0, legFrac = 0.3 } =
   let pose = per.get(key);
   if (pose) return pose;
   let data;
-  try { data = img.getContext('2d').getImageData(0, 0, img.width, img.height).data; } catch { return { canvas: img, ox: 0, oy: 0 }; }
+  try { data = img.getContext('2d', RF).getImageData(0, 0, img.width, img.height).data; } catch { return { canvas: img, ox: 0, oy: 0 }; }
   const kicked = kickLegs(data, img.width, img.height, back, front, legFrac);
   const rot = rotatePixels(kicked, img.width, img.height, tilt);
   const canvas = document.createElement('canvas');
   canvas.width = rot.w; canvas.height = rot.h;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', RF);
   const id = ctx.createImageData(rot.w, rot.h);
   id.data.set(rot.data);
   ctx.putImageData(id, 0, 0);

@@ -1,3 +1,5 @@
+// v9.2.9 : toiles de travail relues par getImageData : mémoire côté processeur (avertissement Chrome « willReadFrequently »).
+const RF = { willReadFrequently: true };
 // v9.2.2 : battements d'ailes et ondulation des volants (les sprites sont des images fixes).
 //
 // Ailes — « découpe et rotation » (pixel-perfect, même méthode que le bras de enemy-anim.js) :
@@ -96,12 +98,12 @@ export function wingFrames(img, rig) {
   let frames = null;
   try {
     const w = img.width, h = img.height;
-    const src = img.getContext('2d').getImageData(0, 0, w, h).data;
+    const src = img.getContext('2d', RF).getImageData(0, 0, w, h).data;
     const pad = Math.ceil(Math.max(w, h) * 0.3);
     frames = wingAngles(rig).map((deg) => {
       const { data, W, H } = wingPixels(src, w, h, rig, deg, pad);
       const canvas = makeCanvas(W, H);
-      const cctx = canvas.getContext('2d');
+      const cctx = canvas.getContext('2d', RF);
       const im = cctx.createImageData(W, H);
       im.data.set(data);
       cctx.putImageData(im, 0, 0);

@@ -1,3 +1,5 @@
+// v9.2.9 : toiles de travail relues par getImageData : mémoire côté processeur (avertissement Chrome « willReadFrequently »).
+const RF = { willReadFrequently: true };
 // v9.2.5 : calage des images dessinées (PixelLab) des ennemis sur leur sprite de base.
 // Retour joueur : « toujours des sprites pas correctement alignés » (loup frénétique qui flotte). Les animations
 // générées gardent le cadre de PixelLab, qui dérive d'une image et d'une animation à l'autre : pieds au-dessus ou
@@ -33,7 +35,7 @@ export function boxOf(img) {
   if (boxCache.has(img)) return boxCache.get(img);
   let b = null;
   try {
-    const d = img.getContext('2d').getImageData(0, 0, img.width, img.height).data;
+    const d = img.getContext('2d', RF).getImageData(0, 0, img.width, img.height).data;
     const a = new Uint8Array(img.width * img.height);
     for (let i = 0; i < a.length; i++) a[i] = d[i * 4 + 3];
     b = opaqueBox(a, img.width, img.height);
@@ -176,7 +178,7 @@ function makeCanvas(w, h) {
 const planCache = new WeakMap();
 function planOf(img) {
   if (planCache.has(img)) return planCache.get(img);
-  const d = img.getContext('2d').getImageData(0, 0, img.width, img.height).data;
+  const d = img.getContext('2d', RF).getImageData(0, 0, img.width, img.height).data;
   const p = legPlan(solidMask(d, img.width, img.height), img.width, img.height);
   planCache.set(img, p);
   return p;
@@ -187,10 +189,10 @@ export function groundLegs(img, ref = img) {
   let out = img;
   try {
     const w = img.width, h = img.height;
-    const d = img.getContext('2d').getImageData(0, 0, w, h).data;
+    const d = img.getContext('2d', RF).getImageData(0, 0, w, h).data;
     const p = ref && ref.width === w && ref.height === h ? planOf(ref) : planOf(img);
     if (p) {
-      const c = makeCanvas(w, h); const cx = c.getContext('2d'); const im = cx.createImageData(w, h);
+      const c = makeCanvas(w, h); const cx = c.getContext('2d', RF); const im = cx.createImageData(w, h);
       for (let x = 0; x < w; x++) for (let y = 0; y < h; y++) {
         const sy = legSource(p, x, y);
         if (sy < 0 || sy >= h) continue;
@@ -249,7 +251,7 @@ export function animStride(anim, toCanvas) {
   try {
     v = strideOf(anim.frames.map((k) => {
       const c = toCanvas(k); if (!c) return null;
-      const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+      const d = c.getContext('2d', RF).getImageData(0, 0, c.width, c.height).data;
       const mask = solidMask(d, c.width, c.height);
       return { mask, w: c.width, h: c.height, foot: footRow(mask, c.width, c.height) };
     }));

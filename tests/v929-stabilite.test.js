@@ -62,3 +62,17 @@ test('Invocation : noms de la wishlist sur 2 lignes au lieu de « … » (sélec
   const css = readFileSync(new URL('../src/ui/fit.css', import.meta.url), 'utf8');
   assert.match(css, /\.eco-wish-row \.eco-wish-btn span \{ white-space: normal;/);
 });
+
+test('Barre du haut sur téléphone : boutons Boutique et ⚙ gardés dans l\'écran (montants jamais réduits)', () => {
+  const css = readFileSync(new URL('../src/ui/fit.css', import.meta.url), 'utf8');
+  assert.match(css, /@media \(max-width: 420px\) \{[\s\S]*#topbar \.top-actions \{ flex: none;[\s\S]*#topbar \.chip \{ flex: none;/);
+  assert.match(css, /@media \(max-width: 340px\) \{ #topbar \.top-xp, #topbar \.brand > img \{ display: none; \}/);
+});
+
+test('Toiles relues par getImageData créées avec willReadFrequently (pas la toile de la scène)', () => {
+  for (const f of ['render/pixel.js', 'render/enemy-anchor.js', 'render/enemy-anim.js', 'render/wings.js', 'render/scene.js', 'ui/themes.js']) {
+    const src = readFileSync(new URL(`../src/${f}`, import.meta.url), 'utf8');
+    assert.match(src, /const RF = \{ willReadFrequently: true \};/, f);
+    assert.doesNotMatch(src.replace("this.ctx = canvas.getContext('2d');", ''), /getContext\('2d'\)/, f);
+  }
+});

@@ -1,4 +1,6 @@
 import { visibleSize } from '../data/enemy-sizes.js'; // v9.2.4 : taille visible (table d'échelle)
+// v9.2.9 : toiles de travail relues par getImageData : mémoire côté processeur (avertissement Chrome « willReadFrequently »).
+const RF = { willReadFrequently: true };
 // v9.2.3 : apparence propre à chaque mutation (retour joueur : « le Géant, bah il est de la même taille que les autres »).
 // Traitement procédural des images du monstre (toutes ses images : repos, marche, attaque PixelLab) :
 // - Géant : ×1,6 (taille, ombre, portée : voir MUTATION_SIZE et core/mutations.js), pas lourds ;
@@ -108,7 +110,7 @@ export function mutatedCanvas(src, id, sheen = 0) {
   if (out) return out;
   const w = src.width, h = src.height;
   out = canvasOf(w, h);
-  const ctx = out.getContext('2d');
+  const ctx = out.getContext('2d', RF);
   ctx.drawImage(src, 0, 0);
   const img = ctx.getImageData(0, 0, w, h);
   const d = img.data;
@@ -161,14 +163,14 @@ export function capeCanvas(src) {
   const pad = Math.max(2, Math.round(h / 8));
   const s = src.getContext ? src : null;
   const tmp = canvasOf(w, h);
-  const tctx = tmp.getContext('2d');
+  const tctx = tmp.getContext('2d', RF);
   tctx.drawImage(src, 0, 0);
-  const d = (s ?? tmp).getContext('2d').getImageData(0, 0, w, h).data;
+  const d = (s ?? tmp).getContext('2d', RF).getImageData(0, 0, w, h).data;
   const b = bbox(d, w, h);
   out = canvasOf(w + pad * 2, h + pad * 2);
   out.pad = pad;
   if (!b) { per.set('cape', out); return out; }
-  const ctx = out.getContext('2d');
+  const ctx = out.getContext('2d', RF);
   // Cape : trapèze des épaules au bas du corps, plus large vers le bas, en arrière (à droite) ; bas dentelé.
   const bh = b.y1 - b.y0 + 1, bw = b.x1 - b.x0 + 1;
   const top = b.y0 + Math.round(bh * 0.2) + pad;
@@ -212,7 +214,7 @@ export function mutantPortraitUrl({ spriteCanvas, sizeFactor, SPRITES }, type, s
   const two = ghost && m.id in MUTATION_SIZE;
   const FW = two ? Math.round(PORTRAIT_W * 1.5) : PORTRAIT_W; // monstre normal + muté côte à côte
   const out = canvasOf(FW * scale, PORTRAIT_H * scale);
-  const ctx = out.getContext('2d');
+  const ctx = out.getContext('2d', RF);
   ctx.imageSmoothingEnabled = false;
   const G = PORTRAIT_H - 4; // sol
   const w = src.width * k, h = src.height * k;
@@ -222,7 +224,7 @@ export function mutantPortraitUrl({ spriteCanvas, sizeFactor, SPRITES }, type, s
   const S = (v) => Math.round(v * scale);
   const silhouette = (c, color) => {
     const t = canvasOf(c.width, c.height);
-    const tc = t.getContext('2d');
+    const tc = t.getContext('2d', RF);
     tc.drawImage(c, 0, 0);
     tc.globalCompositeOperation = 'source-atop';
     tc.fillStyle = color;

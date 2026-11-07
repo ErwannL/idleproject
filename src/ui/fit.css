@@ -80,3 +80,15 @@ html, body { overflow-x: hidden; }
    sert à choisir, il passe sur 2 lignes au lieu d'être coupé. */
 .eco-wish-row .eco-wish-btn span { white-space: normal; text-overflow: clip; overflow-wrap: normal; line-height: 1.1; text-align: left;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+/* v9.2.9 : barre du haut sur téléphone — avec le bouton Boutique, ⚙ sortait de l'écran à 375 px (et les deux à
+   320 px). Les pastilles se resserrent, la barre d’XP du portrait se réduit (puis disparaît), montants et boutons restent entiers. */
+@media (max-width: 420px) {
+  #topbar { gap: 3px; padding-left: 4px; padding-right: 4px; min-width: 0; }
+  #topbar > * { min-width: 0; }
+  #topbar .top-actions { flex: none; gap: 2px; }
+  #topbar .chip { flex: none; padding-left: 4px; padding-right: 4px; }
+  #topbar .brand { flex: 0 1 auto; overflow: hidden; text-overflow: clip; }
+  #topbar .top-xp { width: 40px; min-width: 0; flex: 0 1 40px; }
+}
+@media (max-width: 340px) { #topbar .top-xp, #topbar .brand > img { display: none; } #topbar .chip { padding-left: 3px; padding-right: 3px; } }

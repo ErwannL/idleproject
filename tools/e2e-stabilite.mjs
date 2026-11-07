@@ -98,6 +98,7 @@ async function newPage(name, { store = null, lang = 'fr', w = 1280, h = 720 } = 
   page.on('pageerror', (e) => report(name, `erreur JS : ${e.message}`));
   page.on('console', (m) => {
     const t = m.text();
+    if (m.type() === 'warning' && /willReadFrequently/.test(t)) report(name, 'avertissement getImageData sans willReadFrequently');
     if (m.type() === 'error' && !/net::ERR_FAILED|ERR_INTERNET_DISCONNECTED|Failed to fetch/.test(t)) report(name, `console : ${t.slice(0, 200)}`);
   });
   page.on('response', (r) => { if (r.status() === 404) report(name, `404 : ${r.url().replace(BASE, '')}`); });

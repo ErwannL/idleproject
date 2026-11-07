@@ -9,6 +9,8 @@
 import { heroAnimCanvas, heroHeldWeapon, knightGearCanvas } from './pixel.js';
 import { ALLY_ANIMS, KNIGHT_NECK, KNIGHT_PIVOT, heroWearsGear } from './ally-anim.js';
 import { itemBase } from '../core/loot.js'; // v9.2.5 : angle de port selon l'arme
+// v9.2.9 : toiles de travail relues par getImageData : mémoire côté processeur (avertissement Chrome « willReadFrequently »).
+const RF = { willReadFrequently: true };
 
 export const HAND_R = 2.3;
 const handCache = new Map();
@@ -29,11 +31,11 @@ export function handLayer(body, key, gx, gy) {
   out = null;
   const r = Math.ceil(HAND_R), w = body.width, h = body.height;
   let data = null;
-  try { data = body.getContext('2d').getImageData(0, 0, w, h).data; } catch { data = null; }
+  try { data = body.getContext('2d', RF).getImageData(0, 0, w, h).data; } catch { data = null; }
   if (data) {
     const c = document.createElement('canvas');
     c.width = 2 * r + 1; c.height = 2 * r + 1;
-    const ctx = c.getContext('2d');
+    const ctx = c.getContext('2d', RF);
     const img = ctx.createImageData(c.width, c.height);
     let n = 0;
     for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
@@ -62,7 +64,7 @@ export function snapGrip(body, key, gx, gy) {
   if (out) return out;
   out = [gx, gy];
   let data = null;
-  try { data = body.getContext('2d').getImageData(0, 0, body.width, body.height).data; } catch { data = null; }
+  try { data = body.getContext('2d', RF).getImageData(0, 0, body.width, body.height).data; } catch { data = null; }
   const op = (x, y) => x >= 0 && y >= 0 && x < body.width && y < body.height && data[(y * body.width + x) * 4 + 3] > 100;
   if (data) {
     let near = false;
@@ -84,7 +86,7 @@ export function snapGrip(body, key, gx, gy) {
 export const CARRY_TILT = { sword: 30, greatsword: 30, axe: 45, mace: 45, hammer: 50, dagger: 35, katar: 35, scythe: 45, whip: 30 };
 const WALKS = new Set(Object.values(ALLY_ANIMS).map((set) => set.walk).filter(Boolean));
 const isWalk = (anim) => WALKS.has(anim);
-const alphaOf = (c) => { try { return c.getContext('2d').getImageData(0, 0, c.width, c.height).data; } catch { return null; } };
+const alphaOf = (c) => { try { return c.getContext('2d', RF).getImageData(0, 0, c.width, c.height).data; } catch { return null; } };
 // Visage : pixels du corps à plus de 30 px au-dessus des pieds (tête, cheveux, casque), repère du calque du corps.
 const faceCache = new Map();
 export function faceRows(body) {

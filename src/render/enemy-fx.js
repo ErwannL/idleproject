@@ -1,3 +1,5 @@
+// v9.2.9 : toiles de travail relues par getImageData : mémoire côté processeur (avertissement Chrome « willReadFrequently »).
+const RF = { willReadFrequently: true };
 // v9.2.3 : pouvoirs des ennemis à l'attaque : souffle (dragon, chiens de l'enfer, salamandres…) et incantation
 // (magiciennes, nécromanciens, liches, chamans…), synchronisés sur l'animation d'attaque.
 //   - souffle : part de la gueule (point le plus en avant du haut de la silhouette de l'image affichée) et va jusqu'au
@@ -119,7 +121,7 @@ export function powerPointsOf(img) {
   if (pointCache.has(img)) return pointCache.get(img);
   let p = null;
   try {
-    const d = img.getContext('2d').getImageData(0, 0, img.width, img.height).data;
+    const d = img.getContext('2d', RF).getImageData(0, 0, img.width, img.height).data;
     const a = new Uint8Array(img.width * img.height);
     for (let i = 0; i < a.length; i++) a[i] = d[i * 4 + 3];
     p = powerPoints(a, img.width, img.height);

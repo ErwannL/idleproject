@@ -1,3 +1,5 @@
+// v9.2.9 : toiles de travail relues par getImageData : mémoire côté processeur (avertissement Chrome « willReadFrequently »).
+const RF = { willReadFrequently: true };
 // v9.1.9 : animations des personnages dessinés d'un seul tenant (PixelLab : ennemis, compagnons).
 //
 // Méthode « bras par segment » (pixel-perfect, sans flou) :
@@ -63,7 +65,7 @@ export function armSwing(img, deg, facing = -1) {
   let out = null;
   try {
     const w = img.width, h = img.height;
-    const src = img.getContext('2d').getImageData(0, 0, w, h).data;
+    const src = img.getContext('2d', RF).getImageData(0, 0, w, h).data;
     const alpha = new Uint8Array(w * h);
     for (let i = 0; i < w * h; i++) alpha[i] = src[i * 4 + 3];
     const g = armGeometry(alpha, w, h, facing);
@@ -71,7 +73,7 @@ export function armSwing(img, deg, facing = -1) {
       const pad = Math.ceil(Math.max(w, h) * 0.25);
       const W = w + pad * 2, H = h + pad * 2;
       const canvas = makeCanvas(W, H);
-      const cctx = canvas.getContext('2d');
+      const cctx = canvas.getContext('2d', RF);
       const dst = cctx.createImageData(W, H);
       const d = dst.data;
       const put = (x, y, o) => { const p = ((y + pad) * W + x + pad) * 4; d[p] = src[o]; d[p + 1] = src[o + 1]; d[p + 2] = src[o + 2]; d[p + 3] = src[o + 3]; };
@@ -114,11 +116,11 @@ export function dissolveFrames(img, n = 5) {
   let frames = [img];
   try {
     const w = img.width, h = img.height;
-    const src = img.getContext('2d').getImageData(0, 0, w, h);
+    const src = img.getContext('2d', RF).getImageData(0, 0, w, h);
     frames = [];
     for (let k = 0; k < n; k++) {
       const c = makeCanvas(w, h);
-      const cctx = c.getContext('2d');
+      const cctx = c.getContext('2d', RF);
       const im = cctx.createImageData(w, h);
       const level = (k / n) * 20; // 0..16 + avance du haut vers le bas
       for (let y = 0; y < h; y++) {

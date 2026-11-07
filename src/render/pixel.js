@@ -4,6 +4,8 @@ import { itemBase } from '../core/loot.js';
 import { BASE_PALETTE, FONT, FONT_BIG, HERO_FOOT, SPRITES, normalizeRows, rotateRowsCW } from './sprites.js';
 import './ally-anim.js'; // v9.2.3 : images PixelLab des alliés ajoutées aux SPRITES
 import { KNIGHT_HEAD } from './knight-gear.js';
+// v9.2.9 : toiles de travail relues par getImageData : mémoire côté processeur (avertissement Chrome « willReadFrequently »).
+const RF = { willReadFrequently: true };
 
 const cache = new Map();
 
@@ -17,7 +19,7 @@ function createCanvas(width, height) {
 function paint(rows, palette) {
   const grid = normalizeRows(rows);
   const canvas = createCanvas(grid[0].length, grid.length);
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', RF);
   grid.forEach((row, y) => {
     for (let x = 0; x < row.length; x++) {
       const ch = row[x];
@@ -32,7 +34,7 @@ function paint(rows, palette) {
 // Recouvre les pixels opaques d'une couleur (flash blanc, brume de profondeur, silhouette).
 function tinted(source, color, alpha) {
   const canvas = createCanvas(source.width, source.height);
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', RF);
   ctx.drawImage(source, 0, 0);
   ctx.globalCompositeOperation = 'source-atop';
   ctx.globalAlpha = alpha;
@@ -43,7 +45,7 @@ function tinted(source, color, alpha) {
 
 function mirrored(source) {
   const canvas = createCanvas(source.width, source.height);
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', RF);
   ctx.translate(source.width, 0);
   ctx.scale(-1, 1);
   ctx.drawImage(source, 0, 0);
@@ -168,8 +170,8 @@ function rotateFree(src, grip, deg) {
   const r = Math.ceil(Math.hypot(w, h)) + 1;
   const out = createCanvas(r * 2, r * 2);
   let data;
-  try { data = src.getContext('2d').getImageData(0, 0, w, h).data; } catch { return null; }
-  const octx = out.getContext('2d');
+  try { data = src.getContext('2d', RF).getImageData(0, 0, w, h).data; } catch { return null; }
+  const octx = out.getContext('2d', RF);
   const img = octx.createImageData(r * 2, r * 2);
   const a = (-deg * Math.PI) / 180, c = Math.cos(a), sn = Math.sin(a);
   for (let y = 0; y < r * 2; y++) {
@@ -190,7 +192,7 @@ function rotateFree(src, grip, deg) {
 // Contour sombre d'1 px autour de la silhouette (lisibilité sur tous les décors), sans toucher l'intérieur.
 function outlined(source, color = '#140f1c') {
   const canvas = createCanvas(source.width, source.height);
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', RF);
   const sil = tinted(source, color, 1);
   for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.drawImage(sil, dx, dy);
   ctx.drawImage(source, 0, 0);
@@ -237,7 +239,7 @@ export function heroComposite(frame, equipment, flash = false, cape = 'a', palet
   } else if (palette?.skin && SPRITES[`skin_${palette.skin}_idle`]) {
     // v9.0.6 : skin de héros — personnage complet dessiné ; seule l'arme portée s'y ajoute.
     canvas = createCanvas(HERO_SIZE.w, HERO_SIZE.h);
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', RF);
     const name = SPRITES[`skin_${palette.skin}_${frame}`] ? `skin_${palette.skin}_${frame}` : `skin_${palette.skin}_idle`;
     const body = SPRITES[name];
     const { x: ox, y: oy } = BODY_OFFSET;
@@ -248,7 +250,7 @@ export function heroComposite(frame, equipment, flash = false, cape = 'a', palet
     if (equipment.weapon && !behind) drawWeapon(ctx, equipment.weapon, body, frame, ox, oy);
   } else {
     canvas = createCanvas(HERO_SIZE.w, HERO_SIZE.h);
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', RF);
     const body = SPRITES[`hero_${frame}`] ?? SPRITES.hero_idle;
     const name = SPRITES[`hero_${frame}`] ? `hero_${frame}` : 'hero_idle';
     const { x: ox, y: oy } = BODY_OFFSET;
@@ -292,7 +294,7 @@ export function heroSwim(step, equipment, palette = null, flash = false) {
   if (flash) canvas = tinted(heroSwim(step, equipment, palette), '#ffffff', 1);
   else {
     canvas = createCanvas(SWIM_SIZE.w, SWIM_SIZE.h);
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', RF);
     const n = (step % 6) + 1;
     const skin = palette?.skin && SPRITES[`skin_${palette.skin}_swim${n}`] ? `skin_${palette.skin}_swim${n}` : null;
     if (equipment.weapon) {
@@ -412,7 +414,7 @@ export function knightGearCanvas(name, anim, head, pivot, neck, equipment, palet
   }
   const body = paint(grid.map((r) => r.join('')), pal);
   const canvas = createCanvas(W + 2 * GEAR_MARGIN, H + 2 * GEAR_MARGIN);
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', RF);
   ctx.drawImage(body, GEAR_MARGIN, GEAR_MARGIN);
   if (helmet && head) {
     const hname = itemSpriteName(helmet), hdef = SPRITES[hname];
@@ -446,11 +448,11 @@ export function heroHeldWeapon(equipment, deg = 0) {
   if (!rot) return null;
   // Marge d'1 px pour le contour.
   const pad = createCanvas(rot.img.width + 2, rot.img.height + 2);
-  pad.getContext('2d').drawImage(rot.img, 1, 1);
+  pad.getContext('2d', RF).drawImage(rot.img, 1, 1);
   out = { canvas: outlined(pad), x: rot.grip.x + 1, y: rot.grip.y + 1 };
   // v9.2.7 : pointe de l'arme (pixel opaque le plus loin de la prise) : traînée de frappe (scene.js).
   try {
-    const c = out.canvas, d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+    const c = out.canvas, d = c.getContext('2d', RF).getImageData(0, 0, c.width, c.height).data;
     let best = -1;
     for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) {
       if (d[(y * c.width + x) * 4 + 3] < 128) continue;
@@ -478,7 +480,7 @@ export function heroBackWeapon(equipment, mode = 'walk') {
     const img = spriteCanvas(wname, { colors: itemColors(weapon), rotate: turns });
     const grip = rotatedGrip(def.grip, def.rows[0].length, def.rows.length, turns);
     const at = mode === 'swim' ? { x: SWIM_BODY.x + 44, y: SWIM_BODY.y + 8 } : { x: BODY_OFFSET.x + 13, y: BODY_OFFSET.y + 34 };
-    canvas.getContext('2d').drawImage(img, at.x - grip.x, at.y - grip.y);
+    canvas.getContext('2d', RF).drawImage(img, at.x - grip.x, at.y - grip.y);
     canvas = outlined(canvas);
   }
   cache.set(key, canvas);
@@ -487,7 +489,7 @@ export function heroBackWeapon(equipment, mode = 'walk') {
 
 // Rectangle des pixels opaques (pour recadrer les calques d'équipement en icônes).
 function opaqueBounds(canvas) {
-  const { data, width, height } = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+  const { data, width, height } = canvas.getContext('2d', RF).getImageData(0, 0, canvas.width, canvas.height);
   let x0 = width;
   let y0 = height;
   let x1 = -1;
@@ -512,7 +514,7 @@ export function itemDropCanvas(item) {
   const src = spriteCanvas(itemSpriteName(item), { colors: itemColors(item) });
   const box = opaqueBounds(src);
   canvas = createCanvas(Math.max(1, box.w), Math.max(1, box.h));
-  canvas.getContext('2d').drawImage(src, box.x, box.y, box.w, box.h, 0, 0, box.w, box.h);
+  canvas.getContext('2d', RF).drawImage(src, box.x, box.y, box.w, box.h, 0, 0, box.w, box.h);
   cache.set(key, canvas);
   return canvas;
 }
@@ -523,7 +525,7 @@ export function itemIconUrl(item, size = 32) {
   let url = cache.get(key);
   if (url) return url;
   const canvas = createCanvas(size, size);
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', RF);
   ctx.imageSmoothingEnabled = false;
   let src = spriteCanvas(itemSpriteName(item), { colors: itemColors(item) });
   let box = opaqueBounds(src);
@@ -531,7 +533,7 @@ export function itemIconUrl(item, size = 32) {
     // Casque ou armure : posés sur le chevalier (cadré sur l'objet) pour rester lisibles.
     const name = itemSpriteName(item);
     const body = createCanvas(src.width, SPRITES.hero_idle.rows.length);
-    const bctx = body.getContext('2d');
+    const bctx = body.getContext('2d', RF);
     bctx.drawImage(spriteCanvas('hero_idle'), 0, 0);
     bctx.drawImage(src, 0, SPRITES[name].oy ?? 0);
     src = body;
@@ -564,7 +566,7 @@ export function spriteUrl(name, scale = 2, options = {}) {
   // v9.0.7 : un sprite en pleine définition garde la taille d'affichage des autres (facteur `scale` du sprite).
   const k = scale * (SPRITES[name]?.scale ?? 1);
   const canvas = createCanvas(Math.max(1, Math.round(src.width * k)), Math.max(1, Math.round(src.height * k)));
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', RF);
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(src, 0, 0, canvas.width, canvas.height);
   url = canvas.toDataURL();
@@ -582,7 +584,7 @@ export function heroPortraitUrl(equipment, scale = 4, palette = null, silhouette
   if (silhouette) src = tinted(src, silhouette, 1);
   const box = opaqueBounds(src);
   const canvas = createCanvas(box.w * scale, box.h * scale);
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', RF);
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(src, box.x, box.y, box.w, box.h, 0, 0, canvas.width, canvas.height);
   const url = canvas.toDataURL();
