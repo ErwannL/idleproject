@@ -18,10 +18,11 @@ export function formatDuration(seconds) {
 const line = (label, value, note = '') => `<div class="stat-line"><span>${label}</span><b>${value}</b>${note ? `<small class="muted">${note}</small>` : ''}</div>`;
 const pct = (part, total) => (total > 0 ? `${Math.round((part / total) * 100)} %` : '');
 
+// v9.2.9 : nom complet en bulle quand il est coupé par « … » (« 4. Scorching De… » sur téléphone).
 function bars(rows, total) {
   const max = Math.max(1, ...rows.map((r) => r.value));
   return `<div class="time-bars">${rows.map((r) => `<div class="time-bar${r.active ? ' active' : ''}"${r.action ? ` data-action="stats-zone" data-value="${r.action}"` : ''}>
-    <span class="tb-label">${r.label}</span><span class="tb-track"><i style="width:${(r.value / max) * 100}%"></i></span>
+    <span class="tb-label" title="${escapeHtml(r.label)}">${r.label}</span><span class="tb-track"><i style="width:${(r.value / max) * 100}%"></i></span>
     <span class="tb-val">${formatDuration(r.value)}</span><small class="muted">${pct(r.value, total)}</small></div>`).join('')}</div>`;
 }
 

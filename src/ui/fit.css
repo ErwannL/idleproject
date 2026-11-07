@@ -62,3 +62,21 @@
 html, body { overflow-x: hidden; }
 #app { width: calc(100vw / var(--ui-zoom, 1)); height: calc(100vh / var(--ui-zoom, 1)); }
 @supports (height: 100dvh) { #app { height: calc(100dvh / var(--ui-zoom, 1)); } }
+
+/* v9.2.9 : vignettes des compagnons (Équipe › Composition) — à 5 colonnes dans un panneau de ~490 px, il restait
+   ~55 px pour le nom : « Pyro-man-… » et « Impéra-trice d… » passaient sur « non obtenu » (débordement visible de
+   la limite à 2 lignes, annulée par overflow: visible). Une colonne de moins à chaque palier, et le nom coupé
+   proprement à 2 lignes. */
+.pet-label b { overflow: hidden !important; }
+.pet-label small { text-overflow: ellipsis; }
+@container (min-width: 480px) { .pet-grid.pet-cards { --thumb-cols: 4; } }
+@container (min-width: 580px) { .pet-grid.pet-cards { --thumb-cols: 5; } }
+@container (min-width: 700px) { .pet-grid.pet-cards { --thumb-cols: 6; } }
+@container (min-width: 820px) { .pet-grid.pet-cards { --thumb-cols: 7; } }
+/* v9.2.9 : catégories des améliorations sur téléphone — à parts égales, « Ressources » (le plus long) était coupé ;
+   chaque bouton prend désormais la largeur de son texte, l'espace restant est partagé. */
+.upg-cats .chip-btn { flex: 1 1 auto; padding: 4px 3px; gap: 3px; }
+/* v9.2.9 : wishlist de la bannière permanente — « Impératrice des … », « Seigneur de l'om… » sur téléphone : le nom
+   sert à choisir, il passe sur 2 lignes au lieu d'être coupé. */
+.eco-wish-row .eco-wish-btn span { white-space: normal; text-overflow: clip; overflow-wrap: normal; line-height: 1.1; text-align: left;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }

@@ -37,7 +37,9 @@ function literals(code) {
     const c = code[i];
     if (c === '\n') { line++; continue; }
     if (c === '/' && code[i + 1] === '/') { while (i < code.length && code[i] !== '\n') i++; line++; continue; }
-    if (c === '/' && code[i + 1] === '*') { const e = code.indexOf('*/', i + 2); line += (code.slice(i, e).match(/\n/g) ?? []).length; i = e + 1; continue; }
+    // v9.2.9 : « /* » sans « */ » (dessins en caractères de render/art*.js) : indexOf valait -1, i repartait à 0 et
+    // l'outil tournait sans fin. On s'arrête à la fin du fichier.
+    if (c === '/' && code[i + 1] === '*') { const e = code.indexOf('*/', i + 2); if (e < 0) break; line += (code.slice(i, e).match(/\n/g) ?? []).length; i = e + 1; continue; }
     if (c === "'" || c === '"' || c === '`') {
       const start = line;
       let j = i + 1;
@@ -76,7 +78,9 @@ function isFrench(s) {
   const t = s.replace(/\s+/g, ' ').trim();
   if (t.length < 2 || !/\p{L}{2}/u.test(t)) return false;
   if (/^[\w$.\-/:#@?=&%*,]+$/.test(t) && !/[éèêàâçùûôîœ]/i.test(t) && !/^[A-ZÉÈÀ][a-zéèêàâçùûôîœ]+$/.test(t)) return false;
-  if (/^(?:[a-z-]+\s*)+$/.test(t) && !FR_WORD.test(t)) return false; // classes CSS « btn small active »
+  // v9.2.9 : écrit sans quantificateurs imbriqués — « (?:[a-z-]+\s*)+$ » revenait en arrière de façon exponentielle
+  // sur les lignes des dessins en caractères (art-anim-allies.js) : l'outil ne finissait plus.
+  if (/^[a-z-]+(?: +[a-z-]+)* ?$/.test(t) && !FR_WORD.test(t)) return false; // classes CSS « btn small active »
   if (/[{};=]|=>|\(\)|^\.|^#|^\[|https?:|\.(?:png|js|json|css|mp3|ogg)\b/.test(t)) return false;
   if (/^(?:rgba?|hsla?|var|translate|scale|rotate|linear-gradient|calc|url)\(/.test(t)) return false;
   // v9.1.9 : code qui passait le filtre — dessins en caractères (render/art.js), clés de cache « hero|12|12 »,
@@ -102,7 +106,12 @@ for (const file of walk(SRC)) {
   const rel = path.relative(ROOT, file);
   if (fileFilter && !rel.includes(fileFilter)) continue;
   const code = fs.readFileSync(file, 'utf8');
+  // v9.2.9 : dessins générés (render/art*.js, « FICHIER GÉNÉRÉ ») : des lignes de pixels, aucun texte d'interface.
+  if (/^\/\/ FICHIER GÉNÉRÉ/.test(code) || /[\\/]render[\\/]art(?:-[\w-]+)?\.js$/.test(file)) continue;
   for (const lit of literals(code)) {
+    // v9.2.9 : dessins en caractères (render/art-anim-*.js, plusieurs Mo) : pas des textes d'interface, et certains
+    // filtres d'isFrench mettaient des minutes à les rejeter (retour arrière exponentiel).
+    if (lit.text.length > 2000) continue;
     const pieces = lit.template || /<\w/.test(lit.text) ? templateTexts(lit.text) : [lit.text];
     for (const p of pieces) {
       const t = p.replace(/\s+/g, ' ').trim();

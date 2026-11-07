@@ -392,3 +392,7 @@ PATTERNS.unshift(...patterns928Eco(lookup));
 // v9.2.9 : boutique en haut, World Boss en vrai combat (./ko-929.js) — sans écraser l'existant.
 for (const [k, v] of Object.entries(EXACT_929)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns929(lookup));
+// v9.2.9 : textes relevés par la passe de stabilité (./ko-929-stab.js) — sans écraser l'existant.
+import { EXACT_929_STAB, patterns929Stab } from './ko-929-stab.js';
+for (const [k, v] of Object.entries(EXACT_929_STAB)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns929Stab(lookup));
