@@ -10,6 +10,7 @@ import { formatNumber } from '../core/format.js';
 import { walletIcon } from './panels/shop.js';
 import { reduceMotion } from './prefs.js';
 import { escapeHtml } from './common.js';
+import { companionById } from '../core/companions.js';
 
 const STEP = 1 / 60;
 let open = null; // tentative affichée (une seule à la fois)
@@ -28,6 +29,8 @@ function hudHtml() {
     <div class="wb-banner hidden" aria-live="assertive"></div>
     <div class="wb-actions"><button class="btn small wb-skip" type="button">Passer ⏭</button>
       <button class="btn small wb-quit" type="button" aria-label="Fermer">✕</button></div>
+    <div class="wb-live hidden" aria-live="off"><div class="wb-live-title"><span>Dégâts par membre</span></div><div class="wb-live-rows"></div>
+      <div class="wb-live-title"><span>Paliers de récompense</span></div><div class="wb-live-tiers"></div></div>
     <div class="wb-end hidden" role="dialog" aria-modal="true"></div>`;
 }
 
@@ -77,12 +80,18 @@ export function openWorldBoss(state, actions) {
       const k = w / vw;
       canvas.classList.add('wb-portrait');
       canvas.style.transform = `scale(${k})`;
-      canvas.style.top = `${Math.max(96, Math.round((h - vh * k) / 2 + 30))}px`;
+      const top = Math.max(96, Math.round(Math.min((h - vh * k) / 2 + 30, h * 0.12 + 40)));
+      canvas.style.top = `${top}px`;
+      // Téléphone : sous la scène, le bilan en direct (dégâts par membre de l'équipe, paliers).
+      const live = q('.wb-live');
+      live.style.top = `${Math.round(top + vh * k + 10)}px`;
+      live.classList.toggle('hidden', h - (top + vh * k) < 140);
     } else {
       scene.resize(w, h);
       canvas.classList.remove('wb-portrait');
       canvas.style.transform = '';
       canvas.style.top = '';
+      q('.wb-live').classList.add('hidden');
     }
     if (ctx.ended || calm) scene.frame(0); // un canvas redimensionné est vidé : image fixe redessinée
   };
@@ -98,6 +107,22 @@ export function openWorldBoss(state, actions) {
     void b.offsetWidth;
     b.classList.add('show');
     ctx.bannerT = 2.2;
+  };
+
+  // Bilan en direct (téléphone) : dégâts réellement infligés par le héros et chaque membre, paliers atteints.
+  const unitName = (id) => (id === 'hero' ? 'Héros' : companionById(id)?.name ?? id);
+  const live = () => {
+    const box = q('.wb-live');
+    if (box.classList.contains('hidden')) return;
+    const dmg = fight.world.counters?.damage ?? {};
+    const ids = ['hero', ...fight.team];
+    const total = Math.max(1, ids.reduce((t, id) => t + (dmg[id] ?? 0), 0));
+    q('.wb-live-rows').innerHTML = ids.map((id) => {
+      const v = dmg[id] ?? 0;
+      return `<div class="wb-live-row"><span class="wb-live-name">${escapeHtml(unitName(id))}</span><i class="wb-live-bar"><i style="width:${(v / total) * 100}%"></i></i><b class="num">${formatNumber(v)}</b></div>`;
+    }).join('');
+    const cleared = fight.progress().cleared;
+    q('.wb-live-tiers').innerHTML = WORLD_BOSS.tiers.map((t) => `<span class="wb-tier${cleared >= t ? ' on' : ''}"><b class="num">${pct(t)}</b>${cleared >= t ? ' ✓' : ''}</span>`).join('');
   };
 
   const hud = (dt) => {
@@ -126,6 +151,8 @@ export function openWorldBoss(state, actions) {
       ctx.shownLayer = p.layer;
       ctx.shownPhase = fight.phase;
     }
+    ctx.liveT = (ctx.liveT ?? 0) - dt;
+    if (ctx.liveT <= 0 || dt === 0) { ctx.liveT = 0.25; live(); }
     if (ctx.bannerT > 0) { ctx.bannerT -= dt; if (ctx.bannerT <= 0) q('.wb-banner').classList.add('hidden'); }
   };
 

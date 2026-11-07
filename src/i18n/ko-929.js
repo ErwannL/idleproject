@@ -2,6 +2,7 @@
 // Boutique dans la barre du haut ; World Boss en vrai combat animé (phases, barre, bilan).
 export const EXACT_929 = {
   'Dégâts infligés': '입힌 피해',
+  'Dégâts par membre': '멤버별 피해',
   'PV du boss': '보스 HP',
   'Phase': '페이즈',
   'Éveil': '각성',
@@ -14,12 +15,11 @@ export const EXACT_929 = {
   'Paliers de récompense': '보상 단계',
   "Plus de tentative aujourd'hui.": '오늘은 남은 도전이 없습니다.',
   'Le boss se relève !': '보스가 다시 일어납니다!',
-  'Roi démoniaque ancestral': '태고의 마왕',
+  'Colosse des Anciens': '고대인의 거상',
   'Séisme infernal': '지옥의 지진',
   'Pluie de braises': '불씨의 비',
   'Fureur ancestrale': '태고의 분노',
   'World Boss coopératif (dégâts de tous les joueurs, classement) : prochainement.': '협동 월드 보스 (모든 플레이어의 피해, 순위): 곧 공개.',
-};
   // v9.2.9 : nouveaux familiers (noms, compétences, bannière des familiers).
   'Hérisson de cristal': '수정 고슴도치',
   'Piquants de cristal': '수정 가시',
@@ -35,11 +35,12 @@ export const EXACT_929 = {
   'Sanctuaire de jade': '비취 성역',
   'Neuf queues': '아홉 꼬리',
   'familiers SSR dans le bassin': '풀의 SSR 펫',
+};
 export const patterns929 = () => [
   [/^Combat de (\d+) s avec toute l'équipe\. Phases à 75, 50 et 25 % des PV\.$/, (m) => `팀 전체와 함께하는 ${m[1]}초 전투. HP 75, 50, 25%에서 페이즈 전환.`],
   [/^World Boss : (.+) dégâts$/, (m) => `월드 보스: 피해 ${m[1].replace(',', '.')}`],
-];
   // v9.2.9 : textes chiffrés des nouveaux familiers.
   [/^Projette ses piquants sur tous les ennemis \((\d+) % des dégâts\)$/, (m) => `모든 적에게 가시 발사 (공격력의 ${m[1]}%)`],
   [/^Crache une flamme à (\d+) % des dégâts du héros$/, (m) => `영웅 공격력의 ${m[1]}%로 불꽃 발사`],
   [/^Lance des feux de renard sur tous les ennemis \((\d+) % des dégâts\)$/, (m) => `모든 적에게 여우불 (공격력의 ${m[1]}%)`],
+];

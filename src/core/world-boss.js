@@ -31,7 +31,7 @@ const DT = 1 / 60;
 // Réglages du combat (le nombre de tentatives et les écus restent dans data/economy.js : EVENTS.grand.worldBoss).
 export const WORLD_BOSS = {
   boss: 'demon_king',
-  name: 'Roi démoniaque ancestral',
+  name: 'Colosse des Anciens', // boss dédié (PixelLab) : render/world-boss-scene.js ; le moteur garde les stats de `boss`
   seconds: 60,
   sizeMul: 2.3, // taille à l'écran (× la taille normale du boss) ; +0,15 par phase
   // Phases : seuil de PV restants, attaque spéciale (part des PV max du héros, jamais mortelle seule), accélération.
@@ -43,7 +43,7 @@ export const WORLD_BOSS = {
   tiers: [0.25, 0.5, 0.75, 1], // part de la barre vidée pendant la tentative
   hitPct: 0.07, // coup ordinaire du boss : part des PV max du héros (avant armure et Défense)
   attackInterval: 2.4,
-  hpFactor: 1.25, // PV du boss du jour = dégâts mesurés en 60 s × hpFactor (une bonne tentative va jusqu'à ~80 %)
+  hpFactor: 1.05, // PV du boss du jour = dégâts mesurés en 60 s × hpFactor (une bonne tentative vide la barre : Éveil)
   awaken: 1.25, // force du boss à chaque Éveil (barre vidée)
 };
 

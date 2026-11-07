@@ -40,7 +40,7 @@ test('World Boss : combat du vrai moteur, reproductible, sans toucher à l\'éta
   assert.deepEqual(a.team, ['archangel', 'demon_queen', 'wisp'], 'toute l\'équipe combat');
   // PV du jour calés pour qu'une tentative ordinaire passe des phases sans vider la barre d'emblée.
   assert.ok(a.cleared > 0.5 && a.cleared < 1.2, `part de la barre : ${a.cleared}`);
-  assert.ok(a.phase >= 2, 'au moins deux phases franchies');
+  assert.ok(a.phase >= 2 || a.layer > 0, `au moins deux phases franchies : ${JSON.stringify(a)}`);
 });
 
 test('World Boss : les phases (75 / 50 / 25 %) lancent une attaque spéciale et renforcent le boss', () => {

@@ -366,7 +366,7 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
   // v9.1.3 (doc4 lot 6) : score — boss qui ne meurt pas (60 s, score = dégâts infligés), sans mécanique d'invocation.
   if (boss && enc.score) Object.assign(enemy, { hp: 1e300, maxHp: 1e300, trait: null, scoreTarget: true });
   // v9.2.9 : World Boss : immortel pour le moteur, coups réglés par world-boss.js (phases), sans mécanique de trait.
-  if (boss && enc.worldBoss) Object.assign(enemy, { hp: 1e300, maxHp: 1e300, trait: null, worldBoss: true, damage: state.worldBossRun.bossDamage, x: balance.world.spawnX - 40 });
+  if (boss && enc.worldBoss) Object.assign(enemy, { hp: 1e300, maxHp: 1e300, trait: null, worldBoss: true, damage: state.worldBossRun.bossDamage, x: balance.world.heroX + balance.world.meleeOffset + enemy.range }); // surgit sur place (render/world-boss-scene.js)
   if (enemy.trait === 'summoner') enemy.summonTimer = TRAITS.summoner.every / 2;
   // v9.0.4 : ennemis mutés (campagne, donjons, défi ; jamais dans la Tour).
   const mutation = !boss && !elite && !enc.tower ? maybeMutate(state, enemy, rng) : null;

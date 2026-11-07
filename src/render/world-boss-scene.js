@@ -1,8 +1,10 @@
 // v9.2.9 : scène du World Boss. Comme la vitrine (showcase-scene.js), rien n'est redessiné ici : un SceneRenderer
-// (scene.js, le vrai rendu du combat) dessine le monde du boss, le héros, l'équipe, le familier, le boss géant et tous
-// les effets ; il reçoit les événements du VRAI moteur de combat (core/combat.js via core/world-boss.js).
-// Ce module ajoute seulement ce qui est propre au World Boss : attaques spéciales des phases, aura qui change à
-// chaque phase, Éveil (barre vidée), et la barre du boss dans la scène ramenée aux PV « virtuels ».
+// (scene.js, le vrai rendu du combat) dessine le monde, le héros, l'équipe, le familier et tous les effets ; il reçoit
+// les événements du VRAI moteur de combat (core/combat.js via core/world-boss.js).
+// Le boss, lui, est DÉDIÉ : le Colosse des Anciens (PixelLab, assets/world-boss/colossus_*.png : repos, attaque,
+// séisme, braises, coup reçu, transformation, fureur, forme de phase 3, chute). Il est dessiné ici, à la place du
+// boss du moteur, dans le calque des ennemis (méthode drawEnemies du renderer enveloppée pour CETTE scène seulement) :
+// héros, équipe et effets restent devant lui.
 // « Réduire les animations » : renderer calme (pas de secousses, effets sobres) ; l'interface (ui/world-boss.js)
 // joue alors la tentative d'un coup et ne montre qu'une image fixe.
 import { SceneRenderer, WORLD_SCALE } from './scene.js';
@@ -11,10 +13,28 @@ import { formatNumber } from '../core/format.js';
 import { vfx } from './vfx.js';
 import { WORLD_BOSS } from '../core/world-boss.js';
 
-// Couleurs de l'aura selon la phase (0 = avant la première phase).
 // Décalage à l'écran du boss géant (unités du monde de la simulation).
 const BOSS_OFFSET = 34;
 
+// Animations du Colosse : bandes horizontales d'images 128×128 (première et dernière identiques pour les boucles).
+const FRAME = 128;
+const FOOT = 122; // ligne des pieds dans l'image source
+export const COLOSSUS_ANIMS = {
+  idle: { n: 8, fps: 7, loop: true }, idle3: { n: 8, fps: 9, loop: true },
+  attack: { n: 9, fps: 16 }, attack3: { n: 9, fps: 18 }, hurt: { n: 9, fps: 18 },
+  quake: { n: 9, fps: 11 }, embers: { n: 9, fps: 11 }, fury: { n: 9, fps: 12 },
+  transform: { n: 13, fps: 12 }, death: { n: 13, fps: 10 }, rise: { n: 13, fps: 14, src: 'death', reverse: true },
+};
+const IMAGES = {};
+function sheet(name) {
+  if (typeof Image === 'undefined') return null;
+  if (!IMAGES[name]) { const im = new Image(); im.src = `assets/world-boss/colossus_${name}.png`; IMAGES[name] = im; }
+  const im = IMAGES[name];
+  return im.complete && im.naturalWidth ? im : null;
+}
+export function preloadColossus() { for (const [k, a] of Object.entries(COLOSSUS_ANIMS)) sheet(a.src ?? k); }
+
+// Couleurs de l'aura selon la phase (0 = avant la première phase).
 export const PHASE_COLORS = ['#ffb347', '#ff8a3d', '#ff5a3d', '#ff2a4a'];
 
 export class WorldBossScene {
@@ -28,6 +48,70 @@ export class WorldBossScene {
     this.flashEnd = 0;
     this.clock = 0;
     this.noFlashUntil = 0;
+    this.anim = null; // animation ponctuelle en cours : { name, t, then }
+    this.hurtAt = -9;
+    this.appear = 0;
+    preloadColossus();
+    // Le boss du moteur n'est pas dessiné par le renderer : le Colosse prend sa place dans le même calque.
+    const draw = this.r.drawEnemies.bind(this.r);
+    this.r.drawEnemies = (ctx, world, dt) => {
+      const boss = this.fight.boss;
+      if (!boss) { draw(ctx, world, dt); return; }
+      const all = world.enemies;
+      world.enemies = all.filter((e) => e !== boss);
+      draw(ctx, world, dt);
+      world.enemies = all;
+      this.drawColossus(ctx, boss, dt);
+    };
+  }
+
+  // Animation ponctuelle (attaque, phase…), puis retour au repos (ou à `then`).
+  play(name, then = null) {
+    if (this.r.focus) return; // « Réduire les animations » : poses fixes
+    this.anim = { name, t: 0, then };
+  }
+
+  get scale() { return 1.15 + 0.06 * this.fight.phase; }
+
+  drawColossus(ctx, boss, dt) {
+    const r = this.r;
+    this.appear = Math.min(1, this.appear + dt * 1.5);
+    const phase3 = this.fight.phase >= 3;
+    let name = phase3 ? 'idle3' : 'idle';
+    let i = 0;
+    if (this.anim) {
+      const a = COLOSSUS_ANIMS[this.anim.name];
+      this.anim.t += dt;
+      const k = Math.floor(this.anim.t * a.fps);
+      if (k >= a.n) {
+        const then = this.anim.then;
+        this.anim = then ? { name: then, t: 0, then: null } : null;
+      } else { name = this.anim.name; i = a.reverse ? a.n - 1 - k : k; }
+    }
+    if (!this.anim || name === 'idle' || name === 'idle3') {
+      const a = COLOSSUS_ANIMS[name];
+      i = r.focus ? 0 : Math.floor(r.time * a.fps) % a.n;
+    }
+    const a = COLOSSUS_ANIMS[name];
+    const im = sheet(a.src ?? name);
+    const k = this.scale;
+    const w = FRAME * k;
+    const cx = r.wx(boss.x) + 14;
+    const x = Math.round(cx - w / 2);
+    const y = Math.round(r.groundY + 1 - FOOT * k);
+    // Ombre au sol, puis le Colosse (pieds sur la ligne du sol).
+    ctx.save();
+    ctx.globalAlpha = 0.35 * this.appear;
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.ellipse(cx, r.groundY + 1, 44 * k, 6 * k, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = this.appear;
+    if (im) ctx.drawImage(im, i * FRAME, 0, FRAME, FRAME, x, y, w, w);
+    ctx.restore();
+    // Repères pour les effets du renderer (coups, projectiles, chiffres) : la silhouette visible du Colosse.
+    const fx = r.enemyFxFor(boss.id);
+    Object.assign(fx, { sx: x + 8 * k, sy: y + 6 * k, sw: 112 * k, sh: 116 * k, seen: r.time, edge: x + 18 * k, landed: true, appear: 1, hit: 0 });
   }
 
   resize(w, h) { this.r.resize(w, h); }
@@ -54,27 +138,19 @@ export class WorldBossScene {
       if (off && e.enemyId === boss.id && e.x !== undefined) e.x += off;
       if (off && e.targets) for (const t of e.targets) if (t.id === boss.id) t.x += off;
       r.handleEvent(e, world);
+      if (boss && !this.anim) {
+        if (e.type === 'enemyWindup' && e.enemyId === boss.id) this.play(this.fight.phase >= 3 ? 'attack3' : 'attack');
+        else if (e.type === 'heroAttack' && e.crit && e.enemyId === boss.id && this.clock - this.hurtAt > 2.5) { this.hurtAt = this.clock; this.play('hurt'); }
+      }
     }
     world.events.length = 0;
     while (this.seen < fight.out.length) this.special(fight.out[this.seen++]);
     this.aura(dt);
-    this.limitFlash(boss);
     // Barre du boss dans la scène : PV virtuels de la barre en cours (le moteur, lui, le garde immortel).
     const keep = boss ? [boss.hp, boss.maxHp] : null;
     if (boss) { boss.maxHp = 1000; boss.hp = Math.max(1, 1000 * fight.progress().frac); }
     r.render(fight.state, world, dt);
     if (boss) { [boss.hp, boss.maxHp] = keep; boss.x -= off; boss.prevX -= off; }
-  }
-
-  // Toute l'équipe frappe sans arrêt : l'éclair blanc du coup reçu resterait allumé (boss tout blanc). Un éclair
-  // bref (2 images) au plus toutes les 0,9 s.
-  limitFlash(boss) {
-    const fx = boss && this.r.enemyFx.get(boss.id);
-    if (!fx) return;
-    const t = this.clock; // horloge propre : l'arrêt sur image des critiques ralentit celle du renderer
-    if (t < this.flashEnd) return;
-    if (t < this.noFlashUntil) { fx.hit = 0; return; }
-    if (fx.hit > 0) { this.flashEnd = t + 0.04; this.noFlashUntil = t + 0.9; }
   }
 
   // Quelques images sans combat (fin de tentative, image fixe) : les effets retombent, le boss respire.
@@ -107,6 +183,7 @@ export class WorldBossScene {
     });
     const color = PHASE_COLORS[ev.phase ?? 3];
     if (ev.type === 'awaken') {
+      this.play('death', 'rise'); // chute du Colosse, puis il se relève
       vfx(r, 'boss_explode', box.x, box.y, { size: 2.2 });
       r.later(0.5, () => vfx(r, 'boss_appear', box.x, box.foot + 2, { size: 2 }));
       r.effects.push({ kind: 'beam', x: Math.round(box.x), color: '#ffd23f', life: 1.2, max: 1.2, wide: true });
@@ -117,21 +194,24 @@ export class WorldBossScene {
     vfx(r, 'boss_rage', box.x, box.foot, { size: 2.4, tint: color });
     r.burst(box.x, box.top + 10, color, 24, 70);
     if (ev.id === 'quake') {
-      // Séisme : le boss frappe le sol, l'onde court jusqu'au héros.
+      // Séisme : le Colosse frappe le sol des deux poings, l'onde court jusqu'au héros.
+      this.play('quake');
       for (let i = 0; i < 5; i++) {
         const x = box.x - (box.x - heroX) * (i / 4);
         r.later(0.15 + i * 0.09, () => { vfx(r, 'mut_stomp', x, r.groundY, { size: 1.6 }); vfx(r, 'dust_land', x, r.groundY, { size: 1.5 }); });
       }
       hurt(0.6);
     } else if (ev.id === 'meteors') {
-      // Pluie de braises : météores sur toute l'équipe.
-      for (let i = 0; i < 6; i++) r.later(0.1 + i * 0.12, () => vfx(r, 'sk_meteor', heroX - 40 + i * 22, r.groundY, { size: 1.2, tint: color }));
-      hurt(0.7);
+      // Pluie de braises : il lève les bras, les runes s'embrasent, les météores tombent sur toute l'équipe.
+      this.play('embers');
+      for (let i = 0; i < 6; i++) r.later(0.5 + i * 0.12, () => vfx(r, 'sk_meteor', heroX - 40 + i * 22, r.groundY, { size: 1.2, tint: color }));
+      hurt(1.1);
     } else {
-      // Fureur : colonne de feu infernal sur le héros, le boss devient rouge vif et frappe plus vite.
-      r.effects.push({ kind: 'beam', x: heroX, color: '#ff2a4a', life: 1, max: 1, wide: true });
-      r.later(0.2, () => vfx(r, 'sk_hellfire', heroX + 6, r.groundY, { size: 1.6 }));
-      hurt(0.45);
+      // Fureur : le Colosse se fissure et s'embrase (transformation), rugit, puis colonne de feu sur le héros.
+      this.play('transform', 'fury');
+      r.later(1.3, () => r.effects.push({ kind: 'beam', x: heroX, color: '#ff2a4a', life: 1, max: 1, wide: true }));
+      r.later(1.4, () => vfx(r, 'sk_hellfire', heroX + 6, r.groundY, { size: 1.6 }));
+      hurt(1.5);
     }
   }
 }
