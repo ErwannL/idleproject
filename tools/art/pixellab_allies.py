@@ -179,6 +179,11 @@ def separate_weapon(frames, key, cls, pool):
     return poses
 
 
+# v9.2.9 : poses « derrière » fausses : flammes du sort posées sur le bâton (arme masquée par l'effet, pas par le corps).
+# Le bâton reste dans la main d'avant : drapeau « derrière » retiré sur ces images.
+FRONT_FIX = {('hero_seraph', 'pyromancer'): (3, 4)}
+
+
 def hand_of(key):
     """Main de la vue de repos (prise de l'épée du chevalier dans la vue corps + épée)."""
     ref = Image.open(os.path.join(SRC, '_ref', f'{key}_knight.png')).convert('RGBA')
@@ -192,8 +197,8 @@ def build():
     sprites, index = {}, {}
     for d in sorted(glob.glob(os.path.join(SRC, '*_*'))):
         name = os.path.basename(d)
-        if name.startswith('_'):
-            continue
+        if name.startswith('_') or (os.environ.get('ONLY') and name not in os.environ['ONLY'].split(',')):
+            continue  # v9.2.9 : ONLY=dossier,dossier : reconstruction partielle (essais), voir splice plus bas
         key, _, anim = name.rpartition('_')
         cls = None
         if anim == 'attack' and key.startswith('hero_') and key.count('_') == 2:
@@ -212,6 +217,8 @@ def build():
         weapon = None
         if key.startswith('hero_') and anim == 'attack' and cls:
             weapon = separate_weapon(frames, key, cls, pool)
+            for i in FRONT_FIX.get((key, cls), ()):
+                weapon[i][3] = 0
             # Pieds recalés sur la vue sans arme (l'arme effacée pouvait descendre sous les pieds : bâton, faux).
             fy0, _ = _feet(_clean_alpha(Image.open(os.path.join(SRC, '_ref', f'{key}.png'))))
             for i, f in enumerate(frames):
@@ -304,7 +311,7 @@ def write(sprites, index):
     lines.append('// image du coup (hit) des attaques, centre du corps (cx, cy) des nages.')
     lines.append('export const ALLY_ANIMS = ' + json.dumps(index, separators=(',', ':')) + ';')
     lines.append('')
-    out = os.path.join(ROOT, 'src', 'render', 'art-anim-allies.js')
+    out = os.environ.get('OUT') or os.path.join(ROOT, 'src', 'render', 'art-anim-allies.js')
     with open(out, 'w', encoding='utf-8') as f:
         f.write('\n'.join(lines))
     print(f'{len(sprites)} images -> {os.path.relpath(out, ROOT)} ({os.path.getsize(out) // 1024} Ko)')

@@ -121,6 +121,31 @@ function coversFace(body, held, ax, ay) {
   return n >= 1;
 }
 
+// v9.2.9 : part visible de l'arme posée DERRIÈRE le corps en (ax, ay) : pixels de l'arme hors du corps opaque.
+const visCache = new Map();
+export function behindVisible(body, held, ax, ay) {
+  const byHeld = visCache.get(held) ?? new Map();
+  visCache.set(held, byHeld);
+  const k = `${body.key}|${ax},${ay}`;
+  if (byHeld.has(k)) return byHeld.get(k);
+  const f = faceRows(body.canvas), wd = alphaOf(held.canvas);
+  let n = 0, seen = 0;
+  if (f.d && wd) for (let y = 0; y < held.canvas.height; y++) for (let x = 0; x < held.canvas.width; x++) {
+    if (wd[(y * held.canvas.width + x) * 4 + 3] < 100) continue;
+    n++;
+    const bx = ax + x, by = ay + y;
+    if (bx < 0 || by < 0 || bx >= f.w || by >= f.h || f.d[(by * f.w + bx) * 4 + 3] <= 100) seen++;
+  }
+  const v = n ? seen / n : 1;
+  if (visCache.size > 400) visCache.clear();
+  byHeld.set(k, v);
+  return v;
+}
+// v9.2.9 : sous ce seuil, une arme posée derrière le corps « disparaît » (lance droite en marche, coup de la sorcière).
+export const MIN_VISIBLE = 0.4;
+// v9.2.9 : part visible minimale d'une arme laissée derrière le corps (élan derrière la tête, main arrière).
+export const MIN_PARTIAL = 0.15;
+
 // pick : résultat de ally-anim.js pickHeroAnim ({ name, anim, ox, oy, weapon, head }) ; (x, y) : coin du sprite de jeu.
 // opts.weapon = false : corps seul (contrôles de tête).
 export function drawHeroPick(ctx, pick, equipment, palette, x, y, opts = {}) {
@@ -132,12 +157,32 @@ export function drawHeroPick(ctx, pick, equipment, palette, x, y, opts = {}) {
   const fi = pick.anim.frames.indexOf(pick.name);
   const calm0 = pick.anim.frames.length && (fi === 0 || fi === pick.anim.frames.length - 1 || isWalk(pick.anim));
   const deg = tilt && calm0 && (wp.deg <= 10 || wp.deg >= 350) ? tilt : wp?.deg;
-  const held = wp && heroHeldWeapon(equipment, deg);
+  let held = wp && heroHeldWeapon(equipment, deg);
   const body = bodyOf(pick, equipment, palette);
   const ox = pick.anim.ox - body.m, oy = pick.anim.oy - body.m; // repère du calque du corps
   const bx = x + ox, by = y + oy;
   if (!held) { ctx.drawImage(body.canvas, bx, by); return null; }
   const [gx, gy] = snapGrip(body.canvas, body.key, wp.x - ox, wp.y - oy);
+  // v9.2.9 : « quand il marche, l'arme disparaît » : une arme qui passerait derrière le corps en n'en montrant
+  // pas 40 % est inclinée vers l'avant (20°, puis 40°) jusqu'à quitter le visage ou se montrer ; à défaut elle reste
+  // derrière avec l'inclinaison la plus visible.
+  let forceFront = false;
+  if (wp.back || coversFace(body, held, gx - held.x, gy - held.y)) {
+    if (behindVisible(body, held, gx - held.x, gy - held.y) < MIN_VISIBLE) {
+      let best = null;
+      for (const d of [20, 40, -20]) {
+        const h2 = heroHeldWeapon(equipment, ((deg ?? 0) + d + 360) % 360);
+        if (!h2) continue;
+        if (!wp.back && !coversFace(body, h2, gx - h2.x, gy - h2.y)) { best = { h: h2, front: true }; break; }
+        const v = behindVisible(body, h2, gx - h2.x, gy - h2.y);
+        if (v >= MIN_VISIBLE && (!best || v > best.v)) best = { h: h2, v };
+      }
+      if (best) { held = best.h; forceFront = !!best.front; }
+      // main arrière ou élan derrière la tête : une arme presque entièrement cachée passe devant (mieux vaut une lame
+      // devant le visage qu'une arme disparue) ; entre 15 et 40 %, elle reste derrière, en partie visible.
+      else if (!coversFace(body, held, gx - held.x, gy - held.y) || behindVisible(body, held, gx - held.x, gy - held.y) < MIN_PARTIAL) forceFront = true;
+    }
+  }
   const wx = bx + gx - held.x, wy = by + gy - held.y;
   // v9.2.5 : en marche et au repos (première et dernière image d'un geste), une arme qui recouvrirait le visage
   // (hache, marteau tenus droits) passe derrière la tête et le corps ; le poing reste par-dessus la poignée.
@@ -145,7 +190,7 @@ export function drawHeroPick(ctx, pick, equipment, palette, x, y, opts = {}) {
   const calm = pick.anim.frames.length && (i === 0 || i === pick.anim.frames.length - 1 || isWalk(pick.anim));
   // v9.2.5 : contrôle étendu à toutes les images (frappes comprises) : jamais d'arme devant le visage.
   void calm;
-  const behind = wp.back || coversFace(body, held, gx - held.x, gy - held.y);
+  const behind = !forceFront && (wp.back || coversFace(body, held, gx - held.x, gy - held.y));
   if (behind) ctx.drawImage(held.canvas, wx, wy);
   ctx.drawImage(body.canvas, bx, by);
   if (behind && !wp.back) {
