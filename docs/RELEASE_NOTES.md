@@ -1,3 +1,11 @@
+## Ascendrya v9.2.9 — World Boss, boutique accessible, nouveaux familiers, stabilité
+
+- World Boss : vrai combat animé de 60 s contre le Colosse des Anciens (3 phases avec attaques spéciales, barre géante, chrono, bilan, paliers, 3 tentatives par jour) avec toute l'équipe ; sur téléphone, bilan en direct par membre.
+- Boutique accessible en permanence depuis la barre du haut.
+- Quatre nouveaux familiers SSR (Dragonnet de braise, Tortue de jade, Renard céleste, Petit phénix) et un SR (Hérisson de cristal), avec animations, illustrations, compétences et vitrine ; tailles harmonisées.
+- Armes des apparences : arme toujours visible (plus de lance cachée derrière la tête), frappe de la même main que la prise, arc et arbalète de la diablesse refaits.
+- Stabilité : parcours complet du jeu automatisé ; noms de compagnons qui se chevauchaient, textes coupés sur téléphone, bouton des réglages coupé, traductions manquantes corrigés.
+
 ## Ascendrya v9.2.8 — Nouvelle économie d'invocation, boutique, événement, défense
 
 - Invocations refaites : bannière limitée (2 % SSR, 50/50 avec vedette garantie après une perte, SSR garanti au 100e tirage), bannière permanente (1,5 %, liste de souhaits de 5), familiers avec leurs propres tickets (3 %, garanti au 60e). Taux, pity et garanties affichés.
