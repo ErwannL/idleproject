@@ -21,6 +21,7 @@ import { EXACT_927_SHOWCASE } from './en-927-vitrine.js'; // v9.2.7 : vitrine an
 import { EXACT_927, patterns927 } from './en-927.js'; // v9.2.7
 import { EXACT_928, patterns928 } from './en-928.js'; // v9.2.8
 import { EXACT_928_ECO, patterns928Eco } from './en-928-eco.js'; // v9.2.8 : économie
+import { EXACT_929, patterns929 } from './en-929.js'; // v9.2.9
 
 // --- Dictionnaire exact ---------------------------------------------------------------------------
 
@@ -2032,3 +2033,6 @@ PATTERNS.unshift(...patterns928(lookup));
 // v9.2.8 : économie — bannières, boutique, cosmétiques, événements (./en-928-eco.js).
 for (const [k, v] of Object.entries(EXACT_928_ECO)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v; // sans écraser l'existant
 PATTERNS.unshift(...patterns928Eco(lookup));
+// v9.2.9 : boutique en haut, World Boss en vrai combat (./en-929.js) — sans écraser l'existant.
+for (const [k, v] of Object.entries(EXACT_929)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns929(lookup));

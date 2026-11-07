@@ -108,6 +108,14 @@ export function tickSubscriptions(state, now = Date.now()) {
   return out;
 }
 
+// v9.2.9 : pastille du bouton Boutique de la barre du haut : une offre gratuite encore disponible (prix 0, achetable)
+// ou la part du jour d'un abonnement actif pas encore reçue.
+export function shopFreeAvailable(state, now = Date.now()) {
+  if (allOffers().some((o) => (o.price === 0 || o.free) && offerState(state, o, now).canBuy)) return true;
+  const subs = state.economy?.store?.subs ?? {};
+  return Object.entries(subs).some(([id, sub]) => offerById(id)?.daily && sub.until > now && sub.lastDay !== dayKey(now));
+}
+
 // Paliers de dépenses cumulées (cosmétiques seulement).
 export function spendTiers(state) {
   const spent = state.economy?.store?.spentCents ?? 0;

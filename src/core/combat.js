@@ -204,6 +204,12 @@ export function referenceKillGold(stage, balance = BALANCE) {
 export function currentEncounter(state, balance = BALANCE) {
   // v9.1.3 (doc4 lot 6) : mode monde (un mode à part : ZONES ne bouge pas, la campagne ne se décale pas).
   if (state.worldRun) return worldEncounter(state);
+  // v9.2.9 : World Boss de l'Expédition des Anciens (core/world-boss.js) : un seul boss géant, immortel pour le moteur
+  // (les PV affichés et les phases sont tenus par world-boss.js à partir des dégâts comptés ici).
+  if (state.worldBossRun) {
+    const run = state.worldBossRun;
+    return { level: run.level, boss: true, enemies: [], bosses: [run.boss], killsNeeded: 1, zoneIndex: run.zone, dungeon: null, worldBoss: true };
+  }
   if (state.tower) {
     // Tour de l'Éternité : un boss par étage, décor qui change tous les 10 étages.
     const floor = state.tower.floor;
@@ -244,7 +250,7 @@ export function currentEncounter(state, balance = BALANCE) {
 // v9.2.1 : malus d'environnement de la rencontre en cours (campagne, donjons et défi de leur monde ; ni la Tour ni le
 // mode monde, qui ont leurs propres règles). Le cycle de difficulté ne compte qu'en campagne.
 export function currentEnvironment(state, balance = BALANCE) {
-  if (state.tower || state.worldRun) return null;
+  if (state.tower || state.worldRun || state.worldBossRun) return null; // v9.2.9 : ni le World Boss
   const enc = currentEncounter(state, balance);
   const campaign = !enc.dungeon && !enc.challenge;
   return environmentFor(state, enc.zoneIndex, campaign ? difficultyForStage(state.stage, balance) : 1);
@@ -359,6 +365,8 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
   };
   // v9.1.3 (doc4 lot 6) : score — boss qui ne meurt pas (60 s, score = dégâts infligés), sans mécanique d'invocation.
   if (boss && enc.score) Object.assign(enemy, { hp: 1e300, maxHp: 1e300, trait: null, scoreTarget: true });
+  // v9.2.9 : World Boss : immortel pour le moteur, coups réglés par world-boss.js (phases), sans mécanique de trait.
+  if (boss && enc.worldBoss) Object.assign(enemy, { hp: 1e300, maxHp: 1e300, trait: null, worldBoss: true, damage: state.worldBossRun.bossDamage, x: balance.world.spawnX - 40 });
   if (enemy.trait === 'summoner') enemy.summonTimer = TRAITS.summoner.every / 2;
   // v9.0.4 : ennemis mutés (campagne, donjons, défi ; jamais dans la Tour).
   const mutation = !boss && !elite && !enc.tower ? maybeMutate(state, enemy, rng) : null;
@@ -648,6 +656,7 @@ function hitEnemy(state, world, enemy, damage, rng, balance, stats, enc, source,
   damage = mutationDamageTaken(enemy, damage);
   damage = traitDamageTaken(enemy, damage);
   if (enemy.scoreTarget && state.worldRun?.kind === 'score') state.worldRun.damage += damage; // v9.1.3 (doc4 lot 6)
+  if (enemy.worldBoss && state.worldBossRun) state.worldBossRun.damage += damage; // v9.2.9 : World Boss
   const dealt = world.counters?.damage ? Math.max(0, Math.min(damage, enemy.hp)) : 0;
   if (dealt > 0) world.counters.damage[unitId] = (world.counters.damage[unitId] ?? 0) + dealt;
   enemy.hp -= damage;
@@ -734,6 +743,12 @@ function heroDies(state, world, balance) {
   hero.dead = true;
   hero.hp = 0;
   hero.respawnTimer = balance.hero.respawnSeconds;
+  // v9.2.9 : World Boss : le héros tombe, se relève après le délai habituel (temps perdu) ; le boss reste en place.
+  if (state.worldBossRun) {
+    state.worldBossRun.falls = (state.worldBossRun.falls ?? 0) + 1;
+    emit(world, 'heroDeath', { worldBoss: true });
+    return;
+  }
   // Donjon : on note où l'on en était (salle, PV restants du boss) avant de vider la vague.
   const boss = state.dungeon || state.tower || state.challenge ? world.enemies.find((e) => e.boss && !e.summoned) : null;
   const bossHpPct = boss ? Math.max(0, Math.round((boss.hp / boss.maxHp) * 1000) / 10) : null;

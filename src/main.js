@@ -64,7 +64,8 @@ import { applyTheme, themeById } from './ui/themes.js';
 import { toggleWishlist, useSsrFragment } from './core/gacha.js';
 import { purchase } from './core/store.js';
 import { ownsTheme, unequipSkin, wornTheme } from './core/cosmetics.js';
-import { buyEventItem, claimEventGoal, fightStage, fightWorldBoss } from './core/ancients.js';
+import { buyEventItem, claimEventGoal, fightStage, finishWorldBoss, startWorldBoss, worldBossStatus } from './core/ancients.js';
+import { bossHpForDay } from './core/world-boss.js'; // v9.2.9 : World Boss en vrai combat
 import { bossesForStage, enemyStats } from './core/combat.js';
 import { BUILT_IN_TOKEN } from './core/update-token.js';
 import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagList, updateStatus } from './core/update.js';
@@ -669,11 +670,14 @@ const actions = {
     done(true, r.won ? `Étape ${n} réussie` : `Étape ${n} : gardien trop solide`, r.won ? '#7fe0a0' : '#ff8a6a');
     return r;
   },
-  eventBoss() {
-    const r = fightWorldBoss(state, computeHeroStats(state).dps);
-    done(Boolean(r), r ? 'World Boss : tentative terminée' : null, '#f2d083');
+  // v9.2.9 : World Boss en vrai combat animé (ui/world-boss.js) : la tentative est comptée au départ, le bilan à la fin.
+  eventBossStart() { return startWorldBoss(state, () => bossHpForDay(state)); },
+  eventBossFinish(setup, result) {
+    const r = finishWorldBoss(state, setup, result);
+    done(Boolean(r), r ? `World Boss : ${formatNumber(r.damage)} dégâts` : null, '#f2d083');
     return r;
   },
+  eventBossLeft() { return worldBossStatus(state)?.left ?? 0; },
   eventBuy(id) { done(Boolean(buyEventItem(state, id)), 'Échange effectué'); },
   eventGoal(id) { done(Boolean(claimEventGoal(state, id)), 'Récompense récupérée'); },
   // Vitesses débloquées par code (v8.4) ; ×100 demande une confirmation (effets visuels coupés).

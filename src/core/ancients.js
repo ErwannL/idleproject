@@ -3,11 +3,13 @@
 // Première version jouable du grand événement : carte de 5 régions × 10 étapes en combat automatique résolu d'un coup
 // (dégâts du héros pendant 30 s contre les PV du gardien de l'étape), World Boss dès l'étape 20 (3 tentatives par
 // jour), écus d'événement et boutique d'événement, fragment SSR universel à l'étape 30.
+// v9.2.9 : le World Boss n'est plus résolu d'un coup : vrai combat animé de 60 s (core/world-boss.js, ui/world-boss.js).
 // Reportés (voir le plan) : reliques d'événement améliorables, Failles dimensionnelles de la 2e semaine.
 import { EVENTS } from '../data/economy.js';
 import { grantReward } from './rewards.js';
 import { ensureEconomy } from './wallet.js';
 import { dayKey } from './income.js';
+import { attemptCoins, attemptSeed } from './world-boss.js'; // v9.2.9
 
 const DAY = 86400000;
 const anchorMs = () => new Date(`${EVENTS.anchor}T00:00:00`).getTime();
@@ -78,18 +80,53 @@ export function worldBossStatus(state, now = Date.now()) {
   return { open: rec.cleared >= wb.unlockStage, left: Math.max(0, wb.attemptsPerDay - used), best: rec.boss.best };
 }
 
-// Tentative contre le World Boss : dégâts du héros pendant 60 s ; écus fixes par tentative ; record gardé.
-export function fightWorldBoss(state, dps, now = Date.now()) {
+// v9.2.9 : World Boss en vrai combat animé (core/world-boss.js). Une tentative = startWorldBoss (consomme la tentative
+// tout de suite : quitter en cours de route ne la rend pas) puis finishWorldBoss (dégâts, record, paliers, écus).
+// Le jour garde : tentatives utilisées, dégâts du jour, meilleur score du jour, PV du boss du jour (mesurés une fois).
+function bossDay(rec, today) {
+  if (rec.boss.day !== today) rec.boss = { day: today, used: 0, best: rec.boss.best ?? 0, today: 0, todayBest: 0, hp: 0, tiers: 0 };
+  rec.boss.today ??= 0;
+  rec.boss.todayBest ??= 0;
+  rec.boss.hp ??= 0;
+  rec.boss.tiers ??= 0;
+  return rec.boss;
+}
+
+export function worldBossDay(state, now = Date.now()) {
+  const rec = eventRecord(state, now);
+  if (!rec) return null;
+  const today = dayKey(now);
+  const b = rec.boss.day === today ? rec.boss : { today: 0, todayBest: 0, hp: 0, tiers: 0 };
+  return { today: b.today ?? 0, todayBest: b.todayBest ?? 0, hp: b.hp ?? 0, tiers: b.tiers ?? 0, best: rec.boss.best ?? 0 };
+}
+
+// `hpOf()` : PV du boss du jour (appelé seulement à la première tentative du jour). Renvoie le réglage du combat.
+export function startWorldBoss(state, hpOf, now = Date.now()) {
   const st = worldBossStatus(state, now);
   if (!st?.open || st.left <= 0) return null;
-  const rec = eventRecord(state, now);
+  const ev = currentEvent(now);
+  const rec = record(state, ev.id);
   const today = dayKey(now);
-  if (rec.boss.day !== today) rec.boss = { day: today, used: 0, best: rec.boss.best };
-  rec.boss.used += 1;
-  const damage = Math.floor(dps * G().worldBoss.seconds);
-  rec.boss.best = Math.max(rec.boss.best, damage);
-  rec.coins += G().worldBoss.coinsPerAttempt;
-  return { damage, coins: G().worldBoss.coinsPerAttempt };
+  const b = bossDay(rec, today);
+  if (!(b.hp > 0)) b.hp = Math.max(1, Math.round(hpOf()));
+  b.used += 1;
+  return { event: ev.id, day: today, attempt: b.used, seed: attemptSeed(today, b.used), maxHp: b.hp };
+}
+
+// Fin d'une tentative : result = { damage, tiers } (WorldBossFight.result()). Écus selon les paliers atteints.
+export function finishWorldBoss(state, setup, result, now = Date.now()) {
+  const rec = eventRecord(state, now);
+  if (!rec || !setup || rec.boss.day !== setup.day) return null;
+  const damage = Math.max(0, Math.floor(result.damage));
+  const b = rec.boss;
+  const record = damage > (b.best ?? 0);
+  b.best = Math.max(b.best ?? 0, damage);
+  b.today = (b.today ?? 0) + damage;
+  b.todayBest = Math.max(b.todayBest ?? 0, damage);
+  b.tiers = Math.max(b.tiers ?? 0, result.tiers);
+  const coins = attemptCoins(result.tiers);
+  rec.coins += coins;
+  return { damage, coins, record, today: b.today, best: b.best, tiers: result.tiers };
 }
 
 // Boutique d'événement (écus → tickets), stocks par événement.

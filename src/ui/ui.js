@@ -55,6 +55,8 @@ import options from './panels/options.js';
 import skills from './panels/skills.js';
 import summon from './panels/summon.js';
 import shop from './panels/shop.js'; // v9.2.8
+import { shopFreeAvailable } from '../core/store.js'; // v9.2.9 : pastille du bouton Boutique
+import { openWorldBoss } from './world-boss.js'; // v9.2.9 : World Boss
 import eventPanel from './panels/event.js'; // v9.2.8
 import tree, { DEFAULT_ZOOM as TREE_ZOOM, keepResetLists, recenterTree, transcendKeepResetLists } from './panels/tree.js';
 import upgrades from './panels/upgrades.js';
@@ -801,12 +803,9 @@ export class UI {
         this.invalidate();
         break;
       }
-      case 'event-boss': {
-        const r = a.eventBoss();
-        if (r) v.eventLast = `World Boss : ${formatNumber(r.damage)} dégâts · +${r.coins} écus`;
-        this.invalidate();
+      case 'event-boss': // v9.2.9 : vrai combat animé (ui/world-boss.js)
+        openWorldBoss(this.state, { start: () => a.eventBossStart(), finish: (setup, r) => a.eventBossFinish(setup, r), left: () => a.eventBossLeft(), closed: () => this.invalidate() });
         break;
-      }
       case 'event-buy': a.eventBuy(value); break;
       case 'event-goal': a.eventGoal(value); break;
       case 'summon-odds': local(() => { v.summonOdds = v.summonOdds === value ? null : value; }); break; // v9.1.3 : « ? » d'un bassin
@@ -1631,6 +1630,8 @@ export class UI {
         el.setAttribute('aria-label', red ? 'À récupérer' : '');
       }
     }
+    // v9.2.9 : bouton Boutique de la barre du haut : pastille si une offre gratuite ou quotidienne attend.
+    this.$('badge-shop')?.classList.toggle('hidden', !shopFreeAvailable(state));
     // Objets neufs : trouvés depuis la dernière ouverture d'Équipement (et encore dans le sac).
     if (this.seenItemsUntil === null) this.seenItemsUntil = state.nextItemId;
     const fresh = newItemsInBag(state, this.seenItemsUntil);
@@ -1741,6 +1742,7 @@ export class UI {
       stats: Boolean(state.ui.goalsOpen),
       ranking: Boolean(state.ui.goalsOpen) && Boolean(this.actions.loadRanking) && this.cloud?.enabled !== false,
     };
+    this.$('top-shop')?.classList.toggle('hidden', !visible.shop); // v9.2.9 : bouton Boutique de la barre du haut
     const key = `${JSON.stringify(visible)}|${this.tab}|${[...this.newTabs].join()}`;
     if (this.lastHud.tabs === key) return;
     const firstPass = this.lastHud.tabsInit === undefined;

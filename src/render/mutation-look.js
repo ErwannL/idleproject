@@ -18,6 +18,7 @@ export const MUTATION_PACE = { frenzied: 1.9, giant: 0.65 };
 export const SHEEN_STEPS = 8;
 
 export function mutationSize(enemy) {
+  if (enemy?.sizeMul) return enemy.sizeMul; // v9.2.9 : World Boss géant (core/world-boss.js), grandit à chaque phase
   if (enemy?.splitChild) return SPLIT_CHILD_SIZE;
   return MUTATION_SIZE[enemy?.mutation] ?? 1;
 }
