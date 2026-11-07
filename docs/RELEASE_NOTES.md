@@ -1,3 +1,13 @@
+## Ascendrya v9.2.8 — Nouvelle économie d'invocation, boutique, événement, défense
+
+- Invocations refaites : bannière limitée (2 % SSR, 50/50 avec vedette garantie après une perte, SSR garanti au 100e tirage), bannière permanente (1,5 %, liste de souhaits de 5), familiers avec leurs propres tickets (3 %, garanti au 60e). Taux, pity et garanties affichés.
+- Doublons jusqu'à 6 exemplaires (ultime au 4e), fragments SSR universels, revenus mensuels de tickets et de gemmes.
+- Boutique (cristaux, tickets, abonnements, skins, thèmes, packs) avec ses icônes ; paiements pas encore actifs (« Bientôt disponible »).
+- Apparences purement cosmétiques : leur ancien bonus devient un bonus de compte permanent (« Héritage des apparences »). Trois nouveaux thèmes.
+- Événement « Expédition des Anciens » (50 étapes, World Boss, boutique d'événement) et « Marché des lueurs ».
+- Défense : PV et défense visibles dans les améliorations (onglets Toutes / Combat / Défense / Ressources), « Encaisse N coups », nouvelles stats Défense, Double attaque et Puissance de combat, fiche de stats du héros refaite ; combats rééquilibrés (on n'est plus mis à terre d'un coup quand on investit en défense, boss plus lents et plus lourds).
+- Sauvegardes converties sans perte (compteurs de pity, garanties, tickets offerts).
+
 ## Ascendrya v9.2.7 — Arbre de talents refait, vitrine d'animations, volants et marcheurs
 
 - Arbre de talents refait : chaque nœud montre ce qu'il donne, son coût et son état, régions nommées et colorées, ce que débloque un talent en pointillés, légende, zoom fluide ; l'animation se joue sur le nœud acheté et court le long des liens.
