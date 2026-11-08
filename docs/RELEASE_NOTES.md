@@ -1,3 +1,10 @@
+## Ascendrya v9.3.0 — Événements pilotés en direct, Colosse déchaîné, nouveau site
+
+- Événements pilotés depuis l'admin : calendrier qui démarre et arrête seul les événements, vedettes, offres et annonces aux dates prévues (heure du serveur), avec boutons « Démarrer maintenant » / « Arrêter maintenant ». Le contenu arrive à l'avance par les mises à jour et s'active sans nouvelle version. Objectifs de préinscription librement réglables.
+- World Boss : le Colosse des Anciens lance des rochers et un rayon depuis ses yeux, en pierre puis en lave en phase 3.
+- Le Roi démon et l'Épouvantail ne tournent plus le dos au héros quand ils sont touchés.
+- Nouveau site : bandeau vidéo filmé dans le jeu, mondes, galerie des héros et compagnons, familiers, World Boss, paliers de préinscription, FAQ, en français et en anglais.
+
 ## Ascendrya v9.2.9 — World Boss, boutique accessible, nouveaux familiers, stabilité
 
 - World Boss : vrai combat animé de 60 s contre le Colosse des Anciens (3 phases avec attaques spéciales, barre géante, chrono, bilan, paliers, 3 tentatives par jour) avec toute l'équipe ; sur téléphone, bilan en direct par membre.
