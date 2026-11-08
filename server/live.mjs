@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 import {
   LIVE_EVENT_TYPES, LIVE_FEATURED_UNITS, LIVE_FLAGS, LIVE_MIN_CLIENT, LIVE_OFFER_IDS, compareVersions, eventParams, isVersion,
 } from '../src/data/live-catalog.js';
+import { BANNERS, EVENTS } from '../src/data/economy.js'; // v9.3.0 : reprise du calendrier automatique de la 9.2.9
 
 export const LIVE_SCHEMA = 1;
 const DAY = 86400000;
@@ -69,6 +70,10 @@ CREATE TABLE IF NOT EXISTS live_goals (
   version INTEGER NOT NULL DEFAULT 1,
   updated_at INTEGER NOT NULL,
   updated_by TEXT NOT NULL DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS live_meta (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS live_history (
   id INTEGER PRIMARY KEY,
@@ -156,7 +161,11 @@ export function validateItem(body, prev = null) {
   const raw = 'data' in body ? body.data ?? {} : prevData;
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw bad('Données : objet attendu');
   let data;
-  if (kind === 'event') data = { params: validateParams(ref, raw.params) };
+  if (kind === 'event') {
+    data = { params: validateParams(ref, raw.params) };
+    // Numéro de cycle de la 9.2.9 (éléments repris au déploiement) : garde la progression des joueurs sur l'événement.
+    if (raw.cycle !== undefined) data.cycle = intIn(raw.cycle, 1, 100000, 'Cycle');
+  }
   else if (kind === 'announcement') data = { text: str(raw.text, 500, 'Texte de l\'annonce', { required: true }) };
   else if (kind === 'flag') {
     if (typeof raw.value !== 'boolean') throw bad('Interrupteur : valeur oui ou non attendue');
@@ -213,12 +222,69 @@ export function effectiveStatus(item, t) {
   return item.starts_at != null && item.starts_at <= t ? 'active' : 'scheduled';
 }
 
+// ---- Reprise du calendrier de la 9.2.9 (migration idempotente) ------------------------------------------------------
+// Au premier démarrage en 9.3.0, le calendrier live est rempli avec ce que la 9.2.9 calculait toute seule : cycle de
+// 28 jours (Expédition 14 j puis Marché 14 j) depuis EVENTS.anchor, et vedette tournant tous les 14 jours parmi les
+// SSR permanents, sur LEGACY_CYCLES cycles à partir du cycle en cours. Mêmes dates (minuit, heure locale du serveur)
+// et même numéro de cycle que la 9.2.9 : la progression des joueurs sur l'événement en cours est conservée.
+// Ne tourne qu'une fois (live_meta « legacy_seed ») ; l'admin peut ensuite tout modifier ou supprimer.
+export const LEGACY_CYCLES = 3;
+export function legacyCalendar(t) {
+  const anchor = new Date(`${EVENTS.anchor}T00:00:00`).getTime();
+  const cycleMs = EVENTS.cycleDays * DAY;
+  const grandMs = EVENTS.grandDays * DAY;
+  const first = Math.max(0, Math.floor((t - anchor) / cycleMs));
+  const events = [];
+  for (let c = first; c < first + LEGACY_CYCLES; c += 1) {
+    const s = anchor + c * cycleMs;
+    events.push({ ref: EVENTS.grand.id, cycle: c + 1, start: s, end: s + grandMs });
+    events.push({ ref: EVENTS.small.id, cycle: c + 1, start: s + grandMs, end: s + cycleMs });
+  }
+  const units = Object.keys(LIVE_FEATURED_UNITS); // même ordre que permanentSsr() (vérifié par les tests)
+  const period = BANNERS.limited.rotationDays * DAY;
+  const k0 = Math.floor((t - anchor) / period);
+  const banners = [];
+  const until = anchor + (first + LEGACY_CYCLES) * cycleMs;
+  for (let k = k0; anchor + k * period < until; k += 1) {
+    banners.push({ ref: units[((k % units.length) + units.length) % units.length], start: anchor + k * period, end: anchor + (k + 1) * period });
+  }
+  return { events: events.filter((e) => e.end > t), banners: banners.filter((b) => b.end > t) };
+}
+
+function seedLegacyCalendar(db, meta, t) {
+  if (meta.get('legacy_seed')) return;
+  const { events, banners } = legacyCalendar(t);
+  const ins = db.prepare(`INSERT INTO live_items (kind, ref, title, status, starts_at, ends_at, min_client, data, version, created_at, updated_at, updated_by)
+    VALUES (?, ?, ?, 'scheduled', ?, ?, ?, ?, 1, ?, ?, 'système')`);
+  db.exec('BEGIN');
+  try {
+    for (const e of events) {
+      const label = `${LIVE_EVENT_TYPES[e.ref].label} n° ${e.cycle}`;
+      ins.run('event', e.ref, label, e.start, e.end, defaultMinClient('event', e.ref), JSON.stringify({ params: eventParams(e.ref, {}), cycle: e.cycle }), t, t);
+    }
+    for (const b of banners) ins.run('banner', b.ref, `Vedette : ${LIVE_FEATURED_UNITS[b.ref].label}`, b.start, b.end, defaultMinClient('banner', b.ref), '{}', t, t);
+    db.prepare('INSERT INTO live_history (at, admin, action, item_id, kind, summary) VALUES (?, ?, ?, NULL, ?, ?)')
+      .run(t, 'système', 'reprise du calendrier 9.2.9', 'event', `reprise du calendrier 9.2.9 : ${events.length} événement(s), ${banners.length} vedette(s) programmés`);
+    meta.set('legacy_seed', String(t));
+    meta.set('programmed', '1');
+    db.exec('COMMIT');
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+}
+
 // ---- Service -----------------------------------------------------------------------------------------------------
 export function createLive({ db, now = () => Date.now() }) {
   db.exec(LIVE_SCHEMA_SQL);
   if (!db.prepare('SELECT id FROM live_goals WHERE id = 1').get()) {
     db.prepare('INSERT INTO live_goals (id, data, version, updated_at, updated_by) VALUES (1, ?, 1, ?, ?)').run(JSON.stringify(DEFAULT_GOALS), now(), 'système');
   }
+  const meta = {
+    get: (k) => db.prepare('SELECT value FROM live_meta WHERE key = ?').get(k)?.value,
+    set: (k, v) => db.prepare('INSERT INTO live_meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(k, v),
+  };
+  seedLegacyCalendar(db, meta, now());
   const q = {
     all: db.prepare('SELECT * FROM live_items ORDER BY COALESCE(starts_at, created_at) DESC, id DESC'),
     get: db.prepare('SELECT * FROM live_items WHERE id = ?'),
@@ -274,7 +340,7 @@ export function createLive({ db, now = () => Date.now() }) {
     if (status === 'scheduled') requireDates(v, true);
     const t = now();
     const row = { kind: v.kind, ref: v.ref, starts_at: v.startsAt, ends_at: v.endsAt, status, id: 0 };
-    if (status === 'scheduled') checkConflicts(row, 0);
+    if (status === 'scheduled') { checkConflicts(row, 0); meta.set('programmed', '1'); }
     const res = db.prepare(`INSERT INTO live_items (kind, ref, title, status, starts_at, ends_at, min_client, data, version, created_at, updated_at, updated_by)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`).run(v.kind, v.ref, v.title, status, v.startsAt, v.endsAt, v.minClient, JSON.stringify(v.data), t, t, admin);
     const created = find(Number(res.lastInsertRowid));
@@ -327,6 +393,7 @@ export function createLive({ db, now = () => Date.now() }) {
       if (ends != null && ends <= t) throw bad('La date de fin est passée : modifiez-la avant d\'activer');
       const fields = { status: 'active', starts_at: t, ends_at: ends };
       checkConflicts({ ...row, ...fields }, row.id);
+      meta.set('programmed', '1');
       return write(admin, 'activation immédiate', row, fields);
     }
     if (action === 'stop') {
@@ -337,6 +404,7 @@ export function createLive({ db, now = () => Date.now() }) {
     if (action === 'schedule') {
       requireDates(row, true);
       checkConflicts({ ...row, status: 'scheduled' }, row.id);
+      meta.set('programmed', '1');
       return write(admin, 'programmation', row, { status: 'scheduled' });
     }
     if (action === 'draft') {
@@ -392,11 +460,16 @@ export function createLive({ db, now = () => Date.now() }) {
       schema: LIVE_SCHEMA,
       validFor: LIVE_VALID_MS,
       goals: publicGoals(),
-      events: rows.filter((r) => r.kind === 'event').map((r) => ({ ...base(r), type: r.ref, title: r.title, params: JSON.parse(r.data).params })),
+      events: rows.filter((r) => r.kind === 'event').map((r) => {
+        const d = JSON.parse(r.data);
+        return { ...base(r), type: r.ref, title: r.title, params: d.params, ...(d.cycle ? { cycle: d.cycle } : {}) };
+      }),
       banners: rows.filter((r) => r.kind === 'banner').map((r) => ({ ...base(r), unit: r.ref })),
       offers: rows.filter((r) => r.kind === 'offer').map((r) => ({ ...base(r), offer: r.ref })),
       announcements: rows.filter((r) => r.kind === 'announcement').map((r) => ({ ...base(r), title: r.title, text: JSON.parse(r.data).text })),
       flags,
+      // Faux tant que rien n'a jamais été programmé ni activé : le jeu garde alors son calendrier automatique.
+      programmed: meta.get('programmed') === '1',
     };
   }
   function publicPayload(t = now()) {

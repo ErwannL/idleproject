@@ -25,7 +25,10 @@ export function setLiveClientVersion(v) { version = v; }
 export function resetLive() { cfg = null; offset = 0; version = GAME_VERSION; }
 export function onLiveChange(fn) { listeners.add(fn); return () => listeners.delete(fn); }
 
-export const liveKnown = () => cfg !== null;
+// Config pilotante : le serveur a répondu ET a déjà programmé quelque chose (programmed). Une config vide d'un serveur
+// qui n'a jamais rien programmé (programmed: false) laisse le calendrier automatique d'avant la 9.3.0.
+export const liveKnown = () => cfg !== null && cfg.content.programmed !== false;
+export const liveReached = () => cfg !== null; // le serveur a répondu au moins une fois
 export const liveConfig = () => cfg?.content ?? null;
 export function liveNow(local = Date.now()) {
   const t = local + offset;

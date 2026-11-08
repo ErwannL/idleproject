@@ -26,7 +26,9 @@ export function currentEvent(now = liveNow()) {
     if (!e) return null;
     const kind = e.kind;
     const end = e.end ?? e.start + 14 * DAY;
-    return { kind, id: `${kind === 'grand' ? EVENTS.grand.id : EVENTS.small.id}-live${e.id}`, cycle: e.id, live: true, title: e.title,
+    // e.cycle : élément repris du calendrier 9.2.9 → même identifiant que la 9.2.9 (progression conservée).
+    const base = kind === 'grand' ? EVENTS.grand.id : EVENTS.small.id;
+    return { kind, id: e.cycle ? `${base}-${e.cycle}` : `${base}-live${e.id}`, cycle: e.cycle ?? e.id, live: true, title: e.title,
       day: Math.floor((now - e.start) / DAY) + 1, days: Math.max(1, Math.ceil((end - e.start) / DAY)), start: e.start, end,
       params: eventParams(e.type, e.params) };
   }

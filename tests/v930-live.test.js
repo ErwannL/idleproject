@@ -7,7 +7,9 @@ import { once } from 'node:events';
 import { createServer } from 'node:http';
 import { createApp, hashPassword } from '../server/app.mjs';
 import { openDatabase } from '../server/db.mjs';
-import { parseAmount } from '../server/live.mjs';
+import { legacyCalendar, parseAmount } from '../server/live.mjs';
+import { calendarEvent } from '../src/core/ancients.js';
+import { permanentSsr } from '../src/core/gacha.js';
 import { LIVE_FEATURED_UNITS, LIVE_OFFER_IDS, compareVersions } from '../src/data/live-catalog.js';
 import { COMPANIONS } from '../src/data/companions.js';
 import { LIVE_OFFERS } from '../src/data/economy.js';
@@ -23,10 +25,11 @@ const DAY = 86400000;
 const HOUR = 3600000;
 const T0 = Date.UTC(2026, 11, 1, 12);
 
-async function setup() {
-  const db = openDatabase(':memory:');
-  let clock = T0;
+async function setup({ keepSeed = false, at = T0, db = openDatabase(':memory:') } = {}) {
+  let clock = at;
   const app = createApp({ db, siteDir: '', webDir: '', adminPasswordHash: await hashPassword('motdepasse-admin-1'), now: () => clock });
+  // Calendrier repris de la 9.2.9 : retiré pour les tests qui partent d'un calendrier vide.
+  if (!keepSeed) db.exec('DELETE FROM live_items; DELETE FROM live_history;');
   const server = createServer(app);
   server.listen(0, '127.0.0.1');
   await once(server, 'listening');
@@ -312,4 +315,58 @@ test('bout en bout : l\'admin clique « Démarrer maintenant », le jeu voit l\'
   await s.call('POST', `/api/admin/live/items/${draft.body.id}/stop`, { version: on.body.version }, s.token);
   assert.equal(await refreshLive({ base: s.base, storage }), 'updated');
   assert.equal(currentEvent(), null);
+});
+
+// ---- Continuité au déploiement ----------------------------------------------------------------------------------------
+test('déploiement : le calendrier 9.2.9 est repris tout seul (mêmes dates, même cycle), une seule fois', async (t) => {
+  const at = Date.UTC(2026, 10, 20, 9); // milieu d'un Marché des lueurs (cycle 1)
+  const db = openDatabase(':memory:');
+  const s = await setup({ keepSeed: true, at, db });
+  t.after(() => { resetLive(); return s.close(); });
+  const pub = (await s.call('GET', '/api/live')).body;
+  assert.equal(pub.programmed, true);
+  const cur = pub.events.find((e) => e.state === 'active');
+  const old = calendarEvent(at); // calcul automatique de la 9.2.9
+  assert.equal(cur.type, old.kind === 'grand' ? 'ancients' : 'lights');
+  assert.equal(cur.start, old.start);
+  assert.equal(cur.end, old.end);
+  assert.equal(cur.cycle, old.cycle);
+  assert.ok(pub.events.length >= 5, 'cycles suivants programmés');
+  for (let k = 0; k < pub.events.length - 1; k += 1) assert.equal(pub.events[k].end, pub.events[k + 1].start, 'enchaînés sans trou');
+  const vedette = pub.banners.find((b) => b.state === 'active');
+  assert.equal(vedette.unit, featuredUnit('limited', at).id, 'même vedette que la 9.2.9');
+  // Le jeu garde l'identifiant de l'événement de la 9.2.9 (progression conservée).
+  resetLive();
+  setLiveClientVersion('9.3.0');
+  applyLive(pub, at, { local: at });
+  assert.equal(currentEvent(at).id, old.id);
+  assert.equal(featuredUnit('limited', at).id, vedette.unit);
+  // Idempotent : un second démarrage ne recrée rien ; l'admin peut tout modifier.
+  const n = db.prepare('SELECT COUNT(*) AS n FROM live_items').get().n;
+  createApp({ db, siteDir: '', webDir: '', now: () => at });
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM live_items').get().n, n);
+  const hist = (await s.call('GET', '/api/admin/live', undefined, s.token)).body.history;
+  assert.equal(hist.filter((h) => h.action === 'reprise du calendrier 9.2.9').length, 1);
+  const stop = await s.call('POST', `/api/admin/live/items/${cur.id}/stop`, {}, s.token);
+  assert.equal(stop.body.effective, 'ended');
+});
+
+test('déploiement : vedettes du catalogue dans le même ordre que la rotation 9.2.9', () => {
+  assert.deepEqual(Object.keys(LIVE_FEATURED_UNITS), permanentSsr().map((u) => u.id));
+  const cal = legacyCalendar(Date.UTC(2026, 10, 3));
+  assert.equal(cal.events[0].cycle, 1);
+  assert.ok(cal.banners.length >= 6);
+});
+
+test('client live : config vide d\'un serveur qui n\'a jamais rien programmé → calendrier automatique gardé', () => {
+  resetLive();
+  setLiveClientVersion('9.3.0');
+  const at = Date.UTC(2026, 10, 10);
+  applyLive(content({ programmed: false }), at, { local: at });
+  assert.equal(liveKnown(), false);
+  assert.deepEqual(currentEvent(at), calendarEvent(at));
+  assert.ok(featuredUnit('limited', at));
+  applyLive(content({ programmed: true }), at, { local: at });
+  assert.equal(currentEvent(at), null, 'programmé puis vidé : plus rien');
+  resetLive();
 });
