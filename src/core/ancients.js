@@ -10,12 +10,31 @@ import { grantReward } from './rewards.js';
 import { ensureEconomy } from './wallet.js';
 import { dayKey } from './income.js';
 import { attemptCoins, attemptSeed } from './world-boss.js'; // v9.2.9
+import { liveEvent, liveFlag, liveKnown, liveNow } from './live.js'; // v9.3.0 : live-ops
+import { eventParams } from '../data/live-catalog.js';
 
 const DAY = 86400000;
 const anchorMs = () => new Date(`${EVENTS.anchor}T00:00:00`).getTime();
 
-// Événement en cours : { kind: 'grand' | 'small', id (unique par cycle), cycle, day (1..14), start, end } ou null.
-export function currentEvent(now = Date.now()) {
+// Événement en cours : { kind: 'grand' | 'small', id (unique par cycle), cycle, day (1..days), days, start, end,
+// params } ou null.
+// v9.3.0 : piloté par la config live (core/live.js) : l'événement n'existe que si le serveur l'active, à l'heure du
+// serveur. Le cycle de 28 jours ci-dessous ne sert QUE si le serveur n'a jamais répondu (docs/live-ops.md).
+export function currentEvent(now = liveNow()) {
+  if (liveKnown()) {
+    const e = liveEvent(now);
+    if (!e) return null;
+    const kind = e.kind;
+    const end = e.end ?? e.start + 14 * DAY;
+    return { kind, id: `${kind === 'grand' ? EVENTS.grand.id : EVENTS.small.id}-live${e.id}`, cycle: e.id, live: true, title: e.title,
+      day: Math.floor((now - e.start) / DAY) + 1, days: Math.max(1, Math.ceil((end - e.start) / DAY)), start: e.start, end,
+      params: eventParams(e.type, e.params) };
+  }
+  return calendarEvent(now);
+}
+
+// Calendrier codé en dur d'avant la 9.3.0 (repli « serveur jamais joint »).
+export function calendarEvent(now) {
   const t = now - anchorMs();
   if (t < 0) return null;
   const cycle = Math.floor(t / (EVENTS.cycleDays * DAY));
@@ -24,8 +43,22 @@ export function currentEvent(now = Date.now()) {
   const start = anchorMs() + cycle * EVENTS.cycleDays * DAY + (grand ? 0 : EVENTS.grandDays * DAY);
   const len = (grand ? EVENTS.grandDays : EVENTS.cycleDays - EVENTS.grandDays) * DAY;
   const kind = grand ? 'grand' : 'small';
-  return { kind, id: `${kind === 'grand' ? EVENTS.grand.id : EVENTS.small.id}-${cycle + 1}`, cycle: cycle + 1, day: Math.floor((now - start) / DAY) + 1, start, end: start + len };
+  return { kind, id: `${kind === 'grand' ? EVENTS.grand.id : EVENTS.small.id}-${cycle + 1}`, cycle: cycle + 1, day: Math.floor((now - start) / DAY) + 1,
+    days: len / DAY, start, end: start + len, params: eventParams(kind === 'grand' ? 'ancients' : 'lights') };
 }
+
+// v9.3.0 : réglages live appliqués au contenu livré par le code.
+const P = (ev) => ev?.params ?? {};
+export function eventShop(ev) {
+  const m = P(ev).shopStockMult ?? 1;
+  return EVENTS.grand.shop.map((i) => ({ ...i, stock: Math.floor(i.stock * m) }));
+}
+export function eventGoals(ev) {
+  const m = P(ev).goalMult ?? 1;
+  return EVENTS.small.goals.map((g) => ({ ...g, target: Math.max(1, Math.ceil(g.target * m)) }));
+}
+export const attemptsPerDay = (ev) => P(ev).attemptsPerDay ?? EVENTS.grand.worldBoss.attemptsPerDay;
+const coinMult = (ev) => P(ev).coinMult ?? 1;
 
 function record(state, id) {
   const eco = ensureEconomy(state);
@@ -33,7 +66,7 @@ function record(state, id) {
   return eco.events[id];
 }
 
-export function eventRecord(state, now = Date.now()) {
+export function eventRecord(state, now = liveNow()) {
   const ev = currentEvent(now);
   return ev ? record(state, ev.id) : null;
 }
@@ -49,7 +82,7 @@ export function eventStageLevel(state, n) {
 
 // Combat automatique d'une étape. `power` = { dps, hpOf(stage) } fourni par l'appelant (main.js : stats réelles du
 // héros et PV réels du gardien) pour garder ce module sans dépendance au combat.
-export function fightStage(state, n, power, now = Date.now()) {
+export function fightStage(state, n, power, now = liveNow()) {
   const ev = currentEvent(now);
   if (!ev || ev.kind !== 'grand') return { error: 'closed' };
   const rec = record(state, ev.id);
@@ -60,6 +93,7 @@ export function fightStage(state, n, power, now = Date.now()) {
   rec.cleared = n;
   let coins = G().stageCoins;
   if (n % G().stagesPerRegion === 0) coins += G().regionCoins;
+  coins = Math.round(coins * coinMult(ev)); // v9.3.0
   rec.coins += coins;
   const reward = { eventCoins: coins };
   if (n === G().fragmentStage && !rec.fragment) {
@@ -70,14 +104,15 @@ export function fightStage(state, n, power, now = Date.now()) {
   return { won: true, dealt, hp, reward };
 }
 
-export function worldBossStatus(state, now = Date.now()) {
+export function worldBossStatus(state, now = liveNow()) {
   const ev = currentEvent(now);
   if (!ev || ev.kind !== 'grand') return null;
+  if (P(ev).worldBoss === false || !liveFlag('worldBoss')) return null; // v9.3.0 : World Boss coupé par la config live
   const rec = record(state, ev.id);
   const wb = G().worldBoss;
   const today = dayKey(now);
   const used = rec.boss.day === today ? rec.boss.used : 0;
-  return { open: rec.cleared >= wb.unlockStage, left: Math.max(0, wb.attemptsPerDay - used), best: rec.boss.best };
+  return { open: rec.cleared >= wb.unlockStage, left: Math.max(0, attemptsPerDay(ev) - used), best: rec.boss.best, perDay: attemptsPerDay(ev), boss: P(ev).boss ?? 'colossus' };
 }
 
 // v9.2.9 : World Boss en vrai combat animé (core/world-boss.js). Une tentative = startWorldBoss (consomme la tentative
@@ -92,7 +127,7 @@ function bossDay(rec, today) {
   return rec.boss;
 }
 
-export function worldBossDay(state, now = Date.now()) {
+export function worldBossDay(state, now = liveNow()) {
   const rec = eventRecord(state, now);
   if (!rec) return null;
   const today = dayKey(now);
@@ -101,20 +136,20 @@ export function worldBossDay(state, now = Date.now()) {
 }
 
 // `hpOf()` : PV du boss du jour (appelé seulement à la première tentative du jour). Renvoie le réglage du combat.
-export function startWorldBoss(state, hpOf, now = Date.now()) {
+export function startWorldBoss(state, hpOf, now = liveNow()) {
   const st = worldBossStatus(state, now);
   if (!st?.open || st.left <= 0) return null;
   const ev = currentEvent(now);
   const rec = record(state, ev.id);
   const today = dayKey(now);
   const b = bossDay(rec, today);
-  if (!(b.hp > 0)) b.hp = Math.max(1, Math.round(hpOf()));
+  if (!(b.hp > 0)) b.hp = Math.max(1, Math.round(hpOf() * (P(ev).bossHpMult ?? 1))); // v9.3.0 : PV réglés par la config live
   b.used += 1;
   return { event: ev.id, day: today, attempt: b.used, seed: attemptSeed(today, b.used), maxHp: b.hp };
 }
 
 // Fin d'une tentative : result = { damage, tiers } (WorldBossFight.result()). Écus selon les paliers atteints.
-export function finishWorldBoss(state, setup, result, now = Date.now()) {
+export function finishWorldBoss(state, setup, result, now = liveNow()) {
   const rec = eventRecord(state, now);
   if (!rec || !setup || rec.boss.day !== setup.day) return null;
   const damage = Math.max(0, Math.floor(result.damage));
@@ -124,17 +159,17 @@ export function finishWorldBoss(state, setup, result, now = Date.now()) {
   b.today = (b.today ?? 0) + damage;
   b.todayBest = Math.max(b.todayBest ?? 0, damage);
   b.tiers = Math.max(b.tiers ?? 0, result.tiers);
-  const coins = attemptCoins(result.tiers);
+  const coins = Math.round(attemptCoins(result.tiers) * coinMult(currentEvent(now))); // v9.3.0
   rec.coins += coins;
   return { damage, coins, record, today: b.today, best: b.best, tiers: result.tiers };
 }
 
 // Boutique d'événement (écus → tickets), stocks par événement.
-export function buyEventItem(state, itemId, now = Date.now()) {
+export function buyEventItem(state, itemId, now = liveNow()) {
   const ev = currentEvent(now);
   if (!ev || ev.kind !== 'grand') return null;
   const rec = record(state, ev.id);
-  const item = G().shop.find((i) => i.id === itemId);
+  const item = eventShop(ev).find((i) => i.id === itemId);
   if (!item || rec.coins < item.price || (rec.bought[itemId] ?? 0) >= item.stock) return null;
   rec.coins -= item.price;
   rec.bought[itemId] = (rec.bought[itemId] ?? 0) + 1;
@@ -142,18 +177,18 @@ export function buyEventItem(state, itemId, now = Date.now()) {
 }
 
 // Petit événement : objectifs comptés seulement pendant sa fenêtre (missions.js → trackMissions).
-export function trackEventGoal(state, type, amount = 1, now = Date.now()) {
+export function trackEventGoal(state, type, amount = 1, now = liveNow()) {
   const ev = currentEvent(now);
   if (!ev || ev.kind !== 'small' || !state.economy) return;
   const rec = record(state, ev.id);
-  for (const g of EVENTS.small.goals) if (g.type === type) rec.goals[g.id] = Math.min(g.target, (rec.goals[g.id] ?? 0) + amount);
+  for (const g of eventGoals(ev)) if (g.type === type) rec.goals[g.id] = Math.min(g.target, (rec.goals[g.id] ?? 0) + amount);
 }
 
-export function claimEventGoal(state, goalId, now = Date.now()) {
+export function claimEventGoal(state, goalId, now = liveNow()) {
   const ev = currentEvent(now);
   if (!ev || ev.kind !== 'small') return null;
   const rec = record(state, ev.id);
-  const g = EVENTS.small.goals.find((x) => x.id === goalId);
+  const g = eventGoals(ev).find((x) => x.id === goalId);
   if (!g || rec.claimed.includes(g.id) || (rec.goals[g.id] ?? 0) < g.target) return null;
   rec.claimed.push(g.id);
   return grantReward(state, g.give);

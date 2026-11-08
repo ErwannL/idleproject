@@ -4,13 +4,14 @@
 // Reste à connecter : un fournisseur (Steam, Google Play Billing, Stripe…) qui implémente
 //   buy(offer) → Promise<reçu { productId, transactionId }> et verify(reçu) → Promise<boolean> (vérification serveur),
 // puis la sauvegarde des achats côté serveur (le compte), le remboursement et la restauration des achats.
-import { PACKS, PRODUCTS, SKIN_TIERS, SPEND_TIERS, THEME_TIERS, skinTier } from '../data/economy.js';
+import { LIVE_OFFERS, PACKS, PRODUCTS, SKIN_TIERS, SPEND_TIERS, THEME_TIERS, skinTier } from '../data/economy.js';
 import { HEROES, STARTER_HERO } from '../data/heroes.js';
 import { THEMES } from '../ui/themes.js';
 import { grantReward } from './rewards.js';
 import { ensureEconomy } from './wallet.js';
 import { dayKey, monthKey } from './income.js';
 import { ownsSkin, ownsTheme } from './cosmetics.js';
+import { liveOfferActive } from './live.js'; // v9.3.0 : offres activables
 
 const DAY = 86400000;
 
@@ -27,8 +28,12 @@ export function themeOffers() {
 export function packOffers() {
   return PACKS.map((p) => ({ ...p, cat: 'packs' }));
 }
+// v9.3.0 : les offres live n'apparaissent que si la config live les active (heure du serveur).
+export function liveOffers() {
+  return LIVE_OFFERS.filter((o) => liveOfferActive(o.id));
+}
 export function allOffers() {
-  return [...PRODUCTS, ...skinOffers(), ...themeOffers(), ...packOffers()];
+  return [...PRODUCTS, ...skinOffers(), ...themeOffers(), ...packOffers(), ...liveOffers()];
 }
 export const offerById = (id) => allOffers().find((o) => o.id === id) ?? null;
 

@@ -2,7 +2,9 @@
 // carte de 5 régions × 10 étapes (combat automatique), World Boss dès l'étape 20, écus et boutique d'écus, fragment
 // SSR universel à l'étape 30. Petit événement « Marché des lueurs » : objectifs et récompenses.
 import { EVENTS } from '../../data/economy.js';
-import { currentEvent, eventRecord, eventStageLevel, totalStages, worldBossDay, worldBossStatus } from '../../core/ancients.js';
+import { currentEvent, eventGoals, eventRecord, eventShop, eventStageLevel, totalStages, worldBossDay, worldBossStatus } from '../../core/ancients.js';
+import { liveAnnouncements, liveNextEvent } from '../../core/live.js'; // v9.3.0 : live-ops
+import { LIVE_EVENT_TYPES } from '../../data/live-catalog.js';
 import { WORLD_BOSS } from '../../core/world-boss.js'; // v9.2.9
 import { escapeHtml, formatNumber, img } from '../common.js';
 import { walletIcon } from './shop.js';
@@ -17,7 +19,7 @@ function bossCard(state, wb) {
   const day = worldBossDay(state);
   const tiers = WORLD_BOSS.tiers.map((t, i) => `<span class="wb-tier${i < day.tiers ? ' on' : ''}"><b class="num">${Math.round(t * 100)} %</b></span>`).join('');
   const body = wb.open
-    ? `<div class="wb-card-stats"><span><span>Tentatives du jour</span> <b class="num">${wb.left}/${G.worldBoss.attemptsPerDay}</b></span>
+    ? `<div class="wb-card-stats"><span><span>Tentatives du jour</span> <b class="num">${wb.left}/${wb.perDay ?? G.worldBoss.attemptsPerDay}</b></span>
         <span><span>Record</span> <b class="num">${formatNumber(wb.best)}</b></span>
         <span><span>Dégâts du jour</span> <b class="num">${formatNumber(day.today)}</b></span></div>
       <div class="wb-card-tiers"><span class="muted">Paliers de récompense</span> ${tiers}</div>
@@ -33,6 +35,7 @@ function grand(ui, state, ev) {
   const G = EVENTS.grand;
   const rec = eventRecord(state);
   const wb = worldBossStatus(state);
+  const shop = eventShop(ev); // v9.3.0 : stocks réglés par la config live
   const next = rec.cleared + 1;
   const regions = G.regions.map((r, ri) => {
     const cells = Array.from({ length: G.stagesPerRegion }, (_, i) => {
@@ -44,16 +47,16 @@ function grand(ui, state, ev) {
   }).join('');
   const last = ui.view.eventLast;
   return `<div class="card ev-head"><div class="section-title">${img('icon_map')} <span>${escapeHtml(G.name)}</span></div>
-      <div class="muted"><span>Jour</span> <b class="num">${ev.day}/14</b> · <span>Jusqu'au</span> ${dateText(ev.end - 86400000)}</div>
+      <div class="muted"><span>Jour</span> <b class="num">${ev.day}/${ev.days ?? 14}</b> · <span>Jusqu'au</span> ${dateText(ev.end - 86400000)}</div>
       <div class="ev-coins">${walletIcon('eventCoins')}<b class="num">${formatNumber(rec.coins)}</b> <span>écus</span> · <span>Étapes</span> <b class="num">${rec.cleared}/${totalStages()}</b></div></div>
     <div class="card"><div class="ev-map">${regions}</div>
       ${next <= totalStages() ? `<div class="ev-fight"><span>Étape</span> <b class="num">${next}</b> · <span>Gardien d'étape</span> <b class="num">${stageLabel(eventStageLevel(state, next))}</b>
         <button class="btn btn-primary small" data-action="event-fight" data-value="${next}">Combattre</button></div>` : '<div class="good">Carte terminée.</div>'}
       ${last ? `<div class="muted">${last}</div>` : ''}
       <div class="muted">Combat automatique : dégâts du héros pendant ${G.fightSeconds} s contre les PV du gardien. Étape ${G.fragmentStage} : fragment SSR universel.</div></div>
-    ${bossCard(state, wb)}
+    ${wb ? bossCard(state, wb) : ''}
     <div class="card"><div class="section-title">${walletIcon('eventCoins')} <span>Boutique des écus</span></div>
-      <div class="ev-shop">${G.shop.map((i) => `<div class="ev-item">${give(i.give)}<span class="muted"><b class="num">${(rec.bought[i.id] ?? 0)}/${i.stock}</b></span>
+      <div class="ev-shop">${shop.map((i) => `<div class="ev-item">${give(i.give)}<span class="muted"><b class="num">${(rec.bought[i.id] ?? 0)}/${i.stock}</b></span>
         <button class="btn small" data-action="event-buy" data-value="${i.id}" ${rec.coins >= i.price && (rec.bought[i.id] ?? 0) < i.stock ? '' : 'disabled'}>${walletIcon('eventCoins')} ${i.price}</button></div>`).join('')}</div></div>
     <div class="muted">Failles dimensionnelles (2e semaine) et reliques d'événement : prochainement.</div>`;
 }
@@ -61,13 +64,18 @@ function grand(ui, state, ev) {
 function small(state, ev) {
   const rec = eventRecord(state);
   return `<div class="card"><div class="section-title">${img('icon_star')} <span>${escapeHtml(EVENTS.small.name)}</span></div>
-    <div class="muted"><span>Jour</span> <b class="num">${ev.day}/14</b> · <span>Jusqu'au</span> ${dateText(ev.end - 86400000)}</div>
-    ${EVENTS.small.goals.map((g) => {
+    <div class="muted"><span>Jour</span> <b class="num">${ev.day}/${ev.days ?? 14}</b> · <span>Jusqu'au</span> ${dateText(ev.end - 86400000)}</div>
+    ${eventGoals(ev).map((g) => {
       const p = rec.goals[g.id] ?? 0;
       const done = rec.claimed.includes(g.id);
       return `<div class="ev-goal"><span>${escapeHtml(g.label)}</span> <b class="num">${formatNumber(Math.min(p, g.target))}/${formatNumber(g.target)}</b> ${give(g.give)}
         ${done ? '<span class="good">✓</span>' : `<button class="btn small" data-action="event-goal" data-value="${g.id}" ${p >= g.target ? '' : 'disabled'}>Récupérer</button>`}</div>`;
     }).join('')}</div>`;
+}
+
+// v9.3.0 : annonces (messages du jour) de la config live.
+function announcements() {
+  return liveAnnouncements().map((a) => `<div class="card live-news">${a.title ? `<div class="section-title"><span>${escapeHtml(a.title)}</span></div>` : ''}<div>${escapeHtml(a.text)}</div></div>`).join('');
 }
 
 export default {
@@ -76,7 +84,11 @@ export default {
   icon: 'icon_map',
   render(ui, state) {
     const ev = currentEvent();
-    if (!ev) return '<div class="muted">Aucun événement en cours.</div>';
-    return ev.kind === 'grand' ? grand(ui, state, ev) : small(state, ev);
+    const news = announcements();
+    if (!ev) {
+      const nx = liveNextEvent();
+      return `${news}<div class="muted">Aucun événement en cours.</div>${nx ? `<div class="muted"><span>Prochain événement</span> : ${escapeHtml(LIVE_EVENT_TYPES[nx.type].label)} · ${dateText(nx.start)}</div>` : ''}`;
+    }
+    return news + (ev.kind === 'grand' ? grand(ui, state, ev) : small(state, ev));
   },
 };

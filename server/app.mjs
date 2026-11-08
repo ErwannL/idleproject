@@ -6,6 +6,7 @@ import { createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import { promisify } from 'node:util';
+import { createLive, LiveError, LIVE_MAX_AGE_S } from './live.mjs'; // v9.3.0 : live-ops
 
 const scrypt = promisify(scryptCb);
 
@@ -329,6 +330,7 @@ export function createApp({
   const guestLimit = createRateLimiter(LIMITS.guestAttempts, now);
   // Sessions admin (en mémoire : perdues au redémarrage) : hash du jeton -> { username, mustChange, expires }.
   const adminSessions = new Map();
+  const live = createLive({ db, now }); // v9.3.0 : live-ops (server/live.mjs)
 
   // Premier démarrage : le mot de passe admin historique devient le compte « erwann ».
   if (adminPasswordHash && db.prepare('SELECT COUNT(*) AS n FROM admin_users').get().n === 0) {
@@ -961,6 +963,43 @@ export function createApp({
       q.deletePrereg.run(decodeURIComponent(params[0]).trim().toLowerCase());
       return { status: 204 };
     } },
+
+    // v9.3.0 : LIVE-OPS. Lecture publique (jeu et site), ETag + cache court ; l'heure du serveur est dans la réponse
+    // (serverTime) et dans l'en-tête X-Server-Time (aussi sur un 304) : le jeu n'utilise jamais son horloge locale.
+    { method: 'GET', path: /^\/api\/live$/, handler: ({ req }) => {
+      const { content, etag } = live.publicPayload();
+      const headers = { ETag: etag, 'Cache-Control': `public, max-age=${LIVE_MAX_AGE_S}`, 'X-Server-Time': String(now()) };
+      if (req.headers['if-none-match'] === etag) return { status: 304, headers };
+      return { body: { ...content, serverTime: now() }, headers };
+    } },
+    { method: 'GET', path: /^\/api\/live\/goals$/, handler: () => ({ body: live.publicGoals(), headers: { 'Cache-Control': `public, max-age=${LIVE_MAX_AGE_S}` } }) },
+    { method: 'GET', path: /^\/api\/admin\/live$/, handler: ({ req }) => { requireAdmin(req); return { body: live.adminState() }; } },
+    { method: 'GET', path: /^\/api\/admin\/live\/preview$/, handler: ({ req }) => {
+      requireAdmin(req);
+      return { body: { ...live.publicPayload().content, serverTime: now() } };
+    } },
+    { method: 'GET', path: /^\/api\/admin\/live\/history\/(\d+)$/, handler: ({ req, params }) => { requireAdmin(req); return { body: live.historyEntry(Number(params[0])) }; } },
+    { method: 'POST', path: /^\/api\/admin\/live\/items$/, handler: async ({ req }) => {
+      const s = requireAdmin(req);
+      return { status: 201, body: live.create(s.username, await readJson(req, 32 * 1024)) };
+    } },
+    { method: 'PUT', path: /^\/api\/admin\/live\/items\/(\d+)$/, handler: async ({ req, params }) => {
+      const s = requireAdmin(req);
+      return { body: live.update(s.username, Number(params[0]), await readJson(req, 32 * 1024)) };
+    } },
+    { method: 'POST', path: /^\/api\/admin\/live\/items\/(\d+)\/(activate|stop|schedule|draft)$/, handler: async ({ req, params }) => {
+      const s = requireAdmin(req);
+      return { body: live.act(s.username, Number(params[0]), params[1], await readJson(req)) };
+    } },
+    { method: 'DELETE', path: /^\/api\/admin\/live\/items\/(\d+)$/, handler: ({ req, params }) => {
+      const s = requireAdmin(req);
+      live.remove(s.username, Number(params[0]));
+      return { status: 204 };
+    } },
+    { method: 'PUT', path: /^\/api\/admin\/live\/goals$/, handler: async ({ req }) => {
+      const s = requireAdmin(req);
+      return { body: live.setGoals(s.username, await readJson(req, 32 * 1024)) };
+    } },
   ];
 
   async function serveStatic(req, res, pathname) {
@@ -992,8 +1031,9 @@ export function createApp({
     const started = now();
     // Jetons en en-tête Authorization (pas de cookies) : CORS ouvert sans identifiants est sans risque.
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Game-Version, X-Platform');
+    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Game-Version, X-Platform, If-None-Match');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Expose-Headers', 'ETag, X-Server-Time'); // v9.3.0 : live-ops
     const url = new URL(req.url, 'http://localhost');
     // Journal : méthode, chemin (sans requête), code, durée. Jamais de corps ni d'email.
     const finish = (code) => {
@@ -1016,7 +1056,12 @@ export function createApp({
             return finish(result.status ?? 200);
           }
           const code = result?.status ?? 200;
-          send(res, code, result?.body);
+          if (code === 304) {
+            res.writeHead(304, result.headers ?? {});
+            res.end();
+            return finish(304);
+          }
+          send(res, code, result?.body, result?.headers);
           return finish(code);
         }
         send(res, 404, { error: 'Route inconnue' });
@@ -1029,6 +1074,7 @@ export function createApp({
       await serveStatic(req, res, url.pathname);
       return finish(res.statusCode);
     } catch (error) {
+      if (error instanceof LiveError) error = new HttpError(error.status, error.message); // v9.3.0
       if (error instanceof HttpError) {
         send(res, error.status, { error: error.message, ...error.extra });
         return finish(error.status);

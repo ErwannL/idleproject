@@ -257,3 +257,14 @@ export const SPECIAL_OFFERS = {
   halfAnniversary: { pulls: [100, 150], ssrFragments: 2 },
   anniversary: { pulls: [200, 250], ssrFragments: 3 },
 };
+
+// v9.3.0 : offres activables par la config live (src/data/live-catalog.js LIVE_OFFER_IDS). Livrées dans le code,
+// invisibles tant que l'admin ne les active pas (core/store.js allOffers). Contenu tiré de SPECIAL_OFFERS (pulls
+// minimum en gemmes, 1 invocation = GEMS_PER_PULL) ; rangées avec les packs.
+const liveOffer = (id, name, price, spec, icon) => ({ id, cat: 'packs', name, price, icon, live: true, limit: 1,
+  give: { gems: spec.pulls[0] * GEMS_PER_PULL, ssrFragment: spec.ssrFragments } });
+export const LIVE_OFFERS = [
+  liveOffer('offer_launch', 'Offre de lancement', 1999, SPECIAL_OFFERS.launch, 'crystal_premium'),
+  liveOffer('offer_half_anniversary', 'Offre des 6 mois', 1999, SPECIAL_OFFERS.halfAnniversary, 'crystal_premium'),
+  liveOffer('offer_anniversary', "Offre d'anniversaire", 2999, SPECIAL_OFFERS.anniversary, 'crystal_premium'),
+];

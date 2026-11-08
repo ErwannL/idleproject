@@ -55,6 +55,7 @@ import { activeClass, canEquip, setHeroClass, weaponClass } from './core/classes
 import { setLang, startAutoTranslate } from './i18n/i18n.js';
 import { CloudError, createCloudClient, syncOnce } from './core/cloud-save.js';
 import { CLOUD_BASE } from './core/cloud-config.js';
+import { startLive } from './core/live.js'; // v9.3.0 : live-ops
 import { BUILD } from './core/build-info.js';
 import { startDemoBanner } from './data/banners.js';
 import { claimReleaseGift, endWorldRun, startWorldRun } from './core/banner.js';
@@ -1003,6 +1004,11 @@ if (BUILD.cheats) import('./core/cheat-codes.js').then((m) => { cheatCodes = m; 
 const platform = window.desktop ? 'windows' : window.Capacitor?.isNativePlatform?.() ? 'android' : 'web';
 const cloud = createCloudClient({ baseUrl: CLOUD_BASE, storage: store, client: { platform, version: GAME_VERSION } });
 const cloudView = { busy: false, message: '', error: false, enabled: BUILD.cloud };
+// v9.3.0 : LIVE-OPS — config lue sur le serveur au démarrage puis toutes les 5 min (core/live.js, docs/live-ops.md).
+// Jamais contre le vrai serveur pendant les tests automatisés (seulement en local, même origine que /play/).
+// Tests automatisés seulement : ?livepoll=N (secondes) raccourcit l'intervalle pour la démo de bout en bout.
+const livePoll = navigator.webdriver ? Number(new URLSearchParams(location.search).get('livepoll')) * 1000 : 0;
+startLive({ base: CLOUD_BASE, storage: store, enabled: BUILD.cloud && (!navigator.webdriver || CLOUD_BASE === ''), onChange: () => ui.invalidate(), ...(livePoll >= 1000 ? { every: livePoll } : {}) });
 ui.cloud = cloudView;
 // v9.1.3 (doc4 lot 7) : score en ligne d'un perso (lu par ui/score-board.js) ; jamais en version dev (cloud coupé).
 ui.fetchScores = BUILD.cloud ? (unit) => cloud.scores(unit) : null;

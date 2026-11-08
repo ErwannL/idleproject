@@ -107,6 +107,9 @@ function card(ui, state, pool, head, body) {
 
 function limitedCard(ui, state) {
   const f = featuredUnit('limited');
+  // v9.3.0 : sans bannière vedette active dans la config live, la bannière limitée reste ouverte sans vedette.
+  if (!f) return card(ui, state, 'limited', `${img('icon_summon')}<b>Bannière limitée</b>${walletChip(state, 'ticketLimited')}`,
+    '<div class="muted">Aucune vedette en ce moment. La prochaine sera annoncée ici.</div>');
   const c = companionById(f.id) ?? f;
   const role = ROLES[COMPANION_ROLES[c.id]];
   const owned = state.companions.owned[c.id];

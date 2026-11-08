@@ -17,6 +17,7 @@ import { currentBanner } from './banner.js';
 import { addCopy, emptyPity, rollOne, ssrDistribution, wishlistShares } from './invocation.js';
 import { addWallet, ensureEconomy, walletAmount } from './wallet.js';
 import { grantReward } from './rewards.js';
+import { liveFeatured, liveFlag, liveKnown, liveNow } from './live.js'; // v9.3.0 : live-ops
 
 export const FEATURED_SHARE = BANNERS.limited.fiftyFifty;
 export const SUMMON_POOLS = ['limited', 'permanent', 'pet'];
@@ -37,8 +38,14 @@ export function permanentSsr() {
 
 // Vedette de la bannière limitée : le perso de la sortie en cours (BANNER_RULES actif) ; sinon, tant qu'aucun SSR
 // limité n'est publié, un SSR permanent par période de 14 jours (rotation).
-export function featuredUnit(pool = 'limited', now = Date.now()) {
+// v9.3.0 : la vedette vient de la config live (heure du serveur) ; aucune bannière active = aucune vedette. La rotation
+// de 14 jours ne sert que si le serveur n'a jamais répondu (docs/live-ops.md).
+export function featuredUnit(pool = 'limited', now = liveNow()) {
   if (normalizePool(pool) !== 'limited') return null;
+  if (liveKnown()) {
+    const lb = liveFlag('featuredBanner') ? liveFeatured(now) : null;
+    return lb ? asUnit(COMPANIONS.find((c) => c.id === lb.unit)) : null;
+  }
   const b = BANNER_RULES.enabled ? currentBanner(now) : null;
   if (b) return asUnit(b.unit);
   const list = permanentSsr();
@@ -48,7 +55,8 @@ export function featuredUnit(pool = 'limited', now = Date.now()) {
 }
 
 // Fin de la période de la vedette (ms).
-export function featuredEnds(now = Date.now()) {
+export function featuredEnds(now = liveNow()) {
+  if (liveKnown()) return liveFeatured(now)?.end ?? 0; // v9.3.0
   const b = BANNER_RULES.enabled ? currentBanner(now) : null;
   if (b) return b.end;
   const start = new Date(`${EVENTS.anchor}T00:00:00`).getTime();
