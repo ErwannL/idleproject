@@ -22,6 +22,8 @@ const FOOT = 122; // ligne des pieds dans l'image source
 export const COLOSSUS_ANIMS = {
   idle: { n: 8, fps: 7, loop: true }, idle3: { n: 8, fps: 9, loop: true },
   attack: { n: 9, fps: 16 }, attack3: { n: 9, fps: 18 }, hurt: { n: 9, fps: 18 },
+  hurt3: { n: 9, fps: 18 }, // v9.3.0 : coup reçu de la forme de lave (phase 3)
+ 
   quake: { n: 9, fps: 11 }, embers: { n: 9, fps: 11 }, fury: { n: 9, fps: 12 },
   transform: { n: 13, fps: 12 }, death: { n: 13, fps: 10 }, rise: { n: 13, fps: 14, src: 'death', reverse: true },
   // v9.3.0 : jet de pierre (il arrache un rocher, le lève, le lance) et rayon des yeux (charge, faisceau, retour).
@@ -346,7 +348,7 @@ export class WorldBossScene {
       r.handleEvent(e, world);
       if (boss && !this.anim) {
         if (e.type === 'enemyWindup' && e.enemyId === boss.id) this.play(this.fight.phase >= 3 ? 'attack3' : 'attack');
-        else if (e.type === 'heroAttack' && e.crit && e.enemyId === boss.id && this.clock - this.hurtAt > 2.5) { this.hurtAt = this.clock; this.play('hurt'); }
+        else if (e.type === 'heroAttack' && e.crit && e.enemyId === boss.id && this.clock - this.hurtAt > 2.5) { this.hurtAt = this.clock; this.play(this.fight.phase >= 3 ? 'hurt3' : 'hurt'); }
       }
     }
     world.events.length = 0;
