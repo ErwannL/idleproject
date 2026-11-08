@@ -48,7 +48,7 @@ test('World Boss : les phases (75 / 50 / 25 %) lancent une attaque spéciale et 
   const f = new WorldBossFight(s, { seed: 3, maxHp: Math.round(bossHpForDay(s) / 5) });
   // Barre courte : vidée en une quinzaine de secondes → trois phases puis Éveil.
   while (!f.done && f.layer < 1) f.tick();
-  const kinds = f.out.map((o) => o.type);
+  const kinds = f.out.map((o) => o.type).filter((t) => t !== 'ability'); // v9.3.0 : attaques propres à part
   assert.deepEqual(kinds.slice(0, 3), ['phase', 'phase', 'phase']);
   assert.ok(kinds.includes('awaken'));
   for (const ev of f.out.filter((o) => o.type === 'phase')) assert.ok(ev.damage > 0);

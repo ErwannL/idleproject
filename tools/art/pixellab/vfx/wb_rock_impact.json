@@ -1,0 +1,277 @@
+{
+ "canvas": {
+  "h": 114,
+  "w": 221
+ },
+ "frames": 9,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 160,
+  "y": 149,
+  "kind": "origin"
+ },
+ "message": "A 9-frame, wide boulder smash: a dark grey outlined boulder drops in, hits with a bright yellow-white flash and rings, cracks spread along the ground in brown, then dark grey rock chunks burst up and out and settle while brown dirt specks spray. Try the Speed or Spread sliders on the rocks to make them fly higher or wider; the effect is in a 4-colour retro palette with a dark outline.",
+ "effect_id": "b55b0cda-71cb-4faa-af60-380ba409bb97",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-wb-rock-impact 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 221,
+     "h": 114
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 221,
+     "h": 114
+    },
+    "sourceSize": {
+     "w": 221,
+     "h": 114
+    },
+    "pivot": {
+     "x": 0.7239819004524887,
+     "y": 1.3070175438596492
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-wb-rock-impact 1.png",
+    "frame": {
+     "x": 221,
+     "y": 0,
+     "w": 221,
+     "h": 114
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 221,
+     "h": 114
+    },
+    "sourceSize": {
+     "w": 221,
+     "h": 114
+    },
+    "pivot": {
+     "x": 0.7239819004524887,
+     "y": 1.3070175438596492
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-wb-rock-impact 2.png",
+    "frame": {
+     "x": 442,
+     "y": 0,
+     "w": 221,
+     "h": 114
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 221,
+     "h": 114
+    },
+    "sourceSize": {
+     "w": 221,
+     "h": 114
+    },
+    "pivot": {
+     "x": 0.7239819004524887,
+     "y": 1.3070175438596492
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-wb-rock-impact 3.png",
+    "frame": {
+     "x": 0,
+     "y": 114,
+     "w": 221,
+     "h": 114
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 221,
+     "h": 114
+    },
+    "sourceSize": {
+     "w": 221,
+     "h": 114
+    },
+    "pivot": {
+     "x": 0.7239819004524887,
+     "y": 1.3070175438596492
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-wb-rock-impact 4.png",
+    "frame": {
+     "x": 221,
+     "y": 114,
+     "w": 221,
+     "h": 114
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 221,
+     "h": 114
+    },
+    "sourceSize": {
+     "w": 221,
+     "h": 114
+    },
+    "pivot": {
+     "x": 0.7239819004524887,
+     "y": 1.3070175438596492
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-wb-rock-impact 5.png",
+    "frame": {
+     "x": 442,
+     "y": 114,
+     "w": 221,
+     "h": 114
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 221,
+     "h": 114
+    },
+    "sourceSize": {
+     "w": 221,
+     "h": 114
+    },
+    "pivot": {
+     "x": 0.7239819004524887,
+     "y": 1.3070175438596492
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-wb-rock-impact 6.png",
+    "frame": {
+     "x": 0,
+     "y": 228,
+     "w": 221,
+     "h": 114
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 221,
+     "h": 114
+    },
+    "sourceSize": {
+     "w": 221,
+     "h": 114
+    },
+    "pivot": {
+     "x": 0.7239819004524887,
+     "y": 1.3070175438596492
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-wb-rock-impact 7.png",
+    "frame": {
+     "x": 221,
+     "y": 228,
+     "w": 221,
+     "h": 114
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 221,
+     "h": 114
+    },
+    "sourceSize": {
+     "w": 221,
+     "h": 114
+    },
+    "pivot": {
+     "x": 0.7239819004524887,
+     "y": 1.3070175438596492
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-wb-rock-impact 8.png",
+    "frame": {
+     "x": 442,
+     "y": 228,
+     "w": 221,
+     "h": 114
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 221,
+     "h": 114
+    },
+    "sourceSize": {
+     "w": 221,
+     "h": 114
+    },
+    "pivot": {
+     "x": 0.7239819004524887,
+     "y": 1.3070175438596492
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-wb-rock-impact.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 663,
+    "h": 342
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 160,
+    "y": 149
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-wb-rock-impact",
+     "from": 0,
+     "to": 8,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

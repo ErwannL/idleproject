@@ -56,7 +56,9 @@ export function openWorldBoss(state, actions) {
   const setup = actions.start();
   if (!setup) return false;
   const calm = reduceMotion();
-  const fight = new WorldBossFight(state, setup);
+  // v9.3.0 : outil de capture vidéo seulement (window.__wbManual) : barre raccourcie pour filmer la chute du Colosse.
+  const short = typeof window !== 'undefined' && window.__wbManual && window.__wbHpMul > 0;
+  const fight = new WorldBossFight(state, short ? { ...setup, maxHp: setup.maxHp * window.__wbHpMul } : setup);
   const el = document.createElement('div');
   el.className = `wb-overlay${calm ? ' wb-calm' : ''}`;
   el.innerHTML = `<canvas class="px wb-canvas" aria-label="World Boss"></canvas>${hudHtml()}`;
@@ -151,6 +153,13 @@ export function openWorldBoss(state, actions) {
       ctx.shownLayer = p.layer;
       ctx.shownPhase = fight.phase;
     }
+    // v9.3.0 : annonce des attaques propres du Colosse (jet de pierre, rayon des yeux), sans couper une annonce de phase.
+    for (ctx.abSeen ??= 0; ctx.abSeen < fight.out.length; ctx.abSeen++) {
+      const ev = fight.out[ctx.abSeen];
+      if (ev.type !== 'ability' || calm || ctx.bannerT > 1) continue;
+      banner(`<small><span>Attaque du Colosse</span></small><b>${escapeHtml(ev.name)}</b>`, ev.id === 'eyebeam' ? (fight.phase >= 3 ? '#ff7a2a' : '#5ff6ff') : '#c9b89a');
+      ctx.bannerT = 1.6;
+    }
     ctx.liveT = (ctx.liveT ?? 0) - dt;
     if (ctx.liveT <= 0 || dt === 0) { ctx.liveT = 0.25; live(); }
     if (ctx.bannerT > 0) { ctx.bannerT -= dt; if (ctx.bannerT <= 0) q('.wb-banner').classList.add('hidden'); }
@@ -190,6 +199,7 @@ export function openWorldBoss(state, actions) {
     fight.finish();
     fight.world.events.length = 0; // effets déjà passés : pas rejoués d'un coup
     scene.seen = fight.out.length;
+    ctx.abSeen = fight.out.length; // v9.3.0 : pas d'annonce d'attaque déjà passée
     end();
   });
   q('.wb-quit').addEventListener('click', close);

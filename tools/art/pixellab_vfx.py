@@ -193,6 +193,13 @@ VFX.update({
     'poison_bubbles': [24, 'small toxic green bubbles rising and popping, looping 6 frames'],
     'wave_clear': [64, 'a wave cleared victory burst: golden firework explosion with confetti stars and sparkles, 9 frames'],
     'teleport': [44, 'a cyan blue teleport beam: vertical column of light with rings and sparkles materializing, 8 frames'],
+    # v9.3.0 : World Boss (Colosse des Anciens) — jet de pierre et rayon des yeux
+    'wb_boulder': [30, 'a big jagged dark grey-green stone boulder with cracks and patches of green moss, dark outline and shading, rotating as it flies, a few small pebbles, looping 6 frames, no trail'],
+    'wb_rock_impact': [72, 'a giant dark grey stone boulder smashing into the ground: a bright yellow white impact flash, the boulder bursts into many dark grey rock chunks flying up and out with dark outlines, brown dirt spray and cracks, 9 frames, wide'],
+    'wb_rock_dust': [64, 'a thick billowing cloud of beige and grey dust rolling outward along the ground after a heavy impact, slowly settling, 9 frames, wide and low'],
+    'wb_eye_charge': [26, 'a bright turquoise and white light energy gathering into a small glowing point, tiny light particles converging inward, star glint, 8 frames'],
+    'wb_beam_flash': [40, 'a bright turquoise and white light beam impact flare: radiant burst with sharp rays and sparks at the point where a laser hits the ground, 7 frames'],
+    'wb_beam_burn': [48, 'a burning scorch mark on the ground left by a laser: a glowing turquoise and white hot molten line with bright flames, sparks and grey smoke rising from it, fading to a dark burnt mark, 8 frames, wide and low'],
 })
 
 

@@ -10,7 +10,7 @@
 import { SceneRenderer, WORLD_SCALE } from './scene.js';
 import { BALANCE } from '../data/balance.js';
 import { formatNumber } from '../core/format.js';
-import { vfx } from './vfx.js';
+import { vfx, drawVfxFrame } from './vfx.js';
 import { WORLD_BOSS } from '../core/world-boss.js';
 
 // Décalage à l'écran du boss géant (unités du monde de la simulation).
@@ -24,7 +24,35 @@ export const COLOSSUS_ANIMS = {
   attack: { n: 9, fps: 16 }, attack3: { n: 9, fps: 18 }, hurt: { n: 9, fps: 18 },
   quake: { n: 9, fps: 11 }, embers: { n: 9, fps: 11 }, fury: { n: 9, fps: 12 },
   transform: { n: 13, fps: 12 }, death: { n: 13, fps: 10 }, rise: { n: 13, fps: 14, src: 'death', reverse: true },
+  // v9.3.0 : jet de pierre (il arrache un rocher, le lève, le lance) et rayon des yeux (charge, faisceau, retour).
+  // `durs` : durée de chaque image (s) ; `release` : image où le rocher quitte la main ; `charge` / `fire` : images
+  // de la charge lumineuse et du faisceau.
+  throw: { n: 13, durs: [0.07, 0.07, 0.08, 0.09, 0.12, 0.12, 0.1, 0.1, 0.24, 0.1, 0.1, 0.08, 0.08], release: 9 },
+  throw3: { n: 13, durs: [0.07, 0.07, 0.08, 0.09, 0.12, 0.12, 0.1, 0.1, 0.24, 0.1, 0.1, 0.08, 0.08], release: 9 },
+  beam: { n: 13, durs: [0.08, 0.08, 0.08, 0.22, 0.26, 0.1, 0.32, 0.32, 0.32, 0.1, 0.08, 0.08, 0.08], charge: [3, 4], fire: [5, 8] },
+  beam3: { n: 13, durs: [0.08, 0.08, 0.08, 0.22, 0.26, 0.1, 0.32, 0.32, 0.32, 0.1, 0.08, 0.08, 0.08], charge: [3, 4], fire: [5, 8] },
 };
+
+// v9.3.0 : position des deux yeux (pixels de l'image source 128×128 : œil avant x, y, œil arrière x, y) sur CHAQUE
+// image des animations du rayon, relevée image par image (gabarit du visage cherché dans chaque image générée, comme
+// la gueule des dragons) : le faisceau part exactement des yeux, même quand la tête plonge.
+export const COLOSSUS_EYES = {
+  beam: [[34, 39, 44, 38], [34, 39, 44, 38], [33, 39, 43, 38], [32, 40, 42, 39], [31, 41, 41, 40], [31, 42, 41, 41], [31, 42, 41, 41], [31, 42, 41, 41], [31, 42, 41, 41], [32, 41, 42, 40], [33, 40, 43, 39], [34, 39, 44, 38], [34, 39, 44, 38]],
+  beam3: [[33, 45, 42, 45], [33, 45, 42, 45], [33, 45, 42, 45], [30, 48, 39, 48], [28, 50, 37, 50], [27, 51, 36, 51], [27, 51, 36, 51], [27, 51, 36, 51], [27, 51, 36, 51], [29, 49, 38, 49], [31, 47, 40, 47], [33, 45, 42, 45], [33, 45, 42, 45]],
+};
+// Point où le rocher quitte la main (image `release` du jet de pierre), pixels de l'image source.
+const THROW_HAND = { throw: [16, 34], throw3: [18, 44] };
+// Couleurs du faisceau : halo, corps, cœur (phase 3 : la forme de lave a des yeux de braise).
+const BEAM_COLORS = { beam: ['#2fd8ff', '#8ff8ff', '#ffffff'], beam3: ['#ff5a1f', '#ffb04a', '#fff3c8'] };
+
+// Image d'une animation à l'instant t (s) : durées par image (`durs`) ou cadence fixe (`fps`). -1 : terminée.
+export function animFrameAt(a, t) {
+  if (!a.durs) { const k = Math.floor(t * a.fps); return k >= a.n ? -1 : k; }
+  let acc = 0;
+  for (let i = 0; i < a.n; i++) { acc += a.durs[i]; if (t < acc) return i; }
+  return -1;
+}
+export const animLength = (a) => (a.durs ? a.durs.reduce((x, y) => x + y, 0) : a.n / a.fps);
 const IMAGES = {};
 function sheet(name) {
   if (typeof Image === 'undefined') return null;
@@ -63,12 +91,24 @@ export class WorldBossScene {
       world.enemies = all;
       this.drawColossus(ctx, boss, dt);
     };
+    // v9.3.0 : rocher en vol et faisceau des yeux dessinés par-dessus les personnages, dans le calque des effets.
+    this.attacks = []; // { kind: 'boulder' | 'beam', ... }
+    const effects = this.r.drawEffects.bind(this.r);
+    this.r.drawEffects = (ctx, dt) => { effects(ctx, dt); this.drawAttacks(ctx, dt); };
   }
 
   // Animation ponctuelle (attaque, phase…), puis retour au repos (ou à `then`).
   play(name, then = null) {
     if (this.r.focus) return; // « Réduire les animations » : poses fixes
+    this.interrupt();
     this.anim = { name, t: 0, then };
+  }
+
+  // v9.3.0 : une attaque propre coupée avant son coup (chute du Colosse…) frappe quand même : dégâts affichés.
+  interrupt() {
+    const a = this.anim;
+    if (a?.ev && !a.fired) { a.fired = true; this.heroHurt(a.ev, 0, 5); }
+    this.attacks = this.attacks.filter((x) => x.kind !== 'beam');
   }
 
   get scale() { return 1.15 + 0.06 * this.fight.phase; }
@@ -82,9 +122,10 @@ export class WorldBossScene {
     if (this.anim) {
       const a = COLOSSUS_ANIMS[this.anim.name];
       this.anim.t += dt;
-      const k = Math.floor(this.anim.t * a.fps);
-      if (k >= a.n) {
+      const k = animFrameAt(a, this.anim.t);
+      if (k < 0) {
         const then = this.anim.then;
+        this.interrupt();
         this.anim = then ? { name: then, t: 0, then: null } : null;
       } else { name = this.anim.name; i = a.reverse ? a.n - 1 - k : k; }
     }
@@ -109,9 +150,174 @@ export class WorldBossScene {
     ctx.globalAlpha = this.appear;
     if (im) ctx.drawImage(im, i * FRAME, 0, FRAME, FRAME, x, y, w, w);
     ctx.restore();
+    // v9.3.0 : image dessinée (pour caler le rocher et le faisceau sur la main et les yeux), déclencheurs des attaques.
+    this.drawn = { name, i, x, y, k };
+    if (this.anim?.ev && this.anim.name === name) this.attackStep(name, i);
     // Repères pour les effets du renderer (coups, projectiles, chiffres) : la silhouette visible du Colosse.
     const fx = r.enemyFxFor(boss.id);
     Object.assign(fx, { sx: x + 8 * k, sy: y + 6 * k, sw: 112 * k, sh: 116 * k, seen: r.time, edge: x + 18 * k, landed: true, appear: 1, hit: 0 });
+  }
+
+  // v9.3.0 : pixel (px, py) de l'image source du Colosse → écran (d'après la dernière image dessinée).
+  at(px, py) {
+    const d = this.drawn;
+    return d ? [d.x + px * d.k, d.y + py * d.k] : [0, 0];
+  }
+
+  // Yeux sur l'image dessinée (animations du rayon seulement).
+  eyes() {
+    const d = this.drawn;
+    const e = d && COLOSSUS_EYES[d.name]?.[d.i];
+    return e ? [this.at(e[0] + 0.5, e[1] + 0.5), this.at(e[2] + 0.5, e[3] + 0.5)] : null;
+  }
+
+  heroX() { return BALANCE.world.heroX * WORLD_SCALE; }
+
+  // Dégâts d'une attaque reçus par le héros (chiffre, choc, secousse).
+  heroHurt(ev, delay = 0, shake = 6) {
+    const r = this.r;
+    const heroX = this.heroX();
+    r.later(delay, () => {
+      r.hero.hurt = 0.3;
+      vfx(r, 'hit_blunt', heroX + 8, r.groundY - 20, { size: 1.3, flip: true });
+      r.addText(formatNumber(Math.round(ev.damage)), heroX - 4, r.groundY - 54, '#ff5a5a', '#ffd0d0', true);
+      r.shake = Math.max(r.shake, shake);
+    });
+  }
+
+  // Images clés des attaques propres : le rocher quitte la main, le faisceau s'allume.
+  attackStep(name, i) {
+    const a = COLOSSUS_ANIMS[name];
+    const an = this.anim;
+    if (a.release !== undefined && i >= a.release && !an.fired) {
+      an.fired = true;
+      const [hx, hy] = this.at(...THROW_HAND[name]);
+      const tx = this.heroX() - 14;
+      this.attacks.push({ kind: 'boulder', ev: an.ev, x0: hx, y0: hy, x1: tx, y1: this.r.groundY - 6, t: 0, dur: 0.62, arc: 70 + Math.max(0, hy - this.r.groundY + 90) * 0.2, fire: name === 'throw3' });
+    }
+    if (a.fire && i >= a.fire[0] && !an.fired) {
+      an.fired = true;
+      const end = a.durs.slice(0, a.fire[1] + 1).reduce((x, y) => x + y, 0);
+      this.attacks.push({ kind: 'beam', ev: an.ev, name, t: 0, dur: end - an.t, hit: false, puff: 0, burn: 0 });
+      this.r.shake = Math.max(this.r.shake, 3);
+    }
+  }
+
+  drawAttacks(ctx, dt) {
+    const r = this.r;
+    const d = this.drawn;
+    // Charge lumineuse dans les yeux (avant le faisceau) : lueur posée sur chaque œil, image par image.
+    const ca = d && COLOSSUS_ANIMS[d.name]?.charge;
+    if (ca && this.anim?.name === d.name && d.i >= ca[0] - 1 && d.i <= ca[1] + 1) {
+      const e = this.eyes();
+      const p = Math.min(1, Math.max(0.2, (this.anim.t - 0.2) / 0.5));
+      const fi = Math.floor(r.time * 14) % 8;
+      for (const [ex, ey] of e) drawVfxFrame(ctx, 'wb_eye_charge', fi, ex, ey, { size: 0.5 + p * 0.9, tint: d.name === 'beam3' ? '#ff8a2a' : null, alpha: 0.9 });
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      for (const [ex, ey] of e) {
+        const g = ctx.createRadialGradient(ex, ey, 0, ex, ey, 6 + p * 8);
+        g.addColorStop(0, BEAM_COLORS[d.name][2]);
+        g.addColorStop(0.4, BEAM_COLORS[d.name][0]);
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.globalAlpha = 0.5 + 0.4 * p;
+        ctx.fillRect(ex - 16, ey - 16, 32, 32);
+      }
+      ctx.restore();
+    }
+    for (const at of this.attacks) {
+      at.t += dt;
+      if (at.kind === 'boulder') this.drawBoulder(ctx, at);
+      else this.drawBeam(ctx, at, dt);
+    }
+    this.attacks = this.attacks.filter((at) => at.t < at.dur);
+  }
+
+  // Rocher en arc : il tourne, son ombre grandit au sol ; à l'arrivée, impact, débris, poussière, secousse.
+  drawBoulder(ctx, at) {
+    const r = this.r;
+    const u = Math.min(1, at.t / at.dur);
+    const x = at.x0 + (at.x1 - at.x0) * u;
+    const y = at.y0 + (at.y1 - at.y0) * u * u - at.arc * Math.sin(Math.PI * u) * (1 - 0.35 * u);
+    ctx.save();
+    ctx.globalAlpha = 0.15 + 0.35 * u;
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.ellipse(at.x1, r.groundY + 1, 6 + 12 * u, 2 + 2 * u, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    drawVfxFrame(ctx, 'wb_boulder', Math.floor(at.t * 16) % 6, x, y, { size: 2.6, tint: at.fire ? '#ff6a2a' : null, rot: at.t * -9 });
+    if (at.fire && Math.random() < 0.6) r.burst(x, y, '#ff8a3d', 1, 12);
+    if (u >= 1 && !at.landed) {
+      at.landed = true;
+      at.dur = at.t; // le rocher disparaît : il s'est brisé
+      const G = r.groundY;
+      vfx(r, 'wb_rock_impact', at.x1, G - 4, { size: 1.6 });
+      vfx(r, 'wb_rock_dust', at.x1, G - 6, { size: 1.5, delay: 0.08 });
+      vfx(r, 'mut_stomp', at.x1, G, { size: 1.5 });
+      vfx(r, 'dust_land', at.x1 - 30, G, { size: 1.4, delay: 0.1 });
+      vfx(r, 'dust_land', at.x1 + 30, G, { size: 1.4, delay: 0.1, flip: true });
+      r.burst(at.x1, G - 8, '#7d7466', 22, 90);
+      r.burst(at.x1, G - 8, '#4e5a4c', 14, 70);
+      if (at.fire) r.burst(at.x1, G - 10, '#ff7a2a', 16, 80);
+      r.effects.push({ kind: 'flash', life: 0.12, max: 0.12, color: '#ffffff' });
+      r.hitstop = Math.max(r.hitstop ?? 0, 0.06);
+      r.shake = Math.max(r.shake, 8);
+      this.heroHurt(at.ev, 0.02, 8);
+    }
+  }
+
+  // Faisceau des yeux : deux rayons partis des yeux (image dessinée) qui convergent au sol et balaient l'équipe,
+  // d'au-devant du héros jusque derrière le dernier compagnon ; brûlure au sol, éclats, secousse continue.
+  drawBeam(ctx, at, dt) {
+    const r = this.r;
+    const e = this.eyes();
+    if (!e || this.anim?.name !== at.name) { at.dur = 0; return; }
+    const u = Math.min(1, at.t / at.dur);
+    const heroX = this.heroX();
+    const from = heroX + 70;
+    const to = heroX - 70;
+    const tx = from + (to - from) * u;
+    const ty = r.groundY - 2;
+    const [c0, c1, c2] = BEAM_COLORS[at.name];
+    const fade = Math.min(1, at.t * 10, (at.dur - at.t) * 8);
+    const wob = 1 + 0.25 * Math.sin(r.time * 60);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineCap = 'round';
+    for (const [w, c, al] of [[11, c0, 0.28], [6, c1, 0.6], [2.2, c2, 1]]) {
+      ctx.strokeStyle = c;
+      ctx.globalAlpha = al * fade;
+      ctx.lineWidth = w * wob;
+      ctx.beginPath();
+      for (const [ex, ey] of e) { ctx.moveTo(ex, ey); ctx.lineTo(tx, ty); }
+      ctx.stroke();
+    }
+    // Éclat sur les yeux.
+    for (const [ex, ey] of e) {
+      const g = ctx.createRadialGradient(ex, ey, 0, ex, ey, 9);
+      g.addColorStop(0, c2); g.addColorStop(0.5, c0); g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g; ctx.globalAlpha = fade; ctx.fillRect(ex - 10, ey - 10, 20, 20);
+    }
+    ctx.restore();
+    at.puff -= dt;
+    at.burn -= dt;
+    if (at.puff <= 0) {
+      at.puff = 0.1;
+      vfx(r, 'wb_beam_flash', tx, ty - 4, { size: 1.1, tint: at.name === 'beam3' ? '#ff7a2a' : null });
+      r.burst(tx, ty - 3, c1, 5, 55);
+    }
+    if (at.burn <= 0) {
+      at.burn = 0.14;
+      vfx(r, 'wb_beam_burn', tx, ty + 2, { size: 0.9, tint: at.name === 'beam3' ? '#ff6a1a' : null });
+    }
+    r.shake = Math.max(r.shake, 2.5);
+    if (!at.hit && tx <= heroX + 6) {
+      at.hit = true;
+      this.heroHurt(at.ev, 0, 6);
+      r.effects.push({ kind: 'flash', life: 0.1, max: 0.1, color: c1 });
+    }
   }
 
   resize(w, h) { this.r.resize(w, h); }
@@ -182,6 +388,15 @@ export class WorldBossScene {
       r.shake = Math.max(r.shake, 5);
     });
     const color = PHASE_COLORS[ev.phase ?? 3];
+    if (ev.type === 'ability') {
+      // v9.3.0 : jet de pierre / rayon des yeux. Animations réduites : seulement le coup reçu.
+      if (r.focus) { this.heroHurt(ev, 0.3, 0); return; }
+      const p3 = this.fight.phase >= 3;
+      this.play(ev.id === 'boulder' ? (p3 ? 'throw3' : 'throw') : (p3 ? 'beam3' : 'beam'));
+      this.anim.ev = ev;
+      if (ev.id === 'eyebeam') vfx(r, 'boss_rage', box.x, box.foot, { size: 1.6, tint: p3 ? '#ff7a2a' : '#5ff6ff', alpha: 0.6 });
+      return;
+    }
     if (ev.type === 'awaken') {
       this.play('death', 'rise'); // chute du Colosse, puis il se relève
       vfx(r, 'boss_explode', box.x, box.y, { size: 2.2 });

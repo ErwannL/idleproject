@@ -46,10 +46,12 @@ ANIMS = _discover()
 # et à son miroir) puis vérifiées à l'œil ; elles sont retournées horizontalement avant le recalage.
 R14 = (1, 2, 3, 4)
 MIRROR = {
-    ('boss_ash_dragon', 'hurt'): R14, ('boss_bone_lord', 'hurt'): R14, ('boss_demon_king', 'hurt'): R14,
+    ('boss_ash_dragon', 'hurt'): R14, ('boss_bone_lord', 'hurt'): R14,  # v9.3.0 : coup reçu du demon_king régénéré (face au héros), plus de miroir
+   
     ('boss_phoenix', 'hurt'): (1, 2, 3), ('boss_sky_titan', 'hurt'): R14, ('boss_swamp_behemoth', 'hurt'): (1, 2, 3),
     ('hard_anubis', 'hurt'): (1, 2, 3), ('hard_flame_djinn', 'hurt'): (1, 2, 3), ('hard_frost_giant', 'hurt'): R14,
-    ('hard_necromancer', 'hurt'): (1, 2, 3), ('hard_scarecrow', 'hurt'): R14, ('hard_werewolf', 'hurt'): R14,
+    ('hard_necromancer', 'hurt'): (1, 2, 3),  # v9.3.0 : coup reçu de hard_scarecrow régénéré (images retournées : la faux changeait de côté)
+    ('hard_werewolf', 'hurt'): R14,
     ('mid_boar_titan', 'hurt'): (1,), ('mid_hellhound', 'hurt'): (1, 2, 3), ('mid_hydra', 'hurt'): R14,
     ('mid_thunder_griffin', 'hurt'): R14, ('mini_frost_witch', 'hurt'): R14, ('mini_harpy_queen', 'hurt'): R14,
     ('mini_pharaoh', 'hurt'): R14,

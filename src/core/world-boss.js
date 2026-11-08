@@ -45,6 +45,17 @@ export const WORLD_BOSS = {
   attackInterval: 2.4,
   hpFactor: 1.05, // PV du boss du jour = dégâts mesurés en 60 s × hpFactor (une bonne tentative vide la barre : Éveil)
   awaken: 1.25, // force du boss à chaque Éveil (barre vidée)
+  // v9.3.0 : attaques propres au Colosse, en boucle pendant toute la tentative (retour de l'équipe : « un jet de pierre
+  // et un rayon lumineux qui sort des yeux »). Dégâts : part des PV max du héros (× Éveil, jamais mortels seuls).
+  // `from` : première phase où l'attaque entre dans le cycle. Cadence : `every[phase]` secondes entre deux attaques
+  // (le Colosse alterne jet de pierre et rayon dès que les deux sont permis), la première à `first` s.
+  abilities: [
+    { id: 'boulder', name: 'Jet de pierre', hit: 0.11, from: 0 },
+    { id: 'eyebeam', name: 'Rayon des Anciens', hit: 0.15, from: 1 },
+  ],
+  abilityFirst: 5,
+  abilityEvery: [11, 9.5, 8, 6.5],
+  abilityGap: 2.5, // pas d'attaque propre dans les 2,5 s qui suivent une attaque de phase ou un Éveil
 };
 
 // Écus d'une tentative : base + un bonus par palier atteint (au plus = l'ancien forfait, l'économie ne bouge pas).
@@ -97,6 +108,9 @@ export class WorldBossFight {
     this.layer = 0; // Éveils (barres vidées)
     this.out = []; // événements propres au World Boss : { type: 'phase' | 'awaken', ... } (lus par la scène)
     this.team = equippedCompanions(s).map((c) => c.id);
+    this.nextAbility = WORLD_BOSS.abilityFirst; // v9.3.0 : prochaine attaque propre (temps de la tentative)
+    this.abilityCount = 0;
+    this.lastSpecial = -99;
   }
 
   get boss() { return this.world.enemies.find((e) => e.worldBoss) ?? null; }
@@ -135,6 +149,7 @@ export class WorldBossFight {
       this.phase = 0;
       this.applyPhase(boss);
       this.out.push({ type: 'awaken', layer: this.layer, time: this.time });
+      this.lastSpecial = this.time;
     }
     while (this.phase < WORLD_BOSS.phases.length && p.frac <= WORLD_BOSS.phases[this.phase].at) {
       const ph = WORLD_BOSS.phases[this.phase];
@@ -146,7 +161,23 @@ export class WorldBossFight {
       const hero = this.world.hero;
       if (!hero.dead) hero.hp = Math.max(1, hero.hp - hit);
       this.out.push({ type: 'phase', phase: this.phase, id: ph.id, name: ph.name, damage: hit, time: this.time, enemyId: boss.id });
+      this.lastSpecial = this.time;
     }
+    this.ability(boss);
+  }
+
+  // v9.3.0 : attaque propre du Colosse (jet de pierre, rayon des yeux) quand son heure est venue.
+  ability(boss) {
+    if (this.time < this.nextAbility) return;
+    if (this.time - this.lastSpecial < WORLD_BOSS.abilityGap) { this.nextAbility = this.lastSpecial + WORLD_BOSS.abilityGap; return; }
+    const ab = pickAbility(this.phase, this.abilityCount);
+    this.abilityCount += 1;
+    this.nextAbility = this.time + WORLD_BOSS.abilityEvery[Math.min(this.phase, WORLD_BOSS.abilityEvery.length - 1)];
+    this.lastSpecial = this.time;
+    const hit = this.world.heroStats.maxHp * ab.hit * (WORLD_BOSS.awaken ** this.layer) * (1 + 0.1 * this.phase);
+    const hero = this.world.hero;
+    if (!hero.dead) hero.hp = Math.max(1, hero.hp - hit);
+    this.out.push({ type: 'ability', id: ab.id, name: ab.name, phase: this.phase, damage: hit, time: this.time, enemyId: boss.id });
   }
 
   applyPhase(boss) {
@@ -170,6 +201,12 @@ export class WorldBossFight {
     const tiers = WORLD_BOSS.tiers.filter((t) => cleared >= t).length;
     return { damage: Math.floor(this.run.damage), cleared, tiers, layer: this.layer, phase: this.phase, falls: this.run.falls, team: this.team };
   }
+}
+
+// v9.3.0 : attaque propre choisie (n-ième de la tentative) : alternance parmi celles permises à cette phase.
+export function pickAbility(phase, n) {
+  const ok = WORLD_BOSS.abilities.filter((a) => phase >= a.from);
+  return ok[n % ok.length];
 }
 
 // PV du boss du jour : 60 s de combat mesurées (graine fixe) × hpFactor. Joueur sans équipe : au moins 1.

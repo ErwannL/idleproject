@@ -1996,7 +1996,7 @@ export class SceneRenderer {
         case 'flash':
           ctx.globalAlpha = t * 0.35;
           ctx.fillStyle = fx.color;
-          ctx.fillRect(0, 0, this.width, this.height);
+          ctx.fillRect(-40, -40, this.width + 80, this.height + 80); // v9.3.0 : tout l'écran, malgré le décalage de l'équipe et la secousse
           break;
         case 'epx': case 'eglow': case 'elinger':
           this.drawElementEffect(ctx, fx, t, dt);

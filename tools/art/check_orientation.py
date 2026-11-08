@@ -32,7 +32,7 @@ VU_CORRECT = {
     ('mid_sand_worm', 'hurt'), ('mini_crab_king', 'attack'), ('mini_goblin_warlord', 'hurt'), ('mini_pharaoh', 'attack'),
     ('mini_reaper', 'attack'), ('mini_reaper', 'hurt'), ('ogre', 'attack'), ('sea_eel', 'attack'), ('sea_octopus', 'attack'),
     ('sea_octopus', 'swim'), ('skeleton', 'attack'), ('skeleton_shield', 'attack'), ('slime_fire', 'attack'),
-    ('boss_demon_king', 'hurt'), ('hard_scarecrow', 'hurt'), ('mini_harpy_queen', 'hurt'), ('mummy', 'attack'), ('mummy', 'emerge'),
+    ('mini_harpy_queen', 'hurt'), ('mummy', 'attack'), ('mummy', 'emerge'),
     ('mini_toad_king', 'hurt'), ('hard_void_knight', 'attack'), ('wraith', 'attack'),
 }
 SKIP = ('death', 'emerge', 'portal')  # chute, sortie du sol ou du portail : pas d'orientation à comparer

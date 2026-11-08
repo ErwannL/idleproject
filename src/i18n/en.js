@@ -2040,3 +2040,6 @@ PATTERNS.unshift(...patterns929(lookup));
 import { EXACT_929_STAB, patterns929Stab } from './en-929-stab.js';
 for (const [k, v] of Object.entries(EXACT_929_STAB)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns929Stab(lookup));
+// v9.3.0 : attaques du Colosse du World Boss (./en-930.js) — sans écraser l'existant.
+import { EXACT_930 } from './en-930.js';
+for (const [k, v] of Object.entries(EXACT_930)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
