@@ -4,7 +4,7 @@
 // cherche les objets dans le sac et au coffre (v9.1.3 : mannequins fondus dans le coffre), et compte vraiment ceux
 // qui manquent.
 import { BALANCE } from '../data/balance.js';
-import { SLOTS } from '../data/items.js';
+import { EQUIP_SLOTS, SLOTS, eqSlot } from '../data/items.js';
 import { LOADOUT_NAMES } from '../data/synergies.js';
 import { SKILLS } from '../data/skills.js';
 import { clampTeam, onExpedition } from './companions.js';
@@ -21,7 +21,7 @@ export function saveLoadout(state, index) {
   const slot = state.loadouts[index];
   if (!slot) return false;
   slot.team = [...state.companions.equipped];
-  slot.gear = Object.fromEntries(Object.keys(SLOTS).map((s) => [s, state.equipment[s]?.id ?? null]));
+  slot.gear = Object.fromEntries(Object.keys(EQUIP_SLOTS).map((s) => [s, state.equipment[s]?.id ?? null]));
   slot.heroClass = state.heroClass;
   slot.powers = [...state.equippedPowers];
   slot.skills = { ...state.skills };
@@ -79,7 +79,7 @@ export function sanitizeLoadouts(raw) {
     if (typeof l.name === 'string' && l.name.trim()) out[i].name = l.name.slice(0, 24);
     if (Array.isArray(l.team)) out[i].team = l.team.filter((id) => typeof id === 'string').slice(0, 6);
     if (l.gear && typeof l.gear === 'object') {
-      out[i].gear = Object.fromEntries(Object.keys(SLOTS).map((s) => [s, typeof l.gear[s] === 'string' ? l.gear[s] : null]));
+      out[i].gear = Object.fromEntries(Object.keys(EQUIP_SLOTS).map((s) => [s, typeof l.gear[s] === 'string' ? l.gear[s] : null]));
     }
     // v9.1.0 : champs ajoutés (absents des anciens builds : le rappel les ignore alors).
     if (typeof l.heroClass === 'string' && classById(l.heroClass)) out[i].heroClass = l.heroClass;

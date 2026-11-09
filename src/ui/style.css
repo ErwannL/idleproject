@@ -3172,3 +3172,14 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 .tuto-bubble .tuto-ok { min-height: 44px; min-width: 44px; pointer-events: auto; }
 @keyframes tuto-tap { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
 @media (prefers-reduced-motion: reduce) { .tuto-finger { animation: none; } }
+
+/* v9.3.4 (f) : équipement unique — sélecteur de personnage, objets d'une autre classe grisés. */
+.who-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 6px; }
+.who-btn { display: flex; flex-direction: column; align-items: center; min-width: 56px; min-height: 56px; padding: 4px; gap: 2px; }
+.who-btn img, .who-btn canvas { width: 32px; height: 32px; image-rendering: pixelated; }
+.who-btn small { font-size: 12px; max-width: 64px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.who-btn.active { border-color: var(--ui-gold, #f5c542); box-shadow: 0 0 0 2px color-mix(in srgb, var(--ui-gold, #f5c542) 40%, transparent); }
+.item-frame.dim { opacity: .45; filter: grayscale(.6); position: relative; }
+.item-frame .for-cls { position: absolute; left: 0; right: 0; bottom: 0; font-size: 9px; line-height: 1.2; background: #000a; color: #fff; text-align: center; }
+.cls-pill { background: #2b3550; }
+.ip-unit { margin: 2px 0 4px; }

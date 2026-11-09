@@ -25,7 +25,7 @@ const browser = await chromium.launch();
 const context = await browser.newContext({ viewport: { width: 400, height: 250 } });
 const page = await context.newPage();
 const errors = [];
-page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
+page.on('pageerror', (e) => errors.push(`pageerror: ${e.message} ${(e.stack ?? '').split('\n').slice(1, 3).join(' | ')}`));
 page.on('console', (m) => {
   if (m.type() === 'error') errors.push(`console: ${m.text()}`);
 });
@@ -128,8 +128,8 @@ await check('onglets avec icône et état actif distinct', async () => {
     menu: b.dataset.menu, icon: b.querySelector('img')?.naturalWidth > 0, active: b.classList.contains('active'),
     hidden: b.classList.contains('hidden'),
   })));
-  // v9.1.0 : 4 menus (Héros, Aventure, Équipe, Objectifs). En début de partie, Équipe est encore caché.
-  assert(tabs.length === 4 && tabs.every((t) => t.icon), JSON.stringify(tabs));
+  // v9.1.0 : v9.3.5 : 5 boutons (Combat, Héros, Équipe, Aventure, Quêtes). En début de partie, Équipe est encore caché.
+  assert(tabs.length === 5 && tabs.every((t) => t.icon), JSON.stringify(tabs));
   assert(tabs.filter((t) => t.active).map((t) => t.menu).join() === 'hero', JSON.stringify(tabs));
   const hidden = await game(() => Object.entries(__idle.ui.tabVisible).filter(([, v]) => v === false).map(([k]) => k).sort().join());
   assert(hidden.includes('tree') && hidden.includes('dungeons') && hidden.includes('tower'), `onglets cachés : ${hidden}`);
@@ -158,11 +158,12 @@ await check('filtres par type et tri par niveau', async () => {
 await check('recyclage groupé : confirmation et objets protégés', async () => {
   const ids = await game(() => {
     __idle.state.inventory = [];
-    const helm = __idle.addItem('iron_helm', 'epic', 1);
+    // v9.3.4 (f) : 3 places — un accessoire épique porté, des accessoires moins bons dans le sac.
+    const helm = __idle.addItem('band_ring_ruby', 'epic', 1);
     __idle.actions.equip(helm.id);
-    const weak = __idle.addItem('leather_hood', 'common', 1);
-    const weakRare = __idle.addItem('leather_hood', 'rare', 1);
-    const epic = __idle.addItem('leather_hood', 'epic', 1);
+    const weak = __idle.addItem('band_ring_ruby', 'common', 1);
+    const weakRare = __idle.addItem('band_ring_ruby', 'rare', 1);
+    const epic = __idle.addItem('band_ring_ruby', 'epic', 1);
     __idle.state.equipment.armor = null;
     const upgrade = __idle.addItem('chainmail', 'common', 1);
     return { weak: weak.id, weakRare: weakRare.id, epic: epic.id, upgrade: upgrade.id };

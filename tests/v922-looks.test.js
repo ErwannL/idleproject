@@ -20,9 +20,9 @@ const { translate: ko } = await import('../src/i18n/ko.js');
 
 const ui = (view = {}) => ({ view: { open: new Set(), closed: new Set(), ...view }, tabVisible: {} });
 
-test('Héros › Apparences : sous-onglet du menu Héros, état et bouton Équiper sur chaque carte', () => {
-  assert.ok(MENUS.find((m) => m.id === 'hero').tabs.includes('looks'));
-  assert.equal(navPath('looks'), 'Héros › Apparences');
+test('Profil › Apparences : onglet du Profil (v9.3.5), état et bouton Équiper sur chaque carte', () => {
+  assert.ok(MENUS.find((m) => m.id === 'profile').tabs.includes('looks'));
+  assert.equal(navPath('looks'), 'Profil › Apparences');
   const s = createNewState(Date.now());
   s.heroes.owned.fairy = { stars: 1 };
   const html = looks.render(ui(), s);

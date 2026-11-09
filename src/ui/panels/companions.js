@@ -17,16 +17,18 @@ import { companionPortrait, companionStill } from './expeditions.js';
 import { unitPopup } from './unit-popup.js'; // v9.3.4
 import { canAfford, dupBonusPct, leveledSkill, levelMult, RESOURCE_KEYS, skillCap, skillLevels, skillUpgradeCost } from '../../core/progression.js'; // v9.3.3
 import { ACTIVE_EXTRA_AT, DUP_BONUS_PCT, SKILL_CAPS, SKILL_GROWTH, SKILL_RESOURCES, ULT_UNLOCK_COPIES } from '../../data/progression.js';
-import { canEquip, gearBase, gearState, gearStats, gearUpgradeCost, statText, unitGear, unitGearStats, wearerOf } from '../../core/companion-gear.js'; // v9.3.3
-import { GEAR_CLASSES, GEAR_SLOTS, SLOT_NAMES, STAT_NAMES, gearClassOf } from '../../data/companion-gear.js';
+import { canEquip, classLabel, gearStats, gearUpgradeCost, slotName, statText, unitGear, unitGearStats } from '../../core/companion-gear.js'; // v9.3.4 (f)
+import { itemClass } from '../../core/classes.js';
+import { eqSlot } from '../../data/items.js';
+import { GEAR_CLASSES, STAT_NAMES, gearClassOf } from '../../data/companion-gear.js';
 
 // Compétences (v8.9) : 4 par compagnon, la 4e à 3 doublons. v9.1.3 (doc4 lot 1) : chaque doublon +5 % (formule unique
 // de core/companions.js : companionSkillMultiplier) ; aperçu d'une unité non possédée à 0 doublon.
 // Attaque = dégâts par seconde de ses compétences offensives.
 // v9.1.3 (doc1 « Compagnons ») : la ligne « Défense » répétait le bonus passif (retirée) ; la formule de puissance
 // est derrière « ? » ; les 2 compétences de rôle sont repliées (compétence propre et ultime visibles).
-// v9.3.3 : équipement du héros (allié) ou du familier : 3 emplacements nommés selon sa classe, total des bonus,
-// sac filtré (emplacement, rareté, compatibles), comparaison avant/après, amélioration (éclats + or), recyclage.
+// v9.3.4 (f) : équipement unique. Le compagnon porte les objets du sac commun (butin des monstres) de SA classe :
+// 3 places nommées selon sa classe, total des bonus, objets compatibles du sac avec comparaison, amélioration, recyclage.
 const RAR_ORDER = ['legendary', 'epic', 'rare', 'common'];
 function gearBlock(ui, state, c) {
   const cls = gearClassOf(c);
@@ -34,39 +36,39 @@ function gearBlock(ui, state, c) {
   const total = unitGearStats(state, c.id);
   const killGold = skillKillGold(state);
   const f = ui.view.gearFilter ?? { slot: 'all', rarity: 'all', compat: true };
-  const slots = GEAR_SLOTS.map((slot) => {
+  const PLACES = ['weapon', 'armor', 'accessory'];
+  const slots = PLACES.map((slot) => {
     const it = worn[slot];
-    return `<div class="gear-slot${it ? ` r-${it.rarity}` : ' empty'}"><small>${escapeHtml(SLOT_NAMES[cls][slot])}</small>
-      ${it ? `<b>${escapeHtml(gearBase(it).name)}${it.up ? ` +${it.up}` : ''}</b><span class="muted">${escapeHtml(statText(gearStats(it)))}</span>
+    return `<div class="gear-slot${it ? ` r-${it.rarity}` : ' empty'}"><small>${escapeHtml(slotName(c, slot))}</small>
+      ${it ? `<b>${escapeHtml(it.name)}${it.upgrades ? ` +${it.upgrades}` : ''}</b><span class="muted">${escapeHtml(statText(gearStats(it, state)))}</span>
         <button class="btn tiny" data-action="gear-unequip" data-value="${c.id}|${slot}">Retirer</button>` : '<span class="muted">Vide</span>'}</div>`;
   }).join('');
-  const bag = gearState(state).bag
-    .filter((i) => (f.slot === 'all' || gearBase(i).slot === f.slot) && (f.rarity === 'all' || i.rarity === f.rarity))
+  const bag = state.inventory
+    .filter((i) => (f.slot === 'all' || eqSlot(i) === f.slot) && (f.rarity === 'all' || i.rarity === f.rarity))
     .map((i) => ({ i, chk: canEquip(state, c.id, i) }))
     .filter(({ chk }) => !f.compat || chk.ok)
-    .sort((a, b) => Number(b.chk.ok) - Number(a.chk.ok) || RAR_ORDER.indexOf(a.i.rarity) - RAR_ORDER.indexOf(b.i.rarity) || (b.i.up ?? 0) - (a.i.up ?? 0));
+    .sort((a, b) => Number(b.chk.ok) - Number(a.chk.ok) || RAR_ORDER.indexOf(a.i.rarity) - RAR_ORDER.indexOf(b.i.rarity) || (b.i.upgrades ?? 0) - (a.i.upgrades ?? 0))
+    .slice(0, 40);
   const row = ({ i, chk }) => {
-    const base = gearBase(i);
-    const who = wearerOf(state, i.id);
-    const cur = worn[base.slot];
-    const diff = chk.ok ? Object.keys(STAT_NAMES).map((k) => [k, (gearStats(i)[k] ?? 0) - (cur && cur.id !== i.id ? gearStats(cur)[k] ?? 0 : 0)]).filter(([, d]) => d)
+    const cur = worn[eqSlot(i)];
+    const diff = chk.ok ? Object.keys(STAT_NAMES).map((k) => [k, (gearStats(i, state)[k] ?? 0) - (cur ? gearStats(cur, state)[k] ?? 0 : 0)]).filter(([, d]) => d)
       .map(([k, d]) => `<span class="${d > 0 ? 'good' : 'bad'}">${(k === 'cd') === (d > 0) ? '−' : '+'}${Math.abs(Math.round(d * 10) / 10)} % ${STAT_NAMES[k]}</span>`).join(' ') : ''; // recharge : une hausse = recharge plus courte (−)
     const cost = gearUpgradeCost(i, killGold);
-    return `<div class="gear-row r-${i.rarity}${chk.ok ? '' : ' incompatible'}"><div class="grow"><b class="rarity-text r-${i.rarity}">${escapeHtml(base.name)}${i.up ? ` +${i.up}` : ''}</b>
-        <small class="muted">${rarityLabel(i.rarity)} · ${escapeHtml(statText(gearStats(i)))}${who ? ` · porté par ${escapeHtml(companionById(who)?.name ?? '')}` : ''}</small>
-        ${chk.ok ? (diff && who !== c.id ? `<div class="gear-diff">Si équipé : ${diff}</div>` : '') : `<div class="bad gear-why">🔒 ${escapeHtml(chk.reason)}</div>`}</div>
-      <div class="gear-btns">${chk.ok && who !== c.id ? `<button class="btn tiny btn-primary" data-action="gear-equip" data-value="${c.id}|${i.id}">Équiper</button>` : ''}
-        ${cost ? `<button class="btn tiny" data-action="gear-up" data-value="${i.id}" ${state.gold >= cost.gold && state.materials.shards >= cost.shards ? '' : 'disabled'} title="Améliorer">+${(i.up ?? 0) + 1} · ${img('icon_shard')}${cost.shards} ${img('coin')}${formatNumber(cost.gold)}</button>` : ''}
-        ${!who ? `<button class="btn tiny" data-action="gear-recycle" data-value="${i.id}" title="Recycler en éclats">♻</button>` : ''}</div></div>`;
+    return `<div class="gear-row r-${i.rarity}${chk.ok ? '' : ' incompatible'}"><div class="grow"><b class="rarity-text r-${i.rarity}">${escapeHtml(i.name)}${i.upgrades ? ` +${i.upgrades}` : ''}</b>
+        <small class="muted">${rarityLabel(i.rarity)} · ${escapeHtml(classLabel(itemClass(state, i)))} · ${escapeHtml(statText(gearStats(i, state)))}</small>
+        ${chk.ok ? (diff ? `<div class="gear-diff">Si équipé : ${diff}</div>` : '') : `<div class="bad gear-why">🔒 ${escapeHtml(chk.reason)}</div>`}</div>
+      <div class="gear-btns">${chk.ok ? `<button class="btn tiny btn-primary" data-action="gear-equip" data-value="${c.id}|${i.id}">Équiper</button>` : ''}
+        ${cost ? `<button class="btn tiny" data-action="gear-up" data-value="${i.id}" ${state.gold >= cost.gold && state.materials.shards >= cost.shards ? '' : 'disabled'} title="Améliorer">+${(i.upgrades ?? 0) + 1} · ${img('icon_shard')}${cost.shards} ${img('coin')}${formatNumber(cost.gold)}</button>` : ''}
+        ${i.locked ? '' : `<button class="btn tiny" data-action="gear-recycle" data-value="${i.id}" title="Recycler en éclats">♻</button>`}</div></div>`;
   };
   const sel = (key, opts) => `<select data-action="gear-filter" data-key="${key}" aria-label="Filtre">${opts.map(([v, l]) => `<option value="${v}" ${String(f[key]) === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
   return `<div class="section-title">Équipement <span class="muted">(${GEAR_CLASSES[cls].label})</span></div>
     <div class="gear-slots">${slots}</div>
     <div class="muted">Total : ${escapeHtml(statText(total)) || 'aucun bonus'}. Attaque, soins et recharge comptent partout ; PV et défense dans l'Arène.</div>
-    <div class="gear-filters">${sel('slot', [['all', 'Tous emplacements'], ...GEAR_SLOTS.map((s) => [s, SLOT_NAMES[cls][s]])])}
+    <div class="gear-filters">${sel('slot', [['all', 'Toutes les places'], ...PLACES.map((s) => [s, slotName(c, s)])])}
       ${sel('rarity', [['all', 'Toutes raretés'], ['legendary', 'Légendaire'], ['epic', 'Épique'], ['rare', 'Rare'], ['common', 'Commun']])}
-      ${sel('compat', [['true', 'Compatibles'], ['false', 'Toutes les pièces']])}</div>
-    <div class="gear-list">${bag.map(row).join('') || '<div class="state-empty">Aucune pièce. Les Étages de l\'Arène et les donjons en donnent.</div>'}</div>`;
+      ${sel('compat', [['true', 'Compatibles'], ['false', 'Tous les objets']])}</div>
+    <div class="gear-list">${bag.map(row).join('') || `<div class="state-empty">Aucun objet ${escapeHtml(classLabel(cls))} dans le sac : les monstres en lâchent pour ton équipe.</div>`}</div>`;
 }
 
 export function skillsBlock(ui, state, c, owned) { // v9.1.3 (doc4 lot 5) : réutilisée par « Détails » de la bannière
@@ -215,7 +217,10 @@ export default {
       ? unitPopup(ui, state, sel, { actions: twoButtons, gear: () => (owned ? gearBlock(ui, state, sel) : '') }) : '';
     const tab = ui.view.compTab === 'pet' ? 'pet' : 'ally';
     const list = tab === 'pet' ? pets : allies;
-    return `${team}
+    // v9.3.5 (7d) : monter d'un coup les compagnons placés avec l'or disponible.
+    const teamUp = state.companions.equipped.some((id) => companionUpgradeCost(state, id) <= state.gold)
+      ? '<button class="btn btn-gold team-up" data-action="upgrade-team">Améliorer l\'équipe</button>' : '';
+    return `${team}${teamUp}
       ${fold(ui, 'synergies', synTitle, synergies)}
       <div class="item-tabs comp-tabs" role="tablist">
         <button class="btn chip-btn${tab === 'ally' ? ' active' : ''}" data-action="comp-tab" data-value="ally" role="tab" aria-selected="${tab === 'ally'}">Compagnons <small>(2 places)</small></button>

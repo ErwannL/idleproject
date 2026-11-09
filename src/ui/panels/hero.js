@@ -186,7 +186,7 @@ function heroView(ui, state) {
   const hero = heroById(state.heroes.active);
   const s = computeHeroStats(state);
   const xpNeeded = xpForLevel(state.level);
-  const gear = Object.keys(SLOTS).map((slot) => {
+  const gear = ['weapon', 'armor', 'accessory'].map((slot) => { // v9.3.4 (f) : 3 places
     const item = state.equipment[slot];
     return item ? itemFrame(item, { tag: 'div' }) : `<div class="item-frame empty">${img(slotIconName(slot))}</div>`;
   }).join('');

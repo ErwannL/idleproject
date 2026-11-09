@@ -1,3 +1,5 @@
+import arenaPanel from './arena.js'; // v9.3.5
+import { arenaUnlocked } from '../../core/arena.js';
 // Tour de l'Éternité (v8.2) : défi sans fin, un boss par étage ; récompenses à chaque nouveau record.
 import { BOSSES, ENEMIES } from '../../data/enemies.js';
 import { formatDuration } from '../../core/format.js';
@@ -47,11 +49,12 @@ export default {
   extra: (ui, state) => (towerUnlocked(state) ? `Record : <b class="num">${state.towerBest ?? 0}</b>` : ''),
   render(ui, state) {
     const chOpen = challengeUnlocked(state) || Boolean(state.challenge);
-    const parts = [['tower', 'Tour', 'icon_tower'], ...(chOpen ? [['challenge', 'Défi de la semaine', 'icon_skull']] : [])];
+    const parts = [['tower', 'Tour', 'icon_tower'], ...(chOpen ? [['challenge', 'Défi de la semaine', 'icon_skull']] : []), ...(arenaUnlocked(state) ? [['arena', 'Arène', 'icon_paw']] : [])]; // v9.3.5
     const forced = state.challenge ? 'challenge' : state.tower ? 'tower' : null;
-    const tab = forced ?? (parts.some(([id]) => id === ui.view.defiTab) ? ui.view.defiTab : (towerUnlocked(state) || !chOpen ? 'tower' : 'challenge'));
+    const tab = forced ?? (parts.some(([id]) => id === ui.view.defiTab) ? ui.view.defiTab : (towerUnlocked(state) ? 'tower' : chOpen ? 'challenge' : arenaUnlocked(state) ? 'arena' : 'tower'));
     const seg = parts.length > 1 ? segment(parts.map(([id, l, ic]) => [id, id === 'challenge' && !state.challenge ? `${l} (${challengeTriesLeft(state)})` : l, ic]), 'defi-tab', tab) : '';
     if (tab === 'challenge') return `${seg}<div class="card">${challengeCard(state)}</div>`;
+    if (tab === 'arena') return seg + arenaPanel.render(ui, state); // v9.3.5 : Arène dans Défis
     return seg + towerBody(ui, state);
   },
 };

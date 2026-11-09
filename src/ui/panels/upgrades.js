@@ -99,7 +99,7 @@ export default {
       // s'affiche qu'au début (avant le premier mini-boss), ensuite au survol / appui long sur le nom.
       const ehp = SURVIVAL.has(key) && !max && current.effectiveHp > 0 ? ((next.effectiveHp - current.effectiveHp) / current.effectiveHp) * 100 : 0;
       const gain = p ? ` <span class="muted upg-profit">+${formatDecimal(p.pct)} % dégâts/s</span>`
-        : ehp > 0 ? ` <span class="muted upg-profit">+${formatDecimal(ehp)} % PV effectifs</span>` : '';
+        : ehp > 0 ? ` <span class="muted upg-profit">${ehp >= 100 ? `Survie ×${formatDecimal(1 + ehp / 100)}` : `Survie +${formatDecimal(ehp)} %`}</span>` : ''; // v9.3.5 : plus de « +1,1 K % PV effectifs »
       // v9.1.3 (ligne type doc2 §3) : icône, nom + niveau (+ palier), un seul chiffre qui bouge (avant → après, l'unité
       // est dans le nom), +x % dégâts/s neutre sur la même ligne, bouton avec prix : 2 lignes au lieu de 3.
       return `<div class="card upg-card${compact ? ' compact' : ''}">

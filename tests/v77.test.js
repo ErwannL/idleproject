@@ -76,7 +76,7 @@ test('donjons : difficultés débloquées une à une, plus durs, et ils rapporte
 test('recyclage automatique « sac plein » : libère de la place selon les règles', () => {
   const state = createNewState(NOW, 5);
   state.ui.recycle = { mode: 'full', rarities: ['common'], slots: ['helmet'] };
-  state.equipment.helmet = makeItem(state, 'iron_helm', 'legendary', 50); // casque porté bien meilleur
+  state.equipment.armor = makeItem(state, 'iron_helm', 'legendary', 50); // casque porté bien meilleur (v9.3.4 : place « armure »)
   for (let i = 0; i < BALANCE.loot.inventorySize; i++) addToInventory(state, makeItem(state, i % 2 ? 'dagger' : 'iron_helm', 'common', 1));
   const locked = state.inventory.find((i) => i.slot === 'helmet');
   locked.locked = true;

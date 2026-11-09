@@ -239,6 +239,7 @@ export class UI {
     this.tabVisible = {};
     this.tabBadges = {};
     root.querySelectorAll('#tabs button').forEach((btn) => btn.addEventListener('click', () => this.toggleMenu(btn.dataset.menu)));
+    root.querySelectorAll('[data-menu-open]').forEach((btn) => btn.addEventListener('click', () => this.toggleMenu(btn.dataset.menuOpen))); // v9.3.5 : Profil
     this.$('panel-subtabs').addEventListener('click', (e) => {
       const b = e.target.closest('[data-sub]');
       if (b) { this.userAt = performance.now(); this.openTab(b.dataset.sub); }
@@ -554,6 +555,7 @@ export class UI {
   // v9.1.0 : plus de saut vers l'onglet qui a une récompense (la pastille suffit).
   toggleMenu(id) {
     this.userAt = performance.now();
+    if (id === 'fight') { if (this.tab) this.closePanel(); return; } // v9.3.5 : bouton Combat
     const menu = MENUS.find((m) => m.id === id);
     if (!menu) return;
     if (this.tab && menu.tabs.includes(this.tab)) { this.closePanel(); return; }
@@ -623,6 +625,7 @@ export class UI {
   openTab(tab, view = null) {
     // v9.1.3 (lot F) : « À récupérer » n'est plus un onglet, c'est une fenêtre (touche N, bouton de Missions).
     if (tab === 'inbox') { this.openClaims(); return; }
+    if (tab === 'arena') { tab = 'tower'; view = { ...(view ?? {}), defiTab: 'arena' }; } // v9.3.5 : Arène dans Défis
     if (!PANELS[tab] || this.tabVisible[tab] === false) return;
     if (this.view.themePreview && tab !== 'shop') this.actions.previewTheme(null); // v9.2.8 : fin de l'aperçu du thème
     this.sidePanel(true);
@@ -636,7 +639,7 @@ export class UI {
     }
     if (tab === 'ranking') this.actions.loadRanking?.();
     if (tab === 'guild') this.actions.loadGuild?.(); // v9.3.2
-    if (tab === 'arena') this.actions.loadGlobalBoss?.();
+    if (tab === 'tower' && this.view.defiTab === 'arena') this.actions.loadGlobalBoss?.(); // v9.3.5
     // v9.2.6 : ouverture du panneau (ou changement d'onglet) animée, liste en cascade au prochain rendu.
     if (tab !== this.tab) { uiFx.panelOpenFx(this.$('panel'), !this.tab); this.vfxCascade = true; }
     this.tab = tab;
@@ -781,6 +784,7 @@ export class UI {
       case 'look-show': local(() => { v.lookShow = value; }); break; // v9.2.7 : vitrine d'une apparence
       case 'toggle-companion': a.toggleCompanion(value); break;
       case 'upgrade-companion': a.upgradeCompanion(value); break;
+      case 'upgrade-team': a.upgradeTeam(); break; // v9.3.5
       case 'open-tab': if (el.closest('#modal')) this.closeModal(); this.openTab(value); break;
       case 'ranking-sort': this.actions.loadRanking(value); break;
       // v9.3.2 : guilde.
@@ -869,7 +873,7 @@ export class UI {
       case 'claim-peek': local(() => { v.claimPeek = !v.claimPeek; }); break; // v9.2.5 : liste de « Tout récupérer »
       case 'exp-dur': local(() => { v.expDur = value; }); break; // v9.1.3 : durée commune des expéditions
       case 'exp-per-slot': local(() => { v.expPerSlot = !v.expPerSlot; }); break;
-      case 'defi-tab': local(() => { v.defiTab = value; }); break; // v9.1.3 : Défis › Tour / Défi de la semaine
+      case 'defi-tab': local(() => { v.defiTab = value; }); if (value === 'arena') a.loadGlobalBoss?.(); break; // v9.1.3 : Défis › Tour / Défi de la semaine
       case 'lang': a.setLanguage(value); break;
       case 'theme': a.setTheme(value); break;
       case 'speed': a.cycleSpeed(); break;
@@ -877,10 +881,11 @@ export class UI {
       case 'check-update': a.checkUpdate(); break;
       case 'enter-tower': a.enterTower(); break;
       case 'skill-up': { const [id, kind] = value.split('|'); a.skillUp(id, kind); break; } // v9.3.3
-      case 'gear-equip': { const [id, item] = value.split('|'); a.gearDo('equip', id, Number(item)); break; }
+      case 'gear-who': local(() => { v.gearWho = value; v.sheetOpen = null; }); break; // v9.3.4 (f)
+      case 'gear-equip': { const [id, item] = value.split('|'); a.gearDo('equip', id, item); break; }
       case 'gear-unequip': { const [id, slot] = value.split('|'); a.gearDo('unequip', id, slot); break; }
-      case 'gear-up': a.gearDo('up', null, Number(value)); break;
-      case 'gear-recycle': a.gearDo('recycle', null, Number(value)); break;
+      case 'gear-up': a.gearDo('up', null, value); break;
+      case 'gear-recycle': a.gearDo('recycle', null, value); break;
       // v9.3.2 : Arène des compagnons.
       case 'arena-mode': this.view.arenaMode = value; this.view.arenaRun = null; this.invalidate(); break;
       case 'arena-pick': this.view.arenaPick = value; this.invalidate(); break;
@@ -1441,7 +1446,7 @@ export class UI {
       this.refreshCosts(state);
       const now = performance.now();
       // v9.3.2 : relecture d'un combat de l'Arène : rafraîchie toutes les 120 ms (barres de PV, coups).
-      const every = this.tab === 'arena' && this.view.arenaRun ? 120 : 1000;
+      const every = this.tab === 'tower' && this.view.defiTab === 'arena' && this.view.arenaRun ? 120 : 1000;
       if (LIVE_PANELS.has(this.tab) && now - this.lastLive > every) {
         this.lastLive = now;
         if (!busy && this.liveKey(state) !== this.lastHud.live) this.renderPanel(state);
@@ -1461,7 +1466,8 @@ export class UI {
       case 'companions': return `${state.companions.equipped.join()}|${Object.keys(state.companions.owned).length}`;
       case 'inbox': return this.claims.map((c) => c.key).join() + (state.inbox.length);
       case 'arena': return this.view.arenaRun ? String(Math.floor(performance.now() / 120)) : JSON.stringify(state.arena) + Object.keys(state.companions.owned).length;
-      case 'tower': return `${JSON.stringify(state.tower)}|${state.towerBest}|${JSON.stringify(state.challenge)}|${state.challengeWeek?.best}`;
+      case 'tower': return this.view.defiTab === 'arena' ? (this.view.arenaRun ? String(Math.floor(performance.now() / 120)) : JSON.stringify(state.arena) + Object.keys(state.companions.owned).length) // v9.3.5 : Arène dans Défis
+        : `${JSON.stringify(state.tower)}|${state.towerBest}|${JSON.stringify(state.challenge)}|${state.challengeWeek?.best}`;
       // Achat « Max » : le nombre de niveaux abordables change avec l'or.
       case 'upgrades': return this.view.buyAmount === 'max' ? String(Math.floor(Math.log10(state.gold + 1) * 8)) : '';
       case 'skills': return `${state.level}|${Math.floor(state.xp)}|${Object.values(state.rushes.active).map(Math.ceil).join()}|${Object.values(state.rushes.cooldown).map((c) => Math.ceil(c / 10)).join()}`;
@@ -1698,7 +1704,7 @@ export class UI {
     this.offerAutoRecycle(state); // v9.3.4
     if (this.tabVisible.forge !== false && canForgeSomething(state)) this.tabBadges = { ...byTab, forge: 1 }; // v9.3.4 : de quoi forger
     const current = computeHeroStats(state);
-    this.next = nextAction(state, { claims: this.claims, betterItem: betterItem(state, BALANCE, current) });
+    this.next = nextAction(state, { claims: this.claims, visible: this.tabVisible, fusionReady: this.tabBadges.forge === 1 }); // v9.3.5
     for (const menu of MENUS) {
       const red = menu.tabs.some((t) => byTab[t] && this.tabVisible[t] !== false);
       const el = this.$(`badge-${menu.id}`);
@@ -1748,10 +1754,13 @@ export class UI {
     }
     else if (n.action === 'retry-boss') this.actions.retryBoss();
     else if (n.action === 'advance') this.actions.advance();
-    else if (n.tab) {
-      if (n.tab === this.tab && !n.view) this.closePanel();
-      else this.openTab(n.tab, n.view ?? null);
-    }
+    // v9.3.5 : un clic fait l'action (équiper tout, placer, améliorer, monter, recycler).
+    else if (n.action === 'equip-best') this.actions.equipBest();
+    else if (n.action === 'place-companion') this.actions.toggleCompanion(n.value);
+    else if (n.action === 'buy') this.actions.buy(n.value, '1');
+    else if (n.action === 'upgrade-companion') this.actions.upgradeCompanion(n.value);
+    else if (n.action === 'recycle-useless') this.actions.recycleUseless();
+    else if (n.tab && n.tab !== this.tab) this.openTab(n.tab, n.view ?? null); // jamais ouvrir puis refermer
     delete this.lastHud.badgeTime; // conseil recalculé tout de suite
   }
 
@@ -1808,13 +1817,13 @@ export class UI {
       tree: best >= 10 || state.fragments > 0 || state.records.rebirths > 0 || (state.prestige?.count ?? 0) > 0 || (state.transcend?.count ?? 0) > 0,
       dungeons: best >= DUNGEONS[0].unlockStage || Object.keys(state.dungeonsCleared).length > 0 || Boolean(state.dungeon),
       // v9.1.3 : l'onglet Défis s'ouvre avec la Tour ou avec le Défi de la semaine (étape plus basse).
-      tower: best >= TOWER_UNLOCK || (state.towerBest ?? 0) > 0 || Boolean(state.tower) || challengeUnlocked(state) || Boolean(state.challenge),
+      tower: best >= TOWER_UNLOCK || (state.towerBest ?? 0) > 0 || Boolean(state.tower) || challengeUnlocked(state) || Boolean(state.challenge) || arenaUnlocked(state), // v9.3.5 : Arène comprise
       boss: boss || Object.keys(state.powers).length > 0,
       companions: boss || Object.keys(state.companions.owned).length > 0,
       summon: boss || Object.keys(state.companions.owned).length > 0,
       shop: boss || Object.keys(state.companions.owned).length > 0, // v9.2.8 : avec l'invocation
-      event: boss, // v9.2.8 : événements (après le premier boss)
-      expeditions: availableForExpedition(state).length > 0 || state.expeditions.slots.some(Boolean) || state.expeditions.done > 0,
+      event: best > 40, // v9.3.5 : après le monde 2
+      expeditions: Object.keys(state.companions.owned).length >= 5 || state.expeditions.slots.some(Boolean) || state.expeditions.done > 0, // v9.3.5 : stable (5 compagnons)
       contracts: Boolean(state.ui.goalsOpen),
       encyclopedia: boss,
       arena: arenaUnlocked(state), // v9.3.2
@@ -1825,6 +1834,7 @@ export class UI {
       guild: Boolean(state.ui.goalsOpen) && later && Boolean(this.actions.loadGuild) && this.cloud?.enabled !== false, // v9.3.2
     };
     this.$('top-shop')?.classList.toggle('hidden', !visible.shop); // v9.2.9 : bouton Boutique de la barre du haut
+    this.$('top-profile')?.classList.toggle('hidden', !['looks', 'ranking', 'guild', 'stats'].some((t) => visible[t] !== false)); // v9.3.5
     const key = `${JSON.stringify(visible)}|${this.tab}|${[...this.newTabs].join()}`;
     if (this.lastHud.tabs === key) return;
     const firstPass = this.lastHud.tabsInit === undefined;
@@ -1842,6 +1852,7 @@ export class UI {
     this.newTabs.delete(this.tab);
     this.root.querySelectorAll('#tabs button').forEach((b) => {
       const menu = MENUS.find((m) => m.id === b.dataset.menu);
+      if (!menu) return; // v9.3.5 : bouton Combat (toujours visible)
       b.classList.toggle('hidden', !menu.tabs.some((t) => this.tabVisible[t] !== false));
       b.querySelector('.badge-new')?.classList.toggle('hidden', !menu.tabs.some((t) => this.newTabs.has(t)));
     });

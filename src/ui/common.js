@@ -35,6 +35,9 @@ export const affixText = (affix) => AFFIXES[affix.type].label(affix.value);
 
 export const rarityLabel = (id) => rarityById(id).label;
 
+// v9.3.5 (bug 10) : image manquante retirée par un écouteur (la CSP interdit onerror="…" en ligne).
+if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') document.addEventListener('error', (e) => { if (e.target?.dataset?.fallback === 'remove') e.target.remove(); }, true);
+
 export function itemFrame(item, { selected = false, showUp = false, equipped = false, state = null, tag = 'button', action = 'select-item', current } = {}) {
   const up = showUp && state && isUpgrade(state, item, undefined, current);
   const attrs = tag === 'button' ? `data-action="${action}" data-id="${item.id}"` : '';
@@ -161,7 +164,7 @@ const HD_THUMB_CLS = /\b(look-hd|pet-art)\b/;
 export function hdArt(unit, cls = '') {
   const id = hdArtId(unit);
   const url = hdArtUrl(unit, HD_THUMB_CLS.test(cls));
-  return url ? `<img class="hd-art ${cls}${HD_REAL.has(id) ? ' real' : HD_PX.has(id) ? ' px-hd' : ''}" src="${url}" alt="" loading="lazy" onerror="this.remove()">` : '';
+  return url ? `<img class="hd-art ${cls}${HD_REAL.has(id) ? ' real' : HD_PX.has(id) ? ' px-hd' : ''}" src="${url}" alt="" loading="lazy" data-fallback="remove">` : '';
 }
 
 // v9.1.0 : bloc repliable unique (au clavier : bouton avec aria-expanded). L'état vit dans ui.view (open / closed)

@@ -12,7 +12,7 @@ import { allItems, endSave, oldSave, NOW } from './helpers/v913-saves.js';
 const load = (raw) => sanitizeState(JSON.parse(JSON.stringify(raw)), undefined, NOW);
 
 test('v9.1.3 : une seule montée de SAVE_VERSION (7 → 8)', () => {
-  assert.equal(SAVE_VERSION, 11); // v9.3.3 : 10 → 11 (niveaux de compétence) // v9.2.0 (monde marin) : 8 → 9 (Royaume englouti, étapes converties) · v9.2.8 : 9 → 10 (économie)
+  assert.equal(SAVE_VERSION, 12); // v9.3.4 : 11 → 12 (équipement unique) // v9.3.3 : 10 → 11 (niveaux de compétence) // v9.2.0 (monde marin) : 8 → 9 (Royaume englouti, étapes converties) · v9.2.8 : 9 → 10 (économie)
 });
 
 test('v9.1.3 : aucun objet perdu (ni verrouillé, ni renforcé) en migrant une vieille sauvegarde et une partie de fin', () => {
@@ -143,7 +143,7 @@ test('lot F : mannequins fondus dans le coffre — dépassement géré, builds r
   const mannequinIds = Object.values(raw.mannequins).flatMap((m) => Object.values(m)).map((x) => x.id);
   // Un build enregistré qui porte une pièce d'un mannequin.
   raw.loadouts[0].team = [];
-  raw.loadouts[0].gear = { helmet: mannequinIds[1] };
+  raw.loadouts[0].gear = { armor: mannequinIds[1] }; // v9.3.4 : la sauvegarde de test a déjà les 3 places (le casque va en « armure »)
   const e = load(raw);
   assert.ok(e.stash.length > STASH_SIZE && e.stash.length <= STASH_SIZE + STASH_OVERFLOW, `coffre ${e.stash.length}`);
   for (const id of mannequinIds) assert.ok(e.stash.some((x) => x.id === id) || e.inventory.some((x) => x.id === id), id);
@@ -153,7 +153,7 @@ test('lot F : mannequins fondus dans le coffre — dépassement géré, builds r
   e.inventory.length = 50; // de la place pour sortir l'objet du coffre
   const r = applyLoadout(e, 0);
   assert.equal(r.missing, 0, 'le build retrouve la pièce de l\'ancien mannequin au coffre');
-  assert.equal(e.equipment.helmet.id, mannequinIds[1]);
+  assert.equal(e.equipment.armor.id, mannequinIds[1]);
 });
 
 function createFiller(raw, n) {

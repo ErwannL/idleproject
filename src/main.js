@@ -74,6 +74,7 @@ import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagL
 import { playsOnSite } from './ui/panels/options.js';
 import { skillKillGold, upgradeCompanionSkill } from './core/companions.js'; // v9.3.3
 import { equipGear, recycleGear, unequipGear, upgradeGear } from './core/companion-gear.js'; // v9.3.3
+import { companionToLevel, companionToPlace } from './core/guide.js'; // v9.3.5
 import { recycleUseless } from './core/inventory.js'; // v9.3.4
 
 const SIM_INTERVAL_MS = 100;
@@ -223,6 +224,12 @@ const actions = {
     done(replaceCompanion(state, newId, oldId), 'Équipe modifiée');
   },
   upgradeCompanion(id) { done(upgradeCompanion(state, id)); },
+  // v9.3.5 : « Améliorer l'équipe » — toujours la montée la moins chère, tant que l'or suffit.
+  upgradeTeam() {
+    let n = 0;
+    for (let i = 0; i < 500; i++) { const c = companionToLevel(state); if (!c || !upgradeCompanion(state, c.id)) break; n += 1; }
+    done(n > 0, n ? `${n} niveau${n > 1 ? 'x' : ''} de compagnon` : null, '#7fe0a0');
+  },
   summon(count, currency, pool = 'ally') {
     // v9.1.3 : l'onglet Apparences passait 'hero' et recevait des compagnons (seuls 'pet' et 'ally' étaient reconnus).
     const results = summon(state, rng, count, currency, BALANCE, normalizePool(pool));
@@ -230,6 +237,12 @@ const actions = {
     state.records.summons += results.length;
     const best = ['legendary', 'epic', 'rare', 'common'].find((r) => results.some((u) => u.rarity === r));
     sound.play('summon', { rarity: best });
+    // v9.3.5 (7c) : un compagnon obtenu va dans une place libre de l'équipe (le joueur peut le changer ensuite).
+    for (let i = 0; i < 3; i++) {
+      const c = companionToPlace(state);
+      if (!c || !toggleCompanion(state, c.id)) break;
+      ui.toast(`${c.name} rejoint ton équipe`, '#7fe0a0');
+    }
     done(true);
     return results;
   },
@@ -1234,7 +1247,7 @@ const cinematicsOn = () => state.ui.cinematics !== false && !navigator.webdriver
 setTimeout(() => {
   if (!cinematicsOn()) return;
   const zone = ZONES[currentEncounter(state).zoneIndex];
-  if (loaded.source === 'new') playCinematic({ kicker: 'Une nouvelle légende', title: 'Ascendrya', line: 'Un héros, une épée, et onze mondes à libérer.' });
+  if (loaded.source === 'new') playCinematic({ kicker: 'Une nouvelle légende', title: 'Ascendrya', line: 'Un héros, une épée, et douze mondes à libérer.' });
   else playCinematic({ kicker: 'Bon retour', title: zone.name, line: `Étape ${stageLabel(state.stage)} — la bataille continue.`, zone: zone.id });
 }, 600);
 // v8.4 : sauvegarde d'avant le nouvel équilibrage → or des améliorations remboursé, on l'annonce.

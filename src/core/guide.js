@@ -3,7 +3,14 @@ import { BALANCE } from '../data/balance.js';
 import { bossesForStage, createCombat, heroPower, isBossStage, step } from './combat.js';
 import { Rng } from './rng.js';
 import { endWorldRun } from './banner.js';
-import { isUpgrade } from './inventory.js';
+import { isUpgrade, uselessItems } from './inventory.js';
+import { companionById, companionUpgradeCost, onExpedition, teamKind } from './companions.js';
+import { bestUpgrade } from './profit.js';
+import { skillPointCost, skillPointsAvailable } from './skills.js';
+import { SKILLS } from '../data/skills.js';
+import { canRebirth, rebirthBlocked, rebirthReward } from './rebirth.js';
+import { COMPANION_RULES } from '../data/companions.js';
+import { DUNGEONS } from '../data/dungeons.js';
 import { BOSSES } from '../data/enemies.js';
 import { claimables } from './claimables.js';
 import { computeHeroStats } from './stats.js';
@@ -52,26 +59,77 @@ export function forecastBoss(state, balance = BALANCE) {
   }
 }
 
-// v9.1.0 : « Prochaine action » — UN seul conseil, dans cet ordre : mode en cours ; à récupérer ; boss bloquant (si une
-// amélioration de dégâts est abordable) ; objet meilleur ; points de compétence ; amélioration la plus rentable ;
-// retenter le boss ; contenu optionnel ; sinon l'objectif simple du moment (prochain boss). Chaque conseil : { id, text, tab?, view?, action? }.
-// `ctx` permet de partager des calculs déjà faits (claims, betterItem) avec les pastilles.
+// v9.3.5 : « Prochaine action » = le guide de tout le jeu. UN conseil, et un clic fait l'action quand c'est possible.
+// Ordre : mode en cours ; récompense prête ; objets meilleurs (héros et équipe, tous d'un coup) ; compagnon à placer ;
+// points de compétence ; première invocation ; amélioration rentable abordable ; montée d'un compagnon de l'équipe ;
+// sac plein à plus de 80 % ; fusion prête ; clés de donjon ; Renaissance quand un boss bloque ; boss qui bloque ; objectif.
+// `ctx.visible` : onglets ouverts (ui.tabVisible) — rien n'est proposé pour une fonction encore cachée.
+// Chaque conseil : { id, text, tab?, view?, action?, value? }.
 export function nextAction(state, ctx = {}, balance = BALANCE) {
   if (state.dungeon) return { id: 'mode-dungeon', text: 'Donjon en cours', tab: 'dungeons' };
   if (state.tower) return { id: 'mode-tower', text: 'Tour en cours', tab: 'tower' };
   if (state.worldRun) return { id: 'mode-world', text: 'Monde en cours', tab: 'world' }; // v9.1.3 (doc4 lot 6)
   if (state.challenge) return { id: 'mode-challenge', text: 'Défi en cours', tab: 'tower', view: { defiTab: 'challenge' } };
+  const open = (tab) => (ctx.visible ?? {})[tab] !== false;
   const claims = (ctx.claims ?? claimables(state, Date.now(), balance)).filter((c) => !c.blocked);
-  // v9.1.3 : « Prochaine action » ne recommande plus d'achat (ni amélioration, ni compétence, ni talent, ni mode de
-  // jeu) : seulement ce qui est factuel — récupérer ce qui est prêt, équiper un objet meilleur que l'équipé, retenter
-  // un boss qui bloque, sinon l'objectif.
   if (claims.length) return claimAction(claims);
-  const better = ctx.betterItem !== undefined ? ctx.betterItem : betterItem(state, balance);
-  if (better) return { id: 'equip', text: `Équipez : ${better.name}`, tab: 'inventory', view: { invTab: 'bag', invView: null, selectedItemId: better.id, sheetOpen: 'item' } };
-  const blocking = state.bossRetry && state.stage === state.bossRetry.stage - 1 ? bossRetryPct(state, balance) : null;
-  if (blocking !== null) return { id: 'retry', text: blocking >= 100 ? 'Retenter le boss (prêt)' : `Retenter le boss (${blocking} %)`, action: 'retry-boss' };
+  const current = computeHeroStats(state, balance);
+  const better = state.inventory.filter((i) => isUpgrade(state, i, balance, current)).length;
+  if (better) return { id: 'equip', text: better > 1 ? `Équiper ${better} objets meilleurs` : 'Équiper 1 objet meilleur', action: 'equip-best' };
+  const place = companionToPlace(state, balance);
+  if (place) return { id: 'place', text: `Placer ${place.name} dans l'équipe`, action: 'place-companion', value: place.id };
+  const points = skillPointsAvailable(state);
+  if (points > 0 && open('skills') && SKILLS.some((k) => (state.skills[k.id] ?? 0) < (k.maxLevel ?? Infinity) && skillPointCost(state.skills[k.id] ?? 0) <= points && (k.unlockLevel ?? 1) <= state.level)) {
+    return { id: 'skills', text: points > 1 ? `${points} points de compétence à dépenser` : '1 point de compétence à dépenser', tab: 'skills' };
+  }
+  if (open('summon') && (state.records?.bossesDefeated ?? 0) >= 1 && !Object.keys(state.companions.owned).length && state.gems >= balance.summon.gemCost) { // après le premier mini-boss
+    return { id: 'summon', text: 'Première invocation : un compagnon', tab: 'summon' };
+  }
+  const up = bestUpgrade(state, balance);
+  if (up && up.cost <= state.gold && open('upgrades')) return { id: 'upgrade', text: `Améliorer : ${UPGRADE_NAMES[up.key] ?? up.key}`, action: 'buy', value: up.key };
+  const lv = companionToLevel(state, balance);
+  if (lv) return { id: 'level', text: `Monter ${lv.name} au niveau ${lv.level + 1}`, action: 'upgrade-companion', value: lv.id };
+  if (state.inventory.length >= balance.loot.inventorySize * 0.8) {
+    const n = uselessItems(state, balance).length;
+    if (n) return { id: 'recycle', text: `Recycler ${n} objets inutiles`, action: 'recycle-useless' };
+  }
+  if (open('forge') && ctx.fusionReady) return { id: 'fusion', text: 'Fusion prête à la Forge', tab: 'forge' };
+  if (open('dungeons') && (state.records?.bestStage ?? state.maxStage) >= DUNGEONS[0].unlockStage && (state.keys ?? 0) >= 1) return { id: 'keys', text: state.keys > 1 ? `${state.keys} clés de donjon à utiliser` : '1 clé de donjon à utiliser', tab: 'dungeons' };
+  const blocking = Number.isFinite(state.bossRetry?.hpPct) ? state.bossRetry.hpPct : null;
+  const blocked = Boolean(state.bossRetry && state.stage === state.bossRetry.stage - 1);
+  if (blocked && open('tree') && canRebirth(state) && !rebirthBlocked(state) && rebirthReward(state) > 0) {
+    return { id: 'rebirth', text: `Renaissance : +${rebirthReward(state)} fragments`, tab: 'tree', view: { treeSeg: 'rebirth' } };
+  }
+  if (blocked) {
+    const pct = bossRetryPct(state, balance);
+    return { id: 'retry', text: blocking !== null ? `Boss : ${blocking} % de vie restante` : pct >= 100 ? 'Retenter le boss (prêt)' : `Boss trop fort : améliore-toi (${pct} %)`, action: 'retry-boss' };
+  }
   if (!state.autoAdvance && !state.farmBoss) return { id: 'advance', text: 'Reprendre l\'avance', action: 'advance' };
   return goalAction(state, balance);
+}
+
+const UPGRADE_NAMES = { damage: 'Dégâts', attackSpeed: 'Vitesse d\'attaque', vitality: 'PV', crit: 'Critique', armor: 'Armure', defense: 'Défense',
+  regen: 'Régénération', goldFind: 'Or', critDamage: 'Dégâts critiques', doubleAttack: 'Double attaque', lifesteal: 'Vol de vie',
+  companionPower: 'Compagnons', dodge: 'Esquive', bossDamage: 'Dégâts aux boss', xpGain: 'Expérience' };
+
+// Compagnon possédé à placer dans une place libre de l'équipe (le plus rare d'abord), ou null.
+export function companionToPlace(state, balance = BALANCE) {
+  const order = ['legendary', 'epic', 'rare', 'common'];
+  const free = (kind) => state.companions.equipped.filter((id) => teamKind(companionById(id)) === kind).length < balance.teamSlots[kind];
+  return Object.keys(state.companions.owned).map(companionById)
+    .filter((c) => c && !state.companions.equipped.includes(c.id) && !onExpedition(state, c.id) && free(teamKind(c)))
+    .sort((a, b) => order.indexOf(a.rarity) - order.indexOf(b.rarity))[0] ?? null;
+}
+// Membre de l'équipe dont la montée de niveau est abordable (la moins chère), ou null.
+export function companionToLevel(state, balance = BALANCE) {
+  let best = null;
+  for (const id of state.companions.equipped) {
+    const owned = state.companions.owned[id];
+    const cost = companionUpgradeCost(state, id, balance);
+    if (!owned || owned.level >= COMPANION_RULES.maxLevel || cost > state.gold) continue;
+    if (!best || cost < best.cost) best = { id, name: companionById(id)?.name ?? id, level: owned.level, cost };
+  }
+  return best;
 }
 
 function claimAction(claims) {

@@ -783,7 +783,7 @@ function heroDies(state, world, balance) {
     emit(world, 'dungeonFailed', { earned, id: run.id, difficulty: run.difficulty, room: run.room, bossHpPct });
     return;
   }
-  if (isBossStage(from, balance)) state.bossRetry = { stage: from, power: heroPower(state, balance) };
+  if (isBossStage(from, balance)) state.bossRetry = { stage: from, power: heroPower(state, balance), ...(Number.isFinite(bossHpPct) ? { hpPct: Math.round(bossHpPct) } : {}) }; // v9.3.5 : vie restante du boss
   if (state.stage > 1) state.stage -= 1;
   state.kills = 0;
   emit(world, 'heroDeath', { from, to: state.stage, boss: isBossStage(from, balance) });

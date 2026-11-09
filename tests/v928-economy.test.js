@@ -255,7 +255,7 @@ test('cosmétiques : équiper / retirer librement, sans effet sur les statistiqu
 });
 
 test('sauvegarde : migration 9 → 10 généreuse (pity, garantie, apparences en héritage, tickets) et aller-retour', () => {
-  assert.equal(SAVE_VERSION, 11); // v9.3.3 : 10 → 11 (niveaux de compétence)
+  assert.equal(SAVE_VERSION, 12); // v9.3.4 : 11 → 12 (équipement unique) // v9.3.3 : 10 → 11 (niveaux de compétence)
   const raw = JSON.parse(JSON.stringify(createNewState(NOW, 2)));
   raw.version = 9;
   raw.summon = { total: 80, sinceEpic: 4, sinceLegendary: 45, net: 3, lostLegend: true };

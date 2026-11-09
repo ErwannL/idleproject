@@ -6,7 +6,7 @@
 //   3. arme devant ;
 //   4. poing redessiné PAR-DESSUS la poignée : les pixels du corps autour de la prise (disque de HAND_R px) sont
 //      reposés après l'arme, la poignée passe donc dans la main au lieu d'être collée sur elle.
-import { heroAnimCanvas, heroHeldWeapon, knightGearCanvas } from './pixel.js';
+import { heroAnimCanvas, heroHeldWeapon, knightGearCanvas, visualGear } from './pixel.js';
 import { ALLY_ANIMS, KNIGHT_NECK, KNIGHT_PIVOT, heroWearsGear } from './ally-anim.js';
 import { itemBase } from '../core/loot.js'; // v9.2.5 : angle de port selon l'arme
 // v9.2.9 : toiles de travail relues par getImageData : mémoire côté processeur (avertissement Chrome « willReadFrequently »).
@@ -16,6 +16,7 @@ export const HAND_R = 2.3;
 const handCache = new Map();
 
 function bodyOf(pick, equipment, palette) {
+  equipment = visualGear(equipment); // v9.3.4 (f)
   if (heroWearsGear(palette, equipment) && pick.head) {
     const g = knightGearCanvas(pick.name, pick.anim, pick.head, KNIGHT_PIVOT, KNIGHT_NECK, equipment, palette);
     return { canvas: g.canvas, m: g.m, key: `g|${pick.name}|${equipment.helmet?.baseId}/${equipment.helmet?.rarity}|${equipment.armor?.baseId}/${equipment.armor?.rarity}|${JSON.stringify(palette)}|${pick.head}` };
