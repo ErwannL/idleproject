@@ -1,0 +1,264 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<!-- v9.3.1 : trailer « ASCENDRYA — AWAKEN YOUR LEGEND » : scène pilotée image par image par tools/trailer-awaken.cjs.
+     Gameplay : vraies captures du jeu (frames/…). Portraits, familiers, portail et logo : vrais assets du jeu animés
+     en motion design (jamais présentés comme du gameplay). window.render(t) dessine l'instant t (secondes). -->
+<style>
+  @font-face { font-family: Px; src: url(PressStart2P.ttf); }
+  html, body { margin: 0; background: #000; overflow: hidden; }
+  #stage { position: relative; overflow: hidden; background: #000; }
+  .layer { position: absolute; inset: 0; overflow: hidden; }
+  img { position: absolute; image-rendering: pixelated; max-width: none; }
+  #bgblur img { filter: blur(28px) brightness(.45) saturate(1.2); image-rendering: auto; }
+  canvas { position: absolute; inset: 0; }
+  .txt { position: absolute; left: 0; right: 0; text-align: center; font-family: Px, monospace; letter-spacing: .04em; white-space: pre-line; }
+  .gold { color: #ffd76a; text-shadow: 0 .08em 0 #7a3d00, 0 0 .45em rgba(255,180,60,.75), 0 0 .12em #000; }
+  .white { color: #fff; text-shadow: 0 .07em 0 #2a1840, 0 0 .5em rgba(160,120,255,.7); }
+  .btn { display: inline-block; color: #241300; background: linear-gradient(180deg, #ffe08a, #f2b43a 55%, #d98a12); border-radius: .5em; padding: .7em 1.1em; box-shadow: 0 .25em 0 #7a3d00, 0 0 1.2em rgba(255,200,80,.7); text-shadow: none; }
+</style></head>
+<body>
+<div id="stage">
+  <div class="layer" id="bgblur"><img id="bgimg" alt=""></div>
+  <div class="layer" id="bgcol"></div>
+  <div class="layer" id="game"><img id="gimg" alt=""></div>
+  <canvas id="fxc"></canvas>
+  <div class="layer" id="art"></div>
+  <canvas id="top"></canvas>
+  <div class="layer" id="txt"></div>
+  <div class="layer" id="flash"></div>
+</div>
+<script>
+const Q = new URLSearchParams(location.search);
+const W = Number(Q.get('w') || 1920), H = Number(Q.get('h') || 1080), TEXT = Q.get('text') !== '0';
+const V = H > W; // vertical 9:16
+const stage = document.getElementById('stage'); stage.style.width = W + 'px'; stage.style.height = H + 'px';
+for (const c of document.querySelectorAll('canvas')) { c.width = W; c.height = H; }
+const fx = document.getElementById('fxc').getContext('2d'), tp = document.getElementById('top').getContext('2d');
+fx.imageSmoothingEnabled = tp.imageSmoothingEnabled = false;
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const ease = (x) => 1 - (1 - clamp(x)) ** 3;
+const pad = (n) => String(n).padStart(5, '0');
+const pad4 = (n) => String(n).padStart(4, '0');
+const U = Math.min(W, H) / 1080; // unité de taille
+
+// ---- Images chargées une fois ----
+const cache = new Map();
+function load(src) {
+  if (!cache.has(src)) cache.set(src, new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = src; }));
+  return cache.get(src);
+}
+const HEROES = [
+  ['assets/hd/px/hero_knight.webp', '#3d6cff', 'body'], ['assets/hd/px/ally_archangel.webp', '#ffcc55', 'face'],
+  ['assets/hd/px/ally_demon_queen.webp', '#ff3b55', 'body'], ['assets/hd/px/hero_dragon_knight.webp', '#a35cff', 'face'],
+  ['assets/hd/px/ally_ice_empress.webp', '#6fe0ff', 'body'], ['assets/hd/px/ally_shadow_lord.webp', '#7a4dff', 'face'],
+];
+const PETS = [['assets/hd/px/pet_phoenix.webp', '#ff8a2a'], ['assets/hd/px/pet_dragonling.webp', '#ff5a3c'], ['assets/hd/px/pet_kitsune.webp', '#ffb04a'], ['assets/hd/px/pet_golden_slime.webp', '#ffe26a'], ['assets/hd/px/pet_wisp.webp', '#9fe0ff']];
+
+// ---- Plans (secondes) ----
+// game : séquence d'images du jeu { dir, start, fps, sw, sh, box:[cx,cy,bw,bh], z0, z1, grade }
+const M = [0, 168, 348, 504, 696, 852, 1008, 1152, 1308, 1500, 1656, 1872]; // début des 12 plans de tools/record-trailer.mjs
+const main = (m, off) => ({ dir: 'frames/main/f', p5: true, start: M[m] + off, sw: 1280, sh: 720 });
+const SHOTS = [
+  { t0: 0, t1: 0.6, kind: 'black' },
+  { t0: 0.6, t1: 3.0, kind: 'game', g: { dir: 'aw/wake/f', p4: true, start: 40, sw: 1920, sh: 1080, box: [1300, 420, 1150, 700], z0: 1, z1: 1.1, grade: 'night', fadeIn: 0.9 },
+    text: [{ s: "WHEN DARKNESS\nAWAKENS...", a: 1.2, b: 3.0, y: .78, size: 44, cls: 'white' }] },
+  { t0: 3.0, t1: 4.75, kind: 'game', g: { dir: 'aw/wake/f', p4: true, start: 144, sw: 1920, sh: 1080, box: [1290, 385, 760, 428], z0: 1, z1: 1.18, grade: 'dusk' }, flashEnd: '#ffffff' },
+  ...HEROES.map((h, i) => ({ t0: 4.75 + i * 0.86, t1: 4.75 + (i + 1) * 0.86, kind: 'hero', h, i })),
+  { t0: 9.91, t1: 12.0, kind: 'heroes', text: [{ s: 'LEGENDARY HEROES', a: 10.25, b: 12.0, y: .82, size: 58, cls: 'gold' }] },
+  { t0: 12.0, t1: 13.6, kind: 'portal' },
+  ...PETS.slice(0, 4).map((p, i) => ({ t0: 13.6 + i * 0.8, t1: 13.6 + (i + 1) * 0.8, kind: 'pet', p, i })),
+  { t0: 16.8, t1: 18.0, kind: 'pets', text: [{ s: 'MYSTICAL COMPANIONS', a: 16.85, b: 18.0, y: .82, size: 54, cls: 'gold' }] },
+  { t0: 18.0, t1: 19.1, kind: 'game', g: { ...main(1, 40), box: [800, 470, 900, 506], z0: 1.05, z1: 1.18 }, whip: true,
+    text: [{ s: 'EPIC BOSS BATTLES', a: 18.1, b: 20.3, y: .14, size: 58, cls: 'gold' }] },
+  { t0: 19.1, t1: 20.3, kind: 'game', g: { ...main(3, 50), box: [760, 470, 940, 529], z0: 1.15, z1: 1.02 }, whip: true },
+  { t0: 20.3, t1: 21.4, kind: 'game', g: { ...main(8, 60), box: [760, 470, 900, 506], z0: 1.0, z1: 1.15 }, whip: true },
+  { t0: 21.4, t1: 22.5, kind: 'game', g: { ...main(10, 70), box: [760, 470, 940, 529], z0: 1.12, z1: 1.0 }, whip: true },
+  { t0: 22.5, t1: 24.3, kind: 'still', src: 'aw/ui-team.png', sw: 1368, sh: 825, box: [960, 400, 1000, 560], z0: 1.0, z1: 1.1, focus: [1060, 420],
+    text: [{ s: 'BUILD YOUR TEAM', a: 22.6, b: 24.3, y: .14, size: 50, cls: 'gold' }] },
+  { t0: 24.3, t1: 25.8, kind: 'still', src: 'aw/ui-battle.png', sw: 1368, sh: 825, box: [700, 412, 1368, 825], z0: 1.12, z1: 1.0,
+    text: [{ s: 'ENDLESS PROGRESSION', a: 24.4, b: 27.4, y: .14, size: 50, cls: 'gold' }] },
+  { t0: 25.8, t1: 27.6, kind: 'game', g: { dir: 'ba2/shot-p1/f', p4: true, start: 96, sw: 1920, sh: 1080, box: [1060, 560, 1700, 956], z0: 1.0, z1: 1.12 }, whip: true },
+  { t0: 27.6, t1: 29.5, kind: 'game', g: { dir: 'ba2/shot-p3/f', p4: true, start: 104, sw: 1920, sh: 1080, box: [1060, 560, 1500, 844], z0: 1.05, z1: 1.3 }, flashEnd: '#ffffff' },
+  { t0: 29.5, t1: 30.2, kind: 'black' },
+  { t0: 30.2, t1: 36.6, kind: 'logo', text: [{ s: 'YOUR LEGEND BEGINS.', a: 31.7, b: 36.6, y: .66, size: 46, cls: 'white' }] },
+  { t0: 36.6, t1: 40.0, kind: 'end', text: [{ s: V ? 'COMING TO\nPC (STEAM) & MOBILE' : 'COMING TO PC (STEAM) & MOBILE', a: 36.7, b: 40, y: .6, size: 34, cls: 'white' }, { s: 'PRE-REGISTER NOW', a: 37.3, b: 40, y: .72, size: 40, cls: 'btn' }] },
+];
+window.DURATION = 40;
+
+// ---- Caméra : cadre `box` (centre, taille) remplissant l'écran (cover) ou, en vertical, bande pleine largeur (fit). ----
+function place(img, sw, sh, box, z, fit) {
+  const [cx, cy, bw, bh] = box;
+  const s = (fit ? W / bw : Math.max(W / bw, H / bh)) * z;
+  let left = W / 2 - cx * s, topp = H / 2 - cy * s;
+  if (!fit) { left = Math.min(0, Math.max(W - sw * s, left)); topp = Math.min(0, Math.max(H - sh * s, topp)); }
+  Object.assign(img.style, { width: sw * s + 'px', height: sh * s + 'px', left: left + 'px', top: topp + 'px' });
+}
+const GRADE = { night: 'brightness(.42) saturate(.45) hue-rotate(185deg) contrast(1.25)', dusk: 'brightness(.75) saturate(.85) contrast(1.2)' };
+
+// PRNG déterministe
+function rng(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
+function sparkles(ctx, t, seed, n, cx, cy, spread, color, size = 6) {
+  const r = rng(seed);
+  for (let i = 0; i < n; i++) {
+    const a = r() * Math.PI * 2, sp = (0.3 + r()) * spread, ph = r(), life = 0.6 + r() * 0.8;
+    const k = ((t * 0.9 + ph) % life) / life;
+    const x = cx + Math.cos(a) * sp * k, y = cy + Math.sin(a) * sp * k - k * spread * 0.2;
+    ctx.globalAlpha = (1 - k) * 0.95; ctx.fillStyle = r() < 0.4 ? '#fff' : color;
+    const sz = Math.round(size * U * (1 - k * 0.5));
+    ctx.fillRect(Math.round(x), Math.round(y), sz, sz);
+  }
+  ctx.globalAlpha = 1;
+}
+function rays(ctx, t, cx, cy, color, alpha) {
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(t * 0.35); ctx.globalAlpha = alpha; ctx.fillStyle = color;
+  for (let i = 0; i < 14; i++) { ctx.rotate(Math.PI * 2 / 14); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-W * .07, -Math.max(W, H)); ctx.lineTo(W * .07, -Math.max(W, H)); ctx.fill(); }
+  ctx.restore(); ctx.globalAlpha = 1;
+}
+function radial(color, a = .9) {
+  return `radial-gradient(circle at 50% 48%, ${color}${Math.round(a * 140).toString(16).padStart(2, '0')}, #07051a 62%)`;
+}
+async function sprite(ctx, src, n, fps, t, cx, cy, size, alpha = 1) {
+  const im = await load(src); if (!im) return;
+  const fw = im.width / n, f = Math.floor(t * fps) % n;
+  ctx.globalAlpha = alpha; ctx.drawImage(im, f * fw, 0, fw, im.height, Math.round(cx - size / 2), Math.round(cy - size / 2), size, size); ctx.globalAlpha = 1;
+}
+async function artImg(src, h, cx, cy, extra = '') {
+  const im = await load(src); if (!im) return '';
+  const w = im.width * h / im.height;
+  return `<img src="${src}" style="width:${w}px;height:${h}px;left:${cx - w / 2}px;top:${cy - h / 2}px;${extra}">`;
+}
+
+window.render = async (t) => {
+  const sh = SHOTS.find((s) => t >= s.t0 && t < s.t1) ?? SHOTS[SHOTS.length - 1];
+  const lt = t - sh.t0, d = sh.t1 - sh.t0, u = clamp(lt / d);
+  fx.clearRect(0, 0, W, H); tp.clearRect(0, 0, W, H);
+  $('gimg').style.display = 'none'; $('bgimg').style.display = 'none'; $('art').innerHTML = ''; $('bgcol').style.background = 'none';
+  $('game').style.filter = 'none'; $('game').style.opacity = 1;
+  let flash = 0, flashColor = '#fff';
+
+  if (sh.kind === 'game' || sh.kind === 'still') {
+    const g = sh.g ?? sh;
+    const src = sh.kind === 'still' ? g.src : `${g.dir}${g.p4 ? pad4(g.start + Math.round(lt * 60)) : pad(g.start + Math.round(lt * 60))}.png`;
+    const im = await load(src);
+    const gi = $('gimg'); if (gi.getAttribute('src') !== src) { gi.src = src; await gi.decode().catch(() => {}); }
+    gi.style.display = 'block';
+    const z = g.z0 + (g.z1 - g.z0) * ease(u);
+    const fit = V && !(g.dir ?? '').includes('wake');
+    let box = g.box;
+    if (V && sh.kind === 'still') box = [g.focus?.[0] ?? box[0], box[1], box[2] * 0.62, box[3]]; // vertical : on suit la zone utile
+    place(gi, g.sw, g.sh, box, z, fit);
+    if (fit) { const bi = $('bgimg'); if (bi.getAttribute('src') !== src) { bi.src = src; await bi.decode().catch(() => {}); } bi.style.display = 'block'; place(bi, g.sw, g.sh, [g.sw / 2, g.sh / 2, g.sw * .5, g.sh], 1, false); }
+    $('game').style.filter = GRADE[g.grade] ?? 'saturate(1.12) contrast(1.06)';
+    if (g.fadeIn) $('game').style.opacity = clamp(lt / g.fadeIn);
+    if (g.grade === 'night') { // halo sur les yeux qui s'allument
+      const glow = clamp((lt - 1.4) / 1.0);
+      if (glow > 0) { const k = (V ? Math.max(W / g.box[2], H / g.box[3]) : Math.max(W / g.box[2], H / g.box[3])) * z;
+        const ex = W / 2 + (1290 - g.box[0]) * k, ey = H / 2 + (375 - g.box[1]) * k;
+        const gr = fx.createRadialGradient(ex, ey, 0, ex, ey, 160 * U); gr.addColorStop(0, `rgba(120,240,255,${0.55 * glow})`); gr.addColorStop(1, 'rgba(0,0,0,0)');
+        fx.fillStyle = gr; fx.fillRect(0, 0, W, H); }
+    }
+    if (sh.whip) { const k = clamp(1 - lt / 0.12); if (k > 0) { $('game').style.filter += ` blur(${k * 10}px)`; flash = Math.max(flash, k * 0.35); } }
+    // vignette
+    const vg = fx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .35, W / 2, H / 2, Math.max(W, H) * .75);
+    vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.55)'); fx.fillStyle = vg; fx.fillRect(0, 0, W, H);
+  }
+
+  if (sh.kind === 'hero') {
+    const [src, col, mode] = sh.h;
+    $('bgcol').style.background = radial(col);
+    rays(fx, t, W / 2, H * .5, col + '55', 0.35);
+    const k = ease(lt / 0.22), slide = (1 - k) * W * 0.06 * (sh.i % 2 ? -1 : 1);
+    const h = mode === 'face' ? H * (V ? 1.25 : 2.1) : H * (V ? .62 : .9);
+    const cy = mode === 'face' ? H * (V ? .62 : .95) : H * .52;
+    const zoom = 1.12 - 0.12 * k + lt * 0.04;
+    $('art').innerHTML = await artImg(src, h * zoom, W / 2 + slide, cy, `filter: drop-shadow(0 0 ${30 * U}px ${col})`);
+    sparkles(tp, t, 11 + sh.i, 40, W / 2, H / 2, Math.min(W, H) * .55, col, 7);
+    flash = Math.max(flash, clamp(1 - lt / 0.1) * 0.7);
+  }
+  if (sh.kind === 'heroes') {
+    $('bgcol').style.background = radial('#6a4dff', .7);
+    rays(fx, t, W / 2, H * .45, '#ffd76a33', 0.4);
+    const n = 5, list = [HEROES[1], HEROES[3], HEROES[0], HEROES[2], HEROES[4]];
+    let html = '';
+    for (let i = 0; i < n; i++) {
+      const ap = ease((lt - Math.abs(i - 2) * 0.12) / 0.3);
+      const big = i === 2 ? 1.18 : Math.abs(i - 2) === 1 ? 1 : .86;
+      const hh = (V ? H * .3 : H * .55) * big * (0.85 + 0.15 * ap);
+      const x = V ? W / 2 + (i - 2) * W * .2 : W / 2 + (i - 2) * W * .17;
+      const y = V ? H * .45 + Math.abs(i - 2) * H * .02 : H * .47 + Math.abs(i - 2) * H * .03;
+      html += await artImg(list[i][0], hh, x, y, `opacity:${ap};z-index:${10 - Math.abs(i - 2)};filter: drop-shadow(0 0 ${22 * U}px ${list[i][1]})`);
+    }
+    $('art').innerHTML = html;
+    sparkles(tp, t, 77, 80, W / 2, H * .45, Math.max(W, H) * .5, '#ffd76a', 6);
+    flash = Math.max(flash, clamp(1 - lt / 0.12) * 0.8);
+  }
+  if (sh.kind === 'portal' || sh.kind === 'pet' || sh.kind === 'pets') {
+    const col = sh.p?.[1] ?? '#c58cff';
+    $('bgcol').style.background = radial('#5a2fb0', .9);
+    const pt = sh.kind === 'portal' ? lt : 1.6 + (t - 13.6);
+    const grow = ease(pt / 1.2);
+    const ps = Math.min(W, H) * (sh.kind === 'portal' ? 0.25 + 0.55 * grow : 0.55);
+    const pcx = W / 2, pcy = H * (V ? .45 : .5);
+    rays(fx, t, pcx, pcy, '#c58cff33', 0.5 * grow);
+    await sprite(fx, 'assets/ui/vfx/beam_legend.webp', 16, 12, t, pcx, pcy - ps * 0.2, ps * 2.1, sh.kind === 'portal' ? clamp((pt - 0.6) / 0.5) * .55 : 0);
+    await sprite(fx, 'assets/ui/vfx/portal.webp', 12, 12, t, pcx, pcy, ps, sh.kind === 'portal' ? 1 : .55);
+    sparkles(tp, t, 5, 60, pcx, pcy, ps * .9, '#e6c8ff', 6);
+    if (sh.kind === 'portal' && lt > 1.35) flash = clamp((lt - 1.35) / 0.25) * 0.9;
+    if (sh.kind === 'pet') {
+      const pop = lt < 0.18 ? ease(lt / 0.18) * 1.15 : 1.15 - 0.15 * ease((lt - 0.18) / 0.15);
+      $('art').innerHTML = await artImg(sh.p[0], Math.min(W, H) * .62 * pop, pcx, pcy + Math.min(W, H) * .02, `filter: drop-shadow(0 0 ${36 * U}px ${col})`);
+      await sprite(tp, 'assets/ui/vfx/legend_blast.webp', 7, 16, lt, pcx, pcy, Math.min(W, H) * .9, clamp(1 - lt / 0.45));
+      flash = Math.max(flash, clamp(1 - lt / 0.08) * 0.6);
+    }
+    if (sh.kind === 'pets') {
+      let html = '';
+      for (let i = 0; i < 5; i++) {
+        const ap = ease((lt - i * 0.07) / 0.25), hh = Math.min(W, H) * (V ? .24 : .34) * ap;
+        const x = V ? W / 2 + ((i % 3) - 1) * W * .3 + (i >= 3 ? W * .15 : 0) : W / 2 + (i - 2) * W * .18;
+        const y = V ? H * (i < 3 ? .4 : .58) : H * .5 + (i % 2) * H * .04;
+        html += await artImg(PETS[i][0], hh, x, y, `filter: drop-shadow(0 0 ${24 * U}px ${PETS[i][1]})`);
+      }
+      $('art').innerHTML = html;
+      flash = Math.max(flash, clamp(1 - lt / 0.1) * 0.6);
+    }
+  }
+  if (sh.kind === 'logo' || sh.kind === 'end') {
+    const bg = 'aw/wake/f0200.png';
+    const gi = $('gimg'); if (gi.getAttribute('src') !== bg) { gi.src = bg; await gi.decode().catch(() => {}); }
+    gi.style.display = 'block'; place(gi, 1920, 1080, [1290, 420, 1300, 760], 1.05 + (t - 30.2) * 0.012, false);
+    $('game').style.filter = 'blur(10px) brightness(.32) saturate(.9)';
+    $('game').style.opacity = clamp((t - 30.2) / 1.2);
+    const lg = sh.kind === 'logo' ? ease((t - 30.2) / 0.5) : 1;
+    const size = (V ? 92 : 128) * U * (sh.kind === 'end' ? 0.78 : 1) * (1.25 - 0.25 * lg);
+    const ly = sh.kind === 'end' ? H * .4 : H * .47;
+    rays(fx, t, W / 2, ly, '#ffd76a22', 0.6 * lg);
+    // logo + reflet qui passe
+    const sweep = ((t - 30.5) / 1.6) % 2.2;
+    $('art').innerHTML = `<div class="txt gold" style="top:${ly - size * .6}px;font-size:${size}px;opacity:${lg};
+      -webkit-mask-image:none">ASCENDRYA</div>
+      <div class="txt" style="top:${ly - size * .6}px;font-size:${size}px;color:transparent;opacity:${lg};
+      background:linear-gradient(100deg,transparent ${sweep * 50 - 10}%,rgba(255,255,255,.95) ${sweep * 50}%,transparent ${sweep * 50 + 10}%);-webkit-background-clip:text;background-clip:text">ASCENDRYA</div>`;
+    sparkles(tp, t, 9, 120, W / 2, ly, W * .45, '#ffd76a', 6);
+    if (sh.kind === 'logo') flash = clamp(1 - (t - 30.2) / 0.35);
+  }
+  if (sh.flashEnd && sh.t1 - t < 0.25) { flash = Math.max(flash, 1 - (sh.t1 - t) / 0.25); flashColor = sh.flashEnd; }
+
+  // textes
+  let txt = '';
+  if (TEXT) for (const x of sh.text ?? []) {
+    if (t < x.a || t > x.b) continue;
+    const a = clamp((t - x.a) / 0.18) * clamp((x.b - t) / 0.18), k = ease((t - x.a) / 0.3);
+    const longest = Math.max(...x.s.split('\n').map((l) => l.length)) + (x.cls === 'btn' ? 3 : 0);
+    const size = Math.min(x.size * U * (V ? 1.05 : 1), (W * 0.9) / (longest * 1.04)) * (1.15 - 0.15 * k);
+    const y = (V && x.y < .3 ? .1 : x.y) * H;
+    const inner = x.cls === 'btn' ? `<span class="btn" style="transform:scale(${1 + 0.04 * Math.sin(t * 6)})">${x.s}</span>` : x.s;
+    txt += `<div class="txt ${x.cls === 'btn' ? '' : x.cls}" style="top:${y}px;font-size:${size}px;opacity:${a};line-height:1.5">${inner}</div>`;
+  }
+  $('txt').innerHTML = txt;
+  $('flash').style.background = flashColor; $('flash').style.opacity = flash;
+  return true;
+};
+window.ready = (async () => { await document.fonts.load('40px Px'); for (const s of [...HEROES.map((h) => h[0]), ...PETS.map((p) => p[0]), 'assets/ui/vfx/portal.webp', 'assets/ui/vfx/beam_legend.webp', 'assets/ui/vfx/legend_blast.webp']) await load(s); return true; })();
+</script>
+</body></html>
