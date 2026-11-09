@@ -39,6 +39,8 @@ import expeditions from './panels/expeditions.js';
 import contracts from './panels/contracts.js';
 import dungeons from './panels/dungeons.js';
 import tower from './panels/tower.js';
+import arena from './panels/arena.js'; // v9.3.2 : modes compagnons
+import { arenaUnlocked } from '../core/arena.js';
 import worldPanel from './panels/world.js';
 import { BANNER_RULES } from '../data/banners.js';
 import { TOWER, towerTimeLeft } from '../core/tower.js';
@@ -81,11 +83,11 @@ import { ELEMENTS, zoneElement } from '../core/elements.js'; // v9.3.1 : types
 
 export { MENUS };
 
-const PANELS = Object.fromEntries([upgrades, inventory, hero, looks, companions, expeditions, skills, tree, campaign, dungeons, tower, boss, encyclopedia, summon, shop, eventPanel, contracts, inbox, ranking, stats, options, worldPanel]
+const PANELS = Object.fromEntries([upgrades, inventory, hero, looks, companions, expeditions, skills, tree, campaign, dungeons, tower, arena, boss, encyclopedia, summon, shop, eventPanel, contracts, inbox, ranking, stats, options, worldPanel]
   .map((p) => [p.id, p]));
 const SUB_ICONS = {
   upgrades: 'icon_upgrade', skills: 'skill_quick', tree: 'icon_tree', hero: 'icon_hero', inventory: 'icon_bag', looks: 'icon_summon',
-  companions: 'icon_paw', expeditions: 'icon_expedition', summon: 'icon_summon', shop: 'icon_gem', event: 'icon_star', campaign: 'icon_map', dungeons: 'icon_dungeon', tower: 'icon_tower',
+  companions: 'icon_paw', expeditions: 'icon_expedition', summon: 'icon_summon', shop: 'icon_gem', event: 'icon_star', campaign: 'icon_map', dungeons: 'icon_dungeon', tower: 'icon_tower', arena: 'icon_paw',
   boss: 'icon_boss', encyclopedia: 'icon_book', contracts: 'icon_trophy', inbox: 'icon_mail', ranking: 'icon_trophy', stats: 'icon_book',
 };
 // v9.1.0 : présentation courte en haut de l'onglet, à sa première ouverture (plus de bulle « Nouveau »).
@@ -100,6 +102,7 @@ const UNLOCK_INFO = {
   dungeons: 'une clé par tentative : de vrais combats de boss qui donnent fragments et équipement.',
   boss: 'chaque boss vaincu laisse un pouvoir. Réaffrontez-les pour leur butin et leur maîtrise.',
   tower: 'le Défi de la semaine (3 tentatives, sans clé) puis, plus loin, la Tour de l\'Éternité : chaque record rapporte des récompenses.',
+  arena: 'vos compagnons combattent SANS le héros : un seul contre 30 vagues (Survie) ou une équipe de 3 contre des étages.',
   encyclopedia: 'tout ce que vous découvrez est répertorié ; chaque palier rapporte une récompense.',
   inbox: 'tout ce qui est prêt à être récupéré, au même endroit (touche G).',
 };
@@ -843,6 +846,23 @@ export class UI {
       case 'autofuse': a.setAutoFuse(el.dataset.group, value); break;
       case 'check-update': a.checkUpdate(); break;
       case 'enter-tower': a.enterTower(); break;
+      // v9.3.2 : Arène des compagnons.
+      case 'arena-mode': this.view.arenaMode = value; this.view.arenaRun = null; this.invalidate(); break;
+      case 'arena-pick': this.view.arenaPick = value; this.invalidate(); break;
+      case 'arena-team': {
+        const t = [...(this.view.arenaTeam ?? [])];
+        this.view.arenaTeam = t.includes(value) ? t.filter((x) => x !== value) : [...t, value].slice(0, 3);
+        this.invalidate(); break;
+      }
+      case 'arena-survival': { const r = a.arenaSurvival(value); if (r) { this.view.arenaRun = { ...r, mode: 'survival', start: performance.now() }; } this.invalidate(); break; }
+      case 'arena-floor': { const r = a.arenaFloor(this.view.arenaTeam ?? []); if (r) { this.view.arenaRun = { ...r, mode: 'floors', start: performance.now() }; } this.invalidate(); break; }
+      case 'arena-close': {
+        const run = this.view.arenaRun;
+        const span = run?.fight.seconds ?? 0, speed = Math.max(1, span / 12), now = performance.now();
+        if (run && ((now - run.start) / 1000) * speed < span) run.start = now - (span / speed) * 1000 - 1; // « Passer » : fin de la relecture
+        else this.view.arenaRun = null;
+        this.invalidate(); break;
+      }
       // v9.1.3 (doc4 lots 4 à 6) : Archives, mode monde, essai gratuit, score.
       case 'archive-target': a.setArchiveTarget(value); break;
       case 'open-world': this.openTab('world', { worldSel: value }); break;
@@ -1402,6 +1422,7 @@ export class UI {
       case 'expeditions': return `${Math.floor(Date.now() / 30000)}|${readyExpeditions(state)}|${state.expeditions.slots.map((x) => x?.companionId ?? '').join()}`;
       case 'companions': return `${state.companions.equipped.join()}|${Object.keys(state.companions.owned).length}`;
       case 'inbox': return this.claims.map((c) => c.key).join() + (state.inbox.length);
+      case 'arena': return this.view.arenaRun ? String(Math.floor(performance.now() / 120)) : JSON.stringify(state.arena) + Object.keys(state.companions.owned).length;
       case 'tower': return `${JSON.stringify(state.tower)}|${state.towerBest}|${JSON.stringify(state.challenge)}|${state.challengeWeek?.best}`;
       // Achat « Max » : le nombre de niveaux abordables change avec l'or.
       case 'upgrades': return this.view.buyAmount === 'max' ? String(Math.floor(Math.log10(state.gold + 1) * 8)) : '';
@@ -1745,6 +1766,7 @@ export class UI {
       expeditions: availableForExpedition(state).length > 0 || state.expeditions.slots.some(Boolean) || state.expeditions.done > 0,
       contracts: Boolean(state.ui.goalsOpen),
       encyclopedia: boss,
+      arena: arenaUnlocked(state), // v9.3.2
       stats: Boolean(state.ui.goalsOpen),
       ranking: Boolean(state.ui.goalsOpen) && Boolean(this.actions.loadRanking) && this.cloud?.enabled !== false,
     };

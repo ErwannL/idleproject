@@ -2972,3 +2972,36 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 .reduce-motion :is(.claimable, .is-claimable, .can-claim, #modal-card) { animation: none !important; }
 .reduce-motion .item-frame.r-legendary::after { animation: none !important; }
 .elem-badge.elem-icon { padding: 0 3px; font-size: 10px; line-height: 14px; margin-left: 2px; }
+/* v9.3.2 : Arène des compagnons. */
+.arena-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; margin: 6px 0; }
+.arena-unit { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px; background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius); color: var(--text); cursor: pointer; font: inherit; }
+.arena-unit img, .arena-slot img { width: 40px; height: 40px; object-fit: contain; image-rendering: pixelated; }
+.arena-unit.active { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
+.arena-unit-name { font-weight: 700; font-size: 11px; text-align: center; }
+.arena-pick-info { margin: 6px 0; }
+.arena-stats { color: var(--muted); }
+.arena-team { display: flex; gap: 8px; margin: 8px 0; }
+.arena-slot { width: 74px; height: 74px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg-2); border: 1px solid var(--line-2); border-radius: var(--radius); color: var(--text); font: inherit; cursor: pointer; }
+.arena-slot.empty { border-style: dashed; color: var(--muted); font-size: 20px; cursor: default; }
+.arena-slot small { font-size: 10px; text-align: center; }
+.arena-miles, .arena-preview { margin: 4px 0; padding-left: 16px; }
+.arena-miles li.done { color: var(--good); }
+.arena-field { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; margin: 8px 0; }
+.arena-side { display: flex; flex-direction: column; gap: 6px; }
+.arena-vs { font: 900 18px/1 serif; color: var(--gold-text); }
+.arena-ally, .arena-foe { display: flex; align-items: center; gap: 6px; transition: opacity .2s; }
+.arena-ally canvas { width: 48px; height: auto; }
+.arena-ally.down, .arena-foe.down { opacity: .3; filter: grayscale(1); }
+.arena-ally.hurt { animation: v932-hurt .25s; }
+@keyframes v932-hurt { 30% { transform: translateX(-3px); filter: brightness(1.8) saturate(.4); } }
+.arena-foe.boss img { width: 22px; height: 22px; }
+.arena-bar { flex: 1; min-width: 60px; height: 7px; background: #0a0f1c; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.arena-bar i { display: block; height: 100%; transition: width .12s linear; }
+.arena-log { list-style: none; margin: 4px 0 0; padding: 0; min-height: 64px; font-size: 11px; color: var(--muted); }
+.arena-log .adv { color: #ff9a3c; } .arena-log .disadv { color: #8a93a8; }
+.arena-result { border-color: var(--gold-2); }
+.arena-ally canvas { width: 64px; }
+.arena-ally.acts canvas { animation: v932-lunge .25s ease-out; }
+@keyframes v932-lunge { 40% { transform: translateX(8px) scale(1.05); } }
+.arena-foe.hit { animation: v932-hurt .2s; }
+.arena-replay { background: radial-gradient(ellipse at 50% 60%, #1f2a4d, var(--bg-1) 75%); }

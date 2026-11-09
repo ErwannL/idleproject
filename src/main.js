@@ -16,6 +16,7 @@ import { DUNGEON_DIFFICULTIES } from './data/dungeons.js';
 import { buyUpgradeBulk } from './core/economy.js';
 import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
 import { endTower, startTower } from './core/tower.js';
+import { runFloor, runSurvival } from './core/arena.js'; // v9.3.2
 import { claimExpedition, expeditionType, relaunchExpeditions, startExpedition } from './core/expeditions.js';
 import { endChallenge, startChallenge } from './core/challenge.js';
 import { autoFuse, craftItem, fuseAll, fuseItems, fusionFailText, fusionKeep, reforgeItem, sharpenItem, targetReroll, upgradeItem } from './core/forge.js';
@@ -553,6 +554,19 @@ const actions = {
   },
   buyPerk(id) { done(buyPerk(state, id), 'Bonus éternel amélioré', '#ffe08a'); },
   // Tour de l'Éternité (v8.2).
+  // v9.3.2 : Arène des compagnons (aucun héros) : le combat est calculé d'un coup, l'écran le rejoue.
+  arenaSurvival(id) {
+    const r = runSurvival(state, id);
+    if (!r) { ui.toast('Plus d\'essai de survie aujourd\'hui.', '#ff8a8a'); return null; }
+    done(true, r.rewards.length ? `Survie : vague ${r.wave} — palier atteint !` : null, '#7fe0a0');
+    return r;
+  },
+  arenaFloor(team) {
+    const r = runFloor(state, team);
+    if (!r) { ui.toast('Choisissez au moins un compagnon.', '#ff8a8a'); return null; }
+    done(true, r.won ? `Arène : étage ${r.floor} franchi !` : null, '#7fe0a0');
+    return r;
+  },
   enterTower() {
     if (state.dungeon || state.challenge) { ui.toast("Terminez d'abord le donjon ou le défi."); return; }
     if (!startTower(state)) { ui.toast('Ascension de la semaine déjà faite (remise à zéro le lundi).', '#ff8a8a'); return; }

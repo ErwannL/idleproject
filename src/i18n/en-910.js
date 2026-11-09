@@ -402,6 +402,7 @@ export const EXACT_910 = {
   'Verrouiller : jamais recyclé ni fusionné': 'Lock: never recycled or fused',
   // v9.1.3 (chantier 4).
   'Défis': 'Challenges',
+  'Arène': 'Arena', // v9.3.2
   'Aventure › Défis': 'Adventure › Challenges',
   'Chaque fiche dit la mécanique du boss final et ce qui la contre. Le butin ciblé et le chemin sont mémorisés.': 'Each sheet gives the final boss mechanic and its counter. Targeted loot and path are remembered.',
   'Tour : une ascension par semaine, un boss par étage, toujours plus fort. Défi de la semaine : des vagues sous des règles qui changent chaque lundi, sans clé, 3 tentatives.': 'Tower: one climb per week, one boss per floor, ever stronger. Weekly challenge: waves under rules that change every Monday, no key, 3 attempts.',

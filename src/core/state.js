@@ -46,6 +46,7 @@ import { museumItems } from './museum.js';
 import { sanitizeBounty } from './bounty.js';
 import { emptyTranscend, sanitizeTranscend } from './transcend.js';
 import { sanitizeChallenge } from './challenge.js';
+import { sanitizeArena } from './arena.js'; // v9.3.2
 import { migrateBagOverflow, migrateCodex, migrateCopies, migrateEssence, migrateMannequins, migrateMissionTrack, migrateTickets } from './migrations-v913.js';
 import { MISSION_TRACK } from '../data/missions.js';
 import { grantReward } from './rewards.js';
@@ -127,6 +128,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     expeditions: emptyExpeditions(), // v8.5 : compagnons en mission
     challenge: null, // v8.5 : défi de la semaine en cours { wave, kills, startPlay }
     challengeWeek: null, // { week, best, tries, extra }
+    arena: null, // v9.3.2 : modes compagnons (core/arena.js)
     challengeBest: 0,
     challengeHistory: [], // meilleures vagues des semaines passées
     talentRespecs: 0,
@@ -295,6 +297,7 @@ function cleanActivities(state, raw) {
   // Jamais à la fois dans l'équipe et en expédition.
   state.companions.equipped = state.companions.equipped.filter((id) => !state.expeditions.slots.some((s) => s?.companionId === id));
   sanitizeChallenge(state, raw);
+  sanitizeArena(state, raw);
   state.transcend = sanitizeTranscend(raw.transcend);
   state.bounty = sanitizeBounty(raw.bounty);
   state.codex = sanitizeCodex(raw.codex);
