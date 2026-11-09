@@ -16,6 +16,7 @@ import { DUNGEON_DIFFICULTIES } from './data/dungeons.js';
 import { buyUpgradeBulk } from './core/economy.js';
 import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
 import { endTower, startTower } from './core/tower.js';
+import { finishGlobalBoss, globalBossLeft, runFloor, runSurvival, startGlobalBoss } from './core/arena.js'; // v9.3.2
 import { claimExpedition, expeditionType, relaunchExpeditions, startExpedition } from './core/expeditions.js';
 import { endChallenge, startChallenge } from './core/challenge.js';
 import { autoFuse, craftItem, fuseAll, fuseItems, fusionFailText, fusionKeep, reforgeItem, sharpenItem, targetReroll, upgradeItem } from './core/forge.js';
@@ -71,6 +72,8 @@ import { bossesForStage, enemyStats } from './core/combat.js';
 import { BUILT_IN_TOKEN } from './core/update-token.js';
 import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagList, updateStatus } from './core/update.js';
 import { playsOnSite } from './ui/panels/options.js';
+import { skillKillGold, upgradeCompanionSkill } from './core/companions.js'; // v9.3.3
+import { equipGear, recycleGear, unequipGear, upgradeGear } from './core/companion-gear.js'; // v9.3.3
 
 const SIM_INTERVAL_MS = 100;
 // v9.1.0 : codes de triche chargés seulement dans la version dev (fichier absent de la version publique).
@@ -553,6 +556,52 @@ const actions = {
   },
   buyPerk(id) { done(buyPerk(state, id), 'Bonus éternel amélioré', '#ffe08a'); },
   // Tour de l'Éternité (v8.2).
+  // v9.3.2 : Arène des compagnons (aucun héros) : le combat est calculé d'un coup, l'écran le rejoue.
+  arenaSurvival(id) {
+    const r = runSurvival(state, id);
+    if (!r) { ui.toast('Plus d\'essai de survie aujourd\'hui.', '#ff8a8a'); return null; }
+    done(true, r.rewards.length ? `Survie : vague ${r.wave} — palier atteint !` : null, '#7fe0a0');
+    return r;
+  },
+  arenaFloor(team) {
+    const r = runFloor(state, team);
+    if (!r) { ui.toast('Choisissez au moins un compagnon.', '#ff8a8a'); return null; }
+    done(true, r.won ? `Arène : étage ${r.floor} franchi !` : null, '#7fe0a0');
+    return r;
+  },
+  // v9.3.2 : World Boss mondial (barre commune, serveur) : même combat que celui des événements.
+  globalBossStart() { return startGlobalBoss(state, bossHpForDay(state)); },
+  globalBossFinish(setup, result) {
+    const r = finishGlobalBoss(state, setup, result);
+    if (r && cloud.isLoggedIn?.()) {
+      const power = Math.max(1, Math.round(computeHeroStats(state).combatPower ?? 1));
+      cloud.wbReport({ mode: 'global', damage: r.damage, tiers: r.tiers, power })
+        .then((res) => { if (res?.global) { ui.globalBoss = { ...res.global, name: ui.globalBoss?.name }; ui.invalidate(); } }).catch(() => {});
+    }
+    done(Boolean(r), r ? `World Boss mondial : ${formatNumber(r.damage)} dégâts ajoutés à la barre commune` : null, '#f2d083');
+    return r;
+  },
+  globalBossLeft() { return globalBossLeft(state); },
+  loadGlobalBoss() {
+    if (!BUILD.cloud) return;
+    cloud.wbGlobal().then((g) => { ui.globalBoss = g; ui.invalidate(); }).catch(() => { ui.globalBoss = { offline: true }; ui.invalidate(); });
+  },
+  // v9.3.3 : amélioration d'une compétence d'un héros (allié) ou d'un familier.
+  skillUp(id, kind) {
+    const lv = upgradeCompanionSkill(state, id, kind);
+    done(Boolean(lv), lv ? `Compétence améliorée : niveau ${lv}` : null, '#7fe0a0');
+    if (!lv) ui.toast('Ressources insuffisantes.', '#ff8a8a');
+  },
+  // v9.3.3 : équipement des héros (alliés) et familiers.
+  gearDo(kind, unitId, arg) {
+    let ok = false, msg = null;
+    if (kind === 'equip') { ok = equipGear(state, unitId, arg); msg = ok ? 'Pièce équipée' : 'Pièce incompatible'; }
+    else if (kind === 'unequip') ok = unequipGear(state, unitId, arg);
+    else if (kind === 'up') { const up = upgradeGear(state, arg, skillKillGold(state)); ok = Boolean(up); msg = ok ? `Amélioration +${up}` : 'Ressources insuffisantes'; }
+    else if (kind === 'recycle') { const n = recycleGear(state, arg); ok = n > 0; msg = ok ? `+${n} éclats` : null; }
+    if (!ok && msg) ui.toast(msg, '#ff8a8a');
+    done(ok, ok ? msg : null, '#7fe0a0');
+  },
   enterTower() {
     if (state.dungeon || state.challenge) { ui.toast("Terminez d'abord le donjon ou le défi."); return; }
     if (!startTower(state)) { ui.toast('Ascension de la semaine déjà faite (remise à zéro le lundi).', '#ff8a8a'); return; }
@@ -675,6 +724,11 @@ const actions = {
   eventBossStart() { return startWorldBoss(state, () => bossHpForDay(state)); },
   eventBossFinish(setup, result) {
     const r = finishWorldBoss(state, setup, result);
+    // v9.3.2 : rapport envoyé au serveur (classement de l'événement, contribution de guilde) ; hors ligne : ignoré.
+    if (r && cloud.isLoggedIn?.()) {
+      const power = Math.max(1, Math.round(computeHeroStats(state).combatPower ?? 1));
+      cloud.wbReport({ mode: 'event', event: String(setup.event ?? 'event'), damage: r.damage, tiers: r.tiers, power }).catch(() => {});
+    }
     done(Boolean(r), r ? `World Boss : ${formatNumber(r.damage)} dégâts` : null, '#f2d083');
     return r;
   },
@@ -889,6 +943,21 @@ const actions = {
       .catch((err) => { ui.ranking = { sort, scope, world, error: err.status ? err.message : 'Serveur injoignable : classement indisponible.' }; })
       .finally(() => ui.invalidate());
     if (scope === 'friends' || !ui.friends) this.loadFriends();
+  },
+  // v9.3.2 : guilde (Objectifs › Guilde) : sa guilde, la recherche et le classement des guildes.
+  loadGuild({ q = ui.view?.guildQ ?? '', mode = ui.guild?.mode ?? 'global' } = {}) {
+    if (!cloud.isLoggedIn() || cloud.isGuest()) { ui.guild = { needAccount: true }; ui.invalidate(); return; }
+    ui.guild = { ...(ui.guild ?? {}), busy: true, mode, ranking: ui.guild?.mode === mode ? ui.guild.ranking : null };
+    ui.invalidate();
+    Promise.all([cloud.guild(), cloud.guilds(q), cloud.wbRanking(mode)])
+      .then(([data, list, ranking]) => { ui.guild = { ...ui.guild, data, list: list.guilds, ranking, busy: false, error: null }; })
+      .catch((err) => { ui.guild = { ...ui.guild, busy: false, error: err.status ? err.message : 'Serveur injoignable.' }; })
+      .finally(() => ui.invalidate());
+  },
+  guildDo(action, body = {}) {
+    const call = action === 'create' ? cloud.guildCreate(body) : cloud.guildAction(action, body);
+    call.then((res) => { ui.guild = { ...ui.guild, message: action === 'join' && res.status === 'requested' ? 'Demande envoyée au chef de la guilde.' : '', error: null }; this.loadGuild(); })
+      .catch((err) => { ui.guild = { ...ui.guild, error: err.status ? err.message : 'Serveur injoignable.' }; ui.invalidate(); });
   },
   loadFriends(message = '', error = false) {
     if (!cloud.isLoggedIn() || cloud.isGuest()) return;

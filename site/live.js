@@ -6,20 +6,18 @@
 // En cas d'échec réseau : les goals par défaut (identiques à ceux d'avant la 9.3.0) avec count = null et offline = true.
 
 export const DEFAULT_GOALS = {
-  target: 100000,
+  target: 50000,
   count: null,
-  texts: { headline: 'Objectif : 100 000 aventuriers pour débloquer toutes les récompenses', reached: 'Objectif atteint, merci à tous !' },
+  texts: {
+    headline: 'Objectif : 50 000 aventuriers pour débloquer toutes les récompenses',
+    reached: 'Objectif atteint, merci à tous !',
+  },
   tiers: [
-    { at: 10000, label: '10K', name: '500 gemmes', detail: 'Monnaie premium', img: 'assets/icon_gem.png' },
-    { at: 20000, label: '20K', name: '250 K or', detail: "Pièces d'or", img: 'assets/icon_chest.png' },
-    { at: 30000, label: '30K', name: '1 familier', detail: 'Slime doré', tag: 'Exclusif', excl: true, img: 'assets/hd_pet_golden_slime.webp' },
-    { at: 40000, label: '40K', name: '1 000 gemmes', detail: 'Monnaie premium', img: 'assets/icon_gem.png' },
-    { at: 50000, label: '50K', name: '1 compagnon', detail: 'Lame rose', tag: 'SR · Exclusif', excl: true, img: 'assets/hd_ally_rose_blade.webp' },
-    { at: 60000, label: '60K', name: '1 500 gemmes', detail: '+ 500 K or', img: 'assets/icon_gem.png' },
-    { at: 70000, label: '70K', name: '1 héros SSR', detail: 'Lilith la Diablesse', tag: 'SSR · Exclusif', excl: true, img: 'assets/hd_demoness.png' },
-    { at: 80000, label: '80K', name: '10 tickets', detail: "d'invocation", img: 'assets/icon_chest.png' },
-    { at: 90000, label: '90K', name: '1 héros SSR', detail: 'Roi Grombar', tag: 'SSR · Exclusif', excl: true, img: 'assets/hd_grombar.png' },
-    { at: 100000, label: '100K', name: '2 500 gemmes', detail: '+ 1 M or + 1 ticket SSR garanti', tag: 'Méga pack', excl: true, img: 'assets/icon_chest.png' },
+    { at: 5000, label: '5K', name: '500 gemmes + 250 K or', detail: 'Monnaie premium et pièces d\'or', img: 'assets/icon_gem.png' },
+    { at: 10000, label: '10K', name: '1 familier + 1 000 gemmes', detail: 'Slime doré', tag: 'Exclusif', excl: true, img: 'assets/hd_pet_golden_slime.webp' },
+    { at: 20000, label: '20K', name: '1 compagnon + 1 500 gemmes', detail: 'Lame rose · + 500 K or', tag: 'SR · Exclusif', excl: true, img: 'assets/hd_ally_rose_blade.webp' },
+    { at: 35000, label: '35K', name: '1 héros SSR + 10 tickets', detail: 'Lilith la Diablesse · tickets d\'invocation', tag: 'SSR · Exclusif', excl: true, img: 'assets/hd_demoness.png' },
+    { at: 50000, label: '50K', name: '1 héros SSR + méga pack', detail: 'Roi Grombar · 2 500 gemmes, 1 M or, 1 ticket SSR garanti', tag: 'SSR · Exclusif', excl: true, img: 'assets/hd_grombar.png' },
   ],
 };
 

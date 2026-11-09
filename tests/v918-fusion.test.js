@@ -14,7 +14,7 @@ test('9.1.7 → 9.1.8 : sauvegarde au format 7 migrée en format 8, statistiques
   assert.equal(raw.version, 7);
   const s = sanitizeState(structuredClone(raw));
   assert.equal(s.version, SAVE_VERSION);
-  assert.equal(SAVE_VERSION, 10); // v9.2.0 (monde marin) : 8 → 9 (Royaume englouti, étapes converties) · v9.2.8 : 9 → 10 (économie)
+  assert.equal(SAVE_VERSION, 11); // v9.3.3 : 10 → 11 (niveaux de compétence) // v9.2.0 (monde marin) : 8 → 9 (Royaume englouti, étapes converties) · v9.2.8 : 9 → 10 (économie)
   for (const k of ['level', 'maxStage', 'gold', 'playSeconds']) assert.equal(s[k], raw[k], k);
   assert.ok(s.gems >= raw.gems, 'gemmes (les tickets du format 7 sont convertis)');
   for (const k of Object.keys(raw.records)) assert.ok(s.records[k] >= raw.records[k], `records.${k}`);
@@ -34,6 +34,6 @@ test('9.1.8 : le serveur accepte la partie migrée par-dessus la sauvegarde 9.1.
 
 test('9.1.8 : Objectifs garde Missions, Collections, Classement et Statistiques', () => {
   const goals = MENUS.find((m) => m.id === 'goals');
-  assert.deepEqual(goals.tabs, ['contracts', 'encyclopedia', 'ranking', 'stats']);
+  assert.deepEqual(goals.tabs, ['contracts', 'encyclopedia', 'ranking', 'guild', 'stats']); // v9.3.2 : Guilde
   assert.equal(SUB_LABELS.ranking, 'Classement');
 });

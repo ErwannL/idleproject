@@ -216,6 +216,7 @@ export function openWorldBoss(state, actions) {
 
   // Outil de capture vidéo (tools) : images pas à pas, 1/60 s chacune, sans requestAnimationFrame.
   if (typeof window !== 'undefined' && window.__wbManual) {
+    window.__wbCtx = ctx;
     window.__wbFrame = () => {
       if (ctx.ended) return true;
       fight.tick();

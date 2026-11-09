@@ -2929,3 +2929,112 @@ img.ico16 { width: 16px; height: 16px; vertical-align: middle; }
 .eco-pet-ssr canvas { width: 28px !important; height: 25px !important; }
 .eco-pet-ssr:not(.owned) { opacity: 0.75; }
 .eco-wish-row.eco-pet-row { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
+/* v9.3.1 : pendant l'invocation, la bannière du monde (« Monde 9 — Cœur du volcan ») ne transparaît plus derrière le portail. */
+body:has(.summon-fx) #banner { visibility: hidden; }
+/* v9.3.1 : types (éléments). */
+.elem-badge { display: inline-flex; align-items: center; gap: 2px; padding: 0 6px; border-radius: 999px; font-size: 11px; font-weight: 800; line-height: 16px;
+  color: var(--ec); background: color-mix(in srgb, var(--ec) 16%, transparent); border: 1px solid color-mix(in srgb, var(--ec) 55%, transparent); white-space: nowrap; vertical-align: middle; }
+.elem-tip { display: block; margin-top: 2px; }
+/* v9.3.2 : ligne « effets visuels » de l'arme. */
+.fx-line { margin: 6px 0; font-size: 12px; }
+.fx-line .rarity-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; vertical-align: middle; background: #c9c9c9; }
+.fx-line .rarity-dot.r-rare { background: #4fa3ff; } .fx-line .rarity-dot.r-epic { background: #c06bff; } .fx-line .rarity-dot.r-legendary { background: #ffa630; box-shadow: 0 0 6px #ffa630; }
+
+/* ============================================================================================================
+   v9.3.2 — socle commun des menus : réactions des boutons, états homogènes (verrouillé, disponible, terminé,
+   récupérable), cadres de rareté plus lisibles, ouverture des panneaux, textes minimum lisibles.
+   Ajouté en fin de fichier (au-dessus des thèmes existants), sans changer la navigation.
+   ============================================================================================================ */
+.btn { transition: transform .08s ease-out, filter .12s, border-color .12s, box-shadow .12s; }
+.btn:active:not(:disabled) { transform: translateY(1px) scale(.98); filter: brightness(.95); }
+.btn:disabled { filter: grayscale(.6); opacity: .6; cursor: not-allowed; }
+:where(button, select, input, [tabindex]):focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+/* États communs : les mêmes repères dans tous les écrans (verrouillé = grisé + cadenas, terminé = vert, à récupérer = doré qui pulse). */
+:where(.locked, .is-locked) { filter: grayscale(.55); }
+:where(.done, .is-done) { border-color: color-mix(in srgb, var(--good) 55%, var(--line)); }
+:where(.claimable, .is-claimable, .can-claim) { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 0 10px -2px var(--gold); animation: v932-claim 1.8s ease-in-out infinite; }
+@keyframes v932-claim { 50% { box-shadow: 0 0 0 1px var(--gold), 0 0 16px 0 var(--gold); } }
+/* Cadres de rareté : liseré net + lueur pour épique et légendaire, reflet animé discret pour légendaire. */
+.item-frame.r-rare { box-shadow: 0 0 0 1px color-mix(in srgb, var(--rare) 70%, transparent); }
+.item-frame.r-legendary { position: relative; overflow: hidden; }
+.item-frame.r-legendary::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 230, 160, .35) 50%, transparent 65%) -150% 0 / 250% 100% no-repeat;
+  animation: v932-sheen 3.2s ease-in-out infinite; }
+@keyframes v932-sheen { 60%, 100% { background-position: 150% 0; } }
+/* Ouverture des panneaux et fenêtres : courte et fluide. */
+#modal:not(.hidden) #modal-card { animation: v932-open .14s ease-out; }
+@keyframes v932-open { from { opacity: 0; transform: translateY(6px) scale(.99); } }
+/* Lisibilité : aucun texte d'interface sous 11 px. */
+.muted small, small.muted, .item-sub, .pet-label small { font-size: max(11px, 1em); }
+/* États vides, chargement, erreur. */
+.state-empty, .inv-empty { padding: 14px; text-align: center; color: var(--muted); border: 1px dashed var(--line-2); border-radius: var(--radius); }
+.state-error { padding: 10px; color: var(--bad); border: 1px solid color-mix(in srgb, var(--bad) 50%, transparent); border-radius: var(--radius); }
+.reduce-motion :is(.claimable, .is-claimable, .can-claim, #modal-card) { animation: none !important; }
+.reduce-motion .item-frame.r-legendary::after { animation: none !important; }
+.elem-badge.elem-icon { padding: 0 3px; font-size: 10px; line-height: 14px; margin-left: 2px; }
+/* v9.3.2 : Arène des compagnons. */
+.arena-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; margin: 6px 0; }
+.arena-unit { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px; background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius); color: var(--text); cursor: pointer; font: inherit; }
+.arena-unit img, .arena-slot img { width: 40px; height: 40px; object-fit: contain; image-rendering: pixelated; }
+.arena-unit.active { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
+.arena-unit-name { font-weight: 700; font-size: 11px; text-align: center; }
+.arena-pick-info { margin: 6px 0; }
+.arena-stats { color: var(--muted); }
+.arena-team { display: flex; gap: 8px; margin: 8px 0; }
+.arena-slot { width: 74px; height: 74px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg-2); border: 1px solid var(--line-2); border-radius: var(--radius); color: var(--text); font: inherit; cursor: pointer; }
+.arena-slot.empty { border-style: dashed; color: var(--muted); font-size: 20px; cursor: default; }
+.arena-slot small { font-size: 10px; text-align: center; }
+.arena-miles, .arena-preview { margin: 4px 0; padding-left: 16px; }
+.arena-miles li.done { color: var(--good); }
+.arena-field { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; margin: 8px 0; }
+.arena-side { display: flex; flex-direction: column; gap: 6px; }
+.arena-vs { font: 900 18px/1 serif; color: var(--gold-text); }
+.arena-ally, .arena-foe { display: flex; align-items: center; gap: 6px; transition: opacity .2s; }
+.arena-ally canvas { width: 48px; height: auto; }
+.arena-ally.down, .arena-foe.down { opacity: .3; filter: grayscale(1); }
+.arena-ally.hurt { animation: v932-hurt .25s; }
+@keyframes v932-hurt { 30% { transform: translateX(-3px); filter: brightness(1.8) saturate(.4); } }
+.arena-foe.boss img { width: 22px; height: 22px; }
+.arena-bar { flex: 1; min-width: 60px; height: 7px; background: #0a0f1c; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.arena-bar i { display: block; height: 100%; transition: width .12s linear; }
+.arena-log { list-style: none; margin: 4px 0 0; padding: 0; min-height: 64px; font-size: 11px; color: var(--muted); }
+.arena-log .adv { color: #ff9a3c; } .arena-log .disadv { color: #8a93a8; }
+.arena-result { border-color: var(--gold-2); }
+.arena-ally canvas { width: 64px; }
+.arena-ally.acts canvas { animation: v932-lunge .25s ease-out; }
+@keyframes v932-lunge { 40% { transform: translateX(8px) scale(1.05); } }
+.arena-foe.hit { animation: v932-hurt .2s; }
+.arena-replay { background: radial-gradient(ellipse at 50% 60%, #1f2a4d, var(--bg-1) 75%); }
+/* v9.3.2 : Guilde. */
+.guild-head { display: flex; gap: 10px; align-items: center; }
+.guild-emblem { width: 52px; height: 52px; display: grid; place-items: center; border: 2px solid var(--gold); border-radius: 50%; background: radial-gradient(circle, #2a3a66, var(--bg-1)); }
+.guild-emblem img { width: 30px; height: 30px; }
+.guild-bar { height: 10px; margin: 6px 0; }
+.guild-input { width: 100%; margin: 4px 0; padding: 6px 8px; background: var(--bg-0); color: var(--text); border: 1px solid var(--line-2); border-radius: var(--radius); font: inherit; user-select: text; }
+.guild-emblems { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+.guild-row { padding: 6px 0; border-bottom: 1px solid var(--line); }
+.guild-log { list-style: none; margin: 0; padding: 0; max-height: 160px; overflow: auto; }
+.guild-log li { padding: 2px 0; }
+/* v9.3.3 : trois compétences, niveaux, coûts. */
+.skill3 { margin: 6px 0; padding: 8px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-2); }
+.skill3.ultimate { border-color: color-mix(in srgb, var(--gold) 60%, var(--line)); }
+.skill-lv { color: var(--gold-text); }
+.skill-next { color: var(--good); font-size: 11px; margin-top: 2px; }
+.skill-up-row { margin-top: 6px; }
+.skill-up-row .btn img { width: 12px; height: 12px; vertical-align: middle; }
+.skill-res { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0; }
+.skill-res img, .skill3 img { width: 14px; height: 14px; vertical-align: middle; }
+.dup-table { margin-top: 6px; }
+/* v9.3.3 : équipement des héros (alliés) et familiers. */
+.gear-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 4px 0; }
+.gear-slot { display: flex; flex-direction: column; gap: 2px; padding: 6px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-2); min-height: 70px; }
+.gear-slot.empty { border-style: dashed; }
+.gear-slot.r-rare { border-color: var(--rare); } .gear-slot.r-epic { border-color: var(--epic); box-shadow: 0 0 6px -2px var(--epic); } .gear-slot.r-legendary { border-color: var(--legendary); box-shadow: 0 0 8px -1px var(--legendary); }
+.gear-filters { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+.gear-list { display: flex; flex-direction: column; gap: 4px; max-height: 320px; overflow: auto; }
+.gear-row { display: flex; gap: 6px; align-items: center; padding: 5px 6px; border: 1px solid var(--line); border-left: 3px solid var(--common); border-radius: var(--radius); }
+.gear-row.r-rare { border-left-color: var(--rare); } .gear-row.r-epic { border-left-color: var(--epic); } .gear-row.r-legendary { border-left-color: var(--legendary); }
+.gear-row.incompatible { opacity: .6; }
+.gear-row small, .gear-diff, .gear-why { display: block; font-size: 11px; }
+.gear-btns { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; }
+.gear-btns img { width: 11px; height: 11px; vertical-align: middle; }

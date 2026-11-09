@@ -24,7 +24,7 @@ export const EXACT = {
   // Menus et sous-onglets
   'Héros': '영웅', 'Aventure': '모험', 'Équipe': '팀', 'Objectifs': '목표', 'Personnage': '캐릭터', 'Progression': '성장',
   'Améliorations': '강화', 'Compétences': '스킬', 'Talents': '특성', 'Fiche': '정보', 'Équipement': '장비', 'Composition': '편성',
-  'Expéditions': '파견', 'Invocation': '소환', 'Carte': '지도', 'Donjons': '던전', 'Défis': '도전', 'Boss': '보스', 'Monde': '월드',
+  'Expéditions': '파견', 'Invocation': '소환', 'Carte': '지도', 'Donjons': '던전', 'Défis': '도전', 'Arène': '아레나', 'Guilde': '길드', 'Boss': '보스', 'Monde': '월드',
   'Collections': '컬렉션', 'Missions': '미션', 'À récupérer': '받을 보상', 'Paramètres': '설정', 'Tour': '탑', 'Arbre': '트리',
   'Renaissance': '환생', 'Renaissances': '환생', 'Transcendance': '초월', 'Transcendances': '초월', 'Événements': '이벤트',
   'Musée': '박물관', 'Encyclopédie': '도감', 'Hauts faits': '업적', 'Contrats': '계약', 'Forge': '대장간', 'Builds': '빌드',
@@ -399,3 +399,7 @@ PATTERNS.unshift(...patterns929Stab(lookup));
 // v9.3.0 : attaques du Colosse du World Boss (./ko-930.js) — sans écraser l'existant.
 import { EXACT_930 } from './ko-930.js';
 for (const [k, v] of Object.entries(EXACT_930)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+// v9.3.2 / v9.3.3 : Arène, Guilde, World Boss mondial, affinités, armes, compétences, ressources, équipement (./ko-932.js).
+import { EXACT_932, patterns932 } from './ko-932.js';
+for (const [k, v] of Object.entries(EXACT_932)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.push(...patterns932(lookup)); // en dernier : les motifs existants (dates, etc.) gardent la priorité

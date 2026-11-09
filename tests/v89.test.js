@@ -13,16 +13,19 @@ import { Rng } from '../src/core/rng.js';
 
 const NOW = Date.now();
 
-test('v8.9 : 4 compétences par compagnon, la 4e avec 3 doublons, +5 % par doublon (v9.1.3)', () => {
+test('v8.9 → v9.3.3 : active (+ évolutions aux niveaux 5 et 8) et ultime dès le 1er exemplaire, doublons +4/8/12/16/24 %', () => {
   const s = createNewState(NOW, 1);
-  s.companions.owned = { archangel: { stars: 1, level: 1 }, cat: { stars: 5, level: 1 } };
+  s.companions.owned = { archangel: { stars: 1, level: 1 }, cat: { stars: 5, level: 1, skills: { passive: 1, active: 8, ultimate: 1 } } };
   assert.equal(allCompanionSkills('archangel').length, 4);
-  assert.equal(companionSkills(s, 'archangel').length, 3, 'ultime verrouillée');
-  s.companions.owned.archangel.stars = 4;
-  assert.equal(companionSkills(s, 'archangel').length, 4);
+  assert.equal(companionSkills(s, 'archangel').length, 2, 'active + ultime dès le 1er exemplaire');
   assert.ok(companionSkills(s, 'archangel').at(-1).ultimate);
-  // v9.1.3 (doc4) : 4 exemplaires = 3 doublons ; soin × 4/3 × 1,15.
-  assert.ok(Math.abs(skillPower(s, 'archangel', 'heal') - (4 / 3) * 1.15) < 1e-9);
+  s.companions.owned.archangel.skills = { passive: 1, active: 5, ultimate: 1 };
+  assert.equal(companionSkills(s, 'archangel').length, 3, 'ancienne 2e compétence au niveau 5 de l\'active');
+  s.companions.owned.archangel.skills.active = 8;
+  assert.equal(companionSkills(s, 'archangel').length, 4, 'ancienne 3e compétence au niveau 8');
+  // 4 exemplaires : +12 % ; soin × 4/3 × 1,12.
+  s.companions.owned.archangel.stars = 4;
+  assert.ok(Math.abs(skillPower(s, 'archangel', 'heal') - (4 / 3) * 1.12) < 1e-9);
   // Les compagnons lancent bien plusieurs compétences en combat.
   s.companions.equipped = ['archangel', 'cat'];
   const w = createCombat(s);

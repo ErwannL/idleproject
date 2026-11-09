@@ -8,6 +8,9 @@ import { COMPANION_ROLES, SYNERGIES } from '../data/synergies.js';
 import { SKILL_RULES, companionSkillList, skillScales } from '../data/companion-skills.js';
 import { UNITS } from '../data/banners.js';
 import { budget } from './banner.js';
+import { combatSkills, dupMultiplier, goldPerKill, levelMult, skillLevels, upgradeSkill } from './progression.js'; // v9.3.3
+import { GOLD_INDEX } from '../data/progression.js';
+import { unitGearStats } from './companion-gear.js'; // v9.3.3
 
 export const MULTIPLICATIVE = { damagePct: 'damageMultPct', maxHpPct: 'maxHpMultPct', goldPct: 'goldMultPct' };
 
@@ -31,13 +34,16 @@ function skillList(id) {
   return list;
 }
 
-export function ultimateUnlocked(owned) {
-  return (owned?.stars ?? 1) >= SKILL_RULES.ultimateCopies;
+// v9.3.3 : l'ultime est disponible dès le 1er exemplaire (le 4e ouvre ses niveaux 6 à 10 : core/progression.js).
+export function ultimateUnlocked() {
+  return true;
 }
 
+// v9.3.3 : compétences en combat = active (+ évolutions des niveaux 5 et 8) + ultime, avec leurs niveaux.
 export function companionSkills(state, id) {
-  const owned = state.companions.owned[id];
-  return skillList(id).filter((sk) => !sk.ultimate || ultimateUnlocked(owned));
+  const cd = unitGearStats(state, id).cd; // v9.3.3 : réduction de recharge de l'équipement (plafonnée)
+  const list = combatSkills(skillList(id), state.companions.owned[id]);
+  return cd ? list.map((s) => ({ ...s, every: s.every * (1 - cd / 100) })) : list;
 }
 
 export function allCompanionSkills(id) {
@@ -58,7 +64,7 @@ export function companionScales(id) {
 // Puissance par type (hors d et rareté) : hit/burst × kh/kb × (1 + 0,05 D) ; soin et rally × 4/3 × (1 + 0,05 D) ;
 // bouclier et or : 1 (sans étoile). `owned` facultatif (aperçu d'une unité non possédée : 0 doublon).
 export function skillPower(state, id, type = 'hit', owned = state.companions.owned[id]) {
-  const step = 1 + SKILL_RULES.powerPerDuplicate * duplicates(owned);
+  const step = dupMultiplier(owned); // v9.3.3 : bonus cumulé des doublons (0 à +24 %)
   if (type === 'hit' || type === 'burst') return companionScales(id)[type] * step;
   if (type === 'heal' || type === 'rally') return SKILL_RULES.supportFactor * step;
   return 1;
@@ -70,7 +76,9 @@ export function skillPower(state, id, type = 'hit', owned = state.companions.own
 export function companionSkillMultiplier(state, companion, type, home = false, balance = BALANCE, owned = state.companions.owned[companion.id]) {
   if (type !== 'hit' && type !== 'burst' && type !== 'heal' && type !== 'rally') return (home ? balance.dungeonAffinity.skillMultiplier : 1) * (RARITY_SKILL[companion.rarity] ?? 1);
   const b = budget(companion) / 100;
-  const m = (home ? balance.dungeonAffinity.skillMultiplier : 1) * (RARITY_SKILL[companion.rarity] ?? 1) * skillPower(state, companion.id, type, owned) * b;
+  const gear = unitGearStats(state, companion.id); // v9.3.3 : équipement (attaque ou soins, réels)
+  const g = 1 + (type === 'hit' || type === 'burst' ? gear.atk : gear.heal) / 100;
+  const m = (home ? balance.dungeonAffinity.skillMultiplier : 1) * (RARITY_SKILL[companion.rarity] ?? 1) * skillPower(state, companion.id, type, owned) * b * g;
   return type === 'heal' || type === 'rally' ? Math.min(m, SKILL_RULES.supportCap * b) : m;
 }
 
@@ -84,7 +92,7 @@ export function companionMultiplier(state, id, owned = state.companions.owned[id
   if (!owned) return 0;
   const bond = (talentEffects(state).companionPct ?? 0) / 100;
   return (1 + COMPANION_RULES.levelBonusPct * ((owned.level ?? 1) - 1))
-    * (COMPANION_RULES.passiveBase + COMPANION_RULES.passivePerDuplicate * duplicates(owned)) * (1 + bond)
+    * COMPANION_RULES.passiveBase * dupMultiplier(owned) * levelMult('passive', skillLevels(owned).passive) * (1 + bond) // v9.3.3
     * budget(companionById(id)) / 100; // v9.1.3 (doc4 lot 4) : budget B
 }
 
@@ -143,6 +151,14 @@ export function companionEffects(state, balance = BALANCE) {
     if (home) out.damagePct = (out.damagePct ?? 0) + balance.dungeonAffinity.teamDamagePct;
   }
   return out;
+}
+
+// v9.3.3 : or d'un ennemi pour les coûts de compétence : étape max, plafonné à ×40 l'or d'un ennemi de l'étape 50.
+export function skillKillGold(state, balance = BALANCE) {
+  return goldPerKill(state, referenceKillGold(levelForStage(state.maxStage, balance), balance), referenceKillGold(levelForStage(GOLD_INDEX.refStage, balance), balance));
+}
+export function upgradeCompanionSkill(state, id, kind, balance = BALANCE) {
+  return upgradeSkill(state, id, kind, skillKillGold(state, balance));
 }
 
 export function companionUpgradeCost(state, id, balance = BALANCE) {

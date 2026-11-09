@@ -14,7 +14,7 @@ export function installClassFx(proto, { HERO_X, ATTACK_TIME, CAST_TIME }) {
       const id = event.enemyId;
       const others = (event.targets ?? []).map((t) => ({ ...t, x: this.wx(t.x) }));
       const crit = event.crit;
-      const react = (x, y, color, opts = {}) => this.hitReact(id, x, { crit, boss: event.boss, damage: event.damage, color, y, ...opts });
+      const react = (x, y, color, opts = {}) => { this.hitReact(id, x, { crit, boss: event.boss, damage: event.damage, color, y, ...opts }); this.weaponImpact?.(x, y ?? G - 14, this.weaponEq); }; // v9.3.2 : impact selon la rareté
       const splash = (color, delay = 0) => others.forEach((t, i) => this.later(delay + i * 0.03, () => this.hitReact(t.id, t.x, { color })));
       switch (event.kind) {
         case 'arrow': {

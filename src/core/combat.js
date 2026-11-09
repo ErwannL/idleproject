@@ -30,6 +30,8 @@ import { clearTowerFloor, endTower, towerBoss, towerLevel, towerTimeLeft } from 
 import { endWorldRun, worldEncounter, worldKill, worldTimeLeft } from './banner.js';
 import { tickTimes } from './times.js';
 import { CHALLENGE, challengeBosses, challengeKill, challengeLevel, challengeRule, challengeTimeUp, clearChallengeWave, endChallenge, isBossWave } from './challenge.js';
+import { elementMultiplier, unitElement, zoneElement } from './elements.js'; // v9.3.1 : types
+import { RESOURCE_SOURCES } from '../data/progression.js'; // v9.3.3
 const ENEMY_WINDUP = 0.25; // v9.1.9 : avance de l'événement « enemyWindup » sur le coup ennemi (s)
 
 const MAX_EVENTS = 300;
@@ -361,6 +363,7 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
     age: 0, // secondes au contact (rage des boss)
     berserk: Boolean(boss && enc.gauntlet),
     summons: boss && enc.gauntlet ? [...enc.summons] : [],
+    element: zoneElement(enc.zoneIndex), // v9.3.1 : type de l'ennemi (celui de son monde)
     trait: boss ? BOSS_TRAITS[type] ?? null : null, // v9.0.6 : mécanique du boss (core/boss-traits.js)
   };
   // v9.1.3 (doc4 lot 6) : score — boss qui ne meurt pas (60 s, score = dégâts infligés), sans mécanique d'invocation.
@@ -547,6 +550,8 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
     if (enemy.berserk) world.enemies = world.enemies.filter((e) => !e.summoned);
     // v9.0.6 : les serviteurs d'un boss invocateur disparaissent avec lui.
     world.enemies = world.enemies.filter((e) => e.minionOf !== enemy.id);
+    // v9.3.3 : essence de maîtrise (15 % par boss de campagne).
+    if (!enc.worldBoss && !enc.score && rng.next() < RESOURCE_SOURCES.bossKill.chance) { state.materials.mastery = (state.materials.mastery ?? 0) + RESOURCE_SOURCES.bossKill.mastery; emit(world, 'resource', { mastery: 1 }); }
     // Table de butin des boss : éclats en plus de l'objet Rare+ garanti (v9.1.3 : ex-essences × ESSENCE_SHARDS).
     const shards = Math.round(bossEssence(enc.level, balance) * rebirthHeat(state, balance).reward) * ESSENCE_SHARDS;
     state.materials.shards += shards;
@@ -653,6 +658,10 @@ export function canHit(enemy, balance = BALANCE) {
 function hitEnemy(state, world, enemy, damage, rng, balance, stats, enc, source, unitId = 'hero') {
   if (!world.enemies.includes(enemy)) return;
   if (!canHit(enemy, balance)) return; // v9.2.2 : pas encore arrivé (ruée)
+  // v9.3.1 : types : avantage (×1,3) ou faiblesse (×0,8) selon l'élément du compagnon et celui de l'ennemi.
+  // Le héros reste neutre : ses apparences sont purement cosmétiques (v9.2.8).
+  const elem = elementMultiplier(unitId === 'hero' ? null : unitElement(unitId), enemy.element);
+  damage *= elem;
   damage = mutationDamageTaken(enemy, damage);
   damage = traitDamageTaken(enemy, damage);
   if (enemy.scoreTarget && state.worldRun?.kind === 'score') state.worldRun.damage += damage; // v9.1.3 (doc4 lot 6)
@@ -663,7 +672,7 @@ function hitEnemy(state, world, enemy, damage, rng, balance, stats, enc, source,
   if (stats.lifesteal > 0 && source !== 'thorns' && !(enc?.challenge && challengeRule(state, 'noHeal'))) {
     world.hero.hp = Math.min(stats.maxHp, world.hero.hp + (damage * stats.lifesteal) / 100);
   }
-  emit(world, 'enemyHit', { enemyId: enemy.id, damage, x: enemy.x, boss: enemy.boss, source });
+  emit(world, 'enemyHit', { enemyId: enemy.id, damage, x: enemy.x, boss: enemy.boss, source, elem });
   // Invocations berserk : à 75 %, 50 % et 25 % des PV.
   if (enemy.summons?.length && enemy.hp > 0) {
     const thresholds = [0.75, 0.5, 0.25];

@@ -26,8 +26,26 @@ export class LiveError extends Error {
 }
 const bad = (msg) => new LiveError(400, msg);
 
-// Goals par défaut (ceux du site avant la 9.3.0) : semés à la première ouverture de la base.
+// v9.3.1 : objectif communautaire 50 000 : les 10 récompenses déjà définies (9.3.0) regroupées sur 5 paliers
+// (5 000, 10 000, 20 000, 35 000, 50 000), aucune récompense ajoutée.
 export const DEFAULT_GOALS = {
+  target: 50000,
+  display: { mode: 'real', value: 0 },
+  texts: {
+    headline: 'Objectif : 50 000 aventuriers pour débloquer toutes les récompenses',
+    reached: 'Objectif atteint, merci à tous !',
+  },
+  tiers: [
+    { at: 5000, label: '5K', name: '500 gemmes + 250 K or', detail: 'Monnaie premium et pièces d\'or', img: 'assets/icon_gem.png' },
+    { at: 10000, label: '10K', name: '1 familier + 1 000 gemmes', detail: 'Slime doré', tag: 'Exclusif', excl: true, img: 'assets/hd_pet_golden_slime.webp' },
+    { at: 20000, label: '20K', name: '1 compagnon + 1 500 gemmes', detail: 'Lame rose · + 500 K or', tag: 'SR · Exclusif', excl: true, img: 'assets/hd_ally_rose_blade.webp' },
+    { at: 35000, label: '35K', name: '1 héros SSR + 10 tickets', detail: 'Lilith la Diablesse · tickets d\'invocation', tag: 'SSR · Exclusif', excl: true, img: 'assets/hd_demoness.png' },
+    { at: 50000, label: '50K', name: '1 héros SSR + méga pack', detail: 'Roi Grombar · 2 500 gemmes, 1 M or, 1 ticket SSR garanti', tag: 'SSR · Exclusif', excl: true, img: 'assets/hd_grombar.png' },
+  ],
+};
+
+// Goals par défaut de la 9.3.0 (objectif 100 000) : remplacés par ceux de la 9.3.1 tant que l'admin ne les a pas modifiés.
+export const GOALS_930 = {
   target: 100000,
   display: { mode: 'real', value: 0 },
   texts: {
@@ -279,6 +297,11 @@ export function createLive({ db, now = () => Date.now() }) {
   db.exec(LIVE_SCHEMA_SQL);
   if (!db.prepare('SELECT id FROM live_goals WHERE id = 1').get()) {
     db.prepare('INSERT INTO live_goals (id, data, version, updated_at, updated_by) VALUES (1, ?, 1, ?, ?)').run(JSON.stringify(DEFAULT_GOALS), now(), 'système');
+  }
+  // v9.3.1 : goals jamais modifiés (ceux de la 9.3.0, 100 000) → nouvel objectif 50 000. Des goals réglés dans l'admin sont gardés.
+  const g0 = db.prepare('SELECT data, version FROM live_goals WHERE id = 1').get();
+  if (g0 && g0.data === JSON.stringify(GOALS_930)) {
+    db.prepare('UPDATE live_goals SET data = ?, version = version + 1, updated_at = ?, updated_by = ? WHERE id = 1').run(JSON.stringify(DEFAULT_GOALS), now(), 'système (9.3.1)');
   }
   const meta = {
     get: (k) => db.prepare('SELECT value FROM live_meta WHERE key = ?').get(k)?.value,

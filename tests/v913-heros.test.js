@@ -1,4 +1,5 @@
 // v9.1.3 (doc4, partie A) : héros, doublons et invocation.
+import { MIGRATED_SKILLS, levelMult } from '../src/core/progression.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createNewState, sanitizeState } from '../src/core/state.js';
@@ -37,7 +38,7 @@ test('lot 0 : l\'historique garde le type (skin ou compagnon) et le nettoyage le
 import { COMPANIONS, COMPANION_RULES } from '../src/data/companions.js';
 import { COMPANION_ROLES } from '../src/data/synergies.js';
 import { SKILL_TEMPLATES, skillScales } from '../src/data/companion-skills.js';
-import { RARITY_SKILL, allCompanionSkills, companionMultiplier, companionScales, companionSkillMultiplier, duplicates } from '../src/core/companions.js';
+import { RARITY_SKILL, allCompanionSkills, companionSkills, companionMultiplier, companionScales, companionSkillMultiplier, duplicates } from '../src/core/companions.js';
 import { expeditionPower } from '../src/core/expeditions.js';
 import { BALANCE } from '../src/data/balance.js';
 import { SAVE_KEY, loadGame, preMigrationKey } from '../src/core/save.js';
@@ -45,7 +46,8 @@ import { reconcile, syncOnce } from '../src/core/cloud-save.js';
 import { V912, v912List } from './helpers/v912-kits.js';
 
 const roleOf = (id) => COMPANION_ROLES[id] ?? 'pet';
-const owned = (stars) => ({ stars, level: 1 });
+// v9.3.3 : perso possédé avant la mise à jour (niveaux de compétence de la migration).
+const owned = (stars) => ({ stars, level: 1, skills: { ...MIGRATED_SKILLS } });
 const at = (n, type) => (type === 'burst' ? n : 1);
 // Unités dont la compétence propre change au lot 3 (relevée ou ajoutée) : nouveau ≥ ancien, pas forcément égal.
 // v9.2.9 : les nouveaux familiers n'ont pas d'« ancien » kit : seulement nouveau ≥ gabarit.
@@ -57,9 +59,11 @@ function oldDps(c, copies, n) {
   return v912List(c.id, roleOf(c.id)).filter((sk) => !sk.ultimate || copies >= 4)
     .filter((sk) => sk.type === 'hit' || sk.type === 'burst').reduce((s, sk) => s + (sk.value / sk.every) * at(n, sk.type) * p, 0);
 }
+// v9.3.3 : compétences réellement lancées en combat (niveaux de la migration, ultime dès le 1er exemplaire).
 function newDps(state, c, copies, n, home = false) {
-  return allCompanionSkills(c.id).filter((sk) => !sk.ultimate || copies >= 4).filter((sk) => sk.type === 'hit' || sk.type === 'burst')
-    .reduce((s, sk) => s + (sk.value / sk.every) * at(n, sk.type) * companionSkillMultiplier(state, c, sk.type, home, BALANCE, owned(copies)), 0);
+  const st = { ...state, companions: { ...state.companions, owned: { ...state.companions.owned, [c.id]: owned(copies) } } };
+  return companionSkills(st, c.id).filter((sk) => sk.type === 'hit' || sk.type === 'burst')
+    .reduce((s, sk) => s + (sk.value / sk.every) * at(n, sk.type) * companionSkillMultiplier(st, c, sk.type, home, BALANCE, owned(copies)), 0);
 }
 
 test('lot 1 : 31 unités (v9.2.9 : + 5 familiers) × 1 à 5 exemplaires × 1, 2, 3, 5, 8 cibles : DPS moyen ≥ actuel, égal à 5 exemplaires (1e-9)', () => {
@@ -71,7 +75,7 @@ test('lot 1 : 31 unités (v9.2.9 : + 5 familiers) × 1 à 5 exemplaires × 1, 2,
         const before = oldDps(c, copies, n);
         const after = newDps(s, c, copies, n);
         assert.ok(after >= before - 1e-12, `${c.id} ${copies} ex. ${n} cibles : ${after} < ${before}`);
-        if (copies === 5 && !RAISED.has(c.id) && !NEW_929.has(c.id)) assert.ok(Math.abs(after - before) <= 1e-9 * Math.max(1, before), `${c.id} à 5 ex. : ${after} ≠ ${before}`);
+        // v9.3.3 : plus d'égalité exacte à 5 exemplaires (barème de doublons changé) : seulement « jamais moins ».
       }
     }
   }
@@ -91,7 +95,7 @@ test('lot 1 : dans son donjon, hit, burst, soin et rally ≥ actuel à tout nomb
   }
 });
 
-test('lot 1 : passif, soin et rally ≥ actuel et égaux à 5 exemplaires ; bouclier et or inchangés', () => {
+test('lot 1 : passif, soin et rally ≥ actuel (v9.3.3 : niveaux de la migration compris) ; bouclier et or inchangés', () => {
   const s = createNewState(NOW);
   for (const c of COMPANIONS) {
     for (let copies = 1; copies <= 6; copies++) {
@@ -99,20 +103,20 @@ test('lot 1 : passif, soin et rally ≥ actuel et égaux à 5 exemplaires ; bouc
       const oldPassive = 1 + 0.2 * (st - 1);
       const p = companionMultiplier(s, c.id, owned(copies));
       assert.ok(p >= oldPassive - 1e-12);
-      if (copies === 5) assert.ok(Math.abs(p - oldPassive) < 1e-12, `passif ${c.id}`);
       const oldSup = Math.min((RARITY_SKILL[c.rarity] ?? 1) * (1 + 0.15 * (st - 1)), 3);
       for (const type of ['heal', 'rally']) {
         const v = companionSkillMultiplier(s, c, type, false, BALANCE, owned(copies));
-        assert.ok(v >= oldSup - 1e-12, `${type} ${c.id} ${copies}`);
-        if (copies === 5) assert.ok(Math.abs(v - oldSup) < 1e-12);
+        // v9.3.3 : le niveau de compétence (active 8 après migration) s'applique à la valeur de la compétence.
+        assert.ok(v * levelMult('active', MIGRATED_SKILLS.active) >= oldSup - 1e-12, `${type} ${c.id} ${copies}`);
         assert.ok(v <= 3 + 1e-12);
       }
       for (const type of ['shield', 'gold']) assert.equal(companionSkillMultiplier(s, c, type, false, BALANCE, owned(copies)), RARITY_SKILL[c.rarity] ?? 1);
     }
   }
-  // Courbe du passif : ×1,5 à 0 doublon, ×1,8 à 4, ×1,875 à 5.
-  assert.ok(Math.abs(companionMultiplier(s, 'shadow_lord', owned(1)) - 1.5) < 1e-12);
-  assert.ok(Math.abs(companionMultiplier(s, 'shadow_lord', owned(6)) - 1.875) < 1e-12);
+  // v9.3.3 : passif = 1,5 × doublons (0 à +24 %) × niveau du passif (+5 %/niveau).
+  const fresh = (stars) => ({ stars, level: 1 });
+  assert.ok(Math.abs(companionMultiplier(s, 'shadow_lord', fresh(1)) - 1.5) < 1e-12);
+  assert.ok(Math.abs(companionMultiplier(s, 'shadow_lord', fresh(6)) - 1.5 * 1.24) < 1e-12);
 });
 
 test('lot 1 : kh et kb calculés au chargement, conformes au tableau de contrôle (données d\'origine)', () => {
@@ -157,7 +161,8 @@ test('lot 1 : tableau du brief (shadow_lord + demon_queen niv. 20, cible unique)
   const expect = [[1.86, 1.25], [1.95, 1.31], [2.05, 1.38], [2.57, 1.67], [2.68, 1.74], [2.79, 1.82]];
   for (let d = 0; d <= 5; d++) {
     const r2 = (x) => Math.round(x * 100) / 100;
-    assert.deepEqual([r2(newDps(s, sl, d + 1, 1)), r2(newDps(s, dq, d + 1, 1))], expect[d], `${d} doublons`);
+    // v9.3.3 : nouveau DPS ≥ ancien tableau (niveaux de la migration, ultime dès le 1er exemplaire).
+    assert.ok(r2(newDps(s, sl, d + 1, 1)) >= expect[d][0] && r2(newDps(s, dq, d + 1, 1)) >= expect[d][1], `${d} doublons`);
     const passive = 0.13 * (1 + 0.08 * 19) * (1.5 + 0.075 * d);
     assert.ok(Math.abs(passive * 100 - [49.1, 51.6, 54.1, 56.5, 59.0, 61.4][d]) < 0.06);
   }
@@ -211,7 +216,8 @@ test('lot 1 : sauvegarde v7 — 5 exemplaires deviennent 6, le reste ne change p
   const st = memoryStorage();
   st.setItem(SAVE_KEY, JSON.stringify(raw));
   const { state } = loadGame(st, undefined, NOW);
-  assert.deepEqual(state.companions.owned, { shadow_lord: { stars: 6, level: 20 }, cat: { stars: 3, level: 4 }, wisp: { stars: 1, level: 1 } });
+  const sk = { skills: { ...MIGRATED_SKILLS } }; // v9.3.3 : niveaux de compétence de la migration
+  assert.deepEqual(state.companions.owned, { shadow_lord: { stars: 6, level: 20, ...sk }, cat: { stars: 3, level: 4, ...sk }, wisp: { stars: 1, level: 1, ...sk } });
   assert.equal(JSON.parse(st.getItem(preMigrationKey(7))).companions.owned.shadow_lord.stars, 5, 'copie d\'avant migration');
   // Second chargement (format 8) : rien de plus ; une unité montée à 5 exemplaires après la migration reste à 5.
   state.companions.owned.cat.stars = 5;

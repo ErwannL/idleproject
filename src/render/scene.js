@@ -39,7 +39,9 @@ import { castHeroSkill, castUnitSkill, drawSkillFx, fxContext, heroGesturePick, 
 import { companionSkillList } from '../data/companion-skills.js';
 import { COMPANION_ROLES } from '../data/synergies.js';
 import { drawWorldVfx, eventVfx } from './vfx-world.js'; // v9.2.6 : compétences, boss, environnement, mutations, ambiance
+import { weaponFx } from '../data/weapon-fx.js'; // v9.3.2 : effets d'arme selon la rareté
 import { DAMAGE_COLORS, drawDamageText, drawVfx, drawVfxFrame, projFrame, vfx, vfxReady } from './vfx.js'; // v9.2.6 : effets de combat PixelLab
+import { unitGear } from '../core/companion-gear.js'; // v9.3.3 : halo d'équipement
 // v9.2.9 : toiles de travail relues par getImageData : mémoire côté processeur (avertissement Chrome « willReadFrequently »).
 const RF = { willReadFrequently: true };
 
@@ -116,7 +118,9 @@ const MAX_FLOATING_TEXTS = 6;
 const PROJ_VFX = { fx_arrow: 'proj_arrow', fx_arrow_fire1: 'proj_fireball', fx_fireball1: 'proj_fireball', fx_soul1: 'proj_soul', fx_meteor: 'proj_fireball' };
 // v9.2.7 : couleur de la traînée de frappe selon la rareté de l'arme.
 const TRAIL_COLORS = { common: '#dfe8f0', uncommon: '#8af07a', rare: '#6ab8ff', epic: '#c87aff', legendary: '#ffc23a', mythic: '#ff5a6a' };
-const FLYING_PETS = new Set(['owl', 'fairy', 'wisp', 'dragonling', 'phoenix']); // v9.2.9 : + dragonnet et phénix (ailés)
+const FLYING_PETS = new Set(['owl', 'fairy', 'wisp', 'dragonling', 'phoenix']);
+// v9.3.3 : familiers dont le dessin regarde vers la gauche : retournés pour faire face aux ennemis comme les autres.
+const LEFT_FACING_PETS = new Set(['phoenix']); // v9.2.9 : + dragonnet et phénix (ailés)
 // v9.2.7 : volant ou marcheur, sans entre-deux. Les robes longues (« glide ») qui ont un vrai cycle de marche
 // PixelLab marchent, pieds au sol ; seuls les volants (ailes) flottent, avec ombre et sans cycle de pas.
 // v9.2.7 : un ennemi ailé qui ne se pose pas (phénix, valkyrie…) mais hérite d'une base marcheuse vole vraiment :
@@ -282,7 +286,14 @@ export class SceneRenderer {
     scale = Math.max(0.5, scale, cssHeight / MAX_VIEW_HEIGHT);
     this.width = Math.max(120, Math.floor(cssWidth / scale));
     this.height = Math.max(MIN_VIEW_HEIGHT, Math.floor(cssHeight / scale));
+    const prevGround = this.groundY;
     this.groundY = this.height - GROUND_DEPTH;
+    // v9.3.1 : un menu ouvert/fermé change la hauteur de la scène : les effets en cours (corps d'un monstre tué,
+    // mort animée, chiffres, étincelles) suivent le sol au lieu de rester collés à l'ancienne hauteur (« au plafond »).
+    const dy = this.groundY - prevGround;
+    if (dy && Number.isFinite(dy)) {
+      for (const fx of this.effects) for (const key of ['y', 'top', 'sy', 'y0', 'y1', 'ty']) if (typeof fx[key] === 'number') fx[key] += dy;
+    }
     // Rendu à la résolution de l'écran (k pixels par pixel de jeu) : les sprites restent nets mais
     // les personnages et le décor se déplacent pixel d'écran par pixel d'écran (mouvement fluide).
     this.k = Math.max(1, Math.round(scale * (window.devicePixelRatio || 1)));
@@ -361,9 +372,21 @@ export class SceneRenderer {
           const [c0, c1] = DAMAGE_COLORS[event.source];
           this.addText(formatNumber(event.damage), event.x, this.groundY - (event.boss ? 64 : 42), c0, c1);
         }
+        // v9.3.1 : types : coup efficace (avantage d'élément) ou peu efficace, signalé au-dessus de l'ennemi.
+        // v9.3.2 : AVANTAGE / DÉSAVANTAGE (au plus une fois toutes les 0,7 s par ennemi, pour rester lisible).
+        if (event.elem && event.elem !== 1) {
+          const fxe = this.enemyFxFor(event.enemyId);
+          if (this.time - (fxe.elemAt ?? -9) > 0.7) {
+            fxe.elemAt = this.time;
+            const y = this.groundY - (event.boss ? 80 : 56);
+            if (event.elem > 1) { this.addText('AVANTAGE ▲', event.x, y, '#ff9a3c', '#fff1c8'); if (!this.focus) this.burst(event.x, this.groundY - 18, '#ffd23f', 5, 40); }
+            else this.addText('DÉSAVANTAGE ▼', event.x, y, '#8a93a8', '#e0e6f0');
+          }
+        }
         break;
       case 'skill':
         // v9.2.5 : geste propre à la compétence et effet synchronisé (skill-fx.js) ; ancien effet en repli.
+        this.weaponSkillFlourish(HERO_X + 4, this.weaponEq); // v9.3.2 : l'arme participe à la compétence
         if (castHeroSkill(this, this.skillKey, event.skillId, fxContext(this, world, { x: HERO_X + 4, y: this.groundY - 22 }, HERO_X))) break;
         this.skillEffect(event);
         break;
@@ -941,11 +964,14 @@ export class SceneRenderer {
     if (pts.length > 12) pts.splice(0, pts.length - 12);
     if (pts.length < 2) return;
     const color = TRAIL_COLORS[weapon?.rarity] ?? '#ffffff';
+    const wf = weaponFx(weapon); // v9.3.2 : ruban plus large et plus vif selon la rareté
     for (let i = 1; i < pts.length; i++) {
-      const a = pts[i - 1], b = pts[i];
+      const a0 = pts[i - 1], b0 = pts[i];
+      const widen = (p) => ({ ...p, x0: p.x1 + (p.x0 - p.x1) * wf.trail, y0: p.y1 + (p.y0 - p.y1) * wf.trail });
+      const a = widen(a0), b = widen(b0);
       const k = 1 - (now - a.t) / LIFE;
       if (k <= 0) continue;
-      ctx.globalAlpha = 0.45 * k;
+      ctx.globalAlpha = wf.trailAlpha * k;
       ctx.fillStyle = color;
       ctx.beginPath();
       ctx.moveTo(a.x0, a.y0); ctx.lineTo(a.x1, a.y1); ctx.lineTo(b.x1, b.y1); ctx.lineTo(b.x0, b.y0);
@@ -957,6 +983,57 @@ export class SceneRenderer {
       ctx.beginPath(); ctx.moveTo(a.x1, a.y1); ctx.lineTo(b.x1, b.y1); ctx.stroke();
     }
     ctx.globalAlpha = 1;
+  }
+
+  // v9.3.2 : arme au repos selon sa rareté : lueur pulsée le long de la lame, particules qui en montent, aura
+  // (légendaire). Visuel seulement ; coupé en mode effets réduits.
+  weaponAura(ctx, held, weapon) {
+    const wf = weaponFx(weapon);
+    if (this.focus || !held || held.tipX == null || !wf.glow) return;
+    const { ax, ay, tipX, tipY } = held;
+    const pulse = 0.75 + 0.25 * Math.sin(this.time * wf.pulse * Math.PI);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = wf.color;
+    for (const [w, a] of [[6, 0.3], [3, 0.6], [1.2, 0.9]]) {
+      ctx.globalAlpha = wf.glow * a * pulse;
+      ctx.lineWidth = w;
+      ctx.beginPath(); ctx.moveTo(ax + (tipX - ax) * 0.3, ay + (tipY - ay) * 0.3); ctx.lineTo(tipX, tipY); ctx.stroke();
+    }
+    if (wf.aura) {
+      const g = ctx.createRadialGradient(tipX, tipY, 0, tipX, tipY, 9);
+      g.addColorStop(0, wf.color); g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.globalAlpha = 0.35 * pulse; ctx.fillStyle = g; ctx.fillRect(tipX - 9, tipY - 9, 18, 18);
+    }
+    ctx.restore();
+    this.moteAcc = (this.moteAcc ?? 0) + (this.dt ?? 0) * wf.motes;
+    while (this.moteAcc >= 1) {
+      this.moteAcc -= 1;
+      const u = 0.3 + Math.random() * 0.7;
+      this.effects.push({ kind: 'spark', x: ax + (tipX - ax) * u, y: ay + (tipY - ay) * u, vx: (Math.random() - 0.5) * 8, vy: -14 - Math.random() * 10,
+        color: Math.random() < 0.3 ? '#ffffff' : wf.color, life: 0.5, max: 0.5 });
+    }
+  }
+
+  // v9.3.2 : impact du coup de base selon la rareté de l'arme : étincelles en plus, onde (épique et légendaire).
+  weaponImpact(x, y, weapon) {
+    const wf = weaponFx(weapon);
+    if (this.focus || !wf.impact) return;
+    for (let i = 0; i < wf.impact; i++) {
+      const a = -1.2 + Math.random() * 2.4, v = 40 + Math.random() * 80;
+      this.effects.push({ kind: 'spark', x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 15, color: i % 2 ? wf.color : '#ffffff', life: 0.3, max: 0.3 });
+    }
+    if (wf.ring) this.effects.push({ kind: 'ring', x, y, color: wf.color, life: 0.3, max: 0.3, r: weapon.rarity === 'legendary' ? 14 : 9 });
+  }
+
+  // v9.3.2 : compétence lancée avec une arme rare ou mieux : éclat de la couleur de l'arme autour du héros.
+  weaponSkillFlourish(heroX, weapon) {
+    const wf = weaponFx(weapon);
+    if (this.focus || !wf.skill) return;
+    const y = this.groundY - 18;
+    this.effects.push({ kind: 'ring', x: heroX, y, color: wf.color, life: 0.45, max: 0.45, r: 12 + 10 * wf.skill });
+    this.burst(heroX, y, wf.color, Math.round(8 * wf.skill), 40 + 20 * wf.skill);
   }
 
   // Arrondi au pixel d'écran (et non au pixel de jeu) pour les éléments en mouvement.
@@ -1234,8 +1311,10 @@ export class SceneRenderer {
         ctx.fillRect(x + 2, this.groundY + 1, w - 4, 1);
         ctx.globalAlpha = 1;
         this.drawBar(ctx, headX - 16, headY - 6, 32, enemy.hp / enemy.maxHp, '#e84a5f');
+        drawElementIcon(ctx, enemy.element, headX - 22, headY - 7);
       } else if (enemy.elite || enemy.mutation || enemy.hp < enemy.maxHp) {
         this.drawBar(ctx, headX - 9, headY - 5, 18, enemy.hp / enemy.maxHp, enemy.elite ? '#ff9a3d' : mutation ? mutation.color : '#e84a5f');
+        drawElementIcon(ctx, enemy.element, headX - 15, headY - 6);
       }
       ctx.globalAlpha = 1;
     }
@@ -1414,6 +1493,8 @@ export class SceneRenderer {
         f.left -= this.dt ?? 0;
       }
       this.heroLast = { kind, anim, held };
+      this.weaponEq = state.equipment.weapon;
+      this.weaponAura(ctx, held, state.equipment.weapon); // v9.3.2
       // v9.2.7 : traînée seulement pendant la frappe (de l'image qui précède le coup jusqu'au coup), pas pendant l'élan.
       const fi = anim ? anim.anim.frames.indexOf(anim.name) : -1, hitI = anim?.anim.hit ?? 99;
       this.weaponTrail(ctx, kind === 'attack' && this.hero.attack > 0 && fi >= hitI - 2 && fi <= hitI + 1 ? held : null, state.equipment.weapon);
@@ -1656,7 +1737,7 @@ export class SceneRenderer {
     ctx.globalAlpha = Math.max(0.35, 1 - (pose.dy + lift) / 18);
     this.drawShadow(ctx, cx0 + pose.dx, Math.max(10, w * 0.5 - pose.dy - lift / 2));
     ctx.globalAlpha = 1;
-    if (this.maxStars(companion)) this.drawStarAura(ctx, cx0 + pose.dx, y, w, h, companion);
+    if (this.maxStars(companion)) this.drawStarAura(ctx, cx0 + pose.dx, y, w, h, companion); this.gearGlow(ctx, cx0 + pose.dx, y, w, h, companion); // v9.3.3
     // Images rémanentes du saut, de la couleur du compagnon.
     if (pose.ghosts && !swimming) {
       const ghost = spriteCanvas(frame, { tint: { color: pose.color, alpha: 1 } });
@@ -1722,6 +1803,28 @@ export class SceneRenderer {
   }
 
 
+
+  // v9.3.3 : équipement épique ou légendaire porté → halo au sol de la couleur de la meilleure pièce et, pour une
+  // légendaire, quelques étincelles. Purement visuel (les stats viennent des données), coupé en effets réduits.
+  gearGlow(ctx, cx, top, w, h, companion) {
+    if (this.focus || !this.state?.companionGear) return;
+    const pieces = Object.values(unitGear(this.state, companion.id)).filter(Boolean);
+    const best = ['legendary', 'epic'].find((r) => pieces.some((p) => p.rarity === r));
+    if (!best) return;
+    const color = best === 'legendary' ? '#ffc23a' : '#c87aff';
+    const pulse = 0.6 + 0.4 * Math.sin(this.time * 3 + companion.id.length);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    // Halo autour du corps (vole ou marche : même rendu) + liseré au sol.
+    const cy = top + h * 0.55, r = Math.max(w, h) * 0.6;
+    const g = ctx.createRadialGradient(cx, cy, r * 0.2, cx, cy, r);
+    g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.6, color); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.globalAlpha = (best === 'legendary' ? 0.45 : 0.3) * pulse;
+    ctx.fillStyle = g;
+    ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+    ctx.restore();
+    if (best === 'legendary' && Math.random() < 0.2) this.effects.push({ kind: 'spark', x: cx + (Math.random() - 0.5) * w, y: top + h - 2, vx: 0, vy: -18, color, life: 0.5, max: 0.5 });
+  }
 
   // v8.9 : compagnon aux étoiles maximales → aura lumineuse (couleur de sa rareté) et étincelles qui montent.
   maxStars(companion) {
@@ -1815,10 +1918,10 @@ export class SceneRenderer {
       const flap = 1; // v9.0.8 : plus d'écrasement du dessin (vol = flottement)
       const cy = this.groundY - hover - img.height / 2;
       this.drawShadow(ctx, x + img.width / 2, img.width * 0.5);
-      if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, cy - img.height / 2, img.width, img.height, companion);
+      if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, cy - img.height / 2, img.width, img.height, companion); this.gearGlow(ctx, x + img.width / 2, cy - img.height / 2, img.width, img.height, companion); // v9.3.3
       ctx.save();
       ctx.translate(this.snap(x + img.width / 2), this.snap(cy));
-      ctx.scale(1, flap);
+      ctx.scale(LEFT_FACING_PETS.has(companion.id) ? -1 : 1, flap);
       this.drawStarOutline(ctx, companion, companion.sprite, -img.width / 2, -img.height / 2);
       petImg(-img.width / 2, -img.height / 2);
       ctx.restore();
@@ -1832,10 +1935,10 @@ export class SceneRenderer {
     this.travFeet(companion.id, x + img.width / 2, walking, 2.5, true);
     const squash = 1; // v9.0.8 : bonds sans écrasement du dessin
     this.drawShadow(ctx, x + img.width / 2, img.width * 0.8 - hop);
-    if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, this.groundY - img.height, img.width, img.height, companion);
+    if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, this.groundY - img.height, img.width, img.height, companion); this.gearGlow(ctx, x + img.width / 2, this.groundY - img.height, img.width, img.height, companion); // v9.3.3
     ctx.save();
     ctx.translate(this.snap(x + img.width / 2), this.groundY + 1 - this.snap(hop));
-    ctx.scale(2 - squash, squash);
+    ctx.scale((2 - squash) * (LEFT_FACING_PETS.has(companion.id) ? -1 : 1), squash);
     this.drawStarOutline(ctx, companion, companion.sprite, -img.width / 2, -img.height);
     petImg(-img.width / 2, -img.height);
     ctx.restore();
@@ -1861,11 +1964,14 @@ export class SceneRenderer {
     ctx.globalAlpha = 0.6;
     this.drawShadow(ctx, x + img.width / 2, img.width * 0.6);
     ctx.globalAlpha = 1;
-    if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, py + oy, img.width, img.height, companion);
+    if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, py + oy, img.width, img.height, companion); this.gearGlow(ctx, x + img.width / 2, py + oy, img.width, img.height, companion); // v9.3.3
+    const mirror = LEFT_FACING_PETS.has(companion.id); // v9.3.3
+    if (mirror) { ctx.save(); ctx.translate(2 * this.snap(x) + img.width, 0); ctx.scale(-1, 1); }
     if (canvas === img) this.drawStarOutline(ctx, companion, companion.sprite, px, py);
     const pa = pickAllyAnim({ sprite: companion.sprite, walking, swimming: true, time: this.time, seed: 0.5 }); // v9.2.3 : nage PixelLab
     if (pa) ctx.drawImage(spriteCanvas(pa.name), this.snap(x) + pa.ox, this.groundY + 1 - img.height - lift + pa.oy);
     else swimDraw(ctx, canvas, px, py, canvas.width, canvas.height, { time: this.time, phase: 2.2, amp, mode, focus: this.focus || amp === 0 });
+    if (mirror) ctx.restore();
     this.petBubble = (this.petBubble ?? 0.7) - (this.dt ?? 0);
     if (this.petBubble <= 0 && !this.focus) {
       this.petBubble = 1 + Math.random();
@@ -2247,6 +2353,23 @@ export class SceneRenderer {
     for (const fn of finished) fn();
     if (this.effects.length > 400) this.effects.splice(0, this.effects.length - 400);
   }
+}
+
+// v9.3.2 : icône de type (5×5 px de jeu) : forme propre à chaque type (pas seulement la couleur) :
+// rouge = flamme (triangle), bleu = goutte, vert = feuille (losange), lumière = étoile (croix), ténèbres = croissant.
+const ELEM_SHAPES = {
+  red: ['..#..', '.###.', '.###.', '#####', '.###.'], blue: ['..#..', '.###.', '#####', '#####', '.###.'],
+  green: ['..#..', '.###.', '#####', '.###.', '..#..'], light: ['..#..', '..#..', '#####', '..#..', '..#..'],
+  dark: ['.###.', '##...', '##...', '##...', '.###.'],
+};
+const ELEM_COLORS = { red: '#ff5a3c', blue: '#3ca8ff', green: '#4cd26a', light: '#ffe27a', dark: '#a46bff' };
+export function drawElementIcon(ctx, el, x, y) {
+  const shape = ELEM_SHAPES[el];
+  if (!shape) return;
+  ctx.fillStyle = '#10131c';
+  ctx.fillRect(Math.round(x) - 1, Math.round(y) - 1, 7, 7);
+  ctx.fillStyle = ELEM_COLORS[el];
+  shape.forEach((row, j) => [...row].forEach((c, i) => { if (c === '#') ctx.fillRect(Math.round(x) + i, Math.round(y) + j, 1, 1); }));
 }
 
 // Attaques de classe (render/class-fx.js).

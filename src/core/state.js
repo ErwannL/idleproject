@@ -46,17 +46,21 @@ import { museumItems } from './museum.js';
 import { sanitizeBounty } from './bounty.js';
 import { emptyTranscend, sanitizeTranscend } from './transcend.js';
 import { sanitizeChallenge } from './challenge.js';
+import { sanitizeArena } from './arena.js'; // v9.3.2
 import { migrateBagOverflow, migrateCodex, migrateCopies, migrateEssence, migrateMannequins, migrateMissionTrack, migrateTickets } from './migrations-v913.js';
 import { MISSION_TRACK } from '../data/missions.js';
 import { grantReward } from './rewards.js';
 import { ENCYCLOPEDIA_SECTIONS } from './encyclopedia.js';
+import { MIGRATED_SKILLS, cleanSkills } from './progression.js'; // v9.3.3
+import { sanitizeCompanionGear } from './companion-gear.js';
 
 // v1 : prototype · v2 (format identique) · v3 : pouvoirs, Renaissance, verrou
 // v4 : niveau, compétences, héros, compagnons, invocation, contrats, événements, matériaux, donjons.
 // v8 (v9.1.3) : refontes du lot E et F, conversions indépendantes dans core/migrations-v913.js.
 // v9 (v9.2.0, monde marin) : Royaume englouti inséré en monde 11 (étapes > 200 converties, core/migrations-v920.js).
 // v10 (v9.2.8) : économie du document du producteur (bannières, tickets, cosmétiques sans bonus ; migrations-v928.js).
-export const SAVE_VERSION = 10; // v8.4 : nouvel équilibrage (remboursement des améliorations) · v8.5 : arbre de 500 talents (fragments remboursés)
+export const SAVE_VERSION = 11; // v9.3.3 : niveaux de compétence des héros et familiers, ressources universelles
+export const SAVE_VERSION_PREV = 10; // v8.4 : nouvel équilibrage (remboursement des améliorations) · v8.5 : arbre de 500 talents (fragments remboursés)
 export const SORT_OPTIONS = ['rarity', 'level', 'power', 'recent'];
 
 export function createNewState(now = Date.now(), seed = Math.floor(Math.random() * 2 ** 32)) {
@@ -96,7 +100,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     companions: { owned: {}, equipped: [] },
     gems: BALANCE.summon.startingGems,
     keys: STARTING_KEYS,
-    materials: { shards: 0 }, // v9.1.3 : essences fondues dans les éclats
+    materials: { shards: 0, grimoire: 0, ascension: 0, mastery: 0 }, // v9.1.3 : essences fondues dans les éclats · v9.3.3 : ressources universelles
     // v9.2.8 : compteurs par bannière (limitée, permanente, familiers) et wishlist de la permanente.
     summon: { total: 0, pity: emptyPity(), wishlist: [] },
     economy: emptyEconomy(), // v9.2.8 : tickets, fragments SSR, écus, revenus du mois, achats, héritage des apparences
@@ -127,6 +131,8 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     expeditions: emptyExpeditions(), // v8.5 : compagnons en mission
     challenge: null, // v8.5 : défi de la semaine en cours { wave, kills, startPlay }
     challengeWeek: null, // { week, best, tries, extra }
+    arena: null, // v9.3.2 : modes compagnons (core/arena.js)
+    companionGear: null, // v9.3.3 : équipement des héros (alliés) et familiers
     challengeBest: 0,
     challengeHistory: [], // meilleures vagues des semaines passées
     talentRespecs: 0,
@@ -234,10 +240,16 @@ function cleanCollections(state, raw) {
   // v9.1.3 (doc4 partie B) : unités connues = permanentes + persos de bannière actifs. Un perso inconnu de ce client
   // (sortie plus récente, ou drapeau coupé) n'est plus effacé : il est gardé tel quel dans `companions.unknown`
   // (borné) et revient dès que le client le connaît. L'essai gratuit (`trial`) n'est jamais un exemplaire.
-  const clean = (owned) => ({
-    stars: Math.min(int(owned.stars, 1, 1), COMPANION_RULES.maxCopies), // v9.1.3 : 6 exemplaires (skins : 5)
-    level: Math.min(int(owned.level, 1, 1), 20),
-  });
+  const clean = (owned) => {
+    const out = {
+      stars: Math.min(int(owned.stars, 1, 1), COMPANION_RULES.maxCopies), // v9.1.3 : 6 exemplaires (skins : 5)
+      level: Math.min(int(owned.level, 1, 1), 20),
+    };
+    // v9.3.3 : niveaux de compétence ; perso possédé avant la 9.3.3 : active au niveau 8 (rien de perdu).
+    const skills = cleanSkills(owned.skills, out) ?? (int(raw.version, 1) < 11 ? { ...MIGRATED_SKILLS } : undefined);
+    if (skills) out.skills = skills;
+    return out;
+  };
   const rawOwned = { ...obj(companions.unknown), ...obj(companions.owned) };
   for (const [id, owned] of Object.entries(rawOwned)) {
     if (!owned || typeof owned !== 'object' || owned.trial === true) continue;
@@ -295,6 +307,8 @@ function cleanActivities(state, raw) {
   // Jamais à la fois dans l'équipe et en expédition.
   state.companions.equipped = state.companions.equipped.filter((id) => !state.expeditions.slots.some((s) => s?.companionId === id));
   sanitizeChallenge(state, raw);
+  sanitizeArena(state, raw);
+  sanitizeCompanionGear(state, raw);
   state.transcend = sanitizeTranscend(raw.transcend);
   state.bounty = sanitizeBounty(raw.bounty);
   state.codex = sanitizeCodex(raw.codex);
@@ -503,7 +517,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   for (const key of ['gems', 'keys']) state[key] = int(raw[key], state[key]);
   migrateTickets(state, raw); // v9.1.3 (lot E)
   const materials = obj(raw.materials);
-  state.materials = { shards: int(materials.shards, 0) };
+  state.materials = { shards: int(materials.shards, 0), grimoire: int(materials.grimoire, 0), ascension: int(materials.ascension, 0), mastery: int(materials.mastery, 0) };
   migrateEssence(state, materials); // v9.1.3 (lot F)
 
   // v8.4 : statistiques des objets recalculées (croissance exponentielle avec le niveau).

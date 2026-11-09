@@ -163,8 +163,8 @@ test('live : goals librement réglables — objectif 40 260 (« 40,26k »), pali
   t.after(() => s.close());
   s.db.prepare("INSERT INTO preregistrations (email, consent_version, consent_at) VALUES ('a@b.fr', 'x', 1)").run();
   const before = await s.call('GET', '/api/live/goals');
-  assert.equal(before.body.target, 100000, 'goals d\'avant la 9.3.0 par défaut');
-  assert.equal(before.body.tiers.length, 10);
+  assert.equal(before.body.target, 50000, 'v9.3.1 : objectif 50 000 par défaut');
+  assert.equal(before.body.tiers.length, 5);
   assert.equal(parseAmount('40.26k'), 40260);
   assert.equal(parseAmount('40,26k'), 40260);
   assert.equal(parseAmount('40 260'), 40260);

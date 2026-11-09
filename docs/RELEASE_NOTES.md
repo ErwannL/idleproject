@@ -1,3 +1,22 @@
+## Ascendrya v9.3.3 — Compétences des héros, doublons, ressources universelles, équipement des compagnons
+
+- Héros (alliés invoqués) et familiers : trois compétences dès le premier exemplaire — passive, active et ultime. Les anciennes 2e et 3e compétences deviennent des évolutions de l'active (niveaux 5 et 8). Niveaux 1 à 10 ; l'ultime monte jusqu'au niveau 5, puis jusqu'au 10 avec le 4e exemplaire. Chaque niveau renforce l'effet ; certains paliers raccourcissent la recharge ou allongent la durée.
+- Doublons : bonus cumulés de 0, 4, 8, 12, 16 et 24 % ; plus de compétence verrouillée derrière les doublons.
+- Trois ressources universelles (pour tous les héros et familiers, quel que soit l'élément) : grimoires de combat, pierres d'ascension, essences de maîtrise ; l'or suit votre progression dans la campagne, avec un plafond. On les gagne dans les donjons, sur les boss, dans l'Arène, avec les missions du jour et de la semaine et dans la boutique d'événement.
+- Équipement des héros et familiers : 3 emplacements adaptés à la classe (Attaquant, Défenseur, Soutien, Familier — crocs runiques, collier et rune pour les familiers), compatibilité affichée, comparaison avant/après, amélioration avec éclats et or, recyclage. Halo de rareté sur la scène pour les pièces épiques et légendaires.
+- Les héros déjà possédés gardent toute leur puissance (passive 2, active 8, ultime 2 offerts à la mise à jour).
+- Le chevalier ne change pas : améliorations permanentes, compétences et équipement identiques.
+
+## Ascendrya v9.3.2 — Arène des compagnons, guildes, World Boss mondial, armes plus spectaculaires
+
+- Arène des compagnons (Aventure › Arène), sans le héros : Survie (un compagnon seul contre 30 vagues, 3 essais par jour, paliers de récompense) et Étages (une équipe de 3 compagnons ou familiers, étages permanents, boss tous les 10, contrainte tous les 5). Relecture animée du combat.
+- World Boss mondial : une barre de PV commune à tous les joueurs, une tentative par jour. Le World Boss des grands événements reste à part.
+- Guildes (Objectifs › Guilde) : créer, chercher, rejoindre (libre ou sur demande), chef / officiers / membres, objectif de la semaine, activité, classement des guildes au World Boss (moyenne des 10 meilleurs membres : les petites guildes restent dans la course).
+- Affinités : rouge > vert > bleu > rouge, lumière ⇄ ténèbres ; +25 % en avantage, −20 % en désavantage, dans les deux sens. « AVANTAGE / DÉSAVANTAGE » en combat, icône de type sur les ennemis et les compagnons. Le héros reste neutre.
+- Armes : plus la rareté est haute, plus l'arme brille (lueur, aura, particules, traînée, impact, éclat sur les compétences). Effets visuels seulement ; coupés en « effets réduits ». Filtre par rareté dans l'Équipement.
+- Menus : réactions des boutons, états homogènes (verrouillé, terminé, à récupérer), cadres de rareté plus lisibles, ouverture des fenêtres plus douce.
+- Corrigé : monstre tué menu ouvert qui restait collé en haut de l'écran ; Colosse qui tirait 4 rayons ; portail d'invocation décalé et bannière du monde visible derrière.
+
 ## Ascendrya v9.3.0 — Événements pilotés en direct, Colosse déchaîné, nouveau site
 
 - Événements pilotés depuis l'admin : calendrier qui démarre et arrête seul les événements, vedettes, offres et annonces aux dates prévues (heure du serveur), avec boutons « Démarrer maintenant » / « Arrêter maintenant ». Le contenu arrive à l'avance par les mises à jour et s'active sans nouvelle version. Objectifs de préinscription librement réglables.

@@ -5,6 +5,7 @@ import { grantReward } from './rewards.js';
 import { incomeBoss, incomeDungeon, incomeLogin, incomeMissions, incomeTrack } from './income.js'; // v9.2.8
 import { trackEventGoal } from './ancients.js'; // v9.2.8 : objectifs du petit événement
 import { tickSubscriptions } from './store.js'; // v9.2.8 : part du jour d'un abonnement (achat réel seulement)
+import { RESOURCE_SOURCES } from '../data/progression.js'; // v9.3.3
 
 const pad = (n) => String(n).padStart(2, '0');
 const dayKey = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -130,6 +131,9 @@ export function claimMissionBonus(state, periodId) {
   if (!missionPeriod(periodId) || !bonusReady(state, periodId)) return null;
   state.missions[periodId].bonus = true;
   const given = grantReward(state, missionPeriod(periodId).bonus);
+  // v9.3.3 : ressources universelles (quotidien : grimoires ; semaine : pierres et essences).
+  const extra = periodId === 'daily' ? RESOURCE_SOURCES.dailyMissions : periodId === 'weekly' ? RESOURCE_SOURCES.weeklyChest : null;
+  if (extra) Object.assign(given, grantReward(state, extra));
   return periodId === 'daily' ? mergeReward(given, incomeMissions(state)) : given; // v9.2.8 : tickets des missions
 }
 
