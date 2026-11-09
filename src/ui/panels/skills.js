@@ -120,12 +120,54 @@ function gridView(ui, state) {
     ${gridWindow(state, sel)}`;
 }
 
+// v9.3.4 : deux sections nommées — Attaques (payées en points, lancées seules) et Boosts (payés en or, à utiliser) ;
+// nom sous chaque icône, badge « Nv X », cadenas si bloqué, bulle courte au toucher, un seul gros bouton.
+const SKILL_SHORT = { quick: 'Coup rapide sur un ennemi', whirl: 'Frappe tous les ennemis', cry: "Plus de dégâts un moment", holy: 'Gros coup qui soigne' };
+function cellV2(c, sel) {
+  return `<button class="sk2-cell${c.locked ? ' locked' : ''}${sel ? ' sel' : ''}" data-action="skill-sel" data-value="${c.kind}:${c.id}" aria-pressed="${sel}">
+    <span class="sk2-ic">${img(c.icon)}${c.locked ? `<i class="sk2-lock">${img('icon_lock')}</i>` : `<i class="sk2-lv">Nv ${c.level}</i>`}
+      ${c.active > 0 ? '<i class="sk2-on">Actif</i>' : ''}</span><span class="sk2-name">${escapeHtml(c.name)}</span></button>`;
+}
+function bubbleV2(state, c) {
+  if (!c) return '<div class="sk2-bubble muted">Touchez une compétence pour la voir.</div>';
+  let short, detail, main = '', use = '';
+  if (c.kind === 's') {
+    const skill = SKILLS.find((x) => x.id === c.id);
+    const bonus = computeHeroStats(state).bonus;
+    short = SKILL_SHORT[skill.id] ?? skill.name;
+    detail = `${skill.text(formatDecimal(skillValue(skill, Math.max(1, c.level))))}, toutes les ${formatDecimal(skillCooldown(skill, bonus))} s.`;
+    if (c.plus) main = `<button class="btn btn-gold sk2-up" data-action="learn-skill" data-key="${c.id}" ${c.plus.can ? '' : 'disabled'}>${c.level === 0 ? 'Apprendre' : 'Améliorer'} · ${c.plus.price}</button>`;
+  } else {
+    const rush = RUSHES.find((x) => x.id === c.id);
+    short = rush.id === 'phantom' ? 'Coups fantômes en plus' : `${effectText(rushEffect(state, rush))}`;
+    detail = `Pendant ${rushDuration(state, rush)} s, recharge ${Math.round(rush.cooldown / 60)} min.`;
+    if (c.plus) main = `<button class="btn btn-gold sk2-up" data-action="upgrade-rush" data-key="${c.id}" data-cost="${c.plus.cost}" data-currency="gold" ${c.plus.can ? '' : 'disabled'}>Améliorer · ${coin()} ${c.plus.price}</button>`;
+    use = c.locked ? '' : c.active > 0 ? `<span class="good">Actif ${time(c.active)}</span>` : c.cd > 0 ? `<span class="muted">Prêt dans ${time(c.cd)}</span>`
+      : `<button class="btn btn-primary" data-action="rush" data-value="${rush.id}">Utiliser</button>`;
+  }
+  const lock = c.locked ? `<p class="up-lock">🔒 Débloqué au niveau ${c.unlock} du héros.</p>` : c.maxed ? '<p class="good">Niveau maximal.</p>' : '';
+  return `<div class="sk2-bubble"><div class="row-between"><b>${escapeHtml(c.name)}</b><span class="muted">Nv ${c.level}</span></div>
+    <p>${escapeHtml(short)}</p><p class="muted">${detail}</p>${lock}<div class="sk2-actions">${main}${use}</div></div>`;
+}
+function viewV2(ui, state) {
+  const cells = skillGridCells(state);
+  const [k, id] = String(ui.view.skillSel ?? '').split(':');
+  const sel = cells.find((c) => c.kind === k && c.id === id) ?? cells.find((c) => !c.locked) ?? null;
+  const section = (kind, title, sub, auto) => `<div class="sk2-head"><span class="tt-title">${title}</span><span class="muted">${sub}</span>${auto}</div>
+    <div class="sk2-grid">${cells.filter((c) => c.kind === kind).map((c) => cellV2(c, c === sel)).join('')}</div>`;
+  return `<div class="sk2-points">Points à dépenser : <b class="gold-text">${skillPointsAvailable(state)}</b></div>
+    ${section('s', 'Attaques', 'payées en points, lancées seules', `<label class="toggle"><input type="checkbox" data-action="skill-auto" ${state.skillAuto ? 'checked' : ''}> Auto</label>`)}
+    ${section('r', 'Boosts', 'payés en or, à utiliser', `<label class="toggle"><input type="checkbox" data-action="rush-auto" ${state.rushes.auto ? 'checked' : ''}> Auto</label>`)}
+    ${bubbleV2(state, sel)}`;
+}
+
 export default {
   id: 'skills',
   title: 'Compétences',
   icon: 'skill_quick',
   extra: (ui, state) => `Points : <b class="gold-text">${skillPointsAvailable(state)}</b>`,
   render(ui, state) {
+    if (pref('skillList') !== true) return viewV2(ui, state); // v9.3.4 : nouvelle vue par défaut (l'ancienne liste reste en option)
     if (pref('skillGrid') === true) return gridView(ui, state);
     const points = skillPointsAvailable(state);
     const compact = ui.compact;

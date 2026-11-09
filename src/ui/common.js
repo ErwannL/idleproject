@@ -133,9 +133,8 @@ export function forecastHtml(f) {
   const cls = f.stale ? ' stale' : '';
   const note = f.stale ? ' <small class="muted">(mise à jour…)</small>' : '';
   return f.win
-    ? `<div class="forecast good${cls}">⚔ Prochain boss (étape ${stageLabel(f.stage)}) : <b>battable</b> en ~${f.seconds} s.${note}</div>`
-    : `<div class="forecast bad${cls}">⚔ Prochain boss (étape ${stageLabel(f.stage)}) : pas encore — il lui resterait <b>${f.bossHpPct} %</b> de PV.
-        Améliorez Dégâts / PV, l'équipement ou l'équipe.${note}</div>`;
+    ? `<div class="forecast good${cls}">⚔ Prochain boss : <b>tu peux le battre</b> (environ ${f.seconds} s).${note}</div>`
+    : `<div class="forecast bad${cls}">⚔ Prochain boss : <b>trop fort pour toi</b>. Améliore tes Dégâts.${note}</div>`; // v9.3.4 : en clair
 }
 
 // Illustrations détaillées (assets/hd, 256×256) : version « affiche » de chaque héros, apparence, compagnon et

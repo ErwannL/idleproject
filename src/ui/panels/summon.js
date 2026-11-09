@@ -43,28 +43,28 @@ function pityLine(state, pool) {
   const left = banner.hard - p.ssr;
   const soft = p.ssr + 1 >= banner.softStart;
   const g = pool === 'limited'
-    ? (p.guaranteed ? '<b class="good">Prochain SSR : la vedette (garantie)</b>' : '<span>Prochain SSR : 50/50</span>')
-    : pool === 'permanent' ? '<span>Pas de 50/50</span>' : '<span>Pas de 50/50</span>';
+    ? (p.guaranteed ? '<b class="good">Prochain Légendaire : la vedette (garantie)</b>' : '<span>Prochain Légendaire : une chance sur deux d\'être la vedette</span>')
+    : '';
   return `<div class="eco-pity">
-    <div class="eco-pity-row"><span>SSR garanti dans</span> <b class="num">${left}</b> <span class="muted">(${p.ssr}/${banner.hard})</span>${soft ? ' <b class="eco-soft">Soft pity active</b>' : ''}</div>
+    <div class="eco-pity-row"><span>Légendaire garanti dans</span> <b class="num">${left}</b> <span>invocations</span>${soft ? ' <b class="eco-soft">Chances en hausse</b>' : ''}</div>
     <span class="vt-bar"><i style="width:${Math.round((100 * p.ssr) / banner.hard)}%"></i></span>
-    <div class="eco-pity-row">${g} · <span>SR ou mieux dans</span> <b class="num">${banner.srEvery - p.sr}</b></div></div>`;
+    <div class="eco-pity-row">${g ? `${g} · ` : ''}<span>Épique ou mieux dans</span> <b class="num">${banner.srEvery - p.sr}</b></div></div>`;
 }
 
 function ratesLine(pool) {
   const b = BANNERS[pool];
   const d = bannerStats(pool);
-  return `<div class="eco-rates"><span class="r-legendary rarity-text">SSR ${pct(b.rates.SSR, 1)}</span> · <span class="r-epic rarity-text">SR ${pct(b.rates.SR, 0)}</span> · <span>R ${pct(1 - b.rates.SSR - b.rates.SR, 1)}</span>
-    · <span>Taux moyen pity comprise</span> <b class="num">${pct(d.consolidated, 2)}</b></div>`;
+  return `<div class="eco-rates"><span class="r-legendary rarity-text">Légendaire : ${pct(b.rates.SSR, 1)}</span> · <span class="r-epic rarity-text">Épique : ${pct(b.rates.SR, 0)}</span> · <span>Rare : ${pct(1 - b.rates.SSR - b.rates.SR, 1)}</span>
+    · <span>En moyenne, garantie comprise</span> <b class="num">${pct(d.consolidated, 2)}</b></div>`;
 }
 
 function rulesText(pool) {
   const b = BANNERS[pool];
-  const curve = `Soft pity : à partir du ${b.softStart}e tirage sans SSR, la chance monte en ligne droite jusqu'à 100 % au ${b.hard}e (garanti). Moyenne : ${formatDecimal(bannerStats(pool).mean, 1)} tirages par SSR.`;
-  const copies = `Doublons : ${COPIES.max} exemplaires (${COPIES[pool === 'pet' ? 'petSteps' : 'steps'].map((s, i) => `${i + 1} : ${s}`).join(' · ')}). Au-delà : converti, jamais perdu.`;
-  if (pool === 'limited') return [curve, 'Un SSR sur deux est la vedette (50/50). Perdu : le SSR suivant est la vedette, garanti. Compteur et garantie gardés d\'une bannière limitée à la suivante.', 'Payable en tickets limités ou en gemmes.', copies];
-  if (pool === 'permanent') return [curve, 'Wishlist : chaque SSR inscrit reçoit 20 % des SSR obtenus ; 5 inscrits = toujours un SSR de la wishlist. Le reste se partage entre les SSR non inscrits. Les SSR limités n\'y entrent pas.', 'Payable en tickets permanents ou en gemmes.', copies];
-  return [curve, 'Pas de 50/50 : un SSR est toujours un familier SSR de la sélection.', 'Tickets familiers seulement (jamais de gemmes). Tickets sans expiration.', copies];
+  const curve = `Chances en hausse : à partir de la ${b.softStart}e invocation sans Légendaire, la chance monte jusqu'à 100 % à la ${b.hard}e (garanti). En moyenne : un Légendaire toutes les ${formatDecimal(bannerStats(pool).mean, 1)} invocations.`;
+  const copies = `Copies : ${COPIES.max} au plus (${COPIES[pool === 'pet' ? 'petSteps' : 'steps'].map((s, i) => `${i + 1} : ${s}`).join(' · ')}). Au-delà : converti, jamais perdu.`;
+  if (pool === 'limited') return [curve, 'Un Légendaire sur deux est la vedette. Si ce n\'est pas elle, le Légendaire suivant l\'est, garanti. Compteur et garantie gardés d\'une bannière limitée à la suivante.', 'Payable en tickets limités ou en gemmes.', copies];
+  if (pool === 'permanent') return [curve, 'Favoris : chaque Légendaire en favori reçoit 20 % des Légendaires obtenus ; 5 favoris = toujours un de vos favoris. Les Légendaires limités n\'y entrent pas.', 'Payable en tickets permanents ou en gemmes.', copies];
+  return [curve, 'Un Légendaire est toujours un familier Légendaire de la sélection.', 'Tickets familiers seulement (jamais de gemmes). Tickets sans expiration.', copies];
 }
 
 function oddsBlock(state, pool) {
@@ -82,7 +82,7 @@ function resultsBlock(ui, pool) {
   return `<div class="summon-results">${ui.view.lastSummon.map((r) => `<div class="summon-result r-${r.rarity}${r.isNew ? ' new' : ''}">
     ${unitPortrait(r)}<span>${escapeHtml(r.name)}</span>
     ${r.isNew ? '<b class="good">Nouveau !</b>' : r.overflow ? '<span class="muted">Converti</span>' : stars(duplicates({ stars: r.stars }))}
-    ${r.featured ? '<b class="gold-text">Vedette</b>' : r.lost ? '<span class="muted">50/50 perdu</span>' : ''}
+    ${r.featured ? '<b class="gold-text">Vedette</b>' : r.lost ? '<span class="muted">Pas la vedette</span>' : ''}
     ${r.ultimateUnlocked ? '<b class="ult-new">Ultime débloquée</b>' : ''}</div>`).join('')}</div>`;
 }
 
@@ -116,7 +116,7 @@ function limitedCard(ui, state) {
   const body = `<div class="eco-feature" style="--vt:${c.fx ?? '#f2c060'}">
       <div class="eco-feature-art">${hdArt(c, 'vt-art') || unitPortrait(f)}</div>
       <div class="eco-feature-info"><div class="vt-ribbon">✦ Vedette ✦</div><div class="vt-name">${escapeHtml(c.name)}</div>
-        <div><span class="r-legendary rarity-text">SSR</span> ${role ? `· ${escapeHtml(role.label)}` : ''}${owned && !owned.trial ? ` · ${stars(duplicates(owned))}` : ''}</div>
+        <div><span class="r-legendary rarity-text">Légendaire</span> ${role ? `· ${escapeHtml(role.label)}` : ''}${owned && !owned.trial ? ` · ${stars(duplicates(owned))}` : ''}</div>
         <div class="muted"><span>Jusqu'au</span> ${dateText(featuredEnds() - 86400000)}</div></div></div>`;
   return card(ui, state, 'limited', `${img('icon_summon')}<b>Bannière limitée</b>${walletChip(state, 'ticketLimited')}`, body);
 }
@@ -124,7 +124,7 @@ function limitedCard(ui, state) {
 function permanentCard(ui, state) {
   const wish = state.summon.wishlist ?? [];
   const list = permanentSsr();
-  const body = `<div class="eco-wish"><div class="muted"><span>Wishlist</span> <b class="num">${wish.length}/${BANNERS.permanent.wishlistSize}</b> — <span>touchez un SSR pour l'inscrire ou le retirer</span></div>
+  const body = `<div class="eco-wish"><div class="muted"><span>Favoris</span> <b class="num">${wish.length}/${BANNERS.permanent.wishlistSize}</b> — <span>touchez un Légendaire pour l'ajouter ou le retirer</span></div>
     <div class="eco-wish-row">${list.map((u) => `<button class="btn small eco-wish-btn${wish.includes(u.id) ? ' active' : ''}" data-action="wish-toggle" data-value="${u.id}" aria-pressed="${wish.includes(u.id)}">${unitPortrait(u)}<span>${escapeHtml(u.name)}</span></button>`).join('')}</div></div>`;
   return card(ui, state, 'permanent', `${img('icon_book')}<b>Bannière permanente</b>${walletChip(state, 'ticketPermanent')}`, body);
 }
@@ -140,8 +140,8 @@ function petCard(ui, state) {
   }).join('');
   const body = `${lead ? `<div class="eco-feature eco-pet-feature" style="--vt:#ffb03a">
       <div class="eco-feature-art">${hdArt(lead, 'vt-art') || unitPortrait(lead)}</div>
-      <div class="eco-feature-info"><div class="vt-ribbon">✦ SSR ✦</div><div class="vt-name">${escapeHtml(lead.name)}</div>
-        <div class="muted">${ssr.length} <span>familiers SSR dans le bassin</span></div></div></div>` : ''}
+      <div class="eco-feature-info"><div class="vt-ribbon">✦ Légendaire ✦</div><div class="vt-name">${escapeHtml(lead.name)}</div>
+        <div class="muted">${ssr.length} <span>familiers Légendaires dans la sélection</span></div></div></div>` : ''}
     <div class="eco-wish-row eco-pet-row">${row}</div>
     <div class="muted">Économie séparée : tickets familiers seulement, compteur à part.</div>`;
   return card(ui, state, 'pet', `${img('icon_paw')}<b>Familiers</b>${walletChip(state, 'ticketPet')}`, body);
@@ -152,9 +152,9 @@ function fragmentBlock(state) {
   const n = walletAmount(state, 'ssrFragment');
   if (!n) return '';
   const owned = Object.entries(state.companions.owned).map(([id, o]) => ({ c: companionById(id), o })).filter(({ c, o }) => c?.kind === 'ally' && c.rarity === 'legendary' && !o.trial);
-  return `<div class="card"><div class="section-title">${walletIcon('ssrFragment')} <span>Fragments SSR universels</span> <b class="num">${n}</b></div>
-    <div class="muted">Un exemplaire de plus pour un SSR déjà possédé (6 au plus).</div>
-    <div class="eco-wish-row">${owned.length ? owned.map(({ c, o }) => `<button class="btn small" data-action="use-fragment" data-value="${c.id}" ${o.stars >= COPIES.max ? 'disabled' : ''}>${escapeHtml(c.name)} ${stars(duplicates(o))}</button>`).join('') : '<span class="muted">Aucun SSR possédé.</span>'}</div></div>`;
+  return `<div class="card"><div class="section-title">${walletIcon('ssrFragment')} <span>Fragments Légendaires universels</span> <b class="num">${n}</b></div>
+    <div class="muted">Une copie de plus pour un Légendaire déjà possédé (6 au plus).</div>
+    <div class="eco-wish-row">${owned.length ? owned.map(({ c, o }) => `<button class="btn small" data-action="use-fragment" data-value="${c.id}" ${o.stars >= COPIES.max ? 'disabled' : ''}>${escapeHtml(c.name)} ${stars(duplicates(o))}</button>`).join('') : '<span class="muted">Aucun Légendaire possédé.</span>'}</div></div>`;
 }
 
 function historyBlock(state) {

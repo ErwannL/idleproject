@@ -14,6 +14,7 @@ import { SKILL_RULES, skillTextAt } from '../../data/companion-skills.js';
 import { computeHeroStats } from '../../core/stats.js';
 import { expeditionDone, expeditionType, isAway } from '../../core/expeditions.js';
 import { companionPortrait, companionStill } from './expeditions.js';
+import { unitPopup } from './unit-popup.js'; // v9.3.4
 import { canAfford, dupBonusPct, leveledSkill, levelMult, RESOURCE_KEYS, skillCap, skillLevels, skillUpgradeCost } from '../../core/progression.js'; // v9.3.3
 import { ACTIVE_EXTRA_AT, DUP_BONUS_PCT, SKILL_CAPS, SKILL_GROWTH, SKILL_RESOURCES, ULT_UNLOCK_COPIES } from '../../data/progression.js';
 import { canEquip, gearBase, gearState, gearStats, gearUpgradeCost, statText, unitGear, unitGearStats, wearerOf } from '../../core/companion-gear.js'; // v9.3.3
@@ -103,9 +104,9 @@ export function skillsBlock(ui, state, c, owned) { // v9.1.3 (doc4 lot 5) : réu
   const active = card('active', `${img('skill_quick')} Active : ${escapeHtml(actives[0].name)}`, `<div class="muted">${effect(actives[0], 'active', lv.active)}</div>${nextLine(actives[0], 'active')}${extras}`);
   const ultimate = ult ? card('ultimate', `${img('icon_star')} Ultime : ${escapeHtml(ult.name)}`, `<div class="muted">${effect(ult, 'ultimate', lv.ultimate)}</div>${nextLine(ult, 'ultimate')}`) : '';
   const res = mine ? `<div class="skill-res">${RESOURCE_KEYS.map((k) => `<span title="${escapeHtml(SKILL_RESOURCES[k].use)}">${img(SKILL_RESOURCES[k].icon)} ${SKILL_RESOURCES[k].short} <b>${formatNumber(state.materials[k] ?? 0)}</b></span>`).join('')}</div>` : '';
-  return `<div class="cstats"><span>⚔ Attaque <b>${formatNumber(dps)}</b>/s</span> <span>Doublons : <b>+${dupBonusPct(own)} %</b> aux stats</span></div>
+  return `<div class="cstats"><span>⚔ Attaque <b>${formatNumber(dps)}</b>/s</span> <span>Copies : <b>+${dupBonusPct(own)} %</b> aux stats</span></div>
     <div class="section-title">Compétences</div>${res}${passive}${active}${ultimate}
-    <div class="muted dup-table">Doublons (bonus cumulés) : ${DUP_BONUS_PCT.map((p, i) => `<span class="${duplicates(own) + 1 > i ? 'good' : ''}">${i + 1} ex. ${p ? `+${p} %` : '—'}</span>`).join(' · ')} — le ${ULT_UNLOCK_COPIES}e ouvre l'ultime niv. 6 à 10.</div>`;
+    <div class="muted dup-table">Copies (bonus cumulés) : ${DUP_BONUS_PCT.map((p, i) => `<span class="${duplicates(own) + 1 > i ? 'good' : ''}">${i + 1} ex. ${p ? `+${p} %` : '—'}</span>`).join(' · ')} — le ${ULT_UNLOCK_COPIES}e ouvre l'ultime niv. 6 à 10.</div>`;
 }
 
 // v9.1.3 : synergies sans phrase d'ambiance (gardée en infobulle), actives en or.
@@ -143,15 +144,15 @@ export default {
       ${Array.from({ length: BALANCE.teamSlots.ally }, (_, i) => slot('ally', i)).join('')}
       <span class="team-sep"></span>${Array.from({ length: BALANCE.teamSlots.pet }, (_, i) => slot('pet', i)).join('')}
     </div>`;
+    // v9.3.4 : cartes hautes : portrait en grand, nom sur deux lignes, cadre et pastille de rareté, élément et rôle.
     const thumb = (c) => {
       const owned = state.companions.owned[c.id];
       const equipped = state.companions.equipped.includes(c.id);
-      return `<button class="pet-thumb r-${c.rarity}${c.id === sel.id ? ' selected' : ''}${owned ? '' : ' unowned'}${duplicates(owned) >= COMPANION_RULES.maxCopies - 1 ? ' dup-max' : ''}"
-        data-action="companion-sel" data-value="${c.id}" title="${c.name}">
-        ${owned ? (c.id === sel.id ? portrait(c) : companionStill(c)) : `<img class="px" src="${icon(c.sprite, c.kind === 'ally' ? 1 : 3, { tint: { color: '#3a4a66', alpha: 1 } })}" alt="">`}
-        <span class="rar-letter" aria-hidden="true">${rarityLabel(c.rarity).slice(0, 1)}</span>
-        ${COMPANION_ROLES[c.id] ? `<span class="role-dot" style="background:${ROLES[COMPANION_ROLES[c.id]].color}" title="${ROLES[COMPANION_ROLES[c.id]].label}"></span>` : ''}
-        <span class="pet-label"><b>${escapeHtml(c.name)} ${elementBadge(unitElement(c.id), false, true)}</b><small>${owned ? `niv. ${owned.level} · ${duplicates(owned)}★` : 'non obtenu'}</small></span>
+      const role = COMPANION_ROLES[c.id];
+      return `<button class="unit-card r-${c.rarity}${owned ? '' : ' unowned'}" data-action="companion-sel" data-value="${c.id}" aria-label="${escapeHtml(c.name)}">
+        <span class="uc-art">${owned ? companionStill(c) : `<img class="px" src="${icon(c.sprite, c.kind === 'ally' ? 1 : 3, { tint: { color: '#3a4a66', alpha: 1 } })}" alt="">`}</span>
+        <span class="uc-name">${escapeHtml(c.name)}</span>
+        <span class="uc-meta"><span class="rar-pill r-${c.rarity}">${rarityLabel(c.rarity)}</span>${elementBadge(unitElement(c.id), false, true)}${role ? `<span class="role-dot" style="background:${ROLES[role].color}" title="${ROLES[role].label}"></span>` : ''}</span>
         ${equipped ? '<span class="eq" title="Dans l\'équipe">✓</span>' : ''}${isAway(state, c.id) ? '<span class="away" title="En expédition">⚑</span>' : ''}</button>`;
     };
     const allies = COMPANIONS.filter((c) => teamKind(c) === 'ally');
@@ -208,32 +209,18 @@ export default {
     // Équiper et Améliorer sont à côté, donc visibles sans défiler (fiche en feuille du bas sur téléphone).
     const art = hdArt(sel, owned ? 'pet-art' : 'pet-art locked');
     const dupMax = COMPANION_RULES.maxCopies - 1;
-    const detail = `<div class="card pet-detail r-${sel.rarity}${duplicates(owned) >= dupMax ? ' dup-max' : ''} sheet${ui.view.sheetOpen === 'companion' ? ' sheet-open' : ''}">
-        <button class="btn small sheet-close" data-action="close-sheet" aria-label="Fermer la fiche">✕</button>
-        <div class="detail-head pet-head">
-          ${art ? `<div class="pet-art-box">${art}</div>` : `<div class="pet-portrait">${owned ? portrait(sel, true) : `<img class="px" src="${icon(sel.sprite, sel.kind === 'ally' ? 1 : 4, { tint: { color: '#3a4a66', alpha: 1 } })}" alt="">`}</div>`}
-          <div class="grow"><div class="item-name">${escapeHtml(sel.name)}</div>
-            <div class="item-sub"><span class="rarity-text">${rarityLabel(sel.rarity)}</span> ${elementBadge(unitElement(sel.id), true)}${owned ? ` · niv. ${owned.level}/${COMPANION_RULES.maxLevel} ${stars(duplicates(owned))}` : ' · non obtenu'}</div>
-            ${owned ? `<div class="dup-count">Doublons ${duplicates(owned)}/${dupMax}</div>` : ''}
-            ${selRole ? `<div>Rôle : <b style="color:${ROLES[selRole].color}">${ROLES[selRole].label}</b></div>` : ''}
-            <div class="detail-actions">${actions}</div>${upgradeLine}</div>
-        </div>
-        <div class="section-title">Vitrine</div>${showcaseSlot('unit', sel.id)}
-        <div class="section-title">Bonus passif</div>
-        <div class="good">${effectText(passive)}</div>
-        ${dungeonFor(sel, state)}
-        ${skillsBlock(ui, state, sel, owned)}
-        ${owned ? gearBlock(ui, state, sel) : ''}
-        ${roleSyn.length ? fold(ui, 'comp-role-syn', `Synergies du ${ROLES[selRole].label} (${roleSyn.length})`, () => `<div class="syn-list">${roleSyn.map((syn) => synergyRow(syn, active)).join('')}</div>`) : ''}
-      </div>`;
+    // v9.3.4 : la fiche n'est plus dépliée sous la grille : popup (fenêtre centrée sur PC, plein écran sur téléphone).
+    const twoButtons = actions; // Équiper / Retirer + Améliorer (niveau) ; l'aperçu « avant ▶ après » est dans la popup
+    const detail = ui.view.sheetOpen === 'companion'
+      ? unitPopup(ui, state, sel, { actions: twoButtons, gear: () => (owned ? gearBlock(ui, state, sel) : '') }) : '';
+    const tab = ui.view.compTab === 'pet' ? 'pet' : 'ally';
+    const list = tab === 'pet' ? pets : allies;
     return `${team}
       ${fold(ui, 'synergies', synTitle, synergies)}
-      <div class="comp-layout"><div class="comp-lists">
-        <div class="section-title">Compagnons <span class="muted">(2 places)</span></div>
-        <div class="pet-grid pet-cards">${allies.map(thumb).join('')}</div>
-        <div class="section-title">Familiers <span class="muted">(1 place)</span></div>
-        <div class="pet-grid pet-cards">${pets.map(thumb).join('')}</div>
-        <div class="muted">Enregistrer une équipe avec son équipement : Héros › Équipement › Builds.</div>
-      </div>${detail}</div>`;
+      <div class="item-tabs comp-tabs" role="tablist">
+        <button class="btn chip-btn${tab === 'ally' ? ' active' : ''}" data-action="comp-tab" data-value="ally" role="tab" aria-selected="${tab === 'ally'}">Compagnons <small>(2 places)</small></button>
+        <button class="btn chip-btn${tab === 'pet' ? ' active' : ''}" data-action="comp-tab" data-value="pet" role="tab" aria-selected="${tab === 'pet'}">Familiers <small>(1 place)</small></button></div>
+      <div class="unit-grid">${list.map(thumb).join('')}</div>
+      ${detail}`;
   },
 };

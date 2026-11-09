@@ -255,6 +255,21 @@ export function bulkRecycleCandidates(state, maxRarity = 'common', balance = BAL
     && rarityIndex(item.rarity) <= limit && !usefulSetPiece(state, item, itemPower) && !isUpgrade(state, item, balance, current));
 }
 
+// v9.3.4 : objets « inutiles » du sac (bouton Recycler toujours visible) : ni verrouillés, ni ancestraux, ni pièce
+// d'ensemble utile, ni meilleurs que l'équipement porté, ni Légendaires. Recyclés d'un coup : or + éclats.
+export function uselessItems(state, balance = BALANCE) {
+  const current = computeHeroStats(state, balance);
+  return state.inventory.filter((item) => !item.locked && !itemBase(item.baseId).signature && item.rarity !== 'legendary'
+    && !usefulSetPiece(state, item, itemPower) && !isUpgrade(state, item, balance, current));
+}
+export function recycleUseless(state, balance = BALANCE) {
+  const list = uselessItems(state, balance);
+  const shards0 = state.materials.shards;
+  let gold = 0;
+  for (const item of list) gold += recycleItem(state, item.id, balance);
+  return { count: list.length, gold, shards: state.materials.shards - shards0 };
+}
+
 // Verrouiller un objet le protège de tout recyclage (simple ou groupé).
 // v9.1.3 (doc3 lot 1, point 10) : aussi au coffre.
 export function toggleLock(state, itemId) {

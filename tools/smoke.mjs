@@ -63,6 +63,9 @@ function shiftSaveOnNextLoad(deltaMs, flag) {
   }, [deltaMs, flag]);
 }
 
+// v9.3.4 : la popup d'objet est modale ; on la ferme avant de toucher le sac.
+async function closePop() { await game(() => { if (__idle.ui.view.sheetOpen) { __idle.ui.view.sheetOpen = null; __idle.ui.renderPanel(__idle.state); } }); await page.waitForTimeout(100); }
+
 console.log(`Test de fumée sur ${url}`);
 await page.goto(url);
 
@@ -91,26 +94,29 @@ await check('ouvrir l’inventaire, équiper un objet et voir les stats changer'
   // v9.0.6 : un objet que toutes les classes portent (une arme peut être réservée à une autre classe).
   const item = await game(() => __idle.addItem('iron_helm', 'epic', 3));
   await clickTab('inventory');
+  await closePop();
   await page.click(`.inv-grid [data-id="${item.id}"]`);
-  await page.waitForSelector('.item-detail');
+  await page.waitForSelector('.item-pop');
   const before = await game(() => JSON.stringify(__idle.state.equipment));
   await page.screenshot({ path: `${outDir}/compact-inventory.png` });
-  await page.click(`.item-detail [data-action="equip"]`);
+  await page.click(`.item-pop [data-action="equip"]`);
   const equipped = await game((id) => Object.values(__idle.state.equipment).some((i) => i && i.id === id), item.id);
   const after = await game(() => JSON.stringify(__idle.state.equipment));
   assert(equipped && before !== after, 'objet non équipé');
+  await closePop();
   await page.click(`.inv-equip [data-id="${item.id}"]`);
-  await page.waitForSelector('.item-detail');
-  const text = await page.textContent('.item-detail');
-  assert(/équipé/i.test(text), 'détail équipé absent');
+  await page.waitForSelector('.item-pop');
+  const text = await page.textContent('.item-pop');
+  assert(/équipé|porté/i.test(text), 'détail équipé absent');
   assert(await page.$(`.inv-equip [data-id="${item.id}"] .eq`), 'marque « équipé » absente');
 });
 
 await check('recycler un objet contre de l’or', async () => {
   const item = await game(() => __idle.addRandomItem('rare'));
+  await closePop();
   await page.click(`.inv-grid [data-id="${item.id}"]`);
   const gold = await game(() => __idle.state.gold);
-  await page.click('.item-detail [data-action="recycle"]');
+  await page.click('.item-pop [data-action="recycle"]');
   const after = await game(() => __idle.state.gold);
   const still = await game((id) => __idle.state.inventory.some((i) => i.id === id), item.id);
   assert(after > gold && !still, `or ${gold} -> ${after}`);
@@ -134,6 +140,7 @@ await check('onglets avec icône et état actif distinct', async () => {
 
 await check('filtres par type et tri par niveau', async () => {
   await game(() => { __idle.addItem('iron_helm', 'common', 1); __idle.addItem('dagger', 'common', 7); });
+  await game(() => __idle.ui.openTab('inventory')); await closePop();
   await page.click('[data-action="filter"][data-value="weapon"]'); // v9.1.3 : filtre en icônes
   await page.waitForTimeout(150);
   const slots = await game(() => [...document.querySelectorAll('.inv-grid [data-id]')]
@@ -160,6 +167,10 @@ await check('recyclage groupé : confirmation et objets protégés', async () =>
     const upgrade = __idle.addItem('chainmail', 'common', 1);
     return { weak: weak.id, weakRare: weakRare.id, epic: epic.id, upgrade: upgrade.id };
   });
+  await page.waitForTimeout(150);
+  await game(() => __idle.ui.openTab('inventory')); await closePop();
+  // v9.3.4 : Builds et réglages du sac derrière ⚙.
+  if (!(await page.$('[data-action="bulk-rarity"]')) && !(await page.$('[data-value="bag-settings"]'))) await page.click('[data-action="bag-menu"]');
   await page.waitForTimeout(150);
   // v9.1.0 : le recyclage en lot est dans « Réglages du sac » (replié).
   if (!(await page.$('[data-action="bulk-rarity"]'))) await page.click('[data-action="toggle-section"][data-value="bag-settings"]');
@@ -260,10 +271,12 @@ await check('relance : proposition, refus puis acceptation, sans écrasement aut
 await check('verrouillage : un objet verrouillé ne peut pas être recyclé', async () => {
   const item = await game(() => __idle.addItem('dagger', 'common', 1));
   await clickTab('inventory');
+  await closePop();
   await page.click(`.inv-grid [data-id="${item.id}"]`);
-  await page.click('.item-detail [data-action="lock"]');
+  await page.click('.item-pop [data-action="item-more"]'); // v9.3.4 : verrou dans le menu « ⋯ »
+  await page.click('.item-pop [data-action="lock"]');
   await page.waitForTimeout(150);
-  const disabled = await page.$eval('.item-detail [data-action="recycle"]', (b) => b.disabled);
+  const disabled = await page.$eval('.item-pop [data-action="recycle"]', (b) => b.disabled);
   const locked = await game((id) => __idle.state.inventory.find((i) => i.id === id).locked, item.id);
   assert(locked && disabled, `verrou ${locked}, bouton désactivé ${disabled}`);
   assert(await page.$(`.inv-grid [data-id="${item.id}"] img.lock`), 'icône de verrou absente');
@@ -273,6 +286,7 @@ await check('compétences : un point par niveau, apprendre Tourbillon', async ()
   await game(() => { __idle.state.level = Math.max(__idle.state.level, 6); });
   await clickTab('skills');
   await page.waitForTimeout(300);
+  await page.click('[data-action="skill-sel"][data-value="s:whirl"]'); // v9.3.4 : grille + bulle
   await page.click('[data-action="learn-skill"][data-key="whirl"]');
   const level = await game(() => __idle.state.skills.whirl);
   assert(level === 1, `tourbillon ${level}`);
@@ -342,8 +356,7 @@ await check('paramètres : version lancée et mise à jour détectée (GitHub si
 await check('forge : fabriquer un objet avec des éclats', async () => {
   // v9.1.3 : la Forge s'ouvre à l'étape 10 (core/unlocks.js).
   await game(() => { __idle.state.materials.shards += 500; __idle.state.gold += 1e6; __idle.state.records.bestStage = Math.max(10, __idle.state.records.bestStage); });
-  await clickTab('inventory');
-  await page.click('[data-action="inv-view"][data-value="forge"]');
+  await game(() => __idle.ui.openTab('forge')); // v9.3.4 : Forge à part
   await page.waitForTimeout(300);
   if (!(await page.$('[data-action="craft-slot"]'))) await page.click('[data-action="toggle-section"][data-value="forge-craft"]');
   await page.waitForTimeout(200);
@@ -353,7 +366,7 @@ await check('forge : fabriquer un objet avec des éclats', async () => {
   await page.click('[data-action="craft"][data-tier="rare"]');
   const after = await game(() => __idle.state.inventory.length);
   assert(after === count + 1, `inventaire ${count} -> ${after}`);
-  await page.click('[data-action="inv-view"][data-value=""]');
+  await game(() => __idle.ui.openTab('inventory'));
 });
 
 await check('vitesse ×10 : l’inventaire reste cliquable (pas de redessin pendant le clic)', async () => {
@@ -367,6 +380,7 @@ await check('vitesse ×10 : l’inventaire reste cliquable (pas de redessin pend
   for (let i = 0; i < 5; i++) {
     const ids = await page.$$eval('.inv-grid .item-frame', (els) => els.map((e) => e.dataset.id));
     const id = ids[i % ids.length];
+    await closePop();
     await page.click(`.inv-grid [data-id="${id}"]`);
     await page.waitForTimeout(150);
     const sel = await game(() => window.__idle.ui.view.selectedItemId);

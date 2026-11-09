@@ -84,17 +84,18 @@ test('Améliorations : ligne en 2 lignes, gain neutre, quantité en un bouton (e
   assert.equal((html.match(/data-action="buy-amount"/g) ?? []).length, 4, 'rangée ×1 ×10 ×100 Max par défaut');
 });
 
-test('Compétences en grille : 9 cases (4 compétences, 5 boosts), un seul Auto, fenêtre d\'une phrase', () => {
+test('v9.3.4 : compétences du héros en deux sections (Attaques en points, Boosts en or), nom et Nv, bulle au toucher', () => {
   const s = createNewState(NOW);
   s.level = 30;
   const cells = skills.skillGridCells(s);
   assert.equal(cells.length, 9);
   assert.equal(cells.filter((c) => c.kind === 's').length, 4);
   const html = skills.default.render(uiWith({ skillSel: 's:quick' }), s);
-  assert.match(html, /class="sk-grid"/);
-  assert.equal((html.match(/data-action="skills-auto-all"/g) ?? []).length, 1);
-  assert.ok(!html.includes('data-action="rush-auto"') && !html.includes('data-action="skill-details"'), 'second Auto et case « détail » retirés');
-  assert.match(html, /class="card sk-window">.*Frappe rapide/s);
+  assert.ok(html.includes('>Attaques<') && html.includes('>Boosts<'));
+  assert.equal((html.match(/class="sk2-cell/g) ?? []).length, 9);
+  assert.ok(html.includes('class="sk2-name">Frappe rapide') && /Nv \d/.test(html));
+  assert.match(html, /class="sk2-bubble">.*Frappe rapide/s);
+  assert.equal((html.match(/btn btn-gold sk2-up/g) ?? []).length, 1, 'un seul gros bouton');
 });
 
 test('Talents : outils repliés, plus de « ● » de région ; vue Région en lecture seule', () => {

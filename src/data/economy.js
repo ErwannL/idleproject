@@ -165,7 +165,7 @@ export const WALLET = {
   ticketLimited: { name: 'Ticket héros limité', short: 'Tickets limités', icon: 'hero_ticket_limited', use: 'Bannière limitée seulement.' },
   ticketPermanent: { name: 'Ticket héros permanent', short: 'Tickets permanents', icon: 'hero_ticket_permanent', use: 'Bannière permanente seulement.' },
   ticketPet: { name: 'Ticket de familier', short: 'Tickets familiers', icon: 'pet_ticket', use: 'Invocation de familiers seulement.' },
-  ssrFragment: { name: 'Fragment SSR universel', short: 'Fragments SSR', sprite: 'icon_crown', use: 'Un exemplaire de plus pour un SSR déjà possédé.' },
+  ssrFragment: { name: 'Fragment Légendaire universel', short: 'Fragments Légendaires', sprite: 'icon_crown', use: 'Une copie de plus pour un Légendaire déjà possédé.' },
   eventCoins: { name: 'Écus des Anciens', short: 'Écus', sprite: 'icon_trophy', use: "Boutique de l'Expédition des Anciens." },
 };
 export const WALLET_KEYS = Object.keys(WALLET);

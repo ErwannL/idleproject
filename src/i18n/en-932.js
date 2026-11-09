@@ -191,7 +191,7 @@ export const EXACT_932 = {
   "· fragment SSR universel": "· universal SSR shard",
   "+12 % dégâts reçus": "+12% damage taken",
 };
-const TYPES = { Rouge: 'Red', Bleu: 'Blue', Vert: 'Green', 'Lumière': 'Light', 'Ténèbres': 'Dark' };
+const TYPES = { Feu: 'Fire', Eau: 'Water', Nature: 'Nature', Rouge: 'Red', Bleu: 'Blue', Vert: 'Green', 'Lumière': 'Light', 'Ténèbres': 'Dark' };
 const STATS = { Attaque: 'Attack', PV: 'HP', 'Défense': 'Defense', 'Soins et soutien': 'Healing and support', Recharge: 'Cooldown' };
 const T = (x) => TYPES[x] ?? x;
 const G = (x) => x.replace(/([+−][\d.,]+) % ([^,]+)/g, (_, v, k) => `${v}% ${STATS[k.trim()] ?? k}`);

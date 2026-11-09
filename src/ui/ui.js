@@ -41,6 +41,10 @@ import dungeons from './panels/dungeons.js';
 import tower from './panels/tower.js';
 import arena from './panels/arena.js'; // v9.3.2 : modes compagnons
 import guild from './panels/guild.js'; // v9.3.2 : guildes
+import forgePanel, { canForgeSomething } from './panels/forge.js'; // v9.3.4
+import { updateTutorial } from './tutorial.js'; // v9.3.4 (h)
+import { recycleRules } from '../core/inventory.js';
+import { invFeatureOpen as forgeOpen } from '../core/unlocks.js';
 import { arenaUnlocked } from '../core/arena.js';
 import worldPanel from './panels/world.js';
 import { BANNER_RULES } from '../data/banners.js';
@@ -84,28 +88,28 @@ import { ELEMENTS, zoneElement } from '../core/elements.js'; // v9.3.1 : types
 
 export { MENUS };
 
-const PANELS = Object.fromEntries([upgrades, inventory, hero, looks, companions, expeditions, skills, tree, campaign, dungeons, tower, arena, boss, encyclopedia, summon, shop, eventPanel, contracts, inbox, ranking, guild, stats, options, worldPanel]
+const PANELS = Object.fromEntries([upgrades, inventory, forgePanel, hero, looks, companions, expeditions, skills, tree, campaign, dungeons, tower, arena, boss, encyclopedia, summon, shop, eventPanel, contracts, inbox, ranking, guild, stats, options, worldPanel]
   .map((p) => [p.id, p]));
 const SUB_ICONS = {
   upgrades: 'icon_upgrade', skills: 'skill_quick', tree: 'icon_tree', hero: 'icon_hero', inventory: 'icon_bag', looks: 'icon_summon',
-  companions: 'icon_paw', expeditions: 'icon_expedition', summon: 'icon_summon', shop: 'icon_gem', event: 'icon_star', campaign: 'icon_map', dungeons: 'icon_dungeon', tower: 'icon_tower', arena: 'icon_paw',
+  companions: 'icon_paw', expeditions: 'icon_expedition', summon: 'icon_summon', shop: 'icon_gem', event: 'icon_star', campaign: 'icon_map', dungeons: 'icon_dungeon', tower: 'icon_tower', arena: 'icon_paw', forge: 'icon_anvil',
   boss: 'icon_boss', encyclopedia: 'icon_book', contracts: 'icon_trophy', inbox: 'icon_mail', ranking: 'icon_trophy', guild: 'icon_crown', stats: 'icon_book',
 };
 // v9.1.0 : présentation courte en haut de l'onglet, à sa première ouverture (plus de bulle « Nouveau »).
-const UNLOCK_INFO = {
-  companions: 'vos compagnons combattent à vos côtés : deux compagnons et un familier.',
-  // v9.2.8 : trois bannières, tickets et gemmes ; boutique et événements.
-  summon: 'tickets et gemmes invoquent des compagnons (bannières limitée et permanente) ; les tickets familiers invoquent des familiers.',
-  shop: 'prix et contenus des offres ; les achats ne sont pas encore ouverts.',
-  event: 'un grand événement et un petit événement se relaient toutes les deux semaines.',
-  expeditions: 'les compagnons hors de l\'équipe partent en mission, même jeu fermé, et rapportent des ressources.',
-  tree: 'les fragments anciens achètent des talents permanents. La Renaissance s\'ouvre plus tard dans ce même onglet.',
-  dungeons: 'une clé par tentative : de vrais combats de boss qui donnent fragments et équipement.',
-  boss: 'chaque boss vaincu laisse un pouvoir. Réaffrontez-les pour leur butin et leur maîtrise.',
-  tower: 'le Défi de la semaine (3 tentatives, sans clé) puis, plus loin, la Tour de l\'Éternité : chaque record rapporte des récompenses.',
-  arena: 'Survie et Étages : vos compagnons combattent SANS le héros (un seul contre 30 vagues, ou une équipe de 3 contre des étages). World Boss mondial : toute votre équipe contre un boss commun à tous les joueurs.',
-  encyclopedia: 'tout ce que vous découvrez est répertorié ; chaque palier rapporte une récompense.',
-  inbox: 'tout ce qui est prêt à être récupéré, au même endroit (touche G).',
+const UNLOCK_INFO = { // v9.3.4 (h) : une ligne courte par onglet
+  companions: 'ils combattent à vos côtés.',
+  summon: 'tickets et gemmes invoquent des compagnons.',
+  shop: 'les offres ; achats pas encore ouverts.',
+  event: 'un événement nouveau toutes les deux semaines.',
+  expeditions: 'vos compagnons libres partent en mission.',
+  tree: 'les fragments achètent des talents permanents.',
+  dungeons: 'une clé par combat de boss.',
+  boss: 'chaque boss vaincu laisse un pouvoir.',
+  tower: 'un défi par semaine, des records récompensés.',
+  forge: 'recyclez en éclats, puis forgez mieux.',
+  arena: 'vos compagnons combattent sans le héros.',
+  encyclopedia: 'chaque découverte rapporte une récompense.',
+  inbox: 'tout ce qui est prêt, au même endroit.',
 };
 const TOWER_UNLOCK = TOWER.unlockStage;
 export const menuOf = (tab) => MENUS.find((m) => m.tabs.includes(tab)) ?? null;
@@ -714,6 +718,10 @@ export class UI {
       case 'inv-tab': if (value === 'stash') markInvUsed(this.state, 'stash'); local(() => { v.invTab = value; }); break;
       case 'craft-tier': local(() => { v.craftTier = value; }); break;
       case 'select-item': local(() => { v.selectedItemId = id; v.sheetOpen = 'item'; }); break;
+      case 'auto-recycle-yes': this.closeModal(); a.setRecycleRule('mode', 'pickup'); break; // v9.3.4 : proposé au 1er sac plein
+      case 'recycle-useless': a.recycleUseless(); local(() => { v.forgeFx = 'recycle'; }); setTimeout(() => { v.forgeFx = null; this.invalidate(); }, 700); break; // v9.3.4
+      case 'item-more': local(() => { v.itemMore = value || null; }); break; // v9.3.4
+      case 'bag-menu': local(() => { v.bagMenu = !v.bagMenu; }); break;
       case 'inv-view': if (value) markInvUsed(this.state, value); local(() => { v.invView = value || null; }); break;
       case 'apply-build': v.buildSel = Number(value); a.applyLoadout(Number(value)); break; // v9.1.3 : cartes de builds
       case 'item-tab': local(() => { v.itemTab = value; }); break; // v9.1.3 : onglets de la fiche d'objet
@@ -764,7 +772,12 @@ export class UI {
       case 'learn-skill': a.learnSkill(key); break;
       case 'hero-sel': local(() => { v.heroSel = value; }); break;
       case 'set-hero': a.setHero(value); break;
-      case 'companion-sel': local(() => { v.companionSel = value; v.sheetOpen = 'companion'; }); break;
+      case 'companion-sel': local(() => { v.companionSel = value; v.sheetOpen = 'companion'; v.skillPop = null; v.unitTab = 'skills'; v.unitShow = null; }); break;
+      // v9.3.4 : popup de détail d'un compagnon.
+      case 'comp-tab': local(() => { v.compTab = value; }); break;
+      case 'skill-pop': local(() => { v.skillPop = value || null; }); break;
+      case 'unit-tab': local(() => { v.unitTab = value; v.skillPop = null; }); break;
+      case 'unit-show': local(() => { v.unitShow = value; }); break;
       case 'look-show': local(() => { v.lookShow = value; }); break; // v9.2.7 : vitrine d'une apparence
       case 'toggle-companion': a.toggleCompanion(value); break;
       case 'upgrade-companion': a.upgradeCompanion(value); break;
@@ -817,7 +830,7 @@ export class UI {
       case 'open-shop-skins': v.shopCat = 'skins'; this.openTab('shop'); break;
       case 'event-fight': {
         const r = a.eventFight(Number(value));
-        if (r && !r.error) v.eventLast = r.won ? `Victoire : +${r.reward.eventCoins} écus${r.reward.ssrFragment ? ' · fragment SSR universel' : ''}` : 'Défaite : renforcez le héros puis réessayez.';
+        if (r && !r.error) v.eventLast = r.won ? `Victoire : +${r.reward.eventCoins} écus${r.reward.ssrFragment ? ' · fragment Légendaire universel' : ''}` : 'Défaite : renforcez le héros puis réessayez.';
         this.invalidate();
         break;
       }
@@ -1659,6 +1672,15 @@ export class UI {
     }
   }
 
+  // v9.3.4 : au premier sac plein, proposer le recyclage automatique des Communs moins bons (une seule fois).
+  offerAutoRecycle(state) {
+    if (state.inventory.length < BALANCE.loot.inventorySize || (state.ui.hints ?? []).includes('auto-recycle')) return;
+    if (recycleRules(state).mode !== 'off' || !this.$('modal').classList.contains('hidden')) return;
+    state.ui.hints = [...(state.ui.hints ?? []), 'auto-recycle'];
+    this.openModal(`<h2>${img('icon_bag')} Sac plein</h2><p>Recycler automatiquement les objets Communs moins bons que les vôtres ?</p>
+      <div class="options-row"><button class="btn btn-gold" data-action="auto-recycle-yes">Oui</button><button class="btn" data-action="close-modal">Plus tard</button></div>`);
+  }
+
   // Marques (v9.1.0, une seule règle) : pastille rouge = à récupérer (core/claimables.js) ; point or = l'action
   // conseillée du moment (une seule) ; compteur +N sur Héros = objets neufs dans le sac ; « nouveau » = onglet ouvert.
   updateBadges(state) {
@@ -1666,12 +1688,15 @@ export class UI {
     if (now - (this.lastHud.badgeTime ?? 0) < 500) return;
     this.lastHud.badgeTime = now;
     this.claims = claimables(state);
+    try { updateTutorial(state, this.root, state.inventory.length >= BALANCE.loot.inventorySize, Boolean(this.tab)); } catch { /* le tutoriel ne bloque jamais le jeu */ }
     // v9.1.3 : fenêtre « À récupérer » ouverte → mise à jour quand la liste change.
     const claimsKey = this.claims.map((c) => c.key).join() + state.inbox.length;
     if (this.claimsOpen && claimsKey !== this.claimsKey && !this.$('modal').classList.contains('hidden')) this.openClaims(state);
     this.claimsKey = claimsKey;
     const byTab = claimablesByTab(this.claims);
     this.tabBadges = byTab;
+    this.offerAutoRecycle(state); // v9.3.4
+    if (this.tabVisible.forge !== false && canForgeSomething(state)) this.tabBadges = { ...byTab, forge: 1 }; // v9.3.4 : de quoi forger
     const current = computeHeroStats(state);
     this.next = nextAction(state, { claims: this.claims, betterItem: betterItem(state, BALANCE, current) });
     for (const menu of MENUS) {
@@ -1778,6 +1803,7 @@ export class UI {
     const best = Math.max(state.maxStage, state.records.bestStage ?? 1);
     const boss = (state.records.bossesDefeated ?? 0) > 0;
     if (!state.ui.goalsOpen && this.claims.length) state.ui.goalsOpen = true; // posé à la première récompense, jamais retiré
+    const later = Math.max(state.maxStage ?? 1, state.records?.bestStage ?? 1) >= 40; // v9.3.4
     const visible = {
       tree: best >= 10 || state.fragments > 0 || state.records.rebirths > 0 || (state.prestige?.count ?? 0) > 0 || (state.transcend?.count ?? 0) > 0,
       dungeons: best >= DUNGEONS[0].unlockStage || Object.keys(state.dungeonsCleared).length > 0 || Boolean(state.dungeon),
@@ -1792,9 +1818,11 @@ export class UI {
       contracts: Boolean(state.ui.goalsOpen),
       encyclopedia: boss,
       arena: arenaUnlocked(state), // v9.3.2
-      stats: Boolean(state.ui.goalsOpen),
-      ranking: Boolean(state.ui.goalsOpen) && Boolean(this.actions.loadRanking) && this.cloud?.enabled !== false,
-      guild: Boolean(state.ui.goalsOpen) && Boolean(this.actions.loadGuild) && this.cloud?.enabled !== false, // v9.3.2
+      forge: forgeOpen(state, 'forge'), // v9.3.4
+      // v9.3.4 : Statistiques, Classement et Guilde n'apparaissent qu'à l'étape 40 (rarement utiles au début).
+      stats: Boolean(state.ui.goalsOpen) && later,
+      ranking: Boolean(state.ui.goalsOpen) && later && Boolean(this.actions.loadRanking) && this.cloud?.enabled !== false,
+      guild: Boolean(state.ui.goalsOpen) && later && Boolean(this.actions.loadGuild) && this.cloud?.enabled !== false, // v9.3.2
     };
     this.$('top-shop')?.classList.toggle('hidden', !visible.shop); // v9.2.9 : bouton Boutique de la barre du haut
     const key = `${JSON.stringify(visible)}|${this.tab}|${[...this.newTabs].join()}`;

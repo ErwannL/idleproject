@@ -2,9 +2,9 @@
 // Triangle : rouge (feu) > vert (nature) > bleu (eau) > rouge. Lumière et ténèbres se battent l'une l'autre :
 // chacune frappe fort l'autre (et en reçoit autant). Avantage : dégâts × ADV ; faiblesse : dégâts × WEAK.
 export const ELEMENTS = {
-  red: { name: 'Rouge', icon: '🔥', color: '#ff5a3c' },
-  blue: { name: 'Bleu', icon: '💧', color: '#3ca8ff' },
-  green: { name: 'Vert', icon: '🍃', color: '#4cd26a' },
+  red: { name: 'Feu', icon: '🔥', color: '#ff5a3c' },
+  blue: { name: 'Eau', icon: '💧', color: '#3ca8ff' },
+  green: { name: 'Nature', icon: '🍃', color: '#4cd26a' },
   light: { name: 'Lumière', icon: '☀', color: '#ffe27a' },
   dark: { name: 'Ténèbres', icon: '☾', color: '#a46bff' },
 };

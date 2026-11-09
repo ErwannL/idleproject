@@ -26,13 +26,13 @@ export const ARENA = {
     teamSize: 3,
     scale: 1.25,             // un étage ≈ 0,85 vague de Survie en puissance (3 ennemis par étage)
     conditions: [            // tous les 5 étages : une contrainte (variété des compositions)
-      { id: 'element', element: 'red', text: 'Ennemis de type Rouge' },
+      { id: 'element', element: 'red', text: 'Ennemis de Feu' },
       { id: 'noheal', text: 'Soins réduits de moitié' },
-      { id: 'element', element: 'dark', text: 'Ennemis de type Ténèbres' },
+      { id: 'element', element: 'dark', text: 'Ennemis des Ténèbres' },
       { id: 'swift', text: 'Ennemis rapides' },
-      { id: 'element', element: 'blue', text: 'Ennemis de type Bleu' },
-      { id: 'element', element: 'light', text: 'Ennemis de type Lumière' },
-      { id: 'element', element: 'green', text: 'Ennemis de type Vert' },
+      { id: 'element', element: 'blue', text: "Ennemis d'Eau" },
+      { id: 'element', element: 'light', text: 'Ennemis de Lumière' },
+      { id: 'element', element: 'green', text: 'Ennemis de Nature' },
     ],
   },
 };

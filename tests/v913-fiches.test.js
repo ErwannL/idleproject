@@ -32,17 +32,19 @@ function midState() {
   return s;
 }
 
-test('fiche d\'objet : onglets Comparer / Améliorer / Ranger, verrou en icône, Équiper toujours visible', () => {
+test('v9.3.4 : popup d\'objet — Puissance en gros, 3 statistiques au plus, Équiper / Recycler, le reste derrière « ⋯ »', () => {
   const s = midState();
   const item = s.inventory[0];
-  for (const [tab, marker] of [['compare', 'stat-list'], ['upgrade', 'data-action="upgrade-item"'], ['store', 'data-action="to-stash"']]) {
-    const html = inventory.render(uiWith({ selectedItemId: item.id, sheetOpen: 'item', itemTab: tab }), s);
-    assert.match(html, /data-action="item-tab" data-value="compare"/);
-    assert.ok(html.includes(marker), `onglet ${tab}`);
-    assert.match(html, /class="btn icon-btn lock-btn/);
-    assert.match(html, /data-action="equip"|Arme de/);
-    assert.ok(!html.includes('Détails : renforcer'), 'plus de long repli Détails');
-  }
+  const html = inventory.render(uiWith({ selectedItemId: item.id, sheetOpen: 'item' }), s);
+  assert.ok(html.includes('class="unit-pop item-pop') && /class="ip-power[^"]*">Puissance [+−-]?\d/.test(html));
+  assert.ok((html.match(/<li>/g) ?? []).length <= 3, '3 statistiques au plus');
+  assert.match(html, /data-action="equip"|Pour : /);
+  assert.ok(html.includes('data-action="recycle"') && html.includes('data-action="item-more"'));
+  assert.ok(!html.includes('data-action="upgrade-item"') && !html.includes('Effets visuels en combat'), 'Améliorer derrière ⋯, plus de ligne d\'effets visuels');
+  const more = inventory.render(uiWith({ selectedItemId: item.id, sheetOpen: 'item', itemMore: item.id }), s);
+  assert.ok(more.includes('data-action="upgrade-item"') && more.includes('lock-btn') && more.includes('data-action="to-stash"'));
+  const closed = inventory.render(uiWith({ selectedItemId: item.id }), s);
+  assert.ok(!closed.includes('item-pop'), 'pas de fiche sans toucher');
 });
 
 test('sac : 7 cases portées en ligne, plus de titre SAC en double, filtre en icônes, Équiper le meilleur seulement s\'il sert', () => {
@@ -59,12 +61,12 @@ test('sac : 7 cases portées en ligne, plus de titre SAC en double, filtre en ic
 
 test('réglages du sac : une phrase et 3 replis ; rangement des mannequins plus répété ; fusion par groupe repliée', () => {
   const s = midState();
-  const html = inventory.render(uiWith({}, ['bag-settings']), s);
+  const html = inventory.render(uiWith({ bagMenu: true }, ['bag-settings']), s); // v9.3.4 : derrière ⚙
   const body = html.slice(html.indexOf('Réglages du sac'));
   for (const id of ['bag-lot', 'bag-rule', 'bag-advanced']) assert.ok(body.includes(`data-value="${id}"`), id);
   assert.ok(!body.includes('data-action="auto-mannequin"'));
   assert.ok(!body.includes('data-action="recycle-mode"'), 'le mode est en réglage avancé');
-  const adv = inventory.render(uiWith({}, ['bag-settings', 'bag-advanced']), s);
+  const adv = inventory.render(uiWith({ bagMenu: true }, ['bag-settings', 'bag-advanced']), s);
   assert.ok(adv.includes('data-action="recycle-mode"'));
   const forge = inventory.render(uiWith({ invView: 'forge' }), s);
   if (forge.includes('data-action="fuse-all"')) assert.ok(!forge.includes('data-action="fuse" '), 'groupes repliés sous Fusionner tout');
@@ -73,29 +75,28 @@ test('réglages du sac : une phrase et 3 replis ; rangement des mannequins plus 
 test('builds en cartes : résumé et Équiper sur la carte', () => {
   const s = midState();
   s.loadouts[1] = { ...s.loadouts[1], team: [], gear: { weapon: 'x', helmet: null }, powers: ['a'] };
-  const html = inventory.render(uiWith({}, ['inv-builds']), s);
+  const html = inventory.render(uiWith({ bagMenu: true }, ['inv-builds']), s); // v9.3.4 : derrière ⚙
   assert.equal((html.match(/class="card build-card/g) ?? []).length, s.loadouts.length);
   assert.ok(html.includes('data-action="apply-build" data-value="1"'));
   assert.ok(!html.includes('data-action="apply-build" data-value="0"'), 'build vide : pas d\'Équiper');
   assert.ok(html.includes('1/7 objets') && html.includes('1 pouvoir'));
 });
 
-test('fiche compagnon : plus de ligne Défense, formule derrière « ? », compétences de rôle et synergies du rôle repliées, avant ▶ après', () => {
+test('v9.3.4 : popup du compagnon — 3 compétences en icônes, bulle au toucher, Copies, onglets, 2 boutons ; grille en onglets', () => {
   const s = createNewState(NOW);
   const c = COMPANIONS.find((x) => COMPANION_ROLES[x.id] && x.skill);
-  s.companions.owned[c.id] = { level: 3, stars: 1 };
+  s.companions.owned[c.id] = { level: 3, stars: 2 };
   const html = companions.render(uiWith({ companionSel: c.id, sheetOpen: 'companion' }), s);
-  assert.ok(!html.includes('Défense <b>'));
-  // v9.3.3 : trois compétences (passive, active, ultime) avec niveau et amélioration ; anciennes 2e/3e = évolutions de l'active.
-  assert.ok(html.includes('skill3 passive') && html.includes('skill3 active') && html.includes('skill3 ultimate'));
-  assert.ok(html.includes('data-action="skill-up"') && html.includes('Niv. 5 : ajoute') && html.includes('data-value="comp-role-syn"'));
-  assert.match(html, /Niv\. 3 ▶ 4/);
-  // Portraits : une seule unité animée (la sélectionnée), les autres en image fixe.
-  for (const x of COMPANIONS.slice(0, 6)) s.companions.owned[x.id] ??= { level: 1, stars: 1 };
-  const grid = companions.render(uiWith({ companionSel: c.id }), s);
-  assert.ok((grid.match(/class="px still"/g) ?? []).length >= 5);
-  const synAll = companions.render(uiWith({ companionSel: c.id }, ['synergies']), s);
-  assert.ok(!synAll.includes('Le chevalier protège le mage fragile</span>'), 'plus de phrase d\'ambiance');
+  assert.ok(html.includes('class="unit-pop') && html.includes('data-action="skill-pop"'));
+  assert.equal((html.match(/class="up-skill /g) ?? []).length, 3, 'Passif, Actif, Ultime');
+  assert.ok(html.includes('Copies') && !html.includes('Doublons'), 'Copies, plus de Doublons');
+  assert.ok(html.includes('data-value="skills"') && html.includes('data-value="gear"') && html.includes('data-value="story"'));
+  const bubble = companions.render(uiWith({ companionSel: c.id, sheetOpen: 'companion', skillPop: 'active' }), s);
+  assert.ok(bubble.includes('class="up-bubble"') && bubble.includes('data-action="skill-up"'));
+  const grid = companions.render(uiWith({}), s);
+  assert.ok(!grid.includes('class="unit-pop'), 'pas de fiche sans toucher');
+  assert.ok(grid.includes('data-action="comp-tab"') && grid.includes('class="unit-card'));
+  assert.ok(!/niv\. \d+ · \d★/.test(grid), 'plus de « niv. 10 · 2★ » sur les cartes');
 });
 
 test('boss : fiche en feuille du bas, histoire, récompenses et familles repliées', () => {

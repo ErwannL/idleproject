@@ -1,3 +1,14 @@
+## Ascendrya v9.3.4 — Refonte de l'interface
+
+- Compagnons : grille en deux onglets et nouvelle fiche en popup (grande illustration, rareté, élément, rôle, Dégâts/Vie/Vitesse, trois compétences en icônes avec bulle de détail, Copies, onglets Compétences / Équipement / Histoire, deux boutons).
+- Équipement : Puissance en gros, emplacements nommés, popup d'objet avec « Puissance +X », Équiper / Recycler et un menu « ⋯ » pour le reste ; Builds et réglages du sac rangés derrière ⚙.
+- Forge à part (menu Héros) : boucle Recycler → Éclats → Forger, « Recycler les objets inutiles » avec aperçu, proposition d'auto-recyclage au premier sac plein, pastille quand une forge est possible.
+- Compétences du chevalier en deux sections : Attaques (points) et Boosts (or), badge de niveau, cadenas, bulle de détail.
+- Même vocabulaire partout : Commun / Rare / Épique / Légendaire, Feu / Eau / Nature / Lumière / Ténèbres, Copies, Puissance.
+- Textes en clair : « Prochain boss : tu peux le battre », « Trop fragile : améliore ta Vie », fragments à dépenser ; Statistiques, Classement et Guilde s'ouvrent à l'étape 40.
+- Premières minutes : doigt animé (Dégâts, premier objet, recyclage, premier compagnon) et bulles sur le bonus du moment et « Tout récupérer » ; cartes de nouvel onglet en une ligne.
+- Aucun changement d'équilibrage. Les sauvegardes se chargent sans perte. L'équipement unique héros + compagnons attend validation (docs/plan-v934.md).
+
 ## Ascendrya v9.3.3 — Compétences des héros, doublons, ressources universelles, équipement des compagnons
 
 - Héros (alliés invoqués) et familiers : trois compétences dès le premier exemplaire — passive, active et ultime. Les anciennes 2e et 3e compétences deviennent des évolutions de l'active (niveaux 5 et 8). Niveaux 1 à 10 ; l'ultime monte jusqu'au niveau 5, puis jusqu'au 10 avec le 4e exemplaire. Chaque niveau renforce l'effet ; certains paliers raccourcissent la recharge ou allongent la durée.
