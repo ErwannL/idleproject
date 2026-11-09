@@ -154,6 +154,10 @@
     }
 
     /* v9.3.0 : live-ops */
+    .lv-img-row { display: flex; gap: 6px; align-items: center; min-width: 260px; }
+    .lv-img-row input[data-f="img"] { flex: 1; min-width: 0; }
+    .lv-pick { cursor: pointer; white-space: nowrap; }
+    .lv-thumb { display: block; margin-top: 4px; width: 40px; height: 40px; object-fit: contain; image-rendering: pixelated; background: #0b1222; border-radius: 6px; }
     .lv-cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--card); }
     .lv-dow { background: var(--card-2); color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; padding: 6px 8px; }
     .lv-day { position: relative; min-height: 104px; border-top: 1px solid var(--line); border-left: 1px solid var(--line); padding: 4px 4px 6px; cursor: pointer; }

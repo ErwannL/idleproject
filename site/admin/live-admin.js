@@ -327,14 +327,51 @@
     $('lg-reached').value = g.data.texts.reached ?? '';
     renderTiers();
   }
+  // Images déjà envoyées depuis l'admin (liste pour le champ « Image »).
+  async function loadAssets() {
+    let list = document.getElementById('lg-assets');
+    if (!list) { list = document.createElement('datalist'); list.id = 'lg-assets'; document.body.append(list); }
+    try {
+      const data = await api('/api/admin/assets');
+      list.innerHTML = data.files.map((f) => `<option value="${esc(f.path)}"></option>`).join('');
+    } catch { list.innerHTML = ''; }
+  }
+  // Envoi d'une image choisie dans le sélecteur de fichiers du navigateur (le serveur vérifie le vrai format).
+  document.addEventListener('change', async (e) => {
+    const input = e.target;
+    if (!input.matches || !input.matches('input[data-pick]')) return;
+    const file = input.files[0];
+    if (!file) return;
+    const row = input.closest('tr');
+    try {
+      if (file.size > 3 * 1024 * 1024) throw new Error('Image trop lourde : 3 Mo au plus.');
+      const res = await fetch('/api/admin/assets', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': file.type || 'application/octet-stream', 'X-Filename': encodeURIComponent(file.name) },
+        body: file,
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || 'Envoi refusé');
+      row.querySelector('[data-f="img"]').value = json.path;
+      row.querySelector('[data-thumb]').src = '/' + json.path;
+      toast('Image envoyée : ' + json.path);
+      loadAssets();
+    } catch (err) {
+      toast(err.message, 'bad');
+    } finally {
+      input.value = '';
+    }
+  });
+
   function renderTiers() {
     $('lg-value-wrap').classList.toggle('hidden', $('lg-mode').value === 'real');
     $('lg-tiers').innerHTML = goalsDraft.tiers.map((t, i) => `<tr data-i="${i}">
       <td><input data-f="at" value="${esc(fmt(t.at))}" inputmode="decimal" aria-label="Seuil"></td><td><input data-f="label" value="${esc(t.label)}" maxlength="12" aria-label="Libellé"></td>
       <td><input data-f="name" value="${esc(t.name)}" maxlength="60" aria-label="Récompense"></td><td><input data-f="detail" value="${esc(t.detail)}" maxlength="120" aria-label="Détail"></td>
       <td><input data-f="tag" value="${esc(t.tag ?? '')}" maxlength="30" aria-label="Étiquette"></td><td><input data-f="excl" type="checkbox"${t.excl ? ' checked' : ''} aria-label="Exclusif"></td>
-      <td><input data-f="img" value="${esc(t.img)}" maxlength="120" aria-label="Image"></td><td><button class="btn small danger" data-del="${i}" aria-label="Supprimer le palier">✕</button></td></tr>`).join('');
+      <td class="lv-img"><div class="lv-img-row"><input data-f="img" value="${esc(t.img)}" maxlength="120" list="lg-assets" aria-label="Image"><label class="btn small lv-pick">Choisir un fichier<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-pick hidden></label></div><img class="lv-thumb" data-thumb src="${esc(t.img ? "/" + t.img : "")}" alt="" width="40" height="40"></td><td><button class="btn small danger" data-del="${i}" aria-label="Supprimer le palier">✕</button></td></tr>`).join('');
     renderGoalPreview();
+    loadAssets();
   }
   function readGoals() {
     document.querySelectorAll('#lg-tiers tr').forEach((tr) => {

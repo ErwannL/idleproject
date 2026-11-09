@@ -2,7 +2,7 @@
 // Aucune dépendance : node:http, node:crypto, node:sqlite.
 // Ne jamais journaliser de corps de requête, d'email, de mot de passe ni de jeton.
 import { randomBytes, createHash, scrypt as scryptCb, timingSafeEqual } from 'node:crypto';
-import { createReadStream } from 'node:fs';
+import { createReadStream, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import { promisify } from 'node:util';
@@ -36,7 +36,33 @@ const TYPES = {
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
   '.webp': 'image/webp',
+  '.gif': 'image/gif',
+  '.jpeg': 'image/jpeg',
 };
+// Envoi d'images par l'admin : 3 Mo au plus, type réel vérifié par sa signature (pas seulement l'extension).
+export const ASSET_MAX_BYTES = 3 * 1024 * 1024;
+export function detectImageType(buf) {
+  if (buf.length >= 8 && buf[0] === 0x89 && buf.toString('latin1', 1, 4) === 'PNG') return 'png';
+  if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'jpg';
+  if (buf.length >= 12 && buf.toString('latin1', 0, 4) === 'RIFF' && buf.toString('latin1', 8, 12) === 'WEBP') return 'webp';
+  if (buf.length >= 6 && ['GIF87a', 'GIF89a'].includes(buf.toString('latin1', 0, 6))) return 'gif';
+  return null;
+}
+// Nom sûr : minuscules, chiffres et tirets, 40 caractères au plus.
+export function safeAssetName(original) {
+  const base = String(original ?? '').replace(/\.[^.]*$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+  return base || 'image';
+}
+async function readRaw(req, limit) {
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > limit) throw new HttpError(413, 'Image trop lourde (3 Mo au plus)');
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks);
+}
 
 // Tris du classement : liste fermée, jamais de texte de requête dans le SQL.
 const LEADERBOARD_SORTS = {
@@ -319,6 +345,8 @@ export function createApp({
   db,
   siteDir,
   webDir,
+  // Envois de l'admin : hors du dossier du site (le déploiement le recrée à chaque mise à jour).
+  uploadsDir = join(siteDir, 'assets', 'uploads'),
   adminPasswordHash = '',
   gameWeb = false,
   trustProxy = false,
@@ -997,6 +1025,28 @@ export function createApp({
       return { body: { ...content, serverTime: now() }, headers };
     } },
     { method: 'GET', path: /^\/api\/live\/goals$/, handler: () => ({ body: live.publicGoals(), headers: { 'Cache-Control': `public, max-age=${LIVE_MAX_AGE_S}` } }) },
+    // Images du site envoyées depuis l'admin (assets/uploads/) : envoi par fichier, liste pour le choix.
+    { method: 'POST', path: /^\/api\/admin\/assets$/, handler: async ({ req }) => {
+      requireAdmin(req);
+      const data = await readRaw(req, ASSET_MAX_BYTES);
+      const ext = detectImageType(data);
+      if (!ext) throw new HttpError(415, 'Format refusé : PNG, JPEG, WebP ou GIF uniquement');
+      const original = typeof req.headers['x-filename'] === 'string' ? decodeURIComponent(req.headers['x-filename']) : 'image';
+      const file = `${Date.now().toString(36)}-${safeAssetName(original)}.${ext}`;
+      const dir = uploadsDir;
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(join(dir, file), data, { flag: 'wx' });
+      return { status: 201, body: { path: `assets/uploads/${file}`, size: data.length } };
+    } },
+    { method: 'GET', path: /^\/api\/admin\/assets$/, handler: ({ req }) => {
+      requireAdmin(req);
+      const dir = uploadsDir;
+      let names = [];
+      try { names = readdirSync(dir); } catch { names = []; }
+      const files = names.filter((n) => /\.(png|webp|jpe?g|gif)$/i.test(n)).sort().reverse()
+        .map((n) => ({ path: `assets/uploads/${n}`, size: statSync(join(dir, n)).size }));
+      return { body: { files } };
+    } },
     { method: 'GET', path: /^\/api\/admin\/live$/, handler: ({ req }) => { requireAdmin(req); return { body: live.adminState() }; } },
     { method: 'GET', path: /^\/api\/admin\/live\/preview$/, handler: ({ req }) => {
       requireAdmin(req);
@@ -1028,11 +1078,12 @@ export function createApp({
 
   async function serveStatic(req, res, pathname) {
     // /play/... sert le jeu compilé (webDir), le reste sert le site (siteDir).
+    const isUpload = pathname.startsWith('/assets/uploads/');
     const isGame = pathname === '/play' || pathname.startsWith('/play/');
     // Le jeu se joue sur PC (exe) et téléphone (APK) uniquement : /play/ n'est servi qu'en local (GAME_WEB=1, tests).
     if (isGame && !gameWeb) return send(res, 404, { error: 'Introuvable' });
-    const dir = isGame ? webDir : siteDir;
-    const rel = isGame ? pathname.slice('/play'.length) || '/' : pathname;
+    const dir = isUpload ? uploadsDir : isGame ? webDir : siteDir;
+    const rel = isUpload ? pathname.slice('/assets/uploads'.length) : isGame ? pathname.slice('/play'.length) || '/' : pathname;
     if (!dir) return send(res, 404, { error: 'Introuvable' });
     const root = resolve(dir);
     let target = normalize(join(root, decodeURIComponent(rel)));

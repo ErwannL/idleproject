@@ -13,13 +13,14 @@ export function startServer({
   dbFile = process.env.DB_FILE || resolve(ROOT, 'data', 'games.sqlite'),
   siteDir = process.env.SITE_DIR || resolve(ROOT, 'site'),
   webDir = process.env.WEB_DIR || resolve(ROOT, 'dist', 'web'),
+  uploadsDir = process.env.UPLOADS_DIR || resolve(ROOT, 'data', 'uploads'),
   trustProxy = process.env.TRUST_PROXY === '1',
   adminPasswordHash = process.env.ADMIN_PASSWORD_HASH || '',
   gameWeb = process.env.GAME_WEB === '1',
 } = {}) {
   const db = openDatabase(dbFile);
   const log = (line) => console.log(`${new Date().toISOString()} ${line}`);
-  const server = createServer(createApp({ db, siteDir, webDir, trustProxy, adminPasswordHash, gameWeb, log }));
+  const server = createServer(createApp({ db, siteDir, webDir, uploadsDir, trustProxy, adminPasswordHash, gameWeb, log }));
   server.listen(port, host, () => log(`écoute sur ${host}:${port}`));
   const close = () => {
     server.close(() => {
