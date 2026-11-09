@@ -1,5 +1,10 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
+  "Porté": "Worn",
+  "Plus d'actions": "More actions",
+  "Ranger au coffre": "Store in the chest",
+  "Effets spéciaux": "Special effects",
+  "Builds et réglages du sac": "Builds and bag settings",
   "Coup rapide sur un ennemi": "Quick hit on one enemy",
   "Plus de dégâts un moment": "More damage for a while",
   "Gros coup qui soigne": "Big hit that heals",
@@ -81,6 +86,8 @@ export const EXACT_934 = {
 let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
+  [new RegExp("^Pour : (.+)$"), (m) => `For: ${L(m[1])}`],
+  [new RegExp("^Puissance ([+−-]?[\\d\\s.,]+[KMB]?)$"), (m) => `Power ${m[1]}`],
   [new RegExp("^Pendant (\\d+) s, recharge (\\d+) min\\.$"), (m) => `For ${m[1]} s, cooldown ${m[2]} min.`],
   [new RegExp("^Prêt dans (.+)$"), (m) => `Ready in ${m[1]}`],
   [new RegExp("^Débloqué au niveau (\\d+) du héros\\.$"), (m) => `Unlocked at hero level ${m[1]}.`],

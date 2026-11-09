@@ -3116,3 +3116,20 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 .sk2-bubble { margin-top: 10px; padding: 10px; border: 1px solid var(--ui-gold); border-radius: 8px; background: var(--ui-panel-on); font-size: 14px; }
 .sk2-bubble p { margin: 4px 0; } .sk2-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; } .sk2-actions .btn { min-height: 44px; flex: 1; }
 .sk2-up img { width: 14px; height: 14px; vertical-align: middle; }
+/* v9.3.4 : écran Équipement et popup d'objet. */
+.inv-power { display: flex; flex-direction: column; align-items: center; margin-top: 6px; } .inv-power small { color: var(--muted); font-size: 12px; }
+.inv-power b { font-size: 26px; color: var(--ui-gold); text-shadow: 0 2px 0 #4a2a00; }
+.item-frame.empty.named { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; opacity: .85; }
+.item-frame.empty.named img { width: 18px; height: 18px; opacity: .5; } .item-frame.empty.named small { font-size: 9px; color: var(--muted); line-height: 1; }
+.item-pop { width: min(400px, 94vw); }
+.ip-head { display: flex; gap: 12px; align-items: center; padding: 18px 14px 6px; }
+.ip-head .item-frame { width: 72px; height: 72px; flex: none; } .ip-head .item-frame img { width: 100%; height: 100%; }
+.ip-name { font-size: 18px; font-weight: 800; color: var(--r-common); } .ip-name.r-rare { color: var(--r-rare); } .ip-name.r-epic { color: var(--r-epic); } .ip-name.r-legendary { color: var(--r-legendary); }
+.ip-pills { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+.ip-power { text-align: center; font-size: 22px; font-weight: 900; padding: 6px; } .ip-power.on { color: var(--muted); font-size: 16px; }
+.ip-stats { padding: 0 14px; font-size: 14px; }
+.ip-more { flex: 0 0 52px !important; font-size: 20px; }
+.ip-more-box { padding: 0 14px 6px; }
+.bag-menu { margin: 6px 0; }
+.inv-gear-row { flex-wrap: wrap; overflow: visible; } /* v9.3.4 : plus de coupure à droite sur téléphone */
+.inv-tools { flex-wrap: wrap; }

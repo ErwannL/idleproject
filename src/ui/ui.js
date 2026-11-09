@@ -714,6 +714,8 @@ export class UI {
       case 'inv-tab': if (value === 'stash') markInvUsed(this.state, 'stash'); local(() => { v.invTab = value; }); break;
       case 'craft-tier': local(() => { v.craftTier = value; }); break;
       case 'select-item': local(() => { v.selectedItemId = id; v.sheetOpen = 'item'; }); break;
+      case 'item-more': local(() => { v.itemMore = value ? Number(value) : null; }); break; // v9.3.4
+      case 'bag-menu': local(() => { v.bagMenu = !v.bagMenu; }); break;
       case 'inv-view': if (value) markInvUsed(this.state, value); local(() => { v.invView = value || null; }); break;
       case 'apply-build': v.buildSel = Number(value); a.applyLoadout(Number(value)); break; // v9.1.3 : cartes de builds
       case 'item-tab': local(() => { v.itemTab = value; }); break; // v9.1.3 : onglets de la fiche d'objet

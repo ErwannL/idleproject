@@ -1,5 +1,10 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
+  "Porté": "착용 중",
+  "Plus d'actions": "더 보기",
+  "Ranger au coffre": "보관함에 보관",
+  "Effets spéciaux": "특수 효과",
+  "Builds et réglages du sac": "빌드·가방 설정",
   "Coup rapide sur un ennemi": "적 하나에게 빠른 일격",
   "Plus de dégâts un moment": "잠시 피해 증가",
   "Gros coup qui soigne": "회복하는 강타",
@@ -81,6 +86,8 @@ export const EXACT_934 = {
 let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
+  [new RegExp("^Pour : (.+)$"), (m) => `대상: ${L(m[1])}`],
+  [new RegExp("^Puissance ([+−-]?[\\d\\s.,]+[KMB]?)$"), (m) => `전투력 ${m[1]}`],
   [new RegExp("^Pendant (\\d+) s, recharge (\\d+) min\\.$"), (m) => `${m[1]}초 동안, 재사용 ${m[2]}분.`],
   [new RegExp("^Prêt dans (.+)$"), (m) => `${m[1]} 후 준비`],
   [new RegExp("^Débloqué au niveau (\\d+) du héros\\.$"), (m) => `영웅 레벨 ${m[1]}에 해금.`],

@@ -142,17 +142,35 @@ function detail(ui, state, item) {
   } else {
     body = `${compare}<ul class="stat-list">${stats}${affixes}</ul>${weaponFxLine(item)}${setBlock(state, item)}`;
   }
-  return `<div class="card item-detail r-${item.rarity} sheet${ui.view.sheetOpen === 'item' ? ' sheet-open' : ''}">
-    <button class="btn small sheet-close" data-action="close-sheet" aria-label="Fermer la fiche">✕</button>
-    <div class="detail-head">${itemFrame(item, { tag: 'div' })}
-      <div class="grow"><div class="item-name">${escapeHtml(item.name)}${ups ? ` <span class="plus-lv">+${ups}</span>` : ''}</div>
-        <div class="item-sub">${SLOTS[item.slot]} · <span class="rarity-text">${rarity.label}</span> · niv. ${item.level}</div>
-        <div class="tags">${isEquipped ? '<span class="equipped-tag">Équipé</span>' : ''}
-        ${base.signature ? `<span class="signature-tag">Objet ancestral · butin de ${escapeHtml(BOSSES[base.signature].name)}</span>` : ''}
-        ${isMuseumDuplicate(state, item) ? '<span class="tag-dupe">Doublon du Musée</span>' : ''}</div></div>${lock}</div>
-    ${actions}
-    ${tabs}
-    <div class="item-tab-body">${body}</div>
+  // v9.3.4 : popup d'objet — grande icône, nom coloré, pastilles, « Puissance +X » en gros, 3 statistiques au plus
+  // (chacune une fois), Équiper / Recycler ; le reste (Améliorer, Verrouiller, Ranger, effets, ensemble) derrière « ⋯ ».
+  const curP = computeHeroStats(state).combatPower;
+  const gain = isEquipped ? null : Math.round(statsWithItem(state, item).combatPower - curP);
+  const power = isEquipped ? '<div class="ip-power on">Porté</div>'
+    : `<div class="ip-power ${gain > 0 ? 'good' : gain < 0 ? 'bad' : 'muted'}">Puissance ${gain > 0 ? '+' : ''}${formatNumber(gain)}</div>`;
+  const three = Object.entries(item.stats).slice(0, 3).map(([k, v]) => `<li>${img(STAT_ICONS[k])}${STAT_LABELS[k]} <b class="num">${formatStat(k, v, true)}</b></li>`).join('');
+  const more = ui.view.itemMore === item.id;
+  const mainBtns = `${isEquipped ? '<button class="btn" disabled>Équipé</button>' : canEquip(state, item)
+      ? `<button class="btn btn-gold" data-action="equip" data-id="${item.id}">Équiper</button>`
+      : `<button class="btn" disabled>Pour : ${escapeHtml(weaponClass(item.baseId).name)}</button>`}
+    <button class="btn" data-action="recycle" data-id="${item.id}" ${item.locked || isEquipped ? 'disabled' : ''}>Recycler +${formatNumber(recycleValue(item, BALANCE, recycleLevelOf(state)))} ${coin()}${mats.shards ? ` +${mats.shards}${shard()}` : ''}</button>
+    <button class="btn ip-more${more ? ' active' : ''}" data-action="item-more" data-value="${more ? '' : item.id}" aria-expanded="${more}" aria-label="Plus d'actions">⋯</button>`;
+  const moreBody = more ? `<div class="ip-more-box">
+      <div class="section-title">Améliorer</div><div class="upgrade-line">${upgradeBtn}<span class="muted num">${ups}/${maxUp}</span></div>
+      <div class="tool-line">${sharpenBtn}</div><div class="tool-line">${reforgeBtn}</div>${targetLine}
+      <div class="tool-line">${lock} ${isEquipped ? '' : `<button class="btn small" data-action="to-stash" data-id="${item.id}" ${stash ? 'disabled' : ''}>Ranger au coffre</button>`}
+        ${base.signature ? `<button class="btn small btn-gold" data-action="to-museum" data-id="${item.id}">Exposer au Musée</button>` : ''}</div>
+      ${affixes ? `<div class="section-title">Effets spéciaux</div><ul class="stat-list">${affixes}</ul>` : ''}${setBlock(state, item)}</div>` : '';
+  return `<div class="unit-pop-backdrop" data-action="close-sheet"></div>
+  <div class="unit-pop item-pop r-${item.rarity}" role="dialog" aria-modal="true" aria-label="${escapeHtml(item.name)}">
+    <button class="btn small up-close" data-action="close-sheet" aria-label="Fermer">✕</button>
+    <div class="ip-head">${itemFrame(item, { tag: 'div' })}
+      <div><div class="ip-name r-${item.rarity}">${escapeHtml(item.name)}${ups ? ` +${ups}` : ''}</div>
+        <div class="ip-pills"><span class="rar-pill r-${item.rarity}">${rarity.label}</span><span class="role-pill">${SLOTS[item.slot]}</span>
+        ${base.signature ? `<span class="role-pill">Butin de ${escapeHtml(BOSSES[base.signature].name)}</span>` : ''}</div></div></div>
+    ${power}<ul class="stat-list ip-stats">${three}</ul>
+    ${moreBody}
+    <div class="up-actions">${mainBtns}</div>
   </div>`;
 }
 
@@ -247,7 +265,7 @@ function bag(ui, state) {
     const item = state.equipment[slot];
     const frame = item
       ? itemFrame(item, { selected: item.id === ui.view.selectedItemId, equipped: true })
-      : `<div class="item-frame empty" title="${label} : aucun">${img(slotIconName(slot))}</div>`;
+      : `<div class="item-frame empty named" title="${label} : aucun">${img(slotIconName(slot))}<small>${label}</small></div>`;
     return `<div class="slot" title="${label}">${frame}</div>`;
   };
   // v9.1.3 (doc2 A13) : filtre d'emplacement en icônes sur la ligne du tri (il tient sans prendre de hauteur).
@@ -264,13 +282,13 @@ function bag(ui, state) {
       <div class="equip-doll"><div class="slot-col">${GEAR_SLOTS.map(slotFrame).join('')}</div>
         <div class="doll" title="Aperçu avec l'objet sélectionné">${animCanvas('hero', 64, 58, 2, `data-preview="${escapeHtml(JSON.stringify(previewEq))}"`)}</div>
         <div class="slot-col acc">${ACCESSORY_SLOTS.map(slotFrame).join('')}</div></div>
-      <div class="mini-stats"><span>${img('weapon_sword')} ${formatDecimal(st.dps)} dégâts/s</span><span>${img('icon_heart')} ${formatNumber(st.maxHp)}</span></div></div>`;
+      <div class="inv-power"><small>Puissance</small><b class="num">${formatNumber(st.combatPower)}</b></div></div>`;
   // v9.1.3 (doc1 « Équipement : Sac ») : sur téléphone, les 7 cases portées en une ligne compacte en haut du sac
   // (comme la ligne d'équipement de la Fiche du héros) au lieu du mannequin placé sous la grille.
   const gearRow = `<div class="inv-gear-row" aria-label="Équipement porté">${Object.keys(SLOTS).map(slotFrame).join('')}</div>`;
   return `<div class="inv inv3">
     ${equipCol}
-    <div class="inv-detail">${selected ? detail(ui, state, selected) : '<div class="card muted">Aucun objet.</div>'}</div>
+    ${selected && ui.view.sheetOpen === 'item' ? detail(ui, state, selected) : ''}
     <div class="card inv-list">
       ${gearRow}
       <div class="inv-tools"><div class="filter-chips" role="group" aria-label="Emplacement">${filterChips}</div>
@@ -280,8 +298,7 @@ function bag(ui, state) {
         || '<div class="inv-empty">Aucun objet ici. Les ennemis laissent parfois tomber de l\'équipement.</div>'}</div>
       ${full ? '<div class="bad">Sac plein : recyclez, rangez au coffre ou réglez le recyclage automatique (Réglages du sac).</div>' : ''}
     </div>
-  </div>
-  ${fold(ui, 'bag-settings', 'Réglages du sac', () => bagSettings(ui, state))}`;
+  </div>`;
 }
 
 // Réglages du sac (v9.1.0) : un seul écran replié pour tous les automatismes et le recyclage en lot.
@@ -466,8 +483,7 @@ export default {
   id: 'inventory',
   title: 'Équipement',
   icon: 'icon_bag',
-  extra: (ui, state) => `${shard()}<span class="num">${formatNumber(state.materials.shards)}</span>
-    <span class="num">· ${state.inventory.length}/${BALANCE.loot.inventorySize}</span>`,
+  extra: () => '', // v9.3.4 : plus de « 200 · 40/100 » sans libellé (le sac est compté dans l'en-tête de l'écran)
   // v9.1.0 : un seul segment (Sac / Coffre) ; Mannequins et Forge s'ouvrent par un bouton (retour au sac en un clic) ;
   // le Musée est dans Objectifs › Collections ; les builds en liste déroulante.
   render(ui, state) {
@@ -487,9 +503,11 @@ export default {
     const head = `<div class="inv-head">
         ${open('stash') ? segment([['bag', `Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}`, 'icon_bag'], ['stash', `Coffre ${state.stash.length}/${STASH_SIZE}`, 'icon_chest']], 'inv-tab', tab) : `<b class="inv-bag-count">${img('icon_bag')} Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}</b>`}
         ${open('forge') ? `<button class="btn small" data-action="inv-view" data-value="forge" aria-label="Forge" title="Forge">${img('icon_anvil')}<span class="wide-label"> Forge</span></button>` : ''}
+        <button class="btn small bag-gear${ui.view.bagMenu ? ' active' : ''}" data-action="bag-menu" aria-expanded="${Boolean(ui.view.bagMenu)}" aria-label="Builds et réglages du sac" title="Builds et réglages du sac">⚙</button>
         ${nextUnlock ? `<span class="next-unlock muted">Prochain : ${nextUnlock.label} à l'étape ${nextUnlock.stage}</span>` : ''}
         ${anyUpgrade ? '<button class="btn btn-primary primary-action pulse-gold equip-best" data-action="equip-best">⬆ Équiper le meilleur</button>' : ''}
-      </div>${fold(ui, 'inv-builds', 'Builds', () => buildsBar(ui, state), { extra: state.loadouts[Math.max(0, ui.view.buildSel ?? 0)]?.name ?? '' })}`;
+      </div>${ui.view.bagMenu ? `<div class="card bag-menu">${fold(ui, 'inv-builds', 'Builds', () => buildsBar(ui, state), { extra: state.loadouts[Math.max(0, ui.view.buildSel ?? 0)]?.name ?? '' })}
+        ${fold(ui, 'bag-settings', 'Réglages du sac', () => bagSettings(ui, state))}</div>` : ''}`;
     return head + (tab === 'stash' ? stashView(ui, state) : bag(ui, state));
   },
 };
