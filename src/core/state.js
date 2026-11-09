@@ -572,6 +572,8 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     // v9.1.0 : champs ajoutés (sans eux, ils disparaîtraient au rechargement).
     if (Number.isInteger(raw.ui.tourV) && raw.ui.tourV > 0) state.ui.tourV = raw.ui.tourV;
     if (raw.ui.goalsOpen === true) state.ui.goalsOpen = true;
+    // v9.3.4 : aides et étapes du tutoriel déjà vues.
+    if (Array.isArray(raw.ui.hints)) state.ui.hints = raw.ui.hints.filter((h) => typeof h === 'string' && /^[a-z0-9-]{1,32}$/.test(h)).slice(0, 50);
     // v9.1.3 : portes du sac déjà ouvertes (Coffre et Forge restent visibles).
     if (Array.isArray(raw.ui.invUsed)) state.ui.invUsed = raw.ui.invUsed.filter((t) => ['stash', 'forge'].includes(t));
     if (Array.isArray(raw.ui.seenTabs)) state.ui.seenTabs = raw.ui.seenTabs.filter((t) => typeof t === 'string' && /^[a-z]{2,16}$/.test(t)).slice(0, 32);

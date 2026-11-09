@@ -41,6 +41,9 @@ import dungeons from './panels/dungeons.js';
 import tower from './panels/tower.js';
 import arena from './panels/arena.js'; // v9.3.2 : modes compagnons
 import guild from './panels/guild.js'; // v9.3.2 : guildes
+import forgePanel, { canForgeSomething } from './panels/forge.js'; // v9.3.4
+import { recycleRules } from '../core/inventory.js';
+import { invFeatureOpen as forgeOpen } from '../core/unlocks.js';
 import { arenaUnlocked } from '../core/arena.js';
 import worldPanel from './panels/world.js';
 import { BANNER_RULES } from '../data/banners.js';
@@ -84,11 +87,11 @@ import { ELEMENTS, zoneElement } from '../core/elements.js'; // v9.3.1 : types
 
 export { MENUS };
 
-const PANELS = Object.fromEntries([upgrades, inventory, hero, looks, companions, expeditions, skills, tree, campaign, dungeons, tower, arena, boss, encyclopedia, summon, shop, eventPanel, contracts, inbox, ranking, guild, stats, options, worldPanel]
+const PANELS = Object.fromEntries([upgrades, inventory, forgePanel, hero, looks, companions, expeditions, skills, tree, campaign, dungeons, tower, arena, boss, encyclopedia, summon, shop, eventPanel, contracts, inbox, ranking, guild, stats, options, worldPanel]
   .map((p) => [p.id, p]));
 const SUB_ICONS = {
   upgrades: 'icon_upgrade', skills: 'skill_quick', tree: 'icon_tree', hero: 'icon_hero', inventory: 'icon_bag', looks: 'icon_summon',
-  companions: 'icon_paw', expeditions: 'icon_expedition', summon: 'icon_summon', shop: 'icon_gem', event: 'icon_star', campaign: 'icon_map', dungeons: 'icon_dungeon', tower: 'icon_tower', arena: 'icon_paw',
+  companions: 'icon_paw', expeditions: 'icon_expedition', summon: 'icon_summon', shop: 'icon_gem', event: 'icon_star', campaign: 'icon_map', dungeons: 'icon_dungeon', tower: 'icon_tower', arena: 'icon_paw', forge: 'icon_anvil',
   boss: 'icon_boss', encyclopedia: 'icon_book', contracts: 'icon_trophy', inbox: 'icon_mail', ranking: 'icon_trophy', guild: 'icon_crown', stats: 'icon_book',
 };
 // v9.1.0 : présentation courte en haut de l'onglet, à sa première ouverture (plus de bulle « Nouveau »).
@@ -103,6 +106,7 @@ const UNLOCK_INFO = {
   dungeons: 'une clé par tentative : de vrais combats de boss qui donnent fragments et équipement.',
   boss: 'chaque boss vaincu laisse un pouvoir. Réaffrontez-les pour leur butin et leur maîtrise.',
   tower: 'le Défi de la semaine (3 tentatives, sans clé) puis, plus loin, la Tour de l\'Éternité : chaque record rapporte des récompenses.',
+  forge: 'recyclez les objets inutiles en éclats, puis forgez-en de meilleurs.',
   arena: 'Survie et Étages : vos compagnons combattent SANS le héros (un seul contre 30 vagues, ou une équipe de 3 contre des étages). World Boss mondial : toute votre équipe contre un boss commun à tous les joueurs.',
   encyclopedia: 'tout ce que vous découvrez est répertorié ; chaque palier rapporte une récompense.',
   inbox: 'tout ce qui est prêt à être récupéré, au même endroit (touche G).',
@@ -714,6 +718,8 @@ export class UI {
       case 'inv-tab': if (value === 'stash') markInvUsed(this.state, 'stash'); local(() => { v.invTab = value; }); break;
       case 'craft-tier': local(() => { v.craftTier = value; }); break;
       case 'select-item': local(() => { v.selectedItemId = id; v.sheetOpen = 'item'; }); break;
+      case 'auto-recycle-yes': this.closeModal(); a.setRecycleRule('mode', 'pickup'); break; // v9.3.4 : proposé au 1er sac plein
+      case 'recycle-useless': a.recycleUseless(); local(() => { v.forgeFx = 'recycle'; }); setTimeout(() => { v.forgeFx = null; this.invalidate(); }, 700); break; // v9.3.4
       case 'item-more': local(() => { v.itemMore = value ? Number(value) : null; }); break; // v9.3.4
       case 'bag-menu': local(() => { v.bagMenu = !v.bagMenu; }); break;
       case 'inv-view': if (value) markInvUsed(this.state, value); local(() => { v.invView = value || null; }); break;
@@ -1666,6 +1672,15 @@ export class UI {
     }
   }
 
+  // v9.3.4 : au premier sac plein, proposer le recyclage automatique des Communs moins bons (une seule fois).
+  offerAutoRecycle(state) {
+    if (state.inventory.length < BALANCE.loot.inventorySize || (state.ui.hints ?? []).includes('auto-recycle')) return;
+    if (recycleRules(state).mode !== 'off' || !this.$('modal').classList.contains('hidden')) return;
+    state.ui.hints = [...(state.ui.hints ?? []), 'auto-recycle'];
+    this.openModal(`<h2>${img('icon_bag')} Sac plein</h2><p>Recycler automatiquement les objets Communs moins bons que les vôtres ?</p>
+      <div class="options-row"><button class="btn btn-gold" data-action="auto-recycle-yes">Oui</button><button class="btn" data-action="close-modal">Plus tard</button></div>`);
+  }
+
   // Marques (v9.1.0, une seule règle) : pastille rouge = à récupérer (core/claimables.js) ; point or = l'action
   // conseillée du moment (une seule) ; compteur +N sur Héros = objets neufs dans le sac ; « nouveau » = onglet ouvert.
   updateBadges(state) {
@@ -1679,6 +1694,8 @@ export class UI {
     this.claimsKey = claimsKey;
     const byTab = claimablesByTab(this.claims);
     this.tabBadges = byTab;
+    this.offerAutoRecycle(state); // v9.3.4
+    if (this.tabVisible.forge !== false && canForgeSomething(state)) this.tabBadges = { ...byTab, forge: 1 }; // v9.3.4 : de quoi forger
     const current = computeHeroStats(state);
     this.next = nextAction(state, { claims: this.claims, betterItem: betterItem(state, BALANCE, current) });
     for (const menu of MENUS) {
@@ -1799,6 +1816,7 @@ export class UI {
       contracts: Boolean(state.ui.goalsOpen),
       encyclopedia: boss,
       arena: arenaUnlocked(state), // v9.3.2
+      forge: forgeOpen(state, 'forge'), // v9.3.4
       stats: Boolean(state.ui.goalsOpen),
       ranking: Boolean(state.ui.goalsOpen) && Boolean(this.actions.loadRanking) && this.cloud?.enabled !== false,
       guild: Boolean(state.ui.goalsOpen) && Boolean(this.actions.loadGuild) && this.cloud?.enabled !== false, // v9.3.2

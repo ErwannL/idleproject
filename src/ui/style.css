@@ -3133,3 +3133,28 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 .bag-menu { margin: 6px 0; }
 .inv-gear-row { flex-wrap: wrap; overflow: visible; } /* v9.3.4 : plus de coupure à droite sur téléphone */
 .inv-tools { flex-wrap: wrap; }
+/* v9.3.4 : la Forge. */
+.forge-tile { position: relative; overflow: hidden; display: grid; gap: 8px; justify-items: center; padding: 16px 10px; margin-bottom: 8px; border-radius: 10px;
+  background: radial-gradient(circle at 50% 80%, #6a2a08, #1a0f12 70%); border: 1px solid #7a4a1a; }
+.forge-anvil { position: relative; } .forge-anvil img { width: 64px; height: 64px; image-rendering: pixelated; position: relative; z-index: 1; }
+.forge-flame { position: absolute; left: 50%; bottom: -6px; width: 90px; height: 50px; margin-left: -45px; background: radial-gradient(ellipse at 50% 100%, #ffb02e, #ff5a1a 40%, transparent 70%); animation: v934-flame .9s ease-in-out infinite alternate; }
+@keyframes v934-flame { to { transform: scaleY(1.25); opacity: .8; } }
+.forge-loop { display: flex; align-items: center; gap: 8px; font-size: 14px; } .forge-loop span { display: flex; flex-direction: column; align-items: center; } .forge-loop img { width: 24px; height: 24px; } .forge-loop i { font-style: normal; color: var(--ui-gold); font-size: 20px; }
+.forge-count { font-size: 15px; } .forge-count img { width: 14px; height: 14px; vertical-align: middle; }
+.recycle-preview { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; } .recycle-preview .item-frame { width: 34px; height: 34px; }
+.recycle-useless { width: 100%; min-height: 44px; margin-top: 6px; } .recycle-useless img { width: 13px; height: 13px; vertical-align: middle; }
+/* Animation de recyclage : des éclats montent vers l'enclume. */
+.forge-fx { position: absolute; inset: 0; pointer-events: none; } .forge-fx i { position: absolute; bottom: 10%; width: 6px; height: 6px; background: #9fe0ff; box-shadow: 0 0 6px #9fe0ff; animation: v934-shard .7s ease-in forwards; }
+.forge-fx i:nth-child(1) { left: 20%; } .forge-fx i:nth-child(2) { left: 35%; animation-delay: .05s; } .forge-fx i:nth-child(3) { left: 65%; animation-delay: .1s; } .forge-fx i:nth-child(4) { left: 80%; animation-delay: .08s; } .forge-fx i:nth-child(5) { left: 50%; animation-delay: .12s; }
+@keyframes v934-shard { to { bottom: 60%; left: 50%; opacity: 0; transform: scale(1.6); } }
+.reduce-motion .forge-flame, .reduce-motion .forge-fx i { animation: none; }
+/* Animation de forge : l'enclume frappe, étincelles, puis un rayon de la couleur de la rareté. */
+.forge-fx.craft::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 40px; margin-left: -20px; background: linear-gradient(transparent, var(--ray, #fff), transparent); opacity: 0; animation: v934-ray .9s ease-out .35s forwards; }
+.forge-fx.craft.r-rare { --ray: var(--r-rare); } .forge-fx.craft.r-epic { --ray: var(--r-epic); } .forge-fx.craft.r-legendary { --ray: var(--r-legendary); }
+.forge-fx.craft i { bottom: 40%; background: #ffd25a; box-shadow: 0 0 6px #ffb02e; animation: v934-spark .45s ease-out forwards; }
+.forge-fx.craft ~ .forge-anvil, .forge-tile:has(.forge-fx.craft) .forge-anvil img { animation: v934-hammer .15s ease-in-out 3; }
+@keyframes v934-ray { 30% { opacity: .9; } to { opacity: 0; } }
+@keyframes v934-spark { to { transform: translate(var(--dx, 20px), -30px); opacity: 0; } }
+.forge-fx.craft i:nth-child(1) { --dx: -30px; } .forge-fx.craft i:nth-child(2) { --dx: 26px; } .forge-fx.craft i:nth-child(3) { --dx: -12px; } .forge-fx.craft i:nth-child(4) { --dx: 40px; }
+@keyframes v934-hammer { 50% { transform: translateY(4px); } }
+.reduce-motion .forge-fx.craft::before, .reduce-motion .forge-fx.craft i, .reduce-motion .forge-tile .forge-anvil img { animation: none; }

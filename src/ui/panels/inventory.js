@@ -21,6 +21,7 @@ import { MUSEUM, MUSEUM_PIECES, isMuseumDuplicate, museumCount, museumDuplicates
 import { itemIconUrl } from '../../render/pixel.js';
 import { animCanvas } from '../animator.js';
 import { invFeatureOpen, nextInvUnlock } from '../../core/unlocks.js';
+import { recycleButton } from './forge.js'; // v9.3.4
 
 const STAT_ICONS = { damage: 'weapon_sword', attackSpeed: 'icon_bolt', maxHp: 'icon_heart', armor: 'icon_shield' };
 // v9.3.2 : aperçu des effets visuels de l'arme (purement visuels, sans statistique cachée).
@@ -296,7 +297,8 @@ function bag(ui, state) {
         <select data-action="rarity-filter" aria-label="Rareté">${[['all', 'Toutes'], ...RARITIES.map((r) => [r.id, r.label])].map(([v, l]) => `<option value="${v}" ${v === (state.ui.rarityFilter ?? 'all') ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
       <div class="inv-grid">${items.map((i) => itemFrame(i, { selected: i.id === ui.view.selectedItemId, showUp: true, state, current: st })).join('')
         || '<div class="inv-empty">Aucun objet ici. Les ennemis laissent parfois tomber de l\'équipement.</div>'}</div>
-      ${full ? '<div class="bad">Sac plein : recyclez, rangez au coffre ou réglez le recyclage automatique (Réglages du sac).</div>' : ''}
+      ${recycleButton(state)}
+      ${full ? '<div class="bad">Sac plein : recyclez les objets inutiles ou rangez au coffre.</div>' : ''}
     </div>
   </div>`;
 }
@@ -354,7 +356,7 @@ function buildsBar(ui, state) {
   return `<div class="build-cards">${state.loadouts.map(card).join('')}</div>`;
 }
 
-function forge(ui, state) {
+export function forge(ui, state) { // v9.3.4 : exportée (onglet Forge)
   const full = state.inventory.length >= BALANCE.loot.inventorySize;
   // v9.1.3 (doc3 lot 2) : écran de fusion à pourcentage. « Fusionner tout » (deux appuis) = mises de 5 à 100 %,
   // jamais un objet protégé. Commun/Rare : une ligne et « Fusionner ». Épique : ligne repliée, puis jauge, objets
@@ -502,7 +504,6 @@ export default {
     // v9.1.3 : une seule ligne Sac/Coffre/Mannequins/Forge ; « Équiper le meilleur » seulement s'il sert.
     const head = `<div class="inv-head">
         ${open('stash') ? segment([['bag', `Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}`, 'icon_bag'], ['stash', `Coffre ${state.stash.length}/${STASH_SIZE}`, 'icon_chest']], 'inv-tab', tab) : `<b class="inv-bag-count">${img('icon_bag')} Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}</b>`}
-        ${open('forge') ? `<button class="btn small" data-action="inv-view" data-value="forge" aria-label="Forge" title="Forge">${img('icon_anvil')}<span class="wide-label"> Forge</span></button>` : ''}
         <button class="btn small bag-gear${ui.view.bagMenu ? ' active' : ''}" data-action="bag-menu" aria-expanded="${Boolean(ui.view.bagMenu)}" aria-label="Builds et réglages du sac" title="Builds et réglages du sac">⚙</button>
         ${nextUnlock ? `<span class="next-unlock muted">Prochain : ${nextUnlock.label} à l'étape ${nextUnlock.stage}</span>` : ''}
         ${anyUpgrade ? '<button class="btn btn-primary primary-action pulse-gold equip-best" data-action="equip-best">⬆ Équiper le meilleur</button>' : ''}

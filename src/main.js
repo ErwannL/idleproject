@@ -74,6 +74,7 @@ import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagL
 import { playsOnSite } from './ui/panels/options.js';
 import { skillKillGold, upgradeCompanionSkill } from './core/companions.js'; // v9.3.3
 import { equipGear, recycleGear, unequipGear, upgradeGear } from './core/companion-gear.js'; // v9.3.3
+import { recycleUseless } from './core/inventory.js'; // v9.3.4
 
 const SIM_INTERVAL_MS = 100;
 // v9.1.0 : codes de triche chargés seulement dans la version dev (fichier absent de la version publique).
@@ -234,7 +235,7 @@ const actions = {
   },
   craft(slot, tier = 'rare') {
     const item = craftItem(state, slot, rng, BALANCE, tier);
-    if (item) ui.view.selectedItemId = item.id;
+    if (item) { ui.view.selectedItemId = item.id; ui.view.forgeFx = `craft r-${item.rarity}`; setTimeout(() => { ui.view.forgeFx = null; ui.invalidate(); }, 1100); } // v9.3.4 : animation de forge
     done(Boolean(item), item ? `Forgé : ${item.name}` : null);
   },
   reforge(id) { done(reforgeItem(state, id, rng), 'Effets spéciaux relancés'); },
@@ -446,6 +447,11 @@ const actions = {
   equipBest() {
     const n = equipBest(state);
     if (n) { save(); ui.invalidate(); ui.toast(`${n} objet${n > 1 ? 's' : ''} équipé${n > 1 ? 's' : ''}`, '#7fe0a0'); }
+  },
+  // v9.3.4 : recycler d'un coup les objets inutiles (jamais verrouillés, légendaires, ancestraux ni meilleurs).
+  recycleUseless() {
+    const r = recycleUseless(state);
+    done(r.count > 0, r.count ? `${r.count} objets recyclés : +${formatNumber(r.gold)} or, +${r.shards} éclats` : null, '#f2d083');
   },
   recycle(id) {
     const gold = recycleItem(state, id);

@@ -1,5 +1,18 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
+  "Recycler, puis éclats, puis forger": "Recycle, then shards, then forge",
+  "Recycler": "Recycle",
+  "Forger": "Forge",
+  "Forge": "Forge",
+  "Éclats": "Shards",
+  "Les objets verrouillés, légendaires, ancestraux et meilleurs que les vôtres ne partent jamais.": "Locked, legendary, ancestral items and items better than yours are never recycled.",
+  "Sac plein : recyclez les objets inutiles ou rangez au coffre.": "Bag full: recycle useless items or store them in the chest.",
+  "recyclez les objets inutiles en éclats, puis forgez-en de meilleurs.": "recycle useless items into shards, then forge better ones.",
+  "Recycler automatiquement les objets Communs moins bons que les vôtres ?": "Automatically recycle Common items worse than yours?",
+  "Oui": "Yes",
+  "Plus tard": "Later",
+  "Sac plein": "Bag full",
+  "éclats": "shards",
   "Porté": "Worn",
   "Plus d'actions": "More actions",
   "Ranger au coffre": "Store in the chest",
@@ -86,6 +99,8 @@ export const EXACT_934 = {
 let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
+  [new RegExp("^♻ Recycler les objets inutiles \\((\\d+)\\)(.*)$"), (m) => `♻ Recycle useless items (${m[1]})${m[2]}`],
+  [new RegExp("^(\\d+) objets recyclés : \\+(.+) or, \\+(\\d+) éclats$"), (m) => `${m[1]} items recycled: +${m[2]} gold, +${m[3]} shards`],
   [new RegExp("^Pour : (.+)$"), (m) => `For: ${L(m[1])}`],
   [new RegExp("^Puissance ([+−-]?[\\d\\s.,]+[KMB]?)$"), (m) => `Power ${m[1]}`],
   [new RegExp("^Pendant (\\d+) s, recharge (\\d+) min\\.$"), (m) => `For ${m[1]} s, cooldown ${m[2]} min.`],

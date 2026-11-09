@@ -1,5 +1,18 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
+  "Recycler, puis éclats, puis forger": "분해 → 파편 → 제작",
+  "Recycler": "분해",
+  "Forger": "제작",
+  "Forge": "대장간",
+  "Éclats": "파편",
+  "Les objets verrouillés, légendaires, ancestraux et meilleurs que les vôtres ne partent jamais.": "잠금·전설·고대 장비와 내 장비보다 좋은 장비는 분해되지 않습니다.",
+  "Sac plein : recyclez les objets inutiles ou rangez au coffre.": "가방이 가득 찼습니다: 필요 없는 장비를 분해하거나 보관함에 넣으세요.",
+  "recyclez les objets inutiles en éclats, puis forgez-en de meilleurs.": "필요 없는 장비를 파편으로 분해하고, 더 좋은 장비를 제작하세요.",
+  "Recycler automatiquement les objets Communs moins bons que les vôtres ?": "내 장비보다 나쁜 일반 장비를 자동으로 분해할까요?",
+  "Oui": "예",
+  "Plus tard": "나중에",
+  "Sac plein": "가방 가득",
+  "éclats": "파편",
   "Porté": "착용 중",
   "Plus d'actions": "더 보기",
   "Ranger au coffre": "보관함에 보관",
@@ -86,6 +99,8 @@ export const EXACT_934 = {
 let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
+  [new RegExp("^♻ Recycler les objets inutiles \\((\\d+)\\)(.*)$"), (m) => `♻ 필요 없는 장비 분해 (${m[1]})${m[2]}`],
+  [new RegExp("^(\\d+) objets recyclés : \\+(.+) or, \\+(\\d+) éclats$"), (m) => `장비 ${m[1]}개 분해: 골드 +${m[2]}, 파편 +${m[3]}`],
   [new RegExp("^Pour : (.+)$"), (m) => `대상: ${L(m[1])}`],
   [new RegExp("^Puissance ([+−-]?[\\d\\s.,]+[KMB]?)$"), (m) => `전투력 ${m[1]}`],
   [new RegExp("^Pendant (\\d+) s, recharge (\\d+) min\\.$"), (m) => `${m[1]}초 동안, 재사용 ${m[2]}분.`],
