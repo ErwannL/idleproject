@@ -42,6 +42,7 @@ import tower from './panels/tower.js';
 import arena from './panels/arena.js'; // v9.3.2 : modes compagnons
 import guild from './panels/guild.js'; // v9.3.2 : guildes
 import forgePanel, { canForgeSomething } from './panels/forge.js'; // v9.3.4
+import { updateTutorial } from './tutorial.js'; // v9.3.4 (h)
 import { recycleRules } from '../core/inventory.js';
 import { invFeatureOpen as forgeOpen } from '../core/unlocks.js';
 import { arenaUnlocked } from '../core/arena.js';
@@ -95,21 +96,20 @@ const SUB_ICONS = {
   boss: 'icon_boss', encyclopedia: 'icon_book', contracts: 'icon_trophy', inbox: 'icon_mail', ranking: 'icon_trophy', guild: 'icon_crown', stats: 'icon_book',
 };
 // v9.1.0 : présentation courte en haut de l'onglet, à sa première ouverture (plus de bulle « Nouveau »).
-const UNLOCK_INFO = {
-  companions: 'vos compagnons combattent à vos côtés : deux compagnons et un familier.',
-  // v9.2.8 : trois bannières, tickets et gemmes ; boutique et événements.
-  summon: 'tickets et gemmes invoquent des compagnons (bannières limitée et permanente) ; les tickets familiers invoquent des familiers.',
-  shop: 'prix et contenus des offres ; les achats ne sont pas encore ouverts.',
-  event: 'un grand événement et un petit événement se relaient toutes les deux semaines.',
-  expeditions: 'les compagnons hors de l\'équipe partent en mission, même jeu fermé, et rapportent des ressources.',
-  tree: 'les fragments anciens achètent des talents permanents. La Renaissance s\'ouvre plus tard dans ce même onglet.',
-  dungeons: 'une clé par tentative : de vrais combats de boss qui donnent fragments et équipement.',
-  boss: 'chaque boss vaincu laisse un pouvoir. Réaffrontez-les pour leur butin et leur maîtrise.',
-  tower: 'le Défi de la semaine (3 tentatives, sans clé) puis, plus loin, la Tour de l\'Éternité : chaque record rapporte des récompenses.',
-  forge: 'recyclez les objets inutiles en éclats, puis forgez-en de meilleurs.',
-  arena: 'Survie et Étages : vos compagnons combattent SANS le héros (un seul contre 30 vagues, ou une équipe de 3 contre des étages). World Boss mondial : toute votre équipe contre un boss commun à tous les joueurs.',
-  encyclopedia: 'tout ce que vous découvrez est répertorié ; chaque palier rapporte une récompense.',
-  inbox: 'tout ce qui est prêt à être récupéré, au même endroit (touche G).',
+const UNLOCK_INFO = { // v9.3.4 (h) : une ligne courte par onglet
+  companions: 'ils combattent à vos côtés.',
+  summon: 'tickets et gemmes invoquent des compagnons.',
+  shop: 'les offres ; achats pas encore ouverts.',
+  event: 'un événement nouveau toutes les deux semaines.',
+  expeditions: 'vos compagnons libres partent en mission.',
+  tree: 'les fragments achètent des talents permanents.',
+  dungeons: 'une clé par combat de boss.',
+  boss: 'chaque boss vaincu laisse un pouvoir.',
+  tower: 'un défi par semaine, des records récompensés.',
+  forge: 'recyclez en éclats, puis forgez mieux.',
+  arena: 'vos compagnons combattent sans le héros.',
+  encyclopedia: 'chaque découverte rapporte une récompense.',
+  inbox: 'tout ce qui est prêt, au même endroit.',
 };
 const TOWER_UNLOCK = TOWER.unlockStage;
 export const menuOf = (tab) => MENUS.find((m) => m.tabs.includes(tab)) ?? null;
@@ -1688,6 +1688,7 @@ export class UI {
     if (now - (this.lastHud.badgeTime ?? 0) < 500) return;
     this.lastHud.badgeTime = now;
     this.claims = claimables(state);
+    try { updateTutorial(state, this.root, state.inventory.length >= BALANCE.loot.inventorySize); } catch { /* le tutoriel ne bloque jamais le jeu */ }
     // v9.1.3 : fenêtre « À récupérer » ouverte → mise à jour quand la liste change.
     const claimsKey = this.claims.map((c) => c.key).join() + state.inbox.length;
     if (this.claimsOpen && claimsKey !== this.claimsKey && !this.$('modal').classList.contains('hidden')) this.openClaims(state);

@@ -56,3 +56,22 @@ classe), 25 % au hasard pour garder de tout.
 
 **Questions** : (1) casque fusionné dans l'armure et 4 bijoux en 1 accessoire : OK ? (2) sets à 3 pièces : OK ?
 (3) classe du chevalier selon sa classe de combat (Défenseur pour le Chevalier de départ) : OK ?
+
+## 4. Visuels PixelLab à prévoir (section 8)
+
+| Fichier | Taille | Prompt | Utilisé dans |
+|---|---|---|---|
+| `assets/ui/forge_anvil.png` | 64×64 | pixel art anvil with glowing orange hot metal, fantasy RPG icon, transparent background | Tuile Forge (`ui/panels/forge.js`) |
+| `assets/ui/forge_shards.png` | 32×32 | pixel art pile of blue glowing crystal shards, RPG currency icon, transparent | Compteur d'Éclats, aperçu du recyclage |
+| `assets/ui/tuto_finger.png` | 32×32 | pixel art pointing hand cursor, white glove, black outline, transparent | Doigt du tutoriel (remplace l'emoji 👆) |
+| `assets/ui/elem_fire.png` … `elem_dark.png` (5) | 24×24 | pixel art element icon: flame / water drop / leaf / sun / crescent moon, bold outline, transparent | Pastilles d'élément (`core/elements.js`) |
+| `assets/ui/role_attacker.png`, `role_defender.png`, `role_support.png`, `role_beast.png` | 24×24 | pixel art role icon: crossed swords / shield / healing cross / paw, transparent | Pastilles de rôle (popup compagnon) |
+| `assets/ui/slot_weapon.png`, `slot_armor.png`, `slot_accessory.png` | 48×48 | pixel art faded silhouette of a sword / chestplate / ring, empty equipment slot, transparent | Emplacements vides nommés (écran Équipement) |
+| `assets/ui/splash_bg_<élément>.png` (5) | 360×240 | pixel art soft radial glow background in <couleur>, fantasy sparkles, no characters | Fond de l'illustration (popup compagnon) |
+| `assets/ui/lock.png` | 24×24 | pixel art small golden padlock, transparent | Compétences verrouillées (`ui/panels/skills.js`) |
+
+## 5. Étape h — tutoriel
+
+`src/ui/tutorial.js` : une étape à la fois (Dégâts → premier objet → recyclage au sac plein → premier compagnon), puis
+bulles « Bonus du moment » et « Tout récupérer ». Toucher la cible ou « OK » termine l'étape (`state.ui.hints`).
+Cartes « Nouveau » des onglets ramenées à une ligne. Animation désactivée avec prefers-reduced-motion.
