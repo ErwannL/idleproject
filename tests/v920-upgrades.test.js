@@ -122,17 +122,16 @@ test('v9.2.0 : Vol de vie soigne le héros dans le moteur', () => {
   assert.ok(run(30) > run(0) * 1.5, `${run(30)} vs ${run(0)}`);
 });
 
-test('v9.2.0 : déblocage progressif — débutant 3 lignes, puis premier boss, puis étape record', () => {
+test('v9.3.5 : déblocage progressif — 3 lignes (Dégâts, PV, Or), puis une de plus tous les deux boss', () => {
   const s = createNewState(NOW);
-  assert.deepEqual(openUpgrades(s, BALANCE), BASE_UPGRADES);
+  assert.deepEqual(openUpgrades(s, BALANCE), ['damage', 'vitality', 'goldFind']);
   s.records.bossesDefeated = 1;
-  assert.deepEqual(openUpgrades(s, BALANCE), ['damage', 'attackSpeed', 'crit', 'vitality', 'defense', 'armor', 'regen', 'goldFind']); // v9.2.8 : + Défense
-  assert.deepEqual(nextUpgradeUnlock(s, BALANCE), { key: 'critDamage', label: 'Dégâts critiques', stage: 15 });
-  s.records.bestStage = 40;
-  for (const k of ['critDamage', 'lifesteal', 'companionPower', 'dodge']) assert.ok(upgradeOpen(s, k, BALANCE), k);
-  assert.ok(!upgradeOpen(s, 'bossDamage', BALANCE));
-  s.records.bestStage = 60;
-  assert.equal(openUpgrades(s, BALANCE).length, 15); // v9.2.8
+  assert.deepEqual(openUpgrades(s, BALANCE), ['damage', 'attackSpeed', 'vitality', 'goldFind']);
+  assert.equal(nextUpgradeUnlock(s, BALANCE).key, 'crit');
+  s.records.bossesDefeated = 3;
+  assert.ok(upgradeOpen(s, 'crit', BALANCE) && !upgradeOpen(s, 'armor', BALANCE), 'Défense avant Armure');
+  s.records.bossesDefeated = 40; s.records.bestStage = 60;
+  assert.equal(openUpgrades(s, BALANCE).length, 15);
   assert.equal(nextUpgradeUnlock(s, BALANCE), null);
   // Une ligne déjà achetée reste visible.
   const t = createNewState(NOW);

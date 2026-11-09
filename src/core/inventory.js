@@ -1,12 +1,49 @@
 // Inventaire : ajout, équipement, recyclage, tri et comparaison.
 import { BALANCE } from '../data/balance.js';
-import { ACCESSORY_SLOTS, SLOTS } from '../data/items.js';
+import { ACCESSORY_SLOTS, EQUIP_SLOTS, SLOTS, eqSlot } from '../data/items.js';
 import { addGold } from './economy.js';
 import { trackContracts } from './contracts.js';
 import { itemBase, itemPower, rarityIndex, recycleLevelOf, recycleMaterials, recycleValue } from './loot.js';
 import { computeHeroStats, statsWithItem } from './stats.js';
 import { recordItem } from './codex.js';
 import { canEquip } from './classes.js';
+import { canEquip as unitCanEquip, equipGear, gearStats, setGearGenerator, unitGear } from './companion-gear.js';
+import { generateItem } from './loot.js';
+import { levelForStage } from './combat.js';
+import { COMPANIONS } from '../data/companions.js';
+
+// v9.3.4 (f) : butin d'équipement des modes compagnons (Arène, donjons) = objet commun, rangé sans jamais être perdu.
+setGearGenerator((state, rng, opts) => {
+  const item = generateItem(state, rng, { level: levelForStage(Math.max(1, state.maxStage ?? 1)), ...opts });
+  if (item) placeItem(state, item);
+  return item;
+});
+
+// Score d'un objet pour un compagnon (somme pondérée de ses bonus, recharge comprise).
+const unitScore = (state, item) => Object.values(gearStats(item, state)).reduce((a, v) => a + v, 0);
+// Compagnon de l'équipe pour qui l'objet est meilleur que ce qu'il porte (ou place vide), sinon null.
+export function teamUpgradeFor(state, item) {
+  for (const id of state.companions?.equipped ?? []) {
+    if (!unitCanEquip(state, id, item).ok) continue;
+    const worn = unitGear(state, id)[eqSlot(item)];
+    if (!worn || unitScore(state, item) > unitScore(state, worn) + 1e-6) return id;
+  }
+  return null;
+}
+// « Équiper le meilleur » pour les compagnons de l'équipe : renvoie le nombre d'objets équipés.
+export function equipBestTeam(state) {
+  let n = 0;
+  for (const id of state.companions?.equipped ?? []) {
+    if (!COMPANIONS.some((c) => c.id === id)) continue;
+    for (const slot of Object.keys(EQUIP_SLOTS)) {
+      const cands = state.inventory.filter((i) => eqSlot(i) === slot && !i.locked && unitCanEquip(state, id, i).ok);
+      const worn = unitGear(state, id)[slot];
+      const best = cands.sort((a, b) => unitScore(state, b) - unitScore(state, a))[0];
+      if (best && (!worn || unitScore(state, best) > unitScore(state, worn) + 1e-6) && equipGear(state, id, best.id)) n += 1;
+    }
+  }
+  return n;
+}
 import { usefulSetPiece } from './sets.js';
 import { autoStashSet, placeItem, storeItem } from './stash.js';
 import { autoMuseum, isAncestral } from './museum.js';
@@ -43,11 +80,11 @@ export function equipItem(state, itemId) {
   const index = state.inventory.findIndex((i) => i.id === itemId);
   if (index < 0) return false;
   const item = state.inventory[index];
-  if (!canEquip(state, item)) return false; // v9.0.6 : arme d'une autre classe
-  const previous = state.equipment[item.slot];
+  if (!canEquip(state, item)) return false; // v9.0.6 : arme ou objet d'une autre classe
+  const previous = state.equipment[eqSlot(item)];
   state.inventory.splice(index, 1);
   if (previous) state.inventory.splice(index, 0, previous);
-  state.equipment[item.slot] = item;
+  state.equipment[eqSlot(item)] = item;
   return true;
 }
 
@@ -181,7 +218,7 @@ const SORTERS = {
 };
 
 export function listInventory(state, { slot = 'all', sortBy = 'rarity', rarity = 'all' } = {}) {
-  const items = state.inventory.filter((i) => (slot === 'all' || i.slot === slot || (slot === 'accessory' && ACCESSORY_SLOTS.includes(i.slot)))
+  const items = state.inventory.filter((i) => (slot === 'all' || i.slot === slot || eqSlot(i) === slot)
     && (rarity === 'all' || i.rarity === rarity)); // v9.3.2 : filtre de rareté
   return items.sort(SORTERS[sortBy] ?? SORTERS.rarity);
 }
@@ -205,8 +242,8 @@ const ehp = (s) => s.maxHp / Math.max(0.05, 1 - s.armor / 100);
 const extras = (s) => s.goldPct + s.xpPct + s.lifesteal + s.thorns + (s.regenPerSecond / s.maxHp) * 100
   + (s.bonus?.dropChance ?? 0) * 3 + (s.bonus?.damageVsBossPct ?? 0) + (s.bonus?.damageVsNormalPct ?? 0) * 0.5;
 export function isUpgrade(state, item, balance = BALANCE, current = computeHeroStats(state, balance)) {
-  if (!canEquip(state, item)) return false; // v9.0.6 : arme d'une autre classe
-  if (!state.equipment[item.slot]) return true; // emplacement vide (accessoires en particulier)
+  if (!canEquip(state, item)) return Boolean(teamUpgradeFor(state, item)); // v9.3.4 (f) : meilleur pour un compagnon
+  if (!state.equipment[eqSlot(item)]) return true; // emplacement vide (accessoires en particulier)
   const next = statsWithItem(state, item, balance);
   const score = Math.log(next.dps / current.dps) + Math.log(ehp(next) / ehp(current));
   if (Math.abs(score) > 1e-4) return score > 0;
@@ -222,15 +259,15 @@ export function equipBest(state, balance = BALANCE) {
     let best = null;
     let bestScore = -Infinity;
     for (const item of state.inventory) {
-      if (!isUpgrade(state, item, balance, current)) continue;
+      if (!canEquip(state, item) || !isUpgrade(state, item, balance, current)) continue;
       const next = statsWithItem(state, item, balance);
-      const score = state.equipment[item.slot] ? Math.log(next.dps / current.dps) + Math.log(ehp(next) / ehp(current)) : Infinity;
+      const score = state.equipment[eqSlot(item)] ? Math.log(next.dps / current.dps) + Math.log(ehp(next) / ehp(current)) : Infinity;
       if (score > bestScore) { best = item; bestScore = score; }
     }
     if (!best || !equipItem(state, best.id)) break;
     count += 1;
   }
-  return count;
+  return count + equipBestTeam(state); // v9.3.4 (f) : toute l'équipe en un clic
 }
 
 // Mode « au ramassage » : le sac est aussi trié régulièrement (objets devenus inutiles après un meilleur équipement).

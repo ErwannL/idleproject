@@ -1,9 +1,9 @@
 // Génération d'objets à partir des définitions de src/data/items.js :
 // statistiques selon la rareté et le niveau, effets spéciaux (Rare et mieux), objets signature de boss.
 import { CLASS_WEAPON_DROP } from '../data/classes.js';
-import { activeClass, classWeaponBases } from './classes.js';
+import { activeClass, classWeaponBases, heroGearClass, rollItemClass } from './classes.js';
 import { BALANCE } from '../data/balance.js';
-import { AFFIXES, ITEM_BASES, PERCENT_STATS, RARITIES, SIGNATURE_ITEMS } from '../data/items.js';
+import { AFFIXES, GROUP_KINDS, ITEM_BASES, PERCENT_STATS, RARITIES, SIGNATURE_ITEMS, SLOT_GROUP } from '../data/items.js';
 import { rollSet } from './sets.js';
 import { levelForStage } from './combat.js'; // v9.2.0 (monde marin) : niveau de puissance des étapes
 
@@ -91,11 +91,29 @@ export function makeItem(state, baseId, rarityId, level, balance = BALANCE, rng 
   const affixes = base.affixes
     ? base.affixes.map((a) => ({ ...a }))
     : [...main, ...(rng ? rollAffixes(base.slot, rarityId, rng, balance, main.map((a) => a.type)) : [])];
+  const parts = makeParts(base, rarityId, level, balance, rng);
   return {
     id, baseId, name: base.name, slot: base.slot, rarity: rarityId, level,
     stats: computeStats(base, rarity, level, balance), affixes, effect: null, locked: false,
-    upgrades: 0, boosts: {}, ...(set ? { set } : {}),
+    upgrades: 0, boosts: {}, ...(set ? { set } : {}), ...(parts.length ? { parts } : {}),
   };
+}
+
+// v9.3.4 (f) : pièces réunies dans la même place (l'armure porte un casque, l'accessoire les 3 autres bijoux) :
+// même rareté, même niveau ; leurs statistiques et effets comptent comme ceux de l'objet.
+function makePart(base, rarityId, level, balance, rng) {
+  const rarity = rarityById(rarityId);
+  const main = base.mainAffix ? [{ type: base.mainAffix.type, value: mainAffixValue(base.mainAffix, rarity, level) }] : [];
+  const affixes = [...main, ...(rng ? rollAffixes(base.slot, rarityId, rng, balance, main.map((a) => a.type)) : [])];
+  return { baseId: base.id, stats: computeStats(base, rarity, level, balance), affixes };
+}
+export function makeParts(base, rarityId, level, balance = BALANCE, rng = null) {
+  const kinds = (GROUP_KINDS[SLOT_GROUP[base.slot]] ?? []).filter((k) => k !== base.slot);
+  return kinds.map((k) => {
+    const pool = ITEM_BASES.filter((b) => b.slot === k);
+    const pb = rng ? pool[Math.floor(rng.next() * pool.length)] : pool[0];
+    return makePart(pb, rarityId, level, balance, rng);
+  }).filter(Boolean);
 }
 
 // options.slot : limite le tirage à un emplacement (butin ciblé de la forge et des donjons).
@@ -109,12 +127,21 @@ export function generateItem(state, rng, { level, minRarity = 'common', slot, se
     let roll = rng.next() * weights.reduce((sum, [, w]) => sum + w, 0);
     chosen = weights.find(([, w]) => (roll -= w) < 0)?.[0] ?? weights[0][0];
   }
+  // v9.3.4 (f) : une place (armure, accessoire) → un de ses types au hasard.
+  if ((!slot || slot === 'accessory') && GROUP_KINDS[chosen]) {
+    const kinds = GROUP_KINDS[chosen];
+    chosen = kinds[Math.floor(rng.next() * kinds.length)];
+  }
+  // v9.3.4 (f) : classe de l'objet (héros ou compagnons de l'équipe).
+  const cls = state?.companions ? rollItemClass(state, rng) : null;
   // v9.0.6 : la plupart des armes tombent dans la classe active (les autres restent possibles).
-  const classPool = chosen === 'weapon' && state ? classWeaponBases(activeClass(state).id) : [];
+  const classPool = chosen === 'weapon' && state && (!cls || cls === heroGearClass(state)) ? classWeaponBases(activeClass(state).id) : [];
   const base = classPool.length && rng.next() < CLASS_WEAPON_DROP ? rng.pick(classPool) : rng.pick(ITEM_BASES.filter((b) => b.slot === chosen));
   const rarity = rollRarity(rng, minRarity, weights);
   const set = setZone === null || setZone === undefined ? null : rollSet(setZone, rarity, rng, balance);
-  return makeItem(state, base.id, rarity, Math.max(1, level), balance, rng, set);
+  const item = makeItem(state, base.id, rarity, Math.max(1, level), balance, rng, set);
+  if (cls) item.cls = cls;
+  return item;
 }
 
 // Objet signature d'un boss : Épique, parfois Légendaire.
@@ -140,6 +167,17 @@ export function refreshItemStats(item, balance = BALANCE) {
     const boost = 1 + ((item.boosts?.main ?? 0) * balance.forge.upgradeBoostPct) / 100;
     const v = mainAffixValue(base.mainAffix, rarity, item.level) * boost;
     item.affixes[0].value = v < 3 ? Math.round(v * 10) / 10 : Math.round(v);
+  }
+  for (const part of item.parts ?? []) {
+    const pb = itemBase(part.baseId);
+    if (!pb) continue;
+    // Pièce convertie (9.3.4) : elle garde sa rareté, son niveau et ses améliorations ; sinon ceux de l'objet.
+    const pr = rarityById(part.rarity ?? item.rarity) ?? rarity, lv = part.level ?? item.level, bo = part.boosts ?? item.boosts ?? {};
+    part.stats = computeStats(pb, pr, lv, balance, bo);
+    if (pb.mainAffix && part.affixes?.[0]?.type === pb.mainAffix.type) {
+      const v = mainAffixValue(pb.mainAffix, pr, lv) * (1 + ((bo.main ?? 0) * balance.forge.upgradeBoostPct) / 100);
+      part.affixes[0].value = v < 3 ? Math.round(v * 10) / 10 : Math.round(v);
+    }
   }
   // Affixes améliorés (v8.2) : valeur d'origine mémorisée dans `base`, +12 % par niveau d'amélioration.
   (item.affixes ?? []).forEach((a, i) => {
@@ -183,5 +221,6 @@ export function itemPower(item) {
   const s = item.stats;
   const base = itemBase(item.baseId);
   const affixScore = (item.affixes ?? []).reduce((sum, a, i) => sum + (a.value / affixBase(base, a, i)) * AFFIX_WEIGHT, 0);
-  return (s.damage ?? 0) * 3 + (s.maxHp ?? 0) * 0.5 + (s.armor ?? 0) * 4 + (s.attackSpeed ?? 0) * 1.5 + affixScore;
+  const own = (s.damage ?? 0) * 3 + (s.maxHp ?? 0) * 0.5 + (s.armor ?? 0) * 4 + (s.attackSpeed ?? 0) * 1.5 + affixScore;
+  return own + (item.parts ?? []).reduce((sum, p) => sum + itemPower({ ...p, parts: null }), 0); // v9.3.4 (f)
 }

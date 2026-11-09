@@ -96,6 +96,18 @@ export function buyTalentMax(state, id) {
 
 // v8.8 : achat en masse — apprend en boucle le niveau le moins cher disponible (dans une région, ou partout)
 // tant que les fragments suffisent. Renvoie le nombre de niveaux appris.
+// v9.3.5 : talent conseillé (le moins cher apprenable avec les fragments en poche), ou null.
+export function suggestedTalent(state) {
+  let best = null;
+  for (const t of TALENTS) {
+    const level = state.talents[t.id] ?? 0;
+    if (level >= t.max || !talentUnlocked(state, t)) continue;
+    const cost = talentCost(t, level);
+    if (cost <= state.fragments && (!best || cost < best.cost)) best = { talent: t, cost };
+  }
+  return best;
+}
+
 export function buyTalentsCheapest(state, region = null, limit = 5000) {
   let n = 0;
   while (n < limit) {

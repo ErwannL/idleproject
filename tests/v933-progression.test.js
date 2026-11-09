@@ -14,6 +14,7 @@ import { buyUpgrade, upgradeCost } from '../src/core/economy.js';
 import { computeHeroStats } from '../src/core/stats.js';
 import { grantReward } from '../src/core/rewards.js';
 import { Rng } from '../src/core/rng.js';
+import { makeItem } from '../src/core/loot.js';
 
 const NOW = Date.UTC(2026, 10, 10, 12);
 const fresh = () => { const s = createNewState(NOW, 1); s.maxStage = 60; return s; };
@@ -70,23 +71,29 @@ test('équipement : compatibilité par classe (données), refus motivé, avant/a
   s.companions.owned.squire = { stars: 1, level: 1 };    // gardien → défenseur
   assert.equal(gearClassOf(COMPANIONS.find((c) => c.id === 'phoenix')), 'beast');
   assert.equal(gearClassOf(COMPANIONS.find((c) => c.id === 'squire')), 'defender');
-  const g = (s.companionGear = { bag: [], nextId: 1, equipped: {} });
-  const plate = { id: 1, baseId: 'plate', rarity: 'epic', up: 0 }; const fangs = { id: 2, baseId: 'fangs', rarity: 'rare', up: 0 };
-  g.bag.push(plate, fangs); g.nextId = 3;
+  // v9.3.4 (f) : les compagnons portent les objets communs du sac, selon la classe de l'objet.
+  const plate = makeItem(s, 'chainmail', 'epic', 10); plate.cls = 'defender';
+  const fangs = makeItem(s, 'dagger', 'rare', 10); fangs.cls = 'beast';
+  s.inventory.push(plate, fangs);
   assert.equal(canEquip(s, 'phoenix', plate).ok, false);
-  assert.match(canEquip(s, 'phoenix', plate).reason, /Réservé aux Défenseurs/);
-  assert.equal(equipGear(s, 'phoenix', 1), false, 'pièce incompatible refusée');
-  assert.ok(equipGear(s, 'phoenix', 2) && equipGear(s, 'squire', 1));
+  assert.match(canEquip(s, 'phoenix', plate).reason, /Pour : Défenseur/);
+  assert.equal(equipGear(s, 'phoenix', plate.id), false, 'pièce incompatible refusée');
+  assert.ok(equipGear(s, 'phoenix', fangs.id) && equipGear(s, 'squire', plate.id));
+  assert.ok(!s.inventory.includes(fangs) && !s.inventory.includes(plate), 'objets portés sortis du sac');
   const before = companionSkillMultiplier(s, COMPANIONS.find((c) => c.id === 'phoenix'), 'hit');
-  assert.deepEqual(unitGearStats(s, 'phoenix'), { atk: gearStats(fangs).atk, hp: 0, def: 0, heal: 0, cd: 0 });
-  assert.equal(upgradeGear(s, 2, 10), 1);
+  assert.deepEqual(unitGearStats(s, 'phoenix'), { atk: gearStats(fangs, s).atk, hp: 0, def: 0, heal: 0, cd: 0 });
+  assert.equal(upgradeGear(s, fangs.id, 10), 1);
   assert.ok(companionSkillMultiplier(s, COMPANIONS.find((c) => c.id === 'phoenix'), 'hit') > before, 'stat réelle (amélioration)');
-  assert.equal(recycleGear(s, 2), 0, 'une pièce portée ne se recycle pas');
+  assert.equal(recycleGear(s, fangs.id), 0, 'une pièce portée ne se recycle pas');
   const back = sanitizeState(JSON.parse(JSON.stringify(s)), BALANCE, NOW);
   assert.deepEqual(back.companionGear.equipped, s.companionGear.equipped);
-  assert.equal(back.companionGear.bag.find((i) => i.id === 2).up, 1);
-  const bad = sanitizeState({ ...JSON.parse(JSON.stringify(s)), companionGear: { bag: [plate], equipped: { phoenix: { guard: 1 } } } }, BALANCE, NOW);
-  assert.deepEqual(bad.companionGear.equipped, {}, 'équipement incompatible retiré au chargement');
+  assert.equal(back.companionGear.equipped.phoenix.weapon.upgrades, 1);
+  const raw = JSON.parse(JSON.stringify(s));
+  raw.companionGear.equipped.phoenix = { armor: raw.companionGear.equipped.squire.armor };
+  delete raw.companionGear.equipped.squire;
+  const bad = sanitizeState(raw, BALANCE, NOW);
+  assert.equal(bad.companionGear.equipped.phoenix, undefined, 'équipement incompatible retiré au chargement');
+  assert.ok(bad.inventory.some((i) => i.id === plate.id), '… et rendu au sac');
   for (const b of GEAR_BASES) assert.ok(b.classes.length >= 1);
   assert.ok(rollGear(s, new Rng(3)));
 });
@@ -99,7 +106,7 @@ test('sauvegarde : niveaux de compétence et ressources relus ; persos d\'avant 
   assert.equal(back.materials.mastery, 1e4);
   const old = sanitizeState({ ...JSON.parse(JSON.stringify(s)), version: 10, companions: { owned: { archangel: { stars: 2, level: 3 } }, equipped: [] } }, BALANCE, NOW);
   assert.deepEqual(old.companions.owned.archangel.skills, MIGRATED_SKILLS);
-  assert.equal(SAVE_VERSION, 11);
+  assert.equal(SAVE_VERSION, 12); // v9.3.4 : 11 → 12 (équipement unique)
 });
 
 test('chevalier préservé : améliorations permanentes, coûts et stats inchangés par les nouveaux systèmes', () => {

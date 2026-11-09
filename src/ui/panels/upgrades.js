@@ -99,7 +99,7 @@ export default {
       // s'affiche qu'au début (avant le premier mini-boss), ensuite au survol / appui long sur le nom.
       const ehp = SURVIVAL.has(key) && !max && current.effectiveHp > 0 ? ((next.effectiveHp - current.effectiveHp) / current.effectiveHp) * 100 : 0;
       const gain = p ? ` <span class="muted upg-profit">+${formatDecimal(p.pct)} % dégâts/s</span>`
-        : ehp > 0 ? ` <span class="muted upg-profit">+${formatDecimal(ehp)} % PV effectifs</span>` : '';
+        : ehp > 0 ? ` <span class="muted upg-profit">${ehp >= 100 ? `Survie ×${formatDecimal(1 + ehp / 100)}` : `Survie +${formatDecimal(ehp)} %`}</span>` : ''; // v9.3.5 : plus de « +1,1 K % PV effectifs »
       // v9.1.3 (ligne type doc2 §3) : icône, nom + niveau (+ palier), un seul chiffre qui bouge (avant → après, l'unité
       // est dans le nom), +x % dégâts/s neutre sur la même ligne, bouton avec prix : 2 lignes au lieu de 3.
       return `<div class="card upg-card${compact ? ' compact' : ''}">
@@ -125,14 +125,15 @@ export default {
     const fmtHits = (h) => (h >= 100 ? '99+' : h < 1 ? '< 1' : formatDecimal(Math.floor(h * 10) / 10));
     // v9.3.4 : en clair au lieu de « Encaisse < 1 coups · boss < 1 » (le détail reste dans l'infobulle).
     const fragile = hits.normal < 3 || hits.boss < 1;
-    const surv = `<span class="upg-surv${fragile ? ' bad' : ''}" title="${escapeHtml(`Tient ${fmtHits(hits.normal)} coups d'un ennemi, ${fmtHits(hits.boss)} du boss`)}">${img('icon_heart')} ${fragile ? 'Trop fragile : améliore ta Vie' : `Tient ${fmtHits(hits.normal)} coups`}</span>`;
+    const surv = `<span class="upg-surv${fragile ? ' bad' : ''}" title="${escapeHtml(`Tient ${fmtHits(hits.normal)} coups d'un ennemi, ${fmtHits(hits.boss)} du boss`)}">${img('icon_heart')} ${fragile ? 'Trop fragile : améliore ta Vie' : `Tu survis ${fmtHits(hits.boss)} coups du boss`}</span>`;
     const dpsHead = `<div class="upg-dps"><span class="muted">Dégâts/s</span> <b class="num">${formatDecimal(current.dps)}</b>${beginner ? '' : surv}</div>`;
     const top = qtyMenu ? `<div class="row-between upg-dps-row">${dpsHead}${amounts}</div>${forecast}` : `${dpsHead}${forecast}${amounts ? `<div class="row-between">${amounts}</div>` : ''}`;
     return `<div class="card upg-top">${top}</div>
       ${catTabs}
       ${beginner ? '' : fold(ui, 'upg-filters', 'Trier', filters)}
       <div class="upg-list">${cards.join('')}</div>
-      ${beginner ? '<div class="muted">D\'autres améliorations (critique, armure, régénération, or) s\'ouvrent après le premier mini-boss.</div>' : ''}
-      ${nextUp ? `<div class="muted next-unlock">Prochain : ${escapeHtml(nextUp.label)} à l'étape ${nextUp.stage}</div>` : ''}`;
+      ${state.gold > 0 ? '<button class="btn btn-gold primary-action buy-best" data-action="buy-best">Améliorer au mieux</button>' : ''}
+      ${beginner ? '<div class="muted">D\'autres améliorations s\'ouvrent au fil des boss.</div>' : ''}
+      ${nextUp ? `<div class="muted next-unlock">Prochaine ligne : ${escapeHtml(nextUp.label)}, dans 2 boss</div>` : ''}`;
   },
 };

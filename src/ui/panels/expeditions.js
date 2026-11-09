@@ -20,13 +20,27 @@ export function companionStill(c) {
 
 // v9.1.3 (doc1 « Expéditions ») : une ligne par place. La durée est commune (choisie en haut) ; « Durée par place »
 // ajoute un petit choix sur chaque ligne. Plus de formulaire répété à 3 boutons par place.
-function slotHtml(ui, state, run, i, now, dur) {
-  if (!run) {
-    const free = availableForExpedition(state);
-    if (!free.length) return `<div class="exp-slot empty"><span class="muted">Place ${i + 1} libre : aucun compagnon disponible (ceux de l'équipe ne partent pas).</span></div>`;
+// v9.3.5 (bug 2) : un compagnon n'est proposé que dans UNE place libre (choix des places précédentes retirés).
+function defaultPicks(ui, state) {
+  const out = [];
+  const taken = new Set();
+  state.expeditions.slots.forEach((run, i) => {
+    if (run) return;
+    const free = availableForExpedition(state).filter((c) => !taken.has(c.id));
     const last = state.expeditions.last?.[i];
     const pick = free.some((c) => c.id === ui.view.expPick?.[i]) ? ui.view.expPick[i]
-      : free.some((c) => c.id === last?.companionId) ? last.companionId : free[i % free.length].id;
+      : free.some((c) => c.id === last?.companionId) ? last.companionId : free[0]?.id ?? null;
+    if (pick) taken.add(pick);
+    out[i] = { pick, free: availableForExpedition(state).filter((c) => c.id === pick || !taken.has(c.id)) };
+  });
+  return out;
+}
+function slotHtml(ui, state, run, i, now, dur) {
+  if (!run) {
+    const dp = defaultPicks(ui, state)[i] ?? { pick: null, free: [] };
+    const free = dp.free;
+    if (!free.length || !dp.pick) return `<div class="exp-slot empty"><span class="muted">Place ${i + 1} libre : aucun compagnon disponible (ceux de l'équipe ne partent pas).</span></div>`;
+    const pick = dp.pick;
     const type = ui.view.expPerSlot && EXPEDITION_TYPES.some((t) => t.id === ui.view.expDurSlot?.[i]) ? ui.view.expDurSlot[i] : dur;
     const durSel = ui.view.expPerSlot ? `<select class="exp-dur-sel" data-action="exp-dur-slot" data-slot="${i}" aria-label="Durée, place ${i + 1}">${EXPEDITION_TYPES.map((t) => `<option value="${t.id}" ${t.id === type ? 'selected' : ''}>${t.hours} h</option>`).join('')}</select>` : '';
     return `<div class="exp-slot empty">

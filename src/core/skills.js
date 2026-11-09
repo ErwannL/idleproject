@@ -51,8 +51,11 @@ export function activeSkills(state) {
 export function distributeSkillPoints(state) {
   let n = 0;
   for (let guard = 0; guard < 2000; guard++) {
-    const learned = SKILLS.filter((s) => (state.skills[s.id] ?? 0) > 0 && state.level >= s.unlockLevel && state.skills[s.id] < s.maxLevel);
-    const pool = learned.length ? learned : SKILLS.filter((s) => state.level >= s.unlockLevel && (state.skills[s.id] ?? 0) < s.maxLevel).slice(0, 1);
+    // v9.3.5 : une compétence débloquée mais pas encore apprise passe d'abord (sinon le guide la proposait sans fin).
+    const open = SKILLS.filter((s) => state.level >= s.unlockLevel && (state.skills[s.id] ?? 0) < s.maxLevel);
+    const fresh = open.filter((s) => !(state.skills[s.id] ?? 0)).slice(0, 1);
+    const learned = open.filter((s) => (state.skills[s.id] ?? 0) > 0);
+    const pool = fresh.length ? fresh : learned.length ? learned : open.slice(0, 1);
     const target = pool.filter((s) => skillPointsAvailable(state) >= skillPointCost(state.skills[s.id] ?? 0))
       .sort((a, b) => (state.skills[a.id] ?? 0) - (state.skills[b.id] ?? 0))[0];
     if (!target || !learnSkill(state, target.id)) break;

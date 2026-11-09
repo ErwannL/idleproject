@@ -47,12 +47,12 @@ test('v9.3.4 : popup d\'objet — Puissance en gros, 3 statistiques au plus, Éq
   assert.ok(!closed.includes('item-pop'), 'pas de fiche sans toucher');
 });
 
-test('sac : 7 cases portées en ligne, plus de titre SAC en double, filtre en icônes, Équiper le meilleur seulement s\'il sert', () => {
+test('sac : 3 places portées en ligne (v9.3.4 f), plus de titre SAC en double, filtre en icônes, Équiper le meilleur seulement s\'il sert', () => {
   const s = createNewState(NOW);
   let html = inventory.render(uiWith(), s);
   assert.equal((html.match(/class="inv-gear-row"/g) ?? []).length, 1);
   assert.ok(!html.includes('<div class="section-title">Sac</div>'));
-  assert.equal((html.match(/data-action="filter" data-value=/g) ?? []).length, 5);
+  assert.equal((html.match(/data-action="filter" data-value=/g) ?? []).length, 4); // Tous, Arme, Armure, Accessoire
   assert.ok(!html.includes('data-action="equip-best"'), 'sac vide : rien à équiper');
   s.inventory.push(generateItem(s, new Rng(1), { level: 5, slot: 'ring' }));
   html = inventory.render(uiWith(), s);

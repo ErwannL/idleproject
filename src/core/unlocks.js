@@ -40,7 +40,12 @@ export function markInvUsed(state, id) {
 // v9.2.0 : déblocage progressif des améliorations. Débutant (aucun boss vaincu) : Dégâts, Vitesse, PV ; après le
 // premier boss : Critique, Armure, Régénération, Or ; les nouvelles à leur étape record (`unlockStage`). Une ligne
 // déjà achetée reste toujours visible.
-export const BASE_UPGRADES = ['damage', 'attackSpeed', 'vitality'];
+// v9.3.5 : 3 lignes au début (Dégâts, PV, Or), puis une de plus tous les deux boss vaincus (dans OPEN_SEQUENCE), toujours
+// à partir de son étape d'ouverture ; Armure arrive tard (Défense d'abord : une seule ligne de protection au début).
+export const BASE_UPGRADES = ['damage', 'vitality', 'goldFind'];
+export const OPEN_SEQUENCE = ['attackSpeed', 'crit', 'defense', 'critDamage', 'regen', 'doubleAttack', 'bossDamage', 'companionPower',
+  'lifesteal', 'xpGain', 'dodge', 'armor'];
+const openCount = (state) => Math.ceil((state.records?.bossesDefeated ?? 0) / 2);
 // v9.2.8 : + Double attaque (étape 25) et Défense (après le premier boss) : 15 lignes.
 export const UPGRADE_ORDER = ['damage', 'attackSpeed', 'crit', 'critDamage', 'doubleAttack', 'bossDamage', 'companionPower',
   'vitality', 'defense', 'armor', 'regen', 'lifesteal', 'dodge', 'goldFind', 'xpGain'];
@@ -51,7 +56,9 @@ export function upgradeOpen(state, key, balance) {
   if (BASE_UPGRADES.includes(key) || (state.upgrades?.[key] ?? 0) > 0) return true;
   if ((state.records?.bossesDefeated ?? 0) === 0) return false;
   const best = Math.max(state.maxStage ?? 1, state.records?.bestStage ?? 1);
-  return best >= (up.unlockStage ?? 0);
+  if (best < (up.unlockStage ?? 0)) return false;
+  const i = OPEN_SEQUENCE.indexOf(key);
+  return i < 0 || i < openCount(state) || best >= 200; // v9.3.5 : une ligne de plus tous les deux boss
 }
 
 export function openUpgrades(state, balance) {
@@ -60,7 +67,8 @@ export function openUpgrades(state, balance) {
 
 // Prochaine amélioration fermée (texte neutre « Prochain : X à l'étape N »), ou null.
 export function nextUpgradeUnlock(state, balance) {
-  const closed = UPGRADE_ORDER.filter((k) => balance.upgrades[k]?.unlockStage && !upgradeOpen(state, k, balance));
-  return closed.map((k) => ({ key: k, label: balance.upgrades[k].label, stage: balance.upgrades[k].unlockStage }))
-    .sort((a, b) => a.stage - b.stage)[0] ?? null;
+  const k = OPEN_SEQUENCE.find((x) => x in balance.upgrades && !upgradeOpen(state, x, balance));
+  if (!k) return null;
+  const best = Math.max(state.maxStage ?? 1, state.records?.bestStage ?? 1);
+  return { key: k, label: balance.upgrades[k].label, stage: Math.max(balance.upgrades[k].unlockStage ?? 0, best + 1) };
 }

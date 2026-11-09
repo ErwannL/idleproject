@@ -104,7 +104,7 @@ test('source fusion : protège « garder si tel effet », renforcés ; l\'objet 
   const s = opened(6);
   s.ui.recycle = { mode: 'pickup', rarities: ['common', 'rare'], slots: ['helmet'], keepAffixes: ['goldPct'] };
   s.ui.autoFuse = { on: true, rarities: ['rare'] };
-  s.equipment.helmet = makeItem(s, 'iron_helm', 'legendary', 200);
+  s.equipment.armor = makeItem(s, 'iron_helm', 'legendary', 200); // v9.3.4 : place « armure »
   const rng = new Rng(7);
   for (let i = 0; i < 5; i++) {
     const h = makeItem(s, 'iron_helm', 'rare', 1, BALANCE, rng);

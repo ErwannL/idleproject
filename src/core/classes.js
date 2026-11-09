@@ -3,6 +3,8 @@ import { CLASSES, STARTER_CLASS } from '../data/classes.js';
 import { ITEM_BASES } from '../data/items.js';
 import { itemBase, itemPower, makeItem, refreshItemStats } from './loot.js';
 import { placeItem } from './stash.js';
+import { COMPANIONS } from '../data/companions.js';
+import { gearClassOf } from '../data/companion-gear.js';
 
 export const classById = (id) => CLASSES.find((c) => c.id === id) ?? null;
 
@@ -22,7 +24,22 @@ export function weaponClass(baseOrId) {
   return CLASSES.find((c) => c.weapons.includes(base.sprite)) ?? null;
 }
 
+// v9.3.4 (f) : classe d'équipement du héros (Attaquant, Défenseur, Soutien), selon sa classe de combat.
+const DEFENDER_CLASSES = new Set(['knight', 'paladin', 'lancer']);
+export function heroGearClass(state) { return DEFENDER_CLASSES.has(activeClass(state).id) ? 'defender' : 'attacker'; }
+// Classe d'un objet ; les objets d'avant 9.3.4 (sans classe) suivent celle du héros.
+export const itemClass = (state, item) => item?.cls ?? heroGearClass(state);
+// Classe d'un objet lâché : celles de l'équipe en place (héros ×3, chaque compagnon ×1), 15 % au hasard.
+export function rollItemClass(state, rng) {
+  const all = ['attacker', 'defender', 'support', 'beast'];
+  if (rng.next() < 0.15) return all[Math.floor(rng.next() * all.length)];
+  const pool = [heroGearClass(state), heroGearClass(state), heroGearClass(state)];
+  for (const id of state.companions?.equipped ?? []) { const u = COMPANIONS.find((c) => c.id === id); if (u) pool.push(gearClassOf(u)); }
+  return pool[Math.floor(rng.next() * pool.length)];
+}
+
 export function canEquip(state, item) {
+  if (item?.cls && item.cls !== heroGearClass(state)) return false; // v9.3.4 (f)
   const c = weaponClass(item?.baseId);
   return !c || c.id === activeClass(state).id;
 }

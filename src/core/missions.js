@@ -121,10 +121,17 @@ export function claimMission(state, periodId, missionId) {
   return grantReward(state, mission.reward);
 }
 
+// v9.3.5 : une mission ne demande jamais une fonction encore verrouillée (recyclage et invocations après le premier
+// boss) : elle est masquée et ne compte pas pour la récompense complète.
+const MISSION_GATE = { recycle: (s) => (s.records?.bossesDefeated ?? 0) >= 1, summons: (s) => (s.records?.bossesDefeated ?? 0) >= 1,
+  dungeons: (s) => (s.records?.bestStage ?? 1) >= 25 };
+export const missionOpen = (state, m) => !MISSION_GATE[m.type] || MISSION_GATE[m.type](state);
+export const openMissions = (state, period) => period.missions.filter((m) => missionOpen(state, m));
+
 export function bonusReady(state, periodId) {
   const period = missionPeriod(periodId);
   const run = state.missions[periodId];
-  return !run.bonus && period.missions.every((m) => run.claimed.includes(m.id));
+  return !run.bonus && openMissions(state, period).every((m) => run.claimed.includes(m.id));
 }
 
 export function claimMissionBonus(state, periodId) {

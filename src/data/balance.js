@@ -295,7 +295,7 @@ export const BALANCE = {
     signatureChance: 0.15, // chance qu'un boss lâche son objet signature
     bossEssence: 2, // « essences » garanties par boss (+1 par zone), versées en éclats (× ESSENCE_SHARDS) depuis la v9.1.3
     // Poids de chaque emplacement dans le butin (accessoires ≈ 1/3 des objets).
-    slotWeights: { weapon: 3, helmet: 2, armor: 2, amulet: 1, earring: 1, ring: 1, bracelet: 1 },
+    slotWeights: { weapon: 3, armor: 4, accessory: 4 }, // v9.3.4 (f) : 3 places (casque + armure, 4 bijoux réunis)
     // Effets spéciaux : nombre d'effets par rareté.
     affixCount: { common: 0, rare: 1, epic: 1, legendary: 2 },
     // v8.5 : chance qu'un objet appartienne à l'ensemble de son monde, par rareté.

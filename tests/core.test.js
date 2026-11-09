@@ -110,7 +110,8 @@ test('tri et filtre du sac', () => {
   addToInventory(state, makeItem(state, 'iron_helm', 'legendary', 1));
   addToInventory(state, makeItem(state, 'chainmail', 'rare', 1));
   assert.equal(listInventory(state, { sortBy: 'rarity' })[0].rarity, 'legendary');
-  assert.deepEqual(listInventory(state, { slot: 'armor' }).map((i) => i.baseId), ['chainmail']);
+  assert.deepEqual(listInventory(state, { slot: 'armor' }).map((i) => i.baseId), ['iron_helm', 'chainmail']); // v9.3.4 : la place « armure » inclut les casques
+  assert.deepEqual(listInventory(state, { slot: 'helmet' }).map((i) => i.baseId), ['iron_helm']);
   assert.equal(listInventory(state, { sortBy: 'recent' })[0].baseId, 'chainmail');
 });
 
@@ -128,7 +129,7 @@ test('recyclage groupé : jamais les améliorations, raretés au choix', () => {
   addToInventory(state, helm);
   equipItem(state, helm.id);
   const weak = makeItem(state, 'leather_hood', 'common', 1); // moins bon que le casque épique
-  const upgradeHelm = makeItem(state, 'chainmail', 'common', 1); // emplacement d'armure vide : amélioration
+  const upgradeHelm = makeItem(state, 'band_ring_ruby', 'common', 1); // v9.3.4 : place d'accessoire vide : amélioration
   const rareWeak = makeItem(state, 'leather_hood', 'rare', 1);
   const epic = makeItem(state, 'leather_hood', 'epic', 1);
   const legendary = makeItem(state, 'short_sword', 'legendary', 1);

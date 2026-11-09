@@ -74,8 +74,12 @@ test('Expéditions : une ligne par place, durée commune, plus de formulaire ré
   const s = createNewState(NOW);
   s.companions.owned.cat = { level: 1, stars: 1 };
   s.companions.owned.owl = { level: 1, stars: 1 };
+  s.companions.owned.golem = { level: 1, stars: 1 };
   const html = expeditions.render(uiWith(), s);
   assert.equal((html.match(/data-action="start-expedition"/g) ?? []).length, s.expeditions.slots.length);
+  // v9.3.5 (bug 2) : chaque place propose un compagnon différent.
+  const picks = [...html.matchAll(/<option value="([a-z_]+)" selected>/g)].map((m) => m[1]);
+  assert.equal(new Set(picks).size, picks.length, picks.join());
   assert.ok(!/exp-dur-sel/.test(html));
   assert.match(expeditions.render(uiWith({ expPerSlot: true, expDur: 'journey' }), s), /exp-dur-sel[\s\S]*\|journey\|/);
 });

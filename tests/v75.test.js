@@ -58,20 +58,22 @@ test('fusion : 5 objets gris d\'un emplacement donnent 1 objet bleu (niveau le p
   assert.equal(fuseItems(state, 'helmet', 'common', rng), null, 'plus assez d\'objets');
 });
 
-test('accessoires : 4 emplacements qui améliorent les statistiques secondaires', () => {
+test('accessoires : une place qui réunit les 4 bijoux et améliore les statistiques secondaires', () => { // v9.3.4 (f)
   const state = rich(7);
-  for (const slot of ACCESSORY_SLOTS) assert.ok(slot in SLOTS && slot in state.equipment, slot);
+  for (const slot of ACCESSORY_SLOTS) assert.ok(slot in SLOTS, slot);
+  assert.ok('accessory' in state.equipment);
   const ring = makeItem(state, 'band_ring_ruby', 'epic', 10, undefined, new Rng(1));
   assert.equal(ring.affixes[0].type, 'goldPct');
   state.inventory.push(ring);
   const before = collectBonuses(state).goldPct;
   equipItem(state, ring.id);
   assert.ok(collectBonuses(state).goldPct >= before + ring.affixes[0].value);
+  assert.equal(ring.parts.length, 3, 'collier, boucles et bracelet réunis');
   // Une ancienne sauvegarde sans emplacements d'accessoires se charge et les reçoit vides.
   const raw = JSON.parse(JSON.stringify(createNewState(0, 8)));
   raw.equipment = { weapon: raw.equipment.weapon, helmet: null, armor: null };
   const loaded = sanitizeState(raw);
-  for (const slot of ACCESSORY_SLOTS) assert.equal(loaded.equipment[slot], null);
+  assert.equal(loaded.equipment.accessory, null);
   // Les améliorations d'un objet survivent à la sauvegarde.
   const helm = makeItem(state, 'iron_helm', 'rare', 3);
   state.inventory.push(helm);

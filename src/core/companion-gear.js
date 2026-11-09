@@ -1,137 +1,165 @@
-// v9.3.3 : équipement des héros (alliés) et des familiers. Données : data/companion-gear.js.
-// state.companionGear = { bag: [pièces], nextId, equipped: { unitId: { offense, guard, trinket } (ids) } }.
-// Effets RÉELS (aucun bonus caché ; les auras sont seulement visuelles) :
+// v9.3.4 (f) : équipement unique. Les compagnons (héros alliés et familiers) portent les MÊMES objets que le
+// chevalier : ceux du sac (state.inventory), selon leur classe (Attaquant, Défenseur, Soutien, Familier).
+// state.companionGear = { equipped: { unitId: { weapon, armor, accessory } } } : objets portés (sortis du sac, comme
+// l'équipement du chevalier). Un objet porté par un compagnon lui donne les bonus de son profil de classe (data/
+// companion-gear.js, en %) × la rareté × (1 + 8 % par amélioration). Effets RÉELS :
 //   campagne et World Boss : atk → attaques et compétences offensives, heal → soins, boucliers et cris, cd → recharge ;
 //   Arène des compagnons : atk, hp, def (combats sans le chevalier).
-import { GEAR_BAG_SIZE, GEAR_BASES, GEAR_RARITY, GEAR_RECYCLE_SHARDS, GEAR_SLOTS, GEAR_UP_COST, GEAR_UP_PCT, SLOT_NAMES, STAT_NAMES, gearClassOf } from '../data/companion-gear.js';
+import { GEAR_BASES, GEAR_RARITY, GEAR_SLOTS, GEAR_UP_COST, GEAR_UP_PCT, SLOT_NAMES, STAT_NAMES, gearClassOf } from '../data/companion-gear.js';
 import { COMPANIONS } from '../data/companions.js';
+import { EQUIP_SLOTS, eqSlot } from '../data/items.js';
+import { BALANCE } from '../data/balance.js';
+import { itemClass } from './classes.js';
 
 const unitById = (id) => COMPANIONS.find((c) => c.id === id);
 export const CD_CAP = 30; // réduction de recharge maximale (%)
+// Place commune → ancien emplacement des compagnons (profils de data/companion-gear.js).
+export const TO_GEAR_SLOT = { weapon: 'offense', armor: 'guard', accessory: 'trinket' };
+export const FROM_GEAR_SLOT = { offense: 'weapon', guard: 'armor', trinket: 'accessory' };
+// Profil par défaut d'une classe pour chaque place (les pièces converties de 9.3.3 gardent le leur : `cg`).
+const PROFILE = {
+  attacker: { offense: 'runeblade', guard: 'leather', trinket: 'ring' },
+  defender: { offense: 'runeblade', guard: 'plate', trinket: 'emblem' },
+  support: { offense: 'focus', guard: 'robe', trinket: 'talisman' },
+  beast: { offense: 'fangs', guard: 'collar', trinket: 'rune' },
+};
 
 export function gearState(state) {
-  state.companionGear ??= { bag: [], nextId: 1, equipped: {} };
+  state.companionGear ??= { equipped: {} };
+  state.companionGear.equipped ??= {};
   return state.companionGear;
 }
-export const gearBase = (item) => GEAR_BASES.find((b) => b.id === item?.baseId);
+// Profil de bonus d'un objet porté par un compagnon (classe de l'objet, place).
+export function gearBase(item, state = null) {
+  if (!item) return null;
+  if (item.cg) return GEAR_BASES.find((b) => b.id === item.cg) ?? null;
+  const cls = state ? itemClass(state, item) : (item.cls ?? 'attacker');
+  return GEAR_BASES.find((b) => b.id === PROFILE[cls]?.[TO_GEAR_SLOT[eqSlot(item)]]) ?? null;
+}
+const ups = (item) => item?.upgrades ?? item?.up ?? 0;
 
-// Statistiques d'une pièce (rareté × amélioration).
-export function gearStats(item) {
-  const base = gearBase(item);
+// Statistiques d'une pièce pour un compagnon (rareté × amélioration).
+export function gearStats(item, state = null) {
+  const base = gearBase(item, state);
   if (!base) return {};
-  const k = (GEAR_RARITY[item.rarity]?.mult ?? 1) * (1 + GEAR_UP_PCT / 100 * (item.up ?? 0));
+  const k = (GEAR_RARITY[item.rarity]?.mult ?? 1) * (1 + GEAR_UP_PCT / 100 * ups(item));
   return Object.fromEntries(Object.entries(base.stats).map(([s, v]) => [s, Math.round(v * k * 10) / 10]));
 }
+// Objets portés par un compagnon, par place commune (weapon, armor, accessory).
 export function unitGear(state, unitId) {
-  const g = gearState(state);
-  const slots = g.equipped[unitId] ?? {};
-  return Object.fromEntries(GEAR_SLOTS.map((s) => [s, g.bag.find((i) => i.id === slots[s]) ?? null]));
+  const slots = state.companionGear?.equipped?.[unitId] ?? {};
+  return Object.fromEntries(Object.keys(EQUIP_SLOTS).map((s) => [s, slots[s] ?? null]));
 }
 // Total des statistiques portées par une unité (somme des pièces, réduction de recharge plafonnée).
 export function unitGearStats(state, unitId) {
   const out = { atk: 0, hp: 0, def: 0, heal: 0, cd: 0 };
   if (!state.companionGear) return out;
-  for (const item of Object.values(unitGear(state, unitId))) for (const [s, v] of Object.entries(gearStats(item))) out[s] += v;
+  for (const item of Object.values(unitGear(state, unitId))) for (const [s, v] of Object.entries(gearStats(item, state))) out[s] += v;
   out.cd = Math.min(CD_CAP, out.cd);
   return out;
 }
 
-// Compatibilité : définie par la base (classes) ; raison lisible si refus.
+const CLASS_NAMES = { attacker: 'Attaquant', defender: 'Défenseur', support: 'Soutien', beast: 'Familier' };
+export const classLabel = (cls) => CLASS_NAMES[cls] ?? '';
+// Compatibilité : la classe de l'objet doit être celle de l'unité ; raison lisible si refus.
 export function canEquip(state, unitId, item) {
   const unit = unitById(unitId);
-  const base = gearBase(item);
-  if (!unit || !base) return { ok: false, reason: 'Pièce inconnue.' };
+  if (!unit || !item) return { ok: false, reason: 'Objet inconnu.' };
   if (!state.companions.owned[unitId]) return { ok: false, reason: `${unit.name} n'est pas encore obtenu.` };
   const cls = gearClassOf(unit);
-  if (!base.classes.includes(cls)) {
-    const names = { attacker: 'Attaquants', defender: 'Défenseurs', support: 'Soutiens', beast: 'Familiers' };
-    return { ok: false, reason: `Réservé aux ${base.classes.map((c) => names[c]).join(', ')} (${unit.name} : ${names[cls].slice(0, -1).toLowerCase()}).` };
-  }
+  const ic = itemClass(state, item);
+  if (ic !== cls) return { ok: false, reason: `Pour : ${CLASS_NAMES[ic]}` };
   return { ok: true, reason: '' };
 }
+// Équipe un objet du sac ; l'ancien retourne au sac.
 export function equipGear(state, unitId, itemId) {
-  const g = gearState(state);
-  const item = g.bag.find((i) => i.id === itemId);
+  const item = state.inventory.find((i) => i.id === itemId);
   if (!item || !canEquip(state, unitId, item).ok) return false;
-  const base = gearBase(item);
-  // Une pièce ne se porte que par une unité : retirée de son ancien porteur.
-  for (const slots of Object.values(g.equipped)) for (const s of GEAR_SLOTS) if (slots[s] === itemId) delete slots[s];
-  (g.equipped[unitId] ??= {})[base.slot] = itemId;
-  return true;
-}
-export function unequipGear(state, unitId, slot) {
-  const slots = gearState(state).equipped[unitId];
-  if (!slots?.[slot]) return false;
-  delete slots[slot];
-  return true;
-}
-export const isWorn = (state, itemId) => Object.values(gearState(state).equipped).some((s) => GEAR_SLOTS.some((k) => s[k] === itemId));
-export function wearerOf(state, itemId) {
-  return Object.entries(gearState(state).equipped).find(([, s]) => GEAR_SLOTS.some((k) => s[k] === itemId))?.[0] ?? null;
-}
-
-// Butin : pièce au hasard (rareté pondérée, `minRarity` facultatif), classe ciblée facultative.
-export function rollGear(state, rng, { cls = null, minRarity = 'common' } = {}) {
+  const slot = eqSlot(item);
   const g = gearState(state);
-  if (g.bag.length >= GEAR_BAG_SIZE) return null;
-  const order = Object.keys(GEAR_RARITY);
-  const pool = Object.entries(GEAR_RARITY).filter(([r]) => order.indexOf(r) >= order.indexOf(minRarity));
-  const total = pool.reduce((a, [, v]) => a + v.weight, 0);
-  let x = rng.next() * total, rarity = pool[0][0];
-  for (const [r, v] of pool) { x -= v.weight; if (x <= 0) { rarity = r; break; } }
-  const bases = GEAR_BASES.filter((b) => !cls || b.classes.includes(cls));
-  const base = bases[Math.floor(rng.next() * bases.length)];
-  const item = { id: g.nextId++, baseId: base.id, rarity, up: 0 };
-  g.bag.push(item);
+  const slots = (g.equipped[unitId] ??= {});
+  state.inventory = state.inventory.filter((i) => i !== item);
+  if (slots[slot]) state.inventory.push(slots[slot]);
+  slots[slot] = item;
+  return true;
+}
+// Retire un objet (place commune ou ancien nom d'emplacement) : retour au sac, même plein (jamais perdu).
+export function unequipGear(state, unitId, slot) {
+  const s = FROM_GEAR_SLOT[slot] ?? slot;
+  const slots = gearState(state).equipped[unitId];
+  const item = slots?.[s];
+  if (!item) return false;
+  delete slots[s];
+  state.inventory.push(item);
+  return true;
+}
+export const isWorn = (state, itemId) => Boolean(wearerOf(state, itemId));
+export function wearerOf(state, itemId) {
+  for (const [unit, slots] of Object.entries(state.companionGear?.equipped ?? {})) if (Object.values(slots).some((i) => i?.id === itemId)) return unit;
+  return null;
+}
+// Tous les objets portés par les compagnons (identifiants, sauvegarde).
+export const wornItems = (state) => Object.values(state.companionGear?.equipped ?? {}).flatMap((s) => Object.values(s)).filter(Boolean);
+
+// Butin : un objet commun (même génération que celui des monstres), d'une classe de l'équipe sauf `cls` imposée.
+// Générateur branché par core/inventory.js (évite un cycle loot → classes → companion-gear).
+let gen = null;
+export function setGearGenerator(fn) { gen = fn; }
+export function rollGear(state, rng, { cls = null, minRarity = 'common' } = {}) {
+  if (!gen) return null;
+  const item = gen(state, rng, { minRarity });
+  if (!item) return null;
+  if (cls) item.cls = cls;
   return item;
 }
 
 export function gearUpgradeCost(item, killGold) {
   const r = GEAR_RARITY[item.rarity];
-  if (!r || (item.up ?? 0) >= r.maxUp) return null;
-  const f = GEAR_UP_COST.rarity[item.rarity] ?? 1, n = item.up ?? 0;
+  if (!r || ups(item) >= r.maxUp) return null;
+  const f = GEAR_UP_COST.rarity[item.rarity] ?? 1, n = ups(item);
   return { shards: Math.ceil(GEAR_UP_COST.shards * f * GEAR_UP_COST.shardsGrowth ** n), gold: Math.ceil(GEAR_UP_COST.kills * f * GEAR_UP_COST.killsGrowth ** n * killGold) };
 }
+const findAny = (state, itemId) => state.inventory.find((i) => i.id === itemId) ?? wornItems(state).find((i) => i.id === itemId);
 export function upgradeGear(state, itemId, killGold) {
-  const item = gearState(state).bag.find((i) => i.id === itemId);
+  const item = findAny(state, itemId);
   const cost = item && gearUpgradeCost(item, killGold);
   if (!cost || state.gold < cost.gold || state.materials.shards < cost.shards) return null;
   state.gold -= cost.gold;
   state.materials.shards -= cost.shards;
-  item.up = (item.up ?? 0) + 1;
-  return item.up;
+  item.upgrades = ups(item) + 1;
+  return item.upgrades;
 }
+// Recyclage depuis la fiche d'un compagnon : objet du sac seulement (jamais un objet porté ou verrouillé).
 export function recycleGear(state, itemId) {
-  const g = gearState(state);
-  const item = g.bag.find((i) => i.id === itemId);
-  if (!item || isWorn(state, itemId) || item.locked) return 0;
-  g.bag = g.bag.filter((i) => i !== item);
-  const shards = GEAR_RECYCLE_SHARDS[item.rarity] ?? 1;
+  const item = state.inventory.find((i) => i.id === itemId);
+  if (!item || item.locked) return 0;
+  state.inventory = state.inventory.filter((i) => i !== item);
+  const shards = BALANCE.materials.shards[item.rarity] ?? 1;
   state.materials.shards += shards;
   return shards;
 }
 
-export const slotName = (unit, slot) => SLOT_NAMES[gearClassOf(unit)][slot];
+export const slotName = (unit, slot) => SLOT_NAMES[gearClassOf(unit)][TO_GEAR_SLOT[slot] ?? slot];
 export function statText(stats) {
   return Object.entries(stats).filter(([, v]) => v).map(([k, v]) => `${k === 'cd' ? '−' : '+'}${v} % ${STAT_NAMES[k]}`).join(', ');
 }
+export { GEAR_SLOTS };
 
-export function sanitizeCompanionGear(state, raw) {
+// Relecture : nouveau format { equipped: { unit: { weapon, armor, accessory } } } (objets complets, nettoyés par
+// `clean`) ; l'ancien format 9.3.3 ({ bag, equipped: ids }) est converti par migrateCompanionGear (state.js).
+export function sanitizeCompanionGear(state, raw, { isValid = () => false, clean = (x) => x } = {}) {
   const g = raw?.companionGear;
-  if (!g || typeof g !== 'object') { state.companionGear = null; return; }
-  const int = (v, d = 0) => (Number.isInteger(v) && v >= 0 ? v : d);
-  const bag = (Array.isArray(g.bag) ? g.bag : []).slice(0, GEAR_BAG_SIZE)
-    .filter((i) => i && Number.isInteger(i.id) && GEAR_BASES.some((b) => b.id === i.baseId) && GEAR_RARITY[i.rarity])
-    .map((i) => ({ id: i.id, baseId: i.baseId, rarity: i.rarity, up: Math.min(int(i.up), GEAR_RARITY[i.rarity].maxUp), ...(i.locked ? { locked: true } : {}) }));
-  const ids = new Set(bag.map((i) => i.id));
-  const equipped = {};
+  state.companionGear = { equipped: {} };
+  if (!g || typeof g !== 'object' || Array.isArray(g.bag)) return;
   for (const [unit, slots] of Object.entries(g.equipped && typeof g.equipped === 'object' ? g.equipped : {})) {
-    if (!unitById(unit) || !slots || typeof slots !== 'object') continue;
-    for (const s of GEAR_SLOTS) {
-      const id = slots[s];
-      const item = bag.find((i) => i.id === id);
-      if (ids.has(id) && gearBase(item)?.slot === s && gearBase(item).classes.includes(gearClassOf(unitById(unit)))) (equipped[unit] ??= {})[s] = id;
+    const u = unitById(unit);
+    if (!u || !slots || typeof slots !== 'object') continue;
+    for (const s of Object.keys(EQUIP_SLOTS)) {
+      const it = slots[s];
+      if (!isValid(it) || eqSlot(it) !== s) continue;
+      const item = clean(it);
+      if (itemClass(state, item) === gearClassOf(u)) (state.companionGear.equipped[unit] ??= {})[s] = item;
+      else state.inventory.push(item); // classe devenue incompatible : rendu au sac
     }
   }
-  state.companionGear = { bag, nextId: Math.max(int(g.nextId, 1), ...bag.map((i) => i.id + 1), 1), equipped };
 }

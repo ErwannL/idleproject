@@ -1,5 +1,5 @@
 // État persistant de la partie (tout ce qui est sauvegardé) et validation au chargement.
-import { locateStage, stagesPerCycle } from './combat.js';
+import { levelForStage, locateStage, stagesPerCycle } from './combat.js';
 import { ZONES } from '../data/zones.js';
 import { migrateOceanWorld } from './migrations-v920.js';
 import { migrateEconomy928 } from './migrations-v928.js'; // v9.2.8 : économie du document du producteur
@@ -9,7 +9,7 @@ import { cleanWishlist } from './gacha.js';
 import { sanitizeCosmetics } from './cosmetics.js';
 import { emptyTimes, sanitizeTimes } from './times.js';
 import { BALANCE } from '../data/balance.js';
-import { AFFIXES, RARITIES, SLOTS, STARTER_WEAPON, STAT_LABELS } from '../data/items.js';
+import { AFFIXES, EQUIP_SLOTS, RARITIES, SLOTS, STARTER_WEAPON, STAT_LABELS, eqSlot } from '../data/items.js';
 import { BOSSES } from '../data/enemies.js';
 import { COMPANION_RULES } from '../data/companions.js';
 import { BANNER_RULES, UNITS } from '../data/banners.js';
@@ -41,7 +41,7 @@ import { STARTER_CLASS } from '../data/classes.js';
 import { seedEncyclopedia } from './encyclopedia.js';
 import { emptyExpeditions, sanitizeExpeditions } from './expeditions.js';
 import { setById } from './sets.js';
-import { STASH_OVERFLOW, STASH_SIZE } from './stash.js';
+import { STASH_OVERFLOW, STASH_SIZE, placeItem } from './stash.js';
 import { museumItems } from './museum.js';
 import { sanitizeBounty } from './bounty.js';
 import { emptyTranscend, sanitizeTranscend } from './transcend.js';
@@ -52,14 +52,16 @@ import { MISSION_TRACK } from '../data/missions.js';
 import { grantReward } from './rewards.js';
 import { ENCYCLOPEDIA_SECTIONS } from './encyclopedia.js';
 import { MIGRATED_SKILLS, cleanSkills } from './progression.js'; // v9.3.3
-import { sanitizeCompanionGear } from './companion-gear.js';
+import { sanitizeCompanionGear, wornItems } from './companion-gear.js';
+import { GEAR_BASES } from '../data/companion-gear.js';
+import { migrateCompanionGear934, migrateEquipment934 } from './migrations-v934.js'; // v9.3.4 (f)
 
 // v1 : prototype · v2 (format identique) · v3 : pouvoirs, Renaissance, verrou
 // v4 : niveau, compétences, héros, compagnons, invocation, contrats, événements, matériaux, donjons.
 // v8 (v9.1.3) : refontes du lot E et F, conversions indépendantes dans core/migrations-v913.js.
 // v9 (v9.2.0, monde marin) : Royaume englouti inséré en monde 11 (étapes > 200 converties, core/migrations-v920.js).
 // v10 (v9.2.8) : économie du document du producteur (bannières, tickets, cosmétiques sans bonus ; migrations-v928.js).
-export const SAVE_VERSION = 11; // v9.3.3 : niveaux de compétence des héros et familiers, ressources universelles
+export const SAVE_VERSION = 12; // v9.3.4 (f) : équipement unique (3 places, objets partagés héros / compagnons)
 export const SAVE_VERSION_PREV = 10; // v8.4 : nouvel équilibrage (remboursement des améliorations) · v8.5 : arbre de 500 talents (fragments remboursés)
 export const SORT_OPTIONS = ['rarity', 'level', 'power', 'recent'];
 
@@ -75,7 +77,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     kills: 0,
     autoAdvance: true,
     farmBoss: null, // v9.0.4 : boss réaffronté en boucle depuis le Codex
-    equipment: Object.fromEntries(Object.keys(SLOTS).map((slot) => [slot, null])),
+    equipment: Object.fromEntries(Object.keys(EQUIP_SLOTS).map((slot) => [slot, null])),
     inventory: [],
     nextItemId: 1,
     rngSeed: seed >>> 0,
@@ -173,7 +175,21 @@ function cleanItem(item) {
     rarity: item.rarity, level: item.level, stats: { ...item.stats }, affixes, effect: null,
     locked: item.locked === true, upgrades: int(item.upgrades, 0), boosts,
     ...(setById(item.set) ? { set: item.set } : {}),
+    ...(cleanParts(item.parts).length ? { parts: cleanParts(item.parts) } : {}),
+    ...(GEAR_CLASS_IDS.includes(item.cls) ? { cls: item.cls } : {}),
+    ...(GEAR_BASES.some((b) => b.id === item.cg) ? { cg: item.cg } : {}),
   };
+}
+// v9.3.4 (f) : pièces réunies dans une place (casque dans l'armure, bijoux dans l'accessoire).
+const GEAR_CLASS_IDS = ['attacker', 'defender', 'support', 'beast'];
+function cleanParts(parts) {
+  if (!Array.isArray(parts)) return [];
+  return parts.slice(0, 3).filter((p) => p && itemBase(p.baseId) && p.stats && typeof p.stats === 'object'
+    && Object.entries(p.stats).every(([k, v]) => k in STAT_LABELS && Number.isFinite(v)))
+    .map((p) => ({ baseId: p.baseId, stats: { ...p.stats },
+      ...(rarityById(p.rarity) ? { rarity: p.rarity } : {}), ...(Number.isInteger(p.level) && p.level >= 1 ? { level: p.level } : {}),
+      ...(p.boosts && typeof p.boosts === 'object' ? { boosts: Object.fromEntries(Object.entries(p.boosts).filter(([, v]) => Number.isInteger(v) && v > 0)) } : {}),
+      affixes: (Array.isArray(p.affixes) ? p.affixes : []).filter((a) => a && a.type in AFFIXES && Number.isFinite(a.value)).map((a) => ({ type: a.type, value: a.value })) }));
 }
 
 const int = (v, fallback, min = 0) => (Number.isInteger(v) && v >= min ? v : fallback);
@@ -299,7 +315,7 @@ function cleanActivities(state, raw) {
   sanitizeTower(state, raw);
   state.achievements = sanitizeAchievements(raw.achievements);
   const br = raw.bossRetry;
-  state.bossRetry = br && Number.isInteger(br.stage) && br.stage > 0 && Number.isFinite(br.power) && br.power > 0 ? { stage: br.stage, power: br.power } : null;
+  state.bossRetry = br && Number.isInteger(br.stage) && br.stage > 0 && Number.isFinite(br.power) && br.power > 0 ? { stage: br.stage, power: br.power, ...(Number.isFinite(br.hpPct) && br.hpPct >= 0 && br.hpPct <= 100 ? { hpPct: Math.round(br.hpPct) } : {}) } : null;
   if (state.tower && raw.dungeon) state.tower = null; // jamais les deux à la fois
   state.loadouts = sanitizeLoadouts(raw.loadouts);
   state.fusionPity = sanitizeFusionPity(raw.fusionPity);
@@ -308,7 +324,6 @@ function cleanActivities(state, raw) {
   state.companions.equipped = state.companions.equipped.filter((id) => !state.expeditions.slots.some((s) => s?.companionId === id));
   sanitizeChallenge(state, raw);
   sanitizeArena(state, raw);
-  sanitizeCompanionGear(state, raw);
   state.transcend = sanitizeTranscend(raw.transcend);
   state.bounty = sanitizeBounty(raw.bounty);
   state.codex = sanitizeCodex(raw.codex);
@@ -417,6 +432,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   if (!raw || typeof raw !== 'object') return state;
   if (int(raw.version, 1) < 5) raw = migrateTo20Stages(raw);
   if (int(raw.version, 1) < 9) raw = migrateOceanWorld(raw); // v9.2.0 (monde marin)
+  if (int(raw.version, 1) < 12) raw = migrateEquipment934(raw); // v9.3.4 (f) : 3 places
 
   state.createdAt = num(raw.createdAt, now);
   state.lastSaved = num(raw.lastSaved, now);
@@ -454,9 +470,9 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   state.rngSeed = int(raw.rngSeed, state.rngSeed);
 
   if (raw.equipment && typeof raw.equipment === 'object') {
-    for (const slot of Object.keys(SLOTS)) {
+    for (const slot of Object.keys(EQUIP_SLOTS)) {
       const item = raw.equipment[slot];
-      state.equipment[slot] = isValidItem(item) && item.slot === slot ? cleanItem(item) : null;
+      state.equipment[slot] = isValidItem(item) && eqSlot(item) === slot ? cleanItem(item) : null;
     }
   }
   const items = Array.isArray(raw.inventory) ? raw.inventory.filter(isValidItem) : [];
@@ -534,10 +550,17 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   migrateMissionTrack(state, raw.missions, periodKey('monthly', now), MISSION_TRACK, (r) => grantReward(state, r));
 
   // Identifiants uniques : nextItemId dépasse tous les identifiants existants (sac, équipement, boîte).
-  const used = [...state.inventory, ...Object.values(state.equipment), ...state.inbox.map((e) => e.item), ...state.stash, ...museumItems(state)]
+  // v9.3.4 (f) : équipement des compagnons (objets communs) ; l'ancien sac 9.3.3 est converti une fois.
+  sanitizeCompanionGear(state, raw, { isValid: isValidItem, clean: cleanItem });
+  const nextId = () => Math.max(int(raw.nextItemId, 1, 1), ...[...state.inventory, ...wornItems(state), ...Object.values(state.equipment), ...state.inbox.map((e) => e.item), ...state.stash, ...museumItems(state)]
     .filter(Boolean)
-    .map((i) => Number.parseInt(i.id.slice(2), 10));
-  state.nextItemId = Math.max(int(raw.nextItemId, 1, 1), ...used.map((n) => n + 1), 1);
+    .map((i) => Number.parseInt(i.id.slice(2), 10) + 1), 1);
+  if (int(raw.version, 1) < 12) {
+    state.nextItemId = nextId(); // v9.3.4 (f) : les objets convertis ne doivent pas reprendre l'identifiant d'un objet existant
+    migrateCompanionGear934(state, raw, { make: (b, r, l) => makeItem(state, b, r, l, balance), place: (it) => placeItem(state, it, balance),
+      level: levelForStage(Math.max(1, state.maxStage), balance) });
+  }
+  state.nextItemId = Math.max(state.nextItemId, nextId());
   seedEncyclopedia(state); // v9.0.5 : les objets possédés comptent comme découverts
 
   if (raw.ui && typeof raw.ui === 'object') {

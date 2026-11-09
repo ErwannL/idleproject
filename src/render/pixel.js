@@ -224,7 +224,18 @@ function drawWeapon(ctx, weapon, body, frame, ox, oy) {
   ctx.drawImage(img, ox + body.hand.x - grip.x, oy + body.hand.y - grip.y);
 }
 
+// v9.3.4 (f) : 3 places → visuels d'avant (casque et armure). L'armure porte souvent un casque (pièce réunie) :
+// chacun est dessiné à sa place. Une sauvegarde d'avant (clés helmet/armor) est lue telle quelle.
+export function visualGear(equipment) {
+  if (!equipment || 'helmet' in equipment) return equipment ?? {};
+  const a = equipment.armor;
+  const kinds = a ? [{ baseId: a.baseId, rarity: a.rarity }, ...(a.parts ?? []).map((p) => ({ baseId: p.baseId, rarity: p.rarity ?? a.rarity }))] : [];
+  const pick = (k) => kinds.find((x) => itemBase(x.baseId)?.slot === k) ?? null;
+  return { weapon: equipment.weapon ?? null, helmet: pick('helmet'), armor: pick('armor') };
+}
+
 export function heroComposite(frame, equipment, flash = false, cape = 'a', palette = null, flip = false) {
+  equipment = visualGear(equipment);
   const gear = ['weapon', 'helmet', 'armor']
     .map((slot) => (equipment[slot] ? `${equipment[slot].baseId}/${equipment[slot].rarity}` : '-'))
     .join(',');
@@ -343,7 +354,7 @@ function steelChars(pal) {
   return ramp;
 }
 export function knightGearCanvas(name, anim, head, pivot, neck, equipment, palette) {
-  const helmet = equipment?.helmet, armor = equipment?.armor;
+  const vg = visualGear(equipment); const helmet = vg?.helmet, armor = vg?.armor; // v9.3.4 (f)
   const key = `kgear|${name}|${helmet ? `${helmet.baseId}/${helmet.rarity}` : '-'}|${armor ? `${armor.baseId}/${armor.rarity}` : '-'}|${palette ? JSON.stringify(palette) : ''}|${head}`;
   let out = cache.get(key);
   if (out) return out;

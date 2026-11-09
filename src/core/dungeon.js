@@ -91,7 +91,7 @@ export function completeDungeon(state, rng, balance = BALANCE) {
   if (rng.next() < GEAR_SOURCES.dungeonClearChance) run.gear = rollGear(state, rng, { minRarity: 'rare' }); // v9.3.3
   recordRun(state, run, runReport(state, run, { won: true }));
   state.dungeon = null;
-  return { item, added: added.added, earned: run.earned };
+  return { item, added: added.added, earned: run.earned, id: run.id, difficulty: run.difficulty ?? 'easy', rank, first }; // v9.3.5 : écran de victoire
 }
 
 // v8.1 : rapport d'expédition (dernière tentative + meilleure par donjon et difficulté) :

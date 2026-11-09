@@ -1,9 +1,14 @@
 // Inventaire en 3 zones (équipement porté · fiche de l'objet · grille) et Forge.
 import { canEquip, classById, weaponClass } from '../../core/classes.js';
 import { companionById } from '../../core/companions.js';
+import { gearClassOf as gearClassOfUnit } from '../../data/companion-gear.js';
 import { BALANCE } from '../../data/balance.js';
 import { BOSSES } from '../../data/enemies.js';
-import { ACCESSORY_SLOTS, GEAR_SLOTS, RARITIES, SLOTS, STAT_LABELS } from '../../data/items.js';
+import { EQUIP_SLOTS, RARITIES, SLOTS, STAT_LABELS, eqSlot } from '../../data/items.js';
+import { canEquip as unitCanEquip, classLabel, gearStats, slotName, statText, unitGear, wearerOf, wornItems } from '../../core/companion-gear.js'; // v9.3.4 (f)
+import { heroGearClass, itemClass } from '../../core/classes.js';
+import { teamUpgradeFor } from '../../core/inventory.js';
+import { companionStill } from './expeditions.js';
 import { formatStat } from '../../core/format.js';
 import { canReforge, canTargetReroll, craftCost, fusionInheritOptions, fusionUsed, targetRerollChoices, targetRerollCost, fusableRarities, fusionChance, fusionGroups, fusionKeep, fusionPity, maxUpgrades, sharpenCost, upgradeCost } from '../../core/forge.js';
 import { KEEP_AFFIX_LABELS, bulkRecycleCandidates, isUpgrade, listInventory, RECYCLE_MODES, recycleRules } from '../../core/inventory.js';
@@ -49,10 +54,11 @@ function bonusRows(a, b, row) {
     .map(([k, [label, unit]]) => row(label, a[k] ?? 0, b[k] ?? 0, (v) => formatDecimal(v), unit)).join('');
 }
 
-function detail(ui, state, item) {
+function detail(ui, state, item, whoUnit = null) {
   const rarity = rarityById(item.rarity);
   const base = itemBase(item.baseId);
-  const isEquipped = state.equipment[item.slot]?.id === item.id;
+  const wearer = wearerOf(state, item.id); // v9.3.4 (f) : porté par un compagnon
+  const isEquipped = state.equipment[eqSlot(item)]?.id === item.id || Boolean(wearer);
   const stats = Object.entries(item.stats).map(([k, v]) => `<li>${img(STAT_ICONS[k])}${STAT_LABELS[k]}
     <b class="num ${v < 0 ? 'bad' : 'good'}">${formatStat(k, v, true)}</b></li>`).join('');
   const affixes = (item.affixes ?? []).map((a) => `<li class="affix">✦ ${affixText(a)}</li>`).join('');
@@ -70,7 +76,7 @@ function detail(ui, state, item) {
       return `<div class="compare-row"><span>${label}</span><span class="num muted">${fmt(a)}${unit} → ${fmt(b)}${unit}</span>
         <span class="num ${cls}">${diff > 0 ? '+' : ''}${fmt(diff)}${unit} ${arrow}</span></div>`;
     };
-    const current = state.equipment[item.slot];
+    const current = state.equipment[eqSlot(item)];
     const int = (v) => formatNumber(Math.round(v));
     const rows = [row('Dégâts/s', cur.dps, next.dps, (v) => formatDecimal(v)),
       row('Dégâts', cur.damage, next.damage, int),
@@ -119,7 +125,7 @@ function detail(ui, state, item) {
   const actions = `<div class="action-grid main-actions">
       ${isEquipped ? '<button class="btn btn-primary" disabled>Équipé</button>' : canEquip(state, item)
         ? `<button class="btn btn-primary primary-action" data-action="equip" data-id="${item.id}">Équiper</button>`
-        : `<button class="btn" disabled>Arme de ${escapeHtml(weaponClass(item.baseId).name)}</button>`}
+        : `<button class="btn" disabled>Pour : ${escapeHtml(weaponClass(item.baseId)?.name ?? classLabel(itemClass(state, item)))}</button>`}
       <button class="btn btn-outline-gold" data-action="recycle" data-id="${item.id}" ${item.locked || isEquipped ? 'disabled' : ''}>Recycler +${formatNumber(recycleValue(item, BALANCE, recycleLevelOf(state)))} ${coin()}${mats.shards ? ` +${mats.shards}${shard()}` : ''}</button>
     </div>
     ${!isEquipped && !canEquip(state, item) ? `<div class="muted">Changez de classe pour la porter : ${navPath('hero', 'Classe')}.</div>` : ''}`;
@@ -146,14 +152,23 @@ function detail(ui, state, item) {
   // v9.3.4 : popup d'objet — grande icône, nom coloré, pastilles, « Puissance +X » en gros, 3 statistiques au plus
   // (chacune une fois), Équiper / Recycler ; le reste (Améliorer, Verrouiller, Ranger, effets, ensemble) derrière « ⋯ ».
   const curP = computeHeroStats(state).combatPower;
-  const gain = isEquipped ? null : Math.round(statsWithItem(state, item).combatPower - curP);
-  const power = isEquipped ? '<div class="ip-power on">Porté</div>'
-    : `<div class="ip-power ${gain > 0 ? 'good' : gain < 0 ? 'bad' : 'muted'}">Puissance ${gain > 0 ? '+' : ''}${formatNumber(gain)}</div>`;
+  const forHero = !whoUnit && !wearer && canEquip(state, item);
+  const gain = isEquipped || !forHero ? null : Math.round(statsWithItem(state, item).combatPower - curP);
+  const unitFor = wearer ? companionById(wearer) : whoUnit;
+  const better = !forHero && !wearer ? teamUpgradeFor(state, item) : null;
+  const power = wearer ? `<div class="ip-power on">Porté par ${escapeHtml(companionById(wearer)?.name ?? '')}</div>`
+    : isEquipped ? '<div class="ip-power on">Porté</div>'
+    : forHero ? `<div class="ip-power ${gain > 0 ? 'good' : gain < 0 ? 'bad' : 'muted'}">Puissance ${gain > 0 ? '+' : ''}${formatNumber(gain)}</div>`
+    : `<div class="ip-power ${better ? 'good' : 'muted'}">${better ? `Meilleur pour ${escapeHtml(companionById(better)?.name ?? '')}` : `Pour : ${escapeHtml(classLabel(itemClass(state, item)))}`}</div>`;
+  const unitLine = unitFor || (!forHero && !wearer) ? `<div class="muted ip-unit">${escapeHtml(statText(gearStats(item, state)))}</div>` : '';
   const three = Object.entries(item.stats).slice(0, 3).map(([k, v]) => `<li>${img(STAT_ICONS[k])}${STAT_LABELS[k]} <b class="num">${formatStat(k, v, true)}</b></li>`).join('');
   const more = ui.view.itemMore === item.id;
-  const mainBtns = `${isEquipped ? '<button class="btn" disabled>Équipé</button>' : canEquip(state, item)
-      ? `<button class="btn btn-gold" data-action="equip" data-id="${item.id}">Équiper</button>`
-      : `<button class="btn" disabled>Pour : ${escapeHtml(weaponClass(item.baseId).name)}</button>`}
+  const unitTarget = whoUnit && unitCanEquip(state, whoUnit.id, item).ok ? whoUnit : better ? companionById(better) : null;
+  const mainBtns = `${wearer ? `<button class="btn" data-action="gear-unequip" data-value="${wearer}|${eqSlot(item)}">Retirer</button>`
+      : isEquipped ? '<button class="btn" disabled>Équipé</button>'
+      : unitTarget ? `<button class="btn btn-gold" data-action="gear-equip" data-value="${unitTarget.id}|${item.id}">Équiper sur ${escapeHtml(unitTarget.name)}</button>`
+      : forHero ? `<button class="btn btn-gold" data-action="equip" data-id="${item.id}">Équiper</button>`
+      : `<button class="btn" disabled>Pour : ${escapeHtml(item.cls && item.cls !== heroGearClass(state) ? classLabel(item.cls) : weaponClass(item.baseId)?.name ?? '')}</button>`}
     <button class="btn" data-action="recycle" data-id="${item.id}" ${item.locked || isEquipped ? 'disabled' : ''}>Recycler +${formatNumber(recycleValue(item, BALANCE, recycleLevelOf(state)))} ${coin()}${mats.shards ? ` +${mats.shards}${shard()}` : ''}</button>
     <button class="btn ip-more${more ? ' active' : ''}" data-action="item-more" data-value="${more ? '' : item.id}" aria-expanded="${more}" aria-label="Plus d'actions">⋯</button>`;
   const moreBody = more ? `<div class="ip-more-box">
@@ -167,9 +182,9 @@ function detail(ui, state, item) {
     <button class="btn small up-close" data-action="close-sheet" aria-label="Fermer">✕</button>
     <div class="ip-head">${itemFrame(item, { tag: 'div' })}
       <div><div class="ip-name r-${item.rarity}">${escapeHtml(item.name)}${ups ? ` +${ups}` : ''}</div>
-        <div class="ip-pills"><span class="rar-pill r-${item.rarity}">${rarity.label}</span><span class="role-pill">${SLOTS[item.slot]}</span>
+        <div class="ip-pills"><span class="rar-pill r-${item.rarity}">${rarity.label}</span><span class="role-pill">${EQUIP_SLOTS[eqSlot(item)]}</span><span class="role-pill cls-pill">${escapeHtml(classLabel(itemClass(state, item)))}</span>
         ${base.signature ? `<span class="role-pill">Butin de ${escapeHtml(BOSSES[base.signature].name)}</span>` : ''}</div></div></div>
-    ${power}<ul class="stat-list ip-stats">${three}</ul>
+    ${power}${unitLine}<ul class="stat-list ip-stats">${three}</ul>
     ${moreBody}
     <div class="up-actions">${mainBtns}</div>
   </div>`;
@@ -255,15 +270,19 @@ export function museumView(ui, state) {
 function bag(ui, state) {
   const items = visibleItems(state);
   const equippedItems = Object.values(state.equipment).filter(Boolean);
-  const all = [...state.inventory, ...equippedItems];
+  const all = [...state.inventory, ...equippedItems, ...wornItems(state)];
+  // v9.3.4 (f) : personnage choisi (héros ou compagnon de l'équipe) : ses 3 places, et le sac vu pour lui.
+  const team = (state.companions?.equipped ?? []).map((id) => companionById(id)).filter(Boolean);
+  const who = team.some((c) => c.id === ui.view.gearWho) ? ui.view.gearWho : 'hero';
+  const whoUnit = who === 'hero' ? null : companionById(who);
   let selected = all.find((i) => i.id === ui.view.selectedItemId);
   if (!selected) {
     selected = items[0] ?? state.equipment.weapon ?? equippedItems[0] ?? null;
     ui.view.selectedItemId = selected?.id ?? null;
   }
   const slotFrame = (slot) => {
-    const label = SLOTS[slot];
-    const item = state.equipment[slot];
+    const label = whoUnit ? slotName(whoUnit, slot) : EQUIP_SLOTS[slot];
+    const item = whoUnit ? unitGear(state, who)[slot] : state.equipment[slot];
     const frame = item
       ? itemFrame(item, { selected: item.id === ui.view.selectedItemId, equipped: true })
       : `<div class="item-frame empty named" title="${label} : aucun">${img(slotIconName(slot))}<small>${label}</small></div>`;
@@ -271,31 +290,40 @@ function bag(ui, state) {
   };
   // v9.1.3 (doc2 A13) : filtre d'emplacement en icônes sur la ligne du tri (il tient sans prendre de hauteur).
   // v9.1.3 (doc3 lot 4) : icône seule = aria-label ; en mode débutant, le mot court reste visible sous l'icône.
-  const FILTERS = [['all', 'Tous les objets', null, 'Tous'], ['weapon', 'Armes', 'weapon', 'Armes'], ['helmet', 'Casques', 'helmet', 'Casques'], ['armor', 'Armures', 'armor', 'Armures'], ['accessory', 'Accessoires', 'ring', 'Bijoux']];
+  const FILTERS = [['all', 'Tous les objets', null, 'Tous'], ['weapon', 'Armes', 'weapon', 'Armes'], ['armor', 'Armures', 'armor', 'Armures'], ['accessory', 'Accessoires', 'ring', 'Accessoires']];
   const filterChips = FILTERS.map(([v, l, slot, word]) => `<button class="btn chip-btn filter-chip${(state.ui.slotFilter ?? 'all') === v ? ' active' : ''}" data-action="filter" data-value="${v}"
       aria-label="${l}" title="${l}" aria-pressed="${(state.ui.slotFilter ?? 'all') === v}">${slot ? `${img(slotIconName(slot))}<span class="icon-word" aria-hidden="true">${word}</span>` : '<b>Tous</b>'}</button>`).join('');
   const sortOptions = Object.entries(SORT_LABELS)
     .map(([v, l]) => `<option value="${v}" ${v === state.ui.sortBy ? 'selected' : ''}>${l}</option>`).join('');
   const full = state.inventory.length >= BALANCE.loot.inventorySize;
-  const previewEq = selected ? { ...state.equipment, [selected.slot]: selected } : state.equipment;
+  const previewEq = selected && !whoUnit && eqSlot(selected) in EQUIP_SLOTS ? { ...state.equipment, [eqSlot(selected)]: selected } : state.equipment;
+  const whoBtn = (id, label, art) => `<button class="btn who-btn${who === id ? ' active' : ''}" data-action="gear-who" data-value="${id}" aria-pressed="${who === id}" title="${escapeHtml(label)}">${art}<small>${escapeHtml(label)}</small></button>`;
+  const whoRow = team.length ? `<div class="who-row" role="group" aria-label="Personnage">${whoBtn('hero', 'Héros', img('icon_hero'))}${team.map((c) => whoBtn(c.id, c.name, companionStill(c))).join('')}</div>` : '';
   const st = computeHeroStats(state);
-  const equipCol = `<div class="card inv-equip"><div class="section-title">Équipement porté</div>
-      <div class="equip-doll"><div class="slot-col">${GEAR_SLOTS.map(slotFrame).join('')}</div>
-        <div class="doll" title="Aperçu avec l'objet sélectionné">${animCanvas('hero', 64, 58, 2, `data-preview="${escapeHtml(JSON.stringify(previewEq))}"`)}</div>
-        <div class="slot-col acc">${ACCESSORY_SLOTS.map(slotFrame).join('')}</div></div>
-      <div class="inv-power"><small>Puissance</small><b class="num">${formatNumber(st.combatPower)}</b></div></div>`;
+  const PL = Object.keys(EQUIP_SLOTS);
+  const equipCol = `<div class="card inv-equip">${whoRow}
+      <div class="equip-doll"><div class="slot-col">${PL.slice(0, 2).map(slotFrame).join('')}</div>
+        <div class="doll" title="Aperçu avec l'objet sélectionné">${whoUnit ? companionStill(whoUnit) : animCanvas('hero', 64, 58, 2, `data-preview="${escapeHtml(JSON.stringify(previewEq))}"`)}</div>
+        <div class="slot-col acc">${PL.slice(2).map(slotFrame).join('')}</div></div>
+      ${whoUnit ? `<div class="inv-power"><small>${escapeHtml(classLabel(gearClassOfUnit(whoUnit)))}</small><b class="num">${escapeHtml(statText(Object.values(unitGear(state, who)).filter(Boolean).reduce((t, it) => { for (const [k, v] of Object.entries(gearStats(it, state))) t[k] = Math.round(((t[k] ?? 0) + v) * 10) / 10; return t; }, {}))) || '—'}</b></div>`
+        : `<div class="inv-power"><small>Puissance</small><b class="num">${formatNumber(st.combatPower)}</b></div>`}</div>`;
   // v9.1.3 (doc1 « Équipement : Sac ») : sur téléphone, les 7 cases portées en une ligne compacte en haut du sac
   // (comme la ligne d'équipement de la Fiche du héros) au lieu du mannequin placé sous la grille.
-  const gearRow = `<div class="inv-gear-row" aria-label="Équipement porté">${Object.keys(SLOTS).map(slotFrame).join('')}</div>`;
+  const gearRow = `<div class="inv-gear-row" aria-label="Équipement porté">${PL.map(slotFrame).join('')}</div>`;
   return `<div class="inv inv3">
     ${equipCol}
-    ${selected && ui.view.sheetOpen === 'item' ? detail(ui, state, selected) : ''}
+    ${selected && ui.view.sheetOpen === 'item' ? detail(ui, state, selected, whoUnit) : ''}
     <div class="card inv-list">
       ${gearRow}
       <div class="inv-tools"><div class="filter-chips" role="group" aria-label="Emplacement">${filterChips}</div>
         <select data-action="sort" aria-label="Trier">${sortOptions}</select>
         <select data-action="rarity-filter" aria-label="Rareté">${[['all', 'Toutes'], ...RARITIES.map((r) => [r.id, r.label])].map(([v, l]) => `<option value="${v}" ${v === (state.ui.rarityFilter ?? 'all') ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
-      <div class="inv-grid">${items.map((i) => itemFrame(i, { selected: i.id === ui.view.selectedItemId, showUp: true, state, current: st })).join('')
+      <div class="inv-grid">${items.map((i) => {
+        // v9.3.4 (f) : objet d'une autre classe que le personnage choisi : grisé, « Pour : … ».
+        const usable = whoUnit ? unitCanEquip(state, who, i).ok : canEquip(state, i);
+        const f = itemFrame(i, { selected: i.id === ui.view.selectedItemId, showUp: true, state, current: st });
+        return usable ? f : f.replace('class="item-frame', 'class="item-frame dim').replace(/<\/button>$/, `<span class="for-cls">${escapeHtml(classLabel(itemClass(state, i)))}</span></button>`);
+      }).join('')
         || '<div class="inv-empty">Aucun objet ici. Les ennemis laissent parfois tomber de l\'équipement.</div>'}</div>
       ${recycleButton(state)}
       ${full ? '<div class="bad">Sac plein : recyclez les objets inutiles ou rangez au coffre.</div>' : ''}

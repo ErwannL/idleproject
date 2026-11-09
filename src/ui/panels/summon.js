@@ -81,7 +81,7 @@ function resultsBlock(ui, pool) {
   if (!ui.view.lastSummon || normalizePool(ui.view.summonPool) !== pool) return '';
   return `<div class="summon-results">${ui.view.lastSummon.map((r) => `<div class="summon-result r-${r.rarity}${r.isNew ? ' new' : ''}">
     ${unitPortrait(r)}<span>${escapeHtml(r.name)}</span>
-    ${r.isNew ? '<b class="good">Nouveau !</b>' : r.overflow ? '<span class="muted">Converti</span>' : stars(duplicates({ stars: r.stars }))}
+    ${r.isNew ? '<b class="good">NOUVEAU</b>' : r.overflow ? '<span class="muted">Converti</span>' : `<b class="gold-text">+1 copie</b> <small class="muted">Copies : ${duplicates({ stars: r.stars }) + 1} / 6</small>`}
     ${r.featured ? '<b class="gold-text">Vedette</b>' : r.lost ? '<span class="muted">Pas la vedette</span>' : ''}
     ${r.ultimateUnlocked ? '<b class="ult-new">Ultime débloquée</b>' : ''}</div>`).join('')}</div>`;
 }

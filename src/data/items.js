@@ -11,6 +11,15 @@ export const SLOTS = {
   bracelet: 'Bracelet',
 };
 
+// v9.3.4 (f) : équipement unique. Trois places pour tout le monde (héros et compagnons) ; un objet garde son type
+// d'origine (`slot` : casque, anneau…) pour ses visuels et ses effets, et se range dans la place de son groupe.
+export const EQUIP_SLOTS = { weapon: 'Arme', armor: 'Armure', accessory: 'Accessoire' };
+export const SLOT_GROUP = { weapon: 'weapon', helmet: 'armor', armor: 'armor', amulet: 'accessory', earring: 'accessory', ring: 'accessory', bracelet: 'accessory' };
+export const eqSlot = (item) => SLOT_GROUP[item?.slot] ?? item?.slot;
+// Types réunis dans une place : un objet de la place porte une pièce de chaque autre type (`parts`), comme avant
+// le casque + l'armure et les 4 bijoux (même puissance par place).
+export const GROUP_KINDS = { weapon: ['weapon'], armor: ['armor', 'helmet'], accessory: ['amulet', 'earring', 'ring', 'bracelet'] };
+
 // Équipement porté visible sur le chevalier ; les accessoires améliorent seulement ses statistiques
 // secondaires (critique, vol de vie, or, butin…).
 export const GEAR_SLOTS = ['weapon', 'helmet', 'armor'];

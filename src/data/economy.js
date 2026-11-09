@@ -175,7 +175,7 @@ export const WALLET_KEYS = Object.keys(WALLET);
 // qu'aucun fournisseur n'est branché. `limit` = achats par mois civil (null = sans limite) ; `firstBonus` = bonus de
 // première acquisition (part en plus, une seule fois par produit).
 export const SHOP_CATEGORIES = [
-  { id: 'crystals', name: 'Cristaux' },
+  { id: 'crystals', name: 'Gemmes' },
   { id: 'heroTickets', name: 'Tickets héros' },
   { id: 'petTickets', name: 'Tickets familiers' },
   { id: 'subs', name: 'Abonnements' },
@@ -192,12 +192,12 @@ const heroTicket = (n, price, qty, docQty, limit) => ({ id: `hero_ticket_${n}`, 
 const petPack = (id, name, price, qty, limit = null) => ({ id: `pet_pack_${id}`, cat: 'petTickets', name, price, icon: `pet_pack_${id}`, give: { ticketPet: qty }, limit });
 
 export const PRODUCTS = [
-  crystal('mini', 'Cristaux Mini', 99, 300),
-  crystal('discovery', 'Cristaux Découverte', 499, 1800),
-  crystal('small', 'Cristaux Petit', 999, 3600),
-  crystal('medium', 'Cristaux Moyen', 1999, 7500),
-  crystal('large', 'Cristaux Grand', 4999, 20000),
-  crystal('premium', 'Cristaux Premium', 9999, 42000),
+  crystal('mini', 'Gemmes Mini', 99, 300), // v9.3.5 : un seul nom, « gemmes »
+  crystal('discovery', 'Gemmes Découverte', 499, 1800),
+  crystal('small', 'Gemmes Petit', 999, 3600),
+  crystal('medium', 'Gemmes Moyen', 1999, 7500),
+  crystal('large', 'Gemmes Grand', 4999, 20000),
+  crystal('premium', 'Gemmes Premium', 9999, 42000),
   heroTicket('I', 299, 3, 6, 5),
   heroTicket('II', 999, 13, 20, 3),
   heroTicket('III', 1999, 28, 45, 2),

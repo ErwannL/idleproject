@@ -61,6 +61,7 @@ test('v8.0 : un objet un peu plus de PV mais bien moins d’armure n’est pas u
   const locked = makeItem(s, 'iron_helm', 'common', 1);
   locked.stats = { maxHp: 1, armor: 0 };
   locked.locked = true;
+  for (const it of [helm, tradeoff, better, locked]) delete it.parts; // v9.3.4 : on compare les casques seuls (sans la pièce d'armure jointe)
   for (const it of [tradeoff, better, locked]) addToInventory(s, it);
   assert.equal(isUpgrade(s, tradeoff), false);
   assert.equal(isUpgrade(s, better), true);

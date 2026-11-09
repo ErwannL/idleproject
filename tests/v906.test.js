@@ -139,10 +139,10 @@ test('étape 2–3 : Renaissance au prorata de l\'étape, « Équiper le meilleu
   const weak = makeItem(s, 'short_sword', 'common', 1);
   const strong = makeItem(s, 'greatsword', 'legendary', 20);
   const helm = makeItem(s, 'iron_helm', 'rare', 5);
-  s.equipment.helmet = null;
+  s.equipment.armor = null; // v9.3.4 : le casque occupe la place « armure »
   s.inventory.push(weak, strong, helm);
   assert.equal(equipBest(s), 2);
   assert.equal(s.equipment.weapon.id, strong.id);
-  assert.equal(s.equipment.helmet.id, helm.id);
+  assert.equal(s.equipment.armor.id, helm.id);
   assert.equal(equipBest(s), 0);
 });

@@ -106,19 +106,19 @@ test('lot 0 : Renaissance impossible pendant un mode ; boucle de boss et retente
 test('lot 0 / lot 7 : builds — renommer, objets du coffre, nombre exact d\'objets introuvables', () => {
   const s = createNewState(NOW);
   const helm = makeItem(s, 'leather_hood', 'rare', 3);
-  s.equipment.helmet = helm;
+  s.equipment.armor = helm; // v9.3.4 : le casque occupe la place « armure »
   assert.ok(saveLoadout(s, 0));
   assert.ok(renameLoadout(s, 0, '  Farm   or  '));
   assert.equal(s.loadouts[0].name, 'Farm or');
   assert.equal(renameLoadout(s, 0, '   '), false);
   // Le casque part au coffre, l'arme portée est recyclée (introuvable).
-  s.equipment.helmet = null;
+  s.equipment.armor = null;
   s.stash.push(helm);
   s.loadouts[0].gear.weapon = 'it99999';
   const r = applyLoadout(s, 0, BALANCE);
   assert.equal(r.missing, 1);
   assert.equal(r.refused, 0);
-  assert.equal(s.equipment.helmet?.id, helm.id, 'repris du coffre');
+  assert.equal(s.equipment.armor?.id, helm.id, 'repris du coffre');
   // Déjà porté : ni introuvable ni refusé.
   s.loadouts[0].gear.weapon = s.equipment.weapon.id;
   assert.deepEqual(applyLoadout(s, 0, BALANCE), { missing: 0, refused: 0 });
@@ -131,7 +131,7 @@ test('lot 0 / lot 7 : builds — renommer, objets du coffre, nombre exact d\'obj
 test('lot 0 : le recyclage fait pour libérer le sac est compté dans le journal', () => {
   const s = createNewState(NOW);
   assert.equal(recycleRules(s).mode, 'full');
-  s.equipment.helmet = makeItem(s, 'iron_helm', 'epic', 80);
+  s.equipment.armor = makeItem(s, 'iron_helm', 'epic', 80); // v9.3.4 : place « armure »
   const journal = createJournal(s, NOW);
   while (s.inventory.length < BALANCE.loot.inventorySize) s.inventory.push(makeItem(s, 'leather_hood', 'common', 1));
   const r = collectItem(s, makeItem(s, 'leather_hood', 'rare', 50), BALANCE);
@@ -217,13 +217,18 @@ test('lot 1 : À récupérer — une seule liste, sac plein signalé, pastilles 
   assert.ok(byTab.contracts >= 2 && !byTab.inbox, JSON.stringify(byTab)); // v9.1.3 : trouvailles dans Missions (plus d'onglet À récupérer)
 });
 
-test('v9.1.3 : Prochaine action — récupérer, objet meilleur, boss à retenter, objectif ; jamais d\'achat conseillé', () => {
+test('v9.3.5 : Prochaine action — guide de tout le jeu, un clic fait l\'action', () => {
   const s = createNewState(NOW);
   assert.equal(nextAction(s, { claims: [] }).id, 'goal');
   s.gold = 1e9;
-  assert.equal(nextAction(s, { claims: [] }).id, 'goal', 'beaucoup d\'or : aucune amélioration conseillée');
-  s.inventory.push(makeItem(s, 'iron_helm', 'epic', 10));
-  assert.equal(nextAction(s, { claims: [] }).id, 'equip');
+  const up = nextAction(s, { claims: [] });
+  assert.equal(up.id, 'upgrade', 'amélioration rentable abordable');
+  assert.equal(up.action, 'buy');
+  assert.equal(nextAction(s, { claims: [], visible: { upgrades: false } }).id, 'goal', 'jamais une fonction encore cachée');
+  s.inventory.push(makeItem(s, 'band_ring_ruby', 'epic', 10));
+  const eq = nextAction(s, { claims: [] });
+  assert.equal(eq.id, 'equip');
+  assert.equal(eq.action, 'equip-best', 'équipe tout d\'un coup');
   s.contracts[0].progress = s.contracts[0].target;
   assert.equal(nextAction(s).id, 'claim');
   assert.equal(nextAction(s).action, 'claim-everything');
@@ -231,9 +236,11 @@ test('v9.1.3 : Prochaine action — récupérer, objet meilleur, boss à retente
   assert.equal(nextAction(s).id, 'mode-tower');
   s.tower = null;
   s.contracts[0].progress = 0;
-  const n = nextAction(s);
-  assert.equal(n.id, 'equip');
-  assert.equal(n.view.selectedItemId, betterItem(s).id);
+  s.inventory = [];
+  s.companions.owned.squire = { level: 1, stars: 1 };
+  const pl = nextAction(s, { claims: [] });
+  assert.equal(pl.id, 'place');
+  assert.equal(pl.value, 'squire');
 });
 
 test('lot 1 : rentabilité — seules les lignes de dégâts, achat du plus rentable sans dépasser l\'or', () => {
@@ -274,7 +281,7 @@ test('lot 5 : « Répartir mes points » équilibre entre les compétences appri
 
 test('lot 7 : filtre de recyclage « garder si… » protège les objets avec cet effet', () => {
   const s = createNewState(NOW);
-  s.equipment.helmet = makeItem(s, 'iron_helm', 'legendary', 99);
+  s.equipment.armor = makeItem(s, 'iron_helm', 'legendary', 99); // v9.3.4 : place « armure »
   const item = makeItem(s, 'leather_hood', 'common', 1);
   item.affixes = [{ type: 'lifesteal', value: 2 }];
   s.ui.recycle = { mode: 'full', rarities: ['common'], slots: ['helmet'], keepAffixes: [] };
@@ -326,16 +333,16 @@ test('migration : une partie de chaque format (v1 à v7) se charge sans rien per
   assert.equal(r.state.level, 3);
 });
 
-test('v9.1.3 : boss bloquant — objet meilleur d\'abord, puis « Retenter » ; pas de conseil d\'achat', () => {
+test('v9.3.5 : boss bloquant — objet meilleur d\'abord, puis « Boss : N % de vie restante »', () => {
   const s = createNewState(NOW);
   s.records.bossesDefeated = 3;
   s.maxStage = 15; s.stage = 14;
-  s.bossRetry = { stage: 15, power: 1e12 };
-  s.inventory.push(makeItem(s, 'iron_helm', 'epic', 10));
-  s.gold = 1e6;
-  assert.equal(nextAction(s, { claims: [] }).id, 'equip');
+  s.bossRetry = { stage: 15, power: 1e12, hpPct: 88 };
+  s.inventory.push(makeItem(s, 'band_ring_ruby', 'epic', 10));
+  assert.equal(nextAction(s, { claims: [], visible: { summon: false } }).id, 'equip');
   s.inventory = [];
-  const n = nextAction(s, { claims: [] });
+  const n = nextAction(s, { claims: [], visible: { summon: false } });
   assert.equal(n.id, 'retry');
+  assert.equal(n.text, 'Boss : 88 % de vie restante');
   assert.equal(n.action, 'retry-boss');
 });
