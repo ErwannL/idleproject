@@ -113,7 +113,7 @@ const TALL_MIN_HEIGHT = 420;
 const STRIP_MAX_HEIGHT = 190; // en dessous : mode barre (seulement la scène, comme une barre des tâches)
 const BULK_CONFIRM_MS = 4000;
 // Panneaux dont le contenu évolue pendant le farm : réaffichés au plus une fois par seconde.
-const LIVE_PANELS = new Set(['world', 'contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'looks', 'upgrades', 'companions', 'expeditions', 'encyclopedia', 'inbox', 'ranking', 'stats']);
+const LIVE_PANELS = new Set(['arena', 'world', 'contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'looks', 'upgrades', 'companions', 'expeditions', 'encyclopedia', 'inbox', 'ranking', 'stats']);
 
 // Renaissance : choix du seul pouvoir ancestral conservé.
 function powerChoice(state) {
@@ -1421,7 +1421,9 @@ export class UI {
     } else if (this.tab && !this.dirty) {
       this.refreshCosts(state);
       const now = performance.now();
-      if (LIVE_PANELS.has(this.tab) && now - this.lastLive > 1000) {
+      // v9.3.2 : relecture d'un combat de l'Arène : rafraîchie toutes les 120 ms (barres de PV, coups).
+      const every = this.tab === 'arena' && this.view.arenaRun ? 120 : 1000;
+      if (LIVE_PANELS.has(this.tab) && now - this.lastLive > every) {
         this.lastLive = now;
         if (!busy && this.liveKey(state) !== this.lastHud.live) this.renderPanel(state);
       }
