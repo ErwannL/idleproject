@@ -83,11 +83,13 @@ function isFrench(s) {
   if (/^[a-z-]+(?: +[a-z-]+)* ?$/.test(t) && !FR_WORD.test(t)) return false; // classes CSS « btn small active »
   if (/[{};=]|=>|\(\)|^\.|^#|^\[|https?:|\.(?:png|js|json|css|mp3|ogg)\b/.test(t)) return false;
   if (/^(?:rgba?|hsla?|var|translate|scale|rotate|linear-gradient|calc|url)\(/.test(t)) return false;
+  // v9.3.3 : valeurs CSS et classes générées (animations de l'interface) : jamais affichées comme texte.
+  if (/^(?:cubic-bezier|steps|circle|inset|translate[XY]?)\(|^:scope\b|^uvfx\b|^uvfx-loop\b|^tnode k-/.test(t)) return false;
   // v9.1.9 : code qui passait le filtre — dessins en caractères (render/art.js), clés de cache « hero|12|12 »,
   // sélecteurs CSS (« button, summary », « canvas[data-anim] »), requêtes média, classes avec valeurs, polices.
   if (!/\s/.test(t) && /[<>~^|@*&#!]/.test(t)) return false;
   if (/^[\w-]+(?:\|\w+)+$/.test(t) || /^\(?[a-z-]+(?:\[[^\]]*\])?(?:, ?[a-z-]+(?:\[[^\]]*\])?)*\)?$/.test(t) && !FR_WORD.test(t)) return false;
-  if (/^\((?:prefers|pointer|max|min)-/.test(t) || /^(?:[a-z-]+ )*[a-z-]+-12\d*$/.test(t) || /serif$|^"?Trebuchet|^Georgia/.test(t)) return false;
+  if (/^\((?:prefers|pointer|max|min)[-:]/.test(t) || /^(?:[a-z-]+ )*[a-z-]+-12\d*$/.test(t) || /serif$|^"?Trebuchet|^Georgia/.test(t)) return false;
   if (/^(?:Bearer|on v-)\b/.test(t) || /^[a-z]+_[a-z_…]+$/.test(t)) return false;
   return /[a-zà-ÿ]/i.test(t);
 }

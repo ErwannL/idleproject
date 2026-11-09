@@ -2043,3 +2043,7 @@ PATTERNS.unshift(...patterns929Stab(lookup));
 // v9.3.0 : attaques du Colosse du World Boss (./en-930.js) — sans écraser l'existant.
 import { EXACT_930 } from './en-930.js';
 for (const [k, v] of Object.entries(EXACT_930)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+// v9.3.2 / v9.3.3 : Arène, Guilde, World Boss mondial, affinités, armes, compétences, ressources, équipement (./en-932.js).
+import { EXACT_932, patterns932 } from './en-932.js';
+for (const [k, v] of Object.entries(EXACT_932)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.push(...patterns932(lookup)); // en dernier : les motifs existants (dates, etc.) gardent la priorité
