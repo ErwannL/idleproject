@@ -1,5 +1,18 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
+  "Coup rapide sur un ennemi": "적 하나에게 빠른 일격",
+  "Plus de dégâts un moment": "잠시 피해 증가",
+  "Gros coup qui soigne": "회복하는 강타",
+  "Touchez une compétence pour la voir.": "스킬을 눌러 확인하세요.",
+  "Coups fantômes en plus": "추가 유령 타격",
+  "Niveau maximal.": "최대 레벨.",
+  "Attaques": "공격",
+  "Boosts": "부스트",
+  "payées en points, lancées seules": "포인트로 강화, 자동 시전",
+  "payés en or, à utiliser": "골드로 강화, 직접 사용",
+  "Points à dépenser :": "사용할 포인트:",
+  "Apprendre": "배우기",
+  "Utiliser": "사용",
   "Aucun Légendaire possédé.": "보유한 전설 없음.",
   "Bonus permanent": "영구 보너스",
   "Chances en hausse": "확률 상승 중",
@@ -68,6 +81,9 @@ export const EXACT_934 = {
 let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
+  [new RegExp("^Pendant (\\d+) s, recharge (\\d+) min\\.$"), (m) => `${m[1]}초 동안, 재사용 ${m[2]}분.`],
+  [new RegExp("^Prêt dans (.+)$"), (m) => `${m[1]} 후 준비`],
+  [new RegExp("^Débloqué au niveau (\\d+) du héros\\.$"), (m) => `영웅 레벨 ${m[1]}에 해금.`],
   [new RegExp("^(.+), toutes les ([\\d.,]+) s\\.$"), (m) => (LK(m[1].trim()) ? `${LK(m[1].trim())}, ${m[2]}초마다.` : null)],
   [new RegExp("^, ultime Nv 6 à 10$"), (m) => ', 궁극기 Lv 6~10'],
   [new RegExp("^(\\d+) copies sur (\\d+)$"), (m) => `사본 ${m[1]} / ${m[2]}`],

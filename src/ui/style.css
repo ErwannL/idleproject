@@ -3101,3 +3101,18 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 .up-actions { position: sticky; bottom: 0; display: flex; gap: 8px; flex-wrap: wrap; padding: 10px 14px; background: var(--ui-bg); border-top: 1px solid var(--line); }
 .up-actions .btn { flex: 1; min-height: 44px; font-size: 14px; }
 .up-actions .replace-box { flex-basis: 100%; }
+/* v9.3.4 : compétences du héros en deux sections. */
+.sk2-points { margin: 4px 0 8px; font-size: 14px; }
+.sk2-head { display: flex; gap: 8px; align-items: baseline; margin: 10px 0 4px; } .sk2-head .toggle { margin-left: auto; }
+.sk2-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(74px, 1fr)); gap: 6px; }
+.sk2-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 84px; padding: 6px 2px; background: var(--ui-panel); border: 1px solid var(--line); border-radius: 8px; color: var(--text); font: inherit; cursor: pointer; }
+.sk2-cell.sel { border-color: var(--ui-gold); background: var(--ui-panel-on); }
+.sk2-cell.locked { opacity: .5; filter: grayscale(.7); }
+.sk2-ic { position: relative; } .sk2-ic > img { width: 36px; height: 36px; }
+.sk2-lv, .sk2-lock, .sk2-on { position: absolute; font-style: normal; font-size: 10px; font-weight: 800; border-radius: 6px; padding: 0 3px; }
+.sk2-lv { right: -16px; top: -4px; background: #10131c; color: var(--ui-gold); } .sk2-lock { right: -10px; bottom: -4px; } .sk2-lock img { width: 14px; height: 14px; }
+.sk2-on { left: -10px; top: -6px; background: var(--ui-gain); color: #10131c; }
+.sk2-name { font-size: 12px; font-weight: 700; text-align: center; line-height: 1.15; }
+.sk2-bubble { margin-top: 10px; padding: 10px; border: 1px solid var(--ui-gold); border-radius: 8px; background: var(--ui-panel-on); font-size: 14px; }
+.sk2-bubble p { margin: 4px 0; } .sk2-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; } .sk2-actions .btn { min-height: 44px; flex: 1; }
+.sk2-up img { width: 14px; height: 14px; vertical-align: middle; }

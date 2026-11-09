@@ -1,5 +1,18 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
+  "Coup rapide sur un ennemi": "Quick hit on one enemy",
+  "Plus de dégâts un moment": "More damage for a while",
+  "Gros coup qui soigne": "Big hit that heals",
+  "Touchez une compétence pour la voir.": "Tap a skill to see it.",
+  "Coups fantômes en plus": "Extra phantom hits",
+  "Niveau maximal.": "Max level.",
+  "Attaques": "Attacks",
+  "Boosts": "Boosts",
+  "payées en points, lancées seules": "paid with points, cast automatically",
+  "payés en or, à utiliser": "paid with gold, use them yourself",
+  "Points à dépenser :": "Points to spend:",
+  "Apprendre": "Learn",
+  "Utiliser": "Use",
   "Aucun Légendaire possédé.": "No Legendary owned.",
   "Bonus permanent": "Permanent bonus",
   "Chances en hausse": "Rising odds",
@@ -68,6 +81,9 @@ export const EXACT_934 = {
 let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
+  [new RegExp("^Pendant (\\d+) s, recharge (\\d+) min\\.$"), (m) => `For ${m[1]} s, cooldown ${m[2]} min.`],
+  [new RegExp("^Prêt dans (.+)$"), (m) => `Ready in ${m[1]}`],
+  [new RegExp("^Débloqué au niveau (\\d+) du héros\\.$"), (m) => `Unlocked at hero level ${m[1]}.`],
   [new RegExp("^(.+), toutes les ([\\d.,]+) s\\.$"), (m) => (LK(m[1].trim()) ? `${LK(m[1].trim())}, every ${m[2]} s.` : null)],
   [new RegExp("^, ultime Nv 6 à 10$"), (m) => ', ultimate Lv 6 to 10'],
   [new RegExp("^(\\d+) copies sur (\\d+)$"), (m) => `${m[1]} copies out of ${m[2]}`],
