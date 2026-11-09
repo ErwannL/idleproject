@@ -9,7 +9,7 @@ const LABELS = {
   gold: 'or', gems: 'gemmes', keys: 'clé(s)', fragments: 'fragments', shards: 'éclats',
   // v9.2.8 : monnaies de l'économie (tickets, fragments SSR universels, écus d'événement), dans state.economy.wallet.
   ticketLimited: 'ticket(s) limité(s)', ticketPermanent: 'ticket(s) permanent(s)', ticketPet: 'ticket(s) familier(s)',
-  ssrFragment: 'fragment(s) SSR universel(s)', eventCoins: 'écus',
+  ssrFragment: 'fragment(s) Légendaire(s) universel(s)', eventCoins: 'écus',
   grimoire: 'grimoire(s) de combat', ascension: "pierre(s) d'ascension", mastery: 'essence(s) de maîtrise', // v9.3.3
 };
 

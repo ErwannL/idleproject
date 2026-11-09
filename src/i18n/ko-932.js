@@ -191,7 +191,7 @@ export const EXACT_932 = {
   "· fragment SSR universel": "· 범용 SSR 조각",
   "+12 % dégâts reçus": "받는 피해 +12%",
 };
-const TYPES = { Rouge: '빨강', Bleu: '파랑', Vert: '초록', 'Lumière': '빛', 'Ténèbres': '어둠' };
+const TYPES = { Feu: '불', Eau: '물', Nature: '자연', Rouge: '빨강', Bleu: '파랑', Vert: '초록', 'Lumière': '빛', 'Ténèbres': '어둠' };
 const STATS = { Attaque: '공격', PV: 'HP', 'Défense': '방어', 'Soins et soutien': '치유·지원', Recharge: '재사용 대기' };
 const T = (x) => TYPES[x] ?? x;
 const G = (x) => x.replace(/([+−][\d.,]+) % ([^,]+)/g, (_, v, k) => `${v}% ${STATS[k.trim()] ?? k}`);

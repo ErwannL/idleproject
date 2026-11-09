@@ -2047,3 +2047,7 @@ for (const [k, v] of Object.entries(EXACT_930)) if (!Object.hasOwn(EXACT, k)) EX
 import { EXACT_932, patterns932 } from './en-932.js';
 for (const [k, v] of Object.entries(EXACT_932)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.push(...patterns932(lookup)); // en dernier : les motifs existants (dates, etc.) gardent la priorité
+// v9.3.4 : refonte de l'interface (./en-934.js).
+import { EXACT_934, patterns934 } from './en-934.js';
+for (const [k, v] of Object.entries(EXACT_934)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.push(...patterns934(lookup));

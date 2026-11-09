@@ -201,7 +201,7 @@ function heroView(ui, state) {
   const fmtHits = (h) => (h >= 100 ? '99+' : h < 1 ? '< 1' : formatDecimal(Math.floor(h * 10) / 10));
   const row = (iconName, label, value, cls = '') => `<div class="ss-row${cls}">${img(iconName)}<span class="ss-label">${label}</span><b class="ss-v num">${value}</b></div>`;
   const sheet = `<div class="card stat-sheet">
-      <div class="ss-pc">${img('icon_crown')}<span class="ss-pc-label">PC</span><b class="ss-pc-v num" title="Puissance de combat : moyenne des dégâts/s et des PV effectifs">${formatNumber(s.combatPower)}</b></div>
+      <div class="ss-pc">${img('icon_crown')}<span class="ss-pc-label">Puissance</span><b class="ss-pc-v num" title="Puissance de combat : moyenne des dégâts/s et des PV effectifs">${formatNumber(s.combatPower)}</b></div>
       <div class="ss-cols">
         <div class="ss-col">
           ${row('icon_damage', 'Attaque', formatNumber(s.damage))}

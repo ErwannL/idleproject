@@ -822,7 +822,7 @@ export class UI {
       case 'open-shop-skins': v.shopCat = 'skins'; this.openTab('shop'); break;
       case 'event-fight': {
         const r = a.eventFight(Number(value));
-        if (r && !r.error) v.eventLast = r.won ? `Victoire : +${r.reward.eventCoins} écus${r.reward.ssrFragment ? ' · fragment SSR universel' : ''}` : 'Défaite : renforcez le héros puis réessayez.';
+        if (r && !r.error) v.eventLast = r.won ? `Victoire : +${r.reward.eventCoins} écus${r.reward.ssrFragment ? ' · fragment Légendaire universel' : ''}` : 'Défaite : renforcez le héros puis réessayez.';
         this.invalidate();
         break;
       }

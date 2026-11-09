@@ -234,7 +234,7 @@ function companionCard(state, id) {
     <div class="enc-title rarity-text r-${c.rarity}">${escapeHtml(c.name)}</div>
     <div class="muted">${c.kind === 'ally' ? 'Compagnon' : 'Familier'} · <b class="rarity-text r-${c.rarity}">${grade}</b> · ${stars(duplicates(owned))}</div>
     <div class="enc-stats">${statRow('Niveau', owned.level ?? 1)}${statRow('Passif (niv. 1)', effectText(passive))}
-      ${statRow('Doublons', `${duplicates(owned)}/${COMPANION_RULES.maxCopies - 1}`)}</div>
+      ${statRow('Copies', `${duplicates(owned) + 1}/${COMPANION_RULES.maxCopies}`)}</div>
     <div class="section-title">Vitrine</div>${showcaseSlot('unit', c.id)}
     <div class="section-title">Compétences</div>
     ${allCompanionSkills(c.id).map((sk) => {

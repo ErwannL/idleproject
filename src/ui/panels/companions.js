@@ -104,9 +104,9 @@ export function skillsBlock(ui, state, c, owned) { // v9.1.3 (doc4 lot 5) : réu
   const active = card('active', `${img('skill_quick')} Active : ${escapeHtml(actives[0].name)}`, `<div class="muted">${effect(actives[0], 'active', lv.active)}</div>${nextLine(actives[0], 'active')}${extras}`);
   const ultimate = ult ? card('ultimate', `${img('icon_star')} Ultime : ${escapeHtml(ult.name)}`, `<div class="muted">${effect(ult, 'ultimate', lv.ultimate)}</div>${nextLine(ult, 'ultimate')}`) : '';
   const res = mine ? `<div class="skill-res">${RESOURCE_KEYS.map((k) => `<span title="${escapeHtml(SKILL_RESOURCES[k].use)}">${img(SKILL_RESOURCES[k].icon)} ${SKILL_RESOURCES[k].short} <b>${formatNumber(state.materials[k] ?? 0)}</b></span>`).join('')}</div>` : '';
-  return `<div class="cstats"><span>⚔ Attaque <b>${formatNumber(dps)}</b>/s</span> <span>Doublons : <b>+${dupBonusPct(own)} %</b> aux stats</span></div>
+  return `<div class="cstats"><span>⚔ Attaque <b>${formatNumber(dps)}</b>/s</span> <span>Copies : <b>+${dupBonusPct(own)} %</b> aux stats</span></div>
     <div class="section-title">Compétences</div>${res}${passive}${active}${ultimate}
-    <div class="muted dup-table">Doublons (bonus cumulés) : ${DUP_BONUS_PCT.map((p, i) => `<span class="${duplicates(own) + 1 > i ? 'good' : ''}">${i + 1} ex. ${p ? `+${p} %` : '—'}</span>`).join(' · ')} — le ${ULT_UNLOCK_COPIES}e ouvre l'ultime niv. 6 à 10.</div>`;
+    <div class="muted dup-table">Copies (bonus cumulés) : ${DUP_BONUS_PCT.map((p, i) => `<span class="${duplicates(own) + 1 > i ? 'good' : ''}">${i + 1} ex. ${p ? `+${p} %` : '—'}</span>`).join(' · ')} — le ${ULT_UNLOCK_COPIES}e ouvre l'ultime niv. 6 à 10.</div>`;
 }
 
 // v9.1.3 : synergies sans phrase d'ambiance (gardée en infobulle), actives en or.
