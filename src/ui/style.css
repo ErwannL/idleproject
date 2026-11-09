@@ -3167,8 +3167,8 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 /* v9.3.4 (h) : tutoriel des premières minutes — doigt animé et bulle courte. */
 #tuto-layer { position: fixed; inset: 0; pointer-events: none; z-index: 900; }
 .tuto-finger { position: fixed; font-size: 28px; line-height: 1; animation: tuto-tap 900ms ease-in-out infinite; filter: drop-shadow(0 2px 3px #000a); }
-.tuto-bubble { position: fixed; pointer-events: auto; background: var(--ui-panel, #222a3a); color: #fff; border: 2px solid var(--ui-gold, #f5c542);
+.tuto-bubble { position: fixed; pointer-events: none; background: var(--ui-panel, #222a3a); color: #fff; border: 2px solid var(--ui-gold, #f5c542);
   border-radius: 12px; padding: 8px 10px; font-size: 14px; box-shadow: 0 6px 18px #0008; display: flex; align-items: center; gap: 8px; justify-content: space-between; }
-.tuto-bubble .tuto-ok { min-height: 44px; min-width: 44px; }
+.tuto-bubble .tuto-ok { min-height: 44px; min-width: 44px; pointer-events: auto; }
 @keyframes tuto-tap { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
 @media (prefers-reduced-motion: reduce) { .tuto-finger { animation: none; } }

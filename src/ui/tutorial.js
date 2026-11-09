@@ -29,10 +29,11 @@ function visible(el) {
 }
 
 // Étape à montrer maintenant, ou null. `full` : sac plein (calculé par l'appelant).
-export function pickStep(state, root, full) {
+export function pickStep(state, root, full, panelOpen = false) {
   for (const st of TUTO_STEPS) {
     if (has(state, st.id) || !st.when(state, full)) continue;
     for (const sel of st.targets) {
+      if (panelOpen && sel.startsWith('#tabs')) continue; // panneau ouvert : pas de détour par le menu
       const el = root.querySelector(sel);
       if (visible(el)) return { step: st, el };
     }
@@ -47,10 +48,10 @@ export function markDone(state, id) {
 }
 
 // Dessine (ou retire) le doigt et la bulle. Appelé avec le rafraîchissement des pastilles (2 fois par seconde).
-export function updateTutorial(state, root, full, translate = (x) => x) {
+export function updateTutorial(state, root, full, panelOpen = false, translate = (x) => x) {
   if (typeof document === 'undefined') return;
   let layer = document.getElementById('tuto-layer');
-  const pick = state.settings?.tutorial === false ? null : pickStep(state, root, full);
+  const pick = state.settings?.tutorial === false ? null : pickStep(state, root, full, panelOpen);
   if (!pick) { layer?.remove(); return; }
   if (!layer) {
     layer = document.createElement('div');

@@ -720,7 +720,7 @@ export class UI {
       case 'select-item': local(() => { v.selectedItemId = id; v.sheetOpen = 'item'; }); break;
       case 'auto-recycle-yes': this.closeModal(); a.setRecycleRule('mode', 'pickup'); break; // v9.3.4 : proposé au 1er sac plein
       case 'recycle-useless': a.recycleUseless(); local(() => { v.forgeFx = 'recycle'; }); setTimeout(() => { v.forgeFx = null; this.invalidate(); }, 700); break; // v9.3.4
-      case 'item-more': local(() => { v.itemMore = value ? Number(value) : null; }); break; // v9.3.4
+      case 'item-more': local(() => { v.itemMore = value || null; }); break; // v9.3.4
       case 'bag-menu': local(() => { v.bagMenu = !v.bagMenu; }); break;
       case 'inv-view': if (value) markInvUsed(this.state, value); local(() => { v.invView = value || null; }); break;
       case 'apply-build': v.buildSel = Number(value); a.applyLoadout(Number(value)); break; // v9.1.3 : cartes de builds
@@ -1688,7 +1688,7 @@ export class UI {
     if (now - (this.lastHud.badgeTime ?? 0) < 500) return;
     this.lastHud.badgeTime = now;
     this.claims = claimables(state);
-    try { updateTutorial(state, this.root, state.inventory.length >= BALANCE.loot.inventorySize); } catch { /* le tutoriel ne bloque jamais le jeu */ }
+    try { updateTutorial(state, this.root, state.inventory.length >= BALANCE.loot.inventorySize, Boolean(this.tab)); } catch { /* le tutoriel ne bloque jamais le jeu */ }
     // v9.1.3 : fenêtre « À récupérer » ouverte → mise à jour quand la liste change.
     const claimsKey = this.claims.map((c) => c.key).join() + state.inbox.length;
     if (this.claimsOpen && claimsKey !== this.claimsKey && !this.$('modal').classList.contains('hidden')) this.openClaims(state);
