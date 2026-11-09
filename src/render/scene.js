@@ -41,6 +41,7 @@ import { COMPANION_ROLES } from '../data/synergies.js';
 import { drawWorldVfx, eventVfx } from './vfx-world.js'; // v9.2.6 : compétences, boss, environnement, mutations, ambiance
 import { weaponFx } from '../data/weapon-fx.js'; // v9.3.2 : effets d'arme selon la rareté
 import { DAMAGE_COLORS, drawDamageText, drawVfx, drawVfxFrame, projFrame, vfx, vfxReady } from './vfx.js'; // v9.2.6 : effets de combat PixelLab
+import { unitGear } from '../core/companion-gear.js'; // v9.3.3 : halo d'équipement
 // v9.2.9 : toiles de travail relues par getImageData : mémoire côté processeur (avertissement Chrome « willReadFrequently »).
 const RF = { willReadFrequently: true };
 
@@ -1734,7 +1735,7 @@ export class SceneRenderer {
     ctx.globalAlpha = Math.max(0.35, 1 - (pose.dy + lift) / 18);
     this.drawShadow(ctx, cx0 + pose.dx, Math.max(10, w * 0.5 - pose.dy - lift / 2));
     ctx.globalAlpha = 1;
-    if (this.maxStars(companion)) this.drawStarAura(ctx, cx0 + pose.dx, y, w, h, companion);
+    if (this.maxStars(companion)) this.drawStarAura(ctx, cx0 + pose.dx, y, w, h, companion); this.gearGlow(ctx, cx0 + pose.dx, y, w, h, companion); // v9.3.3
     // Images rémanentes du saut, de la couleur du compagnon.
     if (pose.ghosts && !swimming) {
       const ghost = spriteCanvas(frame, { tint: { color: pose.color, alpha: 1 } });
@@ -1800,6 +1801,28 @@ export class SceneRenderer {
   }
 
 
+
+  // v9.3.3 : équipement épique ou légendaire porté → halo au sol de la couleur de la meilleure pièce et, pour une
+  // légendaire, quelques étincelles. Purement visuel (les stats viennent des données), coupé en effets réduits.
+  gearGlow(ctx, cx, top, w, h, companion) {
+    if (this.focus || !this.state?.companionGear) return;
+    const pieces = Object.values(unitGear(this.state, companion.id)).filter(Boolean);
+    const best = ['legendary', 'epic'].find((r) => pieces.some((p) => p.rarity === r));
+    if (!best) return;
+    const color = best === 'legendary' ? '#ffc23a' : '#c87aff';
+    const pulse = 0.6 + 0.4 * Math.sin(this.time * 3 + companion.id.length);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    // Halo autour du corps (vole ou marche : même rendu) + liseré au sol.
+    const cy = top + h * 0.55, r = Math.max(w, h) * 0.6;
+    const g = ctx.createRadialGradient(cx, cy, r * 0.2, cx, cy, r);
+    g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.6, color); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.globalAlpha = (best === 'legendary' ? 0.45 : 0.3) * pulse;
+    ctx.fillStyle = g;
+    ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+    ctx.restore();
+    if (best === 'legendary' && Math.random() < 0.2) this.effects.push({ kind: 'spark', x: cx + (Math.random() - 0.5) * w, y: top + h - 2, vx: 0, vy: -18, color, life: 0.5, max: 0.5 });
+  }
 
   // v8.9 : compagnon aux étoiles maximales → aura lumineuse (couleur de sa rareté) et étincelles qui montent.
   maxStars(companion) {
@@ -1893,7 +1916,7 @@ export class SceneRenderer {
       const flap = 1; // v9.0.8 : plus d'écrasement du dessin (vol = flottement)
       const cy = this.groundY - hover - img.height / 2;
       this.drawShadow(ctx, x + img.width / 2, img.width * 0.5);
-      if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, cy - img.height / 2, img.width, img.height, companion);
+      if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, cy - img.height / 2, img.width, img.height, companion); this.gearGlow(ctx, x + img.width / 2, cy - img.height / 2, img.width, img.height, companion); // v9.3.3
       ctx.save();
       ctx.translate(this.snap(x + img.width / 2), this.snap(cy));
       ctx.scale(1, flap);
@@ -1910,7 +1933,7 @@ export class SceneRenderer {
     this.travFeet(companion.id, x + img.width / 2, walking, 2.5, true);
     const squash = 1; // v9.0.8 : bonds sans écrasement du dessin
     this.drawShadow(ctx, x + img.width / 2, img.width * 0.8 - hop);
-    if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, this.groundY - img.height, img.width, img.height, companion);
+    if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, this.groundY - img.height, img.width, img.height, companion); this.gearGlow(ctx, x + img.width / 2, this.groundY - img.height, img.width, img.height, companion); // v9.3.3
     ctx.save();
     ctx.translate(this.snap(x + img.width / 2), this.groundY + 1 - this.snap(hop));
     ctx.scale(2 - squash, squash);
@@ -1939,7 +1962,7 @@ export class SceneRenderer {
     ctx.globalAlpha = 0.6;
     this.drawShadow(ctx, x + img.width / 2, img.width * 0.6);
     ctx.globalAlpha = 1;
-    if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, py + oy, img.width, img.height, companion);
+    if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, py + oy, img.width, img.height, companion); this.gearGlow(ctx, x + img.width / 2, py + oy, img.width, img.height, companion); // v9.3.3
     if (canvas === img) this.drawStarOutline(ctx, companion, companion.sprite, px, py);
     const pa = pickAllyAnim({ sprite: companion.sprite, walking, swimming: true, time: this.time, seed: 0.5 }); // v9.2.3 : nage PixelLab
     if (pa) ctx.drawImage(spriteCanvas(pa.name), this.snap(x) + pa.ox, this.groundY + 1 - img.height - lift + pa.oy);

@@ -864,6 +864,10 @@ export class UI {
       case 'check-update': a.checkUpdate(); break;
       case 'enter-tower': a.enterTower(); break;
       case 'skill-up': { const [id, kind] = value.split('|'); a.skillUp(id, kind); break; } // v9.3.3
+      case 'gear-equip': { const [id, item] = value.split('|'); a.gearDo('equip', id, Number(item)); break; }
+      case 'gear-unequip': { const [id, slot] = value.split('|'); a.gearDo('unequip', id, slot); break; }
+      case 'gear-up': a.gearDo('up', null, Number(value)); break;
+      case 'gear-recycle': a.gearDo('recycle', null, Number(value)); break;
       // v9.3.2 : Arène des compagnons.
       case 'arena-mode': this.view.arenaMode = value; this.view.arenaRun = null; this.invalidate(); break;
       case 'arena-pick': this.view.arenaPick = value; this.invalidate(); break;
@@ -1037,6 +1041,7 @@ export class UI {
     const el = event.target;
     const action = el.dataset.action;
     if (action === 'sort') this.actions.setSort(el.value);
+    if (action === 'gear-filter') { const f = { slot: 'all', rarity: 'all', compat: true, ...this.view.gearFilter }; f[el.dataset.key] = el.dataset.key === 'compat' ? el.value === 'true' : el.value; this.view.gearFilter = f; this.invalidate(); } // v9.3.3
     if (action === 'rarity-filter') { this.state.ui.rarityFilter = el.value; this.invalidate(); } // v9.3.2
     if (action === 'filter-select') this.actions.setFilter(el.value);
     if (action === 'upgrade-cat-select') { this.view.upgradeCat = el.value; this.invalidate(); }

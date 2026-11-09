@@ -161,3 +161,22 @@ pièces emblématiques (à commander, **non créés**).
 2. Équipement pour héros **et** familiers, 4 classes d'équipement ci-dessus : OK ?
 3. Plafond du coût d'or ×40 : OK ?
 4. Ordre : A (3 compétences, ultime dès le 1er, doublons) → B (niveaux + ressources + sources + migration) → C (fiches) → D (équipement) ?
+
+
+---
+
+## Réalisé (v9.3.3)
+
+Choix retenus (recommandations de l'audit) : héros = alliés invoqués, familiers = familiers ; chevalier inchangé ;
+équipement pour héros et familiers en 4 classes ; or plafonné ×40 ; ressources dans les activités existantes.
+
+| Lot | Fait | Fichiers | Tests |
+|---|---|---|---|
+| A | 3 compétences dès le 1er exemplaire, ancienne 2e/3e = active niv. 5/8, doublons 0/4/8/12/16/24 % | `core/progression.js`, `core/companions.js`, `data/progression.js` | `v933-progression`, `v89`, `v913-heros` |
+| B | niveaux 1–10 (ultime 5 → 10 au 4e), effets par niveau et paliers, 3 ressources, coûts indexés et plafonnés, sources (donjons, boss 15 %, Arène, missions, boutique d'événement), sauvegarde v11 + migration | idem, `core/state.js`, `core/dungeon.js`, `core/missions.js`, `core/combat.js` | idem |
+| C | fiche : 3 compétences, niveau, effet actuel → suivant, évolutions, coûts, stock, barème de doublons | `ui/panels/companions.js` | `v913-fiches` |
+| D | équipement : `data/companion-gear.js` (classes, emplacements, 13 pièces, compatibilités, raretés, coûts), équiper/retirer, refus motivé, avant/après, filtres, amélioration (éclats + or), recyclage, butin (Étages, donjons), effets réels (attaque, soins, recharge ; PV/défense dans l'Arène), halo de rareté | `core/companion-gear.js`, `render/scene.js` | `v933-progression` |
+
+Non fait / à décider : sprites dédiés aux pièces emblématiques (aucun asset créé) ; simulation complète de
+l'économie sur 3 profils avec les vrais taux (la table de sources est dans `data/progression.js`, à ajuster) ;
+textes anglais/coréens des nouveaux écrans (le français est complet).

@@ -72,7 +72,8 @@ import { bossesForStage, enemyStats } from './core/combat.js';
 import { BUILT_IN_TOKEN } from './core/update-token.js';
 import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagList, updateStatus } from './core/update.js';
 import { playsOnSite } from './ui/panels/options.js';
-import { upgradeCompanionSkill } from './core/companions.js'; // v9.3.3
+import { skillKillGold, upgradeCompanionSkill } from './core/companions.js'; // v9.3.3
+import { equipGear, recycleGear, unequipGear, upgradeGear } from './core/companion-gear.js'; // v9.3.3
 
 const SIM_INTERVAL_MS = 100;
 // v9.1.0 : codes de triche chargés seulement dans la version dev (fichier absent de la version publique).
@@ -590,6 +591,16 @@ const actions = {
     const lv = upgradeCompanionSkill(state, id, kind);
     done(Boolean(lv), lv ? `Compétence améliorée : niveau ${lv}` : null, '#7fe0a0');
     if (!lv) ui.toast('Ressources insuffisantes.', '#ff8a8a');
+  },
+  // v9.3.3 : équipement des héros (alliés) et familiers.
+  gearDo(kind, unitId, arg) {
+    let ok = false, msg = null;
+    if (kind === 'equip') { ok = equipGear(state, unitId, arg); msg = ok ? 'Pièce équipée' : 'Pièce incompatible'; }
+    else if (kind === 'unequip') ok = unequipGear(state, unitId, arg);
+    else if (kind === 'up') { const up = upgradeGear(state, arg, skillKillGold(state)); ok = Boolean(up); msg = ok ? `Amélioration +${up}` : 'Ressources insuffisantes'; }
+    else if (kind === 'recycle') { const n = recycleGear(state, arg); ok = n > 0; msg = ok ? `+${n} éclats` : null; }
+    if (!ok && msg) ui.toast(msg, '#ff8a8a');
+    done(ok, ok ? msg : null, '#7fe0a0');
   },
   enterTower() {
     if (state.dungeon || state.challenge) { ui.toast("Terminez d'abord le donjon ou le défi."); return; }

@@ -10,6 +10,7 @@ import { UNITS } from '../data/banners.js';
 import { budget } from './banner.js';
 import { combatSkills, dupMultiplier, goldPerKill, levelMult, skillLevels, upgradeSkill } from './progression.js'; // v9.3.3
 import { GOLD_INDEX } from '../data/progression.js';
+import { unitGearStats } from './companion-gear.js'; // v9.3.3
 
 export const MULTIPLICATIVE = { damagePct: 'damageMultPct', maxHpPct: 'maxHpMultPct', goldPct: 'goldMultPct' };
 
@@ -40,7 +41,9 @@ export function ultimateUnlocked() {
 
 // v9.3.3 : compétences en combat = active (+ évolutions des niveaux 5 et 8) + ultime, avec leurs niveaux.
 export function companionSkills(state, id) {
-  return combatSkills(skillList(id), state.companions.owned[id]);
+  const cd = unitGearStats(state, id).cd; // v9.3.3 : réduction de recharge de l'équipement (plafonnée)
+  const list = combatSkills(skillList(id), state.companions.owned[id]);
+  return cd ? list.map((s) => ({ ...s, every: s.every * (1 - cd / 100) })) : list;
 }
 
 export function allCompanionSkills(id) {
@@ -73,7 +76,9 @@ export function skillPower(state, id, type = 'hit', owned = state.companions.own
 export function companionSkillMultiplier(state, companion, type, home = false, balance = BALANCE, owned = state.companions.owned[companion.id]) {
   if (type !== 'hit' && type !== 'burst' && type !== 'heal' && type !== 'rally') return (home ? balance.dungeonAffinity.skillMultiplier : 1) * (RARITY_SKILL[companion.rarity] ?? 1);
   const b = budget(companion) / 100;
-  const m = (home ? balance.dungeonAffinity.skillMultiplier : 1) * (RARITY_SKILL[companion.rarity] ?? 1) * skillPower(state, companion.id, type, owned) * b;
+  const gear = unitGearStats(state, companion.id); // v9.3.3 : équipement (attaque ou soins, réels)
+  const g = 1 + (type === 'hit' || type === 'burst' ? gear.atk : gear.heal) / 100;
+  const m = (home ? balance.dungeonAffinity.skillMultiplier : 1) * (RARITY_SKILL[companion.rarity] ?? 1) * skillPower(state, companion.id, type, owned) * b * g;
   return type === 'heal' || type === 'rally' ? Math.min(m, SKILL_RULES.supportCap * b) : m;
 }
 

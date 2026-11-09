@@ -3025,3 +3025,16 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 .skill-res { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0; }
 .skill-res img, .skill3 img { width: 14px; height: 14px; vertical-align: middle; }
 .dup-table { margin-top: 6px; }
+/* v9.3.3 : équipement des héros (alliés) et familiers. */
+.gear-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 4px 0; }
+.gear-slot { display: flex; flex-direction: column; gap: 2px; padding: 6px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-2); min-height: 70px; }
+.gear-slot.empty { border-style: dashed; }
+.gear-slot.r-rare { border-color: var(--rare); } .gear-slot.r-epic { border-color: var(--epic); box-shadow: 0 0 6px -2px var(--epic); } .gear-slot.r-legendary { border-color: var(--legendary); box-shadow: 0 0 8px -1px var(--legendary); }
+.gear-filters { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+.gear-list { display: flex; flex-direction: column; gap: 4px; max-height: 320px; overflow: auto; }
+.gear-row { display: flex; gap: 6px; align-items: center; padding: 5px 6px; border: 1px solid var(--line); border-left: 3px solid var(--common); border-radius: var(--radius); }
+.gear-row.r-rare { border-left-color: var(--rare); } .gear-row.r-epic { border-left-color: var(--epic); } .gear-row.r-legendary { border-left-color: var(--legendary); }
+.gear-row.incompatible { opacity: .6; }
+.gear-row small, .gear-diff, .gear-why { display: block; font-size: 11px; }
+.gear-btns { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; }
+.gear-btns img { width: 11px; height: 11px; vertical-align: middle; }

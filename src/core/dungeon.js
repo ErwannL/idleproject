@@ -9,6 +9,8 @@ import { generateItem } from './loot.js';
 import { grantReward } from './rewards.js';
 import { RESOURCE_SOURCES } from '../data/progression.js'; // v9.3.3
 import { trackMissions } from './missions.js';
+import { rollGear } from './companion-gear.js';
+import { GEAR_SOURCES } from '../data/companion-gear.js';
 
 export function dungeonById(id) {
   return DUNGEONS.find((d) => d.id === id);
@@ -86,6 +88,7 @@ export function completeDungeon(state, rng, balance = BALANCE) {
   const rank = DIFFICULTY_ORDER.indexOf(run.difficulty ?? 'easy');
   state.dungeonBest[run.id] = Math.max(state.dungeonBest[run.id] ?? -1, rank);
   trackMissions(state, 'dungeons', 1);
+  if (rng.next() < GEAR_SOURCES.dungeonClearChance) run.gear = rollGear(state, rng, { minRarity: 'rare' }); // v9.3.3
   recordRun(state, run, runReport(state, run, { won: true }));
   state.dungeon = null;
   return { item, added: added.added, earned: run.earned };

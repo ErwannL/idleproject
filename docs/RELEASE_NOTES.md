@@ -1,3 +1,12 @@
+## Ascendrya v9.3.3 — Compétences des héros, doublons, ressources universelles, équipement des compagnons
+
+- Héros (alliés invoqués) et familiers : trois compétences dès le premier exemplaire — passive, active et ultime. Les anciennes 2e et 3e compétences deviennent des évolutions de l'active (niveaux 5 et 8). Niveaux 1 à 10 ; l'ultime monte jusqu'au niveau 5, puis jusqu'au 10 avec le 4e exemplaire. Chaque niveau renforce l'effet ; certains paliers raccourcissent la recharge ou allongent la durée.
+- Doublons : bonus cumulés de 0, 4, 8, 12, 16 et 24 % ; plus de compétence verrouillée derrière les doublons.
+- Trois ressources universelles (pour tous les héros et familiers, quel que soit l'élément) : grimoires de combat, pierres d'ascension, essences de maîtrise ; l'or suit votre progression dans la campagne, avec un plafond. On les gagne dans les donjons, sur les boss, dans l'Arène, avec les missions du jour et de la semaine et dans la boutique d'événement.
+- Équipement des héros et familiers : 3 emplacements adaptés à la classe (Attaquant, Défenseur, Soutien, Familier — crocs runiques, collier et rune pour les familiers), compatibilité affichée, comparaison avant/après, amélioration avec éclats et or, recyclage. Halo de rareté sur la scène pour les pièces épiques et légendaires.
+- Les héros déjà possédés gardent toute leur puissance (passive 2, active 8, ultime 2 offerts à la mise à jour).
+- Le chevalier ne change pas : améliorations permanentes, compétences et équipement identiques.
+
 ## Ascendrya v9.3.2 — Arène des compagnons, guildes, World Boss mondial, armes plus spectaculaires
 
 - Arène des compagnons (Aventure › Arène), sans le héros : Survie (un compagnon seul contre 30 vagues, 3 essais par jour, paliers de récompense) et Étages (une équipe de 3 compagnons ou familiers, étages permanents, boss tous les 10, contrainte tous les 5). Relecture animée du combat.

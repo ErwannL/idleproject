@@ -13,6 +13,9 @@ import { elementMultiplier, unitElement } from './elements.js';
 import { grantReward } from './rewards.js';
 import { Rng } from './rng.js';
 import { RESOURCE_SOURCES } from '../data/progression.js';
+import { unitGearStats } from './companion-gear.js';
+import { dupMultiplier } from './progression.js';
+import { rollGear } from './companion-gear.js';
 
 const DT = 1 / 20;
 const byId = (id) => COMPANIONS.find((c) => c.id === id);
@@ -25,13 +28,15 @@ export function companionProfile(state, id) {
   if (!c || !owned) return null;
   const base = ARENA.base[c.rarity] ?? ARENA.base.common;
   const lvl = 1 + COMPANION_RULES.levelBonusPct * ((owned.level ?? 1) - 1) * ARENA.levelWeight;
-  const star = 1 + ARENA.starPct / 100 * duplicates(owned);
+  const star = dupMultiplier(owned); // v9.3.3 : barème de doublons commun (0 à +24 %)
+  const gear = unitGearStats(state, id);
   const pet = c.kind !== 'ally'; // familier : plus fragile, plus rapide
   const k = lvl * star;
   const skill = c.ultimate && ultimateUnlocked(owned) ? c.ultimate : c.skill;
   return {
     id, name: c.name, kind: c.kind, rarity: c.rarity, element: unitElement(id), sprite: c.sprite,
-    maxHp: Math.round(base.hp * k * (pet ? 0.8 : 1)), atk: Math.round(base.atk * k), def: Math.round(base.def * k),
+    // v9.3.3 : doublons (barème commun) et équipement (PV, attaque, défense).
+    maxHp: Math.round(base.hp * k * (pet ? 0.8 : 1) * (1 + gear.hp / 100)), atk: Math.round(base.atk * k * (1 + gear.atk / 100)), def: Math.round(base.def * k * (1 + gear.def / 100)),
     interval: base.interval * (pet ? 0.85 : 1), skill: skill ? { type: skill.type, every: Math.max(4, (skill.every ?? 20) * ARENA.skillTimeScale), value: skill.value, name: skill.name } : null,
   };
 }
@@ -169,7 +174,10 @@ export function runFloor(state, team, now = Date.now()) {
   const result = { floor: f, won: r.won, seconds: r.seconds, at: now };
   a.floors.last = result;
   let reward = null;
-  if (r.won) { a.floors.best = f; reward = floorReward(f); grantReward(state, reward); }
+  if (r.won) {
+    a.floors.best = f; reward = floorReward(f); grantReward(state, reward);
+    reward.gear = rollGear(state, new Rng(f * 7 + 1), { minRarity: f % 10 === 0 ? 'epic' : 'common' }); // v9.3.3 : pièce d'équipement
+  }
   return { ...result, fight: r, waves: [setup], team: profiles, reward };
 }
 export function floorReward(f) {

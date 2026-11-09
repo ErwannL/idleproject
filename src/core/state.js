@@ -52,6 +52,7 @@ import { MISSION_TRACK } from '../data/missions.js';
 import { grantReward } from './rewards.js';
 import { ENCYCLOPEDIA_SECTIONS } from './encyclopedia.js';
 import { MIGRATED_SKILLS, cleanSkills } from './progression.js'; // v9.3.3
+import { sanitizeCompanionGear } from './companion-gear.js';
 
 // v1 : prototype · v2 (format identique) · v3 : pouvoirs, Renaissance, verrou
 // v4 : niveau, compétences, héros, compagnons, invocation, contrats, événements, matériaux, donjons.
@@ -131,6 +132,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     challenge: null, // v8.5 : défi de la semaine en cours { wave, kills, startPlay }
     challengeWeek: null, // { week, best, tries, extra }
     arena: null, // v9.3.2 : modes compagnons (core/arena.js)
+    companionGear: null, // v9.3.3 : équipement des héros (alliés) et familiers
     challengeBest: 0,
     challengeHistory: [], // meilleures vagues des semaines passées
     talentRespecs: 0,
@@ -306,6 +308,7 @@ function cleanActivities(state, raw) {
   state.companions.equipped = state.companions.equipped.filter((id) => !state.expeditions.slots.some((s) => s?.companionId === id));
   sanitizeChallenge(state, raw);
   sanitizeArena(state, raw);
+  sanitizeCompanionGear(state, raw);
   state.transcend = sanitizeTranscend(raw.transcend);
   state.bounty = sanitizeBounty(raw.bounty);
   state.codex = sanitizeCodex(raw.codex);
