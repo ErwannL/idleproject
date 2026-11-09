@@ -1,3 +1,8 @@
+## Ascendrya v9.3.6 — Scène de combat agrandie, Arène sur grande scène
+
+- Téléphone : personnages plus grands et sol remonté, la moitié haute de l'écran n'est plus un ciel vide.
+- Arène : combats sur une grande scène au décor du monde des ennemis, avec les vrais monstres et boss de la campagne (plus de têtes de mort).
+
 ## Ascendrya v9.3.5 — Refonte pour les débutants, équipement unique
 
 - Équipement unique : héros et compagnons portent les mêmes objets, trois places pour tout le monde (Arme, Armure, Accessoire), chaque objet a une classe (Attaquant, Défenseur, Soutien, Familier). Le butin équipe l'équipe en place ; « Équiper le meilleur » équipe toute l'équipe. Sélecteur de personnage dans l'écran Équipement. Les sauvegardes sont converties sans perte : le casque est réuni à l'armure et les bijoux à l'accessoire, avec toutes leurs statistiques ; l'équipement des compagnons garde ses bonus.
