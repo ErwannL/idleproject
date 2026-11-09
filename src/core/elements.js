@@ -8,7 +8,7 @@ export const ELEMENTS = {
   light: { name: 'Lumière', icon: '☀', color: '#ffe27a' },
   dark: { name: 'Ténèbres', icon: '☾', color: '#a46bff' },
 };
-export const ADV = 1.3;
+export const ADV = 1.25; // v9.3.2 : +25 % (validé)
 export const WEAK = 0.8;
 const BEATS = { red: 'green', green: 'blue', blue: 'red', light: 'dark', dark: 'light' };
 
@@ -33,6 +33,10 @@ export function unitElement(id) { return UNIT_ELEMENT[id] ?? null; }
 export function zoneElement(zoneIndex) { return ZONE_ELEMENT[zoneIndex] ?? null; }
 
 // Multiplicateur de dégâts d'un attaquant `a` contre un défenseur `d` (éléments, ou null = neutre).
+// v9.3.2 : un seul multiplicateur par coup, appliqué une fois dans core/combat.js hitEnemy (attaque des compagnons) et
+// dans le combat des modes compagnons (attaques des ennemis sur les compagnons typés). Le héros est neutre (null) :
+// ni bonus ni malus, dans les deux sens. Les critiques, buffs, boucliers et armures s'appliquent ensuite, sans
+// toucher au type : aucun double comptage.
 export function elementMultiplier(a, d) {
   if (!a || !d) return 1;
   if (BEATS[a] === d) return ADV;
@@ -42,10 +46,11 @@ export function elementMultiplier(a, d) {
 
 const VS = { red: ['green', 'blue'], green: ['blue', 'red'], blue: ['red', 'green'], light: ['dark', 'dark'], dark: ['light', 'light'] };
 // Pastille HTML (interface) : icône et nom du type ; `long` ajoute l'avantage et la faiblesse.
-export function elementBadge(el, long = false) {
+export function elementBadge(el, long = false, iconOnly = false) {
   const e = ELEMENTS[el];
   if (!e) return '';
   const [strong, weak] = VS[el];
   const tip = `Fort contre ${ELEMENTS[strong].name} (+${Math.round((ADV - 1) * 100)} % de dégâts)${el === 'light' || el === 'dark' ? '' : `, faible contre ${ELEMENTS[weak].name}`}`;
+  if (iconOnly) return `<span class="elem-badge elem-icon elem-${el}" title="${e.name} — ${tip}" aria-label="Type ${e.name}" style="--ec:${e.color}">${e.icon}</span>`;
   return `<span class="elem-badge elem-${el}" title="${tip}" style="--ec:${e.color}">${e.icon} ${e.name}</span>${long ? ` <small class="muted elem-tip">${tip}</small>` : ''}`;
 }

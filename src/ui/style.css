@@ -2939,3 +2939,36 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 .fx-line { margin: 6px 0; font-size: 12px; }
 .fx-line .rarity-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; vertical-align: middle; background: #c9c9c9; }
 .fx-line .rarity-dot.r-rare { background: #4fa3ff; } .fx-line .rarity-dot.r-epic { background: #c06bff; } .fx-line .rarity-dot.r-legendary { background: #ffa630; box-shadow: 0 0 6px #ffa630; }
+
+/* ============================================================================================================
+   v9.3.2 — socle commun des menus : réactions des boutons, états homogènes (verrouillé, disponible, terminé,
+   récupérable), cadres de rareté plus lisibles, ouverture des panneaux, textes minimum lisibles.
+   Ajouté en fin de fichier (au-dessus des thèmes existants), sans changer la navigation.
+   ============================================================================================================ */
+.btn { transition: transform .08s ease-out, filter .12s, border-color .12s, box-shadow .12s; }
+.btn:active:not(:disabled) { transform: translateY(1px) scale(.98); filter: brightness(.95); }
+.btn:disabled { filter: grayscale(.6); opacity: .6; cursor: not-allowed; }
+:where(button, select, input, [tabindex]):focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+/* États communs : les mêmes repères dans tous les écrans (verrouillé = grisé + cadenas, terminé = vert, à récupérer = doré qui pulse). */
+:where(.locked, .is-locked) { filter: grayscale(.55); }
+:where(.done, .is-done) { border-color: color-mix(in srgb, var(--good) 55%, var(--line)); }
+:where(.claimable, .is-claimable, .can-claim) { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 0 10px -2px var(--gold); animation: v932-claim 1.8s ease-in-out infinite; }
+@keyframes v932-claim { 50% { box-shadow: 0 0 0 1px var(--gold), 0 0 16px 0 var(--gold); } }
+/* Cadres de rareté : liseré net + lueur pour épique et légendaire, reflet animé discret pour légendaire. */
+.item-frame.r-rare { box-shadow: 0 0 0 1px color-mix(in srgb, var(--rare) 70%, transparent); }
+.item-frame.r-legendary { position: relative; overflow: hidden; }
+.item-frame.r-legendary::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 230, 160, .35) 50%, transparent 65%) -150% 0 / 250% 100% no-repeat;
+  animation: v932-sheen 3.2s ease-in-out infinite; }
+@keyframes v932-sheen { 60%, 100% { background-position: 150% 0; } }
+/* Ouverture des panneaux et fenêtres : courte et fluide. */
+#modal:not(.hidden) #modal-card { animation: v932-open .14s ease-out; }
+@keyframes v932-open { from { opacity: 0; transform: translateY(6px) scale(.99); } }
+/* Lisibilité : aucun texte d'interface sous 11 px. */
+.muted small, small.muted, .item-sub, .pet-label small { font-size: max(11px, 1em); }
+/* États vides, chargement, erreur. */
+.state-empty, .inv-empty { padding: 14px; text-align: center; color: var(--muted); border: 1px dashed var(--line-2); border-radius: var(--radius); }
+.state-error { padding: 10px; color: var(--bad); border: 1px solid color-mix(in srgb, var(--bad) 50%, transparent); border-radius: var(--radius); }
+.reduce-motion :is(.claimable, .is-claimable, .can-claim, #modal-card) { animation: none !important; }
+.reduce-motion .item-frame.r-legendary::after { animation: none !important; }
+.elem-badge.elem-icon { padding: 0 3px; font-size: 10px; line-height: 14px; margin-left: 2px; }

@@ -370,8 +370,16 @@ export class SceneRenderer {
           this.addText(formatNumber(event.damage), event.x, this.groundY - (event.boss ? 64 : 42), c0, c1);
         }
         // v9.3.1 : types : coup efficace (avantage d'élément) ou peu efficace, signalé au-dessus de l'ennemi.
-        if (event.elem > 1 && Math.random() < 0.35) this.addText('EFFICACE !', event.x, this.groundY - (event.boss ? 80 : 56), '#ff9a3c', '#fff1c8');
-        else if (event.elem < 1 && Math.random() < 0.2) this.addText('résiste', event.x, this.groundY - (event.boss ? 80 : 56), '#8a93a8', '#e0e6f0');
+        // v9.3.2 : AVANTAGE / DÉSAVANTAGE (au plus une fois toutes les 0,7 s par ennemi, pour rester lisible).
+        if (event.elem && event.elem !== 1) {
+          const fxe = this.enemyFxFor(event.enemyId);
+          if (this.time - (fxe.elemAt ?? -9) > 0.7) {
+            fxe.elemAt = this.time;
+            const y = this.groundY - (event.boss ? 80 : 56);
+            if (event.elem > 1) { this.addText('AVANTAGE ▲', event.x, y, '#ff9a3c', '#fff1c8'); if (!this.focus) this.burst(event.x, this.groundY - 18, '#ffd23f', 5, 40); }
+            else this.addText('DÉSAVANTAGE ▼', event.x, y, '#8a93a8', '#e0e6f0');
+          }
+        }
         break;
       case 'skill':
         // v9.2.5 : geste propre à la compétence et effet synchronisé (skill-fx.js) ; ancien effet en repli.
@@ -1300,8 +1308,10 @@ export class SceneRenderer {
         ctx.fillRect(x + 2, this.groundY + 1, w - 4, 1);
         ctx.globalAlpha = 1;
         this.drawBar(ctx, headX - 16, headY - 6, 32, enemy.hp / enemy.maxHp, '#e84a5f');
+        drawElementIcon(ctx, enemy.element, headX - 22, headY - 7);
       } else if (enemy.elite || enemy.mutation || enemy.hp < enemy.maxHp) {
         this.drawBar(ctx, headX - 9, headY - 5, 18, enemy.hp / enemy.maxHp, enemy.elite ? '#ff9a3d' : mutation ? mutation.color : '#e84a5f');
+        drawElementIcon(ctx, enemy.element, headX - 15, headY - 6);
       }
       ctx.globalAlpha = 1;
     }
@@ -2315,6 +2325,23 @@ export class SceneRenderer {
     for (const fn of finished) fn();
     if (this.effects.length > 400) this.effects.splice(0, this.effects.length - 400);
   }
+}
+
+// v9.3.2 : icône de type (5×5 px de jeu) : forme propre à chaque type (pas seulement la couleur) :
+// rouge = flamme (triangle), bleu = goutte, vert = feuille (losange), lumière = étoile (croix), ténèbres = croissant.
+const ELEM_SHAPES = {
+  red: ['..#..', '.###.', '.###.', '#####', '.###.'], blue: ['..#..', '.###.', '#####', '#####', '.###.'],
+  green: ['..#..', '.###.', '#####', '.###.', '..#..'], light: ['..#..', '..#..', '#####', '..#..', '..#..'],
+  dark: ['.###.', '##...', '##...', '##...', '.###.'],
+};
+const ELEM_COLORS = { red: '#ff5a3c', blue: '#3ca8ff', green: '#4cd26a', light: '#ffe27a', dark: '#a46bff' };
+export function drawElementIcon(ctx, el, x, y) {
+  const shape = ELEM_SHAPES[el];
+  if (!shape) return;
+  ctx.fillStyle = '#10131c';
+  ctx.fillRect(Math.round(x) - 1, Math.round(y) - 1, 7, 7);
+  ctx.fillStyle = ELEM_COLORS[el];
+  shape.forEach((row, j) => [...row].forEach((c, i) => { if (c === '#') ctx.fillRect(Math.round(x) + i, Math.round(y) + j, 1, 1); }));
 }
 
 // Attaques de classe (render/class-fx.js).
