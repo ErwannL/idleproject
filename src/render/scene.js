@@ -282,7 +282,14 @@ export class SceneRenderer {
     scale = Math.max(0.5, scale, cssHeight / MAX_VIEW_HEIGHT);
     this.width = Math.max(120, Math.floor(cssWidth / scale));
     this.height = Math.max(MIN_VIEW_HEIGHT, Math.floor(cssHeight / scale));
+    const prevGround = this.groundY;
     this.groundY = this.height - GROUND_DEPTH;
+    // v9.3.1 : un menu ouvert/fermé change la hauteur de la scène : les effets en cours (corps d'un monstre tué,
+    // mort animée, chiffres, étincelles) suivent le sol au lieu de rester collés à l'ancienne hauteur (« au plafond »).
+    const dy = this.groundY - prevGround;
+    if (dy && Number.isFinite(dy)) {
+      for (const fx of this.effects) for (const key of ['y', 'top', 'sy', 'y0', 'y1', 'ty']) if (typeof fx[key] === 'number') fx[key] += dy;
+    }
     // Rendu à la résolution de l'écran (k pixels par pixel de jeu) : les sprites restent nets mais
     // les personnages et le décor se déplacent pixel d'écran par pixel d'écran (mouvement fluide).
     this.k = Math.max(1, Math.round(scale * (window.devicePixelRatio || 1)));
