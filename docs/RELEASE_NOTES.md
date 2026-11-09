@@ -1,3 +1,9 @@
+## Ascendrya v9.3.7 — Prologue « La chute du héros »
+
+- Première connexion : le héros, bien équipé, affronte seul le Colosse des Anciens. À la moitié de ses PV, la Prêtresse et la Pyromancienne arrivent et le font plier ; le Colosse entre en rage et balaie toute l'équipe. Le héros perd son équipement et ses compagnons : l'aventure commence.
+- Environ 70 secondes, une seule fois. Un clic passe au dialogue suivant, « Passer » termine tout. Rien n'est pris à la partie.
+- Version calme avec « effets réduits » (pas de secousses ni de flashs).
+
 ## Ascendrya v9.3.6 — Scène de combat agrandie, Arène sur grande scène
 
 - Téléphone : personnages plus grands et sol remonté, la moitié haute de l'écran n'est plus un ciel vide.

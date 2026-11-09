@@ -74,7 +74,8 @@ import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagL
 import { playsOnSite } from './ui/panels/options.js';
 import { skillKillGold, upgradeCompanionSkill } from './core/companions.js'; // v9.3.3
 import { equipGear, recycleGear, unequipGear, upgradeGear } from './core/companion-gear.js'; // v9.3.3
-import { bestOpenUpgrade, companionToLevel, companionToPlace } from './core/guide.js'; // v9.3.5
+import { bestOpenUpgrade, companionToLevel, companionToPlace } from './core/guide.js';
+import { PROLOGUE_HINT, playPrologue } from './ui/prologue.js'; // v9.3.7
 import { recycleUseless } from './core/inventory.js'; // v9.3.4
 
 const SIM_INTERVAL_MS = 100;
@@ -1275,7 +1276,18 @@ const cinematicsOn = () => state.ui.cinematics !== false && !navigator.webdriver
 setTimeout(() => {
   if (!cinematicsOn()) return;
   const zone = ZONES[currentEncounter(state).zoneIndex];
-  if (loaded.source === 'new') playCinematic({ kicker: 'Une nouvelle légende', title: 'Ascendrya', line: 'Un héros, une épée, et douze mondes à libérer.' });
+  if (loaded.source === 'new') {
+    // v9.3.7 : prologue « La chute du héros » à la toute première connexion (une seule fois), puis le titre.
+    const intro = () => playCinematic({ kicker: 'Une nouvelle légende', title: 'Ascendrya', line: 'Tout reprendre, monde après monde.' });
+    if ((state.ui.hints ?? []).includes(PROLOGUE_HINT)) intro();
+    else {
+      playPrologue({ reduced: matchMedia('(prefers-reduced-motion: reduce)').matches || state.ui.focus === true, onDone: () => {
+        state.ui.hints = [...(state.ui.hints ?? []), PROLOGUE_HINT];
+        save();
+        intro();
+      } });
+    }
+  }
   else playCinematic({ kicker: 'Bon retour', title: zone.name, line: `Étape ${stageLabel(state.stage)} — la bataille continue.`, zone: zone.id });
 }, 600);
 // v8.4 : sauvegarde d'avant le nouvel équilibrage → or des améliorations remboursé, on l'annonce.
