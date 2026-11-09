@@ -165,6 +165,22 @@ export const EXACT_934 = {
   "Voir les talents": "특성 보기",
   "Modifier l'équipe": "팀 편집",
   "bats des gardiens, gagne des écus, échange-les.": "수호자를 쓰러뜨리고 코인을 모아 교환하세요.",
+  "Tout reprendre, monde après monde.": "세계를 하나씩, 모든 것을 되찾자.",
+  "Il y a longtemps, un héros affronta seul le Colosse des Anciens.": "오래전, 한 영웅이 홀로 고대의 거신에 맞섰다.",
+  "Son épée frappe… mais le Colosse ne sent presque rien.": "검이 내리치지만… 거신은 거의 느끼지 못한다.",
+  "Chaque coup du géant fait trembler la terre. Le héros faiblit.": "거인의 일격마다 땅이 흔들린다. 영웅이 약해진다.",
+  "La Prêtresse et la Pyromancienne accourent à son secours !": "사제와 화염술사가 도우러 달려온다!",
+  "Ensemble, ils font enfin plier le géant.": "함께 싸워 마침내 거인을 몰아붙인다.",
+  "Le Colosse entre en rage.": "거신이 분노한다.",
+  "Son regard brûlant balaie tout sur son passage.": "불타는 시선이 모든 것을 쓸어버린다.",
+  "Ton équipement s'est brisé.": "장비가 부서졌다.",
+  "Tes compagnons ont disparu.": "동료들이 사라졌다.",
+  "Mais tu es vivant.": "하지만 너는 살아 있다.",
+  "Reprends tout. Reviens plus fort.": "모든 것을 되찾아라. 더 강해져서 돌아와라.",
+  "Prologue": "프롤로그",
+  "LE COLOSSE ENTRE EN RAGE": "거신이 분노했다",
+  "Touche pour continuer": "눌러서 계속",
+  "Colosse des Anciens": "고대의 거신",
 };
 let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;

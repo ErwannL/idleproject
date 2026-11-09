@@ -3227,3 +3227,58 @@ body:has(.summon-fx) #banner { visibility: hidden; }
   .arena-stage .arena-ally img, .arena-stage .arena-ally canvas { width: 36px; height: 36px; }
   .arena-stage .arena-ally b { display: none; }
 }
+
+/* v9.3.7 : prologue « La chute du héros » (première connexion). */
+.prologue { position: fixed; inset: 0; z-index: 1000; background: #05060c; color: #fff; display: flex; flex-direction: column; cursor: pointer; transition: opacity .5s; }
+.prologue.out { opacity: 0; }
+.pro-stage { position: relative; flex: 1; overflow: hidden; background: linear-gradient(#2a1f3d, #6b3a2e 60%, #3b2418); }
+.prologue.rage .pro-stage { background: linear-gradient(#3d0f12, #8a1e12 60%, #3b1210); transition: background .6s; }
+.prologue.shake .pro-stage { animation: pro-shake .25s linear infinite; }
+@keyframes pro-shake { 25% { transform: translate(-4px, 2px); } 50% { transform: translate(3px, -3px); } 75% { transform: translate(-2px, -2px); } }
+.pro-ground { position: absolute; left: 0; right: 0; bottom: 0; height: 22%; background: linear-gradient(#4a3424, #22170f); border-top: 4px solid #6b4a30; }
+.pro-team { position: absolute; left: 6%; bottom: 22%; display: flex; align-items: flex-end; gap: 2vw; z-index: 2; }
+.pro-hero canvas { height: min(26vh, 200px); image-rendering: pixelated; transform: scaleX(1); }
+.pro-ally img { height: min(18vh, 140px); image-rendering: pixelated; }
+.pro-ally { transform: translateX(calc((var(--arrive, 0) - 1) * 70vw)); opacity: var(--arrive, 0); }
+.pro-ally.down, .pro-hero.down { filter: grayscale(1) brightness(.5); transform: translateX(calc((var(--arrive, 0) - 1) * 70vw)) rotate(-80deg) translateY(30%); transition: transform .5s, filter .5s; }
+.pro-hero.down { transform: rotate(-80deg) translateY(30%); }
+.pro-boss { position: absolute; right: 2%; bottom: 20%; display: flex; flex-direction: column; align-items: center; z-index: 1; }
+.pro-boss-art { width: min(58vh, 46vw, 460px); aspect-ratio: 1; background-size: calc(var(--frames, 9) * 100%) 100%; background-repeat: no-repeat; image-rendering: pixelated; }
+.prologue.rage .pro-boss-art { filter: drop-shadow(0 0 18px #ff2a1a) saturate(1.6) hue-rotate(-12deg); }
+.pro-bar { width: min(40vw, 260px); height: 10px; background: #000a; border: 2px solid #000; border-radius: 4px; overflow: hidden; }
+.pro-bar i { display: block; height: 100%; background: #e84a5f; transition: width .3s; }
+.pro-bar.hero { width: 100%; } .pro-bar.hero i { background: #5ad07a; }
+.pro-name { font-size: 14px; margin-top: 2px; text-shadow: 0 1px 2px #000; }
+.pro-rage { position: absolute; left: 0; right: 0; top: 18%; text-align: center; font: 900 clamp(18px, 4vw, 34px)/1.1 system-ui, sans-serif; color: #ffdf6b;
+  text-shadow: 0 0 12px #ff2a1a, 0 2px 0 #000; opacity: 0; transform: scale(1.4); transition: opacity .3s, transform .3s; z-index: 3; }
+.prologue.rage .pro-rage { opacity: 1; transform: none; animation: pro-rage-out 1s 2.5s forwards; }
+@keyframes pro-rage-out { to { opacity: 0; } }
+.pro-hits { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+.pro-hit { position: absolute; top: 40%; font: 800 16px/1 system-ui, sans-serif; text-shadow: 0 1px 2px #000; animation: pro-hit .8s ease-out forwards; }
+.pro-hit.weak { color: #ddd; } .pro-hit.strong { color: #ffb347; font-size: 22px; } .pro-hit.heal { color: #7fe08f; }
+@keyframes pro-hit { to { transform: translateY(-50px); opacity: 0; } }
+.pro-black { position: absolute; inset: 0; background: #000; opacity: 0; z-index: 5; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+.pro-loss { display: flex; gap: 18px; align-items: center; }
+.pro-loss img { width: 56px; height: 56px; image-rendering: pixelated; opacity: 0; }
+.prologue.gear-break .pro-gear { animation: pro-break 2.2s ease-in forwards; }
+.prologue.allies-gone .pro-gone { animation: pro-break 2.2s ease-in forwards; }
+@keyframes pro-break { 0% { opacity: 1; filter: none; } 40% { opacity: 1; filter: grayscale(1) contrast(1.4); transform: rotate(8deg); } 100% { opacity: 0; transform: translateY(-60px) rotate(-30deg) scale(.6); } }
+.pro-dialog { min-height: 92px; padding: 14px 18px 10px; background: #0d0f1a; border-top: 3px solid var(--ui-gold, #f5c542); text-align: center; }
+.pro-dialog p { margin: 0 0 6px; font-size: clamp(15px, 2.4vw, 20px); line-height: 1.35; }
+.pro-dialog small { color: #a9b0c6; font-size: 13px; }
+.pro-dialog.pop p { animation: pro-pop .3s ease-out; }
+@keyframes pro-pop { from { opacity: 0; transform: translateY(6px); } }
+.pro-skip { position: absolute; top: 10px; right: 10px; z-index: 6; min-height: 44px; }
+.prologue.reduced *, .prologue.reduced .pro-stage { animation: none !important; transition: none !important; }
+.prologue.reduced .pro-loss img { opacity: .6; }
+@media (prefers-reduced-motion: reduce) { .prologue * { animation-duration: 1ms !important; } }
+.prologue.no-allies .pro-ally { visibility: hidden; }
+.pro-hero canvas { height: min(30vh, 230px); }
+@media (orientation: portrait), (max-width: 600px) {
+  .pro-boss { right: 50%; transform: translateX(50%); bottom: 42%; }
+  .pro-boss-art { width: min(82vw, 44vh); }
+  .pro-team { left: 4%; right: 4%; bottom: 20%; justify-content: center; gap: 3vw; }
+  .pro-hero canvas { height: min(20vh, 170px); }
+  .pro-ally img { height: min(13vh, 110px); }
+  .pro-rage { top: 6%; }
+}

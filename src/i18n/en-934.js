@@ -165,6 +165,22 @@ export const EXACT_934 = {
   "Voir les talents": "See talents",
   "Modifier l'équipe": "Edit team",
   "bats des gardiens, gagne des écus, échange-les.": "beat guardians, earn coins, trade them.",
+  "Tout reprendre, monde après monde.": "Take it all back, world after world.",
+  "Il y a longtemps, un héros affronta seul le Colosse des Anciens.": "Long ago, a hero faced the Colossus of the Ancients alone.",
+  "Son épée frappe… mais le Colosse ne sent presque rien.": "His sword strikes… but the Colossus barely feels it.",
+  "Chaque coup du géant fait trembler la terre. Le héros faiblit.": "Every blow of the giant shakes the ground. The hero weakens.",
+  "La Prêtresse et la Pyromancienne accourent à son secours !": "The Priestess and the Pyromancer rush to his aid!",
+  "Ensemble, ils font enfin plier le géant.": "Together, they finally make the giant bend.",
+  "Le Colosse entre en rage.": "The Colossus flies into a rage.",
+  "Son regard brûlant balaie tout sur son passage.": "Its burning gaze sweeps away everything.",
+  "Ton équipement s'est brisé.": "Your gear is shattered.",
+  "Tes compagnons ont disparu.": "Your companions are gone.",
+  "Mais tu es vivant.": "But you are alive.",
+  "Reprends tout. Reviens plus fort.": "Take it all back. Come back stronger.",
+  "Prologue": "Prologue",
+  "LE COLOSSE ENTRE EN RAGE": "THE COLOSSUS IS ENRAGED",
+  "Touche pour continuer": "Tap to continue",
+  "Colosse des Anciens": "Colossus of the Ancients",
 };
 let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
