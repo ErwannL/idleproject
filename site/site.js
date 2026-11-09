@@ -35,6 +35,8 @@ Object.assign(FR, {
   hintOff: 'Compteur indisponible pour le moment.', phase: (p) => `${p} % PV`,
   errEmail: 'Renseignez votre adresse email.', errConsent: 'Cochez la case de consentement pour vous préinscrire.',
   sending: 'Envoi…', errRate: 'Trop de tentatives, réessayez plus tard.', errInvalid: 'Adresse email invalide.',
+  teaseMore: (n) => `+ ${n} à découvrir en jeu`, teaseWorlds: 'Mondes secrets', teaseUnits: 'Légendes cachées', teasePets: 'Familiers mystères',
+  teaseBosses: 'Maîtres inconnus', teasePhase: 'Une dernière forme… à découvrir',
   okSent: 'Merci ! Votre préinscription est enregistrée.', errNet: 'Connexion impossible, réessayez.', play: 'Lecture',
   docTitle: document.title, docDesc: $('meta[name="description"]').content,
 });
@@ -60,17 +62,27 @@ $('#lang').addEventListener('click', () => {
   applyLang();
 });
 
+// v9.3.1 : pas de spoil : le site ne montre qu'une partie des mondes, des personnages, des familiers et des boss ;
+// le reste est caché derrière des cartes « ??? » (surprise au lancement).
+const TEASE = { worlds: 4, heroes: 4, allies: 6, pets: 3, bosses: 3 };
+const mystery = (n, cls, label) => `<article class="card ${cls} mystery reveal" aria-label="${esc(label)}">
+      <div class="q">?</div><h3>${esc(label)}</h3><small>${esc(t('teaseMore', n))}</small>
+    </article>`;
+
 // ---------- Mondes ----------
 function renderWorlds() {
-  $('#worlds').innerHTML = WORLDS.map((w, i) => `<article class="card world reveal">
+  $('#worlds').innerHTML = WORLDS.slice(0, TEASE.worlds).map((w, i) => `<article class="card world reveal">
       <div class="shot"><img src="assets/worlds/${w.id}.webp" alt="${esc(L(w.name))}" loading="lazy" decoding="async" width="640" height="360"><span class="num">${i + 1}</span></div>
       <div class="txt"><h3>${esc(L(w.name))}</h3><p>${esc(L(w.intro))}</p>
       <span class="boss">☠ ${esc(L(w.boss))} · ${t('stages')} ${w.first}–${w.last}</span></div>
-    </article>`).join('');
+    </article>`).join('') + mystery(WORLDS.length - TEASE.worlds, 'world', t('teaseWorlds'));
 }
 
 // ---------- Galerie ----------
-const UNITS = [...HEROES, ...ALLIES];
+const pick = (list, n) => [...list].sort((a, b) => RANK_[a.rarity] - RANK_[b.rarity]).filter((u, i, all) => i < Math.ceil(n / 2) || (i >= all.length - Math.floor(n / 2)));
+const RANK_ = { legendary: 0, epic: 1, rare: 2, common: 3 };
+const UNITS = [...pick(HEROES, TEASE.heroes), ...pick(ALLIES, TEASE.allies)];
+const HIDDEN_UNITS = HEROES.length + ALLIES.length - UNITS.length;
 const RANK = { legendary: 0, epic: 1, rare: 2, common: 3 };
 const FILTERS = [
   ['all', (u) => true], ['hero', (u) => u.kind === 'hero'], ['ally', (u) => u.kind === 'ally'],
@@ -89,11 +101,11 @@ function unitCard(u, i, extra = '') {
     </button>`;
 }
 function renderGallery() {
-  $('#filters').innerHTML = FILTERS.map(([id, f]) => `<button type="button" class="chip" data-f="${id}" aria-pressed="${filter === id}">${esc(t(FILTER_LABEL[id]))}<i>${UNITS.filter(f).length}</i></button>`).join('');
+  $('#filters').innerHTML = FILTERS.filter(([, f]) => UNITS.some(f)).map(([id, f]) => `<button type="button" class="chip" data-f="${id}" aria-pressed="${filter === id}">${esc(t(FILTER_LABEL[id]))}<i>${UNITS.filter(f).length}</i></button>`).join('');
   const f = FILTERS.find(([id]) => id === filter)[1];
   shown = UNITS.filter(f).sort((a, b) => (a.kind === b.kind ? 0 : a.kind === 'hero' ? -1 : 1) || RANK[a.rarity] - RANK[b.rarity]);
-  $('#gallery').innerHTML = shown.map((u, i) => unitCard(u, i)).join('');
-  $('#gallery-count').textContent = t('shown', shown.length);
+  $('#gallery').innerHTML = shown.map((u, i) => unitCard(u, i)).join('') + mystery(HIDDEN_UNITS, 'unit', t('teaseUnits'));
+  $('#gallery-count').textContent = '';
   observe($('#gallery'));
 }
 $('#filters').addEventListener('click', (e) => {
@@ -105,9 +117,9 @@ $('#filters').addEventListener('click', (e) => {
 });
 
 function renderPets() {
-  const pets = [...PETS].sort((a, b) => Number(b.isNew) - Number(a.isNew) || RANK[a.rarity] - RANK[b.rarity]);
+  const pets = [...PETS].sort((a, b) => Number(b.isNew) - Number(a.isNew) || RANK[a.rarity] - RANK[b.rarity]).slice(0, TEASE.pets);
   PETS_SHOWN = pets;
-  $('#pets').innerHTML = pets.map((p, i) => unitCard(p, i, `<span class="sk">${esc(L(p.skill))}</span>`)).join('');
+  $('#pets').innerHTML = pets.map((p, i) => unitCard(p, i, `<span class="sk">${esc(L(p.skill))}</span>`)).join('') + mystery(PETS.length - pets.length, 'unit', t('teasePets'));
   observe($('#pets'));
 }
 let PETS_SHOWN = PETS;
@@ -161,11 +173,11 @@ sheet.addEventListener('keydown', (e) => {
 
 // ---------- Boss ----------
 function renderBosses() {
-  $('#bosses').innerHTML = WORLDS.filter((w, i) => i < 11).map((w) => `<article class="card bcard reveal">
+  $('#bosses').innerHTML = WORLDS.slice(0, TEASE.bosses).map((w) => `<article class="card bcard reveal">
       <div class="sp">${w.bossImg ? `<img src="${w.bossImg}" alt="" class="px" loading="lazy" decoding="async">` : `<img src="assets/worlds/${w.id}.webp" alt="" class="shot" loading="lazy" decoding="async">`}</div>
       <h3>${esc(L(w.boss))}</h3><small>${esc(L(w.name))}</small>
-    </article>`).join('');
-  $('#phases').innerHTML = WORLD_BOSS.phases.map((p) => `<li><b>${Math.round(p.at * 100)} %</b><span>${esc(L(p.name))}</span></li>`).join('');
+    </article>`).join('') + mystery(WORLDS.length - 1 - TEASE.bosses, 'bcard', t('teaseBosses'));
+  $('#phases').innerHTML = WORLD_BOSS.phases.map((p, i, all) => (i < all.length - 1 ? `<li><b>${Math.round(p.at * 100)} %</b><span>${esc(L(p.name))}</span></li>` : `<li><b>???</b><span>${esc(t('teasePhase'))}</span></li>`)).join('');
 }
 
 // ---------- Préinscriptions : objectif et paliers (réglables par l'admin) ----------

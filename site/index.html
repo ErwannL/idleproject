@@ -125,6 +125,15 @@
     .worlds { display: grid; grid-auto-flow: column; grid-auto-columns: 82%; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 4px 2px 14px; margin: 0; scrollbar-width: thin; }
     .world { scroll-snap-align: center; overflow: hidden; display: flex; flex-direction: column; transition: transform .25s, border-color .25s; }
     .world:hover { transform: translateY(-4px); border-color: var(--gold); }
+    /* v9.3.1 : cartes mystère (pas de spoil) et vidéo de présentation. */
+    .mystery { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 160px; padding: 18px 12px; text-align: center;
+      background: repeating-linear-gradient(135deg, rgba(255,255,255,.03) 0 10px, transparent 10px 20px), #0d1328; border-style: dashed; cursor: default; }
+    .mystery .q { font: 40px/1 var(--pixel); color: var(--gold-soft); text-shadow: 0 0 18px rgba(255,200,90,.5); animation: q-pulse 2.4s ease-in-out infinite; }
+    .mystery small { color: var(--muted); }
+    @keyframes q-pulse { 50% { transform: scale(1.12); opacity: .75; } }
+    @media (prefers-reduced-motion: reduce) { .mystery .q { animation: none; } }
+    .promo { border-radius: 16px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 20px 60px rgba(0,0,0,.45); background: #000; }
+    .promo video { display: block; width: 100%; height: auto; }
     .world .shot { position: relative; aspect-ratio: 16 / 9; background: #0a1020; }
     .world .shot img { width: 100%; height: 100%; object-fit: cover; display: block; image-rendering: pixelated; }
     .world .num { position: absolute; left: 10px; top: 10px; font: 9px/1 var(--pixel); color: #1d1000; background: var(--gold-soft); border: 2px solid var(--gold-deep); border-radius: 7px; padding: 6px 7px; }
@@ -328,6 +337,41 @@
   </section>
 
   <main id="main">
+    <section class="block wrap" id="video" aria-labelledby="t-video">
+      <div class="head reveal">
+        <div class="kicker" data-i18n="kVideo">Vidéo de présentation</div>
+        <h2 id="t-video" data-i18n="hVideo">Découvrez Ascendrya en 40 secondes</h2>
+      </div>
+      <div class="promo reveal"><video controls playsinline preload="none" poster="assets/trailer-poster.webp" width="1280" height="720">
+        <source src="assets/promo.webm" type="video/webm"><source src="assets/promo.mp4" type="video/mp4"></video></div>
+    </section>
+    <section class="block wrap" id="recompenses" aria-labelledby="t-rew">
+      <div class="head reveal">
+        <div class="kicker" data-i18n="kRewards">Préinscriptions</div>
+        <h2 id="t-rew" data-i18n="hRewards">Plus nous sommes nombreux, plus vous gagnez</h2>
+        <p data-i18n="pRewards">Chaque palier atteint débloque une récompense pour tous les joueurs préinscrits, remise au lancement.</p>
+      </div>
+      <div class="card goal reveal" aria-live="polite">
+        <div class="lbl" data-i18n="countLabel">Aventuriers préinscrits</div>
+        <div class="big js-count">…</div>
+        <div class="bar" role="progressbar" id="goal-bar" aria-valuemin="0" aria-valuemax="100000" aria-valuenow="0" aria-label="Progression vers l'objectif" data-i18n-attr="aria-label:goalAria"><span class="js-bar"></span></div>
+        <div class="ends"><span>0</span><span id="goal-mid"></span><span id="goal-max"></span></div>
+        <div class="hint" id="hint" data-i18n="loading">Chargement…</div>
+      </div>
+      <div class="tiers" id="tiers"></div>
+
+      <div class="card signup" id="inscription" aria-labelledby="t-sign">
+        <h3 id="t-sign" data-i18n="hSign">Être prévenu du lancement</h3>
+        <p data-i18n="pSign">Une seule information : la date de sortie. Vous recevrez aussi les récompenses de palier au lancement.</p>
+        <form id="prereg" novalidate>
+          <label for="email" class="sr-only" data-i18n="email">Adresse email</label>
+          <input id="email" type="email" required maxlength="254" autocomplete="email" placeholder="votre@email.fr" data-i18n-attr="placeholder:emailPh">
+          <label class="consent"><input id="consent" type="checkbox" required><span data-i18n="consent">J'accepte d'être contacté au sujet du lancement du jeu</span></label>
+          <button class="btn" type="submit" data-i18n="submit">Je me préinscris</button>
+          <p class="status-line" id="status" role="status"></p>
+        </form>
+      </div>
+    </section>
     <section class="block wrap" id="jeu" aria-labelledby="t-jeu">
       <div class="head reveal">
         <div class="kicker" data-i18n="kGame">Le jeu en bref</div>
@@ -351,7 +395,7 @@
       <div class="head reveal">
         <div class="kicker" data-i18n="kWorlds">Les mondes</div>
         <h2 id="t-mondes" data-i18n="hWorlds">12 mondes, 12 façons de voyager</h2>
-        <p data-i18n="pWorlds">Des plaines au Trône de l'Abysse : chaque monde a son décor, ses ennemis, son boss et sa façon de se déplacer (glisser sur la neige, sauter de nuage en nuage, nager…).</p>
+        <p data-i18n="pWorlds">Des plaines paisibles aux profondeurs les plus sombres : chaque monde a son décor, ses ennemis, son boss et sa façon de se déplacer (glisser sur la neige, sauter de nuage en nuage, nager…).</p>
       </div>
       <div class="worlds" id="worlds" tabindex="0" aria-label="Mondes" data-i18n-attr="aria-label:navWorlds"></div>
     </section>
@@ -360,7 +404,7 @@
       <div class="head reveal">
         <div class="kicker" data-i18n="kHeroes">Héros et compagnons</div>
         <h2 id="t-heros" data-i18n="hHeroes">Votre équipe de légende</h2>
-        <p data-i18n="pHeroes">Toutes les illustrations HD du jeu, en pixel art et en peinture. Filtrez par rareté et ouvrez une fiche.</p>
+        <p data-i18n="pHeroes">Quelques-unes des illustrations HD du jeu, en pixel art et en peinture. Les autres légendes se découvrent en jeu.</p>
       </div>
       <div class="filters" id="filters" role="group" aria-label="Filtres" data-i18n-attr="aria-label:filters"></div>
       <div class="gallery" id="gallery"></div>
@@ -371,7 +415,7 @@
       <div class="head reveal">
         <div class="kicker" data-i18n="kPets">Familiers</div>
         <h2 id="t-fam" data-i18n="hPets">Des familiers qui frappent fort</h2>
-        <p data-i18n="pPets">Chaque familier a sa compétence. Cinq nouveaux arrivent : Hérisson de cristal, Dragonnet de braise, Tortue de jade, Renard céleste et Petit phénix.</p>
+        <p data-i18n="pPets">Chaque familier a sa compétence. Cinq nouveaux arrivent… en voici quelques-uns, les autres restent une surprise.</p>
       </div>
       <div class="pets" id="pets"></div>
     </section>
@@ -411,33 +455,6 @@
       </div>
     </section>
 
-    <section class="block wrap" id="recompenses" aria-labelledby="t-rew">
-      <div class="head reveal">
-        <div class="kicker" data-i18n="kRewards">Préinscriptions</div>
-        <h2 id="t-rew" data-i18n="hRewards">Plus nous sommes nombreux, plus vous gagnez</h2>
-        <p data-i18n="pRewards">Chaque palier atteint débloque une récompense pour tous les joueurs préinscrits, remise au lancement.</p>
-      </div>
-      <div class="card goal reveal" aria-live="polite">
-        <div class="lbl" data-i18n="countLabel">Aventuriers préinscrits</div>
-        <div class="big js-count">…</div>
-        <div class="bar" role="progressbar" id="goal-bar" aria-valuemin="0" aria-valuemax="100000" aria-valuenow="0" aria-label="Progression vers l'objectif" data-i18n-attr="aria-label:goalAria"><span class="js-bar"></span></div>
-        <div class="ends"><span>0</span><span id="goal-mid"></span><span id="goal-max"></span></div>
-        <div class="hint" id="hint" data-i18n="loading">Chargement…</div>
-      </div>
-      <div class="tiers" id="tiers"></div>
-
-      <div class="card signup" id="inscription" aria-labelledby="t-sign">
-        <h3 id="t-sign" data-i18n="hSign">Être prévenu du lancement</h3>
-        <p data-i18n="pSign">Une seule information : la date de sortie. Vous recevrez aussi les récompenses de palier au lancement.</p>
-        <form id="prereg" novalidate>
-          <label for="email" class="sr-only" data-i18n="email">Adresse email</label>
-          <input id="email" type="email" required maxlength="254" autocomplete="email" placeholder="votre@email.fr" data-i18n-attr="placeholder:emailPh">
-          <label class="consent"><input id="consent" type="checkbox" required><span data-i18n="consent">J'accepte d'être contacté au sujet du lancement du jeu</span></label>
-          <button class="btn" type="submit" data-i18n="submit">Je me préinscris</button>
-          <p class="status-line" id="status" role="status"></p>
-        </form>
-      </div>
-    </section>
 
     <section class="block wrap" id="faq" aria-labelledby="t-faq">
       <div class="head reveal">

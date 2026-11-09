@@ -119,3 +119,9 @@ if WHICH in ('20', 'all'):
                             ('Bientôt sur PC et Android', 30, 448, 0.5, 3, '#c9b8ff'), (PROMO, 20, 640, 0.5, 3, '#8f86b0')], BG),
     ]
     assemble(parts, 'ascendrya-promo-20s')
+
+if WHICH in ('reel', 'all'):
+    # Bandeau du site (fond muet en boucle) : mondes et Colosse sans texte, quelques mondes seulement (pas de spoil).
+    parts = [world(0, 'in', n=150), world(3, 'panR', n=150), world(7, 'push', n=150), world(8, 'panL', n=150), world(10, 'in', n=150),
+             wb(1.0, 4.0, 'push'), wb(10.0, 13.0, 'out')]
+    assemble(parts, 'ascendrya-reel')
