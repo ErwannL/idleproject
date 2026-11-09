@@ -95,12 +95,21 @@ export const EXACT_934 = {
   "✦ Légendaire ✦": "✦ Legendary ✦",
   "Puissance": "Power",
   "Synergies": "Synergies",
+  "⚔ Prochain boss :": "⚔ Next boss:",
+  "tu peux le battre": "you can beat it",
+  "trop fort pour toi": "too strong for you",
+  "Améliore tes Dégâts.": "Upgrade your Damage.",
+  "fragments à dépenser": "shards to spend",
+  "Trop fragile : améliore ta Vie": "Too fragile: upgrade your Health",
 };
 let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   [new RegExp("^♻ Recycler les objets inutiles \\((\\d+)\\)(.*)$"), (m) => `♻ Recycle useless items (${m[1]})${m[2]}`],
   [new RegExp("^(\\d+) objets recyclés : \\+(.+) or, \\+(\\d+) éclats$"), (m) => `${m[1]} items recycled: +${m[2]} gold, +${m[3]} shards`],
+  [new RegExp("^Tient ([\\d.,<+ ]+) coups$"), (m) => `Survives ${m[1]} hits`],
+  [new RegExp("^Tient ([\\d.,<+ ]+) coups d'un ennemi, ([\\d.,<+ ]+) du boss$"), (m) => `Survives ${m[1]} enemy hits, ${m[2]} boss hits`],
+  [new RegExp("^\\(environ (\\d+) s\\)\\.?$"), (m) => `(about ${m[1]} s).`],
   [new RegExp("^Pour : (.+)$"), (m) => `For: ${L(m[1])}`],
   [new RegExp("^Puissance ([+−-]?[\\d\\s.,]+[KMB]?)$"), (m) => `Power ${m[1]}`],
   [new RegExp("^Pendant (\\d+) s, recharge (\\d+) min\\.$"), (m) => `For ${m[1]} s, cooldown ${m[2]} min.`],

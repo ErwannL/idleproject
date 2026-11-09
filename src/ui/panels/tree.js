@@ -357,8 +357,7 @@ function treeView(ui, state) {
         <li>Chaque couleur est une région ; les clés de voûte (hexagones) demandent des points dans leur région.</li>
         <li>Glissez pour vous déplacer, molette ou pincement pour zoomer, ◎ pour recentrer.</li></ul>`);
     const tree = `<div class="tree-head">
-        <span><b>${talentsOwned(state)}</b>/${total} talents · ${formatNumber(fragmentsSpent(state))} ${fragment()} investis
-          ${total - shown.size > 0 ? `<span class="muted">· ${total - shown.size} encore cachés</span>` : ''}</span>
+        <span>${fragment()} <b class="num">${formatNumber(state.fragments)}</b> fragments à dépenser</span>
       </div>
       <div class="tree-wrap"><div class="tree-viewport"><div class="rune-tree" style="width:${Math.round(TREE_PX * zoom)}px;height:${Math.round(TREE_PX * zoom)}px;--tz:${zoom}">
       <svg viewBox="0 0 ${SPAN} ${SPAN}" preserveAspectRatio="none" aria-hidden="true">${sectors}${links}</svg>${labels}${nodes}</div></div>

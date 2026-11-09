@@ -1802,6 +1802,7 @@ export class UI {
     const best = Math.max(state.maxStage, state.records.bestStage ?? 1);
     const boss = (state.records.bossesDefeated ?? 0) > 0;
     if (!state.ui.goalsOpen && this.claims.length) state.ui.goalsOpen = true; // posé à la première récompense, jamais retiré
+    const later = Math.max(state.maxStage ?? 1, state.records?.bestStage ?? 1) >= 40; // v9.3.4
     const visible = {
       tree: best >= 10 || state.fragments > 0 || state.records.rebirths > 0 || (state.prestige?.count ?? 0) > 0 || (state.transcend?.count ?? 0) > 0,
       dungeons: best >= DUNGEONS[0].unlockStage || Object.keys(state.dungeonsCleared).length > 0 || Boolean(state.dungeon),
@@ -1817,9 +1818,10 @@ export class UI {
       encyclopedia: boss,
       arena: arenaUnlocked(state), // v9.3.2
       forge: forgeOpen(state, 'forge'), // v9.3.4
-      stats: Boolean(state.ui.goalsOpen),
-      ranking: Boolean(state.ui.goalsOpen) && Boolean(this.actions.loadRanking) && this.cloud?.enabled !== false,
-      guild: Boolean(state.ui.goalsOpen) && Boolean(this.actions.loadGuild) && this.cloud?.enabled !== false, // v9.3.2
+      // v9.3.4 : Statistiques, Classement et Guilde n'apparaissent qu'à l'étape 40 (rarement utiles au début).
+      stats: Boolean(state.ui.goalsOpen) && later,
+      ranking: Boolean(state.ui.goalsOpen) && later && Boolean(this.actions.loadRanking) && this.cloud?.enabled !== false,
+      guild: Boolean(state.ui.goalsOpen) && later && Boolean(this.actions.loadGuild) && this.cloud?.enabled !== false, // v9.3.2
     };
     this.$('top-shop')?.classList.toggle('hidden', !visible.shop); // v9.2.9 : bouton Boutique de la barre du haut
     const key = `${JSON.stringify(visible)}|${this.tab}|${[...this.newTabs].join()}`;

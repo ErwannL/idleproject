@@ -95,12 +95,21 @@ export const EXACT_934 = {
   "✦ Légendaire ✦": "✦ 전설 ✦",
   "Puissance": "전투력",
   "Synergies": "시너지",
+  "⚔ Prochain boss :": "⚔ 다음 보스:",
+  "tu peux le battre": "이길 수 있어요",
+  "trop fort pour toi": "너무 강해요",
+  "Améliore tes Dégâts.": "피해를 강화하세요.",
+  "fragments à dépenser": "사용할 조각",
+  "Trop fragile : améliore ta Vie": "너무 약해요: 체력을 강화하세요",
 };
 let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   [new RegExp("^♻ Recycler les objets inutiles \\((\\d+)\\)(.*)$"), (m) => `♻ 필요 없는 장비 분해 (${m[1]})${m[2]}`],
   [new RegExp("^(\\d+) objets recyclés : \\+(.+) or, \\+(\\d+) éclats$"), (m) => `장비 ${m[1]}개 분해: 골드 +${m[2]}, 파편 +${m[3]}`],
+  [new RegExp("^Tient ([\\d.,<+ ]+) coups$"), (m) => `${m[1]}번 버팀`],
+  [new RegExp("^Tient ([\\d.,<+ ]+) coups d'un ennemi, ([\\d.,<+ ]+) du boss$"), (m) => `적 공격 ${m[1]}번, 보스 공격 ${m[2]}번 버팀`],
+  [new RegExp("^\\(environ (\\d+) s\\)\\.?$"), (m) => `(약 ${m[1]}초).`],
   [new RegExp("^Pour : (.+)$"), (m) => `대상: ${L(m[1])}`],
   [new RegExp("^Puissance ([+−-]?[\\d\\s.,]+[KMB]?)$"), (m) => `전투력 ${m[1]}`],
   [new RegExp("^Pendant (\\d+) s, recharge (\\d+) min\\.$"), (m) => `${m[1]}초 동안, 재사용 ${m[2]}분.`],

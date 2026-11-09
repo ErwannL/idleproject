@@ -3158,3 +3158,8 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 .forge-fx.craft i:nth-child(1) { --dx: -30px; } .forge-fx.craft i:nth-child(2) { --dx: 26px; } .forge-fx.craft i:nth-child(3) { --dx: -12px; } .forge-fx.craft i:nth-child(4) { --dx: 40px; }
 @keyframes v934-hammer { 50% { transform: translateY(4px); } }
 .reduce-motion .forge-fx.craft::before, .reduce-motion .forge-fx.craft i, .reduce-motion .forge-tile .forge-anvil img { animation: none; }
+/* v9.3.4 : hiérarchie — l'action principale (un bouton doré par écran) a un léger halo animé. */
+.btn-gold.primary-action:not(:disabled) { animation: v934-halo 2.4s ease-in-out infinite; }
+@keyframes v934-halo { 50% { box-shadow: 0 0 0 1px var(--ui-gold), 0 0 14px -2px var(--ui-gold); } }
+.reduce-motion .btn-gold.primary-action { animation: none; }
+.card { background-color: color-mix(in srgb, var(--ui-panel) 92%, transparent); }

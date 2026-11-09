@@ -106,8 +106,7 @@ export default {
         <div class="upg-icon">${img(ICONS[key])}</div>
         <div class="upg-main"><div class="upg-name" title="${escapeHtml(up.description)}">${escapeHtml(up.label)} <span class="upg-level">niv. ${level}${up.maxLevel ? `/${up.maxLevel}` : ''}</span>${milestone}${env?.counter === key ? `<span class="tag env-counter" title="${escapeHtml(`Contré : ${Math.round(env.countered)} % (complet au niveau ${env.fullAt})`)}">contre ${escapeHtml(env.name)}</span>` : ''}</div>
         ${compact || !beginner ? '' : `<div class="muted upg-desc">${escapeHtml(up.description)}</div>`}
-        <div class="upg-effect num">${max ? `<span class="to">${from}</span>`
-          : `<span class="from">${from}</span> → <span class="to">${to}</span>`}${gain}</div></div>
+        <div class="upg-effect num" title="${escapeHtml(`${from} → ${to}`)}">${max ? `<span class="to">${from}</span>` : gain ? gain.replace('muted ', '') : `<span class="to">→ ${to}</span>`}</div></div>
         ${costButton({ action: 'buy', cost, have: state.gold, attrs: `data-key="${key}" data-amount="${amount}"`, max, label: count > 1 ? `+${count} ` : '' })}
       </div>`;
     });
@@ -124,7 +123,9 @@ export default {
     // suite qu'un héros sans PV ni Défense tombe en un coup.
     const hits = hitsToFall(state);
     const fmtHits = (h) => (h >= 100 ? '99+' : h < 1 ? '< 1' : formatDecimal(Math.floor(h * 10) / 10));
-    const surv = `<span class="upg-surv${hits.normal < 3 ? ' bad' : ''}" title="${escapeHtml(`PV ${formatNumber(current.maxHp)} · coup ordinaire ${formatNumber(hits.normalHit)} · coup du boss ${formatNumber(hits.bossHit)}`)}">${img('icon_heart')} <span class="muted">Encaisse</span> <b class="num">${fmtHits(hits.normal)}</b> <span class="muted">coups · boss</span> <b class="num">${fmtHits(hits.boss)}</b></span>`;
+    // v9.3.4 : en clair au lieu de « Encaisse < 1 coups · boss < 1 » (le détail reste dans l'infobulle).
+    const fragile = hits.normal < 3 || hits.boss < 1;
+    const surv = `<span class="upg-surv${fragile ? ' bad' : ''}" title="${escapeHtml(`Tient ${fmtHits(hits.normal)} coups d'un ennemi, ${fmtHits(hits.boss)} du boss`)}">${img('icon_heart')} ${fragile ? 'Trop fragile : améliore ta Vie' : `Tient ${fmtHits(hits.normal)} coups`}</span>`;
     const dpsHead = `<div class="upg-dps"><span class="muted">Dégâts/s</span> <b class="num">${formatDecimal(current.dps)}</b>${beginner ? '' : surv}</div>`;
     const top = qtyMenu ? `<div class="row-between upg-dps-row">${dpsHead}${amounts}</div>${forecast}` : `${dpsHead}${forecast}${amounts ? `<div class="row-between">${amounts}</div>` : ''}`;
     return `<div class="card upg-top">${top}</div>
