@@ -5,7 +5,9 @@ import { Rng } from './rng.js';
 import { endWorldRun } from './banner.js';
 import { isUpgrade, uselessItems } from './inventory.js';
 import { companionById, companionUpgradeCost, onExpedition, teamKind } from './companions.js';
-import { bestUpgrade } from './profit.js';
+import { upgradeProfits } from './profit.js';
+import { upgradeOpen } from './unlocks.js';
+import { upgradeCost } from './economy.js';
 import { skillPointCost, skillPointsAvailable } from './skills.js';
 import { SKILLS } from '../data/skills.js';
 import { canRebirth, rebirthBlocked, rebirthReward } from './rebirth.js';
@@ -85,10 +87,16 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
   if (open('summon') && (state.records?.bossesDefeated ?? 0) >= 1 && !Object.keys(state.companions.owned).length && state.gems >= balance.summon.gemCost) { // après le premier mini-boss
     return { id: 'summon', text: 'Première invocation : un compagnon', tab: 'summon' };
   }
-  const up = bestUpgrade(state, balance);
-  if (up && up.cost <= state.gold && open('upgrades')) return { id: 'upgrade', text: `Améliorer : ${UPGRADE_NAMES[up.key] ?? up.key}`, action: 'buy', value: up.key };
+  // v9.3.5 : gemmes en réserve et place libre dans l'équipe → invoquer (aussi après la première fois).
+  const freeOf = (k) => state.companions.equipped.filter((id) => teamKind(companionById(id)) === k).length < balance.teamSlots[k];
+  if (open('summon') && Object.keys(state.companions.owned).length && (freeOf('ally') || freeOf('pet')) && state.gems >= balance.summon.gemCost) {
+    return { id: 'summon', text: freeOf('ally') ? 'Invoquer un compagnon (place libre)' : 'Invoquer un familier (place libre)', tab: 'summon' };
+  }
+  const up = bestOpenUpgrade(state, balance);
   const lv = companionToLevel(state, balance);
-  if (lv) return { id: 'level', text: `Monter ${lv.name} au niveau ${lv.level + 1}`, action: 'upgrade-companion', value: lv.id };
+  // Montée d'un compagnon d'abord quand elle coûte moins que l'amélioration proposée (sinon l'or part toujours ailleurs).
+  if (lv && (!up || up.cost > state.gold || lv.cost <= up.cost)) return { id: 'level', text: `Monter ${lv.name} au niveau ${lv.level + 1}`, action: 'upgrade-companion', value: lv.id };
+  if (up && up.cost <= state.gold && open('upgrades')) return { id: 'upgrade', text: `Améliorer : ${UPGRADE_NAMES[up.key] ?? up.key}`, action: 'buy', value: up.key };
   if (state.inventory.length >= balance.loot.inventorySize * 0.8) {
     const n = uselessItems(state, balance).length;
     if (n) return { id: 'recycle', text: `Recycler ${n} objets inutiles`, action: 'recycle-useless' };
@@ -106,6 +114,17 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
   }
   if (!state.autoAdvance && !state.farmBoss) return { id: 'advance', text: 'Reprendre l\'avance', action: 'advance' };
   return goalAction(state, balance);
+}
+
+// Amélioration la plus rentable parmi les lignes ouvertes (dégâts/s par or ; PV quand aucune ligne de dégâts n'est abordable).
+export function bestOpenUpgrade(state, balance = BALANCE) {
+  const profits = upgradeProfits(state, balance);
+  let best = null;
+  for (const [k, p] of Object.entries(profits)) if (upgradeOpen(state, k, balance) && p.gain > 0 && (!best || p.score > best.score)) best = { key: k, ...p };
+  if (best && best.cost <= state.gold) return best;
+  const v = balance.upgrades.vitality;
+  if (v && upgradeOpen(state, 'vitality', balance)) { const cost = upgradeCost('vitality', state.upgrades.vitality ?? 0, balance); if (cost <= state.gold && (state.upgrades.vitality ?? 0) < (state.upgrades.damage ?? 0)) return { key: 'vitality', cost }; }
+  return best;
 }
 
 const UPGRADE_NAMES = { damage: 'Dégâts', attackSpeed: 'Vitesse d\'attaque', vitality: 'PV', crit: 'Critique', armor: 'Armure', defense: 'Défense',

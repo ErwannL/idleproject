@@ -3,19 +3,28 @@
 // Une étape à la fois ; toucher la cible (ou « OK ») la termine pour de bon (state.ui.hints, déjà sauvegardé).
 const has = (state, id) => (state.ui?.hints ?? []).includes(id);
 
+// v9.3.5 : actions guidées dans l'ordre des premières minutes — équiper le premier objet, acheter Dégâts, apprendre
+// Frappe rapide ; après le premier mini-boss : première invocation, puis placer le compagnon.
+const MENU = (m) => `#tabs button[data-menu="${m}"]`;
 export const TUTO_STEPS = [
+  { id: 'tuto-item', finger: true, text: 'Nouvel objet : touche « Équiper »',
+    when: (s) => (s.inventory?.length ?? 0) > 0 && (s.records?.bossesDefeated ?? 0) < 3,
+    targets: ['.item-pop [data-action="equip"]', '[data-action="select-item"]', '[data-sub="inventory"]', MENU('hero')] },
   { id: 'tuto-damage', finger: true, text: 'Touche ici : plus de Dégâts',
     when: (s) => (s.upgrades?.damage ?? 0) < 1,
-    targets: ['button[data-action="buy"][data-key="damage"]', '#tabs button[data-menu="hero"]'] },
-  { id: 'tuto-item', finger: true, text: 'Nouvel objet : touche pour le voir',
-    when: (s) => (s.inventory?.length ?? 0) > 0,
-    targets: ['.inv-bag [data-action="select-item"]', '[data-action="select-item"]', '#tabs button[data-menu="hero"]'] },
+    targets: ['button[data-action="buy"][data-key="damage"]', '[data-sub="upgrades"]', MENU('hero')] },
+  { id: 'tuto-skill', finger: true, text: 'Apprends Frappe rapide',
+    when: (s) => (s.skills?.quick ?? 0) < 1 && (s.level ?? 1) >= 1,
+    targets: ['button[data-action="learn-skill"][data-key="quick"]', '[data-action="skill-sel"][data-value="s:quick"]', '[data-sub="skills"]', MENU('hero')] },
+  { id: 'tuto-summon', finger: true, text: 'Invoque ton premier compagnon',
+    when: (s) => (s.records?.bossesDefeated ?? 0) >= 1 && !Object.keys(s.companions?.owned ?? {}).length && (s.gems ?? 0) >= 100,
+    targets: ['[data-action="summon"]:not([disabled])', '[data-sub="summon"]', MENU('team')] },
+  { id: 'tuto-companion', finger: true, text: 'Place ton compagnon dans l\'équipe',
+    when: (s) => Object.keys(s.companions?.owned ?? {}).length > 0 && !(s.companions?.equipped ?? []).length,
+    targets: ['[data-action="toggle-companion"]', '[data-action="companion-sel"]', '[data-sub="companions"]', MENU('team')] },
   { id: 'tuto-recycle', finger: true, text: 'Sac plein : recycle en éclats',
     when: (s, full) => full,
-    targets: ['[data-action="recycle-useless"]:not([disabled])', '#tabs button[data-menu="hero"]'] },
-  { id: 'tuto-companion', finger: true, text: 'Choisis ton premier compagnon',
-    when: (s) => Object.keys(s.companions?.owned ?? {}).length > 0 && !(s.companions?.equipped ?? []).length,
-    targets: ['[data-action="companion-sel"]', '#tabs button[data-menu="team"]'] },
+    targets: ['[data-action="recycle-useless"]:not([disabled])', '[data-sub="forge"]', MENU('hero')] },
   { id: 'tip-boost', finger: false, text: 'Bonus du moment : plus d\'or et d\'expérience. Touche pour le détail.',
     when: () => true, targets: ['#boost-chip'] },
   { id: 'tip-claim', finger: false, text: 'Récupère d\'un coup toutes les récompenses prêtes.',
@@ -33,7 +42,8 @@ export function pickStep(state, root, full, panelOpen = false) {
   for (const st of TUTO_STEPS) {
     if (has(state, st.id) || !st.when(state, full)) continue;
     for (const sel of st.targets) {
-      if (panelOpen && sel.startsWith('#tabs')) continue; // panneau ouvert : pas de détour par le menu
+      if (panelOpen && sel.startsWith('#tabs')) continue;
+      if (!panelOpen && sel.startsWith('[data-sub')) continue; // panneau ouvert : pas de détour par le menu
       const el = root.querySelector(sel);
       if (visible(el)) return { step: st, el };
     }
@@ -71,7 +81,7 @@ export function updateTutorial(state, root, full, panelOpen = false, translate =
     el.dataset.tuto = step.id;
     el.addEventListener('click', () => {
       // Les onglets du menu ne sont qu'un détour : l'étape continue sur le vrai bouton.
-      if (!el.matches('#tabs button')) markDone(state, step.id);
+      if (!el.matches('#tabs button, [data-sub], [data-action="select-item"], [data-action="skill-sel"], [data-action="companion-sel"]')) markDone(state, step.id); // détours
       document.getElementById('tuto-layer')?.remove();
     }, { once: true });
   }

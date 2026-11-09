@@ -3183,3 +3183,24 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 .item-frame .for-cls { position: absolute; left: 0; right: 0; bottom: 0; font-size: 9px; line-height: 1.2; background: #000a; color: #fff; text-align: center; }
 .cls-pill { background: #2b3550; }
 .ip-unit { margin: 2px 0 4px; }
+
+/* v9.3.5 : écrans de victoire (donjon, Renaissance). */
+.victory-screen { text-align: center; }
+.victory-screen h2 { font-size: 24px; color: var(--ui-gold, #f5c542); animation: victory-pop 260ms ease-out; }
+.victory-crowns { font-size: 26px; letter-spacing: 4px; }
+.victory-loot { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 8px 0; }
+.victory-big { font-size: 22px; }
+@keyframes victory-pop { from { transform: scale(.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .victory-screen h2 { animation: none; } }
+.buy-best, .team-up { width: 100%; min-height: 44px; margin: 6px 0; }
+.rush-btn { position: relative; }
+.rush-btn .rush-name { position: absolute; left: 50%; bottom: -14px; transform: translateX(-50%); font-size: 11px; line-height: 1; white-space: nowrap; color: #fff; text-shadow: 0 1px 2px #000; pointer-events: none; }
+/* v9.3.5 : toucher le combat — étincelle et petit chiffre. */
+.tap-spark { position: fixed; z-index: 800; pointer-events: none; transform: translate(-50%, -50%); font: 700 14px/1 system-ui, sans-serif; color: #fff7c2;
+  text-shadow: 0 0 6px #ffcc33, 0 1px 2px #000; animation: tap-spark 420ms ease-out forwards; }
+.tap-spark::before { content: '✦'; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 26px; color: #ffe27a; opacity: .8; z-index: -1; }
+@keyframes tap-spark { from { opacity: 1; margin-top: 0; } to { opacity: 0; margin-top: -26px; } }
+@media (prefers-reduced-motion: reduce) { .tap-spark { animation-duration: 1ms; } }
+/* v9.3.5 : un bouton « Récupérer » indisponible a l'air inactif. */
+.btn:disabled, .btn[disabled] { opacity: .5; filter: grayscale(.7); cursor: not-allowed; box-shadow: none; }
+.badge-count { white-space: nowrap; font-size: 10px; }

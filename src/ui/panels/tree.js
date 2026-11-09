@@ -9,6 +9,7 @@ import { stageLabel } from '../../core/combat.js';
 import {
   canRebirth, fragmentsSpent, rebirthBlocked, rebirthGain, rebirthReward, regionPoints, respecCost, talentById, talentConnected, talentCost,
   talentLevelEffects, talentsOwned, talentUnlocked,
+  suggestedTalent,
 } from '../../core/rebirth.js';
 import { perkCost } from '../../core/prestige.js';
 import { PRESTIGE, PRESTIGE_PERKS } from '../../data/prestige.js';
@@ -358,6 +359,7 @@ function treeView(ui, state) {
         <li>Glissez pour vous déplacer, molette ou pincement pour zoomer, ◎ pour recentrer.</li></ul>`);
     const tree = `<div class="tree-head">
         <span>${fragment()} <b class="num">${formatNumber(state.fragments)}</b> fragments à dépenser</span>
+        ${(() => { const sg = suggestedTalent(state); return sg ? `<button class="btn small btn-gold" data-action="talent-sel" data-value="${sg.talent.id}">Conseillé : ${escapeHtml(sg.talent.name)}</button>` : ''; })()}
       </div>
       <div class="tree-wrap"><div class="tree-viewport"><div class="rune-tree" style="width:${Math.round(TREE_PX * zoom)}px;height:${Math.round(TREE_PX * zoom)}px;--tz:${zoom}">
       <svg viewBox="0 0 ${SPAN} ${SPAN}" preserveAspectRatio="none" aria-hidden="true">${sectors}${links}</svg>${labels}${nodes}</div></div>

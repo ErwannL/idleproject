@@ -682,6 +682,17 @@ function hitEnemy(state, world, enemy, damage, rng, balance, stats, enc, source,
   if (enemy.hp <= 0) killEnemy(state, world, enemy, rng, balance, stats, enc);
 }
 
+// v9.3.5 : toucher l'écran de combat — petit coup du joueur (10 % d'un coup du héros) sur l'ennemi le plus proche.
+export const TAP_SHARE = 0.1;
+export function tapHit(state, world, rng, balance = BALANCE) {
+  const stats = world.heroStats ?? computeHeroStats(state, balance);
+  const enemy = world.enemies.filter((e) => e.hp > 0 && canHit(e, balance)).sort((a, b) => a.x - b.x)[0];
+  if (!enemy) return null;
+  const damage = stats.damage * TAP_SHARE;
+  hitEnemy(state, world, enemy, damage, rng, balance, stats, currentEncounter(state, balance), 'tap');
+  return { damage, x: enemy.x };
+}
+
 function heroDamage(stats, enemy, world, rng, balance) {
   const versus = enemy.boss ? stats.bonus.damageVsBossPct : stats.bonus.damageVsNormalPct;
   const cry = world.buffs.cry > 0 ? world.buffs.cryPct : 0;

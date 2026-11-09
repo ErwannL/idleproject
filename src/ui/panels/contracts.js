@@ -5,7 +5,7 @@ import { ZONES } from '../../data/zones.js';
 import { ITEM_SETS } from '../../data/sets.js';
 import { animCanvas } from '../animator.js';
 import { contractLabel, contractTitle } from '../../core/contracts.js';
-import { bonusReady, loginPending, missionStatus, periodRemaining, trackNext, trackPct } from '../../core/missions.js';
+import { bonusReady, loginPending, missionStatus, openMissions, periodRemaining, trackNext, trackPct } from '../../core/missions.js';
 import { rewardText } from '../../core/rewards.js';
 import { LOGIN_CALENDAR, MISSION_PERIODS, MISSION_TRACK } from '../../data/missions.js';
 import { claimPeekList, merchantsHtml } from './inbox.js';
@@ -74,16 +74,17 @@ function loginTab(state) {
 
 function periodTab(state, period) {
   const run = state.missions[period.id];
-  const rows = period.missions.map((m) => {
+  const shown = openMissions(state, period); // v9.3.5 : pas de mission pour une fonction verrouillée
+  const rows = shown.map((m) => {
     const st = missionStatus(state, period.id, m);
     return row({ icon: TYPE_ICONS[m.type] ?? 'icon_star', label: m.label, progress: st.progress, target: m.target, reward: m.reward,
       done: st.done, claimed: st.claimed, action: 'claim-mission', value: `${period.id}|${m.id}` });
   }).join('');
-  const claimedCount = period.missions.filter((m) => missionStatus(state, period.id, m).claimed).length;
+  const claimedCount = shown.filter((m) => missionStatus(state, period.id, m).claimed).length;
   const ready = bonusReady(state, period.id);
   const chest = `<div class="m-row m-chest${run.bonus ? ' claimed' : ''}">
     <div class="m-icon">${img('icon_chest')}</div>
-    <div class="m-main"><div class="m-label"><b>Récompense complète</b>${rewardIcons(period.bonus)}</div>${progressBar(claimedCount / period.missions.length, `${claimedCount} / ${period.missions.length}`)}</div>
+    <div class="m-main"><div class="m-label"><b>Récompense complète</b>${rewardIcons(period.bonus)}</div>${progressBar(claimedCount / Math.max(1, shown.length), `${claimedCount} / ${shown.length}`)}</div>
     <div class="m-btn">${run.bonus ? '<span class="m-done">✔</span>' : `<button class="btn ${ready ? 'btn-gold' : ''} small" data-action="claim-mission-bonus" data-value="${period.id}" ${ready ? '' : 'disabled'}>Ouvrir</button>`}</div>
   </div>`;
   return `<div class="m-reset muted">${period.reset} · dans ${remainingText(periodRemaining(period.id))}</div>${rows}${chest}`;

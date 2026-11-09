@@ -1,6 +1,7 @@
 // À récupérer (v9.1.0) : une seule liste de tout ce qui est réclamable maintenant. Elle sert au bouton « Prochaine
 // action », aux pastilles rouges, à l'écran Objectifs > À récupérer et à la touche G — rien n'apparaît deux fois.
 // Seulement des récompenses : ni messages non lus, ni marchands (un achat reste une décision).
+import { missionOpen } from './missions.js';
 import { BALANCE } from '../data/balance.js';
 import { MISSION_PERIODS } from '../data/missions.js';
 import { BOSSES } from '../data/enemies.js';
@@ -23,7 +24,7 @@ export function claimables(state, now = Date.now(), balance = BALANCE) {
     const tn = trackNext(state); // v9.1.3 : piste du mois
     if (tn?.ready) push({ key: 'track', kind: 'track', period: 'track', label: `Piste du mois : palier ${tn.pct} %`, reward: tn.reward, tab: 'contracts' });
     for (const p of MISSION_PERIODS) {
-      for (const m of p.missions) {
+      for (const m of p.missions.filter((x) => missionOpen(state, x))) { // v9.3.5
         const st = missionStatus(state, p.id, m);
         if (st.done && !st.claimed) push({ key: `mission:${p.id}:${m.id}`, kind: 'mission', period: p.id, id: m.id, label: `${p.label} : ${m.label}`, reward: m.reward, tab: 'contracts' });
       }

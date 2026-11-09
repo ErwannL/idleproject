@@ -1,3 +1,15 @@
+## Ascendrya v9.3.5 — Refonte pour les débutants, équipement unique
+
+- Équipement unique : héros et compagnons portent les mêmes objets, trois places pour tout le monde (Arme, Armure, Accessoire), chaque objet a une classe (Attaquant, Défenseur, Soutien, Familier). Le butin équipe l'équipe en place ; « Équiper le meilleur » équipe toute l'équipe. Sélecteur de personnage dans l'écran Équipement. Les sauvegardes sont converties sans perte : le casque est réuni à l'armure et les bijoux à l'accessoire, avec toutes leurs statistiques ; l'équipement des compagnons garde ses bonus.
+- La barre jaune guide tout le jeu, et un clic fait l'action : équiper tous les objets meilleurs, placer un compagnon, dépenser les points de compétence, invoquer, améliorer, monter un compagnon, recycler, forger, utiliser les clés, Renaissance. « Boss : 88 % de vie restante » quand un boss bloque.
+- Un compagnon invoqué rejoint l'équipe tout seul ; bouton « Améliorer l'équipe ».
+- Menus : Combat, Héros, Équipe, Aventure, Quêtes ; Profil en haut (Apparences, Classement, Guilde, Statistiques) ; l'Arène est dans Défis ; l'Événement s'ouvre après le monde 2.
+- Tutoriel guidé : équiper le premier objet, acheter Dégâts, apprendre Frappe rapide, puis invoquer et placer le premier compagnon.
+- Améliorations : 3 lignes au début, une de plus tous les deux boss ; « Améliorer au mieux » ; « Tu survis N coups du boss ».
+- Écrans de victoire (donjon : butin, couronnes, Rejouer ; Renaissance : « Tu es plus fort : ×N pour toujours » et talent conseillé) ; pouvoir conseillé à la Renaissance ; talent conseillé dans les Talents.
+- Combat : toucher l'écran fait une étincelle et un petit coup ; nom court sous les boosts ; touches affichées seulement avec un clavier.
+- Corrigé : Expéditions qui proposaient le même compagnon partout, missions sur des fonctions pas encore ouvertes, « Cristaux » au lieu de gemmes, « onze mondes », doublon d'invocation à une étoile, rôle écrit de deux façons, images cassées.
+
 ## Ascendrya v9.3.4 — Refonte de l'interface
 
 - Compagnons : grille en deux onglets et nouvelle fiche en popup (grande illustration, rareté, élément, rôle, Dégâts/Vie/Vitesse, trois compétences en icônes avec bulle de détail, Copies, onglets Compétences / Équipement / Histoire, deux boutons).

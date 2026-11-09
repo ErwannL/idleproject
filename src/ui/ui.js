@@ -100,7 +100,7 @@ const UNLOCK_INFO = { // v9.3.4 (h) : une ligne courte par onglet
   companions: 'ils combattent à vos côtés.',
   summon: 'tickets et gemmes invoquent des compagnons.',
   shop: 'les offres ; achats pas encore ouverts.',
-  event: 'un événement nouveau toutes les deux semaines.',
+  event: 'bats des gardiens, gagne des écus, échange-les.',
   expeditions: 'vos compagnons libres partent en mission.',
   tree: 'les fragments achètent des talents permanents.',
   dungeons: 'une clé par combat de boss.',
@@ -117,17 +117,23 @@ const TALL_MIN_HEIGHT = 420;
 const STRIP_MAX_HEIGHT = 190; // en dessous : mode barre (seulement la scène, comme une barre des tâches)
 const BULK_CONFIRM_MS = 4000;
 // Panneaux dont le contenu évolue pendant le farm : réaffichés au plus une fois par seconde.
+// v9.3.5 : nom court sous l'icône des boosts ; touches affichées seulement avec souris et clavier.
+const RUSH_SHORT = { rage: 'Rage', frenzy: 'Frénésie', midas: 'Midas', hunter: 'Chasseur', phantom: 'Fantôme' };
+const hasKeyboard = () => typeof matchMedia === 'function' && matchMedia('(hover: hover) and (pointer: fine)').matches;
 const LIVE_PANELS = new Set(['arena', 'world', 'contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'looks', 'upgrades', 'companions', 'expeditions', 'encyclopedia', 'inbox', 'ranking', 'stats']);
 
 // Renaissance : choix du seul pouvoir ancestral conservé.
 function powerChoice(state) {
   const ids = Object.keys(state.powers);
   if (ids.length <= 1) return '';
-  const first = state.equippedPowers[0] ?? ids[0];
+  // v9.3.5 : pouvoir conseillé = celui qui donne le plus de dégâts (sinon le premier actif) ; coché par défaut.
+  const dmg = (id) => Object.entries(powerById(state.powers[id].current)?.effects ?? {}).filter(([k]) => /damage|Dmg|dps/i.test(k)).reduce((a, [, v]) => a + (Number(v) || 0), 0);
+  const advised = [...ids].sort((a, b) => dmg(b) - dmg(a))[0];
+  const first = dmg(advised) > 0 ? advised : state.equippedPowers[0] ?? ids[0];
   return `<div class="keep-power"><div class="section-title">Pouvoir conservé (un seul)</div>${ids.map((id) => {
     const p = powerById(state.powers[id].current);
     return `<label class="toggle"><input type="radio" name="keep-power" value="${id}" ${id === first ? 'checked' : ''}>
-      <b>${BOSSES[id].name}</b> : ${p ? `${p.name} (${effectText(p.effects)})` : '—'}</label>`;
+      <b>${BOSSES[id].name}</b> : ${p ? `${p.name} (${effectText(p.effects)})` : '—'}${id === first ? ' <span class="good">Conseillé</span>' : ''}</label>`;
   }).join('')}</div>`;
 }
 
@@ -785,6 +791,8 @@ export class UI {
       case 'toggle-companion': a.toggleCompanion(value); break;
       case 'upgrade-companion': a.upgradeCompanion(value); break;
       case 'upgrade-team': a.upgradeTeam(); break; // v9.3.5
+      case 'buy-best': a.buyBest(); break; // v9.3.5
+      case 'arena-edit': local(() => { v.arenaEdit = true; }); break; // v9.3.5
       case 'open-tab': if (el.closest('#modal')) this.closeModal(); this.openTab(value); break;
       case 'ranking-sort': this.actions.loadRanking(value); break;
       // v9.3.2 : guilde.
@@ -952,7 +960,7 @@ export class UI {
       case 'dungeon-slot': local(() => { v.dungeonSlot = value; }); break;
       case 'dungeon-path-pre': local(() => { v.dungeonPath = value; a.rememberDungeonChoice('path', value); }); break;
       case 'dungeon-path': a.setDungeonPath(value); break;
-      case 'enter-dungeon': a.enterDungeon(value, v.dungeonSlot ?? this.state.ui.dungeonSlot ?? 'any', v.dungeonPath ?? this.state.ui.dungeonPath ?? 'gold', el.dataset.diff ?? v.dungeonDiff ?? 'easy'); break;
+      case 'enter-dungeon': this.closeModal(); a.enterDungeon(value, v.dungeonSlot ?? this.state.ui.dungeonSlot ?? 'any', v.dungeonPath ?? this.state.ui.dungeonPath ?? 'gold', el.dataset.diff ?? v.dungeonDiff ?? 'easy'); break;
       case 'dungeon-sel': local(() => { v.dungeonSel = value; v.dungeonDiff = null; }); break;
       case 'dungeon-diff': local(() => { v.dungeonDiff = value; }); break;
       case 'abandon-dungeon': a.abandonDungeon(); break;
@@ -1041,6 +1049,7 @@ export class UI {
       case 'import-open': local(() => { v.importOpen = !v.importOpen; }); break;
       case 'import-save': this.importFromPanel(); break;
       case 'close-modal': this.closeModal(); break;
+      case 'rebirth-talent': this.closeModal(); this.openTab('tree'); break; // v9.3.5
       case 'open-claims': this.openClaims(); break;
       case 'show-boost': this.showBoost(this.state); break;
       case 'toggle-boosts': this.boostsOpen = !this.boostsOpen; delete this.lastHud.rushTime; break;
@@ -1247,11 +1256,20 @@ export class UI {
       case 'dungeonRoom':
         this.news(`Salle terminée : ${rewardText(event.reward, formatNumber)}`, '#9cf08a');
         break;
-      case 'dungeonComplete':
+      case 'dungeonComplete': {
         this.banner('Donjon terminé !', 'win');
         this.news(`Donjon terminé : ${event.item.name} (${rarityById(event.item.rarity).label})`, rarityById(event.item.rarity).color);
+        // v9.3.5 : écran de victoire — butin, couronnes de la difficulté, Rejouer.
+        const crowns = '👑'.repeat((event.rank ?? 0) + 1);
+        const keys = this.state.keys ?? 0;
+        this.openModal(`<div class="victory-screen"><h2 id="modal-title">Victoire !</h2><div class="victory-crowns" aria-label="Difficulté">${crowns}</div>
+          <div class="victory-loot">${itemFrame(event.item, { tag: 'div' })}<b class="r-${event.item.rarity} rarity-text">${escapeHtml(event.item.name)}</b></div>
+          ${event.earned ? `<p class="muted">${rewardText(event.earned, formatNumber)}</p>` : ''}
+          <div class="detail-actions"><button class="btn" data-action="close-modal">Fermer</button>
+            ${keys > 0 ? `<button class="btn btn-gold" data-action="enter-dungeon" data-value="${event.id}" data-diff="${event.difficulty}">Rejouer (${keys} clé${keys > 1 ? 's' : ''})</button>` : ''}</div></div>`);
         this.invalidate();
         break;
+      }
       case 'towerFloor':
         this.banner(`Étage ${event.floor} franchi !`, 'win');
         uiFx.stageFx('floor_up'); // v9.2.6
@@ -1624,7 +1642,7 @@ export class UI {
         const unlocked = rushUnlocked(state, r);
         return `<button class="rush-btn${unlocked ? '' : ' locked'}" data-action="rush" data-value="${r.id}" style="--rush:${r.color}"
           title="${r.name} — ${r.text}. ${unlocked ? `Touche ${boostKeys()[i]}.` : `Débloqué au niveau ${r.unlockLevel} du héros.`}" aria-label="${r.name}">${img(r.icon)}
-          ${phoneLayout() ? '' : `<span class="rush-key">${boostKeys()[i]}</span>`}<span class="rush-time"></span></button>`;
+          ${phoneLayout() || !hasKeyboard() ? '' : `<span class="rush-key">${boostKeys()[i]}</span>`}<span class="rush-time"></span><span class="rush-name">${RUSH_SHORT[r.id] ?? ''}</span></button>`;
       }).join('') + (boostOn ? `<button class="boost-chip" data-action="show-boost" id="boost-chip">${img('icon_bolt', 'ico20')}<span id="boost"></span></button>` : '');
       delete this.lastHud.boost;
     }
@@ -1721,7 +1739,8 @@ export class UI {
     const count = this.$('count-hero');
     if (count) {
       count.classList.toggle('hidden', !fresh || this.tab === 'inventory');
-      count.textContent = fresh > 99 ? '+99' : `+${fresh}`;
+      count.textContent = `${fresh > 99 ? '99+' : fresh} ${fresh > 1 ? 'objets' : 'objet'}`; // v9.3.5 : chiffre avec sa légende
+      count.title = `${fresh} objet${fresh > 1 ? 's' : ''} neuf${fresh > 1 ? 's' : ''} dans le sac`;
       count.setAttribute('aria-label', `${fresh} objet${fresh > 1 ? 's' : ''} neuf${fresh > 1 ? 's' : ''}`);
     }
     if (this.tab) this.renderSubtabs();
@@ -1774,6 +1793,17 @@ export class UI {
       <p><b>Sert à :</b> ${c.use}</p><p><b>S'obtient :</b> ${c.gain}</p>
       <div class="detail-actions"><button class="btn" data-action="close-modal">Fermer</button>
         ${reachable ? `<button class="btn btn-primary" data-action="currency-go" data-value="${id}">Aller à ${escapeHtml(navPath(c.tab))}</button>` : ''}</div>`);
+  }
+
+  // v9.3.5 : après une Renaissance — « Tu es plus fort : ×N pour toujours », puis le talent conseillé.
+  showRebirthDone(ratio, gained, talent) {
+    const mult = `×${formatMult(Math.max(1, ratio))}`;
+    this.openModal(`<div class="victory-screen"><h2 id="modal-title">Tu es plus fort !</h2>
+      <p class="victory-big"><b class="gold-text">${mult}</b> pour toujours</p>
+      <p>+${formatNumber(gained)} fragments anciens.</p>
+      ${talent ? `<p>Talent conseillé : <b>${escapeHtml(talent.talent.name ?? talent.talent.id)}</b> (${formatNumber(talent.cost)} fragments).</p>` : ''}
+      <div class="detail-actions"><button class="btn" data-action="close-modal">Continuer</button>
+        ${talent ? '<button class="btn btn-gold" data-action="rebirth-talent">Voir les talents</button>' : ''}</div></div>`);
   }
 
   // Récapitulatif du Retour de session.

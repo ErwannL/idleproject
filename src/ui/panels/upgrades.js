@@ -125,14 +125,15 @@ export default {
     const fmtHits = (h) => (h >= 100 ? '99+' : h < 1 ? '< 1' : formatDecimal(Math.floor(h * 10) / 10));
     // v9.3.4 : en clair au lieu de « Encaisse < 1 coups · boss < 1 » (le détail reste dans l'infobulle).
     const fragile = hits.normal < 3 || hits.boss < 1;
-    const surv = `<span class="upg-surv${fragile ? ' bad' : ''}" title="${escapeHtml(`Tient ${fmtHits(hits.normal)} coups d'un ennemi, ${fmtHits(hits.boss)} du boss`)}">${img('icon_heart')} ${fragile ? 'Trop fragile : améliore ta Vie' : `Tient ${fmtHits(hits.normal)} coups`}</span>`;
+    const surv = `<span class="upg-surv${fragile ? ' bad' : ''}" title="${escapeHtml(`Tient ${fmtHits(hits.normal)} coups d'un ennemi, ${fmtHits(hits.boss)} du boss`)}">${img('icon_heart')} ${fragile ? 'Trop fragile : améliore ta Vie' : `Tu survis ${fmtHits(hits.boss)} coups du boss`}</span>`;
     const dpsHead = `<div class="upg-dps"><span class="muted">Dégâts/s</span> <b class="num">${formatDecimal(current.dps)}</b>${beginner ? '' : surv}</div>`;
     const top = qtyMenu ? `<div class="row-between upg-dps-row">${dpsHead}${amounts}</div>${forecast}` : `${dpsHead}${forecast}${amounts ? `<div class="row-between">${amounts}</div>` : ''}`;
     return `<div class="card upg-top">${top}</div>
       ${catTabs}
       ${beginner ? '' : fold(ui, 'upg-filters', 'Trier', filters)}
       <div class="upg-list">${cards.join('')}</div>
-      ${beginner ? '<div class="muted">D\'autres améliorations (critique, armure, régénération, or) s\'ouvrent après le premier mini-boss.</div>' : ''}
-      ${nextUp ? `<div class="muted next-unlock">Prochain : ${escapeHtml(nextUp.label)} à l'étape ${nextUp.stage}</div>` : ''}`;
+      ${state.gold > 0 ? '<button class="btn btn-gold primary-action buy-best" data-action="buy-best">Améliorer au mieux</button>' : ''}
+      ${beginner ? '<div class="muted">D\'autres améliorations s\'ouvrent au fil des boss.</div>' : ''}
+      ${nextUp ? `<div class="muted next-unlock">Prochaine ligne : ${escapeHtml(nextUp.label)}, dans 2 boss</div>` : ''}`;
   },
 };

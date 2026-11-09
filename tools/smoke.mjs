@@ -440,6 +440,9 @@ await check('Renaissance : confirmation, réinitialisation et conservation des d
   const before = await game(() => ({ powers: JSON.stringify(__idle.state.powers), weapon: __idle.state.equipment.weapon.id }));
   await page.click('[data-action="confirm-rebirth"]');
   await page.waitForTimeout(200);
+  assert(await page.$('.victory-screen'), 'écran « Tu es plus fort » absent'); // v9.3.5
+  await page.click('#modal [data-action="close-modal"]');
+  await page.waitForTimeout(200);
   const after = await game(() => ({
     stage: __idle.state.maxStage, gold: __idle.state.gold, fragments: __idle.state.fragments,
     powers: JSON.stringify(__idle.state.powers), weapon: __idle.state.equipment.weapon.id, rebirths: __idle.state.records.rebirths,

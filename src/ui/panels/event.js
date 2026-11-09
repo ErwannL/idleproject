@@ -25,7 +25,7 @@ function bossCard(state, wb) {
       <div class="wb-card-tiers"><span class="muted">Paliers de récompense</span> ${tiers}</div>
       <button class="btn btn-gold wb-attack" data-action="event-boss" ${wb.left ? '' : 'disabled'}>⚔ <span>Attaquer</span></button>
       <div class="muted">Combat de ${WORLD_BOSS.seconds} s avec toute l'équipe. Phases à 75, 50 et 25 % des PV.</div>
-      <div class="muted">World Boss coopératif (dégâts de tous les joueurs, classement) : prochainement.</div>`
+`
     : `<div class="muted">Débloqué à l'étape ${G.worldBoss.unlockStage}.</div>`;
   return `<div class="card wb-card"><div class="section-title">${img('icon_boss')} <span>World Boss</span></div>
       <div class="wb-card-name"><b>${escapeHtml(WORLD_BOSS.name)}</b></div>${body}</div>`;
@@ -58,7 +58,7 @@ function grand(ui, state, ev) {
     <div class="card"><div class="section-title">${walletIcon('eventCoins')} <span>Boutique des écus</span></div>
       <div class="ev-shop">${shop.map((i) => `<div class="ev-item">${give(i.give)}<span class="muted"><b class="num">${(rec.bought[i.id] ?? 0)}/${i.stock}</b></span>
         <button class="btn small" data-action="event-buy" data-value="${i.id}" ${rec.coins >= i.price && (rec.bought[i.id] ?? 0) < i.stock ? '' : 'disabled'}>${walletIcon('eventCoins')} ${i.price}</button></div>`).join('')}</div></div>
-    <div class="muted">Failles dimensionnelles (2e semaine) et reliques d'événement : prochainement.</div>`;
+`; // v9.3.5 : rien d'annoncé tant que ce n'est pas jouable
 }
 
 function small(state, ev) {

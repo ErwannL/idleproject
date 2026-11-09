@@ -3,7 +3,7 @@
 // suspendu automatiquement quand la fenêtre est masquée).
 import { BALANCE } from './data/balance.js';
 import { BOSSES } from './data/enemies.js';
-import { changeStage, createCombat, currentEncounter, cycleForStage, resetWave, resumeAdvance, stageLabel, step } from './core/combat.js';
+import { changeStage, createCombat, currentEncounter, cycleForStage, resetWave, resumeAdvance, stageLabel, step, tapHit } from './core/combat.js';
 import { ZONES } from './data/zones.js';
 import { playCinematic, playTransition, worldCinematic } from './ui/cinematic.js';
 import { TOUR_VERSION, maybeStartTour, startTour } from './ui/onboarding.js';
@@ -24,7 +24,7 @@ import { normalizePool, summon } from './core/gacha.js';
 import { setActiveHero } from './core/heroes.js';
 import { addToInventory, bulkRecycleCandidates, equipBest, equipItem, isUpgrade, recycleItem, recycleMatching, recycleRules, sweepInventory, toggleLock } from './core/inventory.js';
 import { bossDungeon, bossFirstStage, claimMastery, powerById, powerSlots, rerollPower, resolveReroll, setPowerActive } from './core/powers.js';
-import { buyTalent, buyTalentMax, buyTalentPath, buyTalentsCheapest, performRebirth, respecTalents } from './core/rebirth.js';
+import { buyTalent, buyTalentMax, buyTalentPath, buyTalentsCheapest, performRebirth, respecTalents, suggestedTalent } from './core/rebirth.js';
 import { buyTranscendPerk, buyTranscendPerkMax, performTranscend, stellarMultiplier } from './core/transcend.js';
 import { buyPerk } from './core/prestige.js';
 import { activateRush, rushById, upgradeRush } from './core/rushes.js';
@@ -37,7 +37,7 @@ import { Rng } from './core/rng.js';
 import { SAVE_KEY, clearSave, encodeSaveCode, loadGame, parseImport, saveGame, writeImported } from './core/save.js';
 import { startSession } from './core/times.js';
 import { SAVE_VERSION, createNewState } from './core/state.js';
-import { computeHeroStats } from './core/stats.js';
+import { computeHeroStats, rebirthMultiplier } from './core/stats.js';
 import { formatNumber } from './core/format.js';
 import { claimBounty, setBountyZone } from './core/bounty.js';
 import { claimables } from './core/claimables.js';
@@ -74,7 +74,7 @@ import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagL
 import { playsOnSite } from './ui/panels/options.js';
 import { skillKillGold, upgradeCompanionSkill } from './core/companions.js'; // v9.3.3
 import { equipGear, recycleGear, unequipGear, upgradeGear } from './core/companion-gear.js'; // v9.3.3
-import { companionToLevel, companionToPlace } from './core/guide.js'; // v9.3.5
+import { bestOpenUpgrade, companionToLevel, companionToPlace } from './core/guide.js'; // v9.3.5
 import { recycleUseless } from './core/inventory.js'; // v9.3.4
 
 const SIM_INTERVAL_MS = 100;
@@ -439,6 +439,16 @@ const actions = {
   },
   buyMerchant(id) { done(buyFromMerchant(state, id), 'Objet acheté'); },
   dismissEvent(id) { done(dismissEvent(state, id)); },
+  // v9.3.5 : « Améliorer au mieux » — dépense l'or sur la ligne ouverte la plus rentable, niveau par niveau.
+  buyBest() {
+    let n = 0;
+    for (let i = 0; i < 2000; i++) {
+      const a = bestOpenUpgrade(state);
+      if (!a || a.cost > state.gold || buyUpgradeBulk(state, a.key, '1') <= 0) break;
+      n += 1;
+    }
+    if (n) { sound.play('upgrade', { volume: 0.6 }); save(); ui.invalidate(); ui.toast(`${n} amélioration${n > 1 ? 's' : ''} achetée${n > 1 ? 's' : ''}`, '#7fe0a0'); }
+  },
   buy(key, amount = '1') {
     if (buyUpgradeBulk(state, key, amount) > 0) {
       sound.play('upgrade', { volume: 0.6 });
@@ -552,11 +562,14 @@ const actions = {
     done(n > 0, n ? `Arbre réinitialisé : +${formatNumber(n)} fragments rendus` : null, '#c9a6ff');
   },
   rebirth(keepPower) {
+    const before = rebirthMultiplier(state);
     const gained = performRebirth(state, keepPower);
     if (gained <= 0) return;
     world = createCombat(state);
     save();
     ui.banner(`Renaissance ! +${gained} fragments anciens`, 'win');
+    // v9.3.5 : écran « Tu es plus fort » et talent conseillé.
+    ui.showRebirthDone?.(rebirthMultiplier(state) / Math.max(1e-9, before), gained, suggestedTalent(state));
     ui.invalidate();
   },
   activateRush(id) {
@@ -1215,6 +1228,21 @@ const sound = createGameAudio();
 ui.sound = sound;
 const unlockAudio = () => sound.unlock();
 window.addEventListener('pointerdown', unlockAudio, { capture: true });
+// v9.3.5 : toucher le combat fait réagir l'écran (étincelle + petit coup), 8 fois par seconde au plus.
+let lastTap = 0;
+document.getElementById('scene')?.addEventListener('pointerdown', (e) => {
+  const now = performance.now();
+  if (now - lastTap < 125) return;
+  lastTap = now;
+  const hit = tapHit(state, world, rng);
+  const fx = document.createElement('span');
+  fx.className = 'tap-spark';
+  fx.textContent = hit ? formatNumber(Math.max(1, Math.round(hit.damage))) : '';
+  fx.style.left = `${e.clientX}px`;
+  fx.style.top = `${e.clientY}px`;
+  document.body.appendChild(fx);
+  setTimeout(() => fx.remove(), 450);
+});
 window.addEventListener('keydown', unlockAudio, { capture: true });
 document.addEventListener('click', (e) => { if (e.target.closest('button')) sound.play('click', { volume: 0.5 }); }, { capture: true });
 

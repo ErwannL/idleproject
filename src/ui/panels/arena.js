@@ -80,7 +80,8 @@ function replayHtml(ui, state) {
 function survivalHtml(ui, state) {
   const a = arenaState(state);
   const list = owned(state);
-  const sel = list.find((c) => c.id === ui.view.arenaPick) ?? list[0];
+  // v9.3.5 : par défaut, le premier compagnon de l'équipe de campagne.
+  const sel = list.find((c) => c.id === ui.view.arenaPick) ?? list.find((c) => state.companions.equipped.includes(c.id)) ?? list[0];
   const p = sel && companionProfile(state, sel.id);
   const left = survivalTriesLeft(state);
   const best = a.survival.best;
@@ -98,7 +99,9 @@ function survivalHtml(ui, state) {
 function floorsHtml(ui, state) {
   const a = arenaState(state);
   const list = owned(state);
-  const team = (ui.view.arenaTeam ?? a.floors.team).filter((id) => state.companions.owned[id]).slice(0, ARENA.floors.teamSize);
+  // v9.3.5 : une seule équipe par défaut — celle de la campagne ; « Modifier » pour les joueurs avancés.
+  const base = a.floors.team.length ? a.floors.team : state.companions.equipped;
+  const team = (ui.view.arenaTeam ?? base).filter((id) => state.companions.owned[id]).slice(0, ARENA.floors.teamSize);
   ui.view.arenaTeam = team;
   const f = a.floors.best + 1;
   const setup = floorSetup(f);
@@ -113,7 +116,8 @@ function floorsHtml(ui, state) {
       <div class="arena-team">${slots}</div>
       ${profiles.map((p) => `<div class="arena-pick-info">${escapeHtml(p.name)} ${elementBadge(p.element, false, true)} — ${statLine(p)}</div>`).join('')}
       <button class="btn btn-gold primary-action" data-action="arena-floor" ${profiles.length ? '' : 'disabled'}>Combattre l'étage ${f}</button></div>
-    <div class="card"><div class="section-title">Ajouter à l'équipe</div><div class="arena-grid">${list.map((c) => unitCard(state, c, { selected: team.includes(c.id), action: 'arena-team', disabled: !team.includes(c.id) && team.length >= ARENA.floors.teamSize })).join('')}</div></div>`;
+    ${ui.view.arenaEdit ? `<div class="card"><div class="section-title">Ajouter à l'équipe</div><div class="arena-grid">${list.map((c) => unitCard(state, c, { selected: team.includes(c.id), action: 'arena-team', disabled: !team.includes(c.id) && team.length >= ARENA.floors.teamSize })).join('')}</div></div>`
+      : '<button class="btn small" data-action="arena-edit">Modifier l\'équipe</button>'}`;
 }
 
 // v9.3.2 : World Boss MONDIAL : une barre de PV commune à tous les joueurs (serveur). Distinct du World Boss des
