@@ -2929,3 +2929,5 @@ img.ico16 { width: 16px; height: 16px; vertical-align: middle; }
 .eco-pet-ssr canvas { width: 28px !important; height: 25px !important; }
 .eco-pet-ssr:not(.owned) { opacity: 0.75; }
 .eco-wish-row.eco-pet-row { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
+/* v9.3.1 : pendant l'invocation, la bannière du monde (« Monde 9 — Cœur du volcan ») ne transparaît plus derrière le portail. */
+body:has(.summon-fx) #banner { visibility: hidden; }
