@@ -3204,3 +3204,26 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 /* v9.3.5 : un bouton « Récupérer » indisponible a l'air inactif. */
 .btn:disabled, .btn[disabled] { opacity: .5; filter: grayscale(.7); cursor: not-allowed; box-shadow: none; }
 .badge-count { white-space: nowrap; font-size: 10px; }
+/* v9.3.5 : Arène sur une grande scène — ciel et décor du monde des ennemis, vrais monstres, alliés face à eux. */
+.arena-stage { position: relative; min-height: 230px; align-items: flex-end; padding: 12px 10px 26px; border-radius: 10px; overflow: hidden;
+  background-position: center bottom 22px, 0 0; background-size: auto 70%, auto; background-repeat: repeat-x, no-repeat; }
+.arena-stage .arena-ally img, .arena-stage .arena-ally canvas { width: 48px; height: 48px; image-rendering: pixelated; }
+.arena-stage::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 24px; background: var(--ground); border-top: 3px solid #0006; z-index: 0; }
+.arena-stage > * { position: relative; z-index: 1; }
+.arena-stage .foe-art { width: 64px; height: 64px; object-fit: contain; image-rendering: pixelated; transform: scaleX(-1); }
+.arena-stage .arena-foe.boss .foe-art { width: 96px; height: 96px; }
+.arena-stage .arena-foe, .arena-stage .arena-ally { background: #0007; border-radius: 8px; padding: 4px; }
+.arena-stage .arena-foe.hit .foe-art { animation: foe-hit 180ms ease-out; }
+@keyframes foe-hit { 50% { filter: brightness(2.2); transform: scaleX(-1) translateX(-4px); } }
+@media (prefers-reduced-motion: reduce) { .arena-stage .arena-foe.hit .foe-art { animation: none; } }
+.arena-stage { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+.arena-stage .arena-side { min-width: 0; }
+.arena-stage .arena-ally, .arena-stage .arena-foe { min-width: 0; flex-wrap: wrap; }
+.arena-stage .arena-ally b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.arena-stage .arena-foe.boss .foe-art { width: 96px; height: 96px; }
+@media (max-width: 600px) {
+  .arena-stage { padding: 8px 4px 26px; gap: 4px; }
+  .arena-stage .foe-art { width: 48px; height: 48px; }
+  .arena-stage .arena-ally img, .arena-stage .arena-ally canvas { width: 36px; height: 36px; }
+  .arena-stage .arena-ally b { display: none; }
+}

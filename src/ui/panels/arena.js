@@ -1,3 +1,7 @@
+import { BG } from '../../render/bg.js';
+import { ZONES } from '../../data/zones.js';
+import { BOSSES, ENEMIES } from '../../data/enemies.js';
+import { ZONE_ELEMENT } from '../../core/elements.js';
 // v9.3.2 : Arène des compagnons — Aventure › Arène. Deux modes SANS HÉROS :
 //   Survie : un compagnon seul contre 30 vagues ; Étages : 3 compagnons/familiers contre des étages et des boss.
 // Le combat est calculé d'un coup (core/arena.js) puis rejoué ici (événements horodatés), en accéléré.
@@ -5,7 +9,7 @@ import { ARENA } from '../../data/arena.js';
 import { COMPANIONS } from '../../data/companions.js';
 import { GLOBAL_BOSS, globalBossLeft, globalBossState, arenaState, arenaUnlocked, companionProfile, floorReward, floorSetup, survivalTriesLeft, survivalWave } from '../../core/arena.js';
 import { ELEMENTS, elementBadge } from '../../core/elements.js';
-import { escapeHtml, formatNumber, img, rarityLabel, rewardIcons } from '../common.js';
+import { escapeHtml, formatNumber, icon, img, rarityLabel, rewardIcons } from '../common.js';
 import { companionPortrait, companionStill } from './expeditions.js';
 
 const REPLAY_SECONDS = 12; // durée maximale de la relecture
@@ -44,6 +48,18 @@ function replayAt(run, t) {
   return { hp, wave, foes, last: last.slice(-4) };
 }
 const bar = (r, color) => `<span class="arena-bar"><i style="width:${Math.max(0, Math.min(100, r * 100))}%;background:${color}"></i></span>`;
+// v9.3.5 : monde dont l'élément est celui des ennemis (choisi par le numéro d'étage / de vague) et son monstre.
+function foeZone(element, seed) {
+  const zs = ZONE_ELEMENT.map((e, i) => [e, i]).filter(([e]) => e === element).map(([, i]) => i);
+  return zs.length ? zs[seed % zs.length] : 0;
+}
+function foeSprite(f, i, seed) {
+  const z = ZONES[foeZone(f.element, seed)] ?? ZONES[0];
+  if (f.boss) { const b = BOSSES[z.bosses?.[0]]; return b?.sprite ?? 'icon_boss'; }
+  const id = z.enemies[(i + seed) % z.enemies.length];
+  return ENEMIES[id]?.sprite ?? 'icon_skull';
+}
+
 function replayHtml(ui, state) {
   const run = ui.view.arenaRun;
   const span = Math.max(0.1, run.fight.seconds);
@@ -58,7 +74,10 @@ function replayHtml(ui, state) {
     const acts = s.last.some((e) => (e.kind === 'hit' || e.kind === 'skill') && e.who === p.id);
     return `<div class="arena-ally${s.hp[p.id] <= 0 ? ' down' : ''}${hurt ? ' hurt' : ''}${acts ? ' acts' : ''}">${companionPortrait(c, true)}<b>${escapeHtml(p.name)}</b>${bar(s.hp[p.id] / p.maxHp, '#5ad07a')}</div>`;
   }).join('');
-  const foes = s.foes.map((f, i) => `<div class="arena-foe${f.hp <= 0 ? ' down' : ''}${f.boss ? ' boss' : ''}${s.last.some((e) => (e.kind === 'hit' || e.kind === 'skill') && e.foe === i) ? ' hit' : ''}">${img(f.boss ? 'icon_boss' : 'icon_skull')} ${elementBadge(f.element, false, true)}${bar(f.hp / f.maxHp, '#e84a5f')}</div>`).join('');
+  // v9.3.5 : vrais monstres de la campagne (monde de l'élément des ennemis) au lieu de têtes de mort.
+  const seed = run.floor ?? s.wave?.n ?? 1;
+  const zi = foeZone(s.foes[0]?.element, seed);
+  const foes = s.foes.map((f, i) => `<div class="arena-foe${f.hp <= 0 ? ' down' : ''}${f.boss ? ' boss' : ''}${s.last.some((e) => (e.kind === 'hit' || e.kind === 'skill') && e.foe === i) ? ' hit' : ''}"><img class="px foe-art" src="${icon(foeSprite(f, i, seed), f.boss ? 3 : 2)}" alt=""> ${elementBadge(f.element, false, true)}${bar(f.hp / f.maxHp, '#e84a5f')}</div>`).join('');
   const log = s.last.map((e) => {
     const el = e.elem > 1 ? ' <b class="adv">AVANTAGE</b>' : e.elem < 1 ? ' <b class="disadv">DÉSAVANTAGE</b>' : '';
     if (e.kind === 'hit' || e.kind === 'skill') return `<li>${escapeHtml(name(e.who))} : ${e.kind === 'skill' ? `<b>${SKILL_TXT[e.type]}</b> ` : ''}${formatNumber(Math.round(e.d))}${e.crit ? ' (critique)' : ''}${el}</li>`;
@@ -73,7 +92,7 @@ function replayHtml(ui, state) {
     : `<div class="card arena-result">${run.won ? `<b class="good">Étage ${run.floor} franchi !</b> ${rewardIcons(run.reward)}` : `<b class="bad">Étage ${run.floor} non franchi.</b> Renforcez ou changez l'équipe (types, soins, boucliers).`}</div>`;
   return `<div class="card arena-replay"><div class="row-between"><span>${head}</span>
       <button class="btn small" data-action="arena-close">${done ? 'Fermer' : 'Passer ⏭'}</button></div>
-    <div class="arena-field"><div class="arena-side">${allies}</div><div class="arena-vs">VS</div><div class="arena-side">${foes}</div></div>
+    <div class="arena-field arena-stage" style="--sky:${(BG[ZONES[zi]?.id] ?? BG.plains).sky.join(',')};background-image:url('assets/bg/${(BG[ZONES[zi]?.id] ?? BG.plains).layers.find((l) => l.anchor === 'ground')?.file ?? ''}'), linear-gradient(${(BG[ZONES[zi]?.id] ?? BG.plains).sky.join(',')});--ground:${(BG[ZONES[zi]?.id] ?? BG.plains).ground}"><div class="arena-side">${allies}</div><div class="arena-vs">VS</div><div class="arena-side foes">${foes}</div></div>
     <ul class="arena-log">${log}</ul></div>${result}`;
 }
 
