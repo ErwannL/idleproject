@@ -863,6 +863,7 @@ export class UI {
       case 'autofuse': a.setAutoFuse(el.dataset.group, value); break;
       case 'check-update': a.checkUpdate(); break;
       case 'enter-tower': a.enterTower(); break;
+      case 'skill-up': { const [id, kind] = value.split('|'); a.skillUp(id, kind); break; } // v9.3.3
       // v9.3.2 : Arène des compagnons.
       case 'arena-mode': this.view.arenaMode = value; this.view.arenaRun = null; this.invalidate(); break;
       case 'arena-pick': this.view.arenaPick = value; this.invalidate(); break;

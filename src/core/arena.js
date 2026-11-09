@@ -12,6 +12,7 @@ import { duplicates, ultimateUnlocked } from './companions.js';
 import { elementMultiplier, unitElement } from './elements.js';
 import { grantReward } from './rewards.js';
 import { Rng } from './rng.js';
+import { RESOURCE_SOURCES } from '../data/progression.js';
 
 const DT = 1 / 20;
 const byId = (id) => COMPANIONS.find((c) => c.id === id);
@@ -172,7 +173,7 @@ export function runFloor(state, team, now = Date.now()) {
   return { ...result, fight: r, waves: [setup], team: profiles, reward };
 }
 export function floorReward(f) {
-  return { gems: 4 + f + (f % 10 === 0 ? 40 : 0), gold: 0 };
+  return { gems: 4 + f + (f % 10 === 0 ? 40 : 0), ...RESOURCE_SOURCES.arenaFloor }; // v9.3.3 : grimoires et pierres
 }
 
 export function sanitizeArena(state, raw) {

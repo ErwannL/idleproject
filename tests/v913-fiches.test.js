@@ -86,8 +86,9 @@ test('fiche compagnon : plus de ligne Défense, formule derrière « ? », comp�
   s.companions.owned[c.id] = { level: 3, stars: 1 };
   const html = companions.render(uiWith({ companionSel: c.id, sheetOpen: 'companion' }), s);
   assert.ok(!html.includes('Défense <b>'));
-  assert.ok(html.includes('data-value="comp-formula"') && !html.includes('Puissance ×'));
-  assert.ok(html.includes('data-value="comp-role-skills"') && html.includes('data-value="comp-role-syn"'));
+  // v9.3.3 : trois compétences (passive, active, ultime) avec niveau et amélioration ; anciennes 2e/3e = évolutions de l'active.
+  assert.ok(html.includes('skill3 passive') && html.includes('skill3 active') && html.includes('skill3 ultimate'));
+  assert.ok(html.includes('data-action="skill-up"') && html.includes('Niv. 5 : ajoute') && html.includes('data-value="comp-role-syn"'));
   assert.match(html, /Niv\. 3 ▶ 4/);
   // Portraits : une seule unité animée (la sélectionnée), les autres en image fixe.
   for (const x of COMPANIONS.slice(0, 6)) s.companions.owned[x.id] ??= { level: 1, stars: 1 };

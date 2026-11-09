@@ -31,6 +31,7 @@ import { endWorldRun, worldEncounter, worldKill, worldTimeLeft } from './banner.
 import { tickTimes } from './times.js';
 import { CHALLENGE, challengeBosses, challengeKill, challengeLevel, challengeRule, challengeTimeUp, clearChallengeWave, endChallenge, isBossWave } from './challenge.js';
 import { elementMultiplier, unitElement, zoneElement } from './elements.js'; // v9.3.1 : types
+import { RESOURCE_SOURCES } from '../data/progression.js'; // v9.3.3
 const ENEMY_WINDUP = 0.25; // v9.1.9 : avance de l'événement « enemyWindup » sur le coup ennemi (s)
 
 const MAX_EVENTS = 300;
@@ -549,6 +550,8 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
     if (enemy.berserk) world.enemies = world.enemies.filter((e) => !e.summoned);
     // v9.0.6 : les serviteurs d'un boss invocateur disparaissent avec lui.
     world.enemies = world.enemies.filter((e) => e.minionOf !== enemy.id);
+    // v9.3.3 : essence de maîtrise (15 % par boss de campagne).
+    if (!enc.worldBoss && !enc.score && rng.next() < RESOURCE_SOURCES.bossKill.chance) { state.materials.mastery = (state.materials.mastery ?? 0) + RESOURCE_SOURCES.bossKill.mastery; emit(world, 'resource', { mastery: 1 }); }
     // Table de butin des boss : éclats en plus de l'objet Rare+ garanti (v9.1.3 : ex-essences × ESSENCE_SHARDS).
     const shards = Math.round(bossEssence(enc.level, balance) * rebirthHeat(state, balance).reward) * ESSENCE_SHARDS;
     state.materials.shards += shards;

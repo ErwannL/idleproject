@@ -7,6 +7,7 @@ import { levelForStage, referenceKillGold } from './combat.js'; // v9.2.0 (monde
 import { addToInventory } from './inventory.js';
 import { generateItem } from './loot.js';
 import { grantReward } from './rewards.js';
+import { RESOURCE_SOURCES } from '../data/progression.js'; // v9.3.3
 import { trackMissions } from './missions.js';
 
 export function dungeonById(id) {
@@ -57,6 +58,7 @@ export function dungeonKill(state, balance = BALANCE) {
   const reward = path.goldKills
     ? { gold: path.goldKills * referenceKillGold(run.level, balance) }
     : { shards: path.shards };
+  Object.assign(reward, RESOURCE_SOURCES.dungeonRoom); // v9.3.3 : grimoires de combat
   const given = grantReward(state, reward);
   addEarned(run, given);
   run.room += 1;
@@ -76,6 +78,7 @@ export function completeDungeon(state, rng, balance = BALANCE) {
   const reward = {
     gems: DUNGEON_REWARD.gems * diff.gems + (first ? DUNGEON_REWARD.firstClearGems : 0), shards: DUNGEON_REWARD.shards * diff.shards, // v9.1.3 : essences fondues dans les éclats
     fragments: diff.fragments,
+    ...RESOURCE_SOURCES.dungeonClear, // v9.3.3 : grimoires et pierres d'ascension
   };
   const given = grantReward(state, reward);
   addEarned(run, given);

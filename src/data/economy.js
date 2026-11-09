@@ -141,6 +141,10 @@ export const EVENTS = {
       { id: 'lim', give: { ticketLimited: 1 }, price: 40, stock: 30 },
       { id: 'perm', give: { ticketPermanent: 1 }, price: 40, stock: 25 },
       { id: 'pet', give: { ticketPet: 1 }, price: 30, stock: 20 },
+      // v9.3.3 : ressources universelles de compétences (hors revenus en tickets).
+      { id: 'grimoire', give: { grimoire: 10 }, price: 15, stock: 10 },
+      { id: 'ascension', give: { ascension: 5 }, price: 20, stock: 6 },
+      { id: 'mastery', give: { mastery: 2 }, price: 25, stock: 4 },
     ],
   },
   small: {

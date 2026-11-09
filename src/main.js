@@ -72,6 +72,7 @@ import { bossesForStage, enemyStats } from './core/combat.js';
 import { BUILT_IN_TOKEN } from './core/update-token.js';
 import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagList, updateStatus } from './core/update.js';
 import { playsOnSite } from './ui/panels/options.js';
+import { upgradeCompanionSkill } from './core/companions.js'; // v9.3.3
 
 const SIM_INTERVAL_MS = 100;
 // v9.1.0 : codes de triche chargés seulement dans la version dev (fichier absent de la version publique).
@@ -583,6 +584,12 @@ const actions = {
   loadGlobalBoss() {
     if (!BUILD.cloud) return;
     cloud.wbGlobal().then((g) => { ui.globalBoss = g; ui.invalidate(); }).catch(() => { ui.globalBoss = { offline: true }; ui.invalidate(); });
+  },
+  // v9.3.3 : amélioration d'une compétence d'un héros (allié) ou d'un familier.
+  skillUp(id, kind) {
+    const lv = upgradeCompanionSkill(state, id, kind);
+    done(Boolean(lv), lv ? `Compétence améliorée : niveau ${lv}` : null, '#7fe0a0');
+    if (!lv) ui.toast('Ressources insuffisantes.', '#ff8a8a');
   },
   enterTower() {
     if (state.dungeon || state.challenge) { ui.toast("Terminez d'abord le donjon ou le défi."); return; }

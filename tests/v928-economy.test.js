@@ -179,7 +179,8 @@ test('revenus : pas de double comptage, sommes mensuelles = cibles', () => {
   assert.equal(caps.ticketPet + ev('ticketPet'), MONTHLY_TARGETS.ticketPet);
   // Événements : la boutique d'événement et les objectifs donnent exactement EVENT_INCOME.
   const shop = {};
-  for (const i of EVENTS.grand.shop) for (const [k, v] of Object.entries(i.give)) shop[k] = (shop[k] ?? 0) + v * i.stock;
+  const TICKETS = ['ticketLimited', 'ticketPermanent', 'ticketPet', 'ssrFragment']; // v9.3.3 : ressources de compétences hors revenus en tickets
+  for (const i of EVENTS.grand.shop) for (const [k, v] of Object.entries(i.give)) if (TICKETS.includes(k)) shop[k] = (shop[k] ?? 0) + v * i.stock;
   assert.deepEqual(shop, { ticketLimited: 30, ticketPermanent: 25, ticketPet: 20 });
   const small = {};
   for (const g of EVENTS.small.goals) for (const [k, v] of Object.entries(g.give)) small[k] = (small[k] ?? 0) + v;
@@ -254,7 +255,7 @@ test('cosmétiques : équiper / retirer librement, sans effet sur les statistiqu
 });
 
 test('sauvegarde : migration 9 → 10 généreuse (pity, garantie, apparences en héritage, tickets) et aller-retour', () => {
-  assert.equal(SAVE_VERSION, 10);
+  assert.equal(SAVE_VERSION, 11); // v9.3.3 : 10 → 11 (niveaux de compétence)
   const raw = JSON.parse(JSON.stringify(createNewState(NOW, 2)));
   raw.version = 9;
   raw.summon = { total: 80, sinceEpic: 4, sinceLegendary: 45, net: 3, lostLegend: true };

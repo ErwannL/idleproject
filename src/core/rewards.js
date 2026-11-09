@@ -10,6 +10,7 @@ const LABELS = {
   // v9.2.8 : monnaies de l'économie (tickets, fragments SSR universels, écus d'événement), dans state.economy.wallet.
   ticketLimited: 'ticket(s) limité(s)', ticketPermanent: 'ticket(s) permanent(s)', ticketPet: 'ticket(s) familier(s)',
   ssrFragment: 'fragment(s) SSR universel(s)', eventCoins: 'écus',
+  grimoire: 'grimoire(s) de combat', ascension: "pierre(s) d'ascension", mastery: 'essence(s) de maîtrise', // v9.3.3
 };
 
 export function grantReward(state, reward) {
@@ -21,6 +22,7 @@ export function grantReward(state, reward) {
     if (!(value > 0)) continue;
     if (key === 'gold') given.gold = addGold(state, value);
     else if (key === 'shards') state.materials.shards += value;
+    else if (key === 'grimoire' || key === 'ascension' || key === 'mastery') state.materials[key] = (state.materials[key] ?? 0) + value; // v9.3.3
     else if (WALLET_KEYS.includes(key)) addWallet(state, key, value); // v9.2.8
     else if (key in LABELS) state[key] += value;
     else continue;
