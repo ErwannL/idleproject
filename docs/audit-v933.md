@@ -1,4 +1,22 @@
-# Ascendrya 9.3.3 — audit : compétences, doublons, ressources, équipement des compagnons (aucun code modifié)
+# Ascendrya 9.3.3 — audit (v2, après le cahier de référence)
+
+> **Mise à jour v2** : la section « Correspondance » ci-dessous remplace la section 0 de la v1.
+
+## Correspondance validée par le cahier de référence
+
+| Cahier | Jeu | Fichiers |
+|---|---|---|
+| **Chevalier** (progression permanente) | le héros du joueur : **14 améliorations permanentes à l'or** (Dégâts, Vitesse d'attaque, Vitalité, Coup critique, Armure, Défense, Régénération, Butin d'or, Dégâts critiques, Double attaque, Vol de vie, **Lien des compagnons**, Esquive, Tueur de boss, Gain d'XP) + niveaux, compétences (Frappe rapide, Tourbillon, Cri, Frappe sacrée), talents, équipement ; apparences cosmétiques | `data/balance.js` `upgrades` (coût `baseCost × costGrowth^n`, paliers ×1,35/×1,75, plafonds `maxLevel` 30 à 1000), `core/economy.js`, `core/stats.js`, `state.upgrades` |
+| **Héros** (gacha) | les **22 alliés** (`kind: 'ally'`) : le tirage les appelle déjà « héros » (`core/gacha.js` pool `hero`) | `data/companions.js`, `data/companion-skills.js`, `core/companions.js` |
+| **Compagnons / familiers** | les **11 familiers** (`kind: 'pet'`) | idem |
+
+**Chevalier préservé** : aucun des nouveaux systèmes ne touche `state.upgrades`, `data/balance.js upgrades`, les compétences du chevalier ni son équipement. Un test de non-régression figera les coûts et effets des 14 améliorations avant et après. Seul point de contact : « Lien des compagnons » (+3 %/niveau sur les compétences des héros et familiers) reste appliqué tel quel, **après** le nouveau calcul (pas de double comptage).
+
+**Conflit à trancher** : le cahier parle de « 4 classes de compagnons » ; avec cette correspondance, les **héros** ont 6 rôles réels (Gardien, Archer, Mage, Assassin, Soutien, Berserker) et les **familiers** n'ont pas de rôle. Proposition : équipement pour héros ET familiers, 4 classes d'équipement = Attaquant (Archer, Mage, Assassin, Berserker), Défenseur (Gardien), Soutien (Soutien), Familier (tous les familiers, emplacements anatomiques : crocs/griffes runiques, collier/carapace, rune). Le cahier mentionne aussi un « équipement individuel » des héros : c'est le même système.
+
+---
+
+## (v1) : compétences, doublons, ressources, équipement des compagnons (aucun code modifié)
 
 ## 0. Point de vocabulaire à trancher d'abord (bloquant)
 
@@ -110,3 +128,36 @@ dans les donjons et l'Arène (Étages) pour ne pas concurrencer le butin du hér
 6. Nouvelles ressources ajoutées au butin des donjons existants (recommandé) plutôt que 2 nouveaux donjons.
 7. Équipement : 4 classes et 3 emplacements ci-dessus ; matériaux = éclats + or.
 8. Visuel de l'équipement des compagnons : aura/liseré de rareté seulement (aucun asset), ou commande de sprites ?
+
+
+## Simulation F2P (à confirmer avec les vrais taux après validation)
+
+Coût d'un personnage au maximum (passive 10 + active 10 + ultime 10) : 192 grimoires, 96 pierres d'ascension, 48 essences,
+or ≈ 219 000 × facteur d'étape. Or : `coût = base × min(plafond, or d'un ennemi de l'étape max / or d'un ennemi de l'étape 50)` ;
+plafond proposé ×40.
+
+| Profil | Grimoires/sem. | Pierres/sem. | Essences/sem. | Personnages « principaux » maximisés par mois |
+|---|---|---|---|---|
+| Occasionnel (1 session/jour, donjons partiels) | 50 | 12 | 4 | ≈ 0,5 (passive/active ~niv. 7, ultime 5) |
+| Régulier (missions + 3 donjons/jour) | 100 | 28 | 9 | ≈ 1,5 |
+| Très actif (tout + événements) | 150 | 40 | 14 | ≈ 2,5 |
+
+Avec ~2 nouveaux SSR par mois : un joueur régulier développe sérieusement 1 à 2 héros par mois et garde les autres au
+niveau « utilisable » (passive/active 5 : 17 grimoires chacune) : pas d'accumulation de personnages impossibles à
+monter, et pas de maximisation générale rapide. Le +24 % de doublons à 6 exemplaires sera mesuré avec
+`tools/sim-economy.mjs` (campagne, boss, World Boss, Arène) avant validation.
+
+## Équipement : améliorations
+
+Réutiliser les **éclats** (`materials.shards`, déjà universels, recyclage de l'équipement du chevalier) + or :
+amélioration +1 à +10 (coût éclats × facteur de rareté, comme `upgrade` des objets du chevalier). Pas de nouvelle
+monnaie. Sources de pièces : Étages de l'Arène, donjons, boss (taux bas pour ne pas concurrencer le butin du chevalier).
+Visuel hybride : aura et particules par rareté (faisable tout de suite, sans asset) ; sprites seulement pour quelques
+pièces emblématiques (à commander, **non créés**).
+
+## Décisions restantes
+
+1. Correspondance ci-dessus (chevalier / héros = alliés / familiers) : OK ?
+2. Équipement pour héros **et** familiers, 4 classes d'équipement ci-dessus : OK ?
+3. Plafond du coût d'or ×40 : OK ?
+4. Ordre : A (3 compétences, ultime dès le 1er, doublons) → B (niveaux + ressources + sources + migration) → C (fiches) → D (équipement) ?
