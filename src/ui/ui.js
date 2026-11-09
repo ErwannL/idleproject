@@ -764,7 +764,12 @@ export class UI {
       case 'learn-skill': a.learnSkill(key); break;
       case 'hero-sel': local(() => { v.heroSel = value; }); break;
       case 'set-hero': a.setHero(value); break;
-      case 'companion-sel': local(() => { v.companionSel = value; v.sheetOpen = 'companion'; }); break;
+      case 'companion-sel': local(() => { v.companionSel = value; v.sheetOpen = 'companion'; v.skillPop = null; v.unitTab = 'skills'; v.unitShow = null; }); break;
+      // v9.3.4 : popup de détail d'un compagnon.
+      case 'comp-tab': local(() => { v.compTab = value; }); break;
+      case 'skill-pop': local(() => { v.skillPop = value || null; }); break;
+      case 'unit-tab': local(() => { v.unitTab = value; v.skillPop = null; }); break;
+      case 'unit-show': local(() => { v.unitShow = value; }); break;
       case 'look-show': local(() => { v.lookShow = value; }); break; // v9.2.7 : vitrine d'une apparence
       case 'toggle-companion': a.toggleCompanion(value); break;
       case 'upgrade-companion': a.upgradeCompanion(value); break;

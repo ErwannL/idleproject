@@ -80,22 +80,21 @@ test('builds en cartes : résumé et Équiper sur la carte', () => {
   assert.ok(html.includes('1/7 objets') && html.includes('1 pouvoir'));
 });
 
-test('fiche compagnon : plus de ligne Défense, formule derrière « ? », compétences de rôle et synergies du rôle repliées, avant ▶ après', () => {
+test('v9.3.4 : popup du compagnon — 3 compétences en icônes, bulle au toucher, Copies, onglets, 2 boutons ; grille en onglets', () => {
   const s = createNewState(NOW);
   const c = COMPANIONS.find((x) => COMPANION_ROLES[x.id] && x.skill);
-  s.companions.owned[c.id] = { level: 3, stars: 1 };
+  s.companions.owned[c.id] = { level: 3, stars: 2 };
   const html = companions.render(uiWith({ companionSel: c.id, sheetOpen: 'companion' }), s);
-  assert.ok(!html.includes('Défense <b>'));
-  // v9.3.3 : trois compétences (passive, active, ultime) avec niveau et amélioration ; anciennes 2e/3e = évolutions de l'active.
-  assert.ok(html.includes('skill3 passive') && html.includes('skill3 active') && html.includes('skill3 ultimate'));
-  assert.ok(html.includes('data-action="skill-up"') && html.includes('Niv. 5 : ajoute') && html.includes('data-value="comp-role-syn"'));
-  assert.match(html, /Niv\. 3 ▶ 4/);
-  // Portraits : une seule unité animée (la sélectionnée), les autres en image fixe.
-  for (const x of COMPANIONS.slice(0, 6)) s.companions.owned[x.id] ??= { level: 1, stars: 1 };
-  const grid = companions.render(uiWith({ companionSel: c.id }), s);
-  assert.ok((grid.match(/class="px still"/g) ?? []).length >= 5);
-  const synAll = companions.render(uiWith({ companionSel: c.id }, ['synergies']), s);
-  assert.ok(!synAll.includes('Le chevalier protège le mage fragile</span>'), 'plus de phrase d\'ambiance');
+  assert.ok(html.includes('class="unit-pop') && html.includes('data-action="skill-pop"'));
+  assert.equal((html.match(/class="up-skill /g) ?? []).length, 3, 'Passif, Actif, Ultime');
+  assert.ok(html.includes('Copies') && !html.includes('Doublons'), 'Copies, plus de Doublons');
+  assert.ok(html.includes('data-value="skills"') && html.includes('data-value="gear"') && html.includes('data-value="story"'));
+  const bubble = companions.render(uiWith({ companionSel: c.id, sheetOpen: 'companion', skillPop: 'active' }), s);
+  assert.ok(bubble.includes('class="up-bubble"') && bubble.includes('data-action="skill-up"'));
+  const grid = companions.render(uiWith({}), s);
+  assert.ok(!grid.includes('class="unit-pop'), 'pas de fiche sans toucher');
+  assert.ok(grid.includes('data-action="comp-tab"') && grid.includes('class="unit-card'));
+  assert.ok(!/niv\. \d+ · \d★/.test(grid), 'plus de « niv. 10 · 2★ » sur les cartes');
 });
 
 test('boss : fiche en feuille du bas, histoire, récompenses et familles repliées', () => {
