@@ -216,7 +216,7 @@ export function validateGoals(raw) {
     if (at <= last) throw bad('Les seuils des paliers doivent être croissants');
     last = at;
     const img = str(t.img ?? '', 120, `Palier ${i + 1}, image`);
-    if (img && !/^assets\/(uploads\/)?[\w.-]+\.(png|webp|jpe?g|gif)$/.test(img)) throw bad(`Palier ${i + 1}, image : chemin assets/… du site attendu`);
+    if (img && (!/^assets\/(?:[\w-]+\/)*[\w.-]+\.(png|webp|jpe?g|gif)$/.test(img) || img.includes('..'))) throw bad(`Palier ${i + 1}, image : chemin assets/… du site attendu`);
     const tier = {
       at, label: str(t.label, 12, `Palier ${i + 1}, libellé`, { required: true }), name: str(t.name, 60, `Palier ${i + 1}, récompense`, { required: true }),
       detail: str(t.detail ?? '', 120, `Palier ${i + 1}, détail`), img,

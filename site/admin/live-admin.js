@@ -336,6 +336,50 @@
       list.innerHTML = data.files.map((f) => `<option value="${esc(f.path)}"></option>`).join('');
     } catch { list.innerHTML = ''; }
   }
+  // Fenêtre « Parcourir le serveur » : toutes les images présentes sur le serveur (site + envois), en miniatures.
+  let browseTarget = null;
+  async function openBrowser(row) {
+    browseTarget = row;
+    let dlg = document.getElementById('lv-browser');
+    if (!dlg) {
+      dlg = document.createElement('div');
+      dlg.id = 'lv-browser';
+      dlg.className = 'lv-modal';
+      dlg.innerHTML = '<div class="lv-modal-box" role="dialog" aria-modal="true" aria-label="Images du serveur">' +
+        '<div class="lv-modal-head"><b>Images du serveur</b><input type="search" id="lv-browser-q" placeholder="Filtrer, ex. palier ou boss" aria-label="Filtrer"><button type="button" class="btn small" id="lv-browser-close">Fermer</button></div>' +
+        '<div class="lv-grid" id="lv-browser-grid"><p class="muted">Chargement…</p></div></div>';
+      document.body.append(dlg);
+      dlg.addEventListener('click', (e) => { if (e.target === dlg || e.target.id === 'lv-browser-close') dlg.classList.remove('open'); });
+      document.getElementById('lv-browser-q').addEventListener('input', renderBrowser);
+    }
+    dlg.classList.add('open');
+    document.getElementById('lv-browser-q').value = '';
+    try {
+      const data = await api('/api/admin/assets');
+      browser.files = data.files;
+      renderBrowser();
+    } catch (err) { toast(err.message, 'bad'); }
+  }
+  const browser = { files: [] };
+  function renderBrowser() {
+    const q = document.getElementById('lv-browser-q').value.trim().toLowerCase();
+    const grid = document.getElementById('lv-browser-grid');
+    const list = browser.files.filter((f) => !q || f.path.toLowerCase().includes(q));
+    grid.innerHTML = list.length ? list.map((f) => `<button type="button" class="lv-cell" data-pickpath="${esc(f.path)}" title="${esc(f.path)}"><img src="/${esc(f.path)}" alt="" loading="lazy"><span>${esc(f.path.replace(/^assets\//, ''))}</span></button>`).join('')
+      : '<p class="muted">Aucune image ne correspond.</p>';
+  }
+  document.addEventListener('click', (e) => {
+    const browse = e.target.closest && e.target.closest('[data-browse]');
+    if (browse) { openBrowser(browse.closest('tr')); return; }
+    const cell = e.target.closest && e.target.closest('[data-pickpath]');
+    if (cell && browseTarget) {
+      const path = cell.dataset.pickpath;
+      browseTarget.querySelector('[data-f="img"]').value = path;
+      browseTarget.querySelector('[data-thumb]').src = '/' + path;
+      document.getElementById('lv-browser').classList.remove('open');
+      toast('Image choisie : ' + path);
+    }
+  });
   // Envoi d'une image choisie dans le sélecteur de fichiers du navigateur (le serveur vérifie le vrai format).
   document.addEventListener('change', async (e) => {
     const input = e.target;
@@ -369,7 +413,7 @@
       <td><input data-f="at" value="${esc(fmt(t.at))}" inputmode="decimal" aria-label="Seuil"></td><td><input data-f="label" value="${esc(t.label)}" maxlength="12" aria-label="Libellé"></td>
       <td><input data-f="name" value="${esc(t.name)}" maxlength="60" aria-label="Récompense"></td><td><input data-f="detail" value="${esc(t.detail)}" maxlength="120" aria-label="Détail"></td>
       <td><input data-f="tag" value="${esc(t.tag ?? '')}" maxlength="30" aria-label="Étiquette"></td><td><input data-f="excl" type="checkbox"${t.excl ? ' checked' : ''} aria-label="Exclusif"></td>
-      <td class="lv-img"><div class="lv-img-row"><input data-f="img" value="${esc(t.img)}" maxlength="120" list="lg-assets" aria-label="Image"><label class="btn small lv-pick">Choisir un fichier<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-pick hidden></label></div><img class="lv-thumb" data-thumb src="${esc(t.img ? "/" + t.img : "")}" alt="" width="40" height="40"></td><td><button class="btn small danger" data-del="${i}" aria-label="Supprimer le palier">✕</button></td></tr>`).join('');
+      <td class="lv-img"><div class="lv-img-row"><input data-f="img" value="${esc(t.img)}" maxlength="120" list="lg-assets" aria-label="Image"><button type="button" class="btn small lv-pick" data-browse>Parcourir le serveur</button><label class="btn small lv-pick">Depuis mon PC<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-pick hidden></label></div><img class="lv-thumb" data-thumb src="${esc(t.img ? "/" + t.img : "")}" alt="" width="40" height="40"></td><td><button class="btn small danger" data-del="${i}" aria-label="Supprimer le palier">✕</button></td></tr>`).join('');
     renderGoalPreview();
     loadAssets();
   }

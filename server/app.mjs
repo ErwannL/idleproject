@@ -1040,12 +1040,20 @@ export function createApp({
     } },
     { method: 'GET', path: /^\/api\/admin\/assets$/, handler: ({ req }) => {
       requireAdmin(req);
-      const dir = uploadsDir;
-      let names = [];
-      try { names = readdirSync(dir); } catch { names = []; }
-      const files = names.filter((n) => /\.(png|webp|jpe?g|gif)$/i.test(n)).sort().reverse()
-        .map((n) => ({ path: `assets/uploads/${n}`, size: statSync(join(dir, n)).size }));
-      return { body: { files } };
+      // Images déjà présentes sur le serveur (dossier du site, sous-dossiers compris) puis envois de l'admin.
+      const found = [];
+      const walk = (dir, rel, depth) => {
+        if (depth > 4 || found.length >= 4000) return;
+        let entries = [];
+        try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return; }
+        for (const e of entries) {
+          if (e.isDirectory()) { if (!(rel === 'assets/' && e.name === 'uploads')) walk(join(dir, e.name), `${rel}${e.name}/`, depth + 1); }
+          else if (/\.(png|webp|jpe?g|gif)$/i.test(e.name)) found.push({ path: `${rel}${e.name}`, size: statSync(join(dir, e.name)).size, source: rel.startsWith('assets/uploads') ? 'envoi' : 'site' });
+        }
+      };
+      walk(join(siteDir, 'assets'), 'assets/', 0);
+      walk(uploadsDir, 'assets/uploads/', 0);
+      return { body: { files: found.sort((a, b) => a.path.localeCompare(b.path)) } };
     } },
     { method: 'GET', path: /^\/api\/admin\/live$/, handler: ({ req }) => { requireAdmin(req); return { body: live.adminState() }; } },
     { method: 'GET', path: /^\/api\/admin\/live\/preview$/, handler: ({ req }) => {
