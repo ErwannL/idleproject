@@ -71,3 +71,19 @@ test('arène : profils, vagues et étages déterministes ; sauvegarde relue', ()
   assert.equal(back.arena.survival.tries, 1);
   assert.equal(sanitizeState({ ...JSON.parse(JSON.stringify(s)), arena: 'bad' }, undefined, DAY).arena, null);
 });
+
+import { GLOBAL_BOSS, finishGlobalBoss, globalBossLeft, startGlobalBoss } from '../src/core/arena.js';
+test('World Boss mondial : 1 tentative par jour, distinct du World Boss d\'événement (aucun écu)', () => {
+  const s = player();
+  const eco = JSON.stringify(s.economy);
+  const setup = startGlobalBoss(s, 1e6, DAY);
+  assert.ok(setup && setup.event === 'global');
+  assert.equal(startGlobalBoss(s, 1e6, DAY), null, 'une seule tentative');
+  assert.equal(globalBossLeft(s, DAY), 0);
+  const gems = s.gems;
+  const r = finishGlobalBoss(s, setup, { damage: 1234.7, tiers: 1 }, DAY);
+  assert.equal(r.damage, 1234); assert.equal(r.coins, 0);
+  assert.equal(s.gems, gems + GLOBAL_BOSS.reward.gems);
+  assert.equal(JSON.stringify(s.economy), eco, 'rien n\'est compté pour l\'événement');
+  assert.equal(globalBossLeft(s, DAY + 86400000), 1, 'nouvelle tentative le lendemain');
+});

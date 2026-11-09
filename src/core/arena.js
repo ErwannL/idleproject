@@ -184,7 +184,36 @@ export function sanitizeArena(state, raw) {
   state.arena = {
     survival: s && typeof s.day === 'string' ? { day: s.day.slice(0, 10), tries: Math.min(int(s.tries), ARENA.survival.triesPerDay), best: res(s.best), last: res(s.last),
       claimed: Array.isArray(s.claimed) ? s.claimed.filter(Number.isInteger).slice(0, 20) : [] } : null,
+    global: a.global && typeof a.global.day === 'string' ? { day: a.global.day.slice(0, 10), used: Math.min(int(a.global.used), 1), best: Number(a.global.best) || 0 } : null,
     floors: { best: int(a.floors?.best), team: Array.isArray(a.floors?.team) ? a.floors.team.filter((x) => typeof x === 'string').slice(0, ARENA.floors.teamSize) : [],
       last: a.floors?.last && typeof a.floors.last === 'object' ? { floor: int(a.floors.last.floor), won: Boolean(a.floors.last.won), seconds: Number(a.floors.last.seconds) || 0, at: Number(a.floors.last.at) || 0 } : null },
   };
+}
+
+// ---- v9.3.2 : World Boss MONDIAL (distinct du World Boss des grands événements) ----
+// Même combat (ui/world-boss.js, 60 s, équipe du joueur : héros + compagnons), 1 tentative par jour ; la barre de PV
+// est commune à tous les joueurs (serveur : /api/worldboss/global) et chaque tentative y ajoute ses dégâts.
+// Ici : la tentative locale (graine du jour) et le meilleur score ; aucune monnaie d'événement.
+export const GLOBAL_BOSS = { attemptsPerDay: 1, reward: { gems: 20 } };
+export function globalBossState(state, now = Date.now()) {
+  const a = arenaState(state, now);
+  const day = dayKey(now);
+  if (!a.global || a.global.day !== day) a.global = { day, used: 0, best: a.global?.best ?? 0 };
+  return a.global;
+}
+export const globalBossLeft = (state, now = Date.now()) => GLOBAL_BOSS.attemptsPerDay - globalBossState(state, now).used;
+export function startGlobalBoss(state, hp, now = Date.now()) {
+  const g = globalBossState(state, now);
+  if (g.used >= GLOBAL_BOSS.attemptsPerDay) return null;
+  g.used++;
+  return { event: 'global', day: g.day, attempt: g.used, seed: Number(g.day.replace(/-/g, '')) % 100000 + 7, maxHp: Math.max(1, hp) };
+}
+export function finishGlobalBoss(state, setup, result, now = Date.now()) {
+  const g = globalBossState(state, now);
+  if (!setup || setup.day !== g.day) return null;
+  const damage = Math.max(0, Math.floor(result.damage));
+  const record = damage > g.best;
+  g.best = Math.max(g.best, damage);
+  grantReward(state, GLOBAL_BOSS.reward); // participation : la même pour tous (le classement départage)
+  return { damage, coins: 0, record, today: damage, best: g.best, tiers: result.tiers };
 }

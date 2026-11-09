@@ -3,13 +3,13 @@
 // Le combat est calculé d'un coup (core/arena.js) puis rejoué ici (événements horodatés), en accéléré.
 import { ARENA } from '../../data/arena.js';
 import { COMPANIONS } from '../../data/companions.js';
-import { arenaState, arenaUnlocked, companionProfile, floorReward, floorSetup, survivalTriesLeft, survivalWave } from '../../core/arena.js';
+import { GLOBAL_BOSS, globalBossLeft, globalBossState, arenaState, arenaUnlocked, companionProfile, floorReward, floorSetup, survivalTriesLeft, survivalWave } from '../../core/arena.js';
 import { ELEMENTS, elementBadge } from '../../core/elements.js';
 import { escapeHtml, formatNumber, img, rarityLabel, rewardIcons } from '../common.js';
 import { companionPortrait, companionStill } from './expeditions.js';
 
 const REPLAY_SECONDS = 12; // durée maximale de la relecture
-const MODE_LABEL = { survival: 'Survie', floors: 'Étages' };
+const MODE_LABEL = { survival: 'Survie', floors: 'Étages', global: 'World Boss mondial' };
 const SKILL_TXT = { hit: 'frappe', burst: 'zone', heal: 'soin', shield: 'bouclier', rally: 'cri', gold: 'fortune' };
 const MOD_TXT = { swift: 'rapides', armored: 'blindés', frenzy: 'enragés', regen: 'régénération' };
 
@@ -116,6 +116,23 @@ function floorsHtml(ui, state) {
     <div class="card"><div class="section-title">Ajouter à l'équipe</div><div class="arena-grid">${list.map((c) => unitCard(state, c, { selected: team.includes(c.id), action: 'arena-team', disabled: !team.includes(c.id) && team.length >= ARENA.floors.teamSize })).join('')}</div></div>`;
 }
 
+// v9.3.2 : World Boss MONDIAL : une barre de PV commune à tous les joueurs (serveur). Distinct du World Boss des
+// grands événements (Aventure › Événement) : pas d'écus, pas de phases d'événement comptées en points.
+function globalHtml(ui, state) {
+  const g = ui.globalBoss;
+  const me = globalBossState(state);
+  const left = globalBossLeft(state);
+  const bar = g && !g.offline ? `<div class="arena-bar guild-bar"><i style="width:${Math.max(0, (g.left / g.hp) * 100)}%;background:#e84a5f"></i></div>
+      <div>${formatNumber(g.left)} / ${formatNumber(g.hp)} PV restants · cycle <b>${g.cycle}</b> (chaque fois que la barre tombe, le Colosse revient)</div>`
+    : `<div class="state-empty">${g?.offline ? 'Barre commune indisponible hors ligne : votre tentative compte quand même pour votre record.' : 'Chargement de la barre commune…'}</div>`;
+  return `<div class="card"><div class="row-between"><b>${img('icon_boss')} ${escapeHtml(g?.name ?? 'Colosse des Anciens (mondial)')}</b><span>Tentative : <b>${left}</b> / ${GLOBAL_BOSS.attemptsPerDay} aujourd'hui</span></div>
+      <div class="muted">Tous les joueurs frappent le même boss : vos dégâts s'ajoutent à ceux de la communauté. Votre équipe habituelle (héros, compagnons, familier) combat 60 s.
+      Différent du World Boss des grands événements (Aventure › Événement).</div>${bar}
+      ${me.best ? `<div>${img('icon_trophy')} Votre record : <b>${formatNumber(me.best)}</b> dégâts</div>` : ''}
+      <button class="btn btn-gold primary-action" data-action="global-boss" ${left > 0 ? '' : 'disabled'}>⚔ Attaquer ${rewardIcons(GLOBAL_BOSS.reward)}</button>
+      <div class="muted">Classement des joueurs et des guildes : Objectifs › Guilde.</div></div>`;
+}
+
 export default {
   id: 'arena',
   title: 'Arène',
@@ -123,10 +140,10 @@ export default {
   extra: (ui, state) => (arenaUnlocked(state) ? `Étage <b class="num">${arenaState(state).floors.best}</b>` : ''),
   render(ui, state) {
     if (!arenaUnlocked(state)) return `<div class="state-empty">L'Arène des compagnons s'ouvre à l'étape ${ARENA.unlockStage}, avec au moins un compagnon.</div>`;
-    const mode = ui.view.arenaMode === 'floors' ? 'floors' : 'survival';
+    const mode = ['floors', 'global'].includes(ui.view.arenaMode) ? ui.view.arenaMode : 'survival';
     const tabs = `<div class="item-tabs" role="tablist">${Object.entries(MODE_LABEL).map(([k, l]) => `<button class="btn chip-btn small${k === mode ? ' active' : ''}" data-action="arena-mode" data-value="${k}" role="tab" aria-selected="${k === mode}">${l}</button>`).join('')}</div>`;
     if (ui.view.arenaRun) return tabs + replayHtml(ui, state);
-    return tabs + (mode === 'floors' ? floorsHtml(ui, state) : survivalHtml(ui, state));
+    return tabs + (mode === 'floors' ? floorsHtml(ui, state) : mode === 'global' ? globalHtml(ui, state) : survivalHtml(ui, state));
   },
 };
 export const ELEMENT_NAMES = Object.fromEntries(Object.entries(ELEMENTS).map(([k, v]) => [k, v.name]));

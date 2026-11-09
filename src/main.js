@@ -16,7 +16,7 @@ import { DUNGEON_DIFFICULTIES } from './data/dungeons.js';
 import { buyUpgradeBulk } from './core/economy.js';
 import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
 import { endTower, startTower } from './core/tower.js';
-import { runFloor, runSurvival } from './core/arena.js'; // v9.3.2
+import { finishGlobalBoss, globalBossLeft, runFloor, runSurvival, startGlobalBoss } from './core/arena.js'; // v9.3.2
 import { claimExpedition, expeditionType, relaunchExpeditions, startExpedition } from './core/expeditions.js';
 import { endChallenge, startChallenge } from './core/challenge.js';
 import { autoFuse, craftItem, fuseAll, fuseItems, fusionFailText, fusionKeep, reforgeItem, sharpenItem, targetReroll, upgradeItem } from './core/forge.js';
@@ -566,6 +566,23 @@ const actions = {
     if (!r) { ui.toast('Choisissez au moins un compagnon.', '#ff8a8a'); return null; }
     done(true, r.won ? `Arène : étage ${r.floor} franchi !` : null, '#7fe0a0');
     return r;
+  },
+  // v9.3.2 : World Boss mondial (barre commune, serveur) : même combat que celui des événements.
+  globalBossStart() { return startGlobalBoss(state, bossHpForDay(state)); },
+  globalBossFinish(setup, result) {
+    const r = finishGlobalBoss(state, setup, result);
+    if (r && cloud.isLoggedIn?.()) {
+      const power = Math.max(1, Math.round(computeHeroStats(state).combatPower ?? 1));
+      cloud.wbReport({ mode: 'global', damage: r.damage, tiers: r.tiers, power })
+        .then((res) => { if (res?.global) { ui.globalBoss = { ...res.global, name: ui.globalBoss?.name }; ui.invalidate(); } }).catch(() => {});
+    }
+    done(Boolean(r), r ? `World Boss mondial : ${formatNumber(r.damage)} dégâts ajoutés à la barre commune` : null, '#f2d083');
+    return r;
+  },
+  globalBossLeft() { return globalBossLeft(state); },
+  loadGlobalBoss() {
+    if (!BUILD.cloud) return;
+    cloud.wbGlobal().then((g) => { ui.globalBoss = g; ui.invalidate(); }).catch(() => { ui.globalBoss = { offline: true }; ui.invalidate(); });
   },
   enterTower() {
     if (state.dungeon || state.challenge) { ui.toast("Terminez d'abord le donjon ou le défi."); return; }

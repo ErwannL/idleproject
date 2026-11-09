@@ -103,7 +103,7 @@ const UNLOCK_INFO = {
   dungeons: 'une clé par tentative : de vrais combats de boss qui donnent fragments et équipement.',
   boss: 'chaque boss vaincu laisse un pouvoir. Réaffrontez-les pour leur butin et leur maîtrise.',
   tower: 'le Défi de la semaine (3 tentatives, sans clé) puis, plus loin, la Tour de l\'Éternité : chaque record rapporte des récompenses.',
-  arena: 'vos compagnons combattent SANS le héros : un seul contre 30 vagues (Survie) ou une équipe de 3 contre des étages.',
+  arena: 'Survie et Étages : vos compagnons combattent SANS le héros (un seul contre 30 vagues, ou une équipe de 3 contre des étages). World Boss mondial : toute votre équipe contre un boss commun à tous les joueurs.',
   encyclopedia: 'tout ce que vous découvrez est répertorié ; chaque palier rapporte une récompense.',
   inbox: 'tout ce qui est prêt à être récupéré, au même endroit (touche G).',
 };
@@ -632,6 +632,7 @@ export class UI {
     }
     if (tab === 'ranking') this.actions.loadRanking?.();
     if (tab === 'guild') this.actions.loadGuild?.(); // v9.3.2
+    if (tab === 'arena') this.actions.loadGlobalBoss?.();
     // v9.2.6 : ouverture du panneau (ou changement d'onglet) animée, liste en cascade au prochain rendu.
     if (tab !== this.tab) { uiFx.panelOpenFx(this.$('panel'), !this.tab); this.vfxCascade = true; }
     this.tab = tab;
@@ -820,6 +821,9 @@ export class UI {
         this.invalidate();
         break;
       }
+      case 'global-boss': // v9.3.2 : World Boss mondial (même écran, barre commune côté serveur)
+        openWorldBoss(this.state, { start: () => a.globalBossStart(), finish: (setup, r) => a.globalBossFinish(setup, r), left: () => a.globalBossLeft(), closed: () => this.invalidate() });
+        break;
       case 'event-boss': // v9.2.9 : vrai combat animé (ui/world-boss.js)
         openWorldBoss(this.state, { start: () => a.eventBossStart(), finish: (setup, r) => a.eventBossFinish(setup, r), left: () => a.eventBossLeft(), closed: () => this.invalidate() });
         break;
