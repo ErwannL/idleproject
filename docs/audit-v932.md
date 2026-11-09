@@ -112,3 +112,28 @@ panneau, sans changer la navigation d'un coup.
 5. Survie : 30 vagues et 3 essais/jour vous conviennent ?
 6. Guildes : score World Boss = moyenne des meilleurs membres (proposé) ou somme plafonnée ?
 7. Ordre des lots ci-dessus.
+
+
+---
+
+## Réalisé (v9.3.2, après validation)
+
+Décisions validées : héros **neutre** ; **+25 % / −20 %** ; les ennemis frappent selon les affinités ; Étages = **3
+compagnons avec familiers** ; Survie = **30 vagues** ; guildes = **moyenne des 10 meilleurs membres** ; ordre des lots.
+
+| Lot | Fait | Fichiers | Tests |
+|---|---|---|---|
+| 1 Armes | `data/weapon-fx.js` (rareté → lueur, aura, particules, traînée, impact, éclat sur compétences), visuel seulement, coupé en effets réduits ; Équipement : filtre de rareté, ligne « effets visuels » | `render/scene.js`, `render/class-fx.js`, `ui/panels/inventory.js`, `core/inventory.js` | 513 tests + smoke 27/27 |
+| 1 Menus | socle commun (`ui/style.css` fin de fichier) : boutons, états, cadres de rareté, ouverture, textes ≥ 11 px, états vides/erreur | `ui/style.css` | visuel |
+| 2 Affinités | ±25/20 %, AVANTAGE/DÉSAVANTAGE, icône de type (forme propre) sur chaque ennemi, icône dans la liste des compagnons, une seule application par coup | `core/elements.js`, `core/combat.js`, `render/scene.js` | `tests/v931-elements.test.js` |
+| 3 Compagnons | profil de combat, Survie, Étages, ennemis typés, relecture, sauvegarde | `core/arena.js`, `data/arena.js`, `ui/panels/arena.js` | `tests/v932-arena.test.js` (aucun héros, essais, paliers, affinités subies, sauvegarde) |
+| 4 Guildes / WB | serveur `server/guilds.mjs` (+ routes), WB mondial et WB d'événement distincts, guildes, classement, anti-abus ; écran Guilde ; WB mondial dans l'Arène | `server/`, `ui/panels/guild.js`, `core/cloud-save.js` | `tests/v932-guilds.test.js` |
+
+Restent à décider ou à faire plus tard :
+- **Récompenses de guilde** (objectif de la semaine atteint) : le serveur sait qui a contribué ; la récompense
+  elle-même (montant, envoi dans « À récupérer ») est à fixer.
+- **Classements de l'Arène** (Survie, Étages) : prévus en v2, après observation des scores.
+- **Équilibrage** : `data/arena.js` (simulation : compagnon au maximum ≈ vague 22/30, étages ≈ 12 au début, ≈ 24 au
+  maximum). À ajuster après retours.
+- Effets d'armes par **type d'arme** (lance, bâton, arc) : la rareté est faite ; une variante par geste est possible.
+- Refonte visuelle **écran par écran** au-delà du socle commun (Boutique, Missions, Carte…).

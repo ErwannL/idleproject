@@ -1,3 +1,13 @@
+## Ascendrya v9.3.2 — Arène des compagnons, guildes, World Boss mondial, armes plus spectaculaires
+
+- Arène des compagnons (Aventure › Arène), sans le héros : Survie (un compagnon seul contre 30 vagues, 3 essais par jour, paliers de récompense) et Étages (une équipe de 3 compagnons ou familiers, étages permanents, boss tous les 10, contrainte tous les 5). Relecture animée du combat.
+- World Boss mondial : une barre de PV commune à tous les joueurs, une tentative par jour. Le World Boss des grands événements reste à part.
+- Guildes (Objectifs › Guilde) : créer, chercher, rejoindre (libre ou sur demande), chef / officiers / membres, objectif de la semaine, activité, classement des guildes au World Boss (moyenne des 10 meilleurs membres : les petites guildes restent dans la course).
+- Affinités : rouge > vert > bleu > rouge, lumière ⇄ ténèbres ; +25 % en avantage, −20 % en désavantage, dans les deux sens. « AVANTAGE / DÉSAVANTAGE » en combat, icône de type sur les ennemis et les compagnons. Le héros reste neutre.
+- Armes : plus la rareté est haute, plus l'arme brille (lueur, aura, particules, traînée, impact, éclat sur les compétences). Effets visuels seulement ; coupés en « effets réduits ». Filtre par rareté dans l'Équipement.
+- Menus : réactions des boutons, états homogènes (verrouillé, terminé, à récupérer), cadres de rareté plus lisibles, ouverture des fenêtres plus douce.
+- Corrigé : monstre tué menu ouvert qui restait collé en haut de l'écran ; Colosse qui tirait 4 rayons ; portail d'invocation décalé et bannière du monde visible derrière.
+
 ## Ascendrya v9.3.0 — Événements pilotés en direct, Colosse déchaîné, nouveau site
 
 - Événements pilotés depuis l'admin : calendrier qui démarre et arrête seul les événements, vedettes, offres et annonces aux dates prévues (heure du serveur), avec boutons « Démarrer maintenant » / « Arrêter maintenant ». Le contenu arrive à l'avance par les mises à jour et s'active sans nouvelle version. Objectifs de préinscription librement réglables.
