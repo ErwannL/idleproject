@@ -30,8 +30,9 @@
 Équilibrage : aucune valeur, coût ni taux modifié. Seuls ajouts de mécanique : le petit coup au toucher (§5,
 demandé) et l'ordre d'ouverture des améliorations (§10, demandé).
 
-Non fait dans cette version : agrandir les personnages / remonter le sol de la scène (§5) et l'Arène sur la grande
-scène avec les sprites des ennemis (§11) — changements de rendu plus lourds, proposés pour la suite.
+9.3.6 : sur téléphone (scène haute), personnages ×1,4 et sol remonté aux deux tiers (§5) ; Arène sur une grande scène
+au décor du monde des ennemis, avec les vrais monstres et boss de la campagne (§11). Captures avant (9.3.3) / après
+(9.3.6) de 7 écrans à 390 px et sur PC : `docs/screenshots/v935/avant-apres`.
 
 ## 3. Partie test « je ne suis que la barre jaune »
 

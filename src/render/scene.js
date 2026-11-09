@@ -54,6 +54,7 @@ const GROUND_DEPTH = 18; // hauteur du sol sous la ligne des pieds
 export const MAX_VIEW_HEIGHT = 320 + GROUND_DEPTH;
 const MIN_VIEW_WIDTH = 160; // largeur logique minimale (zoom : le chevalier reste grand)
 const MAX_SCALE = 3; // zoom maximal : une grande fenêtre montre plus de décor
+const TALL_VIEW_WIDTH = 150; // v9.3.5 : largeur logique d'une scène haute de téléphone
 // Les positions de la simulation (BALANCE.world) sont agrandies à l'affichage pour
 // s'accorder aux sprites v5, plus détaillés ; la simulation elle-même ne change pas.
 export const WORLD_SCALE = 1.5;
@@ -284,10 +285,14 @@ export class SceneRenderer {
     let scale = Math.min(cssHeight / MIN_VIEW_HEIGHT, cssWidth / minWidth, MAX_SCALE);
     if (scale >= 3) scale = Math.floor(scale);
     scale = Math.max(0.5, scale, cssHeight / MAX_VIEW_HEIGHT);
+    // v9.3.5 : téléphone en portrait avec une scène haute — personnages plus grands (≈ 150 px logiques de large) et
+    // sol remonté aux deux tiers : la moitié haute n'est plus un ciel vide, le bas montre la terre du monde.
+    const tall = cssWidth < 560 && cssHeight > cssWidth * 1.1;
+    if (tall) scale = Math.max(scale, Math.min(cssWidth / TALL_VIEW_WIDTH, MAX_SCALE + 1));
     this.width = Math.max(120, Math.floor(cssWidth / scale));
     this.height = Math.max(MIN_VIEW_HEIGHT, Math.floor(cssHeight / scale));
     const prevGround = this.groundY;
-    this.groundY = this.height - GROUND_DEPTH;
+    this.groundY = tall ? Math.max(MIN_VIEW_HEIGHT - GROUND_DEPTH, Math.min(this.height - GROUND_DEPTH, Math.round(this.height * 0.68))) : this.height - GROUND_DEPTH;
     // v9.3.1 : un menu ouvert/fermé change la hauteur de la scène : les effets en cours (corps d'un monstre tué,
     // mort animée, chiffres, étincelles) suivent le sol au lieu de rester collés à l'ancienne hauteur (« au plafond »).
     const dy = this.groundY - prevGround;
