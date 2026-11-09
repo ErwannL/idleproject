@@ -1,352 +1,198 @@
-// v9.3.0 : site de lancement (index.html) : langue FR/EN, bande-annonce, mondes, galerie des héros et compagnons
-// (filtres, fiche au clic), familiers, boss, World Boss, compteur et paliers de préinscription (réglables par l'admin
-// via /api/live, repli statique si l'API ne répond pas), formulaire, apparition au défilement.
+// Ascendrya — landing page de préinscription (v9.3.1).
+// Textes : site/i18n/<langue>.js (EN par défaut, FR ; JA/KO/ZH prévus dans site/i18n/index.js), choisis par ?lang=xx,
+// sinon le dernier choix du visiteur (localStorage), sinon la langue du navigateur, sinon l'anglais.
+// Compteur et paliers : GET /api/live/goals (réglés dans l'admin), repli sur le compteur réel GET /api/preregister/count.
+// Formulaire : POST /api/preregister (inchangé). Aucun chiffre ni inscription simulés.
 import { SITE } from './config.js';
-import { WORLDS, HEROES, ALLIES, PETS, WORLD_BOSS } from './data.js';
-import { EN } from './i18n-en.js';
+import { DEFAULT_LANG, LANGS, loadLang } from './i18n/index.js';
+import { DEFAULT_GOALS } from './live.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
-document.documentElement.classList.add('js');
+const store = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* privé */ } } };
 
-// ---------- Langue ----------
+// ---------- Langues ----------
+let lang = DEFAULT_LANG;
+let T = {};
+let EN = {};
+const get = (obj, path) => path.split('.').reduce((o, k) => (o == null ? o : o[k]), obj);
+export const t = (path, ...a) => { const v = get(T, path) ?? get(EN, path) ?? path; return typeof v === 'function' ? v(...a) : v; };
 function pickLang() {
+  const ok = (c) => LANGS.some((l) => l.code === c);
   const q = new URLSearchParams(location.search).get('lang');
-  if (q === 'fr' || q === 'en') return q;
-  try { const s = localStorage.getItem('asc-lang'); if (s === 'fr' || s === 'en') return s; } catch { /* stockage indisponible */ }
-  return /^fr\b/i.test(navigator.language || 'fr') ? 'fr' : 'en';
+  if (ok(q)) return q;
+  const saved = store.get('ascendrya-lang');
+  if (ok(saved)) return saved;
+  const nav = (navigator.languages ?? [navigator.language]).map((x) => String(x).slice(0, 2).toLowerCase()).find(ok);
+  return nav ?? DEFAULT_LANG;
 }
-let lang = pickLang();
-const L = (pair) => (Array.isArray(pair) ? (lang === 'en' ? pair[1] || pair[0] : pair[0]) : pair ?? '');
-const FR = {}; // textes français d'origine (relevés dans la page)
-const t = (k, ...a) => { const v = lang === 'en' ? EN[k] ?? FR[k] ?? k : FR[k] ?? EN[k] ?? k; return typeof v === 'function' ? v(...a) : v; };
-for (const el of $$('[data-i18n]')) FR[el.dataset.i18n] = el.textContent;
-for (const el of $$('[data-i18n-attr]')) for (const pair of el.dataset.i18nAttr.split(';')) { const [attr, k] = pair.split(':'); FR[k] ??= el.getAttribute(attr); }
-Object.assign(FR, {
-  all: 'Tous', heroes: 'Héros', allies: 'Compagnons', paintings: 'Peintures',
-  common: 'Commun', rare: 'Rare', epic: 'Épique', legendary: 'Légendaire',
-  shown: (n) => `${n} illustration${n > 1 ? 's' : ''}`, kind_hero: 'Héros', kind_ally: 'Compagnon', kind_pet: 'Familier',
-  role: 'Rôle', skill: 'Compétence', rarity: 'Rareté', type: 'Type', stages: 'Étapes', boss: 'Boss',
-  pixel: 'Version pixel', painting: 'Version peinture', newPet: 'Nouveau',
-  worldN: (i) => `Monde ${i}`, reached: '✓ Débloqué', left: (n) => `Encore ${n}`, at: (n) => `À ${n} préinscrits`,
-  hintNext: (n, l) => `Encore ${n} aventuriers pour débloquer le palier ${l}.`, hintDone: 'Objectif atteint, merci à tous !',
-  hintOff: 'Compteur indisponible pour le moment.', phase: (p) => `${p} % PV`,
-  errEmail: 'Renseignez votre adresse email.', errConsent: 'Cochez la case de consentement pour vous préinscrire.',
-  sending: 'Envoi…', errRate: 'Trop de tentatives, réessayez plus tard.', errInvalid: 'Adresse email invalide.',
-  teaseMore: (n) => `+ ${n} à découvrir en jeu`, teaseWorlds: 'Mondes secrets', teaseUnits: 'Légendes cachées', teasePets: 'Familiers mystères',
-  teaseBosses: 'Maîtres inconnus', teasePhase: 'Une dernière forme… à découvrir',
-  okSent: 'Merci ! Votre préinscription est enregistrée.', errNet: 'Connexion impossible, réessayez.', play: 'Lecture',
-  docTitle: document.title, docDesc: $('meta[name="description"]').content,
-});
-const fmt = (n) => Number(n).toLocaleString(lang === 'en' ? 'en-US' : 'fr-FR');
-const short = (n) => (n >= 1000 ? `${fmt(n / 1000)} K` : fmt(n));
+const fmt = (n) => Number(n).toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-US');
+const short = (n) => (n >= 1000 ? `${fmt(n / 1000)}K` : fmt(n));
 
-function applyLang() {
-  document.documentElement.lang = lang;
-  for (const el of $$('[data-i18n]')) el.textContent = t(el.dataset.i18n);
-  for (const el of $$('[data-i18n-attr]')) for (const pair of el.dataset.i18nAttr.split(';')) { const [attr, k] = pair.split(':'); el.setAttribute(attr, t(k)); }
-  document.title = t('docTitle');
-  $('meta[name="description"]').content = t('docDesc');
-  const b = $('#lang');
-  b.textContent = lang === 'en' ? 'FR' : 'EN';
-  b.lang = lang === 'en' ? 'fr' : 'en';
-  b.setAttribute('aria-label', lang === 'en' ? 'Version française' : 'English version');
-  renderAll();
+async function setLang(code, push = false) {
+  lang = code;
+  [EN, T] = await Promise.all([loadLang('en'), code === 'en' ? null : loadLang(code)]);
+  T ??= EN;
+  store.set('ascendrya-lang', code);
+  if (push) { const u = new URL(location.href); u.searchParams.set('lang', code); history.replaceState(null, '', u); }
+  document.documentElement.lang = code;
+  for (const el of $$('[data-t]')) el.textContent = t(el.dataset.t);
+  for (const el of $$('[data-t-attr]')) for (const pair of el.dataset.tAttr.split(';')) { const [attr, k] = pair.split(':'); el.setAttribute(attr, t(k)); }
+  // Référencement : titre, description, aperçus de partage et lien canonique de la langue.
+  document.title = t('meta.title');
+  $('meta[name="description"]').content = t('meta.desc');
+  for (const s of ['og:title', 'twitter:title']) $(`meta[property="${s}"], meta[name="${s}"]`).content = t('meta.ogTitle');
+  for (const s of ['og:description', 'twitter:description']) $(`meta[property="${s}"], meta[name="${s}"]`).content = t('hero.pitch');
+  $('meta[property="og:locale"]').content = t('meta.locale');
+  let canon = $('link[rel="canonical"]');
+  if (!canon) { canon = document.createElement('link'); canon.rel = 'canonical'; document.head.appendChild(canon); }
+  canon.href = `${location.origin}${location.pathname}?lang=${code}`;
+  $('#langs').innerHTML = LANGS.map((l) => `<button type="button" lang="${l.code}" data-lang="${l.code}" aria-pressed="${l.code === code}" title="${esc(l.name)}">${l.label}</button>`).join('');
+  $('#reel-toggle').setAttribute('aria-label', t(reelPaused ? 'hero.play' : 'hero.pause'));
+  renderGoal();
+  renderSocials();
 }
-$('#lang').addEventListener('click', () => {
-  lang = lang === 'en' ? 'fr' : 'en';
-  try { localStorage.setItem('asc-lang', lang); } catch { /* stockage indisponible */ }
-  const u = new URL(location.href); u.searchParams.set('lang', lang); history.replaceState(null, '', u);
-  applyLang();
-});
+$('#langs').addEventListener('click', (e) => { const b = e.target.closest('[data-lang]'); if (b && b.dataset.lang !== lang) setLang(b.dataset.lang, true); });
 
-// v9.3.1 : pas de spoil : le site ne montre qu'une partie des mondes, des personnages, des familiers et des boss ;
-// le reste est caché derrière des cartes « ??? » (surprise au lancement).
-const TEASE = { worlds: 4, heroes: 4, allies: 6, pets: 3, bosses: 3 };
-const mystery = (n, cls, label) => `<article class="card ${cls} mystery reveal" aria-label="${esc(label)}">
-      <div class="q">?</div><h3>${esc(label)}</h3><small>${esc(t('teaseMore', n))}</small>
-    </article>`;
-
-// ---------- Mondes ----------
-function renderWorlds() {
-  $('#worlds').innerHTML = WORLDS.slice(0, TEASE.worlds).map((w, i) => `<article class="card world reveal">
-      <div class="shot"><img src="assets/worlds/${w.id}.webp" alt="${esc(L(w.name))}" loading="lazy" decoding="async" width="640" height="360"><span class="num">${i + 1}</span></div>
-      <div class="txt"><h3>${esc(L(w.name))}</h3><p>${esc(L(w.intro))}</p>
-      <span class="boss">☠ ${esc(L(w.boss))} · ${t('stages')} ${w.first}–${w.last}</span></div>
-    </article>`).join('') + mystery(WORLDS.length - TEASE.worlds, 'world', t('teaseWorlds'));
+// ---------- Objectif communautaire ----------
+let GOALS = { ...DEFAULT_GOALS, count: null };
+// Texte d'un palier : traduction du palier par défaut (même seuil et même nom que le serveur), sinon le texte de l'admin.
+function tierText(x) {
+  const def = DEFAULT_GOALS.tiers.find((d) => d.at === x.at && d.name === x.name);
+  const tr = def && get(T, `tiers.${x.at}`);
+  const tag = x.tag ? (get(T, `tiers.tags.${x.tag}`) || x.tag) : '';
+  return tr ? { name: tr[0], detail: tr[1], tag } : { name: x.name, detail: x.detail ?? '', tag };
 }
-
-// ---------- Galerie ----------
-const pick = (list, n) => [...list].sort((a, b) => RANK_[a.rarity] - RANK_[b.rarity]).filter((u, i, all) => i < Math.ceil(n / 2) || (i >= all.length - Math.floor(n / 2)));
-const RANK_ = { legendary: 0, epic: 1, rare: 2, common: 3 };
-const UNITS = [...pick(HEROES, TEASE.heroes), ...pick(ALLIES, TEASE.allies)];
-const HIDDEN_UNITS = HEROES.length + ALLIES.length - UNITS.length;
-const RANK = { legendary: 0, epic: 1, rare: 2, common: 3 };
-const FILTERS = [
-  ['all', (u) => true], ['hero', (u) => u.kind === 'hero'], ['ally', (u) => u.kind === 'ally'],
-  ['legendary', (u) => u.rarity === 'legendary'], ['epic', (u) => u.rarity === 'epic'], ['rare', (u) => u.rarity === 'rare'],
-  ['common', (u) => u.rarity === 'common'], ['real', (u) => Boolean(u.real)],
-];
-const FILTER_LABEL = { all: 'all', hero: 'heroes', ally: 'allies', legendary: 'legendary', epic: 'epic', rare: 'rare', common: 'common', real: 'paintings' };
-let filter = 'all';
-let shown = [];
-const img = (u) => u.real && (!u.px || u.kind === 'hero') ? u.real : u.px || u.real;
-function unitCard(u, i, extra = '') {
-  return `<button type="button" class="card unit r-${u.rarity} reveal" data-i="${i}" data-set="${u.kind === 'pet' ? 'pets' : 'units'}" aria-haspopup="dialog">
-      ${u.isNew ? `<span class="new">${esc(t('newPet'))}</span>` : ''}
-      <span class="pic"><img src="${img(u)}" alt="" loading="lazy" decoding="async" class="${u.px && img(u) === u.px ? 'px' : ''}"></span>
-      <span class="nm">${esc(L(u.name))}</span><span class="rar">${esc(t(u.rarity))}</span>${extra}
-    </button>`;
-}
-function renderGallery() {
-  $('#filters').innerHTML = FILTERS.filter(([, f]) => UNITS.some(f)).map(([id, f]) => `<button type="button" class="chip" data-f="${id}" aria-pressed="${filter === id}">${esc(t(FILTER_LABEL[id]))}<i>${UNITS.filter(f).length}</i></button>`).join('');
-  const f = FILTERS.find(([id]) => id === filter)[1];
-  shown = UNITS.filter(f).sort((a, b) => (a.kind === b.kind ? 0 : a.kind === 'hero' ? -1 : 1) || RANK[a.rarity] - RANK[b.rarity]);
-  $('#gallery').innerHTML = shown.map((u, i) => unitCard(u, i)).join('') + mystery(HIDDEN_UNITS, 'unit', t('teaseUnits'));
-  $('#gallery-count').textContent = '';
-  observe($('#gallery'));
-}
-$('#filters').addEventListener('click', (e) => {
-  const b = e.target.closest('[data-f]');
-  if (!b) return;
-  filter = b.dataset.f;
-  renderGallery();
-  $(`#filters [data-f="${filter}"]`)?.focus();
-});
-
-function renderPets() {
-  const pets = [...PETS].sort((a, b) => Number(b.isNew) - Number(a.isNew) || RANK[a.rarity] - RANK[b.rarity]).slice(0, TEASE.pets);
-  PETS_SHOWN = pets;
-  $('#pets').innerHTML = pets.map((p, i) => unitCard(p, i, `<span class="sk">${esc(L(p.skill))}</span>`)).join('') + mystery(PETS.length - pets.length, 'unit', t('teasePets'));
-  observe($('#pets'));
-}
-let PETS_SHOWN = PETS;
-
-// ---------- Fiche ----------
-const sheet = $('#sheet');
-let cur = { set: 'units', i: 0, style: null };
-function openSheet(set, i) {
-  const list = set === 'pets' ? PETS_SHOWN : shown;
-  cur = { set, i: (i + list.length) % list.length, style: null };
-  fillSheet();
-  if (!sheet.open) sheet.showModal();
-}
-function fillSheet() {
-  const list = cur.set === 'pets' ? PETS_SHOWN : shown;
-  const u = list[cur.i];
-  const src = cur.style === 'px' ? u.px : cur.style === 'real' ? u.real : img(u);
-  sheet.className = `sheet r-${u.rarity}`;
-  sheet.style.setProperty('--rc', `var(--${u.rarity})`);
-  const im = $('#sheet-img');
-  im.src = src; im.className = src === u.px ? 'px' : ''; im.alt = L(u.name);
-  $('#sheet-rar').textContent = t(u.rarity);
-  $('#sheet-name').textContent = L(u.name);
-  $('#sheet-title').textContent = L(u.title) || (u.skill ? `${t('skill')} : ${L(u.skill)}` : '');
-  $('#sheet-desc').textContent = L(u.desc);
-  const rows = [[t('type'), t(`kind_${u.kind}`)], [t('rarity'), t(u.rarity)]];
-  if (u.role) rows.push([t('role'), L(u.role)]);
-  if (u.skill && u.title) rows.push([t('skill'), L(u.skill)]);
-  $('#sheet-dl').innerHTML = rows.map(([a, b]) => `<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join('');
-  const sw = $('#sheet-style');
-  sw.hidden = !(u.px && u.real);
-  sw.textContent = src === u.px ? t('painting') : t('pixel');
-}
-document.addEventListener('click', (e) => {
-  const c = e.target.closest('.unit[data-i]');
-  if (c) openSheet(c.dataset.set, Number(c.dataset.i));
-});
-$('#sheet-close').addEventListener('click', () => sheet.close());
-sheet.addEventListener('click', (e) => { if (e.target === sheet) sheet.close(); });
-$('#sheet-prev').addEventListener('click', () => openSheet(cur.set, cur.i - 1));
-$('#sheet-next').addEventListener('click', () => openSheet(cur.set, cur.i + 1));
-$('#sheet-style').addEventListener('click', () => {
-  const u = (cur.set === 'pets' ? PETS_SHOWN : shown)[cur.i];
-  cur.style = $('#sheet-img').getAttribute('src') === u.px ? 'real' : 'px';
-  fillSheet();
-});
-sheet.addEventListener('keydown', (e) => {
-  if (e.key === 'ArrowLeft') openSheet(cur.set, cur.i - 1);
-  if (e.key === 'ArrowRight') openSheet(cur.set, cur.i + 1);
-});
-
-// ---------- Boss ----------
-function renderBosses() {
-  $('#bosses').innerHTML = WORLDS.slice(0, TEASE.bosses).map((w) => `<article class="card bcard reveal">
-      <div class="sp">${w.bossImg ? `<img src="${w.bossImg}" alt="" class="px" loading="lazy" decoding="async">` : `<img src="assets/worlds/${w.id}.webp" alt="" class="shot" loading="lazy" decoding="async">`}</div>
-      <h3>${esc(L(w.boss))}</h3><small>${esc(L(w.name))}</small>
-    </article>`).join('') + mystery(WORLDS.length - 1 - TEASE.bosses, 'bcard', t('teaseBosses'));
-  $('#phases').innerHTML = WORLD_BOSS.phases.map((p, i, all) => (i < all.length - 1 ? `<li><b>${Math.round(p.at * 100)} %</b><span>${esc(L(p.name))}</span></li>` : `<li><b>???</b><span>${esc(t('teasePhase'))}</span></li>`)).join('');
-}
-
-// ---------- Préinscriptions : objectif et paliers (réglables par l'admin) ----------
-const FALLBACK = {
-  goal: 100000,
-  tiers: [
-    { at: 10000, name: ['500 gemmes', '500 gems'], detail: ['Monnaie premium', 'Premium currency'], img: 'assets/shop/crystal_medium.webp' },
-    { at: 20000, name: ['250 K or', '250K gold'], detail: ["Pièces d'or", 'Gold coins'], img: 'assets/icon_chest.png' },
-    { at: 30000, name: ['1 familier', '1 pet'], detail: ['Slime doré', 'Golden Slime'], tag: ['Exclusif', 'Exclusive'], excl: true, img: 'assets/px/pet_golden_slime.webp' },
-    { at: 40000, name: ['1 000 gemmes', '1,000 gems'], detail: ['Monnaie premium', 'Premium currency'], img: 'assets/shop/crystal_large.webp' },
-    { at: 50000, name: ['1 compagnon', '1 companion'], detail: ['Lame rose', 'Rose Blade'], tag: ['SR · Exclusif', 'SR · Exclusive'], excl: true, img: 'assets/px/ally_rose_blade.webp' },
-    { at: 60000, name: ['1 500 gemmes', '1,500 gems'], detail: ['+ 500 K or', '+ 500K gold'], img: 'assets/shop/crystal_premium.webp' },
-    { at: 70000, name: ['1 héros SSR', '1 SSR hero'], detail: ['Lilith la Diablesse', 'Lilith the Demoness'], tag: ['SSR · Exclusif', 'SSR · Exclusive'], excl: true, img: 'assets/real/demoness.webp' },
-    { at: 80000, name: ['10 tickets', '10 tickets'], detail: ["d'invocation", 'summon tickets'], img: 'assets/shop/hero_ticket_permanent.webp' },
-    { at: 90000, name: ['1 héros SSR', '1 SSR hero'], detail: ['Roi Grombar', 'King Grombar'], tag: ['SSR · Exclusif', 'SSR · Exclusive'], excl: true, img: 'assets/real/grombar.webp' },
-    { at: 100000, name: ['2 500 gemmes', '2,500 gems'], detail: ['+ 1 M or + 1 ticket SSR garanti', '+ 1M gold + 1 guaranteed SSR ticket'], tag: ['Méga pack', 'Mega pack'], excl: true, img: 'assets/shop/hero_ticket_limited.webp' },
-  ],
-};
-let PREREG = FALLBACK;
-let COUNT = null;
-
-// Texte venant de l'API : chaîne, [fr, en] ou { fr, en }.
-const txt = (v) => (v == null ? '' : typeof v === 'string' ? v : Array.isArray(v) ? L(v) : v[lang] ?? v.fr ?? v.en ?? '');
-// Goals de l'API live-ops (site/live.js → GET /api/live/goals, réglés dans l'admin) : { target, count, tiers, texts }.
-// Les textes de l'admin sont en français (chaîne) ; [fr, en] ou { fr, en } sont aussi acceptés.
-export function normalizeGoals(g) {
-  if (!g || g.offline || !Number.isFinite(Number(g.target)) || !Array.isArray(g.tiers)) return null;
-  const tiers = g.tiers.map((x) => ({
-    at: Number(x.at), label: x.label || '', name: x.name, detail: x.detail ?? '', tag: x.tag || null, excl: Boolean(x.excl),
-    img: typeof x.img === 'string' && x.img ? x.img : 'assets/icon_chest.png',
-  })).filter((x) => Number.isFinite(x.at) && x.at > 0).sort((a, b) => a.at - b.at);
-  if (!tiers.length) return null;
-  return { goal: Number(g.target) > 0 ? Number(g.target) : tiers[tiers.length - 1].at, tiers, texts: g.texts ?? null,
-    count: Number.isFinite(Number(g.count)) && g.count != null ? Number(g.count) : null };
-}
-async function loadLive() {
-  // Module de l'API live-ops (site/live.js) ; repli statique (FALLBACK) s'il est absent ou si l'API ne répond pas.
-  try {
-    const m = await import('./live.js');
-    return normalizeGoals(await m.loadGoals(''));
-  } catch { return null; }
-}
-const tierLabel = (at, label) => label || (at >= 1000 ? `${fmt(at / 1000)}K` : fmt(at));
-function renderTiers() {
-  const { tiers, goal } = PREREG;
-  const c = COUNT ?? 0;
-  const nextIndex = tiers.findIndex((x) => c < x.at);
-  $('#tiers').innerHTML = tiers.map((x, i) => {
-    const reached = COUNT != null && c >= x.at;
-    const cls = reached ? 'reached' : i === nextIndex && COUNT != null ? 'next' : '';
-    const st = reached ? t('reached') : cls === 'next' ? t('left', fmt(x.at - c)) : t('at', fmt(x.at));
-    const tag = x.tag ? `<span class="tag ${x.excl ? 'excl' : ''}">${esc(txt(x.tag))}</span>` : '';
-    return `<article class="card tier reveal ${cls}"><span class="ms">${esc(tierLabel(x.at, x.label))}</span>
-      <div class="art"><img src="${esc(x.img)}" alt="" loading="lazy" decoding="async" class="${/\/(px|shop)\/|icon_/.test(x.img) ? 'px' : ''}"></div>
-      <div class="nm">${esc(txt(x.name))}</div>${tag}<div class="dt">${esc(txt(x.detail))}</div><div class="st">${st}</div></article>`;
-  }).join('');
-  observe($('#tiers'));
-  $('#goal-mid').textContent = short(goal / 2);
-  $('#goal-max').textContent = short(goal);
+function renderGoal() {
+  const { tiers, target } = GOALS;
+  const count = GOALS.count;
+  const known = Number.isFinite(count);
+  const c = known ? count : 0;
+  $('#count').textContent = known ? fmt(c) : '—';
+  $('#count-of').textContent = t('goal.of', fmt(target));
+  $('#goal-fill').style.width = `${known ? Math.min(100, (c / target) * 100) : 0}%`;
   const bar = $('#goal-bar');
-  bar.setAttribute('aria-valuemax', String(goal));
+  bar.setAttribute('aria-valuemax', String(target));
+  bar.setAttribute('aria-valuenow', String(c));
   bar.querySelectorAll('i').forEach((i) => i.remove());
-  for (const x of tiers) if (x.at < goal) bar.insertAdjacentHTML('beforeend', `<i style="left:${(x.at / goal) * 100}%"></i>`);
-  renderCount();
+  for (const x of tiers) if (x.at < target) bar.insertAdjacentHTML('beforeend', `<i style="left:${(x.at / target) * 100}%"></i>`);
+  const next = tiers.find((x) => c < x.at);
+  $('#goal-next').textContent = !known ? t('goal.offline') : next ? t('goal.next', fmt(next.at - c), x0(next)) : t('goal.done');
+  $('#tiers').innerHTML = tiers.map((x) => {
+    const st = known && c >= x.at ? 'reached' : known && x === next ? 'next' : 'locked';
+    const tx = tierText(x);
+    const label = st === 'reached' ? `✓ ${t('goal.unlocked')}` : st === 'next' ? t('goal.nextTag') : `🔒 ${t('goal.locked')}`;
+    return `<article class="tier ${st}"><span class="ms">${esc(x0(x))}</span>
+      <img src="${esc(x.img || 'assets/icon_chest.png')}" alt="" loading="lazy" decoding="async" class="${/icon_|\/px\//.test(x.img) ? 'px' : ''}">
+      <div class="nm">${esc(tx.name)}</div>${tx.tag ? `<span class="tag">${esc(tx.tag)}</span>` : ''}<div class="dt">${esc(tx.detail)}</div><div class="st">${label}</div></article>`;
+  }).join('');
 }
-function renderCount() {
-  const { tiers, goal } = PREREG;
-  for (const el of $$('.js-count')) el.textContent = COUNT == null ? '—' : fmt(COUNT);
-  const pct = COUNT == null ? 0 : Math.min(100, (COUNT / goal) * 100);
-  for (const el of $$('.js-bar')) el.style.width = `${pct}%`;
-  $('#goal-bar').setAttribute('aria-valuenow', String(COUNT ?? 0));
-  const next = tiers.find((x) => (COUNT ?? 0) < x.at);
-  const done = lang === 'fr' && PREREG.texts?.reached ? PREREG.texts.reached : t('hintDone');
-  $('#hint').textContent = COUNT == null ? t('hintOff') : next ? t('hintNext', fmt(next.at - COUNT), tierLabel(next.at, next.label)) : done;
-}
-async function loadCount() {
+const x0 = (x) => x.label || short(x.at);
+async function loadGoals() {
+  // Goals de l'admin (et compteur affiché) ; en cas d'échec, compteur réel seul ; sinon « indisponible » (jamais inventé).
   try {
-    const res = await fetch('api/preregister/count', { cache: 'no-store' });
-    const { count } = await res.json();
-    if (PREREG.count == null) COUNT = Number(count) || 0;
-  } catch { if (PREREG.count == null) COUNT = null; }
-  renderTiers();
+    const res = await fetch('api/live/goals', { cache: 'no-store' });
+    if (res.ok) {
+      const g = await res.json();
+      if (Number.isFinite(Number(g.target)) && Array.isArray(g.tiers) && g.tiers.length) {
+        GOALS = { target: Number(g.target), tiers: [...g.tiers].sort((a, b) => a.at - b.at), count: Number.isFinite(Number(g.count)) && g.count != null ? Number(g.count) : null };
+      }
+    }
+  } catch { /* hors ligne */ }
+  if (GOALS.count == null) {
+    try {
+      const res = await fetch('api/preregister/count', { cache: 'no-store' });
+      if (res.ok) { const { count } = await res.json(); if (Number.isFinite(Number(count))) GOALS.count = Number(count); }
+    } catch { /* hors ligne */ }
+  }
+  renderGoal();
 }
 
-// ---------- Formulaire ----------
+// ---------- Formulaire (aucune réussite simulée : seul un 2xx du serveur confirme) ----------
 const form = $('#prereg');
 const status = $('#status');
-const fail = (m) => { status.className = 'status-line err'; status.textContent = m; };
+const say = (key, ok = false) => { status.className = `status ${ok ? 'ok' : 'err'}`; status.textContent = t(key); };
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
-  status.className = 'status-line';
   const email = $('#email').value.trim();
   const consent = $('#consent').checked;
-  if (!email) return fail(t('errEmail'));
-  if (!consent) return fail(t('errConsent'));
-  status.textContent = t('sending');
+  if (!email) return say('form.errEmail');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return say('form.errInvalid');
+  if (!consent) return say('form.errConsent');
+  status.className = 'status';
+  status.textContent = t('form.sending');
+  const btn = form.querySelector('button[type=submit]');
+  btn.disabled = true;
   try {
     const res = await fetch('api/preregister', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, consent }) });
-    if (res.status === 429) return fail(t('errRate'));
-    if (!res.ok) return fail(t('errInvalid'));
+    if (res.status === 429) return say('form.errRate');
+    if (!res.ok) return say('form.errInvalid');
     form.reset();
-    status.className = 'status-line ok';
-    status.textContent = t('okSent');
-    loadCount();
-  } catch { fail(t('errNet')); }
+    say('form.ok', true);
+    loadGoals();
+  } catch { say('form.errNet'); } finally { btn.disabled = false; }
   return undefined;
 });
 
-// ---------- Pied de page ----------
+// ---------- Réseaux ----------
 const ICONS = {
-  discord: 'M20 4.5A18 18 0 0 0 15.6 3l-.6 1.2a16 16 0 0 0-6 0L8.4 3A18 18 0 0 0 4 4.5C1.3 8.6.5 12.6.9 16.5A18 18 0 0 0 6.3 19l1.2-1.9a11 11 0 0 1-1.8-.9l.4-.3a12.8 12.8 0 0 0 11.8 0l.4.3a11 11 0 0 1-1.8.9l1.2 1.9a18 18 0 0 0 5.4-2.5c.5-4.6-.8-8.6-3.1-12ZM8.7 14.2c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2Zm6.6 0c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2Z',
   x: 'M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.2-8.3L1.8 3h6.4l4.4 5.8L17.8 3Zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5Z',
-  youtube: 'M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8ZM9.7 15V9l5.8 3-5.8 3Z',
   tiktok: 'M16.6 2h-3.4v13.4a2.9 2.9 0 1 1-2-2.8V9.1a6.3 6.3 0 1 0 5.4 6.3V8.6a8 8 0 0 0 4.6 1.5V6.7a4.6 4.6 0 0 1-4.6-4.7Z',
+  discord: 'M20 4.5A18 18 0 0 0 15.6 3l-.6 1.2a16 16 0 0 0-6 0L8.4 3A18 18 0 0 0 4 4.5C1.3 8.6.5 12.6.9 16.5A18 18 0 0 0 6.3 19l1.2-1.9a11 11 0 0 1-1.8-.9l.4-.3a12.8 12.8 0 0 0 11.8 0l.4.3a11 11 0 0 1-1.8.9l1.2 1.9a18 18 0 0 0 5.4-2.5c.5-4.6-.8-8.6-3.1-12ZM8.7 14.2c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2Zm6.6 0c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2Z',
+  youtube: 'M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8ZM9.7 15V9l5.8 3-5.8 3Z',
 };
-const NAMES = { discord: 'Discord', x: 'X', youtube: 'YouTube', tiktok: 'TikTok' };
+const NAMES = { x: 'X', tiktok: 'TikTok', discord: 'Discord', youtube: 'YouTube' };
+// Un lien encore factice (« TON-… ») ou vide n'est pas affiché.
+const realLink = (u) => typeof u === 'string' && /^https:\/\//.test(u) && !/TON-/.test(u);
 function renderSocials() {
   const s = SITE.socials ?? {};
-  $('#socials').innerHTML = Object.entries(NAMES).filter(([k]) => s[k]).map(([k, n]) => `<a href="${esc(s[k])}" rel="noopener" target="_blank"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[k]}"/></svg>${n}</a>`).join('');
+  const links = Object.keys(NAMES).filter((k) => realLink(s[k]));
+  $('#socials').innerHTML = links.map((k) => `<a href="${esc(s[k])}" rel="noopener" target="_blank"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[k]}"/></svg>${NAMES[k]}</a>`).join('');
+  $('.follow').hidden = !links.length;
 }
 
-// ---------- Apparition au défilement ----------
+// ---------- Vidéo d'accueil : boucle muette lancée après la page ; image de couverture si « réduire les animations »,
+// « économiser les données » ou lecture automatique bloquée. ----------
+let reelPaused = false;
+function startReel() {
+  const v = $('#reel');
+  if (calm || navigator.connection?.saveData) return;
+  const small = matchMedia('(max-width: 720px)').matches;
+  v.innerHTML = `<source src="assets/trailer.webm" type="video/webm"><source src="assets/trailer.mp4" type="video/mp4">`;
+  v.preload = small ? 'metadata' : 'auto';
+  v.addEventListener('playing', () => { v.classList.add('on'); $('#reel-toggle').hidden = false; }, { once: true });
+  v.load();
+  v.play().catch(() => { /* lecture automatique bloquée : l'image de couverture reste affichée */ });
+}
+$('#reel-toggle').addEventListener('click', () => {
+  const v = $('#reel');
+  reelPaused = !v.paused;
+  if (reelPaused) v.pause(); else v.play().catch(() => {});
+  const b = $('#reel-toggle');
+  b.textContent = reelPaused ? '▶' : '❚❚';
+  b.setAttribute('aria-label', t(reelPaused ? 'hero.play' : 'hero.pause'));
+});
+
+// ---------- Menu, bouton fixe (mobile), apparition au défilement ----------
+const nav = $('#nav');
+const sticky = $('#sticky');
+const onScroll = () => {
+  nav.classList.toggle('solid', scrollY > 40);
+  const join = $('#join').getBoundingClientRect();
+  sticky.classList.toggle('on', scrollY > innerHeight * 0.7 && join.top > innerHeight);
+};
+addEventListener('scroll', onScroll, { passive: true });
+onScroll();
 const io = !calm && 'IntersectionObserver' in window ? new IntersectionObserver((entries) => {
   for (const e of entries) if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
 }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 }) : null;
-function observe(root = document) {
-  for (const el of $$('.reveal:not(.in)', root)) { if (io) io.observe(el); else el.classList.add('in'); }
-}
-
-// ---------- Barre de navigation ----------
-const nav = $('#nav');
-const onScroll = () => nav.classList.toggle('solid', scrollY > 40);
-addEventListener('scroll', onScroll, { passive: true });
-onScroll();
-
-// ---------- Bande-annonce : chargée après la page (le poster s'affiche d'abord), jamais si « réduire les animations »
-// ou « économiser les données » ; bouton Pause/Lecture. ----------
-function startReel() {
-  const v = $('#reel');
-  const saveData = navigator.connection?.saveData;
-  if (calm || saveData) return;
-  v.innerHTML = '<source src="assets/trailer.webm" type="video/webm"><source src="assets/trailer.mp4" type="video/mp4">';
-  v.preload = 'auto';
-  v.addEventListener('playing', () => v.classList.add('on'), { once: true });
-  v.load();
-  v.play().catch(() => {});
-  const b = $('#reel-toggle');
-  b.hidden = false;
-  b.addEventListener('click', () => {
-    if (v.paused) { v.play(); b.dataset.i18n = 'pause'; } else { v.pause(); b.dataset.i18n = 'play'; }
-    b.textContent = t(b.dataset.i18n);
-  });
-}
-const later = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 2500 }) : setTimeout(fn, 1200));
-if (document.readyState === 'complete') later(startReel); else addEventListener('load', () => later(startReel), { once: true });
+for (const el of $$('.reveal')) { if (io) io.observe(el); else el.classList.add('in'); }
 
 // ---------- Démarrage ----------
-function renderAll() {
-  renderWorlds(); renderGallery(); renderPets(); renderBosses(); renderTiers(); renderSocials();
-  if (sheet.open) fillSheet();
-  observe();
-}
-$('#site-name').textContent = SITE.name;
 $('#year').textContent = String(new Date().getFullYear());
-applyLang();
-loadCount();
-loadLive().then((cfg) => {
-  if (!cfg) return;
-  PREREG = cfg;
-  if (cfg.count != null) COUNT = cfg.count; // compteur affiché choisi dans l'admin (réel ou réglé)
-  renderTiers();
-});
+await setLang(pickLang());
+loadGoals();
+const later = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 2000 }) : setTimeout(fn, 800));
+if (document.readyState === 'complete') later(startReel); else addEventListener('load', () => later(startReel), { once: true });
