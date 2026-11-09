@@ -180,8 +180,9 @@ const SORTERS = {
   recent: (a, b) => itemNumber(b) - itemNumber(a),
 };
 
-export function listInventory(state, { slot = 'all', sortBy = 'rarity' } = {}) {
-  const items = state.inventory.filter((i) => slot === 'all' || i.slot === slot || (slot === 'accessory' && ACCESSORY_SLOTS.includes(i.slot)));
+export function listInventory(state, { slot = 'all', sortBy = 'rarity', rarity = 'all' } = {}) {
+  const items = state.inventory.filter((i) => (slot === 'all' || i.slot === slot || (slot === 'accessory' && ACCESSORY_SLOTS.includes(i.slot)))
+    && (rarity === 'all' || i.rarity === rarity)); // v9.3.2 : filtre de rareté
   return items.sort(SORTERS[sortBy] ?? SORTERS.rarity);
 }
 

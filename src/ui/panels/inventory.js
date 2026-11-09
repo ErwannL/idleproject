@@ -23,10 +23,17 @@ import { animCanvas } from '../animator.js';
 import { invFeatureOpen, nextInvUnlock } from '../../core/unlocks.js';
 
 const STAT_ICONS = { damage: 'weapon_sword', attackSpeed: 'icon_bolt', maxHp: 'icon_heart', armor: 'icon_shield' };
+// v9.3.2 : aperçu des effets visuels de l'arme (purement visuels, sans statistique cachée).
+const FX_TEXT = { common: 'aucun effet', rare: 'lueur bleue sur la lame, étincelles à l\'impact', epic: 'lame violette lumineuse, traînée large, onde à l\'impact',
+  legendary: 'aura dorée, particules au repos, traînée éclatante, onde à l\'impact, éclat sur les compétences' };
+function weaponFxLine(item) {
+  if (item.slot !== 'weapon') return '';
+  return `<div class="muted fx-line"><span class="rarity-dot r-${item.rarity}"></span> Effets visuels en combat : ${FX_TEXT[item.rarity] ?? FX_TEXT.common} <small>(visuels seulement)</small></div>`;
+}
 const SORT_LABELS = { rarity: 'Rareté', level: 'Niveau', power: 'Puissance', recent: 'Récent' };
 
 export function visibleItems(state) {
-  return listInventory(state, { slot: state.ui.slotFilter, sortBy: state.ui.sortBy });
+  return listInventory(state, { slot: state.ui.slotFilter, sortBy: state.ui.sortBy, rarity: state.ui.rarityFilter ?? 'all' });
 }
 
 // v8.4 : les accessoires comptent aussi pour leurs effets (or, butin, critique, épines, dégâts contre les boss…).
@@ -133,7 +140,7 @@ function detail(ui, state, item) {
         <span class="muted">Jamais recyclé ni fusionné.</span></div>
       ${base.signature ? `<div class="tool-line"><button class="btn small btn-gold" data-action="to-museum" data-id="${item.id}">Exposer au Musée</button></div>` : ''}`;
   } else {
-    body = `${compare}<ul class="stat-list">${stats}${affixes}</ul>${setBlock(state, item)}`;
+    body = `${compare}<ul class="stat-list">${stats}${affixes}</ul>${weaponFxLine(item)}${setBlock(state, item)}`;
   }
   return `<div class="card item-detail r-${item.rarity} sheet${ui.view.sheetOpen === 'item' ? ' sheet-open' : ''}">
     <button class="btn small sheet-close" data-action="close-sheet" aria-label="Fermer la fiche">✕</button>
@@ -267,7 +274,8 @@ function bag(ui, state) {
     <div class="card inv-list">
       ${gearRow}
       <div class="inv-tools"><div class="filter-chips" role="group" aria-label="Emplacement">${filterChips}</div>
-        <select data-action="sort" aria-label="Trier">${sortOptions}</select></div>
+        <select data-action="sort" aria-label="Trier">${sortOptions}</select>
+        <select data-action="rarity-filter" aria-label="Rareté">${[['all', 'Toutes raretés'], ...RARITIES.map((r) => [r.id, r.label])].map(([v, l]) => `<option value="${v}" ${v === (state.ui.rarityFilter ?? 'all') ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
       <div class="inv-grid">${items.map((i) => itemFrame(i, { selected: i.id === ui.view.selectedItemId, showUp: true, state, current: st })).join('')
         || '<div class="inv-empty">Aucun objet ici. Les ennemis laissent parfois tomber de l\'équipement.</div>'}</div>
       ${full ? '<div class="bad">Sac plein : recyclez, rangez au coffre ou réglez le recyclage automatique (Réglages du sac).</div>' : ''}

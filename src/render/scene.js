@@ -39,6 +39,7 @@ import { castHeroSkill, castUnitSkill, drawSkillFx, fxContext, heroGesturePick, 
 import { companionSkillList } from '../data/companion-skills.js';
 import { COMPANION_ROLES } from '../data/synergies.js';
 import { drawWorldVfx, eventVfx } from './vfx-world.js'; // v9.2.6 : compétences, boss, environnement, mutations, ambiance
+import { weaponFx } from '../data/weapon-fx.js'; // v9.3.2 : effets d'arme selon la rareté
 import { DAMAGE_COLORS, drawDamageText, drawVfx, drawVfxFrame, projFrame, vfx, vfxReady } from './vfx.js'; // v9.2.6 : effets de combat PixelLab
 // v9.2.9 : toiles de travail relues par getImageData : mémoire côté processeur (avertissement Chrome « willReadFrequently »).
 const RF = { willReadFrequently: true };
@@ -374,6 +375,7 @@ export class SceneRenderer {
         break;
       case 'skill':
         // v9.2.5 : geste propre à la compétence et effet synchronisé (skill-fx.js) ; ancien effet en repli.
+        this.weaponSkillFlourish(HERO_X + 4, this.weaponEq); // v9.3.2 : l'arme participe à la compétence
         if (castHeroSkill(this, this.skillKey, event.skillId, fxContext(this, world, { x: HERO_X + 4, y: this.groundY - 22 }, HERO_X))) break;
         this.skillEffect(event);
         break;
@@ -951,11 +953,14 @@ export class SceneRenderer {
     if (pts.length > 12) pts.splice(0, pts.length - 12);
     if (pts.length < 2) return;
     const color = TRAIL_COLORS[weapon?.rarity] ?? '#ffffff';
+    const wf = weaponFx(weapon); // v9.3.2 : ruban plus large et plus vif selon la rareté
     for (let i = 1; i < pts.length; i++) {
-      const a = pts[i - 1], b = pts[i];
+      const a0 = pts[i - 1], b0 = pts[i];
+      const widen = (p) => ({ ...p, x0: p.x1 + (p.x0 - p.x1) * wf.trail, y0: p.y1 + (p.y0 - p.y1) * wf.trail });
+      const a = widen(a0), b = widen(b0);
       const k = 1 - (now - a.t) / LIFE;
       if (k <= 0) continue;
-      ctx.globalAlpha = 0.45 * k;
+      ctx.globalAlpha = wf.trailAlpha * k;
       ctx.fillStyle = color;
       ctx.beginPath();
       ctx.moveTo(a.x0, a.y0); ctx.lineTo(a.x1, a.y1); ctx.lineTo(b.x1, b.y1); ctx.lineTo(b.x0, b.y0);
@@ -967,6 +972,57 @@ export class SceneRenderer {
       ctx.beginPath(); ctx.moveTo(a.x1, a.y1); ctx.lineTo(b.x1, b.y1); ctx.stroke();
     }
     ctx.globalAlpha = 1;
+  }
+
+  // v9.3.2 : arme au repos selon sa rareté : lueur pulsée le long de la lame, particules qui en montent, aura
+  // (légendaire). Visuel seulement ; coupé en mode effets réduits.
+  weaponAura(ctx, held, weapon) {
+    const wf = weaponFx(weapon);
+    if (this.focus || !held || held.tipX == null || !wf.glow) return;
+    const { ax, ay, tipX, tipY } = held;
+    const pulse = 0.75 + 0.25 * Math.sin(this.time * wf.pulse * Math.PI);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = wf.color;
+    for (const [w, a] of [[6, 0.3], [3, 0.6], [1.2, 0.9]]) {
+      ctx.globalAlpha = wf.glow * a * pulse;
+      ctx.lineWidth = w;
+      ctx.beginPath(); ctx.moveTo(ax + (tipX - ax) * 0.3, ay + (tipY - ay) * 0.3); ctx.lineTo(tipX, tipY); ctx.stroke();
+    }
+    if (wf.aura) {
+      const g = ctx.createRadialGradient(tipX, tipY, 0, tipX, tipY, 9);
+      g.addColorStop(0, wf.color); g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.globalAlpha = 0.35 * pulse; ctx.fillStyle = g; ctx.fillRect(tipX - 9, tipY - 9, 18, 18);
+    }
+    ctx.restore();
+    this.moteAcc = (this.moteAcc ?? 0) + (this.dt ?? 0) * wf.motes;
+    while (this.moteAcc >= 1) {
+      this.moteAcc -= 1;
+      const u = 0.3 + Math.random() * 0.7;
+      this.effects.push({ kind: 'spark', x: ax + (tipX - ax) * u, y: ay + (tipY - ay) * u, vx: (Math.random() - 0.5) * 8, vy: -14 - Math.random() * 10,
+        color: Math.random() < 0.3 ? '#ffffff' : wf.color, life: 0.5, max: 0.5 });
+    }
+  }
+
+  // v9.3.2 : impact du coup de base selon la rareté de l'arme : étincelles en plus, onde (épique et légendaire).
+  weaponImpact(x, y, weapon) {
+    const wf = weaponFx(weapon);
+    if (this.focus || !wf.impact) return;
+    for (let i = 0; i < wf.impact; i++) {
+      const a = -1.2 + Math.random() * 2.4, v = 40 + Math.random() * 80;
+      this.effects.push({ kind: 'spark', x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 15, color: i % 2 ? wf.color : '#ffffff', life: 0.3, max: 0.3 });
+    }
+    if (wf.ring) this.effects.push({ kind: 'ring', x, y, color: wf.color, life: 0.3, max: 0.3, r: weapon.rarity === 'legendary' ? 14 : 9 });
+  }
+
+  // v9.3.2 : compétence lancée avec une arme rare ou mieux : éclat de la couleur de l'arme autour du héros.
+  weaponSkillFlourish(heroX, weapon) {
+    const wf = weaponFx(weapon);
+    if (this.focus || !wf.skill) return;
+    const y = this.groundY - 18;
+    this.effects.push({ kind: 'ring', x: heroX, y, color: wf.color, life: 0.45, max: 0.45, r: 12 + 10 * wf.skill });
+    this.burst(heroX, y, wf.color, Math.round(8 * wf.skill), 40 + 20 * wf.skill);
   }
 
   // Arrondi au pixel d'écran (et non au pixel de jeu) pour les éléments en mouvement.
@@ -1424,6 +1480,8 @@ export class SceneRenderer {
         f.left -= this.dt ?? 0;
       }
       this.heroLast = { kind, anim, held };
+      this.weaponEq = state.equipment.weapon;
+      this.weaponAura(ctx, held, state.equipment.weapon); // v9.3.2
       // v9.2.7 : traînée seulement pendant la frappe (de l'image qui précède le coup jusqu'au coup), pas pendant l'élan.
       const fi = anim ? anim.anim.frames.indexOf(anim.name) : -1, hitI = anim?.anim.hit ?? 99;
       this.weaponTrail(ctx, kind === 'attack' && this.hero.attack > 0 && fi >= hitI - 2 && fi <= hitI + 1 ? held : null, state.equipment.weapon);

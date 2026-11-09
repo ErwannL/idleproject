@@ -999,6 +999,7 @@ export class UI {
     const el = event.target;
     const action = el.dataset.action;
     if (action === 'sort') this.actions.setSort(el.value);
+    if (action === 'rarity-filter') { this.state.ui.rarityFilter = el.value; this.invalidate(); } // v9.3.2
     if (action === 'filter-select') this.actions.setFilter(el.value);
     if (action === 'upgrade-cat-select') { this.view.upgradeCat = el.value; this.invalidate(); }
     if (action === 'upgrade-sort') { this.view.upgradeSort = el.value || null; this.invalidate(); }

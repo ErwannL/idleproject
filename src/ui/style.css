@@ -2935,3 +2935,7 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 .elem-badge { display: inline-flex; align-items: center; gap: 2px; padding: 0 6px; border-radius: 999px; font-size: 11px; font-weight: 800; line-height: 16px;
   color: var(--ec); background: color-mix(in srgb, var(--ec) 16%, transparent); border: 1px solid color-mix(in srgb, var(--ec) 55%, transparent); white-space: nowrap; vertical-align: middle; }
 .elem-tip { display: block; margin-top: 2px; }
+/* v9.3.2 : ligne « effets visuels » de l'arme. */
+.fx-line { margin: 6px 0; font-size: 12px; }
+.fx-line .rarity-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; vertical-align: middle; background: #c9c9c9; }
+.fx-line .rarity-dot.r-rare { background: #4fa3ff; } .fx-line .rarity-dot.r-epic { background: #c06bff; } .fx-line .rarity-dot.r-legendary { background: #ffa630; box-shadow: 0 0 6px #ffa630; }
