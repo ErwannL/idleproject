@@ -118,7 +118,9 @@ const MAX_FLOATING_TEXTS = 6;
 const PROJ_VFX = { fx_arrow: 'proj_arrow', fx_arrow_fire1: 'proj_fireball', fx_fireball1: 'proj_fireball', fx_soul1: 'proj_soul', fx_meteor: 'proj_fireball' };
 // v9.2.7 : couleur de la traînée de frappe selon la rareté de l'arme.
 const TRAIL_COLORS = { common: '#dfe8f0', uncommon: '#8af07a', rare: '#6ab8ff', epic: '#c87aff', legendary: '#ffc23a', mythic: '#ff5a6a' };
-const FLYING_PETS = new Set(['owl', 'fairy', 'wisp', 'dragonling', 'phoenix']); // v9.2.9 : + dragonnet et phénix (ailés)
+const FLYING_PETS = new Set(['owl', 'fairy', 'wisp', 'dragonling', 'phoenix']);
+// v9.3.3 : familiers dont le dessin regarde vers la gauche : retournés pour faire face aux ennemis comme les autres.
+const LEFT_FACING_PETS = new Set(['phoenix']); // v9.2.9 : + dragonnet et phénix (ailés)
 // v9.2.7 : volant ou marcheur, sans entre-deux. Les robes longues (« glide ») qui ont un vrai cycle de marche
 // PixelLab marchent, pieds au sol ; seuls les volants (ailes) flottent, avec ombre et sans cycle de pas.
 // v9.2.7 : un ennemi ailé qui ne se pose pas (phénix, valkyrie…) mais hérite d'une base marcheuse vole vraiment :
@@ -1919,7 +1921,7 @@ export class SceneRenderer {
       if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, cy - img.height / 2, img.width, img.height, companion); this.gearGlow(ctx, x + img.width / 2, cy - img.height / 2, img.width, img.height, companion); // v9.3.3
       ctx.save();
       ctx.translate(this.snap(x + img.width / 2), this.snap(cy));
-      ctx.scale(1, flap);
+      ctx.scale(LEFT_FACING_PETS.has(companion.id) ? -1 : 1, flap);
       this.drawStarOutline(ctx, companion, companion.sprite, -img.width / 2, -img.height / 2);
       petImg(-img.width / 2, -img.height / 2);
       ctx.restore();
@@ -1936,7 +1938,7 @@ export class SceneRenderer {
     if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, this.groundY - img.height, img.width, img.height, companion); this.gearGlow(ctx, x + img.width / 2, this.groundY - img.height, img.width, img.height, companion); // v9.3.3
     ctx.save();
     ctx.translate(this.snap(x + img.width / 2), this.groundY + 1 - this.snap(hop));
-    ctx.scale(2 - squash, squash);
+    ctx.scale((2 - squash) * (LEFT_FACING_PETS.has(companion.id) ? -1 : 1), squash);
     this.drawStarOutline(ctx, companion, companion.sprite, -img.width / 2, -img.height);
     petImg(-img.width / 2, -img.height);
     ctx.restore();
@@ -1963,10 +1965,13 @@ export class SceneRenderer {
     this.drawShadow(ctx, x + img.width / 2, img.width * 0.6);
     ctx.globalAlpha = 1;
     if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, py + oy, img.width, img.height, companion); this.gearGlow(ctx, x + img.width / 2, py + oy, img.width, img.height, companion); // v9.3.3
+    const mirror = LEFT_FACING_PETS.has(companion.id); // v9.3.3
+    if (mirror) { ctx.save(); ctx.translate(2 * this.snap(x) + img.width, 0); ctx.scale(-1, 1); }
     if (canvas === img) this.drawStarOutline(ctx, companion, companion.sprite, px, py);
     const pa = pickAllyAnim({ sprite: companion.sprite, walking, swimming: true, time: this.time, seed: 0.5 }); // v9.2.3 : nage PixelLab
     if (pa) ctx.drawImage(spriteCanvas(pa.name), this.snap(x) + pa.ox, this.groundY + 1 - img.height - lift + pa.oy);
     else swimDraw(ctx, canvas, px, py, canvas.width, canvas.height, { time: this.time, phase: 2.2, amp, mode, focus: this.focus || amp === 0 });
+    if (mirror) ctx.restore();
     this.petBubble = (this.petBubble ?? 0.7) - (this.dt ?? 0);
     if (this.petBubble <= 0 && !this.focus) {
       this.petBubble = 1 + Math.random();
