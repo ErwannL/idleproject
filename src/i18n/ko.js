@@ -24,7 +24,7 @@ export const EXACT = {
   // Menus et sous-onglets
   'Héros': '영웅', 'Aventure': '모험', 'Équipe': '팀', 'Objectifs': '목표', 'Personnage': '캐릭터', 'Progression': '성장',
   'Améliorations': '강화', 'Compétences': '스킬', 'Talents': '특성', 'Fiche': '정보', 'Équipement': '장비', 'Composition': '편성',
-  'Expéditions': '파견', 'Invocation': '소환', 'Carte': '지도', 'Donjons': '던전', 'Défis': '도전', 'Arène': '아레나', 'Boss': '보스', 'Monde': '월드',
+  'Expéditions': '파견', 'Invocation': '소환', 'Carte': '지도', 'Donjons': '던전', 'Défis': '도전', 'Arène': '아레나', 'Guilde': '길드', 'Boss': '보스', 'Monde': '월드',
   'Collections': '컬렉션', 'Missions': '미션', 'À récupérer': '받을 보상', 'Paramètres': '설정', 'Tour': '탑', 'Arbre': '트리',
   'Renaissance': '환생', 'Renaissances': '환생', 'Transcendance': '초월', 'Transcendances': '초월', 'Événements': '이벤트',
   'Musée': '박물관', 'Encyclopédie': '도감', 'Hauts faits': '업적', 'Contrats': '계약', 'Forge': '대장간', 'Builds': '빌드',

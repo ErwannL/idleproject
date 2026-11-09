@@ -40,6 +40,7 @@ import contracts from './panels/contracts.js';
 import dungeons from './panels/dungeons.js';
 import tower from './panels/tower.js';
 import arena from './panels/arena.js'; // v9.3.2 : modes compagnons
+import guild from './panels/guild.js'; // v9.3.2 : guildes
 import { arenaUnlocked } from '../core/arena.js';
 import worldPanel from './panels/world.js';
 import { BANNER_RULES } from '../data/banners.js';
@@ -83,12 +84,12 @@ import { ELEMENTS, zoneElement } from '../core/elements.js'; // v9.3.1 : types
 
 export { MENUS };
 
-const PANELS = Object.fromEntries([upgrades, inventory, hero, looks, companions, expeditions, skills, tree, campaign, dungeons, tower, arena, boss, encyclopedia, summon, shop, eventPanel, contracts, inbox, ranking, stats, options, worldPanel]
+const PANELS = Object.fromEntries([upgrades, inventory, hero, looks, companions, expeditions, skills, tree, campaign, dungeons, tower, arena, boss, encyclopedia, summon, shop, eventPanel, contracts, inbox, ranking, guild, stats, options, worldPanel]
   .map((p) => [p.id, p]));
 const SUB_ICONS = {
   upgrades: 'icon_upgrade', skills: 'skill_quick', tree: 'icon_tree', hero: 'icon_hero', inventory: 'icon_bag', looks: 'icon_summon',
   companions: 'icon_paw', expeditions: 'icon_expedition', summon: 'icon_summon', shop: 'icon_gem', event: 'icon_star', campaign: 'icon_map', dungeons: 'icon_dungeon', tower: 'icon_tower', arena: 'icon_paw',
-  boss: 'icon_boss', encyclopedia: 'icon_book', contracts: 'icon_trophy', inbox: 'icon_mail', ranking: 'icon_trophy', stats: 'icon_book',
+  boss: 'icon_boss', encyclopedia: 'icon_book', contracts: 'icon_trophy', inbox: 'icon_mail', ranking: 'icon_trophy', guild: 'icon_crown', stats: 'icon_book',
 };
 // v9.1.0 : présentation courte en haut de l'onglet, à sa première ouverture (plus de bulle « Nouveau »).
 const UNLOCK_INFO = {
@@ -630,6 +631,7 @@ export class UI {
       this.pendingScroll = view ? 0 : this.scrollMem[tab] ?? 0;
     }
     if (tab === 'ranking') this.actions.loadRanking?.();
+    if (tab === 'guild') this.actions.loadGuild?.(); // v9.3.2
     // v9.2.6 : ouverture du panneau (ou changement d'onglet) animée, liste en cascade au prochain rendu.
     if (tab !== this.tab) { uiFx.panelOpenFx(this.$('panel'), !this.tab); this.vfxCascade = true; }
     this.tab = tab;
@@ -767,6 +769,17 @@ export class UI {
       case 'upgrade-companion': a.upgradeCompanion(value); break;
       case 'open-tab': if (el.closest('#modal')) this.closeModal(); this.openTab(value); break;
       case 'ranking-sort': this.actions.loadRanking(value); break;
+      // v9.3.2 : guilde.
+      case 'guild-rank': this.actions.loadGuild({ mode: value }); break;
+      case 'guild-emblem': this.view.guildEmblem = value; this.invalidate(); break;
+      case 'guild-search': this.view.guildQ = this.root.querySelector('[data-guild="q"]')?.value ?? ''; this.actions.loadGuild({ q: this.view.guildQ }); break;
+      case 'guild-create': this.actions.guildDo('create', { name: this.root.querySelector('[data-guild="name"]')?.value, description: this.root.querySelector('[data-guild="desc"]')?.value,
+        emblem: this.view.guildEmblem ?? 'weapon_sword', open: this.root.querySelector('[data-guild="open"]')?.checked !== false }); break;
+      case 'guild-join': this.actions.guildDo('join', { name: value }); break;
+      case 'guild-accept': this.actions.guildDo('accept', { pseudo: value }); break;
+      case 'guild-kick': if (confirm(`Exclure ${value} de la guilde ?`)) this.actions.guildDo('kick', { pseudo: value }); break;
+      case 'guild-role': { const [pseudo, role] = value.split('|'); this.actions.guildDo('role', { pseudo, role }); break; }
+      case 'guild-leave': if (confirm('Quitter la guilde ? Vos contributions de la semaine restent à la guilde.')) this.actions.guildDo('leave'); break;
       case 'open-account': {
         this.openTab('options', { optTab: 'general' });
         // Après le dessin du panneau : jusqu'au formulaire de compte.
@@ -1769,6 +1782,7 @@ export class UI {
       arena: arenaUnlocked(state), // v9.3.2
       stats: Boolean(state.ui.goalsOpen),
       ranking: Boolean(state.ui.goalsOpen) && Boolean(this.actions.loadRanking) && this.cloud?.enabled !== false,
+      guild: Boolean(state.ui.goalsOpen) && Boolean(this.actions.loadGuild) && this.cloud?.enabled !== false, // v9.3.2
     };
     this.$('top-shop')?.classList.toggle('hidden', !visible.shop); // v9.2.9 : bouton Boutique de la barre du haut
     const key = `${JSON.stringify(visible)}|${this.tab}|${[...this.newTabs].join()}`;

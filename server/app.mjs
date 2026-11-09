@@ -7,6 +7,7 @@ import { stat } from 'node:fs/promises';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import { promisify } from 'node:util';
 import { createLive, LiveError, LIVE_MAX_AGE_S } from './live.mjs'; // v9.3.0 : live-ops
+import { createGuilds, GuildError } from './guilds.mjs'; // v9.3.2 : guildes et World Boss
 
 const scrypt = promisify(scryptCb);
 
@@ -331,6 +332,7 @@ export function createApp({
   // Sessions admin (en mémoire : perdues au redémarrage) : hash du jeton -> { username, mustChange, expires }.
   const adminSessions = new Map();
   const live = createLive({ db, now }); // v9.3.0 : live-ops (server/live.mjs)
+  const guilds = createGuilds({ db, now }); // v9.3.2 (server/guilds.mjs)
 
   // Premier démarrage : le mot de passe admin historique devient le compte « erwann ».
   if (adminPasswordHash && db.prepare('SELECT COUNT(*) AS n FROM admin_users').get().n === 0) {
@@ -727,6 +729,28 @@ export function createApp({
       return { body: { listed } };
     } },
 
+    // ---- v9.3.2 : World Boss (rapports de tentative, barre mondiale, classements) et guildes ----
+    { method: 'POST', path: /^\/api\/worldboss\/report$/, handler: async ({ req }) => ({ body: guilds.report(authenticate(req), await readJson(req)) }) },
+    { method: 'GET', path: /^\/api\/worldboss\/global$/, handler: () => ({ body: guilds.globalBoss() }) },
+    { method: 'GET', path: /^\/api\/worldboss\/ranking$/, handler: ({ req, url }) => {
+      let me = null; try { me = authenticate(req); } catch { /* classement public */ }
+      const mode = url.searchParams.get('mode') === 'event' ? 'event' : 'global';
+      return { body: guilds.ranking(mode, url.searchParams.get('period'), me) };
+    } },
+    { method: 'GET', path: /^\/api\/guild$/, handler: ({ req }) => ({ body: guilds.mine(authenticate(req)) }) },
+    { method: 'GET', path: /^\/api\/guilds$/, handler: ({ url }) => ({ body: { guilds: guilds.search(url.searchParams.get('q')) } }) },
+    { method: 'POST', path: /^\/api\/guilds$/, handler: async ({ req }) => ({ status: 201, body: guilds.create(authenticate(req), await readJson(req)) }) },
+    { method: 'POST', path: /^\/api\/guild\/(join|accept|leave|kick|role|settings)$/, handler: async ({ req, params }) => {
+      const me = authenticate(req); const b = await readJson(req).catch(() => ({}));
+      switch (params[0]) {
+        case 'join': return { body: guilds.apply(me, b.name) };
+        case 'accept': return { body: guilds.accept(me, b.pseudo) };
+        case 'leave': return { body: guilds.leave(me) };
+        case 'kick': return { body: guilds.kick(me, b.pseudo) };
+        case 'role': return { body: guilds.setRole(me, b.pseudo, b.role) };
+        default: return { body: guilds.settings(me, b) };
+      }
+    } },
     { method: 'GET', path: /^\/api\/health$/, handler: () => ({ body: { ok: true } }) },
 
     // ---- Administration ----
@@ -1075,6 +1099,7 @@ export function createApp({
       return finish(res.statusCode);
     } catch (error) {
       if (error instanceof LiveError) error = new HttpError(error.status, error.message); // v9.3.0
+      if (error instanceof GuildError) error = new HttpError(error.status, error.message); // v9.3.2
       if (error instanceof HttpError) {
         send(res, error.status, { error: error.message, ...error.extra });
         return finish(error.status);

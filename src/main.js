@@ -689,6 +689,11 @@ const actions = {
   eventBossStart() { return startWorldBoss(state, () => bossHpForDay(state)); },
   eventBossFinish(setup, result) {
     const r = finishWorldBoss(state, setup, result);
+    // v9.3.2 : rapport envoyé au serveur (classement de l'événement, contribution de guilde) ; hors ligne : ignoré.
+    if (r && cloud.isLoggedIn?.()) {
+      const power = Math.max(1, Math.round(computeHeroStats(state).combatPower ?? 1));
+      cloud.wbReport({ mode: 'event', event: String(setup.event ?? 'event'), damage: r.damage, tiers: r.tiers, power }).catch(() => {});
+    }
     done(Boolean(r), r ? `World Boss : ${formatNumber(r.damage)} dégâts` : null, '#f2d083');
     return r;
   },
@@ -903,6 +908,21 @@ const actions = {
       .catch((err) => { ui.ranking = { sort, scope, world, error: err.status ? err.message : 'Serveur injoignable : classement indisponible.' }; })
       .finally(() => ui.invalidate());
     if (scope === 'friends' || !ui.friends) this.loadFriends();
+  },
+  // v9.3.2 : guilde (Objectifs › Guilde) : sa guilde, la recherche et le classement des guildes.
+  loadGuild({ q = ui.view?.guildQ ?? '', mode = ui.guild?.mode ?? 'global' } = {}) {
+    if (!cloud.isLoggedIn() || cloud.isGuest()) { ui.guild = { needAccount: true }; ui.invalidate(); return; }
+    ui.guild = { ...(ui.guild ?? {}), busy: true, mode, ranking: ui.guild?.mode === mode ? ui.guild.ranking : null };
+    ui.invalidate();
+    Promise.all([cloud.guild(), cloud.guilds(q), cloud.wbRanking(mode)])
+      .then(([data, list, ranking]) => { ui.guild = { ...ui.guild, data, list: list.guilds, ranking, busy: false, error: null }; })
+      .catch((err) => { ui.guild = { ...ui.guild, busy: false, error: err.status ? err.message : 'Serveur injoignable.' }; })
+      .finally(() => ui.invalidate());
+  },
+  guildDo(action, body = {}) {
+    const call = action === 'create' ? cloud.guildCreate(body) : cloud.guildAction(action, body);
+    call.then((res) => { ui.guild = { ...ui.guild, message: action === 'join' && res.status === 'requested' ? 'Demande envoyée au chef de la guilde.' : '', error: null }; this.loadGuild(); })
+      .catch((err) => { ui.guild = { ...ui.guild, error: err.status ? err.message : 'Serveur injoignable.' }; ui.invalidate(); });
   },
   loadFriends(message = '', error = false) {
     if (!cloud.isLoggedIn() || cloud.isGuest()) return;

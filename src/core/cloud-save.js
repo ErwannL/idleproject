@@ -138,6 +138,14 @@ export function createCloudClient({ baseUrl = '', storage, fetchImpl = globalThi
     // Classement (v9.1.6) : scope 'all' (connexion facultative, donne alors votre rang) ou 'friends'.
     leaderboard: (sort = 'stage', scope = 'all', world = 2) => request('GET', `/api/leaderboard?sort=${encodeURIComponent(sort)}&scope=${scope}&world=${Number(world) || 2}&limit=100`,
       { auth: scope === 'friends' ? true : 'optional' }),
+    // v9.3.2 : World Boss (rapport de tentative, barre mondiale, classements) et guildes.
+    wbReport: (report) => request('POST', '/api/worldboss/report', { body: report }),
+    wbGlobal: () => request('GET', '/api/worldboss/global', { auth: false }),
+    wbRanking: (mode, period = '') => request('GET', `/api/worldboss/ranking?mode=${mode}&period=${encodeURIComponent(period)}`, { auth: 'optional' }),
+    guild: () => request('GET', '/api/guild'),
+    guilds: (q = '') => request('GET', `/api/guilds?q=${encodeURIComponent(q)}`, { auth: false }),
+    guildCreate: (data) => request('POST', '/api/guilds', { body: data }),
+    guildAction: (action, body = {}) => request('POST', `/api/guild/${action}`, { body }),
     // Amis (v9.1.6).
     friends: () => request('GET', '/api/friends'),
     addFriend: (pseudo) => request('POST', '/api/friends', { body: { pseudo } }),

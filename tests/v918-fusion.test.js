@@ -34,6 +34,6 @@ test('9.1.8 : le serveur accepte la partie migrée par-dessus la sauvegarde 9.1.
 
 test('9.1.8 : Objectifs garde Missions, Collections, Classement et Statistiques', () => {
   const goals = MENUS.find((m) => m.id === 'goals');
-  assert.deepEqual(goals.tabs, ['contracts', 'encyclopedia', 'ranking', 'stats']);
+  assert.deepEqual(goals.tabs, ['contracts', 'encyclopedia', 'ranking', 'guild', 'stats']); // v9.3.2 : Guilde
   assert.equal(SUB_LABELS.ranking, 'Classement');
 });

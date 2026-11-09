@@ -3005,3 +3005,13 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 @keyframes v932-lunge { 40% { transform: translateX(8px) scale(1.05); } }
 .arena-foe.hit { animation: v932-hurt .2s; }
 .arena-replay { background: radial-gradient(ellipse at 50% 60%, #1f2a4d, var(--bg-1) 75%); }
+/* v9.3.2 : Guilde. */
+.guild-head { display: flex; gap: 10px; align-items: center; }
+.guild-emblem { width: 52px; height: 52px; display: grid; place-items: center; border: 2px solid var(--gold); border-radius: 50%; background: radial-gradient(circle, #2a3a66, var(--bg-1)); }
+.guild-emblem img { width: 30px; height: 30px; }
+.guild-bar { height: 10px; margin: 6px 0; }
+.guild-input { width: 100%; margin: 4px 0; padding: 6px 8px; background: var(--bg-0); color: var(--text); border: 1px solid var(--line-2); border-radius: var(--radius); font: inherit; user-select: text; }
+.guild-emblems { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+.guild-row { padding: 6px 0; border-bottom: 1px solid var(--line); }
+.guild-log { list-style: none; margin: 0; padding: 0; max-height: 160px; overflow: auto; }
+.guild-log li { padding: 2px 0; }

@@ -78,6 +78,7 @@ export function fight(allies0, groups, { seed = 1, limit = 600, healMult = 1 } =
     const team = alive(allies);
     if (!team.length) break;
     for (const a of team) {
+      if (a.hp <= 0) continue; // tombé pendant ce tour
       a.shieldT = Math.max(0, a.shieldT - DT); if (!a.shieldT) a.shield = 0;
       a.rallyT = Math.max(0, a.rallyT - DT); if (!a.rallyT) a.rally = 0;
       const boost = 1 + Math.max(0, ...team.map((x) => x.rally)) / 100;
@@ -88,8 +89,8 @@ export function fight(allies0, groups, { seed = 1, limit = 600, healMult = 1 } =
         const s = a.skill;
         if (s.type === 'hit' && target) { const d = dmg(a.atk * Math.min(6, s.value) * boost, a.element, target.def, target); target.hp -= d; ev.push({ t, kind: 'skill', who: a.id, type: s.type, d, foe: foes.indexOf(target), elem: elementMultiplier(a.element, target.element) }); }
         else if (s.type === 'burst') for (const f of alive(foes)) { const d = dmg(a.atk * Math.min(4, s.value) * 0.8 * boost, a.element, f.def, f); f.hp -= d; ev.push({ t, kind: 'skill', who: a.id, type: s.type, d, foe: foes.indexOf(f), elem: elementMultiplier(a.element, f.element) }); }
-        else if (s.type === 'heal') { for (const x of team) { const h = x.maxHp * Math.min(25, s.value) / 100 * healMult; x.hp = Math.min(x.maxHp, x.hp + h); } ev.push({ t, kind: 'heal', who: a.id }); }
-        else if (s.type === 'shield') { for (const x of team) { x.shield = Math.min(70, s.value); x.shieldT = s.duration ?? 6; } ev.push({ t, kind: 'shield', who: a.id }); }
+        else if (s.type === 'heal') { for (const x of alive(allies)) { const h = x.maxHp * Math.min(25, s.value) / 100 * healMult; x.hp = Math.min(x.maxHp, x.hp + h); } ev.push({ t, kind: 'heal', who: a.id }); }
+        else if (s.type === 'shield') { for (const x of alive(allies)) { x.shield = Math.min(70, s.value); x.shieldT = s.duration ?? 6; } ev.push({ t, kind: 'shield', who: a.id }); }
         else if (s.type === 'rally') { a.rally = Math.min(60, s.value); a.rallyT = s.duration ?? 6; ev.push({ t, kind: 'rally', who: a.id }); }
         else if (s.type === 'gold' && target) { const d = dmg(a.atk * 1.5 * boost, a.element, target.def, target); target.hp -= d; ev.push({ t, kind: 'skill', who: a.id, type: 'gold', d, foe: foes.indexOf(target), elem: elementMultiplier(a.element, target.element) }); }
       }
