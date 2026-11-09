@@ -2931,3 +2931,7 @@ img.ico16 { width: 16px; height: 16px; vertical-align: middle; }
 .eco-wish-row.eco-pet-row { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
 /* v9.3.1 : pendant l'invocation, la bannière du monde (« Monde 9 — Cœur du volcan ») ne transparaît plus derrière le portail. */
 body:has(.summon-fx) #banner { visibility: hidden; }
+/* v9.3.1 : types (éléments). */
+.elem-badge { display: inline-flex; align-items: center; gap: 2px; padding: 0 6px; border-radius: 999px; font-size: 11px; font-weight: 800; line-height: 16px;
+  color: var(--ec); background: color-mix(in srgb, var(--ec) 16%, transparent); border: 1px solid color-mix(in srgb, var(--ec) 55%, transparent); white-space: nowrap; vertical-align: middle; }
+.elem-tip { display: block; margin-top: 2px; }

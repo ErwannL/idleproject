@@ -368,6 +368,9 @@ export class SceneRenderer {
           const [c0, c1] = DAMAGE_COLORS[event.source];
           this.addText(formatNumber(event.damage), event.x, this.groundY - (event.boss ? 64 : 42), c0, c1);
         }
+        // v9.3.1 : types : coup efficace (avantage d'élément) ou peu efficace, signalé au-dessus de l'ennemi.
+        if (event.elem > 1 && Math.random() < 0.35) this.addText('EFFICACE !', event.x, this.groundY - (event.boss ? 80 : 56), '#ff9a3c', '#fff1c8');
+        else if (event.elem < 1 && Math.random() < 0.2) this.addText('résiste', event.x, this.groundY - (event.boss ? 80 : 56), '#8a93a8', '#e0e6f0');
         break;
       case 'skill':
         // v9.2.5 : geste propre à la compétence et effet synchronisé (skill-fx.js) ; ancien effet en repli.

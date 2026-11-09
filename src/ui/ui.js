@@ -77,6 +77,7 @@ import { CHALLENGE, bossEvery, challengeUnlocked } from '../core/challenge.js';
 import { ZONES } from '../data/zones.js';
 import { CURRENCIES, currencyAmount } from '../data/currencies.js';
 import { MENUS, SUB_LABELS, navPath } from './nav.js';
+import { ELEMENTS, zoneElement } from '../core/elements.js'; // v9.3.1 : types
 
 export { MENUS };
 
@@ -1484,6 +1485,10 @@ export class UI {
     }
     const zone = zoneForStage(state.stage);
     this.$('zone-name').textContent = `${zone.name} ${stageLabel(state.stage)}`;
+    // v9.3.1 : type des ennemis du monde (icône), pour composer l'équipe.
+    const ze = ELEMENTS[zoneElement(ZONES.indexOf(zone))];
+    if (ze) this.$('zone-name').textContent += ` ${ze.icon}`;
+    this.$('zone-name').title = ze ? `Ennemis de type ${ze.name}` : '';
     const every = BALANCE.stages.bossEvery;
     const first = Math.floor((state.stage - 1) / every) * every + 1;
     this.$('stage-pips').innerHTML = this.pips(first, first + every - 1, state.stage, state.maxStage - 1, (s) => isBossStage(s));

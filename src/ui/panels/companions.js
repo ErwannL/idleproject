@@ -5,6 +5,7 @@ import { COMPANION_RULES } from '../../data/companions.js';
 import { UNITS as COMPANIONS } from '../../data/banners.js'; // v9.1.3 (partie B) : persos de bannière compris quand actifs
 import { MULTIPLICATIVE, RARITY_SKILL, activeSynergies, allCompanionSkills, companionById, companionMultiplier, companionSkillMultiplier, companionUpgradeCost, duplicates, equippedOfKind, teamKind, ultimateUnlocked } from '../../core/companions.js';
 import { COMPANION_ROLES, ROLES, SYNERGIES } from '../../data/synergies.js';
+import { elementBadge, unitElement } from '../../core/elements.js'; // v9.3.1 : types
 import { costButton, effectText, escapeHtml, fold, hdArt, formatNumber, icon, img, rarityLabel, stars } from '../common.js';
 import { animCanvas } from '../animator.js';
 import { showcaseSlot } from '../showcase.js'; // v9.2.7 : vitrine animée
@@ -91,7 +92,7 @@ export default {
         ${owned ? (c.id === sel.id ? portrait(c) : companionStill(c)) : `<img class="px" src="${icon(c.sprite, c.kind === 'ally' ? 1 : 3, { tint: { color: '#3a4a66', alpha: 1 } })}" alt="">`}
         <span class="rar-letter" aria-hidden="true">${rarityLabel(c.rarity).slice(0, 1)}</span>
         ${COMPANION_ROLES[c.id] ? `<span class="role-dot" style="background:${ROLES[COMPANION_ROLES[c.id]].color}" title="${ROLES[COMPANION_ROLES[c.id]].label}"></span>` : ''}
-        <span class="pet-label"><b>${escapeHtml(c.name)}</b><small>${owned ? `niv. ${owned.level} · ${duplicates(owned)}★` : 'non obtenu'}</small></span>
+        <span class="pet-label"><b>${escapeHtml(c.name)} ${elementBadge(unitElement(c.id)).replace(/ [^<]*<\/span>$/, '</span>')}</b><small>${owned ? `niv. ${owned.level} · ${duplicates(owned)}★` : 'non obtenu'}</small></span>
         ${equipped ? '<span class="eq" title="Dans l\'équipe">✓</span>' : ''}${isAway(state, c.id) ? '<span class="away" title="En expédition">⚑</span>' : ''}</button>`;
     };
     const allies = COMPANIONS.filter((c) => teamKind(c) === 'ally');
@@ -153,7 +154,7 @@ export default {
         <div class="detail-head pet-head">
           ${art ? `<div class="pet-art-box">${art}</div>` : `<div class="pet-portrait">${owned ? portrait(sel, true) : `<img class="px" src="${icon(sel.sprite, sel.kind === 'ally' ? 1 : 4, { tint: { color: '#3a4a66', alpha: 1 } })}" alt="">`}</div>`}
           <div class="grow"><div class="item-name">${escapeHtml(sel.name)}</div>
-            <div class="item-sub"><span class="rarity-text">${rarityLabel(sel.rarity)}</span>${owned ? ` · niv. ${owned.level}/${COMPANION_RULES.maxLevel} ${stars(duplicates(owned))}` : ' · non obtenu'}</div>
+            <div class="item-sub"><span class="rarity-text">${rarityLabel(sel.rarity)}</span> ${elementBadge(unitElement(sel.id), true)}${owned ? ` · niv. ${owned.level}/${COMPANION_RULES.maxLevel} ${stars(duplicates(owned))}` : ' · non obtenu'}</div>
             ${owned ? `<div class="dup-count">Doublons ${duplicates(owned)}/${dupMax}</div>` : ''}
             ${selRole ? `<div>Rôle : <b style="color:${ROLES[selRole].color}">${ROLES[selRole].label}</b></div>` : ''}
             <div class="detail-actions">${actions}</div>${upgradeLine}</div>
