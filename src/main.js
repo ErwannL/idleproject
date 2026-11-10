@@ -29,7 +29,7 @@ import { buyTranscendPerk, buyTranscendPerkMax, performTranscend, stellarMultipl
 import { buyPerk } from './core/prestige.js';
 import { activateRush, rushById, upgradeRush } from './core/rushes.js';
 import { grantReward, rewardText } from './core/rewards.js';
-import { learnSkill } from './core/skills.js';
+import { distributeSkillPoints, learnSkill } from './core/skills.js';
 import { generateItem, itemPower, makeItem, rarityById } from './core/loot.js';
 import { SLOTS, STAT_LABELS } from './data/items.js';
 import { applyOfflineRewards, computeOfflineRewards } from './core/offline.js';
@@ -440,6 +440,9 @@ const actions = {
   },
   buyMerchant(id) { done(buyFromMerchant(state, id), 'Objet acheté'); },
   dismissEvent(id) { done(dismissEvent(state, id)); },
+  setAutoUseless(on) { if (on) delete state.ui.autoUseless; else state.ui.autoUseless = false; done(true); }, // v9.3.8 (3d)
+  // v9.3.8 (3a) : « Répartir les points » — dépense tous les points de compétence (Attaques seulement).
+  distributeSkills() { const n = distributeSkillPoints(state); done(n > 0, n ? `${n} niveau${n > 1 ? 'x' : ''} de compétence` : null, '#7fe0a0'); },
   // v9.3.5 : « Améliorer au mieux » — dépense l'or sur la ligne ouverte la plus rentable, niveau par niveau.
   buyBest() {
     let n = 0;

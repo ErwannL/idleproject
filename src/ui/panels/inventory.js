@@ -505,6 +505,7 @@ function recycleAdvanced(state) {
       <div class="section-title">Garder si l'objet a…</div><div class="chip-row">${Object.entries(KEEP_AFFIX_LABELS).map(([k, l]) => chip('keepAffixes', k, l, (rules.keepAffixes ?? []).includes(k))).join('')}</div>`}
     <label class="inv-rule" title="Une pièce d'ensemble est gardée dès que vous en avez 2 emplacements différents (la meilleure par emplacement).">
       <span>Ensembles :</span><button class="btn chip-btn small${state.ui.keepSets !== false ? ' active' : ''}" data-action="keep-sets">${state.ui.keepSets !== false ? 'Garder les pièces utiles' : 'Recycler comme le reste'}</button></label>
+      <label class="row"><span>Objets inutiles :</span><button class="btn chip-btn small${state.ui.autoUseless !== false ? ' active' : ''}" data-action="auto-useless">${state.ui.autoUseless !== false ? 'Recyclés à la récupération' : 'Gardés dans le sac'}</button></label>
     ${autoFuseEditor(state)}
   </div>`;
 }

@@ -588,6 +588,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     if (unlockedSpeeds(state).includes(raw.ui.speed)) state.ui.speed = raw.ui.speed;
     if (SORT_OPTIONS.includes(raw.ui.sortBy)) state.ui.sortBy = raw.ui.sortBy;
     if (raw.ui.keepSets === false) state.ui.keepSets = false;
+    if (raw.ui.autoUseless === false) state.ui.autoUseless = false; // v9.3.8 (3d)
     if (raw.ui.autoMannequin === false) state.ui.autoMannequin = false;
     if (raw.ui.autoMuseum === false) state.ui.autoMuseum = false;
     if (raw.ui.themeFx === false) state.ui.themeFx = false;

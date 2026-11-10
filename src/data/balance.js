@@ -19,6 +19,8 @@ export const BALANCE = {
   autosaveSeconds: 10,
 
   // Coordonnées logiques du combat (indépendantes de la taille de la fenêtre).
+  // v9.3.8 : vagues groupées (campagne) — taille, point d'apparition (proche : peu de marche), pause entre deux vagues.
+  waves: { size: 3, spawnX: 100, delaySeconds: 0.3, minCycleSeconds: 4.2, targetSeconds: 3, startK: 0.5, maxK: 6 },
   world: {
     heroX: 56, // v7.5 : place pour 2 héros alliés derrière le chevalier
     spawnX: 226, // même distance d'approche qu'avant (heroX + 170)
@@ -214,7 +216,7 @@ export const BALANCE = {
   ],
 
   stages: {
-    killsPerStage: 15,
+    killsPerStage: 15, // v9.3.8 : 5 vagues de 3 (BALANCE.waves)
     bossEvery: 5,
     stagesPerZone: 20, // étapes 5, 10, 15, 20 : mini-boss, boss moyen, boss dur, méga boss
     // v7.7 : boss bien plus coriaces (ils étaient balayés en quelques coups).

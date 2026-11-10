@@ -58,7 +58,9 @@ export function markDone(state, id) {
 }
 
 // Dessine (ou retire) le doigt et la bulle. Appelé avec le rafraîchissement des pastilles (2 fois par seconde).
+let latest = null;
 export function updateTutorial(state, root, full, panelOpen = false, translate = (x) => x) {
+  latest = state;
   if (typeof document === 'undefined') return;
   let layer = document.getElementById('tuto-layer');
   const pick = state.settings?.tutorial === false ? null : pickStep(state, root, full, panelOpen);
@@ -68,7 +70,8 @@ export function updateTutorial(state, root, full, panelOpen = false, translate =
     layer.id = 'tuto-layer';
     layer.innerHTML = '<div class="tuto-finger" aria-hidden="true">👆</div><div class="tuto-bubble" role="status"><span class="tuto-text"></span> <button class="btn small tuto-ok">OK</button></div>';
     document.body.appendChild(layer);
-    layer.querySelector('.tuto-ok').addEventListener('click', () => { markDone(state, layer.dataset.step); layer.remove(); });
+    // v9.3.8 (3b) : « OK » ferme pour de bon, même si la partie a été rechargée entre-temps (état le plus récent).
+    layer.querySelector('.tuto-ok').addEventListener('click', (e) => { e.stopPropagation(); markDone(latest, layer.dataset.step); layer.remove(); });
   }
   const { step, el } = pick;
   if (layer.dataset.step !== step.id) {
@@ -91,10 +94,18 @@ export function updateTutorial(state, root, full, panelOpen = false, translate =
   finger.hidden = !step.finger;
   finger.style.left = `${Math.round(r.left + r.width / 2 - 14)}px`;
   finger.style.top = `${Math.round(r.bottom - 6)}px`;
-  const below = r.top < innerHeight / 2;
-  const bw = Math.min(280, innerWidth - 32);
+  // v9.3.8 (3b) : la bulle se met À CÔTÉ de sa cible (à droite, sinon à gauche, sinon au-dessus / dessous) pour ne jamais
+  // cacher le bouton suivant ; plus étroite.
+  const bw = Math.min(220, innerWidth - 32);
   bubble.style.width = `${bw}px`;
-  bubble.style.left = `${Math.round(Math.max(16, Math.min(innerWidth - bw - 16, r.left + r.width / 2 - bw / 2)))}px`;
-  bubble.style.top = below ? `${Math.round(r.bottom + (step.finger ? 40 : 8))}px` : '';
-  bubble.style.bottom = below ? '' : `${Math.round(innerHeight - r.top + 8)}px`;
+  const h = bubble.offsetHeight || 60;
+  const midY = Math.round(Math.max(8, Math.min(innerHeight - h - 8, r.top + r.height / 2 - h / 2)));
+  if (r.right + 12 + bw <= innerWidth - 8) { bubble.style.left = `${Math.round(r.right + 12)}px`; bubble.style.top = `${midY}px`; bubble.style.bottom = ''; }
+  else if (r.left - 12 - bw >= 8) { bubble.style.left = `${Math.round(r.left - 12 - bw)}px`; bubble.style.top = `${midY}px`; bubble.style.bottom = ''; }
+  else {
+    const below = r.top < innerHeight / 2;
+    bubble.style.left = `${Math.round(Math.max(16, Math.min(innerWidth - bw - 16, r.left + r.width / 2 - bw / 2)))}px`;
+    bubble.style.top = below ? `${Math.round(r.bottom + (step.finger ? 40 : 8))}px` : '';
+    bubble.style.bottom = below ? '' : `${Math.round(innerHeight - r.top + 8)}px`;
+  }
 }

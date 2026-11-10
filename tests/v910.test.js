@@ -130,6 +130,7 @@ test('lot 0 / lot 7 : builds — renommer, objets du coffre, nombre exact d\'obj
 
 test('lot 0 : le recyclage fait pour libérer le sac est compté dans le journal', () => {
   const s = createNewState(NOW);
+  s.ui.autoUseless = false; // v9.3.8 : règles manuelles seules
   assert.equal(recycleRules(s).mode, 'full');
   s.equipment.armor = makeItem(s, 'iron_helm', 'epic', 80); // v9.3.4 : place « armure »
   const journal = createJournal(s, NOW);

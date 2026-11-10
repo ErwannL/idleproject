@@ -80,7 +80,7 @@ test('v9.2.1 : en combat — la Lave brûle sans tuer seule, la Pénombre fait m
   s.upgrades.vitality = 400; s.upgrades.regen = 0;
   // Sans ennemi au contact : on ne mesure que la brûlure.
   const world = createCombat(s);
-  world.spawnTimer = 1e9; world.bossDelay = 1e9;
+  world.spawnTimer = 1e9; world.bossDelay = 1e9; world.waveTimer = 1e9; // v9.3.8 : vagues
   const rng = new Rng(1);
   for (let t = 0; t < 120; t += 0.05) step(s, world, 0.05, rng);
   assert.ok(world.hero.hp >= 1 && world.hero.hp < world.heroStats.maxHp * 0.5);

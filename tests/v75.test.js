@@ -95,6 +95,7 @@ test('accessoires : chaque modèle existe en plusieurs couleurs', () => {
 
 test('règle de collecte : recycler au ramassage sans jamais jeter une amélioration', () => {
   const state = rich(11);
+  state.ui.autoUseless = false; // v9.3.8 : on teste ici les règles manuelles seules
   delete state.ui.recycle; // ancienne règle (v7.5)
   state.ui.autoRecycle = 'common';
   const shards = state.materials.shards;

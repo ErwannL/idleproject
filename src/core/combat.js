@@ -649,7 +649,15 @@ export function isRushing(heroDamage, enemy, balance = BALANCE) {
 }
 
 // Un ennemi qui se rue n'est touchable qu'arrivé près du contact (sinon il mourrait hors champ, sans animation).
+// v9.3.8 : vagues seulement dans la campagne ordinaire (donjons, Tour, défi, monde, World Boss gardent leur rythme).
+export function waveMode(enc) { return !enc.boss && !enc.dungeon && !enc.tower && !enc.challenge && !enc.world && !enc.worldBoss; }
+export const waveCount = (balance = BALANCE) => Math.max(1, Math.ceil(balance.stages.killsPerStage / balance.waves.size));
+export const waveIndex = (state, balance = BALANCE) => Math.min(waveCount(balance), Math.floor((state.kills ?? 0) / balance.waves.size) + 1);
+
 export function canHit(enemy, balance = BALANCE) {
+  // v9.3.8 (vagues) : personne ne touche un monstre avant qu'il ait atteint la ligne de combat (héros, compagnons,
+  // compétences de zone, toucher) — plus de monstres tués au loin pendant que le héros marche.
+  if (enemy.arrived === false) return false;
   if (!enemy.rush) return true;
   const W = balance.world;
   return enemy.x <= W.heroX + W.meleeOffset + enemy.range + (balance.rush?.reach ?? 0);
@@ -872,6 +880,41 @@ export function step(state, world, dt, rng, balance = BALANCE) {
         world.bossDelay = balance.stages.bossSpawnDelaySeconds;
       }
     }
+  } else if (waveMode(enc)) {
+    // v9.3.8 : vagues groupées — quand la vague est vaincue, courte marche, puis la suivante arrive d'un bloc.
+    world.waveAge = (world.waveAge ?? 99) + dt;
+    // Vague terminée : ajuste le plancher (plus court que visé → monstres un peu plus solides, et inversement).
+    if (world.enemies.length === 0 && world.waveStartT !== undefined) {
+      const V = balance.waves;
+      const took = Math.max(0.2, (world.time ?? 0) - world.waveStartT);
+      const k = world.waveK ?? V.startK;
+      world.waveK = Math.max(0, Math.min(V.maxK, k * Math.max(0.6, Math.min(1.5, V.targetSeconds / took))));
+      if (!world.waveFloored && took > V.targetSeconds) world.waveK = Math.min(world.waveK, k); // plancher sans effet : ne pas l'emballer
+      world.waveFloored = false;
+      world.waveStartT = undefined;
+    }
+    if (world.enemies.length === 0) {
+      world.waveTimer = (world.waveTimer ?? 0.6) - dt;
+      // Jamais plus vite que l'ancien rythme d'apparition (même or et même XP par minute au plus).
+      if (world.waveTimer <= 0 && world.waveAge >= balance.waves.minCycleSeconds) {
+        world.waveAge = 0;
+        const V = balance.waves;
+        for (let i = 0; i < V.size; i++) {
+          spawnEnemy(state, world, rng, balance, enc, i === 0 && world.pendingElite);
+          const e = world.enemies[world.enemies.length - 1];
+          e.x = V.spawnX + i * balance.world.enemyGap;
+          e.arrived = false;
+          // Plancher de PV : au moins `floorSeconds` de dégâts du héros. Un héros fort combat au lieu d'attendre la
+          // vague suivante ; rien ne change pour un héros plus faible, ni l'or (le rythme reste plafonné par minCycle).
+          // Réglé tout seul (world.waveK) pour qu'une vague dure environ `targetSeconds`, équipe comprise.
+          if (!e.boss) { const floor = (world.heroStats?.dps ?? 0) * (world.waveK ?? V.startK); if (floor > e.maxHp) { e.damage *= e.maxHp / floor; e.hp = floor; e.maxHp = floor; world.waveFloored = true; } } // même danger total : dégâts réduits d'autant
+        }
+        world.pendingElite = false;
+        world.waveTimer = V.delaySeconds;
+        world.waveStartT = world.time ?? 0;
+        emit(world, 'waveStart', { wave: waveIndex(state, balance), waves: waveCount(balance) });
+      }
+    }
   } else {
     world.spawnTimer -= dt;
     if (world.spawnTimer <= 0) {
@@ -893,15 +936,19 @@ export function step(state, world, dt, rng, balance = BALANCE) {
   const heroClass = activeClass(state);
   // v9.2.2 : ruée — décidée une fois par ennemi, d'après le coup moyen du héros.
   for (const enemy of world.enemies) if (enemy.rush === undefined) enemy.rush = isRushing(stats.damage, enemy, balance);
-  hero.walking = !front || front.x - W.heroX > range || !canHit(front, balance);
+  // v9.3.8 : une vague apparue charge jusqu'à la ligne pendant que le héros, arrêté, se met en garde (il ne marche
+  // qu'entre deux vagues) ; elle avance à la même vitesse qu'avant (décor compris).
+  const charging = Boolean(front) && front.arrived === false && waveMode(currentEncounter(state, balance));
+  hero.walking = !front || (!charging && (front.x - W.heroX > range || !canHit(front, balance)));
   const scroll = hero.walking ? W.scrollSpeed : 0;
   world.scroll += scroll * dt;
   world.enemies.forEach((enemy, i) => {
     const prev = world.enemies[i - 1];
     const gap = W.enemyGap * (enemy.boss || prev?.boss ? 2 : 1);
     const stopX = prev ? prev.x + gap : W.heroX + W.meleeOffset + enemy.range;
-    const speed = enemy.rush ? enemy.speed * (balance.rush?.speedMult ?? 1) : enemy.speed;
+    const speed = (enemy.rush ? enemy.speed * (balance.rush?.speedMult ?? 1) : enemy.speed) + (charging && enemy.arrived === false ? W.scrollSpeed : 0);
     enemy.x = Math.max(stopX, enemy.x - (speed + scroll) * dt);
+    if (enemy.arrived === false && enemy.x <= stopX + 0.01) enemy.arrived = true; // v9.3.8 : sur la ligne
     enemy.engaged = !prev && enemy.x <= stopX + 0.01;
     // v9.2.5 : bloqué dans la file derrière un ennemi lui-même arrêté (au contact ou bloqué) : attend sans marcher.
     enemy.queued = Boolean(prev) && enemy.x <= stopX + 0.01 && Boolean(prev.engaged || prev.queued);

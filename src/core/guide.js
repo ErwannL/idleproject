@@ -13,6 +13,7 @@ import { SKILLS } from '../data/skills.js';
 import { canRebirth, rebirthBlocked, rebirthReward } from './rebirth.js';
 import { COMPANION_RULES } from '../data/companions.js';
 import { DUNGEONS } from '../data/dungeons.js';
+import { BANNERS } from '../data/economy.js';
 import { BOSSES } from '../data/enemies.js';
 import { claimables } from './claimables.js';
 import { computeHeroStats } from './stats.js';
@@ -82,7 +83,8 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
   if (place) return { id: 'place', text: `Placer ${place.name} dans l'équipe`, action: 'place-companion', value: place.id };
   const points = skillPointsAvailable(state);
   if (points > 0 && open('skills') && SKILLS.some((k) => (state.skills[k.id] ?? 0) < (k.maxLevel ?? Infinity) && skillPointCost(state.skills[k.id] ?? 0) <= points && (k.unlockLevel ?? 1) <= state.level)) {
-    return { id: 'skills', text: points > 1 ? `${points} points de compétence à dépenser` : '1 point de compétence à dépenser', tab: 'skills' };
+    // v9.3.8 (3a) : un clic dépense les points (Attaques seulement) ; plus jamais bloqué sur un Boost payé en or.
+    return { id: 'skills', text: points > 1 ? `${points} points de compétence à dépenser` : '1 point de compétence à dépenser', action: 'distribute-skills' };
   }
   if (open('summon') && (state.records?.bossesDefeated ?? 0) >= 1 && !Object.keys(state.companions.owned).length && state.gems >= balance.summon.gemCost) { // après le premier mini-boss
     return { id: 'summon', text: 'Première invocation : un compagnon', tab: 'summon' };
@@ -198,7 +200,7 @@ export const PANEL_HELP = {
     more: 'Les blocs repliés détaillent chaque source de bonus. Records garde l\'historique de la Tour, du défi et des donjons, et mesure votre rythme (or et XP par heure).',
   },
   summon: {
-    short: 'Les gemmes s\'obtiennent en jouant. Garanties : Épique au plus tard toutes les 10 invocations, Légendaire toutes les 60.',
+    short: `Les gemmes s'obtiennent en jouant. Garanties : Épique au plus tard toutes les ${BANNERS.permanent.epicEvery ?? 10} invocations, Légendaire au plus tard à la ${BANNERS.permanent.hard}e (compagnons) ou à la ${BANNERS.pet.hard}e (familiers).`, // v9.3.8 (3c) : lu dans les données
     more: 'Le compteur des garanties est commun à toutes les invocations. La vedette représente 50 % des Légendaires obtenus dans son invocation (elle n\'augmente pas la chance d\'un Légendaire). Doublon : +1 étoile, puis des gemmes.',
   },
   skills: {

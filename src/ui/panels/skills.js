@@ -152,10 +152,13 @@ function bubbleV2(state, c) {
 function viewV2(ui, state) {
   const cells = skillGridCells(state);
   const [k, id] = String(ui.view.skillSel ?? '').split(':');
-  const sel = cells.find((c) => c.kind === k && c.id === id) ?? cells.find((c) => !c.locked) ?? null;
+  // v9.3.8 (3a) : avec des points à dépenser, la case choisie par défaut est une Attaque abordable (jamais un Boost).
+  const pts = skillPointsAvailable(state);
+  const affordable = cells.find((c) => c.kind === 's' && !c.locked && c.plus?.can);
+  const sel = cells.find((c) => c.kind === k && c.id === id) ?? (pts > 0 ? affordable : null) ?? cells.find((c) => !c.locked) ?? null;
   const section = (kind, title, sub, auto) => `<div class="sk2-head"><span class="tt-title">${title}</span><span class="muted">${sub}</span>${auto}</div>
     <div class="sk2-grid">${cells.filter((c) => c.kind === kind).map((c) => cellV2(c, c === sel)).join('')}</div>`;
-  return `<div class="sk2-points">Points à dépenser : <b class="gold-text">${skillPointsAvailable(state)}</b></div>
+  return `<div class="sk2-points">Points à dépenser : <b class="gold-text">${pts}</b>${pts > 0 ? ' <button class="btn btn-gold primary-action sk2-spread" data-action="distribute-skills">Répartir les points</button>' : ''}</div>
     ${section('s', 'Attaques', 'payées en points, lancées seules', `<label class="toggle"><input type="checkbox" data-action="skill-auto" ${state.skillAuto ? 'checked' : ''}> Auto</label>`)}
     ${section('r', 'Boosts', 'payés en or, à utiliser', `<label class="toggle"><input type="checkbox" data-action="rush-auto" ${state.rushes.auto ? 'checked' : ''}> Auto</label>`)}
     ${bubbleV2(state, sel)}`;

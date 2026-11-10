@@ -30,10 +30,12 @@ const CLAIM = {
   track: () => claimTrackTier(state), achievement: (c) => claimAchievement(state, c.id),
 };
 let lastWorld = 0;
+let fightTicks = 0, ticks = 0, w3Companions = null;
 for (let t = 0; t < MINUTES * 60; t += dt) {
   const now = T0 + t * 1000;
   step(state, world, dt, rng);
   world.events.length = 0;
+  ticks++; if (!world.hero.walking && world.enemies.length) fightTicks++;
   if (Math.round(t / dt) % Math.round(5 / dt) !== 0) continue; // le joueur regarde la barre toutes les 5 s
   refreshMissions(state, now);
   sweepInventory(state);
@@ -55,8 +57,10 @@ for (let t = 0; t < MINUTES * 60; t += dt) {
     default: break;
   }
   const w = Math.floor((state.maxStage - 1) / 20) + 1;
+  if (w >= 3 && w3Companions === null) w3Companions = state.companions.equipped.length;
   if (w > lastWorld) { lastWorld = w; log.push(`${(t / 60).toFixed(1)} min : monde ${w} (${stageLabel(state.maxStage)}), compagnons ${state.companions.equipped.length}, gemmes ${state.gems}`); }
 }
 console.log(log.join('\n'));
 console.log(`Fin : étape max ${state.maxStage} (${stageLabel(state.maxStage)}), niveau ${state.level}, équipe ${state.companions.equipped.join(', ') || 'aucune'}, Renaissances ${state.records.rebirths}`);
 console.log('Conseils suivis :', JSON.stringify(counts));
+console.log(`Combat : ${Math.round(fightTicks / ticks * 100)} % du temps · compagnons placés en arrivant au monde 3 : ${w3Companions}`);

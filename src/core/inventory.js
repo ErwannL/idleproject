@@ -135,7 +135,16 @@ export function matchesRecycleRule(state, item, rules = recycleRules(state)) {
 
 export function shouldAutoRecycle(state, item) {
   const rules = recycleRules(state);
-  return rules.mode === 'pickup' && matchesRecycleRule(state, item, rules);
+  if (rules.mode === 'pickup' && matchesRecycleRule(state, item, rules)) return true;
+  return autoUseless(state, item);
+}
+// v9.3.8 (3d) : par défaut (réglable : state.ui.autoUseless = false), un objet Commun ou Rare qui ne sert à personne de
+// l'équipe (autre classe, moins bon que l'équipé) est recyclé dès sa récupération. Jamais : verrouillé, ensemble utile,
+// ancestral, Épique ou mieux.
+export function autoUseless(state, item) {
+  if (state.ui?.autoUseless === false || item.locked || item.set || !['common', 'rare'].includes(item.rarity)) return false;
+  if (itemBase(item.baseId)?.signature) return false;
+  return !isUpgrade(state, item);
 }
 
 // Sac plein (mode « quand le sac est plein ») : recycle les objets du sac qui correspondent aux règles.

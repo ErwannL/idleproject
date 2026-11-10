@@ -449,6 +449,15 @@ export class SceneRenderer {
         this.addText(formatNumber(Math.max(1, Math.round(event.damage))), heroX - 4, this.groundY - 48, ...DAMAGE_COLORS.hurt);
         if (event.boss) this.shake = Math.max(this.shake, 2);
         break;
+      // v9.3.8 : vagues groupées — annonce de la vague ; à la dernière, pluie d'or (visuelle) à la fin de l'étape.
+      case 'waveStart':
+        if (!this.focus) this.addText(`Vague ${event.wave}/${event.waves}`, this.width * 0.62, this.groundY - 70, '#ffe27a', '#fff6cf', event.wave === event.waves);
+        break;
+      case 'stage':
+        if (!event.boss && !this.focus) for (let i = 0; i < 14; i++) {
+          this.effects.push({ kind: 'coin', x: 30 + Math.random() * (this.width - 60), y: 10 + Math.random() * 20, vx: Math.random() * 20 - 10, vy: 20 + Math.random() * 30, life: 1.1, max: 1.1, seed: i });
+        }
+        break;
       case 'kill': {
         // Tué par un projectile encore en vol : l'ennemi reste affiché (figé) jusqu'à l'impact, puis s'effondre.
         const pending = this.inFlight?.get(event.enemyId);

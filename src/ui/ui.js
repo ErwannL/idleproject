@@ -27,6 +27,7 @@ import { installTips } from './tip.js';
 import { playSummonReveal } from './summon-fx.js';
 import { bossWarningPlan, showBossWarning } from './boss-warning.js'; // v9.1.9
 import { queueSkinReveals } from './skin-reveal.js'; // v9.1.9
+import { waveCount, waveIndex, waveMode } from '../core/combat.js'; // v9.3.8
 import { coin, effectText, escapeHtml, fold, glyph, icon, img, itemFrame, missingText, rewardIcons } from './common.js';
 import { GAME_VERSION } from '../version.js';
 import { mutationById } from '../core/mutations.js';
@@ -792,6 +793,7 @@ export class UI {
       case 'upgrade-companion': a.upgradeCompanion(value); break;
       case 'upgrade-team': a.upgradeTeam(); break; // v9.3.5
       case 'buy-best': a.buyBest(); break; // v9.3.5
+      case 'distribute-skills': a.distributeSkills(); break; // v9.3.8 (3a)
       case 'arena-edit': local(() => { v.arenaEdit = true; }); break; // v9.3.5
       case 'open-tab': if (el.closest('#modal')) this.closeModal(); this.openTab(value); break;
       case 'ranking-sort': this.actions.loadRanking(value); break;
@@ -1023,6 +1025,7 @@ export class UI {
       case 'expose-all': a.exposeAll(); break;
       case 'recycle-museum-dupes': a.recycleMuseumDuplicates(); break;
       case 'keep-sets': a.setKeepSets(this.state.ui.keepSets === false); break;
+      case 'auto-useless': a.setAutoUseless(this.state.ui.autoUseless === false); break; // v9.3.8 (3d)
       case 'buy-talent-path': a.buyTalentPath(key); break;
       case 'respec-talents': this.showRespecConfirm(this.state); break;
       case 'confirm-respec': this.closeModal(); a.respecTalents(); break;
@@ -1614,6 +1617,7 @@ export class UI {
         ? `Vague ${state.challenge.wave} · ${state.challenge.kills}/${enc.killsNeeded} · ${Math.max(0, Math.ceil(CHALLENGE.waveSeconds - (state.challenge.time ?? 0)))} s`
         : state.dungeon
         ? `Salle ${state.dungeon.room}/${enc.dungeon.rooms} · ${kills}/${enc.killsNeeded}`
+        : waveMode(enc) ? `Vague ${waveIndex(state)}/${waveCount()}` // v9.3.8 : vagues groupées
         : `Ennemis vaincus ${kills}/${enc.killsNeeded}`;
     }
     if (ratio !== this.lastHud.ratio) {
@@ -1779,6 +1783,7 @@ export class UI {
     else if (n.action === 'buy') this.actions.buy(n.value, '1');
     else if (n.action === 'upgrade-companion') this.actions.upgradeCompanion(n.value);
     else if (n.action === 'recycle-useless') this.actions.recycleUseless();
+    else if (n.action === 'distribute-skills') this.actions.distributeSkills(); // v9.3.8
     else if (n.tab && n.tab !== this.tab) this.openTab(n.tab, n.view ?? null); // jamais ouvrir puis refermer
     delete this.lastHud.badgeTime; // conseil recalculé tout de suite
   }
