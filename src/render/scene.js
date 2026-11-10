@@ -450,9 +450,7 @@ export class SceneRenderer {
         if (event.boss) this.shake = Math.max(this.shake, 2);
         break;
       // v9.3.8 : vagues groupées — annonce de la vague ; à la dernière, pluie d'or (visuelle) à la fin de l'étape.
-      case 'waveStart':
-        if (!this.focus) this.addText(`Vague ${event.wave}/${event.waves}`, this.width * 0.62, this.groundY - 70, '#ffe27a', '#fff6cf', event.wave === event.waves);
-        break;
+      case 'waveStart': break; // v9.3.8 : la vague est écrite dans la barre (« Vague 2/5 ») ; la police des dégâts n'a pas de lettres
       case 'stage':
         if (!event.boss && !this.focus) for (let i = 0; i < 14; i++) {
           this.effects.push({ kind: 'coin', x: 30 + Math.random() * (this.width - 60), y: 10 + Math.random() * 20, vx: Math.random() * 20 - 10, vy: 20 + Math.random() * 30, life: 1.1, max: 1.1, seed: i });
