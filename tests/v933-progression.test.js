@@ -111,7 +111,7 @@ test('sauvegarde : niveaux de compétence et ressources relus ; persos d\'avant 
   assert.equal(back.materials.mastery, 1e4);
   const old = sanitizeState({ ...JSON.parse(JSON.stringify(s)), version: 10, companions: { owned: { archangel: { stars: 2, level: 3 } }, equipped: [] } }, BALANCE, NOW);
   assert.deepEqual(old.companions.owned.archangel.skills, MIGRATED_SKILLS);
-  assert.equal(SAVE_VERSION, 12); // v9.3.4 : 11 → 12 (équipement unique)
+  assert.equal(SAVE_VERSION, 13); // v9.3.8 : 12 → 13 (6 places, pièces séparées) // v9.3.4 : 11 → 12 (équipement unique)
 });
 
 test('chevalier préservé : améliorations permanentes, coûts et stats inchangés par les nouveaux systèmes', () => {

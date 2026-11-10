@@ -98,7 +98,7 @@ export const BALANCE = {
       maxLevel: 50,
     },
     armor: {
-      label: 'Armure',
+      label: 'Peau de fer', // v9.3.8 (3e) : « Armure » se confondait avec « Défense » (nom et icône)
       description: '+1 % de réduction des dégâts subis',
       baseCost: 50,
       costGrowth: 1.22,

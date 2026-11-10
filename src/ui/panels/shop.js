@@ -1,3 +1,4 @@
+import { merchantsHtml } from './inbox.js'; // v9.3.8
 // v9.2.8 : Boutique (document du producteur, sections 11 à 17). Catégories, prix, contenu exact, limites, bonus de
 // première acquisition, aperçu des cosmétiques. AUCUN paiement réel : chaque bouton d'achat dit « Bientôt disponible »
 // tant qu'aucun fournisseur n'est branché (core/store.js) ; rien n'est donné sans reçu vérifié.
@@ -90,7 +91,8 @@ export default {
     const preview = ui.view.themePreview ? `<div class="card shop-preview"><span>Aperçu du thème</span> <b>${escapeHtml(themeById(ui.view.themePreview).name)}</b>
       <button class="btn small" data-action="theme-preview" data-value="">Revenir à mon thème</button></div>` : '';
     const note = paymentReady() ? '' : '<div class="shop-note">Achats bientôt disponibles : aucun paiement n\'est encore possible dans le jeu. Prix et contenus affichés à titre d\'information.</div>';
-    return `${note}${preview}${tabs}<div class="shop-grid">${offers.map((o) => offerCard(ui, state, o)).join('')}</div>
+    const merchants = merchantsHtml(state); // v9.3.8 : les Marchands sont dans la Boutique
+    return `${note}${preview}${merchants ? `<div class="card"><div class="section-title">Marchands</div>${merchants}</div>` : ''}${tabs}<div class="shop-grid">${offers.map((o) => offerCard(ui, state, o)).join('')}</div>
       <div class="card">${incomeBlock(state)}</div>
       ${(state.economy?.store?.spentCents ?? 0) > 0 ? `<div class="card">${spendBlock(state)}</div>` : ''}
       <div class="muted shop-foot">Cosmétiques : aucun bonus de puissance, achetés une fois pour toutes, équipables et retirables dans Profil › Apparences et Paramètres › Thème.</div>`;

@@ -128,8 +128,8 @@ await check('onglets avec icône et état actif distinct', async () => {
     menu: b.dataset.menu, icon: b.querySelector('img')?.naturalWidth > 0, active: b.classList.contains('active'),
     hidden: b.classList.contains('hidden'),
   })));
-  // v9.1.0 : v9.3.5 : 5 boutons (Combat, Héros, Équipe, Aventure, Quêtes). En début de partie, Équipe est encore caché.
-  assert(tabs.length === 5 && tabs.every((t) => t.icon), JSON.stringify(tabs));
+  // v9.1.0 : v9.3.8 : 4 boutons (Héros, Équipe, Aventure, Quêtes). En début de partie, Équipe est encore caché.
+  assert(tabs.length === 4 && tabs.every((t) => t.icon), JSON.stringify(tabs));
   assert(tabs.filter((t) => t.active).map((t) => t.menu).join() === 'hero', JSON.stringify(tabs));
   const hidden = await game(() => Object.entries(__idle.ui.tabVisible).filter(([, v]) => v === false).map(([k]) => k).sort().join());
   assert(hidden.includes('tree') && hidden.includes('dungeons') && hidden.includes('tower'), `onglets cachés : ${hidden}`);
@@ -139,7 +139,7 @@ await check('onglets avec icône et état actif distinct', async () => {
 });
 
 await check('filtres par type et tri par niveau', async () => {
-  await game(() => { __idle.addItem('iron_helm', 'common', 1); __idle.addItem('dagger', 'common', 7); });
+  await game(() => { __idle.addItem('iron_helm', 'common', 1); __idle.addItem('dagger', 'common', 7); __idle.ui.view.bagAll = true; }); // v9.3.8 : tous les objets
   await game(() => __idle.ui.openTab('inventory')); await closePop();
   await page.click('[data-action="filter"][data-value="weapon"]'); // v9.1.3 : filtre en icônes
   await page.waitForTimeout(150);
@@ -270,6 +270,7 @@ await check('relance : proposition, refus puis acceptation, sans écrasement aut
 });
 
 await check('verrouillage : un objet verrouillé ne peut pas être recyclé', async () => {
+  await game(() => { __idle.ui.view.bagAll = true; }); // v9.3.8 : la dague n'est pas portable par le chevalier
   const item = await game(() => __idle.addItem('dagger', 'common', 1));
   await clickTab('inventory');
   await closePop();

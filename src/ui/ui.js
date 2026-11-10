@@ -28,6 +28,9 @@ import { playSummonReveal } from './summon-fx.js';
 import { bossWarningPlan, showBossWarning } from './boss-warning.js'; // v9.1.9
 import { queueSkinReveals } from './skin-reveal.js'; // v9.1.9
 import { waveCount, waveIndex, waveMode } from '../core/combat.js'; // v9.3.8
+import { nextMilestone } from '../core/unlocks.js';
+import { loginTab } from './panels/contracts.js';
+import { loginPending } from '../core/missions.js';
 import { coin, effectText, escapeHtml, fold, glyph, icon, img, itemFrame, missingText, rewardIcons } from './common.js';
 import { GAME_VERSION } from '../version.js';
 import { mutationById } from '../core/mutations.js';
@@ -431,7 +434,7 @@ export class UI {
     if (v.upgCatV === 928) pick('upgradeCat', (x) => ['combat', 'survival', 'resources', 'all'].includes(x));
     pick('upgradeSort', (x) => ['profit', 'cost'].includes(x));
     pick('buyAmount', (x) => ['1', '10', '100', 'max'].includes(x));
-    pick('missionTab', (x) => ['today', 'week', 'achievements'].includes(x));
+    pick('missionTab', (x) => ['today', 'weekly', 'week', 'achievements'].includes(x));
     pick('invTab', (x) => ['bag', 'stash'].includes(x));
     pick('encSec', (x) => ['monsters', 'bosses', 'mutations', 'items', 'companions', 'museum'].includes(x));
     pick('summonPool', (x) => SUMMON_POOLS.includes(x));
@@ -794,6 +797,7 @@ export class UI {
       case 'upgrade-team': a.upgradeTeam(); break; // v9.3.5
       case 'buy-best': a.buyBest(); break; // v9.3.5
       case 'distribute-skills': a.distributeSkills(); break; // v9.3.8 (3a)
+      case 'offline-double': if (this.lastOffline && this.canDoubleOffline(this.lastOffline)) { a.doubleOffline(this.lastOffline); this.lastOffline = null; this.closeModal(); } break; // v9.3.8 (4)
       case 'arena-edit': local(() => { v.arenaEdit = true; }); break; // v9.3.5
       case 'open-tab': if (el.closest('#modal')) this.closeModal(); this.openTab(value); break;
       case 'ranking-sort': this.actions.loadRanking(value); break;
@@ -892,6 +896,7 @@ export class UI {
       case 'enter-tower': a.enterTower(); break;
       case 'skill-up': { const [id, kind] = value.split('|'); a.skillUp(id, kind); break; } // v9.3.3
       case 'gear-who': local(() => { v.gearWho = value; v.sheetOpen = null; }); break; // v9.3.4 (f)
+      case 'bag-all': local(() => { v.bagAll = Boolean(value); }); break; // v9.3.8 (2.4)
       case 'gear-equip': { const [id, item] = value.split('|'); a.gearDo('equip', id, item); break; }
       case 'gear-unequip': { const [id, slot] = value.split('|'); a.gearDo('unequip', id, slot); break; }
       case 'gear-up': a.gearDo('up', null, value); break;
@@ -970,7 +975,7 @@ export class UI {
       case 'claim-mission': { const [period, id] = value.split('|'); a.claimMission(period, id); break; }
       case 'claim-mission-bonus': a.claimMissionBonus(value); break;
       case 'claim-track': a.claimTrack(); break;
-      case 'claim-login': a.claimLogin(); break;
+      case 'claim-login': a.claimLogin(); if (el.closest('#modal')) this.closeModal(); break;
       case 'claim-all': a.claimAll(); break;
       case 'claim-everything': a.claimEverything(); break;
       case 'session-return': this.closeModal(); a.sessionReturn(); break;
@@ -1242,6 +1247,10 @@ export class UI {
           if (openUp.length !== this.knownUpgrades.length && this.tab === 'upgrades') this.invalidate();
         }
         this.knownUpgrades = openUp;
+        // v9.3.8 (4) : coffre de fin d'étape (après une étape ordinaire gagnée) — un toucher l'ouvre, sinon il s'ouvre seul.
+        if (!event.boss && state.stage === state.maxStage) this.dropChest(event.stage);
+        // v9.3.8 : nouveau monde atteint (une seule fois par monde).
+        if (event.zoneChanged && state.stage === state.maxStage) { const z = zoneForStage(state.stage); this.celebrate(`world-${zoneIndexForStage(state.stage)}`, 'Nouveau monde !', z.name); }
       }
         if (event.zoneChanged) {
           const d = difficultyForStage(event.stage);
@@ -1262,12 +1271,13 @@ export class UI {
       case 'dungeonComplete': {
         this.banner('Donjon terminé !', 'win');
         this.news(`Donjon terminé : ${event.item.name} (${rarityById(event.item.rarity).label})`, rarityById(event.item.rarity).color);
+        if (event.first) this.celebrate('first-dungeon', 'Premier donjon gagné !', '');
         // v9.3.5 : écran de victoire — butin, couronnes de la difficulté, Rejouer.
         const crowns = '👑'.repeat((event.rank ?? 0) + 1);
         const keys = this.state.keys ?? 0;
         this.openModal(`<div class="victory-screen"><h2 id="modal-title">Victoire !</h2><div class="victory-crowns" aria-label="Difficulté">${crowns}</div>
           <div class="victory-loot">${itemFrame(event.item, { tag: 'div' })}<b class="r-${event.item.rarity} rarity-text">${escapeHtml(event.item.name)}</b></div>
-          ${event.earned ? `<p class="muted">${rewardText(event.earned, formatNumber)}</p>` : ''}
+          ${event.earned ? `<div class="victory-rewards">${rewardIcons(event.earned, 'rw-big')}</div>` : ''}
           <div class="detail-actions"><button class="btn" data-action="close-modal">Fermer</button>
             ${keys > 0 ? `<button class="btn btn-gold" data-action="enter-dungeon" data-value="${event.id}" data-diff="${event.difficulty}">Rejouer (${keys} clé${keys > 1 ? 's' : ''})</button>` : ''}</div></div>`);
         this.invalidate();
@@ -1609,8 +1619,17 @@ export class UI {
       progress.classList.add('boss');
       ratio = b ? b.hp / b.maxHp : 1;
       text = b ? `${BOSSES[b.type].name} — ${formatNumber(Math.max(0, b.hp))} / ${formatNumber(b.maxHp)} PV` : 'Le boss arrive…';
+      // v9.3.8 (4) : compte à rebours rouge jusqu'à la rage du boss (même seuil que le moteur : aucun changement d'équilibrage).
+      const left = b && !b.worldBoss ? Math.max(0, BALANCE.stages.enrageSeconds - (b.age ?? 0)) : null;
+      const timer = this.$('boss-timer');
+      if (timer) {
+        timer.classList.toggle('hidden', left === null);
+        if (left !== null) { timer.style.width = `${(left / BALANCE.stages.enrageSeconds) * 100}%`; timer.classList.toggle('enraged', left <= 0); }
+      }
+      if (left !== null) text += left > 0 ? ` · rage dans ${Math.ceil(left)} s` : ' · EN RAGE';
     } else {
       progress.classList.remove('boss');
+      this.$('boss-timer')?.classList.add('hidden');
       const kills = state.challenge ? state.challenge.kills : state.dungeon ? state.dungeon.kills : state.kills;
       ratio = kills / enc.killsNeeded;
       text = state.challenge
@@ -1711,11 +1730,55 @@ export class UI {
 
   // Marques (v9.1.0, une seule règle) : pastille rouge = à récupérer (core/claimables.js) ; point or = l'action
   // conseillée du moment (une seule) ; compteur +N sur Héros = objets neufs dans le sac ; « nouveau » = onglet ouvert.
+  // v9.3.8 (4) : bandeau « Prochain déblocage » sous la scène, avec une barre qui se remplit.
+  updateNextUnlock(state) {
+    const el = this.$('next-unlock');
+    if (!el) return;
+    const m = nextMilestone(state);
+    el.classList.toggle('hidden', !m);
+    if (!m) return;
+    const txt = `Prochain : ${m.label} à l'étape ${stageLabel(m.stage)}`;
+    if (this.lastHud.nextUnlock !== txt) { this.lastHud.nextUnlock = txt; this.$('next-unlock-text').textContent = txt; }
+    this.$('next-unlock-fill').style.width = `${Math.round(m.ratio * 100)}%`;
+  }
+
+  dropChest(stage) {
+    const host = this.$('stage-area');
+    if (!host || typeof document === 'undefined') return;
+    this.actions.stageChest?.(stage);
+    host.querySelector('.stage-chest')?.remove();
+    const el = document.createElement('button');
+    el.className = 'stage-chest';
+    el.type = 'button';
+    el.setAttribute('aria-label', 'Ouvrir le coffre');
+    el.innerHTML = img('icon_chest');
+    const open = () => { if (el.dataset.open) return; el.dataset.open = '1'; el.classList.add('open'); this.actions.openStageChest?.(); setTimeout(() => el.remove(), 500); };
+    el.addEventListener('pointerdown', (e) => { e.stopPropagation(); open(); });
+    host.appendChild(el);
+    setTimeout(open, 3000); // mode idle : ouverture automatique
+  }
+
+  // v9.3.8 (4) : grand moment fêté en plein écran, 2 s, une seule fois (mémorisé dans state.ui.hints).
+  celebrate(id, title, sub = '') {
+    const st = this.state;
+    if (!st?.ui || (st.ui.hints ?? []).includes(`cele-${id}`) || typeof document === 'undefined') return;
+    st.ui.hints = [...(st.ui.hints ?? []), `cele-${id}`].slice(-150);
+    if (navigator.webdriver) return; // vérifications automatiques : pas de rideau par-dessus le jeu
+    const el = document.createElement('div');
+    el.className = 'celebrate';
+    el.innerHTML = `<div class="cele-box"><b>${escapeHtml(title)}</b>${sub ? `<span>${escapeHtml(sub)}</span>` : ''}</div>`;
+    el.addEventListener('click', () => el.remove());
+    document.body.appendChild(el);
+    setTimeout(() => el.classList.add('out'), 1700);
+    setTimeout(() => el.remove(), 2100);
+  }
+
   updateBadges(state) {
     const now = performance.now();
     if (now - (this.lastHud.badgeTime ?? 0) < 500) return;
     this.lastHud.badgeTime = now;
     this.claims = claimables(state);
+    this.updateNextUnlock(state); // v9.3.8
     try { updateTutorial(state, this.root, state.inventory.length >= BALANCE.loot.inventorySize, Boolean(this.tab)); } catch { /* le tutoriel ne bloque jamais le jeu */ }
     // v9.1.3 : fenêtre « À récupérer » ouverte → mise à jour quand la liste change.
     const claimsKey = this.claims.map((c) => c.key).join() + state.inbox.length;
@@ -1881,6 +1944,7 @@ export class UI {
         const menuBtn = this.root.querySelector(`#tabs button[data-menu="${MENUS.find((m) => m.tabs.includes(tab))?.id}"]`);
         setTimeout(() => uiFx.unlockFx(menuBtn), 0); // v9.2.6 : après l'affichage du bouton
         this.news(`Nouvel onglet : ${navPath(tab)}`, '#7fe0a0', 1);
+        this.celebrate(`menu-${tab}`, 'Nouveau !', navPath(tab)); // v9.3.8
       }
       this.tabVisible[tab] = show;
     }
@@ -2092,9 +2156,24 @@ export class UI {
           <p class="muted">Hors ligne, le héros reste sur l'étape ${stageLabel(summary.stage)} (la meilleure où il gagne vraiment) à
             ${BALANCE.offline.farmMultiplier * 100} % de son rythme, sans affronter de boss.</p>
         </details>
+        ${this.canDoubleOffline(summary) ? `<button class="btn btn-gold primary-action offline-x2" data-action="offline-double">${coin()} Tout récupérer ×2 <small>(1 fois par jour, gratuit)</small></button>` : ''}
         <div class="detail-actions"><button class="btn" data-action="close-modal">Continuer</button>
-          <button class="btn btn-gold" data-action="session-return">${img('icon_bolt', 'ico20')} Retour de session (S)</button></div>`);
+          <button class="btn" data-action="session-return">${img('icon_bolt', 'ico20')} Retour de session (S)</button></div>`);
+    this.lastOffline = summary;
     uiFx.offlineFx(this.$('modal-card'), { gold: 0, gems: 0, shards: 0 }, { gold: summary.totalGold, gems: summary.gems ?? 0, shards: mats.shards ?? 0 }); // v9.2.7 : seulement les monnaies qui volent vers leurs compteurs
+  }
+
+  // v9.3.8 (4) : série de connexion — fenêtre du jour à l'ouverture (calendrier de 7 jours, gros lot au jour 7).
+  showLoginPopup() {
+    if (!this.state || !loginPending(this.state) || !this.$('modal').classList.contains('hidden')) return;
+    this.openModal(`<h2 id="modal-title">${img('icon_star', 'ico20')} Cadeau du jour</h2>${loginTab(this.state)}
+      <div class="detail-actions"><button class="btn" data-action="close-modal">Plus tard</button></div>`);
+  }
+
+  // v9.3.8 (4) : « Tout récupérer ×2 » au retour, une fois par jour (une raison de revenir).
+  canDoubleOffline(summary) {
+    const today = new Date().toDateString();
+    return summary.totalGold > 0 && summary.elapsedSeconds >= 600 && this.state?.ui?.doubleDay !== today;
   }
 
   // v9.1.0 : une seule façon d'ouvrir une fenêtre — rôle dialog, focus sur le premier bouton, Tab qui boucle

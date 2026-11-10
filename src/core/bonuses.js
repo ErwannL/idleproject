@@ -1,6 +1,6 @@
 // Bonus cumulés de toutes les sources permanentes : pouvoirs ancestraux actifs (avec synergies),
 // talents, héros actif, compagnons équipés et effets spéciaux de l'équipement porté.
-import { EQUIP_SLOTS, SLOTS, eqSlot } from '../data/items.js';
+import { EQUIP_SLOTS, HERO_SLOTS, SLOTS, eqSlot, heroSlot } from '../data/items.js';
 import { companionEffects } from './companions.js';
 import { heroEffects } from './heroes.js';
 import { classEffects } from './classes.js';
@@ -23,7 +23,7 @@ export const BONUS_KEYS = [
 
 export function gearAffixEffects(equipment) {
   const out = {};
-  for (const slot of Object.keys(EQUIP_SLOTS)) {
+  for (const slot of Object.keys(HERO_SLOTS)) {
     const it = equipment[slot];
     for (const affix of [...(it?.affixes ?? []), ...(it?.parts ?? []).flatMap((p) => p.affixes ?? [])]) out[affix.type] = (out[affix.type] ?? 0) + affix.value;
   }

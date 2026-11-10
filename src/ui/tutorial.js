@@ -54,7 +54,7 @@ export function pickStep(state, root, full, panelOpen = false) {
 
 export function markDone(state, id) {
   if (!state.ui) return;
-  if (!has(state, id)) state.ui.hints = [...(state.ui.hints ?? []), id].slice(-50);
+  if (!has(state, id)) state.ui.hints = [...(state.ui.hints ?? []), id].slice(-150);
 }
 
 // Dessine (ou retire) le doigt et la bulle. Appelé avec le rafraîchissement des pastilles (2 fois par seconde).

@@ -9,7 +9,7 @@ import { cleanWishlist } from './gacha.js';
 import { sanitizeCosmetics } from './cosmetics.js';
 import { emptyTimes, sanitizeTimes } from './times.js';
 import { BALANCE } from '../data/balance.js';
-import { AFFIXES, EQUIP_SLOTS, RARITIES, SLOTS, STARTER_WEAPON, STAT_LABELS, eqSlot } from '../data/items.js';
+import { AFFIXES, EQUIP_SLOTS, HERO_SLOTS, RARITIES, SLOTS, STARTER_WEAPON, STAT_LABELS, eqSlot, heroSlot } from '../data/items.js';
 import { BOSSES } from '../data/enemies.js';
 import { COMPANION_RULES } from '../data/companions.js';
 import { BANNER_RULES, UNITS } from '../data/banners.js';
@@ -55,13 +55,14 @@ import { MIGRATED_SKILLS, cleanSkills } from './progression.js'; // v9.3.3
 import { sanitizeCompanionGear, wornItems } from './companion-gear.js';
 import { GEAR_BASES } from '../data/companion-gear.js';
 import { migrateCompanionGear934, migrateEquipment934 } from './migrations-v934.js'; // v9.3.4 (f)
+import { migrateEquipmentPlaces938, splitParts938 } from './migrations-v938.js'; // v9.3.8
 
 // v1 : prototype · v2 (format identique) · v3 : pouvoirs, Renaissance, verrou
 // v4 : niveau, compétences, héros, compagnons, invocation, contrats, événements, matériaux, donjons.
 // v8 (v9.1.3) : refontes du lot E et F, conversions indépendantes dans core/migrations-v913.js.
 // v9 (v9.2.0, monde marin) : Royaume englouti inséré en monde 11 (étapes > 200 converties, core/migrations-v920.js).
 // v10 (v9.2.8) : économie du document du producteur (bannières, tickets, cosmétiques sans bonus ; migrations-v928.js).
-export const SAVE_VERSION = 12; // v9.3.4 (f) : équipement unique (3 places, objets partagés héros / compagnons)
+export const SAVE_VERSION = 13; // v9.3.8 : héros à 6 places (pièces réunies rendues), familiers sans équipement
 export const SAVE_VERSION_PREV = 10; // v8.4 : nouvel équilibrage (remboursement des améliorations) · v8.5 : arbre de 500 talents (fragments remboursés)
 export const SORT_OPTIONS = ['rarity', 'level', 'power', 'recent'];
 
@@ -77,7 +78,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     kills: 0,
     autoAdvance: true,
     farmBoss: null, // v9.0.4 : boss réaffronté en boucle depuis le Codex
-    equipment: Object.fromEntries(Object.keys(EQUIP_SLOTS).map((slot) => [slot, null])),
+    equipment: Object.fromEntries(Object.keys(HERO_SLOTS).map((slot) => [slot, null])),
     inventory: [],
     nextItemId: 1,
     rngSeed: seed >>> 0,
@@ -305,7 +306,9 @@ function cleanActivities(state, raw) {
   state.nextContractId = Math.max(int(raw.nextContractId, 0), ...state.contracts.map((c) => c.id));
   ensureContracts(state, new Rng(state.rngSeed ^ state.nextContractId));
 
-  state.missions = sanitizeMissions(raw.missions);
+  // v9.3.8 : la Semaine (de nouveau une période) repart de zéro pour une sauvegarde d'avant le format 13 : ses anciennes
+  // hebdomadaires ont été converties dans la Piste du mois (v9.1.3) et ne doivent pas compter deux fois.
+  state.missions = sanitizeMissions(int(raw.version, 1) < 13 && raw.missions ? { ...raw.missions, weekly: undefined } : raw.missions);
   state.prestige = sanitizePrestige(raw.prestige);
   // v7.7 : anciennes étoiles de prestige → fragments anciens.
   if (state.prestige.stars > 0) {
@@ -435,6 +438,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   if (int(raw.version, 1) < 5) raw = migrateTo20Stages(raw);
   if (int(raw.version, 1) < 9) raw = migrateOceanWorld(raw); // v9.2.0 (monde marin)
   if (int(raw.version, 1) < 12) raw = migrateEquipment934(raw); // v9.3.4 (f) : 3 places
+  raw = migrateEquipmentPlaces938(raw); // v9.3.8 : héros à 6 places (sans effet sur une sauvegarde déjà à 6 places)
 
   state.createdAt = num(raw.createdAt, now);
   state.lastSaved = num(raw.lastSaved, now);
@@ -472,9 +476,9 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   state.rngSeed = int(raw.rngSeed, state.rngSeed);
 
   if (raw.equipment && typeof raw.equipment === 'object') {
-    for (const slot of Object.keys(EQUIP_SLOTS)) {
+    for (const slot of Object.keys(HERO_SLOTS)) {
       const item = raw.equipment[slot];
-      state.equipment[slot] = isValidItem(item) && eqSlot(item) === slot ? cleanItem(item) : null;
+      state.equipment[slot] = isValidItem(item) && heroSlot(item) === slot ? cleanItem(item) : null;
     }
   }
   const items = Array.isArray(raw.inventory) ? raw.inventory.filter(isValidItem) : [];
@@ -549,7 +553,8 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   if (int(raw.version, 1) < 10) state.migration928 = migrateEconomy928(state, raw); // v9.2.8 : une seule fois
   cleanActivities(state, raw);
   // v9.1.3 (lot F) : hebdomadaires et mensuelles → piste du mois (après les missions, gemmes, clés et éclats : elle peut en verser).
-  migrateMissionTrack(state, raw.missions, periodKey('monthly', now), MISSION_TRACK, (r) => grantReward(state, r));
+  // v9.3.8 : la Semaine (format 13) n'est pas une ancienne hebdomadaire à convertir.
+  migrateMissionTrack(state, int(raw.version, 1) >= 13 && raw.missions ? { ...raw.missions, weekly: undefined } : raw.missions, periodKey('monthly', now), MISSION_TRACK, (r) => grantReward(state, r));
 
   // Identifiants uniques : nextItemId dépasse tous les identifiants existants (sac, équipement, boîte).
   // v9.3.4 (f) : équipement des compagnons (objets communs) ; l'ancien sac 9.3.3 est converti une fois.
@@ -563,6 +568,16 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
       level: levelForStage(Math.max(1, state.maxStage), balance) });
   }
   state.nextItemId = Math.max(state.nextItemId, nextId());
+  // v9.3.8 : pièces réunies (9.3.4) → objets à part entière (même rareté, niveau, améliorations).
+  splitParts938(state, { place: (it) => placeItem(state, it, balance), make: (p, parent) => {
+    const it = makeItem(state, p.baseId, p.rarity ?? parent.rarity, p.level ?? parent.level, balance);
+    it.boosts = { ...(p.boosts ?? {}) };
+    it.upgrades = Object.values(it.boosts).reduce((n, v) => n + v, 0); // une amélioration = +1 dans boosts : pièce payée gardée
+    it.affixes = (p.affixes ?? []).map((a) => ({ ...a }));
+    if (parent.cls) it.cls = parent.cls;
+    refreshItemStats(it, balance);
+    return it;
+  } });
   seedEncyclopedia(state); // v9.0.5 : les objets possédés comptent comme découverts
 
   if (raw.ui && typeof raw.ui === 'object') {
@@ -590,6 +605,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     if (unlockedSpeeds(state).includes(raw.ui.speed)) state.ui.speed = raw.ui.speed;
     if (SORT_OPTIONS.includes(raw.ui.sortBy)) state.ui.sortBy = raw.ui.sortBy;
     if (raw.ui.keepSets === false) state.ui.keepSets = false;
+    if (typeof raw.ui.doubleDay === 'string') state.ui.doubleDay = raw.ui.doubleDay.slice(0, 20); // v9.3.8 (4) : ×2 du jour pris
     if (raw.ui.autoUseless === false) state.ui.autoUseless = false; // v9.3.8 (3d)
     if (raw.ui.autoMannequin === false) state.ui.autoMannequin = false;
     if (raw.ui.autoMuseum === false) state.ui.autoMuseum = false;
@@ -599,7 +615,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     if (Number.isInteger(raw.ui.tourV) && raw.ui.tourV > 0) state.ui.tourV = raw.ui.tourV;
     if (raw.ui.goalsOpen === true) state.ui.goalsOpen = true;
     // v9.3.4 : aides et étapes du tutoriel déjà vues.
-    if (Array.isArray(raw.ui.hints)) state.ui.hints = raw.ui.hints.filter((h) => typeof h === 'string' && /^[a-z0-9-]{1,32}$/.test(h)).slice(0, 50);
+    if (Array.isArray(raw.ui.hints)) state.ui.hints = raw.ui.hints.filter((h) => typeof h === 'string' && /^[a-z0-9-]{1,32}$/.test(h)).slice(-150); // v9.3.8 : grands moments fêtés compris
     // v9.1.3 : portes du sac déjà ouvertes (Coffre et Forge restent visibles).
     if (Array.isArray(raw.ui.invUsed)) state.ui.invUsed = raw.ui.invUsed.filter((t) => ['stash', 'forge'].includes(t));
     if (Array.isArray(raw.ui.seenTabs)) state.ui.seenTabs = raw.ui.seenTabs.filter((t) => typeof t === 'string' && /^[a-z]{2,16}$/.test(t)).slice(0, 32);

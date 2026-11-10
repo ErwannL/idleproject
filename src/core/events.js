@@ -62,7 +62,8 @@ export function rollEvent(state, world, rng, balance = BALANCE, multiplier = 1) 
     event.reward = { shards: 30, gems: 30 }; // v9.1.3 : 3 essences → 30 éclats
     event.item = generateItem(state, rng, { level: levelForStage(state.stage, balance), minRarity: 'epic' }, balance);
   } else if (type === 'merchant') {
-    event.item = generateItem(state, rng, { level: levelForStage(state.stage, balance), minRarity: 'epic' }, balance);
+    // v9.3.8 : objet au niveau de l'étape MAX (il vendait des objets niveau 13 à un héros niveau 140).
+    event.item = generateItem(state, rng, { level: levelForStage(Math.max(state.stage, state.maxStage ?? 1), balance), minRarity: 'epic' }, balance);
     event.price = Math.floor(killGold * e.merchantPriceKills);
   } else {
     event.reward = { gems: e.gems[0] + Math.floor(rng.next() * (e.gems[1] - e.gems[0] + 1)) };

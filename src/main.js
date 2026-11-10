@@ -3,6 +3,8 @@
 // suspendu automatiquement quand la fenêtre est masquée).
 import { BALANCE } from './data/balance.js';
 import { BOSSES } from './data/enemies.js';
+import { referenceKillGold } from './core/combat.js';
+import { addGold } from './core/economy.js';
 import { changeStage, createCombat, currentEncounter, cycleForStage, resetWave, resumeAdvance, stageLabel, step, tapHit } from './core/combat.js';
 import { ZONES } from './data/zones.js';
 import { playCinematic, playTransition, worldCinematic } from './ui/cinematic.js';
@@ -238,6 +240,9 @@ const actions = {
     state.records.summons += results.length;
     const best = ['legendary', 'epic', 'rare', 'common'].find((r) => results.some((u) => u.rarity === r));
     sound.play('summon', { rarity: best });
+    // v9.3.8 (4) : premier Légendaire fêté en plein écran.
+    const leg = results.find((u) => u.rarity === 'legendary' && u.isNew);
+    if (leg) ui.celebrate?.('first-legendary', 'Premier Légendaire !', companionById(leg.id)?.name ?? '');
     // v9.3.5 (7c) : un compagnon obtenu va dans une place libre de l'équipe (le joueur peut le changer ensuite).
     for (let i = 0; i < 3; i++) {
       const c = companionToPlace(state);
@@ -441,6 +446,24 @@ const actions = {
   buyMerchant(id) { done(buyFromMerchant(state, id), 'Objet acheté'); },
   dismissEvent(id) { done(dismissEvent(state, id)); },
   setAutoUseless(on) { if (on) delete state.ui.autoUseless; else state.ui.autoUseless = false; done(true); }, // v9.3.8 (3d)
+  // v9.3.8 (4) : coffre de fin d'étape — l'or de 0,75 ennemi de l'étape (un seul coffre en attente à la fois).
+  openStageChest() {
+    if (!pendingChest) return;
+    const gold = Math.max(1, Math.floor(referenceKillGold(pendingChest) * 0.75));
+    pendingChest = 0;
+    addGold(state, gold);
+    done(true, `Coffre : +${formatNumber(gold)} or`, '#ffd23f');
+  },
+  stageChest(stage) { pendingChest = stage; },
+  // v9.3.8 (4) : gains du retour doublés (or et éclats), une fois par jour.
+  doubleOffline(summary) {
+    const today = new Date().toDateString();
+    if (state.ui.doubleDay === today) return;
+    state.ui.doubleDay = today;
+    addGold(state, summary.totalGold ?? 0);
+    state.materials.shards += summary.materials?.shards ?? 0;
+    done(true, `Gains doublés : +${formatNumber(summary.totalGold ?? 0)} or`, '#ffd23f');
+  },
   // v9.3.8 (3a) : « Répartir les points » — dépense tous les points de compétence (Attaques seulement).
   distributeSkills() { const n = distributeSkillPoints(state); done(n > 0, n ? `${n} niveau${n > 1 ? 'x' : ''} de compétence` : null, '#7fe0a0'); },
   // v9.3.5 : « Améliorer au mieux » — dépense l'or sur la ligne ouverte la plus rentable, niveau par niveau.
@@ -1233,12 +1256,23 @@ ui.sound = sound;
 const unlockAudio = () => sound.unlock();
 window.addEventListener('pointerdown', unlockAudio, { capture: true });
 // v9.3.5 : toucher le combat fait réagir l'écran (étincelle + petit coup), 8 fois par seconde au plus.
-let lastTap = 0;
+let lastTap = 0, combo = 0;
+let pendingChest = 0; // v9.3.8 : étape du coffre de fin d'étape en attente (0 = aucun)
 document.getElementById('scene')?.addEventListener('pointerdown', (e) => {
+  // v9.3.8 (2.1) : plus de bouton « Combat » — toucher la scène ferme le panneau ouvert (sinon : petit coup).
+  if (ui.tab) { ui.closePanel(); return; }
   const now = performance.now();
   if (now - lastTap < 125) return;
+  combo = now - lastTap < 800 ? combo + 1 : 1; // v9.3.8 (4) : compteur de combo
   lastTap = now;
   const hit = tapHit(state, world, rng);
+  if (combo >= 3) {
+    const c = document.getElementById('tap-combo') ?? Object.assign(document.createElement('div'), { id: 'tap-combo' });
+    if (!c.isConnected) document.getElementById('stage-area')?.appendChild(c);
+    c.textContent = `Combo ×${combo}`;
+    c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop');
+    clearTimeout(c.hideT); c.hideT = setTimeout(() => c.remove(), 900);
+  }
   const fx = document.createElement('span');
   fx.className = 'tap-spark';
   fx.textContent = hit ? formatNumber(Math.max(1, Math.round(hit.damage))) : '';
@@ -1279,6 +1313,7 @@ const cinematicsOn = () => state.ui.cinematics !== false && !navigator.webdriver
 setTimeout(() => {
   if (!cinematicsOn()) return;
   const zone = ZONES[currentEncounter(state).zoneIndex];
+  if (loaded.source !== 'new') setTimeout(() => ui.showLoginPopup?.(), 4800); // v9.3.8 (4) : cadeau du jour à l'ouverture
   if (loaded.source === 'new') {
     // v9.3.7 : prologue « La chute du héros » à la toute première connexion (une seule fois), puis le titre.
     const intro = () => playCinematic({ kicker: 'Une nouvelle légende', title: 'Ascendrya', line: 'Tout reprendre, monde après monde.' });

@@ -8,6 +8,7 @@ import { generateItem, itemPower, makeItem, recycleLevelOf, recycleValue } from 
 import { addToInventory, collectItem, recycleItem, sweepInventory, toggleLock } from '../src/core/inventory.js';
 import { autoFuse, craftItem, fuseItems, fusionKeep, reforgeItem, upgradeItem } from '../src/core/forge.js';
 import { autoStashSet, bestSetPiece, placeItem, STASH_SIZE, storeItem, wearSet } from '../src/core/stash.js';
+import { heroSlot } from '../src/data/items.js';
 import { autoMuseum, exposeAll, museumBetter } from '../src/core/museum.js';
 import { buyFromMerchant, claimEvent, dismissEvent } from '../src/core/events.js';
 import { claimBounty, dailyBounty } from '../src/core/bounty.js';
@@ -104,7 +105,7 @@ test('source fusion : protège « garder si tel effet », renforcés ; l\'objet 
   const s = opened(6);
   s.ui.recycle = { mode: 'pickup', rarities: ['common', 'rare'], slots: ['helmet'], keepAffixes: ['goldPct'] };
   s.ui.autoFuse = { on: true, rarities: ['rare'] };
-  s.equipment.armor = makeItem(s, 'iron_helm', 'legendary', 200); // v9.3.4 : place « armure »
+  s.equipment.helmet = makeItem(s, 'iron_helm', 'legendary', 200); // v9.3.8 : de nouveau sa place
   const rng = new Rng(7);
   for (let i = 0; i < 5; i++) {
     const h = makeItem(s, 'iron_helm', 'rare', 1, BALANCE, rng);
@@ -247,7 +248,7 @@ test('24 h simulées sac plein : aucun objet payé ou verrouillé perdu', () => 
   // Seul recyclage permis d'un objet payé : la garde automatique de la meilleure pièce d'ensemble (réglage du coffre),
   // quand une pièce strictement meilleure du même ensemble et du même emplacement l'a remplacée.
   for (const it of lost) {
-    const best = bestSetPiece(s, it.set, it.slot);
+    const best = bestSetPiece(s, it.set, heroSlot(it)); // v9.3.8 : boucles et collier partagent une place
     assert.ok(it.set && best && itemPower(best) > itemPower(it), `objet payé perdu : ${it.name}`);
   }
   assert.ok(paid.length > 280);

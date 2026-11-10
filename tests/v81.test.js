@@ -100,7 +100,7 @@ test('fusion automatique : 5 objets identiques → rareté supérieure, verrouil
   const { Rng } = await import('../src/core/rng.js');
   const s = createNewState(NOW, 3);
   const strong = makeItem(s, 'iron_helm', 'legendary', 50);
-  s.equipment.armor = strong; // v9.3.4 : le casque occupe la place « armure »
+  s.equipment.helmet = strong; // v9.3.8 : le casque a de nouveau sa place
   for (let i = 0; i < 6; i++) addToInventory(s, makeItem(s, 'leather_hood', 'common', 1));
   s.inventory[0].locked = true;
   assert.equal(autoFuse(s, new Rng(1), isUpgrade).length, 0); // désactivée

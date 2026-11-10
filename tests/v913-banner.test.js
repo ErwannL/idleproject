@@ -126,7 +126,7 @@ test('lot 4 : encyclopédie à 100 % sans aucun bannerOnly ; hauts faits sur les
 
 test('lot 4 : sauvegarde v8 — étoiles et niveaux identiques ; perso inconnu de ce client gardé (pas de montée à 9)', () => {
   setBannersEnabled(true);
-  assert.equal(SAVE_VERSION, 12); // v9.3.4 : 11 → 12 (équipement unique) // v9.3.3 : 10 → 11 (niveaux de compétence) // v9.2.0 (monde marin) : 8 → 9 (Royaume englouti, étapes converties) · v9.2.8 : 9 → 10 (économie)
+  assert.equal(SAVE_VERSION, 13); // v9.3.8 : 12 → 13 (6 places, pièces séparées) // v9.3.4 : 11 → 12 (équipement unique) // v9.3.3 : 10 → 11 (niveaux de compétence) // v9.2.0 (monde marin) : 8 → 9 (Royaume englouti, étapes converties) · v9.2.8 : 9 → 10 (économie)
   const s = createNewState(J(3));
   s.companions.owned = { shadow_lord: { stars: 6, level: 20 }, demo_ssr: { stars: 3, level: 7 }, cat: { stars: 2, level: 4 } };
   s.companions.equipped = ['shadow_lord', 'demo_ssr'];

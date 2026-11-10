@@ -1,6 +1,6 @@
 // Inventaire : ajout, équipement, recyclage, tri et comparaison.
 import { BALANCE } from '../data/balance.js';
-import { ACCESSORY_SLOTS, EQUIP_SLOTS, SLOTS, eqSlot } from '../data/items.js';
+import { ACCESSORY_SLOTS, EQUIP_SLOTS, SLOTS, eqSlot, heroSlot } from '../data/items.js';
 import { addGold } from './economy.js';
 import { trackContracts } from './contracts.js';
 import { itemBase, itemPower, rarityIndex, recycleLevelOf, recycleMaterials, recycleValue } from './loot.js';
@@ -81,10 +81,10 @@ export function equipItem(state, itemId) {
   if (index < 0) return false;
   const item = state.inventory[index];
   if (!canEquip(state, item)) return false; // v9.0.6 : arme ou objet d'une autre classe
-  const previous = state.equipment[eqSlot(item)];
+  const previous = state.equipment[heroSlot(item)];
   state.inventory.splice(index, 1);
   if (previous) state.inventory.splice(index, 0, previous);
-  state.equipment[eqSlot(item)] = item;
+  state.equipment[heroSlot(item)] = item;
   return true;
 }
 
@@ -252,7 +252,7 @@ const extras = (s) => s.goldPct + s.xpPct + s.lifesteal + s.thorns + (s.regenPer
   + (s.bonus?.dropChance ?? 0) * 3 + (s.bonus?.damageVsBossPct ?? 0) + (s.bonus?.damageVsNormalPct ?? 0) * 0.5;
 export function isUpgrade(state, item, balance = BALANCE, current = computeHeroStats(state, balance)) {
   if (!canEquip(state, item)) return Boolean(teamUpgradeFor(state, item)); // v9.3.4 (f) : meilleur pour un compagnon
-  if (!state.equipment[eqSlot(item)]) return true; // emplacement vide (accessoires en particulier)
+  if (!state.equipment[heroSlot(item)]) return true; // emplacement vide (accessoires en particulier)
   const next = statsWithItem(state, item, balance);
   const score = Math.log(next.dps / current.dps) + Math.log(ehp(next) / ehp(current));
   if (Math.abs(score) > 1e-4) return score > 0;
@@ -270,7 +270,7 @@ export function equipBest(state, balance = BALANCE) {
     for (const item of state.inventory) {
       if (!canEquip(state, item) || !isUpgrade(state, item, balance, current)) continue;
       const next = statsWithItem(state, item, balance);
-      const score = state.equipment[eqSlot(item)] ? Math.log(next.dps / current.dps) + Math.log(ehp(next) / ehp(current)) : Infinity;
+      const score = state.equipment[heroSlot(item)] ? Math.log(next.dps / current.dps) + Math.log(ehp(next) / ehp(current)) : Infinity;
       if (score > bestScore) { best = item; bestScore = score; }
     }
     if (!best || !equipItem(state, best.id)) break;

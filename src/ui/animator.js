@@ -9,6 +9,33 @@ import { BOSSES } from '../data/enemies.js';
 import { activeHero, heroById } from '../core/heroes.js';
 import { HERO_ANCHOR, HERO_SIZE, heroComposite, spriteCanvas } from '../render/pixel.js';
 import { SPRITES } from '../render/sprites.js';
+import { pickHeroAnim } from '../render/ally-anim.js';
+import { drawHeroPick } from '../render/hero-draw.js';
+import { activeClass } from '../core/classes.js';
+
+// v9.3.8 (2.4) : héros de l'écran Équipement dessiné comme en combat (images PixelLab, casque et armure portés),
+// en marche sur place ; repli sur l'ancien dessin si l'apparence n'a pas d'images PixelLab.
+let heroOff = null;
+function drawHeroLikeScene(ctx, canvas, state, t, palette, equipment) {
+  const pick = pickHeroAnim({ palette, equipment, classId: activeClass(state).id, walking: true, walkRate: 0.6, gait: 'walk', time: t, attack: 0, shoot: 0, aim: 0, cast: 0, hurt: 0, victory: 0 }, {});
+  if (!pick) return false;
+  heroOff ??= typeof document !== 'undefined' ? document.createElement('canvas') : null;
+  if (!heroOff) return false;
+  heroOff.width = 160; heroOff.height = 120;
+  const o = heroOff.getContext('2d');
+  o.imageSmoothingEnabled = false;
+  o.clearRect(0, 0, 160, 120);
+  drawHeroPick(o, pick, equipment, palette, 48, 30);
+  // Cadre serré autour des pixels dessinés, posé en bas du canvas et agrandi.
+  const data = o.getImageData(0, 0, 160, 120).data;
+  let x0 = 160, y0 = 120, x1 = 0, y1 = 0;
+  for (let y = 0; y < 120; y++) for (let x = 0; x < 160; x++) if (data[(y * 160 + x) * 4 + 3] > 0) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+  if (x1 <= x0) return false;
+  const w = x1 - x0 + 1, h = y1 - y0 + 1;
+  const k = Math.max(1, Math.floor(Math.min(canvas.width / w, (canvas.height - 4) / h)));
+  ctx.drawImage(heroOff, x0, y0, w, h, Math.round((canvas.width - w * k) / 2), canvas.height - h * k - 2, w * k, h * k);
+  return true;
+}
 
 const FPS = 15;
 let last = 0;
@@ -66,7 +93,9 @@ export function animateMenus(root, state, ms) {
         drawHero(ctx, canvas, state, t, heroById(id).palette, { weapon: state.equipment.weapon }, phase);
       } else {
         const preview = canvas.dataset.preview ? JSON.parse(canvas.dataset.preview) : null;
-        drawHero(ctx, canvas, state, t, activeHero(state).palette, preview ?? state.equipment, phase);
+        if (!(canvas.dataset.big && drawHeroLikeScene(ctx, canvas, state, t, activeHero(state).palette, preview ?? state.equipment))) {
+          drawHero(ctx, canvas, state, t, activeHero(state).palette, preview ?? state.equipment, phase);
+        }
       }
     } else {
       drawSprite(ctx, canvas, id, t, phase, kind === 'pet');

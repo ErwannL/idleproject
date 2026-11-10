@@ -1,3 +1,4 @@
+import { bountyCard } from './contracts.js'; // v9.3.8 : Prime du jour sur la Carte
 // Carte du monde : zones reliées par un chemin, étapes de la zone choisie, avance automatique.
 import { ZONES } from '../../data/zones.js';
 import { bossesForStage, bossTierForStage, cycleForStage, stageLabel, stagesPerCycle, zoneIndexForStage, zoneLength, zoneStartStage } from '../../core/combat.js';

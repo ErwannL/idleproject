@@ -11,7 +11,7 @@ import { currentEnvironment, hitsToFall } from '../../core/combat.js'; // v9.2.1
 const ICONS = {
   // v9.1.3 (doc2 §4) : icônes 20×20 dédiées (Critique ≠ Frappe rapide, Régénération ≠ fée, Dégâts et Or carrés).
   damage: 'icon_damage', attackSpeed: 'icon_bolt', crit: 'icon_crit', vitality: 'icon_heart',
-  armor: 'icon_shield', regen: 'icon_regen', goldFind: 'icon_gold',
+  armor: 'icon_anvil', regen: 'icon_regen', goldFind: 'icon_gold',
   // v9.2.0 : icônes existantes réutilisées (aucune nouvelle image).
   critDamage: 'icon_skull', bossDamage: 'icon_boss', companionPower: 'icon_paw', lifesteal: 'icon_essence', dodge: 'skill_quick', xpGain: 'icon_xp',
   defense: 'shield', doubleAttack: 'skill_whirl', // v9.2.8
@@ -78,6 +78,19 @@ export default {
         ${ui.view.qtyOpen ? `<span class="chip-row buy-amounts qty-pop" role="group" aria-label="Quantité">${chips(['max', '100', '10', '1'])}</span>` : ''}</span>`
       : `<div class="chip-row buy-amounts" role="group" aria-label="Quantité">${chips(['1', '10', '100', 'max'])}</div>`;
     const compact = ui.compact;
+    // v9.3.8 (3e) : un seul gain comparable par ligne — « Puissance +N » (la Puissance mêle dégâts et survie) ; flèche
+    // verte sur la meilleure affaire (Puissance gagnée par pièce d'or). Or et Savoir gardent leur effet propre.
+    const powerGain = (key) => {
+      const lv = state.upgrades[key], up = BALANCE.upgrades[key];
+      if (up.maxLevel !== undefined && lv >= up.maxLevel) return null;
+      const plan = bulkPlan(state, key, amount);
+      const n = Math.max(1, plan.count);
+      const c = plan.count ? plan.cost : upgradeCost(key, lv);
+      const g = computeHeroStats({ ...state, upgrades: { ...state.upgrades, [key]: lv + n } }).combatPower - current.combatPower;
+      return { gain: g, cost: c };
+    };
+    const gains = Object.fromEntries(keys.map((k) => [k, powerGain(k)]));
+    const bestKey = keys.filter((k) => gains[k]?.gain > 0).sort((a, b) => gains[b].gain / gains[b].cost - gains[a].gain / gains[a].cost)[0];
     const cards = keys.map((key) => {
       const up = BALANCE.upgrades[key];
       const level = state.upgrades[key];
@@ -98,8 +111,8 @@ export default {
       // v9.1.3 : gain en dégâts/s affiché neutre (aucune « meilleure » amélioration désignée) ; la description ne
       // s'affiche qu'au début (avant le premier mini-boss), ensuite au survol / appui long sur le nom.
       const ehp = SURVIVAL.has(key) && !max && current.effectiveHp > 0 ? ((next.effectiveHp - current.effectiveHp) / current.effectiveHp) * 100 : 0;
-      const gain = p ? ` <span class="muted upg-profit">+${formatDecimal(p.pct)} % dégâts/s</span>`
-        : ehp > 0 ? ` <span class="muted upg-profit">${ehp >= 100 ? `Survie ×${formatDecimal(1 + ehp / 100)}` : `Survie +${formatDecimal(ehp)} %`}</span>` : ''; // v9.3.5 : plus de « +1,1 K % PV effectifs »
+      const pg = gains[key];
+      const gain = pg && pg.gain > 0 ? ` <span class="muted upg-profit">${key === bestKey ? '<b class="upg-best" title="Meilleure affaire">▲</b> ' : ''}Puissance +${formatNumber(Math.round(pg.gain))}</span>` : '';
       // v9.1.3 (ligne type doc2 §3) : icône, nom + niveau (+ palier), un seul chiffre qui bouge (avant → après, l'unité
       // est dans le nom), +x % dégâts/s neutre sur la même ligne, bouton avec prix : 2 lignes au lieu de 3.
       return `<div class="card upg-card${compact ? ' compact' : ''}">

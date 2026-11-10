@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { SAVE_VERSION, sanitizeState } from '../src/core/state.js';
 import { migrateCodex, migrateEssence, migrateMannequins, migrateMissionTrack, migrateTickets } from '../src/core/migrations-v913.js';
-import { MISSION_TRACK } from '../src/data/missions.js';
+import { MISSION_PERIODS, MISSION_TRACK } from '../src/data/missions.js';
 import { claimTrackTier, emptyMissions, periodKey, trackNext, trackPct } from '../src/core/missions.js';
 import { ENCYCLOPEDIA_SECTIONS, claimSection, sectionStatus } from '../src/core/encyclopedia.js';
 import { BALANCE, ESSENCE_SHARDS, TICKET_GEMS } from '../src/data/balance.js';
@@ -12,7 +12,7 @@ import { allItems, endSave, oldSave, NOW } from './helpers/v913-saves.js';
 const load = (raw) => sanitizeState(JSON.parse(JSON.stringify(raw)), undefined, NOW);
 
 test('v9.1.3 : une seule montée de SAVE_VERSION (7 → 8)', () => {
-  assert.equal(SAVE_VERSION, 12); // v9.3.4 : 11 → 12 (équipement unique) // v9.3.3 : 10 → 11 (niveaux de compétence) // v9.2.0 (monde marin) : 8 → 9 (Royaume englouti, étapes converties) · v9.2.8 : 9 → 10 (économie)
+  assert.equal(SAVE_VERSION, 13); // v9.3.8 : 12 → 13 (6 places, pièces séparées) // v9.3.4 : 11 → 12 (équipement unique) // v9.3.3 : 10 → 11 (niveaux de compétence) // v9.2.0 (monde marin) : 8 → 9 (Royaume englouti, étapes converties) · v9.2.8 : 9 → 10 (économie)
 });
 
 test('v9.1.3 : aucun objet perdu (ni verrouillé, ni renforcé) en migrant une vieille sauvegarde et une partie de fin', () => {
@@ -102,7 +102,7 @@ test('lot F : missions — hebdomadaires et mensuelles converties en piste du mo
   assert.equal(migrateMissionTrack(state, { daily: {} }, month, MISSION_TRACK, () => ({})), null, 'format 8 : rien');
   // Migration complète sur les deux sauvegardes de référence.
   const s = load(oldSave());
-  assert.equal(s.missions.weekly, undefined);
+  assert.equal(Object.keys(s.missions.weekly.progress).length, 0, 'v9.3.8 : la Semaine repart de zéro (les anciennes hebdomadaires sont dans la piste)');
   assert.equal(s.missions.track.key, month);
   assert.equal(s.missions.track.progress.kills, 9000);
   const e = load(endSave());
@@ -119,7 +119,10 @@ test('lot F : missions — hebdomadaires et mensuelles converties en piste du mo
 
 test('lot F : piste du mois — totaux par mois proches des anciennes hebdomadaires × 4,33 + mensuelles', () => {
   const sum = (k) => MISSION_TRACK.tiers.reduce((a, t) => a + (t.reward[k] ?? 0), 0);
-  assert.equal(sum('gems'), 10000); // 1 270 × 52/12 + 4 500 = 10 003
+  // v9.3.8 : 7 400 + la Semaine (600 × 52/12 ≈ 2 600) = 10 000 par mois, comme avant.
+  const weekly = MISSION_PERIODS.find((p) => p.id === 'weekly');
+  const perWeek = weekly.missions.reduce((a, m) => a + (m.reward.gems ?? 0), 0) + weekly.bonus.gems;
+  assert.ok(Math.abs(sum('gems') + perWeek * 52 / 12 - 10000) < 100, `${sum('gems')} + ${perWeek} × 52/12`);
   assert.equal(sum('keys'), 18); // 3 × 52/12 + 5 = 18
   assert.equal(sum('shards'), 500); // 110 × 52/12 = 477
 });
@@ -143,7 +146,7 @@ test('lot F : mannequins fondus dans le coffre — dépassement géré, builds r
   const mannequinIds = Object.values(raw.mannequins).flatMap((m) => Object.values(m)).map((x) => x.id);
   // Un build enregistré qui porte une pièce d'un mannequin.
   raw.loadouts[0].team = [];
-  raw.loadouts[0].gear = { armor: mannequinIds[1] }; // v9.3.4 : la sauvegarde de test a déjà les 3 places (le casque va en « armure »)
+  raw.loadouts[0].gear = { helmet: mannequinIds[1] }; // v9.3.8 : 6 places, le casque a de nouveau la sienne
   const e = load(raw);
   assert.ok(e.stash.length > STASH_SIZE && e.stash.length <= STASH_SIZE + STASH_OVERFLOW, `coffre ${e.stash.length}`);
   for (const id of mannequinIds) assert.ok(e.stash.some((x) => x.id === id) || e.inventory.some((x) => x.id === id), id);
@@ -153,7 +156,7 @@ test('lot F : mannequins fondus dans le coffre — dépassement géré, builds r
   e.inventory.length = 50; // de la place pour sortir l'objet du coffre
   const r = applyLoadout(e, 0);
   assert.equal(r.missing, 0, 'le build retrouve la pièce de l\'ancien mannequin au coffre');
-  assert.equal(e.equipment.armor.id, mannequinIds[1]);
+  assert.equal(e.equipment.helmet.id, mannequinIds[1]);
 });
 
 function createFiller(raw, n) {

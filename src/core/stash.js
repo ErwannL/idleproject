@@ -2,7 +2,7 @@
 // v9.1.3 : les mannequins sont fondus dans le coffre (voir plus bas).
 import { BALANCE } from '../data/balance.js';
 import { ITEM_SETS } from '../data/sets.js';
-import { EQUIP_SLOTS, SLOTS, eqSlot } from '../data/items.js';
+import { EQUIP_SLOTS, HERO_SLOTS, SLOTS, eqSlot, heroSlot } from '../data/items.js';
 import { itemPower } from './loot.js';
 import { canEquip } from './classes.js';
 
@@ -72,14 +72,14 @@ export function takeFromStash(state, id, balance = BALANCE) {
 // v9.1.3 (doc3 lot 1) : seulement les pièces portables par la classe active.
 export function bestSetPiece(state, setId, slot) {
   let best = null;
-  for (const x of state.stash ?? []) if (x.set === setId && eqSlot(x) === slot && wearable(state, x) && (!best || itemPower(x) > itemPower(best))) best = x;
+  for (const x of state.stash ?? []) if (x.set === setId && heroSlot(x) === slot && wearable(state, x) && (!best || itemPower(x) > itemPower(best))) best = x;
   return best;
 }
 
 // Ensembles présents au coffre : [{ setId, slots }] (nombre d'emplacements couverts).
 export function stashSets(state) {
   const by = new Map();
-  for (const x of state.stash ?? []) if (x.set) by.set(x.set, new Set([...(by.get(x.set) ?? []), eqSlot(x)]));
+  for (const x of state.stash ?? []) if (x.set) by.set(x.set, new Set([...(by.get(x.set) ?? []), heroSlot(x)]));
   return ITEM_SETS.filter((set) => by.has(set.id)).map((set) => ({ setId: set.id, slots: by.get(set.id).size }));
 }
 
@@ -87,7 +87,7 @@ export function stashSets(state) {
 // place au coffre (le coffre garde le même nombre d'objets : jamais de débordement). Renvoie le nombre de pièces portées.
 export function wearSet(state, setId) {
   let n = 0;
-  for (const slot of Object.keys(EQUIP_SLOTS)) {
+  for (const slot of Object.keys(HERO_SLOTS)) {
     const piece = bestSetPiece(state, setId, slot);
     if (!piece) continue;
     const worn = state.equipment[slot];
@@ -108,7 +108,7 @@ export function wearSet(state, setId) {
 // meilleure reste au coffre si elle est verrouillée ou renforcée (payée), jamais recyclée.
 export function autoStashSet(state, item) {
   if (!item.set || state.ui?.autoMannequin === false || !state.stash || !wearable(state, item)) return false;
-  const old = bestSetPiece(state, item.set, item.slot);
+  const old = bestSetPiece(state, item.set, heroSlot(item));
   if (old && itemPower(old) >= itemPower(item)) return false;
   const replace = old && !old.locked && !((old.upgrades ?? 0) > 0);
   if (!replace && state.stash.length >= STASH_SIZE) return false;

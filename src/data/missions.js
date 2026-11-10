@@ -17,6 +17,23 @@ export const MISSION_PERIODS = [
     ],
     bonus: { gems: 160 },
   },
+  // v9.3.8 (2.6) : la Semaine revient — un objectif de moyen terme entre le jour et le mois. Ses gemmes (600 par
+  // semaine, ≈ 2 600 par mois) sont retirées de la Piste du mois (×0,74) : l'économie totale ne change pas.
+  {
+    id: 'weekly',
+    label: 'Semaine',
+    reset: 'Réinitialisation le lundi',
+    missions: [
+      { id: 'logins', type: 'login', target: 5, label: 'Se connecter 5 jours', reward: { gems: 50 } },
+      { id: 'kills', type: 'kills', target: 2000, label: 'Vaincre 2 000 monstres', reward: { gems: 50, shards: 30 } },
+      { id: 'bosses', type: 'bosses', target: 20, label: 'Vaincre 20 boss', reward: { gems: 50, keys: 1 } },
+      { id: 'upgrades', type: 'upgrades', target: 10, label: 'Améliorer ou fusionner 10 fois', reward: { gems: 50 } },
+      { id: 'rareLoot', type: 'rareLoot', target: 30, label: 'Trouver 30 objets Rares', reward: { gems: 50, shards: 30 } },
+      { id: 'summons', type: 'summons', target: 10, label: 'Faire 10 invocations', reward: { gems: 50 } },
+      { id: 'dungeons', type: 'dungeons', target: 4, label: 'Terminer 4 donjons', reward: { gems: 50, keys: 1 } },
+    ],
+    bonus: { gems: 250, keys: 2 },
+  },
 ];
 
 // v9.1.3 : piste du mois. Chaque objectif reprend le plus exigeant des anciens objectifs du mois (mensuel, ou
@@ -39,16 +56,16 @@ export const MISSION_TRACK = {
     { id: 'upgrades', type: 'upgrades', target: 43, label: 'Améliorations ou fusions' },
   ],
   tiers: [
-    { pct: 10, reward: { gems: 300, shards: 50 } },
-    { pct: 20, reward: { gems: 400, shards: 50, keys: 3 } },
-    { pct: 30, reward: { gems: 500, shards: 50 } },
-    { pct: 40, reward: { gems: 600, shards: 50, keys: 3 } },
-    { pct: 50, reward: { gems: 800, shards: 50 } },
-    { pct: 60, reward: { gems: 1000, shards: 50, keys: 4 } },
-    { pct: 70, reward: { gems: 1200, shards: 50 } },
-    { pct: 80, reward: { gems: 1400, shards: 50, keys: 4 } },
-    { pct: 90, reward: { gems: 1700, shards: 50 } },
-    { pct: 100, reward: { gems: 2100, shards: 50, keys: 4 } },
+    { pct: 10, reward: { gems: 220, shards: 50 } },
+    { pct: 20, reward: { gems: 300, shards: 50, keys: 3 } },
+    { pct: 30, reward: { gems: 370, shards: 50 } },
+    { pct: 40, reward: { gems: 440, shards: 50, keys: 3 } },
+    { pct: 50, reward: { gems: 590, shards: 50 } },
+    { pct: 60, reward: { gems: 740, shards: 50, keys: 4 } },
+    { pct: 70, reward: { gems: 890, shards: 50 } },
+    { pct: 80, reward: { gems: 1040, shards: 50, keys: 4 } },
+    { pct: 90, reward: { gems: 1260, shards: 50 } },
+    { pct: 100, reward: { gems: 1550, shards: 50, keys: 4 } },
   ],
 };
 

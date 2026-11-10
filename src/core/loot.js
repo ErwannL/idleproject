@@ -91,7 +91,7 @@ export function makeItem(state, baseId, rarityId, level, balance = BALANCE, rng 
   const affixes = base.affixes
     ? base.affixes.map((a) => ({ ...a }))
     : [...main, ...(rng ? rollAffixes(base.slot, rarityId, rng, balance, main.map((a) => a.type)) : [])];
-  const parts = makeParts(base, rarityId, level, balance, rng);
+  const parts = []; // v9.3.8 : le héros a de nouveau 6 places : plus de pièces réunies sur les nouveaux objets
   return {
     id, baseId, name: base.name, slot: base.slot, rarity: rarityId, level,
     stats: computeStats(base, rarity, level, balance), affixes, effect: null, locked: false,

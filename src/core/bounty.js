@@ -26,7 +26,7 @@ export function dailyBounty(state, now = Date.now()) {
   if (state.bounty?.day === day) return state.bounty;
   const reached = Math.min(ZONES.filter((z) => !z.gauntlet).length - 1, zoneIndexForStage(Math.max(1, state.maxStage)));
   const h = hash(`${day}:${state.rngSeed}`);
-  const zone = h % (reached + 1);
+  const zone = reached; // v9.3.8 : un monstre du monde actuel (elle visait la Mandragore du monde 1 au monde 7)
   const enemies = ZONES[zone].enemies.filter((id) => ENEMIES[id]);
   const type = enemies[(h >>> 8) % enemies.length];
   state.bounty = { day, zone, type, target: BOUNTY.target, start: state.codex.kills[type] ?? 0, claimed: false };

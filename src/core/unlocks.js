@@ -72,3 +72,16 @@ export function nextUpgradeUnlock(state, balance) {
   const best = Math.max(state.maxStage ?? 1, state.records?.bestStage ?? 1);
   return { key: k, label: balance.upgrades[k].label, stage: Math.max(balance.upgrades[k].unlockStage ?? 0, best + 1) };
 }
+
+// v9.3.8 (4) : toujours un objectif proche à l'écran — le prochain déblocage par étape record, et la progression vers lui.
+const MILESTONES = [
+  { stage: 10, label: 'Forge' }, { stage: 10, label: 'Talents' }, { stage: 25, label: 'Donjons' }, { stage: 25, label: 'Arène' },
+  { stage: 30, label: 'Renaissance' }, { stage: 41, label: 'Événement' }, { stage: 60, label: 'Tour de l\'Éternité' },
+];
+export function nextMilestone(state) {
+  const best = Math.max(state.maxStage ?? 1, state.records?.bestStage ?? 1);
+  const next = MILESTONES.find((m) => m.stage > best);
+  if (!next) return null;
+  const prev = [...MILESTONES].reverse().find((m) => m.stage <= best)?.stage ?? 1;
+  return { label: next.label, stage: next.stage, ratio: Math.max(0, Math.min(1, (best - prev) / Math.max(1, next.stage - prev))) };
+}

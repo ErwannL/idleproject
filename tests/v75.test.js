@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { ACCESSORY_SLOTS, ITEM_BASES, SLOTS } from '../src/data/items.js';
+import { ACCESSORY_SLOTS, HERO_PLACE, ITEM_BASES, SLOTS } from '../src/data/items.js';
 import { collectBonuses } from '../src/core/bonuses.js';
 import { craftCost, craftItem, fuseItems, fusionGroups, maxUpgrades, upgradeCost, upgradeItem } from '../src/core/forge.js';
 import { collectItem, equipItem } from '../src/core/inventory.js';
@@ -58,22 +58,24 @@ test('fusion : 5 objets gris d\'un emplacement donnent 1 objet bleu (niveau le p
   assert.equal(fuseItems(state, 'helmet', 'common', rng), null, 'plus assez d\'objets');
 });
 
-test('accessoires : une place qui réunit les 4 bijoux et améliore les statistiques secondaires', () => { // v9.3.4 (f)
+test('accessoires : 3 places de bijoux (les boucles vont au collier) qui améliorent les statistiques secondaires', () => { // v9.3.8
   const state = rich(7);
-  for (const slot of ACCESSORY_SLOTS) assert.ok(slot in SLOTS, slot);
-  assert.ok('accessory' in state.equipment);
+  for (const slot of ACCESSORY_SLOTS) assert.ok(slot in SLOTS && HERO_PLACE[slot] in state.equipment, slot);
+  assert.equal(HERO_PLACE.earring, 'amulet');
+  assert.ok(!('accessory' in state.equipment) && !('earring' in state.equipment));
   const ring = makeItem(state, 'band_ring_ruby', 'epic', 10, undefined, new Rng(1));
   assert.equal(ring.affixes[0].type, 'goldPct');
   state.inventory.push(ring);
   const before = collectBonuses(state).goldPct;
   equipItem(state, ring.id);
   assert.ok(collectBonuses(state).goldPct >= before + ring.affixes[0].value);
-  assert.equal(ring.parts.length, 3, 'collier, boucles et bracelet réunis');
+  assert.equal(state.equipment.ring?.id, ring.id, 'l\'anneau va à sa place');
+  assert.equal(ring.parts, undefined, 'v9.3.8 : plus de pièces réunies');
   // Une ancienne sauvegarde sans emplacements d'accessoires se charge et les reçoit vides.
   const raw = JSON.parse(JSON.stringify(createNewState(0, 8)));
   raw.equipment = { weapon: raw.equipment.weapon, helmet: null, armor: null };
   const loaded = sanitizeState(raw);
-  assert.equal(loaded.equipment.accessory, null);
+  for (const slot of ['amulet', 'ring', 'bracelet']) assert.equal(loaded.equipment[slot], null);
   // Les améliorations d'un objet survivent à la sauvegarde.
   const helm = makeItem(state, 'iron_helm', 'rare', 3);
   state.inventory.push(helm);

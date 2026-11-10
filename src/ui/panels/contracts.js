@@ -57,7 +57,7 @@ function row({ icon, label, progress, target, reward, done, claimed, action, val
   </div>`;
 }
 
-function loginTab(state) {
+export function loginTab(state) { // v9.3.8 : aussi dans la fenêtre du jour (à l'ouverture)
   const login = state.missions.login;
   const pending = loginPending(state);
   const n = LOGIN_CALENDAR.length;
@@ -65,7 +65,7 @@ function loginTab(state) {
   const got = pending ? login.claimed % n : login.claimed > 0 ? ((login.claimed - 1) % n) + 1 : 0;
   const cells = LOGIN_CALENDAR.map((r, i) => {
     const st = i < got ? 'got' : i < got + pending ? 'today' : '';
-    return `<div class="login-day ${st}"><b>J${i + 1}</b>${rewardIcons(r, 'rw-col')}</div>`;
+    return `<div class="login-day ${st}${i === n - 1 ? ' jackpot' : ''}"><b>J${i + 1}</b>${rewardIcons(r, 'rw-col')}</div>`;
   }).join('');
   return `<div class="muted">Jours de connexion : ${login.days}. Un jour manqué ne remet pas le calendrier à zéro.</div>
     <div class="login-cal">${cells}</div>
@@ -75,7 +75,9 @@ function loginTab(state) {
 function periodTab(state, period) {
   const run = state.missions[period.id];
   const shown = openMissions(state, period); // v9.3.5 : pas de mission pour une fonction verrouillée
-  const rows = shown.map((m) => {
+  // v9.3.8 (2.6) : prêtes d'abord, puis en cours, les terminées en bas (grisées).
+  const order = (m) => { const st = missionStatus(state, period.id, m); return st.claimed ? 2 : st.done ? 0 : 1; };
+  const rows = [...shown].sort((a, b) => order(a) - order(b)).map((m) => {
     const st = missionStatus(state, period.id, m);
     return row({ icon: TYPE_ICONS[m.type] ?? 'icon_star', label: m.label, progress: st.progress, target: m.target, reward: m.reward,
       done: st.done, claimed: st.claimed, action: 'claim-mission', value: `${period.id}|${m.id}` });
@@ -87,7 +89,11 @@ function periodTab(state, period) {
     <div class="m-main"><div class="m-label"><b>Récompense complète</b>${rewardIcons(period.bonus)}</div>${progressBar(claimedCount / Math.max(1, shown.length), `${claimedCount} / ${shown.length}`)}</div>
     <div class="m-btn">${run.bonus ? '<span class="m-done">✔</span>' : `<button class="btn ${ready ? 'btn-gold' : ''} small" data-action="claim-mission-bonus" data-value="${period.id}" ${ready ? '' : 'disabled'}>Ouvrir</button>`}</div>
   </div>`;
-  return `<div class="m-reset muted">${period.reset} · dans ${remainingText(periodRemaining(period.id))}</div>${rows}${chest}`;
+  // Grande barre en haut, coffre au bout (il s'ouvre avec une animation quand il est prêt).
+  const pct = Math.round((claimedCount / Math.max(1, shown.length)) * 100);
+  const big = `<div class="q-big${ready ? ' ready' : ''}${run.bonus ? ' opened' : ''}"><div class="q-bar"><i style="width:${pct}%"></i><span>${claimedCount} / ${shown.length}</span></div>
+    <button class="q-chest" data-action="claim-mission-bonus" data-value="${period.id}" ${ready ? '' : 'disabled'} aria-label="Ouvrir le grand coffre">${img('icon_chest')}</button></div>`;
+  return `<div class="m-reset muted">${period.reset} · dans ${remainingText(periodRemaining(period.id))}</div>${big}${rows}${chest}`;
 }
 
 // v9.1.3 (lot F) : piste du mois — hebdomadaires et mensuelles fondues. Une barre à 10 paliers, puis les objectifs.
@@ -133,7 +139,7 @@ function findsCard(ui) {
 }
 
 // Prime du jour (v8.9).
-function bountyCard(state) {
+export function bountyCard(state) { // v9.3.8 : affichée sur la Carte (ce n'est pas une quête)
   const b = dailyBounty(state);
   const enemy = ENEMIES[b.type];
   const done = bountyProgress(state);
@@ -176,8 +182,9 @@ export default {
   },
   render(ui, state) {
     const count = (ids) => ui.claims.filter((c) => c.tab === 'contracts' && ids.includes(c.period ?? c.kind)).length;
-    const parts = [['today', 'Aujourd\'hui', 'icon_book'], ['week', 'Piste du mois', 'icon_map'], ['achievements', 'Hauts faits', 'icon_star']];
-    const ready = { today: count(['daily', 'login', 'contract', 'bounty', 'event']), week: count(['track']), achievements: count(['achievement']) };
+    // v9.3.8 (2.6) : Jour · Semaine · Mois · Hauts faits, chacun avec sa pastille.
+    const parts = [['today', 'Jour', 'icon_book'], ['weekly', 'Semaine', 'icon_chest'], ['week', 'Mois', 'icon_map'], ['achievements', 'Hauts faits', 'icon_star']];
+    const ready = { today: count(['daily', 'login', 'contract', 'event']), weekly: count(['weekly']), week: count(['track']), achievements: count(['achievement']) };
     const tab = parts.some(([id]) => id === ui.view.missionTab) ? ui.view.missionTab : 'today';
     const seg = segment(parts.map(([id, label, icon]) => [id, ready[id] ? `${label}<i class="pill-n" aria-label="${ready[id]} à récupérer">${ready[id]}</i>` : label, icon]), 'mission-tab', tab);
     const period = (id) => MISSION_PERIODS.find((p) => p.id === id);
@@ -190,14 +197,13 @@ export default {
     const nOf = (k) => ui.claims.filter((c) => c.tab === 'contracts' && (c.period ?? c.kind) === k && !c.blocked).length;
     let body;
     if (tab === 'achievements') body = `<div class="card m-body">${achievementsTab(state)}</div>`;
+    else if (tab === 'weekly') body = `<div class="card m-body">${periodTab(state, period('weekly'))}</div>`;
     else if (tab === 'week') {
       body = `<div class="card m-body">${trackTab(state)}</div>`;
     } else {
       body = `<div class="card m-body"><div class="section-title">${sec(period('daily').label, nOf('daily'))}</div>${periodTab(state, period('daily'))}</div>
         ${fold(ui, 'login', sec('Connexion', nOf('login')), () => loginTab(state), { open: (loginPending(state) > 0), extra: (loginPending(state) > 0) ? '<span class="good">à récupérer</span>' : '' })}
         ${findsCard(ui)}
-        ${bountyCard(state)}
-        ${merchants ? `<div class="section-title">Marchands</div>${merchants}` : ''}
         <div class="card m-body"><div class="section-title">${sec('Contrats', nOf('contract'))}</div>${contractsTab(state)}</div>`;
     }
     return seg + peek + body;

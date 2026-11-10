@@ -1,7 +1,7 @@
 // Statistiques du héros : base + améliorations + équipement + bonus permanents
 // (pouvoirs ancestraux actifs et talents de Renaissance).
 import { BALANCE } from '../data/balance.js';
-import { EQUIP_SLOTS, SLOTS, eqSlot } from '../data/items.js';
+import { EQUIP_SLOTS, HERO_SLOTS, SLOTS, eqSlot, heroSlot } from '../data/items.js';
 import { collectBonuses } from './bonuses.js';
 import { cheatMultiplier } from './cheats.js';
 import { PRESTIGE } from '../data/prestige.js';
@@ -18,7 +18,7 @@ export function rebirthMultiplier(state) {
 
 export function sumEquipmentStats(equipment) {
   const total = { damage: 0, maxHp: 0, armor: 0, attackSpeed: 0 };
-  for (const slot of Object.keys(EQUIP_SLOTS)) {
+  for (const slot of Object.keys(HERO_SLOTS)) {
     const item = equipment[slot];
     if (!item) continue;
     for (const src of [item, ...(item.parts ?? [])]) { // v9.3.4 (f) : pièces réunies comprises
@@ -123,5 +123,5 @@ export function defenseReduction(points, balance = BALANCE) {
 
 // Statistiques si `item` remplaçait l'objet équipé du même emplacement.
 export function statsWithItem(state, item, balance = BALANCE) {
-  return computeHeroStats(state, balance, { ...state.equipment, [eqSlot(item)]: item });
+  return computeHeroStats(state, balance, { ...state.equipment, [heroSlot(item)]: item });
 }

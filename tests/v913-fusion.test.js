@@ -9,7 +9,7 @@ import { canEquip, classWeaponBases } from '../src/core/classes.js';
 import { performRebirth } from '../src/core/rebirth.js';
 import { REPEATABLE } from '../src/ui/hold.js';
 import { Rng } from '../src/core/rng.js';
-import { ITEM_BASES, SLOT_GROUP } from '../src/data/items.js';
+import { ITEM_BASES, HERO_PLACE } from '../src/data/items.js';
 
 const NOW = Date.UTC(2026, 10, 2, 12);
 const fresh = (seed = 1) => { const s = createNewState(NOW, seed); s.maxStage = 60; s.records.bestStage = 60; return s; };
@@ -17,7 +17,7 @@ const fresh = (seed = 1) => { const s = createNewState(NOW, seed); s.maxStage = 
 function geared(seed = 1) {
   const s = fresh(seed);
   for (const slot of Object.keys(s.equipment)) {
-    const base = slot === 'weapon' ? classWeaponBases(s.heroClass)[0] : ITEM_BASES.find((b) => SLOT_GROUP[b.slot] === slot && !b.signature);
+    const base = slot === 'weapon' ? classWeaponBases(s.heroClass)[0] : ITEM_BASES.find((b) => HERO_PLACE[b.slot] === slot && !b.signature);
     s.equipment[slot] = makeItem(s, base.id, 'legendary', 5000);
   }
   return s;

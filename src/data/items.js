@@ -16,6 +16,11 @@ export const SLOTS = {
 export const EQUIP_SLOTS = { weapon: 'Arme', armor: 'Armure', accessory: 'Accessoire' };
 export const SLOT_GROUP = { weapon: 'weapon', helmet: 'armor', armor: 'armor', amulet: 'accessory', earring: 'accessory', ring: 'accessory', bracelet: 'accessory' };
 export const eqSlot = (item) => SLOT_GROUP[item?.slot] ?? item?.slot;
+// v9.3.8 (2.5) : le HÉROS revient à 6 places (plus de petites victoires) ; les compagnons gardent les 3 places ci-dessus.
+// Les boucles d'oreilles se portent à la place du collier.
+export const HERO_SLOTS = { weapon: 'Arme', helmet: 'Casque', armor: 'Armure', amulet: 'Collier', ring: 'Anneau', bracelet: 'Bracelet' };
+export const HERO_PLACE = { weapon: 'weapon', helmet: 'helmet', armor: 'armor', amulet: 'amulet', earring: 'amulet', ring: 'ring', bracelet: 'bracelet' };
+export const heroSlot = (item) => HERO_PLACE[item?.slot] ?? item?.slot;
 // Types réunis dans une place : un objet de la place porte une pièce de chaque autre type (`parts`), comme avant
 // le casque + l'armure et les 4 bijoux (même puissance par place).
 export const GROUP_KINDS = { weapon: ['weapon'], armor: ['armor', 'helmet'], accessory: ['amulet', 'earring', 'ring', 'bracelet'] };

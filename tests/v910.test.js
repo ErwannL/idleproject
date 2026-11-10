@@ -106,19 +106,19 @@ test('lot 0 : Renaissance impossible pendant un mode ; boucle de boss et retente
 test('lot 0 / lot 7 : builds — renommer, objets du coffre, nombre exact d\'objets introuvables', () => {
   const s = createNewState(NOW);
   const helm = makeItem(s, 'leather_hood', 'rare', 3);
-  s.equipment.armor = helm; // v9.3.4 : le casque occupe la place « armure »
+  s.equipment.helmet = helm; // v9.3.8 : le casque a de nouveau sa place
   assert.ok(saveLoadout(s, 0));
   assert.ok(renameLoadout(s, 0, '  Farm   or  '));
   assert.equal(s.loadouts[0].name, 'Farm or');
   assert.equal(renameLoadout(s, 0, '   '), false);
   // Le casque part au coffre, l'arme portée est recyclée (introuvable).
-  s.equipment.armor = null;
+  s.equipment.helmet = null;
   s.stash.push(helm);
   s.loadouts[0].gear.weapon = 'it99999';
   const r = applyLoadout(s, 0, BALANCE);
   assert.equal(r.missing, 1);
   assert.equal(r.refused, 0);
-  assert.equal(s.equipment.armor?.id, helm.id, 'repris du coffre');
+  assert.equal(s.equipment.helmet?.id, helm.id, 'repris du coffre');
   // Déjà porté : ni introuvable ni refusé.
   s.loadouts[0].gear.weapon = s.equipment.weapon.id;
   assert.deepEqual(applyLoadout(s, 0, BALANCE), { missing: 0, refused: 0 });
@@ -132,7 +132,7 @@ test('lot 0 : le recyclage fait pour libérer le sac est compté dans le journal
   const s = createNewState(NOW);
   s.ui.autoUseless = false; // v9.3.8 : règles manuelles seules
   assert.equal(recycleRules(s).mode, 'full');
-  s.equipment.armor = makeItem(s, 'iron_helm', 'epic', 80); // v9.3.4 : place « armure »
+  s.equipment.helmet = makeItem(s, 'iron_helm', 'epic', 80); // v9.3.8 : de nouveau sa place
   const journal = createJournal(s, NOW);
   while (s.inventory.length < BALANCE.loot.inventorySize) s.inventory.push(makeItem(s, 'leather_hood', 'common', 1));
   const r = collectItem(s, makeItem(s, 'leather_hood', 'rare', 50), BALANCE);
@@ -282,7 +282,7 @@ test('lot 5 : « Répartir mes points » équilibre entre les compétences appri
 
 test('lot 7 : filtre de recyclage « garder si… » protège les objets avec cet effet', () => {
   const s = createNewState(NOW);
-  s.equipment.armor = makeItem(s, 'iron_helm', 'legendary', 99); // v9.3.4 : place « armure »
+  s.equipment.helmet = makeItem(s, 'iron_helm', 'legendary', 99); // v9.3.8 : de nouveau sa place
   const item = makeItem(s, 'leather_hood', 'common', 1);
   item.affixes = [{ type: 'lifesteal', value: 2 }];
   s.ui.recycle = { mode: 'full', rarities: ['common'], slots: ['helmet'], keepAffixes: [] };

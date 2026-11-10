@@ -121,21 +121,23 @@ test('v8.5 : ensembles d\'équipement — butin, bonus 2/4/6, pièces gardées p
   // Bonus.
   const set = ITEM_SETS.find((x) => x.id === 'caves');
   const eq = { ...s.equipment };
-  // v9.3.4 (f) : 3 places, chacune compte pour 2 pièces (2 places → paliers 2 et 4, 3 places → palier 6).
-  const bases = { weapon: 'dagger', armor: 'chainmail', accessory: 'necklace_ruby' };
+  // v9.3.8 : 6 places, chacune compte 1 pièce (paliers 2/4/6).
+  const slots = ['weapon', 'helmet', 'armor', 'amulet', 'ring', 'bracelet'];
+  const bases = { weapon: 'dagger', helmet: 'iron_helm', armor: 'chainmail', amulet: 'necklace_ruby', ring: 'band_ring_ruby', bracelet: 'thorn_bracelet_ruby' };
   eq.weapon = makeItem(s, bases.weapon, 'rare', 5, BALANCE, null, 'caves');
+  eq.helmet = makeItem(s, bases.helmet, 'rare', 5, BALANCE, null, 'caves');
   assert.deepEqual(setEffects(eq), set.bonuses[2]);
-  eq.armor = makeItem(s, bases.armor, 'rare', 5, BALANCE, null, 'caves');
+  slots.forEach((slot, i) => { if (i < 4) eq[slot] = makeItem(s, bases[slot], 'rare', 5, BALANCE, null, 'caves'); });
   assert.deepEqual(setEffects(eq), { ...set.bonuses[2], ...set.bonuses[4] });
-  eq.accessory = makeItem(s, bases.accessory, 'rare', 5, BALANCE, null, 'caves');
+  slots.forEach((slot) => { eq[slot] = makeItem(s, bases[slot], 'rare', 5, BALANCE, null, 'caves'); });
   assert.equal(setEffects(eq).maxHpMultPct, set.bonuses[6].maxHpMultPct);
   s.equipment = eq;
   const hp = computeHeroStats(s).maxHp;
-  s.equipment = { ...eq, accessory: makeItem(s, bases.accessory, 'rare', 5) }; // même pièce hors ensemble
+  s.equipment = { ...eq, ring: makeItem(s, bases.ring, 'rare', 5) }; // même pièce hors ensemble
   assert.ok(hp > computeHeroStats(s).maxHp * 1.3, 'le palier 6 pièces multiplie les PV');
   // Recyclage : une pièce d'ensemble utile est gardée, sauf si l'option est coupée.
   const t = createNewState(NOW, 2);
-  t.equipment.armor = makeItem(t, 'iron_helm', 'legendary', 50); // v9.3.4 : place « armure »
+  t.equipment.helmet = makeItem(t, 'iron_helm', 'legendary', 50); // v9.3.8 : de nouveau sa place
   t.equipment.weapon = makeItem(t, 'short_sword', 'legendary', 50, BALANCE, null, 'forest');
   const piece = makeItem(t, 'leather_hood', 'rare', 1, BALANCE, null, 'forest');
   const junk = makeItem(t, 'leather_hood', 'rare', 1);

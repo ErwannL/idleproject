@@ -18,7 +18,6 @@
   <div id="app" class="layout-mini">
     <!-- v9.1.0 : 4 menus (onglets dans le panneau), barre verticale (en bas sur écran étroit). Chiffre fixe par menu. -->
     <nav id="tabs" aria-label="Menus">
-      <button data-menu="fight" class="tab-fight"><img class="px" data-icon="icon_damage" alt=""><span>Combat</span></button>
       <button data-menu="hero"><img class="px" data-icon="icon_hero" alt=""><span>Héros</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-hero"></i><b class="badge-count hidden" id="count-hero"></b></button>
       <button data-menu="team"><img class="px" data-icon="icon_summon" alt=""><span>Équipe</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-team"></i></button>
       <button data-menu="adventure"><img class="px" data-icon="icon_map" alt=""><span>Aventure</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-adventure"></i></button>
@@ -60,7 +59,8 @@
           <div id="banner" class="hidden"></div>
         </div>
         <div id="hud">
-          <div id="progress"><div id="progress-fill"></div><span id="progress-text"></span></div>
+          <div id="progress"><div id="progress-fill"></div><i id="boss-timer" class="hidden"></i><span id="progress-text"></span></div>
+          <div id="next-unlock" class="hidden"><i id="next-unlock-fill"></i><span id="next-unlock-text"></span></div>
           <div id="news" title="Dernier événement"><span id="news-text">—</span></div>
           <button id="advance-btn" class="btn btn-primary small hidden" data-action="advance" title="Reprendre la progression">Avancer ▶</button>
           <button id="leave-mode" class="btn btn-danger small hidden" data-action="leave-mode" title="Revenir à la campagne"></button>

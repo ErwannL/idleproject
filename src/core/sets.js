@@ -1,7 +1,7 @@
 // Ensembles d'équipement (v8.5) : bonus des pièces portées, tirage au butin, pièces à garder.
 import { BALANCE } from '../data/balance.js';
 import { ITEM_SETS, SET_PIECES } from '../data/sets.js';
-import { EQUIP_SLOTS, SLOTS, eqSlot } from '../data/items.js';
+import { EQUIP_SLOTS, HERO_SLOTS, SLOTS, eqSlot, heroSlot } from '../data/items.js';
 
 const BY_ID = new Map(ITEM_SETS.map((s) => [s.id, s]));
 
@@ -24,9 +24,9 @@ export function rollSet(zoneIndex, rarity, rng, balance = BALANCE) {
 export function setCounts(equipment) {
   const out = {};
   // v9.3.4 (f) : 3 places, chacune compte pour 2 pièces (2 places : paliers 2 et 4 ; 3 places : palier 6).
-  for (const slot of Object.keys(EQUIP_SLOTS)) {
+  for (const slot of Object.keys(HERO_SLOTS)) {
     const id = equipment[slot]?.set;
-    if (id && BY_ID.has(id)) out[id] = (out[id] ?? 0) + 2;
+    if (id && BY_ID.has(id)) out[id] = (out[id] ?? 0) + 1; // v9.3.8 : 6 places, une pièce chacune (paliers 2, 4, 6)
   }
   return out;
 }

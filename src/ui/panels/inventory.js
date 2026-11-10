@@ -1,10 +1,10 @@
 // Inventaire en 3 zones (équipement porté · fiche de l'objet · grille) et Forge.
 import { canEquip, classById, weaponClass } from '../../core/classes.js';
-import { companionById } from '../../core/companions.js';
+import { companionById, companionMultiplier } from '../../core/companions.js';
 import { gearClassOf as gearClassOfUnit } from '../../data/companion-gear.js';
 import { BALANCE } from '../../data/balance.js';
 import { BOSSES } from '../../data/enemies.js';
-import { EQUIP_SLOTS, RARITIES, SLOTS, STAT_LABELS, eqSlot } from '../../data/items.js';
+import { EQUIP_SLOTS, HERO_SLOTS, RARITIES, SLOTS, STAT_LABELS, eqSlot, heroSlot } from '../../data/items.js';
 import { canEquip as unitCanEquip, classLabel, gearStats, slotName, statText, unitGear, wearerOf, wornItems } from '../../core/companion-gear.js'; // v9.3.4 (f)
 import { heroGearClass, itemClass } from '../../core/classes.js';
 import { teamUpgradeFor } from '../../core/inventory.js';
@@ -58,7 +58,7 @@ function detail(ui, state, item, whoUnit = null) {
   const rarity = rarityById(item.rarity);
   const base = itemBase(item.baseId);
   const wearer = wearerOf(state, item.id); // v9.3.4 (f) : porté par un compagnon
-  const isEquipped = state.equipment[eqSlot(item)]?.id === item.id || Boolean(wearer);
+  const isEquipped = state.equipment[heroSlot(item)]?.id === item.id || Boolean(wearer);
   const stats = Object.entries(item.stats).map(([k, v]) => `<li>${img(STAT_ICONS[k])}${STAT_LABELS[k]}
     <b class="num ${v < 0 ? 'bad' : 'good'}">${formatStat(k, v, true)}</b></li>`).join('');
   const affixes = (item.affixes ?? []).map((a) => `<li class="affix">✦ ${affixText(a)}</li>`).join('');
@@ -76,7 +76,7 @@ function detail(ui, state, item, whoUnit = null) {
       return `<div class="compare-row"><span>${label}</span><span class="num muted">${fmt(a)}${unit} → ${fmt(b)}${unit}</span>
         <span class="num ${cls}">${diff > 0 ? '+' : ''}${fmt(diff)}${unit} ${arrow}</span></div>`;
     };
-    const current = state.equipment[eqSlot(item)];
+    const current = state.equipment[heroSlot(item)];
     const int = (v) => formatNumber(Math.round(v));
     const rows = [row('Dégâts/s', cur.dps, next.dps, (v) => formatDecimal(v)),
       row('Dégâts', cur.damage, next.damage, int),
@@ -182,7 +182,7 @@ function detail(ui, state, item, whoUnit = null) {
     <button class="btn small up-close" data-action="close-sheet" aria-label="Fermer">✕</button>
     <div class="ip-head">${itemFrame(item, { tag: 'div' })}
       <div><div class="ip-name r-${item.rarity}">${escapeHtml(item.name)}${ups ? ` +${ups}` : ''}</div>
-        <div class="ip-pills"><span class="rar-pill r-${item.rarity}">${rarity.label}</span><span class="role-pill">${EQUIP_SLOTS[eqSlot(item)]}</span><span class="role-pill cls-pill">${escapeHtml(classLabel(itemClass(state, item)))}</span>
+        <div class="ip-pills"><span class="rar-pill r-${item.rarity}">${rarity.label}</span><span class="role-pill">${HERO_SLOTS[heroSlot(item)]}</span><span class="role-pill cls-pill">${escapeHtml(classLabel(itemClass(state, item)))}</span>
         ${base.signature ? `<span class="role-pill">Butin de ${escapeHtml(BOSSES[base.signature].name)}</span>` : ''}</div></div></div>
     ${power}${unitLine}<ul class="stat-list ip-stats">${three}</ul>
     ${moreBody}
@@ -281,7 +281,7 @@ function bag(ui, state) {
     ui.view.selectedItemId = selected?.id ?? null;
   }
   const slotFrame = (slot) => {
-    const label = whoUnit ? slotName(whoUnit, slot) : EQUIP_SLOTS[slot];
+    const label = whoUnit ? slotName(whoUnit, slot) : HERO_SLOTS[slot];
     const item = whoUnit ? unitGear(state, who)[slot] : state.equipment[slot];
     const frame = item
       ? itemFrame(item, { selected: item.id === ui.view.selectedItemId, equipped: true })
@@ -296,15 +296,24 @@ function bag(ui, state) {
   const sortOptions = Object.entries(SORT_LABELS)
     .map(([v, l]) => `<option value="${v}" ${v === state.ui.sortBy ? 'selected' : ''}>${l}</option>`).join('');
   const full = state.inventory.length >= BALANCE.loot.inventorySize;
-  const previewEq = selected && !whoUnit && eqSlot(selected) in EQUIP_SLOTS ? { ...state.equipment, [eqSlot(selected)]: selected } : state.equipment;
-  const whoBtn = (id, label, art) => `<button class="btn who-btn${who === id ? ' active' : ''}" data-action="gear-who" data-value="${id}" aria-pressed="${who === id}" title="${escapeHtml(label)}">${art}<small>${escapeHtml(label)}</small></button>`;
-  const whoRow = team.length ? `<div class="who-row" role="group" aria-label="Personnage">${whoBtn('hero', 'Héros', img('icon_hero'))}${team.map((c) => whoBtn(c.id, c.name, companionStill(c))).join('')}</div>` : '';
+  // v9.3.8 (2.4) : par défaut, le sac ne montre que les objets utilisables par le personnage choisi.
+  const usableBy = (i) => (whoUnit ? unitCanEquip(state, who, i).ok : canEquip(state, i));
+  const shown = ui.view.bagAll ? items : items.filter(usableBy);
+  const hidden = items.length - shown.length;
+  const previewEq = selected && !whoUnit && heroSlot(selected) in HERO_SLOTS && !wearerOf(state, selected.id) ? { ...state.equipment, [heroSlot(selected)]: selected } : state.equipment;
   const st = computeHeroStats(state);
-  const PL = Object.keys(EQUIP_SLOTS);
+  // v9.3.8 (2.4) : grands portraits (héros et compagnons de l'équipe) avec niveau et puissance ; le personnage choisi en
+  // grand, dessiné comme en combat, ses places tout autour.
+  const unitPower = (c) => Math.round(100 * companionMultiplier(state, c.id));
+  const whoBtn = (id, label, art, sub) => `<button class="who-card${who === id ? ' active' : ''}" data-action="gear-who" data-value="${id}" aria-pressed="${who === id}" title="${escapeHtml(label)}">
+      <span class="who-art">${art}</span><b>${escapeHtml(label)}</b><small>${sub}</small></button>`;
+  const whoRow = `<div class="who-row" role="group" aria-label="Personnage">${whoBtn('hero', 'Héros', animCanvas('hero', 34, 34, 2), `Nv ${state.level} · ${formatNumber(st.combatPower)}`)}${team.map((c) => whoBtn(c.id, c.name, companionStill(c), `Nv ${state.companions.owned[c.id]?.level ?? 1} · ${formatNumber(unitPower(c))}`)).join('')}</div>`;
+  const PL = whoUnit ? Object.keys(EQUIP_SLOTS) : Object.keys(HERO_SLOTS);
+  const half = Math.ceil(PL.length / 2);
   const equipCol = `<div class="card inv-equip">${whoRow}
-      <div class="equip-doll"><div class="slot-col">${PL.slice(0, 2).map(slotFrame).join('')}</div>
-        <div class="doll" title="Aperçu avec l'objet sélectionné">${whoUnit ? companionStill(whoUnit) : animCanvas('hero', 64, 58, 2, `data-preview="${escapeHtml(JSON.stringify(previewEq))}"`)}</div>
-        <div class="slot-col acc">${PL.slice(2).map(slotFrame).join('')}</div></div>
+      <div class="equip-doll big"><div class="slot-col">${PL.slice(0, half).map(slotFrame).join('')}</div>
+        <div class="doll" title="Aperçu avec l'objet sélectionné">${whoUnit ? `<span class="doll-unit">${companionStill(whoUnit)}</span>` : animCanvas('hero', 64, 64, 3, `data-big="1" data-preview="${escapeHtml(JSON.stringify(previewEq))}"`)}</div>
+        <div class="slot-col acc">${PL.slice(half).map(slotFrame).join('')}</div></div>
       ${whoUnit ? `<div class="inv-power"><small>${escapeHtml(classLabel(gearClassOfUnit(whoUnit)))}</small><b class="num">${escapeHtml(statText(Object.values(unitGear(state, who)).filter(Boolean).reduce((t, it) => { for (const [k, v] of Object.entries(gearStats(it, state))) t[k] = Math.round(((t[k] ?? 0) + v) * 10) / 10; return t; }, {}))) || '—'}</b></div>`
         : `<div class="inv-power"><small>Puissance</small><b class="num">${formatNumber(st.combatPower)}</b></div>`}</div>`;
   // v9.1.3 (doc1 « Équipement : Sac ») : sur téléphone, les 7 cases portées en une ligne compacte en haut du sac
@@ -318,7 +327,8 @@ function bag(ui, state) {
       <div class="inv-tools"><div class="filter-chips" role="group" aria-label="Emplacement">${filterChips}</div>
         <select data-action="sort" aria-label="Trier">${sortOptions}</select>
         <select data-action="rarity-filter" aria-label="Rareté">${[['all', 'Toutes'], ...RARITIES.map((r) => [r.id, r.label])].map(([v, l]) => `<option value="${v}" ${v === (state.ui.rarityFilter ?? 'all') ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
-      <div class="inv-grid">${items.map((i) => {
+      ${ui.view.bagAll ? '<button class="btn small bag-for" data-action="bag-all" data-value="">Seulement les objets utilisables</button>' : `<button class="btn small bag-for" data-action="bag-all" data-value="1">Voir aussi les objets des autres classes${hidden ? ` (${hidden})` : ''}</button>`}
+      <div class="inv-grid">${shown.map((i) => {
         // v9.3.4 (f) : objet d'une autre classe que le personnage choisi : grisé, « Pour : … ».
         const usable = whoUnit ? unitCanEquip(state, who, i).ok : canEquip(state, i);
         const f = itemFrame(i, { selected: i.id === ui.view.selectedItemId, showUp: true, state, current: st });

@@ -14,7 +14,7 @@ import { createNewState, sanitizeState } from '../src/core/state.js';
 
 const day = (y, m, d, h = 12) => new Date(y, m - 1, d, h).getTime();
 
-test('missions : réinitialisation quotidienne et piste du mois (v9.1.3 : hebdo et mensuel fondus)', () => {
+test('missions : jour, semaine (v9.3.8) et piste du mois', () => {
   assert.equal(periodKey('weekly', day(2026, 10, 25)), '2026-10-19'); // dimanche → lundi précédent
   assert.equal(periodKey('weekly', day(2026, 10, 26)), '2026-10-26');
   assert.equal(periodKey('monthly', day(2026, 10, 25)), '2026-10');
@@ -28,7 +28,12 @@ test('missions : réinitialisation quotidienne et piste du mois (v9.1.3 : hebdo 
   assert.equal(state.missions.track.progress.kills, 500); // même mois
   refreshMissions(state, day(2026, 11, 1));
   assert.equal(state.missions.track.progress.kills, undefined); // 1er du mois : nouvelle piste
-  assert.equal(state.missions.weekly, undefined);
+  // v9.3.8 : la Semaine compte aussi, et repart le lundi.
+  assert.equal(state.missions.weekly.key, '2026-10-26');
+  trackContracts(state, 'kills', 40);
+  assert.equal(state.missions.weekly.progress.kills, 40);
+  refreshMissions(state, day(2026, 11, 2));
+  assert.equal(state.missions.weekly.progress.kills, undefined);
 });
 
 test('missions : récompenses en gemmes, coffre bonus quand tout est récupéré', () => {
