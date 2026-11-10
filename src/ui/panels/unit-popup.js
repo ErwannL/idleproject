@@ -103,8 +103,8 @@ export function unitPopup(ui, state, c, { actions, gear }) {
     .filter((sk) => sk.type === 'hit' || sk.type === 'burst').reduce((s, sk) => s + (hero.damage * sk.value * companionSkillMultiplier(state, c, sk.type, false, undefined, own)) / sk.every, 0);
   const copies = Math.min(COMPANION_RULES.maxCopies, own.stars ?? 1);
   const nextStep = copies < COMPANION_RULES.maxCopies ? `Prochaine copie : +${DUP_BONUS_PCT[copies]} % aux stats${copies + 1 === ULT_UNLOCK_COPIES ? ', ultime Nv 6 à 10' : ''}` : 'Copies au maximum';
-  const tab = ['skills', 'gear', 'story'].includes(ui.view.unitTab) ? ui.view.unitTab : 'skills';
-  const tabs = [['skills', 'Compétences'], ...(owned ? [['gear', 'Équipement']] : []), ['story', 'Histoire']]
+  const tab = ['skills', 'gear', 'story'].includes(ui.view.unitTab) && !(ui.view.unitTab === 'gear' && c.kind !== 'ally') ? ui.view.unitTab : 'skills';
+  const tabs = [['skills', 'Compétences'], ...(owned && c.kind === 'ally' ? [['gear', 'Équipement']] : []) /* v9.3.8 : familier sans équipement */, ['story', 'Histoire']]
     .map(([k, l]) => `<button class="btn chip-btn${k === tab ? ' active' : ''}" data-action="unit-tab" data-value="${k}" role="tab" aria-selected="${k === tab}">${l}</button>`).join('');
   const art = hdArt(c, 'up-art') || companionPortrait(c, true);
   const body = tab === 'gear' && owned ? gear() : tab === 'story' ? historyTab(state, c)

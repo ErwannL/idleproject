@@ -181,7 +181,9 @@ function cleanItem(item) {
   };
 }
 // v9.3.4 (f) : pièces réunies dans une place (casque dans l'armure, bijoux dans l'accessoire).
-const GEAR_CLASS_IDS = ['attacker', 'defender', 'support', 'beast'];
+// v9.3.8 (2.3) : la classe « Familier » n'existe plus — un ancien objet de familier devient un objet de la classe du héros
+// (classe absente = celle du héros) ; porté par un familier, il revient au sac (companion-gear.js).
+const GEAR_CLASS_IDS = ['attacker', 'defender', 'support'];
 function cleanParts(parts) {
   if (!Array.isArray(parts)) return [];
   return parts.slice(0, 3).filter((p) => p && itemBase(p.baseId) && p.stats && typeof p.stats === 'object'

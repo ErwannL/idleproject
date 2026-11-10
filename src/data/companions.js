@@ -45,7 +45,7 @@ export const COMPANIONS = [
   {
     id: 'owl', name: 'Hibou érudit', rarity: 'rare', sprite: 'pet_owl',
     // v9.1.3 (doc4 lot 3) : compétence propre (il n'en avait pas : 3 compétences au lieu de 4).
-    passive: { xpPct: 15, dropChance: 1 }, skill: { name: 'Piqué nocturne', type: 'hit', every: 6, value: 0.6, text: 'Frappe à 60 % des dégâts du héros' },
+    passive: { xpPct: 20 } /* v9.3.8 : une seule stat */, skill: { name: 'Piqué nocturne', type: 'hit', every: 6, value: 0.6, text: 'Frappe à 60 % des dégâts du héros' },
   },
   {
     id: 'fairy', name: 'Fée des bois', rarity: 'rare', sprite: 'pet_fairy',
@@ -64,26 +64,26 @@ export const COMPANIONS = [
   // d'expérience. Compétence spéciale (4e exemplaire) = signature (`ultimate`), comme les héros SSR.
   {
     id: 'crystal_hedgehog', name: 'Hérisson de cristal', rarity: 'epic', sprite: 'pet_crystal_hedgehog',
-    passive: { armor: 3, critChance: 3 }, skill: { name: 'Piquants de cristal', type: 'burst', every: 9, value: 0.7, text: 'Projette ses piquants sur tous les ennemis (70 % des dégâts)' },
+    passive: { critChance: 5 } /* v9.3.8 : une seule stat */, skill: { name: 'Piquants de cristal', type: 'burst', every: 9, value: 0.7, text: 'Projette ses piquants sur tous les ennemis (70 % des dégâts)' },
   },
   {
     id: 'dragonling', name: 'Dragonnet de braise', rarity: 'legendary', sprite: 'pet_dragonling',
-    passive: { damageVsBossPct: 18, critChance: 2 }, skill: { name: 'Souffle de braise', type: 'hit', every: 6, value: 1.2, text: 'Crache une flamme à 120 % des dégâts du héros' },
+    passive: { damageVsBossPct: 25 } /* v9.3.8 : une seule stat */, skill: { name: 'Souffle de braise', type: 'hit', every: 6, value: 1.2, text: 'Crache une flamme à 120 % des dégâts du héros' },
     ultimate: signature('Brasier draconique', PET_30, { type: 'shield', value: 25, duration: 4 }),
   },
   {
     id: 'jade_turtle', name: 'Tortue de jade', rarity: 'legendary', sprite: 'pet_jade_turtle',
-    passive: { armor: 8, maxHpPct: 8 }, skill: { name: 'Carapace de jade', type: 'shield', every: 18, value: 45, duration: 5, text: 'Réduit les dégâts de 45 % pendant 5 s' },
+    passive: { maxHpPct: 15 } /* v9.3.8 : une seule stat */, skill: { name: 'Carapace de jade', type: 'shield', every: 18, value: 45, duration: 5, text: 'Réduit les dégâts de 45 % pendant 5 s' },
     ultimate: signature('Sanctuaire de jade', PET_30, { type: 'shield', value: 35, duration: 5 }),
   },
   {
     id: 'kitsune', name: 'Renard céleste', rarity: 'legendary', sprite: 'pet_kitsune',
-    passive: { critChance: 5, attackSpeedPct: 6 }, skill: { name: 'Feux de renard', type: 'burst', every: 7, value: 0.9, text: 'Lance des feux de renard sur tous les ennemis (90 % des dégâts)' },
+    passive: { critChance: 8 } /* v9.3.8 : une seule stat */, skill: { name: 'Feux de renard', type: 'burst', every: 7, value: 0.9, text: 'Lance des feux de renard sur tous les ennemis (90 % des dégâts)' },
     ultimate: signature('Neuf queues', PET_30, { type: 'gold', value: 3 }),
   },
   {
     id: 'phoenix', name: 'Petit phénix', rarity: 'legendary', sprite: 'pet_phoenix',
-    passive: { regenPct: 1, maxHpPct: 6, lifesteal: 1 }, skill: { name: 'Plume ardente', type: 'heal', every: 14, value: 16, text: 'Soigne 16 % des PV' },
+    passive: { regenPct: 2 } /* v9.3.8 : une seule stat */, skill: { name: 'Plume ardente', type: 'heal', every: 14, value: 16, text: 'Soigne 16 % des PV' },
     ultimate: signature('Renaissance', PET_30, { type: 'heal', value: 10 }),
   },
   // Héros alliés invocables (R = Rare, SR = Épique, SSR = Légendaire) : ils combattent aux côtés du

@@ -5,7 +5,7 @@
 // companion-gear.js, en %) × la rareté × (1 + 8 % par amélioration). Effets RÉELS :
 //   campagne et World Boss : atk → attaques et compétences offensives, heal → soins, boucliers et cris, cd → recharge ;
 //   Arène des compagnons : atk, hp, def (combats sans le chevalier).
-import { GEAR_BASES, GEAR_RARITY, GEAR_SLOTS, GEAR_UP_COST, GEAR_UP_PCT, SLOT_NAMES, STAT_NAMES, gearClassOf } from '../data/companion-gear.js';
+import { GEAR_CLASSES, GEAR_BASES, GEAR_RARITY, GEAR_SLOTS, GEAR_UP_COST, GEAR_UP_PCT, SLOT_NAMES, STAT_NAMES, gearClassOf } from '../data/companion-gear.js';
 import { COMPANIONS } from '../data/companions.js';
 import { EQUIP_SLOTS, eqSlot } from '../data/items.js';
 import { BALANCE } from '../data/balance.js';
@@ -67,6 +67,7 @@ export function canEquip(state, unitId, item) {
   if (!unit || !item) return { ok: false, reason: 'Objet inconnu.' };
   if (!state.companions.owned[unitId]) return { ok: false, reason: `${unit.name} n'est pas encore obtenu.` };
   const cls = gearClassOf(unit);
+  if (GEAR_CLASSES[cls]?.noGear) return { ok: false, reason: 'Les familiers ne portent pas d\'équipement.' }; // v9.3.8
   const ic = itemClass(state, item);
   if (ic !== cls) return { ok: false, reason: `Pour : ${CLASS_NAMES[ic]}` };
   return { ok: true, reason: '' };
@@ -158,7 +159,7 @@ export function sanitizeCompanionGear(state, raw, { isValid = () => false, clean
       const it = slots[s];
       if (!isValid(it) || eqSlot(it) !== s) continue;
       const item = clean(it);
-      if (itemClass(state, item) === gearClassOf(u)) (state.companionGear.equipped[unit] ??= {})[s] = item;
+      if (u.kind === 'ally' && itemClass(state, item) === gearClassOf(u)) (state.companionGear.equipped[unit] ??= {})[s] = item;
       else state.inventory.push(item); // classe devenue incompatible : rendu au sac
     }
   }

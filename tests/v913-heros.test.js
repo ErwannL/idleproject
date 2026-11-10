@@ -69,7 +69,7 @@ function newDps(state, c, copies, n, home = false) {
 test('lot 1 : 31 unités (v9.2.9 : + 5 familiers) × 1 à 5 exemplaires × 1, 2, 3, 5, 8 cibles : DPS moyen ≥ actuel, égal à 5 exemplaires (1e-9)', () => {
   const s = createNewState(NOW);
   assert.equal(COMPANIONS.length, 31);
-  for (const c of COMPANIONS) {
+  for (const c of COMPANIONS.filter((x) => x.kind === 'ally')) { // v9.3.8 : familiers sans ultime (un passif + une active)
     for (let copies = 1; copies <= 5; copies++) {
       for (const n of [1, 2, 3, 5, 8]) {
         const before = oldDps(c, copies, n);
@@ -83,7 +83,7 @@ test('lot 1 : 31 unités (v9.2.9 : + 5 familiers) × 1 à 5 exemplaires × 1, 2,
 
 test('lot 1 : dans son donjon, hit, burst, soin et rally ≥ actuel à tout nombre d\'exemplaires', () => {
   const s = createNewState(NOW);
-  for (const c of COMPANIONS) {
+  for (const c of COMPANIONS.filter((x) => x.kind === 'ally')) { // v9.3.8 : familiers sans ultime
     for (let copies = 1; copies <= 6; copies++) {
       const old = (RARITY_SKILL[c.rarity] ?? 1) * 6 * (1 + 0.15 * (Math.min(copies, 5) - 1));
       for (const n of [1, 3, 8]) {
@@ -277,6 +277,7 @@ test('lot 3 : signatures SSR — `also` seulement heal, shield ou gold ; base = 
   const ssr = COMPANIONS.filter((c) => c.kind === 'ally' && c.rarity === 'legendary');
   assert.equal(ssr.length, 5);
   for (const c of COMPANIONS) {
+    if (c.kind !== 'ally') { assert.ok(!allCompanionSkills(c.id).some((sk) => sk.ultimate), `${c.id} : familier sans ultime (v9.3.8)`); continue; }
     const ult = allCompanionSkills(c.id).at(-1);
     assert.ok(ult.ultimate);
     if (c.ultimate) {
@@ -296,12 +297,13 @@ test('lot 3 : chaque unité a 4 compétences, aucun nom en double dans un kit ; 
   const s = createNewState(NOW);
   for (const c of COMPANIONS) {
     const list = allCompanionSkills(c.id);
-    assert.equal(list.length, 4, c.id);
-    assert.equal(new Set(list.map((sk) => sk.name)).size, 4, `${c.id} : ${list.map((sk) => sk.name).join(', ')}`);
+    const n = c.kind === 'ally' ? 4 : 3; // v9.3.8 : familier = active et ses deux évolutions, sans ultime
+    assert.equal(list.length, n, c.id);
+    assert.equal(new Set(list.map((sk) => sk.name)).size, n, `${c.id} : ${list.map((sk) => sk.name).join(', ')}`);
   }
   for (const id of RAISED) {
     const c = COMPANIONS.find((x) => x.id === id);
-    for (const n of [1, 3, 8]) assert.ok(newDps(s, c, 5, n) > oldDps(c, 5, n), `${id} relevé`);
+    for (const n of c.kind === 'ally' ? [1, 3, 8] : [1, 3]) assert.ok(newDps(s, c, 5, n) > oldDps(c, 5, n), `${id} relevé n=${n} ${newDps(s, c, 5, n)} vs ${oldDps(c, 5, n)}`); // v9.3.8 : familier calé sur une vague de 3
   }
   const own = (id) => COMPANIONS.find((c) => c.id === id).skill;
   assert.deepEqual([own('ranger').value, own('ranger').every], [1, 5]);

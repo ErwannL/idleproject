@@ -272,7 +272,7 @@ function bag(ui, state) {
   const equippedItems = Object.values(state.equipment).filter(Boolean);
   const all = [...state.inventory, ...equippedItems, ...wornItems(state)];
   // v9.3.4 (f) : personnage choisi (héros ou compagnon de l'équipe) : ses 3 places, et le sac vu pour lui.
-  const team = (state.companions?.equipped ?? []).map((id) => companionById(id)).filter(Boolean);
+  const team = (state.companions?.equipped ?? []).map((id) => companionById(id)).filter((c) => c?.kind === 'ally'); // v9.3.8 : compagnons seulement (les familiers ne portent rien)
   const who = team.some((c) => c.id === ui.view.gearWho) ? ui.view.gearWho : 'hero';
   const whoUnit = who === 'hero' ? null : companionById(who);
   let selected = all.find((i) => i.id === ui.view.selectedItemId);

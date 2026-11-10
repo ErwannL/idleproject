@@ -25,10 +25,17 @@ export function duplicates(owned) {
 
 // v8.9 : 4 compétences par compagnon (la 4e avec 3 doublons).
 const SKILL_CACHE = new Map();
+const FULL_CACHE = new Map();
+function fullSkillList(id) { // kit complet d'origine (ultime compris), pour les rapports des familiers
+  if (!FULL_CACHE.has(id)) FULL_CACHE.set(id, companionSkillList(companionById(id), COMPANION_ROLES[id] ?? 'pet'));
+  return FULL_CACHE.get(id);
+}
 function skillList(id) {
   let list = SKILL_CACHE.get(id);
   if (!list) {
     list = companionSkillList(companionById(id), COMPANION_ROLES[id] ?? 'pet');
+    // v9.3.8 (2.3) : un familier = un bonus passif + une seule compétence active (pas d'ultime).
+    if (companionById(id)?.kind !== 'ally') list = list.filter((s) => !s.ultimate);
     SKILL_CACHE.set(id, list);
   }
   return list;
@@ -42,7 +49,15 @@ export function ultimateUnlocked() {
 // v9.3.3 : compétences en combat = active (+ évolutions des niveaux 5 et 8) + ultime, avec leurs niveaux.
 export function companionSkills(state, id) {
   const cd = unitGearStats(state, id).cd; // v9.3.3 : réduction de recharge de l'équipement (plafonnée)
-  const list = combatSkills(skillList(id), state.companions.owned[id]);
+  let list = combatSkills(skillList(id), state.companions.owned[id]);
+  // v9.3.8 : familier — les dégâts de l'ultime retiré passent dans l'active : même dégâts par seconde qu'avant, au
+  // même niveau (rapport calculé avec l'ancien kit complet).
+  if (companionById(id)?.kind !== 'ally') {
+    const dps = (l) => l.filter((sk) => sk.type === 'hit' || sk.type === 'burst').reduce((a, sk) => a + (sk.value / sk.every) * (sk.type === 'burst' ? 3 : 1), 0); // vague de 3
+    const full = dps(combatSkills(fullSkillList(id), state.companions.owned[id])), now = dps(list);
+    const k = now > 0 && full > now ? (full / now) * 1.1 : 1; // marge : jamais plus faible qu'avant, même contre une vague
+    if (k > 1) list = list.map((sk) => (sk.type === 'hit' || sk.type === 'burst' ? { ...sk, value: sk.value * k } : sk));
+  }
   return cd ? list.map((s) => ({ ...s, every: s.every * (1 - cd / 100) })) : list;
 }
 

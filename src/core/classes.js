@@ -31,10 +31,10 @@ export function heroGearClass(state) { return DEFENDER_CLASSES.has(activeClass(s
 export const itemClass = (state, item) => item?.cls ?? heroGearClass(state);
 // Classe d'un objet lâché : celles de l'équipe en place (héros ×3, chaque compagnon ×1), 15 % au hasard.
 export function rollItemClass(state, rng) {
-  const all = ['attacker', 'defender', 'support', 'beast'];
+  const all = ['attacker', 'defender', 'support']; // v9.3.8 : plus d'objets de familier
   if (rng.next() < 0.15) return all[Math.floor(rng.next() * all.length)];
   const pool = [heroGearClass(state), heroGearClass(state), heroGearClass(state)];
-  for (const id of state.companions?.equipped ?? []) { const u = COMPANIONS.find((c) => c.id === id); if (u) pool.push(gearClassOf(u)); }
+  for (const id of state.companions?.equipped ?? []) { const u = COMPANIONS.find((c) => c.id === id); if (u?.kind === 'ally') pool.push(gearClassOf(u)); }
   return pool[Math.floor(rng.next() * pool.length)];
 }
 

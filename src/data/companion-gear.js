@@ -8,7 +8,7 @@ export const GEAR_CLASSES = {
   attacker: { label: 'Attaquant', roles: ['archer', 'mage', 'assassin', 'berserker'] },
   defender: { label: 'Défenseur', roles: ['guardian'] },
   support: { label: 'Soutien', roles: ['healer'] },
-  beast: { label: 'Familier', roles: [] },
+  beast: { label: 'Familier', roles: [], noGear: true }, // v9.3.8 (2.3) : les familiers ne portent PAS d'équipement
 };
 export function gearClassOf(unit) {
   if (!unit || unit.kind !== 'ally') return 'beast';

@@ -15,7 +15,7 @@ test('compagnons et familiers : marche, attaque de base, puis chaque compétence
     const clips = showcaseClips({ kind: 'unit', id: c.id });
     assert.deepEqual(clips.slice(0, 2).map((x) => x.id), ['walk', 'basic']);
     assert.deepEqual(clips.slice(2).map((x) => x.label), allCompanionSkills(c.id).map((s) => s.name), c.id);
-    assert.ok(clips.at(-1).ult);
+    if (c.kind === 'ally') assert.ok(clips.at(-1).ult); // v9.3.8 : familier sans ultime
   }
 });
 

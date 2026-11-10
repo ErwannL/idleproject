@@ -49,7 +49,7 @@ const hitText = (t, source = 'skill') => [t, (d) => d.target && d.emit('enemyHit
 
 function unitClips(c) {
   const role = COMPANION_ROLES[c.id] ?? 'pet';
-  const list = companionSkillList(c, role);
+  const list = companionSkillList(c, role).filter((s) => c.kind === 'ally' || !s.ultimate); // v9.3.8 : familier sans ultime
   const clips = [walkClip(), {
     id: 'basic', icon: '⚔', label: 'Attaque de base', desc: c.kind === 'ally' ? 'Son geste d\'attaque en combat.' : 'Son geste en combat.', dur: 3, still: 0.55,
     setup: dummy, events: [[0.3, (d) => d.r.allyGesture(c, d.world, HERO_X)], [1.7, (d) => d.r.allyGesture(c, d.world, HERO_X)]],
