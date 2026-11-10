@@ -107,7 +107,9 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
   if (open('dungeons') && (state.records?.bestStage ?? state.maxStage) >= DUNGEONS[0].unlockStage && (state.keys ?? 0) >= 1) return { id: 'keys', text: state.keys > 1 ? `${state.keys} clés de donjon à utiliser` : '1 clé de donjon à utiliser', tab: 'dungeons' };
   const blocking = Number.isFinite(state.bossRetry?.hpPct) ? state.bossRetry.hpPct : null;
   const blocked = Boolean(state.bossRetry && state.stage === state.bossRetry.stage - 1);
-  if (blocked && open('tree') && canRebirth(state) && !rebirthBlocked(state) && rebirthReward(state) > 0) {
+  // v9.3.8 : Renaissance aussi quand la progression ralentit (plus de 10 min de jeu sans nouveau record).
+  const slowing = (state.playSeconds ?? 0) - (state.recordAt ?? state.playSeconds ?? 0) > 600;
+  if ((blocked || slowing) && open('tree') && canRebirth(state) && !rebirthBlocked(state) && rebirthReward(state) > 0) {
     return { id: 'rebirth', text: `Renaissance : +${rebirthReward(state)} fragments`, tab: 'tree', view: { treeSeg: 'rebirth' } };
   }
   if (blocked) {

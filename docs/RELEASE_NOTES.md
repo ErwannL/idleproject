@@ -1,3 +1,17 @@
+## Ascendrya v9.3.8 — Combat en vagues, Quêtes de la semaine, héros à 6 places
+
+- Combat en vagues : les monstres arrivent par groupes de 3 et s'arrêtent tous sur une même ligne devant le héros ; personne ne les touche avant (héros, compagnons, compétences). Le héros combat au lieu de marcher (environ 60 % du temps contre 25 % avant), pour le même or et la même expérience par minute. « Vague 3/5 » remplace « Ennemis vaincus 14/15 ».
+- Héros : 6 places d'équipement (Arme, Casque, Armure, Collier, Anneau, Bracelet) ; les compagnons gardent 3 places. Les pièces réunies depuis la 9.3.4 redeviennent des objets à part entière, sans rien perdre.
+- Familiers : plus d'équipement ; un seul bonus passif et une seule compétence active (jamais plus faibles qu'avant).
+- Écran Équipement : grands portraits (héros et compagnons, niveau et puissance), personnage en grand dessiné comme en combat, sac limité par défaut aux objets utilisables.
+- Quêtes : Jour · Semaine · Mois · Hauts faits, grande barre avec un coffre au bout, missions en cartes (les terminées en bas). La Semaine revient (ses gemmes sont prises sur la Piste du mois : même total). Les Marchands sont dans la Boutique (objets au niveau de l'étape max), la Prime du jour sur la Carte (monstre du monde actuel).
+- Barre jaune : les points de compétence se dépensent d'un clic (« Répartir les points ») ; la Renaissance est aussi proposée quand la progression ralentit.
+- Améliorations : un seul gain comparable par ligne (« Puissance +N ») et une flèche verte sur la meilleure affaire ; « Armure » devient « Peau de fer ».
+- Plus de bouton Combat : le panneau se ferme avec sa croix, Échap ou en touchant la scène.
+- Pour revenir et progresser : prochain déblocage sous la scène, grands moments fêtés en plein écran, compte à rebours de rage des boss, combo au toucher, coffre de fin d'étape, « Tout récupérer ×2 » une fois par jour au retour, cadeau du jour à l'ouverture.
+- Recyclage automatique des objets inutiles (Communs et Rares d'autres classes ou moins bons), réglable dans le sac.
+- Corrigé : bulle du tutoriel qui cachait le bouton suivant et ne se fermait pas, garanties d'invocation mal écrites, butin de donjon en texte (maintenant en icônes).
+
 ## Ascendrya v9.3.7 — Prologue « La chute du héros »
 
 - Première connexion : le héros, bien équipé, affronte seul le Colosse des Anciens. À la moitié de ses PV, la Prêtresse et la Pyromancienne arrivent et le font plier ; le Colosse entre en rage et balaie toute l'équipe. Le héros perd son équipement et ses compagnons : l'aventure commence.
