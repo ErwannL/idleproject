@@ -44,15 +44,16 @@ export function markInvUsed(state, id) {
 // à partir de son étape d'ouverture ; Armure arrive tard (Défense d'abord : une seule ligne de protection au début).
 export const BASE_UPGRADES = ['damage', 'vitality', 'goldFind'];
 export const OPEN_SEQUENCE = ['attackSpeed', 'crit', 'defense', 'critDamage', 'regen', 'doubleAttack', 'bossDamage', 'companionPower',
-  'lifesteal', 'xpGain', 'dodge', 'armor'];
+  'lifesteal', 'xpGain', 'dodge']; // v9.3.9 : Peau de fer fondue dans Défense
 const openCount = (state) => Math.ceil((state.records?.bossesDefeated ?? 0) / 2);
 // v9.2.8 : + Double attaque (étape 25) et Défense (après le premier boss) : 15 lignes.
 export const UPGRADE_ORDER = ['damage', 'attackSpeed', 'crit', 'critDamage', 'doubleAttack', 'bossDamage', 'companionPower',
-  'vitality', 'defense', 'armor', 'regen', 'lifesteal', 'dodge', 'goldFind', 'xpGain'];
+  'vitality', 'defense', 'regen', 'lifesteal', 'dodge', 'goldFind', 'xpGain']; // v9.3.9 : sans Peau de fer (Défense)
 
 export function upgradeOpen(state, key, balance) {
   const up = balance.upgrades[key];
   if (!up) return false;
+  if (balance.upgrades[key].retired) return false; // v9.3.9
   if (BASE_UPGRADES.includes(key) || (state.upgrades?.[key] ?? 0) > 0) return true;
   if ((state.records?.bossesDefeated ?? 0) === 0) return false;
   const best = Math.max(state.maxStage ?? 1, state.records?.bestStage ?? 1);

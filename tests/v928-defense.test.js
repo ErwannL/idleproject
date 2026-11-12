@@ -94,8 +94,10 @@ test('v9.2.8 : sauvegarde v9 (avant Défense et Double attaque) — aucune perte
   const raw = JSON.parse(JSON.stringify(old));
   const s = sanitizeState(raw, BALANCE, NOW);
   assert.ok(SAVE_VERSION >= 10, 'une seule montée pour la 9.2.8, partagée avec l\'économie');
-  for (const [k, v] of Object.entries(raw.upgrades)) assert.equal(s.upgrades[k], v, k);
-  assert.equal(s.upgrades.defense, 0);
+  // v9.3.9 : Peau de fer (ex-Armure) est convertie en Défense (voir v939.test.js) ; le reste est gardé tel quel.
+  for (const [k, v] of Object.entries(raw.upgrades)) if (k !== 'armor') assert.equal(s.upgrades[k], v, k);
+  assert.equal(s.upgrades.armor, 0);
+  assert.ok(s.upgrades.defense > 0);
   assert.equal(s.upgrades.doubleAttack, 0);
   assert.equal(s.gold, 123456789);
 });

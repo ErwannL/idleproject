@@ -7,7 +7,7 @@ export function upgradeCost(key, level, balance = BALANCE) {
 }
 
 export function buyUpgrade(state, key, balance = BALANCE) {
-  if (!(key in balance.upgrades)) return false;
+  if (!(key in balance.upgrades) || balance.upgrades[key].retired) return false; // v9.3.9 : Peau de fer n'est plus achetable
   const cap = balance.upgrades[key].maxLevel ?? Infinity;
   if (state.upgrades[key] >= cap) return false;
   const cost = upgradeCost(key, state.upgrades[key], balance);

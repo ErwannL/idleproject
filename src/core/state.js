@@ -9,6 +9,7 @@ import { cleanWishlist } from './gacha.js';
 import { sanitizeCosmetics } from './cosmetics.js';
 import { emptyTimes, sanitizeTimes } from './times.js';
 import { BALANCE } from '../data/balance.js';
+import { computeHeroStats } from './stats.js'; // v9.3.9 : fusion Peau de fer → Défense
 import { AFFIXES, EQUIP_SLOTS, HERO_SLOTS, RARITIES, SLOTS, STARTER_WEAPON, STAT_LABELS, eqSlot, heroSlot } from '../data/items.js';
 import { BOSSES } from '../data/enemies.js';
 import { COMPANION_RULES } from '../data/companions.js';
@@ -630,5 +631,26 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   if (state.challenge && (state.tower || state.dungeon)) state.challenge = null; // un seul mode à la fois
   // v9.1.0 : une partie existante a déjà ses Objectifs ouverts (le menu ne doit pas disparaître pour elle).
   if (int(raw.records?.kills, 0) > 0) state.ui.goalsOpen = true;
+  mergeArmorIntoDefense(state, balance); // v9.3.9 (2.9) : « Peau de fer » fondue dans « Défense », sans perte de survie
   return state;
+}
+
+// v9.3.9 (2.9) : une seule amélioration de protection. Les niveaux de « Peau de fer » (ex-Armure, +1 % de réduction
+// par niveau) deviennent des niveaux de Défense : on monte la Défense jusqu'à ce que les dégâts subis (équipement,
+// talents et Défense d'avant compris, calcul réel de stats.js) ne soient jamais plus élevés qu'avant.
+// Si la Défense seule ne peut pas y arriver (au-delà de son plafond), les niveaux de Peau de fer restent comptés.
+export function mergeArmorIntoDefense(state, balance = BALANCE) {
+  const a = state.upgrades?.armor ?? 0;
+  if (!(a > 0) || !balance.upgrades.defense || !balance.upgrades.armor) return false;
+  const taken = () => { const x = computeHeroStats(state, balance); return (1 - x.armor / 100) * (1 - x.defenseReductionPct / 100); };
+  const before = taken();
+  const d0 = state.upgrades.defense ?? 0;
+  state.upgrades.armor = 0;
+  let lo = d0, hi = d0 + 8;
+  state.upgrades.defense = hi;
+  while (taken() > before + 1e-12 && hi < d0 + 100000) { lo = hi; hi = hi * 2 + 8; state.upgrades.defense = hi; }
+  if (taken() > before + 1e-12) { state.upgrades.defense = d0; state.upgrades.armor = a; return false; }
+  while (hi - lo > 1) { const m = Math.floor((lo + hi) / 2); state.upgrades.defense = m; if (taken() <= before + 1e-12) hi = m; else lo = m; }
+  state.upgrades.defense = hi;
+  return true;
 }

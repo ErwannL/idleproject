@@ -19,7 +19,7 @@ export const ENV_REDUCE_CAP = 90; // un malus « en moins » ne retire jamais pl
 
 export const ENVIRONMENTS = [
   { zone: 'forest', name: 'Pénombre', kind: 'miss', base: 25, icon: 'icon_tree', counter: 'crit', fullAt: 30 },
-  { zone: 'caves', name: 'Éclats de cristal', kind: 'hurt', base: 45, icon: 'icon_shard', counter: 'armor', fullAt: 35 },
+  { zone: 'caves', name: 'Éclats de cristal', kind: 'hurt', base: 45, icon: 'icon_shard', counter: 'defense', fullAt: 40 } /* v9.3.9 : Défense (Peau de fer fondue) */,
   { zone: 'desert', name: 'Soif', kind: 'regen', base: 90, icon: 'icon_regen', counter: 'regen', fullAt: 40 },
   { zone: 'mountains', name: 'Froid mordant', kind: 'maxHp', base: 40, icon: 'icon_heart', counter: 'vitality', fullAt: 110 },
   { zone: 'cursed', name: 'Malédiction', kind: 'damage', base: 30, icon: 'icon_skull', counter: 'damage', fullAt: 160 },

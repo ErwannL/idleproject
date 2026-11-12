@@ -17,8 +17,8 @@ const NOW = Date.UTC(2026, 10, 3, 12);
 const withUp = (s, key, lv) => ({ ...s, upgrades: { ...s.upgrades, [key]: lv } });
 
 test('v9.2.0 : 13 améliorations (entre 10 et 15), chacune rangée dans une catégorie et dans l\'ordre du panneau', () => {
-  const keys = Object.keys(BALANCE.upgrades);
-  assert.equal(keys.length, 15); // v9.2.8 : + Défense et Double attaque
+  const keys = Object.keys(BALANCE.upgrades).filter((k) => !BALANCE.upgrades[k].retired); // v9.3.9 : Peau de fer fondue dans Défense
+  assert.equal(keys.length, 14); // v9.2.8 : + Défense et Double attaque ; v9.3.9 : − Peau de fer
   assert.deepEqual([...UPGRADE_ORDER].sort(), [...keys].sort());
   const inCats = BALANCE.upgradeCategories.flatMap((c) => c.keys);
   for (const k of keys) assert.equal(inCats.filter((x) => x === k).length, 1, k);
@@ -131,7 +131,7 @@ test('v9.3.5 : déblocage progressif — 3 lignes (Dégâts, PV, Or), puis une d
   s.records.bossesDefeated = 3;
   assert.ok(upgradeOpen(s, 'crit', BALANCE) && !upgradeOpen(s, 'armor', BALANCE), 'Défense avant Armure');
   s.records.bossesDefeated = 40; s.records.bestStage = 60;
-  assert.equal(openUpgrades(s, BALANCE).length, 15);
+  assert.equal(openUpgrades(s, BALANCE).length, 14); // v9.3.9 : Peau de fer fondue dans Défense
   assert.equal(nextUpgradeUnlock(s, BALANCE), null);
   // Une ligne déjà achetée reste visible.
   const t = createNewState(NOW);

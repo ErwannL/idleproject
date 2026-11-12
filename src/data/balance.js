@@ -99,6 +99,7 @@ export const BALANCE = {
     },
     armor: {
       label: 'Peau de fer', // v9.3.8 (3e) : « Armure » se confondait avec « Défense » (nom et icône)
+      retired: true, // v9.3.9 (2.9) : fondue dans Défense (state.js mergeArmorIntoDefense) ; plus achetable
       description: '+1 % de réduction des dégâts subis',
       baseCost: 50,
       costGrowth: 1.22,
@@ -210,7 +211,7 @@ export const BALANCE = {
   upgradeCategories: [
     // v9.2.8 : « Survie » devient « Défense » (même identifiant : le filtre mémorisé reste valable), avec la Défense.
     { id: 'combat', label: 'Combat', icon: 'weapon_sword', keys: ['damage', 'attackSpeed', 'crit', 'critDamage', 'doubleAttack', 'bossDamage', 'companionPower'] },
-    { id: 'survival', label: 'Défense', icon: 'icon_shield', keys: ['vitality', 'defense', 'armor', 'regen', 'lifesteal', 'dodge'] },
+    { id: 'survival', label: 'Défense', icon: 'icon_shield', keys: ['vitality', 'defense', 'regen', 'lifesteal', 'dodge'] } /* v9.3.9 : sans Peau de fer */,
     { id: 'resources', label: 'Ressources', icon: 'coin', keys: ['goldFind', 'xpGain'] },
     { id: 'rushes', label: 'Boosts', icon: 'skill_cry', keys: [] }, // boosts à durée limitée (core/rushes.js)
   ],
