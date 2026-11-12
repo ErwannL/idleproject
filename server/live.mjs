@@ -27,7 +27,7 @@ export class LiveError extends Error {
 const bad = (msg) => new LiveError(400, msg);
 
 // Paliers revus (novembre 2026) : Les récompenses jusqu'à 50 000 sont les mêmes qu'en 9.3.1 (5 500 gemmes, 1,75 M or, 10 tickets,
-// 1 ticket SSR, Slime doré, Lame rose, Lilith, Grombar) réparties sur 8 paliers, avec deux premiers paliers proches
+// 1 ticket SSR, Slime doré, Lame rose, apparences Lilith et Grombar ; les apparences sont nommées comme telles, pas comme des héros) réparties sur 8 paliers, avec deux premiers paliers proches
 // (1 000 et 2 500) pour lancer la dynamique. Deux paliers bonus après l'objectif (75 000, 100 000).
 export const DEFAULT_GOALS = {
   target: 50000,
@@ -42,12 +42,12 @@ export const DEFAULT_GOALS = {
     { at: 5000, label: '5K', name: '250 gemmes + 5 tickets', detail: 'Tickets d\'invocation de héros', img: 'assets/shop/hero_ticket_permanent.webp' },
     { at: 10000, label: '10K', name: '1 compagnon exclusif', detail: 'Lame rose', tag: 'SR · Exclusif', excl: true, img: 'assets/hd_ally_rose_blade.webp' },
     { at: 15000, label: '15K', name: '1 000 gemmes + 150 K or', detail: 'Monnaie premium et pièces d\'or', img: 'assets/shop/crystal_medium.webp' },
-    { at: 20000, label: '20K', name: '1 héros SSR', detail: 'Lilith la Diablesse', tag: 'SSR · Exclusif', excl: true, img: 'assets/hd_demoness.png' },
+    { at: 20000, label: '20K', name: '1 apparence légendaire', detail: 'Lilith la Diablesse · Reine des braises', tag: 'Légendaire · Exclusif', excl: true, img: 'assets/hd_demoness.png' },
     { at: 35000, label: '35K', name: '1 500 gemmes + 5 tickets', detail: '+ 500 K or · tickets d\'invocation', img: 'assets/shop/crystal_large.webp' },
-    { at: 50000, label: '50K', name: '1 héros SSR + méga pack', detail: 'Roi Grombar · 2 500 gemmes, 1 M or, 1 ticket SSR garanti', tag: 'SSR · Exclusif', excl: true, img: 'assets/hd_grombar.png' },
+    { at: 50000, label: '50K', name: '1 apparence légendaire + méga pack', detail: 'Roi Grombar · 2 500 gemmes, 1 M or, 1 ticket SSR garanti', tag: 'Légendaire · Exclusif', excl: true, img: 'assets/hd_grombar.png' },
     // Paliers bonus (au-delà de l'objectif) : cachés sur le site tant que l'objectif n'est pas atteint, puis la barre vise le suivant.
     { at: 75000, label: '75K', name: '1 familier légendaire + 2 000 gemmes', detail: 'Petit phénix', tag: 'Bonus', excl: true, img: 'assets/px/pet_phoenix.webp' },
-    { at: 100000, label: '100K', name: '1 héros SSR au choix + 3 000 gemmes', detail: '1 ticket SSR au choix · + 2 M or', tag: 'Bonus · Méga pack', excl: true, img: 'assets/shop/hero_ticket_limited.webp' },
+    { at: 100000, label: '100K', name: '1 apparence légendaire au choix + 3 000 gemmes', detail: 'Parmi les apparences légendaires · + 2 M or', tag: 'Bonus · Méga pack', excl: true, img: 'assets/shop/hero_ticket_limited.webp' },
   ],
 };
 
