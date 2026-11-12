@@ -1,5 +1,22 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
+  // v9.3.9
+  "Donjons : 1 par salle franchie, 4 à la fin": "Dungeons: 1 per room cleared, 4 at the end",
+  "Missions du jour : 6 quand toutes sont faites": "Daily missions: 6 when all are done",
+  "Arène : 2 par nouvel étage": "Arena: 2 per new floor",
+  "Boutique de l'événement": "Event shop",
+  "Donjons : 2 à la fin": "Dungeons: 2 at the end",
+  "Coffre de la semaine (Missions › Semaine) : 6": "Weekly chest (Missions › Week): 6",
+  "Arène : 1 par nouvel étage": "Arena: 1 per new floor",
+  "Boss de la campagne : 15 % de chance": "Campaign bosses: 15% chance",
+  "Coffre de la semaine (Missions › Semaine) : 3": "Weekly chest (Missions › Week): 3",
+  "Tremblement de l'écran (compétences de zone, coups de boss)": "Screen shake (area skills, boss hits)",
+  "Où en trouver ?": "Where to find it?",
+  "Où en trouver :": "Where to find it:",
+  "Y aller": "Go",
+  "Super !": "Great!",
+  "(pas encore ouvert)": "(not open yet)",
+  "Sert à :": "Used for:",
   "Recycler, puis éclats, puis forger": "Recycle, then shards, then forge",
   "Recycler": "Recycle",
   "Forger": "Forge",
@@ -216,6 +233,14 @@ export const EXACT_934 = {
 let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
+  // v9.3.9
+  [new RegExp("^Chaque invocation \\(limitée, permanente, familiers\\) a son propre compteur : compagnon Légendaire garanti au plus tard à la (\\d+)e invocation, familier Légendaire au plus tard à la (\\d+)e invocation de familiers\\. (.*)$"), (m) => `Each summon (limited, permanent, pets) has its own counter: Legendary companion guaranteed by summon ${m[1]} at the latest, Legendary pet by pet summon ${m[2]} at the latest. The featured unit makes up 50% of the Legendaries obtained in its summon (it does not raise the Legendary chance). Duplicate: +1 star, then gems.`],
+  [new RegExp("^Il faut (.+)$"), (m) => `Needs ${m[1]}`],
+  [new RegExp("^\\+(\\d+) objets? dans le sac$"), (m) => `+${m[1]} item${m[1] === '1' ? '' : 's'} in the bag`],
+  [new RegExp("^(\\d+) en attente : sac et coffre pleins$"), (m) => `${m[1]} waiting: bag and chest full`],
+  [new RegExp("^(\\d+) récompenses? récupérées?$"), (m) => `${m[1]} reward${m[1] === '1' ? '' : 's'} claimed`],
+  [new RegExp("^Niv\\. ([\\d  ]+) !$"), (m) => `Lv. ${m[1]}!`],
+
   [new RegExp("^♻ Recycler les objets inutiles \\((\\d+)\\)(.*)$"), (m) => `♻ Recycle useless items (${m[1]})${m[2]}`],
   [new RegExp("^(\\d+) objets recyclés : \\+(.+) or, \\+(\\d+) éclats$"), (m) => `${m[1]} items recycled: +${m[2]} gold, +${m[3]} shards`],
   [new RegExp("^Tient ([\\d.,<+ ]+) coups$"), (m) => `Survives ${m[1]} hits`],

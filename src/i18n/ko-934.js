@@ -1,5 +1,22 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
+  // v9.3.9
+  "Donjons : 1 par salle franchie, 4 à la fin": "던전: 방 하나당 1개, 완료 시 4개",
+  "Missions du jour : 6 quand toutes sont faites": "일일 미션: 모두 완료 시 6개",
+  "Arène : 2 par nouvel étage": "아레나: 새 층마다 2개",
+  "Boutique de l'événement": "이벤트 상점",
+  "Donjons : 2 à la fin": "던전: 완료 시 2개",
+  "Coffre de la semaine (Missions › Semaine) : 6": "주간 상자 (미션 › 주간): 6개",
+  "Arène : 1 par nouvel étage": "아레나: 새 층마다 1개",
+  "Boss de la campagne : 15 % de chance": "캠페인 보스: 15% 확률",
+  "Coffre de la semaine (Missions › Semaine) : 3": "주간 상자 (미션 › 주간): 3개",
+  "Tremblement de l'écran (compétences de zone, coups de boss)": "화면 흔들림 (범위 스킬, 보스 공격)",
+  "Où en trouver ?": "어디서 얻나요?",
+  "Où en trouver :": "얻는 곳:",
+  "Y aller": "이동",
+  "Super !": "좋아요!",
+  "(pas encore ouvert)": "(아직 열리지 않음)",
+  "Sert à :": "용도:",
   "Recycler, puis éclats, puis forger": "분해 → 파편 → 제작",
   "Recycler": "분해",
   "Forger": "제작",
@@ -216,6 +233,14 @@ export const EXACT_934 = {
 let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
+  // v9.3.9
+  [new RegExp("^Chaque invocation \\(limitée, permanente, familiers\\) a son propre compteur : compagnon Légendaire garanti au plus tard à la (\\d+)e invocation, familier Légendaire au plus tard à la (\\d+)e invocation de familiers\\. (.*)$"), (m) => `소환마다 카운터가 따로 있습니다: 전설 동료는 늦어도 ${m[1]}회째, 전설 펫은 늦어도 펫 소환 ${m[2]}회째에 보장됩니다. 픽업 유닛은 해당 소환에서 얻는 전설의 50%입니다 (전설 확률을 올리지는 않음). 중복: 별 +1, 이후 보석.`],
+  [new RegExp("^Il faut (.+)$"), (m) => `필요: ${m[1]}`],
+  [new RegExp("^\\+(\\d+) objets? dans le sac$"), (m) => `가방에 아이템 +${m[1]}`],
+  [new RegExp("^(\\d+) en attente : sac et coffre pleins$"), (m) => `${m[1]}개 대기 중: 가방과 보관함이 가득 참`],
+  [new RegExp("^(\\d+) récompenses? récupérées?$"), (m) => `보상 ${m[1]}개 수령`],
+  [new RegExp("^Niv\\. ([\\d  ]+) !$"), (m) => `Lv. ${m[1]}!`],
+
   [new RegExp("^♻ Recycler les objets inutiles \\((\\d+)\\)(.*)$"), (m) => `♻ 필요 없는 장비 분해 (${m[1]})${m[2]}`],
   [new RegExp("^(\\d+) objets recyclés : \\+(.+) or, \\+(\\d+) éclats$"), (m) => `장비 ${m[1]}개 분해: 골드 +${m[2]}, 파편 +${m[3]}`],
   [new RegExp("^Tient ([\\d.,<+ ]+) coups$"), (m) => `${m[1]}번 버팀`],

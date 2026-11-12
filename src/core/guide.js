@@ -203,7 +203,7 @@ export const PANEL_HELP = {
   },
   summon: {
     short: `Les gemmes s'obtiennent en jouant. Garanties : Épique au plus tard toutes les ${BANNERS.permanent.epicEvery ?? 10} invocations, Légendaire au plus tard à la ${BANNERS.permanent.hard}e (compagnons) ou à la ${BANNERS.pet.hard}e (familiers).`, // v9.3.8 (3c) : lu dans les données
-    more: 'Le compteur des garanties est commun à toutes les invocations. La vedette représente 50 % des Légendaires obtenus dans son invocation (elle n\'augmente pas la chance d\'un Légendaire). Doublon : +1 étoile, puis des gemmes.',
+    more: `Chaque invocation (limitée, permanente, familiers) a son propre compteur : compagnon Légendaire garanti au plus tard à la ${BANNERS.permanent.hard}e invocation, familier Légendaire au plus tard à la ${BANNERS.pet.hard}e invocation de familiers. La vedette représente 50 % des Légendaires obtenus dans son invocation (elle n\'augmente pas la chance d\'un Légendaire). Doublon : +1 étoile, puis des gemmes.`,
   },
   skills: {
     short: 'Un point par niveau du héros, à placer où vous voulez. Les compétences se lancent toutes seules.',

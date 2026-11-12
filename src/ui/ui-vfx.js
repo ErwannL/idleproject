@@ -271,7 +271,7 @@ export function deniedFx(target) {
   btn.classList.remove('vfx-deny'); void btn.offsetWidth; btn.classList.add('vfx-deny');
   dispatchEvent(new CustomEvent('idle-sfx', { detail: 'deny' }));
   setTimeout(() => btn.classList.remove('vfx-deny'), 420);
-  const why = btn.dataset.why || btn.parentElement?.querySelector('.cost-missing')?.textContent?.trim() || btn.title?.replace(/^Coût : /, 'Il faut ') || '';
+  const why = btn.dataset.why || btn.parentElement?.querySelector('.cost-missing')?.textContent?.trim() || btn.title || '';
   if (why && !calm()) { const [x, y] = center(btn); floatText(why, x, y - 16, '#ff9a8a'); }
 }
 

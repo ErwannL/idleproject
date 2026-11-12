@@ -1785,7 +1785,10 @@ export class UI {
     this.lastHud.badgeTime = now;
     this.claims = claimables(state);
     this.updateNextUnlock(state); // v9.3.8
-    try { updateTutorial(state, this.root, state.inventory.length >= BALANCE.loot.inventorySize, Boolean(this.tab)); } catch { /* le tutoriel ne bloque jamais le jeu */ }
+    // v9.3.9 (3.7) : le tutoriel ne commence qu'à la fin du prologue (et du titre qui le suit).
+    const cutscene = document.getElementById('prologue') || document.querySelector('#stage-area .cinematic');
+    if (cutscene) document.getElementById('tuto-layer')?.remove();
+    else try { updateTutorial(state, this.root, state.inventory.length >= BALANCE.loot.inventorySize, Boolean(this.tab)); } catch { /* le tutoriel ne bloque jamais le jeu */ }
     // v9.1.3 : fenêtre « À récupérer » ouverte → mise à jour quand la liste change.
     const claimsKey = this.claims.map((c) => c.key).join() + state.inbox.length;
     if (this.claimsOpen && claimsKey !== this.claimsKey && !this.$('modal').classList.contains('hidden')) this.openClaims(state);

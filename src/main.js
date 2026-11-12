@@ -1441,6 +1441,8 @@ function tick() {
   let dt = (now - lastWall) / 1000;
   lastWall = now;
   if (dt < 0) dt = 0; // horloge reculée : on ignore
+  // v9.3.9 (3.7) : pendant le prologue, la partie est en pause (rien n'avance, pas de niveau 4 avant la fin).
+  if (document.getElementById('prologue')) { accumulator = 0; return; }
   if (dt > BALANCE.simulation.maxCatchUpSeconds) {
     accumulator = 0;
     // Fenêtre masquée : on garde ce temps pour le rapport de retour (un seul, au lieu d'un par minute).
