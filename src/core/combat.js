@@ -951,7 +951,9 @@ export function step(state, world, dt, rng, balance = BALANCE) {
     const stopX = prev ? prev.x + gap : W.heroX + W.meleeOffset + enemy.range;
     const speed = (enemy.rush ? enemy.speed * (balance.rush?.speedMult ?? 1) : enemy.speed) + (charging && enemy.arrived === false ? W.scrollSpeed : 0);
     enemy.x = Math.max(stopX, enemy.x - (speed + scroll) * dt);
-    if (enemy.arrived === false && enemy.x <= stopX + 0.01) enemy.arrived = true; // v9.3.8 : sur la ligne
+    // v9.3.9 : un monstre de derrière n'est « arrivé » que si celui de devant l'est aussi (sinon, en rattrapant le groupe
+    // loin de la ligne, il se disait arrivé et le héros se remettait à marcher au lieu d'attendre la vague en garde).
+    if (enemy.arrived === false && enemy.x <= stopX + 0.01 && (!prev || prev.arrived !== false)) enemy.arrived = true; // v9.3.8 : sur la ligne
     enemy.engaged = !prev && enemy.x <= stopX + 0.01;
     // v9.2.5 : bloqué dans la file derrière un ennemi lui-même arrêté (au contact ou bloqué) : attend sans marcher.
     enemy.queued = Boolean(prev) && enemy.x <= stopX + 0.01 && Boolean(prev.engaged || prev.queued);
