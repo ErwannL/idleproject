@@ -238,7 +238,39 @@ export function clickFx(ui, event, run) {
       play('recycle', cx, cy, { size: 122 });
       if (dg > 0) flyTo('gold', [cx, cy], gold, 4, `+${formatNumber(dg)}`);
     }
-  }
+  } else gainFx(el, action, before, after, cx, cy);
+}
+
+// v9.3.9 (2.4) : tout autre bouton qui dépense ou gagne — éclat, « Niv. N ! » ou « +1 » qui monte, monnaies gagnées
+// qui volent vers leur compteur. Le niveau est relu sur la ligne redessinée (même bouton, même clé).
+const LEVEL_RE = /(?:Niv\.?|Nv\.?|Lv\.?|niveau)\s*(\d[\d\s ]*)/i;
+function gainFx(el, action, before, after, cx, cy) {
+  if (!el || !action) return;
+  const spent = Object.keys(after.cur).some((k) => after.cur[k] < before.cur[k]) || after.gold < before.gold;
+  const gained = Object.keys(after.cur).some((k) => after.cur[k] > before.cur[k]);
+  if (gained) claimFly(before.cur, after.cur, el.isConnected ? el : [cx, cy]);
+  if (!spent && after.lvl === before.lvl) return;
+  const key = el.dataset.key ?? el.dataset.value ?? el.dataset.id ?? '';
+  requestAnimationFrame(() => {
+    const sel = `[data-action="${CSS.escape(action)}"]${key ? `[data-${el.dataset.key !== undefined ? 'key' : el.dataset.value !== undefined ? 'value' : 'id'}="${CSS.escape(key)}"]` : ''}`;
+    const now = el.isConnected ? el : document.querySelector(sel);
+    const row = now?.closest('.row, li, .upg-row, .skill-card, .card, .detail, .modal-card, tr');
+    const m = row && row.textContent.match(LEVEL_RE);
+    const [x, y] = now ? center(now) : [cx, cy];
+    if (now) pulse(now, 'vfx-shine', 600);
+    if (row && row !== now) pulse(row, 'vfx-row', 500);
+    floatText(m ? `Niv. ${m[1].trim()} !` : '+1', x, y - 18, m ? '#9cff8a' : '#ffe28a');
+  });
+}
+
+// v9.3.9 (2.4) : un bouton qui ne peut pas agir tremble et dit pourquoi (« Il manque 2 Grimoires »).
+export function deniedFx(target) {
+  const btn = target?.closest?.('button:disabled, .btn[aria-disabled="true"]');
+  if (!btn || btn.closest('#tabs')) return;
+  btn.classList.remove('vfx-deny'); void btn.offsetWidth; btn.classList.add('vfx-deny');
+  setTimeout(() => btn.classList.remove('vfx-deny'), 420);
+  const why = btn.dataset.why || btn.parentElement?.querySelector('.cost-missing')?.textContent?.trim() || btn.title?.replace(/^Coût : /, 'Il faut ') || '';
+  if (why && !calm()) { const [x, y] = center(btn); floatText(why, x, y - 16, '#ff9a8a'); }
 }
 
 // --- Événements du jeu ---

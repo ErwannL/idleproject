@@ -3358,3 +3358,24 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) { .stage-chest, .stage-chest.open { animation: none; } }
 .login-day.jackpot { border-color: var(--ui-gold, #f5c542) !important; box-shadow: 0 0 10px #f5c54288; transform: scale(1.08); }
 .offline-x2 { width: 100%; min-height: 48px; margin: 8px 0; }
+
+/* v9.3.9 (2.4) : chaque bouton qui agit s'enfonce et brille ; un bouton grisé tremble. */
+.btn:not(:disabled):active { transform: scale(0.95); }
+.vfx-press { animation: vfx-press9 0.26s ease-out; }
+@keyframes vfx-press9 { 0% { transform: scale(0.95); filter: brightness(1.7); box-shadow: 0 0 0 0 rgba(255, 230, 150, 0.8); } 100% { transform: none; filter: none; box-shadow: 0 0 0 10px rgba(255, 230, 150, 0); } }
+.vfx-row { animation: vfx-row 0.5s ease-out; }
+@keyframes vfx-row { 0% { background-color: rgba(255, 226, 120, 0.28); } 100% { background-color: transparent; } }
+.vfx-deny { animation: vfx-deny 0.4s ease-in-out; }
+@keyframes vfx-deny { 20% { transform: translateX(-4px); } 40% { transform: translateX(4px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
+.uvfx-num { font-size: 16px; white-space: nowrap; text-shadow: 0 2px 0 #000, 0 0 6px rgba(0, 0, 0, 0.7); }
+.claim-recap { text-align: center; }
+.claim-recap .rw-big { justify-content: center; gap: 12px; font-size: 18px; margin: 10px 0; }
+.claim-recap .rw-big img { width: 32px; height: 32px; }
+/* v9.3.9 (2.5) : fenêtres ancrées en haut (plus centrées) : déplier un détail allonge la fiche vers le bas, rien ne
+   remonte sous le doigt. */
+#modal { align-items: flex-start; padding-top: max(8px, 6vh); }
+.unit-pop { top: 4vh; transform: translateX(-50%); animation-name: v939-pop; }
+@keyframes v939-pop { from { opacity: 0; transform: translate(-50%, 10px) scale(.97); } }
+@media (max-width: 600px) { .unit-pop { top: 0; transform: none; } }
+.res-chip { gap: 3px; } .res-chip.bad { color: #ff9a8a; }
+.res-where { margin: 4px 0 8px; padding-left: 18px; } .res-where li { margin: 6px 0; display: flex; gap: 8px; align-items: center; justify-content: space-between; }

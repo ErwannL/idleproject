@@ -23,8 +23,8 @@ export const SKILL_VALUE_CAPS = { heal: 60, shield: 85 };
 // ---- Ressources universelles (aucune par élément, rareté ou rôle) ----
 export const SKILL_RESOURCES = {
   grimoire: { name: 'Grimoire de combat', short: 'Grimoires', icon: 'icon_book', use: 'Améliore les compétences passives et actives.' },
-  ascension: { name: "Pierre d'ascension", short: 'Pierres', icon: 'icon_essence', use: 'Améliore les compétences ultimes.' },
-  mastery: { name: 'Essence de maîtrise', short: 'Essences', icon: 'icon_stars', use: 'Niveaux avancés (6 à 10) de toutes les compétences.' },
+  ascension: { name: "Pierre d'ascension", short: 'Pierres', icon: 'icon_ascension', use: 'Améliore les compétences ultimes.' },
+  mastery: { name: 'Essence de maîtrise', short: 'Essences', icon: 'icon_mastery', use: 'Niveaux avancés (6 à 10) de toutes les compétences.' },
 };
 // Coûts du niveau n → n+1 (index n-1). L'or est en « nombre d'ennemis de l'étape max » (même base que les niveaux des
 // compagnons), avec un plafond : il garde de la valeur en fin de jeu sans exploser.
@@ -43,6 +43,27 @@ export const SKILL_COSTS = {
 SKILL_COSTS.active = SKILL_COSTS.passive;
 // Or minimal d'un ennemi et plafond de l'indexation (×40 de l'or d'un ennemi de l'étape 50).
 export const GOLD_INDEX = { refStage: 50, cap: 40, min: 25 };
+
+// v9.3.9 (2.6) : où trouver chaque ressource (fiche « Où en trouver », avec un bouton vers l'écran).
+export const RESOURCE_WHERE = {
+  grimoire: [
+    { tab: 'dungeons', text: 'Donjons : 1 par salle franchie, 4 à la fin' },
+    { tab: 'contracts', text: 'Missions du jour : 6 quand toutes sont faites' },
+    { tab: 'arena', text: "Arène : 2 par nouvel étage" },
+    { tab: 'event', text: "Boutique de l'événement" },
+  ],
+  ascension: [
+    { tab: 'dungeons', text: 'Donjons : 2 à la fin' },
+    { tab: 'contracts', text: 'Coffre de la semaine (Missions › Semaine) : 6' },
+    { tab: 'arena', text: 'Arène : 1 par nouvel étage' },
+    { tab: 'event', text: "Boutique de l'événement" },
+  ],
+  mastery: [
+    { tab: 'campaign', text: 'Boss de la campagne : 15 % de chance' },
+    { tab: 'contracts', text: 'Coffre de la semaine (Missions › Semaine) : 3' },
+    { tab: 'event', text: "Boutique de l'événement" },
+  ],
+};
 
 // ---- Sources (F2P) ----
 export const RESOURCE_SOURCES = {

@@ -71,10 +71,16 @@ function skillBubble(ui, state, c, own, mine) {
     if (kind === 'active') list.filter((s) => !s.ultimate).slice(1).forEach((s, i) => { if (lv < ACTIVE_EXTRA_AT[i]) locks.push(`Nv ${ACTIVE_EXTRA_AT[i]} : ajoute ${escapeHtml(s.name)}`); });
     if (kind === 'ultimate' && cap < SKILL_CAPS.ultimate) locks.push(`Nv 6 à 10 : ${ULT_UNLOCK_COPIES}e copie`);
   }
+  const lackText = (st, cost) => {
+    const k = Object.keys(SKILL_RESOURCES).find((r) => (st.materials[r] ?? 0) < (cost[r] ?? 0));
+    if (k) { const n = cost[k] - (st.materials[k] ?? 0); return `Il manque ${n} ${n > 1 ? SKILL_RESOURCES[k].short : SKILL_RESOURCES[k].name}`; }
+    return st.gold < cost.gold ? `Il manque ${formatNumber(Math.ceil(cost.gold - st.gold))} or` : '';
+  };
   const cost = mine ? skillUpgradeCost(own, kind, skillKillGold(state)) : null;
   const res = cost && Object.entries(SKILL_RESOURCES).find(([k]) => cost[k] > 0);
   const btn = !mine ? '' : cost
-    ? `<button class="btn btn-gold" data-action="skill-up" data-value="${c.id}|${kind}" ${canAfford(state, cost) ? '' : 'disabled'}>Améliorer ${res ? `${img(res[1].icon)} ${cost[res[0]]}` : ''} ${img('coin')} ${formatNumber(cost.gold)}</button>`
+    ? `<button class="btn btn-gold" data-action="skill-up" data-value="${c.id}|${kind}" ${canAfford(state, cost) ? '' : `disabled data-why="${escapeHtml(lackText(state, cost))}"`}>Améliorer ${res ? `${img(res[1].icon)} ${cost[res[0]]}` : ''} ${img('coin')} ${formatNumber(cost.gold)}</button>
+       ${Object.keys(SKILL_RESOURCES).filter((k) => cost[k] > 0).map((k) => `<button class="btn tiny res-chip${(state.materials[k] ?? 0) < cost[k] ? ' bad' : ''}" data-action="res-info" data-value="${k}" title="Où en trouver ?">${img(SKILL_RESOURCES[k].icon)} ${formatNumber(state.materials[k] ?? 0)}/${cost[k]} ?</button>`).join('')}`
     : `<span class="good">${lv >= SKILL_CAPS[kind] ? 'Niveau maximal' : 'Plafond atteint'}</span>`;
   return `<div class="up-bubble" role="dialog" aria-label="Détail de la compétence">
       <div class="row-between"><b>Nv ${lv} / ${cap}</b><button class="btn tiny" data-action="skill-pop" data-value="" aria-label="Fermer">✕</button></div>

@@ -31,6 +31,8 @@ import { waveCount, waveIndex, waveMode } from '../core/combat.js'; // v9.3.8
 import { nextMilestone } from '../core/unlocks.js';
 import { loginTab } from './panels/contracts.js';
 import { loginPending } from '../core/missions.js';
+import { morph } from './morph.js'; // v9.3.9
+import { RESOURCE_WHERE, SKILL_RESOURCES } from '../data/progression.js'; // v9.3.9 (2.6)
 import { coin, effectText, escapeHtml, fold, glyph, icon, img, itemFrame, missingText, rewardIcons } from './common.js';
 import { GAME_VERSION } from '../version.js';
 import { mutationById } from '../core/mutations.js';
@@ -264,7 +266,8 @@ export class UI {
       this.userAt = performance.now();
       this.invalidate();
     });
-    root.addEventListener('click', (e) => uiFx.clickFx(this, e, () => this.onClick(e))); // v9.2.6 : effet selon le résultat
+    root.addEventListener('click', (e) => uiFx.clickFx(this, e, () => this.onClick(e)));
+    root.addEventListener('pointerdown', (e) => uiFx.deniedFx(e.target)); // v9.3.9 : bouton grisé = il tremble et dit pourquoi // v9.2.6 : effet selon le résultat
     uiFx.initIcons(root); // v9.2.6 : icônes animées des menus au survol
     root.addEventListener('change', (e) => this.onChange(e));
     // Saisie d'une nouvelle touche (Paramètres › Interface) : capturée avant les raccourcis.
@@ -980,6 +983,8 @@ export class UI {
       case 'claim-everything': a.claimEverything(); break;
       case 'session-return': this.closeModal(); a.sessionReturn(); break;
       case 'currency': this.showCurrency(value); break;
+      case 'res-info': this.showResource(value); break; // v9.3.9 (2.6)
+      case 'res-go': this.closeModal(); this.view.sheetOpen = null; this.openTab(value); break;
       case 'currency-go': { const c = CURRENCIES[value]; this.closeModal(); if (c) this.openTab(c.tab, c.view ?? null); break; }
       case 'claim-achievement': a.claimAchievement(value); break;
       case 'map-zoom': local(() => { v.mapZoom = value === 'reset' ? 1 : Math.min(2.5, Math.max(0.5, (v.mapZoom ?? 1) * (value === 'in' ? 1.25 : 0.8))); }); break;
@@ -1863,6 +1868,20 @@ export class UI {
         ${reachable ? `<button class="btn btn-primary" data-action="currency-go" data-value="${id}">Aller à ${escapeHtml(navPath(c.tab))}</button>` : ''}</div>`);
   }
 
+  // v9.3.9 (2.6) : fiche d'une ressource de compétence — ce que c'est, combien on en a, à quoi elle sert, et où en
+  // trouver (boutons vers les écrans déjà ouverts au joueur).
+  showResource(key) {
+    const r = SKILL_RESOURCES[key];
+    if (!r || !this.state) return;
+    const where = (RESOURCE_WHERE[key] ?? []).map((w) => {
+      const open = this.tabVisible[w.tab] !== false;
+      return `<li>${escapeHtml(w.text)} ${open ? `<button class="btn small btn-primary" data-action="res-go" data-value="${w.tab}">Y aller</button>` : `<small class="muted">(pas encore ouvert)</small>`}</li>`;
+    }).join('');
+    this.openModal(`<h2 id="modal-title">${img(r.icon, 'ico20')} ${escapeHtml(r.name)} : ${formatNumber(this.state.materials?.[key] ?? 0)}</h2>
+      <p><b>Sert à :</b> ${escapeHtml(r.use)}</p><p><b>Où en trouver :</b></p><ul class="res-where">${where}</ul>
+      <div class="detail-actions"><button class="btn" data-action="close-modal">Fermer</button></div>`);
+  }
+
   // v9.3.5 : après une Renaissance — « Tu es plus fort : ×N pour toujours », puis le talent conseillé.
   showRebirthDone(ratio, gained, talent) {
     const mult = `×${formatMult(Math.max(1, ratio))}`;
@@ -1872,6 +1891,17 @@ export class UI {
       ${talent ? `<p>Talent conseillé : <b>${escapeHtml(talent.talent.name ?? talent.talent.id)}</b> (${formatNumber(talent.cost)} fragments).</p>` : ''}
       <div class="detail-actions"><button class="btn" data-action="close-modal">Continuer</button>
         ${talent ? '<button class="btn btn-gold" data-action="rebirth-talent">Voir les talents</button>' : ''}</div></div>`);
+  }
+
+  // v9.3.9 : après « Tout récupérer », tout ce qui a été gagné, en icônes (fermé d'un toucher ou tout seul).
+  showClaimRecap(total, { count = 0, items = 0, left = 0 } = {}) {
+    if (!this.$('modal').classList.contains('hidden')) return;
+    const icons = rewardIcons(total, 'rw-big');
+    if (!icons && !items) return;
+    this.openModal(`<div class="claim-recap"><h2 id="modal-title">${img('icon_chest', 'ico20')} ${count} récompense${count > 1 ? 's' : ''} récupérée${count > 1 ? 's' : ''}</h2>
+      ${icons}${items ? `<p>+${items} objet${items > 1 ? 's' : ''} dans le sac</p>` : ''}
+      ${left ? `<p class="bad">${left} en attente : sac et coffre pleins</p>` : ''}
+      <div class="detail-actions"><button class="btn btn-primary" data-action="close-modal">Super !</button></div></div>`);
   }
 
   // Récapitulatif du Retour de session.
@@ -1984,7 +2014,11 @@ export class UI {
     const help = this.view.helpOpen === this.tab && h
       ? `<div class="card panel-help-card"><b>Comment ça marche ?</b> ${h.short}${device ? ` ${device}` : ''}
           ${h.more ? fold(this, `help-${this.tab}`, 'En savoir plus', `<div>${h.more}</div>${h.env ? `<div>${h.env}</div>` : ''}`) : ''}</div>` : ''; // v9.2.1 : env
-    body.innerHTML = help + this.introCard(this.tab, state) + panel.render(this, state);
+    // v9.3.9 (2.5) : même écran → mise à jour sur place (la fiche ouverte ne se referme plus, rien ne saute).
+    const html = help + this.introCard(this.tab, state) + panel.render(this, state);
+    if (this.morphTab === this.tab && body.firstChild) morph(body, html);
+    else body.innerHTML = html;
+    this.morphTab = this.tab;
     for (const [id, value] of Object.entries(this.typed)) {
       const field = body.querySelector(`#${CSS.escape(id)}`);
       if (field && field.value !== value) field.value = value;

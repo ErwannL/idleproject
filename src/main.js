@@ -379,6 +379,10 @@ const actions = {
     let n = 0;
     let items = 0;
     const add = (given) => { if (given) { const { item, ...rest } = given; mergeReward(total, rest); n += 1; } };
+    // v9.3.9 : plusieurs passes — un palier récupéré (Collections, hauts faits…) peut en ouvrir un autre : « Tout » prend
+    // vraiment tout, au lieu de laisser « Récupérer : Collections (6) » juste après le clic.
+    for (let pass = 0; pass < 8; pass++) {
+    const before = n;
     const list = claimables(state);
     const order = [...list.filter((c) => !c.item), ...list.filter((c) => c.item)];
     for (const c of order) {
@@ -399,10 +403,13 @@ const actions = {
         default: break;
       }
     }
+    if (n === before) break;
+    }
     const left = claimables(state).length;
     if (!n) { ui.toast(left ? 'Sac et coffre pleins : libérez de la place pour récupérer les objets.' : 'Rien à récupérer pour le moment.'); return; }
     const text = [rewardText(total, formatNumber), items ? `${items} objet${items > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ');
     done(true, `Tout récupéré : ${text}${left ? ` (${left} en attente : sac et coffre pleins)` : ''}`, '#7fd4ff');
+    ui.showClaimRecap?.(total, { count: n, items, left }); // v9.3.9 : récapitulatif en icônes
   },
   // Retour de session (v9.1.0, touche S) : récupérer tout et équiper le meilleur, puis un récapitulatif.
   // v9.1.3 : plus d'achat automatique d'améliorations ni de répartition des points : l'or et les points restent
