@@ -1,3 +1,17 @@
+## Ascendrya v9.3.9 — Chaque coup se sent, le PC aussi soigné que le téléphone
+
+- PC : scène agrandie (personnages ×1,6, sol aux deux tiers) ; les monstres entrent par le bord droit et marchent à vitesse constante (ils ne « glissent » plus) ; la barre de vague et le prochain déblocage sont rangés sous le sol.
+- Coups : recul et écrasement plus forts, arrêt sur image sur les critiques et les coups de grâce, monstre projeté qui clignote puis éclate, pièces qui volent vers l'or, chiffres plus gros (blanc, jaune critique, orange compétence), barre de vie en deux temps, tremblement sur les compétences de zone et les coups de boss (réglable), son plus grave sur les boss.
+- Chaque clic répond : le bouton s'enfonce et brille, « Niv. 16 ! » ou « +1 » monte, les récompenses volent vers leur compteur ; un bouton grisé tremble et dit ce qui manque.
+- « Tout récupérer » prend vraiment tout (Collections, hauts faits, primes…) et montre un récapitulatif en icônes.
+- La fiche compagnon ne saute plus : elle se met à jour sur place, et les fenêtres restent ancrées en haut.
+- Ressources des compétences : toucher un Grimoire, une Pierre ou une Essence dit à quoi elle sert et où en trouver, avec un bouton pour y aller ; la Pierre et l'Essence ont leur propre icône.
+- Talents : vue simple en 6 branches (Attaque, Chasse aux monstres, Or et butin, Compagnons, Compétences, Survie), paliers clairs et « Apprendre le meilleur » ; l'arbre complet devient l'« Arbre avancé » après 3 Renaissances.
+- « Défense » et « Peau de fer » ne font plus qu'une : vos niveaux sont convertis en Défense, sans perdre de survie.
+- Le prologue met la partie en pause, et le tutoriel attend sa fin.
+- Le heaume laisse voir le visage du héros.
+- Corrigé : aide de l'invocation (un compteur par invocation : 100 pour les compagnons, 60 pour les familiers), héros qui remarchait au milieu d'une vague.
+
 ## Ascendrya v9.3.8 — Combat en vagues, Quêtes de la semaine, héros à 6 places
 
 - Combat en vagues : les monstres arrivent par groupes de 3 et s'arrêtent tous sur une même ligne devant le héros ; personne ne les touche avant (héros, compagnons, compétences). Le héros combat au lieu de marcher (environ 60 % du temps contre 25 % avant), pour le même or et la même expérience par minute. « Vague 3/5 » remplace « Ennemis vaincus 14/15 ».
