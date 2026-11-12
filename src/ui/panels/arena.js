@@ -79,7 +79,7 @@ function replayHtml(ui, state) {
   const zi = foeZone(s.foes[0]?.element, seed);
   const foes = s.foes.map((f, i) => `<div class="arena-foe${f.hp <= 0 ? ' down' : ''}${f.boss ? ' boss' : ''}${s.last.some((e) => (e.kind === 'hit' || e.kind === 'skill') && e.foe === i) ? ' hit' : ''}"><img class="px foe-art" src="${icon(foeSprite(f, i, seed), f.boss ? 3 : 2)}" alt=""> ${elementBadge(f.element, false, true)}${bar(f.hp / f.maxHp, '#e84a5f')}</div>`).join('');
   const log = s.last.map((e) => {
-    const el = e.elem > 1 ? ' <b class="adv">AVANTAGE</b>' : e.elem < 1 ? ' <b class="disadv">DÉSAVANTAGE</b>' : '';
+    const el = e.elem > 1 ? ' <b class="adv">Efficace !</b>' : e.elem < 1 ? ' <b class="disadv">Résiste</b>' : '';
     if (e.kind === 'hit' || e.kind === 'skill') return `<li>${escapeHtml(name(e.who))} : ${e.kind === 'skill' ? `<b>${SKILL_TXT[e.type]}</b> ` : ''}${formatNumber(Math.round(e.d))}${e.crit ? ' (critique)' : ''}${el}</li>`;
     if (e.kind === 'heal' || e.kind === 'shield' || e.kind === 'rally') return `<li>${escapeHtml(name(e.who))} : <b>${SKILL_TXT[e.kind]}</b></li>`;
     if (e.kind === 'fall') return `<li class="bad">${escapeHtml(name(e.who))} est à terre</li>`;

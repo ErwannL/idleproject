@@ -1,6 +1,16 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Efficace !": "효과적!",
+  "Résiste": "저항",
+  "Ton équipe actuelle est la meilleure disponible ici.": "현재 팀이 여기서 최고입니다.",
+  "Avant le boss": "보스 전",
+  "Préparation": "준비",
+  "Placer l'équipe conseillée": "추천 팀 배치",
+  "de dégâts.": "피해.",
+  "Élément du monde :": "세계 속성:",
+  "Monde :": "세계:",
+  "Continuer": "계속",
   "Encaisse devant et protège l'équipe.": "앞에서 공격을 받아 팀을 지킵니다.",
   "Bon contre les charges et les kamikazes.": "돌진형과 자폭형에 강합니다.",
   "Tire de loin, sans attendre le contact.": "접근을 기다리지 않고 멀리서 쏩니다.",
@@ -266,6 +276,10 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Élément du monde : (.*)$"), (m) => `세계 속성: ${m[1]}`],
+  [new RegExp("^Parade : (.+)\\.$"), (m) => `대응: ${L(m[1])}.`],
+  [new RegExp("^Élément du monde : (.+)\\. Tes alliés (.*) y font$"), (m) => `세계 속성: ${m[1]}. ${m[2]} 아군의 피해`],
+
   [new RegExp("^Meilleure équipe : (.+) \\(\\+(\\d+) %\\)$"), (m) => `최고의 팀: ${m[1].replace(' et ', ', ')} (+${m[2]}%)`],
   [new RegExp("^Nouvelle équipe : \\+(\\d+) % de dégâts$"), (m) => `새 팀: 피해 +${m[1]}%`],
   [new RegExp("^\\+(\\d+) % de dégâts$"), (m) => `피해 +${m[1]}%`],

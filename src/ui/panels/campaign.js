@@ -8,6 +8,7 @@ const TIER_LABELS = { mini: 'Mini-boss', mid: 'Boss', hard: 'Boss redoutable', m
 import { bossForecast, escapeHtml, forecastHtml, progressBar } from '../common.js';
 import { bossRetryPct } from '../../core/guide.js';
 import { envLine, environmentFor } from '../../core/environment.js'; // v9.2.1
+import { elementBadge, elementWheel, zoneElement } from '../../core/elements.js'; // v9.5.1
 import { attachMap, pulse } from '../ui-vfx.js'; // v9.2.6
 
 // v9.0.6 : écran Aventure — « où j'en suis » en un coup d'œil : monde et étape, prochain boss, prévision,
@@ -39,8 +40,11 @@ function summary(ui, state) {
 // v9.2.1 : malus d'environnement du monde choisi (au cycle choisi) et amélioration qui le contre.
 function envHtml(state, zi, cycle) {
   const env = environmentFor(state, zi, cycle + 1);
-  if (!env) return '<div class="muted env-line">Environnement : aucun malus dans ce monde.</div>';
-  return `<div class="env-line${env.countered >= 100 ? ' countered' : ''}">${escapeHtml(envLine(env))}</div>`;
+  // v9.5.1 (4.1, 4.3) : élément du monde et roue des éléments, sur la Carte.
+  const el = zoneElement(zi);
+  const elem = el ? `<div class="env-line">Élément du monde : ${elementBadge(el, true)}</div>${elementWheel(el)}` : '';
+  if (!env) return `${elem}<div class="muted env-line">Environnement : aucun malus dans ce monde.</div>`;
+  return `${elem}<div class="env-line${env.countered >= 100 ? ' countered' : ''}">${escapeHtml(envLine(env))}</div>`;
 }
 
 // Boss trop fort (v9.1.0) : c'est normal, et on le dit ; le bouton pour le retenter reste ici aussi.

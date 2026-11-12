@@ -85,6 +85,8 @@ const BOSS_AURAS = {
   dungeon: { color: '#b04dff', ember: '#e8c0ff', width: 2, alpha: 0.55, speed: 6, embers: 0.3 }, // v9.0.4 : boss de donjon
 };
 const HERO_X = BALANCE.world.heroX * WORLD_SCALE;
+// v9.5.1 : couleur de la barre de vie des monstres selon leur élément (lisible sur le décor).
+const ELEMENT_BAR = { red: '#ff5a3c', blue: '#3ca8ff', green: '#4cd26a', light: '#ffd84a', dark: '#b07bff' };
 
 // Particules d'ambiance par zone, sur deux profondeurs (derrière et devant les personnages) :
 // elles défilent avec la parallaxe et donnent de la vie au décor même quand le chevalier se bat.
@@ -400,8 +402,8 @@ export class SceneRenderer {
           if (this.time - (fxe.elemAt ?? -9) > 0.7) {
             fxe.elemAt = this.time;
             const y = this.groundY - (event.boss ? 80 : 56);
-            if (event.elem > 1) { this.addText('AVANTAGE ▲', event.x, y, '#ff9a3c', '#fff1c8'); if (!this.focus) this.burst(event.x, this.groundY - 18, '#ffd23f', 5, 40); }
-            else this.addText('DÉSAVANTAGE ▼', event.x, y, '#8a93a8', '#e0e6f0');
+            if (event.elem > 1) { this.addText('Efficace !', event.x, y, '#6dff8a', '#e6ffe8'); /* v9.5.1 (4.3) */ if (!this.focus) this.burst(event.x, this.groundY - 18, '#ffd23f', 5, 40); }
+            else this.addText('Résiste', event.x, y, '#8a93a8', '#e0e6f0');
           }
         }
         break;
@@ -1345,8 +1347,8 @@ export class SceneRenderer {
         ctx.globalAlpha = 1;
         this.drawBar(ctx, headX - 16, headY - 6, 32, enemy.hp / enemy.maxHp, '#e84a5f', this.ghostHp(fx, enemy));
         drawElementIcon(ctx, enemy.element, headX - 22, headY - 7);
-      } else if (enemy.elite || enemy.mutation || enemy.hp < enemy.maxHp) {
-        this.drawBar(ctx, headX - 9, headY - 5, 18, enemy.hp / enemy.maxHp, enemy.elite ? '#ff9a3d' : mutation ? mutation.color : '#e84a5f', this.ghostHp(fx, enemy));
+      } else { // v9.5.1 (4.3) : barre toujours visible, à la couleur de l'élément du monstre
+        this.drawBar(ctx, headX - 9, headY - 5, 18, enemy.hp / enemy.maxHp, enemy.elite ? '#ff9a3d' : mutation ? mutation.color : ELEMENT_BAR[enemy.element] ?? '#e84a5f', this.ghostHp(fx, enemy));
         drawElementIcon(ctx, enemy.element, headX - 15, headY - 6);
       }
       ctx.globalAlpha = 1;

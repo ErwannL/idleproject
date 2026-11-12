@@ -8,8 +8,8 @@ export const ELEMENTS = {
   light: { name: 'Lumière', icon: '☀', color: '#ffe27a' },
   dark: { name: 'Ténèbres', icon: '☾', color: '#a46bff' },
 };
-export const ADV = 1.25; // v9.3.2 : +25 % (validé)
-export const WEAK = 0.8;
+export const ADV = 1.5; // v9.5.1 (4.2) : +50 % (avant +25 %) — un bon choix d'élément se voit tout de suite
+export const WEAK = 0.7; // −30 % (avant −20 %)
 const BEATS = { red: 'green', green: 'blue', blue: 'red', light: 'dark', dark: 'light' };
 
 // Compagnons et familiers (les entrées « héros » ne servent qu'à l'affichage : le héros frappe en neutre).
@@ -54,3 +54,13 @@ export function elementBadge(el, long = false, iconOnly = false) {
   if (iconOnly) return `<span class="elem-badge elem-icon elem-${el}" title="${e.name} — ${tip}" aria-label="Type ${e.name}" style="--ec:${e.color}">${e.icon}</span>`;
   return `<span class="elem-badge elem-${el}" title="${tip}" style="--ec:${e.color}">${e.icon} ${e.name}</span>${long ? ` <small class="muted elem-tip">${tip}</small>` : ''}`;
 }
+
+// v9.5.1 (4.1) : roue des éléments en une ligne (interface) : Feu > Nature > Eau > Feu ; Lumière ⇄ Ténèbres.
+export function elementWheel(highlight = null) {
+  const b = (el) => `<span class="ew-el${highlight === el ? ' on' : ''}" style="--ec:${ELEMENTS[el].color}" title="${ELEMENTS[el].name}">${ELEMENTS[el].icon}</span>`;
+  return `<div class="elem-wheel" role="img" aria-label="Feu bat Nature, Nature bat Eau, Eau bat Feu ; Lumière et Ténèbres se battent l'une l'autre (+${Math.round((ADV - 1) * 100)} % / −${Math.round((1 - WEAK) * 100)} %)">
+    ${b('red')}<i>›</i>${b('green')}<i>›</i>${b('blue')}<i>›</i>${b('red')}<span class="ew-sep"></span>${b('light')}<i>⇄</i>${b('dark')}
+    <small>+${Math.round((ADV - 1) * 100)} % / −${Math.round((1 - WEAK) * 100)} %</small></div>`;
+}
+// Éléments forts contre `el` (ceux qui le battent).
+export function strongAgainst(el) { return Object.keys(BEATS).filter((a) => BEATS[a] === el); }

@@ -6,7 +6,8 @@ import { UNITS as COMPANIONS } from '../../data/banners.js'; // v9.1.3 (partie B
 import { teamAdvice } from '../../core/team-advisor.js'; // v9.5.0
 import { MULTIPLICATIVE, RARITY_SKILL, activeSynergies, allCompanionSkills, companionById, companionMultiplier, companionSkillMultiplier, companionSkills, companionUpgradeCost, skillKillGold, duplicates, equippedOfKind, teamKind, ultimateUnlocked, unitLevel } from '../../core/companions.js';
 import { COMPANION_ROLES, ROLES, SYNERGIES } from '../../data/synergies.js';
-import { elementBadge, unitElement } from '../../core/elements.js'; // v9.3.1 : types
+import { elementBadge, elementWheel, unitElement, zoneElement } from '../../core/elements.js'; // v9.3.1 : types · v9.5.1 : roue
+import { currentEncounter } from '../../core/combat.js'; // v9.5.1
 import { costButton, effectText, escapeHtml, fold, hdArt, formatNumber, icon, img, rarityLabel, stars } from '../common.js';
 import { animCanvas } from '../animator.js';
 import { showcaseSlot } from '../showcase.js'; // v9.2.7 : vitrine animée
@@ -248,7 +249,8 @@ export default {
       ? `<div class="card team-advice"><b>Équipe conseillée</b> : ${adv.team.map((id) => escapeHtml(companionById(id)?.name ?? id)).join(', ')}
           <span class="good">+${Math.round(adv.gain * 100)} % de dégâts</span> <button class="btn btn-primary small" data-action="apply-team">Placer cette équipe</button></div>`
       : adv ? '<div class="muted team-advice">Ton équipe est la meilleure disponible ici.</div>' : '';
-    return `${team}${advise}${teamUp}
+    const wheel = `<div class="team-wheel">Monde : ${elementBadge(zoneElement(currentEncounter(state).zoneIndex))} ${elementWheel(zoneElement(currentEncounter(state).zoneIndex))}</div>`; // v9.5.1
+    return `${team}${wheel}${advise}${teamUp}
       ${nearHtml ? `<div class="card syn-near-card"><b>Synergies à portée</b>${nearHtml}</div>` : ''}
       ${fold(ui, 'synergies', synTitle, synergies)}
       <div class="item-tabs comp-tabs" role="tablist">

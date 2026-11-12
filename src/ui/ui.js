@@ -33,6 +33,9 @@ import { loginTab } from './panels/contracts.js';
 import { loginPending } from '../core/missions.js';
 import { morph } from './morph.js'; // v9.3.9
 import { suggestedTalent } from '../core/rebirth.js'; // v9.3.9
+import { ADV, elementBadge, elementWheel, strongAgainst } from '../core/elements.js'; // v9.5.1
+import { companionById } from '../core/companions.js'; // v9.5.1
+import { BOSS_TRAITS, TRAITS } from '../core/boss-traits.js'; // v9.5.1
 import { RESOURCE_WHERE, SKILL_RESOURCES } from '../data/progression.js'; // v9.3.9 (2.6)
 import { coin, effectText, escapeHtml, fold, glyph, icon, img, itemFrame, missingText, rewardIcons } from './common.js';
 import { GAME_VERSION } from '../version.js';
@@ -1000,6 +1003,7 @@ export class UI {
       case 'talent-branch': a.buyTalentStep(value); break; // v9.3.9 : vue simple des Talents
       case 'talent-best': a.buyTalentsAll(null); break;
       case 'apply-team': a.applyTeam(); break; // v9.5.0
+      case 'prep-apply': this.closeModal(); a.applyTeam(); break; // v9.5.1
       // v9.1.3 (A18) : une clé de voûte de la vue Région ouvre l'arbre centré sur elle.
       case 'region-key': local(() => { v.talentSel = value; v.treeSeg = 'tree'; recenterTree(); }); break;
       case 'buy-tperk': a.buyTranscendPerk(key); break;
@@ -1876,6 +1880,26 @@ export class UI {
       <p><b>Sert à :</b> ${c.use}</p><p><b>S'obtient :</b> ${c.gain}</p>
       <div class="detail-actions"><button class="btn" data-action="close-modal">Fermer</button>
         ${reachable ? `<button class="btn btn-primary" data-action="currency-go" data-value="${id}">Aller à ${escapeHtml(navPath(c.tab))}</button>` : ''}</div>`);
+  }
+
+  // v9.5.1 (4.4) : écran Préparation — à l'arrivée dans un monde et avant son boss de fin. Il ne bloque rien : le
+  // combat continue derrière avec l'équipe en place. Élément du monde, mécanique du boss, équipe conseillée chiffrée.
+  showPreparation({ zoneIndex, boss = null, advice = null, kind = 'world' }) {
+    if (!this.$('modal').classList.contains('hidden')) return;
+    const zone = ZONES[zoneIndex];
+    const el = zoneElement(zoneIndex);
+    const strong = strongAgainst(el);
+    const bossDef = boss ? BOSSES[boss] : null;
+    const trait = boss && BOSS_TRAITS[boss] ? TRAITS[BOSS_TRAITS[boss]] : null;
+    const team = advice && !advice.same && advice.gain >= 0.03
+      ? `<p><b>Équipe conseillée</b> : ${advice.team.map((id) => escapeHtml(companionById(id)?.name ?? id)).join(', ')} <span class="good">+${Math.round(advice.gain * 100)} % de dégâts</span></p>` : '<p class="muted">Ton équipe actuelle est la meilleure disponible ici.</p>';
+    this.openModal(`<div class="prep-screen"><h2 id="modal-title">${kind === 'boss' ? 'Avant le boss' : 'Préparation'} : ${escapeHtml(zone?.name ?? '')}</h2>
+      <p>Élément du monde : ${elementBadge(el)}. Tes alliés ${strong.map((x) => elementBadge(x)).join(' ')} y font <b class="good">+${Math.round((ADV - 1) * 100)} %</b> de dégâts.</p>
+      ${elementWheel(el)}
+      ${bossDef ? `<p>Boss : <b>${escapeHtml(bossDef.name)}</b>${trait ? ` — ${escapeHtml(trait.name)} (${escapeHtml(trait.short)}). <span class="muted">Parade : ${escapeHtml(trait.counter)}.</span>` : ''}</p>` : ''}
+      ${team}
+      <div class="detail-actions"><button class="btn" data-action="close-modal">Continuer</button>
+        ${advice && !advice.same && advice.gain >= 0.03 ? '<button class="btn btn-primary" data-action="prep-apply">Placer l\'équipe conseillée</button>' : ''}</div></div>`);
   }
 
   // v9.3.9 (2.6) : fiche d'une ressource de compétence — ce que c'est, combien on en a, à quoi elle sert, et où en

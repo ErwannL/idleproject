@@ -1,6 +1,16 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Efficace !": "Effective!",
+  "Résiste": "Resists",
+  "Ton équipe actuelle est la meilleure disponible ici.": "Your current team is the best available here.",
+  "Avant le boss": "Before the boss",
+  "Préparation": "Preparation",
+  "Placer l'équipe conseillée": "Use the recommended team",
+  "de dégâts.": "damage.",
+  "Élément du monde :": "World element:",
+  "Monde :": "World:",
+  "Continuer": "Continue",
   "Encaisse devant et protège l'équipe.": "Takes hits up front and protects the team.",
   "Bon contre les charges et les kamikazes.": "Good against chargers and kamikazes.",
   "Tire de loin, sans attendre le contact.": "Shoots from afar without waiting for contact.",
@@ -266,6 +276,10 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Élément du monde : (.*)$"), (m) => `World element: ${m[1]}`],
+  [new RegExp("^Parade : (.+)\\.$"), (m) => `Counter: ${L(m[1])}.`],
+  [new RegExp("^Élément du monde : (.+)\\. Tes alliés (.*) y font$"), (m) => `World element: ${m[1]}. Your ${m[2]} allies deal`],
+
   [new RegExp("^Meilleure équipe : (.+) \\(\\+(\\d+) %\\)$"), (m) => `Best team: ${m[1].replace(' et ', ' and ')} (+${m[2]}%)`],
   [new RegExp("^Nouvelle équipe : \\+(\\d+) % de dégâts$"), (m) => `New team: +${m[1]}% damage`],
   [new RegExp("^\\+(\\d+) % de dégâts$"), (m) => `+${m[1]}% damage`],

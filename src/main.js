@@ -52,7 +52,7 @@ import { hasPref, setPref } from './ui/prefs.js';
 import { animateMenus } from './ui/animator.js';
 import { createGameAudio } from './audio/game-audio.js';
 import { flyTo } from './ui/ui-vfx.js'; // v9.3.9
-import { teamAdvice, tickTeamAdvice } from './core/team-advisor.js'; // v9.5.0
+import { bestTeam, teamAdvice, tickTeamAdvice } from './core/team-advisor.js'; // v9.5.0
 import { simSpeed, unlockedSpeeds } from './core/cheats.js';
 import { applyLoadout, renameLoadout, saveLoadout } from './core/loadouts.js';
 import { claimEncyclopedia, claimSection } from './core/encyclopedia.js';
@@ -72,7 +72,7 @@ import { purchase } from './core/store.js';
 import { ownsTheme, unequipSkin, wornTheme } from './core/cosmetics.js';
 import { buyEventItem, claimEventGoal, fightStage, finishWorldBoss, startWorldBoss, worldBossStatus } from './core/ancients.js';
 import { bossHpForDay } from './core/world-boss.js'; // v9.2.9 : World Boss en vrai combat
-import { bossesForStage, enemyStats } from './core/combat.js';
+import { bossesForStage, enemyStats, stageInZone } from './core/combat.js';
 import { BUILT_IN_TOKEN } from './core/update-token.js';
 import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagList, updateStatus } from './core/update.js';
 import { playsOnSite } from './ui/panels/options.js';
@@ -1306,6 +1306,22 @@ document.getElementById('scene')?.addEventListener('pointerdown', (e) => {
 });
 window.addEventListener('keydown', unlockAudio, { capture: true });
 document.addEventListener('click', (e) => { if (e.target.closest('button')) sound.play('click', { volume: 0.5 }); }, { capture: true });
+// v9.5.1 (4.4) : écran Préparation, une fois par monde (arrivée) et une fois avant son boss de fin (étape 20).
+// Jamais en mode (donjon, Tour, défi), jamais en test automatisé ; le combat continue derrière.
+function preparationCheck(enc) {
+  if (state.dungeon || state.tower || state.challenge || state.worldRun || navigator.webdriver || state.ui.prep === false) return;
+  if ((state.records?.bossesDefeated ?? 0) < 3 || !Object.keys(state.companions.owned).length) return; // après les premières minutes
+  const zi = enc.zoneIndex;
+  const bossStage = stageInZone(state.stage) === BALANCE.stages.stagesPerZone;
+  const hint = bossStage ? `prep-boss-${zi}` : `prep-${zi}`;
+  if ((state.ui.hints ?? []).includes(hint)) return;
+  state.ui.hints = [...(state.ui.hints ?? []), hint];
+  setTimeout(() => {
+    const advice = bestTeam(state);
+    ui.showPreparation({ zoneIndex: zi, boss: bossStage ? bossesForStage(state.stage)[0] : ZONES[zi]?.bosses?.[0], advice, kind: bossStage ? 'boss' : 'world' });
+  }, bossStage ? 400 : 4600);
+}
+
 // v9.3.9 (2.3) : à la mort d'un monstre, ses pièces volent de la scène vers le compteur d'or (au plus ~3 fois par s).
 let killFlyAt = 0;
 function killCoinsFx(event) {
@@ -1424,6 +1440,7 @@ function watchWorldChange() {
     }
   }
   lastZoneKey = key;
+  preparationCheck(enc);
   watchWorldChange.lastStage = state.stage;
 }
 

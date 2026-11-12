@@ -24,9 +24,9 @@ import { createCombat, step } from '../src/core/combat.js';
 import { createNewState } from '../src/core/state.js';
 import { Rng } from '../src/core/rng.js';
 
-test('v9.3.2 types : +25 % / −20 %, héros neutre, cas neutres', () => {
-  assert.equal(ADV, 1.25);
-  assert.equal(WEAK, 0.8);
+test('v9.5.1 types : +50 % / −30 % (avant +25 / −20), héros neutre, cas neutres', () => {
+  assert.equal(ADV, 1.5);
+  assert.equal(WEAK, 0.7);
   assert.equal(elementMultiplier(null, 'dark'), 1, 'héros neutre contre tout');
   assert.equal(elementMultiplier('dark', null), 1, 'ennemi contre héros neutre');
   assert.equal(elementMultiplier('light', 'red'), 1, 'lumière ne domine pas les 3 types');

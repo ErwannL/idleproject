@@ -1,4 +1,6 @@
 // Inventaire en 3 zones (équipement porté · fiche de l'objet · grille) et Forge.
+import { elementWheel, zoneElement } from '../../core/elements.js'; // v9.5.1
+import { currentEncounter as encNow } from '../../core/combat.js'; // v9.5.1
 import { canEquip, classById, weaponClass } from '../../core/classes.js';
 import { companionById, companionMultiplier, unitLevel } from '../../core/companions.js';
 import { gearClassOf as gearClassOfUnit } from '../../data/companion-gear.js';
@@ -310,7 +312,7 @@ function bag(ui, state) {
   const whoRow = `<div class="who-row" role="group" aria-label="Personnage">${whoBtn('hero', 'Héros', animCanvas('hero', 34, 34, 2), `Nv ${state.level} · ${formatNumber(st.combatPower)}`)}${team.map((c) => whoBtn(c.id, c.name, companionStill(c), `Nv ${unitLevel(state, c.id)} · ${formatNumber(unitPower(c))}`)).join('')}</div>`;
   const PL = whoUnit ? Object.keys(EQUIP_SLOTS) : Object.keys(HERO_SLOTS);
   const half = Math.ceil(PL.length / 2);
-  const equipCol = `<div class="card inv-equip">${whoRow}
+  const equipCol = `<div class="card inv-equip">${whoRow}${elementWheel(zoneElement(encNow(state).zoneIndex))}
       <div class="equip-doll big"><div class="slot-col">${PL.slice(0, half).map(slotFrame).join('')}</div>
         <div class="doll" title="Aperçu avec l'objet sélectionné">${whoUnit ? `<span class="doll-unit">${companionStill(whoUnit)}</span>` : animCanvas('hero', 64, 64, 3, `data-big="1" data-preview="${escapeHtml(JSON.stringify(previewEq))}"`)}</div>
         <div class="slot-col acc">${PL.slice(half).map(slotFrame).join('')}</div></div>
