@@ -97,10 +97,10 @@ export { MENUS };
 
 const PANELS = Object.fromEntries([upgrades, inventory, forgePanel, hero, looks, companions, expeditions, skills, tree, campaign, dungeons, tower, arena, boss, encyclopedia, summon, shop, eventPanel, contracts, inbox, ranking, guild, stats, options, worldPanel]
   .map((p) => [p.id, p]));
-const SUB_ICONS = {
-  upgrades: 'icon_upgrade', skills: 'skill_quick', tree: 'icon_tree', hero: 'icon_hero', inventory: 'icon_bag', looks: 'icon_summon',
-  companions: 'icon_paw', expeditions: 'icon_expedition', summon: 'icon_summon', shop: 'icon_gem', event: 'icon_star', campaign: 'icon_map', dungeons: 'icon_dungeon', tower: 'icon_tower', arena: 'icon_paw', forge: 'icon_anvil',
-  boss: 'icon_boss', encyclopedia: 'icon_book', contracts: 'icon_trophy', inbox: 'icon_mail', ranking: 'icon_trophy', guild: 'icon_crown', stats: 'icon_book',
+const SUB_ICONS = { // v9.4.0 : une icône par onglet (PixelLab), plus aucune partagée
+  upgrades: 'tab_upgrades', skills: 'tab_skills', tree: 'tab_talents', hero: 'icon_hero', inventory: 'tab_equipment', looks: 'tab_looks',
+  companions: 'tab_companions', expeditions: 'tab_expeditions', summon: 'tab_summon', shop: 'top_shop', event: 'tab_event', campaign: 'tab_map', dungeons: 'tab_dungeons', tower: 'tab_challenges', arena: 'tab_arena', forge: 'tab_forge',
+  boss: 'tab_boss', encyclopedia: 'tab_collections', contracts: 'tab_missions', inbox: 'icon_mail', ranking: 'tab_ranking', guild: 'tab_guild', stats: 'tab_stats',
 };
 // v9.1.0 : présentation courte en haut de l'onglet, à sa première ouverture (plus de bulle « Nouveau »).
 const UNLOCK_INFO = { // v9.3.4 (h) : une ligne courte par onglet

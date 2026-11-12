@@ -18,10 +18,10 @@
   <div id="app" class="layout-mini">
     <!-- v9.1.0 : 4 menus (onglets dans le panneau), barre verticale (en bas sur écran étroit). Chiffre fixe par menu. -->
     <nav id="tabs" aria-label="Menus">
-      <button data-menu="hero"><img class="px" data-icon="icon_hero" alt=""><span>Héros</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-hero"></i><b class="badge-count hidden" id="count-hero"></b></button>
-      <button data-menu="team"><img class="px" data-icon="icon_summon" alt=""><span>Équipe</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-team"></i></button>
-      <button data-menu="adventure"><img class="px" data-icon="icon_map" alt=""><span>Aventure</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-adventure"></i></button>
-      <button data-menu="goals"><img class="px" data-icon="icon_trophy" alt=""><span>Quêtes</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-goals"></i></button>
+      <button data-menu="hero"><img class="px" data-icon="menu_hero" alt=""><span>Héros</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-hero"></i><b class="badge-count hidden" id="count-hero"></b></button>
+      <button data-menu="team"><img class="px" data-icon="menu_team" alt=""><span>Équipe</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-team"></i></button>
+      <button data-menu="adventure"><img class="px" data-icon="menu_adventure" alt=""><span>Aventure</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-adventure"></i></button>
+      <button data-menu="goals"><img class="px" data-icon="menu_quests" alt=""><span>Quêtes</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-goals"></i></button>
     </nav>
     <div id="content">
     <div id="main-col">
@@ -31,9 +31,9 @@
         <button class="chip chip-gold" data-currency="gold" title="Or"><img class="px" data-icon="coin" alt="Or"><span id="gold">0</span></button>
         <button class="chip chip-gem" data-currency="gems" title="Gemmes"><img class="px" data-icon="icon_gem" alt="Gemmes"><span id="gems">0</span></button>
         <div class="top-actions">
-          <button class="icon-btn top-shop hidden" id="top-shop" data-open="shop" title="Boutique" aria-label="Boutique"><img class="shop-top-ico" src="assets/ui/shop/crystal_large_s.png" alt="" draggable="false"><i class="badge hidden" id="badge-shop"></i></button>
-          <button class="icon-btn hidden" id="top-profile" data-menu-open="profile" title="Profil" aria-label="Profil"><img class="px" data-icon="icon_crown" alt=""></button>
-          <button class="icon-btn" data-open="options" title="Paramètres" aria-label="Paramètres"><img class="px" data-icon="icon_gear" alt=""></button>
+          <button class="icon-btn top-shop hidden" id="top-shop" data-open="shop" title="Boutique" aria-label="Boutique"><img class="px shop-top-ico" data-icon="top_shop" alt="" draggable="false"><i class="badge hidden" id="badge-shop"></i></button>
+          <button class="icon-btn hidden" id="top-profile" data-menu-open="profile" title="Profil" aria-label="Profil"><img class="px" data-icon="top_profile" alt=""></button>
+          <button class="icon-btn" data-open="options" title="Paramètres" aria-label="Paramètres"><img class="px" data-icon="top_settings" alt=""></button>
         </div>
       </header>
       <section id="play">

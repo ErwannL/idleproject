@@ -22,7 +22,7 @@ export const SKILL_VALUE_CAPS = { heal: 60, shield: 85 };
 
 // ---- Ressources universelles (aucune par élément, rareté ou rôle) ----
 export const SKILL_RESOURCES = {
-  grimoire: { name: 'Grimoire de combat', short: 'Grimoires', icon: 'icon_book', use: 'Améliore les compétences passives et actives.' },
+  grimoire: { name: 'Grimoire de combat', short: 'Grimoires', icon: 'icon_grimoire', use: 'Améliore les compétences passives et actives.' },
   ascension: { name: "Pierre d'ascension", short: 'Pierres', icon: 'icon_ascension', use: 'Améliore les compétences ultimes.' },
   mastery: { name: 'Essence de maîtrise', short: 'Essences', icon: 'icon_mastery', use: 'Niveaux avancés (6 à 10) de toutes les compétences.' },
 };

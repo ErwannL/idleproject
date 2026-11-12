@@ -3403,3 +3403,9 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 #play.wide-scene #progress { flex: 1 1 60%; height: 26px; }
 #play.wide-scene #progress-text { font-size: 15px; }
 #play.wide-scene #next-unlock { flex: 1 1 100%; order: 3; }
+/* v9.4.0 : icônes PixelLab (48×48 et 64×64) affichées entre 32 et 48 px, sans flou. */
+.upg-icon { width: 44px; height: 44px; }
+.upg-icon img { width: 40px; height: 40px; image-rendering: pixelated; }
+#tabs button img, .layout-mini #tabs button img, .layout-mini #tabs.tabs-compact button:not(.active) img { width: 40px; height: 40px; image-rendering: pixelated; }
+#panel-subtabs .subtab img { width: 32px; height: 32px; image-rendering: pixelated; }
+.icon-btn img, .icon-btn .shop-top-ico { width: 28px; height: 28px; image-rendering: pixelated; }

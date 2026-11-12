@@ -9,8 +9,9 @@ const NEW = ['icon_crit', 'icon_regen', 'icon_tower', 'icon_expedition', 'icon_s
 test('icônes de menu : 11 sprites 20×20 générés par tools/art/icons.py', () => {
   for (const id of NEW) {
     assert.ok(ART[id], id);
-    assert.equal(ART[id].rows.length, 20, id);
-    assert.ok(ART[id].rows.every((r) => r.length === 20), id);
+    const n = ART[id].scale === 0.5 ? 48 : 20; // v9.4.0 : icônes PixelLab 48×48 (scale 0,5)
+    assert.equal(ART[id].rows.length, n, id);
+    assert.ok(ART[id].rows.every((r) => r.length === n), id);
   }
 });
 
@@ -18,7 +19,7 @@ test('icônes de menu : plus de double sens ni d\'emoji ✧ 👑 ⌛ dans les pa
   const read = (p) => readFileSync(new URL(`../src/${p}`, import.meta.url), 'utf8');
   assert.match(read('ui/panels/upgrades.js'), /crit: 'icon_crit'/);
   assert.match(read('ui/panels/upgrades.js'), /regen: 'icon_regen'/);
-  assert.match(read('ui/ui.js'), /tower: 'icon_tower'/);
-  assert.match(read('ui/ui.js'), /expeditions: 'icon_expedition'/);
+  assert.match(read('ui/ui.js'), /tower: 'tab_challenges'/); // v9.4.0 : onglets PixelLab
+  assert.match(read('ui/ui.js'), /expeditions: 'tab_expeditions'/);
   for (const p of ['ui/panels/tower.js', 'ui/panels/tree.js', 'ui/common.js']) assert.doesNotMatch(read(p), /[✧👑⌛]/u, p);
 });

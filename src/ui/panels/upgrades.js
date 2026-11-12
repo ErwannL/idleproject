@@ -9,12 +9,10 @@ import { BASE_UPGRADES, nextUpgradeUnlock, openUpgrades } from '../../core/unloc
 import { currentEnvironment, hitsToFall } from '../../core/combat.js'; // v9.2.1 · v9.2.8 : coups encaissés
 
 const ICONS = {
-  // v9.1.3 (doc2 §4) : icônes 20×20 dédiées (Critique ≠ Frappe rapide, Régénération ≠ fée, Dégâts et Or carrés).
-  damage: 'icon_damage', attackSpeed: 'icon_bolt', crit: 'icon_crit', vitality: 'icon_heart',
-  armor: 'icon_anvil', regen: 'icon_regen', goldFind: 'icon_gold',
-  // v9.2.0 : icônes existantes réutilisées (aucune nouvelle image).
-  critDamage: 'icon_skull', bossDamage: 'icon_boss', companionPower: 'icon_paw', lifesteal: 'icon_essence', dodge: 'skill_quick', xpGain: 'icon_xp',
-  defense: 'shield', doubleAttack: 'skill_whirl', // v9.2.8
+  // v9.4.0 : icônes PixelLab 48×48, une idée par icône (plus de doublons avec les compétences ni les ressources).
+  damage: 'icon_damage', attackSpeed: 'icon_bolt', crit: 'icon_crit', critDamage: 'icon_critdmg', doubleAttack: 'icon_double',
+  bossDamage: 'icon_boss', companionPower: 'icon_bond', vitality: 'icon_heart', defense: 'icon_defense', armor: 'icon_defense',
+  regen: 'icon_regen', lifesteal: 'icon_lifesteal', dodge: 'icon_dodge', goldFind: 'icon_gold', xpGain: 'icon_xp',
 };
 // v9.2.8 : lignes de survie — gain neutre affiché en « PV effectifs » (PV ÷ part des dégâts qui passe), comme
 // « dégâts/s » pour les lignes d'attaque.
