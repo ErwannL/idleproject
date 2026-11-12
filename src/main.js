@@ -24,7 +24,7 @@ import { endChallenge, startChallenge } from './core/challenge.js';
 import { autoFuse, craftItem, fuseAll, fuseItems, fusionFailText, fusionKeep, reforgeItem, sharpenItem, targetReroll, upgradeItem } from './core/forge.js';
 import { normalizePool, summon } from './core/gacha.js';
 import { setActiveHero } from './core/heroes.js';
-import { addToInventory, bulkRecycleCandidates, equipBest, equipItem, isUpgrade, recycleItem, recycleMatching, recycleRules, sweepInventory, toggleLock } from './core/inventory.js';
+import { addToInventory, bulkRecycleCandidates, equipBest, GEAR_PROFILES, equipItem, isUpgrade, recycleItem, recycleMatching, recycleRules, sweepInventory, toggleLock } from './core/inventory.js';
 import { bossDungeon, bossFirstStage, claimMastery, powerById, powerSlots, rerollPower, resolveReroll, setPowerActive } from './core/powers.js';
 import { buyTalent, buyTalentMax, buyTalentPath, buyTalentsCheapest, performRebirth, respecTalents, suggestedTalent } from './core/rebirth.js';
 import { buyTranscendPerk, buyTranscendPerkMax, performTranscend, stellarMultiplier } from './core/transcend.js';
@@ -502,6 +502,13 @@ const actions = {
     const item = state.inventory.find((i) => i.id === id);
     const c = item && weaponClass(item.baseId);
     if (c && !canEquip(state, item)) ui.toast(`Arme de ${c.name} : changez de classe (Héros → Classe) pour la porter.`, c.color);
+  },
+  // v9.5.2 (2.1) : « Équiper pour : Attaque / Survie / Fortune » (le profil choisi est gardé).
+  equipFor(profile) {
+    if (!GEAR_PROFILES[profile]) return;
+    state.ui.gearProfile = profile;
+    const n = equipBest(state, BALANCE, profile);
+    done(true, n ? `${GEAR_PROFILES[profile].label} : ${n} objet${n > 1 ? 's' : ''} équipé${n > 1 ? 's' : ''}` : `${GEAR_PROFILES[profile].label} : déjà au mieux`, '#7fe0a0');
   },
   equipBest() {
     const n = equipBest(state);

@@ -6,6 +6,9 @@
 // (mesures : tools/measure-sets-v913.mjs, docs/equipement-v913.md). Pré : XP (niveaux) ; Chasseur : ennemis ordinaires et
 // vitesse ; Cristal, Givre, Marais : robustesse ; Désert : or ; Linceul, Volcan : boss ; Néant : équilibre.
 export const SET_PIECES = [2, 4, 6];
+// v9.5.2 (2.3) : spécialité de chaque ensemble, en un mot (bandeau Ensembles).
+export const SET_SPECIALTY = { plains: 'Savoir', forest: 'Monstres', caves: 'Robustesse', desert: 'Or', mountains: 'Robustesse', cursed: 'Boss',
+  swamp: 'Épines', sky: 'Vitesse', volcano: 'Boss', void: 'Équilibre', ocean: 'Critiques' };
 
 export const ITEM_SETS = [
   { id: 'plains', zone: 0, name: 'Panoplie du Pré', color: '#9be36b', bonuses: { 2: { maxHpPct: 15 }, 4: { goldPct: 30 }, 6: { xpPct: 100 } } }, // v9.1.3 (doc3 lot 5) : rôle niveaux (XP) au farm (avant 6 : dégâts ×1,3)

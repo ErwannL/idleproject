@@ -1,6 +1,25 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Équilibré": "Balanced",
+  "Robustesse": "Toughness",
+  "Équilibre": "Balance",
+  "Critiques": "Crits",
+  "Pour passer un boss : les dégâts d'abord": "To beat a boss: damage first",
+  "Pour tenir dans un monde dur : la survie d'abord": "To hold in a hard world: survival first",
+  "Pour farmer : l'or et le butin d'abord": "To farm: gold and loot first",
+  "Équiper pour": "Equip for",
+  "Équiper pour :": "Equip for:",
+  "Ensembles": "Sets",
+  "Attaque": "Attack",
+  "Survie": "Survival",
+  "Fortune": "Fortune",
+  "complet": "complete",
+  "Savoir": "Knowledge",
+  "Monstres": "Monsters",
+  "Or": "Gold",
+  "Épines": "Thorns",
+  "Boss": "Boss",
   "Efficace !": "Effective!",
   "Résiste": "Resists",
   "Ton équipe actuelle est la meilleure disponible ici.": "Your current team is the best available here.",
@@ -276,6 +295,11 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^(.+) : déjà au mieux$"), (m) => `${L(m[1])}: already optimal`],
+  [new RegExp("^Dégâts (.+) ici · (.+) contre le prochain boss$"), (m) => `Damage ${m[1]} here · ${m[2]} vs the next boss`],
+  [new RegExp("^(\\d+)/6 portées · (\\d+) possédées$"), (m) => `${m[1]}/6 worn · ${m[2]} owned`],
+  [new RegExp("^Meilleur pour : (.+)$"), (m) => `Best for: ${m[1].split(', ').map(L).join(', ')}`],
+
   [new RegExp("^Élément du monde : (.*)$"), (m) => `World element: ${m[1]}`],
   [new RegExp("^Parade : (.+)\\.$"), (m) => `Counter: ${L(m[1])}.`],
   [new RegExp("^Élément du monde : (.+)\\. Tes alliés (.*) y font$"), (m) => `World element: ${m[1]}. Your ${m[2]} allies deal`],

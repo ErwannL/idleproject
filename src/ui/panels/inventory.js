@@ -1,5 +1,8 @@
 // Inventaire en 3 zones (équipement porté · fiche de l'objet · grille) et Forge.
 import { elementWheel, zoneElement } from '../../core/elements.js'; // v9.5.1
+import { GEAR_PROFILES, profileGain } from '../../core/inventory.js'; // v9.5.2
+const PROFILE_ICONS = { attack: 'icon_damage', survival: 'icon_defense', fortune: 'icon_gold' };
+const PROFILE_TIPS = { attack: 'Pour passer un boss : les dégâts d\'abord', survival: 'Pour tenir dans un monde dur : la survie d\'abord', fortune: 'Pour farmer : l\'or et le butin d\'abord' };
 import { currentEncounter as encNow } from '../../core/combat.js'; // v9.5.1
 import { canEquip, classById, weaponClass } from '../../core/classes.js';
 import { companionById, companionMultiplier, unitLevel } from '../../core/companions.js';
@@ -22,7 +25,8 @@ import {
 } from '../common.js';
 import { navPath } from '../nav.js';
 import { setById, setCounts } from '../../core/sets.js';
-import { SET_PIECES } from '../../data/sets.js';
+import { ITEM_SETS, SET_PIECES, SET_SPECIALTY } from '../../data/sets.js';
+import { ZONES } from '../../data/zones.js'; // v9.5.2
 import { STASH_SIZE, stashSets } from '../../core/stash.js';
 import { MUSEUM, MUSEUM_PIECES, isMuseumDuplicate, museumCount, museumDuplicates, museumEffects } from '../../core/museum.js';
 import { itemIconUrl } from '../../render/pixel.js';
@@ -162,6 +166,19 @@ function detail(ui, state, item, whoUnit = null) {
     : isEquipped ? '<div class="ip-power on">Porté</div>'
     : forHero ? `<div class="ip-power ${gain > 0 ? 'good' : gain < 0 ? 'bad' : 'muted'}">Puissance ${gain > 0 ? '+' : ''}${formatNumber(gain)}</div>`
     : `<div class="ip-power ${better ? 'good' : 'muted'}">${better ? `Meilleur pour ${escapeHtml(companionById(better)?.name ?? '')}` : `Pour : ${escapeHtml(classLabel(itemClass(state, item)))}`}</div>`;
+  // v9.5.2 (2.2) : Puissance contextuelle — gain réel ici (monstres ordinaires) et contre le prochain boss, et gain par
+  // profil (un objet moins « puissant » peut être meilleur dans la situation, et la fiche le dit).
+  let ctxLine = '';
+  if (forHero && !isEquipped) {
+    const cur = computeHeroStats(state), nx = statsWithItem(state, item);
+    const here = (st) => st.dps * (1 + (st.bonus?.damageVsNormalPct ?? 0) / 100);
+    const boss = (st) => st.dps * (1 + ((st.bonus?.damageVsBossPct ?? 0) + (st.bossDamagePct ?? 0)) / 100);
+    const pct = (a, b) => Math.round((b / a - 1) * 100);
+    const h = pct(here(cur), here(nx)), b = pct(boss(cur), boss(nx));
+    const sign = (v) => `<b class="${v > 0 ? 'good' : v < 0 ? 'bad' : 'muted'}">${v > 0 ? '+' : ''}${v} %</b>`;
+    const prof = ['attack', 'survival', 'fortune'].filter((p) => profileGain(cur, nx, p) > 0.01).map((p) => GEAR_PROFILES[p].label);
+    ctxLine = `<div class="ip-ctx">Dégâts ${sign(h)} ici · ${sign(b)} contre le prochain boss${prof.length ? ` · <span class="good">Meilleur pour : ${prof.join(', ')}</span>` : ''}</div>`;
+  }
   const unitLine = unitFor || (!forHero && !wearer) ? `<div class="muted ip-unit">${escapeHtml(statText(gearStats(item, state)))}</div>` : '';
   const three = Object.entries(item.stats).slice(0, 3).map(([k, v]) => `<li>${img(STAT_ICONS[k])}${STAT_LABELS[k]} <b class="num">${formatStat(k, v, true)}</b></li>`).join('');
   const more = ui.view.itemMore === item.id;
@@ -186,10 +203,26 @@ function detail(ui, state, item, whoUnit = null) {
       <div><div class="ip-name r-${item.rarity}">${escapeHtml(item.name)}${ups ? ` +${ups}` : ''}</div>
         <div class="ip-pills"><span class="rar-pill r-${item.rarity}">${rarity.label}</span><span class="role-pill">${HERO_SLOTS[heroSlot(item)]}</span><span class="role-pill cls-pill">${escapeHtml(classLabel(itemClass(state, item)))}</span>
         ${base.signature ? `<span class="role-pill">Butin de ${escapeHtml(BOSSES[base.signature].name)}</span>` : ''}</div></div></div>
-    ${power}${unitLine}<ul class="stat-list ip-stats">${three}</ul>
+    ${power}${ctxLine}${unitLine}<ul class="stat-list ip-stats">${three}</ul>
     ${moreBody}
     <div class="up-actions">${mainBtns}</div>
   </div>`;
+}
+
+// v9.5.2 (2.3) : bandeau Ensembles — pour chaque ensemble entamé : pièces portées / possédées, prochain palier, spécialité
+// et où trouver les pièces manquantes (le monde de l'ensemble).
+function setsBanner(state) {
+  const worn = setCounts(state.equipment);
+  const owned = {};
+  for (const i of [...state.inventory, ...(state.stash ?? []), ...Object.values(state.equipment).filter(Boolean)]) if (i?.set) owned[i.set] = (owned[i.set] ?? 0) + 1;
+  const rows = ITEM_SETS.filter((st) => owned[st.id]).map((st) => {
+    const w = worn[st.id] ?? 0;
+    const next = SET_PIECES.find((n) => n > w);
+    const nb = next ? effectText(st.bonuses[next]) : '';
+    return `<div class="set-row" style="--sc:${st.color}"><b>${escapeHtml(st.name)}</b> <span class="set-tag">${SET_SPECIALTY[st.id] ?? ''}</span>
+      <span class="num">${w}/6 portées · ${owned[st.id]} possédées</span>${next ? ` · <span class="muted">à ${next} : ${nb} — pièces : ${escapeHtml(ZONES[st.zone]?.name ?? '')}</span>` : ' · <span class="good">complet</span>'}</div>`;
+  }).join('');
+  return rows ? `<div class="card sets-banner"><div class="section-title">Ensembles</div>${rows}</div>` : '';
 }
 
 // Ensemble d'équipement (v8.5) : pièces portées et paliers de bonus.
@@ -548,7 +581,9 @@ export default {
         <button class="btn small bag-gear${ui.view.bagMenu ? ' active' : ''}" data-action="bag-menu" aria-expanded="${Boolean(ui.view.bagMenu)}" aria-label="Builds et réglages du sac" title="Builds et réglages du sac">⚙</button>
         ${nextUnlock ? `<span class="next-unlock muted">Prochain : ${nextUnlock.label} à l'étape ${nextUnlock.stage}</span>` : ''}
         ${anyUpgrade ? '<button class="btn btn-primary primary-action pulse-gold equip-best" data-action="equip-best">⬆ Équiper le meilleur</button>' : ''}
-      </div>${ui.view.bagMenu ? `<div class="card bag-menu">${fold(ui, 'inv-builds', 'Builds', () => buildsBar(ui, state), { extra: state.loadouts[Math.max(0, ui.view.buildSel ?? 0)]?.name ?? '' })}
+      </div>
+      ${setsBanner(state)}
+      <div class="equip-for" role="group" aria-label="Équiper pour"><span>Équiper pour :</span>${['attack', 'survival', 'fortune'].map((p) => `<button class="btn small${state.ui.gearProfile === p ? ' active' : ''}" data-action="equip-for" data-value="${p}" title="${PROFILE_TIPS[p]}">${img(PROFILE_ICONS[p])} ${GEAR_PROFILES[p].label}</button>`).join('')}</div>${ui.view.bagMenu ? `<div class="card bag-menu">${fold(ui, 'inv-builds', 'Builds', () => buildsBar(ui, state), { extra: state.loadouts[Math.max(0, ui.view.buildSel ?? 0)]?.name ?? '' })}
         ${fold(ui, 'bag-settings', 'Réglages du sac', () => bagSettings(ui, state))}</div>` : ''}`;
     return head + (tab === 'stash' ? stashView(ui, state) : bag(ui, state));
   },

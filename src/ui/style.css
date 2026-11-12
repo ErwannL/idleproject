@@ -3419,3 +3419,8 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 .elem-wheel .ew-el.on { background: var(--ec); box-shadow: 0 0 8px var(--ec); }
 .elem-wheel i { font-style: normal; opacity: 0.7; } .elem-wheel .ew-sep { width: 10px; } .elem-wheel small { margin-left: 6px; opacity: 0.8; }
 .prep-screen p { margin: 6px 0; font-size: 14px; }
+.equip-for { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; font-size: 14px; }
+.equip-for img { width: 20px; height: 20px; vertical-align: -5px; image-rendering: pixelated; }
+.ip-ctx { font-size: 13px; margin: 2px 0 6px; }
+.sets-banner { font-size: 13px; } .set-row { margin: 3px 0; border-left: 3px solid var(--sc); padding-left: 6px; }
+.set-tag { display: inline-block; padding: 0 6px; border-radius: 8px; background: color-mix(in srgb, var(--sc) 30%, transparent); font-size: 12px; }

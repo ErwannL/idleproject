@@ -1,3 +1,12 @@
+## Ascendrya v9.5.2 — Préparer son équipe : composition, éléments, équipement
+
+- Niveau d'équipe partagé : tous les compagnons ont le même niveau (et tous les familiers aussi). Changer d'équipe ne coûte plus rien ; vos niveaux sont gardés (le plus haut atteint devient celui de l'équipe).
+- « Meilleure équipe disponible » : le jeu essaie vos compagnons en vrai combat et propose la meilleure équipe avec le gain (« +54 % de dégâts »), dans la barre jaune et dans l'écran Équipe.
+- Rôles lisibles (ce que fait chaque compagnon et contre quoi il est bon) et synergies à portée (« Remplace le Lancier par la Sorcière : Mage protégé »).
+- Éléments : +50 % avec le bon, −30 % avec le mauvais ; barre de vie des monstres à la couleur de leur élément ; « Efficace ! » et « Résiste » ; roue des éléments dans Équipe, Équipement et Carte.
+- Écran Préparation à l'arrivée dans un monde et avant son boss de fin : élément, mécanique du boss et sa parade, équipe conseillée. Il ne bloque jamais le jeu.
+- Équipement : « Équiper pour : Attaque / Survie / Fortune » ; chaque objet dit son gain ici et contre le prochain boss, et pour quel profil il est meilleur ; bandeau Ensembles (spécialité, pièces, prochain bonus, où les trouver).
+
 ## Ascendrya v9.4.0 — Une seule main pour tous les personnages, des icônes lisibles
 
 - 15 compagnons Rares et Épiques redessinés au style des Légendaires (proportions élancées, même hauteur que l'Archange, contour et lumière communs) : Écuyer, Mercenaire, Rôdeur, Pyromancienne, Prêtresse, Lancier, Ombre, Nain guerrier, Paladin d'azur, Lame rose, Sorcière, Archère elfe, Grand prêtre, Ninja, Barbare. Pose, marche, attaque, gestes de compétence et illustration de fiche refaits ensemble.

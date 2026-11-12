@@ -618,6 +618,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     // v8.4 : seules les vitesses débloquées par code sont gardées (sinon ×1).
     if (unlockedSpeeds(state).includes(raw.ui.speed)) state.ui.speed = raw.ui.speed;
     if (SORT_OPTIONS.includes(raw.ui.sortBy)) state.ui.sortBy = raw.ui.sortBy;
+    if (['balanced', 'attack', 'survival', 'fortune'].includes(raw.ui.gearProfile)) state.ui.gearProfile = raw.ui.gearProfile; // v9.5.2
     if (raw.ui.keepSets === false) state.ui.keepSets = false;
     if (typeof raw.ui.doubleDay === 'string') state.ui.doubleDay = raw.ui.doubleDay.slice(0, 20); // v9.3.8 (4) : ×2 du jour pris
     if (raw.ui.autoUseless === false) state.ui.autoUseless = false; // v9.3.8 (3d)

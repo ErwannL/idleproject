@@ -1,6 +1,25 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Équilibré": "균형",
+  "Robustesse": "강인함",
+  "Équilibre": "균형",
+  "Critiques": "치명타",
+  "Pour passer un boss : les dégâts d'abord": "보스 돌파: 피해 우선",
+  "Pour tenir dans un monde dur : la survie d'abord": "어려운 세계 버티기: 생존 우선",
+  "Pour farmer : l'or et le butin d'abord": "파밍: 골드와 전리품 우선",
+  "Équiper pour": "장착 목표",
+  "Équiper pour :": "장착 목표:",
+  "Ensembles": "세트",
+  "Attaque": "공격",
+  "Survie": "생존",
+  "Fortune": "행운",
+  "complet": "완성",
+  "Savoir": "지식",
+  "Monstres": "몬스터",
+  "Or": "골드",
+  "Épines": "가시",
+  "Boss": "보스",
   "Efficace !": "효과적!",
   "Résiste": "저항",
   "Ton équipe actuelle est la meilleure disponible ici.": "현재 팀이 여기서 최고입니다.",
@@ -276,6 +295,11 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^(.+) : déjà au mieux$"), (m) => `${L(m[1])}: 이미 최적`],
+  [new RegExp("^Dégâts (.+) ici · (.+) contre le prochain boss$"), (m) => `여기서 피해 ${m[1]} · 다음 보스 상대 ${m[2]}`],
+  [new RegExp("^(\\d+)/6 portées · (\\d+) possédées$"), (m) => `${m[1]}/6 착용 · ${m[2]} 보유`],
+  [new RegExp("^Meilleur pour : (.+)$"), (m) => `최적: ${m[1].split(', ').map(L).join(', ')}`],
+
   [new RegExp("^Élément du monde : (.*)$"), (m) => `세계 속성: ${m[1]}`],
   [new RegExp("^Parade : (.+)\\.$"), (m) => `대응: ${L(m[1])}.`],
   [new RegExp("^Élément du monde : (.+)\\. Tes alliés (.*) y font$"), (m) => `세계 속성: ${m[1]}. ${m[2]} 아군의 피해`],

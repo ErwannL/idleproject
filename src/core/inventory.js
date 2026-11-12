@@ -261,16 +261,32 @@ export function isUpgrade(state, item, balance = BALANCE, current = computeHeroS
 
 // « Équiper le meilleur » (étape 3) : équipe, une pièce à la fois, l'objet du sac qui améliore le plus le
 // héros (même bilan qu'isUpgrade), jusqu'à ce qu'aucun objet du sac ne soit meilleur. Renvoie le nombre d'objets équipés.
-export function equipBest(state, balance = BALANCE) {
+// v9.5.2 (2.1) : trois profils d'équipement. Attaque : dégâts d'abord ; Survie : PV effectifs d'abord ; Fortune : or et
+// butin d'abord (sans tomber trop bas en dégâts). « Équilibré » = l'ancien « Équiper le meilleur ».
+export const GEAR_PROFILES = {
+  balanced: { label: 'Équilibré', dps: 1, ehp: 1, gold: 0 },
+  attack: { label: 'Attaque', dps: 1, ehp: 0.25, gold: 0 },
+  survival: { label: 'Survie', dps: 0.25, ehp: 1, gold: 0 },
+  fortune: { label: 'Fortune', dps: 0.4, ehp: 0.2, gold: 1 },
+};
+const goldFactor = (st) => (1 + (st.goldPct ?? 0) / 100) * (st.goldMult ?? 1);
+export function profileGain(current, next, profile = 'balanced') {
+  const w = GEAR_PROFILES[profile] ?? GEAR_PROFILES.balanced;
+  return w.dps * Math.log(next.dps / current.dps) + w.ehp * Math.log(ehp(next) / ehp(current)) + w.gold * Math.log(goldFactor(next) / goldFactor(current));
+}
+
+export function equipBest(state, balance = BALANCE, profile = state.ui?.gearProfile ?? 'balanced') {
   let count = 0;
   for (let guard = 0; guard < 24; guard++) {
     const current = computeHeroStats(state, balance);
     let best = null;
     let bestScore = -Infinity;
     for (const item of state.inventory) {
-      if (!canEquip(state, item) || !isUpgrade(state, item, balance, current)) continue;
+      if (!canEquip(state, item)) continue;
+      if (profile === 'balanced' && !isUpgrade(state, item, balance, current)) continue;
       const next = statsWithItem(state, item, balance);
-      const score = state.equipment[heroSlot(item)] ? Math.log(next.dps / current.dps) + Math.log(ehp(next) / ehp(current)) : Infinity;
+      const score = state.equipment[heroSlot(item)] ? profileGain(current, next, profile) : Infinity;
+      if (profile !== 'balanced' && !(score > 1e-6)) continue;
       if (score > bestScore) { best = item; bestScore = score; }
     }
     if (!best || !equipItem(state, best.id)) break;
