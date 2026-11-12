@@ -55,6 +55,7 @@ export const MAX_VIEW_HEIGHT = 320 + GROUND_DEPTH;
 const MIN_VIEW_WIDTH = 160; // largeur logique minimale (zoom : le chevalier reste grand)
 const MAX_SCALE = 3; // zoom maximal : une grande fenêtre montre plus de décor
 const TALL_VIEW_WIDTH = 150; // v9.3.5 : largeur logique d'une scène haute de téléphone
+const WIDE_VIEW_WIDTH = 215; // v9.3.9 : largeur logique d'une grande scène de PC (personnages ×1,6 environ)
 // Les positions de la simulation (BALANCE.world) sont agrandies à l'affichage pour
 // s'accorder aux sprites v5, plus détaillés ; la simulation elle-même ne change pas.
 export const WORLD_SCALE = 1.5;
@@ -289,10 +290,18 @@ export class SceneRenderer {
     // sol remonté aux deux tiers : la moitié haute n'est plus un ciel vide, le bas montre la terre du monde.
     const tall = cssWidth < 560 && cssHeight > cssWidth * 1.1;
     if (tall) scale = Math.max(scale, Math.min(cssWidth / TALL_VIEW_WIDTH, MAX_SCALE + 1));
+    // v9.3.9 : même règle sur PC — une grande scène (fenêtre large et haute) n'est plus un ciel à 70 % avec de petits
+    // personnages tout en bas : zoom ≈ 215 px logiques de large et sol vers 65 % de la hauteur.
+    const wide = !tall && cssWidth >= 560 && cssHeight >= 360;
+    if (wide) {
+      scale = Math.max(scale, Math.min(cssWidth / WIDE_VIEW_WIDTH, cssHeight / MIN_VIEW_HEIGHT, 7));
+      if (scale >= 3) scale = Math.floor(scale * 2) / 2;
+    }
     this.width = Math.max(120, Math.floor(cssWidth / scale));
     this.height = Math.max(MIN_VIEW_HEIGHT, Math.floor(cssHeight / scale));
     const prevGround = this.groundY;
-    this.groundY = tall ? Math.max(MIN_VIEW_HEIGHT - GROUND_DEPTH, Math.min(this.height - GROUND_DEPTH, Math.round(this.height * 0.68))) : this.height - GROUND_DEPTH;
+    const lift = tall ? 0.68 : wide ? 0.65 : 0;
+    this.groundY = lift ? Math.max(MIN_VIEW_HEIGHT - GROUND_DEPTH, Math.min(this.height - GROUND_DEPTH, Math.round(this.height * lift))) : this.height - GROUND_DEPTH;
     // v9.3.1 : un menu ouvert/fermé change la hauteur de la scène : les effets en cours (corps d'un monstre tué,
     // mort animée, chiffres, étincelles) suivent le sol au lieu de rester collés à l'ancienne hauteur (« au plafond »).
     const dy = this.groundY - prevGround;
@@ -318,15 +327,15 @@ export class SceneRenderer {
     return fx;
   }
 
-  // Position à l'écran d'un x du monde. Grand écran (v8.1) : la zone d'approche est étirée pour que
-  // les ennemis apparaissent au bord DROIT de la scène et avancent (au lieu de surgir au milieu).
+  // Position à l'écran d'un x du monde. v9.3.9 : plus d'étirement (sur PC, la zone d'approche était affichée jusqu'à
+  // 5,8 fois trop vite : les monstres « se téléportaient ») ; les ennemis naissent au bord droit (viewEdgeX).
   wx(x) {
-    const near = (BALANCE.world.heroX + 70) * WORLD_SCALE;
-    const spawn = BALANCE.world.spawnX * WORLD_SCALE;
-    const sx = x * WORLD_SCALE;
-    const edge = this.width + 24;
-    if (sx <= near || edge <= spawn) return sx;
-    return near + ((sx - near) * (edge - near)) / (spawn - near);
+    return x * WORLD_SCALE;
+  }
+
+  // Bord droit de la scène en x du monde (un peu au-delà, pour entrer en marchant).
+  get viewEdgeX() {
+    return (this.width + 14) / WORLD_SCALE;
   }
 
   handleEvent(raw, world) {

@@ -350,7 +350,9 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
     type,
     boss,
     elite,
-    x: balance.world.spawnX + (boss ? 10 : 0),
+    // v9.3.9 : à l'écran, l'ennemi naît juste derrière le bord droit (world.viewEdgeX, donné par le rendu) et marche
+    // à vitesse constante ; jamais plus loin qu'avant. Sans rendu (hors ligne, tests) : point d'apparition d'origine.
+    x: Math.min(balance.world.spawnX, world.viewEdgeX ?? Infinity) + (boss ? 10 : 0),
     hp: s.hp * (elite ? e.eliteHpMultiplier : 1),
     maxHp: s.hp * (elite ? e.eliteHpMultiplier : 1),
     damage: s.damage * (elite ? 1.5 : 1),
@@ -903,7 +905,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
         for (let i = 0; i < V.size; i++) {
           spawnEnemy(state, world, rng, balance, enc, i === 0 && world.pendingElite);
           const e = world.enemies[world.enemies.length - 1];
-          e.x = V.spawnX + i * balance.world.enemyGap;
+          e.x = Math.max(V.spawnX, world.viewEdgeX ?? 0) + i * balance.world.enemyGap; // v9.3.9 : entre par le bord droit
           e.arrived = false;
           // Plancher de PV : au moins `floorSeconds` de dégâts du héros. Un héros fort combat au lieu d'attendre la
           // vague suivante ; rien ne change pour un héros plus faible, ni l'or (le rythme reste plafonné par minCycle).

@@ -1434,6 +1434,7 @@ function tick() {
   const t0 = performance.now();
   let steps = 0;
   while (accumulator >= stepSeconds) {
+    world.viewEdgeX = renderer.viewEdgeX; // v9.3.9 : entrée des ennemis au bord droit de la scène
     step(state, world, stepSeconds, rng);
     accumulator -= stepSeconds;
     steps += 1;
