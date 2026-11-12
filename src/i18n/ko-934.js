@@ -1,6 +1,27 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Encaisse devant et protège l'équipe.": "앞에서 공격을 받아 팀을 지킵니다.",
+  "Bon contre les charges et les kamikazes.": "돌진형과 자폭형에 강합니다.",
+  "Tire de loin, sans attendre le contact.": "접근을 기다리지 않고 멀리서 쏩니다.",
+  "Bon contre les volants et les tireurs.": "비행형과 원거리형에 강합니다.",
+  "Frappe plusieurs ennemis d'un sort.": "주문 하나로 여러 적을 공격합니다.",
+  "Bon contre les essaims et les vagues groupées.": "무리와 밀집한 웨이브에 강합니다.",
+  "Vise l'arrière et achève les blessés.": "후열을 노리고 부상자를 마무리합니다.",
+  "Bon contre les soigneurs et les boss.": "치유형과 보스에 강합니다.",
+  "Soigne et renforce l'équipe.": "팀을 치유하고 강화합니다.",
+  "Bon dans les combats longs et les mondes durs.": "긴 전투와 어려운 세계에서 좋습니다.",
+  "Frappe très fort au corps à corps.": "근접에서 매우 강하게 공격합니다.",
+  "Bon contre les boucliers et les boss.": "방패형과 보스에 강합니다.",
+  "Ton équipe est déjà la meilleure disponible.": "이미 가능한 최고의 팀입니다.",
+  "Remplace": "교체:",
+  "Ajoute": "추가:",
+  "par": "→",
+  "Équipe conseillée": "추천 팀",
+  "Placer cette équipe": "이 팀으로 배치",
+  "Ton équipe est la meilleure disponible ici.": "여기서는 현재 팀이 최고입니다.",
+  "Synergies à portée": "가까운 시너지",
+  "Rôle :": "역할:",
   "Or et butin": "골드와 전리품",
   "Chasse aux monstres": "몬스터 사냥",
   "Gros palier :": "큰 단계:",
@@ -245,6 +266,11 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Meilleure équipe : (.+) \\(\\+(\\d+) %\\)$"), (m) => `최고의 팀: ${m[1].replace(' et ', ', ')} (+${m[2]}%)`],
+  [new RegExp("^Nouvelle équipe : \\+(\\d+) % de dégâts$"), (m) => `새 팀: 피해 +${m[1]}%`],
+  [new RegExp("^\\+(\\d+) % de dégâts$"), (m) => `피해 +${m[1]}%`],
+  [new RegExp("^— (.+) de l'élément (.+)\\. Rôle :$"), (m) => `— ${L(m[2])} 속성 ${L(m[1])}. 역할:`],
+
   [new RegExp("^Prochain : (.+)$"), (m) => `다음: ${L(m[1])}`],
   [new RegExp("^Palier (\\d+)/(\\d+)$"), (m) => `단계 ${m[1]}/${m[2]}`],
 

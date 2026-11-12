@@ -4,6 +4,7 @@
 import { BALANCE, ESSENCE_SHARDS, TICKET_GEMS } from '../data/balance.js';
 import { UNITS } from '../data/banners.js'; // v9.1.3 (partie B) : persos de bannière compris
 import { levelForStage, referenceKillGold } from './combat.js';
+import { unitLevel } from './companions.js'; // v9.5.0 : niveau d'équipe
 
 export const EXPEDITION_RULES = { slots: 3 };
 export const EXPEDITION_TYPES = [
@@ -28,7 +29,7 @@ export function expeditionPower(state, companionId) {
   const owned = state.companions.owned[companionId];
   if (!c || !owned) return 0;
   return (RARITY_POWER[c.rarity] ?? 1) * (1 + 0.2 * (Math.min(owned.stars, 5) - 1)) // v9.1.3 : inchangé, le 6e exemplaire ne compte pas ici
-    * (1 + 0.05 * (owned.level - 1));
+    * (1 + 0.05 * (unitLevel(state, companionId) - 1)); // v9.5.0 : niveau d'équipe
 }
 
 // Récompense prévue (fixée au départ) : elle grandit avec la durée, la puissance et l'étape max.

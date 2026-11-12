@@ -10,7 +10,7 @@ import { RARITIES, SIGNATURE_ITEMS, SLOTS, STAT_LABELS, PERCENT_STATS, ITEM_BASE
 import { BOSS_LORE } from '../../data/lore.js';
 import { bossTrait } from '../../core/boss-traits.js';
 import { ZONES } from '../../data/zones.js';
-import { MULTIPLICATIVE, allCompanionSkills, companionSkillMultiplier, duplicates, ultimateUnlocked } from '../../core/companions.js';
+import { MULTIPLICATIVE, allCompanionSkills, companionSkillMultiplier, duplicates, ultimateUnlocked, unitLevel } from '../../core/companions.js';
 import { SKILL_RULES, skillTextAt } from '../../data/companion-skills.js';
 import {
   ENCYCLOPEDIA_MILESTONES, ENCYCLOPEDIA_SECTIONS, MONSTER_VARIANTS, SIGNATURE_RARITIES, encyclopediaNext,
@@ -233,7 +233,7 @@ function companionCard(state, id) {
   return `<div class="enc-card"><div class="enc-portrait">${c.kind === 'ally' ? animCanvas(`foe:${c.sprite}`, 96, 72, 2) : animCanvas(`pet:${c.sprite}`, 64, 56, 3)}</div>
     <div class="enc-title rarity-text r-${c.rarity}">${escapeHtml(c.name)}</div>
     <div class="muted">${c.kind === 'ally' ? 'Compagnon' : 'Familier'} · <b class="rarity-text r-${c.rarity}">${grade}</b> · ${stars(duplicates(owned))}</div>
-    <div class="enc-stats">${statRow('Niveau', owned.level ?? 1)}${statRow('Passif (niv. 1)', effectText(passive))}
+    <div class="enc-stats">${statRow('Niveau', unitLevel(state, c.id))}${statRow('Passif (niv. 1)', effectText(passive))}
       ${statRow('Copies', `${duplicates(owned) + 1}/${COMPANION_RULES.maxCopies}`)}</div>
     <div class="section-title">Vitrine</div>${showcaseSlot('unit', c.id)}
     <div class="section-title">Compétences</div>

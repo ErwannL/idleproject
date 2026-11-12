@@ -999,6 +999,7 @@ export class UI {
       case 'tree-seg': local(() => { v.treeSeg = value; }); break;
       case 'talent-branch': a.buyTalentStep(value); break; // v9.3.9 : vue simple des Talents
       case 'talent-best': a.buyTalentsAll(null); break;
+      case 'apply-team': a.applyTeam(); break; // v9.5.0
       // v9.1.3 (A18) : une clé de voûte de la vue Région ouvre l'arbre centré sur elle.
       case 'region-key': local(() => { v.talentSel = value; v.treeSeg = 'tree'; recenterTree(); }); break;
       case 'buy-tperk': a.buyTranscendPerk(key); break;
@@ -1858,6 +1859,7 @@ export class UI {
     else if (n.action === 'place-companion') this.actions.toggleCompanion(n.value);
     else if (n.action === 'buy') this.actions.buy(n.value, '1');
     else if (n.action === 'upgrade-companion') this.actions.upgradeCompanion(n.value);
+    else if (n.action === 'apply-team') this.actions.applyTeam(); // v9.5.0 (3.6)
     else if (n.action === 'recycle-useless') this.actions.recycleUseless();
     else if (n.action === 'distribute-skills') this.actions.distributeSkills(); // v9.3.8
     else if (n.tab && n.tab !== this.tab) this.openTab(n.tab, n.view ?? null); // jamais ouvrir puis refermer

@@ -1,6 +1,27 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Encaisse devant et protège l'équipe.": "Takes hits up front and protects the team.",
+  "Bon contre les charges et les kamikazes.": "Good against chargers and kamikazes.",
+  "Tire de loin, sans attendre le contact.": "Shoots from afar without waiting for contact.",
+  "Bon contre les volants et les tireurs.": "Good against flyers and shooters.",
+  "Frappe plusieurs ennemis d'un sort.": "Hits several enemies with one spell.",
+  "Bon contre les essaims et les vagues groupées.": "Good against swarms and grouped waves.",
+  "Vise l'arrière et achève les blessés.": "Targets the back line and finishes the wounded.",
+  "Bon contre les soigneurs et les boss.": "Good against healers and bosses.",
+  "Soigne et renforce l'équipe.": "Heals and strengthens the team.",
+  "Bon dans les combats longs et les mondes durs.": "Good in long fights and hard worlds.",
+  "Frappe très fort au corps à corps.": "Hits very hard in melee.",
+  "Bon contre les boucliers et les boss.": "Good against shields and bosses.",
+  "Ton équipe est déjà la meilleure disponible.": "Your team is already the best available.",
+  "Remplace": "Replace",
+  "Ajoute": "Add",
+  "par": "with",
+  "Équipe conseillée": "Recommended team",
+  "Placer cette équipe": "Use this team",
+  "Ton équipe est la meilleure disponible ici.": "Your team is the best available here.",
+  "Synergies à portée": "Synergies within reach",
+  "Rôle :": "Role:",
   "Or et butin": "Gold and loot",
   "Chasse aux monstres": "Monster hunting",
   "Gros palier :": "Big step:",
@@ -245,6 +266,11 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Meilleure équipe : (.+) \\(\\+(\\d+) %\\)$"), (m) => `Best team: ${m[1].replace(' et ', ' and ')} (+${m[2]}%)`],
+  [new RegExp("^Nouvelle équipe : \\+(\\d+) % de dégâts$"), (m) => `New team: +${m[1]}% damage`],
+  [new RegExp("^\\+(\\d+) % de dégâts$"), (m) => `+${m[1]}% damage`],
+  [new RegExp("^— (.+) de l'élément (.+)\\. Rôle :$"), (m) => `— ${L(m[1])} of the ${L(m[2])} element. Role:`],
+
   [new RegExp("^Prochain : (.+)$"), (m) => `Next: ${L(m[1])}`],
   [new RegExp("^Palier (\\d+)/(\\d+)$"), (m) => `Step ${m[1]}/${m[2]}`],
 

@@ -102,11 +102,21 @@ export function companionById(id) {
   return UNITS.find((c) => c.id === id);
 }
 
+// v9.5.0 (3.1) : niveau d'équipe partagé — un niveau commun à tous les compagnons, un autre à tous les familiers.
+// Mettre un autre compagnon dans l'équipe lui donne le même niveau : changer d'équipe ne coûte plus rien.
+// (Le niveau propre d'un compagnon, gardé pour les anciennes sauvegardes, ne compte que s'il est plus haut.)
+export function unitLevel(state, id) {
+  const owned = state.companions?.owned?.[id];
+  const kind = teamKind(companionById(id));
+  return Math.max(owned?.level ?? 1, state.companions?.teamLevel?.[kind] ?? 1);
+}
+
 // v9.1.3 (doc4 lot 1) : × (1,5 + 0,075 D). `owned` facultatif : aperçu d'une unité non possédée (niv. 1, 0 doublon).
 export function companionMultiplier(state, id, owned = state.companions.owned[id]) {
   if (!owned) return 0;
   const bond = (talentEffects(state).companionPct ?? 0) / 100;
-  return (1 + COMPANION_RULES.levelBonusPct * ((owned.level ?? 1) - 1))
+  const lvl = owned === state.companions.owned[id] ? unitLevel(state, id) : (owned.level ?? 1); // aperçu : niveau donné
+  return (1 + COMPANION_RULES.levelBonusPct * (lvl - 1))
     * COMPANION_RULES.passiveBase * dupMultiplier(owned) * levelMult('passive', skillLevels(owned).passive) * (1 + bond) // v9.3.3
     * budget(companionById(id)) / 100; // v9.1.3 (doc4 lot 4) : budget B
 }
@@ -180,16 +190,19 @@ export function companionUpgradeCost(state, id, balance = BALANCE) {
   const owned = state.companions.owned[id];
   if (!owned) return Infinity;
   return Math.floor(COMPANION_RULES.upgradeCostKills * referenceKillGold(levelForStage(state.maxStage, balance), balance)
-    * COMPANION_RULES.upgradeCostGrowth ** (owned.level - 1));
+    * COMPANION_RULES.upgradeCostGrowth ** (unitLevel(state, id) - 1));
 }
 
 export function upgradeCompanion(state, id, balance = BALANCE) {
   const owned = state.companions.owned[id];
-  if (!owned || owned.level >= COMPANION_RULES.maxLevel) return false;
+  if (!owned || unitLevel(state, id) >= COMPANION_RULES.maxLevel) return false;
   const cost = companionUpgradeCost(state, id, balance);
   if (state.gold < cost) return false;
   state.gold -= cost;
-  owned.level += 1;
+  const next = unitLevel(state, id) + 1;
+  const kind = teamKind(companionById(id));
+  state.companions.teamLevel = { ally: 1, pet: 1, ...(state.companions.teamLevel ?? {}), [kind]: next }; // v9.5.0 : niveau d'équipe
+  owned.level = next;
   return true;
 }
 

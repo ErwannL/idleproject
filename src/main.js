@@ -52,6 +52,7 @@ import { hasPref, setPref } from './ui/prefs.js';
 import { animateMenus } from './ui/animator.js';
 import { createGameAudio } from './audio/game-audio.js';
 import { flyTo } from './ui/ui-vfx.js'; // v9.3.9
+import { teamAdvice, tickTeamAdvice } from './core/team-advisor.js'; // v9.5.0
 import { simSpeed, unlockedSpeeds } from './core/cheats.js';
 import { applyLoadout, renameLoadout, saveLoadout } from './core/loadouts.js';
 import { claimEncyclopedia, claimSection } from './core/encyclopedia.js';
@@ -925,6 +926,13 @@ const actions = {
   setNotify(key, on) { state.ui.notify = { ...state.ui.notify, [key]: on }; done(true); },
   setCinematics(on) { state.ui.cinematics = on; done(true); },
   setShake(on) { state.ui.shake = on; done(true); }, // v9.3.9
+  // v9.5.0 (3.6) : place l'équipe conseillée (calculée par core/team-advisor.js) ; l'équipement reste à chacun.
+  applyTeam() {
+    const adv = teamAdvice(state);
+    if (!adv || adv.same) { ui.toast('Ton équipe est déjà la meilleure disponible.', '#9fe0a0'); return; }
+    state.companions.equipped = [...adv.team];
+    done(true, `Nouvelle équipe : +${Math.round(adv.gain * 100)} % de dégâts`, '#9fe0a0');
+  },
   startTour() { ui.closeModal(); startTour(ui, state); },
   skipTour() { state.ui.tour = 'done'; state.ui.tourV = TOUR_VERSION; ui.closeModal(); save(); },
   setAutoRecycle(value) {
@@ -1534,6 +1542,7 @@ function frame(ts) {
   world.events.length = 0;
   watchWorldChange();
   renderer.calm = ui.calm;
+  if (!state.dungeon && !state.tower && !state.challenge && !state.worldRun) tickTeamAdvice(state); // v9.5.0 : un pas de calcul par image
   renderer.render(state, world, dt);
   ui.update(state, world);
   animateMenus(document.body, state, ts);

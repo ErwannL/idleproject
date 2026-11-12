@@ -8,7 +8,7 @@
 // Le combat est déterministe (graine) et se calcule d'un coup : l'écran le rejoue (événements horodatés).
 import { COMPANIONS, COMPANION_RULES } from '../data/companions.js';
 import { ARENA } from '../data/arena.js';
-import { duplicates, ultimateUnlocked } from './companions.js';
+import { duplicates, ultimateUnlocked, unitLevel } from './companions.js';
 import { elementMultiplier, unitElement } from './elements.js';
 import { grantReward } from './rewards.js';
 import { Rng } from './rng.js';
@@ -27,7 +27,7 @@ export function companionProfile(state, id) {
   const owned = state.companions.owned[id];
   if (!c || !owned) return null;
   const base = ARENA.base[c.rarity] ?? ARENA.base.common;
-  const lvl = 1 + COMPANION_RULES.levelBonusPct * ((owned.level ?? 1) - 1) * ARENA.levelWeight;
+  const lvl = 1 + COMPANION_RULES.levelBonusPct * (unitLevel(state, id) - 1) * ARENA.levelWeight; // v9.5.0 : niveau d'équipe
   const star = dupMultiplier(owned); // v9.3.3 : barème de doublons commun (0 à +24 %)
   const gear = unitGearStats(state, id);
   const pet = c.kind !== 'ally'; // familier : plus fragile, plus rapide

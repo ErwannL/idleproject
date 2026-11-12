@@ -3,7 +3,8 @@
 import { BALANCE } from '../../data/balance.js';
 import { COMPANION_RULES } from '../../data/companions.js';
 import { UNITS as COMPANIONS } from '../../data/banners.js'; // v9.1.3 (partie B) : persos de bannière compris quand actifs
-import { MULTIPLICATIVE, RARITY_SKILL, activeSynergies, allCompanionSkills, companionById, companionMultiplier, companionSkillMultiplier, companionSkills, companionUpgradeCost, skillKillGold, duplicates, equippedOfKind, teamKind, ultimateUnlocked } from '../../core/companions.js';
+import { teamAdvice } from '../../core/team-advisor.js'; // v9.5.0
+import { MULTIPLICATIVE, RARITY_SKILL, activeSynergies, allCompanionSkills, companionById, companionMultiplier, companionSkillMultiplier, companionSkills, companionUpgradeCost, skillKillGold, duplicates, equippedOfKind, teamKind, ultimateUnlocked, unitLevel } from '../../core/companions.js';
 import { COMPANION_ROLES, ROLES, SYNERGIES } from '../../data/synergies.js';
 import { elementBadge, unitElement } from '../../core/elements.js'; // v9.3.1 : types
 import { costButton, effectText, escapeHtml, fold, hdArt, formatNumber, icon, img, rarityLabel, stars } from '../common.js';
@@ -168,7 +169,7 @@ export default {
     if (!owned) {
       actions = ui.tabVisible.summon !== false ? '<button class="btn btn-gold" data-action="open-tab" data-value="summon">Invoquer…</button>' : '<span class="muted">Pas encore obtenu.</span>';
     } else {
-      const maxed = owned.level >= COMPANION_RULES.maxLevel;
+      const maxed = unitLevel(state, sel.id) >= COMPANION_RULES.maxLevel;
       const kind = teamKind(sel);
       const full = !equipped && kind === 'ally' && equippedOfKind(state, 'ally').length >= BALANCE.teamSlots.ally;
       const swap = !equipped && kind === 'pet' && equippedOfKind(state, 'pet').length >= BALANCE.teamSlots.pet;
@@ -188,11 +189,13 @@ export default {
       actions += costButton({ action: 'upgrade-companion', cost: companionUpgradeCost(state, sel.id), have: state.gold, attrs: `data-value="${sel.id}"`, label: 'Améliorer ', max: maxed });
       // v9.1.3 : effet de l'amélioration écrit « avant ▶ après » (bonus passif au niveau suivant).
       if (!maxed) {
-        const next = { ...state, companions: { ...state.companions, owned: { ...state.companions.owned, [sel.id]: { ...owned, level: owned.level + 1 } } } };
+        const lv = unitLevel(state, sel.id); // v9.5.0 : niveau d'équipe
+        const kind = teamKind(sel);
+        const next = { ...state, companions: { ...state.companions, teamLevel: { ...(state.companions.teamLevel ?? {}), [kind]: lv + 1 }, owned: { ...state.companions.owned, [sel.id]: { ...owned, level: lv + 1 } } } };
         const mNext = companionMultiplier(next, sel.id);
         // Valeurs à 3 chiffres : un niveau change peu le bonus, l'arrondi de effectText le cacherait.
         const val = (k, x) => (MULTIPLICATIVE[k] ? `×${(1 + x / 100).toFixed(3)}` : `+${(Math.round(x * 100) / 100)}`).replace('.', ',');
-        upgradeLine = `<div class="muted upgrade-preview"><span>Niv. ${owned.level} ▶ ${owned.level + 1}</span> : ${Object.entries(sel.passive).map(([k, v]) => `${val(k, v * m)} ▶ <b class="good">${val(k, v * mNext)}</b>`).join(' · ')}</div>`;
+        upgradeLine = `<div class="muted upgrade-preview"><span>Niv. ${lv} ▶ ${lv + 1}</span> : ${Object.entries(sel.passive).map(([k, v]) => `${val(k, v * m)} ▶ <b class="good">${val(k, v * mNext)}</b>`).join(' · ')}</div>`;
       }
     }
     // Synergies : actives (or) et possibles (grisées) selon les rôles de l'équipe. v9.1.0 : repliées, actives visibles.
@@ -206,6 +209,25 @@ export default {
     // Synergies où entre le rôle du compagnon affiché (dans sa fiche).
     const selRole = COMPANION_ROLES[sel.id];
     const roleSyn = selRole ? SYNERGIES.filter((syn) => syn.roles.includes(selRole)) : [];
+    // v9.5.0 (3.3) : synergies qu'un seul remplacement activerait (compagnon possédé du banc à la place d'un placé).
+    const near = [];
+    const allyIds = state.companions.equipped.filter((id) => teamKind(companionById(id)) === 'ally');
+    const bench = Object.keys(state.companions.owned).filter((id) => !state.companions.equipped.includes(id) && teamKind(companionById(id)) === 'ally');
+    for (const syn of SYNERGIES.filter((x) => !active.has(x.id))) {
+      let found = null;
+      for (const out of [...allyIds, null]) {
+        for (const inn of bench) {
+          const team = [...allyIds.filter((id) => id !== out), inn];
+          if (team.length > (BALANCE.teamSlots?.ally ?? 2)) continue;
+          const roles = ['guardian', ...team.map((id) => COMPANION_ROLES[id]).filter(Boolean)];
+          const pool = [...roles];
+          if (syn.roles.every((r) => { const i = pool.indexOf(r); if (i < 0) return false; pool.splice(i, 1); return true; })) { found = { out, inn }; break; }
+        }
+        if (found) break;
+      }
+      if (found) near.push({ syn, ...found });
+    }
+    const nearHtml = near.slice(0, 3).map(({ syn, out, inn }) => `<div class="syn-near">${out ? `Remplace <b>${escapeHtml(companionById(out)?.name ?? out)}</b> par` : 'Ajoute'} <b>${escapeHtml(companionById(inn)?.name ?? inn)}</b> : <span class="good">${escapeHtml(syn.name)}</span> (${effectText(syn.effects)})</div>`).join('');
     const synTitle = `Synergies${activeList.length ? ` : <span class="good">${activeList.map((x) => escapeHtml(x.name)).join(', ')}</span>` : ''}`;
     // v9.1.3 (doc2 A12) : l'illustration, à pleine opacité, remplace le portrait dans l'en-tête de la fiche ;
     // Équiper et Améliorer sont à côté, donc visibles sans défiler (fiche en feuille du bas sur téléphone).
@@ -220,7 +242,14 @@ export default {
     // v9.3.5 (7d) : monter d'un coup les compagnons placés avec l'or disponible.
     const teamUp = state.companions.equipped.some((id) => companionUpgradeCost(state, id) <= state.gold)
       ? '<button class="btn btn-gold team-up" data-action="upgrade-team">Améliorer l\'équipe</button>' : '';
-    return `${team}${teamUp}
+    // v9.5.0 (3.6) : « Équipe conseillée » — essayée avec le vrai combat, gain affiché.
+    const adv = teamAdvice(state);
+    const advise = adv && !adv.same && adv.gain >= 0.03
+      ? `<div class="card team-advice"><b>Équipe conseillée</b> : ${adv.team.map((id) => escapeHtml(companionById(id)?.name ?? id)).join(', ')}
+          <span class="good">+${Math.round(adv.gain * 100)} % de dégâts</span> <button class="btn btn-primary small" data-action="apply-team">Placer cette équipe</button></div>`
+      : adv ? '<div class="muted team-advice">Ton équipe est la meilleure disponible ici.</div>' : '';
+    return `${team}${advise}${teamUp}
+      ${nearHtml ? `<div class="card syn-near-card"><b>Synergies à portée</b>${nearHtml}</div>` : ''}
       ${fold(ui, 'synergies', synTitle, synergies)}
       <div class="item-tabs comp-tabs" role="tablist">
         <button class="btn chip-btn${tab === 'ally' ? ' active' : ''}" data-action="comp-tab" data-value="ally" role="tab" aria-selected="${tab === 'ally'}">Compagnons <small>(2 places)</small></button>

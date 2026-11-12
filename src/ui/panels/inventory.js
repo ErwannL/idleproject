@@ -1,6 +1,6 @@
 // Inventaire en 3 zones (équipement porté · fiche de l'objet · grille) et Forge.
 import { canEquip, classById, weaponClass } from '../../core/classes.js';
-import { companionById, companionMultiplier } from '../../core/companions.js';
+import { companionById, companionMultiplier, unitLevel } from '../../core/companions.js';
 import { gearClassOf as gearClassOfUnit } from '../../data/companion-gear.js';
 import { BALANCE } from '../../data/balance.js';
 import { BOSSES } from '../../data/enemies.js';
@@ -307,7 +307,7 @@ function bag(ui, state) {
   const unitPower = (c) => Math.round(100 * companionMultiplier(state, c.id));
   const whoBtn = (id, label, art, sub) => `<button class="who-card${who === id ? ' active' : ''}" data-action="gear-who" data-value="${id}" aria-pressed="${who === id}" title="${escapeHtml(label)}">
       <span class="who-art">${art}</span><b>${escapeHtml(label)}</b><small>${sub}</small></button>`;
-  const whoRow = `<div class="who-row" role="group" aria-label="Personnage">${whoBtn('hero', 'Héros', animCanvas('hero', 34, 34, 2), `Nv ${state.level} · ${formatNumber(st.combatPower)}`)}${team.map((c) => whoBtn(c.id, c.name, companionStill(c), `Nv ${state.companions.owned[c.id]?.level ?? 1} · ${formatNumber(unitPower(c))}`)).join('')}</div>`;
+  const whoRow = `<div class="who-row" role="group" aria-label="Personnage">${whoBtn('hero', 'Héros', animCanvas('hero', 34, 34, 2), `Nv ${state.level} · ${formatNumber(st.combatPower)}`)}${team.map((c) => whoBtn(c.id, c.name, companionStill(c), `Nv ${unitLevel(state, c.id)} · ${formatNumber(unitPower(c))}`)).join('')}</div>`;
   const PL = whoUnit ? Object.keys(EQUIP_SLOTS) : Object.keys(HERO_SLOTS);
   const half = Math.ceil(PL.length / 2);
   const equipCol = `<div class="card inv-equip">${whoRow}

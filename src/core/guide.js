@@ -4,7 +4,8 @@ import { bossesForStage, createCombat, heroPower, isBossStage, step } from './co
 import { Rng } from './rng.js';
 import { endWorldRun } from './banner.js';
 import { isUpgrade, uselessItems } from './inventory.js';
-import { companionById, companionUpgradeCost, onExpedition, teamKind } from './companions.js';
+import { companionById, companionUpgradeCost, onExpedition, teamKind, unitLevel } from './companions.js';
+import { teamAdvice } from './team-advisor.js'; // v9.5.0
 import { upgradeProfits } from './profit.js';
 import { upgradeOpen } from './unlocks.js';
 import { upgradeCost } from './economy.js';
@@ -81,6 +82,12 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
   if (better) return { id: 'equip', text: better > 1 ? `Équiper ${better} objets meilleurs` : 'Équiper 1 objet meilleur', action: 'equip-best' };
   const place = companionToPlace(state, balance);
   if (place) return { id: 'place', text: `Placer ${place.name} dans l'équipe`, action: 'place-companion', value: place.id };
+  // v9.5.0 (3.6) : un compagnon du banc ferait mieux → « Meilleure équipe disponible », avec le gain (calculé à part).
+  const adv = teamAdvice(state);
+  if (adv && !adv.same && adv.gain >= 0.1) {
+    const names = adv.team.filter((id) => !state.companions.equipped.includes(id)).map((id) => companionById(id)?.name ?? id);
+    return { id: 'team', text: `Meilleure équipe : ${names.join(' et ')} (+${Math.round(adv.gain * 100)} %)`, action: 'apply-team' };
+  }
   const points = skillPointsAvailable(state);
   if (points > 0 && open('skills') && SKILLS.some((k) => (state.skills[k.id] ?? 0) < (k.maxLevel ?? Infinity) && skillPointCost(state.skills[k.id] ?? 0) <= points && (k.unlockLevel ?? 1) <= state.level)) {
     // v9.3.8 (3a) : un clic dépense les points (Attaques seulement) ; plus jamais bloqué sur un Boost payé en or.
@@ -149,8 +156,8 @@ export function companionToLevel(state, balance = BALANCE) {
   for (const id of state.companions.equipped) {
     const owned = state.companions.owned[id];
     const cost = companionUpgradeCost(state, id, balance);
-    if (!owned || owned.level >= COMPANION_RULES.maxLevel || cost > state.gold) continue;
-    if (!best || cost < best.cost) best = { id, name: companionById(id)?.name ?? id, level: owned.level, cost };
+    if (!owned || unitLevel(state, id) >= COMPANION_RULES.maxLevel || cost > state.gold) continue;
+    if (!best || cost < best.cost) best = { id, name: companionById(id)?.name ?? id, level: unitLevel(state, id), cost };
   }
   return best;
 }

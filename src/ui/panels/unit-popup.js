@@ -7,7 +7,7 @@ import { COMPANION_RULES } from '../../data/companions.js';
 import { COMPANION_ROLES, ROLES, SYNERGIES } from '../../data/synergies.js';
 import { ACTIVE_EXTRA_AT, DUP_BONUS_PCT, SKILL_CAPS, SKILL_RESOURCES, ULT_UNLOCK_COPIES } from '../../data/progression.js';
 import { ELEMENTS, elementBadge, unitElement } from '../../core/elements.js';
-import { allCompanionSkills, companionSkillMultiplier, companionSkills, skillKillGold } from '../../core/companions.js';
+import { allCompanionSkills, companionSkillMultiplier, companionSkills, skillKillGold, unitLevel } from '../../core/companions.js';
 import { canAfford, leveledSkill, levelMult, skillCap, skillLevels, skillUpgradeCost } from '../../core/progression.js';
 import { companionProfile } from '../../core/arena.js';
 import { computeHeroStats } from '../../core/stats.js';
@@ -93,7 +93,7 @@ function historyTab(state, c) {
   const el = ELEMENTS[unitElement(c.id)];
   const syn = role ? SYNERGIES.filter((s) => s.roles.includes(role)) : [];
   return `<div class="up-history">
-    ${role ? `<p><b>${GEAR_CLASSES[gearClassOf(c)].label}</b> — ${escapeHtml(c.kind === 'ally' ? 'compagnon' : 'familier')} de l'élément ${escapeHtml(el?.name ?? '')}. Synergies : <b style="color:${ROLES[role].color}">${ROLES[role].label}</b>.</p>` : `<p>Familier de l'élément ${escapeHtml(el?.name ?? '')}.</p>`}
+    ${role ? `<p><b>${GEAR_CLASSES[gearClassOf(c)].label}</b> — ${escapeHtml(c.kind === 'ally' ? 'compagnon' : 'familier')} de l'élément ${escapeHtml(el?.name ?? '')}. Rôle : <b style="color:${ROLES[role].color}">${ROLES[role].label}</b>. ${escapeHtml(ROLES[role].does)} ${escapeHtml(ROLES[role].good)}</p>` : `<p>Familier de l'élément ${escapeHtml(el?.name ?? '')}.</p>`}
     ${syn.length ? `<div class="section-title">Synergies</div>${syn.map((s) => `<p><b>${escapeHtml(s.name)}</b> : ${escapeHtml(s.text)}</p>`).join('')}` : ''}</div>`;
 }
 
@@ -120,10 +120,11 @@ export function unitPopup(ui, state, c, { actions, gear }) {
     <button class="btn small up-close" data-action="close-sheet" aria-label="Fermer">✕</button>
     <div class="up-hero el-${el}" style="--ec:${ELEMENTS[el]?.color ?? '#5a6a90'}">
       ${ui.view.unitShow === c.id ? showcaseSlot('unit', c.id) : `<button class="up-art-btn" data-action="unit-show" data-value="${c.id}" aria-label="Voir l'animation">${owned ? art : `<span class="up-silhouette">${art}</span>`}</button>`}
-      <div class="up-pills"><span class="rar-pill r-${c.rarity}">${rarityLabel(c.rarity)}</span>${elementBadge(el)}<span class="role-pill"${role ? ` style="--rc:${ROLES[role].color}"` : ''}>${GEAR_CLASSES[gearClassOf(c)].label}</span></div>
+      <div class="up-pills"><span class="rar-pill r-${c.rarity}">${rarityLabel(c.rarity)}</span>${elementBadge(el)}<span class="role-pill"${role ? ` style="--rc:${ROLES[role].color}"` : ''}>${role ? `${img(ROLES[role].icon)} ${ROLES[role].label}` : GEAR_CLASSES[gearClassOf(c)].label}</span></div>
+      ${role ? `<div class="up-role muted">${escapeHtml(ROLES[role].does)} ${escapeHtml(ROLES[role].good)}</div>` : ''}
       <div class="up-stars" aria-label="${copies} copies sur ${COMPANION_RULES.maxCopies}">${'★'.repeat(copies - 1)}<span>${'★'.repeat(COMPANION_RULES.maxCopies - copies)}</span></div>
     </div>
-    <div class="up-title"><b>${escapeHtml(c.name)}</b><span>${owned ? `Nv ${owned.level} / ${COMPANION_RULES.maxLevel}` : 'Pas encore obtenu'}</span></div>
+    <div class="up-title"><b>${escapeHtml(c.name)}</b><span>${owned ? `Nv ${unitLevel(state, c.id)} / ${COMPANION_RULES.maxLevel}` : 'Pas encore obtenu'}</span></div>
     ${owned ? '' : '<div class="up-where">Où l\'obtenir : Équipe › Invocation</div>'}
     <div class="up-stats"><span title="Dégâts par seconde de ses compétences">⚔ <b>${formatNumber(dps)}</b><small>Dégâts</small></span>
       <span>❤ <b>${formatNumber(p?.maxHp ?? 0)}</b><small>Vie</small></span>

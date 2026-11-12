@@ -3409,3 +3409,7 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 #tabs button img, .layout-mini #tabs button img, .layout-mini #tabs.tabs-compact button:not(.active) img { width: 40px; height: 40px; image-rendering: pixelated; }
 #panel-subtabs .subtab img { width: 32px; height: 32px; image-rendering: pixelated; }
 .icon-btn img, .icon-btn .shop-top-ico { width: 28px; height: 28px; image-rendering: pixelated; }
+/* v9.5.0 : équipe conseillée, synergies à portée, rôle en une phrase */
+.team-advice { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 14px; margin: 6px 0; }
+.syn-near-card { font-size: 13px; margin: 6px 0; } .syn-near { margin-top: 4px; }
+.up-role { font-size: 13px; margin: 4px 0 0; } .role-pill img { width: 16px; height: 16px; vertical-align: -3px; }

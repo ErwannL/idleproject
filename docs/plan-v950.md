@@ -53,7 +53,14 @@ Le constat du prompt (monde 12 en 6 h 13, aucun choix nécessaire) date de la 9.
 partie automatique sur la 9.4.0, avec deux joueurs simulés : **passif** (barre jaune seulement) et **préparé** (équipe
 et élément adaptés au monde). C'est la base de toutes les comparaisons et du critère « au moins 30 % plus vite ».
 
-## 4. Décisions à prendre par le créateur
+## 4. Décisions du créateur (prises le 12 novembre)
+
+- Rythme : **4 à 6 semaines** pour les 12 mondes (mondes 1 à 3 dans la première session), freiné par la préparation.
+- Sceaux : **oui, dès le monde 3**.
+- Butin et invocations : **les deux réduits** (ressources déjà gagnées conservées).
+- Ordre : celui du prompt, mesure de référence d'abord, fiche de monde en parallèle.
+
+Texte d'origine des questions :
 
 1. **Rythme de la campagne (10.1).** Proposition : mondes 1 à 3 dans la première session, puis un monde tous les 2 à
    3 jours pour un joueur régulier (12 mondes en 4 à 6 semaines), le frein étant la préparation, jamais un mur de

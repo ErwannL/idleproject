@@ -12,7 +12,7 @@ import { BALANCE } from '../data/balance.js';
 import { computeHeroStats } from './stats.js'; // v9.3.9 : fusion Peau de fer → Défense
 import { AFFIXES, EQUIP_SLOTS, HERO_SLOTS, RARITIES, SLOTS, STARTER_WEAPON, STAT_LABELS, eqSlot, heroSlot } from '../data/items.js';
 import { BOSSES } from '../data/enemies.js';
-import { COMPANION_RULES } from '../data/companions.js';
+import { COMPANIONS, COMPANION_RULES } from '../data/companions.js';
 import { BANNER_RULES, UNITS } from '../data/banners.js';
 import { sanitizeWorlds } from './banner.js';
 import { CONTRACT_TYPES } from '../data/contracts.js';
@@ -271,6 +271,17 @@ function cleanCollections(state, raw) {
     return out;
   };
   const rawOwned = { ...obj(companions.unknown), ...obj(companions.owned) };
+  // v9.5.0 (3.1) : niveau d'équipe (compagnons / familiers) = au moins le plus haut niveau déjà atteint (rien de perdu).
+  {
+    const tl = obj(companions.teamLevel);
+    const best = { ally: int(tl.ally, 1, 1), pet: int(tl.pet, 1, 1) };
+    for (const [id, o] of Object.entries(rawOwned)) {
+      if (!o || typeof o !== 'object' || o.trial === true) continue;
+      const kind = (COMPANIONS.find((c) => c.id === id) ?? UNITS.find((c) => c.id === id))?.kind === 'ally' ? 'ally' : 'pet';
+      best[kind] = Math.max(best[kind], Math.min(int(o.level, 1, 1), 20));
+    }
+    state.companions.teamLevel = { ally: Math.min(best.ally, 20), pet: Math.min(best.pet, 20) };
+  }
   for (const [id, owned] of Object.entries(rawOwned)) {
     if (!owned || typeof owned !== 'object' || owned.trial === true) continue;
     if (UNITS.some((c) => c.id === id)) state.companions.owned[id] = clean(owned);

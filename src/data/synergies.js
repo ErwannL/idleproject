@@ -2,13 +2,14 @@
 // Une synergie s'active quand l'équipe réunit ses rôles ; ses effets s'ajoutent aux autres bonus.
 // Les rôles ne dépendent pas de la rareté : un R bien placé reste utile face à un SSR.
 
+// v9.5.0 (3.2) : chaque rôle dit ce qu'il fait en combat et contre quoi il est bon (une phrase).
 export const ROLES = {
-  guardian: { label: 'Gardien', icon: 'icon_shield', color: '#7fb0ff' },
-  archer: { label: 'Archer', icon: 'skill_quick', color: '#7fe07a' },
-  mage: { label: 'Mage', icon: 'skill_holy', color: '#c06bff' },
-  assassin: { label: 'Assassin', icon: 'skill_whirl', color: '#b46bff' },
-  healer: { label: 'Soutien', icon: 'icon_heart', color: '#ffe680' },
-  berserker: { label: 'Berserker', icon: 'skill_cry', color: '#ff6a4a' },
+  guardian: { label: 'Gardien', icon: 'icon_defense', color: '#7fb0ff', does: 'Encaisse devant et protège l\'équipe.', good: 'Bon contre les charges et les kamikazes.' },
+  archer: { label: 'Archer', icon: 'icon_bolt', color: '#7fe07a', does: 'Tire de loin, sans attendre le contact.', good: 'Bon contre les volants et les tireurs.' },
+  mage: { label: 'Mage', icon: 'tab_skills', color: '#c06bff', does: 'Frappe plusieurs ennemis d\'un sort.', good: 'Bon contre les essaims et les vagues groupées.' },
+  assassin: { label: 'Assassin', icon: 'icon_crit', color: '#b46bff', does: 'Vise l\'arrière et achève les blessés.', good: 'Bon contre les soigneurs et les boss.' },
+  healer: { label: 'Soutien', icon: 'icon_regen', color: '#ffe680', does: 'Soigne et renforce l\'équipe.', good: 'Bon dans les combats longs et les mondes durs.' },
+  berserker: { label: 'Berserker', icon: 'icon_damage', color: '#ff6a4a', does: 'Frappe très fort au corps à corps.', good: 'Bon contre les boucliers et les boss.' },
 };
 
 export const COMPANION_ROLES = {
