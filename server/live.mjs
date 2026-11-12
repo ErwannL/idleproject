@@ -26,9 +26,33 @@ export class LiveError extends Error {
 }
 const bad = (msg) => new LiveError(400, msg);
 
-// v9.3.1 : objectif communautaire 50 000 : les 10 récompenses déjà définies (9.3.0) regroupées sur 5 paliers
-// (5 000, 10 000, 20 000, 35 000, 50 000), aucune récompense ajoutée.
+// Paliers revus (novembre 2026) : Les récompenses jusqu'à 50 000 sont les mêmes qu'en 9.3.1 (5 500 gemmes, 1,75 M or, 10 tickets,
+// 1 ticket SSR, Slime doré, Lame rose, Lilith, Grombar) réparties sur 8 paliers, avec deux premiers paliers proches
+// (1 000 et 2 500) pour lancer la dynamique. Deux paliers bonus après l'objectif (75 000, 100 000).
 export const DEFAULT_GOALS = {
+  target: 50000,
+  display: { mode: 'real', value: 0 },
+  texts: {
+    headline: 'Objectif : 50 000 aventuriers pour débloquer toutes les récompenses',
+    reached: 'Objectif atteint, merci à tous ! Place aux paliers bonus.',
+  },
+  tiers: [
+    { at: 1000, label: '1K', name: '250 gemmes + 100 K or', detail: 'Le coup d\'envoi : monnaie premium et pièces d\'or', img: 'assets/icon_gem.png' },
+    { at: 2500, label: '2,5K', name: '1 familier exclusif', detail: 'Slime doré', tag: 'Exclusif', excl: true, img: 'assets/hd_pet_golden_slime.webp' },
+    { at: 5000, label: '5K', name: '250 gemmes + 5 tickets', detail: 'Tickets d\'invocation de héros', img: 'assets/shop/hero_ticket_permanent.webp' },
+    { at: 10000, label: '10K', name: '1 compagnon exclusif', detail: 'Lame rose', tag: 'SR · Exclusif', excl: true, img: 'assets/hd_ally_rose_blade.webp' },
+    { at: 15000, label: '15K', name: '1 000 gemmes + 150 K or', detail: 'Monnaie premium et pièces d\'or', img: 'assets/shop/crystal_medium.webp' },
+    { at: 20000, label: '20K', name: '1 héros SSR', detail: 'Lilith la Diablesse', tag: 'SSR · Exclusif', excl: true, img: 'assets/hd_demoness.png' },
+    { at: 35000, label: '35K', name: '1 500 gemmes + 5 tickets', detail: '+ 500 K or · tickets d\'invocation', img: 'assets/shop/crystal_large.webp' },
+    { at: 50000, label: '50K', name: '1 héros SSR + méga pack', detail: 'Roi Grombar · 2 500 gemmes, 1 M or, 1 ticket SSR garanti', tag: 'SSR · Exclusif', excl: true, img: 'assets/hd_grombar.png' },
+    // Paliers bonus (au-delà de l'objectif) : cachés sur le site tant que l'objectif n'est pas atteint, puis la barre vise le suivant.
+    { at: 75000, label: '75K', name: '1 familier légendaire + 2 000 gemmes', detail: 'Petit phénix', tag: 'Bonus', excl: true, img: 'assets/px/pet_phoenix.webp' },
+    { at: 100000, label: '100K', name: '1 héros SSR au choix + 3 000 gemmes', detail: '1 ticket SSR au choix · + 2 M or', tag: 'Bonus · Méga pack', excl: true, img: 'assets/shop/hero_ticket_limited.webp' },
+  ],
+};
+
+// Goals par défaut de la 9.3.1 (5 paliers jusqu'à 50 000) : remplacés par les paliers revus tant que l'admin ne les a pas modifiés.
+export const GOALS_931 = {
   target: 50000,
   display: { mode: 'real', value: 0 },
   texts: {
@@ -298,10 +322,10 @@ export function createLive({ db, now = () => Date.now() }) {
   if (!db.prepare('SELECT id FROM live_goals WHERE id = 1').get()) {
     db.prepare('INSERT INTO live_goals (id, data, version, updated_at, updated_by) VALUES (1, ?, 1, ?, ?)').run(JSON.stringify(DEFAULT_GOALS), now(), 'système');
   }
-  // v9.3.1 : goals jamais modifiés (ceux de la 9.3.0, 100 000) → nouvel objectif 50 000. Des goals réglés dans l'admin sont gardés.
+  // Goals jamais modifiés (ceux de la 9.3.0 ou de la 9.3.1) → paliers revus. Des goals réglés dans l'admin sont gardés.
   const g0 = db.prepare('SELECT data, version FROM live_goals WHERE id = 1').get();
-  if (g0 && g0.data === JSON.stringify(GOALS_930)) {
-    db.prepare('UPDATE live_goals SET data = ?, version = version + 1, updated_at = ?, updated_by = ? WHERE id = 1').run(JSON.stringify(DEFAULT_GOALS), now(), 'système (9.3.1)');
+  if (g0 && (g0.data === JSON.stringify(GOALS_930) || g0.data === JSON.stringify(GOALS_931))) {
+    db.prepare('UPDATE live_goals SET data = ?, version = version + 1, updated_at = ?, updated_by = ? WHERE id = 1').run(JSON.stringify(DEFAULT_GOALS), now(), 'système (paliers revus)');
   }
   const meta = {
     get: (k) => db.prepare('SELECT value FROM live_meta WHERE key = ?').get(k)?.value,

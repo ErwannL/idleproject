@@ -7,7 +7,8 @@ import { once } from 'node:events';
 import { createServer } from 'node:http';
 import { createApp, hashPassword } from '../server/app.mjs';
 import { openDatabase } from '../server/db.mjs';
-import { legacyCalendar, parseAmount } from '../server/live.mjs';
+import { DEFAULT_GOALS, GOALS_931, createLive, legacyCalendar, parseAmount, validateGoals } from '../server/live.mjs';
+import { DEFAULT_GOALS as SITE_GOALS, goalProgress } from '../site/live.js';
 import { calendarEvent } from '../src/core/ancients.js';
 import { permanentSsr } from '../src/core/gacha.js';
 import { LIVE_FEATURED_UNITS, LIVE_OFFER_IDS, compareVersions } from '../src/data/live-catalog.js';
@@ -164,7 +165,8 @@ test('live : goals librement réglables — objectif 40 260 (« 40,26k »), pali
   s.db.prepare("INSERT INTO preregistrations (email, consent_version, consent_at) VALUES ('a@b.fr', 'x', 1)").run();
   const before = await s.call('GET', '/api/live/goals');
   assert.equal(before.body.target, 50000, 'v9.3.1 : objectif 50 000 par défaut');
-  assert.equal(before.body.tiers.length, 5);
+  assert.equal(before.body.tiers.length, 10, '8 paliers jusqu\'à 50 000 + 2 paliers bonus');
+  assert.equal(before.body.tiers.filter((x) => x.at <= before.body.target).length, 8);
   assert.equal(parseAmount('40.26k'), 40260);
   assert.equal(parseAmount('40,26k'), 40260);
   assert.equal(parseAmount('40 260'), 40260);
@@ -187,6 +189,34 @@ test('live : goals librement réglables — objectif 40 260 (« 40,26k »), pali
   assert.equal(bad.status, 400, 'seuils croissants');
   const badImg = await s.call('PUT', '/api/admin/live/goals', { data: { ...data, tiers: [{ at: 20, label: 'a', name: 'b', img: 'https://evil/x.png' }] } }, s.token);
   assert.equal(badImg.status, 400);
+});
+
+test('live : paliers revus — goals 9.3.1 jamais modifiés remplacés, goals de l\'admin gardés, site aligné', () => {
+  const db = openDatabase(':memory:');
+  createLive({ db });
+  db.prepare('UPDATE live_goals SET data = ? WHERE id = 1').run(JSON.stringify(GOALS_931));
+  createLive({ db });
+  assert.deepEqual(JSON.parse(db.prepare('SELECT data FROM live_goals WHERE id = 1').get().data), DEFAULT_GOALS);
+  const mine = { ...GOALS_931, target: 42000 };
+  db.prepare('UPDATE live_goals SET data = ? WHERE id = 1').run(JSON.stringify(mine));
+  createLive({ db });
+  assert.equal(JSON.parse(db.prepare('SELECT data FROM live_goals WHERE id = 1').get().data).target, 42000, 'réglage admin conservé');
+  db.close();
+  assert.doesNotThrow(() => validateGoals(DEFAULT_GOALS));
+  assert.deepEqual(SITE_GOALS.tiers, DEFAULT_GOALS.tiers, 'repli du site = paliers du serveur');
+  assert.equal(SITE_GOALS.target, DEFAULT_GOALS.target);
+});
+
+test('live : paliers bonus — mystère avant l\'objectif, puis la barre vise le palier bonus suivant', () => {
+  const before = goalProgress({ ...DEFAULT_GOALS, count: 49000 });
+  assert.equal(before.goal, 50000);
+  assert.ok(before.tiers.filter((x) => x.bonus).every((x) => x.secret));
+  const after = goalProgress({ ...DEFAULT_GOALS, count: 60000 });
+  assert.equal(after.reached, true);
+  assert.equal(after.goal, 75000);
+  assert.equal(after.pct, 80);
+  assert.ok(after.tiers.every((x) => !x.secret));
+  assert.equal(goalProgress({ ...DEFAULT_GOALS, count: 120000 }).goal, 50000, 'tout débloqué : barre pleine');
 });
 
 // ---- Catalogue --------------------------------------------------------------------------------------------------------
