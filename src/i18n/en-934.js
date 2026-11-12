@@ -1,6 +1,17 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Or et butin": "Gold and loot",
+  "Chasse aux monstres": "Monster hunting",
+  "Gros palier :": "Big step:",
+  "Branche terminée": "Branch complete",
+  "Bonus :": "Bonus:",
+  "Aucun talent appris": "No talent learned",
+  "Arbre avancé : après 3 Renaissances.": "Advanced tree: after 3 Rebirths.",
+  "La Renaissance te ramène au monde 1 contre des fragments. Les fragments achètent des talents qui restent pour toujours.": "Rebirth sends you back to world 1 for fragments. Fragments buy talents that stay forever.",
+  "Apprendre le meilleur": "Learn the best",
+  "Arbre avancé": "Advanced tree",
+  "Pas assez de fragments": "Not enough fragments",
   "Donjons : 1 par salle franchie, 4 à la fin": "Dungeons: 1 per room cleared, 4 at the end",
   "Missions du jour : 6 quand toutes sont faites": "Daily missions: 6 when all are done",
   "Arène : 2 par nouvel étage": "Arena: 2 per new floor",
@@ -234,6 +245,9 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Prochain : (.+)$"), (m) => `Next: ${L(m[1])}`],
+  [new RegExp("^Palier (\\d+)/(\\d+)$"), (m) => `Step ${m[1]}/${m[2]}`],
+
   [new RegExp("^Chaque invocation \\(limitée, permanente, familiers\\) a son propre compteur : compagnon Légendaire garanti au plus tard à la (\\d+)e invocation, familier Légendaire au plus tard à la (\\d+)e invocation de familiers\\. (.*)$"), (m) => `Each summon (limited, permanent, pets) has its own counter: Legendary companion guaranteed by summon ${m[1]} at the latest, Legendary pet by pet summon ${m[2]} at the latest. The featured unit makes up 50% of the Legendaries obtained in its summon (it does not raise the Legendary chance). Duplicate: +1 star, then gems.`],
   [new RegExp("^Il faut (.+)$"), (m) => `Needs ${m[1]}`],
   [new RegExp("^\\+(\\d+) objets? dans le sac$"), (m) => `+${m[1]} item${m[1] === '1' ? '' : 's'} in the bag`],

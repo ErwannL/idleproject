@@ -582,6 +582,12 @@ const actions = {
     const n = max ? buyTranscendPerkMax(state, id) : (buyTranscendPerk(state, id) ? 1 : 0);
     done(n > 0, n ? 'Bonus stellaire amélioré' : null, '#c9a6ff');
   },
+  // v9.3.9 (3.9) : vue simple — un palier de la branche (le talent le moins cher apprenable dans cette région).
+  buyTalentStep(region) {
+    const n = buyTalentsCheapest(state, region, 1);
+    if (!n) ui.toast('Pas assez de fragments pour le prochain talent.', '#ff8a8a');
+    done(n > 0);
+  },
   buyTalentsAll(region) {
     const n = buyTalentsCheapest(state, region);
     if (!n) ui.toast('Pas assez de fragments pour le prochain talent.', '#ff8a8a');

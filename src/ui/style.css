@@ -3379,3 +3379,27 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 @media (max-width: 600px) { .unit-pop { top: 0; transform: none; } }
 .res-chip { gap: 3px; } .res-chip.bad { color: #ff9a8a; }
 .res-where { margin: 4px 0 8px; padding-left: 18px; } .res-where li { margin: 6px 0; display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+/* v9.3.9 (3.9) : vue simple des Talents */
+.tb-intro p { margin: 0 0 8px; font-size: 14px; }
+.tb-list { display: grid; gap: 8px; }
+.tb-row { border: 1px solid color-mix(in srgb, var(--branch) 45%, #2a2f45); border-left: 4px solid var(--branch); border-radius: 8px; padding: 8px 10px; background: var(--bg-1, #141a2c); }
+.tb-row.tb-big { box-shadow: 0 0 0 1px color-mix(in srgb, var(--branch) 60%, transparent), 0 0 14px color-mix(in srgb, var(--branch) 30%, transparent); }
+.tb-head { display: flex; align-items: center; gap: 8px; font-size: 15px; }
+.tb-head img { width: 24px; height: 24px; } .tb-head .muted { margin-left: auto; font-size: 12px; }
+.tb-steps { display: grid; grid-template-columns: repeat(15, 1fr); gap: 3px; margin: 6px 0; }
+.tb-steps i { height: 8px; border-radius: 2px; background: #2a2f45; }
+.tb-steps i.big { height: 12px; margin-top: -2px; outline: 1px solid color-mix(in srgb, var(--branch) 60%, transparent); }
+.tb-steps i.on { background: var(--branch); }
+.tb-bonus, .tb-next { font-size: 13px; }
+.tb-next { display: flex; gap: 8px; align-items: center; justify-content: space-between; margin-top: 4px; flex-wrap: wrap; }
+.tb-adv { text-align: center; font-size: 12px; }
+/* v9.3.9 : une fenêtre ouverte depuis une fiche (ressource, confirmation) passe au-dessus de la fiche. */
+#modal:not(.hidden) { z-index: 8100; }
+/* v9.3.9 (2.2) : grande scène PC — la barre de vague et le prochain déblocage passent dans la terre, sous le sol
+   (la scène prend toute la hauteur : plus de grand aplat vide). */
+#play.wide-scene { position: relative; }
+#play.wide-scene #hud { position: absolute; left: 12px; right: 12px; top: calc(var(--ground-px) + 10px); z-index: 3; flex-wrap: wrap;
+  background: rgba(8, 12, 24, 0.78); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 8px 10px; }
+#play.wide-scene #progress { flex: 1 1 60%; height: 26px; }
+#play.wide-scene #progress-text { font-size: 15px; }
+#play.wide-scene #next-unlock { flex: 1 1 100%; order: 3; }

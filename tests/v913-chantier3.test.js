@@ -102,13 +102,14 @@ test('v9.3.4 : compétences du héros en deux sections (Attaques en points, Boos
 test('Talents : outils repliés, plus de « ● » de région ; vue Région en lecture seule', () => {
   const s = createNewState(NOW);
   s.talents.core = 1;
+  s.records.rebirths = 3; // v9.3.9 : l'arbre complet est l'« Arbre avancé »
   for (const id of ['combat_1_0', 'combat_2_0', 'combat_2_1']) s.talents[id] = 1;
-  const html = tree.default.render(uiWith(), s);
+  const html = tree.default.render(uiWith({ treeSeg: 'tree' }), s);
   assert.ok(!html.includes('id="tree-search"'), 'recherche repliée');
   assert.ok(!html.includes('data-action="tree-zoom"'), 'zoom replié');
   assert.ok(!html.includes('● '));
   assert.match(html, /data-value="tree-tools"/);
-  const open = tree.default.render(uiWith({}, ['tree-tools']), s);
+  const open = tree.default.render(uiWith({ treeSeg: 'tree' }, ['tree-tools']), s);
   assert.ok(open.includes('id="tree-search"') && open.includes('Tout apprendre'));
   const rows = tree.regionRows(s);
   assert.equal(rows.length, 6);

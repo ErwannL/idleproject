@@ -302,6 +302,13 @@ export class SceneRenderer {
     const prevGround = this.groundY;
     const lift = tall ? 0.68 : wide ? 0.65 : 0;
     this.groundY = lift ? Math.max(MIN_VIEW_HEIGHT - GROUND_DEPTH, Math.min(this.height - GROUND_DEPTH, Math.round(this.height * lift))) : this.height - GROUND_DEPTH;
+    // v9.3.9 : la grande scène PC range les infos du combat (vague, boss, prochain déblocage) dans la terre, sous le sol.
+    this.wide = wide && this.groundY < this.height - GROUND_DEPTH - 30;
+    const play = this.canvas.parentElement?.parentElement;
+    if (play?.style) {
+      play.classList.toggle('wide-scene', this.wide);
+      play.style.setProperty('--ground-px', `${Math.round((this.groundY + GROUND_DEPTH) * scale)}px`);
+    }
     // v9.3.1 : un menu ouvert/fermé change la hauteur de la scène : les effets en cours (corps d'un monstre tué,
     // mort animée, chiffres, étincelles) suivent le sol au lieu de rester collés à l'ancienne hauteur (« au plafond »).
     const dy = this.groundY - prevGround;

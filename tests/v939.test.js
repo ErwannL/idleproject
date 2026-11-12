@@ -51,3 +51,27 @@ test('v9.3.9 : les ennemis naissent au bord de l\'écran (viewEdgeX), sans rendu
   for (let i = 0; i < 40 && !w2.enemies.length; i++) step(s2, w2, 0.05, rng);
   assert.ok(w2.enemies[0].x > 150, `apparu à ${w2.enemies[0].x}`);
 });
+
+test('v9.3.9 : Talents — vue simple par défaut (6 branches, « Apprendre le meilleur », phrase sur la Renaissance), arbre avancé après 3 Renaissances', async () => {
+  globalThis.localStorage ??= { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+  const ctx2d = new Proxy({}, {
+    get: (t, k) => (k === 'getImageData' || k === 'createImageData'
+      ? (x, y, w = 1, h = 1) => ({ data: new Uint8ClampedArray(Math.max(1, (w | 0) * (h | 0)) * 4), width: w, height: h })
+      : k === 'measureText' ? () => ({ width: 1 }) : k in t ? t[k] : () => {}),
+    set: (t, k, v) => { t[k] = v; return true; },
+  });
+  globalThis.document ??= { createElement: () => ({ width: 1, height: 1, getContext: () => ctx2d, toDataURL: () => 'data:' }) };
+  const tree = await import('../src/ui/panels/tree.js');
+  const ui = { view: { open: new Set(), closed: new Set() }, tabVisible: {}, invalidate: () => {} };
+  const s = createNewState(NOW);
+  s.fragments = 50;
+  const html = tree.default.render(ui, s);
+  assert.equal((html.match(/class="tb-row/g) ?? []).length, 6);
+  assert.match(html, /data-action="talent-best"/);
+  assert.match(html, /La Renaissance te ramène au monde 1/);
+  for (const n of ['Attaque', 'Or et butin', 'Compagnons', 'Compétences', 'Survie']) assert.ok(html.includes(n), n);
+  assert.ok(!html.includes('Arbre avancé</'), 'arbre avancé fermé au début');
+  assert.equal(tree.branchNext(s, 'combat').t.id, 'core', 'le Cœur d\'abord');
+  s.records.rebirths = 3;
+  assert.match(tree.default.render(ui, s), /Arbre avancé/);
+});

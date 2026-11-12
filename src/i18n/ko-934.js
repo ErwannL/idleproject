@@ -1,6 +1,17 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Or et butin": "골드와 전리품",
+  "Chasse aux monstres": "몬스터 사냥",
+  "Gros palier :": "큰 단계:",
+  "Branche terminée": "가지 완료",
+  "Bonus :": "보너스:",
+  "Aucun talent appris": "배운 재능 없음",
+  "Arbre avancé : après 3 Renaissances.": "고급 트리: 환생 3회 후.",
+  "La Renaissance te ramène au monde 1 contre des fragments. Les fragments achètent des talents qui restent pour toujours.": "환생하면 조각을 받고 세계 1로 돌아갑니다. 조각으로 영원히 남는 재능을 삽니다.",
+  "Apprendre le meilleur": "최선 배우기",
+  "Arbre avancé": "고급 트리",
+  "Pas assez de fragments": "조각이 부족합니다",
   "Donjons : 1 par salle franchie, 4 à la fin": "던전: 방 하나당 1개, 완료 시 4개",
   "Missions du jour : 6 quand toutes sont faites": "일일 미션: 모두 완료 시 6개",
   "Arène : 2 par nouvel étage": "아레나: 새 층마다 2개",
@@ -234,6 +245,9 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Prochain : (.+)$"), (m) => `다음: ${L(m[1])}`],
+  [new RegExp("^Palier (\\d+)/(\\d+)$"), (m) => `단계 ${m[1]}/${m[2]}`],
+
   [new RegExp("^Chaque invocation \\(limitée, permanente, familiers\\) a son propre compteur : compagnon Légendaire garanti au plus tard à la (\\d+)e invocation, familier Légendaire au plus tard à la (\\d+)e invocation de familiers\\. (.*)$"), (m) => `소환마다 카운터가 따로 있습니다: 전설 동료는 늦어도 ${m[1]}회째, 전설 펫은 늦어도 펫 소환 ${m[2]}회째에 보장됩니다. 픽업 유닛은 해당 소환에서 얻는 전설의 50%입니다 (전설 확률을 올리지는 않음). 중복: 별 +1, 이후 보석.`],
   [new RegExp("^Il faut (.+)$"), (m) => `필요: ${m[1]}`],
   [new RegExp("^\\+(\\d+) objets? dans le sac$"), (m) => `가방에 아이템 +${m[1]}`],

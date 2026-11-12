@@ -18,8 +18,9 @@ const uiWith = (view = {}, open = []) => ({ view: { open: new Set(open), closed:
 
 test('Arbre : chaque nœud montre icône, valeur et coût ; le Cœur montre ce qu\'il débloque', () => {
   const s = createNewState(Date.now());
+  s.records.rebirths = 3; // v9.3.9 : arbre avancé
   s.fragments = 100;
-  const html = tree.default.render(uiWith(), s);
+  const html = tree.default.render(uiWith({ treeSeg: 'tree' }), s);
   assert.match(html, /class="tnode k-core open afford/);
   assert.match(html, /class="tn-cost">/);
   assert.match(html, /class="tn-val">\+\d/);
@@ -32,8 +33,9 @@ test('Arbre : chaque nœud montre icône, valeur et coût ; le Cœur montre ce q
 
 test('Arbre : un nœud appris au maximum est marqué, sans coût', () => {
   const s = createNewState(Date.now());
+  s.records.rebirths = 3; // v9.3.9 : arbre avancé
   s.talents.core = 5;
-  const html = tree.default.render(uiWith(), s);
+  const html = tree.default.render(uiWith({ treeSeg: 'tree' }), s);
   const core = html.match(/<button class="tnode k-core[^"]*"[\s\S]*?<\/button>/)[0];
   assert.match(core, /maxed/);
   assert.match(core, /tn-max/);

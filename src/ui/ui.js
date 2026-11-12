@@ -32,6 +32,7 @@ import { nextMilestone } from '../core/unlocks.js';
 import { loginTab } from './panels/contracts.js';
 import { loginPending } from '../core/missions.js';
 import { morph } from './morph.js'; // v9.3.9
+import { suggestedTalent } from '../core/rebirth.js'; // v9.3.9
 import { RESOURCE_WHERE, SKILL_RESOURCES } from '../data/progression.js'; // v9.3.9 (2.6)
 import { coin, effectText, escapeHtml, fold, glyph, icon, img, itemFrame, missingText, rewardIcons } from './common.js';
 import { GAME_VERSION } from '../version.js';
@@ -996,6 +997,8 @@ export class UI {
       case 'buy-talents-all': this.closeModal(); a.buyTalentsAll(value || null); break;
       case 'ask-buy-talents': this.showBuyTalents(value || null); break;
       case 'tree-seg': local(() => { v.treeSeg = value; }); break;
+      case 'talent-branch': a.buyTalentStep(value); break; // v9.3.9 : vue simple des Talents
+      case 'talent-best': a.buyTalentsAll(null); break;
       // v9.1.3 (A18) : une clé de voûte de la vue Région ouvre l'arbre centré sur elle.
       case 'region-key': local(() => { v.talentSel = value; v.treeSeg = 'tree'; recenterTree(); }); break;
       case 'buy-tperk': a.buyTranscendPerk(key); break;
@@ -1797,6 +1800,7 @@ export class UI {
     this.tabBadges = byTab;
     this.offerAutoRecycle(state); // v9.3.4
     if (this.tabVisible.forge !== false && canForgeSomething(state)) this.tabBadges = { ...byTab, forge: 1 }; // v9.3.4 : de quoi forger
+    if (this.tabVisible.tree !== false && suggestedTalent(state)) this.tabBadges = { ...this.tabBadges, tree: 1 }; // v9.3.9 : un talent à apprendre
     const current = computeHeroStats(state);
     this.next = nextAction(state, { claims: this.claims, visible: this.tabVisible, fusionReady: this.tabBadges.forge === 1 }); // v9.3.5
     for (const menu of MENUS) {

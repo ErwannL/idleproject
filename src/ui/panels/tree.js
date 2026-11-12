@@ -75,6 +75,71 @@ function nodeState(state, t) {
 // un mot (apprise, prête, points manquants). Lecture seule, aucune donnée nouvelle ; un appui ouvre l'arbre dessus.
 // Critère écrit avant l'essai : sur 375×812, les 6 régions et leurs 12 clés de voûte tiennent sans défiler dans le
 // panneau, en moins de 80 mots, sans aucun bouton d'achat.
+// ---- v9.3.9 (3.9) : vue simple des Talents ----
+// Même arbre, mêmes fragments (rien à rembourser) : chaque région devient une branche en ligne droite, nommée par ce
+// qu'elle fait, avec 15 paliers ; « Apprendre » prend le talent le moins cher de la branche ; un gros palier tous les 5.
+export const SIMPLE_BRANCHES = {
+  combat: { name: 'Attaque', icon: 'icon_damage' },
+  hunt: { name: 'Chasse aux monstres', icon: 'icon_boss' },
+  resources: { name: 'Or et butin', icon: 'coin' },
+  special: { name: 'Compagnons', icon: 'icon_paw' },
+  arcane: { name: 'Compétences', icon: 'icon_book' },
+  survival: { name: 'Survie', icon: 'icon_heart' },
+};
+const TIERS = 15;
+export const advancedOpen = (state) => (state.records?.rebirths ?? 0) >= 3 || (state.transcend?.count ?? 0) > 0 || talentsOwned(state) > 40;
+const regionTotal = new Map();
+function branchMax(region) {
+  if (!regionTotal.has(region)) regionTotal.set(region, TALENTS.filter((t) => t.region === region).reduce((n, t) => n + t.max, 0));
+  return regionTotal.get(region);
+}
+// Prochain talent de la branche : le moins cher apprenable (le Cœur d'abord s'il n'est pas appris).
+export function branchNext(state, region) {
+  let best = null;
+  for (const t of TALENTS) {
+    if (t.region !== region && t.id !== 'core') continue;
+    const lv = state.talents[t.id] ?? 0;
+    if (lv >= t.max || !talentUnlocked(state, t)) continue;
+    const cost = talentCost(t, lv);
+    if (!best || cost < best.cost) best = { t, cost, lv };
+  }
+  return best;
+}
+function branchBonus(state, region) {
+  const sum = {};
+  for (const t of TALENTS) {
+    if (t.region !== region) continue;
+    const lv = state.talents[t.id] ?? 0;
+    if (lv > 0) for (const [k, v] of Object.entries(talentLevelEffects(t, lv))) sum[k] = (sum[k] ?? 0) + v;
+  }
+  return effectText(sum);
+}
+function simpleView(state) {
+  const pts = (r) => TALENTS.filter((t) => t.region === r).reduce((n, t) => n + (state.talents[t.id] ?? 0), 0);
+  const rows = TALENT_BRANCHES.filter((b) => SIMPLE_BRANCHES[b.id]).map((b) => {
+    const meta = SIMPLE_BRANCHES[b.id];
+    const per = Math.max(1, Math.ceil(branchMax(b.id) / TIERS));
+    const tier = Math.min(TIERS, Math.floor(pts(b.id) / per));
+    const next = branchNext(state, b.id);
+    const big = next && (next.t.kind === 'notable' || next.t.kind === 'keystone');
+    const steps = Array.from({ length: TIERS }, (_, i) => `<i class="${i < tier ? 'on' : ''}${(i + 1) % 5 === 0 ? ' big' : ''}"></i>`).join('');
+    const bonus = branchBonus(state, b.id);
+    const what = next ? `${big ? '<b class="gold-text">Gros palier : </b>' : ''}${escapeHtml(next.t.name)} — ${effectText(talentLevelEffects(next.t, next.lv + 1))}` : '<span class="good">Branche terminée</span>';
+    const btn = next ? costButton({ action: 'talent-branch', cost: next.cost, have: state.fragments, currency: 'fragments', label: 'Apprendre ', attrs: `data-value="${b.id}"`, cls: big ? 'btn-gold' : 'btn-primary' }) : '';
+    return `<div class="tb-row${big ? ' tb-big' : ''}" style="--branch:${b.color}">
+      <div class="tb-head">${img(meta.icon)}<b>${meta.name}</b><span class="muted">Palier ${tier}/${TIERS}</span></div>
+      <div class="tb-steps" aria-hidden="true">${steps}</div>
+      <div class="tb-bonus">${bonus ? `Bonus : <b class="good">${bonus}</b>` : '<span class="muted">Aucun talent appris</span>'}</div>
+      <div class="tb-next"><span>Prochain : ${what}</span>${btn}</div></div>`;
+  }).join('');
+  const sg = suggestedTalent(state);
+  return `<div class="card tb-intro"><p>La Renaissance te ramène au monde 1 contre des fragments. Les fragments achètent des talents qui restent pour toujours.</p>
+      <div class="row-between"><span>${fragment()} <b>${formatNumber(state.fragments)}</b> fragments</span>
+      <button class="btn btn-gold" data-action="talent-best" ${sg ? '' : 'disabled data-why="Pas assez de fragments"'}>Apprendre le meilleur</button></div></div>
+    <div class="tb-list">${rows}</div>
+    ${advancedOpen(state) ? '' : '<p class="muted tb-adv">Arbre avancé : après 3 Renaissances.</p>'}`;
+}
+
 export function regionRows(state) {
   return TALENT_BRANCHES.filter((b) => b.id !== 'bridge').map((b) => {
     const pts = regionPoints(state, b.id);
@@ -231,10 +296,14 @@ export default {
   },
   render(ui, state) {
     const segOpen = rebirthSegmentOpen(state);
-    // v9.1.3 (A18, essai) : vue « Région » (lecture seule) dès qu'un talent est appris.
-    const regionOpen = talentsOwned(state) > 0;
-    const seg = segOpen && ui.view.treeSeg === 'rebirth' ? 'rebirth' : regionOpen && ui.view.treeSeg === 'region' ? 'region' : 'tree';
-    const items = [['tree', 'Arbre', 'icon_tree'], ...(regionOpen ? [['region', 'Région', 'icon_map']] : []), ...(segOpen ? [['rebirth', 'Renaissance', 'icon_rebirth']] : [])];
+    // v9.3.9 (3.9) : vue simple par défaut (6 branches en ligne droite) ; l'arbre complet devient « Arbre avancé »,
+    // ouvert après 3 Renaissances (ou si le joueur s'en servait déjà).
+    const advanced = advancedOpen(state);
+    const regionOpen = advanced && talentsOwned(state) > 0;
+    const want = ui.view.treeSeg;
+    const seg = segOpen && want === 'rebirth' ? 'rebirth' : advanced && want === 'tree' ? 'tree' : regionOpen && want === 'region' ? 'region' : 'simple';
+    const items = [['simple', 'Talents', 'icon_tree'], ...(advanced ? [['tree', 'Arbre avancé', 'icon_map']] : []), ...(segOpen ? [['rebirth', 'Renaissance', 'icon_rebirth']] : [])];
+    if (seg === 'simple') return (items.length > 1 ? segment(items, 'tree-seg', seg) : '') + simpleView(state);
     const head = items.length > 1 ? segment(items, 'tree-seg', seg) : '';
     if (seg === 'rebirth') return head + rebirthView(ui, state);
     if (seg === 'region') return head + regionView(state);
