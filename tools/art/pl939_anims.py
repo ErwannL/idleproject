@@ -22,15 +22,23 @@ ATTACK = {
   'ally_witch': 'pointing the staff and casting a void orb forward', 'ally_elf_archer': 'drawing the elven bow and shooting an arrow forward',
   'ally_high_priest': 'raising the sun staff and casting a holy light spell', 'ally_ninja': 'swift katana slash forward',
   'ally_barbarian': 'heavy two-handed axe overhead strike',
+  'pet_cat': 'pouncing forward with a paw swipe', 'pet_owl': 'flapping wings and swooping forward with talons',
+  'pet_slime': 'squashing then bouncing forward to bump', 'pet_wisp': 'flaring its flame and shooting a small fireball forward',
+  'pet_golem': 'punching forward with a stone fist', 'pet_fairy': 'waving the glowing flower and casting sparkles forward',
 }
 WALK = 'walking forward, natural walk cycle'
+MOVE = {'pet_owl': 'flying forward, flapping wings', 'pet_fairy': 'flying forward, fluttering butterfly wings',
+        'pet_wisp': 'floating forward, flickering flame', 'pet_slime': 'hopping forward, squash and stretch'}
 
 
 def ref(key, n):
     view = Image.open(os.path.join(CH, key, f'sprite_v{n}.png')).convert('RGBA')
-    q = pl._frame(key)  # même découpe que le sprite du jeu
     box = view.getchannel('A').point(lambda a: 255 if a >= 128 else 0).getbbox()
-    meta = {'ox': box[0] - pl.MARGIN, 'oy': box[1], 'scale': round(HEIGHT.get(key, 54) / q.height, 4)}
+    if key.startswith('pet_'):
+        meta = {'ox': box[0], 'oy': box[1]}  # familier : sprite du jeu = la vue rognée, sans échelle
+    else:
+        q = pl._frame(key)  # même découpe que le sprite du jeu
+        meta = {'ox': box[0] - pl.MARGIN, 'oy': box[1], 'scale': round(HEIGHT.get(key, 54) / q.height, 4)}
     os.makedirs(os.path.join(AA, '_ref'), exist_ok=True)
     view.save(os.path.join(AA, '_ref', f'{key}.png'))
     json.dump(meta, open(os.path.join(AA, '_ref', f'{key}.json'), 'w'))
@@ -60,7 +68,7 @@ def run(item):
         for f in (f'{key}_swim.png', f'{key}_swim.json'):
             p = os.path.join(AA, '_ref', f)
             if os.path.exists(p): shutil.move(p, os.path.join(HERE, 'pixellab939', 'old', f))
-        a = anim(key, view, 'walk', WALK)
+        a = anim(key, view, 'walk', MOVE.get(key, WALK))
         b = anim(key, view, 'attack', ATTACK[key])
         return key, f'marche {a}, attaque {b}'
     except Exception as e:  # noqa: BLE001
@@ -69,7 +77,7 @@ def run(item):
 
 if __name__ == '__main__':
     picks = json.load(open(os.path.join(HERE, 'pixellab939', 'picks.json')))
-    keys = [k for k in (sys.argv[1:] or picks) if k.startswith('ally_')]
+    keys = list(sys.argv[1:] or picks)
     with ThreadPoolExecutor(4) as ex:
         for key, st in ex.map(run, [(k, picks[k]) for k in keys]):
             print(key, st, flush=True)

@@ -13,5 +13,11 @@
 "ally_elf_archer": 0,
 "ally_high_priest": 1,
 "ally_ninja": 2,
-"ally_barbarian": 0
+"ally_barbarian": 0,
+"pet_cat": 8,
+"pet_owl": 0,
+"pet_slime": 1,
+"pet_wisp": 7,
+"pet_golem": 0,
+"pet_fairy": 1
 }
