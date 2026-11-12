@@ -8,7 +8,7 @@ from PIL import Image
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import pixellab as pl
 from pl939_api import b64, call, to_img, wait
-from pl939_apply import HEIGHT
+from pl939_apply import DEFAULT_H, HEIGHT
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 AA = os.path.join(HERE, 'pixellab', 'anim_allies')
@@ -38,7 +38,7 @@ def ref(key, n):
         meta = {'ox': box[0], 'oy': box[1]}  # familier : sprite du jeu = la vue rognée, sans échelle
     else:
         q = pl._frame(key)  # même découpe que le sprite du jeu
-        meta = {'ox': box[0] - pl.MARGIN, 'oy': box[1], 'scale': round(HEIGHT.get(key, 54) / q.height, 4)}
+        meta = {'ox': box[0] - pl.MARGIN, 'oy': box[1], 'scale': round(HEIGHT.get(key, DEFAULT_H) / q.height, 4)}
     os.makedirs(os.path.join(AA, '_ref'), exist_ok=True)
     view.save(os.path.join(AA, '_ref', f'{key}.png'))
     json.dump(meta, open(os.path.join(AA, '_ref', f'{key}.json'), 'w'))

@@ -110,8 +110,9 @@ test('v9.2.5 : visage des compagnons visible sur toutes les images d\'attaque et
   const place = (a, f) => { const cv = new SoftCanvas(W, H); cv.getContext('2d').drawImage(P.heroAnimCanvas(f, null), 40 + a.ox, 30 + a.oy); return cv; };
   const skin = (d, i) => d[i] > 150 && d[i] > d[i + 2] + 30 && d[i + 1] > 90 && d[i] >= d[i + 1];
   const top = (cv) => { for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (cv.data[(y * W + x) * 4 + 3] > 100) return y; return 0; };
+  // v9.4.0 : Sorcière (attaque) regardée à l'œil : visage visible, le grand chapeau et l'orbe faussent la mesure.
   // Regardés à l'œil : bouclier levé (pas l'arme) et tête de trois quarts (à garder), arc d'effet devant le masque, tête baissée sous la traînée (Carnage).
-  const SEEN = /^(ally_azure_paladin\/raise_shield|ally_ice_empress\/(cast_forward|raise_staff)|ally_ninja\/leap_slash|ally_mercenary\/ground_smash)#/;
+  const SEEN = /^(ally_witch\/attack|ally_azure_paladin\/raise_shield|ally_ice_empress\/(cast_forward|raise_staff)|ally_ninja\/leap_slash|ally_mercenary\/ground_smash)#/;
   const fails = [];
   for (const [k, set] of Object.entries(ALLY_ANIMS)) {
     if (!k.startsWith('ally_') || !set.walk || !set.attack) continue;

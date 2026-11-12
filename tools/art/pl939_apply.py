@@ -13,7 +13,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 CH = os.path.join(HERE, 'pixellab939', 'chars')
 # Même hauteur que les Légendaires (Archange 54) ; le nain reste plus petit.
-HEIGHT = {'ally_dwarf': 44}
+HEIGHT = {'ally_dwarf': 40}
+DEFAULT_H = 48  # v9.4.0 : à l'échelle du héros (l'Archange fait 54 avec ses ailes)
 GLIDE = {'ally_priestess', 'ally_high_priest', 'ally_pyromancer', 'ally_witch'}
 
 
@@ -35,7 +36,7 @@ def apply(picks):
         sheet.paste(Image.new('RGBA', (64, 64)), (64, 0))
         sheet.paste(src, (64, 0))
         sheet.save(sheet_path)
-        pl.TARGET[key] = HEIGHT.get(key, 54)
+        pl.TARGET[key] = HEIGHT.get(key, DEFAULT_H)
         if key in GLIDE: pl.GAIT[key] = 'glide'
         pl.STEPPING.discard(key)
         if pl.GAIT.get(key, 'walk') in ('walk', 'quad'): pl.STEPPING.add(key)

@@ -1,3 +1,10 @@
+## Ascendrya v9.4.0 — Une seule main pour tous les personnages, des icônes lisibles
+
+- 15 compagnons Rares et Épiques redessinés au style des Légendaires (proportions élancées, même hauteur que l'Archange, contour et lumière communs) : Écuyer, Mercenaire, Rôdeur, Pyromancienne, Prêtresse, Lancier, Ombre, Nain guerrier, Paladin d'azur, Lame rose, Sorcière, Archère elfe, Grand prêtre, Ninja, Barbare. Pose, marche, attaque, gestes de compétence et illustration de fiche refaits ensemble.
+- 6 familiers redessinés au style du Renard céleste : Chat du château, Hibou érudit, Slime doré, Feu follet, Mini-golem, Fée des bois.
+- 44 nouvelles icônes : les 14 améliorations (Défense en une seule icône), les 3 ressources de compétence, les 4 menus, les 3 boutons du haut et les onglets. Plus aucune icône ne sert à deux choses ; elles s'affichent entre 28 et 40 px.
+- Le Lancier n'est plus un chevalier réaliste plus grand que les autres, et on voit son visage.
+
 ## Ascendrya v9.3.9 — Chaque coup se sent, le PC aussi soigné que le téléphone
 
 - PC : scène agrandie (personnages ×1,6, sol aux deux tiers) ; les monstres entrent par le bord droit et marchent à vitesse constante (ils ne « glissent » plus) ; la barre de vague et le prochain déblocage sont rangés sous le sol.
