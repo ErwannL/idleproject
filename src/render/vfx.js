@@ -159,7 +159,7 @@ export function textCanvas(text, color, light) {
 export const DAMAGE_COLORS = {
   hit: ['#ffffff', '#ffffff'],
   crit: ['#ffd23f', '#fff6c8'],
-  skill: ['#7fd6ff', '#e0f6ff'],
+  skill: ['#ff9a3a', '#ffe6c0'], // v9.3.9 : compétences en orange (blanc = coup, jaune = critique)
   companion: ['#9cf08a', '#e4ffd8'],
   hurt: ['#ff5a5a', '#ffb0a8'],
   heal: ['#5aff8a', '#d8ffe0'],
@@ -179,12 +179,12 @@ export function drawDamageText(scene, ctx, fx) {
   let s = 1;
   let dy;
   if (fx.pop) {
-    s = age < 0.08 ? 2 : age < 0.18 ? 1.5 : 1;
+    s = age < 0.08 ? 2.4 : age < 0.18 ? 1.8 : 1.4; // v9.3.9 : chiffres plus gros
     dy = -Math.min(1, age / 0.12) * 10 - age * 10;
   } else {
     // Rebond : monte de 9 px en 0,12 s, retombe de 3 px, puis dérive vers le haut.
     dy = age < 0.12 ? -9 * Math.sin((age / 0.12) * Math.PI / 2) : age < 0.24 ? -9 + 3 * Math.sin(((age - 0.12) / 0.12) * Math.PI / 2) : -6 - (age - 0.24) * 14;
-    if (age < 0.06) s = 1.5;
+    s = age < 0.06 ? 1.7 : 1.2; // v9.3.9 : plus gros, petit saut
   }
   if (scene.focus) { s = 1; dy = -age * 14; }
   const t = fx.life / fx.max;

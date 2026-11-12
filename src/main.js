@@ -51,6 +51,7 @@ import { UI } from './ui/ui.js';
 import { hasPref, setPref } from './ui/prefs.js';
 import { animateMenus } from './ui/animator.js';
 import { createGameAudio } from './audio/game-audio.js';
+import { flyTo } from './ui/ui-vfx.js'; // v9.3.9
 import { simSpeed, unlockedSpeeds } from './core/cheats.js';
 import { applyLoadout, renameLoadout, saveLoadout } from './core/loadouts.js';
 import { claimEncyclopedia, claimSection } from './core/encyclopedia.js';
@@ -917,6 +918,7 @@ const actions = {
   },
   setNotify(key, on) { state.ui.notify = { ...state.ui.notify, [key]: on }; done(true); },
   setCinematics(on) { state.ui.cinematics = on; done(true); },
+  setShake(on) { state.ui.shake = on; done(true); }, // v9.3.9
   startTour() { ui.closeModal(); startTour(ui, state); },
   skipTour() { state.ui.tour = 'done'; state.ui.tourV = TOUR_VERSION; ui.closeModal(); save(); },
   setAutoRecycle(value) {
@@ -1290,6 +1292,20 @@ document.getElementById('scene')?.addEventListener('pointerdown', (e) => {
 });
 window.addEventListener('keydown', unlockAudio, { capture: true });
 document.addEventListener('click', (e) => { if (e.target.closest('button')) sound.play('click', { volume: 0.5 }); }, { capture: true });
+// v9.3.9 (2.3) : à la mort d'un monstre, ses pièces volent de la scène vers le compteur d'or (au plus ~3 fois par s).
+let killFlyAt = 0;
+function killCoinsFx(event) {
+  const now = performance.now();
+  if (now - killFlyAt < 320 || ui.calm || document.hidden) return;
+  const d = renderer.deaths?.get(event.enemyId);
+  const target = document.querySelector('#topbar [data-currency="gold"]');
+  if (!d || !target?.offsetWidth) return;
+  killFlyAt = now;
+  const r = renderer.canvas.getBoundingClientRect();
+  flyTo('gold', [r.left + (d.x * r.width) / renderer.width, r.top + (d.y * r.height) / renderer.height], target, event.boss ? 8 : 2);
+}
+// v9.3.9 (2.4) : un achat ou une amélioration réussis sonnent ; un bouton grisé touché fait un petit « non ».
+addEventListener('idle-sfx', (e) => sound.play(e.detail === 'deny' ? 'error' : 'upgrade', { volume: e.detail === 'deny' ? 0.4 : 0.6 }));
 
 // Version bureau (Electron) : options de fenêtre exposées par desktop/preload.cjs.
 if (window.desktop) {
@@ -1500,6 +1516,7 @@ function frame(ts) {
   for (const event of world.events) {
     // Vitesse ×100 : plus d'effets visuels (flashs, chiffres, secousses) ni de bannières.
     if (simSpeed(state) < 100) renderer.handleEvent(event, world);
+    if (event.type === 'kill' && simSpeed(state) < 10) killCoinsFx(event); // v9.3.9 (2.3) : pièces vers le compteur d'or
     ui.handleEvent(event, state);
     if (event.type === 'drop') for (const j of journals()) noteDrop(j, event);
     if (RETURN_EVENTS.has(event.type)) backToCampaign();

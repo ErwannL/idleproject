@@ -250,6 +250,7 @@ function gainFx(el, action, before, after, cx, cy) {
   const gained = Object.keys(after.cur).some((k) => after.cur[k] > before.cur[k]);
   if (gained) claimFly(before.cur, after.cur, el.isConnected ? el : [cx, cy]);
   if (!spent && after.lvl === before.lvl) return;
+  dispatchEvent(new CustomEvent('idle-sfx', { detail: 'upgrade' }));
   const key = el.dataset.key ?? el.dataset.value ?? el.dataset.id ?? '';
   requestAnimationFrame(() => {
     const sel = `[data-action="${CSS.escape(action)}"]${key ? `[data-${el.dataset.key !== undefined ? 'key' : el.dataset.value !== undefined ? 'value' : 'id'}="${CSS.escape(key)}"]` : ''}`;
@@ -268,6 +269,7 @@ export function deniedFx(target) {
   const btn = target?.closest?.('button:disabled, .btn[aria-disabled="true"]');
   if (!btn || btn.closest('#tabs')) return;
   btn.classList.remove('vfx-deny'); void btn.offsetWidth; btn.classList.add('vfx-deny');
+  dispatchEvent(new CustomEvent('idle-sfx', { detail: 'deny' }));
   setTimeout(() => btn.classList.remove('vfx-deny'), 420);
   const why = btn.dataset.why || btn.parentElement?.querySelector('.cost-missing')?.textContent?.trim() || btn.title?.replace(/^Coût : /, 'Il faut ') || '';
   if (why && !calm()) { const [x, y] = center(btn); floatText(why, x, y - 16, '#ff9a8a'); }

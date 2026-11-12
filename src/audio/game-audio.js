@@ -48,7 +48,8 @@ export function createGameAudio() {
     // Effets sonores selon les événements de la simulation.
     handleEvent(event) {
       switch (event.type) {
-        case 'heroAttack': audio.play(event.crit ? 'crit' : 'hit'); break;
+        case 'heroAttack': audio.play(event.crit ? 'crit' : event.boss ? 'bossHit' : 'hit'); if (event.crit && event.boss) audio.play('bossHit', { volume: 0.7 }); break;
+        case 'enemyHit': if (event.source === 'companion' || event.source === 'skill') audio.play(event.boss ? 'bossHit' : 'hit', { volume: event.source === 'skill' ? 0.55 : 0.3 }); break; // v9.3.9
         case 'phantomHit': audio.play('hit', { volume: 0.4 }); break;
         case 'heroHit': audio.play('enemyHit', { volume: 0.7 }); break;
         case 'kill': audio.play('kill'); audio.play('coin'); break;

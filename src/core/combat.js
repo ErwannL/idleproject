@@ -729,7 +729,7 @@ function castSkill(state, world, skill, stats, rng, balance, enc, front) {
     hitEnemy(state, world, front, damage * value, rng, balance, stats, enc, 'skill');
     if (skill.type === 'holy') world.hero.hp = Math.min(stats.maxHp, world.hero.hp + (stats.maxHp * skill.heal) / 100);
   }
-  emit(world, 'skill', { skillId: skill.id, x: front?.x ?? balance.world.heroX + 20 });
+  emit(world, 'skill', { skillId: skill.id, x: front?.x ?? balance.world.heroX + 20, aoe: skill.type === 'aoe' });
 }
 
 function castCompanion(state, world, companion, skill, stats, rng, balance, enc, front) {

@@ -5,7 +5,7 @@ import { Rng } from '../core/rng.js';
 
 export const SFX_NAMES = [
   'hit', 'crit', 'enemyHit', 'kill', 'coin', 'loot', 'levelUp', 'bossSpawn', 'bossDefeated',
-  'skill', 'summon', 'click', 'claim', 'step', 'wing', 'boost', 'upgrade', 'error',
+  'skill', 'summon', 'click', 'claim', 'step', 'wing', 'boost', 'upgrade', 'error', 'bossHit',
   'bubble', // v9.2.0 (monde marin)
 ];
 
@@ -597,6 +597,14 @@ function buildEngine(ctx, { seed = 1, crackle = true } = {}) {
       for (const r of [1, 1.47, 2.13, 2.9]) tone('sine', 2100 * p * r, t + 0.02, 0.028, 0.001, 0.32, out);
       return 0.38;
     },
+    // v9.3.9 (2.3) : coup sur un boss — plus grave et plus lourd (grosse caisse + craquement).
+    bossHit(t) {
+      const p = vary(0.05);
+      swish(t, 0.08, 2400 * p, 600, 0.16, 0.8);
+      const o = tone('sine', 110 * p, t + 0.01, 0.38, 0.002, 0.2, out); o.frequency.exponentialRampToValueAtTime(38, t + 0.22);
+      noiseHit(t + 0.01, 0.1, 0.16, 'lowpass', 900, 0.7, out);
+      return 0.26;
+    },
     enemyHit(t) {
       const p = vary(0.07);
       const o = tone('sine', 140 * p, t, 0.28, 0.003, 0.14, out); o.frequency.exponentialRampToValueAtTime(55, t + 0.14);
@@ -765,7 +773,7 @@ function buildEngine(ctx, { seed = 1, crackle = true } = {}) {
 
   // Anti-spam : écart minimal et polyphonie max par effet ; plafond global.
   const LIMITS = {
-    coin: [0.05, 3], step: [0.09, 2], click: [0.03, 2], hit: [0.035, 4], enemyHit: [0.05, 3], kill: [0.04, 3],
+    coin: [0.05, 3], step: [0.09, 2], click: [0.03, 2], hit: [0.035, 4], bossHit: [0.06, 2], enemyHit: [0.05, 3], kill: [0.04, 3],
     loot: [0.08, 3], wing: [0.1, 2], levelUp: [0.3, 1], bossSpawn: [1, 1], bossDefeated: [1, 1], summon: [0.08, 3],
   };
   const active = new Map(); const recentCoins = [];

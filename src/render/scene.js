@@ -399,6 +399,8 @@ export class SceneRenderer {
         }
         break;
       case 'skill':
+        // v9.3.9 (2.3) : une compétence qui touche plusieurs ennemis secoue l'écran.
+        if ((event.targets?.length ?? 0) > 1 || event.aoe) this.shake = Math.max(this.shake, 3);
         // v9.2.5 : geste propre à la compétence et effet synchronisé (skill-fx.js) ; ancien effet en repli.
         this.weaponSkillFlourish(HERO_X + 4, this.weaponEq); // v9.3.2 : l'arme participe à la compétence
         if (castHeroSkill(this, this.skillKey, event.skillId, fxContext(this, world, { x: HERO_X + 4, y: this.groundY - 22 }, HERO_X))) break;
@@ -456,7 +458,7 @@ export class SceneRenderer {
         }
         vfx(this, 'hit_blunt', heroX + 8, this.groundY - 20, { size: event.boss ? 1 : 0.7, flip: true }); // v9.2.6 : coup reçu
         this.addText(formatNumber(Math.max(1, Math.round(event.damage))), heroX - 4, this.groundY - 48, ...DAMAGE_COLORS.hurt);
-        if (event.boss) this.shake = Math.max(this.shake, 2);
+        if (event.boss) this.shake = Math.max(this.shake, 3.5); // v9.3.9 : coup de boss
         break;
       // v9.3.8 : vagues groupées — annonce de la vague ; à la dernière, pluie d'or (visuelle) à la fin de l'étape.
       case 'waveStart': break; // v9.3.8 : la vague est écrite dans la barre (« Vague 2/5 ») ; la police des dégâts n'a pas de lettres
@@ -577,12 +579,13 @@ export class SceneRenderer {
       fx.hit = crit ? 0.13 : 0.08;
       // v9.2.3 : coup reçu dessiné (PixelLab) : sur un critique, ou au plus une fois toutes les HURT_COOLDOWN secondes.
       if ((crit || this.time - (fx.hurtAt ?? -99) > HURT_COOLDOWN) && !(fx.lunge > 0) && !(fx.windup > 0)) { fx.hurt = HURT_TIME; fx.hurtAt = this.time; }
-      fx.knock = Math.min(boss ? 4 : 8, (fx.knock ?? 0) + (crit ? 5 : 3) * (boss ? 0.5 : 1));
-      fx.squash = 0.14;
+      // v9.3.9 (2.3) : recul 2 à 3 fois plus fort (en pixels de la scène, donc proportionnel à sa taille).
+      fx.knock = Math.min(boss ? 9 : 18, (fx.knock ?? 0) + (crit ? 12 : 7) * (boss ? 0.5 : 1));
+      fx.squash = crit ? 0.2 : 0.14;
       // v9.2.7 : léger arrêt sur image à chaque coup (le coup « pèse »), plus long sur un critique ; espacé d'au
       // moins 0,2 s pour ne pas ralentir les vitesses d'attaque élevées.
       if (!this.focus && (crit || this.time - (this.hitstopAt ?? -9) > 0.2)) {
-        this.hitstop = Math.max(this.hitstop ?? 0, crit ? 0.07 : 0.035);
+        this.hitstop = Math.max(this.hitstop ?? 0, crit ? 0.1 : 0.045); // v9.3.9 : critique 100 ms
         this.hitstopAt = this.time;
       }
     }
@@ -603,8 +606,8 @@ export class SceneRenderer {
     if (!drawn) this.sprite(['fx_hit'], ix + 2, iy + 6, 0.14, { tint: crit ? '#ffd23f' : null });
     if (crit) {
       this.effects.push({ kind: 'ring', x: ix, y: iy, color: '#ffd23f', life: 0.25, max: 0.25, r: 12 });
-      this.shake = Math.max(this.shake, boss ? 3 : 2);
-    } else if (boss) this.shake = Math.max(this.shake, 1);
+      this.shake = Math.max(this.shake, boss ? 4 : 3);
+    } else if (boss) this.shake = Math.max(this.shake, 2);
     // v9.1.9 : impact élémentaire selon la couleur du coup (feu, glace, poison, sacré, ombre) ou l'élément donné.
     if (el) this.elementFx(ix, iy, el, crit || boss);
     // v9.2.6 : couleur du chiffre selon le coup (critique doré, élément, coup simple blanc).
@@ -619,6 +622,8 @@ export class SceneRenderer {
     const fxe0 = this.enemyFx.get(event.enemyId);
     const fxe = split ? (fxe0 ? { ...fxe0, img: null } : fxe0) : fxe0;
     if (fxe?.img && !this.focus) this.shatter(fxe);
+    // v9.3.9 (2.3) : coup de grâce — arrêt sur image plus long (au plus toutes les 0,25 s : les vagues meurent groupées).
+    if (!this.focus && this.time - (this.killStopAt ?? -9) > 0.25) { this.hitstop = Math.max(this.hitstop ?? 0, event.boss ? 0.12 : 0.08); this.killStopAt = this.time; }
     const { sprite, scale, heroLike, colors, base } = this.enemyLook(event.kind, event.boss);
     // v9.2.3 : mort dessinée (PixelLab) : le monstre s'effondre là où il est mort, puis s'efface.
     const death = !heroLike && !this.focus && fxe?.img ? ENEMY_ANIMS[base]?.death : null;
@@ -639,7 +644,7 @@ export class SceneRenderer {
     const k0 = vis && !heroLike ? vis.w / vis.img.width : scale;
     if (!split) this.effects.push({
       kind: 'corpse', img, x: vis ? vis.x + vis.w / 2 : this.wx(event.x), top: vis ? vis.y : undefined, w: img.width * k0, h: img.height * k0,
-      fly: this.flyHeight(event.kind, event.boss), life: 0.3, max: 0.3,
+      fly: this.flyHeight(event.kind, event.boss), life: 0.3, max: 0.3, fling: !this.focus && !event.boss, // v9.3.9 : projeté en arrière
     });
     if (death && !split) this.effects.splice(this.effects.length - 1, 1); // pas de second corps
     if (!this.focus && fxe?.img && !death) {
@@ -796,7 +801,7 @@ export class SceneRenderer {
     // pas de secousses ni de particules d'ambiance, effets allégés.
     this.focus = Boolean(state.ui?.focus) || Boolean(this.calm);
     this.skillKey = heroAnimKey(activeHero(state).palette); // v9.2.5 : gestes de compétence du héros
-    if (this.focus) this.shake = 0;
+    if (this.focus || state.ui?.shake === false) this.shake = 0; // v9.3.9 : réglage « Tremblement de l'écran »
     const zoneIndex = currentEncounter(state).zoneIndex;
     this.underwater = Boolean(ZONES[zoneIndex]?.underwater); // v9.2.0 (monde marin) : on nage
     this.dt = dt;
@@ -1331,10 +1336,10 @@ export class SceneRenderer {
         ctx.fillStyle = '#ff4d6d';
         ctx.fillRect(x + 2, this.groundY + 1, w - 4, 1);
         ctx.globalAlpha = 1;
-        this.drawBar(ctx, headX - 16, headY - 6, 32, enemy.hp / enemy.maxHp, '#e84a5f');
+        this.drawBar(ctx, headX - 16, headY - 6, 32, enemy.hp / enemy.maxHp, '#e84a5f', this.ghostHp(fx, enemy));
         drawElementIcon(ctx, enemy.element, headX - 22, headY - 7);
       } else if (enemy.elite || enemy.mutation || enemy.hp < enemy.maxHp) {
-        this.drawBar(ctx, headX - 9, headY - 5, 18, enemy.hp / enemy.maxHp, enemy.elite ? '#ff9a3d' : mutation ? mutation.color : '#e84a5f');
+        this.drawBar(ctx, headX - 9, headY - 5, 18, enemy.hp / enemy.maxHp, enemy.elite ? '#ff9a3d' : mutation ? mutation.color : '#e84a5f', this.ghostHp(fx, enemy));
         drawElementIcon(ctx, enemy.element, headX - 15, headY - 6);
       }
       ctx.globalAlpha = 1;
@@ -2052,16 +2057,29 @@ export class SceneRenderer {
     for (let i = allies.length - 1; i >= 0; i--) this.drawAlly(ctx, world, allies[i], i);
   }
 
-  drawBar(ctx, x, y, w, ratio, color) {
+  drawBar(ctx, x, y, w, ratio, color, ghost = 0) {
     const filled = Math.max(0, Math.round(w * Math.min(1, ratio)));
     ctx.fillStyle = '#1a1226';
     ctx.fillRect(x - 1, y - 1, w + 2, 5);
     ctx.fillStyle = '#3a2a40';
     ctx.fillRect(x, y, w, 3);
+    // v9.3.9 (2.3) : la vie perdue reste un instant en blanc, puis descend (barre en deux temps).
+    const g = Math.max(filled, Math.round(w * Math.min(1, ghost)));
+    if (g > filled) { ctx.fillStyle = '#fff4e0'; ctx.fillRect(x + filled, y, g - filled, 3); }
     ctx.fillStyle = color;
     ctx.fillRect(x, y, filled, 3);
     ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
     ctx.fillRect(x, y, filled, 1);
+  }
+
+  // v9.3.9 : part blanche de la barre de vie — tient 0,35 s après le dernier coup, puis rattrape la vraie vie.
+  ghostHp(fx, enemy) {
+    const r = enemy.hp / enemy.maxHp;
+    if (!fx) return r;
+    if (fx.ghost === undefined || r > fx.ghost) { fx.ghost = r; fx.ghostR = r; fx.ghostAt = this.time; }
+    if (r < (fx.ghostR ?? r)) { fx.ghostR = r; fx.ghostAt = this.time; }
+    if (this.time - fx.ghostAt > 0.35) fx.ghost = Math.max(r, fx.ghost - (this.dt ?? 0.016) * 1.6);
+    return fx.ghost;
   }
 
   // Ombre portée ovale sous un personnage.
@@ -2353,15 +2371,20 @@ export class SceneRenderer {
           break;
         }
         case 'corpse': {
+          // v9.3.9 (2.3) : le monstre tué est projeté en arrière (petit arc) et clignote avant d'éclater.
+          const u = fx.fling ? 1 - t : 0;
+          const fdx = Math.round(u * 22);
+          const fdy = -Math.round(Math.sin(Math.min(1, u * 1.6) * Math.PI) * 9);
+          if (fx.fling && Math.floor(u * 10) % 2 === 1) ctx.globalAlpha = 0.35;
           if (fx.frames) {
             // v9.1.9 : dissolution tramée (pixels qui s'éteignent), sans écrasement flou.
             const k = Math.min(fx.frames.length - 1, Math.floor((1 - t) * fx.frames.length));
-            ctx.drawImage(fx.frames[k], Math.round(fx.x - fx.w / 2), Math.round(fx.top ?? this.groundY - fx.h - fx.fly + 1), fx.w, fx.h); // v9.2.2 : là où il est mort
+            ctx.drawImage(fx.frames[k], Math.round(fx.x - fx.w / 2) + fdx, Math.round(fx.top ?? this.groundY - fx.h - fx.fly + 1) + fdy, fx.w, fx.h); // v9.2.2 : là où il est mort
             break;
           }
-          ctx.globalAlpha = t;
+          ctx.globalAlpha = Math.min(ctx.globalAlpha, t);
           const h = Math.max(1, Math.round(fx.h * t));
-          ctx.drawImage(fx.img, Math.round(fx.x - fx.w / 2), this.groundY - h - fx.fly + 1, fx.w, h);
+          ctx.drawImage(fx.img, Math.round(fx.x - fx.w / 2) + fdx, this.groundY - h - fx.fly + 1 + fdy, fx.w, h);
           break;
         }
         default:
