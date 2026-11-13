@@ -8,6 +8,7 @@ import { grantReward } from './rewards.js';
 import { levelForStage } from './combat.js'; // v9.2.0 (monde marin) : niveau de puissance des étapes
 
 // Étape 5 : calendrier de déblocages étalé (Donjons 25, Renaissance 30, Défi 45, Tour 60) — avant, tout arrivait entre 25 et 40.
+import { grantSeal } from './seals.js'; // v9.6.2
 export const CHALLENGE = { unlockStage: 45, triesPerWeek: 3, killsPerWave: 8, bossEvery: 5, levelPerWave: 2, history: 8, modifiers: 3, waveSeconds: 90 };
 
 // Règles possibles. Chaque semaine en tire 3 (dont au moins une favorable quand c'est possible).
@@ -141,6 +142,7 @@ export function challengeKill(state) {
 export function clearChallengeWave(state) {
   const run = state.challenge;
   const wave = run.wave;
+  if (wave === 3) { const z = grantSeal(state); if (z !== null) state.sealNews = { zone: z, by: 'challenge' }; } // v9.6.2 : sceau (3 manches du Défi)
   const week = challengeWeek(state);
   const reward = {};
   const add = (r) => { for (const [k, v] of Object.entries(grantReward(state, r))) reward[k] = (reward[k] ?? 0) + v; };

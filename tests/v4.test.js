@@ -330,6 +330,7 @@ test('hors ligne : XP et contrats progressent aussi', () => {
 test('les 7 boss donnent un pouvoir et la campagne de zone 4 à 6 se joue', () => {
   const state = createNewState(NOW, 11);
   state.maxStage = 120;
+  state.seals = [2, 3, 4, 5, 6, 7, 8, 9, 10]; // v9.6.2 : mondes déjà atteints (une vraie sauvegarde les reçoit à la migration)
   state.upgrades.damage = 450;
   state.upgrades.vitality = 330;
   const world = createCombat(state);

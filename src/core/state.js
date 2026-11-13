@@ -11,6 +11,7 @@ import { emptyTimes, sanitizeTimes } from './times.js';
 import { BALANCE } from '../data/balance.js';
 import { MAJOR_EFFECTS } from '../data/major-effects.js'; // v9.6.1
 import { computeHeroStats } from './stats.js'; // v9.3.9 : fusion Peau de fer → Défense
+import { sanitizeSeals } from './seals.js'; // v9.6.2
 import { AFFIXES, EQUIP_SLOTS, HERO_SLOTS, RARITIES, SLOTS, STARTER_WEAPON, STAT_LABELS, eqSlot, heroSlot } from '../data/items.js';
 import { BOSSES } from '../data/enemies.js';
 import { COMPANIONS, COMPANION_RULES } from '../data/companions.js';
@@ -103,6 +104,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     talents: {},
     heroes: { active: STARTER_HERO, owned: { [STARTER_HERO]: { stars: 1 } } },
     companions: { owned: {}, equipped: [] },
+    seals: [], // v9.6.2 (7.6) : sceaux des boss de fin de monde (à partir du monde 3)
     gems: BALANCE.summon.startingGems,
     keys: STARTING_KEYS,
     materials: { shards: 0, grimoire: 0, ascension: 0, mastery: 0 }, // v9.1.3 : essences fondues dans les éclats · v9.3.3 : ressources universelles
@@ -647,6 +649,8 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   if (state.challenge && (state.tower || state.dungeon)) state.challenge = null; // un seul mode à la fois
   // v9.1.0 : une partie existante a déjà ses Objectifs ouverts (le menu ne doit pas disparaître pour elle).
   if (int(raw.records?.kills, 0) > 0) state.ui.goalsOpen = true;
+  sanitizeSeals(state, raw.seals, balance); // v9.6.2 (7.6) : sceaux (mondes déjà dépassés : ouverts)
+  if (Number.isFinite(raw.sealSince)) state.sealSince = raw.sealSince;
   mergeArmorIntoDefense(state, balance); // v9.3.9 (2.9) : « Peau de fer » fondue dans « Défense », sans perte de survie
   return state;
 }

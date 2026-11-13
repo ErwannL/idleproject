@@ -1605,6 +1605,7 @@ function frame(ts) {
   renderer.calm = ui.calm;
   if (!state.dungeon && !state.tower && !state.challenge && !state.worldRun) tickTeamAdvice(state); // v9.5.0 : un pas de calcul par image
   autoBuild(currentEncounter(state)); // v9.6.1 : Build attaché au monde ou au mode
+  if (state.sealNews) { ui.toast(`Sceau du monde ${state.sealNews.zone + 1} gagné : son boss de fin est ouvert`, '#ffd24a'); state.sealNews = undefined; } // v9.6.2
   // v9.6.0 (6.3) : première rencontre d'un comportement de monstre → carte courte (une fois par partie).
   for (const e of world.enemies) {
     if (!e.behavior || (state.ui.hints ?? []).includes(`beh-${e.behavior}`)) continue;

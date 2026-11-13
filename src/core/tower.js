@@ -5,6 +5,7 @@ import { BOSSES } from '../data/enemies.js';
 import { grantReward } from './rewards.js';
 import { levelForStage } from './combat.js'; // v9.2.0 (monde marin) : niveau de puissance des étapes
 
+import { grantSeal } from './seals.js'; // v9.6.2
 export const TOWER = {
   unlockStage: 60, floorLevel: 3, milestone: 10, climbsPerWeek: 1, climbsPerDay: 3, // v9.6.2 (7.3) : 3 ascensions par jour
   steepness: 40, // étape 5 : déblocage 40 → 60 (calendrier étalé)
@@ -117,6 +118,7 @@ export function clearTowerFloor(state) {
   const add = (r) => { for (const [k, v] of Object.entries(grantReward(state, r))) reward[k] = (reward[k] ?? 0) + v; };
   if (record) { add(towerReward(floor)); state.towerBest = floor; }
   if (weekly) { add(weeklyReward(floor)); week.best = floor; }
+  if (floor % 5 === 0) { const z = grantSeal(state); if (z !== null) state.sealNews = { zone: z, by: 'tower' }; } // v9.6.2 : sceau
   run.earned = run.earned ?? {};
   for (const [k, v] of Object.entries(reward)) run.earned[k] = (run.earned[k] ?? 0) + v; // v9.6.2 : écran de fin
   run.floor += 1;

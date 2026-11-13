@@ -36,6 +36,7 @@ import { enemyBehavior } from '../data/behaviors.js'; // v9.6.0
 import { behaviorHitMult, behaviorTakenMult, teamCounters } from './behaviors.js'; // v9.6.0
 import { heroElement } from './companions.js'; // v9.6.1
 import { activeMajor } from './inventory.js'; // v9.6.1
+import { SEALS, grantSeal, needsSeal } from './seals.js'; // v9.6.2
 const ENEMY_WINDUP = 0.25; // v9.1.9 : avance de l'événement « enemyWindup » sur le coup ennemi (s)
 
 const MAX_EVENTS = 300;
@@ -391,7 +392,8 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
 }
 
 export function changeStage(state, world, stage, balance = BALANCE) {
-  const target = Math.max(1, Math.min(stage, state.maxStage));
+  let target = Math.max(1, Math.min(stage, state.maxStage));
+  if (needsSeal(state, target, balance)) target = Math.max(1, target - 1); // v9.6.2 : porte scellée
   const zoneChanged = zoneIndexForStage(target, balance) !== zoneIndexForStage(state.stage, balance);
   state.stage = target;
   state.kills = 0;
@@ -434,6 +436,15 @@ function clearStage(state, world, balance) {
     return;
   }
   if (retry && next === retry.stage) state.bossRetry = null;
+  // v9.6.2 (7.6) : boss de fin de monde scellé — on refarme l'étape d'avant ; après 15 min, le sceau est accordé.
+  if (needsSeal(state, next, balance)) {
+    state.sealWait = (state.sealWait ?? 0) + 1;
+    state.sealSince ??= state.playSeconds ?? 0;
+    if ((state.playSeconds ?? 0) - state.sealSince < SEALS.waitSeconds) { state.kills = 0; return; }
+    const z = grantSeal(state, balance);
+    if (z !== null) emit(world, 'sealEarned', { zone: z, by: 'wait' });
+  }
+  state.sealSince = undefined;
   changeStage(state, world, next, balance);
 }
 

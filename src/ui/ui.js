@@ -1341,6 +1341,7 @@ export class UI {
         this.invalidate();
         break;
       }
+      case 'sealEarned': this.toast(`Sceau du monde ${event.zone + 1} accordé : son boss de fin est ouvert`, '#ffd24a'); break; // v9.6.2
       case 'towerCollapsed':
         this.banner('La tour s\'effondre !', 'lose');
         setTimeout(() => this.showTowerEnd(state), 1200); // v9.6.2 (7.3)

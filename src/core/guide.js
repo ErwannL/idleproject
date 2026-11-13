@@ -17,6 +17,7 @@ import { DUNGEONS } from '../data/dungeons.js';
 import { TOWER, climbsLeft } from './tower.js'; // v9.6.2
 import { CHALLENGE } from './challenge.js'; // v9.6.2
 import { arenaUnlocked } from './arena.js'; // v9.6.2
+import { SEALS, needsSeal } from './seals.js'; // v9.6.2
 import { BANNERS } from '../data/economy.js';
 import { BOSSES } from '../data/enemies.js';
 import { claimables } from './claimables.js';
@@ -103,6 +104,12 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
   const freeOf = (k) => state.companions.equipped.filter((id) => teamKind(companionById(id)) === k).length < balance.teamSlots[k];
   if (open('summon') && Object.keys(state.companions.owned).length && (freeOf('ally') || freeOf('pet')) && state.gems >= balance.summon.gemCost) {
     return { id: 'summon', text: freeOf('ally') ? 'Invoquer un compagnon (place libre)' : 'Invoquer un familier (place libre)', tab: 'summon' };
+  }
+  // v9.6.2 (7.6) : boss de fin de monde scellé — dire comment gagner le sceau (et qu'il viendra quand même).
+  if (needsSeal(state, state.stage + 1, balance) && state.stage + 1 <= state.maxStage) {
+    const left = Math.max(0, Math.ceil((SEALS.waitSeconds - ((state.playSeconds ?? 0) - (state.sealSince ?? state.playSeconds ?? 0))) / 60));
+    const where = open('dungeons') && (state.keys ?? 0) > 0 ? { tab: 'dungeons', how: 'un donjon' } : open('tower') ? { tab: 'tower', how: '5 étages de Tour ou le Défi' } : null;
+    return { id: 'seal', text: `Sceau requis pour le boss : ${where ? `gagne-le avec ${where.how}` : 'continue de combattre'} (sinon accordé dans ${left} min)`, tab: where?.tab };
   }
   // v9.6.2 (7.9) : les contenus tournent — chacun est proposé au moins une fois par jour ; après 2 « Plus tard » il
   // laisse sa place jusqu'au lendemain. Marqué « vu » dès que le joueur suit le conseil.

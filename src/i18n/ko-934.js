@@ -1,6 +1,11 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "5 étages de Tour ou le Défi": "탑 5층이나 도전",
+  "un donjon": "던전",
+  "continue de combattre": "계속 전투",
+  "Aucune place ou aucun compagnon libre": "빈 자리나 남는 동료가 없습니다",
+  "Si tu pousses encore 10 étapes :": "10단계 더 가면:",
   "Défi du jour : monte dans la Tour": "오늘의 도전: 탑에 오르세요",
   "Tente le Défi de la semaine": "주간 도전에 도전하세요",
   "Un combat d'Arène (étoiles et copies de compagnons)": "아레나 전투 (별과 동료 복제)",
@@ -373,6 +378,12 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^gagne-le avec (.+)$"), (m) => `${L(m[1])}(으)로 얻기`],
+  [new RegExp("^· arrêt à l'étape (\\d+)$"), (m) => `· ${m[1]}단계에서 멈춤`],
+
+  [new RegExp("^Sceau requis pour le boss : (.+) \\(sinon accordé dans (\\d+) min\\)$"), (m) => `보스에 봉인 필요: ${m[1].replace('gagne-le avec un donjon', '던전으로 얻기').replace('gagne-le avec 5 étages de Tour ou le Défi', '탑 5층이나 도전으로 얻기').replace('continue de combattre', '계속 전투')} (아니면 ${m[2]}분 후 지급)`],
+  [new RegExp("^Sceau du monde (\\d+) (?:gagné|accordé) : son boss de fin est ouvert$"), (m) => `세계 ${m[1]} 봉인 획득: 마지막 보스가 열렸습니다`],
+
   [new RegExp("^Si tu pousses encore 10 étapes : (.+) \\(au lieu de \\+(.+)\\)\\.$"), (m) => `10단계 더 가면: ${m[1]} (지금은 +${m[2]}).`],
 
   [new RegExp("^(\\d+) étapes? gagnées? : \\+(.+) écus(?: · arrêt à l'étape (\\d+))?$"), (m) => `${m[1]}단계 승리: 에퀴 +${m[2]}${m[3] ? ` · ${m[3]}단계에서 멈춤` : ''}`],

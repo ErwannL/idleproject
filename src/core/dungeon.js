@@ -28,6 +28,7 @@ export function unlockedDifficulties(state, id) {
 }
 
 // v9.6.2 (7.2) : itinéraire choisi avant d'entrer (pendant le donjon, rien à faire).
+import { grantSeal } from './seals.js'; // v9.6.2
 export const DUNGEON_ROUTES = {
   normal: { label: 'Normal', text: 'Le donjon tel quel.', rooms: 0, hp: 1, reward: 1 },
   short: { label: 'Court et dur', text: '2 salles de moins, monstres +60 % de PV.', rooms: -2, hp: 1.6, reward: 1 },
@@ -100,6 +101,7 @@ export function completeDungeon(state, rng, balance = BALANCE) {
   const rank = DIFFICULTY_ORDER.indexOf(run.difficulty ?? 'easy');
   state.dungeonBest[run.id] = Math.max(state.dungeonBest[run.id] ?? -1, rank);
   trackMissions(state, 'dungeons', 1);
+  { const z = grantSeal(state, balance); if (z !== null) state.sealNews = { zone: z, by: 'dungeon' }; } // v9.6.2 : sceau
   if (rng.next() < GEAR_SOURCES.dungeonClearChance) run.gear = rollGear(state, rng, { minRarity: 'rare' }); // v9.3.3
   recordRun(state, run, runReport(state, run, { won: true }));
   state.dungeon = null;

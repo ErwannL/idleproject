@@ -1,6 +1,11 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "5 étages de Tour ou le Défi": "5 Tower floors or the Challenge",
+  "un donjon": "a dungeon",
+  "continue de combattre": "keep fighting",
+  "Aucune place ou aucun compagnon libre": "No free slot or companion",
+  "Si tu pousses encore 10 étapes :": "If you push 10 more stages:",
   "Défi du jour : monte dans la Tour": "Daily challenge: climb the Tower",
   "Tente le Défi de la semaine": "Try the Weekly Challenge",
   "Un combat d'Arène (étoiles et copies de compagnons)": "An Arena fight (stars and companion copies)",
@@ -373,6 +378,12 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^gagne-le avec (.+)$"), (m) => `earn it with ${L(m[1])}`],
+  [new RegExp("^· arrêt à l'étape (\\d+)$"), (m) => `· stopped at stage ${m[1]}`],
+
+  [new RegExp("^Sceau requis pour le boss : (.+) \\(sinon accordé dans (\\d+) min\\)$"), (m) => `Seal needed for the boss: ${m[1].replace('gagne-le avec un donjon', 'earn it with a dungeon').replace('gagne-le avec 5 étages de Tour ou le Défi', 'earn it with 5 Tower floors or the Challenge').replace('continue de combattre', 'keep fighting')} (otherwise granted in ${m[2]} min)`],
+  [new RegExp("^Sceau du monde (\\d+) (?:gagné|accordé) : son boss de fin est ouvert$"), (m) => `World ${m[1]} seal earned: its final boss is open`],
+
   [new RegExp("^Si tu pousses encore 10 étapes : (.+) \\(au lieu de \\+(.+)\\)\\.$"), (m) => `If you push 10 more stages: ${m[1]} (instead of +${m[2]}).`],
 
   [new RegExp("^(\\d+) étapes? gagnées? : \\+(.+) écus(?: · arrêt à l'étape (\\d+))?$"), (m) => `${m[1]} stage${m[1] === '1' ? '' : 's'} won: +${m[2]} crowns${m[3] ? ` · stopped at stage ${m[3]}` : ''}`],

@@ -112,3 +112,19 @@ test('v9.6.2 : itinéraire de donjon — salles, PV et butin selon le choix', as
   assert.ok(startDungeon(s, 'crypt', 'any', 'gold', 'easy', 'long'));
   assert.equal(dungeonRooms(s, d), d.rooms + 2);
 });
+
+test('v9.6.2 : sceaux — porte du boss de fin de monde à partir du monde 3, gagnés par les contenus, jamais bloquant', async () => {
+  const { needsSeal, grantSeal, SEALS } = await import('../src/core/seals.js');
+  const { createCombat, step, changeStage } = await import('../src/core/combat.js');
+  const s = createNewState(NOW, 3);
+  assert.equal(needsSeal(s, 20), false, 'monde 1 : pas de sceau');
+  assert.equal(needsSeal(s, 60), true, 'monde 3 : sceau requis');
+  s.maxStage = 60; const w = createCombat(s); changeStage(s, w, 60);
+  assert.equal(s.stage, 59, 'porte scellée : étape d\'avant');
+  assert.equal(grantSeal(s), 2);
+  assert.equal(needsSeal(s, 60), false);
+  const old = createNewState(NOW); old.maxStage = 150; old.records.bestStage = 150;
+  const out = sanitizeState(JSON.parse(JSON.stringify(old)), undefined, NOW);
+  for (let z = 2; z < 7; z++) assert.ok(out.seals.includes(z), `monde ${z + 1} déjà dépassé : ouvert`);
+  assert.ok(SEALS.waitSeconds <= 15 * 60, 'jamais bloquant : sceau accordé après 15 min devant la porte');
+});
