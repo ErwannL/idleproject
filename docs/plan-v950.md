@@ -73,3 +73,8 @@ Texte d'origine des questions :
    dresse à partir de l'état actuel et je te le montre avant de coder (il dépend de la décision 1).
 4. **Butin et invocations (2.8, 9.4, 10.9).** Diviser le butin par 5 à 10 et réduire le débit d'invocations change
    l'économie des sauvegardes existantes (ressources déjà gagnées gardées telles quelles). À confirmer.
+
+## Rythme v9.7.0 (simulation tools/_simedge.mjs, joueur passif, jeu actif seulement)
+- Mondes 1–3 : 14 min (inchangé, première session).
+- Monde 8 : 132 min ; monde 9 : 217 min ; monde 10 : 386 min (avant : 199 min) ; monde 12 en v9.6 : 317 min.
+- Courbe : PV ×1,012 par étape après le monde 3 (plafond ×20), campagne seulement.
