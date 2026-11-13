@@ -801,6 +801,19 @@ const actions = {
     done(true, r.won ? `Étape ${n} réussie` : `Étape ${n} : gardien trop solide`, r.won ? '#7fe0a0' : '#ff8a6a');
     return r;
   },
+  // v9.6.2 (7.4) : « Enchaîner » — combat les étapes suivantes tant qu'elles sont gagnées (au plus 50), au lieu de 50 clics.
+  eventChain(from) {
+    const hpOf = (stage) => enemyStats(stage, bossesForStage(stage)[0], true).hp;
+    const dps = computeHeroStats(state).dps;
+    let n = from, won = 0, coins = 0, last = null;
+    for (let i = 0; i < 50; i++) {
+      last = fightStage(state, n, { dps, hpOf });
+      if (last.error || !last.won) break;
+      won += 1; coins += last.reward?.eventCoins ?? 0; n += 1;
+    }
+    done(won > 0, won ? `${won} étape${won > 1 ? 's' : ''} gagnée${won > 1 ? 's' : ''} : +${formatNumber(coins)} écus` : 'Gardien trop solide : renforcez le héros', won ? '#7fe0a0' : '#ff8a6a');
+    return { won, coins, stopped: last && !last.won ? n : null };
+  },
   // v9.2.9 : World Boss en vrai combat animé (ui/world-boss.js) : la tentative est comptée au départ, le bilan à la fin.
   eventBossStart() { return startWorldBoss(state, () => bossHpForDay(state)); },
   eventBossFinish(setup, result) {

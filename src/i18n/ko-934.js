@@ -1,6 +1,9 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Enchaîner": "연속 전투",
+  "Combat les étapes suivantes tant qu'elles sont gagnées": "이기는 동안 다음 단계를 계속 싸웁니다",
+  "Gardien trop solide : renforcez le héros": "수호자가 너무 강합니다: 영웅을 강화하세요",
   "Tout envoyer": "모두 보내기",
   "Chaque place libre reçoit le compagnon libre le mieux adapté": "빈 자리마다 가장 알맞은 동료를 보냅니다",
   "Itinéraire": "경로",
@@ -365,6 +368,8 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^(\\d+) étapes? gagnées? : \\+(.+) écus(?: · arrêt à l'étape (\\d+))?$"), (m) => `${m[1]}단계 승리: 에퀴 +${m[2]}${m[3] ? ` · ${m[3]}단계에서 멈춤` : ''}`],
+
   [new RegExp("^Mission préférée : (.+) et (.+) \\(\\+30 % de butin\\) ; élément du monde actuel : \\+20 %\\.$"), (m) => `선호: ${L(m[1])}, ${L(m[2])} (전리품 +30%); 현재 세계 속성: +20%.`],
   [new RegExp("^(\\d+) expéditions? lancées?$"), (m) => `원정 ${m[1]}개 출발`],
 

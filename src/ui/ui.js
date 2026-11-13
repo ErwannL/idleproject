@@ -856,6 +856,12 @@ export class UI {
       case 'look-preview': v.lookShow = value; this.openTab('looks'); break;
       case 'unequip-look': a.unequipLook(); break;
       case 'open-shop-skins': v.shopCat = 'skins'; this.openTab('shop'); break;
+      case 'event-chain': { // v9.6.2 (7.4)
+        const r = a.eventChain(Number(value));
+        v.eventLast = r.won ? `${r.won} étape${r.won > 1 ? 's' : ''} gagnée${r.won > 1 ? 's' : ''} : +${formatNumber(r.coins)} écus${r.stopped ? ` · arrêt à l'étape ${r.stopped}` : ''}` : 'Défaite : renforcez le héros puis réessayez.';
+        this.invalidate();
+        break;
+      }
       case 'event-fight': {
         const r = a.eventFight(Number(value));
         if (r && !r.error) v.eventLast = r.won ? `Victoire : +${r.reward.eventCoins} écus${r.reward.ssrFragment ? ' · fragment Légendaire universel' : ''}` : 'Défaite : renforcez le héros puis réessayez.';

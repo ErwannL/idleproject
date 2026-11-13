@@ -1,6 +1,9 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Enchaîner": "Chain",
+  "Combat les étapes suivantes tant qu'elles sont gagnées": "Fights the next stages as long as they are won",
+  "Gardien trop solide : renforcez le héros": "Guardian too tough: strengthen the hero",
   "Tout envoyer": "Send all",
   "Chaque place libre reçoit le compagnon libre le mieux adapté": "Each free slot gets the best-suited free companion",
   "Itinéraire": "Route",
@@ -365,6 +368,8 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^(\\d+) étapes? gagnées? : \\+(.+) écus(?: · arrêt à l'étape (\\d+))?$"), (m) => `${m[1]} stage${m[1] === '1' ? '' : 's'} won: +${m[2]} crowns${m[3] ? ` · stopped at stage ${m[3]}` : ''}`],
+
   [new RegExp("^Mission préférée : (.+) et (.+) \\(\\+30 % de butin\\) ; élément du monde actuel : \\+20 %\\.$"), (m) => `Preferred: ${L(m[1])} and ${L(m[2])} (+30% loot); current world element: +20%.`],
   [new RegExp("^(\\d+) expéditions? lancées?$"), (m) => `${m[1]} expedition${m[1] === '1' ? '' : 's'} sent`],
 

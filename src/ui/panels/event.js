@@ -51,7 +51,8 @@ function grand(ui, state, ev) {
       <div class="ev-coins">${walletIcon('eventCoins')}<b class="num">${formatNumber(rec.coins)}</b> <span>écus</span> · <span>Étapes</span> <b class="num">${rec.cleared}/${totalStages()}</b></div></div>
     <div class="card"><div class="ev-map">${regions}</div>
       ${next <= totalStages() ? `<div class="ev-fight"><span>Étape</span> <b class="num">${next}</b> · <span>Gardien d'étape</span> <b class="num">${stageLabel(eventStageLevel(state, next))}</b>
-        <button class="btn btn-primary small" data-action="event-fight" data-value="${next}">Combattre</button></div>` : '<div class="good">Carte terminée.</div>'}
+        <button class="btn btn-primary small" data-action="event-fight" data-value="${next}">Combattre</button>
+        <button class="btn btn-gold small" data-action="event-chain" data-value="${next}" title="Combat les étapes suivantes tant qu'elles sont gagnées">Enchaîner</button></div>` : '<div class="good">Carte terminée.</div>'}
       ${last ? `<div class="muted">${last}</div>` : ''}
       <div class="muted">Combat automatique : dégâts du héros pendant ${G.fightSeconds} s contre les PV du gardien. Étape ${G.fragmentStage} : fragment Légendaire universel.</div></div>
     ${wb ? bossCard(state, wb) : ''}
