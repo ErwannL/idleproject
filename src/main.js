@@ -29,7 +29,7 @@ import { bossDungeon, bossFirstStage, claimMastery, powerById, powerSlots, rerol
 import { buyTalent, buyTalentMax, buyTalentPath, buyTalentsCheapest, performRebirth, respecTalents, suggestedTalent } from './core/rebirth.js';
 import { buyTranscendPerk, buyTranscendPerkMax, performTranscend, stellarMultiplier } from './core/transcend.js';
 import { buyPerk } from './core/prestige.js';
-import { activateRush, rushById, upgradeRush } from './core/rushes.js';
+import { activateRush, rushById, upgradeRush , setRushSlot } from './core/rushes.js';
 import { grantReward, rewardText } from './core/rewards.js';
 import { distributeSkillPoints, learnSkill } from './core/skills.js';
 import { generateItem, itemPower, makeItem, rarityById } from './core/loot.js';
@@ -951,6 +951,7 @@ const actions = {
   setCinematics(on) { state.ui.cinematics = on; done(true); },
   setShake(on) { state.ui.shake = on; done(true); }, // v9.3.9
   setBigAuras(on) { state.ui.bigAuras = on; done(true); }, // v9.5.3
+  setRushSlot(i, id) { done(setRushSlot(state, i, id)); }, // v9.6.3 (5.2)
   bindBuild(i, ctx) { // v9.6.1 (2.7) : un seul Build par monde ou mode
     const l = state.loadouts[i];
     if (!l) return;

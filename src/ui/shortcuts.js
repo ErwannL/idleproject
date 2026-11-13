@@ -3,6 +3,7 @@
 // - Entrée ou Espace : active l'élément sélectionné ; Entrée MAINTENUE = clic maintenu (anneau puis répétition) ;
 // - raccourcis directs (onglets, vitesse, boosts…). Ignorés quand on tape dans un champ.
 import { RUSHES } from '../data/rushes.js';
+import { rushSlots } from '../core/rushes.js'; // v9.6.3
 import { holdKeys } from './hold.js';
 
 // v9.1.0 : raccourcis configurables (Paramètres › Interface). Touche = caractère produit (e.key, en minuscule),
@@ -250,8 +251,8 @@ export function installShortcuts(ui) {
       else if (action === 'auto') click('#auto-toggle');
       else if (action === 'speed') click('#speed-toggle');
       else if (action.startsWith('boost')) {
-        const rush = RUSHES[Number(action.slice(5))];
-        const btn = rush && ui.root.querySelector(`#rush-bar [data-value="${rush.id}"]`);
+        const id = rushSlots(ui.state)[Number(action.slice(5))]; // v9.6.3 : touches = emplacements 1, 2, 3
+        const btn = id && ui.root.querySelector(`#rush-bar [data-value="${id}"]`);
         if (btn) btn.click(); else handled = false;
       } else if (action === 'claim') ui.claimEverything?.();
       else if (action === 'missions') open('contracts');

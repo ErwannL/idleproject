@@ -39,6 +39,7 @@ import { BOSS_TRAITS, TRAITS } from '../core/boss-traits.js'; // v9.5.1
 import { BEHAVIORS, zoneBehaviors } from '../data/behaviors.js'; // v9.6.0
 import { climbsLeft } from '../core/tower.js'; // v9.6.2
 import { guideDay } from '../core/guide.js'; // v9.6.2
+import { rushSlots } from '../core/rushes.js'; // v9.6.3
 import { dungeonRooms } from '../core/dungeon.js'; // v9.6.2
 import { RESOURCE_WHERE, SKILL_RESOURCES } from '../data/progression.js'; // v9.3.9 (2.6)
 import { coin, effectText, escapeHtml, fold, glyph, icon, img, itemFrame, missingText, rewardIcons } from './common.js';
@@ -1014,6 +1015,7 @@ export class UI {
       case 'talent-branch': a.buyTalentStep(value); break; // v9.3.9 : vue simple des Talents
       case 'talent-best': a.buyTalentsAll(null); break;
       case 'apply-team': a.applyTeam(); break; // v9.5.0
+      case 'rush-slot': { const [i, id] = value.split('|'); a.setRushSlot(Number(i), id); break; } // v9.6.3
       case 'equip-for': a.equipFor(value); break; // v9.5.2
       case 'prep-apply': this.closeModal(); a.applyTeam(); break; // v9.5.1
       // v9.1.3 (A18) : une clé de voûte de la vue Région ouvre l'arbre centré sur elle.
@@ -1445,7 +1447,7 @@ export class UI {
   update(state, world) {
     this.knownUpgrades ??= openUpgrades(state, BALANCE); // v9.2.0 : base de l'annonce « Nouvelle amélioration »
     this.state = state;
-    this.updateRushBar(state);
+    this.updateRushBar(state, world);
     this.updateSkillBar(state, world);
     const stats = world.heroStats ?? computeHeroStats(state);
     this.setText('gold', formatNumber(state.gold));
@@ -1681,7 +1683,8 @@ export class UI {
   // Boosts regroupés sur la scène (v9.1.0) : seulement ceux débloqués (un boost apparaît à son déblocage), avec leur
   // touche d'origine (Q W E R T), et le bonus du moment (démarrage, week-end) avec sa durée. Rien = groupe masqué.
   // Téléphone : regroupés derrière un bouton « Boosts ».
-  updateRushBar(state) {
+  updateRushBar(state, world = null) {
+    this.bossWeak = Boolean(world?.enemies?.some((e) => e.boss && e.weakUntil > world.time)); // v9.6.3
     const now = performance.now();
     if (now - (this.lastHud.rushTime ?? 0) < 200) return;
     this.lastHud.rushTime = now;
@@ -1689,7 +1692,9 @@ export class UI {
     const full = pref('combat') === 'full';
     const boost = earlyBoost(state);
     const boostOn = boost.secondsLeft > 0 || boost.weekend || boost.cheat > 1;
-    const open = RUSHES.map((r, i) => [r, i]).filter(([r]) => rushUnlocked(state, r) || full);
+    // v9.6.3 (5.2) : seulement les 3 compétences manuelles choisies (emplacements), en gros boutons.
+    const slotIds = rushSlots(state);
+    const open = slotIds.map((id, i) => [RUSHES.find((r) => r.id === id), i]).filter(([r]) => r);
     const key = `${open.map(([r]) => (rushUnlocked(state, r) ? r.id : `-${r.id}`)).join()}|${boostOn}|${phoneLayout()}`;
     if (bar.dataset.key !== key) {
       bar.dataset.key = key;
@@ -1715,6 +1720,7 @@ export class UI {
       const cd = state.rushes.cooldown[rush.id] ?? 0;
       btn.classList.toggle('active', active > 0);
       btn.classList.toggle('ready', !active && !cd);
+      btn.classList.toggle('weak-window', !active && !cd && this.bossWeak); // v9.6.3 : boss affaibli → bon moment
       btn.style.setProperty('--cd', active > 0 ? 0 : cd / rush.cooldown);
       btn.querySelector('.rush-time').textContent = active > 0 ? `${Math.ceil(active)}` : cd > 0 ? (cd >= 60 ? `${Math.ceil(cd / 60)}m` : `${Math.ceil(cd)}`) : '';
     }

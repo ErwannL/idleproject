@@ -3437,3 +3437,9 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 .exp-prefer { font-size: 13px; margin: 4px 0; }
 .rb-later { font-size: 13px; margin: 4px 0; }
 #next-later { margin-left: 6px; } #next-later.hidden { display: none; }
+/* v9.6.3 (5.2) : compétences manuelles — 3 gros boutons (au pouce sur mobile). */
+#rush-bar .rush-btn { width: 52px; height: 52px; }
+#rush-bar .rush-btn img { width: 36px; height: 36px; image-rendering: pixelated; }
+#rush-bar .rush-btn.weak-window { box-shadow: 0 0 0 3px #ffd24a, 0 0 16px #ffd24a; animation: rush-glow 0.6s ease-in-out infinite alternate; }
+@keyframes rush-glow { to { box-shadow: 0 0 0 3px #fff3b0, 0 0 26px #ffd24a; } }
+.tt-slots { font-size: 12px; margin-top: 3px; display: flex; gap: 4px; align-items: center; }

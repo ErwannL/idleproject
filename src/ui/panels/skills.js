@@ -4,7 +4,7 @@
 import { SKILLS } from '../../data/skills.js';
 import { RUSHES, RUSH_RULES } from '../../data/rushes.js';
 import { skillCooldown, skillPointCost, skillPointsAvailable, skillValue } from '../../core/skills.js';
-import { phantomHitPct, rushDuration, rushEffect, rushLevel, rushUnlocked, rushUpgradeCost } from '../../core/rushes.js';
+import { phantomHitPct, rushDuration, rushEffect, rushLevel, rushSlots, rushUnlocked, rushUpgradeCost } from '../../core/rushes.js';
 import { computeHeroStats } from '../../core/stats.js';
 import { coin, effectText, escapeHtml, formatDecimal, formatNumber, img } from '../common.js';
 import { pref } from '../prefs.js';
@@ -54,7 +54,8 @@ function rushRows(state, compact, details) {
     return `<div class="tt-row${open ? '' : ' locked'}">
       <div class="tt-icon" style="--rush:${rush.color}">${img(rush.icon)}</div>
       <div class="tt-main"><div class="tt-name">${escapeHtml(rush.name)} <span class="tt-lv">Niv. ${level}/${RUSH_RULES.maxLevel}</span></div>
-        ${compact ? '' : `<div class="tt-effect">${eff} pendant ${rushDuration(state, rush)} s</div>`}${details ? `<div class="tt-sub">Recharge ${Math.round(rush.cooldown / 60)} min</div>` : ''}</div>
+        ${compact ? '' : `<div class="tt-effect">${eff} pendant ${rushDuration(state, rush)} s</div>`}${details ? `<div class="tt-sub">Recharge ${rush.cooldown} s</div>` : ''}
+        ${open ? `<div class="tt-slots">Emplacement : ${[0, 1, 2].map((i) => `<button class="btn tiny${rushSlots(state)[i] === rush.id ? ' active' : ''}" data-action="rush-slot" data-value="${i}|${rush.id}">${i + 1}</button>`).join('')}</div>` : ''}</div>
       ${up}${use}</div>`;
   }).join('');
 }

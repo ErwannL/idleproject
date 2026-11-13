@@ -227,7 +227,7 @@ export const BALANCE = {
     // la régénération compte entre deux coups et le mur reste ses PV et sa rage, comme avant (×4,5).
     bossAttackInterval: 4.5,
     bossArmorPierce: 0.4, // un boss ignore 40 % de l'armure du héros
-    enrageSeconds: 60, // v9.2.8 : 25 → 60 s ; au-delà, le boss enrage : dégâts ×1,3 toutes les 10 s (étape 4 : multiplicatif)
+    enrageSeconds: 30, // v9.6.3 (5.3) : compte à rebours de 30 s (la rage reste douce : +4 % toutes les 10 s) ; v9.2.8 : 25 → 60 s ; au-delà, le boss enrage : dégâts ×1,3 toutes les 10 s (étape 4 : multiplicatif)
     enrageStepSeconds: 10,
     enragePct: 4, // v9.2.8 : 30 → 4 % (un héros équilibré ne tient plus des milliers de coups) ; étape 4 : ×1,3 par palier, multiplicatif (×4,8 à 85 s, ×14 à 125 s)
     // Monde 11 : méga boss berserk (et leurs invocations).

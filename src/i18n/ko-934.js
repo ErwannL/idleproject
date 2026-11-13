@@ -1,6 +1,9 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Attaque lourde !": "강공격!",
+  "Affaibli !": "약화!",
+  "Emplacement :": "슬롯:",
   "5 étages de Tour ou le Défi": "탑 5층이나 도전",
   "un donjon": "던전",
   "continue de combattre": "계속 전투",

@@ -24,11 +24,30 @@ export function rushEffect(state, rush) {
   const lv = rushLevel(state, rush.id) - 1;
   const out = { ...rush.effect };
   for (const [k, v] of Object.entries(rush.perLevel)) out[k] = (out[k] ?? 0) + v * lv;
+  const k = autoFactor(state, rush.id); // v9.6.3 : lancée par le mode Auto → 60 %
+  if (k !== 1) for (const key of Object.keys(out)) out[key] *= k;
   return out;
 }
+const autoFactor = (state, id) => (state.rushes?.autoOn?.[id] ? RUSH_RULES.autoPct : 1);
 
 export function phantomHitPct(state, rush) {
-  return rush.hitPct + rush.hitPctPerLevel * (rushLevel(state, rush.id) - 1);
+  return (rush.hitPct + rush.hitPctPerLevel * (rushLevel(state, rush.id) - 1)) * autoFactor(state, rush.id);
+}
+
+// v9.6.3 (5.2) : les 3 compétences manuelles choisies (emplacements), parmi celles débloquées.
+export function rushSlots(state) {
+  const chosen = (state.rushes?.slots ?? []).filter((id) => rushById(id) && rushUnlocked(state, rushById(id)));
+  for (const r of RUSHES) if (chosen.length < RUSH_RULES.slots && rushUnlocked(state, r) && !chosen.includes(r.id)) chosen.push(r.id);
+  return chosen.slice(0, RUSH_RULES.slots);
+}
+export function setRushSlot(state, index, id) {
+  if (!rushById(id) || index < 0 || index >= RUSH_RULES.slots) return false;
+  const cur = rushSlots(state);
+  const j = cur.indexOf(id);
+  if (j >= 0) cur[j] = cur[index];
+  cur[index] = id;
+  state.rushes.slots = cur;
+  return true;
 }
 
 export function rushReady(state, id) {
@@ -36,11 +55,12 @@ export function rushReady(state, id) {
   return Boolean(rush) && rushUnlocked(state, rush) && !(state.rushes.active[id] > 0) && !(state.rushes.cooldown[id] > 0);
 }
 
-export function activateRush(state, id) {
+export function activateRush(state, id, auto = false) {
   if (!rushReady(state, id)) return false;
   const rush = rushById(id);
   state.rushes.active[id] = rushDuration(state, rush);
   state.rushes.cooldown[id] = rush.cooldown;
+  state.rushes.autoOn = { ...(state.rushes.autoOn ?? {}), [id]: auto }; // v9.6.3 : Auto = 60 %
   return true;
 }
 
@@ -57,7 +77,7 @@ export function tickRushes(state, dt) {
     if (r.cooldown[id] <= 0) delete r.cooldown[id];
   }
   const started = [];
-  if (r.auto) for (const rush of RUSHES) if (activateRush(state, rush.id)) started.push(rush.id);
+  if (r.auto) for (const id of rushSlots(state)) if (activateRush(state, id, true)) started.push(id); // v9.6.3 : 3 emplacements
   return { ended, started };
 }
 
@@ -99,5 +119,7 @@ export function sanitizeRushes(raw) {
     const c = Number(raw.cooldown?.[rush.id]);
     if (c > 0) out.cooldown[rush.id] = Math.min(c, rush.cooldown);
   }
+  // v9.6.3 : emplacements choisis (les niveaux des Boosts sont gardés tels quels).
+  if (Array.isArray(raw.slots)) out.slots = raw.slots.filter((id) => RUSHES.some((r) => r.id === id)).slice(0, RUSH_RULES.slots);
   return out;
 }

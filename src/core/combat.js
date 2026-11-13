@@ -501,6 +501,13 @@ function dropItem(state, world, item, x, balance, enemyId = null) {
 // v9.6.0 (6) : Soigneur (soigne sa vague 3 % des PV max par seconde) et Kamikaze (explose 1,5 s après son arrivée :
 // 12 % des PV du héros, moitié avec un compagnon Gardien ; il disparaît comme un monstre vaincu, or compris).
 function behaviorTick(state, world, dt, rng, balance) {
+  // v9.6.3 (5.3) : boss en phases — toutes les 8 s il annonce une attaque lourde (son prochain coup ×2,5), puis reste
+  // affaibli 3 s (+50 % de dégâts reçus) : le bon moment pour une compétence manuelle (le bouton brille).
+  for (const e of world.enemies) {
+    if (!e.boss || !(e.engaged || e.arrived)) continue;
+    e.phaseT = (e.phaseT ?? 0) + dt;
+    if (e.phaseT >= 8) { e.phaseT = 0; e.heavy = true; emit(world, 'bossHeavy', { enemyId: e.id, x: e.x }); }
+  }
   for (const e of world.enemies) {
     if (e.arrived && e.arrivedAt === undefined) e.arrivedAt = world.time;
     if (e.behavior === 'healer' && !world.parries?.healer && e.hp > 0) {
@@ -723,6 +730,7 @@ function hitEnemy(state, world, enemy, damage, rng, balance, stats, enc, source,
   damage *= elem;
   if (unitId === 'hero' && world.major === 'elemEdge' && elem > 1) damage *= 1.4; // v9.6.1 : Lame élémentaire
   damage *= behaviorTakenMult(enemy, world.parries, source); // v9.6.0 : Bouclier, Essaim, Volant sans leur parade
+  if (enemy.weakUntil > world.time) damage *= 1.5; // v9.6.3 : boss affaibli après son attaque lourde
   damage = mutationDamageTaken(enemy, damage);
   damage = traitDamageTaken(enemy, damage);
   if (enemy.scoreTarget && state.worldRun?.kind === 'score') state.worldRun.damage += damage; // v9.1.3 (doc4 lot 6)
@@ -1147,7 +1155,9 @@ export function step(state, world, dt, rng, balance = BALANCE) {
       // v9.2.8 : armure et Défense dans damageTakenFactor (même calcul pour la fiche et la simulation).
       const damage = attacker.damage * rage * traitAtk.damage * damageTakenFactor(stats, attacker.boss, balance, lowHp) * (1 - shield / 100)
         * dungeonDamageTaken(state, balance) * (stats.hurtMult ?? 1) // v9.2.1 : Éclats de cristal
-        * behaviorHitMult(attacker, world.parries); // v9.6.0 : Tireur, Charge sans leur parade
+        * behaviorHitMult(attacker, world.parries) // v9.6.0 : Tireur, Charge sans leur parade
+        * (attacker.heavy ? 2.5 : 1); // v9.6.3 : attaque lourde annoncée
+      if (attacker.heavy) { attacker.heavy = false; attacker.weakUntil = world.time + 3; emit(world, 'bossWeak', { enemyId: attacker.id, x: attacker.x }); }
       hero.hp -= damage;
       mutationOnHit(attacker, damage);
       emit(world, 'heroHit', { enemyId: attacker.id, damage, boss: attacker.boss });

@@ -1,6 +1,9 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Attaque lourde !": "Heavy attack!",
+  "Affaibli !": "Weakened!",
+  "Emplacement :": "Slot:",
   "5 étages de Tour ou le Défi": "5 Tower floors or the Challenge",
   "un donjon": "a dungeon",
   "continue de combattre": "keep fighting",

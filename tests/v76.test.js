@@ -120,10 +120,12 @@ test('boosts à durée limitée : activation, durée, recharge, mode auto', () =
   // La lame fantôme frappe pendant le combat.
   const s2 = createNewState(0, 6);
   s2.level = 30;
-  activateRush(s2, 'phantom');
   const world = createCombat(s2);
   const rng = new Rng(1);
   let hits = 0;
+  // v9.6.3 : compétence manuelle courte (6 s) — lancée une fois les ennemis au contact.
+  for (let i = 0; i < 400 && !world.enemies.some((e) => e.engaged); i++) { step(s2, world, 0.05, rng); world.events.length = 0; }
+  activateRush(s2, 'phantom');
   for (let i = 0; i < 400; i++) {
     step(s2, world, 0.05, rng);
     hits += world.events.filter((e) => e.type === 'phantomHit').length;

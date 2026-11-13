@@ -408,6 +408,13 @@ export class SceneRenderer {
           }
         }
         break;
+      case 'bossHeavy': // v9.6.3 (5.3)
+        this.addText('Attaque lourde !', event.x, this.groundY - 90, '#ff5a5a', '#ffd8d0');
+        this.shake = Math.max(this.shake, 2);
+        break;
+      case 'bossWeak':
+        this.addText('Affaibli !', event.x, this.groundY - 90, '#ffd24a', '#fff6c8');
+        break;
       case 'skill':
         // v9.3.9 (2.3) : une compétence qui touche plusieurs ennemis secoue l'écran.
         if ((event.targets?.length ?? 0) > 1 || event.aoe) this.shake = Math.max(this.shake, 3);

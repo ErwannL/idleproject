@@ -128,3 +128,30 @@ test('v9.6.2 : sceaux — porte du boss de fin de monde à partir du monde 3, ga
   for (let z = 2; z < 7; z++) assert.ok(out.seals.includes(z), `monde ${z + 1} déjà dépassé : ouvert`);
   assert.ok(SEALS.waitSeconds <= 15 * 60, 'jamais bloquant : sceau accordé après 15 min devant la porte');
 });
+
+test('v9.6.3 : compétences manuelles — 3 emplacements, 5 à 10 s, recharge 60 à 120 s, Auto à 60 % de l\'effet', async () => {
+  const { RUSHES, RUSH_RULES } = await import('../src/data/rushes.js');
+  const { activateRush, rushEffects, rushSlots, setRushSlot, tickRushes } = await import('../src/core/rushes.js');
+  for (const r of RUSHES) { assert.ok(r.duration >= 5 && r.duration <= 10, r.id); assert.ok(r.cooldown >= 45 && r.cooldown <= 120, r.id); }
+  const s = createNewState(NOW); s.level = 40;
+  assert.equal(rushSlots(s).length, RUSH_RULES.slots);
+  assert.ok(setRushSlot(s, 0, 'phantom'));
+  assert.equal(rushSlots(s)[0], 'phantom');
+  activateRush(s, 'rage');
+  const manual = rushEffects(s).damagePct;
+  tickRushes(s, 200);
+  s.rushes.auto = true; s.rushes.slots = ['rage', 'frenzy', 'midas'];
+  tickRushes(s, 0.05);
+  assert.ok(Math.abs(rushEffects(s).damagePct - manual * 0.6) < 1e-9, 'Auto : 60 %');
+});
+
+test('v9.6.3 : boss en phases — attaque lourde annoncée toutes les 8 s, puis affaibli 3 s', async () => {
+  const { createCombat, step, changeStage } = await import('../src/core/combat.js');
+  const s = createNewState(NOW, 4); s.maxStage = 20; s.level = 60; s.upgrades.vitality = 200; s.upgrades.damage = 5;
+  const w = createCombat(s); changeStage(s, w, 20);
+  const rng = new (await import('../src/core/rng.js')).Rng(2);
+  let heavy = 0, weak = 0;
+  for (let i = 0; i < 600; i++) { step(s, w, 0.05, rng); heavy += w.events.filter((e) => e.type === 'bossHeavy').length; weak += w.events.filter((e) => e.type === 'bossWeak').length; w.events.length = 0; }
+  assert.ok(heavy >= 2, `attaques lourdes : ${heavy}`);
+  assert.ok(weak >= 1, `fenêtres d'affaiblissement : ${weak}`);
+});
