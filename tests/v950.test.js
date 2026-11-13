@@ -63,3 +63,18 @@ test('v9.6.0 : chaque boss de campagne à partir du monde 2 a une mécanique', a
   const keyed = (id) => BOSS_TRAITS[id] ?? BOSS_TRAITS[id.replace(/^boss_/, '')] ?? BOSS_TRAITS[`boss_${id}`];
   for (const z of ZONES.slice(1, 11)) for (const id of [...(z.bosses ?? []), ...Object.values(z.tierBosses ?? {})]) assert.ok(keyed(id), `${z.id} : ${id}`);
 });
+
+test('v9.6.1 : résonance d\'élément (2 → +10 %, 3 → +25 %) et élément du héros donné par 2 pièces d\'un ensemble', async () => {
+  const { elementResonance, heroElement, companionEffects } = await import('../src/core/companions.js');
+  const s = createNewState(NOW, 9);
+  s.companions.owned = { pyromancer: { stars: 1, level: 1 }, mercenary: { stars: 1, level: 1 }, cat: { stars: 1, level: 1 } };
+  s.companions.equipped = ['pyromancer', 'mercenary'];
+  assert.equal(elementResonance(s).pct, 10);
+  const base = companionEffects(s).damageMultPct ?? 0;
+  assert.equal(heroElement(s), null);
+  s.equipment.helmet = { id: 9001, set: 'volcano', baseId: 'iron_helm', slot: 'helmet', rarity: 'rare', level: 1, stats: {} };
+  s.equipment.armor = { id: 9002, set: 'volcano', baseId: 'chainmail', slot: 'armor', rarity: 'rare', level: 1, stats: {} };
+  assert.equal(heroElement(s), 'red', 'ensemble du volcan : Feu');
+  assert.equal(elementResonance(s).pct, 25, 'trio de Feu (héros compris)');
+  assert.ok((companionEffects(s).damageMultPct ?? 0) > base);
+});

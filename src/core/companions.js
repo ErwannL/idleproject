@@ -8,6 +8,9 @@ import { COMPANION_ROLES, SYNERGIES } from '../data/synergies.js';
 import { SKILL_RULES, companionSkillList, skillScales } from '../data/companion-skills.js';
 import { UNITS } from '../data/banners.js';
 import { budget } from './banner.js';
+import { unitElement, zoneElement } from './elements.js'; // v9.6.1
+import { setCounts } from './sets.js'; // v9.6.1
+import { ITEM_SETS } from '../data/sets.js'; // v9.6.1
 import { combatSkills, dupMultiplier, goldPerKill, levelMult, skillLevels, upgradeSkill } from './progression.js'; // v9.3.3
 import { GOLD_INDEX } from '../data/progression.js';
 import { unitGearStats } from './companion-gear.js'; // v9.3.3
@@ -175,6 +178,10 @@ export function companionEffects(state, balance = BALANCE) {
     // Dans son donjon, le SSR galvanise toute l'équipe.
     if (home) out.damagePct = (out.damagePct ?? 0) + balance.dungeonAffinity.teamDamagePct;
   }
+  // v9.6.1 (4.5) : résonance d'élément — 2 membres du même élément (héros compris s'il porte un ensemble) : +10 % de
+  // dégâts ; 3 ou plus : +25 %. Le joueur arbitre entre résonance, synergies de rôles et avantage sur le monde.
+  const res = elementResonance(state);
+  if (res) out.damageMultPct = (out.damageMultPct ?? 0) + res.pct;
   return out;
 }
 
@@ -204,6 +211,30 @@ export function upgradeCompanion(state, id, balance = BALANCE) {
   state.companions.teamLevel = { ally: 1, pet: 1, ...(state.companions.teamLevel ?? {}), [kind]: next }; // v9.5.0 : niveau d'équipe
   owned.level = next;
   return true;
+}
+
+export const RESONANCE = { 2: 10, 3: 25 };
+// Élément le plus représenté dans l'équipe (compagnons, familier, et le héros s'il a un élément d'ensemble).
+export function elementResonance(state) {
+  const els = equippedCompanions(state).map((c) => unitElement(c.id)).filter(Boolean);
+  const hero = heroElement(state);
+  if (hero) els.push(hero);
+  const count = {};
+  for (const e of els) count[e] = (count[e] ?? 0) + 1;
+  const [el, n] = Object.entries(count).sort((a, b) => b[1] - a[1])[0] ?? [];
+  return n >= 2 ? { element: el, count: n, pct: RESONANCE[Math.min(3, n)] } : null;
+}
+// v9.6.1 (4.6) : élément du héros = celui de l'ensemble dont il porte au moins 2 pièces (l'ensemble du volcan est
+// Feu, celui des marées Eau…) ; sinon neutre.
+export function heroElement(state) {
+  const counts = setCounts(state.equipment ?? {});
+  let best = null;
+  for (const [id, n] of Object.entries(counts)) {
+    if (n < 2) continue;
+    const set = ITEM_SETS.find((s) => s.id === id);
+    if (set && (!best || n > best.n)) best = { el: zoneElement(set.zone), n };
+  }
+  return best?.el ?? null;
 }
 
 // Catégorie d'équipe : 'ally' (personnage) ou 'pet' (compagnon).

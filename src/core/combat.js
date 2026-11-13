@@ -34,6 +34,7 @@ import { elementMultiplier, unitElement, zoneElement } from './elements.js'; // 
 import { RESOURCE_SOURCES } from '../data/progression.js'; // v9.3.3
 import { enemyBehavior } from '../data/behaviors.js'; // v9.6.0
 import { behaviorHitMult, behaviorTakenMult, teamCounters } from './behaviors.js'; // v9.6.0
+import { heroElement } from './companions.js'; // v9.6.1
 const ENEMY_WINDUP = 0.25; // v9.1.9 : avance de l'événement « enemyWindup » sur le coup ennemi (s)
 
 const MAX_EVENTS = 300;
@@ -699,7 +700,8 @@ function hitEnemy(state, world, enemy, damage, rng, balance, stats, enc, source,
   if (!canHit(enemy, balance)) return; // v9.2.2 : pas encore arrivé (ruée)
   // v9.3.1 : types : avantage (×1,3) ou faiblesse (×0,8) selon l'élément du compagnon et celui de l'ennemi.
   // Le héros reste neutre : ses apparences sont purement cosmétiques (v9.2.8).
-  const elem = elementMultiplier(unitId === 'hero' ? null : unitElement(unitId), enemy.element);
+  // v9.6.1 (4.6) : le héros frappe avec l'élément de son ensemble (2 pièces ou plus), sinon en neutre.
+  const elem = elementMultiplier(unitId === 'hero' ? world.heroElement ?? null : unitElement(unitId), enemy.element);
   damage *= elem;
   damage *= behaviorTakenMult(enemy, world.parries, source); // v9.6.0 : Bouclier, Essaim, Volant sans leur parade
   damage = mutationDamageTaken(enemy, damage);
@@ -855,6 +857,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
   const hero = world.hero;
   // v9.6.0 (6) : parades présentes dans l'équipe (une fois par pas) ; Soigneur et Kamikaze.
   world.parries = teamCounters(state);
+  world.heroElement = heroElement(state); // v9.6.1
   behaviorTick(state, world, dt, rng, balance);
   // Boosts à durée limitée : minuteries (et relance automatique si activée).
   if (state.rushes) {

@@ -1,6 +1,8 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "neutre": "무속성",
+  "(2 pièces d'un ensemble lui donnent l'élément de son monde).": "(세트 2개를 입으면 그 세계의 속성을 얻습니다).",
   "Tireur": "사수",
   "Reste en arrière et tire : ses coups font +60 % de dégâts.": "뒤에서 쏩니다: 공격 피해 +60%.",
   "Un Archer ou un Mage dans l'équipe (ou un héros à distance)": "팀에 궁수나 마법사 (또는 원거리 영웅)",
@@ -322,6 +324,10 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Résonance : (\\d+) × (.*) → \\+(\\d+) % de dégâts$"), (m) => `공명: ${m[1]} × ${m[2]} → 피해 +${m[3]}%`],
+  [new RegExp("^Résonance : 2 membres du même élément → \\+(\\d+) % de dégâts, 3 → \\+(\\d+) %\\.$"), (m) => `공명: 같은 속성 2명 → 피해 +${m[1]}%, 3명 → +${m[2]}%.`],
+  [new RegExp("^Élément du héros : (.*)$"), (m) => `영웅 속성: ${L(m[1])}`],
+
   [new RegExp("^Nouveau : (.+)$"), (m) => `새로운 적: ${L(m[1])}`],
 
   [new RegExp("^(.+) : déjà au mieux$"), (m) => `${L(m[1])}: 이미 최적`],

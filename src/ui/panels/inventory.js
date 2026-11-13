@@ -1,5 +1,6 @@
 // Inventaire en 3 zones (équipement porté · fiche de l'objet · grille) et Forge.
-import { elementWheel, zoneElement } from '../../core/elements.js'; // v9.5.1
+import { elementBadge, elementWheel, zoneElement } from '../../core/elements.js'; // v9.5.1
+import { heroElement } from '../../core/companions.js'; // v9.6.1
 import { GEAR_PROFILES, profileGain } from '../../core/inventory.js'; // v9.5.2
 const PROFILE_ICONS = { attack: 'icon_damage', survival: 'icon_defense', fortune: 'icon_gold' };
 const PROFILE_TIPS = { attack: 'Pour passer un boss : les dégâts d\'abord', survival: 'Pour tenir dans un monde dur : la survie d\'abord', fortune: 'Pour farmer : l\'or et le butin d\'abord' };
@@ -222,7 +223,9 @@ function setsBanner(state) {
     return `<div class="set-row" style="--sc:${st.color}"><b>${escapeHtml(st.name)}</b> <span class="set-tag">${SET_SPECIALTY[st.id] ?? ''}</span>
       <span class="num">${w}/6 portées · ${owned[st.id]} possédées</span>${next ? ` · <span class="muted">à ${next} : ${nb} — pièces : ${escapeHtml(ZONES[st.zone]?.name ?? '')}</span>` : ' · <span class="good">complet</span>'}</div>`;
   }).join('');
-  return rows ? `<div class="card sets-banner"><div class="section-title">Ensembles</div>${rows}</div>` : '';
+  const hel = heroElement(state); // v9.6.1 (4.6) : 2 pièces d'un ensemble donnent son élément au héros
+  const elLine = `<div class="muted">Élément du héros : ${hel ? elementBadge(hel) : 'neutre'} (2 pièces d'un ensemble lui donnent l'élément de son monde).</div>`;
+  return rows ? `<div class="card sets-banner"><div class="section-title">Ensembles</div>${elLine}${rows}</div>` : '';
 }
 
 // Ensemble d'équipement (v8.5) : pièces portées et paliers de bonus.
