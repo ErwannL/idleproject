@@ -337,6 +337,8 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Fort contre : (.+)$"), (m) => `Strong against: ${m[1].split(', ').map(L).join(', ')}`],
+
   [new RegExp("^remplacerait « (.+) »$"), (m) => `would replace “${L(m[1])}”`],
 
   [new RegExp("^Build « (.+) » attaché$"), (m) => `Build “${m[1]}” attached`],

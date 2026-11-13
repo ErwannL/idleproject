@@ -21,6 +21,8 @@ import { modifierById } from '../../core/challenge.js';
 import { setBonusFor, setById, setCounts } from '../../core/sets.js';
 import { SET_PIECES } from '../../data/sets.js';
 
+import { countersFor } from '../../core/behaviors.js'; // v9.6.1 (2.5)
+import { BEHAVIORS } from '../../data/behaviors.js'; // v9.6.1
 const SOURCE_LABELS = { hero: 'Héros', heroClass: 'Classe', powers: 'Pouvoirs de boss', talents: 'Talents', companions: 'Équipe', gear: 'Effets d’équipement', prestige: 'Bonus éternels', rushes: 'Boosts actifs', achievements: 'Hauts faits', sets: 'Ensembles', museum: 'Musée' };
 
 // Ensembles d'équipement portés (v8.5) : pièces et paliers atteints.
@@ -72,6 +74,7 @@ function classView(state) {
       <div class="grow"><b class="class-name">${escapeHtml(c.name)}</b> <span class="class-style">${STYLE_LABEL[c.style]}</span>
         <div class="class-text">${escapeHtml(c.text)}</div>
         <div class="good class-fx">${effectText(c.effects)}</div>
+        ${(() => { const par = Object.entries(countersFor(new Set(), c)).filter(([, v]) => v).map(([id]) => BEHAVIORS[id].name); return par.length ? `<div class="class-vs">Fort contre : ${par.map(escapeHtml).join(', ')}</div>` : ''; })()}
         <div class="class-weapons" role="img" aria-label="Armes : ${escapeHtml(bases.map((b) => b.name).join(', '))}">${weapons}</div></div>
       ${active ? '<span class="class-on">Active ✓</span>' : open
         ? `<button class="btn btn-primary small" data-action="set-class" data-value="${c.id}">Choisir</button>`

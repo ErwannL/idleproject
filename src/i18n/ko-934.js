@@ -337,6 +337,8 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Fort contre : (.+)$"), (m) => `강한 상대: ${m[1].split(', ').map(L).join(', ')}`],
+
   [new RegExp("^remplacerait « (.+) »$"), (m) => `“${L(m[1])}” 대체`],
 
   [new RegExp("^Build « (.+) » attaché$"), (m) => `빌드 “${m[1]}” 연결됨`],
