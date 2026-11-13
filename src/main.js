@@ -933,6 +933,7 @@ const actions = {
   setNotify(key, on) { state.ui.notify = { ...state.ui.notify, [key]: on }; done(true); },
   setCinematics(on) { state.ui.cinematics = on; done(true); },
   setShake(on) { state.ui.shake = on; done(true); }, // v9.3.9
+  setBigAuras(on) { state.ui.bigAuras = on; done(true); }, // v9.5.3
   // v9.5.0 (3.6) : place l'équipe conseillée (calculée par core/team-advisor.js) ; l'équipement reste à chacun.
   applyTeam() {
     const adv = teamAdvice(state);

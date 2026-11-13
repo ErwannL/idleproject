@@ -1123,6 +1123,7 @@ export class UI {
     if (action === 'cloud-listed') this.actions.cloudListed(el.checked);
     if (action === 'cinematics') this.actions.setCinematics(el.checked);
     if (action === 'screen-shake') this.actions.setShake(el.checked); // v9.3.9
+    if (action === 'big-auras') this.actions.setBigAuras(el.checked); // v9.5.3
     if (action === 'auto-recycle') this.actions.setAutoRecycle(el.value);
     if (action === 'recycle-mode') this.actions.setRecycleRule('mode', el.value);
     if (action === 'exp-dur-slot') { this.view.expDurSlot = { ...(this.view.expDurSlot ?? {}), [el.dataset.slot]: el.value }; this.invalidate(); }

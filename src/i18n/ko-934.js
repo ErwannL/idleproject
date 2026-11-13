@@ -1,6 +1,7 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Grandes auras des compagnons 5★ (sinon un simple liseré)": "5★ 동료의 큰 오라 (끄면 윤곽선만)",
   "Équilibré": "균형",
   "Robustesse": "강인함",
   "Équilibre": "균형",

@@ -614,6 +614,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     state.ui.focus = raw.ui.focus === true;
     if (raw.ui.cinematics === false) state.ui.cinematics = false;
     if (raw.ui.shake === false) state.ui.shake = false; // v9.3.9
+    if (raw.ui.bigAuras === true) state.ui.bigAuras = true; // v9.5.3
     if (typeof raw.ui.theme === 'string' && /^[a-z]{1,16}$/.test(raw.ui.theme)) state.ui.theme = raw.ui.theme;
     // v8.4 : seules les vitesses débloquées par code sont gardées (sinon ×1).
     if (unlockedSpeeds(state).includes(raw.ui.speed)) state.ui.speed = raw.ui.speed;

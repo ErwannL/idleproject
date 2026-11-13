@@ -533,6 +533,12 @@ export class SceneRenderer {
     }
   }
 
+  // v9.5.3 (5.5) : au plus 3 anneaux à la fois (les plus anciens s'effacent) : les cercles empilés ne cachent plus le combat.
+  capRings() {
+    const rings = this.effects.filter((e) => e.kind === 'ring');
+    for (let i = 0; i < rings.length - 3; i++) this.effects.splice(this.effects.indexOf(rings[i]), 1);
+  }
+
   addText(text, x, y, color, light = '#ffffff', big = false) {
     const texts = this.effects.filter((e) => e.kind === 'text');
     if (texts.length >= MAX_FLOATING_TEXTS) this.effects.splice(this.effects.indexOf(texts[0]), 1);
@@ -811,6 +817,8 @@ export class SceneRenderer {
     this.focus = Boolean(state.ui?.focus) || Boolean(this.calm);
     this.skillKey = heroAnimKey(activeHero(state).palette); // v9.2.5 : gestes de compétence du héros
     if (this.focus || state.ui?.shake === false) this.shake = 0; // v9.3.9 : réglage « Tremblement de l'écran »
+    this.bigAuras = state.ui?.bigAuras === true; // v9.5.3
+    this.capRings();
     const zoneIndex = currentEncounter(state).zoneIndex;
     this.underwater = Boolean(ZONES[zoneIndex]?.underwater); // v9.2.0 (monde marin) : on nage
     this.dt = dt;
@@ -1870,6 +1878,9 @@ export class SceneRenderer {
   // propres à chacun (3 couches pour un SSR, 2 pour un SR, 1 sinon ; de l'extérieur vers le cœur), traits
   // d'énergie qui filent vers le haut et, pour les SSR, éclairs qui crépitent.
   drawStarAura(ctx, cx, top, w, h, companion) {
+    // v9.5.3 (5.5) : effets lisibles — l'aura permanente se réduit au liseré (drawStarOutline) ; les grandes flammes
+    // ne s'affichent que si le joueur les demande (Paramètres : « Grandes auras »), jamais en effets réduits.
+    if (!this.bigAuras || this.focus) return;
     const colors = auraColors(companion);
     const layers = colors.length === 1 ? [colors[0], colors[0]] : colors;
     const feet = top + h;

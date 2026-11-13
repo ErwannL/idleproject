@@ -1,6 +1,7 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Grandes auras des compagnons 5★ (sinon un simple liseré)": "Big auras for 5★ companions (otherwise a simple outline)",
   "Équilibré": "Balanced",
   "Robustesse": "Toughness",
   "Équilibre": "Balance",
