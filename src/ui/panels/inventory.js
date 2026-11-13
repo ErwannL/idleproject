@@ -1,6 +1,7 @@
 // Inventaire en 3 zones (équipement porté · fiche de l'objet · grille) et Forge.
 import { elementBadge, elementWheel, zoneElement } from '../../core/elements.js'; // v9.5.1
 import { heroElement } from '../../core/companions.js'; // v9.6.1
+import { BIND_MODES } from '../../core/loadouts.js'; // v9.6.1
 import { GEAR_PROFILES, profileGain } from '../../core/inventory.js'; // v9.5.2
 const PROFILE_ICONS = { attack: 'icon_damage', survival: 'icon_defense', fortune: 'icon_gold' };
 const PROFILE_TIPS = { attack: 'Pour passer un boss : les dégâts d\'abord', survival: 'Pour tenir dans un monde dur : la survie d\'abord', fortune: 'Pour farmer : l\'or et le butin d\'abord' };
@@ -408,6 +409,12 @@ function bagSettings(ui, state) {
 
 // Builds (v9.1.0) : Enregistrer et Renommer. v9.1.3 (doc2 A11) : une carte par build, résumé d'un coup d'œil
 // (classe, équipe, objets, pouvoirs) et « Équiper » sur la carte, au lieu d'une liste déroulante.
+// v9.6.1 (2.7) : choix du monde ou du mode auquel un Build s'applique tout seul.
+function bindOptions(state, cur) {
+  const zones = ZONES.map((z, i) => [`zone:${i}`, `Monde ${i + 1} : ${z.name}`]).filter(([, ], i) => i * 20 < Math.max(state.maxStage, state.records?.bestStage ?? 1));
+  return [['', '— aucun —'], ...Object.entries(BIND_MODES), ...zones].map(([v, t]) => `<option value="${v}"${(cur ?? '') === v ? ' selected' : ''}>${escapeHtml(t)}</option>`).join('');
+}
+
 function buildsBar(ui, state) {
   const sel = Math.min(state.loadouts.length - 1, Math.max(0, ui.view.buildSel ?? 0));
   const card = (l, i) => {
@@ -425,6 +432,7 @@ function buildsBar(ui, state) {
         <button class="btn small" data-action="save-loadout" data-value="${i}">Enregistrer</button>
         <button class="btn small" data-action="rename-build" data-value="${i}" aria-label="Renommer" title="Renommer">✎<span class="icon-word" aria-hidden="true"> Renommer</span></button></span></div>
       <div class="muted">${summary}</div>
+      ${l.team ? `<label class="build-bind">Attaché à : <select data-action="bind-build" data-value="${i}">${bindOptions(state, l.bind)}</select></label>` : ''}
       ${renaming ? `<div class="row"><input id="build-name" type="text" maxlength="24" value="${escapeHtml(l.name)}" aria-label="Nouveau nom">
         <button class="btn small btn-primary" data-action="confirm-rename-build" data-value="${i}">OK</button></div>` : ''}
     </div>`;

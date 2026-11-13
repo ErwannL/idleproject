@@ -1,6 +1,9 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Attaché à :": "Attached to:",
+  "— aucun —": "— none —",
+  "Défis (Tour)": "Challenges (Tower)",
   "neutre": "neutral",
   "(2 pièces d'un ensemble lui donnent l'élément de son monde).": "(2 pieces of a set give it the element of its world).",
   "Tireur": "Shooter",
@@ -324,6 +327,10 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Build « (.+) » attaché$"), (m) => `Build “${m[1]}” attached`],
+  [new RegExp("^Build « (.+) » appliqué$"), (m) => `Build “${m[1]}” applied`],
+  [new RegExp("^Monde (\\d+) : (.+)$"), (m) => `World ${m[1]}: ${L(m[2])}`],
+
   [new RegExp("^Résonance : (\\d+) × (.*) → \\+(\\d+) % de dégâts$"), (m) => `Resonance: ${m[1]} × ${m[2]} → +${m[3]}% damage`],
   [new RegExp("^Résonance : 2 membres du même élément → \\+(\\d+) % de dégâts, 3 → \\+(\\d+) %\\.$"), (m) => `Resonance: 2 members of the same element → +${m[1]}% damage, 3 → +${m[2]}%.`],
   [new RegExp("^Élément du héros : (.*)$"), (m) => `Hero element: ${L(m[1])}`],

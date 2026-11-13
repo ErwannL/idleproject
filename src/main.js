@@ -54,7 +54,7 @@ import { createGameAudio } from './audio/game-audio.js';
 import { flyTo } from './ui/ui-vfx.js'; // v9.3.9
 import { bestTeam, teamAdvice, tickTeamAdvice } from './core/team-advisor.js'; // v9.5.0
 import { simSpeed, unlockedSpeeds } from './core/cheats.js';
-import { applyLoadout, renameLoadout, saveLoadout } from './core/loadouts.js';
+import { applyLoadout, bindContext, boundLoadout, renameLoadout, saveLoadout } from './core/loadouts.js';
 import { claimEncyclopedia, claimSection } from './core/encyclopedia.js';
 import { activeClass, canEquip, setHeroClass, weaponClass } from './core/classes.js';
 import { setLang, startAutoTranslate } from './i18n/i18n.js';
@@ -72,7 +72,7 @@ import { purchase } from './core/store.js';
 import { ownsTheme, unequipSkin, wornTheme } from './core/cosmetics.js';
 import { buyEventItem, claimEventGoal, fightStage, finishWorldBoss, startWorldBoss, worldBossStatus } from './core/ancients.js';
 import { bossHpForDay } from './core/world-boss.js'; // v9.2.9 : World Boss en vrai combat
-import { bossesForStage, enemyStats, stageInZone } from './core/combat.js';
+import { bossesForStage, enemyStats, isBossStage, stageInZone } from './core/combat.js';
 import { BUILT_IN_TOKEN } from './core/update-token.js';
 import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagList, updateStatus } from './core/update.js';
 import { playsOnSite } from './ui/panels/options.js';
@@ -934,6 +934,13 @@ const actions = {
   setCinematics(on) { state.ui.cinematics = on; done(true); },
   setShake(on) { state.ui.shake = on; done(true); }, // v9.3.9
   setBigAuras(on) { state.ui.bigAuras = on; done(true); }, // v9.5.3
+  bindBuild(i, ctx) { // v9.6.1 (2.7) : un seul Build par monde ou mode
+    const l = state.loadouts[i];
+    if (!l) return;
+    for (const o of state.loadouts) if (o !== l && o.bind === ctx && ctx) delete o.bind;
+    if (ctx) l.bind = ctx; else delete l.bind;
+    done(true, ctx ? `Build « ${l.name} » attaché` : null, '#9fe0a0');
+  },
   // v9.5.0 (3.6) : place l'équipe conseillée (calculée par core/team-advisor.js) ; l'équipement reste à chacun.
   applyTeam() {
     const adv = teamAdvice(state);
@@ -1316,6 +1323,18 @@ window.addEventListener('keydown', unlockAudio, { capture: true });
 document.addEventListener('click', (e) => { if (e.target.closest('button')) sound.play('click', { volume: 0.5 }); }, { capture: true });
 // v9.5.1 (4.4) : écran Préparation, une fois par monde (arrivée) et une fois avant son boss de fin (étape 20).
 // Jamais en mode (donjon, Tour, défi), jamais en test automatisé ; le combat continue derrière.
+// v9.6.1 (2.7) : en entrant dans un monde ou un mode, le Build qui y est attaché s'applique tout seul.
+let lastBindCtx = null;
+function autoBuild(enc) {
+  const ctx = bindContext(state, enc.zoneIndex, isBossStage(state.stage));
+  if (ctx === lastBindCtx) return;
+  lastBindCtx = ctx;
+  const i = boundLoadout(state, ctx);
+  if (i < 0) return;
+  const r = applyLoadout(state, i, BALANCE, itemPower);
+  if (r) { ui.toast(`Build « ${state.loadouts[i].name} » appliqué`, '#9fe0a0'); ui.invalidate(); }
+}
+
 function preparationCheck(enc) {
   if (state.dungeon || state.tower || state.challenge || state.worldRun || navigator.webdriver || state.ui.prep === false) return;
   if ((state.records?.bossesDefeated ?? 0) < 3 || !Object.keys(state.companions.owned).length) return; // après les premières minutes
@@ -1568,6 +1587,7 @@ function frame(ts) {
   watchWorldChange();
   renderer.calm = ui.calm;
   if (!state.dungeon && !state.tower && !state.challenge && !state.worldRun) tickTeamAdvice(state); // v9.5.0 : un pas de calcul par image
+  autoBuild(currentEncounter(state)); // v9.6.1 : Build attaché au monde ou au mode
   // v9.6.0 (6.3) : première rencontre d'un comportement de monstre → carte courte (une fois par partie).
   for (const e of world.enemies) {
     if (!e.behavior || (state.ui.hints ?? []).includes(`beh-${e.behavior}`)) continue;

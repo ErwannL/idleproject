@@ -71,6 +71,18 @@ export function applyLoadout(state, index, balance = BALANCE, itemPower = () => 
   return { missing, refused };
 }
 
+// v9.6.1 (2.7) : un Build peut être attaché à un monde ou à un mode ; il s'applique tout seul en y entrant.
+export const BIND_MODES = { boss: 'Boss', dungeon: 'Donjons', tower: 'Défis (Tour)', arena: 'Arène' };
+export function bindContext(state, zoneIndex, bossStage) {
+  if (state.dungeon) return 'dungeon';
+  if (state.tower || state.challenge) return 'tower';
+  if (bossStage) return 'boss';
+  return `zone:${zoneIndex}`;
+}
+export function boundLoadout(state, ctx) {
+  return state.loadouts.findIndex((l) => l.team && l.bind === ctx);
+}
+
 export function sanitizeLoadouts(raw) {
   const out = emptyLoadouts();
   if (!Array.isArray(raw)) return out;
@@ -85,6 +97,7 @@ export function sanitizeLoadouts(raw) {
     }
     // v9.1.0 : champs ajoutés (absents des anciens builds : le rappel les ignore alors).
     if (typeof l.heroClass === 'string' && classById(l.heroClass)) out[i].heroClass = l.heroClass;
+    if (typeof l.bind === 'string' && /^(boss|dungeon|tower|arena|zone:\d{1,2})$/.test(l.bind)) out[i].bind = l.bind; // v9.6.1
     if (Array.isArray(l.powers)) out[i].powers = l.powers.filter((id) => typeof id === 'string').slice(0, 8);
     if (l.skills && typeof l.skills === 'object') {
       const skills = {};

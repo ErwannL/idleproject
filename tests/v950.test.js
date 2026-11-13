@@ -78,3 +78,14 @@ test('v9.6.1 : résonance d\'élément (2 → +10 %, 3 → +25 %) et élément d
   assert.equal(elementResonance(s).pct, 25, 'trio de Feu (héros compris)');
   assert.ok((companionEffects(s).damageMultPct ?? 0) > base);
 });
+
+test('v9.6.1 : Build attaché à un mode — gardé à la sauvegarde, retrouvé par son contexte', async () => {
+  const { sanitizeLoadouts, bindContext, boundLoadout } = await import('../src/core/loadouts.js');
+  const raw = [{ name: 'Boss', team: ['lancer'], gear: {}, bind: 'boss' }, { name: 'Feu', team: ['witch'], gear: {}, bind: 'zone:8' }, { name: 'X', team: [], bind: 'n\'importe quoi' }];
+  const l = sanitizeLoadouts(raw);
+  assert.equal(l[0].bind, 'boss'); assert.equal(l[1].bind, 'zone:8'); assert.equal(l[2].bind, undefined);
+  const s = createNewState(NOW); s.loadouts = l;
+  assert.equal(boundLoadout(s, bindContext(s, 3, true)), 0);
+  assert.equal(boundLoadout(s, bindContext(s, 8, false)), 1);
+  assert.equal(boundLoadout(s, bindContext(s, 2, false)), -1);
+});
