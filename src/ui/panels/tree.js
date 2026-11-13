@@ -471,6 +471,7 @@ function rebirthView(ui, state) {
       <div class="row-between"><b>${img('icon_rebirth')} Renaissance</b><span class="muted">${state.records.rebirths} effectuée${state.records.rebirths > 1 ? 's' : ''}</span></div>
       ${can ? `<div class="rb-tiles">${tile('icon_fragment', `+${formatNumber(reward)}`, 'fragments')}${tile('icon_damage', `×${gain.toFixed(2).replace('.', ',')}`, 'pour toujours')}${tile('icon_boss', '1', 'pouvoir conservé')}</div>`
         : `<div>Atteignez l'étape ${stageLabel(REBIRTH.minStage)} pour renaître (max ${stageLabel(state.maxStage)}).</div>`}
+      ${can ? `<div class="rb-later">Si tu pousses encore 10 étapes : <b>+${formatNumber(rebirthReward(state, state.maxStage + 10))}</b> ${fragment()} (au lieu de +${formatNumber(reward)}).</div>` : ''}
       <div class="muted">Retour à l'étape 1${keep > 0 ? ` (${Math.round(keep * 100)} % des améliorations gardés)` : ''} ; le détail est dans la confirmation.</div>
       ${blocked && can ? `<div class="bad">${blocked}</div>` : ''}
       <button class="btn btn-gold primary-action" data-action="rebirth" ${can && !blocked ? '' : 'disabled'}>Renaître (+${formatNumber(reward)} ${fragment()})</button>

@@ -368,6 +368,8 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Si tu pousses encore 10 étapes : (.+) \\(au lieu de \\+(.+)\\)\\.$"), (m) => `If you push 10 more stages: ${m[1]} (instead of +${m[2]}).`],
+
   [new RegExp("^(\\d+) étapes? gagnées? : \\+(.+) écus(?: · arrêt à l'étape (\\d+))?$"), (m) => `${m[1]} stage${m[1] === '1' ? '' : 's'} won: +${m[2]} crowns${m[3] ? ` · stopped at stage ${m[3]}` : ''}`],
 
   [new RegExp("^Mission préférée : (.+) et (.+) \\(\\+30 % de butin\\) ; élément du monde actuel : \\+20 %\\.$"), (m) => `Preferred: ${L(m[1])} and ${L(m[2])} (+30% loot); current world element: +20%.`],

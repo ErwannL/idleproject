@@ -3435,3 +3435,4 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 .tower-rule { font-size: 13px; color: #ffc27a; }
 .dungeon-info { font-size: 13px; margin: 4px 0; } .dungeon-info img { width: 18px; height: 18px; vertical-align: -4px; }
 .exp-prefer { font-size: 13px; margin: 4px 0; }
+.rb-later { font-size: 13px; margin: 4px 0; }

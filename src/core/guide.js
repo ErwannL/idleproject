@@ -11,7 +11,7 @@ import { upgradeOpen } from './unlocks.js';
 import { upgradeCost } from './economy.js';
 import { skillPointCost, skillPointsAvailable } from './skills.js';
 import { SKILLS } from '../data/skills.js';
-import { canRebirth, rebirthBlocked, rebirthReward } from './rebirth.js';
+import { canRebirth, rebirthBlocked, rebirthReward, rebirthWorth } from './rebirth.js';
 import { COMPANION_RULES } from '../data/companions.js';
 import { DUNGEONS } from '../data/dungeons.js';
 import { BANNERS } from '../data/economy.js';
@@ -116,7 +116,7 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
   const blocked = Boolean(state.bossRetry && state.stage === state.bossRetry.stage - 1);
   // v9.3.8 : Renaissance aussi quand la progression ralentit (plus de 10 min de jeu sans nouveau record).
   const slowing = (state.playSeconds ?? 0) - (state.recordAt ?? state.playSeconds ?? 0) > 600;
-  if ((blocked || slowing) && open('tree') && canRebirth(state) && !rebirthBlocked(state) && rebirthReward(state) > 0) {
+  if ((blocked || slowing || rebirthWorth(state)) && open('tree') && canRebirth(state) && !rebirthBlocked(state) && rebirthReward(state) > 0) {
     return { id: 'rebirth', text: `Renaissance : +${rebirthReward(state)} fragments`, tab: 'tree', view: { treeSeg: 'rebirth' } };
   }
   if (blocked) {

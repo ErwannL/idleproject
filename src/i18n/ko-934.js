@@ -368,6 +368,8 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Si tu pousses encore 10 étapes : (.+) \\(au lieu de \\+(.+)\\)\\.$"), (m) => `10단계 더 가면: ${m[1]} (지금은 +${m[2]}).`],
+
   [new RegExp("^(\\d+) étapes? gagnées? : \\+(.+) écus(?: · arrêt à l'étape (\\d+))?$"), (m) => `${m[1]}단계 승리: 에퀴 +${m[2]}${m[3] ? ` · ${m[3]}단계에서 멈춤` : ''}`],
 
   [new RegExp("^Mission préférée : (.+) et (.+) \\(\\+30 % de butin\\) ; élément du monde actuel : \\+20 %\\.$"), (m) => `선호: ${L(m[1])}, ${L(m[2])} (전리품 +30%); 현재 세계 속성: +20%.`],
