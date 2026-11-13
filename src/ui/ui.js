@@ -36,6 +36,7 @@ import { suggestedTalent } from '../core/rebirth.js'; // v9.3.9
 import { ADV, elementBadge, elementWheel, strongAgainst } from '../core/elements.js'; // v9.5.1
 import { companionById } from '../core/companions.js'; // v9.5.1
 import { BOSS_TRAITS, TRAITS } from '../core/boss-traits.js'; // v9.5.1
+import { BEHAVIORS, zoneBehaviors } from '../data/behaviors.js'; // v9.6.0
 import { RESOURCE_WHERE, SKILL_RESOURCES } from '../data/progression.js'; // v9.3.9 (2.6)
 import { coin, effectText, escapeHtml, fold, glyph, icon, img, itemFrame, missingText, rewardIcons } from './common.js';
 import { GAME_VERSION } from '../version.js';
@@ -1884,6 +1885,22 @@ export class UI {
         ${reachable ? `<button class="btn btn-primary" data-action="currency-go" data-value="${id}">Aller à ${escapeHtml(navPath(c.tab))}</button>` : ''}</div>`);
   }
 
+  // v9.6.0 (6.3) : première rencontre d'un comportement — carte courte posée sur la scène (ne bloque rien, 7 s).
+  showBehaviorCard(id, parried = false) {
+    const b = BEHAVIORS[id];
+    const host = this.$('stage-area');
+    if (!b || !host) return;
+    host.querySelector('.beh-card')?.remove();
+    const el = document.createElement('div');
+    el.className = 'beh-card';
+    el.style.setProperty('--bc', b.color);
+    el.innerHTML = `${img(b.icon)}<div><b>Nouveau : ${escapeHtml(b.name)}</b><div>${escapeHtml(b.what)}</div>
+      <div class="${parried ? 'good' : 'muted'}">${parried ? '✓ Ton équipe a la parade.' : `Parade : ${escapeHtml(b.counter)}.`}</div></div>`;
+    el.addEventListener('click', () => el.remove());
+    host.appendChild(el);
+    setTimeout(() => el.remove(), 7000);
+  }
+
   // v9.5.1 (4.4) : écran Préparation — à l'arrivée dans un monde et avant son boss de fin. Il ne bloque rien : le
   // combat continue derrière avec l'équipe en place. Élément du monde, mécanique du boss, équipe conseillée chiffrée.
   showPreparation({ zoneIndex, boss = null, advice = null, kind = 'world' }) {
@@ -1898,6 +1915,7 @@ export class UI {
     this.openModal(`<div class="prep-screen"><h2 id="modal-title">${kind === 'boss' ? 'Avant le boss' : 'Préparation'} : ${escapeHtml(zone?.name ?? '')}</h2>
       <p>Élément du monde : ${elementBadge(el)}. Tes alliés ${strong.map((x) => elementBadge(x)).join(' ')} y font <b class="good">+${Math.round((ADV - 1) * 100)} %</b> de dégâts.</p>
       ${elementWheel(el)}
+      ${zoneBehaviors(zone).length ? `<p><b>Monstres du monde</b> :</p><ul class="prep-beh">${zoneBehaviors(zone).map((id) => `<li>${img(BEHAVIORS[id].icon)} <b>${escapeHtml(BEHAVIORS[id].name)}</b> — ${escapeHtml(BEHAVIORS[id].what)} <span class="muted">Parade : ${escapeHtml(BEHAVIORS[id].counter)}.</span></li>`).join('')}</ul>` : ''}
       ${bossDef ? `<p>Boss : <b>${escapeHtml(bossDef.name)}</b>${trait ? ` — ${escapeHtml(trait.name)} (${escapeHtml(trait.short)}). <span class="muted">Parade : ${escapeHtml(trait.counter)}.</span>` : ''}</p>` : ''}
       ${team}
       <div class="detail-actions"><button class="btn" data-action="close-modal">Continuer</button>

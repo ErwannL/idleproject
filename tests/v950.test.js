@@ -38,3 +38,28 @@ test('v9.5.0 : équipe conseillée — essayée en vrai combat, jamais pire que 
 test('v9.5.0 : chaque rôle dit ce qu\'il fait et contre quoi il est bon', () => {
   for (const r of Object.values(ROLES)) assert.ok(r.does && r.good && r.icon, r.label);
 });
+
+test('v9.6.0 : comportements — 2 par monde à partir du monde 2, chacun avec sa parade ; la parade annule le malus', async () => {
+  const { BEHAVIORS, ENEMY_BEHAVIOR, zoneBehaviors } = await import('../src/data/behaviors.js');
+  const { ZONES } = await import('../src/data/zones.js');
+  const { countersFor, behaviorTakenMult, behaviorHitMult } = await import('../src/core/behaviors.js');
+  assert.equal(zoneBehaviors(ZONES[0]).length, 0, 'monde 1 sans comportement');
+  for (let i = 1; i <= 10; i++) assert.ok(zoneBehaviors(ZONES[i]).length >= 1, `monde ${i + 1}`);
+  for (const b of Object.values(ENEMY_BEHAVIOR)) assert.ok(BEHAVIORS[b]?.counter, b);
+  const none = countersFor(new Set(), { id: 'knight', style: 'melee' });
+  const all = countersFor(new Set(['archer', 'mage', 'assassin', 'berserker', 'guardian']), { id: 'knight', style: 'melee' });
+  for (const id of Object.keys(BEHAVIORS)) assert.ok(all[id] && !none[id], id);
+  assert.equal(behaviorTakenMult({ behavior: 'shield' }, none, 'attack'), 0.5);
+  assert.equal(behaviorTakenMult({ behavior: 'shield' }, all, 'attack'), 1);
+  const charger = { behavior: 'charger' };
+  assert.equal(behaviorHitMult(charger, none), 2.5);
+  assert.equal(behaviorHitMult(charger, none), 1, 'seulement le premier coup');
+  assert.ok(countersFor(new Set(), { id: 'archer', style: 'ranged' }).flyer, 'héros à distance : parade des volants');
+});
+
+test('v9.6.0 : chaque boss de campagne à partir du monde 2 a une mécanique', async () => {
+  const { ZONES } = await import('../src/data/zones.js');
+  const { BOSS_TRAITS } = await import('../src/core/boss-traits.js');
+  const keyed = (id) => BOSS_TRAITS[id] ?? BOSS_TRAITS[id.replace(/^boss_/, '')] ?? BOSS_TRAITS[`boss_${id}`];
+  for (const z of ZONES.slice(1, 11)) for (const id of [...(z.bosses ?? []), ...Object.values(z.tierBosses ?? {})]) assert.ok(keyed(id), `${z.id} : ${id}`);
+});

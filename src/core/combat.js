@@ -32,6 +32,8 @@ import { tickTimes } from './times.js';
 import { CHALLENGE, challengeBosses, challengeKill, challengeLevel, challengeRule, challengeTimeUp, clearChallengeWave, endChallenge, isBossWave } from './challenge.js';
 import { elementMultiplier, unitElement, zoneElement } from './elements.js'; // v9.3.1 : types
 import { RESOURCE_SOURCES } from '../data/progression.js'; // v9.3.3
+import { enemyBehavior } from '../data/behaviors.js'; // v9.6.0
+import { behaviorHitMult, behaviorTakenMult, teamCounters } from './behaviors.js'; // v9.6.0
 const ENEMY_WINDUP = 0.25; // v9.1.9 : avance de l'événement « enemyWindup » sur le coup ennemi (s)
 
 const MAX_EVENTS = 300;
@@ -360,6 +362,7 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
     speed: s.speed,
     attackInterval: s.attackInterval,
     attackTimer: s.attackInterval * 0.6,
+    behavior: boss ? null : enemyBehavior(type), // v9.6.0 (6) : comportement (parade à préparer)
     range: s.range + (elite ? 4 : 0),
     engaged: false,
     age: 0, // secondes au contact (rage des boss)
@@ -477,6 +480,29 @@ function dropItem(state, world, item, x, balance, enemyId = null) {
   emit(world, 'drop', { item, x, enemyId, autoRecycled: Boolean(result.recycled) && !result.mannequin, stored: Boolean(result.stored || result.held), byRule: Boolean(result.auto), mannequin: Boolean(result.mannequin), museum: Boolean(result.museum), recycledGold: result.recycledGold, freed: result.freed?.count ? result.freed : null });
 }
 
+// v9.6.0 (6) : Soigneur (soigne sa vague 3 % des PV max par seconde) et Kamikaze (explose 1,5 s après son arrivée :
+// 12 % des PV du héros, moitié avec un compagnon Gardien ; il disparaît comme un monstre vaincu, or compris).
+function behaviorTick(state, world, dt, rng, balance) {
+  for (const e of world.enemies) {
+    if (e.arrived && e.arrivedAt === undefined) e.arrivedAt = world.time;
+    if (e.behavior === 'healer' && !world.parries?.healer && e.hp > 0) {
+      for (const o of world.enemies) if (o !== e && !o.boss && o.hp < o.maxHp) o.hp = Math.min(o.maxHp, o.hp + o.maxHp * 0.03 * dt);
+    }
+  }
+  const boom = world.enemies.filter((e) => e.behavior === 'kamikaze' && (e.engaged || e.arrived) && !e.exploded && (e.arrivedAt ?? world.time) <= world.time - 1.5);
+  if (!boom.length || world.hero.dead) return;
+  const stats = world.heroStats ?? computeHeroStats(state, balance);
+  for (const e of boom) {
+    e.exploded = true;
+    const hit = stats.maxHp * 0.12 * (world.parries?.kamikaze ? 0.5 : 1);
+    world.hero.hp -= hit;
+    emit(world, 'heroHit', { damage: hit, enemyId: e.id, x: e.x, boss: false, explode: true });
+    emit(world, 'kamikaze', { enemyId: e.id, x: e.x });
+    killEnemy(state, world, e, rng, balance, stats, currentEncounter(state, balance));
+  }
+  if (world.hero.hp <= 0) heroDies(state, world, balance);
+}
+
 function killEnemy(state, world, enemy, rng, balance, stats, enc) {
   const index = world.enemies.indexOf(enemy);
   if (index < 0) return;
@@ -493,7 +519,9 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
   if (world.goldWave > 0 && !enemy.boss) world.goldWave -= 1;
   const boost = earlyBoost(state, balance);
   const challengeGold = enc.challenge ? challengeRule(state, 'gold') ?? 1 : 1;
-  const gold = gainGold(state, world, enemy.gold * (1 + stats.goldPct / 100) * (stats.goldMult ?? 1) * wave * boost.gold * challengeGold);
+  // v9.6.0 : Voleur vaincu dans les 7 s après son arrivée : or ×3.
+  const thief = enemy.behavior === 'thief' && (enemy.arrivedAt === undefined || world.time - enemy.arrivedAt <= 7) ? 3 : 1;
+  const gold = gainGold(state, world, enemy.gold * (1 + stats.goldPct / 100) * (stats.goldMult ?? 1) * wave * boost.gold * challengeGold * thief);
   world.counters.kills += 1;
   state.records.kills += 1;
   if (state.codex) recordKill(state, enemy.type, enemy);
@@ -673,6 +701,7 @@ function hitEnemy(state, world, enemy, damage, rng, balance, stats, enc, source,
   // Le héros reste neutre : ses apparences sont purement cosmétiques (v9.2.8).
   const elem = elementMultiplier(unitId === 'hero' ? null : unitElement(unitId), enemy.element);
   damage *= elem;
+  damage *= behaviorTakenMult(enemy, world.parries, source); // v9.6.0 : Bouclier, Essaim, Volant sans leur parade
   damage = mutationDamageTaken(enemy, damage);
   damage = traitDamageTaken(enemy, damage);
   if (enemy.scoreTarget && state.worldRun?.kind === 'score') state.worldRun.damage += damage; // v9.1.3 (doc4 lot 6)
@@ -824,6 +853,9 @@ export function step(state, world, dt, rng, balance = BALANCE) {
     if (enemy.mutation) mutationTick(enemy, dt);
   }
   const hero = world.hero;
+  // v9.6.0 (6) : parades présentes dans l'équipe (une fois par pas) ; Soigneur et Kamikaze.
+  world.parries = teamCounters(state);
+  behaviorTick(state, world, dt, rng, balance);
   // Boosts à durée limitée : minuteries (et relance automatique si activée).
   if (state.rushes) {
     const { ended, started } = tickRushes(state, dt);
@@ -1089,7 +1121,8 @@ export function step(state, world, dt, rng, balance = BALANCE) {
       }
       // v9.2.8 : armure et Défense dans damageTakenFactor (même calcul pour la fiche et la simulation).
       const damage = attacker.damage * rage * traitAtk.damage * damageTakenFactor(stats, attacker.boss, balance, lowHp) * (1 - shield / 100)
-        * dungeonDamageTaken(state, balance) * (stats.hurtMult ?? 1); // v9.2.1 : Éclats de cristal
+        * dungeonDamageTaken(state, balance) * (stats.hurtMult ?? 1) // v9.2.1 : Éclats de cristal
+        * behaviorHitMult(attacker, world.parries); // v9.6.0 : Tireur, Charge sans leur parade
       hero.hp -= damage;
       mutationOnHit(attacker, damage);
       emit(world, 'heroHit', { enemyId: attacker.id, damage, boss: attacker.boss });

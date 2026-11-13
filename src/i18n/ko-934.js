@@ -1,6 +1,32 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Tireur": "사수",
+  "Reste en arrière et tire : ses coups font +60 % de dégâts.": "뒤에서 쏩니다: 공격 피해 +60%.",
+  "Un Archer ou un Mage dans l'équipe (ou un héros à distance)": "팀에 궁수나 마법사 (또는 원거리 영웅)",
+  "Bouclier": "방패",
+  "Encaisse : il ne prend que la moitié des dégâts.": "단단함: 피해를 절반만 받습니다.",
+  "Un Berserker ou un Assassin (ou un héros Lancier / Arbalétrier)": "광전사나 암살자 (또는 창병 / 석궁 영웅)",
+  "Kamikaze": "자폭",
+  "Explose au contact : 12 % des PV du héros.": "접촉 시 폭발: 영웅 HP의 12%.",
+  "Un compagnon Gardien devant (dégâts divisés par deux)": "앞에 수호자 동료 (피해 절반)",
+  "Soigneur": "치유사",
+  "Soigne sa vague tant qu'il est en vie.": "살아 있는 동안 웨이브를 치유합니다.",
+  "Un Assassin, qui vise l'arrière": "후열을 노리는 암살자",
+  "Essaim": "무리",
+  "Arrive en nombre : les coups simples s'y perdent (−30 % de dégâts).": "떼로 옵니다: 단일 공격 피해 −30%.",
+  "Un Mage (dégâts de zone)": "마법사 (범위 피해)",
+  "Hors de portée du corps à corps : −50 % de dégâts reçus des coups au contact.": "근접 사거리 밖: 근접 공격 피해 −50%.",
+  "Un Archer ou un Mage (ou un héros à distance)": "궁수나 마법사 (또는 원거리 영웅)",
+  "Voleur": "도둑",
+  "Vaincu dans les 7 s après son arrivée : or ×3 (sinon or normal).": "도착 후 7초 안에 처치: 골드 ×3 (아니면 보통).",
+  "Une équipe rapide (Assassin ou Archer)": "빠른 팀 (암살자나 궁수)",
+  "Charge": "돌진",
+  "Fonce : son premier coup fait ×2,5 de dégâts.": "돌진: 첫 공격 피해 ×2.5.",
+  "Un compagnon Gardien au rang avant": "전열의 수호자 동료",
+  "✓ Ton équipe a la parade.": "✓ 팀에 대응책이 있습니다.",
+  "Monstres du monde": "이 세계의 몬스터",
+  "Volant": "비행",
   "Grandes auras des compagnons 5★ (sinon un simple liseré)": "5★ 동료의 큰 오라 (끄면 윤곽선만)",
   "Équilibré": "균형",
   "Robustesse": "강인함",
@@ -296,6 +322,8 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Nouveau : (.+)$"), (m) => `새로운 적: ${L(m[1])}`],
+
   [new RegExp("^(.+) : déjà au mieux$"), (m) => `${L(m[1])}: 이미 최적`],
   [new RegExp("^Dégâts (.+) ici · (.+) contre le prochain boss$"), (m) => `여기서 피해 ${m[1]} · 다음 보스 상대 ${m[2]}`],
   [new RegExp("^(\\d+)/6 portées · (\\d+) possédées$"), (m) => `${m[1]}/6 착용 · ${m[2]} 보유`],

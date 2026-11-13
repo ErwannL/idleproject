@@ -47,6 +47,16 @@ export const BOSS_TRAITS = {
   demon_king: 'desperate', hard_demon_general: 'desperate', mid_hellhound: 'desperate', obsidian_tyrant: 'desperate',
   // v9.2.0 (monde marin) : Royaume englouti — une mécanique par boss, chacune avec son contre.
   mini_crab_king: 'armored', mid_kraken: 'summoner', hard_megalodon: 'desperate', boss_leviathan: 'tidal',
+  // v9.6.0 (6.4) : une mécanique pour chaque boss de campagne à partir du monde 2 (le monde 1 reste sans mécanique).
+  alpha_wolf: 'escalate', mini_treant: 'armored', mid_giant_spider: 'summoner', hard_werewolf: 'desperate',
+  bone_lord: 'summoner', mid_crystal_bat: 'tidal',
+  mini_pharaoh: 'summoner', mid_sand_worm: 'armored', hard_anubis: 'desperate',
+  fallen_knight: 'armored', mini_frost_witch: 'tidal', mid_mammoth: 'armored', hard_frost_giant: 'escalate',
+  mini_reaper: 'desperate',
+  boss_swamp_behemoth: 'tidal', mini_toad_king: 'summoner', mid_hydra: 'tidal', hard_plague_doctor: 'summoner',
+  mini_harpy_queen: 'summoner', mid_thunder_griffin: 'escalate', hard_storm_valkyrie: 'desperate',
+  mini_salamander_chief: 'escalate',
+  mini_void_watcher: 'armored', mid_star_devourer: 'tidal', hard_void_knight: 'armored',
 };
 
 // v9.2.0 (monde marin) : Marée (régénération), appelée à chaque pas ; `critAt` = moment du dernier coup critique reçu.

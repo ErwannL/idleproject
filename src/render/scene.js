@@ -84,6 +84,7 @@ const BOSS_AURAS = {
   mega: { color: '#ff2020', ember: '#ffd23f', width: 2, alpha: 0.55, speed: 7, embers: 0.35 },
   dungeon: { color: '#b04dff', ember: '#e8c0ff', width: 2, alpha: 0.55, speed: 6, embers: 0.3 }, // v9.0.4 : boss de donjon
 };
+import { BEHAVIORS } from '../data/behaviors.js'; // v9.6.0
 const HERO_X = BALANCE.world.heroX * WORLD_SCALE;
 // v9.5.1 : couleur de la barre de vie des monstres selon leur élément (lisible sur le décor).
 const ELEMENT_BAR = { red: '#ff5a3c', blue: '#3ca8ff', green: '#4cd26a', light: '#ffd84a', dark: '#b07bff' };
@@ -1357,6 +1358,12 @@ export class SceneRenderer {
         drawElementIcon(ctx, enemy.element, headX - 22, headY - 7);
       } else { // v9.5.1 (4.3) : barre toujours visible, à la couleur de l'élément du monstre
         this.drawBar(ctx, headX - 9, headY - 5, 18, enemy.hp / enemy.maxHp, enemy.elite ? '#ff9a3d' : mutation ? mutation.color : ELEMENT_BAR[enemy.element] ?? '#e84a5f', this.ghostHp(fx, enemy));
+        // v9.6.0 (6.3) : icône du comportement au-dessus de la barre ; estompée si l'équipe a la parade.
+        if (enemy.behavior && BEHAVIORS[enemy.behavior]) {
+          ctx.globalAlpha = world.parries?.[enemy.behavior] ? 0.45 : 1;
+          ctx.drawImage(spriteCanvas(BEHAVIORS[enemy.behavior].icon), headX - 5, headY - 16, 10, 10);
+          ctx.globalAlpha = 1;
+        }
         drawElementIcon(ctx, enemy.element, headX - 15, headY - 6);
       }
       ctx.globalAlpha = 1;

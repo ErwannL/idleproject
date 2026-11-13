@@ -1568,6 +1568,13 @@ function frame(ts) {
   watchWorldChange();
   renderer.calm = ui.calm;
   if (!state.dungeon && !state.tower && !state.challenge && !state.worldRun) tickTeamAdvice(state); // v9.5.0 : un pas de calcul par image
+  // v9.6.0 (6.3) : première rencontre d'un comportement de monstre → carte courte (une fois par partie).
+  for (const e of world.enemies) {
+    if (!e.behavior || (state.ui.hints ?? []).includes(`beh-${e.behavior}`)) continue;
+    state.ui.hints = [...(state.ui.hints ?? []), `beh-${e.behavior}`];
+    ui.showBehaviorCard(e.behavior, Boolean(world.parries?.[e.behavior]));
+    break;
+  }
   renderer.render(state, world, dt);
   ui.update(state, world);
   animateMenus(document.body, state, ts);

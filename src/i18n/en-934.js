@@ -1,6 +1,32 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Tireur": "Shooter",
+  "Reste en arrière et tire : ses coups font +60 % de dégâts.": "Stays back and shoots: its hits deal +60% damage.",
+  "Un Archer ou un Mage dans l'équipe (ou un héros à distance)": "An Archer or a Mage in the team (or a ranged hero)",
+  "Bouclier": "Shield",
+  "Encaisse : il ne prend que la moitié des dégâts.": "Tanky: takes only half damage.",
+  "Un Berserker ou un Assassin (ou un héros Lancier / Arbalétrier)": "A Berserker or an Assassin (or a Lancer / Crossbow hero)",
+  "Kamikaze": "Kamikaze",
+  "Explose au contact : 12 % des PV du héros.": "Explodes on contact: 12% of the hero's HP.",
+  "Un compagnon Gardien devant (dégâts divisés par deux)": "A Guardian companion in front (damage halved)",
+  "Soigneur": "Healer",
+  "Soigne sa vague tant qu'il est en vie.": "Heals its wave while alive.",
+  "Un Assassin, qui vise l'arrière": "An Assassin, who targets the back line",
+  "Essaim": "Swarm",
+  "Arrive en nombre : les coups simples s'y perdent (−30 % de dégâts).": "Comes in numbers: single hits get lost (−30% damage).",
+  "Un Mage (dégâts de zone)": "A Mage (area damage)",
+  "Hors de portée du corps à corps : −50 % de dégâts reçus des coups au contact.": "Out of melee reach: −50% damage from melee hits.",
+  "Un Archer ou un Mage (ou un héros à distance)": "An Archer or a Mage (or a ranged hero)",
+  "Voleur": "Thief",
+  "Vaincu dans les 7 s après son arrivée : or ×3 (sinon or normal).": "Defeated within 7 s of arriving: gold ×3 (otherwise normal gold).",
+  "Une équipe rapide (Assassin ou Archer)": "A fast team (Assassin or Archer)",
+  "Charge": "Charger",
+  "Fonce : son premier coup fait ×2,5 de dégâts.": "Charges: its first hit deals ×2.5 damage.",
+  "Un compagnon Gardien au rang avant": "A Guardian companion in the front row",
+  "✓ Ton équipe a la parade.": "✓ Your team has the counter.",
+  "Monstres du monde": "Monsters of this world",
+  "Volant": "Flyer",
   "Grandes auras des compagnons 5★ (sinon un simple liseré)": "Big auras for 5★ companions (otherwise a simple outline)",
   "Équilibré": "Balanced",
   "Robustesse": "Toughness",
@@ -296,6 +322,8 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Nouveau : (.+)$"), (m) => `New: ${L(m[1])}`],
+
   [new RegExp("^(.+) : déjà au mieux$"), (m) => `${L(m[1])}: already optimal`],
   [new RegExp("^Dégâts (.+) ici · (.+) contre le prochain boss$"), (m) => `Damage ${m[1]} here · ${m[2]} vs the next boss`],
   [new RegExp("^(\\d+)/6 portées · (\\d+) possédées$"), (m) => `${m[1]}/6 worn · ${m[2]} owned`],

@@ -3424,3 +3424,9 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 .ip-ctx { font-size: 13px; margin: 2px 0 6px; }
 .sets-banner { font-size: 13px; } .set-row { margin: 3px 0; border-left: 3px solid var(--sc); padding-left: 6px; }
 .set-tag { display: inline-block; padding: 0 6px; border-radius: 8px; background: color-mix(in srgb, var(--sc) 30%, transparent); font-size: 12px; }
+/* v9.6.0 : carte de première rencontre d'un comportement, liste dans l'écran Préparation */
+.beh-card { position: absolute; left: 50%; top: 56px; transform: translateX(-50%); z-index: 6; display: flex; gap: 8px; align-items: flex-start;
+  max-width: min(360px, 92%); padding: 8px 10px; border-radius: 10px; background: rgba(8, 12, 24, 0.9); border: 2px solid var(--bc); font-size: 13px;
+  animation: v939-pop 0.25s ease-out; cursor: pointer; }
+.beh-card img { width: 32px; height: 32px; image-rendering: pixelated; flex: none; }
+.prep-beh { margin: 4px 0 6px; padding-left: 18px; font-size: 13px; } .prep-beh img { width: 18px; height: 18px; vertical-align: -4px; }
