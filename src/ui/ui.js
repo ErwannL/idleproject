@@ -38,6 +38,7 @@ import { companionById } from '../core/companions.js'; // v9.5.1
 import { BOSS_TRAITS, TRAITS } from '../core/boss-traits.js'; // v9.5.1
 import { BEHAVIORS, zoneBehaviors } from '../data/behaviors.js'; // v9.6.0
 import { climbsLeft } from '../core/tower.js'; // v9.6.2
+import { guideDay } from '../core/guide.js'; // v9.6.2
 import { dungeonRooms } from '../core/dungeon.js'; // v9.6.2
 import { RESOURCE_WHERE, SKILL_RESOURCES } from '../data/progression.js'; // v9.3.9 (2.6)
 import { coin, effectText, escapeHtml, fold, glyph, icon, img, itemFrame, missingText, rewardIcons } from './common.js';
@@ -1858,6 +1859,11 @@ export class UI {
       this.setText('next-action-text', n.text);
       btn.dataset.kind = n.id;
       btn.classList.toggle('na-gold', n.id === 'claim' || n.id === 'retry');
+      // v9.6.2 (7.9) : « Plus tard » sur un contenu proposé (2 refus : il passe jusqu'au lendemain).
+      let later = this.$('next-later');
+      if (!later) { later = document.createElement('button'); later.id = 'next-later'; later.className = 'btn small next-later'; later.type = 'button'; later.textContent = 'Plus tard'; btn.after(later);
+        later.addEventListener('click', () => { const g = guideDay(this.state); const id = this.next?.id; if (id) g.skips[id] = (g.skips[id] ?? 0) + 1; delete this.lastHud.badgeTime; this.invalidate(); }); }
+      later.classList.toggle('hidden', !n.content);
     }
     btn.classList.remove('hidden');
   }
@@ -1865,6 +1871,7 @@ export class UI {
   runNextAction() {
     const n = this.next;
     if (!n) return;
+    if (n.content) { const g = guideDay(this.state); if (!g.done.includes(n.id)) g.done.push(n.id); } // v9.6.2 : conseil suivi
     this.userAt = performance.now();
     if (n.action === 'claim-everything') {
       // v9.2.7 : les monnaies récupérées volent du bouton vers leurs compteurs.

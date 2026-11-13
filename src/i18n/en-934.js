@@ -1,6 +1,11 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Défi du jour : monte dans la Tour": "Daily challenge: climb the Tower",
+  "Tente le Défi de la semaine": "Try the Weekly Challenge",
+  "Un combat d'Arène (étoiles et copies de compagnons)": "An Arena fight (stars and companion copies)",
+  "Envoie tes compagnons libres en expédition": "Send your free companions on expeditions",
+  "Événement : enchaîne les étapes de la carte": "Event: chain the map stages",
   "Enchaîner": "Chain",
   "Combat les étapes suivantes tant qu'elles sont gagnées": "Fights the next stages as long as they are won",
   "Gardien trop solide : renforcez le héros": "Guardian too tough: strengthen the hero",

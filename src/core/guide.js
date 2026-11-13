@@ -14,6 +14,9 @@ import { SKILLS } from '../data/skills.js';
 import { canRebirth, rebirthBlocked, rebirthReward, rebirthWorth } from './rebirth.js';
 import { COMPANION_RULES } from '../data/companions.js';
 import { DUNGEONS } from '../data/dungeons.js';
+import { TOWER, climbsLeft } from './tower.js'; // v9.6.2
+import { CHALLENGE } from './challenge.js'; // v9.6.2
+import { arenaUnlocked } from './arena.js'; // v9.6.2
 import { BANNERS } from '../data/economy.js';
 import { BOSSES } from '../data/enemies.js';
 import { claimables } from './claimables.js';
@@ -101,6 +104,10 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
   if (open('summon') && Object.keys(state.companions.owned).length && (freeOf('ally') || freeOf('pet')) && state.gems >= balance.summon.gemCost) {
     return { id: 'summon', text: freeOf('ally') ? 'Invoquer un compagnon (place libre)' : 'Invoquer un familier (place libre)', tab: 'summon' };
   }
+  // v9.6.2 (7.9) : les contenus tournent — chacun est proposé au moins une fois par jour ; après 2 « Plus tard » il
+  // laisse sa place jusqu'au lendemain. Marqué « vu » dès que le joueur suit le conseil.
+  const round = contentRound(state, open);
+  if (round) return round;
   const up = bestOpenUpgrade(state, balance);
   const lv = companionToLevel(state, balance);
   // Montée d'un compagnon d'abord quand elle coûte moins que l'amélioration proposée (sinon l'or part toujours ailleurs).
@@ -160,6 +167,30 @@ export function companionToLevel(state, balance = BALANCE) {
     if (!best || cost < best.cost) best = { id, name: companionById(id)?.name ?? id, level: unitLevel(state, id), cost };
   }
   return best;
+}
+
+export const CONTENT_ROUND = [
+  { id: 'c-tower', tab: 'tower', text: 'Défi du jour : monte dans la Tour', ok: (s) => (s.records?.bestStage ?? s.maxStage) >= TOWER.unlockStage && climbsLeft(s) > 0 },
+  { id: 'c-challenge', tab: 'tower', view: { defiTab: 'challenge' }, text: 'Tente le Défi de la semaine', ok: (s) => (s.records?.bestStage ?? s.maxStage) >= CHALLENGE.unlockStage },
+  { id: 'c-arena', tab: 'tower', view: { defiTab: 'arena' }, text: 'Un combat d\'Arène (étoiles et copies de compagnons)', ok: (s) => arenaUnlocked(s) },
+  { id: 'c-expeditions', tab: 'expeditions', text: 'Envoie tes compagnons libres en expédition', ok: (s) => (s.expeditions?.slots ?? []).some((r) => !r) && Object.keys(s.companions?.owned ?? {}).length > s.companions.equipped.length },
+  { id: 'c-event', tab: 'event', text: 'Événement : enchaîne les étapes de la carte', ok: (s) => Boolean(s.event) },
+];
+export function guideDay(state, now = Date.now()) {
+  const d = new Date(now); const key = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  if (state.ui.guideDay?.day !== key) state.ui.guideDay = { day: key, done: [], skips: {} };
+  return state.ui.guideDay;
+}
+function contentRound(state, open) {
+  if (!state.ui) return null;
+  const g = guideDay(state);
+  for (const c of CONTENT_ROUND) {
+    if (g.done.includes(c.id) || (g.skips[c.id] ?? 0) >= 2 || !open(c.tab)) continue;
+    let ok = false;
+    try { ok = c.ok(state); } catch { ok = false; }
+    if (ok) return { id: c.id, text: c.text, tab: c.tab, view: c.view, content: true };
+  }
+  return null;
 }
 
 function claimAction(claims) {

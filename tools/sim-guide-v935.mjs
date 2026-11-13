@@ -3,7 +3,7 @@
 // Usage : node tools/sim-guide-v935.mjs [minutes de jeu = 120] [seed = 1]
 import { createNewState } from '../src/core/state.js';
 import { changeStage, createCombat, step, stageLabel } from '../src/core/combat.js';
-import { nextAction, companionToPlace } from '../src/core/guide.js';
+import { guideDay, nextAction, companionToPlace } from '../src/core/guide.js';
 import { claimables } from '../src/core/claimables.js';
 import { claimAchievement } from '../src/core/achievements.js';
 import { claimLogin, claimMission, claimMissionBonus, claimTrackTier, refreshMissions } from '../src/core/missions.js';
@@ -42,6 +42,7 @@ for (let t = 0; t < MINUTES * 60; t += dt) {
   const claims = claimables(state, now).filter((c) => CLAIM[c.kind]);
   const a = nextAction(state, { claims });
   counts[a.id] = (counts[a.id] ?? 0) + 1;
+  if (a.content) { guideDay(state, now).done.push(a.id); counts.content = (counts.content ?? 0) + 1; } // v9.6.2 : contenu proposé (suivi, sans jouer le mode)
   switch (a.id) {
     case 'claim': for (const c of claims) CLAIM[c.kind](c); break;
     case 'equip': equipBest(state); break;

@@ -633,6 +633,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     if (Number.isInteger(raw.ui.tourV) && raw.ui.tourV > 0) state.ui.tourV = raw.ui.tourV;
     if (raw.ui.goalsOpen === true) state.ui.goalsOpen = true;
     // v9.3.4 : aides et étapes du tutoriel déjà vues.
+    { const g = raw.ui.guideDay; if (g && typeof g.day === 'string' && Array.isArray(g.done)) state.ui.guideDay = { day: g.day.slice(0, 12), done: g.done.filter((x) => typeof x === 'string').slice(0, 20), skips: Object.fromEntries(Object.entries(g.skips ?? {}).filter(([k, v]) => typeof k === 'string' && Number.isInteger(v)).slice(0, 20)) }; } // v9.6.2
     if (Array.isArray(raw.ui.hints)) state.ui.hints = raw.ui.hints.filter((h) => typeof h === 'string' && /^[a-z0-9-]{1,32}$/.test(h)).slice(-150); // v9.3.8 : grands moments fêtés compris
     // v9.1.3 : portes du sac déjà ouvertes (Coffre et Forge restent visibles).
     if (Array.isArray(raw.ui.invUsed)) state.ui.invUsed = raw.ui.invUsed.filter((t) => ['stash', 'forge'].includes(t));

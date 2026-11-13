@@ -1,6 +1,11 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Défi du jour : monte dans la Tour": "오늘의 도전: 탑에 오르세요",
+  "Tente le Défi de la semaine": "주간 도전에 도전하세요",
+  "Un combat d'Arène (étoiles et copies de compagnons)": "아레나 전투 (별과 동료 복제)",
+  "Envoie tes compagnons libres en expédition": "남는 동료를 원정에 보내세요",
+  "Événement : enchaîne les étapes de la carte": "이벤트: 지도 단계를 연속 진행",
   "Enchaîner": "연속 전투",
   "Combat les étapes suivantes tant qu'elles sont gagnées": "이기는 동안 다음 단계를 계속 싸웁니다",
   "Gardien trop solide : renforcez le héros": "수호자가 너무 강합니다: 영웅을 강화하세요",
