@@ -1,3 +1,10 @@
+## Ascendrya v9.6.0 — Des monstres qui obligent à se préparer
+
+- Huit comportements de monstres, deux par monde à partir du monde 2 : Tireur, Bouclier, Kamikaze, Soigneur, Essaim, Volant, Voleur et Charge. Chacun a sa parade, qui se prépare avant le combat (un rôle de compagnon ou la classe du héros) : avec elle, le malus disparaît. Rien à faire pendant le combat.
+- Une icône au-dessus du monstre montre son comportement (estompée quand l'équipe a la parade) ; une carte courte l'explique à la première rencontre ; l'écran Préparation liste ceux du monde.
+- Chaque boss de campagne a désormais une mécanique à partir du monde 2.
+- Combat plus lisible : l'aura des compagnons 5★ devient un liseré (grandes flammes en option), au plus 3 anneaux d'impact à la fois.
+
 ## Ascendrya v9.5.2 — Préparer son équipe : composition, éléments, équipement
 
 - Niveau d'équipe partagé : tous les compagnons ont le même niveau (et tous les familiers aussi). Changer d'équipe ne coûte plus rien ; vos niveaux sont gardés (le plus haut atteint devient celui de l'équipe).
