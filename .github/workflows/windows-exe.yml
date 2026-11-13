@@ -3,8 +3,9 @@ name: Windows exe
 # Release d'Ascendrya : construit l'installateur Windows (testé : lancement réel, sauvegarde, mise à jour d'une
 # installation précédente) et l'APK Android, puis publie la release de la version de package.json (ex. v9.5.2).
 # Déclenchée seulement à la demande (onglet Actions, « Run workflow ») ou par un tag v* : plus à chaque push
-# (les tests de chaque push sont dans ci.yml). Les artefacts intermédiaires ne sont gardés qu'un jour : les fichiers
-# téléchargeables restent dans les Releases.
+# (les tests de chaque push sont dans ci.yml). Aucun artefact Actions (quota de stockage) : chaque job envoie son
+# fichier directement dans la release (brouillon créé au début, publié à la fin). Une release déjà publiée n'est
+# jamais supprimée : ses fichiers sont remplacés.
 on:
   push:
     tags: ['v*']
@@ -18,7 +19,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Créer la release en brouillon (si elle n'existe pas encore)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="v$(node -p "require('./package.json').version")"
+          gh release view "$VERSION" >/dev/null 2>&1 || gh release create "$VERSION" --draft --target "$GITHUB_SHA" \
+            --title "Ascendrya $VERSION" --notes-file docs/RELEASE_NOTES.md
+
   build:
+    needs: prepare
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
@@ -72,15 +86,16 @@ jobs:
           # Le vrai parcours du bouton « Mettre à jour » (installateur visible lancé par le jeu, relance, échec détecté).
           node tools/upgrade-smoke.mjs "previous/IdleRPG-$PREVIOUS-setup.exe" "dist/IdleRPG-${VERSION}-setup.exe" "$VERSION" --inapp
 
-      - name: Conserver l'installateur comme artefact
-        uses: actions/upload-artifact@v4
-        with:
-          name: idle-rpg-windows
-          path: dist/*-setup.exe
-          if-no-files-found: error
-          retention-days: 1
+      - name: Envoyer l'installateur dans la release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          gh release upload "v$VERSION" "dist/IdleRPG-${VERSION}-setup.exe" --clobber
 
   android:
+    needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -111,7 +126,9 @@ jobs:
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          # Maven Central refuse parfois des téléchargements (429, « Could not find ») : jusqu'à 4 essais.
+          for i in 1 2 3 4; do ./gradlew assembleDebug --no-daemon && exit 0; echo "Essai $i échoué, nouvel essai dans 60 s"; sleep 60; done
+          exit 1
 
       - name: Renommer l'APK
         run: |
@@ -119,37 +136,21 @@ jobs:
           mkdir -p dist
           cp android/app/build/outputs/apk/debug/app-debug.apk "dist/IdleRPG-${VERSION}.apk"
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: idle-rpg-android
-          path: dist/*.apk
-          if-no-files-found: error
-          retention-days: 1
+      - name: Envoyer l'APK dans la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          gh release upload "v$VERSION" "dist/IdleRPG-${VERSION}.apk" --clobber
 
   publish:
     needs: [build, android]
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/download-artifact@v4
-        with:
-          path: assets
-
-      - name: Publier la release
+      - name: Publier la release (exe et APK présents)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION="v$(node -p "require('./package.json').version")"
-          # Release déjà publiée : on remplace seulement ses fichiers (jamais de suppression de release ni de tag).
-          if gh release view "$VERSION" >/dev/null 2>&1; then
-            gh release upload "$VERSION" assets/idle-rpg-windows/*-setup.exe assets/idle-rpg-android/*.apk --clobber
-          else
-            gh release create "$VERSION" assets/idle-rpg-windows/*-setup.exe assets/idle-rpg-android/*.apk \
-              --target "$GITHUB_SHA" \
-              --title "Ascendrya $VERSION" \
-              --notes-file docs/RELEASE_NOTES.md \
-              --latest
-          fi
+          gh release edit "$VERSION" --draft=false --latest
