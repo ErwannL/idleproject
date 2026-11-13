@@ -1093,7 +1093,10 @@ export function step(state, world, dt, rng, balance = BALANCE) {
       world.companionTimers[key] = (world.companionTimers[key] ?? skill.every / 2 + skill.index) - dt * (world.major === 'teamHaste' ? 1.25 : 1); // v9.6.1 : Cadence d'équipe
       const target = world.enemies[0];
       const needsTarget = ['hit', 'burst'].includes(skill.type);
-      if (world.companionTimers[key] <= 0 && (!needsTarget || (target && target.x - W.heroX <= range + 20 && canHit(target, balance)))) {
+      // v9.6.3 (5.3 bis) : consigne de l'ultime — dès que prêt, gardé pour le boss, ou quand les PV passent sous 50 %.
+      const order = skill.ultimate ? state.companions.orders?.[companion.id] ?? 'ready' : 'ready';
+      const held = (order === 'boss' && !world.enemies.some((e) => e.boss)) || (order === 'lowhp' && hero.hp > stats.maxHp * 0.5);
+      if (!held && world.companionTimers[key] <= 0 && (!needsTarget || (target && target.x - W.heroX <= range + 20 && canHit(target, balance)))) {
         castCompanion(state, world, companion, skill, stats, rng, balance, enc, target);
         world.companionTimers[key] = skill.every;
       }

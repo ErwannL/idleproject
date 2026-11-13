@@ -1,6 +1,12 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Passif renforcé de 15 %": "Passive strengthened by 15%",
+  "Aura : +8 % de dégâts à toute l'équipe": "Aura: +8% damage to the whole team",
+  "Consigne :": "Order:",
+  "Dès que prête": "When ready",
+  "Garder pour le boss": "Keep for the boss",
+  "PV sous 50 %": "HP below 50%",
   "Avant": "Front",
   "Arrière": "Back",
   "Mettre au rang avant": "Move to the front row",
@@ -384,6 +390,8 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^([35])★ : (.+?)( ✓)?$"), (m) => `${m[1]}★: ${L(m[2])}${m[3] ?? ''}`],
+
   [new RegExp("^gagne-le avec (.+)$"), (m) => `earn it with ${L(m[1])}`],
   [new RegExp("^· arrêt à l'étape (\\d+)$"), (m) => `· stopped at stage ${m[1]}`],
 

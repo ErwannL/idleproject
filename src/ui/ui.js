@@ -1016,6 +1016,7 @@ export class UI {
       case 'talent-best': a.buyTalentsAll(null); break;
       case 'apply-team': a.applyTeam(); break; // v9.5.0
       case 'set-front': a.setFront(value); break; // v9.6.3 (3.5)
+      case 'ult-order': { const [id, o] = value.split('|'); a.setOrder(id, o); break; } // v9.6.3
       case 'rush-slot': { const [i, id] = value.split('|'); a.setRushSlot(Number(i), id); break; } // v9.6.3
       case 'equip-for': a.equipFor(value); break; // v9.5.2
       case 'prep-apply': this.closeModal(); a.applyTeam(); break; // v9.5.1

@@ -168,7 +168,8 @@ export function companionEffects(state, balance = BALANCE) {
   }
   for (const c of equippedCompanions(state)) {
     const home = dungeonAffinity(state, c.id);
-    const m = companionMultiplier(state, c.id) * (home ? balance.dungeonAffinity.passiveMultiplier : 1);
+    const m = companionMultiplier(state, c.id) * (home ? balance.dungeonAffinity.passiveMultiplier : 1)
+      * ((state.companions.owned[c.id]?.stars ?? 1) >= 3 ? 1 + STAR_TIERS[3].passivePct / 100 : 1); // v9.6.3 (3.7) : palier 3★
     // v8.8 : les % de dégâts, PV et or des compagnons sont MULTIPLICATIFS (avant : noyés dans les milliers de %
     // de l'arbre, si bien qu'un SR valait un SSR en fin de partie).
     for (const [k, v] of Object.entries(c.passive)) {
@@ -180,6 +181,8 @@ export function companionEffects(state, balance = BALANCE) {
   }
   // v9.6.1 (4.5) : résonance d'élément — 2 membres du même élément (héros compris s'il porte un ensemble) : +10 % de
   // dégâts ; 3 ou plus : +25 %. Le joueur arbitre entre résonance, synergies de rôles et avantage sur le monde.
+  // v9.6.3 (3.7) : palier 5★ — aura : +8 % de dégâts à toute l'équipe par compagnon 5★ placé.
+  for (const c of equippedCompanions(state)) if ((state.companions.owned[c.id]?.stars ?? 1) >= 5) out.damageMultPct = (out.damageMultPct ?? 0) + STAR_TIERS[5].auraPct;
   const res = elementResonance(state);
   if (res) out.damageMultPct = (out.damageMultPct ?? 0) + res.pct;
   return out;
@@ -214,6 +217,8 @@ export function upgradeCompanion(state, id, balance = BALANCE) {
 }
 
 export const RESONANCE = { 2: 10, 3: 25 };
+// v9.6.3 (3.7) : paliers visibles des copies — 3★ : passif renforcé ; 5★ : aura d'équipe.
+export const STAR_TIERS = { 3: { passivePct: 15, text: 'Passif renforcé de 15 %' }, 5: { auraPct: 8, text: 'Aura : +8 % de dégâts à toute l\'équipe' } };
 // Élément le plus représenté dans l'équipe (compagnons, familier, et le héros s'il a un élément d'ensemble).
 export function elementResonance(state) {
   const els = equippedCompanions(state).map((c) => unitElement(c.id)).filter(Boolean);

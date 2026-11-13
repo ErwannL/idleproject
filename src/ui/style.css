@@ -3446,3 +3446,5 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 .team-slot-wrap { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; }
 .rank-pill { font-size: 11px; padding: 0 6px; border-radius: 8px; background: #2a3150; cursor: pointer; }
 .rank-pill.front { background: #3a5aa8; cursor: default; }
+.ult-orders { font-size: 12px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-bottom: 4px; }
+.star-tiers { font-size: 12px; margin: 4px 10px; }

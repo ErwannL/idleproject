@@ -1,6 +1,12 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Passif renforcé de 15 %": "패시브 15% 강화",
+  "Aura : +8 % de dégâts à toute l'équipe": "오라: 팀 전체 피해 +8%",
+  "Consigne :": "지시:",
+  "Dès que prête": "준비되면",
+  "Garder pour le boss": "보스용으로 보관",
+  "PV sous 50 %": "HP 50% 미만",
   "Avant": "전열",
   "Arrière": "후열",
   "Mettre au rang avant": "전열로 이동",
@@ -384,6 +390,8 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^([35])★ : (.+?)( ✓)?$"), (m) => `${m[1]}★: ${L(m[2])}${m[3] ?? ''}`],
+
   [new RegExp("^gagne-le avec (.+)$"), (m) => `${L(m[1])}(으)로 얻기`],
   [new RegExp("^· arrêt à l'étape (\\d+)$"), (m) => `· ${m[1]}단계에서 멈춤`],
 

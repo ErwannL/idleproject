@@ -299,6 +299,7 @@ function cleanCollections(state, raw) {
   const run = obj(raw.worldRun);
   const equipped = Array.isArray(run.prevEquipped) ? run.prevEquipped : Array.isArray(companions.equipped) ? companions.equipped : [];
   if (typeof companions.front === 'string') state.companions.front = companions.front; // v9.6.3 (3.5)
+  { const o = obj(companions.orders); const out = {}; for (const [k, v] of Object.entries(o)) if (['ready', 'boss', 'lowhp'].includes(v)) out[k] = v; if (Object.keys(out).length) state.companions.orders = out; } // v9.6.3 (5.3 bis)
   state.companions.equipped = clampTeam([...new Set(equipped)].filter((id) => state.companions.owned[id]), BALANCE, { ...state, maxStage: Math.max(int(raw.maxStage, 1, 1), state.maxStage ?? 1), records: { ...(state.records ?? {}), bestStage: Math.max(int(raw.records?.bestStage, 1, 1), state.records?.bestStage ?? 1) } }); // v9.6.3 : 3e place selon le record
 
   const summon = obj(raw.summon);

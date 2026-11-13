@@ -7,7 +7,7 @@ import { COMPANION_RULES } from '../../data/companions.js';
 import { COMPANION_ROLES, ROLES, SYNERGIES } from '../../data/synergies.js';
 import { ACTIVE_EXTRA_AT, DUP_BONUS_PCT, SKILL_CAPS, SKILL_RESOURCES, ULT_UNLOCK_COPIES } from '../../data/progression.js';
 import { ELEMENTS, elementBadge, unitElement } from '../../core/elements.js';
-import { allCompanionSkills, companionSkillMultiplier, companionSkills, skillKillGold, unitLevel } from '../../core/companions.js';
+import { STAR_TIERS, allCompanionSkills, companionSkillMultiplier, companionSkills, skillKillGold, unitLevel } from '../../core/companions.js';
 import { canAfford, leveledSkill, levelMult, skillCap, skillLevels, skillUpgradeCost } from '../../core/progression.js';
 import { companionProfile } from '../../core/arena.js';
 import { computeHeroStats } from '../../core/stats.js';
@@ -82,7 +82,10 @@ function skillBubble(ui, state, c, own, mine) {
     ? `<button class="btn btn-gold" data-action="skill-up" data-value="${c.id}|${kind}" ${canAfford(state, cost) ? '' : `disabled data-why="${escapeHtml(lackText(state, cost))}"`}>Améliorer ${res ? `${img(res[1].icon)} ${cost[res[0]]}` : ''} ${img('coin')} ${formatNumber(cost.gold)}</button>
        ${Object.keys(SKILL_RESOURCES).filter((k) => cost[k] > 0).map((k) => `<button class="btn tiny res-chip${(state.materials[k] ?? 0) < cost[k] ? ' bad' : ''}" data-action="res-info" data-value="${k}" title="Où en trouver ?">${img(SKILL_RESOURCES[k].icon)} ${formatNumber(state.materials[k] ?? 0)}/${cost[k]} ?</button>`).join('')}`
     : `<span class="good">${lv >= SKILL_CAPS[kind] ? 'Niveau maximal' : 'Plafond atteint'}</span>`;
-  return `<div class="up-bubble" role="dialog" aria-label="Détail de la compétence">
+  // v9.6.3 (5.3 bis) : consigne de l'ultime (réglée dans la préparation, jamais un geste en combat).
+  const ord = state.companions.orders?.[c.id] ?? 'ready';
+  const orders = kind === 'ultimate' && mine ? `<div class="ult-orders">Consigne : ${[['ready', 'Dès que prête'], ['boss', 'Garder pour le boss'], ['lowhp', 'PV sous 50 %']].map(([v, t]) => `<button class="btn tiny${ord === v ? ' active' : ''}" data-action="ult-order" data-value="${c.id}|${v}">${t}</button>`).join('')}</div>` : '';
+  return `<div class="up-bubble" role="dialog" aria-label="Détail de la compétence">${orders}
       <div class="row-between"><b>Nv ${lv} / ${cap}</b><button class="btn tiny" data-action="skill-pop" data-value="" aria-label="Fermer">✕</button></div>
       <p>${now}</p>${next ? `<p class="up-next">Niveau suivant : ${next}</p>` : ''}
       ${locks.map((l) => `<p class="up-lock">🔒 ${l}</p>`).join('')}${btn}</div>`;
@@ -124,6 +127,7 @@ export function unitPopup(ui, state, c, { actions, gear }) {
       ${role ? `<div class="up-role muted">${escapeHtml(ROLES[role].does)} ${escapeHtml(ROLES[role].good)}</div>` : ''}
       <div class="up-stars" aria-label="${copies} copies sur ${COMPANION_RULES.maxCopies}">${'★'.repeat(copies - 1)}<span>${'★'.repeat(COMPANION_RULES.maxCopies - copies)}</span></div>
     </div>
+    <div class="star-tiers">${[3, 5].map((n) => `<span class="${(owned?.stars ?? 0) >= n ? 'good' : 'muted'}">${n}★ : ${escapeHtml(STAR_TIERS[n].text)}${(owned?.stars ?? 0) >= n ? ' ✓' : ''}</span>`).join(' · ')}</div>
     <div class="up-title"><b>${escapeHtml(c.name)}</b><span>${owned ? `Nv ${unitLevel(state, c.id)} / ${COMPANION_RULES.maxLevel}` : 'Pas encore obtenu'}</span></div>
     ${owned ? '' : '<div class="up-where">Où l\'obtenir : Équipe › Invocation</div>'}
     <div class="up-stats"><span title="Dégâts par seconde de ses compétences">⚔ <b>${formatNumber(dps)}</b><small>Dégâts</small></span>
