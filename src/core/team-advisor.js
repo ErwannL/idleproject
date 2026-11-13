@@ -3,7 +3,7 @@
 // vague suivante et paraîtrait plus faible) : on mesure les dégâts infligés par seconde (héros + compagnons, éléments,
 // synergies et passifs compris), divisés par deux si le héros tombe. Rien n'est modifié dans la partie.
 import { BALANCE } from '../data/balance.js';
-import { companionById, onExpedition, teamKind } from './companions.js';
+import { companionById, onExpedition, teamKind, teamSlotsOf } from './companions.js';
 import { createCombat, step } from './combat.js';
 import { Rng } from './rng.js';
 
@@ -36,7 +36,7 @@ export function teamScore(state, team, balance = BALANCE, seconds = SECONDS) {
   return (dmg / seconds) * (died ? 0.5 : 1);
 }
 
-function slots(balance) { return balance.teamSlots ?? { ally: 2, pet: 1 }; }
+function slots(balance, state) { return teamSlotsOf(state, balance); }
 
 // Meilleure équipe parmi les compagnons possédés et libres. Renvoie { team, score, current, gain } ou null.
 export function bestTeam(state, balance = BALANCE) {
@@ -52,7 +52,7 @@ export function* bestTeamSteps(state, balance = BALANCE) {
     .filter((c) => !onExpedition(state, c.id) || state.companions.equipped.includes(c.id));
   const allies = owned.filter((c) => teamKind(c) === 'ally');
   const pets = owned.filter((c) => teamKind(c) === 'pet');
-  const n = slots(balance);
+  const n = slots(balance, state);
   if (!allies.length && !pets.length) return null;
   const current = state.companions.equipped.filter((id) => owned.some((c) => c.id === id));
   const curAllies = current.filter((id) => teamKind(companionById(id)) === 'ally');

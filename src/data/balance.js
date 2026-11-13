@@ -406,6 +406,7 @@ export const BALANCE = {
 
   // Équipe : le chevalier (fixe) + 2 personnages (héros alliés) + 1 compagnon (familier).
   teamSlots: { ally: 2, pet: 1 },
+  thirdAllyStage: 81, // v9.6.3 (3.4) : 3e place de compagnon à partir du monde 5
   companionSlots: 3,
 
 

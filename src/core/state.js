@@ -298,7 +298,8 @@ function cleanCollections(state, raw) {
   // v9.1.3 (doc4 lot 6) : un essai dans un monde n'est jamais repris au chargement ; l'équipe d'avant l'essai revient.
   const run = obj(raw.worldRun);
   const equipped = Array.isArray(run.prevEquipped) ? run.prevEquipped : Array.isArray(companions.equipped) ? companions.equipped : [];
-  state.companions.equipped = clampTeam([...new Set(equipped)].filter((id) => state.companions.owned[id]));
+  if (typeof companions.front === 'string') state.companions.front = companions.front; // v9.6.3 (3.5)
+  state.companions.equipped = clampTeam([...new Set(equipped)].filter((id) => state.companions.owned[id]), BALANCE, { ...state, maxStage: Math.max(int(raw.maxStage, 1, 1), state.maxStage ?? 1), records: { ...(state.records ?? {}), bestStage: Math.max(int(raw.records?.bestStage, 1, 1), state.records?.bestStage ?? 1) } }); // v9.6.3 : 3e place selon le record
 
   const summon = obj(raw.summon);
   // v9.2.8 : compteurs par bannière (data/economy.js) ; une sauvegarde d'avant est convertie (migrations-v928.js).

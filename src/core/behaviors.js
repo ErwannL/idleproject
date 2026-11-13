@@ -6,9 +6,17 @@ import { activeClass } from './classes.js';
 
 const CLASS_ROLE = { archer: 'archer', crossbowman: 'archer', pyromancer: 'mage', stormcaller: 'mage', necromancer: 'mage', assassin: 'assassin', berserker: 'berserker' };
 
+// v9.6.3 (3.5) : compagnon au rang avant (choisi ; sinon le premier compagnon placé). Les autres sont au rang arrière.
+export function frontCompanion(state) {
+  const allies = (state.companions?.equipped ?? []).filter((id) => COMPANION_ROLES[id] && COMPANION_ROLES[id] !== 'pet');
+  return allies.includes(state.companions?.front) ? state.companions.front : allies[0] ?? null;
+}
+
 // Parades présentes : { shooter: true, … }.
 export function teamCounters(state) {
   const roles = new Set((state.companions?.equipped ?? []).map((id) => COMPANION_ROLES[id]).filter(Boolean));
+  // v9.6.3 (3.5) : un Gardien ne pare Charge et Kamikaze qu'au rang avant.
+  if (roles.has('guardian') && COMPANION_ROLES[frontCompanion(state)] !== 'guardian') roles.delete('guardian');
   return countersFor(roles, activeClass(state));
 }
 

@@ -51,7 +51,7 @@ export function applyLoadout(state, index, balance = BALANCE, itemPower = () => 
   const slot = state.loadouts[index];
   if (!slot?.team) return null;
   if (slot.heroClass && classById(slot.heroClass) && classUnlocked(state, slot.heroClass)) setHeroClass(state, slot.heroClass, itemPower);
-  state.companions.equipped = clampTeam(slot.team.filter((id) => state.companions.owned[id] && !onExpedition(state, id)));
+  state.companions.equipped = clampTeam(slot.team.filter((id) => state.companions.owned[id] && !onExpedition(state, id)), BALANCE, state);
   let missing = 0;
   let refused = 0;
   for (const id of Object.values(slot.gear ?? {})) {

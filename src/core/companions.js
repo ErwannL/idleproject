@@ -247,11 +247,18 @@ export function equippedOfKind(state, kind) {
 }
 
 // Garde au plus `teamSlots[kind]` membres de chaque catégorie (ordre conservé).
-export function clampTeam(equipped, balance = BALANCE) {
+// v9.6.3 (3.4) : places de l'équipe — une 3e place de compagnon à partir du monde 5 (record d'étape).
+export function teamSlotsOf(state, balance = BALANCE) {
+  const best = Math.max(state?.maxStage ?? 1, state?.records?.bestStage ?? 1);
+  return { ally: balance.teamSlots.ally + (best >= (balance.thirdAllyStage ?? Infinity) ? 1 : 0), pet: balance.teamSlots.pet };
+}
+
+export function clampTeam(equipped, balance = BALANCE, state = null) {
   const count = { ally: 0, pet: 0 };
+  const slots = state ? teamSlotsOf(state, balance) : balance.teamSlots;
   return equipped.filter((id) => {
     const kind = teamKind(companionById(id));
-    if (!companionById(id) || count[kind] >= balance.teamSlots[kind]) return false;
+    if (!companionById(id) || count[kind] >= slots[kind]) return false;
     count[kind] += 1;
     return true;
   });
@@ -283,7 +290,7 @@ export function toggleCompanion(state, id, balance = BALANCE) {
   }
   const kind = teamKind(c);
   const same = state.companions.equipped.filter((x) => teamKind(companionById(x)) === kind);
-  if (same.length >= balance.teamSlots[kind]) {
+  if (same.length >= teamSlotsOf(state, balance)[kind]) {
     if (kind !== 'pet') return false;
     state.companions.equipped = state.companions.equipped.filter((x) => !same.includes(x));
   }

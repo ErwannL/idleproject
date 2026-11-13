@@ -1,6 +1,9 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Avant": "Front",
+  "Arrière": "Back",
+  "Mettre au rang avant": "Move to the front row",
   "Attaque lourde !": "Heavy attack!",
   "Affaibli !": "Weakened!",
   "Emplacement :": "Slot:",

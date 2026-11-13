@@ -4,7 +4,8 @@ import { BALANCE } from '../../data/balance.js';
 import { COMPANION_RULES } from '../../data/companions.js';
 import { UNITS as COMPANIONS } from '../../data/banners.js'; // v9.1.3 (partie B) : persos de bannière compris quand actifs
 import { teamAdvice } from '../../core/team-advisor.js'; // v9.5.0
-import { RESONANCE, elementResonance } from '../../core/companions.js'; // v9.6.1
+import { frontCompanion } from '../../core/behaviors.js'; // v9.6.3
+import { RESONANCE, elementResonance, teamSlotsOf } from '../../core/companions.js'; // v9.6.1
 import { MULTIPLICATIVE, RARITY_SKILL, activeSynergies, allCompanionSkills, companionById, companionMultiplier, companionSkillMultiplier, companionSkills, companionUpgradeCost, skillKillGold, duplicates, equippedOfKind, teamKind, ultimateUnlocked, unitLevel } from '../../core/companions.js';
 import { COMPANION_ROLES, ROLES, SYNERGIES } from '../../data/synergies.js';
 import { elementBadge, elementWheel, unitElement, zoneElement } from '../../core/elements.js'; // v9.3.1 : types · v9.5.1 : roue
@@ -135,18 +136,20 @@ export default {
   id: 'companions',
   title: 'Composition',
   icon: 'icon_paw',
-  extra: (ui, state) => `Équipe ${1 + state.companions.equipped.length}/${1 + BALANCE.teamSlots.ally + BALANCE.teamSlots.pet}`,
+  extra: (ui, state) => `Équipe ${1 + state.companions.equipped.length}/${1 + teamSlotsOf(state).ally + teamSlotsOf(state).pet}`,
   render(ui, state) {
     const sel = companionById(ui.view.companionSel) ?? COMPANIONS.find((c) => state.companions.owned[c.id]) ?? COMPANIONS[0];
     // Barre d'équipe : le chevalier, 2 places de personnage, 1 place de compagnon.
     const slot = (kind, i) => {
       const c = equippedOfKind(state, kind)[i];
-      return c ? `<button class="team-slot r-${c.rarity}" data-action="companion-sel" data-value="${c.id}" title="${escapeHtml(c.name)}">${c.id === sel.id ? portrait(c) : companionStill(c)}</button>`
+      // v9.6.3 (3.5) : rang avant (encaisse, un Gardien y pare Charge et Kamikaze) ou arrière (protégé) ; un toucher change.
+      const rank = kind === 'ally' && c ? (frontCompanion(state) === c.id ? '<span class="rank-pill front">Avant</span>' : `<span class="rank-pill" data-action="set-front" data-value="${c.id}" title="Mettre au rang avant">Arrière</span>`) : '';
+      return c ? `<div class="team-slot-wrap"><button class="team-slot r-${c.rarity}" data-action="companion-sel" data-value="${c.id}" title="${escapeHtml(c.name)}">${c.id === sel.id ? portrait(c) : companionStill(c)}</button>${rank}</div>`
         : `<div class="team-slot empty" title="${kind === 'ally' ? 'Place de compagnon' : 'Place de familier'}">${kind === 'ally' ? 'Compagnon' : 'Familier'}</div>`;
     };
     const team = `<div class="team-bar">
       <div class="team-slot hero" title="Le héros (toujours présent)">${animCanvas('hero', 64, 58, 1)}</div>
-      ${Array.from({ length: BALANCE.teamSlots.ally }, (_, i) => slot('ally', i)).join('')}
+      ${Array.from({ length: teamSlotsOf(state).ally }, (_, i) => slot('ally', i)).join('')}
       <span class="team-sep"></span>${Array.from({ length: BALANCE.teamSlots.pet }, (_, i) => slot('pet', i)).join('')}
     </div>`;
     // v9.3.4 : cartes hautes : portrait en grand, nom sur deux lignes, cadre et pastille de rareté, élément et rôle.
@@ -173,7 +176,7 @@ export default {
     } else {
       const maxed = unitLevel(state, sel.id) >= COMPANION_RULES.maxLevel;
       const kind = teamKind(sel);
-      const full = !equipped && kind === 'ally' && equippedOfKind(state, 'ally').length >= BALANCE.teamSlots.ally;
+      const full = !equipped && kind === 'ally' && equippedOfKind(state, 'ally').length >= teamSlotsOf(state).ally;
       const swap = !equipped && kind === 'pet' && equippedOfKind(state, 'pet').length >= BALANCE.teamSlots.pet;
       // Équipe pleine : « Équiper » propose de choisir le compagnon à remplacer.
       const replacing = full && ui.view.replaceFor === sel.id;
@@ -220,7 +223,7 @@ export default {
       for (const out of [...allyIds, null]) {
         for (const inn of bench) {
           const team = [...allyIds.filter((id) => id !== out), inn];
-          if (team.length > (BALANCE.teamSlots?.ally ?? 2)) continue;
+          if (team.length > teamSlotsOf(state).ally) continue;
           const roles = ['guardian', ...team.map((id) => COMPANION_ROLES[id]).filter(Boolean)];
           const pool = [...roles];
           if (syn.roles.every((r) => { const i = pool.indexOf(r); if (i < 0) return false; pool.splice(i, 1); return true; })) { found = { out, inn }; break; }
@@ -257,7 +260,7 @@ export default {
       ${nearHtml ? `<div class="card syn-near-card"><b>Synergies à portée</b>${nearHtml}</div>` : ''}
       ${fold(ui, 'synergies', synTitle, synergies)}
       <div class="item-tabs comp-tabs" role="tablist">
-        <button class="btn chip-btn${tab === 'ally' ? ' active' : ''}" data-action="comp-tab" data-value="ally" role="tab" aria-selected="${tab === 'ally'}">Compagnons <small>(2 places)</small></button>
+        <button class="btn chip-btn${tab === 'ally' ? ' active' : ''}" data-action="comp-tab" data-value="ally" role="tab" aria-selected="${tab === 'ally'}">Compagnons <small>(${teamSlotsOf(state).ally} places)</small></button>
         <button class="btn chip-btn${tab === 'pet' ? ' active' : ''}" data-action="comp-tab" data-value="pet" role="tab" aria-selected="${tab === 'pet'}">Familiers <small>(1 place)</small></button></div>
       <div class="unit-grid">${list.map(thumb).join('')}</div>
       ${detail}`;

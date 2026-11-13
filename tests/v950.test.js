@@ -155,3 +155,19 @@ test('v9.6.3 : boss en phases — attaque lourde annoncée toutes les 8 s, puis 
   assert.ok(heavy >= 2, `attaques lourdes : ${heavy}`);
   assert.ok(weak >= 1, `fenêtres d'affaiblissement : ${weak}`);
 });
+
+test('v9.6.3 : 3e place de compagnon au monde 5, rang avant (un Gardien n\'y pare Charge et Kamikaze qu\'au rang avant)', async () => {
+  const { teamSlotsOf, clampTeam } = await import('../src/core/companions.js');
+  const { teamCounters, frontCompanion } = await import('../src/core/behaviors.js');
+  const s = createNewState(NOW);
+  assert.equal(teamSlotsOf(s).ally, 2);
+  s.maxStage = 81;
+  assert.equal(teamSlotsOf(s).ally, 3);
+  assert.equal(clampTeam(['lancer', 'witch', 'ninja', 'barbarian'], undefined, s).length, 3);
+  s.companions.owned = { witch: { stars: 1, level: 1 }, lancer: { stars: 1, level: 1 } };
+  s.companions.equipped = ['witch', 'lancer'];
+  assert.equal(frontCompanion(s), 'witch');
+  assert.equal(teamCounters(s).charger, false, 'Gardien à l\'arrière');
+  s.companions.front = 'lancer';
+  assert.equal(teamCounters(s).charger, true, 'Gardien à l\'avant');
+});

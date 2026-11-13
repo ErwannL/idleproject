@@ -3443,3 +3443,6 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 #rush-bar .rush-btn.weak-window { box-shadow: 0 0 0 3px #ffd24a, 0 0 16px #ffd24a; animation: rush-glow 0.6s ease-in-out infinite alternate; }
 @keyframes rush-glow { to { box-shadow: 0 0 0 3px #fff3b0, 0 0 26px #ffd24a; } }
 .tt-slots { font-size: 12px; margin-top: 3px; display: flex; gap: 4px; align-items: center; }
+.team-slot-wrap { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; }
+.rank-pill { font-size: 11px; padding: 0 6px; border-radius: 8px; background: #2a3150; cursor: pointer; }
+.rank-pill.front { background: #3a5aa8; cursor: default; }

@@ -1,6 +1,9 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Avant": "전열",
+  "Arrière": "후열",
+  "Mettre au rang avant": "전열로 이동",
   "Attaque lourde !": "강공격!",
   "Affaibli !": "약화!",
   "Emplacement :": "슬롯:",

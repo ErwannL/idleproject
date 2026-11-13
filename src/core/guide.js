@@ -4,7 +4,7 @@ import { bossesForStage, createCombat, heroPower, isBossStage, step } from './co
 import { Rng } from './rng.js';
 import { endWorldRun } from './banner.js';
 import { isUpgrade, uselessItems } from './inventory.js';
-import { companionById, companionUpgradeCost, onExpedition, teamKind, unitLevel } from './companions.js';
+import { companionById, companionUpgradeCost, onExpedition, teamKind, teamSlotsOf, unitLevel } from './companions.js';
 import { teamAdvice } from './team-advisor.js'; // v9.5.0
 import { upgradeProfits } from './profit.js';
 import { upgradeOpen } from './unlocks.js';
@@ -101,7 +101,7 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
     return { id: 'summon', text: 'Première invocation : un compagnon', tab: 'summon' };
   }
   // v9.3.5 : gemmes en réserve et place libre dans l'équipe → invoquer (aussi après la première fois).
-  const freeOf = (k) => state.companions.equipped.filter((id) => teamKind(companionById(id)) === k).length < balance.teamSlots[k];
+  const freeOf = (k) => state.companions.equipped.filter((id) => teamKind(companionById(id)) === k).length < teamSlotsOf(state, balance)[k];
   if (open('summon') && Object.keys(state.companions.owned).length && (freeOf('ally') || freeOf('pet')) && state.gems >= balance.summon.gemCost) {
     return { id: 'summon', text: freeOf('ally') ? 'Invoquer un compagnon (place libre)' : 'Invoquer un familier (place libre)', tab: 'summon' };
   }
@@ -159,7 +159,7 @@ const UPGRADE_NAMES = { damage: 'Dégâts', attackSpeed: 'Vitesse d\'attaque', v
 // Compagnon possédé à placer dans une place libre de l'équipe (le plus rare d'abord), ou null.
 export function companionToPlace(state, balance = BALANCE) {
   const order = ['legendary', 'epic', 'rare', 'common'];
-  const free = (kind) => state.companions.equipped.filter((id) => teamKind(companionById(id)) === kind).length < balance.teamSlots[kind];
+  const free = (kind) => state.companions.equipped.filter((id) => teamKind(companionById(id)) === kind).length < teamSlotsOf(state, balance)[kind];
   return Object.keys(state.companions.owned).map(companionById)
     .filter((c) => c && !state.companions.equipped.includes(c.id) && !onExpedition(state, c.id) && free(teamKind(c)))
     .sort((a, b) => order.indexOf(a.rarity) - order.indexOf(b.rarity))[0] ?? null;
