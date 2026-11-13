@@ -1,6 +1,15 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Itinéraire": "경로",
+  "Normal": "보통",
+  "Le donjon tel quel.": "그대로의 던전.",
+  "Court et dur": "짧고 어려움",
+  "2 salles de moins, monstres +60 % de PV.": "방 2개 적음, 몬스터 HP +60%.",
+  "Long et sûr": "길고 안전함",
+  "2 salles de plus, monstres −25 % de PV, butin ×1,2.": "방 2개 추가, 몬스터 HP −25%, 전리품 ×1.2.",
+  "Trésor gardé": "지켜진 보물",
+  "Monstres +50 % de PV (Élites), butin ×1,6.": "몬스터 HP +50% (정예), 전리품 ×1.6.",
   "Règle :": "규칙:",
   "Ascensions du jour faites — reviens demain": "오늘 등반 완료 — 내일 다시 오세요",
   "Une règle change tous les 10 étages.": "10층마다 규칙이 바뀝니다.",
@@ -354,6 +363,9 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Élément : (.*)$"), (m) => `속성: ${m[1]}`],
+  [new RegExp("^· Monstres : (.*)$"), (m) => `· 몬스터: ${m[1].split(', ').map(L).join(', ')}`],
+
   [new RegExp("^Monter \\((\\d+) ascensions? aujourd'hui\\)$"), (m) => `등반 (오늘 ${m[1]}회)`],
   [new RegExp("^Encore (\\d+) ascensions? aujourd'hui\\.$"), (m) => `오늘 ${m[1]}회 남음.`],
   [new RegExp("^Règle : (.+)$"), (m) => `규칙: ${L(m[1])}`],

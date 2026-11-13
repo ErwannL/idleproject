@@ -38,6 +38,7 @@ import { companionById } from '../core/companions.js'; // v9.5.1
 import { BOSS_TRAITS, TRAITS } from '../core/boss-traits.js'; // v9.5.1
 import { BEHAVIORS, zoneBehaviors } from '../data/behaviors.js'; // v9.6.0
 import { climbsLeft } from '../core/tower.js'; // v9.6.2
+import { dungeonRooms } from '../core/dungeon.js'; // v9.6.2
 import { RESOURCE_WHERE, SKILL_RESOURCES } from '../data/progression.js'; // v9.3.9 (2.6)
 import { coin, effectText, escapeHtml, fold, glyph, icon, img, itemFrame, missingText, rewardIcons } from './common.js';
 import { GAME_VERSION } from '../version.js';
@@ -976,7 +977,8 @@ export class UI {
       case 'dungeon-slot': local(() => { v.dungeonSlot = value; }); break;
       case 'dungeon-path-pre': local(() => { v.dungeonPath = value; a.rememberDungeonChoice('path', value); }); break;
       case 'dungeon-path': a.setDungeonPath(value); break;
-      case 'enter-dungeon': this.closeModal(); a.enterDungeon(value, v.dungeonSlot ?? this.state.ui.dungeonSlot ?? 'any', v.dungeonPath ?? this.state.ui.dungeonPath ?? 'gold', el.dataset.diff ?? v.dungeonDiff ?? 'easy'); break;
+      case 'enter-dungeon': this.closeModal(); a.enterDungeon(value, v.dungeonSlot ?? this.state.ui.dungeonSlot ?? 'any', v.dungeonPath ?? this.state.ui.dungeonPath ?? 'gold', el.dataset.diff ?? v.dungeonDiff ?? 'easy', v.dungeonRoute ?? 'normal'); break;
+      case 'dungeon-route': local(() => { v.dungeonRoute = value; }); break; // v9.6.2
       case 'dungeon-sel': local(() => { v.dungeonSel = value; v.dungeonDiff = null; }); break;
       case 'dungeon-diff': local(() => { v.dungeonDiff = value; }); break;
       case 'abandon-dungeon': a.abandonDungeon(); break;
@@ -1598,7 +1600,7 @@ export class UI {
     if (state.dungeon) {
       const d = DUNGEONS.find((x) => x.id === state.dungeon.id);
       this.$('zone-name').textContent = d.name;
-      this.$('stage-pips').innerHTML = this.pips(1, d.rooms, state.dungeon.room, state.dungeon.room - 1, (i) => i === d.rooms);
+      this.$('stage-pips').innerHTML = this.pips(1, dungeonRooms(state, d), state.dungeon.room, state.dungeon.room - 1, (i) => i === dungeonRooms(state, d));
       return;
     }
     const zone = zoneForStage(state.stage);
@@ -1656,7 +1658,7 @@ export class UI {
       text = state.challenge
         ? `Vague ${state.challenge.wave} · ${state.challenge.kills}/${enc.killsNeeded} · ${Math.max(0, Math.ceil(CHALLENGE.waveSeconds - (state.challenge.time ?? 0)))} s`
         : state.dungeon
-        ? `Salle ${state.dungeon.room}/${enc.dungeon.rooms} · ${kills}/${enc.killsNeeded}`
+        ? `Salle ${state.dungeon.room}/${dungeonRooms(state, enc.dungeon)} · ${kills}/${enc.killsNeeded}`
         : waveMode(enc) ? `Vague ${waveIndex(state)}/${waveCount()}` // v9.3.8 : vagues groupées
         : `Ennemis vaincus ${kills}/${enc.killsNeeded}`;
     }

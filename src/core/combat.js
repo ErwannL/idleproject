@@ -8,7 +8,7 @@ import { POWER_RULES } from '../data/powers.js';
 import { ZONES } from '../data/zones.js';
 import { companionSkillMultiplier, companionSkills, dungeonAffinity, dungeonDamageTaken, equippedCompanions } from './companions.js';
 import { trackContracts } from './contracts.js';
-import { completeDungeon, dungeonById, dungeonKill, failDungeon } from './dungeon.js';
+import { completeDungeon, dungeonById, dungeonKill, failDungeon , dungeonRooms, routeHp } from './dungeon.js';
 import { addGold } from './economy.js';
 import { rollEvent } from './events.js';
 import { collectItem } from './inventory.js';
@@ -237,7 +237,7 @@ export function currentEncounter(state, balance = BALANCE) {
   if (state.dungeon) {
     const d = dungeonById(state.dungeon.id);
     return {
-      level: state.dungeon.level, boss: state.dungeon.room >= d.rooms, enemies: d.enemies, bosses: [d.boss],
+      level: state.dungeon.level, boss: state.dungeon.room >= dungeonRooms(state, d), enemies: d.enemies, bosses: [d.boss],
       killsNeeded: d.killsPerRoom, zoneIndex: d.zone, dungeon: d,
     };
   }
@@ -384,6 +384,7 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
   const tr = state.tower ? towerRule(state) : null;
   if (tr?.hp) { enemy.hp *= tr.hp; enemy.maxHp *= tr.hp; }
   if (tr?.damage) enemy.damage *= tr.damage;
+  if (state.dungeon && !boss) { const k = routeHp(state); enemy.hp *= k; enemy.maxHp *= k; } // v9.6.2 : itinéraire de donjon
   world.enemies.push(enemy);
   emit(world, boss ? 'bossSpawn' : elite ? 'eliteSpawn' : 'spawn', { enemyId: enemy.id, kind: type });
   if (mutation) emit(world, 'mutantSpawn', { enemyId: enemy.id, kind: type, mutation: mutation.id });

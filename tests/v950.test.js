@@ -100,3 +100,15 @@ test('v9.6.1 : grands effets d\'objets — gardés à la sauvegarde, un seul act
   const out = sanitizeState(JSON.parse(JSON.stringify(s)), undefined, NOW);
   assert.equal(out.equipment.weapon.major, 'critSplash');
 });
+
+test('v9.6.2 : itinéraire de donjon — salles, PV et butin selon le choix', async () => {
+  const { startDungeon, dungeonRooms, dungeonById, routeHp } = await import('../src/core/dungeon.js');
+  const s = createNewState(NOW); s.maxStage = 80; s.keys = 5;
+  const d = dungeonById('crypt');
+  assert.ok(startDungeon(s, 'crypt', 'any', 'gold', 'easy', 'short'));
+  assert.equal(dungeonRooms(s, d), d.rooms - 2);
+  assert.equal(routeHp(s), 1.6);
+  s.dungeon = null;
+  assert.ok(startDungeon(s, 'crypt', 'any', 'gold', 'easy', 'long'));
+  assert.equal(dungeonRooms(s, d), d.rooms + 2);
+});

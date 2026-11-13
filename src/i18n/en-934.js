@@ -1,6 +1,15 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Itinéraire": "Route",
+  "Normal": "Normal",
+  "Le donjon tel quel.": "The dungeon as is.",
+  "Court et dur": "Short and hard",
+  "2 salles de moins, monstres +60 % de PV.": "2 fewer rooms, monsters +60% HP.",
+  "Long et sûr": "Long and safe",
+  "2 salles de plus, monstres −25 % de PV, butin ×1,2.": "2 more rooms, monsters −25% HP, loot ×1.2.",
+  "Trésor gardé": "Guarded treasure",
+  "Monstres +50 % de PV (Élites), butin ×1,6.": "Monsters +50% HP (Elites), loot ×1.6.",
   "Règle :": "Rule:",
   "Ascensions du jour faites — reviens demain": "Today's climbs done — come back tomorrow",
   "Une règle change tous les 10 étages.": "A rule changes every 10 floors.",
@@ -354,6 +363,9 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Élément : (.*)$"), (m) => `Element: ${m[1]}`],
+  [new RegExp("^· Monstres : (.*)$"), (m) => `· Monsters: ${m[1].split(', ').map(L).join(', ')}`],
+
   [new RegExp("^Monter \\((\\d+) ascensions? aujourd'hui\\)$"), (m) => `Climb (${m[1]} left today)`],
   [new RegExp("^Encore (\\d+) ascensions? aujourd'hui\\.$"), (m) => `${m[1]} more climb${m[1] === '1' ? '' : 's'} today.`],
   [new RegExp("^Règle : (.+)$"), (m) => `Rule: ${L(m[1])}`],

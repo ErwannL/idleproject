@@ -326,8 +326,8 @@ const actions = {
     changeStage(state, world, state.maxStage);
     done(true, 'Progression reprise');
   },
-  enterDungeon(id, slot, path, difficulty) {
-    if (!startDungeon(state, id, slot, path, difficulty)) return;
+  enterDungeon(id, slot, path, difficulty, route = 'normal') {
+    if (!startDungeon(state, id, slot, path, difficulty, route)) return;
     resetWave(world);
     const d = dungeonById(id);
     placeTransition(`Donjon · ${DUNGEON_DIFFICULTIES[difficulty]?.label ?? ''}`, d.name, d.description, ZONES[d.zone]?.id);

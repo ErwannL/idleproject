@@ -27,7 +27,19 @@ export function unlockedDifficulties(state, id) {
   return DIFFICULTY_ORDER.filter((_, i) => i <= best + 1);
 }
 
-export function startDungeon(state, id, slot = 'any', path = 'gold', difficulty = 'easy') {
+// v9.6.2 (7.2) : itinéraire choisi avant d'entrer (pendant le donjon, rien à faire).
+export const DUNGEON_ROUTES = {
+  normal: { label: 'Normal', text: 'Le donjon tel quel.', rooms: 0, hp: 1, reward: 1 },
+  short: { label: 'Court et dur', text: '2 salles de moins, monstres +60 % de PV.', rooms: -2, hp: 1.6, reward: 1 },
+  long: { label: 'Long et sûr', text: '2 salles de plus, monstres −25 % de PV, butin ×1,2.', rooms: 2, hp: 0.75, reward: 1.2 },
+  treasure: { label: 'Trésor gardé', text: 'Monstres +50 % de PV (Élites), butin ×1,6.', rooms: 0, hp: 1.5, reward: 1.6 },
+};
+export function dungeonRooms(state, d) { return Math.max(2, d.rooms + (DUNGEON_ROUTES[state.dungeon?.route]?.rooms ?? 0)); }
+const routeOf = (run) => DUNGEON_ROUTES[run?.route] ?? DUNGEON_ROUTES.normal;
+export const routeHp = (state) => routeOf(state.dungeon).hp;
+const scaleReward = (r, k) => (k === 1 ? r : Object.fromEntries(Object.entries(r).map(([key, v]) => [key, typeof v === 'number' ? v * k : v])));
+
+export function startDungeon(state, id, slot = 'any', path = 'gold', difficulty = 'easy', route = 'normal') {
   if (!canEnterDungeon(state, id) || !unlockedDifficulties(state, id).includes(difficulty)) return false;
   const d = dungeonById(id);
   const diff = DUNGEON_DIFFICULTIES[difficulty];
@@ -35,7 +47,7 @@ export function startDungeon(state, id, slot = 'any', path = 'gold', difficulty 
   state.dungeon = {
     id, room: 1, kills: 0, slot: slot in SLOTS ? slot : 'any', path: path in DUNGEON_PATHS ? path : 'gold', difficulty,
     level: Math.max(1, levelForStage(state.maxStage) + d.levelOffset + diff.levelBonus), earned: {},
-    startPlay: state.playSeconds ?? 0,
+    startPlay: state.playSeconds ?? 0, route: route in DUNGEON_ROUTES ? route : 'normal',
   };
   return true;
 }
@@ -61,7 +73,7 @@ export function dungeonKill(state, balance = BALANCE) {
     ? { gold: path.goldKills * referenceKillGold(run.level, balance) }
     : { shards: path.shards };
   Object.assign(reward, RESOURCE_SOURCES.dungeonRoom); // v9.3.3 : grimoires de combat
-  const given = grantReward(state, reward);
+  const given = grantReward(state, scaleReward(reward, routeOf(run).reward)); // v9.6.2 : itinéraire
   addEarned(run, given);
   run.room += 1;
   run.kills = 0;
@@ -82,7 +94,7 @@ export function completeDungeon(state, rng, balance = BALANCE) {
     fragments: diff.fragments,
     ...RESOURCE_SOURCES.dungeonClear, // v9.3.3 : grimoires et pierres d'ascension
   };
-  const given = grantReward(state, reward);
+  const given = grantReward(state, scaleReward(reward, routeOf(run).reward)); // v9.6.2 : itinéraire
   addEarned(run, given);
   state.dungeonsCleared[run.id] = (state.dungeonsCleared[run.id] ?? 0) + 1;
   const rank = DIFFICULTY_ORDER.indexOf(run.difficulty ?? 'easy');

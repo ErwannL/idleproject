@@ -6,7 +6,9 @@ import { UNITS as COMPANIONS } from '../../data/banners.js'; // v9.1.3 (partie B
 import { DIFFICULTY_ORDER, DUNGEON_DIFFICULTIES, DUNGEON_PATHS, DUNGEON_REWARD, DUNGEONS } from '../../data/dungeons.js';
 import { SLOTS } from '../../data/items.js';
 import { stageLabel } from '../../core/combat.js';
-import { canEnterDungeon, dungeonById, dungeonRunInfo, unlockedDifficulties } from '../../core/dungeon.js';
+import { DUNGEON_ROUTES, canEnterDungeon, dungeonById, dungeonRooms, dungeonRunInfo, unlockedDifficulties } from '../../core/dungeon.js';
+import { elementBadge, zoneElement } from '../../core/elements.js'; // v9.6.2
+import { BEHAVIORS, enemyBehavior } from '../../data/behaviors.js'; // v9.6.2
 import { formatDuration } from '../../core/format.js';
 import { itemIconUrl } from '../../render/pixel.js';
 import { rewardText } from '../../core/rewards.js';
@@ -75,11 +77,11 @@ function running(ui, state) {
   const diff = DUNGEON_DIFFICULTIES[run.difficulty] ?? DUNGEON_DIFFICULTIES.easy;
   const paths = Object.entries(DUNGEON_PATHS).map(([id, p]) => `<button class="btn chip-btn${run.path === id ? ' active' : ''}"
     data-action="dungeon-path" data-value="${id}" title="${p.text}">${p.label}</button>`).join('');
-  const boss = run.room >= d.rooms;
+  const boss = run.room >= dungeonRooms(state, d);
   return `<div class="card dungeon-card running">
       <div class="row-between"><b>${img('icon_dungeon')} ${escapeHtml(d.name)} · ${diff.label}</b><span class="muted">niv. ${run.level}</span></div>
       ${roomPath(d, run.room)}
-      ${progressBar((run.room - 1 + (boss ? 0 : run.kills / d.killsPerRoom)) / d.rooms, boss ? `Salle du boss — ${BOSSES[d.boss].name}` : `Salle ${run.room}/${d.rooms} · ${run.kills}/${d.killsPerRoom}`)}
+      ${progressBar((run.room - 1 + (boss ? 0 : run.kills / d.killsPerRoom)) / dungeonRooms(state, d), boss ? `Salle du boss — ${BOSSES[d.boss].name}` : `Salle ${run.room}/${dungeonRooms(state, d)} · ${run.kills}/${d.killsPerRoom}`)}
       <div class="section-title">Chemin (modifiable à tout moment)</div>
       <div class="chip-row">${paths}</div>
       <div class="muted">Butin final : objet Épique ou mieux · ${run.slot === 'any' ? 'tout emplacement' : SLOTS[run.slot]} · +${diff.fragments} fragments anciens</div>
@@ -184,6 +186,12 @@ function dungeonsList(ui, state) {
   const slotSelect = `<select data-action="dungeon-slot-select" aria-label="Butin ciblé">${[['any', 'Tout emplacement'], ...Object.entries(SLOTS)].map(([v, l]) => `<option value="${v}" ${slot === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
   const paths = Object.entries(DUNGEON_PATHS).map(([id, p]) => `<button class="path-card${path === id ? ' active' : ''}" data-action="dungeon-path-pre" data-value="${id}" aria-pressed="${path === id}">
     <b>${p.label}</b><span class="muted">${p.text}</span></button>`).join('');
+  // v9.6.2 (7.1, 7.2) : itinéraire, élément et comportements du donjon.
+  const route = ui.view.dungeonRoute ?? 'normal';
+  const routes = Object.entries(DUNGEON_ROUTES).map(([id, r]) => `<button class="path-card${route === id ? ' active' : ''}" data-action="dungeon-route" data-value="${id}" aria-pressed="${route === id}"><b>${r.label}</b><span class="muted">${r.text}</span></button>`).join('');
+  const dEl = zoneElement(sel.zone);
+  const dBeh = [...new Set(sel.enemies.map(enemyBehavior).filter(Boolean))];
+  const dInfo = `<div class="dungeon-info">Élément : ${elementBadge(dEl)}${dBeh.length ? ` · Monstres : ${dBeh.map((b) => `${img(BEHAVIORS[b].icon)} ${BEHAVIORS[b].name}`).join(', ')}` : ''}</div>`;
   const rewards = [
     ['icon_bag', 'Équipement Épique ou mieux', 'r-epic'], ['icon_fragment', `${diff.fragments} fragments anciens`, 'r-legendary'],
     ['icon_gem', `${Math.round(DUNGEON_REWARD.gems * diff.gems)} gemmes`, 'r-rare'], ['icon_shard', `${Math.round(DUNGEON_REWARD.shards * diff.shards)} éclats`, 'r-epic'],
@@ -200,6 +208,8 @@ function dungeonsList(ui, state) {
       <div class="diff-box"><div class="section-title">Difficulté</div><div class="diff-row">${diffs}</div>${unlockHint}
         <div class="muted">♛ ${cleared} victoire${cleared > 1 ? 's' : ''} · ennemis niv. ${Math.max(1, state.maxStage + sel.levelOffset + diff.levelBonus)} · PV ×${diff.hp}</div></div>
       ${mechanicLine(sel)}
+      ${dInfo}
+      <div class="section-title">Itinéraire</div><div class="path-row">${routes}</div>
       ${fold(ui, 'dungeon-choice', `Butin : ${slot === 'any' ? 'tout' : escapeHtml(SLOTS[slot] ?? slot).toLowerCase()} · Chemin : ${({ gold: 'or', relics: 'reliques' })[path] ?? escapeHtml(path)}`, () => `<div class="row dungeon-target"><span class="section-title">Butin ciblé</span>${slotSelect}</div>
       <div class="section-title">Chemin</div><div class="path-row">${paths}</div>`)}
       ${enter}
