@@ -9,6 +9,7 @@ import { cleanWishlist } from './gacha.js';
 import { sanitizeCosmetics } from './cosmetics.js';
 import { emptyTimes, sanitizeTimes } from './times.js';
 import { BALANCE } from '../data/balance.js';
+import { MAJOR_EFFECTS } from '../data/major-effects.js'; // v9.6.1
 import { computeHeroStats } from './stats.js'; // v9.3.9 : fusion Peau de fer → Défense
 import { AFFIXES, EQUIP_SLOTS, HERO_SLOTS, RARITIES, SLOTS, STARTER_WEAPON, STAT_LABELS, eqSlot, heroSlot } from '../data/items.js';
 import { BOSSES } from '../data/enemies.js';
@@ -177,6 +178,7 @@ function cleanItem(item) {
     rarity: item.rarity, level: item.level, stats: { ...item.stats }, affixes, effect: null,
     locked: item.locked === true, upgrades: int(item.upgrades, 0), boosts,
     ...(setById(item.set) ? { set: item.set } : {}),
+    ...(MAJOR_EFFECTS[item.major] ? { major: item.major } : {}), // v9.6.1 : grand effet
     ...(cleanParts(item.parts).length ? { parts: cleanParts(item.parts) } : {}),
     ...(GEAR_CLASS_IDS.includes(item.cls) ? { cls: item.cls } : {}),
     ...(GEAR_BASES.some((b) => b.id === item.cg) ? { cg: item.cg } : {}),

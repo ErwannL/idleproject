@@ -1,6 +1,16 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Éclats critiques": "치명 파편",
+  "Les critiques éclaboussent les ennemis voisins (40 % des dégâts).": "치명타가 주변 적에게 튑니다 (피해의 40%).",
+  "Festin": "잔치",
+  "Chaque ennemi vaincu soigne le héros de 3 % de ses PV max.": "적을 처치할 때마다 영웅이 최대 HP의 3% 회복.",
+  "Cadence d'équipe": "팀 템포",
+  "Les compétences des compagnons se rechargent 20 % plus vite.": "동료 스킬 재사용 20% 빠름.",
+  "Lame élémentaire": "속성 칼날",
+  "+40 % de dégâts aux ennemis que l'élément du héros bat.": "영웅 속성이 이기는 적에게 피해 +40%.",
+  "actif": "활성",
+  "inactif : un seul grand effet à la fois": "비활성: 큰 효과는 하나만",
   "Attaché à :": "연결:",
   "— aucun —": "— 없음 —",
   "Défis (Tour)": "도전 (탑)",
@@ -327,6 +337,8 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^remplacerait « (.+) »$"), (m) => `“${L(m[1])}” 대체`],
+
   [new RegExp("^Build « (.+) » attaché$"), (m) => `빌드 “${m[1]}” 연결됨`],
   [new RegExp("^Build « (.+) » appliqué$"), (m) => `빌드 “${m[1]}” 적용됨`],
   [new RegExp("^Monde (\\d+) : (.+)$"), (m) => `세계 ${m[1]}: ${L(m[2])}`],

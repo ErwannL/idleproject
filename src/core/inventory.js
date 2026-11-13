@@ -340,3 +340,11 @@ export function toggleLock(state, itemId) {
   item.locked = !item.locked;
   return item.locked;
 }
+
+// v9.6.1 (2.4) : grand effet actif du héros (un seul : l'arme d'abord, puis l'ordre des places).
+const MAJOR_ORDER = ['weapon', 'helmet', 'armor', 'amulet', 'ring', 'bracelet'];
+export function activeMajor(state) {
+  for (const k of MAJOR_ORDER) { const m = state.equipment?.[k]?.major; if (m) return { id: m, slot: k }; }
+  for (const it of Object.values(state.equipment ?? {})) if (it?.major) return { id: it.major, slot: null };
+  return null;
+}

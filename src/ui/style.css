@@ -3430,3 +3430,4 @@ body:has(.summon-fx) #banner { visibility: hidden; }
   animation: v939-pop 0.25s ease-out; cursor: pointer; }
 .beh-card img { width: 32px; height: 32px; image-rendering: pixelated; flex: none; }
 .prep-beh { margin: 4px 0 6px; padding-left: 18px; font-size: 13px; } .prep-beh img { width: 18px; height: 18px; vertical-align: -4px; }
+.ip-major { font-size: 13px; margin: 4px 0; padding: 4px 6px; border-left: 3px solid var(--mc); background: rgba(0,0,0,.2); border-radius: 4px; }

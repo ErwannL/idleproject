@@ -89,3 +89,14 @@ test('v9.6.1 : Build attaché à un mode — gardé à la sauvegarde, retrouvé 
   assert.equal(boundLoadout(s, bindContext(s, 8, false)), 1);
   assert.equal(boundLoadout(s, bindContext(s, 2, false)), -1);
 });
+
+test('v9.6.1 : grands effets d\'objets — gardés à la sauvegarde, un seul actif (l\'arme d\'abord)', async () => {
+  const { activeMajor } = await import('../src/core/inventory.js');
+  const s = createNewState(NOW);
+  s.equipment.ring = { id: 501, baseId: 'iron_ring', slot: 'ring', rarity: 'epic', level: 1, stats: {}, affixes: [], major: 'killHeal' };
+  assert.equal(activeMajor(s).id, 'killHeal');
+  s.equipment.weapon = { ...s.equipment.weapon, major: 'critSplash' };
+  assert.equal(activeMajor(s).id, 'critSplash', 'l\'arme passe devant');
+  const out = sanitizeState(JSON.parse(JSON.stringify(s)), undefined, NOW);
+  assert.equal(out.equipment.weapon.major, 'critSplash');
+});

@@ -2,6 +2,8 @@
 import { elementBadge, elementWheel, zoneElement } from '../../core/elements.js'; // v9.5.1
 import { heroElement } from '../../core/companions.js'; // v9.6.1
 import { BIND_MODES } from '../../core/loadouts.js'; // v9.6.1
+import { MAJOR_EFFECTS } from '../../data/major-effects.js'; // v9.6.1
+import { activeMajor } from '../../core/inventory.js'; // v9.6.1
 import { GEAR_PROFILES, profileGain } from '../../core/inventory.js'; // v9.5.2
 const PROFILE_ICONS = { attack: 'icon_damage', survival: 'icon_defense', fortune: 'icon_gold' };
 const PROFILE_TIPS = { attack: 'Pour passer un boss : les dégâts d\'abord', survival: 'Pour tenir dans un monde dur : la survie d\'abord', fortune: 'Pour farmer : l\'or et le butin d\'abord' };
@@ -205,10 +207,21 @@ function detail(ui, state, item, whoUnit = null) {
       <div><div class="ip-name r-${item.rarity}">${escapeHtml(item.name)}${ups ? ` +${ups}` : ''}</div>
         <div class="ip-pills"><span class="rar-pill r-${item.rarity}">${rarity.label}</span><span class="role-pill">${HERO_SLOTS[heroSlot(item)]}</span><span class="role-pill cls-pill">${escapeHtml(classLabel(itemClass(state, item)))}</span>
         ${base.signature ? `<span class="role-pill">Butin de ${escapeHtml(BOSSES[base.signature].name)}</span>` : ''}</div></div></div>
-    ${power}${ctxLine}${unitLine}<ul class="stat-list ip-stats">${three}</ul>
+    ${majorLine(state, item)}${power}${ctxLine}${unitLine}<ul class="stat-list ip-stats">${three}</ul>
     ${moreBody}
     <div class="up-actions">${mainBtns}</div>
   </div>`;
+}
+
+// v9.6.1 (2.4) : grand effet de l'objet, et s'il est actif (un seul à la fois).
+function majorLine(state, item) {
+  const m = MAJOR_EFFECTS[item.major];
+  if (!m) return '';
+  const act = activeMajor(state);
+  const worn = Object.values(state.equipment).some((i) => i?.id === item.id);
+  const st = worn ? (act?.id === item.major && state.equipment[act.slot]?.id === item.id ? '<span class="good">actif</span>' : '<span class="bad">inactif : un seul grand effet à la fois</span>')
+    : act ? `<span class="muted">remplacerait « ${escapeHtml(MAJOR_EFFECTS[act.id].name)} »</span>` : '';
+  return `<div class="ip-major" style="--mc:${m.color}"><b>${escapeHtml(m.name)}</b> — ${escapeHtml(m.text)} ${st}</div>`;
 }
 
 // v9.5.2 (2.3) : bandeau Ensembles — pour chaque ensemble entamé : pièces portées / possédées, prochain palier, spécialité

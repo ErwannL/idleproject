@@ -9,6 +9,7 @@ import { levelForStage } from './combat.js'; // v9.2.0 (monde marin) : niveau de
 
 const ALL_BASES = [...ITEM_BASES, ...SIGNATURE_ITEMS];
 
+import { MAJOR_CHANCE, MAJOR_EFFECTS } from '../data/major-effects.js'; // v9.6.1
 export function rarityById(id) {
   return RARITIES.find((r) => r.id === id);
 }
@@ -141,6 +142,8 @@ export function generateItem(state, rng, { level, minRarity = 'common', slot, se
   const set = setZone === null || setZone === undefined ? null : rollSet(setZone, rarity, rng, balance);
   const item = makeItem(state, base.id, rarity, Math.max(1, level), balance, rng, set);
   if (cls) item.cls = cls;
+  // v9.6.1 (2.4) : grand effet sur certains Épiques et Légendaires.
+  if (MAJOR_CHANCE[rarity] && rng.next() < MAJOR_CHANCE[rarity]) { const ids = Object.keys(MAJOR_EFFECTS); item.major = ids[Math.floor(rng.next() * ids.length)]; }
   return item;
 }
 

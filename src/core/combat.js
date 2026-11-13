@@ -35,6 +35,7 @@ import { RESOURCE_SOURCES } from '../data/progression.js'; // v9.3.3
 import { enemyBehavior } from '../data/behaviors.js'; // v9.6.0
 import { behaviorHitMult, behaviorTakenMult, teamCounters } from './behaviors.js'; // v9.6.0
 import { heroElement } from './companions.js'; // v9.6.1
+import { activeMajor } from './inventory.js'; // v9.6.1
 const ENEMY_WINDUP = 0.25; // v9.1.9 : avance de l'événement « enemyWindup » sur le coup ennemi (s)
 
 const MAX_EVENTS = 300;
@@ -524,6 +525,7 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
   const thief = enemy.behavior === 'thief' && (enemy.arrivedAt === undefined || world.time - enemy.arrivedAt <= 7) ? 3 : 1;
   const gold = gainGold(state, world, enemy.gold * (1 + stats.goldPct / 100) * (stats.goldMult ?? 1) * wave * boost.gold * challengeGold * thief);
   world.counters.kills += 1;
+  if (world.major === 'killHeal' && !world.hero.dead) world.hero.hp = Math.min(stats.maxHp, world.hero.hp + stats.maxHp * 0.03); // v9.6.1 : Festin
   state.records.kills += 1;
   if (state.codex) recordKill(state, enemy.type, enemy);
   trackContracts(state, 'kills', 1);
@@ -703,6 +705,7 @@ function hitEnemy(state, world, enemy, damage, rng, balance, stats, enc, source,
   // v9.6.1 (4.6) : le héros frappe avec l'élément de son ensemble (2 pièces ou plus), sinon en neutre.
   const elem = elementMultiplier(unitId === 'hero' ? world.heroElement ?? null : unitElement(unitId), enemy.element);
   damage *= elem;
+  if (unitId === 'hero' && world.major === 'elemEdge' && elem > 1) damage *= 1.4; // v9.6.1 : Lame élémentaire
   damage *= behaviorTakenMult(enemy, world.parries, source); // v9.6.0 : Bouclier, Essaim, Volant sans leur parade
   damage = mutationDamageTaken(enemy, damage);
   damage = traitDamageTaken(enemy, damage);
@@ -858,6 +861,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
   // v9.6.0 (6) : parades présentes dans l'équipe (une fois par pas) ; Soigneur et Kamikaze.
   world.parries = teamCounters(state);
   world.heroElement = heroElement(state); // v9.6.1
+  world.major = activeMajor(state)?.id ?? null; // v9.6.1 (2.4) : grand effet actif
   behaviorTick(state, world, dt, rng, balance);
   // Boosts à durée limitée : minuteries (et relance automatique si activée).
   if (state.rushes) {
@@ -1014,6 +1018,8 @@ export function step(state, world, dt, rng, balance = BALANCE) {
           special: extra.special, targets: extra.hits.map((h) => ({ id: h.enemy.id, x: h.enemy.x })),
         });
         hitEnemy(state, world, front, damage, rng, balance, stats, enc, 'attack');
+        // v9.6.1 (2.4) : Éclats critiques — un critique éclabousse les autres ennemis (40 %).
+        if (crit && world.major === 'critSplash') for (const o of world.enemies.filter((x) => x !== front && x.arrived !== false)) hitEnemy(state, world, o, damage * 0.4, rng, balance, stats, enc, 'skill');
         for (const h of extra.hits) hitEnemy(state, world, h.enemy, h.damage, rng, balance, stats, enc, 'attack');
         // v9.2.8 : Double attaque — un second coup aussitôt (critique tiré à nouveau) sur l'ennemi de tête encore debout.
         if (stats.doubleAttackPct > 0 && rng.next() < stats.doubleAttackPct / 100) {
@@ -1060,7 +1066,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
   for (const companion of equippedCompanions(state)) {
     for (const skill of companionSkills(state, companion.id)) {
       const key = `${companion.id}#${skill.index}`;
-      world.companionTimers[key] = (world.companionTimers[key] ?? skill.every / 2 + skill.index) - dt;
+      world.companionTimers[key] = (world.companionTimers[key] ?? skill.every / 2 + skill.index) - dt * (world.major === 'teamHaste' ? 1.25 : 1); // v9.6.1 : Cadence d'équipe
       const target = world.enemies[0];
       const needsTarget = ['hit', 'burst'].includes(skill.type);
       if (world.companionTimers[key] <= 0 && (!needsTarget || (target && target.x - W.heroX <= range + 20 && canHit(target, balance)))) {

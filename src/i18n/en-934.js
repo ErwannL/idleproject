@@ -1,6 +1,16 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Éclats critiques": "Critical shards",
+  "Les critiques éclaboussent les ennemis voisins (40 % des dégâts).": "Crits splash nearby enemies (40% of the damage).",
+  "Festin": "Feast",
+  "Chaque ennemi vaincu soigne le héros de 3 % de ses PV max.": "Each defeated enemy heals the hero for 3% of max HP.",
+  "Cadence d'équipe": "Team tempo",
+  "Les compétences des compagnons se rechargent 20 % plus vite.": "Companion skills recharge 20% faster.",
+  "Lame élémentaire": "Elemental blade",
+  "+40 % de dégâts aux ennemis que l'élément du héros bat.": "+40% damage to enemies the hero's element beats.",
+  "actif": "active",
+  "inactif : un seul grand effet à la fois": "inactive: only one major effect at a time",
   "Attaché à :": "Attached to:",
   "— aucun —": "— none —",
   "Défis (Tour)": "Challenges (Tower)",
@@ -327,6 +337,8 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^remplacerait « (.+) »$"), (m) => `would replace “${L(m[1])}”`],
+
   [new RegExp("^Build « (.+) » attaché$"), (m) => `Build “${m[1]}” attached`],
   [new RegExp("^Build « (.+) » appliqué$"), (m) => `Build “${m[1]}” applied`],
   [new RegExp("^Monde (\\d+) : (.+)$"), (m) => `World ${m[1]}: ${L(m[2])}`],
