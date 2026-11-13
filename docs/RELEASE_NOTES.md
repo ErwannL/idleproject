@@ -1,3 +1,16 @@
+## Ascendrya v9.7.0 — Un idle stratégique, sans lassitude
+
+- Préparer plutôt que subir : rushes repensés (6 à 8 s, 3 emplacements, déclenchement auto), boss en phases (attaque lourde annoncée puis fenêtre de faiblesse ×1,5), rangs avant/arrière, ordres d'ultime (prêt, boss, PV bas), paliers d'étoiles (3★ passif, 5★ aura).
+- Builds liés à un contenu (campagne, donjon, Tour…) qui se mettent seuls ; effets majeurs rares sur l'équipement ; résonance d'élément de l'équipe.
+- Contenus : Tour à 3 ascensions par jour avec règles, routes de donjon, expéditions par rôle (« Tout envoyer »), événements enchaînés, sceaux à partir du monde 3 (jamais bloquants), Renaissance qui annonce son gain.
+- Plus d'imprévu : trouvailles toutes les 3 à 5 minutes, ennemis mutés deux fois plus fréquents, bannières « Élite ! » et « Vague mutante ! ».
+- Moins mais mieux : environ 6 fois moins d'objets, de meilleure qualité ; invocations plus rares (150 gemmes).
+- Objectifs de session avec coffre, conseil concret au retour, paliers de puissance tous les 10 niveaux, bonus de rattrapage après 3 jours d'absence.
+- Fin de jeu : les cycles ×2/×3 deviennent des Failles, avec des échos d'or. Nouvelles mécaniques de boss : Miroir et Bouclier d'élément.
+- Mondes décrits par une fiche (élément compris), vérifiés par un outil ; un monde peut être programmé avec compte à rebours.
+- Mesures anonymes facultatives (désactivées par défaut) pour régler le rythme.
+- Android : en plus de l'APK, un paquet AAB pour le Play Store.
+
 ## Ascendrya v9.6.0 — Des monstres qui obligent à se préparer
 
 - Huit comportements de monstres, deux par monde à partir du monde 2 : Tireur, Bouclier, Kamikaze, Soigneur, Essaim, Volant, Voleur et Charge. Chacun a sa parade, qui se prépare avant le combat (un rôle de compagnon ou la classe du héros) : avec elle, le malus disparaît. Rien à faire pendant le combat.
