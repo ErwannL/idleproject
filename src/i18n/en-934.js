@@ -1,6 +1,8 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Tout envoyer": "Send all",
+  "Chaque place libre reçoit le compagnon libre le mieux adapté": "Each free slot gets the best-suited free companion",
   "Itinéraire": "Route",
   "Normal": "Normal",
   "Le donjon tel quel.": "The dungeon as is.",
@@ -363,6 +365,9 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Mission préférée : (.+) et (.+) \\(\\+30 % de butin\\) ; élément du monde actuel : \\+20 %\\.$"), (m) => `Preferred: ${L(m[1])} and ${L(m[2])} (+30% loot); current world element: +20%.`],
+  [new RegExp("^(\\d+) expéditions? lancées?$"), (m) => `${m[1]} expedition${m[1] === '1' ? '' : 's'} sent`],
+
   [new RegExp("^Élément : (.*)$"), (m) => `Element: ${m[1]}`],
   [new RegExp("^· Monstres : (.*)$"), (m) => `· Monsters: ${m[1].split(', ').map(L).join(', ')}`],
 

@@ -1,5 +1,6 @@
 // Équipe > Expéditions (v9.1.0, sorti de Compagnons) : 3 places ; les compagnons hors de l'équipe partent 1 h, 4 h
 // ou 12 h (elles avancent aussi jeu fermé). D'abord : places, temps restant, Tout récupérer, Repartir.
+import { ROLES } from '../../data/synergies.js'; // v9.6.2
 import { companionById, duplicates } from '../../core/companions.js';
 import {
   EXPEDITION_TYPES, availableForExpedition, expeditionDone, expeditionReward, expeditionType, readyExpeditions, relaunchable,
@@ -80,8 +81,10 @@ export default {
         <button class="btn small${ui.view.expPerSlot ? ' active' : ''}" data-action="exp-per-slot" aria-pressed="${Boolean(ui.view.expPerSlot)}">Durée par place</button></div>` : '';
     const actions = `<div class="options-row main-actions">
         <button class="btn btn-gold primary-action" data-action="claim-all-expeditions" ${ready ? '' : 'disabled'}>Tout récupérer${ready ? ` (${ready})` : ''}</button>
+        <button class="btn btn-gold" data-action="send-all-expeditions" data-value="${dur}" title="Chaque place libre reçoit le compagnon libre le mieux adapté">Tout envoyer</button>
         <button class="btn" data-action="relaunch-expeditions" ${again ? '' : 'disabled'} title="Relance la dernière expédition de chaque place libre (même compagnon, même durée)">Repartir${again ? ` (${again})` : ''}</button></div>`;
     const slots = state.expeditions.slots.map((run, i) => slotHtml(ui, state, run, i, now, dur)).join('');
-    return `<div class="card">${actions}${durRow}<div class="exp-list">${slots}</div></div>`;
+    const prefer = `<div class="muted exp-prefer">Mission préférée : ${expeditionType(dur).roles.map((r) => ROLES[r].label).join(' et ')} (+30 % de butin) ; élément du monde actuel : +20 %.</div>`; // v9.6.2
+    return `<div class="card">${actions}${durRow}${prefer}<div class="exp-list">${slots}</div></div>`;
   },
 };

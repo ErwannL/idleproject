@@ -3,14 +3,17 @@
 // clés et fragments anciens. Un compagnon en expédition ne peut pas être équipé.
 import { BALANCE, ESSENCE_SHARDS, TICKET_GEMS } from '../data/balance.js';
 import { UNITS } from '../data/banners.js'; // v9.1.3 (partie B) : persos de bannière compris
-import { levelForStage, referenceKillGold } from './combat.js';
+import { levelForStage, referenceKillGold, zoneIndexForStage } from './combat.js';
 import { unitLevel } from './companions.js'; // v9.5.0 : niveau d'équipe
+import { COMPANION_ROLES } from '../data/synergies.js'; // v9.6.2
+import { unitElement, zoneElement } from './elements.js'; // v9.6.2
 
 export const EXPEDITION_RULES = { slots: 3 };
 export const EXPEDITION_TYPES = [
-  { id: 'patrol', label: 'Patrouille', hours: 1, text: 'Or et éclats' },
-  { id: 'explore', label: 'Exploration', hours: 4, text: 'Or, matériaux, gemmes, parfois une clé' },
-  { id: 'journey', label: 'Grande expédition', hours: 12, text: 'Tout, dont des clés et des fragments anciens' },
+  // v9.6.2 (7.1) : chaque mission préfère deux rôles (+30 % de butin) ; l'élément du monde actuel ajoute +20 %.
+  { id: 'patrol', label: 'Patrouille', hours: 1, text: 'Or et éclats', roles: ['archer', 'assassin'] },
+  { id: 'explore', label: 'Exploration', hours: 4, text: 'Or, matériaux, gemmes, parfois une clé', roles: ['mage', 'healer'] },
+  { id: 'journey', label: 'Grande expédition', hours: 12, text: 'Tout, dont des clés et des fragments anciens', roles: ['guardian', 'berserker'] },
 ];
 const RARITY_POWER = { common: 1, rare: 1.5, epic: 2.2, legendary: 3.5 };
 const HOUR = 3600 * 1000;
@@ -48,7 +51,30 @@ export function expeditionReward(state, companionId, typeId, balance = BALANCE) 
     fragments: h >= 12 ? Math.round((2 + stage / 60) * p) : h >= 4 ? Math.round((stage / 150) * p) : 0,
   };
   if (h >= 12 && p >= 3.5) reward.gems += TICKET_GEMS; // v9.1.3 : ancien ticket
+  const k = expeditionAffinity(state, companionId, typeId).mult; // v9.6.2 : rôle et élément adaptés
+  if (k !== 1) for (const key of ['gold', 'shards', 'gems', 'fragments']) if (reward[key]) reward[key] = Math.round(reward[key] * k);
   return Object.fromEntries(Object.entries(reward).filter(([, v]) => v > 0));
+}
+
+// v9.6.2 : bonus d'un compagnon pour une mission (rôle préféré : +30 %, élément du monde actuel : +20 %).
+export function expeditionAffinity(state, companionId, typeId) {
+  const type = expeditionType(typeId);
+  const role = type?.roles?.includes(COMPANION_ROLES[companionId]);
+  const el = unitElement(companionId) && unitElement(companionId) === zoneElement(zoneIndexForStage(Math.max(1, state.maxStage)));
+  return { role, element: el, mult: (role ? 1.3 : 1) * (el ? 1.2 : 1) };
+}
+
+// v9.6.2 (7.5) : « Tout envoyer » — chaque place libre reçoit le compagnon libre le mieux adapté (mission choisie).
+export function sendAllExpeditions(state, typeId = 'explore', now = Date.now(), balance = BALANCE) {
+  const ex = state.expeditions;
+  if (!ex) return 0;
+  let n = 0;
+  ex.slots.forEach((run, slot) => {
+    if (run) return;
+    const best = availableForExpedition(state).map((c) => ({ c, g: expeditionReward(state, c.id, typeId, balance)?.gold ?? 0 })).sort((a, b) => b.g - a.g)[0];
+    if (best && startExpedition(state, slot, best.c.id, typeId, now, balance)) n += 1;
+  });
+  return n;
 }
 
 export function companionsAway(state) {

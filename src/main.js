@@ -19,7 +19,7 @@ import { buyUpgradeBulk } from './core/economy.js';
 import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
 import { endTower, startTower } from './core/tower.js';
 import { finishGlobalBoss, globalBossLeft, runFloor, runSurvival, startGlobalBoss } from './core/arena.js'; // v9.3.2
-import { claimExpedition, expeditionType, relaunchExpeditions, startExpedition } from './core/expeditions.js';
+import { claimExpedition, expeditionType, relaunchExpeditions, sendAllExpeditions, startExpedition } from './core/expeditions.js';
 import { endChallenge, startChallenge } from './core/challenge.js';
 import { autoFuse, craftItem, fuseAll, fuseItems, fusionFailText, fusionKeep, reforgeItem, sharpenItem, targetReroll, upgradeItem } from './core/forge.js';
 import { normalizePool, summon } from './core/gacha.js';
@@ -835,6 +835,10 @@ const actions = {
     done(true, `Vitesse des combats ×${speed}`);
   },
   // Expéditions (v8.5).
+  sendAllExpeditions(type = 'explore') { // v9.6.2 (7.5)
+    const n = sendAllExpeditions(state, type);
+    done(n > 0, n ? `${n} expédition${n > 1 ? 's' : ''} lancée${n > 1 ? 's' : ''}` : 'Aucune place ou aucun compagnon libre', '#9fe6ff');
+  },
   startExpedition(companionId, type, chosen = null) {
     // v9.1.0 : la place choisie dans la liste est respectée (avant : toujours la première libre).
     const slot = Number.isInteger(chosen) && !state.expeditions.slots[chosen] ? chosen : state.expeditions.slots.findIndex((x) => !x);

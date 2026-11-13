@@ -1,6 +1,8 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Tout envoyer": "모두 보내기",
+  "Chaque place libre reçoit le compagnon libre le mieux adapté": "빈 자리마다 가장 알맞은 동료를 보냅니다",
   "Itinéraire": "경로",
   "Normal": "보통",
   "Le donjon tel quel.": "그대로의 던전.",
@@ -363,6 +365,9 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Mission préférée : (.+) et (.+) \\(\\+30 % de butin\\) ; élément du monde actuel : \\+20 %\\.$"), (m) => `선호: ${L(m[1])}, ${L(m[2])} (전리품 +30%); 현재 세계 속성: +20%.`],
+  [new RegExp("^(\\d+) expéditions? lancées?$"), (m) => `원정 ${m[1]}개 출발`],
+
   [new RegExp("^Élément : (.*)$"), (m) => `속성: ${m[1]}`],
   [new RegExp("^· Monstres : (.*)$"), (m) => `· 몬스터: ${m[1].split(', ').map(L).join(', ')}`],
 

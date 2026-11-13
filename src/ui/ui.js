@@ -1020,6 +1020,7 @@ export class UI {
         a.transcend(keep);
         break;
       }
+      case 'send-all-expeditions': a.sendAllExpeditions(value || 'explore'); break; // v9.6.2
       case 'start-expedition': { const [cid, type, slot] = value.split('|'); a.startExpedition(cid, type, slot === undefined ? null : Number(slot)); break; }
       case 'claim-all-expeditions': a.claimAllExpeditions(); break;
       case 'relaunch-expeditions': a.relaunchExpeditions(); break;
