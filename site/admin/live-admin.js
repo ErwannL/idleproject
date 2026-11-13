@@ -443,7 +443,7 @@
     const next = d.tiers.find((t) => shown < t.at);
     $('lg-preview').innerHTML = ok ? `<div><b>${fmt(shown)}</b> / ${fmt(d.target)} aventuriers (${pct.toFixed(1)} %)</div><div class="lg-bar"><span style="width:${pct}%"></span></div>
       <div class="muted">${next ? `Encore ${fmt(next.at - shown)} pour le palier ${esc(next.label)}.` : esc(d.texts.reached || 'Objectif atteint.')}</div>
-      ${d.tiers.some((t) => t.at > d.target) ? '<div class="error">Un palier dépasse l\'objectif : il ne sera jamais atteint par la barre.</div>' : ''}`
+      ${d.tiers.some((t) => t.at > d.target) ? `<div class="muted">${d.tiers.filter((t) => t.at > d.target).length} palier(s) bonus au-delà de l'objectif : affichés en « récompense mystère » sur le site, révélés une fois l'objectif atteint (la barre vise alors le palier bonus suivant).</div>` : ''}`
       : '<div class="error">Objectif illisible : tapez par exemple 40260, 40 260 ou 40,26k.</div>';
   }
   $('lg-tiers').addEventListener('input', renderGoalPreview);

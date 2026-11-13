@@ -58,38 +58,62 @@ $('#langs').addEventListener('click', (e) => { const b = e.target.closest('[data
 
 // ---------- Objectif communautaire ----------
 let GOALS = { ...DEFAULT_GOALS, count: null };
-// Texte d'un palier : traduction du palier par défaut (même seuil et même nom que le serveur), sinon le texte de l'admin.
+// Palier par défaut (même seuil et même nom que le serveur) : texte traduit et libellé au format de la langue.
+const defTier = (x) => DEFAULT_GOALS.tiers.find((d) => d.at === x.at && d.name === x.name);
+// Texte d'un palier : traduction du palier par défaut, sinon le texte de l'admin.
 function tierText(x) {
-  const def = DEFAULT_GOALS.tiers.find((d) => d.at === x.at && d.name === x.name);
-  const tr = def && get(T, `tiers.${x.at}`);
+  const tr = defTier(x) && get(T, `tiers.${x.at}`);
   const tag = x.tag ? (get(T, `tiers.tags.${x.tag}`) || x.tag) : '';
   return tr ? { name: tr[0], detail: tr[1], tag } : { name: x.name, detail: x.detail ?? '', tag };
+}
+// Carte d'un palier. Palier bonus pas encore révélé (objectif non atteint) : récompense mystère.
+function tierCard(x, st, secret) {
+  const label = st === 'reached' ? `✓ ${t('goal.unlocked')}` : st === 'next' ? t('goal.nextTag') : `🔒 ${t('goal.locked')}`;
+  if (secret) {
+    return `<article class="tier locked secret"><span class="ms">${esc(x0(x))}</span>
+      <div class="mystery" aria-hidden="true">?</div>
+      <div class="nm">${esc(t('goal.secret'))}</div><span class="tag">${esc(t('goal.bonusTag'))}</span><div class="dt">${esc(t('goal.secretDetail', x0({ at: GOALS.target })))}</div><div class="st">${label}</div></article>`;
+  }
+  const tx = tierText(x);
+  return `<article class="tier ${st}${x.at > GOALS.target ? ' bonus' : ''}"><span class="ms">${esc(x0(x))}</span>
+      <img src="${esc(x.img || 'assets/icon_chest.png')}" alt="" loading="lazy" decoding="async" class="${/icon_|\/px\//.test(x.img) ? 'px' : ''}">
+      <div class="nm">${esc(tx.name)}</div>${tx.tag ? `<span class="tag">${esc(tx.tag)}</span>` : ''}<div class="dt">${esc(tx.detail)}</div><div class="st">${label}</div></article>`;
 }
 function renderGoal() {
   const { tiers, target } = GOALS;
   const count = GOALS.count;
   const known = Number.isFinite(count);
   const c = known ? count : 0;
+  const reached = known && c >= target;
+  const next = tiers.find((x) => c < x.at);
+  // Objectif atteint et paliers bonus restants : la barre et le compteur visent le palier bonus suivant.
+  const goal = reached && next ? next.at : target;
   $('#count').textContent = known ? fmt(c) : '—';
-  $('#count-of').textContent = t('goal.of', fmt(target));
-  $('#goal-fill').style.width = `${known ? Math.min(100, (c / target) * 100) : 0}%`;
+  $('#count-of').textContent = t('goal.of', fmt(goal));
+  $('#goal-fill').style.width = `${known ? Math.min(100, (c / goal) * 100) : 0}%`;
   const bar = $('#goal-bar');
-  bar.setAttribute('aria-valuemax', String(target));
+  bar.setAttribute('aria-valuemax', String(goal));
   bar.setAttribute('aria-valuenow', String(c));
   bar.querySelectorAll('i').forEach((i) => i.remove());
-  for (const x of tiers) if (x.at < target) bar.insertAdjacentHTML('beforeend', `<i style="left:${(x.at / target) * 100}%"></i>`);
-  const next = tiers.find((x) => c < x.at);
+  for (const x of tiers) if (x.at < goal) bar.insertAdjacentHTML('beforeend', `<i style="left:${(x.at / goal) * 100}%"></i>`);
   $('#goal-next').textContent = !known ? t('goal.offline') : next ? t('goal.next', fmt(next.at - c), x0(next)) : t('goal.done');
-  $('#tiers').innerHTML = tiers.map((x) => {
-    const st = known && c >= x.at ? 'reached' : known && x === next ? 'next' : 'locked';
-    const tx = tierText(x);
-    const label = st === 'reached' ? `✓ ${t('goal.unlocked')}` : st === 'next' ? t('goal.nextTag') : `🔒 ${t('goal.locked')}`;
-    return `<article class="tier ${st}"><span class="ms">${esc(x0(x))}</span>
-      <img src="${esc(x.img || 'assets/icon_chest.png')}" alt="" loading="lazy" decoding="async" class="${/icon_|\/px\//.test(x.img) ? 'px' : ''}">
-      <div class="nm">${esc(tx.name)}</div>${tx.tag ? `<span class="tag">${esc(tx.tag)}</span>` : ''}<div class="dt">${esc(tx.detail)}</div><div class="st">${label}</div></article>`;
-  }).join('');
+  const state = (x) => (known && c >= x.at ? 'reached' : known && x === next ? 'next' : 'locked');
+  const main = tiers.filter((x) => x.at <= target);
+  const bonus = tiers.filter((x) => x.at > target);
+  const grid = $('#tiers');
+  grid.style.setProperty('--cols', String(main.length > 5 ? Math.ceil(main.length / 2) : Math.max(1, main.length)));
+  grid.innerHTML = main.map((x) => tierCard(x, state(x), false)).join('');
+  const wrap = $('#bonus');
+  wrap.hidden = !bonus.length;
+  if (bonus.length) {
+    $('#bonus-title').textContent = t('goal.bonusTitle', x0({ at: target }));
+    $('#bonus-lead').textContent = reached ? t('goal.bonusOpen') : t('goal.bonusLead');
+    $('#bonus-tiers').style.setProperty('--cols', String(bonus.length));
+    $('#bonus-tiers').innerHTML = bonus.map((x) => tierCard(x, state(x), !reached)).join('');
+  }
 }
-const x0 = (x) => x.label || short(x.at);
+// Libellé du seuil : format de la langue pour les paliers par défaut (2,5K / 2.5K), sinon celui de l'admin.
+const x0 = (x) => (!x.name || defTier(x) ? short(x.at) : x.label || short(x.at));
 async function loadGoals() {
   // Goals de l'admin (et compteur affiché) ; en cas d'échec, compteur réel seul ; sinon « indisponible » (jamais inventé).
   try {
