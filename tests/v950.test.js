@@ -195,3 +195,16 @@ test('v9.6.5 (10.2) : fiches monde valides, élément lu dans la fiche', async (
   ZONES.forEach((z, i) => assert.equal(zoneElement(i), z.element));
   assert.ok(validateWorlds([{ id: 'x', name: 'X', element: 'pink', enemies: ['nope'] }]).length >= 3);
 });
+
+test('v9.6.5 (10.3) : un monde programmé reste fermé jusqu\'à son ouverture', async () => {
+  const { ZONES } = await import('../src/data/zones.js');
+  const { worldClosed } = await import('../src/core/seals.js');
+  const now = Date.parse('2026-11-13T00:00:00Z');
+  assert.equal(worldClosed(21, now), false);
+  ZONES[1].opensAt = '2026-12-01T00:00:00Z';
+  try {
+    assert.equal(worldClosed(21, now), true);
+    assert.equal(worldClosed(22, now), false, 'seule l\'entrée est gardée');
+    assert.equal(worldClosed(21, Date.parse('2026-12-02T00:00:00Z')), false);
+  } finally { delete ZONES[1].opensAt; }
+});

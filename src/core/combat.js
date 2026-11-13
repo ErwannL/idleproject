@@ -36,7 +36,7 @@ import { enemyBehavior } from '../data/behaviors.js'; // v9.6.0
 import { behaviorHitMult, behaviorTakenMult, teamCounters } from './behaviors.js'; // v9.6.0
 import { heroElement } from './companions.js'; // v9.6.1
 import { activeMajor } from './inventory.js'; // v9.6.1
-import { SEALS, grantSeal, needsSeal } from './seals.js'; // v9.6.2
+import { SEALS, grantSeal, needsSeal, worldClosed } from './seals.js'; // v9.6.2
 const ENEMY_WINDUP = 0.25; // v9.1.9 : avance de l'événement « enemyWindup » sur le coup ennemi (s)
 
 const MAX_EVENTS = 300;
@@ -436,6 +436,7 @@ function clearStage(state, world, balance) {
     return;
   }
   if (retry && next === retry.stage) state.bossRetry = null;
+  if (worldClosed(next)) { state.kills = 0; if (!world.closedNotified) { world.closedNotified = true; emit(world, 'worldClosed', { stage: next }); } return; } // v9.6.5 (10.3)
   // v9.6.2 (7.6) : boss de fin de monde scellé — on refarme l'étape d'avant ; après 15 min, le sceau est accordé.
   if (needsSeal(state, next, balance)) {
     state.sealWait = (state.sealWait ?? 0) + 1;

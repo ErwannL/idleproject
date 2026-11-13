@@ -3,9 +3,24 @@
 // Un sceau gagné va au premier monde qui en manque. Jamais bloquant : après 15 min de combat devant la porte, le sceau
 // est accordé quand même (plus lentement qu'en jouant les contenus). Les sauvegardes déjà plus loin gardent tout ouvert.
 import { BALANCE } from '../data/balance.js';
+import { ZONES } from '../data/zones.js';
 import { cycleForStage, stageInZone, zoneIndexForStage } from './combat.js';
 
 export const SEALS = { fromZone: 2, waitSeconds: 15 * 60 };
+
+// v9.6.5 (10.3) : ouverture programmée d'un monde. Une fiche (data/zones.js) peut porter `opensAt` (date ISO ou ms) :
+// avant cette date, la première étape du monde reste fermée (on refarme la dernière) et le jeu affiche un compte à rebours.
+export function worldOpensAt(zoneIndex) {
+  const v = ZONES[zoneIndex]?.opensAt;
+  if (v === undefined || v === null) return null;
+  const t = typeof v === 'number' ? v : Date.parse(v);
+  return Number.isFinite(t) ? t : null;
+}
+export function worldClosed(stage, now = Date.now(), balance = BALANCE) {
+  if (cycleForStage(stage, balance) > 0 || stageInZone(stage, balance) !== 1) return false;
+  const t = worldOpensAt(zoneIndexForStage(stage, balance));
+  return t !== null && now < t;
+}
 
 export function needsSeal(state, stage, balance = BALANCE) {
   if (!Array.isArray(state.seals)) return false; // état construit à la main (tests, outils) : pas de porte

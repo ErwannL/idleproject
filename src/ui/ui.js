@@ -1,6 +1,7 @@
 // Interface DOM : barre du haut (monnaies, contrats, récompenses, paramètres), surimpressions légères
 // de la scène, HUD, onglets débloqués progressivement et panneaux (un module par panneau dans ./panels).
 // L'interface ne modifie jamais l'état directement : elle appelle les actions fournies par main.js.
+import { worldOpensAt } from '../core/seals.js'; // v9.6.5
 import { sessionGoalsHtml } from './session-goals.js'; // v9.6.5
 import { teamAdvice as teamAdviceV965 } from '../core/team-advisor.js';
 import { BALANCE } from '../data/balance.js';
@@ -1224,6 +1225,11 @@ export class UI {
         }
       }
         break;
+      case 'worldClosed': { // v9.6.5 (10.3)
+        const t = worldOpensAt(zoneIndexForStage(event.stage));
+        if (t) this.news(`Nouveau monde : ouverture dans ${formatDuration((t - Date.now()) / 1000)}`, '#ffd54a');
+        break;
+      }
       case 'eliteSpawn':
         this.news('Une élite errante approche !', '#ff9a3d');
         this.banner('Élite !', 'boss'); // v9.6.4 (6.5) : annoncée sur la scène
