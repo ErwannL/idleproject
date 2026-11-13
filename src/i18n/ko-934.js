@@ -1,6 +1,7 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Mesures anonymes (version, monde, niveau, temps de jeu — aucun identifiant)": "익명 통계 (버전, 월드, 레벨, 플레이 시간 — 식별자 없음)",
   "Bon retour ! Bonus de rattrapage : or et XP ×1,5 pendant 2 h de jeu": "돌아온 것을 환영합니다! 따라잡기 보너스: 2시간 동안 골드와 경험치 ×1.5",
   "Gagner 3 étapes": "스테이지 3개 돌파",
   "Vaincre 150 monstres": "몬스터 150마리 처치",

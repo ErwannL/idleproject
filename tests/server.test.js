@@ -578,3 +578,11 @@ test('connexions réussies sans limite ; seuls les échecs comptent', async (t) 
   assert.equal((await call(base, 'POST', '/api/admin/login', { username: 'erwann', password: 'faux-mdp-xxxx' })).status, 429);
   assert.equal((await call(base, 'POST', '/api/login', { pseudo: 'Fidele', password: 'motdepasse1' })).status, 200);
 });
+
+test('v9.6.5 : mesures anonymes — POST public, lecture admin seulement', async (t) => {
+  const s = await setup();
+  t.after(() => s.close());
+  const base = s.url();
+  assert.equal((await call(base, 'POST', '/api/metrics', { version: '9.7.0', world: 3, level: 40, minutes: 120, pseudo: 'x' })).status, 204);
+  assert.equal((await call(base, 'GET', '/api/admin/metrics')).status, 401);
+});

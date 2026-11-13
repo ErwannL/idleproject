@@ -1,6 +1,7 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Mesures anonymes (version, monde, niveau, temps de jeu — aucun identifiant)": "Anonymous metrics (version, world, level, play time — no identifier)",
   "Bon retour ! Bonus de rattrapage : or et XP ×1,5 pendant 2 h de jeu": "Welcome back! Catch-up bonus: gold and XP ×1.5 for 2 h of play",
   "Gagner 3 étapes": "Clear 3 stages",
   "Vaincre 150 monstres": "Defeat 150 monsters",

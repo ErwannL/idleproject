@@ -1,3 +1,4 @@
+import { sendMetrics } from './core/metrics.js';
 // Point d'entrée : charge la partie, applique les gains hors ligne, puis fait tourner
 // la simulation (minuterie, continue même fenêtre réduite) et le rendu (requestAnimationFrame,
 // suspendu automatiquement quand la fenêtre est masquée).
@@ -953,6 +954,7 @@ const actions = {
   setCinematics(on) { state.ui.cinematics = on; done(true); },
   setShake(on) { state.ui.shake = on; done(true); }, // v9.3.9
   setBigAuras(on) { state.ui.bigAuras = on; done(true); }, // v9.5.3
+  setMetricsOptIn(on) { state.ui.metricsOptIn = on; done(true); if (on) sendMetrics(state, { base: CLOUD_BASE }); }, // v9.6.5 (10.11)
   setRushSlot(i, id) { done(setRushSlot(state, i, id)); }, // v9.6.3 (5.2)
   setOrder(id, order) { if (['ready', 'boss', 'lowhp'].includes(order)) { state.companions.orders = { ...(state.companions.orders ?? {}), [id]: order }; done(true); } }, // v9.6.3 (5.3 bis)
   setFront(id) { if (state.companions.equipped.includes(id)) { state.companions.front = id; done(true); } }, // v9.6.3 (3.5)
@@ -1294,7 +1296,7 @@ async function cloudAuth(call, okText, preferRemote = false) {
   if (!cloudView.error) setCloudMessage(okText);
 }
 // Synchronisation périodique et au retour sur l'onglet ; une fois au lancement si déjà connecté.
-setInterval(() => cloudSync(), 60 * 1000);
+setInterval(() => { cloudSync(); sendMetrics(state, { base: CLOUD_BASE }); }, 60 * 1000); // v9.6.5 : mesures anonymes (si acceptées, 1 / h)
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') cloudSync(); });
 // Nom et type de compte à jour (renommé depuis un autre appareil), puis première synchronisation.
 // Ne pas effacer un message d'erreur posé par la synchronisation (serveur injoignable, pas à jour…).

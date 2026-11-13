@@ -221,3 +221,16 @@ test('v9.6.5 (10.10) : bonus de rattrapage après 3 jours d\'absence', async () 
   s.playSeconds += B.CATCH_UP.seconds + 1;
   assert.equal(B.catchUpMult(s), 1);
 });
+
+test('v9.6.5 (10.11) : mesures anonymes seulement sur accord, sans identifiant', async () => {
+  const M = await import('../src/core/metrics.js');
+  const { createNewState } = await import('../src/core/state.js');
+  const s = createNewState(Date.now());
+  const calls = [];
+  const fetchFn = async (url, o) => { calls.push([url, JSON.parse(o.body)]); return {}; };
+  assert.equal(await M.sendMetrics(s, { fetchFn }), false);
+  s.ui.metricsOptIn = true;
+  assert.equal(await M.sendMetrics(s, { fetchFn, now: 1e13 }), true);
+  assert.deepEqual(Object.keys(calls[0][1]).sort(), ['level', 'minutes', 'version', 'world']);
+  assert.equal(await M.sendMetrics(s, { fetchFn, now: 1e13 + 1000 }), false, 'une fois par heure');
+});

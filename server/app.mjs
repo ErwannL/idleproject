@@ -452,6 +452,7 @@ export function createApp({
   }
 
   // Tant que le mot de passe est temporaire, seule la route de changement de mot de passe répond.
+  let metrics = { reports: 0, byVersion: {}, byWorld: {} }; // v9.6.5 (10.11)
   function requireAdmin(req, { allowChange = false } = {}) {
     const token = bearer(req);
     const session = token ? adminSessions.get(hashToken(token)) : undefined;
@@ -780,6 +781,25 @@ export function createApp({
       }
     } },
     { method: 'GET', path: /^\/api\/health$/, handler: () => ({ body: { ok: true } }) },
+    // v9.6.5 (10.11) : mesures anonymes, envoyées seulement si le joueur l'a accepté (Options). Aucun identifiant :
+    // version, monde atteint, niveau, minutes de jeu. Agrégées en mémoire (compteurs bornés), lues par l'admin.
+    { method: 'POST', path: /^\/api\/metrics$/, handler: async ({ req }) => {
+      const m = await readJson(req, 2048);
+      const int = (v, max) => Math.max(0, Math.min(max, Math.floor(Number(v) || 0)));
+      const version = String(m.version ?? '?').replace(/[^0-9.]/g, '').slice(0, 12) || '?';
+      const world = int(m.world, 99), minutes = int(m.minutes, 1e7), level = int(m.level, 1e5);
+      metrics.reports += 1;
+      metrics.byVersion[version] = (metrics.byVersion[version] ?? 0) + 1;
+      if (Object.keys(metrics.byVersion).length > 200) metrics.byVersion = {};
+      const w = (metrics.byWorld[world] ??= { n: 0, minutes: 0, level: 0 });
+      w.n += 1; w.minutes += minutes; w.level += level;
+      return { status: 204 };
+    } },
+    { method: 'GET', path: /^\/api\/admin\/metrics$/, handler: ({ req }) => {
+      requireAdmin(req);
+      const byWorld = Object.fromEntries(Object.entries(metrics.byWorld).map(([k, v]) => [k, { reports: v.n, avgMinutes: Math.round(v.minutes / v.n), avgLevel: Math.round(v.level / v.n) }]));
+      return { body: { reports: metrics.reports, byVersion: metrics.byVersion, byWorld } };
+    } },
 
     // ---- Administration ----
     // Connexion d'un membre de l'équipe : pseudo + mot de passe. mustChange = mot de passe temporaire.

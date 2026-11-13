@@ -296,6 +296,8 @@
           </div>
         </div>
         <div class="kpis" id="an-kpis"></div>
+        <h3>Mesures anonymes (joueurs volontaires)</h3>
+        <div id="an-metrics" class="muted">—</div>
         <div class="panel" style="margin-top:16px">
           <h3>Joueurs actifs par jour</h3>
           <div class="legend"><span><i style="background:var(--accent)"></i>Actifs</span><span><i style="background:#6aa8ff"></i>Nouveaux comptes</span></div>
@@ -813,7 +815,17 @@
         box.append(row);
       }
     }
+    async function loadMetrics() { // v9.6.5 (10.11)
+      try {
+        const m = await api('/api/admin/metrics');
+        const rows = Object.entries(m.byWorld).sort((a, b) => a[0] - b[0])
+          .map(([w, v]) => `Monde ${w} : ${v.reports} rapports · ${v.avgMinutes} min de jeu en moyenne · niveau ${v.avgLevel}`);
+        $('an-metrics').textContent = '';
+        for (const line of [`${m.reports} rapports`, ...rows]) { const d = document.createElement('div'); d.textContent = line; $('an-metrics').append(d); }
+      } catch { $('an-metrics').textContent = 'Indisponible'; }
+    }
     async function loadAnalytics() {
+      loadMetrics();
       try {
         const a = await api(`/api/admin/analytics?days=${$('an-days').value}`);
         const kpis = [

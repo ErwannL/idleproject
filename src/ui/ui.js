@@ -1144,6 +1144,7 @@ export class UI {
     if (action === 'cinematics') this.actions.setCinematics(el.checked);
     if (action === 'screen-shake') this.actions.setShake(el.checked); // v9.3.9
     if (action === 'big-auras') this.actions.setBigAuras(el.checked); // v9.5.3
+    if (action === 'metrics-opt-in') this.actions.setMetricsOptIn(el.checked); // v9.6.5
     if (action === 'bind-build') this.actions.bindBuild(Number(el.dataset.value), el.value); // v9.6.1
     if (action === 'auto-recycle') this.actions.setAutoRecycle(el.value);
     if (action === 'recycle-mode') this.actions.setRecycleRule('mode', el.value);
