@@ -194,7 +194,7 @@ test('lot 1 : un doublon passe de 5 à 6 exemplaires (puis 20 gemmes) ; un skin 
   const g0 = s.gems;
   for (const u of COMPANIONS) s.companions.owned[u.id].stars = 6;
   const res2 = summon(s, new Rng(6), 10, 'gems', undefined, 'ally');
-  assert.equal(s.gems, g0 - 900 + res2.reduce((a, r) => a + OVER[r.rarity], 0));
+  assert.equal(s.gems, g0 - BALANCE.summon.tenPullGemCost + res2.reduce((a, r) => a + OVER[r.rarity], 0));
   assert.ok(res2.every((r) => r.refund === OVER[r.rarity] && r.stars === 6));
   // Affichage : 1 exemplaire = 0★, 6 = 5★.
   assert.equal(duplicates({ stars: 1 }), 0);

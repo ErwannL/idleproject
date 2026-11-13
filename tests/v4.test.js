@@ -103,7 +103,7 @@ test('invocation : coût, probabilités affichées, garantie et doublons', () =>
   state.gems = 0;
   assert.equal(summon(state, new Rng(1), 1, 'gems'), null, 'pas assez de gemmes');
   assert.equal(summon(state, new Rng(1), 1, 'tickets'), null, 'v9.1.3 : plus de tickets');
-  state.gems = 900 * 7;
+  state.gems = BALANCE.summon.tenPullGemCost * 7;
   const results = [];
   for (let i = 0; i < 7; i++) results.push(...summon(state, new Rng(i + 10), 10, 'gems'));
   assert.equal(state.gems, results.reduce((sum, r) => sum + r.refund, 0), 'seuls les remboursements de doublons restent');

@@ -12,7 +12,7 @@
 // - « skins » du DOC = apparences du héros (Héros › Apparences) ; « thèmes » = thèmes d'interface (Paramètres).
 
 export const DOC_CRYSTALS_PER_PULL = 300;
-export const GEMS_PER_PULL = 100; // = BALANCE.summon.gemCost (vérifié par les tests)
+export const GEMS_PER_PULL = 150; // v9.6.5 (avant 100) // = BALANCE.summon.gemCost (vérifié par les tests)
 export const CRYSTAL_SCALE = GEMS_PER_PULL / DOC_CRYSTALS_PER_PULL;
 const gems = (docCrystals) => Math.round(docCrystals * CRYSTAL_SCALE);
 

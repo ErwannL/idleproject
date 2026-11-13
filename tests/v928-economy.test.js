@@ -211,9 +211,9 @@ test('boutique : aucun paiement sans fournisseur, rien donné ; cosmétiques non
   try {
     const g0 = s.gems;
     assert.equal((await purchase(s, 'crystal_mini', NOW)).ok, true);
-    assert.equal(s.gems - g0, 200, '100 + 100 % la première fois');
+    assert.equal(s.gems - g0, 300, '150 + 100 % (v9.6.5) la première fois');
     await purchase(s, 'crystal_mini', NOW);
-    assert.equal(s.gems - g0, 300);
+    assert.equal(s.gems - g0, 450);
     for (let i = 0; i < 5; i++) await purchase(s, 'hero_ticket_I', NOW);
     assert.equal((await purchase(s, 'hero_ticket_I', NOW)).reason, 'limit');
     const skin = skinOffers().find((o) => o.skins[0] === 'fairy');

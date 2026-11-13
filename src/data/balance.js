@@ -281,8 +281,8 @@ export const BALANCE = {
     // par heure (rapport 7 : 1 gardé), deux fois moins de Rares, ~6 fois moins de Communs. Compensations : pièces
     // d'ensemble (setChance.rare ×2) et éclats (killShardChance : +1 éclat, à la place des Communs et Rares recyclés).
     // Mesures avant/après : docs/butin-v919.md (tools/measure-butin-v919.mjs).
-    dropScale: 0.3,
-    dropRarityWeights: { common: 36.7, rare: 36.7, epic: 23.3, legendary: 3.3 },
+    dropScale: 0.05, // v9.6.5 (2.8) : ÷6 objets (avant 0.3), mais de meilleure qualité ci-dessous
+    dropRarityWeights: { common: 10, rare: 40, epic: 40, legendary: 10 }, // v9.6.5 : moins mais mieux
     killShardChance: 0.14, // v9.1.9 : chance d'un éclat par monstre ordinaire vaincu (compense les objets en moins)
     bossMinRarity: 'rare',
     stagePowerGrowth: 0.045, // +4,5 % de stats par niveau d'objet (linéaire jusqu'à la v8.3)
@@ -370,8 +370,8 @@ export const BALANCE = {
 
   // Monnaies d'invocation (gagnées uniquement en jouant).
   summon: {
-    gemCost: 100,
-    tenPullGemCost: 900,
+    gemCost: 150, // v9.6.5 (9.4) : invocations plus rares (avant 100 / 900)
+    tenPullGemCost: 1350,
     // v7.7 : deux invocations séparées. Compagnons (humains R/SR/SSR) et familiers (animaux).
     pools: {
       hero: { label: 'Apparences', rarityWeights: { rare: 76, epic: 21, legendary: 3 } }, // v9.0.6 : skins de héros
@@ -414,7 +414,7 @@ export const BALANCE = {
     capHours: 24,
     farmMultiplier: 0.65, // hors ligne = 65 % du rythme de farm actif mesuré (35 % de moins)
     measureSeconds: 180, // durée de combat simulée pour mesurer ce rythme
-    maxItems: 3, // objets réellement générés ; le surplus est converti en or (v9.1.9 : 10 × loot.dropScale, mêmes Épiques)
+    maxItems: 1, // v9.6.5 : butin ÷6 // objets réellement générés ; le surplus est converti en or (v9.1.9 : 10 × loot.dropScale, mêmes Épiques)
     gemShare: 0.3, // étape 4 : 30 % des gemmes de kill gagnées aussi hors ligne
     minSecondsForSummary: 60,
   },

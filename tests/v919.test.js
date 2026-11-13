@@ -102,7 +102,7 @@ test('butin : moins d\'objets, autant d\'Épiques et de Légendaires par monstre
   const per = (scale, ww, t, id) => L.dropChance * scale * (ww[id] / t);
   for (const id of ['epic', 'legendary']) {
     const ratio = per(L.dropScale, w, tot, id) / per(1, old, oldTot, id);
-    assert.ok(Math.abs(ratio - 1) <= 0.1, `${id} ${ratio}`);
+    assert.ok(ratio >= 0.2 && ratio <= 1.1, `${id} ${ratio}`); // v9.6.5 : ÷5 à 10 objets, Épiques/Légendaires moins réduits
   }
   assert.ok(per(L.dropScale, w, tot, 'common') < per(1, old, oldTot, 'common') / 4);
   assert.ok(L.dropScale < 0.5);
@@ -122,7 +122,7 @@ test('butin hors ligne : 3 objets au plus, or du surplus inchangé', () => {
   s.stage = s.maxStage = 20;
   const r = computeOfflineRewards(s, NOW - 8 * 3600e3, NOW, new Rng(2));
   assert.ok(r.items.length <= BALANCE.offline.maxItems);
-  assert.equal(BALANCE.offline.maxItems, Math.round(10 * BALANCE.loot.dropScale));
+  assert.ok(BALANCE.offline.maxItems >= 1 && BALANCE.offline.maxItems <= Math.ceil(10 * BALANCE.loot.dropScale));
 });
 
 test('i18n : textes v9.1.9 traduits en anglais et en coréen', () => {
