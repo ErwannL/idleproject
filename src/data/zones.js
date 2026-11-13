@@ -7,6 +7,7 @@
 export const ZONES = [
   {
     id: 'plains',
+    element: 'green', // v9.6.5 (10.2) : fiche monde
     name: 'Plaines verdoyantes',
     enemies: ['slime', 'goblin', 'boar', 'mandrake'],
     bosses: ['slime_king'], // méga boss (étape 20)
@@ -14,6 +15,7 @@ export const ZONES = [
   },
   {
     id: 'forest',
+    element: 'green', // v9.6.5 (10.2) : fiche monde
     name: 'Forêt sombre',
     enemies: ['wolf', 'mushroom', 'mushroom_green', 'goblin_shaman', 'slime_blue'],
     bosses: ['alpha_wolf'], // méga boss (étape 20)
@@ -21,6 +23,7 @@ export const ZONES = [
   },
   {
     id: 'caves',
+    element: 'blue', // v9.6.5 (10.2) : fiche monde
     name: 'Grottes de cristal',
     enemies: ['bat', 'skeleton', 'skeleton_shield', 'golem'],
     bosses: ['bone_lord'], // méga boss (étape 20)
@@ -28,6 +31,7 @@ export const ZONES = [
   },
   {
     id: 'desert',
+    element: 'red', // v9.6.5 (10.2) : fiche monde
     name: 'Désert brûlant',
     enemies: ['scorpion', 'mummy', 'skeleton_archer', 'goblin_armored'],
     bosses: ['ash_dragon'], // méga boss (étape 20)
@@ -35,6 +39,7 @@ export const ZONES = [
   },
   {
     id: 'mountains',
+    element: 'blue', // v9.6.5 (10.2) : fiche monde
     name: 'Montagnes gelées',
     enemies: ['yeti', 'ice_wolf', 'slime_ice', 'ogre'],
     bosses: ['fallen_knight'], // méga boss (étape 20)
@@ -42,6 +47,7 @@ export const ZONES = [
   },
   {
     id: 'cursed',
+    element: 'dark', // v9.6.5 (10.2) : fiche monde
     name: 'Terres maudites',
     enemies: ['imp', 'wraith', 'lich', 'slime_fire'],
     bosses: ['demon_king'], // méga boss (étape 20)
@@ -50,6 +56,7 @@ export const ZONES = [
   // v7.7 : mondes 7 à 10.
   {
     id: 'swamp',
+    element: 'green', // v9.6.5 (10.2) : fiche monde
     name: 'Marais putride',
     enemies: ['toad', 'bog_zombie', 'leech_fly', 'lizardman'],
     bosses: ['boss_swamp_behemoth'],
@@ -57,6 +64,7 @@ export const ZONES = [
   },
   {
     id: 'sky',
+    element: 'light', // v9.6.5 (10.2) : fiche monde
     name: 'Îles célestes',
     enemies: ['harpy', 'cloud_spirit', 'griffin_cub', 'sky_automaton'],
     bosses: ['boss_sky_titan'],
@@ -64,6 +72,7 @@ export const ZONES = [
   },
   {
     id: 'volcano',
+    element: 'red', // v9.6.5 (10.2) : fiche monde
     name: 'Cœur du volcan',
     enemies: ['magma_slime', 'salamander', 'ash_wraith', 'obsidian_beetle'],
     bosses: ['boss_phoenix'],
@@ -71,6 +80,7 @@ export const ZONES = [
   },
   {
     id: 'void',
+    element: 'dark', // v9.6.5 (10.2) : fiche monde
     name: 'Royaume du Néant',
     enemies: ['void_eye', 'star_stalker', 'shadow_knight', 'voidling'],
     bosses: ['boss_void_emperor'],
@@ -81,6 +91,7 @@ export const ZONES = [
   // garde ses niveaux d'avant la 9.2.0 (voir levelForStage, core/combat.js). Sauvegardes : core/migrations-v920.js.
   {
     id: 'ocean',
+    element: 'blue', // v9.6.5 (10.2) : fiche monde
     name: 'Royaume englouti',
     underwater: true,
     levels: 10,
@@ -93,6 +104,7 @@ export const ZONES = [
   // qui invoque ses boss des étapes 5, 10 et 15 (berserk eux aussi) quand ses PV baissent.
   {
     id: 'abyss',
+    element: 'dark', // v9.6.5 (10.2) : fiche monde
     name: "Trône de l'Abysse",
     stages: 10,
     gauntlet: true,

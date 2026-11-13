@@ -186,3 +186,12 @@ test('v9.6.5 : objectifs de session, coffre unique, paliers de puissance', async
   assert.equal(G.powerTier(29), 2);
   assert.ok(Math.abs(G.powerTierMult(30) - 1.09) < 1e-9);
 });
+
+test('v9.6.5 (10.2) : fiches monde valides, élément lu dans la fiche', async () => {
+  const { validateWorlds } = await import('../tools/validate-worlds.mjs');
+  const { zoneElement } = await import('../src/core/elements.js');
+  const { ZONES } = await import('../src/data/zones.js');
+  assert.deepEqual(validateWorlds(), []);
+  ZONES.forEach((z, i) => assert.equal(zoneElement(i), z.element));
+  assert.ok(validateWorlds([{ id: 'x', name: 'X', element: 'pink', enemies: ['nope'] }]).length >= 3);
+});

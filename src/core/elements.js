@@ -1,6 +1,8 @@
 // v9.3.1 : système de types (éléments) — rouge, bleu, vert, lumière, ténèbres.
 // Triangle : rouge (feu) > vert (nature) > bleu (eau) > rouge. Lumière et ténèbres se battent l'une l'autre :
 // chacune frappe fort l'autre (et en reçoit autant). Avantage : dégâts × ADV ; faiblesse : dégâts × WEAK.
+import { ZONES } from '../data/zones.js';
+
 export const ELEMENTS = {
   red: { name: 'Feu', icon: '🔥', color: '#ff5a3c' },
   blue: { name: 'Eau', icon: '💧', color: '#3ca8ff' },
@@ -30,7 +32,8 @@ export const UNIT_ELEMENT = {
 export const ZONE_ELEMENT = ['green', 'green', 'blue', 'red', 'blue', 'dark', 'green', 'light', 'red', 'dark', 'blue', 'dark'];
 
 export function unitElement(id) { return UNIT_ELEMENT[id] ?? null; }
-export function zoneElement(zoneIndex) { return ZONE_ELEMENT[zoneIndex] ?? null; }
+// v9.6.5 (10.2) : l'élément vient de la fiche du monde (data/zones.js) ; ZONE_ELEMENT reste comme secours.
+export function zoneElement(zoneIndex) { return ZONES[zoneIndex]?.element ?? ZONE_ELEMENT[zoneIndex] ?? null; }
 
 // Multiplicateur de dégâts d'un attaquant `a` contre un défenseur `d` (éléments, ou null = neutre).
 // v9.3.2 : un seul multiplicateur par coup, appliqué une fois dans core/combat.js hitEnemy (attaque des compagnons) et
