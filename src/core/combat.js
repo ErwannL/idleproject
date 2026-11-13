@@ -188,6 +188,13 @@ export function rebirthDamage(state, balance = BALANCE) {
   return p ? rebirthMultiplier(state) ** p : 1;
 }
 
+// v9.7.0 (10.1, rythme 4–6 semaines) : après le monde 3, les PV montent un peu plus vite par étape (les trois premiers
+// mondes, joués en première session, ne changent pas).
+export function lateHp(n, growth) {
+  const l = growth.hpLate;
+  return l ? Math.min(l.cap ?? Infinity, l.rate ** Math.max(0, n - l.from)) : 1;
+}
+
 export function enemyStats(stage, type, boss, balance = BALANCE) {
   const def = enemyDefinition(type, boss);
   const tier = boss ? balance.stages.tiers[bossTier(type)] : null;
@@ -332,6 +339,7 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
   const boss = enc.boss && !elite;
   const type = rng.pick(boss ? enc.bosses : enc.enemies);
   const s = enemyStats(enc.level, type, boss, balance);
+  if (!enc.world && !enc.worldBoss) s.hp = Math.round(s.hp * lateHp(Math.max(0, enc.level - 1), balance.enemyScaling)); // v9.7.0 (10.1)
   if (boss && enc.gauntlet) applyBerserk(s, balance);
   if (enc.dungeon) {
     // Donjons : bien plus durs que la campagne, selon la difficulté choisie.

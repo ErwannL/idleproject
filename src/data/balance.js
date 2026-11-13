@@ -255,6 +255,7 @@ export const BALANCE = {
     hpBase: 8,
     hpBaseRamp: 25, // ×8 atteint progressivement sur les 25 premières étapes
     hpGrowth: 1.075,
+    hpLate: { from: 60, rate: 1.012, cap: 20 }, // v9.7.0 (10.1) : ×1,012 par étape après le monde 3 (plafond ×20)
     damageGrowth: 1.0583,
     // v9.2.8 : ×coef × étape^exp en plus (×1 au plus bas) : un héros qui achète ses PV et sa Défense encaisse 4 à 6
     // coups ordinaires à son étape record au lieu de milliers (réglage : tools/measure-defense-v928.mjs).
