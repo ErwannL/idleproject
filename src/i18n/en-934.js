@@ -402,10 +402,11 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
-  [new RegExp("^Nouveau monde : ouverture dans (.+)$"), (m) => `New world: opens in ${LK(m[1]) ?? m[1]}`],
-  [new RegExp("^Coffre de session : \\\\+(\\\\d+) gemmes, \\\\+(\\\\d+) \u00e9clats$"), (m) => `Session chest: +${m[1]} gems, +${m[2]} shards`],
-  [new RegExp("^Coffre : \\\\+(\\\\d+) gemmes, \\\\+(\\\\d+) \u00e9clats$"), (m) => `Chest: +${m[1]} gems, +${m[2]} shards`],
-  [new RegExp("^Palier de puissance (\\\\d+) : \\\\+3 % de d\u00e9g\u00e2ts$"), (m) => `Power tier ${m[1]}: +3% damage`],
+  [new RegExp("^Faille (\\d+) \\(échos : \\+(\\d+) % d.or\\)$"), (m) => `Rift ${m[1]} (echoes: +${m[2]}% gold)`],
+  [new RegExp("^Prochain monde ouvert dans (.+)$"), (m) => `New world: opens in ${LK(m[1]) ?? m[1]}`],
+  [new RegExp("^Coffre de session : \\+(\\d+) gemmes, \\+(\\d+) \u00e9clats$"), (m) => `Session chest: +${m[1]} gems, +${m[2]} shards`],
+  [new RegExp("^Coffre : \\+(\\d+) gemmes, \\+(\\d+) \u00e9clats$"), (m) => `Chest: +${m[1]} gems, +${m[2]} shards`],
+  [new RegExp("^Palier de puissance (\\d+) : \\+3 % de d\u00e9g\u00e2ts$"), (m) => `Power tier ${m[1]}: +3% damage`],
   [new RegExp("^([35])★ : (.+?)( ✓)?$"), (m) => `${m[1]}★: ${L(m[2])}${m[3] ?? ''}`],
 
   [new RegExp("^gagne-le avec (.+)$"), (m) => `earn it with ${L(m[1])}`],

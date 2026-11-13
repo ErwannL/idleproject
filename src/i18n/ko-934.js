@@ -402,10 +402,11 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
-  [new RegExp("^Nouveau monde : ouverture dans (.+)$"), (m) => `새 월드: ${LK(m[1]) ?? m[1]} 후 개방`],
-  [new RegExp("^Coffre de session : \\\\+(\\\\d+) gemmes, \\\\+(\\\\d+) \u00e9clats$"), (m) => `세션 상자: 젬 +${m[1]}, 파편 +${m[2]}`],
-  [new RegExp("^Coffre : \\\\+(\\\\d+) gemmes, \\\\+(\\\\d+) \u00e9clats$"), (m) => `상자: 젬 +${m[1]}, 파편 +${m[2]}`],
-  [new RegExp("^Palier de puissance (\\\\d+) : \\\\+3 % de d\u00e9g\u00e2ts$"), (m) => `파워 단계 ${m[1]}: 피해 +3%`],
+  [new RegExp("^Faille (\\d+) \\(échos : \\+(\\d+) % d.or\\)$"), (m) => `균열 ${m[1]} (메아리: 골드 +${m[2]}%)`],
+  [new RegExp("^Prochain monde ouvert dans (.+)$"), (m) => `새 월드: ${LK(m[1]) ?? m[1]} 후 개방`],
+  [new RegExp("^Coffre de session : \\+(\\d+) gemmes, \\+(\\d+) \u00e9clats$"), (m) => `세션 상자: 젬 +${m[1]}, 파편 +${m[2]}`],
+  [new RegExp("^Coffre : \\+(\\d+) gemmes, \\+(\\d+) \u00e9clats$"), (m) => `상자: 젬 +${m[1]}, 파편 +${m[2]}`],
+  [new RegExp("^Palier de puissance (\\d+) : \\+3 % de d\u00e9g\u00e2ts$"), (m) => `파워 단계 ${m[1]}: 피해 +3%`],
   [new RegExp("^([35])★ : (.+?)( ✓)?$"), (m) => `${m[1]}★: ${L(m[2])}${m[3] ?? ''}`],
 
   [new RegExp("^gagne-le avec (.+)$"), (m) => `${L(m[1])}(으)로 얻기`],

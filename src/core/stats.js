@@ -1,6 +1,7 @@
 // Statistiques du héros : base + améliorations + équipement + bonus permanents
 // (pouvoirs ancestraux actifs et talents de Renaissance).
 import { powerTierMult } from './session-goals.js';
+import { riftEchoMult } from './combat.js'; // v9.6.5 (10.4) : échos des Failles
 import { BALANCE } from '../data/balance.js';
 import { EQUIP_SLOTS, HERO_SLOTS, SLOTS, eqSlot, heroSlot } from '../data/items.js';
 import { collectBonuses } from './bonuses.js';
@@ -108,7 +109,7 @@ export function computeHeroStats(state, balance = BALANCE, equipment = state.equ
     thorns: bonus.thorns,
     goldPct: bonus.goldPct + (ups.goldFind ?? 0) * upgrades.goldFind.perLevel,
     // Multiplicateur d'or (Renaissances × paliers du Butin d'or), appliqué en plus du goldPct.
-    goldMult: reborn * big(upgrades.goldFind, ups.goldFind ?? 0) * Math.max(0.1, 1 + (bonus.goldMultPct ?? 0) / 100),
+    goldMult: riftEchoMult(state, balance) * reborn * big(upgrades.goldFind, ups.goldFind ?? 0) * Math.max(0.1, 1 + (bonus.goldMultPct ?? 0) / 100),
     rebirthMult: reborn,
     xpPct: bonus.xpPct + per('xpGain'),
     bonus,

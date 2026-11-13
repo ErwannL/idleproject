@@ -126,6 +126,14 @@ export function stageLabel(stage, balance = BALANCE) {
   return `${zoneIndexForStage(stage, balance) + 1}-${stageInZone(stage, balance)}${d > 1 ? ` ×${d}` : ''}`;
 }
 
+// v9.6.5 (10.4/7.7) : fin de jeu. Les passages après le dernier monde sont des « Failles » (Faille 1 = ancien ×2),
+// chacune avec un bonus d'échos : +10 % d'or et d'éclats par Faille atteinte (record), conservé par les Renaissances.
+export function riftOf(stage, balance = BALANCE) { return Math.max(0, difficultyForStage(stage, balance) - 1); }
+export function riftName(stage, balance = BALANCE) { const r = riftOf(stage, balance); return r > 0 ? `Faille ${r}` : ''; }
+export function riftEchoMult(state, balance = BALANCE) {
+  return 1 + 0.1 * riftOf(Math.max(1, state.records?.bestStage ?? state.maxStage ?? 1), balance);
+}
+
 // Boss de l'étape : le boss du rang correspondant du monde (méga boss à l'étape 20).
 export function bossesForStage(stage, balance = BALANCE) {
   const zone = zoneForStage(stage, balance);

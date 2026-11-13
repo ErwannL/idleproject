@@ -234,3 +234,14 @@ test('v9.6.5 (10.11) : mesures anonymes seulement sur accord, sans identifiant',
   assert.deepEqual(Object.keys(calls[0][1]).sort(), ['level', 'minutes', 'version', 'world']);
   assert.equal(await M.sendMetrics(s, { fetchFn, now: 1e13 + 1000 }), false, 'une fois par heure');
 });
+
+test('v9.6.5 (10.4) : Failles après le dernier monde, échos d\'or', async () => {
+  const C = await import('../src/core/combat.js');
+  const { createNewState } = await import('../src/core/state.js');
+  assert.equal(C.riftName(1), '');
+  assert.equal(C.riftName(231), 'Faille 1');
+  const s = createNewState(Date.now());
+  assert.equal(C.riftEchoMult(s), 1);
+  s.records.bestStage = 231 * 2;
+  assert.ok(C.riftEchoMult(s) > 1.1);
+});

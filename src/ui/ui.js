@@ -1228,7 +1228,7 @@ export class UI {
         break;
       case 'worldClosed': { // v9.6.5 (10.3)
         const t = worldOpensAt(zoneIndexForStage(event.stage));
-        if (t) this.news(`Nouveau monde : ouverture dans ${formatDuration((t - Date.now()) / 1000)}`, '#ffd54a');
+        if (t) this.news(`Prochain monde ouvert dans ${formatDuration((t - Date.now()) / 1000)}`, '#ffd54a');
         break;
       }
       case 'eliteSpawn':
@@ -1300,7 +1300,7 @@ export class UI {
         if (event.zoneChanged) {
           const d = difficultyForStage(event.stage);
           uiFx.worldTransitionFx(); // v9.2.6
-          this.banner(`Monde ${zoneIndexForStage(event.stage) + 1} — ${zoneForStage(event.stage).name}${d > 1 ? ` · difficulté ×${d}` : ''}`, 'zone');
+          this.banner(`Monde ${zoneIndexForStage(event.stage) + 1} — ${zoneForStage(event.stage).name}${d > 1 ? ` · Faille ${d - 1} (échos : +${(d - 1) * 10} % d'or)` : ''}`, 'zone'); // v9.6.5 (10.4)
           // v9.2.1 : malus d'environnement du monde, dans le fil (priorité des messages d'action).
           const env = currentEnvironment(state);
           if (env) this.news(envChipText(env), '#f0a860', 1);
