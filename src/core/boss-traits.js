@@ -37,6 +37,16 @@ export const TRAITS = {
     text: 'renvoie 12 % des dégâts du héros au héros (au plus 2 % de ses PV par coup)',
     reflectPct: 12,
   },
+  frost: {
+    name: 'Gel', short: 'ralentit le héros', color: '#bfefff', counter: 'Vitesse d\'attaque',
+    text: 'tant qu\'il est en vie, le héros attaque 30 % moins vite',
+    slow: 1.3,
+  },
+  swarm: {
+    name: 'Nuée', short: 'appelle des nuées', color: '#d6c27a', counter: 'Dégâts de zone, en chaîne',
+    text: 'fait surgir 4 petits serviteurs toutes les 8 s',
+    every: 8, count: 4, maxAlive: 6, minionHpPct: 1, minion: 'bat',
+  },
   elemShield: {
     name: 'Bouclier d\'élément', short: 'seul son élément faible passe bien', color: '#c69cff', counter: 'Compagnons de l\'élément fort',
     text: 'encaisse −50 % des dégâts, sauf ceux de l\'élément qui le bat',
@@ -62,9 +72,9 @@ export const BOSS_TRAITS = {
   alpha_wolf: 'escalate', mini_treant: 'armored', mid_giant_spider: 'summoner', hard_werewolf: 'desperate',
   bone_lord: 'summoner', mid_crystal_bat: 'tidal',
   mini_pharaoh: 'summoner', mid_sand_worm: 'armored', hard_anubis: 'desperate',
-  fallen_knight: 'armored', mini_frost_witch: 'tidal', mid_mammoth: 'armored', hard_frost_giant: 'escalate',
+  fallen_knight: 'armored', mini_frost_witch: 'frost', mid_mammoth: 'armored', hard_frost_giant: 'escalate',
   mini_reaper: 'desperate',
-  boss_swamp_behemoth: 'tidal', mini_toad_king: 'summoner', mid_hydra: 'tidal', hard_plague_doctor: 'summoner',
+  boss_swamp_behemoth: 'tidal', mini_toad_king: 'swarm', mid_hydra: 'tidal', hard_plague_doctor: 'summoner',
   mini_harpy_queen: 'summoner', mid_thunder_griffin: 'escalate', hard_storm_valkyrie: 'desperate',
   mini_salamander_chief: 'escalate',
   mini_void_watcher: 'mirror', mid_star_devourer: 'tidal', hard_void_knight: 'elemShield', // v9.6.5

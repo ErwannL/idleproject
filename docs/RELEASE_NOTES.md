@@ -1,3 +1,5 @@
+<!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
+
 ## Ascendrya v9.7.0 — Un idle stratégique, sans lassitude
 
 - Préparer plutôt que subir : rushes repensés (6 à 8 s, 3 emplacements, déclenchement auto), boss en phases (attaque lourde annoncée puis fenêtre de faiblesse ×1,5), rangs avant/arrière, ordres d'ultime (prêt, boss, PV bas), paliers d'étoiles (3★ passif, 5★ aura).
@@ -6,19 +8,23 @@
 - Plus d'imprévu : trouvailles toutes les 3 à 5 minutes, ennemis mutés deux fois plus fréquents, bannières « Élite ! » et « Vague mutante ! ».
 - Moins mais mieux : environ 6 fois moins d'objets, de meilleure qualité ; invocations plus rares (150 gemmes).
 - Objectifs de session avec coffre, conseil concret au retour, paliers de puissance tous les 10 niveaux, bonus de rattrapage après 3 jours d'absence.
-- Fin de jeu : les cycles ×2/×3 deviennent des Failles, avec des échos d'or. Nouvelles mécaniques de boss : Miroir et Bouclier d'élément.
+- Fin de jeu : les cycles ×2/×3 deviennent des Failles, avec des échos d'or. Nouvelles mécaniques de boss : Miroir, Bouclier d'élément, Gel et Nuée.
 - Mondes décrits par une fiche (élément compris), vérifiés par un outil ; un monde peut être programmé avec compte à rebours.
 - Mesures anonymes facultatives (désactivées par défaut) pour régler le rythme.
 - Android : en plus de l'APK, un paquet AAB pour le Play Store.
 
-## Ascendrya v9.6.0 — Des monstres qui obligent à se préparer
+### Versions précédentes
+
+<details><summary><b>Ascendrya v9.6.0 — Des monstres qui obligent à se préparer</b></summary>
 
 - Huit comportements de monstres, deux par monde à partir du monde 2 : Tireur, Bouclier, Kamikaze, Soigneur, Essaim, Volant, Voleur et Charge. Chacun a sa parade, qui se prépare avant le combat (un rôle de compagnon ou la classe du héros) : avec elle, le malus disparaît. Rien à faire pendant le combat.
 - Une icône au-dessus du monstre montre son comportement (estompée quand l'équipe a la parade) ; une carte courte l'explique à la première rencontre ; l'écran Préparation liste ceux du monde.
 - Chaque boss de campagne a désormais une mécanique à partir du monde 2.
 - Combat plus lisible : l'aura des compagnons 5★ devient un liseré (grandes flammes en option), au plus 3 anneaux d'impact à la fois.
 
-## Ascendrya v9.5.2 — Préparer son équipe : composition, éléments, équipement
+</details>
+
+<details><summary><b>Ascendrya v9.5.2 — Préparer son équipe : composition, éléments, équipement</b></summary>
 
 - Niveau d'équipe partagé : tous les compagnons ont le même niveau (et tous les familiers aussi). Changer d'équipe ne coûte plus rien ; vos niveaux sont gardés (le plus haut atteint devient celui de l'équipe).
 - « Meilleure équipe disponible » : le jeu essaie vos compagnons en vrai combat et propose la meilleure équipe avec le gain (« +54 % de dégâts »), dans la barre jaune et dans l'écran Équipe.
@@ -27,14 +33,18 @@
 - Écran Préparation à l'arrivée dans un monde et avant son boss de fin : élément, mécanique du boss et sa parade, équipe conseillée. Il ne bloque jamais le jeu.
 - Équipement : « Équiper pour : Attaque / Survie / Fortune » ; chaque objet dit son gain ici et contre le prochain boss, et pour quel profil il est meilleur ; bandeau Ensembles (spécialité, pièces, prochain bonus, où les trouver).
 
-## Ascendrya v9.4.0 — Une seule main pour tous les personnages, des icônes lisibles
+</details>
+
+<details><summary><b>Ascendrya v9.4.0 — Une seule main pour tous les personnages, des icônes lisibles</b></summary>
 
 - 15 compagnons Rares et Épiques redessinés au style des Légendaires (proportions élancées, même hauteur que l'Archange, contour et lumière communs) : Écuyer, Mercenaire, Rôdeur, Pyromancienne, Prêtresse, Lancier, Ombre, Nain guerrier, Paladin d'azur, Lame rose, Sorcière, Archère elfe, Grand prêtre, Ninja, Barbare. Pose, marche, attaque, gestes de compétence et illustration de fiche refaits ensemble.
 - 6 familiers redessinés au style du Renard céleste : Chat du château, Hibou érudit, Slime doré, Feu follet, Mini-golem, Fée des bois.
 - 44 nouvelles icônes : les 14 améliorations (Défense en une seule icône), les 3 ressources de compétence, les 4 menus, les 3 boutons du haut et les onglets. Plus aucune icône ne sert à deux choses ; elles s'affichent entre 28 et 40 px.
 - Le Lancier n'est plus un chevalier réaliste plus grand que les autres, et on voit son visage.
 
-## Ascendrya v9.3.9 — Chaque coup se sent, le PC aussi soigné que le téléphone
+</details>
+
+<details><summary><b>Ascendrya v9.3.9 — Chaque coup se sent, le PC aussi soigné que le téléphone</b></summary>
 
 - PC : scène agrandie (personnages ×1,6, sol aux deux tiers) ; les monstres entrent par le bord droit et marchent à vitesse constante (ils ne « glissent » plus) ; la barre de vague et le prochain déblocage sont rangés sous le sol.
 - Coups : recul et écrasement plus forts, arrêt sur image sur les critiques et les coups de grâce, monstre projeté qui clignote puis éclate, pièces qui volent vers l'or, chiffres plus gros (blanc, jaune critique, orange compétence), barre de vie en deux temps, tremblement sur les compétences de zone et les coups de boss (réglable), son plus grave sur les boss.
@@ -48,7 +58,9 @@
 - Le heaume laisse voir le visage du héros.
 - Corrigé : aide de l'invocation (un compteur par invocation : 100 pour les compagnons, 60 pour les familiers), héros qui remarchait au milieu d'une vague.
 
-## Ascendrya v9.3.8 — Combat en vagues, Quêtes de la semaine, héros à 6 places
+</details>
+
+<details><summary><b>Ascendrya v9.3.8 — Combat en vagues, Quêtes de la semaine, héros à 6 places</b></summary>
 
 - Combat en vagues : les monstres arrivent par groupes de 3 et s'arrêtent tous sur une même ligne devant le héros ; personne ne les touche avant (héros, compagnons, compétences). Le héros combat au lieu de marcher (environ 60 % du temps contre 25 % avant), pour le même or et la même expérience par minute. « Vague 3/5 » remplace « Ennemis vaincus 14/15 ».
 - Héros : 6 places d'équipement (Arme, Casque, Armure, Collier, Anneau, Bracelet) ; les compagnons gardent 3 places. Les pièces réunies depuis la 9.3.4 redeviennent des objets à part entière, sans rien perdre.
@@ -62,18 +74,24 @@
 - Recyclage automatique des objets inutiles (Communs et Rares d'autres classes ou moins bons), réglable dans le sac.
 - Corrigé : bulle du tutoriel qui cachait le bouton suivant et ne se fermait pas, garanties d'invocation mal écrites, butin de donjon en texte (maintenant en icônes).
 
-## Ascendrya v9.3.7 — Prologue « La chute du héros »
+</details>
+
+<details><summary><b>Ascendrya v9.3.7 — Prologue « La chute du héros »</b></summary>
 
 - Première connexion : le héros, bien équipé, affronte seul le Colosse des Anciens. À la moitié de ses PV, la Prêtresse et la Pyromancienne arrivent et le font plier ; le Colosse entre en rage et balaie toute l'équipe. Le héros perd son équipement et ses compagnons : l'aventure commence.
 - Environ 70 secondes, une seule fois. Un clic passe au dialogue suivant, « Passer » termine tout. Rien n'est pris à la partie.
 - Version calme avec « effets réduits » (pas de secousses ni de flashs).
 
-## Ascendrya v9.3.6 — Scène de combat agrandie, Arène sur grande scène
+</details>
+
+<details><summary><b>Ascendrya v9.3.6 — Scène de combat agrandie, Arène sur grande scène</b></summary>
 
 - Téléphone : personnages plus grands et sol remonté, la moitié haute de l'écran n'est plus un ciel vide.
 - Arène : combats sur une grande scène au décor du monde des ennemis, avec les vrais monstres et boss de la campagne (plus de têtes de mort).
 
-## Ascendrya v9.3.5 — Refonte pour les débutants, équipement unique
+</details>
+
+<details><summary><b>Ascendrya v9.3.5 — Refonte pour les débutants, équipement unique</b></summary>
 
 - Équipement unique : héros et compagnons portent les mêmes objets, trois places pour tout le monde (Arme, Armure, Accessoire), chaque objet a une classe (Attaquant, Défenseur, Soutien, Familier). Le butin équipe l'équipe en place ; « Équiper le meilleur » équipe toute l'équipe. Sélecteur de personnage dans l'écran Équipement. Les sauvegardes sont converties sans perte : le casque est réuni à l'armure et les bijoux à l'accessoire, avec toutes leurs statistiques ; l'équipement des compagnons garde ses bonus.
 - La barre jaune guide tout le jeu, et un clic fait l'action : équiper tous les objets meilleurs, placer un compagnon, dépenser les points de compétence, invoquer, améliorer, monter un compagnon, recycler, forger, utiliser les clés, Renaissance. « Boss : 88 % de vie restante » quand un boss bloque.
@@ -85,7 +103,9 @@
 - Combat : toucher l'écran fait une étincelle et un petit coup ; nom court sous les boosts ; touches affichées seulement avec un clavier.
 - Corrigé : Expéditions qui proposaient le même compagnon partout, missions sur des fonctions pas encore ouvertes, « Cristaux » au lieu de gemmes, « onze mondes », doublon d'invocation à une étoile, rôle écrit de deux façons, images cassées.
 
-## Ascendrya v9.3.4 — Refonte de l'interface
+</details>
+
+<details><summary><b>Ascendrya v9.3.4 — Refonte de l'interface</b></summary>
 
 - Compagnons : grille en deux onglets et nouvelle fiche en popup (grande illustration, rareté, élément, rôle, Dégâts/Vie/Vitesse, trois compétences en icônes avec bulle de détail, Copies, onglets Compétences / Équipement / Histoire, deux boutons).
 - Équipement : Puissance en gros, emplacements nommés, popup d'objet avec « Puissance +X », Équiper / Recycler et un menu « ⋯ » pour le reste ; Builds et réglages du sac rangés derrière ⚙.
@@ -96,7 +116,9 @@
 - Premières minutes : doigt animé (Dégâts, premier objet, recyclage, premier compagnon) et bulles sur le bonus du moment et « Tout récupérer » ; cartes de nouvel onglet en une ligne.
 - Aucun changement d'équilibrage. Les sauvegardes se chargent sans perte. L'équipement unique héros + compagnons attend validation (docs/plan-v934.md).
 
-## Ascendrya v9.3.3 — Compétences des héros, doublons, ressources universelles, équipement des compagnons
+</details>
+
+<details><summary><b>Ascendrya v9.3.3 — Compétences des héros, doublons, ressources universelles, équipement des compagnons</b></summary>
 
 - Héros (alliés invoqués) et familiers : trois compétences dès le premier exemplaire — passive, active et ultime. Les anciennes 2e et 3e compétences deviennent des évolutions de l'active (niveaux 5 et 8). Niveaux 1 à 10 ; l'ultime monte jusqu'au niveau 5, puis jusqu'au 10 avec le 4e exemplaire. Chaque niveau renforce l'effet ; certains paliers raccourcissent la recharge ou allongent la durée.
 - Doublons : bonus cumulés de 0, 4, 8, 12, 16 et 24 % ; plus de compétence verrouillée derrière les doublons.
@@ -105,7 +127,9 @@
 - Les héros déjà possédés gardent toute leur puissance (passive 2, active 8, ultime 2 offerts à la mise à jour).
 - Le chevalier ne change pas : améliorations permanentes, compétences et équipement identiques.
 
-## Ascendrya v9.3.2 — Arène des compagnons, guildes, World Boss mondial, armes plus spectaculaires
+</details>
+
+<details><summary><b>Ascendrya v9.3.2 — Arène des compagnons, guildes, World Boss mondial, armes plus spectaculaires</b></summary>
 
 - Arène des compagnons (Aventure › Arène), sans le héros : Survie (un compagnon seul contre 30 vagues, 3 essais par jour, paliers de récompense) et Étages (une équipe de 3 compagnons ou familiers, étages permanents, boss tous les 10, contrainte tous les 5). Relecture animée du combat.
 - World Boss mondial : une barre de PV commune à tous les joueurs, une tentative par jour. Le World Boss des grands événements reste à part.
@@ -115,14 +139,18 @@
 - Menus : réactions des boutons, états homogènes (verrouillé, terminé, à récupérer), cadres de rareté plus lisibles, ouverture des fenêtres plus douce.
 - Corrigé : monstre tué menu ouvert qui restait collé en haut de l'écran ; Colosse qui tirait 4 rayons ; portail d'invocation décalé et bannière du monde visible derrière.
 
-## Ascendrya v9.3.0 — Événements pilotés en direct, Colosse déchaîné, nouveau site
+</details>
+
+<details><summary><b>Ascendrya v9.3.0 — Événements pilotés en direct, Colosse déchaîné, nouveau site</b></summary>
 
 - Événements pilotés depuis l'admin : calendrier qui démarre et arrête seul les événements, vedettes, offres et annonces aux dates prévues (heure du serveur), avec boutons « Démarrer maintenant » / « Arrêter maintenant ». Le contenu arrive à l'avance par les mises à jour et s'active sans nouvelle version. Objectifs de préinscription librement réglables.
 - World Boss : le Colosse des Anciens lance des rochers et un rayon depuis ses yeux, en pierre puis en lave en phase 3.
 - Le Roi démon et l'Épouvantail ne tournent plus le dos au héros quand ils sont touchés.
 - Nouveau site : bandeau vidéo filmé dans le jeu, mondes, galerie des héros et compagnons, familiers, World Boss, paliers de préinscription, FAQ, en français et en anglais.
 
-## Ascendrya v9.2.9 — World Boss, boutique accessible, nouveaux familiers, stabilité
+</details>
+
+<details><summary><b>Ascendrya v9.2.9 — World Boss, boutique accessible, nouveaux familiers, stabilité</b></summary>
 
 - World Boss : vrai combat animé de 60 s contre le Colosse des Anciens (3 phases avec attaques spéciales, barre géante, chrono, bilan, paliers, 3 tentatives par jour) avec toute l'équipe ; sur téléphone, bilan en direct par membre.
 - Boutique accessible en permanence depuis la barre du haut.
@@ -130,7 +158,9 @@
 - Armes des apparences : arme toujours visible (plus de lance cachée derrière la tête), frappe de la même main que la prise, arc et arbalète de la diablesse refaits.
 - Stabilité : parcours complet du jeu automatisé ; noms de compagnons qui se chevauchaient, textes coupés sur téléphone, bouton des réglages coupé, traductions manquantes corrigés.
 
-## Ascendrya v9.2.8 — Nouvelle économie d'invocation, boutique, événement, défense
+</details>
+
+<details><summary><b>Ascendrya v9.2.8 — Nouvelle économie d'invocation, boutique, événement, défense</b></summary>
 
 - Invocations refaites : bannière limitée (2 % SSR, 50/50 avec vedette garantie après une perte, SSR garanti au 100e tirage), bannière permanente (1,5 %, liste de souhaits de 5), familiers avec leurs propres tickets (3 %, garanti au 60e). Taux, pity et garanties affichés.
 - Doublons jusqu'à 6 exemplaires (ultime au 4e), fragments SSR universels, revenus mensuels de tickets et de gemmes.
@@ -140,7 +170,9 @@
 - Défense : PV et défense visibles dans les améliorations (onglets Toutes / Combat / Défense / Ressources), « Encaisse N coups », nouvelles stats Défense, Double attaque et Puissance de combat, fiche de stats du héros refaite ; combats rééquilibrés (on n'est plus mis à terre d'un coup quand on investit en défense, boss plus lents et plus lourds).
 - Sauvegardes converties sans perte (compteurs de pity, garanties, tickets offerts).
 
-## Ascendrya v9.2.7 — Arbre de talents refait, vitrine d'animations, volants et marcheurs
+</details>
+
+<details><summary><b>Ascendrya v9.2.7 — Arbre de talents refait, vitrine d'animations, volants et marcheurs</b></summary>
 
 - Arbre de talents refait : chaque nœud montre ce qu'il donne, son coût et son état, régions nommées et colorées, ce que débloque un talent en pointillés, légende, zoom fluide ; l'animation se joue sur le nœud acheté et court le long des liens.
 - Vitrine animée dans les fiches (compagnons, familiers, apparences, monstres, boss, mutations) : marche, attaque, chaque compétence et ultime, arrivée, mort, mécaniques de boss, avec les vrais effets du jeu.
@@ -151,7 +183,9 @@
 - Ambiance des mondes lisible (oiseaux, vautours, aigle, sable, bulles) ; plus de carrés bleus sur les ennemis des grottes ; plus de flammes de rage hors combat.
 - Malus d'environnement affichés à leur vraie valeur (plafond 90 %).
 
-## Ascendrya v9.2.6 — Effets visuels partout
+</details>
+
+<details><summary><b>Ascendrya v9.2.6 — Effets visuels partout</b></summary>
 
 - Combat : 127 effets dessinés — impacts par arme et par élément, critiques (éclat et onde), projectiles animés, morts (fumée, âme, explosion des boss), butin qui jaillit, montée de niveau, soins, auras, arrivée des boss, poussière des pas ; chiffres de dégâts en police pixel avec rebond et couleur par type.
 - Un effet propre à chaque compétence et ultime, aux mécaniques de boss (carapace, invocation, fournaise, désespoir, marée), aux malus d'environnement et aux mutations ; ambiance animée dans chacun des 12 mondes ; étourdissement, bouclier, esquive, série de coups, rage, vague gagnée.
@@ -159,7 +193,9 @@
 - Carte du monde vivante : nuages, eau, lave, étoiles, bateau, oiseaux, dragon, éruptions, marqueur du monde actuel et chemin vers le monde suivant.
 - « Réduire les animations » coupe ou adoucit tous ces effets ; aucun ne bloque un clic ; fluidité inchangée sur téléphone.
 
-## Ascendrya v9.2.5 — Compétences animées, vitrine d'invocation, illustrations refaites
+</details>
+
+<details><summary><b>Ascendrya v9.2.5 — Compétences animées, vitrine d'invocation, illustrations refaites</b></summary>
 
 - Chaque compétence a son geste et son effet : le héros lève les bras et une vraie météorite s'écrase, l'Archange range son épée et joint les mains pour prier, pluie de flèches tirée vers le ciel, tourbillon, dômes, pics de glace, colonnes de feu… pour le héros et les 26 compagnons. Le héros garde son équipement et son arme pendant le geste.
 - Le héros n'apparaît plus jamais sans tête (contrôle automatique sur toutes les classes, apparences, casques et états) ; l'arme est vraiment tenue (poing par-dessus la poignée) et ne couvre plus le visage en marche.
@@ -174,7 +210,9 @@
 - Toutes les illustrations HD refaites dans le style de l'Archange et du Paladin d'azur.
 - Bouton « Tout récupérer » lisible à toutes les tailles d'écran.
 
-## Ascendrya v9.2.4 — Héros fidèle à son équipement, ennemis bien orientés, illustrations HD
+</details>
+
+<details><summary><b>Ascendrya v9.2.4 — Héros fidèle à son équipement, ennemis bien orientés, illustrations HD</b></summary>
 
 - Le héros ne redevient plus le chevalier de base quand il frappe : son vrai casque et son armure (forme et couleurs de rareté) suivent l'animation en marche, en attaque et à la nage ; l'arme reste dans la main sur chaque image.
 - Animations plus fluides : le décor et les ennemis n'avancent plus par à-coups (60 images/s réelles), cadence régulière des gestes du héros et des compagnons, transition douce entre marche et attaque.
@@ -184,7 +222,9 @@
 - Morts dessinées pour 49 ennemis ordinaires ; les volants tués en l'air tombent au sol.
 - Illustrations HD pour les 40 héros, apparences, compagnons et familiers (invocation, bannière, apparences, fiches, site).
 
-## Ascendrya v9.2.3 — Vraies animations pour tous les ennemis (PixelLab)
+</details>
+
+<details><summary><b>Ascendrya v9.2.3 — Vraies animations pour tous les ennemis (PixelLab)</b></summary>
 
 - Tous les ennemis et boss des mondes 1 à 12 ont des animations dessinées image par image : marche ou vol avec de vrais battements d'ailes, attaque (on lève l'arme, on frappe, on revient en garde), nage dans le Royaume englouti, flottement des spectres.
 - Sorties de terre dessinées (le crâne pointe, une main agrippe le sol, l'ennemi s'extrait) avec une terre à la couleur du sol de chaque monde, et sorties de portail dessinées.
@@ -195,7 +235,9 @@
 - Menus : les grilles de vignettes gardent le même nombre de colonnes (Collections, Compagnons, Invocation, Apparences), barre de défilement ou non.
 - Quelques animations restent calculées par le jeu quand le dessin n'était pas meilleur (certains poissons, crabes, spectres).
 
-## Ascendrya v9.2.2 — Apparences dans le menu Héros, arrivée des ennemis selon leur nature
+</details>
+
+<details><summary><b>Ascendrya v9.2.2 — Apparences dans le menu Héros, arrivée des ennemis selon leur nature</b></summary>
 
 - Apparences : nouveau sous-onglet visible Héros › Apparences (apparence équipée en haut, grille avec aperçu, bonus, état Équipée / Possédée / Verrouillée, bouton Équiper ou Invoquer). Plus de chemin caché dans la fiche du héros ; rien ne change dans les apparences possédées.
 - Arrivée des ennemis selon leur nature : les volants arrivent en vol par une trajectoire courbe, les créatures marines à la nage, d'autres sortent du sol ou d'un portail, les autres arrivent à pied par la droite. Fini les ennemis qui tombent du ciel sans raison.
@@ -206,7 +248,9 @@
 - Pastille d'environnement lisible (« Boue : −23 % vitesse », « annulé » une fois contré) et bandeaux courts (environnement, mécanique de boss) qui tiennent sur une ligne.
 - Rayons de lumière sur toute la hauteur, estompés vers le haut.
 
-## Ascendrya v9.2.1 — Malus d'environnement, déplacements par monde et nage améliorée
+</details>
+
+<details><summary><b>Ascendrya v9.2.1 — Malus d'environnement, déplacements par monde et nage améliorée</b></summary>
 
 - Environnements : dans chaque monde sauf le premier, le lieu gêne le héros — Pénombre (coups manqués), Éclats de cristal (dégâts reçus), Soif (régénération), Froid mordant (PV max), Malédiction (dégâts), Boue (vitesse d'attaque), Rafales (critique), Lave (PV perdus chaque seconde, jamais mortelle seule), Distorsion (dégâts contre les boss), Pression (PV max), Corruption (puissance des compagnons). Un peu plus fort à chaque cycle (×2 au plus). Campagne, donjons et défi du monde, hors ligne et prévision de boss compris ; ni Tour ni mode monde.
 - Chaque malus est contré par une amélioration à l'or existante (Coup critique, Armure, Régénération PV, Points de vie, Dégâts, Vitesse d'attaque, Dégâts critiques, Tueur de boss, Lien des compagnons) : il baisse avec son niveau et disparaît à son niveau complet. Affiché à l'entrée du monde (fil), sur la scène (pastille « contré x % »), dans la fiche du monde (Carte), sur la ligne d'amélioration concernée (« contre Lave », mention neutre), dans l'aide et dans Collections. Détail : docs/environnement-v921.md.
@@ -216,7 +260,9 @@
 - Chaque monde a sa façon d'avancer (héros, compagnons, familiers) : pas feutrés et feuilles mortes en forêt, éclats de cristal dans les grottes, sable soulevé, empreintes et mirage dans le désert, glissade sur la neige, brume maudite aux chevilles, on patauge dans le marais (eau jusqu'aux mollets, éclaboussures, pas lents), on saute de nuage en nuage dans les Îles célestes, pas prudents et empreintes brûlantes sur la lave, lévitation dans le Néant, pas lourds dans l'ombre de l'Abysse. Détail : docs/deplacements-v921.md. « Réduire les animations » : hauteurs fixes, ni particules ni traces.
 - Performances : temps d'image inchangé sur téléphone simulé (processeur ÷4, 375×812 : 20–28 ms en moyenne avant comme après, 95e centile identique).
 
-## Ascendrya v9.2.0 — Royaume englouti (monde sous-marin) et 13 améliorations
+</details>
+
+<details><summary><b>Ascendrya v9.2.0 — Royaume englouti (monde sous-marin) et 13 améliorations</b></summary>
 
 - Nouveau monde 11 : le Royaume englouti, une cité engloutie sous les vagues (20 étapes). Le Trône de l'Abysse devient le monde 12. Décor sous-marin en parallaxe : falaises lointaines, colonnes et temple effondré, épave, récifs de coraux, kelp qui ondule, rayons de lumière qui oscillent, caustiques, bulles qui montent, particules en suspension, bancs de poissons au loin.
 - On y nage : le héros et les compagnons flottent et ondulent (cape et cheveux qui flottent), bulles à la bouche, battements plus lents ; chaque attaque soulève un remous de bulles, les projectiles laissent une traînée de bulles. Les monstres nagent : la queue des poissons bat, la méduse pulse, l'anguille et le triton ondulent, le crabe marche sur le fond.
@@ -230,7 +276,9 @@
 - Les nouvelles améliorations s'ouvrent une à une avec l'étape record (15, 20, 30, 40, 50, 60), annoncées par « Nouvelle amélioration » ; le panneau affiche la suivante (« Prochain : X à l'étape N »). Le début reste à 3 lignes.
 - Régénération PV : paliers ×1,1 tous les 10 niveaux, comme Dégâts et Points de vie.
 
-## Ascendrya v9.1.9 — Apparences, alerte de boss, butin, animations, traductions
+</details>
+
+<details><summary><b>Ascendrya v9.1.9 — Apparences, alerte de boss, butin, animations, traductions</b></summary>
 
 - Ennemis : attaque en trois temps (préparation, coup avec traînée de frappe, retour) ; les ennemis et compagnons à pied lèvent puis abattent le bras/l'arme (segment tourné au pixel autour de l'épaule).
 - Morts : le corps se dissout en tramage pixel avec des étincelles qui montent (plus d'écrasement flou).
@@ -244,7 +292,9 @@
 - Alerte de boss : à l'arrivée d'un boss (mini, boss, redoutable, méga, donjon, Tour), bandeau rouge « ⚠ BOSS » ou « ⚠ DANGER » avec son nom, scène assombrie et légère secousse pendant ~2 s, sans gêner les boutons. Version courte quand le même boss revient en boucle, sobre en « réduire les animations », rien en ×100.
 - Butin : environ 3 fois moins d'objets sur les monstres ordinaires (combat et hors ligne), presque plus de Communs, mais autant d'Épiques, de Légendaires et de pièces d'ensemble par heure ; un éclat tombe parfois des monstres pour garder le même gain d'éclats. Le sac se remplit beaucoup moins vite. Boss, élites et Musée inchangés. Détail : docs/butin-v919.md.
 
-## Ascendrya v9.1.8 — Les deux 9.1 réunies, langue coréenne
+</details>
+
+<details><summary><b>Ascendrya v9.1.8 — Les deux 9.1 réunies, langue coréenne</b></summary>
 
 **Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.8-setup.exe). Votre partie
 est convertie automatiquement (une copie d'avant la mise à jour est gardée à part). **Serveur :** mettez le serveur à jour
@@ -279,7 +329,9 @@ en ligne (« version du jeu trop ancienne ») : mettez à jour tous vos appareil
 - Serveur : sauvegarde acceptée après une Renaissance, plus de plafond d'étape ni d'or, admin et thèmes corrigés.
 - La carte « Nouveaux menus » ne s'affiche que pour les parties d'avant la 9.1.0 ; elle cite maintenant Défis, Classement et Statistiques.
 
-## Idle RPG v9.1.7 — Statistiques de temps
+</details>
+
+<details><summary><b>Idle RPG v9.1.7 — Statistiques de temps</b></summary>
 
 **Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.7-setup.exe).
 
@@ -293,7 +345,9 @@ en ligne (« version du jeu trop ancienne ») : mettez à jour tous vos appareil
 - Les parties d'avant cette version n'ont pas de date pour les mondes déjà atteints : elles entrent dans la Course aux mondes
   à partir du prochain monde découvert.
 
-## Idle RPG v9.1.6 — Amis et classements
+</details>
+
+<details><summary><b>Idle RPG v9.1.6 — Amis et classements</b></summary>
 
 **Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.6-setup.exe).
 
@@ -302,7 +356,9 @@ en ligne (« version du jeu trop ancienne ») : mettez à jour tous vos appareil
 - **Amis :** ajoutez un joueur par son nom, acceptez ou refusez les demandes reçues, retirez un ami.
 - **Invités :** une partie sans compte (joueurXXXXXX) n'apparaît pas au classement ; l'onglet propose de créer son compte.
 
-## Idle RPG v9.1.5 — Classement dans le jeu, pastilles des objets dans leur case
+</details>
+
+<details><summary><b>Idle RPG v9.1.5 — Classement dans le jeu, pastilles des objets dans leur case</b></summary>
 
 **Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.5-setup.exe).
 
@@ -310,7 +366,9 @@ en ligne (« version du jeu trop ancienne ») : mettez à jour tous vos appareil
 - Les pastilles des objets (« +10 », « É », ensemble, cadenas) restent dans la case, même avec les thèmes à bordure épaisse.
 - Le jeu se joue sur PC et téléphone uniquement : la version navigateur est retirée du serveur.
 
-## Idle RPG v9.1.4 — Renaissances sauvegardées en ligne, classement lisible
+</details>
+
+<details><summary><b>Idle RPG v9.1.4 — Renaissances sauvegardées en ligne, classement lisible</b></summary>
 
 **Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.4-setup.exe).
 
@@ -330,7 +388,9 @@ en ligne (« version du jeu trop ancienne ») : mettez à jour tous vos appareil
 - La carte « Nouveaux menus » n'apparaît plus pour une partie commencée après la v9.1.0.
 - Traductions anglaises des nouveaux messages.
 
-## Idle RPG v9.1.3 — Sauvegarde en ligne fiable, formulaires de compte, décors
+</details>
+
+<details><summary><b>Idle RPG v9.1.3 — Sauvegarde en ligne fiable, formulaires de compte, décors</b></summary>
 
 **Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.3-setup.exe).
 
@@ -358,7 +418,9 @@ en ligne (« version du jeu trop ancienne ») : mettez à jour tous vos appareil
 - Connexion : seuls les échecs comptent dans la limite de tentatives ; mauvais mot de passe actuel = 403 (l'interface
   ne vous déconnecte plus pendant un changement de mot de passe).
 
-## Ascendrya v9.1.3 — Écrans allégés, fiches, récompenses en icônes
+</details>
+
+<details><summary><b>Ascendrya v9.1.3 — Écrans allégés, fiches, récompenses en icônes</b></summary>
 
 **Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.3-setup.exe). Votre partie
 est convertie automatiquement (une copie d'avant la mise à jour est gardée à part). **Serveur :** mettez le serveur à
@@ -434,7 +496,9 @@ personnage (nouvelle table, vide pour l'instant).
 - Corrections : Invocation › Apparences, fusion manuelle protégée, synchronisation bloquée si la sauvegarde en ligne
   est plus récente.
 
-## Idle RPG v9.1.2 — Création de compte et messages de connexion
+</details>
+
+<details><summary><b>Idle RPG v9.1.2 — Création de compte et messages de connexion</b></summary>
 
 - Sans compte, Paramètres → Compte et sauvegarde en ligne propose de nouveau **Créer un compte joueur**
   (nom d'utilisateur + mot de passe) à côté de **Se connecter** : seule la connexion était proposée.
@@ -442,7 +506,9 @@ personnage (nouvelle table, vide pour l'instant).
 - Messages clairs : « Pas de sauvegarde en ligne pour le moment » au lieu de « Connexion en cours… » quand le serveur
   ne répond pas, et explication si le serveur ne propose pas encore le compte automatique.
 
-## Idle RPG v9.1.1 — Progression sauvegardée en ligne, compte joueur
+</details>
+
+<details><summary><b>Idle RPG v9.1.1 — Progression sauvegardée en ligne, compte joueur</b></summary>
 
 **Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.1-setup.exe).
 
@@ -461,7 +527,9 @@ personnage (nouvelle table, vide pour l'instant).
   plateformes, versions du jeu, répartition des étapes et des niveaux.
 - Liste des joueurs : type de compte (invité ou joueur), plateforme, version ; fiche avec l'activité des 30 derniers jours.
 
-## Idle RPG v9.1.0 — 4 menus, « Prochaine action », téléphone et accessibilité
+</details>
+
+<details><summary><b>Idle RPG v9.1.0 — 4 menus, « Prochaine action », téléphone et accessibilité</b></summary>
 
 **Mise à jour :** Paramètres → Général → Version et mises à jour → Mettre à jour (ou IdleRPG-9.1.0-setup.exe). Votre partie est conservée
 (une copie d'avant la mise à jour est gardée à part).
@@ -519,7 +587,9 @@ personnage (nouvelle table, vide pour l'instant).
   pouvoir ; boss hors de portée « combattu » ; build qui disait « équipé » sans l'objet ; journal qui oubliait le
   recyclage fait pour libérer le sac ; écran Équipement coupé vers 900 px de large.
 
-## Idle RPG v9.0.9 — compte, sauvegarde cloud, classement, version publique
+</details>
+
+<details><summary><b>Idle RPG v9.0.9 — compte, sauvegarde cloud, classement, version publique</b></summary>
 
 **Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.9-setup.exe). Votre partie est conservée.
 
@@ -534,7 +604,9 @@ personnage (nouvelle table, vide pour l'instant).
 ### Version publique
 - **Les codes de triche sont retirés** de cette version. Les sauvegardes qui en contiennent sont refusées par le serveur, et les classements restent équitables.
 
-## Idle RPG v9.0.8 — animations plus vivantes, équipe bien rangée
+</details>
+
+<details><summary><b>Idle RPG v9.0.8 — animations plus vivantes, équipe bien rangée</b></summary>
 
 **Mise à jour :** Paramètres → Version et mises à jour → Mettre à jour (ou IdleRPG-9.0.8-setup.exe). Votre partie est conservée.
 
@@ -1207,3 +1279,5 @@ L'exécutable n'est pas signé : si Windows SmartScreen s'affiche, cliquez sur
 Testé automatiquement sur Windows avant publication : lancement, combat, sauvegarde, relance ; mise à jour
 d'une installation v6 (pour l'utilisateur courant, puis « pour tous les utilisateurs ») avec reprise de la partie
 et une seule installation à la fin.
+
+</details>

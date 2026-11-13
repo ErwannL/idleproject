@@ -1,6 +1,14 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Gel": "빙결",
+  "ralentit le héros": "영웅 감속",
+  "Vitesse d'attaque": "공격 속도",
+  "tant qu'il est en vie, le héros attaque 30 % moins vite": "살아 있는 동안 영웅의 공격이 30% 느려짐",
+  "Nuée": "떼",
+  "appelle des nuées": "떼를 부름",
+  "Dégâts de zone, en chaîne": "범위·연쇄 피해",
+  "fait surgir 4 petits serviteurs toutes les 8 s": "8초마다 작은 하수인 4마리 소환",
   "Miroir": "거울",
   "renvoie une part des dégâts": "피해 일부 반사",
   "PV, vol de vie": "HP, 흡혈",

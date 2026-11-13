@@ -394,7 +394,7 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
   if (boss && enc.score) Object.assign(enemy, { hp: 1e300, maxHp: 1e300, trait: null, scoreTarget: true });
   // v9.2.9 : World Boss : immortel pour le moteur, coups réglés par world-boss.js (phases), sans mécanique de trait.
   if (boss && enc.worldBoss) Object.assign(enemy, { hp: 1e300, maxHp: 1e300, trait: null, worldBoss: true, damage: state.worldBossRun.bossDamage, x: balance.world.heroX + balance.world.meleeOffset + enemy.range }); // surgit sur place (render/world-boss-scene.js)
-  if (enemy.trait === 'summoner') enemy.summonTimer = TRAITS.summoner.every / 2;
+  if (enemy.trait === 'summoner' || enemy.trait === 'swarm') enemy.summonTimer = TRAITS[enemy.trait].every / 2;
   // v9.0.4 : ennemis mutés (campagne, donjons, défi ; jamais dans la Tour).
   const mutation = !boss && !elite && !enc.tower ? maybeMutate(state, enemy, rng) : null;
   // v9.6.2 (7.1) : règle de la Tour en cours (PV, dégâts).
@@ -1048,7 +1048,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
   if (inRange) {
     hero.attackTimer -= dt;
     if (hero.attackTimer <= 0) {
-      hero.attackTimer += stats.attackInterval;
+      hero.attackTimer += stats.attackInterval * (world.enemies.some((e) => e.trait === 'frost' && e.hp > 0) ? TRAITS.frost.slow : 1); // v9.7.0 : Gel
       // v9.2.1 : Pénombre — une part des coups manque (tirage seulement sous ce malus).
       if (stats.missPct > 0 && rng.next() < stats.missPct / 100) {
         emit(world, 'heroMiss', { enemyId: front.id, x: front.x });
@@ -1129,10 +1129,10 @@ export function step(state, world, dt, rng, balance = BALANCE) {
   tickTide(world, dt); // v9.2.0 (monde marin) : boss à la Marée (régénération)
   // v9.0.6 : boss invocateur — des serviteurs surgissent devant lui à intervalles réguliers.
   for (const boss of [...world.enemies]) {
-    if (boss.trait !== 'summoner' || boss.hp <= 0) continue;
+    if ((boss.trait !== 'summoner' && boss.trait !== 'swarm') || boss.hp <= 0) continue; // v9.7.0 : Nuée
     boss.summonTimer -= dt;
     if (boss.summonTimer > 0) continue;
-    const t = { ...TRAITS.summoner, minion: BOSS_MINIONS[boss.type] ?? TRAITS.summoner.minion }; // v9.2.0 (monde marin)
+    const t = { ...TRAITS[boss.trait], minion: BOSS_MINIONS[boss.type] ?? TRAITS[boss.trait].minion }; // v9.2.0 (monde marin)
     boss.summonTimer = t.every;
     // Serviteurs : ennemis ordinaires (pas de gemmes de boss), placés juste devant leur maître (la file ne recule
     // pas), et jamais plus de `maxAlive` à la fois — sinon la file pouvait s'allonger sans fin et bloquer le jeu.

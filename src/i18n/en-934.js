@@ -1,6 +1,14 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Gel": "Frost",
+  "ralentit le héros": "slows the hero",
+  "Vitesse d'attaque": "Attack speed",
+  "tant qu'il est en vie, le héros attaque 30 % moins vite": "while it lives, the hero attacks 30% slower",
+  "Nuée": "Swarm",
+  "appelle des nuées": "calls swarms",
+  "Dégâts de zone, en chaîne": "Area and chain damage",
+  "fait surgir 4 petits serviteurs toutes les 8 s": "summons 4 small minions every 8 s",
   "Miroir": "Mirror",
   "renvoie une part des dégâts": "reflects part of the damage",
   "PV, vol de vie": "HP, lifesteal",

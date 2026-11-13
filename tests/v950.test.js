@@ -252,3 +252,10 @@ test('v9.6.5 (6.4) : Bouclier d\'élément et Miroir', async () => {
   assert.equal(T.traitDamageTaken({ trait: 'elemShield' }, 100, 1.5), 100);
   assert.equal(T.bossTrait('mini_void_watcher').name, 'Miroir');
 });
+
+test('v9.7.0 (6.4) : Gel ralentit le héros, Nuée fait surgir des serviteurs', async () => {
+  const T = await import('../src/core/boss-traits.js');
+  assert.equal(T.bossTrait('mini_frost_witch').name, 'Gel');
+  assert.equal(T.bossTrait('mini_toad_king').name, 'Nuée');
+  assert.ok(T.TRAITS.frost.slow > 1 && T.TRAITS.swarm.count > T.TRAITS.summoner.count);
+});

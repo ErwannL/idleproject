@@ -171,9 +171,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Publier la release (exe et APK présents)
+      - name: Publier la release (exe, APK et AAB présents)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION="v$(node -p "require('./package.json').version")"
-          gh release edit "$VERSION" --draft=false --latest
+          gh release edit "$VERSION" --draft=false --latest --title "Ascendrya $VERSION" --notes-file docs/RELEASE_NOTES.md # notes à jour (dernière version dépliée, les autres repliées)
