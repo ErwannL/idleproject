@@ -93,9 +93,9 @@ test('v9.0.4 : ennemis mutés — tirage, cuirasse, régénération, vampirisme,
   s.maxStage = 1;
   assert.equal(M.maybeMutate(s, enemy(), fixed(0, 0)), null, 'pas avant le monde 2');
   s.maxStage = 100;
-  assert.equal(M.mutationChance(s), 0.01);
+  assert.equal(M.mutationChance(s), 0.02); // v9.6.4 : 2 %
   s.transcend.count = 5;
-  assert.ok(Math.abs(M.mutationChance(s) - 0.06) < 1e-9);
+  assert.ok(Math.abs(M.mutationChance(s) - 0.07) < 1e-9);
   s.transcend.count = 50;
   assert.equal(M.mutationChance(s), 0.15);
   const e = enemy();

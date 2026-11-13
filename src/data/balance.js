@@ -345,7 +345,7 @@ export const BALANCE = {
 
   // Événements discrets pendant le farm (aucun ne demande de surveiller l'écran).
   events: {
-    chancePerKill: 0.004,
+    chancePerKill: 0.007, // v9.6.4 (9.2) : une trouvaille toutes les 3 à 5 min environ (avant ~6 min)
     inboxSize: 8,
     weights: { chest: 30, merchant: 15, elite: 20, wave: 20, gems: 15, portal: 6, wanderer: 3 },
     portalGoldKills: 120,

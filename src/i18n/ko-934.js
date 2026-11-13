@@ -1,6 +1,8 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Élite !": "정예!",
+  "Vague mutante !": "변이 웨이브!",
   "Passif renforcé de 15 %": "패시브 15% 강화",
   "Aura : +8 % de dégâts à toute l'équipe": "오라: 팀 전체 피해 +8%",
   "Consigne :": "지시:",

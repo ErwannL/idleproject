@@ -12,7 +12,7 @@ export const MUTATIONS = [
 
 export const MUTATION_RULES = {
   unlockStage: 21, // monde 2
-  chance: 0.01, // par ennemi ordinaire, sans Transcendance
+  chance: 0.02, // v9.6.4 (6.5) : 2 % (avant 1 %) par ennemi ordinaire, sans Transcendance
   chancePerTranscend: 0.01, // +1 point par Transcendance
   maxChance: 0.15,
   hpMultiplier: 1.6,

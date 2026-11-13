@@ -1223,10 +1223,11 @@ export class UI {
         break;
       case 'eliteSpawn':
         this.news('Une élite errante approche !', '#ff9a3d');
+        this.banner('Élite !', 'boss'); // v9.6.4 (6.5) : annoncée sur la scène
         break;
       case 'mutantSpawn': {
         const m = mutationById(event.mutation);
-        if (m && !state.ui.focus) this.news(`Ennemi muté — ${m.name} : ${m.text} (or ×3, objet garanti)`, m.color);
+        if (m && !state.ui.focus) { this.news(`Ennemi muté — ${m.name} : ${m.text} (or ×3, objet garanti)`, m.color); this.banner('Vague mutante !', 'boss'); }
         break;
       }
       case 'mutantSplit':

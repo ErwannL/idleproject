@@ -1,6 +1,8 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Élite !": "Elite!",
+  "Vague mutante !": "Mutant wave!",
   "Passif renforcé de 15 %": "Passive strengthened by 15%",
   "Aura : +8 % de dégâts à toute l'équipe": "Aura: +8% damage to the whole team",
   "Consigne :": "Order:",
