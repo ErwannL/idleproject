@@ -1171,7 +1171,9 @@ export class SceneRenderer {
       // Fini d'arriver avant d'être touchable (portée de la ruée, BALANCE.rush.reach) : jamais tué en plein vol.
       const contactX = this.wx(BALANCE.world.heroX + BALANCE.world.meleeOffset + (def.range ?? 16) + (enemy.boss ? 8 : 0) + (BALANCE.rush?.reach ?? 0)) + 2;
       let k = fx.arriveAt === undefined ? 0 : arrivalProgress(this.time - fx.arriveAt, ex, startX, contactX, ARRIVE_SECONDS_BY_MODE[arrival.mode]);
-      const pose = arrivalPose(arrival, k, { height: enemy.boss ? 90 : 70, time: this.time, focus: this.focus });
+      let pose = arrivalPose(arrival, k, { height: enemy.boss ? 90 : 70, time: this.time, focus: this.focus });
+      // v9.6.4 (8.1) : respiration au repos — le monstre arrêté sur la ligne se soulève d'1 px par moments.
+      if (k >= 1 && !this.focus && (enemy.engaged || enemy.queued) && !(fx.lunge > 0)) pose = { ...pose, dy: (pose.dy ?? 0) + (Math.sin(this.time * 2.6 + enemy.id * 1.7) > 0.55 ? 1 : 0) };
       // v9.2.3 : portail dessiné (PixelLab) : pas de second portail procédural.
       if (k < 1 && !fx.landed && !(arrival.mode === 'portal' && !heroLike && ENEMY_ANIMS[base]?.portal)) this.arrivalFx(enemy, fx, arrival, pose, k, ex, w, h);
       // v9.2.2 : position dessinée : sort du sol sur place, ou du portail (part de l'intérieur), puis rejoint ex.
