@@ -1,5 +1,6 @@
 // Statistiques du héros : base + améliorations + équipement + bonus permanents
 // (pouvoirs ancestraux actifs et talents de Renaissance).
+import { powerTierMult } from './session-goals.js';
 import { BALANCE } from '../data/balance.js';
 import { EQUIP_SLOTS, HERO_SLOTS, SLOTS, eqSlot, heroSlot } from '../data/items.js';
 import { collectBonuses } from './bonuses.js';
@@ -50,6 +51,7 @@ export function computeHeroStats(state, balance = BALANCE, equipment = state.equ
   const damage = (hero.baseDamage + state.upgrades.damage * dmg.perLevel + gear.damage)
     * dmg.milestoneMultiplier ** milestones * big(dmg, state.upgrades.damage) * reborn * (1 + bonus.damagePct / 100)
     * (1 + (balance.level.damagePctPerLevel * levelBonus) / 100) * cheatMultiplier(state, 'damage')
+    * powerTierMult(state.level) // v9.6.5 (9.7) : palier de puissance, +3 % tous les 10 niveaux
     * Math.max(0.1, 1 + (bonus.damageMultPct ?? 0) / 100) * (state.challenge ? challengeRule(state, 'heroDamage') ?? 1 : 1);
 
   const upgradeFactor = Math.pow(1 - upgrades.attackSpeed.perLevel, state.upgrades.attackSpeed);

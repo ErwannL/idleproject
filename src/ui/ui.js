@@ -1,6 +1,8 @@
 // Interface DOM : barre du haut (monnaies, contrats, récompenses, paramètres), surimpressions légères
 // de la scène, HUD, onglets débloqués progressivement et panneaux (un module par panneau dans ./panels).
 // L'interface ne modifie jamais l'état directement : elle appelle les actions fournies par main.js.
+import { sessionGoalsHtml } from './session-goals.js'; // v9.6.5
+import { teamAdvice as teamAdviceV965 } from '../core/team-advisor.js';
 import { BALANCE } from '../data/balance.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
 import { bossTrait } from '../core/boss-traits.js';
@@ -1015,6 +1017,7 @@ export class UI {
       case 'talent-branch': a.buyTalentStep(value); break; // v9.3.9 : vue simple des Talents
       case 'talent-best': a.buyTalentsAll(null); break;
       case 'apply-team': a.applyTeam(); break; // v9.5.0
+      case 'claim-session-chest': a.claimSessionChest(); break; // v9.6.5
       case 'set-front': a.setFront(value); break; // v9.6.3 (3.5)
       case 'ult-order': { const [id, o] = value.split('|'); a.setOrder(id, o); break; } // v9.6.3
       case 'rush-slot': { const [i, id] = value.split('|'); a.setRushSlot(Number(i), id); break; } // v9.6.3
@@ -1257,6 +1260,7 @@ export class UI {
         this.banner(`Niveau ${event.level} !`, 'win');
         uiFx.levelUpFx(); // v9.2.6
         this.news(`Niveau ${event.level} : +1 point de compétence`, '#f2d083');
+        if (event.level % 10 === 0) this.news(`Palier de puissance ${Math.floor(event.level / 10)} : +3 % de dégâts`, '#ffd54a'); // v9.6.5 (9.7)
         break;
       case 'worldEvent': {
         const texts = {
@@ -2277,6 +2281,8 @@ export class UI {
         <p class="offline-gains"><span>${coin()} <b class="gold-text">+${formatNumber(summary.totalGold)}</b></span>
           <span>XP <b>+${formatNumber(summary.xp)}</b>${summary.levelsGained ? ` · <b class="good">+${summary.levelsGained} niveau${summary.levelsGained > 1 ? 'x' : ''}</b>` : ''}</span>${matIcons}</p>
         ${rareItems ? `<div class="offline-rare"><b class="gold-text">★ Objets rares</b><div class="loot-row">${rareItems}</div></div>` : ''}
+        ${this.returnAdvice()}
+        ${sessionGoalsHtml(this.state)}
         ${paused ? `<p class="bad">Vous étiez dans ${paused} : il ne progresse pas hors ligne (il reprend à votre retour).</p>` : ''}
         <details class="offline-more"><summary>Détails</summary>
           <p>Ennemis vaincus : ~${formatNumber(summary.kills)} · Objets : ${summary.items.length - summary.autoRecycledCount}
@@ -2291,6 +2297,17 @@ export class UI {
           <button class="btn" data-action="session-return">${img('icon_bolt', 'ico20')} Retour de session (S)</button></div>`);
     this.lastOffline = summary;
     uiFx.offlineFx(this.$('modal-card'), { gold: 0, gems: 0, shards: 0 }, { gold: summary.totalGold, gems: summary.gems ?? 0, shards: mats.shards ?? 0 }); // v9.2.7 : seulement les monnaies qui volent vers leurs compteurs
+  }
+
+  // v9.6.5 (9.6) : le retour propose un ajustement concret (équipe conseillée, sinon équipement).
+  returnAdvice() {
+    const st = this.state;
+    if (!st) return '';
+    const adv = teamAdviceV965(st);
+    if (adv && !adv.same && adv.gain >= 0.03) {
+      return `<p class="return-advice">Conseil : une autre équipe ferait <b class="good">+${Math.round(adv.gain * 100)} %</b> de dégâts. <button class="btn btn-primary small" data-action="apply-team">Placer cette équipe</button></p>`;
+    }
+    return `<p class="return-advice muted">Conseil : vérifie ton équipement (Sac › Équiper le meilleur) avant de repartir.</p>`;
   }
 
   // v9.3.8 (4) : série de connexion — fenêtre du jour à l'ouverture (calendrier de 7 jours, gros lot au jour 7).

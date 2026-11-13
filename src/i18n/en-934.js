@@ -1,6 +1,14 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Gagner 3 étapes": "Clear 3 stages",
+  "Vaincre 150 monstres": "Defeat 150 monsters",
+  "Battre 2 boss": "Beat 2 bosses",
+  "Coffre ouvert ✓": "Chest opened ✓",
+  "Objectifs de session": "Session goals",
+  "Conseil : une autre équipe ferait": "Tip: another team would deal",
+  "de dégâts.": "more damage.",
+  "Conseil : vérifie ton équipement (Sac › Équiper le meilleur) avant de repartir.": "Tip: check your gear (Bag › Equip best) before heading out.",
   "Élite !": "Elite!",
   "Vague mutante !": "Mutant wave!",
   "Passif renforcé de 15 %": "Passive strengthened by 15%",
@@ -392,6 +400,9 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Coffre de session : \\\\+(\\\\d+) gemmes, \\\\+(\\\\d+) \u00e9clats$"), (m) => `Session chest: +${m[1]} gems, +${m[2]} shards`],
+  [new RegExp("^Coffre : \\\\+(\\\\d+) gemmes, \\\\+(\\\\d+) \u00e9clats$"), (m) => `Chest: +${m[1]} gems, +${m[2]} shards`],
+  [new RegExp("^Palier de puissance (\\\\d+) : \\\\+3 % de d\u00e9g\u00e2ts$"), (m) => `Power tier ${m[1]}: +3% damage`],
   [new RegExp("^([35])★ : (.+?)( ✓)?$"), (m) => `${m[1]}★: ${L(m[2])}${m[3] ?? ''}`],
 
   [new RegExp("^gagne-le avec (.+)$"), (m) => `earn it with ${L(m[1])}`],

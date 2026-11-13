@@ -1,4 +1,5 @@
 // Objectifs › Missions : connexion, journalières, piste du mois (v9.1.3), contrats, prime du jour, hauts faits.
+import { sessionGoalsHtml } from '../session-goals.js'; // v9.6.5
 import { BOUNTY, bountyProgress, bountyZones, dailyBounty } from '../../core/bounty.js';
 import { ENEMIES } from '../../data/enemies.js';
 import { ZONES } from '../../data/zones.js';
@@ -201,7 +202,7 @@ export default {
     else if (tab === 'week') {
       body = `<div class="card m-body">${trackTab(state)}</div>`;
     } else {
-      body = `<div class="card m-body"><div class="section-title">${sec(period('daily').label, nOf('daily'))}</div>${periodTab(state, period('daily'))}</div>
+      body = `${sessionGoalsHtml(state)}<div class="card m-body"><div class="section-title">${sec(period('daily').label, nOf('daily'))}</div>${periodTab(state, period('daily'))}</div>
         ${fold(ui, 'login', sec('Connexion', nOf('login')), () => loginTab(state), { open: (loginPending(state) > 0), extra: (loginPending(state) > 0) ? '<span class="good">à récupérer</span>' : '' })}
         ${findsCard(ui)}
         <div class="card m-body"><div class="section-title">${sec('Contrats', nOf('contract'))}</div>${contractsTab(state)}</div>`;

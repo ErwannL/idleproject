@@ -1,6 +1,7 @@
 // Point d'entrée : charge la partie, applique les gains hors ligne, puis fait tourner
 // la simulation (minuterie, continue même fenêtre réduite) et le rendu (requestAnimationFrame,
 // suspendu automatiquement quand la fenêtre est masquée).
+import { claimSessionChest, newSessionGoals } from './core/session-goals.js';
 import { BALANCE } from './data/balance.js';
 import { BOSSES } from './data/enemies.js';
 import { referenceKillGold } from './core/combat.js';
@@ -968,6 +969,11 @@ const actions = {
     state.companions.equipped = [...adv.team];
     done(true, `Nouvelle équipe : +${Math.round(adv.gain * 100)} % de dégâts`, '#9fe0a0');
   },
+  claimSessionChest() { // v9.6.5 (9.5)
+    const r = claimSessionChest(state);
+    if (!r) return;
+    done(true, `Coffre de session : +${r.gems} gemmes, +${r.shards} éclats`, '#ffd54a');
+  },
   startTour() { ui.closeModal(); startTour(ui, state); },
   skipTour() { state.ui.tour = 'done'; state.ui.tourV = TOUR_VERSION; ui.closeModal(); save(); },
   setAutoRecycle(value) {
@@ -1401,6 +1407,7 @@ setTimeout(() => { if (!navigator.webdriver && !ui.desktop?.smoke && !playsOnSit
 // Gains hors ligne depuis la dernière sauvegarde.
 // v9.0.3 : exposition auto des objets ancestraux déjà dans le sac ou le coffre.
 if (state.ui.autoMuseum !== false) exposeAll(state);
+state.sessionGoals = newSessionGoals(state); // v9.6.5 (9.5)
 if (loaded.source === 'main' || loaded.source === 'backup') runOffline(state.lastSaved, Date.now());
 else save();
 // v9.1.0 : le joueur est prévenu quand sa partie n'est pas lue normalement.

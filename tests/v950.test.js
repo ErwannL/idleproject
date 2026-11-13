@@ -171,3 +171,18 @@ test('v9.6.3 : 3e place de compagnon au monde 5, rang avant (un Gardien n\'y par
   s.companions.front = 'lancer';
   assert.equal(teamCounters(s).charger, true, 'Gardien à l\'avant');
 });
+
+test('v9.6.5 : objectifs de session, coffre unique, paliers de puissance', async () => {
+  const G = await import('../src/core/session-goals.js');
+  const { createNewState } = await import('../src/core/state.js');
+  const s = createNewState(Date.now());
+  s.sessionGoals = G.newSessionGoals(s);
+  assert.equal(G.claimSessionChest(s), null);
+  s.maxStage += 3; s.records.kills += 150; s.records.bossesDefeated += 2;
+  const g0 = s.gems;
+  assert.ok(G.claimSessionChest(s));
+  assert.equal(s.gems - g0, G.SESSION_CHEST.gems);
+  assert.equal(G.claimSessionChest(s), null, 'une seule fois');
+  assert.equal(G.powerTier(29), 2);
+  assert.ok(Math.abs(G.powerTierMult(30) - 1.09) < 1e-9);
+});

@@ -1,6 +1,14 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Gagner 3 étapes": "스테이지 3개 돌파",
+  "Vaincre 150 monstres": "몬스터 150마리 처치",
+  "Battre 2 boss": "보스 2마리 처치",
+  "Coffre ouvert ✓": "상자 열림 ✓",
+  "Objectifs de session": "세션 목표",
+  "Conseil : une autre équipe ferait": "팁: 다른 팀이면",
+  "de dégâts.": "더 강합니다.",
+  "Conseil : vérifie ton équipement (Sac › Équiper le meilleur) avant de repartir.": "팁: 출발 전에 장비를 확인하세요 (가방 › 최고 장비).",
   "Élite !": "정예!",
   "Vague mutante !": "변이 웨이브!",
   "Passif renforcé de 15 %": "패시브 15% 강화",
@@ -392,6 +400,9 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Coffre de session : \\\\+(\\\\d+) gemmes, \\\\+(\\\\d+) \u00e9clats$"), (m) => `세션 상자: 젬 +${m[1]}, 파편 +${m[2]}`],
+  [new RegExp("^Coffre : \\\\+(\\\\d+) gemmes, \\\\+(\\\\d+) \u00e9clats$"), (m) => `상자: 젬 +${m[1]}, 파편 +${m[2]}`],
+  [new RegExp("^Palier de puissance (\\\\d+) : \\\\+3 % de d\u00e9g\u00e2ts$"), (m) => `파워 단계 ${m[1]}: 피해 +3%`],
   [new RegExp("^([35])★ : (.+?)( ✓)?$"), (m) => `${m[1]}★: ${L(m[2])}${m[3] ?? ''}`],
 
   [new RegExp("^gagne-le avec (.+)$"), (m) => `${L(m[1])}(으)로 얻기`],
