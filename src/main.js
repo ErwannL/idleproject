@@ -1,6 +1,7 @@
 // Point d'entrée : charge la partie, applique les gains hors ligne, puis fait tourner
 // la simulation (minuterie, continue même fenêtre réduite) et le rendu (requestAnimationFrame,
 // suspendu automatiquement quand la fenêtre est masquée).
+import { startCatchUp } from './core/boost.js';
 import { claimSessionChest, newSessionGoals } from './core/session-goals.js';
 import { BALANCE } from './data/balance.js';
 import { BOSSES } from './data/enemies.js';
@@ -1408,6 +1409,7 @@ setTimeout(() => { if (!navigator.webdriver && !ui.desktop?.smoke && !playsOnSit
 // v9.0.3 : exposition auto des objets ancestraux déjà dans le sac ou le coffre.
 if (state.ui.autoMuseum !== false) exposeAll(state);
 state.sessionGoals = newSessionGoals(state); // v9.6.5 (9.5)
+if (startCatchUp(state, state.lastSaved)) setTimeout(() => ui.toast('Bon retour ! Bonus de rattrapage : or et XP ×1,5 pendant 2 h de jeu', '#ffd54a'), 1500); // v9.6.5 (10.10)
 if (loaded.source === 'main' || loaded.source === 'backup') runOffline(state.lastSaved, Date.now());
 else save();
 // v9.1.0 : le joueur est prévenu quand sa partie n'est pas lue normalement.

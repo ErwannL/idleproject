@@ -24,13 +24,25 @@ export function weekendSecondsLeft(now = Date.now()) {
   return Math.max(0, (monday.getTime() - now) / 1000);
 }
 
+// v9.6.5 (10.10) : bonus de rattrapage. Après 3 jours ou plus d'absence, or/XP/événements ×1,5 pendant 2 h de jeu
+// (ouverture suivante : startCatchUp, appelé au chargement avec la date de dernière sauvegarde).
+export const CATCH_UP = { minDays: 3, mult: 1.5, seconds: 2 * 3600 };
+export function startCatchUp(state, lastSaved, now = Date.now()) {
+  if (!Number.isFinite(lastSaved) || now - lastSaved < CATCH_UP.minDays * 86400e3) return false;
+  state.catchUpUntil = (state.playSeconds ?? 0) + CATCH_UP.seconds;
+  return true;
+}
+export function catchUpMult(state) {
+  return (state.catchUpUntil ?? 0) > (state.playSeconds ?? 0) ? CATCH_UP.mult : 1;
+}
+
 export function earlyBoost(state, balance = BALANCE, now = Date.now()) {
   const r = boostRemaining(state, balance);
   const b = balance.earlyBoost;
   const weekend = isWeekend(now);
   // Codes de triche : multiplicateurs cumulés (×100 puis ×100 = ×10 000).
   const cheat = cheatMultiplier(state, 'boost');
-  const w = (weekend ? balance.weekendBoost.multiplier : 1) * cheat;
+  const w = (weekend ? balance.weekendBoost.multiplier : 1) * cheat * catchUpMult(state, now);
   return {
     remaining: r,
     secondsLeft: Math.max(0, b.hours * 3600 - (state.playSeconds ?? 0)),

@@ -208,3 +208,16 @@ test('v9.6.5 (10.3) : un monde programmé reste fermé jusqu\'à son ouverture',
     assert.equal(worldClosed(21, Date.parse('2026-12-02T00:00:00Z')), false);
   } finally { delete ZONES[1].opensAt; }
 });
+
+test('v9.6.5 (10.10) : bonus de rattrapage après 3 jours d\'absence', async () => {
+  const B = await import('../src/core/boost.js');
+  const { createNewState } = await import('../src/core/state.js');
+  const now = Date.now();
+  const s = createNewState(now);
+  assert.equal(B.startCatchUp(s, now - 86400e3, now), false);
+  assert.equal(B.catchUpMult(s), 1);
+  assert.equal(B.startCatchUp(s, now - 4 * 86400e3, now), true);
+  assert.equal(B.catchUpMult(s), 1.5);
+  s.playSeconds += B.CATCH_UP.seconds + 1;
+  assert.equal(B.catchUpMult(s), 1);
+});

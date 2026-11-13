@@ -354,6 +354,7 @@ function cleanActivities(state, raw) {
   state.heroClass = sanitizeHeroClass(raw.heroClass);
   if (Number.isFinite(raw.rebirthPower) && raw.rebirthPower >= 0) state.rebirthPower = raw.rebirthPower; // v9.0.6
   state.playSeconds = Math.max(0, Number(raw.playSeconds) || 0);
+  if (Number.isFinite(raw.catchUpUntil)) state.catchUpUntil = raw.catchUpUntil; // v9.6.5 (10.10)
   if (Number.isFinite(raw.recordAt) && raw.recordAt >= 0) state.recordAt = Math.min(raw.recordAt, state.playSeconds); // v9.3.8
   state.times = sanitizeTimes(raw.times);
   // v9.1.7 : partie d'avant les statistiques de temps — les mondes déjà atteints le sont à une date inconnue (-1),
