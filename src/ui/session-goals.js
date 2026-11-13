@@ -3,7 +3,7 @@ import { SESSION_CHEST, goalProgress, sessionDone } from '../core/session-goals.
 import { progressBar } from './common.js';
 
 export function sessionGoalsHtml(state) {
-  const s = state.sessionGoals;
+  const s = state?.sessionGoals;
   if (!s) return '';
   const rows = s.goals.map((g) => {
     const p = goalProgress(state, g);

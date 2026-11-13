@@ -1411,6 +1411,7 @@ setTimeout(() => { if (!navigator.webdriver && !ui.desktop?.smoke && !playsOnSit
 // v9.0.3 : exposition auto des objets ancestraux déjà dans le sac ou le coffre.
 if (state.ui.autoMuseum !== false) exposeAll(state);
 state.sessionGoals = newSessionGoals(state); // v9.6.5 (9.5)
+ui.bootState = state; // fenêtre de retour affichée avant le premier rendu (ui.state encore vide)
 if (startCatchUp(state, state.lastSaved)) setTimeout(() => ui.toast('Bon retour ! Bonus de rattrapage : or et XP ×1,5 pendant 2 h de jeu', '#ffd54a'), 1500); // v9.6.5 (10.10)
 if (loaded.source === 'main' || loaded.source === 'backup') runOffline(state.lastSaved, Date.now());
 else save();

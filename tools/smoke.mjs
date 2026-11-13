@@ -453,7 +453,9 @@ await check('Renaissance : confirmation, réinitialisation et conservation des d
   const fragments = after.fragments;
   await page.click('[data-action="tree-seg"][data-value="tree"]').catch(() => {});
   await page.waitForTimeout(300);
-  await page.click('[data-action="buy-talent"][data-key="core"]');
+  // v9.3.9 : vue simple des talents (l'arbre complet vient après 3 Renaissances) — achat par l'action du jeu.
+  if (await page.$('[data-action="buy-talent"][data-key="core"]')) await page.click('[data-action="buy-talent"][data-key="core"]');
+  else await game(() => __idle.actions.buyTalent('core'));
   await page.waitForTimeout(150);
   const talent = await game(() => [__idle.state.talents.core, __idle.state.fragments]);
   assert(talent[0] === 1 && talent[1] < fragments, JSON.stringify(talent));

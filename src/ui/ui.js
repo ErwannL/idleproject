@@ -2289,7 +2289,7 @@ export class UI {
           <span>XP <b>+${formatNumber(summary.xp)}</b>${summary.levelsGained ? ` · <b class="good">+${summary.levelsGained} niveau${summary.levelsGained > 1 ? 'x' : ''}</b>` : ''}</span>${matIcons}</p>
         ${rareItems ? `<div class="offline-rare"><b class="gold-text">★ Objets rares</b><div class="loot-row">${rareItems}</div></div>` : ''}
         ${this.returnAdvice()}
-        ${sessionGoalsHtml(this.state)}
+        ${sessionGoalsHtml(this.state ?? this.bootState)}
         ${paused ? `<p class="bad">Vous étiez dans ${paused} : il ne progresse pas hors ligne (il reprend à votre retour).</p>` : ''}
         <details class="offline-more"><summary>Détails</summary>
           <p>Ennemis vaincus : ~${formatNumber(summary.kills)} · Objets : ${summary.items.length - summary.autoRecycledCount}
@@ -2308,7 +2308,7 @@ export class UI {
 
   // v9.6.5 (9.6) : le retour propose un ajustement concret (équipe conseillée, sinon équipement).
   returnAdvice() {
-    const st = this.state;
+    const st = this.state ?? this.bootState;
     if (!st) return '';
     const adv = teamAdviceV965(st);
     if (adv && !adv.same && adv.gain >= 0.03) {
