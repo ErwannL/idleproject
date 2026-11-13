@@ -37,6 +37,7 @@ import { ADV, elementBadge, elementWheel, strongAgainst } from '../core/elements
 import { companionById } from '../core/companions.js'; // v9.5.1
 import { BOSS_TRAITS, TRAITS } from '../core/boss-traits.js'; // v9.5.1
 import { BEHAVIORS, zoneBehaviors } from '../data/behaviors.js'; // v9.6.0
+import { climbsLeft } from '../core/tower.js'; // v9.6.2
 import { RESOURCE_WHERE, SKILL_RESOURCES } from '../data/progression.js'; // v9.3.9 (2.6)
 import { coin, effectText, escapeHtml, fold, glyph, icon, img, itemFrame, missingText, rewardIcons } from './common.js';
 import { GAME_VERSION } from '../version.js';
@@ -1332,11 +1333,13 @@ export class UI {
       }
       case 'towerCollapsed':
         this.banner('La tour s\'effondre !', 'lose');
+        setTimeout(() => this.showTowerEnd(state), 1200); // v9.6.2 (7.3)
         this.news(`Tour de l'Éternité : temps écoulé, la tour s'effondre à l'étage ${event.floors + 1}. Record : ${state.towerBest}.`, '#c9a6ff');
         this.invalidate();
         break;
       case 'towerFailed':
         this.banner('Ascension terminée', 'lose');
+        setTimeout(() => this.showTowerEnd(state), 1200); // v9.6.2 (7.3)
         this.news(`Tour de l'Éternité : vaincu à l'étage ${event.defeatedAt}${event.bossHpPct !== null && event.bossHpPct !== undefined ? ` (boss à ${formatNumber(event.bossHpPct)} % de PV)` : ''}. Record : ${state.towerBest}.`, '#c9a6ff');
         this.invalidate();
         break;
@@ -1884,6 +1887,18 @@ export class UI {
       <p><b>Sert à :</b> ${c.use}</p><p><b>S'obtient :</b> ${c.gain}</p>
       <div class="detail-actions"><button class="btn" data-action="close-modal">Fermer</button>
         ${reachable ? `<button class="btn btn-primary" data-action="currency-go" data-value="${id}">Aller à ${escapeHtml(navPath(c.tab))}</button>` : ''}</div>`);
+  }
+
+  // v9.6.2 (7.3) : écran de fin d'ascension — étage atteint, record, récompenses, ascensions restantes aujourd'hui.
+  showTowerEnd(state) {
+    const t = state.towerLast;
+    if (!t || !this.$('modal').classList.contains('hidden')) return;
+    const left = climbsLeft(state);
+    this.openModal(`<div class="victory-screen"><h2 id="modal-title">Tour de l'Éternité</h2>
+      <p class="victory-big">Étage <b class="gold-text">${t.floors}</b>${t.record ? ' · <span class="good">nouveau record !</span>' : ` · record ${state.towerBest ?? 0}`}</p>
+      ${Object.keys(t.earned ?? {}).length ? `<div class="victory-rewards">${rewardIcons(t.earned, 'rw-big')}</div>` : '<p class="muted">Pas de nouvelle récompense : dépasse ton record pour en gagner.</p>'}
+      <p>${left ? `Encore ${left} ascension${left > 1 ? 's' : ''} aujourd'hui.` : 'Plus d\'ascension aujourd\'hui : reviens demain.'}</p>
+      <div class="detail-actions"><button class="btn" data-action="close-modal">Fermer</button>${left ? '<button class="btn btn-gold" data-action="close-modal" data-open="tower">Retenter</button>' : ''}</div></div>`);
   }
 
   // v9.6.0 (6.3) : première rencontre d'un comportement — carte courte posée sur la scène (ne bloque rien, 7 s).

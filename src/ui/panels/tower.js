@@ -3,7 +3,7 @@ import { arenaUnlocked } from '../../core/arena.js';
 // Tour de l'Éternité (v8.2) : défi sans fin, un boss par étage ; récompenses à chaque nouveau record.
 import { BOSSES, ENEMIES } from '../../data/enemies.js';
 import { formatDuration } from '../../core/format.js';
-import { TOWER, climbsLeft, towerBoss, towerLevel, towerReward, towerTimeLeft, towerUnlocked, towerWeek, weeklyReward } from '../../core/tower.js';
+import { TOWER, climbsLeft, towerRule, towerBoss, towerLevel, towerReward, towerTimeLeft, towerUnlocked, towerWeek, weeklyReward } from '../../core/tower.js';
 import { stageLabel } from '../../core/combat.js';
 import { animCanvas } from '../animator.js';
 import { escapeHtml, fold, formatNumber, glyph, img, rewardIcons, segment } from '../common.js';
@@ -72,11 +72,12 @@ function towerBody(ui, state) {
     const action = run
       ? `<div class="row-between"><b class="gold-text">Étage ${run.floor} : ${escapeHtml(bossName(run.floor))}</b>
           <button class="btn btn-danger small" data-action="leave-tower">Quitter la tour</button></div>
-        <div>${glyph('icon_timer')} Effondrement dans <b>${formatDuration(towerTimeLeft(state))}</b> de combat.</div>`
+        <div>${glyph('icon_timer')} Effondrement dans <b>${formatDuration(towerTimeLeft(state))}</b> de combat.</div>
+        ${towerRule(state) ? `<div class="tower-rule">Règle : <b>${escapeHtml(towerRule(state).name)}</b> — ${escapeHtml(towerRule(state).text)}</div>` : '<div class="muted">Une règle change tous les 10 étages.</div>'}`
       : climbsLeft(state) > 0
-        ? `<button class="btn btn-gold enter-btn primary-action" data-action="enter-tower" ${state.dungeon || state.challenge ? 'disabled' : ''}>Monter (${climbsLeft(state)} ascension${climbsLeft(state) > 1 ? 's' : ''} cette semaine)</button>
+        ? `<button class="btn btn-gold enter-btn primary-action" data-action="enter-tower" ${state.dungeon || state.challenge ? 'disabled' : ''}>Monter (${climbsLeft(state)} ascension${climbsLeft(state) > 1 ? 's' : ''} aujourd'hui)</button>
           ${state.dungeon || state.challenge ? '<div class="bad">Terminez d\'abord le donjon ou le défi.</div>' : ''}`
-        : `<button class="btn enter-btn" disabled>Ascension de la semaine faite — prochaine le ${nextReset().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</button>`;
+        : '<button class="btn enter-btn" disabled>Ascensions du jour faites — reviens demain</button>';
     const head = `<div class="card tower-head">
         <div class="tower-portrait">${animCanvas(`foe:${bossSprite(floor)}`, 124, 80, 1)}</div>
         <div class="grow">

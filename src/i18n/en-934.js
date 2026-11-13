@@ -1,6 +1,23 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Règle :": "Rule:",
+  "Ascensions du jour faites — reviens demain": "Today's climbs done — come back tomorrow",
+  "Une règle change tous les 10 étages.": "A rule changes every 10 floors.",
+  "Carapaces": "Shells",
+  "Les ennemis ont +40 % de PV.": "Enemies have +40% HP.",
+  "Furie": "Fury",
+  "Les ennemis frappent 40 % plus fort.": "Enemies hit 40% harder.",
+  "Sans repos": "No rest",
+  "Le héros ne se régénère plus (le vol de vie marche toujours).": "The hero no longer regenerates (lifesteal still works).",
+  "Frénésie": "Frenzy",
+  "Les ennemis attaquent 30 % plus vite.": "Enemies attack 30% faster.",
+  "Tour de l'Éternité": "Tower of Eternity",
+  "nouveau record !": "new record!",
+  "Pas de nouvelle récompense : dépasse ton record pour en gagner.": "No new reward: beat your record to earn some.",
+  "Plus d'ascension aujourd'hui : reviens demain.": "No climbs left today: come back tomorrow.",
+  "Retenter": "Retry",
+  "Fermer": "Close",
   "Éclats critiques": "Critical shards",
   "Les critiques éclaboussent les ennemis voisins (40 % des dégâts).": "Crits splash nearby enemies (40% of the damage).",
   "Festin": "Feast",
@@ -337,6 +354,12 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Monter \\((\\d+) ascensions? aujourd'hui\\)$"), (m) => `Climb (${m[1]} left today)`],
+  [new RegExp("^Encore (\\d+) ascensions? aujourd'hui\\.$"), (m) => `${m[1]} more climb${m[1] === '1' ? '' : 's'} today.`],
+  [new RegExp("^Règle : (.+)$"), (m) => `Rule: ${L(m[1])}`],
+  [new RegExp("^Étage (\\d+)$"), (m) => `Floor ${m[1]}`],
+  [new RegExp("^· record (\\d+)$"), (m) => `· record ${m[1]}`],
+
   [new RegExp("^Fort contre : (.+)$"), (m) => `Strong against: ${m[1].split(', ').map(L).join(', ')}`],
 
   [new RegExp("^remplacerait « (.+) »$"), (m) => `would replace “${L(m[1])}”`],

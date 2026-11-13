@@ -6,7 +6,8 @@ import { grantReward } from './rewards.js';
 import { levelForStage } from './combat.js'; // v9.2.0 (monde marin) : niveau de puissance des étapes
 
 export const TOWER = {
-  unlockStage: 60, floorLevel: 3, milestone: 10, climbsPerWeek: 1, steepness: 40, // étape 5 : déblocage 40 → 60 (calendrier étalé)
+  unlockStage: 60, floorLevel: 3, milestone: 10, climbsPerWeek: 1, climbsPerDay: 3, // v9.6.2 (7.3) : 3 ascensions par jour
+  steepness: 40, // étape 5 : déblocage 40 → 60 (calendrier étalé)
   // v8.8 : la tour s'effondre au bout de 10 h de jeu (temps de combat : la vitesse le fait défiler plus vite) ;
   // chaque nouvel étage la stabilise un peu (+5 min × 0,98^étage, sans dépasser 10 h devant soi).
   timeLimit: 10 * 3600, floorBonus: 300, floorBonusDecay: 0.98,
@@ -27,9 +28,31 @@ export function towerWeek(state, now = Date.now()) {
   return state.towerWeek;
 }
 
+// v9.6.2 (7.3) : 3 ascensions par jour (le meilleur étage de la semaine reste hebdomadaire).
+export function dayKey(now = Date.now()) {
+  const d = new Date(now);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+export function towerDay(state, now = Date.now()) {
+  const key = dayKey(now);
+  if (state.towerDay?.day !== key) state.towerDay = { day: key, climbs: 0 };
+  return state.towerDay;
+}
 export function climbsLeft(state, now = Date.now()) {
   const w = towerWeek(state, now);
-  return Math.max(0, TOWER.climbsPerWeek + (w.extra ?? 0) - w.climbs);
+  return Math.max(0, TOWER.climbsPerDay + (w.extra ?? 0) - towerDay(state, now).climbs);
+}
+
+// v9.6.2 (7.1) : une règle tirée au sort tous les 10 étages (elle change la préparation à faire).
+export const TOWER_RULES = {
+  thick: { name: 'Carapaces', text: 'Les ennemis ont +40 % de PV.', hp: 1.4 },
+  fierce: { name: 'Furie', text: 'Les ennemis frappent 40 % plus fort.', damage: 1.4 },
+  noregen: { name: 'Sans repos', text: 'Le héros ne se régénère plus (le vol de vie marche toujours).', noRegen: true },
+  swift: { name: 'Frénésie', text: 'Les ennemis attaquent 30 % plus vite.', speed: 1.3 },
+};
+export function towerRule(state) {
+  const r = state.tower?.rule;
+  return r ? TOWER_RULES[r] ?? null : null;
 }
 
 export function weeklyReward(floor) {
@@ -78,6 +101,7 @@ export function towerReward(floor) {
 export function startTower(state, now = Date.now()) {
   if (!towerUnlocked(state) || state.dungeon || state.tower || state.challenge || climbsLeft(state, now) <= 0) return false;
   towerWeek(state, now).climbs += 1;
+  towerDay(state, now).climbs += 1;
   state.tower = { floor: 1, startPlay: state.playSeconds ?? 0, deadline: (state.playSeconds ?? 0) + TOWER.timeLimit };
   return true;
 }
@@ -93,7 +117,11 @@ export function clearTowerFloor(state) {
   const add = (r) => { for (const [k, v] of Object.entries(grantReward(state, r))) reward[k] = (reward[k] ?? 0) + v; };
   if (record) { add(towerReward(floor)); state.towerBest = floor; }
   if (weekly) { add(weeklyReward(floor)); week.best = floor; }
+  run.earned = run.earned ?? {};
+  for (const [k, v] of Object.entries(reward)) run.earned[k] = (run.earned[k] ?? 0) + v; // v9.6.2 : écran de fin
   run.floor += 1;
+  // v9.6.2 : nouvelle règle à chaque palier de 10 étages.
+  if (floor % 10 === 0) { const ids = Object.keys(TOWER_RULES); run.rule = ids[(floor / 10 + (state.towerBest ?? 0)) % ids.length]; }
   // L'étage franchi stabilise la tour : un peu de temps en plus, de moins en moins à mesure qu'on monte.
   const now = state.playSeconds ?? 0;
   const bonus = TOWER.floorBonus * TOWER.floorBonusDecay ** floor;
@@ -113,7 +141,8 @@ export function endTower(state, { defeated = true, collapsed = false } = {}) {
   if (!run) return null;
   const reached = run.floor - 1;
   state.towerLast = {
-    floors: reached, defeatedAt: defeated ? run.floor : null, collapsed,
+    record: reached >= (state.towerBest ?? 0) && reached > 0, best: state.towerBest ?? 0, // v9.6.2 : écran de fin
+    floors: reached, defeatedAt: defeated ? run.floor : null, collapsed, earned: run.earned ?? {},
     seconds: Math.max(0, Math.round((state.playSeconds ?? 0) - (run.startPlay ?? 0))), at: Date.now(),
   };
   state.tower = null;
@@ -132,6 +161,9 @@ export function sanitizeTower(state, raw) {
   const w = raw.towerWeek;
   state.towerWeek = w && typeof w.week === 'string'
     ? { week: w.week.slice(0, 10), best: int(w.best) ?? 0, climbs: int(w.climbs) ?? 0, extra: int(w.extra) ?? 0 } : null;
+  const d = raw.towerDay; // v9.6.2
+  state.towerDay = d && typeof d.day === 'string' ? { day: d.day.slice(0, 10), climbs: int(d.climbs) ?? 0 } : null;
+  if (state.tower && raw.tower?.rule && TOWER_RULES[raw.tower.rule]) state.tower.rule = raw.tower.rule;
   state.towerHistory = Array.isArray(raw.towerHistory)
     ? raw.towerHistory.filter((h) => h && int(h.floors) !== null).slice(0, 20)
       .map((h) => ({ floors: h.floors, seconds: int(h.seconds) ?? 0, at: int(h.at) ?? 0, collapsed: h.collapsed === true, defeatedAt: int(h.defeatedAt, 1) }))

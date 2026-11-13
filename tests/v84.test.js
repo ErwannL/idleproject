@@ -28,12 +28,15 @@ test('v8.4 : vitesses débloquées par code', () => {
   assert.deepEqual(unlockedSpeeds(sanitizeState(JSON.parse(JSON.stringify(s)))), [1, 10, 100]);
 });
 
-test('v8.4 : Tour une fois par semaine, récompense hebdomadaire distincte du record', () => {
+test('v8.4 → v9.6.2 : Tour 3 fois par jour, récompense hebdomadaire distincte du record', () => {
   const s = createNewState(NOW, 1);
   s.maxStage = 80;
   assert.ok(startTower(s));
   clearTowerFloor(s); clearTowerFloor(s);
   endTower(s);
+  assert.equal(climbsLeft(s), 2, 'v9.6.2 : 3 ascensions par jour');
+  assert.ok(startTower(s)); endTower(s);
+  assert.ok(startTower(s)); endTower(s);
   assert.equal(climbsLeft(s), 0);
   assert.equal(startTower(s), false);
   applyCheat(s, 'TOWERPASS');
@@ -41,9 +44,10 @@ test('v8.4 : Tour une fois par semaine, récompense hebdomadaire distincte du re
   const r = clearTowerFloor(s);
   assert.equal(r.record, false);
   assert.equal(r.weekly, false);
-  s.towerWeek.week = '2000-01-03'; // semaine suivante : remise à zéro
+  s.towerWeek.week = '2000-01-03'; // semaine suivante : meilleur étage de la semaine remis à zéro
+  s.towerDay.day = '2000-01-03'; // jour suivant : ascensions rendues
   assert.equal(towerWeek(s).best, 0);
-  assert.equal(climbsLeft(s), 1);
+  assert.equal(climbsLeft(s), 3);
 });
 
 test('v8.4 : défaite contre un boss → on recule et on ne le retente qu\'à +15 % de puissance', async () => {

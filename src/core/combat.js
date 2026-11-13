@@ -26,7 +26,7 @@ import { activeClass, classRange } from './classes.js';
 import { BOSS_MINIONS, BOSS_TRAITS, TRAITS, tickTide, traitAttack, traitDamageTaken } from './boss-traits.js'; // v9.2.0 (monde marin) : Marée
 import { DUNGEON_DIFFICULTIES } from '../data/dungeons.js';
 import { enemyScaleFactor } from './transcend.js';
-import { clearTowerFloor, endTower, towerBoss, towerLevel, towerTimeLeft } from './tower.js';
+import { clearTowerFloor, endTower, towerBoss, towerLevel, towerTimeLeft , towerRule } from './tower.js';
 import { endWorldRun, worldEncounter, worldKill, worldTimeLeft } from './banner.js';
 import { tickTimes } from './times.js';
 import { CHALLENGE, challengeBosses, challengeKill, challengeLevel, challengeRule, challengeTimeUp, clearChallengeWave, endChallenge, isBossWave } from './challenge.js';
@@ -380,6 +380,10 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
   if (enemy.trait === 'summoner') enemy.summonTimer = TRAITS.summoner.every / 2;
   // v9.0.4 : ennemis mutés (campagne, donjons, défi ; jamais dans la Tour).
   const mutation = !boss && !elite && !enc.tower ? maybeMutate(state, enemy, rng) : null;
+  // v9.6.2 (7.1) : règle de la Tour en cours (PV, dégâts).
+  const tr = state.tower ? towerRule(state) : null;
+  if (tr?.hp) { enemy.hp *= tr.hp; enemy.maxHp *= tr.hp; }
+  if (tr?.damage) enemy.damage *= tr.damage;
   world.enemies.push(enemy);
   emit(world, boss ? 'bossSpawn' : elite ? 'eliteSpawn' : 'spawn', { enemyId: enemy.id, kind: type });
   if (mutation) emit(world, 'mutantSpawn', { enemyId: enemy.id, kind: type, mutation: mutation.id });
@@ -882,7 +886,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
     }
     return;
   }
-  if (!state.challenge || !challengeRule(state, 'noHeal')) hero.hp = Math.min(stats.maxHp, hero.hp + stats.regenPerSecond * dt);
+  if ((!state.challenge || !challengeRule(state, 'noHeal')) && !(state.tower && towerRule(state)?.noRegen)) hero.hp = Math.min(stats.maxHp, hero.hp + stats.regenPerSecond * dt); // v9.6.2 : Sans repos
   // v9.2.1 : brûlure (Lave) — jamais mortelle seule, elle s'arrête à 1 PV.
   if (stats.burnPerSecond > 0) hero.hp = Math.max(Math.min(hero.hp, 1), hero.hp - stats.burnPerSecond * dt);
   world.buffs.cry = Math.max(0, world.buffs.cry - dt);
@@ -1104,7 +1108,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
   const traitAtk = attacker?.trait ? traitAttack(attacker, stats.armor) : { damage: 1, speed: 1 };
   if (attacker?.engaged) {
     const before = attacker.attackTimer;
-    attacker.attackTimer -= dt * traitAtk.speed;
+    attacker.attackTimer -= dt * traitAtk.speed * (state.tower ? towerRule(state)?.speed ?? 1 : 1); // v9.6.2 : Frénésie
     // v9.1.9 : préparation visible ~0,25 s avant le coup (affichage seul : ni dégâts ni rythme changés).
     if (before > ENEMY_WINDUP && attacker.attackTimer <= ENEMY_WINDUP && attacker.attackTimer > 0) emit(world, 'enemyWindup', { enemyId: attacker.id, boss: attacker.boss });
     if (attacker.attackTimer <= 0) {

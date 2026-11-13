@@ -1,6 +1,23 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Règle :": "규칙:",
+  "Ascensions du jour faites — reviens demain": "오늘 등반 완료 — 내일 다시 오세요",
+  "Une règle change tous les 10 étages.": "10층마다 규칙이 바뀝니다.",
+  "Carapaces": "껍질",
+  "Les ennemis ont +40 % de PV.": "적 HP +40%.",
+  "Furie": "격노",
+  "Les ennemis frappent 40 % plus fort.": "적 공격 40% 강화.",
+  "Sans repos": "휴식 없음",
+  "Le héros ne se régénère plus (le vol de vie marche toujours).": "영웅 재생 불가 (흡혈은 작동).",
+  "Frénésie": "광란",
+  "Les ennemis attaquent 30 % plus vite.": "적 공격 속도 +30%.",
+  "Tour de l'Éternité": "영원의 탑",
+  "nouveau record !": "신기록!",
+  "Pas de nouvelle récompense : dépasse ton record pour en gagner.": "새 보상 없음: 기록을 넘어야 합니다.",
+  "Plus d'ascension aujourd'hui : reviens demain.": "오늘 등반 없음: 내일 오세요.",
+  "Retenter": "재도전",
+  "Fermer": "닫기",
   "Éclats critiques": "치명 파편",
   "Les critiques éclaboussent les ennemis voisins (40 % des dégâts).": "치명타가 주변 적에게 튑니다 (피해의 40%).",
   "Festin": "잔치",
@@ -337,6 +354,12 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [new RegExp("^Monter \\((\\d+) ascensions? aujourd'hui\\)$"), (m) => `등반 (오늘 ${m[1]}회)`],
+  [new RegExp("^Encore (\\d+) ascensions? aujourd'hui\\.$"), (m) => `오늘 ${m[1]}회 남음.`],
+  [new RegExp("^Règle : (.+)$"), (m) => `규칙: ${L(m[1])}`],
+  [new RegExp("^Étage (\\d+)$"), (m) => `${m[1]}층`],
+  [new RegExp("^· record (\\d+)$"), (m) => `· 기록 ${m[1]}`],
+
   [new RegExp("^Fort contre : (.+)$"), (m) => `강한 상대: ${m[1].split(', ').map(L).join(', ')}`],
 
   [new RegExp("^remplacerait « (.+) »$"), (m) => `“${L(m[1])}” 대체`],
