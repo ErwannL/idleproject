@@ -138,6 +138,10 @@ function traitClip(type, trait) {
     return { ...base, setup: (d) => { d.foe = d.spawn(type, { boss: true, landed: true, hp: 0.55 }); d.regen = 0.06; },
       events: [hit(2.3, true), [2.3, (d) => { d.foe.critAt = d.world.time; }]] };
   }
+  // v9.6.5 : Miroir et Bouclier d'élément — une série de coups sur le boss.
+  if (trait === 'mirror' || trait === 'elemShield') {
+    return { ...base, setup: (d) => { d.foe = d.spawn(type, { boss: true, landed: true }); }, events: [0.4, 0.9, 1.4, 1.9, 2.4].map((x) => hit(x)) };
+  }
   return null;
 }
 

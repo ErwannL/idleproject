@@ -1,6 +1,14 @@
 // v9.3.4 : coréen de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./ko.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Miroir": "거울",
+  "renvoie une part des dégâts": "피해 일부 반사",
+  "PV, vol de vie": "HP, 흡혈",
+  "renvoie 12 % des dégâts du héros au héros (au plus 2 % de ses PV par coup)": "영웅 피해의 12%를 영웅에게 반사 (타격당 최대 HP 2%)",
+  "Bouclier d'élément": "속성 방패",
+  "seul son élément faible passe bien": "약점 속성만 잘 통함",
+  "Compagnons de l'élément fort": "강한 속성 동료",
+  "encaisse −50 % des dégâts, sauf ceux de l'élément qui le bat": "이기는 속성 외의 피해 −50%",
   "Mesures anonymes (version, monde, niveau, temps de jeu — aucun identifiant)": "익명 통계 (버전, 월드, 레벨, 플레이 시간 — 식별자 없음)",
   "Bon retour ! Bonus de rattrapage : or et XP ×1,5 pendant 2 h de jeu": "돌아온 것을 환영합니다! 따라잡기 보너스: 2시간 동안 골드와 경험치 ×1.5",
   "Gagner 3 étapes": "스테이지 3개 돌파",
@@ -402,6 +410,7 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [/^Faille (\d+)$/, (m) => `균열 ${m[1]}`],
   [new RegExp("^Faille (\\d+) \\(échos : \\+(\\d+) % d.or\\)$"), (m) => `균열 ${m[1]} (메아리: 골드 +${m[2]}%)`],
   [new RegExp("^Prochain monde ouvert dans (.+)$"), (m) => `새 월드: ${LK(m[1]) ?? m[1]} 후 개방`],
   [new RegExp("^Coffre de session : \\+(\\d+) gemmes, \\+(\\d+) \u00e9clats$"), (m) => `세션 상자: 젬 +${m[1]}, 파편 +${m[2]}`],

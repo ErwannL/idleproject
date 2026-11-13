@@ -741,7 +741,10 @@ function hitEnemy(state, world, enemy, damage, rng, balance, stats, enc, source,
   damage *= behaviorTakenMult(enemy, world.parries, source); // v9.6.0 : Bouclier, Essaim, Volant sans leur parade
   if (enemy.weakUntil > world.time) damage *= 1.5; // v9.6.3 : boss affaibli après son attaque lourde
   damage = mutationDamageTaken(enemy, damage);
-  damage = traitDamageTaken(enemy, damage);
+  damage = traitDamageTaken(enemy, damage, elem);
+  if (enemy.trait === 'mirror' && unitId === 'hero' && source !== 'thorns' && world.hero?.hp > 0) { // v9.6.5 : Miroir
+    world.hero.hp = Math.max(1, world.hero.hp - Math.min(damage * TRAITS.mirror.reflectPct / 100, stats.maxHp * 0.02)); // plafond : 2 % des PV par coup
+  }
   if (enemy.scoreTarget && state.worldRun?.kind === 'score') state.worldRun.damage += damage; // v9.1.3 (doc4 lot 6)
   if (enemy.worldBoss && state.worldBossRun) state.worldBossRun.damage += damage; // v9.2.9 : World Boss
   const dealt = world.counters?.damage ? Math.max(0, Math.min(damage, enemy.hp)) : 0;

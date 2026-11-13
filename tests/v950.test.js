@@ -245,3 +245,10 @@ test('v9.6.5 (10.4) : Failles après le dernier monde, échos d\'or', async () =
   s.records.bestStage = 231 * 2;
   assert.ok(C.riftEchoMult(s) > 1.1);
 });
+
+test('v9.6.5 (6.4) : Bouclier d\'élément et Miroir', async () => {
+  const T = await import('../src/core/boss-traits.js');
+  assert.equal(T.traitDamageTaken({ trait: 'elemShield' }, 100, 1), 50);
+  assert.equal(T.traitDamageTaken({ trait: 'elemShield' }, 100, 1.5), 100);
+  assert.equal(T.bossTrait('mini_void_watcher').name, 'Miroir');
+});

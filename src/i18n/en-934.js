@@ -1,6 +1,14 @@
 // v9.3.4 : anglais de la refonte de l'interface (popup des compagnons, vocabulaire unifié). Branché à la fin de ./en.js.
 export const EXACT_934 = {
   // v9.3.9
+  "Miroir": "Mirror",
+  "renvoie une part des dégâts": "reflects part of the damage",
+  "PV, vol de vie": "HP, lifesteal",
+  "renvoie 12 % des dégâts du héros au héros (au plus 2 % de ses PV par coup)": "reflects 12% of the hero's damage back to the hero (at most 2% of their HP per hit)",
+  "Bouclier d'élément": "Element shield",
+  "seul son élément faible passe bien": "only its weak element gets through",
+  "Compagnons de l'élément fort": "Companions of the strong element",
+  "encaisse −50 % des dégâts, sauf ceux de l'élément qui le bat": "takes −50% damage, except from the element that beats it",
   "Mesures anonymes (version, monde, niveau, temps de jeu — aucun identifiant)": "Anonymous metrics (version, world, level, play time — no identifier)",
   "Bon retour ! Bonus de rattrapage : or et XP ×1,5 pendant 2 h de jeu": "Welcome back! Catch-up bonus: gold and XP ×1.5 for 2 h of play",
   "Gagner 3 étapes": "Clear 3 stages",
@@ -402,6 +410,7 @@ let LK = () => null;
 const L = (x) => LK(String(x).trim()) ?? x;
 export const patterns934 = (lookup = () => null) => { LK = lookup; return [
   // v9.3.9
+  [/^Faille (\d+)$/, (m) => `Rift ${m[1]}`],
   [new RegExp("^Faille (\\d+) \\(échos : \\+(\\d+) % d.or\\)$"), (m) => `Rift ${m[1]} (echoes: +${m[2]}% gold)`],
   [new RegExp("^Prochain monde ouvert dans (.+)$"), (m) => `New world: opens in ${LK(m[1]) ?? m[1]}`],
   [new RegExp("^Coffre de session : \\+(\\d+) gemmes, \\+(\\d+) \u00e9clats$"), (m) => `Session chest: +${m[1]} gems, +${m[2]} shards`],

@@ -31,6 +31,17 @@ export const TRAITS = {
     text: 'régénère 1 % de ses PV max par seconde ; un coup critique arrête la marée 3 s',
     regenPct: 1, critPause: 3,
   },
+  // v9.6.5 (6.4) : deux mécaniques de plus.
+  mirror: {
+    name: 'Miroir', short: 'renvoie une part des dégâts', color: '#d8e8ff', counter: 'PV, vol de vie',
+    text: 'renvoie 12 % des dégâts du héros au héros (au plus 2 % de ses PV par coup)',
+    reflectPct: 12,
+  },
+  elemShield: {
+    name: 'Bouclier d\'élément', short: 'seul son élément faible passe bien', color: '#c69cff', counter: 'Compagnons de l\'élément fort',
+    text: 'encaisse −50 % des dégâts, sauf ceux de l\'élément qui le bat',
+    cut: 0.5,
+  },
 };
 
 // v9.2.0 (monde marin) : serviteurs propres à un boss invocateur (sinon TRAITS.summoner.minion).
@@ -56,7 +67,7 @@ export const BOSS_TRAITS = {
   boss_swamp_behemoth: 'tidal', mini_toad_king: 'summoner', mid_hydra: 'tidal', hard_plague_doctor: 'summoner',
   mini_harpy_queen: 'summoner', mid_thunder_griffin: 'escalate', hard_storm_valkyrie: 'desperate',
   mini_salamander_chief: 'escalate',
-  mini_void_watcher: 'armored', mid_star_devourer: 'tidal', hard_void_knight: 'armored',
+  mini_void_watcher: 'mirror', mid_star_devourer: 'tidal', hard_void_knight: 'elemShield', // v9.6.5
 };
 
 // v9.2.0 (monde marin) : Marée (régénération), appelée à chaque pas ; `critAt` = moment du dernier coup critique reçu.
@@ -72,7 +83,8 @@ export function tickTide(world, dt) {
 export const bossTrait = (type) => TRAITS[BOSS_TRAITS[type]] ?? null;
 
 // Dégâts reçus par le boss (carapace qui s'use à chaque coup).
-export function traitDamageTaken(enemy, damage) {
+export function traitDamageTaken(enemy, damage, elem = 1) {
+  if (enemy.trait === 'elemShield') return elem > 1 ? damage : damage * TRAITS.elemShield.cut; // v9.6.5
   if (enemy.trait !== 'armored') return damage;
   const shell = enemy.shell ?? TRAITS.armored.shell;
   enemy.shell = Math.max(0, shell - TRAITS.armored.wear);
