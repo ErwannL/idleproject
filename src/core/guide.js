@@ -3,6 +3,7 @@ import { currentQuest, questSteps } from './unlock-quests.js'; // v9.7.1 (lot 3)
 // v9.7.1 (lot 3) : onglet utile pour chaque geste des mini-quêtes (null : en combat).
 const QUEST_TAB = { equipment: [null, null, 'inventory'], upgrades: [null, 'upgrades', null], skills: [null, 'skills', null], forge: ['inventory', 'forge', null] };
 import { BALANCE } from '../data/balance.js';
+import { PRESTIGE } from '../data/prestige.js';
 import { bossesForStage, createCombat, heroPower, isBossStage, step } from './combat.js';
 import { Rng } from './rng.js';
 import { endWorldRun } from './banner.js';
@@ -144,9 +145,10 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
   const blocking = Number.isFinite(state.bossRetry?.hpPct) ? state.bossRetry.hpPct : null;
   const blocked = Boolean(state.bossRetry && state.stage === state.bossRetry.stage - 1);
   // v9.3.8 : Renaissance aussi quand la progression ralentit (plus de 10 min de jeu sans nouveau record).
-  const slowing = (state.playSeconds ?? 0) - (state.recordAt ?? state.playSeconds ?? 0) > 600;
+  const slowing = (state.playSeconds ?? 0) - (state.recordAt ?? state.playSeconds ?? 0) > 600
+    || (state.playSeconds ?? 0) - (state.ui?.wallAt ?? -1e9) < 1800; // v9.8 (I5) : mur détecté (retour automatique)
   if ((blocked || slowing || rebirthWorth(state)) && open('tree') && canRebirth(state) && !rebirthBlocked(state) && rebirthReward(state) > 0) {
-    return { id: 'rebirth', text: `Renaissance : +${rebirthReward(state)} fragments`, tab: 'tree', view: { treeSeg: 'rebirth' } };
+    return { id: 'rebirth', text: `Renaître : ×${String(PRESTIGE.rebirthMultiplier).replace('.', ',')} pour toujours (+${rebirthReward(state)} fragments)`, tab: 'tree', view: { treeSeg: 'rebirth' } };
   }
   if (blocked) {
     const pct = bossRetryPct(state, balance);

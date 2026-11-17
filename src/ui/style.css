@@ -3797,3 +3797,13 @@ html.reduce-motion .cr-chest img, html.reduce-motion .cr-loot .rw { animation: n
 @keyframes qb-glow { 50% { box-shadow: 0 0 18px #ffd23fcc; } }
 html.reduce-motion #quest-banner.ready { animation: none; }
 .layout-strip #quest-banner, .layout-mini #quest-banner { display: none !important; }
+/* v9.8 (I2) : outils de l'objet en 3 gros boutons */
+.ip-tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 6px 0; }
+.ip-tool { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 4px; border-radius: 10px; border: 2px solid #8a6a2a;
+  background: linear-gradient(#3a2a18, #22180e); color: #ffe7b0; cursor: pointer; text-align: center; }
+.ip-tool img { width: 34px; height: 34px; image-rendering: pixelated; }
+.ip-tool b { font: 800 13px system-ui, sans-serif; } .ip-tool small { font-size: 11px; color: #d9c8a0; min-height: 2.4em; }
+.ip-tool .ip-cost { font: 700 11px system-ui, sans-serif; color: #fff; } .ip-tool .ip-cost img { width: 14px; height: 14px; vertical-align: -2px; }
+.ip-tool[disabled] { opacity: .5; cursor: default; }
+.ip-target summary { cursor: pointer; color: #9fc3ff; font-size: 12px; margin: 4px 0; }
+.result-list { list-style: none; padding: 0; margin: 10px 0; font-size: 16px; } .result-list li { padding: 4px 0; }

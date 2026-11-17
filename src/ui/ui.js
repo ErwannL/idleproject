@@ -20,7 +20,7 @@ import { envLine, envChipText } from '../core/environment.js'; // v9.2.1
 import { bossTierForStage, currentEncounter, currentEnvironment, difficultyForStage, isBossStage, stageLabel, zoneForStage, zoneIndexForStage } from '../core/combat.js';
 import { eventLabel } from '../core/events.js';
 import { SUMMON_POOLS, normalizePool } from '../core/gacha.js';
-import { formatDuration, formatNumber } from '../core/format.js';
+import { formatDecimal, formatDuration, formatNumber } from '../core/format.js';
 import { xpForLevel } from '../core/level.js';
 import { rarityById } from '../core/loot.js';
 import { maxCharges, powerById } from '../core/powers.js';
@@ -1048,6 +1048,7 @@ export class UI {
       case 'ask-buy-talents': this.showBuyTalents(value || null); break;
       case 'tree-seg': local(() => { v.treeSeg = value; }); break;
       case 'quick-hunt': a.quickHunt(); break; // v9.8 (H3)
+      case 'gear-best': a.gearBest(value); break; // v9.8 (I6)
       case 'wheel-open': this.showWheel(); break; // v9.8 (H4)
       case 'wheel-spin': this.spinWheel(); break;
       case 'daybook-chest': a.daybookChest(); break; // v9.8 (H1)
@@ -2451,6 +2452,17 @@ export class UI {
       if (out) out.innerHTML = `<b class="${r.slice.jackpot ? 'gold-text' : 'good'}">${r.slice.jackpot ? 'GROS LOT ! ' : ''}${escapeHtml(r.slice.label)}</b> ${rewardIcons(r.given, 'named')}`;
       uiFx.claimFly?.(uiFx.snap(this.state).cur, uiFx.snap(this.state).cur, disc, true);
     }, calm ? 50 : 2700);
+  }
+
+  // v9.8 (I5/J1) : écran de résultat générique — titre, gains de bonus en grosses lignes, un gros bouton.
+  bonusResult(title, before = {}, after = {}) {
+    const LABEL = { damagePct: 'dégâts', damageMultPct: 'dégâts (×)', attackSpeedPct: 'vitesse', maxHpPct: 'PV', maxHpMultPct: 'PV (×)', goldPct: 'or', goldMultPct: 'or (×)',
+      xpPct: 'XP', critChance: 'critique', damageVsBossPct: 'dégâts aux boss', damageVsNormalPct: 'dégâts aux monstres', regenPct: 'régénération', skillCooldownPct: 'recharge', dropChance: 'butin' };
+    const rows = Object.keys(LABEL).map((k) => [k, (after[k] ?? 0) - (before[k] ?? 0)]).filter(([, d]) => Math.abs(d) >= 0.05)
+      .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 5)
+      .map(([k, d]) => `<li><b class="good num">${d > 0 ? '+' : ''}${formatDecimal(d)} %</b> ${LABEL[k]}</li>`).join('');
+    this.openModal(`<div class="victory-screen"><h2 id="modal-title">${escapeHtml(title)}</h2>
+      ${rows ? `<ul class="result-list">${rows}</ul>` : ''}<div class="detail-actions"><button class="btn btn-gold" data-action="close-modal">Super !</button></div></div>`);
   }
 
   // v9.8 (G3) : coffre qui s'ouvre en gros plan, les récompenses en sortent.

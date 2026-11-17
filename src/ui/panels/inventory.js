@@ -7,14 +7,14 @@ import { activeMajor } from '../../core/inventory.js'; // v9.6.1
 import { GEAR_PROFILES, profileGain } from '../../core/inventory.js'; // v9.5.2
 const PROFILE_ICONS = { attack: 'icon_damage', survival: 'icon_defense', fortune: 'icon_gold' };
 const PROFILE_TIPS = { attack: 'Pour passer un boss : les dégâts d\'abord', survival: 'Pour tenir dans un monde dur : la survie d\'abord', fortune: 'Pour farmer : l\'or et le butin d\'abord' };
-import { currentEncounter as encNow } from '../../core/combat.js'; // v9.5.1
+import { currentEncounter as encNow, levelForStage } from '../../core/combat.js'; // v9.5.1
 import { canEquip, classById, weaponClass } from '../../core/classes.js';
 import { companionById, companionMultiplier, unitLevel } from '../../core/companions.js';
 import { gearClassOf as gearClassOfUnit } from '../../data/companion-gear.js';
 import { BALANCE } from '../../data/balance.js';
 import { BOSSES } from '../../data/enemies.js';
 import { EQUIP_SLOTS, HERO_SLOTS, RARITIES, SLOTS, STAT_LABELS, eqSlot, heroSlot } from '../../data/items.js';
-import { canEquip as unitCanEquip, classLabel, gearStats, slotName, statText, unitGear, wearerOf, wornItems } from '../../core/companion-gear.js'; // v9.3.4 (f)
+import { bestGearFor, canEquip as unitCanEquip, classLabel, gearStats, slotName, statText, unitGear, wearerOf, wornItems } from '../../core/companion-gear.js'; // v9.3.4 (f)
 import { heroGearClass, itemClass } from '../../core/classes.js';
 import { teamUpgradeFor } from '../../core/inventory.js';
 import { companionStill } from './expeditions.js';
@@ -199,10 +199,23 @@ function detail(ui, state, item, whoUnit = null) {
       : `<button class="btn" disabled>Pour : ${escapeHtml(item.cls && item.cls !== heroGearClass(state) ? classLabel(item.cls) : weaponClass(item.baseId)?.name ?? '')}</button>`}
     <button class="btn" data-action="recycle" data-id="${item.id}" ${item.locked || isEquipped ? 'disabled' : ''}>Recycler +${formatNumber(recycleValue(item, BALANCE, recycleLevelOf(state)))} ${coin()}${mats.shards ? ` +${mats.shards}${shard()}` : ''}</button>
     <button class="btn ip-more${more ? ' active' : ''}" data-action="item-more" data-value="${more ? '' : item.id}" aria-expanded="${more}" aria-label="Plus d'actions">⋯</button>`;
+  // v9.8 (I2) : trois gros boutons illustrés (Renforcer, Remettre au niveau, Changer l'effet), le coût avec le nom de la
+  // monnaie, et « Protéger » au lieu d'un cadenas seul.
+  const shardN = (n) => `${shard()} ${n} éclats`;
+  const lvlNow = levelForStage(state.maxStage);
+  const bigTool = (action, icon, title, sub, cost, ok, extra = '') => `<button class="ip-tool" data-action="${action}" data-id="${item.id}" ${extra} ${ok ? '' : 'disabled'}>
+      ${img(icon)}<b>${title}</b><small>${sub}</small><span class="ip-cost">${cost}</span></button>`;
+  const tools = `<div class="ip-tools">
+      ${ups >= maxUp ? bigTool('upgrade-item', 'icon_anvil', 'Renforcer', `Au maximum (+${maxUp})`, '—', false)
+        : bigTool('upgrade-item', 'icon_anvil', 'Renforcer', `+${ups} → +${ups + 1} · une stat +${BALANCE.forge.upgradeBoostPct} %`, `${coin()} ${formatNumber(upCost.gold)} · ${shardN(upCost.shards)}`,
+          state.gold >= upCost.gold && state.materials.shards >= upCost.shards, `data-cost="${upCost.gold}" data-currency="gold"`)}
+      ${bigTool('sharpen', 'icon_shard', 'Remettre au niveau', sharpen ? `L'objet passe au niveau ${lvlNow}` : 'Déjà au niveau de ton étape', sharpen ? shardN(sharpen) : '—', Boolean(sharpen) && state.materials.shards >= sharpen)}
+      ${bigTool('reforge', 'icon_star', 'Changer l\'effet', canReforge(item) ? 'Nouveaux effets spéciaux au hasard' : 'Aucun effet spécial', shardN(BALANCE.forge.reforgeShards), canReforge(item) && state.materials.shards >= BALANCE.forge.reforgeShards)}
+    </div>`;
+  const protect = `<button class="btn${item.locked ? ' btn-gold' : ''}" data-action="lock" data-id="${item.id}" aria-pressed="${item.locked}">${img('icon_lock')} ${item.locked ? 'Protégé' : 'Protéger'}</button>`;
   const moreBody = more ? `<div class="ip-more-box">
-      <div class="section-title">Améliorer</div><div class="upgrade-line">${upgradeBtn}<span class="muted num">${ups}/${maxUp}</span></div>
-      <div class="tool-line">${sharpenBtn}</div><div class="tool-line">${reforgeBtn}</div>${targetLine}
-      <div class="tool-line">${lock} ${isEquipped ? '' : `<button class="btn small" data-action="to-stash" data-id="${item.id}" ${stash ? 'disabled' : ''}>Ranger au coffre</button>`}
+      ${tools}${targetLine ? `<details class="ip-target"><summary>Choisir l'effet voulu</summary>${targetLine}</details>` : ''}
+      <div class="tool-line">${protect} ${isEquipped ? '' : `<button class="btn small" data-action="to-stash" data-id="${item.id}" ${stash ? 'disabled' : ''}>Ranger au coffre</button>`}
         ${base.signature ? `<button class="btn small btn-gold" data-action="to-museum" data-id="${item.id}">Exposer au Musée</button>` : ''}</div>
       ${affixes ? `<div class="section-title">Effets spéciaux</div><ul class="stat-list">${affixes}</ul>` : ''}${setBlock(state, item)}</div>` : '';
   return `<div class="unit-pop-backdrop" data-action="close-sheet"></div>
@@ -373,6 +386,7 @@ function bag(ui, state) {
       <div class="equip-doll big"><div class="slot-col">${PL.slice(0, half).map(slotFrame).join('')}</div>
         <div class="doll" title="Aperçu avec l'objet sélectionné">${whoUnit ? `<span class="doll-unit">${companionStill(whoUnit)}</span>` : animCanvas('hero', 64, 64, 3, `data-big="1" data-preview="${escapeHtml(JSON.stringify(previewEq))}"`)}</div>
         <div class="slot-col acc">${PL.slice(half).map(slotFrame).join('')}</div></div>
+      ${whoUnit && bestGearFor(state, who).length ? `<button class="btn btn-gold primary-action" data-action="gear-best" data-value="${who}">⬆ Équiper le meilleur (${bestGearFor(state, who).length})</button>` : ''}
       ${whoUnit ? `<div class="inv-power"><small>${escapeHtml(classLabel(gearClassOfUnit(whoUnit)))}</small><b class="num">${escapeHtml(statText(Object.values(unitGear(state, who)).filter(Boolean).reduce((t, it) => { for (const [k, v] of Object.entries(gearStats(it, state))) t[k] = Math.round(((t[k] ?? 0) + v) * 10) / 10; return t; }, {}))) || '—'}</b></div>`
         : `<div class="inv-power"><small>Puissance</small><b class="num">${formatNumber(st.combatPower)}</b></div>`}</div>`;
   // v9.1.3 (doc1 « Équipement : Sac ») : sur téléphone, les 7 cases portées en une ligne compacte en haut du sac

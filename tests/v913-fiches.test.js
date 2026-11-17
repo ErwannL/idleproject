@@ -42,7 +42,7 @@ test('v9.3.4 : popup d\'objet — Puissance en gros, 3 statistiques au plus, Éq
   assert.ok(html.includes('data-action="recycle"') && html.includes('data-action="item-more"'));
   assert.ok(!html.includes('data-action="upgrade-item"') && !html.includes('Effets visuels en combat'), 'Améliorer derrière ⋯, plus de ligne d\'effets visuels');
   const more = inventory.render(uiWith({ selectedItemId: item.id, sheetOpen: 'item', itemMore: item.id }), s);
-  assert.ok(more.includes('data-action="upgrade-item"') && more.includes('lock-btn') && more.includes('data-action="to-stash"'));
+  assert.ok(more.includes('data-action="upgrade-item"') && more.includes('data-action="lock"') && more.includes('data-action="to-stash"'));
   const closed = inventory.render(uiWith({ selectedItemId: item.id }), s);
   assert.ok(!closed.includes('item-pop'), 'pas de fiche sans toucher');
 });

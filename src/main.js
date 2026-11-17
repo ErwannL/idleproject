@@ -92,7 +92,7 @@ import { BUILT_IN_TOKEN } from './core/update-token.js';
 import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagList, updateStatus } from './core/update.js';
 import { playsOnSite } from './ui/panels/options.js';
 import { skillKillGold, upgradeCompanionSkill } from './core/companions.js'; // v9.3.3
-import { equipGear, recycleGear, unequipGear, upgradeGear } from './core/companion-gear.js'; // v9.3.3
+import { equipBestGear, equipGear, recycleGear, unequipGear, upgradeGear } from './core/companion-gear.js'; // v9.3.3
 import { bestOpenUpgrade, companionToLevel, companionToPlace } from './core/guide.js';
 import { PROLOGUE_HINT, playPrologue } from './ui/prologue.js'; // v9.3.7
 import { recycleUseless } from './core/inventory.js'; // v9.3.4
@@ -375,6 +375,8 @@ const actions = {
     placeTransition(`Donjon · ${DUNGEON_DIFFICULTIES[difficulty]?.label ?? ''}`, d.name, d.description, ZONES[d.zone]?.id);
     done(true, 'Tentative lancée');
   },
+  // v9.8 (I6) : équipement des compagnons — le meilleur d'un appui.
+  gearBest(id) { const n = equipBestGear(state, id); done(n > 0, n ? `${n} pièce${n > 1 ? 's' : ''} équipée${n > 1 ? 's' : ''}` : null); },
   // v9.8 (H3) : Chasse rapide — 2 h de gains d'un coup, une fois par jour.
   quickHunt() {
     const r = quickHunt(state, rng);
@@ -681,9 +683,12 @@ const actions = {
     done(n > 0);
   },
   buyTalentsAll(region) {
+    const before = computeHeroStats(state).bonus;
     const n = buyTalentsCheapest(state, region);
     if (!n) ui.toast('Pas assez de fragments pour le prochain talent.', '#ff8a8a');
-    done(n > 0, n ? `${n} niveau${n > 1 ? 'x' : ''} de talent appris` : null, '#c9a6ff');
+    // v9.8 (I5) : écran de résultat — ce que les talents appris rapportent.
+    if (n) ui.bonusResult(`+${n} niveau${n > 1 ? 'x' : ''} de talent`, before, computeHeroStats(state).bonus);
+    done(n > 0, null, '#c9a6ff');
   },
   buyTalentPath(id) {
     const n = buyTalentPath(state, id);
@@ -1593,6 +1598,7 @@ setInterval(() => {
   changeStage(state, world, back);
   const label = cycleBack ? `Cycle ×${Math.floor((back - 1) / per) + 1}` : `l'étape ${stageLabel(back)}`;
   ui.banner(`⚠ Trop dur ici : retour à ${label}`, 'warn');
+  state.ui.wallAt = state.playSeconds ?? 0; // v9.8 (I5) : mur détecté → la barre propose de Renaître
   ui.toast('Les monstres demandaient plus d\'une minute chacun. Améliore-toi, puis « Avancer ▶ ».', '#ffb36b');
 }, 5000);
 const TOO_LONG = 60;

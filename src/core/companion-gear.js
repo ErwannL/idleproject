@@ -84,6 +84,24 @@ export function equipGear(state, unitId, itemId) {
   slots[slot] = item;
   return true;
 }
+// v9.8 (I6) : « Équiper le meilleur » pour un compagnon — par place, l'objet du sac compatible le plus fort (somme des
+// statistiques pondérées) s'il dépasse la pièce portée. Renvoie le nombre de pièces changées.
+const gearScore = (state, item) => { const st = gearStats(item, state); return (st.atk ?? 0) + (st.hp ?? 0) * 0.5 + (st.def ?? 0) * 0.5 + (st.heal ?? 0) + (st.cd ?? 0) * 2; };
+export function bestGearFor(state, unitId) {
+  const worn = unitGear(state, unitId);
+  const out = [];
+  for (const slot of Object.keys(EQUIP_SLOTS)) {
+    const cands = state.inventory.filter((i) => eqSlot(i) === slot && canEquip(state, unitId, i).ok && !i.locked);
+    const best = cands.sort((a, b) => gearScore(state, b) - gearScore(state, a))[0];
+    if (best && gearScore(state, best) > (worn[slot] ? gearScore(state, worn[slot]) : 0)) out.push(best.id);
+  }
+  return out;
+}
+export function equipBestGear(state, unitId) {
+  let n = 0;
+  for (const id of bestGearFor(state, unitId)) if (equipGear(state, unitId, id)) n += 1;
+  return n;
+}
 // Retire un objet (place commune ou ancien nom d'emplacement) : retour au sac, même plein (jamais perdu).
 export function unequipGear(state, unitId, slot) {
   const s = FROM_GEAR_SLOT[slot] ?? slot;
