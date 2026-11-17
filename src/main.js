@@ -123,6 +123,7 @@ const renderer = new SceneRenderer(canvas);
 const stageArea = document.getElementById('stage-area');
 // v9.7.1 : marge au-dessus du héros = hauteur des boutons posés en haut de la scène (carte, compétences).
 SceneRenderer.sizePref = state.ui.charSize ?? 'auto'; // v9.7.1
+SceneRenderer.skillNames = state.ui.skillNames !== false; // v9.7.1 (lot A)
 function resizeScene() {
   const top = stageArea.getBoundingClientRect().top;
   let hud = 0;
@@ -976,6 +977,7 @@ const actions = {
   setCinematics(on) { state.ui.cinematics = on; done(true); },
   setShake(on) { state.ui.shake = on; done(true); }, // v9.3.9
   // v9.7.1 : taille des personnages (Auto / Petit / Moyen / Grand) : recadre la scène tout de suite.
+  setSkillNames(on) { state.ui.skillNames = on; SceneRenderer.skillNames = on; done(true); }, // v9.7.1 (lot A)
   setCharSize(v) { state.ui.charSize = ['small', 'medium', 'large'].includes(v) ? v : 'auto'; SceneRenderer.sizePref = state.ui.charSize; resizeScene(); done(true); },
   setBigAuras(on) { state.ui.bigAuras = on; done(true); }, // v9.5.3
   setMetricsOptIn(on) { state.ui.metricsOptIn = on; done(true); if (on) sendMetrics(state, { base: CLOUD_BASE }); }, // v9.6.5 (10.11)

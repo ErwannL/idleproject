@@ -1,5 +1,6 @@
 // Rendu de la scène de combat sur un canvas basse résolution agrandi en « pixel perfect ».
 // Le rendu lit l'état de la simulation et ses événements ; il ne modifie jamais la partie.
+import { t as tr } from '../i18n/i18n.js'; // v9.7.1 : noms de compétences traduits
 import { mutationById } from '../core/mutations.js';
 import { auraColors } from '../data/auras.js';
 import { BALANCE } from '../data/balance.js';
@@ -66,11 +67,9 @@ const SPREAD = 1.9;
 export const WORLD_SCALE = 1.5;
 // Durée de l'attaque d'un compagnon (préparation puis coup).
 // v9.0.8 : façon de combattre de chaque compagnon (le reste se bat au corps à corps) et durée de chaque geste.
-const ALLY_STYLE = {
-  elf_archer: 'archer', ranger: 'archer',
-  pyromancer: 'fire', ice_empress: 'frost', witch: 'arcane', sylvan_guardian: 'nature', high_priest: 'holy', priestess: 'holy',
-};
-const ALLY_GESTURE_TIME = { melee: 0.62, archer: 0.42, cast: 0.72, support: 0.8, burst: 0.8 };
+import { ALLY_STYLE } from '../data/ally-style.js'; // v9.7.1 : partagé avec la simulation (attaque de base)
+// v9.7.1 (lot A) : gestes un peu plus longs — avec l'attaque de base (1,25 à 1,5 s), un compagnon agit ≈ 60 % du temps.
+const ALLY_GESTURE_TIME = { melee: 0.85, archer: 0.85, cast: 0.95, support: 0.95, burst: 0.95 };
 const CAST_ORB = {
   fire: ['fx_fireball1', 'fx_fireball2'], frost: ['fx_frost1', 'fx_frost2'], arcane: ['fx_soul1', 'fx_soul2'],
   nature: ['fx_spark'], holy: ['fx_spark'],
@@ -445,8 +444,15 @@ export class SceneRenderer {
         if (castHeroSkill(this, this.skillKey, event.skillId, fxContext(this, world, { x: HERO_X + 4, y: this.groundY - 22 }, HERO_X))) break;
         this.skillEffect(event);
         break;
+      case 'companionBasic': {
+        // v9.7.1 (lot A) : attaque de base entre deux compétences — le geste « attack » existant (compagnons et familiers).
+        const companion = companionById(event.companionId);
+        if (companion) this.allyGesture(companion, world, heroX, 'hit');
+        break;
+      }
       case 'companionSkill': {
         const companion = companionById(event.companionId);
+        if (companion) this.skillCallout(companion, event, world); // v9.7.1 (lot A) : nom, halo, ralenti de l'ultime
         // v9.2.5 : chaque compétence (ultime comprise) a son geste et son effet (skill-fx.js).
         const known = companion && companionSkillList(companion, COMPANION_ROLES[companion.id] ?? 'pet')[event.skill];
         if (known) {
@@ -457,7 +463,7 @@ export class SceneRenderer {
         }
         if (companion?.kind === 'ally') {
           // v9.0.8 : geste propre au compagnon (saut d'attaque, tir, sort, soutien), l'effet part de sa place.
-          this.allyGesture(companion, world, heroX, event.skillType);
+          this.allyGesture(companion, world, heroX, event.skillType, event.ultimate);
         } else {
           this.effects.push({ kind: 'ring', x: heroX - 28, y: this.groundY - 14, color: '#9cf08a', life: 0.5, max: 0.5, r: 10 });
         }
@@ -1622,13 +1628,14 @@ export class SceneRenderer {
   // Compagnons : suivent le chevalier, les volants planent au-dessus de son épaule.
   // Héros allié : à taille humaine derrière le chevalier ; marche, respiration, pose d'attaque.
   // v9.0.8 : déclenche le geste d'un compagnon et ses effets (au bon moment du geste).
-  allyGesture(companion, world, heroX, skillType) {
+  allyGesture(companion, world, heroX, skillType, ultimate = false) {
     const type = skillType ?? companion.skill?.type;
     const style = ALLY_STYLE[companion.id] ?? 'melee';
     const support = ['heal', 'shield', 'rally', 'gold'].includes(type);
     const kind = support ? 'support' : type === 'burst' ? 'burst' : style === 'archer' ? 'archer' : style === 'melee' ? 'melee' : 'cast';
     this.allyAnims ??= new Map();
-    this.allyAnims.set(companion.id, { kind, start: this.time, max: ALLY_GESTURE_TIME[kind],
+    // v9.7.1 (lot B) : l'ultime joue son animation dédiée (ALLY_ANIMS[...].ultimate) quand elle existe.
+    this.allyAnims.set(companion.id, { kind: ultimate && ALLY_ANIMS[companion.sprite]?.ultimate ? 'ultimate' : kind, start: this.time, max: ultimate ? 1.2 : ALLY_GESTURE_TIME[kind],
       color: (kind === 'support' ? SUPPORT_COLOR[type] : null) ?? companion.fx ?? '#ffffff' });
     const slot = this.layout?.slots.get(companion.id);
     const ax = slot?.cx ?? heroX - 30;
@@ -1677,6 +1684,26 @@ export class SceneRenderer {
         this.effects.push({ kind: 'ring', x: heroX, y: G - 14, color: c, life: 0.5, max: 0.5, r: 12 });
         if (type === 'gold') this.burst(heroX, G - 30, c, 10, 40);
       });
+    }
+  }
+
+  // v9.7.1 (lot A) : compétence visible — nom au-dessus du compagnon (0,8 s, sa couleur), court halo ; ultime : ralenti de
+  // 0,15 s et cadre coloré. Les noms se coupent dans Paramètres (SceneRenderer.skillNames).
+  skillCallout(companion, event, world) {
+    const known = companionSkillList(companion, COMPANION_ROLES[companion.id] ?? 'pet')[event.skill];
+    const slot = this.layout?.slots.get(companion.id);
+    const cx = slot?.cx ?? HERO_X - 30;
+    const G = this.groundY;
+    const color = companion.fx ?? '#ffd23f';
+    if (SceneRenderer.skillNames !== false && known?.name) {
+      const old = this.effects.filter((e) => e.kind === 'callout');
+      if (old.length >= 3) this.effects.splice(this.effects.indexOf(old[0]), 1);
+      this.effects.push({ kind: 'callout', text: known.name, x: cx, y: G - 46, color, life: 0.8, max: 0.8 });
+    }
+    if (!this.focus) this.effects.push({ kind: 'halo', x: cx, y: G - 16, color, life: 0.35, max: 0.35 });
+    if (event.ultimate) {
+      this.hitstop = Math.max(this.hitstop ?? 0, 0.15);
+      this.effects.push({ kind: 'frame', color, life: 0.6, max: 0.6 });
     }
   }
 
@@ -2221,6 +2248,34 @@ export class SceneRenderer {
         case 'vfx': // v9.2.6 : effet dessiné par PixelLab (vfx.js)
           drawVfx(this, ctx, fx, dt);
           break;
+        case 'callout': { // v9.7.1 (lot A) : nom de la compétence, petit texte de la couleur du compagnon
+          const k = this.k ?? 1;
+          ctx.save();
+          ctx.setTransform(k, 0, 0, k, 0, 0); // texte net : police dessinée à la résolution de l'écran
+          ctx.globalAlpha = Math.min(1, t * 4);
+          ctx.font = '800 6px system-ui, "Noto Sans KR", "Malgun Gothic", sans-serif';
+          ctx.textAlign = 'center';
+          const y = fx.y - (1 - t) * 4;
+          ctx.lineWidth = 2; ctx.strokeStyle = '#120c1c'; ctx.strokeText(tr(fx.text), fx.x, y);
+          ctx.fillStyle = fx.color; ctx.fillText(tr(fx.text), fx.x, y);
+          ctx.restore();
+          break;
+        }
+        case 'halo': { // v9.7.1 (lot A) : court halo de la compétence, autour du compagnon (un liseré, pas un aplat)
+          ctx.globalAlpha = t * 0.8;
+          ctx.strokeStyle = fx.color;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.ellipse(fx.x, fx.y, 9 + (1 - t) * 6, 14 + (1 - t) * 6, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          break;
+        }
+        case 'frame': // v9.7.1 (lot A) : ultime — cadre coloré autour de la scène
+          ctx.globalAlpha = t * 0.9;
+          ctx.strokeStyle = fx.color;
+          ctx.lineWidth = 3;
+          ctx.strokeRect(1.5, 1.5, this.width - 3, this.height - 3);
+          break;
         case 'flash':
           ctx.globalAlpha = t * 0.35;
           ctx.fillStyle = fx.color;
@@ -2503,6 +2558,7 @@ export function drawElementIcon(ctx, el, x, y) {
 
 // Attaques de classe (render/class-fx.js).
 SceneRenderer.sizePref = 'auto'; // v9.7.1 : réglage « Taille des personnages »
+SceneRenderer.skillNames = true; // v9.7.1 (lot A) : noms des compétences des compagnons (Paramètres)
 installClassFx(SceneRenderer.prototype, { HERO_X, ATTACK_TIME, CAST_TIME });
 installMutationFx(SceneRenderer.prototype, { HERO_X });
 installElementFx(SceneRenderer.prototype);

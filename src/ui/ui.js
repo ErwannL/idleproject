@@ -1147,6 +1147,7 @@ export class UI {
     if (action === 'cloud-listed') this.actions.cloudListed(el.checked);
     if (action === 'cinematics') this.actions.setCinematics(el.checked);
     if (action === 'screen-shake') this.actions.setShake(el.checked); // v9.3.9
+    if (action === 'skill-names') this.actions.setSkillNames(el.checked); // v9.7.1 (lot A)
     if (action === 'char-size') this.actions.setCharSize(el.value); // v9.7.1
     if (action === 'big-auras') this.actions.setBigAuras(el.checked); // v9.5.3
     if (action === 'metrics-opt-in') this.actions.setMetricsOptIn(el.checked); // v9.6.5

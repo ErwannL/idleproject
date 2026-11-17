@@ -272,6 +272,7 @@ function interfaceTab(ui, state) {
         <label class="toggle"><input type="checkbox" data-action="notify" data-key="events" ${state.ui.notify?.events !== false ? 'checked' : ''}> Messages des événements (coffres, marchands…)</label>
         <label class="toggle"><input type="checkbox" data-action="cinematics" ${state.ui.cinematics !== false ? 'checked' : ''}> Cinématiques (lancement du jeu, nouveau monde)</label>
         <label class="toggle"><input type="checkbox" data-action="screen-shake" ${state.ui.shake !== false ? 'checked' : ''}> Tremblement de l'écran (compétences de zone, coups de boss)</label>
+        <label class="toggle"><input type="checkbox" data-action="skill-names" ${state.ui.skillNames !== false ? 'checked' : ''}> Noms des compétences des compagnons au-dessus d'eux</label>
         <label class="toggle"><input type="checkbox" data-action="big-auras" ${state.ui.bigAuras === true ? 'checked' : ''}> Grandes auras des compagnons 5★ (sinon un simple liseré)</label>
         <label class="toggle"><input type="checkbox" data-action="metrics-opt-in" ${state.ui.metricsOptIn === true ? 'checked' : ''}> Mesures anonymes (version, monde, niveau, temps de jeu — aucun identifiant)</label>`)}
       ${phone ? '' : `<div class="card">

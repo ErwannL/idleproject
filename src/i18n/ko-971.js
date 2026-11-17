@@ -34,6 +34,7 @@ export const EXACT_971 = {
   "Looks": "외형",
   "▲ meilleur": "▲ 더 좋음",
   "clic droit / appui long : comparer": "우클릭 / 길게 누르기: 비교",
+  "Noms des compétences des compagnons au-dessus d'eux": "동료 머리 위에 스킬 이름 표시",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
   [/^Niv\. (\d+) · Étape (\d+)$/, (m) => `Lv. ${m[1]} · 스테이지 ${m[2]}`],

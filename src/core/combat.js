@@ -1,6 +1,7 @@
 // Simulation du combat automatique, à pas fixe et sans dépendance au rendu.
 // `state` = données sauvegardées ; `world` = état transitoire du combat (positions, PV, minuteries).
 // La simulation émet des événements (world.events) que le rendu et l'interface consomment.
+import { BASIC_INTERVAL, BASIC_SHARE, basicKind } from '../data/ally-style.js'; // v9.7.1 (lot A)
 import { BALANCE, ESSENCE_SHARDS } from '../data/balance.js';
 import { maybeMutate, mutationDamageTaken, mutationOnHit, mutationTick, splitChildren } from './mutations.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
@@ -810,6 +811,16 @@ function castSkill(state, world, skill, stats, rng, balance, enc, front) {
   emit(world, 'skill', { skillId: skill.id, x: front?.x ?? balance.world.heroX + 20, aoe: skill.type === 'aoe' });
 }
 
+// v9.7.1 (lot A) : attaque de base d'un compagnon — dégâts par seconde = BASIC_SHARE × ceux de ses compétences « coup ».
+function companionBasic(state, world, companion, skills, stats, rng, balance, enc, front, kind) {
+  const aff = companionSkillMultiplier(state, companion, 'hit', dungeonAffinity(state, companion.id, balance), balance)
+    * (1 + (stats.companionPowerPct ?? 0) / 100) * (stats.companionMult ?? 1);
+  const perSec = skills.filter((s) => s.type === 'hit').reduce((a, s) => a + s.value / s.every, 0);
+  const dmg = stats.damage * perSec * BASIC_SHARE * BASIC_INTERVAL[kind] * aff;
+  if (dmg > 0) hitEnemy(state, world, front, dmg, rng, balance, stats, enc, 'companion', companion.id);
+  emit(world, 'companionBasic', { companionId: companion.id, kind, enemyId: front.id });
+}
+
 function castCompanion(state, world, companion, skill, stats, rng, balance, enc, front) {
   // v9.1.3 (doc4 lot 1) : d × rareté × puissance du type (kh/kb pour hit/burst, 4/3 pour soin et rally, plafond 3) ;
   // bouclier et or sans étoile.
@@ -827,7 +838,7 @@ function castCompanion(state, world, companion, skill, stats, rng, balance, enc,
     world.buffs.cry = Math.max(world.buffs.cry, skill.duration ?? 6);
     world.buffs.cryPct = Math.max(world.buffs.cryPct, skill.value * aff);
   } else if (skill.type === 'hit' && front) {
-    hitEnemy(state, world, front, stats.damage * skill.value * aff, rng, balance, stats, enc, 'companion', companion.id);
+    hitEnemy(state, world, front, stats.damage * skill.value * aff * (1 - BASIC_SHARE), rng, balance, stats, enc, 'companion', companion.id);
   } else if (skill.type === 'burst') {
     for (const enemy of [...world.enemies]) hitEnemy(state, world, enemy, stats.damage * skill.value * aff, rng, balance, stats, enc, 'companion', companion.id);
   }
@@ -988,7 +999,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
         for (let i = 0; i < V.size; i++) {
           spawnEnemy(state, world, rng, balance, enc, i === 0 && world.pendingElite);
           const e = world.enemies[world.enemies.length - 1];
-          e.x = Math.max(V.spawnX, world.viewEdgeX ?? 0) + i * balance.world.enemyGap; // v9.3.9 : entre par le bord droit
+          e.x = Math.max(V.spawnX, Math.min(world.viewEdgeX ?? 0, V.spawnX + 60)) + i * balance.world.enemyGap; // v9.3.9 : entre par le bord droit ; v9.7.1 : au plus 60 plus loin (grande scène : plus de longue marche)
           e.arrived = false;
           // Plancher de PV : au moins `floorSeconds` de dégâts du héros. Un héros fort combat au lieu d'attendre la
           // vague suivante ; rien ne change pour un héros plus faible, ni l'or (le rythme reste plafonné par minCycle).
@@ -1108,7 +1119,22 @@ export function step(state, world, dt, rng, balance = BALANCE) {
 
   // Compétences des compagnons (v8.9 : jusqu'à 4 chacun, chacune avec sa recharge).
   for (const companion of equippedCompanions(state)) {
-    for (const skill of companionSkills(state, companion.id)) {
+    const skills = companionSkills(state, companion.id);
+    // v9.7.1 (lot A) : attaque de base entre deux compétences (corps à corps, tir ou sort), une action toutes les 1,2 à
+    // 1,8 s ; ses dégâts sont pris sur les compétences « coup » (BASIC_SHARE) : même total qu'avant.
+    {
+      const kind = basicKind(companion.id);
+      const bkey = `${companion.id}#basic`;
+      const front = world.enemies[0];
+      world.companionTimers[bkey] = (world.companionTimers[bkey] ?? BASIC_INTERVAL[kind] * (0.4 + (companion.id.length % 5) * 0.1)) - dt * (world.major === 'teamHaste' ? 1.25 : 1);
+      // Tout ennemi visible qui approche (le corps à corps lance son onde tranchante, comme ses compétences).
+      const reach = Math.max(range + 40, (world.viewEdgeX ?? W.spawnX) - W.heroX);
+      if (world.companionTimers[bkey] <= 0 && front && front.x - W.heroX <= reach && canHit(front, balance)) {
+        world.companionTimers[bkey] = BASIC_INTERVAL[kind];
+        companionBasic(state, world, companion, skills, stats, rng, balance, enc, front, kind);
+      }
+    }
+    for (const skill of skills) {
       const key = `${companion.id}#${skill.index}`;
       world.companionTimers[key] = (world.companionTimers[key] ?? skill.every / 2 + skill.index) - dt * (world.major === 'teamHaste' ? 1.25 : 1); // v9.6.1 : Cadence d'équipe
       const target = world.enemies[0];

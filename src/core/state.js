@@ -628,6 +628,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     if (raw.ui.shake === false) state.ui.shake = false; // v9.3.9
     if (raw.ui.bigAuras === true) state.ui.bigAuras = true; // v9.5.3
     if (['small', 'medium', 'large'].includes(raw.ui.charSize)) state.ui.charSize = raw.ui.charSize; // v9.7.1
+    if (raw.ui.skillNames === false) state.ui.skillNames = false; // v9.7.1 (lot A)
     if (raw.ui.metricsOptIn === true) state.ui.metricsOptIn = true; // v9.6.5 (10.11)
     if (typeof raw.ui.theme === 'string' && /^[a-z]{1,16}$/.test(raw.ui.theme)) state.ui.theme = raw.ui.theme;
     // v8.4 : seules les vitesses débloquées par code sont gardées (sinon ×1).

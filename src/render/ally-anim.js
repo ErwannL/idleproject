@@ -144,12 +144,22 @@ export function pickAllyAnim(o) {
   const set = ALLY_ANIMS[o.sprite];
   if (!set) return null;
   const pick = (anim, name, kind) => ({ name, ox: anim.ox, oy: anim.oy, kind, anim });
-  if (o.gesture && set.attack) return pick(set.attack, set.attack.frames[phaseFrame(set.attack, o.gesture.k, ALLY_HIT_K[o.gesture.kind] ?? 0.35)], 'attack');
+  // v9.7.1 (lot B) : animations dédiées quand elles existent — ultime (ultimate), soutien et zone (cast), coup reçu
+  // (hurt), victoire (victory) ; sinon l'attaque (attack) comme avant.
+  if (o.gesture) {
+    const g = o.gesture.kind;
+    const anim = (g === 'ultimate' && (set.ultimate ?? set.cast)) || ((g === 'support' || g === 'burst' || g === 'ultimate') && set.cast) || set.attack;
+    if (anim) return pick(anim, anim.frames[phaseFrame(anim, o.gesture.k, ALLY_HIT_K[g] ?? 0.35)], anim === set.attack ? 'attack' : 'cast');
+  }
+  if (o.hurt > 0 && set.hurt) return pick(set.hurt, set.hurt.frames[Math.min(set.hurt.frames.length - 1, Math.floor((1 - o.hurt) * set.hurt.frames.length))], 'hurt');
+  if (o.victory && set.victory) return pick(set.victory, loopFrame(set.victory, o.time + o.seed, 1), 'victory');
   if (o.swimming && set.swim) return pick(set.swim, loopFrame(set.swim, o.time + o.seed, o.walking ? 1 : 0.7), 'swim');
   if (o.swimming || o.gesture) return null;
   // v9.2.7 : un volant ne joue jamais de cycle de pas : son vol stationnaire (ailes) s'il existe, sinon ses images d'ailes.
   if (set.hover) return pick(set.hover, loopFrame(set.hover, o.time + o.seed, o.walking ? 1.2 : 1), 'hover');
   if (SPRITES[o.sprite]?.gait === 'fly') return null;
   if (set.walk && (o.walking || o.always)) return pick(set.walk, loopFrame(set.walk, o.time + o.seed, o.walking ? 1 : 0.6), 'walk');
+  // v9.7.1 (lot A/B) : équipe arrêtée devant l'ennemi → pose de repos animée (respiration, cape) si elle existe.
+  if (set.idle) return pick(set.idle, loopFrame(set.idle, o.time + o.seed, 1), 'idle');
   return null;
 }

@@ -34,6 +34,7 @@ export const EXACT_971 = {
   "Looks": "Looks",
   "▲ meilleur": "▲ better",
   "clic droit / appui long : comparer": "right-click / long press: compare",
+  "Noms des compétences des compagnons au-dessus d'eux": "Companion skill names above them",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
   [/^Niv\. (\d+) · Étape (\d+)$/, (m) => `Lv. ${m[1]} · Stage ${m[2]}`],
