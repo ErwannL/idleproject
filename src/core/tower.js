@@ -103,7 +103,7 @@ export function startTower(state, now = Date.now()) {
   if (!towerUnlocked(state) || state.dungeon || state.tower || state.challenge || climbsLeft(state, now) <= 0) return false;
   towerWeek(state, now).climbs += 1;
   towerDay(state, now).climbs += 1;
-  state.tower = { floor: 1, startPlay: state.playSeconds ?? 0, deadline: (state.playSeconds ?? 0) + TOWER.timeLimit };
+  state.tower = { floor: 1, startBest: state.towerBest ?? 0, startPlay: state.playSeconds ?? 0, deadline: (state.playSeconds ?? 0) + TOWER.timeLimit };
   return true;
 }
 
@@ -143,7 +143,8 @@ export function endTower(state, { defeated = true, collapsed = false } = {}) {
   if (!run) return null;
   const reached = run.floor - 1;
   state.towerLast = {
-    record: reached >= (state.towerBest ?? 0) && reached > 0, best: state.towerBest ?? 0, // v9.6.2 : écran de fin
+    record: reached > (run.startBest ?? reached - 1) && reached > 0, // v9.8 (I8) : seulement au-delà de l'ancien record
+    best: state.towerBest ?? 0, // v9.6.2 : écran de fin
     floors: reached, defeatedAt: defeated ? run.floor : null, collapsed, earned: run.earned ?? {},
     seconds: Math.max(0, Math.round((state.playSeconds ?? 0) - (run.startPlay ?? 0))), at: Date.now(),
   };

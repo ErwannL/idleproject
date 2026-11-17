@@ -121,7 +121,7 @@ export class LootBag {
       const frame = itemFrame(item, { tag: 'span', showUp: true, state });
       return `<div class="lb-cell d-${dest}" data-lb-id="${item.id}">
         <button class="lb-frame" data-lb="cycle" data-id="${item.id}" title="${escapeHtml(item.name)} — clic droit / appui long : comparer">${frame}</button>
-        <div class="lb-dests" role="group">${DESTS.map(([v, ic, l]) => `<button class="lb-d${dest === v ? ' on' : ''}" data-lb="dest" data-id="${item.id}" data-value="${v}" title="${l}" aria-label="${l}" aria-pressed="${dest === v}">${ic}</button>`).join('')}</div>
+        <div class="lb-dests" role="group">${[['bag', 'Garder'], ['recycle', 'Recycler']].map(([v, l]) => `<button class="lb-d lb-word${dest === v || (v === 'bag' && dest === 'stash') ? ' on' : ''}" data-lb="dest" data-id="${item.id}" data-value="${v}" aria-pressed="${dest === v}">${l}</button>`).join('')}</div>
       </div>`;
     }).join('');
     const cmpItem = this.compareId && items.find((i) => i.id === this.compareId);
@@ -132,12 +132,12 @@ export class LootBag {
       cmp = `<div class="lb-cmp"><b>${escapeHtml(cmpItem.name)}</b>${isUpgrade(state, cmpItem) ? ' <span class="good">▲ meilleur</span>' : ''}<br>
         Dégâts ${fmt(d.damage)} · DPS ${fmt(d.dps)} · PV ${fmt(d.maxHp)} · Armure ${fmt(d.armor)}</div>`;
     }
-    this.sheet.innerHTML = `<header class="lb-head"><b>Sac de butin</b> <span class="muted">${items.length} objet${items.length > 1 ? 's' : ''} · 🎒 ${counts.bag} · 📦 ${counts.stash} · ♻ ${counts.recycle}</span>
+    this.sheet.innerHTML = `<header class="lb-head"><b>Sac de butin</b> <span class="muted">${items.length} objet${items.length > 1 ? 's' : ''}</span>
         <button class="lb-x" data-lb="close" aria-label="Fermer">✕</button></header>
       <div class="lb-grid">${cells}</div>
       ${cmp}
       <label class="toggle lb-remember"><input type="checkbox" data-lb="remember" ${this.remember ? 'checked' : ''}> Retenir pour la prochaine fois</label>
-      <div class="lb-actions"><button class="btn primary" data-lb="apply">Valider le tri</button>
+      <div class="lb-actions"><button class="btn primary" data-lb="apply">Valider</button>
         <button class="btn" data-lb="keep-best">Tout recycler sauf les meilleurs</button></div>`;
   }
 }

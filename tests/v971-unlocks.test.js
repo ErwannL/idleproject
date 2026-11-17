@@ -12,7 +12,7 @@ test('ordre conseillé, un système à la fois', () => {
   assert.deepEqual(UNLOCK_IDS, ['equipment', 'upgrades', 'skills', 'companion', 'forge', 'summon', 'dungeons', 'talents', 'challenges', 'rebirth']);
   const s = createNewState(NOW); s.unlocks = { done: [], base: { ...s.records } };
   assert.equal(currentQuest(s).id, 'equipment');
-  assert.ok(isUnlocked(s, 'equipment') && !isUnlocked(s, 'upgrades'), 'la quête en cours ouvre son système, pas la suivante');
+  assert.ok(isUnlocked(s, 'equipment') && isUnlocked(s, 'upgrades') && !isUnlocked(s, 'skills'), 'la quête en cours ouvre son système, pas la suivante');
   s.records.kills += 10; s.records.itemsFound += 1; s.records.equips = 1;
   assert.ok(questSteps(s).every((x) => x.done));
   assert.equal(advanceUnlocks(s).id, 'equipment');

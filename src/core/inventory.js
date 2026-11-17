@@ -174,7 +174,8 @@ export function collectItem(state, item, balance = BALANCE) {
   if (kept) return kept;
   if (shouldAutoRecycle(state, item)) return { added: false, auto: true, recycled: true, recycledGold: salvage(state, item, balance) };
   // v9.7.1 : sac de butin dans la scène — l'objet attend le tri du joueur (40 au plus ; plein : comportement habituel).
-  if (lootBagOn(state) && state.lootBag.length < LOOT_BAG_MAX) {
+  // v9.8 (0.2) : les 3 premiers objets vont directement dans le sac d'Équipement (premier « Équiper » sans détour).
+  if (lootBagOn(state) && state.lootBag.length < LOOT_BAG_MAX && state.records.itemsFound > 3) {
     state.lootBag.push(item);
     return { added: false, bagged: true, recycledGold: 0 };
   }

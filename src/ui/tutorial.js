@@ -50,10 +50,18 @@ export function pickStep(state, root, full, panelOpen = false, screen = panelOpe
   for (const st of TUTO_STEPS) {
     if (has(state, st.id) || !st.when(state, full)) continue;
     if (already && already !== st.id) return null;
+    // v9.8 (0.1) : cible directe d'abord ; sinon le menu ou l'onglet qui y mène (seul chemin vers la cible).
     for (const sel of st.targets) {
       if (isNav(sel)) continue;
       const el = root.querySelector(sel);
       if (visible(el) && !el.closest(NAV)) { shownOn.set(screen, st.id); return { step: st, el }; }
+    }
+    if (st.finger) {
+      for (const sel of st.targets) {
+        if (!isNav(sel)) continue;
+        const el = root.querySelector(sel);
+        if (visible(el)) { shownOn.set(screen, st.id); return { step: st, el }; }
+      }
     }
     if (st.finger) return null; // une étape guidée attend son tour : pas de bulle par-dessus
   }

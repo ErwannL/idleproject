@@ -71,7 +71,7 @@ export function unlocksOf(state) {
 export function isUnlocked(state, id) {
   if (!state) return true;
   const u = state.unlocks;
-  if (!u || u.legacy) return true; // ancienne partie (ou état minimal des tests) : tout ce qui était ouvert le reste
+  if (!u || u.legacy || id === 'upgrades') return true; // v9.8 (0.3) : Améliorations dès la 1re minute. Ancienne partie (ou état minimal des tests) : tout ce qui était ouvert le reste
   // La quête en cours ouvre son système (on l'apprend en faisant) ; la suivante attend qu'elle soit finie.
   return u.done.includes(id) || UNLOCK_QUESTS.find((q) => !u.done.includes(q.id))?.id === id;
 }

@@ -45,7 +45,7 @@ export function playSummonReveal(results) {
   }
   const cards = [...el.querySelectorAll('.sfx-card')];
   const timers = [];
-  const finish = () => { el.classList.add('done'); el.querySelector('.sfx-hint').textContent = 'Cliquez pour fermer'; };
+  const finish = () => { el.classList.add('done'); el.querySelector('.sfx-hint').textContent = 'Touche pour fermer'; };
   const flipAll = () => { timers.forEach(clearTimeout); cards.forEach((c) => c.classList.add('flipped')); finish(); };
   // Portail (0,9 s), faisceau, puis une carte toutes les 0,22 s (pause plus longue avant un SSR).
   let at = 1100;

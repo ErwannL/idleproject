@@ -304,6 +304,7 @@ export const EXACT = {
   "Nouveau monde": "New world",
   "Cliquez pour tout révéler": "Click to reveal all",
   "Cliquez pour fermer": "Click to close",
+  "Touche pour fermer": "Tap to close",
   "Le chevalier refait l'étape précédente puis retente automatiquement.": "The knight replays the previous stage, then retries automatically.",
   "Là où tout commence : des plaines paisibles… que les gobelins ont envahies.": "Where it all begins: peaceful plains… overrun by goblins.",
   "Sous les arbres noirs, des yeux brillent. La meute vous a déjà senti.": "Under the black trees, eyes glow. The pack has already caught your scent.",

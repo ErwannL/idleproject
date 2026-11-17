@@ -40,6 +40,8 @@ import { bossWarningPlan, showBossWarning } from './boss-warning.js'; // v9.1.9
 import { queueSkinReveals } from './skin-reveal.js'; // v9.1.9
 import { waveCount, waveIndex, waveMode } from '../core/combat.js'; // v9.3.8
 import { nextMilestone } from '../core/unlocks.js';
+import { currentQuest, questSteps } from '../core/unlock-quests.js';
+const QUEST_TAB_UI = { equipment: [null, null, 'inventory'], upgrades: [null, 'upgrades', null], skills: [null, 'skills', null], forge: ['inventory', 'forge', null] };
 import { loginTab } from './panels/contracts.js';
 import { loginPending } from '../core/missions.js';
 import { morph } from './morph.js'; // v9.3.9
@@ -1830,10 +1832,21 @@ export class UI {
   updateNextUnlock(state) {
     const el = this.$('next-unlock');
     if (!el) return;
-    const m = nextMilestone(state);
+    // v9.8 (0.4) : suit la mini-quête en cours (consigne courte + barre), sinon le prochain palier d'étape.
+    const q = currentQuest(state);
+    let m = null;
+    if (q) {
+      const st = questSteps(state, q);
+      const i = st.findIndex((x) => !x.done);
+      m = { text: `${q.label} : ${st[Math.max(0, i)].text}`, ratio: st.filter((x) => x.done).length / st.length, tab: QUEST_TAB_UI[q.id]?.[i] ?? null };
+    } else {
+      const n = nextMilestone(state);
+      if (n) m = { text: `Prochain : ${n.label} à l'étape ${stageLabel(n.stage)}`, ratio: n.ratio };
+    }
     el.classList.toggle('hidden', !m);
     if (!m) return;
-    const txt = `Prochain : ${m.label} à l'étape ${stageLabel(m.stage)}`;
+    if (m.tab) { el.dataset.action = 'open-tab'; el.dataset.value = m.tab; el.style.cursor = 'pointer'; } else { delete el.dataset.action; el.style.cursor = ''; }
+    const txt = m.text;
     if (this.lastHud.nextUnlock !== txt) { this.lastHud.nextUnlock = txt; this.$('next-unlock-text').textContent = txt; }
     this.$('next-unlock-fill').style.width = `${Math.round(m.ratio * 100)}%`;
   }
@@ -2303,7 +2316,7 @@ export class UI {
       ${keepResetLists()}
       ${powerChoice(state)}
       <p><b class="good">Après cette Renaissance : dégâts, PV et or ×${(PRESTIGE.rebirthMultiplier ** rebirthGain(state)).toFixed(2).replace('.', ',')} pour toujours</b> (cumulatif).</p>
-      ${rebirthGain(state) < 1 ? `<p class="muted">Une Renaissance ne vaut pleinement ×${String(PRESTIGE.rebirthMultiplier).replace('.', ',')} qu'à partir de l'étape ${stageLabel(REBIRTH.fullPowerStage + 1)} ; plus tôt, au prorata de votre étape maximale.</p>` : ''}
+      ${rebirthGain(state) < 1 ? `<p class="muted">Une Renaissance ne vaut pleinement ×${String(PRESTIGE.rebirthMultiplier).replace('.', ',')} qu'à partir de l'étape ${stageLabel(REBIRTH.fullPowerStage + 1)} ; plus tôt, au prorata de ton étape maximale.</p>` : ''}
       <p class="muted">Les boss ne se renforcent que de ${BALANCE.stages.rebirthBossPct} % par Renaissance, et leurs récompenses augmentent.</p>
       <div class="detail-actions">
         <button class="btn" data-action="close-modal">Annuler</button>

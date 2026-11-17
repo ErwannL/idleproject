@@ -3684,3 +3684,8 @@ html:not([data-theme="knight"]) #panel-body > .card ~ .card > .section-title:fir
 .eco-banner .btn-gold[data-action="summon"] { min-height: 56px; font-size: 17px; flex: 1; }
 .eco-gauge { display: flex; align-items: center; gap: 6px; margin: 6px 0; }
 .eco-gauge .vt-bar { flex: 1; } .eco-gauge img { width: 24px; height: 24px; image-rendering: pixelated; }
+
+/* v9.8 (0.5) : sac de butin — deux gros boutons avec un mot, hauteur du contenu */
+#loot-sheet { height: auto; max-height: 80vh; }
+.lb-dests .lb-word { font: 700 12px system-ui, sans-serif; padding: 4px 8px; min-width: 64px; }
+#next-unlock[data-action] span::after { content: ' ›'; }

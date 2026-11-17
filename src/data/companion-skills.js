@@ -10,6 +10,8 @@
 // legacyMaxCopies : ancien maximum (5 exemplaires), sur lequel kh et kb sont calés.
 export const SKILL_RULES = { ultimateCopies: 4, powerPerDuplicate: 0.05, ultimateWeight: 0.35, ultimateEvery: 30, supportFactor: 4 / 3, supportCap: 3, legacyMaxCopies: 5 };
 
+import { UNIT_ELEMENT } from '../core/elements.js';
+
 const TEMPLATES = {
   guardian: [
     { name: 'Coup de bouclier', type: 'hit', every: 6, value: 0.9 },
@@ -93,8 +95,31 @@ export function skillTextAt(skill, mult) {
 }
 
 // Les 4 compétences d'un compagnon (rôle = celui des synergies ; familiers = 'pet').
-export function companionSkillList(companion, role) {
+// v9.8 (F) : les sorts suivent l'élément et l'arme du personnage (mêmes valeurs, seuls les noms changent).
+const MAGE_NAMES = {
+  red: ['Boule de feu', 'Mur de flammes', 'Météore'],
+  blue: ['Éclat de glace', 'Nova de givre', 'Blizzard'],
+  dark: ['Trait d\'ombre', 'Malédiction', 'Éclipse'],
+  light: ['Rayon de lumière', 'Jugement', 'Aube'],
+  green: ['Épines', 'Ronces', 'Floraison'],
+};
+const ID_NAMES = {
+  lancer: ['Charge', 'Fauchage', 'Cri de défi'],
+  dwarf: ['Charge', 'Fendoir', 'Cri de défi'],
+  fairy: ['Poudre de fée', 'Chant des bois'], golem: ['Coup de pierre', 'Peau de pierre'],
+  jade_turtle: ['Coup de carapace', 'Carapace'], wisp: ['Lueur', 'Danse des lueurs'],
+  owl: ['Regard perçant', 'Cri nocturne'], golden_slime: ['Rebond', 'Éclat doré'],
+  crystal_hedgehog: ['Roulade', 'Hérissement'], phoenix: ['Coup d\'aile', 'Ardeur'],
+  cat: ['Coup de griffe', 'Frénésie sauvage'], kitsune: ['Coup de griffe', 'Frénésie sauvage'],
+};
+export function themedTemplate(companion, role) {
   const tpl = TEMPLATES[role] ?? TEMPLATES.pet;
+  const names = ID_NAMES[companion?.id] ?? (role === 'mage' ? MAGE_NAMES[UNIT_ELEMENT[companion?.id]] : null);
+  return names ? tpl.map((sk, i) => (names[i] ? { ...sk, name: names[i] } : sk)) : tpl;
+}
+
+export function companionSkillList(companion, role) {
+  const tpl = themedTemplate(companion, role);
   const own = companion.skill ? [{ ...companion.skill, own: true }] : [{ ...tpl[0] }];
   const extra = companion.skill ? [tpl[0], tpl[1]] : [tpl[1]];
   // v9.1.3 (doc4 lot 3) : signature des SSR (companion.ultimate) à la place de l'ultime de rôle.

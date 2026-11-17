@@ -486,7 +486,7 @@ export function forge(ui, state) { // v9.3.4 : exportée (onglet Forge)
     return `<button class="btn ${tier === 'epic' ? 'btn-gold' : 'btn-primary'}" data-action="craft" data-value="${slot}" data-tier="${tier}" ${short || full ? 'disabled' : ''}>
       Fabriquer ${tier === 'epic' ? 'Épique+' : 'Rare+'} · ${coin()} ${formatNumber(cost.gold)} ${shard()} ${cost.shards}</button>`;
   };
-  const craft = () => `<div class="muted">L'objet est garanti de la rareté choisie ou mieux, au niveau de votre étape max (${state.maxStage}), avec ses effets.</div>
+  const craft = () => `<div class="muted">L'objet est garanti de la rareté choisie ou mieux, au niveau de ton étape max (${state.maxStage}), avec ses effets.</div>
       <div class="row"><select data-action="craft-slot" aria-label="Emplacement à fabriquer">${Object.entries(SLOTS).map(([k, l]) => `<option value="${k}" ${k === slot ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
       <div class="options-row">${craftBtn('rare')}${craftBtn('epic')}</div>${full ? '<div class="bad">Sac plein.</div>' : ''}`;
   return `<div class="card">

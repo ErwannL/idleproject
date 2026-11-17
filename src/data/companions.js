@@ -95,7 +95,7 @@ export const COMPANIONS = [
   ally('ranger', 'Rôdeur', 'rare', '#5ad46a', { critChance: 3 }, { name: 'Tir du rôdeur', type: 'hit', every: 5, value: 1, text: 'Tire à 100 % des dégâts du héros' }),
   ally('pyromancer', 'Pyromancienne', 'rare', '#ff8a3a', { damageVsNormalPct: 8 }, { name: 'Gerbe de flammes', type: 'burst', every: 9, value: 0.6, text: 'Brûle tous les ennemis (60 % des dégâts)' }),
   ally('priestess', 'Prêtresse', 'rare', '#ffe680', { regenPct: 0.6 }, { name: 'Prière de l\'aube', type: 'heal', every: 14, value: 12, text: 'Soigne 12 % des PV' }),
-  ally('lancer', 'Lancier', 'rare', '#e84a5f', { damageVsBossPct: 8 }, { name: 'Percée', type: 'hit', every: 7, value: 1, text: 'Frappe à 100 % des dégâts du héros' }),
+  ally('lancer', 'Lancier', 'rare', '#4a8fe8', { damageVsBossPct: 8 }, { name: 'Percée', type: 'hit', every: 7, value: 1, text: 'Frappe à 100 % des dégâts du héros' }),
   ally('shadow', 'Ombre', 'rare', '#b46bff', { critChance: 4 }, { name: 'Lames jumelles', type: 'hit', every: 4, value: 0.8, text: 'Frappe à 80 % des dégâts du héros' }),
   ally('dwarf', 'Nain guerrier', 'rare', '#ffa630', { armor: 4 }, { name: 'Hache tournoyante', type: 'burst', every: 10, value: 0.6, text: 'Frappe tous les ennemis (60 % des dégâts)' }),
   // SR

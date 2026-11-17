@@ -12,6 +12,7 @@ const fresh = () => { const s = createNewState(NOW); s.ui.autoUseless = false; r
 
 test('ramassage : l\'objet attend dans le sac de butin', () => {
   const s = fresh();
+  s.records.itemsFound = 3; // v9.8 : les 3 premiers objets vont directement au sac d'Équipement
   const it = makeItem(s, 'iron_helm', 'rare', 5);
   const r = collectItem(s, it);
   assert.ok(r.bagged);
@@ -80,4 +81,11 @@ test('sauvegarde : le sac de butin est relu ; anciennes sauvegardes : vide', () 
   assert.equal(back.lootBag.length, 1);
   const old = JSON.parse(JSON.stringify(s)); delete old.lootBag;
   assert.deepEqual(sanitizeState(old, BALANCE, NOW).lootBag, []);
+});
+
+test('v9.8 : les 3 premiers objets vont au sac d\'Équipement', () => {
+  const s = fresh();
+  const it = makeItem(s, 'iron_helm', 'rare', 5);
+  assert.ok(collectItem(s, it).added);
+  assert.ok(s.inventory.includes(it));
 });

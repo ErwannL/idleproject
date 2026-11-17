@@ -5,6 +5,9 @@
 // « Réduire les animations » (scene.focus) : le geste reste, l'effet devient sobre (un halo et un éclat à sa couleur).
 // Tout est dessiné en pixels de jeu (fillRect sur des coordonnées entières) pour rester dans le style du jeu.
 import { SKILLS } from '../data/skills.js'; // v9.7.1 (lot 6)
+import { COMPANIONS } from '../data/companions.js';
+import { COMPANION_ROLES } from '../data/synergies.js';
+import { SKILL_TEMPLATES, themedTemplate } from '../data/companion-skills.js';
 import { HERO_SKILL_MOTIFS, SKILL_ANIM_ART, SKILL_ANIM_PALS, SKILL_ANIMS, UNIT_SKILL_MOTIFS } from './art-anim-skills.js';
 import { SPRITES, expandRow } from './sprites.js';
 import { vfx } from './vfx.js'; // v9.2.6
@@ -32,6 +35,7 @@ for (const sk of SKILLS) {
   HERO_SKILL_MOTIFS[sk.id] = HERO_SKILL_MOTIFS[own ?? { hit: 'quick', aoe: 'whirl', buff: 'cry', holy: 'holy' }[sk.type]];
 }
 export { HERO_SKILL_MOTIFS, SKILL_ANIMS, UNIT_SKILL_MOTIFS };
+
 
 // Instant du geste où l'effet part (fraction de sa durée) : bras levés, mains jointes, bâton planté…
 export const RELEASE_K = 0.4;
@@ -1003,4 +1007,20 @@ export function fxContext(scene, world, src, heroX) {
   const front = foes.length ? Math.min(...foes.map((f) => f.x)) : heroX + 60;
   const far = foes.length ? Math.max(...foes.map((f) => f.x)) : front;
   return { src, foes, team, hero: heroX, front, far, mid: (front + far) / 2 };
+}
+
+// v9.8 (F) : sorts renommés selon l'élément — même geste que le sort d'origine, effet de l'élément quand il existe.
+const THEMED_FX = { 'Mur de flammes': 'hellfire', 'Éclat de glace': 'frost_nova', Blizzard: 'eternal_winter', 'Nova de givre': 'frost_storm',
+  'Trait d\'ombre': 'void_orb', 'Malédiction': 'void_orb', 'Éclipse': 'eclipse', 'Charge': 'pierce' };
+for (const c of COMPANIONS) {
+  const map = UNIT_SKILL_MOTIFS[c.sprite];
+  if (!map) continue;
+  const role = COMPANION_ROLES[c.id] ?? 'pet';
+  const raw = SKILL_TEMPLATES[role] ?? SKILL_TEMPLATES.pet;
+  themedTemplate(c, role).forEach((sk, i) => {
+    const old = map[raw[i].name];
+    if (!old) return;
+    const fx = THEMED_FX[sk.name];
+    if (!map[sk.name] || sk.name !== raw[i].name) map[sk.name] = [old[0], fx && FX[fx] ? fx : old[1]];
+  });
 }
