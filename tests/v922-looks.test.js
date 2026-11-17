@@ -38,7 +38,7 @@ test('Profil › Apparences : onglet du Profil (v9.3.5), état et bouton Équipe
 });
 
 test('Apparences : chaînes traduites en anglais et en coréen', () => {
-  for (const t of ['Apparences', 'Équipée', 'Possédée', 'Verrouillée', 'Équiper', 'Apparence équipée', "Touchez une apparence possédée pour l'équiper. Bonus +20 % par étoile.", 'Équiper Paladin']) {
+  for (const t of ['Apparences', 'Équipée', 'Possédée', 'Verrouillée', 'Équiper', 'Apparence équipée', "Touche une apparence possédée pour l'équiper. Bonus +20 % par étoile.", 'Équiper Paladin']) {
     assert.notEqual(en(t), t, t);
     assert.notEqual(ko(t), t, t);
   }

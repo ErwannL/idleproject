@@ -143,7 +143,7 @@ function detail(ui, state, item, whoUnit = null) {
         : `<button class="btn" disabled>Pour : ${escapeHtml(weaponClass(item.baseId)?.name ?? classLabel(itemClass(state, item)))}</button>`}
       <button class="btn btn-outline-gold" data-action="recycle" data-id="${item.id}" ${item.locked || isEquipped ? 'disabled' : ''}>Recycler +${formatNumber(recycleValue(item, BALANCE, recycleLevelOf(state)))} ${coin()}${mats.shards ? ` +${mats.shards}${shard()}` : ''}</button>
     </div>
-    ${!isEquipped && !canEquip(state, item) ? `<div class="muted">Changez de classe pour la porter : ${navPath('hero', 'Classe')}.</div>` : ''}`;
+    ${!isEquipped && !canEquip(state, item) ? `<div class="muted">Change de classe pour la porter : ${navPath('hero', 'Classe')}.</div>` : ''}`;
   // v9.1.3 (doc1 « Équipement : Fiche ») : trois onglets au lieu d'un long repli « Détails ».
   const tab = ['compare', 'upgrade', 'store'].includes(ui.view.itemTab) ? ui.view.itemTab : 'compare';
   const tabs = `<div class="item-tabs" role="tablist">${[['compare', 'Comparer'], ['upgrade', 'Améliorer'], ['store', 'Ranger']].map(([k, l]) => `<button class="btn chip-btn small${k === tab ? ' active' : ''}"
@@ -157,7 +157,7 @@ function detail(ui, state, item, whoUnit = null) {
       <div class="tool-line">${reforgeBtn}<span class="muted">Change les effets spéciaux au hasard.</span></div>
       ${targetLine}`;
   } else if (tab === 'store') {
-    body = isEquipped ? '<div class="muted">Un objet porté ne se range pas : retirez-le d\'abord en équipant un autre objet.</div>'
+    body = isEquipped ? '<div class="muted">Un objet porté ne se range pas : retire-le d\'abord en équipant un autre objet.</div>'
       : `<div class="tool-line"><button class="btn small" data-action="to-stash" data-id="${item.id}" ${stash ? 'disabled' : ''}>Ranger au coffre (${state.stash.length}/${STASH_SIZE})</button>
         <span class="muted">Jamais recyclé ni fusionné.</span></div>
       ${base.signature ? `<div class="tool-line"><button class="btn small btn-gold" data-action="to-museum" data-id="${item.id}">Exposer au Musée</button></div>` : ''}`;
@@ -318,9 +318,9 @@ export function museumView(ui, state) {
       ${dupes ? `<button class="btn btn-danger small" data-action="recycle-museum-dupes" title="Objets ancestraux du sac moins bons que l'exemplaire exposé (les verrouillés sont gardés)">Recycler les doublons (${dupes})</button>` : ''}</div>
       ${dupes ? `<div class="muted">${dupes} objet${dupes > 1 ? 's' : ''} ancestra${dupes > 1 ? 'ux' : 'l'} du sac ${dupes > 1 ? 'sont des doublons' : 'est un doublon'} : la vitrine expose déjà un exemplaire au moins aussi bon. Les objets ancestraux ne sont jamais recyclés automatiquement.</div>` : ''}`,
   { extra: !auto ? '<span class="muted">auto désactivée</span>' : dupes ? `<span class="muted">${dupes} doublon${dupes > 1 ? 's' : ''}</span>` : '' });
-  return `<div class="card"><span class="muted">Le Musée expose vos objets ancestraux, un par vitrine, dès qu'ils sont ramassés. Chaque pièce exposée :
+  return `<div class="card"><span class="muted">Le Musée expose tes objets ancestraux, un par vitrine, dès qu'ils sont ramassés. Chaque pièce exposée :
       dégâts, PV et or ${pct(per.damageMultPct)} (multiplicatif, ×2 si Légendaire). Collection complète : dégâts et PV +${MUSEUM.complete.damageMultPct} % de plus.
-      Une pièce exposée n'est pas portée : reprenez-la (↩) pour l'équiper.</span>
+      Une pièce exposée n'est pas portée : reprends-la (↩) pour l'équiper.</span>
       <div class="museum-total"><b>${n}/${MUSEUM_PIECES.length}</b> pièces exposées${n && total ? ` · <span class="good">${total}</span>` : ''}</div>
       ${tools}</div>
     <div class="museum">${cases}</div>`;
@@ -395,7 +395,7 @@ function bag(ui, state) {
       }).join('')
         || '<div class="inv-empty">Aucun objet ici. Les ennemis laissent parfois tomber de l\'équipement.</div>'}</div>
       ${recycleButton(state)}
-      ${full ? '<div class="bad">Sac plein : recyclez les objets inutiles ou rangez au coffre.</div>' : ''}
+      ${full ? '<div class="bad">Sac plein : recycle les objets inutiles ou range au coffre.</div>' : ''}
     </div>
   </div>`;
 }
@@ -460,7 +460,7 @@ function buildsBar(ui, state) {
   return `<div class="build-cards">${state.loadouts.map(card).join('')}</div>`;
 }
 
-export function forge(ui, state) { // v9.3.4 : exportée (onglet Forge)
+export function forge(ui, state, part = null) { // v9.3.4 : exportée (onglet Forge)
   const full = state.inventory.length >= BALANCE.loot.inventorySize;
   // v9.1.3 (doc3 lot 2) : écran de fusion à pourcentage. « Fusionner tout » (deux appuis) = mises de 5 à 100 %,
   // jamais un objet protégé. Commun/Rare : une ligne et « Fusionner ». Épique : ligne repliée, puis jauge, objets
@@ -486,9 +486,13 @@ export function forge(ui, state) { // v9.3.4 : exportée (onglet Forge)
     return `<button class="btn ${tier === 'epic' ? 'btn-gold' : 'btn-primary'}" data-action="craft" data-value="${slot}" data-tier="${tier}" ${short || full ? 'disabled' : ''}>
       Fabriquer ${tier === 'epic' ? 'Épique+' : 'Rare+'} · ${coin()} ${formatNumber(cost.gold)} ${shard()} ${cost.shards}</button>`;
   };
-  const craft = () => `<div class="muted">L'objet est garanti de la rareté choisie ou mieux, au niveau de ton étape max (${state.maxStage}), avec ses effets.</div>
+  const craft = () => `<div class="muted">Rareté choisie ou mieux, au niveau de ton étape max (${state.maxStage}).</div>
       <div class="row"><select data-action="craft-slot" aria-label="Emplacement à fabriquer">${Object.entries(SLOTS).map(([k, l]) => `<option value="${k}" ${k === slot ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
       <div class="options-row">${craftBtn('rare')}${craftBtn('epic')}</div>${full ? '<div class="bad">Sac plein.</div>' : ''}`;
+  // v9.8 (C2) : une seule partie à la fois (Fusionner ou Fabriquer), les règles derrière « ? ».
+  if (part === 'fuse') return `<div class="card">${fusion}
+      <details class="forge-help"><summary>?</summary>${BALANCE.forge.fusionCount} objets de même emplacement et de même rareté → 1 objet de la rareté suivante, au niveau du meilleur. Épique : 5 objets = sûr, ou tenter avec moins.</details></div>`;
+  if (part === 'craft') return `<div class="card">${craft()}</div>`;
   return `<div class="card">
       <div class="section-title">Fusion</div>
       <div class="muted">${BALANCE.forge.fusionCount} objets de même emplacement et de même rareté → 1 objet de la rareté suivante, au niveau du meilleur.
@@ -579,7 +583,7 @@ function recycleAdvanced(state) {
         .map(([v, l]) => `<option value="${v}" ${v === rules.mode ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
     ${rules.mode === 'off' ? '' : `<div class="chip-row">${slots}</div>
       <div class="section-title">Garder si l'objet a…</div><div class="chip-row">${Object.entries(KEEP_AFFIX_LABELS).map(([k, l]) => chip('keepAffixes', k, l, (rules.keepAffixes ?? []).includes(k))).join('')}</div>`}
-    <label class="inv-rule" title="Une pièce d'ensemble est gardée dès que vous en avez 2 emplacements différents (la meilleure par emplacement).">
+    <label class="inv-rule" title="Une pièce d'ensemble est gardée dès que tu en as 2 emplacements différents (la meilleure par emplacement).">
       <span>Ensembles :</span><button class="btn chip-btn small${state.ui.keepSets !== false ? ' active' : ''}" data-action="keep-sets">${state.ui.keepSets !== false ? 'Garder les pièces utiles' : 'Recycler comme le reste'}</button></label>
       <label class="row"><span>Objets inutiles :</span><button class="btn chip-btn small${state.ui.autoUseless !== false ? ' active' : ''}" data-action="auto-useless">${state.ui.autoUseless !== false ? 'Recyclés à la récupération' : 'Gardés dans le sac'}</button></label>
     ${autoFuseEditor(state)}
@@ -618,3 +622,8 @@ export default {
     return head + (tab === 'stash' ? stashView(ui, state) : bag(ui, state)) + setsBanner(ui, state);
   },
 };
+
+// v9.8 (C2) : nombre de fusions possibles (compteur du bouton Fusionner).
+export function fusionCount(state) {
+  return fusionGroups(state, BALANCE, fusionKeep(state)).reduce((t, g) => t + Math.floor(g.usable / BALANCE.forge.fusionCount), 0);
+}

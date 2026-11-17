@@ -141,9 +141,9 @@ test('Renaissance : 3 cartes, prestige en une ligne (produit des 3 multiplicateu
 test('chantier 3 : nouveaux textes traduits en anglais', async () => {
   const { translate } = await import('../src/i18n/en.js');
   const FRENCH = /[éèàçùêâîôûœ«»]/i;
-  const texts = ['Outils', 'Région', 'Dégâts directs', '(part de chacun, soutiens non comptés)', 'Touchez une case pour lire son effet.', 'Utiliser',
-    "Touchez une clé de voûte pour la voir dans l'arbre.", 'Bonus éternels et stellaires', 'Prestige actuel', 'dégâts, PV et or', 'pour toujours',
-    'pouvoir conservé', "Retour à l'étape 1 ; le détail est dans la confirmation.", "Atteignez l'étape 4-10 pour renaître (max 2-5).",
+  const texts = ['Outils', 'Région', 'Dégâts directs', '(part de chacun, soutiens non comptés)', 'Touche une case pour lire son effet.', 'Utiliser',
+    "Touche une clé de voûte pour la voir dans l'arbre.", 'Bonus éternels et stellaires', 'Prestige actuel', 'dégâts, PV et or', 'pour toujours',
+    'pouvoir conservé', "Retour à l'étape 1 ; le détail est dans la confirmation.", "Atteins l'étape 4-10 pour renaître (max 2-5).",
     'Renaissance ×9,5 × Transcendance ×2,00 × Puissance stellaire ×1,00 =', 'Compétences en grille', 'Quantité en un bouton', 'Actif 12 s',
     "Changement gratuit : l'arme portée devient la meilleure de la classe, ou est reforgée sans perte.", ', toutes les 6 s.', 'filtre actif'];
   assert.deepEqual(texts.filter((t) => FRENCH.test(translate(t))), []);

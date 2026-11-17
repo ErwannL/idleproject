@@ -134,7 +134,7 @@ const UNLOCK_INFO = { // v9.3.4 (h) : une ligne courte par onglet
   dungeons: 'une clé par combat de boss.',
   boss: 'chaque boss vaincu laisse un pouvoir.',
   tower: 'un défi par semaine, des records récompensés.',
-  forge: 'recyclez en éclats, puis forgez mieux.',
+  forge: 'recycle en éclats, puis forge mieux.',
   arena: 'tes compagnons combattent sans le héros.',
   encyclopedia: 'chaque découverte rapporte une récompense.',
   inbox: 'tout ce qui est prêt, au même endroit.',
@@ -368,10 +368,10 @@ export class UI {
   showRebalanceNotice(refund) {
     this.openModal(`<h2>⚖ Nouvel équilibrage (v8.4)</h2>
       <p>Le jeu ne bloque plus : les améliorations coûtent moins cher en fin de partie (paliers ×1,75 tous les 25 niveaux),
-        les objets grandissent bien plus avec leur niveau, la Renaissance <b>multiplie</b> vos dégâts, PV et or, et le niveau
+        les objets grandissent bien plus avec leur niveau, la Renaissance <b>multiplie</b> tes dégâts, PV et or, et le niveau
         maximum du héros passe à ${BALANCE.level.maxLevel}.</p>
-      <p>Vos améliorations ont été remboursées : <b class="gold-text">+${formatNumber(refund)} or</b>. Rachetez-les au nouveau prix
-        (bouton « Max » dans Améliorer) — vous irez bien plus loin qu'avant.</p>
+      <p>Vos améliorations ont été remboursées : <b class="gold-text">+${formatNumber(refund)} or</b>. Rachète-les au nouveau prix
+        (bouton « Max » dans Améliorer) — tu iras bien plus loin qu'avant.</p>
       <div class="detail-actions"><button class="btn btn-gold" data-action="close-modal">C'est parti !</button></div>`);
   }
 
@@ -380,7 +380,7 @@ export class UI {
     this.openModal(`<h2>🌳 Un arbre mastodonte (v8.5)</h2>
       <p>L'arbre de talents passe de 25 à plus de 500 talents : 6 régions autour du Cœur, des branches
         qui se divisent et se rejoignent, des ponts entre régions, des notables et des clés de voûte.</p>
-      <p>Vos anciens talents ont été remboursés : <b class="gold-text">+${formatNumber(refund)} fragments anciens</b>. Replantez-les où vous voulez !</p>
+      <p>Tes anciens talents ont été remboursés : <b class="gold-text">+${formatNumber(refund)} fragments anciens</b>. Replante-les où tu veux !</p>
       <div class="detail-actions"><button class="btn btn-gold" data-action="open-tab" data-value="tree">Voir l'arbre</button></div>`);
   }
 
@@ -399,14 +399,14 @@ export class UI {
     this.openModal(`<h2>${glyph('icon_alert')} La mise à jour n'a pas pu s'installer</h2>
       <p>La version ${escapeHtml(info.version)} a été téléchargée, mais le jeu est toujours en version ${escapeHtml(GAME_VERSION)}.</p>
       <p class="muted">Causes possibles : place disque insuffisante, antivirus qui bloque l'installateur, ou fermeture
-      de l'installateur. Relancez-le : cette fois sa fenêtre s'affiche et indique le problème éventuel. Votre partie est conservée.</p>
+      de l'installateur. Relance-le : cette fois sa fenêtre s'affiche et indique le problème éventuel. Votre partie est conservée.</p>
       <div class="detail-actions">${info.file ? '<button class="btn btn-gold" data-action="retry-installer">Relancer l\'installateur</button>' : ''}
         <button class="btn" data-action="open-releases">Page des versions</button>
         <button class="btn" data-action="close-modal">Plus tard</button></div>`);
   }
   showShortcuts() {
     this.openModal(`<h2>Raccourcis clavier</h2>${shortcutsHtml()}
-      <p class="muted">Astuce : maintenez le clic sur un bouton (acheter, améliorer…) — quand l'anneau est plein, il est cliqué en continu jusqu'à ce que vous bougiez la souris.</p>
+      <p class="muted">Astuce : maintiens le clic sur un bouton (acheter, améliorer…) — quand l'anneau est plein, il est cliqué en continu jusqu'à ce que vous bouges la souris.</p>
       <div class="detail-actions"><button class="btn btn-primary" data-action="close-modal">OK</button></div>`);
   }
 
@@ -491,7 +491,7 @@ export class UI {
     const sel = (name, options) => `<select data-action="device-pref" data-key="${name}" aria-label="${escapeHtml(options.label)}">${options.items.map(([v, l]) => `<option value="${v}" ${String(pref(name)) === String(v) ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
     const check = (name, label) => `<label class="toggle"><input type="checkbox" data-action="device-pref" data-key="${name}" ${pref(name) === true ? 'checked' : ''}> ${label}</label>`;
     const keys = Object.keys(KEY_LABELS).map((action) => `<div class="key-row"><span>${KEY_LABELS[action]}</span>
-      <button class="btn small key-btn${this.view.keyCapture === action ? ' armed' : ''}" data-action="capture-key" data-value="${action}">${this.view.keyCapture === action ? 'Appuyez sur une touche…' : `<kbd>${escapeHtml(keyLabel(action))}</kbd>`}</button></div>`).join('');
+      <button class="btn small key-btn${this.view.keyCapture === action ? ' armed' : ''}" data-action="capture-key" data-value="${action}">${this.view.keyCapture === action ? 'Appuie sur une touche…' : `<kbd>${escapeHtml(keyLabel(action))}</kbd>`}</button></div>`).join('');
     return `<div class="card"><div class="section-title">Cet appareil</div>
         <div class="muted">Ces réglages restent sur cet appareil (PC ou téléphone), hors de la sauvegarde.</div>
         <div class="pref-grid">
@@ -507,7 +507,7 @@ export class UI {
         ${check('colorAid', '<b>Aide aux couleurs</b> : lettre de rareté sur les objets (C, R, É, L), pastilles en anneau')}
         ${check('contrast', '<b>Contraste élevé</b> : textes plus contrastés, sans décor animé')}
       </div>
-      ${isPhone() ? '' : fold(this, 'keys', 'Raccourcis clavier : changer une touche', `<div class="muted">Cliquez une touche puis appuyez sur la nouvelle. Une touche déjà utilisée est refusée.</div>
+      ${isPhone() ? '' : fold(this, 'keys', 'Raccourcis clavier : changer une touche', `<div class="muted">Clique une touche puis appuie sur la nouvelle. Une touche déjà utilisée est refusée.</div>
         <div class="key-grid">${keys}</div><button class="btn small" data-action="reset-keys">Touches par défaut</button>`)}`;
   }
 
@@ -534,8 +534,8 @@ export class UI {
       <p>Tout est effacé sur cet appareil : niveau, or, gemmes, objets, compagnons, talents, Renaissances, records et la copie de
         secours. <b class="bad">C'est définitif.</b></p>
       <div class="options-row"><button class="btn small" data-action="export-save" data-value="file">Exporter ma partie d'abord</button></div>
-      <p>Pour confirmer, tapez <b>EFFACER</b> :</p>
-      <input id="reset-confirm" class="confirm-input" type="text" autocomplete="off" spellcheck="false" maxlength="12" aria-label="Tapez EFFACER pour confirmer">
+      <p>Pour confirmer, tape <b>EFFACER</b> :</p>
+      <input id="reset-confirm" class="confirm-input" type="text" autocomplete="off" spellcheck="false" maxlength="12" aria-label="Tape EFFACER pour confirmer">
       <div class="detail-actions"><button class="btn btn-primary" data-action="close-modal">Annuler</button>
         <button class="btn btn-danger" data-action="confirm-reset" id="confirm-reset" disabled>Tout effacer</button></div>`);
     setTimeout(() => this.$('reset-confirm')?.focus(), 30);
@@ -545,7 +545,7 @@ export class UI {
   showNewerSave(version) {
     this.openModal(`<h2>Sauvegarde d'une version plus récente</h2>
       <p>Votre partie a été enregistrée par une version plus récente du jeu (format ${escapeHtml(String(version))}). Cette version ne sait pas
-        la lire. <b>Rien n'a été effacé</b> : mettez le jeu à jour pour la retrouver.</p>
+        la lire. <b>Rien n'a été effacé</b> : mets le jeu à jour pour la retrouver.</p>
       <p class="muted">En attendant, la partie affichée n'est pas sauvegardée.</p>
       <div class="detail-actions"><button class="btn btn-gold" data-action="check-update">Chercher la mise à jour</button>
         <button class="btn" data-action="close-modal">Fermer</button></div>`);
@@ -885,13 +885,13 @@ export class UI {
       case 'open-shop-skins': v.shopCat = 'skins'; this.openTab('shop'); break;
       case 'event-chain': { // v9.6.2 (7.4)
         const r = a.eventChain(Number(value));
-        v.eventLast = r.won ? `${r.won} étape${r.won > 1 ? 's' : ''} gagnée${r.won > 1 ? 's' : ''} : +${formatNumber(r.coins)} écus${r.stopped ? ` · arrêt à l'étape ${r.stopped}` : ''}` : 'Défaite : renforcez le héros puis réessayez.';
+        v.eventLast = r.won ? `${r.won} étape${r.won > 1 ? 's' : ''} gagnée${r.won > 1 ? 's' : ''} : +${formatNumber(r.coins)} écus${r.stopped ? ` · arrêt à l'étape ${r.stopped}` : ''}` : 'Défaite : renforce le héros puis réessaie.';
         this.invalidate();
         break;
       }
       case 'event-fight': {
         const r = a.eventFight(Number(value));
-        if (r && !r.error) v.eventLast = r.won ? `Victoire : +${r.reward.eventCoins} écus${r.reward.ssrFragment ? ' · fragment Légendaire universel' : ''}` : 'Défaite : renforcez le héros puis réessayez.';
+        if (r && !r.error) v.eventLast = r.won ? `Victoire : +${r.reward.eventCoins} écus${r.reward.ssrFragment ? ' · fragment Légendaire universel' : ''}` : 'Défaite : renforce le héros puis réessaie.';
         this.invalidate();
         break;
       }
@@ -1041,6 +1041,7 @@ export class UI {
       case 'buy-talents-all': this.closeModal(); a.buyTalentsAll(value || null); break;
       case 'ask-buy-talents': this.showBuyTalents(value || null); break;
       case 'tree-seg': local(() => { v.treeSeg = value; }); break;
+      case 'forge-seg': local(() => { v.forgeSeg = value; }); break; // v9.8 (C2)
       case 'talent-branch': a.buyTalentStep(value); break; // v9.3.9 : vue simple des Talents
       case 'talent-best': a.buyTalentsAll(null); break;
       case 'apply-team': a.applyTeam(); break; // v9.5.0
@@ -1410,7 +1411,7 @@ export class UI {
         break;
       case 'heroDeath':
         this.banner(`Vaincu… retour à l'étape ${stageLabel(event.to)}`, 'lose');
-        this.news(state?.autoAdvance === false ? 'Le héros reste sur l\'étape : améliorez-le puis appuyez sur « Avancer ».'
+        this.news(state?.autoAdvance === false ? 'Le héros reste sur l\'étape : améliore-le puis appuie sur « Avancer ».'
           : event.boss ? 'Normal : le héros s\'entraîne à l\'étape d\'avant et retentera le boss quand il sera 15 % plus fort. Pour aller plus vite : améliore tes dégâts.'
             : 'Le héros refait l\'étape précédente puis retente automatiquement.', null, 2);
         if (this.tab === 'campaign') this.invalidate();
@@ -1838,7 +1839,7 @@ export class UI {
     if (q) {
       const st = questSteps(state, q);
       const i = st.findIndex((x) => !x.done);
-      m = { text: `${q.label} : ${st[Math.max(0, i)].text}`, ratio: st.filter((x) => x.done).length / st.length, tab: QUEST_TAB_UI[q.id]?.[i] ?? null };
+      m = { text: `${q.label} (${Math.max(0, i) + 1}/3) : ${st[Math.max(0, i)].text}`, ratio: st.filter((x) => x.done).length / st.length, tab: QUEST_TAB_UI[q.id]?.[i] ?? null };
     } else {
       const n = nextMilestone(state);
       if (n) m = { text: `Prochain : ${n.label} à l'étape ${stageLabel(n.stage)}`, ratio: n.ratio };
@@ -2277,7 +2278,7 @@ export class UI {
     const stars = transcendReward(state);
     if (!stars || rebirthBlocked(state)) return;
     this.openModal(`<h2>${glyph('icon_stars')} Transcendance</h2>
-      <p>Vous gagnerez <b class="gold-text">+${formatNumber(stars)} Étoiles</b> et dégâts, PV et or <b>×${TRANSCEND.powerPerTranscend}</b> pour toujours.</p>
+      <p>Vous gagneras <b class="gold-text">+${formatNumber(stars)} Étoiles</b> et dégâts, PV et or <b>×${TRANSCEND.powerPerTranscend}</b> pour toujours.</p>
       <p>Tout repart de l'étape 1 : Renaissances (${Math.round(keptRebirthShare(state) * 100)} % conservées), arbre de talents et fragments anciens
         sont remis à zéro. L'équipement, les compagnons, les gemmes et les bonus éternels sont conservés.</p>
       ${transcendKeepResetLists()}
@@ -2295,7 +2296,7 @@ export class UI {
     if (!n) { this.toast('Pas assez de fragments pour le prochain talent.', '#ff8a8a'); return; }
     this.openModal(`<h2 id="modal-title">Apprendre des talents</h2>
       <p><b>${n}</b> niveau${n > 1 ? 'x' : ''} de talent ${where}, le moins cher d'abord, pour <b class="gold-text">${formatNumber(spent)} fragments</b>
-        (il vous en restera ${formatNumber(clone.fragments)}).</p>
+        (il t'en restera ${formatNumber(clone.fragments)}).</p>
       <div class="detail-actions"><button class="btn" data-action="close-modal">Annuler</button>
         <button class="btn btn-gold" data-action="buy-talents-all" data-value="${region ?? ''}">Apprendre</button></div>`);
   }
@@ -2303,7 +2304,7 @@ export class UI {
   showRespecConfirm(state) {
     const cost = respecCost(state);
     this.openModal(`<h2>Réinitialiser l'arbre de talents</h2>
-      <p>Tous les talents sont oubliés et les <b class="gold-text">${formatNumber(fragmentsSpent(state))} fragments</b> investis vous sont rendus.</p>
+      <p>Tous les talents sont oubliés et les <b class="gold-text">${formatNumber(fragmentsSpent(state))} fragments</b> investis te sont rendus.</p>
       <p class="muted">${cost ? `Coût : ${formatNumber(cost)} gemmes.` : 'La première réinitialisation est gratuite (les suivantes coûtent des gemmes).'}</p>
       <div class="detail-actions"><button class="btn" data-action="close-modal">Annuler</button>
         <button class="btn btn-danger" data-action="confirm-respec">Réinitialiser</button></div>`);
@@ -2312,7 +2313,7 @@ export class UI {
   showRebirthConfirm(state) {
     if (!canRebirth(state) || rebirthBlocked(state)) return;
     this.openModal(`<h2>Renaissance</h2>
-      <p>Vous gagnerez <b class="gold-text">+${rebirthReward(state)} fragments anciens</b> à investir dans l'arbre de talents.</p>
+      <p>Vous gagneras <b class="gold-text">+${rebirthReward(state)} fragments anciens</b> à investir dans l'arbre de talents.</p>
       ${keepResetLists()}
       ${powerChoice(state)}
       <p><b class="good">Après cette Renaissance : dégâts, PV et or ×${(PRESTIGE.rebirthMultiplier ** rebirthGain(state)).toFixed(2).replace('.', ',')} pour toujours</b> (cumulatif).</p>

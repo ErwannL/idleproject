@@ -4,6 +4,6 @@ export const EXACT_922 = {
   'Possédée': '보유', 'Verrouillée': '잠김', 'Équiper': '장착',
 };
 export const patterns922 = (lookup) => [
-  [/^Touchez une apparence possédée pour l'équiper\. Bonus \+(\d+) % par étoile\.$/, (m) => `보유한 외형을 눌러 장착하세요. 별마다 보너스 +${m[1]}%.`],
+  [/^Touche une apparence possédée pour l'équiper\. Bonus \+(\d+) % par étoile\.$/, (m) => `보유한 외형을 눌러 장착하세요. 별마다 보너스 +${m[1]}%.`],
   [/^Équiper (.+)$/, (m) => { const w = lookup(m[1]); return w === null ? null : `${w} 장착`; }],
 ];

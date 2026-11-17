@@ -5,7 +5,7 @@ import { craftCost } from '../../core/forge.js';
 import { recycleGoldOf, uselessItems } from '../../core/inventory.js';
 import { recycleMaterials } from '../../core/loot.js';
 import { coin, escapeHtml, formatNumber, img, itemFrame, shard } from '../common.js';
-import { forge } from './inventory.js';
+import { forge, fusionCount } from './inventory.js';
 
 export function uselessPreview(state) {
   const list = uselessItems(state);
@@ -28,17 +28,22 @@ export default {
   title: 'Forge',
   icon: 'icon_anvil',
   render(ui, state) {
+    // v9.8 (C2) : la grande enclume, 3 gros boutons avec un compteur, puis la seule partie choisie.
     const p = uselessPreview(state);
+    const seg = ['recycle', 'fuse', 'craft'].includes(ui.view.forgeSeg) ? ui.view.forgeSeg : 'recycle';
+    const fuses = fusionCount(state);
+    const crafts = canForgeSomething(state) ? 1 : 0;
     const anim = ui.view.forgeFx ? `<div class="forge-fx ${ui.view.forgeFx}" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>` : '';
-    return `<div class="forge-tile"><div class="forge-anvil">${img('icon_anvil')}<span class="forge-flame"></span></div>${anim}
-        <div class="forge-loop" aria-label="Recycler, puis éclats, puis forger">
-          <span>${img('icon_bag')}<b>Recycler</b></span><i>→</i><span>${img('icon_shard')}<b>Éclats</b></span><i>→</i><span>${img('icon_anvil')}<b>Forger</b></span></div>
-        <div class="forge-count">${shard()} <b class="num">${formatNumber(state.materials.shards)}</b> éclats</div></div>
-      <div class="card"><div class="section-title">Recycler</div>
-        <p class="muted">Les objets verrouillés, légendaires, ancestraux et meilleurs que les vôtres ne partent jamais.</p>
-        ${p.list.length ? `<div class="recycle-preview">${p.list.slice(0, 12).map((i) => itemFrame(i, { tag: 'div' })).join('')}${p.list.length > 12 ? `<span class="muted">+${p.list.length - 12}</span>` : ''}</div>` : ''}
-        ${recycleButton(state, 'primary-action')}</div>
-      ${forge(ui, state)}`;
-  },
+    const btn = (id, icon, label, n) => `<button class="forge-big${seg === id ? ' on' : ''}" data-action="forge-seg" data-value="${id}" aria-pressed="${seg === id}">
+        ${img(icon)}<b>${label}</b>${n ? `<span class="forge-badge">${n}</span>` : ''}</button>`;
+    const body = seg === 'recycle'
+      ? `<div class="card">${p.list.length ? `<div class="recycle-preview">${p.list.slice(0, 12).map((i) => itemFrame(i, { tag: 'div' })).join('')}${p.list.length > 12 ? `<span class="muted">+${p.list.length - 12}</span>` : ''}</div>` : '<p class="muted">Rien à recycler : tes objets sont protégés (verrouillés, meilleurs ou utiles à un ensemble).</p>'}
+        ${recycleButton(state, 'primary-action')}</div>`
+      : forge(ui, state, seg);
+    return `<div class="forge-tile forge-hero"><div class="forge-anvil big">${img('icon_anvil')}<span class="forge-flame"></span></div>${anim}
+        <div class="forge-count">${shard()} <b class="num">${formatNumber(state.materials.shards)}</b></div></div>
+      <div class="forge-bigs">${btn('recycle', 'icon_bag', 'Recycler', p.list.length)}${btn('fuse', 'icon_anvil', 'Fusionner', fuses)}${btn('craft', 'icon_shard', 'Fabriquer', crafts)}</div>
+      ${body}`;
+  }
 };
 export const escape = escapeHtml;

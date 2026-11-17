@@ -11,7 +11,7 @@ export const EXACT_920_OCEAN = {
   'Embruns': 'Sea Spray', 'Courant de retour': 'Riptide', 'Écailles abyssales': 'Abyssal Scales', 'Trésor englouti': 'Sunken Treasure',
   'Marée du Léviathan': 'Leviathan\'s Tide',
   'Serpent des grands fonds, il dort dans les ruines d’une cité engloutie ; chaque marée est son souffle.': 'A serpent of the deep, sleeping in the ruins of a sunken city; every tide is its breath.',
-  'Sous les vagues, une cité engloutie. Retenez votre souffle : le Léviathan s’éveille.': 'Beneath the waves lies a sunken city. Hold your breath: the Leviathan awakens.',
+  'Sous les vagues, une cité engloutie. Retiens ton souffle : le Léviathan s’éveille.': 'Beneath the waves lies a sunken city. Hold your breath: the Leviathan awakens.',
   'Vingt mille lieues': 'Twenty Thousand Leagues',
   'Nage sous l\'eau : remous et bulles': 'Swimming underwater: currents and bubbles',
 };

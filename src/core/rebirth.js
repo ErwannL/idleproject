@@ -217,9 +217,9 @@ export function canRebirth(state) {
 
 // v9.1.0 : pas de Renaissance (ni de Transcendance) pendant un donjon, la Tour ou le défi : renvoie le motif.
 export function rebirthBlocked(state) {
-  if (state.dungeon) return 'Terminez ou abandonnez d\'abord le donjon en cours.';
-  if (state.tower) return 'Quittez d\'abord la Tour de l\'Éternité.';
-  if (state.challenge) return 'Terminez d\'abord le défi de la semaine.';
+  if (state.dungeon) return 'Termine ou abandonne d\'abord le donjon en cours.';
+  if (state.tower) return 'Quitte d\'abord la Tour de l\'Éternité.';
+  if (state.challenge) return 'Termine d\'abord le défi de la semaine.';
   return null;
 }
 

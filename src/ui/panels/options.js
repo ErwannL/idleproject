@@ -69,7 +69,7 @@ function cloudOptions(ui) {
     return `<div class="card">
       <div class="section-title">Compte et sauvegarde en ligne</div>
       <div>Votre nom : <b>${escapeHtml(c.pseudo)}</b>. Votre progression est sauvegardée sur le serveur automatiquement.</div>
-      <div class="muted">Pour choisir votre nom et retrouver votre partie sur un autre appareil, créez votre compte joueur. Votre progression le suit.</div>
+      <div class="muted">Pour choisir ton nom et retrouver ta partie sur un autre appareil, crée ton compte joueur. Ta progression le suit.</div>
       <div><b>Créer mon compte joueur</b></div>
       <div class="row"><input id="cloud-claim-pseudo" class="grow" type="text" value="${escapeHtml(c.draft?.['cloud-claim-pseudo'] ?? '')}" maxlength="20" placeholder="Nom d'utilisateur (3 à 20 caractères)" autocomplete="username" aria-label="Nom d'utilisateur"></div>
       <div class="row"><input id="cloud-claim-password" class="grow" type="password" maxlength="200" placeholder="Mot de passe (8 caractères min.)" autocomplete="new-password" aria-label="Mot de passe"></div>
@@ -81,7 +81,7 @@ function cloudOptions(ui) {
       ${listed}
       ${msg}
       <details class="update-notes"><summary>J'ai déjà un compte joueur</summary>
-        <div class="muted">La progression de votre compte remplacera celle de cet appareil (une copie est gardée).</div>
+        <div class="muted">La progression de ton compte remplacera celle de cet appareil (une copie est gardée).</div>
         ${loginForm}
       </details>
     </div>`;
@@ -113,7 +113,7 @@ function cloudOptions(ui) {
       <div class="muted">${c.optedOut ? 'Déconnecté : la partie est sauvegardée seulement sur cet appareil.' : c.error ? 'Pas de sauvegarde en ligne pour le moment : la partie est sauvegardée sur cet appareil.' : 'Connexion au serveur en cours… La partie est sauvegardée sur cet appareil en attendant.'}</div>
       ${loginForm.replace('</button></div>', `</button>
         <button class="btn small btn-primary" data-action="cloud-register" ${busy}>Créer un compte joueur</button></div>`)}
-      <div class="muted">Pas encore de compte ? Choisissez un nom d'utilisateur et un mot de passe (8 caractères min.), puis « Créer un compte joueur ».</div>
+      <div class="muted">Pas encore de compte ? Choisis un nom d'utilisateur et un mot de passe (8 caractères min.), puis « Créer un compte joueur ».</div>
       ${c.optedOut ? `<div class="options-row"><button class="btn small" data-action="cloud-resume" ${busy}>Sauvegarder en ligne sans compte</button></div>` : ''}
       ${msg}
     </div>`;
@@ -217,7 +217,7 @@ function generalTab(ui, state) {
         </div>
         ${code ? `<textarea class="save-code" readonly rows="3" aria-label="Code de sauvegarde">${escapeHtml(code)}</textarea>` : ''}
         ${ui.view.importOpen ? `<div class="import-box">
-          <div class="muted">Collez un code de sauvegarde, ou choisissez un fichier .json exporté. La partie actuelle est d'abord copiée
+          <div class="muted">Colle un code de sauvegarde, ou choisis un fichier .json exporté. La partie actuelle est d'abord copiée
             à part, puis le jeu redémarre sur la partie importée.</div>
           <textarea id="import-text" rows="3" placeholder="Code ou contenu du fichier…" aria-label="Sauvegarde à importer"></textarea>
           <div class="options-row"><input id="import-file" type="file" accept=".json,application/json" aria-label="Fichier de sauvegarde">
@@ -237,7 +237,7 @@ function generalTab(ui, state) {
       ${devOfflineCard()}
       <div class="card danger-zone">
         <div class="section-title">Zone de danger</div>
-        <div class="row-between"><span class="muted">Efface toute la progression de cet appareil. Exportez votre partie avant.</span>
+        <div class="row-between"><span class="muted">Efface toute la progression de cet appareil. Exporte ta partie avant.</span>
           <button class="btn btn-danger small" data-action="reset">Réinitialiser la partie…</button></div>
       </div>`;
 }

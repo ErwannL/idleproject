@@ -11,7 +11,7 @@ export const TOUR_VERSION = 2;
 const STEPS = [
   { target: '#stage-area', open: null, title: 'Ton héros combat tout seul',
     text: `Le combat est automatique. Même jeu fermé, il gagne encore (${Math.round(BALANCE.offline.farmMultiplier * 100)} % du rythme, ${BALANCE.offline.capHours} h au plus) : un résumé vous attend au retour.` },
-  { target: '#next-action', open: null, title: 'Que faire ? Suivez ce bouton',
+  { target: '#next-action', open: null, title: 'Que faire ? Suis ce bouton',
     text: 'Il montre une seule chose à la fois : une récompense prête, un objet meilleur que l\'équipé, un boss à retenter, sinon ton objectif. Un appui y mène.' },
   { target: '#tabs', open: null, title: 'Les menus s\'ouvrent avec la progression',
     text: 'La barre jaune te dit toujours quoi faire. Une pastille rouge = une récompense à récupérer.' }, // v9.3.5 (bug 3)

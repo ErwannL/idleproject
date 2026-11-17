@@ -140,7 +140,7 @@ function monsterCard(state, id) {
   const e = ENEMIES[id];
   const known = MONSTER_VARIANTS.some((v) => variantFound(state, id, v.id));
   const where = zonesOf(id);
-  if (!known) return unknownCard(`Se rencontre : ${where.join(', ') || 'quelque part'}. Vainquez-le pour le découvrir.`, spritePic(e.sprite, false, 3));
+  if (!known) return unknownCard(`Se rencontre : ${where.join(', ') || 'quelque part'}. Vaincs-le pour le découvrir.`, spritePic(e.sprite, false, 3));
   const variants = MONSTER_VARIANTS.map((v) => {
     const got = variantFound(state, id, v.id);
     const how = { normal: 'le vaincre une fois', elite: 'vaincre sa version Élite (événement « Élite errante »)', mutant: 'vaincre une version mutée (à partir du monde 2)' }[v.id];
@@ -190,7 +190,7 @@ function mutationCard(state, id) {
   const known = Boolean(state.codex.mutants[id]);
   const chance = mutationChance(state);
   const rule = `Chance qu'un monstre ordinaire soit muté : ${pct(chance * 100)} actuellement (${pct(MUTATION_RULES.chance * 100)} sans Transcendance, +${pct(MUTATION_RULES.chancePerTranscend * 100)} par Transcendance, ${pct(MUTATION_RULES.maxChance * 100)} au plus ; à partir du monde 2).`;
-  if (!known) return unknownCard(`Vainquez un monstre porteur de cette mutation. ${rule}`, mutantPic(m, false, 4)).replace(/<\/div>$/, `${mutationCue(m)}</div>`);
+  if (!known) return unknownCard(`Vaincs un monstre porteur de cette mutation. ${rule}`, mutantPic(m, false, 4)).replace(/<\/div>$/, `${mutationCue(m)}</div>`);
   return `<div class="enc-card"><div class="enc-portrait">${mutantPic(m, true, 4)}</div>
     <div class="enc-title" style="color:${m.color}">${escapeHtml(m.name)}</div>
     <p>Le monstre ${escapeHtml(m.text)}.</p>${mutationCue(m)}
@@ -205,7 +205,7 @@ function itemCard(state, baseId, rarity) {
   const r = rarityById(rarity);
   const known = Boolean(state.codex.itemRar[`${baseId}:${rarity}`]);
   const how = b.signature ? `Objet ancestral de ${escapeHtml(BOSSES[b.signature]?.name ?? 'un boss')} (${Math.round(BALANCE.loot.signatureChance * 100)} % par victoire).`
-    : rarity === 'legendary' ? 'Très rare : boss, coffres, donjons et Tour augmentent vos chances.' : 'Se ramasse sur les monstres, les boss et dans les coffres.';
+    : rarity === 'legendary' ? 'Très rare : boss, coffres, donjons et Tour augmentent tes chances.' : 'Se ramasse sur les monstres, les boss et dans les coffres.';
   if (!known) {
     return unknownCard(`${SLOTS[b.slot]} · <span class="rarity-text r-${rarity}">${r.label}</span>. ${how}`,
       `<div class="item-frame r-${rarity} enc-big-frame"><img class="px enc-shadow" src="${itemIconUrl({ baseId, rarity, slot: b.slot }, 64)}" alt=""></div>`);

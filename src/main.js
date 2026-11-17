@@ -239,7 +239,7 @@ const actions = {
     done(true, r.reforged ? `${c.name} : arme reforgée en ${r.reforged.name}` : r.swapped ? `${c.name} : ${r.swapped.name} équipée` : `Classe : ${c.name}`, c.color);
   },
   toggleCompanion(id) {
-    if (!toggleCompanion(state, id)) ui.toast(onExpedition(state, id) ? 'Ce compagnon est en expédition.' : `Deux compagnons au maximum : retirez-en un d'abord.`);
+    if (!toggleCompanion(state, id)) ui.toast(onExpedition(state, id) ? 'Ce compagnon est en expédition.' : `Deux compagnons au maximum : retire-en un d'abord.`);
     else done(true);
   },
   saveLoadout(i) { done(saveLoadout(state, i), `Build « ${state.loadouts[i].name} » enregistré`); },
@@ -344,12 +344,12 @@ const actions = {
       return;
     }
     if (state.dungeon || state.tower || state.challenge) {
-      ui.toast("Terminez d'abord le donjon, la tour ou le défi.");
+      ui.toast("Termine d'abord le donjon, la tour ou le défi.");
       return;
     }
     const stage = bossFirstStage(bossId);
     if (stage === null || stage > state.maxStage) {
-      ui.toast(`Atteignez d'abord l'étape ${stageLabel(stage ?? state.maxStage)}.`);
+      ui.toast(`Atteins d'abord l'étape ${stageLabel(stage ?? state.maxStage)}.`);
       return;
     }
     state.autoAdvance = false;
@@ -521,7 +521,10 @@ const actions = {
       if (!a || a.cost > state.gold || buyUpgradeBulk(state, a.key, '1') <= 0) break;
       n += 1;
     }
-    if (n) { sound.play('upgrade', { volume: 0.6 }); save(); ui.invalidate(); ui.toast(`${n} amélioration${n > 1 ? 's' : ''} achetée${n > 1 ? 's' : ''}`, '#7fe0a0'); }
+    if (n) { sound.play('upgrade', { volume: 0.6 }); save(); ui.invalidate(); ui.toast(`${n} amélioration${n > 1 ? 's' : ''} achetée${n > 1 ? 's' : ''}`, '#7fe0a0'); return; }
+    // v9.8 (I1) : rien d'abordable — dire ce qui manque.
+    const a = bestOpenUpgrade(state);
+    ui.toast(a ? `Rien d'abordable : il te manque ${formatNumber(a.cost - state.gold)} or` : 'Tout est au maximum', '#ffcf6a');
   },
   buy(key, amount = '1') {
     if (buyUpgradeBulk(state, key, amount) > 0) {
@@ -539,7 +542,7 @@ const actions = {
     // v9.0.6 : arme d'une autre classe.
     const item = state.inventory.find((i) => i.id === id);
     const c = item && weaponClass(item.baseId);
-    if (c && !canEquip(state, item)) ui.toast(`Arme de ${c.name} : changez de classe (Héros → Classe) pour la porter.`, c.color);
+    if (c && !canEquip(state, item)) ui.toast(`Arme de ${c.name} : change de classe (Héros → Classe) pour la porter.`, c.color);
   },
   // v9.5.2 (2.1) : « Équiper pour : Attaque / Survie / Fortune » (le profil choisi est gardé).
   equipFor(profile) {
@@ -603,7 +606,7 @@ const actions = {
   togglePower(bossId) {
     const active = state.equippedPowers.includes(bossId);
     if (!setPowerActive(state, bossId, !active)) {
-      ui.toast(`Emplacements pleins (${powerSlots(state)}) : retirez d'abord un pouvoir actif.`);
+      ui.toast(`Emplacements pleins (${powerSlots(state)}) : retire d'abord un pouvoir actif.`);
       return;
     }
     save();
@@ -693,7 +696,7 @@ const actions = {
   },
   arenaFloor(team) {
     const r = runFloor(state, team);
-    if (!r) { ui.toast('Choisissez au moins un compagnon.', '#ff8a8a'); return null; }
+    if (!r) { ui.toast('Choisis au moins un compagnon.', '#ff8a8a'); return null; }
     done(true, r.won ? `Arène : étage ${r.floor} franchi !` : null, '#7fe0a0');
     return r;
   },
@@ -731,7 +734,7 @@ const actions = {
     done(ok, ok ? msg : null, '#7fe0a0');
   },
   enterTower() {
-    if (state.dungeon || state.challenge) { ui.toast("Terminez d'abord le donjon ou le défi."); return; }
+    if (state.dungeon || state.challenge) { ui.toast("Termine d'abord le donjon ou le défi."); return; }
     if (!startTower(state)) { ui.toast('Ascension de la semaine déjà faite (remise à zéro le lundi).', '#ff8a8a'); return; }
     resetWave(world);
     placeTransition('Ascension de la semaine', 'Tour de l\'Éternité', 'Un boss par étage. La tour s\'effondre au bout de 10 h de combat.');
@@ -739,7 +742,7 @@ const actions = {
   },
   // v9.1.3 (doc4 lot 6) : mode monde d'un perso de bannière (niveau, palier du boss, score).
   enterWorld(id, kind, n, trial) {
-    if (state.dungeon || state.tower || state.challenge) { ui.toast("Terminez d'abord le donjon, la Tour ou le défi."); return; }
+    if (state.dungeon || state.tower || state.challenge) { ui.toast("Termine d'abord le donjon, la Tour ou le défi."); return; }
     const r = startWorldRun(state, world, id, kind, Number(n) || 1, { trial: Boolean(trial) });
     if (!r.ok) {
       ui.toast(r.text ?? (r.error === 'score' ? 'Score : le perso doit être possédé et dans l\'équipe.' : 'Pas encore ouvert.'), '#ff8a8a');
@@ -767,7 +770,7 @@ const actions = {
     done(Boolean(r), r ? `Ascension terminée à l'étage ${r.floors}.` : null);
   },
   selectStage(stage) {
-    if (state.tower || state.challenge) { ui.toast(state.tower ? 'Quittez d\'abord la Tour de l\'Éternité.' : 'Quittez d\'abord le défi de la semaine.'); return; }
+    if (state.tower || state.challenge) { ui.toast(state.tower ? 'Quitte d\'abord la Tour de l\'Éternité.' : 'Quitte d\'abord le défi de la semaine.'); return; }
     changeStage(state, world, stage);
     save();
     ui.invalidate();
@@ -858,7 +861,7 @@ const actions = {
       if (last.error || !last.won) break;
       won += 1; coins += last.reward?.eventCoins ?? 0; n += 1;
     }
-    done(won > 0, won ? `${won} étape${won > 1 ? 's' : ''} gagnée${won > 1 ? 's' : ''} : +${formatNumber(coins)} écus` : 'Gardien trop solide : renforcez le héros', won ? '#7fe0a0' : '#ff8a6a');
+    done(won > 0, won ? `${won} étape${won > 1 ? 's' : ''} gagnée${won > 1 ? 's' : ''} : +${formatNumber(coins)} écus` : 'Gardien trop solide : renforce le héros', won ? '#7fe0a0' : '#ff8a6a');
     return { won, coins, stopped: last && !last.won ? n : null };
   },
   // v9.2.9 : World Boss en vrai combat animé (ui/world-boss.js) : la tentative est comptée au départ, le bilan à la fin.
@@ -930,7 +933,7 @@ const actions = {
   },
   // Défi de la semaine (v8.5).
   enterChallenge() {
-    if (state.dungeon || state.tower) { ui.toast("Terminez d'abord le donjon ou la tour."); return; }
+    if (state.dungeon || state.tower) { ui.toast("Termine d'abord le donjon ou la tour."); return; }
     if (!startChallenge(state)) { ui.toast('Plus de tentative cette semaine (remise à zéro le lundi).', '#ff8a8a'); return; }
     resetWave(world);
     placeTransition('Défi de la semaine', ZONES[state.challenge.zone].name, 'Des vagues toujours plus fortes : tenez le plus longtemps possible.', ZONES[state.challenge.zone].id);
@@ -1114,7 +1117,7 @@ const actions = {
   },
   cloudRename(pseudo, password) { cloudAuth(() => cloud.rename(pseudo, password), `Nom changé : vous êtes maintenant ${pseudo}`); },
   cloudLogout() {
-    if (cloud.isGuest()) { setCloudMessage("Créez d'abord votre compte joueur : sans lui, cette progression ne pourrait plus être retrouvée.", true); return; }
+    if (cloud.isGuest()) { setCloudMessage("Crée d'abord votre compte joueur : sans lui, cette progression ne pourrait plus être retrouvée.", true); return; }
     cloud.logout().then(() => setCloudMessage('Déconnecté. La partie reste sur cet appareil.'));
   },
   cloudResume() { cloudAuth(() => cloud.guest(), 'Sauvegarde en ligne réactivée'); },
@@ -1313,7 +1316,7 @@ async function cloudSync(manual = false, preferRemote = false) {
     if (action === 'newer') {
       saveBlocked = true;
       cloudView.busy = false;
-      setCloudMessage('Votre partie en ligne vient d\'une version plus récente du jeu : mettez le jeu à jour. Rien n\'est écrasé.', true);
+      setCloudMessage('Votre partie en ligne vient d\'une version plus récente du jeu : mets le jeu à jour. Rien n\'est écrasé.', true);
       ui.showNewerSave(newerVersion);
       return;
     }
@@ -1332,7 +1335,7 @@ async function cloudSync(manual = false, preferRemote = false) {
       // Serveur joint mais requête refusée (sauvegarde refusée, 409…) : afficher sa raison, pas « injoignable ».
       const reached = err instanceof CloudError && err.status !== 0;
       setCloudMessage(reached && err.status === 404
-        ? 'Compte automatique indisponible sur ce serveur : créez un compte joueur ci-dessous. La partie est sauvegardée sur cet appareil.'
+        ? 'Compte automatique indisponible sur ce serveur : crée un compte joueur ci-dessous. La partie est sauvegardée sur cet appareil.'
         : reached ? `${err.message}. La partie est sauvegardée sur cet appareil.`
           : 'Serveur injoignable : la partie est sauvegardée sur cet appareil.', true);
     }

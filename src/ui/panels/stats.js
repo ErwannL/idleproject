@@ -78,7 +78,7 @@ export default {
       <div class="card"><div class="section-title">Par activité</div>${bars(TIME_MODES.map((m) => ({ label: MODE_LABELS[m], value: t.modes[m] })), active)}</div>
       ${runsBlock('Renaissances', t.rebirthRuns, t.bestRebirth, t.run, state.records.rebirths)}
       ${runsBlock('Transcendances', t.transcendRuns, t.bestTranscend, t.transcendRun, state.transcend?.count ?? 0)}
-      ${zones.length ? `<div class="card"><div class="section-title">Par monde <small class="muted">(touchez un monde pour le détail)</small></div>${bars(zones, campaign)}</div>` : ''}
+      ${zones.length ? `<div class="card"><div class="section-title">Par monde <small class="muted">(touche un monde pour le détail)</small></div>${bars(zones, campaign)}</div>` : ''}
       ${cycles.length > 1 ? `<div class="card"><div class="section-title">Par cycle de difficulté</div>${bars(cycles.map((c) => ({ label: c === 1 ? 'Normal' : `×${c}`, value: ZONES.reduce((s, zd, i) => s + zoneTime(t, i, c), 0) })), campaign)}</div>` : ''}
       ${reached.length ? `<div class="card"><div class="section-title">Premier passage dans chaque monde</div>
         ${reached.map(([i, v]) => line(`${i + 1}. ${escapeHtml(ZONES[i].name)}`, v < 0 ? 'avant la 9.1.7' : formatDuration(v))).join('')}</div>` : ''}`;

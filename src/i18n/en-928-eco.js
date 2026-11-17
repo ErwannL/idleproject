@@ -21,7 +21,7 @@ export const EXACT_928_ECO = {
   'Pas de 50/50 : un SSR est toujours un familier SSR de la sélection.': 'No 50/50: an SSR is always an SSR pet from the selection.',
   'Tickets familiers seulement (jamais de gemmes). Tickets sans expiration.': 'Pet tickets only (never gems). Tickets never expire.',
   'Converti': 'Converted', 'Vedette': 'Featured', '50/50 perdu': '50/50 lost', 'Règles et probabilités': 'Rules and odds', '✦ Vedette ✦': '✦ Featured ✦',
-  "Jusqu'au": 'Until', 'Wishlist': 'Wishlist', "touchez un SSR pour l'inscrire ou le retirer": 'tap an SSR to add or remove it',
+  "Jusqu'au": 'Until', 'Wishlist': 'Wishlist', "touche un SSR pour l'inscrire ou le retirer": 'tap an SSR to add or remove it',
   'Économie séparée : tickets familiers seulement, compteur à part.': 'Separate economy: pet tickets only, separate counter.',
   'Fragments SSR universels': 'Universal SSR fragments', 'Un exemplaire de plus pour un SSR déjà possédé (6 au plus).': 'One more copy for an SSR you already own (6 at most).',
   'Aucun SSR possédé.': 'No SSR owned.',
@@ -61,7 +61,7 @@ export const EXACT_928_ECO = {
   'Attaquer': 'Attack', 'Boutique des écus': 'Crown shop', 'Combattre': 'Fight', "Gardien d'étape": 'Stage guardian', 'Jour': 'Day', 'Tentatives du jour': 'Attempts today', 'Record': 'Record',
   'World Boss': 'World Boss', 'Étapes': 'Stages', 'Étape': 'Stage', 'Carte terminée.': 'Map complete.', 'Aucun événement en cours.': 'No event right now.',
   "Failles dimensionnelles (2e semaine) et reliques d'événement : prochainement.": 'Dimensional rifts (week 2) and event relics: coming later.',
-  'Défaite : renforcez le héros puis réessayez.': 'Defeat: strengthen the hero and try again.', 'Récupérer': 'Claim',
+  'Défaite : renforce le héros puis réessaie.': 'Defeat: strengthen the hero and try again.', 'Récupérer': 'Claim',
   'Vaincre 5 000 monstres': 'Defeat 5,000 monsters', 'Vaincre 30 boss': 'Defeat 30 bosses', 'Terminer 5 donjons': 'Clear 5 dungeons', 'Faire 20 invocations': 'Make 20 summons',
   // Messages
   'Thème de boutique : pas encore possédé': 'Shop theme: not owned yet', 'Apparence retirée': 'Look removed', 'Fragment utilisé : ultime débloquée': 'Fragment used: ultimate unlocked',

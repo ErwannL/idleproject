@@ -5,6 +5,6 @@ export const EXACT_922 = {
   'Possédée': 'Owned', 'Verrouillée': 'Locked', 'Équiper': 'Equip',
 };
 export const patterns922 = (lookup) => [
-  [/^Touchez une apparence possédée pour l'équiper\. Bonus \+(\d+) % par étoile\.$/, (m) => `Tap an owned look to equip it. Bonus +${m[1]}% per star.`],
+  [/^Touche une apparence possédée pour l'équiper\. Bonus \+(\d+) % par étoile\.$/, (m) => `Tap an owned look to equip it. Bonus +${m[1]}% per star.`],
   [/^Équiper (.+)$/, (m) => { const w = lookup(m[1]); return w === null ? null : `Equip ${w}`; }],
 ];

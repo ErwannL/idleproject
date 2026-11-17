@@ -20,7 +20,7 @@ import { animCanvas } from '../animator.js';
 function rechallengeButton(state, bossId, label) {
   const stage = bossDungeon(bossId) ? null : bossFirstStage(bossId);
   if (stage !== null && stage > state.maxStage) {
-    return `<button class="btn" disabled>${label}</button><span class="muted"> Atteignez l'étape ${stageLabel(stage)}</span>`;
+    return `<button class="btn" disabled>${label}</button><span class="muted"> Atteins l'étape ${stageLabel(stage)}</span>`;
   }
   return `<button class="btn" data-action="rechallenge" data-boss="${bossId}">${label}</button>`;
 }
@@ -88,7 +88,7 @@ function bossDetail(ui, state, bossId) {
   const rewardFold = fold(ui, 'boss-rewards', 'Récompenses possibles', `<div class="reward-row">${rewards}</div>`);
   if (!entry) {
     return `${header}<div class="power-box unknown"><div class="section-title">Pouvoir</div><div class="power-name">À découvrir</div>
-        <div class="muted">Vainquez ce boss pour obtenir un pouvoir unique.</div></div>
+        <div class="muted">Vaincs ce boss pour obtenir un pouvoir unique.</div></div>
       ${rechallengeButton(state, bossId, '⚔ Combattre ce boss')}
       ${rewardFold}`;
   }
@@ -110,7 +110,7 @@ function bossDetail(ui, state, bossId) {
         ${rechallengeButton(state, bossId, '⚔ Réaffronter')}
         <button class="btn small${active ? ' btn-primary' : ''}" data-action="toggle-power" data-boss="${bossId}">${active ? 'Actif ✓' : 'Activer'}</button>
       </div>
-      <div class="muted power-rules">${charges ? '' : 'Réaffrontez ce boss : 1 charge par victoire. '}<button class="btn small help-q${pityOpen ? ' active' : ''}" data-action="power-pity" data-value="${bossId}" aria-expanded="${pityOpen}" aria-label="Règles du changement de pouvoir">?</button>
+      <div class="muted power-rules">${charges ? '' : 'Réaffronte ce boss : 1 charge par victoire. '}<button class="btn small help-q${pityOpen ? ' active' : ''}" data-action="power-pity" data-value="${bossId}" aria-expanded="${pityOpen}" aria-label="Règles du changement de pouvoir">?</button>
         ${pityOpen ? `<span>Chaque changement coûte une charge (${maxC} au plus, 1 par nouvelle victoire sur ce boss). ${pity === 0 ? 'Prochain changement : Épique ou mieux garanti.' : `Épique ou mieux garanti dans ${pity} changement${pity > 1 ? 's' : ''}.`}</span>` : ''}</div>`;
   // Piste de maîtrise : paliers de victoires et leurs récompenses.
   const tiers = BALANCE.mastery;

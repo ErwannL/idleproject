@@ -89,7 +89,7 @@ function replayHtml(ui, state) {
   const result = !done ? '' : run.mode === 'survival'
     ? `<div class="card arena-result"><b class="gold-text">${run.wave} vague${run.wave > 1 ? 's' : ''} terminée${run.wave > 1 ? 's' : ''}</b> en ${Math.round(run.seconds)} s · ${run.kills} ennemis vaincus${run.won ? ' — <b class="good">30 vagues terminées !</b>' : ''}
         ${run.rewards.length ? `<div>Paliers atteints : ${run.rewards.map((m) => `vague ${m.wave} ${rewardIcons(m.reward)}`).join(' · ')}</div>` : ''}</div>`
-    : `<div class="card arena-result">${run.won ? `<b class="good">Étage ${run.floor} franchi !</b> ${rewardIcons(run.reward)}` : `<b class="bad">Étage ${run.floor} non franchi.</b> Renforcez ou changez l'équipe (types, soins, boucliers).`}</div>`;
+    : `<div class="card arena-result">${run.won ? `<b class="good">Étage ${run.floor} franchi !</b> ${rewardIcons(run.reward)}` : `<b class="bad">Étage ${run.floor} non franchi.</b> Renforce ou change l'équipe (types, soins, boucliers).`}</div>`;
   return `<div class="card arena-replay"><div class="row-between"><span>${head}</span>
       <button class="btn small" data-action="arena-close">${done ? 'Fermer' : 'Passer ⏭'}</button></div>
     <div class="arena-field arena-stage" style="--sky:${(BG[ZONES[zi]?.id] ?? BG.plains).sky.join(',')};background-image:url('assets/bg/${(BG[ZONES[zi]?.id] ?? BG.plains).layers.find((l) => l.anchor === 'ground')?.file ?? ''}'), linear-gradient(${(BG[ZONES[zi]?.id] ?? BG.plains).sky.join(',')});--ground:${(BG[ZONES[zi]?.id] ?? BG.plains).ground}"><div class="arena-side">${allies}</div><div class="arena-vs">VS</div><div class="arena-side foes">${foes}</div></div>
@@ -147,9 +147,9 @@ function globalHtml(ui, state) {
   const left = globalBossLeft(state);
   const bar = g && !g.offline ? `<div class="arena-bar guild-bar"><i style="width:${Math.max(0, (g.left / g.hp) * 100)}%;background:#e84a5f"></i></div>
       <div>${formatNumber(g.left)} / ${formatNumber(g.hp)} PV restants · cycle <b>${g.cycle}</b> (chaque fois que la barre tombe, le Colosse revient)</div>`
-    : `<div class="state-empty">${g?.offline ? 'Barre commune indisponible hors ligne : votre tentative compte quand même pour votre record.' : 'Chargement de la barre commune…'}</div>`;
+    : `<div class="state-empty">${g?.offline ? 'Barre commune indisponible hors ligne : ta tentative compte quand même pour ton record.' : 'Chargement de la barre commune…'}</div>`;
   return `<div class="card"><div class="row-between"><b>${img('icon_boss')} ${escapeHtml(g?.name ?? 'Colosse des Anciens (mondial)')}</b><span>Tentative : <b>${left}</b> / ${GLOBAL_BOSS.attemptsPerDay} aujourd'hui</span></div>
-      <div class="muted">Tous les joueurs frappent le même boss : vos dégâts s'ajoutent à ceux de la communauté. Votre équipe habituelle (héros, compagnons, familier) combat 60 s.
+      <div class="muted">Tous les joueurs frappent le même boss : tes dégâts s'ajoutent à ceux de la communauté. Ton équipe habituelle (héros, compagnons, familier) combat 60 s.
       Différent du World Boss des grands événements (Aventure › Événement).</div>${bar}
       ${me.best ? `<div>${img('icon_trophy')} Votre record : <b>${formatNumber(me.best)}</b> dégâts</div>` : ''}
       <button class="btn btn-gold primary-action" data-action="global-boss" ${left > 0 ? '' : 'disabled'}>⚔ Attaquer ${rewardIcons(GLOBAL_BOSS.reward)}</button>

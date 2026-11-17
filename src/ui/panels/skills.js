@@ -97,7 +97,7 @@ function gridCell(c, sel) {
 }
 
 function gridWindow(state, c) {
-  if (!c) return '<div class="card sk-window muted">Touchez une case pour lire son effet.</div>';
+  if (!c) return '<div class="card sk-window muted">Touche une case pour lire son effet.</div>';
   if (c.kind === 's') {
     const skill = SKILLS.find((x) => x.id === c.id);
     const bonus = computeHeroStats(state).bonus;
@@ -131,7 +131,7 @@ function cellV2(c, sel) {
       ${c.active > 0 ? '<i class="sk2-on">Actif</i>' : ''}</span><span class="sk2-name">${escapeHtml(c.name)}</span></button>`;
 }
 function bubbleV2(state, c) {
-  if (!c) return '<div class="sk2-bubble muted">Touchez une compétence pour la voir.</div>';
+  if (!c) return '<div class="sk2-bubble muted">Touche une compétence pour la voir.</div>';
   let short, detail, main = '', use = '';
   if (c.kind === 's') {
     const skill = SKILLS.find((x) => x.id === c.id);
@@ -149,6 +149,8 @@ function bubbleV2(state, c) {
     use = c.locked ? '' : c.active > 0 ? `<span class="good">Actif ${time(c.active)}</span>` : c.cd > 0 ? `<span class="muted">Prêt dans ${time(c.cd)}</span>`
       : `<button class="btn btn-primary" data-action="rush" data-value="${rush.id}">Utiliser</button>`;
   }
+  // v9.8 (I3) : un bouton grisé dit ce qui manque.
+  if (c.plus && !c.plus.can && !c.locked && !c.maxed) main += `<p class="muted small">${c.kind === 's' ? 'Il te faut 1 point (1 par niveau du héros)' : 'Il te manque de l\'or'}</p>`;
   const lock = c.locked ? `<p class="up-lock">🔒 Débloqué au niveau ${c.unlock} du héros.</p>` : c.maxed ? '<p class="good">Niveau maximal.</p>' : '';
   return `<div class="sk2-bubble"><div class="row-between"><b>${escapeHtml(c.name)}</b><span class="muted">Nv ${c.level}</span></div>
     <p>${escapeHtml(short)}</p><p class="muted">${detail}</p>${lock}<div class="sk2-actions">${main}${use}</div></div>`;

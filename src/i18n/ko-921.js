@@ -1,8 +1,8 @@
 // v9.2.1 : coréen des malus d'environnement et de leurs mentions. Branché à la fin de ./ko.js.
 export const EXACT_921 = {
-  'Voyage impossible pendant un donjon : terminez-le ou quittez-le (bouton rouge sous la scène).': '던전 진행 중에는 이동할 수 없습니다: 끝내거나 나가세요 (장면 아래 빨간 버튼).',
-  "Voyage impossible pendant la Tour de l'Éternité : terminez ou quittez la montée (bouton rouge sous la scène).": '영원의 탑 진행 중에는 이동할 수 없습니다: 등반을 끝내거나 나가세요 (장면 아래 빨간 버튼).',
-  'Voyage impossible pendant le défi de la semaine : terminez-le ou quittez-le (bouton rouge sous la scène).': '주간 도전 중에는 이동할 수 없습니다: 끝내거나 나가세요 (장면 아래 빨간 버튼).',
+  'Voyage impossible pendant un donjon : termine-le ou quitte-le (bouton rouge sous la scène).': '던전 진행 중에는 이동할 수 없습니다: 끝내거나 나가세요 (장면 아래 빨간 버튼).',
+  "Voyage impossible pendant la Tour de l'Éternité : termine ou quitte la montée (bouton rouge sous la scène).": '영원의 탑 진행 중에는 이동할 수 없습니다: 등반을 끝내거나 나가세요 (장면 아래 빨간 버튼).',
+  'Voyage impossible pendant le défi de la semaine : termine-le ou quitte-le (bouton rouge sous la scène).': '주간 도전 중에는 이동할 수 없습니다: 끝내거나 나가세요 (장면 아래 빨간 버튼).',
   Environnement: '환경',
   'réduit les dégâts reçus': '받는 피해 감소', 'invoque des serviteurs': '하수인 소환', 'frappe de plus en plus fort': '점점 더 강하게 공격',
   'enragé sous 50 % de PV': 'HP 50% 미만에서 격노', 'se régénère sans critiques': '치명타가 없으면 재생',
@@ -19,14 +19,14 @@ export const EXACT_921 = {
 };
 const N = (s) => s.replace(',', '.');
 const EFFECTS = [
-  [/^([\d,]+) % de vos coups manquent$/, (m) => `공격의 ${N(m[1])}%가 빗나감`],
+  [/^([\d,]+) % de tes coups manquent$/, (m) => `공격의 ${N(m[1])}%가 빗나감`],
   [/^\+([\d,]+) % de dégâts reçus$/, (m) => `받는 피해 +${N(m[1])}%`],
   [/^−([\d,]+) % de régénération$/, (m) => `재생 −${N(m[1])}%`],
   [/^−([\d,]+) % de PV max$/, (m) => `최대 체력 −${N(m[1])}%`],
   [/^−([\d,]+) % de dégâts$/, (m) => `피해 −${N(m[1])}%`],
   [/^−([\d,]+) % de vitesse d'attaque$/, (m) => `공격 속도 −${N(m[1])}%`],
   [/^−([\d,]+) % de chance de critique$/, (m) => `치명타 확률 −${N(m[1])}%`],
-  [/^vous perdez ([\d,]+) % de vos PV max par seconde$/, (m) => `초당 최대 체력의 ${N(m[1])}% 손실`],
+  [/^tu perds ([\d,]+) % de tes PV max par seconde$/, (m) => `초당 최대 체력의 ${N(m[1])}% 손실`],
   [/^−([\d,]+) % de dégâts contre les boss$/, (m) => `보스 대상 피해 −${N(m[1])}%`],
   [/^−([\d,]+) % d'armure$/, (m) => `방어구 −${N(m[1])}%`],
   [/^−([\d,]+) % de puissance des compagnons$/, (m) => `동료 위력 −${N(m[1])}%`],

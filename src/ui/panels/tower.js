@@ -76,7 +76,7 @@ function towerBody(ui, state) {
         ${towerRule(state) ? `<div class="tower-rule">Règle : <b>${escapeHtml(towerRule(state).name)}</b> — ${escapeHtml(towerRule(state).text)}</div>` : '<div class="muted">Une règle change tous les 10 étages.</div>'}`
       : climbsLeft(state) > 0
         ? `<button class="btn btn-gold enter-btn primary-action" data-action="enter-tower" ${state.dungeon || state.challenge ? 'disabled' : ''}>Monter (${climbsLeft(state)} ascension${climbsLeft(state) > 1 ? 's' : ''} aujourd'hui)</button>
-          ${state.dungeon || state.challenge ? '<div class="bad">Terminez d\'abord le donjon ou le défi.</div>' : ''}`
+          ${state.dungeon || state.challenge ? '<div class="bad">Termine d\'abord le donjon ou le défi.</div>' : ''}`
         : '<button class="btn enter-btn" disabled>Ascensions du jour faites — reviens demain</button>';
     const head = `<div class="card tower-head">
         <div class="tower-portrait">${animCanvas(`foe:${bossSprite(floor)}`, 124, 80, 1)}</div>

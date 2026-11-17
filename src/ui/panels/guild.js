@@ -26,7 +26,7 @@ function myGuild(ui, d) {
       ${d.role === 'leader' && m.role === 'member' ? `<button class="btn tiny" data-action="guild-role" data-value="${escapeHtml(m.pseudo)}|officer">Officier</button>` : ''}</td></tr>`).join('');
   return `<div class="card guild-head"><div class="guild-emblem">${img(g.emblem)}</div><div class="grow"><b class="gold-text">${escapeHtml(g.name)}</b>
       <div class="muted">${escapeHtml(g.description || '')}</div><div>${d.members.length} / ${g.maxMembers} membres · ${g.open ? 'accès libre' : 'sur demande'} · vous êtes <b>${ROLE[d.role]}</b></div>
-      ${d.lockedUntil ? `<div class="bad">Nouveau membre : vos contributions comptent pour la guilde à partir du ${new Date(d.lockedUntil).toLocaleString('fr-FR')}.</div>` : ''}</div>
+      ${d.lockedUntil ? `<div class="bad">Nouveau membre : tes contributions comptent pour la guilde à partir du ${new Date(d.lockedUntil).toLocaleString('fr-FR')}.</div>` : ''}</div>
       <button class="btn small btn-danger" data-action="guild-leave">Quitter</button></div>
     <div class="card"><div class="section-title">Objectif de la semaine</div>
       <div class="arena-bar guild-bar"><i style="width:${pct}%;background:var(--gold)"></i></div>
@@ -42,7 +42,7 @@ function noGuild(ui, g) {
   const list = (g.list ?? []).map((x) => `<div class="row-between guild-row"><span>${img(x.emblem)} <b>${escapeHtml(x.name)}</b> <small class="muted">${x.members}/${x.maxMembers} · ${x.open ? 'libre' : 'sur demande'}</small><div class="muted">${escapeHtml(x.description)}</div></span>
       <button class="btn small btn-primary" data-action="guild-join" data-value="${escapeHtml(x.name)}" ${x.members >= x.maxMembers ? 'disabled' : ''}>${x.open ? 'Rejoindre' : 'Demander'}</button></div>`).join('');
   const em = ui.view.guildEmblem ?? EMBLEMS[0];
-  return `<div class="card"><b>Rejoignez une guilde</b><div class="muted">Facultatif : la progression ne dépend jamais d'une guilde. Ensemble : objectif de la semaine, classement du World Boss.</div>
+  return `<div class="card"><b>Rejoins une guilde</b><div class="muted">Facultatif : la progression ne dépend jamais d'une guilde. Ensemble : objectif de la semaine, classement du World Boss.</div>
       <div class="row"><input class="guild-input" data-guild="q" placeholder="Rechercher une guilde" value="${escapeHtml(ui.view.guildQ ?? '')}" maxlength="24"><button class="btn small" data-action="guild-search">Chercher</button></div>
       ${list || '<div class="state-empty">Aucune guilde trouvée.</div>'}</div>
     <div class="card"><div class="section-title">Fonder une guilde</div>

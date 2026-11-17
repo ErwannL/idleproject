@@ -70,7 +70,7 @@ export function loginTab(state) { // v9.3.8 : aussi dans la fenêtre du jour (à
   }).join('');
   return `<div class="muted">Jours de connexion : ${login.days}. Un jour manqué ne remet pas le calendrier à zéro.</div>
     <div class="login-cal">${cells}</div>
-    <button class="btn ${pending ? 'btn-gold' : ''}" data-action="claim-login" ${pending ? '' : 'disabled'}>${pending > 1 ? `Récupérer ${pending} jours` : pending ? 'Récupérer' : 'Revenez demain'}</button>`;
+    <button class="btn ${pending ? 'btn-gold' : ''}" data-action="claim-login" ${pending ? '' : 'disabled'}>${pending > 1 ? `Récupérer ${pending} jours` : pending ? 'Récupérer' : 'Reviens demain'}</button>`;
 }
 
 function periodTab(state, period) {
@@ -161,7 +161,7 @@ export function bountyCard(state) { // v9.3.8 : affichée sur la Carte (ce n'est
     ${b.claimed ? '<button class="btn" disabled>Récupérée ✔</button>'
       : done >= b.target ? '<button class="btn btn-gold" data-action="claim-bounty">Récupérer</button>'
         : reachable ? `<button class="btn small" data-action="bounty-go" data-value="${stage}">Aller sur l'étape</button>`
-          : `<button class="btn small" disabled>Aller sur l'étape</button><span class="muted">Atteignez l'étape ${stageLabel(stage)}</span>`}
+          : `<button class="btn small" disabled>Aller sur l'étape</button><span class="muted">Atteins l'étape ${stageLabel(stage)}</span>`}
   </div>`;
 }
 

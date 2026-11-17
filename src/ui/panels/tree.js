@@ -156,7 +156,7 @@ function regionView(state) {
       <div class="region-name"><b style="color:${b.color}">${b.label}</b><span class="muted">${pts} pts</span></div>
       ${keys.map(({ t, status, missing }) => `<button class="region-key ${status}" data-action="region-key" data-value="${t.id}" title="${escapeHtml(t.name)}" aria-label="${escapeHtml(t.name)}">
         ${img(t.icon)}<span>${status === 'owned' ? '✔' : status === 'ready' ? 'prête' : `${missing} pts`}</span></button>`).join('')}</div>`).join('');
-  return `<div class="card region-view"><div class="muted">Touchez une clé de voûte pour la voir dans l'arbre.</div>${rows}</div>`;
+  return `<div class="card region-view"><div class="muted">Touche une clé de voûte pour la voir dans l'arbre.</div>${rows}</div>`;
 }
 
 function regionBuy(state) {
@@ -361,7 +361,7 @@ function selectionBar(state, sel) {
   const pts = sel.gate ? regionPoints(state, sel.region) : 0;
   const why = st === 'gated' && sel.gate && pts < sel.gate
     ? `<div class="bad">Il faut ${sel.gate} points dans ${region?.label ?? ''} (actuellement ${pts}).</div>`
-    : !talentConnected(state, sel) && !level ? '<div class="bad">Apprenez d\'abord un talent relié.</div>' : '';
+    : !talentConnected(state, sel) && !level ? '<div class="bad">Apprends d\'abord un talent relié.</div>' : '';
   return `<div class="card tree-sel" style="--branch:${color}">
     <div class="ts-head"><span class="ts-icon">${img(nodeIcon(sel))}</span>
       <div class="grow"><b>${escapeHtml(sel.name)}</b>
@@ -422,10 +422,10 @@ function treeView(ui, state) {
       ${regionBuy(state)}`,
     { cls: 'tree-tools-fold', extra: ui.view.treeSearch ? 'filtre actif' : '' });
     const help = fold(ui, 'tree-help', 'Aide', () => `<ul class="tree-help">
-        <li>Touchez un talent pour voir ce qu'il donne, puis « Apprendre » juste sous l'arbre.</li>
+        <li>Touche un talent pour voir ce qu'il donne, puis « Apprendre » juste sous l'arbre.</li>
         <li>Un talent s'achète dès qu'un talent relié est appris ; les nœuds en pointillés sont ceux qu'il débloque ensuite.</li>
         <li>Chaque couleur est une région ; les clés de voûte (hexagones) demandent des points dans leur région.</li>
-        <li>Glissez pour vous déplacer, molette ou pincement pour zoomer, ◎ pour recentrer.</li></ul>`);
+        <li>Glisse pour te déplacer, molette ou pincement pour zoomer, ◎ pour recentrer.</li></ul>`);
     const tree = `<div class="tree-head">
         <span>${fragment()} <b class="num">${formatNumber(state.fragments)}</b> fragments à dépenser</span>
         ${(() => { const sg = suggestedTalent(state); return sg ? `<button class="btn small btn-gold" data-action="talent-sel" data-value="${sg.talent.id}">Conseillé : ${escapeHtml(sg.talent.name)}</button>` : ''; })()}
@@ -470,7 +470,7 @@ function rebirthView(ui, state) {
   return `<div class="card rebirth-card">
       <div class="row-between"><b>${img('icon_rebirth')} Renaissance</b><span class="muted">${state.records.rebirths} effectuée${state.records.rebirths > 1 ? 's' : ''}</span></div>
       ${can ? `<div class="rb-tiles">${tile('icon_fragment', `+${formatNumber(reward)}`, 'fragments')}${tile('icon_damage', `×${gain.toFixed(2).replace('.', ',')}`, 'pour toujours')}${tile('icon_boss', '1', 'pouvoir conservé')}</div>`
-        : `<div>Atteignez l'étape ${stageLabel(REBIRTH.minStage)} pour renaître (max ${stageLabel(state.maxStage)}).</div>`}
+        : `<div>Atteins l'étape ${stageLabel(REBIRTH.minStage)} pour renaître (max ${stageLabel(state.maxStage)}).</div>`}
       ${can ? `<div class="rb-later">Si tu pousses encore 10 étapes : <b>+${formatNumber(rebirthReward(state, state.maxStage + 10))}</b> ${fragment()} (au lieu de +${formatNumber(reward)}).</div>` : ''}
       <div class="muted">Retour à l'étape 1${keep > 0 ? ` (${Math.round(keep * 100)} % des améliorations gardés)` : ''} ; le détail est dans la confirmation.</div>
       ${blocked && can ? `<div class="bad">${blocked}</div>` : ''}
@@ -517,7 +517,7 @@ function transcendFold(ui, state) {
   if (!canTranscend(state) && !t.count && !t.stars) return '';
   const reward = transcendReward(state);
   return fold(ui, 'rebirth-transcend', 'Transcendance', () => `
-    <div class="muted">Recommencez tout (Renaissances comprises, ${Math.round(keptRebirthShare(state) * 100)} % gardées) contre des <b>Étoiles</b> ;
+    <div class="muted">Recommence tout (Renaissances comprises, ${Math.round(keptRebirthShare(state) * 100)} % gardées) contre des <b>Étoiles</b> ;
       chaque Transcendance multiplie aussi dégâts, PV et or ×${TRANSCEND.powerPerTranscend} pour toujours.</div>
     ${reward > 0 && rebirthBlocked(state) ? `<div class="bad">${rebirthBlocked(state)}</div>` : ''}
     <button class="btn btn-gold" data-action="transcend" ${reward > 0 && !rebirthBlocked(state) ? '' : 'disabled'}>Transcender <b class="num">+${formatNumber(reward)}</b> ${starsIcon()}</button>`,

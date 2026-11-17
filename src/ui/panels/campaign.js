@@ -118,7 +118,7 @@ export default {
     const buttons = [];
     // v9.2.2 : pas de voyage pendant un donjon, la Tour ou le défi — on le dit au lieu de boutons qui ne répondent pas.
     const busy = state.dungeon ? 'dungeon' : state.tower ? 'tower' : state.challenge ? 'challenge' : '';
-    const busyNote = busy ? `<div class="notice warn">${busy === 'dungeon' ? 'Voyage impossible pendant un donjon : terminez-le ou quittez-le (bouton rouge sous la scène).' : busy === 'tower' ? 'Voyage impossible pendant la Tour de l\'Éternité : terminez ou quittez la montée (bouton rouge sous la scène).' : 'Voyage impossible pendant le défi de la semaine : terminez-le ou quittez-le (bouton rouge sous la scène).'}</div>` : '';
+    const busyNote = busy ? `<div class="notice warn">${busy === 'dungeon' ? 'Voyage impossible pendant un donjon : termine-le ou quitte-le (bouton rouge sous la scène).' : busy === 'tower' ? 'Voyage impossible pendant la Tour de l\'Éternité : termine ou quitte la montée (bouton rouge sous la scène).' : 'Voyage impossible pendant le défi de la semaine : termine-le ou quitte-le (bouton rouge sous la scène).'}</div>` : '';
     for (let stage = first; stage < first + zoneLength(ZONES[sel]); stage++) {
       const tier = bossTierForStage(stage);
       const classes = ['btn', tier ? `boss tier-${tier}` : '', stage === state.stage && !state.dungeon ? 'current' : '', stage < state.maxStage ? 'cleared' : ''].join(' ');

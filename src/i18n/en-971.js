@@ -1,6 +1,15 @@
 // v9.7.1 : anglais du cadrage, du sac de butin et des menus allégés. Branché à la fin de ./en.js.
 let LK = () => null;
 export const EXACT_971 = {
+  "Fusionner": "Fuse",
+  "Fabriquer": "Craft",
+  "Rien à recycler : tes objets sont protégés (verrouillés, meilleurs ou utiles à un ensemble).": "Nothing to recycle: your items are protected (locked, better, or useful for a set).",
+  "Touche une compétence pour la voir.": "Tap a skill to see it.",
+  "Il te faut 1 point (1 par niveau du héros)": "You need 1 point (1 per hero level)",
+  "Il te manque de l'or": "Not enough gold",
+  "Tout est au maximum": "Everything is maxed",
+  "Garder": "Keep",
+  "Valider": "Confirm",
   // v9.8 (F) : sorts par élément
   "Mur de flammes": "Flame Wall",
   "Éclat de glace": "Ice Shard",
@@ -181,6 +190,8 @@ export const EXACT_971 = {
   "Tient": "Withstands",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
+  [/^Rareté choisie ou mieux, au niveau de ton étape max \((\d+)\)\.$/, (m) => `Chosen rarity or better, at your max stage level (${m[1]}).`],
+  [/^Rien d'abordable : il te manque (.+) or$/, (m) => `Nothing affordable: you need ${m[1]} more gold`],
   [/^Niv\. (\d+) · Étape (\d+)$/, (m) => `Lv. ${m[1]} · Stage ${m[2]}`],
   [/^(\d+) objets? · 🎒 (\d+) · 📦 (\d+) · ♻ (\d+)$/, (m) => `${m[1]} item${m[1] === '1' ? '' : 's'} · 🎒 ${m[2]} · 📦 ${m[3]} · ♻ ${m[4]}`],
   [/^\+(\d+) % possible$/, (m) => `+${m[1]}% possible`],

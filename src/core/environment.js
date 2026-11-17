@@ -51,19 +51,19 @@ export function applyEnvironment(stats, env) {
 
 const fmt = (x) => String(Math.round(x * 10) / 10).replace('.', ',');
 
-// Effet en clair, avec sa valeur (« 10 % de vos coups manquent »). Textes traduits par motifs (i18n/en-921.js).
+// Effet en clair, avec sa valeur (« 10 % de tes coups manquent »). Textes traduits par motifs (i18n/en-921.js).
 export function envEffectText(env, pct = env.pct) {
   // v9.2.7 : valeur affichée = valeur appliquée (les « en moins » plafonnent à ENV_REDUCE_CAP, jamais « −113 % »).
   const v = fmt(capShown(env, pct));
   switch (env.kind) {
-    case 'miss': return `${v} % de vos coups manquent`;
+    case 'miss': return `${v} % de tes coups manquent`;
     case 'hurt': return `+${v} % de dégâts reçus`;
     case 'regen': return `−${v} % de régénération`;
     case 'maxHp': return `−${v} % de PV max`;
     case 'damage': return `−${v} % de dégâts`;
     case 'speed': return `−${v} % de vitesse d'attaque`;
     case 'crit': return `−${v} % de chance de critique`;
-    case 'burn': return `vous perdez ${v} % de vos PV max par seconde`;
+    case 'burn': return `tu perds ${v} % de tes PV max par seconde`;
     case 'boss': return `−${v} % de dégâts contre les boss`;
     case 'armor': return `−${v} % d'armure`;
     case 'companion': return `−${v} % de puissance des compagnons`;

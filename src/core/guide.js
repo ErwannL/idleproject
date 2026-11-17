@@ -247,37 +247,37 @@ function nextBossName(state, balance) {
 // Les textes suivent le lexique du jeu (Compétences, Boosts, Pouvoirs, Talents, Builds…).
 export const PANEL_HELP = {
   upgrades: {
-    short: 'L\'or achète des améliorations. Chaque ligne indique son gain en dégâts/s : à vous de choisir.',
-    more: 'Dégâts et Points de vie gagnent ×1,35 / ×1,4 tous les 10 niveaux et ×1,75 tous les 25 niveaux : visez ces paliers. ×10, ×100 et Max achètent plusieurs niveaux d\'un coup.',
+    short: 'L\'or achète des améliorations. Chaque ligne indique son gain en dégâts/s : à toi de choisir.',
+    more: 'Dégâts et Points de vie gagnent ×1,35 / ×1,4 tous les 10 niveaux et ×1,75 tous les 25 niveaux : vise ces paliers. ×10, ×100 et Max achètent plusieurs niveaux d\'un coup.',
     // v9.2.1
     env: 'Dans les mondes 2 à 12, l\'environnement gêne le héros : la mention « contre … » marque l\'amélioration qui réduit ce malus (annulé à son niveau complet).',
-    touch: 'Gardez le doigt sur un bouton d\'achat : après l\'anneau, il achète en continu, de plus en plus vite.',
+    touch: 'Garde le doigt sur un bouton d\'achat : après l\'anneau, il achète en continu, de plus en plus vite.',
   },
   inventory: {
     short: 'La flèche verte marque un objet meilleur que celui porté. « Équiper le meilleur » équipe tout d\'un coup.',
-    more: 'Les objets grandissent avec leur niveau : Réaffûter remonte un objet au niveau de votre étape max. La Forge s\'ouvre à l\'étape 10 et le Coffre à l\'étape 20 : il garde des objets jamais recyclés et les meilleures pièces d\'ensemble (filtre Ensemble, « Porter ») ; les Builds enregistrent équipe, équipement, classe, pouvoirs et compétences. Recyclage et fusion automatiques : Réglages du sac.',
+    more: 'Les objets grandissent avec leur niveau : Réaffûter remonte un objet au niveau de ton étape max. La Forge s\'ouvre à l\'étape 10 et le Coffre à l\'étape 20 : il garde des objets jamais recyclés et les meilleures pièces d\'ensemble (filtre Ensemble, « Porter ») ; les Builds enregistrent équipe, équipement, classe, pouvoirs et compétences. Recyclage et fusion automatiques : Réglages du sac.',
   },
   hero: {
     short: 'Votre fiche : dégâts/s, niveau et équipement. Classe, Apparence et Records sont dans les segments du haut.',
-    more: 'Les blocs repliés détaillent chaque source de bonus. Records garde l\'historique de la Tour, du défi et des donjons, et mesure votre rythme (or et XP par heure).',
+    more: 'Les blocs repliés détaillent chaque source de bonus. Records garde l\'historique de la Tour, du défi et des donjons, et mesure ton rythme (or et XP par heure).',
   },
   summon: {
     short: `Les gemmes s'obtiennent en jouant. Garanties : Épique au plus tard toutes les ${BANNERS.permanent.epicEvery ?? 10} invocations, Légendaire au plus tard à la ${BANNERS.permanent.hard}e (compagnons) ou à la ${BANNERS.pet.hard}e (familiers).`, // v9.3.8 (3c) : lu dans les données
     more: `Chaque invocation (limitée, permanente, familiers) a son propre compteur : compagnon Légendaire garanti au plus tard à la ${BANNERS.permanent.hard}e invocation, familier Légendaire au plus tard à la ${BANNERS.pet.hard}e invocation de familiers. La vedette représente 50 % des Légendaires obtenus dans son invocation (elle n\'augmente pas la chance d\'un Légendaire). Doublon : +1 étoile, puis des gemmes.`,
   },
   skills: {
-    short: 'Un point par niveau du héros, à placer où vous voulez. Les compétences se lancent toutes seules.',
+    short: 'Un point par niveau du héros, à placer où tu veux. Les compétences se lancent toutes seules.',
     more: 'Les Boosts (en bas de cet écran, ou les 5 dernières cases de la grille) sont différents : améliorés avec l\'or, lancés d\'un appui sur le combat (ou au clavier), ou en Auto.',
   },
   tree: {
     short: 'Les fragments anciens achètent des talents permanents. Un talent s\'apprend dès qu\'un voisin est appris.',
     more: 'L\'arbre se dévoile au fur et à mesure (la recherche ne porte que sur ce qui est visible). Les clés de voûte demandent des points dans leur région : la légende donne l\'objectif de chaque région. Petits nœuds : 3 niveaux · ◆ notables · ⬢ clés de voûte. La Renaissance (segment Renaissance) remet l\'étape à 1 contre des fragments et un bonus permanent de dégâts, PV et or.',
-    mouse: 'Glissez ou utilisez la molette pour vous déplacer, Ctrl + molette pour zoomer.',
-    touch: 'Glissez du doigt pour vous déplacer ; les boutons − et + (dans Outils) zooment.',
+    mouse: 'Glisse ou utilise la molette pour te déplacer, Ctrl + molette pour zoomer.',
+    touch: 'Glisse du doigt pour te déplacer ; les boutons − et + (dans Outils) zooment.',
   },
   campaign: {
     short: 'Votre monde, le prochain boss et la prévision du combat. L\'avance automatique passe d\'une étape à l\'autre.',
-    more: 'La plupart des mondes ont 20 étapes et 4 boss (le monde 11 en a 10). Si un boss vous bat, le héros s\'entraîne à l\'étape d\'avant et le retente seul quand il est 15 % plus fort (ou « Retenter le boss »).',
+    more: 'La plupart des mondes ont 20 étapes et 4 boss (le monde 11 en a 10). Si un boss te bat, le héros s\'entraîne à l\'étape d\'avant et le retente seul quand il est 15 % plus fort (ou « Retenter le boss »).',
     // v9.2.1
     env: 'Dès le monde 2, chaque monde a un malus d\'environnement (Pénombre, Lave…), un peu plus fort à chaque cycle. Une amélioration à l\'or le réduit selon son niveau : la fiche du monde et la pastille en bas à gauche du combat disent laquelle et la part contrée.',
   },
@@ -286,8 +286,8 @@ export const PANEL_HELP = {
     more: 'Chaque fiche dit la mécanique du boss final et ce qui la contre. Le butin ciblé et le chemin sont mémorisés.',
   },
   companions: {
-    short: 'Deux compagnons et un familier combattent avec vous. Leurs rôles forment des synergies.',
-    more: 'Améliorez-les avec l\'or ; les doublons d\'invocation ajoutent des étoiles. Ceux qui restent hors de l\'équipe peuvent partir en expédition (onglet Expéditions).',
+    short: 'Deux compagnons et un familier combattent avec toi. Leurs rôles forment des synergies.',
+    more: 'Améliore-les avec l\'or ; les doublons d\'invocation ajoutent des étoiles. Ceux qui restent hors de l\'équipe peuvent partir en expédition (onglet Expéditions).',
   },
   expeditions: {
     short: 'Les compagnons hors de l\'équipe partent 1 h, 4 h ou 12 h, même jeu fermé, et rapportent des ressources.',
@@ -298,11 +298,11 @@ export const PANEL_HELP = {
     more: 'La tour s\'effondre après 10 h de combat (chaque nouvel étage rajoute un peu de temps) et un méga boss garde chaque 10e étage. Chaque nouveau meilleur score de la semaine et chaque record rapportent des récompenses (liste des étages).',
   },
   boss: {
-    short: 'Chaque boss vaincu donne un pouvoir. Réaffrontez-le pour sa maîtrise et des charges de changement de pouvoir.',
+    short: 'Chaque boss vaincu donne un pouvoir. Réaffronte-le pour sa maîtrise et des charges de changement de pouvoir.',
     more: 'Deux pouvoirs de la même famille donnent un bonus de famille (effets +25 %).',
   },
   encyclopedia: {
-    short: 'Tout ce que vous découvrez s\'inscrit ici ; le pourcentage débloque des paliers de récompenses.',
+    short: 'Tout ce que tu découvres s\'inscrit ici ; le pourcentage débloque des paliers de récompenses.',
     more: 'Deux systèmes : l\'encyclopédie (pourcentage global et paliers de chaque section) et le Musée (un objet ancestral par vitrine, bonus permanent, sans effet sur le pourcentage).',
   },
   contracts: {
@@ -315,6 +315,6 @@ export const PANEL_HELP = {
   },
   options: {
     short: 'Langue, sauvegarde (export et import), compte, mises à jour ; Interface (dont les essais d\'affichage), Son et Fenêtre dans les onglets.',
-    more: 'C\'est quoi un idle ? Le jeu avance tout seul, même fermé : vous revenez de temps en temps pour améliorer votre héros. Lexique — Compétences : lancées seules ; Boosts : lancés d\'un appui ; Pouvoirs : bonus des boss ; Talents : arbre permanent ; Builds : équipement enregistré ; Coffre : rangement, ensembles compris.',
+    more: 'C\'est quoi un idle ? Le jeu avance tout seul, même fermé : tu reviens de temps en temps pour améliorer ton héros. Lexique — Compétences : lancées seules ; Boosts : lancés d\'un appui ; Pouvoirs : bonus des boss ; Talents : arbre permanent ; Builds : équipement enregistré ; Coffre : rangement, ensembles compris.',
   },
 };

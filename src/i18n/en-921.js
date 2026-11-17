@@ -1,9 +1,9 @@
 // v9.2.1 : anglais des malus d'environnement (data/environment.js, core/environment.js) et de leurs mentions.
 // Branché à la fin de ./en.js comme ./en-920-upg.js.
 export const EXACT_921 = {
-  'Voyage impossible pendant un donjon : terminez-le ou quittez-le (bouton rouge sous la scène).': 'Travel unavailable during a dungeon: finish or leave it (red button under the scene).',
-  "Voyage impossible pendant la Tour de l'Éternité : terminez ou quittez la montée (bouton rouge sous la scène).": 'Travel unavailable during the Tower of Eternity: finish or leave the climb (red button under the scene).',
-  'Voyage impossible pendant le défi de la semaine : terminez-le ou quittez-le (bouton rouge sous la scène).': 'Travel unavailable during the weekly challenge: finish or leave it (red button under the scene).',
+  'Voyage impossible pendant un donjon : termine-le ou quitte-le (bouton rouge sous la scène).': 'Travel unavailable during a dungeon: finish or leave it (red button under the scene).',
+  "Voyage impossible pendant la Tour de l'Éternité : termine ou quitte la montée (bouton rouge sous la scène).": 'Travel unavailable during the Tower of Eternity: finish or leave the climb (red button under the scene).',
+  'Voyage impossible pendant le défi de la semaine : termine-le ou quitte-le (bouton rouge sous la scène).': 'Travel unavailable during the weekly challenge: finish or leave it (red button under the scene).',
   Environnement: 'Environment',
   'réduit les dégâts reçus': 'reduces damage taken', 'invoque des serviteurs': 'summons minions', 'frappe de plus en plus fort': 'hits harder and harder',
   'enragé sous 50 % de PV': 'enraged below 50% HP', 'se régénère sans critiques': 'regenerates without crits',
@@ -20,14 +20,14 @@ export const EXACT_921 = {
 };
 const N = (s) => s.replace(',', '.');
 const EFFECTS = [
-  [/^([\d,]+) % de vos coups manquent$/, (m) => `${N(m[1])}% of your attacks miss`],
+  [/^([\d,]+) % de tes coups manquent$/, (m) => `${N(m[1])}% of your attacks miss`],
   [/^\+([\d,]+) % de dégâts reçus$/, (m) => `+${N(m[1])}% damage taken`],
   [/^−([\d,]+) % de régénération$/, (m) => `−${N(m[1])}% regeneration`],
   [/^−([\d,]+) % de PV max$/, (m) => `−${N(m[1])}% max HP`],
   [/^−([\d,]+) % de dégâts$/, (m) => `−${N(m[1])}% damage`],
   [/^−([\d,]+) % de vitesse d'attaque$/, (m) => `−${N(m[1])}% attack speed`],
   [/^−([\d,]+) % de chance de critique$/, (m) => `−${N(m[1])}% critical chance`],
-  [/^vous perdez ([\d,]+) % de vos PV max par seconde$/, (m) => `you lose ${N(m[1])}% of your max HP per second`],
+  [/^tu perds ([\d,]+) % de tes PV max par seconde$/, (m) => `you lose ${N(m[1])}% of your max HP per second`],
   [/^−([\d,]+) % de dégâts contre les boss$/, (m) => `−${N(m[1])}% damage against bosses`],
   [/^−([\d,]+) % d'armure$/, (m) => `−${N(m[1])}% armor`],
   [/^−([\d,]+) % de puissance des compagnons$/, (m) => `−${N(m[1])}% companion power`],

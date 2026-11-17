@@ -40,7 +40,7 @@ export const MISSION_PERIODS = [
 // 4,33 × hebdomadaire, 52 semaines / 12 mois : une même victoire comptait pour les deux) ; la piste avance de la moyenne des objectifs (chacun plafonné à 100 %), et chaque dixième
 // donne un palier. Récompenses totales = anciennes hebdomadaires × 4,33 + mensuelles, tickets comptés à 100 gemmes :
 // 1 270 × 4,33 + 4 500 ≈ 10 000 gemmes, 3 × 4,33 + 5 ≈ 18 clés, 110 × 4,33 ≈ 480 éclats (500 ici).
-// Paliers croissants (300 → 2 100 gemmes) : la fin de piste vaut le rendez-vous complet ; un joueur qui ne vient que
+// Paliers croissants (300 → 2 100 gemmes) : la fin de piste vaut le rends-vous complet ; un joueur qui ne vient que
 // quelques jours n'y gagne pas autant qu'un joueur quotidien. Simulation par profil : tools/sim-missions-v913.mjs ; critère d'abandon : docs/refontes-v913.md.
 export const MISSION_TRACK = {
   id: 'track',

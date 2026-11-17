@@ -10,7 +10,7 @@ export const EXACT_920_OCEAN = {
   'Embruns': '물보라', 'Courant de retour': '역류', 'Écailles abyssales': '심해 비늘', 'Trésor englouti': '가라앉은 보물',
   'Marée du Léviathan': '리바이어선의 조류',
   'Serpent des grands fonds, il dort dans les ruines d’une cité engloutie ; chaque marée est son souffle.': '깊은 바다의 뱀. 가라앉은 도시의 폐허에서 잠들어 있으며, 모든 조류가 그의 숨결이에요.',
-  'Sous les vagues, une cité engloutie. Retenez votre souffle : le Léviathan s’éveille.': '파도 아래 가라앉은 도시. 숨을 참으세요. 리바이어선이 깨어나요.',
+  'Sous les vagues, une cité engloutie. Retiens ton souffle : le Léviathan s’éveille.': '파도 아래 가라앉은 도시. 숨을 참으세요. 리바이어선이 깨어나요.',
   'Vingt mille lieues': '해저 2만 리',
   'Nage sous l\'eau : remous et bulles': '수중 수영: 물살과 거품',
 };

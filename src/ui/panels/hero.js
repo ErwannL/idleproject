@@ -36,7 +36,7 @@ function setsCard(state) {
       <span class="${n >= SET_PIECES[0] ? 'good' : 'muted'}">${n >= SET_PIECES[0] ? effectText(setBonusFor(set, n)) : 'aucun bonus'}</span>
       ${next ? `<span class="muted">· à ${next} : ${effectText(set.bonuses[next])}</span>` : ''}</div>`;
   }).join('');
-  return rows || '<div class="muted">Les objets Rares et mieux appartiennent parfois à l\'ensemble de leur monde (icône en bas à gauche). Portez 2, 4 puis 6 pièces d\'un même ensemble pour ses bonus.</div>';
+  return rows || '<div class="muted">Les objets Rares et mieux appartiennent parfois à l\'ensemble de leur monde (icône en bas à gauche). Porte 2, 4 puis 6 pièces d\'un même ensemble pour ses bonus.</div>';
 }
 
 // Fiche du héros (v9.1.0 : ouverte par le portrait, hors menu) — segment Fiche, Classe, Apparence, Records.

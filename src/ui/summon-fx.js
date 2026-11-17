@@ -34,7 +34,7 @@ export function playSummonReveal(results) {
           ${r.isNew ? '<em>Nouveau !</em>' : r.refund ? `<small>+${r.refund} gemmes</small>` : '<small>+1 ★</small>'}
           ${r.ultimateUnlocked ? '<em class="sfx-ult">Ultime débloquée</em>' : ''}</div>
       </div>`).join('')}</div>
-    <div class="sfx-hint">Cliquez pour tout révéler</div>`;
+    <div class="sfx-hint">Clique pour tout révéler</div>`;
   document.body.appendChild(el);
   // v9.2.6 : portail animé au centre, rayon de la meilleure rareté (sprites, rien en animations réduites).
   if (!calm()) {

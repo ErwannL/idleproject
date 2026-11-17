@@ -195,6 +195,9 @@ export function installShortcuts(ui) {
     if (e.key === 'Escape') {
       e.preventDefault();
       if (modalOpen) ui.closeModal();
+      // v9.8 (I2) : une fiche ouverte (objet, compagnon) se ferme seule, le panneau reste.
+      else if (ui.root.querySelector('.unit-pop-backdrop')) ui.root.querySelector('.unit-pop-backdrop').click();
+      else if (ui.root.querySelector('#loot-sheet:not(.hidden)')) ui.lootBag?.toggle(false);
       else if (ui.tab) ui.closePanel();
       return;
     }

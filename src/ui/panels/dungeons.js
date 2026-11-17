@@ -132,7 +132,7 @@ export function challengeCard(state) {
   const button = run
     ? `<div class="row-between"><b class="gold-text">Vague ${run.wave} en cours</b><button class="btn btn-danger small" data-action="leave-challenge">Abandonner</button></div>`
     : left > 0
-      ? `<button class="btn btn-gold enter-btn" data-action="enter-challenge" ${state.dungeon || state.tower ? 'disabled title="Terminez d\'abord le donjon ou la tour"' : ''}>Lancer le défi (${left} tentative${left > 1 ? 's' : ''} cette semaine)</button>`
+      ? `<button class="btn btn-gold enter-btn" data-action="enter-challenge" ${state.dungeon || state.tower ? 'disabled title="Termine d\'abord le donjon ou la tour"' : ''}>Lancer le défi (${left} tentative${left > 1 ? 's' : ''} cette semaine)</button>`
       : `<button class="btn enter-btn" disabled>Tentatives épuisées — nouvelles règles le ${nextMonday().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</button>`;
   return `<div class="challenge-card">
     ${button}
@@ -178,7 +178,7 @@ function dungeonsList(ui, state) {
   }).join('');
   const nextLocked = DIFFICULTY_ORDER.find((id) => !unlocked.includes(id));
   const unlockHint = nextLocked
-    ? `<div class="muted small-note">${img('icon_lock', 'ico-lock', 'Verrouillé')} ${DUNGEON_DIFFICULTIES[nextLocked].label} : terminez ce donjon en ${DUNGEON_DIFFICULTIES[DIFFICULTY_ORDER[DIFFICULTY_ORDER.indexOf(nextLocked) - 1]].label}.</div>`
+    ? `<div class="muted small-note">${img('icon_lock', 'ico-lock', 'Verrouillé')} ${DUNGEON_DIFFICULTIES[nextLocked].label} : termine ce donjon en ${DUNGEON_DIFFICULTIES[DIFFICULTY_ORDER[DIFFICULTY_ORDER.indexOf(nextLocked) - 1]].label}.</div>`
     : '';
   // v9.1.3 (décision) : plus de « Compagnons conseillés » (aucune recommandation).
   const slot = ui.view.dungeonSlot ?? state.ui.dungeonSlot ?? 'any';
@@ -200,7 +200,7 @@ function dungeonsList(ui, state) {
   const enter = locked ? `<div class="bad">Débloqué à l'étape ${stageLabel(sel.unlockStage)}.</div>`
     : `<button class="btn btn-gold enter-btn primary-action" data-action="enter-dungeon" data-value="${sel.id}" data-diff="${diffId}" ${canEnterDungeon(state, sel.id) ? '' : 'disabled'}>Entrer · ${diff.label} — 1 ${img('icon_key')} <span class="key-stock">(${state.keys} en stock)</span></button>
       ${state.tower ? '<div class="bad">Tu es dans la Tour : quitte-la d\'abord.</div>' : ''}
-      ${state.challenge ? '<div class="bad">Défi de la semaine en cours (Aventure › Défis) : terminez-le d\'abord.</div>' : ''}
+      ${state.challenge ? '<div class="bad">Défi de la semaine en cours (Aventure › Défis) : termine-le d\'abord.</div>' : ''}
       ${state.keys < 1 ? '<div class="bad">Aucune clé. Clés : missions, contrats, expéditions, Défis.</div>' : ''}`;
   const detail = `<div class="card dungeon-detail">
       <div class="dungeon-head">${img('icon_dungeon')}<div class="grow"><div class="boss-title">${escapeHtml(sel.name)}</div>

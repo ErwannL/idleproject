@@ -132,7 +132,7 @@ function limitedCard(ui, state) {
 function permanentCard(ui, state) {
   const wish = state.summon.wishlist ?? [];
   const list = permanentSsr();
-  const body = `<div class="eco-wish"><div class="muted"><span>Favoris</span> <b class="num">${wish.length}/${BANNERS.permanent.wishlistSize}</b> — <span>touchez un Légendaire pour l'ajouter ou le retirer</span></div>
+  const body = `<div class="eco-wish"><div class="muted"><span>Favoris</span> <b class="num">${wish.length}/${BANNERS.permanent.wishlistSize}</b> — <span>touche un Légendaire pour l'ajouter ou le retirer</span></div>
     <div class="eco-wish-row">${list.map((u) => `<button class="btn small eco-wish-btn${wish.includes(u.id) ? ' active' : ''}" data-action="wish-toggle" data-value="${u.id}" aria-pressed="${wish.includes(u.id)}">${unitPortrait(u)}<span>${escapeHtml(u.name)}</span></button>`).join('')}</div></div>`;
   return card(ui, state, 'permanent', `${img('icon_book')}<b>Bannière permanente</b>${walletChip(state, 'ticketPermanent')}`, body);
 }
