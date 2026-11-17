@@ -386,6 +386,8 @@ export const EXACT_971 = {
   "Tient": "Withstands",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
+  [/^Il faut (\d+) objets identiques \(place et rareté\)\.$/, (m) => `You need ${m[1]} identical items (slot and rarity).`],
+  [/^\+(\d+) niv\. · \+([\d,]+) % de puissance$/, (m) => `+${m[1]} lv. · +${m[2]}% power`],
   [/^([\d,. KMBTQa-z×⁰¹²³⁴⁵⁶⁷⁸⁹]+) or$/, (m) => `${m[1]} gold`],
   [/^Barre vidée : (\d+) %$/, (m) => `Bar emptied: ${m[1]}%`],
   [/^Rang (\d+)\/(\d+) · \+(\d+) % dégâts$/, (m) => `Rank ${m[1]}/${m[2]} · +${m[3]}% damage`],

@@ -50,7 +50,8 @@ export default {
   render(ui, state) {
     const chOpen = challengeUnlocked(state) || Boolean(state.challenge);
     const parts = [['tower', 'Tour', 'icon_tower'], ...(chOpen ? [['challenge', 'Défi de la semaine', 'icon_skull']] : []), ...(arenaUnlocked(state) ? [['arena', 'Arène', 'icon_paw']] : [])]; // v9.3.5
-    const forced = state.challenge ? 'challenge' : state.tower ? 'tower' : null;
+    // v9.8 (I8) : un défi ou une ascension en cours ne bloque plus les autres onglets (on y revient d'un appui).
+    const forced = ui.view.defiTab ? null : state.challenge ? 'challenge' : state.tower ? 'tower' : null;
     const tab = forced ?? (parts.some(([id]) => id === ui.view.defiTab) ? ui.view.defiTab : (towerUnlocked(state) ? 'tower' : chOpen ? 'challenge' : arenaUnlocked(state) ? 'arena' : 'tower'));
     const seg = parts.length > 1 ? segment(parts.map(([id, l, ic]) => [id, id === 'challenge' && !state.challenge ? `${l} (${challengeTriesLeft(state)})` : l, ic]), 'defi-tab', tab) : '';
     if (tab === 'challenge') return `${seg}<div class="card">${challengeCard(state)}</div>`;

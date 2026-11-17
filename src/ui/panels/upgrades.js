@@ -111,7 +111,10 @@ export default {
       // s'affiche qu'au début (avant le premier mini-boss), ensuite au survol / appui long sur le nom.
       const ehp = SURVIVAL.has(key) && !max && current.effectiveHp > 0 ? ((next.effectiveHp - current.effectiveHp) / current.effectiveHp) * 100 : 0;
       const pg = gains[key];
-      const gain = pg && pg.gain > 0 ? ` <span class="muted upg-profit">${key === bestKey ? '<b class="upg-best" title="Meilleure affaire">▲</b> ' : ''}Puissance +${formatNumber(Math.round(pg.gain))}</span>` : '';
+      // v9.8 (I1) : avec ×10 / ×100 / Max, le gain total de l'achat (« +12 niv. · +4,1 % de puissance »).
+      const totalPct = count > 1 && current.combatPower > 0 ? ((next.combatPower / current.combatPower) - 1) * 100 : 0;
+      const gain = totalPct > 0.05 ? ` <span class="muted upg-profit">${key === bestKey ? '<b class="upg-best" title="Meilleure affaire">▲</b> ' : ''}+${count} niv. · +${formatDecimal(totalPct)} % de puissance</span>`
+        : pg && pg.gain > 0 ? ` <span class="muted upg-profit">${key === bestKey ? '<b class="upg-best" title="Meilleure affaire">▲</b> ' : ''}Puissance +${formatNumber(Math.round(pg.gain))}</span>` : '';
       // v9.1.3 (ligne type doc2 §3) : icône, nom + niveau (+ palier), un seul chiffre qui bouge (avant → après, l'unité
       // est dans le nom), +x % dégâts/s neutre sur la même ligne, bouton avec prix : 2 lignes au lieu de 3.
       const html = `<div class="card upg-card${compact ? ' compact' : ''}">

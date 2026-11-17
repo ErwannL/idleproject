@@ -386,6 +386,8 @@ export const EXACT_971 = {
   "Tient": "버팀",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
+  [/^Il faut (\d+) objets identiques \(place et rareté\)\.$/, (m) => `같은 아이템(부위, 등급) ${m[1]}개가 필요해요.`],
+  [/^\+(\d+) niv\. · \+([\d,]+) % de puissance$/, (m) => `+${m[1]}레벨 · 전투력 +${m[2]}%`],
   [/^([\d,. KMBTQa-z×⁰¹²³⁴⁵⁶⁷⁸⁹]+) or$/, (m) => `골드 ${m[1]}`],
   [/^Barre vidée : (\d+) %$/, (m) => `바 감소: ${m[1]}%`],
   [/^Rang (\d+)\/(\d+) · \+(\d+) % dégâts$/, (m) => `등급 ${m[1]}/${m[2]} · 피해 +${m[3]}%`],

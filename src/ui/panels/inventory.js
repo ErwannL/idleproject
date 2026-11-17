@@ -490,8 +490,8 @@ export function forge(ui, state, part = null) { // v9.3.4 : exportée (onglet Fo
       ? `Confirmer : fusionner ${n} objets ?` : `Fusionner tout · ${auto.length} groupe${auto.length > 1 ? 's' : ''}`}</button>` : '';
   const fusion = groups.length
     ? `${all}${ui.view.fuseMsg ? `<div class="bad" role="status">${escapeHtml(ui.view.fuseMsg)}</div>` : ''}<div class="fusion-list">${groups.map((g) => fusionRow(ui, state, g, keep)).join('')}</div>`
-    : `<div class="muted">Aucune fusion possible : il faut ${count} objets du même emplacement et de la même rareté
-        (non verrouillés, hors objets ancestraux).</div>`;
+    : `<div class="fuse-empty">${Array.from({ length: count }, () => `<div class="item-frame empty">${img('icon_bag')}</div>`).join('<i>+</i>')}<i>→</i><div class="item-frame empty next">${img('icon_star')}</div></div>
+        <div class="muted">Il faut ${count} objets identiques (place et rareté).</div>`;
   // Fabrication ciblée : l'emplacement en liste, puis deux boutons (Rare+ et Épique+).
   const slot = SLOTS[ui.view.craftSlot] ? ui.view.craftSlot : 'weapon';
   const craftBtn = (tier) => {

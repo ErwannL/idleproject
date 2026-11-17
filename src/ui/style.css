@@ -3860,3 +3860,5 @@ html.reduce-motion .trophy.ready img { animation: none; }
 #sleep-layer { position: fixed; inset: 0; z-index: 99999; background: #000; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .sl-box { display: flex; flex-direction: column; align-items: center; gap: 6px; color: #6a5a3a; font: 600 14px system-ui, sans-serif; }
 .sl-gold { font-size: 28px; color: #8a7440; } .sl-box small { color: #3a3428; }
+.fuse-empty { display: flex; align-items: center; justify-content: center; gap: 3px; flex-wrap: wrap; margin: 6px 0; }
+.fuse-empty .item-frame { width: 40px; height: 40px; opacity: .55; } .fuse-empty .item-frame.next { opacity: .9; border-color: #ffd36a; } .fuse-empty i { color: #8a9ac0; font-style: normal; }

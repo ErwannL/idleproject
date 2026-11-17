@@ -80,7 +80,7 @@ test('Améliorations : ligne en 2 lignes, gain neutre, quantité en un bouton (e
   const html = upgrades.render(uiWith({ buyAmount: '10' }), s);
   assert.ok(!/rentable/.test(html.replace('Tri : rentabilité', '')));
   assert.match(html, /class="upg-main"/);
-  assert.match(html, /Puissance \+/, 'v9.3.8 : un seul gain comparable par ligne');
+  assert.match(html, /Puissance \+|% de puissance/, 'v9.3.8 : un seul gain comparable par ligne (v9.8 : gain total avec ×10)');
   assert.equal((html.match(/class="upg-best"/g) ?? []).length, 1, 'une flèche verte : la meilleure affaire');
   assert.equal((html.match(/data-action="buy-amount"/g) ?? []).length, 4, 'rangée ×1 ×10 ×100 Max par défaut');
 });
