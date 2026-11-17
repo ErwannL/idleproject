@@ -361,7 +361,7 @@ await check('forge : fabriquer un objet avec des éclats', async () => {
   await game(() => { __idle.state.materials.shards += 500; __idle.state.gold += 1e6; __idle.state.records.bestStage = Math.max(10, __idle.state.records.bestStage); });
   await game(() => __idle.ui.openTab('forge')); // v9.3.4 : Forge à part
   await page.waitForTimeout(300);
-  if (!(await page.$('[data-action="craft-slot"]'))) await page.click('[data-action="toggle-section"][data-value="forge-craft"]');
+  if (!(await page.$('[data-action="craft-slot"]'))) await page.click('[data-action="forge-seg"][data-value="craft"]'); // v9.8 : 3 gros boutons
   await page.waitForTimeout(200);
   await page.selectOption('[data-action="craft-slot"]', 'helmet');
   await page.waitForTimeout(200);
@@ -483,7 +483,7 @@ await check('le calcul hors ligne affiche un résumé cohérent après une absen
   const after = await game(() => __idle.state.gold);
   assert(after > gold, `or ${gold} -> ${after}`);
   await page.screenshot({ path: `${outDir}/compact-offline.png` });
-  await page.click('[data-action="close-modal"]');
+  await page.click('[data-action="offline-claim"]'); // v9.8 : « Récupérer »
 });
 
 await check('horloge reculée : aucun gain', async () => {
