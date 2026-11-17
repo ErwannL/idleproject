@@ -17,7 +17,7 @@ from pl939_api import b64, call, to_img, wait
 HERE = os.path.dirname(os.path.abspath(__file__))
 AA = os.path.join(HERE, 'pixellab', 'anim_allies')
 OUT = os.path.join(HERE, 'pixellab971')
-FRAMES = {'idle': 8, 'cast': 12, 'ultimate': 14, 'hurt': 4, 'victory': 6}
+FRAMES = {'idle': 8, 'cast': 12, 'ultimate': 12, 'hurt': 4, 'victory': 8}  # PixelLab n'accepte que 4, 8 ou 12 images
 GENERIC = {
   'idle': 'standing idle in place, calm breathing, cape and hair moving slightly, weapon held, feet planted',
   'hurt': 'getting hit, flinching backward briefly then recovering, feet planted',
@@ -59,10 +59,10 @@ def anim(key, view, name, seed=7):
 
 def palette_gap(view, frames):
     """Part des pixels opaques des images dont la couleur n'existe pas dans la vue (avant remappage)."""
-    ref = {p[:3] for p in view.getdata() if p[3] >= 128}
+    ref = {p[:3] for p in view.get_flattened_data() if p[3] >= 128}
     tot = bad = 0
     for f in frames:
-        for p in f.getdata():
+        for p in f.get_flattened_data():
             if p[3] < 128: continue
             tot += 1
             if p[:3] not in ref: bad += 1
@@ -101,7 +101,8 @@ def sheet(keys, tag):
 def run(key):
     view = Image.open(os.path.join(AA, '_ref', f'{key}.png')).convert('RGBA')
     done = []
-    for name in FRAMES:
+    only = os.environ.get('ANIMS', '').split(',') if os.environ.get('ANIMS') else FRAMES
+    for name in only:
         try: done.append(f'{name} {anim(key, view, name)}')
         except Exception as e: done.append(f'{name} ERREUR {str(e)[:120]}')  # noqa: BLE001
     return key, ', '.join(done)
