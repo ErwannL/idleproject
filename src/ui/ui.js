@@ -70,6 +70,7 @@ import contracts from './panels/contracts.js';
 import daybook from './panels/daybook.js'; // v9.8 (H1)
 import { WHEEL_SLICES, wheelReady } from '../core/wheel.js'; // v9.8 (H4)
 import { quickHuntReady } from '../core/quick-hunt.js'; // v9.8 (H3)
+import { duelOutcome } from '../core/ranks.js'; // v9.8 (H6)
 import { MISSION_PERIODS } from '../data/missions.js';
 import { missionOpen, missionStatus } from '../core/missions.js';
 import dungeons from './panels/dungeons.js';
@@ -1051,6 +1052,7 @@ export class UI {
       case 'tree-seg': local(() => { v.treeSeg = value; }); break;
       case 'quick-hunt': a.quickHunt(); break; // v9.8 (H3)
       case 'gear-best': a.gearBest(value); break; // v9.8 (I6)
+      case 'rank-duel': this.rankDuel(); break; // v9.8 (H6)
       case 'wheel-open': this.showWheel(); break; // v9.8 (H4)
       case 'wheel-spin': this.spinWheel(); break;
       case 'daybook-chest': a.daybookChest(); break; // v9.8 (H1)
@@ -2458,6 +2460,29 @@ export class UI {
       if (out) out.innerHTML = `<b class="${r.slice.jackpot ? 'gold-text' : 'good'}">${r.slice.jackpot ? 'GROS LOT ! ' : ''}${escapeHtml(r.slice.label)}</b> ${rewardIcons(r.given, 'named')}`;
       uiFx.claimFly?.(uiFx.snap(this.state).cur, uiFx.snap(this.state).cur, disc, true);
     }, calm ? 50 : 2700);
+  }
+
+  // v9.8 (H6) : duel de rang — 30 s comptées en 3 s à l'écran : la barre du gardien descend, puis victoire ou défaite.
+  rankDuel() {
+    const st = this.state;
+    const out = st && duelOutcome(st, computeHeroStats(st).dps);
+    if (!out) return;
+    const art = img(BOSSES[out.guardian.type]?.sprite ?? 'icon_boss', 'rank-foe');
+    this.openModal(`<div class="victory-screen rank-duel"><h2 id="modal-title">Duel : ${escapeHtml(out.rank.name)}</h2>
+      <div class="rd-field"><span class="rd-hero">${img('menu_hero')}</span><b>VS</b><span class="rd-foe">${art}</span></div>
+      <div class="rd-bar"><i style="width:100%"></i></div><p class="rd-time num">30 s</p><div class="rd-out"></div></div>`);
+    const card = this.$('modal-card');
+    const bar = card.querySelector('.rd-bar i'), time = card.querySelector('.rd-time');
+    const T = this.calm ? 1 : 3000, t0 = performance.now();
+    const tick = () => {
+      const k = Math.min(1, (performance.now() - t0) / T);
+      bar.style.width = `${Math.max(0, 100 - out.pct * 100 * Math.min(1, k / Math.max(out.pct, 0.001)))}%`;
+      time.textContent = `${Math.ceil(30 * (1 - k))} s`;
+      if (k < 1) { requestAnimationFrame(tick); return; }
+      if (out.won) { const r = this.actions.winRank(); card.querySelector('.rd-out').innerHTML = `<b class="gold-text">Victoire ! Rang ${escapeHtml(r?.name ?? '')}</b><p>+3 % de dégâts pour toujours, nouveau titre.</p><button class="btn btn-gold" data-action="close-modal">Super !</button>`; }
+      else card.querySelector('.rd-out').innerHTML = `<b class="bad">Gardien à ${Math.round((1 - out.pct) * 100)} %</b><p>Renforce-toi (équipement, améliorations), puis réessaie.</p><button class="btn" data-action="close-modal">Fermer</button>`;
+    };
+    requestAnimationFrame(tick);
   }
 
   // v9.8 (G6) : au déblocage, l'icône du système vole du parchemin jusqu'à son bouton de menu.

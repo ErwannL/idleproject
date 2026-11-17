@@ -2,7 +2,7 @@
 // (pouvoirs ancestraux actifs et talents de Renaissance).
 import { bondBonus } from '../data/bonds.js'; // v9.7.1 (lot 6)
 import { blessingMult } from './blessing.js'; // v9.7.1 : bénédiction de départ
-import { powerTierMult } from './session-goals.js';
+import { rankMult } from './ranks.js';
 import { riftEchoMult } from './combat.js'; // v9.6.5 (10.4) : échos des Failles
 import { BALANCE } from '../data/balance.js';
 import { EQUIP_SLOTS, HERO_SLOTS, SLOTS, eqSlot, heroSlot } from '../data/items.js';
@@ -54,7 +54,7 @@ export function computeHeroStats(state, balance = BALANCE, equipment = state.equ
   const damage = (hero.baseDamage + state.upgrades.damage * dmg.perLevel + gear.damage)
     * dmg.milestoneMultiplier ** milestones * big(dmg, state.upgrades.damage) * reborn * (1 + bonus.damagePct / 100)
     * (1 + (balance.level.damagePctPerLevel * levelBonus) / 100) * cheatMultiplier(state, 'damage') * blessingMult(state, 'damage') * (1 + bondBonus(state, 'damagePct') / 100)
-    * powerTierMult(state.level) // v9.6.5 (9.7) : palier de puissance, +3 % tous les 10 niveaux
+    * rankMult(state) // v9.8 (H6) : rang du héros, +3 % par rang gagné en duel (remplace les paliers de puissance)
     * Math.max(0.1, 1 + (bonus.damageMultPct ?? 0) / 100) * (state.challenge ? challengeRule(state, 'heroDamage') ?? 1 : 1);
 
   const upgradeFactor = Math.pow(1 - upgrades.attackSpeed.perLevel, state.upgrades.attackSpeed);

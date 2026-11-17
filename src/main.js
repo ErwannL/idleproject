@@ -12,6 +12,7 @@ import { playerCast, playerGuard, playerUltimate, playerWeakSpot } from './core/
 import { grantBlessing } from './core/blessing.js';
 import { wheelShown } from './core/elements.js';
 import { quickHunt } from './core/quick-hunt.js'; // v9.8 (H3)
+import { winDuel } from './core/ranks.js'; // v9.8 (H6)
 import { spinWheel } from './core/wheel.js'; // v9.8 (H4)
 import { claimDaybookChest } from './core/daybook.js'; // v9.8 (H1) // v9.7.1 (prologue)
 import { startCatchUp } from './core/boost.js';
@@ -375,6 +376,8 @@ const actions = {
     placeTransition(`Donjon · ${DUNGEON_DIFFICULTIES[difficulty]?.label ?? ''}`, d.name, d.description, ZONES[d.zone]?.id);
     done(true, 'Tentative lancée');
   },
+  // v9.8 (H6) : rang gagné en duel.
+  winRank() { const r = winDuel(state); save(); ui.invalidate(); sound.play('claim', { volume: 0.9 }); return r; },
   // v9.8 (I6) : équipement des compagnons — le meilleur d'un appui.
   gearBest(id) { const n = equipBestGear(state, id); done(n > 0, n ? `${n} pièce${n > 1 ? 's' : ''} équipée${n > 1 ? 's' : ''}` : null); },
   // v9.8 (H3) : Chasse rapide — 2 h de gains d'un coup, une fois par jour.

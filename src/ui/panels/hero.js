@@ -1,4 +1,5 @@
 // Héros : collection de chevaliers (rôles distincts), niveau, statistiques et bonus par source.
+import { RANKS, canDuel, heroRank, nextRank, rankTitle } from '../../core/ranks.js'; // v9.8 (H6)
 import { SLOTS } from '../../data/items.js';
 import { CLASSES } from '../../data/classes.js';
 import { activeClass, classUnlocked, classWeaponBases } from '../../core/classes.js';
@@ -204,7 +205,13 @@ function heroView(ui, state) {
   const fmtHits = (h) => (h >= 100 ? '99+' : h < 1 ? '< 1' : formatDecimal(Math.floor(h * 10) / 10));
   const row = (iconName, label, value, cls = '') => `<div class="ss-row${cls}">${img(iconName)}<span class="ss-label">${label}</span><b class="ss-v num">${value}</b></div>`;
   // v9.8 (C2) : 6 stats clés à libellés courts (plus rien de coupé), le reste derrière « Toutes les stats ».
-  const sheet = `<div class="card stat-sheet">
+  // v9.8 (H6) : rang du héros (titre, cadre) et duel du rang suivant.
+  const nr = nextRank(state);
+  const rankCard = `<div class="card rank-card frame-${heroRank(state) ? RANKS[heroRank(state) - 1].frame : 'none'}">
+      <div class="rank-badge">${img('icon_crown')}<b>${escapeHtml(rankTitle(state))}</b><small>Rang ${heroRank(state)}/${RANKS.length} · +${heroRank(state) * 3} % dégâts</small></div>
+      ${nr ? (canDuel(state) ? `<button class="btn btn-gold primary-action" data-action="rank-duel">⚔ Duel : rang ${escapeHtml(nr.name)}</button>`
+        : `<div class="muted">Prochain rang (${escapeHtml(nr.name)}) : niveau ${nr.level}</div>`) : '<div class="good">Rang maximal !</div>'}</div>`;
+  const sheet = `${rankCard}<div class="card stat-sheet">
       <div class="ss-pc">${img('icon_crown')}<span class="ss-pc-label">Puissance</span><b class="ss-pc-v num" title="Puissance de combat : moyenne des dégâts/s et des PV effectifs">${formatNumber(s.combatPower)}</b></div>
       <div class="ss-cols">
         <div class="ss-col">

@@ -521,6 +521,8 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   const bagged = Array.isArray(raw.lootBag) ? raw.lootBag.filter(isValidItem).map(cleanItem) : [];
   state.lootBag = bagged.slice(0, 40);
   if (raw.ui?.lootBag === false) state.ui.lootBag = false;
+  // v9.8 (H6) : rang du héros ; une partie d'avant garde ses paliers de puissance (1 tous les 10 niveaux) en rangs.
+  state.rank = Number.isFinite(raw.rank) ? Math.max(0, Math.min(20, Math.floor(raw.rank))) : Math.min(20, Math.floor(Math.max(0, Number(raw.level) || 0) / 10));
   // v9.8 (H) : Chasse rapide, Roue du jour, Carnet du jour (jour + compteurs).
   for (const k of ['quickHunt', 'wheel', 'daybook']) if (raw[k] && typeof raw[k] === 'object' && !Array.isArray(raw[k])) state[k] = JSON.parse(JSON.stringify(raw[k]));
   // v9.1.3 : le coffre peut déborder (mannequins convertis), jusqu'à STASH_OVERFLOW objets de plus.
