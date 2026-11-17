@@ -356,6 +356,11 @@ function cleanActivities(state, raw) {
   state.heroClass = sanitizeHeroClass(raw.heroClass);
   if (Number.isFinite(raw.rebirthPower) && raw.rebirthPower >= 0) state.rebirthPower = raw.rebirthPower; // v9.0.6
   state.playSeconds = Math.max(0, Number(raw.playSeconds) || 0);
+  // v9.7.1 (lot 4) : étoiles des mondes et morts par monde.
+  if (raw.stars && typeof raw.stars === 'object') for (const [w, v] of Object.entries(raw.stars)) if (Array.isArray(v) && Number(w) >= 0 && Number(w) < 12) (state.stars ??= {})[w] = [0, 1, 2].map((i) => v[i] === true);
+  if (raw.worldDeaths && typeof raw.worldDeaths === 'object') state.worldDeaths = Object.fromEntries(Object.entries(raw.worldDeaths).filter(([w, n]) => Number(w) >= 0 && Number(w) < 12 && Number.isInteger(n)));
+  // v9.7.1 (lot 4) : revanche (mondes dont le face-à-face avec le Colosse est réussi).
+  if (raw.revenge && Array.isArray(raw.revenge.done)) state.revenge = { done: [...new Set(raw.revenge.done.filter((n) => Number.isInteger(n) && n >= 1 && n <= 12))] };
   // v9.7.1 : bénédiction de départ (prologue) et nom du héros.
   if (raw.blessing && ['damage', 'hp', 'gold'].includes(raw.blessing.id) && Number.isFinite(raw.blessing.until)) state.blessing = { id: raw.blessing.id, until: raw.blessing.until };
   if (typeof raw.heroName === 'string') state.heroName = raw.heroName.replace(/[<>]/g, '').slice(0, 16);

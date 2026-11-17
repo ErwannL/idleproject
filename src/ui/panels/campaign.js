@@ -1,5 +1,7 @@
 import { bountyCard } from './contracts.js'; // v9.3.8 : Prime du jour sur la Carte
 // Carte du monde : zones reliées par un chemin, étapes de la zone choisie, avance automatique.
+import { REVENGE_STEPS, revengeLevel, revengePending } from '../../core/revenge.js'; // v9.7.1 (lot 4)
+import { worldStarsHtml } from '../stars.js'; // v9.7.1 (lot 4)
 import { ZONES } from '../../data/zones.js';
 import { bossesForStage, bossTierForStage, cycleForStage, stageLabel, stagesPerCycle, zoneIndexForStage, zoneLength, zoneStartStage } from '../../core/combat.js';
 import { BOSSES } from '../../data/enemies.js';
@@ -135,7 +137,13 @@ export default {
         <button class="btn small" data-action="zone-sel" data-value="${sel + 1}" ${sel < lastZone ? '' : 'disabled'} aria-label="Monde suivant">▶</button>
         ${maxCycle > 0 ? `<select data-action="cycle-select" aria-label="Cycle">${Array.from({ length: maxCycle + 1 }, (_, c) => `<option value="${c}" ${c === cycle ? 'selected' : ''}>Cycle ×${c + 1}</option>`).join('')}</select>` : ''}
       </div>`;
-    return `${summary(ui, state)}
+    // v9.7.1 (lot 4) : jauge « Revanche » (face-à-face de fin de monde avec le Colosse) et étoiles du monde choisi.
+    const rv = revengePending(state);
+    const dots = Array.from({ length: REVENGE_STEPS }, (_, i) => `<i class="rv-dot${i < revengeLevel(state) ? ' on' : ''}"></i>`).join('');
+    const revenge = `<div class="card rv-card"><div class="rv-gauge"><b>Revanche</b><span class="rv-dots" title="${revengeLevel(state)} / ${REVENGE_STEPS}">${dots}</span></div>
+      ${rv ? `<div class="row-between"><span>Monde ${rv.world} : ${escapeHtml(rv.text)}</span><button class="btn btn-gold" data-action="revenge">⚔ Face-à-face</button></div>` : '<div class="muted">Le prochain face-à-face avec le Colosse t\'attend à la fin de ce monde.</div>'}
+      <div class="rv-stars">${worldStarsHtml(state, sel)}</div></div>`;
+    return `${revenge}${summary(ui, state)}
       <div class="card zone-card">
         ${worldPicker}
         <div class="row-between"><span>${cycle ? `<b class="bad">Cycle ×${cycle + 1}</b>` : ''}</span>

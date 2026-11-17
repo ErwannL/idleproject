@@ -18,6 +18,7 @@
 //      du boss partagé atteints par la communauté) en plus des paliers personnels ;
 //   4. interface : la carte World Boss affiche déjà « dégâts du jour » et « record » ; il restera la barre commune et
 //      le classement (panneau Classement existant).
+import { GRAND_BOSSES, grandBoss } from '../data/grand-bosses.js'; // v9.7.1 (lot 7)
 import { EVENTS } from '../data/economy.js';
 import { BOSSES } from '../data/enemies.js';
 import { ZONES } from '../data/zones.js';
@@ -29,34 +30,8 @@ import { equippedCompanions } from './companions.js';
 const DT = 1 / 60;
 
 // Réglages du combat (le nombre de tentatives et les écus restent dans data/economy.js : EVENTS.grand.worldBoss).
-export const WORLD_BOSS = {
-  boss: 'demon_king',
-  name: 'Colosse des Anciens', // boss dédié (PixelLab) : render/world-boss-scene.js ; le moteur garde les stats de `boss`
-  seconds: 60,
-  sizeMul: 2.3, // taille à l'écran (× la taille normale du boss) ; +0,15 par phase
-  // Phases : seuil de PV restants, attaque spéciale (part des PV max du héros, jamais mortelle seule), accélération.
-  phases: [
-    { at: 0.75, id: 'quake', name: 'Séisme infernal', hit: 0.18, speed: 1.15, power: 1.15 },
-    { at: 0.5, id: 'meteors', name: 'Pluie de braises', hit: 0.24, speed: 1.3, power: 1.3 },
-    { at: 0.25, id: 'fury', name: 'Fureur ancestrale', hit: 0.3, speed: 1.5, power: 1.5 },
-  ],
-  tiers: [0.25, 0.5, 0.75, 1], // part de la barre vidée pendant la tentative
-  hitPct: 0.07, // coup ordinaire du boss : part des PV max du héros (avant armure et Défense)
-  attackInterval: 2.4,
-  hpFactor: 1.05, // PV du boss du jour = dégâts mesurés en 60 s × hpFactor (une bonne tentative vide la barre : Éveil)
-  awaken: 1.25, // force du boss à chaque Éveil (barre vidée)
-  // v9.3.0 : attaques propres au Colosse, en boucle pendant toute la tentative (retour de l'équipe : « un jet de pierre
-  // et un rayon lumineux qui sort des yeux »). Dégâts : part des PV max du héros (× Éveil, jamais mortels seuls).
-  // `from` : première phase où l'attaque entre dans le cycle. Cadence : `every[phase]` secondes entre deux attaques
-  // (le Colosse alterne jet de pierre et rayon dès que les deux sont permis), la première à `first` s.
-  abilities: [
-    { id: 'boulder', name: 'Jet de pierre', hit: 0.11, from: 0 },
-    { id: 'eyebeam', name: 'Rayon des Anciens', hit: 0.15, from: 1 },
-  ],
-  abilityFirst: 5,
-  abilityEvery: [11, 9.5, 8, 6.5],
-  abilityGap: 2.5, // pas d'attaque propre dans les 2,5 s qui suivent une attaque de phase ou un Éveil
-};
+// v9.7.1 (lot 7) : fiche du Colosse dans data/grand-bosses.js (moteur commun des grands boss).
+export const WORLD_BOSS = GRAND_BOSSES.colossus.fight;
 
 // Écus d'une tentative : base + un bonus par palier atteint (au plus = l'ancien forfait, l'économie ne bouge pas).
 export function attemptCoins(tiersReached) {
@@ -86,6 +61,8 @@ export function attemptSeed(dayKey, attempt) {
 export class WorldBossFight {
   constructor(state, setup = {}) {
     this.setup = setup;
+    this.bossId = GRAND_BOSSES[setup.bossId] ? setup.bossId : 'colossus'; // v9.7.1 (lot 7) : fiche du grand boss
+    this.cfg = setup.seconds ? { ...grandBoss(this.bossId).fight, seconds: setup.seconds } : grandBoss(this.bossId).fight;
     this.state = cloneState(state);
     const s = this.state;
     // Mode du combat : rien d'autre en cours, compétences automatiques (le héros se bat avec tout ce qu'il a).
@@ -94,8 +71,8 @@ export class WorldBossFight {
     const stats = computeHeroStats(s);
     const zone = bossZone();
     s.worldBossRun = {
-      boss: WORLD_BOSS.boss, zone, level: Math.max(1, s.records?.bestStage ?? s.maxStage ?? s.stage ?? 1),
-      bossDamage: stats.maxHp * WORLD_BOSS.hitPct, damage: 0, falls: 0,
+      boss: this.cfg.boss, zone, level: Math.max(1, s.records?.bestStage ?? s.maxStage ?? s.stage ?? 1),
+      bossDamage: stats.maxHp * this.cfg.hitPct, damage: 0, falls: 0,
     };
     this.run = s.worldBossRun;
     this.world = createCombat(s);
@@ -108,15 +85,15 @@ export class WorldBossFight {
     this.layer = 0; // Éveils (barres vidées)
     this.out = []; // événements propres au World Boss : { type: 'phase' | 'awaken', ... } (lus par la scène)
     this.team = equippedCompanions(s).map((c) => c.id);
-    this.nextAbility = WORLD_BOSS.abilityFirst; // v9.3.0 : prochaine attaque propre (temps de la tentative)
+    this.nextAbility = this.cfg.abilityFirst; // v9.3.0 : prochaine attaque propre (temps de la tentative)
     this.abilityCount = 0;
     this.lastSpecial = -99;
   }
 
   get boss() { return this.world.enemies.find((e) => e.worldBoss) ?? null; }
   get damage() { return this.run.damage; }
-  get done() { return this.time >= WORLD_BOSS.seconds; }
-  get timeLeft() { return Math.max(0, WORLD_BOSS.seconds - this.time); }
+  get done() { return this.time >= this.cfg.seconds; }
+  get timeLeft() { return Math.max(0, this.cfg.seconds - this.time); }
 
   // Barre en cours : PV restants (0..1), Éveils, phases.
   progress() {
@@ -135,10 +112,10 @@ export class WorldBossFight {
     if (!boss) return;
     if (!boss.wbInit) {
       boss.wbInit = true;
-      boss.attackInterval = WORLD_BOSS.attackInterval;
-      boss.attackTimer = Math.min(boss.attackTimer, WORLD_BOSS.attackInterval);
+      boss.attackInterval = this.cfg.attackInterval;
+      boss.attackTimer = Math.min(boss.attackTimer, this.cfg.attackInterval);
       boss.baseDamage = boss.damage;
-      boss.sizeMul = WORLD_BOSS.sizeMul;
+      boss.sizeMul = this.cfg.sizeMul;
       boss.wbPhase = 0;
     }
     boss.age = 0; // pas de rage du moteur : les phases font monter la pression
@@ -151,13 +128,13 @@ export class WorldBossFight {
       this.out.push({ type: 'awaken', layer: this.layer, time: this.time });
       this.lastSpecial = this.time;
     }
-    while (this.phase < WORLD_BOSS.phases.length && p.frac <= WORLD_BOSS.phases[this.phase].at) {
-      const ph = WORLD_BOSS.phases[this.phase];
+    while (this.phase < this.cfg.phases.length && p.frac <= this.cfg.phases[this.phase].at) {
+      const ph = this.cfg.phases[this.phase];
       this.phase += 1;
       this.applyPhase(boss);
       // Attaque spéciale : un grand coup sur le héros (jamais mortel seul : 1 PV au moins).
       const stats = this.world.heroStats;
-      const hit = stats.maxHp * ph.hit * (WORLD_BOSS.awaken ** this.layer);
+      const hit = stats.maxHp * ph.hit * (this.cfg.awaken ** this.layer);
       const hero = this.world.hero;
       if (!hero.dead) hero.hp = Math.max(1, hero.hp - hit);
       this.out.push({ type: 'phase', phase: this.phase, id: ph.id, name: ph.name, damage: hit, time: this.time, enemyId: boss.id });
@@ -169,25 +146,25 @@ export class WorldBossFight {
   // v9.3.0 : attaque propre du Colosse (jet de pierre, rayon des yeux) quand son heure est venue.
   ability(boss) {
     if (this.time < this.nextAbility) return;
-    if (this.time - this.lastSpecial < WORLD_BOSS.abilityGap) { this.nextAbility = this.lastSpecial + WORLD_BOSS.abilityGap; return; }
-    const ab = pickAbility(this.phase, this.abilityCount);
+    if (this.time - this.lastSpecial < this.cfg.abilityGap) { this.nextAbility = this.lastSpecial + this.cfg.abilityGap; return; }
+    const ab = pickAbility(this.phase, this.abilityCount, this.cfg);
     this.abilityCount += 1;
-    this.nextAbility = this.time + WORLD_BOSS.abilityEvery[Math.min(this.phase, WORLD_BOSS.abilityEvery.length - 1)];
+    this.nextAbility = this.time + this.cfg.abilityEvery[Math.min(this.phase, this.cfg.abilityEvery.length - 1)];
     this.lastSpecial = this.time;
-    const hit = this.world.heroStats.maxHp * ab.hit * (WORLD_BOSS.awaken ** this.layer) * (1 + 0.1 * this.phase);
+    const hit = this.world.heroStats.maxHp * ab.hit * (this.cfg.awaken ** this.layer) * (1 + 0.1 * this.phase);
     const hero = this.world.hero;
     if (!hero.dead) hero.hp = Math.max(1, hero.hp - hit);
     this.out.push({ type: 'ability', id: ab.id, name: ab.name, phase: this.phase, damage: hit, time: this.time, enemyId: boss.id });
   }
 
   applyPhase(boss) {
-    const ph = WORLD_BOSS.phases[this.phase - 1];
-    const awaken = WORLD_BOSS.awaken ** this.layer;
+    const ph = this.cfg.phases[this.phase - 1];
+    const awaken = this.cfg.awaken ** this.layer;
     boss.wbPhase = this.phase;
     boss.wbLayer = this.layer;
     boss.damage = boss.baseDamage * (ph?.power ?? 1) * awaken;
-    boss.attackInterval = WORLD_BOSS.attackInterval / (ph?.speed ?? 1);
-    boss.sizeMul = WORLD_BOSS.sizeMul + 0.15 * this.phase;
+    boss.attackInterval = this.cfg.attackInterval / (ph?.speed ?? 1);
+    boss.sizeMul = this.cfg.sizeMul + 0.15 * this.phase;
   }
 
   // Tout le combat d'un coup (« Passer », « Réduire les animations », mesure, tests).
@@ -198,14 +175,14 @@ export class WorldBossFight {
 
   result() {
     const cleared = this.maxHp ? this.run.damage / this.maxHp : 0;
-    const tiers = WORLD_BOSS.tiers.filter((t) => cleared >= t).length;
+    const tiers = this.cfg.tiers.filter((t) => cleared >= t).length;
     return { damage: Math.floor(this.run.damage), cleared, tiers, layer: this.layer, phase: this.phase, falls: this.run.falls, team: this.team };
   }
 }
 
 // v9.3.0 : attaque propre choisie (n-ième de la tentative) : alternance parmi celles permises à cette phase.
-export function pickAbility(phase, n) {
-  const ok = WORLD_BOSS.abilities.filter((a) => phase >= a.from);
+export function pickAbility(phase, n, cfg = WORLD_BOSS) {
+  const ok = cfg.abilities.filter((a) => phase >= a.from);
   return ok[n % ok.length];
 }
 

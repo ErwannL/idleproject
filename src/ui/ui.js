@@ -895,6 +895,10 @@ export class UI {
       case 'event-boss': // v9.2.9 : vrai combat animé (ui/world-boss.js)
         openWorldBoss(this.state, { start: () => a.eventBossStart(), finish: (setup, r) => a.eventBossFinish(setup, r), left: () => a.eventBossLeft(), closed: () => this.invalidate() });
         break;
+      case 'revenge': // v9.7.1 (lot 4) : face-à-face de fin de monde avec le Colosse (moteur des grands boss)
+        if (el.closest('#modal')) this.closeModal();
+        openWorldBoss(this.state, { start: () => a.revengeStart(), finish: (setup, r) => a.revengeFinish(setup, r), left: () => 0, closed: () => this.invalidate() });
+        break;
       case 'event-buy': a.eventBuy(value); break;
       case 'event-goal': a.eventGoal(value); break;
       case 'summon-odds': local(() => { v.summonOdds = v.summonOdds === value ? null : value; }); break; // v9.1.3 : « ? » d'un bassin

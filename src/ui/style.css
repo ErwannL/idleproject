@@ -3594,3 +3594,11 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 .lex:focus-visible { outline: 2px solid var(--gold, #e8b64a); outline-offset: 1px; }
 /* v9.7.1 (lot 5) : mode simple — l'essentiel d'abord ; détails et réglages avancés cachés (dépliables ailleurs). */
 #app.simple .rb-detail, #app.simple .summon-odds .muted, #app.simple .next-unlock.muted, #app.simple .bag-for, #app.simple .equip-for { display: none !important; }
+/* v9.7.1 (lot 4) : jauge Revanche et étoiles des mondes. */
+.rv-gauge { display: flex; align-items: center; gap: 8px; }
+.rv-dots { display: inline-flex; gap: 3px; }
+.rv-dot { width: 10px; height: 10px; border-radius: 50%; background: #2a2438; border: 1px solid #6a5a3a; display: inline-block; }
+.rv-dot.on { background: radial-gradient(circle at 35% 30%, #ffe9a8, #e8892a); border-color: #ffd23f; box-shadow: 0 0 4px #ffb03a; }
+.rv-card .row-between { margin-top: 6px; gap: 8px; }
+.rv-stars { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; font-size: 12px; }
+.rv-stars .star { color: #6a6a80; } .rv-stars .star.on { color: #ffd23f; }

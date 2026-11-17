@@ -17,7 +17,7 @@ let open = null; // tentative affichée (une seule à la fois)
 
 const pct = (x) => `${Math.max(0, Math.min(100, Math.round(x * 100)))} %`;
 
-function hudHtml() {
+function hudHtml(WORLD_BOSS) { // v9.7.1 (lot 7) : fiche du grand boss affronté
   const notches = WORLD_BOSS.phases.map((p) => `<i class="wb-notch" style="left:${p.at * 100}%"></i>`).join('');
   return `<div class="wb-hud">
       <div class="wb-head"><b class="wb-name">${escapeHtml(WORLD_BOSS.name)}</b><span class="wb-layer hidden"><span>Éveil</span> <b class="num"></b></span>
@@ -34,7 +34,17 @@ function hudHtml() {
     <div class="wb-end hidden" role="dialog" aria-modal="true"></div>`;
 }
 
-function endHtml(sum, left) {
+function endHtml(sum, left, WORLD_BOSS) {
+  // v9.7.1 (lot 4) : face-à-face de l'histoire (revanche) — un objectif, réussi ou non, la jauge Revanche.
+  if (sum.story) {
+    const dots = Array.from({ length: sum.steps }, (_, i) => `<i class="rv-dot${i < sum.level ? ' on' : ''}"></i>`).join('');
+    return `<div class="wb-end-card">
+      <div class="wb-end-title"><span>${sum.success ? 'Objectif atteint !' : 'Pas encore…'}</span></div>
+      <p>${escapeHtml(sum.text)}</p>
+      ${sum.gems ? `<div class="wb-end-coins">💎 <b class="num">+${sum.gems}</b> <span>gemmes</span></div>` : '<p class="muted">Améliore ton équipe et retente : rien n\'est perdu.</p>'}
+      <div class="rv-gauge"><span>Revanche</span><span class="rv-dots">${dots}</span></div>
+      <div class="wb-end-btns"><button class="btn btn-primary wb-close" type="button">Fermer</button></div></div>`;
+  }
   const tiers = WORLD_BOSS.tiers.map((t, i) => `<span class="wb-tier${i < sum.tiers ? ' on' : ''}"><b class="num">${pct(t)}</b>${i < sum.tiers ? ' ✓' : ''}</span>`).join('');
   return `<div class="wb-end-card">
       <div class="wb-end-title">${sum.record ? '<span class="wb-record">Nouveau record !</span>' : '<span>Tentative terminée</span>'}</div>
@@ -61,7 +71,7 @@ export function openWorldBoss(state, actions) {
   const fight = new WorldBossFight(state, short ? { ...setup, maxHp: setup.maxHp * window.__wbHpMul } : setup);
   const el = document.createElement('div');
   el.className = `wb-overlay${calm ? ' wb-calm' : ''}`;
-  el.innerHTML = `<canvas class="px wb-canvas" aria-label="World Boss"></canvas>${hudHtml()}`;
+  el.innerHTML = `<canvas class="px wb-canvas" aria-label="World Boss"></canvas>${hudHtml(fight.cfg)}`;
   document.body.appendChild(el);
   const canvas = el.querySelector('canvas');
   const scene = new WorldBossScene(canvas, fight, { calm });
@@ -125,7 +135,7 @@ export function openWorldBoss(state, actions) {
       return `<div class="wb-live-row"><span class="wb-live-name">${escapeHtml(unitName(id))}</span><i class="wb-live-bar"><i style="width:${(v / total) * 100}%"></i></i><b class="num">${formatNumber(v)}</b></div>`;
     }).join('');
     const cleared = fight.progress().cleared;
-    q('.wb-live-tiers').innerHTML = WORLD_BOSS.tiers.map((t) => `<span class="wb-tier${cleared >= t ? ' on' : ''}"><b class="num">${pct(t)}</b>${cleared >= t ? ' ✓' : ''}</span>`).join('');
+    q('.wb-live-tiers').innerHTML = fight.cfg.tiers.map((t) => `<span class="wb-tier${cleared >= t ? ' on' : ''}"><b class="num">${pct(t)}</b>${cleared >= t ? ' ✓' : ''}</span>`).join('');
   };
 
   const hud = (dt) => {
@@ -141,11 +151,11 @@ export function openWorldBoss(state, actions) {
     q('.wb-time b').textContent = String(Math.ceil(fight.timeLeft));
     q('.wb-time').classList.toggle('low', fight.timeLeft <= 10);
     q('.wb-dmg b').textContent = formatNumber(fight.damage);
-    q('.wb-phase b').textContent = `${fight.phase}/${WORLD_BOSS.phases.length}`;
+    q('.wb-phase b').textContent = `${fight.phase}/${fight.cfg.phases.length}`;
     el.dataset.phase = String(fight.phase);
     if (p.layer > 0) { q('.wb-layer').classList.remove('hidden'); q('.wb-layer b').textContent = `×${p.layer + 1}`; }
     if (fight.phase > ctx.shownPhase && fight.phase > 0) {
-      const ph = WORLD_BOSS.phases[fight.phase - 1];
+      const ph = fight.cfg.phases[fight.phase - 1];
       if (!calm) banner(`<small><span>Phase</span> <b class="num">${fight.phase}</b></small><b>${escapeHtml(ph.name)}</b>`, PHASE_COLORS[fight.phase]);
     }
     ctx.shownPhase = fight.phase;
@@ -177,7 +187,7 @@ export function openWorldBoss(state, actions) {
     hud(0);
     if (!sum) { close(); return; }
     const box = q('.wb-end');
-    box.innerHTML = endHtml(sum, actions.left());
+    box.innerHTML = endHtml(sum, actions.left(), fight.cfg);
     box.classList.remove('hidden');
     box.querySelector('.wb-close').addEventListener('click', close);
     box.querySelector('.wb-again')?.addEventListener('click', () => { close(); openWorldBoss(state, actions); });

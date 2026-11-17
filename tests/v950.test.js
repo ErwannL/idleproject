@@ -180,7 +180,9 @@ test('v9.6.5 : objectifs de session, coffre unique, paliers de puissance', async
   const s = createNewState(Date.now());
   s.sessionGoals = G.newSessionGoals(s);
   assert.equal(G.claimSessionChest(s), null);
-  s.maxStage += 3; s.records.kills += 150; s.records.bossesDefeated += 2;
+  // v9.7.1 (lot 4) : objectifs tirés d'une réserve variée — on remplit ceux qui sont tombés.
+  for (const g of s.sessionGoals.goals) { if (g.key === 'stages') s.maxStage += g.target; else s.records[g.key] = (s.records[g.key] ?? 0) + g.target; }
+  assert.ok(new Set(s.sessionGoals.goals.map((g) => g.key)).size === 3);
   const g0 = s.gems;
   assert.ok(G.claimSessionChest(s));
   assert.equal(s.gems - g0, G.SESSION_CHEST.gems);

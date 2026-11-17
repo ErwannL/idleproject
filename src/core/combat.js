@@ -1,6 +1,7 @@
 // Simulation du combat automatique, à pas fixe et sans dépendance au rendu.
 // `state` = données sauvegardées ; `world` = état transitoire du combat (positions, PV, minuteries).
 // La simulation émet des événements (world.events) que le rendu et l'interface consomment.
+import { noteDeath } from './world-stars.js'; // v9.7.1 (lot 4)
 import { BASIC_INTERVAL, BASIC_SHARE, basicKind } from '../data/ally-style.js'; // v9.7.1 (lot A)
 import { BALANCE, ESSENCE_SHARDS } from '../data/balance.js';
 import { maybeMutate, mutationDamageTaken, mutationOnHit, mutationTick, splitChildren } from './mutations.js';
@@ -869,6 +870,7 @@ function castCompanion(state, world, companion, skill, stats, rng, balance, enc,
 // en donjon, l'expédition s'arrête (les salles gagnées restent acquises).
 function heroDies(state, world, balance) {
   const hero = world.hero;
+  if (!state.dungeon && !state.tower && !state.challenge && !state.worldRun && !state.worldBossRun) noteDeath(state, zoneIndexForStage(state.stage, balance)); // v9.7.1 (lot 4) : étoile « sans mourir »
   const from = state.stage;
   hero.dead = true;
   hero.hp = 0;

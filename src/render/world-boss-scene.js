@@ -12,40 +12,15 @@ import { BALANCE } from '../data/balance.js';
 import { formatNumber } from '../core/format.js';
 import { vfx, drawVfxFrame } from './vfx.js';
 import { WORLD_BOSS } from '../core/world-boss.js';
+import { GRAND_BOSSES, grandBoss } from '../data/grand-bosses.js'; // v9.7.1 (lot 7)
 
 // Décalage à l'écran du boss géant (unités du monde de la simulation).
 const BOSS_OFFSET = 34;
 
-// Animations du Colosse : bandes horizontales d'images 128×128 (première et dernière identiques pour les boucles).
-const FRAME = 128;
-const FOOT = 122; // ligne des pieds dans l'image source
-export const COLOSSUS_ANIMS = {
-  idle: { n: 8, fps: 7, loop: true }, idle3: { n: 8, fps: 9, loop: true },
-  attack: { n: 9, fps: 16 }, attack3: { n: 9, fps: 18 }, hurt: { n: 9, fps: 18 },
-  hurt3: { n: 9, fps: 18 }, // v9.3.0 : coup reçu de la forme de lave (phase 3)
- 
-  quake: { n: 9, fps: 11 }, embers: { n: 9, fps: 11 }, fury: { n: 9, fps: 12 },
-  transform: { n: 13, fps: 12 }, death: { n: 13, fps: 10 }, rise: { n: 13, fps: 14, src: 'death', reverse: true },
-  // v9.3.0 : jet de pierre (il arrache un rocher, le lève, le lance) et rayon des yeux (charge, faisceau, retour).
-  // `durs` : durée de chaque image (s) ; `release` : image où le rocher quitte la main ; `charge` / `fire` : images
-  // de la charge lumineuse et du faisceau.
-  throw: { n: 13, durs: [0.07, 0.07, 0.08, 0.09, 0.12, 0.12, 0.1, 0.1, 0.24, 0.1, 0.1, 0.08, 0.08], release: 9 },
-  throw3: { n: 13, durs: [0.07, 0.07, 0.08, 0.09, 0.12, 0.12, 0.1, 0.1, 0.24, 0.1, 0.1, 0.08, 0.08], release: 9 },
-  beam: { n: 13, durs: [0.08, 0.08, 0.08, 0.22, 0.26, 0.1, 0.32, 0.32, 0.32, 0.1, 0.08, 0.08, 0.08], charge: [3, 4], fire: [5, 8] },
-  beam3: { n: 13, durs: [0.08, 0.08, 0.08, 0.22, 0.26, 0.1, 0.32, 0.32, 0.32, 0.1, 0.08, 0.08, 0.08], charge: [3, 4], fire: [5, 8] },
-};
-
-// v9.3.0 : position des deux yeux (pixels de l'image source 128×128 : œil avant x, y, œil arrière x, y) sur CHAQUE
-// image des animations du rayon, relevée image par image (gabarit du visage cherché dans chaque image générée, comme
-// la gueule des dragons) : le faisceau part exactement des yeux, même quand la tête plonge.
-export const COLOSSUS_EYES = {
-  beam: [[34, 39, 44, 38], [34, 39, 44, 38], [33, 39, 43, 38], [32, 40, 42, 39], [31, 41, 41, 40], [31, 42, 41, 41], [31, 42, 41, 41], [31, 42, 41, 41], [31, 42, 41, 41], [32, 41, 42, 40], [33, 40, 43, 39], [34, 39, 44, 38], [34, 39, 44, 38]],
-  beam3: [[33, 45, 42, 45], [33, 45, 42, 45], [33, 45, 42, 45], [30, 48, 39, 48], [28, 50, 37, 50], [27, 51, 36, 51], [27, 51, 36, 51], [27, 51, 36, 51], [27, 51, 36, 51], [29, 49, 38, 49], [31, 47, 40, 47], [33, 45, 42, 45], [33, 45, 42, 45]],
-};
-// Point où le rocher quitte la main (image `release` du jet de pierre), pixels de l'image source.
-const THROW_HAND = { throw: [16, 34], throw3: [18, 44] };
-// Couleurs du faisceau : halo, corps, cœur (phase 3 : la forme de lave a des yeux de braise).
-const BEAM_COLORS = { beam: ['#2fd8ff', '#8ff8ff', '#ffffff'], beam3: ['#ff5a1f', '#ffb04a', '#fff3c8'] };
+// v9.7.1 (lot 7) : planches, ancrages (yeux, main) et couleurs du rayon lus dans la fiche du grand boss
+// (data/grand-bosses.js) : un nouveau Titan ne demande aucune modification de cette scène.
+export const COLOSSUS_ANIMS = GRAND_BOSSES.colossus.art.anims;
+export const COLOSSUS_EYES = GRAND_BOSSES.colossus.art.eyes;
 
 // Image d'une animation à l'instant t (s) : durées par image (`durs`) ou cadence fixe (`fps`). -1 : terminée.
 export function animFrameAt(a, t) {
@@ -56,13 +31,14 @@ export function animFrameAt(a, t) {
 }
 export const animLength = (a) => (a.durs ? a.durs.reduce((x, y) => x + y, 0) : a.n / a.fps);
 const IMAGES = {};
-function sheet(name) {
+function sheet(art, name) {
   if (typeof Image === 'undefined') return null;
-  if (!IMAGES[name]) { const im = new Image(); im.src = `assets/world-boss/colossus_${name}.png`; IMAGES[name] = im; }
-  const im = IMAGES[name];
+  const url = `${art.dir}/${art.prefix}${name}.png`;
+  if (!IMAGES[url]) { const im = new Image(); im.src = url; IMAGES[url] = im; }
+  const im = IMAGES[url];
   return im.complete && im.naturalWidth ? im : null;
 }
-export function preloadColossus() { for (const [k, a] of Object.entries(COLOSSUS_ANIMS)) sheet(a.src ?? k); }
+export function preloadColossus(art = GRAND_BOSSES.colossus.art) { for (const [k, a] of Object.entries(art.anims)) sheet(art, a.src ?? k); }
 
 // Couleurs de l'aura selon la phase (0 = avant la première phase).
 export const PHASE_COLORS = ['#ffb347', '#ff8a3d', '#ff5a3d', '#ff2a4a'];
@@ -81,7 +57,8 @@ export class WorldBossScene {
     this.anim = null; // animation ponctuelle en cours : { name, t, then }
     this.hurtAt = -9;
     this.appear = 0;
-    preloadColossus();
+    this.art = grandBoss(fight.bossId).art; // v9.7.1 (lot 7) : fiche du grand boss
+    preloadColossus(this.art);
     // Le boss du moteur n'est pas dessiné par le renderer : le Colosse prend sa place dans le même calque.
     const draw = this.r.drawEnemies.bind(this.r);
     this.r.drawEnemies = (ctx, world, dt) => {
@@ -122,7 +99,7 @@ export class WorldBossScene {
     let name = phase3 ? 'idle3' : 'idle';
     let i = 0;
     if (this.anim) {
-      const a = COLOSSUS_ANIMS[this.anim.name];
+      const a = this.art.anims[this.anim.name];
       this.anim.t += dt;
       const k = animFrameAt(a, this.anim.t);
       if (k < 0) {
@@ -132,16 +109,16 @@ export class WorldBossScene {
       } else { name = this.anim.name; i = a.reverse ? a.n - 1 - k : k; }
     }
     if (!this.anim || name === 'idle' || name === 'idle3') {
-      const a = COLOSSUS_ANIMS[name];
+      const a = this.art.anims[name];
       i = r.focus ? 0 : Math.floor(r.time * a.fps) % a.n;
     }
-    const a = COLOSSUS_ANIMS[name];
-    const im = sheet(a.src ?? name);
+    const a = this.art.anims[name];
+    const im = sheet(this.art, a.src ?? name);
     const k = this.scale;
-    const w = FRAME * k;
+    const w = this.art.frame * k;
     const cx = r.wx(boss.x) + 14;
     const x = Math.round(cx - w / 2);
-    const y = Math.round(r.groundY + 1 - FOOT * k);
+    const y = Math.round(r.groundY + 1 - this.art.foot * k);
     // Ombre au sol, puis le Colosse (pieds sur la ligne du sol).
     ctx.save();
     ctx.globalAlpha = 0.35 * this.appear;
@@ -150,7 +127,9 @@ export class WorldBossScene {
     ctx.ellipse(cx, r.groundY + 1, 44 * k, 6 * k, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.globalAlpha = this.appear;
-    if (im) ctx.drawImage(im, i * FRAME, 0, FRAME, FRAME, x, y, w, w);
+    if (this.art.filter) ctx.filter = this.art.filter; // teinte d'une fiche (boss d'essai)
+    if (im) ctx.drawImage(im, i * this.art.frame, 0, this.art.frame, this.art.frame, x, y, w, w);
+    ctx.filter = 'none';
     ctx.restore();
     // v9.3.0 : image dessinée (pour caler le rocher et le faisceau sur la main et les yeux), déclencheurs des attaques.
     this.drawn = { name, i, x, y, k };
@@ -169,7 +148,7 @@ export class WorldBossScene {
   // Yeux sur l'image dessinée (animations du rayon seulement).
   eyes() {
     const d = this.drawn;
-    const e = d && COLOSSUS_EYES[d.name]?.[d.i];
+    const e = d && this.art.eyes[d.name]?.[d.i];
     return e ? [this.at(e[0] + 0.5, e[1] + 0.5), this.at(e[2] + 0.5, e[3] + 0.5)] : null;
   }
 
@@ -189,11 +168,11 @@ export class WorldBossScene {
 
   // Images clés des attaques propres : le rocher quitte la main, le faisceau s'allume.
   attackStep(name, i) {
-    const a = COLOSSUS_ANIMS[name];
+    const a = this.art.anims[name];
     const an = this.anim;
     if (a.release !== undefined && i >= a.release && !an.fired) {
       an.fired = true;
-      const [hx, hy] = this.at(...THROW_HAND[name]);
+      const [hx, hy] = this.at(...this.art.hands[name]);
       const tx = this.heroX() - 14;
       this.attacks.push({ kind: 'boulder', ev: an.ev, x0: hx, y0: hy, x1: tx, y1: this.r.groundY - 6, t: 0, dur: 0.62, arc: 70 + Math.max(0, hy - this.r.groundY + 90) * 0.2, fire: name === 'throw3' });
     }
@@ -209,7 +188,7 @@ export class WorldBossScene {
     const r = this.r;
     const d = this.drawn;
     // Charge lumineuse dans les yeux (avant le faisceau) : lueur posée sur chaque œil, image par image.
-    const ca = d && COLOSSUS_ANIMS[d.name]?.charge;
+    const ca = d && this.art.anims[d.name]?.charge;
     if (ca && this.anim?.name === d.name && d.i >= ca[0] - 1 && d.i <= ca[1] + 1) {
       const e = this.eyes();
       const p = Math.min(1, Math.max(0.2, (this.anim.t - 0.2) / 0.5));
@@ -219,8 +198,8 @@ export class WorldBossScene {
       ctx.globalCompositeOperation = 'lighter';
       for (const [ex, ey] of e) {
         const g = ctx.createRadialGradient(ex, ey, 0, ex, ey, 6 + p * 8);
-        g.addColorStop(0, BEAM_COLORS[d.name][2]);
-        g.addColorStop(0.4, BEAM_COLORS[d.name][0]);
+        g.addColorStop(0, this.art.beamColors[d.name][2]);
+        g.addColorStop(0.4, this.art.beamColors[d.name][0]);
         g.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = g;
         ctx.globalAlpha = 0.5 + 0.4 * p;
@@ -282,7 +261,7 @@ export class WorldBossScene {
     const to = heroX - 70;
     const tx = from + (to - from) * u;
     const ty = r.groundY - 2;
-    const [c0, c1, c2] = BEAM_COLORS[at.name];
+    const [c0, c1, c2] = this.art.beamColors[at.name];
     const fade = Math.min(1, at.t * 10, (at.dur - at.t) * 8);
     const wob = 1 + 0.25 * Math.sin(r.time * 60);
     const mx = (e[0][0] + e[1][0]) / 2, my = (e[0][1] + e[1][1]) / 2;

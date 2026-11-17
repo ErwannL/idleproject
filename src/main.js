@@ -2,6 +2,8 @@ import { sendMetrics } from './core/metrics.js';
 // Point d'entrée : charge la partie, applique les gains hors ligne, puis fait tourner
 // la simulation (minuterie, continue même fenêtre réduite) et le rendu (requestAnimationFrame,
 // suspendu automatiquement quand la fenêtre est masquée).
+import { updateStars, worldStars } from './core/world-stars.js'; // v9.7.1 (lot 4)
+import { finishRevenge, startRevenge } from './core/revenge.js'; // v9.7.1 (lot 4)
 import { advanceUnlocks } from './core/unlock-quests.js'; // v9.7.1 (lot 3)
 import { playerCast, playerGuard, playerUltimate, playerWeakSpot } from './core/combat.js'; // v9.7.1 (lot 2)
 import { grantBlessing } from './core/blessing.js'; // v9.7.1 (prologue)
@@ -1021,6 +1023,9 @@ const actions = {
     if (!r) return;
     done(true, `Coffre de session : +${r.gems} gemmes, +${r.shards} éclats`, '#ffd54a');
   },
+  // v9.7.1 (lot 4) : revanche — face-à-face de fin de monde avec le Colosse.
+  revengeStart() { return startRevenge(state); },
+  revengeFinish(setup, result) { const sum = finishRevenge(state, setup, result); save(); ui.invalidate(); return sum; },
   // v9.7.1 (lot 2) : actions du joueur en combat (compétence, ultime, parade, point faible) ; aucune n'est obligatoire.
   castSkillNow(id) { playerCast(world, id); },
   castUltNow(id) { playerUltimate(world, id); },
@@ -1509,10 +1514,23 @@ if (state.migrationRefund) {
   save();
   setTimeout(() => ui.showRebalanceNotice(refund), 1500);
 }
+// v9.7.1 (lot 4) : moments forts — une courte scène (cinématique) et un écran de récompense, une seule fois chacun.
+function highlight(id, title, line) {
+  const seen = state.ui.hints ?? [];
+  if (seen.includes(`hl-${id}`)) return;
+  state.ui.hints = [...seen, `hl-${id}`].slice(-150);
+  state.gems += 25;
+  playCinematic({ kicker: 'Moment fort', title, line });
+  setTimeout(() => ui.toast(`${title} +25 gemmes`, '#ffd23f'), 2400);
+  save();
+}
 // v9.7.1 (lot 3) : partie neuve → systèmes ouverts par mini-quêtes (une ancienne partie garde tout ce qui était ouvert).
 if (loaded.source === 'new' && !state.unlocks) { state.unlocks = { done: [], base: { ...state.records } }; state.ui.simple = true; } // v9.7.1 : mode simple par défaut
 ui.root.classList.toggle('simple', state.ui.simple === true);
 setInterval(() => {
+  // v9.7.1 (lot 4) : étoiles des mondes terminés, moments forts (premier monde, premier Légendaire, première Renaissance).
+  for (const w of updateStars(state)) highlight(`world-${w}`, `Monde ${w + 1} terminé !`, `${worldStars(state, w).filter(Boolean).length} étoile(s) sur 3. Le Colosse t'attend pour un face-à-face.`);
+  if (state.records.rebirths > 0) highlight('first-rebirth', 'Première Renaissance !', 'Tu repars plus fort : tes compagnons, tes talents et tes ensembles restent.');
   const q = advanceUnlocks(state);
   if (!q) return;
   ui.celebrate?.(`unlock-${q.id}`, 'Nouveau !', q.label);
@@ -1678,6 +1696,7 @@ function frame(ts) {
     if (simSpeed(state) < 100) renderer.handleEvent(event, world);
     if (event.type === 'kill' && simSpeed(state) < 10) killCoinsFx(event); // v9.3.9 (2.3) : pièces vers le compteur d'or
     ui.handleEvent(event, state);
+    if (event.type === 'drop' && event.item?.rarity === 'legendary') highlight('first-legendary', 'Premier Légendaire !', event.item.name); // v9.7.1 (lot 4)
     if (event.type === 'drop') for (const j of journals()) noteDrop(j, event);
     if (RETURN_EVENTS.has(event.type)) backToCampaign();
     sound.handleEvent(event);
