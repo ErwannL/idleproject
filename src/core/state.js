@@ -356,6 +356,8 @@ function cleanActivities(state, raw) {
   state.heroClass = sanitizeHeroClass(raw.heroClass);
   if (Number.isFinite(raw.rebirthPower) && raw.rebirthPower >= 0) state.rebirthPower = raw.rebirthPower; // v9.0.6
   state.playSeconds = Math.max(0, Number(raw.playSeconds) || 0);
+  // v9.7.1 (lot 6) : 3 compétences actives choisies.
+  if (Array.isArray(raw.skillLoadout)) state.skillLoadout = raw.skillLoadout.filter((x) => typeof x === 'string' && x.length < 24).slice(0, 3);
   // v9.7.1 (lot 4) : étoiles des mondes et morts par monde.
   if (raw.stars && typeof raw.stars === 'object') for (const [w, v] of Object.entries(raw.stars)) if (Array.isArray(v) && Number(w) >= 0 && Number(w) < 12) (state.stars ??= {})[w] = [0, 1, 2].map((i) => v[i] === true);
   if (raw.worldDeaths && typeof raw.worldDeaths === 'object') state.worldDeaths = Object.fromEntries(Object.entries(raw.worldDeaths).filter(([w, n]) => Number(w) >= 0 && Number(w) < 12 && Number.isInteger(n)));

@@ -1,5 +1,5 @@
 // Compétences actives : apprentissage avec les points de niveau, valeur et recharge.
-import { SKILLS } from '../data/skills.js';
+import { LOADOUT_SIZE, SKILLS } from '../data/skills.js';
 
 export function skillById(id) {
   return SKILLS.find((s) => s.id === id);
@@ -41,8 +41,24 @@ export function learnSkill(state, id) {
 }
 
 // Compétences prêtes à être lancées automatiquement.
+// v9.7.1 (lot 6) : compétences de la classe du héros (communes + propres), et les 3 actives choisies (sinon les
+// trois premières apprises).
+export function classSkills(state) {
+  const cls = state.heroClass ?? 'knight';
+  return SKILLS.filter((s) => !s.cls || s.cls === cls);
+}
 export function activeSkills(state) {
-  return SKILLS.filter((s) => (state.skills[s.id] ?? 0) > 0 && state.level >= s.unlockLevel);
+  const learned = classSkills(state).filter((s) => (state.skills[s.id] ?? 0) > 0 && state.level >= s.unlockLevel);
+  const pick = Array.isArray(state.skillLoadout) ? learned.filter((s) => state.skillLoadout.includes(s.id)) : [];
+  return (pick.length ? pick : learned).slice(0, LOADOUT_SIZE);
+}
+export function toggleLoadout(state, id) {
+  const learned = classSkills(state).filter((s) => (state.skills[s.id] ?? 0) > 0).map((s) => s.id);
+  if (!learned.includes(id)) return false;
+  let cur = (Array.isArray(state.skillLoadout) ? state.skillLoadout : activeSkills(state).map((s) => s.id)).filter((x) => learned.includes(x));
+  cur = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id].slice(-LOADOUT_SIZE);
+  state.skillLoadout = cur;
+  return true;
 }
 
 // « Répartir mes points » (v9.1.0) : répartition équilibrée entre les compétences déjà apprises — chaque point va à

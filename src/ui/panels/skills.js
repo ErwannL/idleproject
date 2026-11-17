@@ -1,6 +1,7 @@
 // Compétences (v9.0.6, façon Tap Titans ; v9.1.0) : points restants et « Répartir mes points » d'abord, puis deux
 // listes — Compétences (apprises avec les points, lancées automatiquement) et Boosts (améliorés avec l'or, lancés
 // d'un clic ou de Q W E R T, ou en auto). La recharge et le détail de chaque ligne sont dans « Détails ».
+import { activeSkills, classSkills } from '../../core/skills.js'; // v9.7.1 (lot 6)
 import { SKILLS } from '../../data/skills.js';
 import { RUSHES, RUSH_RULES } from '../../data/rushes.js';
 import { skillCooldown, skillPointCost, skillPointsAvailable, skillValue } from '../../core/skills.js';
@@ -14,7 +15,7 @@ const time = (s) => (s >= 60 ? `${Math.ceil(s / 60)} min` : `${Math.ceil(s)} s`)
 function skillRows(state, compact, details) {
   const points = skillPointsAvailable(state);
   const bonus = computeHeroStats(state).bonus;
-  return SKILLS.map((skill) => {
+  return classSkills(state).map((skill) => { // v9.7.1 (lot 6) : compétences de la classe
     const level = state.skills[skill.id] ?? 0;
     const locked = state.level < skill.unlockLevel;
     const maxed = level >= skill.maxLevel;
@@ -65,7 +66,7 @@ function rushRows(state, compact, details) {
 // niveau et « + » ; une fenêtre d'une phrase pour la case choisie (effet, recharge, Utiliser) ; un seul Auto.
 export function skillGridCells(state) {
   const points = skillPointsAvailable(state);
-  const skills = SKILLS.map((skill) => {
+  const skills = classSkills(state).map((skill) => { // v9.7.1 (lot 6)
     const level = state.skills[skill.id] ?? 0;
     const locked = state.level < skill.unlockLevel;
     const maxed = level >= skill.maxLevel;
@@ -123,7 +124,7 @@ function gridView(ui, state) {
 
 // v9.3.4 : deux sections nommées — Attaques (payées en points, lancées seules) et Boosts (payés en or, à utiliser) ;
 // nom sous chaque icône, badge « Nv X », cadenas si bloqué, bulle courte au toucher, un seul gros bouton.
-const SKILL_SHORT = { quick: 'Coup rapide sur un ennemi', whirl: 'Frappe tous les ennemis', cry: "Plus de dégâts un moment", holy: 'Gros coup qui soigne' };
+const SKILL_SHORT = { /* v9.7.1 : compétences de classe : leur nom suffit */ quick: 'Coup rapide sur un ennemi', whirl: 'Frappe tous les ennemis', cry: "Plus de dégâts un moment", holy: 'Gros coup qui soigne' };
 function cellV2(c, sel) {
   return `<button class="sk2-cell${c.locked ? ' locked' : ''}${sel ? ' sel' : ''}" data-action="skill-sel" data-value="${c.kind}:${c.id}" aria-pressed="${sel}">
     <span class="sk2-ic">${img(c.icon)}${c.locked ? `<i class="sk2-lock">${img('icon_lock')}</i>` : `<i class="sk2-lv">Nv ${c.level}</i>`}
@@ -138,6 +139,8 @@ function bubbleV2(state, c) {
     short = SKILL_SHORT[skill.id] ?? skill.name;
     detail = `${skill.text(formatDecimal(skillValue(skill, Math.max(1, c.level))))}, toutes les ${formatDecimal(skillCooldown(skill, bonus))} s.`;
     if (c.plus) main = `<button class="btn btn-gold sk2-up" data-action="learn-skill" data-key="${c.id}" ${c.plus.can ? '' : 'disabled'}>${c.level === 0 ? 'Apprendre' : 'Améliorer'} · ${c.plus.price}</button>`;
+    // v9.7.1 (lot 6) : 3 compétences actives parmi celles apprises (les 3 boutons sous la scène).
+    if (c.level > 0) { const on = activeSkills(state).some((x) => x.id === c.id); use = `<button class="btn${on ? ' active' : ''}" data-action="skill-loadout" data-key="${c.id}" aria-pressed="${on}">${on ? '✓ Active' : 'Rendre active'} (3 au plus)</button>`; }
   } else {
     const rush = RUSHES.find((x) => x.id === c.id);
     short = rush.id === 'phantom' ? 'Coups fantômes en plus' : `${effectText(rushEffect(state, rush))}`;

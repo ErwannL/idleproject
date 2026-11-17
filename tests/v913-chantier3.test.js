@@ -89,11 +89,12 @@ test('v9.3.4 : compétences du héros en deux sections (Attaques en points, Boos
   const s = createNewState(NOW);
   s.level = 30;
   const cells = skills.skillGridCells(s);
-  assert.equal(cells.length, 9);
-  assert.equal(cells.filter((c) => c.kind === 's').length, 4);
+  // v9.7.1 (lot 6) : 6 compétences par classe (4 communes + 2 de la classe) et 5 boosts.
+  assert.equal(cells.length, 11);
+  assert.equal(cells.filter((c) => c.kind === 's').length, 6);
   const html = skills.default.render(uiWith({ skillSel: 's:quick' }), s);
   assert.ok(html.includes('>Attaques<') && html.includes('>Boosts<'));
-  assert.equal((html.match(/class="sk2-cell/g) ?? []).length, 9);
+  assert.equal((html.match(/class="sk2-cell/g) ?? []).length, 11);
   assert.ok(html.includes('class="sk2-name">Frappe rapide') && /Nv \d/.test(html));
   assert.match(html, /class="sk2-bubble">.*Frappe rapide/s);
   assert.equal((html.match(/btn btn-gold sk2-up/g) ?? []).length, 1, 'un seul gros bouton');

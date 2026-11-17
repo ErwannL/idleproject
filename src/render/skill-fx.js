@@ -4,6 +4,7 @@
 // fait descendre un rayon de lumière et des plumes, puis une aura sur l'équipe ; etc.
 // « Réduire les animations » (scene.focus) : le geste reste, l'effet devient sobre (un halo et un éclat à sa couleur).
 // Tout est dessiné en pixels de jeu (fillRect sur des coordonnées entières) pour rester dans le style du jeu.
+import { SKILLS } from '../data/skills.js'; // v9.7.1 (lot 6)
 import { HERO_SKILL_MOTIFS, SKILL_ANIM_ART, SKILL_ANIM_PALS, SKILL_ANIMS, UNIT_SKILL_MOTIFS } from './art-anim-skills.js';
 import { SPRITES, expandRow } from './sprites.js';
 import { vfx } from './vfx.js'; // v9.2.6
@@ -24,6 +25,12 @@ for (const anims of Object.values(SKILL_ANIMS)) {
   }
 }
 
+// v9.7.1 (lot 6) : compétences de classe — geste et effet repris par type (et sorts dédiés : météore, volée).
+for (const sk of SKILLS) {
+  if (!sk.cls || HERO_SKILL_MOTIFS[sk.id]) continue;
+  const own = sk.cls === 'pyromancer' && sk.type === 'aoe' ? 'meteor' : sk.cls === 'archer' && sk.type === 'aoe' ? 'volley' : null;
+  HERO_SKILL_MOTIFS[sk.id] = HERO_SKILL_MOTIFS[own ?? { hit: 'quick', aoe: 'whirl', buff: 'cry', holy: 'holy' }[sk.type]];
+}
 export { HERO_SKILL_MOTIFS, SKILL_ANIMS, UNIT_SKILL_MOTIFS };
 
 // Instant du geste où l'effet part (fraction de sa durée) : bras levés, mains jointes, bâton planté…

@@ -2,6 +2,8 @@ import { sendMetrics } from './core/metrics.js';
 // Point d'entrée : charge la partie, applique les gains hors ligne, puis fait tourner
 // la simulation (minuterie, continue même fenêtre réduite) et le rendu (requestAnimationFrame,
 // suspendu automatiquement quand la fenêtre est masquée).
+import { toggleLoadout } from './core/skills.js'; // v9.7.1 (lot 6)
+import { activeBonds } from './data/bonds.js'; // v9.7.1 (lot 6)
 import { updateStars, worldStars } from './core/world-stars.js'; // v9.7.1 (lot 4)
 import { finishRevenge, startRevenge } from './core/revenge.js'; // v9.7.1 (lot 4)
 import { advanceUnlocks } from './core/unlock-quests.js'; // v9.7.1 (lot 3)
@@ -995,6 +997,7 @@ const actions = {
   setCinematics(on) { state.ui.cinematics = on; done(true); },
   setShake(on) { state.ui.shake = on; done(true); }, // v9.3.9
   // v9.7.1 : taille des personnages (Auto / Petit / Moyen / Grand) : recadre la scène tout de suite.
+  toggleLoadout(id) { if (toggleLoadout(state, id)) done(true); }, // v9.7.1 (lot 6) : 3 compétences actives
   setSimple(on) { state.ui.simple = on; ui.root.classList.toggle('simple', on); done(true); }, // v9.7.1 (lot 5)
   setCombatAssist(v) { state.ui.combatAssist = ['full', 'manual'].includes(v) ? v : 'mixed'; done(true); }, // v9.7.1 (lot 2)
   setSkillNames(on) { state.ui.skillNames = on; SceneRenderer.skillNames = on; done(true); }, // v9.7.1 (lot A)
@@ -1524,6 +1527,14 @@ function highlight(id, title, line) {
   setTimeout(() => ui.toast(`${title} +25 gemmes`, '#ffd23f'), 2400);
   save();
 }
+// v9.7.1 (lot 6) : premier jeu ensemble de deux compagnons liés — courte scène (deux répliques), une seule fois.
+function highlightBond(b) {
+  const seen = state.ui.hints ?? [];
+  if (seen.includes(`bond-${b.id}`)) return;
+  state.ui.hints = [...seen, `bond-${b.id}`].slice(-150);
+  playCinematic({ kicker: 'Lien', title: b.name, line: b.scene.join('  ') });
+  save();
+}
 // v9.7.1 (lot 3) : partie neuve → systèmes ouverts par mini-quêtes (une ancienne partie garde tout ce qui était ouvert).
 if (loaded.source === 'new' && !state.unlocks) { state.unlocks = { done: [], base: { ...state.records } }; state.ui.simple = true; } // v9.7.1 : mode simple par défaut
 ui.root.classList.toggle('simple', state.ui.simple === true);
@@ -1531,6 +1542,7 @@ setInterval(() => {
   // v9.7.1 (lot 4) : étoiles des mondes terminés, moments forts (premier monde, premier Légendaire, première Renaissance).
   for (const w of updateStars(state)) highlight(`world-${w}`, `Monde ${w + 1} terminé !`, `${worldStars(state, w).filter(Boolean).length} étoile(s) sur 3. Le Colosse t'attend pour un face-à-face.`);
   if (state.records.rebirths > 0) highlight('first-rebirth', 'Première Renaissance !', 'Tu repars plus fort : tes compagnons, tes talents et tes ensembles restent.');
+  for (const b of activeBonds(state)) highlightBond(b); // v9.7.1 (lot 6) : liens entre compagnons
   const q = advanceUnlocks(state);
   if (!q) return;
   ui.celebrate?.(`unlock-${q.id}`, 'Nouveau !', q.label);

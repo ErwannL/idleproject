@@ -1,5 +1,6 @@
 // Équipe > Composition : le héros + 2 compagnons + 1 familier ; collection, niveaux, capacités.
 // v9.1.0 : expéditions dans leur propre onglet, builds dans Équipement, synergies repliées (actives visibles).
+import { BONDS } from '../../data/bonds.js'; // v9.7.1 (lot 6)
 import { BALANCE } from '../../data/balance.js';
 import { COMPANION_RULES } from '../../data/companions.js';
 import { UNITS as COMPANIONS } from '../../data/banners.js'; // v9.1.3 (partie B) : persos de bannière compris quand actifs
@@ -258,7 +259,11 @@ export default {
     const wheel = `<div class="team-wheel">Monde : ${elementBadge(zoneElement(currentEncounter(state).zoneIndex))} ${elementWheel(zoneElement(currentEncounter(state).zoneIndex))}${resLine}</div>`; // v9.5.1
     // v9.7.1 : résonance, équipe conseillée et synergies dans un volet replié « Conseils » ; restent en vue les places
     // d'équipe et la grille. Le bouton « Placer cette équipe » garde un rappel discret sur le titre.
-    const tips = () => `${wheel}${advise}
+    // v9.7.1 (lot 6) : liens entre compagnons (actifs et à découvrir).
+    const bondsHtml = BONDS.map((b) => { const on = b.pair.every((id) => state.companions.equipped.includes(id)); const names = b.pair.map((id) => companionById(id)?.name ?? id).join(' + ');
+      const bonus = Object.entries(b.bonus).map(([k, v]) => `+${v} % ${{ companionPowerPct: 'puissance des compagnons', damagePct: 'dégâts', maxHpPct: 'PV', critChance: 'critique' }[k] ?? k}`).join(', ');
+      return `<div class="${on ? 'good' : 'muted'}">${on ? '✓' : '·'} <b>${escapeHtml(b.name)}</b> : ${escapeHtml(names)} — ${bonus}</div>`; }).join('');
+    const tips = () => `${wheel}${advise}<div class="card"><b>Liens</b>${bondsHtml}</div>
       ${nearHtml ? `<div class="card syn-near-card"><b>Synergies à portée</b>${nearHtml}</div>` : ''}
       ${fold(ui, 'synergies', synTitle, synergies)}`;
     const tipsExtra = adv && !adv.same && adv.gain >= 0.03 ? `<span class="good">+${Math.round(adv.gain * 100)} % possible</span>` : '';

@@ -810,6 +810,7 @@ export class UI {
       case 'advance': a.advance(); break;
       case 'toggle-auto': a.setAutoAdvance(!this.state.autoAdvance); break;
       case 'learn-skill': a.learnSkill(key); break;
+      case 'skill-loadout': a.toggleLoadout?.(key); break; // v9.7.1 (lot 6)
       case 'hero-sel': local(() => { v.heroSel = value; }); break;
       case 'set-hero': a.setHero(value); break;
       case 'companion-sel': local(() => { v.companionSel = value; v.sheetOpen = 'companion'; v.skillPop = null; v.unitTab = 'skills'; v.unitShow = null; }); break;
