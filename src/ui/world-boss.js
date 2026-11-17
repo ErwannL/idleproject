@@ -68,6 +68,7 @@ export function openWorldBoss(state, actions) {
   const q = (s) => el.querySelector(s);
   const ctx = { el, fight, scene, setup, raf: 0, acc: 0, last: 0, ended: false, shownPhase: 0, shownLayer: 0, lag: 1, bannerT: 0 };
   open = ctx;
+  if (typeof navigator !== 'undefined' && navigator.webdriver) window.__wbScene = scene; // v9.7.1 : captures de contrôle (tests)
 
   // Paysage : la scène remplit l'écran. Portrait (téléphone) : la scène du téléphone ne montrerait que 160 à 215 px
   // logiques de large (le boss géant hors champ) ; elle est donc rendue comme sur PC (300 px logiques, zoom ×3) puis

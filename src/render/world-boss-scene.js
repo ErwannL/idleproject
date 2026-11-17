@@ -270,7 +270,7 @@ export class WorldBossScene {
     }
   }
 
-  // Faisceau des yeux : deux rayons partis des yeux (image dessinée) qui convergent au sol et balaient l'équipe,
+  // Faisceau des yeux : un seul rayon parti du milieu des yeux (v9.7.1), qui touche le sol et balaient l'équipe,
   // d'au-devant du héros jusque derrière le dernier compagnon ; brûlure au sol, éclats, secousse continue.
   drawBeam(ctx, at, dt) {
     const r = this.r;
@@ -285,6 +285,7 @@ export class WorldBossScene {
     const [c0, c1, c2] = BEAM_COLORS[at.name];
     const fade = Math.min(1, at.t * 10, (at.dur - at.t) * 8);
     const wob = 1 + 0.25 * Math.sin(r.time * 60);
+    const mx = (e[0][0] + e[1][0]) / 2, my = (e[0][1] + e[1][1]) / 2;
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
     ctx.lineCap = 'round';
@@ -293,7 +294,8 @@ export class WorldBossScene {
       ctx.globalAlpha = al * fade;
       ctx.lineWidth = w * wob;
       ctx.beginPath();
-      for (const [ex, ey] of e) { ctx.moveTo(ex, ey); ctx.lineTo(tx, ty); }
+      // v9.7.1 (lot D) : un seul faisceau, parti du milieu des deux yeux (avant : un trait par œil, deux rayons visibles).
+      ctx.moveTo(mx, my); ctx.lineTo(tx, ty);
       ctx.stroke();
     }
     // Éclat sur les yeux.
