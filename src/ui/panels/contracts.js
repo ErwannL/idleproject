@@ -28,7 +28,10 @@ function achievementsTab(state) {
       ${g.allDone ? '<span class="good">Obtenu</span>'
         : `<button class="btn small${g.ready ? ' btn-gold' : ''}" data-action="claim-achievement" data-value="${a.id}" ${g.ready ? '' : 'disabled'}>${g.ready ? 'Récupérer ' : ''}+${a.gems} ${img('icon_gem', '', 'gemmes')}</button>`}</div>`;
   }).join('');
-  return `<div class="muted">${n} / ${ACHIEVEMENTS.length} paliers · bonus permanent +${n * ACHIEVEMENT_BONUS.damagePct} % dégâts et +${n * ACHIEVEMENT_BONUS.goldPct} % or (+1 % chacun par palier)</div>
+  // v9.8 (G5) : vitrine de trophées — silhouettes sombres qui deviennent dorées une fois débloquées, nom en dessous.
+  const shelf = achievementGroups(state).map((g) => `<button class="trophy${g.allDone ? ' gold' : g.claimedCount ? ' bronze' : ''}${g.ready ? ' ready' : ''}" ${g.ready ? `data-action="claim-achievement" data-value="${g.tier.id}"` : 'tabindex="-1"'} title="${escapeHtml(g.tier.name)}">
+      ${img('icon_trophy')}<small>${escapeHtml(g.tier.name)}</small></button>`).join('');
+  return `<div class="trophy-shelf">${shelf}</div><div class="muted">${n} / ${ACHIEVEMENTS.length} paliers · bonus permanent +${n * ACHIEVEMENT_BONUS.damagePct} % dégâts et +${n * ACHIEVEMENT_BONUS.goldPct} % or (+1 % chacun par palier)</div>
     <div class="ach-list">${rows}</div>`;
 }
 
@@ -93,7 +96,12 @@ function periodTab(state, period) {
   const pct = Math.round((claimedCount / Math.max(1, shown.length)) * 100);
   const big = `<div class="q-big${ready ? ' ready' : ''}${run.bonus ? ' opened' : ''}"><div class="q-bar"><i style="width:${pct}%"></i><span>${claimedCount} / ${shown.length}</span></div>
     <button class="q-chest" data-action="claim-mission-bonus" data-value="${period.id}" ${ready ? '' : 'disabled'} aria-label="Ouvrir le grand coffre">${img('icon_chest')}</button></div>`;
-  return `<div class="m-reset muted">${period.reset} · dans ${remainingText(periodRemaining(period.id))}</div>${big}${rows}${chest}`;
+  // v9.8 (G4) : la semaine en chemin pixel art — une borne par mission, le héros miniature avance d'une borne par palier.
+  const path = period.id !== 'weekly' ? '' : `<div class="wk-path" aria-label="${claimedCount} sur ${shown.length}">
+      ${shown.map((_, i) => `<span class="wk-stone${i < claimedCount ? ' on' : ''}" style="left:${((i + 1) / (shown.length + 1)) * 100}%"></span>`).join('')}
+      <span class="wk-hero" style="left:${(claimedCount / (shown.length + 1)) * 100}%">${img('menu_hero')}</span>
+      <span class="wk-end">${img('icon_chest')}</span></div>`;
+  return `<div class="m-reset muted">${period.reset} · dans ${remainingText(periodRemaining(period.id))}</div>${path || big}${rows}${chest}`;
 }
 
 // v9.1.3 (lot F) : piste du mois — hebdomadaires et mensuelles fondues. Une barre à 10 paliers, puis les objectifs.

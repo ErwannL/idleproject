@@ -3814,3 +3814,26 @@ html.reduce-motion #quest-banner.ready { animation: none; }
 .arena-stage .arena-foe.boss .foe-art { width: 120px !important; height: 120px !important; }
 .arena-result { font-size: 16px; text-align: center; padding: 14px; border: 2px solid #d4a72c; }
 .guild-invite { text-align: center; } .guild-hall img { width: 96px; height: 96px; image-rendering: pixelated; filter: drop-shadow(0 0 10px #ffd36a66); }
+/* v9.8 (G4) : chemin de la semaine */
+.wk-path { position: relative; height: 64px; margin: 8px 4px 12px; border-radius: 10px; background: linear-gradient(#5d8a3a, #3f6a28); box-shadow: inset 0 -10px 0 #6b4a26; }
+.wk-path::before { content: ''; position: absolute; left: 4%; right: 4%; top: 40px; height: 6px; border-radius: 3px; background: repeating-linear-gradient(90deg, #d9c08c 0 10px, #b89a62 10px 20px); }
+.wk-stone { position: absolute; top: 30px; width: 14px; height: 20px; margin-left: -7px; border-radius: 4px 4px 2px 2px; background: #8a8f9a; box-shadow: 0 2px 0 #4a4f5a; }
+.wk-stone.on { background: #ffd36a; box-shadow: 0 2px 0 #a9701a, 0 0 8px #ffd36a; }
+.wk-hero { position: absolute; top: 4px; margin-left: -16px; transition: left .8s ease; } .wk-hero img { width: 32px; height: 32px; image-rendering: pixelated; }
+.wk-end { position: absolute; right: 2%; top: 14px; } .wk-end img { width: 32px; height: 32px; image-rendering: pixelated; }
+/* v9.8 (G5) : vitrine de trophées */
+.trophy-shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; padding: 10px; margin-bottom: 8px; border-radius: 10px;
+  background: linear-gradient(#4a3420, #2e2014); box-shadow: inset 0 -6px 0 #6b4a26; }
+.trophy { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: 0; color: #9a8a6a; cursor: default; }
+.trophy img { width: 40px; height: 40px; image-rendering: pixelated; filter: brightness(0) opacity(.55); }
+.trophy small { font-size: 10px; text-align: center; line-height: 1.1; }
+.trophy.bronze img { filter: sepia(1) saturate(.6) brightness(.8); } .trophy.bronze small { color: #d9b48a; }
+.trophy.gold img { filter: drop-shadow(0 0 6px #ffd36a); } .trophy.gold small { color: #ffe27a; }
+.trophy.ready { cursor: pointer; } .trophy.ready img { filter: drop-shadow(0 0 8px #fff3a8); animation: db-wobble 1.4s ease-in-out infinite; }
+html.reduce-motion .trophy.ready img { animation: none; }
+/* v9.8 (G6) : mini-quête en parchemin */
+#next-unlock.parchment { height: 26px; border-radius: 4px; background: linear-gradient(#f3e3bf, #d9c08c); border: 1px solid #8a6a2a; box-shadow: 0 2px 0 #5a4418; }
+#next-unlock.parchment i { background: linear-gradient(90deg, #c8961c88, #ffd36a88); opacity: 1; }
+#next-unlock.parchment span { color: #3a2a14; text-shadow: none; font-weight: 800; line-height: 26px; padding-left: 26px; }
+#next-unlock.parchment::before { content: ''; position: absolute; left: 4px; top: 3px; width: 20px; height: 20px; background: var(--qico) center / contain no-repeat; image-rendering: pixelated; z-index: 1; }
+.unlock-fly { position: fixed; z-index: 9500; width: 48px; height: 48px; pointer-events: none; transition: transform 1s cubic-bezier(.5, -0.3, .7, 1), opacity 1s; filter: drop-shadow(0 0 8px #ffd36a); }

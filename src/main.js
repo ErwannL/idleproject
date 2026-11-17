@@ -1611,6 +1611,7 @@ setInterval(() => {
   if (state.unlocks && !state.unlocks.legacy && wheelShown(state)) highlight('element-wheel', 'Nouvel élément : l\'Eau', 'Feu > Nature > Eau > Feu : +50 % contre le bon élément. La roue est dans Équipement.');
   const q = advanceUnlocks(state);
   if (!q) return;
+  ui.unlockFly?.(q.id); // v9.8 (G6)
   ui.celebrate?.(`unlock-${q.id}`, 'Nouveau !', q.label);
   ui.toast(`${q.label} : débloqué !${q.story ? ` ${companionById(q.story)?.name ?? ''} te rejoint.` : ''}`, '#7fe0a0');
   save();

@@ -41,6 +41,8 @@ import { queueSkinReveals } from './skin-reveal.js'; // v9.1.9
 import { waveCount, waveIndex, waveMode } from '../core/combat.js'; // v9.3.8
 import { nextMilestone } from '../core/unlocks.js';
 import { currentQuest, questSteps } from '../core/unlock-quests.js';
+// v9.8 (G6) : onglet ouvert par chaque mini-quête (icône du parchemin, icône qui vole vers le menu).
+const QUEST_SYS = { equipment: 'inventory', upgrades: 'upgrades', skills: 'skills', companion: 'companions', forge: 'forge', summon: 'summon', dungeons: 'dungeons', talents: 'tree', challenges: 'tower', rebirth: 'tree' };
 const QUEST_TAB_UI = { equipment: [null, null, 'inventory'], upgrades: [null, 'upgrades', null], skills: [null, 'skills', null], forge: ['inventory', 'forge', null] };
 import { loginTab } from './panels/contracts.js';
 import { loginPending } from '../core/missions.js';
@@ -1853,13 +1855,17 @@ export class UI {
     if (q) {
       const st = questSteps(state, q);
       const i = st.findIndex((x) => !x.done);
-      m = { text: `${q.label} (${Math.max(0, i) + 1}/3) : ${st[Math.max(0, i)].text}`, ratio: st.filter((x) => x.done).length / st.length, tab: QUEST_TAB_UI[q.id]?.[i] ?? null };
+      m = { quest: q.id, text: `${q.label} (${Math.max(0, i) + 1}/3) : ${st[Math.max(0, i)].text}`, ratio: st.filter((x) => x.done).length / st.length, tab: QUEST_TAB_UI[q.id]?.[i] ?? null };
     } else {
       const n = nextMilestone(state);
       if (n) m = { text: `Prochain : ${n.label} à l'étape ${stageLabel(n.stage)}`, ratio: n.ratio };
     }
     el.classList.toggle('hidden', !m);
     if (!m) return;
+    // v9.8 (G6) : mini-quête en parchemin, avec l'icône du système qu'elle ouvre.
+    el.classList.toggle('parchment', Boolean(m.quest));
+    const ico = m.quest ? icon(SUB_ICONS[QUEST_SYS[m.quest]] ?? 'icon_star') : '';
+    if (el.dataset.ico !== ico) { el.dataset.ico = ico; el.style.setProperty('--qico', ico ? `url("${ico}")` : 'none'); }
     if (m.tab) { el.dataset.action = 'open-tab'; el.dataset.value = m.tab; el.style.cursor = 'pointer'; } else { delete el.dataset.action; el.style.cursor = ''; }
     const txt = m.text;
     if (this.lastHud.nextUnlock !== txt) { this.lastHud.nextUnlock = txt; this.$('next-unlock-text').textContent = txt; }
@@ -2452,6 +2458,23 @@ export class UI {
       if (out) out.innerHTML = `<b class="${r.slice.jackpot ? 'gold-text' : 'good'}">${r.slice.jackpot ? 'GROS LOT ! ' : ''}${escapeHtml(r.slice.label)}</b> ${rewardIcons(r.given, 'named')}`;
       uiFx.claimFly?.(uiFx.snap(this.state).cur, uiFx.snap(this.state).cur, disc, true);
     }, calm ? 50 : 2700);
+  }
+
+  // v9.8 (G6) : au déblocage, l'icône du système vole du parchemin jusqu'à son bouton de menu.
+  unlockFly(questId) {
+    if (typeof document === 'undefined' || this.calm) return;
+    const tab = QUEST_SYS[questId];
+    const from = this.$('next-unlock')?.getBoundingClientRect();
+    const menu = MENUS.find((m) => m.tabs.includes(tab));
+    const to = menu && this.root.querySelector(`#tabs button[data-menu="${menu.id}"]`)?.getBoundingClientRect();
+    if (!from || !to || !tab) return;
+    const el = document.createElement('img');
+    el.className = 'px unlock-fly';
+    el.src = icon(SUB_ICONS[tab] ?? 'icon_star');
+    el.style.left = `${from.left + 8}px`; el.style.top = `${from.top - 10}px`;
+    document.body.appendChild(el);
+    requestAnimationFrame(() => { el.style.transform = `translate(${to.left + to.width / 2 - from.left - 24}px, ${to.top + to.height / 2 - from.top - 6}px) scale(.6)`; el.style.opacity = '.2'; });
+    setTimeout(() => el.remove(), 1100);
   }
 
   // v9.8 (I5/J1) : écran de résultat générique — titre, gains de bonus en grosses lignes, un gros bouton.
