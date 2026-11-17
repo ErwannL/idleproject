@@ -191,6 +191,14 @@ export function rebirthDamage(state, balance = BALANCE) {
 
 // v9.7.0 (10.1, rythme 4–6 semaines) : après le monde 3, les PV montent un peu plus vite par étape (les trois premiers
 // mondes, joués en première session, ne changent pas).
+// v9.7.1 (lot 3) : surcroît de PV de la campagne (courbe enemyScaling.campaign rapportée à la courbe commune).
+export function campaignHp(n, balance = BALANCE) {
+  const g = balance.enemyScaling, c = g.campaign;
+  if (!c) return 1;
+  const cg = { ...g, ...c };
+  return (hpBaseFactor(n, cg) * c.hpGrowth ** n * lateHp(n, cg)) / (hpBaseFactor(n, g) * g.hpGrowth ** n * lateHp(n, g));
+}
+
 export function lateHp(n, growth) {
   const l = growth.hpLate;
   return l ? Math.min(l.cap ?? Infinity, l.rate ** Math.max(0, n - l.from)) : 1;
@@ -341,6 +349,7 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
   const type = rng.pick(boss ? enc.bosses : enc.enemies);
   const s = enemyStats(enc.level, type, boss, balance);
   if (!enc.world && !enc.worldBoss) s.hp = Math.round(s.hp * lateHp(Math.max(0, enc.level - 1), balance.enemyScaling)); // v9.7.0 (10.1)
+  if (!enc.world && !enc.worldBoss && !enc.dungeon && !state.tower && !state.challenge) s.hp = Math.round(s.hp * campaignHp(Math.max(0, enc.level - 1), balance)); // v9.7.1 (lot 3)
   if (boss && enc.gauntlet) applyBerserk(s, balance);
   if (enc.dungeon) {
     // Donjons : bien plus durs que la campagne, selon la difficulté choisie.
@@ -1128,7 +1137,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
       world.skillTimers[skill.id] = interactiveCooldown(skill, stats.bonus);
       delete world.skillReadyAt[skill.id];
       world.manualSkills?.delete(skill.id);
-      if (manual) addCombo(world);
+      if (manual) { addCombo(world); state.records.manualCasts = (state.records.manualCasts ?? 0) + 1; }
     }
   }
   world.manualSkills?.clear();
@@ -1222,7 +1231,8 @@ export function step(state, world, dt, rng, balance = BALANCE) {
       const instant = state.challenge && challengeRule(state, 'instantRage');
       // Étape 4 : rage multiplicative (×1,3 toutes les 10 s) — un combat de boss se joue en 60–90 s au plus,
       // au lieu de 7 à 10 minutes d'usure quand le héros est juste assez fort pour survivre.
-      const rage = attacker.boss && (attacker.age > st.enrageSeconds || instant)
+      // v9.7.1 (lot 3) : pas de rage aux mondes 1 et 2 (campagne) : la mécanique est présentée au monde 3.
+      const rage = attacker.boss && !rageFree(state, balance) && (attacker.age > st.enrageSeconds || instant)
         ? (1 + st.enragePct / 100) ** (1 + Math.floor(Math.max(0, attacker.age - st.enrageSeconds) / st.enrageStepSeconds)) : 1;
       if (rage > 1 && !attacker.enraged) {
         attacker.enraged = true;
@@ -1310,4 +1320,9 @@ export function playerUltimate(world, companionId) {
   (world.ultNow ??= new Set()).add(key);
   addCombo(world);
   return true;
+}
+
+// v9.7.1 (lot 3) : boss des mondes 1 et 2 de la campagne sans chronomètre de rage.
+export function rageFree(state, balance = BALANCE) {
+  return !state.dungeon && !state.tower && !state.challenge && !state.worldRun && !state.worldBossRun && zoneIndexForStage(state.stage, balance) < 2;
 }

@@ -9,7 +9,7 @@ import { claimAchievement } from '../src/core/achievements.js';
 import { claimLogin, claimMission, claimMissionBonus, claimTrackTier, refreshMissions } from '../src/core/missions.js';
 import { buyUpgradeBulk } from '../src/core/economy.js';
 import { summon } from '../src/core/gacha.js';
-import { equipBest, recycleUseless, sweepInventory } from '../src/core/inventory.js';
+import { equipBest, recycleUseless, sweepInventory, sortLootBag, lootBagKeepBestChoices } from '../src/core/inventory.js';
 import { upgradeCompanion, toggleCompanion } from '../src/core/companions.js';
 import { distributeSkillPoints } from '../src/core/skills.js';
 import { performRebirth } from '../src/core/rebirth.js';
@@ -20,6 +20,8 @@ const MINUTES = Number(process.argv[2]) || 120;
 const seed = Number(process.argv[3]) || 1;
 const T0 = Date.UTC(2026, 10, 9, 12);
 const state = createNewState(T0, seed);
+if (!process.env.LEGACY) state.unlocks = { done: [], base: { ...state.records } }; // v9.7.1 : mini-quêtes de déblocage
+const { advanceUnlocks, isUnlocked } = await import('../src/core/unlock-quests.js');
 const rng = new Rng(seed * 97);
 let world = createCombat(state);
 const dt = BALANCE.simulation.tickSeconds;
@@ -38,14 +40,18 @@ for (let t = 0; t < MINUTES * 60; t += dt) {
   ticks++; if (!world.hero.walking && world.enemies.length) fightTicks++;
   if (Math.round(t / dt) % Math.round(5 / dt) !== 0) continue; // le joueur regarde la barre toutes les 5 s
   refreshMissions(state, now);
+  const done = advanceUnlocks(state); if (done) log.push(`${(t / 60).toFixed(1)} min : déblocage ${done.label}`);
   sweepInventory(state);
   const claims = claimables(state, now).filter((c) => CLAIM[c.kind]);
-  const a = nextAction(state, { claims });
+  const q = (id) => isUnlocked(state, id);
+  const visible = { upgrades: q('upgrades'), skills: q('skills'), summon: q('summon'), forge: q('forge'), dungeons: q('dungeons'), tree: q('talents'), tower: q('challenges') };
+  const a = nextAction(state, { claims, visible });
   counts[a.id] = (counts[a.id] ?? 0) + 1;
   if (a.content) { guideDay(state).done.push(a.id); counts.content = (counts.content ?? 0) + 1; } // v9.6.2 : contenu proposé (suivi, sans jouer le mode)
   switch (a.id) {
     case 'claim': for (const c of claims) CLAIM[c.kind](c); break;
     case 'equip': equipBest(state); break;
+    case 'lootbag': sortLootBag(state, lootBagKeepBestChoices(state)); equipBest(state); break; // v9.7.1
     case 'place': toggleCompanion(state, a.value); break;
     case 'skills': distributeSkillPoints(state); break;
     case 'summon': { const n = state.gems >= BALANCE.summon.tenPullGemCost ? 10 : 1; summon(state, rng, n, 'gems', BALANCE, 'ally'); for (let i = 0; i < 3; i++) { const c = companionToPlace(state); if (!c) break; toggleCompanion(state, c.id); } break; }

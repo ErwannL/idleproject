@@ -5,6 +5,7 @@
 // (state.ui.invUsed). Seuils choisis d'après le bilan (docs/mesures-v913.md) : l'étape 54 est atteinte en 30 min, donc
 // ces seuils retirent 3 portes pendant les 5 à 20 premières minutes, quand le sac n'est pas encore plein.
 // Critère d'abandon : docs/refontes-v913.md.
+import { isUnlocked } from './unlock-quests.js'; // v9.7.1 (lot 3)
 
 export const INV_UNLOCKS = [
   { id: 'forge', label: 'Forge', stage: 10 }, // premiers éclats du recyclage : de quoi renforcer un objet
@@ -23,6 +24,7 @@ function used(state, id) {
 export function invFeatureOpen(state, id) {
   const u = INV_UNLOCKS.find((x) => x.id === id);
   if (!u) return true;
+  if (id === 'forge' && state.unlocks && !state.unlocks.legacy) return isUnlocked(state, 'forge'); // v9.7.1 (lot 3) : mini-quête
   const best = Math.max(state.maxStage ?? 1, state.records?.bestStage ?? 1);
   return best >= u.stage || used(state, id);
 }

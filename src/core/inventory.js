@@ -85,6 +85,7 @@ export function equipItem(state, itemId) {
   state.inventory.splice(index, 1);
   if (previous) state.inventory.splice(index, 0, previous);
   state.equipment[heroSlot(item)] = item;
+  if (state.records) state.records.equips = (state.records.equips ?? 0) + 1; // v9.7.1 (lot 3)
   return true;
 }
 
@@ -202,6 +203,7 @@ function salvage(state, item, balance) {
   const materials = recycleMaterials(item, balance);
   state.materials.shards += materials.shards;
   trackContracts(state, 'recycle', 1);
+  if (state.records) state.records.recycled = (state.records.recycled ?? 0) + 1; // v9.7.1 (lot 3)
   return addGold(state, recycleValue(item, balance, recycleLevelOf(state, balance)));
 }
 

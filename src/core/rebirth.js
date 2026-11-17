@@ -1,6 +1,7 @@
 // Renaissance (prestige) et talents permanents.
 // v8.5 : arbre de ~500 nœuds ; un nœud s'apprend dès qu'un de ses voisins est appris (le Cœur est libre),
 // les clés de voûte demandent en plus des points dépensés dans leur région.
+import { isUnlocked } from './unlock-quests.js'; // v9.7.1 (lot 3)
 import { LEGACY_TALENTS, REBIRTH, TALENT_RESPEC, TALENTS } from '../data/rebirth.js';
 import { PRESTIGE } from '../data/prestige.js';
 import { fragmentBonus, memoryShare } from './transcend.js';
@@ -211,7 +212,7 @@ export function rebirthGain(state) {
 }
 
 export function canRebirth(state) {
-  return state.maxStage >= REBIRTH.minStage;
+  return state.maxStage >= REBIRTH.minStage && isUnlocked(state, 'rebirth'); // v9.7.1 (lot 3) : grand moment, fin du monde 3
 }
 
 // v9.1.0 : pas de Renaissance (ni de Transcendance) pendant un donjon, la Tour ou le défi : renvoie le motif.

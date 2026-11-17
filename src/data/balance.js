@@ -256,6 +256,9 @@ export const BALANCE = {
     hpBaseRamp: 25, // ×8 atteint progressivement sur les 25 premières étapes
     hpGrowth: 1.075,
     hpLate: { from: 60, rate: 1.012, cap: 20 }, // v9.7.0 (10.1) : ×1,012 par étape après le monde 3 (plafond ×20)
+    // v9.7.1 (lot 3) : des mondes longs — la CAMPAGNE seule suit cette courbe (monde 1 ≈ 1 h, puis 3 à 5 h par monde ;
+    // mesuré avec tools/sim-guide-v935.mjs). Donjons, Tour, défis et mondes de bannière gardent la courbe ci-dessus.
+    campaign: { hpBase: 34, hpBaseRamp: 16, hpGrowth: 1.1, hpLate: { from: 60, rate: 1.02, cap: 40 } },
     damageGrowth: 1.0583,
     // v9.2.8 : ×coef × étape^exp en plus (×1 au plus bas) : un héros qui achète ses PV et sa Défense encaisse 4 à 6
     // coups ordinaires à son étape record au lieu de milliers (réglage : tools/measure-defense-v928.mjs).
@@ -392,12 +395,12 @@ export const BALANCE = {
   },
   // 5 premières heures : progression très rapide, beaucoup de butin et d'invocations, puis normal.
   earlyBoost: {
-    hours: 5,
-    goldMultiplier: 1.5, // étape 4 : ×3 → ×1,5 au début (le début allait trop vite), décroît jusqu'à ×1
-    xpMultiplier: 3,
+    hours: 2, // v9.7.1 (lot 3) : bonus de départ fortement réduit (5 h → 2 h)
+    goldMultiplier: 1.15, // étape 4 : ×3 → ×1,5 au début (le début allait trop vite), décroît jusqu'à ×1
+    xpMultiplier: 1.5,
     extraDropChance: 0.15, // +15 points de chance de butin au début
-    eventMultiplier: 4, // coffres, gemmes, marchands… 4 fois plus fréquents
-    bossGems: 100, // v9.1.3 : chaque victoire contre un boss donne 100 gemmes (ancien ticket) tant que le bonus dure
+    eventMultiplier: 2, // coffres, gemmes, marchands… 4 fois plus fréquents
+    bossGems: 40, // v9.1.3 : chaque victoire contre un boss donne 100 gemmes (ancien ticket) tant que le bonus dure
   },
   // Week-end (samedi + dimanche, 48 h) : or, XP, butin et événements ×2, cumulable avec le démarrage.
   weekendBoost: { multiplier: 2 },

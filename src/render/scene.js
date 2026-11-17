@@ -441,6 +441,8 @@ export class SceneRenderer {
         this.addText('Affaibli !', event.x, this.groundY - 90, '#ffd24a', '#fff6c8');
         break;
       case 'skill':
+        // v9.7.1 (lot 3 bis) : trois temps — préparation (lueur au héros), impact (arrêt d'image 0,05 s), retombée (effets).
+        if (!this.focus) { this.effects.push({ kind: 'halo', x: HERO_X, y: this.groundY - 16, color: '#ffe9a8', life: 0.3, max: 0.3 }); this.hitstop = Math.max(this.hitstop ?? 0, 0.05); }
         // v9.3.9 (2.3) : une compétence qui touche plusieurs ennemis secoue l'écran.
         if ((event.targets?.length ?? 0) > 1 || event.aoe) this.shake = Math.max(this.shake, 3);
         // v9.2.5 : geste propre à la compétence et effet synchronisé (skill-fx.js) ; ancien effet en repli.
@@ -1716,8 +1718,14 @@ export class SceneRenderer {
     }
     if (!this.focus) this.effects.push({ kind: 'halo', x: cx, y: G - 16, color, life: 0.35, max: 0.35 });
     if (event.ultimate) {
+      // v9.7.1 (lot 3 bis) : un ultime est un moment — fond assombri 0,4 s, cadre coloré, puis une vague de sa couleur
+      // qui traverse toute la scène (1,6 s) ; les personnages restent visibles (dessinée en liseré, pas en aplat).
       this.hitstop = Math.max(this.hitstop ?? 0, 0.15);
       this.effects.push({ kind: 'frame', color, life: 0.6, max: 0.6 });
+      if (!this.focus) {
+        this.effects.push({ kind: 'darken', life: 0.4, max: 0.4 });
+        this.later(0.25, () => this.effects.push({ kind: 'sweep', x0: cx, color, life: 1.6, max: 1.6 }));
+      }
     }
   }
 
@@ -2282,6 +2290,23 @@ export class SceneRenderer {
           ctx.beginPath();
           ctx.ellipse(fx.x, fx.y, 9 + (1 - t) * 6, 14 + (1 - t) * 6, 0, 0, Math.PI * 2);
           ctx.stroke();
+          break;
+        }
+        case 'darken': // v9.7.1 (lot 3 bis) : fond assombri pendant l'annonce d'un ultime
+          ctx.globalAlpha = 0.45 * Math.min(1, t * 3);
+          ctx.fillStyle = '#05030c';
+          ctx.fillRect(-40, -40, this.width + 80, this.height + 80);
+          break;
+        case 'sweep': { // v9.7.1 (lot 3 bis) : vague d'ultime qui traverse toute la scène, de l'équipe au bord droit
+          const k = 1 - t;
+          const x = fx.x0 + (this.width + 40 - fx.x0) * k;
+          const G = this.groundY;
+          ctx.globalAlpha = Math.min(1, t * 2.5);
+          ctx.strokeStyle = fx.color; ctx.lineWidth = 2;
+          for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(x - i * 7, G - 52); ctx.quadraticCurveTo(x + 10 - i * 7, G - 26, x - i * 7, G + 1); ctx.stroke(); }
+          ctx.globalAlpha *= 0.5;
+          ctx.fillStyle = fx.color;
+          for (let i = 0; i < 6; i++) ctx.fillRect(Math.round(x - 4 - i * 9), Math.round(G - 10 - ((i * 17 + this.frameNo) % 40)), 2, 2);
           break;
         }
         case 'frame': // v9.7.1 (lot A) : ultime — cadre coloré autour de la scène

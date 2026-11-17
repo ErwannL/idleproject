@@ -2,6 +2,7 @@ import { sendMetrics } from './core/metrics.js';
 // Point d'entrée : charge la partie, applique les gains hors ligne, puis fait tourner
 // la simulation (minuterie, continue même fenêtre réduite) et le rendu (requestAnimationFrame,
 // suspendu automatiquement quand la fenêtre est masquée).
+import { advanceUnlocks } from './core/unlock-quests.js'; // v9.7.1 (lot 3)
 import { playerCast, playerGuard, playerUltimate, playerWeakSpot } from './core/combat.js'; // v9.7.1 (lot 2)
 import { grantBlessing } from './core/blessing.js'; // v9.7.1 (prologue)
 import { startCatchUp } from './core/boost.js';
@@ -1022,7 +1023,7 @@ const actions = {
   // v9.7.1 (lot 2) : actions du joueur en combat (compétence, ultime, parade, point faible) ; aucune n'est obligatoire.
   castSkillNow(id) { playerCast(world, id); },
   castUltNow(id) { playerUltimate(world, id); },
-  guardNow() { if (playerGuard(world)) { ui.toast('Parade ! Le boss est affaibli.', '#7fd6ff'); renderer.shake = Math.max(renderer.shake, 3); } },
+  guardNow() { if (playerGuard(world)) { state.records.guards = (state.records.guards ?? 0) + 1; ui.toast('Parade ! Le boss est affaibli.', '#7fd6ff'); renderer.shake = Math.max(renderer.shake, 3); } },
   weakSpotNow() { if (playerWeakSpot(world)) renderer.shake = Math.max(renderer.shake, 2); },
   // v9.7.1 (lot 1) : revoir le prologue (rien n'est changé à la partie).
   replayPrologue() { ui.closeModal(); ui.closePanel?.(); playPrologue({ state, onDone: () => {} }); },
@@ -1507,6 +1508,16 @@ if (state.migrationRefund) {
   save();
   setTimeout(() => ui.showRebalanceNotice(refund), 1500);
 }
+// v9.7.1 (lot 3) : partie neuve → systèmes ouverts par mini-quêtes (une ancienne partie garde tout ce qui était ouvert).
+if (loaded.source === 'new' && !state.unlocks) state.unlocks = { done: [], base: { ...state.records } };
+setInterval(() => {
+  const q = advanceUnlocks(state);
+  if (!q) return;
+  ui.celebrate?.(`unlock-${q.id}`, 'Nouveau !', q.label);
+  ui.toast(`${q.label} : débloqué !${q.story ? ` ${companionById(q.story)?.name ?? ''} te rejoint.` : ''}`, '#7fe0a0');
+  save();
+  ui.invalidate();
+}, 1000);
 // v9.0.6 : découverte guidée — après la cinématique et une fois les fenêtres d'accueil (absence, annonces) fermées.
 // Jamais pendant les tests automatisés (sauf ?tour dans l'adresse).
 if ((state.ui.tour !== 'done' || (state.ui.tourV ?? 1) < TOUR_VERSION) && (!navigator.webdriver || location.search.includes('tour'))) {

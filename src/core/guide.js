@@ -1,4 +1,7 @@
 // Aide au joueur (v8.4) : puissance, puissance conseillée pour le prochain boss, conseils « que faire ».
+import { currentQuest, questSteps } from './unlock-quests.js'; // v9.7.1 (lot 3)
+// v9.7.1 (lot 3) : onglet utile pour chaque geste des mini-quêtes (null : en combat).
+const QUEST_TAB = { equipment: [null, null, 'inventory'], upgrades: [null, 'upgrades', null], skills: [null, 'skills', null], forge: ['inventory', 'forge', null] };
 import { BALANCE } from '../data/balance.js';
 import { bossesForStage, createCombat, heroPower, isBossStage, step } from './combat.js';
 import { Rng } from './rng.js';
@@ -82,6 +85,9 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
   const claims = (ctx.claims ?? claimables(state, Date.now(), balance)).filter((c) => !c.blocked);
   if (claims.length) return claimAction(claims);
   const current = computeHeroStats(state, balance);
+  // v9.7.1 : sac de butin de la scène — une amélioration y attend, ou il se remplit.
+  const bag = state.lootBag ?? [];
+  if (bag.length >= 12 || bag.some((i) => isUpgrade(state, i, balance, current))) return { id: 'lootbag', text: `Trier le sac de butin (${bag.length})`, action: 'lootbag' };
   const better = state.inventory.filter((i) => isUpgrade(state, i, balance, current)).length;
   if (better) return { id: 'equip', text: better > 1 ? `Équiper ${better} objets meilleurs` : 'Équiper 1 objet meilleur', action: 'equip-best' };
   const place = companionToPlace(state, balance);
@@ -102,7 +108,7 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
   }
   // v9.3.5 : gemmes en réserve et place libre dans l'équipe → invoquer (aussi après la première fois).
   const freeOf = (k) => state.companions.equipped.filter((id) => teamKind(companionById(id)) === k).length < teamSlotsOf(state, balance)[k];
-  if (open('summon') && Object.keys(state.companions.owned).length && (freeOf('ally') || freeOf('pet')) && state.gems >= balance.summon.gemCost) {
+  if (open('summon') && Object.keys(state.companions.owned).length && (freeOf('ally') || freeOf('pet')) && state.gems >= balance.summon.gemCost + 150) { // v9.7.1 : réserve de 150 gemmes
     return { id: 'summon', text: freeOf('ally') ? 'Invoquer un compagnon (place libre)' : 'Invoquer un familier (place libre)', tab: 'summon' };
   }
   // v9.6.2 (7.6) : boss de fin de monde scellé — dire comment gagner le sceau (et qu'il viendra quand même).
@@ -120,6 +126,13 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
   // Montée d'un compagnon d'abord quand elle coûte moins que l'amélioration proposée (sinon l'or part toujours ailleurs).
   if (lv && (!up || up.cost > state.gold || lv.cost <= up.cost)) return { id: 'level', text: `Monter ${lv.name} au niveau ${lv.level + 1}`, action: 'upgrade-companion', value: lv.id };
   if (up && up.cost <= state.gold && open('upgrades')) return { id: 'upgrade', text: `Améliorer : ${UPGRADE_NAMES[up.key] ?? up.key}`, action: 'buy', value: up.key };
+  // v9.7.1 (lot 3) : la mini-quête de déblocage en cours, une consigne à la fois, quand rien de plus pressé n'attend.
+  const quest = currentQuest(state);
+  if (quest) {
+    const steps = questSteps(state, quest);
+    const i = steps.findIndex((x) => !x.done);
+    if (i >= 0) return { id: 'quest', text: `${quest.label} (${i + 1}/3) : ${steps[i].text}`, tab: QUEST_TAB[quest.id]?.[i] ?? null };
+  }
   if (state.inventory.length >= balance.loot.inventorySize * 0.8) {
     const n = uselessItems(state, balance).length;
     if (n) return { id: 'recycle', text: `Recycler ${n} objets inutiles`, action: 'recycle-useless' };

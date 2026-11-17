@@ -90,6 +90,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
       goldEarned: 0, kills: 0, bossesDefeated: 0, itemsFound: 0, rebirths: 0, contractsDone: 0, summons: 0,
       bestStage: 1, // v9.1.0 : meilleure étape jamais atteinte (la Renaissance ne la remet pas à zéro)
       bestLevel: 1, // v9.1.3 : meilleur niveau du héros jamais atteint (idem)
+      equips: 0, recycled: 0, manualCasts: 0, guards: 0, // v9.7.1 (lot 3) : compteurs des mini-quêtes de déblocage
     },
     ui: { slotFilter: 'all', sortBy: 'rarity', autoRecycle: 'off',
       // Étape 3 (gains UX) : nouvelle partie → les Communs moins bons que l'équipé sont recyclés quand le sac est plein.
@@ -664,6 +665,11 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   if (state.challenge && (state.tower || state.dungeon)) state.challenge = null; // un seul mode à la fois
   // v9.1.0 : une partie existante a déjà ses Objectifs ouverts (le menu ne doit pas disparaître pour elle).
   if (int(raw.records?.kills, 0) > 0) state.ui.goalsOpen = true;
+  // v9.7.1 (lot 3) : mini-quêtes de déblocage (partie commencée en 9.7.1) ; sinon tout ce qui était ouvert le reste.
+  if (raw.unlocks && Array.isArray(raw.unlocks.done)) {
+    state.unlocks = { done: raw.unlocks.done.filter((x) => typeof x === 'string').slice(0, 32), base: obj(raw.unlocks.base) };
+    if (raw.unlocks.legacy) state.unlocks.legacy = true;
+  }
   sanitizeSeals(state, raw.seals, balance); // v9.6.2 (7.6) : sceaux (mondes déjà dépassés : ouverts)
   if (Number.isFinite(raw.sealSince)) state.sealSince = raw.sealSince;
   mergeArmorIntoDefense(state, balance); // v9.3.9 (2.9) : « Peau de fer » fondue dans « Défense », sans perte de survie

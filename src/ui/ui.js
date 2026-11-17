@@ -1,6 +1,8 @@
 // Interface DOM : barre du haut (monnaies, contrats, récompenses, paramètres), surimpressions légères
 // de la scène, HUD, onglets débloqués progressivement et panneaux (un module par panneau dans ./panels).
 // L'interface ne modifie jamais l'état directement : elle appelle les actions fournies par main.js.
+import { rageFree } from '../core/combat.js'; // v9.7.1 (lot 3)
+import { isUnlocked } from '../core/unlock-quests.js'; // v9.7.1 (lot 3)
 import { COMBO_STEP_PCT, interactiveCooldown } from '../core/combat.js'; // v9.7.1 (lot 2)
 import { activeSkills } from '../core/skills.js'; // v9.7.1 (lot 2)
 import { LootBag } from './loot-bag.js'; // v9.7.1
@@ -1686,7 +1688,7 @@ export class UI {
       ratio = b ? b.hp / b.maxHp : 1;
       text = b ? `${BOSSES[b.type].name} — ${formatNumber(Math.max(0, b.hp))} / ${formatNumber(b.maxHp)} PV` : 'Le boss arrive…';
       // v9.3.8 (4) : compte à rebours rouge jusqu'à la rage du boss (même seuil que le moteur : aucun changement d'équilibrage).
-      const left = b && !b.worldBoss ? Math.max(0, BALANCE.stages.enrageSeconds - (b.age ?? 0)) : null;
+      const left = b && !b.worldBoss && !rageFree(state) ? Math.max(0, BALANCE.stages.enrageSeconds - (b.age ?? 0)) : null; // v9.7.1 : pas de rage aux mondes 1-2
       const timer = this.$('boss-timer');
       if (timer) {
         timer.classList.toggle('hidden', left === null);
@@ -1927,6 +1929,7 @@ export class UI {
     else if (n.action === 'advance') this.actions.advance();
     // v9.3.5 : un clic fait l'action (équiper tout, placer, améliorer, monter, recycler).
     else if (n.action === 'equip-best') this.actions.equipBest();
+    else if (n.action === 'lootbag') this.lootBag?.toggle(true); // v9.7.1
     else if (n.action === 'place-companion') this.actions.toggleCompanion(n.value);
     else if (n.action === 'buy') this.actions.buy(n.value, '1');
     else if (n.action === 'upgrade-companion') this.actions.upgradeCompanion(n.value);
@@ -2071,14 +2074,16 @@ export class UI {
     const boss = (state.records.bossesDefeated ?? 0) > 0;
     if (!state.ui.goalsOpen && this.claims.length) state.ui.goalsOpen = true; // posé à la première récompense, jamais retiré
     const later = Math.max(state.maxStage ?? 1, state.records?.bestStage ?? 1) >= 40; // v9.3.4
+    const q = (id) => isUnlocked(state, id); // v9.7.1 (lot 3) : mini-quêtes (ancienne partie : toujours vrai)
     const visible = {
-      tree: best >= 10 || state.fragments > 0 || state.records.rebirths > 0 || (state.prestige?.count ?? 0) > 0 || (state.transcend?.count ?? 0) > 0,
-      dungeons: best >= DUNGEONS[0].unlockStage || Object.keys(state.dungeonsCleared).length > 0 || Boolean(state.dungeon),
+      upgrades: q('upgrades'), skills: q('skills'),
+      tree: q('talents') && best >= 10 || state.fragments > 0 || state.records.rebirths > 0 || (state.prestige?.count ?? 0) > 0 || (state.transcend?.count ?? 0) > 0,
+      dungeons: q('dungeons') && best >= DUNGEONS[0].unlockStage || Object.keys(state.dungeonsCleared).length > 0 || Boolean(state.dungeon),
       // v9.1.3 : l'onglet Défis s'ouvre avec la Tour ou avec le Défi de la semaine (étape plus basse).
-      tower: best >= TOWER_UNLOCK || (state.towerBest ?? 0) > 0 || Boolean(state.tower) || challengeUnlocked(state) || Boolean(state.challenge) || arenaUnlocked(state), // v9.3.5 : Arène comprise
+      tower: q('challenges') && best >= TOWER_UNLOCK || (state.towerBest ?? 0) > 0 || Boolean(state.tower) || challengeUnlocked(state) || Boolean(state.challenge) || arenaUnlocked(state), // v9.3.5 : Arène comprise
       boss: boss || Object.keys(state.powers).length > 0,
-      companions: boss || Object.keys(state.companions.owned).length > 0,
-      summon: boss || Object.keys(state.companions.owned).length > 0,
+      companions: Object.keys(state.companions.owned).length > 0 || (q('summon') && boss),
+      summon: q('summon') && (boss || Object.keys(state.companions.owned).length > 0), // v9.7.1 : aucun tirage avant la fin du monde 1
       shop: boss || Object.keys(state.companions.owned).length > 0, // v9.2.8 : avec l'invocation
       event: best > 40, // v9.3.5 : après le monde 2
       expeditions: Object.keys(state.companions.owned).length >= 5 || state.expeditions.slots.some(Boolean) || state.expeditions.done > 0, // v9.3.5 : stable (5 compagnons)
