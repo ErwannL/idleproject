@@ -1,0 +1,303 @@
+{
+ "canvas": {
+  "h": 128,
+  "w": 128
+ },
+ "frames": 10,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 64,
+  "y": 64,
+  "kind": "origin"
+ },
+ "message": "A 10-frame boss-defeat blast: a bright flash, a big orange and yellow fireball with a gold shockwave ring, then a grey smoke ring and dark smoke as the fire burns out, with debris flying off. Try the Size slider for the blast's reach, Debris for the number of flying pieces, and Smoke for how heavy the cloud is at the end. I pulled the debris in a little so it stays inside the canvas.",
+ "effect_id": "82e95378-e6bd-4f55-8e67-fc14d1bbbdc6",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-boss-explode 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-explode 1.png",
+    "frame": {
+     "x": 128,
+     "y": 0,
+     "w": 128,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-explode 2.png",
+    "frame": {
+     "x": 256,
+     "y": 0,
+     "w": 128,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-explode 3.png",
+    "frame": {
+     "x": 384,
+     "y": 0,
+     "w": 128,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-explode 4.png",
+    "frame": {
+     "x": 0,
+     "y": 128,
+     "w": 128,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-explode 5.png",
+    "frame": {
+     "x": 128,
+     "y": 128,
+     "w": 128,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-explode 6.png",
+    "frame": {
+     "x": 256,
+     "y": 128,
+     "w": 128,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-explode 7.png",
+    "frame": {
+     "x": 384,
+     "y": 128,
+     "w": 128,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-explode 8.png",
+    "frame": {
+     "x": 0,
+     "y": 256,
+     "w": 128,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-boss-explode 9.png",
+    "frame": {
+     "x": 128,
+     "y": 256,
+     "w": 128,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 128,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 128,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-boss-explode.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 512,
+    "h": 384
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 64,
+    "y": 64
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-boss-explode",
+     "from": 0,
+     "to": 9,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

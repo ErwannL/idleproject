@@ -2,6 +2,7 @@ import { sendMetrics } from './core/metrics.js';
 // Point d'entrée : charge la partie, applique les gains hors ligne, puis fait tourner
 // la simulation (minuterie, continue même fenêtre réduite) et le rendu (requestAnimationFrame,
 // suspendu automatiquement quand la fenêtre est masquée).
+import { grantBlessing } from './core/blessing.js'; // v9.7.1 (prologue)
 import { startCatchUp } from './core/boost.js';
 import { claimSessionChest, newSessionGoals } from './core/session-goals.js';
 import { BALANCE } from './data/balance.js';
@@ -1003,6 +1004,8 @@ const actions = {
     if (!r) return;
     done(true, `Coffre de session : +${r.gems} gemmes, +${r.shards} éclats`, '#ffd54a');
   },
+  // v9.7.1 (lot 1) : revoir le prologue (rien n'est changé à la partie).
+  replayPrologue() { ui.closeModal(); ui.closePanel?.(); playPrologue({ state, onDone: () => {} }); },
   startTour() { ui.closeModal(); startTour(ui, state); },
   skipTour() { state.ui.tour = 'done'; state.ui.tourV = TOUR_VERSION; ui.closeModal(); save(); },
   setAutoRecycle(value) {
@@ -1457,10 +1460,14 @@ setTimeout(() => {
     const intro = () => playCinematic({ kicker: 'Une nouvelle légende', title: 'Ascendrya', line: 'Tout reprendre, monde après monde.' });
     if ((state.ui.hints ?? []).includes(PROLOGUE_HINT)) intro();
     else {
-      playPrologue({ reduced: matchMedia('(prefers-reduced-motion: reduce)').matches || state.ui.focus === true, onDone: () => {
+      // v9.7.1 (lot 1) : prologue jouable ; la sauvegarde n'est écrite qu'au réveil (bénédiction, nom).
+      playPrologue({ reduced: matchMedia('(prefers-reduced-motion: reduce)').matches || state.ui.focus === true, state, onDone: (choice = {}) => {
         state.ui.hints = [...(state.ui.hints ?? []), PROLOGUE_HINT];
+        if (choice.blessing) grantBlessing(state, choice.blessing);
+        if (choice.name) state.heroName = choice.name;
         save();
-        intro();
+        renderer.hero.respawn = 1; // il se relève
+        playCinematic({ kicker: 'Réveil', title: 'Plaines verdoyantes', line: 'Reprends tout. Reviens plus fort.' });
       } });
     }
   }

@@ -2,6 +2,7 @@
 // - démarrage rapide : pendant les 5 premières heures de jeu actif, tout va beaucoup plus vite
 //   (or, XP, butin, événements, gemmes des boss), puis le bonus décroît jusqu'à 1 ;
 // - week-end : ×2 du samedi 0 h au lundi 0 h (heure locale), cumulable avec le démarrage rapide.
+import { blessingMult } from './blessing.js';
 import { BALANCE } from '../data/balance.js';
 import { cheatLoot, cheatMultiplier } from './cheats.js';
 
@@ -49,7 +50,7 @@ export function earlyBoost(state, balance = BALANCE, now = Date.now()) {
     weekend,
     weekendSecondsLeft: weekendSecondsLeft(now),
     cheat,
-    gold: (1 + (b.goldMultiplier - 1) * r) * w,
+    gold: (1 + (b.goldMultiplier - 1) * r) * w * blessingMult(state, 'gold'), // v9.7.1 : bénédiction Fortune
     xp: (1 + (b.xpMultiplier - 1) * r) * w,
     // Ajouté à la chance de butin (0..1) ; le week-end double la chance de base.
     dropChance: b.extraDropChance * r + (weekend ? balance.loot.dropChance : 0) + (cheat > 1 ? 0.5 : 0) + cheatLoot(state).drop,

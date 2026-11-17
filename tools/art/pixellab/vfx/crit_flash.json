@@ -1,18 +1,18 @@
 {
  "canvas": {
-  "h": 131,
-  "w": 127
+  "h": 96,
+  "w": 96
  },
- "frames": 6,
- "fps": 16,
+ "frames": 12,
+ "fps": 12,
  "loop": false,
  "anchor": {
-  "x": 66,
-  "y": 59,
+  "x": 48,
+  "y": 48,
   "kind": "origin"
  },
- "message": "A 6-frame critical hit burst: a golden star flash with sharp white rays that pops on frame 1, peaks around frames 2 to 3, and fades out by frame 5. Try the Critical hit colour slider to shift the gold, and the amount slider to make the burst bigger or smaller.",
- "effect_id": "6e94b957-a074-4b5a-94de-e575da6a1c66",
+ "message": "A 12-frame retro crit flash: a small glow on frames 1-2 (anticipation), a bright golden star burst with sharp white rays at its peak around frames 4-6, then it breaks up into grey smoke puffs and falling sparks through frame 11. It is a 4-colour gold ramp with a dark outline on a transparent background. Try the Crit colour and Crit amount sliders to tint or soften it; the sparks are small, so they may need a bump if you want them more prominent.",
+ "effect_id": "becac411-9b70-4b04-aad0-a52f91e39cc0",
  "sheet": {
   "frames": [
    {
@@ -20,156 +20,312 @@
     "frame": {
      "x": 0,
      "y": 0,
-     "w": 127,
-     "h": 131
+     "w": 96,
+     "h": 96
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 127,
-     "h": 131
+     "w": 96,
+     "h": 96
     },
     "sourceSize": {
-     "w": 127,
-     "h": 131
+     "w": 96,
+     "h": 96
     },
     "pivot": {
-     "x": 0.5196850393700787,
-     "y": 0.45038167938931295
+     "x": 0.5,
+     "y": 0.5
     },
-    "duration": 63
+    "duration": 83
    },
    {
     "filename": "ascendrya-crit-flash 1.png",
     "frame": {
-     "x": 127,
+     "x": 96,
      "y": 0,
-     "w": 127,
-     "h": 131
+     "w": 96,
+     "h": 96
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 127,
-     "h": 131
+     "w": 96,
+     "h": 96
     },
     "sourceSize": {
-     "w": 127,
-     "h": 131
+     "w": 96,
+     "h": 96
     },
     "pivot": {
-     "x": 0.5196850393700787,
-     "y": 0.45038167938931295
+     "x": 0.5,
+     "y": 0.5
     },
-    "duration": 63
+    "duration": 83
    },
    {
     "filename": "ascendrya-crit-flash 2.png",
     "frame": {
-     "x": 254,
+     "x": 192,
      "y": 0,
-     "w": 127,
-     "h": 131
+     "w": 96,
+     "h": 96
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 127,
-     "h": 131
+     "w": 96,
+     "h": 96
     },
     "sourceSize": {
-     "w": 127,
-     "h": 131
+     "w": 96,
+     "h": 96
     },
     "pivot": {
-     "x": 0.5196850393700787,
-     "y": 0.45038167938931295
+     "x": 0.5,
+     "y": 0.5
     },
-    "duration": 63
+    "duration": 83
    },
    {
     "filename": "ascendrya-crit-flash 3.png",
     "frame": {
-     "x": 0,
-     "y": 131,
-     "w": 127,
-     "h": 131
+     "x": 288,
+     "y": 0,
+     "w": 96,
+     "h": 96
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 127,
-     "h": 131
+     "w": 96,
+     "h": 96
     },
     "sourceSize": {
-     "w": 127,
-     "h": 131
+     "w": 96,
+     "h": 96
     },
     "pivot": {
-     "x": 0.5196850393700787,
-     "y": 0.45038167938931295
+     "x": 0.5,
+     "y": 0.5
     },
-    "duration": 63
+    "duration": 83
    },
    {
     "filename": "ascendrya-crit-flash 4.png",
     "frame": {
-     "x": 127,
-     "y": 131,
-     "w": 127,
-     "h": 131
+     "x": 0,
+     "y": 96,
+     "w": 96,
+     "h": 96
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 127,
-     "h": 131
+     "w": 96,
+     "h": 96
     },
     "sourceSize": {
-     "w": 127,
-     "h": 131
+     "w": 96,
+     "h": 96
     },
     "pivot": {
-     "x": 0.5196850393700787,
-     "y": 0.45038167938931295
+     "x": 0.5,
+     "y": 0.5
     },
-    "duration": 63
+    "duration": 83
    },
    {
     "filename": "ascendrya-crit-flash 5.png",
     "frame": {
-     "x": 254,
-     "y": 131,
-     "w": 127,
-     "h": 131
+     "x": 96,
+     "y": 96,
+     "w": 96,
+     "h": 96
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 127,
-     "h": 131
+     "w": 96,
+     "h": 96
     },
     "sourceSize": {
-     "w": 127,
-     "h": 131
+     "w": 96,
+     "h": 96
     },
     "pivot": {
-     "x": 0.5196850393700787,
-     "y": 0.45038167938931295
+     "x": 0.5,
+     "y": 0.5
     },
-    "duration": 63
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-crit-flash 6.png",
+    "frame": {
+     "x": 192,
+     "y": 96,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-crit-flash 7.png",
+    "frame": {
+     "x": 288,
+     "y": 96,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-crit-flash 8.png",
+    "frame": {
+     "x": 0,
+     "y": 192,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-crit-flash 9.png",
+    "frame": {
+     "x": 96,
+     "y": 192,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-crit-flash 10.png",
+    "frame": {
+     "x": 192,
+     "y": 192,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-crit-flash 11.png",
+    "frame": {
+     "x": 288,
+     "y": 192,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
    }
   ],
   "meta": {
@@ -177,20 +333,20 @@
    "image": "ascendrya-crit-flash.png",
    "format": "RGBA8888",
    "size": {
-    "w": 381,
-    "h": 262
+    "w": 384,
+    "h": 288
    },
    "scale": "1",
    "anchor": {
     "kind": "origin",
-    "x": 66,
-    "y": 59
+    "x": 48,
+    "y": 48
    },
    "frameTags": [
     {
      "name": "ascendrya-crit-flash",
      "from": 0,
-     "to": 5,
+     "to": 11,
      "direction": "forward"
     }
    ]

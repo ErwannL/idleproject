@@ -1,18 +1,18 @@
 {
  "canvas": {
-  "h": 152,
-  "w": 142
+  "h": 168,
+  "w": 144
  },
- "frames": 10,
- "fps": 12,
+ "frames": 12,
+ "fps": 9,
  "loop": false,
  "anchor": {
-  "x": 71,
+  "x": 72,
   "y": 138,
   "kind": "origin"
  },
- "message": "A 10-frame one-shot boss summoning portal: a dark red and black rune circle on the ground, crimson flames erupting from its rim, and a lightning bolt striking down into the centre with sparks and scorch, fading out by the last frame. The light from the flames only lights a character, so it has no effect here with no sprite. Try the Circle, Flames and Lightning colour sliders to shift the reds, and the Lightning branches slider to make the bolt more or less forked.",
- "effect_id": "fd668d45-2c90-482e-bd0f-12a2d47dda1b",
+ "message": "I made a 12-frame boss summoning portal: a dark red and black rune circle on the ground, then crimson flames and a lightning strike erupt from it, and it dissolves into smoke and falling sparks. The three stages read as a glowing anticipation, a full impact around frames 3 to 8, and a slow fade. The anticipation glow is subtle, so if you want the wind-up stronger, the circle's glow and the flame size are the sliders to try. I could not guarantee a transparent background, so check it in your export.",
+ "effect_id": "8dafa31b-531e-4574-a28a-bf3bbc0dee77",
  "sheet": {
   "frames": [
    {
@@ -20,260 +20,312 @@
     "frame": {
      "x": 0,
      "y": 0,
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "sourceSize": {
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "pivot": {
      "x": 0.5,
-     "y": 0.9078947368421053
+     "y": 0.8214285714285714
     },
-    "duration": 83
+    "duration": 111
    },
    {
     "filename": "ascendrya-boss-appear 1.png",
     "frame": {
-     "x": 142,
+     "x": 144,
      "y": 0,
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "sourceSize": {
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "pivot": {
      "x": 0.5,
-     "y": 0.9078947368421053
+     "y": 0.8214285714285714
     },
-    "duration": 83
+    "duration": 111
    },
    {
     "filename": "ascendrya-boss-appear 2.png",
     "frame": {
-     "x": 284,
+     "x": 288,
      "y": 0,
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "sourceSize": {
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "pivot": {
      "x": 0.5,
-     "y": 0.9078947368421053
+     "y": 0.8214285714285714
     },
-    "duration": 83
+    "duration": 111
    },
    {
     "filename": "ascendrya-boss-appear 3.png",
     "frame": {
-     "x": 426,
+     "x": 432,
      "y": 0,
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "sourceSize": {
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "pivot": {
      "x": 0.5,
-     "y": 0.9078947368421053
+     "y": 0.8214285714285714
     },
-    "duration": 83
+    "duration": 111
    },
    {
     "filename": "ascendrya-boss-appear 4.png",
     "frame": {
      "x": 0,
-     "y": 152,
-     "w": 142,
-     "h": 152
+     "y": 168,
+     "w": 144,
+     "h": 168
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "sourceSize": {
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "pivot": {
      "x": 0.5,
-     "y": 0.9078947368421053
+     "y": 0.8214285714285714
     },
-    "duration": 83
+    "duration": 111
    },
    {
     "filename": "ascendrya-boss-appear 5.png",
     "frame": {
-     "x": 142,
-     "y": 152,
-     "w": 142,
-     "h": 152
+     "x": 144,
+     "y": 168,
+     "w": 144,
+     "h": 168
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "sourceSize": {
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "pivot": {
      "x": 0.5,
-     "y": 0.9078947368421053
+     "y": 0.8214285714285714
     },
-    "duration": 83
+    "duration": 111
    },
    {
     "filename": "ascendrya-boss-appear 6.png",
     "frame": {
-     "x": 284,
-     "y": 152,
-     "w": 142,
-     "h": 152
+     "x": 288,
+     "y": 168,
+     "w": 144,
+     "h": 168
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "sourceSize": {
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "pivot": {
      "x": 0.5,
-     "y": 0.9078947368421053
+     "y": 0.8214285714285714
     },
-    "duration": 83
+    "duration": 111
    },
    {
     "filename": "ascendrya-boss-appear 7.png",
     "frame": {
-     "x": 426,
-     "y": 152,
-     "w": 142,
-     "h": 152
+     "x": 432,
+     "y": 168,
+     "w": 144,
+     "h": 168
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "sourceSize": {
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "pivot": {
      "x": 0.5,
-     "y": 0.9078947368421053
+     "y": 0.8214285714285714
     },
-    "duration": 83
+    "duration": 111
    },
    {
     "filename": "ascendrya-boss-appear 8.png",
     "frame": {
      "x": 0,
-     "y": 304,
-     "w": 142,
-     "h": 152
+     "y": 336,
+     "w": 144,
+     "h": 168
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "sourceSize": {
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "pivot": {
      "x": 0.5,
-     "y": 0.9078947368421053
+     "y": 0.8214285714285714
     },
-    "duration": 83
+    "duration": 111
    },
    {
     "filename": "ascendrya-boss-appear 9.png",
     "frame": {
-     "x": 142,
-     "y": 304,
-     "w": 142,
-     "h": 152
+     "x": 144,
+     "y": 336,
+     "w": 144,
+     "h": 168
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "sourceSize": {
-     "w": 142,
-     "h": 152
+     "w": 144,
+     "h": 168
     },
     "pivot": {
      "x": 0.5,
-     "y": 0.9078947368421053
+     "y": 0.8214285714285714
     },
-    "duration": 83
+    "duration": 111
+   },
+   {
+    "filename": "ascendrya-boss-appear 10.png",
+    "frame": {
+     "x": 288,
+     "y": 336,
+     "w": 144,
+     "h": 168
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 144,
+     "h": 168
+    },
+    "sourceSize": {
+     "w": 144,
+     "h": 168
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8214285714285714
+    },
+    "duration": 111
+   },
+   {
+    "filename": "ascendrya-boss-appear 11.png",
+    "frame": {
+     "x": 432,
+     "y": 336,
+     "w": 144,
+     "h": 168
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 144,
+     "h": 168
+    },
+    "sourceSize": {
+     "w": 144,
+     "h": 168
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8214285714285714
+    },
+    "duration": 111
    }
   ],
   "meta": {
@@ -281,20 +333,20 @@
    "image": "ascendrya-boss-appear.png",
    "format": "RGBA8888",
    "size": {
-    "w": 568,
-    "h": 456
+    "w": 576,
+    "h": 504
    },
    "scale": "1",
    "anchor": {
     "kind": "origin",
-    "x": 71,
+    "x": 72,
     "y": 138
    },
    "frameTags": [
     {
      "name": "ascendrya-boss-appear",
      "from": 0,
-     "to": 9,
+     "to": 11,
      "direction": "forward"
     }
    ]

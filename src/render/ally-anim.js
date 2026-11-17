@@ -53,6 +53,26 @@ const DECODED = decodeAllyFrames();
 repairKnightHeads(DECODED);
 for (const [k, v] of Object.entries(DECODED)) if (!SPRITES[k]) SPRITES[k] = v;
 
+// v9.7.1 (lot B) : animations supplémentaires (repos, compétence, ultime, coup reçu, victoire) chargées à la demande,
+// après le démarrage : ajoutées à ALLY_ANIMS et aux SPRITES dès qu'elles arrivent (sinon : gestes d'avant).
+export const allyExtraReady = (typeof window === 'undefined' ? Promise.resolve(null) : import('./art-anim-allies-extra.js'))
+  .then((m) => {
+    if (!m) return false;
+    const frames = {};
+    for (const anims of Object.values(m.ALLY_ANIMS)) for (const a of Object.values(anims)) {
+      let prev = null;
+      for (const f of a.frames) {
+        const rows = m.ALLY_ANIM_ART[f].rows.map((r, y) => (r === '' && prev ? prev[y] : expandRow(r)));
+        frames[f] = { ...m.ALLY_ANIM_ART[f], rows, pal: m.ALLY_ANIM_PALS[m.ALLY_ANIM_ART[f].pr] };
+        prev = rows;
+      }
+    }
+    for (const [k, v] of Object.entries(frames)) if (!SPRITES[k]) SPRITES[k] = v;
+    for (const [key, anims] of Object.entries(m.ALLY_ANIMS)) Object.assign((ALLY_ANIMS[key] ??= {}), anims);
+    return true;
+  })
+  .catch(() => false);
+
 export { ALLY_ANIMS };
 
 // Moment de l'impact (fraction du geste) : corps à corps 0,09 s sur 0,3 s ; tirs et sorts partent au début du

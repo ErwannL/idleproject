@@ -341,5 +341,24 @@ def write(sprites, index):
     print(f'{len(sprites)} images -> {os.path.relpath(out, ROOT)} ({os.path.getsize(out) // 1024} Ko)')
 
 
+# v9.7.1 (lot B) : les nouvelles animations (repos, compétence, ultime, coup reçu, victoire) vont dans un second fichier
+# chargé à la demande après le démarrage (src/render/art-anim-allies-extra.js) : le premier chargement ne grossit pas.
+EXTRA = ('idle', 'cast', 'ultimate', 'hurt', 'victory')
+
+
+def split(sprites, index):
+    parts = []
+    for extra in (False, True):
+        idx = {k: {a: e for a, e in v.items() if (a in EXTRA) == extra} for k, v in index.items()}
+        idx = {k: v for k, v in idx.items() if v}
+        names = {f for v in idx.values() for e in v.values() for f in e['frames']}
+        parts.append(({n: sprites[n] for n in sprites if n in names}, idx))
+    return parts
+
+
 if __name__ == '__main__':
-    write(*build())
+    (base_s, base_i), (ex_s, ex_i) = split(*build())
+    write(base_s, base_i)
+    if ex_s:
+        os.environ['OUT'] = os.path.join(ROOT, 'src', 'render', 'art-anim-allies-extra.js')
+        write(ex_s, ex_i)

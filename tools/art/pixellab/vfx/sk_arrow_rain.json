@@ -1,18 +1,18 @@
 {
  "canvas": {
   "h": 102,
-  "w": 158
+  "w": 157
  },
- "frames": 8,
- "fps": 6,
+ "frames": 12,
+ "fps": 8,
  "loop": false,
  "anchor": {
   "x": 111,
   "y": 82,
   "kind": "origin"
  },
- "message": "A one-shot volley of arrows falling vertically onto the ground, with small dust puffs where they land, now 8 frames at 6 fps. The arrows fall from the top with their shadows, then stick into the ground; the last frame is empty, so trim it if your game doesn't need the gap. Use the colour, amount and dust sliders to adjust the arrows and the impact dust.",
- "effect_id": "ec18de92-81e3-4a48-b103-84c72cd4f497",
+ "message": "A 12-frame, 16-bit style arrow volley over a wide ground area: a small orange glow flickers on the impact spot first (anticipation), the arrows rain in and strike with a bright holy-coloured flash, dust and sparks burst, then grey smoke puffs and sparks fade out by the last frame. The arrows are still the drawn wooden arrows rather than truly glowing ones, and the impact flash is modest in size, so raise the effect's size or the arrow colour if you want more punch.",
+ "effect_id": "488e065c-9062-4d60-a950-ed20a06ec773",
  "sheet": {
   "frames": [
    {
@@ -20,7 +20,7 @@
     "frame": {
      "x": 0,
      "y": 0,
-     "w": 158,
+     "w": 157,
      "h": 102
     },
     "rotated": false,
@@ -28,25 +28,25 @@
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 158,
+     "w": 157,
      "h": 102
     },
     "sourceSize": {
-     "w": 158,
+     "w": 157,
      "h": 102
     },
     "pivot": {
-     "x": 0.7025316455696202,
+     "x": 0.7070063694267515,
      "y": 0.803921568627451
     },
-    "duration": 167
+    "duration": 125
    },
    {
     "filename": "ascendrya-sk-arrow-rain 1.png",
     "frame": {
-     "x": 158,
+     "x": 157,
      "y": 0,
-     "w": 158,
+     "w": 157,
      "h": 102
     },
     "rotated": false,
@@ -54,25 +54,25 @@
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 158,
+     "w": 157,
      "h": 102
     },
     "sourceSize": {
-     "w": 158,
+     "w": 157,
      "h": 102
     },
     "pivot": {
-     "x": 0.7025316455696202,
+     "x": 0.7070063694267515,
      "y": 0.803921568627451
     },
-    "duration": 167
+    "duration": 125
    },
    {
     "filename": "ascendrya-sk-arrow-rain 2.png",
     "frame": {
-     "x": 316,
+     "x": 314,
      "y": 0,
-     "w": 158,
+     "w": 157,
      "h": 102
     },
     "rotated": false,
@@ -80,25 +80,25 @@
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 158,
+     "w": 157,
      "h": 102
     },
     "sourceSize": {
-     "w": 158,
+     "w": 157,
      "h": 102
     },
     "pivot": {
-     "x": 0.7025316455696202,
+     "x": 0.7070063694267515,
      "y": 0.803921568627451
     },
-    "duration": 167
+    "duration": 125
    },
    {
     "filename": "ascendrya-sk-arrow-rain 3.png",
     "frame": {
-     "x": 0,
-     "y": 102,
-     "w": 158,
+     "x": 471,
+     "y": 0,
+     "w": 157,
      "h": 102
     },
     "rotated": false,
@@ -106,25 +106,25 @@
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 158,
+     "w": 157,
      "h": 102
     },
     "sourceSize": {
-     "w": 158,
+     "w": 157,
      "h": 102
     },
     "pivot": {
-     "x": 0.7025316455696202,
+     "x": 0.7070063694267515,
      "y": 0.803921568627451
     },
-    "duration": 167
+    "duration": 125
    },
    {
     "filename": "ascendrya-sk-arrow-rain 4.png",
     "frame": {
-     "x": 158,
+     "x": 0,
      "y": 102,
-     "w": 158,
+     "w": 157,
      "h": 102
     },
     "rotated": false,
@@ -132,25 +132,25 @@
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 158,
+     "w": 157,
      "h": 102
     },
     "sourceSize": {
-     "w": 158,
+     "w": 157,
      "h": 102
     },
     "pivot": {
-     "x": 0.7025316455696202,
+     "x": 0.7070063694267515,
      "y": 0.803921568627451
     },
-    "duration": 167
+    "duration": 125
    },
    {
     "filename": "ascendrya-sk-arrow-rain 5.png",
     "frame": {
-     "x": 316,
+     "x": 157,
      "y": 102,
-     "w": 158,
+     "w": 157,
      "h": 102
     },
     "rotated": false,
@@ -158,25 +158,25 @@
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 158,
+     "w": 157,
      "h": 102
     },
     "sourceSize": {
-     "w": 158,
+     "w": 157,
      "h": 102
     },
     "pivot": {
-     "x": 0.7025316455696202,
+     "x": 0.7070063694267515,
      "y": 0.803921568627451
     },
-    "duration": 167
+    "duration": 125
    },
    {
     "filename": "ascendrya-sk-arrow-rain 6.png",
     "frame": {
-     "x": 0,
-     "y": 204,
-     "w": 158,
+     "x": 314,
+     "y": 102,
+     "w": 157,
      "h": 102
     },
     "rotated": false,
@@ -184,25 +184,25 @@
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 158,
+     "w": 157,
      "h": 102
     },
     "sourceSize": {
-     "w": 158,
+     "w": 157,
      "h": 102
     },
     "pivot": {
-     "x": 0.7025316455696202,
+     "x": 0.7070063694267515,
      "y": 0.803921568627451
     },
-    "duration": 167
+    "duration": 125
    },
    {
     "filename": "ascendrya-sk-arrow-rain 7.png",
     "frame": {
-     "x": 158,
-     "y": 204,
-     "w": 158,
+     "x": 471,
+     "y": 102,
+     "w": 157,
      "h": 102
     },
     "rotated": false,
@@ -210,18 +210,122 @@
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 158,
+     "w": 157,
      "h": 102
     },
     "sourceSize": {
-     "w": 158,
+     "w": 157,
      "h": 102
     },
     "pivot": {
-     "x": 0.7025316455696202,
+     "x": 0.7070063694267515,
      "y": 0.803921568627451
     },
-    "duration": 167
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-sk-arrow-rain 8.png",
+    "frame": {
+     "x": 0,
+     "y": 204,
+     "w": 157,
+     "h": 102
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 157,
+     "h": 102
+    },
+    "sourceSize": {
+     "w": 157,
+     "h": 102
+    },
+    "pivot": {
+     "x": 0.7070063694267515,
+     "y": 0.803921568627451
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-sk-arrow-rain 9.png",
+    "frame": {
+     "x": 157,
+     "y": 204,
+     "w": 157,
+     "h": 102
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 157,
+     "h": 102
+    },
+    "sourceSize": {
+     "w": 157,
+     "h": 102
+    },
+    "pivot": {
+     "x": 0.7070063694267515,
+     "y": 0.803921568627451
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-sk-arrow-rain 10.png",
+    "frame": {
+     "x": 314,
+     "y": 204,
+     "w": 157,
+     "h": 102
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 157,
+     "h": 102
+    },
+    "sourceSize": {
+     "w": 157,
+     "h": 102
+    },
+    "pivot": {
+     "x": 0.7070063694267515,
+     "y": 0.803921568627451
+    },
+    "duration": 125
+   },
+   {
+    "filename": "ascendrya-sk-arrow-rain 11.png",
+    "frame": {
+     "x": 471,
+     "y": 204,
+     "w": 157,
+     "h": 102
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 157,
+     "h": 102
+    },
+    "sourceSize": {
+     "w": 157,
+     "h": 102
+    },
+    "pivot": {
+     "x": 0.7070063694267515,
+     "y": 0.803921568627451
+    },
+    "duration": 125
    }
   ],
   "meta": {
@@ -229,7 +333,7 @@
    "image": "ascendrya-sk-arrow-rain.png",
    "format": "RGBA8888",
    "size": {
-    "w": 474,
+    "w": 628,
     "h": 306
    },
    "scale": "1",
@@ -242,7 +346,7 @@
     {
      "name": "ascendrya-sk-arrow-rain",
      "from": 0,
-     "to": 7,
+     "to": 11,
      "direction": "forward"
     }
    ]

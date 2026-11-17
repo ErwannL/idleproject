@@ -144,6 +144,30 @@ SK = {
 }
 for _k, (_s, _d) in SK.items():
     VFX['sk_' + _k] = [_s, _d]
+# v9.7.1 (lot E) : les 12 effets les plus vus refaits — taille doublée, 12 images, trois temps lisibles (départ, impact,
+# dissipation) — et les soins, ralliement et bouclier (autrefois disques et colonnes tracés par le code).
+THREE = ', 12 frames, three clearly readable stages: a short anticipation glow, a strong full impact, then a slow dissipation into smoke and sparks'
+REMAKE = {
+    'hit_slash': 'a white and pale blue crescent sword slash impact, a sharp diagonal arc with sparks',
+    'hit_fire': 'a fire impact explosion: orange and yellow flames burst outward then curl up into dark smoke and embers',
+    'hit_ice': 'an ice impact: pale blue ice crystals and shards shatter outward from a frosty burst, white highlights',
+    'crit_flash': 'a critical hit flash: a big golden star shaped burst with sharp white rays',
+    'sk_fireball': 'a big fireball flying right and exploding into a fiery orange blast with embers',
+    'sk_frost_nova': 'a frost nova: a ring of ice spikes erupting outward from the ground with frosty mist',
+    'sk_meteor': 'a flaming meteor falling diagonally from the sky and crashing into the ground with a huge fiery explosion and debris',
+    'sk_arrow_rain': 'a rain of glowing arrows falling from the sky and striking the ground in a wide area with dust',
+    'sk_divine_light': 'a divine light: a tall pillar of golden holy light descending from the sky with a cross shaped flare',
+    'boss_appear': 'a boss summoning portal: dark red and black magic circle on the ground erupting with crimson flames and lightning',
+    'boss_explode': 'a big boss defeat explosion: large fiery orange and yellow blast with smoke ring and flying debris',
+    'level_up': 'a level up effect: golden rising pillar of light with spiraling sparkles and upward arrows of light',
+}
+for _k, _d in REMAKE.items():
+    VFX[_k] = [min(128, max(64, VFX.get(_k, [48])[0] * 2)), _d + THREE]
+VFX.update({
+    'sk_heal': [96, 'a healing effect: soft green and mint light swirling upward around a spot with leaves and plus-shaped sparkles, no solid disc' + THREE],
+    'sk_rally': [96, 'a rally war cry: golden shockwave rings expanding from the ground with rising golden sparks and banners of light, outline only' + THREE],
+    'sk_shield': [96, 'a protective shield: a translucent pale blue hexagon barrier dome forming with rune lines, edges glowing, center transparent' + THREE],
+})
 VFX.update({
     # Mécaniques de boss
     'boss_shell_chip': [24, 'grey blue stone armor shell fragments chipping off and flying with a small flash, 6 frames'],

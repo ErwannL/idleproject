@@ -1,18 +1,18 @@
 {
  "canvas": {
-  "h": 149,
-  "w": 125
+  "h": 151,
+  "w": 132
  },
- "frames": 10,
- "fps": 10,
+ "frames": 12,
+ "fps": 12,
  "loop": false,
  "anchor": {
-  "x": 49,
+  "x": 55,
   "y": 128,
   "kind": "origin"
  },
- "message": "A 10-frame retro pixel meteor: a flaming rock streaks in from the top left with a long fire trail, hits the ground in a fiery explosion with a shockwave ring, debris and smoke, and leaves a glowing orange crater that lingers on the last frame. I used a 4-colour fire palette with hard edges and a dark outline. The crater glow is its own part, so try its brightness slider to make it stronger or dimmer, and the trail and cracks sliders to tune the rest.",
- "effect_id": "b66900ae-b15b-4153-934f-6872006b5b5f",
+ "message": "A flaming meteor streaks in from the upper right over the first four frames, hits the ground at frame 5 with a bright flash, a fiery blast, debris and cracks, then dissolves into grey smoke and sparks by frame 11. It runs 12 frames at 12 fps on a transparent background. The meteor's trail and the explosion's size and colour are the easiest things to tune with the sliders.",
+ "effect_id": "83a7a050-6360-4a43-9ab6-bd7245dbf928",
  "sheet": {
   "frames": [
    {
@@ -20,260 +20,312 @@
     "frame": {
      "x": 0,
      "y": 0,
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "sourceSize": {
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "pivot": {
-     "x": 0.392,
-     "y": 0.8590604026845637
+     "x": 0.4166666666666667,
+     "y": 0.847682119205298
     },
-    "duration": 100
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-meteor 1.png",
     "frame": {
-     "x": 125,
+     "x": 132,
      "y": 0,
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "sourceSize": {
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "pivot": {
-     "x": 0.392,
-     "y": 0.8590604026845637
+     "x": 0.4166666666666667,
+     "y": 0.847682119205298
     },
-    "duration": 100
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-meteor 2.png",
     "frame": {
-     "x": 250,
+     "x": 264,
      "y": 0,
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "sourceSize": {
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "pivot": {
-     "x": 0.392,
-     "y": 0.8590604026845637
+     "x": 0.4166666666666667,
+     "y": 0.847682119205298
     },
-    "duration": 100
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-meteor 3.png",
     "frame": {
-     "x": 375,
+     "x": 396,
      "y": 0,
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "sourceSize": {
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "pivot": {
-     "x": 0.392,
-     "y": 0.8590604026845637
+     "x": 0.4166666666666667,
+     "y": 0.847682119205298
     },
-    "duration": 100
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-meteor 4.png",
     "frame": {
      "x": 0,
-     "y": 149,
-     "w": 125,
-     "h": 149
+     "y": 151,
+     "w": 132,
+     "h": 151
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "sourceSize": {
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "pivot": {
-     "x": 0.392,
-     "y": 0.8590604026845637
+     "x": 0.4166666666666667,
+     "y": 0.847682119205298
     },
-    "duration": 100
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-meteor 5.png",
     "frame": {
-     "x": 125,
-     "y": 149,
-     "w": 125,
-     "h": 149
+     "x": 132,
+     "y": 151,
+     "w": 132,
+     "h": 151
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "sourceSize": {
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "pivot": {
-     "x": 0.392,
-     "y": 0.8590604026845637
+     "x": 0.4166666666666667,
+     "y": 0.847682119205298
     },
-    "duration": 100
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-meteor 6.png",
     "frame": {
-     "x": 250,
-     "y": 149,
-     "w": 125,
-     "h": 149
+     "x": 264,
+     "y": 151,
+     "w": 132,
+     "h": 151
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "sourceSize": {
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "pivot": {
-     "x": 0.392,
-     "y": 0.8590604026845637
+     "x": 0.4166666666666667,
+     "y": 0.847682119205298
     },
-    "duration": 100
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-meteor 7.png",
     "frame": {
-     "x": 375,
-     "y": 149,
-     "w": 125,
-     "h": 149
+     "x": 396,
+     "y": 151,
+     "w": 132,
+     "h": 151
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "sourceSize": {
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "pivot": {
-     "x": 0.392,
-     "y": 0.8590604026845637
+     "x": 0.4166666666666667,
+     "y": 0.847682119205298
     },
-    "duration": 100
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-meteor 8.png",
     "frame": {
      "x": 0,
-     "y": 298,
-     "w": 125,
-     "h": 149
+     "y": 302,
+     "w": 132,
+     "h": 151
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "sourceSize": {
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "pivot": {
-     "x": 0.392,
-     "y": 0.8590604026845637
+     "x": 0.4166666666666667,
+     "y": 0.847682119205298
     },
-    "duration": 100
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-meteor 9.png",
     "frame": {
-     "x": 125,
-     "y": 298,
-     "w": 125,
-     "h": 149
+     "x": 132,
+     "y": 302,
+     "w": 132,
+     "h": 151
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "sourceSize": {
-     "w": 125,
-     "h": 149
+     "w": 132,
+     "h": 151
     },
     "pivot": {
-     "x": 0.392,
-     "y": 0.8590604026845637
+     "x": 0.4166666666666667,
+     "y": 0.847682119205298
     },
-    "duration": 100
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-meteor 10.png",
+    "frame": {
+     "x": 264,
+     "y": 302,
+     "w": 132,
+     "h": 151
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 132,
+     "h": 151
+    },
+    "sourceSize": {
+     "w": 132,
+     "h": 151
+    },
+    "pivot": {
+     "x": 0.4166666666666667,
+     "y": 0.847682119205298
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-meteor 11.png",
+    "frame": {
+     "x": 396,
+     "y": 302,
+     "w": 132,
+     "h": 151
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 132,
+     "h": 151
+    },
+    "sourceSize": {
+     "w": 132,
+     "h": 151
+    },
+    "pivot": {
+     "x": 0.4166666666666667,
+     "y": 0.847682119205298
+    },
+    "duration": 83
    }
   ],
   "meta": {
@@ -281,20 +333,20 @@
    "image": "ascendrya-sk-meteor.png",
    "format": "RGBA8888",
    "size": {
-    "w": 500,
-    "h": 447
+    "w": 528,
+    "h": 453
    },
    "scale": "1",
    "anchor": {
     "kind": "origin",
-    "x": 49,
+    "x": 55,
     "y": 128
    },
    "frameTags": [
     {
      "name": "ascendrya-sk-meteor",
      "from": 0,
-     "to": 9,
+     "to": 11,
      "direction": "forward"
     }
    ]

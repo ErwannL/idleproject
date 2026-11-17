@@ -1,18 +1,18 @@
 {
  "canvas": {
-  "h": 99,
-  "w": 60
+  "h": 134,
+  "w": 69
  },
- "frames": 10,
+ "frames": 12,
  "fps": 12,
  "loop": false,
  "anchor": {
-  "x": 30,
+  "x": 33,
   "y": 86,
   "kind": "origin"
  },
- "message": "A 10-frame, 16-bit-style level-up effect: a golden pillar of light rises from the ground with two halo rings, sparkles and small upward arrows, then it fades out. I set the sparkles and arrows to read as a clean, small pixel accent, but the spiral is loose, so the level_up colour and rings sliders are the ones to try if you want more gold or fewer rings.",
- "effect_id": "991e203f-693e-4ffe-b7a7-5859c9923b0d",
+ "message": "A 12-frame level-up effect: a short glow at the base, a strong golden pillar with spinning halo rings and sparkles at full impact, then the pillar fades into rising up-arrows, smoke and drifting sparks. Try the colour, the beam width and the rings sliders, and the arrows and smoke amounts; the canvas is 69x134 with the effect centred low so the sprite can stand in it.",
+ "effect_id": "18b04dc4-aa9d-4e49-8cbf-e7d2f95c25fd",
  "sheet": {
   "frames": [
    {
@@ -20,102 +20,102 @@
     "frame": {
      "x": 0,
      "y": 0,
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "sourceSize": {
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "pivot": {
-     "x": 0.5,
-     "y": 0.8686868686868687
+     "x": 0.4782608695652174,
+     "y": 0.6417910447761194
     },
     "duration": 83
    },
    {
     "filename": "ascendrya-level-up 1.png",
     "frame": {
-     "x": 60,
+     "x": 69,
      "y": 0,
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "sourceSize": {
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "pivot": {
-     "x": 0.5,
-     "y": 0.8686868686868687
+     "x": 0.4782608695652174,
+     "y": 0.6417910447761194
     },
     "duration": 83
    },
    {
     "filename": "ascendrya-level-up 2.png",
     "frame": {
-     "x": 120,
+     "x": 138,
      "y": 0,
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "sourceSize": {
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "pivot": {
-     "x": 0.5,
-     "y": 0.8686868686868687
+     "x": 0.4782608695652174,
+     "y": 0.6417910447761194
     },
     "duration": 83
    },
    {
     "filename": "ascendrya-level-up 3.png",
     "frame": {
-     "x": 180,
+     "x": 207,
      "y": 0,
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "sourceSize": {
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "pivot": {
-     "x": 0.5,
-     "y": 0.8686868686868687
+     "x": 0.4782608695652174,
+     "y": 0.6417910447761194
     },
     "duration": 83
    },
@@ -123,103 +123,103 @@
     "filename": "ascendrya-level-up 4.png",
     "frame": {
      "x": 0,
-     "y": 99,
-     "w": 60,
-     "h": 99
+     "y": 134,
+     "w": 69,
+     "h": 134
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "sourceSize": {
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "pivot": {
-     "x": 0.5,
-     "y": 0.8686868686868687
+     "x": 0.4782608695652174,
+     "y": 0.6417910447761194
     },
     "duration": 83
    },
    {
     "filename": "ascendrya-level-up 5.png",
     "frame": {
-     "x": 60,
-     "y": 99,
-     "w": 60,
-     "h": 99
+     "x": 69,
+     "y": 134,
+     "w": 69,
+     "h": 134
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "sourceSize": {
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "pivot": {
-     "x": 0.5,
-     "y": 0.8686868686868687
+     "x": 0.4782608695652174,
+     "y": 0.6417910447761194
     },
     "duration": 83
    },
    {
     "filename": "ascendrya-level-up 6.png",
     "frame": {
-     "x": 120,
-     "y": 99,
-     "w": 60,
-     "h": 99
+     "x": 138,
+     "y": 134,
+     "w": 69,
+     "h": 134
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "sourceSize": {
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "pivot": {
-     "x": 0.5,
-     "y": 0.8686868686868687
+     "x": 0.4782608695652174,
+     "y": 0.6417910447761194
     },
     "duration": 83
    },
    {
     "filename": "ascendrya-level-up 7.png",
     "frame": {
-     "x": 180,
-     "y": 99,
-     "w": 60,
-     "h": 99
+     "x": 207,
+     "y": 134,
+     "w": 69,
+     "h": 134
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "sourceSize": {
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "pivot": {
-     "x": 0.5,
-     "y": 0.8686868686868687
+     "x": 0.4782608695652174,
+     "y": 0.6417910447761194
     },
     "duration": 83
    },
@@ -227,51 +227,103 @@
     "filename": "ascendrya-level-up 8.png",
     "frame": {
      "x": 0,
-     "y": 198,
-     "w": 60,
-     "h": 99
+     "y": 268,
+     "w": 69,
+     "h": 134
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "sourceSize": {
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "pivot": {
-     "x": 0.5,
-     "y": 0.8686868686868687
+     "x": 0.4782608695652174,
+     "y": 0.6417910447761194
     },
     "duration": 83
    },
    {
     "filename": "ascendrya-level-up 9.png",
     "frame": {
-     "x": 60,
-     "y": 198,
-     "w": 60,
-     "h": 99
+     "x": 69,
+     "y": 268,
+     "w": 69,
+     "h": 134
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "sourceSize": {
-     "w": 60,
-     "h": 99
+     "w": 69,
+     "h": 134
     },
     "pivot": {
-     "x": 0.5,
-     "y": 0.8686868686868687
+     "x": 0.4782608695652174,
+     "y": 0.6417910447761194
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-level-up 10.png",
+    "frame": {
+     "x": 138,
+     "y": 268,
+     "w": 69,
+     "h": 134
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 69,
+     "h": 134
+    },
+    "sourceSize": {
+     "w": 69,
+     "h": 134
+    },
+    "pivot": {
+     "x": 0.4782608695652174,
+     "y": 0.6417910447761194
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-level-up 11.png",
+    "frame": {
+     "x": 207,
+     "y": 268,
+     "w": 69,
+     "h": 134
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 69,
+     "h": 134
+    },
+    "sourceSize": {
+     "w": 69,
+     "h": 134
+    },
+    "pivot": {
+     "x": 0.4782608695652174,
+     "y": 0.6417910447761194
     },
     "duration": 83
    }
@@ -281,20 +333,20 @@
    "image": "ascendrya-level-up.png",
    "format": "RGBA8888",
    "size": {
-    "w": 240,
-    "h": 297
+    "w": 276,
+    "h": 402
    },
    "scale": "1",
    "anchor": {
     "kind": "origin",
-    "x": 30,
+    "x": 33,
     "y": 86
    },
    "frameTags": [
     {
      "name": "ascendrya-level-up",
      "from": 0,
-     "to": 9,
+     "to": 11,
      "direction": "forward"
     }
    ]

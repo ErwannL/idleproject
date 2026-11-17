@@ -1,18 +1,18 @@
 {
  "canvas": {
-  "h": 77,
-  "w": 74
+  "h": 64,
+  "w": 71
  },
- "frames": 6,
- "fps": 20,
+ "frames": 12,
+ "fps": 12,
  "loop": false,
  "anchor": {
-  "x": 31,
-  "y": 43,
+  "x": 33,
+  "y": 37,
   "kind": "origin"
  },
- "message": "A 6-frame crescent slash in white and pale blue: it flashes in on frame 1, sweeps across as a diagonal arc with a darker blue inner edge, and fades out by frame 5, with a few small white sparks flying off the arc. The sprite-free canvas is transparent. Try the Sweep and Thickness sliders for a longer or heavier cut, and Angle to tilt the diagonal.",
- "effect_id": "6ce40eed-ffe4-41c6-aa3d-d7df97a48bb5",
+ "message": "A 12-frame, one-shot white and pale-blue crescent slash with a sharp diagonal arc. Frame 1 is a short anticipation glow, frames 3 to 5 are the full impact with a flash, crosshair and sparks, and frames 6 to 11 dissipate into a grey smoke puff and drifting sparks. Try the slash's facing and sweep sliders for the angle and length of the arc, and the smoke colour and lumpiness sliders for the dissipation. I kept the 16-bit look with a few colours and a dark outline, but I did not do a hard palette reduction beyond that.",
+ "effect_id": "c36e37a2-67a4-4d4e-a406-4b15a99b7b25",
  "sheet": {
   "frames": [
    {
@@ -20,156 +20,312 @@
     "frame": {
      "x": 0,
      "y": 0,
-     "w": 74,
-     "h": 77
+     "w": 71,
+     "h": 64
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 74,
-     "h": 77
+     "w": 71,
+     "h": 64
     },
     "sourceSize": {
-     "w": 74,
-     "h": 77
+     "w": 71,
+     "h": 64
     },
     "pivot": {
-     "x": 0.4189189189189189,
-     "y": 0.5584415584415584
+     "x": 0.4647887323943662,
+     "y": 0.578125
     },
-    "duration": 50
+    "duration": 83
    },
    {
     "filename": "ascendrya-hit-slash 1.png",
     "frame": {
-     "x": 74,
+     "x": 71,
      "y": 0,
-     "w": 74,
-     "h": 77
+     "w": 71,
+     "h": 64
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 74,
-     "h": 77
+     "w": 71,
+     "h": 64
     },
     "sourceSize": {
-     "w": 74,
-     "h": 77
+     "w": 71,
+     "h": 64
     },
     "pivot": {
-     "x": 0.4189189189189189,
-     "y": 0.5584415584415584
+     "x": 0.4647887323943662,
+     "y": 0.578125
     },
-    "duration": 50
+    "duration": 83
    },
    {
     "filename": "ascendrya-hit-slash 2.png",
     "frame": {
-     "x": 148,
+     "x": 142,
      "y": 0,
-     "w": 74,
-     "h": 77
+     "w": 71,
+     "h": 64
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 74,
-     "h": 77
+     "w": 71,
+     "h": 64
     },
     "sourceSize": {
-     "w": 74,
-     "h": 77
+     "w": 71,
+     "h": 64
     },
     "pivot": {
-     "x": 0.4189189189189189,
-     "y": 0.5584415584415584
+     "x": 0.4647887323943662,
+     "y": 0.578125
     },
-    "duration": 50
+    "duration": 83
    },
    {
     "filename": "ascendrya-hit-slash 3.png",
     "frame": {
-     "x": 0,
-     "y": 77,
-     "w": 74,
-     "h": 77
+     "x": 213,
+     "y": 0,
+     "w": 71,
+     "h": 64
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 74,
-     "h": 77
+     "w": 71,
+     "h": 64
     },
     "sourceSize": {
-     "w": 74,
-     "h": 77
+     "w": 71,
+     "h": 64
     },
     "pivot": {
-     "x": 0.4189189189189189,
-     "y": 0.5584415584415584
+     "x": 0.4647887323943662,
+     "y": 0.578125
     },
-    "duration": 50
+    "duration": 83
    },
    {
     "filename": "ascendrya-hit-slash 4.png",
     "frame": {
-     "x": 74,
-     "y": 77,
-     "w": 74,
-     "h": 77
+     "x": 0,
+     "y": 64,
+     "w": 71,
+     "h": 64
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 74,
-     "h": 77
+     "w": 71,
+     "h": 64
     },
     "sourceSize": {
-     "w": 74,
-     "h": 77
+     "w": 71,
+     "h": 64
     },
     "pivot": {
-     "x": 0.4189189189189189,
-     "y": 0.5584415584415584
+     "x": 0.4647887323943662,
+     "y": 0.578125
     },
-    "duration": 50
+    "duration": 83
    },
    {
     "filename": "ascendrya-hit-slash 5.png",
     "frame": {
-     "x": 148,
-     "y": 77,
-     "w": 74,
-     "h": 77
+     "x": 71,
+     "y": 64,
+     "w": 71,
+     "h": 64
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 74,
-     "h": 77
+     "w": 71,
+     "h": 64
     },
     "sourceSize": {
-     "w": 74,
-     "h": 77
+     "w": 71,
+     "h": 64
     },
     "pivot": {
-     "x": 0.4189189189189189,
-     "y": 0.5584415584415584
+     "x": 0.4647887323943662,
+     "y": 0.578125
     },
-    "duration": 50
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-slash 6.png",
+    "frame": {
+     "x": 142,
+     "y": 64,
+     "w": 71,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 71,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 71,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.4647887323943662,
+     "y": 0.578125
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-slash 7.png",
+    "frame": {
+     "x": 213,
+     "y": 64,
+     "w": 71,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 71,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 71,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.4647887323943662,
+     "y": 0.578125
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-slash 8.png",
+    "frame": {
+     "x": 0,
+     "y": 128,
+     "w": 71,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 71,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 71,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.4647887323943662,
+     "y": 0.578125
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-slash 9.png",
+    "frame": {
+     "x": 71,
+     "y": 128,
+     "w": 71,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 71,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 71,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.4647887323943662,
+     "y": 0.578125
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-slash 10.png",
+    "frame": {
+     "x": 142,
+     "y": 128,
+     "w": 71,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 71,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 71,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.4647887323943662,
+     "y": 0.578125
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-slash 11.png",
+    "frame": {
+     "x": 213,
+     "y": 128,
+     "w": 71,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 71,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 71,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.4647887323943662,
+     "y": 0.578125
+    },
+    "duration": 83
    }
   ],
   "meta": {
@@ -177,20 +333,20 @@
    "image": "ascendrya-hit-slash.png",
    "format": "RGBA8888",
    "size": {
-    "w": 222,
-    "h": 154
+    "w": 284,
+    "h": 192
    },
    "scale": "1",
    "anchor": {
     "kind": "origin",
-    "x": 31,
-    "y": 43
+    "x": 33,
+    "y": 37
    },
    "frameTags": [
     {
      "name": "ascendrya-hit-slash",
      "from": 0,
-     "to": 5,
+     "to": 11,
      "direction": "forward"
     }
    ]

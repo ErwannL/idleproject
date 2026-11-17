@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 102,
+  "w": 158
+ },
+ "frames": 8,
+ "fps": 6,
+ "loop": false,
+ "anchor": {
+  "x": 111,
+  "y": 82,
+  "kind": "origin"
+ },
+ "message": "A one-shot volley of arrows falling vertically onto the ground, with small dust puffs where they land, now 8 frames at 6 fps. The arrows fall from the top with their shadows, then stick into the ground; the last frame is empty, so trim it if your game doesn't need the gap. Use the colour, amount and dust sliders to adjust the arrows and the impact dust.",
+ "effect_id": "ec18de92-81e3-4a48-b103-84c72cd4f497",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-arrow-rain 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 158,
+     "h": 102
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 158,
+     "h": 102
+    },
+    "sourceSize": {
+     "w": 158,
+     "h": 102
+    },
+    "pivot": {
+     "x": 0.7025316455696202,
+     "y": 0.803921568627451
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-sk-arrow-rain 1.png",
+    "frame": {
+     "x": 158,
+     "y": 0,
+     "w": 158,
+     "h": 102
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 158,
+     "h": 102
+    },
+    "sourceSize": {
+     "w": 158,
+     "h": 102
+    },
+    "pivot": {
+     "x": 0.7025316455696202,
+     "y": 0.803921568627451
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-sk-arrow-rain 2.png",
+    "frame": {
+     "x": 316,
+     "y": 0,
+     "w": 158,
+     "h": 102
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 158,
+     "h": 102
+    },
+    "sourceSize": {
+     "w": 158,
+     "h": 102
+    },
+    "pivot": {
+     "x": 0.7025316455696202,
+     "y": 0.803921568627451
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-sk-arrow-rain 3.png",
+    "frame": {
+     "x": 0,
+     "y": 102,
+     "w": 158,
+     "h": 102
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 158,
+     "h": 102
+    },
+    "sourceSize": {
+     "w": 158,
+     "h": 102
+    },
+    "pivot": {
+     "x": 0.7025316455696202,
+     "y": 0.803921568627451
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-sk-arrow-rain 4.png",
+    "frame": {
+     "x": 158,
+     "y": 102,
+     "w": 158,
+     "h": 102
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 158,
+     "h": 102
+    },
+    "sourceSize": {
+     "w": 158,
+     "h": 102
+    },
+    "pivot": {
+     "x": 0.7025316455696202,
+     "y": 0.803921568627451
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-sk-arrow-rain 5.png",
+    "frame": {
+     "x": 316,
+     "y": 102,
+     "w": 158,
+     "h": 102
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 158,
+     "h": 102
+    },
+    "sourceSize": {
+     "w": 158,
+     "h": 102
+    },
+    "pivot": {
+     "x": 0.7025316455696202,
+     "y": 0.803921568627451
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-sk-arrow-rain 6.png",
+    "frame": {
+     "x": 0,
+     "y": 204,
+     "w": 158,
+     "h": 102
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 158,
+     "h": 102
+    },
+    "sourceSize": {
+     "w": 158,
+     "h": 102
+    },
+    "pivot": {
+     "x": 0.7025316455696202,
+     "y": 0.803921568627451
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-sk-arrow-rain 7.png",
+    "frame": {
+     "x": 158,
+     "y": 204,
+     "w": 158,
+     "h": 102
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 158,
+     "h": 102
+    },
+    "sourceSize": {
+     "w": 158,
+     "h": 102
+    },
+    "pivot": {
+     "x": 0.7025316455696202,
+     "y": 0.803921568627451
+    },
+    "duration": 167
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-arrow-rain.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 474,
+    "h": 306
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 111,
+    "y": 82
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-arrow-rain",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

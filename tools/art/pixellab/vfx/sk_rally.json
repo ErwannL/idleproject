@@ -1,0 +1,355 @@
+{
+ "canvas": {
+  "h": 95,
+  "w": 118
+ },
+ "frames": 12,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 59,
+  "y": 65,
+  "kind": "origin"
+ },
+ "message": "A 12-frame rally war cry: a small golden glow builds on the ground (frames 1-4), then two expanding golden shockwave rings with two light banners and rising sparks hit at full strength (frames 5-8), and it dissolves into dusty smoke puffs and fading embers (frames 9-12). The rings and banners are outline-only shapes in a gold ramp on a transparent background. Smoke and sparks are fairly subtle; the sparks setting and the dust puffs are the easiest things to push further.",
+ "effect_id": "84ffaf63-e0f7-42da-8baf-2d5abcc12af1",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-rally 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6842105263157895
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-rally 1.png",
+    "frame": {
+     "x": 118,
+     "y": 0,
+     "w": 118,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6842105263157895
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-rally 2.png",
+    "frame": {
+     "x": 236,
+     "y": 0,
+     "w": 118,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6842105263157895
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-rally 3.png",
+    "frame": {
+     "x": 354,
+     "y": 0,
+     "w": 118,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6842105263157895
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-rally 4.png",
+    "frame": {
+     "x": 0,
+     "y": 95,
+     "w": 118,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6842105263157895
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-rally 5.png",
+    "frame": {
+     "x": 118,
+     "y": 95,
+     "w": 118,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6842105263157895
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-rally 6.png",
+    "frame": {
+     "x": 236,
+     "y": 95,
+     "w": 118,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6842105263157895
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-rally 7.png",
+    "frame": {
+     "x": 354,
+     "y": 95,
+     "w": 118,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6842105263157895
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-rally 8.png",
+    "frame": {
+     "x": 0,
+     "y": 190,
+     "w": 118,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6842105263157895
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-rally 9.png",
+    "frame": {
+     "x": 118,
+     "y": 190,
+     "w": 118,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6842105263157895
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-rally 10.png",
+    "frame": {
+     "x": 236,
+     "y": 190,
+     "w": 118,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6842105263157895
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-rally 11.png",
+    "frame": {
+     "x": 354,
+     "y": 190,
+     "w": 118,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6842105263157895
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-rally.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 472,
+    "h": 285
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 59,
+    "y": 65
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-rally",
+     "from": 0,
+     "to": 11,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,303 @@
+{
+ "canvas": {
+  "h": 99,
+  "w": 60
+ },
+ "frames": 10,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 30,
+  "y": 86,
+  "kind": "origin"
+ },
+ "message": "A 10-frame, 16-bit-style level-up effect: a golden pillar of light rises from the ground with two halo rings, sparkles and small upward arrows, then it fades out. I set the sparkles and arrows to read as a clean, small pixel accent, but the spiral is loose, so the level_up colour and rings sliders are the ones to try if you want more gold or fewer rings.",
+ "effect_id": "991e203f-693e-4ffe-b7a7-5859c9923b0d",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-level-up 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 60,
+     "h": 99
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 60,
+     "h": 99
+    },
+    "sourceSize": {
+     "w": 60,
+     "h": 99
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8686868686868687
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-level-up 1.png",
+    "frame": {
+     "x": 60,
+     "y": 0,
+     "w": 60,
+     "h": 99
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 60,
+     "h": 99
+    },
+    "sourceSize": {
+     "w": 60,
+     "h": 99
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8686868686868687
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-level-up 2.png",
+    "frame": {
+     "x": 120,
+     "y": 0,
+     "w": 60,
+     "h": 99
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 60,
+     "h": 99
+    },
+    "sourceSize": {
+     "w": 60,
+     "h": 99
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8686868686868687
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-level-up 3.png",
+    "frame": {
+     "x": 180,
+     "y": 0,
+     "w": 60,
+     "h": 99
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 60,
+     "h": 99
+    },
+    "sourceSize": {
+     "w": 60,
+     "h": 99
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8686868686868687
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-level-up 4.png",
+    "frame": {
+     "x": 0,
+     "y": 99,
+     "w": 60,
+     "h": 99
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 60,
+     "h": 99
+    },
+    "sourceSize": {
+     "w": 60,
+     "h": 99
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8686868686868687
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-level-up 5.png",
+    "frame": {
+     "x": 60,
+     "y": 99,
+     "w": 60,
+     "h": 99
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 60,
+     "h": 99
+    },
+    "sourceSize": {
+     "w": 60,
+     "h": 99
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8686868686868687
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-level-up 6.png",
+    "frame": {
+     "x": 120,
+     "y": 99,
+     "w": 60,
+     "h": 99
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 60,
+     "h": 99
+    },
+    "sourceSize": {
+     "w": 60,
+     "h": 99
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8686868686868687
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-level-up 7.png",
+    "frame": {
+     "x": 180,
+     "y": 99,
+     "w": 60,
+     "h": 99
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 60,
+     "h": 99
+    },
+    "sourceSize": {
+     "w": 60,
+     "h": 99
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8686868686868687
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-level-up 8.png",
+    "frame": {
+     "x": 0,
+     "y": 198,
+     "w": 60,
+     "h": 99
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 60,
+     "h": 99
+    },
+    "sourceSize": {
+     "w": 60,
+     "h": 99
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8686868686868687
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-level-up 9.png",
+    "frame": {
+     "x": 60,
+     "y": 198,
+     "w": 60,
+     "h": 99
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 60,
+     "h": 99
+    },
+    "sourceSize": {
+     "w": 60,
+     "h": 99
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.8686868686868687
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-level-up.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 240,
+    "h": 297
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 30,
+    "y": 86
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-level-up",
+     "from": 0,
+     "to": 9,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

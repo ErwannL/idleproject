@@ -1,18 +1,18 @@
 {
  "canvas": {
-  "h": 69,
+  "h": 68,
   "w": 116
  },
- "frames": 8,
- "fps": 8,
+ "frames": 12,
+ "fps": 14,
  "loop": false,
  "anchor": {
   "x": 58,
-  "y": 44,
+  "y": 43,
   "kind": "origin"
  },
- "message": "A frost nova in 8 frames: an icy ring bursts out along the ground, a cluster of ice spikes pops up at its centre, then the ring darkens and the spikes sink to a few glints. It's built with a 4-colour frost palette, hard edges and a dark outline for a 16-bit look. The canvas is cropped to the effect, so the background is clear. Try the spike height and the ring colour sliders to tune it.",
- "effect_id": "26bbffff-67ea-4299-8431-9827c031b37c",
+ "message": "A 12-frame frost nova: a short glow at the ground, then a ring of ice spikes erupts with a frost shockwave and mist, and it dissipates into drifting mist, glints and flattened spike stubs. It's a 4-colour retro frost palette with dark outlines. Try the spike height and shockwave amount sliders, and the mist sliders if the smoke should be thicker or thinner.",
+ "effect_id": "50af4517-dbad-44d6-a812-9d5b914672f1",
  "sheet": {
   "frames": [
    {
@@ -21,7 +21,7 @@
      "x": 0,
      "y": 0,
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "rotated": false,
     "trimmed": false,
@@ -29,17 +29,17 @@
      "x": 0,
      "y": 0,
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "sourceSize": {
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "pivot": {
      "x": 0.5,
-     "y": 0.6376811594202898
+     "y": 0.6323529411764706
     },
-    "duration": 125
+    "duration": 71
    },
    {
     "filename": "ascendrya-sk-frost-nova 1.png",
@@ -47,7 +47,7 @@
      "x": 116,
      "y": 0,
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "rotated": false,
     "trimmed": false,
@@ -55,17 +55,17 @@
      "x": 0,
      "y": 0,
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "sourceSize": {
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "pivot": {
      "x": 0.5,
-     "y": 0.6376811594202898
+     "y": 0.6323529411764706
     },
-    "duration": 125
+    "duration": 71
    },
    {
     "filename": "ascendrya-sk-frost-nova 2.png",
@@ -73,7 +73,7 @@
      "x": 232,
      "y": 0,
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "rotated": false,
     "trimmed": false,
@@ -81,25 +81,25 @@
      "x": 0,
      "y": 0,
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "sourceSize": {
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "pivot": {
      "x": 0.5,
-     "y": 0.6376811594202898
+     "y": 0.6323529411764706
     },
-    "duration": 125
+    "duration": 71
    },
    {
     "filename": "ascendrya-sk-frost-nova 3.png",
     "frame": {
-     "x": 0,
-     "y": 69,
+     "x": 348,
+     "y": 0,
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "rotated": false,
     "trimmed": false,
@@ -107,25 +107,25 @@
      "x": 0,
      "y": 0,
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "sourceSize": {
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "pivot": {
      "x": 0.5,
-     "y": 0.6376811594202898
+     "y": 0.6323529411764706
     },
-    "duration": 125
+    "duration": 71
    },
    {
     "filename": "ascendrya-sk-frost-nova 4.png",
     "frame": {
-     "x": 116,
-     "y": 69,
+     "x": 0,
+     "y": 68,
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "rotated": false,
     "trimmed": false,
@@ -133,25 +133,25 @@
      "x": 0,
      "y": 0,
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "sourceSize": {
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "pivot": {
      "x": 0.5,
-     "y": 0.6376811594202898
+     "y": 0.6323529411764706
     },
-    "duration": 125
+    "duration": 71
    },
    {
     "filename": "ascendrya-sk-frost-nova 5.png",
     "frame": {
-     "x": 232,
-     "y": 69,
+     "x": 116,
+     "y": 68,
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "rotated": false,
     "trimmed": false,
@@ -159,25 +159,25 @@
      "x": 0,
      "y": 0,
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "sourceSize": {
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "pivot": {
      "x": 0.5,
-     "y": 0.6376811594202898
+     "y": 0.6323529411764706
     },
-    "duration": 125
+    "duration": 71
    },
    {
     "filename": "ascendrya-sk-frost-nova 6.png",
     "frame": {
-     "x": 0,
-     "y": 138,
+     "x": 232,
+     "y": 68,
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "rotated": false,
     "trimmed": false,
@@ -185,25 +185,25 @@
      "x": 0,
      "y": 0,
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "sourceSize": {
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "pivot": {
      "x": 0.5,
-     "y": 0.6376811594202898
+     "y": 0.6323529411764706
     },
-    "duration": 125
+    "duration": 71
    },
    {
     "filename": "ascendrya-sk-frost-nova 7.png",
     "frame": {
-     "x": 116,
-     "y": 138,
+     "x": 348,
+     "y": 68,
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "rotated": false,
     "trimmed": false,
@@ -211,17 +211,121 @@
      "x": 0,
      "y": 0,
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "sourceSize": {
      "w": 116,
-     "h": 69
+     "h": 68
     },
     "pivot": {
      "x": 0.5,
-     "y": 0.6376811594202898
+     "y": 0.6323529411764706
     },
-    "duration": 125
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-sk-frost-nova 8.png",
+    "frame": {
+     "x": 0,
+     "y": 136,
+     "w": 116,
+     "h": 68
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 68
+    },
+    "sourceSize": {
+     "w": 116,
+     "h": 68
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6323529411764706
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-sk-frost-nova 9.png",
+    "frame": {
+     "x": 116,
+     "y": 136,
+     "w": 116,
+     "h": 68
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 68
+    },
+    "sourceSize": {
+     "w": 116,
+     "h": 68
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6323529411764706
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-sk-frost-nova 10.png",
+    "frame": {
+     "x": 232,
+     "y": 136,
+     "w": 116,
+     "h": 68
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 68
+    },
+    "sourceSize": {
+     "w": 116,
+     "h": 68
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6323529411764706
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-sk-frost-nova 11.png",
+    "frame": {
+     "x": 348,
+     "y": 136,
+     "w": 116,
+     "h": 68
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 116,
+     "h": 68
+    },
+    "sourceSize": {
+     "w": 116,
+     "h": 68
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.6323529411764706
+    },
+    "duration": 71
    }
   ],
   "meta": {
@@ -229,20 +333,20 @@
    "image": "ascendrya-sk-frost-nova.png",
    "format": "RGBA8888",
    "size": {
-    "w": 348,
-    "h": 207
+    "w": 464,
+    "h": 204
    },
    "scale": "1",
    "anchor": {
     "kind": "origin",
     "x": 58,
-    "y": 44
+    "y": 43
    },
    "frameTags": [
     {
      "name": "ascendrya-sk-frost-nova",
      "from": 0,
-     "to": 7,
+     "to": 11,
      "direction": "forward"
     }
    ]

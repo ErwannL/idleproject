@@ -230,7 +230,8 @@ function generalTab(ui, state) {
       <div class="card">
         <div class="section-title">Tutoriel</div>
         <div class="row-between"><span class="muted">Revoir la présentation du jeu.</span>
-          <button class="btn small" data-action="tour-full">Revoir le tutoriel</button></div>
+          <button class="btn small" data-action="tour-full">Revoir le tutoriel</button>
+          <button class="btn small" data-action="replay-prologue">Revoir le prologue</button></div>
       </div>
       ${cheatCard(state, ui)}
       ${devOfflineCard()}

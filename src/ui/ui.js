@@ -1054,6 +1054,7 @@ export class UI {
       case 'measure-farm': local(() => { v.farmRate = measureFarmRate(this.state, BALANCE, 120); }); break;
       case 'set-class': a.setHeroClass(value); break;
       case 'tour-full': a.startTour(); break;
+      case 'replay-prologue': a.replayPrologue(); break; // v9.7.1 (lot 1)
       case 'tour-later': a.skipTour(); break;
       case 'open-summon-hero': local(() => { v.summonPool = 'hero'; }); this.openTab('summon'); break;
       case 'open-looks': if (el.closest('#modal')) this.closeModal(); this.openTab('looks'); break; // v9.2.2 : sous-onglet Héros › Apparences

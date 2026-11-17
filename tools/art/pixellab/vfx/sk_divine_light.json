@@ -1,18 +1,18 @@
 {
  "canvas": {
-  "h": 122,
-  "w": 80
+  "h": 96,
+  "w": 64
  },
- "frames": 8,
- "fps": 14,
+ "frames": 12,
+ "fps": 12,
  "loop": false,
  "anchor": {
-  "x": 39,
-  "y": 106,
+  "x": 32,
+  "y": 84,
   "kind": "origin"
  },
- "message": "Here's a 16-bit holy pillar: a white-hot column with pale yellow edges, a golden ground ring, and radiant rays with sparks, on a transparent background with no character. It runs 8 frames with a dark outline; the beam peaks around frame 2 and the rays and sparks linger to the end. The page sliders for colour, amount and width are the quickest way to tune the glow.",
- "effect_id": "f2f83edc-8eaa-4b60-a18c-8521507de8e0",
+ "message": "A 12-frame, one-shot golden light pillar: a small glow at the ground first (anticipation), then a full bright beam with a cross-shaped flare and a ground ring at the peak, then the beam thins, sparks fly and a grey smoke puff rises and fades. The beam width, ring size and cross length are the main sliders to tune; I did not add a dark outline because the glow reads better without one, and the smoke is small.",
+ "effect_id": "7cc15671-b3a1-4f48-8e18-eadbb3be7f0d",
  "sheet": {
   "frames": [
    {
@@ -20,208 +20,312 @@
     "frame": {
      "x": 0,
      "y": 0,
-     "w": 80,
-     "h": 122
+     "w": 64,
+     "h": 96
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 80,
-     "h": 122
+     "w": 64,
+     "h": 96
     },
     "sourceSize": {
-     "w": 80,
-     "h": 122
+     "w": 64,
+     "h": 96
     },
     "pivot": {
-     "x": 0.4875,
-     "y": 0.8688524590163934
+     "x": 0.5,
+     "y": 0.875
     },
-    "duration": 71
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-divine-light 1.png",
     "frame": {
-     "x": 80,
+     "x": 64,
      "y": 0,
-     "w": 80,
-     "h": 122
+     "w": 64,
+     "h": 96
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 80,
-     "h": 122
+     "w": 64,
+     "h": 96
     },
     "sourceSize": {
-     "w": 80,
-     "h": 122
+     "w": 64,
+     "h": 96
     },
     "pivot": {
-     "x": 0.4875,
-     "y": 0.8688524590163934
+     "x": 0.5,
+     "y": 0.875
     },
-    "duration": 71
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-divine-light 2.png",
     "frame": {
-     "x": 160,
+     "x": 128,
      "y": 0,
-     "w": 80,
-     "h": 122
+     "w": 64,
+     "h": 96
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 80,
-     "h": 122
+     "w": 64,
+     "h": 96
     },
     "sourceSize": {
-     "w": 80,
-     "h": 122
+     "w": 64,
+     "h": 96
     },
     "pivot": {
-     "x": 0.4875,
-     "y": 0.8688524590163934
+     "x": 0.5,
+     "y": 0.875
     },
-    "duration": 71
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-divine-light 3.png",
     "frame": {
-     "x": 0,
-     "y": 122,
-     "w": 80,
-     "h": 122
+     "x": 192,
+     "y": 0,
+     "w": 64,
+     "h": 96
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 80,
-     "h": 122
+     "w": 64,
+     "h": 96
     },
     "sourceSize": {
-     "w": 80,
-     "h": 122
+     "w": 64,
+     "h": 96
     },
     "pivot": {
-     "x": 0.4875,
-     "y": 0.8688524590163934
+     "x": 0.5,
+     "y": 0.875
     },
-    "duration": 71
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-divine-light 4.png",
     "frame": {
-     "x": 80,
-     "y": 122,
-     "w": 80,
-     "h": 122
+     "x": 0,
+     "y": 96,
+     "w": 64,
+     "h": 96
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 80,
-     "h": 122
+     "w": 64,
+     "h": 96
     },
     "sourceSize": {
-     "w": 80,
-     "h": 122
+     "w": 64,
+     "h": 96
     },
     "pivot": {
-     "x": 0.4875,
-     "y": 0.8688524590163934
+     "x": 0.5,
+     "y": 0.875
     },
-    "duration": 71
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-divine-light 5.png",
     "frame": {
-     "x": 160,
-     "y": 122,
-     "w": 80,
-     "h": 122
+     "x": 64,
+     "y": 96,
+     "w": 64,
+     "h": 96
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 80,
-     "h": 122
+     "w": 64,
+     "h": 96
     },
     "sourceSize": {
-     "w": 80,
-     "h": 122
+     "w": 64,
+     "h": 96
     },
     "pivot": {
-     "x": 0.4875,
-     "y": 0.8688524590163934
+     "x": 0.5,
+     "y": 0.875
     },
-    "duration": 71
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-divine-light 6.png",
     "frame": {
-     "x": 0,
-     "y": 244,
-     "w": 80,
-     "h": 122
+     "x": 128,
+     "y": 96,
+     "w": 64,
+     "h": 96
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 80,
-     "h": 122
+     "w": 64,
+     "h": 96
     },
     "sourceSize": {
-     "w": 80,
-     "h": 122
+     "w": 64,
+     "h": 96
     },
     "pivot": {
-     "x": 0.4875,
-     "y": 0.8688524590163934
+     "x": 0.5,
+     "y": 0.875
     },
-    "duration": 71
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-divine-light 7.png",
     "frame": {
-     "x": 80,
-     "y": 244,
-     "w": 80,
-     "h": 122
+     "x": 192,
+     "y": 96,
+     "w": 64,
+     "h": 96
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 80,
-     "h": 122
+     "w": 64,
+     "h": 96
     },
     "sourceSize": {
-     "w": 80,
-     "h": 122
+     "w": 64,
+     "h": 96
     },
     "pivot": {
-     "x": 0.4875,
-     "y": 0.8688524590163934
+     "x": 0.5,
+     "y": 0.875
     },
-    "duration": 71
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-divine-light 8.png",
+    "frame": {
+     "x": 0,
+     "y": 192,
+     "w": 64,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.875
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-divine-light 9.png",
+    "frame": {
+     "x": 64,
+     "y": 192,
+     "w": 64,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.875
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-divine-light 10.png",
+    "frame": {
+     "x": 128,
+     "y": 192,
+     "w": 64,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.875
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-divine-light 11.png",
+    "frame": {
+     "x": 192,
+     "y": 192,
+     "w": 64,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.875
+    },
+    "duration": 83
    }
   ],
   "meta": {
@@ -229,20 +333,20 @@
    "image": "ascendrya-sk-divine-light.png",
    "format": "RGBA8888",
    "size": {
-    "w": 240,
-    "h": 366
+    "w": 256,
+    "h": 288
    },
    "scale": "1",
    "anchor": {
     "kind": "origin",
-    "x": 39,
-    "y": 106
+    "x": 32,
+    "y": 84
    },
    "frameTags": [
     {
      "name": "ascendrya-sk-divine-light",
      "from": 0,
-     "to": 7,
+     "to": 11,
      "direction": "forward"
     }
    ]

@@ -1,0 +1,355 @@
+{
+ "canvas": {
+  "h": 64,
+  "w": 94
+ },
+ "frames": 12,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 47,
+  "y": 47,
+  "kind": "origin"
+ },
+ "message": "A 12-frame one-shot shield: a small glow flickers on first, the hexagon dome builds up in frames 2-3 and holds at full strength, then it dissolves over the last frames into rising grey smoke puffs and frost sparks. It's a 16-bit look on a transparent background, with the dome in blue and light grey rather than pure pale blue, so the colour may need nudging via the dome colour slider. The dome's see-through, speed and the spark and smoke amounts are on the sliders.",
+ "effect_id": "88dde89c-8e09-4fd2-9385-5f920eebea77",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-sk-shield 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 94,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 94,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 94,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.734375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-shield 1.png",
+    "frame": {
+     "x": 94,
+     "y": 0,
+     "w": 94,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 94,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 94,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.734375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-shield 2.png",
+    "frame": {
+     "x": 188,
+     "y": 0,
+     "w": 94,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 94,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 94,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.734375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-shield 3.png",
+    "frame": {
+     "x": 282,
+     "y": 0,
+     "w": 94,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 94,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 94,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.734375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-shield 4.png",
+    "frame": {
+     "x": 0,
+     "y": 64,
+     "w": 94,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 94,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 94,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.734375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-shield 5.png",
+    "frame": {
+     "x": 94,
+     "y": 64,
+     "w": 94,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 94,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 94,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.734375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-shield 6.png",
+    "frame": {
+     "x": 188,
+     "y": 64,
+     "w": 94,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 94,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 94,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.734375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-shield 7.png",
+    "frame": {
+     "x": 282,
+     "y": 64,
+     "w": 94,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 94,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 94,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.734375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-shield 8.png",
+    "frame": {
+     "x": 0,
+     "y": 128,
+     "w": 94,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 94,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 94,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.734375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-shield 9.png",
+    "frame": {
+     "x": 94,
+     "y": 128,
+     "w": 94,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 94,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 94,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.734375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-shield 10.png",
+    "frame": {
+     "x": 188,
+     "y": 128,
+     "w": 94,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 94,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 94,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.734375
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-shield 11.png",
+    "frame": {
+     "x": 282,
+     "y": 128,
+     "w": 94,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 94,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 94,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.734375
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-sk-shield.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 376,
+    "h": 192
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 47,
+    "y": 47
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-sk-shield",
+     "from": 0,
+     "to": 11,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -1,18 +1,18 @@
 {
  "canvas": {
-  "h": 76,
-  "w": 76
+  "h": 88,
+  "w": 229
  },
- "frames": 8,
- "fps": 14,
+ "frames": 12,
+ "fps": 12,
  "loop": false,
  "anchor": {
-  "x": 38,
-  "y": 38,
+  "x": 229,
+  "y": 124,
   "kind": "origin"
  },
- "message": "Here's an 8-frame retro fireball impact: a bright flash, an orange-yellow fire burst with a shockwave ring, then dark grey smoke that thins out by the last frame. The smoke reads grey rather than fully black and fades fairly quickly, so the Fireball and smoke colour sliders are the place to darken it or lengthen the smoke.",
- "effect_id": "2a579fba-6c5a-4a91-875f-844dd765d0ff",
+ "message": "A 12-frame one-shot fireball: a bright head with flame tail flies right over frames 1-5, then bursts into an orange fire blast with a ring in frames 6-9, and dissolves into grey smoke and sparks by frame 11. The bolt's size and speed sliders adjust the flight, and the blast's colour and smoke sliders adjust the explosion. The bolt's glow is subtle at start, so raise the bolt amount if you want a stronger anticipation glow.",
+ "effect_id": "e857bace-21d2-4fa7-bdea-e53c44ec31b4",
  "sheet": {
   "frames": [
    {
@@ -20,208 +20,312 @@
     "frame": {
      "x": 0,
      "y": 0,
-     "w": 76,
-     "h": 76
+     "w": 229,
+     "h": 88
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 76,
-     "h": 76
+     "w": 229,
+     "h": 88
     },
     "sourceSize": {
-     "w": 76,
-     "h": 76
+     "w": 229,
+     "h": 88
     },
     "pivot": {
-     "x": 0.5,
-     "y": 0.5
+     "x": 1.0,
+     "y": 1.4090909090909092
     },
-    "duration": 71
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-fireball 1.png",
     "frame": {
-     "x": 76,
+     "x": 229,
      "y": 0,
-     "w": 76,
-     "h": 76
+     "w": 229,
+     "h": 88
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 76,
-     "h": 76
+     "w": 229,
+     "h": 88
     },
     "sourceSize": {
-     "w": 76,
-     "h": 76
+     "w": 229,
+     "h": 88
     },
     "pivot": {
-     "x": 0.5,
-     "y": 0.5
+     "x": 1.0,
+     "y": 1.4090909090909092
     },
-    "duration": 71
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-fireball 2.png",
     "frame": {
-     "x": 152,
+     "x": 458,
      "y": 0,
-     "w": 76,
-     "h": 76
+     "w": 229,
+     "h": 88
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 76,
-     "h": 76
+     "w": 229,
+     "h": 88
     },
     "sourceSize": {
-     "w": 76,
-     "h": 76
+     "w": 229,
+     "h": 88
     },
     "pivot": {
-     "x": 0.5,
-     "y": 0.5
+     "x": 1.0,
+     "y": 1.4090909090909092
     },
-    "duration": 71
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-fireball 3.png",
     "frame": {
-     "x": 0,
-     "y": 76,
-     "w": 76,
-     "h": 76
+     "x": 687,
+     "y": 0,
+     "w": 229,
+     "h": 88
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 76,
-     "h": 76
+     "w": 229,
+     "h": 88
     },
     "sourceSize": {
-     "w": 76,
-     "h": 76
+     "w": 229,
+     "h": 88
     },
     "pivot": {
-     "x": 0.5,
-     "y": 0.5
+     "x": 1.0,
+     "y": 1.4090909090909092
     },
-    "duration": 71
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-fireball 4.png",
     "frame": {
-     "x": 76,
-     "y": 76,
-     "w": 76,
-     "h": 76
+     "x": 0,
+     "y": 88,
+     "w": 229,
+     "h": 88
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 76,
-     "h": 76
+     "w": 229,
+     "h": 88
     },
     "sourceSize": {
-     "w": 76,
-     "h": 76
+     "w": 229,
+     "h": 88
     },
     "pivot": {
-     "x": 0.5,
-     "y": 0.5
+     "x": 1.0,
+     "y": 1.4090909090909092
     },
-    "duration": 71
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-fireball 5.png",
     "frame": {
-     "x": 152,
-     "y": 76,
-     "w": 76,
-     "h": 76
+     "x": 229,
+     "y": 88,
+     "w": 229,
+     "h": 88
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 76,
-     "h": 76
+     "w": 229,
+     "h": 88
     },
     "sourceSize": {
-     "w": 76,
-     "h": 76
+     "w": 229,
+     "h": 88
     },
     "pivot": {
-     "x": 0.5,
-     "y": 0.5
+     "x": 1.0,
+     "y": 1.4090909090909092
     },
-    "duration": 71
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-fireball 6.png",
     "frame": {
-     "x": 0,
-     "y": 152,
-     "w": 76,
-     "h": 76
+     "x": 458,
+     "y": 88,
+     "w": 229,
+     "h": 88
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 76,
-     "h": 76
+     "w": 229,
+     "h": 88
     },
     "sourceSize": {
-     "w": 76,
-     "h": 76
+     "w": 229,
+     "h": 88
     },
     "pivot": {
-     "x": 0.5,
-     "y": 0.5
+     "x": 1.0,
+     "y": 1.4090909090909092
     },
-    "duration": 71
+    "duration": 83
    },
    {
     "filename": "ascendrya-sk-fireball 7.png",
     "frame": {
-     "x": 76,
-     "y": 152,
-     "w": 76,
-     "h": 76
+     "x": 687,
+     "y": 88,
+     "w": 229,
+     "h": 88
     },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": {
      "x": 0,
      "y": 0,
-     "w": 76,
-     "h": 76
+     "w": 229,
+     "h": 88
     },
     "sourceSize": {
-     "w": 76,
-     "h": 76
+     "w": 229,
+     "h": 88
     },
     "pivot": {
-     "x": 0.5,
-     "y": 0.5
+     "x": 1.0,
+     "y": 1.4090909090909092
     },
-    "duration": 71
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-fireball 8.png",
+    "frame": {
+     "x": 0,
+     "y": 176,
+     "w": 229,
+     "h": 88
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 229,
+     "h": 88
+    },
+    "sourceSize": {
+     "w": 229,
+     "h": 88
+    },
+    "pivot": {
+     "x": 1.0,
+     "y": 1.4090909090909092
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-fireball 9.png",
+    "frame": {
+     "x": 229,
+     "y": 176,
+     "w": 229,
+     "h": 88
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 229,
+     "h": 88
+    },
+    "sourceSize": {
+     "w": 229,
+     "h": 88
+    },
+    "pivot": {
+     "x": 1.0,
+     "y": 1.4090909090909092
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-fireball 10.png",
+    "frame": {
+     "x": 458,
+     "y": 176,
+     "w": 229,
+     "h": 88
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 229,
+     "h": 88
+    },
+    "sourceSize": {
+     "w": 229,
+     "h": 88
+    },
+    "pivot": {
+     "x": 1.0,
+     "y": 1.4090909090909092
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-sk-fireball 11.png",
+    "frame": {
+     "x": 687,
+     "y": 176,
+     "w": 229,
+     "h": 88
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 229,
+     "h": 88
+    },
+    "sourceSize": {
+     "w": 229,
+     "h": 88
+    },
+    "pivot": {
+     "x": 1.0,
+     "y": 1.4090909090909092
+    },
+    "duration": 83
    }
   ],
   "meta": {
@@ -229,20 +333,20 @@
    "image": "ascendrya-sk-fireball.png",
    "format": "RGBA8888",
    "size": {
-    "w": 228,
-    "h": 228
+    "w": 916,
+    "h": 264
    },
    "scale": "1",
    "anchor": {
     "kind": "origin",
-    "x": 38,
-    "y": 38
+    "x": 229,
+    "y": 124
    },
    "frameTags": [
     {
      "name": "ascendrya-sk-fireball",
      "from": 0,
-     "to": 7,
+     "to": 11,
      "direction": "forward"
     }
    ]

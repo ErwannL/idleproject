@@ -355,6 +355,9 @@ function cleanActivities(state, raw) {
   state.heroClass = sanitizeHeroClass(raw.heroClass);
   if (Number.isFinite(raw.rebirthPower) && raw.rebirthPower >= 0) state.rebirthPower = raw.rebirthPower; // v9.0.6
   state.playSeconds = Math.max(0, Number(raw.playSeconds) || 0);
+  // v9.7.1 : bénédiction de départ (prologue) et nom du héros.
+  if (raw.blessing && ['damage', 'hp', 'gold'].includes(raw.blessing.id) && Number.isFinite(raw.blessing.until)) state.blessing = { id: raw.blessing.id, until: raw.blessing.until };
+  if (typeof raw.heroName === 'string') state.heroName = raw.heroName.replace(/[<>]/g, '').slice(0, 16);
   if (Number.isFinite(raw.catchUpUntil)) state.catchUpUntil = raw.catchUpUntil; // v9.6.5 (10.10)
   if (Number.isFinite(raw.recordAt) && raw.recordAt >= 0) state.recordAt = Math.min(raw.recordAt, state.playSeconds); // v9.3.8
   state.times = sanitizeTimes(raw.times);

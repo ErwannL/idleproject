@@ -40,13 +40,28 @@ ULT = {
 }
 
 
+# Lot 2+ : descriptions par défaut selon le type (familier, héros, compagnon). Seconde passe (REDO) : variantes plus amples.
+PET_CAST = 'glowing brightly and releasing a burst of magic energy around itself'
+PET_ULT = 'growing larger, glowing intensely and unleashing a powerful magical blast forward'
+REDO = {
+  ('ally_squire', 'ultimate'): 'jumping high into the air and slamming the sword down with a big heroic strike, shield raised, cape flowing',
+  ('ally_mercenary', 'victory'): 'lifting the broadsword high above his head with one arm and shouting in triumph',
+  ('ally_ranger', 'victory'): 'raising the bow high above her head in triumph and smiling',
+}
+
+
 def desc(key, name):
-    if name == 'cast': return CAST.get(key, 'raising the weapon high and casting a spell')
-    if name == 'ultimate': return ULT.get(key, 'performing a powerful dramatic special move')
+    if (key, name) in REDO: return REDO[(key, name)]
+    pet = key.startswith('pet_')
+    if name == 'cast': return CAST.get(key, PET_CAST if pet else 'raising the weapon high, glowing aura, casting a powerful spell')
+    if name == 'ultimate': return ULT.get(key, PET_ULT if pet else 'performing a big dramatic special attack with a wide sweeping motion, cape and hair flowing')
+    if pet and name == 'victory': return 'jumping happily in place, joyful'
+    if pet and name == 'idle': return 'idle in place, gentle breathing, small movements'
     return GENERIC[name]
 
 
-def anim(key, view, name, seed=7):
+def anim(key, view, name, seed=None):
+    seed = seed if seed is not None else (11 if (key, name) in REDO else 7)
     out = os.path.join(AA, f'{key}_{name}')
     body = {'first_frame': b64(view), 'last_frame': b64(view), 'frame_count': FRAMES[name], 'seed': seed,
             'no_background': True, 'description': desc(key, name), 'direction': 'east', 'view': 'side'}

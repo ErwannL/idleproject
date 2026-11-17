@@ -1,0 +1,251 @@
+{
+ "canvas": {
+  "h": 83,
+  "w": 60
+ },
+ "frames": 8,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 31,
+  "y": 29,
+  "kind": "origin"
+ },
+ "message": "An 8-frame, 16-bit-style ice impact: a bright frost flash bursts into a white ring, pale blue ice shards and chunks fly outward, then fade out on a transparent background. Try the colour and amount sliders to change the ice tint and how many shards show.",
+ "effect_id": "37c1d17c-bcb4-4556-837d-6d60da358612",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-hit-ice 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 60,
+     "h": 83
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 60,
+     "h": 83
+    },
+    "sourceSize": {
+     "w": 60,
+     "h": 83
+    },
+    "pivot": {
+     "x": 0.5166666666666667,
+     "y": 0.3493975903614458
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-ice 1.png",
+    "frame": {
+     "x": 60,
+     "y": 0,
+     "w": 60,
+     "h": 83
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 60,
+     "h": 83
+    },
+    "sourceSize": {
+     "w": 60,
+     "h": 83
+    },
+    "pivot": {
+     "x": 0.5166666666666667,
+     "y": 0.3493975903614458
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-ice 2.png",
+    "frame": {
+     "x": 120,
+     "y": 0,
+     "w": 60,
+     "h": 83
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 60,
+     "h": 83
+    },
+    "sourceSize": {
+     "w": 60,
+     "h": 83
+    },
+    "pivot": {
+     "x": 0.5166666666666667,
+     "y": 0.3493975903614458
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-ice 3.png",
+    "frame": {
+     "x": 0,
+     "y": 83,
+     "w": 60,
+     "h": 83
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 60,
+     "h": 83
+    },
+    "sourceSize": {
+     "w": 60,
+     "h": 83
+    },
+    "pivot": {
+     "x": 0.5166666666666667,
+     "y": 0.3493975903614458
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-ice 4.png",
+    "frame": {
+     "x": 60,
+     "y": 83,
+     "w": 60,
+     "h": 83
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 60,
+     "h": 83
+    },
+    "sourceSize": {
+     "w": 60,
+     "h": 83
+    },
+    "pivot": {
+     "x": 0.5166666666666667,
+     "y": 0.3493975903614458
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-ice 5.png",
+    "frame": {
+     "x": 120,
+     "y": 83,
+     "w": 60,
+     "h": 83
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 60,
+     "h": 83
+    },
+    "sourceSize": {
+     "w": 60,
+     "h": 83
+    },
+    "pivot": {
+     "x": 0.5166666666666667,
+     "y": 0.3493975903614458
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-ice 6.png",
+    "frame": {
+     "x": 0,
+     "y": 166,
+     "w": 60,
+     "h": 83
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 60,
+     "h": 83
+    },
+    "sourceSize": {
+     "w": 60,
+     "h": 83
+    },
+    "pivot": {
+     "x": 0.5166666666666667,
+     "y": 0.3493975903614458
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-hit-ice 7.png",
+    "frame": {
+     "x": 60,
+     "y": 166,
+     "w": 60,
+     "h": 83
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 60,
+     "h": 83
+    },
+    "sourceSize": {
+     "w": 60,
+     "h": 83
+    },
+    "pivot": {
+     "x": 0.5166666666666667,
+     "y": 0.3493975903614458
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-hit-ice.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 180,
+    "h": 249
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 31,
+    "y": 29
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-hit-ice",
+     "from": 0,
+     "to": 7,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}
