@@ -147,7 +147,7 @@ export function startWorldBoss(state, hpOf, now = liveNow()) {
   const b = bossDay(rec, today);
   if (!(b.hp > 0)) b.hp = Math.max(1, Math.round(hpOf() * (P(ev).bossHpMult ?? 1))); // v9.3.0 : PV réglés par la config live
   b.used += 1;
-  return { event: ev.id, day: today, attempt: b.used, seed: attemptSeed(today, b.used), maxHp: b.hp };
+  return { event: ev.id, day: today, attempt: b.used, seed: attemptSeed(today, b.used), maxHp: b.hp, bossId: P(ev).boss ?? 'colossus' }; // v9.7.1 (lot 7) : grand boss de la fiche choisie par l'événement
 }
 
 // Fin d'une tentative : result = { damage, tiers } (WorldBossFight.result()). Écus selon les paliers atteints.

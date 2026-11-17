@@ -1,5 +1,7 @@
 // Encyclopédie (v9.0.5) : bestiaire, boss, mutations, équipements (une entrée par rareté) et compagnons.
 // Ce qui n'a pas encore été découvert apparaît en silhouette « ??? ». Chaque entrée a sa fiche détaillée.
+import { GRAND_BOSSES } from '../../data/grand-bosses.js'; // v9.7.1 (lot 7)
+import { REVENGE_STEPS, revengeLevel } from '../../core/revenge.js';
 import { museumView } from './inventory.js';
 import { MUSEUM_PIECES, museumCount } from '../../core/museum.js';
 import { BALANCE } from '../../data/balance.js';
@@ -322,20 +324,37 @@ export default {
   render(ui, state) {
     const v = ui.view;
     const progress = encyclopediaProgress(state);
-    const sec = v.encSec === 'museum' || ENCYCLOPEDIA_SECTIONS.some((s) => s.id === v.encSec) ? v.encSec : 'monsters';
+    const sec = v.encSec === 'museum' || v.encSec === 'pantheon' || ENCYCLOPEDIA_SECTIONS.some((s) => s.id === v.encSec) ? v.encSec : 'monsters';
     const tabs = progress.sections.map((s) => `<button class="enc-tab${s.id === sec ? ' active' : ''}" data-action="enc-sec" data-value="${s.id}">
       ${img(s.icon)}<span>${s.label}</span><small>${s.found}/${s.total}</small>${s.milestones && sectionStatus(state, s.id).ready ? '<i class="badge enc-ready-dot" aria-label="À récupérer"></i>' : ''}${progressBar(s.found / s.total)}</button>`).join('')
       + `<button class="enc-tab museum-tab${sec === 'museum' ? ' active' : ''}" data-action="enc-sec" data-value="museum">
-      ${img('icon_trophy')}<span>Musée</span><small>${museumCount(state)}/${MUSEUM_PIECES.length}</small>${progressBar(museumCount(state) / MUSEUM_PIECES.length)}</button>`;
+      ${img('icon_trophy')}<span>Musée</span><small>${museumCount(state)}/${MUSEUM_PIECES.length}</small>${progressBar(museumCount(state) / MUSEUM_PIECES.length)}</button>`
+      + `<button class="enc-tab${sec === 'pantheon' ? ' active' : ''}" data-action="enc-sec" data-value="pantheon">${img('icon_trophy')}<span>Panthéon</span><small>${pantheonCount()}</small></button>`; // v9.7.1 (lot 7)
     let body;
     if (sec === 'museum') body = museumView(ui, state);
+    else if (sec === 'pantheon') body = pantheonView(state); // v9.7.1 (lot 7)
     else {
       const sel = v.encSel?.startsWith(`${PREFIX[sec]}:`) ? v.encSel : FIRST[sec]();
       const list = { monsters: () => monsterList(state, sel), bosses: () => bossList(state, sel), mutations: () => mutationList(state, sel),
         items: () => itemList(state, sel, v.encSlot ?? 'all'), companions: () => companionList(state, sel) }[sec]();
       body = `<div class="codex enc-body"><div class="card enc-list">${list}</div><div class="card codex-detail">${detail(state, sel)}</div></div>`;
     }
-    return `<div class="card">${milestones(state, progress)}</div><div class="enc-tabs">${tabs}</div>${sec === 'museum' ? '' : sectionMilestone(state, sec)}${body}
+    return `<div class="card">${milestones(state, progress)}</div><div class="enc-tabs">${tabs}</div>${sec === 'museum' || sec === 'pantheon' ? '' : sectionMilestone(state, sec)}${body}
       ${fold(ui, 'enc-env', 'Environnements des mondes', envTable(state))}`;
   },
 };
+
+// v9.7.1 (lot 7) : Panthéon — la galerie des grands boss rencontrés (fiches data/grand-bosses.js) : histoire, meilleur
+// score, ce qu'ils donnent ; les emplacements futurs (Titans, dieux) sont visibles en silhouette, pour donner envie.
+const FUTURE = ['Titan des Abysses', 'Dieu de l\'Orage', 'Mère des Dragons'];
+function pantheonCount() { return `${Object.values(GRAND_BOSSES).filter((b) => !b.test).length}/${Object.values(GRAND_BOSSES).filter((b) => !b.test).length + FUTURE.length}`; }
+function pantheonView(state) {
+  const met = Object.values(GRAND_BOSSES).filter((b) => !b.test);
+  const best = (id) => (id === 'colossus' ? Math.max(state.worldBoss?.best ?? 0, state.records?.worldBossBest ?? 0) : state.grand?.[id]?.best ?? 0);
+  const cards = met.map((b) => `<div class="card pantheon-card"><div class="pantheon-art" style="background-image:url('${b.art.dir}/${b.art.prefix}idle.png')"></div>
+      <div><b>${escapeHtml(b.name)}</b> <span class="muted">· ${escapeHtml(b.title ?? '')}</span><p>${escapeHtml(b.lore ?? '')}</p>
+      <div>Meilleur score : <b class="num">${formatNumber(best(b.id))}</b>${b.id === 'colossus' ? ` · Revanche <b>${revengeLevel(state)}/${REVENGE_STEPS}</b>` : ''}</div>
+      <div class="muted">Donne : ${Object.entries(b.rewards ?? {}).map(([k, n]) => `${n} ${{ gems: 'gemmes', shards: 'éclats' }[k] ?? k}`).join(', ')}</div></div></div>`).join('');
+  const ghosts = FUTURE.map((n) => `<div class="card pantheon-card ghost"><div class="pantheon-art silhouette"></div><div><b>???</b><p class="muted">${escapeHtml(n)} — bientôt.</p></div></div>`).join('');
+  return `<div class="pantheon">${cards}${ghosts}</div>`;
+}

@@ -17,7 +17,7 @@ export const LIVE_EVENT_TYPES = {
     params: {
       coinMult: { type: 'number', min: 0.5, max: 5, def: 1, label: 'Multiplicateur des écus' },
       worldBoss: { type: 'bool', def: true, label: 'World Boss ouvert' },
-      boss: { type: 'enum', values: ['colossus'], def: 'colossus', label: 'World Boss choisi' },
+      boss: { type: 'enum', values: ['colossus', 'shade'], def: 'colossus', label: 'World Boss choisi' }, // v9.7.1 : fiches data/grand-bosses.js
       bossHpMult: { type: 'number', min: 0.1, max: 10, def: 1, label: 'PV du World Boss (×)' },
       attemptsPerDay: { type: 'int', min: 1, max: 10, def: 3, label: 'Tentatives du World Boss par jour' },
       shopStockMult: { type: 'number', min: 0, max: 5, def: 1, label: 'Stocks de la boutique d\'événement (×)' },
@@ -30,10 +30,53 @@ export const LIVE_EVENT_TYPES = {
       goalMult: { type: 'number', min: 0.1, max: 5, def: 1, label: 'Cibles des objectifs (×)' },
     },
   },
+  // v9.7.1 (lot 7) : 4 gabarits réutilisables (un événement toutes les deux semaines, activé à distance sans nouvelle
+  // version : dates, thème, boss ou règle vedette, boutique, récompenses dans la config live). Ils réutilisent les
+  // mécaniques livrées : grand événement (carte, écus, boutique, grand boss) ou petit (objectifs, tickets).
+  expedition: {
+    since: '9.7.1', kind: 'grand', days: 14, label: 'Expédition à étapes',
+    detail: 'Carte d\'étapes à thème, écus et boutique d\'événement, grand boss en fin de parcours.',
+    params: {
+      theme: { type: 'enum', values: ['ruins', 'ocean', 'volcano', 'sky'], def: 'ruins', label: 'Thème' },
+      coinMult: { type: 'number', min: 0.5, max: 5, def: 1, label: 'Multiplicateur des écus' },
+      worldBoss: { type: 'bool', def: true, label: 'Grand boss ouvert' },
+      boss: { type: 'enum', values: ['colossus', 'shade'], def: 'colossus', label: 'Grand boss' },
+      bossHpMult: { type: 'number', min: 0.1, max: 10, def: 1, label: 'PV du grand boss (×)' },
+      attemptsPerDay: { type: 'int', min: 1, max: 10, def: 3, label: 'Tentatives par jour' },
+      shopStockMult: { type: 'number', min: 0, max: 5, def: 1, label: 'Stocks de la boutique (×)' },
+    },
+  },
+  grandBoss: {
+    since: '9.7.1', kind: 'grand', days: 14, label: 'Grand boss commun',
+    detail: 'Tous les joueurs frappent le même grand boss (fiche data/grand-bosses.js), classement de guilde.',
+    params: {
+      boss: { type: 'enum', values: ['colossus', 'shade'], def: 'colossus', label: 'Grand boss' },
+      worldBoss: { type: 'bool', def: true, label: 'Ouvert' },
+      bossHpMult: { type: 'number', min: 0.1, max: 10, def: 1, label: 'PV (×)' },
+      attemptsPerDay: { type: 'int', min: 1, max: 10, def: 3, label: 'Tentatives par jour' },
+      coinMult: { type: 'number', min: 0.5, max: 5, def: 1, label: 'Écus (×)' },
+      shopStockMult: { type: 'number', min: 0, max: 5, def: 1, label: 'Stocks de la boutique (×)' },
+    },
+  },
+  ruleChallenge: {
+    since: '9.7.1', kind: 'small', days: 14, label: 'Défi à règles',
+    detail: 'Objectifs à remplir sous une règle vedette (affichée), tickets en récompense.',
+    params: {
+      rule: { type: 'enum', values: ['noHeal', 'bossRush', 'elements', 'speed'], def: 'bossRush', label: 'Règle vedette' },
+      goalMult: { type: 'number', min: 0.1, max: 5, def: 1, label: 'Cibles des objectifs (×)' },
+    },
+  },
+  collect: {
+    since: '9.7.1', kind: 'small', days: 14, label: 'Collecte',
+    detail: 'Objectifs de collecte (monstres, boss, objets) et tickets en récompense.',
+    params: {
+      goalMult: { type: 'number', min: 0.1, max: 5, def: 1, label: 'Cibles des objectifs (×)' },
+    },
+  },
 };
 
-// Noms des World Boss connus du code (paramètre `boss`).
-export const LIVE_BOSSES = { colossus: 'Colosse des Anciens' };
+// Noms des World Boss connus du code (paramètre `boss`). v9.7.1 : fiches des grands boss.
+export const LIVE_BOSSES = { colossus: 'Colosse des Anciens', shade: 'Ombre du Colosse' };
 
 // Vedettes possibles de la bannière limitée : SSR (héros alliés légendaires) présents dans le code.
 // Vérifié contre data/companions.js par tests/v930-live.test.js.
