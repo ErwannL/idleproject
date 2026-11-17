@@ -1,6 +1,7 @@
 // v9.7.1 : anglais du cadrage, du sac de butin et des menus allégés. Branché à la fin de ./en.js.
 let LK = () => null;
 export const EXACT_971 = {
+  "Notifications du téléphone (2 par jour au plus)": "Phone notifications (2 a day at most)",
   "Titan du Soleil": "Sun Titan",
   "Titan de la Lune": "Moon Titan",
   "Titan des Braises": "Ember Titan",

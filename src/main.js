@@ -14,6 +14,7 @@ import { wheelShown } from './core/elements.js';
 import { quickHunt } from './core/quick-hunt.js'; // v9.8 (H3)
 import { winDuel } from './core/ranks.js'; // v9.8 (H6)
 import { finishTitan, startTitan } from './core/titan.js'; // v9.8 (H7)
+import { setupNotifications } from './ui/notifications.js'; // v9.8 (H8)
 import { spinWheel } from './core/wheel.js'; // v9.8 (H4)
 import { claimDaybookChest, daybookTrack } from './core/daybook.js'; // v9.8 (H1) // v9.7.1 (prologue)
 import { startCatchUp } from './core/boost.js';
@@ -1837,6 +1838,7 @@ window.addEventListener('pagehide', save);
 // l'origine de la partie et une copie des compteurs (test de l'exe) ; l'état et les actions restent réservés
 // à la version dev et aux tests automatisés (navigateur piloté).
 const DEV_ACCESS = BUILD.cheats || navigator.webdriver === true;
+setupNotifications(() => state, () => ui.tabVisible?.event !== false); // v9.8 (H8) : Android seulement
 window.__idle = {
   loadSource: loaded.source,
   save,

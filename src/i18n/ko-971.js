@@ -1,6 +1,7 @@
 // v9.7.1 : 한국어 — 화면 구도, 전리품 가방, 간소화된 메뉴. ./ko.js 끝에 연결.
 let LK = () => null;
 export const EXACT_971 = {
+  "Notifications du téléphone (2 par jour au plus)": "휴대폰 알림 (하루 최대 2개)",
   "Titan du Soleil": "태양의 타이탄",
   "Titan de la Lune": "달의 타이탄",
   "Titan des Braises": "잿불의 타이탄",
