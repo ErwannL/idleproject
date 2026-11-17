@@ -1,0 +1,35 @@
+# Vérifie les secrets de signature Android (clé d'envoi Play) sans rien construire ni publier.
+name: Vérifier la clé Android
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/jolly-cerf-2e62xi]
+    paths: [.github/workflows/android-sign-check.yml]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-java@v5
+        with: { distribution: temurin, java-version: '21' }
+      - name: Vérifier
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          ok=1
+          for v in KS_B64 KS_PASS KEY_ALIAS KEY_PASS; do
+            if [ -z "${!v}" ]; then echo "MANQUANT : $v"; ok=0; else echo "présent : $v"; fi
+          done
+          [ $ok = 1 ] || exit 1
+          echo "$KS_B64" | tr -d ' \r\n' | base64 -d > ks.jks || { echo "BASE64 INVALIDE"; exit 1; }
+          echo "taille du keystore : $(stat -c%s ks.jks) octets"
+          keytool -list -keystore ks.jks -storepass "$KS_PASS" > list.txt 2>&1 || { echo "MOT DE PASSE DU KEYSTORE FAUX ou fichier invalide"; sed 's/^/  /' list.txt | head -3; exit 1; }
+          echo "alias présents :"; grep -i "PrivateKeyEntry" list.txt | cut -d, -f1 | sed 's/^/  /'
+          keytool -list -keystore ks.jks -storepass "$KS_PASS" -alias "$KEY_ALIAS" >/dev/null 2>&1 || { echo "ALIAS INTROUVABLE : $KEY_ALIAS"; exit 1; }
+          echo test > f.txt && (cd . && zip -q t.jar f.txt)
+          jarsigner -keystore ks.jks -storepass "$KS_PASS" -keypass "$KEY_PASS" t.jar "$KEY_ALIAS" > s.txt 2>&1 || { echo "MOT DE PASSE DE LA CLÉ FAUX"; head -3 s.txt; exit 1; }
+          keytool -list -v -keystore ks.jks -storepass "$KS_PASS" -alias "$KEY_ALIAS" | grep -E "Valid|SHA256:" | head -3
+          echo "TOUT EST BON : signature réussie"
+          rm -f ks.jks
