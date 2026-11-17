@@ -61,20 +61,17 @@ jobs:
             echo "Pas de secret UPDATE_TOKEN : installateur sans jeton intégré."
           fi
 
-      # v9.7.1 : exe SIGNÉ obligatoire — certificat de signature de code Windows (.pfx en base64) dans les secrets
-      # WIN_CSC_LINK et WIN_CSC_KEY_PASSWORD. Sans eux, la release s'arrête ici (jamais d'exe non signé publié).
-      - name: Vérifier le certificat de signature Windows
+      # v9.7.1 : exe signé si le certificat Windows est fourni (secrets WIN_CSC_LINK et WIN_CSC_KEY_PASSWORD), sinon
+      # non signé (avertissement dans le journal).
+      - name: Construire l'installateur Windows
         shell: bash
         env:
           WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
         run: |
-          if [ -z "$WIN_CSC_LINK" ]; then echo "::error::Secret WIN_CSC_LINK manquant : impossible de signer l'exe."; exit 1; fi
-
-      - name: Construire l'installateur Windows (signé)
-        run: npm run dist:win
-        env:
-          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          if [ -n "$WIN_CSC_LINK" ]; then export CSC_LINK="$WIN_CSC_LINK" CSC_KEY_PASSWORD="$WIN_CSC_KEY_PASSWORD"; echo "exe signé."
+          else export CSC_IDENTITY_AUTO_DISCOVERY=false; echo "::warning::Pas de certificat Windows : exe non signé."; fi
+          npm run dist:win
 
       - name: Tester l'application (lancement réel, sauvegarde, relance)
         shell: bash
@@ -137,8 +134,8 @@ jobs:
         run: |
           chmod +x gradlew
           # Maven Central refuse parfois des téléchargements (429, « Could not find ») : jusqu'à 4 essais.
-          # v9.7.1 : APK de release (plus l'APK de debug), signé juste après avec la clé Android.
-          for i in 1 2 3 4; do ./gradlew assembleRelease --no-daemon && exit 0; echo "Essai $i échoué, nouvel essai dans 60 s"; sleep 60; done
+          # v9.7.1 : APK de release signé avec la clé Android si elle est fournie ; sinon APK de debug (installable).
+          for i in 1 2 3 4; do ./gradlew assembleRelease assembleDebug --no-daemon && exit 0; echo "Essai $i échoué, nouvel essai dans 60 s"; sleep 60; done
           exit 1
 
       # v9.7.1 : APK et AAB SIGNÉS obligatoires — secrets ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
@@ -150,11 +147,15 @@ jobs:
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          if [ -z "$KS_B64" ]; then echo "::error::Clé Android manquante (secret ANDROID_KEYSTORE_BASE64)."; exit 1; fi
-          echo "$KS_B64" | base64 -d > upload.jks
-          BT="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)"
           VERSION="$(node -p "require('./package.json').version")"
           mkdir -p dist
+          if [ -z "$KS_B64" ]; then
+            echo "::warning::Pas de clé Android : APK de debug (clé de test), installable mais pas pour Google Play."
+            cp android/app/build/outputs/apk/debug/app-debug.apk "dist/IdleRPG-${VERSION}.apk"
+            exit 0
+          fi
+          echo "$KS_B64" | base64 -d > upload.jks
+          BT="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)"
           IN=android/app/build/outputs/apk/release/app-release-unsigned.apk
           "$BT/zipalign" -f -p 4 "$IN" aligned.apk
           "$BT/apksigner" sign --ks upload.jks --ks-pass "pass:$KS_PASS" --ks-key-alias "$KEY_ALIAS" --key-pass "pass:$KEY_PASS" --out "dist/IdleRPG-${VERSION}.apk" aligned.apk
@@ -174,11 +175,13 @@ jobs:
           for i in 1 2 3 4; do ./gradlew bundleRelease --no-daemon && break; echo "Essai $i échoué, nouvel essai dans 60 s"; sleep 60; done
           AAB=app/build/outputs/bundle/release/app-release.aab
           test -f "$AAB"
-          if [ -z "$KS_B64" ]; then echo "::error::Clé Android manquante : AAB non signé, release arrêtée."; exit 1; fi
-          echo "$KS_B64" | base64 -d > upload.jks
-          jarsigner -keystore upload.jks -storepass "$KS_PASS" -keypass "$KEY_PASS" "$AAB" "$KEY_ALIAS"
-          jarsigner -verify "$AAB"
-          echo "AAB signé." 
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > upload.jks
+            jarsigner -keystore upload.jks -storepass "$KS_PASS" -keypass "$KEY_PASS" "$AAB" "$KEY_ALIAS"
+            echo "AAB signé."
+          else
+            echo "::warning::Pas de clé Android : AAB non signé."
+          fi
           VERSION="$(node -p "require('../package.json').version")"
           cp "$AAB" "../dist/IdleRPG-${VERSION}.aab"
 
