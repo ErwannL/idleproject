@@ -51,6 +51,15 @@ function pityLine(state, pool) {
     <div class="eco-pity-row">${g ? `${g} · ` : ''}<span>Épique ou mieux dans</span> <b class="num">${banner.srEvery - p.sr}</b></div></div>`;
 }
 
+// v9.8 (C2) : la garantie en jauge avec un coffre ; taux et détails de la garantie derrière « ? ».
+function pityGauge(state, pool) {
+  const banner = BANNERS[pool];
+  const p = state.summon.pity[banner.pity];
+  const left = banner.hard - p.ssr;
+  return `<div class="eco-gauge" title="Légendaire garanti dans ${left} invocations">
+    <span class="vt-bar"><i style="width:${Math.round((100 * p.ssr) / banner.hard)}%"></i></span>${img('icon_chest')}<b class="num">${left}</b></div>`;
+}
+
 function ratesLine(pool) {
   const b = BANNERS[pool];
   const d = bannerStats(pool);
@@ -96,11 +105,10 @@ function card(ui, state, pool, head, body) {
     <div class="summon-row-head">${head}<span class="grow"></span>
       <button class="btn small help-q${open ? ' active' : ''}" data-action="summon-odds" data-value="${pool}" aria-expanded="${open}" aria-label="Règles et probabilités">?</button></div>
     ${body}
-    ${ratesLine(pool)}
-    ${pityLine(state, pool)}
+    ${pityGauge(state, pool)}
     ${pool === 'pet' ? '' : payButtons(state, pool, TICKET[pool])}
     ${pool === 'pet' ? payButtons(state, pool, 'ticketPet') : payButtons(state, pool, 'gems')}
-    ${open ? oddsBlock(state, pool) : ''}
+    ${open ? `${ratesLine(pool)}${pityLine(state, pool)}${oddsBlock(state, pool)}` : ''}
     ${resultsBlock(ui, pool)}
   </div>`;
 }

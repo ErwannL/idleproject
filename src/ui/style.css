@@ -3680,3 +3680,7 @@ html:not([data-theme="knight"]) #panel-body > .card ~ .card > .section-title:fir
 /* v9.8 (C2) : carte de la compétence choisie nette (elle paraissait grisée) ; noms d'équipe sur 2 lignes. */
 .sk2-bubble { opacity: 1 !important; filter: none !important; color: var(--text, #f2ecff); background: linear-gradient(#22305a, #172042); }
 .who-card b { white-space: normal !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.1; font-size: 12px; text-align: center; }
+/* v9.8 (C2) : Invocation — gros boutons ×1 / ×10, garantie en jauge à coffre. */
+.eco-banner .btn-gold[data-action="summon"] { min-height: 56px; font-size: 17px; flex: 1; }
+.eco-gauge { display: flex; align-items: center; gap: 6px; margin: 6px 0; }
+.eco-gauge .vt-bar { flex: 1; } .eco-gauge img { width: 24px; height: 24px; image-rendering: pixelated; }
