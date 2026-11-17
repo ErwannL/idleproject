@@ -84,6 +84,7 @@ import { equipGear, recycleGear, unequipGear, upgradeGear } from './core/compani
 import { bestOpenUpgrade, companionToLevel, companionToPlace } from './core/guide.js';
 import { PROLOGUE_HINT, playPrologue } from './ui/prologue.js'; // v9.3.7
 import { recycleUseless } from './core/inventory.js'; // v9.3.4
+import { sortLootBag } from './core/inventory.js'; // v9.7.1 : sac de butin
 
 const SIM_INTERVAL_MS = 100;
 // v9.1.0 : codes de triche chargés seulement dans la version dev (fichier absent de la version publique).
@@ -542,6 +543,15 @@ const actions = {
       save();
       ui.invalidate();
     }
+  },
+  // v9.7.1 : tri du sac de butin (Sac, Coffre, Recycler) ; « Retenir » → règle de recyclage au ramassage.
+  sortLootBag(choices, remember) {
+    const r = sortLootBag(state, choices, { remember });
+    if (r.recycled) for (const j of journals()) noteRecycled(j, r.recycled, r.gold);
+    const parts = [r.bag && `${r.bag} au sac`, r.stash && `${r.stash} au coffre`, r.held && `${r.held} en attente`, r.recycled && `${r.recycled} recyclé${r.recycled > 1 ? 's' : ''} (+${formatNumber(r.gold)} or)`].filter(Boolean);
+    if (parts.length) ui.toast(`Tri : ${parts.join(' · ')}`);
+    save();
+    ui.invalidate();
   },
   // Recyclage groupé protégé : jamais d'améliorations, jamais d'Épique ou de Légendaire.
   recycleBulk(maxRarity) {

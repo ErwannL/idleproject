@@ -40,6 +40,7 @@ test('doc3 lot 1 : constante du coffre unique (balance) et store partagée avec 
 
 test('source combat : sac plein → recyclage complet (or + éclats), ancestral et pièce utile au coffre', () => {
   const s = opened(2);
+  s.ui.lootBag = false; // v9.7.1 : ancien ramassage direct (sans sac de butin)
   s.ui.autoMuseum = false;
   fullBag(s);
   const shards = s.materials.shards;
@@ -61,6 +62,7 @@ test('source combat : sac plein → recyclage complet (or + éclats), ancestral 
 
 test('source hors ligne : pièces d\'ensemble possibles, rien de perdu sac plein, rangés ≠ recyclés', () => {
   const s = opened(3);
+  s.ui.lootBag = false; // v9.7.1 : ancien ramassage direct (sans sac de butin)
   s.ui.autoMuseum = false;
   fullBag(s);
   const rng = new Rng(5);

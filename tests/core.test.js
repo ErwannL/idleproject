@@ -158,6 +158,7 @@ test('combat : le héros tue, gagne de l’or et progresse', () => {
 
 test('boss : apparaît au palier et donne un objet garanti', () => {
   const state = createNewState(NOW, 1);
+  state.ui.lootBag = false; // v9.7.1 : ancien ramassage direct (sans sac de butin)
   state.upgrades.damage = 200;
   state.maxStage = 5;
   const world = createCombat(state);

@@ -83,6 +83,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     farmBoss: null, // v9.0.4 : boss réaffronté en boucle depuis le Codex
     equipment: Object.fromEntries(Object.keys(HERO_SLOTS).map((slot) => [slot, null])),
     inventory: [],
+    lootBag: [], // v9.7.1 : sac de butin de la scène (objets en attente de tri)
     nextItemId: 1,
     rngSeed: seed >>> 0,
     records: {
@@ -503,11 +504,15 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   }
   const items = Array.isArray(raw.inventory) ? raw.inventory.filter(isValidItem) : [];
   state.inventory = items.slice(0, balance.loot.inventorySize).map(cleanItem);
+  // v9.7.1 : sac de butin (anciennes sauvegardes : vide) ; jamais tronqué en silence — le surplus part au coffre.
+  const bagged = Array.isArray(raw.lootBag) ? raw.lootBag.filter(isValidItem).map(cleanItem) : [];
+  state.lootBag = bagged.slice(0, 40);
+  if (raw.ui?.lootBag === false) state.ui.lootBag = false;
   // v9.1.3 : le coffre peut déborder (mannequins convertis), jusqu'à STASH_OVERFLOW objets de plus.
   state.stash = (Array.isArray(raw.stash) ? raw.stash.filter(isValidItem) : []).slice(0, STASH_SIZE + STASH_OVERFLOW).map(cleanItem);
   // v9.1.3 (doc3 lot 1, point 5) : un sac au-delà de sa taille (ancien changement de classe) n'est plus rogné :
   // le surplus passe au coffre (même dépassement géré).
-  migrateBagOverflow(state, items.slice(balance.loot.inventorySize).map(cleanItem));
+  migrateBagOverflow(state, [...items.slice(balance.loot.inventorySize).map(cleanItem), ...bagged.slice(40)]);
   // v9.1.3 (lot F) : mannequins fondus dans le coffre.
   migrateMannequins(state, raw.mannequins, { stashSize: STASH_SIZE, bagSize: balance.loot.inventorySize, isValid: isValidItem, clean: cleanItem });
   // v9.0 : Musée (un objet ancestral par vitrine).

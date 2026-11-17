@@ -1,6 +1,7 @@
 // Interface DOM : barre du haut (monnaies, contrats, récompenses, paramètres), surimpressions légères
 // de la scène, HUD, onglets débloqués progressivement et panneaux (un module par panneau dans ./panels).
 // L'interface ne modifie jamais l'état directement : elle appelle les actions fournies par main.js.
+import { LootBag } from './loot-bag.js'; // v9.7.1
 import { worldOpensAt } from '../core/seals.js'; // v9.6.5
 import { sessionGoalsHtml } from './session-goals.js'; // v9.6.5
 import { teamAdvice as teamAdviceV965 } from '../core/team-advisor.js';
@@ -332,6 +333,7 @@ export class UI {
     window.addEventListener('resize', () => { if (pref('uiScale') === 'auto') this.applyZoom(); });
     root.querySelectorAll('#tabs button').forEach((b) => { b.dataset.key = String(MENUS.findIndex((m) => m.id === b.dataset.menu) + 1); });
     installShortcuts(this);
+    this.lootBag = new LootBag(this); // v9.7.1 : sac de butin dans la scène
     installHoldToRepeat(root);
     installTips(root);
     // Balayage horizontal entre onglets (tactile seulement), hors carte, arbre et barre d'onglets.
@@ -1187,6 +1189,8 @@ export class UI {
         // Héros (+N), recyclage et fusions vont au journal de session.
         const rarity = rarityById(event.item.rarity);
         const added = !event.autoRecycled || event.mannequin || event.museum;
+        // v9.7.1 : objet dans le sac de butin de la scène → plus de ligne « Butin : … » (le sac la remplace).
+        if (event.bagged) { this.lootBag?.bump(); if (event.item.rarity === 'legendary') this.announce(`Objet légendaire : ${event.item.name}`); break; }
         if (added && event.item.rarity !== 'common') {
           this.news(event.museum ? `${event.item.name} exposé au Musée`
             : event.mannequin ? `${event.item.name} rangé au coffre (ensemble « ${setById(event.item.set)?.name ?? ''} »)`
@@ -1464,6 +1468,7 @@ export class UI {
     this.state = state;
     this.updateRushBar(state, world);
     this.updateSkillBar(state, world);
+    this.lootBag?.update(state);
     const stats = world.heroStats ?? computeHeroStats(state);
     this.setText('gold', formatNumber(state.gold));
     this.setText('strip-gold', formatNumber(state.gold));
@@ -2290,6 +2295,7 @@ export class UI {
         <p class="offline-gains"><span>${coin()} <b class="gold-text">+${formatNumber(summary.totalGold)}</b></span>
           <span>XP <b>+${formatNumber(summary.xp)}</b>${summary.levelsGained ? ` · <b class="good">+${summary.levelsGained} niveau${summary.levelsGained > 1 ? 'x' : ''}</b>` : ''}</span>${matIcons}</p>
         ${rareItems ? `<div class="offline-rare"><b class="gold-text">★ Objets rares</b><div class="loot-row">${rareItems}</div></div>` : ''}
+        ${summary.baggedCount ? `<p>🎒 <b>${summary.baggedCount}</b> objet${summary.baggedCount > 1 ? 's' : ''} dans le sac de butin, à trier (touche B ou appui sur le sac).</p>` : ''}
         ${this.returnAdvice()}
         ${sessionGoalsHtml(this.state ?? this.bootState)}
         ${paused ? `<p class="bad">Vous étiez dans ${paused} : il ne progresse pas hors ligne (il reprend à votre retour).</p>` : ''}

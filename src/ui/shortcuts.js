@@ -11,11 +11,11 @@ import { holdKeys } from './hold.js';
 // se changent pas.
 export const DEFAULT_KEYS = {
   auto: 'a', speed: 'v', claim: 'g', missions: 'm', inbox: 'n', options: 'p', journal: 'j', help: 'k',
-  session: 's', next: 'c', search: 'f', boost0: 'q', boost1: 'w', boost2: 'e', boost3: 'r', boost4: 't',
+  session: 's', next: 'c', search: 'f', lootBag: 'b', boost0: 'q', boost1: 'w', boost2: 'e', boost3: 'r', boost4: 't',
 };
 export const KEY_LABELS = {
   auto: 'Avance automatique', speed: 'Vitesse des combats', claim: 'Tout récupérer', missions: 'Missions', inbox: 'À récupérer',
-  options: 'Paramètres', journal: 'Journal de la session', help: 'Aide des raccourcis', session: 'Retour de session',
+  lootBag: 'Sac de butin', options: 'Paramètres', journal: 'Journal de la session', help: 'Aide des raccourcis', session: 'Retour de session',
   next: 'Prochaine action', search: 'Recherche rapide', boost0: 'Boost 1 (Rage)', boost1: 'Boost 2 (Frénésie)', boost2: 'Boost 3 (Midas)',
   boost3: 'Boost 4 (Œil)', boost4: 'Boost 5 (Lame)',
 };
@@ -263,6 +263,7 @@ export function installShortcuts(ui) {
       else if (action === 'session') ui.actions.sessionReturn?.();
       else if (action === 'next') ui.runNextAction?.();
       else if (action === 'search') ui.openSearch?.();
+      else if (action === 'lootBag' && ui.lootBag?.available()) ui.lootBag.toggle(); // v9.7.1
       else handled = false;
     }
     if (handled) e.preventDefault();

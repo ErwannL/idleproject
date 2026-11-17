@@ -326,6 +326,7 @@ export class SceneRenderer {
     if (play?.style) {
       play.classList.toggle('wide-scene', this.wide);
       play.style.setProperty('--ground-px', `${Math.round((this.groundY + GROUND_DEPTH) * scale)}px`);
+      play.style.setProperty('--feet-px', `${Math.round((this.groundY + 1) * scale)}px`); // v9.7.1 : sac de butin posé au sol
     }
     // v9.3.1 : un menu ouvert/fermé change la hauteur de la scène : les effets en cours (corps d'un monstre tué,
     // mort animée, chiffres, étincelles) suivent le sol au lieu de rester collés à l'ancienne hauteur (« au plafond »).
@@ -523,7 +524,7 @@ export class SceneRenderer {
         const x0 = Math.max(HERO_X + 16, Math.min(this.width - 20, at.x));
         this.effects.push({ kind: 'beam', x: Math.round(x0), color, life: 1.4, max: 1.4, wide: big });
         // L'objet jaillit du monstre, retombe en brillant, puis file vers le sac du chevalier.
-        this.effects.push({ kind: 'loot', item: event.item, color, x0, x: x0, y0: at.y, y: at.y, life: LOOT_LIFE, max: LOOT_LIFE });
+        this.effects.push({ kind: 'loot', toBag: Boolean(event.bagged), item: event.item, color, x0, x: x0, y0: at.y, y: at.y, life: LOOT_LIFE, max: LOOT_LIFE });
         this.burst(x0, at.y - 4, color, big ? 14 : 6, 50);
         vfx(this, 'loot_burst', x0, at.y, { tint: color, size: big ? 1.3 : 0.9 }); // v9.2.6 : gerbe d'étincelles de rareté
         if (event.item.rarity === 'legendary') this.shake = Math.max(this.shake, 3);
@@ -2322,8 +2323,10 @@ export class SceneRenderer {
             // Aspiré vers le chevalier.
             const k = Math.min(1, (age - (LOOT_LIFE - 0.5)) / 0.5);
             const e = k * k;
-            x = fx.x0 + 14 + (HERO_X - fx.x0 - 14) * e;
-            y = this.groundY - 2 - 20 * e - Math.sin(k * Math.PI) * 10;
+            // v9.7.1 : vers le sac de butin (bas droite de la scène) si l'objet y attend son tri.
+            const tx = fx.toBag ? this.width - 22 : HERO_X;
+            x = fx.x0 + 14 + (tx - fx.x0 - 14) * e;
+            y = this.groundY - 2 - (fx.toBag ? 4 : 20) * e - Math.sin(k * Math.PI) * (fx.toBag ? 18 : 10);
           }
           // Halo de rareté qui pulse. v9.2.6 : éclat dessiné (PixelLab) teinté de la rareté, derrière l'objet.
           if (vfxReady() && !this.focus) drawVfxFrame(ctx, 'loot_shine', projFrame('loot_shine', this.time), x, y - img.height / 2, { tint: fx.color, size: 1.2, alpha: 0.9 });

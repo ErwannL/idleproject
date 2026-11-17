@@ -3451,3 +3451,36 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 .rank-pill.front { background: #3a5aa8; cursor: default; }
 .ult-orders { font-size: 12px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-bottom: 4px; }
 .star-tiers { font-size: 12px; margin: 4px 10px; }
+
+/* v9.7.1 : sac de butin posé au sol, en bas à droite de la scène ; volet de tri sans quitter le combat. */
+#loot-bag { position: absolute; z-index: 4; right: 10px; top: calc(var(--feet-px, 100%) - 32px); width: 32px; height: 32px; padding: 0;
+  display: grid; place-items: center; background: rgba(40, 28, 16, 0.85); border: 2px solid #8a6a3a; border-radius: 8px 8px 6px 6px;
+  cursor: pointer; box-shadow: 0 2px 0 #000; }
+#loot-bag .lb-ico { font-size: 18px; line-height: 1; }
+#loot-bag .lb-count { position: absolute; top: -8px; right: -8px; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 8px;
+  background: #e0303a; color: #fff; font-size: 10px; line-height: 16px; text-align: center; box-shadow: 0 1px 0 #000; }
+#loot-bag .lb-up { position: absolute; bottom: -4px; left: -6px; color: #5ad07a; font-style: normal; font-size: 12px; text-shadow: 0 1px 0 #000; }
+#loot-bag.r-rare { border-color: #4a9dff; } #loot-bag.r-epic { border-color: #b05aff; } #loot-bag.r-legendary { border-color: #ffb020; box-shadow: 0 0 8px #ffb020; }
+#loot-bag.r-mythic, #loot-bag.r-ancestral { border-color: #ff4d6d; box-shadow: 0 0 8px #ff4d6d; }
+#loot-bag.active { outline: 2px solid #fff; }
+#loot-bag.lb-bump { animation: lb-bump 0.35s ease-out; }
+@keyframes lb-bump { 30% { transform: translateY(-7px) scale(1.08); } 60% { transform: translateY(0) scale(0.95, 1.05); } }
+#loot-sheet { position: absolute; z-index: 6; top: 8px; right: 8px; bottom: 8px; width: min(340px, 46%); display: flex; flex-direction: column; gap: 6px;
+  padding: 8px; background: rgba(14, 18, 30, 0.96); border: 1px solid #4a5f92; border-radius: 10px; color: #e8eefc; font-size: 12px; }
+.lb-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.lb-head .lb-x { margin-left: auto; background: none; border: 0; color: inherit; font-size: 16px; cursor: pointer; min-width: 28px; min-height: 28px; }
+.lb-grid { flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 6px; align-content: start; }
+.lb-cell { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 3px; border-radius: 6px; background: rgba(255,255,255,0.04); }
+.lb-cell.d-recycle { opacity: 0.7; }
+.lb-frame { background: none; border: 0; padding: 0; cursor: pointer; }
+.lb-frame .item-frame { width: 44px; height: 44px; }
+.lb-dests { display: flex; gap: 1px; }
+.lb-d { width: 20px; height: 20px; padding: 0; font-size: 11px; border-radius: 4px; border: 1px solid transparent; background: rgba(0,0,0,0.3); cursor: pointer; filter: grayscale(1); opacity: 0.6; }
+.lb-d.on { border-color: #ffd23f; filter: none; opacity: 1; background: rgba(255,210,63,0.15); }
+.lb-cmp { padding: 6px; border-radius: 6px; background: rgba(255,255,255,0.06); }
+.lb-actions { display: flex; gap: 6px; } .lb-actions .btn { flex: 1; }
+@media (max-width: 560px) {
+  /* Téléphone : feuille du bas sur 45 % de l'écran, la scène reste visible au-dessus. */
+  #loot-sheet { position: fixed; left: 0; right: 0; top: auto; bottom: 0; width: auto; height: 45vh; border-radius: 14px 14px 0 0; z-index: 60; }
+  .lb-d { width: 24px; height: 24px; }
+}

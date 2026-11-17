@@ -172,6 +172,11 @@ export function collectItem(state, item, balance = BALANCE) {
   const kept = intake(state, item, balance);
   if (kept) return kept;
   if (shouldAutoRecycle(state, item)) return { added: false, auto: true, recycled: true, recycledGold: salvage(state, item, balance) };
+  // v9.7.1 : sac de butin dans la scène — l'objet attend le tri du joueur (40 au plus ; plein : comportement habituel).
+  if (lootBagOn(state) && state.lootBag.length < LOOT_BAG_MAX) {
+    state.lootBag.push(item);
+    return { added: false, bagged: true, recycledGold: 0 };
+  }
   if (state.inventory.length < balance.loot.inventorySize) {
     state.inventory.push(item);
     return { added: true, recycledGold: 0 };
@@ -347,4 +352,70 @@ export function activeMajor(state) {
   for (const k of MAJOR_ORDER) { const m = state.equipment?.[k]?.major; if (m) return { id: m, slot: k }; }
   for (const it of Object.values(state.equipment ?? {})) if (it?.major) return { id: it.major, slot: null };
   return null;
+}
+
+// --- v9.7.1 : sac de butin (zone de combat) ---
+export const LOOT_BAG_MAX = 40;
+export const LOOT_DESTS = ['bag', 'stash', 'recycle'];
+export function lootBagOn(state) {
+  return state.ui?.lootBag !== false && Array.isArray(state.lootBag);
+}
+// Destination proposée par défaut, selon les règles existantes : meilleur que l'équipé (ou utile à l'équipe) → Sac ;
+// ancestral, verrouillé ou pièce d'ensemble utile → Coffre ; règle de recyclage ou objet inutile → Recycler ; sinon Sac.
+export function suggestLootDest(state, item) {
+  if (isUpgrade(state, item) || teamUpgradeFor(state, item)) return 'bag';
+  if (item.locked || isAncestral(item) || usefulSetPiece(state, item, itemPower)) return 'stash';
+  const rules = recycleRules(state);
+  if ((rules.mode !== 'off' && matchesRecycleRule(state, item, rules)) || autoUseless(state, item)) return 'recycle';
+  if (!['common', 'rare'].includes(item.rarity)) return 'bag';
+  return 'recycle';
+}
+// Tri du sac de butin (trié par rareté puis puissance pour l'affichage).
+export function lootBagList(state) {
+  return [...(state.lootBag ?? [])].sort(SORTERS.rarity);
+}
+// Applique le tri : choices = { [id]: 'bag' | 'stash' | 'recycle' } (absent → destination proposée).
+// Rien n'est perdu : un objet verrouillé ou ancestral n'est jamais recyclé ; sac plein → coffre → en attente.
+// remember : les raretés recyclées deviennent la règle de recyclage « au ramassage » (recycleRules).
+export function sortLootBag(state, choices = {}, { remember = false } = {}, balance = BALANCE) {
+  const out = { bag: 0, stash: 0, held: 0, recycled: 0, gold: 0 };
+  const recycledRarities = new Set();
+  const keptRarities = new Set();
+  for (const item of [...(state.lootBag ?? [])]) {
+    let dest = LOOT_DESTS.includes(choices[item.id]) ? choices[item.id] : suggestLootDest(state, item);
+    if (dest === 'recycle' && (item.locked || isAncestral(item))) dest = 'stash';
+    state.lootBag.splice(state.lootBag.indexOf(item), 1);
+    if (dest === 'recycle') {
+      out.gold += salvage(state, item, balance);
+      out.recycled += 1;
+      recycledRarities.add(item.rarity);
+      continue;
+    }
+    keptRarities.add(item.rarity);
+    if (dest === 'bag' && state.inventory.length < balance.loot.inventorySize) { state.inventory.push(item); out.bag += 1; continue; }
+    const where = placeItem(state, item, balance);
+    out[where === 'held' ? 'held' : 'stash'] += 1;
+  }
+  if (remember && recycledRarities.size) {
+    const cur = recycleRules(state);
+    const rarities = [...new Set([...(cur.mode === 'off' ? [] : cur.rarities), ...recycledRarities])].filter((r) => !keptRarities.has(r) && ['common', 'rare', 'epic'].includes(r));
+    if (rarities.length) state.ui.recycle = { ...cur, mode: 'pickup', rarities, slots: cur.slots ?? Object.keys(SLOTS), keepAffixes: cur.keepAffixes ?? [] };
+  }
+  return out;
+}
+// « Tout recycler sauf les meilleurs » : garde les améliorations (sac) et les objets protégés (coffre).
+export function lootBagKeepBestChoices(state) {
+  const choices = {};
+  for (const item of state.lootBag ?? []) {
+    const s = suggestLootDest(state, item);
+    choices[item.id] = s === 'bag' && !(isUpgrade(state, item) || teamUpgradeFor(state, item)) ? 'recycle' : s;
+  }
+  return choices;
+}
+// Meilleure rareté en attente et présence d'une amélioration (liseré et flèche verte du sac).
+export function lootBagSummary(state) {
+  const bag = state.lootBag ?? [];
+  let best = null;
+  for (const i of bag) if (!best || rarityIndex(i.rarity) > rarityIndex(best)) best = i.rarity;
+  return { count: bag.length, best, upgrade: bag.some((i) => isUpgrade(state, i)) };
 }

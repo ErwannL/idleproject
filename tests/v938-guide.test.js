@@ -16,6 +16,7 @@ test('points de compétence : un clic les dépense (jamais bloqué sur un Boost)
 });
 test('objet inutile (autre classe, Commun) recyclé à la récupération ; réglable ; jamais un Épique', () => {
   const s = createNewState(NOW);
+  s.ui.lootBag = false; // v9.7.1 : ancien ramassage direct (sans sac de butin)
   const junk = makeItem(s, 'short_sword', 'common', 1); junk.cls = 'support';
   const r = collectItem(s, junk);
   assert.ok(r.recycled && !s.inventory.includes(junk));

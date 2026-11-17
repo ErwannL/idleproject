@@ -75,6 +75,7 @@ test('donjons : difficultés débloquées une à une, plus durs, et ils rapporte
 
 test('recyclage automatique « sac plein » : libère de la place selon les règles', () => {
   const state = createNewState(NOW, 5);
+  state.ui.lootBag = false; // v9.7.1 : ancien ramassage direct (sans sac de butin)
   state.ui.autoUseless = false; // v9.3.8 : règles manuelles seules
   state.ui.recycle = { mode: 'full', rarities: ['common'], slots: ['helmet'] };
   state.equipment.helmet = makeItem(state, 'iron_helm', 'legendary', 50); // casque porté bien meilleur (v9.3.8 : de nouveau sa place)

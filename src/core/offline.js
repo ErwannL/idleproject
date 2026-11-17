@@ -125,8 +125,10 @@ export function applyOfflineRewards(state, rewards, balance = BALANCE) {
   trackContracts(state, 'gold', gold);
   let autoRecycledGold = 0;
   let autoRecycledCount = 0;
+  let baggedCount = 0; // v9.7.1 : objets laissés dans le sac de butin (à trier au retour)
   for (const item of rewards.items) {
     const result = collectItem(state, item, balance);
+    if (result.bagged) baggedCount += 1;
     if (result.recycled) { // v9.1.3 : un objet rangé au coffre ou au Musée n'est pas « recyclé »
       autoRecycledGold += result.recycledGold;
       autoRecycledCount += 1;
@@ -134,5 +136,5 @@ export function applyOfflineRewards(state, rewards, balance = BALANCE) {
   }
   state.records.itemsFound += rewards.excessDrops;
   const materials = { shards: state.materials.shards - before.shards };
-  return { ...rewards, totalGold: gold + autoRecycledGold, autoRecycledGold, autoRecycledCount, levelsGained, materials };
+  return { ...rewards, totalGold: gold + autoRecycledGold, autoRecycledGold, autoRecycledCount, baggedCount, levelsGained, materials };
 }

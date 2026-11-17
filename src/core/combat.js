@@ -512,7 +512,7 @@ function dropItem(state, world, item, x, balance, enemyId = null) {
   world.counters.drops += 1;
   const result = collectItem(state, item, balance);
   if (rarityIndex(item.rarity) >= 1) trackContracts(state, 'rareLoot', 1);
-  emit(world, 'drop', { item, x, enemyId, autoRecycled: Boolean(result.recycled) && !result.mannequin, stored: Boolean(result.stored || result.held), byRule: Boolean(result.auto), mannequin: Boolean(result.mannequin), museum: Boolean(result.museum), recycledGold: result.recycledGold, freed: result.freed?.count ? result.freed : null });
+  emit(world, 'drop', { item, x, enemyId, bagged: Boolean(result.bagged), autoRecycled: Boolean(result.recycled) && !result.mannequin, stored: Boolean(result.stored || result.held), byRule: Boolean(result.auto), mannequin: Boolean(result.mannequin), museum: Boolean(result.museum), recycledGold: result.recycledGold, freed: result.freed?.count ? result.freed : null });
 }
 
 // v9.6.0 (6) : Soigneur (soigne sa vague 3 % des PV max par seconde) et Kamikaze (explose 1,5 s après son arrivée :
