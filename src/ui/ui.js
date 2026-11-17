@@ -1433,6 +1433,7 @@ export class UI {
     const el = this.$('news-text');
     el.textContent = text;
     el.style.color = color ?? '';
+    el.parentElement.classList.remove('empty'); // v9.8 (E4)
     const now = performance.now();
     if (now - (this.lastHud.newsFlash ?? 0) < 300) return;
     this.lastHud.newsFlash = now;
@@ -1797,7 +1798,9 @@ export class UI {
     if (bar.dataset.key !== key) {
       bar.dataset.key = key;
       bar.innerHTML = list.map((sk, i) => `<button class="skill-btn big" data-action="cast-skill" data-skill="${sk.id}" title="${escapeHtml(sk.name)} (${i + 1})" aria-label="${escapeHtml(sk.name)}">${img(sk.icon)}<i class="cd"></i>${this.phone ? '' : `<kbd>${i + 1}</kbd>`}</button>`).join('')
-        + team.filter((c) => ready.has(c.id)).map((c) => `<button class="ult-btn" data-action="cast-ult" data-value="${c.id}" title="Ultime : ${escapeHtml(c.name)}" aria-label="Ultime de ${escapeHtml(c.name)}">${img(c.sprite)}<b>Ultime</b></button>`).join('')
+        // v9.8 (E5) : un seul bouton Ultime (portraits empilés, compteur) ; un appui lance la première prête.
+        + (() => { const r = team.filter((c) => ready.has(c.id)); if (!r.length) return '';
+          return `<button class="ult-btn" data-action="cast-ult" data-value="${r[0].id}" title="Ultime : ${escapeHtml(r.map((c) => c.name).join(', '))}" aria-label="Ultime de ${escapeHtml(r[0].name)}"><span class="ult-stack">${r.slice(0, 3).map((c) => img(c.sprite)).join('')}</span><b>Ultime${r.length > 1 ? ` ×${r.length}` : ''}</b></button>`; })()
         + (world.guard ? `<button class="guard-btn" data-action="guard" aria-label="Parer">🛡 Parer${this.phone ? '' : ' <kbd>D</kbd>'}</button>` : '');
     }
     const bonus = (world.heroStats ?? computeHeroStats(state)).bonus;
@@ -1885,6 +1888,8 @@ export class UI {
     this.offerAutoRecycle(state); // v9.3.4
     if (this.tabVisible.forge !== false && canForgeSomething(state)) this.tabBadges = { ...byTab, forge: 1 }; // v9.3.4 : de quoi forger
     if (this.tabVisible.tree !== false && suggestedTalent(state)) this.tabBadges = { ...this.tabBadges, tree: 1 }; // v9.3.9 : un talent à apprendre
+    // v9.8 (E7) : des clés de donjon en réserve → pastille sur Aventure (le joueur ne savait pas qu'il pouvait y aller).
+    if (this.tabVisible.dungeons !== false && (state.keys ?? 0) > 0 && !state.dungeon) { this.tabBadges = { ...this.tabBadges, dungeons: 1 }; byTab.dungeons = byTab.dungeons ?? 1; }
     const current = computeHeroStats(state);
     this.next = nextAction(state, { claims: this.claims, visible: this.tabVisible, fusionReady: this.tabBadges.forge === 1 }); // v9.3.5
     for (const menu of MENUS) {

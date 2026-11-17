@@ -3665,3 +3665,15 @@ html.simple .rb-detail, html.simple .summon-odds .muted, html.simple .next-unloc
 /* v9.8 (C1) : objectifs de session sur une ligne (la règle d'origine était battue : un mot par ligne). */
 .card.session-goals .m-row { display: flex !important; flex-wrap: wrap; }
 .card.session-goals .m-row > .grow { flex: 1 1 100% !important; width: 100%; white-space: normal !important; word-break: normal; }
+/* v9.8 (C3) : décor de thème SOUS le contenu du panneau (pétales qui cachaient chiffres et boutons), coupé par
+   « Réduire les animations ». */
+.theme-deco { z-index: 0 !important; }
+#panel-body { position: relative; z-index: 1; }
+.reduce-motion .theme-deco .fx { display: none; }
+/* v9.8 (C2) : fiche compagnon en carte de personnage (560 px au plus, centrée), même en plein écran. */
+.unit-pop { max-width: 560px !important; }
+/* v9.8 (C3) : une seule guirlande de thème par écran (la première section). */
+html:not([data-theme="knight"]) #panel-body > .card ~ .card > .section-title:first-child::after { display: none; }
+#news.empty { display: none; } /* v9.8 (E4) : plus de barre vide « — » sous la scène */
+/* v9.8 (E5) : bouton Ultime unique, portraits empilés. */
+#skill-bar .ult-btn .ult-stack { display: flex; } #skill-bar .ult-btn .ult-stack img { width: 26px; height: 26px; margin-left: -10px; } #skill-bar .ult-btn .ult-stack img:first-child { margin-left: 0; }

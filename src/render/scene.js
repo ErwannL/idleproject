@@ -126,7 +126,7 @@ function layer(file) {
   }
   return img.complete && !img.failed && img.naturalWidth > 0 ? img : null;
 }
-const MAX_FLOATING_TEXTS = 6;
+const MAX_FLOATING_TEXTS = 3; // v9.8 (E1) : 3 chiffres à la fois au plus (ils cachaient les personnages)
 // v9.2.6 : projectiles dessinés par PixelLab (boucles animées) à la place des anciens sprites fixes.
 const PROJ_VFX = { fx_arrow: 'proj_arrow', fx_arrow_fire1: 'proj_fireball', fx_fireball1: 'proj_fireball', fx_soul1: 'proj_soul', fx_meteor: 'proj_fireball' };
 // v9.2.7 : couleur de la traînée de frappe selon la rareté de l'arme.
@@ -2543,7 +2543,11 @@ export class SceneRenderer {
         }
         case 'beam': {
           // v9.2.2 : colonne de lumière sur toute la hauteur, qui s'estompe vers le haut (plus de trait coupé net).
-          const w = fx.wide ? 7 : 4, G = this.groundY, a = Math.min(1, t * 1.5);
+          // v9.8 (E2/E3) : 0,3 s au plus et deux fois moins opaque (les colonnes restaient sur la scène : rayons blancs,
+          // « rectangle violet » d'un objet Épique) ; aucune avec « Réduire les animations ».
+          const age = fx.max - fx.life;
+          if (this.focus || age > 0.3) break;
+          const w = fx.wide ? 7 : 4, G = this.groundY, a = 0.5 * (1 - age / 0.3);
           const fade = (c, k) => { const g = ctx.createLinearGradient(0, 0, 0, G); g.addColorStop(0, c + '00'); g.addColorStop(0.45, c + Math.round(k * 160).toString(16).padStart(2, '0')); g.addColorStop(1, c + Math.round(k * 255).toString(16).padStart(2, '0')); return g; };
           const col = /^#[0-9a-f]{6}$/i.test(fx.color) ? fx.color : '#ffffff';
           ctx.globalAlpha = a * 0.7;

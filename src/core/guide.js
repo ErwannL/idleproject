@@ -88,6 +88,8 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
   // v9.7.1 : sac de butin de la scène — une amélioration y attend, ou il se remplit.
   const bag = state.lootBag ?? [];
   if (bag.length >= 12 || bag.some((i) => isUpgrade(state, i, balance, current))) return { id: 'lootbag', text: `Trier le sac de butin (${bag.length})`, action: 'lootbag' };
+  // v9.8 (E8) : « Équiper » suit isUpgrade (bilan dégâts/s × robustesse) ; le conseil semblait inutile à cause de
+  // l'affichage des objets en valeurs brutes (« +6,3 M » à côté de « 2,4 Qa »), corrigé en A (gain en % de puissance).
   const better = state.inventory.filter((i) => isUpgrade(state, i, balance, current)).length;
   if (better) return { id: 'equip', text: better > 1 ? `Équiper ${better} objets meilleurs` : 'Équiper 1 objet meilleur', action: 'equip-best' };
   const place = companionToPlace(state, balance);

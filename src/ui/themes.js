@@ -114,7 +114,8 @@ function applyDecor(theme) {
   deco.className = 'theme-deco';
   deco.setAttribute('aria-hidden', 'true');
   const parts = [];
-  for (let i = 0; i < fx.count; i++) {
+  // v9.8 (C3) : moitié moins de particules dans le panneau (elles cachaient des chiffres).
+  for (let i = 0; i < Math.ceil(fx.count / 2); i++) {
     const r = (a, b) => a + Math.random() * (b - a);
     const sprite = assetUrl(decoOf(theme), i % 3 === 2 ? 'particle2.png' : 'particle1.png');
     parts.push(`<i class="p ${fx.motion}" style="--x:${r(0, 100).toFixed(1)}%;--y:${r(0, 100).toFixed(1)}%;--t:${r(...fx.speed).toFixed(1)}s;--d:-${r(0, fx.speed[1]).toFixed(1)}s;--sc:${r(0.7, 1.3).toFixed(2)};--sw:${r(10, 34).toFixed(0)}px;background-image:url('${sprite}')"></i>`);
