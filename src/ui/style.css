@@ -3484,3 +3484,26 @@ body:has(.summon-fx) #banner { visibility: hidden; }
   #loot-sheet { position: fixed; left: 0; right: 0; top: auto; bottom: 0; width: auto; height: 45vh; border-radius: 14px 14px 0 0; z-index: 60; }
   .lb-d { width: 24px; height: 24px; }
 }
+
+/* v9.7.1 (lot 3) : objectifs de session — libellé au-dessus de la barre (plus « Gagner / 3 / étapes »). */
+.session-goals .m-row { flex-wrap: wrap; row-gap: 2px; }
+.session-goals .m-row > .grow { flex: 1 1 100%; min-width: 0; white-space: normal; }
+.session-goals .m-row > :not(.grow) { flex: 1 1 100%; }
+/* v9.7.1 (lot 3) : onglets sur une ligne ; libellé court sur téléphone. */
+#panel-subtabs .subtab, #tabs button span { white-space: nowrap; }
+#panel-subtabs .sub-short { display: none; }
+@media (max-width: 560px) {
+  #panel-subtabs .sub-long { display: none; }
+  #panel-subtabs .sub-short { display: inline; }
+  #panel-subtabs .subtab { padding: 4px 8px 5px; }
+  #tabs button span { overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+}
+/* v9.7.1 (lot 3) : carte « Nouveau : Kamikaze… » sous la barre de vague, plus sur les boutons de compétences. */
+.beh-card { top: auto; bottom: 8px; }
+#play.wide-scene .beh-card { bottom: auto; top: calc(var(--ground-px) + 118px); }
+/* v9.7.1 (lot 3) : Boutique, Profil, Paramètres plus grands et contrastés (PC). */
+@media (min-width: 900px) {
+  #topbar .icon-btn { width: 38px; height: 34px; background: #1f2b48; border: 1px solid #6a7fb8; }
+  #topbar .icon-btn img { width: 24px; height: 24px; }
+  #topbar .icon-btn:hover { background: #2a3a60; border-color: var(--gold, #e8b64a); }
+}

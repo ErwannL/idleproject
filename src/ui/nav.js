@@ -16,6 +16,8 @@ export const SUB_LABELS = {
   companions: 'Compagnons', expeditions: 'Expéditions', summon: 'Invocation', shop: 'Boutique', event: 'Événement', campaign: 'Carte', dungeons: 'Donjons', tower: 'Défis', arena: 'Arène',
   boss: 'Boss', world: 'Monde', encyclopedia: 'Collections', contracts: 'Missions', inbox: 'À récupérer', ranking: 'Classement', guild: 'Guilde', stats: 'Statistiques', options: 'Paramètres',
 };
+// v9.7.1 : libellés courts des onglets sur téléphone (une ligne, plus de « Équipe-ment »).
+export const SUB_SHORT = { upgrades: 'Amélio.', skills: 'Compét.', inventory: 'Équip.', companions: 'Compag.', expeditions: 'Expéd.', encyclopedia: 'Collec.', statistics: 'Stats', stats: 'Stats', options: 'Réglages', inbox: 'Reçus', ranking: 'Classt.', summon: 'Invoc.', looks: 'Looks' };
 // Chemin écrit d'un écran (« Héros › Équipement »), construit depuis MENUS : jamais écrit en dur.
 // La fiche du héros et les Paramètres sont hors menu : on dit comment les ouvrir (portrait, engrenage).
 export function navPath(tab, ...rest) {

@@ -102,7 +102,7 @@ import { availableForExpedition, readyExpeditions } from '../core/expeditions.js
 import { CHALLENGE, bossEvery, challengeUnlocked } from '../core/challenge.js';
 import { ZONES } from '../data/zones.js';
 import { CURRENCIES, currencyAmount } from '../data/currencies.js';
-import { MENUS, SUB_LABELS, navPath } from './nav.js';
+import { MENUS, SUB_LABELS, SUB_SHORT, navPath } from './nav.js';
 import { ELEMENTS, zoneElement } from '../core/elements.js'; // v9.3.1 : types
 
 export { MENUS };
@@ -612,7 +612,7 @@ export class UI {
       const badge = m === 'red' ? '<i class="badge" aria-label="À récupérer"></i>'
         : m === 'new' ? '<i class="badge badge-ring" aria-label="Nouveau"></i>' : '';
       return `<button class="subtab${t === this.tab ? ' active' : ''}" role="tab" aria-selected="${t === this.tab}" data-sub="${t}">
-      <img class="px" src="${icon(SUB_ICONS[t])}" data-icon="${SUB_ICONS[t]}" alt=""><span>${SUB_LABELS[t]}</span>${badge}</button>`;
+      <img class="px" src="${icon(SUB_ICONS[t])}" data-icon="${SUB_ICONS[t]}" alt=""><span class="sub-long">${SUB_LABELS[t]}</span><span class="sub-short">${SUB_SHORT[t] ?? SUB_LABELS[t]}</span>${badge}</button>`;
     }).join('') + next;
     uiFx.syncIcons(this.root); // v9.2.6
   }
@@ -2326,8 +2326,13 @@ export class UI {
   }
 
   // v9.3.8 (4) : série de connexion — fenêtre du jour à l'ouverture (calendrier de 7 jours, gros lot au jour 7).
-  showLoginPopup() {
-    if (!this.state || !loginPending(this.state) || !this.$('modal').classList.contains('hidden')) return;
+  showLoginPopup(tries = 0) {
+    if (!this.state || !loginPending(this.state)) return;
+    // v9.7.1 : fenêtres en file — attend la fin d'une autre fenêtre, d'une cinématique ou du tutoriel au lieu de s'empiler.
+    if (!this.$('modal').classList.contains('hidden') || document.querySelector('.cinematic, .tour, #prologue, .summon-fx, .levelup, .level-up')) {
+      if (tries < 60) setTimeout(() => this.showLoginPopup(tries + 1), 2000);
+      return;
+    }
     this.openModal(`<h2 id="modal-title">${img('icon_star', 'ico20')} Cadeau du jour</h2>${loginTab(this.state)}
       <div class="detail-actions"><button class="btn" data-action="close-modal">Plus tard</button></div>`);
   }

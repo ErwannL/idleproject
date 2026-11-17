@@ -38,14 +38,22 @@ function visible(el) {
 }
 
 // Étape à montrer maintenant, ou null. `full` : sac plein (calculé par l'appelant).
-export function pickStep(state, root, full, panelOpen = false) {
+// v9.7.1 : jamais sur une barre d'onglets ni sur la navigation (menus, sous-onglets, barre du bas du téléphone).
+const NAV = '#tabs, #panel-subtabs, .seg, nav, [role="tablist"], #topbar';
+const isNav = (sel) => sel.startsWith('#tabs') || sel.startsWith('[data-sub');
+// v9.7.1 : une bulle par écran ouvert au plus (par session) : écran → étape déjà montrée.
+const shownOn = new Map();
+export function pickStep(state, root, full, panelOpen = false, screen = panelOpen ? 'panel' : 'scene') {
+  // Rien pendant le prologue, le tutoriel, une fenêtre ou une animation (fenêtres en file, une seule à la fois).
+  if (typeof document !== 'undefined' && document.querySelector('#prologue, .tour, .cinematic, .summon-fx, #modal:not(.hidden), #loot-sheet:not(.hidden)')) return null;
+  const already = shownOn.get(screen);
   for (const st of TUTO_STEPS) {
     if (has(state, st.id) || !st.when(state, full)) continue;
+    if (already && already !== st.id) return null;
     for (const sel of st.targets) {
-      if (panelOpen && sel.startsWith('#tabs')) continue;
-      if (!panelOpen && sel.startsWith('[data-sub')) continue; // panneau ouvert : pas de détour par le menu
+      if (isNav(sel)) continue;
       const el = root.querySelector(sel);
-      if (visible(el)) return { step: st, el };
+      if (visible(el) && !el.closest(NAV)) { shownOn.set(screen, st.id); return { step: st, el }; }
     }
     if (st.finger) return null; // une étape guidée attend son tour : pas de bulle par-dessus
   }
@@ -63,7 +71,8 @@ export function updateTutorial(state, root, full, panelOpen = false, translate =
   latest = state;
   if (typeof document === 'undefined') return;
   let layer = document.getElementById('tuto-layer');
-  const pick = state.settings?.tutorial === false ? null : pickStep(state, root, full, panelOpen);
+  const screen = panelOpen ? `panel:${root.querySelector('#panel h2')?.textContent ?? ''}` : 'scene';
+  const pick = state.settings?.tutorial === false ? null : pickStep(state, root, full, panelOpen, screen);
   if (!pick) { layer?.remove(); return; }
   if (!layer) {
     layer = document.createElement('div');

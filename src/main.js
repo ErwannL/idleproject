@@ -1484,8 +1484,10 @@ if ((state.ui.tour !== 'done' || (state.ui.tourV ?? 1) < TOUR_VERSION) && (!navi
   let waited = 0;
   const tryTour = () => {
     waited += 1;
-    const busy = !document.getElementById('modal').classList.contains('hidden') || document.querySelector('.cinematic, .summon-fx');
-    if (busy && waited < 120) { setTimeout(tryTour, 1000); return; }
+    // v9.7.1 : jamais pendant le prologue (la bulle bloquait « Passer ⏭ ») ni avant qu'il ait été vu sur une partie neuve.
+    const prologuePending = loaded.source === 'new' && cinematicsOn() && !(state.ui.hints ?? []).includes(PROLOGUE_HINT);
+    const busy = prologuePending || !document.getElementById('modal').classList.contains('hidden') || document.querySelector('.cinematic, .summon-fx, #prologue');
+    if (busy && waited < 300) { setTimeout(tryTour, 1000); return; }
     maybeStartTour(ui, state);
   };
   setTimeout(tryTour, navigator.webdriver ? 300 : 4200);

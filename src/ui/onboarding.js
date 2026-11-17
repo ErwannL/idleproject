@@ -115,7 +115,7 @@ export function showWhatMoved(ui, state) {
 
 // Au démarrage : première partie → tutoriel ; partie existante d'avant la v9.1.0 → carte « où est passé quoi ».
 export function maybeStartTour(ui, state) {
-  if (document.querySelector('.summon-fx')) return;
+  if (document.querySelector('.summon-fx, #prologue')) return; // v9.7.1 : jamais par-dessus le prologue
   if (state.ui.tour === 'done') {
     if ((state.ui.tourV ?? 1) < TOUR_VERSION) showWhatMoved(ui, state);
     return;
