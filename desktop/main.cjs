@@ -59,7 +59,8 @@ async function latestRelease(token) {
   }
   return { error: errors.join(' · ') };
 }
-const SIZE_PRESETS = { strip: [520, 150], mini: [420, 300], standard: [460, 640], wide: [960, 720] };
+// v9.7.1 : préréglage « Widget » 320×180 (scène + ligne compacte : or, niveau, vague).
+const SIZE_PRESETS = { strip: [520, 150], widget: [320, 180], mini: [420, 300], standard: [460, 640], wide: [960, 720] };
 // v2 : nouvelle interface pensée pour la fenêtre « standard » ; on l'applique une fois aux installations v1.
 const LAYOUT_VERSION = 2;
 const MIME = {
@@ -190,6 +191,16 @@ function createWindow() {
   });
 
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  // v9.7.1 : F11 = plein écran, état mémorisé dans window.json.
+  if (settings.fullScreen && !smokeFile) win.setFullScreen(true);
+  win.webContents.on('before-input-event', (event, input) => {
+    if (input.type !== 'keyDown' || input.key !== 'F11') return;
+    event.preventDefault();
+    const next = !win.isFullScreen();
+    win.setFullScreen(next);
+    settings.fullScreen = next;
+    saveSettings(settings);
+  });
   // v8.5 : écran noir (processus de la page tombé, ou bloqué trop longtemps) → la page est rechargée ;
   // la partie repart de la dernière sauvegarde automatique (10 s au plus).
   if (!smokeFile) {

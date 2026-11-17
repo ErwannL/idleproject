@@ -120,8 +120,20 @@ const rng = new Rng((state.rngSeed ^ Date.now()) >>> 0);
 const canvas = document.getElementById('scene');
 const renderer = new SceneRenderer(canvas);
 const stageArea = document.getElementById('stage-area');
-new ResizeObserver(() => renderer.resize(stageArea.clientWidth, stageArea.clientHeight)).observe(stageArea);
-renderer.resize(stageArea.clientWidth, stageArea.clientHeight);
+// v9.7.1 : marge au-dessus du héros = hauteur des boutons posés en haut de la scène (carte, compétences).
+SceneRenderer.sizePref = state.ui.charSize ?? 'auto'; // v9.7.1
+function resizeScene() {
+  const top = stageArea.getBoundingClientRect().top;
+  let hud = 0;
+  for (const id of ['zone-card', 'skill-bar']) {
+    const el = document.getElementById(id);
+    if (el && el.offsetParent && !el.classList.contains('hidden')) hud = Math.max(hud, el.getBoundingClientRect().bottom - top);
+  }
+  renderer.hudPx = Math.min(hud, stageArea.clientHeight * 0.4);
+  renderer.resize(stageArea.clientWidth, stageArea.clientHeight);
+}
+new ResizeObserver(resizeScene).observe(stageArea);
+resizeScene();
 
 let lastSave = Date.now();
 // v9.1.0 : écriture bloquée quand la sauvegarde vient d'une version plus récente (rien n'est écrasé) ou pendant
@@ -953,6 +965,8 @@ const actions = {
   setNotify(key, on) { state.ui.notify = { ...state.ui.notify, [key]: on }; done(true); },
   setCinematics(on) { state.ui.cinematics = on; done(true); },
   setShake(on) { state.ui.shake = on; done(true); }, // v9.3.9
+  // v9.7.1 : taille des personnages (Auto / Petit / Moyen / Grand) : recadre la scène tout de suite.
+  setCharSize(v) { state.ui.charSize = ['small', 'medium', 'large'].includes(v) ? v : 'auto'; SceneRenderer.sizePref = state.ui.charSize; resizeScene(); done(true); },
   setBigAuras(on) { state.ui.bigAuras = on; done(true); }, // v9.5.3
   setMetricsOptIn(on) { state.ui.metricsOptIn = on; done(true); if (on) sendMetrics(state, { base: CLOUD_BASE }); }, // v9.6.5 (10.11)
   setRushSlot(i, id) { done(setRushSlot(state, i, id)); }, // v9.6.3 (5.2)

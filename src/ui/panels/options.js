@@ -127,6 +127,7 @@ function windowOptions(ui) {
         Garder la fenêtre au premier plan</label>
       <div class="options-row">
         <button class="btn small" data-action="window-size" data-preset="strip" title="Une simple barre, comme dans la barre des tâches">Barre</button>
+        <button class="btn small" data-action="window-size" data-preset="widget" title="320 × 180 : la scène et une ligne (or, niveau, vague)">Widget</button>
         <button class="btn small" data-action="window-size" data-preset="mini">Mini</button>
         <button class="btn small" data-action="window-size" data-preset="standard">Standard</button>
         <button class="btn small" data-action="window-size" data-preset="wide">Large</button>
@@ -263,6 +264,8 @@ function interfaceTab(ui, state) {
           return `<button class="btn theme-btn${(state.ui.theme ?? 'knight') === t.id ? ' active' : ''}${mine ? '' : ' locked'}" data-action="${mine ? 'theme' : 'theme-preview'}" data-value="${t.id}">
           <span class="theme-swatches">${themeSwatches(t.id).map((c) => `<i style="background:${c}"></i>`).join('')}</span>
           <b>${escapeHtml(t.name)}</b><span class="muted">${escapeHtml(t.text)}</span>${mine ? '' : `<span class="muted">${img('icon_lock')} Boutique › Thèmes · Aperçu</span>`}</button>`; }).join('')}</div>`, { extra: escapeHtml(theme?.name ?? '') })}
+      <div class="card row-between"><b>Taille des personnages</b>
+        <select data-action="char-size">${[['auto', 'Auto'], ['small', 'Petit'], ['medium', 'Moyen'], ['large', 'Grand']].map(([v, l]) => `<option value="${v}"${(state.ui.charSize ?? 'auto') === v ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
       ${ui.interfaceExtra?.(state) ?? ''}
       ${fold(ui, 'opt-notify', 'Notifications', () => `
         <label class="toggle"><input type="checkbox" data-action="notify" data-key="boss" ${state.ui.notify?.boss !== false ? 'checked' : ''}> Bannières d'arrivée des boss</label>

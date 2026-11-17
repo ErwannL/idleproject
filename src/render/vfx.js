@@ -187,6 +187,7 @@ export function drawDamageText(scene, ctx, fx) {
     s = age < 0.06 ? 1.7 : 1.2; // v9.3.9 : plus gros, petit saut
   }
   if (scene.focus) { s = 1; dy = -age * 14; }
+  if ((scene.scale ?? 1) >= 3) s *= 0.8; // v9.7.1 : chiffres plus petits quand l'échelle est grande
   const t = fx.life / fx.max;
   ctx.globalAlpha = Math.min(1, t * 2.5);
   const w = c.width * s;

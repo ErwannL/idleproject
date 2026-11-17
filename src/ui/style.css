@@ -937,6 +937,9 @@ canvas.anim { display: block; image-rendering: pixelated; }
 .layout-strip #scene-bottom { left: 4px; right: 4px; bottom: 2px; font-size: 10px; gap: 4px; }
 .layout-strip #xp-bar { height: 8px; }
 .layout-strip #hp-chip, .layout-strip #dps-chip img { display: none; }
+/* v9.7.1 : widget — une seule ligne compacte (or, niveau, étape), la barre d'XP du bas est masquée. */
+.layout-strip #scene-bottom, .layout-strip #skill-bar, .layout-strip #boost-group { display: none !important; }
+#strip-info { color: #e8eefc; }
 
 /* --- v7.5 : améliorations, fusion, accessoires --- */
 .inv { grid-template-columns: 104px minmax(0, 1fr) minmax(0, 1fr); }

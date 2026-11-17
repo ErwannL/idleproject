@@ -132,7 +132,7 @@ const UNLOCK_INFO = { // v9.3.4 (h) : une ligne courte par onglet
 const TOWER_UNLOCK = TOWER.unlockStage;
 export const menuOf = (tab) => MENUS.find((m) => m.tabs.includes(tab)) ?? null;
 const TALL_MIN_HEIGHT = 420;
-const STRIP_MAX_HEIGHT = 190; // en dessous : mode barre (seulement la scène, comme une barre des tâches)
+const STRIP_MAX_HEIGHT = 259; // v9.7.1 : sous 260 px de haut (widget 320×180) // en dessous : mode barre (seulement la scène, comme une barre des tâches)
 const BULK_CONFIRM_MS = 4000;
 // Panneaux dont le contenu évolue pendant le farm : réaffichés au plus une fois par seconde.
 // v9.3.5 : nom court sous l'icône des boosts ; touches affichées seulement avec souris et clavier.
@@ -1143,6 +1143,7 @@ export class UI {
     if (action === 'cloud-listed') this.actions.cloudListed(el.checked);
     if (action === 'cinematics') this.actions.setCinematics(el.checked);
     if (action === 'screen-shake') this.actions.setShake(el.checked); // v9.3.9
+    if (action === 'char-size') this.actions.setCharSize(el.value); // v9.7.1
     if (action === 'big-auras') this.actions.setBigAuras(el.checked); // v9.5.3
     if (action === 'metrics-opt-in') this.actions.setMetricsOptIn(el.checked); // v9.6.5
     if (action === 'bind-build') this.actions.bindBuild(Number(el.dataset.value), el.value); // v9.6.1
@@ -1466,6 +1467,7 @@ export class UI {
     const stats = world.heroStats ?? computeHeroStats(state);
     this.setText('gold', formatNumber(state.gold));
     this.setText('strip-gold', formatNumber(state.gold));
+    if (this.layout === 'strip') this.setText('strip-info', `Niv. ${state.level} · Étape ${state.stage}`); // v9.7.1 : ligne compacte
     this.setText('gems', formatNumber(state.gems));
     this.setText('hp', `${formatNumber(Math.max(0, world.hero.hp))}/${formatNumber(stats.maxHp)}`);
     this.setText('level-badge', `Niv. ${state.level}`);

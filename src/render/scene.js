@@ -52,10 +52,15 @@ const GROUND_DEPTH = 18; // hauteur du sol sous la ligne des pieds
 // au-dessus du sol) doivent toucher le haut de la scène. Au-delà, on zoome au lieu de montrer leur bord
 // coupé net (arbres « tranchés » dans une fenêtre haute, v9.1.3).
 export const MAX_VIEW_HEIGHT = 320 + GROUND_DEPTH;
-const MIN_VIEW_WIDTH = 160; // largeur logique minimale (zoom : le chevalier reste grand)
-const MAX_SCALE = 3; // zoom maximal : une grande fenêtre montre plus de décor
-const TALL_VIEW_WIDTH = 150; // v9.3.5 : largeur logique d'une scène haute de téléphone
-const WIDE_VIEW_WIDTH = 215; // v9.3.9 : largeur logique d'une grande scène de PC (personnages ×1,6 environ)
+const TALL_VIEW_WIDTH = 240; // v9.7.1 : largeur logique d'une scène haute de téléphone (150 → 240)
+// v9.7.1 : cadrage par la taille du héros : le chevalier (≈ 66 px) fait ≈ 15 % de la hauteur de scène.
+const HERO_PX = 66; // silhouette mesurée (casque et panache compris)
+const HERO_FRAC = 0.15;
+const AUTO_MAX_SCALE = 4;
+// v9.7.1 : Paramètres > Interface > Taille des personnages (multiplicateur de l'échelle automatique).
+const SIZE_PREFS = { auto: 1, small: 0.8, medium: 1.15, large: 1.35 };
+// v9.7.1 : écartement à l'affichage autour du héros (distance d'arrêt et file d'ennemis plus aérées).
+const SPREAD = 1.9;
 // Les positions de la simulation (BALANCE.world) sont agrandies à l'affichage pour
 // s'accorder aux sprites v5, plus détaillés ; la simulation elle-même ne change pas.
 export const WORLD_SCALE = 1.5;
@@ -285,21 +290,31 @@ export class SceneRenderer {
   resize(cssWidth, cssHeight) {
     // Zoom plafonné : dans une grande fenêtre, on voit davantage du niveau plutôt qu'un chevalier géant.
     // Étape 3 : écran de téléphone (portrait) → un peu plus de champ, pour voir les ennemis arriver.
-    const minWidth = cssWidth < 560 && cssHeight > cssWidth * 0.45 ? 215 : MIN_VIEW_WIDTH;
-    let scale = Math.min(cssHeight / MIN_VIEW_HEIGHT, cssWidth / minWidth, MAX_SCALE);
-    if (scale >= 3) scale = Math.floor(scale);
-    scale = Math.max(0.5, scale, cssHeight / MAX_VIEW_HEIGHT);
-    // v9.3.5 : téléphone en portrait avec une scène haute — personnages plus grands (≈ 150 px logiques de large) et
-    // sol remonté aux deux tiers : la moitié haute n'est plus un ciel vide, le bas montre la terre du monde.
+    // v9.7.1 : cadrage basé sur la taille du héros (≈ 15 % de la hauteur de scène) et échelle toujours nette :
+    // scale × devicePixelRatio est un entier (100 %, 125 %, 150 %…), plus de demi-pas ni de pixels inégaux.
+    const dpr = window.devicePixelRatio || 1;
+    const pref = SIZE_PREFS[SceneRenderer.sizePref] ?? 1; // Paramètres > Interface > Taille des personnages
     const tall = cssWidth < 560 && cssHeight > cssWidth * 1.1;
-    if (tall) scale = Math.max(scale, Math.min(cssWidth / TALL_VIEW_WIDTH, MAX_SCALE + 1));
-    // v9.3.9 : même règle sur PC — une grande scène (fenêtre large et haute) n'est plus un ciel à 70 % avec de petits
-    // personnages tout en bas : zoom ≈ 215 px logiques de large et sol vers 65 % de la hauteur.
     const wide = !tall && cssWidth >= 560 && cssHeight >= 360;
-    if (wide) {
-      scale = Math.max(scale, Math.min(cssWidth / WIDE_VIEW_WIDTH, cssHeight / MIN_VIEW_HEIGHT, 7));
-      if (scale >= 3) scale = Math.floor(scale * 2) / 2;
+    let scale;
+    if (tall) {
+      // Téléphone portrait : ≈ 240 px logiques de large (au lieu de 150) pour voir arriver les ennemis.
+      scale = cssWidth / (TALL_VIEW_WIDTH / pref);
+    } else {
+      // Héros ≈ 15 % de la hauteur, largeur logique ≥ 380 px en 16:9 (480 px en 21:9), plafond 4.
+      const minW = (cssWidth / cssHeight > 2.1 ? 480 : 380) / pref;
+      scale = Math.min((HERO_FRAC * pref * cssHeight) / HERO_PX, cssWidth >= 560 ? cssWidth / minW : cssWidth / 240, AUTO_MAX_SCALE * pref);
     }
+    // Les calques peints montent à 320 px au-dessus du sol : avec le sol remonté (≈ 65 %), la scène peut monter à ≈ 490 px.
+    scale = Math.max(scale, cssHeight / (tall || wide ? 490 : MAX_VIEW_HEIGHT), 0.5);
+    // Petites hauteurs (paysage, widget) : une marge au-dessus de la tête égale à la hauteur du HUD.
+    const hud = this.hudPx ?? 0;
+    const room = cssHeight - hud; // place sous le HUD pour le héros et le sol
+    if (!tall && room > 0) scale = Math.min(scale, room / (HERO_PX + GROUND_DEPTH + 4));
+    // Échelle nette : nombre entier de pixels d'écran par pixel du jeu (minimum 1).
+    const k = Math.max(1, Math.round(scale * dpr), Math.round((cssHeight / (tall || wide ? 490 : MAX_VIEW_HEIGHT)) * dpr));
+    scale = k / dpr;
+    this.scale = scale;
     this.width = Math.max(120, Math.floor(cssWidth / scale));
     this.height = Math.max(MIN_VIEW_HEIGHT, Math.floor(cssHeight / scale));
     const prevGround = this.groundY;
@@ -320,11 +335,14 @@ export class SceneRenderer {
     }
     // Rendu à la résolution de l'écran (k pixels par pixel de jeu) : les sprites restent nets mais
     // les personnages et le décor se déplacent pixel d'écran par pixel d'écran (mouvement fluide).
-    this.k = Math.max(1, Math.round(scale * (window.devicePixelRatio || 1)));
+    this.k = k;
+    // v9.7.1 : la toile couvre tout le conteneur (plus de bande vide sous le sol) ; la dernière ligne est la terre.
+    this.height = Math.max(this.height, Math.ceil(cssHeight / scale));
+    this.width = Math.max(this.width, Math.ceil(cssWidth / scale));
     this.canvas.width = this.width * this.k;
     this.canvas.height = this.height * this.k;
-    this.canvas.style.width = `${Math.round(this.width * scale)}px`;
-    this.canvas.style.height = `${Math.round(this.height * scale)}px`;
+    this.canvas.style.width = `${(this.width * k) / dpr}px`;
+    this.canvas.style.height = `${(this.height * k) / dpr}px`;
     this.ctx.imageSmoothingEnabled = false;
   }
 
@@ -340,12 +358,13 @@ export class SceneRenderer {
   // Position à l'écran d'un x du monde. v9.3.9 : plus d'étirement (sur PC, la zone d'approche était affichée jusqu'à
   // 5,8 fois trop vite : les monstres « se téléportaient ») ; les ennemis naissent au bord droit (viewEdgeX).
   wx(x) {
-    return x * WORLD_SCALE;
+    // v9.7.1 : le héros reste à sa place, les ennemis sont écartés (distance d'arrêt, file) d'un facteur SPREAD.
+    return HERO_X + (x - BALANCE.world.heroX) * SPREAD;
   }
 
   // Bord droit de la scène en x du monde (un peu au-delà, pour entrer en marchant).
   get viewEdgeX() {
-    return (this.width + 14) / WORLD_SCALE;
+    return BALANCE.world.heroX + (this.width + 14 - HERO_X) / SPREAD;
   }
 
   handleEvent(raw, world) {
@@ -550,7 +569,15 @@ export class SceneRenderer {
   addText(text, x, y, color, light = '#ffffff', big = false) {
     const texts = this.effects.filter((e) => e.kind === 'text');
     if (texts.length >= MAX_FLOATING_TEXTS) this.effects.splice(this.effects.indexOf(texts[0]), 1);
-    this.effects.push({ kind: 'text', text, x: x - textWidth(text, FONT_BIG) / 2, y, cx: x, y0: y, color, light, life: big ? 0.95 : 0.8, max: big ? 0.95 : 0.8, pop: big });
+    // v9.7.1 : chiffres en éventail — un coup proche d'un chiffre récent est décalé (gauche/droite, plus haut) au lieu
+    // de s'empiler (« 3t362?7KK » illisible).
+    const near = texts.filter((e) => e.max - e.life < 0.35 && Math.abs((e.baseX ?? e.cx) - x) < 16).length;
+    const baseX = x;
+    if (near) {
+      x += (near % 2 ? 1 : -1) * Math.ceil(near / 2) * 9;
+      y -= Math.min(4, near) * 5;
+    }
+    this.effects.push({ baseX, kind: 'text', text, x: x - textWidth(text, FONT_BIG) / 2, y, cx: x, y0: y, color, light, life: big ? 0.95 : 0.8, max: big ? 0.95 : 0.8, pop: big });
   }
 
   burst(x, y, color, count, speed = 30) {
@@ -912,9 +939,26 @@ export class SceneRenderer {
       const y = l.anchor === 'top' ? l.y : G + l.y;
       this.drawLayer(ctx, layer(l.file), scroll * l.factor + this.time * (l.drift ?? 0), y);
     }
+    if (!front) this.fillEarth(ctx); // v9.7.1 : la terre du monde sous le sol (plus de bande sombre vide)
     if (!front && zone.underwater) drawOceanBack(this, ctx, scroll); // v9.2.0 : rayons, poissons de fond, kelp
     if (front) this.drawAmbient(ctx, zone, scroll, true);
     if (front && zone.underwater) drawOceanFront(this, ctx, scroll, this.dt ?? 0); // caustiques, bulles, voile bleu
+  }
+
+  // v9.7.1 : recopie la bande de sol (pierres, herbe) vers le bas, assombrie avec la profondeur.
+  fillEarth(ctx) {
+    const k = this.k ?? 1;
+    const top = (this.groundY + 4) * k, band = (GROUND_DEPTH - 6) * k, bottom = this.height * k;
+    if (bottom - (top + band) < 2 || band <= 0) return;
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    for (let y = top + band; y < bottom; y += band) ctx.drawImage(this.canvas, 0, top, this.canvas.width, band, 0, y, this.canvas.width, band);
+    const g = ctx.createLinearGradient(0, top + band, 0, bottom);
+    g.addColorStop(0, 'rgba(10,8,6,0.35)');
+    g.addColorStop(1, 'rgba(10,8,6,0.75)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, top + band, this.canvas.width, bottom - top - band);
+    ctx.restore();
   }
 
   // Particules d'ambiance : positions calculées à partir du temps (aucun état à garder).
@@ -1242,7 +1286,7 @@ export class SceneRenderer {
       // v9.2.2 : ruée (équipe bien plus forte) : course rapide, poussière derrière.
       if (enemy.rush && moving && k > 0.3 && !this.focus && !def.flyHeight && !this.underwater && (this.frameNo + enemy.id) % 3 === 0) this.dust(ex + w / 2, 1);
       // Les grands sprites (boss, ogre…) restent devant le chevalier sans le chevaucher.
-      const x = this.snap(Math.max(exd - w / 2, HERO_X + 12) - lunge + (fx.knock > 0.5 ? fx.knock : 0) + pose.dx);
+      const x = this.snap(Math.max(exd - w / 2, HERO_X + (enemy.boss ? 20 : 12)) - lunge + (fx.knock > 0.5 ? fx.knock : 0) + pose.dx);
       // v9.2.5 : pieds réels (bas opaque du sprite de base) sur le sol, et non le bas du cadre.
       // Images de pas (_w1/_w2) sans image dessinée : le pied au sol de chaque image reste sur la ligne du sol.
       const stepBox = !drawn && !heroLike && !flying && sprite !== base ? boxOf(ecv(sprite, { colors })) : null;
@@ -2453,6 +2497,7 @@ export function drawElementIcon(ctx, el, x, y) {
 }
 
 // Attaques de classe (render/class-fx.js).
+SceneRenderer.sizePref = 'auto'; // v9.7.1 : réglage « Taille des personnages »
 installClassFx(SceneRenderer.prototype, { HERO_X, ATTACK_TIME, CAST_TIME });
 installMutationFx(SceneRenderer.prototype, { HERO_X });
 installElementFx(SceneRenderer.prototype);
