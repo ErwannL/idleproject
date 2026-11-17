@@ -9,3 +9,4 @@ android/app/build/
 android/.gradle/
 android/local.properties
 android/build/
+docs/captures-v9.8/

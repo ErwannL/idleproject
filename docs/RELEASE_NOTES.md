@@ -1,6 +1,19 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v9.7.0 — Un idle stratégique, sans lassitude
+## Ascendrya v9.8.0 — Un vrai jeu mobile : guidé, illustré, une routine du jour
+
+- Fin de jeu débloquée : en Cycle ×3 les monstres meurent de nouveau (le surcroît de PV ne vaut que pour le premier cycle) ; si un monstre demande plus d'une minute, le héros redescend tout seul et la barre propose de Renaître.
+- Début de partie guidé : le doigt du tutoriel montre le menu à ouvrir, les Améliorations sont ouvertes dès la première minute, les 3 premiers objets vont directement au sac, la mini-quête en cours est un parchemin cliquable sous la scène.
+- Carnet du jour : Chasse rapide (2 h de gains), Roue du jour gratuite (remplace le calendrier), donjon (avec balayage d'un appui), Titan du jour, expéditions et missions, tampons « Accompli » et coffre de fin de journée. Les 7 premiers jours ont leur carnet et un compagnon Épique au choix.
+- Rangs du héros : 20 rangs nommés gagnés en duel (titre, cadre, +3 % de dégâts chacun). Titan du jour : 7 titans, 2 essais, tranches 10/30/60 %.
+- Compétences cohérentes : chaque classe du héros a ses propres compétences et icônes ; les sorts des compagnons suivent leur élément ; les familiers ne mordent plus tous.
+- Écrans façon jeu mobile : Bon retour en écran de récompense, Forge en 3 gros boutons, fenêtre d'objet (Renforcer, Remettre au niveau, Changer l'effet, Protéger), aide « ? » illustrée, pastilles chiffrées, bandeau de mission sur la scène, écrans de résultat.
+- Illustrations fantasy : présentations des compagnons et familiers au style des Légendaires, classes, portes des donjons, Forge, Tour, Arène, Invocation, Expéditions, Événement, Talents, Renaissance ; Boutique en pixel art.
+- Confort : plus de tremblement d'écran sur les coups, chiffres de dégâts plus petits, tout au tutoiement, plus aucun libellé coupé (fr, en, ko), notifications du téléphone (2 par jour au plus, désactivables), mode veille.
+
+### Versions précédentes
+
+<details><summary><b>Ascendrya v9.7.0 — Un idle stratégique, sans lassitude</b></summary>
 
 - Préparer plutôt que subir : rushes repensés (6 à 8 s, 3 emplacements, déclenchement auto), boss en phases (attaque lourde annoncée puis fenêtre de faiblesse ×1,5), rangs avant/arrière, ordres d'ultime (prêt, boss, PV bas), paliers d'étoiles (3★ passif, 5★ aura).
 - Builds liés à un contenu (campagne, donjon, Tour…) qui se mettent seuls ; effets majeurs rares sur l'équipement ; résonance d'élément de l'équipe.
@@ -13,7 +26,7 @@
 - Mesures anonymes facultatives (désactivées par défaut) pour régler le rythme.
 - Android : en plus de l'APK, un paquet AAB pour le Play Store.
 
-### Versions précédentes
+</details>
 
 <details><summary><b>Ascendrya v9.6.0 — Des monstres qui obligent à se préparer</b></summary>
 
