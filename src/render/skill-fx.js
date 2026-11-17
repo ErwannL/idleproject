@@ -970,12 +970,15 @@ export const isSupportFx = (name) => SUPPORT_FX.has(name);
 
 // v9.2.6 : soins et bonus de l'équipe, malus des ennemis : aura dessinée (PixelLab, vfx.js) aux pieds des cibles.
 const HEAL_FX = new Set(['prayer', 'dawn_prayer', 'divine_light', 'sap_of_life', 'fairy_heal', 'harvest', 'jade_sanctuary', 'phoenix_feather', 'rebirth']); // v9.2.9 : + familiers
+const SHIELD_FX = new Set(['rampart', 'holy_shield', 'jade_shell', 'guardian_wings', 'taunt']); // v9.7.1
 const DEBUFF_FX = new Set(['taunt', 'eclipse', 'frost_nova', 'eternal_winter', 'frost_storm']);
 function auraFx(scene, name, c) {
   const G = scene.groundY;
   const at = (fn) => later(scene, c.release ?? 0, fn);
-  if (HEAL_FX.has(name)) at(() => c.team.forEach((x, i) => vfx(scene, 'heal', x, G, { delay: i * 0.06 })));
-  else if (SUPPORT_FX.has(name)) at(() => c.team.forEach((x) => vfx(scene, 'buff_aura', x, G + 1, { life: 1.6, loop: true, size: 0.9 })));
+  // v9.7.1 (lot E) : soins, ralliements et protections dessinés en 12 images (sk_heal, sk_rally, sk_shield) ; un buff
+  // durable ne laisse plus d'aura en boucle sur le personnage (au plus 0,8 s, petite taille) : il ne le cache jamais.
+  const kind = HEAL_FX.has(name) ? 'sk_heal' : SHIELD_FX.has(name) ? 'sk_shield' : 'sk_rally';
+  if (HEAL_FX.has(name) || SUPPORT_FX.has(name)) at(() => c.team.forEach((x, i) => vfx(scene, kind, x, G + 1, { delay: i * 0.06, size: 0.45 })));
   if (DEBUFF_FX.has(name)) at(() => c.foes.slice(0, 4).forEach((f) => vfx(scene, 'debuff_aura', f.x, G + 1, { life: 1.4, loop: true, follow: f.id, size: 0.9 })));
 }
 

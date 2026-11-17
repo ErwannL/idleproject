@@ -1681,7 +1681,10 @@ export class SceneRenderer {
         }
       });
       this.later(0.62, () => {
-        this.effects.push({ kind: 'ring', x: heroX, y: G - 14, color: c, life: 0.5, max: 0.5, r: 12 });
+        // v9.7.1 (lot E) : soin, ralliement et bouclier dessinés (PixelLab, 12 images) au lieu d'un anneau tracé.
+        const art = { heal: 'sk_heal', rally: 'sk_rally', shield: 'sk_shield' }[type];
+        if (art && vfxReady() && !this.focus) vfx(this, art, heroX, G + 1, { size: 0.55 });
+        else this.effects.push({ kind: 'ring', x: heroX, y: G - 14, color: c, life: 0.5, max: 0.5, r: 12 });
         if (type === 'gold') this.burst(heroX, G - 30, c, 10, 40);
       });
     }

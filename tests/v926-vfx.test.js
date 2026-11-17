@@ -11,10 +11,10 @@ test('v9.2.6 : chaque effet a ses images dans l\'atlas, une taille de jeu et une
   for (const [name, e] of Object.entries(VFX)) {
     assert.equal(e.f.length, e.n, name);
     for (const [x, y] of e.f) assert.ok(x + e.w <= W && y + e.h <= H, name);
-    assert.ok(e.scale > 0 && e.scale * Math.max(e.w, e.h) <= 80, name);
+    assert.ok(e.scale > 0 && e.scale * Math.max(e.w, e.h) <= 128, name); // v9.7.1 (lot E) : effets majeurs de 96 à 128 px
     assert.ok(vfxDuration(name) > 0.1, name);
   }
-  assert.ok(png.length < 300 * 1024, 'atlas léger'); // v9.2.6 : 127 effets ≈ 230 Kio
+  assert.ok(png.length < 400 * 1024, 'atlas léger'); // v9.7.1 : + 15 effets refaits en grand // v9.2.6 : 127 effets ≈ 230 Kio
 });
 
 test('v9.2.6 : un impact par élément et par arme, projectiles, morts, butin, auras', () => {
