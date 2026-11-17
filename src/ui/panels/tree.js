@@ -119,7 +119,7 @@ function simpleView(state) {
   const rows = TALENT_BRANCHES.filter((b) => SIMPLE_BRANCHES[b.id]).map((b) => {
     const meta = SIMPLE_BRANCHES[b.id];
     const per = Math.max(1, Math.ceil(branchMax(b.id) / TIERS));
-    const tier = Math.min(TIERS, Math.floor(pts(b.id) / per));
+    const tier = Math.min(TIERS, Math.ceil(pts(b.id) / per)); // v9.8 (C2) : dès le premier talent (avant « Palier 0 » avec un bonus déjà là)
     const next = branchNext(state, b.id);
     const big = next && (next.t.kind === 'notable' || next.t.kind === 'keystone');
     const steps = Array.from({ length: TIERS }, (_, i) => `<i class="${i < tier ? 'on' : ''}${(i + 1) % 5 === 0 ? ' big' : ''}"></i>`).join('');

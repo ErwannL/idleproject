@@ -126,7 +126,7 @@ const UNLOCK_INFO = { // v9.3.4 (h) : une ligne courte par onglet
   companions: 'ils combattent à tes côtés.',
   summon: 'tickets et gemmes invoquent des compagnons.',
   shop: 'les offres ; achats pas encore ouverts.',
-  event: 'bats des gardiens, gagne des écus, échange-les.',
+  event: 'objectifs et récompenses pendant deux semaines.', // v9.8 (C2) : vrai pour les deux sortes d'événements
   expeditions: 'tes compagnons libres partent en mission.',
   tree: 'les fragments achètent des talents permanents.',
   dungeons: 'une clé par combat de boss.',
@@ -2149,6 +2149,10 @@ export class UI {
     const info = UNLOCK_INFO[tab];
     const seen = state.ui.seenTabs ?? [];
     if (!info || seen.includes(tab)) return '';
+    // v9.8 (C) : montrée une seule fois — lue d'office après 10 s d'affichage (elle ne revient jamais).
+    this.introAt ??= {};
+    this.introAt[tab] ??= performance.now();
+    if (performance.now() - this.introAt[tab] > 10000) { state.ui.seenTabs = [...seen, tab]; return ''; }
     return `<div class="card intro-card"><div class="row-between"><span><b>${escapeHtml(SUB_LABELS[tab])}</b> — ${info}</span>
       <button class="btn small" data-action="intro-seen" data-value="${tab}">Compris</button></div></div>`;
   }

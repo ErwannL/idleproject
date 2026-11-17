@@ -89,6 +89,7 @@ export default {
     };
     const gains = Object.fromEntries(keys.map((k) => [k, powerGain(k)]));
     const bestKey = keys.filter((k) => gains[k]?.gain > 0).sort((a, b) => gains[b].gain / gains[b].cost - gains[a].gain / gains[a].cost)[0];
+    const done = []; // v9.8 (C2) : lignes au maximum, repliées dans « Terminées (N) »
     const cards = keys.map((key) => {
       const up = BALANCE.upgrades[key];
       const level = state.upgrades[key];
@@ -113,13 +114,15 @@ export default {
       const gain = pg && pg.gain > 0 ? ` <span class="muted upg-profit">${key === bestKey ? '<b class="upg-best" title="Meilleure affaire">▲</b> ' : ''}Puissance +${formatNumber(Math.round(pg.gain))}</span>` : '';
       // v9.1.3 (ligne type doc2 §3) : icône, nom + niveau (+ palier), un seul chiffre qui bouge (avant → après, l'unité
       // est dans le nom), +x % dégâts/s neutre sur la même ligne, bouton avec prix : 2 lignes au lieu de 3.
-      return `<div class="card upg-card${compact ? ' compact' : ''}">
+      const html = `<div class="card upg-card${compact ? ' compact' : ''}">
         <div class="upg-icon">${img(ICONS[key])}</div>
         <div class="upg-main"><div class="upg-name" title="${escapeHtml(up.description)}">${escapeHtml(up.label)} <span class="upg-level">niv. ${level}${up.maxLevel ? `/${up.maxLevel}` : ''}</span>${milestone}${env?.counter === key ? `<span class="tag env-counter" title="${escapeHtml(`Contré : ${Math.round(env.countered)} % (complet au niveau ${env.fullAt})`)}">contre ${escapeHtml(env.name)}</span>` : ''}</div>
         ${compact || !beginner ? '' : `<div class="muted upg-desc">${escapeHtml(up.description)}</div>`}
         <div class="upg-effect num" title="${escapeHtml(`${from} → ${to}`)}">${max ? `<span class="to">${from}</span>` : gain ? gain.replace('muted ', '') : `<span class="to">→ ${to}</span>`}</div></div>
         ${costButton({ action: 'buy', cost, have: state.gold, attrs: `data-key="${key}" data-amount="${amount}"`, max, label: count > 1 ? `+${count} ` : '' })}
       </div>`;
+      if (max) { done.push(html); return ''; }
+      return html;
     });
     // v9.2.8 : catégories en onglets toujours visibles (« Défense » ne se cache plus dans un menu replié) ; le tri
     // reste dans « Trier ».
@@ -143,6 +146,7 @@ export default {
       ${catTabs}
       ${beginner ? '' : fold(ui, 'upg-filters', 'Trier', filters)}
       <div class="upg-list">${cards.join('')}</div>
+      ${done.length ? fold(ui, 'upg-done', `Terminées (${done.length})`, `<div class="upg-list">${done.join('')}</div>`) : ''}
       ${state.gold > 0 ? '<button class="btn btn-gold primary-action buy-best" data-action="buy-best">Améliorer au mieux</button>' : ''}
       ${beginner ? '<div class="muted">D\'autres améliorations s\'ouvrent au fil des boss.</div>' : ''}
       ${nextUp ? `<div class="muted next-unlock">Prochaine ligne : ${escapeHtml(nextUp.label)}, dans 2 boss</div>` : ''}`;

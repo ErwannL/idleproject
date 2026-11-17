@@ -3677,3 +3677,6 @@ html:not([data-theme="knight"]) #panel-body > .card ~ .card > .section-title:fir
 #news.empty { display: none; } /* v9.8 (E4) : plus de barre vide « — » sous la scène */
 /* v9.8 (E5) : bouton Ultime unique, portraits empilés. */
 #skill-bar .ult-btn .ult-stack { display: flex; } #skill-bar .ult-btn .ult-stack img { width: 26px; height: 26px; margin-left: -10px; } #skill-bar .ult-btn .ult-stack img:first-child { margin-left: 0; }
+/* v9.8 (C2) : carte de la compétence choisie nette (elle paraissait grisée) ; noms d'équipe sur 2 lignes. */
+.sk2-bubble { opacity: 1 !important; filter: none !important; color: var(--text, #f2ecff); background: linear-gradient(#22305a, #172042); }
+.who-card b { white-space: normal !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.1; font-size: 12px; text-align: center; }

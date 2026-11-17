@@ -6,7 +6,7 @@ import glob, os, sys
 from concurrent.futures import ThreadPoolExecutor
 from PIL import Image
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from pl939_api import with_style
+from pl939_api import call, wait, images_of
 
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(os.path.dirname(HERE))
 SHOP = os.path.join(ROOT, 'assets', 'ui', 'shop'); OUT = os.path.join(HERE, 'pixellab98', 'shop')
@@ -23,7 +23,9 @@ def desc(name):
 def gen(path):
     name = os.path.basename(path)[:-4]
     try:
-        im = with_style(desc(name), STYLE, seed=3)[0]
+        body = {'description': desc(name), 'image_size': {'width': 96, 'height': 96}, 'no_background': True, 'seed': 3,
+                'outline': 'single color outline', 'shading': 'medium shading', 'detail': 'medium detail'}
+        im = images_of(wait(call('POST', '/create-image-pixflux', body)))[0]
         im.save(os.path.join(OUT, f'{name}.png')); return f'{name} ok'
     except Exception as e: return f'{name} ERREUR {str(e)[:120]}'  # noqa: BLE001
 
