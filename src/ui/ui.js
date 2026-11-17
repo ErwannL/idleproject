@@ -1054,6 +1054,9 @@ export class UI {
       case 'quick-hunt': a.quickHunt(); break; // v9.8 (H3)
       case 'gear-best': a.gearBest(value); break; // v9.8 (I6)
       case 'rank-duel': this.rankDuel(); break; // v9.8 (H6)
+      case 'fw-day': local(() => { v.fwDay = value; }); break; // v9.8 (H5)
+      case 'fw-claim': a.firstWeekClaim(Number(value)); break;
+      case 'fw-prize': a.firstWeekPrize(value); break;
       case 'titan-start': // v9.8 (H7)
         openWorldBoss(this.state, { start: () => a.titanStart(), finish: (setup, r) => a.titanFinish(setup, r), left: () => titanTriesLeft(this.state), closed: () => this.invalidate() });
         break;

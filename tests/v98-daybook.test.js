@@ -44,3 +44,17 @@ test('Carnet du jour : tâches, tampon et coffre de fin de journée', () => {
   if (m && !m.done) return; // la partie neuve n'a pas fini ses missions : le coffre attend
   assert.ok(claimDaybookChest(s, open, NOW));
 });
+
+import { FIRST_WEEK, claimFirstWeekDay, claimPrize, firstWeekDaysOpen, prizeReady } from '../src/core/first-week.js';
+test('7 premiers jours : un jour par jour réel, gros lot au bout', () => {
+  const s = createNewState(NOW); s.unlocks = { done: [], base: {} };
+  assert.equal(firstWeekDaysOpen(s, NOW), 1);
+  assert.equal(firstWeekDaysOpen(s, NOW + 3.5 * 86_400_000), 4);
+  assert.equal(claimFirstWeekDay(s, 1, NOW), null, 'quêtes pas faites');
+  s.records.kills = 1e6; s.records.equips = 9; s.records.bossesDefeated = 99; s.records.summons = 9; s.records.recycled = 99;
+  s.level = 99; s.maxStage = 99; s.upgrades.damage = 200;
+  for (let d = 1; d <= 7; d++) assert.ok(claimFirstWeekDay(s, d, NOW + 8 * 86_400_000), `jour ${d}`);
+  assert.ok(prizeReady(s));
+  assert.ok(claimPrize(s, 'witch') && s.companions.owned.witch);
+  assert.equal(FIRST_WEEK.length, 7);
+});

@@ -15,6 +15,7 @@ import { quickHunt } from './core/quick-hunt.js'; // v9.8 (H3)
 import { winDuel } from './core/ranks.js'; // v9.8 (H6)
 import { finishTitan, startTitan } from './core/titan.js'; // v9.8 (H7)
 import { setupNotifications } from './ui/notifications.js'; // v9.8 (H8)
+import { claimFirstWeekDay, claimPrize } from './core/first-week.js'; // v9.8 (H5)
 import { spinWheel } from './core/wheel.js'; // v9.8 (H4)
 import { claimDaybookChest, daybookTrack } from './core/daybook.js'; // v9.8 (H1) // v9.7.1 (prologue)
 import { startCatchUp } from './core/boost.js';
@@ -378,6 +379,9 @@ const actions = {
     placeTransition(`Donjon · ${DUNGEON_DIFFICULTIES[difficulty]?.label ?? ''}`, d.name, d.description, ZONES[d.zone]?.id);
     done(true, 'Tentative lancée');
   },
+  // v9.8 (H5) : carnet des 7 premiers jours.
+  firstWeekClaim(d) { const g = claimFirstWeekDay(state, d); if (g) ui.chestReveal?.(g); done(Boolean(g), null); },
+  firstWeekPrize(id) { done(claimPrize(state, id), `${companionById(id)?.name ?? ''} te rejoint !`, '#ffd36a'); },
   // v9.8 (H7) : Titan du jour.
   titanStart() { const s = startTitan(state); if (s) save(); return s; },
   titanFinish(setup, result) { const sum = finishTitan(state, setup, result); daybookTrack(state, 'titan', 1); save(); ui.invalidate(); return sum; },
