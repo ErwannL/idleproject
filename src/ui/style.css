@@ -3507,3 +3507,9 @@ body:has(.summon-fx) #banner { visibility: hidden; }
   #topbar .icon-btn img { width: 24px; height: 24px; }
   #topbar .icon-btn:hover { background: #2a3a60; border-color: var(--gold, #e8b64a); }
 }
+/* v9.7.1 (lot 4) : panneau ouvert sur PC limité à 420 px (le combat reste lisible). */
+.layout-tall.wide #panel { width: min(420px, 46%); }
+/* v9.7.1 (lot 4) : téléphone en paysage — volet latéral de 55 %, la scène reste visible à gauche. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .layout-mini #panel { left: auto; width: 55%; border-left: 2px solid var(--edge, #2a3654); }
+}

@@ -256,9 +256,14 @@ export default {
     const res = elementResonance(state); // v9.6.1 (4.5)
     const resLine = res ? `<div class="good">Résonance : ${res.count} × ${elementBadge(res.element)} → +${res.pct} % de dégâts</div>` : `<div class="muted">Résonance : 2 membres du même élément → +${RESONANCE[2]} % de dégâts, 3 → +${RESONANCE[3]} %.</div>`;
     const wheel = `<div class="team-wheel">Monde : ${elementBadge(zoneElement(currentEncounter(state).zoneIndex))} ${elementWheel(zoneElement(currentEncounter(state).zoneIndex))}${resLine}</div>`; // v9.5.1
-    return `${team}${wheel}${advise}${teamUp}
+    // v9.7.1 : résonance, équipe conseillée et synergies dans un volet replié « Conseils » ; restent en vue les places
+    // d'équipe et la grille. Le bouton « Placer cette équipe » garde un rappel discret sur le titre.
+    const tips = () => `${wheel}${advise}
       ${nearHtml ? `<div class="card syn-near-card"><b>Synergies à portée</b>${nearHtml}</div>` : ''}
-      ${fold(ui, 'synergies', synTitle, synergies)}
+      ${fold(ui, 'synergies', synTitle, synergies)}`;
+    const tipsExtra = adv && !adv.same && adv.gain >= 0.03 ? `<span class="good">+${Math.round(adv.gain * 100)} % possible</span>` : '';
+    return `${team}${teamUp}
+      ${fold(ui, 'team-tips', 'Conseils', tips, { extra: tipsExtra })}
       <div class="item-tabs comp-tabs" role="tablist">
         <button class="btn chip-btn${tab === 'ally' ? ' active' : ''}" data-action="comp-tab" data-value="ally" role="tab" aria-selected="${tab === 'ally'}">Compagnons <small>(${teamSlotsOf(state).ally} places)</small></button>
         <button class="btn chip-btn${tab === 'pet' ? ' active' : ''}" data-action="comp-tab" data-value="pet" role="tab" aria-selected="${tab === 'pet'}">Familiers <small>(1 place)</small></button></div>

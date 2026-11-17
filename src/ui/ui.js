@@ -459,6 +459,7 @@ export class UI {
     pick('heroTab', (x) => ['hero', 'class', 'look', 'records'].includes(x));
     pick('optTab', (x) => ['general', 'interface', 'sound', 'window'].includes(x));
     pick('encSlot', (x) => typeof x === 'string' && x.length < 16);
+    pick('compTab', (x) => ['ally', 'pet'].includes(x)); // v9.7.1 : onglet interne de l'écran Équipe
     if (Array.isArray(nav.open)) this.view.open = new Set(nav.open.filter((x) => typeof x === 'string').slice(0, 64));
     if (Array.isArray(nav.closed)) this.view.closed = new Set(nav.closed.filter((x) => typeof x === 'string').slice(0, 64));
     for (const [tab, top] of Object.entries(nav.scroll ?? {})) if (okTab(tab) && Number.isFinite(top)) this.scrollMem[tab] = top;
@@ -466,7 +467,7 @@ export class UI {
 
   saveNav() {
     if (this.tab) this.scrollMem[this.tab] = this.$('panel-body').scrollTop;
-    const keys = ['upgradeCat', 'upgradeSort', 'buyAmount', 'missionTab', 'invTab', 'encSec', 'summonPool', 'treeSeg', 'heroTab', 'optTab', 'encSlot'];
+    const keys = ['upgradeCat', 'upgradeSort', 'buyAmount', 'missionTab', 'invTab', 'encSec', 'summonPool', 'treeSeg', 'heroTab', 'optTab', 'encSlot', 'compTab'];
     setPref('nav', {
       lastSub: this.lastSub,
       view: { ...Object.fromEntries(keys.filter((k) => this.view[k] !== undefined && this.view[k] !== null).map((k) => [k, this.view[k]])), upgCatV: 928 },

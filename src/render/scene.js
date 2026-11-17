@@ -303,7 +303,9 @@ export class SceneRenderer {
     } else {
       // Héros ≈ 15 % de la hauteur, largeur logique ≥ 380 px en 16:9 (480 px en 21:9), plafond 4.
       const minW = (cssWidth / cssHeight > 2.1 ? 480 : 380) / pref;
-      scale = Math.min((HERO_FRAC * pref * cssHeight) / HERO_PX, cssWidth >= 560 ? cssWidth / minW : cssWidth / 240, AUTO_MAX_SCALE * pref);
+      // Scène basse (paysage, petite fenêtre) : le héros prend une part plus grande (15 % à 700 px → 32 % à 250 px).
+      const frac = Math.min(0.32, Math.max(HERO_FRAC, HERO_FRAC + ((700 - cssHeight) / 450) * 0.17));
+      scale = Math.min((frac * pref * cssHeight) / HERO_PX, cssWidth >= 560 ? cssWidth / minW : cssWidth / 240, AUTO_MAX_SCALE * pref);
     }
     // Les calques peints montent à 320 px au-dessus du sol : avec le sol remonté (≈ 65 %), la scène peut monter à ≈ 490 px.
     scale = Math.max(scale, cssHeight / (tall || wide ? 490 : MAX_VIEW_HEIGHT), 0.5);

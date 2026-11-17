@@ -376,10 +376,10 @@ function bag(ui, state) {
     ${selected && ui.view.sheetOpen === 'item' ? detail(ui, state, selected, whoUnit) : ''}
     <div class="card inv-list">
       ${gearRow}
-      <div class="inv-tools"><div class="filter-chips" role="group" aria-label="Emplacement">${filterChips}</div>
+      ${ui.view.bagMenu ? `<div class="inv-tools"><div class="filter-chips" role="group" aria-label="Emplacement">${filterChips}</div>
         <select data-action="sort" aria-label="Trier">${sortOptions}</select>
         <select data-action="rarity-filter" aria-label="Rareté">${[['all', 'Toutes'], ...RARITIES.map((r) => [r.id, r.label])].map(([v, l]) => `<option value="${v}" ${v === (state.ui.rarityFilter ?? 'all') ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
-      ${ui.view.bagAll ? '<button class="btn small bag-for" data-action="bag-all" data-value="">Seulement les objets utilisables</button>' : `<button class="btn small bag-for" data-action="bag-all" data-value="1">Voir aussi les objets des autres classes${hidden ? ` (${hidden})` : ''}</button>`}
+      ${ui.view.bagAll ? '<button class="btn small bag-for" data-action="bag-all" data-value="">Seulement les objets utilisables</button>' : `<button class="btn small bag-for" data-action="bag-all" data-value="1">Voir aussi les objets des autres classes${hidden ? ` (${hidden})` : ''}</button>`}` : ''}
       <div class="inv-grid">${shown.map((i) => {
         // v9.3.4 (f) : objet d'une autre classe que le personnage choisi : grisé, « Pour : … ».
         const usable = whoUnit ? unitCanEquip(state, who, i).ok : canEquip(state, i);
@@ -602,12 +602,12 @@ export default {
     // v9.1.3 : une seule ligne Sac/Coffre/Mannequins/Forge ; « Équiper le meilleur » seulement s'il sert.
     const head = `<div class="inv-head">
         ${open('stash') ? segment([['bag', `Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}`, 'icon_bag'], ['stash', `Coffre ${state.stash.length}/${STASH_SIZE}`, 'icon_chest']], 'inv-tab', tab) : `<b class="inv-bag-count">${img('icon_bag')} Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}</b>`}
-        <button class="btn small bag-gear${ui.view.bagMenu ? ' active' : ''}" data-action="bag-menu" aria-expanded="${Boolean(ui.view.bagMenu)}" aria-label="Builds et réglages du sac" title="Builds et réglages du sac">⚙</button>
+        <button class="btn small bag-gear${ui.view.bagMenu ? ' active' : ''}" data-action="bag-menu" aria-expanded="${Boolean(ui.view.bagMenu)}" aria-label="Filtres, builds et réglages du sac" title="Filtres, builds et réglages du sac">⚙ Filtres</button>
         ${nextUnlock ? `<span class="next-unlock muted">Prochain : ${nextUnlock.label} à l'étape ${nextUnlock.stage}</span>` : ''}
         ${anyUpgrade ? '<button class="btn btn-primary primary-action pulse-gold equip-best" data-action="equip-best">⬆ Équiper le meilleur</button>' : ''}
       </div>
       ${setsBanner(state)}
-      <div class="equip-for" role="group" aria-label="Équiper pour"><span>Équiper pour :</span>${['attack', 'survival', 'fortune'].map((p) => `<button class="btn small${state.ui.gearProfile === p ? ' active' : ''}" data-action="equip-for" data-value="${p}" title="${PROFILE_TIPS[p]}">${img(PROFILE_ICONS[p])} ${GEAR_PROFILES[p].label}</button>`).join('')}</div>${ui.view.bagMenu ? `<div class="card bag-menu">${fold(ui, 'inv-builds', 'Builds', () => buildsBar(ui, state), { extra: state.loadouts[Math.max(0, ui.view.buildSel ?? 0)]?.name ?? '' })}
+      ${ui.view.bagMenu ? '' : '<!-- v9.7.1 : « Équiper pour », filtres et listes rangés derrière le bouton Filtres -->'}${!ui.view.bagMenu ? '' : `<div class="equip-for" role="group" aria-label="Équiper pour"><span>Équiper pour :</span>${['attack', 'survival', 'fortune'].map((p) => `<button class="btn small${state.ui.gearProfile === p ? ' active' : ''}" data-action="equip-for" data-value="${p}" title="${PROFILE_TIPS[p]}">${img(PROFILE_ICONS[p])} ${GEAR_PROFILES[p].label}</button>`).join('')}</div>`}${ui.view.bagMenu ? `<div class="card bag-menu">${fold(ui, 'inv-builds', 'Builds', () => buildsBar(ui, state), { extra: state.loadouts[Math.max(0, ui.view.buildSel ?? 0)]?.name ?? '' })}
         ${fold(ui, 'bag-settings', 'Réglages du sac', () => bagSettings(ui, state))}</div>` : ''}`;
     return head + (tab === 'stash' ? stashView(ui, state) : bag(ui, state));
   },

@@ -2051,3 +2051,7 @@ PATTERNS.push(...patterns932(lookup)); // en dernier : les motifs existants (dat
 import { EXACT_934, patterns934 } from './en-934.js';
 for (const [k, v] of Object.entries(EXACT_934)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.push(...patterns934(lookup));
+// v9.7.1 : cadrage, sac de butin, menus allégés (./en-971.js).
+import { EXACT_971, patterns971 } from './en-971.js';
+for (const [k, v] of Object.entries(EXACT_971)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.push(...patterns971(lookup));
