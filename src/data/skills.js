@@ -46,7 +46,7 @@ const CLASS_SKILL_DEFS = {
 };
 for (const [cls, list] of Object.entries(CLASS_SKILL_DEFS)) {
   list.forEach(([name, type, icon, base], i) => SKILLS.push({
-    id: `${cls}_${i + 1}`, cls, name, icon, unlockLevel: i ? 25 : 15, maxLevel: 50, cooldown: type === 'aoe' ? 14 : type === 'holy' ? 24 : type === 'buff' ? 20 : 8,
+    id: `${cls}_${i + 1}`, cls, name, icon: `file:assets/ui/skills98/${cls}_${i + 1}.png`, /* v9.8 (F4) : icône propre */ unlockLevel: i ? 25 : 15, maxLevel: 50, cooldown: type === 'aoe' ? 14 : type === 'holy' ? 24 : type === 'buff' ? 20 : 8,
     type, base, perLevel: type === 'buff' ? 5 : 0.25, heal: 15, duration: 10, text: T[type],
   }));
 }
@@ -69,5 +69,6 @@ export const CLASS_COMMON_NAMES = {
 const COMMON_IDS = ['quick', 'whirl', 'cry', 'holy'];
 export function applyClassSkillNames(cls) {
   const names = CLASS_COMMON_NAMES[cls] ?? CLASS_COMMON_NAMES.knight;
-  COMMON_IDS.forEach((id, i) => { const sk = SKILLS.find((x) => x.id === id); if (sk) sk.name = names[i]; });
+  const c = CLASS_COMMON_NAMES[cls] ? cls : 'knight';
+  COMMON_IDS.forEach((id, i) => { const sk = SKILLS.find((x) => x.id === id); if (sk) { sk.name = names[i]; sk.icon = `file:assets/ui/skills98/${c}_${id}.png`; } });
 }

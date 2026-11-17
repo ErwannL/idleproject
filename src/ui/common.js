@@ -14,7 +14,8 @@ import { itemBase, rarityById } from '../core/loot.js';
 import { itemIconUrl, spriteUrl } from '../render/pixel.js';
 
 export const escapeHtml = (text) => String(text).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
-export const icon = (name, scale = 2, options = {}) => spriteUrl(name, scale, options);
+// v9.8 : « file:chemin » = image de fichier (icônes générées après l'atlas, ex. compétences de classe).
+export const icon = (name, scale = 2, options = {}) => (String(name).startsWith('file:') ? String(name).slice(5) : spriteUrl(name, scale, options));
 export const img = (name, cls = '', alt = '') => `<img class="px ${cls}" src="${icon(name)}" alt="${alt}">`;
 // v9.1.3 : les icônes de monnaie portent leur nom (lu par les lecteurs d'écran, affiché au survol).
 export const coin = () => img('coin', '', 'or');
