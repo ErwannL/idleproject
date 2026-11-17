@@ -3873,3 +3873,7 @@ html.reduce-motion .trophy.ready img { animation: none; }
 .rw-banner { background: url('../../assets/ui/art98/camp_night.png') center / cover no-repeat; image-rendering: pixelated; }
 .state-empty .art98, .empty-art { width: 64px; height: 52px; image-rendering: pixelated; display: block; margin: 0 auto 4px; }
 .rebirth-art { width: 120px; max-height: 120px; object-fit: contain; margin: 0 auto 4px; }
+/* v9.8 (B7) : plus aucun libellé important coupé à 460 px (fr, en, ko) */
+.eco-pet-ssr span { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.1; }
+.world-picker .world-name { white-space: normal; overflow: visible; text-overflow: clip; }
+.ss-row .ss-label { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.1; }
