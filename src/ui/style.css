@@ -3856,3 +3856,7 @@ html.reduce-motion .trophy.ready img { animation: none; }
 .fw-prize { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 8px; }
 .fw-prize-c { display: flex; flex-direction: column; align-items: center; background: #24183a; border: 1px solid #9a5cff; border-radius: 8px; padding: 4px 2px; color: #e8d8ff; }
 .fw-prize-c small { font-size: 10px; text-align: center; } .fw-prize-c img, .fw-prize-c canvas { width: 40px; height: 40px; image-rendering: pixelated; }
+/* v9.8 (H9) : mode veille */
+#sleep-layer { position: fixed; inset: 0; z-index: 99999; background: #000; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.sl-box { display: flex; flex-direction: column; align-items: center; gap: 6px; color: #6a5a3a; font: 600 14px system-ui, sans-serif; }
+.sl-gold { font-size: 28px; color: #8a7440; } .sl-box small { color: #3a3428; }

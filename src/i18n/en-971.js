@@ -1,6 +1,8 @@
 // v9.7.1 : anglais du cadrage, du sac de butin et des menus allégés. Branché à la fin de ./en.js.
 let LK = () => null;
 export const EXACT_971 = {
+  "🌙 Mode veille (écran sombre : or et étape seulement)": "🌙 Sleep mode (dark screen: gold and stage only)",
+  "Touche pour revenir": "Tap to come back",
   "Les 7 premiers jours": "The first 7 days",
   "Gros lot : un compagnon Épique au choix": "Grand prize: an Epic companion of your choice",
   "Récupéré ✓": "Claimed ✓",
@@ -384,6 +386,7 @@ export const EXACT_971 = {
   "Tient": "Withstands",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
+  [/^([\d,. KMBTQa-z×⁰¹²³⁴⁵⁶⁷⁸⁹]+) or$/, (m) => `${m[1]} gold`],
   [/^Barre vidée : (\d+) %$/, (m) => `Bar emptied: ${m[1]}%`],
   [/^Rang (\d+)\/(\d+) · \+(\d+) % dégâts$/, (m) => `Rank ${m[1]}/${m[2]} · +${m[3]}% damage`],
   [/^⚔ Duel : rang (.+)$/, (m) => `⚔ Duel: rank ${LK(m[1]) ?? m[1]}`],

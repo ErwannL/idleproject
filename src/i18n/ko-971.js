@@ -1,6 +1,8 @@
 // v9.7.1 : 한국어 — 화면 구도, 전리품 가방, 간소화된 메뉴. ./ko.js 끝에 연결.
 let LK = () => null;
 export const EXACT_971 = {
+  "🌙 Mode veille (écran sombre : or et étape seulement)": "🌙 절전 모드 (어두운 화면: 골드와 스테이지만)",
+  "Touche pour revenir": "터치해서 돌아가기",
   "Les 7 premiers jours": "첫 7일",
   "Gros lot : un compagnon Épique au choix": "대상: 원하는 에픽 동료 1명",
   "Récupéré ✓": "받음 ✓",
@@ -384,6 +386,7 @@ export const EXACT_971 = {
   "Tient": "버팀",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
+  [/^([\d,. KMBTQa-z×⁰¹²³⁴⁵⁶⁷⁸⁹]+) or$/, (m) => `골드 ${m[1]}`],
   [/^Barre vidée : (\d+) %$/, (m) => `바 감소: ${m[1]}%`],
   [/^Rang (\d+)\/(\d+) · \+(\d+) % dégâts$/, (m) => `등급 ${m[1]}/${m[2]} · 피해 +${m[3]}%`],
   [/^⚔ Duel : rang (.+)$/, (m) => `⚔ 결투: ${LK(m[1]) ?? m[1]} 등급`],

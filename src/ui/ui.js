@@ -1054,6 +1054,7 @@ export class UI {
       case 'quick-hunt': a.quickHunt(); break; // v9.8 (H3)
       case 'gear-best': a.gearBest(value); break; // v9.8 (I6)
       case 'rank-duel': this.rankDuel(); break; // v9.8 (H6)
+      case 'sleep-mode': this.closeModal(); this.closePanel?.(); this.sleepMode(true); break; // v9.8 (H9)
       case 'fw-day': local(() => { v.fwDay = value; }); break; // v9.8 (H5)
       case 'fw-claim': a.firstWeekClaim(Number(value)); break;
       case 'fw-prize': a.firstWeekPrize(value); break;
@@ -2467,6 +2468,23 @@ export class UI {
       if (out) out.innerHTML = `<b class="${r.slice.jackpot ? 'gold-text' : 'good'}">${r.slice.jackpot ? 'GROS LOT ! ' : ''}${escapeHtml(r.slice.label)}</b> ${rewardIcons(r.given, 'named')}`;
       uiFx.claimFly?.(uiFx.snap(this.state).cur, uiFx.snap(this.state).cur, disc, true);
     }, calm ? 50 : 2700);
+  }
+
+  // v9.8 (H9) : mode veille — écran presque noir (économie de batterie sur téléphone), or et étape seulement ; le jeu
+  // continue ; un appui n'importe où le quitte.
+  sleepMode(on) {
+    if (typeof document === 'undefined') return;
+    document.getElementById('sleep-layer')?.remove();
+    clearInterval(this.sleepTimer);
+    if (!on) return;
+    const el = document.createElement('div');
+    el.id = 'sleep-layer';
+    el.innerHTML = '<div class="sl-box"><b class="sl-gold num"></b><span class="sl-stage"></span><small>Touche pour revenir</small></div>';
+    el.addEventListener('click', () => this.sleepMode(false));
+    document.body.appendChild(el);
+    const upd = () => { const st = this.state; if (!st) return; el.querySelector('.sl-gold').textContent = `${formatNumber(st.gold)} or`; el.querySelector('.sl-stage').textContent = `Étape ${stageLabel(st.stage)}`; };
+    upd();
+    this.sleepTimer = setInterval(upd, 2000);
   }
 
   // v9.8 (H6) : duel de rang — 30 s comptées en 3 s à l'écran : la barre du gardien descend, puis victoire ou défaite.
