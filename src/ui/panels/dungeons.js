@@ -6,7 +6,7 @@ import { UNITS as COMPANIONS } from '../../data/banners.js'; // v9.1.3 (partie B
 import { DIFFICULTY_ORDER, DUNGEON_DIFFICULTIES, DUNGEON_PATHS, DUNGEON_REWARD, DUNGEONS } from '../../data/dungeons.js';
 import { SLOTS } from '../../data/items.js';
 import { stageLabel } from '../../core/combat.js';
-import { DUNGEON_ROUTES, canEnterDungeon, dungeonById, dungeonRooms, dungeonRunInfo, unlockedDifficulties } from '../../core/dungeon.js';
+import { DUNGEON_ROUTES, canEnterDungeon, canSweepDungeon, dungeonById, dungeonRooms, dungeonRunInfo, unlockedDifficulties } from '../../core/dungeon.js';
 import { elementBadge, zoneElement } from '../../core/elements.js'; // v9.6.2
 import { BEHAVIORS, enemyBehavior } from '../../data/behaviors.js'; // v9.6.2
 import { formatDuration } from '../../core/format.js';
@@ -199,6 +199,7 @@ function dungeonsList(ui, state) {
   const cleared = state.dungeonsCleared[sel.id] ?? 0;
   const enter = locked ? `<div class="bad">Débloqué à l'étape ${stageLabel(sel.unlockStage)}.</div>`
     : `<button class="btn btn-gold enter-btn primary-action" data-action="enter-dungeon" data-value="${sel.id}" data-diff="${diffId}" ${canEnterDungeon(state, sel.id) ? '' : 'disabled'}>Entrer · ${diff.label} — 1 ${img('icon_key')} <span class="key-stock">(${state.keys} en stock)</span></button>
+      ${canSweepDungeon(state, sel.id, diffId) ? `<button class="btn btn-gold primary-action" data-action="sweep-dungeon" data-value="${sel.id}" data-diff="${diffId}">⚡ Balayer · ${diff.label} — 1 ${img('icon_key')}<small class="muted"> même butin, sans combat</small></button>` : ''}
       ${state.tower ? '<div class="bad">Tu es dans la Tour : quitte-la d\'abord.</div>' : ''}
       ${state.challenge ? '<div class="bad">Défi de la semaine en cours (Aventure › Défis) : termine-le d\'abord.</div>' : ''}
       ${state.keys < 1 ? '<div class="bad">Aucune clé. Clés : missions, contrats, expéditions, Défis.</div>' : ''}`;

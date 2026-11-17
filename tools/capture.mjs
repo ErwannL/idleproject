@@ -20,7 +20,7 @@ if (save !== 'new') {
 }
 await page.goto(url + (process.env.Q ?? ''));
 await page.waitForFunction(() => window.__idle?.ui, null, { timeout: 30000 });
-await page.waitForTimeout(2500);
+await page.waitForTimeout(Number(process.env.WAIT ?? 2500));
 await page.evaluate(() => { document.querySelectorAll('#modal:not(.hidden) [data-action="close-modal"], #modal:not(.hidden) [data-action="claim-offline"]').forEach((b) => b.click()); });
 await page.keyboard.press('Escape');
 await page.screenshot({ path: `${out}/scene.png` });

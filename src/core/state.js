@@ -519,6 +519,8 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   const bagged = Array.isArray(raw.lootBag) ? raw.lootBag.filter(isValidItem).map(cleanItem) : [];
   state.lootBag = bagged.slice(0, 40);
   if (raw.ui?.lootBag === false) state.ui.lootBag = false;
+  // v9.8 (H) : Chasse rapide, Roue du jour, Carnet du jour (jour + compteurs).
+  for (const k of ['quickHunt', 'wheel', 'daybook']) if (raw[k] && typeof raw[k] === 'object' && !Array.isArray(raw[k])) state[k] = JSON.parse(JSON.stringify(raw[k]));
   // v9.1.3 : le coffre peut déborder (mannequins convertis), jusqu'à STASH_OVERFLOW objets de plus.
   state.stash = (Array.isArray(raw.stash) ? raw.stash.filter(isValidItem) : []).slice(0, STASH_SIZE + STASH_OVERFLOW).map(cleanItem);
   // v9.1.3 (doc3 lot 1, point 5) : un sac au-delà de sa taille (ancien changement de classe) n'est plus rogné :

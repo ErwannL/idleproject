@@ -34,7 +34,7 @@ test('9.1.8 : le serveur accepte la partie migrée par-dessus la sauvegarde 9.1.
 
 test('9.3.5 : Quêtes (Missions, Collections) ; Classement, Guilde et Statistiques dans le Profil', () => {
   const goals = MENUS.find((m) => m.id === 'goals');
-  assert.deepEqual(goals.tabs, ['contracts', 'encyclopedia']);
+  assert.deepEqual(goals.tabs, ['daybook', 'contracts', 'encyclopedia']); // v9.8 : Carnet du jour
   assert.deepEqual(MENUS.find((m) => m.id === 'profile').tabs.filter((t) => ['ranking', 'guild', 'stats'].includes(t)), ['ranking', 'guild', 'stats']);
   assert.equal(SUB_LABELS.ranking, 'Classement');
 });

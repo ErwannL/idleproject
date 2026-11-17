@@ -186,10 +186,11 @@ export function segment(items, action, active, attrs = '') {
 }
 
 // v9.1.3 (A7) : récompense en icônes (icône + nombre). Le texte complet (rewardText) reste dans title et aria-label.
+const REWARD_NAMES = { gold: 'Or', gems: 'Gemmes', keys: 'Clés', fragments: 'Fragments', shards: 'Éclats', grimoire: 'Grimoires', ascension: 'Pierres', mastery: 'Essences' };
 const REWARD_ICONS = { gold: 'coin', gems: 'icon_gem', keys: 'icon_key', fragments: 'icon_fragment', shards: 'icon_shard', grimoire: 'icon_grimoire', ascension: 'icon_ascension', mastery: 'icon_mastery' };
 export function rewardIcons(reward, cls = '') {
   const parts = Object.entries(reward ?? {}).filter(([k, v]) => v > 0 && REWARD_ICONS[k])
-    .map(([k, v]) => `<span class="rw"><img class="px" src="${icon(REWARD_ICONS[k])}" alt="">${formatNumber(Math.floor(v))}</span>`);
+    .map(([k, v]) => `<span class="rw"><img class="px" src="${icon(REWARD_ICONS[k])}" alt="">${formatNumber(Math.floor(v))}${/rw-big|named/.test(cls) ? `<small class="rw-name">${REWARD_NAMES[k]}</small>` : ''}</span>`); // v9.8 (I8) : nom sous l'icône dans les écrans de résultat
   if (!parts.length) return '';
   const text = rewardText(reward, formatNumber);
   return `<span class="rw-icons ${cls}" title="${escapeHtml(text)}" role="img" aria-label="${escapeHtml(text)}">${parts.join('')}</span>`;

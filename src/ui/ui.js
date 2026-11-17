@@ -65,6 +65,11 @@ import campaign from './panels/campaign.js';
 import companions from './panels/companions.js';
 import expeditions from './panels/expeditions.js';
 import contracts from './panels/contracts.js';
+import daybook from './panels/daybook.js'; // v9.8 (H1)
+import { WHEEL_SLICES, wheelReady } from '../core/wheel.js'; // v9.8 (H4)
+import { quickHuntReady } from '../core/quick-hunt.js'; // v9.8 (H3)
+import { MISSION_PERIODS } from '../data/missions.js';
+import { missionOpen, missionStatus } from '../core/missions.js';
 import dungeons from './panels/dungeons.js';
 import tower from './panels/tower.js';
 import arena from './panels/arena.js'; // v9.3.2 : modes compagnons
@@ -116,12 +121,12 @@ import { ELEMENTS, zoneElement } from '../core/elements.js'; // v9.3.1 : types
 
 export { MENUS };
 
-const PANELS = Object.fromEntries([campPanel, upgrades, inventory, forgePanel, hero, looks, companions, expeditions, skills, tree, campaign, dungeons, tower, arena, boss, encyclopedia, summon, shop, eventPanel, contracts, inbox, ranking, guild, stats, options, worldPanel]
+const PANELS = Object.fromEntries([campPanel, upgrades, inventory, forgePanel, hero, looks, companions, expeditions, skills, tree, campaign, dungeons, tower, arena, boss, encyclopedia, summon, shop, eventPanel, contracts, daybook, inbox, ranking, guild, stats, options, worldPanel]
   .map((p) => [p.id, p]));
 const SUB_ICONS = { // v9.4.0 : une icône par onglet (PixelLab), plus aucune partagée
   upgrades: 'tab_upgrades', skills: 'tab_skills', tree: 'tab_talents', hero: 'icon_hero', inventory: 'tab_equipment', looks: 'tab_looks',
   companions: 'tab_companions', expeditions: 'tab_expeditions', summon: 'tab_summon', shop: 'top_shop', event: 'tab_event', campaign: 'tab_map', dungeons: 'tab_dungeons', tower: 'tab_challenges', arena: 'tab_arena', forge: 'tab_forge',
-  camp: 'tab_expeditions', boss: 'tab_boss', encyclopedia: 'tab_collections', contracts: 'tab_missions', inbox: 'icon_mail', ranking: 'tab_ranking', guild: 'tab_guild', stats: 'tab_stats',
+  camp: 'tab_expeditions', boss: 'tab_boss', encyclopedia: 'tab_collections', contracts: 'tab_missions', daybook: 'icon_trophy', inbox: 'icon_mail', ranking: 'tab_ranking', guild: 'tab_guild', stats: 'tab_stats',
 };
 // v9.1.0 : présentation courte en haut de l'onglet, à sa première ouverture (plus de bulle « Nouveau »).
 const UNLOCK_INFO = { // v9.3.4 (h) : une ligne courte par onglet
@@ -149,7 +154,7 @@ const BULK_CONFIRM_MS = 4000;
 // v9.3.5 : nom court sous l'icône des boosts ; touches affichées seulement avec souris et clavier.
 const RUSH_SHORT = { rage: 'Rage', frenzy: 'Frénésie', midas: 'Midas', hunter: 'Chasseur', phantom: 'Fantôme' };
 const hasKeyboard = () => typeof matchMedia === 'function' && matchMedia('(hover: hover) and (pointer: fine)').matches;
-const LIVE_PANELS = new Set(['arena', 'world', 'contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'looks', 'upgrades', 'companions', 'expeditions', 'encyclopedia', 'inbox', 'ranking', 'stats']);
+const LIVE_PANELS = new Set(['daybook', 'arena', 'world', 'contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'looks', 'upgrades', 'companions', 'expeditions', 'encyclopedia', 'inbox', 'ranking', 'stats']);
 
 // Renaissance : choix du seul pouvoir ancestral conservé.
 function powerChoice(state) {
@@ -1014,6 +1019,7 @@ export class UI {
       case 'dungeon-slot': local(() => { v.dungeonSlot = value; }); break;
       case 'dungeon-path-pre': local(() => { v.dungeonPath = value; a.rememberDungeonChoice('path', value); }); break;
       case 'dungeon-path': a.setDungeonPath(value); break;
+      case 'sweep-dungeon': this.closeModal(); a.sweepDungeon(value, v.dungeonSlot ?? this.state.ui.dungeonSlot ?? 'any', v.dungeonPath ?? this.state.ui.dungeonPath ?? 'gold', el.dataset.diff ?? v.dungeonDiff ?? 'easy'); break; // v9.8 (H2)
       case 'enter-dungeon': this.closeModal(); a.enterDungeon(value, v.dungeonSlot ?? this.state.ui.dungeonSlot ?? 'any', v.dungeonPath ?? this.state.ui.dungeonPath ?? 'gold', el.dataset.diff ?? v.dungeonDiff ?? 'easy', v.dungeonRoute ?? 'normal'); break;
       case 'dungeon-route': local(() => { v.dungeonRoute = value; }); break; // v9.6.2
       case 'dungeon-sel': local(() => { v.dungeonSel = value; v.dungeonDiff = null; }); break;
@@ -1041,6 +1047,10 @@ export class UI {
       case 'buy-talents-all': this.closeModal(); a.buyTalentsAll(value || null); break;
       case 'ask-buy-talents': this.showBuyTalents(value || null); break;
       case 'tree-seg': local(() => { v.treeSeg = value; }); break;
+      case 'quick-hunt': a.quickHunt(); break; // v9.8 (H3)
+      case 'wheel-open': this.showWheel(); break; // v9.8 (H4)
+      case 'wheel-spin': this.spinWheel(); break;
+      case 'daybook-chest': a.daybookChest(); break; // v9.8 (H1)
       case 'offline-claim': this.closeModal(); this.adviceArrow(); break; // v9.8 (C1) : le conseil devient une flèche dorée
       case 'forge-seg': local(() => { v.forgeSeg = value; }); break; // v9.8 (C2)
       case 'talent-branch': a.buyTalentStep(value); break; // v9.3.9 : vue simple des Talents
@@ -1349,7 +1359,7 @@ export class UI {
         this.news(`Salle terminée : ${rewardText(event.reward, formatNumber)}`, '#9cf08a');
         break;
       case 'dungeonComplete': {
-        this.banner('Donjon terminé !', 'win');
+        this.banner(event.sweep ? 'Donjon balayé !' : 'Donjon terminé !', 'win');
         this.news(`Donjon terminé : ${event.item.name} (${rarityById(event.item.rarity).label})`, rarityById(event.item.rarity).color);
         if (event.first) this.celebrate('first-dungeon', 'Premier donjon gagné !', '');
         // v9.3.5 : écran de victoire — butin, couronnes de la difficulté, Rejouer.
@@ -1359,7 +1369,8 @@ export class UI {
           <div class="victory-loot">${itemFrame(event.item, { tag: 'div' })}<b class="r-${event.item.rarity} rarity-text">${escapeHtml(event.item.name)}</b></div>
           ${event.earned ? `<div class="victory-rewards">${rewardIcons(event.earned, 'rw-big')}</div>` : ''}
           <div class="detail-actions"><button class="btn" data-action="close-modal">Fermer</button>
-            ${keys > 0 ? `<button class="btn btn-gold" data-action="enter-dungeon" data-value="${event.id}" data-diff="${event.difficulty}">Rejouer (${keys} clé${keys > 1 ? 's' : ''})</button>` : ''}</div></div>`);
+            ${keys > 0 ? `<button class="btn" data-action="enter-dungeon" data-value="${event.id}" data-diff="${event.difficulty}">Rejouer (${keys} clé${keys > 1 ? 's' : ''})</button>
+              <button class="btn btn-gold" data-action="sweep-dungeon" data-value="${event.id}" data-diff="${event.difficulty}">⚡ Balayer · 1 ${img('icon_key')}</button>` : ''}</div></div>`);
         this.invalidate();
         break;
       }
@@ -1503,6 +1514,7 @@ export class UI {
     // v9.8 (C1) : objectifs de session en pastille au bord de la scène.
     const pill = this.$('goals-pill');
     if (pill) { const h = sessionGoalsPill(state); if (pill.dataset.h !== h) { pill.dataset.h = h; pill.innerHTML = h; pill.classList.toggle('hidden', !h); pill.classList.toggle('ready', sessionDone(state)); } }
+    this.updateQuestBanner(state); // v9.8 (J2)
     const stats = world.heroStats ?? computeHeroStats(state);
     this.setText('gold', formatNumber(state.gold));
     this.setText('strip-gold', formatNumber(state.gold));
@@ -1905,14 +1917,20 @@ export class UI {
     if (this.tabVisible.tree !== false && suggestedTalent(state)) this.tabBadges = { ...this.tabBadges, tree: 1 }; // v9.3.9 : un talent à apprendre
     // v9.8 (E7) : des clés de donjon en réserve → pastille sur Aventure (le joueur ne savait pas qu'il pouvait y aller).
     if (this.tabVisible.dungeons !== false && (state.keys ?? 0) > 0 && !state.dungeon) { this.tabBadges = { ...this.tabBadges, dungeons: 1 }; byTab.dungeons = byTab.dungeons ?? 1; }
+    // v9.8 (H1/J1) : Carnet du jour — Roue ou Chasse rapide prêtes.
+    { const n = (wheelReady(state) ? 1 : 0) + (quickHuntReady(state) ? 1 : 0); if (n && this.tabVisible.daybook !== false) { byTab.daybook = n; this.tabBadges = { ...this.tabBadges, daybook: n }; } }
     const current = computeHeroStats(state);
     this.next = nextAction(state, { claims: this.claims, visible: this.tabVisible, fusionReady: this.tabBadges.forge === 1 }); // v9.3.5
     for (const menu of MENUS) {
       const red = menu.tabs.some((t) => byTab[t] && this.tabVisible[t] !== false);
       const el = this.$(`badge-${menu.id}`);
       if (el) {
+        // v9.8 (J1/J2) : le chiffre dit combien de choses attendent (plus un simple point).
+        const n = menu.tabs.reduce((t, x) => t + (this.tabVisible[x] !== false ? byTab[x] ?? 0 : 0), 0);
         el.classList.toggle('hidden', !red);
-        el.setAttribute('aria-label', red ? 'À récupérer' : '');
+        el.classList.toggle('count', n > 0);
+        el.textContent = n > 0 ? String(Math.min(n, 99)) : '';
+        el.setAttribute('aria-label', red ? `${n} à récupérer` : '');
       }
     }
     // v9.2.9 : bouton Boutique de la barre du haut : pastille si une offre gratuite ou quotidienne attend.
@@ -2124,6 +2142,7 @@ export class UI {
       event: best > 40, // v9.3.5 : après le monde 2
       expeditions: Object.keys(state.companions.owned).length >= 5 || state.expeditions.slots.some(Boolean) || state.expeditions.done > 0, // v9.3.5 : stable (5 compagnons)
       contracts: Boolean(state.ui.goalsOpen),
+      daybook: Boolean(state.ui.goalsOpen) || best >= 10, // v9.8 (H1)
       encyclopedia: boss,
       arena: arenaUnlocked(state), // v9.3.2
       forge: forgeOpen(state, 'forge'), // v9.3.4
@@ -2365,7 +2384,7 @@ export class UI {
       summary.baggedCount ? tile('🎒', summary.baggedCount, 'À trier') : ''].filter(Boolean).slice(0, 4).join('');
     const free = st && (st.expeditions?.slots ?? []).filter(Boolean).length === 0 && Object.keys(st.companions?.owned ?? {}).length >= 5;
     this.openModal(`<div class="rw-banner"><div class="rw-camp">${team.map((c) => img(c.sprite)).join('')}<span class="camp-flame">🔥</span><span class="rw-zz">z z</span></div>
-        <div class="rw-title"><small>Pendant ton absence</small><b>${formatDuration(summary.elapsedSeconds)}</b></div>
+        <div class="rw-title"><small>${summary.hours ? 'Chasse rapide' : 'Pendant ton absence'}</small><b>${summary.hours ? `${summary.hours} h` : formatDuration(summary.elapsedSeconds)}</b></div>
         <details class="rw-info"><summary aria-label="Détails">i</summary>
           <p>Ennemis vaincus : ~${formatNumber(summary.kills)} · Objets : ${summary.items.length - summary.autoRecycledCount}${recycled ? ` (+${recycled} convertis en or)` : ''}</p>
           ${items ? `<div class="loot-row">${items}</div>` : ''}
@@ -2381,6 +2400,63 @@ export class UI {
           ${this.canDoubleOffline(summary) ? `<button class="btn rw-x2" data-action="offline-double">×2 <small>gratuit 1×/jour</small></button>` : ''}</div>`);
     this.lastOffline = summary;
     uiFx.offlineFx(this.$('modal-card'), { gold: 0, gems: 0, shards: 0 }, { gold: summary.totalGold, gems: summary.gems ?? 0, shards: mats.shards ?? 0 }); // v9.2.7 : seulement les monnaies qui volent vers leurs compteurs
+  }
+
+  // v9.8 (J2) : bandeau de quête sur la scène — la mission du jour la plus avancée et sa récompense en grosse icône ;
+  // un appui la récupère quand elle est finie (sinon il ouvre les Missions).
+  updateQuestBanner(state) {
+    const el = this.$('quest-banner');
+    if (!el || !state.missions || this.tabVisible.contracts === false) return;
+    const daily = MISSION_PERIODS.find((p) => p.id === 'daily');
+    const list = (daily?.missions ?? []).filter((m) => missionOpen(state, m)).map((m) => ({ m, st: missionStatus(state, 'daily', m) })).filter((x) => !x.st.claimed);
+    list.sort((a, b) => (b.st.done - a.st.done) || (b.st.progress / b.m.target - a.st.progress / a.m.target));
+    const top = list[0];
+    const h = top ? `${rewardIcons(top.m.reward)}<span class="qb-text">${escapeHtml(top.m.label)} <b class="num">${formatNumber(Math.min(top.st.progress, top.m.target))}/${formatNumber(top.m.target)}</b></span>` : '';
+    if (el.dataset.h === h) return;
+    el.dataset.h = h;
+    el.innerHTML = h;
+    el.classList.toggle('hidden', !h);
+    el.classList.toggle('ready', Boolean(top?.st.done));
+    el.dataset.action = top?.st.done ? 'claim-mission' : 'open-tab';
+    el.dataset.value = top?.st.done ? `daily|${top.m.id}` : 'contracts';
+  }
+
+  // v9.8 (H4) : Roue du jour — 8 parts, un tour gratuit, la roue tourne puis s'arrête sur la part gagnée.
+  showWheel() {
+    const st = this.state;
+    if (!st) return;
+    const n = WHEEL_SLICES.length;
+    const colors = ['#3b6fd1', '#d4a72c', '#4caf6a', '#8a5cd6', '#d45a3c', '#2fa8a8', '#c9446f', '#ffd23f'];
+    const grad = WHEEL_SLICES.map((_, i) => `${colors[i % colors.length]} ${(i * 360) / n}deg ${((i + 1) * 360) / n}deg`).join(', ');
+    const labels = WHEEL_SLICES.map((sl, i) => `<span class="wh-label" style="--a:${(i + 0.5) * (360 / n)}deg">${sl.jackpot ? '★ ' : ''}${escapeHtml(sl.label)}</span>`).join('');
+    const ready = wheelReady(st);
+    this.openModal(`<div class="wheel-screen"><h2 id="modal-title">Roue du jour</h2>
+      <div class="wh-wrap"><div class="wh-pointer">▼</div><div class="wh-disc" style="background:conic-gradient(${grad})">${labels}</div></div>
+      <p class="wh-result muted">${ready ? 'Un tour gratuit par jour. Toujours gagnant !' : 'Déjà tournée aujourd\'hui : reviens demain.'}</p>
+      <div class="detail-actions">${ready ? '<button class="btn btn-gold primary-action" data-action="wheel-spin">Tourner</button>' : ''}<button class="btn" data-action="close-modal">Fermer</button></div></div>`);
+  }
+
+  spinWheel() {
+    const r = this.actions.spinWheel?.();
+    const disc = this.$('modal-card')?.querySelector('.wh-disc');
+    if (!r || !disc) return;
+    this.$('modal-card').querySelector('[data-action="wheel-spin"]')?.remove();
+    const n = WHEEL_SLICES.length;
+    const target = 360 * 5 + (360 - (r.index + 0.5) * (360 / n));
+    const calm = this.calm;
+    disc.style.transition = calm ? 'none' : 'transform 2.6s cubic-bezier(.17,.67,.2,1)';
+    disc.style.transform = `rotate(${target}deg)`;
+    setTimeout(() => {
+      const out = this.$('modal-card')?.querySelector('.wh-result');
+      if (out) out.innerHTML = `<b class="${r.slice.jackpot ? 'gold-text' : 'good'}">${r.slice.jackpot ? 'GROS LOT ! ' : ''}${escapeHtml(r.slice.label)}</b> ${rewardIcons(r.given, 'named')}`;
+      uiFx.claimFly?.(uiFx.snap(this.state).cur, uiFx.snap(this.state).cur, disc, true);
+    }, calm ? 50 : 2700);
+  }
+
+  // v9.8 (G3) : coffre qui s'ouvre en gros plan, les récompenses en sortent.
+  chestReveal(given) {
+    this.openModal(`<div class="chest-reveal"><div class="cr-chest">${img('icon_chest')}</div><h2 id="modal-title">Journée accomplie !</h2>
+      <div class="cr-loot">${rewardIcons(given, 'named')}</div><div class="detail-actions"><button class="btn btn-gold" data-action="close-modal">Super !</button></div></div>`);
   }
 
   // v9.8 (C1) : après « Récupérer », une flèche dorée pointe le bouton utile (équipe conseillée, sinon Équipement).
@@ -2418,14 +2494,14 @@ export class UI {
 
   // v9.3.8 (4) : série de connexion — fenêtre du jour à l'ouverture (calendrier de 7 jours, gros lot au jour 7).
   showLoginPopup(tries = 0) {
-    if (!this.state || !loginPending(this.state)) return;
+    // v9.8 (H4) : la Roue du jour remplace le calendrier à l'ouverture (la connexion se récupère avec « Tout récupérer »).
+    if (!this.state || !wheelReady(this.state)) return;
     // v9.7.1 : fenêtres en file — attend la fin d'une autre fenêtre, d'une cinématique ou du tutoriel au lieu de s'empiler.
     if (!this.$('modal').classList.contains('hidden') || document.querySelector('.cinematic, .tour, #prologue, .summon-fx, .levelup, .level-up')) {
       if (tries < 60) setTimeout(() => this.showLoginPopup(tries + 1), 2000);
       return;
     }
-    this.openModal(`<h2 id="modal-title">${img('icon_star', 'ico20')} Cadeau du jour</h2>${loginTab(this.state)}
-      <div class="detail-actions"><button class="btn" data-action="close-modal">Plus tard</button></div>`);
+    this.showWheel();
   }
 
   // v9.3.8 (4) : « Tout récupérer ×2 » au retour, une fois par jour (une raison de revenir).

@@ -1,6 +1,7 @@
 // Expéditions (v8.5) : les compagnons et familiers qui ne sont pas dans l'équipe partent en mission
 // (1 h, 4 h ou 12 h, en temps réel : elles avancent aussi jeu fermé) et rapportent or, matériaux, gemmes,
 // clés et fragments anciens. Un compagnon en expédition ne peut pas être équipé.
+import { daybookTrack } from './daybook.js';
 import { BALANCE, ESSENCE_SHARDS, TICKET_GEMS } from '../data/balance.js';
 import { UNITS } from '../data/banners.js'; // v9.1.3 (partie B) : persos de bannière compris
 import { levelForStage, referenceKillGold, zoneIndexForStage } from './combat.js';
@@ -98,6 +99,7 @@ export function startExpedition(state, slot, companionId, typeId, now = Date.now
   const reward = expeditionReward(state, companionId, typeId, balance);
   if (!reward) return false;
   ex.slots[slot] = { companionId, type: typeId, start: now, end: now + expeditionType(typeId).hours * HOUR, reward };
+  daybookTrack(state, 'expeditions', 1, now); // v9.8 : Carnet du jour
   if (!ex.last) ex.last = Array(ex.slots.length).fill(null);
   ex.last[slot] = { companionId, type: typeId }; // v9.1.0 : « Repartir » refait la même expédition
   return true;

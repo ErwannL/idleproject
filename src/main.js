@@ -10,7 +10,10 @@ import { finishRevenge, startRevenge } from './core/revenge.js'; // v9.7.1 (lot 
 import { advanceUnlocks } from './core/unlock-quests.js'; // v9.7.1 (lot 3)
 import { playerCast, playerGuard, playerUltimate, playerWeakSpot } from './core/combat.js'; // v9.7.1 (lot 2)
 import { grantBlessing } from './core/blessing.js';
-import { wheelShown } from './core/elements.js'; // v9.7.1 (prologue)
+import { wheelShown } from './core/elements.js';
+import { quickHunt } from './core/quick-hunt.js'; // v9.8 (H3)
+import { spinWheel } from './core/wheel.js'; // v9.8 (H4)
+import { claimDaybookChest } from './core/daybook.js'; // v9.8 (H1) // v9.7.1 (prologue)
 import { startCatchUp } from './core/boost.js';
 import { claimSessionChest, newSessionGoals } from './core/session-goals.js';
 import { BALANCE } from './data/balance.js';
@@ -25,7 +28,7 @@ import { activeSynergies, companionById, onExpedition, replaceCompanion, toggleC
 import { claimContract } from './core/contracts.js';
 import { claimAchievement, claimableAchievements } from './core/achievements.js';
 import { claimAllMissions, claimLogin, claimMission, claimMissionBonus, claimTrackTier, mergeReward, refreshMissions, trackMissions } from './core/missions.js';
-import { abandonDungeon, dungeonById, setDungeonPath, startDungeon } from './core/dungeon.js';
+import { abandonDungeon, dungeonById, setDungeonPath, startDungeon, sweepDungeon } from './core/dungeon.js';
 import { DUNGEON_DIFFICULTIES } from './data/dungeons.js';
 import { buyUpgradeBulk } from './core/economy.js';
 import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
@@ -371,6 +374,35 @@ const actions = {
     const d = dungeonById(id);
     placeTransition(`Donjon · ${DUNGEON_DIFFICULTIES[difficulty]?.label ?? ''}`, d.name, d.description, ZONES[d.zone]?.id);
     done(true, 'Tentative lancée');
+  },
+  // v9.8 (H3) : Chasse rapide — 2 h de gains d'un coup, une fois par jour.
+  quickHunt() {
+    const r = quickHunt(state, rng);
+    if (!r) return done(false);
+    sound.play('claim', { volume: 0.8 });
+    ui.showOffline(r);
+    save(); ui.invalidate();
+  },
+  // v9.8 (H4) : Roue du jour (le résultat est animé par l'interface).
+  spinWheel() {
+    const r = spinWheel(state, rng);
+    if (r) { save(); ui.invalidate(); }
+    return r;
+  },
+  // v9.8 (H1) : coffre de fin de journée du Carnet.
+  daybookChest() {
+    const given = claimDaybookChest(state, (id) => ui.tabVisible?.[id] !== false);
+    if (!given) return done(false);
+    ui.chestReveal?.(given);
+    done(true, 'Journée accomplie !', '#ffd36a');
+  },
+  // v9.8 (H2) : balayage d'un donjon déjà gagné (même récompense, une clé, aucun combat).
+  sweepDungeon(id, slot, path, difficulty) {
+    const r = sweepDungeon(state, id, rng, { slot, path, difficulty });
+    if (!r) return done(false, null);
+    sound.play('upgrade', { volume: 0.6 });
+    ui.handleEvent({ type: 'dungeonComplete', ...r }, state);
+    save();
   },
   abandonDungeon() {
     abandonDungeon(state);

@@ -108,6 +108,20 @@ export function completeDungeon(state, rng, balance = BALANCE) {
   return { item, added: added.added, earned: run.earned, id: run.id, difficulty: run.difficulty ?? 'easy', rank, first }; // v9.3.5 : écran de victoire
 }
 
+// v9.8 (H2) : balayage — refaire d'un appui un donjon déjà réussi à cette difficulté, même récompense (1 clé).
+export function canSweepDungeon(state, id, difficulty = 'easy') {
+  return canEnterDungeon(state, id) && (state.dungeonBest?.[id] ?? -1) >= DIFFICULTY_ORDER.indexOf(difficulty);
+}
+export function sweepDungeon(state, id, rng, { slot = 'any', path = 'gold', difficulty = 'easy' } = {}, balance = BALANCE) {
+  if (!canSweepDungeon(state, id, difficulty) || !startDungeon(state, id, slot, path, difficulty, 'normal')) return null;
+  const d = dungeonById(id);
+  for (let room = 0; room < dungeonRooms(state, d); room++) {
+    state.dungeon.kills = d.killsPerRoom - 1;
+    dungeonKill(state, balance);
+  }
+  return { ...completeDungeon(state, rng, balance), sweep: true };
+}
+
 // v8.1 : rapport d'expédition (dernière tentative + meilleure par donjon et difficulté) :
 // salle atteinte, PV restants du boss, durée, niveau, équipement, compagnons et familier.
 export function runReport(state, run, { won = false, bossHpPct = null } = {}) {

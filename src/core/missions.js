@@ -6,6 +6,7 @@ import { incomeBoss, incomeDungeon, incomeLogin, incomeMissions, incomeTrack } f
 import { trackEventGoal } from './ancients.js'; // v9.2.8 : objectifs du petit événement
 import { tickSubscriptions } from './store.js'; // v9.2.8 : part du jour d'un abonnement (achat réel seulement)
 import { RESOURCE_SOURCES } from '../data/progression.js'; // v9.3.3
+import { daybookTrack } from './daybook.js';
 
 const pad = (n) => String(n).padStart(2, '0');
 const dayKey = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -65,7 +66,7 @@ export function trackMissions(state, type, amount = 1) {
   if (!state.missions || !(amount > 0)) return;
   // v9.2.8 : premier boss / premier donjon du jour (tickets, plafonds mensuels) et objectifs du petit événement.
   if (type === 'bosses') incomeBoss(state);
-  if (type === 'dungeons') incomeDungeon(state);
+  if (type === 'dungeons') { incomeDungeon(state); daybookTrack(state, 'dungeons', amount); } // v9.8 : Carnet du jour
   trackEventGoal(state, type, amount);
   for (const p of MISSION_PERIODS) {
     const run = state.missions[p.id];

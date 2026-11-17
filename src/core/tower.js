@@ -1,6 +1,7 @@
 // Tour de l'Éternité (v8.2) : défi sans fin, un boss par étage, chaque étage plus fort que le précédent.
 // Aucune clé n'est nécessaire ; les récompenses ne tombent qu'à chaque NOUVEAU record d'étage (pas de farm).
 // Une défaite termine l'ascension ; l'étage atteint et la meilleure ascension sont gardés.
+import { daybookTrack } from './daybook.js';
 import { BOSSES } from '../data/enemies.js';
 import { grantReward } from './rewards.js';
 import { levelForStage } from './combat.js'; // v9.2.0 (monde marin) : niveau de puissance des étapes
@@ -103,6 +104,7 @@ export function startTower(state, now = Date.now()) {
   if (!towerUnlocked(state) || state.dungeon || state.tower || state.challenge || climbsLeft(state, now) <= 0) return false;
   towerWeek(state, now).climbs += 1;
   towerDay(state, now).climbs += 1;
+  daybookTrack(state, 'tower', 1, now); // v9.8 : Carnet du jour
   state.tower = { floor: 1, startBest: state.towerBest ?? 0, startPlay: state.playSeconds ?? 0, deadline: (state.playSeconds ?? 0) + TOWER.timeLimit };
   return true;
 }

@@ -3731,3 +3731,69 @@ html.reduce-motion .rw-tile::before { display: none; }
 .up-hero .up-pills { position: static; justify-content: center; margin: 6px 0 2px; }
 .up-hero .up-stars { position: static; text-align: center; }
 .up-hero .up-role { text-align: center; padding: 0 10px; }
+/* v9.8 (I8) : nom sous chaque récompense des écrans de résultat */
+.rw-icons.rw-big .rw, .rw-icons.named .rw { display: inline-flex; flex-direction: column; align-items: center; margin: 0 6px; }
+.rw-name { font: 600 11px system-ui, sans-serif; color: #c9b88a; }
+
+/* v9.8 (H1, G1-G3) : Carnet du jour */
+.db-head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.db-title { display: flex; justify-content: space-between; align-items: baseline; font: 800 18px system-ui, sans-serif; color: #ffe7b0; }
+.db-path { display: flex; gap: 6px; align-items: center; }
+.db-path i { flex: 1; height: 8px; border-radius: 4px; background: #2a3350; box-shadow: inset 0 1px 2px #0008; }
+.db-path i.on { background: linear-gradient(#ffe27a, #d49a1a); box-shadow: 0 0 6px #ffb84a88; }
+.db-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+.db-card { position: relative; display: grid; grid-template-columns: 56px 1fr; grid-template-rows: auto auto; gap: 4px 8px; padding: 10px; border-radius: 12px; overflow: hidden;
+  background: linear-gradient(#f3e3bf, #d9c08c); color: #3a2a14; border: 2px solid #8a6a2a; box-shadow: 0 2px 0 #5a4418; }
+.db-card.done { filter: saturate(.8); }
+.db-art img { width: 52px; height: 52px; image-rendering: pixelated; filter: drop-shadow(0 2px 2px #0006); }
+.db-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.db-body b { font: 800 14px system-ui, sans-serif; } .db-body small { font-size: 12px; color: #5a4628; }
+.db-bar { position: relative; height: 14px; border-radius: 7px; background: #6a5432; overflow: hidden; margin-top: 3px; }
+.db-bar i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(#8be36a, #3f9a2c); }
+.db-bar span { position: relative; display: block; text-align: center; font: 700 11px/14px system-ui, sans-serif; color: #fff; text-shadow: 0 1px 1px #000; }
+.db-go { grid-column: 1 / -1; }
+.db-stamp { position: absolute; right: 8px; top: 8px; padding: 2px 8px; border: 3px double #c8961c; border-radius: 6px; color: #c8961c; font: 900 14px system-ui, sans-serif;
+  text-transform: uppercase; transform: rotate(-12deg); background: #fff4d0cc; }
+.db-stamp.fresh { animation: db-stamp 450ms cubic-bezier(.3, 1.6, .5, 1) both; }
+.db-card:has(.db-stamp.fresh) { animation: db-jolt 300ms 380ms both; }
+@keyframes db-stamp { 0% { transform: rotate(-12deg) scale(3); opacity: 0; } 70% { opacity: 1; } 100% { transform: rotate(-12deg) scale(1); } }
+@keyframes db-jolt { 0%, 100% { transform: none; } 30% { transform: translate(1px, 2px); } 60% { transform: translate(-1px, -1px); } }
+.db-big-stamp { margin: 12px auto; width: max-content; padding: 6px 18px; border: 4px double #d4a72c; border-radius: 10px; color: #ffd36a; font: 900 22px system-ui, sans-serif;
+  text-transform: uppercase; transform: rotate(-6deg); text-shadow: 0 0 10px #ffb30088; }
+.db-big-stamp.fresh { animation: db-stamp 600ms cubic-bezier(.3, 1.6, .5, 1) both; }
+.db-chest { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 10px auto; padding: 10px 18px; border-radius: 12px; border: 2px solid #8a6a2a;
+  background: linear-gradient(#3a2a18, #22180e); color: #ffe7b0; cursor: pointer; }
+.db-chest img { width: 64px; height: 64px; image-rendering: pixelated; }
+.db-chest[disabled] { opacity: .7; cursor: default; }
+.db-chest.ready img { animation: db-wobble 1.2s ease-in-out infinite; filter: drop-shadow(0 0 8px #ffd36a); }
+.db-chest.opened { opacity: .6; }
+@keyframes db-wobble { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-6deg); } 40% { transform: rotate(6deg); } 60% { transform: rotate(-3deg); } }
+.db-session { margin-top: 8px; }
+/* Roue du jour */
+.wheel-screen { text-align: center; }
+.wh-wrap { position: relative; width: 260px; height: 260px; margin: 8px auto; }
+.wh-pointer { position: absolute; left: 50%; top: -6px; transform: translateX(-50%); z-index: 2; color: #ffd23f; font-size: 26px; text-shadow: 0 2px 2px #000; }
+.wh-disc { position: absolute; inset: 0; border-radius: 50%; border: 6px solid #d4a72c; box-shadow: 0 0 0 3px #5a4418, 0 6px 14px #000a; }
+.wh-label { position: absolute; left: 50%; top: 50%; transform: rotate(var(--a)) translateY(-96px) translateX(-50%); transform-origin: 0 0; font: 800 11px system-ui, sans-serif;
+  color: #fff; text-shadow: 0 1px 2px #000; white-space: nowrap; }
+/* Coffre qui s'ouvre */
+.chest-reveal { text-align: center; }
+.cr-chest img { width: 110px; height: 110px; image-rendering: pixelated; animation: cr-open 700ms ease-out both; filter: drop-shadow(0 0 16px #ffd36a); }
+.cr-loot .rw { animation: cr-fly 600ms 500ms ease-out both; }
+@keyframes cr-open { 0% { transform: scale(.4) rotate(-10deg); } 60% { transform: scale(1.2) rotate(4deg); } 100% { transform: scale(1); } }
+@keyframes cr-fly { 0% { transform: translateY(30px); opacity: 0; } 100% { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .db-stamp.fresh, .db-big-stamp.fresh, .db-card, .db-chest.ready img, .cr-chest img, .cr-loot .rw { animation: none !important; } }
+html.reduce-motion .db-stamp.fresh, html.reduce-motion .db-big-stamp.fresh, html.reduce-motion .db-card, html.reduce-motion .db-chest.ready img,
+html.reduce-motion .cr-chest img, html.reduce-motion .cr-loot .rw { animation: none !important; }
+.db-chest .rw img { width: 30px; height: 30px; }
+/* v9.8 (J1) : pastille chiffrée */
+#tabs .badge.count { width: auto; height: 16px; min-width: 16px; padding: 0 4px; border-radius: 8px; top: 0; right: 0; font: 800 10px/16px system-ui, sans-serif; color: #fff; text-align: center; }
+/* v9.8 (J2) : bandeau de quête sur la scène */
+#quest-banner { position: absolute; left: 8px; top: 72px; z-index: 4; display: flex; align-items: center; gap: 6px; max-width: min(320px, 60%); padding: 3px 10px 3px 6px;
+  border-radius: 12px; border: 1px solid #8a6a2a; background: linear-gradient(#3a2a18e6, #22180ee6); color: #ffe7b0; font: 600 12px system-ui, sans-serif; cursor: pointer; }
+#quest-banner .rw-icons img { width: 20px; height: 20px; }
+#quest-banner .qb-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#quest-banner.ready { border-color: #ffd23f; box-shadow: 0 0 10px #ffd23f99; animation: qb-glow 1.2s ease-in-out infinite; }
+@keyframes qb-glow { 50% { box-shadow: 0 0 18px #ffd23fcc; } }
+html.reduce-motion #quest-banner.ready { animation: none; }
+.layout-strip #quest-banner, .layout-mini #quest-banner { display: none !important; }
