@@ -18,7 +18,7 @@ if (save !== 'new') {
   const raw = await readFile(save === 'fixture' ? 'tests/fixtures/endgame.json' : save, 'utf8');
   await page.addInitScript((r) => { if (!sessionStorage.getItem('cap')) { localStorage.setItem('idle-rpg.save', r); sessionStorage.setItem('cap', '1'); } }, raw);
 }
-await page.goto(url);
+await page.goto(url + (process.env.Q ?? ''));
 await page.waitForFunction(() => window.__idle?.ui, null, { timeout: 30000 });
 await page.waitForTimeout(2500);
 await page.evaluate(() => { document.querySelectorAll('#modal:not(.hidden) [data-action="close-modal"], #modal:not(.hidden) [data-action="claim-offline"]').forEach((b) => b.click()); });

@@ -9,7 +9,7 @@ import { frontCompanion } from '../../core/behaviors.js'; // v9.6.3
 import { RESONANCE, elementResonance, teamSlotsOf } from '../../core/companions.js'; // v9.6.1
 import { MULTIPLICATIVE, RARITY_SKILL, activeSynergies, allCompanionSkills, companionById, companionMultiplier, companionSkillMultiplier, companionSkills, companionUpgradeCost, skillKillGold, duplicates, equippedOfKind, teamKind, ultimateUnlocked, unitLevel } from '../../core/companions.js';
 import { COMPANION_ROLES, ROLES, SYNERGIES } from '../../data/synergies.js';
-import { elementBadge, elementWheel, unitElement, zoneElement } from '../../core/elements.js'; // v9.3.1 : types · v9.5.1 : roue
+import { elementBadge, elementWheel, unitElement, zoneElement, wheelShown } from '../../core/elements.js'; // v9.3.1 : types · v9.5.1 : roue
 import { currentEncounter } from '../../core/combat.js'; // v9.5.1
 import { costButton, effectText, escapeHtml, fold, hdArt, formatNumber, icon, img, rarityLabel, stars } from '../common.js';
 import { animCanvas } from '../animator.js';
@@ -256,7 +256,7 @@ export default {
       : adv ? '<div class="muted team-advice">Ton équipe est la meilleure disponible ici.</div>' : '';
     const res = elementResonance(state); // v9.6.1 (4.5)
     const resLine = res ? `<div class="good">Résonance : ${res.count} × ${elementBadge(res.element)} → +${res.pct} % de dégâts</div>` : `<div class="muted">Résonance : 2 membres du même élément → +${RESONANCE[2]} % de dégâts, 3 → +${RESONANCE[3]} %.</div>`;
-    const wheel = `<div class="team-wheel">Monde : ${elementBadge(zoneElement(currentEncounter(state).zoneIndex))} ${elementWheel(zoneElement(currentEncounter(state).zoneIndex))}${resLine}</div>`; // v9.5.1
+    const wheel = !wheelShown(state) ? '' : `<div class="team-wheel">Monde : ${elementBadge(zoneElement(currentEncounter(state).zoneIndex))} ${elementWheel(zoneElement(currentEncounter(state).zoneIndex))}${resLine}</div>`; // v9.5.1
     // v9.7.1 : résonance, équipe conseillée et synergies dans un volet replié « Conseils » ; restent en vue les places
     // d'équipe et la grille. Le bouton « Placer cette équipe » garde un rappel discret sur le titre.
     // v9.7.1 (lot 6) : liens entre compagnons (actifs et à découvrir).

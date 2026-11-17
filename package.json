@@ -24,7 +24,9 @@
     "export-assets": "node tools/export-assets.mjs",
     "dist:win": "electron-builder --win --publish never",
     "test:exe": "node tools/desktop-smoke.mjs",
-    "test:upgrade": "node tools/upgrade-smoke.mjs"
+    "test:upgrade": "node tools/upgrade-smoke.mjs",
+    "e2e:beginner": "node tools/e2e-beginner.mjs",
+    "capture": "node tools/capture.mjs"
   },
   "devDependencies": {
     "@capacitor/android": "^7.6.10",

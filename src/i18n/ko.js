@@ -326,7 +326,7 @@ export const PATTERNS = [
   [/^(\d+) demandes?$/, '요청 $1개'],
   [/^Mes amis \((\d+)\)$/, '내 친구 ($1)'],
   [/^En attente : (.*)$/, '대기 중: $1'],
-  [/^Vous joue en invité \((.+)\)\.$/, '게스트로 플레이 중이에요 ($1).'],
+  [/^Tu joues en invité \((.+)\)\.$/, '게스트로 플레이 중이에요 ($1).'],
   [/^sur les (\d+) dernières$/, '최근 $1회 기준'],
   [/^(\d+ %) de la campagne$/, '캠페인의 $1'],
   [/^après (.+) de jeu$/, (m) => `플레이 ${dur(m[1])} 후`],

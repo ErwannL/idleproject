@@ -66,7 +66,7 @@ export default {
     const scope = r.scope ?? 'all';
     const c = ui.cloud ?? {};
     const member = c.loggedIn && !c.guest;
-    const invite = member ? '' : `<div class="card ranking-invite"><b>${c.loggedIn ? `Vous joue en invité (${escapeHtml(c.pseudo)}).` : 'Vous n\'êtes pas connecté.'}</b>
+    const invite = member ? '' : `<div class="card ranking-invite"><b>${c.loggedIn ? `Tu joues en invité (${escapeHtml(c.pseudo)}).` : 'Vous n\'êtes pas connecté.'}</b>
       Crée ton compte pour apparaître au classement, voir ton rang et ajouter des amis.
       <div class="detail-actions"><button class="btn btn-gold" data-action="open-account">Créer mon compte</button></div></div>`;
     const scopes = `<div class="row ranking-scopes"><button class="btn${scope === 'all' ? ' btn-gold' : ''}" data-action="ranking-scope" data-value="all">Tout le monde</button>

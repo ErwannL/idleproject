@@ -13,6 +13,7 @@ import { SECTIONS_WITH_MILESTONES, encyclopediaNext, sectionStatus } from './enc
 import { nextMasteryTier } from './powers.js';
 import { companionById } from './companions.js';
 import { eventLabel, hasRoom } from './events.js';
+import { currentEvent, eventGoals, eventRecord } from './ancients.js';
 
 // Chaque entrée : { key, kind, label, reward, tab, item } ; item = la récompense contient un objet (sac plein → bloquée).
 export function claimables(state, now = Date.now(), balance = BALANCE) {
@@ -58,6 +59,14 @@ export function claimables(state, now = Date.now(), balance = BALANCE) {
       push({ key: `mastery:${bossId}`, kind: 'mastery', bossId, label: `Maîtrise : ${BOSSES[bossId]?.name ?? bossId}`, reward, tab: 'boss' });
     }
   }
+  // v9.8 (C2) : objectif d'événement rempli → pastille sur Aventure › Événement, et dans « Tout récupérer ».
+  try {
+    const ev = currentEvent();
+    if (ev?.kind === 'small') {
+      const rec = eventRecord(state);
+      for (const g of eventGoals(ev)) if (!rec.claimed.includes(g.id) && (rec.goals[g.id] ?? 0) >= g.target) push({ key: `eventGoal:${g.id}`, kind: 'eventGoal', id: g.id, label: `Événement : ${g.label}`, reward: g.give ?? {}, tab: 'event' });
+    }
+  } catch { /* pas d'événement */ }
   return out;
 }
 

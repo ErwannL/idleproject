@@ -84,7 +84,7 @@ export const PATTERNS_919 = [
   P('Aucune fusion possible : il faut # objets du même emplacement et de la même rareté (non verrouillés, hors objets ancestraux).', 'No fusion possible: you need $1 unlocked, non-ancestral items of the same slot and rarity.'),
   P('Fabriquer @ ·', (m) => ({ 'Épique+': 'Craft Epic+ ·', 'Rare+': 'Craft Rare+ ·' })[m[1]] ?? null),
   P('# objets de même emplacement et de même rareté → 1 objet de la rareté suivante, au niveau du meilleur.', '$1 items of the same slot and rarity → 1 item of the next rarity, at the level of the best one.'),
-  P('En attente : @', 'Pending: $1'), P('# demande~s', (m) => `${m[1]} ${pl(m[1], 'request', 'requests')}`), P('Vous joue en invité (@).', 'You are playing as a guest ($1).'),
+  P('En attente : @', 'Pending: $1'), P('# demande~s', (m) => `${m[1]} ${pl(m[1], 'request', 'requests')}`), P('Tu joues en invité (@).', 'You are playing as a guest ($1).'),
   P('# point~s', (m) => `${m[1]} ${pl(m[1], 'point', 'points')}`), P('Recharge # s · lancement automatique', 'Cooldown $1 s · auto-cast'), P('@ pendant # s', '%1 for $2 s'), P('· @ pendant # s', '· %1 for $2 s'),
   P('sur les # dernières', 'over the last $1'), P('après @ de jeu', 'after &1 of play'), P('# % de la campagne', '$1% of the campaign'), P('· obtenu @', '· owned $1'), P('Passif à #★ :', 'Passive at $1★:'),
   P('Coût moyen sur la bannière : # tirages pour l\'obtenir (# au plus avec le filet), # pour #★.', 'Average cost on the banner: $1 pulls to get it ($2 at most with the pity), $3 for $4★.'),

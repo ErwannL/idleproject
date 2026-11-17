@@ -9,7 +9,8 @@ import { updateStars, worldStars } from './core/world-stars.js'; // v9.7.1 (lot 
 import { finishRevenge, startRevenge } from './core/revenge.js'; // v9.7.1 (lot 4)
 import { advanceUnlocks } from './core/unlock-quests.js'; // v9.7.1 (lot 3)
 import { playerCast, playerGuard, playerUltimate, playerWeakSpot } from './core/combat.js'; // v9.7.1 (lot 2)
-import { grantBlessing } from './core/blessing.js'; // v9.7.1 (prologue)
+import { grantBlessing } from './core/blessing.js';
+import { wheelShown } from './core/elements.js'; // v9.7.1 (prologue)
 import { startCatchUp } from './core/boost.js';
 import { claimSessionChest, newSessionGoals } from './core/session-goals.js';
 import { BALANCE } from './data/balance.js';
@@ -439,6 +440,7 @@ const actions = {
         case 'encyclopedia': add(claimEncyclopedia(state)); break;
         case 'collection': add(claimSection(state, c.id)); break;
         case 'mastery': add(claimMastery(state, c.bossId)); break;
+        case 'eventGoal': add(claimEventGoal(state, c.id)); break; // v9.8
         case 'bounty': { const r = claimBounty(state, rng); if (r) { add({ gems: r.gems }); items += 1; } break; }
         default: break;
       }
@@ -1567,6 +1569,8 @@ setInterval(() => {
   for (const w of updateStars(state)) highlight(`world-${w}`, `Monde ${w + 1} terminé !`, `${worldStars(state, w).filter(Boolean).length} étoile(s) sur 3. Le Colosse t'attend pour un face-à-face.`);
   if (state.records.rebirths > 0) highlight('first-rebirth', 'Première Renaissance !', 'Tu repars plus fort : tes compagnons, tes talents et tes ensembles restent.');
   for (const b of activeBonds(state)) highlightBond(b); // v9.7.1 (lot 6) : liens entre compagnons
+  // v9.8 (0.7) : premier monde d'un autre élément : la roue apparaît, expliquée en une bulle.
+  if (state.unlocks && !state.unlocks.legacy && wheelShown(state)) highlight('element-wheel', 'Nouvel élément : l\'Eau', 'Feu > Nature > Eau > Feu : +50 % contre le bon élément. La roue est dans Équipement.');
   const q = advanceUnlocks(state);
   if (!q) return;
   ui.celebrate?.(`unlock-${q.id}`, 'Nouveau !', q.label);

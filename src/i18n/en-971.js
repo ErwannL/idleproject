@@ -1,6 +1,10 @@
 // v9.7.1 : anglais du cadrage, du sac de butin et des menus allégés. Branché à la fin de ./en.js.
 let LK = () => null;
 export const EXACT_971 = {
+  "Nouvel élément : l'Eau": "New element: Water",
+  "Feu > Nature > Eau > Feu : +50 % contre le bon élément. La roue est dans Équipement.": "Fire > Nature > Water > Fire: +50% against the right element. The wheel is in Equipment.",
+  "Des monstres !": "Monsters!",
+  "Touche le bouton qui brille : ta compétence.": "Tap the glowing button: your skill.",
   "Fusionner": "Fuse",
   "Fabriquer": "Craft",
   "Rien à recycler : tes objets sont protégés (verrouillés, meilleurs ou utiles à un ensemble).": "Nothing to recycle: your items are protected (locked, better, or useful for a set).",
@@ -190,6 +194,7 @@ export const EXACT_971 = {
   "Tient": "Withstands",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
+  [/^Événement : (.+)$/, (m) => `Event: ${LK(m[1]) ?? m[1]}`],
   [/^Rareté choisie ou mieux, au niveau de ton étape max \((\d+)\)\.$/, (m) => `Chosen rarity or better, at your max stage level (${m[1]}).`],
   [/^Rien d'abordable : il te manque (.+) or$/, (m) => `Nothing affordable: you need ${m[1]} more gold`],
   [/^Niv\. (\d+) · Étape (\d+)$/, (m) => `Lv. ${m[1]} · Stage ${m[2]}`],

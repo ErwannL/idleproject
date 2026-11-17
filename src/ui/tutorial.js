@@ -91,6 +91,7 @@ export function updateTutorial(state, root, full, panelOpen = false, translate =
     layer.querySelector('.tuto-ok').addEventListener('click', (e) => { e.stopPropagation(); markDone(latest, layer.dataset.step); layer.remove(); });
   }
   const { step, el } = pick;
+  layer.target = el; // cible actuelle (tests de bout en bout)
   if (layer.dataset.step !== step.id) {
     layer.dataset.step = step.id;
     layer.querySelector('.tuto-text').textContent = translate(step.text);
@@ -109,15 +110,19 @@ export function updateTutorial(state, root, full, panelOpen = false, translate =
   const finger = layer.querySelector('.tuto-finger');
   const bubble = layer.querySelector('.tuto-bubble');
   finger.hidden = !step.finger;
-  finger.style.left = `${Math.round(r.left + r.width / 2 - 14)}px`;
-  finger.style.top = `${Math.round(r.bottom - 6)}px`;
+  // v9.8 (0.1) : cible dans la barre de gauche : le doigt pointe depuis la droite, la bulle suit à droite du doigt.
+  const side = Boolean(el.closest('#tabs'));
+  finger.classList.toggle('side', side);
+  finger.style.left = `${Math.round(side ? r.right + 2 : r.left + r.width / 2 - 14)}px`;
+  finger.style.top = `${Math.round(side ? r.top + r.height / 2 - 16 : r.bottom - 6)}px`;
   // v9.3.8 (3b) : la bulle se met À CÔTÉ de sa cible (à droite, sinon à gauche, sinon au-dessus / dessous) pour ne jamais
   // cacher le bouton suivant ; plus étroite.
   const bw = Math.min(220, innerWidth - 32);
   bubble.style.width = `${bw}px`;
   const h = bubble.offsetHeight || 60;
   const midY = Math.round(Math.max(8, Math.min(innerHeight - h - 8, r.top + r.height / 2 - h / 2)));
-  if (r.right + 12 + bw <= innerWidth - 8) { bubble.style.left = `${Math.round(r.right + 12)}px`; bubble.style.top = `${midY}px`; bubble.style.bottom = ''; }
+  const gap = side && step.finger ? 48 : 12;
+  if (r.right + gap + bw <= innerWidth - 8) { bubble.style.left = `${Math.round(r.right + gap)}px`; bubble.style.top = `${midY}px`; bubble.style.bottom = ''; }
   else if (r.left - 12 - bw >= 8) { bubble.style.left = `${Math.round(r.left - 12 - bw)}px`; bubble.style.top = `${midY}px`; bubble.style.bottom = ''; }
   else {
     const below = r.top < innerHeight / 2;

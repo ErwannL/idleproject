@@ -67,3 +67,9 @@ export function elementWheel(highlight = null) {
 }
 // Éléments forts contre `el` (ceux qui le battent).
 export function strongAgainst(el) { return Object.keys(BEATS).filter((a) => BEATS[a] === el); }
+
+// v9.8 (0.7) : la roue des éléments n'apparaît qu'une fois un monde d'un autre élément atteint (monde 3 : eau).
+export function wheelShown(state) {
+  const best = Math.max(state?.maxStage ?? 1, state?.records?.bestStage ?? 1);
+  return !state?.unlocks || state.unlocks.legacy || best > 40;
+}

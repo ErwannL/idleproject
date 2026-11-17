@@ -31,7 +31,8 @@ export const PROLOGUE_SCENES = SCENES;
 // Répliques à l'écran : [début (s), texte]. Un appui sur la scène saute à la suivante (dans les scènes 1 à 4).
 export const PROLOGUE_LINES = [
   [1, 'Les ruines d\'Ascendrya. Tu marches, au sommet de ta force.'],
-  [7, 'Des monstres ! Touche le bouton qui brille : ta compétence.'],
+  [7, 'Des monstres !'],
+  [9, 'Touche le bouton qui brille : ta compétence.'], // v9.8 (0.6) : au moment où le bouton brille, doigt dessus
   [20, 'Le sol tremble…'],
   [24, 'Le Colosse des Anciens. Frappe-le de toutes tes forces.'],
   [33, 'Tes coups l\'effleurent à peine.'],
@@ -84,7 +85,7 @@ export function prologueState(t) {
     allies: t >= ALLIES_IN ? clamp((t - ALLIES_IN) / 1.5) : 0,
     allyDown: ALLY_FALL.map((f) => t >= f), // Prêtresse, Pyromancienne
     gearLeft: 3 - GEAR_BREAK.filter((g) => t >= g).length, // arme, casque, armure
-    skillPrompt: (t >= 7 && t < 19) || (t >= 24 && t < 48),
+    skillPrompt: (t >= 9 && t < 19) || (t >= 24 && t < 48),
     allyPrompt: t >= 56 && t < 74,
     white: t >= WHITE[0] ? clamp((t - WHITE[0]) / (WHITE[1] - WHITE[0])) : 0,
     shake: (t >= 20 && t < 23) || (t >= 75 && t < 77),
@@ -122,7 +123,7 @@ export function playPrologue({ reduced = false, state: game = null, onDone = () 
       <div class="pro-cboss hidden"><b>Colosse des Anciens</b><i class="pro-bhp"><i></i></i></div></div>
     <div class="pro-dialog" aria-live="polite"><p></p></div>
     <div class="pro-actions">
-      <button class="pro-act pro-skill hidden" type="button" data-act="skill">⚔ Frappe</button>
+      <button class="pro-act pro-skill hidden" type="button" data-act="skill">⚔ Frappe<span class="pro-finger" aria-hidden="true">👆</span></button>
       <button class="pro-act pro-heal hidden" type="button" data-act="priestess">✚ Soin</button>
       <button class="pro-act pro-fire hidden" type="button" data-act="pyromancer">🔥 Flammes</button>
     </div>
@@ -333,7 +334,7 @@ export function playPrologue({ reduced = false, state: game = null, onDone = () 
     t += dt;
     const s = prologueState(t);
     // Sans action du joueur, la compétence part seule (jamais bloquant).
-    if (s.skillPrompt && t > 12 && pressed === 0) once('autoSkill', () => act('skill'));
+    if (s.skillPrompt && t > 14 && pressed === 0) once('autoSkill', () => act('skill'));
     if (s.scene === 'rebirth') { rebirth(); return; }
     try { frameCombat(dt, s); } catch (err) { console.warn('prologue', err); rebirth(); return; }
     render(s);

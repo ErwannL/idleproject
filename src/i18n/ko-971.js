@@ -1,6 +1,10 @@
 // v9.7.1 : 한국어 — 화면 구도, 전리품 가방, 간소화된 메뉴. ./ko.js 끝에 연결.
 let LK = () => null;
 export const EXACT_971 = {
+  "Nouvel élément : l'Eau": "새 원소: 물",
+  "Feu > Nature > Eau > Feu : +50 % contre le bon élément. La roue est dans Équipement.": "불 > 자연 > 물 > 불: 유리한 원소에 +50%. 원소표는 장비에 있어요.",
+  "Des monstres !": "몬스터다!",
+  "Touche le bouton qui brille : ta compétence.": "빛나는 버튼을 눌러: 너의 스킬이야.",
   "Fusionner": "합성",
   "Fabriquer": "제작",
   "Rien à recycler : tes objets sont protégés (verrouillés, meilleurs ou utiles à un ensemble).": "재활용할 게 없어요: 아이템이 보호돼 있어요 (잠금, 더 좋음, 세트에 필요).",
@@ -190,6 +194,7 @@ export const EXACT_971 = {
   "Tient": "버팀",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
+  [/^Événement : (.+)$/, (m) => `이벤트: ${LK(m[1]) ?? m[1]}`],
   [/^Rareté choisie ou mieux, au niveau de ton étape max \((\d+)\)\.$/, (m) => `선택한 등급 이상, 최고 스테이지(${m[1]}) 레벨.`],
   [/^Rien d'abordable : il te manque (.+) or$/, (m) => `살 수 있는 게 없어요: 골드 ${m[1]} 부족`],
   [/^Niv\. (\d+) · Étape (\d+)$/, (m) => `Lv. ${m[1]} · 스테이지 ${m[2]}`],

@@ -3701,3 +3701,10 @@ html:not([data-theme="knight"]) #panel-body > .card ~ .card > .section-title:fir
 .forge-badge { position: absolute; top: 4px; right: 6px; min-width: 20px; padding: 0 5px; border-radius: 10px; background: #d4372f; color: #fff; font-size: 12px; }
 .forge-help { margin-top: 8px; color: #c9b88a; font-size: 12px; }
 .forge-help summary { display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #3b5a8a; text-align: center; cursor: pointer; list-style: none; }
+/* v9.8 (0.1) : doigt qui pointe un menu de la barre de gauche (depuis la droite) */
+.tuto-finger.side { transform: rotate(-90deg); animation: tuto-tap-side 900ms ease-in-out infinite; }
+@keyframes tuto-tap-side { 0%, 100% { transform: rotate(-90deg) translateY(0); } 50% { transform: rotate(-90deg) translateY(6px); } }
+@media (prefers-reduced-motion: reduce) { .tuto-finger.side { animation: none; } }
+.prologue2 .pro-skill { position: relative; }
+.prologue2 .pro-finger { position: absolute; left: 50%; top: 100%; margin-left: -12px; font-size: 26px; animation: tuto-tap 900ms ease-in-out infinite; pointer-events: none; }
+.prologue2 .pro-skill.used .pro-finger { display: none; }

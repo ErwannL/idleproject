@@ -1220,7 +1220,7 @@ export const EXACT = {
   "Terminés": "Completed",
   "Verrouillés": "Locked",
   "Un compagnon SSR est adapté à ce donjon…": "An SSR companion is suited to this dungeon…",
-  "Avec lui dans l'équipe, il écrase tout ici. À vous de découvrir lequel !": "With them in your team, they crush everything here. Find out which one!",
+  "Avec lui dans l'équipe, il écrase tout ici. À toi de découvrir lequel !": "With them in your team, they crush everything here. Find out which one!",
   "Compagnon adapté": "Suited companion",
   "dans l'équipe ✔": "in the team ✔",
   "dans l'équipe": "in the team",
