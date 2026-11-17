@@ -29,6 +29,10 @@ jobs:
           echo "alias présents :"; grep -i "PrivateKeyEntry" list.txt | cut -d, -f1 | sed 's/^/  /'
           keytool -list -keystore ks.jks -storepass "$KS_PASS" -alias "$KEY_ALIAS" >/dev/null 2>&1 || { echo "ALIAS INTROUVABLE : $KEY_ALIAS"; exit 1; }
           echo test > f.txt && (cd . && zip -q t.jar f.txt)
+          echo "type : $(keytool -list -keystore ks.jks -storepass "$KS_PASS" 2>/dev/null | grep -i 'keystore type')"
+          [ "$KEY_PASS" = "$KS_PASS" ] && echo "KEY_PASS identique à KS_PASS" || echo "KEY_PASS DIFFÉRENT de KS_PASS (longueurs ${#KEY_PASS} / ${#KS_PASS})"
+          cp t.jar t2.jar
+          if jarsigner -keystore ks.jks -storepass "$KS_PASS" -keypass "$KS_PASS" t2.jar "$KEY_ALIAS" >/dev/null 2>&1; then echo "la clé s'ouvre avec le mot de passe du FICHIER"; else echo "la clé ne s'ouvre PAS avec le mot de passe du fichier"; fi
           jarsigner -keystore ks.jks -storepass "$KS_PASS" -keypass "$KEY_PASS" t.jar "$KEY_ALIAS" > s.txt 2>&1 || { echo "MOT DE PASSE DE LA CLÉ FAUX"; head -3 s.txt; exit 1; }
           keytool -list -v -keystore ks.jks -storepass "$KS_PASS" -alias "$KEY_ALIAS" | grep -E "Valid|SHA256:" | head -3
           echo "TOUT EST BON : signature réussie"
