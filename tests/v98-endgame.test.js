@@ -25,3 +25,14 @@ test('sauvegarde de référence (Cycle ×3, niveau 140) : un monstre ordinaire m
   while (t < 30 && s.records.kills === k0) { step(s, w, 0.05, rng); w.events.length = 0; t += 0.05; }
   assert.ok(s.records.kills > k0 && t < 10, `premier monstre tué en ${t.toFixed(1)} s`);
 });
+
+import { generateItem } from '../src/core/loot.js';
+import { computeHeroStats } from '../src/core/stats.js';
+import { levelForStage } from '../src/core/combat.js';
+test('sauvegarde de référence : une arme épique trouvée change la puissance d\'au moins 1 %', () => {
+  const s = ref();
+  const before = computeHeroStats(s).combatPower;
+  const item = generateItem(s, new Rng(3), { level: levelForStage(s.maxStage), minRarity: 'epic', slot: 'weapon' });
+  const after = computeHeroStats(s, undefined, { ...s.equipment, weapon: item }).combatPower;
+  assert.ok(Math.abs(after / before - 1) >= 0.01, `${before} → ${after}`);
+});

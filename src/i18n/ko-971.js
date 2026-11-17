@@ -1,6 +1,13 @@
 // v9.7.1 : 한국어 — 화면 구도, 전리품 가방, 간소화된 메뉴. ./ko.js 끝에 연결.
 let LK = () => null;
 export const EXACT_971 = {
+  "Recycle les objets inutiles en éclats, puis forge mieux.": "쓸모없는 아이템을 조각으로 재활용하고 더 좋게 제작해요.",
+  "Recycler, Fusionner ou Fabriquer : un gros bouton chacun. Les éclats renforcent tes objets et en fabriquent de nouveaux.": "재활용, 합성, 제작: 큰 버튼 하나씩. 조각으로 아이템을 강화하고 새로 만들어요.",
+  "Ta routine du jour sur un seul écran.": "하루 루틴을 한 화면에.",
+  "Chaque carte se fait en un ou deux appuis : Chasse rapide, Roue, donjon, Titan, expéditions, missions. Tout fini : tampon « Journée accomplie » et coffre de fin de journée.": "카드마다 한두 번 터치: 빠른 사냥, 룰렛, 던전, 타이탄, 파견, 미션. 모두 끝내면 「하루 완료」 도장과 하루 끝 상자.",
+  "C'est quoi ?": "무엇인가요?",
+  "Comment ?": "어떻게?",
+  "Ça rapporte": "얻는 것",
   "🌙 Mode veille (écran sombre : or et étape seulement)": "🌙 절전 모드 (어두운 화면: 골드와 스테이지만)",
   "Touche pour revenir": "터치해서 돌아가기",
   "Les 7 premiers jours": "첫 7일",

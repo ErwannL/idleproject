@@ -248,6 +248,11 @@ function nextBossName(state, balance) {
 // Aide « ? » de chaque écran (v9.1.0) : 3 lignes au plus (`short`), le détail dans « En savoir plus » (`more`).
 // Les textes suivent le lexique du jeu (Compétences, Boosts, Pouvoirs, Talents, Builds…).
 export const PANEL_HELP = {
+  // v9.8 (J1) : Forge et Carnet du jour.
+  forge: { short: 'Recycle les objets inutiles en éclats, puis forge mieux.',
+    more: 'Recycler, Fusionner ou Fabriquer : un gros bouton chacun. Les éclats renforcent tes objets et en fabriquent de nouveaux.' },
+  daybook: { short: 'Ta routine du jour sur un seul écran.',
+    more: 'Chaque carte se fait en un ou deux appuis : Chasse rapide, Roue, donjon, Titan, expéditions, missions. Tout fini : tampon « Journée accomplie » et coffre de fin de journée.' },
   upgrades: {
     short: 'L\'or achète des améliorations. Chaque ligne indique son gain en dégâts/s : à toi de choisir.',
     more: 'Dégâts et Points de vie gagnent ×1,35 / ×1,4 tous les 10 niveaux et ×1,75 tous les 25 niveaux : vise ces paliers. ×10, ×100 et Max achètent plusieurs niveaux d\'un coup.',

@@ -2222,8 +2222,16 @@ export class UI {
     const focusIndex = focused ? focusables(this).indexOf(focused) : -1;
     const h = PANEL_HELP[this.tab];
     const device = h && (this.phone ? h.touch : h.mouse);
+    // v9.8 (J1) : « ? » ouvre une page illustrée de 3 cases (ce que c'est, comment ça marche, ce que ça rapporte) ; le
+    // texte complet reste derrière « En savoir plus ».
+    const HELP_ART = { tower: 'tower', expeditions: 'expedition_map', summon: 'summon_circle', event: 'event_market', tree: 'talent_tree', guild: 'guild_hall', forge: 'forge_hall', dungeons: 'door_crypt', arena: 'arena', camp: 'camp_night' };
+    const sentences = (h?.more ?? '').split(/(?<=[.!])\s+/).filter(Boolean);
+    const step = (pic, title, text) => text ? `<div class="hp-step">${pic}<b>${title}</b><span>${text}</span></div>` : '';
     const help = this.view.helpOpen === this.tab && h
-      ? `<div class="card panel-help-card"><b>Comment ça marche ?</b> ${h.short}${device ? ` ${device}` : ''}
+      ? `<div class="card panel-help-card"><div class="hp-steps">
+          ${step(HELP_ART[this.tab] ? `<img class="px" src="assets/ui/art98/${HELP_ART[this.tab]}.png" alt="">` : img(SUB_ICONS[this.tab] ?? 'icon_star'), 'C\'est quoi ?', h.short)}
+          ${step(img('icon_bolt'), 'Comment ?', device || sentences[0] || '')}
+          ${step(img('icon_chest'), 'Ça rapporte', sentences[device ? 0 : 1] || '')}</div>
           ${h.more ? fold(this, `help-${this.tab}`, 'En savoir plus', `<div>${h.more}</div>${h.env ? `<div>${h.env}</div>` : ''}`) : ''}</div>` : ''; // v9.2.1 : env
     // v9.3.9 (2.5) : même écran → mise à jour sur place (la fiche ouverte ne se referme plus, rien ne saute).
     // v9.8 (J3) : bannière illustrée en tête des écrans de lieu (chargée à la demande).

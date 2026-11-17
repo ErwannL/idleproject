@@ -3877,3 +3877,17 @@ html.reduce-motion .trophy.ready img { animation: none; }
 .eco-pet-ssr span { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.1; }
 .world-picker .world-name { white-space: normal; overflow: visible; text-overflow: clip; }
 .ss-row .ss-label { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.1; }
+/* v9.8 : un seul libellé par onglet (long sur grand écran, court sur téléphone ou avec 5 onglets) */
+#panel-subtabs .subtab span.sub-short { display: none !important; }
+@media (max-width: 560px) {
+  #panel-subtabs .subtab span.sub-long { display: none !important; }
+  #panel-subtabs .subtab span.sub-short { display: inline !important; }
+}
+@media (min-width: 900px) {
+  #panel-subtabs:has(.subtab:nth-of-type(5)) .subtab span.sub-long { display: none !important; }
+  #panel-subtabs:has(.subtab:nth-of-type(5)) .subtab span.sub-short { display: inline !important; }
+}
+/* v9.8 (J1) : aide illustrée en 3 cases */
+.hp-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.hp-step { display: flex; flex-direction: column; align-items: center; gap: 3px; text-align: center; padding: 6px; border-radius: 10px; background: #0f1628; border: 1px solid #3a4a70; font-size: 12px; }
+.hp-step img { width: 56px; height: 48px; object-fit: contain; image-rendering: pixelated; } .hp-step b { color: #ffe7b0; }

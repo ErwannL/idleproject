@@ -1,6 +1,13 @@
 // v9.7.1 : anglais du cadrage, du sac de butin et des menus allégés. Branché à la fin de ./en.js.
 let LK = () => null;
 export const EXACT_971 = {
+  "Recycle les objets inutiles en éclats, puis forge mieux.": "Recycle useless items into shards, then forge better.",
+  "Recycler, Fusionner ou Fabriquer : un gros bouton chacun. Les éclats renforcent tes objets et en fabriquent de nouveaux.": "Recycle, Fuse or Craft: one big button each. Shards reinforce your items and craft new ones.",
+  "Ta routine du jour sur un seul écran.": "Your daily routine on one screen.",
+  "Chaque carte se fait en un ou deux appuis : Chasse rapide, Roue, donjon, Titan, expéditions, missions. Tout fini : tampon « Journée accomplie » et coffre de fin de journée.": "Each card takes one or two taps: Quick hunt, Wheel, dungeon, Titan, expeditions, missions. All done: “Day complete” stamp and end-of-day chest.",
+  "C'est quoi ?": "What is it?",
+  "Comment ?": "How?",
+  "Ça rapporte": "What you get",
   "🌙 Mode veille (écran sombre : or et étape seulement)": "🌙 Sleep mode (dark screen: gold and stage only)",
   "Touche pour revenir": "Tap to come back",
   "Les 7 premiers jours": "The first 7 days",
