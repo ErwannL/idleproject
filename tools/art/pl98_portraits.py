@@ -43,7 +43,7 @@ PETS = {
   'pet_crystal_hedgehog': 'cute hedgehog with violet crystal spikes, lilac sparkles',
   'pet_dragonling': 'cute baby red dragon with small wings, tiny flame from the mouth',
   'pet_jade_turtle': 'cute jade green turtle with golden rune shell, soft green glow',
-  'pet_kitsune': 'cute white fox spirit with several fluffy tails tipped with blue foxfire',
+  'pet_kitsune': 'cute white fox spirit with several fluffy tails tipped with bright orange and red foxfire flames',
   'pet_phoenix': 'small phoenix bird with golden and red fire feathers, embers',
 }
 PET_BASE = 'cute fantasy pet creature, full body, vibrant saturated colors, crisp pixel art with clean pixels, rim lighting, transparent background, same pixel style as reference'
