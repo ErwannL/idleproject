@@ -121,6 +121,7 @@ export const EXACT_971 = {
   "Trophées": "Trophies",
   "Expéditions": "Expeditions",
   "Liens actifs": "Active bonds",
+  "Lancer les compétences (v9.7.1)": "Cast skills",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
   [/^Niv\. (\d+) · Étape (\d+)$/, (m) => `Lv. ${m[1]} · Stage ${m[2]}`],

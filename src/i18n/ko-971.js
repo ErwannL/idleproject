@@ -121,6 +121,7 @@ export const EXACT_971 = {
   "Trophées": "트로피",
   "Expéditions": "원정",
   "Liens actifs": "활성 유대",
+  "Lancer les compétences (v9.7.1)": "스킬 사용",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
   [/^Niv\. (\d+) · Étape (\d+)$/, (m) => `Lv. ${m[1]} · 스테이지 ${m[2]}`],

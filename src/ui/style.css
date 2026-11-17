@@ -3593,7 +3593,7 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 .lex { border-bottom: 1px dotted currentColor; cursor: help; }
 .lex:focus-visible { outline: 2px solid var(--gold, #e8b64a); outline-offset: 1px; }
 /* v9.7.1 (lot 5) : mode simple — l'essentiel d'abord ; détails et réglages avancés cachés (dépliables ailleurs). */
-#app.simple .rb-detail, #app.simple .summon-odds .muted, #app.simple .next-unlock.muted, #app.simple .bag-for, #app.simple .equip-for { display: none !important; }
+html.simple .rb-detail, html.simple .summon-odds .muted, html.simple .next-unlock.muted, html.simple .bag-for, html.simple .equip-for { display: none !important; }
 /* v9.7.1 (lot 4) : jauge Revanche et étoiles des mondes. */
 .rv-gauge { display: flex; align-items: center; gap: 8px; }
 .rv-dots { display: inline-flex; gap: 3px; }

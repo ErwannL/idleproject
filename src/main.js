@@ -998,7 +998,7 @@ const actions = {
   setShake(on) { state.ui.shake = on; done(true); }, // v9.3.9
   // v9.7.1 : taille des personnages (Auto / Petit / Moyen / Grand) : recadre la scène tout de suite.
   toggleLoadout(id) { if (toggleLoadout(state, id)) done(true); }, // v9.7.1 (lot 6) : 3 compétences actives
-  setSimple(on) { state.ui.simple = on; ui.root.classList.toggle('simple', on); done(true); }, // v9.7.1 (lot 5)
+  setSimple(on) { state.ui.simple = on; document.documentElement.classList.toggle('simple', on); done(true); }, // v9.7.1 (lot 5)
   setCombatAssist(v) { state.ui.combatAssist = ['full', 'manual'].includes(v) ? v : 'mixed'; done(true); }, // v9.7.1 (lot 2)
   setSkillNames(on) { state.ui.skillNames = on; SceneRenderer.skillNames = on; done(true); }, // v9.7.1 (lot A)
   setCharSize(v) { state.ui.charSize = ['small', 'medium', 'large'].includes(v) ? v : 'auto'; SceneRenderer.sizePref = state.ui.charSize; resizeScene(); done(true); },
@@ -1536,8 +1536,9 @@ function highlightBond(b) {
   save();
 }
 // v9.7.1 (lot 3) : partie neuve → systèmes ouverts par mini-quêtes (une ancienne partie garde tout ce qui était ouvert).
-if (loaded.source === 'new' && !state.unlocks) { state.unlocks = { done: [], base: { ...state.records } }; state.ui.simple = true; } // v9.7.1 : mode simple par défaut
-ui.root.classList.toggle('simple', state.ui.simple === true);
+// Tests automatisés (navigateur piloté) : tout reste ouvert, comme le tutoriel qui ne s'y lance pas (sauf ?quests).
+if (loaded.source === 'new' && !state.unlocks && (!navigator.webdriver || location.search.includes('quests'))) { state.unlocks = { done: [], base: { ...state.records } }; state.ui.simple = true; } // v9.7.1 : mode simple par défaut
+document.documentElement.classList.toggle('simple', state.ui.simple === true);
 setInterval(() => {
   // v9.7.1 (lot 4) : étoiles des mondes terminés, moments forts (premier monde, premier Légendaire, première Renaissance).
   for (const w of updateStars(state)) highlight(`world-${w}`, `Monde ${w + 1} terminé !`, `${worldStars(state, w).filter(Boolean).length} étoile(s) sur 3. Le Colosse t'attend pour un face-à-face.`);

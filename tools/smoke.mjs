@@ -395,7 +395,7 @@ await check('vitesse ×10 : l’inventaire reste cliquable (pas de redessin pend
 await check('clavier : onglet par touche, flèches entre les boutons, Entrée maintenue = achat en continu', async () => {
   await game(() => { __idle.state.gold += 1e40; __idle.ui.closePanel(); __idle.ui.lastSub = { hero: 'upgrades' }; });
   await page.click('#scene', { position: { x: 5, y: 5 } }).catch(() => {});
-  await page.keyboard.press('1'); // v9.1.0 : 1 = Héros (chiffre fixe par menu)
+  await page.keyboard.press('Shift+Digit1'); // v9.1.0 : 1 = Héros ; v9.7.1 : 1, 2, 3 lancent les compétences, Maj + chiffre ouvre les menus
   await page.waitForTimeout(300);
   const tab = await game(() => __idle.ui.tab);
   assert(tab === 'upgrades', `onglet ${tab}`);

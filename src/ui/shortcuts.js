@@ -51,7 +51,8 @@ export function shortcutsList() {
     ['← ↑ → ↓', 'Se déplacer entre les boutons (la sélection est encadrée en or)'],
     ['Entrée ou Espace', 'Activer le bouton sélectionné'],
     ['Entrée maintenue', 'Comme le clic maintenu : achète / améliore en continu'],
-    [`1 … ${menuCount}`, 'Ouvrir / fermer les menus (toujours le même chiffre pour le même menu)'],
+    ['1, 2, 3', 'Lancer les compétences (v9.7.1)'],
+    [`Maj + 1 … ${menuCount}`, 'Ouvrir / fermer les menus (toujours le même chiffre pour le même menu)'],
     ['[ ] (^ $ en AZERTY) ou Page préc. / suiv.', 'Onglet précédent / suivant'],
     ['Tab', 'Élément suivant (Maj + Tab : précédent)'],
     ['Échap', 'Fermer la fenêtre, puis le panneau'],
@@ -234,8 +235,8 @@ export function installShortcuts(ui) {
     let handled = true;
     const digit = digitOf(e);
     const bracket = bracketOf(e);
-    // v9.7.1 (lot 2) : sans menu ouvert, 1, 2, 3 lancent les compétences (les menus gardent leurs chiffres une fois ouverts).
-    const skillBtn = digit !== null && !ui.tab && digit >= 1 && digit <= 3 && ui.root.querySelectorAll('#skill-bar .skill-btn')[digit - 1];
+    // v9.7.1 (lot 2) : sans menu ouvert, 1, 2, 3 lancent les compétences ; Maj + chiffre (ou un menu ouvert) : les menus.
+    const skillBtn = digit !== null && !ui.tab && !e.shiftKey && digit >= 1 && digit <= 3 && ui.root.querySelectorAll('#skill-bar .skill-btn')[digit - 1];
     if (skillBtn) skillBtn.click();
     else if (digit !== null) {
       // Chiffre fixe par menu (data-menu) : un menu encore caché ne décale pas les suivants.
