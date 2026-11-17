@@ -1,4 +1,4 @@
-// v9.3.2 / v9.3.3 : anglais des nouveautés (Arène, Guilde, World Boss mondial, affinités, armes, compétences,
+// v9.3.2 / v9.3.3 : anglais des nouveautés (Arène, Guilde, Boss commun, affinités, armes, compétences,
 // ressources universelles, équipement des héros et familiers). Branché à la fin de ./en.js. Généré par la session 9.3.3.
 export const EXACT_932 = {
   "É": "E",
@@ -125,7 +125,7 @@ export const EXACT_932 = {
   "Soins et soutien": "Healing and support",
   "Soins réduits de moitié": "Healing halved",
   "Soutiens": "Supports",
-  "Survie et Étages : vos compagnons combattent SANS le héros (un seul contre 30 vagues, ou une équipe de 3 contre des étages). World Boss mondial : toute votre équipe contre un boss commun à tous les joueurs.": "Survival and Floors: your companions fight WITHOUT the hero (one against 30 waves, or a team of 3 against floors). Global World Boss: your whole team against a boss shared by all players.",
+  "Survie et Étages : vos compagnons combattent SANS le héros (un seul contre 30 vagues, ou une équipe de 3 contre des étages). Boss commun : toute votre équipe contre un boss commun à tous les joueurs.": "Survival and Floors: your companions fight WITHOUT the hero (one against 30 waves, or a team of 3 against floors). Global World Boss: your whole team against a boss shared by all players.",
   "Talisman": "Talisman",
   "Talisman de lumière": "Talisman of Light",
   "Tentative :": "Attempt:",
@@ -137,7 +137,7 @@ export const EXACT_932 = {
   "Vague": "Wave",
   "Vide": "Empty",
   "World Boss d'événement": "Event World Boss",
-  "World Boss mondial": "Global World Boss",
+  "Boss commun": "Global World Boss",
   "accès libre": "open access",
   "sur demande": "on request",
   "atteint !": "reached!",
@@ -256,7 +256,7 @@ export const patterns932 = (lookup = () => null) => { LK = lookup; return [
   [new RegExp("^Un compagnon seul contre (\\d+) vagues$"), (m) => `One companion alone against ${m[1]} waves`],
   [new RegExp("^Une équipe de (\\d+) compagnons ou familiers$"), (m) => `A team of ${m[1]} companions or pets`],
   [new RegExp("^Vague (\\d+) : (.+)$"), (m) => `Wave ${m[1]}: ${m[2]}`],
-  [new RegExp("^World Boss mondial : (.+) dégâts ajoutés à la barre commune$"), (m) => `Global World Boss: ${m[1]} damage added to the shared bar`],
+  [new RegExp("^Boss commun : (.+) dégâts ajoutés à la barre commune$"), (m) => `Global World Boss: ${m[1]} damage added to the shared bar`],
   [new RegExp("^en (\\d+) s · (\\d+) ennemis vaincus(.*)$"), (m) => `in ${m[1]} s · ${m[2]} enemies defeated${m[3]}`],
   [new RegExp("^il y a (\\d+) h$"), (m) => `${m[1]} h ago`],
   [new RegExp("^il y a (\\d+) j$"), (m) => `${m[1]} d ago`],

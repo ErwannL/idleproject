@@ -53,7 +53,7 @@ function retryBox(state) {
   if (!r || state.stage !== r.stage - 1) return '';
   const pct = bossRetryPct(state);
   return `<div class="retry-box"><div><b>Boss trop fort pour l'instant.</b> Normal : le héros s'entraîne à l'étape d'avant et retentera seul.
-      Pour aller plus vite : améliorez vos dégâts.</div>
+      Pour aller plus vite : améliore tes dégâts.</div>
     <button class="btn btn-gold small" data-action="retry-boss">Retenter le boss (${pct >= 100 ? 'prêt' : `${pct} %`})</button></div>`;
 }
 

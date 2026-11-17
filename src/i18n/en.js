@@ -87,7 +87,7 @@ export const EXACT = {
   "Découverte guidée": "Guided tour",
   "Revoir le tutoriel": "Replay the tutorial",
   "Revoir le tour de l'interface : catégories, classes, compétences, invocation.": "Replay the interface tour: categories, classes, skills, summon.",
-  "Votre héros combat tout seul": "Your hero fights on their own",
+  "Ton héros combat tout seul": "Your hero fights on their own",
   "Le combat est automatique, même fenêtre réduite : laissez tourner le jeu pendant que vous travaillez. Au retour, un résumé de ce que vous avez gagné vous attend.": "Combat is automatic, even when the window is minimised: let the game run while you work. When you come back, a summary of what you earned is waiting.",
   "L'essentiel en haut": "The essentials at the top",
   "Niveau, étape, or, gemmes et tickets. À droite : missions, récompenses reçues et paramètres.": "Level, stage, gold, gems and tickets. On the right: missions, received rewards and settings.",
@@ -408,7 +408,7 @@ export const EXACT = {
   "Une élite errante approche !": "A wandering elite approaches!",
   "Boss vaincu !": "Boss defeated!",
   "+1 point de compétence": "+1 skill point",
-  "Coffre découvert : il vous attend dans les récompenses": "Chest found: it's waiting for you in Rewards",
+  "Coffre découvert : il t'attend dans les récompenses": "Chest found: it's waiting for you in Rewards",
   "Un marchand ambulant propose un objet (récompenses)": "A traveling merchant offers an item (Rewards)",
   "Gemmes trouvées (récompenses)": "Gems found (Rewards)",
   "Un portail vers une salle au trésor ! (récompenses)": "A portal to a treasure room! (Rewards)",
@@ -494,7 +494,7 @@ export const EXACT = {
   "Récent": "Recent",
   "Tri": "Sort",
   "PV max": "Max HP",
-  "Si vous l'équipez (emplacement vide)": "If you equip it (empty slot)",
+  "Si tu l'équipes (emplacement vide)": "If you equip it (empty slot)",
   "Vos statistiques actuelles → avec cet objet, et le gain ou la perte.": "Your current stats → with this item, and the gain or loss.",
   "DPS": "DPS",
   "Attaques / s": "Attacks / s",
@@ -976,7 +976,7 @@ export const EXACT = {
   "Grande expédition": "Grand Expedition",
   "Tout, dont des clés et des fragments anciens": "Everything, including keys and ancient fragments",
   "Journal de la session": "Session log",
-  "Pendant votre absence": "While you were away",
+  "Pendant ton absence": "While you were away",
   "Étapes conquises": "Stages conquered",
   "Niveaux du héros": "Hero levels",
   "Objets ramassés": "Items picked up",
@@ -1808,7 +1808,7 @@ export const PATTERNS = [
   [/^recharge (\d+) min$/, 'cooldown $1 min'],
 
   // Inventaire et forge
-  [/^Si vous l'équipez \(à la place de (.+)\)$/, (m) => `If you equip it (replacing ${tr(m[1])})`],
+  [/^Si tu l'équipes \(à la place de (.+)\)$/, (m) => `If you equip it (replacing ${tr(m[1])})`],
   [/^Amélioration maximale \(\+(\d+)\)$/, 'Max upgrade (+$1)'],
   [/^Augmente une statistique de l'objet au hasard de (\d+) %$/, "Raises a random stat of the item by $1%"],
   [/^Améliorer \+(\d+)$/, 'Upgrade +$1'],
@@ -2043,7 +2043,7 @@ PATTERNS.unshift(...patterns929Stab(lookup));
 // v9.3.0 : attaques du Colosse du World Boss (./en-930.js) — sans écraser l'existant.
 import { EXACT_930 } from './en-930.js';
 for (const [k, v] of Object.entries(EXACT_930)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
-// v9.3.2 / v9.3.3 : Arène, Guilde, World Boss mondial, affinités, armes, compétences, ressources, équipement (./en-932.js).
+// v9.3.2 / v9.3.3 : Arène, Guilde, Boss commun, affinités, armes, compétences, ressources, équipement (./en-932.js).
 import { EXACT_932, patterns932 } from './en-932.js';
 for (const [k, v] of Object.entries(EXACT_932)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.push(...patterns932(lookup)); // en dernier : les motifs existants (dates, etc.) gardent la priorité

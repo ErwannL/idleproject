@@ -56,7 +56,7 @@ export const EXACT = {
   'Retirer': '해제', 'Sauvegarder': '저장', 'Vérifier': '확인', 'Copier le code': '코드 복사', 'Importer…': '가져오기…',
   'Exporter (fichier)': '내보내기(파일)', 'Reprendre au sac': '가방으로 옮기기', 'Aller sur l\'étape': '스테이지로 이동',
   '⬆ Équiper le meilleur': '⬆ 최고 장비 장착', 'Filtrer et trier': '필터·정렬', 'Réglages du sac': '가방 설정',
-  'Si vous l\'équipez': '장착 시', '(emplacement vide)': '(빈 슬롯)', 'Nouveau nom': '새 이름',
+  "Si tu l'équipes": '장착 시', '(emplacement vide)': '(빈 슬롯)', 'Nouveau nom': '새 이름',
   // Héros, combat, progression
   'Niveau': '레벨', 'Rareté': '등급', 'Récent': '최신', 'Équipement porté': '착용 장비', 'Sac': '가방', 'Coffre': '창고',
   '⏵ Avance auto': '⏵ 자동 진행', '▶ Avance automatique': '▶ 자동 진행', 'Avancer automatiquement': '자동으로 진행',
@@ -112,8 +112,8 @@ export const EXACT = {
   'Hors ligne': '오프라인', 'GitHub injoignable.': 'GitHub에 연결할 수 없습니다.', 'Téléchargement…': '다운로드 중…', 'Nouveautés': '새 소식',
   'Code de sauvegarde': '저장 코드', 'Animations': '애니메이션',
   // Tutoriel
-  'Votre héros combat tout seul': '영웅은 알아서 싸워요', 'Que faire ? Suivez ce bouton': '뭘 해야 할까요? 이 버튼을 따라가세요',
-  "Il montre une seule chose à la fois : une récompense prête, un objet meilleur que l'équipé, un boss à retenter, sinon votre objectif. Un appui y mène.": '한 번에 하나만 알려 줘요: 받을 보상, 더 좋은 장비, 재도전할 보스, 아니면 다음 목표. 누르면 바로 이동해요.',
+  'Ton héros combat tout seul': '영웅은 알아서 싸워요', 'Que faire ? Suivez ce bouton': '뭘 해야 할까요? 이 버튼을 따라가세요',
+  "Il montre une seule chose à la fois : une récompense prête, un objet meilleur que l'équipé, un boss à retenter, sinon ton objectif. Un appui y mène.": '한 번에 하나만 알려 줘요: 받을 보상, 더 좋은 장비, 재도전할 보스, 아니면 다음 목표. 누르면 바로 이동해요.',
   "Les menus s'ouvrent avec la progression": '메뉴는 성장에 따라 열려요', 'Nouveaux menus': '새 메뉴', 'Les menus sont rangés autrement :': '메뉴 구성이 바뀌었어요:',
   '4 menus': '메뉴 4개', 'le portrait en haut à gauche': '왼쪽 위 초상화', 'Perdu ? Touche': '길을 잃었나요? 키',
   'pour chercher un écran, et le bouton sous le combat propose toujours la prochaine chose utile.': '로 화면을 찾고, 전투 아래 버튼은 언제나 다음 할 일을 알려 줘요.',
@@ -192,7 +192,7 @@ export const EXACT = {
   '— tout ce qui est prêt à être récupéré, au même endroit (touche G).': '— 받을 수 있는 모든 보상을 한곳에서(G 키).',
   // Inventaire, aventure, divers
   'Attaques / s': '초당 공격', 'Le coffre est vide.': '창고가 비어 있습니다.', 'Rangement auto : activé': '자동 보관: 켜짐', 'Rangement auto : désactivé': '자동 보관: 꺼짐',
-  'Vide : équipez-vous puis « Enregistrer ».': '비어 있음: 장비를 착용한 뒤 「저장」하세요.', 'Le coffre garde 300 objets de plus que le sac,': '창고에는 가방보다 300개 더 보관되며,',
+  'Vide : équipe-toi puis « Enregistrer ».': '비어 있음: 장비를 착용한 뒤 「저장」하세요.', 'Le coffre garde 300 objets de plus que le sac,': '창고에는 가방보다 300개 더 보관되며,',
   'jamais recyclés ni fusionnés': '분해·합성되지 않아요', '. Les pièces d\'ensemble meilleures y vont d\'elles-mêmes.': '. 더 좋은 세트 아이템은 자동으로 들어가요.',
   'Une élite errante approche !': '떠도는 엘리트가 다가와요!', 'Quatre salles hantées, puis la Reine spectrale.': '유령이 깃든 방 4개, 그리고 망령 여왕.',
   'Normal : terminez ce donjon en Facile.': '보통: 쉬움 난이도를 먼저 클리어하세요.', 'Invocatrice': '소환사', 'tout': '전체',
@@ -297,7 +297,7 @@ export const PATTERNS = [
   // --- Lot 2 ---
   [/^Arme de (.+)$/, (m) => `${trOr(m[1])} 무기`],
   [/^Changez de classe pour la porter : (.+)\.$/, (m) => `착용하려면 클래스를 바꾸세요: ${trOr(m[1])}.`],
-  [/^Si vous l'équipez \(à la place de (.+)\)$/, (m) => `장착 시 (${trOr(m[1])} 대신)`],
+  [/^Si tu l'équipes \(à la place de (.+)\)$/, (m) => `장착 시 (${trOr(m[1])} 대신)`],
   [/^(.+) · palier (\d+\/\d+)$/, (m) => { const r = tr(m[1]); return r === null ? null : `${r} · ${m[2]}단계`; }],
   [/^→ (.+) : (\d+) points$/, (m) => `→ ${trOr(m[1])}: ${m[2]}포인트`],
   [/^(.+) · niv\. (\d+)\/(\d+)$/, (m) => { const r = tr(m[1]); return r === null ? null : `${r} · Lv.${m[2]}/${m[3]}`; }],
@@ -399,7 +399,7 @@ PATTERNS.unshift(...patterns929Stab(lookup));
 // v9.3.0 : attaques du Colosse du World Boss (./ko-930.js) — sans écraser l'existant.
 import { EXACT_930 } from './ko-930.js';
 for (const [k, v] of Object.entries(EXACT_930)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
-// v9.3.2 / v9.3.3 : Arène, Guilde, World Boss mondial, affinités, armes, compétences, ressources, équipement (./ko-932.js).
+// v9.3.2 / v9.3.3 : Arène, Guilde, Boss commun, affinités, armes, compétences, ressources, équipement (./ko-932.js).
 import { EXACT_932, patterns932 } from './ko-932.js';
 for (const [k, v] of Object.entries(EXACT_932)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.push(...patterns932(lookup)); // en dernier : les motifs existants (dates, etc.) gardent la priorité

@@ -13,7 +13,7 @@ import { escapeHtml, formatNumber, icon, img, rarityLabel, rewardIcons } from '.
 import { companionPortrait, companionStill } from './expeditions.js';
 
 const REPLAY_SECONDS = 12; // durée maximale de la relecture
-const MODE_LABEL = { survival: 'Survie', floors: 'Étages', global: 'World Boss mondial' };
+const MODE_LABEL = { survival: 'Survie', floors: 'Étages', global: 'Boss commun' };
 const SKILL_TXT = { hit: 'frappe', burst: 'zone', heal: 'soin', shield: 'bouclier', rally: 'cri', gold: 'fortune' };
 const MOD_TXT = { swift: 'rapides', armored: 'blindés', frenzy: 'enragés', regen: 'régénération' };
 

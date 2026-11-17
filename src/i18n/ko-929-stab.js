@@ -6,7 +6,7 @@ const WORD = { fragment: '파편', fragments: '파편', gemme: '보석', gemmes:
 export const EXACT_929_STAB = {
   fragment: '파편',
   rien: '없음',
-  "Si vous l'équipez (emplacement vide)": '장착 시 (빈 슬롯)',
+  "Si tu l'équipes (emplacement vide)": '장착 시 (빈 슬롯)',
 };
 const ENV_NAMES = 'Pénombre|Éclats de cristal|Soif|Froid mordant|Malédiction|Boue|Rafales|Lave|Distorsion|Pression|Corruption';
 const kept = (lookup, x) => (lookup(`Conservé : ${x}`) ?? x).replace(/^유지: /, '');

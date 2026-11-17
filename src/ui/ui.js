@@ -121,17 +121,17 @@ const SUB_ICONS = { // v9.4.0 : une icône par onglet (PixelLab), plus aucune pa
 };
 // v9.1.0 : présentation courte en haut de l'onglet, à sa première ouverture (plus de bulle « Nouveau »).
 const UNLOCK_INFO = { // v9.3.4 (h) : une ligne courte par onglet
-  companions: 'ils combattent à vos côtés.',
+  companions: 'ils combattent à tes côtés.',
   summon: 'tickets et gemmes invoquent des compagnons.',
   shop: 'les offres ; achats pas encore ouverts.',
   event: 'bats des gardiens, gagne des écus, échange-les.',
-  expeditions: 'vos compagnons libres partent en mission.',
+  expeditions: 'tes compagnons libres partent en mission.',
   tree: 'les fragments achètent des talents permanents.',
   dungeons: 'une clé par combat de boss.',
   boss: 'chaque boss vaincu laisse un pouvoir.',
   tower: 'un défi par semaine, des records récompensés.',
   forge: 'recyclez en éclats, puis forgez mieux.',
-  arena: 'vos compagnons combattent sans le héros.',
+  arena: 'tes compagnons combattent sans le héros.',
   encyclopedia: 'chaque découverte rapporte une récompense.',
   inbox: 'tout ce qui est prêt, au même endroit.',
 };
@@ -889,7 +889,7 @@ export class UI {
         this.invalidate();
         break;
       }
-      case 'global-boss': // v9.3.2 : World Boss mondial (même écran, barre commune côté serveur)
+      case 'global-boss': // v9.3.2 : Boss commun (même écran, barre commune côté serveur)
         openWorldBoss(this.state, { start: () => a.globalBossStart(), finish: (setup, r) => a.globalBossFinish(setup, r), left: () => a.globalBossLeft(), closed: () => this.invalidate() });
         break;
       case 'event-boss': // v9.2.9 : vrai combat animé (ui/world-boss.js)
@@ -1294,7 +1294,7 @@ export class UI {
         break;
       case 'worldEvent': {
         const texts = {
-          chest: ['Coffre découvert : il vous attend dans les récompenses', '#f2d083'],
+          chest: ['Coffre découvert : il t\'attend dans les récompenses', '#f2d083'],
           merchant: ['Un marchand ambulant propose un objet (récompenses)', '#f2d083'],
           gems: ['Gemmes trouvées (récompenses)', '#6fd6ff'],
           portal: ['Un portail vers une salle au trésor ! (récompenses)', '#c9a6ff'],
@@ -1401,7 +1401,7 @@ export class UI {
       case 'heroDeath':
         this.banner(`Vaincu… retour à l'étape ${stageLabel(event.to)}`, 'lose');
         this.news(state?.autoAdvance === false ? 'Le héros reste sur l\'étape : améliorez-le puis appuyez sur « Avancer ».'
-          : event.boss ? 'Normal : le héros s\'entraîne à l\'étape d\'avant et retentera le boss quand il sera 15 % plus fort. Pour aller plus vite : améliorez vos dégâts.'
+          : event.boss ? 'Normal : le héros s\'entraîne à l\'étape d\'avant et retentera le boss quand il sera 15 % plus fort. Pour aller plus vite : améliore tes dégâts.'
             : 'Le héros refait l\'étape précédente puis retente automatiquement.', null, 2);
         if (this.tab === 'campaign') this.invalidate();
         break;
@@ -2052,7 +2052,7 @@ export class UI {
     ].join('') || '<li class="muted">Rien à récupérer ni à équiper.</li>';
     this.openModal(`<h2 id="modal-title">${img('icon_bolt', 'ico20')} Retour de session</h2><ul class="session-list">${rows}</ul>
       <p>Dégâts/s : <b>${formatNumber(r.before)}</b> → <b class="good">${formatNumber(r.after)}</b>${ratio > 1.0001 ? ` (×${ratio >= 100 ? formatNumber(Math.round(ratio)) : ratio.toFixed(2).replace('.', ',')})` : ''}</p>
-      <p class="muted">Rien n'est acheté : votre or, vos gemmes et vos points de compétence restent à votre choix.</p>
+      <p class="muted">Rien n'est acheté : ton or, tes gemmes et tes points de compétence restent à ton choix.</p>
       <div class="detail-actions"><button class="btn btn-primary" data-action="close-modal">Continuer</button></div>`);
   }
 
@@ -2293,7 +2293,7 @@ export class UI {
 
   // Journal (v8.5) : session en cours (touche J, Paramètres) ou absence (retour après au moins 5 min).
   showJournal(summary, kind = 'session') {
-    this.openModal(`<h2>📜 ${kind === 'away' ? 'Pendant votre absence' : 'Journal de la session'}</h2>
+    this.openModal(`<h2>📜 ${kind === 'away' ? 'Pendant ton absence' : 'Journal de la session'}</h2>
       <p class="muted">${kind === 'away' ? 'Fenêtre réduite pendant' : 'Jeu lancé depuis'} ${formatDuration(summary.seconds)}.</p>
       ${journalHtml(summary)}
       <div class="detail-actions"><button class="btn btn-primary" data-action="close-modal">Continuer</button></div>`);
@@ -2324,7 +2324,7 @@ export class UI {
         ${summary.baggedCount ? `<p>🎒 <b>${summary.baggedCount}</b> objet${summary.baggedCount > 1 ? 's' : ''} dans le sac de butin, à trier (touche B ou appui sur le sac).</p>` : ''}
         ${this.returnAdvice()}
         ${sessionGoalsHtml(this.state ?? this.bootState)}
-        ${paused ? `<p class="bad">Vous étiez dans ${paused} : il ne progresse pas hors ligne (il reprend à votre retour).</p>` : ''}
+        ${paused ? `<p class="bad">Tu étais dans ${paused} : il ne progresse pas hors ligne (il reprend à ton retour).</p>` : ''}
         <details class="offline-more"><summary>Détails</summary>
           <p>Ennemis vaincus : ~${formatNumber(summary.kills)} · Objets : ${summary.items.length - summary.autoRecycledCount}
             ${recycled ? `<span class="muted">(+${recycled} convertis en or)</span>` : ''}</p>
@@ -2335,7 +2335,7 @@ export class UI {
         </details>
         ${this.canDoubleOffline(summary) ? `<button class="btn btn-gold primary-action offline-x2" data-action="offline-double">${coin()} Tout récupérer ×2 <small>(1 fois par jour, gratuit)</small></button>` : ''}
         <div class="detail-actions"><button class="btn" data-action="close-modal">Continuer</button>
-          <button class="btn" data-action="session-return">${img('icon_bolt', 'ico20')} Retour de session (S)</button></div>`);
+          <button class="btn" data-action="session-return">${img('icon_bolt', 'ico20')} Retour de session${this.phone ? '' : ' (S)'}</button></div>`);
     this.lastOffline = summary;
     uiFx.offlineFx(this.$('modal-card'), { gold: 0, gems: 0, shards: 0 }, { gold: summary.totalGold, gems: summary.gems ?? 0, shards: mats.shards ?? 0 }); // v9.2.7 : seulement les monnaies qui volent vers leurs compteurs
   }

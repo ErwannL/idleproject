@@ -9,10 +9,10 @@ export const TOUR_VERSION = 2;
 
 // target : zone à éclairer (sélecteur CSS) ; open : onglet ouvert pendant l'étape (null = panneau fermé).
 const STEPS = [
-  { target: '#stage-area', open: null, title: 'Votre héros combat tout seul',
+  { target: '#stage-area', open: null, title: 'Ton héros combat tout seul',
     text: `Le combat est automatique. Même jeu fermé, il gagne encore (${Math.round(BALANCE.offline.farmMultiplier * 100)} % du rythme, ${BALANCE.offline.capHours} h au plus) : un résumé vous attend au retour.` },
   { target: '#next-action', open: null, title: 'Que faire ? Suivez ce bouton',
-    text: 'Il montre une seule chose à la fois : une récompense prête, un objet meilleur que l\'équipé, un boss à retenter, sinon votre objectif. Un appui y mène.' },
+    text: 'Il montre une seule chose à la fois : une récompense prête, un objet meilleur que l\'équipé, un boss à retenter, sinon ton objectif. Un appui y mène.' },
   { target: '#tabs', open: null, title: 'Les menus s\'ouvrent avec la progression',
     text: 'La barre jaune te dit toujours quoi faire. Une pastille rouge = une récompense à récupérer.' }, // v9.3.5 (bug 3)
 ];
@@ -105,7 +105,7 @@ export function showWhatMoved(ui, state) {
       <li>Carte, Donjons (et le Défi), Défis (l'ancienne Tour), Boss, Monde : <b>Aventure</b>.</li>
       <li>Compagnons (Composition), Invocation, Expéditions : <b>Équipe</b>.</li>
       <li>Missions (avec À récupérer, aussi touche N), Collections (et le Musée), Classement, Statistiques : <b>Objectifs</b>.</li>
-      <li>Votre fiche, la classe, l'apparence et les records : <b>le portrait en haut à gauche</b>.</li>
+      <li>Ta fiche, la classe, l'apparence et les records : <b>le portrait en haut à gauche</b>.</li>
       <li>Les Configurations s'appellent <b>Builds</b> (Héros › Équipement).</li>
     </ul>
     <p class="muted">Perdu ? Touche <b>F</b> pour chercher un écran, et le bouton sous le combat propose toujours la prochaine chose utile.</p>

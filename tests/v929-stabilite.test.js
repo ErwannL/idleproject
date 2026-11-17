@@ -37,7 +37,7 @@ test('Invocation : nom accessible des boutons traduit en anglais et en coréen',
 });
 
 test('Coréen : coûts et manques au singulier traduits (« 1 fragment »)', () => {
-  for (const t of ['Il manque 1 fragment', 'Coût : 1 fragment', 'Apprendre : 1 fragment', "Si vous l'équipez (emplacement vide)"]) {
+  for (const t of ['Il manque 1 fragment', 'Coût : 1 fragment', 'Apprendre : 1 fragment', "Si tu l'équipes (emplacement vide)"]) {
     const v = ko.lookup(t);
     assert.ok(v && !/[A-Za-zÀ-ÿ]{3}/.test(v), `${t} → ${v}`);
   }

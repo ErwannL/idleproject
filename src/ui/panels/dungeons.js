@@ -199,7 +199,7 @@ function dungeonsList(ui, state) {
   const cleared = state.dungeonsCleared[sel.id] ?? 0;
   const enter = locked ? `<div class="bad">Débloqué à l'étape ${stageLabel(sel.unlockStage)}.</div>`
     : `<button class="btn btn-gold enter-btn primary-action" data-action="enter-dungeon" data-value="${sel.id}" data-diff="${diffId}" ${canEnterDungeon(state, sel.id) ? '' : 'disabled'}>Entrer · ${diff.label} — 1 ${img('icon_key')} <span class="key-stock">(${state.keys} en stock)</span></button>
-      ${state.tower ? '<div class="bad">Vous êtes dans la Tour : quittez-la d\'abord.</div>' : ''}
+      ${state.tower ? '<div class="bad">Tu es dans la Tour : quitte-la d\'abord.</div>' : ''}
       ${state.challenge ? '<div class="bad">Défi de la semaine en cours (Aventure › Défis) : terminez-le d\'abord.</div>' : ''}
       ${state.keys < 1 ? '<div class="bad">Aucune clé. Clés : missions, contrats, expéditions, Défis.</div>' : ''}`;
   const detail = `<div class="card dungeon-detail">

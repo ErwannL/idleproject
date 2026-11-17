@@ -692,7 +692,7 @@ const actions = {
     done(true, r.won ? `Arène : étage ${r.floor} franchi !` : null, '#7fe0a0');
     return r;
   },
-  // v9.3.2 : World Boss mondial (barre commune, serveur) : même combat que celui des événements.
+  // v9.3.2 : Boss commun (barre commune, serveur) : même combat que celui des événements.
   globalBossStart() { return startGlobalBoss(state, bossHpForDay(state)); },
   globalBossFinish(setup, result) {
     const r = finishGlobalBoss(state, setup, result);
@@ -701,7 +701,7 @@ const actions = {
       cloud.wbReport({ mode: 'global', damage: r.damage, tiers: r.tiers, power })
         .then((res) => { if (res?.global) { ui.globalBoss = { ...res.global, name: ui.globalBoss?.name }; ui.invalidate(); } }).catch(() => {});
     }
-    done(Boolean(r), r ? `World Boss mondial : ${formatNumber(r.damage)} dégâts ajoutés à la barre commune` : null, '#f2d083');
+    done(Boolean(r), r ? `Boss commun : ${formatNumber(r.damage)} dégâts ajoutés à la barre commune` : null, '#f2d083');
     return r;
   },
   globalBossLeft() { return globalBossLeft(state); },

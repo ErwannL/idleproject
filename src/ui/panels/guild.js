@@ -11,7 +11,7 @@ function rankingBlock(g) {
   if (!r) return '<div class="state-empty">Chargement du classement…</div>';
   const tab = (m, l) => `<button class="btn chip-btn small${g.mode === m ? ' active' : ''}" data-action="guild-rank" data-value="${m}">${l}</button>`;
   const rows = r.guilds.map((x, i) => `<tr${x.name === r.me ? ' class="me"' : ''}><td>${i + 1}</td><td>${img(x.emblem)} ${escapeHtml(x.name)} <small class="muted">${x.members} membres · ${x.contributors} contributeurs</small></td><td class="rk-val">${formatNumber(x.score)}</td></tr>`).join('');
-  return `<div class="item-tabs">${tab('global', 'World Boss mondial')}${tab('event', 'World Boss d\'événement')}</div>
+  return `<div class="item-tabs">${tab('global', 'Boss commun')}${tab('event', 'World Boss d\'événement')}</div>
     <div class="muted">Score de guilde = ${escapeHtml(r.rule)} (une petite guilde active reste compétitive). Période : ${escapeHtml(r.period || 'événement en cours')}.</div>
     ${rows ? `<table class="rk-table"><tbody>${rows}</tbody></table>` : '<div class="state-empty">Aucune guilde classée pour l\'instant.</div>'}`;
 }

@@ -107,7 +107,7 @@ test('PATTERNS : un échantillon de motifs', () => {
     'Pouvoirs actifs 2/3': 'Active powers 2/3',
     'Renaissance ! +5 fragments anciens': 'Rebirth! +5 ancient fragments',
     'Contrat rare · Prospecteur': 'Rare contract · Prospector',
-    'Si vous l\'équipez (à la place de Dague)': 'If you equip it (replacing Dagger)',
+    "Si tu l'équipes (à la place de Dague)": 'If you equip it (replacing Dagger)',
     'Mini-boss — Golem de cristal': 'Mini-boss — Crystal Golem',
     'Plaines verdoyantes 1-3': 'Green Plains 1-3',
     'Reine spectrale — 1,2 K / 3 K PV': 'Spectral Queen — 1.2 K / 3 K HP',

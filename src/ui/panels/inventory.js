@@ -94,7 +94,7 @@ function detail(ui, state, item, whoUnit = null) {
       row('PV max', cur.maxHp, next.maxHp, int),
       row('Armure', cur.armor, next.armor, (v) => formatDecimal(v), ' %'),
       bonusRows(cur.bonus, next.bonus, row)].join('');
-    compare = `<div class="compare"><div class="section-title">Si vous l'équipez${current ? ` (à la place de ${escapeHtml(current.name)})` : ' (emplacement vide)'}</div>
+    compare = `<div class="compare"><div class="section-title">Si tu l'équipes${current ? ` (à la place de ${escapeHtml(current.name)})` : ' (emplacement vide)'}</div>
       ${rows || '<div class="muted">Aucun changement.</div>'}
     </div>`;
   }
@@ -148,7 +148,7 @@ function detail(ui, state, item, whoUnit = null) {
   if (tab === 'upgrade') {
     body = `<div class="upgrade-line">${upgradeBtn}<span class="muted num">${ups}/${maxUp}</span></div>
       <div class="muted">Renforcer : une statistique au hasard +${BALANCE.forge.upgradeBoostPct} %.</div>
-      <div class="tool-line">${sharpenBtn}<span class="muted">Remonte l'objet au niveau de votre étape max.</span></div>
+      <div class="tool-line">${sharpenBtn}<span class="muted">Remonte l'objet au niveau de ton étape max.</span></div>
       <div class="tool-line">${reforgeBtn}<span class="muted">Change les effets spéciaux au hasard.</span></div>
       ${targetLine}`;
   } else if (tab === 'store') {
@@ -438,7 +438,7 @@ function buildsBar(ui, state) {
       ? [l.heroClass && classById(l.heroClass) ? escapeHtml(classById(l.heroClass).name) : '',
         ...(team.length ? team.map((c) => escapeHtml(c.name)) : ['sans équipe']),
         `${items}/${Object.keys(SLOTS).length} objets`, (l.powers ?? []).length ? `${l.powers.length} pouvoir${l.powers.length > 1 ? 's' : ''}` : ''].filter(Boolean).map((x) => `<span>${x}</span>`).join(' · ')
-      : 'Vide : équipez-vous puis « Enregistrer ».';
+      : 'Vide : équipe-toi puis « Enregistrer ».';
     return `<div class="card build-card${i === sel ? ' selected' : ''}">
       <div class="row-between"><b>${escapeHtml(l.name)}</b>
         <span class="build-btns">${l.team ? `<button class="btn small btn-primary" data-action="apply-build" data-value="${i}">Équiper</button>` : ''}

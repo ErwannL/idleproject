@@ -1,4 +1,4 @@
-// v9.3.2 / v9.3.3 : coréen des nouveautés (Arène, Guilde, World Boss mondial, affinités, armes, compétences,
+// v9.3.2 / v9.3.3 : coréen des nouveautés (Arène, Guilde, Boss commun, affinités, armes, compétences,
 // ressources universelles, équipement des héros et familiers). Branché à la fin de ./ko.js. Généré par la session 9.3.3.
 export const EXACT_932 = {
   "É": "착",
@@ -125,7 +125,7 @@ export const EXACT_932 = {
   "Soins et soutien": "치유·지원",
   "Soins réduits de moitié": "치유 절반",
   "Soutiens": "지원형",
-  "Survie et Étages : vos compagnons combattent SANS le héros (un seul contre 30 vagues, ou une équipe de 3 contre des étages). World Boss mondial : toute votre équipe contre un boss commun à tous les joueurs.": "서바이벌·층: 동료가 영웅 없이 싸웁니다 (1명이 30웨이브, 또는 3명이 층에 도전). 월드 보스(월드): 팀 전체가 모든 플레이어 공동의 보스와 싸웁니다.",
+  "Survie et Étages : vos compagnons combattent SANS le héros (un seul contre 30 vagues, ou une équipe de 3 contre des étages). Boss commun : toute votre équipe contre un boss commun à tous les joueurs.": "서바이벌·층: 동료가 영웅 없이 싸웁니다 (1명이 30웨이브, 또는 3명이 층에 도전). 월드 보스(월드): 팀 전체가 모든 플레이어 공동의 보스와 싸웁니다.",
   "Talisman": "부적",
   "Talisman de lumière": "빛의 부적",
   "Tentative :": "도전:",
@@ -137,7 +137,7 @@ export const EXACT_932 = {
   "Vague": "웨이브",
   "Vide": "비어 있음",
   "World Boss d'événement": "이벤트 월드 보스",
-  "World Boss mondial": "월드 보스(월드)",
+  "Boss commun": "월드 보스(월드)",
   "accès libre": "자유 가입",
   "sur demande": "신청제",
   "atteint !": "달성!",
@@ -256,7 +256,7 @@ export const patterns932 = (lookup = () => null) => { LK = lookup; return [
   [new RegExp("^Un compagnon seul contre (\\d+) vagues$"), (m) => `동료 1명이 ${m[1]}웨이브에 도전`],
   [new RegExp("^Une équipe de (\\d+) compagnons ou familiers$"), (m) => `동료 또는 펫 ${m[1]}명 팀`],
   [new RegExp("^Vague (\\d+) : (.+)$"), (m) => `${m[1]}웨이브: ${m[2]}`],
-  [new RegExp("^World Boss mondial : (.+) dégâts ajoutés à la barre commune$"), (m) => `월드 보스(월드): 공동 게이지에 피해 ${m[1]} 추가`],
+  [new RegExp("^Boss commun : (.+) dégâts ajoutés à la barre commune$"), (m) => `월드 보스(월드): 공동 게이지에 피해 ${m[1]} 추가`],
   [new RegExp("^en (\\d+) s · (\\d+) ennemis vaincus(.*)$"), (m) => `${m[1]}초 · 적 ${m[2]} 처치${m[3]}`],
   [new RegExp("^il y a (\\d+) h$"), (m) => `${m[1]}시간 전`],
   [new RegExp("^il y a (\\d+) j$"), (m) => `${m[1]}일 전`],
