@@ -24,3 +24,14 @@ test('familiers : seuls chat, renard et dragonnet mordent ou griffent', () => {
     if (!['cat', 'kitsune', 'dragonling'].includes(c.id)) assert.ok(!/Morsure|griffe/.test(names), `${c.id} : ${names}`);
   }
 });
+
+import { SKILLS, CLASS_COMMON_NAMES } from '../src/data/skills.js';
+import { RUSHES } from '../src/data/rushes.js';
+test('noms de compétence uniques dans tout le jeu (héros, compagnons, Boosts)', () => {
+  const heroNames = [...Object.values(CLASS_COMMON_NAMES).flat(), ...SKILLS.filter((s) => s.cls).map((s) => s.name)];
+  assert.equal(new Set(heroNames).size, heroNames.length, 'doublon chez le héros');
+  const comp = new Set(COMPANIONS.flatMap((c) => companionSkillList(c, COMPANION_ROLES[c.id] ?? 'pet').map((s) => s.name)));
+  const clash = heroNames.filter((n) => comp.has(n));
+  assert.deepEqual(clash.filter((n) => !['Frappe rapide', 'Tourbillon', 'Cri de guerre', 'Frappe sacrée'].includes(n)), []);
+  for (const r of RUSHES) assert.ok(!heroNames.includes(r.name) && !comp.has(r.name), r.name);
+});

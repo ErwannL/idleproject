@@ -1,4 +1,5 @@
 // État persistant de la partie (tout ce qui est sauvegardé) et validation au chargement.
+import { applyClassSkillNames } from '../data/skills.js';
 import { levelForStage, locateStage, stagesPerCycle } from './combat.js';
 import { ZONES } from '../data/zones.js';
 import { migrateOceanWorld } from './migrations-v920.js';
@@ -354,6 +355,7 @@ function cleanActivities(state, raw) {
   state.codex = sanitizeCodex(raw.codex);
   migrateCodex(state, ENCYCLOPEDIA_SECTIONS); // v9.1.3 (lot E)
   state.heroClass = sanitizeHeroClass(raw.heroClass);
+  applyClassSkillNames(state.heroClass); // v9.8 (F)
   if (Number.isFinite(raw.rebirthPower) && raw.rebirthPower >= 0) state.rebirthPower = raw.rebirthPower; // v9.0.6
   state.playSeconds = Math.max(0, Number(raw.playSeconds) || 0);
   // v9.7.1 (lot 6) : 3 compétences actives choisies.

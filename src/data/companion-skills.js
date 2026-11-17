@@ -118,12 +118,22 @@ export function themedTemplate(companion, role) {
   return names ? tpl.map((sk, i) => (names[i] ? { ...sk, name: names[i] } : sk)) : tpl;
 }
 
+// v9.8 (F7) : les sorts d'un mage gardent le verbe de son élément (« Brûle », « Gèle », « Maudit »…).
+const VERB = { red: 'Brûle', blue: 'Gèle', dark: 'Maudit', light: 'Foudroie', green: 'Enserre' };
+function verbText(sk, el) {
+  const v = VERB[el];
+  if (!v) return skillText(sk);
+  if (sk.type === 'burst') return `${v} tous les ennemis (${pct(sk.value)} % des dégâts)`;
+  if (sk.type === 'hit') return `${v} un ennemi (${pct(sk.value)} % des dégâts du héros)`;
+  return skillText(sk);
+}
+
 export function companionSkillList(companion, role) {
-  const tpl = themedTemplate(companion, role);
+  const tpl = themedTemplate(companion, role).map((sk) => (role === 'mage' ? { ...sk, text: verbText(sk, UNIT_ELEMENT[companion?.id]) } : sk));
   const own = companion.skill ? [{ ...companion.skill, own: true }] : [{ ...tpl[0] }];
   const extra = companion.skill ? [tpl[0], tpl[1]] : [tpl[1]];
   // v9.1.3 (doc4 lot 3) : signature des SSR (companion.ultimate) à la place de l'ultime de rôle.
   const ult = companion.ultimate ? { ...companion.ultimate, signature: true } : { ...tpl[2] };
-  const list = [...own, ...extra.map((s) => ({ ...s, text: skillText(s) })), { ...ult, text: skillText(ult) + (ult.alsoText ? `, et ${ult.alsoText}` : ''), ultimate: true }];
+  const list = [...own, ...extra.map((s) => ({ ...s, text: s.text ?? skillText(s) })), { ...ult, text: skillText(ult) + (ult.alsoText ? `, et ${ult.alsoText}` : ''), ultimate: true }];
   return list.map((s, i) => ({ ...s, index: i, text: s.text ?? skillText(s) }));
 }

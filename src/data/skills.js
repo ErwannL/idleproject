@@ -32,13 +32,14 @@ const T = {
   buff: (v) => `+${v} % dégâts pendant 10 s`, holy: (v) => `Dégâts ×${v} et soigne 15 % des PV`,
 };
 const CLASS_SKILL_DEFS = {
-  knight: [['Charge du chevalier', 'hit', 'skill_quick', 2.2], ['Rempart', 'holy', 'skill_holy', 3]],
-  archer: [['Tir perçant', 'hit', 'skill_quick', 2.4], ['Pluie de flèches', 'aoe', 'skill_whirl', 2.8]],
-  pyromancer: [['Boule de feu', 'hit', 'skill_quick', 2.6], ['Météore', 'aoe', 'skill_whirl', 3.2]],
-  berserker: [['Frénésie', 'buff', 'skill_cry', 30], ['Massacre', 'aoe', 'skill_whirl', 3]],
-  lancer: [['Percée', 'hit', 'skill_quick', 2.5], ['Balayage', 'aoe', 'skill_whirl', 2.6]],
-  paladin: [['Lumière divine', 'holy', 'skill_holy', 3.5], ['Bénédiction', 'buff', 'skill_cry', 25]],
-  assassin: [['Lame cachée', 'hit', 'skill_quick', 3], ['Danse des lames', 'aoe', 'skill_whirl', 2.4]],
+  // v9.8 (F) : noms uniques dans tout le jeu (plus de Boule de feu, Météore, Frénésie… partagés avec d'autres).
+  knight: [['Charge du chevalier', 'hit', 'skill_quick', 2.2], ['Garde sacrée', 'holy', 'skill_holy', 3]],
+  archer: [['Tir perçant', 'hit', 'skill_quick', 2.4], ['Volée céleste', 'aoe', 'skill_whirl', 2.8]],
+  pyromancer: [['Brasier', 'hit', 'skill_quick', 2.6], ['Pluie de météores', 'aoe', 'skill_whirl', 3.2]],
+  berserker: [['Fureur sanglante', 'buff', 'skill_cry', 30], ['Massacre', 'aoe', 'skill_whirl', 3]],
+  lancer: [['Coup de lance', 'hit', 'skill_quick', 2.5], ['Moisson', 'aoe', 'skill_whirl', 2.6]],
+  paladin: [['Rayon divin', 'holy', 'skill_holy', 3.5], ['Bénédiction', 'buff', 'skill_cry', 25]],
+  assassin: [['Lame cachée', 'hit', 'skill_quick', 3], ['Lames tourbillonnantes', 'aoe', 'skill_whirl', 2.4]],
   crossbowman: [['Carreau lourd', 'hit', 'skill_quick', 2.8], ['Salve', 'aoe', 'skill_whirl', 2.5]],
   stormcaller: [['Éclair', 'hit', 'skill_quick', 2.5], ['Tempête', 'aoe', 'skill_whirl', 3.4]],
   necromancer: [['Drain de vie', 'holy', 'skill_holy', 3], ['Nuée d\'os', 'aoe', 'skill_whirl', 2.9]],
@@ -50,3 +51,23 @@ for (const [cls, list] of Object.entries(CLASS_SKILL_DEFS)) {
   }));
 }
 export const LOADOUT_SIZE = 3;
+
+// v9.8 (F) : les 4 compétences communes prennent le nom de la classe (le Mage de feu n'a plus Tourbillon ni Frappe
+// sacrée). Mêmes identifiants (quick, whirl, cry, holy) : progression et effets inchangés, seul le nom suit la classe.
+export const CLASS_COMMON_NAMES = {
+  knight: ['Frappe rapide', 'Tourbillon', 'Cri de guerre', 'Frappe sacrée'],
+  archer: ['Tir rapide', 'Tir en éventail', 'Œil d\'aigle', 'Flèche de lumière'],
+  pyromancer: ['Étincelle', 'Vague de flammes', 'Embrasement', 'Flamme purificatrice'],
+  berserker: ['Coup furieux', 'Moulinet', 'Rugissement', 'Coup du sang'],
+  lancer: ['Estoc', 'Fauche circulaire', 'Cri du lancier', 'Lance sacrée'],
+  paladin: ['Frappe juste', 'Cercle sacré', 'Prière de guerre', 'Châtiment'],
+  assassin: ['Coup vif', 'Éventail de dagues', 'Ombre furtive', 'Lame bénie'],
+  crossbowman: ['Carreau rapide', 'Tir de barrage', 'Visée', 'Carreau béni'],
+  stormcaller: ['Étincelle d\'orage', 'Chaîne d\'éclairs', 'Charge statique', 'Foudre purificatrice'],
+  necromancer: ['Toucher spectral', 'Vague d\'ombre', 'Pacte sombre', 'Âme volée'],
+};
+const COMMON_IDS = ['quick', 'whirl', 'cry', 'holy'];
+export function applyClassSkillNames(cls) {
+  const names = CLASS_COMMON_NAMES[cls] ?? CLASS_COMMON_NAMES.knight;
+  COMMON_IDS.forEach((id, i) => { const sk = SKILLS.find((x) => x.id === id); if (sk) sk.name = names[i]; });
+}

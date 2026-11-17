@@ -1,4 +1,5 @@
 // Classes du héros (v9.0.6) : classe active, armes autorisées, changement de classe.
+import { applyClassSkillNames } from '../data/skills.js';
 import { CLASSES, STARTER_CLASS } from '../data/classes.js';
 import { ITEM_BASES } from '../data/items.js';
 import { itemBase, itemPower, makeItem, refreshItemStats } from './loot.js';
@@ -66,6 +67,7 @@ export function classRange(state, balance) {
 export function setHeroClass(state, id, power = () => 0) {
   if (!classUnlocked(state, id) || state.heroClass === id) return null;
   state.heroClass = id;
+  applyClassSkillNames(id); // v9.8 (F)
   const weapon = state.equipment.weapon;
   if (!weapon || canEquip(state, weapon)) return { changed: true };
   const best = state.inventory.filter((i) => i.slot === 'weapon' && canEquip(state, i)).sort((a, b) => power(b) - power(a))[0];

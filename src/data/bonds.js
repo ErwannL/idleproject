@@ -5,7 +5,7 @@ export const BONDS = [
     scene: ['Prêtresse : « Cette fois, on ne tombera pas. »', 'Pyromancienne : « Cette fois, c\'est lui qui brûlera. »'] },
   { id: 'oath', pair: ['squire', 'azure_paladin'], name: 'Serment du bouclier', bonus: { maxHpPct: 8 },
     scene: ['Écuyer : « Maître, je tiendrai la ligne. »', 'Paladin d\'azur : « Alors nous la tiendrons ensemble. »'] },
-  { id: 'arrows', pair: ['ranger', 'elf_archer'], name: 'Pluie de flèches', bonus: { damagePct: 6 },
+  { id: 'arrows', pair: ['ranger', 'elf_archer'], name: 'Flèches jumelles', bonus: { damagePct: 6 },
     scene: ['Rôdeuse : « Le vent tourne. »', 'Archère elfe : « Je l\'ai déjà compté. »'] },
   { id: 'shadows', pair: ['shadow', 'ninja'], name: 'Lames de l\'ombre', bonus: { critChance: 4 },
     scene: ['Ombre : « On ne nous verra pas venir. »', 'Ninja : « On ne nous verra pas partir. »'] },
