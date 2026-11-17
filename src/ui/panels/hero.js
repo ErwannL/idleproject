@@ -13,7 +13,7 @@ import { heroPortraitUrl, itemIconUrl, slotIconName } from '../../render/pixel.j
 import { HEROES } from '../../data/heroes.js';
 import { SKIN_TIERS, skinTier } from '../../data/economy.js'; // v9.2.8
 import { BALANCE } from '../../data/balance.js';
-import { effectText, escapeHtml, fold, hdArt, formatDecimal, formatNumber, img, itemFrame, progressBar, rarityLabel, segment, stars } from '../common.js';
+import { effectText, escapeHtml, fold, hdArt, formatDecimal, formatNumber, img, itemFrame, progressBar, rarityLabel, segment, stars, art98 } from '../common.js';
 import { animCanvas } from '../animator.js';
 import { showcaseSlot } from '../showcase.js'; // v9.2.7 : vitrine animée
 import { DUNGEONS } from '../../data/dungeons.js';
@@ -71,7 +71,7 @@ function classView(state) {
     const icon = bases[0];
     const pic = icon ? `<img class="px" src="${itemIconUrl({ baseId: icon.id, rarity: 'legendary', slot: 'weapon' }, 40)}" alt="">` : '';
     return `<div class="class-card${active ? ' active' : ''}${open ? '' : ' locked'}" style="--cls:${c.color}">
-      <div class="class-pic">${pic}</div>
+      <div class="class-pic">${art98(`class_${c.id}`, 'class-art')}</div>
       <div class="grow"><b class="class-name">${escapeHtml(c.name)}</b> <span class="class-style">${STYLE_LABEL[c.style]}</span>
         <div class="class-text">${escapeHtml(c.text)}</div>
         <div class="good class-fx">${effectText(c.effects)}</div>

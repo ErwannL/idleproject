@@ -60,7 +60,7 @@ export default {
   render(ui) {
     const g = ui.guild ?? {};
     // v9.8 (I9) : illustration et bouton direct vers la création de compte.
-    if (g.needAccount) return `<div class="card guild-invite"><div class="guild-hall">${img('tab_guild')}</div>
+    if (g.needAccount) return `<div class="card guild-invite">
       <b>Rejoins une guilde : bannière, salle commune et boss partagés.</b>
       <div class="detail-actions"><button class="btn btn-gold" data-action="open-account">Créer mon compte</button></div></div>`;
     const msg = g.error ? `<div class="state-error">${escapeHtml(g.error)}</div>` : g.message ? `<div class="good">${escapeHtml(g.message)}</div>` : '';

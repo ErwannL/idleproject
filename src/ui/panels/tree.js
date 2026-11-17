@@ -467,7 +467,7 @@ function rebirthView(ui, state) {
   const tile = (icon, value, label) => `<div class="rb-tile">${img(icon)}<b>${value}</b><span class="muted">${label}</span></div>`;
   const f = prestigeFactors(state);
   const total = f.total > 1 ? `<div class="rb-total"><span class="muted">Prestige actuel</span> <b class="good">×${mult(f.total)}</b> <span class="muted">dégâts, PV et or</span></div>` : '';
-  return `<div class="card rebirth-card">
+  return `<div class="card rebirth-card"><img class="px art-banner rebirth-art" src="assets/ui/art98/phoenix_rebirth.png" loading="lazy" alt="" aria-hidden="true">
       <div class="row-between"><b>${img('icon_rebirth')} Renaissance</b><span class="muted">${state.records.rebirths} effectuée${state.records.rebirths > 1 ? 's' : ''}</span></div>
       ${can ? `<div class="rb-tiles">${tile('icon_fragment', `+${formatNumber(reward)}`, 'fragments')}${tile('icon_damage', `×${gain.toFixed(2).replace('.', ',')}`, 'pour toujours')}${tile('icon_boss', '1', 'pouvoir conservé')}</div>`
         : `<div>Atteins l'étape ${stageLabel(REBIRTH.minStage)} pour renaître (max ${stageLabel(state.maxStage)}).</div>`}

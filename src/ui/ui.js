@@ -2226,7 +2226,11 @@ export class UI {
       ? `<div class="card panel-help-card"><b>Comment ça marche ?</b> ${h.short}${device ? ` ${device}` : ''}
           ${h.more ? fold(this, `help-${this.tab}`, 'En savoir plus', `<div>${h.more}</div>${h.env ? `<div>${h.env}</div>` : ''}`) : ''}</div>` : ''; // v9.2.1 : env
     // v9.3.9 (2.5) : même écran → mise à jour sur place (la fiche ouverte ne se referme plus, rien ne saute).
-    const html = lexify(help + this.introCard(this.tab, state) + panel.render(this, state)); // v9.7.1 (lot 5) : lexique
+    // v9.8 (J3) : bannière illustrée en tête des écrans de lieu (chargée à la demande).
+    const BANNER = { tower: 'tower', expeditions: 'expedition_map', summon: 'summon_circle', event: 'event_market', tree: 'talent_tree', guild: 'guild_hall' };
+    const banner = BANNER[this.tab] && !(this.tab === 'tower' && this.view.defiTab === 'arena') ? `<img class="px art-banner" src="assets/ui/art98/${BANNER[this.tab]}.png" loading="lazy" alt="" aria-hidden="true">`
+      : this.tab === 'tower' && this.view.defiTab === 'arena' ? '<img class="px art-banner" src="assets/ui/art98/arena.png" loading="lazy" alt="" aria-hidden="true">' : '';
+    const html = lexify(help + banner + this.introCard(this.tab, state) + panel.render(this, state)); // v9.7.1 (lot 5) : lexique
     if (this.morphTab === this.tab && body.firstChild) morph(body, html);
     else body.innerHTML = html;
     this.morphTab = this.tab;

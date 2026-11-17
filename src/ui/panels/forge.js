@@ -40,7 +40,7 @@ export default {
       ? `<div class="card">${p.list.length ? `<div class="recycle-preview">${p.list.slice(0, 12).map((i) => itemFrame(i, { tag: 'div' })).join('')}${p.list.length > 12 ? `<span class="muted">+${p.list.length - 12}</span>` : ''}</div>` : '<p class="muted">Rien à recycler : tes objets sont protégés (verrouillés, meilleurs ou utiles à un ensemble).</p>'}
         ${recycleButton(state, 'primary-action')}</div>`
       : forge(ui, state, seg);
-    return `<div class="forge-tile forge-hero"><div class="forge-anvil big">${img('icon_anvil')}<span class="forge-flame"></span></div>${anim}
+    return `<div class="forge-tile forge-hero" style="background:url('assets/ui/art98/forge_hall.png') center / cover no-repeat"><div class="forge-anvil big">${img('icon_anvil')}<span class="forge-flame"></span></div>${anim}
         <div class="forge-count">${shard()} <b class="num">${formatNumber(state.materials.shards)}</b></div></div>
       <div class="forge-bigs">${btn('recycle', 'icon_bag', 'Recycler', p.list.length)}${btn('fuse', 'icon_anvil', 'Fusionner', fuses)}${btn('craft', 'icon_shard', 'Fabriquer', crafts)}</div>
       ${body}`;

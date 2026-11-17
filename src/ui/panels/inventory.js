@@ -407,7 +407,7 @@ function bag(ui, state) {
         const f = itemFrame(i, { selected: i.id === ui.view.selectedItemId, showUp: true, state, current: st });
         return usable ? f : f.replace('class="item-frame', 'class="item-frame dim').replace(/<\/button>$/, `<span class="for-cls">${escapeHtml(classLabel(itemClass(state, i)))}</span></button>`);
       }).join('')
-        || '<div class="inv-empty">Aucun objet ici. Les ennemis laissent parfois tomber de l\'équipement.</div>'}</div>
+        || '<div class="inv-empty"><img class="px empty-art" src="assets/ui/art98/empty_chest.png" alt="">Aucun objet ici. Les ennemis laissent parfois tomber de l\'équipement.</div>'}</div>
       ${recycleButton(state)}
       ${full ? '<div class="bad">Sac plein : recycle les objets inutiles ou range au coffre.</div>' : ''}
     </div>

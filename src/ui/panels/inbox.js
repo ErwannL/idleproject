@@ -63,7 +63,7 @@ export default {
       ? `<div class="card claim-card"><button class="btn btn-gold primary-action claim-all" data-action="claim-everything" ${ready.length ? '' : 'disabled'}>Tout récupérer${ready.length ? ` (${ready.length})` : ''}</button>
           ${list.length > ready.length ? '<div class="bad">Sac et coffre pleins : les récompenses avec un objet attendent ici. Recycle des objets.</div>' : ''}
           <div class="claim-list">${rows}</div></div>`
-      : `<div class="card muted state-empty">${img('icon_chest')} Rien à récupérer pour l'instant.</div>`;
+      : `<div class="card muted state-empty"><img class="px empty-art" src="assets/ui/art98/empty_chest.png" alt=""> Rien à récupérer pour l'instant.</div>`;
     return head + (merchants ? `<div class="section-title">Marchands</div>${merchants}` : '');
   },
 };

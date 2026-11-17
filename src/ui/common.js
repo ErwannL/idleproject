@@ -186,6 +186,8 @@ export function segment(items, action, active, attrs = '') {
 }
 
 // v9.1.3 (A7) : récompense en icônes (icône + nombre). Le texte complet (rewardText) reste dans title et aria-label.
+// v9.8 (J3) : illustrations fantasy chargées à la demande (assets/ui/art98).
+export const art98 = (name, cls = '') => `<img class="px art98 ${cls}" src="assets/ui/art98/${name}.png" loading="lazy" alt="" aria-hidden="true">`;
 const REWARD_NAMES = { gold: 'Or', gems: 'Gemmes', keys: 'Clés', fragments: 'Fragments', shards: 'Éclats', grimoire: 'Grimoires', ascension: 'Pierres', mastery: 'Essences' };
 const REWARD_ICONS = { gold: 'coin', gems: 'icon_gem', keys: 'icon_key', fragments: 'icon_fragment', shards: 'icon_shard', grimoire: 'icon_grimoire', ascension: 'icon_ascension', mastery: 'icon_mastery' };
 export function rewardIcons(reward, cls = '') {

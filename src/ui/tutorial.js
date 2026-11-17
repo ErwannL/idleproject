@@ -49,6 +49,7 @@ export function pickStep(state, root, full, panelOpen = false, screen = panelOpe
   const already = shownOn.get(screen);
   for (const st of TUTO_STEPS) {
     if (has(state, st.id) || !st.when(state, full)) continue;
+    if (!st.finger && panelOpen) continue; // v9.8 : les bulles d'info ne se montrent que sur la scène (plus sur chaque écran)
     if (already && already !== st.id) return null;
     // v9.8 (0.1) : cible directe d'abord ; sinon le menu ou l'onglet qui y mène (seul chemin vers la cible).
     for (const sel of st.targets) {

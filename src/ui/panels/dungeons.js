@@ -15,7 +15,7 @@ import { rewardText } from '../../core/rewards.js';
 import { animCanvas } from '../animator.js';
 import { CHALLENGE, challengeTriesLeft, challengeWeek, modifierById, weeklySetup } from '../../core/challenge.js';
 import { ZONES } from '../../data/zones.js';
-import { escapeHtml, fold, formatNumber, img, progressBar } from '../common.js';
+import { escapeHtml, fold, formatNumber, img, progressBar, art98 } from '../common.js';
 import { bossTrait } from '../../core/boss-traits.js';
 
 
@@ -204,7 +204,7 @@ function dungeonsList(ui, state) {
       ${state.challenge ? '<div class="bad">Défi de la semaine en cours (Aventure › Défis) : termine-le d\'abord.</div>' : ''}
       ${state.keys < 1 ? '<div class="bad">Aucune clé. Clés : missions, contrats, expéditions, Défis.</div>' : ''}`;
   const detail = `<div class="card dungeon-detail">
-      <div class="dungeon-head">${img('icon_dungeon')}<div class="grow"><div class="boss-title">${escapeHtml(sel.name)}</div>
+      <div class="dungeon-head">${art98(`door_${sel.id}`, 'dungeon-door')}<div class="grow"><div class="boss-title">${escapeHtml(sel.name)}</div>
         <div class="muted">${escapeHtml(sel.description)}</div></div></div>
       <div class="diff-box"><div class="section-title">Difficulté</div><div class="diff-row">${diffs}</div>${unlockHint}
         <div class="muted">♛ ${cleared} victoire${cleared > 1 ? 's' : ''} · ennemis niv. ${Math.max(1, state.maxStage + sel.levelOffset + diff.levelBonus)} · PV ×${diff.hp}</div></div>
