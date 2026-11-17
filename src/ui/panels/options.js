@@ -265,6 +265,7 @@ function interfaceTab(ui, state) {
           return `<button class="btn theme-btn${(state.ui.theme ?? 'knight') === t.id ? ' active' : ''}${mine ? '' : ' locked'}" data-action="${mine ? 'theme' : 'theme-preview'}" data-value="${t.id}">
           <span class="theme-swatches">${themeSwatches(t.id).map((c) => `<i style="background:${c}"></i>`).join('')}</span>
           <b>${escapeHtml(t.name)}</b><span class="muted">${escapeHtml(t.text)}</span>${mine ? '' : `<span class="muted">${img('icon_lock')} Boutique › Thèmes · Aperçu</span>`}</button>`; }).join('')}</div>`, { extra: escapeHtml(theme?.name ?? '') })}
+      <label class="toggle card"><input type="checkbox" data-action="simple-mode" ${state.ui.simple === true ? 'checked' : ''}> <b>Mode simple</b> <span class="muted">cache les détails et les systèmes avancés tant que tu n'en as pas besoin</span></label>
       <div class="card row-between"><span><b>Aide au combat</b> <span class="muted">${{ full: 'tout se joue seul', mixed: 'tes actions comptent plus, le reste part seul', manual: 'rien ne part sans toi' }[state.ui.combatAssist ?? 'mixed']}</span></span>
         <select data-action="combat-assist">${[['full', 'Complet'], ['mixed', 'Mixte'], ['manual', 'Manuel']].map(([v, l]) => `<option value="${v}"${(state.ui.combatAssist ?? 'mixed') === v ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
       <div class="card row-between"><b>Taille des personnages</b>

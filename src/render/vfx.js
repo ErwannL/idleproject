@@ -129,7 +129,9 @@ export function drawVfx(scene, ctx, fx, dt) {
   const i = frameIndex(e, fx, age);
   // Boucles : apparition et disparition en fondu ; effets joués une fois : leur dernière image s'efface déjà.
   const fade = fx.loop ? Math.min(1, age * 6, fx.life * 4) : 1;
-  drawVfxFrame(ctx, fx.name, i, fx.x, fx.y, { size: fx.size, tint: fx.tint, flip: fx.flip, alpha: fx.alpha * fade, rot: fx.rot });
+  // v9.7.1 (lot 3 bis) : lisibilité — au-delà de 0,3 s, un grand effet devient translucide (il ne cache jamais un personnage).
+  const clear = !fx.loop && age > 0.3 && Math.max(e.w, e.h) * (e.scale ?? 1) * (fx.size ?? 1) > 40 ? 0.45 : 1;
+  drawVfxFrame(ctx, fx.name, i, fx.x, fx.y, { size: fx.size, tint: fx.tint, flip: fx.flip, alpha: fx.alpha * fade * clear, rot: fx.rot });
 }
 
 // Image courante d'un projectile en boucle (suivant le temps de la scène).

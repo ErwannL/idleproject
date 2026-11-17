@@ -993,6 +993,7 @@ const actions = {
   setCinematics(on) { state.ui.cinematics = on; done(true); },
   setShake(on) { state.ui.shake = on; done(true); }, // v9.3.9
   // v9.7.1 : taille des personnages (Auto / Petit / Moyen / Grand) : recadre la scène tout de suite.
+  setSimple(on) { state.ui.simple = on; ui.root.classList.toggle('simple', on); done(true); }, // v9.7.1 (lot 5)
   setCombatAssist(v) { state.ui.combatAssist = ['full', 'manual'].includes(v) ? v : 'mixed'; done(true); }, // v9.7.1 (lot 2)
   setSkillNames(on) { state.ui.skillNames = on; SceneRenderer.skillNames = on; done(true); }, // v9.7.1 (lot A)
   setCharSize(v) { state.ui.charSize = ['small', 'medium', 'large'].includes(v) ? v : 'auto'; SceneRenderer.sizePref = state.ui.charSize; resizeScene(); done(true); },
@@ -1509,7 +1510,8 @@ if (state.migrationRefund) {
   setTimeout(() => ui.showRebalanceNotice(refund), 1500);
 }
 // v9.7.1 (lot 3) : partie neuve → systèmes ouverts par mini-quêtes (une ancienne partie garde tout ce qui était ouvert).
-if (loaded.source === 'new' && !state.unlocks) state.unlocks = { done: [], base: { ...state.records } };
+if (loaded.source === 'new' && !state.unlocks) { state.unlocks = { done: [], base: { ...state.records } }; state.ui.simple = true; } // v9.7.1 : mode simple par défaut
+ui.root.classList.toggle('simple', state.ui.simple === true);
 setInterval(() => {
   const q = advanceUnlocks(state);
   if (!q) return;

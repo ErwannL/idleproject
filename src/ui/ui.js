@@ -1,6 +1,7 @@
 // Interface DOM : barre du haut (monnaies, contrats, récompenses, paramètres), surimpressions légères
 // de la scène, HUD, onglets débloqués progressivement et panneaux (un module par panneau dans ./panels).
 // L'interface ne modifie jamais l'état directement : elle appelle les actions fournies par main.js.
+import { GLOSSARY, GLOSSARY_TERMS } from '../data/glossary.js'; // v9.7.1 (lot 5)
 import { rageFree } from '../core/combat.js'; // v9.7.1 (lot 3)
 import { isUnlocked } from '../core/unlock-quests.js'; // v9.7.1 (lot 3)
 import { COMBO_STEP_PCT, interactiveCooldown } from '../core/combat.js'; // v9.7.1 (lot 2)
@@ -739,6 +740,9 @@ export class UI {
 
   // --- Actions de l'interface ---
   onClick(event) {
+    // v9.7.1 (lot 5) : lexique — un terme touché affiche sa phrase d'explication.
+    const lex = event.target.closest('.lex');
+    if (lex && GLOSSARY[lex.dataset.lex]) { event.stopPropagation(); this.toast(`${lex.dataset.lex} : ${GLOSSARY[lex.dataset.lex]}`, '#cfe0ff'); return; }
     const el = event.target.closest('[data-action]');
     if (!el || el.disabled) return;
     const { action, key, id, stage, seconds, value, preset, boss: bossId, currency } = el.dataset;
@@ -1156,6 +1160,7 @@ export class UI {
     if (action === 'cloud-listed') this.actions.cloudListed(el.checked);
     if (action === 'cinematics') this.actions.setCinematics(el.checked);
     if (action === 'screen-shake') this.actions.setShake(el.checked); // v9.3.9
+    if (action === 'simple-mode') this.actions.setSimple(el.checked); // v9.7.1 (lot 5)
     if (action === 'combat-assist') this.actions.setCombatAssist(el.value); // v9.7.1 (lot 2)
     if (action === 'skill-names') this.actions.setSkillNames(el.checked); // v9.7.1 (lot A)
     if (action === 'char-size') this.actions.setCharSize(el.value); // v9.7.1
@@ -2150,7 +2155,7 @@ export class UI {
       ? `<div class="card panel-help-card"><b>Comment ça marche ?</b> ${h.short}${device ? ` ${device}` : ''}
           ${h.more ? fold(this, `help-${this.tab}`, 'En savoir plus', `<div>${h.more}</div>${h.env ? `<div>${h.env}</div>` : ''}`) : ''}</div>` : ''; // v9.2.1 : env
     // v9.3.9 (2.5) : même écran → mise à jour sur place (la fiche ouverte ne se referme plus, rien ne saute).
-    const html = help + this.introCard(this.tab, state) + panel.render(this, state);
+    const html = lexify(help + this.introCard(this.tab, state) + panel.render(this, state)); // v9.7.1 (lot 5) : lexique
     if (this.morphTab === this.tab && body.firstChild) morph(body, html);
     else body.innerHTML = html;
     this.morphTab = this.tab;
@@ -2387,4 +2392,26 @@ export class UI {
     this.modalReturn = null;
     if (back?.isConnected && typeof back.focus === 'function') back.focus({ preventScroll: true });
   }
+}
+
+// v9.7.1 (lot 5) : lexique d'un appui — la première occurrence de chaque terme (texte hors balises et hors boutons) devient
+// touchable ; un appui affiche sa phrase d'explication.
+function lexify(html) {
+  const seen = new Set();
+  let inButton = 0;
+  return html.replace(/(<[^>]*>)|([^<]+)/g, (m, tag, text) => {
+    if (tag) {
+      if (/^<(button|select|option|textarea|label)\b/i.test(tag)) inButton += 1;
+      else if (/^<\/(button|select|option|textarea|label)>/i.test(tag)) inButton = Math.max(0, inButton - 1);
+      return tag;
+    }
+    if (inButton) return text;
+    let out = text;
+    for (const term of GLOSSARY_TERMS) {
+      if (seen.has(term)) continue;
+      const re = new RegExp(`(^|[^\\p{L}])(${term})(?![\\p{L}])`, 'u');
+      if (re.test(out)) { seen.add(term); out = out.replace(re, `$1<span class="lex" role="button" tabindex="0" data-lex="${term}">$2</span>`); }
+    }
+    return out;
+  });
 }

@@ -12,10 +12,11 @@ import { BALANCE } from '../src/data/balance.js';
 
 const NOW = Date.now();
 
-test('v8.4 : unités K M B T puis aa…zz', () => {
-  assert.equal(formatNumber(1e15), '1 aa');
-  assert.equal(formatNumber(2.5e18), '2,5 ab');
-  assert.equal(formatNumber(1e93), '1 ba');
+test('v9.7.1 : unités K M B T Qa… Dc, puis puissances de 10 lisibles', () => {
+  assert.equal(formatNumber(1e15), '1 Qa');
+  assert.equal(formatNumber(2.5e18), '2,5 Qi');
+  assert.equal(formatNumber(1e36), '1×10³⁶');
+  assert.equal(formatNumber(4.2e93), '4,2×10⁹³');
   assert.ok(!/e\+/.test(formatNumber(1.2e300)));
 });
 

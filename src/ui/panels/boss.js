@@ -83,7 +83,7 @@ function bossDetail(ui, state, bossId) {
       <div class="grow"><div class="row"><span class="boss-title">${entry ? escapeHtml(boss.name) : '???'}</span><span class="badge-ancestral">Boss ancestral</span></div>
         <div class="muted">📍 ${escapeHtml(where)}</div></div>
     </div>
-    ${trait ? `<div class="trait-box" style="--trait:${trait.color}"><b>${escapeHtml(trait.name)}</b> : ${escapeHtml(trait.text)}. <span class="muted">Contre : ${escapeHtml(trait.counter)}</span></div>` : ''}`;
+    ${trait ? `<div class="trait-box" style="--trait:${trait.color}"><b>${escapeHtml(trait.name)}</b> : ${escapeHtml(trait.text)}. <span class="muted">Parade : ${escapeHtml(trait.counter)}</span></div>` : ''}`;
   const lore = entry && BOSS_LORE[bossId] ? fold(ui, 'boss-lore', 'Histoire', `<p class="lore">${escapeHtml(BOSS_LORE[bossId])}</p>`) : '';
   const rewardFold = fold(ui, 'boss-rewards', 'Récompenses possibles', `<div class="reward-row">${rewards}</div>`);
   if (!entry) {

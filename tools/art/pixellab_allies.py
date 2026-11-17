@@ -349,7 +349,9 @@ EXTRA = ('idle', 'cast', 'ultimate', 'hurt', 'victory')
 def split(sprites, index):
     parts = []
     for extra in (False, True):
-        idx = {k: {a: e for a, e in v.items() if (a in EXTRA) == extra} for k, v in index.items()}
+        # Apparences du héros : sources générées (anim_allies/hero_*_idle…) mais pas encore intégrées — l'arme équipée est
+        # posée par le jeu sur la main suivie (weapon_anchor.py), à faire pour ces gestes avant de les brancher.
+        idx = {k: {a: e for a, e in v.items() if (a in EXTRA) == extra and not (extra and k.startswith('hero_'))} for k, v in index.items()}
         idx = {k: v for k, v in idx.items() if v}
         names = {f for v in idx.values() for e in v.values() for f in e['frames']}
         parts.append(({n: sprites[n] for n in sprites if n in names}, idx))

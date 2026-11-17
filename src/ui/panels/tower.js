@@ -85,7 +85,7 @@ function towerBody(ui, state) {
             <span>Cette semaine : <b>${towerWeek(state).best}</b></span>
             ${last ? `<span class="muted">Dernière : ${last.floors} étage${last.floors > 1 ? 's' : ''} en ${formatDuration(last.seconds)}${last.collapsed ? ' (effondrée)' : ''}</span>` : ''}</div>
           ${action}
-          ${trait ? `<div class="trait-box" style="--trait:${trait.color}"><b>Étage ${floor} — ${escapeHtml(bossName(floor))} · ${escapeHtml(trait.name)}</b> : ${escapeHtml(trait.text)}. <span class="muted">Contre : ${escapeHtml(trait.counter)}</span></div>` : ''}
+          ${trait ? `<div class="trait-box" style="--trait:${trait.color}"><b>Étage ${floor} — ${escapeHtml(bossName(floor))} · ${escapeHtml(trait.name)}</b> : ${escapeHtml(trait.text)}. <span class="muted">Parade : ${escapeHtml(trait.counter)}</span></div>` : ''}
         </div></div>`;
     // v9.1.3 : les règles ne sont plus répétées ici (doublon de l'aide « ? »).
     return `${head}${fold(ui, 'tower-floors', 'Étages et récompenses', () => `<div class="tower-floors">${floorsList(state, floor)}</div>`)}`;

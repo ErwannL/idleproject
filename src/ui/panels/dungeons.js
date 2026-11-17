@@ -94,7 +94,7 @@ function running(ui, state) {
 // v9.1.0 : mécanique du boss final et son contre, sur la fiche du donjon.
 function mechanicLine(d) {
   const t = bossTrait(d.boss);
-  return t ? `<div class="trait-box" style="--trait:${t.color}"><b>${escapeHtml(BOSSES[d.boss].name)} — ${escapeHtml(t.name)}</b> : ${escapeHtml(t.text)}. <span class="muted">Contre : ${escapeHtml(t.counter)}</span></div>` : '';
+  return t ? `<div class="trait-box" style="--trait:${t.color}"><b>${escapeHtml(BOSSES[d.boss].name)} — ${escapeHtml(t.name)}</b> : ${escapeHtml(t.text)}. <span class="muted">Parade : ${escapeHtml(t.counter)}</span></div>` : '';
 }
 
 function status(state, d) {

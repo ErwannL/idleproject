@@ -164,7 +164,7 @@ function bossCard(state, id) {
     <div class="enc-title">${escapeHtml(b.name)}</div><div class="badge-ancestral">${tier}</div>
     <div class="muted">📍 ${escapeHtml(where.join(' · '))}</div>
     ${BOSS_LORE[id] ? `<p class="lore">${escapeHtml(BOSS_LORE[id])}</p>` : ''}
-    ${bossTrait(id) ? `<div class="trait-box" style="--trait:${bossTrait(id).color}"><b>${escapeHtml(bossTrait(id).name)}</b> : ${escapeHtml(bossTrait(id).text)}.<div class="muted">Contre : ${escapeHtml(bossTrait(id).counter)}</div></div>` : ''}
+    ${bossTrait(id) ? `<div class="trait-box" style="--trait:${bossTrait(id).color}"><b>${escapeHtml(bossTrait(id).name)}</b> : ${escapeHtml(bossTrait(id).text)}.<div class="muted">Parade : ${escapeHtml(bossTrait(id).counter)}</div></div>` : ''}
     <div class="enc-stats">${statRow('Vaincu', `${formatNumber(state.codex.kills[id])} fois`)}${statRow('Inspiré du', escapeHtml(ENEMIES[b.base]?.name ?? '—'))}
       ${sig ? statRow('Objet ancestral', `<span class="rarity-text r-legendary">${escapeHtml(sig.name)}</span>`) : ''}</div>
     <div class="section-title">Vitrine</div>${showcaseSlot('boss', id)}</div>`;

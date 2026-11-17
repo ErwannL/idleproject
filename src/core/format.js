@@ -1,15 +1,16 @@
 // Formatage pour l'affichage uniquement : les valeurs sauvegardées restent exactes.
 import { PERCENT_STATS } from '../data/items.js';
 
-// Unités : K, M, B, T, puis aa, ab… az, ba… zz (v8.4 : quasi infini, plus de « 423469075433,2 Qi »).
-const LETTERS = 'abcdefghijklmnopqrstuvwxyz';
+// v9.7.1 (lot 5) : notation lisible — K, M, B, T, puis les noms courts Qa, Qi, Sx, Sp, Oc, No, Dc ; au-delà, la
+// puissance de 10 écrite en exposant (« 1,2×10³⁶ ») au lieu des suites de lettres aa…zz, incompréhensibles.
+const NAMED = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
+const SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+const sup = (n) => String(n).split('').map((d) => SUP[Number(d)] ?? d).join('');
 export function unitSuffix(i) {
-  if (i < 5) return ['', 'K', 'M', 'B', 'T'][i];
-  const n = i - 5;
-  return LETTERS[Math.floor(n / 26) % 26] + LETTERS[n % 26];
+  return i < NAMED.length ? NAMED[i] : `×10${sup(i * 3)}`;
 }
 
-// 1234 -> "1,2 K", 3400000 -> "3,4 M", 1e15 -> "1 aa". Tronqué (jamais arrondi vers le haut).
+// 1234 -> "1,2 K", 3400000 -> "3,4 M", 1e15 -> "1 Qa", 1e36 -> "1×10³⁶". Tronqué (jamais arrondi vers le haut).
 export function formatNumber(value) {
   if (!Number.isFinite(value)) return '0';
   const abs = Math.abs(value);
@@ -21,6 +22,13 @@ export function formatNumber(value) {
   if (Math.abs(v) < 1) { v *= 1000; i -= 1; }
   let text = (Math.floor(v * 10) / 10).toFixed(1).replace('.', ',');
   if (text.endsWith(',0')) text = text.slice(0, -2);
+  if (i >= NAMED.length) {
+    // Au-delà de Dc : mantisse entre 1 et 10, puissance de 10 exacte.
+    const e = Math.floor(Math.log10(abs));
+    let m = (Math.floor((value / 10 ** e) * 10 + 1e-9) / 10).toFixed(1).replace('.', ','); // tronqué (sans erreur de flottant)
+    if (m.endsWith(',0')) m = m.slice(0, -2);
+    return `${m}×10${sup(e)}`;
+  }
   return `${text} ${unitSuffix(i)}`;
 }
 
