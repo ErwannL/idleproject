@@ -3708,3 +3708,26 @@ html:not([data-theme="knight"]) #panel-body > .card ~ .card > .section-title:fir
 .prologue2 .pro-skill { position: relative; }
 .prologue2 .pro-finger { position: absolute; left: 50%; top: 100%; margin-left: -12px; font-size: 26px; animation: tuto-tap 900ms ease-in-out infinite; pointer-events: none; }
 .prologue2 .pro-skill.used .pro-finger { display: none; }
+
+/* v9.8 (C1) : pièces qui tombent sur les tuiles de récompense ; flèche dorée du conseil */
+.rw-tile { position: relative; overflow: hidden; }
+.rw-tile::before { content: ''; position: absolute; left: 50%; top: -14px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff6b0, #f2b630 60%, #a9701a); box-shadow: -14px -18px 0 -1px #f2c84a, 13px -30px 0 -2px #ffd864;
+  animation: rw-coins 900ms ease-in 1 both; pointer-events: none; }
+.rw-tile:nth-child(2)::before { animation-delay: 120ms; } .rw-tile:nth-child(3)::before { animation-delay: 240ms; } .rw-tile:nth-child(4)::before { animation-delay: 360ms; }
+@keyframes rw-coins { 0% { transform: translateY(0); opacity: 1; } 85% { opacity: 1; } 100% { transform: translateY(90px); opacity: 0; } }
+.rw-tile b.num { animation: rw-pop 400ms 700ms ease-out both; }
+@keyframes rw-pop { 0% { transform: scale(.6); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
+.gold-arrow { position: fixed; z-index: 9000; font-size: 26px; color: #ffd23f; text-shadow: 0 0 8px #ffb300, 0 2px 2px #000; pointer-events: none; animation: gold-arrow 800ms ease-in-out infinite; }
+@keyframes gold-arrow { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(8px); } }
+@media (prefers-reduced-motion: reduce) { .rw-tile::before { display: none; } .rw-tile b.num, .gold-arrow { animation: none; } }
+html.reduce-motion .rw-tile::before { display: none; }
+/* v9.8 (I6) : vitrine visible sur l'illustration */
+.up-art-btn { position: relative; }
+.up-play { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); padding: 4px 10px; border-radius: 14px; background: #000b; border: 1px solid #ffd36a;
+  color: #ffe9a8; font: 700 12px system-ui, sans-serif; white-space: nowrap; pointer-events: none; }
+/* v9.8 (I6) : fiche compagnon au-dessus de toute la scène ; étiquettes sous l'illustration (plus sur la description) */
+#panel:has(.unit-pop), #app:has(.unit-pop) #panel { z-index: 9000 !important; }
+.up-hero .up-pills { position: static; justify-content: center; margin: 6px 0 2px; }
+.up-hero .up-stars { position: static; text-align: center; }
+.up-hero .up-role { text-align: center; padding: 0 10px; }

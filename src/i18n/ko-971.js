@@ -1,6 +1,10 @@
 // v9.7.1 : 한국어 — 화면 구도, 전리품 가방, 간소화된 메뉴. ./ko.js 끝에 연결.
 let LK = () => null;
 export const EXACT_971 = {
+  "▶ Voir en action": "▶ 액션 보기",
+  "Niveau max · Améliorer ses compétences": "최대 레벨 · 스킬 강화",
+  "Plus d'essai aujourd'hui : reviens demain.": "오늘은 도전 횟수가 없어요: 내일 다시 와요.",
+  "Rien à récupérer pour l'instant.": "지금은 받을 보상이 없어요.",
   "Nouvel élément : l'Eau": "새 원소: 물",
   "Feu > Nature > Eau > Feu : +50 % contre le bon élément. La roue est dans Équipement.": "불 > 자연 > 물 > 불: 유리한 원소에 +50%. 원소표는 장비에 있어요.",
   "Des monstres !": "몬스터다!",
@@ -194,6 +198,7 @@ export const EXACT_971 = {
   "Tient": "버팀",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
+  [/^(Grimoires|Pierres|Essences) ([\d,. KMBTQa-z]+)\/(\d+) · Où en trouver \?$/, (m) => `${LK(m[1]) ?? m[1]} ${m[2]}/${m[3]} · 획득처?`],
   [/^Événement : (.+)$/, (m) => `이벤트: ${LK(m[1]) ?? m[1]}`],
   [/^Rareté choisie ou mieux, au niveau de ton étape max \((\d+)\)\.$/, (m) => `선택한 등급 이상, 최고 스테이지(${m[1]}) 레벨.`],
   [/^Rien d'abordable : il te manque (.+) or$/, (m) => `살 수 있는 게 없어요: 골드 ${m[1]} 부족`],

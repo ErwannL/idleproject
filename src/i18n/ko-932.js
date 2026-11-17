@@ -12,7 +12,7 @@ export const EXACT_932 = {
   "Attaque": "공격",
   "Recharge": "재사용 대기",
   "Meilleur résultat :": "최고 기록:",
-  "Votre record :": "내 기록:",
+  "Ton record :": "내 기록:",
   "Record absolu :": "역대 기록:",
   "(chaque fois que la barre tombe, le Colosse revient)": "(게이지가 바닥나면 거상이 다시 나타납니다)",
   "Semaine": "주간",

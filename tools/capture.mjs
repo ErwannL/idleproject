@@ -25,7 +25,11 @@ await page.evaluate(() => { document.querySelectorAll('#modal:not(.hidden) [data
 await page.keyboard.press('Escape');
 await page.screenshot({ path: `${out}/scene.png` });
 for (const t of tabs) {
-  const [tab, view] = t.split(':');
+  // « tab », « tab:{vue json} », ou « click:sélecteur » (clic dans la page, puis capture).
+  const [tab, ...rest] = t.split(':');
+  const view = rest.join(':');
+  if (tab === 'click') { await page.click(view).catch((e) => console.log('clic raté', view, e.message.split('\n')[0])); await page.waitForTimeout(1500); await page.screenshot({ path: `${out}/click-${view.replace(/\W/g, '').slice(0, 30)}.png` }); continue; }
+  if (tab === 'wait') { await page.waitForTimeout(Number(view)); continue; }
   await page.evaluate(([x, v]) => __idle.ui.openTab(x, v ? JSON.parse(v) : null), [tab, view]);
   await page.waitForTimeout(700);
   await page.screenshot({ path: `${out}/${tab}${view ? '-' + view.replace(/\W/g, '') : ''}.png` });

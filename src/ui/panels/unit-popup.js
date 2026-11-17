@@ -80,7 +80,7 @@ function skillBubble(ui, state, c, own, mine) {
   const res = cost && Object.entries(SKILL_RESOURCES).find(([k]) => cost[k] > 0);
   const btn = !mine ? '' : cost
     ? `<button class="btn btn-gold" data-action="skill-up" data-value="${c.id}|${kind}" ${canAfford(state, cost) ? '' : `disabled data-why="${escapeHtml(lackText(state, cost))}"`}>Améliorer ${res ? `${img(res[1].icon)} ${cost[res[0]]}` : ''} ${img('coin')} ${formatNumber(cost.gold)}</button>
-       ${Object.keys(SKILL_RESOURCES).filter((k) => cost[k] > 0).map((k) => `<button class="btn tiny res-chip${(state.materials[k] ?? 0) < cost[k] ? ' bad' : ''}" data-action="res-info" data-value="${k}" title="Où en trouver ?">${img(SKILL_RESOURCES[k].icon)} ${formatNumber(state.materials[k] ?? 0)}/${cost[k]} ?</button>`).join('')}`
+       ${Object.keys(SKILL_RESOURCES).filter((k) => cost[k] > 0).map((k) => `<button class="btn tiny res-chip${(state.materials[k] ?? 0) < cost[k] ? ' bad' : ''}" data-action="res-info" data-value="${k}" title="Où en trouver ?">${img(SKILL_RESOURCES[k].icon)} ${SKILL_RESOURCES[k].short} ${formatNumber(state.materials[k] ?? 0)}/${cost[k]} · Où en trouver ?</button>`).join('')}`
     : `<span class="good">${lv >= SKILL_CAPS[kind] ? 'Niveau maximal' : 'Plafond atteint'}</span>`;
   // v9.6.3 (5.3 bis) : consigne de l'ultime (réglée dans la préparation, jamais un geste en combat).
   const ord = state.companions.orders?.[c.id] ?? 'ready';
@@ -125,7 +125,7 @@ export function unitPopup(ui, state, c, { actions, gear }) {
   <div class="unit-pop r-${c.rarity}" role="dialog" aria-modal="true" aria-label="${escapeHtml(c.name)}">
     <button class="btn small up-close" data-action="close-sheet" aria-label="Fermer">✕</button>
     <div class="up-hero el-${el}" style="--ec:${ELEMENTS[el]?.color ?? '#5a6a90'}">
-      ${ui.view.unitShow === c.id ? showcaseSlot('unit', c.id) : `<button class="up-art-btn" data-action="unit-show" data-value="${c.id}" aria-label="Voir l'animation">${owned ? art : `<span class="up-silhouette">${art}</span>`}</button>`}
+      ${ui.view.unitShow === c.id ? showcaseSlot('unit', c.id) : `<button class="up-art-btn" data-action="unit-show" data-value="${c.id}" aria-label="Voir l'animation">${owned ? art : `<span class="up-silhouette">${art}</span>`}<span class="up-play">▶ Voir en action</span></button>`}
       <div class="up-pills"><span class="rar-pill r-${c.rarity}">${rarityLabel(c.rarity)}</span>${elementBadge(el)}<span class="role-pill"${role ? ` style="--rc:${ROLES[role].color}"` : ''}>${role ? `${img(ROLES[role].icon)} ${ROLES[role].label}` : GEAR_CLASSES[gearClassOf(c)].label}</span></div>
       ${role ? `<div class="up-role muted">${escapeHtml(ROLES[role].does)} ${escapeHtml(ROLES[role].good)}</div>` : ''}
       <div class="up-stars" aria-label="${copies} copies sur ${COMPANION_RULES.maxCopies}">${'★'.repeat(copies - 1)}<span>${'★'.repeat(COMPANION_RULES.maxCopies - copies)}</span></div>

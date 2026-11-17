@@ -2,7 +2,7 @@
 // prime, trouvailles, expéditions, collections, maîtrises) et un seul bouton — la touche G fait la même chose.
 // Dessous, les marchands (un achat reste une décision). Rien n'apparaît deux fois.
 import { rewardText } from '../../core/rewards.js';
-import { hasRoom } from '../../core/events.js';
+import { hasRoom, refreshMerchants } from '../../core/events.js';
 import { navPath } from '../nav.js';
 import { coin, escapeHtml, formatNumber, img, itemFrame, rarityLabel, rewardIcons } from '../common.js';
 
@@ -34,6 +34,7 @@ export function claimPeekList(list) {
 
 // v9.1.3 : marchands, affichés dans Missions › Aujourd'hui (et dans la fenêtre À récupérer).
 export function merchantsHtml(state) {
+  refreshMerchants(state);
   const full = !hasRoom(state); // v9.1.3 (doc3 lot 1) : sac plein → l'achat va au coffre
   return state.inbox.filter((e) => e.type === 'merchant').map((e) => `<div class="card inbox-item"><div class="row">${itemFrame(e.item, { tag: 'div' })}
       <div class="grow"><b class="r-${e.item.rarity} rarity-text">${escapeHtml(e.item.name)}</b><div class="muted">${rarityLabel(e.item.rarity)} · niv. ${e.item.level}</div></div></div>
@@ -62,8 +63,7 @@ export default {
       ? `<div class="card claim-card"><button class="btn btn-gold primary-action claim-all" data-action="claim-everything" ${ready.length ? '' : 'disabled'}>Tout récupérer${ready.length ? ` (${ready.length})` : ''}</button>
           ${list.length > ready.length ? '<div class="bad">Sac et coffre pleins : les récompenses avec un objet attendent ici. Recycle des objets.</div>' : ''}
           <div class="claim-list">${rows}</div></div>`
-      : `<div class="card muted">Rien à récupérer pour l'instant. Missions remplies, coffres trouvés au combat, expéditions terminées et
-          paliers de collection arrivent ici.</div>`;
+      : `<div class="card muted state-empty">${img('icon_chest')} Rien à récupérer pour l'instant.</div>`;
     return head + (merchants ? `<div class="section-title">Marchands</div>${merchants}` : '');
   },
 };

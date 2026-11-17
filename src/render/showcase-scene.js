@@ -217,6 +217,7 @@ export class ShowcaseScene {
 
   resize(w, h) {
     this.css = { w, h };
+    if (this.r) this.r.zoom = 2.2;
     this.r?.resize(w, h);
   }
 
@@ -233,6 +234,7 @@ export class ShowcaseScene {
     this.t = 0;
     this.fired = 0;
     this.r = new SceneRenderer(this.canvas);
+    this.r.zoom = 2.2; // v9.8 (I6) : cadrage serré sur le personnage et sa cible
     this.r.resize(this.css.w, this.css.h);
     this.r.calm = Boolean(this.calm);
     this.nextId = 1;

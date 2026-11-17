@@ -296,7 +296,7 @@ export class SceneRenderer {
     // v9.7.1 : cadrage basé sur la taille du héros (≈ 15 % de la hauteur de scène) et échelle toujours nette :
     // scale × devicePixelRatio est un entier (100 %, 125 %, 150 %…), plus de demi-pas ni de pixels inégaux.
     const dpr = window.devicePixelRatio || 1;
-    const pref = SIZE_PREFS[SceneRenderer.sizePref] ?? 1; // Paramètres > Interface > Taille des personnages
+    const pref = (SIZE_PREFS[SceneRenderer.sizePref] ?? 1) * (this.zoom ?? 1); // v9.8 (I6) : zoom propre (vitrine). Paramètres > Interface > Taille des personnages
     const tall = cssWidth < 560 && cssHeight > cssWidth * 1.1;
     const wide = !tall && cssWidth >= 520 && cssHeight >= 360; // v9.8 (B4) : 560 → 520 (panneau plus large : la barre du boss reste en grand)
     let scale;

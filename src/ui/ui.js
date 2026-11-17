@@ -1041,6 +1041,7 @@ export class UI {
       case 'buy-talents-all': this.closeModal(); a.buyTalentsAll(value || null); break;
       case 'ask-buy-talents': this.showBuyTalents(value || null); break;
       case 'tree-seg': local(() => { v.treeSeg = value; }); break;
+      case 'offline-claim': this.closeModal(); this.adviceArrow(); break; // v9.8 (C1) : le conseil devient une flèche dorée
       case 'forge-seg': local(() => { v.forgeSeg = value; }); break; // v9.8 (C2)
       case 'talent-branch': a.buyTalentStep(value); break; // v9.3.9 : vue simple des Talents
       case 'talent-best': a.buyTalentsAll(null); break;
@@ -2376,10 +2377,32 @@ export class UI {
         <div class="rw-tiles">${tiles}</div>
         ${paused ? `<p class="bad rw-note">${escapeHtml(paused)} reprend à ton retour.</p>` : ''}
         ${free ? '<button class="btn small rw-exp" data-action="open-tab" data-value="expeditions">⛺ Envoyer tes compagnons en expédition</button>' : ''}
-        <div class="rw-actions"><button class="btn btn-gold rw-claim" data-action="close-modal">Récupérer</button>
+        <div class="rw-actions"><button class="btn btn-gold rw-claim" data-action="offline-claim">Récupérer</button>
           ${this.canDoubleOffline(summary) ? `<button class="btn rw-x2" data-action="offline-double">×2 <small>gratuit 1×/jour</small></button>` : ''}</div>`);
     this.lastOffline = summary;
     uiFx.offlineFx(this.$('modal-card'), { gold: 0, gems: 0, shards: 0 }, { gold: summary.totalGold, gems: summary.gems ?? 0, shards: mats.shards ?? 0 }); // v9.2.7 : seulement les monnaies qui volent vers leurs compteurs
+  }
+
+  // v9.8 (C1) : après « Récupérer », une flèche dorée pointe le bouton utile (équipe conseillée, sinon Équipement).
+  adviceArrow() {
+    const st = this.state ?? this.bootState;
+    if (!st || typeof document === 'undefined') return;
+    const adv = teamAdviceV965(st);
+    const menu = adv && !adv.same && adv.gain >= 0.03 ? 'team' : 'hero';
+    const btn = this.root.querySelector(`#tabs button[data-menu="${menu}"]`);
+    if (!btn) return;
+    document.querySelector('.gold-arrow')?.remove();
+    const r = btn.getBoundingClientRect();
+    const arrow = document.createElement('div');
+    arrow.className = 'gold-arrow';
+    arrow.setAttribute('aria-hidden', 'true');
+    arrow.textContent = '◀';
+    arrow.style.left = `${Math.round(r.right + 4)}px`;
+    arrow.style.top = `${Math.round(r.top + r.height / 2 - 14)}px`;
+    document.body.appendChild(arrow);
+    const done = () => arrow.remove();
+    btn.addEventListener('click', done, { once: true });
+    setTimeout(done, 8000);
   }
 
   // v9.6.5 (9.6) : le retour propose un ajustement concret (équipe conseillée, sinon équipement).

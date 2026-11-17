@@ -22,9 +22,8 @@ function achievementsTab(state) {
     const a = g.tier;
     const p = g.progress;
     const cls = g.allDone ? ' done' : g.ready ? ' ready' : '';
-    const step = `${Math.min(g.claimedCount + 1, g.tiers.length)}/${g.tiers.length}`;
     return `<div class="ach${cls}"><span class="ach-icon">${g.ready || g.allDone ? img('icon_trophy', 'ico20', g.allDone ? 'Obtenu' : 'À réclamer') : img('icon_lock', 'ico-lock', 'Verrouillé')}</span>
-      <div class="grow"><b>${escapeHtml(a.name)}</b> <span class="muted">${a.label} · palier ${g.allDone ? `${g.tiers.length}/${g.tiers.length}` : step}</span>
+      <div class="grow"><b>${escapeHtml(a.name)}</b> <span class="muted">${a.label} · palier ${g.allDone ? `${g.tiers.length}/${g.tiers.length}` : Math.min(g.claimedCount + 1, g.tiers.length)}</span>
         ${progressBar(p.ratio, `${formatNumber(Math.min(p.value, a.target))} / ${formatNumber(a.target)}`)}</div>
       ${g.allDone ? '<span class="good">Obtenu</span>'
         : `<button class="btn small${g.ready ? ' btn-gold' : ''}" data-action="claim-achievement" data-value="${a.id}" ${g.ready ? '' : 'disabled'}>${g.ready ? 'Récupérer ' : ''}+${a.gems} ${img('icon_gem', '', 'gemmes')}</button>`}</div>`;

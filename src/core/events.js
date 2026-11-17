@@ -5,7 +5,7 @@ import { BALANCE } from '../data/balance.js';
 import { levelForStage, referenceKillGold } from './combat.js'; // v9.2.0 (monde marin) : niveau des étapes
 import { addToInventory } from './inventory.js';
 import { STASH_SIZE } from './stash.js';
-import { generateItem } from './loot.js';
+import { generateItem, refreshItemStats } from './loot.js';
 import { grantReward } from './rewards.js';
 
 const EVENT_LABELS = {
@@ -90,7 +90,19 @@ export function claimEvent(state, id, balance = BALANCE) {
   return { ...given, item: event.item ?? null };
 }
 
+// v9.8 (I8) : une offre reste en attente pendant que le héros avance : elle suit son étape max (niveau et prix).
+export function refreshMerchants(state, balance = BALANCE) {
+  const lvl = levelForStage(Math.max(state.stage ?? 1, state.maxStage ?? 1), balance);
+  for (const e of state.inbox ?? []) {
+    if (e.type !== 'merchant' || !e.item || e.item.level >= lvl) continue;
+    e.item.level = lvl;
+    refreshItemStats(e.item, balance);
+    e.price = Math.floor(referenceKillGold(lvl, balance) * balance.events.merchantPriceKills);
+  }
+}
+
 export function buyFromMerchant(state, id, balance = BALANCE) {
+  refreshMerchants(state, balance);
   const index = state.inbox.findIndex((e) => e.id === id && e.type === 'merchant');
   const event = state.inbox[index];
   if (!event || state.gold < event.price || !hasRoom(state, balance)) return false;

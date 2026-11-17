@@ -12,7 +12,7 @@ export const EXACT_932 = {
   "Attaque": "Attack",
   "Recharge": "Cooldown",
   "Meilleur résultat :": "Best result:",
-  "Votre record :": "Your record:",
+  "Ton record :": "Your record:",
   "Record absolu :": "All-time record:",
   "(chaque fois que la barre tombe, le Colosse revient)": "(each time the bar falls, the Colossus returns)",
   "Semaine": "Week",

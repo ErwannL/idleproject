@@ -7,6 +7,7 @@ import { ZONE_ELEMENT } from '../../core/elements.js';
 // Le combat est calculé d'un coup (core/arena.js) puis rejoué ici (événements horodatés), en accéléré.
 import { ARENA } from '../../data/arena.js';
 import { COMPANIONS } from '../../data/companions.js';
+import { unitLevel } from '../../core/companions.js'; // v9.8 (I6) : même niveau que l'Équipe
 import { GLOBAL_BOSS, globalBossLeft, globalBossState, arenaState, arenaUnlocked, companionProfile, floorReward, floorSetup, survivalTriesLeft, survivalWave } from '../../core/arena.js';
 import { ELEMENTS, elementBadge } from '../../core/elements.js';
 import { escapeHtml, formatNumber, icon, img, rarityLabel, rewardIcons } from '../common.js';
@@ -25,7 +26,7 @@ function unitCard(state, c, { selected, action, value, disabled } = {}) {
   const p = companionProfile(state, c.id);
   return `<button class="arena-unit r-${c.rarity}${selected ? ' active' : ''}" data-action="${action}" data-value="${value ?? c.id}" ${disabled ? 'disabled' : ''} title="${escapeHtml(c.name)}">
     ${companionStill(c)}<span class="arena-unit-name">${escapeHtml(c.name)} ${elementBadge(p.element, false, true)}</span>
-    <small>${rarityLabel(c.rarity)} · niv. ${state.companions.owned[c.id].level ?? 1}</small></button>`;
+    <small>${rarityLabel(c.rarity)} · niv. ${unitLevel(state, c.id)}</small></button>`;
 }
 function foesPreview(group) {
   const els = [...new Set(group.foes.map((f) => f.element))];
@@ -151,8 +152,9 @@ function globalHtml(ui, state) {
   return `<div class="card"><div class="row-between"><b>${img('icon_boss')} ${escapeHtml(g?.name ?? 'Colosse des Anciens (mondial)')}</b><span>Tentative : <b>${left}</b> / ${GLOBAL_BOSS.attemptsPerDay} aujourd'hui</span></div>
       <div class="muted">Tous les joueurs frappent le même boss : tes dégâts s'ajoutent à ceux de la communauté. Ton équipe habituelle (héros, compagnons, familier) combat 60 s.
       Différent du World Boss des grands événements (Aventure › Événement).</div>${bar}
-      ${me.best ? `<div>${img('icon_trophy')} Votre record : <b>${formatNumber(me.best)}</b> dégâts</div>` : ''}
+      ${me.best ? `<div>${img('icon_trophy')} Ton record : <b>${formatNumber(me.best)}</b> dégâts</div>` : ''}
       <button class="btn btn-gold primary-action" data-action="global-boss" ${left > 0 ? '' : 'disabled'}>⚔ Attaquer ${rewardIcons(GLOBAL_BOSS.reward)}</button>
+      ${left > 0 ? '' : '<div class="muted">Plus d\'essai aujourd\'hui : reviens demain.</div>'}
       <div class="muted">Classement des joueurs et des guildes : Objectifs › Guilde.</div></div>`;
 }
 
