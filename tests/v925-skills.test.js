@@ -58,14 +58,14 @@ function play(scene, seconds) {
   return ctx.rects;
 }
 
-test('météore : le geste du héros se joue, la météorite tombe puis frappe tous les ennemis avec une secousse', () => {
+test('météore : le geste du héros se joue, la météorite tombe puis frappe tous les ennemis (sans secousse depuis la v9.8)', () => {
   const s = fakeScene();
   assert.ok(castHeroSkill(s, 'hero_knight', 'meteor', fxContext(s, world, { x: 50, y: 98 }, 50)));
   assert.ok(heroGesture(s), 'geste en cours');
   const drawn = play(s, 3);
   assert.ok(drawn > 200, 'effet dessiné');
   assert.deepEqual(s.calls.filter((c) => c[0] === 'hit').map((c) => c[1]).sort(), [1, 2]);
-  assert.ok(s.shake >= 4);
+  assert.equal(s.shake ?? 0, 0, 'v9.8 (B1) : plus de secousse sur une compétence du héros');
   assert.equal(s.skillFx.length, 0, 'tout est fini');
   s.time = 5;
   assert.equal(heroGesture(s), null, 'geste terminé');

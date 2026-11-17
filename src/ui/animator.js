@@ -16,23 +16,50 @@ import { activeClass } from '../core/classes.js';
 // v9.3.8 (2.4) : héros de l'écran Équipement dessiné comme en combat (images PixelLab, casque et armure portés),
 // en marche sur place ; repli sur l'ancien dessin si l'apparence n'a pas d'images PixelLab.
 let heroOff = null;
+// v9.8 (B3) : cadre FIXE par combinaison classe + couleurs + équipement — l'union des cadres de toutes les images du
+// cycle (0 à 4 s par pas de 0,05 s), en cache. Avant : cadre serré recalculé à chaque image, donc l'échelle (×3 ↔ ×2)
+// et la position changeaient quand l'épée ou la cape dépassait : le héros grossissait, rapetissait et glissait.
+const frameCache = new Map();
+const pickAt = (state, palette, equipment, t) => pickHeroAnim({ palette, equipment, classId: activeClass(state).id, walking: true, walkRate: 0.6, gait: 'walk', time: t, attack: 0, shoot: 0, aim: 0, cast: 0, hurt: 0, victory: 0 }, {});
+function drawPickBox(o, pick, equipment, palette) {
+  o.clearRect(0, 0, 160, 120);
+  drawHeroPick(o, pick, equipment, palette, 48, 30);
+  const data = o.getImageData(0, 0, 160, 120).data;
+  let x0 = 160, y0 = 120, x1 = -1, y1 = -1;
+  for (let y = 0; y < 120; y++) for (let x = 0; x < 160; x++) if (data[(y * 160 + x) * 4 + 3] > 0) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  return x1 < x0 ? null : [x0, y0, x1, y1];
+}
+function stableBox(o, state, palette, equipment) {
+  const key = `${activeClass(state).id}|${JSON.stringify(palette)}|${Object.values(equipment ?? {}).map((i) => i?.baseId ?? '').join(',')}`;
+  if (frameCache.has(key)) return frameCache.get(key);
+  let box = null;
+  for (let t = 0; t <= 4; t += 0.05) {
+    const pick = pickAt(state, palette, equipment, t);
+    if (!pick) return null;
+    const b = drawPickBox(o, pick, equipment, palette);
+    if (!b) return null; // image pas encore chargée : pas de cache (le cadre serait trop petit)
+    box = box ? [Math.min(box[0], b[0]), Math.min(box[1], b[1]), Math.max(box[2], b[2]), Math.max(box[3], b[3])] : b;
+  }
+  if (frameCache.size > 20) frameCache.clear();
+  frameCache.set(key, box);
+  return box;
+}
 function drawHeroLikeScene(ctx, canvas, state, t, palette, equipment) {
-  const pick = pickHeroAnim({ palette, equipment, classId: activeClass(state).id, walking: true, walkRate: 0.6, gait: 'walk', time: t, attack: 0, shoot: 0, aim: 0, cast: 0, hurt: 0, victory: 0 }, {});
+  const pick = pickAt(state, palette, equipment, t);
   if (!pick) return false;
   heroOff ??= typeof document !== 'undefined' ? document.createElement('canvas') : null;
   if (!heroOff) return false;
-  heroOff.width = 160; heroOff.height = 120;
-  const o = heroOff.getContext('2d');
+  if (heroOff.width !== 160) { heroOff.width = 160; heroOff.height = 120; }
+  const o = heroOff.getContext('2d', { willReadFrequently: true });
   o.imageSmoothingEnabled = false;
+  const box = stableBox(o, state, palette, equipment) ?? drawPickBox(o, pick, equipment, palette);
+  if (!box) return false;
   o.clearRect(0, 0, 160, 120);
   drawHeroPick(o, pick, equipment, palette, 48, 30);
-  // Cadre serré autour des pixels dessinés, posé en bas du canvas et agrandi.
-  const data = o.getImageData(0, 0, 160, 120).data;
-  let x0 = 160, y0 = 120, x1 = 0, y1 = 0;
-  for (let y = 0; y < 120; y++) for (let x = 0; x < 160; x++) if (data[(y * 160 + x) * 4 + 3] > 0) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
-  if (x1 <= x0) return false;
+  const [x0, y0, x1, y1] = box;
   const w = x1 - x0 + 1, h = y1 - y0 + 1;
   const k = Math.max(1, Math.floor(Math.min(canvas.width / w, (canvas.height - 4) / h)));
+  // Pieds toujours au même endroit : le bas du cadre fixe posé en bas du canvas.
   ctx.drawImage(heroOff, x0, y0, w, h, Math.round((canvas.width - w * k) / 2), canvas.height - h * k - 2, w * k, h * k);
   return true;
 }

@@ -202,7 +202,7 @@ export default {
     else if (tab === 'week') {
       body = `<div class="card m-body">${trackTab(state)}</div>`;
     } else {
-      body = `${sessionGoalsHtml(state)}<div class="card m-body"><div class="section-title">${sec(period('daily').label, nOf('daily'))}</div>${periodTab(state, period('daily'))}</div>
+      body = `<div class="card m-body"><div class="section-title">${sec(period('daily').label, nOf('daily'))}</div>${periodTab(state, period('daily'))}</div>
         ${fold(ui, 'login', sec('Connexion', nOf('login')), () => loginTab(state), { open: (loginPending(state) > 0), extra: (loginPending(state) > 0) ? '<span class="good">à récupérer</span>' : '' })}
         ${findsCard(ui)}
         <div class="card m-body"><div class="section-title">${sec('Contrats', nOf('contract'))}</div>${contractsTab(state)}</div>`;

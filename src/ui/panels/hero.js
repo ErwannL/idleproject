@@ -203,28 +203,33 @@ function heroView(ui, state) {
   const hits = hitsToFall(state);
   const fmtHits = (h) => (h >= 100 ? '99+' : h < 1 ? '< 1' : formatDecimal(Math.floor(h * 10) / 10));
   const row = (iconName, label, value, cls = '') => `<div class="ss-row${cls}">${img(iconName)}<span class="ss-label">${label}</span><b class="ss-v num">${value}</b></div>`;
+  // v9.8 (C2) : 6 stats clés à libellés courts (plus rien de coupé), le reste derrière « Toutes les stats ».
   const sheet = `<div class="card stat-sheet">
       <div class="ss-pc">${img('icon_crown')}<span class="ss-pc-label">Puissance</span><b class="ss-pc-v num" title="Puissance de combat : moyenne des dégâts/s et des PV effectifs">${formatNumber(s.combatPower)}</b></div>
       <div class="ss-cols">
         <div class="ss-col">
+          ${row('icon_upgrade', 'Dégâts/s', formatNumber(s.dps))}
           ${row('icon_damage', 'Attaque', formatNumber(s.damage))}
-          ${row('icon_bolt', 'Vitesse', `${formatDecimal(s.attacksPerSecond, 2)} att./s`)}
-          ${row('icon_crit', 'Chance de critique', `${formatDecimal(s.critChance)} %`)}
-          ${row('icon_skull', 'Dégâts critiques', `${formatDecimal(s.critMultiplier * 100)} %`)}
-          ${row('skill_whirl', 'Double attaque', `${formatDecimal(s.doubleAttackPct)} %`)}
-          ${row('icon_boss', 'Tueur de boss', `+${formatDecimal(s.bossDamagePct)} %`)}
-          ${row('icon_upgrade', 'Dégâts/s', formatDecimal(s.dps))}
+          ${row('icon_crit', 'Critique', `${formatDecimal(s.critChance)} %`)}
         </div>
         <div class="ss-col">
           ${row('icon_heart', 'Santé', formatNumber(s.maxHp))}
-          ${row('shield', 'Défense', `${formatNumber(s.defense)} <small class="muted">(−${formatDecimal(s.defenseReductionPct)} %)</small>`)}
-          ${row('icon_shield', 'Armure', `${formatDecimal(s.armor)} %`)}
-          ${row('skill_quick', 'Esquive', `${formatDecimal(s.dodgePct)} %`)}
-          ${row('icon_regen', 'Régénération', `${formatDecimal(s.regenPerSecond)} PV/s`)}
-          ${row('icon_essence', 'Vol de vie', `${formatDecimal(s.lifesteal)} %`)}
-          ${row('icon_alert', 'Coups encaissés (ennemi · boss)', `${fmtHits(hits.normal)} · ${fmtHits(hits.boss)}`, hits.normal < 3 ? ' bad' : '')}
+          ${row('shield', 'Dégâts subis', `−${formatDecimal(s.defenseReductionPct)} %`)}
+          ${row('icon_alert', 'Coups tenus', `${fmtHits(hits.normal)} · boss ${fmtHits(hits.boss)}`, hits.normal < 3 ? ' bad' : '')}
         </div>
       </div>
+      ${fold(ui, 'hero-all-stats', 'Toutes les stats', () => `<div class="ss-cols"><div class="ss-col">
+          ${row('icon_bolt', 'Vitesse', `${formatDecimal(s.attacksPerSecond, 2)} att./s`)}
+          ${row('icon_skull', 'Dégâts crit.', `${formatDecimal(s.critMultiplier * 100)} %`)}
+          ${row('skill_whirl', 'Double attaque', `${formatDecimal(s.doubleAttackPct)} %`)}
+          ${row('icon_boss', 'Tueur de boss', `+${formatDecimal(s.bossDamagePct)} %`)}
+        </div><div class="ss-col">
+          ${row('shield', 'Défense', formatNumber(s.defense))}
+          ${row('icon_shield', 'Armure', `${formatDecimal(s.armor)} %`)}
+          ${row('skill_quick', 'Esquive', `${formatDecimal(s.dodgePct)} %`)}
+          ${row('icon_regen', 'Régén.', `${formatDecimal(s.regenPerSecond)} PV/s`)}
+          ${row('icon_essence', 'Vol de vie', `${formatDecimal(s.lifesteal)} %`)}
+        </div></div>`)}
       <div class="ss-foot muted">${img('coin')} <span>Or bonus</span> <b>+${formatDecimal(s.goldPct)} %</b></div>
     </div>`;
   return `${sheet}<div class="card hero-main r-${hero.rarity}">

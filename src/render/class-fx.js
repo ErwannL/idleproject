@@ -58,7 +58,7 @@ export function installClassFx(proto, { HERO_X, ATTACK_TIME, CAST_TIME }) {
               splash('#e8d0a8', 0.02);
             },
           });
-          this.shake = Math.max(this.shake, 1);
+          /* v9.8 (B1) */
           break;
         }
         case 'fireball': {
@@ -70,7 +70,7 @@ export function installClassFx(proto, { HERO_X, ATTACK_TIME, CAST_TIME }) {
               react(x, y, '#ffb43a');
               this.sprite(['fx_burst'], x + 4, G + 2, 0.35, { tint: '#ff7a2a' });
               this.burst(x + 4, y, '#ff8a3a', 10, 55);
-              this.shake = Math.max(this.shake, 1.5);
+              /* v9.8 (B1) */
               splash('#ffb43a', 0.03);
             },
           });
@@ -84,7 +84,7 @@ export function installClassFx(proto, { HERO_X, ATTACK_TIME, CAST_TIME }) {
                 this.sprite(['fx_burst'], mx + 16, G + 2, 0.4, { tint: '#ffb43a' });
                 this.burst(mx, G - 6, '#ff6a1a', 18, 80);
                 this.dust(mx, 8);
-                this.shake = Math.max(this.shake, 4);
+                /* v9.8 (B1) */
                 this.hitReact(id, tx, { color: '#ff6a1a' });
                 splash('#ff6a1a');
               },
@@ -135,7 +135,7 @@ export function installClassFx(proto, { HERO_X, ATTACK_TIME, CAST_TIME }) {
           this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], HERO_X + 16 + sx, G + 3, 0.22, { delay: 0.07, tint: '#ff4a3a' });
           if (crit) this.sprite(['fx_slash_crit'], HERO_X + 18 + sx, G + 4, 0.22, { delay: 0.1, tint: '#ff7a3a' });
           for (const t of others) this.sprite(['fx_slash2', 'fx_slash3'], t.x - 4, G + 1, 0.16, { delay: 0.12, tint: '#ff4a3a' });
-          this.later(0.1, () => { react(tx, null, '#ff7a5a'); splash('#ff7a5a'); this.shake = Math.max(this.shake, 1.5); });
+          this.later(0.1, () => { react(tx, null, '#ff7a5a'); splash('#ff7a5a'); /* v9.8 (B1) */ });
           break;
         }
         case 'smite': {

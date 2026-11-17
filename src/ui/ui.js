@@ -9,7 +9,8 @@ import { COMBO_STEP_PCT, interactiveCooldown } from '../core/combat.js'; // v9.7
 import { activeSkills } from '../core/skills.js'; // v9.7.1 (lot 2)
 import { LootBag } from './loot-bag.js'; // v9.7.1
 import { worldOpensAt } from '../core/seals.js'; // v9.6.5
-import { sessionGoalsHtml } from './session-goals.js'; // v9.6.5
+import { sessionGoalsHtml, sessionGoalsPill } from './session-goals.js';
+import { sessionDone } from '../core/session-goals.js'; // v9.8 // v9.6.5
 import { teamAdvice as teamAdviceV965 } from '../core/team-advisor.js';
 import { BALANCE } from '../data/balance.js';
 import { BOSSES, ENEMIES } from '../data/enemies.js';
@@ -609,7 +610,7 @@ export class UI {
     // v9.1.3 (S5, décision 7) : le prochain onglet de ce menu qui s'ouvre à une étape est annoncé, en texte neutre.
     const STAGE_UNLOCKS = { tree: 10, dungeons: DUNGEONS[0].unlockStage, tower: CHALLENGE.unlockStage };
     const nextTab = menu?.tabs.find((t) => this.tabVisible[t] === false && STAGE_UNLOCKS[t]);
-    const next = nextTab ? `<span class="next-unlock muted">Prochain : ${SUB_LABELS[nextTab]} à l'étape ${STAGE_UNLOCKS[nextTab]}</span>` : '';
+    const next = ''; // v9.8 (B6) : le prochain déblocage n'est plus annoncé ici (barre sous la scène seulement)
     const key = `${this.tab}|${tabs.join()}|${tabs.map(mark).join()}|${nextTab}`;
     if (this.lastHud.subtabs === key) return;
     this.lastHud.subtabs = key;
@@ -829,6 +830,7 @@ export class UI {
       case 'offline-double': if (this.lastOffline && this.canDoubleOffline(this.lastOffline)) { a.doubleOffline(this.lastOffline); this.lastOffline = null; this.closeModal(); } break; // v9.3.8 (4)
       case 'arena-edit': local(() => { v.arenaEdit = true; }); break; // v9.3.5
       case 'open-tab': if (el.closest('#modal')) this.closeModal(); this.openTab(value); break;
+      case 'session-goals': this.openModal(`${sessionGoalsHtml(this.state)}<div class="detail-actions"><button class="btn btn-primary" data-action="close-modal">OK</button></div>`); break; // v9.8 (C1)
       case 'cast-skill': a.castSkillNow?.(el.dataset.skill); break; // v9.7.1 (lot 2)
       case 'cast-ult': a.castUltNow?.(value); break;
       case 'guard': a.guardNow?.(); break;
@@ -1493,6 +1495,9 @@ export class UI {
     this.updateRushBar(state, world);
     this.updateSkillBar(state, world);
     this.lootBag?.update(state);
+    // v9.8 (C1) : objectifs de session en pastille au bord de la scène.
+    const pill = this.$('goals-pill');
+    if (pill) { const h = sessionGoalsPill(state); if (pill.dataset.h !== h) { pill.dataset.h = h; pill.innerHTML = h; pill.classList.toggle('hidden', !h); pill.classList.toggle('ready', sessionDone(state)); } }
     const stats = world.heroStats ?? computeHeroStats(state);
     this.setText('gold', formatNumber(state.gold));
     this.setText('strip-gold', formatNumber(state.gold));
@@ -2322,26 +2327,34 @@ export class UI {
     const paused = { tower: 'la Tour de l\'Éternité', challenge: 'le défi de la semaine', dungeon: 'un donjon' }[summary.paused];
     // v9.1.3 (doc1 4a) : fenêtre réduite à l'essentiel — temps, or et XP, objets rares ; le reste dans « Détails ».
     const matIcons = rewardIcons({ shards: mats.shards, gems: summary.gems });
-    this.openModal(`<h2>Bon retour !</h2>
-        <p>Absence : <b>${formatDuration(summary.elapsedSeconds)}</b>${summary.capped ? ` <span class="muted">(gains limités à ${BALANCE.offline.capHours} h)</span>` : ''}</p>
-        <p class="offline-gains"><span>${coin()} <b class="gold-text">+${formatNumber(summary.totalGold)}</b></span>
-          <span>XP <b>+${formatNumber(summary.xp)}</b>${summary.levelsGained ? ` · <b class="good">+${summary.levelsGained} niveau${summary.levelsGained > 1 ? 'x' : ''}</b>` : ''}</span>${matIcons}</p>
-        ${rareItems ? `<div class="offline-rare"><b class="gold-text">★ Objets rares</b><div class="loot-row">${rareItems}</div></div>` : ''}
-        ${summary.baggedCount ? `<p>🎒 <b>${summary.baggedCount}</b> objet${summary.baggedCount > 1 ? 's' : ''} dans le sac de butin, à trier (touche B ou appui sur le sac).</p>` : ''}
-        ${this.returnAdvice()}
-        ${sessionGoalsHtml(this.state ?? this.bootState)}
-        ${paused ? `<p class="bad">Tu étais dans ${paused} : il ne progresse pas hors ligne (il reprend à ton retour).</p>` : ''}
-        <details class="offline-more"><summary>Détails</summary>
-          <p>Ennemis vaincus : ~${formatNumber(summary.kills)} · Objets : ${summary.items.length - summary.autoRecycledCount}
-            ${recycled ? `<span class="muted">(+${recycled} convertis en or)</span>` : ''}</p>
+    // v9.8 (C1) : écran de récompense façon jeu mobile — bandeau illustré (le camp), durée en gros, 2 à 4 tuiles
+    // (grosse icône, chiffre), UN seul gros bouton « Récupérer » (×2 à côté, plus petit). Objectifs de session : pastille
+    // au bord de la scène ; détails et Retour de session derrière « i ».
+    const st = this.state ?? this.bootState;
+    const team = (st?.companions?.equipped ?? []).map(companionById).filter(Boolean).slice(0, 4);
+    const tile = (ico, n, label) => `<div class="rw-tile">${ico}<b class="num">${n}</b><small>${label}</small></div>`;
+    const tiles = [tile(coin(), `+${formatNumber(summary.totalGold)}`, 'Or'),
+      tile(img('icon_star'), `+${formatNumber(summary.xp)}`, summary.levelsGained ? `XP · +${summary.levelsGained} niv.` : 'XP'),
+      summary.gems ? tile(img('icon_gem'), `+${formatNumber(summary.gems)}`, 'Gemmes') : '',
+      mats.shards ? tile(img('icon_shard'), `+${formatNumber(mats.shards)}`, 'Éclats') : '',
+      rare.length ? `<div class="rw-tile rw-items">${rare.slice(0, 2).map((i) => itemFrame(i, { tag: 'div' })).join('')}<small>Objets rares</small></div>` : '',
+      summary.baggedCount ? tile('🎒', summary.baggedCount, 'À trier') : ''].filter(Boolean).slice(0, 4).join('');
+    const free = st && (st.expeditions?.slots ?? []).filter(Boolean).length === 0 && Object.keys(st.companions?.owned ?? {}).length >= 5;
+    this.openModal(`<div class="rw-banner"><div class="rw-camp">${team.map((c) => img(c.sprite)).join('')}<span class="camp-flame">🔥</span><span class="rw-zz">z z</span></div>
+        <div class="rw-title"><small>Pendant ton absence</small><b>${formatDuration(summary.elapsedSeconds)}</b></div>
+        <details class="rw-info"><summary aria-label="Détails">i</summary>
+          <p>Ennemis vaincus : ~${formatNumber(summary.kills)} · Objets : ${summary.items.length - summary.autoRecycledCount}${recycled ? ` (+${recycled} convertis en or)` : ''}</p>
           ${items ? `<div class="loot-row">${items}</div>` : ''}
+          ${summary.capped ? `<p class="muted">Gains limités à ${BALANCE.offline.capHours} h.</p>` : ''}
           ${journal ? `<div class="section-title">Avant de passer hors ligne</div>${journalHtml(journal)}` : ''}
-          <p class="muted">Hors ligne, le héros reste sur l'étape ${stageLabel(summary.stage)} (la meilleure où il gagne vraiment) à
-            ${BALANCE.offline.farmMultiplier * 100} % de son rythme, sans affronter de boss.</p>
-        </details>
-        ${this.canDoubleOffline(summary) ? `<button class="btn btn-gold primary-action offline-x2" data-action="offline-double">${coin()} Tout récupérer ×2 <small>(1 fois par jour, gratuit)</small></button>` : ''}
-        <div class="detail-actions"><button class="btn" data-action="close-modal">Continuer</button>
-          <button class="btn" data-action="session-return">${img('icon_bolt', 'ico20')} Retour de session${this.phone ? '' : ' (S)'}</button></div>`);
+          <p class="muted">Hors ligne : étape ${stageLabel(summary.stage)}, ${BALANCE.offline.farmMultiplier * 100} % du rythme, sans boss.</p>
+          <button class="btn small" data-action="session-return">${img('icon_bolt', 'ico20')} Retour de session${this.phone ? '' : ' (S)'}</button>
+        </details></div>
+        <div class="rw-tiles">${tiles}</div>
+        ${paused ? `<p class="bad rw-note">${escapeHtml(paused)} reprend à ton retour.</p>` : ''}
+        ${free ? '<button class="btn small rw-exp" data-action="open-tab" data-value="expeditions">⛺ Envoyer tes compagnons en expédition</button>' : ''}
+        <div class="rw-actions"><button class="btn btn-gold rw-claim" data-action="close-modal">Récupérer</button>
+          ${this.canDoubleOffline(summary) ? `<button class="btn rw-x2" data-action="offline-double">×2 <small>gratuit 1×/jour</small></button>` : ''}</div>`);
     this.lastOffline = summary;
     uiFx.offlineFx(this.$('modal-card'), { gold: 0, gems: 0, shards: 0 }, { gold: summary.totalGold, gems: summary.gems ?? 0, shards: mats.shards ?? 0 }); // v9.2.7 : seulement les monnaies qui volent vers leurs compteurs
   }

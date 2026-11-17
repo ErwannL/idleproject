@@ -2,6 +2,13 @@
 import { SESSION_CHEST, goalProgress, sessionDone } from '../core/session-goals.js';
 import { progressBar } from './common.js';
 
+// v9.8 (C1) : pastille à 3 icônes au bord de la scène (objectifs de session), ouverte au toucher.
+const GOAL_ICON = { stages: '🏰', kills: '🗡️', bossesDefeated: '👑', bosses: '👑', guards: '🛡️', manualCasts: '✨', recycled: '♻', equips: '🎽', summons: '🔮', tower: '🗼', dungeons: '🗝️' };
+export function sessionGoalsPill(state) {
+  const s = state?.sessionGoals;
+  if (!s || s.claimed) return '';
+  return s.goals.map((g) => { const p = goalProgress(state, g); return `<span class="${p >= g.target ? 'done' : ''}">${GOAL_ICON[g.key ?? g.id] ?? '★'} ${p}/${g.target}</span>`; }).join('');
+}
 export function sessionGoalsHtml(state) {
   const s = state?.sessionGoals;
   if (!s) return '';

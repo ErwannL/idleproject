@@ -231,7 +231,8 @@ function majorLine(state, item) {
 
 // v9.5.2 (2.3) : bandeau Ensembles — pour chaque ensemble entamé : pièces portées / possédées, prochain palier, spécialité
 // et où trouver les pièces manquantes (le monde de l'ensemble).
-function setsBanner(state) {
+// v9.8 (B2) : sous le sac, replié par défaut (le titre donne le nombre d'ensembles entamés).
+function setsBanner(ui, state) {
   const worn = setCounts(state.equipment);
   const owned = {};
   for (const i of [...state.inventory, ...(state.stash ?? []), ...Object.values(state.equipment).filter(Boolean)]) if (i?.set) owned[i.set] = (owned[i.set] ?? 0) + 1;
@@ -244,7 +245,8 @@ function setsBanner(state) {
   }).join('');
   const hel = heroElement(state); // v9.6.1 (4.6) : 2 pièces d'un ensemble donnent son élément au héros
   const elLine = `<div class="muted">Élément du héros : ${hel ? elementBadge(hel) : 'neutre'} (2 pièces d'un ensemble lui donnent l'élément de son monde).</div>`;
-  return rows ? `<div class="card sets-banner"><div class="section-title">Ensembles</div>${elLine}${rows}</div>` : '';
+  const n = Object.keys(owned).length;
+  return rows ? `<div class="sets-banner">${fold(ui, 'inv-sets', 'Ensembles', () => elLine + rows, { extra: `${n} entamé${n > 1 ? 's' : ''}` })}</div>` : '';
 }
 
 // Ensemble d'équipement (v8.5) : pièces portées et paliers de bonus.
@@ -608,12 +610,11 @@ export default {
     const head = `<div class="inv-head">
         ${open('stash') ? segment([['bag', `Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}`, 'icon_bag'], ['stash', `Coffre ${state.stash.length}/${STASH_SIZE}`, 'icon_chest']], 'inv-tab', tab) : `<b class="inv-bag-count">${img('icon_bag')} Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}</b>`}
         <button class="btn small bag-gear${ui.view.bagMenu ? ' active' : ''}" data-action="bag-menu" aria-expanded="${Boolean(ui.view.bagMenu)}" aria-label="Filtres, builds et réglages du sac" title="Filtres, builds et réglages du sac">⚙ Filtres</button>
-        ${nextUnlock ? `<span class="next-unlock muted">Prochain : ${nextUnlock.label} à l'étape ${nextUnlock.stage}</span>` : ''}
+        ${'' /* v9.8 (B6) : « Prochain déblocage » seulement sous la scène (plus en double, notation 1-10) */}
         ${anyUpgrade ? '<button class="btn btn-primary primary-action pulse-gold equip-best" data-action="equip-best">⬆ Équiper le meilleur</button>' : ''}
       </div>
-      ${setsBanner(state)}
       ${ui.view.bagMenu ? '' : '<!-- v9.7.1 : « Équiper pour », filtres et listes rangés derrière le bouton Filtres -->'}${!ui.view.bagMenu ? '' : `<div class="equip-for" role="group" aria-label="Équiper pour"><span>Équiper pour :</span>${['attack', 'survival', 'fortune'].map((p) => `<button class="btn small${state.ui.gearProfile === p ? ' active' : ''}" data-action="equip-for" data-value="${p}" title="${PROFILE_TIPS[p]}">${img(PROFILE_ICONS[p])} ${GEAR_PROFILES[p].label}</button>`).join('')}</div>`}${ui.view.bagMenu ? `<div class="card bag-menu">${fold(ui, 'inv-builds', 'Builds', () => buildsBar(ui, state), { extra: state.loadouts[Math.max(0, ui.view.buildSel ?? 0)]?.name ?? '' })}
         ${fold(ui, 'bag-settings', 'Réglages du sac', () => bagSettings(ui, state))}</div>` : ''}`;
-    return head + (tab === 'stash' ? stashView(ui, state) : bag(ui, state));
+    return head + (tab === 'stash' ? stashView(ui, state) : bag(ui, state)) + setsBanner(ui, state);
   },
 };

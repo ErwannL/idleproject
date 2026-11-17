@@ -298,7 +298,7 @@ export class SceneRenderer {
     const dpr = window.devicePixelRatio || 1;
     const pref = SIZE_PREFS[SceneRenderer.sizePref] ?? 1; // Paramètres > Interface > Taille des personnages
     const tall = cssWidth < 560 && cssHeight > cssWidth * 1.1;
-    const wide = !tall && cssWidth >= 560 && cssHeight >= 360;
+    const wide = !tall && cssWidth >= 520 && cssHeight >= 360; // v9.8 (B4) : 560 → 520 (panneau plus large : la barre du boss reste en grand)
     let scale;
     if (tall) {
       // Téléphone portrait : ≈ 240 px logiques de large (au lieu de 150) pour voir arriver les ennemis.
@@ -444,7 +444,7 @@ export class SceneRenderer {
         // v9.7.1 (lot 3 bis) : trois temps — préparation (lueur au héros), impact (arrêt d'image 0,05 s), retombée (effets).
         if (!this.focus) { this.effects.push({ kind: 'halo', x: HERO_X, y: this.groundY - 16, color: '#ffe9a8', life: 0.3, max: 0.3 }); this.hitstop = Math.max(this.hitstop ?? 0, 0.05); }
         // v9.3.9 (2.3) : une compétence qui touche plusieurs ennemis secoue l'écran.
-        if ((event.targets?.length ?? 0) > 1 || event.aoe) this.shake = Math.max(this.shake, 3);
+        if ((event.targets?.length ?? 0) > 1 || event.aoe) /* v9.8 (B1) : plus de secousse sur une action du héros ou d'un compagnon */
         // v9.2.5 : geste propre à la compétence et effet synchronisé (skill-fx.js) ; ancien effet en repli.
         this.weaponSkillFlourish(HERO_X + 4, this.weaponEq); // v9.3.2 : l'arme participe à la compétence
         if (castHeroSkill(this, this.skillKey, event.skillId, fxContext(this, world, { x: HERO_X + 4, y: this.groundY - 22 }, HERO_X))) break;
@@ -481,7 +481,7 @@ export class SceneRenderer {
           this.effects.push({ kind: 'beam', x, color, life: 0.9, max: 0.9, wide: true });
           this.effects.push({ kind: 'ring', x, y: this.groundY - 18, color, life: 0.6, max: 0.6, r: 22 });
           this.burst(x, this.groundY - 24, color, 16, 52);
-          this.shake = Math.max(this.shake, 2);
+          /* v9.8 (B1) : plus de secousse sur une action du héros ou d'un compagnon */
         }
         break;
       }
@@ -544,7 +544,7 @@ export class SceneRenderer {
         this.effects.push({ kind: 'loot', toBag: Boolean(event.bagged), item: event.item, color, x0, x: x0, y0: at.y, y: at.y, life: LOOT_LIFE, max: LOOT_LIFE });
         this.burst(x0, at.y - 4, color, big ? 14 : 6, 50);
         vfx(this, 'loot_burst', x0, at.y, { tint: color, size: big ? 1.3 : 0.9 }); // v9.2.6 : gerbe d'étincelles de rareté
-        if (event.item.rarity === 'legendary') this.shake = Math.max(this.shake, 3);
+        if (event.item.rarity === 'legendary') /* v9.8 (B1) : plus de secousse sur une action du héros ou d'un compagnon */
         break;
       }
       case 'bossSummon':
@@ -676,8 +676,8 @@ export class SceneRenderer {
     if (!drawn) this.sprite(['fx_hit'], ix + 2, iy + 6, 0.14, { tint: crit ? '#ffd23f' : null });
     if (crit) {
       this.effects.push({ kind: 'ring', x: ix, y: iy, color: '#ffd23f', life: 0.25, max: 0.25, r: 12 });
-      this.shake = Math.max(this.shake, boss ? 4 : 3);
-    } else if (boss) this.shake = Math.max(this.shake, 2);
+      /* v9.8 (B1) : plus de secousse sur une action du héros ou d'un compagnon */
+    } // v9.8 (B1) : plus de secousse sur un coup du héros (critique ou boss)
     // v9.1.9 : impact élémentaire selon la couleur du coup (feu, glace, poison, sacré, ombre) ou l'élément donné.
     if (el) this.elementFx(ix, iy, el, crit || boss);
     // v9.2.6 : couleur du chiffre selon le coup (critique doré, élément, coup simple blanc).
@@ -796,7 +796,7 @@ export class SceneRenderer {
       this.effects.push({ kind: 'beam', x: target, color: '#ffe680', life: 0.8, max: 0.8, wide: true });
       this.sprite(['fx_burst'], target, G + 1, 0.5, { tint: '#ffe680' });
       this.elementFx(target, G - 14, 'holy', true);
-      this.shake = Math.max(this.shake, 2);
+      /* v9.8 (B1) : plus de secousse sur une action du héros ou d'un compagnon */
     }
   }
 
@@ -892,8 +892,10 @@ export class SceneRenderer {
     ctx.imageSmoothingEnabled = false;
     ctx.save();
     if (this.shake > 0) {
-      ctx.translate(Math.round((Math.random() * 2 - 1) * this.shake), Math.round((Math.random() * 2 - 1) * this.shake));
-      this.shake = Math.max(0, this.shake - dt * 12);
+      // v9.8 (B1) : secousse réservée aux événements de boss, plafonnée à 1,5 px, qui retombe vite.
+      const amp = Math.min(this.shake, 1.5);
+      ctx.translate(Math.round((Math.random() * 2 - 1) * amp), Math.round((Math.random() * 2 - 1) * amp));
+      this.shake = Math.max(0, this.shake - dt * 16);
     }
     this.drawBackground(ctx, ZONES[zoneIndex], this.smoothScroll(world));
     // v9.0.8 : chacun dans sa case (chevalier | familier | compagnons) ; si l'équipe ne tient pas à gauche du
@@ -1684,7 +1686,7 @@ export class SceneRenderer {
           this.sprite(['fx_burst'], x, G - 2, 0.35, { tint: color });
           this.burst(x, G - 18, color, 6, 34);
         }
-        this.shake = Math.max(this.shake, 2);
+        /* v9.8 (B1) : plus de secousse sur une action du héros ou d'un compagnon */
       });
       this.later(0.6, () => this.dust(ax, 4));
     } else {

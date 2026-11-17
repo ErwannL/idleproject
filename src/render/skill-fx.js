@@ -265,9 +265,8 @@ function strike(scene, c, color, all = true) {
   for (const f of all ? c.foes : c.foes.slice(0, 1)) scene.hitReact(f.id, f.x, { color });
 }
 
-function shake(scene, v) {
-  if (!scene.focus) scene.shake = Math.max(scene.shake, v);
-}
+// v9.8 (B1) : les compétences du héros ne secouent plus l'écran (on voyait mal le combat).
+function shake() {}
 
 // Projectile en ligne droite de (x0, y0) à (x1, y1), dessiné par `draw(ctx, x, y, k)` avec une traînée.
 function fly(scene, delay, dur, x0, y0, x1, y1, draw, trail, onHit) {

@@ -3614,3 +3614,54 @@ html.simple .rb-detail, html.simple .summon-odds .muted, html.simple .next-unloc
 .camp-flame { font-size: 28px; animation: weak-pulse 1.4s ease-in-out infinite; }
 .camp-trophies { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
 .compare-power { font-size: 15px; margin: 2px 0 4px; } /* v9.8 (A) */
+
+/* v9.8 (B4) : onglets à largeur égale sur une ligne (icône au-dessus du nom), panneau 460 à 600 px sur PC. */
+@media (min-width: 900px) {
+  .layout-tall.wide #panel { width: clamp(460px, 42%, 600px); }
+  #panel-subtabs { overflow-x: visible; }
+  #panel-subtabs .subtab { flex: 1 1 0; min-width: 0; flex-direction: column; justify-content: center; gap: 2px; padding: 5px 4px 6px; font-size: 12.5px; }
+  #panel-subtabs .subtab img { width: 28px; height: 28px; }
+  #panel-subtabs .subtab span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+  #panel-subtabs .next-unlock { display: none; }
+  #panel-subtabs:has(.subtab:nth-of-type(5)) .sub-long { display: none; }
+  #panel-subtabs:has(.subtab:nth-of-type(5)) .sub-short { display: inline; }
+}
+/* v9.8 (B5) : Boutique dans la DA du jeu — images adoucies, cartes parchemin bleu nuit à fine bordure dorée ;
+   icônes du haut plus lisibles (28 px, halo, bordure dorée au survol). */
+.shop-ico { filter: saturate(.85) contrast(.92); image-rendering: pixelated; }
+.shop-card { background: linear-gradient(180deg, #1f2a46, #141b30); border: 1px solid #b8913c; box-shadow: inset 0 0 0 1px rgba(255, 220, 140, .08); }
+@media (min-width: 900px) {
+  #topbar .icon-btn { background: linear-gradient(#2c3c64, #1d2847); border: 1px solid #5d72a8; }
+  #topbar .icon-btn img { width: 28px; height: 28px; filter: drop-shadow(0 0 3px rgba(255, 220, 140, .45)); }
+  #topbar .icon-btn:hover { border-color: #e8b64a; box-shadow: 0 0 6px rgba(232, 182, 74, .5); }
+}
+/* v9.8 (C1) : écran « Bon retour » façon jeu mobile. */
+.rw-banner { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 8px 6px; margin: -6px -6px 8px;
+  background: radial-gradient(ellipse at 50% 85%, rgba(255, 150, 60, .25), transparent 60%), linear-gradient(#1a2140, #0f1426); border-radius: 10px; }
+.rw-camp { display: flex; align-items: flex-end; gap: 4px; min-height: 52px; }
+.rw-camp img { width: 40px; height: 40px; image-rendering: pixelated; filter: brightness(.85); }
+.rw-zz { font: italic 700 12px system-ui; color: #cfd8f0; opacity: .7; align-self: flex-start; }
+.rw-title { display: flex; flex-direction: column; align-items: center; }
+.rw-title small { color: #cfd8f0; } .rw-title b { font-size: 26px; color: #ffe9a8; }
+.rw-info { position: absolute; top: 6px; right: 6px; text-align: left; max-width: 90%; }
+.rw-info > summary { list-style: none; width: 24px; height: 24px; border-radius: 50%; border: 1px solid #6a7fb8; display: grid; place-items: center; cursor: pointer; font: italic 700 13px serif; margin-left: auto; }
+.rw-info[open] { background: rgba(10, 14, 28, .97); padding: 8px; border-radius: 8px; border: 1px solid #4a5f92; z-index: 2; font-size: 12px; }
+.rw-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 8px; margin: 4px 0 10px; }
+.rw-tile { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 4px; border-radius: 10px; background: linear-gradient(#24305a, #182040); border: 1px solid #b8913c;
+  animation: rw-pop .4s ease-out both; }
+.rw-tile:nth-child(2) { animation-delay: .08s; } .rw-tile:nth-child(3) { animation-delay: .16s; } .rw-tile:nth-child(4) { animation-delay: .24s; }
+.rw-tile img { width: 36px; height: 36px; image-rendering: pixelated; }
+.rw-tile b { font-size: 16px; color: #ffe9a8; } .rw-tile small { color: #b8c4e0; font-size: 11px; }
+.rw-items .item-frame { width: 36px; height: 36px; }
+.rw-actions { display: flex; gap: 8px; align-items: center; }
+.rw-claim { flex: 1; min-height: 52px; font-size: 18px; }
+.rw-x2 { min-height: 44px; } .rw-x2 small { display: block; font-size: 10px; opacity: .8; }
+.rw-exp { width: 100%; margin-bottom: 8px; }
+@keyframes rw-pop { from { transform: scale(.6); opacity: 0; } }
+/* v9.8 (C1) : pastille des objectifs de session au bord de la scène. */
+#goals-pill { position: absolute; left: 8px; top: 44px; z-index: 4; display: flex; gap: 6px; padding: 3px 8px; border-radius: 12px; border: 1px solid #6a7fb8;
+  background: rgba(12, 16, 30, .82); color: #e8eefc; font: 700 11px system-ui; cursor: pointer; }
+#goals-pill .done { color: #7fe08f; } #goals-pill.ready { border-color: #ffd23f; box-shadow: 0 0 8px rgba(255, 210, 63, .6); }
+/* v9.8 (C1) : objectifs de session sur une ligne (la règle d'origine était battue : un mot par ligne). */
+.card.session-goals .m-row { display: flex !important; flex-wrap: wrap; }
+.card.session-goals .m-row > .grow { flex: 1 1 100% !important; width: 100%; white-space: normal !important; word-break: normal; }
