@@ -2,6 +2,7 @@ import { sendMetrics } from './core/metrics.js';
 // Point d'entrée : charge la partie, applique les gains hors ligne, puis fait tourner
 // la simulation (minuterie, continue même fenêtre réduite) et le rendu (requestAnimationFrame,
 // suspendu automatiquement quand la fenêtre est masquée).
+import { stagesPerCycle } from './core/combat.js'; // v9.8 (A)
 import { toggleLoadout } from './core/skills.js'; // v9.7.1 (lot 6)
 import { activeBonds } from './data/bonds.js'; // v9.7.1 (lot 6)
 import { updateStars, worldStars } from './core/world-stars.js'; // v9.7.1 (lot 4)
@@ -1539,6 +1540,25 @@ function highlightBond(b) {
 // Tests automatisés (navigateur piloté) : tout reste ouvert, comme le tutoriel qui ne s'y lance pas (sauf ?quests).
 if (loaded.source === 'new' && !state.unlocks && (!navigator.webdriver || location.search.includes('quests'))) { state.unlocks = { done: [], base: { ...state.records } }; state.ui.simple = true; } // v9.7.1 : mode simple par défaut
 document.documentElement.classList.toggle('simple', state.ui.simple === true);
+// v9.8 (A) : sécurité — un monstre ordinaire qui demanderait plus de 60 s : le héros redescend tout seul au dernier
+// endroit rentable (même étape au cycle précédent, sinon l'étape d'avant) et y reste ; bandeau clair.
+setInterval(() => {
+  if (state.tower || state.challenge || state.dungeon || state.worldRun || state.worldBossRun) return;
+  const front = world.enemies.find((e) => !e.boss && e.hp > 0);
+  const dps = world.heroStats?.dps ?? 0;
+  if (!front || dps <= 0 || front.maxHp / dps <= TOO_LONG) return;
+  const per = stagesPerCycle();
+  const cycleBack = state.stage > per;
+  const back = cycleBack ? state.stage - per : state.stage - 1;
+  if (back < 1) return;
+  state.autoAdvance = false;
+  state.farmBoss = null;
+  changeStage(state, world, back);
+  const label = cycleBack ? `Cycle ×${Math.floor((back - 1) / per) + 1}` : `l'étape ${stageLabel(back)}`;
+  ui.banner(`⚠ Trop dur ici : retour à ${label}`, 'warn');
+  ui.toast('Les monstres demandaient plus d\'une minute chacun. Améliore-toi, puis « Avancer ▶ ».', '#ffb36b');
+}, 5000);
+const TOO_LONG = 60;
 setInterval(() => {
   // v9.7.1 (lot 4) : étoiles des mondes terminés, moments forts (premier monde, premier Légendaire, première Renaissance).
   for (const w of updateStars(state)) highlight(`world-${w}`, `Monde ${w + 1} terminé !`, `${worldStars(state, w).filter(Boolean).length} étoile(s) sur 3. Le Colosse t'attend pour un face-à-face.`);

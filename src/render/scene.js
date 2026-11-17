@@ -1430,9 +1430,11 @@ export class SceneRenderer {
         ctx.fillRect(x + 2, this.groundY + 1, w - 4, 1);
         ctx.globalAlpha = 1;
         this.drawBar(ctx, headX - 16, headY - 6, 32, enemy.hp / enemy.maxHp, '#e84a5f', this.ghostHp(fx, enemy));
+        this.hpPercent(ctx, enemy, headX, headY + 1); // v9.8 (A) : on voit si les coups portent
         drawElementIcon(ctx, enemy.element, headX - 22, headY - 7);
       } else { // v9.5.1 (4.3) : barre toujours visible, à la couleur de l'élément du monstre
         this.drawBar(ctx, headX - 9, headY - 5, 18, enemy.hp / enemy.maxHp, enemy.elite ? '#ff9a3d' : mutation ? mutation.color : ELEMENT_BAR[enemy.element] ?? '#e84a5f', this.ghostHp(fx, enemy));
+        if (enemy.hp < enemy.maxHp && enemy.hp / enemy.maxHp > 0.97) this.hpPercent(ctx, enemy, headX, headY + 1); // v9.8 (A)
         // v9.6.0 (6.3) : icône du comportement au-dessus de la barre ; estompée si l'équipe a la parade.
         if (enemy.behavior && BEHAVIORS[enemy.behavior]) {
           ctx.globalAlpha = world.parries?.[enemy.behavior] ? 0.45 : 1;
@@ -1712,9 +1714,10 @@ export class SceneRenderer {
     const G = this.groundY;
     const color = companion.fx ?? '#ffd23f';
     if (SceneRenderer.skillNames !== false && known?.name) {
+      const half = Math.min(this.width / 2 - 2, known.name.length * 1.6 + 4); // v9.8 (E9) : bulle gardée dans le cadre
       const old = this.effects.filter((e) => e.kind === 'callout');
       if (old.length >= 3) this.effects.splice(this.effects.indexOf(old[0]), 1);
-      this.effects.push({ kind: 'callout', text: known.name, x: cx, y: G - 46, color, life: 0.8, max: 0.8 });
+      this.effects.push({ kind: 'callout', text: known.name, x: Math.max(half, Math.min(this.width - half, cx)), y: G - 46, color, life: 0.8, max: 0.8 });
     }
     if (!this.focus) this.effects.push({ kind: 'halo', x: cx, y: G - 16, color, life: 0.35, max: 0.35 });
     if (event.ultimate) {
@@ -2189,6 +2192,19 @@ export class SceneRenderer {
     for (let i = allies.length - 1; i >= 0; i--) this.drawAlly(ctx, world, allies[i], i);
   }
 
+  // v9.8 (A) : pourcentage de vie restante sous la barre (deux décimales tant que la barre bouge à peine) : un gros
+  // chiffre de dégâts sans effet visible ne trompe plus le joueur.
+  hpPercent(ctx, enemy, cx, y) {
+    const r = Math.max(0, enemy.hp / enemy.maxHp) * 100;
+    const t = `${r > 99 ? r.toFixed(2) : r.toFixed(r > 10 ? 0 : 1)} %`.replace('.', ',');
+    ctx.save();
+    ctx.font = '700 5px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.lineWidth = 2; ctx.strokeStyle = '#120c1c'; ctx.strokeText(t, cx, y + 4);
+    ctx.fillStyle = '#ffd6dc'; ctx.fillText(t, cx, y + 4);
+    ctx.restore();
+  }
+
   drawBar(ctx, x, y, w, ratio, color, ghost = 0) {
     const filled = Math.max(0, Math.round(w * Math.min(1, ratio)));
     ctx.fillStyle = '#1a1226';
@@ -2271,9 +2287,7 @@ export class SceneRenderer {
           drawVfx(this, ctx, fx, dt);
           break;
         case 'callout': { // v9.7.1 (lot A) : nom de la compétence, petit texte de la couleur du compagnon
-          const k = this.k ?? 1;
           ctx.save();
-          ctx.setTransform(k, 0, 0, k, 0, 0); // texte net : police dessinée à la résolution de l'écran
           ctx.globalAlpha = Math.min(1, t * 4);
           ctx.font = '800 6px system-ui, "Noto Sans KR", "Malgun Gothic", sans-serif';
           ctx.textAlign = 'center';

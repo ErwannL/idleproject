@@ -3613,3 +3613,4 @@ html.simple .rb-detail, html.simple .summon-odds .muted, html.simple .next-unloc
 .camp-unit img { width: 44px; height: 44px; image-rendering: pixelated; }
 .camp-flame { font-size: 28px; animation: weak-pulse 1.4s ease-in-out infinite; }
 .camp-trophies { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
+.compare-power { font-size: 15px; margin: 2px 0 4px; } /* v9.8 (A) */

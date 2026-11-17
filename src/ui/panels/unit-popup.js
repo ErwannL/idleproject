@@ -110,6 +110,9 @@ export function unitPopup(ui, state, c, { actions, gear }) {
   const hero = computeHeroStats(state);
   const dps = companionSkills({ ...state, companions: { ...state.companions, owned: { ...state.companions.owned, [c.id]: own } } }, c.id)
     .filter((sk) => sk.type === 'hit' || sk.type === 'burst').reduce((s, sk) => s + (hero.damage * sk.value * companionSkillMultiplier(state, c, sk.type, false, undefined, own)) / sk.every, 0);
+  // v9.8 (A) : un soutien n'affiche plus « 0 Dégâts » : son soin par seconde (part des PV max du héros).
+  const heal = companionSkills({ ...state, companions: { ...state.companions, owned: { ...state.companions.owned, [c.id]: own } } }, c.id)
+    .filter((sk) => sk.type === 'heal').reduce((t, sk) => t + (hero.maxHp * sk.value * companionSkillMultiplier(state, c, 'heal', false, undefined, own)) / 100 / sk.every, 0);
   const copies = Math.min(COMPANION_RULES.maxCopies, own.stars ?? 1);
   const nextStep = copies < COMPANION_RULES.maxCopies ? `Prochaine copie : +${DUP_BONUS_PCT[copies]} % aux stats${copies + 1 === ULT_UNLOCK_COPIES ? ', ultime Nv 6 à 10' : ''}` : 'Copies au maximum';
   const tab = ['skills', 'gear', 'story'].includes(ui.view.unitTab) && !(ui.view.unitTab === 'gear' && c.kind !== 'ally') ? ui.view.unitTab : 'skills';
@@ -130,8 +133,9 @@ export function unitPopup(ui, state, c, { actions, gear }) {
     <div class="star-tiers">${[3, 5].map((n) => `<span class="${(owned?.stars ?? 0) >= n ? 'good' : 'muted'}">${n}★ : ${escapeHtml(STAR_TIERS[n].text)}${(owned?.stars ?? 0) >= n ? ' ✓' : ''}</span>`).join(' · ')}</div>
     <div class="up-title"><b>${escapeHtml(c.name)}</b><span>${owned ? `Nv ${unitLevel(state, c.id)} / ${COMPANION_RULES.maxLevel}` : 'Pas encore obtenu'}</span></div>
     ${owned ? '' : '<div class="up-where">Où l\'obtenir : Équipe › Invocation</div>'}
-    <div class="up-stats"><span title="Dégâts par seconde de ses compétences">⚔ <b>${formatNumber(dps)}</b><small>Dégâts</small></span>
-      <span>❤ <b>${formatNumber(p?.maxHp ?? 0)}</b><small>Vie</small></span>
+    <div class="up-stats">${dps > 0 || !heal ? `<span title="Dégâts par seconde de ses compétences">⚔ <b>${formatNumber(dps)}</b><small>Dégâts/s</small></span>`
+      : `<span title="Soin par seconde de ses compétences (part de la vie du héros)">✚ <b>${formatNumber(heal)}</b><small>Soin/s</small></span>`}
+      <span title="Vie en Arène et en Défis d'équipe (en campagne, l'équipe combat derrière le héros)">❤ <b>${formatNumber(p?.maxHp ?? 0)}</b><small>Vie (Arène)</small></span>
       <span>⚡ <b>${T(1 / (p?.interval ?? 1))}/s</b><small>Vitesse</small></span></div>
     ${owned ? `<div class="up-copies"><span>Copies</span><div class="arena-bar"><i style="width:${(copies / COMPANION_RULES.maxCopies) * 100}%;background:var(--gold)"></i></div><b>${copies} / ${COMPANION_RULES.maxCopies}</b><small class="muted">${nextStep}</small></div>` : ''}
     <div class="up-tabs" role="tablist">${tabs}</div>

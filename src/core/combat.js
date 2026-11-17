@@ -193,11 +193,15 @@ export function rebirthDamage(state, balance = BALANCE) {
 // v9.7.0 (10.1, rythme 4–6 semaines) : après le monde 3, les PV montent un peu plus vite par étape (les trois premiers
 // mondes, joués en première session, ne changent pas).
 // v9.7.1 (lot 3) : surcroît de PV de la campagne (courbe enemyScaling.campaign rapportée à la courbe commune).
+// v9.8 (A) : bug corrigé — ce surcroît s'appliquait aussi aux Cycles ×2/×3 (×200 000 au Cycle ×3 : plus rien ne
+// mourait). Il ne vaut plus que pour le premier cycle, plafonné (CAMPAIGN_CAP, atteint vers le monde 4), et seulement
+// pour une partie commencée en 9.7.1 ou après (une ancienne partie garde la courbe avec laquelle elle a progressé).
+export const CAMPAIGN_CAP = 30;
 export function campaignHp(n, balance = BALANCE) {
   const g = balance.enemyScaling, c = g.campaign;
-  if (!c) return 1;
+  if (!c || n >= levelsPerCycle(balance)) return 1;
   const cg = { ...g, ...c };
-  return (hpBaseFactor(n, cg) * c.hpGrowth ** n * lateHp(n, cg)) / (hpBaseFactor(n, g) * g.hpGrowth ** n * lateHp(n, g));
+  return Math.min(CAMPAIGN_CAP, (hpBaseFactor(n, cg) * c.hpGrowth ** n * lateHp(n, cg)) / (hpBaseFactor(n, g) * g.hpGrowth ** n * lateHp(n, g)));
 }
 
 export function lateHp(n, growth) {
@@ -350,7 +354,7 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
   const type = rng.pick(boss ? enc.bosses : enc.enemies);
   const s = enemyStats(enc.level, type, boss, balance);
   if (!enc.world && !enc.worldBoss) s.hp = Math.round(s.hp * lateHp(Math.max(0, enc.level - 1), balance.enemyScaling)); // v9.7.0 (10.1)
-  if (!enc.world && !enc.worldBoss && !enc.dungeon && !state.tower && !state.challenge) s.hp = Math.round(s.hp * campaignHp(Math.max(0, enc.level - 1), balance)); // v9.7.1 (lot 3)
+  if (!enc.world && !enc.worldBoss && !enc.dungeon && !state.tower && !state.challenge && state.unlocks && !state.unlocks.legacy) s.hp = Math.round(s.hp * campaignHp(Math.max(0, enc.level - 1), balance)); // v9.7.1 (lot 3) ; v9.8 : parties neuves seulement
   if (boss && enc.gauntlet) applyBerserk(s, balance);
   if (enc.dungeon) {
     // Donjons : bien plus durs que la campagne, selon la difficulté choisie.

@@ -94,8 +94,13 @@ function detail(ui, state, item, whoUnit = null) {
       row('PV max', cur.maxHp, next.maxHp, int),
       row('Armure', cur.armor, next.armor, (v) => formatDecimal(v), ' %'),
       bonusRows(cur.bonus, next.bonus, row)].join('');
+    // v9.8 (A) : l'effet réel de l'objet en % de la puissance (dégâts/s × robustesse), à la place des seuls chiffres bruts
+    // (« +6,3 M » à côté d'une attaque en Qa paraissait nul alors que l'objet entre dans tous les multiplicateurs).
+    const pw = (x) => (x.combatPower ?? x.dps * x.maxHp);
+    const gain = pw(cur) > 0 ? (pw(next) / pw(cur) - 1) * 100 : 0;
+    const big = `<div class="compare-power ${gain > 0.05 ? 'good' : gain < -0.05 ? 'bad' : 'muted'}"><b>${gain > 0 ? '+' : ''}${formatDecimal(gain, Math.abs(gain) < 10 ? 1 : 0)} %</b> de puissance</div>`;
     compare = `<div class="compare"><div class="section-title">Si tu l'équipes${current ? ` (à la place de ${escapeHtml(current.name)})` : ' (emplacement vide)'}</div>
-      ${rows || '<div class="muted">Aucun changement.</div>'}
+      ${big}${rows || '<div class="muted">Aucun changement.</div>'}
     </div>`;
   }
   const mats = recycleMaterials(item);
