@@ -101,12 +101,13 @@ function survivalHtml(ui, state) {
   const a = arenaState(state);
   const list = owned(state);
   // v9.3.5 : par défaut, le premier compagnon de l'équipe de campagne.
-  const sel = list.find((c) => c.id === ui.view.arenaPick) ?? list.find((c) => state.companions.equipped.includes(c.id)) ?? list[0];
+  // v9.8 (I8) : par défaut un compagnon (pas le familier), le plus fort de l'équipe.
+  const sel = list.find((c) => c.id === ui.view.arenaPick) ?? list.find((c) => c.kind === 'ally' && state.companions.equipped.includes(c.id)) ?? list.find((c) => c.kind === 'ally') ?? list[0];
   const p = sel && companionProfile(state, sel.id);
   const left = survivalTriesLeft(state);
   const best = a.survival.best;
   const next = [1, 10, 20, 30].map((n) => `<li>Vague ${n} : ${foesPreview(survivalWave(n, 1))}</li>`).join('');
-  return `<div class="card"><div class="row-between"><b>Un compagnon seul contre ${ARENA.survival.waves} vagues</b><span>Essais : <b>${left}</b> / ${ARENA.survival.triesPerDay} aujourd'hui</span></div>
+  return `<div class="card"><div class="row-between"><b>Choisis un compagnon : seul contre ${ARENA.survival.waves} vagues</b><span>Essais : <b>${left}</b> / ${ARENA.survival.triesPerDay} aujourd'hui</span></div>
       <div class="muted">Aucun héros : le compagnon combat seul, avec ses PV, son attaque et sa compétence. Le type compte dans les deux sens.</div>
       ${best ? `<div>${img('icon_trophy')} Meilleur résultat : <b>vague ${best.wave}</b> en ${Math.round(best.seconds)} s (${escapeHtml(COMPANIONS.find((c) => c.id === best.companion)?.name ?? '')})</div>` : ''}</div>
     <div class="card"><div class="section-title">Choisir le compagnon</div><div class="arena-grid">${list.map((c) => unitCard(state, c, { selected: c.id === sel?.id, action: 'arena-pick' })).join('')}</div>

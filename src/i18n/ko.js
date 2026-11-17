@@ -218,7 +218,7 @@ export const EXACT = {
   '(vous)': '(나)', 'Chargement des amis…': '친구 불러오는 중…', 'Demandes reçues': '받은 요청', 'Accepter': '수락', 'Refuser': '거절',
   'Annuler la demande': '요청 취소', 'Retirer de mes amis': '친구 삭제', "Pas encore d'amis : ajoute un joueur par son nom.": '아직 친구가 없어요. 이름으로 플레이어를 추가하세요.',
   'Mes amis': '내 친구', 'Nom du joueur': '플레이어 이름', 'Nom du joueur à ajouter': '추가할 플레이어 이름', 'Ajouter': '추가',
-  "Vous n'êtes pas connecté.": '로그인하지 않았어요.', 'Crée ton compte pour apparaître au classement, voir ton rang et ajouter des amis.': '계정을 만들면 랭킹에 표시되고, 내 순위를 보고, 친구를 추가할 수 있어요.',
+  "Tu n'es pas connecté.": '로그인하지 않았어요.', 'Crée ton compte pour apparaître au classement, voir ton rang et ajouter des amis.': '계정을 만들면 랭킹에 표시되고, 내 순위를 보고, 친구를 추가할 수 있어요.',
   'Créer mon compte': '계정 만들기', 'Tout le monde': '전체', 'Crée votre compte pour ajouter des amis': '친구를 추가하려면 계정을 만드세요',
   'Temps pour atteindre le monde': '월드 도달 시간', 'Monde à atteindre': '도달할 월드', 'Le plus court gagne.': '가장 짧은 기록이 승리해요.',
   'Réessayer': '다시 시도', 'Chargement du classement…': '랭킹 불러오는 중…', 'Ajoute des amis pour te comparer à eux.': '친구를 추가해 기록을 비교해 보세요.',

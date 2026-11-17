@@ -3807,3 +3807,10 @@ html.reduce-motion #quest-banner.ready { animation: none; }
 .ip-tool[disabled] { opacity: .5; cursor: default; }
 .ip-target summary { cursor: pointer; color: #9fc3ff; font-size: 12px; margin: 4px 0; }
 .result-list { list-style: none; padding: 0; margin: 10px 0; font-size: 16px; } .result-list li { padding: 4px 0; }
+/* v9.8 (I8) : combat d'Arène en grand dans le panneau */
+.arena-stage { min-height: 300px; }
+.arena-stage .arena-ally img, .arena-stage .arena-ally canvas { width: 96px; height: 96px; }
+.arena-stage .foe-art { width: 80px !important; height: 80px !important; image-rendering: pixelated; }
+.arena-stage .arena-foe.boss .foe-art { width: 120px !important; height: 120px !important; }
+.arena-result { font-size: 16px; text-align: center; padding: 14px; border: 2px solid #d4a72c; }
+.guild-invite { text-align: center; } .guild-hall img { width: 96px; height: 96px; image-rendering: pixelated; filter: drop-shadow(0 0 10px #ffd36a66); }

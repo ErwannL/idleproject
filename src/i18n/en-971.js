@@ -1,6 +1,8 @@
 // v9.7.1 : anglais du cadrage, du sac de butin et des menus allégés. Branché à la fin de ./en.js.
 let LK = () => null;
 export const EXACT_971 = {
+  "Rejoins une guilde : bannière, salle commune et boss partagés.": "Join a guild: banner, common hall and shared bosses.",
+  "Créer mon compte": "Create my account",
   "dégâts": "damage",
   "dégâts (×)": "damage (×)",
   "vitesse": "speed",
@@ -301,6 +303,7 @@ export const EXACT_971 = {
   "Tient": "Withstands",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
+  [/^Choisis un compagnon : seul contre (\d+) vagues$/, (m) => `Pick a companion: alone against ${m[1]} waves`],
   [/^Renaître : ×([\d,]+) pour toujours \(\+([\d,. KMBTQa-z]+) fragments\)$/, (m) => `Rebirth: ×${m[1].replace(',', '.')} forever (+${m[2]} fragments)`],
   [/^\+(\d+) niveau(x?) de talent$/, (m) => `+${m[1]} talent level${m[2] ? 's' : ''}`],
   [/^⬆ Équiper le meilleur \((\d+)\)$/, (m) => `⬆ Equip best (${m[1]})`],

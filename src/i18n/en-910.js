@@ -104,7 +104,7 @@ export const EXACT_910 = {
   "Personne au classement pour l'instant.": 'Nobody on the leaderboard yet.',
   "Pas encore d'amis : ajoute un joueur par son nom.": 'No friends yet: add a player by name.',
   'Crée ton compte pour apparaître au classement, voir ton rang et ajouter des amis.': 'Create your account to appear on the leaderboard, see your rank and add friends.',
-  "Vous n'êtes pas connecté.": 'You are not signed in.',
+  "Tu n'es pas connecté.": 'You are not signed in.',
   'Mannequins': 'Mannequins', 'Builds': 'Builds', 'Renommer': 'Rename', 'Composition': 'Team', 'Objectifs': 'Goals', 'Fiche': 'Sheet',
   'Achetables': 'Buyable', 'À récupérer': 'To claim', "Aujourd'hui": 'Today', 'Cette semaine': 'This week', 'Apparences': 'Looks',
   'Prime du jour': 'Daily bounty', 'Arbre': 'Tree', 'Expéditions': 'Expeditions', 'Équipe': 'Team', 'Héros': 'Hero',

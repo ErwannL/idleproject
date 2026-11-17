@@ -59,7 +59,10 @@ export default {
   icon: 'icon_crown',
   render(ui) {
     const g = ui.guild ?? {};
-    if (g.needAccount) return '<div class="state-empty">Les guildes demandent un compte joueur créé : Paramètres ⚙ › Sauvegarde en ligne.</div>';
+    // v9.8 (I9) : illustration et bouton direct vers la création de compte.
+    if (g.needAccount) return `<div class="card guild-invite"><div class="guild-hall">${img('tab_guild')}</div>
+      <b>Rejoins une guilde : bannière, salle commune et boss partagés.</b>
+      <div class="detail-actions"><button class="btn btn-gold" data-action="open-account">Créer mon compte</button></div></div>`;
     const msg = g.error ? `<div class="state-error">${escapeHtml(g.error)}</div>` : g.message ? `<div class="good">${escapeHtml(g.message)}</div>` : '';
     if (!g.data) return `${msg}<div class="state-empty">${g.busy ? 'Chargement…' : 'Connexion au serveur impossible pour le moment.'}</div>`;
     return `${msg}${g.data.guild ? myGuild(ui, g.data) : noGuild(ui, g)}<div class="card"><div class="section-title">Classement des guildes</div>${rankingBlock(g)}</div>`;

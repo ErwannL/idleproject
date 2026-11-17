@@ -1,6 +1,8 @@
 // v9.7.1 : 한국어 — 화면 구도, 전리품 가방, 간소화된 메뉴. ./ko.js 끝에 연결.
 let LK = () => null;
 export const EXACT_971 = {
+  "Rejoins une guilde : bannière, salle commune et boss partagés.": "길드에 가입해요: 깃발, 공용 홀, 함께하는 보스.",
+  "Créer mon compte": "계정 만들기",
   "dégâts": "피해",
   "dégâts (×)": "피해 (×)",
   "vitesse": "속도",
@@ -301,6 +303,7 @@ export const EXACT_971 = {
   "Tient": "버팀",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
+  [/^Choisis un compagnon : seul contre (\d+) vagues$/, (m) => `동료를 골라요: 혼자 ${m[1]}웨이브에 도전`],
   [/^Renaître : ×([\d,]+) pour toujours \(\+([\d,. KMBTQa-z]+) fragments\)$/, (m) => `환생: 영구 ×${m[1].replace(',', '.')} (파편 +${m[2]})`],
   [/^\+(\d+) niveau(x?) de talent$/, (m) => `재능 +${m[1]}레벨`],
   [/^⬆ Équiper le meilleur \((\d+)\)$/, (m) => `⬆ 최고 장비 장착 (${m[1]})`],
