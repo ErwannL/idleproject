@@ -215,7 +215,7 @@ function heroView(ui, state) {
         <div class="ss-col">
           ${row('icon_heart', 'Santé', formatNumber(s.maxHp))}
           ${row('shield', 'Dégâts subis', `−${formatDecimal(s.defenseReductionPct)} %`)}
-          ${row('icon_alert', 'Coups tenus', `${fmtHits(hits.normal)} · boss ${fmtHits(hits.boss)}`, hits.normal < 3 ? ' bad' : '')}
+          ${row('icon_alert', 'Tient', `${fmtHits(hits.normal)} · boss ${fmtHits(hits.boss)}`, hits.normal < 3 ? ' bad' : '')}
         </div>
       </div>
       ${fold(ui, 'hero-all-stats', 'Toutes les stats', () => `<div class="ss-cols"><div class="ss-col">

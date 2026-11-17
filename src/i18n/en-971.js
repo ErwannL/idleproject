@@ -144,6 +144,7 @@ export const EXACT_971 = {
   "⛺ Envoyer tes compagnons en expédition": "⛺ Send your companions on an expedition",
   "objectifs et récompenses pendant deux semaines.": "goals and rewards for two weeks.",
   "Les monstres demandaient plus d'une minute chacun. Améliore-toi, puis « Avancer ▶ ».": "Monsters took over a minute each. Get stronger, then press “Advance ▶”.",
+  "Tient": "Withstands",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
   [/^Niv\. (\d+) · Étape (\d+)$/, (m) => `Lv. ${m[1]} · Stage ${m[2]}`],

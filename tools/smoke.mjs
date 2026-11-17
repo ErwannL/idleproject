@@ -479,7 +479,7 @@ await check('le calcul hors ligne affiche un résumé cohérent après une absen
   await page.reload();
   await page.waitForSelector('#modal:not(.hidden)', { timeout: 10000 });
   const text = await page.textContent('#modal-card');
-  assert(text.includes('Bon retour') && text.includes('3 h'), text);
+  assert(text.includes('Pendant ton absence') && text.includes('3 h'), text); // v9.8 (C1) : écran de récompense
   const after = await game(() => __idle.state.gold);
   assert(after > gold, `or ${gold} -> ${after}`);
   await page.screenshot({ path: `${outDir}/compact-offline.png` });

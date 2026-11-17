@@ -144,6 +144,7 @@ export const EXACT_971 = {
   "⛺ Envoyer tes compagnons en expédition": "⛺ 동료를 원정 보내기",
   "objectifs et récompenses pendant deux semaines.": "2주 동안의 목표와 보상.",
   "Les monstres demandaient plus d'une minute chacun. Améliore-toi, puis « Avancer ▶ ».": "몬스터 하나에 1분 넘게 걸렸어요. 강해진 뒤 « 전진 ▶ »을 눌러.",
+  "Tient": "버팀",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
   [/^Niv\. (\d+) · Étape (\d+)$/, (m) => `Lv. ${m[1]} · 스테이지 ${m[2]}`],
