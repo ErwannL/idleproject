@@ -133,7 +133,8 @@ const UNLOCK_INFO = { // v9.3.4 (h) : une ligne courte par onglet
 const TOWER_UNLOCK = TOWER.unlockStage;
 export const menuOf = (tab) => MENUS.find((m) => m.tabs.includes(tab)) ?? null;
 const TALL_MIN_HEIGHT = 420;
-const STRIP_MAX_HEIGHT = 259; // v9.7.1 : sous 260 px de haut (widget 320×180) // en dessous : mode barre (seulement la scène, comme une barre des tâches)
+const STRIP_MAX_HEIGHT = 190; // en dessous : mode barre (seulement la scène, comme une barre des tâches)
+const WIDGET_MAX = { h: 259, w: 360 }; // v9.7.1 : widget (320×180) — sous 260 px de haut dans une fenêtre étroite // en dessous : mode barre (seulement la scène, comme une barre des tâches)
 const BULK_CONFIRM_MS = 4000;
 // Panneaux dont le contenu évolue pendant le farm : réaffichés au plus une fois par seconde.
 // v9.3.5 : nom court sous l'icône des boosts ; touches affichées seulement avec souris et clavier.
@@ -557,7 +558,7 @@ export class UI {
     const w = this.root.clientWidth;
     const h = this.root.clientHeight;
     // Jeu en bandeau en haut, onglets dessous, interface en dessous ; panneau superposé si la fenêtre est basse.
-    const layout = h >= TALL_MIN_HEIGHT ? 'tall' : h <= STRIP_MAX_HEIGHT ? 'strip' : 'mini';
+    const layout = h >= TALL_MIN_HEIGHT ? 'tall' : h <= STRIP_MAX_HEIGHT || (h <= WIDGET_MAX.h && w <= WIDGET_MAX.w) ? 'strip' : 'mini';
     if (layout !== this.layout) {
       this.root.classList.remove('layout-mini', 'layout-tall', 'layout-strip');
       if (layout === 'strip') this.closePanel();

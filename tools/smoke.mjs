@@ -141,6 +141,7 @@ await check('onglets avec icône et état actif distinct', async () => {
 await check('filtres par type et tri par niveau', async () => {
   await game(() => { __idle.addItem('iron_helm', 'common', 1); __idle.addItem('dagger', 'common', 7); __idle.ui.view.bagAll = true; }); // v9.3.8 : tous les objets
   await game(() => __idle.ui.openTab('inventory')); await closePop();
+  await page.click('[data-action="bag-menu"]'); // v9.7.1 : filtres rangés derrière « Filtres »
   await page.click('[data-action="filter"][data-value="weapon"]'); // v9.1.3 : filtre en icônes
   await page.waitForTimeout(150);
   const slots = await game(() => [...document.querySelectorAll('.inv-grid [data-id]')]
@@ -498,7 +499,7 @@ await check('horloge reculée : aucun gain', async () => {
 });
 
 await check('l’interface s’adapte au redimensionnement', async () => {
-  const expected = [[520, 150, 'strip'], [320, 200, 'mini'], [400, 250, 'mini'], [460, 640, 'tall'], [980, 620, 'tall']];
+  const expected = [[520, 150, 'strip'], [320, 200, 'strip'], [320, 180, 'strip'], [400, 250, 'mini'], [460, 640, 'tall'], [980, 620, 'tall']]; // v9.7.1 : widget (sous 260 px, fenêtre étroite) = scène + ligne compacte
   for (const [w, h, layout] of expected) {
     await page.setViewportSize({ width: w, height: h });
     await page.waitForTimeout(300);
