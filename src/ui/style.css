@@ -3608,3 +3608,8 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 .pantheon-art { flex: none; width: 72px; height: 72px; background-size: auto 100%; background-repeat: no-repeat; image-rendering: pixelated; }
 .pantheon-card.ghost .pantheon-art { background: radial-gradient(ellipse at 50% 60%, #000 0 45%, transparent 47%); opacity: .7; }
 .pantheon-card.ghost { opacity: .7; }
+/* v9.7.1 (lot 6) : le camp. */
+.camp-scene { display: flex; align-items: flex-end; justify-content: center; gap: 6px; min-height: 64px; }
+.camp-unit img { width: 44px; height: 44px; image-rendering: pixelated; }
+.camp-flame { font-size: 28px; animation: weak-pulse 1.4s ease-in-out infinite; }
+.camp-trophies { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }

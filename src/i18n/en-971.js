@@ -117,6 +117,10 @@ export const EXACT_971 = {
   "Sans mourir": "Deathless",
   "Élément conseillé": "Recommended element",
   "Boss commun": "Global World Boss",
+  "Camp": "Camp",
+  "Trophées": "Trophies",
+  "Expéditions": "Expeditions",
+  "Liens actifs": "Active bonds",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
   [/^Niv\. (\d+) · Étape (\d+)$/, (m) => `Lv. ${m[1]} · Stage ${m[2]}`],

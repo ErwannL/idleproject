@@ -9,10 +9,10 @@ export const MENUS = [
   { id: 'team', label: 'Équipe', tabs: ['companions', 'summon', 'expeditions'] },
   { id: 'adventure', label: 'Aventure', tabs: ['campaign', 'dungeons', 'tower', 'boss', 'event'] },
   { id: 'goals', label: 'Quêtes', tabs: ['contracts', 'encyclopedia'] },
-  { id: 'profile', label: 'Profil', tabs: ['looks', 'ranking', 'guild', 'stats', 'shop'], top: true },
+  { id: 'profile', label: 'Profil', tabs: ['camp', 'looks', 'ranking', 'guild', 'stats', 'shop'], top: true },
 ];
 export const SUB_LABELS = {
-  upgrades: 'Améliorations', skills: 'Compétences', tree: 'Talents', hero: 'Fiche', inventory: 'Équipement', forge: 'Forge', looks: 'Apparences',
+  camp: 'Camp', upgrades: 'Améliorations', skills: 'Compétences', tree: 'Talents', hero: 'Fiche', inventory: 'Équipement', forge: 'Forge', looks: 'Apparences',
   companions: 'Compagnons', expeditions: 'Expéditions', summon: 'Invocation', shop: 'Boutique', event: 'Événement', campaign: 'Carte', dungeons: 'Donjons', tower: 'Défis', arena: 'Arène',
   boss: 'Boss', world: 'Monde', encyclopedia: 'Collections', contracts: 'Missions', inbox: 'À récupérer', ranking: 'Classement', guild: 'Guilde', stats: 'Statistiques', options: 'Paramètres',
 };

@@ -1,6 +1,7 @@
 // Interface DOM : barre du haut (monnaies, contrats, récompenses, paramètres), surimpressions légères
 // de la scène, HUD, onglets débloqués progressivement et panneaux (un module par panneau dans ./panels).
 // L'interface ne modifie jamais l'état directement : elle appelle les actions fournies par main.js.
+import campPanel from './panels/camp.js'; // v9.7.1 (lot 6)
 import { GLOSSARY, GLOSSARY_TERMS } from '../data/glossary.js'; // v9.7.1 (lot 5)
 import { rageFree } from '../core/combat.js'; // v9.7.1 (lot 3)
 import { isUnlocked } from '../core/unlock-quests.js'; // v9.7.1 (lot 3)
@@ -112,12 +113,12 @@ import { ELEMENTS, zoneElement } from '../core/elements.js'; // v9.3.1 : types
 
 export { MENUS };
 
-const PANELS = Object.fromEntries([upgrades, inventory, forgePanel, hero, looks, companions, expeditions, skills, tree, campaign, dungeons, tower, arena, boss, encyclopedia, summon, shop, eventPanel, contracts, inbox, ranking, guild, stats, options, worldPanel]
+const PANELS = Object.fromEntries([campPanel, upgrades, inventory, forgePanel, hero, looks, companions, expeditions, skills, tree, campaign, dungeons, tower, arena, boss, encyclopedia, summon, shop, eventPanel, contracts, inbox, ranking, guild, stats, options, worldPanel]
   .map((p) => [p.id, p]));
 const SUB_ICONS = { // v9.4.0 : une icône par onglet (PixelLab), plus aucune partagée
   upgrades: 'tab_upgrades', skills: 'tab_skills', tree: 'tab_talents', hero: 'icon_hero', inventory: 'tab_equipment', looks: 'tab_looks',
   companions: 'tab_companions', expeditions: 'tab_expeditions', summon: 'tab_summon', shop: 'top_shop', event: 'tab_event', campaign: 'tab_map', dungeons: 'tab_dungeons', tower: 'tab_challenges', arena: 'tab_arena', forge: 'tab_forge',
-  boss: 'tab_boss', encyclopedia: 'tab_collections', contracts: 'tab_missions', inbox: 'icon_mail', ranking: 'tab_ranking', guild: 'tab_guild', stats: 'tab_stats',
+  camp: 'tab_expeditions', boss: 'tab_boss', encyclopedia: 'tab_collections', contracts: 'tab_missions', inbox: 'icon_mail', ranking: 'tab_ranking', guild: 'tab_guild', stats: 'tab_stats',
 };
 // v9.1.0 : présentation courte en haut de l'onglet, à sa première ouverture (plus de bulle « Nouveau »).
 const UNLOCK_INFO = { // v9.3.4 (h) : une ligne courte par onglet
