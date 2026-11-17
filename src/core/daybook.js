@@ -5,6 +5,7 @@ import { dayKey } from './tower.js';
 import { grantReward } from './rewards.js';
 import { quickHuntReady } from './quick-hunt.js';
 import { wheelReady } from './wheel.js';
+import { titanToday } from './titan.js';
 import { MISSION_PERIODS } from '../data/missions.js';
 import { missionStatus, missionOpen } from './missions.js';
 
@@ -35,6 +36,8 @@ export function daybookTasks(state, open = () => true, now = Date.now()) {
   ];
   if (open('dungeons')) tasks.push({ id: 'dungeon', icon: 'icon_key', title: 'Donjon', text: 'Gagne ou balaie 1 donjon', n: c.dungeons ?? 0, target: 1, tab: 'dungeons' });
   if (open('expeditions')) tasks.push({ id: 'expedition', icon: 'icon_expedition', title: 'Expéditions', text: 'Envoie 2 compagnons', n: c.expeditions ?? 0, target: 2, tab: 'expeditions' });
+  // v9.8 (H7) : Titan du jour (après le monde 2, comme les événements).
+  if (open('event')) tasks.push({ id: 'titan', icon: 'icon_boss', title: titanToday(now).name, text: 'Frappe le Titan du jour', n: c.titan ?? 0, target: 1, action: 'titan-start' });
   if (open('tower')) tasks.push({ id: 'tower', icon: 'icon_tower', title: 'Tour', text: 'Monte la Tour 1 fois', n: c.tower ?? 0, target: 1, tab: 'tower' });
   if (missions.length) tasks.push({ id: 'missions', icon: 'icon_trophy', title: 'Missions du jour', text: 'Récupère tes missions', n: mDone, target: missions.length, tab: 'contracts' });
   for (const t of tasks) { t.n = Math.min(t.n, t.target); t.done ??= t.n >= t.target; }

@@ -71,6 +71,7 @@ import daybook from './panels/daybook.js'; // v9.8 (H1)
 import { WHEEL_SLICES, wheelReady } from '../core/wheel.js'; // v9.8 (H4)
 import { quickHuntReady } from '../core/quick-hunt.js'; // v9.8 (H3)
 import { duelOutcome } from '../core/ranks.js'; // v9.8 (H6)
+import { titanTriesLeft } from '../core/titan.js'; // v9.8 (H7)
 import { MISSION_PERIODS } from '../data/missions.js';
 import { missionOpen, missionStatus } from '../core/missions.js';
 import dungeons from './panels/dungeons.js';
@@ -1053,6 +1054,9 @@ export class UI {
       case 'quick-hunt': a.quickHunt(); break; // v9.8 (H3)
       case 'gear-best': a.gearBest(value); break; // v9.8 (I6)
       case 'rank-duel': this.rankDuel(); break; // v9.8 (H6)
+      case 'titan-start': // v9.8 (H7)
+        openWorldBoss(this.state, { start: () => a.titanStart(), finish: (setup, r) => a.titanFinish(setup, r), left: () => titanTriesLeft(this.state), closed: () => this.invalidate() });
+        break;
       case 'wheel-open': this.showWheel(); break; // v9.8 (H4)
       case 'wheel-spin': this.spinWheel(); break;
       case 'daybook-chest': a.daybookChest(); break; // v9.8 (H1)

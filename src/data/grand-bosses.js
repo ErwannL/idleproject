@@ -84,4 +84,24 @@ export const GRAND_BOSSES = {
     modes: ['solo'],
   },
 };
+// v9.8 (H7) : Titans du jour — un par jour de la semaine (0 = dimanche), même moteur et mêmes planches que le Colosse,
+// une teinte, un nom et des phases propres (fiches seules, aucun code). Ils n'entrent pas au Panthéon (titan: true).
+const titan = (id, name, title, filter, beam, phase) => ({
+  id, name, title, titan: true, test: true, lore: `${title}. Chaque jour, un Titan différent se dresse contre Ascendrya.`,
+  art: { dir: 'assets/world-boss', prefix: 'colossus_', frame: 128, foot: 122, filter, anims: COLOSSUS_ANIMS, eyes: COLOSSUS_EYES,
+    hands: { throw: [16, 34], throw3: [18, 44] }, beamColors: { beam: [...beam, '#ffffff'], beam3: [...beam, '#fff3c8'] } },
+  fight: { ...COLOSSUS_FIGHT, name, seconds: 60, phases: [{ at: 0.6, id: 'quake', name: phase[0], hit: 0.16, speed: 1.2, power: 1.2 }, { at: 0.3, id: 'fury', name: phase[1], hit: 0.26, speed: 1.45, power: 1.45 }] },
+  rewards: { gems: 30 }, modes: ['solo'],
+});
+export const DAY_TITANS = [
+  titan('titan_sun', 'Titan du Soleil', 'Titan du dimanche', 'sepia(1) saturate(4) hue-rotate(5deg) brightness(1.05)', ['#ffd23f', '#fff3a8'], ['Éclat solaire', 'Midi ardent']),
+  titan('titan_moon', 'Titan de la Lune', 'Titan du lundi', 'grayscale(1) brightness(1.15) sepia(.3) hue-rotate(180deg)', ['#c9d8ff', '#ffffff'], ['Marée lunaire', 'Nuit sans fin']),
+  titan('titan_ember', 'Titan des Braises', 'Titan du mardi', 'sepia(1) saturate(5) hue-rotate(-25deg)', ['#ff5a1f', '#ffb04a'], ['Pluie de cendres', 'Cœur de lave']),
+  titan('titan_tide', 'Titan des Marées', 'Titan du mercredi', 'sepia(1) saturate(4) hue-rotate(160deg)', ['#2fd8ff', '#8ff8ff'], ['Lame de fond', 'Abysse']),
+  titan('titan_thorn', 'Titan des Ronces', 'Titan du jeudi', 'sepia(1) saturate(4) hue-rotate(60deg)', ['#4cd26a', '#b8ff9a'], ['Ronces', 'Forêt vivante']),
+  titan('titan_storm', 'Titan de l\'Orage', 'Titan du vendredi', 'sepia(1) saturate(3) hue-rotate(200deg) brightness(1.1)', ['#9fc3ff', '#ffffff'], ['Tonnerre', 'Colère du ciel']),
+  titan('titan_void', 'Titan du Néant', 'Titan du samedi', 'grayscale(1) brightness(0.6) sepia(1) hue-rotate(230deg) saturate(3)', ['#b04dff', '#e0a8ff'], ['Faille', 'Éclipse']),
+];
+for (const t of DAY_TITANS) GRAND_BOSSES[t.id] = t;
+
 export const grandBoss = (id) => GRAND_BOSSES[id] ?? GRAND_BOSSES.colossus;

@@ -13,8 +13,9 @@ import { grantBlessing } from './core/blessing.js';
 import { wheelShown } from './core/elements.js';
 import { quickHunt } from './core/quick-hunt.js'; // v9.8 (H3)
 import { winDuel } from './core/ranks.js'; // v9.8 (H6)
+import { finishTitan, startTitan } from './core/titan.js'; // v9.8 (H7)
 import { spinWheel } from './core/wheel.js'; // v9.8 (H4)
-import { claimDaybookChest } from './core/daybook.js'; // v9.8 (H1) // v9.7.1 (prologue)
+import { claimDaybookChest, daybookTrack } from './core/daybook.js'; // v9.8 (H1) // v9.7.1 (prologue)
 import { startCatchUp } from './core/boost.js';
 import { claimSessionChest, newSessionGoals } from './core/session-goals.js';
 import { BALANCE } from './data/balance.js';
@@ -376,6 +377,9 @@ const actions = {
     placeTransition(`Donjon · ${DUNGEON_DIFFICULTIES[difficulty]?.label ?? ''}`, d.name, d.description, ZONES[d.zone]?.id);
     done(true, 'Tentative lancée');
   },
+  // v9.8 (H7) : Titan du jour.
+  titanStart() { const s = startTitan(state); if (s) save(); return s; },
+  titanFinish(setup, result) { const sum = finishTitan(state, setup, result); daybookTrack(state, 'titan', 1); save(); ui.invalidate(); return sum; },
   // v9.8 (H6) : rang gagné en duel.
   winRank() { const r = winDuel(state); save(); ui.invalidate(); sound.play('claim', { volume: 0.9 }); return r; },
   // v9.8 (I6) : équipement des compagnons — le meilleur d'un appui.

@@ -45,6 +45,16 @@ function endHtml(sum, left, WORLD_BOSS) {
       <div class="rv-gauge"><span>Revanche</span><span class="rv-dots">${dots}</span></div>
       <div class="wb-end-btns"><button class="btn btn-primary wb-close" type="button">Fermer</button></div></div>`;
   }
+  // v9.8 (H7) : Titan du jour — tranche atteinte, récompense, essais restants.
+  if (sum.titan) {
+    return `<div class="wb-end-card">
+      <div class="wb-end-title"><span class="wb-record">${escapeHtml(sum.tier)}</span></div>
+      <div class="wb-end-dmg"><span>Dégâts de la tentative</span><b class="num">${formatNumber(sum.damage)}</b></div>
+      <p class="muted">Barre vidée : <b class="num">${Math.round(sum.ratio * 100)} %</b></p>
+      ${sum.given ? `<div class="wb-end-coins">${Object.entries(sum.given).map(([k, v]) => `<span>+${formatNumber(v)} ${escapeHtml({ gems: 'gemmes', shards: 'éclats', keys: 'clé' }[k] ?? k)}</span>`).join(' ')}</div>` : '<p class="muted">Tranche déjà récompensée aujourd\'hui.</p>'}
+      <div class="wb-end-btns">${left > 0 ? `<button class="btn btn-gold wb-again" type="button"><span>Réessayer</span> (<b class="num">${left}</b>)</button>` : '<span class="muted">Plus de tentative aujourd\'hui.</span>'}
+        <button class="btn btn-primary wb-close" type="button">Fermer</button></div></div>`;
+  }
   const tiers = WORLD_BOSS.tiers.map((t, i) => `<span class="wb-tier${i < sum.tiers ? ' on' : ''}"><b class="num">${pct(t)}</b>${i < sum.tiers ? ' ✓' : ''}</span>`).join('');
   return `<div class="wb-end-card">
       <div class="wb-end-title">${sum.record ? '<span class="wb-record">Nouveau record !</span>' : '<span>Tentative terminée</span>'}</div>

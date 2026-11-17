@@ -13,7 +13,7 @@ export function daybookOpen(ui) {
 function card(t, fresh) {
   const pct = Math.round((t.n / Math.max(1, t.target)) * 100);
   const go = t.done ? '' : t.action
-    ? `<button class="btn btn-gold db-go" data-action="${t.action}">${t.action === 'quick-hunt' ? 'Chasser' : 'Tourner'}</button>`
+    ? `<button class="btn btn-gold db-go" data-action="${t.action}">${{ 'quick-hunt': 'Chasser', 'wheel-open': 'Tourner', 'titan-start': 'Combattre' }[t.action] ?? 'Y aller'}</button>`
     : `<button class="btn btn-primary db-go" data-action="open-tab" data-value="${t.tab}">Y aller</button>`;
   return `<div class="db-card${t.done ? ' done' : ''}" data-db="${t.id}">
     <div class="db-art">${img(t.icon)}</div>

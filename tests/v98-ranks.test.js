@@ -24,3 +24,20 @@ test('une partie d\'avant garde ses paliers de puissance en rangs', () => {
   const raw = JSON.parse(JSON.stringify(s)); delete raw.rank;
   assert.equal(sanitizeState(raw).rank, 5);
 });
+
+import { DAY_TITANS } from '../src/data/grand-bosses.js';
+import { finishTitan, startTitan, titanToday, titanTriesLeft } from '../src/core/titan.js';
+test('Titan du jour : 7 titans, 2 essais, tranche payée une fois', () => {
+  assert.equal(DAY_TITANS.length, 7);
+  const s = createNewState(1); s.maxStage = 50; s.level = 30;
+  const now = 1_800_000_000_000;
+  assert.equal(titanToday(now).id, DAY_TITANS[new Date(now).getDay()].id);
+  const a = startTitan(s, now);
+  assert.ok(a && titanTriesLeft(s, now) === 1);
+  const r1 = finishTitan(s, a, { damage: a.maxHp * 0.7 }, now);
+  assert.equal(r1.tier, 'Top 10 %'); assert.ok(r1.given);
+  const b = startTitan(s, now);
+  const r2 = finishTitan(s, b, { damage: a.maxHp * 0.9 }, now);
+  assert.equal(r2.given, null, 'déjà payée');
+  assert.equal(startTitan(s, now), null);
+});
