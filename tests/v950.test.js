@@ -151,7 +151,9 @@ test('v9.6.3 : boss en phases — attaque lourde annoncée toutes les 8 s, puis 
   const w = createCombat(s); changeStage(s, w, 20);
   const rng = new (await import('../src/core/rng.js')).Rng(2);
   let heavy = 0, weak = 0;
-  for (let i = 0; i < 600; i++) { step(s, w, 0.05, rng); heavy += w.events.filter((e) => e.type === 'bossHeavy').length; weak += w.events.filter((e) => e.type === 'bossWeak').length; w.events.length = 0; }
+  // v9.7.1 (lot 2) : l'affaiblissement suit une parade réussie (playerGuard pendant la fenêtre de 1,5 s).
+  const { playerGuard } = await import('../src/core/combat.js');
+  for (let i = 0; i < 600; i++) { step(s, w, 0.05, rng); const h = w.events.filter((e) => e.type === 'bossHeavy').length; heavy += h; if (h) playerGuard(w); weak += w.events.filter((e) => e.type === 'bossWeak').length; w.events.length = 0; }
   assert.ok(heavy >= 2, `attaques lourdes : ${heavy}`);
   assert.ok(weak >= 1, `fenêtres d'affaiblissement : ${weak}`);
 });

@@ -25,7 +25,8 @@ from pixellab import GAIT, MARGIN, MAX_COLORS, SRC, TARGET, _canvas, _frame  # n
 
 # Images par seconde de chaque animation (le jeu peut aussi piloter l'image par la phase : attaque, sortie du sol).
 # v9.2.3 : animations trouvées dans tools/art/pixellab/anim/<sprite>_<anim>/ (tous les ennemis et boss des mondes 1 à 12).
-FPS = {'walk': 12, 'fly': 12, 'attack': 25, 'emerge': 12, 'portal': 12, 'swim': 10, 'float': 8, 'hurt': 20, 'death': 10}  # v9.2.3 : coup reçu, mort
+FPS = {'walk': 12, 'fly': 12, 'attack': 25, 'emerge': 12, 'portal': 12, 'swim': 10, 'float': 8, 'hurt': 20, 'death': 10,
+       'skill': 14, 'telegraph': 10, 'attack2': 25, 'skill2': 16}  # v9.7.1 (lot C, pl971_enemies.py / pl971_seabeasts.py)  # v9.2.3 : coup reçu, mort
 FPS_SPRITE = {('bat', 'fly'): 14}
 ANIM_NAMES = tuple(FPS)
 
@@ -94,12 +95,12 @@ def _base(key):
     if os.path.exists(ref):
         meta = json.load(open(ref))
         view = Image.open(ref[:-5] + '.png').convert('RGBA')
-        return view, view.crop((meta['ox'], meta['oy'], meta['ox'] + meta['w'], meta['oy'] + meta['h'])), (meta['ox'], meta['oy']), None
+        return view, view.crop((meta['ox'], meta['oy'], meta['ox'] + meta['w'], meta['oy'] + meta['h'])), (meta['ox'], meta['oy']), None, meta.get('base', False)
     sheet = Image.open(os.path.join(SRC, f'{key}.png')).convert('RGBA')
     view = sheet.crop((7 * 64, 0, 8 * 64, 64))
     bx0, by0 = view.getbbox()[:2]
     base = _frame(key)
-    return view, base, (bx0 - MARGIN, by0), round(TARGET[key] / base.height, 4)
+    return view, base, (bx0 - MARGIN, by0), round(TARGET[key] / base.height, 4), False
 MIN_SPECK = 4  # amas détachés de moins de 4 pixels : poussières de génération
 
 
@@ -246,12 +247,18 @@ def _align(frames, view, air, hop=False):
     return out
 
 
+BASES = {}  # v9.7.1 : sprite de base remplacé (clé → image)
+
+
 def build():
     """Entrées de sprites (une par image) et index des animations."""
     sprites, index = {}, {}
     for key, anims in ANIMS.items():
-        view, base, (bx, by), scale = _base(key)
+        view, base, (bx, by), scale, new_base = _base(key)
         base_pal = _palette(base)
+        if new_base:  # v9.7.1 (lot C.4) : nouveau modèle (monstres marins) — le sprite de base est remplacé au chargement
+            sprites[f'{key}__base0'] = (_plain(_clean_alpha(base)), {})
+            BASES[key] = f'{key}__base0'
         for anim, fps in anims.items():
             paths = sorted(glob.glob(os.path.join(SRC, 'anim', f'{key}_{anim}', 'f*.png')), key=lambda p: int(os.path.basename(p)[1:-4]))
             frames = [_drop_specks(_clean_alpha(Image.open(p))) for p in paths]
@@ -285,8 +292,11 @@ def build():
     return sprites, index
 
 
-if __name__ == '__main__':
-    sprites, index = build()
+# v9.7.1 (lot C) : compétences, annonces et secondes attaques dans un fichier chargé à la demande (art-anim-extra.js).
+EXTRA = ('skill', 'telegraph', 'attack2', 'skill2', 'hurt', 'death')  # chargés après le démarrage
+
+
+def write(sprites, index, out, extra=False):
     lines = [
         '// FICHIER GÉNÉRÉ par tools/art/pixellab_anim.py — ne pas modifier à la main.',
         '// v9.2.3 : animations dessinées image par image (PixelLab) des ennemis et boss des mondes 1 à 12.',
@@ -319,8 +329,21 @@ if __name__ == '__main__':
     lines.append('export const ANIM_PALS = ' + json.dumps({g: {ch: c for c, ch in p.items()} for g, p in pals.items()}, ensure_ascii=False, separators=(',', ':')) + ';')
     lines.append('// Animations par sprite : images, décalage (ox, oy) par rapport au sprite de base, images par seconde.')
     lines.append('export const ENEMY_ANIMS = ' + json.dumps(index, ensure_ascii=False, separators=(',', ':')) + ';')
+    if not extra:
+        lines.append('// v9.7.1 : nouveaux modèles (monstres marins) : sprite de base remplacé par cette image.')
+        lines.append('export const ENEMY_BASES = ' + json.dumps(BASES, separators=(',', ':')) + ';')
     lines.append('')
-    out = os.path.join(ROOT, 'src', 'render', 'art-anim.js')
     with open(out, 'w', encoding='utf-8') as f:
         f.write('\n'.join(lines))
     print(f'{len(sprites)} images -> {os.path.relpath(out, ROOT)} ({os.path.getsize(out) // 1024} Ko)')
+
+
+if __name__ == '__main__':
+    sprites, index = build()
+    parts = []
+    for extra in (False, True):
+        idx = {k: {a: e for a, e in v.items() if (a in EXTRA) == extra} for k, v in index.items()}
+        idx = {k: v for k, v in idx.items() if v}
+        names = {f for v in idx.values() for e in v.values() for f in e['frames']} | (set() if extra else set(BASES.values()))
+        write({n: sprites[n] for n in sprites if n in names}, idx,
+              os.path.join(ROOT, 'src', 'render', 'art-anim-extra.js' if extra else 'art-anim.js'), extra)

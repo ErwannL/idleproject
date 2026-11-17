@@ -44,6 +44,8 @@ def view_of(key):
     for a in ('walk', 'float', 'fly', 'swim', 'attack'):
         p = os.path.join(ANIM, f'{key}_{a}', 'f0.png')
         if os.path.exists(p): return Image.open(p).convert('RGBA')
+    ref = os.path.join(ANIM, '_ref', f'{key}.png')
+    if os.path.exists(ref): return Image.open(ref).convert('RGBA')  # sprite fait main : vue de référence
     sheet = Image.open(os.path.join(SRC, f'{key}.png')).convert('RGBA')
     return sheet.crop((7 * 64, 0, 8 * 64, 64))
 
@@ -65,6 +67,8 @@ def gen(key, name, seed=5):
 def jobs(lot):
     if lot == 'bosses6':
         return [(k, a) for k in BOSSES6 for a in ('float' if k in FLOATERS else 'walk', 'attack', 'hurt', 'death', 'skill', 'telegraph')]
+    if lot == 'lich':
+        return [('boss_crypt_archlich', a) for a in ('float', 'attack', 'hurt', 'death', 'skill', 'telegraph')]
     if lot == 'knight':
         return [('boss_fallen_knight', a) for a in ('hurt', 'death')]
     if lot == 'bosses':

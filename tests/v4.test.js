@@ -92,7 +92,8 @@ test('compétences : apprentissage, déblocage par niveau et lancement automatiq
     casts += world.events.filter((e) => e.type === 'skill').length;
     world.events.length = 0;
   }
-  assert.ok(casts >= 4, `lancements : ${casts}`);
+  // v9.7.1 (lot 2) : recharges de 20 à 45 s, 4 s de grâce avant le lancement automatique (Mixte) : 40 s → au moins 2.
+  assert.ok(casts >= 2, `lancements : ${casts}`);
 });
 
 test('invocation : coût, probabilités affichées, garantie et doublons', () => {

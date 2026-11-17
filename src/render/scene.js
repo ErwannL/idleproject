@@ -14,6 +14,8 @@ import { animBoxes, animStride, anchorOffset, boxOf, groundLegs, QUADRUPEDS as L
 import { BREATH_START, CAST_RELEASE, breathSafeAnims, drawBreath, drawOrbGlow, headMouth, powerOf, powerPointsOf } from './enemy-fx.js'; // v9.2.3
 import { HERO_HEIGHT, sizeFactor, visibleSize } from '../data/enemy-sizes.js'; // v9.2.3 : table d'échelle (v9.2.4 : taille visible)
 import { ENEMY_ANIMS } from './art-anim.js'; // v9.2.3 : bat, harpy, skeleton dessinés image par image
+import { enemyExtraReady } from './sprites.js'; // v9.7.1 (lot C) : animations chargées à la demande
+enemyExtraReady.then((extra) => { if (extra) for (const [k, v] of Object.entries(extra)) Object.assign((ENEMY_ANIMS[k] ??= {}), v); });
 import { ARRIVE_SECONDS_BY_MODE, arrivalPose, arrivalProgress } from './arrival.js'; // v9.2.2 : arrivée des ennemis
 import { arrivalFor, WINGED_LANDERS } from '../data/arrivals.js';
 import { drawArrivalFx } from './arrival-fx.js'; // v9.2.2 : sol qui se fend, portail
@@ -78,6 +80,8 @@ const SUPPORT_COLOR = { heal: '#7dff9a', shield: '#7fc8ff', rally: '#ffd23f', go
 
 // Durée de vie d'un objet tombé : saut, repos au sol, puis aspiration vers le chevalier.
 const LOOT_LIFE = 4;
+// v9.7.1 (lot C) : durées des poses dessinées « compétence » et « annonce » des boss.
+const SKILL_TIME = 0.9, TELE_TIME = 0.8;
 
 // Aura des boss par rang (mini, moyen, dur, méga).
 const BOSS_AURAS = {
@@ -489,8 +493,11 @@ export class SceneRenderer {
         const efx = this.enemyFxFor(event.enemyId);
         efx.windup = 0.25;
         efx.wound = true;
+        efx.swings = (efx.swings ?? 0) + 1; // v9.7.1 : une attaque sur deux = seconde attaque (attack2)
         break;
       }
+      case 'bossHeavy': this.enemyFxFor(event.enemyId).tele = TELE_TIME; break; // v9.7.1 (lot C) : annonce dessinée
+      case 'bossEnrage': this.enemyFxFor(event.enemyId).skill = SKILL_TIME; break; // rage : compétence dessinée
       case 'heroHit':
         this.hero.hurt = 0.18;
         if (this.underwater) swirl(this, HERO_X + 12, this.groundY - 16, 4); // v9.2.0 : la morsure brasse l'eau
@@ -539,6 +546,8 @@ export class SceneRenderer {
         break;
       }
       case 'bossSummon':
+        // v9.7.1 (lot C) : le maître joue sa compétence dessinée (invocation) quand l'événement le désigne.
+        if (world.enemies.some((e) => e.id === event.enemyId && e.boss)) this.enemyFxFor(event.enemyId).skill = SKILL_TIME;
         this.shake = Math.max(this.shake, 3);
         this.burst(HERO_X + 60, this.groundY - 20, '#ff0030', 18, 60);
         break;
@@ -1170,6 +1179,7 @@ export class SceneRenderer {
       if (fx.hold > 0) { fx.hold -= dt; fx.appear = fx.hold > 0 ? 0 : 1; }
       fx.hit = Math.max(0, fx.hit - dt);
       fx.hurt = Math.max(0, (fx.hurt ?? 0) - dt);
+      fx.tele = Math.max(0, (fx.tele ?? 0) - dt); fx.skill = Math.max(0, (fx.skill ?? 0) - dt); // v9.7.1 (lot C)
       fx.lunge = Math.max(0, fx.lunge - dt);
       fx.squash = Math.max(0, (fx.squash ?? 0) - dt);
       fx.knock = (fx.knock ?? 0) * Math.exp(-dt * 14); // recul qui revient en douceur
@@ -1258,7 +1268,8 @@ export class SceneRenderer {
       }
       const drawn = pickAnimFrame(anims, {
         emerge: arrival.mode === 'burrow' && k < 1 ? pose.emerge : null, portal: arrival.mode === 'portal' && k < 1 ? Math.min(1, k / 0.85) : null,
-        atkP, hurtP: fx.hurt > 0 && !this.focus ? 1 - fx.hurt / HURT_TIME : null, flying, swimming: this.underwater && arrival.mode === 'swim', moving, time: this.time * mPace, phase: enemy.id * 0.7, walkStep,
+        atkP, hurtP: fx.hurt > 0 && !this.focus ? 1 - fx.hurt / HURT_TIME : null, alt: (fx.swings ?? 0) % 2 === 0,
+        skillP: fx.skill > 0 && !this.focus ? 1 - fx.skill / SKILL_TIME : null, teleP: fx.tele > 0 && !this.focus ? Math.min(0.999, 1 - fx.tele / TELE_TIME) : null, flying, swimming: this.underwater && arrival.mode === 'swim', moving, time: this.time * mPace, phase: enemy.id * 0.7, walkStep,
       });
       if (drawn && (drawn.anim === anims.emerge || drawn.anim === anims.portal)) { pose.buried = 0; pose.dx = 0; pose.dy = 0; pose.alpha = 1; } // la sortie est dessinée
       const drawnPortal = drawn?.anim === anims?.portal;

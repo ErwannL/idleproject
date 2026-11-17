@@ -1,6 +1,8 @@
 // Interface DOM : barre du haut (monnaies, contrats, récompenses, paramètres), surimpressions légères
 // de la scène, HUD, onglets débloqués progressivement et panneaux (un module par panneau dans ./panels).
 // L'interface ne modifie jamais l'état directement : elle appelle les actions fournies par main.js.
+import { COMBO_STEP_PCT, interactiveCooldown } from '../core/combat.js'; // v9.7.1 (lot 2)
+import { activeSkills } from '../core/skills.js'; // v9.7.1 (lot 2)
 import { LootBag } from './loot-bag.js'; // v9.7.1
 import { worldOpensAt } from '../core/seals.js'; // v9.6.5
 import { sessionGoalsHtml } from './session-goals.js'; // v9.6.5
@@ -819,6 +821,10 @@ export class UI {
       case 'offline-double': if (this.lastOffline && this.canDoubleOffline(this.lastOffline)) { a.doubleOffline(this.lastOffline); this.lastOffline = null; this.closeModal(); } break; // v9.3.8 (4)
       case 'arena-edit': local(() => { v.arenaEdit = true; }); break; // v9.3.5
       case 'open-tab': if (el.closest('#modal')) this.closeModal(); this.openTab(value); break;
+      case 'cast-skill': a.castSkillNow?.(el.dataset.skill); break; // v9.7.1 (lot 2)
+      case 'cast-ult': a.castUltNow?.(value); break;
+      case 'guard': a.guardNow?.(); break;
+      case 'weak-spot': a.weakSpotNow?.(); break;
       case 'ranking-sort': this.actions.loadRanking(value); break;
       // v9.3.2 : guilde.
       case 'guild-rank': this.actions.loadGuild({ mode: value }); break;
@@ -1148,6 +1154,7 @@ export class UI {
     if (action === 'cloud-listed') this.actions.cloudListed(el.checked);
     if (action === 'cinematics') this.actions.setCinematics(el.checked);
     if (action === 'screen-shake') this.actions.setShake(el.checked); // v9.3.9
+    if (action === 'combat-assist') this.actions.setCombatAssist(el.value); // v9.7.1 (lot 2)
     if (action === 'skill-names') this.actions.setSkillNames(el.checked); // v9.7.1 (lot A)
     if (action === 'char-size') this.actions.setCharSize(el.value); // v9.7.1
     if (action === 'big-auras') this.actions.setBigAuras(el.checked); // v9.5.3
@@ -1756,30 +1763,35 @@ export class UI {
   // écran. v9.1.0 : seulement celles apprises, et la barre n'apparaît qu'après le premier mini-boss.
   updateSkillBar(state, world) {
     const now = performance.now();
-    if (now - (this.lastHud.skillTime ?? 0) < 200) return;
+    if (now - (this.lastHud.skillTime ?? 0) < 100) return;
     this.lastHud.skillTime = now;
     const bar = this.$('skill-bar');
     if (!bar) return;
-    const full = pref('combat') === 'full';
-    const show = full || (state.records.bossesDefeated ?? 0) > 0;
+    // v9.7.1 (lot 2) : trois gros boutons sous la scène (touches 1, 2, 3), Parer (D) pendant l'annonce d'un coup lourd,
+    // ultimes prêts des compagnons sur leur portrait, compteur d'enchaînement. Rien n'est obligatoire.
+    const list = activeSkills(state).slice(0, 3);
+    const team = (state.companions?.equipped ?? []).map(companionById).filter(Boolean);
+    const ready = new Set(Object.keys(world.ultReady ?? {}).map((k) => k.split('#')[0]));
+    const show = list.length > 0 || ready.size > 0;
     bar.classList.toggle('hidden', !show);
     if (!show) return;
-    const list = SKILLS.filter((sk) => (state.skills[sk.id] ?? 0) > 0);
-    const key = `${list.map((sk) => `${sk.id}${state.skills[sk.id]}`).join()}|${state.skillAuto}`;
+    const key = `${list.map((sk) => sk.id).join()}|${[...ready].join()}|${world.guard ? 1 : 0}`;
     if (bar.dataset.key !== key) {
       bar.dataset.key = key;
-      bar.innerHTML = list.map((sk) => `<button class="skill-btn" data-action="open-tab" data-value="skills" data-skill="${sk.id}"
-          title="${sk.name} (niv. ${state.skills[sk.id]}) — se lance toute seule toutes les ${sk.cooldown} s environ" aria-label="${sk.name}">${img(sk.icon)}</button>`).join('')
-        + (state.skillAuto ? '' : '<span class="skill-pause">pause</span>');
+      bar.innerHTML = list.map((sk, i) => `<button class="skill-btn big" data-action="cast-skill" data-skill="${sk.id}" title="${escapeHtml(sk.name)} (${i + 1})" aria-label="${escapeHtml(sk.name)}">${img(sk.icon)}<i class="cd"></i>${this.phone ? '' : `<kbd>${i + 1}</kbd>`}</button>`).join('')
+        + team.filter((c) => ready.has(c.id)).map((c) => `<button class="ult-btn" data-action="cast-ult" data-value="${c.id}" title="Ultime : ${escapeHtml(c.name)}" aria-label="Ultime de ${escapeHtml(c.name)}">${img(c.sprite)}<b>Ultime</b></button>`).join('')
+        + (world.guard ? `<button class="guard-btn" data-action="guard" aria-label="Parer">🛡 Parer${this.phone ? '' : ' <kbd>D</kbd>'}</button>` : '');
     }
     const bonus = (world.heroStats ?? computeHeroStats(state)).bonus;
     for (const btn of bar.querySelectorAll('.skill-btn')) {
       const sk = SKILLS.find((x) => x.id === btn.dataset.skill);
       const left = Math.max(0, world.skillTimers?.[sk.id] ?? 0);
-      const total = skillCooldown(sk, bonus);
-      btn.style.setProperty('--cd', Math.min(1, left / total));
+      btn.style.setProperty('--cd', Math.min(1, left / interactiveCooldown(sk, bonus)));
       btn.classList.toggle('ready', left <= 0.05);
     }
+    const combo = world.combo?.n ?? 0;
+    const chip = this.$('combo-chip');
+    if (chip) { chip.classList.toggle('hidden', combo < 2); if (combo >= 2) chip.textContent = `Combo ×${combo} · +${combo * COMBO_STEP_PCT} %`; }
   }
 
   // v9.3.4 : au premier sac plein, proposer le recyclage automatique des Communs moins bons (une seule fois).

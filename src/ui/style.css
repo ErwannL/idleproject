@@ -2347,9 +2347,9 @@ button[data-action="learn-skill"], button[data-action="buy-talent"] { -webkit-us
 .hist img { height: 14px; width: auto; vertical-align: -3px; margin-right: 2px; }
 /* v9.1.3 (essai) : mode boss réduit — opacité seulement, aucune place gagnée ni perdue */
 #zone-card, #next-action, #skill-bar, #topbar .chip, #topbar .icon-btn, #topbar #hero-chip { transition: opacity 0.4s; }
-#app[data-boss-focus] #zone-card, #app[data-boss-focus] #next-action, #app[data-boss-focus] #skill-bar,
+#app[data-boss-focus] #zone-card, #app[data-boss-focus] #next-action,
 #app[data-boss-focus] #topbar .chip, #app[data-boss-focus] #topbar .icon-btn { opacity: 0.5; }
-#app[data-boss-focus="mega"] #zone-card, #app[data-boss-focus="mega"] #next-action, #app[data-boss-focus="mega"] #skill-bar,
+#app[data-boss-focus="mega"] #zone-card, #app[data-boss-focus="mega"] #next-action,
 #app[data-boss-focus="mega"] #topbar .chip, #app[data-boss-focus="mega"] #topbar .icon-btn { opacity: 0.15; }
 #app[data-boss-focus] #zone-card:hover, #app[data-boss-focus] #next-action:hover, #app[data-boss-focus] #next-action:focus-visible { opacity: 1; }
 /* v9.1.3 (essai) : panneau rétracté (▼) : la scène prend la place, le panneau garde au moins sa barre et une ligne */
@@ -3570,3 +3570,22 @@ body:has(.summon-fx) #banner { visibility: hidden; }
   .prologue2 .pro-b { width: 100%; max-width: 320px; min-height: 64px; }
   .prologue2 .pro-bless { flex-direction: column; align-items: center; width: 100%; }
 }
+
+/* v9.7.1 (lot 2) : compétences à l'appui sous la scène (au pouce sur téléphone), Parer, ultimes, point faible, combo. */
+#skill-bar { position: absolute; left: 50%; top: calc(var(--ground-px, 100%) + 112px); bottom: auto; transform: translateX(-50%); display: flex; gap: 8px; z-index: 4; }
+#play:not(.wide-scene) #skill-bar { top: auto; bottom: 30px; }
+#skill-bar .skill-btn.big { position: relative; width: 52px; height: 52px; padding: 0; border-radius: 12px; border: 2px solid #4a5f92; background: rgba(12, 16, 30, .88); cursor: pointer; overflow: hidden; }
+#skill-bar .skill-btn.big img { width: 32px; height: 32px; image-rendering: pixelated; }
+#skill-bar .skill-btn.big .cd { position: absolute; inset: 0; background: conic-gradient(rgba(0,0,0,.7) calc(var(--cd, 0) * 360deg), transparent 0); pointer-events: none; }
+#skill-bar .skill-btn.big.ready { border-color: #ffd23f; box-shadow: 0 0 10px rgba(255, 210, 63, .7); animation: skill-ready 1.2s ease-in-out infinite; }
+#skill-bar kbd { position: absolute; right: 2px; bottom: 1px; font: 700 9px system-ui; color: #cfd8f0; background: rgba(0,0,0,.5); border-radius: 3px; padding: 0 2px; }
+#skill-bar .ult-btn { display: flex; flex-direction: column; align-items: center; width: 56px; height: 56px; padding: 2px; border-radius: 12px; border: 2px solid #ff7ad8; background: rgba(40, 10, 40, .9); color: #ffd6f4; font-size: 10px; cursor: pointer; animation: skill-ready .8s ease-in-out infinite; }
+#skill-bar .ult-btn img { width: 34px; height: 34px; object-fit: contain; image-rendering: pixelated; }
+#skill-bar .guard-btn { min-width: 96px; height: 52px; border-radius: 12px; border: 2px solid #7fd6ff; background: linear-gradient(#173a5a, #0c1e33); color: #e8f6ff; font: 800 15px system-ui; cursor: pointer; animation: skill-ready .5s ease-in-out infinite; }
+@keyframes skill-ready { 50% { transform: scale(1.06); } }
+#combo-chip { position: absolute; right: 10px; top: calc(var(--ground-px, 100%) + 124px); bottom: auto; z-index: 4; padding: 2px 8px; border-radius: 10px; background: rgba(60, 20, 70, .85); border: 1px solid #ff7ad8; color: #ffe0f6; font: 800 12px system-ui; }
+#play:not(.wide-scene) #combo-chip { top: auto; bottom: 92px; }
+#weak-spot { position: absolute; z-index: 5; width: 34px; height: 34px; margin: -17px 0 0 -17px; padding: 0; border-radius: 50%; border: 3px solid #ffd23f; background: radial-gradient(circle, #fff 0 18%, rgba(255, 210, 63, .7) 20% 40%, transparent 42%);
+  box-shadow: 0 0 14px #ffd23f; cursor: crosshair; animation: weak-pulse .6s ease-in-out infinite; }
+@keyframes weak-pulse { 50% { transform: scale(1.18); } }
+@media (max-width: 560px) { #skill-bar .skill-btn.big { width: 58px; height: 58px; } #weak-spot { width: 44px; height: 44px; margin: -22px 0 0 -22px; } }

@@ -2,6 +2,7 @@ import { sendMetrics } from './core/metrics.js';
 // Point d'entrée : charge la partie, applique les gains hors ligne, puis fait tourner
 // la simulation (minuterie, continue même fenêtre réduite) et le rendu (requestAnimationFrame,
 // suspendu automatiquement quand la fenêtre est masquée).
+import { playerCast, playerGuard, playerUltimate, playerWeakSpot } from './core/combat.js'; // v9.7.1 (lot 2)
 import { grantBlessing } from './core/blessing.js'; // v9.7.1 (prologue)
 import { startCatchUp } from './core/boost.js';
 import { claimSessionChest, newSessionGoals } from './core/session-goals.js';
@@ -122,6 +123,19 @@ const rng = new Rng((state.rngSeed ^ Date.now()) >>> 0);
 const canvas = document.getElementById('scene');
 const renderer = new SceneRenderer(canvas);
 const stageArea = document.getElementById('stage-area');
+// v9.7.1 (lot 2) : point faible — cible lumineuse posée sur le sprite du boss (coordonnées de la scène → page).
+const weakEl = document.getElementById('weak-spot');
+function placeWeakSpot() {
+  const ws = world.weakSpot;
+  const fx = ws && renderer.enemyFx.get(ws.enemyId);
+  if (!weakEl) return;
+  if (!fx?.sw) { weakEl.classList.add('hidden'); return; }
+  const c = canvas.getBoundingClientRect(), a = stageArea.getBoundingClientRect();
+  const k = c.width / renderer.width;
+  weakEl.style.left = `${c.left - a.left + (fx.sx + fx.sw * ws.u) * k}px`;
+  weakEl.style.top = `${c.top - a.top + (fx.sy + fx.sh * ws.v) * k}px`;
+  weakEl.classList.remove('hidden');
+}
 // v9.7.1 : marge au-dessus du héros = hauteur des boutons posés en haut de la scène (carte, compétences).
 SceneRenderer.sizePref = state.ui.charSize ?? 'auto'; // v9.7.1
 SceneRenderer.skillNames = state.ui.skillNames !== false; // v9.7.1 (lot A)
@@ -978,6 +992,7 @@ const actions = {
   setCinematics(on) { state.ui.cinematics = on; done(true); },
   setShake(on) { state.ui.shake = on; done(true); }, // v9.3.9
   // v9.7.1 : taille des personnages (Auto / Petit / Moyen / Grand) : recadre la scène tout de suite.
+  setCombatAssist(v) { state.ui.combatAssist = ['full', 'manual'].includes(v) ? v : 'mixed'; done(true); }, // v9.7.1 (lot 2)
   setSkillNames(on) { state.ui.skillNames = on; SceneRenderer.skillNames = on; done(true); }, // v9.7.1 (lot A)
   setCharSize(v) { state.ui.charSize = ['small', 'medium', 'large'].includes(v) ? v : 'auto'; SceneRenderer.sizePref = state.ui.charSize; resizeScene(); done(true); },
   setBigAuras(on) { state.ui.bigAuras = on; done(true); }, // v9.5.3
@@ -1004,6 +1019,11 @@ const actions = {
     if (!r) return;
     done(true, `Coffre de session : +${r.gems} gemmes, +${r.shards} éclats`, '#ffd54a');
   },
+  // v9.7.1 (lot 2) : actions du joueur en combat (compétence, ultime, parade, point faible) ; aucune n'est obligatoire.
+  castSkillNow(id) { playerCast(world, id); },
+  castUltNow(id) { playerUltimate(world, id); },
+  guardNow() { if (playerGuard(world)) { ui.toast('Parade ! Le boss est affaibli.', '#7fd6ff'); renderer.shake = Math.max(renderer.shake, 3); } },
+  weakSpotNow() { if (playerWeakSpot(world)) renderer.shake = Math.max(renderer.shake, 2); },
   // v9.7.1 (lot 1) : revoir le prologue (rien n'est changé à la partie).
   replayPrologue() { ui.closeModal(); ui.closePanel?.(); playPrologue({ state, onDone: () => {} }); },
   startTour() { ui.closeModal(); startTour(ui, state); },
@@ -1664,6 +1684,7 @@ function frame(ts) {
     break;
   }
   renderer.render(state, world, dt);
+  placeWeakSpot(); // v9.7.1 (lot 2)
   ui.update(state, world);
   animateMenus(document.body, state, ts);
   requestAnimationFrame(frame);

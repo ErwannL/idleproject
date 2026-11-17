@@ -1,5 +1,5 @@
 import { ART } from './art.js';
-import { ANIM_ART, ANIM_PALS } from './art-anim.js'; // v9.2.3 : animations image par image (PixelLab)
+import { ANIM_ART, ANIM_PALS, ENEMY_BASES } from './art-anim.js'; // v9.2.3 : animations image par image (PixelLab)
 
 // Assets pixel art, dessinés pour le projet (aucun asset externe).
 //
@@ -28,6 +28,20 @@ export const HERO_FOOT = { x: 20, y: 47 };
 export const expandRow = (row) => row.replace(/`(.)(\d+)`/g, (_, c, n) => c.repeat(Number(n)));
 const ANIM_EXPANDED = Object.fromEntries(Object.entries(ANIM_ART).map(([k, v]) => [k, { ...v, rows: v.rows.map(expandRow), pal: ANIM_PALS[v.pr] }]));
 export const SPRITES = { ...ART, ...ANIM_EXPANDED };
+// v9.7.1 (lot C.4) : nouveaux modèles (Léviathan, Mégalodon, Kraken) : le dessin d'origine et ses variantes sont remplacés.
+for (const [key, name] of Object.entries(ENEMY_BASES ?? {})) {
+  if (!SPRITES[name]) continue;
+  SPRITES[key] = SPRITES[name];
+  delete SPRITES[`${key}_b`]; delete SPRITES[`${key}_atk`];
+}
+// v9.7.1 (lot C) : compétences, annonces et secondes attaques des ennemis, chargées à la demande après le démarrage.
+export const enemyExtraReady = (typeof window === 'undefined' ? Promise.resolve(null) : import('./art-anim-extra.js'))
+  .then((m) => {
+    if (!m) return false;
+    for (const [k, v] of Object.entries(m.ANIM_ART)) if (!SPRITES[k]) SPRITES[k] = { ...v, rows: v.rows.map(expandRow), pal: m.ANIM_PALS[v.pr] };
+    return m.ENEMY_ANIMS;
+  })
+  .catch(() => false);
 
 export function normalizeRows(rows) {
   const width = Math.max(...rows.map((r) => r.length));

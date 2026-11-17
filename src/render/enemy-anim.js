@@ -157,12 +157,16 @@ export const HURT_TIME = 0.4;
 export const HURT_COOLDOWN = 2.5;
 
 // v9.2.5 : `walkStep` (image de marche, nombre réel) : cadence accordée à la vitesse d'avance (pieds fixes au sol).
-export function pickAnimFrame(set, { emerge = null, portal = null, atkP = null, hurtP = null, flying = false, swimming = false, moving = false, time = 0, phase = 0, walkStep = null } = {}) {
+export function pickAnimFrame(set, { emerge = null, portal = null, atkP = null, hurtP = null, skillP = null, teleP = null, alt = false, flying = false, swimming = false, moving = false, time = 0, phase = 0, walkStep = null } = {}) {
   if (!set) return null;
   const at = (anim, k) => ({ anim, key: anim.frames[Math.max(0, Math.min(anim.frames.length - 1, Math.floor(k * anim.frames.length)))] });
   if (set.emerge && emerge !== null) return at(set.emerge, emerge);
   if (set.portal && portal !== null) return at(set.portal, portal);
-  if (set.attack && atkP !== null) return at(set.attack, atkP);
+  // v9.7.1 (lot C) : compétence (invocation, rage, charge) et annonce d'un coup lourd, avant l'attaque ; seconde attaque
+  // en alternance (alt) quand elle existe.
+  if (set.skill && skillP !== null) return at(set.skill, skillP);
+  if (set.telegraph && teleP !== null) return at(set.telegraph, teleP);
+  if (atkP !== null && (set.attack || set.attack2)) return at((alt && set.attack2) || set.attack || set.attack2, atkP);
   if (set.hurt && hurtP !== null) return at(set.hurt, hurtP); // v9.2.3 : coup reçu
   const loop = (anim) => ({ anim, key: anim.frames[Math.floor(time * anim.fps + phase) % anim.frames.length] });
   if (set.swim && swimming) return loop(set.swim);

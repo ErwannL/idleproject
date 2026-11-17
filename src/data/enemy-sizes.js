@@ -42,13 +42,13 @@ export const BOSS_SIZE = {
   mini_harpy_queen: 44, mini_crab_king: 44, mini_void_watcher: 46, mini_toad_king: 46, mini_crystal_golem: 50, mini_treant: 50,
   // boss intermédiaires
   mid_crystal_bat: 44, mid_giant_spider: 46, mid_hellhound: 50, mid_boar_titan: 52, mid_star_devourer: 52,
-  mid_sand_worm: 56, mid_thunder_griffin: 56, mid_kraken: 56, mid_lava_golem: 58, mid_mammoth: 60, mid_hydra: 60,
+  mid_sand_worm: 56, mid_thunder_griffin: 56, mid_kraken: 78, mid_lava_golem: 58, mid_mammoth: 60, mid_hydra: 60,
   // boss redoutables
   hard_necromancer: 44, hard_scarecrow: 46, hard_plague_doctor: 46, hard_anubis: 48, hard_storm_valkyrie: 48,
-  hard_flame_djinn: 48, hard_void_knight: 50, hard_werewolf: 52, hard_demon_general: 52, hard_megalodon: 52, hard_frost_giant: 64,
+  hard_flame_djinn: 48, hard_void_knight: 50, hard_werewolf: 52, hard_demon_general: 52, hard_megalodon: 76, hard_frost_giant: 64,
   // boss de monde et de donjon
   bone_lord: 54, spectral_queen: 54, slime_king: 56, crypt_archlich: 56, alpha_wolf: 58, boss_void_emperor: 60,
-  demon_king: 64, boss_leviathan: 64, boss_sky_titan: 70, rotting_dryad: 70, boss_swamp_behemoth: 76,
+  demon_king: 64, boss_leviathan: 110, /* v9.7.1 : nouveau modèle massif */ boss_sky_titan: 70, rotting_dryad: 70, boss_swamp_behemoth: 76,
   boss_phoenix: 76, magma_colossus: 76, obsidian_tyrant: 76, frost_wyrm: 80, ash_dragon: 82,
 };
 // Boss sans entrée : selon le rang.

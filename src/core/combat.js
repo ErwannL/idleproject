@@ -503,7 +503,7 @@ export function heroPower(state, balance = BALANCE) {
 }
 
 function gainGold(state, world, amount) {
-  const gold = addGold(state, amount);
+  const gold = addGold(state, amount * comboBonus(world)); // v9.7.1 (lot 2) : enchaînement
   world.counters.gold += gold;
   trackContracts(state, 'gold', gold);
   return gold;
@@ -524,7 +524,7 @@ function behaviorTick(state, world, dt, rng, balance) {
   for (const e of world.enemies) {
     if (!e.boss || !(e.engaged || e.arrived)) continue;
     e.phaseT = (e.phaseT ?? 0) + dt;
-    if (e.phaseT >= 8) { e.phaseT = 0; e.heavy = true; emit(world, 'bossHeavy', { enemyId: e.id, x: e.x }); }
+    if (e.phaseT >= 8) { e.phaseT = 0; e.heavy = true; world.guard = { enemyId: e.id, until: world.time + GUARD_WINDOW }; emit(world, 'bossHeavy', { enemyId: e.id, x: e.x }); }
   }
   for (const e of world.enemies) {
     if (e.arrived && e.arrivedAt === undefined) e.arrivedAt = world.time;
@@ -573,7 +573,7 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
 
   const xp = killXp(enc.level, enemy.boss || enemy.elite, balance) * (1 + stats.xpPct / 100) * boost.xp;
   world.counters.xp += xp;
-  const levels = addXp(state, xp, balance);
+  const levels = addXp(state, xp * comboBonus(world), balance); // v9.7.1 (lot 2) : enchaînement
   if (levels > 0) {
     state.gems += levels * balance.gems.levelUp;
     emit(world, 'levelUp', { level: state.level, gems: levels * balance.gems.levelUp });
@@ -786,7 +786,7 @@ export function tapHit(state, world, rng, balance = BALANCE) {
 function heroDamage(stats, enemy, world, rng, balance) {
   const versus = enemy.boss ? stats.bonus.damageVsBossPct : stats.bonus.damageVsNormalPct;
   const cry = world.buffs.cry > 0 ? world.buffs.cryPct : 0;
-  const crit = rng.next() < stats.critChance / 100;
+  const crit = world.forceCrit ? (world.forceCrit = false, true) : rng.next() < stats.critChance / 100; // v9.7.1 : point faible
   // v9.2.0 : multiplicateur critique de l'amélioration « Dégâts critiques », facteur « Tueur de boss » à part.
   const slayer = enemy.boss ? (1 + (stats.bossDamagePct ?? 0) / 100) * (stats.bossMult ?? 1) : 1; // v9.2.1 : Distorsion
   const damage = stats.damage * (1 + versus / 100) * slayer * (1 + cry / 100) * (crit ? stats.critMultiplier ?? balance.hero.critMultiplier : 1);
@@ -794,10 +794,11 @@ function heroDamage(stats, enemy, world, rng, balance) {
 }
 
 function castSkill(state, world, skill, stats, rng, balance, enc, front) {
-  const value = skillValue(skill, state.skills[skill.id]);
+  // v9.7.1 (lot 2) : recharge allongée (20 à 45 s) compensée par la puissance ; × 0,6 en automatique.
+  const value = skillValue(skill, state.skills[skill.id]) * (skill.type === 'buff' ? 1 : cooldownRatio(skill)) * (world.skillPower ?? 1);
   if (skill.type === 'buff') {
     world.buffs.cryPct = Math.max(world.buffs.cry > 0 ? world.buffs.cryPct : 0, value);
-    world.buffs.cry = Math.max(world.buffs.cry, skill.duration);
+    world.buffs.cry = Math.max(world.buffs.cry, skill.duration * Math.min(2, cooldownRatio(skill)) * (world.skillPower ?? 1)); // v9.7.1
   } else if (skill.type === 'aoe') {
     for (const enemy of [...world.enemies]) {
       const { damage } = heroDamage(stats, enemy, world, rng, balance);
@@ -1106,16 +1107,32 @@ export function step(state, world, dt, rng, balance = BALANCE) {
   }
 
   // Compétences lancées automatiquement dès qu'un ennemi est à portée.
-  if (state.skillAuto) {
-    for (const skill of activeSkills(state)) {
-      world.skillTimers[skill.id] = (world.skillTimers[skill.id] ?? 1) - dt;
-      const target = world.enemies[0];
-      if (world.skillTimers[skill.id] <= 0 && target && target.x - W.heroX <= range && canHit(target, balance)) {
-        castSkill(state, world, skill, stats, rng, balance, enc, target);
-        world.skillTimers[skill.id] = skillCooldown(skill, stats.bonus);
-      }
+  // v9.7.1 (lot 2) : compétences à l'appui. Prête, une compétence attend le joueur (Mixte : 4 s de grâce) ; lancée à la
+  // main elle fait 100 % de son effet, en automatique 60 %. Mode « Manuel » : jamais seule ; « Complet » : tout de suite.
+  const assist = combatAssist(state);
+  for (const skill of activeSkills(state)) {
+    world.skillTimers[skill.id] = (world.skillTimers[skill.id] ?? 1) - dt;
+    if (world.skillTimers[skill.id] > 0) continue;
+    const target = world.enemies[0];
+    const inRange = target && target.x - W.heroX <= range && canHit(target, balance);
+    if (!inRange) continue;
+    world.skillReadyAt ??= {};
+    world.skillReadyAt[skill.id] ??= world.time;
+    const manual = world.manualSkills?.has(skill.id);
+    const grace = assist === 'full' ? 0 : ASSIST_GRACE;
+    const auto = state.skillAuto && assist !== 'manual' && world.time - world.skillReadyAt[skill.id] >= grace;
+    if (manual || auto) {
+      world.skillPower = manual ? 1 : AUTO_POWER;
+      castSkill(state, world, skill, stats, rng, balance, enc, target);
+      world.skillPower = 1;
+      world.skillTimers[skill.id] = interactiveCooldown(skill, stats.bonus);
+      delete world.skillReadyAt[skill.id];
+      world.manualSkills?.delete(skill.id);
+      if (manual) addCombo(world);
     }
   }
+  world.manualSkills?.clear();
+  tickInteraction(state, world, dt);
 
   // Compétences des compagnons (v8.9 : jusqu'à 4 chacun, chacune avec sa recharge).
   for (const companion of equippedCompanions(state)) {
@@ -1143,6 +1160,16 @@ export function step(state, world, dt, rng, balance = BALANCE) {
       const order = skill.ultimate ? state.companions.orders?.[companion.id] ?? 'ready' : 'ready';
       const held = (order === 'boss' && !world.enemies.some((e) => e.boss)) || (order === 'lowhp' && hero.hp > stats.maxHp * 0.5);
       if (!held && world.companionTimers[key] <= 0 && (!needsTarget || (target && target.x - W.heroX <= range + 20 && canHit(target, balance)))) {
+        // v9.7.1 (lot 2) : ultime prêt → jauge pleine sur le portrait ; le joueur le déclenche quand il veut, sinon il
+        // part seul après 5 s (Mixte). Complet : tout de suite ; Manuel : seulement à l'appui.
+        if (skill.ultimate && assist !== 'full') {
+          world.ultReady ??= {};
+          if (world.ultReady[key] === undefined) { world.ultReady[key] = world.time; emit(world, 'ultReady', { companionId: companion.id }); }
+          const now = world.ultNow?.has(key) || (assist === 'mixed' && world.time - world.ultReady[key] >= ULT_AUTO_DELAY);
+          if (!now) continue;
+          delete world.ultReady[key];
+          world.ultNow?.delete(key);
+        }
         castCompanion(state, world, companion, skill, stats, rng, balance, enc, target);
         world.companionTimers[key] = skill.every;
       }
@@ -1205,8 +1232,12 @@ export function step(state, world, dt, rng, balance = BALANCE) {
       const damage = attacker.damage * rage * traitAtk.damage * damageTakenFactor(stats, attacker.boss, balance, lowHp) * (1 - shield / 100)
         * dungeonDamageTaken(state, balance) * (stats.hurtMult ?? 1) // v9.2.1 : Éclats de cristal
         * behaviorHitMult(attacker, world.parries) // v9.6.0 : Tireur, Charge sans leur parade
-        * (attacker.heavy ? 2.5 : 1); // v9.6.3 : attaque lourde annoncée
-      if (attacker.heavy) { attacker.heavy = false; attacker.weakUntil = world.time + 3; emit(world, 'bossWeak', { enemyId: attacker.id, x: attacker.x }); }
+        * (attacker.heavy ? (attacker.parried ? 1.25 : 2.5) : 1); // v9.6.3 : attaque lourde annoncée ; v9.7.1 : parée = moitié
+      // v9.7.1 (lot 2) : seule une parade réussie affaiblit le boss (4 s) ; ignorée ou ratée : coup normal, rien de plus.
+      if (attacker.heavy) {
+        attacker.heavy = false;
+        if (attacker.parried) { attacker.parried = false; attacker.weakUntil = world.time + 4; emit(world, 'bossWeak', { enemyId: attacker.id, x: attacker.x, parried: true }); }
+      }
       hero.hp -= damage;
       mutationOnHit(attacker, damage);
       emit(world, 'heroHit', { enemyId: attacker.id, damage, boss: attacker.boss });
@@ -1214,4 +1245,69 @@ export function step(state, world, dt, rng, balance = BALANCE) {
       if (hero.hp <= 0) heroDies(state, world, balance);
     }
   }
+}
+
+// --- v9.7.1 (lot 2) : un minimum d'interaction en combat (jamais punitif : l'absent avance toujours) ---
+export const ASSIST_GRACE = 4; // s : une compétence prête attend le joueur avant de partir seule (Mixte)
+export const AUTO_POWER = 0.6; // effet d'une compétence lancée seule
+export const GUARD_WINDOW = 1.5; // s : fenêtre de parade d'un coup lourd annoncé
+export const COMBO_MAX = 10, COMBO_STEP_PCT = 2, COMBO_DECAY = 6; // +2 % d'or et d'XP par cran, -1 cran toutes les 6 s
+export const ULT_AUTO_DELAY = 5; // s : un ultime prêt part seul après 5 s (Mixte)
+export const ASSIST_MODES = { full: 'Complet', mixed: 'Mixte', manual: 'Manuel' };
+export const combatAssist = (state) => (ASSIST_MODES[state.ui?.combatAssist] ? state.ui.combatAssist : 'mixed');
+export function interactiveCooldown(skill, bonus) { return skillCooldown(skill, bonus) * cooldownRatio(skill); }
+export function cooldownRatio(skill) { return Math.min(45, Math.max(20, skill.cooldown * 3)) / skill.cooldown; }
+
+function addCombo(world) {
+  world.combo = { n: Math.min(COMBO_MAX, (world.combo?.n ?? 0) + 1), t: 0 };
+  emit(world, 'combo', { n: world.combo.n });
+}
+export const comboBonus = (world) => 1 + ((world?.combo?.n ?? 0) * COMBO_STEP_PCT) / 100;
+
+function tickInteraction(state, world, dt) {
+  if (world.combo?.n) { world.combo.t += dt; if (world.combo.t >= COMBO_DECAY) { world.combo.n -= 1; world.combo.t = 0; } }
+  if (world.guard && world.guard.until < world.time) world.guard = null;
+  // Point faible : sur un boss engagé, une cible lumineuse de 3 s toutes les 12 à 18 s.
+  const boss = world.enemies.find((e) => e.boss && (e.engaged || e.arrived) && e.hp > 0);
+  if (!boss) { world.weakSpot = null; return; }
+  world.weakSpotT = (world.weakSpotT ?? 6) - dt;
+  if (world.weakSpot && world.weakSpot.until < world.time) world.weakSpot = null;
+  if (world.weakSpotT <= 0 && !world.weakSpot) {
+    world.weakSpotT = 12 + ((boss.id * 7) % 7);
+    world.weakSpot = { enemyId: boss.id, until: world.time + 3, u: 0.3 + ((boss.id * 13) % 5) / 10, v: 0.25 + ((boss.id * 5) % 4) / 10 };
+    emit(world, 'weakSpot', { enemyId: boss.id });
+  }
+}
+
+// Actions du joueur (UI) : renvoient true si l'action a compté.
+export function playerCast(world, skillId) {
+  if ((world.skillTimers?.[skillId] ?? 1) > 0) return false;
+  (world.manualSkills ??= new Set()).add(skillId);
+  return true;
+}
+export function playerGuard(world) {
+  const g = world.guard;
+  const boss = g && world.enemies.find((e) => e.id === g.enemyId);
+  if (!boss || !boss.heavy || boss.parried) return false;
+  boss.parried = true;
+  world.guard = null;
+  addCombo(world);
+  emit(world, 'guard', { enemyId: boss.id, x: boss.x });
+  return true;
+}
+export function playerWeakSpot(world) {
+  if (!world.weakSpot) return false;
+  world.weakSpot = null;
+  world.forceCrit = true;
+  if (world.hero) world.hero.attackTimer = 0; // le coup part tout de suite
+  addCombo(world);
+  emit(world, 'weakHit', {});
+  return true;
+}
+export function playerUltimate(world, companionId) {
+  const key = Object.keys(world.ultReady ?? {}).find((k) => k.startsWith(`${companionId}#`));
+  if (!key) return false;
+  (world.ultNow ??= new Set()).add(key);
+  addCombo(world);
+  return true;
 }

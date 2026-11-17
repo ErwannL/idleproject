@@ -11,11 +11,11 @@ import { holdKeys } from './hold.js';
 // se changent pas.
 export const DEFAULT_KEYS = {
   auto: 'a', speed: 'v', claim: 'g', missions: 'm', inbox: 'n', options: 'p', journal: 'j', help: 'k',
-  session: 's', next: 'c', search: 'f', lootBag: 'b', boost0: 'q', boost1: 'w', boost2: 'e', boost3: 'r', boost4: 't',
+  session: 's', next: 'c', search: 'f', lootBag: 'b', guard: 'd', boost0: 'q', boost1: 'w', boost2: 'e', boost3: 'r', boost4: 't',
 };
 export const KEY_LABELS = {
   auto: 'Avance automatique', speed: 'Vitesse des combats', claim: 'Tout récupérer', missions: 'Missions', inbox: 'À récupérer',
-  lootBag: 'Sac de butin', options: 'Paramètres', journal: 'Journal de la session', help: 'Aide des raccourcis', session: 'Retour de session',
+  lootBag: 'Sac de butin', guard: 'Parer un coup lourd', options: 'Paramètres', journal: 'Journal de la session', help: 'Aide des raccourcis', session: 'Retour de session',
   next: 'Prochaine action', search: 'Recherche rapide', boost0: 'Boost 1 (Rage)', boost1: 'Boost 2 (Frénésie)', boost2: 'Boost 3 (Midas)',
   boost3: 'Boost 4 (Œil)', boost4: 'Boost 5 (Lame)',
 };
@@ -234,7 +234,10 @@ export function installShortcuts(ui) {
     let handled = true;
     const digit = digitOf(e);
     const bracket = bracketOf(e);
-    if (digit !== null) {
+    // v9.7.1 (lot 2) : sans menu ouvert, 1, 2, 3 lancent les compétences (les menus gardent leurs chiffres une fois ouverts).
+    const skillBtn = digit !== null && !ui.tab && digit >= 1 && digit <= 3 && ui.root.querySelectorAll('#skill-bar .skill-btn')[digit - 1];
+    if (skillBtn) skillBtn.click();
+    else if (digit !== null) {
       // Chiffre fixe par menu (data-menu) : un menu encore caché ne décale pas les suivants.
       const btn = ui.root.querySelector(`#tabs button[data-key="${digit}"]:not(.hidden)`);
       if (btn) { btn.click(); if (ui.tab) focusPanelStart(ui); } else handled = false;
@@ -264,6 +267,7 @@ export function installShortcuts(ui) {
       else if (action === 'next') ui.runNextAction?.();
       else if (action === 'search') ui.openSearch?.();
       else if (action === 'lootBag' && ui.lootBag?.available()) ui.lootBag.toggle(); // v9.7.1
+      else if (action === 'guard') click('#skill-bar .guard-btn'); // v9.7.1 (lot 2)
       else handled = false;
     }
     if (handled) e.preventDefault();
