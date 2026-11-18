@@ -1,0 +1,303 @@
+{
+ "canvas": {
+  "h": 100,
+  "w": 98
+ },
+ "frames": 10,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 49,
+  "y": 50,
+  "kind": "origin"
+ },
+ "message": "A 10-frame taunt roar: a red shockwave ring bursts outward from a bright flash, with an angry five-point red sigil at the centre and three sound-wave arcs pushing out to the right. It fades out by frame 10 on a transparent background. You can tune the ring and sigil brightness, though the sound waves are fixed to one side for now.",
+ "effect_id": "59365cd7-ee86-4c12-9783-2eccc3929c27",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-taunt 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 98,
+     "h": 100
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 98,
+     "h": 100
+    },
+    "sourceSize": {
+     "w": 98,
+     "h": 100
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-taunt 1.png",
+    "frame": {
+     "x": 98,
+     "y": 0,
+     "w": 98,
+     "h": 100
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 98,
+     "h": 100
+    },
+    "sourceSize": {
+     "w": 98,
+     "h": 100
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-taunt 2.png",
+    "frame": {
+     "x": 196,
+     "y": 0,
+     "w": 98,
+     "h": 100
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 98,
+     "h": 100
+    },
+    "sourceSize": {
+     "w": 98,
+     "h": 100
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-taunt 3.png",
+    "frame": {
+     "x": 294,
+     "y": 0,
+     "w": 98,
+     "h": 100
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 98,
+     "h": 100
+    },
+    "sourceSize": {
+     "w": 98,
+     "h": 100
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-taunt 4.png",
+    "frame": {
+     "x": 0,
+     "y": 100,
+     "w": 98,
+     "h": 100
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 98,
+     "h": 100
+    },
+    "sourceSize": {
+     "w": 98,
+     "h": 100
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-taunt 5.png",
+    "frame": {
+     "x": 98,
+     "y": 100,
+     "w": 98,
+     "h": 100
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 98,
+     "h": 100
+    },
+    "sourceSize": {
+     "w": 98,
+     "h": 100
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-taunt 6.png",
+    "frame": {
+     "x": 196,
+     "y": 100,
+     "w": 98,
+     "h": 100
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 98,
+     "h": 100
+    },
+    "sourceSize": {
+     "w": 98,
+     "h": 100
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-taunt 7.png",
+    "frame": {
+     "x": 294,
+     "y": 100,
+     "w": 98,
+     "h": 100
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 98,
+     "h": 100
+    },
+    "sourceSize": {
+     "w": 98,
+     "h": 100
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-taunt 8.png",
+    "frame": {
+     "x": 0,
+     "y": 200,
+     "w": 98,
+     "h": 100
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 98,
+     "h": 100
+    },
+    "sourceSize": {
+     "w": 98,
+     "h": 100
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-taunt 9.png",
+    "frame": {
+     "x": 98,
+     "y": 200,
+     "w": 98,
+     "h": 100
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 98,
+     "h": 100
+    },
+    "sourceSize": {
+     "w": 98,
+     "h": 100
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-taunt.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 392,
+    "h": 300
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 49,
+    "y": 50
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-taunt",
+     "from": 0,
+     "to": 9,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

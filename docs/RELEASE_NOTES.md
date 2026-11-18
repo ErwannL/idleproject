@@ -1,6 +1,21 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v9.10.0 — Un jeu qu'on laisse tourner dans un coin de l'écran du PC
+## Ascendrya v9.11.0 — Des sorts qui claquent, un Colosse vivant, de quoi suivre après la 10ᵉ heure
+
+- **Compétences redessinées** : 28 nouvelles animations PixelLab (9 à 14 images, 2 à 3 fois la taille du lanceur) jouées en 3 temps — préparation, impact, retombée — à la place des anneaux, croissants et disques plats. Cri de guerre : onde dorée qui traverse l'équipe, puis petite flamme dorée aux pieds tant que le bonus dure (durée affichée sur l'icône). Coup critique : arc en dégradé avec traînée et étincelle. Météore : grosse pierre en feu, ombre qui grandit, cratère et braises. Boule de feu, Mur de flammes, Tourbillon, Frappe éclair, Frappe sacrée, Bénédiction, Prière, Provocation, Rempart, Exécution redessinés.
+- **Un sort propre par compagnon** : la Danse des lames de l'Ombre, de la Lame rose, du Ninja et du Seigneur de l'ombre, la Prière des 4 soigneurs, la Provocation de l'Écuyer et du Paladin d'azur, le Tourbillon du Mercenaire et du Barbare ne se ressemblent plus. Icônes de compétence vives, colorées par élément.
+- **Colosse et Titans** : repos fluide (11 images/s, respiration, yeux qui luisent, cailloux qui tombent), arc de coup critique au plus toutes les 0,4 s, une colonne de lumière à la fois, l'équipe frappe à tour de rôle, tremble quand le boss frappe et se protège du rocher ; chiffres de dégâts regroupés en un seul qui grossit ; chaque Titan a sa vraie planche teintée et le décor de son élément ; le combat descend et le bilan en direct remplit le bas de l'écran.
+- **Objets** : la fenêtre d'un objet porté s'ouvre sur Renforcer, Remettre au niveau et Changer l'effet (plus de boutons grisés) ; objet du sac : Équiper, Recycler et « ⬆ Améliorer » ; « Plus » garde Protéger, Ranger, Choisir l'effet. Emplacements de 64 px nommés, avec leur niveau, « +N » et un ⬆ vert quand un renforcement est payable. Bouton « ? Éléments » avec un schéma illustré. « Renforce ton arme » ouvre directement l'arme.
+- **Menu ☰** : se ferme d'un clic à côté (comme les fenêtres sans choix à faire), croix en haut à droite, bulle « Menu » sous le bouton.
+- **Sceau d'action** : une proposition = une sorte d'action (« Tout récupérer (4) » puis « (5) » : la même) ; le doigt reste sur ce qui fait progresser jusqu'à ce que ce soit fait (« Plus tard » le cache), jamais sur un contenu facultatif ; une action faite par le panneau compte comme suivie ; la version réduite garde une icône et un mot (« 🎁 4 », « ⬆ Équiper »).
+- **Quêtes** : missions qui suivent l'étape (300 → 3 000 → 15 000 monstres, récompenses ×1,5 et ×2) ; **Tâches du Héraut**, 12 tâches qui se relancent dès qu'on les récupère ; **Chroniques d'Ascendrya**, 20 chapitres illustrés racontés, une apparence ou des tickets tous les 5 chapitres ; carte de quête illustrée sur la scène avec « Récupérer » d'un appui et écran de coffre ; objectifs de session en haut des Missions ; nombres des contrats formatés.
+- **Roue du jour** dessinée : disque de pierre runique cerclé d'or, une icône par case, flèche en lame dorée, lumières qui clignotent, « tic » à chaque case, case gagnante illuminée, récompense en grand, autel du temple en fond, temps restant avant le prochain tour.
+- **Boutique** : « Tickets de compagnon » et « Tickets de familier » partout ; parchemin, liasse, coffret, coffre, coffre doré — œuf, nid, cage, coffre, coffre doré ; « = X invocations » sur chaque offre ; Marchands dans leur propre onglet.
+- **Cadrages** : carte Renaissance lisible sur toute la largeur, plus de « calcul en cours… », « Dégâts reçus −44 % → −44,1 % », cartes de Talents côte à côte, scène PC moins de briques vides, le Conseil du mentor ne propose plus de gains de moins de 5 %.
+
+### Versions précédentes
+
+<details><summary><b>Ascendrya v9.10.0 — Un jeu qu'on laisse tourner dans un coin de l'écran du PC</b></summary>
 
 - **Veillée** : plus jamais d'écran noir sur PC en fenêtre. Réglage « Veillée automatique : Jamais / Téléphone seulement / Toujours » (par défaut : téléphone, ou PC en plein écran) ; jamais pendant la première heure de jeu ; toujours disponible dans le tiroir ☰.
 - **PC** : quand la fenêtre est plus large que haute (ou dépasse 900 px), les menus reviennent en volet latéral à droite, la scène reste entière à gauche. Le choix ⤢ est mémorisé par écran. Sur une petite fenêtre, le panneau s'ouvre en grand et se compacte : héros et emplacements, 6 stats de la Fiche et au moins 4 améliorations visibles sans défiler.
@@ -11,7 +26,7 @@
 - **Arène** : équipe de 3 choisie avant chaque mode (Survie à 1, 2 ou 3 : ennemis plus forts avec l'équipe) ; combat en grand par-dessus la scène, comme la Revanche ; écran de fin (vagues tenues, record, récompenses nommées, Retenter). Boss commun : à quoi il sert et ce qu'il rapporte.
 - **Lisibilité** : fenêtre d'objet en « +2,1 % de ta puissance » ; chiffres de dégâts jamais empilés ; « Tu encaisses 5,9 coups (4,2 d'un boss) » ; onglets « Apparences » et « Classement » en entier ; la Forge passe dans Héros (5ᵉ onglet) ; Camp illustré (feu de camp, l'équipe autour) ; Boutique : offres illustrées d'abord, information en petit en bas ; Expéditions : « Gains attendus » nommés sur chaque place.
 
-### Versions précédentes
+</details>
 
 <details><summary><b>Ascendrya v9.9.0 — Un écran de jeu mobile : le combat toujours visible, une action à la fois</b></summary>
 

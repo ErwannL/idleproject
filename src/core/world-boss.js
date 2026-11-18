@@ -69,7 +69,8 @@ export class WorldBossFight {
     Object.assign(s, { dungeon: null, tower: null, challenge: null, worldRun: null, skillAuto: true });
     s.ui = { ...(s.ui ?? {}), focus: false };
     const stats = computeHeroStats(s);
-    const zone = bossZone();
+    const tz = grandBoss(this.bossId).zone; // v9.11 (2) : un Titan combat dans le décor de son élément
+    const zone = tz && ZONES.some((z) => z.id === tz) ? ZONES.findIndex((z) => z.id === tz) : bossZone();
     s.worldBossRun = {
       boss: this.cfg.boss, zone, level: Math.max(1, s.records?.bestStage ?? s.maxStage ?? s.stage ?? 1),
       bossDamage: stats.maxHp * this.cfg.hitPct, damage: 0, falls: 0,

@@ -1,3 +1,4 @@
+import { claimChronicle, claimHerald } from './core/chronicles.js';
 import { sendMetrics } from './core/metrics.js';
 // Point d'entrée : charge la partie, applique les gains hors ligne, puis fait tourner
 // la simulation (minuterie, continue même fenêtre réduite) et le rendu (requestAnimationFrame,
@@ -527,6 +528,9 @@ const actions = {
     const a = claimAchievement(state, id);
     done(Boolean(a), a ? `Haut fait « ${a.name} » : +${a.gems} gemmes, +1 % dégâts et or pour toujours` : null, '#ffe08a');
   },
+  // v9.11 (7) : Tâches du Héraut (répétables) et Chroniques d'Ascendrya.
+  claimHerald(id) { const g = claimHerald(state, id); done(Boolean(g), null); return g; },
+  claimChronicle() { const r = claimChronicle(state); done(Boolean(r), null); return r; },
   claimContract(id) {
     const given = claimContract(state, id, rng);
     done(Boolean(given), given ? `Contrat rempli : ${rewardText(given)}` : null, '#f2d083');

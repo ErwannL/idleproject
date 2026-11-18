@@ -1,0 +1,329 @@
+{
+ "canvas": {
+  "h": 200,
+  "w": 160
+ },
+ "frames": 11,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 80,
+  "y": 100,
+  "kind": "origin"
+ },
+ "message": "An 11-frame, one-shot execution strike: a dark crimson blade drops from above, slams into the ground at frame 7 with a red slash arc and flash, sparks, and a dark smoke puff that rises as a ring spreads out and fades. The blade is a simple bar-and-point shape, so it reads well at 1x but is basic. Try the blade's size and the smoke's size and throw height to tune it; I didn't add sliders.",
+ "effect_id": "892f6061-0120-42e6-b23b-514112d164f7",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-execution 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 160,
+     "h": 200
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 160,
+     "h": 200
+    },
+    "sourceSize": {
+     "w": 160,
+     "h": 200
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-execution 1.png",
+    "frame": {
+     "x": 160,
+     "y": 0,
+     "w": 160,
+     "h": 200
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 160,
+     "h": 200
+    },
+    "sourceSize": {
+     "w": 160,
+     "h": 200
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-execution 2.png",
+    "frame": {
+     "x": 320,
+     "y": 0,
+     "w": 160,
+     "h": 200
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 160,
+     "h": 200
+    },
+    "sourceSize": {
+     "w": 160,
+     "h": 200
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-execution 3.png",
+    "frame": {
+     "x": 480,
+     "y": 0,
+     "w": 160,
+     "h": 200
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 160,
+     "h": 200
+    },
+    "sourceSize": {
+     "w": 160,
+     "h": 200
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-execution 4.png",
+    "frame": {
+     "x": 0,
+     "y": 200,
+     "w": 160,
+     "h": 200
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 160,
+     "h": 200
+    },
+    "sourceSize": {
+     "w": 160,
+     "h": 200
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-execution 5.png",
+    "frame": {
+     "x": 160,
+     "y": 200,
+     "w": 160,
+     "h": 200
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 160,
+     "h": 200
+    },
+    "sourceSize": {
+     "w": 160,
+     "h": 200
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-execution 6.png",
+    "frame": {
+     "x": 320,
+     "y": 200,
+     "w": 160,
+     "h": 200
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 160,
+     "h": 200
+    },
+    "sourceSize": {
+     "w": 160,
+     "h": 200
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-execution 7.png",
+    "frame": {
+     "x": 480,
+     "y": 200,
+     "w": 160,
+     "h": 200
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 160,
+     "h": 200
+    },
+    "sourceSize": {
+     "w": 160,
+     "h": 200
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-execution 8.png",
+    "frame": {
+     "x": 0,
+     "y": 400,
+     "w": 160,
+     "h": 200
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 160,
+     "h": 200
+    },
+    "sourceSize": {
+     "w": 160,
+     "h": 200
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-execution 9.png",
+    "frame": {
+     "x": 160,
+     "y": 400,
+     "w": 160,
+     "h": 200
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 160,
+     "h": 200
+    },
+    "sourceSize": {
+     "w": 160,
+     "h": 200
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-execution 10.png",
+    "frame": {
+     "x": 320,
+     "y": 400,
+     "w": 160,
+     "h": 200
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 160,
+     "h": 200
+    },
+    "sourceSize": {
+     "w": 160,
+     "h": 200
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-execution.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 640,
+    "h": 600
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 80,
+    "y": 100
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-execution",
+     "from": 0,
+     "to": 10,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,355 @@
+{
+ "canvas": {
+  "h": 112,
+  "w": 96
+ },
+ "frames": 12,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 48,
+  "y": 56,
+  "kind": "origin"
+ },
+ "message": "Here's a 12-frame, one-shot golden kite shield of light: it bursts in with a flash, grows to full size with a honeycomb hex pattern and twinkling sparkles, then dissolves on the last frames. The canvas is 96x112 with a transparent background and no character. Try the sparkle count and the hex size if you want a busier or calmer shield.",
+ "effect_id": "fef346be-952c-4c42-949e-dbbc8cfa6218",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-rampart 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-rampart 1.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-rampart 2.png",
+    "frame": {
+     "x": 192,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-rampart 3.png",
+    "frame": {
+     "x": 288,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-rampart 4.png",
+    "frame": {
+     "x": 0,
+     "y": 112,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-rampart 5.png",
+    "frame": {
+     "x": 96,
+     "y": 112,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-rampart 6.png",
+    "frame": {
+     "x": 192,
+     "y": 112,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-rampart 7.png",
+    "frame": {
+     "x": 288,
+     "y": 112,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-rampart 8.png",
+    "frame": {
+     "x": 0,
+     "y": 224,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-rampart 9.png",
+    "frame": {
+     "x": 96,
+     "y": 224,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-rampart 10.png",
+    "frame": {
+     "x": 192,
+     "y": 224,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-rampart 11.png",
+    "frame": {
+     "x": 288,
+     "y": 224,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-rampart.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 384,
+    "h": 336
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 48,
+    "y": 56
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-rampart",
+     "from": 0,
+     "to": 11,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

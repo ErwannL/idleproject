@@ -1,0 +1,407 @@
+{
+ "canvas": {
+  "h": 206,
+  "w": 95
+ },
+ "frames": 14,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 48,
+  "y": 54,
+  "kind": "origin"
+ },
+ "message": "A 14-frame, 12 fps one-shot meteor impact in a 16-bit palette: debris and sparks converge into a small glow, a big orange-and-white dome flash bursts out with rocks flying, then a dark crater, falling sparks, embers and a rising smoke column that fade out. I enlarged the dome and flash and fitted the canvas so nothing is cut off. Try the Coins/size-type sliders on the page to tune the dome and the smoke height.",
+ "effect_id": "a10ce6d6-bbb3-4842-aac2-7bdf67d2163b",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-meteor-crater 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 206
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 206
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 206
+    },
+    "pivot": {
+     "x": 0.5052631578947369,
+     "y": 0.2621359223300971
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-meteor-crater 1.png",
+    "frame": {
+     "x": 95,
+     "y": 0,
+     "w": 95,
+     "h": 206
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 206
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 206
+    },
+    "pivot": {
+     "x": 0.5052631578947369,
+     "y": 0.2621359223300971
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-meteor-crater 2.png",
+    "frame": {
+     "x": 190,
+     "y": 0,
+     "w": 95,
+     "h": 206
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 206
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 206
+    },
+    "pivot": {
+     "x": 0.5052631578947369,
+     "y": 0.2621359223300971
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-meteor-crater 3.png",
+    "frame": {
+     "x": 285,
+     "y": 0,
+     "w": 95,
+     "h": 206
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 206
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 206
+    },
+    "pivot": {
+     "x": 0.5052631578947369,
+     "y": 0.2621359223300971
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-meteor-crater 4.png",
+    "frame": {
+     "x": 0,
+     "y": 206,
+     "w": 95,
+     "h": 206
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 206
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 206
+    },
+    "pivot": {
+     "x": 0.5052631578947369,
+     "y": 0.2621359223300971
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-meteor-crater 5.png",
+    "frame": {
+     "x": 95,
+     "y": 206,
+     "w": 95,
+     "h": 206
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 206
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 206
+    },
+    "pivot": {
+     "x": 0.5052631578947369,
+     "y": 0.2621359223300971
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-meteor-crater 6.png",
+    "frame": {
+     "x": 190,
+     "y": 206,
+     "w": 95,
+     "h": 206
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 206
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 206
+    },
+    "pivot": {
+     "x": 0.5052631578947369,
+     "y": 0.2621359223300971
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-meteor-crater 7.png",
+    "frame": {
+     "x": 285,
+     "y": 206,
+     "w": 95,
+     "h": 206
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 206
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 206
+    },
+    "pivot": {
+     "x": 0.5052631578947369,
+     "y": 0.2621359223300971
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-meteor-crater 8.png",
+    "frame": {
+     "x": 0,
+     "y": 412,
+     "w": 95,
+     "h": 206
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 206
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 206
+    },
+    "pivot": {
+     "x": 0.5052631578947369,
+     "y": 0.2621359223300971
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-meteor-crater 9.png",
+    "frame": {
+     "x": 95,
+     "y": 412,
+     "w": 95,
+     "h": 206
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 206
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 206
+    },
+    "pivot": {
+     "x": 0.5052631578947369,
+     "y": 0.2621359223300971
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-meteor-crater 10.png",
+    "frame": {
+     "x": 190,
+     "y": 412,
+     "w": 95,
+     "h": 206
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 206
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 206
+    },
+    "pivot": {
+     "x": 0.5052631578947369,
+     "y": 0.2621359223300971
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-meteor-crater 11.png",
+    "frame": {
+     "x": 285,
+     "y": 412,
+     "w": 95,
+     "h": 206
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 206
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 206
+    },
+    "pivot": {
+     "x": 0.5052631578947369,
+     "y": 0.2621359223300971
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-meteor-crater 12.png",
+    "frame": {
+     "x": 0,
+     "y": 618,
+     "w": 95,
+     "h": 206
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 206
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 206
+    },
+    "pivot": {
+     "x": 0.5052631578947369,
+     "y": 0.2621359223300971
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-meteor-crater 13.png",
+    "frame": {
+     "x": 95,
+     "y": 618,
+     "w": 95,
+     "h": 206
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 95,
+     "h": 206
+    },
+    "sourceSize": {
+     "w": 95,
+     "h": 206
+    },
+    "pivot": {
+     "x": 0.5052631578947369,
+     "y": 0.2621359223300971
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-meteor-crater.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 380,
+    "h": 824
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 48,
+    "y": 54
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-meteor-crater",
+     "from": 0,
+     "to": 13,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

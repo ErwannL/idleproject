@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 43,
+  "w": 45
+ },
+ "frames": 6,
+ "fps": 24,
+ "loop": false,
+ "anchor": {
+  "x": 24,
+  "y": 24,
+  "kind": "origin"
+ },
+ "message": "A 6-frame, 24 fps retro star spark: a white-hot core with gold four-point arms and a few flying specks, 4 colours with a dark outline, hard pixel edges, no dithering, on a transparent 45x43 canvas. It peaks on frame 2 and is nearly gone by frame 5. To tune it, try the star's colour or size, and the number of specks.",
+ "effect_id": "97ceec04-69e8-453b-bd6a-ed18ea27471a",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-crit-spark 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 45,
+     "h": 43
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 45,
+     "h": 43
+    },
+    "sourceSize": {
+     "w": 45,
+     "h": 43
+    },
+    "pivot": {
+     "x": 0.5333333333333333,
+     "y": 0.5581395348837209
+    },
+    "duration": 42
+   },
+   {
+    "filename": "ascendrya-v-crit-spark 1.png",
+    "frame": {
+     "x": 45,
+     "y": 0,
+     "w": 45,
+     "h": 43
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 45,
+     "h": 43
+    },
+    "sourceSize": {
+     "w": 45,
+     "h": 43
+    },
+    "pivot": {
+     "x": 0.5333333333333333,
+     "y": 0.5581395348837209
+    },
+    "duration": 42
+   },
+   {
+    "filename": "ascendrya-v-crit-spark 2.png",
+    "frame": {
+     "x": 90,
+     "y": 0,
+     "w": 45,
+     "h": 43
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 45,
+     "h": 43
+    },
+    "sourceSize": {
+     "w": 45,
+     "h": 43
+    },
+    "pivot": {
+     "x": 0.5333333333333333,
+     "y": 0.5581395348837209
+    },
+    "duration": 42
+   },
+   {
+    "filename": "ascendrya-v-crit-spark 3.png",
+    "frame": {
+     "x": 0,
+     "y": 43,
+     "w": 45,
+     "h": 43
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 45,
+     "h": 43
+    },
+    "sourceSize": {
+     "w": 45,
+     "h": 43
+    },
+    "pivot": {
+     "x": 0.5333333333333333,
+     "y": 0.5581395348837209
+    },
+    "duration": 42
+   },
+   {
+    "filename": "ascendrya-v-crit-spark 4.png",
+    "frame": {
+     "x": 45,
+     "y": 43,
+     "w": 45,
+     "h": 43
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 45,
+     "h": 43
+    },
+    "sourceSize": {
+     "w": 45,
+     "h": 43
+    },
+    "pivot": {
+     "x": 0.5333333333333333,
+     "y": 0.5581395348837209
+    },
+    "duration": 42
+   },
+   {
+    "filename": "ascendrya-v-crit-spark 5.png",
+    "frame": {
+     "x": 90,
+     "y": 43,
+     "w": 45,
+     "h": 43
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 45,
+     "h": 43
+    },
+    "sourceSize": {
+     "w": 45,
+     "h": 43
+    },
+    "pivot": {
+     "x": 0.5333333333333333,
+     "y": 0.5581395348837209
+    },
+    "duration": 42
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-crit-spark.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 135,
+    "h": 86
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 24,
+    "y": 24
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-crit-spark",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

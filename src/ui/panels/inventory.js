@@ -201,13 +201,17 @@ function detail(ui, state, item, whoUnit = null) {
   const three = share + Object.entries(item.stats).filter(([k]) => !share || k !== 'damage').slice(0, share ? 2 : 3).map(([k, v]) => `<li>${img(STAT_ICONS[k])}${STAT_LABELS[k]} <b class="num">${formatStat(k, v, true)}</b></li>`).join('');
   const more = ui.view.itemMore === item.id;
   const unitTarget = whoUnit && unitCanEquip(state, whoUnit.id, item).ok ? whoUnit : better ? companionById(better) : null;
+  // v9.11 (5) : objet porté → les 3 gros boutons d'amélioration tout de suite, plus de boutons grisés ; objet du sac →
+  // Équiper, Recycler et « Améliorer » visibles ; « Plus » (avec un mot) garde Protéger, Ranger, Choisir l'effet.
+  const plus = ui.view.itemPlus === item.id;
   const mainBtns = `${wearer ? `<button class="btn" data-action="gear-unequip" data-value="${wearer}|${eqSlot(item)}">Retirer</button>`
-      : isEquipped ? '<button class="btn" disabled>Équipé</button>'
+      : isEquipped ? ''
       : unitTarget ? `<button class="btn btn-gold" data-action="gear-equip" data-value="${unitTarget.id}|${item.id}">Équiper sur ${escapeHtml(unitTarget.name)}</button>`
       : forHero ? `<button class="btn btn-gold" data-action="equip" data-id="${item.id}">Équiper</button>`
       : `<button class="btn" disabled>Pour : ${escapeHtml(item.cls && item.cls !== heroGearClass(state) ? classLabel(item.cls) : weaponClass(item.baseId)?.name ?? '')}</button>`}
-    <button class="btn" data-action="recycle" data-id="${item.id}" ${item.locked || isEquipped ? 'disabled' : ''}>Recycler +${formatNumber(recycleValue(item, BALANCE, recycleLevelOf(state)))} ${coin()}${mats.shards ? ` +${mats.shards}${shard()}` : ''}</button>
-    <button class="btn ip-more${more ? ' active' : ''}" data-action="item-more" data-value="${more ? '' : item.id}" aria-expanded="${more}" aria-label="Plus d'actions">⋯</button>`;
+    ${isEquipped ? '' : `<button class="btn" data-action="recycle" data-id="${item.id}" ${item.locked ? 'disabled' : ''}>Recycler +${formatNumber(recycleValue(item, BALANCE, recycleLevelOf(state)))} ${coin()}${mats.shards ? ` +${mats.shards}${shard()}` : ''}</button>
+    <button class="btn btn-primary ip-improve${more ? ' active' : ''}" data-action="item-more" data-value="${more ? '' : item.id}" aria-expanded="${more}">⬆ Améliorer</button>`}
+    <button class="btn ip-plus${plus ? ' active' : ''}" data-action="item-plus" data-value="${plus ? '' : item.id}" aria-expanded="${plus}">Plus ▾</button>`;
   // v9.8 (I2) : trois gros boutons illustrés (Renforcer, Remettre au niveau, Changer l'effet), le coût avec le nom de la
   // monnaie, et « Protéger » au lieu d'un cadenas seul.
   const shardN = (n) => `${shard()} ${n} éclats`;
@@ -222,11 +226,12 @@ function detail(ui, state, item, whoUnit = null) {
       ${bigTool('reforge', 'icon_star', 'Changer l\'effet', canReforge(item) ? 'Nouveaux effets spéciaux au hasard' : 'Aucun effet spécial', shardN(BALANCE.forge.reforgeShards), canReforge(item) && state.materials.shards >= BALANCE.forge.reforgeShards)}
     </div>`;
   const protect = `<button class="btn${item.locked ? ' btn-gold' : ''}" data-action="lock" data-id="${item.id}" aria-pressed="${item.locked}">${img('icon_lock')} ${item.locked ? 'Protégé' : 'Protéger'}</button>`;
-  const moreBody = more ? `<div class="ip-more-box">
-      ${tools}${targetLine ? `<details class="ip-target"><summary>Choisir l'effet voulu</summary>${targetLine}</details>` : ''}
+  const showTools = isEquipped || more;
+  const moreBody = `${showTools ? `<div class="ip-more-box">${tools}</div>` : ''}${plus ? `<div class="ip-more-box ip-plus-box">
+      ${targetLine ? `<details class="ip-target"><summary>Choisir l'effet voulu</summary>${targetLine}</details>` : ''}
       <div class="tool-line">${protect} ${isEquipped ? '' : `<button class="btn small" data-action="to-stash" data-id="${item.id}" ${stash ? 'disabled' : ''}>Ranger au coffre</button>`}
         ${base.signature ? `<button class="btn small btn-gold" data-action="to-museum" data-id="${item.id}">Exposer au Musée</button>` : ''}</div>
-      ${affixes ? `<div class="section-title">Effets spéciaux</div><ul class="stat-list">${affixes}</ul>` : ''}${setBlock(state, item)}</div>` : '';
+      ${affixes ? `<div class="section-title">Effets spéciaux</div><ul class="stat-list">${affixes}</ul>` : ''}${setBlock(state, item)}</div>` : ''}`;
   return `<div class="unit-pop-backdrop" data-action="close-sheet"></div>
   <div class="unit-pop item-pop r-${item.rarity}" role="dialog" aria-modal="true" aria-label="${escapeHtml(item.name)}">
     <button class="btn small up-close" data-action="close-sheet" aria-label="Fermer">✕</button>
@@ -366,8 +371,12 @@ function bag(ui, state) {
     const item = whoUnit ? unitGear(state, who)[slot] : state.equipment[slot];
     const frame = item
       ? itemFrame(item, { selected: item.id === ui.view.selectedItemId, equipped: true })
-      : `<div class="item-frame empty named" title="${label} : aucun">${img(slotIconName(slot))}<small>${label}</small></div>`;
-    return `<div class="slot" title="${label}">${frame}</div>`;
+      : `<div class="item-frame empty named" title="${label} : aucun">${img(slotIconName(slot))}</div>`;
+    // v9.11 (5) : grande case (64 px), nom court dessous, « +N » et niveau, ⬆ vert si un renforcement est payable.
+    const c = item && !whoUnit && (item.upgrades ?? 0) < maxUpgrades(item) ? upgradeCost(item) : null;
+    const canUp = c && state.gold >= c.gold && state.materials.shards >= c.shards;
+    return `<div class="slot slot-big${item ? ` r-${item.rarity}` : ''}" title="${label}">${frame}${canUp ? '<span class="slot-up" title="Renforcement possible">⬆</span>' : ''}
+      <small class="slot-name">${label}${item?.upgrades ? ` <b>+${item.upgrades}</b>` : ''}</small>${item?.level ? `<small class="slot-lvl">Nv ${item.level}</small>` : ''}</div>`;
   };
   // v9.1.3 (doc2 A13) : filtre d'emplacement en icônes sur la ligne du tri (il tient sans prendre de hauteur).
   // v9.1.3 (doc3 lot 4) : icône seule = aria-label ; en mode débutant, le mot court reste visible sous l'icône.
@@ -388,10 +397,12 @@ function bag(ui, state) {
   const unitPower = (c) => Math.round(100 * companionMultiplier(state, c.id));
   const whoBtn = (id, label, art, sub) => `<button class="who-card${who === id ? ' active' : ''}" data-action="gear-who" data-value="${id}" aria-pressed="${who === id}" title="${escapeHtml(label)}">
       <span class="who-art">${art}</span><b>${escapeHtml(label)}</b><small>${sub}</small></button>`;
-  const whoRow = `<div class="who-row" role="group" aria-label="Personnage">${whoBtn('hero', 'Héros', animCanvas('hero', 34, 34, 2), `Nv ${state.level} · ${formatNumber(st.combatPower)}`)}${team.map((c) => whoBtn(c.id, c.name, companionStill(c), `Nv ${unitLevel(state, c.id)} · ${formatNumber(unitPower(c))}`)).join('')}</div>`;
+  // v9.11 (5) : « Nv 157 » sur une ligne, la puissance sur la suivante (jamais coupée).
+  const whoRow = `<div class="who-row" role="group" aria-label="Personnage">${whoBtn('hero', 'Héros', animCanvas('hero', 34, 34, 2), `<span>Nv ${state.level}</span><span class="nowrap">${formatNumber(st.combatPower)}</span>`)}${team.map((c) => whoBtn(c.id, c.name, companionStill(c), `<span>Nv ${unitLevel(state, c.id)}</span><span class="nowrap">${formatNumber(unitPower(c))}</span>`)).join('')}</div>`;
   const PL = whoUnit ? Object.keys(EQUIP_SLOTS) : Object.keys(HERO_SLOTS);
   const half = Math.ceil(PL.length / 2);
-  const equipCol = `<div class="card inv-equip">${whoRow}${wheelShown(state) ? elementWheel(zoneElement(encNow(state).zoneIndex)) : ''}
+  // v9.11 (5) : la ligne des éléments devient un bouton « ? Éléments » (schéma illustré en fenêtre).
+  const equipCol = `<div class="card inv-equip">${whoRow}${wheelShown(state) ? '<button class="btn small elem-help-btn" data-action="elements-help">? Éléments</button>' : ''}
       <div class="equip-doll big"><div class="slot-col">${PL.slice(0, half).map(slotFrame).join('')}</div>
         <div class="doll" title="Aperçu avec l'objet sélectionné">${whoUnit ? `<span class="doll-unit">${companionStill(whoUnit)}</span>` : animCanvas('hero', 64, 64, 3, `data-big="1" data-preview="${escapeHtml(JSON.stringify(previewEq))}"`)}</div>
         <div class="slot-col acc">${PL.slice(half).map(slotFrame).join('')}</div></div>

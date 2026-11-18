@@ -10,7 +10,7 @@ import { COMPANION_ROLES } from '../data/synergies.js';
 import { SKILL_TEMPLATES, themedTemplate } from '../data/companion-skills.js';
 import { HERO_SKILL_MOTIFS, SKILL_ANIM_ART, SKILL_ANIM_PALS, SKILL_ANIMS, UNIT_SKILL_MOTIFS } from './art-anim-skills.js';
 import { SPRITES, expandRow } from './sprites.js';
-import { vfx } from './vfx.js'; // v9.2.6
+import { vfx, vfx2Ready, VFX as VFX_ALL } from './vfx.js'; // v9.2.6
 import { skillVfx } from './vfx-world.js'; // v9.2.6 : effet dessiné propre à chaque compétence
 import { ALLY_ANIMS, knightHead, weaponPose } from './ally-anim.js';
 import { KNIGHT_HEAD } from './knight-gear.js';
@@ -113,7 +113,7 @@ export function castUnitSkill(scene, companion, name, type, ctxInfo) {
   const anim = scene.underwater ? null : unitSkillAnim(companion.sprite, motif);
   const dur = gestureTime(anim);
   (scene.unitSkills ??= new Map()).set(companion.id, { anim, start: scene.time, dur });
-  run(scene, fx, { ...ctxInfo, release: dur * RELEASE_K, dur });
+  run(scene, fx, { ...ctxInfo, release: dur * RELEASE_K, dur, sprite: companion.sprite });
   return true;
 }
 
@@ -992,9 +992,71 @@ function auraFx(scene, name, c) {
   if (DEBUFF_FX.has(name)) at(() => c.foes.slice(0, 4).forEach((f) => vfx(scene, 'debuff_aura', f.x, G + 1, { life: 1.4, loop: true, follow: f.id, size: 0.9 })));
 }
 
+// v9.11 (1) : sorts redessinés (planches PixelLab de 9 à 14 images, 2 à 3 fois la taille du lanceur), joués en 3 temps
+// — préparation (lueur qui converge sur le lanceur), impact, retombée (braises et fumée) — à la place des formes
+// dessinées en code (anneaux, croissants, disques). Une variante par compagnon quand des sorts sont partagés.
+const BIG = {
+  fireball: { sheet: 'v_fireball_blast', at: 'foe', color: '#ff7a2a' },
+  hellfire: { sheet: 'v_flame_wall', at: 'zone', color: '#ff6a1a' },
+  whirlwind: { sheet: 'v_whirlwind', at: 'ahead', color: '#bfe6ff' },
+  blood_whirl: { sheet: 'v_whirl_blood', at: 'ahead', color: '#ff4a4a' },
+  flash_strike: { sheet: 'v_flash_strike', at: 'ahead', color: '#bff4ff' },
+  holy_smite: { sheet: 'v_holy_smite', at: 'foe', color: '#ffe680' },
+  blessing: { sheet: 'v_blessing', at: 'team', color: '#ffd36a' },
+  prayer: { sheet: 'v_prayer_sun', at: 'team', color: '#fff2a8' },
+  taunt: { sheet: 'v_taunt', at: 'hero', color: '#ff5a4a' },
+  rampart: { sheet: 'v_rampart', at: 'hero', color: '#ffd36a' },
+  execution: { sheet: 'v_execution', at: 'foe', color: '#ff3a4a' },
+  blade_dance: { sheet: 'v_dance_shadow', at: 'foe', color: '#b46bff' },
+  meteor: { sheet: 'v_meteor_crater', at: 'zone', color: '#ff6a1a', meteor: true },
+  war_cry: { sheet: 'v_war_wave', at: 'hero', color: '#ffc23a', wave: true },
+};
+const UNIT_BIG = {
+  ally_shadow: { blade_dance: 'v_dance_shadow' }, ally_rose_blade: { blade_dance: 'v_dance_rose' }, ally_ninja: { blade_dance: 'v_dance_ninja' },
+  ally_shadow_lord: { blade_dance: 'v_dance_void' },
+  ally_priestess: { prayer: 'v_prayer_dawn' }, ally_high_priest: { prayer: 'v_prayer_sun' }, ally_archangel: { prayer: 'v_prayer_feathers' },
+  ally_sylvan_guardian: { prayer: 'v_prayer_leaves' },
+  ally_azure_paladin: { taunt: 'v_taunt_azure' }, ally_barbarian: { blood_whirl: 'v_whirl_axe' },
+};
+export const bigSkillSheet = (name, sprite = null) => (BIG[name] ? UNIT_BIG[sprite]?.[name] ?? BIG[name].sheet : null);
+function bigFx(scene, name, c) {
+  const def = BIG[name];
+  const sheet = bigSkillSheet(name, c.sprite);
+  if (!def || !vfx2Ready(sheet)) return false;
+  const G = scene.groundY;
+  const team = c.team.length ? c.team.reduce((a, x) => a + x, 0) / c.team.length : c.hero;
+  const x = { foe: c.foes[0]?.x ?? c.front, zone: c.mid, ahead: (c.src.x + c.front) / 2, team, hero: c.hero }[def.at] ?? c.mid;
+  const e = VFX_ALL[sheet];
+  const y = e && e.ay / e.h > 0.7 ? G + 1 : G - 22;
+  const rel = c.release ?? 0;
+  // 1. Préparation : lueur qui converge sur le lanceur.
+  vfx(scene, 'v_charge', c.src.x, c.src.y ?? G - 22, { tint: def.color, delay: Math.max(0, rel - 0.3), size: 0.9 });
+  if (def.meteor) {
+    // Météore : la pierre tombe en diagonale (traînée de feu), son ombre grandit au sol, puis le cratère.
+    later(scene, rel, () => {
+      vfx(scene, 'v_meteor_rock', x - 90, G - 150, { vx: 150, vy: 250, life: 0.6, loop: true });
+      add(scene, rel, 0.6, (ctx, k) => { ctx.globalAlpha = 0.25 + 0.4 * k; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(x, G + 1, 6 + 22 * k, 2 + 3 * k, 0, 0, Math.PI * 2); ctx.fill(); });
+    });
+    later(scene, rel + 0.6, () => { vfx(scene, sheet, x, y); scene.shake = Math.max(scene.shake ?? 0, 1.5); vfx(scene, 'v_embers', x, G - 10, { delay: 0.5, tint: def.color }); });
+    return true;
+  }
+  if (def.wave) {
+    // Cri de guerre : l'onde part du héros et traverse l'équipe (vers la gauche) ; l'aura dorée reste ensuite tant
+    // que le bonus dure (render/vfx-world.js, flamme dorée aux pieds).
+    later(scene, rel, () => vfx(scene, sheet, c.hero - 30, G - 20, { flip: true }));
+    return true;
+  }
+  // 2. Impact, 3. retombée.
+  later(scene, rel, () => vfx(scene, sheet, x, y));
+  later(scene, rel + 0.45, () => vfx(scene, 'v_embers', x, G - 12, { tint: def.color, size: 0.8 }));
+  return true;
+}
+
 function run(scene, name, c) {
   if (!FX[name]) return;
   add.cur = name;
+  // v9.11 (1) : version dessinée quand elle existe (« Réduire les animations » : effet sobre inchangé).
+  if (!scene.focus && bigFx(scene, name, c)) { auraFx(scene, name, c); return; }
   auraFx(scene, name, c);
   skillVfx(scene, name, c);
   if (scene.focus) calm(scene, name, c);

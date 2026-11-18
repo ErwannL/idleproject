@@ -1,0 +1,355 @@
+{
+ "canvas": {
+  "h": 96,
+  "w": 96
+ },
+ "frames": 12,
+ "fps": 12,
+ "loop": true,
+ "anchor": {
+  "x": 48,
+  "y": 48,
+  "kind": "origin"
+ },
+ "message": "A 12-frame looping rose blade dance: two pink crescent slashes sweep round the centre, with pink rose petals orbiting in two rings and small sparkles twinkling around them. Try the petal count and the slash sweep sliders to make it busier or calmer. I did not add a glow behind it, since a solid one hid the middle.",
+ "effect_id": "8a4ea6fc-4751-49d5-bcbd-34d5402ad32f",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-dance-rose 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-rose 1.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-rose 2.png",
+    "frame": {
+     "x": 192,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-rose 3.png",
+    "frame": {
+     "x": 288,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-rose 4.png",
+    "frame": {
+     "x": 0,
+     "y": 96,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-rose 5.png",
+    "frame": {
+     "x": 96,
+     "y": 96,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-rose 6.png",
+    "frame": {
+     "x": 192,
+     "y": 96,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-rose 7.png",
+    "frame": {
+     "x": 288,
+     "y": 96,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-rose 8.png",
+    "frame": {
+     "x": 0,
+     "y": 192,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-rose 9.png",
+    "frame": {
+     "x": 96,
+     "y": 192,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-rose 10.png",
+    "frame": {
+     "x": 192,
+     "y": 192,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-rose 11.png",
+    "frame": {
+     "x": 288,
+     "y": 192,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-dance-rose.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 384,
+    "h": 288
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 48,
+    "y": 48
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-dance-rose",
+     "from": 0,
+     "to": 11,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

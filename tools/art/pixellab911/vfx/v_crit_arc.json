@@ -1,0 +1,277 @@
+{
+ "canvas": {
+  "h": 80,
+  "w": 80
+ },
+ "frames": 9,
+ "fps": 16,
+ "loop": false,
+ "anchor": {
+  "x": 40,
+  "y": 40,
+  "kind": "origin"
+ },
+ "message": "A 9-frame, 16 fps crit slash: a bright crescent sweeps up and across, with a white-hot leading edge, a golden body, and a tail that crumbles and fades. Two fainter copies trail it by a frame or two, and a small orange flash pops on frame 2. The Trail and Flash sliders in the page can adjust the look, though the trail copies are fixed in this build.",
+ "effect_id": "5361f147-93f1-4aaa-8b84-27a242a93206",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-crit-arc 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-crit-arc 1.png",
+    "frame": {
+     "x": 80,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-crit-arc 2.png",
+    "frame": {
+     "x": 160,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-crit-arc 3.png",
+    "frame": {
+     "x": 0,
+     "y": 80,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-crit-arc 4.png",
+    "frame": {
+     "x": 80,
+     "y": 80,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-crit-arc 5.png",
+    "frame": {
+     "x": 160,
+     "y": 80,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-crit-arc 6.png",
+    "frame": {
+     "x": 0,
+     "y": 160,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-crit-arc 7.png",
+    "frame": {
+     "x": 80,
+     "y": 160,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-crit-arc 8.png",
+    "frame": {
+     "x": 160,
+     "y": 160,
+     "w": 80,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 80,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 80,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 63
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-crit-arc.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 240,
+    "h": 240
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 40,
+    "y": 40
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-crit-arc",
+     "from": 0,
+     "to": 8,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,303 @@
+{
+ "canvas": {
+  "h": 127,
+  "w": 84
+ },
+ "frames": 10,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 42,
+  "y": 70,
+  "kind": "origin"
+ },
+ "message": "A 10-frame looping dawn prayer: five soft pink-and-gold light rays descend from the top of the frame, with a warm sunrise glow pooling on the ground at the base and small gold sparkles drifting through. The rays shimmer in brightness from frame to frame; the sparkles and the glow's size are the things to tweak if you want it calmer or brighter. The canvas was trimmed so nothing is cut off at the edges.",
+ "effect_id": "84071c80-efce-4526-8245-ee6f72b85211",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-prayer-dawn 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 127
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 127
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 127
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5511811023622047
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-prayer-dawn 1.png",
+    "frame": {
+     "x": 84,
+     "y": 0,
+     "w": 84,
+     "h": 127
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 127
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 127
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5511811023622047
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-prayer-dawn 2.png",
+    "frame": {
+     "x": 168,
+     "y": 0,
+     "w": 84,
+     "h": 127
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 127
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 127
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5511811023622047
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-prayer-dawn 3.png",
+    "frame": {
+     "x": 252,
+     "y": 0,
+     "w": 84,
+     "h": 127
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 127
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 127
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5511811023622047
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-prayer-dawn 4.png",
+    "frame": {
+     "x": 0,
+     "y": 127,
+     "w": 84,
+     "h": 127
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 127
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 127
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5511811023622047
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-prayer-dawn 5.png",
+    "frame": {
+     "x": 84,
+     "y": 127,
+     "w": 84,
+     "h": 127
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 127
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 127
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5511811023622047
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-prayer-dawn 6.png",
+    "frame": {
+     "x": 168,
+     "y": 127,
+     "w": 84,
+     "h": 127
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 127
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 127
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5511811023622047
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-prayer-dawn 7.png",
+    "frame": {
+     "x": 252,
+     "y": 127,
+     "w": 84,
+     "h": 127
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 127
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 127
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5511811023622047
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-prayer-dawn 8.png",
+    "frame": {
+     "x": 0,
+     "y": 254,
+     "w": 84,
+     "h": 127
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 127
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 127
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5511811023622047
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-prayer-dawn 9.png",
+    "frame": {
+     "x": 84,
+     "y": 254,
+     "w": 84,
+     "h": 127
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 84,
+     "h": 127
+    },
+    "sourceSize": {
+     "w": 84,
+     "h": 127
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5511811023622047
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-prayer-dawn.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 336,
+    "h": 381
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 42,
+    "y": 70
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-prayer-dawn",
+     "from": 0,
+     "to": 9,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -278,7 +278,7 @@ await check('verrouillage : un objet verrouillé ne peut pas être recyclé', as
   await clickTab('inventory');
   await closePop();
   await page.click(`.inv-grid [data-id="${item.id}"]`);
-  await page.click('.item-pop [data-action="item-more"]'); // v9.3.4 : verrou dans le menu « ⋯ »
+  await page.click('.item-pop [data-action="item-plus"]'); // v9.11 (5) : « Protéger » dans le menu « Plus »
   await page.click('.item-pop [data-action="lock"]');
   await page.waitForTimeout(150);
   const disabled = await page.$eval('.item-pop [data-action="recycle"]', (b) => b.disabled);

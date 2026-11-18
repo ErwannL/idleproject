@@ -4188,3 +4188,95 @@ html.reduce-motion .best-card.first-item { animation: none; }
   #app.bottom-ui .upg-card { padding: 3px 8px !important; }
 }
 @media (max-height: 800px) { #app.bottom-ui .upg-top { position: relative; padding-right: 130px !important; } #app.bottom-ui .upg-top .buy-all { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); } }
+/* v9.11 (5) : emplacements d'équipement grands et nommés, ⬆ de renforcement, schéma des éléments. */
+.equip-doll.big { align-items: center; }
+.equip-doll.big .slot-col { display: flex; flex-direction: column; justify-content: space-between; gap: 8px; }
+.slot.slot-big { position: relative; display: grid; justify-items: center; gap: 1px; }
+.slot.slot-big .item-frame { width: 64px !important; height: 64px !important; }
+.slot.slot-big .item-frame img { width: 44px; height: 44px; }
+.slot.slot-big .item-frame .equipped-tag, .slot.slot-big .item-frame .eq-mark { display: none; }
+.slot.slot-big.r-common .item-frame { border-color: #9aa3b5; } .slot.slot-big.r-rare .item-frame { border-color: #4ea3ff; }
+.slot.slot-big.r-epic .item-frame { border-color: #b46bff; } .slot.slot-big.r-legendary .item-frame { border-color: #ffb43a; }
+.slot-name { font-size: 11px; color: var(--muted); white-space: nowrap; } .slot-name b { color: #7fe0a0; }
+.slot-lvl { font-size: 10px; opacity: .75; margin-top: -2px; }
+.slot-up { position: absolute; top: -4px; right: -4px; z-index: 2; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: #3fbf5a; color: #fff; font-weight: 900; font-size: 12px; box-shadow: 0 0 6px #3fbf5a; }
+.equip-doll.big .doll { flex: 1; display: grid; place-items: center; }
+.who-card small { display: grid; line-height: 1.15; } .nowrap { white-space: nowrap; }
+.elem-help-btn { margin: 2px 0 6px; }
+.el-diagram { position: relative; width: min(300px, 80vw); aspect-ratio: 1; margin: 6px auto; }
+.el-diagram svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.el-node { position: absolute; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: 2px; }
+.el-node span { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%; font-size: 28px; background: radial-gradient(circle, color-mix(in srgb, var(--c) 45%, #000) , #0b1020); border: 3px solid var(--c); box-shadow: 0 0 12px var(--c); }
+.el-pair { position: relative; height: 90px; width: min(300px, 80vw); margin: 0 auto; }
+.el-vs { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -60%); font-size: 26px; color: #ffd36a; }
+.el-rule { text-align: center; }
+.ip-improve { white-space: nowrap; }
+.slot.slot-big .eq { display: none; }
+/* v9.11 (4) : bulle « Menu » sous le bouton ☰ (ne recouvre plus le nom du monde) ; croix du tiroir. */
+#drawer-btn { position: relative; }
+#drawer-btn:hover::after { content: 'Menu'; position: absolute; top: calc(100% + 6px); left: 0; padding: 2px 8px; border-radius: 6px; background: #0b1020ee; border: 1px solid var(--edge, #2a3654); font: 600 12px/1.4 system-ui, sans-serif; color: #fff; white-space: nowrap; pointer-events: none; z-index: 50; }
+.drawer { position: relative; } .drawer-close { position: absolute; top: 0; right: 0; }
+/* v9.11 (3) : Sceau réduit = icône + 1 ou 2 mots (data-short), jamais une flèche seule. */
+#stage-area #next-action.na-mini { max-width: none !important; width: auto; padding: 4px 12px; }
+#stage-area #next-action.na-mini .na-icon { display: none; }
+#stage-area #next-action.na-mini::before { content: attr(data-short); font-weight: 800; white-space: nowrap; }
+#stage-area #next-action.na-mini:hover::before { content: none; }
+#stage-area #next-action.na-mini:hover .na-icon { display: inline-grid; }
+/* v9.11 (7) : carte de quête illustrée sur la scène ; Chroniques ; écran de récompense. */
+#quest-banner { gap: 8px; padding: 5px 10px 5px 6px; border-radius: 10px; max-width: min(360px, 70%); }
+#quest-banner .qb-icon img { width: 30px; height: 30px; image-rendering: pixelated; }
+#quest-banner .qb-main { display: grid; gap: 2px; min-width: 0; flex: 1; }
+#quest-banner .qb-bar { position: relative; display: block; height: 10px; border-radius: 5px; background: #0006; overflow: hidden; }
+#quest-banner .qb-bar i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #4cc46a, #a8f0a0); }
+#quest-banner .qb-bar b { position: relative; display: block; text-align: center; font-size: 9px; line-height: 10px; }
+#quest-banner .qb-reward .rw-icons img { width: 22px; height: 22px; }
+#quest-banner .qb-claim { padding: 2px 8px; border-radius: 6px; background: linear-gradient(#f2c14e, #b9831c); color: #2a1a05; font-weight: 800; font-size: 12px; }
+.chron-card { display: grid; grid-template-columns: minmax(120px, 40%) 1fr; gap: 10px; align-items: center; }
+.chron-card.ready { border-color: #ffd23f; box-shadow: 0 0 12px #ffd23f66; }
+.chron-art { position: relative; } .chron-art img { width: 100%; border-radius: 8px; image-rendering: pixelated; display: block; }
+.chron-n { position: absolute; left: 6px; top: 6px; padding: 1px 6px; border-radius: 6px; background: #000a; font-size: 11px; }
+.chron-body { display: grid; gap: 4px; } .chron-title { font-size: 17px; color: var(--gold-text, #ffd36a); }
+.chron-text { font-style: italic; opacity: .85; margin: 0; } .chron-reward { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chron-prize { padding: 2px 8px; border-radius: 6px; background: #3a2a0a; border: 1px solid #ffd23f; color: #ffe08a; font-weight: 700; }
+.cr-prize { margin: 6px 0; font-weight: 800; color: #ffe08a; }
+@media (max-width: 520px) { .chron-card { grid-template-columns: 1fr; } }
+/* v9.11 (1) : icônes de compétence vives, colorées par élément (plus de fond noir) ; durée du bonus sur l'icône. */
+#skill-bar .skill-btn { background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--sc, #9fc3ff) 70%, #fff 10%) 0%, color-mix(in srgb, var(--sc, #9fc3ff) 45%, #000) 70%, #0b1020 100%) !important;
+  border-color: var(--sc, #9fc3ff) !important; box-shadow: 0 0 8px color-mix(in srgb, var(--sc, #9fc3ff) 55%, transparent); }
+#skill-bar .skill-btn img { filter: drop-shadow(0 0 2px #fff8) brightness(1.25) saturate(1.3); }
+#skill-bar .skill-btn.ready { box-shadow: 0 0 12px var(--sc, #9fc3ff); }
+#skill-bar .skill-btn .buff-left { position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%); padding: 0 4px; border-radius: 6px; background: #3a2a0a; border: 1px solid #ffd23f; color: #ffe08a; font-size: 10px; line-height: 14px; z-index: 3; }
+/* v9.11 (8) : Roue du jour dessinée (pierre runique, lame dorée, lumières, autel du temple). */
+#modal-card:has(.wh-art) { max-width: 460px !important; background: linear-gradient(#0b102099, #0b1020dd), url('../../assets/ui/wheel/wheel_altar.png') center/cover !important; image-rendering: pixelated; }
+.wh-art .wh-wrap { width: 290px; height: 290px; }
+.wh-art .wh-disc { border: none; box-shadow: 0 10px 24px #000c; background: none; }
+.wh-art .wh-disc-img { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+.wh-ico { position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; margin: -20px 0 0 -20px; transform: rotate(var(--a)) translateY(-86px) rotate(calc(-1 * var(--a))); display: grid; place-items: center; z-index: 1; }
+.wh-ico img { width: 34px; height: 34px; image-rendering: pixelated; filter: drop-shadow(0 2px 2px #000); }
+.wh-ico.jackpot img { width: 40px; height: 40px; filter: drop-shadow(0 0 6px #ffd23f); }
+.wh-ico.won img { animation: wh-won 0.8s ease-in-out infinite alternate; }
+@keyframes wh-won { to { transform: scale(1.35); filter: drop-shadow(0 0 10px #fff3a8); } }
+.wh-win { position: absolute; inset: 6%; border-radius: 50%; opacity: 0; pointer-events: none;
+  background: conic-gradient(from calc(var(--a, 0deg) - 22.5deg), #fff3a888 0deg 45deg, transparent 45deg 360deg); }
+.wh-win.on { opacity: 1; transition: opacity .3s; }
+.wh-pointer-img { position: absolute; left: 50%; top: -24px; width: 36px; transform: translateX(-50%) rotate(180deg); z-index: 3; image-rendering: pixelated; filter: drop-shadow(0 3px 2px #000); transform-origin: 50% 20%; }
+.wh-pointer-img.tic { animation: wh-tic .12s ease-out; }
+@keyframes wh-tic { 50% { transform: translateX(-50%) rotate(168deg); } }
+.wh-light { position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px; border-radius: 50%; background: #ffe08a; box-shadow: 0 0 6px #ffd23f;
+  transform: rotate(var(--a)) translateY(-152px); opacity: .5; z-index: 2; }
+.wheel-spinning .wh-light { animation: wh-blink .5s steps(2) infinite; animation-delay: var(--d); }
+@keyframes wh-blink { 50% { opacity: 1; } }
+.wh-prize { display: grid; justify-items: center; gap: 4px; animation: wh-pop .5s cubic-bezier(.2,1.6,.4,1); }
+.wh-prize b { font-size: 20px; color: #ffe08a; } .wh-prize .rw-icons img { width: 40px; height: 40px; }
+.wh-prize.jackpot b { font-size: 26px; text-shadow: 0 0 10px #ffd23f; }
+@keyframes wh-pop { from { transform: scale(.3); opacity: 0; } }
+html.reduce-motion .wh-light, html.reduce-motion .wh-ico.won img, html.reduce-motion .wh-prize { animation: none !important; }
+.upg-rebirth-v { display: grid; gap: 6px; } .upg-rb-head { display: flex; gap: 8px; align-items: center; } .upg-rb-head img { width: 32px; height: 32px; } .upg-rebirth-v .btn { width: 100%; }
+/* v9.11 (6) : les 3 cartes de Talents côte à côte, compactes (plus coupées par le bas du panneau). */
+.tb-main { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 6px; }
+.tb-main .tb-row { padding: 6px; gap: 4px; }
+.tb-main .tb-head { flex-wrap: wrap; justify-content: center; text-align: center; gap: 2px; }
+.tb-main .tb-head img { width: 32px !important; height: 32px !important; } .tb-main .tb-head b { font-size: 13px !important; width: 100%; }
+.tb-main .tb-row small, .tb-main .tb-row .muted { font-size: 11px; }
+.tb-main .tb-row .btn { padding: 3px 4px; font-size: 12px; }
+@media (max-width: 420px) { .tb-main { grid-template-columns: 1fr !important; } }

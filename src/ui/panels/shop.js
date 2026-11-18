@@ -53,6 +53,7 @@ function offerCard(ui, state, offer) {
     <div class="shop-name">${escapeHtml(offer.name)}</div>
     ${tierName ? `<div class="muted shop-tier">${escapeHtml(tierName)}</div>` : ''}
     ${Object.keys(give).length ? `<div class="shop-content">${contentLine(give)}</div>` : ''}
+    ${(give.ticketLimited ?? give.ticketPet ?? 0) > 0 && (offer.cat === 'heroTickets' || offer.cat === 'petTickets') ? `<small class="muted shop-summons">= ${give.ticketLimited ?? give.ticketPet} invocations</small>` : ''}
     ${offer.daily ? `<div class="shop-content muted"><span>Puis chaque jour :</span> ${contentLine(offer.daily)}</div>` : ''}
     ${offer.days ? `<div class="muted"><span>Durée :</span> <b class="num">${offer.days}</b> <span>jours</span></div>` : ''}
     ${cosmetics.length && offer.cat === 'packs' ? `<div class="shop-content">${cosmetics.map((n) => `<span class="shop-give">${escapeHtml(n)}</span>`).join('')}</div>` : ''}
@@ -85,16 +86,18 @@ export default {
   icon: 'icon_gem',
   extra: (ui, state) => `${gem()}<b class="num">${formatNumber(state.gems)}</b> ${walletIcon('ticketLimited')}<b class="num">${walletAmount(state, 'ticketLimited')}</b> ${walletIcon('ticketPet')}<b class="num">${walletAmount(state, 'ticketPet')}</b>`,
   render(ui, state) {
-    const cat = SHOP_CATEGORIES.some((c) => c.id === ui.view.shopCat) ? ui.view.shopCat : 'crystals';
-    const tabs = `<div class="shop-cats" role="tablist">${SHOP_CATEGORIES.map((c) => `<button class="btn small${c.id === cat ? ' active' : ''}" role="tab" aria-selected="${c.id === cat}" data-action="shop-cat" data-value="${c.id}">${escapeHtml(c.name)}</button>`).join('')}</div>`;
+    // v9.11 (9) : Marchands dans leur propre onglet (plus répétés sous chaque liste).
+    const CATS = [...SHOP_CATEGORIES, { id: 'merchants', name: 'Marchands' }];
+    const cat = CATS.some((c) => c.id === ui.view.shopCat) ? ui.view.shopCat : 'crystals';
+    const tabs = `<div class="shop-cats" role="tablist">${CATS.map((c) => `<button class="btn small${c.id === cat ? ' active' : ''}" role="tab" aria-selected="${c.id === cat}" data-action="shop-cat" data-value="${c.id}">${escapeHtml(c.name)}</button>`).join('')}</div>`;
     const offers = allOffers().filter((o) => o.cat === cat);
     const preview = ui.view.themePreview ? `<div class="card shop-preview"><span>Aperçu du thème</span> <b>${escapeHtml(themeById(ui.view.themePreview).name)}</b>
       <button class="btn small" data-action="theme-preview" data-value="">Revenir à mon thème</button></div>` : '';
     const note = paymentReady() ? '' : '<div class="shop-note">Achats bientôt disponibles : aucun paiement n\'est encore possible dans le jeu. Prix et contenus affichés à titre d\'information.</div>';
     const merchants = merchantsHtml(state); // v9.3.8 : les Marchands sont dans la Boutique
     // v9.10 (8) : les offres illustrées d'abord ; Marchands ensuite ; le texte d'information en petit, en bas.
+    if (cat === 'merchants') return `${preview}${tabs}<div class="card">${merchants || '<div class="state-empty">Aucun marchand de passage pour le moment : ils apparaissent pendant tes combats.</div>'}</div>`;
     return `${preview}${tabs}<div class="shop-grid">${offers.map((o) => offerCard(ui, state, o)).join('')}</div>
-      ${merchants ? `<div class="card"><div class="section-title">Marchands</div>${merchants}</div>` : ''}
       <div class="card">${incomeBlock(state)}</div>
       ${(state.economy?.store?.spentCents ?? 0) > 0 ? `<div class="card">${spendBlock(state)}</div>` : ''}
       ${note ? note.replace('class="shop-note"', 'class="shop-note small-note"') : ''}

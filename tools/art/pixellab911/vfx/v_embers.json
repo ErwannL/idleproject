@@ -1,0 +1,303 @@
+{
+ "canvas": {
+  "h": 95,
+  "w": 64
+ },
+ "frames": 10,
+ "fps": 6,
+ "loop": false,
+ "anchor": {
+  "x": 33,
+  "y": 77,
+  "kind": "origin"
+ },
+ "message": "A 10-frame, one-shot aftermath: grey smoke puffs rise from the centre and thin out, with small gold and white sparks bursting and fading, and orange embers drifting up. Try the smoke height and the spark speed sliders to change how far it rises and spreads. Tell me if you want more embers or a looping version.",
+ "effect_id": "fde1d8fd-49e6-46f8-8a52-4d7a9db47141",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-embers 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.515625,
+     "y": 0.8105263157894737
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-v-embers 1.png",
+    "frame": {
+     "x": 64,
+     "y": 0,
+     "w": 64,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.515625,
+     "y": 0.8105263157894737
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-v-embers 2.png",
+    "frame": {
+     "x": 128,
+     "y": 0,
+     "w": 64,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.515625,
+     "y": 0.8105263157894737
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-v-embers 3.png",
+    "frame": {
+     "x": 192,
+     "y": 0,
+     "w": 64,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.515625,
+     "y": 0.8105263157894737
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-v-embers 4.png",
+    "frame": {
+     "x": 0,
+     "y": 95,
+     "w": 64,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.515625,
+     "y": 0.8105263157894737
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-v-embers 5.png",
+    "frame": {
+     "x": 64,
+     "y": 95,
+     "w": 64,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.515625,
+     "y": 0.8105263157894737
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-v-embers 6.png",
+    "frame": {
+     "x": 128,
+     "y": 95,
+     "w": 64,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.515625,
+     "y": 0.8105263157894737
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-v-embers 7.png",
+    "frame": {
+     "x": 192,
+     "y": 95,
+     "w": 64,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.515625,
+     "y": 0.8105263157894737
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-v-embers 8.png",
+    "frame": {
+     "x": 0,
+     "y": 190,
+     "w": 64,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.515625,
+     "y": 0.8105263157894737
+    },
+    "duration": 167
+   },
+   {
+    "filename": "ascendrya-v-embers 9.png",
+    "frame": {
+     "x": 64,
+     "y": 190,
+     "w": 64,
+     "h": 95
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 95
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 95
+    },
+    "pivot": {
+     "x": 0.515625,
+     "y": 0.8105263157894737
+    },
+    "duration": 167
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-embers.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 256,
+    "h": 285
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 33,
+    "y": 77
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-embers",
+     "from": 0,
+     "to": 9,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

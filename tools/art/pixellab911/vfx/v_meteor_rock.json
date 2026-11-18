@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 102,
+  "w": 94
+ },
+ "frames": 6,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 54,
+  "y": 57,
+  "kind": "origin"
+ },
+ "message": "A 6-frame looping flaming meteor: a cracked lava boulder with a bright fire trail and smoke streaming back up to the top left, with sparks and glowing cracks. Try the trail speed and count sliders to make the fire longer or shorter, and the smoke sliders for a fuller plume.",
+ "effect_id": "a4bdce6b-21df-4630-876c-63a3f09d69e6",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-meteor-rock 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 94,
+     "h": 102
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 94,
+     "h": 102
+    },
+    "sourceSize": {
+     "w": 94,
+     "h": 102
+    },
+    "pivot": {
+     "x": 0.574468085106383,
+     "y": 0.5588235294117647
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-meteor-rock 1.png",
+    "frame": {
+     "x": 94,
+     "y": 0,
+     "w": 94,
+     "h": 102
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 94,
+     "h": 102
+    },
+    "sourceSize": {
+     "w": 94,
+     "h": 102
+    },
+    "pivot": {
+     "x": 0.574468085106383,
+     "y": 0.5588235294117647
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-meteor-rock 2.png",
+    "frame": {
+     "x": 188,
+     "y": 0,
+     "w": 94,
+     "h": 102
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 94,
+     "h": 102
+    },
+    "sourceSize": {
+     "w": 94,
+     "h": 102
+    },
+    "pivot": {
+     "x": 0.574468085106383,
+     "y": 0.5588235294117647
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-meteor-rock 3.png",
+    "frame": {
+     "x": 0,
+     "y": 102,
+     "w": 94,
+     "h": 102
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 94,
+     "h": 102
+    },
+    "sourceSize": {
+     "w": 94,
+     "h": 102
+    },
+    "pivot": {
+     "x": 0.574468085106383,
+     "y": 0.5588235294117647
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-meteor-rock 4.png",
+    "frame": {
+     "x": 94,
+     "y": 102,
+     "w": 94,
+     "h": 102
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 94,
+     "h": 102
+    },
+    "sourceSize": {
+     "w": 94,
+     "h": 102
+    },
+    "pivot": {
+     "x": 0.574468085106383,
+     "y": 0.5588235294117647
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-meteor-rock 5.png",
+    "frame": {
+     "x": 188,
+     "y": 102,
+     "w": 94,
+     "h": 102
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 94,
+     "h": 102
+    },
+    "sourceSize": {
+     "w": 94,
+     "h": 102
+    },
+    "pivot": {
+     "x": 0.574468085106383,
+     "y": 0.5588235294117647
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-meteor-rock.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 282,
+    "h": 204
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 54,
+    "y": 57
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-meteor-rock",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

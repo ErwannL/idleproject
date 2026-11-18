@@ -8,6 +8,7 @@ import { animCanvas } from '../animator.js';
 import { contractLabel, contractTitle } from '../../core/contracts.js';
 import { bonusReady, loginPending, missionStatus, openMissions, periodRemaining, trackNext, trackPct } from '../../core/missions.js';
 import { rewardText } from '../../core/rewards.js';
+import { CHRONICLES, HERALD_TASKS, chronicleNow, heraldState, heraldTask } from '../../core/chronicles.js';
 import { LOGIN_CALENDAR, MISSION_PERIODS, MISSION_TRACK } from '../../data/missions.js';
 import { claimPeekList, merchantsHtml } from './inbox.js';
 import { escapeHtml, fold, formatNumber, img, progressBar, rewardIcons, segment } from '../common.js';
@@ -147,6 +148,32 @@ function findsCard(ui) {
 }
 
 // Prime du jour (v8.9).
+// v9.11 (7) : Chroniques d'Ascendrya — une carte illustrée par étape, récompense nommée tous les 5 paliers.
+export function chronicleCard(state, compact = false) {
+  const c = chronicleNow(state);
+  if (!c) return '<div class="card chron-card done"><b>Chroniques d\'Ascendrya</b><p>Toutes les chroniques sont écrites. Ton nom est une légende.</p></div>';
+  const nextPrize = CHRONICLES.slice(c.index).find((x) => x.prize);
+  return `<div class="card chron-card${c.ready ? ' ready' : ''}${compact ? ' compact' : ''}">
+    <div class="chron-art"><img class="px" src="assets/ui/art98/${c.art}.png" alt=""><span class="chron-n">Chapitre ${c.index + 1}/${CHRONICLES.length}</span></div>
+    <div class="chron-body"><small class="muted">Chroniques d'Ascendrya</small><b class="chron-title">${escapeHtml(c.title)}</b>
+      ${compact ? '' : `<p class="chron-text">${escapeHtml(c.text)}</p>`}
+      <div class="chron-need">${c.ready ? '✔' : '○'} ${escapeHtml(c.need)}</div>
+      <div class="chron-reward">${rewardIcons(c.reward, compact ? '' : 'named')}${c.prize ? `<span class="chron-prize">🎁 ${escapeHtml(c.prize.label)}</span>` : ''}</div>
+      ${!c.prize && nextPrize && !compact ? `<small class="muted">Prochain grand prix (chapitre ${CHRONICLES.indexOf(nextPrize) + 1}) : ${escapeHtml(nextPrize.prize.label)}</small>` : ''}
+      <button class="btn ${c.ready ? 'btn-gold' : ''}" data-action="chronicle-claim" ${c.ready ? '' : 'disabled'}>Récupérer</button></div></div>`;
+}
+
+// v9.11 (7) : Tâches du Héraut — elles se relancent dès qu'on les récupère.
+function heraldTab(state) {
+  const h = heraldState(state);
+  const rows = HERALD_TASKS.map((t0) => {
+    const t = heraldTask(state, t0);
+    const p = Math.min(t.target, h.progress[t.id] ?? 0);
+    return row({ icon: t.icon, label: t.text, progress: p, target: t.target, reward: t.reward, done: p >= t.target, claimed: false, action: 'herald-claim', value: t.id });
+  }).join('');
+  return `<div class="muted">Le Héraut d'Ascendrya affiche ses tâches chaque matin… et les renouvelle aussitôt faites. ${h.done ? `<b>${h.done}</b> accomplies.` : ''}</div>${rows}`;
+}
+
 export function bountyCard(state) { // v9.3.8 : affichée sur la Carte (ce n'est pas une quête)
   const b = dailyBounty(state);
   const enemy = ENEMIES[b.type];
@@ -191,8 +218,9 @@ export default {
   render(ui, state) {
     const count = (ids) => ui.claims.filter((c) => c.tab === 'contracts' && ids.includes(c.period ?? c.kind)).length;
     // v9.3.8 (2.6) : Jour · Semaine · Mois · Hauts faits, chacun avec sa pastille.
-    const parts = [['today', 'Jour', 'icon_book'], ['weekly', 'Semaine', 'icon_chest'], ['week', 'Mois', 'icon_map'], ['achievements', 'Hauts faits', 'icon_star']];
-    const ready = { today: count(['daily', 'login', 'contract', 'event']), weekly: count(['weekly']), week: count(['track']), achievements: count(['achievement']) };
+    const parts = [['today', 'Jour', 'icon_book'], ['chronicles', 'Chroniques', 'icon_scroll'], ['weekly', 'Semaine', 'icon_chest'], ['week', 'Mois', 'icon_map'], ['achievements', 'Hauts faits', 'icon_star']];
+    const heraldN = HERALD_TASKS.filter((t) => (heraldState(state).progress[t.id] ?? 0) >= heraldTask(state, t).target).length + (chronicleNow(state)?.ready ? 1 : 0);
+    const ready = { chronicles: heraldN, today: count(['daily', 'login', 'contract', 'event']), weekly: count(['weekly']), week: count(['track']), achievements: count(['achievement']) };
     const tab = parts.some(([id]) => id === ui.view.missionTab) ? ui.view.missionTab : 'today';
     const seg = segment(parts.map(([id, label, icon]) => [id, ready[id] ? `${label}<i class="pill-n" aria-label="${ready[id]} à récupérer">${ready[id]}</i>` : label, icon]), 'mission-tab', tab);
     const period = (id) => MISSION_PERIODS.find((p) => p.id === id);
@@ -204,12 +232,14 @@ export default {
     const sec = (title, n) => `${title}${n ? ` <i class="pill-n">${n}</i>` : ''}`;
     const nOf = (k) => ui.claims.filter((c) => c.tab === 'contracts' && (c.period ?? c.kind) === k && !c.blocked).length;
     let body;
-    if (tab === 'achievements') body = `<div class="card m-body">${achievementsTab(state)}</div>`;
+    if (tab === 'chronicles') body = `${chronicleCard(state)}<div class="card m-body"><div class="section-title">Tâches du Héraut</div>${heraldTab(state)}</div>`;
+    else if (tab === 'achievements') body = `<div class="card m-body">${achievementsTab(state)}</div>`;
     else if (tab === 'weekly') body = `<div class="card m-body">${periodTab(state, period('weekly'))}</div>`;
     else if (tab === 'week') {
       body = `<div class="card m-body">${trackTab(state)}</div>`;
     } else {
-      body = `<div class="card m-body"><div class="section-title">${sec(period('daily').label, nOf('daily'))}</div>${periodTab(state, period('daily'))}</div>
+      // v9.11 (7) : objectifs de session en haut des Missions (ils étaient cachés en bas du Carnet).
+      body = `<div class="card m-body m-session">${sessionGoalsHtml(state)}</div><div class="card m-body"><div class="section-title">${sec(period('daily').label, nOf('daily'))}</div>${periodTab(state, period('daily'))}</div>
         <button class="btn btn-gold wheel-link" data-action="wheel-open">🎡 Roue du jour</button>
         ${findsCard(ui)}
         <div class="card m-body"><div class="section-title">${sec('Contrats', nOf('contract'))}</div>${contractsTab(state)}</div>`;

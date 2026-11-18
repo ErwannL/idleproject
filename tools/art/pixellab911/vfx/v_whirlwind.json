@@ -1,0 +1,355 @@
+{
+ "canvas": {
+  "h": 105,
+  "w": 110
+ },
+ "frames": 12,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 56,
+  "y": 49,
+  "kind": "origin"
+ },
+ "message": "Here's a 12-frame, one-shot spinning steel whirlwind: steel sword-slash arcs whirl around the centre, blue wind streaks sweep past, and green leaves drift through. It's in a 4-colour retro ramp with a dark outline and no dithering, on a transparent background. Try the steel, blue wind and leaves sliders to change their colour, amount and thickness; the slashes read more as arcs than a solid funnel, so raising the spin reach will make the whirl feel bigger.",
+ "effect_id": "c9ce53b6-4db3-4347-b0be-87354264f513",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-whirlwind 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 110,
+     "h": 105
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 110,
+     "h": 105
+    },
+    "sourceSize": {
+     "w": 110,
+     "h": 105
+    },
+    "pivot": {
+     "x": 0.509090909090909,
+     "y": 0.4666666666666667
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirlwind 1.png",
+    "frame": {
+     "x": 110,
+     "y": 0,
+     "w": 110,
+     "h": 105
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 110,
+     "h": 105
+    },
+    "sourceSize": {
+     "w": 110,
+     "h": 105
+    },
+    "pivot": {
+     "x": 0.509090909090909,
+     "y": 0.4666666666666667
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirlwind 2.png",
+    "frame": {
+     "x": 220,
+     "y": 0,
+     "w": 110,
+     "h": 105
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 110,
+     "h": 105
+    },
+    "sourceSize": {
+     "w": 110,
+     "h": 105
+    },
+    "pivot": {
+     "x": 0.509090909090909,
+     "y": 0.4666666666666667
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirlwind 3.png",
+    "frame": {
+     "x": 330,
+     "y": 0,
+     "w": 110,
+     "h": 105
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 110,
+     "h": 105
+    },
+    "sourceSize": {
+     "w": 110,
+     "h": 105
+    },
+    "pivot": {
+     "x": 0.509090909090909,
+     "y": 0.4666666666666667
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirlwind 4.png",
+    "frame": {
+     "x": 0,
+     "y": 105,
+     "w": 110,
+     "h": 105
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 110,
+     "h": 105
+    },
+    "sourceSize": {
+     "w": 110,
+     "h": 105
+    },
+    "pivot": {
+     "x": 0.509090909090909,
+     "y": 0.4666666666666667
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirlwind 5.png",
+    "frame": {
+     "x": 110,
+     "y": 105,
+     "w": 110,
+     "h": 105
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 110,
+     "h": 105
+    },
+    "sourceSize": {
+     "w": 110,
+     "h": 105
+    },
+    "pivot": {
+     "x": 0.509090909090909,
+     "y": 0.4666666666666667
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirlwind 6.png",
+    "frame": {
+     "x": 220,
+     "y": 105,
+     "w": 110,
+     "h": 105
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 110,
+     "h": 105
+    },
+    "sourceSize": {
+     "w": 110,
+     "h": 105
+    },
+    "pivot": {
+     "x": 0.509090909090909,
+     "y": 0.4666666666666667
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirlwind 7.png",
+    "frame": {
+     "x": 330,
+     "y": 105,
+     "w": 110,
+     "h": 105
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 110,
+     "h": 105
+    },
+    "sourceSize": {
+     "w": 110,
+     "h": 105
+    },
+    "pivot": {
+     "x": 0.509090909090909,
+     "y": 0.4666666666666667
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirlwind 8.png",
+    "frame": {
+     "x": 0,
+     "y": 210,
+     "w": 110,
+     "h": 105
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 110,
+     "h": 105
+    },
+    "sourceSize": {
+     "w": 110,
+     "h": 105
+    },
+    "pivot": {
+     "x": 0.509090909090909,
+     "y": 0.4666666666666667
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirlwind 9.png",
+    "frame": {
+     "x": 110,
+     "y": 210,
+     "w": 110,
+     "h": 105
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 110,
+     "h": 105
+    },
+    "sourceSize": {
+     "w": 110,
+     "h": 105
+    },
+    "pivot": {
+     "x": 0.509090909090909,
+     "y": 0.4666666666666667
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirlwind 10.png",
+    "frame": {
+     "x": 220,
+     "y": 210,
+     "w": 110,
+     "h": 105
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 110,
+     "h": 105
+    },
+    "sourceSize": {
+     "w": 110,
+     "h": 105
+    },
+    "pivot": {
+     "x": 0.509090909090909,
+     "y": 0.4666666666666667
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirlwind 11.png",
+    "frame": {
+     "x": 330,
+     "y": 210,
+     "w": 110,
+     "h": 105
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 110,
+     "h": 105
+    },
+    "sourceSize": {
+     "w": 110,
+     "h": 105
+    },
+    "pivot": {
+     "x": 0.509090909090909,
+     "y": 0.4666666666666667
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-whirlwind.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 440,
+    "h": 315
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 56,
+    "y": 49
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-whirlwind",
+     "from": 0,
+     "to": 11,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

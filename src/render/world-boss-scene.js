@@ -12,7 +12,8 @@ import { BALANCE } from '../data/balance.js';
 import { formatNumber } from '../core/format.js';
 import { vfx, drawVfxFrame } from './vfx.js';
 import { WORLD_BOSS } from '../core/world-boss.js';
-import { GRAND_BOSSES, grandBoss } from '../data/grand-bosses.js'; // v9.7.1 (lot 7)
+import { GRAND_BOSSES, grandBoss } from '../data/grand-bosses.js';
+import { COMPANIONS } from '../data/companions.js'; // v9.7.1 (lot 7)
 
 // Décalage à l'écran du boss géant (unités du monde de la simulation).
 const BOSS_OFFSET = 34;
@@ -49,6 +50,10 @@ export class WorldBossScene {
     this.fight = fight;
     this.r = new SceneRenderer(canvas);
     this.r.calm = calm;
+    this.r.bigBoss = true;
+    this.r.groundLift = 0.8; // v9.11 (2) : boss et équipe plus bas, l'écran est rempli // v9.11 (2) : effets limités (render/vfx.js)
+    this.allyBeat = 0.6;
+    this.pebbleAt = 1;
     this.seen = 0;
     this.auraAt = 0;
     this.flashEnd = 0;
@@ -108,9 +113,12 @@ export class WorldBossScene {
         this.anim = then ? { name: then, t: 0, then: null } : null;
       } else { name = this.anim.name; i = a.reverse ? a.n - 1 - k : k; }
     }
+    let breathe = 0;
     if (!this.anim || name === 'idle' || name === 'idle3') {
       const a = this.art.anims[name];
-      i = r.focus ? 0 : Math.floor(r.time * a.fps) % a.n;
+      // v9.11 (2) : repos à 11 images/s au moins, avec une respiration (le corps monte et descend doucement).
+      i = r.focus ? 0 : Math.floor(r.time * Math.max(11, a.fps)) % a.n;
+      breathe = r.focus ? 0 : Math.sin(r.time * 2.2) * 1.6;
     }
     const a = this.art.anims[name];
     const im = sheet(this.art, a.src ?? name);
@@ -118,7 +126,7 @@ export class WorldBossScene {
     const w = this.art.frame * k;
     const cx = r.wx(boss.x) + 14;
     const x = Math.round(cx - w / 2);
-    const y = Math.round(r.groundY + 1 - this.art.foot * k);
+    const y = Math.round(r.groundY + 1 - this.art.foot * k + breathe);
     // Ombre au sol, puis le Colosse (pieds sur la ligne du sol).
     ctx.save();
     ctx.globalAlpha = 0.35 * this.appear;
@@ -133,6 +141,28 @@ export class WorldBossScene {
     ctx.restore();
     // v9.3.0 : image dessinée (pour caler le rocher et le faisceau sur la main et les yeux), déclencheurs des attaques.
     this.drawn = { name, i, x, y, k };
+    // v9.11 (2) : au repos, les yeux luisent et des cailloux tombent des épaules.
+    if (!r.focus && (name === 'idle' || name === 'idle3')) {
+      const eye = this.art.eyes.beam?.[0];
+      if (eye) {
+        const glow = 0.35 + 0.25 * Math.sin(r.time * 3.1);
+        const col = this.art.beamColors.beam[0];
+        ctx.save(); ctx.globalCompositeOperation = 'lighter';
+        for (const [ex, ey] of [[eye[0], eye[1]], [eye[2], eye[3]]]) {
+          const px = x + (ex + 0.5) * k, py = y + (ey + 0.5) * k;
+          const g = ctx.createRadialGradient(px, py, 0, px, py, 5 * k);
+          g.addColorStop(0, col); g.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.globalAlpha = glow; ctx.fillStyle = g; ctx.fillRect(px - 6 * k, py - 6 * k, 12 * k, 12 * k);
+        }
+        ctx.restore();
+      }
+      this.pebbleAt -= dt;
+      if (this.pebbleAt <= 0) {
+        this.pebbleAt = 0.7 + Math.random() * 0.9;
+        const side = Math.random() < 0.5 ? 30 : 92;
+        r.effects.push({ kind: 'particle', x: x + side * k, y: y + 40 * k, vx: (Math.random() - 0.5) * 8, vy: 4, life: 0.9, max: 0.9, color: '#6e665a', size: 2, gravity: 160 });
+      }
+    }
     if (this.anim?.ev && this.anim.name === name) this.attackStep(name, i);
     // Repères pour les effets du renderer (coups, projectiles, chiffres) : la silhouette visible du Colosse.
     const fx = r.enemyFxFor(boss.id);
@@ -160,6 +190,7 @@ export class WorldBossScene {
     const heroX = this.heroX();
     r.later(delay, () => {
       r.hero.hurt = 0.3;
+      r.teamHurt = r.time + 0.3; // v9.11 (2) : l'équipe tremble
       vfx(r, 'hit_blunt', heroX + 8, r.groundY - 20, { size: 1.3, flip: true });
       r.addText(formatNumber(Math.round(ev.damage)), heroX - 4, r.groundY - 54, '#ff5a5a', '#ffd0d0', true);
       r.shake = Math.max(r.shake, shake);
@@ -174,6 +205,7 @@ export class WorldBossScene {
       an.fired = true;
       const [hx, hy] = this.at(...this.art.hands[name]);
       const tx = this.heroX() - 14;
+      this.r.teamBrace = this.r.time + 0.9; // v9.11 (2) : l'équipe se protège du rocher
       this.attacks.push({ kind: 'boulder', ev: an.ev, x0: hx, y0: hy, x1: tx, y1: this.r.groundY - 6, t: 0, dur: 0.62, arc: 70 + Math.max(0, hy - this.r.groundY + 90) * 0.2, fire: name === 'throw3' });
     }
     if (a.fire && i >= a.fire[0] && !an.fired) {
@@ -333,6 +365,16 @@ export class WorldBossScene {
       }
     }
     world.events.length = 0;
+    // v9.11 (2) : l'équipe frappe à tour de rôle (un pas en avant, coup, retour) au lieu de rester figée.
+    this.allyBeat -= dt;
+    if (boss && this.allyBeat <= 0 && !r.focus) {
+      const team = (fight.state.companions?.equipped ?? []).map((id) => COMPANIONS.find((c) => c.id === id)).filter((c) => c?.kind === 'ally');
+      if (team.length) {
+        const c = team[(this.allyTurn = ((this.allyTurn ?? -1) + 1) % team.length)];
+        if (!r.allyAnims?.get(c.id)) r.allyGesture(c, world, BALANCE.world.heroX * WORLD_SCALE);
+      }
+      this.allyBeat = 0.55 + Math.random() * 0.3;
+    }
     while (this.seen < fight.out.length) this.special(fight.out[this.seen++]);
     this.aura(dt);
     // Barre du boss dans la scène : PV virtuels de la barre en cours (le moteur, lui, le garde immortel).

@@ -27,10 +27,12 @@ for (const [w, h] of [[1116, 993], [1920, 1080], [460, 640]]) {
     const over = (x, y) => y.height > 0 && x.height > 0 && !(x.bottom <= y.top || x.top >= y.bottom || x.right <= y.left || x.left >= y.right);
     const hiddenNews = hud.classList.contains('seal-over');
     return { sealShown: !seal.classList.contains('hidden'), overNews: !hiddenNews && over(a, b), overBar: over(a, p),
-      finger: !seal.querySelector('.na-finger').classList.contains('hidden'), side: document.getElementById('app').classList.contains('side-ui') };
+      finger: !seal.querySelector('.na-finger').classList.contains('hidden'), kind: seal.dataset.kind, side: document.getElementById('app').classList.contains('side-ui') };
   });
   check(!r.overNews && !r.overBar, `${w}×${h} : le Sceau ne recouvre pas la ligne de la vague ${JSON.stringify(r)}`);
-  check(!r.finger, `${w}×${h} : pas de doigt après 30 min (action déjà vue)`);
+  // v9.11 (3) : le doigt reste sur une action qui fait progresser, jamais sur un contenu facultatif.
+  const progress = ['claim', 'equip', 'upgrade', 'skills', 'quest', 'rebirth', 'place', 'team', 'level', 'mentor', 'lootbag', 'retry'].includes(r.kind);
+  check(r.finger === progress, `${w}×${h} : doigt ${r.finger ? 'sur' : 'absent de'} « ${r.kind} »`);
   check(r.side === (w > 900 || w > h), `${w}×${h} : volet ${r.side ? 'latéral' : 'du bas'}`);
   await page.context().close();
 }

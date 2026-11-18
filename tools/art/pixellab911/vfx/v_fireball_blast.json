@@ -1,0 +1,355 @@
+{
+ "canvas": {
+  "h": 96,
+  "w": 96
+ },
+ "frames": 12,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 48,
+  "y": 50,
+  "kind": "origin"
+ },
+ "message": "A 12-frame retro fire explosion: a bright white-yellow core flashes, then billowing orange and yellow flame clouds burst out in irregular puffy shapes with flame tongues licking up, dark smoke lobes rising at the edges, and embers flying off, with the smoke clearing in the last frames. It uses a 4-colour palette, dark outline and no dithering. Try the Throw height or Smoke sliders for more or less billow; the background is transparent on export.",
+ "effect_id": "235095d1-831c-4753-b87f-f50a04f93b80",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-fireball-blast 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5208333333333334
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-fireball-blast 1.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5208333333333334
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-fireball-blast 2.png",
+    "frame": {
+     "x": 192,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5208333333333334
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-fireball-blast 3.png",
+    "frame": {
+     "x": 288,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5208333333333334
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-fireball-blast 4.png",
+    "frame": {
+     "x": 0,
+     "y": 96,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5208333333333334
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-fireball-blast 5.png",
+    "frame": {
+     "x": 96,
+     "y": 96,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5208333333333334
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-fireball-blast 6.png",
+    "frame": {
+     "x": 192,
+     "y": 96,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5208333333333334
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-fireball-blast 7.png",
+    "frame": {
+     "x": 288,
+     "y": 96,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5208333333333334
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-fireball-blast 8.png",
+    "frame": {
+     "x": 0,
+     "y": 192,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5208333333333334
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-fireball-blast 9.png",
+    "frame": {
+     "x": 96,
+     "y": 192,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5208333333333334
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-fireball-blast 10.png",
+    "frame": {
+     "x": 192,
+     "y": 192,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5208333333333334
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-fireball-blast 11.png",
+    "frame": {
+     "x": 288,
+     "y": 192,
+     "w": 96,
+     "h": 96
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 96
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 96
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5208333333333334
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-fireball-blast.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 384,
+    "h": 288
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 48,
+    "y": 50
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-fireball-blast",
+     "from": 0,
+     "to": 11,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

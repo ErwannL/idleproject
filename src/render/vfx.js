@@ -6,19 +6,28 @@
 // éclairs d'apparition) supprimés.
 // Sans image chargée (tests sous Node, tout premier instant), vfxReady() est faux : la scène garde ses effets d'avant.
 import { VFX, VFX_ATLAS } from './art-vfx.js';
+import { VFX2, VFX2_ATLAS } from './art-vfx2.js'; // v9.11 (1) : animations de compétences (second atlas, sa palette)
 import { FONT_BIG } from './sprites.js';
 import { drawBigText, textWidth } from './pixel.js';
 
 export { VFX };
 
+for (const [k, e] of Object.entries(VFX2)) VFX[k] = { ...e, at: 2 };
 let atlas = null;
+let atlas2 = null;
 let loaded = false;
+let loaded2 = false;
 function load() {
   if (atlas || typeof Image === 'undefined') return;
   atlas = new Image();
   atlas.onload = () => { loaded = true; };
   atlas.src = VFX_ATLAS;
+  atlas2 = new Image();
+  atlas2.onload = () => { loaded2 = true; };
+  atlas2.src = VFX2_ATLAS;
 }
+const sheetOf = (e) => (e.at === 2 ? atlas2 : atlas);
+export const vfx2Ready = (name) => Boolean(VFX[name]?.at === 2 && loaded2);
 load();
 
 export function vfxReady() {
@@ -41,7 +50,7 @@ function tinted(name, i, color) {
   c.width = e.w;
   c.height = e.h;
   const g = c.getContext('2d');
-  g.drawImage(atlas, e.f[i][0], e.f[i][1], e.w, e.h, 0, 0, e.w, e.h);
+  g.drawImage(sheetOf(e), e.f[i][0], e.f[i][1], e.w, e.h, 0, 0, e.w, e.h);
   g.globalCompositeOperation = 'source-atop';
   g.globalAlpha = 0.6;
   g.fillStyle = color;
@@ -67,12 +76,27 @@ export function vfx(scene, name, x, y, opts = {}) {
   const n = sober ? SOBER[name] ?? name : name;
   const e = VFX[n];
   if (!e) return false;
-  const life = opts.life ?? vfxDuration(n) * (sober ? 0.8 : 1);
+  let life = opts.life ?? vfxDuration(n) * (sober ? 0.8 : 1);
   const delay = opts.delay ?? 0;
+  // v9.11 (2) : contre un grand boss (le héros frappe plusieurs fois par seconde), les effets ne s'empilent plus :
+  // arc de taille au plus toutes les 0,4 s (plus petit, en alternance haut/bas) ; colonnes de lumière une à la fois,
+  // 0,6 s au plus ; un même effet au plus toutes les 0,25 s.
+  if (scene.bigBoss) {
+    const now = scene.time ?? 0, last = (scene.vfxLast ??= {});
+    const slash = n === 'hit_slash' || n === 'crit_flash' || n === 'crit_wave' || n === 'v_crit_arc';
+    const column = e.h > e.w * 1.4 && e.h * e.scale > 50;
+    const gap = slash ? 0.4 : 0.25;
+    const key = slash ? 'slash' : n; // tous les arcs de taille partagent la même limite
+    if (now - (last[key] ?? -9) < gap) return true;
+    last[key] = now;
+    if (slash) { scene.slashFlip = !scene.slashFlip; opts = { ...opts, size: (opts.size ?? 1) * 0.8, flip: scene.slashFlip }; }
+    if (column) { scene.effects = scene.effects.filter((f) => !(f.kind === 'vfx' && f.column)); life = Math.min(life, 0.6); }
+    opts = { ...opts, column };
+  }
   scene.effects.push({
     kind: 'vfx', name: n, x, y, life: life + delay, max: life, delay, size: (opts.size ?? 1) * (sober ? 0.8 : 1),
     tint: opts.tint ?? null, flip: Boolean(opts.flip), alpha: (opts.alpha ?? 1) * (sober ? 0.7 : 1), loop: opts.loop ?? e.loop,
-    follow: opts.follow, oy: opts.oy ?? 0, top: Boolean(opts.top), vx: opts.vx ?? 0, vy: opts.vy ?? 0, sober, rot: opts.rot ?? 0,
+    follow: opts.follow, column: Boolean(opts.column), oy: opts.oy ?? 0, top: Boolean(opts.top), vx: opts.vx ?? 0, vy: opts.vy ?? 0, sober, rot: opts.rot ?? 0,
   });
   return true;
 }
@@ -88,7 +112,7 @@ function frameIndex(e, fx, age) {
 // Dessine une image d'effet centrée sur son ancrage en (x, y).
 export function drawVfxFrame(ctx, name, i, x, y, { size = 1, tint = null, flip = false, alpha = 1, rot = 0, tip = false } = {}) {
   const e = VFX[name];
-  if (!e || !loaded) return;
+  if (!e || !loaded || (e.at === 2 && !loaded2)) return;
   const k = e.scale * size;
   // Projectile : ancré par sa pointe (bord droit), au milieu de sa hauteur.
   const ax = tip ? e.w - 1 : e.ax;
@@ -103,13 +127,13 @@ export function drawVfxFrame(ctx, name, i, x, y, { size = 1, tint = null, flip =
     if (rot) ctx.rotate(rot);
     if (flip) ctx.scale(-1, 1);
     if (src) ctx.drawImage(src, -ax * k, -ay * k, w, h);
-    else ctx.drawImage(atlas, e.f[i][0], e.f[i][1], e.w, e.h, -ax * k, -ay * k, w, h);
+    else ctx.drawImage(sheetOf(e), e.f[i][0], e.f[i][1], e.w, e.h, -ax * k, -ay * k, w, h);
     ctx.restore();
   } else {
     const dx = Math.round((x - ax * k) * 4) / 4;
     const dy = Math.round((y - ay * k) * 4) / 4;
     if (src) ctx.drawImage(src, dx, dy, w, h);
-    else ctx.drawImage(atlas, e.f[i][0], e.f[i][1], e.w, e.h, dx, dy, w, h);
+    else ctx.drawImage(sheetOf(e), e.f[i][0], e.f[i][1], e.w, e.h, dx, dy, w, h);
   }
   ctx.globalAlpha = 1;
 }

@@ -1,0 +1,303 @@
+{
+ "canvas": {
+  "h": 112,
+  "w": 96
+ },
+ "frames": 10,
+ "fps": 10,
+ "loop": true,
+ "anchor": {
+  "x": 48,
+  "y": 56,
+  "kind": "origin"
+ },
+ "message": "A 10-frame looping sacred sun: a bright white-gold sun disk with a pulsing halo ring, five straight golden rays shining down from it, and a few twinkling sparkles. The rays are the main shape to tune; try the sun and halo size sliders or the ray brightness.",
+ "effect_id": "1af80abb-6f3e-4866-8c4f-bb04d6356806",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-prayer-sun 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-prayer-sun 1.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-prayer-sun 2.png",
+    "frame": {
+     "x": 192,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-prayer-sun 3.png",
+    "frame": {
+     "x": 288,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-prayer-sun 4.png",
+    "frame": {
+     "x": 0,
+     "y": 112,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-prayer-sun 5.png",
+    "frame": {
+     "x": 96,
+     "y": 112,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-prayer-sun 6.png",
+    "frame": {
+     "x": 192,
+     "y": 112,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-prayer-sun 7.png",
+    "frame": {
+     "x": 288,
+     "y": 112,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-prayer-sun 8.png",
+    "frame": {
+     "x": 0,
+     "y": 224,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   },
+   {
+    "filename": "ascendrya-v-prayer-sun 9.png",
+    "frame": {
+     "x": 96,
+     "y": 224,
+     "w": 96,
+     "h": 112
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 112
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 112
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 100
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-prayer-sun.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 384,
+    "h": 336
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 48,
+    "y": 56
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-prayer-sun",
+     "from": 0,
+     "to": 9,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

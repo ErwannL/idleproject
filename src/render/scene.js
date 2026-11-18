@@ -46,7 +46,7 @@ import { companionSkillList } from '../data/companion-skills.js';
 import { COMPANION_ROLES } from '../data/synergies.js';
 import { drawWorldVfx, eventVfx } from './vfx-world.js'; // v9.2.6 : compétences, boss, environnement, mutations, ambiance
 import { weaponFx } from '../data/weapon-fx.js'; // v9.3.2 : effets d'arme selon la rareté
-import { DAMAGE_COLORS, drawDamageText, drawVfx, drawVfxFrame, projFrame, vfx, vfxReady } from './vfx.js'; // v9.2.6 : effets de combat PixelLab
+import { DAMAGE_COLORS, drawDamageText, drawVfx, drawVfxFrame, projFrame, vfx, vfx2Ready, vfxReady } from './vfx.js'; // v9.2.6 : effets de combat PixelLab
 import { unitGear } from '../core/companion-gear.js'; // v9.3.3 : halo d'équipement
 // v9.2.9 : toiles de travail relues par getImageData : mémoire côté processeur (avertissement Chrome « willReadFrequently »).
 const RF = { willReadFrequently: true };
@@ -329,7 +329,7 @@ export class SceneRenderer {
     this.width = Math.max(120, Math.floor(cssWidth / scale));
     this.height = Math.max(MIN_VIEW_HEIGHT, Math.floor(cssHeight / scale));
     const prevGround = this.groundY;
-    const lift = tall ? 0.68 : wide ? 0.65 : 0;
+    const lift = this.groundLift ?? (tall ? 0.68 : wide ? 0.74 : 0); // v9.11 (2, 6) : grands boss plus bas ; scène PC moins de briques vides
     this.groundY = lift ? Math.max(MIN_VIEW_HEIGHT - GROUND_DEPTH, Math.min(this.height - GROUND_DEPTH, Math.round(this.height * lift))) : this.height - GROUND_DEPTH;
     // v9.3.9 : la grande scène PC range les infos du combat (vague, boss, prochain déblocage) dans la terre, sous le sol.
     this.wide = wide && this.groundY < this.height - GROUND_DEPTH - 30;
@@ -410,7 +410,12 @@ export class SceneRenderer {
         const sx = this.dashReach(event.x);
         this.dust(HERO_X - 4, 3);
         // v9.2.6 : arc de taille dessiné (PixelLab), doré et plus grand sur un critique ; ancien arc en repli.
-        const drawnSlash = vfx(this, 'hit_slash', heroX + 22 + sx, this.groundY - 14 - this.waterLift(), { delay: 0.05, size: event.crit ? 1.3 : 1, tint: event.crit ? '#ffd23f' : null, life: 0.22 });
+        // v9.11 (1) : coup critique = arc en dégradé (blanc au bord, doré au centre, transparent au bout) avec traînée,
+        // pas plus grand que le héros, et une étincelle à l'impact (plus de « banane » jaune pâle).
+        const critArc = event.crit && vfx2Ready('v_crit_arc');
+        const drawnSlash = critArc ? vfx(this, 'v_crit_arc', heroX + 20 + sx, this.groundY - 16 - this.waterLift(), { delay: 0.04 })
+          : vfx(this, 'hit_slash', heroX + 22 + sx, this.groundY - 14 - this.waterLift(), { delay: 0.05, size: event.crit ? 1.3 : 1, tint: event.crit ? '#ffd23f' : null, life: 0.22 });
+        if (critArc) vfx(this, 'v_crit_spark', event.x - 6, this.groundY - 18, { delay: 0.1 });
         if (!drawnSlash && event.crit) this.sprite(['fx_slash_crit'], heroX + 18 + sx, this.groundY + 4 - this.waterLift(), 0.22, { delay: 0.07, tint: '#ffd23f' });
         else if (!drawnSlash) this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], heroX + 14 + sx, this.groundY + 1 - this.waterLift(), 0.18, { delay: 0.07 });
         // L'impact (éclair blanc, recul, étincelles, chiffre) tombe quand la lame touche, pas au début du geste.
@@ -425,7 +430,7 @@ export class SceneRenderer {
         if (event.source !== 'hero' && !vfx(this, 'hit_blunt', event.x - 4, this.groundY - 14, { size: 0.7 })) this.sprite(['fx_hit'], event.x, this.groundY - 10, 0.14);
         if (event.source === 'skill' || event.source === 'companion') {
           const [c0, c1] = DAMAGE_COLORS[event.source];
-          this.addText(formatNumber(event.damage), event.x, this.groundY - (event.boss ? 64 : 42), c0, c1);
+          this.addText(formatNumber(event.damage), event.x, this.groundY - (event.boss ? 64 : 42), c0, c1, false, event.damage);
         }
         // v9.3.1 : types : coup efficace (avantage d'élément) ou peu efficace, signalé au-dessus de l'ennemi.
         // v9.3.2 : AVANTAGE / DÉSAVANTAGE (au plus une fois toutes les 0,7 s par ennemi, pour rester lisible).
@@ -601,8 +606,19 @@ export class SceneRenderer {
     for (let i = 0; i < rings.length - 3; i++) this.effects.splice(this.effects.indexOf(rings[i]), 1);
   }
 
-  addText(text, x, y, color, light = '#ffffff', big = false) {
+  addText(text, x, y, color, light = '#ffffff', big = false, value = null) {
     const texts = this.effects.filter((e) => e.kind === 'text');
+    // v9.11 (2) : coups rapprochés sur la même cible → un seul chiffre qui s'additionne et rejaillit (plus de pile de
+    // « 3,6 Qi » identiques, surtout contre un grand boss).
+    if (Number.isFinite(value)) {
+      const m = texts.find((e) => Number.isFinite(e.value) && e.max - e.life < 0.6 && Math.abs((e.baseX ?? e.cx) - x) < 34);
+      if (m) {
+        m.value += value; m.text = formatNumber(Math.round(m.value)); m.life = m.max; m.pop = true;
+        if (big) { m.color = color; m.light = light; }
+        delete m.cache; m.x = m.cx - textWidth(m.text, FONT_BIG) / 2;
+        return;
+      }
+    }
     if (texts.length >= MAX_FLOATING_TEXTS) this.effects.splice(this.effects.indexOf(texts[0]), 1);
     // v9.7.1 : chiffres en éventail — un coup proche d'un chiffre récent est décalé (gauche/droite, plus haut) au lieu
     // de s'empiler (« 3t362?7KK » illisible).
@@ -621,7 +637,7 @@ export class SceneRenderer {
       y -= 9;
       x += k % 2 ? -4 : 4;
     }
-    this.effects.push({ baseX, kind: 'text', text, x: x - w / 2, y, cx: x, y0: y, color, light, life: big ? 0.95 : 0.8, max: big ? 0.95 : 0.8, pop: big });
+    this.effects.push({ baseX, kind: 'text', text, value, x: x - w / 2, y, cx: x, y0: y, color, light, life: big ? 0.95 : 0.8, max: big ? 0.95 : 0.8, pop: big });
   }
 
   burst(x, y, color, count, speed = 30) {
@@ -706,7 +722,7 @@ export class SceneRenderer {
     if (el) this.elementFx(ix, iy, el, crit || boss);
     // v9.2.6 : couleur du chiffre selon le coup (critique doré, élément, coup simple blanc).
     const [c0, c1] = DAMAGE_COLORS[crit ? 'crit' : el ?? 'hit'] ?? DAMAGE_COLORS.hit;
-    if (damage) this.addText(formatNumber(damage), x, G - (boss ? 58 : 36), c0, c1, crit);
+    if (damage) this.addText(formatNumber(damage), x, G - (boss ? 58 : 36), c0, c1, crit, damage);
   }
 
   killEffect(event) {
@@ -1776,6 +1792,9 @@ export class SceneRenderer {
       pose.dy = (gesture ? pose.dy : 0) + 9 + Math.sin(phase * Math.PI * 2 - Math.PI / 2) * -1.5;
     }
     if (gait === 'glide' && gesture) { pose.dy += 4; pose.glide = true; }
+    // v9.11 (2) : l'équipe vit (grands boss) — tremble quand le boss frappe, se baisse derrière sa garde au jet de pierre.
+    if (!this.focus && this.teamHurt > this.time) pose.dx = (pose.dx ?? 0) + (Math.floor(this.time * 40 + i) % 2 ? 1 : -1);
+    if (!this.focus && this.teamBrace > this.time) pose.dy = (pose.dy ?? 0) - 2;
     return pose;
   }
 

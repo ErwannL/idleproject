@@ -1,0 +1,355 @@
+{
+ "canvas": {
+  "h": 120,
+  "w": 112
+ },
+ "frames": 12,
+ "fps": 12,
+ "loop": true,
+ "anchor": {
+  "x": 56,
+  "y": 60,
+  "kind": "origin"
+ },
+ "message": "A looping 12-frame fiery whirlwind: two steel axes spin in opposite orbits round a flame base, each leaving a rising ember trail, with a tight ring of orange embers climbing the funnel. It's built on a four-colour fire ramp with dark outlines, no dither, and a transparent background. The funnel is drawn as an orbiting ring of embers rather than a solid column, so if you want a denser tornado, raise the count on the tornado layer in the recipe.",
+ "effect_id": "ef5f79bf-83c0-4509-909e-4bc716db012d",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-whirl-axe 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 120
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 120
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 120
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-axe 1.png",
+    "frame": {
+     "x": 112,
+     "y": 0,
+     "w": 112,
+     "h": 120
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 120
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 120
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-axe 2.png",
+    "frame": {
+     "x": 224,
+     "y": 0,
+     "w": 112,
+     "h": 120
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 120
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 120
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-axe 3.png",
+    "frame": {
+     "x": 336,
+     "y": 0,
+     "w": 112,
+     "h": 120
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 120
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 120
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-axe 4.png",
+    "frame": {
+     "x": 0,
+     "y": 120,
+     "w": 112,
+     "h": 120
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 120
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 120
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-axe 5.png",
+    "frame": {
+     "x": 112,
+     "y": 120,
+     "w": 112,
+     "h": 120
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 120
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 120
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-axe 6.png",
+    "frame": {
+     "x": 224,
+     "y": 120,
+     "w": 112,
+     "h": 120
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 120
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 120
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-axe 7.png",
+    "frame": {
+     "x": 336,
+     "y": 120,
+     "w": 112,
+     "h": 120
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 120
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 120
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-axe 8.png",
+    "frame": {
+     "x": 0,
+     "y": 240,
+     "w": 112,
+     "h": 120
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 120
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 120
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-axe 9.png",
+    "frame": {
+     "x": 112,
+     "y": 240,
+     "w": 112,
+     "h": 120
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 120
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 120
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-axe 10.png",
+    "frame": {
+     "x": 224,
+     "y": 240,
+     "w": 112,
+     "h": 120
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 120
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 120
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-axe 11.png",
+    "frame": {
+     "x": 336,
+     "y": 240,
+     "w": 112,
+     "h": 120
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 112,
+     "h": 120
+    },
+    "sourceSize": {
+     "w": 112,
+     "h": 120
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-whirl-axe.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 448,
+    "h": 360
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 56,
+    "y": 60
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-whirl-axe",
+     "from": 0,
+     "to": 11,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

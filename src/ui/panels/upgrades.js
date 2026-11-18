@@ -40,7 +40,7 @@ function effect(key, cur, next) {
     case 'dodge': return [`${formatDecimal(cur.dodgePct)} %`, `${formatDecimal(next.dodgePct)} %`, 'esquive'];
     case 'xpGain': return [`+${formatDecimal(cur.xpPct)} %`, `+${formatDecimal(next.xpPct)} %`, 'XP'];
     // v9.2.8
-    case 'defense': return [`${formatNumber(cur.defense)} (−${formatDecimal(cur.defenseReductionPct)} %)`, `${formatNumber(next.defense)} (−${formatDecimal(next.defenseReductionPct)} %)`, 'défense'];
+    case 'defense': return [`Dégâts reçus −${formatDecimal(cur.defenseReductionPct)} %`, `−${formatDecimal(next.defenseReductionPct)} %`, 'défense']; // v9.11 (6) : lisible pour un débutant
     case 'doubleAttack': return [`${formatDecimal(cur.doubleAttackPct)} %`, `${formatDecimal(next.doubleAttackPct)} %`, 'double attaque'];
     default: return ['', '', ''];
   }
@@ -58,9 +58,9 @@ function rebirthRow(state) {
   const ok = canRebirth(state) && !rebirthBlocked(state) && rebirthWorth(state);
   const why = !canRebirth(state) ? (state.maxStage < REBIRTH.minStage ? `Rentable à l'étape ${stageLabel(REBIRTH.minStage)}` : 'Termine la mini-quête « Renaissance »')
     : rebirthBlocked(state) ?? (rebirthWorth(state) ? '' : 'Rentable un peu plus loin : avance encore');
-  return `<div class="card upg-card upg-rebirth">
-    <div class="upg-icon">${img('icon_star')}</div>
-    <div class="upg-main"><div class="upg-name">Renaissance</div><div class="muted">Recommence plus fort : +${gainPct} % de dégâts, PV et or pour toujours</div></div>
+  // v9.11 (6) : le texte sur toute la largeur, le bouton dessous (plus de colonne de 2 mots).
+  return `<div class="card upg-rebirth upg-rebirth-v">
+    <div class="upg-rb-head">${img('icon_star')}<div><div class="upg-name">Renaissance</div><div class="muted">Recommence plus fort : +${gainPct} % de dégâts, PV et or pour toujours</div></div></div>
     ${ok ? `<button class="btn btn-gold" data-action="rebirth">Renaître · +${gainPct} %</button>` : `<button class="btn" disabled>${escapeHtml(why)}</button>`}</div>`;
 }
 

@@ -85,6 +85,7 @@ export function openWorldBoss(state, actions) {
   document.body.appendChild(el);
   const canvas = el.querySelector('canvas');
   const scene = new WorldBossScene(canvas, fight, { calm });
+  if (typeof window !== 'undefined' && window.__idle?.ui) window.__idle.wbScene = scene; // v9.11 : tests (effets du combat)
   const q = (s) => el.querySelector(s);
   const ctx = { el, fight, scene, setup, raf: 0, acc: 0, last: 0, ended: false, shownPhase: 0, shownLayer: 0, lag: 1, bannerT: 0 };
   open = ctx;
@@ -114,7 +115,9 @@ export function openWorldBoss(state, actions) {
       canvas.classList.remove('wb-portrait');
       canvas.style.transform = '';
       canvas.style.top = '';
-      q('.wb-live').classList.add('hidden');
+      // v9.11 (2) : en paysage, le bilan en direct (dégâts par membre, paliers) occupe la bande du bas.
+      const live = q('.wb-live');
+      live.style.top = ''; live.classList.toggle('wb-live-bottom', h > 600); live.classList.toggle('hidden', h <= 600);
     }
     if (ctx.ended || calm) scene.frame(0); // un canvas redimensionné est vidé : image fixe redessinée
   };

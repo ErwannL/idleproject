@@ -33,7 +33,8 @@ export function mentorTips(state, { element = null, wall = false } = {}, balance
   const up = bestOpenUpgrade(state, balance);
   if (up && up.cost <= state.gold) {
     const pct = Math.round((upgradeProfits(state, balance)[up.key]?.pct ?? 0) * 10) / 10;
-    out.push({ id: 'upgrade', icon: 'icon_upgrade', title: 'Amélioration abordable', text: `${UPGRADE_NAMES[up.key] ?? up.key}${pct ? ` +${String(pct).replace('.', ',')} %` : ''} pour ${formatNumber(up.cost)} or`,
+    // v9.11 (6) : seulement un conseil qui change quelque chose (au moins +5 %).
+    if (pct >= 5) out.push({ id: 'upgrade', icon: 'icon_upgrade', title: 'Amélioration abordable', text: `${UPGRADE_NAMES[up.key] ?? up.key}${pct ? ` +${String(pct).replace('.', ',')} %` : ''} pour ${formatNumber(up.cost)} or`,
       tab: 'upgrades', point: `[data-action="buy"][data-key="${up.key}"]` });
   }
   const place = companionToPlace(state, balance);

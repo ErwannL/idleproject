@@ -1,0 +1,303 @@
+{
+ "canvas": {
+  "h": 81,
+  "w": 65
+ },
+ "frames": 10,
+ "fps": 12,
+ "loop": true,
+ "anchor": {
+  "x": 28,
+  "y": 66,
+  "kind": "origin"
+ },
+ "message": "A 10-frame looping forest healing prayer: green leaves and glowing spores swirl up in a spiral from a soft green light on the ground, with a few rising motes. Nothing is cut off at the edges. The spores are small and faint, so raise the spore count or size if you want them to read more clearly at 1x.",
+ "effect_id": "c38f0a3f-7bf5-450b-aa34-56a6d14c9730",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-prayer-leaves 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 65,
+     "h": 81
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 65,
+     "h": 81
+    },
+    "sourceSize": {
+     "w": 65,
+     "h": 81
+    },
+    "pivot": {
+     "x": 0.4307692307692308,
+     "y": 0.8148148148148148
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-prayer-leaves 1.png",
+    "frame": {
+     "x": 65,
+     "y": 0,
+     "w": 65,
+     "h": 81
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 65,
+     "h": 81
+    },
+    "sourceSize": {
+     "w": 65,
+     "h": 81
+    },
+    "pivot": {
+     "x": 0.4307692307692308,
+     "y": 0.8148148148148148
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-prayer-leaves 2.png",
+    "frame": {
+     "x": 130,
+     "y": 0,
+     "w": 65,
+     "h": 81
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 65,
+     "h": 81
+    },
+    "sourceSize": {
+     "w": 65,
+     "h": 81
+    },
+    "pivot": {
+     "x": 0.4307692307692308,
+     "y": 0.8148148148148148
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-prayer-leaves 3.png",
+    "frame": {
+     "x": 195,
+     "y": 0,
+     "w": 65,
+     "h": 81
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 65,
+     "h": 81
+    },
+    "sourceSize": {
+     "w": 65,
+     "h": 81
+    },
+    "pivot": {
+     "x": 0.4307692307692308,
+     "y": 0.8148148148148148
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-prayer-leaves 4.png",
+    "frame": {
+     "x": 0,
+     "y": 81,
+     "w": 65,
+     "h": 81
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 65,
+     "h": 81
+    },
+    "sourceSize": {
+     "w": 65,
+     "h": 81
+    },
+    "pivot": {
+     "x": 0.4307692307692308,
+     "y": 0.8148148148148148
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-prayer-leaves 5.png",
+    "frame": {
+     "x": 65,
+     "y": 81,
+     "w": 65,
+     "h": 81
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 65,
+     "h": 81
+    },
+    "sourceSize": {
+     "w": 65,
+     "h": 81
+    },
+    "pivot": {
+     "x": 0.4307692307692308,
+     "y": 0.8148148148148148
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-prayer-leaves 6.png",
+    "frame": {
+     "x": 130,
+     "y": 81,
+     "w": 65,
+     "h": 81
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 65,
+     "h": 81
+    },
+    "sourceSize": {
+     "w": 65,
+     "h": 81
+    },
+    "pivot": {
+     "x": 0.4307692307692308,
+     "y": 0.8148148148148148
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-prayer-leaves 7.png",
+    "frame": {
+     "x": 195,
+     "y": 81,
+     "w": 65,
+     "h": 81
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 65,
+     "h": 81
+    },
+    "sourceSize": {
+     "w": 65,
+     "h": 81
+    },
+    "pivot": {
+     "x": 0.4307692307692308,
+     "y": 0.8148148148148148
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-prayer-leaves 8.png",
+    "frame": {
+     "x": 0,
+     "y": 162,
+     "w": 65,
+     "h": 81
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 65,
+     "h": 81
+    },
+    "sourceSize": {
+     "w": 65,
+     "h": 81
+    },
+    "pivot": {
+     "x": 0.4307692307692308,
+     "y": 0.8148148148148148
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-prayer-leaves 9.png",
+    "frame": {
+     "x": 65,
+     "y": 162,
+     "w": 65,
+     "h": 81
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 65,
+     "h": 81
+    },
+    "sourceSize": {
+     "w": 65,
+     "h": 81
+    },
+    "pivot": {
+     "x": 0.4307692307692308,
+     "y": 0.8148148148148148
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-prayer-leaves.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 260,
+    "h": 243
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 28,
+    "y": 66
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-prayer-leaves",
+     "from": 0,
+     "to": 9,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

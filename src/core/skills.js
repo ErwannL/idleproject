@@ -1,3 +1,4 @@
+import { heraldTrack } from './chronicles.js';
 // Compétences actives : apprentissage avec les points de niveau, valeur et recharge.
 import { LOADOUT_SIZE, SKILLS } from '../data/skills.js';
 
@@ -37,6 +38,7 @@ export function learnSkill(state, id) {
   const level = state.skills[id] ?? 0;
   if (level >= skill.maxLevel || skillPointsAvailable(state) < skillPointCost(level)) return false;
   state.skills[id] = level + 1;
+  heraldTrack(state, 'skills', 1); // v9.11 (7)
   return true;
 }
 

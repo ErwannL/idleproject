@@ -1,0 +1,355 @@
+{
+ "canvas": {
+  "h": 128,
+  "w": 96
+ },
+ "frames": 12,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 48,
+  "y": 100,
+  "kind": "origin"
+ },
+ "message": "A 12-frame holy smite: sparks converge into a glow, a golden pillar drops onto the ground with a bright cross flash and a ring of light, then falling sparks and grey smoke fade out. Try the ring size and the pillar width sliders for a bigger or narrower strike; the ring and pillar are the core of the look.",
+ "effect_id": "95e40034-9dbc-41ee-9e55-9722bb5bdf13",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-holy-smite 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.78125
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-holy-smite 1.png",
+    "frame": {
+     "x": 96,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.78125
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-holy-smite 2.png",
+    "frame": {
+     "x": 192,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.78125
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-holy-smite 3.png",
+    "frame": {
+     "x": 288,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.78125
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-holy-smite 4.png",
+    "frame": {
+     "x": 0,
+     "y": 128,
+     "w": 96,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.78125
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-holy-smite 5.png",
+    "frame": {
+     "x": 96,
+     "y": 128,
+     "w": 96,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.78125
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-holy-smite 6.png",
+    "frame": {
+     "x": 192,
+     "y": 128,
+     "w": 96,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.78125
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-holy-smite 7.png",
+    "frame": {
+     "x": 288,
+     "y": 128,
+     "w": 96,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.78125
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-holy-smite 8.png",
+    "frame": {
+     "x": 0,
+     "y": 256,
+     "w": 96,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.78125
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-holy-smite 9.png",
+    "frame": {
+     "x": 96,
+     "y": 256,
+     "w": 96,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.78125
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-holy-smite 10.png",
+    "frame": {
+     "x": 192,
+     "y": 256,
+     "w": 96,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.78125
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-holy-smite 11.png",
+    "frame": {
+     "x": 288,
+     "y": 256,
+     "w": 96,
+     "h": 128
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 96,
+     "h": 128
+    },
+    "sourceSize": {
+     "w": 96,
+     "h": 128
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.78125
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-holy-smite.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 384,
+    "h": 384
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 48,
+    "y": 100
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-holy-smite",
+     "from": 0,
+     "to": 11,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

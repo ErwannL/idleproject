@@ -1,0 +1,355 @@
+{
+ "canvas": {
+  "h": 103,
+  "w": 70
+ },
+ "frames": 12,
+ "fps": 12,
+ "loop": false,
+ "anchor": {
+  "x": 32,
+  "y": 62,
+  "kind": "origin"
+ },
+ "message": "A 12-frame, one-shot shadow blade dance: violet slash arcs flurry in a combo, then cross over each other in an X with sparks, over a dark purple smoke cloud with three small shadow silhouettes flitting in and out. The clones are small and read best at this size; the smoke and the clone silhouettes are the parts to tune if you want them bolder. Note that the clones are pixel silhouettes I drew, not animated fighters, and the palette is four colours per material for the retro look.",
+ "effect_id": "8ac6fad7-471d-4609-880e-11bfa7c276e7",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-dance-shadow 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 103
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 103
+    },
+    "sourceSize": {
+     "w": 70,
+     "h": 103
+    },
+    "pivot": {
+     "x": 0.45714285714285713,
+     "y": 0.6019417475728155
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-shadow 1.png",
+    "frame": {
+     "x": 70,
+     "y": 0,
+     "w": 70,
+     "h": 103
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 103
+    },
+    "sourceSize": {
+     "w": 70,
+     "h": 103
+    },
+    "pivot": {
+     "x": 0.45714285714285713,
+     "y": 0.6019417475728155
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-shadow 2.png",
+    "frame": {
+     "x": 140,
+     "y": 0,
+     "w": 70,
+     "h": 103
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 103
+    },
+    "sourceSize": {
+     "w": 70,
+     "h": 103
+    },
+    "pivot": {
+     "x": 0.45714285714285713,
+     "y": 0.6019417475728155
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-shadow 3.png",
+    "frame": {
+     "x": 210,
+     "y": 0,
+     "w": 70,
+     "h": 103
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 103
+    },
+    "sourceSize": {
+     "w": 70,
+     "h": 103
+    },
+    "pivot": {
+     "x": 0.45714285714285713,
+     "y": 0.6019417475728155
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-shadow 4.png",
+    "frame": {
+     "x": 0,
+     "y": 103,
+     "w": 70,
+     "h": 103
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 103
+    },
+    "sourceSize": {
+     "w": 70,
+     "h": 103
+    },
+    "pivot": {
+     "x": 0.45714285714285713,
+     "y": 0.6019417475728155
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-shadow 5.png",
+    "frame": {
+     "x": 70,
+     "y": 103,
+     "w": 70,
+     "h": 103
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 103
+    },
+    "sourceSize": {
+     "w": 70,
+     "h": 103
+    },
+    "pivot": {
+     "x": 0.45714285714285713,
+     "y": 0.6019417475728155
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-shadow 6.png",
+    "frame": {
+     "x": 140,
+     "y": 103,
+     "w": 70,
+     "h": 103
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 103
+    },
+    "sourceSize": {
+     "w": 70,
+     "h": 103
+    },
+    "pivot": {
+     "x": 0.45714285714285713,
+     "y": 0.6019417475728155
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-shadow 7.png",
+    "frame": {
+     "x": 210,
+     "y": 103,
+     "w": 70,
+     "h": 103
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 103
+    },
+    "sourceSize": {
+     "w": 70,
+     "h": 103
+    },
+    "pivot": {
+     "x": 0.45714285714285713,
+     "y": 0.6019417475728155
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-shadow 8.png",
+    "frame": {
+     "x": 0,
+     "y": 206,
+     "w": 70,
+     "h": 103
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 103
+    },
+    "sourceSize": {
+     "w": 70,
+     "h": 103
+    },
+    "pivot": {
+     "x": 0.45714285714285713,
+     "y": 0.6019417475728155
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-shadow 9.png",
+    "frame": {
+     "x": 70,
+     "y": 206,
+     "w": 70,
+     "h": 103
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 103
+    },
+    "sourceSize": {
+     "w": 70,
+     "h": 103
+    },
+    "pivot": {
+     "x": 0.45714285714285713,
+     "y": 0.6019417475728155
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-shadow 10.png",
+    "frame": {
+     "x": 140,
+     "y": 206,
+     "w": 70,
+     "h": 103
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 103
+    },
+    "sourceSize": {
+     "w": 70,
+     "h": 103
+    },
+    "pivot": {
+     "x": 0.45714285714285713,
+     "y": 0.6019417475728155
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-dance-shadow 11.png",
+    "frame": {
+     "x": 210,
+     "y": 206,
+     "w": 70,
+     "h": 103
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 103
+    },
+    "sourceSize": {
+     "w": 70,
+     "h": 103
+    },
+    "pivot": {
+     "x": 0.45714285714285713,
+     "y": 0.6019417475728155
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-dance-shadow.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 280,
+    "h": 309
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 32,
+    "y": 62
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-dance-shadow",
+     "from": 0,
+     "to": 11,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

@@ -86,9 +86,12 @@ export const GRAND_BOSSES = {
 };
 // v9.8 (H7) : Titans du jour — un par jour de la semaine (0 = dimanche), même moteur et mêmes planches que le Colosse,
 // une teinte, un nom et des phases propres (fiches seules, aucun code). Ils n'entrent pas au Panthéon (titan: true).
+const TITAN_ZONE = { blue: 'ocean', red: 'volcano', green: 'forest', light: 'sky', dark: 'void' };
 const titan = (id, element, name, title, filter, beam, phase) => ({
   id, element, name, title, titan: true, test: true, lore: `${title}. Chaque jour, un Titan différent se dresse contre Ascendrya.`,
-  art: { dir: 'assets/world-boss', prefix: 'colossus_', frame: 128, foot: 122, filter, anims: COLOSSUS_ANIMS, eyes: COLOSSUS_EYES,
+  // v9.11 (2) : vraies planches teintées (tools/art/recolor_titans.py) au lieu d'un filtre ; décor du monde de son élément.
+  zone: TITAN_ZONE[element], filterOld: filter,
+  art: { dir: `assets/world-boss/${id}`, prefix: 'colossus_', frame: 128, foot: 122, anims: COLOSSUS_ANIMS, eyes: COLOSSUS_EYES,
     hands: { throw: [16, 34], throw3: [18, 44] }, beamColors: { beam: [...beam, '#ffffff'], beam3: [...beam, '#fff3c8'] } },
   fight: { ...COLOSSUS_FIGHT, name, seconds: 60, phases: [{ at: 0.6, id: 'quake', name: phase[0], hit: 0.16, speed: 1.2, power: 1.2 }, { at: 0.3, id: 'fury', name: phase[1], hit: 0.26, speed: 1.45, power: 1.45 }] },
   rewards: { gems: 30 }, modes: ['solo'],

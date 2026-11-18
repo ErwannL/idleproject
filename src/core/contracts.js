@@ -1,3 +1,4 @@
+import { formatNumber } from './format.js';
 // Contrats d'aventure : 3 objectifs actifs qui progressent automatiquement.
 import { CONTRACT_COUNT, CONTRACT_TYPES, RARE_CONTRACT } from '../data/contracts.js';
 import { BALANCE } from '../data/balance.js';
@@ -45,5 +46,5 @@ export function contractTitle(contract) {
 }
 
 export function contractLabel(contract) {
-  return CONTRACT_TYPES[contract.type].label(contract.target);
+  return CONTRACT_TYPES[contract.type].label(formatNumber(contract.target)); // v9.11 (7) : jamais de nombre brut
 }

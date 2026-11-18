@@ -131,3 +131,4 @@
 .wb-live-bar > i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #ffb347, #ffd23f); transition: width 0.25s; }
 .wb-live-row b { color: #fff; min-width: 56px; text-align: right; }
 .wb-live-tiers { display: flex; gap: 6px; flex-wrap: wrap; }
+.wb-live.wb-live-bottom { top: auto !important; bottom: 10px; left: 50%; right: auto; transform: translateX(-50%); width: min(720px, 90%); max-height: 15%; overflow: hidden; grid-template-columns: 1fr 1fr; background: rgba(8, 10, 18, .55); border-radius: 8px; } /* v9.11 (2) */

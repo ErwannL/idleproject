@@ -73,7 +73,7 @@ function rulesText(pool) {
   const copies = `Copies : ${COPIES.max} au plus (${COPIES[pool === 'pet' ? 'petSteps' : 'steps'].map((s, i) => `${i + 1} : ${s}`).join(' · ')}). Au-delà : converti, jamais perdu.`;
   if (pool === 'limited') return [curve, 'Un Légendaire sur deux est la vedette. Si ce n\'est pas elle, le Légendaire suivant l\'est, garanti. Compteur et garantie gardés d\'une bannière limitée à la suivante.', 'Payable en tickets limités ou en gemmes.', copies];
   if (pool === 'permanent') return [curve, 'Favoris : chaque Légendaire en favori reçoit 20 % des Légendaires obtenus ; 5 favoris = toujours un de vos favoris. Les Légendaires limités n\'y entrent pas.', 'Payable en tickets permanents ou en gemmes.', copies];
-  return [curve, 'Un Légendaire est toujours un familier Légendaire de la sélection.', 'Tickets familiers seulement (jamais de gemmes). Tickets sans expiration.', copies];
+  return [curve, 'Un Légendaire est toujours un familier Légendaire de la sélection.', 'Tickets de familier seulement (jamais de gemmes). Tickets sans expiration.', copies];
 }
 
 function oddsBlock(state, pool) {

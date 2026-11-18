@@ -1,0 +1,355 @@
+{
+ "canvas": {
+  "h": 110,
+  "w": 118
+ },
+ "frames": 12,
+ "fps": 16,
+ "loop": false,
+ "anchor": {
+  "x": 90,
+  "y": 95,
+  "kind": "origin"
+ },
+ "message": "A 12-frame one-shot shuriken storm: two volleys of spinning steel shuriken cross the frame, a quick white-blue X slash lands mid-way with sparks, and small smoke puffs gather and fade. The shuriken are small, so if you want them chunkier, ask for bigger throws; the slash timing and the smoke density are the other things to tune.",
+ "effect_id": "99a95f5a-31f8-4d4f-a78b-0c2438c4e717",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-dance-ninja 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 110
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 110
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 110
+    },
+    "pivot": {
+     "x": 0.7627118644067796,
+     "y": 0.8636363636363636
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-dance-ninja 1.png",
+    "frame": {
+     "x": 118,
+     "y": 0,
+     "w": 118,
+     "h": 110
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 110
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 110
+    },
+    "pivot": {
+     "x": 0.7627118644067796,
+     "y": 0.8636363636363636
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-dance-ninja 2.png",
+    "frame": {
+     "x": 236,
+     "y": 0,
+     "w": 118,
+     "h": 110
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 110
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 110
+    },
+    "pivot": {
+     "x": 0.7627118644067796,
+     "y": 0.8636363636363636
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-dance-ninja 3.png",
+    "frame": {
+     "x": 354,
+     "y": 0,
+     "w": 118,
+     "h": 110
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 110
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 110
+    },
+    "pivot": {
+     "x": 0.7627118644067796,
+     "y": 0.8636363636363636
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-dance-ninja 4.png",
+    "frame": {
+     "x": 0,
+     "y": 110,
+     "w": 118,
+     "h": 110
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 110
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 110
+    },
+    "pivot": {
+     "x": 0.7627118644067796,
+     "y": 0.8636363636363636
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-dance-ninja 5.png",
+    "frame": {
+     "x": 118,
+     "y": 110,
+     "w": 118,
+     "h": 110
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 110
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 110
+    },
+    "pivot": {
+     "x": 0.7627118644067796,
+     "y": 0.8636363636363636
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-dance-ninja 6.png",
+    "frame": {
+     "x": 236,
+     "y": 110,
+     "w": 118,
+     "h": 110
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 110
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 110
+    },
+    "pivot": {
+     "x": 0.7627118644067796,
+     "y": 0.8636363636363636
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-dance-ninja 7.png",
+    "frame": {
+     "x": 354,
+     "y": 110,
+     "w": 118,
+     "h": 110
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 110
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 110
+    },
+    "pivot": {
+     "x": 0.7627118644067796,
+     "y": 0.8636363636363636
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-dance-ninja 8.png",
+    "frame": {
+     "x": 0,
+     "y": 220,
+     "w": 118,
+     "h": 110
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 110
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 110
+    },
+    "pivot": {
+     "x": 0.7627118644067796,
+     "y": 0.8636363636363636
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-dance-ninja 9.png",
+    "frame": {
+     "x": 118,
+     "y": 220,
+     "w": 118,
+     "h": 110
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 110
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 110
+    },
+    "pivot": {
+     "x": 0.7627118644067796,
+     "y": 0.8636363636363636
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-dance-ninja 10.png",
+    "frame": {
+     "x": 236,
+     "y": 220,
+     "w": 118,
+     "h": 110
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 110
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 110
+    },
+    "pivot": {
+     "x": 0.7627118644067796,
+     "y": 0.8636363636363636
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-dance-ninja 11.png",
+    "frame": {
+     "x": 354,
+     "y": 220,
+     "w": 118,
+     "h": 110
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 118,
+     "h": 110
+    },
+    "sourceSize": {
+     "w": 118,
+     "h": 110
+    },
+    "pivot": {
+     "x": 0.7627118644067796,
+     "y": 0.8636363636363636
+    },
+    "duration": 63
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-dance-ninja.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 472,
+    "h": 330
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 90,
+    "y": 95
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-dance-ninja",
+     "from": 0,
+     "to": 11,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

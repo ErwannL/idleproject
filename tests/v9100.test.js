@@ -60,3 +60,51 @@ test('compagnons : « Équiper le meilleur » prend aussi le coffre et les objet
   assert.ok(Object.values(unitGear(s, c.id)).some((i) => i?.id === item.id));
   assert.ok(!s.stash.includes(item));
 });
+
+// ---- v9.11 ----
+import { contractLabel } from '../src/core/contracts.js';
+import { CONTRACT_TYPES } from '../src/data/contracts.js';
+import { scaledMission } from '../src/core/missions.js';
+import { MISSION_PERIODS } from '../src/data/missions.js';
+import { CHRONICLES, HERALD_TASKS, chronicleNow, claimChronicle, claimHerald, heraldTrack, heraldTask } from '../src/core/chronicles.js';
+
+test('v9.11 : contrats — aucun nombre de plus de 6 chiffres affiché brut', () => {
+  for (const type of Object.keys(CONTRACT_TYPES)) {
+    const label = contractLabel({ type, target: 157628148017416800 });
+    assert.ok(!/\d{7,}/.test(label), label);
+  }
+});
+
+test('v9.11 : missions qui suivent l\'étape (300 → 3 000 → 15 000 monstres ; 3 → 10 → 25 boss)', () => {
+  const kills = MISSION_PERIODS[0].missions.find((m) => m.id === 'kills');
+  const bosses = MISSION_PERIODS[0].missions.find((m) => m.id === 'bosses');
+  const at = (stage) => ({ records: { bestStage: stage } });
+  assert.deepEqual([1, 200, 521].map((s) => scaledMission(at(s), kills).target), [300, 3000, 15000]);
+  assert.deepEqual([1, 200, 521].map((s) => scaledMission(at(s), bosses).target), [3, 10, 25]);
+  assert.equal(scaledMission(at(521), kills).label, 'Vaincre 15 000 monstres');
+});
+
+test('v9.11 : Tâches du Héraut — 12 tâches qui se relancent dès qu\'on les récupère', () => {
+  const s = createNewState();
+  assert.ok(HERALD_TASKS.length >= 8 && HERALD_TASKS.length <= 12);
+  const t = HERALD_TASKS.find((x) => x.id === 'tower');
+  heraldTrack(s, 'tower', 1);
+  const gemsBefore = s.gems;
+  assert.ok(claimHerald(s, 'tower'));
+  assert.ok(s.gems > gemsBefore);
+  assert.equal(claimHerald(s, 'tower'), null, 'relancée : à refaire');
+  heraldTrack(s, 'tower', heraldTask(s, t).target);
+  assert.ok(claimHerald(s, 'tower'), 'récupérable à nouveau');
+});
+
+test('v9.11 : Chroniques — chaîne racontée, récompense nommée tous les 5 paliers, sauvegarde relue', () => {
+  assert.ok(CHRONICLES.length >= 15);
+  CHRONICLES.forEach((c, i) => { if ((i + 1) % 5 === 0) assert.ok(c.prize?.label, `palier ${i + 1}`); assert.ok(c.art && c.title && c.text); });
+  const s = createNewState();
+  s.records.bestStage = 30; s.maxStage = 30;
+  assert.equal(chronicleNow(s).id, 'wake');
+  assert.ok(claimChronicle(s));
+  assert.equal(chronicleNow(s).id, 'forest');
+  const back = sanitizeState(JSON.parse(JSON.stringify(s)));
+  assert.equal(back.chronicles.claimed, 1);
+});

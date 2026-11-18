@@ -1,0 +1,303 @@
+{
+ "canvas": {
+  "h": 124,
+  "w": 61
+ },
+ "frames": 10,
+ "fps": 12,
+ "loop": true,
+ "anchor": {
+  "x": 31,
+  "y": 100,
+  "kind": "origin"
+ },
+ "message": "An angelic prayer: a small gold halo hangs above the spot where the figure would stand, with white feathers drifting down through it and soft glowing motes rising from below. It loops over 10 frames at 12 fps on a transparent background. Try the Feathers slider for more or fewer feathers and the Motes slider for more or fewer rising motes. The halo is a flat gold ring rather than a soft glow, so it reads more as a drawn halo than as diffuse light.",
+ "effect_id": "5b6348bb-941b-42a7-b59a-8616f71cc1ce",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-prayer-feathers 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 124
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 124
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 124
+    },
+    "pivot": {
+     "x": 0.5081967213114754,
+     "y": 0.8064516129032258
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-prayer-feathers 1.png",
+    "frame": {
+     "x": 61,
+     "y": 0,
+     "w": 61,
+     "h": 124
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 124
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 124
+    },
+    "pivot": {
+     "x": 0.5081967213114754,
+     "y": 0.8064516129032258
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-prayer-feathers 2.png",
+    "frame": {
+     "x": 122,
+     "y": 0,
+     "w": 61,
+     "h": 124
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 124
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 124
+    },
+    "pivot": {
+     "x": 0.5081967213114754,
+     "y": 0.8064516129032258
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-prayer-feathers 3.png",
+    "frame": {
+     "x": 183,
+     "y": 0,
+     "w": 61,
+     "h": 124
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 124
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 124
+    },
+    "pivot": {
+     "x": 0.5081967213114754,
+     "y": 0.8064516129032258
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-prayer-feathers 4.png",
+    "frame": {
+     "x": 0,
+     "y": 124,
+     "w": 61,
+     "h": 124
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 124
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 124
+    },
+    "pivot": {
+     "x": 0.5081967213114754,
+     "y": 0.8064516129032258
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-prayer-feathers 5.png",
+    "frame": {
+     "x": 61,
+     "y": 124,
+     "w": 61,
+     "h": 124
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 124
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 124
+    },
+    "pivot": {
+     "x": 0.5081967213114754,
+     "y": 0.8064516129032258
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-prayer-feathers 6.png",
+    "frame": {
+     "x": 122,
+     "y": 124,
+     "w": 61,
+     "h": 124
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 124
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 124
+    },
+    "pivot": {
+     "x": 0.5081967213114754,
+     "y": 0.8064516129032258
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-prayer-feathers 7.png",
+    "frame": {
+     "x": 183,
+     "y": 124,
+     "w": 61,
+     "h": 124
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 124
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 124
+    },
+    "pivot": {
+     "x": 0.5081967213114754,
+     "y": 0.8064516129032258
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-prayer-feathers 8.png",
+    "frame": {
+     "x": 0,
+     "y": 248,
+     "w": 61,
+     "h": 124
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 124
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 124
+    },
+    "pivot": {
+     "x": 0.5081967213114754,
+     "y": 0.8064516129032258
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-prayer-feathers 9.png",
+    "frame": {
+     "x": 61,
+     "y": 248,
+     "w": 61,
+     "h": 124
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 61,
+     "h": 124
+    },
+    "sourceSize": {
+     "w": 61,
+     "h": 124
+    },
+    "pivot": {
+     "x": 0.5081967213114754,
+     "y": 0.8064516129032258
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-prayer-feathers.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 244,
+    "h": 372
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 31,
+    "y": 100
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-prayer-feathers",
+     "from": 0,
+     "to": 9,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

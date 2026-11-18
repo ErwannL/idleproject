@@ -1,0 +1,355 @@
+{
+ "canvas": {
+  "h": 80,
+  "w": 64
+ },
+ "frames": 12,
+ "fps": 12,
+ "loop": true,
+ "anchor": {
+  "x": 32,
+  "y": 40,
+  "kind": "origin"
+ },
+ "message": "A 12-frame looping blood whirlwind: a funnel of crimson sword-like strands spins up the frame, with three red slash arcs wheeling around it and dark red droplets orbiting the base. Try the page sliders for the droplet and slash colour and amount; the funnel is built from line shapes, so it reads as a spinning blade tornado rather than a literal sword.",
+ "effect_id": "7c65fade-bf3a-4c36-a952-5dbe7331b9c0",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-whirl-blood 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-blood 1.png",
+    "frame": {
+     "x": 64,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-blood 2.png",
+    "frame": {
+     "x": 128,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-blood 3.png",
+    "frame": {
+     "x": 192,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-blood 4.png",
+    "frame": {
+     "x": 0,
+     "y": 80,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-blood 5.png",
+    "frame": {
+     "x": 64,
+     "y": 80,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-blood 6.png",
+    "frame": {
+     "x": 128,
+     "y": 80,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-blood 7.png",
+    "frame": {
+     "x": 192,
+     "y": 80,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-blood 8.png",
+    "frame": {
+     "x": 0,
+     "y": 160,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-blood 9.png",
+    "frame": {
+     "x": 64,
+     "y": 160,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-blood 10.png",
+    "frame": {
+     "x": 128,
+     "y": 160,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   },
+   {
+    "filename": "ascendrya-v-whirl-blood 11.png",
+    "frame": {
+     "x": 192,
+     "y": 160,
+     "w": 64,
+     "h": 80
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 64,
+     "h": 80
+    },
+    "sourceSize": {
+     "w": 64,
+     "h": 80
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 83
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-whirl-blood.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 256,
+    "h": 240
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 32,
+    "y": 40
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-whirl-blood",
+     "from": 0,
+     "to": 11,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

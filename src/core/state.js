@@ -1,3 +1,4 @@
+import { sanitizeChronicles } from './chronicles.js';
 // État persistant de la partie (tout ce qui est sauvegardé) et validation au chargement.
 import { applyClassSkillNames } from '../data/skills.js';
 import { levelForStage, locateStage, stagesPerCycle } from './combat.js';
@@ -350,6 +351,7 @@ function cleanActivities(state, raw) {
   state.companions.equipped = state.companions.equipped.filter((id) => !state.expeditions.slots.some((s) => s?.companionId === id));
   sanitizeChallenge(state, raw);
   sanitizeArena(state, raw);
+  sanitizeChronicles(state, raw); // v9.11 (7)
   state.transcend = sanitizeTranscend(raw.transcend);
   state.bounty = sanitizeBounty(raw.bounty);
   state.codex = sanitizeCodex(raw.codex);

@@ -1,3 +1,4 @@
+import { heraldTrack } from './chronicles.js';
 // Tour de l'Éternité (v8.2) : défi sans fin, un boss par étage, chaque étage plus fort que le précédent.
 // Aucune clé n'est nécessaire ; les récompenses ne tombent qu'à chaque NOUVEAU record d'étage (pas de farm).
 // Une défaite termine l'ascension ; l'étage atteint et la meilleure ascension sont gardés.
@@ -113,6 +114,7 @@ export function startTower(state, now = Date.now()) {
 export function clearTowerFloor(state) {
   const run = state.tower;
   const floor = run.floor;
+  heraldTrack(state, 'tower', 1); // v9.11 (7)
   const record = floor > (state.towerBest ?? 0);
   const week = towerWeek(state);
   const weekly = floor > week.best;

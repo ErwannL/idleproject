@@ -136,6 +136,11 @@ export function drawWorldVfx(scene, ctx, zone, world, heroX, state) {
     loopAt(scene, ctx, env, heroX, low ? G + 1 : G - 18, (SEE_THROUGH[env] ?? 1) * scene.envFx.k, env === 'env_thirst' ? 0.7 : 1.25); // v9.2.6 : un peu plus lisible
     if (env === 'env_lava') loopAt(scene, ctx, 'poison_bubbles', heroX, G - 46, 0.9, 0.8); // la brûlure ronge les PV
   }
+  // v9.11 (1) : Cri de guerre — une petite flamme dorée aux pieds de chaque membre de l'équipe tant que le bonus dure.
+  if ((world.buffs?.cry ?? 0) > 0 && VFX.v_buff_flame) {
+    const xs = [heroX, ...[...(scene.layout?.slots?.values() ?? [])].map((sl) => sl.cx)];
+    xs.forEach((x, i) => loopAt(scene, ctx, 'v_buff_flame', x, G + 1, 0.85, 1, i * 2));
+  }
   // Rage du héros : sous 30 % de ses PV max.
   // v9.2.7 : seulement en vrai combat, PV connus et positifs : une scène sans PV (vitrine, aperçu, héros pas encore
   // initialisé : hp à 0 ou absent) gardait les flammes de rage allumées aux pieds du héros, même dans les Plaines.

@@ -162,9 +162,9 @@ export const EVENTS = {
 // Monnaies de l'économie (stockées dans state.economy.wallet). Icônes : assets/ui/shop/<icon>.png (grande) et
 // <icon>_s.png (petite) ; `sprite` = icône pixel du jeu quand la planche n'en a pas. Les gemmes gardent leur place (state.gems).
 export const WALLET = {
-  ticketLimited: { name: 'Ticket héros limité', short: 'Tickets limités', icon: 'hero_ticket_limited', use: 'Bannière limitée seulement.' },
-  ticketPermanent: { name: 'Ticket héros permanent', short: 'Tickets permanents', icon: 'hero_ticket_permanent', use: 'Bannière permanente seulement.' },
-  ticketPet: { name: 'Ticket de familier', short: 'Tickets familiers', icon: 'pet_ticket', use: 'Invocation de familiers seulement.' },
+  ticketLimited: { name: 'Ticket de compagnon', short: 'Tickets de compagnon', icon: 'hero_ticket_limited', use: 'Bannière limitée seulement.' },
+  ticketPermanent: { name: 'Ticket de compagnon permanent', short: 'Tickets de compagnon permanents', icon: 'hero_ticket_permanent', use: 'Bannière permanente seulement.' },
+  ticketPet: { name: 'Ticket de familier', short: 'Tickets de familier', icon: 'pet_ticket', use: 'Invocation de familiers seulement.' },
   ssrFragment: { name: 'Fragment Légendaire universel', short: 'Fragments Légendaires', sprite: 'icon_crown', use: 'Une copie de plus pour un Légendaire déjà possédé.' },
   eventCoins: { name: 'Écus des Anciens', short: 'Écus', sprite: 'icon_trophy', use: "Boutique de l'Expédition des Anciens." },
 };
@@ -176,8 +176,8 @@ export const WALLET_KEYS = Object.keys(WALLET);
 // première acquisition (part en plus, une seule fois par produit).
 export const SHOP_CATEGORIES = [
   { id: 'crystals', name: 'Gemmes' },
-  { id: 'heroTickets', name: 'Tickets héros' },
-  { id: 'petTickets', name: 'Tickets familiers' },
+  { id: 'heroTickets', name: 'Tickets de compagnon' }, // v9.11 (9) : même nom partout
+  { id: 'petTickets', name: 'Tickets de familier' },
   { id: 'subs', name: 'Abonnements' },
   { id: 'skins', name: 'Skins' },
   { id: 'themes', name: 'Thèmes' },
@@ -188,7 +188,9 @@ const crystal = (id, name, price, docQty) => ({ id: `crystal_${id}`, cat: 'cryst
 // Tickets limités : le DOC donne 6 / 20 / 45 / 110 / 230 (2 à 2,3 invocations par euro, contre 1 à 1,4 pour les
 // cristaux). Harmonisé : rendement des cristaux au même prix + 10 % (ticket ciblé, sans bonus de première acquisition),
 // avec une limite par mois. Valeurs du DOC gardées dans `docQty`.
-const heroTicket = (n, price, qty, docQty, limit) => ({ id: `hero_ticket_${n}`, cat: 'heroTickets', name: `Tickets limités ${n}`, price, icon: 'hero_ticket_limited', give: { ticketLimited: qty }, docQty, limit });
+// v9.11 (9) : la taille du lot se voit à l'image (1 parchemin, une liasse, un coffret, un coffre, un coffre doré).
+const TICKET_LOT = { I: 'Parchemin', II: 'Liasse', III: 'Coffret', IV: 'Coffre', V: 'Coffre doré' };
+const heroTicket = (n, price, qty, docQty, limit) => ({ id: `hero_ticket_${n}`, cat: 'heroTickets', name: `${TICKET_LOT[n]} · tickets de compagnon`, price, icon: `hero_ticket_${n}`, give: { ticketLimited: qty }, docQty, limit });
 const petPack = (id, name, price, qty, limit = null) => ({ id: `pet_pack_${id}`, cat: 'petTickets', name, price, icon: `pet_pack_${id}`, give: { ticketPet: qty }, limit });
 
 export const PRODUCTS = [
@@ -203,11 +205,11 @@ export const PRODUCTS = [
   heroTicket('III', 1999, 28, 45, 2),
   heroTicket('IV', 4999, 73, 110, 1),
   heroTicket('V', 9999, 154, 230, 1),
-  petPack('discovery', 'Familiers Découverte', 299, 10),
-  petPack('small', 'Familiers Petit', 499, 20),
-  petPack('medium', 'Familiers Moyen', 999, 45),
-  petPack('large', 'Familiers Grand', 1999, 100),
-  petPack('premium', 'Familiers Premium', 4999, 280, 2),
+  petPack('discovery', 'Œuf · tickets de familier', 299, 10),
+  petPack('small', 'Nid · tickets de familier', 499, 20),
+  petPack('medium', 'Cage · tickets de familier', 999, 45),
+  petPack('large', 'Coffre · tickets de familier', 1999, 100),
+  petPack('premium', 'Coffre doré · tickets de familier', 4999, 280, 2),
   // Abonnements (30 jours) : environ 4 invocations par euro chacun, sans recouvrement (cristaux / tickets / tickets +
   // cosmétique). Bénédiction : 3 000 cristaux tout de suite + 100 par jour (DOC) = 1 100 + 30 gemmes par jour ici.
   { id: 'sub_blessing', cat: 'subs', name: 'Bénédiction quotidienne', price: 499, icon: 'crystal_small', days: 30, give: { gems: 1100 }, daily: { gems: 30 }, limit: 1 },

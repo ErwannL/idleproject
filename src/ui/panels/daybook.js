@@ -3,7 +3,6 @@
 // il est prêt. Il regroupe Missions du jour et objectifs de session (plus d'écran en plus). Rien ne bouge avec
 // « Réduire les animations » (on garde l'image finale).
 import { DAYBOOK_CHEST, daybookComplete, daybookOf, daybookTasks } from '../../core/daybook.js';
-import { sessionGoalsHtml } from '../session-goals.js';
 import { escapeHtml, img, rewardIcons } from '../common.js';
 import { FIRST_WEEK_MILES, FIRST_WEEK_PRIZE, firstWeekActive, firstWeekDay, firstWeekDaysLeft, firstWeekDaysOpen, firstWeekPoints, prizeReady } from '../../core/first-week.js';
 import { companionById } from '../../core/companions.js';
@@ -72,6 +71,6 @@ export default {
       <div class="db-cards">${tasks.map((t) => card(t, t.done && fresh(t.id))).join('')}</div>
       ${all ? `<div class="db-big-stamp${fresh('all') ? ' fresh' : ''}">Journée accomplie</div>` : ''}
       ${chest}
-      <div class="db-session">${sessionGoalsHtml(state)}</div>`;
+`; // v9.11 (7) : objectifs de session déplacés en haut des Missions
   },
 };

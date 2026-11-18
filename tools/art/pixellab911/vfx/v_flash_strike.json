@@ -1,0 +1,277 @@
+{
+ "canvas": {
+  "h": 64,
+  "w": 180
+ },
+ "frames": 9,
+ "fps": 14,
+ "loop": false,
+ "anchor": {
+  "x": 90,
+  "y": 32,
+  "kind": "origin"
+ },
+ "message": "A 9-frame retro dash strike: a white-hot core with a cyan outer streak races left to right across a transparent 180x64 canvas, trailed by three fading afterimages, then ends in a bright white-cyan flash with four short spikes at the far end. The streak runs off both frame edges on purpose, since it crosses the screen; if your game needs it fully inside, I can shorten it. There is no character, and the palette is a five-step blue-to-white ramp.",
+ "effect_id": "bf2396eb-54a6-4fe0-a265-65143cb7b7ad",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-flash-strike 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 180,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 180,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 180,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-v-flash-strike 1.png",
+    "frame": {
+     "x": 180,
+     "y": 0,
+     "w": 180,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 180,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 180,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-v-flash-strike 2.png",
+    "frame": {
+     "x": 360,
+     "y": 0,
+     "w": 180,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 180,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 180,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-v-flash-strike 3.png",
+    "frame": {
+     "x": 0,
+     "y": 64,
+     "w": 180,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 180,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 180,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-v-flash-strike 4.png",
+    "frame": {
+     "x": 180,
+     "y": 64,
+     "w": 180,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 180,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 180,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-v-flash-strike 5.png",
+    "frame": {
+     "x": 360,
+     "y": 64,
+     "w": 180,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 180,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 180,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-v-flash-strike 6.png",
+    "frame": {
+     "x": 0,
+     "y": 128,
+     "w": 180,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 180,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 180,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-v-flash-strike 7.png",
+    "frame": {
+     "x": 180,
+     "y": 128,
+     "w": 180,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 180,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 180,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 71
+   },
+   {
+    "filename": "ascendrya-v-flash-strike 8.png",
+    "frame": {
+     "x": 360,
+     "y": 128,
+     "w": 180,
+     "h": 64
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 180,
+     "h": 64
+    },
+    "sourceSize": {
+     "w": 180,
+     "h": 64
+    },
+    "pivot": {
+     "x": 0.5,
+     "y": 0.5
+    },
+    "duration": 71
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-flash-strike.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 540,
+    "h": 192
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 90,
+    "y": 32
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-flash-strike",
+     "from": 0,
+     "to": 8,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

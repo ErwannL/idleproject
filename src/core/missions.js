@@ -1,3 +1,4 @@
+import { heraldTrack } from './chronicles.js';
 // Missions journalières, piste du mois (v9.1.3 : hebdomadaires et mensuelles fondues) et calendrier de connexion.
 // Les périodes sont des clés de date locales : un changement de clé réinitialise la période.
 import { LOGIN_CALENDAR, MISSION_PERIODS, MISSION_TRACK } from '../data/missions.js';
@@ -62,16 +63,35 @@ export function refreshMissions(state, now = Date.now()) {
   }
 }
 
+// v9.11 (7) : missions qui suivent la partie — les objectifs montent avec l'étape (300 → 3 000 → 15 000 monstres ;
+// 3 → 10 → 25 boss) et la récompense aussi (×1, ×1,5, ×2). Le libellé reprend le nouveau nombre.
+const SCALE = { kills: [1, 10, 50], bosses: [1, 10 / 3, 25 / 3], recycle: [1, 2, 4], summons: [1, 2, 3], dungeons: [1, 1.5, 2], upgrades: [1, 2, 4], rareLoot: [1, 3, 6] };
+export function missionTier(state) {
+  const st = state?.records?.bestStage ?? state?.maxStage ?? 1;
+  return st >= 350 ? 2 : st >= 120 ? 1 : 0;
+}
+const frNum = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+export function scaledMission(state, m) {
+  const t = missionTier(state);
+  const k = SCALE[m.type]?.[t] ?? 1;
+  if (!t || k === 1) return m;
+  const target = Math.round(m.target * k);
+  const rk = [1, 1.5, 2][t];
+  const reward = Object.fromEntries(Object.entries(m.reward ?? {}).map(([r, v]) => [r, Math.round(v * rk)]));
+  return { ...m, target, reward, label: m.label.replace(/\d[\d\s ]*/, `${frNum(target)} `).replace(/\s+$/, '').replace(/ {2,}/g, ' ') };
+}
+
 export function trackMissions(state, type, amount = 1) {
   if (!state.missions || !(amount > 0)) return;
   // v9.2.8 : premier boss / premier donjon du jour (tickets, plafonds mensuels) et objectifs du petit événement.
   if (type === 'bosses') incomeBoss(state);
   if (type === 'dungeons') { incomeDungeon(state); daybookTrack(state, 'dungeons', amount); } // v9.8 : Carnet du jour
   trackEventGoal(state, type, amount);
+  heraldTrack(state, type, amount); // v9.11 (7) : Tâches du Héraut
   for (const p of MISSION_PERIODS) {
     const run = state.missions[p.id];
     for (const m of p.missions) {
-      if (m.type === type) run.progress[m.id] = Math.min(m.target, (run.progress[m.id] ?? 0) + amount);
+      if (m.type === type) run.progress[m.id] = Math.min(scaledMission(state, m).target, (run.progress[m.id] ?? 0) + amount);
     }
   }
   const track = state.missions.track;
@@ -109,7 +129,7 @@ export function missionPeriod(id) {
 export function missionStatus(state, periodId, mission) {
   const run = state.missions[periodId];
   const progress = run.progress[mission.id] ?? 0;
-  return { progress, done: progress >= mission.target, claimed: run.claimed.includes(mission.id) };
+  return { progress, done: progress >= scaledMission(state, mission).target, claimed: run.claimed.includes(mission.id) };
 }
 
 export function claimMission(state, periodId, missionId) {
@@ -119,7 +139,7 @@ export function claimMission(state, periodId, missionId) {
   const st = missionStatus(state, periodId, mission);
   if (!st.done || st.claimed) return null;
   state.missions[periodId].claimed.push(mission.id);
-  return grantReward(state, mission.reward);
+  return grantReward(state, scaledMission(state, mission).reward);
 }
 
 // v9.3.5 : une mission ne demande jamais une fonction encore verrouillée (recyclage et invocations après le premier
@@ -127,7 +147,7 @@ export function claimMission(state, periodId, missionId) {
 const MISSION_GATE = { recycle: (s) => (s.records?.bossesDefeated ?? 0) >= 1, summons: (s) => (s.records?.bossesDefeated ?? 0) >= 1,
   dungeons: (s) => (s.records?.bestStage ?? 1) >= 25 };
 export const missionOpen = (state, m) => !MISSION_GATE[m.type] || MISSION_GATE[m.type](state);
-export const openMissions = (state, period) => period.missions.filter((m) => missionOpen(state, m));
+export const openMissions = (state, period) => period.missions.filter((m) => missionOpen(state, m)).map((m) => scaledMission(state, m));
 
 export function bonusReady(state, periodId) {
   const period = missionPeriod(periodId);

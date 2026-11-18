@@ -43,7 +43,21 @@ import { nextMilestone } from '../core/unlocks.js';
 import { UNLOCK_QUESTS, currentQuest, questSteps } from '../core/unlock-quests.js';
 // v9.8 (G6) : onglet ouvert par chaque mini-quête (icône du parchemin, icône qui vole vers le menu).
 const QUEST_SYS = { equipment: 'inventory', upgrades: 'upgrades', skills: 'skills', companion: 'companions', forge: 'forge', summon: 'summon', dungeons: 'dungeons', talents: 'tree', challenges: 'tower', rebirth: 'tree' };
-const QUEST_TAB_UI = { equipment: [null, null, 'inventory'], upgrades: [null, 'upgrades', null], skills: [null, 'skills', null], forge: ['inventory', 'forge', null] };
+// v9.11 (3) : actions du Sceau qui font progresser (doigt) ; texte court de la version réduite (icône + 1 ou 2 mots).
+// v9.11 (1) : couleur de chaque compétence (élément de la classe, sinon son type) pour des icônes vives.
+const CLASS_COLOR = { pyromancer: '#ff6a2a', stormcaller: '#7fd6ff', necromancer: '#b46bff', paladin: '#ffe27a', archer: '#5fd06a', assassin: '#c86bff',
+  knight: '#7fb8ff', berserker: '#ff4a4a', lancer: '#ffb84a', crossbowman: '#a8e07a' };
+const TYPE_COLOR = { hit: '#ff9a4a', aoe: '#c86bff', buff: '#ffc23a', holy: '#ffe680' };
+const skillColor = (sk) => CLASS_COLOR[sk.id.split('_')[0]] ?? TYPE_COLOR[sk.type] ?? '#9fc3ff';
+const QUEST_ICONS = { login: 'icon_book', kills: 'weapon_sword', bosses: 'icon_boss', recycle: 'icon_anvil', summons: 'icon_summon', dungeons: 'icon_dungeon', rareLoot: 'icon_bag', upgrades: 'icon_upgrade' };
+const SEAL_PROGRESS = new Set(['claim', 'equip', 'upgrade', 'skills', 'quest', 'rebirth', 'place', 'team', 'level', 'mentor', 'lootbag', 'retry']);
+function sealShort(n) {
+  const num = n.text.match(/\((\d+)\)/)?.[1];
+  const S = { claim: `🎁 ${num ?? 'Récupérer'}`, equip: '⬆ Équiper', upgrade: '⬆ Améliorer', skills: '✦ Compétence', rebirth: '♻ Renaître', quest: '★ Quête',
+    mentor: '💡 Conseil', place: '➕ Placer', team: '➕ Équipe', level: '⬆ Niveau', lootbag: '🎒 Butin', retry: '⚔ Boss', goal: '⚔ Objectif' };
+  return S[n.id] ?? `› ${n.text.split(/\s+/).slice(0, 2).join(' ')}`;
+}
+const QUEST_TAB_UI = { equipment: [null, null, 'inventory'], upgrades: [null, 'upgrades', null], skills: [null, 'skills', null], forge: ['inventory', 'inventory', null] };
 import { loginTab } from './panels/contracts.js';
 import { loginPending } from '../core/missions.js';
 import { morph } from './morph.js'; // v9.3.9
@@ -78,7 +92,7 @@ import { teamChips } from './team-chips.js'; // v9.9 (K16)
 import { boonById, rarityOf } from '../core/boons.js'; // v9.9 (K7)
 import { TITAN_TIERS, titanToday, titanTriesLeft } from '../core/titan.js'; // v9.8 (H7)
 import { MISSION_PERIODS } from '../data/missions.js';
-import { missionOpen, missionStatus } from '../core/missions.js';
+import { missionOpen, missionStatus, openMissions } from '../core/missions.js';
 import dungeons from './panels/dungeons.js';
 import tower from './panels/tower.js';
 import arena from './panels/arena.js'; // v9.3.2 : modes compagnons
@@ -119,6 +133,7 @@ import { claimables, claimablesByTab } from '../core/claimables.js';
 import { isPhone, pref, reduceMotion, setPref } from './prefs.js';
 import { mountShowcase } from './showcase.js';
 import { openArenaStage } from './arena-stage.js'; // v9.10 (7)
+import { HERALD_TASKS, chronicleNow, heraldState, heraldTask } from '../core/chronicles.js'; // v9.11 (7)
 import * as uiFx from './ui-vfx.js'; // v9.2.6 : effets visuels de l'interface
 import { openSearch } from './search.js';
 import { setById } from '../core/sets.js';
@@ -297,6 +312,14 @@ export class UI {
     root.querySelectorAll('[data-open]').forEach((btn) => btn.addEventListener('click', () => this.toggleTab(btn.dataset.open)));
     this.$('panel-close').addEventListener('click', () => this.closePanel());
     this.$('next-action').addEventListener('click', () => this.runNextAction());
+    // v9.11 (4) : un clic sur le fond assombri ferme la fenêtre (menu ☰, Roue, Carnet, Aide…), sauf les fenêtres de
+    // confirmation ou de choix (marquées data-lock, ou qui demandent de confirmer).
+    this.$('modal').addEventListener('click', (ev) => {
+      if (ev.target !== this.$('modal')) return;
+      const card = this.$('modal-card');
+      if (card.querySelector('[data-lock], .wheel-spinning') || /\bconfirm|rebirth-go|prologue|name-hero|choose|pick|offline|fw-prize|boon/i.test(card.innerHTML.match(/data-action="[^"]*"/g)?.join(' ') ?? '')) return;
+      this.closeModal();
+    });
     root.querySelectorAll('[data-currency]').forEach((btn) => btn.addEventListener('click', () => this.showCurrency(btn.dataset.currency)));
     this.$('panel-fold')?.addEventListener('click', () => this.togglePanelLow());
     this.$('panel-help').addEventListener('click', () => {
@@ -654,7 +677,7 @@ export class UI {
       const n = this.tabBadges?.[tab] ?? 0;
       return `<button class="drawer-row${open ? '' : ' locked'}" data-action="${open ? 'open-tab' : 'locked-tab'}" data-value="${tab}">${img(ic)}<b>${label}</b>${open ? (n ? `<i class="drawer-badge">${n}</i>` : '') : `<small>🔒 ${escapeHtml(this.lockReason(tab))}</small>`}</button>`;
     };
-    this.openModal(`<div class="drawer"><h2 id="modal-title">Menu</h2>
+    this.openModal(`<div class="drawer"><button class="btn small drawer-close" data-action="close-modal" aria-label="Fermer">✕</button><h2 id="modal-title">Menu</h2>
       <div class="drawer-list">${E.map(row).join('')}
         <button class="drawer-row" data-action="open-claims">${img('icon_mail')}<b>Courrier et récompenses</b></button>
         <button class="drawer-row" data-action="open-tab" data-value="hero">${img('icon_hero')}<b>Fiche du héros</b></button>
@@ -856,6 +879,10 @@ export class UI {
       case 'auto-recycle-yes': this.closeModal(); a.setRecycleRule('mode', 'pickup'); break; // v9.3.4 : proposé au 1er sac plein
       case 'recycle-useless': a.recycleUseless(); local(() => { v.forgeFx = 'recycle'; }); setTimeout(() => { v.forgeFx = null; this.invalidate(); }, 700); break; // v9.3.4
       case 'item-more': local(() => { v.itemMore = value || null; }); break; // v9.3.4
+      case 'herald-claim': { const g = a.claimHerald(value); if (g) this.chestReveal(g, 'Tâche accomplie !'); break; } // v9.11 (7)
+      case 'chronicle-claim': { const r = a.claimChronicle(); if (r) this.chestReveal(r.given, r.title, r.prize); break; }
+      case 'elements-help': this.elementsHelp(); break; // v9.11 (5)
+      case 'item-plus': local(() => { v.itemPlus = value || null; }); break; // v9.11 (5)
       case 'bag-menu': local(() => { v.bagMenu = !v.bagMenu; }); break;
       case 'inv-view': if (value) markInvUsed(this.state, value); local(() => { v.invView = value || null; }); break;
       case 'apply-build': v.buildSel = Number(value); a.applyLoadout(Number(value)); break; // v9.1.3 : cartes de builds
@@ -1952,7 +1979,7 @@ export class UI {
     const key = `${list.map((sk) => sk.id).join()}|${[...ready].join()}|${world.guard ? 1 : 0}`;
     if (bar.dataset.key !== key) {
       bar.dataset.key = key;
-      bar.innerHTML = list.map((sk, i) => `<button class="skill-btn big" data-action="cast-skill" data-skill="${sk.id}" title="${escapeHtml(sk.name)} (${i + 1})" aria-label="${escapeHtml(sk.name)}">${img(sk.icon)}<i class="cd"></i>${this.phone ? '' : `<kbd>${i + 1}</kbd>`}</button>`).join('')
+      bar.innerHTML = list.map((sk, i) => `<button class="skill-btn big" style="--sc:${skillColor(sk)}" data-action="cast-skill" data-skill="${sk.id}" title="${escapeHtml(sk.name)} (${i + 1})" aria-label="${escapeHtml(sk.name)}">${img(sk.icon)}<i class="cd"></i>${this.phone ? '' : `<kbd>${i + 1}</kbd>`}</button>`).join('')
         // v9.8 (E5) : un seul bouton Ultime (portraits empilés, compteur) ; un appui lance la première prête.
         + (() => { const r = team.filter((c) => ready.has(c.id)); if (!r.length) return '';
           return `<button class="ult-btn" data-action="cast-ult" data-value="${r[0].id}" title="Ultime : ${escapeHtml(r.map((c) => c.name).join(', '))}" aria-label="Ultime de ${escapeHtml(r[0].name)}"><span class="ult-stack">${r.slice(0, 3).map((c) => img(c.sprite)).join('')}</span><b>Ultime${r.length > 1 ? ` ×${r.length}` : ''}</b></button>`; })()
@@ -1964,6 +1991,11 @@ export class UI {
       const left = Math.max(0, world.skillTimers?.[sk.id] ?? 0);
       btn.style.setProperty('--cd', Math.min(1, left / interactiveCooldown(sk, bonus)));
       btn.classList.toggle('ready', left <= 0.05);
+      // v9.11 (1) : un sort de ralliement montre sa durée restante sur l'icône (le bonus reste visible).
+      const buff = sk.type === 'buff' ? Math.ceil(world.buffs?.cry ?? 0) : 0;
+      let tag = btn.querySelector('.buff-left');
+      if (buff > 0) { if (!tag) { tag = document.createElement('b'); tag.className = 'buff-left'; btn.appendChild(tag); } tag.textContent = `${buff}s`; }
+      else tag?.remove();
     }
     const combo = world.combo?.n ?? 0;
     const chip = this.$('combo-chip');
@@ -2113,6 +2145,8 @@ export class UI {
       if (i >= 0 && QUEST_TAB_UI[q.id]?.[i]) {
         n = { id: 'quest', text: steps[i].text, tab: QUEST_TAB_UI[q.id][i] };
         if (q.id === 'equipment' && QUEST_TAB_UI[q.id][i] === 'inventory' && st.inventory?.length) n = { id: 'quest', text: 'Héros › Équiper le nouvel objet', action: 'equip-best' };
+        // v9.11 (5) : « Renforce ton arme » ouvre directement la fenêtre de l'arme portée (Renforcer visible).
+        if (q.id === 'forge' && i === 1 && st.equipment?.weapon) n = { id: 'quest', text: 'Héros › Renforcer ton arme', tab: 'inventory', view: { selectedItemId: st.equipment.weapon.id, sheetOpen: 'item' } };
       }
     }
     // v9.9 (K2/K4) : plus de progrès depuis 10 minutes → la première carte du Conseil du mentor.
@@ -2126,40 +2160,54 @@ export class UI {
     btn.classList.toggle('hidden', useless);
     this.placeSeal(useless);
     if (useless) { this.sealIgnored(null); return; }
-    const key = `${n.id}|${n.text}`;
+    // v9.11 (3) : une proposition = une sorte d'action (« Tout récupérer (4) » puis « (5) » : la même) ; le texte se met
+    // à jour sans compter de nouveau.
+    const key = n.id;
+    if (this.lastHud.nextText !== n.text) { this.lastHud.nextText = n.text; this.setText('next-action-text', n.text); }
     if (this.lastHud.next !== key) {
       this.sealIgnored(key);
       this.lastHud.next = key;
-      this.setText('next-action-text', n.text);
+      this.sealShownAt = performance.now();
       btn.dataset.kind = n.id;
       const tone = n.id === 'claim' || n.id === 'quest' ? 'gold' : ['upgrade', 'equip', 'skills', 'place', 'team', 'level', 'lootbag'].includes(n.id) ? 'green'
         : ['goal', 'retry', 'seal'].includes(n.id) ? 'red' : ['rebirth', 'mentor'].includes(n.id) ? 'violet' : 'blue';
       btn.className = btn.className.replace(/\bna-(gold|green|red|violet|blue)\b/g, '').trim();
       btn.classList.add(`na-${tone}`);
-      // v9.6.2 (7.9) : « Plus tard » sur un contenu proposé (2 refus : il passe jusqu'au lendemain).
-      let later = this.$('next-later');
-      if (!later) { later = document.createElement('button'); later.id = 'next-later'; later.className = 'btn small next-later'; later.type = 'button'; later.textContent = 'Plus tard'; btn.after(later);
-        later.addEventListener('click', () => { const g = guideDay(this.state); const id = this.next?.id; if (id) g.skips[id] = (g.skips[id] ?? 0) + 1; delete this.lastHud.badgeTime; this.invalidate(); }); }
-      later.classList.toggle('hidden', !n.content);
-      // v9.10 (3) : doigt les 30 premières minutes, puis seulement les 3 premières fois qu'une action est proposée.
       const counts = (st.ui.sealCount ??= {});
-      counts[n.id] = (counts[n.id] ?? 0) + 1;
-      const fresh = counts[n.id] <= 3;
-      btn.querySelector('.na-finger')?.classList.toggle('hidden', !((st.playSeconds ?? 0) < 1800 || fresh) || this.calm);
+      const session = (this.sealSession ??= new Set());
+      if (!session.has(n.id)) { session.add(n.id); counts[n.id] = (counts[n.id] ?? 0) + 1; }
     }
-    // v9.10 (3) : ignoré 3 fois → pastille réduite pendant 1 heure (survol ou appui : le texte revient).
-    btn.classList.toggle('na-mini', (st.ui.sealMiniUntil ?? 0) > (st.playSeconds ?? 0) && n.id !== 'quest');
+    // v9.11 (3) : doigt seulement sur ce qui fait progresser (objet, amélioration, compétence, mini-quête, mur), jusqu'à
+    // ce que ce soit fait ; jamais sur un contenu facultatif (Défi, Tour, Arène). « Plus tard » le cache.
+    const progress = SEAL_PROGRESS.has(n.id) && !n.content;
+    const snoozed = (this.fingerSnooze ??= new Set()).has(n.id);
+    btn.querySelector('.na-finger')?.classList.toggle('hidden', !progress || snoozed || this.calm);
+    let later = this.$('next-later');
+    if (!later) {
+      later = document.createElement('button'); later.id = 'next-later'; later.className = 'btn small next-later'; later.type = 'button'; later.textContent = 'Plus tard'; btn.after(later);
+      later.addEventListener('click', () => {
+        const id = this.sealAction?.id;
+        if (this.sealAction?.content) { const g = guideDay(this.state); if (id) g.skips[id] = (g.skips[id] ?? 0) + 1; delete this.lastHud.badgeTime; }
+        if (id) this.fingerSnooze.add(id);
+        this.invalidate();
+      });
+    }
+    later.classList.toggle('hidden', !(n.content || (progress && !snoozed)));
+    // v9.11 (3) : version réduite = une icône et 1 ou 2 mots, jamais une flèche seule.
+    const mini = (st.ui.sealMiniUntil ?? 0) > (st.playSeconds ?? 0) && n.id !== 'quest';
+    btn.classList.toggle('na-mini', mini);
+    btn.dataset.short = sealShort(n);
   }
 
   // Un Sceau qui change sans avoir été touché compte comme ignoré ; 3 fois → réduit 1 heure.
   sealIgnored(nextKey) {
     const st = this.state;
     if (!st || this.lastHud.next == null || this.lastHud.next === nextKey) return;
-    if (this.sealClicked) { this.sealClicked = false; st.ui.sealIgnores = 0; return; }
-    if (performance.now() - (this.sealShownAt ?? 0) < 20000) { this.sealShownAt = performance.now(); return; } // trop bref pour compter
+    // v9.11 (3) : touché, ou action faite ailleurs (le joueur a agi pendant que le Sceau la proposait) = suivi.
+    if (this.sealClicked || (this.userAt ?? 0) > (this.sealShownAt ?? 0)) { this.sealClicked = false; st.ui.sealIgnores = 0; return; }
+    if (performance.now() - (this.sealShownAt ?? 0) < 20000) return; // trop bref pour compter
     st.ui.sealIgnores = (st.ui.sealIgnores ?? 0) + 1;
     if (st.ui.sealIgnores >= 3) { st.ui.sealIgnores = 0; st.ui.sealMiniUntil = (st.playSeconds ?? 0) + 3600; }
-    this.sealShownAt = performance.now();
     if (nextKey == null) this.lastHud.next = null;
   }
 
@@ -2184,7 +2232,7 @@ export class UI {
     this.sealClicked = true; // v9.10 (3)
     if (this.state?.ui) delete this.state.ui.sealMiniUntil;
     if (n.id === 'quest' && n.action === 'equip-best') { this.userAt = performance.now(); this.actions.equipBest(); return; } // v9.10 (4)
-    if (n.id === 'quest') { if (n.tab) this.openTab(n.tab); return; } // v9.9 (K2) : ouvre le bon écran
+    if (n.id === 'quest') { if (n.tab) this.openTab(n.tab, n.view ?? null); return; } // v9.9 (K2) : ouvre le bon écran
     if (n.id === 'mentor') { this.followTip(n); return; }
     if (n.content) { const g = guideDay(this.state); if (!g.done.includes(n.id)) g.done.push(n.id); } // v9.6.2 : conseil suivi
     this.userAt = performance.now();
@@ -2643,11 +2691,23 @@ export class UI {
   updateQuestBanner(state) {
     const el = this.$('quest-banner');
     if (!el || !state.missions || this.tabVisible.contracts === false) return;
+    // v9.11 (7) : carte de quête illustrée sur la scène — Chroniques, missions du jour et Tâches du Héraut ; la prête
+    // d'abord (elle s'anime, « Récupérer » d'un appui), sinon la plus avancée. Il reste toujours une tâche à suivre.
     const daily = MISSION_PERIODS.find((p) => p.id === 'daily');
-    const list = (daily?.missions ?? []).filter((m) => missionOpen(state, m)).map((m) => ({ m, st: missionStatus(state, 'daily', m) })).filter((x) => !x.st.claimed);
-    list.sort((a, b) => (b.st.done - a.st.done) || (b.st.progress / b.m.target - a.st.progress / a.m.target));
-    const top = list[0];
-    const h = top ? `${rewardIcons(top.m.reward)}<span class="qb-text">${escapeHtml(top.m.label)} <b class="num">${formatNumber(Math.min(top.st.progress, top.m.target))}/${formatNumber(top.m.target)}</b></span>` : '';
+    const cands = (daily ? openMissions(state, daily) : []).map((m) => ({ m, st: missionStatus(state, 'daily', m) })).filter((x) => !x.st.claimed)
+      .map(({ m, st }) => ({ icon: QUEST_ICONS[m.type] ?? 'icon_star', label: m.label, p: st.progress, target: m.target, reward: m.reward, done: st.done, action: 'claim-mission', value: `daily|${m.id}`, rank: 1 }));
+    for (const t0 of HERALD_TASKS) {
+      const t = heraldTask(state, t0); const p = heraldState(state).progress[t.id] ?? 0;
+      cands.push({ icon: t.icon, label: t.text, p, target: t.target, reward: t.reward, done: p >= t.target, action: 'herald-claim', value: t.id, rank: 0 });
+    }
+    const ch = chronicleNow(state);
+    if (ch) cands.push({ icon: 'icon_scroll', label: `${ch.title} : ${ch.need}`, p: ch.ready ? 1 : 0, target: 1, reward: ch.reward, done: ch.ready, action: 'chronicle-claim', value: '', rank: ch.ready ? 3 : -1 });
+    cands.sort((x, y) => (y.done - x.done) || (y.rank - x.rank) || (y.p / y.target - x.p / x.target));
+    const top0 = cands[0];
+    const top = top0 ? { m: { reward: top0.reward }, st: { done: top0.done } } : null;
+    const h = top0 ? `<span class="qb-icon">${img(top0.icon)}</span><span class="qb-main"><span class="qb-text">${escapeHtml(top0.label)}</span>
+      <span class="qb-bar"><i style="width:${Math.min(100, (top0.p / top0.target) * 100)}%"></i><b class="num">${formatNumber(Math.min(top0.p, top0.target))}/${formatNumber(top0.target)}</b></span></span>
+      <span class="qb-reward">${rewardIcons(top0.reward)}</span>${top0.done ? '<span class="qb-claim">Récupérer</span>' : ''}` : '';
     if (el.dataset.h === h) return;
     el.dataset.h = h;
     el.innerHTML = h;
@@ -2660,41 +2720,70 @@ export class UI {
       tag.innerHTML = top ? rewardIcons({ gems: top.m.reward.gems ?? 0 }) || rewardIcons(top.m.reward) : '';
       qb.classList.toggle('menu-ready', Boolean(top?.st.done));
     }
-    el.classList.toggle('ready', Boolean(top?.st.done));
-    el.dataset.action = top?.st.done ? 'claim-mission' : 'open-tab';
-    el.dataset.value = top?.st.done ? `daily|${top.m.id}` : 'contracts';
+    el.classList.toggle('ready', Boolean(top0?.done));
+    el.dataset.action = top0?.done ? top0.action : 'open-tab';
+    el.dataset.value = top0?.done ? top0.value : 'contracts';
   }
 
   // v9.8 (H4) : Roue du jour — 8 parts, un tour gratuit, la roue tourne puis s'arrête sur la part gagnée.
+  // v9.11 (8) : Roue du jour dessinée — disque de pierre runique cerclé d'or (8 cases entre des rayons dorés, une
+  // icône de récompense par case), flèche en lame dorée, lumières qui clignotent pendant le tour, « tic » à chaque
+  // case, case gagnante illuminée, récompense qui jaillit en grand ; fond : l'autel du temple.
   showWheel() {
     const st = this.state;
     if (!st) return;
     const n = WHEEL_SLICES.length;
-    const colors = ['#3b6fd1', '#d4a72c', '#4caf6a', '#8a5cd6', '#d45a3c', '#2fa8a8', '#c9446f', '#ffd23f'];
-    const grad = WHEEL_SLICES.map((_, i) => `${colors[i % colors.length]} ${(i * 360) / n}deg ${((i + 1) * 360) / n}deg`).join(', ');
-    const labels = WHEEL_SLICES.map((sl, i) => `<span class="wh-label" style="--a:${(i + 0.5) * (360 / n)}deg">${sl.jackpot ? '★ ' : ''}${escapeHtml(sl.label)}</span>`).join('');
+    const ICON = { gold: 'coin', gems: 'icon_gem', shards: 'icon_shard', keys: 'icon_key', grimoire: 'icon_grimoire', gold2: 'icon_bag', fragments: 'icon_fragment', jackpot: 'icon_chest' };
+    const icons = WHEEL_SLICES.map((sl, i) => `<span class="wh-ico${sl.jackpot ? ' jackpot' : ''}" style="--a:${(i + 0.5) * (360 / n)}deg" title="${escapeHtml(sl.label)}">${img(ICON[sl.id] ?? 'icon_star')}</span>`).join('');
+    const lights = Array.from({ length: 16 }, (_, i) => `<i class="wh-light" style="--a:${i * 22.5}deg;--d:${(i % 2) * 0.25}s"></i>`).join('');
     const ready = wheelReady(st);
-    this.openModal(`<div class="wheel-screen"><h2 id="modal-title">Roue du jour</h2>
-      <div class="wh-wrap"><div class="wh-pointer">▼</div><div class="wh-disc" style="background:conic-gradient(${grad})">${labels}</div></div>
-      <p class="wh-result muted">${ready ? 'Un tour gratuit par jour. Toujours gagnant !' : 'Déjà tournée aujourd\'hui : reviens demain.'}</p>
+    const next = new Date(); next.setHours(24, 0, 0, 0);
+    const left = Math.max(0, next - Date.now());
+    const wait = `${Math.floor(left / 3600000)} h ${Math.floor((left % 3600000) / 60000)} min`;
+    this.openModal(`<div class="wheel-screen wh-art"><h2 id="modal-title">Roue du jour</h2>
+      <div class="wh-wrap"><img class="px wh-pointer-img" src="assets/ui/wheel/wheel_pointer.png" alt="">${lights}
+        <div class="wh-disc"><img class="px wh-disc-img" src="assets/ui/wheel/wheel_disc.png" alt=""><i class="wh-win"></i>${icons}</div></div>
+      <p class="wh-result">${ready ? 'Un tour gratuit par jour. Toujours gagnant !' : `Déjà tournée aujourd'hui. Reviens demain (dans ${wait}).`}</p>
       <div class="detail-actions">${ready ? '<button class="btn btn-gold primary-action" data-action="wheel-spin">Tourner</button>' : ''}<button class="btn" data-action="close-modal">Fermer</button></div></div>`);
   }
 
   spinWheel() {
     const r = this.actions.spinWheel?.();
-    const disc = this.$('modal-card')?.querySelector('.wh-disc');
+    const card = this.$('modal-card');
+    const disc = card?.querySelector('.wh-disc');
     if (!r || !disc) return;
-    this.$('modal-card').querySelector('[data-action="wheel-spin"]')?.remove();
+    card.querySelector('[data-action="wheel-spin"]')?.remove();
+    card.querySelector('.wheel-screen')?.classList.add('wheel-spinning');
     const n = WHEEL_SLICES.length;
     const target = 360 * 5 + (360 - (r.index + 0.5) * (360 / n));
     const calm = this.calm;
-    disc.style.transition = calm ? 'none' : 'transform 2.6s cubic-bezier(.17,.67,.2,1)';
+    const dur = calm ? 0 : 3200;
+    disc.style.transition = calm ? 'none' : `transform ${dur}ms cubic-bezier(.12,.7,.16,1)`;
     disc.style.transform = `rotate(${target}deg)`;
+    // « Tic » à chaque case : on lit l'angle courant pendant la rotation.
+    const ptr = card.querySelector('.wh-pointer-img');
+    let lastSlice = -1;
+    const tick = () => {
+      if (!disc.isConnected || calm) return;
+      const m = getComputedStyle(disc).transform;
+      if (m && m !== 'none') {
+        const [a, b] = m.slice(7, -1).split(',').map(Number);
+        const ang = ((Math.atan2(b, a) * 180) / Math.PI + 360) % 360;
+        const sl = Math.floor(ang / (360 / n));
+        if (sl !== lastSlice) { lastSlice = sl; this.sound?.play?.('click'); ptr?.classList.remove('tic'); void ptr?.offsetWidth; ptr?.classList.add('tic'); }
+      }
+      if (card.querySelector('.wheel-spinning')) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
     setTimeout(() => {
-      const out = this.$('modal-card')?.querySelector('.wh-result');
-      if (out) out.innerHTML = `<b class="${r.slice.jackpot ? 'gold-text' : 'good'}">${r.slice.jackpot ? 'GROS LOT ! ' : ''}${escapeHtml(r.slice.label)}</b> ${rewardIcons(r.given, 'named')}`;
+      card.querySelector('.wheel-spinning')?.classList.remove('wheel-spinning');
+      const win = card.querySelector('.wh-win');
+      if (win) { win.style.setProperty('--a', `${(r.index + 0.5) * (360 / n)}deg`); win.classList.add('on'); }
+      card.querySelectorAll('.wh-ico')[r.index]?.classList.add('won');
+      const out = card.querySelector('.wh-result');
+      if (out) out.innerHTML = `<div class="wh-prize${r.slice.jackpot ? ' jackpot' : ''}"><b>${r.slice.jackpot ? 'GROS LOT !' : escapeHtml(r.slice.label)}</b>${rewardIcons(r.given, 'named')}</div>`;
       uiFx.claimFly?.(uiFx.snap(this.state).cur, uiFx.snap(this.state).cur, disc, true);
-    }, calm ? 50 : 2700);
+    }, calm ? 50 : dur + 100);
   }
 
   bestItemCard(item, unitId = null) {
@@ -2924,9 +3013,10 @@ export class UI {
   }
 
   // v9.8 (G3) : coffre qui s'ouvre en gros plan, les récompenses en sortent.
-  chestReveal(given) {
-    this.openModal(`<div class="chest-reveal"><div class="cr-chest">${img('icon_chest')}</div><h2 id="modal-title">Journée accomplie !</h2>
-      <div class="cr-loot">${rewardIcons(given, 'named')}</div><div class="detail-actions"><button class="btn btn-gold" data-action="close-modal">Super !</button></div></div>`);
+  chestReveal(given, title = 'Journée accomplie !', prize = null) {
+    // v9.11 (7) : écran de récompense (coffre qui s'ouvre) aussi pour les tâches et les Chroniques.
+    this.openModal(`<div class="chest-reveal"><div class="cr-chest">${img('icon_chest')}</div><h2 id="modal-title">${escapeHtml(title)}</h2>
+      <div class="cr-loot">${rewardIcons(given, 'named')}</div>${prize ? `<div class="cr-prize">🎁 ${escapeHtml(prize)}</div>` : ''}<div class="detail-actions"><button class="btn btn-gold" data-action="close-modal">Super !</button></div></div>`);
   }
 
   // v9.8 (C1) : après « Récupérer », une flèche dorée pointe le bouton utile (équipe conseillée, sinon Équipement).
@@ -2982,6 +3072,20 @@ export class UI {
 
   // v9.1.0 : une seule façon d'ouvrir une fenêtre — rôle dialog, focus sur le premier bouton, Tab qui boucle
   // dans la fenêtre (shortcuts.js), focus rendu à l'élément d'avant à la fermeture.
+  // v9.11 (5) : schéma illustré des éléments (remplace la ligne « 🔥 › 🍃 › 💧 › 🔥 · ☀ ⇄ ☾ » de l'Équipement).
+  elementsHelp() {
+    const E = { red: ['🔥', 'Feu', '#ff5a3c'], green: ['🍃', 'Nature', '#4cd26a'], blue: ['💧', 'Eau', '#3ca8ff'], light: ['☀', 'Lumière', '#ffe27a'], dark: ['☾', 'Ténèbres', '#a46bff'] };
+    const node = (k, x, y) => `<div class="el-node" style="left:${x}%;top:${y}%;--c:${E[k][2]}"><span>${E[k][0]}</span><b>${E[k][1]}</b></div>`;
+    this.openModal(`<h2 id="modal-title">Les éléments</h2>
+      <div class="el-diagram">${node('red', 50, 8)}${node('green', 86, 70)}${node('blue', 14, 70)}
+        <svg viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="elar" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#ffd36a"/></marker></defs>
+          <path d="M58,24 L78,58" stroke="#ffd36a" stroke-width="2" marker-end="url(#elar)"/><path d="M74,74 L28,74" stroke="#ffd36a" stroke-width="2" marker-end="url(#elar)"/><path d="M22,58 L42,24" stroke="#ffd36a" stroke-width="2" marker-end="url(#elar)"/></svg></div>
+      <p class="el-rule"><b class="good">+50 %</b> de dégâts contre l'élément que la flèche vise · <b class="bad">−30 %</b> dans l'autre sens.</p>
+      <div class="el-pair">${node('light', 30, 50)}<span class="el-vs">⇄</span>${node('dark', 70, 50)}</div>
+      <p class="el-rule">Lumière et Ténèbres se blessent l'une l'autre : <b class="good">+50 %</b> dans les deux sens.</p>
+      <div class="modal-actions"><button class="btn btn-gold" data-action="close-modal">Compris</button></div>`);
+  }
+
   openModal(html) {
     const modal = this.$('modal');
     if (modal.classList.contains('hidden')) this.modalReturn = document.activeElement;

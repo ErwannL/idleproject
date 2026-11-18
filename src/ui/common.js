@@ -113,7 +113,7 @@ function runForecastJob() {
 
 export function bossForecast(state, onReady = null) {
   if (simSpeed(state) >= 10) return { paused: true };
-  const key = `${state.stage}|${JSON.stringify(state.upgrades)}|${Object.values(state.equipment).map((i) => i?.id).join()}|${state.level}|${state.companions.equipped.join()}|${Object.keys(state.talents).length}`;
+  const key = `${nextBossStage(state)}|${JSON.stringify(state.upgrades)}|${Object.values(state.equipment).map((i) => i?.id).join()}|${state.level}|${state.companions.equipped.join()}|${Object.keys(state.talents).length}`;
   const now = Date.now();
   const fresh = forecastCache.key === key && now - forecastCache.at < 20000;
   // v9.1.0 : le rappel de fin de calcul est gardé sur le calcul en cours (avant, un calcul lancé sans rappel
@@ -132,7 +132,7 @@ export function bossForecast(state, onReady = null) {
 export function forecastHtml(f) {
   if (!f) return '';
   if (f.paused) return '<div class="forecast muted">⚔ Prévision du prochain boss en pause à grande vitesse (×10 et plus).</div>';
-  if (f.pending) return '<div class="forecast muted">⚔ Prévision du prochain boss : calcul en cours…</div>';
+  if (f.pending) return ''; // v9.11 (6) : plus de « calcul en cours… » qui reste affiché ; la ligne apparaît une fois prête
   // Résultat périmé (équipement ou améliorations changés) : on le montre grisé, avec « mise à jour… ».
   const cls = f.stale ? ' stale' : '';
   const note = f.stale ? ' <small class="muted">(mise à jour…)</small>' : '';
