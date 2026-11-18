@@ -24,7 +24,7 @@ import { SET_PIECES } from '../../data/sets.js';
 
 import { countersFor } from '../../core/behaviors.js'; // v9.6.1 (2.5)
 import { BEHAVIORS } from '../../data/behaviors.js'; // v9.6.1
-const SOURCE_LABELS = { hero: 'Héros', heroClass: 'Classe', powers: 'Pouvoirs de boss', talents: 'Talents', companions: 'Équipe', gear: 'Effets d’équipement', prestige: 'Bonus éternels', rushes: 'Boosts actifs', achievements: 'Hauts faits', sets: 'Ensembles', museum: 'Musée', boons: 'Bénédictions et rencontres' };
+const SOURCE_LABELS = { hero: 'Héros', heroClass: 'Classe', powers: 'Pouvoirs de boss', talents: 'Talents', companions: 'Équipe', gear: 'Effets d’équipement', prestige: 'Bonus éternels', rushes: 'Boosts actifs', achievements: 'Hauts faits', sets: 'Ensembles', museum: 'Musée', boons: 'Bénédictions et rencontres', collection: 'Collection' };
 
 // Ensembles d'équipement portés (v8.5) : pièces et paliers atteints.
 function setsCard(state) {

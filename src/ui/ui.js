@@ -74,6 +74,7 @@ import { duelOutcome } from '../core/ranks.js'; // v9.8 (H6)
 import { isUpgrade, teamUpgradeFor } from '../core/inventory.js';
 import { canEquip as canEquipHero } from '../core/classes.js';
 import { mentorTips } from '../core/mentor.js'; // v9.9 (K4)
+import { teamChips } from './team-chips.js'; // v9.9 (K16)
 import { boonById, rarityOf } from '../core/boons.js'; // v9.9 (K7)
 import { TITAN_TIERS, titanToday, titanTriesLeft } from '../core/titan.js'; // v9.8 (H7)
 import { MISSION_PERIODS } from '../data/missions.js';
@@ -1120,6 +1121,7 @@ export class UI {
       case 'gear-best': a.gearBest(value); break; // v9.8 (I6)
       case 'rank-duel': this.rankDuel(); break; // v9.8 (H6)
       case 'drawer': this.openDrawer(); break; // v9.9 (K6)
+      case 'rush-lock': { const m = (this.state.rushes.manual ??= {}); if (m[value]) delete m[value]; else m[value] = true; this.invalidate(); break; } // v9.9 (K16)
       case 'road-choice': clearTimeout(this.roadTimer); el.closest('.road-bubble')?.remove(); a.roadChoice(Number(value)); break; // v9.9 (K8)
       case 'pick-boon': clearInterval(this.boonTimer); a.pickBoon(Number(value)); this.closeModal(); break; // v9.9 (K7)
       case 'mentor-tip': this.followTip(this.mentorTipsShown?.[Number(value)]); break; // v9.9 (K4)
@@ -1273,6 +1275,7 @@ export class UI {
     if (action === 'simple-mode') this.actions.setSimple(el.checked); // v9.7.1 (lot 5)
     if (action === 'combat-assist') this.actions.setCombatAssist(el.value); // v9.7.1 (lot 2)
     if (action === 'skill-names') this.actions.setSkillNames(el.checked); // v9.7.1 (lot A)
+    if (action === 'vigil-auto') { if (el.checked) delete this.state.ui.vigil; else this.state.ui.vigil = false; } // v9.9 (K12)
     if (action === 'gain-feed') { if (el.checked) delete this.state.ui.feed; else this.state.ui.feed = false; } // v9.9 (K11)
     if (action === 'char-size') this.actions.setCharSize(el.value); // v9.7.1
     if (action === 'big-auras') this.actions.setBigAuras(el.checked); // v9.5.3
@@ -1879,14 +1882,14 @@ export class UI {
     // v9.6.3 (5.2) : seulement les 3 compétences manuelles choisies (emplacements), en gros boutons.
     const slotIds = rushSlots(state);
     const open = slotIds.map((id, i) => [RUSHES.find((r) => r.id === id), i]).filter(([r]) => r);
-    const key = `${open.map(([r]) => (rushUnlocked(state, r) ? r.id : `-${r.id}`)).join()}|${boostOn}|${phoneLayout()}`;
+    const key = `${open.map(([r]) => (rushUnlocked(state, r) ? r.id : `-${r.id}`)).join()}|${boostOn}|${phoneLayout()}|${JSON.stringify(state.rushes.manual ?? {})}|${state.rushes.auto}`;
     if (bar.dataset.key !== key) {
       bar.dataset.key = key;
       bar.innerHTML = open.map(([r, i]) => {
         const unlocked = rushUnlocked(state, r);
         return `<button class="rush-btn${unlocked ? '' : ' locked'}" data-action="rush" data-value="${r.id}" style="--rush:${r.color}"
           title="${r.name} — ${r.text}. ${unlocked ? `Touche ${boostKeys()[i]}.` : `Débloqué au niveau ${r.unlockLevel} du héros.`}" aria-label="${r.name}">${img(r.icon)}
-          ${phoneLayout() || !hasKeyboard() ? '' : `<span class="rush-key">${boostKeys()[i]}</span>`}<span class="rush-time"></span><span class="rush-name">${RUSH_SHORT[r.id] ?? ''}</span></button>`;
+          ${phoneLayout() || !hasKeyboard() ? '' : `<span class="rush-key">${boostKeys()[i]}</span>`}<span class="rush-time"></span><span class="rush-name">${RUSH_SHORT[r.id] ?? ''}</span></button>${unlocked && state.rushes.auto ? `<button class="rush-lock${state.rushes.manual?.[r.id] ? ' open' : ''}" data-action="rush-lock" data-value="${r.id}" title="${state.rushes.manual?.[r.id] ? 'À la main (touche pour qu\'il parte tout seul)' : 'Part tout seul (touche pour le lancer à la main)'}" aria-label="Auto">${state.rushes.manual?.[r.id] ? '🔓' : '🔒'}</button>` : ''}`; // v9.9 (K16) : cadenas doré
       }).join('') + (boostOn ? `<button class="boost-chip" data-action="show-boost" id="boost-chip">${img('icon_bolt', 'ico20')}<span id="boost"></span></button>` : '');
       delete this.lastHud.boost;
     }
@@ -2555,7 +2558,8 @@ export class UI {
       summary.baggedCount ? tile('🎒', summary.baggedCount, 'À trier') : ''].filter(Boolean).slice(0, 4).join('');
     const free = st && (st.expeditions?.slots ?? []).filter(Boolean).length === 0 && Object.keys(st.companions?.owned ?? {}).length >= 5;
     this.openModal(`<div class="rw-banner"><div class="rw-camp">${team.map((c) => img(c.sprite)).join('')}<span class="camp-flame">🔥</span><span class="rw-zz">z z</span></div>
-        <div class="rw-title"><small>${summary.hours ? 'Chasse rapide' : 'Pendant ton absence'}</small><b>${summary.hours ? `${summary.hours} h` : formatDuration(summary.elapsedSeconds)}</b></div>
+        <div class="rw-title"><small>${summary.hours ? 'Chasse rapide' : 'Récit du Camp'}</small><b>${summary.hours ? `${summary.hours} h` : formatDuration(summary.elapsedSeconds)}</b></div>
+        ${team[0] && !summary.hours ? `<p class="rw-story">${escapeHtml(team[0].name)} : « Pendant ton absence, on a tenu l'étape ${stageLabel(summary.stage)}. »</p>` : ''}
         <details class="rw-info"><summary aria-label="Détails">i</summary>
           <p>Ennemis vaincus : ~${formatNumber(summary.kills)} · Objets : ${summary.items.length - summary.autoRecycledCount}${recycled ? ` (+${recycled} convertis en or)` : ''}</p>
           ${items ? `<div class="loot-row">${items}</div>` : ''}
@@ -2564,6 +2568,8 @@ export class UI {
           <p class="muted">Hors ligne : étape ${stageLabel(summary.stage)}, ${BALANCE.offline.farmMultiplier * 100} % du rythme, sans boss.</p>
           <button class="btn small" data-action="session-return">${img('icon_bolt', 'ico20')} Retour de session${this.phone ? '' : ' (S)'}</button>
         </details></div>
+        <div class="rw-lines"><div><span>Étape</span><b>${stageLabel(summary.stage)}</b></div>
+          <div><span>Or</span><b>+${formatNumber(summary.totalGold)}</b>${this.canDoubleOffline(summary) ? `<i>→</i><b class="good">+${formatNumber(summary.totalGold * 2)}</b>` : ''}</div></div>
         <div class="rw-tiles">${tiles}</div>
         ${paused ? `<p class="bad rw-note">${escapeHtml(paused)} reprend à ton retour.</p>` : ''}
         ${free ? '<button class="btn small rw-exp" data-action="open-tab" data-value="expeditions">⛺ Envoyer tes compagnons en expédition</button>' : ''}
@@ -2670,7 +2676,7 @@ export class UI {
     this.openModal(`<div class="rift-card"><div class="rift-sky"><div class="rift-boss" style="background-image:url('assets/world-boss/colossus_idle.png');filter:${t.art.filter ?? 'none'}"></div></div>
       <h2 id="modal-title">Faille du jour</h2><b class="rift-name">${escapeHtml(t.name)}</b>
       <div class="rift-meta">${el ? `<span>${el.icon} ${escapeHtml(el.name)}</span>` : ''}<span>⏳ ${formatDuration(left)}</span><span>${titanTriesLeft(st)} essai${titanTriesLeft(st) > 1 ? 's' : ''}</span></div>
-      <div class="rift-reward">${rewardIcons(top, 'named')}</div>
+      <div class="rift-reward">${rewardIcons(top, 'named')}</div>${teamChips(st, { save: false })}
       <div class="detail-actions"><button class="btn" data-action="close-modal">Plus tard</button><button class="btn btn-gold primary-action" data-action="titan-start-modal">⚔ Combattre</button></div></div>`);
   }
 
@@ -2752,20 +2758,45 @@ export class UI {
 
   // v9.8 (H9) : mode veille — écran presque noir (économie de batterie sur téléphone), or et étape seulement ; le jeu
   // continue ; un appui n'importe où le quitte.
+  // v9.9 (K12) : Veillée au Camp — écran très sombre, le héros endormi près du feu (braises animées à bas régime), le
+  // nom de l'étape et l'or qui monte ; rendu du combat coupé ; un appui n'importe où réveille, avec un petit récap.
   sleepMode(on) {
     if (typeof document === 'undefined') return;
     document.getElementById('sleep-layer')?.remove();
     clearInterval(this.sleepTimer);
-    if (!on) return;
+    const st = this.state;
+    if (!on) {
+      if (this.sleeping && st && this.vigilStart) {
+        const g = st.gold - this.vigilStart.gold, n = Math.max(0, (st.maxStage ?? 1) - this.vigilStart.stage);
+        if (g > 0 || n > 0) this.toast(`Pendant la veillée : +${formatNumber(Math.max(0, g))} or${n ? `, ${n} étape${n > 1 ? 's' : ''}` : ''}`, '#ffe27a');
+      }
+      this.sleeping = false;
+      this.userAt = performance.now();
+      return;
+    }
+    this.closeModal?.();
+    this.sleeping = true;
+    this.vigilStart = { gold: st?.gold ?? 0, stage: st?.maxStage ?? 1 };
     const el = document.createElement('div');
     el.id = 'sleep-layer';
-    el.innerHTML = '<div class="sl-box"><b class="sl-gold num"></b><span class="sl-stage"></span><small>Touche pour revenir</small></div>';
-    el.addEventListener('click', () => this.sleepMode(false));
+    el.innerHTML = `<div class="vg-scene"><img class="px" src="assets/ui/art98/camp_night.png" alt=""><i class="vg-ember"></i><i class="vg-ember"></i><i class="vg-ember"></i></div>
+      <div class="sl-box"><span class="sl-stage"></span><b class="sl-gold num"></b><small>Touche pour réveiller l'équipe</small></div>`;
+    const wake = () => this.sleepMode(false);
+    el.addEventListener('pointerdown', wake);
+    el.addEventListener('click', wake);
+    document.addEventListener('keydown', wake, { once: true });
     document.body.appendChild(el);
-    const upd = () => { const st = this.state; if (!st) return; el.querySelector('.sl-gold').textContent = `${formatNumber(st.gold)} or`; el.querySelector('.sl-stage').textContent = `Étape ${stageLabel(st.stage)}`; };
-    upd();
-    this.sleepTimer = setInterval(upd, 2000);
+    this.updateVigil(true);
+    this.sleepTimer = setInterval(() => this.updateVigil(true), 2000);
   }
+  updateVigil(force = false) {
+    if (!force || !this.sleeping) return;
+    const st = this.state, el = document.getElementById('sleep-layer');
+    if (!st || !el) return;
+    el.querySelector('.sl-gold').textContent = `${formatNumber(st.gold)} or`;
+    el.querySelector('.sl-stage').textContent = `${zoneForStage(st.stage).name} ${stageLabel(st.stage)}`;
+  }
+
 
   // v9.8 (H6) : duel de rang — 30 s comptées en 3 s à l'écran : la barre du gardien descend, puis victoire ou défaite.
   rankDuel() {

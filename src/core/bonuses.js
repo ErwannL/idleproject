@@ -31,6 +31,9 @@ export function gearAffixEffects(equipment) {
   return out;
 }
 
+// v9.9 (K17) : bonus de collection — chaque compagnon ou familier possédé, même hors de l'équipe : +0,5 % or.
+export const COLLECTION_GOLD_PCT = 0.5;
+
 // Détail par source (affiché dans la fiche du héros) et total.
 export function bonusSources(state, equipment = state.equipment) {
   return {
@@ -46,6 +49,7 @@ export function bonusSources(state, equipment = state.equipment) {
     sets: setEffects(equipment),
     museum: museumEffects(state),
     boons: boonEffects(state), // v9.9 (K7/K8) : bénédictions de donjon, rencontres de route
+    collection: { goldPct: COLLECTION_GOLD_PCT * Object.keys(state.companions?.owned ?? {}).length }, // v9.9 (K17)
   };
 }
 

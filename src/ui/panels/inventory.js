@@ -225,7 +225,7 @@ function detail(ui, state, item, whoUnit = null) {
       <div><div class="ip-name r-${item.rarity}">${escapeHtml(item.name)}${ups ? ` +${ups}` : ''}</div>
         <div class="ip-pills"><span class="rar-pill r-${item.rarity}">${rarity.label}</span><span class="role-pill">${HERO_SLOTS[heroSlot(item)]}</span><span class="role-pill cls-pill">${escapeHtml(classLabel(itemClass(state, item)))}</span>
         ${base.signature ? `<span class="role-pill">Butin de ${escapeHtml(BOSSES[base.signature].name)}</span>` : ''}</div></div></div>
-    ${majorLine(state, item)}${power}${ctxLine}${unitLine}<ul class="stat-list ip-stats">${three}</ul>
+    ${majorLine(state, item)}${power}${ctxLine}${unitLine}${base.signature ? '<div class="muted ip-collect">Possédé : exposé au Musée, il donne son bonus même sans être porté</div>' : ''}<ul class="stat-list ip-stats">${three}</ul>
     ${moreBody}
     <div class="up-actions">${mainBtns}</div>
   </div>`;

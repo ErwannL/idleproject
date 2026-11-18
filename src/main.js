@@ -1628,6 +1628,9 @@ setInterval(() => {
   for (const w of updateStars(state)) highlight(`world-${w}`, `Monde ${w + 1} terminé !`, `${worldStars(state, w).filter(Boolean).length} étoile(s) sur 3. Le Colosse t'attend pour un face-à-face.`);
   if (state.records.rebirths > 0) highlight('first-rebirth', 'Première Renaissance !', 'Tu repars plus fort : tes compagnons, tes talents et tes ensembles restent.');
   for (const b of activeBonds(state)) highlightBond(b); // v9.7.1 (lot 6) : liens entre compagnons
+  // v9.9 (K12) : Veillée automatique après 5 minutes sans toucher (réglable dans Paramètres).
+  if (state.ui.vigil !== false && !ui.sleeping && !document.hidden && performance.now() - (ui.userAt ?? 0) > 300000 && performance.now() > 300000
+    && document.getElementById('modal').classList.contains('hidden') && !ui.tab && !navigator.webdriver && !document.querySelector('.wb-overlay, #prologue')) ui.sleepMode(true);
   // v9.9 (K8) : rencontre de route (jeu actif : fenêtre visible et une action du joueur depuis moins de 5 minutes).
   const active = !document.hidden && performance.now() - (ui.userAt ?? -1e9) < 300000 && (!navigator.webdriver || location.search.includes('road'));
   if (state.road?.open && !document.querySelector('.road-bubble')) ui.showEncounter(encounterView(state));
@@ -1819,6 +1822,8 @@ function frame(ts) {
     ui.showBehaviorCard(e.behavior, Boolean(world.parries?.[e.behavior]));
     break;
   }
+  // v9.9 (K12) : Veillée au Camp — le rendu du combat est coupé (seule la simulation tourne), l'écran se met à jour à bas régime.
+  if (ui.sleeping) { ui.updateVigil?.(); requestAnimationFrame(frame); return; }
   renderer.render(state, world, dt);
   placeWeakSpot(); // v9.7.1 (lot 2)
   ui.update(state, world);

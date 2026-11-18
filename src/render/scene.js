@@ -1,6 +1,7 @@
 // Rendu de la scène de combat sur un canvas basse résolution agrandi en « pixel perfect ».
 // Le rendu lit l'état de la simulation et ses événements ; il ne modifie jamais la partie.
 import { SKILLS } from '../data/skills.js'; // v9.9 (K11)
+import { awakenedSkill } from '../core/companions.js'; // v9.9 (K17)
 import { ELEMENTS, unitElement } from '../core/elements.js';
 import { t as tr } from '../i18n/i18n.js'; // v9.7.1 : noms de compétences traduits
 import { mutationById } from '../core/mutations.js';
@@ -474,7 +475,7 @@ export class SceneRenderer {
         const companion = companionById(event.companionId);
         if (companion) this.skillCallout(companion, event, world); // v9.7.1 (lot A) : nom, halo, ralenti de l'ultime
         // v9.2.5 : chaque compétence (ultime comprise) a son geste et son effet (skill-fx.js).
-        const known = companion && companionSkillList(companion, COMPANION_ROLES[companion.id] ?? 'pet')[event.skill];
+        const known = companion && (event.skill === 99 ? awakenedSkill(companion.id) : companionSkillList(companion, COMPANION_ROLES[companion.id] ?? 'pet')[event.skill]);
         if (known) {
           const slot = this.layout?.slots.get(companion.id);
           const sx = slot?.cx ?? heroX - 30;
@@ -1724,7 +1725,7 @@ export class SceneRenderer {
   // v9.7.1 (lot A) : compétence visible — nom au-dessus du compagnon (0,8 s, sa couleur), court halo ; ultime : ralenti de
   // 0,15 s et cadre coloré. Les noms se coupent dans Paramètres (SceneRenderer.skillNames).
   skillCallout(companion, event, world) {
-    const known = companionSkillList(companion, COMPANION_ROLES[companion.id] ?? 'pet')[event.skill];
+    const known = (event.skill === 99 ? awakenedSkill(companion.id) : companionSkillList(companion, COMPANION_ROLES[companion.id] ?? 'pet')[event.skill]);
     const slot = this.layout?.slots.get(companion.id);
     const cx = slot?.cx ?? HERO_X - 30;
     const G = this.groundY;

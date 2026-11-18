@@ -1,3 +1,5 @@
+import { AWAKEN_LEVEL, awakenedSkill, isAwakened } from '../../core/companions.js'; // v9.9 (K17)
+import { COLLECTION_GOLD_PCT } from '../../core/bonuses.js';
 import { GEAR_CLASSES, gearClassOf } from '../../data/companion-gear.js'; // v9.3.5 : un seul nom de rôle (classe)
 // v9.3.4 : popup de détail d'un compagnon ou d'un familier (Équipe › Composition).
 // En haut l'illustration en grand sur la couleur de son élément (toucher = vitrine animée), nom, niveau, 3 chiffres,
@@ -121,7 +123,9 @@ export function unitPopup(ui, state, c, { actions, gear }) {
   const tab = ['skills', 'gear', 'story'].includes(ui.view.unitTab) && !(ui.view.unitTab === 'gear' && c.kind !== 'ally') ? ui.view.unitTab : 'skills';
   const tabs = [['skills', 'Compétences'], ...(owned && c.kind === 'ally' ? [['gear', 'Équipement']] : []) /* v9.3.8 : familier sans équipement */, ['story', 'Histoire']]
     .map(([k, l]) => `<button class="btn chip-btn${k === tab ? ' active' : ''}" data-action="unit-tab" data-value="${k}" role="tab" aria-selected="${k === tab}">${l}</button>`).join('');
-  const art = hdArt(c, 'up-art') || companionPortrait(c, true);
+  // v9.9 (K17) : Éveil (niveau maximal) — illustration éveillée et sort de son élément.
+  const awake = owned && isAwakened(state, c.id);
+  const art = awake ? `<img class="hd-art up-art px-hd awake-art" src="assets/hd/px/awake/ally_${c.id}.webp" alt="" loading="lazy">` : hdArt(c, 'up-art') || companionPortrait(c, true);
   const body = tab === 'gear' && owned ? gear() : tab === 'story' ? historyTab(state, c)
     : `${skillIcons(ui, state, c, own)}${skillBubble(ui, state, c, own, Boolean(owned))}`;
   return `<div class="unit-pop-backdrop" data-action="close-sheet"></div>
@@ -134,6 +138,8 @@ export function unitPopup(ui, state, c, { actions, gear }) {
       <div class="up-stars" aria-label="${copies} copies sur ${COMPANION_RULES.maxCopies}">${'★'.repeat(copies - 1)}<span>${'★'.repeat(COMPANION_RULES.maxCopies - copies)}</span></div>
     </div>
     <div class="star-tiers">${[3, 5].map((n) => `<span class="${(owned?.stars ?? 0) >= n ? 'good' : 'muted'}">${n}★ : ${escapeHtml(STAR_TIERS[n].text)}${(owned?.stars ?? 0) >= n ? ' ✓' : ''}</span>`).join(' · ')}</div>
+    ${c.kind === 'ally' ? `<div class="up-awake${awake ? ' on' : ''}">${awake ? `✦ Éveillé · sort « ${escapeHtml(awakenedSkill(c.id).name)} »` : `Éveil au niveau ${AWAKEN_LEVEL} : nouvelle illustration et sort « ${escapeHtml(awakenedSkill(c.id).name)} »`}</div>` : ''}
+    ${owned ? `<div class="up-collect muted">Possédé : +${String(COLLECTION_GOLD_PCT).replace(".", ",")} % or (collection)</div>` : ''}
     <div class="up-title"><b>${escapeHtml(c.name)}</b><span>${owned ? `Nv ${unitLevel(state, c.id)} / ${COMPANION_RULES.maxLevel}` : 'Pas encore obtenu'}</span></div>
     ${owned ? '' : '<div class="up-where">Où l\'obtenir : Équipe › Invocation</div>'}
     <div class="up-stats">${dps > 0 || (!heal && !guard) ? `<span title="Dégâts par seconde de ses compétences">⚔ <b>${formatNumber(dps)}</b><small>Dégâts/s</small></span>`

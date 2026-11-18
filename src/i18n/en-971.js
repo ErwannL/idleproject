@@ -1,6 +1,23 @@
 // v9.7.1 : anglais du cadrage, du sac de butin et des menus allégés. Branché à la fin de ./en.js.
 let LK = () => null;
 export const EXACT_971 = {
+  "Brasier de l'éveil": "Awakened blaze",
+  "Marée de l'éveil": "Awakened tide",
+  "Sève de l'éveil": "Awakened sap",
+  "Aube de l'éveil": "Awakened dawn",
+  "Ombre de l'éveil": "Awakened shadow",
+  "Éclat de l'éveil": "Awakened flare",
+  "Collection": "Collection",
+  "Possédé : exposé au Musée, il donne son bonus même sans être porté": "Owned: shown in the Museum, it gives its bonus even unworn",
+  "Équipes :": "Teams:",
+  "+ Enregistrer": "+ Save",
+  "Part tout seul (touche pour le lancer à la main)": "Fires by itself (tap to cast it by hand)",
+  "À la main (touche pour qu'il parte tout seul)": "By hand (tap to fire it by itself)",
+  "Récit du Camp": "Camp tale",
+  "Touche pour réveiller l'équipe": "Tap to wake the team",
+  "🔥 Veillée au Camp (écran sombre, le jeu continue)": "🔥 Camp vigil (dark screen, the game goes on)",
+  "Veillée automatique après 5 minutes sans toucher": "Automatic vigil after 5 minutes without touching",
+  "Étape": "Stage",
   "Noms des sorts au-dessus du héros et des compagnons": "Spell names above the hero and companions",
   "Fil des gains à gauche de la scène": "Gains feed on the left of the scene",
   "Faille du jour": "Daily rift",
@@ -522,6 +539,11 @@ export const EXACT_971 = {
   "Tient": "Withstands",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
+  [/^✦ Éveillé · sort « (.+) »$/, (m) => `✦ Awakened · spell “${LK(m[1]) ?? m[1]}”`],
+  [/^Éveil au niveau (\d+) : nouvelle illustration et sort « (.+) »$/, (m) => `Awakening at level ${m[1]}: new art and spell “${LK(m[2]) ?? m[2]}”`],
+  [/^Possédé : \+([\d,]+) % or \(collection\)$/, (m) => `Owned: +${m[1].replace(',', '.')}% gold (collection)`],
+  [/^Pendant la veillée : \+(.+?) or(?:, (\d+) étape(s?))?$/, (m) => `During the vigil: +${m[1]} gold${m[2] ? `, ${m[2]} stage${m[3] ? 's' : ''}` : ''}`],
+  [/^(.+) : « Pendant ton absence, on a tenu l'étape (.+)\. »$/, (m) => `${m[1]}: “While you were away, we held stage ${m[2]}.”`],
   [/^Gros lot : un compagnon Épique au choix · (\d+) j restants$/, (m) => `Grand prize: an Epic companion of your choice · ${m[1]} d left`],
   [/^(\d+) essai(s?)$/, (m) => `${m[1]} tr${m[2] ? 'ies' : 'y'}`],
   [/^Choix automatique dans (\d+) s$/, (m) => `Automatic choice in ${m[1]} s`],

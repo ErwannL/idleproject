@@ -77,7 +77,8 @@ export function tickRushes(state, dt) {
     if (r.cooldown[id] <= 0) delete r.cooldown[id];
   }
   const started = [];
-  if (r.auto) for (const id of rushSlots(state)) if (activateRush(state, id, true)) started.push(id); // v9.6.3 : 3 emplacements
+  // v9.9 (K16) : cadenas doré — un Boost ouvert (« à la main ») ne part jamais tout seul.
+  if (r.auto) for (const id of rushSlots(state)) if (!r.manual?.[id] && activateRush(state, id, true)) started.push(id); // v9.6.3 : 3 emplacements
   return { ended, started };
 }
 
@@ -121,5 +122,7 @@ export function sanitizeRushes(raw) {
   }
   // v9.6.3 : emplacements choisis (les niveaux des Boosts sont gardés tels quels).
   if (Array.isArray(raw.slots)) out.slots = raw.slots.filter((id) => RUSHES.some((r) => r.id === id)).slice(0, RUSH_RULES.slots);
+  // v9.9 (K16) : Boosts « à la main » (cadenas ouvert).
+  if (raw.manual && typeof raw.manual === 'object') { const m = Object.fromEntries(Object.keys(raw.manual).filter((id) => RUSHES.some((r) => r.id === id)).map((id) => [id, true])); if (Object.keys(m).length) out.manual = m; }
   return out;
 }

@@ -1,5 +1,6 @@
 // Équipe > Composition : le héros + 2 compagnons + 1 familier ; collection, niveaux, capacités.
 // v9.1.0 : expéditions dans leur propre onglet, builds dans Équipement, synergies repliées (actives visibles).
+import { teamChips } from '../team-chips.js'; // v9.9 (K16)
 import { BONDS } from '../../data/bonds.js'; // v9.7.1 (lot 6)
 import { BALANCE } from '../../data/balance.js';
 import { COMPANION_RULES } from '../../data/companions.js';
@@ -159,7 +160,7 @@ export default {
       const equipped = state.companions.equipped.includes(c.id);
       const role = COMPANION_ROLES[c.id];
       return `<button class="unit-card r-${c.rarity}${owned ? '' : ' unowned'}" data-action="companion-sel" data-value="${c.id}" aria-label="${escapeHtml(c.name)}">
-        <span class="uc-art">${owned ? companionStill(c) : `<img class="px" src="${icon(c.sprite, c.kind === 'ally' ? 1 : 3, { tint: { color: '#3a4a66', alpha: 1 } })}" alt="">`}</span>
+        <span class="uc-art">${owned ? companionStill(c) : `<img class="px" src="${icon(c.sprite, c.kind === 'ally' ? 1 : 3, { tint: { color: '#3a4a66', alpha: 1 } })}" alt=""><b class="uc-q">?</b>`}</span>
         <span class="uc-name">${escapeHtml(c.name)}</span>
         <span class="uc-meta"><span class="rar-pill r-${c.rarity}">${rarityLabel(c.rarity)}</span>${elementBadge(unitElement(c.id), false, true)}${role ? `<span class="role-dot" style="background:${ROLES[role].color}" title="${ROLES[role].label}"></span>` : ''}</span>
         ${equipped ? '<span class="eq" title="Dans l\'équipe">✓</span>' : ''}${isAway(state, c.id) ? '<span class="away" title="En expédition">⚑</span>' : ''}</button>`;
@@ -269,7 +270,7 @@ export default {
       ${nearHtml ? `<div class="card syn-near-card"><b>Synergies à portée</b>${nearHtml}</div>` : ''}
       ${fold(ui, 'synergies', synTitle, synergies)}`;
     const tipsExtra = adv && !adv.same && adv.gain >= 0.03 ? `<span class="good">+${Math.round(adv.gain * 100)} % possible</span>` : '';
-    return `${team}${teamUp}
+    return `${team}${teamChips(state)}${teamUp}
       ${fold(ui, 'team-tips', 'Conseils', tips, { extra: tipsExtra })}
       <div class="item-tabs comp-tabs" role="tablist">
         <button class="btn chip-btn${tab === 'ally' ? ' active' : ''}" data-action="comp-tab" data-value="ally" role="tab" aria-selected="${tab === 'ally'}">Compagnons <small>(${teamSlotsOf(state).ally} places)</small></button>

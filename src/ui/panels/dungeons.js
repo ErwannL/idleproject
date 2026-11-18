@@ -1,5 +1,6 @@
 // Donjons (v7.7, v9.1.0) : donjons ouverts (verrouillés repliés) + fiche (difficulté, mécanique, butin ciblé, chemin, Entrer).
 // Bien plus durs que la campagne ; ils rapportent les fragments anciens de l'arbre de talents.
+import { teamChips } from '../team-chips.js'; // v9.9 (K16)
 import { BALANCE } from '../../data/balance.js';
 import { BOSSES, ENEMIES } from '../../data/enemies.js';
 import { UNITS as COMPANIONS } from '../../data/banners.js'; // v9.1.3 (partie B)
@@ -203,7 +204,7 @@ function dungeonsList(ui, state) {
       ${state.tower ? '<div class="bad">Tu es dans la Tour : quitte-la d\'abord.</div>' : ''}
       ${state.challenge ? '<div class="bad">Défi de la semaine en cours (Aventure › Défis) : termine-le d\'abord.</div>' : ''}
       ${state.keys < 1 ? '<div class="bad">Aucune clé. Clés : missions, contrats, expéditions, Défis.</div>' : ''}`;
-  const detail = `<div class="card dungeon-detail">
+  const detail = `${teamChips(state)}<div class="card dungeon-detail">
       <div class="dungeon-head">${art98(`door_${sel.id}`, 'dungeon-door')}<div class="grow"><div class="boss-title">${escapeHtml(sel.name)}</div>
         <div class="muted">${escapeHtml(sel.description)}</div></div></div>
       <div class="diff-box"><div class="section-title">Difficulté</div><div class="diff-row">${diffs}</div>${unlockHint}

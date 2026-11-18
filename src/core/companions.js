@@ -61,7 +61,19 @@ export function companionSkills(state, id) {
     const k = now > 0 && full > now ? (full / now) * 1.1 : 1; // marge : jamais plus faible qu'avant, même contre une vague
     if (k > 1) list = list.map((sk) => (sk.type === 'hit' || sk.type === 'burst' ? { ...sk, value: sk.value * k } : sk));
   }
+  // v9.9 (K17) : Éveil — au niveau maximal, un compagnon gagne un sort de son élément (et change d'illustration).
+  if (isAwakened(state, id)) list = [...list, awakenedSkill(id)];
   return cd ? list.map((s) => ({ ...s, every: s.every * (1 - cd / 100) })) : list;
+}
+
+export const AWAKEN_LEVEL = 20;
+const AWAKEN_NAMES = { red: 'Brasier de l\'éveil', blue: 'Marée de l\'éveil', green: 'Sève de l\'éveil', light: 'Aube de l\'éveil', dark: 'Ombre de l\'éveil' };
+export function isAwakened(state, id) {
+  return companionById(id)?.kind === 'ally' && Boolean(state.companions?.owned?.[id]) && unitLevel(state, id) >= AWAKEN_LEVEL;
+}
+export function awakenedSkill(id) {
+  const el = unitElement(id);
+  return { name: AWAKEN_NAMES[el] ?? 'Éclat de l\'éveil', type: 'burst', every: 20, value: 0.6, awakened: true, index: 99, text: 'Frappe tous les ennemis (60 % des dégâts)' };
 }
 
 export function allCompanionSkills(id) {

@@ -4050,3 +4050,25 @@ html.reduce-motion .best-card { animation: none; }
 .gf-line img { width: 14px; height: 14px; } @keyframes gf { 0% { transform: translateX(-10px); opacity: 0; } 10%, 75% { transform: none; opacity: 1; } 100% { opacity: 0; } }
 html.reduce-motion .gf-line { animation: none; }
 .layout-strip #gain-feed, .layout-mini #gain-feed, #app.panel-tall #gain-feed { display: none; }
+/* v9.9 (K12) : Veillée au Camp */
+#sleep-layer { flex-direction: column; gap: 14px; background: #020205 !important; }
+.vg-scene { position: relative; width: min(420px, 80vw); filter: brightness(.45) saturate(.8); } .vg-scene img { width: 100%; image-rendering: pixelated; border-radius: 10px; }
+.vg-ember { position: absolute; left: 49%; bottom: 30%; width: 3px; height: 3px; border-radius: 50%; background: #ffb04a; box-shadow: 0 0 6px #ff8a2a; animation: vg-ember 3s linear infinite; }
+.vg-ember:nth-child(3) { left: 52%; animation-delay: 1s; } .vg-ember:nth-child(4) { left: 50%; animation-delay: 2s; }
+@keyframes vg-ember { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-50px) translateX(6px); opacity: 0; } }
+html.reduce-motion .vg-ember { animation: none; opacity: .6; }
+.sl-box .sl-stage { color: #8a7a58; font-size: 15px; }
+/* v9.9 (K13) : Récit du Camp */
+.rw-story { margin: 4px 0 0; font-style: italic; color: #ffe7b0; text-shadow: 0 1px 2px #000; font-size: 14px; }
+.rw-lines { display: flex; flex-direction: column; gap: 4px; margin: 8px 0; } .rw-lines div { display: flex; align-items: center; gap: 8px; justify-content: center; font-size: 16px; }
+.rw-lines span { color: #9fb3d8; min-width: 54px; text-align: right; } .rw-lines i { color: #ffd36a; font-style: normal; }
+/* v9.9 (K16) : cadenas doré sur les Boosts */
+#rush-bar { position: relative; } .rush-lock { margin-left: -14px; margin-top: 30px; width: 20px; height: 20px; padding: 0; border-radius: 50%; border: 1px solid #ffd36a; background: #2a1d08; font-size: 11px; line-height: 18px; cursor: pointer; z-index: 2; }
+.rush-lock.open { border-color: #8a9ac0; background: #1a2238; }
+/* v9.9 (K16) : silhouettes « ? » */
+.uc-art { position: relative; } .uc-q, .sk2-q { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font: 900 22px system-ui, sans-serif; color: #c9d4f0; text-shadow: 0 0 6px #000; }
+.sk2-ic { position: relative; } .sk2-sil img { filter: brightness(0) opacity(.6); }
+.team-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0; }
+/* v9.9 (K17) : Éveil et collection */
+.up-awake { text-align: center; font-size: 13px; color: #9fb3d8; margin: 4px 0; } .up-awake.on { color: #ffe27a; font-weight: 800; text-shadow: 0 0 8px #ffb30088; }
+.awake-art { filter: drop-shadow(0 0 14px #ffd36a88) !important; } .up-collect { text-align: center; font-size: 12px; }

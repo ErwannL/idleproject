@@ -1,6 +1,23 @@
 // v9.7.1 : 한국어 — 화면 구도, 전리품 가방, 간소화된 메뉴. ./ko.js 끝에 연결.
 let LK = () => null;
 export const EXACT_971 = {
+  "Brasier de l'éveil": "각성의 불길",
+  "Marée de l'éveil": "각성의 파도",
+  "Sève de l'éveil": "각성의 수액",
+  "Aube de l'éveil": "각성의 여명",
+  "Ombre de l'éveil": "각성의 그림자",
+  "Éclat de l'éveil": "각성의 섬광",
+  "Collection": "컬렉션",
+  "Possédé : exposé au Musée, il donne son bonus même sans être porté": "보유: 박물관에 전시하면 착용하지 않아도 보너스",
+  "Équipes :": "팀:",
+  "+ Enregistrer": "+ 저장",
+  "Part tout seul (touche pour le lancer à la main)": "자동 사용 (터치하면 수동)",
+  "À la main (touche pour qu'il parte tout seul)": "수동 (터치하면 자동)",
+  "Récit du Camp": "캠프 이야기",
+  "Touche pour réveiller l'équipe": "터치해서 팀 깨우기",
+  "🔥 Veillée au Camp (écran sombre, le jeu continue)": "🔥 캠프 야영 (어두운 화면, 게임 계속)",
+  "Veillée automatique après 5 minutes sans toucher": "5분 동안 터치가 없으면 자동 야영",
+  "Étape": "스테이지",
   "Noms des sorts au-dessus du héros et des compagnons": "영웅과 동료 위에 주문 이름",
   "Fil des gains à gauche de la scène": "장면 왼쪽에 획득 내역",
   "Faille du jour": "오늘의 균열",
@@ -522,6 +539,11 @@ export const EXACT_971 = {
   "Tient": "버팀",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
+  [/^✦ Éveillé · sort « (.+) »$/, (m) => `✦ 각성 · 주문 「${LK(m[1]) ?? m[1]}」`],
+  [/^Éveil au niveau (\d+) : nouvelle illustration et sort « (.+) »$/, (m) => `레벨 ${m[1]}에서 각성: 새 일러스트와 주문 「${LK(m[2]) ?? m[2]}」`],
+  [/^Possédé : \+([\d,]+) % or \(collection\)$/, (m) => `보유: 골드 +${m[1].replace(',', '.')}% (컬렉션)`],
+  [/^Pendant la veillée : \+(.+?) or(?:, (\d+) étape(s?))?$/, (m) => `야영 중: 골드 +${m[1]}${m[2] ? `, 스테이지 ${m[2]}` : ''}`],
+  [/^(.+) : « Pendant ton absence, on a tenu l'étape (.+)\. »$/, (m) => `${m[1]}: “네가 없는 동안 스테이지 ${m[2]}을(를) 지켰어.”`],
   [/^Gros lot : un compagnon Épique au choix · (\d+) j restants$/, (m) => `대상: 원하는 에픽 동료 · ${m[1]}일 남음`],
   [/^(\d+) essai(s?)$/, (m) => `도전 ${m[1]}회`],
   [/^Choix automatique dans (\d+) s$/, (m) => `${m[1]}초 후 자동 선택`],

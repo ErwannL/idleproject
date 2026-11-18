@@ -129,7 +129,7 @@ function gridView(ui, state) {
 const SKILL_SHORT = { /* v9.7.1 : compétences de classe : leur nom suffit */ quick: 'Coup rapide sur un ennemi', whirl: 'Frappe tous les ennemis', cry: "Plus de dégâts un moment", holy: 'Gros coup qui soigne' };
 function cellV2(c, sel) {
   return `<button class="sk2-cell${c.locked ? ' locked' : ''}${sel ? ' sel' : ''}" data-action="skill-sel" data-value="${c.kind}:${c.id}" aria-pressed="${sel}">
-    <span class="sk2-ic">${img(c.icon)}${c.locked ? `<i class="sk2-lock">${img('icon_lock')}</i>` : `<i class="sk2-lv">Nv ${c.level}</i>`}
+    <span class="sk2-ic${c.locked ? ' sk2-sil' : ''}">${img(c.icon)}${c.locked ? '<b class="sk2-q">?</b>' : `<i class="sk2-lv">Nv ${c.level}</i>`}
       ${c.active > 0 ? '<i class="sk2-on">Actif</i>' : ''}</span><span class="sk2-name">${escapeHtml(c.name)}</span>${c.sub ? `<small class="sk2-sub">${c.sub}</small>` : ''}</button>`;
 }
 function bubbleV2(state, c) {

@@ -25,6 +25,9 @@ export function saveLoadout(state, index) {
   slot.heroClass = state.heroClass;
   slot.powers = [...state.equippedPowers];
   slot.skills = { ...state.skills };
+  // v9.9 (K16) : équipe enregistrée = compagnons + sorts actifs + Boosts choisis.
+  if (Array.isArray(state.skillLoadout)) slot.skillLoadout = [...state.skillLoadout];
+  if (Array.isArray(state.rushes?.slots)) slot.rushSlots = [...state.rushes.slots];
   return true;
 }
 
@@ -64,6 +67,8 @@ export function applyLoadout(state, index, balance = BALANCE, itemPower = () => 
     const wanted = slot.powers.filter((id) => state.powers[id]);
     if (wanted.length) state.equippedPowers = wanted.slice(0, powerSlots(state));
   }
+  if (Array.isArray(slot.skillLoadout)) state.skillLoadout = slot.skillLoadout.slice(0, 3); // v9.9 (K16)
+  if (Array.isArray(slot.rushSlots) && state.rushes) state.rushes.slots = [...slot.rushSlots];
   if (slot.skills) {
     const spent = Object.values(slot.skills).reduce((a, lv) => a + skillPointsSpent(lv), 0);
     if (spent <= state.level) state.skills = { ...slot.skills };
@@ -107,6 +112,8 @@ export function sanitizeLoadouts(raw) {
       }
       out[i].skills = skills;
     }
+    if (Array.isArray(l.skillLoadout)) out[i].skillLoadout = l.skillLoadout.filter((id) => SKILLS.some((k) => k.id === id)).slice(0, 3); // v9.9 (K16)
+    if (Array.isArray(l.rushSlots)) out[i].rushSlots = l.rushSlots.filter((id) => typeof id === 'string').slice(0, 3);
   });
   return out;
 }
