@@ -1,6 +1,8 @@
 // v9.7.1 : anglais du cadrage, du sac de butin et des menus allégés. Branché à la fin de ./en.js.
 let LK = () => null;
 export const EXACT_971 = {
+  "Noms des sorts au-dessus du héros et des compagnons": "Spell names above the hero and companions",
+  "Fil des gains à gauche de la scène": "Gains feed on the left of the scene",
   "Faille du jour": "Daily rift",
   "⏳ Faille du jour": "⏳ Daily rift",
   "⚔ Combattre": "⚔ Fight",

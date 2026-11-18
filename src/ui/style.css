@@ -4039,3 +4039,14 @@ html.reduce-motion .best-card { animation: none; }
 .rift-reward .rw img { width: 40px; height: 40px; } .rift-reward .rw { font-size: 18px; }
 #rift-chip { position: absolute; right: 8px; top: 120px; z-index: 5; border-color: #c9a6ff !important; color: #e8d8ff; }
 .layout-strip #rift-chip, #app.panel-tall #rift-chip { display: none !important; }
+/* v9.9 (K11) : frise des vagues */
+#wave-frieze { display: flex; align-items: center; justify-content: center; gap: 2px; margin-top: 2px; }
+#wave-frieze img { width: 18px; height: 18px; image-rendering: pixelated; opacity: .75; } #wave-frieze img.cur { opacity: 1; outline: 2px solid #ffd36a; border-radius: 50%; background: #0006; }
+#wave-frieze .wf-boss { filter: drop-shadow(0 0 3px #ff4a3a); opacity: 1; } #wave-frieze .wf-link { width: 6px; height: 2px; background: #8a9ac0; }
+#wave-frieze:empty { display: none; }
+/* v9.9 (K11) : fil des gains */
+#gain-feed { position: absolute; left: 8px; bottom: 34%; z-index: 4; display: flex; flex-direction: column; gap: 2px; pointer-events: none; }
+.gf-line { display: flex; align-items: center; gap: 4px; padding: 1px 8px 1px 4px; border-radius: 10px; background: #0009; color: #ffe7b0; font: 700 12px system-ui, sans-serif; animation: gf 3s ease-out forwards; }
+.gf-line img { width: 14px; height: 14px; } @keyframes gf { 0% { transform: translateX(-10px); opacity: 0; } 10%, 75% { transform: none; opacity: 1; } 100% { opacity: 0; } }
+html.reduce-motion .gf-line { animation: none; }
+.layout-strip #gain-feed, .layout-mini #gain-feed, #app.panel-tall #gain-feed { display: none; }

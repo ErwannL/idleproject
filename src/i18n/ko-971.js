@@ -1,6 +1,8 @@
 // v9.7.1 : 한국어 — 화면 구도, 전리품 가방, 간소화된 메뉴. ./ko.js 끝에 연결.
 let LK = () => null;
 export const EXACT_971 = {
+  "Noms des sorts au-dessus du héros et des compagnons": "영웅과 동료 위에 주문 이름",
+  "Fil des gains à gauche de la scène": "장면 왼쪽에 획득 내역",
   "Faille du jour": "오늘의 균열",
   "⏳ Faille du jour": "⏳ 오늘의 균열",
   "⚔ Combattre": "⚔ 전투",

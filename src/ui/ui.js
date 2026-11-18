@@ -1273,6 +1273,7 @@ export class UI {
     if (action === 'simple-mode') this.actions.setSimple(el.checked); // v9.7.1 (lot 5)
     if (action === 'combat-assist') this.actions.setCombatAssist(el.value); // v9.7.1 (lot 2)
     if (action === 'skill-names') this.actions.setSkillNames(el.checked); // v9.7.1 (lot A)
+    if (action === 'gain-feed') { if (el.checked) delete this.state.ui.feed; else this.state.ui.feed = false; } // v9.9 (K11)
     if (action === 'char-size') this.actions.setCharSize(el.value); // v9.7.1
     if (action === 'big-auras') this.actions.setBigAuras(el.checked); // v9.5.3
     if (action === 'metrics-opt-in') this.actions.setMetricsOptIn(el.checked); // v9.6.5
@@ -1840,6 +1841,21 @@ export class UI {
         ? `Salle ${state.dungeon.room}/${dungeonRooms(state, enc.dungeon)} · ${kills}/${enc.killsNeeded}`
         : waveMode(enc) ? `Vague ${waveIndex(state)}/${waveCount()}` // v9.3.8 : vagues groupées
         : `Ennemis vaincus ${kills}/${enc.killsNeeded}`;
+    }
+    // v9.9 (K11) : frise de l'étape — la vague en cours (entourée), les 2 suivantes et le boss, en petites icônes.
+    const fr = this.$('wave-frieze');
+    if (fr) {
+      const camp = !state.challenge && !state.dungeon && !state.tower && waveMode(enc);
+      const cur = camp ? waveIndex(state) : 0, tot = camp ? waveCount() : 0;
+      const fkey = `${camp}|${cur}|${tot}|${state.stage}`;
+      if (this.lastHud.frieze !== fkey) {
+        this.lastHud.frieze = fkey;
+        const zone = zoneForStage(state.stage);
+        const sp = (i) => ENEMIES[zone.enemies[(state.stage + i) % zone.enemies.length]]?.sprite ?? 'icon_skull';
+        const items = camp ? Array.from({ length: Math.min(3, tot - cur + 1) }, (_, i) => `<img class="px wf-wave${i === 0 ? ' cur' : ''}" src="${icon(sp(cur + i), 1)}" alt="">`) : [];
+        if (camp && isBossStage(state.stage)) items.push(`<img class="px wf-boss" src="${icon('icon_skull', 1)}" alt="">`);
+        fr.innerHTML = items.join('<i class="wf-link"></i>');
+      }
     }
     if (ratio !== this.lastHud.ratio) {
       this.$('progress-fill').style.width = `${Math.max(0, Math.min(1, ratio)) * 100}%`;

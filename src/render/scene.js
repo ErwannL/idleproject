@@ -1,5 +1,7 @@
 // Rendu de la scène de combat sur un canvas basse résolution agrandi en « pixel perfect ».
 // Le rendu lit l'état de la simulation et ses événements ; il ne modifie jamais la partie.
+import { SKILLS } from '../data/skills.js'; // v9.9 (K11)
+import { ELEMENTS, unitElement } from '../core/elements.js';
 import { t as tr } from '../i18n/i18n.js'; // v9.7.1 : noms de compétences traduits
 import { mutationById } from '../core/mutations.js';
 import { auraColors } from '../data/auras.js';
@@ -447,9 +449,18 @@ export class SceneRenderer {
         // v9.7.1 (lot 3 bis) : trois temps — préparation (lueur au héros), impact (arrêt d'image 0,05 s), retombée (effets).
         if (!this.focus) { this.effects.push({ kind: 'halo', x: HERO_X, y: this.groundY - 16, color: '#ffe9a8', life: 0.3, max: 0.3 }); this.hitstop = Math.max(this.hitstop ?? 0, 0.05); }
         // v9.3.9 (2.3) : une compétence qui touche plusieurs ennemis secoue l'écran.
-        if ((event.targets?.length ?? 0) > 1 || event.aoe) /* v9.8 (B1) : plus de secousse sur une action du héros ou d'un compagnon */
+        // v9.8 (B1) : plus de secousse sur une action du héros ou d'un compagnon. (v9.9 : l'ancien « if » sans corps rendait
+        // le geste d'arme conditionnel — corrigé.)
         // v9.2.5 : geste propre à la compétence et effet synchronisé (skill-fx.js) ; ancien effet en repli.
         this.weaponSkillFlourish(HERO_X + 4, this.weaponEq); // v9.3.2 : l'arme participe à la compétence
+        // v9.9 (K11) : étiquette de sort au-dessus du héros (1 s), à la couleur de sa classe.
+        { const sk = SKILLS.find((x) => x.id === event.skillId);
+          if (sk && SceneRenderer.skillNames !== false && !this.focus) {
+            const old = this.effects.filter((e) => e.kind === 'callout');
+            if (old.length >= 3) this.effects.splice(this.effects.indexOf(old[0]), 1);
+            const half = Math.min(this.width / 2 - 2, sk.name.length * 1.6 + 4);
+            this.effects.push({ kind: 'callout', text: sk.name, x: Math.max(half, Math.min(this.width - half, HERO_X)), y: this.groundY - 50, color: '#ffd23f', life: 1, max: 1 });
+          } }
         if (castHeroSkill(this, this.skillKey, event.skillId, fxContext(this, world, { x: HERO_X + 4, y: this.groundY - 22 }, HERO_X))) break;
         this.skillEffect(event);
         break;
@@ -1717,12 +1728,12 @@ export class SceneRenderer {
     const slot = this.layout?.slots.get(companion.id);
     const cx = slot?.cx ?? HERO_X - 30;
     const G = this.groundY;
-    const color = companion.fx ?? '#ffd23f';
+    const color = ELEMENTS[unitElement(companion.id)]?.color ?? companion.fx ?? '#ffd23f'; // v9.9 (K11) : couleur de l'élément
     if (SceneRenderer.skillNames !== false && known?.name) {
       const half = Math.min(this.width / 2 - 2, known.name.length * 1.6 + 4); // v9.8 (E9) : bulle gardée dans le cadre
       const old = this.effects.filter((e) => e.kind === 'callout');
       if (old.length >= 3) this.effects.splice(this.effects.indexOf(old[0]), 1);
-      this.effects.push({ kind: 'callout', text: known.name, x: Math.max(half, Math.min(this.width - half, cx)), y: G - 46, color, life: 0.8, max: 0.8 });
+      this.effects.push({ kind: 'callout', text: known.name, x: Math.max(half, Math.min(this.width - half, cx)), y: G - 46, color, life: 1, max: 1 });
     }
     if (!this.focus) this.effects.push({ kind: 'halo', x: cx, y: G - 16, color, life: 0.35, max: 0.35 });
     if (event.ultimate) {
