@@ -4072,3 +4072,8 @@ html.reduce-motion .vg-ember { animation: none; opacity: .6; }
 /* v9.9 (K17) : Éveil et collection */
 .up-awake { text-align: center; font-size: 13px; color: #9fb3d8; margin: 4px 0; } .up-awake.on { color: #ffe27a; font-weight: 800; text-shadow: 0 0 8px #ffb30088; }
 .awake-art { filter: drop-shadow(0 0 14px #ffd36a88) !important; } .up-collect { text-align: center; font-size: 12px; }
+/* v9.9 : lisibilité sur PC — 15 px au moins dans les panneaux, 13 px pour les petites étiquettes */
+@media (min-width: 900px) {
+  #panel-body { font-size: 15px; }
+  #panel-body small, #panel-body .muted, #panel-body .tag, #panel-body .rw-name { font-size: max(13px, 0.87em); }
+}

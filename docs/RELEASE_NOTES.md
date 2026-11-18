@@ -1,6 +1,19 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v9.8.1 — Finitions de la 9.8
+## Ascendrya v9.9.0 — Un écran de jeu mobile : le combat toujours visible, une action à la fois
+
+- Les menus s'ouvrent dans un panneau en bas (deux hauteurs, ⤢) : le combat reste visible au-dessus. 5 onglets (Héros, Équipe, Combat au centre, Invocation, Boutique) ; le reste dans le tiroir ☰ ; ce qui n'est pas encore ouvert reste visible avec un cadenas et sa condition.
+- Sceau d'action : un seul gros bouton au bas de la scène, à la couleur de l'action (récupérer, équiper, améliorer, affronter, renaître). Une seule pastille rouge à la fois.
+- Conseil du mentor après chaque défaite : 3 pistes choisies selon ta partie (élément, amélioration, objet, compagnon, talent, Renaissance), qui ouvrent le bon écran.
+- Améliorations « avant → après » avec le gain sur le bouton, « Tout acheter », Renaissance toujours visible avec son gain ; Talents en 3 grandes cartes et un rang.
+- Sur la scène : carte « Meilleur objet », étiquettes de sort à la couleur de l'élément, fil des gains, frise des vagues, Rencontres de route (2 choix, coût écrit).
+- Donjons : Bénédictions élémentaires (1 carte parmi 3) entre deux salles.
+- Faille du jour (un Titan par jour), Carnet de l'Apprenti (7 jours, piste de paliers), Récit du Camp au retour, Veillée au Camp (écran sombre, le jeu continue).
+- Compagnons : Éveil au niveau 20 (nouvelle illustration et sort de leur élément), bonus de collection, équipes enregistrées, cadenas doré par Boost (auto ou à la main).
+
+### Versions précédentes
+
+<details><summary><b>Ascendrya v9.8.1 — Finitions de la 9.8</b></summary>
 
 - Plus de bande claire à gauche de la scène ni de trait vertical pendant les ultimes (assombrissement et cadre dessinés au bon endroit).
 - Les bulles de soin et de bouclier restent petites, aux pieds de l'équipe : elles ne cachent plus les personnages (Défi de la semaine compris).
@@ -10,7 +23,7 @@
 - Le bouton Quêtes montre la récompense la plus proche ; durée et recharge sous chaque Boost ; un gardien affiche sa protection au lieu de « 0 dégâts » ; le calendrier de connexion laisse la place à la Roue du jour.
 - Android : APK et AAB signés.
 
-### Versions précédentes
+</details>
 
 <details><summary><b>Ascendrya v9.8.0 — Un vrai jeu mobile : guidé, illustré, une routine du jour</b></summary>
 

@@ -606,7 +606,10 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
   const dropChance = !common ? 1 : (balance.loot.dropChance + stats.bonus.dropChance / 100 + boost.dropChance) * (balance.loot.dropScale ?? 1);
   // v9.1.9 : éclat de compensation (moins d'objets courants à recycler).
   if (common && balance.loot.killShardChance && rng.next() < balance.loot.killShardChance) state.materials.shards += 1;
-  if (rng.next() < dropChance) {
+  // v9.9 (K5) : premier objet garanti tôt (au 12e monstre au plus tard) — la carte « Meilleur objet » et la mini-quête
+  // « Ramasse un objet » ne font plus attendre le débutant plusieurs minutes.
+  const firstItem = (state.records?.itemsFound ?? 0) === 0 && (state.records?.kills ?? 0) >= 12;
+  if (firstItem || rng.next() < dropChance) {
     // v9.0.6 : boss réaffronté (boucle, étape déjà franchie) → objet ancestral 5 fois plus rare.
     const farmed = enemy.boss && (Boolean(state.farmBoss) || enc.world || (!enc.dungeon && !enc.tower && !enc.challenge && state.stage < state.maxStage));
     const signature = enemy.boss && rng.next() < balance.loot.signatureChance * (farmed ? 0.2 : 1)

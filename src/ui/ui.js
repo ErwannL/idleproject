@@ -2089,10 +2089,12 @@ export class UI {
     if (q && n?.id !== 'claim') {
       const steps = questSteps(st, q);
       const i = steps.findIndex((x) => !x.done);
-      if (i >= 0) n = { id: 'quest', text: steps[i].text, tab: QUEST_TAB_UI[q.id]?.[i] ?? null, action: QUEST_TAB_UI[q.id]?.[i] ? null : 'none' };
+      // Une étape sans écran à ouvrir (« Bats 10 monstres ») laisse la place à l'action suivante : la carte la montre déjà.
+      if (i >= 0 && QUEST_TAB_UI[q.id]?.[i]) n = { id: 'quest', text: steps[i].text, tab: QUEST_TAB_UI[q.id][i] };
     }
     // v9.9 (K2/K4) : plus de progrès depuis 10 minutes → la première carte du Conseil du mentor.
-    if (st && n && ['goal', 'advance'].includes(n.id) && (st.playSeconds ?? 0) - (st.recordAt ?? st.playSeconds ?? 0) > 600) {
+    const stalled = st && ((st.playSeconds ?? 0) - (st.recordAt ?? st.playSeconds ?? 0) > 600 || (st.playSeconds ?? 0) - (st.ui?.wallAt ?? -1e9) < 1800);
+    if (stalled && n && ['goal', 'advance', 'claim', 'rebirth'].includes(n.id)) {
       const t = mentorTips(st, { wall: true })[0];
       if (t) n = { id: 'mentor', text: t.text, tab: t.tab, view: t.view, point: t.point };
     }
