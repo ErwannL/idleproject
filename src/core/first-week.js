@@ -45,3 +45,25 @@ export function claimPrize(state, companionId) {
   if (o) o.stars = Math.min(5, (o.stars ?? 1) + 1); else state.companions.owned[companionId] = { stars: 1, level: 1 };
   return true;
 }
+
+// v9.9 (K9) : piste de paliers (une mission faite = 1 point) avec récompenses visibles ; « Tout récupérer ».
+export const FIRST_WEEK_MILES = [{ at: 5, reward: { gems: 50 } }, { at: 10, reward: { keys: 1, shards: 30 } }, { at: 15, reward: { gems: 100 } }, { at: 21, reward: { gems: 150, keys: 2 } }];
+export function firstWeekPoints(state, now = Date.now()) {
+  const open = firstWeekDaysOpen(state, now);
+  let n = 0;
+  for (let d = 1; d <= open; d++) n += firstWeekDay(state, d).steps.filter((x) => x.done).length;
+  return n;
+}
+export function claimFirstWeekAll(state, now = Date.now()) {
+  const got = {};
+  const add = (r) => { for (const [k, v] of Object.entries(r ?? {})) got[k] = (got[k] ?? 0) + v; };
+  for (let d = 1; d <= firstWeekDaysOpen(state, now); d++) add(claimFirstWeekDay(state, d, now));
+  const pts = firstWeekPoints(state, now);
+  const r = rec(state);
+  r.miles ??= [];
+  for (const m of FIRST_WEEK_MILES) if (pts >= m.at && !r.miles.includes(m.at)) { r.miles.push(m.at); add(grantReward(state, m.reward)); }
+  return Object.keys(got).length ? got : null;
+}
+export function firstWeekDaysLeft(state, now = Date.now()) {
+  return Math.max(0, Math.ceil(((state.createdAt ?? now) + 7 * DAY - now) / DAY));
+}

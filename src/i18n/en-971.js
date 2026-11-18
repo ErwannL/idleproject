@@ -1,6 +1,11 @@
 // v9.7.1 : anglais du cadrage, du sac de butin et des menus allégés. Branché à la fin de ./en.js.
 let LK = () => null;
 export const EXACT_971 = {
+  "Faille du jour": "Daily rift",
+  "⏳ Faille du jour": "⏳ Daily rift",
+  "⚔ Combattre": "⚔ Fight",
+  "Plus tard": "Later",
+  "Carnet de l'Apprenti": "Apprentice's journal",
   "Choisis une bénédiction": "Choose a blessing",
   "Bénie": "Blessed",
   "Sacrée": "Sacred",
@@ -515,6 +520,8 @@ export const EXACT_971 = {
   "Tient": "Withstands",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
+  [/^Gros lot : un compagnon Épique au choix · (\d+) j restants$/, (m) => `Grand prize: an Epic companion of your choice · ${m[1]} d left`],
+  [/^(\d+) essai(s?)$/, (m) => `${m[1]} tr${m[2] ? 'ies' : 'y'}`],
   [/^Choix automatique dans (\d+) s$/, (m) => `Automatic choice in ${m[1]} s`],
   [/^(.+) s'est blessé pendant le combat\.$/, (m) => `${m[1]} got hurt during the fight.`],
   [/^L'esprit de (.+) t'observe\.$/, (m) => `The spirit of ${LK(m[1]) ?? m[1]} is watching you.`],

@@ -75,7 +75,7 @@ import { isUpgrade, teamUpgradeFor } from '../core/inventory.js';
 import { canEquip as canEquipHero } from '../core/classes.js';
 import { mentorTips } from '../core/mentor.js'; // v9.9 (K4)
 import { boonById, rarityOf } from '../core/boons.js'; // v9.9 (K7)
-import { titanToday, titanTriesLeft } from '../core/titan.js'; // v9.8 (H7)
+import { TITAN_TIERS, titanToday, titanTriesLeft } from '../core/titan.js'; // v9.8 (H7)
 import { MISSION_PERIODS } from '../data/missions.js';
 import { missionOpen, missionStatus } from '../core/missions.js';
 import dungeons from './panels/dungeons.js';
@@ -1128,7 +1128,11 @@ export class UI {
       case 'sleep-mode': this.closeModal(); this.closePanel?.(); this.sleepMode(true); break; // v9.8 (H9)
       case 'fw-day': local(() => { v.fwDay = value; }); break; // v9.8 (H5)
       case 'fw-claim': a.firstWeekClaim(Number(value)); break;
+      case 'fw-all': a.firstWeekAll(); break; // v9.9 (K9)
       case 'fw-prize': a.firstWeekPrize(value); break;
+      case 'rift-open': this.showRift(false); break;
+      case 'titan-start-modal': this.closeModal(); // v9.9 (K10) : depuis la carte de la Faille
+      // falls through
       case 'titan-start': // v9.8 (H7)
         { let sum = null; openWorldBoss(this.state, { start: () => a.titanStart(), finish: (setup, r) => (sum = a.titanFinish(setup, r)), left: () => titanTriesLeft(this.state), closed: () => { this.invalidate(); if (sum && sum.tier !== 'Top 10 %') setTimeout(() => this.mentorScreen(sum.tier, `Barre vidée : ${Math.round(sum.ratio * 100)} %`, { element: titanToday().element ?? null }), 300); } }); } // v9.9 (K4)
         break;
@@ -1611,6 +1615,7 @@ export class UI {
     const pill = this.$('goals-pill');
     if (pill) { const h = sessionGoalsPill(state); if (pill.dataset.h !== h) { pill.dataset.h = h; pill.innerHTML = h; pill.classList.toggle('hidden', !h); pill.classList.toggle('ready', sessionDone(state)); } }
     this.updateQuestBanner(state); // v9.8 (J2)
+    this.$('rift-chip')?.classList.toggle('hidden', this.tabVisible.event === false || titanTriesLeft(state) <= 0); // v9.9 (K10)
     const stats = world.heroStats ?? computeHeroStats(state);
     this.setText('gold', formatNumber(state.gold));
     this.setText('strip-gold', formatNumber(state.gold));
@@ -2629,6 +2634,29 @@ export class UI {
     setTimeout(() => el.remove(), 20000);
   }
 
+
+  // v9.9 (K10) : Faille du jour — grande carte : le Titan illustré, son élément, le sablier jusqu'au prochain, la
+  // récompense en gros, un bouton. Elle s'ouvre seule une fois par jour (jamais par-dessus « Bon retour »).
+  showRift(auto = false) {
+    const st = this.state;
+    if (!st || typeof document === 'undefined') return;
+    if (auto) {
+      const day = new Date().toDateString();
+      if (st.ui.riftDay === day || this.tabVisible.event === false || titanTriesLeft(st) <= 0) return;
+      if (!this.$('modal').classList.contains('hidden') || document.querySelector('.cinematic, #prologue, .wb-overlay')) { setTimeout(() => this.showRift(true), 4000); return; }
+      st.ui.riftDay = day;
+    }
+    const t = titanToday();
+    const el = ELEMENTS[t.element];
+    const end = new Date(); end.setHours(24, 0, 0, 0);
+    const left = Math.max(0, Math.round((end - Date.now()) / 1000));
+    const top = TITAN_TIERS[0].reward;
+    this.openModal(`<div class="rift-card"><div class="rift-sky"><div class="rift-boss" style="background-image:url('assets/world-boss/colossus_idle.png');filter:${t.art.filter ?? 'none'}"></div></div>
+      <h2 id="modal-title">Faille du jour</h2><b class="rift-name">${escapeHtml(t.name)}</b>
+      <div class="rift-meta">${el ? `<span>${el.icon} ${escapeHtml(el.name)}</span>` : ''}<span>⏳ ${formatDuration(left)}</span><span>${titanTriesLeft(st)} essai${titanTriesLeft(st) > 1 ? 's' : ''}</span></div>
+      <div class="rift-reward">${rewardIcons(top, 'named')}</div>
+      <div class="detail-actions"><button class="btn" data-action="close-modal">Plus tard</button><button class="btn btn-gold primary-action" data-action="titan-start-modal">⚔ Combattre</button></div></div>`);
+  }
 
   // v9.9 (K8) : bulle de rencontre au bord de la scène — 2 lignes, 2 boutons (gain et coût écrits dessus), 30 s.
   showEncounter(e) {

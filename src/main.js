@@ -17,7 +17,7 @@ import { finishTitan, startTitan } from './core/titan.js'; // v9.8 (H7)
 import { offerBoons, pickBoon } from './core/boons.js'; // v9.9 (K7)
 import { encounterView, resolveEncounter, roadDue, rollEncounter } from './core/road.js'; // v9.9 (K8)
 import { setupNotifications } from './ui/notifications.js'; // v9.8 (H8)
-import { claimFirstWeekDay, claimPrize } from './core/first-week.js'; // v9.8 (H5)
+import { claimFirstWeekAll, claimFirstWeekDay, claimPrize } from './core/first-week.js'; // v9.8 (H5)
 import { spinWheel } from './core/wheel.js'; // v9.8 (H4)
 import { claimDaybookChest, daybookTrack } from './core/daybook.js'; // v9.8 (H1) // v9.7.1 (prologue)
 import { startCatchUp } from './core/boost.js';
@@ -383,6 +383,7 @@ const actions = {
   },
   // v9.8 (H5) : carnet des 7 premiers jours.
   firstWeekClaim(d) { const g = claimFirstWeekDay(state, d); if (g) ui.chestReveal?.(g); done(Boolean(g), null); },
+  firstWeekAll() { const g = claimFirstWeekAll(state); if (g) ui.chestReveal?.(g); else ui.toast('Rien à récupérer pour l\'instant.', '#ffcf6a'); done(Boolean(g), null); },
   firstWeekPrize(id) { done(claimPrize(state, id), `${companionById(id)?.name ?? ''} te rejoint !`, '#ffd36a'); },
   // v9.9 (K8) : Rencontres de route.
   roadChoice(i) { const t = resolveEncounter(state, i, rng); if (t) { ui.toast(t, '#ffe27a'); save(); ui.invalidate(); } return t; },
@@ -1547,6 +1548,7 @@ setTimeout(() => {
   if (!cinematicsOn()) return;
   const zone = ZONES[currentEncounter(state).zoneIndex];
   if (loaded.source !== 'new') setTimeout(() => ui.showLoginPopup?.(), 4800); // v9.3.8 (4) : cadeau du jour à l'ouverture
+  if (loaded.source !== 'new' && !navigator.webdriver) setTimeout(() => ui.showRift?.(true), 9000); // v9.9 (K10) : Faille du jour, après « Bon retour »
   if (loaded.source === 'new') {
     // v9.3.7 : prologue « La chute du héros » à la toute première connexion (une seule fois), puis le titre.
     const intro = () => playCinematic({ kicker: 'Une nouvelle légende', title: 'Ascendrya', line: 'Tout reprendre, monde après monde.' });

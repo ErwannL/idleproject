@@ -5,7 +5,7 @@
 import { DAYBOOK_CHEST, daybookComplete, daybookOf, daybookTasks } from '../../core/daybook.js';
 import { sessionGoalsHtml } from '../session-goals.js';
 import { escapeHtml, img, rewardIcons } from '../common.js';
-import { FIRST_WEEK_PRIZE, firstWeekActive, firstWeekDay, firstWeekDaysOpen, prizeReady } from '../../core/first-week.js';
+import { FIRST_WEEK_MILES, FIRST_WEEK_PRIZE, firstWeekActive, firstWeekDay, firstWeekDaysLeft, firstWeekDaysOpen, firstWeekPoints, prizeReady } from '../../core/first-week.js';
 import { companionById } from '../../core/companions.js';
 import { companionStill } from './expeditions.js';
 
@@ -20,9 +20,15 @@ function firstWeekHtml(ui, state) {
   }).join('');
   const day = firstWeekDay(state, sel);
   const all = day.steps.every((x) => x.done);
-  const steps = day.steps.map((x) => `<li class="${x.done ? 'good' : ''}">${x.done ? '✓' : '○'} ${escapeHtml(x.text)}</li>`).join('');
+  // v9.9 (K9) : missions finies en haut, en doré.
+  const steps = [...day.steps].sort((a, b) => b.done - a.done).map((x) => `<li class="${x.done ? 'fw-done' : ''}">${x.done ? '✓' : '○'} ${escapeHtml(x.text)}</li>`).join('');
+  const pts = firstWeekPoints(state);
+  const got = state.firstWeek?.miles ?? [];
+  const track = `<div class="fw-track"><i style="width:${Math.min(100, (pts / 21) * 100)}%"></i>${FIRST_WEEK_MILES.map((m) => `<span class="fw-mile${got.includes(m.at) ? ' got' : pts >= m.at ? ' ready' : ''}" style="left:${(m.at / 21) * 100}%">${rewardIcons(m.reward)}<small>${m.at}</small></span>`).join('')}</div>`;
   const prize = FIRST_WEEK_PRIZE.map((id) => { const c = companionById(id); return `<button class="fw-prize-c" ${prizeReady(state) ? `data-action="fw-prize" data-value="${id}"` : 'disabled'} title="${escapeHtml(c?.name ?? id)}">${c ? companionStill(c) : ''}<small>${escapeHtml(c?.name ?? id)}</small></button>`; }).join('');
-  return `<div class="card fw-card"><div class="fw-head"><b>Les 7 premiers jours</b><span class="muted">Gros lot : un compagnon Épique au choix</span></div>
+  return `<div class="card fw-card"><div class="fw-head"><b>Carnet de l'Apprenti</b><span class="muted">Gros lot : un compagnon Épique au choix · ${firstWeekDaysLeft(state)} j restants</span></div>
+    ${track}
+    <button class="btn btn-gold fw-all" data-action="fw-all">Tout récupérer</button>
     <div class="fw-days">${days}</div>
     <ul class="fw-steps">${steps}</ul>
     <div class="fw-claim">${rewardIcons(day.reward, 'named')} ${day.claimed ? '<span class="good">Récupéré ✓</span>' : `<button class="btn ${all ? 'btn-gold' : ''}" data-action="fw-claim" data-value="${sel}" ${all ? '' : 'disabled'}>Récupérer</button>`}</div>
@@ -36,7 +42,7 @@ export function daybookOpen(ui) {
 function card(t, fresh) {
   const pct = Math.round((t.n / Math.max(1, t.target)) * 100);
   const go = t.done ? '' : t.action
-    ? `<button class="btn btn-gold db-go" data-action="${t.action}">${{ 'quick-hunt': 'Chasser', 'wheel-open': 'Tourner', 'titan-start': 'Combattre' }[t.action] ?? 'Y aller'}</button>`
+    ? `<button class="btn btn-gold db-go" data-action="${t.action}">${{ 'quick-hunt': 'Chasser', 'wheel-open': 'Tourner', 'rift-open': 'Combattre' }[t.action] ?? 'Y aller'}</button>`
     : `<button class="btn btn-primary db-go" data-action="open-tab" data-value="${t.tab}">Y aller</button>`;
   return `<div class="db-card${t.done ? ' done' : ''}" data-db="${t.id}">
     <div class="db-art">${img(t.icon)}</div>

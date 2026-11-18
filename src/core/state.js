@@ -644,6 +644,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     if (Array.isArray(raw.ui.sealSeen)) state.ui.sealSeen = raw.ui.sealSeen.filter((x) => typeof x === 'string').slice(0, 60); // v9.9 (K2)
     if (Number.isFinite(raw.ui.wallAt)) state.ui.wallAt = raw.ui.wallAt;
     if (raw.ui.buyAllOk === true) state.ui.buyAllOk = true;
+    if (typeof raw.ui.riftDay === 'string') state.ui.riftDay = raw.ui.riftDay; // v9.9 (K10)
     state.ui.focus = raw.ui.focus === true;
     if (raw.ui.cinematics === false) state.ui.cinematics = false;
     if (raw.ui.shake === false) state.ui.shake = false; // v9.3.9

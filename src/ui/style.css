@@ -4025,3 +4025,17 @@ html.reduce-motion .best-card { animation: none; }
 .rb-time { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: #c9a6ff; transform-origin: left; animation: rb-time linear forwards; }
 @keyframes rb-time { to { transform: scaleX(0); } }
 .layout-strip .road-bubble, .layout-mini .road-bubble { display: none; }
+/* v9.9 (K9) : Carnet de l'Apprenti — piste de paliers */
+.fw-track { position: relative; height: 12px; margin: 26px 10px 22px; border-radius: 6px; background: #2a3350; }
+.fw-track > i { position: absolute; inset: 0 auto 0 0; border-radius: 6px; background: linear-gradient(90deg, #c8961c, #ffe27a); }
+.fw-mile { position: absolute; top: -24px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; font-size: 11px; }
+.fw-mile .rw img { width: 18px; height: 18px; } .fw-mile small { margin-top: 18px; color: #c9b88a; } .fw-mile.ready .rw-icons { filter: drop-shadow(0 0 6px #ffd36a); } .fw-mile.got { opacity: .45; }
+.fw-all { width: 100%; margin-bottom: 6px; } .fw-steps li.fw-done { color: #ffd36a; font-weight: 700; }
+/* v9.9 (K10) : Faille du jour */
+.rift-card { text-align: center; }
+.rift-sky { height: 180px; border-radius: 12px; background: radial-gradient(ellipse at 50% 70%, #5a2a9a 0, #1a0e30 60%, #0a0614 100%); display: flex; align-items: flex-end; justify-content: center; overflow: hidden; border: 2px solid #c9a6ff; }
+.rift-boss { width: 128px; height: 128px; transform: scale(1.35); transform-origin: bottom; background-repeat: no-repeat; background-position: 0 0; image-rendering: pixelated; }
+.rift-name { display: block; font-size: 20px; color: #ffe27a; } .rift-meta { display: flex; justify-content: center; gap: 14px; margin: 6px 0; font-weight: 700; }
+.rift-reward .rw img { width: 40px; height: 40px; } .rift-reward .rw { font-size: 18px; }
+#rift-chip { position: absolute; right: 8px; top: 120px; z-index: 5; border-color: #c9a6ff !important; color: #e8d8ff; }
+.layout-strip #rift-chip, #app.panel-tall #rift-chip { display: none !important; }

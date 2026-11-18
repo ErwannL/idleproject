@@ -1,6 +1,11 @@
 // v9.7.1 : 한국어 — 화면 구도, 전리품 가방, 간소화된 메뉴. ./ko.js 끝에 연결.
 let LK = () => null;
 export const EXACT_971 = {
+  "Faille du jour": "오늘의 균열",
+  "⏳ Faille du jour": "⏳ 오늘의 균열",
+  "⚔ Combattre": "⚔ 전투",
+  "Plus tard": "나중에",
+  "Carnet de l'Apprenti": "견습생 일지",
   "Choisis une bénédiction": "축복을 고르세요",
   "Bénie": "축복",
   "Sacrée": "신성",
@@ -515,6 +520,8 @@ export const EXACT_971 = {
   "Tient": "버팀",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
+  [/^Gros lot : un compagnon Épique au choix · (\d+) j restants$/, (m) => `대상: 원하는 에픽 동료 · ${m[1]}일 남음`],
+  [/^(\d+) essai(s?)$/, (m) => `도전 ${m[1]}회`],
   [/^Choix automatique dans (\d+) s$/, (m) => `${m[1]}초 후 자동 선택`],
   [/^(.+) s'est blessé pendant le combat\.$/, (m) => `${m[1]}이(가) 전투 중 다쳤어요.`],
   [/^L'esprit de (.+) t'observe\.$/, (m) => `${LK(m[1]) ?? m[1]}의 정령이 지켜봐요.`],
