@@ -23,7 +23,7 @@ import { companionPortrait, companionStill } from './expeditions.js';
 import { unitPopup } from './unit-popup.js'; // v9.3.4
 import { canAfford, dupBonusPct, leveledSkill, levelMult, RESOURCE_KEYS, skillCap, skillLevels, skillUpgradeCost } from '../../core/progression.js'; // v9.3.3
 import { ACTIVE_EXTRA_AT, DUP_BONUS_PCT, SKILL_CAPS, SKILL_GROWTH, SKILL_RESOURCES, ULT_UNLOCK_COPIES } from '../../data/progression.js';
-import { canEquip, classLabel, gearStats, gearUpgradeCost, slotName, statText, unitGear, unitGearStats } from '../../core/companion-gear.js'; // v9.3.4 (f)
+import { bestGearFor, canEquip, classLabel, gearWaiting, gearStats, gearUpgradeCost, slotName, statText, unitGear, unitGearStats } from '../../core/companion-gear.js'; // v9.3.4 (f)
 import { itemClass } from '../../core/classes.js';
 import { eqSlot } from '../../data/items.js';
 import { GEAR_CLASSES, STAT_NAMES, gearClassOf } from '../../data/companion-gear.js';
@@ -68,7 +68,9 @@ function gearBlock(ui, state, c) {
         ${i.locked ? '' : `<button class="btn tiny" data-action="gear-recycle" data-value="${i.id}" title="Recycler en éclats">♻</button>`}</div></div>`;
   };
   const sel = (key, opts) => `<select data-action="gear-filter" data-key="${key}" aria-label="Filtre">${opts.map(([v, l]) => `<option value="${v}" ${String(f[key]) === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
+  const best = bestGearFor(state, c.id).length;
   return `<div class="section-title">Équipement <span class="muted">(${GEAR_CLASSES[cls].label})</span></div>
+    ${best ? `<button class="btn btn-gold primary-action gear-best-btn" data-action="gear-best" data-value="${c.id}">⬆ Équiper le meilleur (${best})</button>` : ''}
     <div class="gear-slots">${slots}</div>
     <div class="muted">Total : ${escapeHtml(statText(total)) || 'aucun bonus'}. Attaque, soins et recharge comptent partout ; PV et défense dans l'Arène.</div>
     <div class="gear-filters">${sel('slot', [['all', 'Toutes les places'], ...PLACES.map((s) => [s, slotName(c, s)])])}
@@ -146,10 +148,11 @@ export default {
       const c = equippedOfKind(state, kind)[i];
       // v9.6.3 (3.5) : rang avant (encaisse, un Gardien y pare Charge et Kamikaze) ou arrière (protégé) ; un toucher change.
       const rank = kind === 'ally' && c ? (frontCompanion(state) === c.id ? '<span class="rank-pill front">Avant</span>' : `<span class="rank-pill" data-action="set-front" data-value="${c.id}" title="Mettre au rang avant">Arrière</span>`) : '';
-      return c ? `<div class="team-slot-wrap"><button class="team-slot r-${c.rarity}" data-action="companion-sel" data-value="${c.id}" title="${escapeHtml(c.name)}">${c.id === sel.id ? portrait(c) : companionStill(c)}</button>${rank}</div>`
+      return c ? `<div class="team-slot-wrap"><button class="team-slot r-${c.rarity}" data-action="companion-sel" data-value="${c.id}" title="${escapeHtml(c.name)}">${c.id === sel.id ? portrait(c) : companionStill(c)}${gearWaiting(state, c.id) ? '<span class="gear-wait" title="Un meilleur objet attend">⬆</span>' : ''}</button>${rank}</div>`
         : `<div class="team-slot empty" title="${kind === 'ally' ? 'Place de compagnon' : 'Place de familier'}">${kind === 'ally' ? 'Compagnon' : 'Familier'}</div>`;
     };
-    const team = `<div class="team-bar">
+    const teamGear = state.companions.equipped.some((id) => gearWaiting(state, id));
+    const team = `${teamGear ? '<button class="btn btn-gold primary-action gear-team-btn" data-action="gear-team">⬆ Équiper toute l\'équipe</button>' : ''}<div class="team-bar">
       <div class="team-slot hero" title="Le héros (toujours présent)">${animCanvas('hero', 64, 58, 1)}</div>
       ${Array.from({ length: teamSlotsOf(state).ally }, (_, i) => slot('ally', i)).join('')}
       <span class="team-sep"></span>${Array.from({ length: BALANCE.teamSlots.pet }, (_, i) => slot('pet', i)).join('')}
@@ -163,7 +166,7 @@ export default {
         <span class="uc-art">${owned ? companionStill(c) : `<img class="px" src="${icon(c.sprite, c.kind === 'ally' ? 1 : 3, { tint: { color: '#3a4a66', alpha: 1 } })}" alt=""><b class="uc-q">?</b>`}</span>
         <span class="uc-name">${escapeHtml(c.name)}</span>
         <span class="uc-meta"><span class="rar-pill r-${c.rarity}">${rarityLabel(c.rarity)}</span>${elementBadge(unitElement(c.id), false, true)}${role ? `<span class="role-dot" style="background:${ROLES[role].color}" title="${ROLES[role].label}"></span>` : ''}</span>
-        ${equipped ? '<span class="eq" title="Dans l\'équipe">✓</span>' : ''}${isAway(state, c.id) ? '<span class="away" title="En expédition">⚑</span>' : ''}</button>`;
+        ${owned && gearWaiting(state, c.id) ? '<span class="gear-wait" title="Un meilleur objet attend">⬆</span>' : ''}${equipped ? '<span class="eq" title="Dans l\'équipe">✓</span>' : ''}${isAway(state, c.id) ? '<span class="away" title="En expédition">⚑</span>' : ''}</button>`;
     };
     const allies = COMPANIONS.filter((c) => teamKind(c) === 'ally');
     const pets = COMPANIONS.filter((c) => teamKind(c) === 'pet');

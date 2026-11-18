@@ -10,11 +10,12 @@ import { BOSS_TRAITS } from '../src/core/boss-traits.js';
 import { MUTATIONS } from '../src/core/mutations.js';
 import { allCompanionSkills } from '../src/core/companions.js';
 
-test('compagnons et familiers : marche, attaque de base, puis chaque compétence et l\'ultime', () => {
+test('compagnons et familiers (v9.10) : compétence signature, attaque de base, autres compétences, ultime', () => {
   for (const c of COMPANIONS) {
     const clips = showcaseClips({ kind: 'unit', id: c.id });
-    assert.deepEqual(clips.slice(0, 2).map((x) => x.id), ['walk', 'basic']);
-    assert.deepEqual(clips.slice(2).map((x) => x.label), allCompanionSkills(c.id).map((s) => s.name), c.id);
+    const names = allCompanionSkills(c.id).map((s) => s.name);
+    assert.deepEqual(clips.slice(0, 2).map((x) => x.id), ['sk0', 'basic']);
+    assert.deepEqual([clips[0].label, ...clips.slice(2).map((x) => x.label)], names, c.id);
     if (c.kind === 'ally') assert.ok(clips.at(-1).ult); // v9.3.8 : familier sans ultime
   }
 });

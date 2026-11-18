@@ -1,6 +1,19 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v9.9.0 — Un écran de jeu mobile : le combat toujours visible, une action à la fois
+## Ascendrya v9.10.0 — Un jeu qu'on laisse tourner dans un coin de l'écran du PC
+
+- **Veillée** : plus jamais d'écran noir sur PC en fenêtre. Réglage « Veillée automatique : Jamais / Téléphone seulement / Toujours » (par défaut : téléphone, ou PC en plein écran) ; jamais pendant la première heure de jeu ; toujours disponible dans le tiroir ☰.
+- **PC** : quand la fenêtre est plus large que haute (ou dépasse 900 px), les menus reviennent en volet latéral à droite, la scène reste entière à gauche. Le choix ⤢ est mémorisé par écran. Sur une petite fenêtre, le panneau s'ouvre en grand et se compacte : héros et emplacements, 6 stats de la Fiche et au moins 4 améliorations visibles sans défiler.
+- **Doigt et Sceau d'action** : le doigt ne revient que les 3 premières fois qu'une action est proposée (ou pendant les 30 premières minutes) ; le Sceau ne recouvre plus la ligne de la vague ; ignoré 3 fois, il se réduit en pastille pendant 1 heure.
+- **Débutant** : une mini-quête en cours passe avant « Tout récupérer » ; « Héros › Équiper le nouvel objet » équipe d'un appui ; la bulle « Nouvel objet ! » reste au-dessus du héros jusqu'à l'équipement. Mini-quête Équipement finie en 24 s en suivant le doigt.
+- **Équipement des compagnons** : « Équiper le meilleur » dans chaque fiche (sac et coffre, objets protégés compris), « Équiper toute l'équipe » dans Équipe, pastille ⬆ sur la carte d'un compagnon quand un meilleur objet attend.
+- **Voir en action** : le compagnon seul, en grand, face à un mannequin ; la vitrine démarre sur sa compétence signature puis enchaîne attaque, compétences, ultime.
+- **Arène** : équipe de 3 choisie avant chaque mode (Survie à 1, 2 ou 3 : ennemis plus forts avec l'équipe) ; combat en grand par-dessus la scène, comme la Revanche ; écran de fin (vagues tenues, record, récompenses nommées, Retenter). Boss commun : à quoi il sert et ce qu'il rapporte.
+- **Lisibilité** : fenêtre d'objet en « +2,1 % de ta puissance » ; chiffres de dégâts jamais empilés ; « Tu encaisses 5,9 coups (4,2 d'un boss) » ; onglets « Apparences » et « Classement » en entier ; la Forge passe dans Héros (5ᵉ onglet) ; Camp illustré (feu de camp, l'équipe autour) ; Boutique : offres illustrées d'abord, information en petit en bas ; Expéditions : « Gains attendus » nommés sur chaque place.
+
+### Versions précédentes
+
+<details><summary><b>Ascendrya v9.9.0 — Un écran de jeu mobile : le combat toujours visible, une action à la fois</b></summary>
 
 - Les menus s'ouvrent dans un panneau en bas (deux hauteurs, ⤢) : le combat reste visible au-dessus. 5 onglets (Héros, Équipe, Combat au centre, Invocation, Boutique) ; le reste dans le tiroir ☰ ; ce qui n'est pas encore ouvert reste visible avec un cadenas et sa condition.
 - Sceau d'action : un seul gros bouton au bas de la scène, à la couleur de l'action (récupérer, équiper, améliorer, affronter, renaître). Une seule pastille rouge à la fois.
@@ -11,7 +24,7 @@
 - Faille du jour (un Titan par jour), Carnet de l'Apprenti (7 jours, piste de paliers), Récit du Camp au retour, Veillée au Camp (écran sombre, le jeu continue).
 - Compagnons : Éveil au niveau 20 (nouvelle illustration et sort de leur élément), bonus de collection, équipes enregistrées, cadenas doré par Boost (auto ou à la main).
 
-### Versions précédentes
+</details>
 
 <details><summary><b>Ascendrya v9.8.1 — Finitions de la 9.8</b></summary>
 

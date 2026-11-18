@@ -87,7 +87,7 @@ import forgePanel, { canForgeSomething } from './panels/forge.js'; // v9.3.4
 import { updateTutorial } from './tutorial.js'; // v9.3.4 (h)
 import { recycleRules } from '../core/inventory.js';
 import { invFeatureOpen as forgeOpen } from '../core/unlocks.js';
-import { arenaUnlocked } from '../core/arena.js';
+import { arenaUnlocked, survivalTriesLeft } from '../core/arena.js';
 import worldPanel from './panels/world.js';
 import { BANNER_RULES } from '../data/banners.js';
 import { TOWER, towerTimeLeft } from '../core/tower.js';
@@ -117,7 +117,8 @@ import { newItemsInBag } from '../core/journal.js';
 import { measureFarmRate } from '../core/offline.js';
 import { claimables, claimablesByTab } from '../core/claimables.js';
 import { isPhone, pref, reduceMotion, setPref } from './prefs.js';
-import { mountShowcase } from './showcase.js'; // v9.2.7 : vitrine animée des fiches
+import { mountShowcase } from './showcase.js';
+import { openArenaStage } from './arena-stage.js'; // v9.10 (7)
 import * as uiFx from './ui-vfx.js'; // v9.2.6 : effets visuels de l'interface
 import { openSearch } from './search.js';
 import { setById } from '../core/sets.js';
@@ -591,9 +592,13 @@ export class UI {
     }
     // v9.9 (K1) : plus de panneau latéral — en disposition haute (PC comme téléphone), les menus s'ouvrent dans un
     // panneau en bas ; le combat reste visible au-dessus.
-    this.root.classList.toggle('wide', false);
+    // v9.10 (2) : sur PC (fenêtre plus large que haute, ou plus de 900 px), les menus reviennent en volet latéral
+    // (460-600 px) : la scène reste à gauche, le contenu d'un onglet tient sans défilement.
+    const side = layout === 'tall' && !isPhone() && (w > 900 || w > h);
+    this.root.classList.toggle('wide', side);
+    this.root.classList.toggle('side-ui', side);
     this.root.classList.toggle('bottom-ui', layout === 'tall');
-    this.root.classList.toggle('panel-tall', pref('panelTall') === true);
+    this.root.classList.toggle('panel-tall', this.panelTallFor());
     const phone = isPhone();
     if (phone !== this.phone) { this.phone = phone; this.invalidate(); delete this.lastHud.rushTime; }
     if (layout === 'mini') {
@@ -766,7 +771,7 @@ export class UI {
   updatePanelLow() {
     // v9.9 (K1) : panneau du bas à deux hauteurs (45 % / 70 %), ⤢ bascule, choix gardé (préférence locale).
     if (this.root.classList.contains('bottom-ui')) {
-      const tall = pref('panelTall') === true;
+      const tall = this.panelTallFor();
       this.root.classList.toggle('panel-tall', tall);
       const b = this.$('panel-fold');
       if (b) { b.classList.remove('hidden'); b.textContent = tall ? '⤡' : '⤢'; b.setAttribute('aria-label', tall ? 'Réduire le panneau' : 'Déplier le panneau'); b.setAttribute('aria-pressed', String(tall)); }
@@ -784,9 +789,21 @@ export class UI {
     }
   }
 
+  panelTallFor(tab = this.tab) {
+    const m = pref('panelTallMap');
+    if (m && tab && tab in m) return m[tab] === true;
+    // v9.10 (2) : fenêtre basse (moins de 800 px) → panneau grand par défaut, pour voir l'essentiel sans défiler.
+    return pref('panelTall') === true || (this.root?.clientHeight ?? 1000) < 800;
+  }
+
   togglePanelLow() {
     if (!this.tab) return;
-    if (this.root.classList.contains('bottom-ui')) { setPref('panelTall', !(pref('panelTall') === true)); this.updatePanelLow(); this.layoutChanged?.(); return; }
+    if (this.root.classList.contains('bottom-ui')) {
+      // v9.10 (2) : choix ⤢ mémorisé par écran.
+      const map = { ...(pref('panelTallMap') ?? {}) };
+      map[this.tab] = !this.panelTallFor();
+      setPref('panelTallMap', map); this.updatePanelLow(); this.layoutChanged?.(); return;
+    }
     const map = { ...(pref('panelLow') ?? {}) };
     if (map[this.tab]) delete map[this.tab]; else map[this.tab] = true;
     setPref('panelLow', map);
@@ -1031,8 +1048,9 @@ export class UI {
         this.view.arenaTeam = t.includes(value) ? t.filter((x) => x !== value) : [...t, value].slice(0, 3);
         this.invalidate(); break;
       }
-      case 'arena-survival': { const r = a.arenaSurvival(value); if (r) { this.view.arenaRun = { ...r, mode: 'survival', start: performance.now() }; } this.invalidate(); break; }
-      case 'arena-floor': { const r = a.arenaFloor(this.view.arenaTeam ?? []); if (r) { this.view.arenaRun = { ...r, mode: 'floors', start: performance.now() }; } this.invalidate(); break; }
+      // v9.10 (7) : combat joué en grand par-dessus la scène, puis écran de fin (Retenter).
+      case 'arena-survival': this.arenaRun('survival'); break;
+      case 'arena-floor': this.arenaRun('floors'); break;
       case 'arena-close': {
         const run = this.view.arenaRun;
         const span = run?.fight.seconds ?? 0, speed = Math.max(1, span / 12), now = performance.now();
@@ -1119,6 +1137,7 @@ export class UI {
       case 'tree-seg': local(() => { v.treeSeg = value; }); break;
       case 'quick-hunt': a.quickHunt(); break; // v9.8 (H3)
       case 'gear-best': a.gearBest(value); break; // v9.8 (I6)
+      case 'gear-team': a.gearTeam(); break; // v9.10 (5)
       case 'rank-duel': this.rankDuel(); break; // v9.8 (H6)
       case 'drawer': this.openDrawer(); break; // v9.9 (K6)
       case 'rush-lock': { const m = (this.state.rushes.manual ??= {}); if (m[value]) delete m[value]; else m[value] = true; this.invalidate(); break; } // v9.9 (K16)
@@ -1275,7 +1294,7 @@ export class UI {
     if (action === 'simple-mode') this.actions.setSimple(el.checked); // v9.7.1 (lot 5)
     if (action === 'combat-assist') this.actions.setCombatAssist(el.value); // v9.7.1 (lot 2)
     if (action === 'skill-names') this.actions.setSkillNames(el.checked); // v9.7.1 (lot A)
-    if (action === 'vigil-auto') { if (el.checked) delete this.state.ui.vigil; else this.state.ui.vigil = false; } // v9.9 (K12)
+    if (action === 'vigil-auto') { if (['never', 'phone', 'always'].includes(el.value)) this.state.ui.vigil = el.value; } // v9.10 (1)
     if (action === 'gain-feed') { if (el.checked) delete this.state.ui.feed; else this.state.ui.feed = false; } // v9.9 (K11)
     if (action === 'char-size') this.actions.setCharSize(el.value); // v9.7.1
     if (action === 'big-auras') this.actions.setBigAuras(el.checked); // v9.5.3
@@ -2086,11 +2105,15 @@ export class UI {
     const st = this.state;
     let n = this.next;
     const q = st && currentQuest(st);
-    if (q && n?.id !== 'claim') {
+    if (q) {
+      // v9.10 (4) : une mini-quête en cours passe avant « Tout récupérer » ; « Équipe un objet » équipe d'un appui.
       const steps = questSteps(st, q);
       const i = steps.findIndex((x) => !x.done);
       // Une étape sans écran à ouvrir (« Bats 10 monstres ») laisse la place à l'action suivante : la carte la montre déjà.
-      if (i >= 0 && QUEST_TAB_UI[q.id]?.[i]) n = { id: 'quest', text: steps[i].text, tab: QUEST_TAB_UI[q.id][i] };
+      if (i >= 0 && QUEST_TAB_UI[q.id]?.[i]) {
+        n = { id: 'quest', text: steps[i].text, tab: QUEST_TAB_UI[q.id][i] };
+        if (q.id === 'equipment' && QUEST_TAB_UI[q.id][i] === 'inventory' && st.inventory?.length) n = { id: 'quest', text: 'Héros › Équiper le nouvel objet', action: 'equip-best' };
+      }
     }
     // v9.9 (K2/K4) : plus de progrès depuis 10 minutes → la première carte du Conseil du mentor.
     const stalled = st && ((st.playSeconds ?? 0) - (st.recordAt ?? st.playSeconds ?? 0) > 600 || (st.playSeconds ?? 0) - (st.ui?.wallAt ?? -1e9) < 1800);
@@ -2101,9 +2124,11 @@ export class UI {
     this.sealAction = n;
     const useless = !n || ['advance', 'mode-dungeon', 'mode-tower', 'mode-world', 'mode-challenge'].includes(n.id) || (n.id === 'quest' && n.action === 'none');
     btn.classList.toggle('hidden', useless);
-    if (useless) return;
+    this.placeSeal(useless);
+    if (useless) { this.sealIgnored(null); return; }
     const key = `${n.id}|${n.text}`;
     if (this.lastHud.next !== key) {
+      this.sealIgnored(key);
       this.lastHud.next = key;
       this.setText('next-action-text', n.text);
       btn.dataset.kind = n.id;
@@ -2116,17 +2141,49 @@ export class UI {
       if (!later) { later = document.createElement('button'); later.id = 'next-later'; later.className = 'btn small next-later'; later.type = 'button'; later.textContent = 'Plus tard'; btn.after(later);
         later.addEventListener('click', () => { const g = guideDay(this.state); const id = this.next?.id; if (id) g.skips[id] = (g.skips[id] ?? 0) + 1; delete this.lastHud.badgeTime; this.invalidate(); }); }
       later.classList.toggle('hidden', !n.content);
-      // Doigt : 30 premières minutes de jeu, puis seulement sur une action jamais proposée.
-      const seen = (st.ui.sealSeen ??= []);
-      const fresh = !seen.includes(n.id);
-      if (fresh) seen.push(n.id);
+      // v9.10 (3) : doigt les 30 premières minutes, puis seulement les 3 premières fois qu'une action est proposée.
+      const counts = (st.ui.sealCount ??= {});
+      counts[n.id] = (counts[n.id] ?? 0) + 1;
+      const fresh = counts[n.id] <= 3;
       btn.querySelector('.na-finger')?.classList.toggle('hidden', !((st.playSeconds ?? 0) < 1800 || fresh) || this.calm);
     }
+    // v9.10 (3) : ignoré 3 fois → pastille réduite pendant 1 heure (survol ou appui : le texte revient).
+    btn.classList.toggle('na-mini', (st.ui.sealMiniUntil ?? 0) > (st.playSeconds ?? 0) && n.id !== 'quest');
+  }
+
+  // Un Sceau qui change sans avoir été touché compte comme ignoré ; 3 fois → réduit 1 heure.
+  sealIgnored(nextKey) {
+    const st = this.state;
+    if (!st || this.lastHud.next == null || this.lastHud.next === nextKey) return;
+    if (this.sealClicked) { this.sealClicked = false; st.ui.sealIgnores = 0; return; }
+    if (performance.now() - (this.sealShownAt ?? 0) < 20000) { this.sealShownAt = performance.now(); return; } // trop bref pour compter
+    st.ui.sealIgnores = (st.ui.sealIgnores ?? 0) + 1;
+    if (st.ui.sealIgnores >= 3) { st.ui.sealIgnores = 0; st.ui.sealMiniUntil = (st.playSeconds ?? 0) + 3600; }
+    this.sealShownAt = performance.now();
+    if (nextKey == null) this.lastHud.next = null;
+  }
+
+  // v9.10 (3) : le Sceau ne recouvre jamais la ligne d'information de la vague : il se place dessous, sinon il la
+  // remplace (la ligne se masque tant qu'il est là).
+  placeSeal(hidden) {
+    const btn = this.$('next-action'), hud = this.$('hud'), area = this.$('stage-area');
+    if (!btn || !hud || !area) return;
+    btn.style.bottom = ''; btn.style.top = '';
+    hud.classList.remove('seal-over');
+    if (hidden || !btn.offsetParent) return;
+    const a = area.getBoundingClientRect(), h = hud.getBoundingClientRect(), b = btn.getBoundingClientRect();
+    if (b.bottom <= h.top || b.top >= h.bottom || h.height === 0) return;
+    const top = h.bottom - a.top + 6;
+    if (top + b.height + 4 <= a.height) { btn.style.top = `${top}px`; btn.style.bottom = 'auto'; }
+    else hud.classList.add('seal-over');
   }
 
   runNextAction() {
     const n = this.sealAction ?? this.next;
     if (!n) return;
+    this.sealClicked = true; // v9.10 (3)
+    if (this.state?.ui) delete this.state.ui.sealMiniUntil;
+    if (n.id === 'quest' && n.action === 'equip-best') { this.userAt = performance.now(); this.actions.equipBest(); return; } // v9.10 (4)
     if (n.id === 'quest') { if (n.tab) this.openTab(n.tab); return; } // v9.9 (K2) : ouvre le bon écran
     if (n.id === 'mentor') { this.followTip(n); return; }
     if (n.content) { const g = guideDay(this.state); if (!g.done.includes(n.id)) g.done.push(n.id); } // v9.6.2 : conseil suivi
@@ -2650,14 +2707,29 @@ export class UI {
     if (cards.length >= 2) cards[0].remove(); // 2 cartes au plus sur la scène
     const unit = unitId ? companionById(unitId) : null;
     const el = document.createElement('div');
-    el.className = `best-card r-${item.rarity}`;
-    el.innerHTML = `${itemFrame(item, { tag: 'span' })}<span class="bc-txt"><small>Meilleur objet</small><b class="r-${item.rarity} rarity-text">${escapeHtml(item.name)}</b></span>
+    // v9.10 (4) : tout premier objet → bulle « Nouvel objet ! » au-dessus du héros, gardée jusqu'à l'équipement.
+    const first = !unit && (this.state?.records?.equips ?? 0) < 1;
+    el.className = `best-card r-${item.rarity}${first ? ' first-item' : ''}`;
+    el.innerHTML = `${itemFrame(item, { tag: 'span' })}<span class="bc-txt"><small>${first ? 'Nouvel objet !' : 'Meilleur objet'}</small><b class="r-${item.rarity} rarity-text">${escapeHtml(item.name)}</b></span>
       <button class="btn btn-gold small" data-action="${unit ? 'gear-equip' : 'equip'}" ${unit ? `data-value="${unit.id}|${item.id}"` : `data-id="${item.id}"`}>${unit ? `Équiper ${escapeHtml(unit.name)}` : 'Équiper'}</button>`;
     box.appendChild(el);
     el.querySelector('button').addEventListener('click', () => setTimeout(() => el.remove(), 0));
-    setTimeout(() => el.remove(), 20000);
+    if (!first) { setTimeout(() => el.remove(), 20000); return; }
+    const watch = () => { if (!el.isConnected) return; if (!this.state?.inventory?.some((i) => i.id === item.id)) { el.remove(); return; } setTimeout(watch, 1500); };
+    setTimeout(watch, 1500);
   }
 
+
+  arenaRun(mode) {
+    const a = this.actions;
+    const team = this.view.arenaTeam ?? [];
+    const r = mode === 'survival' ? a.arenaSurvival(team) : a.arenaFloor(team);
+    if (!r) return;
+    this.view.arenaRun = null;
+    this.view.arenaEdit = false;
+    openArenaStage(this, { ...r, mode }, { retry: () => this.arenaRun(mode), triesLeft: () => survivalTriesLeft(this.state) });
+    this.invalidate();
+  }
 
   // v9.9 (K10) : Faille du jour — grande carte : le Titan illustré, son élément, le sablier jusqu'au prochain, la
   // récompense en gros, un bouton. Elle s'ouvre seule une fois par jour (jamais par-dessus « Bon retour »).

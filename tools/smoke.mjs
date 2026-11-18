@@ -534,12 +534,14 @@ await check('l’interface s’adapte au redimensionnement', async () => {
         await page.screenshot({ path: `${outDir}/standard-${tab}.png` });
       }
       // Un second clic sur l'onglet ouvert le referme : le jeu reprend toute la hauteur.
-      const before = await game(() => document.querySelector('#scene').getBoundingClientRect().height);
+      // v9.10 : volet latéral sur PC → la scène gagne en largeur (en hauteur avec le panneau du bas).
+      const area = () => { const r = document.querySelector('#scene').getBoundingClientRect(); return Math.round(r.width * r.height); };
+      const before = await game(area);
       await clickTab('tree');
       await page.waitForTimeout(300);
       const closed = await game(() => ({
         hidden: document.querySelector('#panel').classList.contains('hidden'),
-        canvas: document.querySelector('#scene').getBoundingClientRect().height,
+        canvas: Math.round(document.querySelector('#scene').getBoundingClientRect().width * document.querySelector('#scene').getBoundingClientRect().height),
       }));
       assert(closed.hidden && closed.canvas > before, `onglet non refermé : ${JSON.stringify(closed)} (avant ${before})`);
       await page.screenshot({ path: `${outDir}/standard-closed.png` });

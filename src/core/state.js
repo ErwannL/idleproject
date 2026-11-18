@@ -642,11 +642,15 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     }
     if (typeof raw.ui.notify === 'object' && raw.ui.notify) state.ui.notify = { ...state.ui.notify, ...raw.ui.notify };
     if (Array.isArray(raw.ui.sealSeen)) state.ui.sealSeen = raw.ui.sealSeen.filter((x) => typeof x === 'string').slice(0, 60); // v9.9 (K2)
+    if (raw.ui.sealCount && typeof raw.ui.sealCount === 'object') state.ui.sealCount = Object.fromEntries(Object.entries(raw.ui.sealCount).filter(([k, v]) => typeof k === 'string' && Number.isFinite(v)).slice(0, 80)); // v9.10 (3)
+    else if (Array.isArray(raw.ui.sealSeen)) state.ui.sealCount = Object.fromEntries(raw.ui.sealSeen.filter((x) => typeof x === 'string').map((x) => [x, 3]));
+    if (Number.isFinite(raw.ui.sealMiniUntil)) state.ui.sealMiniUntil = raw.ui.sealMiniUntil;
     if (Number.isFinite(raw.ui.wallAt)) state.ui.wallAt = raw.ui.wallAt;
     if (raw.ui.buyAllOk === true) state.ui.buyAllOk = true;
     if (typeof raw.ui.riftDay === 'string') state.ui.riftDay = raw.ui.riftDay; // v9.9 (K10)
     if (raw.ui.feed === false) state.ui.feed = false; // v9.9 (K11)
-    if (raw.ui.vigil === false) state.ui.vigil = false; // v9.9 (K12)
+    if (raw.ui.vigil === false) state.ui.vigil = 'never'; // v9.9 (K12)
+    else if (['never', 'phone', 'always'].includes(raw.ui.vigil)) state.ui.vigil = raw.ui.vigil; // v9.10 (1)
     state.ui.focus = raw.ui.focus === true;
     if (raw.ui.cinematics === false) state.ui.cinematics = false;
     if (raw.ui.shake === false) state.ui.shake = false; // v9.3.9

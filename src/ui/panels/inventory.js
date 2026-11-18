@@ -189,7 +189,16 @@ function detail(ui, state, item, whoUnit = null) {
     ctxLine = `<div class="ip-ctx">Dégâts ${sign(h)} ici · ${sign(b)} contre le prochain boss${prof.length ? ` · <span class="good">Meilleur pour : ${prof.join(', ')}</span>` : ''}</div>`;
   }
   const unitLine = unitFor || (!forHero && !wearer) ? `<div class="muted ip-unit">${escapeHtml(statText(gearStats(item, state)))}</div>` : '';
-  const three = Object.entries(item.stats).slice(0, 3).map(([k, v]) => `<li>${img(STAT_ICONS[k])}${STAT_LABELS[k]} <b class="num">${formatStat(k, v, true)}</b></li>`).join('');
+  // v9.10 (8) : objet du héros → son apport en % de la Puissance (au lieu d'un nombre plat de dégâts illisible).
+  let share = '';
+  const heroWorn = state.equipment[heroSlot(item)]?.id === item.id;
+  if (heroWorn || forHero) {
+    const cur = computeHeroStats(state).combatPower;
+    const pct = heroWorn ? (1 - computeHeroStats(state, BALANCE, { ...state.equipment, [heroSlot(item)]: null }).combatPower / cur) * 100
+      : (statsWithItem(state, item).combatPower / cur - 1) * 100;
+    if (Number.isFinite(pct)) share = `<li class="ip-share">${img('icon_crown')}<b class="num ${pct >= 0 ? 'good' : 'bad'}">${pct >= 0 ? '+' : '−'}${formatDecimal(Math.abs(pct))} %</b> de ta puissance${heroWorn ? '' : ' si équipé'}</li>`;
+  }
+  const three = share + Object.entries(item.stats).filter(([k]) => !share || k !== 'damage').slice(0, share ? 2 : 3).map(([k, v]) => `<li>${img(STAT_ICONS[k])}${STAT_LABELS[k]} <b class="num">${formatStat(k, v, true)}</b></li>`).join('');
   const more = ui.view.itemMore === item.id;
   const unitTarget = whoUnit && unitCanEquip(state, whoUnit.id, item).ok ? whoUnit : better ? companionById(better) : null;
   const mainBtns = `${wearer ? `<button class="btn" data-action="gear-unequip" data-value="${wearer}|${eqSlot(item)}">Retirer</button>`

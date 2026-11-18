@@ -35,7 +35,7 @@ function foesPreview(group) {
 }
 
 // Relecture : état du combat à l'instant t (PV des alliés et des ennemis, derniers coups).
-function replayAt(run, t) {
+export function replayAt(run, t) {
   const hp = Object.fromEntries(run.team.map((p) => [p.id, p.maxHp]));
   let wave = null, foes = [], last = [];
   for (const e of run.fight.events) {
@@ -50,11 +50,11 @@ function replayAt(run, t) {
 }
 const bar = (r, color) => `<span class="arena-bar"><i style="width:${Math.max(0, Math.min(100, r * 100))}%;background:${color}"></i></span>`;
 // v9.3.5 : monde dont l'élément est celui des ennemis (choisi par le numéro d'étage / de vague) et son monstre.
-function foeZone(element, seed) {
+export function foeZone(element, seed) {
   const zs = ZONE_ELEMENT.map((e, i) => [e, i]).filter(([e]) => e === element).map(([, i]) => i);
   return zs.length ? zs[seed % zs.length] : 0;
 }
-function foeSprite(f, i, seed) {
+export function foeSprite(f, i, seed) {
   const z = ZONES[foeZone(f.element, seed)] ?? ZONES[0];
   if (f.boss) { const b = BOSSES[z.bosses?.[0]]; return b?.sprite ?? 'icon_boss'; }
   const id = z.enemies[(i + seed) % z.enemies.length];
@@ -97,48 +97,53 @@ function replayHtml(ui, state) {
     <ul class="arena-log">${log}</ul></div>${result}`;
 }
 
+// v9.10 (7) : choix de l'équipe (3 places) avant chaque mode d'Arène — la même pour Survie et Étages.
+export function arenaTeamOf(ui, state) {
+  const a = arenaState(state);
+  const base = a.floors.team.length ? a.floors.team : state.companions.equipped;
+  const team = (ui.view.arenaTeam ?? base).filter((id) => state.companions.owned[id]).slice(0, ARENA.floors.teamSize);
+  ui.view.arenaTeam = team;
+  return team;
+}
+function teamPicker(ui, state, team) {
+  const list = owned(state);
+  const slots = Array.from({ length: ARENA.floors.teamSize }, (_, i) => {
+    const c = COMPANIONS.find((x) => x.id === team[i]);
+    return c ? `<button class="arena-slot r-${c.rarity}" data-action="arena-team" data-value="${c.id}" title="Retirer">${companionStill(c)}<small>${escapeHtml(c.name)}</small></button>` : '<button class="arena-slot empty" data-action="arena-edit" title="Ajouter">+</button>';
+  }).join('');
+  const profiles = team.map((id) => companionProfile(state, id)).filter(Boolean);
+  return `<div class="card arena-team-card"><div class="section-title">Ton équipe (${team.length}/${ARENA.floors.teamSize})</div>
+      <div class="arena-team">${slots}</div>
+      ${profiles.map((p) => `<div class="arena-pick-info">${escapeHtml(p.name)} ${elementBadge(p.element, false, true)} — ${statLine(p)}</div>`).join('')}
+      ${ui.view.arenaEdit ? `<div class="arena-grid">${list.map((c) => unitCard(state, c, { selected: team.includes(c.id), action: 'arena-team', disabled: !team.includes(c.id) && team.length >= ARENA.floors.teamSize })).join('')}</div>`
+        : '<button class="btn small" data-action="arena-edit">Changer l\'équipe</button>'}</div>`;
+}
+
 function survivalHtml(ui, state) {
   const a = arenaState(state);
-  const list = owned(state);
-  // v9.3.5 : par défaut, le premier compagnon de l'équipe de campagne.
-  // v9.8 (I8) : par défaut un compagnon (pas le familier), le plus fort de l'équipe.
-  const sel = list.find((c) => c.id === ui.view.arenaPick) ?? list.find((c) => c.kind === 'ally' && state.companions.equipped.includes(c.id)) ?? list.find((c) => c.kind === 'ally') ?? list[0];
-  const p = sel && companionProfile(state, sel.id);
+  const team = arenaTeamOf(ui, state);
   const left = survivalTriesLeft(state);
   const best = a.survival.best;
   const next = [1, 10, 20, 30].map((n) => `<li>Vague ${n} : ${foesPreview(survivalWave(n, 1))}</li>`).join('');
-  return `<div class="card"><div class="row-between"><b>Choisis un compagnon : seul contre ${ARENA.survival.waves} vagues</b><span>Essais : <b>${left}</b> / ${ARENA.survival.triesPerDay} aujourd'hui</span></div>
-      <div class="muted">Aucun héros : le compagnon combat seul, avec ses PV, son attaque et sa compétence. Le type compte dans les deux sens.</div>
-      ${best ? `<div>${img('icon_trophy')} Meilleur résultat : <b>vague ${best.wave}</b> en ${Math.round(best.seconds)} s (${escapeHtml(COMPANIONS.find((c) => c.id === best.companion)?.name ?? '')})</div>` : ''}</div>
-    <div class="card"><div class="section-title">Choisir le compagnon</div><div class="arena-grid">${list.map((c) => unitCard(state, c, { selected: c.id === sel?.id, action: 'arena-pick' })).join('')}</div>
-      ${p ? `<div class="arena-pick-info">${elementBadge(p.element, true)}<br>${statLine(p)}</div>` : ''}
-      <button class="btn btn-gold primary-action" data-action="arena-survival" data-value="${sel?.id ?? ''}" ${left > 0 && sel ? '' : 'disabled'}>Lancer la survie</button></div>
+  return `<div class="card"><div class="row-between"><b>Ton équipe contre ${ARENA.survival.waves} vagues</b><span>Essais : <b>${left}</b> / ${ARENA.survival.triesPerDay} aujourd'hui</span></div>
+      <div class="muted">Aucun héros : 1 à 3 compagnons. Plus l'équipe est grande, plus les ennemis sont forts.</div>
+      ${best ? `<div>${img('icon_trophy')} Record : <b>vague ${best.wave}</b> en ${Math.round(best.seconds)} s</div>` : ''}</div>
+    ${teamPicker(ui, state, team)}
+    <button class="btn btn-gold primary-action" data-action="arena-survival" ${left > 0 && team.length ? '' : 'disabled'}>⚔ Lancer la survie</button>
     <div class="card"><div class="section-title">Paliers (une fois chacun)</div><ul class="arena-miles">${ARENA.survival.milestones.map((m) => `<li class="${a.survival.claimed.includes(m.wave) ? 'done' : ''}">Vague ${m.wave} ${rewardIcons(m.reward)} ${a.survival.claimed.includes(m.wave) ? '✔' : ''}</li>`).join('')}</ul>
       <div class="section-title">Aperçu des vagues</div><ul class="arena-preview">${next}</ul></div>`;
 }
 
 function floorsHtml(ui, state) {
   const a = arenaState(state);
-  const list = owned(state);
-  // v9.3.5 : une seule équipe par défaut — celle de la campagne ; « Modifier » pour les joueurs avancés.
-  const base = a.floors.team.length ? a.floors.team : state.companions.equipped;
-  const team = (ui.view.arenaTeam ?? base).filter((id) => state.companions.owned[id]).slice(0, ARENA.floors.teamSize);
-  ui.view.arenaTeam = team;
+  const team = arenaTeamOf(ui, state);
   const f = a.floors.best + 1;
   const setup = floorSetup(f);
-  const slots = Array.from({ length: ARENA.floors.teamSize }, (_, i) => {
-    const c = COMPANIONS.find((x) => x.id === team[i]);
-    return c ? `<button class="arena-slot r-${c.rarity}" data-action="arena-team" data-value="${c.id}" title="Retirer">${companionStill(c)}<small>${escapeHtml(c.name)}</small></button>` : '<div class="arena-slot empty">+</div>';
-  }).join('');
-  const profiles = team.map((id) => companionProfile(state, id)).filter(Boolean);
-  return `<div class="card"><div class="row-between"><b>Une équipe de ${ARENA.floors.teamSize} compagnons ou familiers</b><span>${img('icon_trophy')} Record : <b>étage ${a.floors.best}</b></span></div>
-      <div class="muted">Aucun héros. Étages permanents ; un boss tous les 10 étages, une contrainte tous les 5. Chaque étage rapporte sa récompense une seule fois.</div></div>
-    <div class="card"><div class="section-title">Étage ${f} ${rewardIcons(floorReward(f))}</div><div>${foesPreview(setup)}</div>
-      <div class="arena-team">${slots}</div>
-      ${profiles.map((p) => `<div class="arena-pick-info">${escapeHtml(p.name)} ${elementBadge(p.element, false, true)} — ${statLine(p)}</div>`).join('')}
-      <button class="btn btn-gold primary-action" data-action="arena-floor" ${profiles.length ? '' : 'disabled'}>Combattre l'étage ${f}</button></div>
-    ${ui.view.arenaEdit ? `<div class="card"><div class="section-title">Ajouter à l'équipe</div><div class="arena-grid">${list.map((c) => unitCard(state, c, { selected: team.includes(c.id), action: 'arena-team', disabled: !team.includes(c.id) && team.length >= ARENA.floors.teamSize })).join('')}</div></div>`
-      : '<button class="btn small" data-action="arena-edit">Modifier l\'équipe</button>'}`;
+  return `<div class="card"><div class="row-between"><b>Étages : une équipe de ${ARENA.floors.teamSize}</b><span>${img('icon_trophy')} Record : <b>étage ${a.floors.best}</b></span></div>
+      <div class="muted">Aucun héros. Un boss tous les 10 étages, une contrainte tous les 5. Chaque étage rapporte sa récompense une fois.</div></div>
+    <div class="card"><div class="section-title">Étage ${f} ${rewardIcons(floorReward(f), 'named')}</div><div>${foesPreview(setup)}</div></div>
+    ${teamPicker(ui, state, team)}
+    <button class="btn btn-gold primary-action" data-action="arena-floor" ${team.length ? '' : 'disabled'}>⚔ Combattre l'étage ${f}</button>`;
 }
 
 // v9.3.2 : World Boss MONDIAL : une barre de PV commune à tous les joueurs (serveur). Distinct du World Boss des
@@ -151,10 +156,11 @@ function globalHtml(ui, state) {
       <div>${formatNumber(g.left)} / ${formatNumber(g.hp)} PV restants · cycle <b>${g.cycle}</b> (chaque fois que la barre tombe, le Colosse revient)</div>`
     : `<div class="state-empty">${g?.offline ? 'Barre commune indisponible hors ligne : ta tentative compte quand même pour ton record.' : 'Chargement de la barre commune…'}</div>`;
   return `<div class="card"><div class="row-between"><b>${img('icon_boss')} ${escapeHtml(g?.name ?? 'Colosse des Anciens (mondial)')}</b><span>Tentative : <b>${left}</b> / ${GLOBAL_BOSS.attemptsPerDay} aujourd'hui</span></div>
-      <div class="muted">Tous les joueurs frappent le même boss : tes dégâts s'ajoutent à ceux de la communauté. Ton équipe habituelle (héros, compagnons, familier) combat 60 s.
-      Différent du World Boss des grands événements (Aventure › Événement).</div>${bar}
+      <div class="arena-why"><b>À quoi ça sert ?</b> Tous les joueurs frappent le même boss pendant 60 s. Chaque attaque rapporte ${rewardIcons(GLOBAL_BOSS.reward, 'named')} et compte pour ton record et le classement de ta guilde.</div>
+      <div class="muted">Ton équipe de campagne combat (héros, compagnons, familier) : change-la dans Équipe.</div>
+      <div class="arena-team">${[...state.companions.equipped].slice(0, 3).map((id) => { const c = COMPANIONS.find((x) => x.id === id); return c ? `<div class="arena-slot r-${c.rarity}">${companionStill(c)}<small>${escapeHtml(c.name)}</small></div>` : ''; }).join('')}</div>${bar}
       ${me.best ? `<div>${img('icon_trophy')} Ton record : <b>${formatNumber(me.best)}</b> dégâts</div>` : ''}
-      <button class="btn btn-gold primary-action" data-action="global-boss" ${left > 0 ? '' : 'disabled'}>⚔ Attaquer ${rewardIcons(GLOBAL_BOSS.reward)}</button>
+      <button class="btn btn-gold primary-action" data-action="global-boss" ${left > 0 ? '' : 'disabled'}>⚔ Attaquer le Colosse (60 s)</button>
       ${left > 0 ? '' : '<div class="muted">Plus d\'essai aujourd\'hui : reviens demain.</div>'}
       <div class="muted">Classement des joueurs et des guildes : Objectifs › Guilde.</div></div>`;
 }

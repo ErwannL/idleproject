@@ -4077,3 +4077,114 @@ html.reduce-motion .vg-ember { animation: none; opacity: .6; }
   #panel-body { font-size: 15px; }
   #panel-body small, #panel-body .muted, #panel-body .tag, #panel-body .rw-name { font-size: max(13px, 0.87em); }
 }
+
+/* v9.10 (2) : PC en largeur — volet latéral à droite, onglets en bas, scène à gauche. */
+#app.bottom-ui.side-ui #content { flex-direction: row !important; }
+#app.bottom-ui.side-ui.panel-open #panel { height: auto !important; width: clamp(460px, 44%, 600px) !important; border-top: none; border-left: 3px solid var(--edge, #2a3654); }
+#app.bottom-ui.side-ui.panel-open.panel-tall #panel { width: clamp(520px, 62%, 900px) !important; }
+
+/* v9.10 (3) : doigt à gauche du Sceau (ne recouvre plus la ligne de la vague), Sceau réduit en pastille. */
+#next-action .na-finger { top: 50% !important; left: -34px !important; margin: -16px 0 0 0 !important; transform: rotate(90deg); }
+#hud.seal-over #news { visibility: hidden; }
+#stage-area #next-action.na-mini { min-height: 36px; max-width: 46px; padding: 4px 8px; overflow: hidden; transition: max-width .25s; }
+#stage-area #next-action.na-mini #next-action-text, #stage-area #next-action.na-mini .na-finger { display: none; }
+#stage-area #next-action.na-mini:hover, #stage-area #next-action.na-mini:focus-visible { max-width: min(460px, 86%); }
+#stage-area #next-action.na-mini:hover #next-action-text, #stage-area #next-action.na-mini:focus-visible #next-action-text { display: inline; }
+
+/* v9.10 (4) : bulle du premier objet, au-dessus du héros, avec une pointe. */
+.best-card.first-item { border-color: #ffe08a !important; box-shadow: 0 0 14px #ffd36a99; animation: first-item-bob 1.6s ease-in-out infinite; }
+@keyframes first-item-bob { 50% { transform: translateY(-4px); } }
+html.reduce-motion .best-card.first-item { animation: none; }
+.best-cards:has(.first-item) { left: 30%; top: auto; bottom: 48%; width: min(280px, 60%); }
+/* v9.10 (5) : un meilleur objet attend un compagnon. */
+.gear-wait { position: absolute; top: 2px; left: 2px; z-index: 2; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: #3fbf5a; color: #fff; font-size: 12px; font-weight: 900; box-shadow: 0 0 6px #3fbf5a; }
+.team-slot, .unit-card { position: relative; }
+.gear-team-btn, .gear-best-btn { width: 100%; margin: 4px 0 8px; }
+/* v9.10 (7) : Arène en grand, par-dessus la scène. */
+.arena-overlay .as-field { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; align-items: end; padding: 70px 6% 18%; background-size: cover, cover; background-position: center bottom; }
+.arena-overlay .as-field::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 18%; background: var(--ground); border-top: 4px solid #0006; }
+.arena-overlay .as-head { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); z-index: 2; padding: 6px 18px; border-radius: 8px; background: #0b1020cc; border: 2px solid #c9963f; color: #ffe08a; font-size: 20px; }
+.arena-overlay .as-side { position: relative; z-index: 1; display: flex; gap: 3%; align-items: flex-end; justify-content: center; }
+.arena-overlay .as-unit, .arena-overlay .as-foe { position: relative; display: grid; justify-items: center; gap: 4px; width: clamp(90px, 14vw, 200px); color: #fff; text-shadow: 0 1px 2px #000; transition: transform .12s, opacity .4s; }
+.arena-overlay .as-unit img, .arena-overlay .as-unit canvas { width: 100%; height: auto; aspect-ratio: 1; image-rendering: pixelated; object-fit: contain; }
+.arena-overlay .as-foe img { width: 100%; aspect-ratio: 1; object-fit: contain; image-rendering: pixelated; transform: scaleX(-1); }
+.arena-overlay .as-foe.boss { width: clamp(140px, 22vw, 300px); }
+.arena-overlay .as-unit.acts { transform: translateX(12px); }
+.arena-overlay .as-unit.hurt img, .arena-overlay .as-foe.hit img { filter: brightness(2.2) saturate(.4); }
+.arena-overlay .down { opacity: .25; filter: grayscale(1); }
+.arena-overlay .arena-bar { width: 100%; height: 8px; }
+.arena-overlay .as-dmg { position: absolute; top: -8px; z-index: 3; font: 900 22px/1 var(--font-num, inherit); color: #fff; -webkit-text-stroke: 1px #000; animation: as-pop .5s ease-out; }
+.arena-overlay .as-dmg.crit { color: #ffd36a; font-size: 28px; }
+@keyframes as-pop { from { transform: translateY(8px) scale(.7); } to { transform: none; } }
+.arena-overlay .wb-actions { position: absolute; right: 16px; top: 16px; z-index: 3; }
+.as-rewards { display: grid; gap: 4px; justify-items: center; }
+.arena-why { margin: 6px 0; padding: 8px 10px; border-radius: 8px; background: #22345a55; border-left: 3px solid var(--gold, #e8b64a); }
+.arena-slot.empty { cursor: pointer; }
+.as-rewards > div { display: flex; gap: 8px; align-items: center; justify-content: center; }
+#panel-subtabs .subtab span { white-space: normal; line-height: 1.1; text-align: center; } /* v9.10 (8) : « Apparences », « Classement » sur 2 lignes */
+/* v9.10 (8) : Camp illustré (feu de camp de la Veillée, l'équipe autour). */
+.camp-art { padding: 0; overflow: hidden; }
+.camp-scene2 { position: relative; aspect-ratio: 2 / 1; }
+.camp-scene2 .camp-bg { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+.camp-scene2 .camp-unit { position: absolute; bottom: 16%; width: 15%; transform: translateX(-50%); filter: drop-shadow(0 0 6px #ff9a3c66) brightness(.85); }
+.camp-scene2 .camp-unit img { width: 100%; height: auto; image-rendering: pixelated; }
+.camp-scene2 .camp-unit.s0 { left: 84%; transform: translateX(-50%) scaleX(-1); }
+.camp-scene2 .camp-unit.s1 { left: 18%; }
+.camp-scene2 .camp-unit.s2 { left: 94%; transform: translateX(-50%) scaleX(-1); bottom: 24%; width: 12%; }
+.camp-scene2 .camp-unit.s3 { left: 7%; bottom: 24%; width: 12%; }
+.camp-scene2 .vg-ember { left: 68%; bottom: 34%; }
+.camp-scene2 .vg-ember:nth-of-type(2) { left: 70%; animation-delay: 1s; } .camp-scene2 .vg-ember:nth-of-type(3) { left: 67%; animation-delay: 2s; }
+.camp-cap { margin: 6px 10px 10px; text-align: center; }
+.shop-note.small-note { font-size: 11px; opacity: .8; padding: 4px 8px; }
+.exp-gain { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px; } .exp-gain > small { color: var(--muted); }
+/* v9.10 (2) : fenêtre basse — panneau grand compacté : l'essentiel de chaque onglet sans défilement. */
+#app.bottom-ui.panel-open.panel-tall #hud { display: none !important; }
+@media (max-height: 800px) {
+  #app.bottom-ui.panel-open.panel-tall #panel { height: 74%; }
+  #app.bottom-ui.panel-open #panel > header { min-height: 0; padding-top: 2px; padding-bottom: 2px; }
+  #app.bottom-ui.panel-open #panel-subtabs .subtab { min-height: 0; padding-top: 2px; padding-bottom: 2px; }
+  #app.bottom-ui.panel-open #panel-subtabs .subtab img { width: 18px !important; height: 18px !important; }
+  #app.bottom-ui .who-row .who-card { padding: 2px 4px; }
+  #app.bottom-ui .who-row .who-card .who-art { height: 30px; overflow: hidden; }
+  #app.bottom-ui .who-row .who-card small { display: none; }
+  #app.bottom-ui .rank-card img, #app.bottom-ui .rank-card .rank-crown { display: none; }
+  #app.bottom-ui .rank-card { padding: 4px 8px; }
+  #app.bottom-ui #panel-body .card { margin-bottom: 6px; }
+}
+@media (max-height: 800px) {
+  #app.bottom-ui #panel-body .elem-wheel { display: none; }
+  #app.bottom-ui .equip-doll .doll, #app.bottom-ui .equip-doll.big .doll { min-height: 96px; }
+  #app.bottom-ui .equip-doll .doll canvas { max-height: 96px; width: auto; }
+  #app.bottom-ui .upg-top .forecast, #app.bottom-ui .upg-top .upg-dps-row + .forecast { display: none; }
+  #app.bottom-ui .upg-top { padding: 6px 8px; }
+  #app.bottom-ui .upg-top .btn { min-height: 0; padding-top: 3px; padding-bottom: 3px; }
+  #app.bottom-ui .upg-cats { margin: 2px 0; }
+  #app.bottom-ui #panel-body details.fold:has(> summary) { margin: 2px 0; }
+  #app.bottom-ui .upg-card { padding: 4px 8px; }
+}
+@media (max-height: 800px) {
+  #app.bottom-ui .upg-cats, #app.bottom-ui .upg-top + .upg-cats + details, #app.bottom-ui details[data-fold="upg-filters"] { display: none; }
+  #app.bottom-ui .upg-top > .btn-gold, #app.bottom-ui .upg-top [data-action^="buy-all"] { min-height: 0; padding: 2px 8px; font-size: 12px; }
+  #app.bottom-ui .upg-card { min-height: 0; gap: 6px; margin-bottom: 4px !important; }
+  #app.bottom-ui .upg-card .upg-icon img { width: 28px !important; height: 28px !important; }
+  #app.bottom-ui .upg-card .upg-level ~ .tag, #app.bottom-ui .upg-card .upg-milestone { display: none; }
+  #app.bottom-ui .upg-card .upg-gain { font-size: 10px; }
+  #app.bottom-ui .upg-card .upg-buy .btn { min-height: 0; padding: 2px 6px; }
+  #app.bottom-ui .upg-card .upg-buy small:not(.upg-gain), #app.bottom-ui .upg-card .cost-missing { display: none; }
+}
+@media (max-height: 800px) { #app.bottom-ui .fold:has([data-value="upg-filters"]) { display: none; } #app.bottom-ui .upg-card .missing { display: none; } }
+@media (max-height: 800px) {
+  #app.bottom-ui .upg-top { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+  #app.bottom-ui .upg-top .upg-surv { display: none; }
+  #app.bottom-ui .upg-top > div { margin: 0; }
+  #app.bottom-ui .upg-top .buy-all { width: auto; margin: 0 0 0 auto; padding: 3px 10px; min-height: 0; }
+  #app.bottom-ui .upg-top .upg-dps-row { flex: 1 1 auto; }
+}
+@media (max-height: 800px) {
+  #app.bottom-ui .upg-top .upg-dps { display: none; }
+  #app.bottom-ui .upg-top { flex-wrap: nowrap; padding: 4px 8px; }
+  #app.bottom-ui .upg-top .upg-dps-row { flex-wrap: nowrap; justify-content: flex-start; }
+  #app.bottom-ui .upg-top .chip-btn, #app.bottom-ui .upg-top [data-action="buy-amount"] { min-height: 0; padding: 2px 8px; }
+  #app.bottom-ui .upg-card { padding: 3px 8px !important; }
+}
+@media (max-height: 800px) { #app.bottom-ui .upg-top { position: relative; padding-right: 130px !important; } #app.bottom-ui .upg-top .buy-all { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); } }

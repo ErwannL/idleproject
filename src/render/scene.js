@@ -612,7 +612,16 @@ export class SceneRenderer {
       x += (near % 2 ? 1 : -1) * Math.ceil(near / 2) * 9;
       y -= Math.min(4, near) * 5;
     }
-    this.effects.push({ baseX, kind: 'text', text, x: x - textWidth(text, FONT_BIG) / 2, y, cx: x, y0: y, color, light, life: big ? 0.95 : 0.8, max: big ? 0.95 : 0.8, pop: big });
+    // v9.10 (8) : plus jamais deux chiffres au même endroit — tant qu'un chiffre vivant recouvre la place, on monte
+    // d'une ligne (au plus 5).
+    const w = textWidth(text, FONT_BIG);
+    for (let k = 0; k < 5; k++) {
+      const hit = texts.some((e) => e.life > 0.1 && Math.abs(e.y - y) < 8 && Math.abs(e.cx - x) < (w + textWidth(e.text, FONT_BIG)) / 2);
+      if (!hit) break;
+      y -= 9;
+      x += k % 2 ? -4 : 4;
+    }
+    this.effects.push({ baseX, kind: 'text', text, x: x - w / 2, y, cx: x, y0: y, color, light, life: big ? 0.95 : 0.8, max: big ? 0.95 : 0.8, pop: big });
   }
 
   burst(x, y, color, count, speed = 30) {
@@ -918,7 +927,8 @@ export class SceneRenderer {
     this.layout = this.teamLayout(state);
     const wantShift = Math.max(0, 3 - this.layout.left);
     this.viewShift = this.viewShift === undefined ? wantShift : this.viewShift + (wantShift - this.viewShift) * Math.min(1, dt * 4);
-    const shift = Math.round(this.viewShift);
+    // v9.10 (6) : vitrine d'un compagnon — il est seul (pas de héros) et recentré à la place du héros.
+    const shift = Math.round(this.viewShift) + (this.soloUnit ? Math.round((HERO_X - this.layout.left) * 0.55) : 0);
     ctx.save();
     ctx.translate(shift, 0);
     this.drawEnemies(ctx, world, dt);
@@ -928,7 +938,7 @@ export class SceneRenderer {
     this.drawCompanions(ctx, state, world, dt);
     const pet = world.hero.dead ? null : equippedCompanions(state).find((c) => c.kind !== 'ally');
     if (pet) this.drawPet(ctx, world, pet);
-    this.drawHero(ctx, state, world);
+    if (!this.soloUnit) this.drawHero(ctx, state, world);
     if (wade) ctx.restore();
     drawTeamFx(this, ctx, state, world, HERO_X);
     ctx.restore();

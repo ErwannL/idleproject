@@ -92,9 +92,12 @@ export default {
       <button class="btn small" data-action="theme-preview" data-value="">Revenir à mon thème</button></div>` : '';
     const note = paymentReady() ? '' : '<div class="shop-note">Achats bientôt disponibles : aucun paiement n\'est encore possible dans le jeu. Prix et contenus affichés à titre d\'information.</div>';
     const merchants = merchantsHtml(state); // v9.3.8 : les Marchands sont dans la Boutique
-    return `${note}${preview}${merchants ? `<div class="card"><div class="section-title">Marchands</div>${merchants}</div>` : ''}${tabs}<div class="shop-grid">${offers.map((o) => offerCard(ui, state, o)).join('')}</div>
+    // v9.10 (8) : les offres illustrées d'abord ; Marchands ensuite ; le texte d'information en petit, en bas.
+    return `${preview}${tabs}<div class="shop-grid">${offers.map((o) => offerCard(ui, state, o)).join('')}</div>
+      ${merchants ? `<div class="card"><div class="section-title">Marchands</div>${merchants}</div>` : ''}
       <div class="card">${incomeBlock(state)}</div>
       ${(state.economy?.store?.spentCents ?? 0) > 0 ? `<div class="card">${spendBlock(state)}</div>` : ''}
+      ${note ? note.replace('class="shop-note"', 'class="shop-note small-note"') : ''}
       <div class="muted shop-foot">Cosmétiques : aucun bonus de puissance, achetés une fois pour toutes, équipables et retirables dans Profil › Apparences et Paramètres › Thème.</div>`;
   },
 };

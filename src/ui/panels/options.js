@@ -275,7 +275,7 @@ function interfaceTab(ui, state) {
         <label class="toggle"><input type="checkbox" data-action="notify" data-key="boss" ${state.ui.notify?.boss !== false ? 'checked' : ''}> Bannières d'arrivée des boss</label>
         <label class="toggle"><input type="checkbox" data-action="notify" data-key="events" ${state.ui.notify?.events !== false ? 'checked' : ''}> Messages des événements (coffres, marchands…)</label>
         <button class="btn" data-action="sleep-mode">🔥 Veillée au Camp (écran sombre, le jeu continue)</button>
-        <label class="toggle"><input type="checkbox" data-action="vigil-auto" ${state.ui.vigil !== false ? 'checked' : ''}> Veillée automatique après 5 minutes sans toucher</label>
+        <div class="row-between"><span>Veillée automatique (5 min sans toucher)</span><select data-action="vigil-auto">${[['never', 'Jamais'], ['phone', 'Téléphone seulement'], ['always', 'Toujours']].map(([v, l]) => `<option value="${v}"${(state.ui.vigil ?? 'phone') === v ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
         <label class="toggle"><input type="checkbox" data-action="notify" data-key="phone" ${state.ui.notify?.phone !== false ? 'checked' : ''}> Notifications du téléphone (2 par jour au plus)</label>
         <label class="toggle"><input type="checkbox" data-action="cinematics" ${state.ui.cinematics !== false ? 'checked' : ''}> Cinématiques (lancement du jeu, nouveau monde)</label>
         <label class="toggle"><input type="checkbox" data-action="screen-shake" ${state.ui.shake !== false ? 'checked' : ''}> Tremblement de l'écran (compétences de zone, coups de boss)</label>

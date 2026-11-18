@@ -39,6 +39,7 @@ import { DUNGEON_DIFFICULTIES } from './data/dungeons.js';
 import { buyUpgradeBulk } from './core/economy.js';
 import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
 import { endTower, startTower } from './core/tower.js';
+import { vigilAllowed as vigilRule } from './core/vigil.js';
 import { finishGlobalBoss, globalBossLeft, runFloor, runSurvival, startGlobalBoss } from './core/arena.js'; // v9.3.2
 import { claimExpedition, expeditionType, relaunchExpeditions, sendAllExpeditions, startExpedition } from './core/expeditions.js';
 import { endChallenge, startChallenge } from './core/challenge.js';
@@ -98,7 +99,7 @@ import { BUILT_IN_TOKEN } from './core/update-token.js';
 import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagList, updateStatus } from './core/update.js';
 import { playsOnSite } from './ui/panels/options.js';
 import { skillKillGold, upgradeCompanionSkill } from './core/companions.js'; // v9.3.3
-import { equipBestGear, equipGear, recycleGear, unequipGear, upgradeGear } from './core/companion-gear.js'; // v9.3.3
+import { equipBestAllGear, equipBestGear, equipGear, recycleGear, unequipGear, upgradeGear } from './core/companion-gear.js'; // v9.3.3
 import { bestOpenUpgrade, companionToLevel, companionToPlace } from './core/guide.js';
 import { PROLOGUE_HINT, playPrologue } from './ui/prologue.js'; // v9.3.7
 import { recycleUseless } from './core/inventory.js'; // v9.3.4
@@ -396,6 +397,7 @@ const actions = {
   // v9.8 (H6) : rang gagné en duel.
   winRank() { const r = winDuel(state); save(); ui.invalidate(); sound.play('claim', { volume: 0.9 }); return r; },
   // v9.8 (I6) : équipement des compagnons — le meilleur d'un appui.
+  gearTeam() { const n = equipBestAllGear(state); done(n > 0, n ? `${n} pièce${n > 1 ? 's' : ''} équipée${n > 1 ? 's' : ''} dans l'équipe` : null); },
   gearBest(id) { const n = equipBestGear(state, id); done(n > 0, n ? `${n} pièce${n > 1 ? 's' : ''} équipée${n > 1 ? 's' : ''}` : null); },
   // v9.8 (H3) : Chasse rapide — 2 h de gains d'un coup, une fois par jour.
   quickHunt() {
@@ -1623,13 +1625,20 @@ setInterval(() => {
   ui.toast('Les monstres demandaient plus d\'une minute chacun. Améliore-toi, puis « Avancer ▶ ».', '#ffb36b');
 }, 5000);
 const TOO_LONG = 60;
+// v9.10 (1) : Veillée automatique (règle dans core/vigil.js).
+function vigilAllowed(st) {
+  return vigilRule(st, {
+    phone: !!window.Capacitor?.isNativePlatform?.() || matchMedia('(pointer: coarse)').matches,
+    fullscreen: !!document.fullscreenElement || (innerWidth >= screen.width - 2 && innerHeight >= screen.height - 2),
+  });
+}
 setInterval(() => {
   // v9.7.1 (lot 4) : étoiles des mondes terminés, moments forts (premier monde, premier Légendaire, première Renaissance).
   for (const w of updateStars(state)) highlight(`world-${w}`, `Monde ${w + 1} terminé !`, `${worldStars(state, w).filter(Boolean).length} étoile(s) sur 3. Le Colosse t'attend pour un face-à-face.`);
   if (state.records.rebirths > 0) highlight('first-rebirth', 'Première Renaissance !', 'Tu repars plus fort : tes compagnons, tes talents et tes ensembles restent.');
   for (const b of activeBonds(state)) highlightBond(b); // v9.7.1 (lot 6) : liens entre compagnons
   // v9.9 (K12) : Veillée automatique après 5 minutes sans toucher (réglable dans Paramètres).
-  if (state.ui.vigil !== false && !ui.sleeping && !document.hidden && performance.now() - (ui.userAt ?? 0) > 300000 && performance.now() > 300000
+  if (vigilAllowed(state) && !ui.sleeping && !document.hidden && performance.now() - (ui.userAt ?? 0) > 300000 && performance.now() > 300000
     && document.getElementById('modal').classList.contains('hidden') && !ui.tab && !navigator.webdriver && !document.querySelector('.wb-overlay, #prologue')) ui.sleepMode(true);
   // v9.9 (K8) : rencontre de route (jeu actif : fenêtre visible et une action du joueur depuis moins de 5 minutes).
   const active = !document.hidden && performance.now() - (ui.userAt ?? -1e9) < 300000 && (!navigator.webdriver || location.search.includes('road'));

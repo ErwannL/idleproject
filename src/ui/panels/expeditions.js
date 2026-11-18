@@ -47,7 +47,7 @@ function slotHtml(ui, state, run, i, now, dur) {
     return `<div class="exp-slot empty">
         <div class="exp-who">${companionStill(companionById(pick))}</div>
         <div class="grow exp-form"><select data-action="exp-pick" data-slot="${i}" aria-label="Compagnon à envoyer, place ${i + 1}">${free.map((c) => `<option value="${c.id}" ${c.id === pick ? 'selected' : ''}>${escapeHtml(c.name)} ${duplicates(state.companions.owned[c.id])}★</option>`).join('')}</select>${durSel}
-          ${rewardIcons(expeditionReward(state, pick, type))}</div>
+          <div class="exp-gain"><small>Gains attendus</small> ${rewardIcons(expeditionReward(state, pick, type), 'named')}</div></div>
         <button class="btn btn-primary small" data-action="start-expedition" data-value="${pick}|${type}|${i}">Envoyer</button>
       </div>`;
   }
@@ -59,7 +59,7 @@ function slotHtml(ui, state, run, i, now, dur) {
       <div class="exp-who">${companionStill(c)}</div>
       <div class="grow"><b>${escapeHtml(c.name)}</b> <span class="muted">· ${type.hours} h</span>
         ${progressBar(ratio, done ? 'Terminée !' : `encore ${formatDuration((run.end - now) / 1000)}`, done ? 'xp' : '')}
-        ${rewardIcons(run.reward)}</div>
+        <div class="exp-gain"><small>${done ? 'À récupérer' : 'Gains attendus'}</small> ${rewardIcons(run.reward, 'named')}</div></div>
       ${done ? `<button class="btn btn-gold small" data-action="claim-expedition" data-value="${i}">Récupérer</button>`
         : `<button class="btn small" data-action="recall-expedition" data-value="${i}">Rappeler</button>`}
     </div>`;

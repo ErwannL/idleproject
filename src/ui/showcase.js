@@ -56,7 +56,7 @@ function fit() {
   if (!block || !scene) return;
   const w = Math.round(block.querySelector('.sc-stage').clientWidth);
   if (!w) return;
-  const h = Math.max(128, Math.min(210, Math.round(w * 0.46)));
+  const h = key?.startsWith('unit:') ? Math.max(180, Math.min(300, Math.round(w * 0.62))) : Math.max(128, Math.min(210, Math.round(w * 0.46))); // v9.10 (6)
   if (scene.css.w === w && scene.css.h === h) return;
   scene.resize(w, h);
   if (reduceMotion() && !playOnce && scene.state) scene.still(scene.index);

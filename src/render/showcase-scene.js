@@ -50,7 +50,8 @@ const hitText = (t, source = 'skill') => [t, (d) => d.target && d.emit('enemyHit
 function unitClips(c) {
   const role = COMPANION_ROLES[c.id] ?? 'pet';
   const list = companionSkillList(c, role).filter((s) => c.kind === 'ally' || !s.ultimate); // v9.3.8 : familier sans ultime
-  const clips = [walkClip(), {
+  // v9.10 (6) : la vitrine démarre sur la compétence signature, puis attaque de base, autres compétences, ultime (en boucle).
+  const clips = [{
     id: 'basic', icon: '⚔', label: 'Attaque de base', desc: c.kind === 'ally' ? 'Son geste d\'attaque en combat.' : 'Son geste en combat.', dur: 3, still: 0.55,
     setup: dummy, events: [[0.3, (d) => d.r.allyGesture(c, d.world, HERO_X)], [1.7, (d) => d.r.allyGesture(c, d.world, HERO_X)]],
   }];
@@ -63,6 +64,8 @@ function unitClips(c) {
         ...(offensive ? [hitText(0.9, 'companion')] : [])],
     });
   }
+  const sig = clips.findIndex((c) => c.id === 'sk0');
+  if (sig > 0) clips.unshift(clips.splice(sig, 1)[0]);
   return clips;
 }
 
@@ -217,7 +220,7 @@ export class ShowcaseScene {
 
   resize(w, h) {
     this.css = { w, h };
-    if (this.r) this.r.zoom = 2.2;
+    if (this.r) this.r.zoom = this.spec?.kind === 'unit' ? 3.4 : 2.2;
     this.r?.resize(w, h);
   }
 
@@ -234,7 +237,8 @@ export class ShowcaseScene {
     this.t = 0;
     this.fired = 0;
     this.r = new SceneRenderer(this.canvas);
-    this.r.zoom = 2.2; // v9.8 (I6) : cadrage serré sur le personnage et sa cible
+    this.r.zoom = this.spec?.kind === 'unit' ? 3.4 : 2.2; // v9.8 (I6) : cadrage serré ; v9.10 (6) : compagnon seul, en grand
+    this.r.soloUnit = this.spec?.kind === 'unit';
     this.r.resize(this.css.w, this.css.h);
     this.r.calm = Boolean(this.calm);
     this.nextId = 1;

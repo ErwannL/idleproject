@@ -144,22 +144,32 @@ export function arenaState(state, now = Date.now()) {
 export const arenaUnlocked = (state) => (state.maxStage ?? 1) >= ARENA.unlockStage && Object.keys(state.companions.owned).length > 0;
 export const survivalTriesLeft = (state, now = Date.now()) => ARENA.survival.triesPerDay - arenaState(state, now).survival.tries;
 
-export function runSurvival(state, id, now = Date.now()) {
+// v9.10 (7) : la Survie se joue à 1, 2 ou 3 (équipe choisie avant) ; les ennemis grossissent avec l'équipe
+// (PV et attaque × taille), pour que le défi reste le même.
+export function runSurvival(state, ids, now = Date.now()) {
   const a = arenaState(state, now);
-  const p = companionProfile(state, id);
-  if (!p || !arenaUnlocked(state) || survivalTriesLeft(state, now) <= 0) return null;
+  const list = [...new Set(Array.isArray(ids) ? ids : [ids])].slice(0, ARENA.floors.teamSize);
+  const team = list.map((x) => companionProfile(state, x)).filter(Boolean);
+  if (!team.length || !arenaUnlocked(state) || survivalTriesLeft(state, now) <= 0) return null;
+  const id = list[0];
   const seed = Number(dayKey(now).replace(/-/g, '')) % 100000 + a.survival.tries;
-  const waves = Array.from({ length: ARENA.survival.waves }, (_, i) => survivalWave(i + 1, seed));
-  const r = fight([p], waves, { seed });
+  const k = team.length;
+  const waves = Array.from({ length: ARENA.survival.waves }, (_, i) => {
+    const w = survivalWave(i + 1, seed);
+    if (k > 1) w.foes = w.foes.map((f) => ({ ...f, maxHp: Math.round(f.maxHp * k), atk: Math.round(f.atk * k) }));
+    return w;
+  });
+  const r = fight(team, waves, { seed });
   a.survival.tries++;
-  const result = { companion: id, wave: r.cleared, seconds: r.seconds, kills: r.kills, won: r.won, score: r.cleared * 10000 - Math.round(r.seconds) };
+  const result = { companion: id, team: list, wave: r.cleared, seconds: r.seconds, kills: r.kills, won: r.won, score: r.cleared * 10000 - Math.round(r.seconds) };
   const b = a.survival.best;
   if (!b || result.score > b.score) a.survival.best = result;
   a.survival.last = result;
   // Récompenses : chaque palier de vague (5, 10, … 30) une seule fois.
   const rewards = [];
   for (const m of ARENA.survival.milestones) if (r.cleared >= m.wave && !a.survival.claimed.includes(m.wave)) { a.survival.claimed.push(m.wave); rewards.push(m); grantReward(state, m.reward); }
-  return { ...result, fight: r, waves, team: [p], rewards };
+  const record = a.survival.best === result;
+  return { ...result, fight: r, waves, team, rewards, record };
 }
 
 export function runFloor(state, team, now = Date.now()) {
@@ -189,7 +199,7 @@ export function sanitizeArena(state, raw) {
   const int = (v) => (Number.isInteger(v) && v >= 0 ? v : 0);
   if (!a || typeof a !== 'object') { state.arena = null; return; }
   const s = a.survival;
-  const res = (x) => (x && typeof x === 'object' ? { companion: String(x.companion ?? ''), wave: int(x.wave), seconds: Number(x.seconds) || 0, kills: int(x.kills), won: Boolean(x.won), score: Number(x.score) || 0 } : null);
+  const res = (x) => (x && typeof x === 'object' ? { companion: String(x.companion ?? ''), wave: int(x.wave), seconds: Number(x.seconds) || 0, kills: int(x.kills), won: Boolean(x.won), score: Number(x.score) || 0, ...(Array.isArray(x.team) ? { team: x.team.filter((t) => typeof t === 'string').slice(0, 3) } : {}) } : null);
   state.arena = {
     survival: s && typeof s.day === 'string' ? { day: s.day.slice(0, 10), tries: Math.min(int(s.tries), ARENA.survival.triesPerDay), best: res(s.best), last: res(s.last),
       claimed: Array.isArray(s.claimed) ? s.claimed.filter(Number.isInteger).slice(0, 20) : [] } : null,

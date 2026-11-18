@@ -91,7 +91,8 @@ export function bestGearFor(state, unitId) {
   const worn = unitGear(state, unitId);
   const out = [];
   for (const slot of Object.keys(EQUIP_SLOTS)) {
-    const cands = state.inventory.filter((i) => eqSlot(i) === slot && canEquip(state, unitId, i).ok && !i.locked);
+    // v9.10 (5) : sac et coffre ; un objet protégé (« Protéger ») reste équipable.
+    const cands = [...state.inventory, ...(state.stash ?? [])].filter((i) => eqSlot(i) === slot && !wearerOf(state, i.id) && canEquip(state, unitId, i).ok);
     const best = cands.sort((a, b) => gearScore(state, b) - gearScore(state, a))[0];
     if (best && gearScore(state, best) > (worn[slot] ? gearScore(state, worn[slot]) : 0)) out.push(best.id);
   }
@@ -99,9 +100,20 @@ export function bestGearFor(state, unitId) {
 }
 export function equipBestGear(state, unitId) {
   let n = 0;
-  for (const id of bestGearFor(state, unitId)) if (equipGear(state, unitId, id)) n += 1;
+  for (const id of bestGearFor(state, unitId)) {
+    const si = (state.stash ?? []).findIndex((i) => i.id === id);
+    if (si >= 0) state.inventory.push(state.stash.splice(si, 1)[0]); // sorti du coffre (l'ancien retourne au sac)
+    if (equipGear(state, unitId, id)) n += 1;
+  }
   return n;
 }
+// v9.10 (5) : « Équiper toute l'équipe » — chaque compagnon de l'équipe prend ses meilleures pièces.
+export function equipBestAllGear(state) {
+  let n = 0;
+  for (const id of state.companions?.equipped ?? []) n += equipBestGear(state, id);
+  return n;
+}
+export const gearWaiting = (state, unitId) => Boolean(state.companions?.owned?.[unitId]) && bestGearFor(state, unitId).length > 0;
 // Retire un objet (place commune ou ancien nom d'emplacement) : retour au sac, même plein (jamais perdu).
 export function unequipGear(state, unitId, slot) {
   const s = FROM_GEAR_SLOT[slot] ?? slot;
