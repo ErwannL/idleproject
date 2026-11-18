@@ -619,9 +619,9 @@ const FX = {
         const y = G - 1 + Math.sin(a) * 38 * up;
         dot(ctx, cx + Math.cos(a) * rx, y, i % 4 ? color : '#ffffff', 2);
       }
-      ctx.globalAlpha = 0.3 * fade;
+      ctx.globalAlpha = 0.12 * fade; // v9.8.1 (I8) : dôme léger (il cachait les pieds de l'équipe)
       ctx.fillStyle = color;
-      for (let y = 0; y < 38 * up; y += 2) { const w = rx * Math.sqrt(1 - (y / 38) ** 2); ctx.fillRect(R(cx - w), G - 1 - y, R(w * 2), 1); }
+      for (let y = 6; y < 38 * up; y += 2) { const w = rx * Math.sqrt(1 - (y / 38) ** 2); ctx.fillRect(R(cx - w), G - 1 - y, R(w * 2), 1); }
       ctx.globalAlpha = 0.7 * fade * Math.abs(Math.sin(k * 20));
       for (let i = 0; i < 6; i++) dot(ctx, cx - rx * 0.7 + i * rx * 0.28, G - 10 - ((i * 13) % 26) * up, '#ffffff', 2);
     });
@@ -988,7 +988,7 @@ function auraFx(scene, name, c) {
   // v9.7.1 (lot E) : soins, ralliements et protections dessinés en 12 images (sk_heal, sk_rally, sk_shield) ; un buff
   // durable ne laisse plus d'aura en boucle sur le personnage (au plus 0,8 s, petite taille) : il ne le cache jamais.
   const kind = HEAL_FX.has(name) ? 'sk_heal' : SHIELD_FX.has(name) ? 'sk_shield' : 'sk_rally';
-  if (HEAL_FX.has(name) || SUPPORT_FX.has(name)) at(() => c.team.forEach((x, i) => vfx(scene, kind, x, G + 1, { delay: i * 0.06, size: 0.45 })));
+  if (HEAL_FX.has(name) || SUPPORT_FX.has(name)) at(() => c.team.forEach((x, i) => vfx(scene, kind, x, G + 1, { delay: i * 0.06, size: 0.45, back: true }))); // v9.8.1 (I8) : sous les pieds, jamais par-dessus
   if (DEBUFF_FX.has(name)) at(() => c.foes.slice(0, 4).forEach((f) => vfx(scene, 'debuff_aura', f.x, G + 1, { life: 1.4, loop: true, follow: f.id, size: 0.9 })));
 }
 
