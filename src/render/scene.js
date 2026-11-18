@@ -2309,11 +2309,16 @@ export class SceneRenderer {
           ctx.stroke();
           break;
         }
-        case 'darken': // v9.7.1 (lot 3 bis) : fond assombri pendant l'annonce d'un ultime
+        case 'darken': { // v9.7.1 (lot 3 bis) : fond assombri pendant l'annonce d'un ultime
+          // v9.8 (E3) : dessiné sans le décalage de l'équipe ni la secousse — avant, une bande à gauche restait claire
+          // (« bande de ciel plus claire ») quand l'équipe était décalée de plus de 40 px.
+          const m = ctx.getTransform(); ctx.save(); ctx.setTransform(m.a, 0, 0, m.d, 0, 0);
           ctx.globalAlpha = 0.45 * Math.min(1, t * 3);
           ctx.fillStyle = '#05030c';
-          ctx.fillRect(-40, -40, this.width + 80, this.height + 80);
+          ctx.fillRect(0, 0, this.width, this.height);
+          ctx.restore();
           break;
+        }
         case 'sweep': { // v9.7.1 (lot 3 bis) : vague d'ultime qui traverse toute la scène, de l'équipe au bord droit
           const k = 1 - t;
           const x = fx.x0 + (this.width + 40 - fx.x0) * k;
@@ -2326,17 +2331,24 @@ export class SceneRenderer {
           for (let i = 0; i < 6; i++) ctx.fillRect(Math.round(x - 4 - i * 9), Math.round(G - 10 - ((i * 17 + this.frameNo) % 40)), 2, 2);
           break;
         }
-        case 'frame': // v9.7.1 (lot A) : ultime — cadre coloré autour de la scène
+        case 'frame': { // v9.7.1 (lot A) : ultime — cadre coloré autour de la scène
+          // v9.8 (E3) : au bord réel de la scène (avant : décalé avec l'équipe, d'où un trait vertical au milieu de la scène).
+          const m = ctx.getTransform(); ctx.save(); ctx.setTransform(m.a, 0, 0, m.d, 0, 0);
           ctx.globalAlpha = t * 0.9;
           ctx.strokeStyle = fx.color;
           ctx.lineWidth = 3;
           ctx.strokeRect(1.5, 1.5, this.width - 3, this.height - 3);
+          ctx.restore();
           break;
-        case 'flash':
+        }
+        case 'flash': {
+          const m = ctx.getTransform(); ctx.save(); ctx.setTransform(m.a, 0, 0, m.d, 0, 0); // v9.8 (E3) : tout l'écran, quel que soit le décalage
           ctx.globalAlpha = t * 0.35;
           ctx.fillStyle = fx.color;
-          ctx.fillRect(-40, -40, this.width + 80, this.height + 80); // v9.3.0 : tout l'écran, malgré le décalage de l'équipe et la secousse
+          ctx.fillRect(0, 0, this.width, this.height);
+          ctx.restore();
           break;
+        }
         case 'epx': case 'eglow': case 'elinger':
           this.drawElementEffect(ctx, fx, t, dt);
           break;

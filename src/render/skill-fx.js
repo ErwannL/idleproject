@@ -134,7 +134,7 @@ export function heroGesture(scene) {
 // Une pièce d'effet : { at (début, temps de scène), dur, draw(ctx, k, age, p) } ; k = avancement 0..1.
 
 function add(scene, delay, dur, draw, p = {}) {
-  (scene.skillFx ??= []).push({ at: scene.time + delay, dur, draw, p });
+  (scene.skillFx ??= []).push({ at: scene.time + delay, dur, draw, p, src: add.cur }); // src : effet en cours (diagnostic)
 }
 
 function later(scene, delay, fn) {
@@ -994,6 +994,7 @@ function auraFx(scene, name, c) {
 
 function run(scene, name, c) {
   if (!FX[name]) return;
+  add.cur = name;
   auraFx(scene, name, c);
   skillVfx(scene, name, c);
   if (scene.focus) calm(scene, name, c);
