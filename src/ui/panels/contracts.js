@@ -210,7 +210,7 @@ export default {
       body = `<div class="card m-body">${trackTab(state)}</div>`;
     } else {
       body = `<div class="card m-body"><div class="section-title">${sec(period('daily').label, nOf('daily'))}</div>${periodTab(state, period('daily'))}</div>
-        ${fold(ui, 'login', sec('Connexion', nOf('login')), () => loginTab(state), { open: (loginPending(state) > 0), extra: (loginPending(state) > 0) ? '<span class="good">à récupérer</span>' : '' })}
+        <button class="btn btn-gold wheel-link" data-action="wheel-open">🎡 Roue du jour</button>
         ${findsCard(ui)}
         <div class="card m-body"><div class="section-title">${sec('Contrats', nOf('contract'))}</div>${contractsTab(state)}</div>`;
     }

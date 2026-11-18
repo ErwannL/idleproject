@@ -1,6 +1,18 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v9.8.0 — Un vrai jeu mobile : guidé, illustré, une routine du jour
+## Ascendrya v9.8.1 — Finitions de la 9.8
+
+- Plus de bande claire à gauche de la scène ni de trait vertical pendant les ultimes (assombrissement et cadre dessinés au bon endroit).
+- Les bulles de soin et de bouclier restent petites, aux pieds de l'équipe : elles ne cachent plus les personnages (Défi de la semaine compris).
+- Paladin d'azur redessiné : armure turquoise et or, sans diadème ni cape, sur toutes ses animations et son illustration.
+- Barre du boss en grand dès 1100 px de large ; message de la scène sur deux lignes au lieu d'être coupé.
+- Début de partie : carte « Prochaine étape » en haut à gauche de la scène (seule consigne affichée), bulle « Nouvel objet ! » avec un bouton Équiper.
+- Le bouton Quêtes montre la récompense la plus proche ; durée et recharge sous chaque Boost ; un gardien affiche sa protection au lieu de « 0 dégâts » ; le calendrier de connexion laisse la place à la Roue du jour.
+- Android : APK et AAB signés.
+
+### Versions précédentes
+
+<details><summary><b>Ascendrya v9.8.0 — Un vrai jeu mobile : guidé, illustré, une routine du jour</b></summary>
 
 - Fin de jeu débloquée : en Cycle ×3 les monstres meurent de nouveau (le surcroît de PV ne vaut que pour le premier cycle) ; si un monstre demande plus d'une minute, le héros redescend tout seul et la barre propose de Renaître.
 - Début de partie guidé : le doigt du tutoriel montre le menu à ouvrir, les Améliorations sont ouvertes dès la première minute, les 3 premiers objets vont directement au sac, la mini-quête en cours est un parchemin cliquable sous la scène.
@@ -11,7 +23,7 @@
 - Illustrations fantasy : présentations des compagnons et familiers au style des Légendaires, classes, portes des donjons, Forge, Tour, Arène, Invocation, Expéditions, Événement, Talents, Renaissance ; Boutique en pixel art.
 - Confort : plus de tremblement d'écran sur les coups, chiffres de dégâts plus petits, tout au tutoiement, plus aucun libellé coupé (fr, en, ko), notifications du téléphone (2 par jour au plus, désactivables), mode veille.
 
-### Versions précédentes
+</details>
 
 <details><summary><b>Ascendrya v9.7.0 — Un idle stratégique, sans lassitude</b></summary>
 

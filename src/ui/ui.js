@@ -1244,6 +1244,8 @@ export class UI {
         const added = !event.autoRecycled || event.mannequin || event.museum;
         // v9.7.1 : objet dans le sac de butin de la scène → plus de ligne « Butin : … » (le sac la remplace).
         if (event.bagged) { this.lootBag?.bump(); if (event.item.rarity === 'legendary') this.announce(`Objet légendaire : ${event.item.name}`); break; }
+        // v9.8.1 (0) : premiers objets — bulle « Nouvel objet ! » sur la scène avec un bouton « Équiper » direct.
+        if (added && (state.records?.equips ?? 0) < 1 && state.inventory.some((i) => i.id === event.item.id)) this.newItemBubble(event.item);
         if (added && event.item.rarity !== 'common') {
           this.news(event.museum ? `${event.item.name} exposé au Musée`
             : event.mannequin ? `${event.item.name} rangé au coffre (ensemble « ${setById(event.item.set)?.name ?? ''} »)`
@@ -1982,6 +1984,11 @@ export class UI {
         later.addEventListener('click', () => { const g = guideDay(this.state); const id = this.next?.id; if (id) g.skips[id] = (g.skips[id] ?? 0) + 1; delete this.lastHud.badgeTime; this.invalidate(); }); }
       later.classList.toggle('hidden', !n.content);
     }
+    // v9.8.1 (0, J1) : une seule voix — pendant une mini-quête, la barre jaune ne dit rien d'autre (sauf une récompense
+    // à récupérer) : la carte « Prochaine étape » en haut à gauche de la scène suffit.
+    const questOn = Boolean(currentQuest(this.state)) && n.id !== 'claim';
+    btn.classList.toggle('hidden', questOn);
+    if (questOn) return;
     btn.classList.remove('hidden');
   }
 
@@ -2445,6 +2452,14 @@ export class UI {
     el.dataset.h = h;
     el.innerHTML = h;
     el.classList.toggle('hidden', !h);
+    // v9.8.1 (J2) : le bouton Quêtes montre la récompense la plus proche (icône + chiffre) et brille quand elle est prête.
+    const qb = this.root.querySelector('#tabs button[data-menu="goals"]');
+    if (qb) {
+      let tag = qb.querySelector('.menu-reward');
+      if (!tag) { tag = document.createElement('small'); tag.className = 'menu-reward'; qb.appendChild(tag); }
+      tag.innerHTML = top ? rewardIcons({ gems: top.m.reward.gems ?? 0 }) || rewardIcons(top.m.reward) : '';
+      qb.classList.toggle('menu-ready', Boolean(top?.st.done));
+    }
     el.classList.toggle('ready', Boolean(top?.st.done));
     el.dataset.action = top?.st.done ? 'claim-mission' : 'open-tab';
     el.dataset.value = top?.st.done ? `daily|${top.m.id}` : 'contracts';
@@ -2480,6 +2495,19 @@ export class UI {
       if (out) out.innerHTML = `<b class="${r.slice.jackpot ? 'gold-text' : 'good'}">${r.slice.jackpot ? 'GROS LOT ! ' : ''}${escapeHtml(r.slice.label)}</b> ${rewardIcons(r.given, 'named')}`;
       uiFx.claimFly?.(uiFx.snap(this.state).cur, uiFx.snap(this.state).cur, disc, true);
     }, calm ? 50 : 2700);
+  }
+
+  newItemBubble(item) {
+    if (typeof document === 'undefined') return;
+    const host = this.$('stage-area');
+    if (!host) return;
+    host.querySelector('.new-item-bubble')?.remove();
+    const el = document.createElement('div');
+    el.className = 'new-item-bubble';
+    el.innerHTML = `${itemFrame(item, { tag: 'span' })}<b>Nouvel objet !</b><button class="btn btn-gold small" data-action="equip" data-id="${item.id}">Équiper</button>`;
+    host.appendChild(el);
+    el.querySelector('button').addEventListener('click', () => setTimeout(() => el.remove(), 0));
+    setTimeout(() => el.remove(), 15000);
   }
 
   // v9.8 (H9) : mode veille — écran presque noir (économie de batterie sur téléphone), or et étape seulement ; le jeu

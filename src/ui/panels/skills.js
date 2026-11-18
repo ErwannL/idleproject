@@ -81,7 +81,9 @@ export function skillGridCells(state) {
     const cost = rushUpgradeCost(state, rush.id);
     const active = state.rushes.active[rush.id] ?? 0;
     const cd = state.rushes.cooldown[rush.id] ?? 0;
-    return { kind: 'r', id: rush.id, icon: rush.icon, name: rush.name, level, locked: !open, unlock: rush.unlockLevel, maxed, active, cd,
+    // v9.8.1 (I3) : durée et recharge écrites sous l'icône du Boost.
+    const sub = `${rushDuration(state, rush)} s · ${Math.round(rush.cooldown / 60)} min`;
+    return { kind: 'r', id: rush.id, icon: rush.icon, name: rush.name, sub, level, locked: !open, unlock: rush.unlockLevel, maxed, active, cd,
       plus: !open || maxed ? null : { action: 'upgrade-rush', can: state.gold >= cost, price: formatNumber(cost), cost } };
   });
   return [...skills, ...rushes];
@@ -128,7 +130,7 @@ const SKILL_SHORT = { /* v9.7.1 : compétences de classe : leur nom suffit */ qu
 function cellV2(c, sel) {
   return `<button class="sk2-cell${c.locked ? ' locked' : ''}${sel ? ' sel' : ''}" data-action="skill-sel" data-value="${c.kind}:${c.id}" aria-pressed="${sel}">
     <span class="sk2-ic">${img(c.icon)}${c.locked ? `<i class="sk2-lock">${img('icon_lock')}</i>` : `<i class="sk2-lv">Nv ${c.level}</i>`}
-      ${c.active > 0 ? '<i class="sk2-on">Actif</i>' : ''}</span><span class="sk2-name">${escapeHtml(c.name)}</span></button>`;
+      ${c.active > 0 ? '<i class="sk2-on">Actif</i>' : ''}</span><span class="sk2-name">${escapeHtml(c.name)}</span>${c.sub ? `<small class="sk2-sub">${c.sub}</small>` : ''}</button>`;
 }
 function bubbleV2(state, c) {
   if (!c) return '<div class="sk2-bubble muted">Touche une compétence pour la voir.</div>';

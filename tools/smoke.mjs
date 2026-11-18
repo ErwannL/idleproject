@@ -112,7 +112,8 @@ await check('ouvrir l’inventaire, équiper un objet et voir les stats changer'
 });
 
 await check('recycler un objet contre de l’or', async () => {
-  const item = await game(() => __idle.addRandomItem('rare'));
+  // v9.8.1 : objet que toute classe porte (un objet tiré au hasard pouvait être une arme d'une autre classe, masquée du sac).
+  const item = await game(() => __idle.addItem('iron_helm', 'rare', 3));
   await closePop();
   await page.click(`.inv-grid [data-id="${item.id}"]`);
   const gold = await game(() => __idle.state.gold);

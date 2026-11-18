@@ -3893,3 +3893,21 @@ html.reduce-motion .trophy.ready img { animation: none; }
 .hp-step img { width: 56px; height: 48px; object-fit: contain; image-rendering: pixelated; } .hp-step b { color: #ffe7b0; }
 /* v9.8.1 : le message de la scène passe sur 2 lignes au lieu d'être coupé */
 #news { white-space: normal; text-overflow: clip; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.25; flex-grow: 1; }
+/* v9.8.1 (0) : carte « Prochaine étape » toujours visible en haut à gauche de la scène (mini-quête en cours) */
+#next-unlock.parchment { position: absolute; left: 8px; top: 100px; z-index: 5; width: min(300px, 70%); margin: 0; }
+#quest-banner { top: 132px; }
+#stage-area:has(#next-unlock.parchment) #quest-banner { top: 132px; }
+#stage-area #next-unlock { position: absolute; left: 8px; top: 100px; z-index: 5; width: min(300px, 70%); margin: 0; }
+.layout-strip #next-unlock, .layout-mini #next-unlock { display: none !important; }
+.new-item-bubble { position: absolute; left: 50%; top: 30%; transform: translateX(-50%); z-index: 6; display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px; border-radius: 12px; background: #1a1430ee; border: 2px solid #ffd36a; box-shadow: 0 0 12px #ffd36a77; color: #ffe7b0; animation: qb-glow 1.2s ease-in-out infinite; }
+.new-item-bubble .item-frame { width: 32px; height: 32px; }
+.sk2-sub { display: block; font-size: 10px; color: #9fb3d8; }
+/* v9.8.1 (J2) : récompense la plus proche sur le bouton Quêtes */
+#tabs button .menu-reward { display: block; font: 700 10px system-ui, sans-serif; color: #ffe27a; }
+#tabs button .menu-reward img { width: 12px; height: 12px; vertical-align: -2px; }
+#tabs button.menu-ready { box-shadow: 0 0 10px #ffd23faa; border-color: #ffd23f; }
+/* v9.8.1 (I5) : illustration de classe — petite attaque au toucher */
+.class-card:active .class-art { animation: class-strike 300ms ease-out; }
+@keyframes class-strike { 40% { transform: translateX(6px) rotate(4deg); } }
+html.reduce-motion .class-card:active .class-art { animation: none; }

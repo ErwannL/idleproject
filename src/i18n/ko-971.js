@@ -1,6 +1,7 @@
 // v9.7.1 : 한국어 — 화면 구도, 전리품 가방, 간소화된 메뉴. ./ko.js 끝에 연결.
 let LK = () => null;
 export const EXACT_971 = {
+  "🎡 Roue du jour": "🎡 오늘의 룰렛",
   "Dégâts reçus": "받는 피해",
   "Recycle les objets inutiles en éclats, puis forge mieux.": "쓸모없는 아이템을 조각으로 재활용하고 더 좋게 제작해요.",
   "Recycler, Fusionner ou Fabriquer : un gros bouton chacun. Les éclats renforcent tes objets et en fabriquent de nouveaux.": "재활용, 합성, 제작: 큰 버튼 하나씩. 조각으로 아이템을 강화하고 새로 만들어요.",
@@ -394,6 +395,7 @@ export const EXACT_971 = {
   "Tient": "버팀",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
+  [/^(\d+) s · (\d+) min$/, (m) => `${m[1]}초 · ${m[2]}분`],
   [/^Il faut (\d+) objets identiques \(place et rareté\)\.$/, (m) => `같은 아이템(부위, 등급) ${m[1]}개가 필요해요.`],
   [/^\+(\d+) niv\. · \+([\d,]+) % de puissance$/, (m) => `+${m[1]}레벨 · 전투력 +${m[2]}%`],
   [/^([\d,. KMBTQa-z×⁰¹²³⁴⁵⁶⁷⁸⁹]+) or$/, (m) => `골드 ${m[1]}`],
