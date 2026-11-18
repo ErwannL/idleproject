@@ -4,12 +4,16 @@
 // v9.3.5 : 5 boutons (Combat = fermer le menu, Héros, Équipe, Aventure, Quêtes), 4 onglets au plus par menu, plus le
 // Profil (bouton du haut : Apparences, Classement, Guilde, Statistiques) ; la Boutique est le bouton coffre du haut ;
 // l'Arène est dans Défis (Tour, Défi de la semaine, Arène).
+// v9.9 (K6) : 5 onglets en bas (Héros, Équipe, Combat au centre, Invocation, Boutique), 4 sous-onglets au plus ; le reste
+// est dans le tiroir ☰ (Quêtes, Profil…). La Forge s'ouvre depuis Équipement et le tiroir.
 export const MENUS = [
-  { id: 'hero', label: 'Héros', tabs: ['inventory', 'upgrades', 'skills', 'forge', 'tree'] },
-  { id: 'team', label: 'Équipe', tabs: ['companions', 'summon', 'expeditions'] },
-  { id: 'adventure', label: 'Aventure', tabs: ['campaign', 'dungeons', 'tower', 'boss', 'event'] },
-  { id: 'goals', label: 'Quêtes', tabs: ['daybook', 'contracts', 'encyclopedia'] }, // v9.8 (H1) : Carnet du jour en tête
-  { id: 'profile', label: 'Profil', tabs: ['camp', 'looks', 'ranking', 'guild', 'stats', 'shop'], top: true },
+  { id: 'hero', label: 'Héros', tabs: ['inventory', 'upgrades', 'skills', 'tree'] },
+  { id: 'team', label: 'Équipe', tabs: ['companions', 'expeditions'] },
+  { id: 'adventure', label: 'Combat', tabs: ['campaign', 'dungeons', 'tower', 'event'] },
+  { id: 'summon', label: 'Invocation', tabs: ['summon'] },
+  { id: 'shop', label: 'Boutique', tabs: ['shop'] },
+  { id: 'goals', label: 'Quêtes', tabs: ['daybook', 'contracts', 'encyclopedia'], top: true },
+  { id: 'profile', label: 'Profil', tabs: ['camp', 'looks', 'boss', 'forge', 'ranking', 'guild', 'stats'], top: true },
 ];
 export const SUB_LABELS = {
   camp: 'Camp', upgrades: 'Améliorations', skills: 'Compétences', tree: 'Talents', hero: 'Fiche', inventory: 'Équipement', forge: 'Forge', looks: 'Apparences',

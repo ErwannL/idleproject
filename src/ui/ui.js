@@ -40,7 +40,7 @@ import { bossWarningPlan, showBossWarning } from './boss-warning.js'; // v9.1.9
 import { queueSkinReveals } from './skin-reveal.js'; // v9.1.9
 import { waveCount, waveIndex, waveMode } from '../core/combat.js'; // v9.3.8
 import { nextMilestone } from '../core/unlocks.js';
-import { currentQuest, questSteps } from '../core/unlock-quests.js';
+import { UNLOCK_QUESTS, currentQuest, questSteps } from '../core/unlock-quests.js';
 // v9.8 (G6) : onglet ouvert par chaque mini-quête (icône du parchemin, icône qui vole vers le menu).
 const QUEST_SYS = { equipment: 'inventory', upgrades: 'upgrades', skills: 'skills', companion: 'companions', forge: 'forge', summon: 'summon', dungeons: 'dungeons', talents: 'tree', challenges: 'tower', rebirth: 'tree' };
 const QUEST_TAB_UI = { equipment: [null, null, 'inventory'], upgrades: [null, 'upgrades', null], skills: [null, 'skills', null], forge: ['inventory', 'forge', null] };
@@ -584,7 +584,11 @@ export class UI {
       this.layout = layout;
       this.invalidate();
     }
-    this.root.classList.toggle('wide', layout === 'tall' && w >= 1100 && h >= 600);
+    // v9.9 (K1) : plus de panneau latéral — en disposition haute (PC comme téléphone), les menus s'ouvrent dans un
+    // panneau en bas ; le combat reste visible au-dessus.
+    this.root.classList.toggle('wide', false);
+    this.root.classList.toggle('bottom-ui', layout === 'tall');
+    this.root.classList.toggle('panel-tall', pref('panelTall') === true);
     const phone = isPhone();
     if (phone !== this.phone) { this.phone = phone; this.invalidate(); delete this.lastHud.rushTime; }
     if (layout === 'mini') {
@@ -607,7 +611,46 @@ export class UI {
     if (!menu) return;
     if (this.tab && menu.tabs.includes(this.tab)) { this.closePanel(); return; }
     const visible = menu.tabs.filter((t) => this.tabVisible[t] !== false);
+    // v9.9 (K6) : menu encore fermé — il reste visible avec un cadenas et dit ce qui l'ouvre.
+    if (!visible.length) { this.toast(`🔒 ${this.lockReason(menu.tabs[0])}`, '#ffcf6a'); return; }
     this.openTab(visible.includes(this.lastSub[id]) ? this.lastSub[id] : visible[0] ?? menu.tabs[0]);
+  }
+
+  // v9.9 (K6) : condition d'ouverture d'un onglet, en une ligne.
+  lockReason(tab) {
+    const st = this.state;
+    const qid = Object.entries(QUEST_SYS).find(([, t]) => t === tab)?.[0];
+    const q = qid && UNLOCK_QUESTS.find((x) => x.id === qid);
+    if (q && st?.unlocks && !st.unlocks.legacy && !st.unlocks.done.includes(q.id)) return `Termine la mini-quête « ${q.label} »`;
+    const R = {
+      tree: `S'ouvre à l'étape ${stageLabel(10)}`, daybook: `S'ouvre à l'étape ${stageLabel(10)}`,
+      dungeons: `S'ouvre à l'étape ${stageLabel(DUNGEONS[0].unlockStage)}`, tower: `S'ouvre à l'étape ${stageLabel(Math.min(TOWER_UNLOCK, CHALLENGE.unlockStage))}`,
+      event: 'S\'ouvre en finissant le monde 2', expeditions: 'S\'ouvre avec 5 compagnons',
+      summon: 'S\'ouvre après le boss du monde 1', shop: 'S\'ouvre après le boss du monde 1', companions: 'S\'ouvre après le boss du monde 1',
+      encyclopedia: 'S\'ouvre après ton premier boss', boss: 'S\'ouvre après ton premier boss', contracts: 'S\'ouvre à ta première récompense',
+      stats: `S'ouvre à l'étape ${stageLabel(40)}`, ranking: `S'ouvre à l'étape ${stageLabel(40)}`, guild: `S'ouvre à l'étape ${stageLabel(40)}`,
+      forge: 'Termine la mini-quête « Forge »',
+    };
+    return R[tab] ?? 'Bientôt';
+  }
+
+  // v9.9 (K6) : tiroir ☰ — tout ce qui n'est pas dans les 5 onglets du bas.
+  openDrawer() {
+    const E = [['daybook', 'icon_trophy', 'Carnet du jour'], ['contracts', 'tab_missions', 'Missions et hauts faits'], ['encyclopedia', 'tab_collections', 'Collections'],
+      ['forge', 'tab_forge', 'Forge'], ['boss', 'tab_boss', 'Pouvoirs des boss'], ['camp', 'tab_expeditions', 'Camp'], ['looks', 'top_profile', 'Apparences'],
+      ['ranking', 'tab_ranking', 'Classement'], ['guild', 'tab_guild', 'Guilde'], ['stats', 'tab_stats', 'Statistiques']];
+    const row = ([tab, ic, label]) => {
+      const open = this.tabVisible[tab] !== false;
+      const n = this.tabBadges?.[tab] ?? 0;
+      return `<button class="drawer-row${open ? '' : ' locked'}" data-action="${open ? 'open-tab' : 'locked-tab'}" data-value="${tab}">${img(ic)}<b>${label}</b>${open ? (n ? `<i class="drawer-badge">${n}</i>` : '') : `<small>🔒 ${escapeHtml(this.lockReason(tab))}</small>`}</button>`;
+    };
+    this.openModal(`<div class="drawer"><h2 id="modal-title">Menu</h2>
+      <div class="drawer-list">${E.map(row).join('')}
+        <button class="drawer-row" data-action="open-claims">${img('icon_mail')}<b>Courrier et récompenses</b></button>
+        <button class="drawer-row" data-action="open-tab" data-value="hero">${img('icon_hero')}<b>Fiche du héros</b></button>
+        <button class="drawer-row" data-action="sleep-mode">${img('icon_star')}<b>Veillée au Camp</b></button>
+        <button class="drawer-row" data-action="open-tab" data-value="options">${img('icon_gear')}<b>Réglages</b></button>
+        <button class="drawer-row" data-action="show-shortcuts">${img('icon_book')}<b>Aide</b></button></div></div>`);
   }
 
   // Onglets du menu courant, en haut du panneau. Marques (v9.1.0, une seule règle) : pastille rouge = à récupérer ;
@@ -616,16 +659,17 @@ export class UI {
     const menu = menuOf(this.tab);
     const el = this.$('panel-subtabs');
     const tabs = menu ? menu.tabs.filter((t) => this.tabVisible[t] !== false) : [];
+    const locked = menu ? menu.tabs.filter((t) => this.tabVisible[t] === false) : []; // v9.9 (K6) : visibles avec un cadenas
     // v9.1.3 : plus de point or « conseillé » (aucune recommandation) : rouge = à récupérer, anneau = nouveau.
     const mark = (t) => (this.tabBadges[t] ? 'red' : this.newTabs.has(t) ? 'new' : '');
     // v9.1.3 (S5, décision 7) : le prochain onglet de ce menu qui s'ouvre à une étape est annoncé, en texte neutre.
     const STAGE_UNLOCKS = { tree: 10, dungeons: DUNGEONS[0].unlockStage, tower: CHALLENGE.unlockStage };
     const nextTab = menu?.tabs.find((t) => this.tabVisible[t] === false && STAGE_UNLOCKS[t]);
     const next = ''; // v9.8 (B6) : le prochain déblocage n'est plus annoncé ici (barre sous la scène seulement)
-    const key = `${this.tab}|${tabs.join()}|${tabs.map(mark).join()}|${nextTab}`;
+    const key = `${this.tab}|${tabs.join()}|${tabs.map(mark).join()}|${nextTab}|${locked.join()}`;
     if (this.lastHud.subtabs === key) return;
     this.lastHud.subtabs = key;
-    el.classList.toggle('hidden', tabs.length < 2 && !next);
+    el.classList.toggle('hidden', tabs.length + locked.length < 2 && !next);
     el.setAttribute('role', 'tablist');
     el.innerHTML = tabs.map((t) => {
       const m = mark(t);
@@ -633,7 +677,8 @@ export class UI {
         : m === 'new' ? '<i class="badge badge-ring" aria-label="Nouveau"></i>' : '';
       return `<button class="subtab${t === this.tab ? ' active' : ''}" role="tab" aria-selected="${t === this.tab}" data-sub="${t}">
       <img class="px" src="${icon(SUB_ICONS[t])}" data-icon="${SUB_ICONS[t]}" alt=""><span class="sub-long">${SUB_LABELS[t]}</span><span class="sub-short">${SUB_SHORT[t] ?? SUB_LABELS[t]}</span>${badge}</button>`;
-    }).join('') + next;
+    }).join('') + locked.map((t) => `<button class="subtab locked" data-action="locked-tab" data-value="${t}" title="${escapeHtml(this.lockReason(t))}">
+      <img class="px" src="${icon(SUB_ICONS[t])}" data-icon="${SUB_ICONS[t]}" alt=""><span class="sub-long">🔒 ${SUB_LABELS[t]}</span><span class="sub-short">🔒 ${SUB_SHORT[t] ?? SUB_LABELS[t]}</span></button>`).join('') + next;
     uiFx.syncIcons(this.root); // v9.2.6
   }
 
@@ -714,6 +759,14 @@ export class UI {
   // v9.1.3 (essai, doc1 4a) : panneau à deux hauteurs. ▼ rétracte le panneau (scène agrandie), choix mémorisé par
   // écran ; sans le réglage, la bande actuelle reste la seule hauteur.
   updatePanelLow() {
+    // v9.9 (K1) : panneau du bas à deux hauteurs (45 % / 70 %), ⤢ bascule, choix gardé (préférence locale).
+    if (this.root.classList.contains('bottom-ui')) {
+      const tall = pref('panelTall') === true;
+      this.root.classList.toggle('panel-tall', tall);
+      const b = this.$('panel-fold');
+      if (b) { b.classList.remove('hidden'); b.textContent = tall ? '⤡' : '⤢'; b.setAttribute('aria-label', tall ? 'Réduire le panneau' : 'Déplier le panneau'); b.setAttribute('aria-pressed', String(tall)); }
+      return;
+    }
     const on = pref('panelFold') === true;
     const low = on && Boolean(this.tab) && pref('panelLow')?.[this.tab] === true;
     this.root.classList.toggle('panel-low', low);
@@ -728,6 +781,7 @@ export class UI {
 
   togglePanelLow() {
     if (!this.tab) return;
+    if (this.root.classList.contains('bottom-ui')) { setPref('panelTall', !(pref('panelTall') === true)); this.updatePanelLow(); this.layoutChanged?.(); return; }
     const map = { ...(pref('panelLow') ?? {}) };
     if (map[this.tab]) delete map[this.tab]; else map[this.tab] = true;
     setPref('panelLow', map);
@@ -1054,6 +1108,9 @@ export class UI {
       case 'quick-hunt': a.quickHunt(); break; // v9.8 (H3)
       case 'gear-best': a.gearBest(value); break; // v9.8 (I6)
       case 'rank-duel': this.rankDuel(); break; // v9.8 (H6)
+      case 'drawer': this.openDrawer(); break; // v9.9 (K6)
+      case 'locked-tab': this.toast(`🔒 ${this.lockReason(value)}`, '#ffcf6a'); break;
+      case 'open-claims': this.closeModal(); this.openClaims(); break;
       case 'sleep-mode': this.closeModal(); this.closePanel?.(); this.sleepMode(true); break; // v9.8 (H9)
       case 'fw-day': local(() => { v.fwDay = value; }); break; // v9.8 (H5)
       case 'fw-claim': a.firstWeekClaim(Number(value)); break;
@@ -1942,7 +1999,7 @@ export class UI {
     this.next = nextAction(state, { claims: this.claims, visible: this.tabVisible, fusionReady: this.tabBadges.forge === 1 }); // v9.3.5
     for (const menu of MENUS) {
       const red = menu.tabs.some((t) => byTab[t] && this.tabVisible[t] !== false);
-      const el = this.$(`badge-${menu.id}`);
+      const el = this.$(menu.id === 'shop' ? 'badge-shop-tab' : `badge-${menu.id}`);
       if (el) {
         // v9.8 (J1/J2) : le chiffre dit combien de choses attendent (plus un simple point).
         const n = menu.tabs.reduce((t, x) => t + (this.tabVisible[x] !== false ? byTab[x] ?? 0 : 0), 0);
@@ -2175,8 +2232,8 @@ export class UI {
       ranking: Boolean(state.ui.goalsOpen) && later && Boolean(this.actions.loadRanking) && this.cloud?.enabled !== false,
       guild: Boolean(state.ui.goalsOpen) && later && Boolean(this.actions.loadGuild) && this.cloud?.enabled !== false, // v9.3.2
     };
-    this.$('top-shop')?.classList.toggle('hidden', !visible.shop); // v9.2.9 : bouton Boutique de la barre du haut
-    this.$('top-profile')?.classList.toggle('hidden', !['looks', 'ranking', 'guild', 'stats'].some((t) => visible[t] !== false)); // v9.3.5
+    this.$('top-shop')?.classList.add('hidden'); // v9.9 (K6) : la Boutique est un des 5 onglets du bas
+    this.$('top-profile')?.classList.add('hidden'); // v9.9 (K6) : Profil dans le tiroir ☰
     const key = `${JSON.stringify(visible)}|${this.tab}|${[...this.newTabs].join()}`;
     if (this.lastHud.tabs === key) return;
     const firstPass = this.lastHud.tabsInit === undefined;
@@ -2196,7 +2253,8 @@ export class UI {
     this.root.querySelectorAll('#tabs button').forEach((b) => {
       const menu = MENUS.find((m) => m.id === b.dataset.menu);
       if (!menu) return; // v9.3.5 : bouton Combat (toujours visible)
-      b.classList.toggle('hidden', !menu.tabs.some((t) => this.tabVisible[t] !== false));
+      b.classList.remove('hidden');
+      b.classList.toggle('locked', !menu.tabs.some((t) => this.tabVisible[t] !== false)); // v9.9 (K6) : cadenas, plus de menu caché
       b.querySelector('.badge-new')?.classList.toggle('hidden', !menu.tabs.some((t) => this.newTabs.has(t)));
     });
     if (this.tab) this.renderSubtabs();

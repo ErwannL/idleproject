@@ -20,12 +20,14 @@
     <nav id="tabs" aria-label="Menus">
       <button data-menu="hero"><img class="px" data-icon="menu_hero" alt=""><span>Héros</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-hero"></i><b class="badge-count hidden" id="count-hero"></b></button>
       <button data-menu="team"><img class="px" data-icon="menu_team" alt=""><span>Équipe</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-team"></i></button>
-      <button data-menu="adventure"><img class="px" data-icon="menu_adventure" alt=""><span>Aventure</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-adventure"></i></button>
-      <button data-menu="goals"><img class="px" data-icon="menu_quests" alt=""><span>Quêtes</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-goals"></i></button>
+      <button data-menu="adventure" class="menu-center"><img class="px" data-icon="menu_adventure" alt=""><span>Combat</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-adventure"></i></button>
+      <button data-menu="summon"><img class="px" data-icon="tab_summon" alt=""><span>Invocation</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-summon"></i></button>
+      <button data-menu="shop"><img class="px" data-icon="top_shop" alt=""><span>Boutique</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-shop-tab"></i></button>
     </nav>
     <div id="content">
     <div id="main-col">
       <header id="topbar">
+        <button class="icon-btn drawer-btn" id="drawer-btn" data-action="drawer" title="Menu" aria-label="Menu">☰<i class="badge hidden" id="badge-goals"></i></button>
         <button class="brand top-level" id="portrait" data-open="hero" title="Fiche du héros"><img class="px" data-icon="icon_hero" alt=""><b id="top-level">Niv. 1</b>
           <span class="top-xp" aria-hidden="true"><i id="top-xp"></i></span></button>
         <button class="chip chip-gold" data-currency="gold" title="Or"><img class="px" data-icon="coin" alt="Or"><span id="gold">0</span></button>

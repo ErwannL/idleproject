@@ -3911,3 +3911,37 @@ html.reduce-motion .trophy.ready img { animation: none; }
 .class-card:active .class-art { animation: class-strike 300ms ease-out; }
 @keyframes class-strike { 40% { transform: translateX(6px) rotate(4deg); } }
 html.reduce-motion .class-card:active .class-art { animation: none; }
+
+/* v9.9 (K1, K6) : 5 onglets en bas, panneau du bas (45 % / 70 %), la scène reste visible au-dessus ------------- */
+#app.bottom-ui { flex-direction: column-reverse; }
+#app.bottom-ui > #tabs { flex-direction: row; width: auto !important; height: 64px; border-right: none; border-top: 2px solid var(--edge); padding: 4px 6px;
+  justify-content: center; gap: 6px; background: linear-gradient(180deg, #161f38, #0e1528); }
+#app.bottom-ui > #tabs button { flex: 1 1 0; max-width: 150px; min-height: 0; height: 100%; }
+#app.bottom-ui > #tabs button img { width: 26px !important; height: 26px !important; }
+#app.bottom-ui > #tabs button span { font-size: 12px; }
+#app.bottom-ui > #tabs button.menu-center { flex-grow: 1.35; max-width: 190px; border-color: var(--gold, #e8b64a); box-shadow: 0 0 10px #ffd36a44; }
+#app.bottom-ui > #tabs button.menu-center img { width: 32px !important; height: 32px !important; }
+#app > #tabs button.locked { opacity: .55; filter: grayscale(.7); }
+#app > #tabs button.locked::after { content: '🔒'; position: absolute; top: 2px; left: 4px; font-size: 11px; }
+#app.bottom-ui #content { flex-direction: column !important; min-height: 0; flex: 1; }
+#app.bottom-ui #main-col { flex: 1 1 auto !important; min-height: 0; }
+#app.bottom-ui #play { height: auto !important; flex: 1 1 auto; min-height: 0; }
+#app.bottom-ui.panel-open #panel { flex: none !important; width: auto !important; height: 45%; border-left: none; border-top: 3px solid var(--edge, #2a3654); }
+#app.bottom-ui.panel-open.panel-tall #panel { height: 70%; }
+#app.bottom-ui.panel-open #panel-body > * { max-width: 1100px; }
+#panel-subtabs .subtab.locked { opacity: .55; }
+@media (max-width: 560px) { #app.bottom-ui > #tabs button span { font-size: 10px; } #app.bottom-ui > #tabs { height: 58px; } }
+/* Tiroir ☰ */
+.drawer-btn { font-size: 20px; line-height: 1; min-width: 40px; }
+.drawer-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; }
+.drawer-row { position: relative; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; border: 1px solid #3a4a70; background: #141c32;
+  color: #e8eeff; text-align: left; cursor: pointer; font: inherit; }
+.drawer-row img { width: 28px; height: 28px; image-rendering: pixelated; } .drawer-row b { font-size: 15px; } .drawer-row small { margin-left: auto; color: #c9b88a; font-size: 12px; }
+.drawer-row.locked { opacity: .6; } .drawer-badge { margin-left: auto; min-width: 20px; padding: 0 6px; border-radius: 10px; background: #d4372f; color: #fff; font: 800 12px/20px system-ui, sans-serif; text-align: center; font-style: normal; }
+#app.bottom-ui.panel-open.panel-tall #panel { height: 62%; }
+#app.bottom-ui.panel-open.panel-tall #zone-card, #app.bottom-ui.panel-open.panel-tall #boost-group, #app.bottom-ui.panel-open.panel-tall #skill-bar,
+#app.bottom-ui.panel-open.panel-tall #goals-pill, #app.bottom-ui.panel-open.panel-tall #quest-banner, #app.bottom-ui.panel-open.panel-tall #next-unlock,
+#app.bottom-ui.panel-open.panel-tall #speed-toggle, #app.bottom-ui.panel-open.panel-tall #auto-toggle, #app.bottom-ui.panel-open.panel-tall #scene-bottom { display: none !important; }
+#app.bottom-ui > #tabs button.menu-center img { width: 28px !important; height: 28px !important; }
+#app.bottom-ui > #tabs button { overflow: visible; }
+#drawer-btn .badge { width: auto !important; min-width: 16px; height: 16px !important; padding: 0 3px; font: 800 10px/16px system-ui, sans-serif; color: #fff; top: -3px !important; right: -6px !important; }

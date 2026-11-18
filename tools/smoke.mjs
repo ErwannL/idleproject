@@ -129,8 +129,9 @@ await check('onglets avec icône et état actif distinct', async () => {
     menu: b.dataset.menu, icon: b.querySelector('img')?.naturalWidth > 0, active: b.classList.contains('active'),
     hidden: b.classList.contains('hidden'),
   })));
+  // v9.9 (K6) : 5 onglets en bas (Héros, Équipe, Combat, Invocation, Boutique), les fermés avec un cadenas.
   // v9.1.0 : v9.3.8 : 4 boutons (Héros, Équipe, Aventure, Quêtes). En début de partie, Équipe est encore caché.
-  assert(tabs.length === 4 && tabs.every((t) => t.icon), JSON.stringify(tabs));
+  assert(tabs.length === 5 && tabs.every((t) => t.icon), JSON.stringify(tabs));
   assert(tabs.filter((t) => t.active).map((t) => t.menu).join() === 'hero', JSON.stringify(tabs));
   const hidden = await game(() => Object.entries(__idle.ui.tabVisible).filter(([, v]) => v === false).map(([k]) => k).sort().join());
   assert(hidden.includes('tree') && hidden.includes('dungeons') && hidden.includes('tower'), `onglets cachés : ${hidden}`);
@@ -510,7 +511,7 @@ await check('l’interface s’adapte au redimensionnement', async () => {
       canvas: document.querySelector('#scene').getBoundingClientRect().height,
     }));
     assert(!info.overflow, `débordement horizontal à ${w}×${h}`);
-    assert(info.cls === `layout-${layout}`, `${w}×${h} : ${info.cls}`);
+    assert(info.cls.split(" ").includes(`layout-${layout}`), `${w}×${h} : ${info.cls}`); // v9.9 : + bottom-ui
     if (layout === 'strip') {
       // Mode barre : seulement la scène (et l'or), rien d'autre ne prend de place.
       const strip = await game(() => ({
