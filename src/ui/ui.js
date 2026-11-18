@@ -74,6 +74,7 @@ import { duelOutcome } from '../core/ranks.js'; // v9.8 (H6)
 import { isUpgrade, teamUpgradeFor } from '../core/inventory.js';
 import { canEquip as canEquipHero } from '../core/classes.js';
 import { mentorTips } from '../core/mentor.js'; // v9.9 (K4)
+import { boonById, rarityOf } from '../core/boons.js'; // v9.9 (K7)
 import { titanToday, titanTriesLeft } from '../core/titan.js'; // v9.8 (H7)
 import { MISSION_PERIODS } from '../data/missions.js';
 import { missionOpen, missionStatus } from '../core/missions.js';
@@ -1119,6 +1120,8 @@ export class UI {
       case 'gear-best': a.gearBest(value); break; // v9.8 (I6)
       case 'rank-duel': this.rankDuel(); break; // v9.8 (H6)
       case 'drawer': this.openDrawer(); break; // v9.9 (K6)
+      case 'road-choice': clearTimeout(this.roadTimer); el.closest('.road-bubble')?.remove(); a.roadChoice(Number(value)); break; // v9.9 (K8)
+      case 'pick-boon': clearInterval(this.boonTimer); a.pickBoon(Number(value)); this.closeModal(); break; // v9.9 (K7)
       case 'mentor-tip': this.followTip(this.mentorTipsShown?.[Number(value)]); break; // v9.9 (K4)
       case 'locked-tab': this.toast(`🔒 ${this.lockReason(value)}`, '#ffcf6a'); break;
       case 'open-claims': this.closeModal(); this.openClaims(); break;
@@ -1445,6 +1448,7 @@ export class UI {
         break;
       case 'dungeonRoom':
         this.news(`Salle terminée : ${rewardText(event.reward, formatNumber)}`, '#9cf08a');
+        this.showBoons(); // v9.9 (K7)
         break;
       case 'dungeonComplete': {
         this.banner(event.sweep ? 'Donjon balayé !' : 'Donjon terminé !', 'win');
@@ -2625,6 +2629,45 @@ export class UI {
     setTimeout(() => el.remove(), 20000);
   }
 
+
+  // v9.9 (K8) : bulle de rencontre au bord de la scène — 2 lignes, 2 boutons (gain et coût écrits dessus), 30 s.
+  showEncounter(e) {
+    if (!e || typeof document === 'undefined') return;
+    const host = this.$('stage-area');
+    if (!host || host.querySelector('.road-bubble')) return;
+    const el = document.createElement('div');
+    el.className = 'road-bubble';
+    el.innerHTML = `<div class="rb-head">${img(e.icon)}<div><b>${escapeHtml(e.title)}</b><span>${escapeHtml(e.text)}</span></div></div>
+      <div class="rb-btns">${e.options.map((o, i) => `<button class="btn ${o.safe ? '' : 'btn-gold'}" data-action="road-choice" data-value="${i}"><b>${escapeHtml(o.label)}</b><small>${escapeHtml(o.gain)}${o.cost ? ` · ${escapeHtml(o.cost)}` : ''}</small></button>`).join('')}</div>
+      <i class="rb-time" style="animation-duration:30s"></i>`;
+    host.appendChild(el);
+    clearTimeout(this.roadTimer);
+    this.roadTimer = setTimeout(() => { if (el.isConnected) { el.remove(); this.actions.roadChoice(null); } }, 30000);
+  }
+
+  // v9.9 (K7) : « Choisis une bénédiction » — 3 cartes (rareté en bandeau, flèches ↑ pour l'ampleur), choix automatique
+  // de la plus rare au bout de 20 s ; le combat continue. Le petit livre liste celles déjà prises.
+  showBoons() {
+    if (typeof document === 'undefined' || !this.state?.dungeon) return;
+    if (!this.$('modal').classList.contains('hidden')) { this.boonLater = true; return; }
+    const offer = this.actions.offerBoons?.();
+    if (!offer?.length) return;
+    const card = (o, i) => { const b = boonById(o.id); const r = rarityOf(o.rarity);
+      return `<button class="boon-card r-${o.rarity}" data-action="pick-boon" data-value="${i}"><span class="boon-band">${r.label}</span>${img(b.icon)}<b>${escapeHtml(b.name)}</b>
+        <span>${escapeHtml(b.text)}</span><span class="boon-arrows">${'↑'.repeat(r.arrows)}</span></button>`; };
+    const book = (this.state.dungeon.boons ?? []).map((x) => `<span title="${escapeHtml(boonById(x.id)?.name ?? '')}">${img(boonById(x.id)?.icon ?? 'icon_star')}</span>`).join('');
+    this.openModal(`<div class="boon-screen"><h2 id="modal-title">Choisis une bénédiction</h2>
+      <div class="boon-cards">${offer.map(card).join('')}</div>
+      <div class="boon-foot"><span class="muted boon-timer">Choix automatique dans 20 s</span>${book ? `<span class="boon-book" title="Bénédictions prises">📖 ${book}</span>` : ''}</div></div>`);
+    clearInterval(this.boonTimer);
+    let left = 20;
+    this.boonTimer = setInterval(() => {
+      left -= 1;
+      const t = this.$('modal-card')?.querySelector('.boon-timer');
+      if (t) t.textContent = `Choix automatique dans ${left} s`;
+      if (left <= 0 || !t) { clearInterval(this.boonTimer); if (t) { this.actions.pickBoon(null); this.closeModal(); } }
+    }, 1000);
+  }
 
   // v9.9 (K4) : Conseil du mentor — écran de défaite : meilleur résultat et 3 cartes pour devenir plus fort.
   mentorScreen(title, best, opts = {}) {

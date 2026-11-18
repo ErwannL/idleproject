@@ -4004,3 +4004,24 @@ html.reduce-motion #next-action .na-finger { animation: none; }
 @keyframes bc-in { from { transform: translateX(-20px); opacity: 0; } }
 html.reduce-motion .best-card { animation: none; }
 .layout-strip .best-cards, .layout-mini .best-cards, #app.panel-tall .best-cards { display: none; }
+/* v9.9 (K7) : bénédictions de donjon */
+.boon-screen { text-align: center; } .boon-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; }
+.boon-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 26px 8px 10px; border-radius: 12px; border: 2px solid #8a9ac0;
+  background: linear-gradient(#1f2a4c, #131b32); color: #fff; cursor: pointer; font: inherit; overflow: hidden; }
+.boon-card img { width: 48px; height: 48px; image-rendering: pixelated; } .boon-card b { font-size: 15px; } .boon-card span { font-size: 12px; color: #cfd8ee; }
+.boon-band { position: absolute; top: 0; left: 0; right: 0; padding: 3px 0; font: 800 12px system-ui, sans-serif !important; color: #fff !important; background: #4a6aa8; }
+.boon-card.r-rare { border-color: #b070ff; } .boon-card.r-rare .boon-band { background: #7a3ad0; }
+.boon-card.r-legend { border-color: #ffd36a; box-shadow: 0 0 14px #ffd36a77; } .boon-card.r-legend .boon-band { background: linear-gradient(90deg, #c8961c, #ffd36a); color: #2a1a05 !important; }
+.boon-arrows { color: #6ff08a !important; font: 900 18px system-ui, sans-serif !important; letter-spacing: 2px; }
+.boon-foot { display: flex; justify-content: space-between; align-items: center; } .boon-book img { width: 20px; height: 20px; vertical-align: middle; }
+@media (max-width: 560px) { .boon-cards { grid-template-columns: 1fr; } }
+/* v9.9 (K8) : Rencontres de route */
+.road-bubble { position: absolute; right: 10px; top: 150px; z-index: 7; width: min(320px, 80%); padding: 8px 10px 10px; border-radius: 12px; background: #1a1430f2; border: 2px solid #c9a6ff;
+  box-shadow: 0 4px 14px #000a; animation: bc-in 300ms ease-out both; overflow: hidden; }
+.rb-head { display: flex; gap: 8px; align-items: center; } .rb-head img { width: 40px; height: 40px; image-rendering: pixelated; } .rb-head div { display: flex; flex-direction: column; }
+.rb-head b { color: #ffe7b0; font-size: 15px; } .rb-head span { font-size: 13px; color: #d8e0f4; }
+.rb-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; } .rb-btns .btn { display: flex; flex-direction: column; padding: 6px; min-height: 44px; }
+.rb-btns small { font-size: 11px; font-weight: 600; }
+.rb-time { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: #c9a6ff; transform-origin: left; animation: rb-time linear forwards; }
+@keyframes rb-time { to { transform: scaleX(0); } }
+.layout-strip .road-bubble, .layout-mini .road-bubble { display: none; }

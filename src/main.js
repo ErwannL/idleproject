@@ -14,6 +14,8 @@ import { wheelShown } from './core/elements.js';
 import { quickHunt } from './core/quick-hunt.js'; // v9.8 (H3)
 import { winDuel } from './core/ranks.js'; // v9.8 (H6)
 import { finishTitan, startTitan } from './core/titan.js'; // v9.8 (H7)
+import { offerBoons, pickBoon } from './core/boons.js'; // v9.9 (K7)
+import { encounterView, resolveEncounter, roadDue, rollEncounter } from './core/road.js'; // v9.9 (K8)
 import { setupNotifications } from './ui/notifications.js'; // v9.8 (H8)
 import { claimFirstWeekDay, claimPrize } from './core/first-week.js'; // v9.8 (H5)
 import { spinWheel } from './core/wheel.js'; // v9.8 (H4)
@@ -382,6 +384,11 @@ const actions = {
   // v9.8 (H5) : carnet des 7 premiers jours.
   firstWeekClaim(d) { const g = claimFirstWeekDay(state, d); if (g) ui.chestReveal?.(g); done(Boolean(g), null); },
   firstWeekPrize(id) { done(claimPrize(state, id), `${companionById(id)?.name ?? ''} te rejoint !`, '#ffd36a'); },
+  // v9.9 (K8) : Rencontres de route.
+  roadChoice(i) { const t = resolveEncounter(state, i, rng); if (t) { ui.toast(t, '#ffe27a'); save(); ui.invalidate(); } return t; },
+  // v9.9 (K7) : bénédictions de donjon.
+  offerBoons() { const o = offerBoons(state, rng); return o; },
+  pickBoon(i) { const b = pickBoon(state, i); if (b) { save(); ui.invalidate(); } return b; },
   // v9.8 (H7) : Titan du jour.
   titanStart() { const s = startTitan(state); if (s) save(); return s; },
   titanFinish(setup, result) { const sum = finishTitan(state, setup, result); daybookTrack(state, 'titan', 1); save(); ui.invalidate(); return sum; },
@@ -1619,6 +1626,10 @@ setInterval(() => {
   for (const w of updateStars(state)) highlight(`world-${w}`, `Monde ${w + 1} terminé !`, `${worldStars(state, w).filter(Boolean).length} étoile(s) sur 3. Le Colosse t'attend pour un face-à-face.`);
   if (state.records.rebirths > 0) highlight('first-rebirth', 'Première Renaissance !', 'Tu repars plus fort : tes compagnons, tes talents et tes ensembles restent.');
   for (const b of activeBonds(state)) highlightBond(b); // v9.7.1 (lot 6) : liens entre compagnons
+  // v9.9 (K8) : rencontre de route (jeu actif : fenêtre visible et une action du joueur depuis moins de 5 minutes).
+  const active = !document.hidden && performance.now() - (ui.userAt ?? -1e9) < 300000 && (!navigator.webdriver || location.search.includes('road'));
+  if (state.road?.open && !document.querySelector('.road-bubble')) ui.showEncounter(encounterView(state));
+  else if (active && roadDue(state) && document.getElementById('modal').classList.contains('hidden') && !document.querySelector('#prologue, .cinematic, .wb-overlay')) ui.showEncounter(rollEncounter(state, rng));
   // v9.8 (0.7) : premier monde d'un autre élément : la roue apparaît, expliquée en une bulle.
   if (state.unlocks && !state.unlocks.legacy && wheelShown(state)) highlight('element-wheel', 'Nouvel élément : l\'Eau', 'Feu > Nature > Eau > Feu : +50 % contre le bon élément. La roue est dans Équipement.');
   const q = advanceUnlocks(state);

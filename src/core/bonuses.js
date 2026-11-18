@@ -1,5 +1,6 @@
 // Bonus cumulés de toutes les sources permanentes : pouvoirs ancestraux actifs (avec synergies),
 // talents, héros actif, compagnons équipés et effets spéciaux de l'équipement porté.
+import { boonEffects } from './boons.js';
 import { EQUIP_SLOTS, HERO_SLOTS, SLOTS, eqSlot, heroSlot } from '../data/items.js';
 import { companionEffects } from './companions.js';
 import { heroEffects } from './heroes.js';
@@ -44,6 +45,7 @@ export function bonusSources(state, equipment = state.equipment) {
     achievements: achievementEffects(state),
     sets: setEffects(equipment),
     museum: museumEffects(state),
+    boons: boonEffects(state), // v9.9 (K7/K8) : bénédictions de donjon, rencontres de route
   };
 }
 
