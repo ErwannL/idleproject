@@ -89,8 +89,8 @@ function replayHtml(ui, state) {
   const head = run.mode === 'survival' ? `Vague <b>${s.wave ? s.wave.n : 1}</b> / ${ARENA.survival.waves}${done && !run.won ? ' <span class="bad">(perdue)</span>' : ''}` : `Étage <b>${run.floor}</b>`;
   const result = !done ? '' : run.mode === 'survival'
     ? `<div class="card arena-result"><b class="gold-text">${run.wave} vague${run.wave > 1 ? 's' : ''} terminée${run.wave > 1 ? 's' : ''}</b> en ${Math.round(run.seconds)} s · ${run.kills} ennemis vaincus${run.won ? ' — <b class="good">30 vagues terminées !</b>' : ''}
-        ${run.rewards.length ? `<div>Paliers atteints : ${run.rewards.map((m) => `vague ${m.wave} ${rewardIcons(m.reward)}`).join(' · ')}</div>` : ''}</div>`
-    : `<div class="card arena-result">${run.won ? `<b class="good">Étage ${run.floor} franchi !</b> ${rewardIcons(run.reward)}` : `<b class="bad">Étage ${run.floor} non franchi.</b> Renforce ou change l'équipe (types, soins, boucliers).`}</div>`;
+        ${run.rewards.length ? `<div>Paliers atteints : ${run.rewards.map((m) => `vague ${m.wave} ${rewardIcons(m.reward)}`).join(' · ')}</div>` : ''}${run.won ? '' : ui.mentorCardsHtml?.() ?? ''}</div>`
+    : `<div class="card arena-result">${run.won ? `<b class="good">Étage ${run.floor} franchi !</b> ${rewardIcons(run.reward)}` : `<b class="bad">Étage ${run.floor} non franchi.</b>${ui.mentorCardsHtml?.() ?? ''}`}</div>`; // v9.9 (K4) : Conseil du mentor
   return `<div class="card arena-replay"><div class="row-between"><span>${head}</span>
       <button class="btn small" data-action="arena-close">${done ? 'Fermer' : 'Passer ⏭'}</button></div>
     <div class="arena-field arena-stage" style="--sky:${(BG[ZONES[zi]?.id] ?? BG.plains).sky.join(',')};background-image:url('assets/bg/${(BG[ZONES[zi]?.id] ?? BG.plains).layers.find((l) => l.anchor === 'ground')?.file ?? ''}'), linear-gradient(${(BG[ZONES[zi]?.id] ?? BG.plains).sky.join(',')});--ground:${(BG[ZONES[zi]?.id] ?? BG.plains).ground}"><div class="arena-side">${allies}</div><div class="arena-vs">VS</div><div class="arena-side foes">${foes}</div></div>

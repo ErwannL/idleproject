@@ -1,4 +1,8 @@
 // Améliorations achetées avec l'or.
+import { PRESTIGE } from '../../data/prestige.js';
+import { REBIRTH } from '../../data/rebirth.js';
+import { canRebirth, rebirthBlocked, rebirthGain, rebirthWorth } from '../../core/rebirth.js';
+import { stageLabel } from '../../core/combat.js';
 import { BALANCE } from '../../data/balance.js';
 import { bulkPlan, upgradeCost, upgradeMilestones } from '../../core/economy.js';
 import { computeHeroStats } from '../../core/stats.js';
@@ -46,6 +50,19 @@ function effect(key, cur, next) {
 // gagnés par or, core/profit.js). Au début, 3 lignes seulement (Dégâts, Vitesse, PV) ; ×10, ×100 et Max quand l'or
 // atteint 10 fois le moins cher. Mode compact : une ligne par amélioration, sans description.
 // v9.2.0 : ordre et déblocage progressif dans core/unlocks.js (13 améliorations).
+
+// v9.9 (K14) : Renaissance toujours en vue, dernière ligne des Améliorations, avec son gain sur le bouton ; grisée avec la
+// raison tant qu'elle n'est pas rentable.
+function rebirthRow(state) {
+  const gainPct = Math.round((PRESTIGE.rebirthMultiplier ** rebirthGain(state) - 1) * 100);
+  const ok = canRebirth(state) && !rebirthBlocked(state) && rebirthWorth(state);
+  const why = !canRebirth(state) ? (state.maxStage < REBIRTH.minStage ? `Rentable à l'étape ${stageLabel(REBIRTH.minStage)}` : 'Termine la mini-quête « Renaissance »')
+    : rebirthBlocked(state) ?? (rebirthWorth(state) ? '' : 'Rentable un peu plus loin : avance encore');
+  return `<div class="card upg-card upg-rebirth">
+    <div class="upg-icon">${img('icon_star')}</div>
+    <div class="upg-main"><div class="upg-name">Renaissance</div><div class="muted">Recommence plus fort : +${gainPct} % de dégâts, PV et or pour toujours</div></div>
+    ${ok ? `<button class="btn btn-gold" data-action="rebirth">Renaître · +${gainPct} %</button>` : `<button class="btn" disabled>${escapeHtml(why)}</button>`}</div>`;
+}
 
 export default {
   id: 'upgrades',
@@ -145,12 +162,14 @@ export default {
     const surv = `<span class="upg-surv${fragile ? ' bad' : ''}" title="${escapeHtml(`Tient ${fmtHits(hits.normal)} coups d'un ennemi, ${fmtHits(hits.boss)} du boss`)}">${img('icon_heart')} ${fragile ? 'Trop fragile : améliore ta Vie' : `Tu survis ${fmtHits(hits.boss)} coups du boss`}</span>`;
     const dpsHead = `<div class="upg-dps"><span class="muted">Dégâts/s</span> <b class="num">${formatDecimal(current.dps)}</b>${beginner ? '' : surv}</div>`;
     const top = qtyMenu ? `<div class="row-between upg-dps-row">${dpsHead}${amounts}</div>${forecast}` : `${dpsHead}${forecast}${amounts ? `<div class="row-between">${amounts}</div>` : ''}`;
-    return `<div class="card upg-top">${top}</div>
+    // v9.9 (K15) : « Tout acheter » en haut de l'onglet (meilleur rapport d'abord, confirmation la première fois).
+    const buyAll = state.gold > 0 ? `<button class="btn btn-gold buy-all${ui.view.buyAllArmed ? ' armed' : ''}" data-action="${state.ui.buyAllOk || ui.view.buyAllArmed ? 'buy-best' : 'buy-all-arm'}">${ui.view.buyAllArmed && !state.ui.buyAllOk ? 'Confirmer : tout acheter ?' : 'Tout acheter'}</button>` : '';
+    return `<div class="card upg-top">${top}${buyAll}</div>
       ${catTabs}
       ${beginner ? '' : fold(ui, 'upg-filters', 'Trier', filters)}
       <div class="upg-list">${cards.join('')}</div>
       ${done.length ? fold(ui, 'upg-done', `Terminées (${done.length})`, `<div class="upg-list">${done.join('')}</div>`) : ''}
-      ${state.gold > 0 ? '<button class="btn btn-gold primary-action buy-best" data-action="buy-best">Améliorer au mieux</button>' : ''}
+      ${rebirthRow(state)}
       ${beginner ? '<div class="muted">D\'autres améliorations s\'ouvrent au fil des boss.</div>' : ''}
       ${nextUp ? `<div class="muted next-unlock">Prochaine ligne : ${escapeHtml(nextUp.label)}, dans 2 boss</div>` : ''}`;
   },

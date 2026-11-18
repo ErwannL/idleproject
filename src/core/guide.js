@@ -4,6 +4,7 @@ import { currentQuest, questSteps } from './unlock-quests.js'; // v9.7.1 (lot 3)
 const QUEST_TAB = { equipment: [null, null, 'inventory'], upgrades: [null, 'upgrades', null], skills: [null, 'skills', null], forge: ['inventory', 'forge', null] };
 import { BALANCE } from '../data/balance.js';
 import { PRESTIGE } from '../data/prestige.js';
+import { formatNumber } from './format.js';
 import { bossesForStage, createCombat, heroPower, isBossStage, step } from './combat.js';
 import { Rng } from './rng.js';
 import { endWorldRun } from './banner.js';
@@ -15,7 +16,7 @@ import { upgradeOpen } from './unlocks.js';
 import { upgradeCost } from './economy.js';
 import { skillPointCost, skillPointsAvailable } from './skills.js';
 import { SKILLS } from '../data/skills.js';
-import { canRebirth, rebirthBlocked, rebirthReward, rebirthWorth } from './rebirth.js';
+import { canRebirth, rebirthBlocked, rebirthGain, rebirthReward, rebirthWorth } from './rebirth.js';
 import { COMPANION_RULES } from '../data/companions.js';
 import { DUNGEONS } from '../data/dungeons.js';
 import { TOWER, climbsLeft } from './tower.js'; // v9.6.2
@@ -92,7 +93,7 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
   // v9.8 (E8) : « Équiper » suit isUpgrade (bilan dégâts/s × robustesse) ; le conseil semblait inutile à cause de
   // l'affichage des objets en valeurs brutes (« +6,3 M » à côté de « 2,4 Qa »), corrigé en A (gain en % de puissance).
   const better = state.inventory.filter((i) => isUpgrade(state, i, balance, current)).length;
-  if (better) return { id: 'equip', text: better > 1 ? `Équiper ${better} objets meilleurs` : 'Équiper 1 objet meilleur', action: 'equip-best' };
+  if (better) { const one = state.inventory.find((i) => isUpgrade(state, i, balance, current)); return { id: 'equip', text: better > 1 ? `Équiper ${better} objets meilleurs` : `Équiper ${one.name}`, action: 'equip-best' }; } // v9.9 (K2) : le nom de l'objet
   const place = companionToPlace(state, balance);
   if (place) return { id: 'place', text: `Placer ${place.name} dans l'équipe`, action: 'place-companion', value: place.id };
   // v9.5.0 (3.6) : un compagnon du banc ferait mieux → « Meilleure équipe disponible », avec le gain (calculé à part).
@@ -128,7 +129,7 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
   const lv = companionToLevel(state, balance);
   // Montée d'un compagnon d'abord quand elle coûte moins que l'amélioration proposée (sinon l'or part toujours ailleurs).
   if (lv && (!up || up.cost > state.gold || lv.cost <= up.cost)) return { id: 'level', text: `Monter ${lv.name} au niveau ${lv.level + 1}`, action: 'upgrade-companion', value: lv.id };
-  if (up && up.cost <= state.gold && open('upgrades')) return { id: 'upgrade', text: `Améliorer : ${UPGRADE_NAMES[up.key] ?? up.key}`, action: 'buy', value: up.key };
+  if (up && up.cost <= state.gold && open('upgrades')) return { id: 'upgrade', text: `Améliorer ${UPGRADE_NAMES[up.key] ?? up.key} (${formatNumber(up.cost)} or)`, action: 'buy', value: up.key };
   // v9.7.1 (lot 3) : la mini-quête de déblocage en cours, une consigne à la fois, quand rien de plus pressé n'attend.
   const quest = currentQuest(state);
   if (quest) {
@@ -148,7 +149,7 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
   const slowing = (state.playSeconds ?? 0) - (state.recordAt ?? state.playSeconds ?? 0) > 600
     || (state.playSeconds ?? 0) - (state.ui?.wallAt ?? -1e9) < 1800; // v9.8 (I5) : mur détecté (retour automatique)
   if ((blocked || slowing || rebirthWorth(state)) && open('tree') && canRebirth(state) && !rebirthBlocked(state) && rebirthReward(state) > 0) {
-    return { id: 'rebirth', text: `Renaître : ×${String(PRESTIGE.rebirthMultiplier).replace('.', ',')} pour toujours (+${rebirthReward(state)} fragments)`, tab: 'tree', view: { treeSeg: 'rebirth' } };
+    return { id: 'rebirth', text: `Renaître (+${Math.round((PRESTIGE.rebirthMultiplier ** rebirthGain(state) - 1) * 100)} % de dégâts)`, tab: 'tree', view: { treeSeg: 'rebirth' } };
   }
   if (blocked) {
     const pct = bossRetryPct(state, balance);
@@ -169,7 +170,7 @@ export function bestOpenUpgrade(state, balance = BALANCE) {
   return best;
 }
 
-const UPGRADE_NAMES = { damage: 'Dégâts', attackSpeed: 'Vitesse d\'attaque', vitality: 'PV', crit: 'Critique', armor: 'Armure', defense: 'Défense',
+export const UPGRADE_NAMES = { damage: 'Dégâts', attackSpeed: 'Vitesse d\'attaque', vitality: 'PV', crit: 'Critique', armor: 'Armure', defense: 'Défense',
   regen: 'Régénération', goldFind: 'Or', critDamage: 'Dégâts critiques', doubleAttack: 'Double attaque', lifesteal: 'Vol de vie',
   companionPower: 'Compagnons', dodge: 'Esquive', bossDamage: 'Dégâts aux boss', xpGain: 'Expérience' };
 
@@ -223,7 +224,7 @@ function claimAction(claims) {
 
 function goalAction(state, balance) {
   const boss = nextBossName(state, balance);
-  return { id: 'goal', text: boss ? `Objectif : battre ${boss}` : 'Objectif : avancer', tab: 'campaign' };
+  return { id: 'goal', text: boss ? `Affronter ${boss}` : 'Avancer', tab: 'campaign' }; // v9.9 (K2)
 }
 
 // Objet du sac qui améliore le plus le héros (le premier trouvé), ou null.

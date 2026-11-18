@@ -71,7 +71,8 @@ import daybook from './panels/daybook.js'; // v9.8 (H1)
 import { WHEEL_SLICES, wheelReady } from '../core/wheel.js'; // v9.8 (H4)
 import { quickHuntReady } from '../core/quick-hunt.js'; // v9.8 (H3)
 import { duelOutcome } from '../core/ranks.js'; // v9.8 (H6)
-import { titanTriesLeft } from '../core/titan.js'; // v9.8 (H7)
+import { mentorTips } from '../core/mentor.js'; // v9.9 (K4)
+import { titanToday, titanTriesLeft } from '../core/titan.js'; // v9.8 (H7)
 import { MISSION_PERIODS } from '../data/missions.js';
 import { missionOpen, missionStatus } from '../core/missions.js';
 import dungeons from './panels/dungeons.js';
@@ -890,7 +891,8 @@ export class UI {
       case 'toggle-companion': a.toggleCompanion(value); break;
       case 'upgrade-companion': a.upgradeCompanion(value); break;
       case 'upgrade-team': a.upgradeTeam(); break; // v9.3.5
-      case 'buy-best': a.buyBest(); break; // v9.3.5
+      case 'buy-best': if (this.view.buyAllArmed) { this.state.ui.buyAllOk = true; this.view.buyAllArmed = false; } a.buyBest(); break; // v9.3.5
+      case 'buy-all-arm': local(() => { v.buyAllArmed = true; }); break; // v9.9 (K15)
       case 'distribute-skills': a.distributeSkills(); break; // v9.3.8 (3a)
       case 'offline-double': if (this.lastOffline && this.canDoubleOffline(this.lastOffline)) { a.doubleOffline(this.lastOffline); this.lastOffline = null; this.closeModal(); } break; // v9.3.8 (4)
       case 'arena-edit': local(() => { v.arenaEdit = true; }); break; // v9.3.5
@@ -966,7 +968,7 @@ export class UI {
         break;
       case 'revenge': // v9.7.1 (lot 4) : face-à-face de fin de monde avec le Colosse (moteur des grands boss)
         if (el.closest('#modal')) this.closeModal();
-        openWorldBoss(this.state, { start: () => a.revengeStart(), finish: (setup, r) => a.revengeFinish(setup, r), left: () => 0, closed: () => this.invalidate() });
+        { let sum = null; openWorldBoss(this.state, { start: () => a.revengeStart(), finish: (setup, r) => (sum = a.revengeFinish(setup, r)), left: () => 0, closed: () => { this.invalidate(); if (sum && !sum.success) setTimeout(() => this.mentorScreen('Pas encore…', sum.text), 300); } }); } // v9.9 (K4)
         break;
       case 'event-buy': a.eventBuy(value); break;
       case 'event-goal': a.eventGoal(value); break;
@@ -1109,6 +1111,7 @@ export class UI {
       case 'gear-best': a.gearBest(value); break; // v9.8 (I6)
       case 'rank-duel': this.rankDuel(); break; // v9.8 (H6)
       case 'drawer': this.openDrawer(); break; // v9.9 (K6)
+      case 'mentor-tip': this.followTip(this.mentorTipsShown?.[Number(value)]); break; // v9.9 (K4)
       case 'locked-tab': this.toast(`🔒 ${this.lockReason(value)}`, '#ffcf6a'); break;
       case 'open-claims': this.closeModal(); this.openClaims(); break;
       case 'sleep-mode': this.closeModal(); this.closePanel?.(); this.sleepMode(true); break; // v9.8 (H9)
@@ -1116,7 +1119,7 @@ export class UI {
       case 'fw-claim': a.firstWeekClaim(Number(value)); break;
       case 'fw-prize': a.firstWeekPrize(value); break;
       case 'titan-start': // v9.8 (H7)
-        openWorldBoss(this.state, { start: () => a.titanStart(), finish: (setup, r) => a.titanFinish(setup, r), left: () => titanTriesLeft(this.state), closed: () => this.invalidate() });
+        { let sum = null; openWorldBoss(this.state, { start: () => a.titanStart(), finish: (setup, r) => (sum = a.titanFinish(setup, r)), left: () => titanTriesLeft(this.state), closed: () => { this.invalidate(); if (sum && sum.tier !== 'Top 10 %') setTimeout(() => this.mentorScreen(sum.tier, `Barre vidée : ${Math.round(sum.ratio * 100)} %`, { element: titanToday().element ?? null }), 300); } }); } // v9.9 (K4)
         break;
       case 'wheel-open': this.showWheel(); break; // v9.8 (H4)
       case 'wheel-spin': this.spinWheel(); break;
@@ -1463,6 +1466,7 @@ export class UI {
         break;
       case 'challengeFailed':
         this.banner('Défi terminé', 'lose');
+        setTimeout(() => this.mentorScreen('Défi terminé', `${event.waves} vague${event.waves > 1 ? 's' : ''} · record ${state.challengeBest ?? 0}`), 1500); // v9.9 (K4)
         this.news(`${event.timeout ? 'Temps écoulé ! ' : ''}Défi de la semaine : ${event.waves} vague${event.waves > 1 ? 's' : ''} franchie${event.waves > 1 ? 's' : ''}. Record de la semaine : ${state.challengeWeek?.best ?? 0} · absolu : ${state.challengeBest ?? 0}.`, '#ffb36b');
         this.invalidate();
         break;
@@ -1490,11 +1494,14 @@ export class UI {
         break;
       case 'dungeonFailed':
         this.banner('Tentative échouée', 'lose');
+        setTimeout(() => this.mentorScreen('Défaite', event.bossHpPct != null ? `Boss final à ${formatNumber(event.bossHpPct)} % de PV` : `Salle ${event.room} atteinte`), 1200); // v9.9 (K4)
         this.news(`Défaite ${event.bossHpPct !== null && event.bossHpPct !== undefined ? `face au boss final (encore ${formatNumber(event.bossHpPct)} % de PV)` : `en salle ${event.room}`}. Conservé : ${rewardText(event.earned, formatNumber) || 'rien'} — détails dans l'onglet Donjons.`);
         this.invalidate();
         break;
       case 'heroDeath':
         this.banner(`Vaincu… retour à l'étape ${stageLabel(event.to)}`, 'lose');
+        // v9.9 (K4) : défaite contre un boss d'étape → Conseil du mentor (au plus une fois toutes les 3 minutes).
+        if (event.boss && performance.now() - (this.mentorAt ?? -1e9) > 180000) { this.mentorAt = performance.now(); setTimeout(() => this.mentorScreen('Défaite', `Record : étape ${stageLabel(state.maxStage)}`), 1500); }
         this.news(state?.autoAdvance === false ? 'Le héros reste sur l\'étape : améliore-le puis appuie sur « Avancer ».'
           : event.boss ? 'Normal : le héros s\'entraîne à l\'étape d\'avant et retentera le boss quand il sera 15 % plus fort. Pour aller plus vite : améliore tes dégâts.'
             : 'Le héros refait l\'étape précédente puis retente automatiquement.', null, 2);
@@ -2003,9 +2010,13 @@ export class UI {
       if (el) {
         // v9.8 (J1/J2) : le chiffre dit combien de choses attendent (plus un simple point).
         const n = menu.tabs.reduce((t, x) => t + (this.tabVisible[x] !== false ? byTab[x] ?? 0 : 0), 0);
+        // v9.9 (K6) : une seule pastille rouge (là où mène le Sceau d'action) ; ailleurs, une petite étoile dorée.
+        const sealTab = this.sealAction?.tab ?? (this.sealAction?.id === 'claim' ? null : undefined);
+        const main = sealTab ? menu.tabs.includes(sealTab) : this.sealAction?.id === 'claim' && menu.id === 'goals';
         el.classList.toggle('hidden', !red);
-        el.classList.toggle('count', n > 0);
-        el.textContent = n > 0 ? String(Math.min(n, 99)) : '';
+        el.classList.toggle('count', n > 0 && main);
+        el.classList.toggle('star', red && !main);
+        el.textContent = n > 0 && main ? String(Math.min(n, 99)) : '';
         el.setAttribute('aria-label', red ? `${n} à récupérer` : '');
       }
     }
@@ -2025,33 +2036,56 @@ export class UI {
   }
 
   // Bouton « Prochaine action » sous le combat : un seul conseil, cliquable (bon onglet, bonne vue, ou action).
+  // v9.9 (K2) : Sceau d'action — un seul gros bouton au bas de la scène, même liste de priorités que la carte
+  // « Prochaine étape » : mini-quête, récompense, objet meilleur, amélioration, contenu du jour, mur (Renaître).
+  // Couleur selon l'action ; disparaît quand rien d'utile n'est à faire ; doigt animé les 30 premières minutes.
   updateNextAction() {
     const btn = this.$('next-action');
-    if (!btn || !this.next) return;
-    const n = this.next;
+    if (!btn) return;
+    const st = this.state;
+    let n = this.next;
+    const q = st && currentQuest(st);
+    if (q && n?.id !== 'claim') {
+      const steps = questSteps(st, q);
+      const i = steps.findIndex((x) => !x.done);
+      if (i >= 0) n = { id: 'quest', text: steps[i].text, tab: QUEST_TAB_UI[q.id]?.[i] ?? null, action: QUEST_TAB_UI[q.id]?.[i] ? null : 'none' };
+    }
+    // v9.9 (K2/K4) : plus de progrès depuis 10 minutes → la première carte du Conseil du mentor.
+    if (st && n && ['goal', 'advance'].includes(n.id) && (st.playSeconds ?? 0) - (st.recordAt ?? st.playSeconds ?? 0) > 600) {
+      const t = mentorTips(st, { wall: true })[0];
+      if (t) n = { id: 'mentor', text: t.text, tab: t.tab, view: t.view, point: t.point };
+    }
+    this.sealAction = n;
+    const useless = !n || ['advance', 'mode-dungeon', 'mode-tower', 'mode-world', 'mode-challenge'].includes(n.id) || (n.id === 'quest' && n.action === 'none');
+    btn.classList.toggle('hidden', useless);
+    if (useless) return;
     const key = `${n.id}|${n.text}`;
     if (this.lastHud.next !== key) {
       this.lastHud.next = key;
       this.setText('next-action-text', n.text);
       btn.dataset.kind = n.id;
-      btn.classList.toggle('na-gold', n.id === 'claim' || n.id === 'retry');
+      const tone = n.id === 'claim' || n.id === 'quest' ? 'gold' : ['upgrade', 'equip', 'skills', 'place', 'team', 'level', 'lootbag'].includes(n.id) ? 'green'
+        : ['goal', 'retry', 'seal'].includes(n.id) ? 'red' : ['rebirth', 'mentor'].includes(n.id) ? 'violet' : 'blue';
+      btn.className = btn.className.replace(/\bna-(gold|green|red|violet|blue)\b/g, '').trim();
+      btn.classList.add(`na-${tone}`);
       // v9.6.2 (7.9) : « Plus tard » sur un contenu proposé (2 refus : il passe jusqu'au lendemain).
       let later = this.$('next-later');
       if (!later) { later = document.createElement('button'); later.id = 'next-later'; later.className = 'btn small next-later'; later.type = 'button'; later.textContent = 'Plus tard'; btn.after(later);
         later.addEventListener('click', () => { const g = guideDay(this.state); const id = this.next?.id; if (id) g.skips[id] = (g.skips[id] ?? 0) + 1; delete this.lastHud.badgeTime; this.invalidate(); }); }
       later.classList.toggle('hidden', !n.content);
+      // Doigt : 30 premières minutes de jeu, puis seulement sur une action jamais proposée.
+      const seen = (st.ui.sealSeen ??= []);
+      const fresh = !seen.includes(n.id);
+      if (fresh) seen.push(n.id);
+      btn.querySelector('.na-finger')?.classList.toggle('hidden', !((st.playSeconds ?? 0) < 1800 || fresh) || this.calm);
     }
-    // v9.8.1 (0, J1) : une seule voix — pendant une mini-quête, la barre jaune ne dit rien d'autre (sauf une récompense
-    // à récupérer) : la carte « Prochaine étape » en haut à gauche de la scène suffit.
-    const questOn = Boolean(currentQuest(this.state)) && n.id !== 'claim';
-    btn.classList.toggle('hidden', questOn);
-    if (questOn) return;
-    btn.classList.remove('hidden');
   }
 
   runNextAction() {
-    const n = this.next;
+    const n = this.sealAction ?? this.next;
     if (!n) return;
+    if (n.id === 'quest') { if (n.tab) this.openTab(n.tab); return; } // v9.9 (K2) : ouvre le bon écran
+    if (n.id === 'mentor') { this.followTip(n); return; }
     if (n.content) { const g = guideDay(this.state); if (!g.done.includes(n.id)) g.done.push(n.id); } // v9.6.2 : conseil suivi
     this.userAt = performance.now();
     if (n.action === 'claim-everything') {
@@ -2096,6 +2130,7 @@ export class UI {
       <p class="victory-big">Étage <b class="gold-text">${t.floors}</b>${t.record ? ' · <span class="good">nouveau record !</span>' : ` · record ${state.towerBest ?? 0}`}</p>
       ${Object.keys(t.earned ?? {}).length ? `<div class="victory-rewards">${rewardIcons(t.earned, 'rw-big')}</div>` : '<p class="muted">Pas de nouvelle récompense : dépasse ton record pour en gagner.</p>'}
       <p>${left ? `Encore ${left} ascension${left > 1 ? 's' : ''} aujourd'hui.` : 'Plus d\'ascension aujourd\'hui : reviens demain.'}</p>
+      ${t.record ? '' : this.mentorCardsHtml()}
       <div class="detail-actions"><button class="btn" data-action="close-modal">Fermer</button>${left ? '<button class="btn btn-gold" data-action="close-modal" data-open="tower">Retenter</button>' : ''}</div></div>`);
   }
 
@@ -2426,9 +2461,13 @@ export class UI {
 
   showRebirthConfirm(state) {
     if (!canRebirth(state) || rebirthBlocked(state)) return;
+    // v9.9 (K14) : confirmation en une carte — ce qu'on garde, ce qu'on perd, ce qu'on gagne (3 icônes).
+    const gainPct = Math.round((PRESTIGE.rebirthMultiplier ** rebirthGain(state) - 1) * 100);
     this.openModal(`<h2>Renaissance</h2>
-      <p>Vous gagneras <b class="gold-text">+${rebirthReward(state)} fragments anciens</b> à investir dans l'arbre de talents.</p>
-      ${keepResetLists()}
+      <div class="rb-trio"><div class="rb-col keep">${img('icon_chest')}<b>Tu gardes</b><span>Équipement, compagnons, gemmes, talents</span></div>
+        <div class="rb-col lose">${img('icon_skull')}<b>Tu perds</b><span>Étape, niveau, améliorations, pouvoirs (sauf un)</span></div>
+        <div class="rb-col gain">${img('icon_star')}<b>Tu gagnes</b><span>+${gainPct} % de dégâts, PV et or pour toujours · +${rebirthReward(state)} fragments</span></div></div>
+      <details class="rb-more"><summary>Détails</summary>${keepResetLists()}</details>
       ${powerChoice(state)}
       <p><b class="good">Après cette Renaissance : dégâts, PV et or ×${(PRESTIGE.rebirthMultiplier ** rebirthGain(state)).toFixed(2).replace('.', ',')} pour toujours</b> (cumulatif).</p>
       ${rebirthGain(state) < 1 ? `<p class="muted">Une Renaissance ne vaut pleinement ×${String(PRESTIGE.rebirthMultiplier).replace('.', ',')} qu'à partir de l'étape ${stageLabel(REBIRTH.fullPowerStage + 1)} ; plus tôt, au prorata de ton étape maximale.</p>` : ''}
@@ -2566,6 +2605,43 @@ export class UI {
     host.appendChild(el);
     el.querySelector('button').addEventListener('click', () => setTimeout(() => el.remove(), 0));
     setTimeout(() => el.remove(), 15000);
+  }
+
+  // v9.9 (K4) : Conseil du mentor — écran de défaite : meilleur résultat et 3 cartes pour devenir plus fort.
+  mentorScreen(title, best, opts = {}) {
+    const st = this.state;
+    if (!st || typeof document === 'undefined') return;
+    if (!this.$('modal').classList.contains('hidden') || document.querySelector('.wb-overlay')) return;
+    const tips = mentorTips(st, opts);
+    this.mentorTipsShown = tips;
+    this.openModal(`<div class="mentor-screen"><h2 id="modal-title">${escapeHtml(title)}</h2>
+      ${best ? `<p class="mentor-best">${escapeHtml(best)}</p>` : ''}
+      <div class="mentor-head">${img('icon_hero')}<b>Conseil du mentor</b></div>
+      <div class="mentor-cards">${tips.map((t, i) => `<button class="mentor-card" data-action="mentor-tip" data-value="${i}">${img(t.icon)}<b>${escapeHtml(t.title)}</b><span>${escapeHtml(t.text)}</span></button>`).join('')}</div>
+      <div class="detail-actions"><button class="btn" data-action="close-modal">Continuer</button></div></div>`);
+  }
+
+  // Cartes du mentor seules (écrans de fin existants : Tour, Arène).
+  mentorCardsHtml(opts = {}) {
+    const tips = this.state ? mentorTips(this.state, opts) : [];
+    this.mentorTipsShown = tips;
+    return `<div class="mentor-head">${img('icon_hero')}<b>Conseil du mentor</b></div><div class="mentor-cards">${tips.map((t, i) => `<button class="mentor-card" data-action="mentor-tip" data-value="${i}">${img(t.icon)}<b>${escapeHtml(t.title)}</b><span>${escapeHtml(t.text)}</span></button>`).join('')}</div>`;
+  }
+
+  // Ouvre l'écran d'une carte et pointe la bonne ligne (doigt + halo) une fois le panneau dessiné.
+  followTip(t) {
+    if (!t) return;
+    this.closeModal();
+    if (t.tab) this.openTab(t.tab, t.view ?? null);
+    if (t.point) this.pointAt(t.point);
+  }
+  pointAt(sel, tries = 0) {
+    if (typeof document === 'undefined') return;
+    const el = this.root.querySelector(sel);
+    if (!el) { if (tries < 10) setTimeout(() => this.pointAt(sel, tries + 1), 250); return; }
+    el.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+    el.classList.add('mentor-point');
+    setTimeout(() => el.classList.remove('mentor-point'), 6000);
   }
 
   // v9.8 (H9) : mode veille — écran presque noir (économie de batterie sur téléphone), or et étape seulement ; le jeu
