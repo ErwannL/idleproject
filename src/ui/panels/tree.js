@@ -116,7 +116,10 @@ function branchBonus(state, region) {
 }
 function simpleView(state) {
   const pts = (r) => TALENTS.filter((t) => t.region === r).reduce((n, t) => n + (state.talents[t.id] ?? 0), 0);
-  const rows = TALENT_BRANCHES.filter((b) => SIMPLE_BRANCHES[b.id]).map((b) => {
+  // v9.9 (K3) : 3 grandes cartes (Attaque, Survie, Or et butin), les autres branches repliées ; barre de rang vers le
+  // titre suivant ; l'arbre détaillé derrière « Voir l'arbre ».
+  const MAIN = ['combat', 'survival', 'resources'];
+  const card = (b) => {
     const meta = SIMPLE_BRANCHES[b.id];
     const per = Math.max(1, Math.ceil(branchMax(b.id) / TIERS));
     const tier = Math.min(TIERS, Math.ceil(pts(b.id) / per)); // v9.8 (C2) : dès le premier talent (avant « Palier 0 » avec un bonus déjà là)
@@ -131,13 +134,21 @@ function simpleView(state) {
       <div class="tb-steps" aria-hidden="true">${steps}</div>
       <div class="tb-bonus">${bonus ? `Bonus : <b class="good">${bonus}</b>` : '<span class="muted">Aucun talent appris</span>'}</div>
       <div class="tb-next"><span>Prochain : ${what}</span>${btn}</div></div>`;
-  }).join('');
+  };
+  const branches = TALENT_BRANCHES.filter((b) => SIMPLE_BRANCHES[b.id]);
+  const rows = `<div class="tb-main">${branches.filter((b) => MAIN.includes(b.id)).map(card).join('')}</div>
+    <details class="tb-others"><summary>Autres branches (${branches.length - MAIN.length})</summary><div class="tb-list">${branches.filter((b) => !MAIN.includes(b.id)).map(card).join('')}</div></details>`;
+  const total = TALENTS.reduce((n, t) => n + (state.talents[t.id] ?? 0), 0);
+  const TITLES = ['Apprenti', 'Adepte', 'Expert', 'Maître', 'Grand maître', 'Sage', 'Légende'];
+  const rank = Math.min(TITLES.length - 1, Math.floor(total / 25));
+  const into = rank >= TITLES.length - 1 ? 1 : (total % 25) / 25;
+  const rankBar = `<div class="tb-rank"><b>${TITLES[rank]}</b><div class="tb-rank-bar"><i style="width:${Math.round(into * 100)}%"></i></div><span class="muted">${rank >= TITLES.length - 1 ? 'Titre maximal' : `${25 - (total % 25)} talents pour : ${TITLES[rank + 1]}`}</span></div>`;
   const sg = suggestedTalent(state);
   return `<div class="card tb-intro"><p>La Renaissance te ramène au monde 1 contre des fragments. Les fragments achètent des talents qui restent pour toujours.</p>
       <div class="row-between"><span>${fragment()} <b>${formatNumber(state.fragments)}</b> fragments</span>
       <button class="btn btn-gold" data-action="talent-best" ${sg ? '' : 'disabled data-why="Pas assez de fragments"'}>Apprendre le meilleur</button></div></div>
-    <div class="tb-list">${rows}</div>
-    ${advancedOpen(state) ? '' : '<p class="muted tb-adv">Arbre avancé : après 3 Renaissances.</p>'}`;
+    ${rankBar}${rows}
+    ${advancedOpen(state) ? '<button class="btn" data-action="tree-seg" data-value="tree">Voir l\'arbre</button>' : '<button class="btn" disabled>Voir l\'arbre · après 3 Renaissances</button>'}`;
 }
 
 export function regionRows(state) {

@@ -71,6 +71,8 @@ import daybook from './panels/daybook.js'; // v9.8 (H1)
 import { WHEEL_SLICES, wheelReady } from '../core/wheel.js'; // v9.8 (H4)
 import { quickHuntReady } from '../core/quick-hunt.js'; // v9.8 (H3)
 import { duelOutcome } from '../core/ranks.js'; // v9.8 (H6)
+import { isUpgrade, teamUpgradeFor } from '../core/inventory.js';
+import { canEquip as canEquipHero } from '../core/classes.js';
 import { mentorTips } from '../core/mentor.js'; // v9.9 (K4)
 import { titanToday, titanTriesLeft } from '../core/titan.js'; // v9.8 (H7)
 import { MISSION_PERIODS } from '../data/missions.js';
@@ -818,7 +820,13 @@ export class UI {
     const a = this.actions;
     const local = (fn) => { fn(); this.invalidate(); };
     switch (action) {
-      case 'buy': a.buy(key, el.dataset.amount ?? '1'); break;
+      case 'buy': { // v9.9 (K3) : un petit « +N » monte du bouton à chaque achat
+        const lv = this.state.upgrades[key] ?? 0;
+        a.buy(key, el.dataset.amount ?? '1');
+        const d = (this.state.upgrades[key] ?? 0) - lv;
+        if (d > 0 && !this.calm && typeof document !== 'undefined') { const r = el.getBoundingClientRect(); const f = document.createElement('span'); f.className = 'buy-float'; f.textContent = `+${d}`; f.style.left = `${Math.round(r.left + r.width / 2 - 8)}px`; f.style.top = `${Math.round(r.top - 6)}px`; document.body.appendChild(f); setTimeout(() => f.remove(), 750); }
+        break;
+      }
       case 'buy-amount': local(() => { v.buyAmount = value; v.qtyOpen = false; }); break;
       case 'skill-sel': local(() => { v.skillSel = v.skillSel === value ? null : value; }); break; // v9.1.3 : case de la grille
       case 'qty-toggle': local(() => { v.qtyOpen = !v.qtyOpen; }); break; // v9.1.3 (A22)
@@ -1305,7 +1313,12 @@ export class UI {
         // v9.7.1 : objet dans le sac de butin de la scène → plus de ligne « Butin : … » (le sac la remplace).
         if (event.bagged) { this.lootBag?.bump(); if (event.item.rarity === 'legendary') this.announce(`Objet légendaire : ${event.item.name}`); break; }
         // v9.8.1 (0) : premiers objets — bulle « Nouvel objet ! » sur la scène avec un bouton « Équiper » direct.
-        if (added && (state.records?.equips ?? 0) < 1 && state.inventory.some((i) => i.id === event.item.id)) this.newItemBubble(event.item);
+        // v9.9 (K5) : carte « Meilleur objet » sur la scène (héros, ou compagnon de la bonne classe), dès le premier objet.
+        if (added && state.inventory.some((i) => i.id === event.item.id)) {
+          const forHero = isUpgrade(state, event.item) || ((state.records?.equips ?? 0) < 1 && canEquipHero(state, event.item));
+          const unit = forHero ? null : teamUpgradeFor(state, event.item);
+          if (forHero || unit) this.bestItemCard(event.item, unit);
+        }
         if (added && event.item.rarity !== 'common') {
           this.news(event.museum ? `${event.item.name} exposé au Musée`
             : event.mannequin ? `${event.item.name} rangé au coffre (ensemble « ${setById(event.item.set)?.name ?? ''} »)`
@@ -2594,18 +2607,24 @@ export class UI {
     }, calm ? 50 : 2700);
   }
 
-  newItemBubble(item) {
+  bestItemCard(item, unitId = null) {
     if (typeof document === 'undefined') return;
     const host = this.$('stage-area');
     if (!host) return;
-    host.querySelector('.new-item-bubble')?.remove();
+    let box = host.querySelector('.best-cards');
+    if (!box) { box = document.createElement('div'); box.className = 'best-cards'; host.appendChild(box); }
+    const cards = [...box.children];
+    if (cards.length >= 2) cards[0].remove(); // 2 cartes au plus sur la scène
+    const unit = unitId ? companionById(unitId) : null;
     const el = document.createElement('div');
-    el.className = 'new-item-bubble';
-    el.innerHTML = `${itemFrame(item, { tag: 'span' })}<b>Nouvel objet !</b><button class="btn btn-gold small" data-action="equip" data-id="${item.id}">Équiper</button>`;
-    host.appendChild(el);
+    el.className = `best-card r-${item.rarity}`;
+    el.innerHTML = `${itemFrame(item, { tag: 'span' })}<span class="bc-txt"><small>Meilleur objet</small><b class="r-${item.rarity} rarity-text">${escapeHtml(item.name)}</b></span>
+      <button class="btn btn-gold small" data-action="${unit ? 'gear-equip' : 'equip'}" ${unit ? `data-value="${unit.id}|${item.id}"` : `data-id="${item.id}"`}>${unit ? `Équiper ${escapeHtml(unit.name)}` : 'Équiper'}</button>`;
+    box.appendChild(el);
     el.querySelector('button').addEventListener('click', () => setTimeout(() => el.remove(), 0));
-    setTimeout(() => el.remove(), 15000);
+    setTimeout(() => el.remove(), 20000);
   }
+
 
   // v9.9 (K4) : Conseil du mentor — écran de défaite : meilleur résultat et 3 cartes pour devenir plus fort.
   mentorScreen(title, best, opts = {}) {

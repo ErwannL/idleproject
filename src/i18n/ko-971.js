@@ -1,6 +1,18 @@
 // v9.7.1 : 한국어 — 화면 구도, 전리품 가방, 간소화된 메뉴. ./ko.js 끝에 연결.
 let LK = () => null;
 export const EXACT_971 = {
+  "Meilleur objet": "최고 아이템",
+  "Autres branches (3)": "다른 가지 (3)",
+  "Voir l'arbre": "나무 보기",
+  "Voir l'arbre · après 3 Renaissances": "나무 보기 · 환생 3회 후",
+  "Apprenti": "견습",
+  "Adepte": "숙련",
+  "Expert": "전문가",
+  "Maître": "대가",
+  "Grand maître": "그랜드마스터",
+  "Sage": "현자",
+  "Légende": "전설",
+  "Titre maximal": "최고 칭호",
   "Tout acheter": "모두 구매",
   "Confirmer : tout acheter ?": "확인: 모두 구매?",
   "Renaissance": "환생",
@@ -443,6 +455,9 @@ export const EXACT_971 = {
   "Tient": "버팀",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
+  [/^Équiper (?!\d)(?!le meilleur)(.+)$/, (m) => `${LK(m[1]) ?? m[1]} 장착`],
+  [/^(\d+) talents pour : (.+)$/, (m) => `${LK(m[2]) ?? m[2]}까지 재능 ${m[1]}개`],
+  [/^\+([\d,]+) % DPS$/, (m) => `DPS +${m[1]}%`],
   [/^Recommence plus fort : \+(\d+) % de dégâts, PV et or pour toujours$/, (m) => `더 강하게 다시 시작: 영구 피해·HP·골드 +${m[1]}%`],
   [/^Renaître · \+(\d+) %$/, (m) => `환생 · +${m[1]}%`],
   [/^Rentable à l'étape (.+)$/, (m) => `스테이지 ${m[1]}부터 이득`],

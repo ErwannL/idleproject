@@ -3981,3 +3981,26 @@ html.reduce-motion #next-action .na-finger { animation: none; }
 .rb-col { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px; border-radius: 12px; text-align: center; font-size: 13px; }
 .rb-col img { width: 40px; height: 40px; image-rendering: pixelated; } .rb-col b { font-size: 15px; }
 .rb-col.keep { background: #16302a; border: 1px solid #4cc46a; } .rb-col.lose { background: #301a1a; border: 1px solid #e0504a; } .rb-col.gain { background: #2a2010; border: 1px solid #ffd36a; }
+/* v9.9 (K3) : ligne d'amélioration — icône 56 px, avant → après, prix et gain à droite */
+.upg-card .upg-icon img { width: 56px !important; height: 56px !important; image-rendering: pixelated; }
+.upg-card .upg-name { font-size: 15px; } .upg-card .upg-effect { font-size: 15px; } .upg-card .upg-effect .from { color: #b8c4e0; } .upg-card .upg-effect .to { color: #6ff08a; }
+.upg-buy { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; } .upg-gain { font-size: 12px; color: #cfe0ff; white-space: nowrap; } .upg-gain .upg-best { color: #ffd23f; }
+.buy-float { position: fixed; z-index: 9000; pointer-events: none; color: #6ff08a; font: 900 15px system-ui, sans-serif; text-shadow: 0 1px 2px #000; animation: buy-float 700ms ease-out forwards; }
+@keyframes buy-float { to { transform: translateY(-34px); opacity: 0; } }
+/* v9.9 (K3) : Talents — 3 grandes cartes de branche et rang */
+.tb-main { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin: 8px 0; }
+.tb-main .tb-row { display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: 12px; border: 2px solid var(--branch); background: linear-gradient(#1d2744, #121a30); }
+.tb-main .tb-head img { width: 48px; height: 48px; } .tb-main .tb-head b { font-size: 16px; } .tb-main .tb-next { flex-direction: column; align-items: stretch; gap: 6px; }
+.tb-rank { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: center; padding: 8px 10px; border-radius: 10px; background: #141c32; border: 1px solid #ffd36a66; }
+.tb-rank b { color: #ffe27a; font-size: 16px; } .tb-rank .muted { grid-column: 1 / -1; font-size: 12px; }
+.tb-rank-bar { height: 12px; border-radius: 6px; background: #2a3350; overflow: hidden; } .tb-rank-bar i { display: block; height: 100%; background: linear-gradient(90deg, #c8961c, #ffe27a); }
+.tb-others summary { cursor: pointer; color: #9fc3ff; margin: 6px 0; }
+/* v9.9 (K5) : carte « Meilleur objet » sous le bandeau de quête (2 au plus) */
+.best-cards { position: absolute; left: 8px; top: 168px; z-index: 6; display: flex; flex-direction: column; gap: 6px; width: min(300px, 70%); }
+.best-card { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 12px; background: #1a1430ee; border: 2px solid #ffd36a; box-shadow: 0 0 10px #ffd36a55;
+  animation: bc-in 300ms ease-out both; }
+.best-card .item-frame { width: 34px; height: 34px; flex: none; } .bc-txt { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.bc-txt small { font-size: 11px; color: #c9b88a; } .bc-txt b { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@keyframes bc-in { from { transform: translateX(-20px); opacity: 0; } }
+html.reduce-motion .best-card { animation: none; }
+.layout-strip .best-cards, .layout-mini .best-cards, #app.panel-tall .best-cards { display: none; }

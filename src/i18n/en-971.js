@@ -1,6 +1,18 @@
 // v9.7.1 : anglais du cadrage, du sac de butin et des menus allégés. Branché à la fin de ./en.js.
 let LK = () => null;
 export const EXACT_971 = {
+  "Meilleur objet": "Best item",
+  "Autres branches (3)": "Other branches (3)",
+  "Voir l'arbre": "See the tree",
+  "Voir l'arbre · après 3 Renaissances": "See the tree · after 3 Rebirths",
+  "Apprenti": "Apprentice",
+  "Adepte": "Adept",
+  "Expert": "Expert",
+  "Maître": "Master",
+  "Grand maître": "Grandmaster",
+  "Sage": "Sage",
+  "Légende": "Legend",
+  "Titre maximal": "Max title",
   "Tout acheter": "Buy all",
   "Confirmer : tout acheter ?": "Confirm: buy all?",
   "Renaissance": "Rebirth",
@@ -443,6 +455,9 @@ export const EXACT_971 = {
   "Tient": "Withstands",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
+  [/^Équiper (?!\d)(?!le meilleur)(.+)$/, (m) => `Equip ${LK(m[1]) ?? m[1]}`],
+  [/^(\d+) talents pour : (.+)$/, (m) => `${m[1]} talents to: ${LK(m[2]) ?? m[2]}`],
+  [/^\+([\d,]+) % DPS$/, (m) => `+${m[1]}% DPS`],
   [/^Recommence plus fort : \+(\d+) % de dégâts, PV et or pour toujours$/, (m) => `Start over stronger: +${m[1]}% damage, HP and gold forever`],
   [/^Renaître · \+(\d+) %$/, (m) => `Rebirth · +${m[1]}%`],
   [/^Rentable à l'étape (.+)$/, (m) => `Worth it at stage ${m[1]}`],

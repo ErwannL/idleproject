@@ -138,9 +138,10 @@ export default {
         <div class="upg-icon">${img(ICONS[key])}</div>
         <div class="upg-main"><div class="upg-name" title="${escapeHtml(up.description)}">${escapeHtml(up.label)} <span class="upg-level">niv. ${level}${up.maxLevel ? `/${up.maxLevel}` : ''}</span>${milestone}${env?.counter === key ? `<span class="tag env-counter" title="${escapeHtml(`Contré : ${Math.round(env.countered)} % (complet au niveau ${env.fullAt})`)}">contre ${escapeHtml(env.name)}</span>` : ''}</div>
         ${compact || !beginner ? '' : `<div class="muted upg-desc">${escapeHtml(up.description)}</div>`}
-        <div class="upg-effect num" title="${escapeHtml(`${from} → ${to}`)}">${max ? `<span class="to">${from}</span>` : gain ? gain.replace('muted ', '') : `<span class="to">→ ${to}</span>`}</div></div>
-        ${costButton({ action: 'buy', cost, have: state.gold, attrs: `data-key="${key}" data-amount="${amount}"`, max, label: count > 1 ? `+${count} ` : '' })}
-      </div>`;
+        <div class="upg-effect num">${max ? `<span class="to">${from}</span>` : `<span class="from">${from}</span> → <b class="to good">${to}</b>`}</div></div>
+        <div class="upg-buy">${costButton({ action: 'buy', cost, have: state.gold, attrs: `data-key="${key}" data-amount="${amount}"`, max, label: count > 1 ? `+${count} ` : '' })}
+          ${max ? '' : `<small class="upg-gain">${key === bestKey ? '<b class="upg-best" title="Meilleure affaire">★</b> ' : ''}${totalPct > 0.05 ? `+${count} niv. · +${formatDecimal(totalPct)} % de puissance` : p?.pct > 0.05 ? `+${formatDecimal(p.pct)} % DPS` : gain ? gain.replace(/<[^>]+>/g, '').replace('▲', '').trim() : ''}</small>`}</div>
+      </div>`; // v9.9 (K3/K15) : avant → après, gain sous le prix, étoile sur la meilleure affaire
       if (max) { done.push(html); return ''; }
       return html;
     });
