@@ -3891,3 +3891,5 @@ html.reduce-motion .trophy.ready img { animation: none; }
 .hp-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .hp-step { display: flex; flex-direction: column; align-items: center; gap: 3px; text-align: center; padding: 6px; border-radius: 10px; background: #0f1628; border: 1px solid #3a4a70; font-size: 12px; }
 .hp-step img { width: 56px; height: 48px; object-fit: contain; image-rendering: pixelated; } .hp-step b { color: #ffe7b0; }
+/* v9.8.1 : le message de la scène passe sur 2 lignes au lieu d'être coupé */
+#news { white-space: normal; text-overflow: clip; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.25; flex-grow: 1; }

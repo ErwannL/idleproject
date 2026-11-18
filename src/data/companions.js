@@ -99,7 +99,7 @@ export const COMPANIONS = [
   ally('shadow', 'Ombre', 'rare', '#b46bff', { critChance: 4 }, { name: 'Lames jumelles', type: 'hit', every: 4, value: 0.8, text: 'Frappe à 80 % des dégâts du héros' }),
   ally('dwarf', 'Nain guerrier', 'rare', '#ffa630', { armor: 4 }, { name: 'Hache tournoyante', type: 'burst', every: 10, value: 0.6, text: 'Frappe tous les ennemis (60 % des dégâts)' }),
   // SR
-  ally('azure_paladin', "Paladin d'azur", 'epic', '#4fa3ff', { maxHpPct: 10, armor: 4 }, { name: 'Bouclier sacré', type: 'shield', every: 18, value: 40, duration: 4, text: 'Réduit les dégâts de 40 % pendant 4 s' }),
+  ally('azure_paladin', "Paladin d'azur", 'epic', '#2fc9b8', { maxHpPct: 10, armor: 4 }, { name: 'Bouclier sacré', type: 'shield', every: 18, value: 40, duration: 4, text: 'Réduit les dégâts de 40 % pendant 4 s' }),
   ally('rose_blade', 'Lame rose', 'epic', '#ff6fa8', { damagePct: 10 }, { name: 'Valse des épines', type: 'hit', every: 5, value: 1.1, text: 'Frappe à 110 % des dégâts du héros' }),
   ally('witch', 'Sorcière', 'epic', '#b05cff', { damagePct: 6, skillCooldownPct: 2 }, { name: 'Orbe du néant', type: 'burst', every: 8, value: 0.9, text: 'Frappe tous les ennemis (90 % des dégâts)' }),
   ally('elf_archer', 'Archère elfe', 'epic', '#7fe07a', { critChance: 5, attackSpeedPct: 4 }, { name: 'Volée de flèches', type: 'burst', every: 7, value: 0.7, text: 'Tire sur tous les ennemis (70 % des dégâts)' }),

@@ -25,7 +25,7 @@ export const AURA_COLORS = {
   shadow: ['#a07bff'],
   dwarf: ['#ffa040'],
   // Compagnons SR
-  azure_paladin: ['#ffffff', '#4fa3ff'],
+  azure_paladin: ['#ffffff', '#2fc9b8'],
   rose_blade: ['#ffd6ea', '#ff5fa8'],
   witch: ['#c8ff9a', '#a24bff'],
   elf_archer: ['#fff1a0', '#4fd16a'],

@@ -1,6 +1,7 @@
 // v9.7.1 : anglais du cadrage, du sac de butin et des menus allégés. Branché à la fin de ./en.js.
 let LK = () => null;
 export const EXACT_971 = {
+  "Dégâts reçus": "Damage taken",
   "Recycle les objets inutiles en éclats, puis forge mieux.": "Recycle useless items into shards, then forge better.",
   "Recycler, Fusionner ou Fabriquer : un gros bouton chacun. Les éclats renforcent tes objets et en fabriquent de nouveaux.": "Recycle, Fuse or Craft: one big button each. Shards reinforce your items and craft new ones.",
   "Ta routine du jour sur un seul écran.": "Your daily routine on one screen.",

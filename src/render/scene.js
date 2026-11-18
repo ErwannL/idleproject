@@ -297,8 +297,10 @@ export class SceneRenderer {
     // scale × devicePixelRatio est un entier (100 %, 125 %, 150 %…), plus de demi-pas ni de pixels inégaux.
     const dpr = window.devicePixelRatio || 1;
     const pref = (SIZE_PREFS[SceneRenderer.sizePref] ?? 1) * (this.zoom ?? 1); // v9.8 (I6) : zoom propre (vitrine). Paramètres > Interface > Taille des personnages
-    const tall = cssWidth < 560 && cssHeight > cssWidth * 1.1;
-    const wide = !tall && cssWidth >= 520 && cssHeight >= 360; // v9.8 (B4) : 560 → 520 (panneau plus large : la barre du boss reste en grand)
+    // v9.8.1 : portrait de téléphone seulement si la fenêtre elle-même est étroite (une scène étroite à côté du panneau
+    // sur PC n'est pas un téléphone : la grande barre du boss y reste).
+    const tall = cssWidth < 560 && cssHeight > cssWidth * 1.1 && (typeof innerWidth === 'undefined' || innerWidth < 700);
+    const wide = !tall && cssWidth >= 470 && cssHeight >= 360; // v9.8.1 : 470 (à 1100 px de fenêtre, la grande barre du boss reste affichée) // v9.8 (B4) : 560 → 520 (panneau plus large : la barre du boss reste en grand)
     let scale;
     if (tall) {
       // Téléphone portrait : ≈ 240 px logiques de large (au lieu de 150) pour voir arriver les ennemis.
@@ -1701,7 +1703,7 @@ export class SceneRenderer {
       this.later(0.62, () => {
         // v9.7.1 (lot E) : soin, ralliement et bouclier dessinés (PixelLab, 12 images) au lieu d'un anneau tracé.
         const art = { heal: 'sk_heal', rally: 'sk_rally', shield: 'sk_shield' }[type];
-        if (art && vfxReady() && !this.focus) vfx(this, art, heroX, G + 1, { size: 0.55, back: true }); // v9.8.1 (I8) : sous les pieds
+        if (art && vfxReady() && !this.focus) vfx(this, art, heroX, G + 1, { size: art === 'sk_shield' ? 0.32 : 0.45, alpha: 0.6, back: true }); // v9.8.1 (I8) : sous les pieds
         else this.effects.push({ kind: 'ring', x: heroX, y: G - 14, color: c, life: 0.5, max: 0.5, r: 12 });
         if (type === 'gold') this.burst(heroX, G - 30, c, 10, 40);
       });

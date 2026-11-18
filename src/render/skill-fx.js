@@ -988,7 +988,7 @@ function auraFx(scene, name, c) {
   // v9.7.1 (lot E) : soins, ralliements et protections dessinés en 12 images (sk_heal, sk_rally, sk_shield) ; un buff
   // durable ne laisse plus d'aura en boucle sur le personnage (au plus 0,8 s, petite taille) : il ne le cache jamais.
   const kind = HEAL_FX.has(name) ? 'sk_heal' : SHIELD_FX.has(name) ? 'sk_shield' : 'sk_rally';
-  if (HEAL_FX.has(name) || SUPPORT_FX.has(name)) at(() => c.team.forEach((x, i) => vfx(scene, kind, x, G + 1, { delay: i * 0.06, size: 0.45, back: true }))); // v9.8.1 (I8) : sous les pieds, jamais par-dessus
+  if (HEAL_FX.has(name) || SUPPORT_FX.has(name)) at(() => c.team.forEach((x, i) => vfx(scene, kind, x, G + 1, { delay: i * 0.06, size: kind === 'sk_shield' ? 0.28 : 0.35, alpha: 0.55, back: true }))); // v9.8.1 (I8) : sous les pieds, jamais par-dessus
   if (DEBUFF_FX.has(name)) at(() => c.foes.slice(0, 4).forEach((f) => vfx(scene, 'debuff_aura', f.x, G + 1, { life: 1.4, loop: true, follow: f.id, size: 0.9 })));
 }
 

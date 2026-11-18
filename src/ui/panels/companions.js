@@ -193,7 +193,7 @@ export default {
           <button class="btn small" data-action="ask-replace" data-value="">Annuler</button></div>`;
       }
       // v9.8 (I6) : au niveau max, plus de « Max » gris : l'étape suivante (compétences de la fiche).
-      actions += maxed ? `<button class="btn btn-primary" data-action="companion-sel" data-value="${sel.id}">Niveau max · Améliorer ses compétences</button>`
+      actions += maxed ? `<button class="btn btn-primary" data-action="${ui.view.sheetOpen === 'companion' ? 'skill-pop' : 'companion-sel'}" data-value="${ui.view.sheetOpen === 'companion' ? 'active' : sel.id}">Niveau max · Améliorer ses compétences</button>`
         : costButton({ action: 'upgrade-companion', cost: companionUpgradeCost(state, sel.id), have: state.gold, attrs: `data-value="${sel.id}"`, label: 'Améliorer ', max: maxed });
       // v9.1.3 : effet de l'amélioration écrit « avant ▶ après » (bonus passif au niveau suivant).
       if (!maxed) {
