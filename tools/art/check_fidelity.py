@@ -23,21 +23,30 @@ import pl10_fiches as F  # noqa: E402
 PX = os.path.join(ROOT, 'assets', 'hd', 'px')
 
 
-def dominant(im, n=4):
-    """Teintes des n couleurs principales (pixels assez saturés et lumineux), triées par fréquence."""
-    small = im.copy(); small.thumbnail((96, 96), Image.NEAREST)
+def dominant(im, n=4, skip=None, skip_rgb=None, share=0.05):
+    """Teintes moyennes des n couleurs principales (pixels assez saturés et lumineux), triées par fréquence.
+    skip : teinte de l'aura de l'éveillée, ignorée (elle s'ajoute autour du personnage, ce n'est pas sa couleur)."""
+    small = im.copy(); small.thumbnail((160, 160), Image.NEAREST)
     buckets = {}
     for r, g, b, a in small.get_flattened_data():
         if a < 128: continue
+        if skip_rgb and (r, g, b) in skip_rgb: continue  # pixels de l'aura (couleur exacte de l'élément)
         h, s, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
-        if v < 0.18 or s < 0.15: continue
-        k = int(h * 24)
-        buckets[k] = buckets.get(k, 0) + 1
-    tops = sorted(buckets.items(), key=lambda kv: -kv[1])[:n]
-    return [(k + 0.5) * 15 for k, _ in tops]
+        if v < 0.18 or s < 0.25: continue
+        hd = h * 360
+        if skip is not None and min(abs(hd - skip), 360 - abs(hd - skip)) < 20: continue
+        k = int(hd // 10)
+        n0, sx, sy = buckets.get(k, (0, 0.0, 0.0))
+        import math
+        buckets[k] = (n0 + 1, sx + math.cos(math.radians(hd)), sy + math.sin(math.radians(hd)))
+    import math
+    total = sum(t[0] for t in buckets.values()) or 1
+    tops = [t for t in sorted(buckets.values(), key=lambda t: -t[0]) if t[0] / total >= share][:n]  # couleurs qui comptent (≥ 5 %)
+    return [math.degrees(math.atan2(sy, sx)) % 360 for _, sx, sy in tops]
 
 
 def hue_gap(a, b):
+    """Pour chaque couleur principale du combat, l'écart à la couleur la plus proche de l'illustration."""
     if not a or not b: return 0
     gaps = [min(min(abs(x - y), 360 - abs(x - y)) for y in b) for x in a]
     return max(gaps)
@@ -59,8 +68,9 @@ def main(out):
         fiche = load(os.path.join(PX, f'{key}.webp'))
         awake = load(os.path.join(PX, 'awake', f'{key}.webp')) if c['kind'] == 'ally' else None
         hr = dominant(ref)
-        g1 = hue_gap(hr, dominant(fiche)) if fiche else 999
-        g2 = hue_gap(hr, dominant(awake)) if awake else 0
+        g1 = hue_gap(hr, dominant(fiche, n=24, share=0.01)) if fiche else 999
+        aura = colorsys.rgb_to_hsv(*[v / 255 for v in F.EL_RGB.get(c['el'], (200, 200, 255))])[0] * 360
+        g2 = hue_gap(hr, dominant(awake, n=24, share=0.01, skip_rgb={F.EL_RGB.get(c['el'], (200, 200, 255))})) if awake else 0
         ok = g1 < 15 and g2 < 15
         if not ok: bad.append(f'{cid} : écart de teinte fiche {g1:.0f}°, éveillée {g2:.0f}°')
         rows.append((cid, c['name'], [ref, fiche, awake], g1, g2, ok))

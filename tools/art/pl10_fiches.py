@@ -110,6 +110,22 @@ def awaken(im, el, seed=3):
     return out
 
 
+def lock_palette(im, ref):
+    """Palette verrouillée : chaque couleur de l'illustration est ramenée à la plus proche du sprite de combat."""
+    pal = sorted({p[:3] for p in ref.get_flattened_data() if p[3] >= 128})
+    cache = {}
+    out = im.copy(); px = out.load()
+    for y in range(out.height):
+        for x in range(out.width):
+            r, g, b, a = px[x, y]
+            if a < 128: px[x, y] = (0, 0, 0, 0); continue
+            k = (r, g, b)
+            if k not in cache:
+                cache[k] = min(pal, key=lambda q: (q[0] - r) ** 2 * 3 + (q[1] - g) ** 2 * 4 + (q[2] - b) ** 2 * 2)
+            px[x, y] = cache[k] + (255,)
+    return out
+
+
 def install():
     C = companions()
     for cid, c in C.items():
@@ -117,6 +133,7 @@ def install():
             src = os.path.join(OUT, f"{cid}{'_awake' if awake else ''}.png")
             if not os.path.exists(src): continue
             im = Image.open(src).convert('RGBA'); im = im.crop(im.getbbox())
+            if not awake: im = lock_palette(im, reference(c))
             key = c['sprite'].replace('pet_slime', 'pet_golden_slime') if c['kind'] != 'ally' else c['sprite']
             if awake: continue  # l'éveillée est fabriquée depuis la fiche fidèle (ci-dessous)
             ref_main = Image.open(os.path.join(PX, f'{key}.webp')) if os.path.exists(os.path.join(PX, f'{key}.webp')) else None
