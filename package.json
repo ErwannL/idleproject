@@ -1,7 +1,7 @@
 {
   "name": "idle-rpg",
   "productName": "Ascendrya",
-  "version": "9.11.0",
+  "version": "10.0.0",
   "private": true,
   "description": "RPG idle 2D en pixel art pour PC (fenêtre compacte).",
   "author": "ErwannL",

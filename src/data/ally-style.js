@@ -14,7 +14,7 @@ export const ALLY_HAND = {
 export const handOf = (id) => ALLY_HAND[id] ?? (ALLY_STYLE[id] === 'archer' ? [10, 22] : [7, 26]);
 // v10.0 (9.2) : attaques dessinées figées (moins de 15 % de pixels qui changent par image, voir tools/art/check_anims.py) :
 // on joue à la place l'animation de sort, qui est un vrai geste, en attendant la nouvelle génération.
-export const FROZEN_ATTACK = new Set(['ally_mercenary', 'ally_barbarian', 'ally_lancer', 'ally_azure_paladin', 'ally_rose_blade', 'ally_pyromancer', 'pet_fairy', 'ally_ninja']);
+export const FROZEN_ATTACK = new Set([]); // v10.0 : les 8 attaques figées sont régénérées (vide ; à remplir si check_anims.py refuse une attaque)
 export const BASIC_INTERVAL = { melee: 1.25, archer: 1.3, cast: 1.5 };
 // Part des dégâts des compétences « coup » (hit) reversée à l'attaque de base : même total de dégâts par seconde.
 export const BASIC_SHARE = 0.4;

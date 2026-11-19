@@ -77,7 +77,7 @@ if (want('fx')) {
       for (const e of r.effects) {
         if (seen.has(e)) continue; seen.set(e, r.time);
         if (['eglow', 'elinger', 'ring'].includes(e.kind) || (e.kind === 'vfx' && ['hit_slash', 'v_crit_arc', 'crit_wave', 'crit_flash', 'hit_fire'].includes(e.name))) discs++;
-        if (e.kind === 'wtrail') trails.push({ t: r.time, max: e.max });
+        if (e.kind === 'wtrail') trails.push({ t: r.time - (e.max - e.life), max: e.max }); // heure de naissance réelle
       }
     }
     const gaps = trails.slice(1).map((x, i) => x.t - trails[i].t);

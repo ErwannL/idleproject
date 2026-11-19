@@ -30,9 +30,9 @@ for (const [w, h] of [[1116, 993], [1920, 1080], [460, 640]]) {
       finger: !seal.querySelector('.na-finger').classList.contains('hidden'), kind: seal.dataset.kind, side: document.getElementById('app').classList.contains('side-ui') };
   });
   check(!r.overNews && !r.overBar, `${w}×${h} : le Sceau ne recouvre pas la ligne de la vague ${JSON.stringify(r)}`);
-  // v9.11 (3) : le doigt reste sur une action qui fait progresser, jamais sur un contenu facultatif.
-  const progress = ['claim', 'equip', 'upgrade', 'skills', 'quest', 'rebirth', 'place', 'team', 'level', 'mentor', 'lootbag', 'retry'].includes(r.kind);
-  check(r.finger === progress, `${w}×${h} : doigt ${r.finger ? 'sur' : 'absent de'} « ${r.kind} »`);
+  // v10.0 (2) : jamais de doigt sur Récupérer, le butin, un conseil ou « Réessayer » (sauvegarde de plus de 30 min).
+  const noFinger = ['claim', 'lootbag', 'level', 'mentor', 'retry', 'goal'].includes(r.kind);
+  check(!noFinger || !r.finger, `${w}×${h} : doigt ${r.finger ? 'sur' : 'absent de'} « ${r.kind} »`);
   check(r.side === (w > 900 || w > h), `${w}×${h} : volet ${r.side ? 'latéral' : 'du bas'}`);
   await page.context().close();
 }

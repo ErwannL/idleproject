@@ -293,7 +293,9 @@ def _hit_frame(frames, ref):
     rx = ref.getbbox()[2]
     reach = [(f.getbbox() or (0, 0, rx, 0))[2] - rx for f in frames]
     best = max(range(len(frames)), key=lambda i: (reach[i], -i))
-    return best if reach[best] > 2 else len(frames) // 2
+    best = best if reach[best] > 2 else len(frames) // 2
+    # v10.0 : jamais tout au bout du geste (sinon les images d'après-coup sont tassées, cadence inégale).
+    return max(2, min(len(frames) - 3, best))
 
 
 def write(sprites, index):
