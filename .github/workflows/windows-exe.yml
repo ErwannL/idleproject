@@ -206,4 +206,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION="v$(node -p "require('./package.json').version")"
-          gh release edit "$VERSION" --draft=false --latest --title "Ascendrya $VERSION" --notes-file docs/RELEASE_NOTES.md # notes à jour (dernière version dépliée, les autres repliées)
+          awk '/^### Versions précédentes/{exit} {print}' docs/RELEASE_NOTES.md > notes.md # version en cours (limite GitHub : 125 000 caractères)
+          echo "" >> notes.md
+          echo "Historique complet : docs/RELEASE_NOTES.md" >> notes.md
+          gh release edit "$VERSION" --draft=false --latest --title "Ascendrya $VERSION" --notes-file notes.md
