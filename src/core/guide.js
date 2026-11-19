@@ -129,7 +129,9 @@ function* actionCandidates(state, ctx = {}, balance = BALANCE) {
   if (state.worldRun) yield { id: 'mode-world', text: 'Monde en cours', tab: 'world' }; // v9.1.3 (doc4 lot 6)
   if (state.challenge) yield { id: 'mode-challenge', text: 'Défi en cours', tab: 'tower', view: { defiTab: 'challenge' } };
   const open = (tab) => (ctx.visible ?? {})[tab] !== false;
-  const claims = (ctx.claims ?? claimables(state, Date.now(), balance)).filter((c) => !c.blocked);
+  // v10.1 : une récompense avec un objet attend tant que le sac est plein (« Tout récupérer » ne la prendrait pas).
+  const bagFull = (state.inventory?.length ?? 0) >= (balance.loot?.inventorySize ?? Infinity);
+  const claims = (ctx.claims ?? claimables(state, Date.now(), balance)).filter((c) => !c.blocked && !(c.item && bagFull));
   if (claims.length) yield claimAction(claims);
   const current = computeHeroStats(state, balance);
   // v9.7.1 : sac de butin de la scène — une amélioration y attend, ou il se remplit.

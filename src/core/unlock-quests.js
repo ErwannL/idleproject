@@ -24,7 +24,7 @@ export const UNLOCK_QUESTS = [
   { id: 'skills', label: 'Compétences', steps: [
     ['Atteins le niveau 5', (s) => (s.level ?? 1) >= 5],
     ['Apprends une compétence', (s) => sumSkills(s) >= 2],
-    ['Lance une compétence à la main', (s, b) => (s.records?.manualCasts ?? 0) >= 1 || delta(s, b, 'kills') >= 150], // le passif avance quand même
+    ['Lance une compétence à la main', (s, b) => (s.records?.manualCasts ?? 0) >= 1 || delta(s, b, 'kills') >= 60], // v10.1 : 60 victoires suffisent // le passif avance quand même
   ] },
   { id: 'companion', label: 'Premier compagnon', story: 'priestess', steps: [
     // v10.1 (P1 §2.2) : le premier compagnon arrive à l'étape 8 (ordre d'apprentissage), plus à la fin du monde 1.

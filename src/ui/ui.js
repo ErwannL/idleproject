@@ -2088,7 +2088,8 @@ export class UI {
     if (!state || state.unlocks?.legacy || (state.playSeconds ?? 0) >= 600) return { early: false, busy: false };
     const busy = typeof document !== 'undefined' && [...document.querySelectorAll('#tuto-layer .tuto-finger:not([hidden]), #tuto-layer .tuto-bubble, .howto-card, .learn-card')]
       .some((e) => !e.hidden && e.offsetParent !== null && getComputedStyle(e).visibility !== 'hidden' && +getComputedStyle(e).opacity > 0.05); // seulement ce qui se voit
-    return { early: (state.records?.bestStage ?? state.maxStage ?? 1) < 3, busy };
+    // early : les 3 premières minutes (et avant l'étape 3), seule la scène et le Sceau parlent (carte de quête cachée).
+    return { early: (state.records?.bestStage ?? state.maxStage ?? 1) < 3 || (state.playSeconds ?? 0) < 180, busy };
   }
 
   updateNextUnlock(state) {
@@ -2218,7 +2219,8 @@ export class UI {
     const st = this.state;
     let n = this.next;
     const q = st && currentQuest(st);
-    if (q) {
+    // v10.1 (P1) : une consigne de quête mise de côté (revenue 3 fois) ne repasse pas devant pendant 10 minutes.
+    if (q && !((this.sealAside?.quest ?? 0) > Date.now())) {
       // v9.10 (4) : une mini-quête en cours passe avant « Tout récupérer » ; « Équipe un objet » équipe d'un appui.
       const steps = questSteps(st, q);
       const i = steps.findIndex((x) => !x.done);
@@ -2229,6 +2231,8 @@ export class UI {
         if (q.id === 'equipment' && QUEST_TAB_UI[q.id][i] === 'inventory' && st.inventory?.length) n = { id: 'quest', text: 'Héros › Équiper le nouvel objet', action: 'equip-best' };
         // v9.11 (5) : « Renforce ton arme » ouvre directement la fenêtre de l'arme portée (Renforcer visible).
         if (q.id === 'forge' && i === 1 && st.equipment?.weapon) n = { id: 'quest', text: 'Héros › Renforcer ton arme', tab: 'inventory', view: { selectedItemId: st.equipment.weapon.id, sheetOpen: 'item' } };
+        // v10.1 (P1) : « Lance une compétence à la main » : le Sceau la lance lui-même (le joueur voit le geste).
+        if (q.id === 'skills' && i === 2) n = { id: 'quest', text: 'Lance une compétence à la main', action: 'cast-first' };
         // v10.1 (P1) : l'écran de la quête est déjà ouvert → le Sceau propose l'action utile suivante (amélioration…).
         if (n.tab === this.tab && !n.action && !n.view && n0) n = n0;
       }
@@ -2292,7 +2296,7 @@ export class UI {
       // v10.1 (P1) : une consigne n'apparaît pas plus de 3 fois en 10 minutes, même suivie : la 4ᵉ fois, elle s'efface 10 min.
       // Seules les consignes qui ne font rien d'elles-mêmes (ouvrir un écran, « Affronter ») comptent : une amélioration,
       // un équipement ou une récompense qui reviennent sont des actions nouvelles.
-      if (nextKey != null && !this.next?.action && !['claim', 'advance'].includes(nextKey)) {
+      if (nextKey != null && (!this.next?.action || nextKey === 'lootbag' || (nextKey === 'quest' && !this.sealAction?.action)) && !['claim', 'advance'].includes(nextKey)) {
         const now = Date.now(), shows = (this.sealShows ??= {});
         shows[nextKey] = [...(shows[nextKey] ?? []).filter((t) => now - t < 600000), now];
       }
@@ -2449,6 +2453,7 @@ export class UI {
     this.sealClicked = true; // v9.10 (3)
     if (this.state?.ui) delete this.state.ui.sealMiniUntil;
     if (n.id === 'quest' && n.action === 'equip-best') { this.userAt = performance.now(); this.actions.equipBest(); return; } // v9.10 (4)
+    if (n.id === 'quest' && n.action === 'cast-first') { this.userAt = performance.now(); (document.querySelector('#skill-bar .skill-btn:not(.cooling)') ?? document.querySelector('#skill-bar .skill-btn'))?.click(); return; } // v10.1
     if (n.id === 'quest') { if (n.tab) { this.openTab(n.tab, n.view ?? null); this.setRing(n); } return; } // v9.9 (K2) : ouvre le bon écran
     if (n.id === 'mentor') { this.followTip(n); return; }
     if (n.content) { const g = guideDay(this.state); if (!g.done.includes(n.id)) g.done.push(n.id); } // v9.6.2 : conseil suivi
