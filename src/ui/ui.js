@@ -86,6 +86,7 @@ import { ADV, elementBadge, elementWheel, strongAgainst } from '../core/elements
 import { companionById } from '../core/companions.js'; // v9.5.1
 import { COMPANION_ROLES, ROLES } from '../data/synergies.js'; // v10.1
 import { dormantResources } from '../core/daybook.js';
+import { playBoard } from './panels/arena-cards-view.js';
 import { DOORS, dungeonStars, roman } from '../core/dungeon-plus.js';
 const RAR10 = ['common', 'R', 'rare', 'SR', 'epic', 'SSR', 'legendary', 'UR', 'mythic'];
 import { BOSS_TRAITS, TRAITS } from '../core/boss-traits.js'; // v9.5.1
@@ -883,6 +884,9 @@ export class UI {
   // --- Actions de l'interface ---
   onClick(event) {
     // v9.7.1 (lot 5) : lexique — un terme touché affiche sa phrase d'explication.
+    // v10.1 (P4) : un appui sur une carte sans action la retourne (verso : ses sorts).
+    const pc = event.target.closest('.pcard');
+    if (pc && !pc.dataset.action && !event.target.closest('[data-action]')) { pc.classList.toggle('flipped'); return; }
     const lex = event.target.closest('.lex');
     if (lex && GLOSSARY[lex.dataset.lex]) { event.stopPropagation(); this.glossCard(null, lex.dataset.lex); return; }
     // v10.1 (P1 §2.3) : toucher une icône de ressource ouvre sa carte de glossaire.
@@ -1118,6 +1122,16 @@ export class UI {
       }
       // v9.10 (7) : combat joué en grand par-dessus la scène, puis écran de fin (Retenter).
       case 'arena-survival': this.arenaRun('survival'); break;
+      // v10.1 (P4) : Arène à cartes.
+      case 'card-slot': local(() => { v.cardSlot = v.cardSlot === Number(value) ? null : Number(value); }); break;
+      case 'card-place': if (v.cardSlot != null) { a.cardPlace(v.cardSlot, value || null); v.cardSlot = null; } break;
+      case 'card-auto': a.cardAuto(); break;
+      case 'card-floor': local(() => { v.cardFloor = Number(value); }); break;
+      case 'card-fight': { const r = a.cardFight(Number(value)); if (r) playBoard(this, r); break; }
+      case 'card-skip': this.cardSkip?.(); break;
+      case 'card-sweep': a.cardSweep(Number(value)); break;
+      case 'card-chest': a.cardChest(); break;
+      case 'card-season': a.cardSeason(Number(value)); break;
       case 'arena-floor': this.arenaRun('floors'); break;
       case 'arena-close': {
         const run = this.view.arenaRun;

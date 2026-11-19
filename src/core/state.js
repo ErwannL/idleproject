@@ -1,3 +1,4 @@
+import { sanitizeCardArena } from './arena-cards.js';
 import { sanitizeChronicles } from './chronicles.js';
 import { sanitizeDungeonPlus } from './dungeon-plus.js';
 // État persistant de la partie (tout ce qui est sauvegardé) et validation au chargement.
@@ -352,6 +353,7 @@ function cleanActivities(state, raw) {
   state.companions.equipped = state.companions.equipped.filter((id) => !state.expeditions.slots.some((s) => s?.companionId === id));
   sanitizeChallenge(state, raw);
   sanitizeArena(state, raw);
+  sanitizeCardArena(state, raw); // v10.1 (P4)
   sanitizeChronicles(state, raw); // v9.11 (7)
   sanitizeDungeonPlus(state, raw); // v10.1 (P3)
   state.transcend = sanitizeTranscend(raw.transcend);

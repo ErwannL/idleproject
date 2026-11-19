@@ -1,5 +1,6 @@
 import arenaPanel from './arena.js'; // v9.3.5
 import { arenaUnlocked } from '../../core/arena.js';
+import { cardArena, totalStars } from '../../core/arena-cards.js';
 // Tour de l'Éternité (v8.2) : défi sans fin, un boss par étage ; récompenses à chaque nouveau record.
 import { BOSSES, ENEMIES } from '../../data/enemies.js';
 import { formatDuration } from '../../core/format.js';
@@ -54,9 +55,11 @@ export default {
     const forced = ui.view.defiTab ? null : state.challenge ? 'challenge' : state.tower ? 'tower' : null;
     const tab = forced ?? (parts.some(([id]) => id === ui.view.defiTab) ? ui.view.defiTab : (towerUnlocked(state) ? 'tower' : chOpen ? 'challenge' : arenaUnlocked(state) ? 'arena' : 'tower'));
     const seg = parts.length > 1 ? segment(parts.map(([id, l, ic]) => [id, id === 'challenge' && !state.challenge ? `${l} (${challengeTriesLeft(state)})` : l, ic]), 'defi-tab', tab) : '';
-    if (tab === 'challenge') return `${seg}<div class="card">${challengeCard(state)}</div>`;
+    // v10.1 (P4) : tuile illustrée de l'Arène à cartes, visible depuis Combat › Défis.
+    const tile = tab !== 'arena' && arenaUnlocked(state) ? `<button class="arena-tile" data-action="defi-tab" data-value="arena" style="background-image:url(assets/ui/art101/arena_tile.png)"><b>Arène à cartes</b><span>Étage ${cardArena(state).best + 1} · ${totalStars(state)} ★</span></button>` : '';
+    if (tab === 'challenge') return `${seg}${tile}<div class="card">${challengeCard(state)}</div>`;
     if (tab === 'arena') return seg + arenaPanel.render(ui, state); // v9.3.5 : Arène dans Défis
-    return seg + towerBody(ui, state);
+    return seg + tile + towerBody(ui, state);
   },
 };
 

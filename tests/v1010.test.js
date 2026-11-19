@@ -85,3 +85,49 @@ test('donjons : portes (2 au choix, auto, Élite double, Trésor paie), Balayer 
   const r = sweepDungeonN(s, 'crypt', rng(), 3, { difficulty: 'easy' });
   assert.equal(r.count, 3); assert.equal(s.keys, 1);
 });
+
+import { cardArena, cardOf, floorCards, fightBoard, autoFormation, formationCards, playFloor, sweepFloor, claimStarChest, totalStars, sanitizeCardArena } from '../src/core/arena-cards.js';
+import { CARD_ARENA } from '../src/data/arena-floors.js';
+const midTeam = () => {
+  const s = createNewState(); s.maxStage = 100;
+  for (const [id, lv] of [['squire', 10], ['ranger', 10], ['pyromancer', 8], ['priestess', 8], ['mercenary', 8]]) s.companions.owned[id] = { stars: 2, level: lv };
+  autoFormation(s); return s;
+};
+
+test('Arène à cartes : combat déterministe (même graine → même résultat)', () => {
+  const s = midTeam();
+  const t = formationCards(s), f = floorCards(17);
+  const a = fightBoard(t, f.cards, { seed: 17, rule: f.rule }), b = fightBoard(t, f.cards, { seed: 17, rule: f.rule });
+  assert.deepEqual(a, b);
+});
+
+test('Arène à cartes : une équipe de milieu de partie bute entre les étages 20 et 35', () => {
+  const s = midTeam(); const team = formationCards(s);
+  let last = 0;
+  for (let f = 1; f <= 60; f++) { const x = floorCards(f); if (fightBoard(team, x.cards, { seed: f, rule: x.rule }).won) last = f; else if (f > last + 3) break; }
+  assert.ok(last >= 20 && last <= 35, `dernier étage ${last}`);
+});
+
+test('Arène à cartes : règles /5, boss /10, gardien /25 ; cartes avec sorts au verso', () => {
+  assert.ok(floorCards(5).rule && !floorCards(6).rule);
+  assert.ok(floorCards(10).cards.some((c) => c.boss));
+  assert.ok(floorCards(25).cards.some((c) => c.guardian));
+  const s = midTeam();
+  assert.ok(cardOf(s, 'squire').skills.length >= 2);
+});
+
+test('Arène à cartes : étoiles, coffre tous les 15 ★, 5 balayages, migration de l\'ancien record', () => {
+  const s = midTeam();
+  for (let f = 1; f <= 6; f++) playFloor(s, f);
+  assert.ok(totalStars(s) >= 6);
+  cardArena(s).stars = Object.fromEntries(Array.from({ length: 6 }, (_, i) => [i + 1, 3])); cardArena(s).best = 6;
+  assert.ok(claimStarChest(s));
+  let n = 0; while (sweepFloor(s, 3)) n++;
+  assert.equal(n, CARD_ARENA.sweepsPerDay);
+  const old = createNewState(); old.arena = { survival: null, floors: { best: 12, team: ['squire'], last: null } };
+  assert.equal(cardArena(old).best, 12);
+  assert.equal(totalStars(old), 12);
+  const r = createNewState(); r.arena = { survival: null, floors: { best: 0, team: [], last: null } };
+  sanitizeCardArena(r, { arena: { cards: { best: 3, stars: { 1: 3, 2: 9 }, formation: ['squire'] } } });
+  assert.deepEqual(r.arena.cards.stars, { 1: 3 });
+});

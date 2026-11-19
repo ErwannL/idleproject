@@ -12,9 +12,11 @@ import { GLOBAL_BOSS, globalBossLeft, globalBossState, arenaState, arenaUnlocked
 import { ELEMENTS, elementBadge } from '../../core/elements.js';
 import { escapeHtml, formatNumber, icon, img, rarityLabel, rewardIcons } from '../common.js';
 import { companionPortrait, companionStill } from './expeditions.js';
+import { cardTowerHtml } from './arena-cards-view.js';
+import { cardArena } from '../../core/arena-cards.js';
 
 const REPLAY_SECONDS = 12; // durée maximale de la relecture
-const MODE_LABEL = { survival: 'Survie', floors: 'Étages', global: 'Boss commun' };
+const MODE_LABEL = { cards: 'Tour à cartes', survival: 'Épreuve : Survie', global: 'Épreuve : Boss commun' }; // v10.1 (P4)
 const SKILL_TXT = { hit: 'frappe', burst: 'zone', heal: 'soin', shield: 'bouclier', rally: 'cri', gold: 'fortune' };
 const MOD_TXT = { swift: 'rapides', armored: 'blindés', frenzy: 'enragés', regen: 'régénération' };
 
@@ -169,13 +171,14 @@ export default {
   id: 'arena',
   title: 'Arène',
   icon: 'icon_paw',
-  extra: (ui, state) => (arenaUnlocked(state) ? `Étage <b class="num">${arenaState(state).floors.best}</b>` : ''),
+  extra: (ui, state) => (arenaUnlocked(state) ? `Étage <b class="num">${cardArena(state).best}</b>` : ''),
   render(ui, state) {
     if (!arenaUnlocked(state)) return `<div class="state-empty">L'Arène des compagnons s'ouvre à l'étape ${ARENA.unlockStage}, avec au moins un compagnon.</div>`;
-    const mode = ['floors', 'global'].includes(ui.view.arenaMode) ? ui.view.arenaMode : 'survival';
+    const mode = ['survival', 'global'].includes(ui.view.arenaMode) ? ui.view.arenaMode : 'cards';
     const tabs = `<div class="item-tabs" role="tablist">${Object.entries(MODE_LABEL).map(([k, l]) => `<button class="btn chip-btn small${k === mode ? ' active' : ''}" data-action="arena-mode" data-value="${k}" role="tab" aria-selected="${k === mode}">${l}</button>`).join('')}</div>`;
     if (ui.view.arenaRun) return tabs + replayHtml(ui, state);
-    return tabs + (mode === 'floors' ? floorsHtml(ui, state) : mode === 'global' ? globalHtml(ui, state) : survivalHtml(ui, state));
+    void floorsHtml;
+    return tabs + (mode === 'cards' ? cardTowerHtml(ui, state) : mode === 'global' ? globalHtml(ui, state) : survivalHtml(ui, state));
   },
 };
 export const ELEMENT_NAMES = Object.fromEntries(Object.entries(ELEMENTS).map(([k, v]) => [k, v.name]));
