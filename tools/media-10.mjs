@@ -49,7 +49,7 @@ const titan = async (page) => { await ev(page, () => __idle.ui.showRift(false));
   await tab(page, 'companions'); await wait(page, 900);
   for (const [id, n] of [['shadow_lord', '05'], ['barbarian', '06'], ['demon_queen', '07']]) {
     await click(page, `[data-action="companion-sel"][data-value="${id}"]`); await wait(page, 1000); await shot(page, `${n}-fiche-${id}`);
-    await ev(page, () => __idle.ui.closeModal?.());
+    await page.keyboard.press('Escape'); await ev(page, () => document.querySelector('.unit-pop .up-close, [data-action="close-sheet"]')?.click()); await wait(page, 500);
   }
   await ev(page, () => { __idle.ui.view.selectedItemId = __idle.state.equipment.weapon.id; __idle.ui.view.sheetOpen = 'item'; __idle.ui.openTab('inventory'); }); await wait(page, 1000); await shot(page, '08-objet');
   await ev(page, () => { __idle.ui.view.sheetOpen = null; __idle.ui.openTab('contracts', { missionTab: 'today' }); }); await wait(page, 1000); await shot(page, '09-missions-fait');
@@ -81,7 +81,7 @@ for (const [w, h, n] of [[1280, 720, '13-pc-1280x720'], [390, 844, '14-telephone
 { // 4. Fiches fidèles
   const { page, ctx } = await session('v4', { video: true });
   await tab(page, 'companions'); await wait(page, 1500);
-  for (const id of ['shadow_lord', 'demon_queen', 'barbarian', 'mercenary', 'ninja', 'archangel']) { await click(page, `[data-action="companion-sel"][data-value="${id}"]`); await wait(page, 2200); await ev(page, () => __idle.ui.closeModal?.()); }
+  for (const id of ['shadow_lord', 'demon_queen', 'barbarian', 'mercenary', 'ninja', 'archangel']) { await click(page, `[data-action="companion-sel"][data-value="${id}"]`); await wait(page, 2200); await page.keyboard.press('Escape'); await ev(page, () => document.querySelector('.unit-pop .up-close, [data-action="close-sheet"]')?.click()); await wait(page, 500); }
   await finish(ctx, page, '04-fiches-fideles');
 }
 await browser.close(); server.close();

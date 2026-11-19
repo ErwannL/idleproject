@@ -28,8 +28,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION="v$(node -p "require('./package.json').version")"
+          # Notes de la version en cours seulement (l'historique complet dépasse la limite de GitHub : 125 000 caractères).
+          awk '/^### Versions précédentes/{exit} {print}' docs/RELEASE_NOTES.md > notes.md
+          echo "" >> notes.md
+          echo "Historique complet : docs/RELEASE_NOTES.md" >> notes.md
           gh release view "$VERSION" >/dev/null 2>&1 || gh release create "$VERSION" --draft --target "$GITHUB_SHA" \
-            --title "Ascendrya $VERSION" --notes-file docs/RELEASE_NOTES.md
+            --title "Ascendrya $VERSION" --notes-file notes.md
 
   build:
     needs: prepare
