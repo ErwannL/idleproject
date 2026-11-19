@@ -34,7 +34,10 @@ export function daybookTasks(state, open = () => true, now = Date.now()) {
     { id: 'hunt', icon: 'icon_bolt', title: 'Chasse rapide', text: '2 h de gains d\'un coup', done: !quickHuntReady(state, now), n: quickHuntReady(state, now) ? 0 : 1, target: 1, action: 'quick-hunt' },
     { id: 'wheel', icon: 'icon_star', title: 'Roue du jour', text: 'Un tour gratuit', done: !wheelReady(state, now), n: wheelReady(state, now) ? 0 : 1, target: 1, action: 'wheel-open' },
   ];
-  if (open('dungeons')) tasks.push({ id: 'dungeon', icon: 'icon_key', title: 'Donjon', text: 'Gagne ou balaie 1 donjon', n: c.dungeons ?? 0, target: 1, tab: 'dungeons' });
+  // v10.1 (P1 §2.9) : ressources qui dorment — les clés en trop et l'Arène ont leur ligne, avec ce qui attend.
+  const keys = state.keys ?? 0;
+  if (open('dungeons')) tasks.push({ id: 'dungeon', icon: 'icon_key', title: 'Donjon', text: keys > 0 ? `Gagne ou balaie 1 donjon · ${keys} clé${keys > 1 ? 's' : ''} en attente` : 'Gagne ou balaie 1 donjon', n: c.dungeons ?? 0, target: 1, tab: 'dungeons', dormant: keys > 5 });
+  if (open('arena')) tasks.push({ id: 'arena', icon: 'icon_trophy', title: 'Arène', text: 'Gagne 1 combat d\'Arène à cartes', n: c.arena ?? 0, target: 1, tab: 'arena' });
   if (open('expeditions')) tasks.push({ id: 'expedition', icon: 'icon_expedition', title: 'Expéditions', text: 'Envoie 2 compagnons', n: c.expeditions ?? 0, target: 2, tab: 'expeditions' });
   // v9.8 (H7) : Titan du jour (après le monde 2, comme les événements).
   if (open('event')) tasks.push({ id: 'titan', icon: 'icon_boss', title: titanToday(now).name, text: 'Faille du jour', n: c.titan ?? 0, target: 1, action: 'rift-open' });
@@ -42,6 +45,17 @@ export function daybookTasks(state, open = () => true, now = Date.now()) {
   if (missions.length) tasks.push({ id: 'missions', icon: 'icon_trophy', title: 'Missions du jour', text: 'Récupère tes missions', n: mDone, target: missions.length, tab: 'contracts' });
   for (const t of tasks) { t.n = Math.min(t.n, t.target); t.done ??= t.n >= t.target; }
   return tasks;
+}
+
+// v10.1 (P1 §2.9) : ce qui dort (clés > 5, tickets, Arène non jouée, expéditions vides) → pastille et liste.
+export function dormantResources(state, open = () => true, now = Date.now()) {
+  const out = [];
+  if (open('dungeons') && (state.keys ?? 0) > 5) out.push({ id: 'keys', tab: 'dungeons', text: `${state.keys} clés de donjon attendent` });
+  if (open('summon') && (state.wallet?.ticketLimited ?? 0) > 0) out.push({ id: 'tickets', tab: 'summon', text: `${state.wallet.ticketLimited} ticket${state.wallet.ticketLimited > 1 ? 's' : ''} de compagnon à utiliser` });
+  const c = daybookOf(state, now).counts;
+  if (open('arena') && !(c.arena > 0)) out.push({ id: 'arena', tab: 'arena', text: 'L\'Arène n\'a pas été jouée aujourd\'hui' });
+  if (open('expeditions') && !(c.expeditions > 0) && !(state.expeditions?.slots ?? []).some(Boolean)) out.push({ id: 'expeditions', tab: 'expeditions', text: 'Aucune expédition en cours' });
+  return out;
 }
 
 export function daybookComplete(state, open, now = Date.now()) {

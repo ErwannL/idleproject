@@ -1,4 +1,4 @@
-import { maybeLearnCard, showHowTo } from './ui/learn.js'; // v10.1
+import { firstResourceBubble, maybeLearnCard, showHowTo } from './ui/learn.js'; // v10.1
 import { claimChronicle, claimHerald } from './core/chronicles.js';
 import { sendMetrics } from './core/metrics.js';
 // Point d'entrée : charge la partie, applique les gains hors ligne, puis fait tourner
@@ -1661,6 +1661,8 @@ setInterval(() => {
     if (!state.unlocks?.legacy && !(state.ui.hints ?? []).includes('howto') && (state.records?.bossesDefeated ?? 0) < 1 && !ui.howtoOpen && !document.querySelector('#prologue, .cinematic')) showHowTo(ui);
     else maybeLearnCard(ui, state);
   }
+  // v10.1 (P1 §2.3) : première apparition d'une ressource → une bulle « ce que c'est », une seule fois.
+  firstResourceBubble(ui, state);
   const q = advanceUnlocks(state);
   if (!q) return;
   ui.unlockFly?.(q.id); // v9.8 (G6)

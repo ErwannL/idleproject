@@ -1,3 +1,4 @@
+import { daybookTrack } from './daybook.js';
 import { heraldTrack } from './chronicles.js';
 // v9.3.2 : modes COMPAGNONS — aucun héros n'y combat.
 //   Survie : un seul compagnon (ou familier) contre 30 vagues ; 3 essais par jour ; score = vague atteinte, puis temps.
@@ -188,6 +189,7 @@ export function runFloor(state, team, now = Date.now()) {
   if (r.won) {
     a.floors.best = f; reward = floorReward(f); grantReward(state, reward);
     heraldTrack(state, 'arena', 1); // v9.11 (7)
+    daybookTrack(state, 'arena', 1); // v10.1 : Carnet du jour
     reward.gear = rollGear(state, new Rng(f * 7 + 1), { minRarity: f % 10 === 0 ? 'epic' : 'common' }); // v9.3.3 : pièce d'équipement
   }
   return { ...result, fight: r, waves: [setup], team: profiles, reward };

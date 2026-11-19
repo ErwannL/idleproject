@@ -146,12 +146,14 @@ export function drawWorldVfx(scene, ctx, zone, world, heroX, state) {
     else if (!scene.focus) {
       ctx.save();
       ctx.font = '700 6px system-ui, sans-serif'; ctx.textAlign = 'center';
-      for (const x of xs) {
-        const y = G - 44;
-        ctx.globalAlpha = 0.95; ctx.fillStyle = '#3a2a0a'; ctx.fillRect(Math.round(x) - 7, y - 6, 14, 8);
-        ctx.fillStyle = '#ffc23a'; ctx.fillRect(Math.round(x) - 6, y - 5, 3, 6);
-        ctx.fillStyle = '#ffe08a'; ctx.fillText(`${Math.ceil(cry)}`, Math.round(x) + 2, y + 1);
-      }
+      // v10.1 (P5) : une seule icône (flamme dessinée + secondes) au-dessus du héros ; les compagnons gardent un
+      // simple liseré doré à leurs pieds (plus de « ▮ 8 » répété sur chaque tête).
+      const hx = Math.round(heroX), y = G - 46;
+      ctx.globalAlpha = 0.95; ctx.fillStyle = '#3a2a0a'; ctx.fillRect(hx - 9, y - 7, 18, 10);
+      ctx.fillStyle = '#ff8a1a'; ctx.beginPath(); ctx.moveTo(hx - 5, y + 2); ctx.quadraticCurveTo(hx - 8, y - 3, hx - 4, y - 6); ctx.quadraticCurveTo(hx - 3, y - 2, hx - 1, y + 2); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#ffe08a'; ctx.fillText(`${Math.ceil(cry)}s`, hx + 4, y + 1);
+      ctx.strokeStyle = 'rgba(255, 200, 70, 0.8)'; ctx.lineWidth = 1;
+      for (const x of xs.slice(1)) { ctx.beginPath(); ctx.ellipse(Math.round(x), G + 1, 9, 2.5, 0, 0, Math.PI * 2); ctx.stroke(); }
       ctx.restore();
     }
   }

@@ -2,7 +2,7 @@
 // « Accompli » sur chaque carte finie, grand tampon « Journée accomplie » et coffre de fin de journée qui tremble quand
 // il est prêt. Il regroupe Missions du jour et objectifs de session (plus d'écran en plus). Rien ne bouge avec
 // « Réduire les animations » (on garde l'image finale).
-import { DAYBOOK_CHEST, daybookComplete, daybookOf, daybookTasks } from '../../core/daybook.js';
+import { DAYBOOK_CHEST, dormantResources, daybookComplete, daybookOf, daybookTasks } from '../../core/daybook.js';
 import { escapeHtml, img, rewardIcons } from '../common.js';
 import { FIRST_WEEK_MILES, FIRST_WEEK_PRIZE, firstWeekActive, firstWeekDay, firstWeekDaysLeft, firstWeekDaysOpen, firstWeekPoints, prizeReady } from '../../core/first-week.js';
 import { companionById } from '../../core/companions.js';
@@ -43,7 +43,7 @@ function card(t, fresh) {
   const go = t.done ? '' : t.action
     ? `<button class="btn btn-gold db-go" data-action="${t.action}">${{ 'quick-hunt': 'Chasser', 'wheel-open': 'Tourner', 'rift-open': 'Combattre' }[t.action] ?? 'Y aller'}</button>`
     : `<button class="btn btn-primary db-go" data-action="open-tab" data-value="${t.tab}">Y aller</button>`;
-  return `<div class="db-card${t.done ? ' done' : ''}" data-db="${t.id}">
+  return `<div class="db-card${t.done ? ' done' : ''}${t.dormant ? ' dormant' : ''}" data-db="${t.id}">
     <div class="db-art">${img(t.icon)}</div>
     <div class="db-body"><b>${escapeHtml(t.title)}</b><small>${escapeHtml(t.text)}</small>
       <div class="db-bar"><i style="width:${pct}%"></i><span class="num">${t.n}/${t.target}</span></div></div>
@@ -68,6 +68,7 @@ export default {
           <small>${all ? 'Ouvre le coffre !' : `Coffre du jour : ${doneN}/${tasks.length}`}</small>${rewardIcons(DAYBOOK_CHEST, 'named')}</button>`;
     return `${firstWeekHtml(ui, state)}<div class="db-head"><div class="db-title"><b>Carnet du jour</b><span class="num">${doneN}/${tasks.length}</span></div>
         <div class="db-path">${tasks.map((t) => `<i class="${t.done ? 'on' : ''}"></i>`).join('')}</div></div>
+      ${(() => { const d = dormantResources(state, open); return d.length ? `<div class="card db-dormant"><b>Ça dort :</b>${d.map((x) => `<button class="btn small" data-action="open-tab" data-value="${x.tab}">${escapeHtml(x.text)} ›</button>`).join('')}</div>` : ''; })()}
       <div class="db-cards">${tasks.map((t) => card(t, t.done && fresh(t.id))).join('')}</div>
       ${all ? `<div class="db-big-stamp${fresh('all') ? ' fresh' : ''}">Journée accomplie</div>` : ''}
       ${chest}

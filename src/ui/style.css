@@ -4332,3 +4332,10 @@ html.reduce-motion .howto-card, html.reduce-motion .learn-card { animation: none
 .rw-icons.rw-split { display: inline-flex; flex-direction: column; gap: 2px; align-items: flex-start; }
 .rw-split .rw-row { display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .rw-split .rw-row > small { color: var(--muted, #9aa); font-size: 11px; min-width: 74px; }
+.res-bubble { position: absolute; left: 50%; top: 12%; transform: translateX(-50%); z-index: 40; max-width: 280px; display: flex; flex-direction: column; gap: 2px;
+  background: rgba(20,24,40,.95); border: 2px solid #f1c75b; border-radius: 10px; padding: 8px 12px; color: #fff; cursor: pointer; font-size: 13px; animation: pop-in .25s ease-out; }
+.res-bubble small { color: #f1c75b; }
+.summon-card { text-align: center; } .summon-card .sc-art { height: 300px; display: flex; justify-content: center; align-items: flex-end; }
+.summon-card .sc-art img { max-height: 300px; max-width: 100%; object-fit: contain; image-rendering: pixelated; }
+.summon-card .sc-role { margin: 6px 0 2px; }
+.db-dormant { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; border-color: #f1c75b; } .db-card.dormant { box-shadow: 0 0 0 2px #f1c75b inset; }

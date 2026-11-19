@@ -4,6 +4,7 @@
 //  - Ordre d'apprentissage fixe : une notion par étape, chacune avec sa carte de déblocage (illustration, « à quoi ça
 //    sert », « ce que ça rapporte », « Essayer maintenant »). Une seule carte à la fois ; gardé dans state.ui.learned.
 import { escapeHtml } from './common.js';
+import { RESOURCES } from '../data/glossary.js';
 
 export const HOWTO = [
   { art: 'assets/ui/art101/howto_fight.png', title: 'Ton héros combat seul', text: 'Il avance et frappe tout seul. Chaque monstre vaincu donne de l\'or.' },
@@ -67,4 +68,29 @@ export function maybeLearnCard(ui, st) {
     else if (L.tab) ui.openTab(L.tab);
   });
   host.appendChild(el);
+}
+
+// v10.1 (P1 §2.3) : quantité d'une ressource (même source que la carte de glossaire).
+export function resourceAmount(st, key) {
+  if (key === 'tickets') return st?.wallet?.ticketLimited ?? 0;
+  if (['gold', 'gems', 'keys', 'fragments'].includes(key)) return st?.[key] ?? 0;
+  return st?.materials?.[key] ?? 0;
+}
+// Première fois qu'une ressource arrive (hors or, montré par le prologue) : une bulle, une seule fois par ressource.
+export function firstResourceBubble(ui, st) {
+  if (!st?.ui || typeof document === 'undefined' || document.querySelector('.res-bubble, .howto-card, #prologue')) return;
+  const seen = (st.ui.seenRes ??= []);
+  for (const key of Object.keys(RESOURCES)) {
+    if (key === 'gold' || seen.includes(key) || !(resourceAmount(st, key) > 0)) continue;
+    seen.push(key);
+    if (st.unlocks?.legacy) continue;
+    const r = RESOURCES[key];
+    const el = document.createElement('div');
+    el.className = 'res-bubble'; el.dataset.gloss = key;
+    el.innerHTML = `<b>Nouveau : ${escapeHtml(r.name)}</b><span>${escapeHtml(r.use)}</span><small>Touche pour en savoir plus</small>`;
+    el.addEventListener('click', () => { el.remove(); ui.glossCard?.(key); });
+    (ui.$('stage-area') ?? document.body).appendChild(el);
+    setTimeout(() => el.remove(), 8000);
+    return;
+  }
 }

@@ -84,6 +84,9 @@ import { morph } from './morph.js'; // v9.3.9
 import { suggestedTalent } from '../core/rebirth.js'; // v9.3.9
 import { ADV, elementBadge, elementWheel, strongAgainst } from '../core/elements.js'; // v9.5.1
 import { companionById } from '../core/companions.js'; // v9.5.1
+import { COMPANION_ROLES, ROLES } from '../data/synergies.js'; // v10.1
+import { dormantResources } from '../core/daybook.js';
+const RAR10 = ['common', 'R', 'rare', 'SR', 'epic', 'SSR', 'legendary', 'UR', 'mythic'];
 import { BOSS_TRAITS, TRAITS } from '../core/boss-traits.js'; // v9.5.1
 import { BEHAVIORS, zoneBehaviors } from '../data/behaviors.js'; // v9.6.0
 import { climbsLeft } from '../core/tower.js'; // v9.6.2
@@ -91,7 +94,7 @@ import { guideDay } from '../core/guide.js'; // v9.6.2
 import { rushSlots } from '../core/rushes.js'; // v9.6.3
 import { dungeonRooms } from '../core/dungeon.js'; // v9.6.2
 import { RESOURCE_WHERE, SKILL_RESOURCES } from '../data/progression.js'; // v9.3.9 (2.6)
-import { coin, effectText, escapeHtml, fold, glyph, icon, img, itemFrame, missingText, rewardIcons } from './common.js';
+import { coin, effectText, escapeHtml, fold, glyph, hdArt, icon, img, itemFrame, missingText, rewardIcons } from './common.js';
 import { GAME_VERSION } from '../version.js';
 import { mutationById } from '../core/mutations.js';
 import boss from './panels/boss.js';
@@ -974,6 +977,7 @@ export class UI {
       case 'unit-show': local(() => { v.unitShow = value; }); break;
       case 'look-show': local(() => { v.lookShow = value; }); break; // v9.2.7 : vitrine d'une apparence
       case 'toggle-companion': a.toggleCompanion(value); break;
+      case 'summon-place': this.closeModal(); if (!this.state.companions.equipped.includes(value)) a.toggleCompanion(value); if (this.state.companions.equipped.includes(value)) this.toast('Placé dans l\'équipe !', '#7fe0a0'); break;
       case 'upgrade-companion': a.upgradeCompanion(value); break;
       case 'upgrade-team': a.upgradeTeam(); break; // v9.3.5
       case 'buy-best': if (this.view.buyAllArmed) { this.state.ui.buyAllOk = true; this.view.buyAllArmed = false; } a.buyBest(); break; // v9.3.5
@@ -1018,6 +1022,9 @@ export class UI {
         const res = a.summon(Number(value), currency, el.dataset.pool);
         if (res) {
           v.lastSummon = res; v.summonPool = normalizePool(el.dataset.pool); playSummonReveal(res);
+          // v10.1 (P1 §2.8) : nouveau compagnon → grande carte (illustration 300 px, rôle, « Placer dans l'équipe »).
+          const fresh = res.filter((r) => r.isNew && companionById(r.id)).sort((x, y) => RAR10.indexOf(y.rarity) - RAR10.indexOf(x.rarity))[0];
+          if (fresh) setTimeout(() => this.summonCard(fresh.id), 1600);
           queueSkinReveals(res, () => this.state, (id) => { a.setHero(id); this.invalidate(); }); // v9.1.9
         }
         this.invalidate();
@@ -2134,7 +2141,7 @@ export class UI {
     // v9.8 (E7) : des clés de donjon en réserve → pastille sur Aventure (le joueur ne savait pas qu'il pouvait y aller).
     if (this.tabVisible.dungeons !== false && (state.keys ?? 0) > 0 && !state.dungeon) { this.tabBadges = { ...this.tabBadges, dungeons: 1 }; byTab.dungeons = byTab.dungeons ?? 1; }
     // v9.8 (H1/J1) : Carnet du jour — Roue ou Chasse rapide prêtes.
-    { const n = (wheelReady(state) ? 1 : 0) + (quickHuntReady(state) ? 1 : 0); if (n && this.tabVisible.daybook !== false) { byTab.daybook = n; this.tabBadges = { ...this.tabBadges, daybook: n }; } }
+    { const n = (wheelReady(state) ? 1 : 0) + (quickHuntReady(state) ? 1 : 0) + dormantResources(state, (id) => this.tabVisible?.[id] !== false).length; if (n && this.tabVisible.daybook !== false) { byTab.daybook = n; this.tabBadges = { ...this.tabBadges, daybook: n }; } }
     const current = computeHeroStats(state);
     // v10.1 : consignes mises de côté (revenues 3 fois sans être faites) pendant 10 min.
     const nowMs = Date.now();
@@ -2315,6 +2322,18 @@ export class UI {
       if (r && cap < cur - 0.005) { r.liftCap = Math.min(r.liftCap ?? 1, cap); r.liftShrinking = true; this.resizeScene(); setTimeout(() => { r.liftShrinking = false; this.layoutColumn(); }, 0); }
     }
     if (later && shown(seal)) { const b = seal.getBoundingClientRect(), a = area.getBoundingClientRect(); later.style.top = `${b.top - a.top + (b.height - later.offsetHeight) / 2}px`; later.style.left = `${b.right - a.left + 8}px`; }
+  }
+
+  // v10.1 (P1 §2.8) : grande carte d'un compagnon obtenu.
+  summonCard(id) {
+    const c = companionById(id);
+    if (!c || !this.state) return;
+    const role = ROLES[COMPANION_ROLES[id]];
+    const placed = this.state.companions.equipped.includes(id);
+    this.openModal(`<div class="summon-card r-${c.rarity}"><div class="sc-art">${hdArt(c, 'sc-hd') || img(c.sprite ?? c.id)}</div>
+      <h2 id="modal-title" class="rarity-text">${escapeHtml(c.name)}</h2>
+      ${role ? `<p class="sc-role" style="color:${role.color}"><b>${escapeHtml(role.label)}</b> — ${escapeHtml(role.does)}</p><p class="muted">${escapeHtml(role.good)}</p>` : ''}
+      <div class="detail-actions">${placed ? '<span class="good">Déjà dans l\'équipe</span>' : `<button class="btn btn-gold" data-action="summon-place" data-value="${id}">Placer dans l'équipe</button>`}<button class="btn" data-action="close-modal">Plus tard</button></div></div>`);
   }
 
   // v10.1 (P1 §2.3) : carte de glossaire — ressource (image, à quoi ça sert, où en gagner, « Y aller ») ou mot.
