@@ -33,6 +33,7 @@ while (Date.now() - t0 < MIN * 60000) {
       const layer = document.getElementById('tuto-layer');
       const f = layer?.querySelector('.tuto-finger:not([hidden])');
       if (f && layer.target) layer.target.click();
+      else if ((window.__tick = (window.__tick ?? 0) + 1) % 2 && document.querySelector('.ring-target:not([disabled])')) document.querySelector('.ring-target:not([disabled])').click(); // l'anneau montre où toucher
       else if (vis(seal)) seal.click();
       document.querySelector('.best-card.first-item button')?.click();
       document.querySelector('#modal:not(.hidden) [data-action="summon-place"]')?.click();
@@ -40,9 +41,10 @@ while (Date.now() - t0 < MIN * 60000) {
     }
     const s = __idle.state;
     return { ctas, text, why, learn: Boolean(learn), team: (s.companions?.equipped ?? []).length, items: Object.values(s.equipment ?? {}).filter(Boolean).length,
-      ups: Object.values(s.upgrades ?? {}).reduce((a, b) => a + b, 0), skills: Object.values(s.skills ?? {}).filter((v) => (v?.level ?? v) > 0).length };
+      ups: Object.values(s.upgrades ?? {}).reduce((a, b) => a + b, 0), skills: Object.values(s.skills ?? {}).filter((v) => (v?.level ?? v) > 0).length, stage: s.records?.bestStage ?? s.maxStage, gold: Math.round(s.gold), quest: (s.unlocks?.done ?? []).join(','), kills: (s.records?.kills ?? 0) - (s.unlocks?.base?.kills ?? 0), best: s.records?.bestStage, tab: __idle.ui.tab, nx: __idle.ui.next?.id, sa: __idle.ui.sealAction?.id, aside: Object.keys(__idle.ui.sealAside ?? {}).join(','), calm: JSON.stringify(__idle.ui.calmStart?.(s)), hidden: document.getElementById('next-action').className, why2: JSON.stringify(__idle.ui.sealWhy), tuto: document.getElementById('tuto-layer')?.dataset.step, tutoTarget: document.getElementById('tuto-layer')?.target?.outerHTML?.slice(0, 120), qb: document.querySelector('#quest-banner.ready')?.textContent?.slice(0, 60) };
   });
   const sec = (Date.now() - t0) / 1000;
+  if (process.env.TRACE && Math.round(sec) % 30 === 0) console.log(Math.round(sec), JSON.stringify(r));
   if (sec <= 180 && r.ctas > 1 && !r.learn) multi++;
   if (r.text && !r.why.trim()) noWhy++;
   if (r.text && r.text !== lastText) seen.set(r.text, (seen.get(r.text) ?? 0) + 1);
@@ -52,8 +54,9 @@ while (Date.now() - t0 < MIN * 60000) {
 }
 const repeats = [...seen].filter(([, n]) => n > 3);
 // Glossaire et avant → après.
-await page.evaluate(() => { document.querySelector('#modal:not(.hidden) [data-action="close-modal"]')?.click(); });
-await page.click('#topbar .chip[data-currency="gold"]').catch(() => {});
+await page.evaluate(() => { __idle.ui.closeModal(); });
+await page.waitForTimeout(300);
+await page.evaluate(() => { __idle.ui.closeModal(); document.querySelector('#topbar .chip[data-currency="gold"]')?.click(); });
 await page.waitForTimeout(400);
 const gloss = await page.evaluate(() => Boolean(document.querySelector('#modal:not(.hidden) .gloss-card')));
 await page.evaluate(() => { document.querySelector('#modal:not(.hidden) [data-action="close-modal"]')?.click(); __idle.ui.openTab('upgrades'); });

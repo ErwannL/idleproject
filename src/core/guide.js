@@ -84,6 +84,8 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
   const aside = ctx.aside ?? null;
   for (const n of actionCandidates(state, ctx, balance)) {
     if (!n || aside?.has?.(n.id)) continue;
+    // v10.1 (P1) : une consigne qui ne ferait qu'ouvrir l'écran déjà ouvert laisse la place à la suivante.
+    if (ctx.tab && n.tab === ctx.tab && !n.action && !n.view) continue;
     return { ...n, why: n.why ?? whyOf(n, state, balance) };
   }
   return null;

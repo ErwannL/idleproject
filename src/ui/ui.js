@@ -2086,7 +2086,8 @@ export class UI {
   // n'arrivent qu'à l'étape 3.
   calmStart(state = this.state) {
     if (!state || state.unlocks?.legacy || (state.playSeconds ?? 0) >= 600) return { early: false, busy: false };
-    const busy = typeof document !== 'undefined' && Boolean(document.querySelector('#tuto-layer .tuto-finger:not([hidden]), #tuto-layer .tuto-bubble, .howto-card, .learn-card'));
+    const busy = typeof document !== 'undefined' && [...document.querySelectorAll('#tuto-layer .tuto-finger:not([hidden]), #tuto-layer .tuto-bubble, .howto-card, .learn-card')]
+      .some((e) => !e.hidden && e.offsetParent !== null && getComputedStyle(e).visibility !== 'hidden' && +getComputedStyle(e).opacity > 0.05); // seulement ce qui se voit
     return { early: (state.records?.bestStage ?? state.maxStage ?? 1) < 3, busy };
   }
 
@@ -2175,7 +2176,7 @@ export class UI {
     // v10.1 : consignes mises de côté (revenues 3 fois sans être faites) pendant 10 min.
     const nowMs = Date.now();
     const aside = new Set(Object.entries(this.sealAside ?? {}).filter(([, t]) => t > nowMs).map(([id]) => id));
-    this.next = nextAction(state, { claims: this.claims, visible: this.tabVisible, fusionReady: this.tabBadges.forge === 1, aside }); // v9.3.5
+    this.next = nextAction(state, { claims: this.claims, visible: this.tabVisible, fusionReady: this.tabBadges.forge === 1, aside, tab: this.tab }); // v9.3.5
     for (const menu of MENUS) {
       const red = menu.tabs.some((t) => byTab[t] && this.tabVisible[t] !== false);
       const el = this.$(menu.id === 'shop' ? 'badge-shop-tab' : `badge-${menu.id}`);
@@ -2223,10 +2224,13 @@ export class UI {
       const i = steps.findIndex((x) => !x.done);
       // Une étape sans écran à ouvrir (« Bats 10 monstres ») laisse la place à l'action suivante : la carte la montre déjà.
       if (i >= 0 && QUEST_TAB_UI[q.id]?.[i]) {
+        const n0 = n;
         n = { id: 'quest', text: steps[i].text, tab: QUEST_TAB_UI[q.id][i] };
         if (q.id === 'equipment' && QUEST_TAB_UI[q.id][i] === 'inventory' && st.inventory?.length) n = { id: 'quest', text: 'Héros › Équiper le nouvel objet', action: 'equip-best' };
         // v9.11 (5) : « Renforce ton arme » ouvre directement la fenêtre de l'arme portée (Renforcer visible).
         if (q.id === 'forge' && i === 1 && st.equipment?.weapon) n = { id: 'quest', text: 'Héros › Renforcer ton arme', tab: 'inventory', view: { selectedItemId: st.equipment.weapon.id, sheetOpen: 'item' } };
+        // v10.1 (P1) : l'écran de la quête est déjà ouvert → le Sceau propose l'action utile suivante (amélioration…).
+        if (n.tab === this.tab && !n.action && !n.view && n0) n = n0;
       }
     }
     // v9.9 (K2/K4) : plus de progrès depuis 10 minutes → la première carte du Conseil du mentor.
@@ -2239,6 +2243,7 @@ export class UI {
     const useless = !n || ['advance', 'mode-dungeon', 'mode-tower', 'mode-world', 'mode-challenge'].includes(n.id) || (n.id === 'quest' && n.action === 'none')
       || this.calmStart(st).busy; // v10.1 : le Sceau reste caché tant qu'une bulle de tutoriel est ouverte
     btn.classList.toggle('hidden', useless);
+    this.sealWhy = { n: n?.id, useless, busy: this.calmStart(st).busy }; // diagnostic (tests)
     this.layoutColumn();
     if (useless) { this.sealIgnored(null); return; }
     // v9.11 (3) : une proposition = une sorte d'action (« Tout récupérer (4) » puis « (5) » : la même) ; le texte se met
@@ -2285,12 +2290,14 @@ export class UI {
     if (!st || this.lastHud.next === nextKey) return;
     { const prevId = this.lastHud.next;
       // v10.1 (P1) : une consigne n'apparaît pas plus de 3 fois en 10 minutes, même suivie : la 4ᵉ fois, elle s'efface 10 min.
-      if (nextKey != null && !['claim', 'advance'].includes(nextKey)) {
+      // Seules les consignes qui ne font rien d'elles-mêmes (ouvrir un écran, « Affronter ») comptent : une amélioration,
+      // un équipement ou une récompense qui reviennent sont des actions nouvelles.
+      if (nextKey != null && !this.next?.action && !['claim', 'advance'].includes(nextKey)) {
         const now = Date.now(), shows = (this.sealShows ??= {});
         shows[nextKey] = [...(shows[nextKey] ?? []).filter((t) => now - t < 600000), now];
       }
       // La 3ᵉ apparition est la dernière : quand elle s'en va, la consigne est mise de côté 10 minutes.
-      if (prevId != null && (this.sealShows?.[prevId]?.length ?? 0) >= 3 && !['claim', 'advance'].includes(prevId)) { (this.sealAside ??= {})[prevId] = Date.now() + 600000; this.sealShows[prevId] = []; }
+      if (prevId != null && (this.sealShows?.[prevId]?.length ?? 0) >= 3 && !['claim', 'advance', 'upgrade', 'equip', 'level', 'skills'].includes(prevId)) { (this.sealAside ??= {})[prevId] = Date.now() + 600000; this.sealShows[prevId] = []; }
     }
     if (this.lastHud.next == null) return;
     // v9.11 (3) : touché, ou action faite ailleurs (le joueur a agi pendant que le Sceau la proposait) = suivi.
@@ -2304,8 +2311,9 @@ export class UI {
     }
     if (this.fingerOn === prevId) { const ig = (this.fingerIgnores ??= {}); ig[prevId] = (ig[prevId] ?? 0) + 1; if (ig[prevId] >= 2 && !fd.includes(prevId)) fd.push(prevId); }
     // v10.1 : une consigne revenue 3 fois sans être faite est mise de côté 10 min (la suivante est proposée).
+    // (un Sceau resté moins de 8 s à l'écran n'a pas été « ignoré » : il a juste laissé la place)
     const rep = (this.sealRepeat ??= {});
-    rep[prevId] = (rep[prevId] ?? 0) + 1;
+    if (performance.now() - (this.sealShownAt ?? 0) >= 8000) rep[prevId] = (rep[prevId] ?? 0) + 1;
     if (rep[prevId] >= 3 && !['claim', 'goal', 'advance', 'quest'].includes(prevId)) { (this.sealAside ??= {})[prevId] = Date.now() + 600000; rep[prevId] = 0; }
     if (performance.now() - (this.sealShownAt ?? 0) < 20000) return; // trop bref pour compter
     st.ui.sealIgnores = (st.ui.sealIgnores ?? 0) + 1;
@@ -2408,8 +2416,9 @@ export class UI {
   // bulle d'une ligne ; l'anneau reste jusqu'à l'action ou la fermeture de l'écran.
   setRing(n) {
     const R = RING_OF[n.id] ?? (n.id === 'quest' ? RING_TAB[n.tab] : null) ?? RING_TAB[n.tab];
-    this.ring = R ? { tab: n.tab, sel: R[0], text: R[1] } : null;
+    this.ring = R ? { tab: n.tab, sel: R[0], text: R[1], until: Date.now() + 15000 } : null; // v10.1 : 15 s au plus
     setTimeout(() => this.applyRing(), 50);
+    clearTimeout(this.ringTimer); this.ringTimer = setTimeout(() => this.applyRing(), 15100); // l'anneau s'éteint seul
   }
 
   applyRing() {
@@ -2417,8 +2426,8 @@ export class UI {
     document.querySelectorAll('.ring-target').forEach((e) => e.classList.remove('ring-target'));
     let tip = document.getElementById('ring-tip');
     const r = this.ring;
-    if (!r || this.tab !== r.tab) { this.ring = null; tip?.remove(); return; }
-    const el = [...this.root.querySelectorAll(r.sel)].find((e) => e.offsetParent !== null);
+    if (!r || this.tab !== r.tab || Date.now() > (r.until ?? Infinity)) { this.ring = null; tip?.remove(); return; }
+    const el = [...this.root.querySelectorAll(r.sel)].find((e) => e.offsetParent !== null && !e.disabled);
     if (!el) { tip?.remove(); return; }
     el.classList.add('ring-target');
     if (!tip) {

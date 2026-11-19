@@ -17,8 +17,10 @@ export const TUTO_STEPS = [
     when: (s) => (s.skills?.quick ?? 0) < 1 && (s.level ?? 1) >= 1,
     targets: ['button[data-action="learn-skill"][data-key="quick"]', '[data-action="skill-sel"][data-value="s:quick"]', '[data-sub="skills"]', MENU('hero')] },
   { id: 'tuto-summon', finger: true, text: 'Invoque ton premier compagnon',
-    when: (s) => (s.records?.bossesDefeated ?? 0) >= 1 && !Object.keys(s.companions?.owned ?? {}).length && (s.gems ?? 0) >= 100,
-    targets: ['[data-action="summon"]:not([disabled])', '[data-sub="summon"]', MENU('team')] },
+    // v10.1 : seulement quand l'Invocation est débloquée (plus de doigt sur un menu verrouillé) ; l'Invocation a son menu.
+    when: (s) => (s.records?.bossesDefeated ?? 0) >= 1 && !Object.keys(s.companions?.owned ?? {}).length && (s.gems ?? 0) >= 100
+      && (!s.unlocks || s.unlocks.legacy || (s.unlocks.done ?? []).includes('summon')),
+    targets: ['[data-action="summon"]:not([disabled])', '[data-sub="summon"]', MENU('summon')] },
   { id: 'tuto-companion', finger: true, text: 'Place ton compagnon dans l\'équipe',
     when: (s) => Object.keys(s.companions?.owned ?? {}).length > 0 && !(s.companions?.equipped ?? []).length,
     targets: ['[data-action="toggle-companion"]', '[data-action="companion-sel"]', '[data-sub="companions"]', MENU('team')] },
@@ -61,7 +63,7 @@ export function pickStep(state, root, full, panelOpen = false, screen = panelOpe
       for (const sel of st.targets) {
         if (!isNav(sel)) continue;
         const el = root.querySelector(sel);
-        if (visible(el)) { shownOn.set(screen, st.id); return { step: st, el }; }
+        if (visible(el) && !el.classList.contains('locked')) { shownOn.set(screen, st.id); return { step: st, el }; } // v10.1 : jamais sur un menu verrouillé
       }
     }
     if (st.finger) return null; // une étape guidée attend son tour : pas de bulle par-dessus
