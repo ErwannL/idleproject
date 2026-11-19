@@ -83,7 +83,7 @@ export function firstResourceBubble(ui, st) {
   for (const key of Object.keys(RESOURCES)) {
     if (key === 'gold' || seen.includes(key) || !(resourceAmount(st, key) > 0)) continue;
     seen.push(key);
-    if (st.unlocks?.legacy) continue;
+    if (st.unlocks?.legacy || (st.records?.bossesDefeated ?? 0) > 30) continue; // partie avancée : déjà connu
     const r = RESOURCES[key];
     const el = document.createElement('div');
     el.className = 'res-bubble'; el.dataset.gloss = key;

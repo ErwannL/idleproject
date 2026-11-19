@@ -4424,3 +4424,16 @@ html.reduce-motion .howto-card, html.reduce-motion .learn-card { animation: none
 .pv-step { width: 70px; display: flex; flex-direction: column; align-items: center; } .pv-step span { font-size: 26px; } .pv-step i { display: block; width: 100%; background: linear-gradient(#5a6a90, #2a3352); border-radius: 6px 6px 0 0; }
 .pv-step.s0 i { height: 50px; } .pv-step.s1 i { height: 72px; background: linear-gradient(#ffd34a, #8a6a10); } .pv-step.s2 i { height: 36px; }
 .sk2-vig-row { display: flex; gap: 8px; align-items: center; } .sk-vignette { width: 96px; height: 96px; flex: none; background: radial-gradient(circle, #2a3358, #10162a 70%); border-radius: 10px; border: 1px solid #3a4568; }
+/* v10.1 (P5) : scène courte — la carte de quête se replie en icône. */
+#play.quest-mini #quest-banner { max-width: 44px; padding: 3px; overflow: hidden; }
+#play.quest-mini #quest-banner .qb-text, #play.quest-mini #quest-banner .rw-icons, #play.quest-mini #quest-banner .progress, #play.quest-mini #quest-banner button:not(:first-child) { display: none; }
+#play.quest-mini #quest-banner:hover, #play.quest-mini #quest-banner:focus-visible { max-width: min(320px, 60%); }
+#play.quest-mini #quest-banner:hover .qb-text, #play.quest-mini #quest-banner:focus-visible .qb-text { display: inline; }
+/* La bulle de nouvelle ressource se pose en bas de la scène, jamais sur la barre de compétences. */
+.res-bubble { top: auto; bottom: 22%; }
+/* v10.1 (P5) : la pointe de la Roue s'arrête au bord du disque — elle ne cache plus le texte de la case gagnante. */
+.wh-art .wh-pointer-img { top: -30px; width: 36px; }
+.wh-art .wh-wrap { margin-top: 62px; }
+.wh-art h2 { position: relative; z-index: 4; margin-bottom: 0; }
+.wh-ico { transform: rotate(var(--a)) translateY(-76px) rotate(calc(-1 * var(--a))); }
+#unit-host .unit-pop-backdrop { z-index: 9000; } #unit-host .unit-pop { z-index: 9001; }

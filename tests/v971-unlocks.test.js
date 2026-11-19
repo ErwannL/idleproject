@@ -20,9 +20,9 @@ test('ordre conseillé, un système à la fois', () => {
   assert.equal(advanceUnlocks(s), null, 'la suivante repart de zéro');
 });
 
-test('compagnon d\'histoire à la fin du monde 1 ; Renaissance après le monde 3', () => {
+test('compagnon d\'histoire à l\'étape 8 (v10.1) ; Renaissance après le monde 3', () => {
   const s = createNewState(NOW); s.unlocks = { done: ['equipment', 'upgrades', 'skills'], base: { ...s.records } };
-  s.records.bossesDefeated = 1; s.maxStage = 21;
+  s.records.bossesDefeated = 1; s.maxStage = 8; s.records.bestStage = 8; s.upgrades.damage = 5;
   assert.equal(advanceUnlocks(s).id, 'companion');
   assert.ok(s.companions.owned.priestess && s.companions.equipped.includes('priestess'));
   s.maxStage = 40;

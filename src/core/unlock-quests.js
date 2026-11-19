@@ -27,9 +27,10 @@ export const UNLOCK_QUESTS = [
     ['Lance une compétence à la main', (s, b) => (s.records?.manualCasts ?? 0) >= 1 || delta(s, b, 'kills') >= 150], // le passif avance quand même
   ] },
   { id: 'companion', label: 'Premier compagnon', story: 'priestess', steps: [
+    // v10.1 (P1 §2.2) : le premier compagnon arrive à l'étape 8 (ordre d'apprentissage), plus à la fin du monde 1.
     ['Bats le premier boss', (s) => (s.records?.bossesDefeated ?? 0) >= 1],
-    ['Atteins l\'étape 1-15', (s) => best(s) >= 15],
-    ['Termine le monde 1', (s) => best(s) >= 21],
+    ['Atteins l\'étape 1-8', (s) => best(s) >= 8],
+    ['Achète 5 améliorations', (s) => sumUp(s) >= 5],
   ] },
   { id: 'forge', label: 'Forge', steps: [
     ['Recycle 3 objets', (s, b) => (s.records?.recycled ?? 0) >= 3 || delta(s, b, 'kills') >= 200],

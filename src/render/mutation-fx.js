@@ -28,14 +28,18 @@ export function halfPath(q, x0, y0, x1, y1, lift = 14) {
 const BANNER_LIFE = 1.8;
 
 // Étiquette : fond sombre, bord de couleur, losange puis texte. (cx, bottom) : centre et bas de l'étiquette.
+// v10.1 (P5) : jamais un mot de moins de 3 lettres (fragment de nom), jamais une étiquette coupée par le bord.
+export const tooShort = (text) => { const s = String(text ?? '').trim(); const l = s.replace(/[^A-Za-zÀ-ÿ\u3131-\uD79D]/g, ''); return !s || (l.length > 0 && l.length < 3 && !/[0-9]/.test(s)); };
 export function drawTag(ctx, text, cx, bottom, color, { big = false, alpha = 1, diamond = true } = {}) {
+  if (tooShort(text)) return;
   ctx.save();
   ctx.font = big ? FONT_BIG : FONT;
   ctx.textBaseline = 'alphabetic';
   const h = big ? 8 : 7;
   const tw = Math.ceil(ctx.measureText(text).width);
   const w = tw + (diamond ? 8 : 4);
-  const x = Math.round(cx - w / 2);
+  const W = ctx.canvas?.width ? ctx.canvas.width / (ctx.getTransform?.().a || 1) : Infinity;
+  const x = Math.round(Math.max(1, Math.min(W - w - 1, cx - w / 2)));
   const y = Math.round(bottom - h);
   ctx.globalAlpha *= alpha;
   ctx.fillStyle = 'rgba(10, 10, 16, 0.86)';

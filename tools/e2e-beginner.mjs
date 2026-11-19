@@ -36,4 +36,5 @@ const secs = Math.round((Date.now() - t0) / 1000);
 console.log(`doigt : ${finger} · amélioration achetée : ${bought} · consigne visible : ${questBar} · mini-quête Équipement finie à ${equipAt} s · ${secs} s · étapes ${steps}`);
 if (errors.length) console.log('ERREURS :\n' + errors.join('\n'));
 await browser.close(); server.close();
-process.exit(finger && bought && questBar && equipAt > 0 && equipAt <= 120 && !errors.length ? 0 : 1);
+// v10.1 (P1) : la consigne de mini-quête attend l'étape 3 (un seul appel à l'action au début) : plus exigée ici.
+process.exit(finger && bought && equipAt > 0 && equipAt <= 120 && !errors.length ? 0 : 1);

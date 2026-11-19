@@ -777,6 +777,7 @@ export class UI {
   // `view` (v9.1.0) : vue à montrer (segment, objet choisi…) — un conseil arrive ainsi au bon endroit.
   openTab(tab, view = null) {
     if (tab !== 'dungeons') { if (this.view) this.view.dungeonSheet = false; this.dgSheet?.(''); } // v10.1
+    this.layerHost?.('unit-host', '');
     // v9.1.3 (lot F) : « À récupérer » n'est plus un onglet, c'est une fenêtre (touche N, bouton de Missions).
     if (tab === 'inbox') { this.openClaims(); return; }
     if (tab === 'arena') { tab = 'tower'; view = { ...(view ?? {}), defiTab: 'arena' }; } // v9.3.5 : Arène dans Défis
@@ -865,7 +866,7 @@ export class UI {
   }
 
   closePanel() {
-    if (this.view) this.view.dungeonSheet = false; this.dgSheet?.(''); // v10.1
+    if (this.view) this.view.dungeonSheet = false; this.dgSheet?.(''); this.layerHost?.('unit-host', ''); // v10.1
     this.ring = null; document.getElementById('ring-tip')?.remove(); // v10.1
     uiFx.panelCloseFx(this.$('panel')); // v9.2.6 : le panneau s'efface (copie figée, les clics passent)
     this.sidePanel(false);
@@ -891,7 +892,7 @@ export class UI {
     const lex = event.target.closest('.lex');
     if (lex && GLOSSARY[lex.dataset.lex]) { event.stopPropagation(); this.glossCard(null, lex.dataset.lex); return; }
     // v10.1 (P1 §2.3) : toucher une icône de ressource ouvre sa carte de glossaire.
-    const gl = event.target.closest('[data-gloss], #topbar .chip[data-currency]');
+    const gl = event.target.closest('[data-gloss]');
     if (gl && !event.target.closest('[data-action]:not([data-gloss])')) {
       const key = gl.dataset.gloss ?? gl.dataset.currency;
       if (RESOURCES[key]) { event.stopPropagation(); this.glossCard(key); return; }
@@ -1563,7 +1564,11 @@ export class UI {
         break;
       case 'dungeonRoom':
         this.news(`Salle terminée : ${rewardText(event.reward, formatNumber)}`, '#9cf08a');
-        if (!this.showDoors()) this.showBoons(); // v10.1 (P3) : portes, puis v9.9 (K7) bénédictions
+        // v10.1 (P3) : une porte ou une bénédiction encore ouverte quand la salle suivante tombe est choisie d'office.
+        { const mc = this.$('modal-card');
+          if (mc?.querySelector('.door-screen')) { clearInterval(this.doorTimer); this.closeModal(); this.actions.chooseDoor(null); this.showBoons(); }
+          else if (mc?.querySelector('.boon-screen')) { clearInterval(this.boonTimer); this.actions.pickBoon(null); this.closeModal(); this.showDoors(); }
+          else if (!this.showDoors()) this.showBoons(); } // v10.1 (P3) : portes, puis v9.9 (K7) bénédictions
         break;
       case 'dungeonComplete': {
         this.banner(event.sweep ? 'Donjon balayé !' : 'Donjon terminé !', 'win');
@@ -2277,7 +2282,17 @@ export class UI {
   // Un Sceau qui change sans avoir été touché compte comme ignoré ; 3 fois → réduit 1 heure.
   sealIgnored(nextKey) {
     const st = this.state;
-    if (!st || this.lastHud.next == null || this.lastHud.next === nextKey) return;
+    if (!st || this.lastHud.next === nextKey) return;
+    { const prevId = this.lastHud.next;
+      // v10.1 (P1) : une consigne n'apparaît pas plus de 3 fois en 10 minutes, même suivie : la 4ᵉ fois, elle s'efface 10 min.
+      if (nextKey != null && !['claim', 'advance'].includes(nextKey)) {
+        const now = Date.now(), shows = (this.sealShows ??= {});
+        shows[nextKey] = [...(shows[nextKey] ?? []).filter((t) => now - t < 600000), now];
+      }
+      // La 3ᵉ apparition est la dernière : quand elle s'en va, la consigne est mise de côté 10 minutes.
+      if (prevId != null && (this.sealShows?.[prevId]?.length ?? 0) >= 3 && !['claim', 'advance'].includes(prevId)) { (this.sealAside ??= {})[prevId] = Date.now() + 600000; this.sealShows[prevId] = []; }
+    }
+    if (this.lastHud.next == null) return;
     // v9.11 (3) : touché, ou action faite ailleurs (le joueur a agi pendant que le Sceau la proposait) = suivi.
     const prevId = this.lastHud.next;
     const fd = (st.ui.fingerDone ??= []);
@@ -2304,15 +2319,18 @@ export class UI {
   layoutColumn() {
     const area = this.$('stage-area'), play = this.$('play');
     if (!area || !play || typeof getComputedStyle === 'undefined') return;
-    const bar = this.$('skill-bar'), seal = this.$('next-action'), hud = this.$('hud');
+    const bar = this.$('skill-bar'), seal = this.$('next-action'), hud = this.$('hud'), boost = this.$('boost-group');
     const later = this.$('next-later');
     const shown = (el) => el && !el.classList.contains('hidden') && el.offsetParent !== null;
     const reset = (el) => { if (el) { el.style.top = ''; el.style.bottom = ''; el.style.left = ''; el.style.transform = ''; } };
-    [bar, seal].forEach(reset);
+    [bar, seal, boost].forEach(reset);
+    // v10.1 (P5) : scène courte (< 300 px) → la carte de quête devient une icône (le texte au survol / appui).
+    play.classList.toggle('quest-mini', area.clientHeight < 300);
     hud?.classList.remove('seal-over');
     play.classList.remove('col-row');
     if (this.layout === 'strip') return;
     const ground = parseFloat(getComputedStyle(play).getPropertyValue('--ground-px')) || 0;
+    const place0 = (el, top) => { el.style.top = `${Math.round(top)}px`; el.style.bottom = 'auto'; el.style.left = '50%'; el.style.transform = 'translateX(-50%)'; };
     // Limite basse : le bas de la scène, ou le haut de la barre d'onglets si elle passe par-dessus.
     const aTop = area.getBoundingClientRect().top;
     let H = area.clientHeight;
@@ -2326,7 +2344,16 @@ export class UI {
     const wideHud = play.classList.contains('wide-scene') && shown(hud);
     let y = ground + 8;
     if (wideHud) { hud.style.top = `${y}px`; y += hud.offsetHeight + 8; }
+    // v10.1 (P5) : la puce d'effet du monde (boost) passe au-dessus de la ligne compétences + Sceau.
+    // La place de la barre de compétences est réservée même quand elle est cachée : le Sceau ne saute plus.
+    if (shown(bar)) this.barH = bar.offsetHeight;
     const items = [shown(bar) ? bar : null, shown(seal) ? seal : null].filter(Boolean);
+    const chip = shown(boost) ? boost.querySelector('#boost-chip') : null;
+    const needAll = items.reduce((t, el) => t + el.offsetHeight + 8, 0) + (chip ? chip.offsetHeight + 6 : 0) + (!shown(bar) && shown(seal) && this.barH ? this.barH + 8 : 0);
+    if (y + needAll <= H - 4) {
+      if (chip) { place0(boost, y - (chip.offsetTop || 0)); y += chip.offsetHeight + 6; }
+      if (!shown(bar) && shown(seal) && this.barH) y += this.barH + 8;
+    }
     const fingerRoom = (el) => (el === seal && !seal.querySelector('.na-finger')?.classList.contains('hidden') ? 30 : 0); // place du doigt au-dessus du Sceau
     const need = items.reduce((t, el) => t + el.offsetHeight + 8 + fingerRoom(el), 0);
     const place = (el, top, left = '50%', tr = 'translateX(-50%)') => { el.style.top = `${Math.round(top)}px`; el.style.bottom = 'auto'; el.style.left = left; el.style.transform = tr; };
@@ -2342,7 +2369,7 @@ export class UI {
       const r = this.renderer;
       const missing = y + Math.max(...items.map((el) => el.offsetHeight), 0) + 12 - H;
       const cur = r ? r.groundY / Math.max(1, r.height) : 0.7;
-      const cap = Math.max(0.4, cur - missing / area.clientHeight - 0.02);
+      const cap = Math.max(0.55, cur - missing / area.clientHeight - 0.02); // v10.1 (P5) : la scène garde au moins 55 % de la hauteur
       if (r && cap < cur - 0.005) { r.liftCap = Math.min(r.liftCap ?? 1, cap); r.liftShrinking = true; this.resizeScene(); setTimeout(() => { r.liftShrinking = false; this.layoutColumn(); }, 0); }
     }
     if (later && shown(seal)) { const b = seal.getBoundingClientRect(), a = area.getBoundingClientRect(); later.style.top = `${b.top - a.top + (b.height - later.offsetHeight) / 2}px`; later.style.left = `${b.right - a.left + 8}px`; }
@@ -2441,6 +2468,7 @@ export class UI {
   // Fiche d'une monnaie (v9.1.0) : à quoi elle sert, où en gagner, et un bouton vers l'écran où on la dépense
   // (seulement si cet écran est déjà ouvert pour le joueur).
   showCurrency(id) {
+    if (RESOURCES[id]) { this.glossCard(id); return; } // v10.1 (P1 §2.3) : même carte de glossaire partout
     const c = CURRENCIES[id];
     if (!c || !this.state) return;
     const reachable = this.tabVisible[c.tab] !== false;
@@ -2692,7 +2720,11 @@ export class UI {
       if (el) el.scrollTop = top;
     }
     panel.afterRender?.(this, body);
-    mountShowcase(body, state); // v9.2.7 : une seule vitrine animée, accrochée à la fiche affichée
+    // v10.1 (P5) : la fiche compagnon (et son voile) sort du panneau : le voile couvre toute la fenêtre, même en 1716 px.
+    let showRoot = body;
+    { const pop = body.querySelector('.unit-pop'); const back = body.querySelector('.unit-pop-backdrop');
+      if (pop) { const html = (back?.outerHTML ?? '') + pop.outerHTML; back?.remove(); pop.remove(); this.layerHost('unit-host', html); showRoot = document.getElementById('unit-host'); } else this.layerHost('unit-host', ''); }
+    mountShowcase(showRoot, state); // v9.2.7 : une seule vitrine animée, accrochée à la fiche affichée
     this.applyRing(); // v10.1 : anneau sur le bouton à toucher
     if (this.vfxCascade) { this.vfxCascade = false; uiFx.cascadeFx(body); } // v9.2.6
     uiFx.decorate(body, this.tab); // v9.2.6 : auras, cadres et reflets des fiches, fond de la Tour
@@ -3056,6 +3088,20 @@ export class UI {
 
   // v9.9 (K7) : « Choisis une bénédiction » — 3 cartes (rareté en bandeau, flèches ↑ pour l'ampleur), choix automatique
   // de la plus rare au bout de 20 s ; le combat continue. Le petit livre liste celles déjà prises.
+  // v10.1 (P5) : calque générique au niveau de #app (fiche compagnon) ; garde le défilement entre deux rafraîchissements.
+  layerHost(id, html) {
+    if (typeof document === 'undefined') return;
+    let h = document.getElementById(id);
+    if (!html) { h?.remove(); if (this.layerHtml) this.layerHtml[id] = null; return; }
+    if (!h) { h = document.createElement('div'); h.id = id; this.root.appendChild(h); }
+    this.layerHtml ??= {};
+    if (this.layerHtml[id] === html && h.isConnected) return;
+    this.layerHtml[id] = html;
+    const scrolls = [...h.querySelectorAll('*')].filter((e) => e.scrollTop).map((e) => [e.className, e.scrollTop]);
+    h.innerHTML = html;
+    for (const [cls, top] of scrolls) { const e = cls && h.getElementsByClassName(String(cls).split(' ')[0])[0]; if (e) e.scrollTop = top; }
+  }
+
   // v10.1 (P3) : calque de la feuille de donjon (enfant de #app, au-dessus du HUD).
   dgSheet(html) {
     if (typeof document === 'undefined') return;

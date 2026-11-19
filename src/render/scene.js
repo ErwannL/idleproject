@@ -9,7 +9,7 @@ import { auraColors } from '../data/auras.js';
 import { BALANCE } from '../data/balance.js';
 import { drawTeamFx } from './team-fx.js';
 import { installClassFx } from './class-fx.js';
-import { installMutationFx } from './mutation-fx.js'; // v9.2.3 : ennemis mutés lisibles
+import { installMutationFx, tooShort } from './mutation-fx.js'; // v9.2.3 : ennemis mutés lisibles
 import { MUTATION_PACE, SHEEN_STEPS, mutatedCanvas, mutationSize } from './mutation-look.js'; // v9.2.3 : apparence des mutations
 import { installTraversalFx } from './traversal-fx.js'; // v9.2.1 : déplacement propre à chaque monde
 import { DRAWN_TRAIL, HURT_COOLDOWN, HURT_TIME, armSwing, attackCurve, dissolveFrames, pickAnimFrame } from './enemy-anim.js';
@@ -467,7 +467,7 @@ export class SceneRenderer {
             const old = this.effects.filter((e) => e.kind === 'callout');
             if (old.length >= 3) this.effects.splice(this.effects.indexOf(old[0]), 1);
             const half = Math.min(this.width / 2 - 2, sk.name.length * 1.6 + 4);
-            this.effects.push({ kind: 'callout', text: sk.name, x: Math.max(half, Math.min(this.width - half, HERO_X)), y: this.groundY - 50, color: '#ffd23f', life: 1, max: 1 });
+            this.pushCallout({ kind: 'callout', text: sk.name, x: Math.max(half, Math.min(this.width - half, HERO_X)), y: this.groundY - 50, color: '#ffd23f', life: 1, max: 1, half });
           } }
         if (castHeroSkill(this, this.skillKey, event.skillId, fxContext(this, world, { x: HERO_X + 4, y: this.groundY - 22 }, HERO_X))) break;
         this.skillEffect(event);
@@ -614,6 +614,20 @@ export class SceneRenderer {
   capRings() {
     const rings = this.effects.filter((e) => e.kind === 'ring');
     for (let i = 0; i < rings.length - 3; i++) this.effects.splice(this.effects.indexOf(rings[i]), 1);
+  }
+
+  // v10.1 (P5) : deux noms de compétence ne se chevauchent plus (« Coup de taille » + « …llante ») : le nouveau monte
+  // d'une ligne tant qu'il recouvre un nom encore affiché (au plus 4 lignes), sinon le plus ancien s'efface.
+  pushCallout(fx) {
+    const live = this.effects.filter((e) => e.kind === 'callout' && e.life > 0.05);
+    for (let k = 0; k < 4; k++) {
+      const hit = live.some((e) => Math.abs(e.y - fx.y) < 8 && Math.abs(e.x - fx.x) < (e.half ?? 20) + fx.half);
+      if (!hit) { this.effects.push(fx); return; }
+      fx.y -= 8;
+    }
+    const oldest = live[0];
+    if (oldest) this.effects.splice(this.effects.indexOf(oldest), 1);
+    this.effects.push(fx);
   }
 
   addText(text, x, y, color, light = '#ffffff', big = false, value = null) {
@@ -1218,14 +1232,16 @@ export class SceneRenderer {
   }
 
   // v9.3.2 : impact du coup de base selon la rareté de l'arme : étincelles en plus, onde (épique et légendaire).
-  weaponImpact(x, y, weapon) {
+  weaponImpact(x, y, weapon, crit = false) {
     const wf = weaponFx(weapon);
     if (this.focus || !wf.impact) return;
+    // v10.1 (P5) : plus d'anneau de couleur (le « croissant violet » contre les Titans) à chaque coup : sur un critique
+    // seulement, une traînée de 0,15 s ; les coups normaux gardent leurs étincelles.
+    if (crit) this.critTrail(x - 8, y, wf.color);
     for (let i = 0; i < wf.impact; i++) {
       const a = -1.2 + Math.random() * 2.4, v = 40 + Math.random() * 80;
       this.effects.push({ kind: 'spark', x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 15, color: i % 2 ? wf.color : '#ffffff', life: 0.3, max: 0.3 });
     }
-    if (wf.ring) this.effects.push({ kind: 'ring', x, y, color: wf.color, life: 0.3, max: 0.3, r: weapon.rarity === 'legendary' ? 14 : 9 });
   }
 
   // v9.3.2 : compétence lancée avec une arme rare ou mieux : éclat de la couleur de l'arme autour du héros.
@@ -1814,7 +1830,7 @@ export class SceneRenderer {
       const half = Math.min(this.width / 2 - 2, known.name.length * 1.6 + 4); // v9.8 (E9) : bulle gardée dans le cadre
       const old = this.effects.filter((e) => e.kind === 'callout');
       if (old.length >= 3) this.effects.splice(this.effects.indexOf(old[0]), 1);
-      this.effects.push({ kind: 'callout', text: known.name, x: Math.max(half, Math.min(this.width - half, cx)), y: G - 46, color, life: 1, max: 1 });
+      this.pushCallout({ kind: 'callout', text: known.name, x: Math.max(half, Math.min(this.width - half, cx)), y: G - 46, color, life: 1, max: 1, half });
     }
     if (!this.focus) this.effects.push({ kind: 'halo', x: cx, y: G - 16, color, life: 0.35, max: 0.35 });
     if (event.ultimate) {
@@ -2406,6 +2422,7 @@ export class SceneRenderer {
           drawVfx(this, ctx, fx, dt);
           break;
         case 'callout': { // v9.7.1 (lot A) : nom de la compétence, petit texte de la couleur du compagnon
+          if (tooShort(tr(fx.text))) break; // v10.1 (P5)
           ctx.save();
           ctx.globalAlpha = Math.min(1, t * 4);
           ctx.font = '800 6px system-ui, "Noto Sans KR", "Malgun Gothic", sans-serif';

@@ -85,11 +85,14 @@ const sceneOk = (page) => page.evaluate(() => { const r = document.querySelector
   const seal = await page.evaluate(() => document.querySelector('#next-action-text')?.textContent ?? '');
   ok('4. Joueur bloqué : le Sceau propose de Renaître avec le gain', /Renaître.*\d+ %/.test(seal), seal);
   // 5. Donjon : 3 bénédictions entre deux salles, choix automatique au bout de 20 s.
-  await page.evaluate(() => { const s = __idle.state; s.keys = 3; s.dungeon = null; __idle.ui.actions.enterDungeon('crypt', 'any', 'gold', 'easy'); });
+  // v10.1 : une porte (choix auto en 10 s) précède les bénédictions ; on compte les bénédictions prises même si le
+  // donjon se termine pendant l'attente.
+  await page.evaluate(() => { const a = __idle.ui.actions; const p = a.pickBoon.bind(a); window.__boons = 0; a.pickBoon = (i) => { const b = p(i); if (b) window.__boons++; return b; };
+    const s = __idle.state; s.keys = 3; s.dungeon = null; a.enterDungeon('crypt', 'any', 'gold', 'easy'); });
   await page.waitForFunction(() => document.querySelectorAll('.boon-card').length === 3, null, { timeout: 120000 }).catch(() => {});
   const three = await page.evaluate(() => document.querySelectorAll('.boon-card').length);
   await page.waitForTimeout(22000);
-  const picked = await page.evaluate(() => (__idle.state.dungeon?.boons ?? []).length);
+  const picked = await page.evaluate(() => window.__boons);
   ok('5. Donjon : 3 bénédictions proposées, choix automatique après 20 s', three === 3 && picked >= 1, `${three} cartes, ${picked} prise(s)`);
   await ctx.close();
 }
