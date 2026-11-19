@@ -55,6 +55,14 @@ function friendsBlock(f) {
     ${f.message ? `<div class="${f.error ? 'bad' : 'good'}">${escapeHtml(f.message)}</div>` : ''}${incoming}${outgoing}<div class="friend-list">${list}</div></div>`;
 }
 
+// v10.1 (P2) : aperçu du classement (chargement, hors ligne) : podium illustré et ta propre ligne.
+function rankPreview(ui) {
+  const st = ui.state;
+  const best = st?.records?.bestStage ?? st?.maxStage ?? 1;
+  return `<div class="card pv-card"><div class="pv-podium">${['🥈', '🥇', '🥉'].map((m, i) => `<div class="pv-step s${i}"><span>${m}</span><i></i></div>`).join('')}</div>
+    <div class="row-between"><b>Toi</b><span>Meilleure étape <b class="num">${formatNumber(best)}</b></span></div><div class="muted">Le classement se charge… Ton record y figure dès que tu es connecté.</div></div>`;
+}
+
 export default {
   id: 'ranking',
   title: 'Classement',
@@ -79,7 +87,7 @@ export default {
       : RANKING_SORTS[sort].time ? '<div class="muted">Le plus court gagne.</div>' : '';
     let body;
     if (r.error) body = `<div class="card bad">${escapeHtml(r.error)} <button class="btn" data-action="ranking-sort" data-value="${sort}">Réessayer</button></div>`;
-    else if (!r.players) body = '<div class="card muted">Chargement du classement…</div>';
+    else if (!r.players) body = rankPreview(ui);
     else if (!r.players.length) body = `<div class="card muted">${scope === 'friends' ? 'Ajoute des amis pour te comparer à eux.' : 'Personne au classement pour l\'instant.'}</div>`;
     else {
       const mine = r.me ? `<tbody class="rk-mine"><tr class="rk-gap"><td colspan="3">…</td></tr>${row(sort, { ...r.me, me: true })}</tbody>` : '';

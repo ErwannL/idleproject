@@ -154,8 +154,10 @@ function bubbleV2(state, c) {
   // v9.8 (I3) : un bouton grisé dit ce qui manque.
   if (c.plus && !c.plus.can && !c.locked && !c.maxed) main += `<p class="muted small">${c.kind === 's' ? 'Il te faut 1 point (1 par niveau du héros)' : 'Il te manque de l\'or'}</p>`;
   const lock = c.locked ? `<p class="up-lock">🔒 Débloqué au niveau ${c.unlock} du héros.</p>` : c.maxed ? '<p class="good">Niveau maximal.</p>' : '';
-  return `<div class="sk2-bubble"><div class="row-between"><b>${escapeHtml(c.name)}</b><span class="muted">Nv ${c.level}</span></div>
-    <p>${escapeHtml(short)}</p><p class="muted">${detail}</p>${lock}<div class="sk2-actions">${main}${use}</div></div>`;
+  // v10.1 (P2) : vignette animée — l'effet de la compétence joue en boucle (canvas animé par ui/vignettes.js).
+  const fx = { quick: 'sk_heavy_cut', whirl: 'sk_whirlwind', cry: 'sk_war_cry', holy: 'sk_holy_smite', phantom: 'sk_blade_dance', gold: 'sk_gold_rain' }[c.id] ?? `sk_${c.id}`;
+  return `<div class="sk2-bubble"><div class="sk2-vig-row"><canvas class="px sk-vignette" width="96" height="96" data-vfx="${escapeHtml(fx)}" aria-hidden="true"></canvas><div class="grow"><div class="row-between"><b>${escapeHtml(c.name)}</b><span class="muted">Nv ${c.level}</span></div>
+    <p>${escapeHtml(short)}</p></div></div><p class="muted">${detail}</p>${lock}<div class="sk2-actions">${main}${use}</div></div>`;
 }
 function viewV2(ui, state) {
   const cells = skillGridCells(state);

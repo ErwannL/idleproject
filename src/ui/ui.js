@@ -87,6 +87,7 @@ import { companionById } from '../core/companions.js'; // v9.5.1
 import { COMPANION_ROLES, ROLES } from '../data/synergies.js'; // v10.1
 import { dormantResources } from '../core/daybook.js';
 import { playBoard } from './panels/arena-cards-view.js';
+import { startVignettes } from './vignettes.js';
 import { DOORS, dungeonStars, roman } from '../core/dungeon-plus.js';
 const RAR10 = ['common', 'R', 'rare', 'SR', 'epic', 'SSR', 'legendary', 'UR', 'mythic'];
 import { BOSS_TRAITS, TRAITS } from '../core/boss-traits.js'; // v9.5.1
@@ -2663,10 +2664,10 @@ export class UI {
           ${h.more ? fold(this, `help-${this.tab}`, 'En savoir plus', `<div>${h.more}</div>${h.env ? `<div>${h.env}</div>` : ''}`) : ''}</div>` : ''; // v9.2.1 : env
     // v9.3.9 (2.5) : même écran → mise à jour sur place (la fiche ouverte ne se referme plus, rien ne saute).
     // v9.8 (J3) : bannière illustrée en tête des écrans de lieu (chargée à la demande).
-    const BANNER = { tower: 'tower', expeditions: 'expedition_map', summon: 'summon_circle', event: 'event_market', tree: 'talent_tree', guild: 'guild_hall' };
+    const BANNER = { tower: 'tower', expeditions: 'expedition_map', summon: 'summon_circle', event: 'event_market', tree: 'talent_tree' };
     // v10.1 (P2 §2.1) : une bannière illustrée en tête de chaque onglet, avec la phrase « à quoi sert l'écran ».
     const BANNER101 = { upgrades: 'banner_upgrades', skills: 'banner_skills', companions: 'banner_companions', dungeons: 'banner_dungeons', contracts: 'banner_missions',
-      daybook: 'banner_daybook', boss: 'banner_boss', ranking: 'banner_ranking', stats: 'banner_stats', shop: 'banner_shop' };
+      daybook: 'banner_daybook', boss: 'banner_boss', ranking: 'banner_ranking', stats: 'banner_stats', shop: 'banner_shop', guild: 'banner_guild', looks: 'banner_looks', forge: 'banner_forge', encyclopedia: 'banner_collections', inventory: 'banner_forge' };
     const src = this.tab === 'tower' && this.view.defiTab === 'arena' ? 'assets/ui/art98/arena.png'
       : BANNER[this.tab] ? `assets/ui/art98/${BANNER[this.tab]}.png` : BANNER101[this.tab] ? `assets/ui/art101/${BANNER101[this.tab]}.png` : null;
     const lead = TAB_LEAD[this.tab] ? `<p class="tab-lead">${escapeHtml(TAB_LEAD[this.tab])}</p>` : '';
@@ -2675,6 +2676,7 @@ export class UI {
     if (this.morphTab === this.tab && body.firstChild) morph(body, html);
     else body.innerHTML = html;
     this.morphTab = this.tab;
+    if (body.querySelector('canvas[data-vfx]')) startVignettes(); // v10.1 (P2) : vignettes animées
     for (const [id, value] of Object.entries(this.typed)) {
       const field = body.querySelector(`#${CSS.escape(id)}`);
       if (field && field.value !== value) field.value = value;

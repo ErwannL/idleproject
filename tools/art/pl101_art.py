@@ -32,6 +32,10 @@ ART = {
     'banner_ranking': (BAN, 'a podium in an arena with three golden, silver and bronze hero statues, crowd banners'),
     'banner_stats': (BAN, 'an archive library room with tall shelves, scrolls and a large hourglass on a desk'),
     'banner_shop': (BAN, 'a fantasy merchant stall with potions, scrolls, gems and a striped awning'),
+    'banner_looks': (BAN, 'a hero wardrobe room with armor stands, capes and helmets on display, a tall mirror'),
+    'banner_forge': (BAN, 'a dwarven forge with a glowing furnace, blue crystal shards on an anvil, sparks'),
+    'banner_collections': (BAN, 'a museum hall of glass cases with monster trophies, weapons and companion portraits'),
+    'banner_guild': (BAN, 'a guild hall with long tables, banners with emblems and adventurers raising mugs'),
     # Donjons : décor et boss en ombre
     'dungeon_crypt': ((320, 160), 'a spectral crypt with green ghost lights and tombs, the dark silhouette of a ghost queen boss in the back'),
     'dungeon_sanctuary': ((320, 160), 'an overgrown forest sanctuary with ancient roots and glowing moss, the dark silhouette of a rotting tree dryad boss'),

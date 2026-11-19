@@ -67,7 +67,11 @@ export default {
     const zones = ZONES.map((zd, i) => ({ label: `${i + 1}. ${escapeHtml(zd.name)}`, value: zoneTime(t, i), action: String(i) })).filter((r) => r.value > 0);
     const cycles = cyclesPlayed(t);
     const reached = ZONES.map((zd, i) => [i, t.firstZone[i]]).filter(([, v]) => v !== undefined);
-    return `${select}
+    // v10.1 (P2) : 4 grandes tuiles illustrées en tête (monstres, boss, temps, meilleure étape).
+    const tile = (art, value, label) => `<div class="stat-tile"><img class="px" src="assets/ui/art101/${art}.png" alt=""><b class="num">${value}</b><small>${label}</small></div>`;
+    const tiles = `<div class="stat-tiles">${tile('stat_kills', formatNumber(state.records?.kills ?? 0), 'Monstres vaincus')}${tile('stat_bosses', formatNumber(state.records?.bossesDefeated ?? 0), 'Boss vaincus')}
+      ${tile('stat_time', formatDuration(active), 'Temps de jeu')}${tile('stat_stage', formatNumber(state.records?.bestStage ?? state.maxStage ?? 1), 'Meilleure étape')}</div>`;
+    return `${tiles}${select}
       <div class="card"><div class="section-title">Temps de jeu</div>
         ${line('Temps de jeu actif', formatDuration(active))}
         ${line('Hors jeu (récompenses au retour)', formatDuration(t.offline))}

@@ -41,6 +41,10 @@ const TYPE_ICONS = {
   dungeons: 'icon_dungeon', rareLoot: 'icon_bag', upgrades: 'icon_upgrade', gold: 'coin', stages: 'icon_map', items: 'icon_chest',
 };
 
+// v10.1 (P2) : icônes dessinées des missions et tâches (48 px), une par type.
+const MIS_ART = new Set(['kills', 'bosses', 'recycle', 'summons', 'dungeons', 'rareLoot', 'upgrades', 'login', 'gold', 'stages', 'items', 'skills', 'tower', 'arena', 'expeditions']);
+const misIcon = (type, fallback) => (MIS_ART.has(type) ? `file:assets/ui/art101/mis_${type}.png` : fallback);
+
 function remainingText(ms) {
   const h = Math.floor(ms / 3600000);
   if (h >= 48) return `${Math.floor(h / 24)} j`;
@@ -84,7 +88,7 @@ function periodTab(state, period) {
   const rows = [...shown].sort((a, b) => order(a) - order(b)).map((m) => {
     const st = missionStatus(state, period.id, m);
     // v10.0 (6) : mission faite = « Fait ✔ », barre pleine (le palier suivant viendra le lendemain).
-    return row({ icon: TYPE_ICONS[m.type] ?? 'icon_star', label: m.label, progress: st.claimed ? m.target : st.progress, target: m.target, reward: m.reward,
+    return row({ icon: misIcon(m.type, TYPE_ICONS[m.type] ?? 'icon_star'), label: m.label, progress: st.claimed ? m.target : st.progress, target: m.target, reward: m.reward,
       done: st.done, claimed: st.claimed, action: 'claim-mission', value: `${period.id}|${m.id}` });
   }).join('');
   const claimedCount = shown.filter((m) => missionStatus(state, period.id, m).claimed).length;
@@ -121,7 +125,7 @@ function trackTab(state) {
     ? `<button class="btn btn-gold small" data-action="claim-track" aria-label="Récupérer : ${escapeHtml(rewardText(next.reward, formatNumber))}">Récupérer ${rewardIcons(next.reward)}</button>`
     : `<span class="muted">Palier ${next.pct} % : ${rewardIcons(next.reward)}</span>`) : '<span class="good">Piste terminée ✔</span>';
   const p = state.missions.track.progress;
-  const rows = MISSION_TRACK.goals.map((g) => `<div class="m-row${(p[g.id] ?? 0) >= g.target ? ' claimed' : ''}"><div class="m-icon">${img(TYPE_ICONS[g.type] ?? 'icon_star')}</div>
+  const rows = MISSION_TRACK.goals.map((g) => `<div class="m-row${(p[g.id] ?? 0) >= g.target ? ' claimed' : ''}"><div class="m-icon">${img(misIcon(g.type, TYPE_ICONS[g.type] ?? 'icon_star'))}</div>
     <div class="m-main"><div class="m-label"><b>${escapeHtml(g.label)}</b></div>${progressBar(Math.min(1, (p[g.id] ?? 0) / g.target), `${formatNumber(p[g.id] ?? 0)} / ${formatNumber(g.target)}`)}</div></div>`).join('');
   return `<div class="row-between"><b>${MISSION_TRACK.label} : ${Math.floor(pct)} %</b>${head}</div>
     <div class="m-track enc-track"><div class="m-fill" style="width:${Math.min(100, pct)}%"></div>${steps}</div>
@@ -130,7 +134,7 @@ function trackTab(state) {
 
 function contractsTab(state) {
   const rows = state.contracts.map((c) => row({
-    icon: TYPE_ICONS[c.type] ?? 'icon_trophy', label: contractLabel(c), progress: c.progress, target: c.target, reward: c.reward,
+    icon: misIcon(c.type, TYPE_ICONS[c.type] ?? 'icon_trophy'), label: contractLabel(c), progress: c.progress, target: c.target, reward: c.reward,
     done: c.progress >= c.target, claimed: false, action: 'claim-contract', value: c.id,
     sub: `<span class="contract-title${c.rare ? ' rare' : ''}">${escapeHtml(contractTitle(c))}</span>`,
   })).join('');
@@ -170,7 +174,7 @@ function heraldTab(state) {
   const rows = HERALD_TASKS.map((t0) => {
     const t = heraldTask(state, t0);
     const p = Math.min(t.target, h.progress[t.id] ?? 0);
-    return row({ icon: t.icon, label: t.text, progress: p, target: t.target, reward: t.reward, done: p >= t.target, claimed: false, action: 'herald-claim', value: t.id });
+    return row({ icon: misIcon(t.type, t.icon), label: t.text, progress: p, target: t.target, reward: t.reward, done: p >= t.target, claimed: false, action: 'herald-claim', value: t.id });
   }).join('');
   return `<div class="muted">Le Héraut d'Ascendrya affiche ses tâches chaque matin… et les renouvelle aussitôt faites. ${h.done ? `<b>${h.done}</b> accomplies.` : ''}</div>${rows}`;
 }
