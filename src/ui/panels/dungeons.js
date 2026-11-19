@@ -18,6 +18,8 @@ import { CHALLENGE, challengeTriesLeft, challengeWeek, modifierById, weeklySetup
 import { ZONES } from '../../data/zones.js';
 import { escapeHtml, fold, formatNumber, img, progressBar, art98 } from '../common.js';
 import { bossTrait } from '../../core/boss-traits.js';
+import { ROLES } from '../../data/synergies.js';
+import { DUNGEON_GAIN, bestSweepTarget, dungeonSet, dungeonStars, nightmareBest, nightmareOpen, roman } from '../../core/dungeon-plus.js'; // v10.1 (P3)
 
 
 function bossPortrait(d, scale = 1) {
@@ -29,12 +31,13 @@ function bossPortrait(d, scale = 1) {
 function affinityLine(state, d) {
   const ally = COMPANIONS.find((c) => c.id === d.ally);
   if (!ally) return '';
-  if (!state.cheats?.reveal && !state.dungeonsCleared[d.id]) {
-    return `<div class="dungeon-ally"><b class="gold-text">Un compagnon Légendaire est adapté à ce donjon…</b>
-      <div class="muted">Avec lui dans l'équipe, il écrase tout ici. Son nom est révélé après une victoire dans ce donjon.</div></div>`;
-  }
+  // v10.1 (P3) : le compagnon adapté est montré tout de suite (plus de secret).
   const a = BALANCE.dungeonAffinity;
   const inTeam = state.companions.equipped.includes(ally.id);
+  // v10.1 (P3) : affinité lisible (×3 au moins) et « Le prendre » d'un appui quand on le possède.
+  const own = state.companions.owned[ally.id];
+  if (true) return `<div class="dungeon-ally"><div class="da-row"><span class="da-mult">×3</span><div><b class="gold-text">${escapeHtml(ally.name)}</b> est chez lui ici : sorts ×${a.skillMultiplier}, équipe +${a.teamDamagePct} % de dégâts, −${a.damageTakenPct} % de dégâts subis.</div>
+    ${inTeam ? '<span class="good">Dans l\'équipe ✔</span>' : own ? `<button class="btn btn-gold small" data-action="toggle-companion" data-value="${ally.id}">Le prendre</button>` : '<span class="muted">Pas encore obtenu</span>'}</div></div>`;
   return `<div class="dungeon-ally"><b class="gold-text">Compagnon adapté : ${escapeHtml(ally.name)} (Légendaire)</b> · ${inTeam ? '<span class="good">dans l\'équipe ✔</span>' : '<span class="muted">absent</span>'}
     <div class="muted">Ici : compétence ×${a.skillMultiplier}, passif ×${a.passiveMultiplier}, dégâts de l'équipe +${a.teamDamagePct} %, dégâts subis −${a.damageTakenPct} %.</div></div>`;
 }
@@ -148,7 +151,33 @@ export function challengeCard(state) {
   </div>`;
 }
 
+// v10.1 (P3) : 5 grandes cartes illustrées (2 colonnes sur PC, 1 sur téléphone) ; un appui ouvre la feuille.
+function bigCard(state, d) {
+  const locked = state.maxStage < d.unlockStage;
+  const stars = dungeonStars(state, d.id);
+  const g = DUNGEON_GAIN[d.id];
+  const diff = DIFFICULTY_ORDER[Math.max(0, stars - 1)];
+  const n = Math.min(state.keys ?? 0, 10);
+  const nm = nightmareBest(state, d.id);
+  return `<div class="dg-card${locked ? ' locked' : ''}" style="background-image:url(assets/ui/art101/dungeon_${d.id}.png)">
+    <button class="dg-open" data-action="dungeon-sel" data-value="${d.id}" aria-label="${escapeHtml(d.name)}"></button>
+    <div class="dg-top"><b>${escapeHtml(d.name)}</b><span class="dg-stars" aria-label="${stars} étoiles sur 3">${'★'.repeat(stars)}<i>${'★'.repeat(3 - stars)}</i>${nm ? ` <small>Cauchemar ${roman(nm)}</small>` : ''}</span></div>
+    <div class="dg-gain">${g ? `${img(({ grimoire: 'icon_grimoire', ascension: 'icon_ascension', shards: 'icon_shard', mastery: 'icon_mastery', fragments: 'icon_fragment' })[g.key])}<span>${escapeHtml(g.label)}</span>` : ''}</div>
+    <div class="dg-actions">${locked ? `<span class="tag-locked">${img('icon_lock', 'ico-lock')} Étape ${stageLabel(d.unlockStage)}</span>`
+      : `<button class="btn btn-gold small" data-action="dungeon-sel" data-value="${d.id}">Entrer</button>${stars && n > 0 ? `<button class="btn small" data-action="sweep-n" data-value="${d.id}|${diff}|${n}">⚡ Balayer ×${n}</button>` : ''}`}</div></div>`;
+}
+
 function dungeonsList(ui, state) {
+  const target = bestSweepTarget(state);
+  const head = `<div class="dg-head"><span class="dg-keys">${img('icon_key')} <b class="num">${state.keys}</b> clé${state.keys > 1 ? 's' : ''}</span>
+    ${target && state.keys > 0 ? `<button class="btn btn-gold small" data-action="sweep-n" data-value="${target.id}|${target.difficulty}|${state.keys}">⚡ Balayer tout (${state.keys})</button>` : ''}</div>`;
+  const grid = `<div class="dg-grid">${DUNGEONS.map((d) => bigCard(state, d)).join('')}</div>`;
+  // La feuille vit au-dessus de tout (hors du panneau) : voile plein écran, « Entrer » fixé en bas.
+  ui.dgSheet?.(ui.view.dungeonSheet ? `<div class="dg-sheet-back" data-action="dungeon-close"></div><div class="dg-sheet" role="dialog" aria-label="Donjon"><button class="btn small dg-close" data-action="dungeon-close" aria-label="Fermer">✕</button>${dungeonDetail(ui, state)}</div>` : '');
+  return head + grid;
+}
+
+function dungeonDetail(ui, state) {
   const open = DUNGEONS.filter((d) => status(state, d) !== 'locked');
   const lockedList = DUNGEONS.filter((d) => status(state, d) === 'locked');
   const sel = dungeonById(ui.view.dungeonSel) ?? open[0] ?? DUNGEONS[0];
@@ -199,12 +228,19 @@ function dungeonsList(ui, state) {
   ].map(([ic, t, r]) => `<div class="reward-icon ${r}">${img(ic)}</div><span class="reward-label">${t}</span>`).join('');
   const cleared = state.dungeonsCleared[sel.id] ?? 0;
   const enter = locked ? `<div class="bad">Débloqué à l'étape ${stageLabel(sel.unlockStage)}.</div>`
-    : `<button class="btn btn-gold enter-btn primary-action" data-action="enter-dungeon" data-value="${sel.id}" data-diff="${diffId}" ${canEnterDungeon(state, sel.id) ? '' : 'disabled'}>Entrer · ${diff.label} — 1 ${img('icon_key')} <span class="key-stock">(${state.keys} en stock)</span></button>
+    : `<button class="btn btn-gold enter-btn primary-action" data-action="enter-dungeon" data-value="${sel.id}" data-diff="${diffId}" data-nm="${diffId === 'hard' ? nmSel : 0}" ${canEnterDungeon(state, sel.id) ? '' : 'disabled'}>Entrer · ${diff.label} — 1 ${img('icon_key')} <span class="key-stock">(${state.keys} en stock)</span></button>
       ${canSweepDungeon(state, sel.id, diffId) ? `<button class="btn btn-gold primary-action" data-action="sweep-dungeon" data-value="${sel.id}" data-diff="${diffId}">⚡ Balayer · ${diff.label} — 1 ${img('icon_key')}<small class="muted"> même butin, sans combat</small></button>` : ''}
       ${state.tower ? '<div class="bad">Tu es dans la Tour : quitte-la d\'abord.</div>' : ''}
       ${state.challenge ? '<div class="bad">Défi de la semaine en cours (Aventure › Défis) : termine-le d\'abord.</div>' : ''}
       ${state.keys < 1 ? '<div class="bad">Aucune clé. Clés : missions, contrats, expéditions, Défis.</div>' : ''}`;
-  const detail = `${teamChips(state)}<div class="card dungeon-detail">
+  // v10.1 (P3) : équipe conseillée (rôles), ensemble du donjon, Cauchemar.
+  const set = dungeonSet(sel);
+  const advice = `<div class="dg-advice"><b>Équipe conseillée :</b> ${(sel.roles ?? []).map((r) => ROLES[r] ? `<span class="role-pill" style="--rc:${ROLES[r].color}">${img(ROLES[r].icon)} ${ROLES[r].label}</span>` : '').join(' ')}
+    ${set ? `<div class="muted">Ensemble de ce donjon : <b style="color:${set.color}">${escapeHtml(set.name)}</b></div>` : ''}</div>`;
+  const nmMax = nightmareOpen(state, sel.id);
+  const nmSel = Math.min(Number(ui.view.dungeonNm) || 0, nmMax);
+  const nmRow = nmMax ? `<div class="dg-nm"><b>Cauchemar</b> ${Array.from({ length: nmMax + 1 }, (_, i) => `<button class="btn chip-btn small${i === nmSel ? ' active' : ''}" data-action="dungeon-nm" data-value="${i}">${i ? roman(i) : 'Non'}</button>`).join('')}<span class="muted">+60 % de PV et de butin par palier</span></div>` : '';
+  const detail = `${teamChips(state)}${advice}${nmRow}<div class="card dungeon-detail">
       <div class="dungeon-head">${art98(`door_${sel.id}`, 'dungeon-door')}<div class="grow"><div class="boss-title">${escapeHtml(sel.name)}</div>
         <div class="muted">${escapeHtml(sel.description)}</div></div></div>
       <div class="diff-box"><div class="section-title">Difficulté</div><div class="diff-row">${diffs}</div>${unlockHint}
@@ -214,14 +250,12 @@ function dungeonsList(ui, state) {
       <div class="section-title">Itinéraire</div><div class="path-row">${routes}</div>
       ${fold(ui, 'dungeon-choice', `Butin : ${slot === 'any' ? 'tout' : escapeHtml(SLOTS[slot] ?? slot).toLowerCase()} · Chemin : ${({ gold: 'or', relics: 'reliques' })[path] ?? escapeHtml(path)}`, () => `<div class="row dungeon-target"><span class="section-title">Butin ciblé</span>${slotSelect}</div>
       <div class="section-title">Chemin</div><div class="path-row">${paths}</div>`)}
-      ${enter}
+      ${affinityLine(state, sel)}
       ${fold(ui, 'dungeon-more', 'Récompenses, salles, tentatives', () => `<div class="reward-grid">${rewards}</div>
-        ${affinityLine(state, sel)}
         ${roomPath(sel)}
         ${runsBlock(state, sel, diffId)}`)}
+      <div class="dg-enter">${enter}</div>
     </div>`;
-  return `<div class="dungeon-layout">
-      <div class="dungeon-side"><div class="dungeon-list">${list}</div></div>
-      ${detail}
-    </div>`;
+  void list;
+  return detail;
 }

@@ -86,6 +86,7 @@ import { ADV, elementBadge, elementWheel, strongAgainst } from '../core/elements
 import { companionById } from '../core/companions.js'; // v9.5.1
 import { COMPANION_ROLES, ROLES } from '../data/synergies.js'; // v10.1
 import { dormantResources } from '../core/daybook.js';
+import { DOORS, dungeonStars, roman } from '../core/dungeon-plus.js';
 const RAR10 = ['common', 'R', 'rare', 'SR', 'epic', 'SSR', 'legendary', 'UR', 'mythic'];
 import { BOSS_TRAITS, TRAITS } from '../core/boss-traits.js'; // v9.5.1
 import { BEHAVIORS, zoneBehaviors } from '../data/behaviors.js'; // v9.6.0
@@ -773,6 +774,7 @@ export class UI {
 
   // `view` (v9.1.0) : vue à montrer (segment, objet choisi…) — un conseil arrive ainsi au bon endroit.
   openTab(tab, view = null) {
+    if (tab !== 'dungeons') { if (this.view) this.view.dungeonSheet = false; this.dgSheet?.(''); } // v10.1
     // v9.1.3 (lot F) : « À récupérer » n'est plus un onglet, c'est une fenêtre (touche N, bouton de Missions).
     if (tab === 'inbox') { this.openClaims(); return; }
     if (tab === 'arena') { tab = 'tower'; view = { ...(view ?? {}), defiTab: 'arena' }; } // v9.3.5 : Arène dans Défis
@@ -861,6 +863,7 @@ export class UI {
   }
 
   closePanel() {
+    if (this.view) this.view.dungeonSheet = false; this.dgSheet?.(''); // v10.1
     this.ring = null; document.getElementById('ring-tip')?.remove(); // v10.1
     uiFx.panelCloseFx(this.$('panel')); // v9.2.6 : le panneau s'efface (copie figée, les clics passent)
     this.sidePanel(false);
@@ -1170,12 +1173,17 @@ export class UI {
       case 'claim-mastery': a.claimMastery(bossId); break;
       case 'show-odds': local(() => { if (v.oddsOpen.has(bossId)) v.oddsOpen.delete(bossId); else v.oddsOpen.add(bossId); }); break;
       case 'dungeon-slot': local(() => { v.dungeonSlot = value; }); break;
+      // v10.1 (P3) : feuille de donjon, Cauchemar, Balayer ×N / tout, portes de salles.
+      case 'dungeon-close': local(() => { v.dungeonSheet = false; }); this.dgSheet(''); break;
+      case 'dungeon-nm': local(() => { v.dungeonNm = Number(value) || 0; }); break;
+      case 'sweep-n': { const [id, diff, n] = value.split('|'); this.closeModal(); v.dungeonSheet = false; a.sweepDungeonN(id, diff, Number(n) || 1); break; }
+      case 'pick-door': this.closeModal(); clearInterval(this.doorTimer); a.chooseDoor(value); this.showBoons(); break;
       case 'dungeon-path-pre': local(() => { v.dungeonPath = value; a.rememberDungeonChoice('path', value); }); break;
       case 'dungeon-path': a.setDungeonPath(value); break;
       case 'sweep-dungeon': this.closeModal(); a.sweepDungeon(value, v.dungeonSlot ?? this.state.ui.dungeonSlot ?? 'any', v.dungeonPath ?? this.state.ui.dungeonPath ?? 'gold', el.dataset.diff ?? v.dungeonDiff ?? 'easy'); break; // v9.8 (H2)
-      case 'enter-dungeon': this.closeModal(); a.enterDungeon(value, v.dungeonSlot ?? this.state.ui.dungeonSlot ?? 'any', v.dungeonPath ?? this.state.ui.dungeonPath ?? 'gold', el.dataset.diff ?? v.dungeonDiff ?? 'easy', v.dungeonRoute ?? 'normal'); break;
+      case 'enter-dungeon': this.closeModal(); v.dungeonSheet = false; a.enterDungeon(value, v.dungeonSlot ?? this.state.ui.dungeonSlot ?? 'any', v.dungeonPath ?? this.state.ui.dungeonPath ?? 'gold', el.dataset.diff ?? v.dungeonDiff ?? 'easy', v.dungeonRoute ?? 'normal', Number(el.dataset.nm) || 0); break;
       case 'dungeon-route': local(() => { v.dungeonRoute = value; }); break; // v9.6.2
-      case 'dungeon-sel': local(() => { v.dungeonSel = value; v.dungeonDiff = null; }); break;
+      case 'dungeon-sel': local(() => { v.dungeonSel = value; v.dungeonDiff = null; v.dungeonSheet = true; v.dungeonNm = 0; }); break;
       case 'dungeon-diff': local(() => { v.dungeonDiff = value; }); break;
       case 'abandon-dungeon': a.abandonDungeon(); break;
       case 'claim-contract': a.claimContract(Number(value)); break;
@@ -1540,18 +1548,19 @@ export class UI {
         break;
       case 'dungeonRoom':
         this.news(`Salle terminée : ${rewardText(event.reward, formatNumber)}`, '#9cf08a');
-        this.showBoons(); // v9.9 (K7)
+        if (!this.showDoors()) this.showBoons(); // v10.1 (P3) : portes, puis v9.9 (K7) bénédictions
         break;
       case 'dungeonComplete': {
         this.banner(event.sweep ? 'Donjon balayé !' : 'Donjon terminé !', 'win');
         this.news(`Donjon terminé : ${event.item.name} (${rarityById(event.item.rarity).label})`, rarityById(event.item.rarity).color);
         if (event.first) this.celebrate('first-dungeon', 'Premier donjon gagné !', '');
         // v9.3.5 : écran de victoire — butin, couronnes de la difficulté, Rejouer.
-        const crowns = '👑'.repeat((event.rank ?? 0) + 1);
+        const crowns = `<span class="dg-stars big">${'★'.repeat(dungeonStars(this.state, event.id))}<i>${'★'.repeat(3 - dungeonStars(this.state, event.id))}</i></span>${event.nightmare ? ` <b>Cauchemar ${roman(event.nightmare)}</b>` : ''}`;
         const keys = this.state.keys ?? 0;
         this.openModal(`<div class="victory-screen"><h2 id="modal-title">Victoire !</h2><div class="victory-crowns" aria-label="Difficulté">${crowns}</div>
           <div class="victory-loot">${itemFrame(event.item, { tag: 'div' })}<b class="r-${event.item.rarity} rarity-text">${escapeHtml(event.item.name)}</b></div>
-          ${event.earned ? `<div class="victory-rewards">${rewardIcons(event.earned, 'rw-big')}</div>` : ''}
+          ${event.chest ? `<div class="victory-chest">${img('icon_chest')}<b>Gros coffre du premier passage !</b>${rewardIcons(event.chest, 'named')}</div>` : ''}
+          ${event.earned ? `<div class="victory-rewards"><small>Total gagné</small>${rewardIcons(event.earned, 'rw-big')}</div>` : ''}
           <div class="detail-actions"><button class="btn" data-action="close-modal">Fermer</button>
             ${keys > 0 ? `<button class="btn" data-action="enter-dungeon" data-value="${event.id}" data-diff="${event.difficulty}">Rejouer (${keys} clé${keys > 1 ? 's' : ''})</button>
               <button class="btn btn-gold" data-action="sweep-dungeon" data-value="${event.id}" data-diff="${event.difficulty}">⚡ Balayer · 1 ${img('icon_key')}</button>` : ''}</div></div>`);
@@ -3031,6 +3040,43 @@ export class UI {
 
   // v9.9 (K7) : « Choisis une bénédiction » — 3 cartes (rareté en bandeau, flèches ↑ pour l'ampleur), choix automatique
   // de la plus rare au bout de 20 s ; le combat continue. Le petit livre liste celles déjà prises.
+  // v10.1 (P3) : calque de la feuille de donjon (enfant de #app, au-dessus du HUD).
+  dgSheet(html) {
+    if (typeof document === 'undefined') return;
+    let h = document.getElementById('dg-host');
+    if (!html) { h?.remove(); return; }
+    if (!h) { h = document.createElement('div'); h.id = 'dg-host'; this.root.appendChild(h); }
+    const sc = h.querySelector('.dg-sheet')?.scrollTop ?? 0;
+    if (h.innerHTML !== html) { h.innerHTML = html; const s = h.querySelector('.dg-sheet'); if (s) s.scrollTop = sc; }
+  }
+
+  // v10.1 (P3) : résumé d'un Balayer ×N.
+  sweepSummary(r) {
+    const best = [...r.items].sort((a, b) => (b.power ?? 0) - (a.power ?? 0)).slice(0, 6);
+    this.openModal(`<div class="victory-screen"><h2 id="modal-title">${r.count} donjon${r.count > 1 ? 's' : ''} balayé${r.count > 1 ? 's' : ''} !</h2>
+      <div class="victory-loot sweep-items">${best.map((it) => itemFrame(it, { tag: 'div' })).join('')}</div>
+      <div class="victory-rewards">${rewardIcons(r.earned, 'rw-big')}</div>
+      <div class="detail-actions"><button class="btn btn-gold" data-action="close-modal">Super</button></div></div>`);
+  }
+
+  // v10.1 (P3) : deux portes pour la salle suivante ; choix automatique au bout de 10 s.
+  showDoors() {
+    if (typeof document === 'undefined' || !this.state?.dungeon || !this.$('modal').classList.contains('hidden')) return false;
+    const offer = this.actions.offerDoors?.();
+    if (!offer?.length) return false;
+    const card = (id) => `<button class="door-card" data-action="pick-door" data-value="${id}">${img(DOORS[id].icon)}<b>${DOORS[id].label}</b><span>${escapeHtml(DOORS[id].text)}</span></button>`;
+    this.openModal(`<div class="door-screen"><h2 id="modal-title">Quelle porte ?</h2><div class="door-cards">${offer.map(card).join('')}</div><span class="muted door-timer">Choix automatique dans 10 s</span></div>`);
+    clearInterval(this.doorTimer);
+    let left = 10;
+    this.doorTimer = setInterval(() => {
+      left -= 1;
+      const t = this.$('modal-card')?.querySelector('.door-timer');
+      if (t) t.textContent = `Choix automatique dans ${left} s`;
+      if (left <= 0 || !t) { clearInterval(this.doorTimer); if (t) { this.closeModal(); this.actions.chooseDoor(null); this.showBoons(); } }
+    }, 1000);
+    return true;
+  }
+
   showBoons() {
     if (typeof document === 'undefined' || !this.state?.dungeon) return;
     if (!this.$('modal').classList.contains('hidden')) { this.boonLater = true; return; }

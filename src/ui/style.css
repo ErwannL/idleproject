@@ -4342,3 +4342,29 @@ html.reduce-motion .howto-card, html.reduce-motion .learn-card { animation: none
 /* v10.1 (P2.3) : fiche compagnon en grand — personnage à 85 % de la boîte (~280 px), net, liseré de l'élément. */
 .up-hero { min-height: 330px; border: 2px solid var(--ec, #5a6a90); border-radius: 10px; box-shadow: inset 0 0 18px color-mix(in srgb, var(--ec, #5a6a90) 45%, transparent); }
 .up-hero .hd-art, .up-hero .up-art { height: 280px; max-height: none; width: auto; max-width: 100%; object-fit: contain; image-rendering: pixelated; }
+/* v10.1 (P3) : donjons en grandes cartes. */
+.dg-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 8px; }
+.dg-keys { display: inline-flex; align-items: center; gap: 4px; font-size: 16px; } .dg-keys img { width: 24px; height: 24px; }
+.dg-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 320px)); gap: 10px; justify-content: center; }
+@media (max-width: 720px) { .dg-grid { grid-template-columns: minmax(0, 320px); } }
+.dg-card { position: relative; aspect-ratio: 2 / 1; border-radius: 10px; overflow: hidden; background-size: cover; background-position: center; image-rendering: pixelated;
+  border: 2px solid #4a5578; display: flex; flex-direction: column; justify-content: space-between; padding: 8px; box-shadow: inset 0 -60px 50px -20px rgba(0,0,0,.85), inset 0 40px 40px -20px rgba(0,0,0,.7); }
+.dg-card.locked { filter: grayscale(.85) brightness(.6); }
+.dg-open { position: absolute; inset: 0; background: none; border: 0; cursor: pointer; z-index: 0; }
+.dg-top, .dg-gain, .dg-actions { position: relative; z-index: 1; pointer-events: none; }
+.dg-actions > *, .dg-actions button { pointer-events: auto; }
+.dg-top { display: flex; justify-content: space-between; gap: 6px; text-shadow: 0 1px 2px #000; }
+.dg-stars { color: #ffd34a; letter-spacing: 1px; } .dg-stars i { color: rgba(255,255,255,.25); font-style: normal; } .dg-stars.big { font-size: 34px; }
+.dg-gain { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; color: #fff; text-shadow: 0 1px 2px #000; } .dg-gain img { width: 28px; height: 28px; }
+.dg-actions { display: flex; gap: 6px; }
+.dg-sheet-back { position: fixed; inset: 0; z-index: 9000; background: rgba(4,7,16,.65); }
+.dg-sheet { position: fixed; z-index: 9001; left: 50%; bottom: 0; transform: translateX(-50%); width: min(560px, 100vw); max-height: 88vh; overflow: auto; background: #141a2c; border: 2px solid #4a5578; border-radius: 14px 14px 0 0; padding: 10px; }
+.dg-close { position: sticky; top: 0; float: right; z-index: 2; }
+.dg-enter { position: sticky; bottom: -10px; background: #141a2c; padding: 8px 0; margin-top: 8px; border-top: 1px solid #2c3550; display: flex; flex-wrap: wrap; gap: 6px; }
+.dg-advice, .dg-nm { margin: 6px 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.dungeon-ally .da-row { display: flex; gap: 8px; align-items: center; } .da-mult { font-size: 26px; font-weight: 900; color: #ffd34a; text-shadow: 0 0 6px #b8860b; }
+.door-cards { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.door-card { width: 170px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px; background: #1d2440; border: 2px solid #6a5a2c; border-radius: 12px 12px 4px 4px; color: #fff; cursor: pointer; }
+.door-card img { width: 40px; height: 40px; } .door-card:hover { border-color: #ffd34a; }
+.victory-chest { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 8px 0; } .victory-chest > img { width: 56px; height: 56px; }
+.sweep-items { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }

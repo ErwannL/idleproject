@@ -36,7 +36,8 @@ import { activeSynergies, companionById, onExpedition, replaceCompanion, toggleC
 import { claimContract } from './core/contracts.js';
 import { claimAchievement, claimableAchievements } from './core/achievements.js';
 import { claimAllMissions, claimLogin, claimMission, claimMissionBonus, claimTrackTier, mergeReward, refreshMissions, trackMissions } from './core/missions.js';
-import { abandonDungeon, dungeonById, setDungeonPath, startDungeon, sweepDungeon } from './core/dungeon.js';
+import { abandonDungeon, dungeonById, setDungeonPath, startDungeon, sweepDungeon, sweepDungeonN } from './core/dungeon.js';
+import { chooseDoor, offerDoors } from './core/dungeon-plus.js'; // v10.1 (P3)
 import { DUNGEON_DIFFICULTIES } from './data/dungeons.js';
 import { buyUpgradeBulk } from './core/economy.js';
 import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
@@ -379,8 +380,8 @@ const actions = {
     changeStage(state, world, state.maxStage);
     done(true, 'Progression reprise');
   },
-  enterDungeon(id, slot, path, difficulty, route = 'normal') {
-    if (!startDungeon(state, id, slot, path, difficulty, route)) return;
+  enterDungeon(id, slot, path, difficulty, route = 'normal', nightmare = 0) {
+    if (!startDungeon(state, id, slot, path, difficulty, route, nightmare)) return;
     resetWave(world);
     const d = dungeonById(id);
     placeTransition(`Donjon · ${DUNGEON_DIFFICULTIES[difficulty]?.label ?? ''}`, d.name, d.description, ZONES[d.zone]?.id);
@@ -431,6 +432,22 @@ const actions = {
     sound.play('upgrade', { volume: 0.6 });
     ui.handleEvent({ type: 'dungeonComplete', ...r }, state);
     save();
+  },
+  // v10.1 (P3) : Balayer ×N, portes de salles.
+  sweepDungeonN(id, difficulty, n) {
+    const r = sweepDungeonN(state, id, rng, n, { difficulty, nightmare: state.dungeonNightmare?.[id] ?? 0 });
+    if (!r) return done(false, 'Aucune clé, ou donjon pas encore gagné à cette difficulté.');
+    sound.play('upgrade', { volume: 0.6 });
+    ui.sweepSummary?.(r);
+    save(); ui.invalidate();
+  },
+  offerDoors() { return offerDoors(state, rng); },
+  chooseDoor(id) {
+    const r = chooseDoor(state, id, state.dungeon?.roomGold ?? 0);
+    if (r?.heal && world.hero) { world.hero.hp = world.heroStats?.maxHp ?? world.hero.hp; for (const c of world.team ?? []) if (c.maxHp) c.hp = c.maxHp; }
+    if (r?.given) ui.toast(`Trésor : ${rewardText(r.given, formatNumber)}`, '#ffd36a');
+    if (r) { save(); ui.invalidate(); }
+    return r;
   },
   abandonDungeon() {
     abandonDungeon(state);
