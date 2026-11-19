@@ -422,7 +422,9 @@ await check('donjon : entrer avec une clé puis abandonner', async () => {
   await clickTab('dungeons');
   await page.waitForTimeout(300);
   const keys = await game(() => __idle.state.keys);
-  await page.click('[data-action="enter-dungeon"]');
+  await page.click('.dg-card [data-action="dungeon-sel"]'); // v10.1 : la carte ouvre la feuille, « Entrer » y est fixé en bas
+  await page.waitForTimeout(300);
+  await page.click('.dg-enter [data-action="enter-dungeon"]');
   await page.waitForTimeout(300);
   const inside = await game(() => ({ d: __idle.state.dungeon, keys: __idle.state.keys }));
   assert(inside.d && inside.keys === keys - 1, JSON.stringify(inside));

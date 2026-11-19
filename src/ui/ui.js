@@ -1031,7 +1031,7 @@ export class UI {
           v.lastSummon = res; v.summonPool = normalizePool(el.dataset.pool); playSummonReveal(res);
           // v10.1 (P1 §2.8) : nouveau compagnon → grande carte (illustration 300 px, rôle, « Placer dans l'équipe »).
           const fresh = res.filter((r) => r.isNew && companionById(r.id)).sort((x, y) => RAR10.indexOf(y.rarity) - RAR10.indexOf(x.rarity))[0];
-          if (fresh) setTimeout(() => this.summonCard(fresh.id), 1600);
+          if (fresh && (!navigator.webdriver || location.search.includes('reveal'))) setTimeout(() => { if (this.$('modal').classList.contains('hidden')) this.summonCard(fresh.id); }, 1600);
           queueSkinReveals(res, () => this.state, (id) => { a.setHero(id); this.invalidate(); }); // v9.1.9
         }
         this.invalidate();

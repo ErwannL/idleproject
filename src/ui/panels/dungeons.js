@@ -112,7 +112,7 @@ export default {
   icon: 'icon_dungeon',
   extra: (ui, state) => `${img('icon_key')}<b class="num">${state.keys}</b> clé${state.keys > 1 ? 's' : ''}`,
   render(ui, state) {
-    if (state.dungeon) return running(ui, state);
+    if (state.dungeon) { ui.view.dungeonSheet = false; ui.dgSheet?.(''); return running(ui, state); }
     // v9.1.3 : le Défi de la semaine est passé dans Aventure › Défis (avec la Tour).
     return dungeonsList(ui, state);
   },
