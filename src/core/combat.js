@@ -361,6 +361,7 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
     const diff = DUNGEON_DIFFICULTIES[state.dungeon?.difficulty] ?? DUNGEON_DIFFICULTIES.easy;
     s.hp *= diff.hp;
     s.damage *= diff.damage;
+    if (boss) s.hp *= 1 + 0.6 * (state.dungeon?.nightmare ?? 0); // v10.1 (P3) : Cauchemar (le reste via routeHp)
   }
   // Transcendance « Entropie » : ennemis qui grandissent moins vite.
   const entropy = enemyScaleFactor(state, enc.level, balance);

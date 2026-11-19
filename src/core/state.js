@@ -1,4 +1,5 @@
 import { sanitizeChronicles } from './chronicles.js';
+import { sanitizeDungeonPlus } from './dungeon-plus.js';
 // État persistant de la partie (tout ce qui est sauvegardé) et validation au chargement.
 import { applyClassSkillNames } from '../data/skills.js';
 import { levelForStage, locateStage, stagesPerCycle } from './combat.js';
@@ -352,6 +353,7 @@ function cleanActivities(state, raw) {
   sanitizeChallenge(state, raw);
   sanitizeArena(state, raw);
   sanitizeChronicles(state, raw); // v9.11 (7)
+  sanitizeDungeonPlus(state, raw); // v10.1 (P3)
   state.transcend = sanitizeTranscend(raw.transcend);
   state.bounty = sanitizeBounty(raw.bounty);
   state.codex = sanitizeCodex(raw.codex);

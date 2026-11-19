@@ -14,7 +14,7 @@ from pl939_api import b64, call, images_of, wait  # noqa: E402
 import check_anims as CA  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(os.path.dirname(HERE))
-OUT = os.path.join(HERE, 'pixellab10', 'fiches'); PX = os.path.join(ROOT, 'assets', 'hd', 'px')
+OUT = os.path.join(HERE, os.environ.get('FICHES_OUT', 'pixellab101/fiches')); PX = os.path.join(ROOT, 'assets', 'hd', 'px')
 FRAMES_JSON = os.path.join(OUT, 'frames.json')
 AURA = {'red': 'blazing fire aura and floating embers around the body', 'blue': 'swirling glowing water aura and sparkles around the body', 'green': 'glowing leaves and soft green light around the body',
         'light': 'radiant golden holy light aura around the body', 'dark': 'swirling violet shadow aura around the body'}
@@ -53,7 +53,8 @@ def gen(args):
     C = companions(); c = C[cid]
     path = os.path.join(OUT, f"{cid}{'_awake' if awake else ''}.png")
     ref = reference(c)
-    size = (128, 128) if c['kind'] == 'ally' else (96, 96)
+    # v10.1 (P2.3) : 224×256 natif pour les compagnons (agrandi ×3 exactement à l'installation).
+    size = (int(os.environ.get('FW', 224)), int(os.environ.get('FH', 256))) if c['kind'] == 'ally' else (96, 96)
     init = fit(ref, size)
     who = 'fantasy pet creature' if c['kind'] != 'ally' else 'fantasy hero character'
     desc = (f"the exact same {who} as the reference, full body, same pose, same colors, same hair, same clothes, same weapon and accessories, "
@@ -64,7 +65,12 @@ def gen(args):
             'init_image': b64(init), 'init_image_strength': int(os.environ.get('STRENGTH', 680)), 'color_image': b64(init if not awake else init),
             'outline': 'single color black outline', 'shading': 'medium shading', 'detail': 'highly detailed', 'view': 'side', 'direction': 'east'}
     try:
-        im = images_of(wait(call('POST', '/create-image-bitforge', body)))[0]
+        if size[0] > 200 or size[1] > 200:  # v10.1 : bitforge plafonne à 200 px → pixflux (image de départ + palette)
+            body = {k: v for k, v in body.items() if k not in ('color_image',)}
+            body['init_image_strength'] = int(os.environ.get('STRENGTH', 600))
+            im = images_of(wait(call('POST', '/create-image-pixflux', body)))[0]
+        else:
+            im = images_of(wait(call('POST', '/create-image-bitforge', body)))[0]
         os.makedirs(OUT, exist_ok=True); im.save(path); return f'{cid}{" éveillé" if awake else ""} ok'
     except Exception as e:  # noqa: BLE001
         return f'{cid} ERREUR {str(e)[:200]}'
@@ -148,10 +154,52 @@ def install():
     print('installé')
 
 
-if __name__ == '__main__':
+if __name__ == '__main__' and '--install101' not in sys.argv:
     if '--install' in sys.argv: install(); sys.exit(0)
     awake = '--awake' in sys.argv
     ids = [a for a in sys.argv[1:] if not a.startswith('--')] or list(companions())
     if awake: ids = [i for i in ids if companions()[i]['kind'] == 'ally']
     with ThreadPoolExecutor(5) as ex:
         for m in ex.map(gen, [(i, awake) for i in ids]): print(m, flush=True)
+
+
+# ---- v10.1 (P2.3) : installation 224×256 → ×3 exact, recadré à la boîte du personnage + 4 % ----
+def strip_bg(im):
+    """Fond uni de pixflux (gris) retiré par remplissage depuis les bords."""
+    im = im.convert('RGBA'); px = im.load(); w, h = im.size
+    bg = px[0, 0][:3]
+    near = lambda c: sum(abs(c[i] - bg[i]) for i in range(3)) <= 18
+    seen = set(); stack = [(x, y) for x in range(w) for y in (0, h - 1)] + [(x, y) for y in range(h) for x in (0, w - 1)]
+    while stack:
+        x, y = stack.pop()
+        if (x, y) in seen or not (0 <= x < w and 0 <= y < h): continue
+        seen.add((x, y))
+        if px[x, y][3] < 128 or near(px[x, y]):
+            px[x, y] = (0, 0, 0, 0); stack += [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+    return im
+
+
+def pad4(im):
+    im = im.crop(im.getchannel('A').point(lambda v: 255 if v >= 128 else 0).getbbox())
+    m = max(1, round(max(im.size) * 0.04))
+    out = Image.new('RGBA', (im.width + 2 * m, im.height + 2 * m), (0, 0, 0, 0)); out.alpha_composite(im, (m, m))
+    return out
+
+
+def install101():
+    C = companions()
+    for cid, c in C.items():
+        if c['kind'] != 'ally': continue
+        src = os.path.join(OUT, f'{cid}.png')
+        if not os.path.exists(src): continue
+        im = pad4(lock_palette(strip_bg(Image.open(src)), reference(c)))
+        key = c['sprite']
+        x3 = lambda i: i.resize((i.width * 3, i.height * 3), Image.NEAREST)
+        x3(im).save(os.path.join(PX, f'{key}.webp'), 'WEBP', lossless=True)
+        im.save(os.path.join(PX, 'thumb', f'{key}.webp'), 'WEBP', lossless=True)
+        x3(pad4(awaken(im, c['el']))).save(os.path.join(PX, 'awake', f'{key}.webp'), 'WEBP', lossless=True)
+        print(cid, im.size, '→', (im.width * 3, im.height * 3))
+
+
+if __name__ == '__main__' and '--install101' in sys.argv:
+    install101()

@@ -4339,3 +4339,6 @@ html.reduce-motion .howto-card, html.reduce-motion .learn-card { animation: none
 .summon-card .sc-art img { max-height: 300px; max-width: 100%; object-fit: contain; image-rendering: pixelated; }
 .summon-card .sc-role { margin: 6px 0 2px; }
 .db-dormant { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; border-color: #f1c75b; } .db-card.dormant { box-shadow: 0 0 0 2px #f1c75b inset; }
+/* v10.1 (P2.3) : fiche compagnon en grand — personnage à 85 % de la boîte (~280 px), net, liseré de l'élément. */
+.up-hero { min-height: 330px; border: 2px solid var(--ec, #5a6a90); border-radius: 10px; box-shadow: inset 0 0 18px color-mix(in srgb, var(--ec, #5a6a90) 45%, transparent); }
+.up-hero .hd-art, .up-hero .up-art { height: 280px; max-height: none; width: auto; max-width: 100%; object-fit: contain; image-rendering: pixelated; }
