@@ -6,7 +6,7 @@ import { stageLabel } from '../../core/combat.js';
 import { BALANCE } from '../../data/balance.js';
 import { bulkPlan, upgradeCost, upgradeMilestones } from '../../core/economy.js';
 import { computeHeroStats } from '../../core/stats.js';
-import { bossForecast, coin, costButton, escapeHtml, fold, forecastHtml, formatDecimal, formatNumber, img } from '../common.js';
+import { bossForecast, coin, costButton, escapeHtml, fold, distinctTo, forecastHtml, formatDecimal, formatNumber, img } from '../common.js';
 import { upgradeProfits } from '../../core/profit.js';
 import { pref } from '../prefs.js';
 import { BASE_UPGRADES, nextUpgradeUnlock, openUpgrades } from '../../core/unlocks.js';
@@ -115,7 +115,8 @@ export default {
       const count = Math.max(1, plan.count);
       const cost = plan.count ? plan.cost : upgradeCost(key, level);
       const next = computeHeroStats({ ...state, upgrades: { ...state.upgrades, [key]: level + count } });
-      const [from, to] = effect(key, current, next);
+      const [from, to0] = effect(key, current, next);
+      const to = distinctTo(from, to0, current.combatPower > 0 ? (next.combatPower / current.combatPower - 1) * 100 : 0);
       // v9.1.3 (A5) : palier visible à l'avance, selon la quantité choisie (Dégâts et PV) : multiplicateur atteint par
       // cet achat, sinon le prochain palier et son niveau (cumul ×1,35 × ×1,75 aux niveaux communs).
       const ms = max ? null : upgradeMilestones(key, level, level + count);

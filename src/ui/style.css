@@ -4329,3 +4329,6 @@ html.reduce-motion .howto-card, html.reduce-motion .learn-card { animation: none
 /* v10.1 : cartes de glossaire. */
 .gloss-head { display: flex; gap: 12px; align-items: center; } .gloss-head img { width: 48px; height: 48px; image-rendering: pixelated; object-fit: contain; }
 .gloss-card p { margin: 6px 0; } [data-gloss] { cursor: help; }
+.rw-icons.rw-split { display: inline-flex; flex-direction: column; gap: 2px; align-items: flex-start; }
+.rw-split .rw-row { display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.rw-split .rw-row > small { color: var(--muted, #9aa); font-size: 11px; min-width: 74px; }

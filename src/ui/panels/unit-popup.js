@@ -66,6 +66,7 @@ function skillBubble(ui, state, c, own, mine) {
       const diff = [];
       const va = skillTextAt(a, mult(a)).match(/\d+/)?.[0], vb = skillTextAt(b, mult(b)).match(/\d+/)?.[0];
       if (va !== vb) diff.push(`${va} → <b class="good">${vb}</b>`);
+      if (!diff.length && !(T(a.every) !== T(b.every)) && (a.duration ?? 0) === (b.duration ?? 0)) diff.push(`puissance → <b class="good">+${Math.round((levelMult(kind, lv + 1) / levelMult(kind, lv) - 1) * 1000) / 10} %</b>`.replace('.', ','));
       if (T(a.every) !== T(b.every)) diff.push(`recharge ${T(a.every)} s → <b class="good">${T(b.every)} s</b>`);
       if ((a.duration ?? 0) !== (b.duration ?? 0)) diff.push(`durée ${a.duration} s → <b class="good">${b.duration} s</b>`);
       next = diff.join(' · ');

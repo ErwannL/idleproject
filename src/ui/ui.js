@@ -2330,6 +2330,7 @@ export class UI {
     const open = this.tabVisible?.[r.tab] !== false;
     this.openModal(`<div class="gloss-card"><div class="gloss-head">${pic}<div><h2 id="modal-title">${escapeHtml(r.name)}</h2><span class="muted">Tu en as <b class="num">${formatNumber(have)}</b></span></div></div>
       <p><b>À quoi ça sert :</b> ${escapeHtml(r.use)}</p><p><b>Où en gagner :</b> ${escapeHtml(r.where)}</p>
+      ${key === 'gold' || key === 'gems' ? '<p class="muted small">Les grands nombres sont abrégés : K = mille, M = million, B = milliard, T = mille milliards, puis Qa, Qi…</p>' : ''}
       <div class="detail-actions">${open ? `<button class="btn btn-gold" data-action="open-tab" data-value="${r.tab}">Y aller</button>` : ''}<button class="btn" data-action="close-modal">Fermer</button></div></div>`);
   }
 

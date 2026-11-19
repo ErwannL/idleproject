@@ -13,6 +13,12 @@ import { rewardText } from '../core/rewards.js';
 import { itemBase, rarityById } from '../core/loot.js';
 import { itemIconUrl, spriteUrl } from '../render/pixel.js';
 
+// v10.1 (P1 §2.6) : un « avant → après » n'affiche jamais deux fois le même nombre : on ajoute le gain en %.
+export function distinctTo(from, to, pct) {
+  if (String(from) !== String(to)) return to;
+  const p = Number.isFinite(pct) && pct > 0 ? pct : 0.01;
+  return `${to} (+${(p >= 10 ? Math.round(p) : p >= 0.1 ? Math.round(p * 10) / 10 : Math.max(0.01, Math.round(p * 100) / 100)).toString().replace('.', ',')} %)`;
+}
 export const escapeHtml = (text) => String(text).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 // v9.8 : « file:chemin » = image de fichier (icônes générées après l'atlas, ex. compétences de classe).
 export const icon = (name, scale = 2, options = {}) => (String(name).startsWith('file:') ? String(name).slice(5) : spriteUrl(name, scale, options));
@@ -196,5 +202,10 @@ export function rewardIcons(reward, cls = '') {
     .map(([k, v]) => `<span class="rw" data-gloss="${k}"><img class="px" src="${icon(REWARD_ICONS[k])}" alt="">${formatNumber(Math.floor(v))}${/rw-big|named/.test(cls) ? `<small class="rw-name">${REWARD_NAMES[k]}</small>` : ''}</span>`); // v9.8 (I8) : nom sous l'icône dans les écrans de résultat
   if (!parts.length) return '';
   const text = rewardText(reward, formatNumber);
+  // v10.1 (P1 §2.4) : coffre riche → deux lignes, « Progression » (or, gemmes, clés, fragments) et « Matériaux ».
+  const mat = (p) => /data-gloss="(shards|grimoire|ascension|mastery)"/.test(p);
+  if (parts.length > 3 && parts.some(mat) && parts.some((p) => !mat(p))) {
+    return `<span class="rw-icons rw-split ${cls}" title="${escapeHtml(text)}" role="img" aria-label="${escapeHtml(text)}"><span class="rw-row"><small>Progression</small>${parts.filter((p) => !mat(p)).join('')}</span><span class="rw-row"><small>Matériaux</small>${parts.filter(mat).join('')}</span></span>`;
+  }
   return `<span class="rw-icons ${cls}" title="${escapeHtml(text)}" role="img" aria-label="${escapeHtml(text)}">${parts.join('')}</span>`;
 }
