@@ -50,7 +50,7 @@ IDLE = {
     'pet_crystal_hedgehog': 'idle sniffing, nose twitching, crystal spikes glinting, breathing',
 }
 ULT = {
-    'ally_shadow': 'vanishing into shadow and reappearing behind the enemy with a flurry of dagger slashes, dark smoke',
+    'ally_shadow': 'a flurry of very fast dagger slashes forward, body leaning and twisting, daggers always visible in both hands, dark wisps',
     'ally_ninja': 'a lightning fast series of katana slashes, many quick strikes, body moving forward every frame',
     'ally_barbarian': 'leaping up and smashing the axe down with both hands, the axe stays in the hands on every frame',
     'ally_squire': 'leaping high and bringing the sword down in a heroic overhead strike, sword and shield always visible',
