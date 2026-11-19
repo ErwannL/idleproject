@@ -1,6 +1,20 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.0.0 — Une équipe qui se bat vraiment
+## Ascendrya v10.1.0 — Comprendre, collectionner, combattre aux cartes
+
+- **Apprendre en images** : 3 cartes « Comment jouer » (le héros combat seul, l'or le rend plus fort, avancer et battre le boss), une seule fois, rouvrables dans ☰. Puis une notion par étape (1, 2, 4, 6, 8, 10, 15, 25, 30) avec sa carte de déblocage illustrée : à quoi ça sert, ce que ça rapporte, « Essayer maintenant ». Le premier compagnon arrive à l'étape 8.
+- **Un seul appel à l'action** : le Sceau dit pourquoi (« +12 % de puissance »), un anneau lumineux montre où toucher sur l'écran ouvert ; une consigne ne revient jamais plus de 3 fois (mise de côté 10 minutes).
+- **Glossaire partout** : toucher une ressource (or, gemmes, éclats, clés, grimoires, pierres d'éveil, fragments, essences, tickets) ouvre sa carte — image, à quoi ça sert, où en gagner, « Y aller » ; une bulle à sa première apparition ; les mots du jeu (Contrat, Haut fait, Collections, Familier, Éveil…) expliqués ; légende des suffixes K, M, B, T.
+- **Écrans plus clairs** : bannière illustrée et phrase « à quoi sert l'écran » en tête de chaque onglet ; coffres en deux lignes Progression / Matériaux ; un « avant → après » ne montre plus deux fois le même nombre ; ressources qui dorment (clés, tickets, Arène, expéditions) signalées au Carnet ; grande carte d'invocation avec le rôle et « Placer dans l'équipe ».
+- **Fiches des compagnons en grand** : 20 illustrations refaites en 224 × 256 depuis l'image de combat, agrandies ×3 exactement, recadrées au personnage, liseré de l'élément.
+- **Donjons** : 5 grandes cartes illustrées (gain principal, 3 étoiles, Entrer, Balayer ×N), feuille avec « Entrer » fixé en bas, équipe conseillée, compagnon adapté ×3 et « Le prendre », portes de salles (Combat, Élite, Trésor, Autel, Repos ; choix automatique en 10 s), gros coffre au premier passage, Cauchemar I, II, III… (+60 % par palier), Balayer tout.
+- **Arène à cartes** : chaque compagnon devient une carte (recto : portrait, PV, attaque, rôle, élément ; verso : ses sorts). Formation 2 × 3, ciblage par rôle (l'assassin vise l'arrière, l'archer le plus blessé, le mage toute une rangée, le gardien attire les coups), jauge d'ultime, étages 1 à 100 puis le Sommet, une règle tous les 5 étages, un boss tous les 10, un gardien tous les 25, 3 étoiles par étage, un coffre tous les 15 ★, essais illimités, 5 balayages par jour, saisons de 28 jours. Survie et Boss commun passent en Épreuves. Ton ancien record d'étages est repris.
+- **Illustrations** : icônes dessinées des missions (48 px), 4 tuiles des Statistiques, aperçus Classement et Guilde, vignettes animées des compétences ; chaque écran a au moins 15 % d'image (`tools/art/check_screens.mjs`).
+- **Petits défauts corrigés** : une seule icône de bonus au-dessus du héros (liseré doré aux pieds des compagnons) ; noms de compétences qui ne se chevauchent plus (« Coup de taille…llante ») ; plus d'anneau violet à chaque coup contre les Titans (traînée de 0,15 s sur les critiques) ; la pointe de la Roue ne cache plus le titre ; la fiche compagnon voile toute la fenêtre, même en 1716 px ; petites fenêtres : scène à 55 % au moins, place de la barre de compétences réservée, puce de bonus au-dessus, carte de quête en icône.
+
+### Versions précédentes
+
+<details><summary><b>Ascendrya v10.0.0 — Une équipe qui se bat vraiment</b></summary>
 
 - **Compagnons qui foncent** : un combattant (Mercenaire, Barbare, Écuyer, Nain, Lancier, Lame rose, Ombre, Ninja, Seigneur de l'ombre, Paladin d'azur, Reine démone) se rue au-devant de sa cible en 0,12 s avec des images rémanentes, frappe au contact, puis revient d'un petit saut arrière ; un mage fait un pas, une lueur de son élément se charge dans sa main, le sort part de la main, puis il recule ; un archer recule d'un pas, tend la corde et tire. Les compétences s'enchaînent dans une file (0,45 s au moins entre deux gestes, l'équipe décalée de 0,15 s, l'ultime passe devant). Les familiers bondissent, piquent, rebondissent ou passent en traînée vers l'ennemi puis reviennent. Dans les Titans et l'Arène, personne ne traverse le boss.
 - **Animations refaites** : attaques, repos et ultimes figés régénérés (Mercenaire, Barbare, Lancier, Paladin d'azur, Lame rose, Pyromancienne, Ninja, Fée, Ombre, Sorcière, chat, hibou, golem, phénix, dragonnet, tortue, hérisson…), contrôlés automatiquement (`tools/art/check_anims.py` : au moins 15 % des pixels qui changent par image pour une action, un vrai souffle au repos, l'arme toujours visible).
@@ -11,7 +25,7 @@
 - **Titans** : les compagnons frappent ×3 contre les grands boss ; cases espacées ; le bilan montre les portraits et le meilleur coup.
 - **Objets, missions, roue, boutique, talents, téléphone** : « Bien moins bon que ton casque actuel (−97 %) » et Recycler en bouton principal ; missions faites « Fait ✔ » (palier figé jusqu'au lendemain, progression gardée au chargement) ; Tâches du Héraut à l'échelle de l'étape avec des éclats ; carte de quête repliée en icône après 10 s ; Roue : titre dégagé, quantité sous chaque icône ; Boutique : tickets gagnés par source avec leur progression ; Talents : « Apprendre le meilleur » gris et « Il manque 2 fragments » ; téléphone : un ennemi toujours visible devant le héros.
 
-### Versions précédentes
+</details>
 
 <details><summary><b>Ascendrya v9.11.0 — Des sorts qui claquent, un Colosse vivant, de quoi suivre après la 10ᵉ heure</b></summary>
 
