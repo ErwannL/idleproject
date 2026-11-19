@@ -1,0 +1,199 @@
+{
+ "canvas": {
+  "h": 144,
+  "w": 149
+ },
+ "frames": 6,
+ "fps": 16,
+ "loop": false,
+ "anchor": {
+  "x": 80,
+  "y": 66,
+  "kind": "origin"
+ },
+ "message": "A 6-frame retro impact flash: a bright white core with a sharp four-pointed star that pops out on frame 2, and 8 thin straight yellow-white sparks flying out in every direction, fading by the last frame. There is no ring or disc, and the canvas is grown so nothing is cut off. The star's length and the spark speed are the sliders to try; I left out a dark outline because the flash reads cleanly without one.",
+ "effect_id": "572f6ee4-bb8e-4ffd-a5ef-0f743265aff3",
+ "sheet": {
+  "frames": [
+   {
+    "filename": "ascendrya-v-impact 0.png",
+    "frame": {
+     "x": 0,
+     "y": 0,
+     "w": 149,
+     "h": 144
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 149,
+     "h": 144
+    },
+    "sourceSize": {
+     "w": 149,
+     "h": 144
+    },
+    "pivot": {
+     "x": 0.5369127516778524,
+     "y": 0.4583333333333333
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-impact 1.png",
+    "frame": {
+     "x": 149,
+     "y": 0,
+     "w": 149,
+     "h": 144
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 149,
+     "h": 144
+    },
+    "sourceSize": {
+     "w": 149,
+     "h": 144
+    },
+    "pivot": {
+     "x": 0.5369127516778524,
+     "y": 0.4583333333333333
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-impact 2.png",
+    "frame": {
+     "x": 298,
+     "y": 0,
+     "w": 149,
+     "h": 144
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 149,
+     "h": 144
+    },
+    "sourceSize": {
+     "w": 149,
+     "h": 144
+    },
+    "pivot": {
+     "x": 0.5369127516778524,
+     "y": 0.4583333333333333
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-impact 3.png",
+    "frame": {
+     "x": 0,
+     "y": 144,
+     "w": 149,
+     "h": 144
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 149,
+     "h": 144
+    },
+    "sourceSize": {
+     "w": 149,
+     "h": 144
+    },
+    "pivot": {
+     "x": 0.5369127516778524,
+     "y": 0.4583333333333333
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-impact 4.png",
+    "frame": {
+     "x": 149,
+     "y": 144,
+     "w": 149,
+     "h": 144
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 149,
+     "h": 144
+    },
+    "sourceSize": {
+     "w": 149,
+     "h": 144
+    },
+    "pivot": {
+     "x": 0.5369127516778524,
+     "y": 0.4583333333333333
+    },
+    "duration": 63
+   },
+   {
+    "filename": "ascendrya-v-impact 5.png",
+    "frame": {
+     "x": 298,
+     "y": 144,
+     "w": 149,
+     "h": 144
+    },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": {
+     "x": 0,
+     "y": 0,
+     "w": 149,
+     "h": 144
+    },
+    "sourceSize": {
+     "w": 149,
+     "h": 144
+    },
+    "pivot": {
+     "x": 0.5369127516778524,
+     "y": 0.4583333333333333
+    },
+    "duration": 63
+   }
+  ],
+  "meta": {
+   "app": "PixelLab VFX Creator",
+   "image": "ascendrya-v-impact.png",
+   "format": "RGBA8888",
+   "size": {
+    "w": 447,
+    "h": 288
+   },
+   "scale": "1",
+   "anchor": {
+    "kind": "origin",
+    "x": 80,
+    "y": 66
+   },
+   "frameTags": [
+    {
+     "name": "ascendrya-v-impact",
+     "from": 0,
+     "to": 5,
+     "direction": "forward"
+    }
+   ]
+  }
+ }
+}

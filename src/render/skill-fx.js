@@ -1034,16 +1034,30 @@ function bigFx(scene, name, c) {
   if (def.meteor) {
     // Météore : la pierre tombe en diagonale (traînée de feu), son ombre grandit au sol, puis le cratère.
     later(scene, rel, () => {
-      vfx(scene, 'v_meteor_rock', x - 90, G - 150, { vx: 150, vy: 250, life: 0.6, loop: true });
-      add(scene, rel, 0.6, (ctx, k) => { ctx.globalAlpha = 0.25 + 0.4 * k; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(x, G + 1, 6 + 22 * k, 2 + 3 * k, 0, 0, Math.PI * 2); ctx.fill(); });
+      // v10.0 (3) : pierre 2 fois plus grosse, ombre qui grandit au sol pendant la chute.
+      vfx(scene, 'v_meteor_rock', x - 90, G - 150, { vx: 150, vy: 250, life: 0.6, loop: true, size: 2 });
+      add(scene, 0, 0.6, (ctx, k) => { ctx.globalAlpha = 0.2 + 0.45 * k; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(x, G + 1, 6 + 30 * k, 2 + 4 * k, 0, 0, Math.PI * 2); ctx.fill(); });
     });
-    later(scene, rel + 0.6, () => { vfx(scene, sheet, x, y); scene.shake = Math.max(scene.shake ?? 0, 1.5); vfx(scene, 'v_embers', x, G - 10, { delay: 0.5, tint: def.color }); });
+    later(scene, rel + 0.6, () => {
+      vfx(scene, sheet, x, y);
+      scene.shake = Math.max(scene.shake ?? 0, 1.5);
+      // Cratère qui reste 1 s (creux sombre, bord rougeoyant), puis braises.
+      add(scene, 0, 1.4, (ctx, k) => {
+        const a = k < 0.7 ? 1 : 1 - (k - 0.7) / 0.3;
+        ctx.globalAlpha = 0.85 * a; ctx.fillStyle = '#1a0d08'; ctx.beginPath(); ctx.ellipse(x, G + 1, 30, 5, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 0.9 * a * (0.6 + 0.4 * Math.sin(k * 30)); ctx.strokeStyle = '#ff7a2a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(x, G + 1, 30, 5, 0, Math.PI, Math.PI * 2); ctx.stroke();
+      });
+      vfx(scene, 'v_embers', x, G - 8, { delay: 0.35, tint: def.color });
+      vfx(scene, 'v_embers', x + 14, G - 8, { delay: 0.7, tint: def.color, size: 0.8 });
+    });
     return true;
   }
   if (def.wave) {
     // Cri de guerre : l'onde part du héros et traverse l'équipe (vers la gauche) ; l'aura dorée reste ensuite tant
     // que le bonus dure (render/vfx-world.js, flamme dorée aux pieds).
-    later(scene, rel, () => vfx(scene, sheet, c.hero - 30, G - 20, { flip: true }));
+    // v10.0 (3) : plus de croissant : une lueur dorée sur le héros, puis les flammes dorées 1,5 s sur l'équipe
+    // (vfx-world.js) et une petite icône au-dessus de chaque tête avec la durée.
+    later(scene, rel, () => { scene.buffFlameUntil = scene.time + 1.5; c.team.forEach((tx, i) => vfx(scene, 'v_charge', tx, G - 22, { tint: '#ffc23a', delay: i * 0.05, size: 0.8 })); });
     return true;
   }
   // 2. Impact, 3. retombée.

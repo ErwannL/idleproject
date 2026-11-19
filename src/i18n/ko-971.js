@@ -1,6 +1,13 @@
 // v9.7.1 : 한국어 — 화면 구도, 전리품 가방, 간소화된 메뉴. ./ko.js 끝에 연결.
 let LK = () => null;
 export const EXACT_971 = {
+  "Fait ✔": "완료 ✔",
+  "Compagnons ×3 contre les grands boss": "거대 보스 상대 동료 ×3",
+  "Meilleur coup :": "최고 타격:",
+  "Tickets gagnés ce mois-ci": "이번 달 획득 티켓",
+  "Les événements donnent le reste. Les gemmes gardent leurs sources habituelles.": "나머지는 이벤트에서 얻어요. 젬은 기존 경로로 얻어요.",
+  "Apprendre le meilleur": "최고 재능 배우기",
+  "Aucun marchand de passage pour le moment : ils apparaissent pendant tes combats.": "지금은 상인이 없어요: 전투 중에 나타나요.",
   "Le réveil": "각성",
   "Le héros se relève près du feu. Le chemin des Plaines l'attend.": "영웅이 모닥불 곁에서 일어난다. 평원의 길이 기다린다.",
   "Atteins l'étape 1-5": "1-5 단계 도달",
@@ -657,6 +664,9 @@ export const EXACT_971 = {
   "Tient": "버팀",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
+  [/^Bien moins bon que ton (.+) (actuel|actuelle) \(−(.+) %\)$/, (m) => `현재 ${m[1]}보다 훨씬 약함 (−${m[3]} %)`],
+  [/^Il manque (\d+) fragments?$/, (m) => `조각 ${m[1]}개 부족`],
+  [/^(.+) · (Tickets de compagnon|Tickets de compagnon permanents|Tickets de familier)$/, (m) => `${m[1]} · ${m[2] === 'Tickets de familier' ? '펫 티켓' : '동료 티켓'}`],
   [/^Chapitre (\d+)\/(\d+)$/, (m) => `${m[1]}/${m[2]}장`],
   [/^= (\d+) invocations$/, (m) => `= 소환 ${m[1]}회`],
   [/^Dégâts reçus −(.+) %$/, (m) => `받는 피해 −${m[1]} %`],

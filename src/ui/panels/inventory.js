@@ -171,14 +171,20 @@ function detail(ui, state, item, whoUnit = null) {
   const gain = isEquipped || !forHero ? null : Math.round(statsWithItem(state, item).combatPower - curP);
   const unitFor = wearer ? companionById(wearer) : whoUnit;
   const better = !forHero && !wearer ? teamUpgradeFor(state, item) : null;
-  const power = wearer ? `<div class="ip-power on">Porté par ${escapeHtml(companionById(wearer)?.name ?? '')}</div>`
+  // v10.0 (5) : objet bien moins bon que celui porté → une phrase simple (pas « Dégâts −100 % ») ; Recycler passe en
+  // bouton principal.
+  const wornNow = forHero && !wearer ? state.equipment[heroSlot(item)] : null;
+  const worsePct = forHero && !isEquipped && wornNow ? (statsWithItem(state, item).combatPower / Math.max(1e-300, computeHeroStats(state).combatPower) - 1) * 100 : 0;
+  const worse = worsePct < -5;
+  let power = worse ? `<div class="ip-power bad">Bien moins bon que ton ${escapeHtml(HERO_SLOTS[heroSlot(item)].toLowerCase())} ${['Arme', 'Armure'].includes(HERO_SLOTS[heroSlot(item)]) ? 'actuelle' : 'actuel'} (−${formatDecimal(Math.min(99.9, -worsePct), Math.abs(worsePct) >= 10 ? 0 : 1)} %)</div>` : '';
+  if (!power) power = wearer ? `<div class="ip-power on">Porté par ${escapeHtml(companionById(wearer)?.name ?? '')}</div>`
     : isEquipped ? '<div class="ip-power on">Porté</div>'
     : forHero ? `<div class="ip-power ${gain > 0 ? 'good' : gain < 0 ? 'bad' : 'muted'}">Puissance ${gain > 0 ? '+' : ''}${formatNumber(gain)}</div>`
     : `<div class="ip-power ${better ? 'good' : 'muted'}">${better ? `Meilleur pour ${escapeHtml(companionById(better)?.name ?? '')}` : `Pour : ${escapeHtml(classLabel(itemClass(state, item)))}`}</div>`;
   // v9.5.2 (2.2) : Puissance contextuelle — gain réel ici (monstres ordinaires) et contre le prochain boss, et gain par
   // profil (un objet moins « puissant » peut être meilleur dans la situation, et la fiche le dit).
   let ctxLine = '';
-  if (forHero && !isEquipped) {
+  if (forHero && !isEquipped && !worse) {
     const cur = computeHeroStats(state), nx = statsWithItem(state, item);
     const here = (st) => st.dps * (1 + (st.bonus?.damageVsNormalPct ?? 0) / 100);
     const boss = (st) => st.dps * (1 + ((st.bonus?.damageVsBossPct ?? 0) + (st.bossDamagePct ?? 0)) / 100);
@@ -196,7 +202,7 @@ function detail(ui, state, item, whoUnit = null) {
     const cur = computeHeroStats(state).combatPower;
     const pct = heroWorn ? (1 - computeHeroStats(state, BALANCE, { ...state.equipment, [heroSlot(item)]: null }).combatPower / cur) * 100
       : (statsWithItem(state, item).combatPower / cur - 1) * 100;
-    if (Number.isFinite(pct)) share = `<li class="ip-share">${img('icon_crown')}<b class="num ${pct >= 0 ? 'good' : 'bad'}">${pct >= 0 ? '+' : '−'}${formatDecimal(Math.abs(pct))} %</b> de ta puissance${heroWorn ? '' : ' si équipé'}</li>`;
+    if (Number.isFinite(pct) && !worse) share = `<li class="ip-share">${img('icon_crown')}<b class="num ${pct >= 0 ? 'good' : 'bad'}">${pct >= 0 ? '+' : '−'}${formatDecimal(Math.abs(pct))} %</b> de ta puissance${heroWorn ? '' : ' si équipé'}</li>`;
   }
   const three = share + Object.entries(item.stats).filter(([k]) => !share || k !== 'damage').slice(0, share ? 2 : 3).map(([k, v]) => `<li>${img(STAT_ICONS[k])}${STAT_LABELS[k]} <b class="num">${formatStat(k, v, true)}</b></li>`).join('');
   const more = ui.view.itemMore === item.id;
@@ -207,9 +213,9 @@ function detail(ui, state, item, whoUnit = null) {
   const mainBtns = `${wearer ? `<button class="btn" data-action="gear-unequip" data-value="${wearer}|${eqSlot(item)}">Retirer</button>`
       : isEquipped ? ''
       : unitTarget ? `<button class="btn btn-gold" data-action="gear-equip" data-value="${unitTarget.id}|${item.id}">Équiper sur ${escapeHtml(unitTarget.name)}</button>`
-      : forHero ? `<button class="btn btn-gold" data-action="equip" data-id="${item.id}">Équiper</button>`
+      : forHero ? `<button class="btn${worse ? '' : ' btn-gold'}" data-action="equip" data-id="${item.id}">Équiper</button>`
       : `<button class="btn" disabled>Pour : ${escapeHtml(item.cls && item.cls !== heroGearClass(state) ? classLabel(item.cls) : weaponClass(item.baseId)?.name ?? '')}</button>`}
-    ${isEquipped ? '' : `<button class="btn" data-action="recycle" data-id="${item.id}" ${item.locked ? 'disabled' : ''}>Recycler +${formatNumber(recycleValue(item, BALANCE, recycleLevelOf(state)))} ${coin()}${mats.shards ? ` +${mats.shards}${shard()}` : ''}</button>
+    ${isEquipped ? '' : `<button class="btn${worse ? ' btn-gold' : ''}" data-action="recycle" data-id="${item.id}" ${item.locked ? 'disabled' : ''}>Recycler +${formatNumber(recycleValue(item, BALANCE, recycleLevelOf(state)))} ${coin()}${mats.shards ? ` +${mats.shards}${shard()}` : ''}</button>
     <button class="btn btn-primary ip-improve${more ? ' active' : ''}" data-action="item-more" data-value="${more ? '' : item.id}" aria-expanded="${more}">⬆ Améliorer</button>`}
     <button class="btn ip-plus${plus ? ' active' : ''}" data-action="item-plus" data-value="${plus ? '' : item.id}" aria-expanded="${plus}">Plus ▾</button>`;
   // v9.8 (I2) : trois gros boutons illustrés (Renforcer, Remettre au niveau, Changer l'effet), le coût avec le nom de la

@@ -44,7 +44,8 @@ export function installElementFx(proto) {
         colors: e.colors, life: e.life * rnd(0.7, 1.1), max: e.life, size: Math.random() < 0.3 ? 2 : 1, flicker: element === 'fire' || element === 'thunder',
       });
     }
-    if (this.focus) return;
+    // v10.0 (3) : plus d'anneau ni de spirale posés sur l'impact (les « disques orange ») : l'éclat dessiné suffit.
+    if (this.focus || this.noImpactDisc !== false) return;
     this.effects.push({ kind: 'eglow', x: Math.round(x), y: Math.round(y), color: e.glow, life: 0.22, max: 0.22, r: big ? 10 : 7 });
     this.effects.push({ kind: 'elinger', x: Math.round(x), y: Math.round(y), shape: e.linger, colors: e.colors, life: 0.5, max: 0.5, seed: Math.floor(Math.random() * 1000) });
   };

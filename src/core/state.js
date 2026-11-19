@@ -646,6 +646,8 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     if (Array.isArray(raw.ui.sealSeen)) state.ui.sealSeen = raw.ui.sealSeen.filter((x) => typeof x === 'string').slice(0, 60); // v9.9 (K2)
     if (raw.ui.sealCount && typeof raw.ui.sealCount === 'object') state.ui.sealCount = Object.fromEntries(Object.entries(raw.ui.sealCount).filter(([k, v]) => typeof k === 'string' && Number.isFinite(v)).slice(0, 80)); // v9.10 (3)
     else if (Array.isArray(raw.ui.sealSeen)) state.ui.sealCount = Object.fromEntries(raw.ui.sealSeen.filter((x) => typeof x === 'string').map((x) => [x, 3]));
+    if (Array.isArray(raw.ui.fingerDone)) state.ui.fingerDone = raw.ui.fingerDone.filter((x) => typeof x === 'string').slice(0, 40); // v10.0 (2)
+    if (Array.isArray(raw.ui.seenTabs)) state.ui.seenTabs = raw.ui.seenTabs.filter((x) => typeof x === 'string').slice(0, 60);
     if (Number.isFinite(raw.ui.sealMiniUntil)) state.ui.sealMiniUntil = raw.ui.sealMiniUntil;
     if (Number.isFinite(raw.ui.wallAt)) state.ui.wallAt = raw.ui.wallAt;
     if (raw.ui.buyAllOk === true) state.ui.buyAllOk = true;

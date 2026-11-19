@@ -1,3 +1,4 @@
+import { FROZEN_ATTACK } from '../data/ally-style.js';
 // v9.2.3 : animations dessinées image par image (PixelLab) des alliés — héros (chevalier et 8 apparences, une
 // attaque par classe tenant l'arme de la classe), compagnons et familiers : marche, attaque, nage.
 // Les images (src/render/art-anim-allies.js, tools/art/pixellab_allies.py) sont ajoutées aux SPRITES au chargement.
@@ -168,7 +169,10 @@ export function pickAllyAnim(o) {
   // (hurt), victoire (victory) ; sinon l'attaque (attack) comme avant.
   if (o.gesture) {
     const g = o.gesture.kind;
-    const anim = (g === 'ultimate' && (set.ultimate ?? set.cast)) || ((g === 'support' || g === 'burst' || g === 'ultimate') && set.cast) || set.attack;
+    // v10.0 (9.1) : un mage lance ses sorts avec l'animation de sort (13 images), jamais l'attaque ; v10.0 (9.2) : une
+    // attaque dessinée figée est remplacée par le sort (FROZEN_ATTACK).
+    const frozen = FROZEN_ATTACK.has(o.sprite);
+    const anim = (g === 'ultimate' && (set.ultimate ?? set.cast)) || ((g === 'support' || g === 'burst' || g === 'ultimate' || g === 'cast' || frozen) && set.cast) || set.attack;
     if (anim) return pick(anim, anim.frames[phaseFrame(anim, o.gesture.k, ALLY_HIT_K[g] ?? 0.35)], anim === set.attack ? 'attack' : 'cast');
   }
   if (o.hurt > 0 && set.hurt) return pick(set.hurt, set.hurt.frames[Math.min(set.hurt.frames.length - 1, Math.floor((1 - o.hurt) * set.hurt.frames.length))], 'hurt');

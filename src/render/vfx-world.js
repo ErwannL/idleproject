@@ -137,9 +137,23 @@ export function drawWorldVfx(scene, ctx, zone, world, heroX, state) {
     if (env === 'env_lava') loopAt(scene, ctx, 'poison_bubbles', heroX, G - 46, 0.9, 0.8); // la brûlure ronge les PV
   }
   // v9.11 (1) : Cri de guerre — une petite flamme dorée aux pieds de chaque membre de l'équipe tant que le bonus dure.
-  if ((world.buffs?.cry ?? 0) > 0 && VFX.v_buff_flame) {
+  // v10.0 (3) : flammes 1,5 s au lancement seulement, puis une petite icône dorée au-dessus de chaque tête, avec la
+  // durée restante (plus d'équipe « en feu » pendant tout le bonus).
+  const cry = world.buffs?.cry ?? 0;
+  if (cry > 0) {
     const xs = [heroX, ...[...(scene.layout?.slots?.values() ?? [])].map((sl) => sl.cx)];
-    xs.forEach((x, i) => loopAt(scene, ctx, 'v_buff_flame', x, G + 1, 0.85, 1, i * 2));
+    if (VFX.v_buff_flame && (scene.buffFlameUntil ?? 0) > scene.time) xs.forEach((x, i) => loopAt(scene, ctx, 'v_buff_flame', x, G + 1, 0.85, 1, i * 2));
+    else if (!scene.focus) {
+      ctx.save();
+      ctx.font = '700 6px system-ui, sans-serif'; ctx.textAlign = 'center';
+      for (const x of xs) {
+        const y = G - 44;
+        ctx.globalAlpha = 0.95; ctx.fillStyle = '#3a2a0a'; ctx.fillRect(Math.round(x) - 7, y - 6, 14, 8);
+        ctx.fillStyle = '#ffc23a'; ctx.fillRect(Math.round(x) - 6, y - 5, 3, 6);
+        ctx.fillStyle = '#ffe08a'; ctx.fillText(`${Math.ceil(cry)}`, Math.round(x) + 2, y + 1);
+      }
+      ctx.restore();
+    }
   }
   // Rage du héros : sous 30 % de ses PV max.
   // v9.2.7 : seulement en vrai combat, PV connus et positifs : une scène sans PV (vitrine, aperçu, héros pas encore

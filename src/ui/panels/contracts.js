@@ -51,7 +51,7 @@ function remainingText(ms) {
 // Ligne de mission : icône, intitulé + barre, récompense, bouton.
 function row({ icon, label, progress, target, reward, done, claimed, action, value, sub = '' }) {
   // v9.1.3 (A7) : un seul emplacement pour la récompense, en icônes sur la ligne du libellé ; bouton court.
-  const btn = claimed ? '<span class="m-done">✔</span>'
+  const btn = claimed ? '<span class="m-done">Fait ✔</span>'
     : `<button class="btn ${done ? 'btn-gold' : ''} small" data-action="${action}" data-value="${value}" ${done ? '' : 'disabled'} aria-label="Récupérer : ${rewardText(reward, formatNumber)}">Récupérer</button>`;
   // v9.2.5 : ligne récupérable mise en évidence (liseré doré).
   return `<div class="m-row${claimed ? ' claimed' : done ? ' ready' : ''}">
@@ -83,7 +83,8 @@ function periodTab(state, period) {
   const order = (m) => { const st = missionStatus(state, period.id, m); return st.claimed ? 2 : st.done ? 0 : 1; };
   const rows = [...shown].sort((a, b) => order(a) - order(b)).map((m) => {
     const st = missionStatus(state, period.id, m);
-    return row({ icon: TYPE_ICONS[m.type] ?? 'icon_star', label: m.label, progress: st.progress, target: m.target, reward: m.reward,
+    // v10.0 (6) : mission faite = « Fait ✔ », barre pleine (le palier suivant viendra le lendemain).
+    return row({ icon: TYPE_ICONS[m.type] ?? 'icon_star', label: m.label, progress: st.claimed ? m.target : st.progress, target: m.target, reward: m.reward,
       done: st.done, claimed: st.claimed, action: 'claim-mission', value: `${period.id}|${m.id}` });
   }).join('');
   const claimedCount = shown.filter((m) => missionStatus(state, period.id, m).claimed).length;

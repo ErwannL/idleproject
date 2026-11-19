@@ -4280,3 +4280,23 @@ html.reduce-motion .wh-light, html.reduce-motion .wh-ico.won img, html.reduce-mo
 .tb-main .tb-row small, .tb-main .tb-row .muted { font-size: 11px; }
 .tb-main .tb-row .btn { padding: 3px 4px; font-size: 12px; }
 @media (max-width: 420px) { .tb-main { grid-template-columns: 1fr !important; } }
+/* v10.0 (2) : le doigt pointe le Sceau depuis le dessus, au centre, sans couvrir de texte. */
+#next-action .na-finger { top: -34px !important; left: 50% !important; margin: 0 0 0 -13px !important; transform: none !important; font-size: 26px; animation: finger-down 900ms ease-in-out infinite !important; }
+@keyframes finger-down { 50% { transform: translateY(6px); } }
+html.reduce-motion #next-action .na-finger { animation: none !important; }
+/* v10.0 (6) : carte de quête repliée en icône (survol : dépliée). */
+#quest-banner.folded { max-width: 46px; padding: 4px; gap: 0; }
+#quest-banner.folded > :not(.qb-icon) { display: none; }
+#quest-banner.folded:hover, #quest-banner.folded:focus-visible { max-width: min(360px, 70%); padding: 5px 10px 5px 6px; gap: 8px; }
+#quest-banner.folded:hover > *, #quest-banner.folded:focus-visible > * { display: revert; }
+/* v10.0 (7) : titre de la Roue au-dessus de la lame ; quantités sous les icônes. */
+.wh-art .wh-wrap { margin-top: 34px; }
+.wh-ico { flex-direction: column; height: 52px; margin-top: -26px; }
+.wh-ico .wh-qty { font: 800 10px/1 system-ui, sans-serif; color: #ffe08a; text-shadow: 0 1px 2px #000, 0 0 3px #000; white-space: nowrap; }
+.inc-row { display: grid; grid-template-columns: 22px 1fr 90px auto; gap: 8px; align-items: center; margin: 4px 0; }
+.inc-row img { width: 20px; height: 20px; } .inc-name { font-size: 13px; }
+.inc-bar { position: relative; height: 8px; border-radius: 4px; background: #0006; overflow: hidden; } .inc-bar i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #b46bff, #e0c8ff); }
+/* v10.0 (6, 7) : bannière illustrée plus basse quand la fenêtre est courte (les cartes de Talents tiennent). */
+@media (max-height: 820px) { #panel-body .art-banner { max-height: 64px; object-fit: cover; width: 100%; } }
+@media (max-height: 1000px) { #panel-body .art-banner { max-height: 96px; object-fit: cover; width: 100%; } }
+@media (max-height: 820px) { #panel-body .art-banner { max-height: 64px; } }

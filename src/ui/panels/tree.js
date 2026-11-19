@@ -146,7 +146,12 @@ function simpleView(state) {
   const sg = suggestedTalent(state);
   return `<div class="card tb-intro"><p>La Renaissance te ramène au monde 1 contre des fragments. Les fragments achètent des talents qui restent pour toujours.</p>
       <div class="row-between"><span>${fragment()} <b>${formatNumber(state.fragments)}</b> fragments</span>
-      <button class="btn btn-gold" data-action="talent-best" ${sg ? '' : 'disabled data-why="Pas assez de fragments"'}>Apprendre le meilleur</button></div></div>
+      ${sg ? '<button class="btn btn-gold" data-action="talent-best">Apprendre le meilleur</button>' : `<span class="cost-wrap"><button class="btn" disabled>Apprendre le meilleur</button>${(() => {
+        // v10.0 (7) : rien d'achetable → bouton gris et ce qui manque.
+        const costs = TALENTS.filter((t) => (state.talents[t.id] ?? 0) < t.max && talentUnlocked(state, t)).map((t) => talentCost(t, state.talents[t.id] ?? 0));
+        const miss = costs.length ? Math.max(0, Math.min(...costs) - state.fragments) : 0;
+        return miss ? `<small class="cost-missing">Il manque ${formatNumber(miss)} fragment${miss > 1 ? 's' : ''}</small>` : '';
+      })()}</span>`}</div></div>
     ${rankBar}${rows}
     ${advancedOpen(state) ? '<button class="btn" data-action="tree-seg" data-value="tree">Voir l\'arbre</button>' : '<button class="btn" disabled>Voir l\'arbre · après 3 Renaissances</button>'}`;
 }

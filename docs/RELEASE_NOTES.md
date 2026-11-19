@@ -1,6 +1,19 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v9.11.0 — Des sorts qui claquent, un Colosse vivant, de quoi suivre après la 10ᵉ heure
+## Ascendrya v10.0.0 — Une équipe qui se bat vraiment
+
+- **Compagnons qui foncent** : un combattant (Mercenaire, Barbare, Écuyer, Nain, Lancier, Lame rose, Ombre, Ninja, Seigneur de l'ombre, Paladin d'azur, Reine démone) se rue au-devant de sa cible en 0,12 s avec des images rémanentes, frappe au contact, puis revient d'un petit saut arrière ; un mage fait un pas, une lueur de son élément se charge dans sa main, le sort part de la main, puis il recule ; un archer recule d'un pas, tend la corde et tire. Les compétences s'enchaînent dans une file (0,45 s au moins entre deux gestes, l'équipe décalée de 0,15 s, l'ultime passe devant). Les familiers bondissent, piquent, rebondissent ou passent en traînée vers l'ennemi puis reviennent. Dans les Titans et l'Arène, personne ne traverse le boss.
+- **Animations refaites** : attaques, repos et ultimes figés régénérés (Mercenaire, Barbare, Lancier, Paladin d'azur, Lame rose, Pyromancienne, Ninja, Fée, Ombre, Sorcière, chat, hibou, golem, phénix, dragonnet, tortue, hérisson…), contrôlés automatiquement (`tools/art/check_anims.py` : au moins 15 % des pixels qui changent par image pour une action, un vrai souffle au repos, l'arme toujours visible).
+- **Fiches fidèles au combat** : chaque illustration est refaite depuis l'image de repos dessinée en combat (mêmes couleurs, coiffure, accessoires, arme) ; l'éveillée ajoute seulement une aura de l'élément, des particules et des éclats. Contrôle des teintes et planche « combat | fiche | éveillée » (`tools/art/check_fidelity.py`).
+- **Barre de compétences toujours cliquable** : vague, compétences et Sceau en colonne sous le sol ; sur une fenêtre basse, compétences et Sceau sur la même ligne ; sinon la scène rétrécit. Vérifié à 1100 × 952, 1280 × 720, 1366 × 768, 1920 × 1080, 800 × 600 et 390 × 844, avec et sans boss.
+- **Doigt réservé au guidage** : mini-quête, écran jamais ouvert ou 30 premières minutes ; jamais sur « Tout récupérer », le butin, un conseil ou « Réessayer » ; suivi ou ignoré 2 fois, il ne revient plus (gardé dans la sauvegarde) ; il pointe le Sceau depuis le dessus. « Plus tard » retiré.
+- **Impacts dessinés** : un éclat de lumière et ses étincelles (0,25 s, couleur de l'élément) remplace les disques orange ; plus de croissant à chaque coup, une traînée d'arme fine de 0,15 s sur un coup critique seulement ; Météore plus gros avec cratère qui reste 1 s et braises ; Cri de guerre : flammes 1,5 s puis une petite icône avec la durée au-dessus de chaque tête.
+- **Titans** : les compagnons frappent ×3 contre les grands boss ; cases espacées ; le bilan montre les portraits et le meilleur coup.
+- **Objets, missions, roue, boutique, talents, téléphone** : « Bien moins bon que ton casque actuel (−97 %) » et Recycler en bouton principal ; missions faites « Fait ✔ » (palier figé jusqu'au lendemain, progression gardée au chargement) ; Tâches du Héraut à l'échelle de l'étape avec des éclats ; carte de quête repliée en icône après 10 s ; Roue : titre dégagé, quantité sous chaque icône ; Boutique : tickets gagnés par source avec leur progression ; Talents : « Apprendre le meilleur » gris et « Il manque 2 fragments » ; téléphone : un ennemi toujours visible devant le héros.
+
+### Versions précédentes
+
+<details><summary><b>Ascendrya v9.11.0 — Des sorts qui claquent, un Colosse vivant, de quoi suivre après la 10ᵉ heure</b></summary>
 
 - **Compétences redessinées** : 28 nouvelles animations PixelLab (9 à 14 images, 2 à 3 fois la taille du lanceur) jouées en 3 temps — préparation, impact, retombée — à la place des anneaux, croissants et disques plats. Cri de guerre : onde dorée qui traverse l'équipe, puis petite flamme dorée aux pieds tant que le bonus dure (durée affichée sur l'icône). Coup critique : arc en dégradé avec traînée et étincelle. Météore : grosse pierre en feu, ombre qui grandit, cratère et braises. Boule de feu, Mur de flammes, Tourbillon, Frappe éclair, Frappe sacrée, Bénédiction, Prière, Provocation, Rempart, Exécution redessinés.
 - **Un sort propre par compagnon** : la Danse des lames de l'Ombre, de la Lame rose, du Ninja et du Seigneur de l'ombre, la Prière des 4 soigneurs, la Provocation de l'Écuyer et du Paladin d'azur, le Tourbillon du Mercenaire et du Barbare ne se ressemblent plus. Icônes de compétence vives, colorées par élément.
@@ -13,7 +26,7 @@
 - **Boutique** : « Tickets de compagnon » et « Tickets de familier » partout ; parchemin, liasse, coffret, coffre, coffre doré — œuf, nid, cage, coffre, coffre doré ; « = X invocations » sur chaque offre ; Marchands dans leur propre onglet.
 - **Cadrages** : carte Renaissance lisible sur toute la largeur, plus de « calcul en cours… », « Dégâts reçus −44 % → −44,1 % », cartes de Talents côte à côte, scène PC moins de briques vides, le Conseil du mentor ne propose plus de gains de moins de 5 %.
 
-### Versions précédentes
+</details>
 
 <details><summary><b>Ascendrya v9.10.0 — Un jeu qu'on laisse tourner dans un coin de l'écran du PC</b></summary>
 

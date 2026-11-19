@@ -49,8 +49,10 @@ const CLASS_COLOR = { pyromancer: '#ff6a2a', stormcaller: '#7fd6ff', necromancer
   knight: '#7fb8ff', berserker: '#ff4a4a', lancer: '#ffb84a', crossbowman: '#a8e07a' };
 const TYPE_COLOR = { hit: '#ff9a4a', aoe: '#c86bff', buff: '#ffc23a', holy: '#ffe680' };
 const skillColor = (sk) => CLASS_COLOR[sk.id.split('_')[0]] ?? TYPE_COLOR[sk.type] ?? '#9fc3ff';
+// v10.0 (2) : actions sans doigt, et écran ouvert par chaque action du Sceau (un écran jamais ouvert = guidage).
+const NO_FINGER = new Set(['claim', 'lootbag', 'level', 'mentor', 'retry', 'goal', 'advance']);
+const SEAL_TAB = { upgrade: 'upgrades', skills: 'skills', equip: 'inventory', place: 'companions', team: 'companions', rebirth: 'tree', forge: 'forge' };
 const QUEST_ICONS = { login: 'icon_book', kills: 'weapon_sword', bosses: 'icon_boss', recycle: 'icon_anvil', summons: 'icon_summon', dungeons: 'icon_dungeon', rareLoot: 'icon_bag', upgrades: 'icon_upgrade' };
-const SEAL_PROGRESS = new Set(['claim', 'equip', 'upgrade', 'skills', 'quest', 'rebirth', 'place', 'team', 'level', 'mentor', 'lootbag', 'retry']);
 function sealShort(n) {
   const num = n.text.match(/\((\d+)\)/)?.[1];
   const S = { claim: `🎁 ${num ?? 'Récupérer'}`, equip: '⬆ Équiper', upgrade: '⬆ Améliorer', skills: '✦ Compétence', rebirth: '♻ Renaître', quest: '★ Quête',
@@ -755,6 +757,7 @@ export class UI {
     if (this.view.themePreview && tab !== 'shop') this.actions.previewTheme(null); // v9.2.8 : fin de l'aperçu du thème
     this.sidePanel(true);
     if (tab === 'inventory') this.seenItemsUntil = this.state?.nextItemId ?? this.seenItemsUntil;
+    if (this.state?.ui) { const seen = (this.state.ui.seenTabs ??= []); if (!seen.includes(tab)) seen.push(tab); } // v10.0 (2)
     if (view) Object.assign(this.view, view);
     // Chaque onglet retrouve sa position de défilement (v9.1.0, mémoire de navigation).
     if (tab !== this.tab) {
@@ -2158,7 +2161,7 @@ export class UI {
     this.sealAction = n;
     const useless = !n || ['advance', 'mode-dungeon', 'mode-tower', 'mode-world', 'mode-challenge'].includes(n.id) || (n.id === 'quest' && n.action === 'none');
     btn.classList.toggle('hidden', useless);
-    this.placeSeal(useless);
+    this.layoutColumn();
     if (useless) { this.sealIgnored(null); return; }
     // v9.11 (3) : une proposition = une sorte d'action (« Tout récupérer (4) » puis « (5) » : la même) ; le texte se met
     // à jour sans compter de nouveau.
@@ -2177,22 +2180,18 @@ export class UI {
       const session = (this.sealSession ??= new Set());
       if (!session.has(n.id)) { session.add(n.id); counts[n.id] = (counts[n.id] ?? 0) + 1; }
     }
-    // v9.11 (3) : doigt seulement sur ce qui fait progresser (objet, amélioration, compétence, mini-quête, mur), jusqu'à
-    // ce que ce soit fait ; jamais sur un contenu facultatif (Défi, Tour, Arène). « Plus tard » le cache.
-    const progress = SEAL_PROGRESS.has(n.id) && !n.content;
-    const snoozed = (this.fingerSnooze ??= new Set()).has(n.id);
-    btn.querySelector('.na-finger')?.classList.toggle('hidden', !progress || snoozed || this.calm);
-    let later = this.$('next-later');
-    if (!later) {
-      later = document.createElement('button'); later.id = 'next-later'; later.className = 'btn small next-later'; later.type = 'button'; later.textContent = 'Plus tard'; btn.after(later);
-      later.addEventListener('click', () => {
-        const id = this.sealAction?.id;
-        if (this.sealAction?.content) { const g = guideDay(this.state); if (id) g.skips[id] = (g.skips[id] ?? 0) + 1; delete this.lastHud.badgeTime; }
-        if (id) this.fingerSnooze.add(id);
-        this.invalidate();
-      });
-    }
-    later.classList.toggle('hidden', !(n.content || (progress && !snoozed)));
+    // v10.0 (2) : le doigt sert seulement à guider — une mini-quête ou un tutoriel, un écran jamais ouvert (première
+    // compétence, première Forge, premier compagnon à placer…), ou les 30 premières minutes. Jamais sur Récupérer,
+    // le butin, le niveau, un conseil ou « Réessayer » (la couleur et le chiffre suffisent). Suivi ou ignoré 2 fois :
+    // il ne revient plus pour cette sorte d'action (state.ui.fingerDone, gardé dans la sauvegarde).
+    const tabOf = n.tab ?? SEAL_TAB[n.id] ?? null;
+    const seen = st.ui.seenTabs ?? [];
+    const done = (st.ui.fingerDone ??= []).includes(n.id);
+    const guide = n.id === 'quest' || (tabOf && !seen.includes(tabOf)) || (st.playSeconds ?? 0) < 1800;
+    const finger = !NO_FINGER.has(n.id) && !n.content && !done && guide && !this.calm;
+    btn.querySelector('.na-finger')?.classList.toggle('hidden', !finger);
+    this.fingerOn = finger ? n.id : null;
+    this.$('next-later')?.remove(); // v10.0 (2) : « Plus tard » retiré (il était caché sous le Sceau)
     // v9.11 (3) : version réduite = une icône et 1 ou 2 mots, jamais une flèche seule.
     const mini = (st.ui.sealMiniUntil ?? 0) > (st.playSeconds ?? 0) && n.id !== 'quest';
     btn.classList.toggle('na-mini', mini);
@@ -2204,26 +2203,68 @@ export class UI {
     const st = this.state;
     if (!st || this.lastHud.next == null || this.lastHud.next === nextKey) return;
     // v9.11 (3) : touché, ou action faite ailleurs (le joueur a agi pendant que le Sceau la proposait) = suivi.
-    if (this.sealClicked || (this.userAt ?? 0) > (this.sealShownAt ?? 0)) { this.sealClicked = false; st.ui.sealIgnores = 0; return; }
+    const prevId = this.lastHud.next;
+    const fd = (st.ui.fingerDone ??= []);
+    if (this.sealClicked || (this.userAt ?? 0) > (this.sealShownAt ?? 0)) {
+      this.sealClicked = false; st.ui.sealIgnores = 0;
+      if (this.fingerOn === prevId && !fd.includes(prevId)) fd.push(prevId); // doigt suivi : il ne revient plus
+      return;
+    }
+    if (this.fingerOn === prevId) { const ig = (this.fingerIgnores ??= {}); ig[prevId] = (ig[prevId] ?? 0) + 1; if (ig[prevId] >= 2 && !fd.includes(prevId)) fd.push(prevId); }
     if (performance.now() - (this.sealShownAt ?? 0) < 20000) return; // trop bref pour compter
     st.ui.sealIgnores = (st.ui.sealIgnores ?? 0) + 1;
     if (st.ui.sealIgnores >= 3) { st.ui.sealIgnores = 0; st.ui.sealMiniUntil = (st.playSeconds ?? 0) + 3600; }
     if (nextKey == null) this.lastHud.next = null;
   }
 
-  // v9.10 (3) : le Sceau ne recouvre jamais la ligne d'information de la vague : il se place dessous, sinon il la
-  // remplace (la ligne se masque tant qu'il est là).
-  placeSeal(hidden) {
-    const btn = this.$('next-action'), hud = this.$('hud'), area = this.$('stage-area');
-    if (!btn || !hud || !area) return;
-    btn.style.bottom = ''; btn.style.top = '';
-    hud.classList.remove('seal-over');
-    if (hidden || !btn.offsetParent) return;
-    const a = area.getBoundingClientRect(), h = hud.getBoundingClientRect(), b = btn.getBoundingClientRect();
-    if (b.bottom <= h.top || b.top >= h.bottom || h.height === 0) return;
-    const top = h.bottom - a.top + 6;
-    if (top + b.height + 4 <= a.height) { btn.style.top = `${top}px`; btn.style.bottom = 'auto'; }
-    else hud.classList.add('seal-over');
+  // v10.0 (1) : colonne sous le sol — bandeau de vague, barre de compétences, Sceau — empilés dans cet ordre (8 px
+  // d'écart), jamais les uns sur les autres ni sur la barre d'onglets. Hauteur trop juste : compétences et Sceau sur
+  // la même ligne (compétences à gauche) ; toujours trop juste : la scène rétrécit (sol plus haut).
+  layoutColumn() {
+    const area = this.$('stage-area'), play = this.$('play');
+    if (!area || !play || typeof getComputedStyle === 'undefined') return;
+    const bar = this.$('skill-bar'), seal = this.$('next-action'), hud = this.$('hud');
+    const later = this.$('next-later');
+    const shown = (el) => el && !el.classList.contains('hidden') && el.offsetParent !== null;
+    const reset = (el) => { if (el) { el.style.top = ''; el.style.bottom = ''; el.style.left = ''; el.style.transform = ''; } };
+    [bar, seal].forEach(reset);
+    hud?.classList.remove('seal-over');
+    play.classList.remove('col-row');
+    if (this.layout === 'strip') return;
+    const ground = parseFloat(getComputedStyle(play).getPropertyValue('--ground-px')) || 0;
+    // Limite basse : le bas de la scène, ou le haut de la barre d'onglets si elle passe par-dessus.
+    const aTop = area.getBoundingClientRect().top;
+    let H = area.clientHeight;
+    for (const id of ['tabs', 'hud']) {
+      const el = this.$(id);
+      if (!el || !el.offsetParent || (id === 'hud' && play.classList.contains('wide-scene'))) continue;
+      const t = el.getBoundingClientRect().top - aTop;
+      if (t > ground && t < H) H = t;
+    }
+    if (!ground || !H) return;
+    const wideHud = play.classList.contains('wide-scene') && shown(hud);
+    let y = ground + 8;
+    if (wideHud) { hud.style.top = `${y}px`; y += hud.offsetHeight + 8; }
+    const items = [shown(bar) ? bar : null, shown(seal) ? seal : null].filter(Boolean);
+    const fingerRoom = (el) => (el === seal && !seal.querySelector('.na-finger')?.classList.contains('hidden') ? 30 : 0); // place du doigt au-dessus du Sceau
+    const need = items.reduce((t, el) => t + el.offsetHeight + 8 + fingerRoom(el), 0);
+    const place = (el, top, left = '50%', tr = 'translateX(-50%)') => { el.style.top = `${Math.round(top)}px`; el.style.bottom = 'auto'; el.style.left = left; el.style.transform = tr; };
+    if (y + need <= H - 4) {
+      let t = y;
+      for (const el of items) { t += fingerRoom(el); place(el, t); t += el.offsetHeight + 8; }
+    } else if (items.length === 2 && y + Math.max(bar.offsetHeight, seal.offsetHeight) <= H - 4) {
+      play.classList.add('col-row');
+      place(bar, y, '8px', 'none');
+      place(seal, y + (bar.offsetHeight - seal.offsetHeight) / 2, `${Math.min(area.clientWidth - seal.offsetWidth - 8, bar.offsetWidth + 20)}px`, 'none');
+    } else if (this.resizeScene && !this.renderer?.liftShrinking) {
+      // La scène rétrécit : on remonte le sol de ce qui manque, puis on relance la mise en page.
+      const r = this.renderer;
+      const missing = y + Math.max(...items.map((el) => el.offsetHeight), 0) + 12 - H;
+      const cur = r ? r.groundY / Math.max(1, r.height) : 0.7;
+      const cap = Math.max(0.4, cur - missing / area.clientHeight - 0.02);
+      if (r && cap < cur - 0.005) { r.liftCap = Math.min(r.liftCap ?? 1, cap); r.liftShrinking = true; this.resizeScene(); setTimeout(() => { r.liftShrinking = false; this.layoutColumn(); }, 0); }
+    }
+    if (later && shown(seal)) { const b = seal.getBoundingClientRect(), a = area.getBoundingClientRect(); later.style.top = `${b.top - a.top + (b.height - later.offsetHeight) / 2}px`; later.style.left = `${b.right - a.left + 8}px`; }
   }
 
   runNextAction() {
@@ -2708,6 +2749,11 @@ export class UI {
     const h = top0 ? `<span class="qb-icon">${img(top0.icon)}</span><span class="qb-main"><span class="qb-text">${escapeHtml(top0.label)}</span>
       <span class="qb-bar"><i style="width:${Math.min(100, (top0.p / top0.target) * 100)}%"></i><b class="num">${formatNumber(Math.min(top0.p, top0.target))}/${formatNumber(top0.target)}</b></span></span>
       <span class="qb-reward">${rewardIcons(top0.reward)}</span>${top0.done ? '<span class="qb-claim">Récupérer</span>' : ''}` : '';
+    // v10.0 (6) : la carte se replie en icône après 10 s ; elle se rouvre quand la quête est prête (ou au survol).
+    const now = performance.now();
+    if (el.dataset.h !== h && !(el.dataset.h && top0 && el.dataset.label === top0.label && !top0.done)) this.qbShownAt = now;
+    el.dataset.label = top0?.label ?? '';
+    el.classList.toggle('folded', Boolean(top0) && !top0.done && now - (this.qbShownAt ?? now) > 10000);
     if (el.dataset.h === h) return;
     el.dataset.h = h;
     el.innerHTML = h;
@@ -2734,7 +2780,9 @@ export class UI {
     if (!st) return;
     const n = WHEEL_SLICES.length;
     const ICON = { gold: 'coin', gems: 'icon_gem', shards: 'icon_shard', keys: 'icon_key', grimoire: 'icon_grimoire', gold2: 'icon_bag', fragments: 'icon_fragment', jackpot: 'icon_chest' };
-    const icons = WHEEL_SLICES.map((sl, i) => `<span class="wh-ico${sl.jackpot ? ' jackpot' : ''}" style="--a:${(i + 0.5) * (360 / n)}deg" title="${escapeHtml(sl.label)}">${img(ICON[sl.id] ?? 'icon_star')}</span>`).join('');
+    // v10.0 (7) : la quantité sous chaque icône.
+    const qty = (sl) => { const r = sl.reward(st); const v = Object.values(r)[0] ?? 0; return sl.jackpot ? 'Gros lot' : `×${formatNumber(v)}`; };
+    const icons = WHEEL_SLICES.map((sl, i) => `<span class="wh-ico${sl.jackpot ? ' jackpot' : ''}" style="--a:${(i + 0.5) * (360 / n)}deg" title="${escapeHtml(sl.label)}">${img(ICON[sl.id] ?? 'icon_star')}<small class="wh-qty">${qty(sl)}</small></span>`).join('');
     const lights = Array.from({ length: 16 }, (_, i) => `<i class="wh-light" style="--a:${i * 22.5}deg;--d:${(i % 2) * 0.25}s"></i>`).join('');
     const ready = wheelReady(st);
     const next = new Date(); next.setHours(24, 0, 0, 0);

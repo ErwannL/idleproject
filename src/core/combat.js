@@ -755,6 +755,7 @@ export function canHit(enemy, balance = BALANCE) {
   return enemy.x <= W.heroX + W.meleeOffset + enemy.range + (balance.rush?.reach ?? 0);
 }
 
+export const GRAND_BOSS_TEAM_MULT = 3;
 function hitEnemy(state, world, enemy, damage, rng, balance, stats, enc, source, unitId = 'hero') {
   if (!world.enemies.includes(enemy)) return;
   if (!canHit(enemy, balance)) return; // v9.2.2 : pas encore arrivé (ruée)
@@ -772,9 +773,12 @@ function hitEnemy(state, world, enemy, damage, rng, balance, stats, enc, source,
     world.hero.hp = Math.max(1, world.hero.hp - Math.min(damage * TRAITS.mirror.reflectPct / 100, stats.maxHp * 0.02)); // plafond : 2 % des PV par coup
   }
   if (enemy.scoreTarget && state.worldRun?.kind === 'score') state.worldRun.damage += damage; // v9.1.3 (doc4 lot 6)
+  // v10.0 (4) : contre un grand boss, les compagnons frappent ×3 (l'équipe compte, le héros ne fait plus 90 %).
+  if (enemy.worldBoss && unitId !== 'hero') damage *= GRAND_BOSS_TEAM_MULT;
   if (enemy.worldBoss && state.worldBossRun) state.worldBossRun.damage += damage; // v9.2.9 : World Boss
   const dealt = world.counters?.damage ? Math.max(0, Math.min(damage, enemy.hp)) : 0;
   if (dealt > 0) world.counters.damage[unitId] = (world.counters.damage[unitId] ?? 0) + dealt;
+  if (enemy.worldBoss && world.counters && damage > (world.counters.best?.v ?? 0)) world.counters.best = { id: unitId, v: damage }; // v10.0 (4) : meilleur coup
   enemy.hp -= damage;
   if (stats.lifesteal > 0 && source !== 'thorns' && !(enc?.challenge && challengeRule(state, 'noHeal'))) {
     world.hero.hp = Math.min(stats.maxHp, world.hero.hp + (damage * stats.lifesteal) / 100);

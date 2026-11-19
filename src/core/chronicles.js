@@ -31,7 +31,10 @@ export function heraldState(state) {
 export function heraldTask(state, t) {
   const k = HERALD_SCALE[t.type]?.[missionTier(state)] ?? 1;
   const target = Math.round(t.target * k);
-  return { ...t, target, text: t.label.replace('{n}', frNum(target)) };
+  // v10.0 (6) : récompense à l'échelle de l'étape (×1, ×4, ×10), toujours avec des éclats.
+  const rk = [1, 4, 10][missionTier(state)];
+  const reward = Object.fromEntries(Object.entries({ shards: 10, ...t.reward }).map(([r, v]) => [r, Math.round(v * rk)]));
+  return { ...t, target, reward, text: t.label.replace('{n}', frNum(target)) };
 }
 export function heraldTrack(state, type, amount = 1) {
   if (!(amount > 0) || !state) return;
@@ -47,7 +50,7 @@ export function claimHerald(state, id) {
   const target = heraldTask(state, t).target;
   h.progress[t.id] = Math.min(target, (h.progress[t.id] ?? 0) - target);
   h.done += 1;
-  return grantReward(state, t.reward);
+  return grantReward(state, heraldTask(state, t).reward);
 }
 export const heraldClaimable = (state) => HERALD_TASKS.filter((t) => heraldReady(state, t)).length;
 

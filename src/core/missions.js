@@ -47,7 +47,8 @@ export function refreshMissions(state, now = Date.now()) {
   state.missions ??= emptyMissions();
   for (const p of MISSION_PERIODS) {
     const key = periodKey(p.id, now);
-    if (state.missions[p.id].key !== key) state.missions[p.id] = { key, progress: {}, claimed: [], bonus: false };
+    if (state.missions[p.id].key !== key) state.missions[p.id] = { key, progress: {}, claimed: [], bonus: false, tier: missionTier(state) };
+    else if (!Number.isInteger(state.missions[p.id].tier)) state.missions[p.id].tier = missionTier(state);
   }
   const month = periodKey('monthly', now);
   if (state.missions.track.key !== month) state.missions.track = { key: month, progress: {}, claimed: 0 };
@@ -71,8 +72,11 @@ export function missionTier(state) {
   return st >= 350 ? 2 : st >= 120 ? 1 : 0;
 }
 const frNum = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-export function scaledMission(state, m) {
-  const t = missionTier(state);
+// v10.0 (6) : le palier est figé pour la période (posé au début de la journée ou de la semaine) : une mission faite
+// reste « faite », le palier suivant n'apparaît que le lendemain.
+export function scaledMission(state, m, periodId = null) {
+  const run = periodId ? state?.missions?.[periodId] : null;
+  const t = Number.isInteger(run?.tier) ? run.tier : missionTier(state);
   const k = SCALE[m.type]?.[t] ?? 1;
   if (!t || k === 1) return m;
   const target = Math.round(m.target * k);
@@ -91,7 +95,7 @@ export function trackMissions(state, type, amount = 1) {
   for (const p of MISSION_PERIODS) {
     const run = state.missions[p.id];
     for (const m of p.missions) {
-      if (m.type === type) run.progress[m.id] = Math.min(scaledMission(state, m).target, (run.progress[m.id] ?? 0) + amount);
+      if (m.type === type) run.progress[m.id] = Math.min(scaledMission(state, m, p.id).target, (run.progress[m.id] ?? 0) + amount);
     }
   }
   const track = state.missions.track;
@@ -129,7 +133,7 @@ export function missionPeriod(id) {
 export function missionStatus(state, periodId, mission) {
   const run = state.missions[periodId];
   const progress = run.progress[mission.id] ?? 0;
-  return { progress, done: progress >= scaledMission(state, mission).target, claimed: run.claimed.includes(mission.id) };
+  return { progress, done: progress >= scaledMission(state, mission, periodId).target, claimed: run.claimed.includes(mission.id) };
 }
 
 export function claimMission(state, periodId, missionId) {
@@ -139,7 +143,7 @@ export function claimMission(state, periodId, missionId) {
   const st = missionStatus(state, periodId, mission);
   if (!st.done || st.claimed) return null;
   state.missions[periodId].claimed.push(mission.id);
-  return grantReward(state, scaledMission(state, mission).reward);
+  return grantReward(state, scaledMission(state, mission, periodId).reward);
 }
 
 // v9.3.5 : une mission ne demande jamais une fonction encore verrouillée (recyclage et invocations après le premier
@@ -147,7 +151,7 @@ export function claimMission(state, periodId, missionId) {
 const MISSION_GATE = { recycle: (s) => (s.records?.bossesDefeated ?? 0) >= 1, summons: (s) => (s.records?.bossesDefeated ?? 0) >= 1,
   dungeons: (s) => (s.records?.bestStage ?? 1) >= 25 };
 export const missionOpen = (state, m) => !MISSION_GATE[m.type] || MISSION_GATE[m.type](state);
-export const openMissions = (state, period) => period.missions.filter((m) => missionOpen(state, m)).map((m) => scaledMission(state, m));
+export const openMissions = (state, period) => period.missions.filter((m) => missionOpen(state, m)).map((m) => scaledMission(state, m, period.id));
 
 export function bonusReady(state, periodId) {
   const period = missionPeriod(periodId);
@@ -219,13 +223,14 @@ export function sanitizeMissions(raw) {
     const progress = {};
     for (const m of p.missions) {
       const v = Number(r.progress?.[m.id]);
-      if (Number.isFinite(v) && v > 0) progress[m.id] = Math.min(m.target, Math.floor(v));
+      if (Number.isFinite(v) && v > 0) progress[m.id] = Math.min(m.target * 60, Math.floor(v)); // v10.0 (6) : paliers ×50 au plus
     }
     out[p.id] = {
       key: str(r.key),
       progress,
       claimed: Array.isArray(r.claimed) ? [...new Set(r.claimed.filter((id) => ids.has(id)))] : [],
       bonus: r.bonus === true,
+      ...(Number.isInteger(r.tier) && r.tier >= 0 && r.tier <= 2 ? { tier: r.tier } : {}),
     };
   }
   const t = raw.track;

@@ -72,7 +72,7 @@ const SPREAD = 1.9;
 export const WORLD_SCALE = 1.5;
 // Durée de l'attaque d'un compagnon (préparation puis coup).
 // v9.0.8 : façon de combattre de chaque compagnon (le reste se bat au corps à corps) et durée de chaque geste.
-import { ALLY_STYLE } from '../data/ally-style.js'; // v9.7.1 : partagé avec la simulation (attaque de base)
+import { ALLY_STYLE, basicKind, handOf } from '../data/ally-style.js'; // v9.7.1 : partagé avec la simulation (attaque de base)
 // v9.7.1 (lot A) : gestes un peu plus longs — avec l'attaque de base (1,25 à 1,5 s), un compagnon agit ≈ 60 % du temps.
 const ALLY_GESTURE_TIME = { melee: 0.85, archer: 0.85, cast: 0.95, support: 0.95, burst: 0.95 };
 const CAST_ORB = {
@@ -275,6 +275,8 @@ function rarityColor(id) {
   return RARITIES.find((r) => r.id === id)?.color ?? '#ffffff';
 }
 
+const PET_MOVE = { cat: 'bound', kitsune: 'bound', golem: 'bound', crystal_hedgehog: 'bound', jade_turtle: 'bound', owl: 'dive', phoenix: 'dive', dragonling: 'dive', golden_slime: 'bounce', wisp: 'streak', fairy: 'streak' };
+const IMPACT_TINT = { fire: '#ff7a2a', ice: '#7fd6ff', thunder: '#bff4ff', poison: '#7fe06a', shadow: '#b46bff', holy: '#ffe680' };
 export class SceneRenderer {
   constructor(canvas) {
     this.canvas = canvas;
@@ -329,10 +331,13 @@ export class SceneRenderer {
     this.width = Math.max(120, Math.floor(cssWidth / scale));
     this.height = Math.max(MIN_VIEW_HEIGHT, Math.floor(cssHeight / scale));
     const prevGround = this.groundY;
-    const lift = this.groundLift ?? (tall ? 0.68 : wide ? 0.74 : 0); // v9.11 (2, 6) : grands boss plus bas ; scène PC moins de briques vides
+    const lift0 = this.groundLift ?? (tall ? 0.68 : wide ? 0.74 : 0); // v9.11 (2, 6) : grands boss plus bas ; scène PC moins de briques vides
+    // v10.0 (1) : la colonne sous le sol (vague, compétences, Sceau) doit tenir : sinon c'est la scène qui rétrécit.
+    const lift = this.groundLift == null && this.liftCap && lift0 ? Math.min(lift0, this.liftCap) : lift0;
     this.groundY = lift ? Math.max(MIN_VIEW_HEIGHT - GROUND_DEPTH, Math.min(this.height - GROUND_DEPTH, Math.round(this.height * lift))) : this.height - GROUND_DEPTH;
     // v9.3.9 : la grande scène PC range les infos du combat (vague, boss, prochain déblocage) dans la terre, sous le sol.
     this.wide = wide && this.groundY < this.height - GROUND_DEPTH - 30;
+    this.tall = tall;
     const play = this.canvas.parentElement?.parentElement;
     if (play?.style) {
       play.classList.toggle('wide-scene', this.wide);
@@ -412,12 +417,9 @@ export class SceneRenderer {
         // v9.2.6 : arc de taille dessiné (PixelLab), doré et plus grand sur un critique ; ancien arc en repli.
         // v9.11 (1) : coup critique = arc en dégradé (blanc au bord, doré au centre, transparent au bout) avec traînée,
         // pas plus grand que le héros, et une étincelle à l'impact (plus de « banane » jaune pâle).
-        const critArc = event.crit && vfx2Ready('v_crit_arc');
-        const drawnSlash = critArc ? vfx(this, 'v_crit_arc', heroX + 20 + sx, this.groundY - 16 - this.waterLift(), { delay: 0.04 })
-          : vfx(this, 'hit_slash', heroX + 22 + sx, this.groundY - 14 - this.waterLift(), { delay: 0.05, size: event.crit ? 1.3 : 1, tint: event.crit ? '#ffd23f' : null, life: 0.22 });
-        if (critArc) vfx(this, 'v_crit_spark', event.x - 6, this.groundY - 18, { delay: 0.1 });
-        if (!drawnSlash && event.crit) this.sprite(['fx_slash_crit'], heroX + 18 + sx, this.groundY + 4 - this.waterLift(), 0.22, { delay: 0.07, tint: '#ffd23f' });
-        else if (!drawnSlash) this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], heroX + 14 + sx, this.groundY + 1 - this.waterLift(), 0.18, { delay: 0.07 });
+        // v10.0 (3) : plus de croissant à chaque coup. Sur un coup critique seulement : une traînée d'arme fine et
+        // courbe qui s'efface en 0,15 s, jamais deux à la fois.
+        if (event.crit) this.critTrail(heroX + 16 + sx, this.groundY - 16 - this.waterLift());
         // L'impact (éclair blanc, recul, étincelles, chiffre) tombe quand la lame touche, pas au début du geste.
         this.later(0.09, () => this.hitReact(event.enemyId, event.x, { crit: event.crit, boss: event.boss, damage: event.damage, color: '#ffffff', weapon: 'none' }));
         break;
@@ -473,36 +475,44 @@ export class SceneRenderer {
       case 'companionBasic': {
         // v9.7.1 (lot A) : attaque de base entre deux compétences — le geste « attack » existant (compagnons et familiers).
         const companion = companionById(event.companionId);
-        if (companion) this.allyGesture(companion, world, heroX, 'hit');
+        // v10.0 (9.1) : file de gestes (un geste à la fois par compagnon, 0,45 s au moins entre deux).
+        if (companion) this.queueAlly(companion.id, () => this.allyGesture(companion, world, heroX, 'hit'), { dur: ALLY_GESTURE_TIME[basicKind(companion.id)] ?? 0.85 });
         break;
       }
       case 'companionSkill': {
-        const companion = companionById(event.companionId);
-        if (companion) this.skillCallout(companion, event, world); // v9.7.1 (lot A) : nom, halo, ralenti de l'ultime
-        // v9.2.5 : chaque compétence (ultime comprise) a son geste et son effet (skill-fx.js).
-        const known = companion && (event.skill === 99 ? awakenedSkill(companion.id) : companionSkillList(companion, COMPANION_ROLES[companion.id] ?? 'pet')[event.skill]);
-        if (known) {
-          const slot = this.layout?.slots.get(companion.id);
-          const sx = slot?.cx ?? heroX - 30;
-          castUnitSkill(this, companion, known.name, event.skillType ?? known.type, fxContext(this, world, { x: sx, y: this.groundY - 22 }, heroX));
-          break;
-        }
-        if (companion?.kind === 'ally') {
-          // v9.0.8 : geste propre au compagnon (saut d'attaque, tir, sort, soutien), l'effet part de sa place.
-          this.allyGesture(companion, world, heroX, event.skillType, event.ultimate);
-        } else {
-          this.effects.push({ kind: 'ring', x: heroX - 28, y: this.groundY - 14, color: '#9cf08a', life: 0.5, max: 0.5, r: 10 });
-        }
-        // v9.1.3 (doc4 lot 2) : effet générique d'ultime (rare : 30 s), aux couleurs du compagnon — colonne de
-        // lumière sur la cible, gerbe d'étincelles et petite secousse. Sans texte (la scène n'est pas traduite).
-        if (event.ultimate) {
-          const color = companion?.fx ?? '#ffd23f';
-          const x = Math.round(world.enemies[0] ? this.wx(world.enemies[0].x) : heroX + 60);
-          this.effects.push({ kind: 'beam', x, color, life: 0.9, max: 0.9, wide: true });
-          this.effects.push({ kind: 'ring', x, y: this.groundY - 18, color, life: 0.6, max: 0.6, r: 22 });
-          this.burst(x, this.groundY - 24, color, 16, 52);
-          /* v9.8 (B1) : plus de secousse sur une action du héros ou d'un compagnon */
-        }
+        // v10.0 (9.1) : la compétence attend la fin du geste en cours du compagnon (l'ultime passe devant tout).
+        const run = () => {
+          const companion = companionById(event.companionId);
+          if (companion) this.skillCallout(companion, event, world); // v9.7.1 (lot A) : nom, halo, ralenti de l'ultime
+          // v9.2.5 : chaque compétence (ultime comprise) a son geste et son effet (skill-fx.js).
+          const known = companion && (event.skill === 99 ? awakenedSkill(companion.id) : companionSkillList(companion, COMPANION_ROLES[companion.id] ?? 'pet')[event.skill]);
+          if (known) {
+            const slot = this.layout?.slots.get(companion.id);
+            const sx = slot?.cx ?? heroX - 30;
+            castUnitSkill(this, companion, known.name, event.skillType ?? known.type, fxContext(this, world, { x: sx, y: this.groundY - 22 }, heroX));
+            // v10.0 (9.1) : le corps bouge aussi pendant la compétence (ruée d'un combattant sur un coup, pas d'un mage).
+            if (companion.kind === 'ally') this.allyGesture(companion, world, heroX, event.skillType ?? known.type, event.ultimate, true);
+            return;
+          }
+          if (companion?.kind === 'ally') {
+            // v9.0.8 : geste propre au compagnon (saut d'attaque, tir, sort, soutien), l'effet part de sa place.
+            this.allyGesture(companion, world, heroX, event.skillType, event.ultimate);
+          } else {
+            this.effects.push({ kind: 'ring', x: heroX - 28, y: this.groundY - 14, color: '#9cf08a', life: 0.5, max: 0.5, r: 10 });
+          }
+          // v9.1.3 (doc4 lot 2) : effet générique d'ultime (rare : 30 s), aux couleurs du compagnon — colonne de
+          // lumière sur la cible, gerbe d'étincelles et petite secousse. Sans texte (la scène n'est pas traduite).
+          if (event.ultimate) {
+            const color = companion?.fx ?? '#ffd23f';
+            const x = Math.round(world.enemies[0] ? this.wx(world.enemies[0].x) : heroX + 60);
+            this.effects.push({ kind: 'beam', x, color, life: 0.9, max: 0.9, wide: true });
+            this.effects.push({ kind: 'ring', x, y: this.groundY - 18, color, life: 0.6, max: 0.6, r: 22 });
+            this.burst(x, this.groundY - 24, color, 16, 52);
+            /* v9.8 (B1) : plus de secousse sur une action du héros ou d'un compagnon */
+          }
+
+        };
+        this.queueAlly(event.companionId, run, { dur: event.ultimate ? 1.2 : 0.95, ultimate: Boolean(event.ultimate) });
         break;
       }
       case 'levelUp':
@@ -711,18 +721,48 @@ export class SceneRenderer {
     const big = (crit ? 1.25 : 1) * (boss ? 1.15 : 1);
     const hitName = el ? `hit_${el}` : weapon === 'none' ? null : `hit_${weapon}`;
     const drawn = vfxReady();
-    if (hitName) vfx(this, hitName, ix + 2, iy, { size: big });
-    if (crit) { vfx(this, 'crit_flash', ix + 2, iy, { size: boss ? 1.1 : 0.9 }); vfx(this, 'crit_wave', ix + 2, Math.min(G - 2, iy + 10), { size: 0.9 }); }
+    // v10.0 (3) : impact = éclat dessiné (étoile de lumière et 6 à 8 étincelles, 0,25 s) de la couleur de l'élément,
+    // à la place des disques (orange à spirale), anneaux et ondes ; l'ancien impact reste en repli sans le second atlas.
+    if (vfx2Ready('v_impact')) vfx(this, 'v_impact', ix + 2, iy, { size: big * (crit ? 1.1 : 0.85), life: 0.25, tint: crit ? '#ffd23f' : IMPACT_TINT[el] ?? null });
+    else if (hitName) vfx(this, hitName, ix + 2, iy, { size: big });
     if (!drawn) this.sprite(['fx_hit'], ix + 2, iy + 6, 0.14, { tint: crit ? '#ffd23f' : null });
-    if (crit) {
-      this.effects.push({ kind: 'ring', x: ix, y: iy, color: '#ffd23f', life: 0.25, max: 0.25, r: 12 });
-      /* v9.8 (B1) : plus de secousse sur une action du héros ou d'un compagnon */
-    } // v9.8 (B1) : plus de secousse sur un coup du héros (critique ou boss)
     // v9.1.9 : impact élémentaire selon la couleur du coup (feu, glace, poison, sacré, ombre) ou l'élément donné.
     if (el) this.elementFx(ix, iy, el, crit || boss);
     // v9.2.6 : couleur du chiffre selon le coup (critique doré, élément, coup simple blanc).
     const [c0, c1] = DAMAGE_COLORS[crit ? 'crit' : el ?? 'hit'] ?? DAMAGE_COLORS.hit;
     if (damage) this.addText(formatNumber(damage), x, G - (boss ? 58 : 36), c0, c1, crit, damage);
+  }
+
+  // v10.0 (9.1) : file de gestes par compagnon — chaque action attend la fin de la précédente (0,45 s au moins entre
+  // deux gestes du même compagnon) ; l'équipe est décalée de 0,15 s pour ne pas agir comme un seul bloc ; l'ultime
+  // passe devant. File bornée (3) : les attaques de base en trop sont oubliées.
+  queueAlly(id, fn, { dur = 0.9, ultimate = false } = {}) {
+    const q = (this.allyQ ??= new Map()).get(id) ?? [];
+    const job = { fn, dur, ultimate };
+    if (ultimate) q.unshift(job); else q.push(job);
+    while (q.length > 3) { const i = q.findIndex((j) => !j.ultimate); q.splice(i >= 0 ? i : q.length - 1, 1); }
+    this.allyQ.set(id, q);
+  }
+
+  processAllyQueue() {
+    if (!this.allyQ) return;
+    const busy = (this.allyBusy ??= new Map());
+    for (const [id, q] of this.allyQ) {
+      if (!q.length || this.time < (busy.get(id) ?? -9) || this.time < (this.teamNext ?? -9)) continue;
+      const job = q.shift();
+      job.fn();
+      busy.set(id, this.time + Math.max(0.45, job.dur));
+      this.teamNext = this.time + 0.15;
+      (this.gestureLog ??= []).push({ id, t: this.time }); // tests : écart entre deux gestes
+      if (this.gestureLog.length > 200) this.gestureLog.shift();
+    }
+  }
+
+  critTrail(x, y, color = '#ffd23f') {
+    if (this.focus || this.time - (this.trailAt ?? -9) < 0.4) return; // au plus une traînée toutes les 0,4 s
+    this.trailAt = this.time;
+    this.effects = this.effects.filter((e) => e.kind !== 'wtrail');
+    this.effects.push({ kind: 'wtrail', x, y, color, life: 0.15, max: 0.15, flip: (this.trailFlip = !this.trailFlip) });
   }
 
   killEffect(event) {
@@ -941,7 +981,9 @@ export class SceneRenderer {
     // v9.0.8 : chacun dans sa case (chevalier | familier | compagnons) ; si l'équipe ne tient pas à gauche du
     // chevalier, tout le combat glisse vers la droite (en douceur) plutôt que de faire se chevaucher les personnages.
     this.layout = this.teamLayout(state);
-    const wantShift = Math.max(0, 3 - this.layout.left);
+    // v10.0 (8) : sur téléphone (portrait), le décalage est plafonné : au moins un ennemi reste à l'écran devant le héros
+    // (l'arrière de l'équipe peut sortir à gauche).
+    const wantShift = Math.min(Math.max(0, 3 - this.layout.left), this.tall ? Math.max(0, this.width - 130 - HERO_X) : 1e9);
     this.viewShift = this.viewShift === undefined ? wantShift : this.viewShift + (wantShift - this.viewShift) * Math.min(1, dt * 4);
     // v9.10 (6) : vitrine d'un compagnon — il est seul (pas de héros) et recentré à la place du héros.
     const shift = Math.round(this.viewShift) + (this.soloUnit ? Math.round((HERO_X - this.layout.left) * 0.55) : 0);
@@ -951,6 +993,7 @@ export class SceneRenderer {
     // v9.2.1 (marais) : l'équipe patauge — corps enfoncés (travLift) et coupés à la surface de l'eau.
     const wade = this.trav?.wade;
     if (wade) { ctx.save(); ctx.beginPath(); ctx.rect(-shift - 8, 0, this.width + 16, this.groundY - 2); ctx.clip(); }
+    this.processAllyQueue(); // v10.0 (9.1)
     this.drawCompanions(ctx, state, world, dt);
     const pet = world.hero.dead ? null : equippedCompanions(state).find((c) => c.kind !== 'ally');
     if (pet) this.drawPet(ctx, world, pet);
@@ -1686,7 +1729,7 @@ export class SceneRenderer {
   // Compagnons : suivent le chevalier, les volants planent au-dessus de son épaule.
   // Héros allié : à taille humaine derrière le chevalier ; marche, respiration, pose d'attaque.
   // v9.0.8 : déclenche le geste d'un compagnon et ses effets (au bon moment du geste).
-  allyGesture(companion, world, heroX, skillType, ultimate = false) {
+  allyGesture(companion, world, heroX, skillType, ultimate = false, poseOnly = false) {
     const type = skillType ?? companion.skill?.type;
     const style = ALLY_STYLE[companion.id] ?? 'melee';
     const support = ['heal', 'shield', 'rally', 'gold'].includes(type);
@@ -1700,25 +1743,36 @@ export class SceneRenderer {
     const G = this.groundY;
     const color = companion.fx ?? '#ffffff';
     const front = world.enemies[0];
-    const tx = front ? this.wx(front.x) - 4 : heroX + 40;
+    // v10.0 (9.1) : contre un grand boss, la cible est le bord de sa silhouette (personne ne traverse le boss).
+    const ffx = front ? this.enemyFx.get(front.id) : null;
+    const tx = front ? (this.bigBoss && ffx?.edge ? ffx.edge : this.wx(front.x) - 4) : heroX + 40;
+    // Ruée : 60 à 70 % de la distance jusqu'à la cible, au plus 70 px de jeu.
+    const anim0 = this.allyAnims.get(companion.id);
+    if (anim0) anim0.reach = Math.max(0, Math.min(70, (tx - ax) * 0.65));
+    const [hdx, hdy] = handOf(companion.id);
+    if (poseOnly) return; // v10.0 (9.1) : compétence dessinée — seulement le déplacement (ruée, pas en avant)
     const hit = (x) => {
       this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], x, G + 1 - this.waterLift(), 0.2, { tint: color });
       this.burst(x, G - 16, color, 8, 30);
       if (front) this.hitReact(front.id, x, { color });
     };
     if (kind === 'melee') {
-      // v9.2.7 : arc de taille net sur l'arme du compagnon, au moment exact du coup de son geste dessiné.
-      if (!this.focus) this.later(ALLY_GESTURE_TIME.melee * 0.39, () => vfx(this, 'hit_slash', ax + 12, G - 16 - this.waterLift(), { size: 0.8, tint: color === '#ffffff' ? null : color, life: 0.18 }));
-      // Saut : l'onde tranchante part au sommet du bond et file jusqu'à l'ennemi.
-      this.later(0.24, () => this.projectile(['fx_wave'], ax + 8, G - 30, tx, G - 18, 0.2, {
-        targetId: front?.id, trail: [color], trailVy: 0, onHit: () => hit(tx) }));
-      this.later(0.46, () => this.dust(ax, 3));
+      // v10.0 (9.1) : ruée jusqu'au-devant de la cible (0,12 s, images rémanentes), coup au contact, retour en 0,2 s
+      // avec un petit saut arrière (allyGesturePose). Plus d'onde tranchante : elle reste aux compétences de zone.
+      this.later(0.02, () => this.dust(ax, 3));
+      this.later(0.33, () => hit(tx));
+      this.later(0.82, () => this.dust(ax, 2));
     } else if (kind === 'archer') {
-      this.later(0.14, () => this.projectile(['fx_arrow'], ax + 8, G - 24, tx, G - 18, 0.22, {
+      // v10.0 (9.1) : un pas en arrière, la corde tendue tenue 0,15 s, puis la flèche part de l'arc.
+      this.later(0.3, () => this.projectile(['fx_arrow'], ax - 2 + hdx, G - hdy, tx, G - 18, 0.22, {
         arc: 6, rotate: 1, targetId: front?.id, trail: ['#e8e0c8'], trailVy: 0, onHit: () => hit(tx) }));
     } else if (kind === 'cast') {
+      // v10.0 (9.1) : un pas en avant, lueur de charge dans la main (0,25 s, couleur de l'élément), puis le projectile
+      // part de la main à l'image du coup ; petit recul ensuite (allyGesturePose).
       const style2 = ALLY_STYLE[companion.id];
-      this.later(0.3, () => this.projectile(CAST_ORB[style2] ?? ['fx_spark'], ax + 6, G - 34, tx, G - 18, 0.3, {
+      const el = ELEMENTS[unitElement(companion.id)]?.color ?? color;
+      this.later(0.1, () => { if (!this.focus) this.effects.push({ kind: 'handglow', id: companion.id, dx: hdx + 6, dy: hdy, color: el, life: 0.25, max: 0.25 }); });
+      this.later(0.36, () => this.projectile(CAST_ORB[style2] ?? ['fx_spark'], ax + 6 + hdx, G - hdy, tx, G - 18, 0.3, {
         arc: 8, targetId: front?.id, trail: [color], onHit: () => { hit(tx); this.burst(tx, G - 18, color, 10, 40); } }));
     } else if (kind === 'burst') {
       this.later(0.3, () => {
@@ -1805,16 +1859,19 @@ export class SceneRenderer {
       else {
         const arc = (p0, p1, h) => (k < p0 || k > p1 ? 0 : Math.sin(((k - p0) / (p1 - p0)) * Math.PI) * h);
         switch (a.kind) {
-          case 'melee': // élan (recul d'un pas), puis pas en avant et frappe : on reste au sol
-            return { dx: k < 0.25 ? -1.5 * (k / 0.25) : -1.5 + arc(0.25, 0.8, 3.5) + 1.5 * Math.min(1, (k - 0.25) / 0.2),
-              dy: arc(0.3, 0.6, 2), glow: 0, ghosts: k > 0.3 && k < 0.6, lunge: k > 0.25 && k < 0.7, color: a.color,
-              arm: k < 0.25 ? -25 : k < 0.55 ? 40 : k < 0.7 ? 20 : 0 }; // v9.1.9 : bras qui frappe
+          case 'melee': { // v10.0 (9.1) : ruée (0,12 s), coup au contact, retour (0,2 s) avec un petit saut arrière
+            const R = a.reach ?? 30;
+            const dx = k < 0.14 ? R * (k / 0.14) : k < 0.72 ? R : R * Math.max(0, 1 - (k - 0.72) / 0.24);
+            return { dx, dy: arc(0.72, 0.96, 4), glow: 0, ghosts: k < 0.16 || (k > 0.72 && k < 0.9), lunge: k < 0.72, color: a.color,
+              arm: k < 0.25 ? -25 : k < 0.55 ? 40 : k < 0.7 ? 20 : 0 };
+          }
           case 'burst':
             return { dx: arc(0.15, 0.75, 1), dy: k < 0.15 ? -1 : arc(0.15, 0.75, 10), glow: arc(0.1, 0.9, 0.9), ghosts: k > 0.2 && k < 0.7, color: a.color };
-          case 'archer': // recul au tir, puis retour
-            return { dx: k < 0.15 ? -k / 0.15 : -Math.max(0, 1 - (k - 0.15) / 0.5), dy: 0, glow: 0, color: a.color };
-          case 'cast': // lévitation, halo qui pulse
-            return { dx: 0, dy: arc(0, 1, 5), glow: arc(0, 1, 1), color: a.color };
+          case 'archer': // v10.0 (9.1) : un pas en arrière, corde tendue, tir, retour
+            return { dx: k < 0.15 ? -2 * (k / 0.15) : k < 0.5 ? -2 : -2 * Math.max(0, 1 - (k - 0.5) / 0.4), dy: 0, glow: 0, color: a.color };
+          case 'cast': // v10.0 (9.1) : un pas de 6 px en avant, sort, petit recul de 3 px, retour
+            return { dx: k < 0.15 ? 6 * (k / 0.15) : k < 0.4 ? 6 : k < 0.55 ? 6 - 9 * ((k - 0.4) / 0.15) : -3 * Math.max(0, 1 - (k - 0.55) / 0.4),
+              dy: arc(0.1, 0.5, 1.5), glow: arc(0.1, 0.45, 1), color: a.color };
           default: // soutien
             return { dx: 0, dy: arc(0, 1, 4), glow: arc(0, 1, 1), color: a.color };
         }
@@ -1845,6 +1902,7 @@ export class SceneRenderer {
     const walking = world.hero.walking;
     const hd = Boolean(SPRITES[s]?.scale);
     const pose = this.allyPose(companion, walking, i);
+    (this.allyPoseDx ??= new Map()).set(companion.id, pose.dx ?? 0); // v10.0 (9.1) : lueur de la main qui suit le corps
     // v9.2.0 (nage) : sous l'eau, pas de pas au sol — les images de pas battent lentement (brasse) et tout le
     // corps flotte à sa propre profondeur (voir plus bas).
     const swimming = this.underwater;
@@ -2119,15 +2177,30 @@ export class SceneRenderer {
     const pa = unitGesture(this, companion.id) ?? pickAllyAnim({ sprite: companion.sprite, walking, swimming: false, always: true, time: this.time, seed: 0.5,
       gesture: a0 ? { kind: a0.kind, k: Math.min(1, (this.time - a0.start) / a0.max) } : null });
     const petImg = (dx, dy) => (pa ? ctx.drawImage(spriteCanvas(pa.name), dx + pa.ox, dy + pa.oy) : ctx.drawImage(img, dx, dy));
+    // v10.0 (9.1) : le familier va frapper puis revient à sa case — bond (chat, renard, golem, hérisson, tortue),
+    // piqué (hibou, phénix, dragonnet), rebond sur la cible (slime), passage en traînée (feu follet, fée).
+    let mvx = 0, mvy = 0;
+    if (a0 && !this.focus) {
+      const k = Math.min(1, (this.time - a0.start) / a0.max);
+      const R = a0.reach ?? 24;
+      const out = k < 0.18 ? k / 0.18 : k < 0.6 ? 1 : Math.max(0, 1 - (k - 0.6) / 0.3);
+      const arcK = (p0, p1) => (k < p0 || k > p1 ? 0 : Math.sin(((k - p0) / (p1 - p0)) * Math.PI));
+      const style = PET_MOVE[companion.id] ?? 'bound';
+      mvx = R * out;
+      if (style === 'bound') mvy = 8 * arcK(0, 0.22) + 5 * arcK(0.6, 0.9);
+      else if (style === 'bounce') mvy = 14 * arcK(0, 0.3) + 6 * arcK(0.3, 0.45) + 8 * arcK(0.6, 0.9);
+      else if (style === 'dive') mvy = -18 * arcK(0, 0.6); // vers le bas (piqué), puis remontée
+      if (style === 'streak' && k < 0.25 && Math.floor(this.time * 30) % 2) this.effects.push({ kind: 'spark', x: x + img.width / 2 + mvx - 6, y: this.groundY - (flying ? 30 : 10), vx: -30, vy: 0, color: companion.fx ?? '#9fe8ff', life: 0.2, max: 0.2 });
+    }
     if (flying) {
-      const hover = 30 + Math.sin(this.time * 3) * 3;
+      const hover = 30 + Math.sin(this.time * 3) * 3 + mvy;
       // Battement d'ailes : écrasement vertical rapide autour du centre du sprite.
       const flap = 1; // v9.0.8 : plus d'écrasement du dessin (vol = flottement)
       const cy = this.groundY - hover - img.height / 2;
       this.drawShadow(ctx, x + img.width / 2, img.width * 0.5);
       if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, cy - img.height / 2, img.width, img.height, companion); this.gearGlow(ctx, x + img.width / 2, cy - img.height / 2, img.width, img.height, companion); // v9.3.3
       ctx.save();
-      ctx.translate(this.snap(x + img.width / 2), this.snap(cy));
+      ctx.translate(this.snap(x + mvx + img.width / 2), this.snap(cy));
       ctx.scale(LEFT_FACING_PETS.has(companion.id) ? -1 : 1, flap);
       this.drawStarOutline(ctx, companion, companion.sprite, -img.width / 2, -img.height / 2);
       petImg(-img.width / 2, -img.height / 2);
@@ -2138,13 +2211,13 @@ export class SceneRenderer {
     const phase = Math.abs(Math.sin(this.time * (walking ? 9 : 2.5)));
     // v9.0.8 : seul le slime avance par sauts ; chat et golem trottinent (petit balancement d'un pixel).
     const hopper = companion.id === 'golden_slime';
-    const hop = (walking ? phase * (hopper ? 4 : 1) : phase * 0.6) + this.travLift(2.5); // v9.2.1 : hauteur du monde
+    const hop = (walking ? phase * (hopper ? 4 : 1) : phase * 0.6) + this.travLift(2.5) + mvy; // v9.2.1 : hauteur du monde
     this.travFeet(companion.id, x + img.width / 2, walking, 2.5, true);
     const squash = 1; // v9.0.8 : bonds sans écrasement du dessin
     this.drawShadow(ctx, x + img.width / 2, img.width * 0.8 - hop);
     if (this.maxStars(companion)) this.drawStarAura(ctx, x + img.width / 2, this.groundY - img.height, img.width, img.height, companion); this.gearGlow(ctx, x + img.width / 2, this.groundY - img.height, img.width, img.height, companion); // v9.3.3
     ctx.save();
-    ctx.translate(this.snap(x + img.width / 2), this.groundY + 1 - this.snap(hop));
+    ctx.translate(this.snap(x + mvx + img.width / 2), this.groundY + 1 - this.snap(hop));
     ctx.scale((2 - squash) * (LEFT_FACING_PETS.has(companion.id) ? -1 : 1), squash);
     this.drawStarOutline(ctx, companion, companion.sprite, -img.width / 2, -img.height);
     petImg(-img.width / 2, -img.height);
@@ -2189,7 +2262,7 @@ export class SceneRenderer {
   // v9.0.8 : rang de l'équipe, de droite à gauche — chevalier | familier | 1er compagnon | 2e compagnon. Chaque
   // personnage a sa case, de la largeur réelle (opaque) de son sprite, avec 3 px d'écart : aucun chevauchement.
   teamLayout(state) {
-    const GAP = 3;
+    const GAP = this.bigBoss ? 8 : 3; // v10.0 (4) : grands boss — au moins 24 px d'écran entre deux cases
     const team = equippedCompanions(state);
     const heroImg = heroComposite('idle', state.equipment, false, 'a', activeHero(state).palette);
     let cursor = HERO_X - HERO_ANCHOR.x + opaqueSpan(heroImg).l - GAP;
@@ -2595,6 +2668,35 @@ export class SceneRenderer {
           for (let a = 0; a < Math.PI * 2; a += 0.2) {
             ctx.fillRect(Math.round(fx.x + Math.cos(a) * r), Math.round(fx.y + Math.sin(a) * r * 0.5), 1, 1);
           }
+          break;
+        }
+        case 'handglow': {
+          // v10.0 (9.1) : lueur de charge dans la main du lanceur (couleur de son élément), avant le lâcher du sort.
+          const sl = this.layout?.slots.get(fx.id);
+          if (!sl) break;
+          const k = 1 - t;
+          const x = sl.cx + fx.dx + (this.allyPoseDx?.get(fx.id) ?? 0), y = this.groundY - fx.dy;
+          const g = ctx.createRadialGradient(x, y, 0, x, y, 3 + k * 5);
+          g.addColorStop(0, '#ffffff'); g.addColorStop(0.35, fx.color); g.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.globalAlpha = 0.9; ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g;
+          ctx.fillRect(x - 9, y - 9, 18, 18); ctx.globalCompositeOperation = 'source-over';
+          break;
+        }
+        case 'wtrail': {
+          // v10.0 (3) : traînée d'arme — arc fin (blanc au bord, doré au cœur), qui s'efface en 0,15 s.
+          const k = 1 - t;
+          const a0 = fx.flip ? 0.9 : -1.3, a1 = fx.flip ? -0.5 : 0.7;
+          ctx.save();
+          ctx.lineCap = 'round';
+          for (const [w, c, al] of [[3, fx.color, 0.55], [1, '#ffffff', 1]]) {
+            ctx.globalAlpha = al * t;
+            ctx.strokeStyle = c;
+            ctx.lineWidth = w;
+            ctx.beginPath();
+            ctx.arc(fx.x, fx.y, 13, a0, a0 + (a1 - a0) * Math.min(1, k * 2.2), a1 < a0);
+            ctx.stroke();
+          }
+          ctx.restore();
           break;
         }
         case 'beam': {

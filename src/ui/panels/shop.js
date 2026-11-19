@@ -3,7 +3,7 @@ import { merchantsHtml } from './inbox.js'; // v9.3.8
 // première acquisition, aperçu des cosmétiques. AUCUN paiement réel : chaque bouton d'achat dit « Bientôt disponible »
 // tant qu'aucun fournisseur n'est branché (core/store.js) ; rien n'est donné sans reçu vérifié.
 // Aussi : revenus du mois (tickets) et paliers de dépenses cumulées (cosmétiques seulement).
-import { MONTHLY_TARGETS, SHOP_CATEGORIES, SKIN_TIERS, THEME_TIERS, WALLET } from '../../data/economy.js';
+import { SHOP_CATEGORIES, SKIN_TIERS, THEME_TIERS, WALLET } from '../../data/economy.js';
 import { allOffers, offerContent, offerState, paymentReady, spendTiers } from '../../core/store.js';
 import { incomeReport } from '../../core/income.js';
 import { heroById } from '../../core/heroes.js';
@@ -66,13 +66,20 @@ function offerCard(ui, state, offer) {
 }
 
 const GROUP_LABEL = { login: 'Connexion', missions: 'Missions', advanced: 'Boss et donjons', other: 'Piste du mois' };
+// v10.0 (7) : tickets gagnés ce mois-ci — une ligne par source, avec sa progression (au lieu de 3 petites icônes).
 function incomeBlock(state) {
   const rep = incomeReport(state);
   const keys = ['ticketLimited', 'ticketPermanent', 'ticketPet'];
-  const rows = Object.entries(rep).map(([g, r]) => `<tr><th>${escapeHtml(GROUP_LABEL[g] ?? g)}</th>${keys.map((k) => `<td class="num">${r.cap[k] ? `${r.got[k] ?? 0}/${r.cap[k]}` : '—'}</td>`).join('')}</tr>`).join('');
-  return `<div class="muted">Tickets gagnés ce mois-ci, par source, et plafond de chaque source. Les événements donnent le reste (objectif mensuel : ${MONTHLY_TARGETS.ticketLimited} limités, ${MONTHLY_TARGETS.ticketPermanent} permanents, ${MONTHLY_TARGETS.ticketPet} familiers).</div>
-    <table class="eco-table"><tr><th></th>${keys.map((k) => `<th>${walletIcon(k)}</th>`).join('')}</tr>${rows}</table>
-    <div class="muted">Les gemmes gardent leurs sources habituelles (combat, missions, piste du mois, connexion).</div>`;
+  const rows = [];
+  for (const [g, r] of Object.entries(rep)) for (const k of keys) {
+    if (!r.cap[k]) continue;
+    const got = r.got[k] ?? 0, cap = r.cap[k];
+    rows.push(`<div class="inc-row">${walletIcon(k)}<span class="inc-name">${escapeHtml(GROUP_LABEL[g] ?? g)} · ${escapeHtml(WALLET[k]?.short ?? k)}</span>
+      <span class="inc-bar"><i style="width:${Math.min(100, (got / cap) * 100)}%"></i></span><b class="num">${got}/${cap}</b></div>`);
+  }
+  if (!rows.length) return '';
+  return `<div class="section-title">Tickets gagnés ce mois-ci</div>${rows.join('')}
+    <div class="muted small-note">Les événements donnent le reste. Les gemmes gardent leurs sources habituelles.</div>`;
 }
 
 function spendBlock(state) {
@@ -98,7 +105,7 @@ export default {
     // v9.10 (8) : les offres illustrées d'abord ; Marchands ensuite ; le texte d'information en petit, en bas.
     if (cat === 'merchants') return `${preview}${tabs}<div class="card">${merchants || '<div class="state-empty">Aucun marchand de passage pour le moment : ils apparaissent pendant tes combats.</div>'}</div>`;
     return `${preview}${tabs}<div class="shop-grid">${offers.map((o) => offerCard(ui, state, o)).join('')}</div>
-      <div class="card">${incomeBlock(state)}</div>
+      ${incomeBlock(state) ? `<div class="card">${incomeBlock(state)}</div>` : ''}
       ${(state.economy?.store?.spentCents ?? 0) > 0 ? `<div class="card">${spendBlock(state)}</div>` : ''}
       ${note ? note.replace('class="shop-note"', 'class="shop-note small-note"') : ''}
       <div class="muted shop-foot">Cosmétiques : aucun bonus de puissance, achetés une fois pour toutes, équipables et retirables dans Profil › Apparences et Paramètres › Thème.</div>`;

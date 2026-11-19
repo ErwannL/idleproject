@@ -1,6 +1,13 @@
 // v9.7.1 : anglais du cadrage, du sac de butin et des menus allégés. Branché à la fin de ./en.js.
 let LK = () => null;
 export const EXACT_971 = {
+  "Fait ✔": "Done ✔",
+  "Compagnons ×3 contre les grands boss": "Companions ×3 against great bosses",
+  "Meilleur coup :": "Best hit:",
+  "Tickets gagnés ce mois-ci": "Tickets earned this month",
+  "Les événements donnent le reste. Les gemmes gardent leurs sources habituelles.": "Events give the rest. Gems keep their usual sources.",
+  "Apprendre le meilleur": "Learn the best",
+  "Aucun marchand de passage pour le moment : ils apparaissent pendant tes combats.": "No merchant around right now: they appear during your fights.",
   "Le réveil": "The awakening",
   "Le héros se relève près du feu. Le chemin des Plaines l'attend.": "The hero rises by the fire. The road of the Plains awaits.",
   "Atteins l'étape 1-5": "Reach stage 1-5",
@@ -657,6 +664,9 @@ export const EXACT_971 = {
   "Tient": "Withstands",
 };
 export const patterns971 = (lookup = () => null) => { LK = lookup; return [
+  [/^Bien moins bon que ton (.+) (actuel|actuelle) \(−(.+) %\)$/, (m) => `Much worse than your current ${m[1]} (−${m[3]} %)`],
+  [/^Il manque (\d+) fragments?$/, (m) => `${m[1]} fragment${m[1] > 1 ? 's' : ''} missing`],
+  [/^(.+) · (Tickets de compagnon|Tickets de compagnon permanents|Tickets de familier)$/, (m) => `${m[1]} · ${m[2] === 'Tickets de familier' ? 'Pet tickets' : m[2] === 'Tickets de compagnon' ? 'Companion tickets' : 'Permanent companion tickets'}`],
   [/^Chapitre (\d+)\/(\d+)$/, (m) => `Chapter ${m[1]}/${m[2]}`],
   [/^= (\d+) invocations$/, (m) => `= ${m[1]} summons`],
   [/^Dégâts reçus −(.+) %$/, (m) => `Damage taken −${m[1]} %`],

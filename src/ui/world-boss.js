@@ -9,7 +9,7 @@ import { WorldBossScene, PHASE_COLORS } from '../render/world-boss-scene.js';
 import { formatNumber } from '../core/format.js';
 import { walletIcon } from './panels/shop.js';
 import { reduceMotion } from './prefs.js';
-import { escapeHtml } from './common.js';
+import { escapeHtml, icon } from './common.js';
 import { companionById } from '../core/companions.js';
 
 const STEP = 1 / 60;
@@ -29,7 +29,7 @@ function hudHtml(WORLD_BOSS) { // v9.7.1 (lot 7) : fiche du grand boss affronté
     <div class="wb-banner hidden" aria-live="assertive"></div>
     <div class="wb-actions"><button class="btn small wb-skip" type="button">Passer ⏭</button>
       <button class="btn small wb-quit" type="button" aria-label="Fermer">✕</button></div>
-    <div class="wb-live hidden" aria-live="off"><div class="wb-live-title"><span>Dégâts par membre</span></div><div class="wb-live-rows"></div>
+    <div class="wb-live hidden" aria-live="off"><div class="wb-live-title"><span>Dégâts par membre</span><div class="wb-live-best"></div></div><div class="wb-live-rows"></div>
       <div class="wb-live-title"><span>Paliers de récompense</span></div><div class="wb-live-tiers"></div></div>
     <div class="wb-end hidden" role="dialog" aria-modal="true"></div>`;
 }
@@ -145,8 +145,14 @@ export function openWorldBoss(state, actions) {
     const total = Math.max(1, ids.reduce((t, id) => t + (dmg[id] ?? 0), 0));
     q('.wb-live-rows').innerHTML = ids.map((id) => {
       const v = dmg[id] ?? 0;
-      return `<div class="wb-live-row"><span class="wb-live-name">${escapeHtml(unitName(id))}</span><i class="wb-live-bar"><i style="width:${(v / total) * 100}%"></i></i><b class="num">${formatNumber(v)}</b></div>`;
+      // v10.0 (4) : portrait de chaque membre ; les compagnons frappent ×3 contre un grand boss.
+      const c = id === 'hero' ? null : companionById(id);
+      const face = c ? `<img class="px wb-live-face" src="${icon(c.sprite, c.kind === 'ally' ? 1 : 3)}" alt="">` : '<img class="px wb-live-face" src="assets/sprites/icon_hero.png" alt="">';
+      return `<div class="wb-live-row">${face}<span class="wb-live-name">${escapeHtml(unitName(id))}${c ? ' <small class="wb-x3">×3</small>' : ''}</span><i class="wb-live-bar"><i style="width:${(v / total) * 100}%"></i></i><b class="num">${formatNumber(v)}</b></div>`;
     }).join('');
+    const best = fight.world.counters?.best;
+    const bestEl = q('.wb-live-best');
+    if (bestEl) bestEl.innerHTML = best ? `Meilleur coup : <b>${escapeHtml(unitName(best.id))}</b> <b class="num gold-text">${formatNumber(best.v)}</b><br><small>Compagnons ×3 contre les grands boss</small>` : '<small>Compagnons ×3 contre les grands boss</small>';
     const cleared = fight.progress().cleared;
     q('.wb-live-tiers').innerHTML = fight.cfg.tiers.map((t) => `<span class="wb-tier${cleared >= t ? ' on' : ''}"><b class="num">${pct(t)}</b>${cleared >= t ? ' ✓' : ''}</span>`).join('');
   };

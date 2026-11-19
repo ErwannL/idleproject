@@ -160,12 +160,14 @@ SceneRenderer.skillNames = state.ui.skillNames !== false; // v9.7.1 (lot A)
 function resizeScene() {
   const top = stageArea.getBoundingClientRect().top;
   let hud = 0;
-  for (const id of ['zone-card', 'skill-bar']) {
+  for (const id of ['zone-card']) { // v10.0 (1) : la barre de compétences est sous le sol, dans la colonne
     const el = document.getElementById(id);
     if (el && el.offsetParent && !el.classList.contains('hidden')) hud = Math.max(hud, el.getBoundingClientRect().bottom - top);
   }
   renderer.hudPx = Math.min(hud, stageArea.clientHeight * 0.4);
+  if (!renderer.liftShrinking) renderer.liftCap = null; // v10.0 (1) : recalculée par la colonne du bas
   renderer.resize(stageArea.clientWidth, stageArea.clientHeight);
+  if (!renderer.liftShrinking) setTimeout(() => window.__layoutColumn?.(), 0);
 }
 new ResizeObserver(resizeScene).observe(stageArea);
 resizeScene();
@@ -1321,6 +1323,9 @@ const actions = {
 };
 
 const ui = new UI(document.getElementById('app'), actions);
+ui.resizeScene = resizeScene; // v10.0 (1) : la colonne du bas peut demander une scène plus courte
+ui.renderer = renderer;
+window.__layoutColumn = () => ui.layoutColumn();
 if (BUILD.cheats) import('./core/cheat-codes.js').then((m) => { cheatCodes = m; ui.cheatCodes = m; ui.invalidate(); });
 
 // Compte et sauvegarde cloud (optionnels) : le jeu fonctionne sans, via localStorage.

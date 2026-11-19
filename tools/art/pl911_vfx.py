@@ -23,6 +23,7 @@ P.VFX = {
     'v_buff_flame': [18, 'a small golden flame aura burning at the feet of a character, gentle flickering golden fire with tiny rising sparks, looping 8 frames'],
     # Coup critique : arc en dégradé (blanc au bord, doré au centre, transparent au bout) avec traînée, étincelle.
     'v_crit_arc': [34, 'a sword slash arc for a critical hit: a crescent with a white hot outer edge, golden center, fading to transparent at its tail, with a 3 frame motion trail, 9 frames, fast'],
+    'v_impact': [30, 'an impact flash: a sharp four-pointed white star of light with a bright core and 6 to 8 thin straight sparks flying outward in all directions, no circle, no ring, no disc, very fast, 6 frames'],
     'v_crit_spark': [16, 'a small sharp white and gold star spark at an impact point, 6 frames, very fast'],
     # Météore : grosse pierre en feu qui tombe, cratère, débris.
     'v_meteor_rock': [44, 'a huge flaming meteor boulder falling diagonally from the top left, cracked glowing lava rock with a long fire and smoke trail, looping 6 frames'],
