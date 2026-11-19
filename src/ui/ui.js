@@ -2,7 +2,7 @@
 // de la scène, HUD, onglets débloqués progressivement et panneaux (un module par panneau dans ./panels).
 // L'interface ne modifie jamais l'état directement : elle appelle les actions fournies par main.js.
 import campPanel from './panels/camp.js'; // v9.7.1 (lot 6)
-import { GLOSSARY, GLOSSARY_TERMS } from '../data/glossary.js'; // v9.7.1 (lot 5)
+import { GLOSSARY, GLOSSARY_TERMS, RESOURCES } from '../data/glossary.js'; // v9.7.1 (lot 5)
 import { rageFree } from '../core/combat.js'; // v9.7.1 (lot 3)
 import { isUnlocked } from '../core/unlock-quests.js'; // v9.7.1 (lot 3)
 import { COMBO_STEP_PCT, interactiveCooldown } from '../core/combat.js'; // v9.7.1 (lot 2)
@@ -52,6 +52,24 @@ const skillColor = (sk) => CLASS_COLOR[sk.id.split('_')[0]] ?? TYPE_COLOR[sk.typ
 // v10.0 (2) : actions sans doigt, et écran ouvert par chaque action du Sceau (un écran jamais ouvert = guidage).
 const NO_FINGER = new Set(['claim', 'lootbag', 'level', 'mentor', 'retry', 'goal', 'advance']);
 const SEAL_TAB = { upgrade: 'upgrades', skills: 'skills', equip: 'inventory', place: 'companions', team: 'companions', rebirth: 'tree', forge: 'forge' };
+// v10.1 : bouton à entourer quand le Sceau ouvre un écran : [sélecteur, consigne d'une ligne].
+const RING_OF = {
+  summon: ['[data-action="summon"]:not([disabled])', 'Touche Invoquer ×1'],
+  keys: ['[data-action="enter-dungeon"], [data-action="dungeon-enter"]', 'Touche Entrer'],
+  fusion: ['[data-action="fuse"]:not([disabled]), [data-action="fuse-all"]:not([disabled])', 'Touche Fusionner'],
+  rebirth: ['[data-action="rebirth"]', 'Touche Renaître'],
+  seal: ['[data-action="enter-dungeon"], [data-action="tower-start"]', 'Lance un donjon ou la Tour'],
+};
+const RING_TAB = {
+  upgrades: ['[data-action="buy"][data-key="damage"]', 'Touche Dégâts'],
+  skills: ['[data-action="learn-skill"]:not([disabled])', 'Touche Apprendre'],
+  inventory: ['[data-action="equip-best"], [data-action="equip"]', 'Touche Équiper'],
+  forge: ['[data-action="recycle-useless"]:not([disabled]), [data-action="fuse"]:not([disabled])', 'Touche le bouton doré'],
+  companions: ['[data-action="toggle-companion"]', 'Touche Placer'],
+  summon: ['[data-action="summon"]:not([disabled])', 'Touche Invoquer ×1'],
+  dungeons: ['[data-action="enter-dungeon"], [data-action="dungeon-enter"]', 'Touche Entrer'],
+  campaign: ['[data-action="retry-boss"], [data-action="advance"]', 'Touche pour avancer'],
+};
 const QUEST_ICONS = { login: 'icon_book', kills: 'weapon_sword', bosses: 'icon_boss', recycle: 'icon_anvil', summons: 'icon_summon', dungeons: 'icon_dungeon', rareLoot: 'icon_bag', upgrades: 'icon_upgrade' };
 function sealShort(n) {
   const num = n.text.match(/\((\d+)\)/)?.[1];
@@ -135,6 +153,7 @@ import { claimables, claimablesByTab } from '../core/claimables.js';
 import { isPhone, pref, reduceMotion, setPref } from './prefs.js';
 import { mountShowcase } from './showcase.js';
 import { openArenaStage } from './arena-stage.js'; // v9.10 (7)
+import { showHowTo } from './learn.js'; // v10.1
 import { HERALD_TASKS, chronicleNow, heraldState, heraldTask } from '../core/chronicles.js'; // v9.11 (7)
 import * as uiFx from './ui-vfx.js'; // v9.2.6 : effets visuels de l'interface
 import { openSearch } from './search.js';
@@ -143,7 +162,7 @@ import { availableForExpedition, readyExpeditions } from '../core/expeditions.js
 import { CHALLENGE, bossEvery, challengeUnlocked } from '../core/challenge.js';
 import { ZONES } from '../data/zones.js';
 import { CURRENCIES, currencyAmount } from '../data/currencies.js';
-import { MENUS, SUB_LABELS, SUB_SHORT, navPath } from './nav.js';
+import { MENUS, SUB_LABELS, SUB_SHORT, TAB_LEAD, navPath } from './nav.js';
 import { ELEMENTS, zoneElement } from '../core/elements.js'; // v9.3.1 : types
 
 export { MENUS };
@@ -685,6 +704,7 @@ export class UI {
         <button class="drawer-row" data-action="open-tab" data-value="hero">${img('icon_hero')}<b>Fiche du héros</b></button>
         <button class="drawer-row" data-action="sleep-mode">${img('icon_star')}<b>Veillée au Camp</b></button>
         <button class="drawer-row" data-action="open-tab" data-value="options">${img('icon_gear')}<b>Réglages</b></button>
+        <button class="drawer-row" data-action="howto">${img('icon_book')}<b>Comment jouer</b></button>
         <button class="drawer-row" data-action="show-shortcuts">${img('icon_book')}<b>Aide</b></button></div></div>`);
   }
 
@@ -838,6 +858,7 @@ export class UI {
   }
 
   closePanel() {
+    this.ring = null; document.getElementById('ring-tip')?.remove(); // v10.1
     uiFx.panelCloseFx(this.$('panel')); // v9.2.6 : le panneau s'efface (copie figée, les clics passent)
     this.sidePanel(false);
     this.tab = null;
@@ -857,7 +878,13 @@ export class UI {
   onClick(event) {
     // v9.7.1 (lot 5) : lexique — un terme touché affiche sa phrase d'explication.
     const lex = event.target.closest('.lex');
-    if (lex && GLOSSARY[lex.dataset.lex]) { event.stopPropagation(); this.toast(`${lex.dataset.lex} : ${GLOSSARY[lex.dataset.lex]}`, '#cfe0ff'); return; }
+    if (lex && GLOSSARY[lex.dataset.lex]) { event.stopPropagation(); this.glossCard(null, lex.dataset.lex); return; }
+    // v10.1 (P1 §2.3) : toucher une icône de ressource ouvre sa carte de glossaire.
+    const gl = event.target.closest('[data-gloss], #topbar .chip[data-currency]');
+    if (gl && !event.target.closest('[data-action]:not([data-gloss])')) {
+      const key = gl.dataset.gloss ?? gl.dataset.currency;
+      if (RESOURCES[key]) { event.stopPropagation(); this.glossCard(key); return; }
+    }
     const el = event.target.closest('[data-action]');
     if (!el || el.disabled) return;
     const { action, key, id, stage, seconds, value, preset, boss: bossId, currency } = el.dataset;
@@ -884,6 +911,7 @@ export class UI {
       case 'item-more': local(() => { v.itemMore = value || null; }); break; // v9.3.4
       case 'herald-claim': { const g = a.claimHerald(value); if (g) this.chestReveal(g, 'Tâche accomplie !'); break; } // v9.11 (7)
       case 'chronicle-claim': { const r = a.claimChronicle(); if (r) this.chestReveal(r.given, r.title, r.prize); break; }
+      case 'howto': this.closeModal(); showHowTo(this, 0); break; // v10.1
       case 'elements-help': this.elementsHelp(); break; // v9.11 (5)
       case 'item-plus': local(() => { v.itemPlus = value || null; }); break; // v9.11 (5)
       case 'bag-menu': local(() => { v.bagMenu = !v.bagMenu; }); break;
@@ -2017,9 +2045,19 @@ export class UI {
   // Marques (v9.1.0, une seule règle) : pastille rouge = à récupérer (core/claimables.js) ; point or = l'action
   // conseillée du moment (une seule) ; compteur +N sur Héros = objets neufs dans le sac ; « nouveau » = onglet ouvert.
   // v9.3.8 (4) : bandeau « Prochain déblocage » sous la scène, avec une barre qui se remplit.
+  // v10.1 (P1 §2.1) : 10 premières minutes d'une partie neuve — un seul appel à l'action à la fois. La bulle de
+  // tutoriel (ou une carte « Comment jouer » / de déblocage) passe avant tout ; carte de quête et bandeau « Prochain »
+  // n'arrivent qu'à l'étape 3.
+  calmStart(state = this.state) {
+    if (!state || state.unlocks?.legacy || (state.playSeconds ?? 0) >= 600) return { early: false, busy: false };
+    const busy = typeof document !== 'undefined' && Boolean(document.querySelector('#tuto-layer .tuto-finger:not([hidden]), #tuto-layer .tuto-bubble, .howto-card, .learn-card'));
+    return { early: (state.records?.bestStage ?? state.maxStage ?? 1) < 3, busy };
+  }
+
   updateNextUnlock(state) {
     const el = this.$('next-unlock');
     if (!el) return;
+    { const c = this.calmStart(state); if (c.early || c.busy) { el.classList.add('hidden'); return; } }
     // v9.8 (0.4) : suit la mini-quête en cours (consigne courte + barre), sinon le prochain palier d'étape.
     const q = currentQuest(state);
     let m = null;
@@ -2098,7 +2136,10 @@ export class UI {
     // v9.8 (H1/J1) : Carnet du jour — Roue ou Chasse rapide prêtes.
     { const n = (wheelReady(state) ? 1 : 0) + (quickHuntReady(state) ? 1 : 0); if (n && this.tabVisible.daybook !== false) { byTab.daybook = n; this.tabBadges = { ...this.tabBadges, daybook: n }; } }
     const current = computeHeroStats(state);
-    this.next = nextAction(state, { claims: this.claims, visible: this.tabVisible, fusionReady: this.tabBadges.forge === 1 }); // v9.3.5
+    // v10.1 : consignes mises de côté (revenues 3 fois sans être faites) pendant 10 min.
+    const nowMs = Date.now();
+    const aside = new Set(Object.entries(this.sealAside ?? {}).filter(([, t]) => t > nowMs).map(([id]) => id));
+    this.next = nextAction(state, { claims: this.claims, visible: this.tabVisible, fusionReady: this.tabBadges.forge === 1, aside }); // v9.3.5
     for (const menu of MENUS) {
       const red = menu.tabs.some((t) => byTab[t] && this.tabVisible[t] !== false);
       const el = this.$(menu.id === 'shop' ? 'badge-shop-tab' : `badge-${menu.id}`);
@@ -2159,7 +2200,8 @@ export class UI {
       if (t) n = { id: 'mentor', text: t.text, tab: t.tab, view: t.view, point: t.point };
     }
     this.sealAction = n;
-    const useless = !n || ['advance', 'mode-dungeon', 'mode-tower', 'mode-world', 'mode-challenge'].includes(n.id) || (n.id === 'quest' && n.action === 'none');
+    const useless = !n || ['advance', 'mode-dungeon', 'mode-tower', 'mode-world', 'mode-challenge'].includes(n.id) || (n.id === 'quest' && n.action === 'none')
+      || this.calmStart(st).busy; // v10.1 : le Sceau reste caché tant qu'une bulle de tutoriel est ouverte
     btn.classList.toggle('hidden', useless);
     this.layoutColumn();
     if (useless) { this.sealIgnored(null); return; }
@@ -2167,6 +2209,9 @@ export class UI {
     // à jour sans compter de nouveau.
     const key = n.id;
     if (this.lastHud.nextText !== n.text) { this.lastHud.nextText = n.text; this.setText('next-action-text', n.text); }
+    // v10.1 (P1 §2.2) : une ligne « pourquoi » sous chaque consigne.
+    const why = n.why ?? (n.id === 'quest' ? 'Termine-la : une nouvelle fonction s\'ouvre' : '');
+    if (this.lastHud.nextWhy !== why) { this.lastHud.nextWhy = why; this.setText('next-action-why', why); }
     if (this.lastHud.next !== key) {
       this.sealIgnored(key);
       this.lastHud.next = key;
@@ -2207,10 +2252,15 @@ export class UI {
     const fd = (st.ui.fingerDone ??= []);
     if (this.sealClicked || (this.userAt ?? 0) > (this.sealShownAt ?? 0)) {
       this.sealClicked = false; st.ui.sealIgnores = 0;
+      if (this.sealRepeat) this.sealRepeat[prevId] = 0;
       if (this.fingerOn === prevId && !fd.includes(prevId)) fd.push(prevId); // doigt suivi : il ne revient plus
       return;
     }
     if (this.fingerOn === prevId) { const ig = (this.fingerIgnores ??= {}); ig[prevId] = (ig[prevId] ?? 0) + 1; if (ig[prevId] >= 2 && !fd.includes(prevId)) fd.push(prevId); }
+    // v10.1 : une consigne revenue 3 fois sans être faite est mise de côté 10 min (la suivante est proposée).
+    const rep = (this.sealRepeat ??= {});
+    rep[prevId] = (rep[prevId] ?? 0) + 1;
+    if (rep[prevId] >= 3 && !['claim', 'goal', 'advance', 'quest'].includes(prevId)) { (this.sealAside ??= {})[prevId] = Date.now() + 600000; rep[prevId] = 0; }
     if (performance.now() - (this.sealShownAt ?? 0) < 20000) return; // trop bref pour compter
     st.ui.sealIgnores = (st.ui.sealIgnores ?? 0) + 1;
     if (st.ui.sealIgnores >= 3) { st.ui.sealIgnores = 0; st.ui.sealMiniUntil = (st.playSeconds ?? 0) + 3600; }
@@ -2267,13 +2317,59 @@ export class UI {
     if (later && shown(seal)) { const b = seal.getBoundingClientRect(), a = area.getBoundingClientRect(); later.style.top = `${b.top - a.top + (b.height - later.offsetHeight) / 2}px`; later.style.left = `${b.right - a.left + 8}px`; }
   }
 
+  // v10.1 (P1 §2.3) : carte de glossaire — ressource (image, à quoi ça sert, où en gagner, « Y aller ») ou mot.
+  glossCard(key, word = null) {
+    if (word) {
+      this.openModal(`<div class="gloss-card"><h2 id="modal-title">${escapeHtml(word)}</h2><p>${escapeHtml(GLOSSARY[word])}</p>
+        <div class="detail-actions"><button class="btn btn-gold" data-action="close-modal">Compris</button></div></div>`);
+      return;
+    }
+    const r = RESOURCES[key];
+    const pic = r.shop ? `<img class="px" src="assets/ui/shop/${r.icon}.png" alt="">` : img(r.icon);
+    const have = key === 'tickets' ? this.state?.wallet?.ticketLimited ?? 0 : key === 'gold' || key === 'gems' || key === 'keys' || key === 'fragments' ? this.state?.[key] ?? 0 : this.state?.materials?.[key] ?? 0;
+    const open = this.tabVisible?.[r.tab] !== false;
+    this.openModal(`<div class="gloss-card"><div class="gloss-head">${pic}<div><h2 id="modal-title">${escapeHtml(r.name)}</h2><span class="muted">Tu en as <b class="num">${formatNumber(have)}</b></span></div></div>
+      <p><b>À quoi ça sert :</b> ${escapeHtml(r.use)}</p><p><b>Où en gagner :</b> ${escapeHtml(r.where)}</p>
+      <div class="detail-actions">${open ? `<button class="btn btn-gold" data-action="open-tab" data-value="${r.tab}">Y aller</button>` : ''}<button class="btn" data-action="close-modal">Fermer</button></div></div>`);
+  }
+
+  // v10.1 (P1 §2.2) : quand le Sceau ouvre un écran, le bouton à toucher est entouré d'un anneau lumineux, avec une
+  // bulle d'une ligne ; l'anneau reste jusqu'à l'action ou la fermeture de l'écran.
+  setRing(n) {
+    const R = RING_OF[n.id] ?? (n.id === 'quest' ? RING_TAB[n.tab] : null) ?? RING_TAB[n.tab];
+    this.ring = R ? { tab: n.tab, sel: R[0], text: R[1] } : null;
+    setTimeout(() => this.applyRing(), 50);
+  }
+
+  applyRing() {
+    if (typeof document === 'undefined') return;
+    document.querySelectorAll('.ring-target').forEach((e) => e.classList.remove('ring-target'));
+    let tip = document.getElementById('ring-tip');
+    const r = this.ring;
+    if (!r || this.tab !== r.tab) { this.ring = null; tip?.remove(); return; }
+    const el = [...this.root.querySelectorAll(r.sel)].find((e) => e.offsetParent !== null);
+    if (!el) { tip?.remove(); return; }
+    el.classList.add('ring-target');
+    if (!tip) {
+      tip = document.createElement('div'); tip.id = 'ring-tip'; document.body.appendChild(tip);
+    }
+    tip.textContent = r.text;
+    const b = el.getBoundingClientRect();
+    tip.style.left = `${Math.max(8, Math.min(innerWidth - 220, b.left + b.width / 2 - 100))}px`;
+    tip.style.top = `${Math.max(8, b.top - 34)}px`;
+    if (!el.dataset.ringBound) {
+      el.dataset.ringBound = '1';
+      el.addEventListener('click', () => { this.ring = null; setTimeout(() => this.applyRing(), 0); }, { once: true });
+    }
+  }
+
   runNextAction() {
     const n = this.sealAction ?? this.next;
     if (!n) return;
     this.sealClicked = true; // v9.10 (3)
     if (this.state?.ui) delete this.state.ui.sealMiniUntil;
     if (n.id === 'quest' && n.action === 'equip-best') { this.userAt = performance.now(); this.actions.equipBest(); return; } // v9.10 (4)
-    if (n.id === 'quest') { if (n.tab) this.openTab(n.tab, n.view ?? null); return; } // v9.9 (K2) : ouvre le bon écran
+    if (n.id === 'quest') { if (n.tab) { this.openTab(n.tab, n.view ?? null); this.setRing(n); } return; } // v9.9 (K2) : ouvre le bon écran
     if (n.id === 'mentor') { this.followTip(n); return; }
     if (n.content) { const g = guideDay(this.state); if (!g.done.includes(n.id)) g.done.push(n.id); } // v9.6.2 : conseil suivi
     this.userAt = performance.now();
@@ -2294,7 +2390,7 @@ export class UI {
     else if (n.action === 'apply-team') this.actions.applyTeam(); // v9.5.0 (3.6)
     else if (n.action === 'recycle-useless') this.actions.recycleUseless();
     else if (n.action === 'distribute-skills') this.actions.distributeSkills(); // v9.3.8
-    else if (n.tab && n.tab !== this.tab) this.openTab(n.tab, n.view ?? null); // jamais ouvrir puis refermer
+    else if (n.tab && n.tab !== this.tab) { this.openTab(n.tab, n.view ?? null); this.setRing(n); } // jamais ouvrir puis refermer
     delete this.lastHud.badgeTime; // conseil recalculé tout de suite
   }
 
@@ -2525,8 +2621,13 @@ export class UI {
     // v9.3.9 (2.5) : même écran → mise à jour sur place (la fiche ouverte ne se referme plus, rien ne saute).
     // v9.8 (J3) : bannière illustrée en tête des écrans de lieu (chargée à la demande).
     const BANNER = { tower: 'tower', expeditions: 'expedition_map', summon: 'summon_circle', event: 'event_market', tree: 'talent_tree', guild: 'guild_hall' };
-    const banner = BANNER[this.tab] && !(this.tab === 'tower' && this.view.defiTab === 'arena') ? `<img class="px art-banner" src="assets/ui/art98/${BANNER[this.tab]}.png" loading="lazy" alt="" aria-hidden="true">`
-      : this.tab === 'tower' && this.view.defiTab === 'arena' ? '<img class="px art-banner" src="assets/ui/art98/arena.png" loading="lazy" alt="" aria-hidden="true">' : '';
+    // v10.1 (P2 §2.1) : une bannière illustrée en tête de chaque onglet, avec la phrase « à quoi sert l'écran ».
+    const BANNER101 = { upgrades: 'banner_upgrades', skills: 'banner_skills', companions: 'banner_companions', dungeons: 'banner_dungeons', contracts: 'banner_missions',
+      daybook: 'banner_daybook', boss: 'banner_boss', ranking: 'banner_ranking', stats: 'banner_stats', shop: 'banner_shop' };
+    const src = this.tab === 'tower' && this.view.defiTab === 'arena' ? 'assets/ui/art98/arena.png'
+      : BANNER[this.tab] ? `assets/ui/art98/${BANNER[this.tab]}.png` : BANNER101[this.tab] ? `assets/ui/art101/${BANNER101[this.tab]}.png` : null;
+    const lead = TAB_LEAD[this.tab] ? `<p class="tab-lead">${escapeHtml(TAB_LEAD[this.tab])}</p>` : '';
+    const banner = src ? `<div class="art-banner-wrap"><img class="px art-banner" src="${src}" loading="lazy" alt="" aria-hidden="true">${lead}</div>` : lead;
     const html = lexify(help + banner + this.introCard(this.tab, state) + panel.render(this, state)); // v9.7.1 (lot 5) : lexique
     if (this.morphTab === this.tab && body.firstChild) morph(body, html);
     else body.innerHTML = html;
@@ -2547,6 +2648,7 @@ export class UI {
     }
     panel.afterRender?.(this, body);
     mountShowcase(body, state); // v9.2.7 : une seule vitrine animée, accrochée à la fiche affichée
+    this.applyRing(); // v10.1 : anneau sur le bouton à toucher
     if (this.vfxCascade) { this.vfxCascade = false; uiFx.cascadeFx(body); } // v9.2.6
     uiFx.decorate(body, this.tab); // v9.2.6 : auras, cadres et reflets des fiches, fond de la Tour
     this.phoneAction(body);
@@ -2732,6 +2834,7 @@ export class UI {
   updateQuestBanner(state) {
     const el = this.$('quest-banner');
     if (!el || !state.missions || this.tabVisible.contracts === false) return;
+    { const c = this.calmStart(state); if (c.early || c.busy) { el.classList.add('hidden'); el.dataset.h = ''; return; } } // v10.1
     // v9.11 (7) : carte de quête illustrée sur la scène — Chroniques, missions du jour et Tâches du Héraut ; la prête
     // d'abord (elle s'anime, « Récupérer » d'un appui), sinon la plus avancée. Il reste toujours une tâche à suivre.
     const daily = MISSION_PERIODS.find((p) => p.id === 'daily');

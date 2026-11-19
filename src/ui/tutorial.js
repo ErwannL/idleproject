@@ -45,7 +45,7 @@ const isNav = (sel) => sel.startsWith('#tabs') || sel.startsWith('[data-sub');
 const shownOn = new Map();
 export function pickStep(state, root, full, panelOpen = false, screen = panelOpen ? 'panel' : 'scene') {
   // Rien pendant le prologue, le tutoriel, une fenêtre ou une animation (fenêtres en file, une seule à la fois).
-  if (typeof document !== 'undefined' && document.querySelector('#prologue, .tour, .cinematic, .summon-fx, #modal:not(.hidden), #loot-sheet:not(.hidden)')) return null;
+  if (typeof document !== 'undefined' && document.querySelector('#prologue, .tour, .cinematic, .summon-fx, #modal:not(.hidden), #loot-sheet:not(.hidden), .howto-card, .learn-card')) return null;
   const already = shownOn.get(screen);
   for (const st of TUTO_STEPS) {
     if (has(state, st.id) || !st.when(state, full)) continue;

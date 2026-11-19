@@ -1,3 +1,4 @@
+import { maybeLearnCard, showHowTo } from './ui/learn.js'; // v10.1
 import { claimChronicle, claimHerald } from './core/chronicles.js';
 import { sendMetrics } from './core/metrics.js';
 // Point d'entrée : charge la partie, applique les gains hors ligne, puis fait tourner
@@ -1655,6 +1656,11 @@ setInterval(() => {
   else if (active && roadDue(state) && document.getElementById('modal').classList.contains('hidden') && !document.querySelector('#prologue, .cinematic, .wb-overlay')) ui.showEncounter(rollEncounter(state, rng));
   // v9.8 (0.7) : premier monde d'un autre élément : la roue apparaît, expliquée en une bulle.
   if (state.unlocks && !state.unlocks.legacy && wheelShown(state)) highlight('element-wheel', 'Nouvel élément : l\'Eau', 'Feu > Nature > Eau > Feu : +50 % contre le bon élément. La roue est dans Équipement.');
+  // v10.1 (P1 §2.1) : « Comment jouer » (3 cartes, une seule fois, partie neuve), puis les cartes de déblocage.
+  if (!navigator.webdriver || location.search.includes('learn')) {
+    if (!state.unlocks?.legacy && !(state.ui.hints ?? []).includes('howto') && (state.records?.bossesDefeated ?? 0) < 1 && !ui.howtoOpen && !document.querySelector('#prologue, .cinematic')) showHowTo(ui);
+    else maybeLearnCard(ui, state);
+  }
   const q = advanceUnlocks(state);
   if (!q) return;
   ui.unlockFly?.(q.id); // v9.8 (G6)

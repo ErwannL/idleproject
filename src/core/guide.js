@@ -26,7 +26,7 @@ import { SEALS, needsSeal } from './seals.js'; // v9.6.2
 import { BANNERS } from '../data/economy.js';
 import { BOSSES } from '../data/enemies.js';
 import { claimables } from './claimables.js';
-import { computeHeroStats } from './stats.js';
+import { computeHeroStats, statsWithItem } from './stats.js';
 
 // Prochain boss : la première étape de boss à partir de l'étape actuelle.
 export function nextBossStage(state, balance = BALANCE) {
@@ -78,85 +78,128 @@ export function forecastBoss(state, balance = BALANCE) {
 // sac plein à plus de 80 % ; fusion prête ; clés de donjon ; Renaissance quand un boss bloque ; boss qui bloque ; objectif.
 // `ctx.visible` : onglets ouverts (ui.tabVisible) — rien n'est proposé pour une fonction encore cachée.
 // Chaque conseil : { id, text, tab?, view?, action?, value? }.
+// v10.1 (P1 §2.2) : consigne du Sceau = premier candidat qui n'est pas mis de côté (consigne revenue 3 fois sans
+// être faite : 10 min de côté, la suivante est proposée), avec sa ligne « pourquoi ».
 export function nextAction(state, ctx = {}, balance = BALANCE) {
-  if (state.dungeon) return { id: 'mode-dungeon', text: 'Donjon en cours', tab: 'dungeons' };
-  if (state.tower) return { id: 'mode-tower', text: 'Tour en cours', tab: 'tower' };
-  if (state.worldRun) return { id: 'mode-world', text: 'Monde en cours', tab: 'world' }; // v9.1.3 (doc4 lot 6)
-  if (state.challenge) return { id: 'mode-challenge', text: 'Défi en cours', tab: 'tower', view: { defiTab: 'challenge' } };
+  const aside = ctx.aside ?? null;
+  for (const n of actionCandidates(state, ctx, balance)) {
+    if (!n || aside?.has?.(n.id)) continue;
+    return { ...n, why: n.why ?? whyOf(n, state, balance) };
+  }
+  return null;
+}
+
+function whyOf(n, state, balance) {
+  try {
+    switch (n.id) {
+      case 'equip': {
+        const cur = computeHeroStats(state, balance).combatPower;
+        const one = state.inventory.find((i) => isUpgrade(state, i, balance));
+        const g = one ? (statsWithItem(state, one, balance).combatPower / cur - 1) * 100 : 0;
+        return g > 0.05 ? `+${formatPct(g)} % de puissance` : 'Un objet meilleur que celui porté';
+      }
+      case 'upgrade': { const p = upgradeProfits(state, balance)[n.value]?.pct ?? 0; return p > 0.05 ? `+${formatPct(p)} % de puissance : les monstres tombent plus vite` : 'Ton héros devient plus fort'; }
+      case 'lootbag': return 'Garde le meilleur, le reste devient des éclats';
+      case 'place': return 'Un allié de plus qui frappe à tes côtés';
+      case 'team': return 'Une équipe plus forte, d\'un seul appui';
+      case 'skills': return 'Plus de dégâts, et un sort de plus';
+      case 'summon': return 'Un compagnon rejoint ton équipe (gemmes)';
+      case 'seal': return 'Sans lui, ce boss ne peut pas être battu';
+      case 'level': return 'Ton compagnon frappe plus fort';
+      case 'quest': return 'Termine-la : une nouvelle fonction s\'ouvre';
+      case 'recycle': return 'De la place dans le sac, des éclats pour la Forge';
+      case 'fusion': return 'Un objet de rareté supérieure';
+      case 'keys': return `${state.keys} donjon${state.keys > 1 ? 's' : ''} gratuit${state.keys > 1 ? 's' : ''} : objets et grimoires`;
+      case 'rebirth': return 'Recommencer plus fort, pour toujours';
+      case 'retry': return 'Ce boss bloque la suite';
+      case 'claim': return n.reward ?? 'Des récompenses t\'attendent';
+      case 'goal': return 'Bats-le pour débloquer la suite';
+      case 'advance': return 'Ton héros reprend sa route';
+      default: return n.content ? 'Récompenses du jour' : '';
+    }
+  } catch { return ''; }
+}
+const formatPct = (v) => (v >= 10 ? String(Math.round(v)) : v.toFixed(1).replace('.', ','));
+
+function* actionCandidates(state, ctx = {}, balance = BALANCE) {
+  if (state.dungeon) yield { id: 'mode-dungeon', text: 'Donjon en cours', tab: 'dungeons' };
+  if (state.tower) yield { id: 'mode-tower', text: 'Tour en cours', tab: 'tower' };
+  if (state.worldRun) yield { id: 'mode-world', text: 'Monde en cours', tab: 'world' }; // v9.1.3 (doc4 lot 6)
+  if (state.challenge) yield { id: 'mode-challenge', text: 'Défi en cours', tab: 'tower', view: { defiTab: 'challenge' } };
   const open = (tab) => (ctx.visible ?? {})[tab] !== false;
   const claims = (ctx.claims ?? claimables(state, Date.now(), balance)).filter((c) => !c.blocked);
-  if (claims.length) return claimAction(claims);
+  if (claims.length) yield claimAction(claims);
   const current = computeHeroStats(state, balance);
   // v9.7.1 : sac de butin de la scène — une amélioration y attend, ou il se remplit.
   const bag = state.lootBag ?? [];
-  if (bag.length >= 12 || bag.some((i) => isUpgrade(state, i, balance, current))) return { id: 'lootbag', text: `Trier le sac de butin (${bag.length})`, action: 'lootbag' };
+  if (bag.length >= 12 || bag.some((i) => isUpgrade(state, i, balance, current))) yield { id: 'lootbag', text: `Trier le sac de butin (${bag.length})`, action: 'lootbag' };
   // v9.8 (E8) : « Équiper » suit isUpgrade (bilan dégâts/s × robustesse) ; le conseil semblait inutile à cause de
   // l'affichage des objets en valeurs brutes (« +6,3 M » à côté de « 2,4 Qa »), corrigé en A (gain en % de puissance).
   const better = state.inventory.filter((i) => isUpgrade(state, i, balance, current)).length;
-  if (better) { const one = state.inventory.find((i) => isUpgrade(state, i, balance, current)); return { id: 'equip', text: better > 1 ? `Équiper ${better} objets meilleurs` : `Équiper ${one.name}`, action: 'equip-best' }; } // v9.9 (K2) : le nom de l'objet
+  if (better) { const one = state.inventory.find((i) => isUpgrade(state, i, balance, current)); yield { id: 'equip', text: better > 1 ? `Équiper ${better} objets meilleurs` : `Équiper ${one.name}`, action: 'equip-best' }; } // v9.9 (K2) : le nom de l'objet
   const place = companionToPlace(state, balance);
-  if (place) return { id: 'place', text: `Placer ${place.name} dans l'équipe`, action: 'place-companion', value: place.id };
+  if (place) yield { id: 'place', text: `Placer ${place.name} dans l'équipe`, action: 'place-companion', value: place.id };
   // v9.5.0 (3.6) : un compagnon du banc ferait mieux → « Meilleure équipe disponible », avec le gain (calculé à part).
   const adv = teamAdvice(state);
   if (adv && !adv.same && adv.gain >= 0.1) {
     const names = adv.team.filter((id) => !state.companions.equipped.includes(id)).map((id) => companionById(id)?.name ?? id);
-    return { id: 'team', text: `Meilleure équipe : ${names.join(' et ')} (+${Math.round(adv.gain * 100)} %)`, action: 'apply-team' };
+    yield { id: 'team', text: `Meilleure équipe : ${names.join(' et ')} (+${Math.round(adv.gain * 100)} %)`, action: 'apply-team' };
   }
   const points = skillPointsAvailable(state);
   if (points > 0 && open('skills') && SKILLS.some((k) => (state.skills[k.id] ?? 0) < (k.maxLevel ?? Infinity) && skillPointCost(state.skills[k.id] ?? 0) <= points && (k.unlockLevel ?? 1) <= state.level)) {
     // v9.3.8 (3a) : un clic dépense les points (Attaques seulement) ; plus jamais bloqué sur un Boost payé en or.
-    return { id: 'skills', text: points > 1 ? `${points} points de compétence à dépenser` : '1 point de compétence à dépenser', action: 'distribute-skills' };
+    yield { id: 'skills', text: points > 1 ? `${points} points de compétence à dépenser` : '1 point de compétence à dépenser', action: 'distribute-skills' };
   }
   if (open('summon') && (state.records?.bossesDefeated ?? 0) >= 1 && !Object.keys(state.companions.owned).length && state.gems >= balance.summon.gemCost) { // après le premier mini-boss
-    return { id: 'summon', text: 'Première invocation : un compagnon', tab: 'summon' };
+    yield { id: 'summon', text: 'Première invocation : un compagnon', tab: 'summon' };
   }
   // v9.3.5 : gemmes en réserve et place libre dans l'équipe → invoquer (aussi après la première fois).
   const freeOf = (k) => state.companions.equipped.filter((id) => teamKind(companionById(id)) === k).length < teamSlotsOf(state, balance)[k];
   if (open('summon') && Object.keys(state.companions.owned).length && (freeOf('ally') || freeOf('pet')) && state.gems >= balance.summon.gemCost + 150) { // v9.7.1 : réserve de 150 gemmes
-    return { id: 'summon', text: freeOf('ally') ? 'Invoquer un compagnon (place libre)' : 'Invoquer un familier (place libre)', tab: 'summon' };
+    yield { id: 'summon', text: freeOf('ally') ? 'Invoquer un compagnon (place libre)' : 'Invoquer un familier (place libre)', tab: 'summon' };
   }
   // v9.6.2 (7.6) : boss de fin de monde scellé — dire comment gagner le sceau (et qu'il viendra quand même).
   if (needsSeal(state, state.stage + 1, balance) && state.stage + 1 <= state.maxStage) {
     const left = Math.max(0, Math.ceil((SEALS.waitSeconds - ((state.playSeconds ?? 0) - (state.sealSince ?? state.playSeconds ?? 0))) / 60));
     const where = open('dungeons') && (state.keys ?? 0) > 0 ? { tab: 'dungeons', how: 'un donjon' } : open('tower') ? { tab: 'tower', how: '5 étages de Tour ou le Défi' } : null;
-    return { id: 'seal', text: `Sceau requis pour le boss : ${where ? `gagne-le avec ${where.how}` : 'continue de combattre'} (sinon accordé dans ${left} min)`, tab: where?.tab };
+    yield { id: 'seal', text: `Sceau requis pour le boss : ${where ? `gagne-le avec ${where.how}` : 'continue de combattre'} (sinon accordé dans ${left} min)`, tab: where?.tab };
   }
   // v9.6.2 (7.9) : les contenus tournent — chacun est proposé au moins une fois par jour ; après 2 « Plus tard » il
   // laisse sa place jusqu'au lendemain. Marqué « vu » dès que le joueur suit le conseil.
   const round = contentRound(state, open);
-  if (round) return round;
+  if (round) yield round;
   const up = bestOpenUpgrade(state, balance);
   const lv = companionToLevel(state, balance);
   // Montée d'un compagnon d'abord quand elle coûte moins que l'amélioration proposée (sinon l'or part toujours ailleurs).
-  if (lv && (!up || up.cost > state.gold || lv.cost <= up.cost)) return { id: 'level', text: `Monter ${lv.name} au niveau ${lv.level + 1}`, action: 'upgrade-companion', value: lv.id };
-  if (up && up.cost <= state.gold && open('upgrades')) return { id: 'upgrade', text: `Améliorer ${UPGRADE_NAMES[up.key] ?? up.key} (${formatNumber(up.cost)} or)`, action: 'buy', value: up.key };
+  if (lv && (!up || up.cost > state.gold || lv.cost <= up.cost)) yield { id: 'level', text: `Monter ${lv.name} au niveau ${lv.level + 1}`, action: 'upgrade-companion', value: lv.id };
+  if (up && up.cost <= state.gold && open('upgrades')) yield { id: 'upgrade', text: `Améliorer ${UPGRADE_NAMES[up.key] ?? up.key} (${formatNumber(up.cost)} or)`, action: 'buy', value: up.key };
   // v9.7.1 (lot 3) : la mini-quête de déblocage en cours, une consigne à la fois, quand rien de plus pressé n'attend.
   const quest = currentQuest(state);
   if (quest) {
     const steps = questSteps(state, quest);
     const i = steps.findIndex((x) => !x.done);
-    if (i >= 0) return { id: 'quest', text: `${quest.label} (${i + 1}/3) : ${steps[i].text}`, tab: QUEST_TAB[quest.id]?.[i] ?? null };
+    if (i >= 0) yield { id: 'quest', text: `${quest.label} (${i + 1}/3) : ${steps[i].text}`, tab: QUEST_TAB[quest.id]?.[i] ?? null };
   }
   if (state.inventory.length >= balance.loot.inventorySize * 0.8) {
     const n = uselessItems(state, balance).length;
-    if (n) return { id: 'recycle', text: `Recycler ${n} objets inutiles`, action: 'recycle-useless' };
+    if (n) yield { id: 'recycle', text: `Recycler ${n} objets inutiles`, action: 'recycle-useless' };
   }
-  if (open('forge') && ctx.fusionReady) return { id: 'fusion', text: 'Fusion prête à la Forge', tab: 'forge' };
-  if (open('dungeons') && (state.records?.bestStage ?? state.maxStage) >= DUNGEONS[0].unlockStage && (state.keys ?? 0) >= 1) return { id: 'keys', text: state.keys > 1 ? `${state.keys} clés de donjon à utiliser` : '1 clé de donjon à utiliser', tab: 'dungeons' };
+  if (open('forge') && ctx.fusionReady) yield { id: 'fusion', text: 'Fusion prête à la Forge', tab: 'forge' };
+  if (open('dungeons') && (state.records?.bestStage ?? state.maxStage) >= DUNGEONS[0].unlockStage && (state.keys ?? 0) >= 1) yield { id: 'keys', text: state.keys > 1 ? `${state.keys} clés de donjon à utiliser` : '1 clé de donjon à utiliser', tab: 'dungeons' };
   const blocking = Number.isFinite(state.bossRetry?.hpPct) ? state.bossRetry.hpPct : null;
   const blocked = Boolean(state.bossRetry && state.stage === state.bossRetry.stage - 1);
   // v9.3.8 : Renaissance aussi quand la progression ralentit (plus de 10 min de jeu sans nouveau record).
   const slowing = (state.playSeconds ?? 0) - (state.recordAt ?? state.playSeconds ?? 0) > 600
     || (state.playSeconds ?? 0) - (state.ui?.wallAt ?? -1e9) < 1800; // v9.8 (I5) : mur détecté (retour automatique)
   if ((blocked || slowing || rebirthWorth(state)) && open('tree') && canRebirth(state) && !rebirthBlocked(state) && rebirthReward(state) > 0) {
-    return { id: 'rebirth', text: `Renaître (+${Math.round((PRESTIGE.rebirthMultiplier ** rebirthGain(state) - 1) * 100)} % de dégâts)`, tab: 'tree', view: { treeSeg: 'rebirth' } };
+    yield { id: 'rebirth', text: `Renaître (+${Math.round((PRESTIGE.rebirthMultiplier ** rebirthGain(state) - 1) * 100)} % de dégâts)`, tab: 'tree', view: { treeSeg: 'rebirth' } };
   }
   if (blocked) {
     const pct = bossRetryPct(state, balance);
-    return { id: 'retry', text: blocking !== null ? `Boss : ${blocking} % de vie restante` : pct >= 100 ? 'Retenter le boss (prêt)' : `Boss trop fort : améliore-toi (${pct} %)`, action: 'retry-boss' };
+    yield { id: 'retry', text: blocking !== null ? `Boss : ${blocking} % de vie restante` : pct >= 100 ? 'Retenter le boss (prêt)' : `Boss trop fort : améliore-toi (${pct} %)`, action: 'retry-boss' };
   }
-  if (!state.autoAdvance && !state.farmBoss) return { id: 'advance', text: 'Reprendre l\'avance', action: 'advance' };
-  return goalAction(state, balance);
+  if (!state.autoAdvance && !state.farmBoss) yield { id: 'advance', text: 'Reprendre l\'avance', action: 'advance' };
+  yield goalAction(state, balance);
 }
 
 // Amélioration la plus rentable parmi les lignes ouvertes (dégâts/s par or ; PV quand aucune ligne de dégâts n'est abordable).
@@ -219,7 +262,10 @@ function contentRound(state, open) {
 }
 
 function claimAction(claims) {
-  return { id: 'claim', text: claims.length > 1 ? `Tout récupérer (${claims.length})` : `Récupérer : ${claims[0].label}`, action: 'claim-everything', tab: claims[0].tab };
+  // v10.1 : « pourquoi » = ce qu'on récupère (gemmes en tête).
+  const gems = claims.reduce((t, c) => t + (c.reward?.gems ?? c.gems ?? 0), 0);
+  const reward = gems > 0 ? `${formatNumber(gems)} gemmes${claims.length > 1 ? ` et ${claims.length - 1} autre${claims.length > 2 ? 's' : ''} récompense${claims.length > 2 ? 's' : ''}` : ''}` : `${claims.length} récompense${claims.length > 1 ? 's' : ''} prête${claims.length > 1 ? 's' : ''}`;
+  return { id: 'claim', text: claims.length > 1 ? `Tout récupérer (${claims.length})` : `Récupérer : ${claims[0].label}`, action: 'claim-everything', tab: claims[0].tab, reward };
 }
 
 function goalAction(state, balance) {
