@@ -6,7 +6,7 @@ import { escapeHtml } from './common.js';
 
 const GAIN = {
   forge: 'De meilleures chances de fusion, des renforcements plus hauts, et des objets forgés sur commande.',
-  library: 'Des bonus de dégâts, de vie et d\'or qui restent après une Renaissance.',
+  library: 'Des bonus de dégâts, de vie et d\'or qui restent après les Renaissances.',
   mine: 'Des éclats qui s\'accumulent, même jeu fermé.',
   training: 'Des grimoires pour les compétences de tes compagnons.',
   trade: 'Des éclats contre des grimoires, des pierres ou des essences (et l\'inverse).',

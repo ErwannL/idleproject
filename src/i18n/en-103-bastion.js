@@ -1,0 +1,230 @@
+// v10.3 (partie 10) : anglais du Bastion (bâtiments, ouvriers, recherches, forgeron). Branché à la fin de ./en.js.
+// Vérifié par tools/i18n-bastion-texts.mjs (tous les textes affichés par l'écran) et tests/v1030-bastion.test.js.
+let LK = () => null;
+const L = (s) => LK(s) ?? s;
+const BUILD = {
+  'Forge du forgeron': 'Blacksmith\'s Forge', 'Bibliothèque': 'Library', 'Mine de cristal': 'Crystal Mine', 'Camp d\'entraînement': 'Training Camp',
+  'Expéditions': 'Expeditions', 'Comptoir': 'Trading Post',
+};
+const THE = {
+  'la Forge du forgeron': 'the Blacksmith\'s Forge', 'la Bibliothèque': 'the Library', 'la Mine de cristal': 'the Crystal Mine',
+  'le Camp d\'entraînement': 'the Training Camp', 'les Expéditions': 'the Expeditions', 'le Comptoir': 'the Trading Post', 'son bâtiment': 'their building',
+};
+const RES = { 'éclats': 'shards', 'grimoires': 'grimoires', 'pierres': 'stones', 'essences': 'essences' };
+const s = (n) => (Number(String(n).replace(',', '.')) > 1 ? 's' : '');
+
+export const EXACT_103_BASTION = {
+  ...BUILD, ...THE,
+  'Bastion': 'Bastion',
+  'Le Bastion': 'The Bastion',
+  'Tes compagnons libres travaillent ici : bâtiments, recherches et forgeron.': 'Your free companions work here: buildings, research and the blacksmith.',
+  'Améliore les chiffres de la Forge et forge des objets sur commande.': 'Improves the Forge\'s numbers and forges items to order.',
+  'Mène les recherches : des bonus gardés après les Renaissances.': 'Runs research: bonuses kept through Rebirths.',
+  'Produit des éclats au fil du temps, même jeu fermé.': 'Produces shards over time, even with the game closed.',
+  'Les remplaçants s\'entraînent : des grimoires au fil du temps.': 'Your reserves train: grimoires over time.',
+  'Les compagnons libres partent chercher des ressources.': 'Free companions set out to gather resources.',
+  'Échange tes matériaux : éclats, grimoires, pierres et essences.': 'Trade your materials: shards, grimoires, stones and essences.',
+  // Métiers
+  'Forgeron': 'Blacksmith', 'Savant': 'Scholar', 'Mineur': 'Miner', 'Entraîneur': 'Trainer', 'Marchand': 'Merchant', 'Sans métier': 'No trade',
+  'son métier': 'their trade',
+  // Recherches
+  'Recherches': 'Research', 'Compagnons': 'Companions', 'Économie': 'Economy',
+  'Lames aiguisées': 'Sharpened Blades', 'Peau d\'acier': 'Steel Skin', 'Coup fatal': 'Fatal Blow', 'Garde haute': 'High Guard', 'Second souffle': 'Second Wind',
+  'Art de la guerre': 'Art of War', 'Esprit d\'équipe': 'Team Spirit', 'Rappel rapide': 'Quick Recall', 'Lien renforcé': 'Stronger Bond',
+  'Entraînement commun': 'Joint Training', 'Éclaireurs': 'Scouts', 'Ouvriers appliqués': 'Diligent Workers', 'Bourse pleine': 'Full Purse',
+  'Longue veille': 'Long Watch', 'Œil du chasseur': 'Hunter\'s Eye', 'Routes marchandes': 'Trade Routes', 'Filon riche': 'Rich Vein', 'Leçons du passé': 'Lessons of the Past',
+  'Les Talents viennent des fragments des Renaissances et sont permanents. Les Recherches avancent avec le temps et ne se perdent pas aux Renaissances.':
+    'Talents come from Rebirth fragments and are permanent. Research advances with time and is not lost on Rebirth.',
+  'Construis la Bibliothèque pour lancer une recherche.': 'Build the Library to start research.',
+  'Lancer la recherche': 'Start research',
+  'Voir les recherches ↓': 'See research ↓',
+  // En-tête, carte
+  'Ouvriers': 'Workers', 'Ouvrier': 'Worker',
+  '⏳ Tout avance, même jeu fermé': '⏳ Everything keeps going, even with the game closed',
+  '⏳ Tout avance, même jeu fermé ·': '⏳ Everything keeps going, even with the game closed ·',
+  'À construire': 'To build',
+  'Aucun ouvrier : à l\'arrêt': 'No worker: at a standstill',
+  'Aucun ouvrier : à l\'arrêt (pas de chantier).': 'No worker: at a standstill (no building work).',
+  'Aucun ouvrier : à l\'arrêt (production à 50 %, pas de chantier).': 'No worker: at a standstill (production at 50%, no building work).',
+  'Aucune commande en cours': 'No order in progress',
+  'Aucune recherche en cours': 'No research in progress',
+  'Commande prête': 'Order ready',
+  'Poser un ouvrier': 'Place a worker',
+  'en pause': 'paused',
+  'terminé': 'done',
+  // Panneau du bâtiment
+  'Poser': 'Place', 'Retirer': 'Remove', 'Changer': 'Change', 'Construire': 'Build',
+  'Lancer le chantier': 'Start building',
+  'Durée :': 'Duration:',
+  '(sans ouvrier : à l\'arrêt)': '(no worker: at a standstill)',
+  'sans ouvrier': 'without a worker',
+  '· pose un ouvrier pour reprendre': '· place a worker to resume',
+  'Niveau maximal atteint': 'Maximum level reached',
+  'Fusion à 3 objets': 'Fusion with 3 items', 'Fusion à 4 objets': 'Fusion with 4 items', 'Renforcement maximal': 'Maximum reinforcement',
+  'Coût des renforcements': 'Reinforcement cost', 'Commandes en même temps': 'Orders at once', 'Coût des commandes': 'Order cost',
+  'Commande Légendaire+': 'Legendary+ order', 'Recherches en même temps': 'Research at once', 'Durée des recherches': 'Research time',
+  'Éclats par heure': 'Shards per hour', 'Grimoires par jour': 'Grimoires per day', 'Stock': 'Stock', 'Échanges par jour': 'Trades per day',
+  'Taux d\'échange': 'Exchange rate', 'oui': 'yes',
+  'Commandes du forgeron': 'Blacksmith\'s orders',
+  'Place libre': 'Free slot',
+  'Place de l\'objet': 'Item slot', 'Rareté minimale': 'Minimum rarity',
+  'Tu reçois :': 'You get:',
+  'au niveau de ton étape max, livré dans le coffre de butin. Chances :': 'at the level of your max stage, delivered to the loot chest. Chances:',
+  'prête · le coffre de butin est plein': 'ready · the loot chest is full',
+  'Ouvrir la Forge ›': 'Open the Forge ›',
+  'Production': 'Production',
+  'Échanges': 'Trades', 'Échanger': 'Trade', 'Tu as :': 'You have:',
+  'Compagnons libres': 'Free companions',
+  'aucun ouvrier': 'no worker',
+  'Tous tes compagnons sont dans l\'équipe, en expédition ou déjà au travail.': 'All your companions are in the team, on expedition or already at work.',
+  'Aucun compagnon libre. Un ouvrier est un compagnon qui n\'est ni dans l\'équipe, ni en expédition : invoques-en d\'autres, ou rappelle une expédition.':
+    'No free companion. A worker is a companion who is neither in the team nor on expedition: summon more, or recall an expedition.',
+  'Un ouvrier est un compagnon qui n\'est ni dans l\'équipe, ni en expédition. Son métier donne +20 % dans le bon bâtiment, sa rareté +5 à +20 %.':
+    'A worker is a companion who is neither in the team nor on expedition. Their trade gives +20% in the right building, their rarity +5 to +20%.',
+  // Raisons
+  'Ce bâtiment n\'est pas encore ouvert.': 'This building is not open yet.',
+  'Seuls tes compagnons peuvent travailler au Bastion.': 'Only your companions can work at the Bastion.',
+  'Ce compagnon est dans l\'équipe : retire-le d\'abord.': 'This companion is in the team: remove them first.',
+  'Ce compagnon ne peut pas travailler.': 'This companion cannot work.',
+  'Bâtiment verrouillé': 'Building locked',
+  'Un chantier est déjà en cours': 'Building work is already in progress',
+  'Aucun ouvrier : pose un compagnon d\'abord': 'No worker: place a companion first',
+  'Pas assez d\'éclats': 'Not enough shards',
+  'Recherche inconnue': 'Unknown research',
+  'Construis d\'abord la Bibliothèque': 'Build the Library first',
+  'Déjà en cours': 'Already in progress',
+  'Deux recherches sont déjà en cours': 'Two research projects are already in progress',
+  'Une recherche est déjà en cours': 'A research project is already in progress',
+  'La Forge du forgeron n\'est pas construite': 'The Blacksmith\'s Forge is not built',
+  'Choisis une place': 'Pick a slot',
+  'Toutes les commandes sont prises': 'All order slots are taken',
+  'Une commande est déjà en cours': 'An order is already in progress',
+  'S\'ouvre avec 5 compagnons': 'Opens with 5 companions',
+  // Messages
+  'Ouvrier retiré : le bâtiment est à l\'arrêt': 'Worker removed: the building is at a standstill',
+  'Le coffre de butin est plein : trie-le d\'abord.': 'The loot chest is full: sort it first.',
+  'Échange fait': 'Trade done',
+  'Échange impossible (matériaux ou échanges du jour épuisés).': 'Trade impossible (out of materials or of today\'s trades).',
+  'Le Bastion ouvre ses portes : ☰ › Bastion': 'The Bastion opens its gates: ☰ › Bastion',
+  'Le Bastion ouvre ses portes': 'The Bastion opens its gates',
+  // Rappels
+  'Le Bastion a fini': 'The Bastion is done',
+  'Tes chantiers et recherches sont terminés.': 'Your building work and research are finished.',
+  'Ton objet t\'attend dans le coffre de butin': 'Your item is waiting in the loot chest',
+  'Le Bastion a travaillé pendant ton absence': 'The Bastion worked while you were away',
+  'Voir le Bastion ›': 'See the Bastion ›',
+  // Avant l'étape 40, cartes de déblocage, aide
+  'Tes compagnons libres y travailleront : une forge, des recherches, des chantiers qui avancent même jeu fermé.':
+    'Your free companions will work there: a forge, research, building work that goes on even with the game closed.',
+  'Nouveau au Bastion': 'New at the Bastion',
+  'Tes compagnons libres y travaillent. Premier bâtiment : la Forge du forgeron.': 'Your free companions work there. First building: the Blacksmith\'s Forge.',
+  'De meilleures chances de fusion, des renforcements plus hauts, et des objets forgés sur commande.': 'Better fusion chances, higher reinforcements, and items forged to order.',
+  'Des bonus de dégâts, de vie et d\'or qui restent après les Renaissances.': 'Damage, health and gold bonuses that stay through Rebirths.',
+  'Des éclats qui s\'accumulent, même jeu fermé.': 'Shards that pile up, even with the game closed.',
+  'Des grimoires pour les compétences de tes compagnons.': 'Grimoires for your companions\' skills.',
+  'Des éclats contre des grimoires, des pierres ou des essences (et l\'inverse).': 'Shards for grimoires, stones or essences (and the other way round).',
+  'Tes compagnons hors de l\'équipe travaillent au Bastion : chantiers, recherches et commandes avancent même jeu fermé.':
+    'Your companions outside the team work at the Bastion: building work, research and orders go on even with the game closed.',
+  'Pose un ouvrier sur un bâtiment d\'un toucher : son métier donne +20 % dans le bon bâtiment. Sans ouvrier, un bâtiment produit à 50 % et ne lance pas de chantier. Les Recherches ne se perdent pas aux Renaissances.':
+    'Place a worker on a building with one tap: their trade gives +20% in the right building. Without a worker, a building produces at 50% and starts no building work. Research is not lost on Rebirth.',
+};
+
+const OWN = (name) => Object.hasOwn(EXACT_103_BASTION, name);
+const HEAD = { 'Commande prête': 'Order ready', 'Chantier terminé': 'Building done', 'Recherche terminée': 'Research done', 'Chantier lancé': 'Building started',
+  'Recherche lancée': 'Research started', 'Commande passée': 'Order placed', 'Commande livrée dans le coffre de butin': 'Order delivered to the loot chest',
+  'Livré dans le coffre de butin': 'Delivered to the loot chest' };
+const WHY = { 'part en expédition': 'leaves on expedition', 'rejoint l\'équipe': 'joins the team', 'n\'est plus disponible': 'is no longer available' };
+// « Bibliothèque niveau 2 », « Arme Épique+ » : nom puis niveau, place puis rareté.
+const leveled = (t) => { const m = t.match(/^(.+) niveau (\d+)$/); return m ? `${L(m[1])} level ${m[2]}` : null; };
+const ordered = (t) => { const m = t.match(/^(.+) (Commun|Rare|Épique|Légendaire)(\+?)$/); return m ? `${L(m[2])}${m[3]} ${L(m[1])}` : null; };
+const thing = (t) => leveled(t) ?? ordered(t) ?? L(t);
+// Effet d'une recherche, quel que soit le nombre : « +6 % de dégâts ».
+const FX = [
+  [/^\+(.+) % de dégâts et de vie$/, (m) => `+${m[1]}% damage and health`], [/^\+(.+) % de dégâts$/, (m) => `+${m[1]}% damage`], [/^\+(.+) % de vie$/, (m) => `+${m[1]}% health`],
+  [/^\+(.+) % de chance de critique$/, (m) => `+${m[1]}% critical chance`], [/^\+(.+) % d'armure$/, (m) => `+${m[1]}% armor`],
+  [/^\+(.+) % de vie rendue par seconde$/, (m) => `+${m[1]}% health restored per second`], [/^\+(.+) % de puissance des compagnons$/, (m) => `+${m[1]}% companion power`],
+  [/^−(.+) % de recharge des sorts des compagnons$/, (m) => `−${m[1]}% companion spell cooldown`], [/^\+(.+) % aux bonus des liens$/, (m) => `+${m[1]}% to bond bonuses`],
+  [/^−(.+) % sur le coût des niveaux de compagnon$/, (m) => `−${m[1]}% companion level cost`], [/^\+(.+) % de butin d'expédition$/, (m) => `+${m[1]}% expedition loot`],
+  [/^\+(.+) % de vitesse des ouvriers$/, (m) => `+${m[1]}% worker speed`], [/^\+(.+) % d'or$/, (m) => `+${m[1]}% gold`], [/^\+(.+) h de gains hors ligne$/, (m) => `+${m[1]} h of offline gains`],
+  [/^\+(.+) % de butin Épique et Légendaire$/, (m) => `+${m[1]}% Epic and Legendary loot`], [/^\+(.+) % de production de la Mine$/, (m) => `+${m[1]}% Mine production`],
+  [/^\+(.+) % d'expérience$/, (m) => `+${m[1]}% experience`],
+];
+const fx = (t) => { for (const [re, f] of FX) { const m = t.match(re); if (m) return f(m).replace(/(\d),(\d)/g, '$1.$2'); } return null; };
+
+export const patterns103Bastion = (lookup = () => null) => { LK = lookup; return [
+  ...FX.map(([re, f]) => [re, (m) => f(m).replace(/(\d),(\d)/g, '$1.$2')]),
+  [/^(\+.+|−.+) par niveau$/, (m) => `${fx(m[1]) ?? L(m[1])} per level`],
+  [/^Niveau maximal : (.+)\.$/, (m) => `Maximum level: ${fx(m[1]) ?? L(m[1])}.`],
+  [/^Niveau (\d+) → (\d+)$/, (m) => `Level ${m[1]} → ${m[2]}`],
+  [/^Niveau (\d+) en cours ·$/, (m) => `Level ${m[1]} in progress ·`],
+  [/^Niveau maximal \((\d+)\)$/, (m) => `Maximum level (${m[1]})`],
+  [/^🔒 (.+) niv\. (\d+)$/, (m) => `🔒 ${L(m[1])} lv. ${m[2]}`],
+  [/^🔒 niv\. (\d+)$/, (m) => `🔒 lv. ${m[1]}`],
+  [/^🔒 Demande (.+) niveau (\d+)\.$/, (m) => `🔒 Requires ${L(m[1])} level ${m[2]}.`],
+  [/^Demande (.+) niveau (\d+)$/, (m) => `Requires ${L(m[1])} level ${m[2]}`],
+  [/^Bibliothèque : (.+)\.$/, (m) => `Library: ${L(m[1].charAt(0).toUpperCase() + m[1].slice(1)).toLowerCase()}.`],
+  [/^Arrive à l'étape (\d+)$/i, (m) => `Arrives at stage ${m[1]}`],
+  [/^S'ouvre à l'étape (\d+)$/, (m) => `Opens at stage ${m[1]}`],
+  [/^Construis d'abord : (.+)$/i, (m) => `Build first: ${L(m[1])}`],
+  [/^Bastion niveau (\d+) requis$/i, (m) => `Bastion level ${m[1]} required`],
+  [/^Bastion niv\.$/, () => 'Bastion lv.'],
+  [/^Forge du forgeron niveau (\d+) requise$/, (m) => `Blacksmith's Forge level ${m[1]} required`],
+  [/^🔒 Forge du forgeron niveau (\d+) requise$/, (m) => `🔒 Blacksmith's Forge level ${m[1]} required`],
+  [/^Le Bastion ouvre à l'étape (\d+)$/, (m) => `The Bastion opens at stage ${m[1]}`],
+  [/^Étape (\d+) \/ (\d+)$/, (m) => `Stage ${m[1]} / ${m[2]}`],
+  [/^Toutes les places d'ouvrier sont prises \((\d+)\)\.$/, (m) => `All worker slots are taken (${m[1]}).`],
+  [/^Toutes les places d'ouvrier sont prises \((\d+)\)\. Retire un ouvrier d'un autre bâtiment pour le poser ici\.$/, (m) => `All worker slots are taken (${m[1]}). Remove a worker from another building to place them here.`],
+  // Carte et panneau
+  [/^Renfort max \+(\d+)$/, (m) => `Max reinforcement +${m[1]}`],
+  [/^fusion à 4 : (\d+) %$/, (m) => `fusion with 4: ${m[1]}%`],
+  [/^(\d+) recherches? à la fois$/, (m) => `${m[1]} research project${s(m[1])} at a time`],
+  [/^\+(.+) éclats par heure$/, (m) => `+${m[1].replace(',', '.')} shards per hour`],
+  [/^\+(.+) grimoires par jour$/, (m) => `+${m[1].replace(',', '.')} grimoires per day`],
+  [/^(\d+) échanges? aujourd'hui$/, (m) => `${m[1]} trade${s(m[1])} today`],
+  [/^(\d+)\/(\d+) compagnons en route$/, (m) => `${m[1]}/${m[2]} companions on the road`],
+  [/^(\d+) expéditions? à récupérer$/, (m) => `${m[1]} expedition${s(m[1])} to collect`],
+  [/^(\d+) commandes? à récupérer$/, (m) => `${m[1]} order${s(m[1])} to collect`],
+  [/^Chantier niv\. (\d+) ·$/, (m) => `Building lv. ${m[1]} ·`],
+  [/^Chantier en cours : niv\. (\d+) → (\d+)$/, (m) => `Building in progress: lv. ${m[1]} → ${m[2]}`],
+  [/^(Améliorer|Construire) : niv\. (\d+) → (\d+)$/, (m) => `${m[1] === 'Construire' ? 'Build' : 'Upgrade'}: lv. ${m[2]} → ${m[3]}`],
+  [/^niveau (\d+)$/, (m) => `level ${m[1]}`],
+  [/^tu as (.+)$/, (m) => `you have ${m[1].replace(/(\d),(\d)/g, '$1.$2')}`],
+  [/^avec (.+) \((.+) sans son bonus\)$/, (m) => `with ${L(m[1])} (${L(m[2])} without their bonus)`],
+  [/^sans ouvrier \((.+) avec un ouvrier\)$/, (m) => `without a worker (${L(m[1])} with a worker)`],
+  [/^· métier conseillé : (.+) \(\+(\d+) %\)$/, (m) => `· best trade: ${L(m[1])} (+${m[2]}%)`],
+  [/^son métier : \+(\d+) %$/, (m) => `their trade: +${m[1]}%`],
+  [/^rareté : \+(\d+) %$/, (m) => `rarity: +${m[1]}%`],
+  [/^recherche : \+(\d+) %$/, (m) => `research: +${m[1]}%`],
+  [/^poste actuel : (.+)$/, (m) => `current post: ${L(m[1])}`],
+  [/^Ouvrier : (.+)$/, (m) => `Worker: ${L(m[1])}`],
+  [/^(\d+)\/(\d+) places$/, (m) => `${m[1]}/${m[2]} slots`],
+  [/^une place de plus au Bastion niveau (\d+)$/, (m) => `one more slot at Bastion level ${m[1]}`],
+  [/^une place de plus au niveau (\d+)$/, (m) => `one more slot at level ${m[1]}`],
+  [/^(\d+)\/(\d+) en cours$/, (m) => `${m[1]}/${m[2]} in progress`],
+  [/^Commander \((.+)\)$/, (m) => `Order (${ordered(m[1]) ?? L(m[1])})`],
+  [/^« Fabriquer » reste dans la Forge pour qui ne veut pas attendre : la commande coûte (\d+) % de moins et peut donner mieux\.$/, (m) => `“Craft” stays in the Forge if you'd rather not wait: an order costs ${m[1]}% less and can give better.`],
+  [/^([\d,]+) (éclats|grimoires) par (heure|jour) \(à 50 % : aucun ouvrier\)$/, (m) => `${m[1].replace(',', '.')} ${RES[m[2]]} per ${m[3] === 'heure' ? 'hour' : 'day'} (at 50%: no worker)`],
+  [/^([\d,]+) (éclats|grimoires) par (heure|jour) \(ouvrier : \+(\d+) %\)$/, (m) => `${m[1].replace(',', '.')} ${RES[m[2]]} per ${m[3] === 'heure' ? 'hour' : 'day'} (worker: +${m[4]}%)`],
+  [/^([\d,]+) (éclats|grimoires) par (heure|jour)$/, (m) => `${m[1].replace(',', '.')} ${RES[m[2]]} per ${m[3] === 'heure' ? 'hour' : 'day'}`],
+  [/^\/ (\d+) (éclats|grimoires)$/, (m) => `/ ${m[1]} ${RES[m[2]]}`],
+  [/^(éclats|grimoires|pierres|essences)$/, (m) => RES[m[1]]],
+  [/^Le stock se remplit même jeu fermé, puis s'arrête quand il est plein \((.+) h\)\.$/, (m) => `The stock fills even with the game closed, then stops when full (${m[1].replace(',', '.')} h).`],
+  [/^(\d+) \(([\d,]+) h\)$/, (m) => `${m[1]} (${m[2].replace(',', '.')} h)`],
+  [/^(\d+) \(([\d,]+) h\) →$/, (m) => `${m[1]} (${m[2].replace(',', '.')} h) →`],
+  [/^(Commun|Rare|Épique|Légendaire) (\d+) %$/, (m) => `${L(m[1])} ${m[2]}%`],
+  // Messages
+  [/^(Commande prête|Chantier terminé|Recherche terminée|Chantier lancé|Recherche lancée|Commande passée|Commande livrée dans le coffre de butin|Livré dans le coffre de butin) : (.+)$/, (m) => `${HEAD[m[1]]}: ${thing(m[2])}`],
+  [/^(.+) au travail : (.+)$/, (m) => `${L(m[1])} at work: ${L(m[2])}`],
+  [/^(.+) (part en expédition|rejoint l'équipe|n'est plus disponible) et quitte (.+) : (le chantier est en pause|production à 50 %)$/,
+    (m) => `${m[1] === 'Ton ouvrier' ? 'Your worker' : L(m[1])} ${WHY[m[2]]} and leaves ${L(m[3])}: ${m[4] === 'le chantier est en pause' ? 'building work is paused' : 'production at 50%'}`],
+  [/^Le Bastion a fini (\d+) chantiers?$/, (m) => `The Bastion finished ${m[1]} job${s(m[1])}`],
+  [/^Le Bastion a fini (\d+) commandes?$/, (m) => `The Bastion finished ${m[1]} order${s(m[1])}`],
+  [/^Le Bastion a fini (\d+) chantiers? et (\d+) commandes?$/, (m) => `The Bastion finished ${m[1]} job${s(m[1])} and ${m[2]} order${s(m[2])}`],
+  [/^Et (\d+) autres? nouvelles? du Bastion$/, (m) => `And ${m[1]} more piece${s(m[1])} of Bastion news`],
+  // « Arme Épique+ · » : seulement une place d'objet ; « Lames aiguisées niveau 3 » : seulement un nom du Bastion.
+  [/^(Arme|Casque|Armure|Collier|Boucles d'oreilles|Anneau|Bracelet|Objet) (Commun|Rare|Épique|Légendaire)(\+?)( ·)?$/, (m) => `${L(m[2])}${m[3]} ${L(m[1])}${m[4] ?? ''}`],
+  [/^(.+) niveau (\d+)$/, (m) => (OWN(m[1]) ? `${L(m[1])} level ${m[2]}` : null)],
+  [/^(.+) niv\. (\d+)$/, (m) => (OWN(m[1]) ? `${L(m[1])} lv. ${m[2]}` : null)],
+  [/^Demande (.+) niveau (\d+)\.$/, (m) => `Requires ${L(m[1])} level ${m[2]}.`],
+  [/^(.+) se repose avec (.+)\.$/, (m) => `${m[1] === 'Ton héros' ? 'Your hero' : m[1]} rests with ${m[2] === 'personne pour l\'instant' ? 'no one for now' : m[2].split(', ').map(L).join(', ')}.`],
+]; };

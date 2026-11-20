@@ -161,11 +161,11 @@ function deliver(state, order, balance) {
 }
 // « Récupérer » une commande prête restée dans la file (coffre de butin plein). Renvoie { item, where } ou null.
 export function collectOrder(state, orderId, now = Date.now(), balance = BALANCE) {
-  settle(state, now);
-  const order = (bastionOf(state)?.orders ?? []).find((o) => o.id === orderId && o.ready);
+  const order = (bastionOf(state)?.orders ?? []).find((o) => o.id === orderId);
   if (!order) return null;
-  const where = deliver(state, order, balance);
-  return where ? { item: order.item, where } : null;
+  settle(state, now, {}, balance); // forge la commande arrivée au bout, et livre celles qui ont de la place
+  const delivered = order.ready && !bastionOf(state).orders.includes(order);
+  return delivered ? { item: order.item, where: lootBagOn(state) ? 'chest' : 'bag' } : null;
 }
 
 

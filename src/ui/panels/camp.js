@@ -15,6 +15,7 @@ import {
 } from '../../core/bastion.js';
 import { companionById } from '../../core/companions.js';
 import { fusionChance } from '../../core/forge.js';
+import { LOOT_BAG_MAX } from '../../core/inventory.js';
 import { formatDuration } from '../../core/format.js';
 import { rarityById } from '../../core/loot.js';
 import { REVENGE_STEPS, revengeLevel } from '../../core/revenge.js';
@@ -82,7 +83,7 @@ export function bastionLiveKey(ui, state) {
     JSON.stringify(b.research.levels), b.research.active.map((a) => a.id).join(), b.orders.map((o) => `${o.id}${o.ready ? 'r' : ''}`).join(),
     Object.keys(b.stock).map((id) => Math.floor(stockOf(state, id)) >= 1).join(), b.trade?.used ?? 0, afford.join(),
     BUILDINGS.map((d) => buildingAccess(state, d.id).available).join(), (state.expeditions?.slots ?? []).map((s) => s?.companionId ?? '').join(),
-    state.companions.equipped.join(), state.lootBag?.length ?? 0, Math.floor(Date.now() / 30000),
+    state.companions.equipped.join(), (state.lootBag?.length ?? 0) >= LOOT_BAG_MAX, Math.floor(Date.now() / 60000),
   ].join('|');
 }
 
@@ -330,7 +331,7 @@ function workersPanel(state) {
   const posts = BUILDINGS.filter((d) => !d.existing && buildingAccess(state, d.id).available).map((d) => {
     const c = companionById(workerOf(state, d.id));
     return `<div class="bs-wrow"><span class="bs-wpic${c ? ` r-${c.rarity}` : ' none'}">${c ? companionStill(c) : '+'}</span>
-      <span class="grow"><b>${escapeHtml(d.name)}</b> <small>${c ? `${escapeHtml(c.name)} · +${workerBonus(state, c.id, d.id).totalPct} %` : '<span class="bad">aucun ouvrier</span>'}</small></span>
+      <span class="grow"><b>${escapeHtml(d.name)}</b><small class="bs-wtrade">${c ? `${escapeHtml(c.name)} · +${workerBonus(state, c.id, d.id).totalPct} %` : '<span class="bad">aucun ouvrier</span>'}</small></span>
       <button class="btn small" data-action="bastion-pick" data-value="${d.id}">${c ? 'Changer' : 'Poser'}</button></div>`;
   }).join('');
   const free = availableWorkers(state).filter((c) => !workerBuilding(state, c.id));
@@ -397,7 +398,7 @@ function researchBand(ui, state, now) {
   const lock = lib >= 1 ? '' : `<p class="bs-lock">${img('icon_lock')} ${access.available ? 'Construis la Bibliothèque pour lancer une recherche.' : `Bibliothèque : ${escapeHtml(access.reason.toLowerCase())}.`}</p>`;
   return `<div class="card bs-research${lib >= 1 ? '' : ' closed'}" id="bs-research"><div class="bs-research-head"><b>Recherches</b>
         <span class="muted">${lib >= 1 ? `${bastionOf(state).research.active.length}/${researchSlots(state)} en cours` : ''}</span></div>
-      <p class="muted bs-versus">Les Talents viennent des fragments de Renaissance et sont permanents. Les Recherches avancent avec le temps et ne se perdent pas à la Renaissance.</p>
+      <p class="muted bs-versus">Les Talents viennent des fragments des Renaissances et sont permanents. Les Recherches avancent avec le temps et ne se perdent pas aux Renaissances.</p>
       ${lock}<div class="bs-cols">${cols}</div>${researchDetail(ui, state, now)}</div>`;
 }
 

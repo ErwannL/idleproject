@@ -411,3 +411,7 @@ PATTERNS.push(...patterns934(lookup));
 import { EXACT_971, patterns971 } from './ko-971.js';
 for (const [k, v] of Object.entries(EXACT_971)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.push(...patterns971(lookup));
+// v10.3 (partie 10) : le Bastion (./ko-103-bastion.js).
+import { EXACT_103_BASTION, patterns103Bastion } from './ko-103-bastion.js';
+for (const [k, v] of Object.entries(EXACT_103_BASTION)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.push(...patterns103Bastion(lookup));

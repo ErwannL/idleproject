@@ -43,18 +43,18 @@ export const WORKER_RULES = {
 // d'or entre deux connexions : le niveau 2 se paie en une connexion, le niveau 3 demande d'économiser. C'est ce prix
 // qui tient la borne « au plus +25 % de puissance en 7 jours ».
 export const BUILDINGS = [
-  { id: 'forge', name: 'Forge du forgeron', stage: 40, trade: 'smith', startLevel: 1, art: 'forge', tool: 'hammer', shards: 1.5,
+  { id: 'forge', name: 'Forge du forgeron', the: 'la Forge du forgeron', stage: 40, trade: 'smith', startLevel: 1, art: 'forge', tool: 'hammer', shards: 1.5,
     goldKills: [0, 40_000, 250_000, 500_000, 800_000, 1_200_000, 1_700_000, 2_300_000, 3_000_000, 3_800_000],
     role: 'Améliore les chiffres de la Forge et forge des objets sur commande.' },
-  { id: 'library', name: 'Bibliothèque', stage: 55, trade: 'scholar', art: 'library', tool: 'book', shards: 1,
-    role: 'Mène les recherches : des bonus gardés après une Renaissance.' },
-  { id: 'mine', name: 'Mine de cristal', stage: 70, trade: 'miner', art: 'mine', tool: 'pick', shards: 0.8,
+  { id: 'library', name: 'Bibliothèque', the: 'la Bibliothèque', stage: 55, trade: 'scholar', art: 'library', tool: 'book', shards: 1,
+    role: 'Mène les recherches : des bonus gardés après les Renaissances.' },
+  { id: 'mine', name: 'Mine de cristal', the: 'la Mine de cristal', stage: 70, trade: 'miner', art: 'mine', tool: 'pick', shards: 0.8,
     role: 'Produit des éclats au fil du temps, même jeu fermé.' },
-  { id: 'training', name: 'Camp d\'entraînement', stage: 85, trade: 'trainer', art: 'training', tool: 'sword', shards: 0.8,
+  { id: 'training', name: 'Camp d\'entraînement', the: 'le Camp d\'entraînement', stage: 85, trade: 'trainer', art: 'training', tool: 'sword', shards: 0.8,
     role: 'Les remplaçants s\'entraînent : des grimoires au fil du temps.' },
-  { id: 'expeditions', name: 'Expéditions', existing: true, art: 'expeditions',
+  { id: 'expeditions', name: 'Expéditions', the: 'les Expéditions', existing: true, art: 'expeditions',
     role: 'Les compagnons libres partent chercher des ressources.' },
-  { id: 'trade', name: 'Comptoir', bastionLevel: 5, trade: 'merchant', art: 'trade', tool: 'coin', shards: 1,
+  { id: 'trade', name: 'Comptoir', the: 'le Comptoir', bastionLevel: 5, trade: 'merchant', art: 'trade', tool: 'coin', shards: 1,
     role: 'Échange tes matériaux : éclats, grimoires, pierres et essences.' },
 ];
 

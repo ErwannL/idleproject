@@ -14,7 +14,7 @@ button.bs-chip:hover, .bs-chip.on { border-color: var(--gold); background: #1c26
 /* Carte du Bastion. */
 .bs-map { position: relative; padding: 8px; border-radius: 10px; border: 2px solid #6a5a2c; background-size: cover; background-position: center; image-rendering: pixelated; overflow: hidden; }
 .bs-map::before { content: ''; position: absolute; inset: 0; background: linear-gradient(rgba(10, 14, 26, 0.28), rgba(10, 14, 26, 0.5)); }
-.bs-grid { position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(206px, 1fr)); gap: 8px; image-rendering: auto; }
+.bs-grid { position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; image-rendering: auto; }
 .bs-card { position: relative; display: flex; flex-direction: column; min-width: 0; border-radius: 10px; background: rgba(15, 21, 38, 0.86); border: 2px solid #3b4768; color: inherit; cursor: pointer; overflow: hidden; }
 .bs-card:hover { border-color: #6f7fae; }
 .bs-card.idle { border-color: #8a3f46; }
@@ -69,7 +69,7 @@ button.bs-chip:hover, .bs-chip.on { border-color: var(--gold); background: #1c26
 .bs-wpic { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--rarity, #8e9db8); background: #18203a; overflow: hidden; display: grid; place-items: center; font-weight: 700; }
 .bs-wpic.none { border-style: dashed; color: var(--muted); }
 .bs-wpic img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
-.bs-wtrade { display: block; font-size: 12px; color: var(--muted); }
+.bs-wrow small.bs-wtrade, .bs-wtrade { display: block; font-size: 12px; color: var(--muted); }
 .bs-wtrade.good { color: var(--good); }
 .bs-wbonus { flex: none; font-size: 13px; }
 .bs-fxlist { display: grid; }
@@ -128,7 +128,10 @@ button.bs-chip:hover, .bs-chip.on { border-color: var(--gold); background: #1c26
 .bs-soon > img { width: 144px; height: 96px; flex: none; image-rendering: pixelated; }
 .bs-soon > span { display: grid; gap: 4px; min-width: 0; }
 .bs-soon small { color: #cdd6ea; }
-.bs-fire .camp-scene2 { aspect-ratio: 3 / 1; }
+.bs-fire .camp-scene2 { aspect-ratio: auto; height: clamp(110px, 26vw, 150px); }
+.bs-fire .camp-scene2 .camp-unit { width: auto; height: 62%; }
+.bs-fire .camp-scene2 .camp-unit img { width: auto; height: 100%; }
+.bs-fire .camp-scene2 .camp-unit.s2, .bs-fire .camp-scene2 .camp-unit.s3 { width: auto; height: 50%; }
 .bs-fire .camp-bg { object-fit: cover; }
 /* Carnet du jour : « Le Bastion a fini 2 chantiers ». */
 .db-bastion { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; border-color: var(--good); }

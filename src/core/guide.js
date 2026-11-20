@@ -312,7 +312,7 @@ function nextBossName(state, balance) {
 export const PANEL_HELP = {
   // v10.3 (partie 10) : le Bastion.
   camp: { short: 'Tes compagnons hors de l\'équipe travaillent au Bastion : chantiers, recherches et commandes avancent même jeu fermé.',
-    more: 'Pose un ouvrier sur un bâtiment d\'un toucher : son métier donne +20 % dans le bon bâtiment. Sans ouvrier, un bâtiment produit à 50 % et ne lance pas de chantier. Les Recherches ne se perdent pas à la Renaissance.' },
+    more: 'Pose un ouvrier sur un bâtiment d\'un toucher : son métier donne +20 % dans le bon bâtiment. Sans ouvrier, un bâtiment produit à 50 % et ne lance pas de chantier. Les Recherches ne se perdent pas aux Renaissances.' },
   // v9.8 (J1) : Forge et Carnet du jour.
   forge: { short: 'Recycle les objets inutiles en éclats, puis forge mieux.',
     more: 'Recycler, Fusionner ou Fabriquer : un gros bouton chacun. Les éclats renforcent tes objets et en fabriquent de nouveaux.' },

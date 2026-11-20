@@ -18,9 +18,6 @@ export const GLOSSARY = {
   Collections: 'Tout ce que tu as découvert : chaque monstre, objet ou compagnon trouvé donne un petit bonus.',
   'Coffre de butin': 'Le coffre posé au sol, derrière les monstres : le butin s\'y entasse. Touche-le pour garder le meilleur et recycler le reste.',
   'Réserve': 'Le rangement de l\'équipement (300 places) : rien n\'y est recyclé ni fusionné tout seul.',
-  // v10.3 (partie 10)
-  Bastion: 'Le camp de base, à partir de l\'étape 40 : tes compagnons libres y travaillent (forge, recherches, mine), même jeu fermé.',
-  Ouvrier: 'Un compagnon posé sur un bâtiment du Bastion. Il ne peut pas être en même temps dans l\'équipe ou en expédition.',
   Familier: 'Un petit compagnon (chat, hibou, slime…) qui suit ton héros : il frappe peu mais donne un bonus.',
 };
 // v10.1 (P1 §2.3) : carte de glossaire des ressources — image, à quoi ça sert, où en gagner, écran où aller.

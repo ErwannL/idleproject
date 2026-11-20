@@ -57,6 +57,7 @@ for (const [w, h] of [[1116, 993], [1280, 720], [390, 844]]) {
   const shot = (page, n) => page.screenshot({ path: `${out}/${w}x${h}-${n}.png` });
   const { ctx, page } = await open(w, h);
   await page.evaluate(() => __idle.ui.openTab('camp'));
+  if (w <= 560) await page.evaluate(() => { if (!__idle.ui.panelTallFor('camp')) __idle.ui.togglePanelLow(); }); // téléphone : panneau déplié (bouton ⤢)
   await page.waitForTimeout(900);
   const first = await page.evaluate(() => ({ title: document.getElementById('panel-title').textContent, cards: document.querySelectorAll('.bs-card').length, locked: document.querySelectorAll('.bs-card.locked').length,
     head: document.querySelector('.bs-head')?.textContent ?? '', idle: document.querySelector('.bs-card[data-building="forge"] .bs-idle')?.textContent ?? '' }));
@@ -94,10 +95,23 @@ for (const [w, h] of [[1116, 993], [1280, 720], [390, 844]]) {
   ok(`${tag} : panneau du bâtiment sans débordement`, o.doc <= 0 && o.panel <= 1 && o.wide === 0, JSON.stringify(o));
   // Les minuteurs avancent sans redessiner le panneau.
   await closeSheet(page, w);
-  const t1 = await page.evaluate(() => { const e = document.querySelector('.bs-card[data-building="library"] [data-bt-end]:not(i)'); e.dataset.probe = '1'; return e.textContent; });
-  await page.waitForTimeout(2300);
-  const t2 = await page.evaluate(() => { const e = document.querySelector('.bs-card[data-building="library"] [data-bt-end]:not(i)'); return { text: e.textContent, same: e.dataset.probe === '1' }; });
-  ok(`${tag} : le temps restant se met à jour sans redessin`, t2.same && t2.text !== t1, `${t1} → ${t2.text}`);
+  // (Un butin, une récompense… peuvent redessiner le panneau : on cherche une fenêtre de 2 s sans redessin.)
+  let live = null;
+  for (let i = 0; i < 5 && !live?.ok; i++) {
+    const before = await page.evaluate(() => ({ at: __idle.ui.lastRender, text: document.querySelector('.bs-card[data-building="library"] [data-bt-end]:not(i)').textContent }));
+    await page.waitForTimeout(2200);
+    const after = await page.evaluate(() => ({ at: __idle.ui.lastRender, text: document.querySelector('.bs-card[data-building="library"] [data-bt-end]:not(i)').textContent }));
+    live = { ok: after.at === before.at && after.text !== before.text, from: before.text, to: after.text, redrawn: after.at !== before.at };
+  }
+  ok(`${tag} : le temps restant se met à jour sans redessin`, live.ok, `${live.from} → ${live.to}`);
+  await shot(page, '3-bibliotheque');
+  // La carte avec ses ouvriers : médaillon, petit sprite devant le bâtiment, barre de chantier et temps restant.
+  await page.evaluate(() => { __idle.ui.view.bastionSel = null; __idle.ui.invalidate(); });
+  await page.waitForTimeout(500);
+  await page.evaluate(() => { document.getElementById('panel-body').scrollTop = document.querySelector('.bs-map').offsetTop - 4; });
+  await page.waitForTimeout(400);
+  const posted = await page.evaluate(() => ({ medals: document.querySelectorAll('.bs-medal:not(.empty) img').length, sprites: document.querySelectorAll('.bs-worker canvas').length, tools: document.querySelectorAll('.bs-tool').length, bars: document.querySelectorAll('.bs-card .bs-bar.build').length }));
+  ok(`${tag} : sur la carte, médaillon et petit ouvrier animé devant chaque bâtiment occupé, barre de chantier`, posted.medals === 2 && posted.sprites === 2 && posted.tools === 2 && posted.bars === 2, JSON.stringify(posted));
   await shot(page, '3-chantiers');
 
   // Jeu fermé 3 h.
@@ -133,13 +147,15 @@ for (const [w, h] of [[1116, 993], [1280, 720], [390, 844]]) {
   await page.evaluate(() => __idle.ui.openTab('camp'));
   await page.waitForTimeout(600);
   await tap(page, '.bs-res[data-value="sharp"]');
-  const res = await page.evaluate(() => ({ cols: document.querySelectorAll('.bs-col').length, tiles: document.querySelectorAll('.bs-res').length, locked: document.querySelectorAll('.bs-res.locked').length, versus: /ne se perdent pas à la Renaissance/.test(document.querySelector('.bs-versus')?.textContent ?? '') }));
+  const res = await page.evaluate(() => ({ cols: document.querySelectorAll('.bs-col').length, tiles: document.querySelectorAll('.bs-res').length, locked: document.querySelectorAll('.bs-res.locked').length, versus: /ne se perdent pas aux Renaissances/.test(document.querySelector('.bs-versus')?.textContent ?? '') }));
   await tap(page, '[data-action="bastion-research"]');
   const active = await page.evaluate(() => ({ job: __idle.state.bastion.research.active[0]?.id, green: Boolean(document.querySelector('.bs-res.active[data-value="sharp"]')) }));
   ok(`${tag} : Recherches en 3 colonnes de 6, suivantes cadenassées, différence avec les Talents écrite`, res.cols === 3 && res.tiles === 18 && res.locked === 15 && res.versus, JSON.stringify(res));
   ok(`${tag} : recherche lancée, bordée de vert`, active.job === 'sharp' && active.green, JSON.stringify(active));
   o = await overflow(page);
   ok(`${tag} : bandeau des Recherches sans débordement`, o.doc <= 0 && o.panel <= 1 && o.wide === 0, JSON.stringify(o));
+  await page.evaluate(() => document.getElementById('bs-research').scrollIntoView({ block: 'start' }));
+  await page.waitForTimeout(250);
   await shot(page, '5-recherches');
   // Deuxième commande, coffre de butin plein : elle attend « prête » dans la file, puis on la récupère.
   await tap(page, '.bs-card[data-building="forge"]');
@@ -169,7 +185,7 @@ for (const [w, h] of [[1116, 993], [1280, 720], [390, 844]]) {
     await new Promise((r) => setTimeout(r, 1500));
     return { inTeam: s.companions.equipped.includes(w), still: s.bastion.buildings.forge.worker, toast: said.join(' | ') };
   });
-  ok(`${tag} : l'ouvrier mis dans l'équipe quitte la Forge, avec un avertissement`, warn.inTeam && warn.still === null && /quitte Forge du forgeron/.test(warn.toast), JSON.stringify(warn));
+  ok(`${tag} : l'ouvrier mis dans l'équipe quitte la Forge, avec un avertissement`, warn.inTeam && warn.still === null && /quitte la Forge du forgeron/.test(warn.toast), JSON.stringify(warn));
   await page.evaluate(() => { __idle.ui.openTab('camp'); __idle.ui.view.bastionSel = 'workers'; __idle.ui.invalidate(); });
   await page.waitForTimeout(600);
   await shot(page, '7-ouvriers');

@@ -194,11 +194,12 @@ export function removeWorker(state, buildingId, now = Date.now()) {
 // Un compagnon rejoint l'équipe ou part en expédition : il quitte son bâtiment. Appelé par core/companions.js et
 // core/expeditions.js ; `why` : 'team' ou 'expedition'. Renvoie l'avis { companionId, building, why, paused } ou null.
 // L'avis est aussi gardé dans `bastion.notices` : l'interface le dit au joueur (une fois).
-export function releaseWorker(state, companionId, why = 'team', now = Date.now()) {
+// Sans `now` (core/companions.js ne connaît pas l'heure), le travail compte jusqu'au dernier pas du Bastion (une seconde).
+export function releaseWorker(state, companionId, why = 'team', now = null) {
   const b = bastionOf(state);
   const from = workerBuilding(state, companionId);
   if (!b || !from) return null;
-  advance(state, now);
+  if (now !== null) advance(state, now);
   const paused = Boolean(b.buildings[from].build);
   b.buildings[from].worker = null;
   const notice = { companionId, building: from, why, paused };
@@ -227,7 +228,7 @@ export function workerNoticeText(notice) {
   const c = unit(notice.companionId);
   const def = buildingDef(notice.building);
   const where = notice.why === 'expedition' ? 'part en expédition' : notice.why === 'team' ? 'rejoint l\'équipe' : 'n\'est plus disponible';
-  return `${c?.name ?? 'Ton ouvrier'} ${where} et quitte ${def?.name ?? 'son bâtiment'}${notice.paused ? ' : le chantier est en pause' : ' : production à 50 %'}`;
+  return `${c?.name ?? 'Ton ouvrier'} ${where} et quitte ${def?.the ?? 'son bâtiment'}${notice.paused ? ' : le chantier est en pause' : ' : production à 50 %'}`;
 }
 export function takeNotices(state) {
   const b = bastionOf(state);
@@ -478,7 +479,7 @@ export function bastionSeal(state, now = Date.now()) {
   return {
     id: 'bastion', text: `${head} : ${pick.text}`, action: 'bastion-open',
     value: pick.kind === 'order' ? 'forge' : pick.kind === 'research' ? 'research' : pick.ref,
-    why: more > 0 ? `Et ${plural(more, 'autre nouvelle')} du Bastion` : pick.kind === 'order' ? 'Ton objet t\'attend dans le coffre de butin' : 'Le Bastion a travaillé pendant ton absence',
+    why: more > 1 ? `Et ${more} autres nouvelles du Bastion` : more === 1 ? 'Et 1 autre nouvelle du Bastion' : pick.kind === 'order' ? 'Ton objet t\'attend dans le coffre de butin' : 'Le Bastion a travaillé pendant ton absence',
   };
 }
 // L'interface vient de montrer la consigne du Bastion : toutes les nouvelles du moment sont dites (une fois par retour).
