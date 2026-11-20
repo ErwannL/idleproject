@@ -1,6 +1,19 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.1.0 — Comprendre, collectionner, combattre aux cartes
+## Ascendrya v10.2.0 — L'Arène sur la carte, un vrai coffre de butin
+
+- **Arène sur la carte** : un étage d'Arène se joue maintenant dans le monde de son élément, comme l'histoire — tes compagnons de la formation à gauche (l'avant au plus près), les vrais monstres du monde à droite, chacun avec ses gestes, ses sorts et ses ultimes de la campagne. En bas, les cartes de la formation (portrait, rôle et sort, vie, jauge d'ultime) ; en mode Manuel, le combat attend que tu touches la carte dont l'ultime est prêt. ×2, Passer, étoiles qui tombent une à une, « Étage suivant ». La Survie se joue aussi sur la carte.
+- **Arène plus juste** : les étages se calibrent sur ton équipe la première fois (tu franchis une vingtaine d'étages puis tu bloques vers 25 à 35, les combats durent plus de 12 s, 2 ★ dès les étages 8 à 10) ; chaque carte ennemie porte le nom du monstre dessiné ; le placement auto met gardiens et berserkers devant, l'assassin derrière, jamais d'avant vide ; premiers étages bien plus généreux ; l'Arène est directement dans Combat et sur la Carte ; formation prête dès l'ouverture ; règles d'étage illustrées ; aperçu du dos de carte doré du gardien de l'étage 25.
+- **Coffre de butin** : le sac devient un coffre dessiné, posé sur le sol derrière les monstres. Les objets y volent, le couvercle s'entrouvre et des pièces sautent ; lueur de la meilleure rareté, rayon de lumière dès un Épique, bulle « Butin ! », débordement quand il est plein. Le tri montre chaque objet, ce qu'il apporte et l'action proposée (Équiper, Ranger, Recycler), avec « Garder le meilleur, recycler le reste ». Le rangement s'appelle maintenant « Réserve ».
+- **Textes lisibles** : « Efficace ! », « Résiste », « Attaque lourde ! » et « Affaibli ! » s'écrivent en entier (fini le « ia »).
+- **Donjons** : « Balayer tout » répartit les clés sur tes donjons terminés (chacun à sa plus haute difficulté) et annonce d'abord le total exact ; portrait du boss en tête de la feuille, silhouette du boss sur la carte, portes dessinées qui s'ouvrent, une illustration par bénédiction, le boss vaincu sous la victoire (qui se ferme seule après 8 s) ; badge d'affinité aligné sur l'effet réel.
+- **Nouveau joueur** : une consigne du Sceau n'ouvre une notion qu'après sa carte (la carte passe devant), un seul message à lire à la fois, « Améliorer ×N » achète tout l'or utile d'un coup, les mots du joueur (« Mission finie : 30 gemmes », « Coffre trouvé en chemin »).
+- **Illustrations** : portrait du héros qui gagne une aura tous les 25 niveaux de Dégâts, carte de mission et coffre de palier, courbe de progression et frise des records, carte des expéditions où marchent tes compagnons, bestiaire en grand ; au moins 20 % d'image sur Améliorations, Missions et Statistiques.
+- **Petites corrections** : sur téléphone, le titre du panneau n'est plus coupé ; noms complets des compagnons ; ombre sur les bords de l'Arbre avancé.
+
+### Versions précédentes
+
+<details><summary><b>Ascendrya v10.1.0 — Comprendre, collectionner, combattre aux cartes</b></summary>
 
 - **Apprendre en images** : 3 cartes « Comment jouer » (le héros combat seul, l'or le rend plus fort, avancer et battre le boss), une seule fois, rouvrables dans ☰. Puis une notion par étape (1, 2, 4, 6, 8, 10, 15, 25, 30) avec sa carte de déblocage illustrée : à quoi ça sert, ce que ça rapporte, « Essayer maintenant ». Le premier compagnon arrive à l'étape 8.
 - **Un seul appel à l'action** : le Sceau dit pourquoi (« +12 % de puissance »), un anneau lumineux montre où toucher sur l'écran ouvert ; une consigne ne revient jamais plus de 3 fois (mise de côté 10 minutes).
@@ -12,7 +25,7 @@
 - **Illustrations** : icônes dessinées des missions (48 px), 4 tuiles des Statistiques, aperçus Classement et Guilde, vignettes animées des compétences ; chaque écran a au moins 15 % d'image (`tools/art/check_screens.mjs`).
 - **Petits défauts corrigés** : une seule icône de bonus au-dessus du héros (liseré doré aux pieds des compagnons) ; noms de compétences qui ne se chevauchent plus (« Coup de taille…llante ») ; plus d'anneau violet à chaque coup contre les Titans (traînée de 0,15 s sur les critiques) ; la pointe de la Roue ne cache plus le titre ; la fiche compagnon voile toute la fenêtre, même en 1716 px ; petites fenêtres : scène à 55 % au moins, place de la barre de compétences réservée, puce de bonus au-dessus, carte de quête en icône.
 
-### Versions précédentes
+</details>
 
 <details><summary><b>Ascendrya v10.0.0 — Une équipe qui se bat vraiment</b></summary>
 
