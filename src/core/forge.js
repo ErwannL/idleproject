@@ -9,6 +9,7 @@ import { trackMissions } from './missions.js';
 import { CLASS_WEAPON_DROP } from '../data/classes.js';
 import { activeClass, canEquip, classWeaponBases } from './classes.js';
 import { usefulSetPiece } from './sets.js';
+import { forgePerks } from './bastion.js'; // v10.3 (10.5) : la Forge du forgeron améliore les chiffres de la Forge
 
 // tier 'rare' : Rare ou mieux (or + éclats) ; 'epic' : Épique ou mieux (or + plus d'éclats ; v9.1.3 : plus d'essences).
 export function craftCost(state, balance = BALANCE, tier = 'rare') {
@@ -96,14 +97,18 @@ export function sharpenItem(state, id, balance = BALANCE) {
 }
 
 // --- Amélioration : chaque niveau augmente une statistique de l'objet au hasard (+12 %). ---
-export function maxUpgrades(item, balance = BALANCE) {
-  return balance.forge.maxUpgrades[item.rarity] ?? 0;
+// v10.3 (10.5) : avec `state`, la Forge du forgeron (Bastion) repousse le plafond (+2 par niveau) et baisse le coût
+// (−2 % par niveau). Sans `state` : les chiffres de base (objet seul, outils de mesure).
+export function maxUpgrades(item, balance = BALANCE, state = null) {
+  const base = balance.forge.maxUpgrades[item.rarity] ?? 0;
+  return base ? base + (state ? forgePerks(state).maxUpgradeBonus : 0) : 0;
 }
 
-export function upgradeCost(item, balance = BALANCE) {
+export function upgradeCost(item, balance = BALANCE, state = null) {
   const f = balance.forge;
   const n = (item.upgrades ?? 0) + 1;
-  return { gold: Math.floor(f.upgradeGoldKills * n * referenceKillGold(item.level, balance)), shards: f.upgradeShards * n };
+  const k = state ? 1 - forgePerks(state).upgradeCostPct / 100 : 1;
+  return { gold: Math.floor(f.upgradeGoldKills * n * referenceKillGold(item.level, balance) * k), shards: Math.max(1, Math.ceil(f.upgradeShards * n * k)) };
 }
 
 // Statistiques améliorables : les statistiques positives et l'effet principal d'un accessoire.
@@ -122,8 +127,8 @@ export function upgradableStats(item) { // v9.1.3 (doc3 lot 3) : exportée pour 
 // Renvoie le nom de la statistique améliorée, ou null.
 export function upgradeItem(state, id, rng, balance = BALANCE) {
   const item = findItem(state, id);
-  if (!item || (item.upgrades ?? 0) >= maxUpgrades(item, balance)) return null;
-  const cost = upgradeCost(item, balance);
+  if (!item || (item.upgrades ?? 0) >= maxUpgrades(item, balance, state)) return null;
+  const cost = upgradeCost(item, balance, state);
   if (state.gold < cost.gold || state.materials.shards < cost.shards) return null;
   const stats = upgradableStats(item);
   if (!stats.length) return null;
@@ -164,7 +169,10 @@ export function fusionChance(state, slot, rarity, stake, balance = BALANCE, { ba
   if (!rule) return null;
   const rate = stake === balance.forge.fusionCount ? rule.rate : rule.stakes?.[stake];
   if (!Number.isFinite(rate)) return null;
-  return Math.min(100, rate + (base ? 0 : fusionPity(state, slot, rarity)));
+  // v10.3 (10.5) : la Forge du forgeron ajoute +5 points par niveau aux mises courtes (plafond 95 % avant la jauge).
+  const perks = forgePerks(state);
+  const forged = stake < balance.forge.fusionCount && rate < 100 ? Math.min(Math.max(rate, perks.fusionCap), rate + perks.fusionPoints) : rate;
+  return Math.min(100, forged + (base ? 0 : fusionPity(state, slot, rarity)));
 }
 
 const fusable = (item) => !item.locked && !itemBase(item.baseId).signature;

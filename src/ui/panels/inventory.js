@@ -110,8 +110,8 @@ function detail(ui, state, item, whoUnit = null) {
   const sharpen = sharpenCost(state, item);
   // Amélioration : +12 % sur une statistique au hasard, 5 fois (Commun, Rare) ou 10 fois (Épique, Légendaire).
   const ups = item.upgrades ?? 0;
-  const maxUp = maxUpgrades(item);
-  const upCost = upgradeCost(item);
+  const maxUp = maxUpgrades(item, BALANCE, state);
+  const upCost = upgradeCost(item, BALANCE, state);
   // Boutons toujours aux mêmes places, quel que soit l'objet : ceux qui ne s'appliquent pas sont grisés.
   const upgradeBtn = ups >= maxUp
     ? `<button class="btn btn-gold" disabled>Renforcement maximal (+${maxUp})</button>`
@@ -379,7 +379,7 @@ function bag(ui, state) {
       ? itemFrame(item, { selected: item.id === ui.view.selectedItemId, equipped: true })
       : `<div class="item-frame empty named" title="${label} : aucun">${img(slotIconName(slot))}</div>`;
     // v9.11 (5) : grande case (64 px), nom court dessous, « +N » et niveau, ⬆ vert si un renforcement est payable.
-    const c = item && !whoUnit && (item.upgrades ?? 0) < maxUpgrades(item) ? upgradeCost(item) : null;
+    const c = item && !whoUnit && (item.upgrades ?? 0) < maxUpgrades(item, BALANCE, state) ? upgradeCost(item, BALANCE, state) : null;
     const canUp = c && state.gold >= c.gold && state.materials.shards >= c.shards;
     return `<div class="slot slot-big${item ? ` r-${item.rarity}` : ''}" title="${label}">${frame}${canUp ? '<span class="slot-up" title="Renforcement possible">⬆</span>' : ''}
       <small class="slot-name">${label}${item?.upgrades ? ` <b>+${item.upgrades}</b>` : ''}</small>${item?.level ? `<small class="slot-lvl">Nv ${item.level}</small>` : ''}</div>`;
