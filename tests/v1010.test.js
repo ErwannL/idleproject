@@ -32,9 +32,10 @@ test('glossaire : chaque ressource a nom, usage, source et écran ; mots clés p
   for (const w of ['Contrat', 'Haut fait', 'Collections', 'Familier', 'Éveil']) assert.ok(GLOSSARY[w], w);
 });
 
-test('ordre d\'apprentissage : étapes croissantes 1 → 30, 3 cartes « Comment jouer »', () => {
+test('ordre d\'apprentissage : étapes croissantes 1 → 45, 3 cartes « Comment jouer »', () => {
   assert.equal(HOWTO.length, 3);
-  assert.deepEqual(LEARN.map((l) => l.stage), [1, 2, 4, 6, 8, 10, 15, 25, 30]);
+  // v10.3 (audit 2.1) : l'Arène a sa carte à l'étape 25, les Défis la leur à l'étape 45 (ouverture du Défi de la semaine).
+  assert.deepEqual(LEARN.map((l) => l.stage), [1, 2, 4, 6, 8, 10, 15, 25, 30, 45]);
 });
 
 test('ressources dormantes : clés > 5 et tickets signalés, ligne Arène au Carnet', () => {

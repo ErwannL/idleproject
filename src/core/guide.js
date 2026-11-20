@@ -19,7 +19,7 @@ import { SKILLS } from '../data/skills.js';
 import { canRebirth, rebirthBlocked, rebirthGain, rebirthReward, rebirthWorth } from './rebirth.js';
 import { COMPANION_RULES } from '../data/companions.js';
 import { DUNGEONS } from '../data/dungeons.js';
-import { TOWER, climbsLeft } from './tower.js'; // v9.6.2
+import { TOWER, climbsLeft, dayKey } from './tower.js'; // v9.6.2 (dayKey : même jour que le Carnet)
 import { CHALLENGE } from './challenge.js'; // v9.6.2
 import { arenaUnlocked } from './arena.js'; // v9.6.2
 import { SEALS, needsSeal } from './seals.js'; // v9.6.2
@@ -80,7 +80,8 @@ export function forecastBoss(state, balance = BALANCE) {
 // Chaque conseil : { id, text, tab?, view?, action?, value? }.
 // v10.1 (P1 §2.2) : consigne du Sceau = premier candidat qui n'est pas mis de côté (consigne revenue 3 fois sans
 // être faite : 10 min de côté, la suivante est proposée), avec sa ligne « pourquoi ».
-const NOTION_OF = { skills: 'skills', summon: 'summon', lootbag: 'lootbag', recycle: 'forge', fusion: 'forge', keys: 'dungeons', place: 'summon' };
+// v10.3 (audit) : les consignes du jour (Arène, Tour, Défi) attendent elles aussi la carte de leur notion.
+export const NOTION_OF = { skills: 'skills', summon: 'summon', lootbag: 'lootbag', recycle: 'forge', fusion: 'forge', keys: 'dungeons', place: 'summon', 'c-arena': 'tower', 'c-tower': 'defis', 'c-challenge': 'defis' };
 export function nextAction(state, ctx = {}, balance = BALANCE) {
   const aside = ctx.aside ?? null;
   for (const n of actionCandidates(state, ctx, balance)) {
@@ -174,8 +175,9 @@ function* actionCandidates(state, ctx = {}, balance = BALANCE) {
   }
   // v9.6.2 (7.9) : les contenus tournent — chacun est proposé au moins une fois par jour ; après 2 « Plus tard » il
   // laisse sa place jusqu'au lendemain. Marqué « vu » dès que le joueur suit le conseil.
-  const round = contentRound(state, open);
-  if (round) yield round;
+  // v10.3 (audit 2.4) : tous les contenus du jour encore à proposer, dans l'ordre — un contenu mis de côté ou qui attend
+  // sa carte de déblocage ne cache plus les suivants (la ligne « Arène » passait après la Tour et le Défi, ou jamais).
+  yield* contentRound(state, open);
   const up = bestOpenUpgrade(state, balance);
   const lv = companionToLevel(state, balance);
   // Montée d'un compagnon d'abord quand elle coûte moins que l'amélioration proposée (sinon l'or part toujours ailleurs).
@@ -252,7 +254,9 @@ export function companionToLevel(state, balance = BALANCE) {
 export const CONTENT_ROUND = [
   { id: 'c-tower', tab: 'tower', text: 'Défi du jour : monte dans la Tour', ok: (s) => (s.records?.bestStage ?? s.maxStage) >= TOWER.unlockStage && climbsLeft(s) > 0 },
   { id: 'c-challenge', tab: 'tower', view: { defiTab: 'challenge' }, text: 'Tente le Défi de la semaine', ok: (s) => (s.records?.bestStage ?? s.maxStage) >= CHALLENGE.unlockStage },
-  { id: 'c-arena', tab: 'tower', view: { defiTab: 'arena' }, text: 'Un combat d\'Arène (étoiles et copies de compagnons)', ok: (s) => arenaUnlocked(s) },
+  // v10.3 (audit 2.4) : ligne « Arène » du Sceau, une fois par jour, tant qu'aucun combat d'Arène n'a été gagné ce jour-là.
+  // Elle mène à l'onglet Arène (plus à Défis) et annonce ce que l'Arène donne vraiment (pas de copies de compagnons).
+  { id: 'c-arena', tab: 'arena', text: 'Arène : un étage à franchir (gemmes et étoiles)', ok: (s) => arenaUnlocked(s) && !((s.daybook?.day === dayKey() ? s.daybook.counts?.arena ?? 0 : 0) > 0) },
   { id: 'c-expeditions', tab: 'expeditions', text: 'Envoie tes compagnons libres en expédition', ok: (s) => (s.expeditions?.slots ?? []).some((r) => !r) && Object.keys(s.companions?.owned ?? {}).length > s.companions.equipped.length },
   { id: 'c-event', tab: 'event', text: 'Événement : enchaîne les étapes de la carte', ok: (s) => Boolean(s.event) },
 ];
@@ -261,16 +265,15 @@ export function guideDay(state, now = Date.now()) {
   if (state.ui.guideDay?.day !== key) state.ui.guideDay = { day: key, done: [], skips: {} };
   return state.ui.guideDay;
 }
-function contentRound(state, open) {
-  if (!state.ui) return null;
+function* contentRound(state, open) {
+  if (!state.ui) return;
   const g = guideDay(state);
   for (const c of CONTENT_ROUND) {
     if (g.done.includes(c.id) || (g.skips[c.id] ?? 0) >= 2 || !open(c.tab)) continue;
     let ok = false;
     try { ok = c.ok(state); } catch { ok = false; }
-    if (ok) return { id: c.id, text: c.text, tab: c.tab, view: c.view, content: true };
+    if (ok) yield { id: c.id, text: c.text, tab: c.tab, view: c.view, content: true };
   }
-  return null;
 }
 
 function claimAction(claims) {
@@ -321,7 +324,7 @@ export const PANEL_HELP = {
   },
   inventory: {
     short: 'La flèche verte marque un objet meilleur que celui porté. « Équiper le meilleur » équipe tout d\'un coup.',
-    more: 'Les objets grandissent avec leur niveau : Réaffûter remonte un objet au niveau de ton étape max. La Forge s\'ouvre à l\'étape 10 et le Coffre à l\'étape 20 : il garde des objets jamais recyclés et les meilleures pièces d\'ensemble (filtre Ensemble, « Porter ») ; les Builds enregistrent équipe, équipement, classe, pouvoirs et compétences. Recyclage et fusion automatiques : Réglages du sac.',
+    more: 'Les objets grandissent avec leur niveau : Réaffûter remonte un objet au niveau de ton étape max. La Forge s\'ouvre à l\'étape 10 et la Réserve à l\'étape 20 : elle garde des objets jamais recyclés et les meilleures pièces d\'ensemble (filtre Ensemble, « Porter ») ; les Builds enregistrent équipe, équipement, classe, pouvoirs et compétences. Recyclage et fusion automatiques : Réglages du sac.',
   },
   hero: {
     short: 'Votre fiche : dégâts/s, niveau et équipement. Classe, Apparence et Records sont dans les segments du haut.',
@@ -377,7 +380,7 @@ export const PANEL_HELP = {
   },
   inbox: {
     short: 'Vue d\'ensemble de tout ce qui est prêt à être récupéré (touche N, ou depuis Missions). Tout récupérer : touche G.',
-    more: 'Les trouvailles (coffres, gemmes, portails) arrivent pendant le combat. Sac plein : les objets vont au coffre ; sac et coffre pleins : les récompenses avec un objet attendent ici. Les marchands sont dans Missions › Aujourd\'hui.',
+    more: 'Les trouvailles (coffres, gemmes, portails) arrivent pendant le combat. Sac plein : les objets vont à la Réserve ; sac et Réserve pleins : les récompenses avec un objet attendent ici. Les marchands sont dans Missions › Aujourd\'hui.',
   },
   options: {
     short: 'Langue, sauvegarde (export et import), compte, mises à jour ; Interface (dont les essais d\'affichage), Son et Fenêtre dans les onglets.',

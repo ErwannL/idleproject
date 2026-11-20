@@ -34,7 +34,7 @@ export const TAB_LEAD = {
   event: 'Un événement à durée limitée : avance sur sa carte pour ses récompenses.',
   campaign: 'La carte des mondes : choisis l\'étape où ton héros combat.',
   dungeons: 'Une clé ouvre un donjon : quelques salles, un boss, un gros coffre.',
-  tower: 'Défis du jour et de la semaine : la Tour, le Défi et l\'Arène.',
+  tower: 'Défis du jour et de la semaine : la Tour et le Défi.', // v10.3 : l'Arène a son onglet
   arena: 'Tes compagnons en cartes affrontent les monstres d\'étage en étage.',
   boss: 'Les boss vaincus te donnent des pouvoirs à placer.',
   encyclopedia: 'Tout ce que tu as découvert : monstres, objets, compagnons.',

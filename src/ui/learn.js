@@ -21,8 +21,10 @@ export const LEARN = [
   { id: 'summon', stage: 8, tab: 'summon', art: 'assets/ui/art98/summon_circle.png', title: 'Compagnons', what: 'Invoque des compagnons avec tes gemmes.', gain: 'Ils combattent à tes côtés, chacun avec ses sorts.' },
   { id: 'forge', stage: 10, tab: 'forge', art: 'assets/ui/art98/forge_hall.png', title: 'Forge', what: 'Recycle les objets inutiles en éclats.', gain: 'Les éclats renforcent tes objets préférés.' },
   { id: 'contracts', stage: 15, tab: 'contracts', art: 'assets/ui/art101/banner_missions.png', title: 'Missions', what: 'Des objectifs du jour et de la semaine.', gain: 'Des gemmes et des clés à chaque mission faite.' },
-  { id: 'tower', stage: 25, tab: 'tower', art: 'assets/ui/art98/arena.png', title: 'Défis et Arène', what: 'La Tour, le Défi de la semaine et l\'Arène à cartes.', gain: 'Des récompenses à chaque étage franchi.' },
+  // v10.3 (audit 2.1) : l'Arène a son onglet (étape 25) ; les Défis ont leur propre carte quand ils s'ouvrent (étape 45).
+  { id: 'tower', stage: 25, tab: 'arena', art: 'assets/ui/art98/arena.png', title: 'Arène', what: 'Tes compagnons deviennent des cartes : place-les et affronte les étages.', gain: 'Des gemmes, des éclats et des grimoires à chaque étage franchi.' },
   { id: 'dungeons', stage: 30, tab: 'dungeons', art: 'assets/ui/art101/banner_dungeons.png', title: 'Donjons', what: 'Une clé ouvre un donjon : quelques salles et un boss.', gain: 'Objets d\'ensemble, grimoires et pierres.' },
+  { id: 'defis', stage: 45, tab: 'tower', art: 'assets/ui/art98/tower.png', title: 'Défis', what: 'Le Défi de la semaine, puis la Tour : des combats à règles spéciales.', gain: 'Des récompenses à chaque palier franchi.' },
 ];
 
 const learned = (st) => (st.ui.learned ??= []);
