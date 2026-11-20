@@ -209,4 +209,4 @@ jobs:
           awk '/^### Versions précédentes/{exit} {print}' docs/RELEASE_NOTES.md > notes.md # version en cours (limite GitHub : 125 000 caractères)
           echo "" >> notes.md
           echo "Historique complet : docs/RELEASE_NOTES.md" >> notes.md
-          gh release edit "$VERSION" --draft=false --latest --title "Ascendrya $VERSION" --notes-file notes.md
+          gh release edit "$VERSION" --draft=false --latest --target "$GITHUB_SHA" --title "Ascendrya $VERSION" --notes-file notes.md
