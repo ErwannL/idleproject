@@ -87,7 +87,7 @@ import { companionById } from '../core/companions.js'; // v9.5.1
 import { COMPANION_ROLES, ROLES } from '../data/synergies.js'; // v10.1
 import { dormantResources } from '../core/daybook.js';
 import { playBoard } from './panels/arena-cards-view.js';
-import { openArenaMap } from './arena-map.js'; // v10.2 (P6)
+import { openArenaMap, survivalAsCards } from './arena-map.js'; // v10.2 (P6)
 import { startVignettes } from './vignettes.js';
 import { DOORS, dungeonStars, roman } from '../core/dungeon-plus.js';
 const DIFF_LABEL = { easy: 'Facile', normal: 'Normal', hard: 'Difficile' };
@@ -2248,7 +2248,7 @@ export class UI {
       if (i >= 0 && QUEST_TAB_UI[q.id]?.[i]) {
         const n0 = n;
         n = { id: 'quest', text: steps[i].text, tab: QUEST_TAB_UI[q.id][i] };
-        if (q.id === 'equipment' && QUEST_TAB_UI[q.id][i] === 'inventory' && st.inventory?.length) n = { id: 'quest', text: 'Héros › Équiper le nouvel objet', action: 'equip-best' };
+        if (q.id === 'equipment' && QUEST_TAB_UI[q.id][i] === 'inventory' && st.inventory?.some((it) => isUpgrade(st, it))) n = { id: 'quest', text: 'Héros › Équiper le nouvel objet', action: 'equip-best' };
         // v9.11 (5) : « Renforce ton arme » ouvre directement la fenêtre de l'arme portée (Renforcer visible).
         if (q.id === 'forge' && i === 1 && st.equipment?.weapon) n = { id: 'quest', text: 'Héros › Renforcer ton arme', tab: 'inventory', view: { selectedItemId: st.equipment.weapon.id, sheetOpen: 'item' } };
         // v10.1 (P1) : « Lance une compétence à la main » : le Sceau la lance lui-même (le joueur voit le geste).
@@ -3086,7 +3086,9 @@ export class UI {
     if (!r) return;
     this.view.arenaRun = null;
     this.view.arenaEdit = false;
-    openArenaStage(this, { ...r, mode }, { retry: () => this.arenaRun(mode), triesLeft: () => survivalTriesLeft(this.state) });
+    // v10.2 (P6) : la Survie se joue aussi sur la carte (mêmes compagnons, mêmes effets) ; l'ancien mode Étages garde son écran.
+    if (mode === 'survival') openArenaMap(this, survivalAsCards(r), { onRetry: () => { if (survivalTriesLeft(this.state) > 0) this.arenaRun(mode); } });
+    else openArenaStage(this, { ...r, mode }, { retry: () => this.arenaRun(mode), triesLeft: () => survivalTriesLeft(this.state) });
     this.invalidate();
   }
 

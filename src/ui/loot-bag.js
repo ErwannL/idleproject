@@ -63,7 +63,7 @@ export class LootBag {
     this.btn.classList.add('lb-bump', 'lb-open');
     clearTimeout(this.openT); this.openT = setTimeout(() => this.btn.classList.remove('lb-open'), 600);
     for (let i = 0; i < 3; i++) { const c = document.createElement('i'); c.className = 'lb-coin'; c.style.setProperty('--dx', `${(i - 1) * 14}px`); c.style.animationDelay = `${i * 60}ms`; this.btn.appendChild(c); setTimeout(() => c.remove(), 900); }
-    if (item && typeof document !== 'undefined') this.flyIn(item, fromX);
+    if (item && typeof document !== 'undefined') { try { this.flyIn(item, fromX); } catch { /* objet incomplet : pas de vol */ } }
     const st = this.state;
     const first = st?.ui && !(st.ui.hints ?? []).includes('loot-chest');
     if (first) (st.ui.hints ??= []).push('loot-chest');

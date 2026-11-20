@@ -48,23 +48,28 @@ export class ArenaScene {
       time: 0, enemies: [], hero: { hp: 1, dead: false, walking: false, respawnTimer: 0 }, heroStats: {}, scroll: 0, prevScroll: 0, alpha: 1,
       buffs: { cry: 0, cryPct: 0, shield: 0, shieldPct: 0 }, events: [], attackCount: 0, counters: { damage: {} },
     };
-    // Ennemis : avant puis arrière, chacun avec son vrai type de monstre (ou de boss).
-    let id = 1;
-    const foes = [...run.setup.cards].sort((a, b) => (a.pos < 3 ? 0 : 1) - (b.pos < 3 ? 0 : 1) || Math.abs((a.pos % 3) - 1) - Math.abs((b.pos % 3) - 1));
+    this.nextId = 1;
     this.foeAt = new Map();
+    this.hp = { ally: new Map(run.team.map((c) => [c.pos, c.maxHp])), foe: new Map() };
+    this.spawn(run.setup.cards);
+    this.gauge = new Map(run.team.map((c) => [c.pos, 0]));
+    this.down = new Set();
+    this.lastAct = new Map();
+  }
+
+  // Ennemis : avant puis arrière, chacun avec son vrai type de monstre (ou de boss). Une nouvelle vague (Survie) remplace la précédente.
+  spawn(cards) {
+    const foes = [...cards].sort((a, b) => (a.pos % 10 < 3 ? 0 : 1) - (b.pos % 10 < 3 ? 0 : 1) || Math.abs((a.pos % 3) - 1) - Math.abs((b.pos % 3) - 1));
     for (const c of foes) {
       const type = c.enemyId ?? ZONES[this.zone].enemies[0];
       const s = enemyStats(1, type, Boolean(c.boss));
-      const e = { id: id++, type, boss: Boolean(c.boss), elite: false, x: W.spawnX + 10 + this.world.enemies.length * 16, hp: c.maxHp, maxHp: c.maxHp, damage: 1, gold: 0,
+      const e = { id: this.nextId++, type, boss: Boolean(c.boss), elite: false, x: W.spawnX + 10 + this.world.enemies.length * 16, hp: c.maxHp, maxHp: c.maxHp, damage: 1, gold: 0,
         speed: Math.max(30, s.speed * 1.6), range: s.range, engaged: false, age: 0, summons: [], arenaPos: c.pos };
       e.prevX = e.x;
       this.world.enemies.push(e);
       this.foeAt.set(c.pos, e);
+      this.hp.foe.set(c.pos, c.maxHp);
     }
-    this.hp = { ally: new Map(run.team.map((c) => [c.pos, c.maxHp])), foe: new Map(run.setup.cards.map((c) => [c.pos, c.maxHp])) };
-    this.gauge = new Map(run.team.map((c) => [c.pos, 0]));
-    this.down = new Set();
-    this.lastAct = new Map();
   }
 
   resize(w, h) { this.css = { w, h }; this.r.zoom = 1.6; this.r.resize(w, h); }
@@ -111,6 +116,10 @@ export class ArenaScene {
       const i = Math.max(0, (card.skills ?? []).findIndex((s) => !s.ultimate));
       this.emit('companionSkill', { companionId: card.id, skill: i, skillType: e.kind, ultimate: false });
       if (e.kind === 'heal' && e.to != null) this.hp.ally.set(e.to, Math.min(this.allyAt.get(e.to)?.maxHp ?? 0, (this.hp.ally.get(e.to) ?? 0) + (this.allyAt.get(e.to)?.maxHp ?? 0) * 0.2));
+    } else if (e.kind === 'wave' && e.cards) {
+      this.world.enemies = [];
+      this.waveN = e.n;
+      this.spawn(e.cards);
     } else if (e.kind === 'fall') {
       if (e.side === 'foe') {
         const foe = this.foeAt.get(e.pos);

@@ -1895,7 +1895,8 @@ function frame(ts) {
   }
   // v9.9 (K12) : Veillée au Camp — le rendu du combat est coupé (seule la simulation tourne), l'écran se met à jour à bas régime.
   if (ui.sleeping) { ui.updateVigil?.(); requestAnimationFrame(frame); return; }
-  renderer.render(state, world, dt);
+  // v10.2 (P6) : pendant l'Arène sur la carte (plein écran), la scène de campagne n'est pas dessinée (la simulation tourne).
+  if (!ui.arenaOpen) renderer.render(state, world, dt);
   placeWeakSpot(); // v9.7.1 (lot 2)
   ui.update(state, world);
   animateMenus(document.body, state, ts);

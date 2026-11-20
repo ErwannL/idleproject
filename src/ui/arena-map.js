@@ -7,7 +7,8 @@ import { ROLES } from '../data/synergies.js';
 import { ArenaScene, ARENA_STEP } from '../render/arena-scene.js';
 import { escapeHtml, hdArt, img, rewardIcons } from './common.js';
 import { COMPANIONS } from '../data/companions.js';
-import { floorName } from '../core/arena-cards.js';
+import { bossOf, floorName, monsterOf } from '../core/arena-cards.js';
+import { COMPANION_ROLES as ROLE_OF } from '../data/synergies.js';
 import { reduceMotion } from './prefs.js';
 
 const RULE_ART = { armored: 'rule_armored', swift: 'rule_swift', noheal: 'rule_noheal', frenzy: 'rule_frenzy', first: 'rule_first', backline: 'rule_backline' };
@@ -15,19 +16,45 @@ const RULE_NAME = { armored: 'Carapace', swift: 'Vif-argent', noheal: 'Plaie ouv
 export const ruleArt = (id) => (RULE_ART[id] ? `assets/ui/art102/${RULE_ART[id]}.png` : null);
 export const ruleName = (id) => RULE_NAME[id] ?? '';
 
+// v10.2 (P6) : la Survie (core/arena.js › fight) passe aussi par la carte : ses événements sont traduits dans la
+// forme de fightBoard (cartes à des cases, vagues de vrais monstres du monde de leur élément).
+export function survivalAsCards(r) {
+  const team = r.team.map((p, i) => ({ ...p, pos: [1, 0, 2, 4, 3][i] ?? i, role: ROLE_OF[p.id] ?? 'pet', skills: [] }));
+  const posOf = new Map(team.map((c) => [c.id, c.pos]));
+  let w = 0, alive = [];
+  const events = [];
+  let first = null;
+  for (const e of r.fight.events) {
+    if (e.kind === 'wave') {
+      w = e.i;
+      const cards = e.foes.map((f, i) => { const mo = monsterOf(f.element, (e.n ?? w) + 1, i); return { name: mo.name, enemyId: f.boss ? bossOf(f.element, e.n ?? w).id : mo.id, element: f.element, maxHp: f.maxHp, boss: f.boss, pos: w * 10 + i }; });
+      alive = cards.map((c) => c.pos);
+      if (!first) first = cards; else events.push({ t: e.t, kind: 'wave', n: e.n, cards });
+    } else if (e.kind === 'hit' || e.kind === 'skill') events.push({ t: e.t, kind: e.kind, side: 'ally', from: posOf.get(e.who), to: w * 10 + e.foe, d: e.d, crit: e.crit, elem: e.elem });
+    else if (e.kind === 'heal' || e.kind === 'shield' || e.kind === 'rally') events.push({ t: e.t, kind: e.kind === 'rally' ? 'shield' : e.kind, side: 'ally', from: posOf.get(e.who), to: posOf.get(e.who) });
+    else if (e.kind === 'hurt') events.push({ t: e.t, kind: 'hit', side: 'foe', from: alive[0] ?? w * 10, to: posOf.get(e.who), d: e.d });
+    else if (e.kind === 'kill') { const pos = w * 10 + e.foe; alive = alive.filter((x) => x !== pos); events.push({ t: e.t, kind: 'fall', side: 'foe', pos }); }
+    else if (e.kind === 'fall') events.push({ t: e.t, kind: 'fall', side: 'ally', pos: posOf.get(e.who) });
+  }
+  return { survival: true, floor: 0, team, setup: { cards: first ?? [], rule: null }, events, seconds: r.fight.seconds, won: r.won, stars: 0, reward: null,
+    wave: r.wave, kills: r.kills, rewards: r.rewards, record: r.record, end: null };
+}
+
 export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
   document.querySelector('.arena-map')?.remove();
   const el = document.createElement('div');
   el.className = 'arena-map';
   const rule = run.setup.rule;
-  el.innerHTML = `<div class="am-top"><b>Arène · ${escapeHtml(floorName(run.floor))}</b>
+  const title = run.survival ? 'Épreuve · Survie' : `Arène · ${escapeHtml(floorName(run.floor))}`;
+  el.innerHTML = `<div class="am-top"><b>${title}</b>
       ${rule ? `<span class="am-rule">${ruleArt(rule.id) ? `<img class="px" src="${ruleArt(rule.id)}" alt="">` : ''}<b>${escapeHtml(ruleName(rule.id))}</b> : ${escapeHtml(rule.text)}</span>` : ''}
-      <span class="am-time"><i>⏱</i><b class="num">0 s</b><small>3 ★ en moins de ${A.star3} s</small></span><span class="am-stars">★★★</span></div>
+      <span class="am-time"><i>⏱</i><b class="num">0 s</b>${run.survival ? '' : `<small>3 ★ en moins de ${A.star3} s</small>`}</span><span class="am-stars">★★★</span></div>
     <div class="am-stage"><canvas class="px am-canvas"></canvas></div>
     <div class="am-bottom"><div class="am-cards"></div>
       <div class="am-ctrl"><button class="btn small am-speed" type="button">×1</button><button class="btn small am-mode" type="button">Auto</button><button class="btn small am-skip" type="button">Passer ⏭</button></div></div>
     <div class="am-end hidden"></div>`;
   document.body.appendChild(el);
+  ui.arenaOpen = true;
   const canvas = el.querySelector('.am-canvas');
   const scene = new ArenaScene(canvas, run, ui.state);
   const fit = () => { const b = el.querySelector('.am-stage').getBoundingClientRect(); scene.resize(Math.max(200, b.width), Math.max(120, b.height)); };
@@ -49,7 +76,7 @@ export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
   el.querySelector('.am-speed').addEventListener('click', (e) => { speed = speed === 1 ? 2 : 1; e.target.textContent = `×${speed}`; });
   el.querySelector('.am-mode').addEventListener('click', (e) => { manual = !manual; e.target.textContent = manual ? 'Manuel' : 'Auto'; });
   el.querySelector('.am-skip').addEventListener('click', () => { skip = true; });
-  const close = () => { cancelAnimationFrame(raf); removeEventListener('resize', onResize); el.remove(); ui.invalidate?.(); };
+  const close = () => { ui.arenaOpen = false; cancelAnimationFrame(raf); removeEventListener('resize', onResize); el.remove(); ui.invalidate?.(); };
   const updateCards = () => {
     for (const b of cardsEl.querySelectorAll('.am-card')) {
       const pos = Number(b.dataset.pos);
@@ -62,6 +89,7 @@ export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
     }
     const t = Math.max(0, scene.t - 1);
     el.querySelector('.am-time b').textContent = `${Math.floor(t)} s`;
+    if (run.survival) { el.querySelector('.am-stars').textContent = `Vague ${(scene.waveN ?? 0) + 1}`; return; }
     const live = scene.down.size ? (scene.down.size <= 1 ? 2 : 1) : t <= A.star3 ? 3 : 2;
     el.querySelector('.am-stars').textContent = '★'.repeat(live) + '☆'.repeat(3 - live);
   };
@@ -75,6 +103,15 @@ export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
     el.querySelector('.am-ctrl').classList.add('hidden');
     const end = el.querySelector('.am-end');
     end.classList.remove('hidden');
+    if (run.survival) {
+      end.innerHTML = `<div class="am-end-card"><h2>${run.record ? 'Nouveau record !' : run.won ? 'Survie réussie !' : 'Survie terminée'}</h2>
+        <p><b class="num">${run.wave}</b> vague${run.wave > 1 ? 's' : ''} tenue${run.wave > 1 ? 's' : ''} · ${run.kills} ennemis vaincus</p>
+        <div class="am-end-rw">${(run.rewards ?? []).map((m) => `<div>Vague ${m.wave} : ${rewardIcons(m.reward, 'named')}</div>`).join('') || '<p class="muted">Aucun nouveau palier : vise la vague suivante.</p>'}</div>
+        <div class="am-end-btns"><button class="btn btn-gold am-retry" type="button">Retenter</button><button class="btn am-close" type="button">Fermer</button></div></div>`;
+      end.querySelector('.am-close')?.addEventListener('click', close);
+      end.querySelector('.am-retry')?.addEventListener('click', () => { close(); onRetry?.(); });
+      return;
+    }
     end.innerHTML = `<div class="am-end-card"><h2>${run.won ? `${escapeHtml(floorName(run.floor))} franchi !` : `${escapeHtml(floorName(run.floor))} : pas encore…`}</h2>
       <div class="am-end-stars">${[0, 1, 2].map((i) => `<span class="${i < run.stars ? 'on' : ''}" style="animation-delay:${0.25 + i * 0.35}s">★</span>`).join('')}</div>
       ${run.reward ? `<div class="am-end-rw">${rewardIcons(run.reward, 'named')}</div>` : run.won ? '<p class="muted">Étage déjà franchi : récompense déjà prise.</p>' : '<p class="muted">Change la formation (gardien devant, soigneur derrière) ou renforce tes compagnons : essais illimités.</p>'}

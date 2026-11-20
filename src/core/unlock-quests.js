@@ -14,7 +14,7 @@ export const UNLOCK_QUESTS = [
   { id: 'equipment', label: 'Équipement', steps: [
     ['Bats 10 monstres', (s, b) => delta(s, b, 'kills') >= 10],
     ['Ramasse un objet', (s, b) => delta(s, b, 'itemsFound') >= 1],
-    ['Équipe un objet', (s) => (s.records?.equips ?? 0) >= 1 || Object.values(s.equipment ?? {}).filter(Boolean).length >= 2],
+    ['Équipe un objet', (s, b) => (s.records?.equips ?? 0) >= 1 || Object.values(s.equipment ?? {}).filter(Boolean).length >= 2 || delta(s, b, 'itemsFound') >= 4], // v10.2 : aucun objet meilleur ? l'étape passe quand même
   ] },
   { id: 'upgrades', label: 'Améliorations', steps: [
     ['Atteins l\'étape 1-4', (s) => best(s) >= 4],
