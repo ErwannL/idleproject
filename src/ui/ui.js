@@ -1443,7 +1443,7 @@ export class UI {
         const rarity = rarityById(event.item.rarity);
         const added = !event.autoRecycled || event.mannequin || event.museum;
         // v9.7.1 : objet dans le sac de butin de la scène → plus de ligne « Butin : … » (le sac la remplace).
-        if (event.bagged) { this.lootBag?.bump(); if (event.item.rarity === 'legendary') this.announce(`Objet légendaire : ${event.item.name}`); break; }
+        if (event.bagged) { { const r = this.renderer, cv = document.getElementById('scene'); const fx = r && cv && event.x != null ? r.wx(event.x) * (cv.clientWidth / Math.max(1, r.width)) : null; this.lootBag?.bump(event.item, fx); } if (event.item.rarity === 'legendary') this.announce(`Objet légendaire : ${event.item.name}`); break; }
         // v9.8.1 (0) : premiers objets — bulle « Nouvel objet ! » sur la scène avec un bouton « Équiper » direct.
         // v9.9 (K5) : carte « Meilleur objet » sur la scène (héros, ou compagnon de la bonne classe), dès le premier objet.
         if (added && state.inventory.some((i) => i.id === event.item.id)) {
@@ -2486,7 +2486,7 @@ export class UI {
     else if (n.action === 'equip-best') this.actions.equipBest();
     else if (n.action === 'lootbag') this.lootBag?.toggle(true); // v9.7.1
     else if (n.action === 'place-companion') this.actions.toggleCompanion(n.value);
-    else if (n.action === 'buy') this.actions.buy(n.value, '1');
+    else if (n.action === 'buy') this.actions.buy(n.value, n.amount ?? '1');
     else if (n.action === 'upgrade-companion') this.actions.upgradeCompanion(n.value);
     else if (n.action === 'apply-team') this.actions.applyTeam(); // v9.5.0 (3.6)
     else if (n.action === 'recycle-useless') this.actions.recycleUseless();

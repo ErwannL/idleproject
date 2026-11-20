@@ -315,11 +315,11 @@ function stashView(ui, state) {
       ${setId ? `<button class="btn btn-gold small" data-action="wear-set" data-value="${setId}" title="Équipe la meilleure pièce de chaque emplacement ; l'objet porté prend sa place au coffre">Porter</button>` : ''}</div>` : '';
   const set = setId ? setById(setId) : null;
   const tiers = set ? `<div class="mq-tiers muted">${SET_PIECES.map((p) => `<span>${p} : ${effectText(set.bonuses[p])}</span>`).join(' · ')}</div>` : '';
-  const over = state.stash.length > STASH_SIZE ? `<div class="bad">Coffre au-delà de ${STASH_SIZE} (pièces des anciens mannequins) : rien n'est perdu, mais rien n'y entre tant qu'il n'est pas redescendu.</div>` : '';
-  return `<div class="muted">Le coffre garde ${STASH_SIZE} objets de plus que le sac, <b>jamais recyclés ni fusionnés</b>. Les pièces d'ensemble meilleures y vont d'elles-mêmes.
+  const over = state.stash.length > STASH_SIZE ? `<div class="bad">Réserve au-delà de ${STASH_SIZE} (pièces des anciens mannequins) : rien n'est perdu, mais rien n'y entre tant qu'il n'est pas redescendu.</div>` : '';
+  return `<div class="muted">La Réserve garde ${STASH_SIZE} objets de plus que le sac, <b>jamais recyclés ni fusionnés</b>. Les pièces d'ensemble meilleures y vont d'elles-mêmes.
       <button class="btn chip-btn small${auto ? ' active' : ''}" data-action="auto-mannequin" title="Une pièce d'ensemble ramassée, meilleure que la meilleure du coffre pour son emplacement, y va (l'ancienne est recyclée, sauf verrouillée)">${auto ? 'Rangement auto : activé' : 'Rangement auto : désactivé'}</button></div>
     ${over}${filter}${tiers}
-    ${items.length ? `<div class="stash-layout"><div class="inv-grid">${grid}</div>${detail}</div>` : '<div class="card muted">Le coffre est vide.</div>'}`;
+    ${items.length ? `<div class="stash-layout"><div class="inv-grid">${grid}</div>${detail}</div>` : '<div class="card muted">La Réserve est vide.</div>'}`;
 }
 
 // Musée (v9.0) : une vitrine par objet ancestral, bonus permanent par pièce exposée.
@@ -652,7 +652,7 @@ export default {
     const anyUpgrade = tab === 'bag' && state.inventory.some((i) => isUpgrade(state, i, undefined, st));
     // v9.1.3 : une seule ligne Sac/Coffre/Mannequins/Forge ; « Équiper le meilleur » seulement s'il sert.
     const head = `<div class="inv-head">
-        ${open('stash') ? segment([['bag', `Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}`, 'icon_bag'], ['stash', `Coffre ${state.stash.length}/${STASH_SIZE}`, 'icon_chest']], 'inv-tab', tab) : `<b class="inv-bag-count">${img('icon_bag')} Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}</b>`}
+        ${open('stash') ? segment([['bag', `Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}`, 'icon_bag'], ['stash', `Réserve ${state.stash.length}/${STASH_SIZE}`, 'icon_chest']], 'inv-tab', tab) : `<b class="inv-bag-count">${img('icon_bag')} Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}</b>`}
         <button class="btn small bag-gear${ui.view.bagMenu ? ' active' : ''}" data-action="bag-menu" aria-expanded="${Boolean(ui.view.bagMenu)}" aria-label="Filtres, builds et réglages du sac" title="Filtres, builds et réglages du sac">⚙ Filtres</button>
         ${'' /* v9.8 (B6) : « Prochain déblocage » seulement sous la scène (plus en double, notation 1-10) */}
         ${anyUpgrade ? '<button class="btn btn-primary primary-action pulse-gold equip-best" data-action="equip-best">⬆ Équiper le meilleur</button>' : ''}

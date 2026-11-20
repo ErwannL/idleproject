@@ -33,13 +33,14 @@ export function claimables(state, now = Date.now(), balance = BALANCE) {
     }
   }
   for (const c of state.contracts ?? []) {
-    if (c.progress >= c.target) push({ key: `contract:${c.id}`, kind: 'contract', id: c.id, label: 'Contrat rempli', reward: c.reward, tab: 'contracts' });
+    if (c.progress >= c.target) push({ key: `contract:${c.id}`, kind: 'contract', id: c.id, label: 'Mission finie', // v10.2 (4.4) : les mots du joueur
+       reward: c.reward, tab: 'contracts' });
   }
-  for (const a of claimableAchievements(state)) push({ key: `achievement:${a.id}`, kind: 'achievement', id: a.id, label: `Haut fait : ${a.name}`, reward: { gems: a.gems }, tab: 'contracts' });
+  for (const a of claimableAchievements(state)) push({ key: `achievement:${a.id}`, kind: 'achievement', id: a.id, label: `Exploit réussi : ${a.name}`, reward: { gems: a.gems }, tab: 'contracts' });
   if (bountyReady(state, now)) push({ key: 'bounty', kind: 'bounty', label: 'Prime du jour', reward: { gems: BOUNTY.gems }, item: true, tab: 'campaign' }); // v9.3.8 : la Prime est sur la Carte
   for (const e of state.inbox ?? []) {
     if (e.type === 'merchant') continue;
-    push({ key: `event:${e.id}`, kind: 'event', id: e.id, label: `Trouvaille : ${eventLabel(e.type)}`, reward: e.reward ?? {}, item: Boolean(e.item), itemRef: e.item ?? null, tab: 'contracts' }); // v9.1.3 : plus d'onglet À récupérer
+    push({ key: `event:${e.id}`, kind: 'event', id: e.id, label: e.type === 'chest' ? 'Coffre trouvé en chemin' : `Trouvé en chemin : ${eventLabel(e.type)}`, reward: e.reward ?? {}, item: Boolean(e.item), itemRef: e.item ?? null, tab: 'contracts' }); // v9.1.3 : plus d'onglet À récupérer
   }
   (state.expeditions?.slots ?? []).forEach((run, slot) => {
     if (expeditionDone(run, now)) push({ key: `expedition:${slot}`, kind: 'expedition', slot, label: `Expédition terminée : ${companionById(run.companionId)?.name ?? ''}`, reward: run.reward ?? {}, tab: 'expeditions' });

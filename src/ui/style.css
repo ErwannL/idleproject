@@ -4449,3 +4449,37 @@ html.reduce-motion .howto-card, html.reduce-motion .learn-card { animation: none
 .dg-advice-wrap { margin: 8px 0; }
 /* Talents › Arbre avancé : ombre sur les bords pour montrer qu'il continue. */
 .tree-viewport, .talent-viewport { box-shadow: inset 14px 0 12px -10px rgba(0,0,0,.7), inset -14px 0 12px -10px rgba(0,0,0,.7), inset 0 14px 12px -10px rgba(0,0,0,.7), inset 0 -14px 12px -10px rgba(0,0,0,.7); }
+
+/* v10.2 (P7) : coffre de butin posé sur le sol de la scène, derrière les ennemis. */
+#loot-bag { right: max(40px, 9%); top: calc(var(--feet-px, 100%) - 92px); width: 96px; height: 96px; background: none; border: 0; box-shadow: none; border-radius: 0; overflow: visible; }
+#loot-bag .lb-chest, #loot-bag .lb-chest-open { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated;
+  filter: drop-shadow(0 0 6px var(--glow, transparent)) drop-shadow(0 0 2px var(--glow, transparent)) drop-shadow(0 3px 0 rgba(0,0,0,.6)); }
+#loot-bag .lb-chest-open { opacity: 0; } #loot-bag.lb-open .lb-chest-open { opacity: 1; } #loot-bag.lb-open .lb-chest { opacity: 0; }
+#loot-bag .lb-ray { position: absolute; left: 50%; bottom: 40%; width: 46px; height: 140px; transform: translateX(-50%); opacity: 0; pointer-events: none;
+  background: linear-gradient(to top, color-mix(in srgb, var(--glow, #fff) 70%, transparent), transparent); filter: blur(4px); border-radius: 50%; }
+#loot-bag.lb-epic .lb-ray { opacity: .75; animation: lb-ray 2.4s ease-in-out infinite; }
+@keyframes lb-ray { 50% { opacity: .35; } }
+#loot-bag .lb-count { top: 2px; right: 4px; min-width: 22px; height: 22px; line-height: 22px; font-size: 12px; border-radius: 11px; }
+#loot-bag .lb-up { bottom: 6px; left: 2px; font-size: 18px; }
+#loot-bag.r-rare, #loot-bag.r-epic, #loot-bag.r-legendary, #loot-bag.r-mythic, #loot-bag.r-ancestral { border: 0; box-shadow: none; }
+#loot-bag .lb-coin { position: absolute; left: 50%; top: 30%; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff6b0, #ffc52a 50%, #a66a00);
+  animation: lb-coin .8s ease-out forwards; pointer-events: none; }
+@keyframes lb-coin { 0% { transform: translate(0, 0); } 45% { transform: translate(var(--dx), -34px); } 100% { transform: translate(calc(var(--dx) * 1.6), 10px); opacity: 0; } }
+#loot-bag .lb-bubble { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 4px; white-space: nowrap; background: #fff5d6; color: #3a2508;
+  font-weight: 800; font-size: 12px; padding: 3px 8px; border-radius: 8px; border: 2px solid #c08a2a; pointer-events: none; }
+#loot-bag.lb-full .lb-spill { position: absolute; left: -30px; right: -30px; bottom: -2px; height: 12px; pointer-events: none;
+  background: radial-gradient(circle at 10% 60%, #ffc52a 3px, transparent 4px), radial-gradient(circle at 30% 80%, #ffd75a 3px, transparent 4px), radial-gradient(circle at 75% 70%, #ffc52a 3px, transparent 4px), radial-gradient(circle at 92% 55%, #e0a020 3px, transparent 4px); }
+.lb-fly { position: absolute; z-index: 6; width: 32px; height: 32px; transition: transform .6s cubic-bezier(.3,-.3,.6,1), opacity .6s; pointer-events: none; }
+.lb-info { display: flex; flex-direction: column; gap: 1px; font-size: 12px; min-width: 0; }
+.lb-dests .lb-d { font-size: 11px; }
+.lb-keep { flex: 1; }
+@media (max-width: 520px) { #loot-bag { width: 64px; height: 64px; top: calc(var(--feet-px, 100%) - 62px); right: max(40px, 8%); } }
+/* v10.2 (P7) : une ligne par objet — icône, nom et gain, trois actions lisibles. */
+#loot-sheet .lb-grid { display: flex !important; flex-direction: column; gap: 4px; }
+#loot-sheet .lb-cell { flex-direction: row !important; align-items: center; gap: 8px; padding: 4px 6px; }
+#loot-sheet .lb-info { flex: 1; }
+#loot-sheet .lb-dests { display: flex; gap: 3px; flex: none; }
+#loot-sheet .lb-d { width: auto !important; height: 26px !important; padding: 0 6px !important; font-size: 11px; white-space: nowrap; border-radius: 6px; }
+#loot-sheet .lb-d.on { outline: 2px solid #ffd34a; }
+#loot-sheet .lb-cell { flex-wrap: wrap; } #loot-sheet .lb-info { flex: 1 1 60%; min-width: 0; }
+#loot-sheet .lb-dests { flex: 1 1 100%; padding-left: 52px; }

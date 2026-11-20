@@ -15,7 +15,7 @@ export const DEFAULT_KEYS = {
 };
 export const KEY_LABELS = {
   auto: 'Avance automatique', speed: 'Vitesse des combats', claim: 'Tout récupérer', missions: 'Missions', inbox: 'À récupérer',
-  lootBag: 'Sac de butin', guard: 'Parer un coup lourd', options: 'Paramètres', journal: 'Journal de la session', help: 'Aide des raccourcis', session: 'Retour de session',
+  lootBag: 'Coffre de butin', guard: 'Parer un coup lourd', options: 'Paramètres', journal: 'Journal de la session', help: 'Aide des raccourcis', session: 'Retour de session',
   next: 'Prochaine action', search: 'Recherche rapide', boost0: 'Boost 1 (Rage)', boost1: 'Boost 2 (Frénésie)', boost2: 'Boost 3 (Midas)',
   boost3: 'Boost 4 (Œil)', boost4: 'Boost 5 (Lame)',
 };

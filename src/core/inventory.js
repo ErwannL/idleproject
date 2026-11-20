@@ -249,6 +249,7 @@ export function compareWithEquipped(state, item, balance = BALANCE) {
     dps: next.dps - current.dps,
     maxHp: next.maxHp - current.maxHp,
     armor: next.armor - current.armor,
+    dpsBefore: current.dps, // v10.2 : pour « +x % de dégâts/s » dans le coffre de butin
   };
 }
 

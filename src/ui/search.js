@@ -4,7 +4,7 @@ import { MENUS, SUB_LABELS, navPath } from './nav.js';
 import { escapeHtml } from './common.js';
 
 const EXTRA = [
-  ['Coffre', 'inventory', { invTab: 'stash', invView: null }],
+  ['Réserve', 'inventory', { invTab: 'stash', invView: null }],
   ['Mannequins', 'inventory', { invTab: 'stash', invView: null }], // v9.1.3 : fondus dans le coffre (filtre Ensemble)
   ['Forge', 'inventory', { invView: 'forge' }],
   ['Builds', 'inventory', { invTab: 'bag', invView: null }],

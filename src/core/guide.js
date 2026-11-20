@@ -13,7 +13,7 @@ import { companionById, companionUpgradeCost, onExpedition, teamKind, teamSlotsO
 import { teamAdvice } from './team-advisor.js'; // v9.5.0
 import { upgradeProfits } from './profit.js';
 import { upgradeOpen } from './unlocks.js';
-import { upgradeCost } from './economy.js';
+import { bulkPlan, upgradeCost } from './economy.js';
 import { skillPointCost, skillPointsAvailable } from './skills.js';
 import { SKILLS } from '../data/skills.js';
 import { canRebirth, rebirthBlocked, rebirthGain, rebirthReward, rebirthWorth } from './rebirth.js';
@@ -136,7 +136,7 @@ function* actionCandidates(state, ctx = {}, balance = BALANCE) {
   const current = computeHeroStats(state, balance);
   // v9.7.1 : sac de butin de la scène — une amélioration y attend, ou il se remplit.
   const bag = state.lootBag ?? [];
-  if (bag.length >= 12 || bag.some((i) => isUpgrade(state, i, balance, current))) yield { id: 'lootbag', text: `Trier le sac de butin (${bag.length})`, action: 'lootbag' };
+  if (bag.length >= 12 || bag.some((i) => isUpgrade(state, i, balance, current))) yield { id: 'lootbag', text: `Trier le coffre de butin (${bag.length})`, action: 'lootbag' };
   // v9.8 (E8) : « Équiper » suit isUpgrade (bilan dégâts/s × robustesse) ; le conseil semblait inutile à cause de
   // l'affichage des objets en valeurs brutes (« +6,3 M » à côté de « 2,4 Qa »), corrigé en A (gain en % de puissance).
   const better = state.inventory.filter((i) => isUpgrade(state, i, balance, current)).length;
@@ -176,7 +176,11 @@ function* actionCandidates(state, ctx = {}, balance = BALANCE) {
   const lv = companionToLevel(state, balance);
   // Montée d'un compagnon d'abord quand elle coûte moins que l'amélioration proposée (sinon l'or part toujours ailleurs).
   if (lv && (!up || up.cost > state.gold || lv.cost <= up.cost)) yield { id: 'level', text: `Monter ${lv.name} au niveau ${lv.level + 1}`, action: 'upgrade-companion', value: lv.id };
-  if (up && up.cost <= state.gold && open('upgrades')) yield { id: 'upgrade', text: `Améliorer ${UPGRADE_NAMES[up.key] ?? up.key} (${formatNumber(up.cost)} or)`, action: 'buy', value: up.key };
+  // v10.2 (4.3) : un appui achète tous les niveaux abordables (plus de « Améliorer Dégâts » 15 fois de suite).
+  if (up && up.cost <= state.gold && open('upgrades')) {
+    const plan = bulkPlan(state, up.key, 'max', balance);
+    yield { id: 'upgrade', text: plan.count > 1 ? `Améliorer ${UPGRADE_NAMES[up.key] ?? up.key} ×${plan.count} (${formatNumber(plan.cost)} or)` : `Améliorer ${UPGRADE_NAMES[up.key] ?? up.key} (${formatNumber(up.cost)} or)`, action: 'buy', value: up.key, amount: 'max' };
+  }
   // v9.7.1 (lot 3) : la mini-quête de déblocage en cours, une consigne à la fois, quand rien de plus pressé n'attend.
   const quest = currentQuest(state);
   if (quest) {
@@ -269,7 +273,7 @@ function claimAction(claims) {
   // v10.1 : « pourquoi » = ce qu'on récupère (gemmes en tête).
   const gems = claims.reduce((t, c) => t + (c.reward?.gems ?? c.gems ?? 0), 0);
   const reward = gems > 0 ? `${formatNumber(gems)} gemmes${claims.length > 1 ? ` et ${claims.length - 1} autre${claims.length > 2 ? 's' : ''} récompense${claims.length > 2 ? 's' : ''}` : ''}` : `${claims.length} récompense${claims.length > 1 ? 's' : ''} prête${claims.length > 1 ? 's' : ''}`;
-  return { id: 'claim', text: claims.length > 1 ? `Tout récupérer (${claims.length})` : `Récupérer : ${claims[0].label}`, action: 'claim-everything', tab: claims[0].tab, reward };
+  return { id: 'claim', text: claims.length > 1 ? `Tout récupérer (${claims.length})` : `${claims[0].label}${gems > 0 ? ` : ${formatNumber(gems)} gemmes` : ''}`, action: 'claim-everything', tab: claims[0].tab, reward };
 }
 
 function goalAction(state, balance) {

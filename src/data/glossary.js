@@ -16,6 +16,8 @@ export const GLOSSARY = {
   Contrat: 'Un objectif d\'aventure (vaincre des monstres, gagner de l\'or…) qui se remplit tout seul en jouant : des gemmes à la clé.',
   'Haut fait': 'Un exploit permanent (premier boss, 1 000 monstres…) : des gemmes et un petit bonus pour toujours.',
   Collections: 'Tout ce que tu as découvert : chaque monstre, objet ou compagnon trouvé donne un petit bonus.',
+  'Coffre de butin': 'Le coffre posé au sol, derrière les monstres : le butin s\'y entasse. Touche-le pour garder le meilleur et recycler le reste.',
+  'Réserve': 'Le rangement de l\'équipement (300 places) : rien n\'y est recyclé ni fusionné tout seul.',
   Familier: 'Un petit compagnon (chat, hibou, slime…) qui suit ton héros : il frappe peu mais donne un bonus.',
 };
 // v10.1 (P1 §2.3) : carte de glossaire des ressources — image, à quoi ça sert, où en gagner, écran où aller.
