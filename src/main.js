@@ -449,10 +449,12 @@ const actions = {
     state.ui.sweepSeed = (state.ui.sweepSeed ?? 1) + 1;
     const copy = structuredClone(state);
     const r = sweepAll(copy, plan, () => new Rng(state.ui.sweepSeed));
+    ui.sweepPlan = plan; // v10.3 (audit 1.5) : le plan ANNONCÉ est celui qui sera joué (une clé gagnée entre-temps ne le change pas)
     return { plan, keys: r.count, earned: r.earned, items: r.items.length };
   },
   sweepAllRun() {
-    const plan = sweepAllPlan(state);
+    const shown = ui.sweepPlan; ui.sweepPlan = null;
+    const plan = shown?.length && shown.reduce((t, p) => t + p.n, 0) <= (state.keys ?? 0) ? shown : sweepAllPlan(state);
     if (!plan.length) return done(false, null);
     const r = sweepAll(state, plan, () => new Rng(state.ui.sweepSeed ?? 1));
     sound.play('upgrade', { volume: 0.6 });

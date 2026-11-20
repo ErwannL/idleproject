@@ -23,7 +23,7 @@ async function open(w, h, { dpr = 1, fresh = false, query = '' } = {}) {
   if (!fresh) { await page.waitForTimeout(2500); await page.evaluate(() => __idle.ui.closeModal()); }
   return { ctx, page };
 }
-const FORMATS = [[1116, 993, 1, 'PC 1116 × 993'], [1280, 720, 1, 'PC 1280 × 720'], [390, 844, 3, 'téléphone 390 × 844']];
+const FORMATS = [[1116, 993, 1, 'PC 1116 × 993'], [1280, 720, 1, 'PC 1280 × 720'], [390, 844, 3, 'téléphone 390 × 844'], [900, 600, 1, 'PC 900 × 600'], [1716, 1000, 1, 'PC 1716 × 1000']];
 
 if (process.argv[2] === 'learn') await learnRun(Number(process.argv[3] ?? 12));
 else await quickRun();
@@ -138,6 +138,37 @@ async function quickRun() {
       await page.evaluate(() => document.querySelector('.arena-map').close());
     }
     ok(`6.2 Arène ${label} : tous les monstres à l'écran, chacun sous son nom ; boss et gardien nommés en haut`, !bad.length, bad.slice(0, 2).join(' | '));
+    await ctx.close();
+  }
+
+  // ---- 6.2 : chaque compagnon joue son sort dans la scène ; mode Manuel : le combat attend le toucher de la carte ----
+  {
+    const { ctx, page } = await open(1280, 720);
+    await page.evaluate(async () => { const { cardArena } = await import('./src/core/arena-cards.js'); cardArena(__idle.state).best = 24; __idle.ui.closePanel(); __idle.ui.arenaFight(10); });
+    await page.waitForSelector('.arena-map .am-canvas', { timeout: 8000 });
+    const cast = await page.evaluate(() => {
+      const el = document.querySelector('.arena-map'); const sc = el.scene; const seen = new Set();
+      const emit = sc.emit.bind(sc); sc.emit = (type, data) => { if (type === 'companionSkill') seen.add(data.companionId); emit(type, data); };
+      el.querySelector('.am-skip').click();
+      return new Promise((res) => setTimeout(() => res({ team: sc.run.team.map((c) => c.id), seen: [...seen], end: !el.querySelector('.am-end').classList.contains('hidden'), next: Boolean(el.querySelector('.am-next, .am-retry')) }), 600));
+    });
+    ok('6.2 étage 10 rejoué dans la scène : le sort de chaque compagnon présent est joué, puis l\'écran de fin', cast.team.every((id) => cast.seen.includes(id)) && cast.end && cast.next, JSON.stringify(cast));
+    await page.evaluate(() => { document.querySelector('.arena-map').close(); __idle.ui.arenaFight(10); });
+    await page.waitForSelector('.arena-map .am-canvas', { timeout: 8000 });
+    await page.click('.am-mode');
+    const manual = await page.evaluate(() => new Promise((res) => {
+      const el = document.querySelector('.arena-map'); const sc = el.scene; const t0 = performance.now();
+      const tick = () => {
+        const ready = el.querySelector('.am-card.ready');
+        if (ready && sc.nextEvent()?.kind === 'ult') {
+          const t1 = sc.t;
+          setTimeout(() => { const held = Math.abs(sc.t - t1) < 0.05; ready.click(); setTimeout(() => res({ mode: el.querySelector('.am-mode').textContent, held, resumed: sc.t > t1 + 0.2 }), 700); }, 700);
+        } else if (performance.now() - t0 > 40000) res({ mode: el.querySelector('.am-mode').textContent, held: false, resumed: false, timeout: true });
+        else setTimeout(tick, 50);
+      };
+      tick();
+    }));
+    ok('6.2 mode Manuel : la carte dont l\'ultime est prêt brille, le combat attend qu\'on la touche, puis reprend', manual.mode === 'Manuel' && manual.held && manual.resumed, JSON.stringify(manual));
     await ctx.close();
   }
 

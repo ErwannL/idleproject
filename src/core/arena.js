@@ -143,7 +143,8 @@ export function arenaState(state, now = Date.now()) {
   }
   return state.arena;
 }
-export const arenaUnlocked = (state) => (state.maxStage ?? 1) >= ARENA.unlockStage && Object.keys(state.companions.owned).length > 0;
+// v10.3 (audit 2.1) : d'après la meilleure étape jamais atteinte — l'onglet Arène ne se referme pas après une Renaissance.
+export const arenaUnlocked = (state) => Math.max(state.maxStage ?? 1, state.records?.bestStage ?? 1) >= ARENA.unlockStage && Object.keys(state.companions.owned).length > 0;
 export const survivalTriesLeft = (state, now = Date.now()) => ARENA.survival.triesPerDay - arenaState(state, now).survival.tries;
 
 // v9.10 (7) : la Survie se joue à 1, 2 ou 3 (équipe choisie avant) ; les ennemis grossissent avec l'équipe
