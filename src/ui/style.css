@@ -4483,3 +4483,37 @@ html.reduce-motion .howto-card, html.reduce-motion .learn-card { animation: none
 #loot-sheet .lb-d.on { outline: 2px solid #ffd34a; }
 #loot-sheet .lb-cell { flex-wrap: wrap; } #loot-sheet .lb-info { flex: 1 1 60%; min-width: 0; }
 #loot-sheet .lb-dests { flex: 1 1 100%; padding-left: 52px; }
+/* v10.2 (P6) : Arène sur la carte. */
+.arena-map { position: fixed; inset: 0; z-index: 9500; display: flex; flex-direction: column; background: #0b0f1c; color: #fff; }
+.am-top { display: flex; align-items: center; gap: 12px; padding: 6px 12px; background: linear-gradient(#1c2440, #121829); border-bottom: 2px solid #c08a2a; flex-wrap: wrap; font-size: 14px; }
+.am-rule { display: inline-flex; align-items: center; gap: 6px; background: rgba(0,0,0,.35); padding: 2px 8px; border-radius: 8px; font-size: 13px; }
+.am-rule img { width: 28px; height: 28px; image-rendering: pixelated; }
+.am-time { display: inline-flex; align-items: baseline; gap: 4px; margin-left: auto; } .am-time small { color: #9aa6c8; font-size: 11px; }
+.am-stars { color: #ffd34a; font-size: 20px; letter-spacing: 2px; }
+.am-stage { flex: 1; min-height: 0; position: relative; } .am-canvas { width: 100%; height: 100%; display: block; }
+.am-bottom { display: flex; align-items: stretch; gap: 8px; padding: 8px; background: linear-gradient(#141a2c, #0b0f1c); border-top: 2px solid #3a4568; }
+.am-cards { display: flex; gap: 8px; flex: 1; overflow-x: auto; }
+.am-card { flex: none; width: 120px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px; background: #1a2138; border: 2px solid #3a4568; border-radius: 10px; color: #fff; cursor: default; }
+.am-card.r-legendary { border-color: #c08a2a; } .am-card.r-epic { border-color: #8a5ad0; } .am-card.r-rare { border-color: #4a7ad0; }
+.am-pic { height: 72px; display: flex; align-items: flex-end; } .am-pic img { max-height: 72px; max-width: 100px; object-fit: contain; image-rendering: pixelated; }
+.am-card b { font-size: 12px; } .am-card small { font-size: 10px; color: #b8c2e0; text-align: center; line-height: 1.1; }
+.am-hp, .am-ult { width: 100%; height: 5px; background: #2a1414; border-radius: 3px; overflow: hidden; } .am-hp i, .am-ult i { display: block; height: 100%; transition: width .15s; }
+.am-hp i { background: #5ad07a; } .am-ult { background: #1a1a30; } .am-ult i { background: linear-gradient(90deg, #ffb020, #ffe680); }
+.am-card.ready { cursor: pointer; box-shadow: 0 0 14px #ffd34a; border-color: #ffd34a; animation: am-pulse .8s ease-in-out infinite alternate; }
+@keyframes am-pulse { to { box-shadow: 0 0 4px #ffd34a; } }
+.am-card.acting { transform: translateY(-6px) scale(1.04); } .am-card.down { filter: grayscale(1) brightness(.5); }
+.am-ctrl { display: flex; flex-direction: column; gap: 4px; justify-content: center; } .am-ctrl.hidden { display: none; }
+.am-end { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(5,8,18,.55); } .am-end.hidden { display: none; }
+.am-end-card { background: #141a2c; border: 2px solid #c08a2a; border-radius: 14px; padding: 16px 22px; text-align: center; min-width: 300px; }
+.am-end-stars span { font-size: 44px; color: #3a4568; display: inline-block; } .am-end-stars span.on { color: #ffd34a; animation: am-star .45s ease-out both; }
+@keyframes am-star { from { transform: scale(2.4) rotate(-30deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.am-end-btns { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+@media (max-width: 520px) {
+  .am-stage { flex: 0 0 55%; } .am-bottom { flex: 1; flex-direction: column; } .am-cards { align-items: flex-start; }
+  .am-card { width: 100px; min-height: 150px; } .am-ctrl { flex-direction: row; } .am-time small { display: none; }
+}
+.am-stage { overflow: hidden; } .am-bottom { position: relative; z-index: 2; } .am-canvas { position: absolute; inset: 0; }
+.ct-tip { border-color: #ffd34a; background: #2a2414; }
+.ct-rule { display: flex; gap: 8px; align-items: center; margin: 6px 0; padding: 6px; background: linear-gradient(90deg, #3a1f14, #1a2138); border-radius: 8px; }
+.ct-rule img { width: 40px; height: 40px; image-rendering: pixelated; } .ct-rule div { display: flex; flex-direction: column; } .ct-rule small { color: #cfd6ee; }
+.ct-back { display: flex; gap: 8px; align-items: center; margin-top: 6px; font-size: 12px; } .ct-back img { width: 40px; image-rendering: pixelated; }

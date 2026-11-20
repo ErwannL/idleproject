@@ -87,6 +87,7 @@ import { companionById } from '../core/companions.js'; // v9.5.1
 import { COMPANION_ROLES, ROLES } from '../data/synergies.js'; // v10.1
 import { dormantResources } from '../core/daybook.js';
 import { playBoard } from './panels/arena-cards-view.js';
+import { openArenaMap } from './arena-map.js'; // v10.2 (P6)
 import { startVignettes } from './vignettes.js';
 import { DOORS, dungeonStars, roman } from '../core/dungeon-plus.js';
 const DIFF_LABEL = { easy: 'Facile', normal: 'Normal', hard: 'Difficile' };
@@ -1130,7 +1131,7 @@ export class UI {
       case 'card-place': if (v.cardSlot != null) { a.cardPlace(v.cardSlot, value || null); v.cardSlot = null; } break;
       case 'card-auto': a.cardAuto(); break;
       case 'card-floor': local(() => { v.cardFloor = Number(value); }); break;
-      case 'card-fight': { const r = a.cardFight(Number(value)); if (r) playBoard(this, r); break; }
+      case 'card-fight': this.arenaFight(Number(value)); break; // v10.2 (P6) : le combat se joue sur la carte
       case 'card-skip': this.cardSkip?.(); break;
       case 'card-sweep': a.cardSweep(Number(value)); break;
       case 'card-chest': a.cardChest(); break;
@@ -2193,7 +2194,9 @@ export class UI {
     // v10.1 : consignes mises de côté (revenues 3 fois sans être faites) pendant 10 min.
     const nowMs = Date.now();
     const aside = new Set(Object.entries(this.sealAside ?? {}).filter(([, t]) => t > nowMs).map(([id]) => id));
-    this.next = nextAction(state, { claims: this.claims, visible: this.tabVisible, fusionReady: this.tabBadges.forge === 1, aside, tab: this.tab }); // v9.3.5
+    const nctx = { claims: this.claims, visible: this.tabVisible, fusionReady: this.tabBadges.forge === 1, aside, tab: this.tab, learned: state.unlocks && !state.unlocks.legacy ? (state.ui.learned ?? []) : null };
+    this.next = nextAction(state, nctx);
+    this.wantLearn = nctx.wantLearn ?? null; // v10.2 (4.1) : la carte de cette notion passe en premier // v9.3.5
     for (const menu of MENUS) {
       const red = menu.tabs.some((t) => byTab[t] && this.tabVisible[t] !== false);
       const el = this.$(menu.id === 'shop' ? 'badge-shop-tab' : `badge-${menu.id}`);
@@ -2486,7 +2489,7 @@ export class UI {
     else if (n.action === 'equip-best') this.actions.equipBest();
     else if (n.action === 'lootbag') this.lootBag?.toggle(true); // v9.7.1
     else if (n.action === 'place-companion') this.actions.toggleCompanion(n.value);
-    else if (n.action === 'buy') this.actions.buy(n.value, n.amount ?? '1');
+    else if (n.action === 'buy') { this.actions.buy(n.value, n.amount ?? '1'); (this.sealAside ??= {}).upgrade = Date.now() + 150000; } // v10.2 (4.3) : tout l'or utile d'un coup, puis 2 min 30 sans « Améliorer »
     else if (n.action === 'upgrade-companion') this.actions.upgradeCompanion(n.value);
     else if (n.action === 'apply-team') this.actions.applyTeam(); // v9.5.0 (3.6)
     else if (n.action === 'recycle-useless') this.actions.recycleUseless();
@@ -3048,6 +3051,14 @@ export class UI {
     if (typeof document === 'undefined') return;
     const host = this.$('stage-area');
     if (!host) return;
+    // v10.2 (4.2) : un seul message à lire à la fois — pendant une carte de déblocage, une bulle de ressource ou une
+    // autre carte d'objet, celle-ci attend son tour (la plus récente remplace les plus anciennes en attente).
+    if (document.querySelector('.learn-card, .howto-card, .res-bubble, .best-cards .best-card')) {
+      this.bestQueue = [item, unitId];
+      clearTimeout(this.bestQueueT);
+      this.bestQueueT = setTimeout(() => { const q = this.bestQueue; this.bestQueue = null; if (q) this.bestItemCard(...q); }, 2500);
+      return;
+    }
     let box = host.querySelector('.best-cards');
     if (!box) { box = document.createElement('div'); box.className = 'best-cards'; host.appendChild(box); }
     const cards = [...box.children];
@@ -3140,6 +3151,13 @@ export class UI {
     if (!h) { h = document.createElement('div'); h.id = 'dg-host'; this.root.appendChild(h); }
     const sc = h.querySelector('.dg-sheet')?.scrollTop ?? 0;
     if (h.innerHTML !== html) { h.innerHTML = html; const s = h.querySelector('.dg-sheet'); if (s) s.scrollTop = sc; }
+  }
+
+  // v10.2 (P6) : un étage d'Arène joué sur la carte du monde ; « Étage suivant » enchaîne.
+  arenaFight(f) {
+    const r = this.actions.cardFight(f);
+    if (!r) return;
+    openArenaMap(this, r, { onNext: () => this.arenaFight(f + 1), onRetry: () => this.arenaFight(f) });
   }
 
   // v10.1 (P3) : résumé d'un Balayer ×N.

@@ -9,7 +9,7 @@
 export const MENUS = [
   { id: 'hero', label: 'Héros', tabs: ['inventory', 'upgrades', 'skills', 'tree', 'forge'] }, // v9.10 (8) : la Forge sert l'équipement : 5e onglet de Héros
   { id: 'team', label: 'Équipe', tabs: ['companions', 'expeditions'] },
-  { id: 'adventure', label: 'Combat', tabs: ['campaign', 'dungeons', 'tower', 'event'] },
+  { id: 'adventure', label: 'Combat', tabs: ['campaign', 'dungeons', 'arena', 'tower', 'event'] }, // v10.2 (2.1) : l'Arène en tête de Combat
   { id: 'summon', label: 'Invocation', tabs: ['summon'] },
   { id: 'shop', label: 'Boutique', tabs: ['shop'] },
   { id: 'goals', label: 'Quêtes', tabs: ['daybook', 'contracts', 'encyclopedia'], top: true },
@@ -35,6 +35,7 @@ export const TAB_LEAD = {
   campaign: 'La carte des mondes : choisis l\'étape où ton héros combat.',
   dungeons: 'Une clé ouvre un donjon : quelques salles, un boss, un gros coffre.',
   tower: 'Défis du jour et de la semaine : la Tour, le Défi et l\'Arène.',
+  arena: 'Tes compagnons en cartes affrontent les monstres d\'étage en étage.',
   boss: 'Les boss vaincus te donnent des pouvoirs à placer.',
   encyclopedia: 'Tout ce que tu as découvert : monstres, objets, compagnons.',
   contracts: 'Missions du jour, de la semaine, Chroniques et hauts faits : des récompenses à récupérer.',

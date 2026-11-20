@@ -17,7 +17,7 @@ page.on('pageerror', (e) => errors.push(e.message));
 await page.goto(`http://localhost:${server.address().port}/?quests&learn`);
 await page.waitForFunction(() => window.__idle?.ui, null, { timeout: 30000 });
 const t0 = Date.now();
-let multi = 0, noWhy = 0, seen = new Map(), lastText = '', done = null;
+let lastSid = null, multi = 0, multiMsg = 0, earlyN = [], upShows = 0, jargon = [], noWhy = 0, seen = new Map(), lastText = '', done = null;
 while (Date.now() - t0 < MIN * 60000) {
   await page.waitForTimeout(1000);
   const r = await page.evaluate(() => {
@@ -41,13 +41,23 @@ while (Date.now() - t0 < MIN * 60000) {
       document.querySelector('#modal:not(.hidden) [data-action="close-modal"]')?.click();
     }
     const s = __idle.state;
-    return { ctas, text, why, learn: Boolean(learn), team: (s.companions?.equipped ?? []).length, items: Object.values(s.equipment ?? {}).filter(Boolean).length,
+    // v10.2 (4) : messages à lire en même temps, notion ouverte avant sa carte.
+    const msgs = ['.learn-card', '.howto-card', '.res-bubble', '.best-card'].reduce((t, q) => t + [...document.querySelectorAll(q)].filter((e) => e.offsetParent !== null).length, 0);
+    const NOTION = { skills: 'skills', summon: 'summon', lootbag: 'lootbag', recycle: 'forge', fusion: 'forge', keys: 'dungeons', place: 'summon' };
+    const sid = vis(seal) ? seal.dataset.kind : null;
+    const early = sid && NOTION[sid] && s.unlocks && !s.unlocks.legacy && !(s.ui.learned ?? []).includes(NOTION[sid]) ? sid : null;
+    return { msgs, early, sid, ctas, text, why, learn: Boolean(learn), team: (s.companions?.equipped ?? []).length, items: Object.values(s.equipment ?? {}).filter(Boolean).length,
       ups: Object.values(s.upgrades ?? {}).reduce((a, b) => a + b, 0), skills: Object.values(s.skills ?? {}).filter((v) => (v?.level ?? v) > 0).length, stage: s.records?.bestStage ?? s.maxStage, gold: Math.round(s.gold), quest: (s.unlocks?.done ?? []).join(','), kills: (s.records?.kills ?? 0) - (s.unlocks?.base?.kills ?? 0), best: s.records?.bestStage, tab: __idle.ui.tab, nx: __idle.ui.next?.id, sa: __idle.ui.sealAction?.id, aside: Object.keys(__idle.ui.sealAside ?? {}).join(','), calm: JSON.stringify(__idle.ui.calmStart?.(s)), hidden: document.getElementById('next-action').className, why2: JSON.stringify(__idle.ui.sealWhy), tuto: document.getElementById('tuto-layer')?.dataset.step, inv: s.inventory?.length, claims: (__idle.ui.claims ?? []).map((c) => c.kind + (c.item ? '+i' : '') + (c.blocked ? '!' : '')).join(','), tutoTarget: document.getElementById('tuto-layer')?.target?.outerHTML?.slice(0, 120), qb: document.querySelector('#quest-banner.ready')?.textContent?.slice(0, 60) };
   });
   const sec = (Date.now() - t0) / 1000;
   if (process.env.TRACE && Math.round(sec) % 30 === 0) console.log(Math.round(sec), JSON.stringify(r));
   if (sec <= 180 && r.ctas > 1 && !r.learn) multi++;
   if (r.text && !r.why.trim()) noWhy++;
+  if (r.msgs > 1) multiMsg++;
+  if (r.early) earlyN.push(r.early);
+  if (r.sid === 'upgrade' && lastSid !== 'upgrade') upShows++;
+  lastSid = r.sid;
+  if (r.text && /Contrat|Trouvaille|Haut fait/.test(r.text)) jargon.push(r.text);
   if (r.text && r.text !== lastText) seen.set(r.text, (seen.get(r.text) ?? 0) + 1);
   lastText = r.text;
   if (r.team >= 1 && r.items >= 1 && r.ups >= 5 && r.skills >= 1) { done = { ...r, sec: Math.round(sec) }; break; }
@@ -66,6 +76,10 @@ const same = await page.evaluate(() => [...document.querySelectorAll('.upg-effec
 const checks = [
   ['un seul appel à l\'action à la fois (3 premières minutes)', multi <= 2, `${multi} s avec plusieurs (transitions d'une seconde tolérées : 2 au plus)`],
   ['chaque Sceau a son « pourquoi »', noWhy === 0, `${noWhy} sans`],
+  ['jamais plus d\'un message à lire à la fois', multiMsg === 0, `${multiMsg} s`],
+  ['aucune consigne n\'ouvre une notion pas encore présentée', earlyN.length === 0, [...new Set(earlyN)].join(',')],
+  ['« Améliorer » 5 fois au plus', upShows <= 5, `${upShows}`],
+  ['aucun mot hors glossaire dans le Sceau', jargon.length === 0, [...new Set(jargon)].join(' | ')],
   ['12 min : compagnon placé, objet équipé, 5 améliorations, 1 compétence', !done?.partial, JSON.stringify(done)],
   ['aucune consigne répétée plus de 3 fois', repeats.length === 0, repeats.map(([t, n]) => `${t}×${n}`).join(', ')],
   ['icône d\'or → carte de glossaire', gloss, ''],

@@ -1141,7 +1141,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
     if (!inRange) continue;
     world.skillReadyAt ??= {};
     world.skillReadyAt[skill.id] ??= world.time;
-    const manual = world.manualSkills?.has(skill.id);
+    const manual = world.manualSkills?.has(skill.id) || world.manualPending?.has(skill.id);
     const grace = assist === 'full' ? 0 : ASSIST_GRACE;
     const auto = state.skillAuto && assist !== 'manual' && world.time - world.skillReadyAt[skill.id] >= grace;
     if (manual || auto) {
@@ -1151,6 +1151,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
       world.skillTimers[skill.id] = interactiveCooldown(skill, stats.bonus);
       delete world.skillReadyAt[skill.id];
       world.manualSkills?.delete(skill.id);
+      world.manualPending?.delete(skill.id);
       if (manual) { addCombo(world); state.records.manualCasts = (state.records.manualCasts ?? 0) + 1; }
     }
   }
@@ -1305,7 +1306,8 @@ function tickInteraction(state, world, dt) {
 
 // Actions du joueur (UI) : renvoient true si l'action a compté.
 export function playerCast(world, skillId) {
-  if ((world.skillTimers?.[skillId] ?? 1) > 0) return false;
+  // v10.2 (4) : touché pendant la recharge → le prochain lancer compte comme fait à la main (l'auto ne le vole plus).
+  if ((world.skillTimers?.[skillId] ?? 1) > 0) { (world.manualPending ??= new Set()).add(skillId); return false; }
   (world.manualSkills ??= new Set()).add(skillId);
   return true;
 }

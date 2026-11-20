@@ -1,0 +1,105 @@
+// v10.2 (P6) : écran de l'Arène sur la carte. Bandeau du haut (étage, règle illustrée, chronomètre, étoiles en
+// cours), la scène du monde (render/arena-scene.js) et, en bas, la rangée de cartes de la formation (portrait, nom,
+// « rôle · sort », PV, jauge d'ultime). Mode Manuel : quand l'ultime d'une carte arrive, le combat attend qu'on la
+// touche (elle brille). ×2 et Passer. Fin : les étoiles tombent une à une, les récompenses, puis « Étage suivant ».
+import { CARD_ARENA as A } from '../data/arena-floors.js';
+import { ROLES } from '../data/synergies.js';
+import { ArenaScene, ARENA_STEP } from '../render/arena-scene.js';
+import { escapeHtml, hdArt, img, rewardIcons } from './common.js';
+import { COMPANIONS } from '../data/companions.js';
+import { floorName } from '../core/arena-cards.js';
+import { reduceMotion } from './prefs.js';
+
+const RULE_ART = { armored: 'rule_armored', swift: 'rule_swift', noheal: 'rule_noheal', frenzy: 'rule_frenzy', first: 'rule_first', backline: 'rule_backline' };
+const RULE_NAME = { armored: 'Carapace', swift: 'Vif-argent', noheal: 'Plaie ouverte', frenzy: 'Furie', first: 'Embuscade', backline: 'Assaut arrière' };
+export const ruleArt = (id) => (RULE_ART[id] ? `assets/ui/art102/${RULE_ART[id]}.png` : null);
+export const ruleName = (id) => RULE_NAME[id] ?? '';
+
+export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
+  document.querySelector('.arena-map')?.remove();
+  const el = document.createElement('div');
+  el.className = 'arena-map';
+  const rule = run.setup.rule;
+  el.innerHTML = `<div class="am-top"><b>Arène · ${escapeHtml(floorName(run.floor))}</b>
+      ${rule ? `<span class="am-rule">${ruleArt(rule.id) ? `<img class="px" src="${ruleArt(rule.id)}" alt="">` : ''}<b>${escapeHtml(ruleName(rule.id))}</b> : ${escapeHtml(rule.text)}</span>` : ''}
+      <span class="am-time"><i>⏱</i><b class="num">0 s</b><small>3 ★ en moins de ${A.star3} s</small></span><span class="am-stars">★★★</span></div>
+    <div class="am-stage"><canvas class="px am-canvas"></canvas></div>
+    <div class="am-bottom"><div class="am-cards"></div>
+      <div class="am-ctrl"><button class="btn small am-speed" type="button">×1</button><button class="btn small am-mode" type="button">Auto</button><button class="btn small am-skip" type="button">Passer ⏭</button></div></div>
+    <div class="am-end hidden"></div>`;
+  document.body.appendChild(el);
+  const canvas = el.querySelector('.am-canvas');
+  const scene = new ArenaScene(canvas, run, ui.state);
+  const fit = () => { const b = el.querySelector('.am-stage').getBoundingClientRect(); scene.resize(Math.max(200, b.width), Math.max(120, b.height)); };
+  fit();
+  const onResize = () => fit();
+  addEventListener('resize', onResize);
+  let speed = 1, manual = false, skip = reduceMotion(), last = performance.now(), raf = 0, ended = false, waitUlt = null;
+  const cardsEl = el.querySelector('.am-cards');
+  const cardHtml = (c) => {
+    const unit = COMPANIONS.find((x) => x.id === c.id);
+    const role = ROLES[c.role];
+    const main = (c.skills ?? []).find((s) => !s.ultimate)?.name ?? '';
+    return `<button class="am-card r-${c.rarity}" data-pos="${c.pos}" type="button"><div class="am-pic">${hdArt(unit, 'am-art') || img(unit?.sprite ?? 'icon_star')}</div>
+      <b>${escapeHtml(c.name)}</b><small>${escapeHtml(role?.label ?? '')}${main ? ` · ${escapeHtml(main)}` : ''}</small>
+      <span class="am-hp"><i></i></span><span class="am-ult"><i></i></span></button>`;
+  };
+  cardsEl.innerHTML = [...run.team].sort((a, b) => a.pos - b.pos).map(cardHtml).join('');
+  cardsEl.addEventListener('click', (e) => { const b = e.target.closest('.am-card.ready'); if (b && waitUlt != null && Number(b.dataset.pos) === waitUlt) waitUlt = null; });
+  el.querySelector('.am-speed').addEventListener('click', (e) => { speed = speed === 1 ? 2 : 1; e.target.textContent = `×${speed}`; });
+  el.querySelector('.am-mode').addEventListener('click', (e) => { manual = !manual; e.target.textContent = manual ? 'Manuel' : 'Auto'; });
+  el.querySelector('.am-skip').addEventListener('click', () => { skip = true; });
+  const close = () => { cancelAnimationFrame(raf); removeEventListener('resize', onResize); el.remove(); ui.invalidate?.(); };
+  const updateCards = () => {
+    for (const b of cardsEl.querySelectorAll('.am-card')) {
+      const pos = Number(b.dataset.pos);
+      const c = run.team.find((x) => x.pos === pos);
+      b.querySelector('.am-hp i').style.width = `${Math.max(0, (scene.hp.ally.get(pos) ?? 0) / c.maxHp) * 100}%`;
+      b.querySelector('.am-ult i').style.width = `${scene.gauge.get(pos) ?? 0}%`;
+      b.classList.toggle('down', scene.down.has(pos));
+      b.classList.toggle('ready', waitUlt === pos || (scene.gauge.get(pos) ?? 0) >= 100);
+      b.classList.toggle('acting', scene.ultAt?.pos === pos && scene.t - scene.ultAt.t < 0.6);
+    }
+    const t = Math.max(0, scene.t - 1);
+    el.querySelector('.am-time b').textContent = `${Math.floor(t)} s`;
+    const live = scene.down.size ? (scene.down.size <= 1 ? 2 : 1) : t <= A.star3 ? 3 : 2;
+    el.querySelector('.am-stars').textContent = '★'.repeat(live) + '☆'.repeat(3 - live);
+  };
+  const finish = () => {
+    if (ended) return;
+    ended = true;
+    // Tout ce qui reste est joué d'un coup (scène à jour), puis l'écran de fin.
+    while (scene.fired < run.events.length) scene.play(run.events[scene.fired++]);
+    scene.t = Math.max(scene.t, (run.seconds ?? 0) + 1);
+    updateCards();
+    el.querySelector('.am-ctrl').classList.add('hidden');
+    const end = el.querySelector('.am-end');
+    end.classList.remove('hidden');
+    end.innerHTML = `<div class="am-end-card"><h2>${run.won ? `${escapeHtml(floorName(run.floor))} franchi !` : `${escapeHtml(floorName(run.floor))} : pas encore…`}</h2>
+      <div class="am-end-stars">${[0, 1, 2].map((i) => `<span class="${i < run.stars ? 'on' : ''}" style="animation-delay:${0.25 + i * 0.35}s">★</span>`).join('')}</div>
+      ${run.reward ? `<div class="am-end-rw">${rewardIcons(run.reward, 'named')}</div>` : run.won ? '<p class="muted">Étage déjà franchi : récompense déjà prise.</p>' : '<p class="muted">Change la formation (gardien devant, soigneur derrière) ou renforce tes compagnons : essais illimités.</p>'}
+      <div class="am-end-btns">${run.won ? '<button class="btn btn-gold am-next" type="button">Étage suivant ›</button>' : '<button class="btn btn-gold am-retry" type="button">Retenter</button>'}<button class="btn am-close" type="button">Fermer</button></div></div>`;
+    end.querySelector('.am-close')?.addEventListener('click', close);
+    end.querySelector('.am-next')?.addEventListener('click', () => { close(); onNext?.(); });
+    end.querySelector('.am-retry')?.addEventListener('click', () => { close(); onRetry?.(); });
+  };
+  el.close = close;
+  const frame = (now) => {
+    if (!el.isConnected) return;
+    if (skip && !ended) finish();
+    let dt = Math.min(0.1, (now - last) / 1000) * speed;
+    last = now;
+    if (!ended) {
+      // Mode Manuel : le combat attend le toucher de la carte dont l'ultime part.
+      const nx = scene.nextEvent();
+      if (manual && nx?.kind === 'ult' && nx.side === 'ally' && nx.t <= scene.t - 1 + dt && waitUlt === null && !scene.ultDone?.has(scene.fired)) { waitUlt = nx.from; (scene.ultDone ??= new Set()).add(scene.fired); }
+      const hold = waitUlt != null;
+      while (dt > 0) { const s = Math.min(dt, ARENA_STEP * 2); scene.step(s, { hold }); dt -= s; }
+      updateCards();
+      if (scene.done) finish();
+    } else scene.step(Math.min(0.05, dt));
+    raf = requestAnimationFrame(frame);
+  };
+  raf = requestAnimationFrame(frame);
+  return el;
+}

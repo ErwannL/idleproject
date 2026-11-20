@@ -80,10 +80,14 @@ export function forecastBoss(state, balance = BALANCE) {
 // Chaque conseil : { id, text, tab?, view?, action?, value? }.
 // v10.1 (P1 §2.2) : consigne du Sceau = premier candidat qui n'est pas mis de côté (consigne revenue 3 fois sans
 // être faite : 10 min de côté, la suivante est proposée), avec sa ligne « pourquoi ».
+const NOTION_OF = { skills: 'skills', summon: 'summon', lootbag: 'lootbag', recycle: 'forge', fusion: 'forge', keys: 'dungeons', place: 'summon' };
 export function nextAction(state, ctx = {}, balance = BALANCE) {
   const aside = ctx.aside ?? null;
   for (const n of actionCandidates(state, ctx, balance)) {
     if (!n || aside?.has?.(n.id)) continue;
+    // v10.2 (4.1) : une consigne qui ouvre une notion attend que sa carte de déblocage ait été vue (la carte passe devant).
+    const notion = NOTION_OF[n.id];
+    if (notion && ctx.learned && !ctx.learned.includes(notion)) { ctx.wantLearn ??= notion; continue; }
     // v10.1 (P1) : une consigne qui ne ferait qu'ouvrir l'écran déjà ouvert laisse la place à la suivante.
     if (ctx.tab && n.tab === ctx.tab && !n.action && !n.view) continue;
     return { ...n, why: n.why ?? whyOf(n, state, balance) };

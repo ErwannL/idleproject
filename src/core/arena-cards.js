@@ -228,9 +228,10 @@ export const floorOpen = (state, f) => f >= 1 && f <= cardArena(state).best + 1;
 export function playFloor(state, f, now = Date.now()) {
   const c = cardArena(state, now);
   if (!floorOpen(state, f)) return null;
+  const cal = arenaCal(state); // v10.2 (2.2) : formation placée et calibrage faits à la première ouverture
   const team = formationCards(state);
   if (!team.length) return null;
-  const setup = floorCards(f, arenaCal(state));
+  const setup = floorCards(f, cal);
   const r = fightBoard(team, setup.cards, { seed: f, rule: setup.rule });
   c.last = { floor: f, won: r.won, stars: r.stars, at: now };
   let reward = null;

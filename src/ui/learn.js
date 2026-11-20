@@ -51,7 +51,8 @@ export function maybeLearnCard(ui, st) {
   if (document.querySelector('.learn-card, .howto-card, #prologue, #modal:not(.hidden), .tour, .cinematic')) return;
   if (st.unlocks?.legacy) return; // ancienne partie : tout est déjà connu
   const stage = st.records?.bestStage ?? st.maxStage ?? 1;
-  const L = LEARN.find((x) => stage >= x.stage && !learned(st).includes(x.id));
+  // v10.2 (4.1) : une notion demandée par le Sceau passe avant son étape ; sinon l'ordre des étapes.
+  const L = LEARN.find((x) => x.id === ui.wantLearn && !learned(st).includes(x.id)) ?? LEARN.find((x) => stage >= x.stage && !learned(st).includes(x.id));
   if (!L) return;
   learned(st).push(L.id);
   const host = ui.$('stage-area');
@@ -78,7 +79,7 @@ export function resourceAmount(st, key) {
 }
 // Première fois qu'une ressource arrive (hors or, montré par le prologue) : une bulle, une seule fois par ressource.
 export function firstResourceBubble(ui, st) {
-  if (!st?.ui || typeof document === 'undefined' || document.querySelector('.res-bubble, .howto-card, #prologue')) return;
+  if (!st?.ui || typeof document === 'undefined' || document.querySelector('.res-bubble, .howto-card, .learn-card, #prologue, .best-card')) return; // v10.2 (4.2) : un message à la fois
   const seen = (st.ui.seenRes ??= []);
   for (const key of Object.keys(RESOURCES)) {
     if (key === 'gold' || seen.includes(key) || !(resourceAmount(st, key) > 0)) continue;

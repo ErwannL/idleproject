@@ -1,3 +1,5 @@
+import { arenaUnlocked } from '../../core/arena.js';
+import { cardArena, totalStars } from '../../core/arena-cards.js';
 import { bountyCard } from './contracts.js'; // v9.3.8 : Prime du jour sur la Carte
 // Carte du monde : zones reliées par un chemin, étapes de la zone choisie, avance automatique.
 import { REVENGE_STEPS, revengeLevel, revengePending } from '../../core/revenge.js'; // v9.7.1 (lot 4)
@@ -143,7 +145,9 @@ export default {
     const revenge = `<div class="card rv-card"><div class="rv-gauge"><b>Revanche</b><span class="rv-dots" title="${revengeLevel(state)} / ${REVENGE_STEPS}">${dots}</span></div>
       ${rv ? `<div class="row-between"><span>Monde ${rv.world} : ${escapeHtml(rv.text)}</span><button class="btn btn-gold" data-action="revenge">⚔ Face-à-face</button></div>` : '<div class="muted">Le prochain face-à-face avec le Colosse t\'attend à la fin de ce monde.</div>'}
       <div class="rv-stars">${worldStarsHtml(state, sel)}</div></div>`;
-    return `${revenge}${summary(ui, state)}
+    // v10.2 (2.1) : tuile illustrée de l'Arène à cartes sur la Carte.
+    const arenaTile = arenaUnlocked(state) ? `<button class="arena-tile" data-action="open-tab" data-value="arena" style="background-image:url(assets/ui/art101/arena_tile.png)"><b>Arène à cartes</b><span>Étage ${cardArena(state).best + 1} · ${totalStars(state)} ★</span></button>` : '';
+    return `${revenge}${arenaTile}${summary(ui, state)}
       <div class="card zone-card">
         ${worldPicker}
         <div class="row-between"><span>${cycle ? `<b class="bad">Cycle ×${cycle + 1}</b>` : ''}</span>
