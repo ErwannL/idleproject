@@ -7,6 +7,9 @@
 #panel-body:has(> .eq) .art-banner-wrap { margin-bottom: 0; }
 @media (max-height: 820px), (max-width: 600px) { #panel-body:has(> .eq) .art-banner-wrap .art-banner { height: 38px !important; max-height: 38px !important; }
   #panel-body:has(> .eq) .art-banner-wrap .tab-lead { padding: 4px 10px 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } }
+/* PC : le volet s'élargit pour ces deux écrans (fiche à droite du personnage, 4 ateliers côte à côte), sans cacher le
+   Sceau ni la barre de compétences (ce n'est pas le « grand panneau »). */
+#app.bottom-ui.side-ui.panel-open #panel:has(#panel-body > .eq), #app.bottom-ui.side-ui.panel-open #panel:has(#panel-body > .fg) { width: clamp(520px, 62%, 900px) !important; }
 /* Téléphone : ces deux écrans demandent toute l'attention, le panneau prend 80 % de la hauteur. */
 #app.bottom-ui:not(.side-ui).panel-open.panel-tall #panel:has(.eq), #app.bottom-ui:not(.side-ui).panel-open.panel-tall #panel:has(.fg) { height: 80% !important; }
 /* Forge : la bannière garde sa taille (une seule illustration en tête) ; plus basse seulement en fenêtre basse. */
