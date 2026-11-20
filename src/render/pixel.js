@@ -603,7 +603,19 @@ export function heroPortraitUrl(equipment, scale = 4, palette = null, silhouette
   return url;
 }
 
+// v10.2 (1.1) : la police pixel FONT_BIG ne sert qu'aux nombres. Un texte en mots (« Efficace ! », « Résiste »…) passe
+// en police vectorielle du jeu : avant, les lettres absentes étaient sautées (« Efficace ! » devenait « ia »).
+export const BIG_WORD_FONT = '800 8px system-ui, "Noto Sans KR", "Malgun Gothic", sans-serif';
+export const bigCovers = (text) => [...String(text)].every((ch) => ch === ' ' || FONT_BIG[ch]);
+let measureCtx = null;
+function wordWidth(text) {
+  measureCtx ??= typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(1, 1).getContext('2d', RF) : (typeof document !== 'undefined' ? document.createElement('canvas').getContext('2d', RF) : null);
+  if (!measureCtx) return String(text).length * 5;
+  measureCtx.font = BIG_WORD_FONT;
+  return Math.ceil(measureCtx.measureText(text).width);
+}
 export function textWidth(text, font = FONT) {
+  if (font === FONT_BIG && !bigCovers(text)) return wordWidth(text);
   let w = 0;
   for (const ch of text) w += (font[ch]?.[0].length ?? 0) + 1;
   return Math.max(0, w - 1);
@@ -611,6 +623,14 @@ export function textWidth(text, font = FONT) {
 
 // Nombre en police large 5×7, contour sombre d'un pixel et reflet clair sur la moitié haute.
 export function drawBigText(ctx, text, x, y, color, light = '#ffffff', outline = '#1a1226') {
+  if (!bigCovers(text)) {
+    ctx.save();
+    ctx.font = BIG_WORD_FONT; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+    ctx.lineJoin = 'round'; ctx.lineWidth = 2.5; ctx.strokeStyle = outline; ctx.strokeText(text, x, y - 1);
+    ctx.fillStyle = color; ctx.fillText(text, x, y - 1);
+    ctx.restore();
+    return;
+  }
   const draw = (ox, oy, fill, half = false) => {
     ctx.fillStyle = fill;
     let cx = x + ox; // x et y peuvent être fractionnaires (rendu au pixel d'écran)

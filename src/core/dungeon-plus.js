@@ -86,3 +86,15 @@ export function sanitizeDungeonPlus(state, raw) {
   state.dungeonNightmare = {};
   if (n && typeof n === 'object') for (const d of DUNGEONS) { const v = n[d.id]; if (Number.isInteger(v) && v > 0) state.dungeonNightmare[d.id] = Math.min(99, v); }
 }
+
+// ---- v10.2 (1.5) : « Balayer tout » réparti sur les donjons terminés, chacun à sa plus haute difficulté ----
+// Plan : les clés tournent d'un donjon à l'autre (au prorata). L'aperçu rejoue exactement le balayage sur une copie de la
+// partie avec la même graine : le total annoncé est celui qui sera donné.
+export function sweepAllPlan(state) {
+  const done = DUNGEONS.filter((d) => dungeonStars(state, d.id) > 0 && state.maxStage >= d.unlockStage);
+  const keys = state.keys ?? 0;
+  if (!done.length || keys <= 0) return [];
+  const plan = done.map((d) => ({ id: d.id, difficulty: DIFFICULTY_ORDER[dungeonStars(state, d.id) - 1], n: 0, name: d.name }));
+  for (let k = 0; k < keys; k++) plan[k % plan.length].n += 1;
+  return plan.filter((p) => p.n > 0);
+}

@@ -36,7 +36,7 @@ function affinityLine(state, d) {
   const inTeam = state.companions.equipped.includes(ally.id);
   // v10.1 (P3) : affinité lisible (×3 au moins) et « Le prendre » d'un appui quand on le possède.
   const own = state.companions.owned[ally.id];
-  if (true) return `<div class="dungeon-ally"><div class="da-row"><span class="da-mult">×3</span><div><b class="gold-text">${escapeHtml(ally.name)}</b> est chez lui ici : sorts ×${a.skillMultiplier}, équipe +${a.teamDamagePct} % de dégâts, −${a.damageTakenPct} % de dégâts subis.</div>
+  if (true) return `<div class="dungeon-ally"><div class="da-row"><span class="da-mult">×${a.skillMultiplier}</span><div><b class="gold-text">${escapeHtml(ally.name)}</b> est chez lui ici : sorts ×${a.skillMultiplier}, équipe +${a.teamDamagePct} % de dégâts, −${a.damageTakenPct} % de dégâts subis.</div>
     ${inTeam ? '<span class="good">Dans l\'équipe ✔</span>' : own ? `<button class="btn btn-gold small" data-action="toggle-companion" data-value="${ally.id}">Le prendre</button>` : '<span class="muted">Pas encore obtenu</span>'}</div></div>`;
   return `<div class="dungeon-ally"><b class="gold-text">Compagnon adapté : ${escapeHtml(ally.name)} (Légendaire)</b> · ${inTeam ? '<span class="good">dans l\'équipe ✔</span>' : '<span class="muted">absent</span>'}
     <div class="muted">Ici : compétence ×${a.skillMultiplier}, passif ×${a.passiveMultiplier}, dégâts de l'équipe +${a.teamDamagePct} %, dégâts subis −${a.damageTakenPct} %.</div></div>`;
@@ -170,7 +170,7 @@ function bigCard(state, d) {
 function dungeonsList(ui, state) {
   const target = bestSweepTarget(state);
   const head = `<div class="dg-head"><span class="dg-keys">${img('icon_key')} <b class="num">${state.keys}</b> clé${state.keys > 1 ? 's' : ''}</span>
-    ${target && state.keys > 0 ? `<button class="btn btn-gold small" data-action="sweep-n" data-value="${target.id}|${target.difficulty}|${state.keys}">⚡ Balayer tout (${state.keys})</button>` : ''}</div>`;
+    ${target && state.keys > 0 ? `<button class="btn btn-gold small" data-action="sweep-all-ask">⚡ Balayer tout (${state.keys})</button>` : ''}</div>`;
   const grid = `<div class="dg-grid">${DUNGEONS.map((d) => bigCard(state, d)).join('')}</div>`;
   // La feuille vit au-dessus de tout (hors du panneau) : voile plein écran, « Entrer » fixé en bas.
   ui.dgSheet?.(ui.view.dungeonSheet ? `<div class="dg-sheet-back" data-action="dungeon-close"></div><div class="dg-sheet" role="dialog" aria-label="Donjon"><button class="btn small dg-close" data-action="dungeon-close" aria-label="Fermer">✕</button>${dungeonDetail(ui, state)}</div>` : '');
@@ -235,14 +235,16 @@ function dungeonDetail(ui, state) {
       ${state.keys < 1 ? '<div class="bad">Aucune clé. Clés : missions, contrats, expéditions, Défis.</div>' : ''}`;
   // v10.1 (P3) : équipe conseillée (rôles), ensemble du donjon, Cauchemar.
   const set = dungeonSet(sel);
-  const advice = `<div class="dg-advice"><b>Équipe conseillée :</b> ${(sel.roles ?? []).map((r) => ROLES[r] ? `<span class="role-pill" style="--rc:${ROLES[r].color}">${img(ROLES[r].icon)} ${ROLES[r].label}</span>` : '').join(' ')}
-    ${set ? `<div class="muted">Ensemble de ce donjon : <b style="color:${set.color}">${escapeHtml(set.name)}</b></div>` : ''}</div>`;
+  // v10.2 (1.6) : les équipes enregistrées passent sous « Équipe pour ce donjon », avec une phrase.
+  const advice = `<div class="dg-advice-wrap"><div class="section-title">Équipe pour ce donjon</div><p class="muted small">Change d'équipe d'un appui : tes équipes enregistrées (chasse, or, boss) sont ci-dessous.</p>${teamChips(state)}<div class="dg-advice"><b>Équipe conseillée :</b> ${(sel.roles ?? []).map((r) => ROLES[r] ? `<span class="role-pill" style="--rc:${ROLES[r].color}">${img(ROLES[r].icon)} ${ROLES[r].label}</span>` : '').join(' ')}
+    ${set ? `<div class="muted">Ensemble de ce donjon : <b style="color:${set.color}">${escapeHtml(set.name)}</b></div>` : ''}</div></div>`;
   const nmMax = nightmareOpen(state, sel.id);
   const nmSel = Math.min(Number(ui.view.dungeonNm) || 0, nmMax);
   const nmRow = nmMax ? `<div class="dg-nm"><b>Cauchemar</b> ${Array.from({ length: nmMax + 1 }, (_, i) => `<button class="btn chip-btn small${i === nmSel ? ' active' : ''}" data-action="dungeon-nm" data-value="${i}">${i ? roman(i) : 'Non'}</button>`).join('')}<span class="muted">+60 % de PV et de butin par palier</span></div>` : '';
-  const detail = `${teamChips(state)}${advice}${nmRow}<div class="card dungeon-detail">
+  const detail = `<div class="card dungeon-detail">
       <div class="dungeon-head">${art98(`door_${sel.id}`, 'dungeon-door')}<div class="grow"><div class="boss-title">${escapeHtml(sel.name)}</div>
         <div class="muted">${escapeHtml(sel.description)}</div></div></div>
+      ${advice}${nmRow}
       <div class="diff-box"><div class="section-title">Difficulté</div><div class="diff-row">${diffs}</div>${unlockHint}
         <div class="muted">♛ ${cleared} victoire${cleared > 1 ? 's' : ''} · ennemis niv. ${Math.max(1, state.maxStage + sel.levelOffset + diff.levelBonus)} · PV ×${diff.hp}</div></div>
       ${mechanicLine(sel)}

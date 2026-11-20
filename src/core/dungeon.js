@@ -185,3 +185,16 @@ export function sweepDungeonN(state, id, rng, n, opts = {}, balance = BALANCE) {
   }
   return out.count ? out : null;
 }
+
+// v10.2 (1.5) : exécute un plan de « Balayer tout » (graine fixe : l'aperçu et le vrai balayage donnent le même total).
+export function sweepAll(state, plan, makeRng, balance = BALANCE) {
+  const out = { items: [], earned: {}, count: 0, keys: 0, parts: [] };
+  const rng = makeRng();
+  for (const p of plan) {
+    const r = sweepDungeonN(state, p.id, rng, p.n, { difficulty: p.difficulty, nightmare: state.dungeonNightmare?.[p.id] ?? 0 }, balance);
+    if (!r) continue;
+    out.count += r.count; out.items.push(...r.items); out.parts.push({ ...p, n: r.count });
+    for (const [k, v] of Object.entries(r.earned)) out.earned[k] = (out.earned[k] ?? 0) + v;
+  }
+  return out;
+}

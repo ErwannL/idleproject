@@ -1,7 +1,7 @@
 // v10.1 (P4) : écran de l'Arène à cartes — tour des étages, formation 2×3, plateau de combat rejoué.
 import { CARD_ARENA as A } from '../../data/arena-floors.js';
 import { COMPANIONS } from '../../data/companions.js';
-import { cardArena, cardOf, chestsReady, floorCards, floorName, formationCards, isBossFloor, isGuardianFloor, sweepsLeft, totalStars } from '../../core/arena-cards.js';
+import { arenaCal, cardArena, cardOf, chestsReady, floorCards, floorName, formationCards, isBossFloor, isGuardianFloor, sweepsLeft, totalStars } from '../../core/arena-cards.js';
 import { cardHtml } from '../card.js';
 import { escapeHtml, formatNumber, img, rewardIcons } from '../common.js';
 import { ZONES } from '../../data/zones.js';
@@ -38,7 +38,7 @@ export function cardTowerHtml(ui, state) {
   const c = cardArena(state);
   const next = Math.min(c.best + 1, 100000);
   const f = Math.max(1, Math.min(next, Number(ui.view.cardFloor) || next));
-  const setup = floorCards(f);
+  const setup = floorCards(f, arenaCal(state));
   const team = formationCards(state);
   const tags = `${setup.rule ? `<span class="tag">Règle : ${escapeHtml(setup.rule.text)}</span>` : ''}${isGuardianFloor(f) ? '<span class="tag gold-text">Gardien</span>' : isBossFloor(f) ? '<span class="tag bad">Boss</span>' : ''}`;
   const near = Array.from({ length: 7 }, (_, i) => next - 3 + i).filter((x) => x >= 1 && x <= next).map((x) =>
@@ -53,7 +53,7 @@ export function cardTowerHtml(ui, state) {
     <div class="card ct-floor-card"><div class="row-between"><b>${escapeHtml(floorName(f))}</b>${stars(c.stars[f] ?? 0)}</div><div class="ct-tags">${tags}</div>
       <div class="ct-foes">${setup.cards.map((x) => cardHtml({ ...x, rarity: x.boss ? 'legendary' : 'common', sprite: foeArt(x, f) }, { small: true, foe: true })).join('')}</div>
       ${first ? `<div>Premier passage : ${rewardIcons(first, 'named')}</div>` : ''}
-      <div class="muted small">3 ★ : gagner sans perdre de carte en moins de ${A.limit / 2} s. Essais illimités.</div></div>
+      <div class="muted small">3 ★ : gagner sans perdre de carte en moins de ${A.star3} s. Essais illimités.</div></div>
     ${formationHtml(ui, state)}
     <div class="card"><b>Saison</b> <span class="muted">meilleur étage : ${c.season.best}</span><div class="ct-season">${season}</div></div>
     <div class="ct-go"><button class="btn btn-gold primary-action" data-action="card-fight" data-value="${f}" ${team.length ? '' : 'disabled'}>⚔ Combattre · ${escapeHtml(floorName(f))}</button>

@@ -4437,3 +4437,15 @@ html.reduce-motion .howto-card, html.reduce-motion .learn-card { animation: none
 .wh-art h2 { position: relative; z-index: 4; margin-bottom: 0; }
 .wh-ico { transform: rotate(var(--a)) translateY(-76px) rotate(calc(-1 * var(--a))); }
 #unit-host .unit-pop-backdrop { z-index: 9000; } #unit-host .unit-pop { z-index: 9001; }
+/* v10.2 (1.6) : téléphone — titre du panneau en entier (⤢ caché, ? et ✕ à 32 px, titre sur 2 lignes si besoin). */
+@media (max-width: 520px) {
+  #panel-fold { display: none !important; }
+  #panel-help, #panel-close { min-width: 32px; width: 32px; height: 32px; padding: 0; }
+  #panel-help .help-word { display: none; }
+  #panel-title { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.1; font-size: 15px; }
+}
+/* Noms de compagnons entiers (Héros › Équipement, rangée des compagnons) : 2 lignes plutôt que coupés. */
+.team-chips .tc-name, .gear-team .name, .cg-row small, .gear-unit-name { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; line-height: 1.05; }
+.dg-advice-wrap { margin: 8px 0; }
+/* Talents › Arbre avancé : ombre sur les bords pour montrer qu'il continue. */
+.tree-viewport, .talent-viewport { box-shadow: inset 14px 0 12px -10px rgba(0,0,0,.7), inset -14px 0 12px -10px rgba(0,0,0,.7), inset 0 14px 12px -10px rgba(0,0,0,.7), inset 0 -14px 12px -10px rgba(0,0,0,.7); }

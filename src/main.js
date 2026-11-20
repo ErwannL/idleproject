@@ -36,8 +36,8 @@ import { activeSynergies, companionById, onExpedition, replaceCompanion, toggleC
 import { claimContract } from './core/contracts.js';
 import { claimAchievement, claimableAchievements } from './core/achievements.js';
 import { claimAllMissions, claimLogin, claimMission, claimMissionBonus, claimTrackTier, mergeReward, refreshMissions, trackMissions } from './core/missions.js';
-import { abandonDungeon, dungeonById, setDungeonPath, startDungeon, sweepDungeon, sweepDungeonN } from './core/dungeon.js';
-import { chooseDoor, offerDoors } from './core/dungeon-plus.js'; // v10.1 (P3)
+import { abandonDungeon, dungeonById, setDungeonPath, startDungeon, sweepDungeon, sweepDungeonN, sweepAll } from './core/dungeon.js';
+import { chooseDoor, offerDoors, sweepAllPlan } from './core/dungeon-plus.js'; // v10.1 (P3)
 import { DUNGEON_DIFFICULTIES } from './data/dungeons.js';
 import { buyUpgradeBulk } from './core/economy.js';
 import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
@@ -438,6 +438,23 @@ const actions = {
   sweepDungeonN(id, difficulty, n) {
     const r = sweepDungeonN(state, id, rng, n, { difficulty, nightmare: state.dungeonNightmare?.[id] ?? 0 });
     if (!r) return done(false, 'Aucune clé, ou donjon pas encore gagné à cette difficulté.');
+    sound.play('upgrade', { volume: 0.6 });
+    ui.sweepSummary?.(r);
+    save(); ui.invalidate();
+  },
+  // v10.2 (1.5) : même graine pour l'aperçu (sur une copie) et le vrai balayage → le total annoncé est donné.
+  sweepAllPreview() {
+    const plan = sweepAllPlan(state);
+    if (!plan.length) { done(false, 'Aucune clé, ou aucun donjon terminé.'); return null; }
+    state.ui.sweepSeed = (state.ui.sweepSeed ?? 1) + 1;
+    const copy = structuredClone(state);
+    const r = sweepAll(copy, plan, () => new Rng(state.ui.sweepSeed));
+    return { plan, keys: r.count, earned: r.earned, items: r.items.length };
+  },
+  sweepAllRun() {
+    const plan = sweepAllPlan(state);
+    if (!plan.length) return done(false, null);
+    const r = sweepAll(state, plan, () => new Rng(state.ui.sweepSeed ?? 1));
     sound.play('upgrade', { volume: 0.6 });
     ui.sweepSummary?.(r);
     save(); ui.invalidate();

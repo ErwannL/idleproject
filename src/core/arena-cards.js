@@ -14,6 +14,9 @@ import { companionProfile, dayKey } from './arena.js';
 import { elementMultiplier } from './elements.js';
 import { grantReward } from './rewards.js';
 import { Rng } from './rng.js';
+import { ZONES } from '../data/zones.js';
+import { BOSSES, ENEMIES } from '../data/enemies.js';
+import { ZONE_ELEMENT } from './elements.js';
 import { heraldTrack } from './chronicles.js';
 import { daybookTrack } from './daybook.js';
 
@@ -44,23 +47,46 @@ function foe(n, el, mult, rng, name, rule) {
     def: Math.round(g.def * g.defGrowth ** n * mult.def * (rule?.id === 'armored' ? 2 : 1)), interval: g.interval * (rule?.id === 'swift' ? 0.7 : 1) * (mult.slow ?? 1),
   };
 }
-export function floorCards(f) {
+// v10.2 (1.2) : chaque carte ennemie EST un monstre de la campagne (monde de son élément) : son nom est celui du
+// monstre dessiné ; le rôle (Lancier, Mage…) passe en sous-titre. Boss d'étage : le boss du monde ; gardiens : leur nom
+// et leur propre illustration (assets/ui/art102/guardian_*.png).
+const ROLE_SUB = ['Gladiateur', 'Lancier', 'Arbalétrier', 'Mage noir', 'Brute', 'Assassin'];
+function zoneOf(el, f) {
+  const zs = ZONE_ELEMENT.map((e, i) => [e, i]).filter(([e]) => e === el).map(([, i]) => i);
+  return ZONES[zs.length ? zs[f % zs.length] : 0] ?? ZONES[0];
+}
+export function monsterOf(el, f, slot) {
+  const z = zoneOf(el, f);
+  const id = z.enemies[(slot + f) % z.enemies.length];
+  return { id, name: ENEMIES[id]?.name ?? id, sprite: ENEMIES[id]?.sprite ?? 'icon_skull' };
+}
+export function bossOf(el, f) {
+  const z = zoneOf(el, f);
+  const id = z.bosses?.[0];
+  const b = BOSSES[id];
+  return { id, name: b?.name ?? 'Champion', sprite: b?.sprite ?? ENEMIES[b?.base]?.sprite ?? 'icon_boss' };
+}
+// cal : calibrage de l'Arène sur l'équipe du joueur au premier passage ({ hp, atk }, voir calibrateArena).
+export function floorCards(f, cal = { hp: 1, atk: 1 }) {
   const r = new Rng(f * 7919 + 13); const rng = () => r.next();
   const rule = floorRule(f);
   const n = f * A.scale;
   const el = ELS[f % ELS.length];
   const cards = [];
-  const base = { hp: 1, atk: 1, def: 1 };
+  const base = { hp: cal.hp, atk: cal.atk, def: 1 };
+  const m = (o) => ({ ...o, hp: o.hp * cal.hp, atk: o.atk * cal.atk });
+  const mob = (elc, slot, pos) => { const mo = monsterOf(elc, f, slot); return { ...foe(n, elc, base, rng, mo.name, rule), pos, enemyId: mo.id, sprite: mo.sprite, sub: ROLE_SUB[(f + slot) % ROLE_SUB.length] }; };
   if (isGuardianFloor(f)) {
-    cards.push({ ...foe(n, el, { hp: A.guardianHp, atk: A.guardianAtk, def: A.guardianDef, slow: 1.2 }, rng, A.guardians[Math.min(A.guardians.length - 1, Math.floor(f / 25) - 1)], rule), pos: 1, guardian: true, boss: true });
-    cards.push({ ...foe(n, ELS[(f + 1) % 5], base, rng, 'Écuyer', rule), pos: 3 }, { ...foe(n, ELS[(f + 2) % 5], base, rng, 'Écuyer', rule), pos: 5 });
+    const gi = Math.min(A.guardians.length - 1, Math.floor(f / 25) - 1);
+    cards.push({ ...foe(n, el, m({ hp: A.guardianHp, atk: A.guardianAtk, def: A.guardianDef, slow: 1.2 }), rng, A.guardians[gi], rule), pos: 1, guardian: true, boss: true, sprite: `file:assets/ui/art102/guardian_${gi}.png`, sub: 'Gardien' });
+    cards.push(mob(ELS[(f + 1) % 5], 3, 3), mob(ELS[(f + 2) % 5], 5, 5));
   } else if (isBossFloor(f)) {
-    cards.push({ ...foe(n, el, { hp: A.bossHp, atk: A.bossAtk, def: 1.3, slow: 1.15 }, rng, 'Champion', rule), pos: 1, boss: true });
-    cards.push({ ...foe(n, ELS[(f + 2) % 5], base, rng, 'Disciple', rule), pos: 4 });
+    const b = bossOf(el, f);
+    cards.push({ ...foe(n, el, m({ hp: A.bossHp, atk: A.bossAtk, def: 1.3, slow: 1.15 }), rng, b.name, rule), pos: 1, boss: true, enemyId: b.id, sprite: b.sprite, sub: 'Boss' });
+    cards.push(mob(ELS[(f + 2) % 5], 4, 4));
   } else {
     const count = Math.min(5, 3 + Math.floor(f / 40));
-    const names = ['Gladiateur', 'Lancier', 'Arbalétrier', 'Mage noir', 'Brute', 'Assassin'];
-    for (let i = 0; i < count; i++) cards.push({ ...foe(n, i === 2 ? ELS[(f + 2) % 5] : el, base, rng, names[(f + i) % names.length], rule), pos: [1, 0, 2, 4, 3, 5][i] });
+    for (let i = 0; i < count; i++) cards.push(mob(i === 2 ? ELS[(f + 2) % 5] : el, i, [1, 0, 2, 4, 3, 5][i]));
   }
   return { floor: f, rule, boss: isBossFloor(f), guardian: isGuardianFloor(f), cards };
 }
@@ -134,7 +160,7 @@ export function fightBoard(allies0, foes0, { seed = 1, rule = null, limit = A.li
   }
   const won = !alive(foes).length && alive(allies).length > 0;
   const fallen = allies.filter((x) => x.hp <= 0).length;
-  const stars = !won ? 0 : fallen === 0 && t <= limit / 2 ? 3 : fallen <= 1 ? 2 : 1;
+  const stars = !won ? 0 : fallen === 0 && t <= A.star3 ? 3 : fallen <= 1 ? 2 : 1;
   return { won, stars, seconds: Math.round(t * 10) / 10, fallen, events: ev, end: { allies: allies.map((x) => ({ pos: x.pos, hp: Math.max(0, x.hp), maxHp: x.maxHp })), foes: foes.map((x) => ({ pos: x.pos, hp: Math.max(0, x.hp), maxHp: x.maxHp })) } };
 }
 
@@ -174,15 +200,26 @@ export function setFormation(state, pos, id) {
   c.formation[pos] = id || null;
   return true;
 }
-// Remplit la formation : gardiens et berserkers devant, les autres derrière (les plus forts d'abord).
+// v10.2 (1.3) : placement auto par rôle. Devant : gardiens, berserkers, puis les plus robustes (jamais l'assassin) ;
+// derrière : mages, archers, soutiens et l'assassin (il saute sur l'arrière ennemi). L'avant est toujours plein
+// avant d'occuper l'arrière (5 cartes : 3 devant, 2 derrière).
+const FRONT_ROLES = ['guardian', 'berserker'];
 export function autoFormation(state) {
   const c = cardArena(state);
-  const owned = Object.keys(state.companions.owned).map((id) => cardOf(state, id)).filter(Boolean).sort((a, b) => (b.atk * b.maxHp) - (a.atk * a.maxHp)).slice(0, A.teamMax);
+  const owned = Object.keys(state.companions.owned).map((id) => cardOf(state, id)).filter(Boolean)
+    .sort((a, b) => (b.atk * b.maxHp) - (a.atk * a.maxHp));
+  // Les meilleurs de rôle « avant » viennent de toute la collection (pas seulement des 5 plus forts).
+  const nFront = Math.min(3, owned.length);
+  const front = owned.filter((x) => FRONT_ROLES.includes(x.role)).slice(0, nFront);
+  const all = [...front, ...owned.filter((x) => !front.includes(x))].slice(0, A.teamMax);
+  const sturdy = all.filter((x) => !front.includes(x) && x.role !== 'assassin').sort((a, b) => b.maxHp - a.maxHp);
+  while (front.length < nFront && sturdy.length) front.push(sturdy.shift());
+  const rest0 = all.filter((x) => !front.includes(x));
+  while (front.length < nFront && rest0.length) front.push(rest0.shift()); // que des assassins : il faut bien tenir l'avant
+  const back = all.filter((x) => !front.includes(x));
   const f = [null, null, null, null, null, null];
-  const frontRoles = ['guardian', 'berserker', 'pet'];
-  const fr = owned.filter((x) => frontRoles.includes(x.role)), bk = owned.filter((x) => !frontRoles.includes(x.role));
-  const put = (list, slots) => { for (const s of slots) if (list.length && !f[s]) f[s] = list.shift().id; };
-  put(fr, [1, 0, 2]); put(bk, [4, 3, 5]); put(fr, [4, 3, 5]); put(bk, [1, 0, 2]);
+  front.sort((a, b) => b.maxHp - a.maxHp).forEach((x, i) => { f[[1, 0, 2][i]] = x.id; });
+  back.forEach((x, i) => { f[[4, 3, 5][i]] = x.id; });
   c.formation = f;
   return f;
 }
@@ -193,7 +230,7 @@ export function playFloor(state, f, now = Date.now()) {
   if (!floorOpen(state, f)) return null;
   const team = formationCards(state);
   if (!team.length) return null;
-  const setup = floorCards(f);
+  const setup = floorCards(f, arenaCal(state));
   const r = fightBoard(team, setup.cards, { seed: f, rule: setup.rule });
   c.last = { floor: f, won: r.won, stars: r.stars, at: now };
   let reward = null;
@@ -236,8 +273,48 @@ export function sanitizeCardArena(state, raw) {
   for (const [k, v] of Object.entries(c.stars ?? {})) { const f = Number(k); if (Number.isInteger(f) && f > 0 && f <= 10000 && [1, 2, 3].includes(v)) stars[f] = v; }
   state.arena.cards = {
     best: int(c.best, 10000), stars, chests: int(c.chests), last: null,
+    cal: c.cal && Number.isFinite(c.cal.hp) && Number.isFinite(c.cal.atk) && c.cal.hp > 0 && c.cal.atk > 0 ? { hp: c.cal.hp, atk: c.cal.atk } : null,
     sweeps: { day: typeof c.sweeps?.day === 'string' ? c.sweeps.day : '', used: int(c.sweeps?.used, A.sweepsPerDay) },
     formation: Array.from({ length: A.formation }, (_, i) => (typeof c.formation?.[i] === 'string' ? c.formation[i] : null)),
     season: { id: Number.isInteger(c.season?.id) ? c.season.id : 0, best: int(c.season?.best, 10000), claimed: Array.isArray(c.season?.claimed) ? c.season.claimed.filter(Number.isInteger) : [] },
   };
+}
+
+// ---- v10.2 (1.4) : calibrage sur l'équipe du joueur au premier passage ----
+// Les étages ne sont plus une échelle fixe (une équipe de 11 h passait 40 étages à 3 ★ en 2 s chacun) : à la première
+// ouverture, on mesure l'équipe placée et on fixe deux facteurs gardés dans la sauvegarde :
+//   hp  : l'étage 9 dure ~28 s (2 ★ possibles dès les étages 8-10, un combat de l'étage 10 dure plus de 12 s) ;
+//   atk : l'équipe du moment franchit ~20 étages et bute vers l'étage 30.
+// Ensuite les étages sont figés : en progressant (niveaux, étoiles, équipement), le joueur monte plus haut.
+export function lastWon(team, cal, max = 60) {
+  let last = 0;
+  for (let f = 1; f <= max; f++) { const x = floorCards(f, cal); if (fightBoard(team, x.cards, { seed: f, rule: x.rule }).won) last = f; else break; } // les étages se montent dans l'ordre : la première défaite arrête
+  return last;
+}
+export function calibrateArena(team) {
+  if (!team.length) return { hp: 1, atk: 1 };
+  // 1. PV : durée de l'étage de référence (ennemis presque inoffensifs pendant la mesure).
+  let lo = 1e-4, hi = 1e6;
+  for (let k = 0; k < 40; k++) {
+    const mid = Math.sqrt(lo * hi);
+    const x = floorCards(A.calSlowFloor, { hp: mid, atk: 1e-6 });
+    const r = fightBoard(team, x.cards, { seed: A.calSlowFloor, rule: null });
+    if (!r.won || r.seconds > 28) hi = mid; else lo = mid;
+  }
+  const hp = Math.sqrt(lo * hi);
+  // 2. Attaque : l'étage où l'équipe bute.
+  lo = 1e-4; hi = 1e6;
+  for (let k = 0; k < 30; k++) {
+    const mid = Math.sqrt(lo * hi);
+    if (lastWon(team, { hp, atk: mid }, A.calTarget + 6) >= A.calTarget) lo = mid; else hi = mid;
+  }
+  return { hp: Math.round(hp * 1e4) / 1e4, atk: Math.round(Math.sqrt(lo * hi) * 1e4) / 1e4 };
+}
+export function arenaCal(state) {
+  const c = cardArena(state);
+  if (!c.cal) {
+    if (!c.formation.some(Boolean)) autoFormation(state);
+    c.cal = calibrateArena(formationCards(state));
+  }
+  return c.cal;
 }

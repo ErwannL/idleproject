@@ -89,6 +89,7 @@ import { dormantResources } from '../core/daybook.js';
 import { playBoard } from './panels/arena-cards-view.js';
 import { startVignettes } from './vignettes.js';
 import { DOORS, dungeonStars, roman } from '../core/dungeon-plus.js';
+const DIFF_LABEL = { easy: 'Facile', normal: 'Normal', hard: 'Difficile' };
 const RAR10 = ['common', 'R', 'rare', 'SR', 'epic', 'SSR', 'legendary', 'UR', 'mythic'];
 import { BOSS_TRAITS, TRAITS } from '../core/boss-traits.js'; // v9.5.1
 import { BEHAVIORS, zoneBehaviors } from '../data/behaviors.js'; // v9.6.0
@@ -1193,6 +1194,18 @@ export class UI {
       case 'dungeon-close': local(() => { v.dungeonSheet = false; }); this.dgSheet(''); break;
       case 'dungeon-nm': local(() => { v.dungeonNm = Number(value) || 0; }); break;
       case 'sweep-n': { const [id, diff, n] = value.split('|'); this.closeModal(); v.dungeonSheet = false; a.sweepDungeonN(id, diff, Number(n) || 1); break; }
+      // v10.2 (1.5) : « Balayer tout » — confirmation avec le total exact, puis balayage réparti.
+      case 'sweep-all-ask': {
+        const pv = a.sweepAllPreview();
+        if (!pv) break;
+        this.openModal(`<div class="victory-screen"><h2 id="modal-title">Balayer tout</h2>
+          <p><b>${pv.keys} clé${pv.keys > 1 ? 's' : ''}</b>, réparties sur tes donjons terminés (chacun à sa plus haute difficulté) :</p>
+          <ul class="sweep-plan">${pv.plan.map((p) => `<li>${escapeHtml(p.name)} · ${escapeHtml(DIFF_LABEL[p.difficulty] ?? p.difficulty)} × ${p.n}</li>`).join('')}</ul>
+          <p>Tu gagneras :</p><div class="victory-rewards">${rewardIcons(pv.earned, 'rw-big')}</div><p class="muted">+ ${pv.items} objet${pv.items > 1 ? 's' : ''} d'ensemble Épique ou mieux</p>
+          <div class="detail-actions"><button class="btn btn-gold" data-action="sweep-all-go">⚡ Balayer (${pv.keys} clé${pv.keys > 1 ? 's' : ''})</button><button class="btn" data-action="close-modal">Annuler</button></div></div>`);
+        break;
+      }
+      case 'sweep-all-go': this.closeModal(); v.dungeonSheet = false; a.sweepAllRun(); break;
       case 'pick-door': this.closeModal(); clearInterval(this.doorTimer); a.chooseDoor(value); this.showBoons(); break;
       case 'dungeon-path-pre': local(() => { v.dungeonPath = value; a.rememberDungeonChoice('path', value); }); break;
       case 'dungeon-path': a.setDungeonPath(value); break;
@@ -1584,6 +1597,9 @@ export class UI {
           <div class="detail-actions"><button class="btn" data-action="close-modal">Fermer</button>
             ${keys > 0 ? `<button class="btn" data-action="enter-dungeon" data-value="${event.id}" data-diff="${event.difficulty}">Rejouer (${keys} clé${keys > 1 ? 's' : ''})</button>
               <button class="btn btn-gold" data-action="sweep-dungeon" data-value="${event.id}" data-diff="${event.difficulty}">⚡ Balayer · 1 ${img('icon_key')}</button>` : ''}</div></div>`);
+        // v10.2 (1.6) : en mode automatique, la victoire se referme seule après 8 s (sauf si le joueur la touche).
+        { const card = this.$('modal-card'); clearTimeout(this.victoryTimer); let touched = false; card?.addEventListener('pointerdown', () => { touched = true; }, { once: true });
+          if (this.state.autoAdvance !== false) this.victoryTimer = setTimeout(() => { if (!touched && card?.isConnected && card.querySelector('.victory-screen')) this.closeModal(); }, 8000); }
         this.invalidate();
         break;
       }

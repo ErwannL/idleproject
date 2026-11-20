@@ -86,7 +86,7 @@ test('donjons : portes (2 au choix, auto, Élite double, Trésor paie), Balayer 
   assert.equal(r.count, 3); assert.equal(s.keys, 1);
 });
 
-import { cardArena, cardOf, floorCards, fightBoard, autoFormation, formationCards, playFloor, sweepFloor, claimStarChest, totalStars, sanitizeCardArena } from '../src/core/arena-cards.js';
+import { calibrateArena, lastWon, cardArena, cardOf, floorCards, fightBoard, autoFormation, formationCards, playFloor, sweepFloor, claimStarChest, totalStars, sanitizeCardArena } from '../src/core/arena-cards.js';
 import { CARD_ARENA } from '../src/data/arena-floors.js';
 const midTeam = () => {
   const s = createNewState(); s.maxStage = 100;
@@ -103,8 +103,7 @@ test('Arène à cartes : combat déterministe (même graine → même résultat)
 
 test('Arène à cartes : une équipe de milieu de partie bute entre les étages 20 et 35', () => {
   const s = midTeam(); const team = formationCards(s);
-  let last = 0;
-  for (let f = 1; f <= 60; f++) { const x = floorCards(f); if (fightBoard(team, x.cards, { seed: f, rule: x.rule }).won) last = f; else if (f > last + 3) break; }
+  const last = lastWon(team, calibrateArena(team), 60); // v10.2 : étages calibrés sur l'équipe au premier passage
   assert.ok(last >= 20 && last <= 35, `dernier étage ${last}`);
 });
 
