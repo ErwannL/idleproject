@@ -24,7 +24,7 @@ export const GLOSSARY = {
 export const RESOURCES = {
   gold: { name: 'Or', icon: 'coin', use: 'Améliore ton héros (Dégâts, Vie…) et tes compagnons.', where: 'Chaque monstre vaincu en donne.', tab: 'upgrades' },
   gems: { name: 'Gemmes', icon: 'icon_gem', use: 'Invoque des compagnons et achète des boosts.', where: 'Missions, hauts faits, boss et Roue du jour.', tab: 'summon' },
-  shards: { name: 'Éclats', icon: 'icon_shard', use: 'Renforce et fusionne tes objets à la Forge.', where: 'Recycler un objet inutile en donne.', tab: 'forge' },
+  shards: { name: 'Éclats', icon: 'icon_shard', use: 'Sert à renforcer, fusionner et fabriquer.', where: 'Recycler un objet en donne.', tab: 'forge', view: { forgeSeg: 'recycle' } }, // v10.3 (9) : « Y aller » ouvre l'atelier 1
   keys: { name: 'Clés de donjon', icon: 'icon_key', use: 'Une clé ouvre un donjon : quelques salles, un boss, un gros coffre.', where: 'Missions, coffres et boss de monde.', tab: 'dungeons' },
   grimoire: { name: 'Grimoires', icon: 'icon_grimoire', use: 'Montent les compétences de tes compagnons.', where: 'Donjons, missions du jour et Arène.', tab: 'companions' },
   ascension: { name: "Pierres d'éveil", icon: 'icon_ascension', use: 'Font monter les étoiles de tes compagnons.', where: 'Donjons, Arène et coffres de la semaine.', tab: 'companions' },

@@ -12,7 +12,7 @@ import { MULTIPLICATIVE, RARITY_SKILL, activeSynergies, allCompanionSkills, comp
 import { COMPANION_ROLES, ROLES, SYNERGIES } from '../../data/synergies.js';
 import { elementBadge, elementWheel, unitElement, zoneElement, wheelShown } from '../../core/elements.js'; // v9.3.1 : types · v9.5.1 : roue
 import { currentEncounter } from '../../core/combat.js'; // v9.5.1
-import { costButton, effectText, escapeHtml, fold, hdArt, formatNumber, icon, img, rarityLabel, stars } from '../common.js';
+import { costButton, effectText, escapeHtml, fold, hdArt, formatDecimal, formatNumber, icon, img, rarityLabel, stars } from '../common.js';
 import { animCanvas } from '../animator.js';
 import { showcaseSlot } from '../showcase.js'; // v9.2.7 : vitrine animée
 import { DUNGEONS } from '../../data/dungeons.js';
@@ -58,7 +58,7 @@ function gearBlock(ui, state, c) {
   const row = ({ i, chk }) => {
     const cur = worn[eqSlot(i)];
     const diff = chk.ok ? Object.keys(STAT_NAMES).map((k) => [k, (gearStats(i, state)[k] ?? 0) - (cur ? gearStats(cur, state)[k] ?? 0 : 0)]).filter(([, d]) => d)
-      .map(([k, d]) => `<span class="${d > 0 ? 'good' : 'bad'}">${(k === 'cd') === (d > 0) ? '−' : '+'}${Math.abs(Math.round(d * 10) / 10)} % ${STAT_NAMES[k]}</span>`).join(' ') : ''; // recharge : une hausse = recharge plus courte (−)
+      .map(([k, d]) => `<span class="${d > 0 ? 'good' : 'bad'}">${(k === 'cd') === (d > 0) ? '−' : '+'}${formatDecimal(Math.abs(d))} % ${STAT_NAMES[k]}</span>`).join(' ') : ''; // recharge : une hausse = recharge plus courte (−)
     const cost = gearUpgradeCost(i, killGold);
     return `<div class="gear-row r-${i.rarity}${chk.ok ? '' : ' incompatible'}"><div class="grow"><b class="rarity-text r-${i.rarity}">${escapeHtml(i.name)}${i.upgrades ? ` +${i.upgrades}` : ''}</b>
         <small class="muted">${rarityLabel(i.rarity)} · ${escapeHtml(classLabel(itemClass(state, i)))} · ${escapeHtml(statText(gearStats(i, state)))}</small>
@@ -106,7 +106,7 @@ export function skillsBlock(ui, state, c, owned) { // v9.1.3 (doc4 lot 5) : réu
       : `<span class="good">${level >= SKILL_CAPS[kind] ? 'Niveau maximal' : 'Plafond atteint'}</span>`;
     return `<div class="cskill skill3 ${kind}"><div class="row-between"><b>${title}</b><span class="skill-lv">Niv. <b>${level}</b>/${cap}</span></div>${body}${lock}<div class="skill-up-row">${btn}</div></div>`;
   };
-  const effect = (sk, kind, level) => { const x = leveledSkill(sk, kind, level); return `${escapeHtml(skillTextAt(x, mult(x)))} · toutes les ${Math.round(x.every * 10) / 10} s${x.duration ? ` · ${x.duration} s` : ''}`; };
+  const effect = (sk, kind, level) => { const x = leveledSkill(sk, kind, level); return `${escapeHtml(skillTextAt(x, mult(x)))} · toutes les ${formatDecimal(x.every)} s${x.duration ? ` · ${x.duration} s` : ''}`; };
   const nextLine = (sk, kind) => (lv[kind] < skillCap(own, kind) ? `<div class="skill-next">Niv. ${lv[kind] + 1} : ${effect(sk, kind, lv[kind] + 1)}</div>` : '');
   const passiveNow = Math.round((levelMult('passive', lv.passive) - 1) * 100);
   const passive = card('passive', `${img('icon_upgrade')} Passive`, `<div class="muted">${escapeHtml(effectText(c.passive))} de base, renforcé de <b>+${passiveNow} %</b> (+${Math.round(SKILL_GROWTH.passive.perLevel * 100)} % par niveau).</div>`);

@@ -19,6 +19,7 @@ const { recordBossVictory, bossesInOrder } = await import('../src/core/powers.js
 const { COMPANIONS } = await import('../src/data/companions.js');
 const { COMPANION_ROLES } = await import('../src/data/synergies.js');
 const inventory = (await import('../src/ui/panels/inventory.js')).default;
+const forgePanel = (await import('../src/ui/panels/forge.js')).default;
 const companions = (await import('../src/ui/panels/companions.js')).default;
 const boss = (await import('../src/ui/panels/boss.js')).default;
 const dungeons = (await import('../src/ui/panels/dungeons.js')).default;
@@ -32,40 +33,47 @@ function midState() {
   return s;
 }
 
-test('v9.3.4 : popup d\'objet — Puissance en gros, 3 statistiques au plus, Équiper / Recycler, le reste derrière « ⋯ »', () => {
+// v10.3 (8) : la fiche d'objet n'est plus une fenêtre par-dessus : elle est toujours là, à côté du personnage.
+test('v10.3 : fiche d\'objet toujours visible — part de puissance, « Ce qu\'elle donne », Renforcer, Équiper / Recycler, sans fenêtre', () => {
   const s = midState();
   const item = s.inventory[0];
   const html = inventory.render(uiWith({ selectedItemId: item.id, sheetOpen: 'item' }), s);
-  assert.ok(html.includes('class="unit-pop item-pop') && /class="ip-power[^"]*">Puissance [+−-]?\d/.test(html));
-  assert.ok((html.match(/<li>/g) ?? []).length <= 3, '3 statistiques au plus');
-  assert.match(html, /data-action="equip"|Pour : /);
-  assert.ok(html.includes('data-action="recycle"') && html.includes('data-action="item-more"'));
-  assert.ok(!html.includes('data-action="upgrade-item"') && !html.includes('Effets visuels en combat'), 'Améliorer derrière ⋯, plus de ligne d\'effets visuels');
-  const more = inventory.render(uiWith({ selectedItemId: item.id, sheetOpen: 'item', itemMore: item.id }), s);
-  assert.ok(more.includes('data-action="upgrade-item"'));
-  // v9.11 (5) : « Plus » garde Protéger et Ranger ; un objet porté montre Renforcer sans clic de plus, sans boutons grisés.
-  const plus = inventory.render(uiWith({ selectedItemId: item.id, sheetOpen: 'item', itemPlus: item.id }), s);
-  assert.ok(plus.includes('data-action="lock"') && plus.includes('data-action="to-stash"'));
-  s.equipment[item.slot === 'weapon' ? 'weapon' : Object.keys(s.equipment)[0]] = null;
-  const worn = s.inventory.shift(); s.equipment.weapon = { ...worn, slot: 'weapon' };
+  assert.ok(html.includes('class="eq-sheet') && !html.includes('unit-pop'), 'fiche dans la page, pas de fenêtre');
+  assert.match(html, /Ce qu'(elle|il) donne/);
+  assert.match(html, /Niveau d'objet<\/span><b class="num">\d+<\/b>/, 'le niveau de l\'objet est dans la fiche');
+  assert.match(html, /data-action="equip"|data-action="gear-equip"|Pour : /);
+  assert.ok(html.includes('data-action="recycle"'));
+  assert.ok(html.includes('data-action="upgrade-item"') && !html.includes('Effets visuels en combat'), 'Renforcer visible sans clic de plus');
+  assert.ok(html.includes('data-action="lock"') && html.includes('data-action="to-stash"'), 'Protéger et Ranger visibles');
+  // Objet porté : Renforcer tout de suite, « Retirer », « Changer », sa part de la puissance, aucun bouton « Équipé » grisé.
+  const worn = s.inventory.find((i) => i.slot === 'helmet') ?? s.inventory[1];
+  s.inventory.splice(s.inventory.indexOf(worn), 1);
+  s.equipment[worn.slot === 'earring' ? 'amulet' : worn.slot] = worn;
   const wornHtml = inventory.render(uiWith({ selectedItemId: worn.id, sheetOpen: 'item' }), s);
   assert.ok(wornHtml.includes('data-action="upgrade-item"'), 'objet porté : Renforcer visible tout de suite');
+  assert.ok(wornHtml.includes('data-action="eq-unequip"') && wornHtml.includes('data-action="eq-change"'));
+  assert.match(wornHtml, /de ta puissance totale/);
   assert.ok(!/<button class="btn" disabled>Équipé<\/button>/.test(wornHtml));
-  const closed = inventory.render(uiWith({ selectedItemId: item.id }), s);
-  assert.ok(!closed.includes('item-pop'), 'pas de fiche sans toucher');
+  // Rien de touché : la fiche montre quand même le premier objet porté (jamais d'écran sans fiche).
+  const idle = inventory.render(uiWith(), s);
+  assert.ok(idle.includes('class="eq-sheet'), 'fiche présente sans toucher');
 });
 
-test('sac : 3 places portées en ligne (v9.3.4 f), plus de titre SAC en double, filtre en icônes, Équiper le meilleur seulement s\'il sert', () => {
+test('Équipement : 6 places autour du héros, bandeau des ressources, filtres rangés, Équipement rapide seulement s\'il sert', () => {
   const s = createNewState(NOW);
   let html = inventory.render(uiWith(), s);
-  assert.equal((html.match(/class="inv-gear-row"/g) ?? []).length, 1);
+  assert.equal((html.match(/class="eq-slot[ "]/g) ?? []).length, 6, '6 places pour le héros');
+  assert.ok(html.includes('Tes ressources') && html.includes('data-gloss="shards"') && html.includes('pour les compagnons'));
   assert.ok(!html.includes('<div class="section-title">Sac</div>'));
   assert.equal((html.match(/data-action="filter" data-value=/g) ?? []).length, 0); // v9.7.1 : rangés derrière « Filtres »
   assert.equal((inventory.render(uiWith({ bagMenu: true }), s).match(/data-action="filter" data-value=/g) ?? []).length, 4); // Tous, Arme, Armure, Accessoire
-  assert.ok(!html.includes('data-action="equip-best"'), 'sac vide : rien à équiper');
+  assert.ok(!html.includes('data-action="eq-quick"'), 'sac vide : rien à équiper');
   s.inventory.push(generateItem(s, new Rng(1), { level: 5, slot: 'ring' }));
   html = inventory.render(uiWith(), s);
-  assert.ok(html.includes('data-action="equip-best"'), 'emplacement vide : utile');
+  assert.match(html, /data-action="eq-quick" data-value="hero">Équipement rapide \(1 ▲\)/, 'emplacement vide : utile');
+  // La confirmation montre l'avant → après avant d'équiper.
+  const confirm = inventory.render(uiWith({ eqQuick: 'hero' }), s);
+  assert.ok(confirm.includes('data-action="eq-quick-ok"') && confirm.includes('Avant → après'));
 });
 
 test('réglages du sac : une phrase et 3 replis ; rangement des mannequins plus répété ; fusion par groupe repliée', () => {
@@ -77,8 +85,9 @@ test('réglages du sac : une phrase et 3 replis ; rangement des mannequins plus 
   assert.ok(!body.includes('data-action="recycle-mode"'), 'le mode est en réglage avancé');
   const adv = inventory.render(uiWith({ bagMenu: true }, ['bag-settings', 'bag-advanced']), s);
   assert.ok(adv.includes('data-action="recycle-mode"'));
-  const forge = inventory.render(uiWith({ invView: 'forge' }), s);
-  if (forge.includes('data-action="fuse-all"')) assert.ok(!forge.includes('data-action="fuse" '), 'groupes repliés sous Fusionner tout');
+  // v10.3 (9) : la fusion est dans l'onglet Forge (atelier 3) ; une mise par bouton, avec sa mise et sa chance.
+  const forge = forgePanel.render(uiWith({ forgeSeg: 'fuse' }), s);
+  for (const m of forge.matchAll(/data-action="fuse" data-value="[^"]+" data-stake="(\d)">([^<]+)</g)) assert.match(m[2], new RegExp(`${m[1]} (objets )?· \\d+ %`));
 });
 
 test('builds en cartes : résumé et Équiper sur la carte', () => {

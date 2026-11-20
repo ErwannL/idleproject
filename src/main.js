@@ -50,7 +50,7 @@ import { endChallenge, startChallenge } from './core/challenge.js';
 import { autoFuse, craftItem, fuseAll, fuseItems, fusionFailText, fusionKeep, reforgeItem, sharpenItem, targetReroll, upgradeItem } from './core/forge.js';
 import { normalizePool, summon } from './core/gacha.js';
 import { setActiveHero } from './core/heroes.js';
-import { addToInventory, bulkRecycleCandidates, equipBest, GEAR_PROFILES, equipItem, isUpgrade, recycleItem, recycleMatching, recycleRules, sweepInventory, toggleLock } from './core/inventory.js';
+import { addToInventory, bulkRecycleCandidates, equipBest, GEAR_PROFILES, equipItem, isUpgrade, quickEquipHero, recycleItem, recycleMatching, recycleRules, sweepInventory, toggleLock, unequipItem } from './core/inventory.js';
 import { bossDungeon, bossFirstStage, claimMastery, powerById, powerSlots, rerollPower, resolveReroll, setPowerActive } from './core/powers.js';
 import { buyTalent, buyTalentMax, buyTalentPath, buyTalentsCheapest, performRebirth, respecTalents, suggestedTalent } from './core/rebirth.js';
 import { buyTranscendPerk, buyTranscendPerkMax, performTranscend, stellarMultiplier } from './core/transcend.js';
@@ -404,6 +404,12 @@ const actions = {
   winRank() { const r = winDuel(state); save(); ui.invalidate(); sound.play('claim', { volume: 0.9 }); return r; },
   // v9.8 (I6) : équipement des compagnons — le meilleur d'un appui.
   gearTeam() { const n = equipBestAllGear(state); done(n > 0, n ? `${n} pièce${n > 1 ? 's' : ''} équipée${n > 1 ? 's' : ''} dans l'équipe` : null); },
+  // v10.3 (8) : « Équipement rapide » (le meilleur objet de chaque place, pour le personnage affiché) et « Retirer ».
+  quickEquip(who) {
+    const n = who === 'hero' || !who ? quickEquipHero(state) : equipBestGear(state, who);
+    done(n > 0, n ? `${n} objet${n > 1 ? 's' : ''} équipé${n > 1 ? 's' : ''}` : null, '#7fe0a0');
+  },
+  unequip(slot) { done(unequipItem(state, slot), 'Objet retiré : il est dans ton sac'); },
   gearBest(id) { const n = equipBestGear(state, id); done(n > 0, n ? `${n} pièce${n > 1 ? 's' : ''} équipée${n > 1 ? 's' : ''}` : null); },
   // v9.8 (H3) : Chasse rapide — 2 h de gains d'un coup, une fois par jour.
   quickHunt() {
