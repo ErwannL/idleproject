@@ -85,6 +85,16 @@ export default {
         <button class="btn" data-action="relaunch-expeditions" ${again ? '' : 'disabled'} title="Relance la dernière expédition de chaque place libre (même compagnon, même durée)">Repartir${again ? ` (${again})` : ''}</button></div>`;
     const slots = state.expeditions.slots.map((run, i) => slotHtml(ui, state, run, i, now, dur)).join('');
     const prefer = `<div class="muted exp-prefer">Mission préférée : ${expeditionType(dur).roles.map((r) => ROLES[r].label).join(' et ')} (+30 % de butin) ; élément du monde actuel : +20 %.</div>`; // v9.6.2
-    return `<div class="card">${actions}${durRow}${prefer}<div class="exp-list">${slots}</div></div>`;
+    // v10.2 (P3) : carte du monde — chaque compagnon parti marche sur la carte (avancée = temps écoulé).
+    const walkers = state.expeditions.slots.map((run, i) => {
+      if (!run) return '';
+      const c = companionById(run.companionId);
+      if (!c) return '';
+      const span = Math.max(1, (run.end ?? now) - (run.start ?? (run.end ?? now) - 3600000));
+      const p = Math.max(0, Math.min(1, 1 - ((run.end ?? now) - now) / span));
+      return `<span class="exp-walker${p >= 1 ? ' back' : ''}" style="left:${8 + p * 78}%;top:${28 + (i % 3) * 22}%">${companionStill(c)}</span>`;
+    }).join('');
+    const map = `<div class="exp-map" style="background-image:url(assets/ui/art98/expedition_map.png)">${walkers || '<span class="exp-map-empty">Aucun compagnon en route : envoie-en un !</span>'}</div>`;
+    return `<div class="card">${map}${actions}${durRow}${prefer}<div class="exp-list">${slots}</div></div>`;
   },
 };

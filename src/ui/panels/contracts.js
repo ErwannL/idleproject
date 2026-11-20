@@ -94,14 +94,14 @@ function periodTab(state, period) {
   const claimedCount = shown.filter((m) => missionStatus(state, period.id, m).claimed).length;
   const ready = bonusReady(state, period.id);
   const chest = `<div class="m-row m-chest${run.bonus ? ' claimed' : ''}">
-    <div class="m-icon">${img('icon_chest')}</div>
+    <div class="m-icon"><img class="px" src="assets/ui/art102/tier_chest.png" alt=""></div>
     <div class="m-main"><div class="m-label"><b>Récompense complète</b>${rewardIcons(period.bonus)}</div>${progressBar(claimedCount / Math.max(1, shown.length), `${claimedCount} / ${shown.length}`)}</div>
     <div class="m-btn">${run.bonus ? '<span class="m-done">✔</span>' : `<button class="btn ${ready ? 'btn-gold' : ''} small" data-action="claim-mission-bonus" data-value="${period.id}" ${ready ? '' : 'disabled'}>Ouvrir</button>`}</div>
   </div>`;
   // Grande barre en haut, coffre au bout (il s'ouvre avec une animation quand il est prêt).
   const pct = Math.round((claimedCount / Math.max(1, shown.length)) * 100);
   const big = `<div class="q-big${ready ? ' ready' : ''}${run.bonus ? ' opened' : ''}"><div class="q-bar"><i style="width:${pct}%"></i><span>${claimedCount} / ${shown.length}</span></div>
-    <button class="q-chest" data-action="claim-mission-bonus" data-value="${period.id}" ${ready ? '' : 'disabled'} aria-label="Ouvrir le grand coffre">${img('icon_chest')}</button></div>`;
+    <button class="q-chest" data-action="claim-mission-bonus" data-value="${period.id}" ${ready ? '' : 'disabled'} aria-label="Ouvrir le grand coffre"><img class="px" src="assets/ui/art102/tier_chest.png" alt=""></button></div>${period.id === 'weekly' || period.id === 'daily' ? `<div class="mw-card"><img class="px" src="assets/ui/art102/mission_week.png" alt=""><div><b>${period.id === 'weekly' ? 'Mission de la semaine' : 'Missions du jour'}</b><small>${claimedCount} / ${shown.length} faites · le grand coffre s'ouvre à la fin</small></div></div>` : ''}`; // v10.2 (P3)
   // v9.8 (G4) : la semaine en chemin pixel art — une borne par mission, le héros miniature avance d'une borne par palier.
   const path = period.id !== 'weekly' ? '' : `<div class="wk-path" aria-label="${claimedCount} sur ${shown.length}">
       ${shown.map((_, i) => `<span class="wk-stone${i < claimedCount ? ' on' : ''}" style="left:${((i + 1) / (shown.length + 1)) * 100}%"></span>`).join('')}

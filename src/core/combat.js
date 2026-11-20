@@ -1307,7 +1307,7 @@ function tickInteraction(state, world, dt) {
 // Actions du joueur (UI) : renvoient true si l'action a compté.
 export function playerCast(world, skillId) {
   // v10.2 (4) : touché pendant la recharge → le prochain lancer compte comme fait à la main (l'auto ne le vole plus).
-  if ((world.skillTimers?.[skillId] ?? 1) > 0) { (world.manualPending ??= new Set()).add(skillId); return false; }
+  if ((world.skillTimers?.[skillId] ?? 1) > 0) { (world.manualPending ??= new Set()).add(skillId); return true; }
   (world.manualSkills ??= new Set()).add(skillId);
   return true;
 }

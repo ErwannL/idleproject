@@ -39,7 +39,9 @@ for (const t of TABS) {
     return { share: hit / Math.max(1, n), big, area };
   }, t);
   if (!r) { console.log(`? ${t} : panneau absent`); continue; }
-  const ok = r.share >= 0.15 && r.big >= 1;
+  // v10.2 (P3) : seuil relevé à 20 % là où le joueur passe le plus de temps.
+  const min = ['upgrades', 'contracts', 'stats'].includes(t) ? 0.2 : 0.15;
+  const ok = r.share >= min && r.big >= 1;
   bad += !ok;
   console.log(`${ok ? '✓' : '✗'} ${t.padEnd(13)} image ${(r.share * 100).toFixed(0)} % · grandes images ${r.big}`);
 }

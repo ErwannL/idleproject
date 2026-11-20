@@ -146,7 +146,7 @@ function monsterCard(state, id) {
     const how = { normal: 'le vaincre une fois', elite: 'vaincre sa version Élite (événement « Élite errante »)', mutant: 'vaincre une version mutée (à partir du monde 2)' }[v.id];
     return `<div class="enc-variant${got ? ' got' : ''}"><b class="v-${v.id}">${v.label}</b> ${got ? '<span class="good">✔ découvert</span>' : `<span class="muted">${how}</span>`}</div>`;
   }).join('');
-  return `<div class="enc-card"><div class="enc-portrait">${animCanvas(`foe:${e.sprite}`, 96, 72, 2)}</div>
+  return `<div class="enc-card"><div class="enc-portrait enc-big">${animCanvas(`foe:${e.sprite}`, 96, 72, 3)}</div>
     <div class="enc-title">${escapeHtml(e.name)}</div><div class="muted">📍 ${escapeHtml(where.join(', '))}</div>
     <div class="enc-stats">${statRow('Vaincus', formatNumber(state.codex.kills[id] ?? 0))}${statRow('Élites vaincues', formatNumber(state.codex.elite[id] ?? 0))}
       ${statRow('PV de base', e.hp)}${statRow('Dégâts de base', e.damage)}${statRow('Vitesse', e.speed)}${statRow('Attaque toutes les', `${String(e.attackInterval).replace('.', ',')} s`)}

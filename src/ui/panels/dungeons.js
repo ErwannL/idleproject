@@ -152,6 +152,8 @@ export function challengeCard(state) {
 }
 
 // v10.1 (P3) : 5 grandes cartes illustrées (2 colonnes sur PC, 1 sur téléphone) ; un appui ouvre la feuille.
+// v10.2 (P3) : portrait du boss (feuille) et sa silhouette en ombre au premier plan de la carte.
+const BOSS_ART = { crypt: 'boss_spectral_queen', sanctuary: 'boss_rotting_dryad', furnace: 'boss_magma_colossus', glacier: 'boss_frost_wyrm', citadel: 'boss_obsidian_tyrant' };
 function bigCard(state, d) {
   const locked = state.maxStage < d.unlockStage;
   const stars = dungeonStars(state, d.id);
@@ -159,7 +161,7 @@ function bigCard(state, d) {
   const diff = DIFFICULTY_ORDER[Math.max(0, stars - 1)];
   const n = Math.min(state.keys ?? 0, 10);
   const nm = nightmareBest(state, d.id);
-  return `<div class="dg-card${locked ? ' locked' : ''}" style="background-image:url(assets/ui/art101/dungeon_${d.id}.png)">
+  return `<div class="dg-card${locked ? ' locked' : ''}" style="background-image:url(assets/ui/art101/dungeon_${d.id}.png)"><img class="px dg-shadow" src="assets/ui/art102/${BOSS_ART[d.id]}.png" alt="">
     <button class="dg-open" data-action="dungeon-sel" data-value="${d.id}" aria-label="${escapeHtml(d.name)}"></button>
     <div class="dg-top"><b>${escapeHtml(d.name)}</b><span class="dg-stars" aria-label="${stars} étoiles sur 3">${'★'.repeat(stars)}<i>${'★'.repeat(3 - stars)}</i>${nm ? ` <small>Cauchemar ${roman(nm)}</small>` : ''}</span></div>
     <div class="dg-gain">${g ? `${img(({ grimoire: 'icon_grimoire', ascension: 'icon_ascension', shards: 'icon_shard', mastery: 'icon_mastery', fragments: 'icon_fragment' })[g.key])}<span>${escapeHtml(g.label)}</span>` : ''}</div>
@@ -242,7 +244,7 @@ function dungeonDetail(ui, state) {
   const nmSel = Math.min(Number(ui.view.dungeonNm) || 0, nmMax);
   const nmRow = nmMax ? `<div class="dg-nm"><b>Cauchemar</b> ${Array.from({ length: nmMax + 1 }, (_, i) => `<button class="btn chip-btn small${i === nmSel ? ' active' : ''}" data-action="dungeon-nm" data-value="${i}">${i ? roman(i) : 'Non'}</button>`).join('')}<span class="muted">+60 % de PV et de butin par palier</span></div>` : '';
   const detail = `<div class="card dungeon-detail">
-      <div class="dungeon-head">${art98(`door_${sel.id}`, 'dungeon-door')}<div class="grow"><div class="boss-title">${escapeHtml(sel.name)}</div>
+      <div class="dungeon-head"><img class="px dg-boss-portrait" src="assets/ui/art102/${BOSS_ART[sel.id]}.png" alt="${escapeHtml(BOSSES[sel.boss].name)}"><div class="grow"><b class="dg-boss-name">${escapeHtml(BOSSES[sel.boss].name)}</b><div class="boss-title">${escapeHtml(sel.name)}</div>
         <div class="muted">${escapeHtml(sel.description)}</div></div></div>
       ${advice}${nmRow}
       <div class="diff-box"><div class="section-title">Difficulté</div><div class="diff-row">${diffs}</div>${unlockHint}

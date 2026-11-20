@@ -71,7 +71,18 @@ export default {
     const tile = (art, value, label) => `<div class="stat-tile"><img class="px" src="assets/ui/art101/${art}.png" alt=""><b class="num">${value}</b><small>${label}</small></div>`;
     const tiles = `<div class="stat-tiles">${tile('stat_kills', formatNumber(state.records?.kills ?? 0), 'Monstres vaincus')}${tile('stat_bosses', formatNumber(state.records?.bossesDefeated ?? 0), 'Boss vaincus')}
       ${tile('stat_time', formatDuration(active), 'Temps de jeu')}${tile('stat_stage', formatNumber(state.records?.bestStage ?? state.maxStage ?? 1), 'Meilleure étape')}</div>`;
-    return `${tiles}${select}
+    // v10.2 (P3) : courbe de progression (meilleure étape par jour, 14 derniers jours) et frise des records illustrée.
+    const days = Object.entries(state.records?.dayBest ?? {}).sort(([a], [b]) => a.localeCompare(b)).slice(-14);
+    const curve = days.length >= 2 ? (() => {
+      const max = Math.max(...days.map(([, v]) => v)), min = Math.min(...days.map(([, v]) => v));
+      const pts = days.map(([, v], i) => `${Math.round((i / (days.length - 1)) * 300)},${Math.round(90 - ((v - min) / Math.max(1, max - min)) * 80)}`).join(' ');
+      return `<div class="card st-curve"><div class="section-title">Progression : meilleure étape par jour</div><svg viewBox="-6 -6 312 108" role="img" aria-label="Courbe de progression">
+        <polyline points="${pts}" fill="none" stroke="#ffd34a" stroke-width="3" stroke-linejoin="round"/>${days.map(([, v], i) => `<circle cx="${Math.round((i / (days.length - 1)) * 300)}" cy="${Math.round(90 - ((v - min) / Math.max(1, max - min)) * 80)}" r="3.5" fill="#fff"/>`).join('')}</svg>
+        <div class="row-between muted small"><span>${days[0][0].slice(5).replace('-', '/')} : ${formatNumber(days[0][1])}</span><span>${days.at(-1)[0].slice(5).replace('-', '/')} : ${formatNumber(days.at(-1)[1])}</span></div></div>`;
+    })() : '<div class="card muted small">La courbe de progression apparaît dès le 2ᵉ jour de jeu.</div>';
+    const rec = (ic, v, l) => `<div class="st-rec">${ic}<b class="num">${v}</b><small>${l}</small></div>`;
+    const frieze = `<div class="st-frieze">${rec('<img class="px" src="assets/ui/art101/mis_bosses.png" alt="">', formatNumber(state.records?.bossesDefeated ?? 0), 'boss')}${rec('<img class="px" src="assets/ui/art101/mis_tower.png" alt="">', formatNumber(state.towerBest ?? 0), 'étage de Tour')}${rec('<img class="px" src="assets/ui/art101/mis_arena.png" alt="">', formatNumber(state.arena?.cards?.best ?? 0), 'étage d\'Arène')}${rec('<img class="px" src="assets/ui/art101/mis_summons.png" alt="">', formatNumber(state.records?.rebirths ?? 0), 'renaissances')}${rec('<img class="px" src="assets/ui/art101/mis_dungeons.png" alt="">', formatNumber(Object.values(state.dungeonsCleared ?? {}).reduce((a, b) => a + b, 0)), 'donjons')}</div>`;
+    return `${tiles}${curve}${frieze}${select}
       <div class="card"><div class="section-title">Temps de jeu</div>
         ${line('Temps de jeu actif', formatDuration(active))}
         ${line('Hors jeu (récompenses au retour)', formatDuration(t.offline))}

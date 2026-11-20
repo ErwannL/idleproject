@@ -4517,3 +4517,39 @@ html.reduce-motion .howto-card, html.reduce-motion .learn-card { animation: none
 .ct-rule { display: flex; gap: 8px; align-items: center; margin: 6px 0; padding: 6px; background: linear-gradient(90deg, #3a1f14, #1a2138); border-radius: 8px; }
 .ct-rule img { width: 40px; height: 40px; image-rendering: pixelated; } .ct-rule div { display: flex; flex-direction: column; } .ct-rule small { color: #cfd6ee; }
 .ct-back { display: flex; gap: 8px; align-items: center; margin-top: 6px; font-size: 12px; } .ct-back img { width: 40px; image-rendering: pixelated; }
+/* v10.2 (P3) : illustrations des donjons. */
+.dg-shadow { position: absolute; right: 6px; bottom: 0; height: 80%; filter: brightness(0) drop-shadow(0 0 6px rgba(160,60,255,.55)); opacity: .82; image-rendering: pixelated; pointer-events: none; z-index: 0; }
+.dg-boss-portrait { width: 128px; height: 128px; image-rendering: pixelated; flex: none; background: radial-gradient(circle, #3a2a5a, transparent 70%); border-radius: 12px; }
+.dg-boss-name { display: block; color: #ffb4b4; font-size: 13px; }
+.door-cards { gap: 14px; } .door-card { width: 150px; perspective: 400px; }
+.door-art { width: 96px; height: 128px; image-rendering: pixelated; transition: transform .35s; transform-origin: left center; }
+.door-card:hover .door-art, .door-card:focus-visible .door-art { transform: rotateY(-28deg); filter: brightness(1.2) drop-shadow(0 0 10px #ffd34a); }
+.boon-art { width: 72px; height: 72px; image-rendering: pixelated; }
+.victory-screen.has-fallen { position: relative; overflow: hidden; }
+.victory-fallen { position: absolute; left: 50%; bottom: -30px; width: 260px; transform: translateX(-50%) rotate(-82deg); filter: grayscale(.85) brightness(.45); opacity: .55; image-rendering: pixelated; pointer-events: none; z-index: 0; }
+.victory-screen.has-fallen > *:not(.victory-fallen) { position: relative; z-index: 1; }
+/* v10.2 (P3) : portrait évolutif du héros (Améliorations), bestiaire en grand. */
+.upg-hero { display: flex; gap: 10px; align-items: center; padding: 8px; margin-bottom: 8px; border-radius: 12px; background: radial-gradient(circle at 15% 50%, #2a3358, #10162a 70%); border: 1px solid #3a4568; }
+.upg-hero-pic { position: relative; width: 192px; height: 150px; display: grid; place-items: end center; flex: none; }
+.upg-hero-pic::before { content: ''; position: absolute; left: 50%; bottom: 8px; width: calc(60px + var(--a, 0) * 18px); height: calc(80px + var(--a, 0) * 22px); transform: translateX(-50%);
+  background: radial-gradient(ellipse at 50% 70%, var(--ac, #ffd34a), transparent 70%); opacity: calc(.15 + var(--a, 0) * .12); filter: blur(4px); border-radius: 50%; }
+.upg-hero.tier-0 { --a: 0; } .upg-hero.tier-1 { --a: 1; } .upg-hero.tier-2 { --a: 2; --ac: #8fd0ff; } .upg-hero.tier-3 { --a: 3; --ac: #c08aff; } .upg-hero.tier-4 { --a: 4; --ac: #ff9a4a; } .upg-hero.tier-5 { --a: 5; --ac: #ff5a7a; } .upg-hero.tier-6 { --a: 6; --ac: #fff2a0; }
+.upg-hero-pic canvas { position: relative; }
+.enc-portrait.enc-big { min-height: 230px; display: grid; place-items: center; background: radial-gradient(circle, #2a3358, transparent 70%); }
+@media (max-width: 520px) { .upg-hero-pic { width: 140px; height: 110px; } }
+.mw-card { display: flex; gap: 10px; align-items: center; margin: 6px 0; padding: 6px; border-radius: 10px; background: #221b12; border: 1px solid #6a5a2c; }
+.mw-card img { width: 160px; image-rendering: pixelated; } .mw-card div { display: flex; flex-direction: column; } .mw-card small { color: #cbb98a; }
+.m-chest .m-icon img, .q-chest img { width: 48px; height: 48px; image-rendering: pixelated; }
+.st-curve svg { width: 100%; height: 120px; background: linear-gradient(#18203a, #10162a); border-radius: 8px; }
+.st-frieze { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin: 8px 0; }
+.st-rec { display: flex; flex-direction: column; align-items: center; padding: 6px 2px; background: #161d33; border-radius: 10px; border: 1px solid #34406a; text-align: center; }
+.st-rec img { width: 48px; height: 48px; image-rendering: pixelated; } .st-rec small { font-size: 10px; color: #9aa6c8; }
+@media (max-width: 520px) { .st-frieze { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.exp-map { position: relative; height: 170px; margin-bottom: 8px; border-radius: 10px; background-size: cover; background-position: center; image-rendering: pixelated; border: 2px solid #6a5a2c; overflow: hidden; }
+.exp-walker { position: absolute; width: 40px; height: 40px; transform: translate(-50%, -50%); animation: exp-walk .6s steps(2) infinite; filter: drop-shadow(0 2px 0 rgba(0,0,0,.6)); }
+.exp-walker img, .exp-walker canvas { width: 40px; height: 40px; object-fit: contain; image-rendering: pixelated; }
+.exp-walker.back { animation: none; filter: drop-shadow(0 0 6px #ffd34a); }
+@keyframes exp-walk { 50% { transform: translate(-50%, calc(-50% - 3px)); } }
+.exp-map-empty { position: absolute; inset: auto 0 8px 0; text-align: center; color: #fff; text-shadow: 0 1px 2px #000; font-weight: 700; }
+.mw-card img { width: 220px; } .m-row .m-icon img { width: 56px; height: 56px; }
+.stat-tile img { width: 88px; height: 88px; } .st-rec img { width: 60px; height: 60px; }

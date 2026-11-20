@@ -1703,6 +1703,9 @@ setInterval(() => {
     if (!state.unlocks?.legacy && !(state.ui.hints ?? []).includes('howto') && (state.records?.bossesDefeated ?? 0) < 1 && !ui.howtoOpen && !document.querySelector('#prologue, .cinematic')) showHowTo(ui);
     else maybeLearnCard(ui, state);
   }
+  // v10.2 (P3) : meilleure étape du jour (courbe des Statistiques), 60 jours gardés.
+  { const d = new Date().toISOString().slice(0, 10), rb = (state.records.dayBest ??= {}); rb[d] = Math.max(rb[d] ?? 0, state.records.bestStage ?? state.maxStage ?? 1);
+    const ks = Object.keys(rb); if (ks.length > 60) for (const k of ks.sort().slice(0, ks.length - 60)) delete rb[k]; }
   // v10.1 (P1 §2.3) : première apparition d'une ressource → une bulle « ce que c'est », une seule fois.
   firstResourceBubble(ui, state);
   const q = advanceUnlocks(state);

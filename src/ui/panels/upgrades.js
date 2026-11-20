@@ -1,3 +1,4 @@
+import { animCanvas } from '../animator.js'; // v10.2 (P3)
 // Améliorations achetées avec l'or.
 import { PRESTIGE } from '../../data/prestige.js';
 import { REBIRTH } from '../../data/rebirth.js';
@@ -74,6 +75,11 @@ export default {
     const cats = BALANCE.upgradeCategories.filter((c) => c.id !== 'rushes');
     const cat = cats.find((c) => c.id === ui.view.upgradeCat) ?? null; // null = toutes
     const current = computeHeroStats(state);
+    // v10.2 (P3) : portrait du héros qui évolue tous les 25 niveaux de Dégâts (aura de plus en plus forte).
+    const tier = Math.min(6, Math.floor((state.upgrades.damage ?? 0) / 25));
+    const nextAt = (tier + 1) * 25;
+    const heroCard = `<div class="upg-hero tier-${tier}"><div class="upg-hero-pic">${animCanvas('hero', 64, 58, 3)}</div><div><b>Puissance du héros : palier ${tier + 1}</b>
+      <div class="muted small">${tier < 6 ? `Dégâts niveau ${nextAt} : l'aura grandit (encore ${Math.max(0, nextAt - (state.upgrades.damage ?? 0))} niveaux).` : 'Aura maximale.'}</div></div></div>`;
     const profits = upgradeProfits(state);
     let keys = (beginner ? BASE_UPGRADES : openUpgrades(state, BALANCE)).filter((k) => !cat || cat.keys.includes(k));
     const env = currentEnvironment(state); // v9.2.1 : malus du monde actuel (mention neutre sur la ligne qui le contre)
@@ -166,7 +172,7 @@ export default {
     const top = qtyMenu ? `<div class="row-between upg-dps-row">${dpsHead}${amounts}</div>${forecast}` : `${dpsHead}${forecast}${amounts ? `<div class="row-between">${amounts}</div>` : ''}`;
     // v9.9 (K15) : « Tout acheter » en haut de l'onglet (meilleur rapport d'abord, confirmation la première fois).
     const buyAll = state.gold > 0 ? `<button class="btn btn-gold buy-all${ui.view.buyAllArmed ? ' armed' : ''}" data-action="${state.ui.buyAllOk || ui.view.buyAllArmed ? 'buy-best' : 'buy-all-arm'}">${ui.view.buyAllArmed && !state.ui.buyAllOk ? 'Confirmer : tout acheter ?' : 'Tout acheter'}</button>` : '';
-    return `<div class="card upg-top">${top}${buyAll}</div>
+    return `${heroCard}<div class="card upg-top">${top}${buyAll}</div>
       ${catTabs}
       ${beginner ? '' : fold(ui, 'upg-filters', 'Trier', filters)}
       <div class="upg-list">${cards.join('')}</div>

@@ -1591,7 +1591,8 @@ export class UI {
         // v9.3.5 : écran de victoire — butin, couronnes de la difficulté, Rejouer.
         const crowns = `<span class="dg-stars big">${'★'.repeat(dungeonStars(this.state, event.id))}<i>${'★'.repeat(3 - dungeonStars(this.state, event.id))}</i></span>${event.nightmare ? ` <b>Cauchemar ${roman(event.nightmare)}</b>` : ''}`;
         const keys = this.state.keys ?? 0;
-        this.openModal(`<div class="victory-screen"><h2 id="modal-title">Victoire !</h2><div class="victory-crowns" aria-label="Difficulté">${crowns}</div>
+        const bossArt = { crypt: 'boss_spectral_queen', sanctuary: 'boss_rotting_dryad', furnace: 'boss_magma_colossus', glacier: 'boss_frost_wyrm', citadel: 'boss_obsidian_tyrant' }[event.id];
+        this.openModal(`<div class="victory-screen has-fallen">${bossArt ? `<img class="px victory-fallen" src="assets/ui/art102/${bossArt}.png" alt="">` : ''}<h2 id="modal-title">Victoire !</h2><div class="victory-crowns" aria-label="Difficulté">${crowns}</div>
           <div class="victory-loot">${itemFrame(event.item, { tag: 'div' })}<b class="r-${event.item.rarity} rarity-text">${escapeHtml(event.item.name)}</b></div>
           ${event.chest ? `<div class="victory-chest">${img('icon_chest')}<b>Gros coffre du premier passage !</b>${rewardIcons(event.chest, 'named')}</div>` : ''}
           ${event.earned ? `<div class="victory-rewards"><small>Total gagné</small>${rewardIcons(event.earned, 'rw-big')}</div>` : ''}
@@ -3174,7 +3175,7 @@ export class UI {
     if (typeof document === 'undefined' || !this.state?.dungeon || !this.$('modal').classList.contains('hidden')) return false;
     const offer = this.actions.offerDoors?.();
     if (!offer?.length) return false;
-    const card = (id) => `<button class="door-card" data-action="pick-door" data-value="${id}">${img(DOORS[id].icon)}<b>${DOORS[id].label}</b><span>${escapeHtml(DOORS[id].text)}</span></button>`;
+    const card = (id) => `<button class="door-card" data-action="pick-door" data-value="${id}"><img class="px door-art" src="assets/ui/art102/door_${id}.png" alt=""><b>${DOORS[id].label}</b><span>${escapeHtml(DOORS[id].text)}</span></button>`;
     this.openModal(`<div class="door-screen"><h2 id="modal-title">Quelle porte ?</h2><div class="door-cards">${offer.map(card).join('')}</div><span class="muted door-timer">Choix automatique dans 10 s</span></div>`);
     clearInterval(this.doorTimer);
     let left = 10;
@@ -3193,7 +3194,7 @@ export class UI {
     const offer = this.actions.offerBoons?.();
     if (!offer?.length) return;
     const card = (o, i) => { const b = boonById(o.id); const r = rarityOf(o.rarity);
-      return `<button class="boon-card r-${o.rarity}" data-action="pick-boon" data-value="${i}"><span class="boon-band">${r.label}</span>${img(b.icon)}<b>${escapeHtml(b.name)}</b>
+      return `<button class="boon-card r-${o.rarity}" data-action="pick-boon" data-value="${i}"><span class="boon-band">${r.label}</span><img class="px boon-art" src="assets/ui/art102/boon_${o.id}.png" alt="" onerror="this.remove()"><b>${escapeHtml(b.name)}</b>
         <span>${escapeHtml(b.text)}</span><span class="boon-arrows">${'↑'.repeat(r.arrows)}</span></button>`; };
     const book = (this.state.dungeon.boons ?? []).map((x) => `<span title="${escapeHtml(boonById(x.id)?.name ?? '')}">${img(boonById(x.id)?.icon ?? 'icon_star')}</span>`).join('');
     this.openModal(`<div class="boon-screen"><h2 id="modal-title">Choisis une bénédiction</h2>

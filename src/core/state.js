@@ -545,6 +545,9 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   }
 
   for (const key of Object.keys(state.records)) state.records[key] = int(raw.records?.[key], 0);
+  // v10.2 (P3) : meilleure étape par jour (courbe des Statistiques).
+  { const db = raw.records?.dayBest; state.records.dayBest = {};
+    if (db && typeof db === 'object') for (const [k, v] of Object.entries(db)) if (/^\d{4}-\d{2}-\d{2}$/.test(k) && Number.isFinite(v) && v > 0) state.records.dayBest[k] = Math.floor(v); }
   // v9.1.0 : partie d'avant la meilleure étape — estimée (étape max, donjons réussis, Renaissances, Tour).
   if (!state.records.bestStage) {
     const cleared = DUNGEONS.filter((d) => int(obj(raw.dungeonsCleared)[d.id], 0) > 0).map((d) => d.unlockStage);
