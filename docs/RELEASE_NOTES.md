@@ -1,6 +1,19 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.2.0 — L'Arène sur la carte, un vrai coffre de butin
+## Ascendrya v10.3.0 — Un équipement qu'on comprend, une Forge en images, le Bastion
+
+- **Équipement refait** : ton héros ou ton compagnon au centre, ses places autour (84 px, cadre à la couleur de la rareté, « +N », flèche ▲ si mieux dans le sac, « Épée · Légendaire » dessous), et la fiche de l'objet à côté, toujours visible — plus de fenêtre qui recouvre le personnage (feuille du bas sur téléphone). En haut, « Tes ressources » : l'or améliore, les éclats renforcent, grimoires et pierres sont pour les compagnons. Sous le personnage : son niveau, sa puissance et 4 tuiles (Dégâts/s, Vie, Vitesse, Critique ; Attaque, PV, Défense, Recharge pour un compagnon).
+- **Renforcer sans surprise** : la fiche nomme la statistique renforcée et montre chaque nombre avant → après, puis la puissance ; le coût s'écrit pièce par pièce avec « tu as … » en vert ou « il manque … » en rouge et un « + » vers là où en gagner. Le renforcement ne tire plus au hasard : il monte la statistique la moins renforcée. « Remettre au niveau de ton étape », « Changer l'effet » et « Retirer » ont leur phrase d'aide ; le bonus d'ensemble est dit en clair ; le niveau d'objet a son libellé.
+- **Un seul écran par personnage** : onglets Vue d'ensemble · Équipement · Étoiles · Compétences, flèches ‹ › pour passer au suivant, pastille rouge « ! » sur qui peut s'améliorer, bouton vert « Équipement rapide (N ▲) » avec son avant → après, place vide = liste des objets compatibles triés par gain, « Changer » avec filtres par ensemble. Les bonus des compagnons s'écrivent avec une virgule (« +55,2 % »).
+- **Forge en 4 ateliers** : 1 Recycler → 2 Renforcer → 3 Fusionner → 4 Fabriquer, côte à côte, chacun avec son schéma, sa règle, ce que tu peux faire maintenant (« 44 objets inutiles → +222 éclats ») et son bouton. Renforcer est enfin dans la Forge (objets portés triés par gain de puissance par éclat). Fusion détaillée : 5 cases remplies avec tes moins bons objets, jauge de chance (30 % à 3, 65 % à 4, 100 % à 5), +20 après un échec, ce que tu obtiens, « Fusionner (4 objets · 65 %) ». Fabriquer : la place en icônes, les chances de rareté et le niveau du résultat.
+- **Le Bastion** (étape 40, à la place du Camp) : tes compagnons hors de l'équipe deviennent des ouvriers. Forge du forgeron, Bibliothèque (étape 55), Mine de cristal (70), Camp d'entraînement (85), Expéditions, Comptoir — un bâtiment à la fois, chacun avec son illustration. Chaque compagnon a un métier (+20 % au bon bâtiment). Les chantiers (15 min à 8 h) avancent jeu fermé ; aucune nouvelle monnaie : de l'or, des éclats et du temps. Rien dans l'histoire ne demande le Bastion.
+- **Le forgeron** : chaque niveau de sa Forge ajoute 5 points de chance aux fusions à 3 et 4 objets (plafond 95 %), repousse le renforcement maximal de +1, baisse le coût des renforcements de 2 % et celui des commandes de 10 %. Tu lui commandes un objet (place, Rare+ / Épique+ / Légendaire+ au niveau 6) : prêt en 1 h à 8 h, livré dans le coffre de butin, moins cher que « Fabriquer ».
+- **Recherches** (Bibliothèque) : 3 branches de 6 — Combat, Compagnons, Économie — qui avancent avec le temps et ne se perdent pas à la Renaissance ; au total au plus +54 % de dégâts et de vie, +50 % d'or. Au retour, le Carnet et le Sceau disent une fois ce que le Bastion a fini.
+- **Corrections de la 10.2** : la feuille de donjon s'ouvre de nouveau quand « Difficile » est débloqué ; le combat des gardiens d'Arène (étages 25, 50, 75, 100) ne plante plus ; sur la carte d'Arène, les monstres sont dans l'écran (téléphone compris) avec leur nom, le boss a sa barre en haut ; « Arène » est un vrai onglet de Combat ; le dos de carte doré se gagne au premier gardien ; « Balayer tout » joue exactement le plan annoncé ; les portes s'ouvrent au toucher ; noms entiers partout (« Pyromancienne », « Apparences », « Classement ») ; « Réserve » dans tous les textes.
+
+### Versions précédentes
+
+<details><summary><b>Ascendrya v10.2.0 — L'Arène sur la carte, un vrai coffre de butin</b></summary>
 
 - **Arène sur la carte** : un étage d'Arène se joue maintenant dans le monde de son élément, comme l'histoire — tes compagnons de la formation à gauche (l'avant au plus près), les vrais monstres du monde à droite, chacun avec ses gestes, ses sorts et ses ultimes de la campagne. En bas, les cartes de la formation (portrait, rôle et sort, vie, jauge d'ultime) ; en mode Manuel, le combat attend que tu touches la carte dont l'ultime est prêt. ×2, Passer, étoiles qui tombent une à une, « Étage suivant ». La Survie se joue aussi sur la carte.
 - **Arène plus juste** : les étages se calibrent sur ton équipe la première fois (tu franchis une vingtaine d'étages puis tu bloques vers 25 à 35, les combats durent plus de 12 s, 2 ★ dès les étages 8 à 10) ; chaque carte ennemie porte le nom du monstre dessiné ; le placement auto met gardiens et berserkers devant, l'assassin derrière, jamais d'avant vide ; premiers étages bien plus généreux ; l'Arène est directement dans Combat et sur la Carte ; formation prête dès l'ouverture ; règles d'étage illustrées ; aperçu du dos de carte doré du gardien de l'étage 25.
@@ -11,7 +24,7 @@
 - **Illustrations** : portrait du héros qui gagne une aura tous les 25 niveaux de Dégâts, carte de mission et coffre de palier, courbe de progression et frise des records, carte des expéditions où marchent tes compagnons, bestiaire en grand ; au moins 20 % d'image sur Améliorations, Missions et Statistiques.
 - **Petites corrections** : sur téléphone, le titre du panneau n'est plus coupé ; noms complets des compagnons ; ombre sur les bords de l'Arbre avancé.
 
-### Versions précédentes
+</details>
 
 <details><summary><b>Ascendrya v10.1.0 — Comprendre, collectionner, combattre aux cartes</b></summary>
 

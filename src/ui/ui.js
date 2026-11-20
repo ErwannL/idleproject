@@ -855,7 +855,8 @@ export class UI {
     if (m && tab && tab in m) return m[tab] === true;
     // v10.3 (8, 9) : sur téléphone, Équipement et Forge prennent le grand panneau par défaut (les 6 places visibles). Sur PC,
     // le volet s'élargit seul (equip.css) sans passer en grand : le Sceau et la barre de compétences restent en vue.
-    if ((tab === 'inventory' || tab === 'forge') && !this.root?.classList.contains('side-ui')) return true;
+    // Le Bastion aussi : sur téléphone le bouton ⤢ est caché, et la liste des bâtiments demande de la hauteur.
+    if ((tab === 'inventory' || tab === 'forge' || tab === 'camp') && !this.root?.classList.contains('side-ui')) return true;
     // v9.10 (2) : fenêtre basse (moins de 800 px) → panneau grand par défaut, pour voir l'essentiel sans défiler.
     return pref('panelTall') === true || (this.root?.clientHeight ?? 1000) < 800;
   }

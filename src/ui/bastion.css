@@ -161,3 +161,6 @@ button.bs-chip:hover, .bs-chip.on { border-color: var(--gold); background: #1c26
   .bs-soon > img { width: 96px; height: 64px; }
   #panel-body:has(.bs-detail) .phone-action { display: none; }
 }
+
+/* Téléphone : le Bastion prend le grand panneau (comme l'Équipement et la Forge) — plusieurs bâtiments visibles d'un coup. */
+#app.bottom-ui:not(.side-ui).panel-open.panel-tall #panel:has(.bastion) { height: 80% !important; }
