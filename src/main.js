@@ -108,6 +108,10 @@ import { bestOpenUpgrade, companionToLevel, companionToPlace } from './core/guid
 import { PROLOGUE_HINT, playPrologue } from './ui/prologue.js'; // v9.3.7
 import { recycleUseless } from './core/inventory.js'; // v9.3.4
 import { sortLootBag } from './core/inventory.js'; // v9.7.1 : sac de butin
+// v10.3 (partie 10) : le Bastion.
+import { ackBastionNews, assignWorker, bastionSealShown, bastionTick, buildingDef, canBuild, canOrder, canResearch, collectOrder, collectStock, orderLabel, placeOrder,
+  removeWorker, researchDef, startBuild, startResearch, takeNotices, trade, workerNoticeText } from './core/bastion.js';
+import { maybeBastionCard } from './ui/bastion-cards.js';
 
 const SIM_INTERVAL_MS = 100;
 // v9.1.0 : codes de triche chargés seulement dans la version dev (fichier absent de la version publique).
@@ -246,6 +250,31 @@ function githubToken() {
 }
 
 const actions = {
+  // v10.3 (partie 10) : le Bastion — une seule entrée pour toutes ses actions (ui/panels/camp.js : bastionAction).
+  bastion(op, x = null, y = null) {
+    const now = Date.now();
+    const refuse = (reason) => { ui.toast(reason, '#ff8a8a'); return false; };
+    switch (op) {
+      case 'seen': ackBastionNews(state, null, now); break; // écran du Bastion ouvert : tout est dit
+      case 'book': ackBastionNews(state, 'book', now); break; // ligne du Carnet lue
+      case 'shown': bastionSealShown(state, now); break; // consigne du Sceau montrée (une fois par retour)
+      case 'worker': {
+        if (!y) return done(removeWorker(state, x, now), 'Ouvrier retiré : le bâtiment est à l\'arrêt', '#ffb36b');
+        const why = assignWorker(state, x, y, now);
+        return why ? refuse(why) : done(true, `${companionById(y)?.name ?? 'Ouvrier'} au travail : ${buildingDef(x)?.name ?? ''}`, '#7fe0a0');
+      }
+      case 'build': { const c = canBuild(state, x); return c.ok ? done(startBuild(state, x, now), `Chantier lancé : ${buildingDef(x).name}`, '#ffd24a') : refuse(c.reason); }
+      case 'research': { const c = canResearch(state, x); return c.ok ? done(startResearch(state, x, now), `Recherche lancée : ${researchDef(x).name}`, '#9fe6ff') : refuse(c.reason); }
+      case 'order': { const c = canOrder(state, x, y); if (!c.ok) return refuse(c.reason); const o = placeOrder(state, x, y, now); return done(Boolean(o), o ? `Commande passée : ${orderLabel(o)}` : null, '#ffd24a'); }
+      case 'collect': { const g = collectStock(state, x, now); return done(Boolean(g), g ? `+${formatNumber(g.amount)} ${g.resource === 'shards' ? 'éclats' : 'grimoires'}` : null, '#7fe0a0'); }
+      case 'collect-order': { const r = collectOrder(state, x, now); if (!r) return refuse('Le coffre de butin est plein : trie-le d\'abord.'); return done(true, `Livré dans le coffre de butin : ${r.item.name}`, '#7fe0a0'); }
+      case 'trade': { const o = trade(state, x, now); return o ? done(true, 'Échange fait', '#7fe0a0') : refuse('Échange impossible (matériaux ou échanges du jour épuisés).'); }
+      default: break;
+    }
+    save();
+    ui.invalidate();
+    return true;
+  },
   learnSkill(id) { done(learnSkill(state, id)); },
   setSkillAuto(value) { state.skillAuto = value; done(true); },
   setHero(id) { done(setActiveHero(state, id), 'Nouveau héros actif'); },
@@ -1702,6 +1731,7 @@ setInterval(() => {
   if (!navigator.webdriver || location.search.includes('learn')) {
     if (!state.unlocks?.legacy && !(state.ui.hints ?? []).includes('howto') && (state.records?.bossesDefeated ?? 0) < 1 && !ui.howtoOpen && !document.querySelector('#prologue, .cinematic')) showHowTo(ui);
     else maybeLearnCard(ui, state);
+    maybeBastionCard(ui, state); // v10.3 (partie 10) : une carte par bâtiment qui arrive
   }
   // v10.2 (P3) : meilleure étape du jour (courbe des Statistiques), 60 jours gardés.
   { const d = new Date().toISOString().slice(0, 10), rb = (state.records.dayBest ??= {}); rb[d] = Math.max(rb[d] ?? 0, state.records.bestStage ?? state.maxStage ?? 1);
@@ -1788,6 +1818,15 @@ function tick() {
   if (now - lastMissionCheck >= 1000) {
     lastMissionCheck = now;
     refreshMissions(state, now);
+    // v10.3 (partie 10) : le Bastion avance (chantiers, recherches, commandes), même fenêtre masquée ; ce qui finit
+    // pendant que le joueur regarde est annoncé d'un message, le reste attend son retour (Carnet, Sceau).
+    for (const e of bastionTick(state, now, { away: document.visibilityState === 'hidden' })) {
+      if (e.type === 'opened') ui.news?.('Le Bastion ouvre ses portes : ☰ › Bastion', '#ffd24a', 1);
+      else if (e.type === 'delivered') ui.toast(`Commande livrée dans le coffre de butin : ${e.item.name}`, '#7fe0a0');
+      else if (!e.away) { ui.toast(`${e.type === 'build' ? 'Chantier terminé' : e.type === 'research' ? 'Recherche terminée' : 'Commande prête'} : ${e.text}`, '#ffd24a'); sound.play('claim', { volume: 0.7 }); }
+      ui.invalidate();
+    }
+    for (const n of takeNotices(state)) ui.toast(workerNoticeText(n), '#ffb36b');
     // v9.1.3 (doc4 lot 4) : cadeau de sortie (ancien « 30 tickets d'événement », en gemmes), une fois par bannière.
     const gift = claimReleaseGift(state, now);
     if (gift) { ui.toast(`Nouvelle bannière : +${formatNumber(gift)} gemmes`, '#9fd8ff'); ui.invalidate(); }

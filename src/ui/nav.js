@@ -16,7 +16,7 @@ export const MENUS = [
   { id: 'profile', label: 'Profil', tabs: ['camp', 'looks', 'boss', 'ranking', 'guild', 'stats'], top: true },
 ];
 export const SUB_LABELS = {
-  camp: 'Camp', upgrades: 'Améliorations', skills: 'Compétences', tree: 'Talents', hero: 'Fiche', inventory: 'Équipement', forge: 'Forge', looks: 'Apparences',
+  camp: 'Bastion', upgrades: 'Améliorations', skills: 'Compétences', tree: 'Talents', hero: 'Fiche', inventory: 'Équipement', forge: 'Forge', looks: 'Apparences',
   companions: 'Compagnons', expeditions: 'Expéditions', summon: 'Invocation', shop: 'Boutique', event: 'Événement', campaign: 'Carte', dungeons: 'Donjons', tower: 'Défis', arena: 'Arène',
   boss: 'Boss', world: 'Monde', encyclopedia: 'Collections', contracts: 'Missions', daybook: 'Carnet', inbox: 'À récupérer', ranking: 'Classement', guild: 'Guilde', stats: 'Statistiques', options: 'Paramètres',
 };
@@ -40,7 +40,7 @@ export const TAB_LEAD = {
   encyclopedia: 'Tout ce que tu as découvert : monstres, objets, compagnons.',
   contracts: 'Missions du jour, de la semaine, Chroniques et hauts faits : des récompenses à récupérer.',
   daybook: 'Ta liste du jour : quelques gestes, un coffre à la fin.',
-  camp: 'Ton équipe se repose ici : trophées et expéditions en cours.',
+  camp: 'Tes compagnons libres travaillent ici : bâtiments, recherches et forgeron.',
   looks: 'Change l\'apparence de ton héros (aucun effet sur la puissance).',
   ranking: 'Compare ton record à celui des autres joueurs.',
   guild: 'Rejoins une guilde pour des bonus et un boss commun.',

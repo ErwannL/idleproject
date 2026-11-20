@@ -7,6 +7,7 @@ import { escapeHtml, img, rewardIcons } from '../common.js';
 import { FIRST_WEEK_MILES, FIRST_WEEK_PRIZE, firstWeekActive, firstWeekDay, firstWeekDaysLeft, firstWeekDaysOpen, firstWeekPoints, prizeReady } from '../../core/first-week.js';
 import { companionById } from '../../core/companions.js';
 import { companionStill } from './expeditions.js';
+import { bastionDaybookLine } from '../../core/bastion.js'; // v10.3 (10.6)
 
 // v9.8 (H5) : carnet des 7 premiers jours, en tête du Carnet du jour ; le gros lot (Épique au choix) visible dès le jour 1.
 function firstWeekHtml(ui, state) {
@@ -69,6 +70,7 @@ export default {
     return `${firstWeekHtml(ui, state)}<div class="db-head"><div class="db-title"><b>Carnet du jour</b><span class="num">${doneN}/${tasks.length}</span></div>
         <div class="db-path">${tasks.map((t) => `<i class="${t.done ? 'on' : ''}"></i>`).join('')}</div></div>
       ${(() => { const d = dormantResources(state, open); return d.length ? `<div class="card db-dormant"><b>Ça dort :</b>${d.map((x) => `<button class="btn small" data-action="open-tab" data-value="${x.tab}">${escapeHtml(x.text)} ›</button>`).join('')}</div>` : ''; })()}
+      ${(() => { const line = bastionDaybookLine(state); return line ? `<div class="card db-bastion"><img class="px" src="assets/ui/art103/b_forge.png" alt=""><b>${escapeHtml(line)}</b><button class="btn btn-gold small" data-action="bastion-open">Voir le Bastion ›</button></div>` : ''; })()}
       <div class="db-cards">${tasks.map((t) => card(t, t.done && fresh(t.id))).join('')}</div>
       ${all ? `<div class="db-big-stamp${fresh('all') ? ' fresh' : ''}">Journée accomplie</div>` : ''}
       ${chest}
