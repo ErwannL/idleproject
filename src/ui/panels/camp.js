@@ -29,6 +29,7 @@ import expeditionsPanel, { companionStill } from './expeditions.js';
 const ART = (name) => `assets/ui/art103/${name}.png`;
 const RES_NAME = { shards: 'éclats', grimoire: 'grimoires', ascension: 'pierres', mastery: 'essences' };
 const RES_ICON = { shards: 'icon_shard', grimoire: 'icon_grimoire', ascension: 'icon_ascension', mastery: 'icon_mastery' };
+const resName = (key, n) => (n === 1 ? RES_NAME[key].slice(0, -1) : RES_NAME[key]);
 const dec = (v) => String(Math.round(v * 10) / 10).replace('.', ',');
 const plural = (n, word) => `${n} ${word}${n > 1 ? 's' : ''}`;
 
@@ -317,8 +318,8 @@ function tradeBlock(state) {
   const rows = TRADE_POST.offers.map((x) => {
     const o = tradeOffer(state, x.id);
     const can = left > 0 && (state.materials[o.give] ?? 0) >= o.giveAmount;
-    return `<div class="bs-trade"><span>${img(RES_ICON[o.give])} <b class="num">${o.giveAmount}</b> ${RES_NAME[o.give]}</span><span class="bs-arrow">→</span>
-      <span>${img(RES_ICON[o.get])} <b class="num good">${o.getAmount}</b> ${RES_NAME[o.get]}</span>
+    return `<div class="bs-trade"><span>${img(RES_ICON[o.give])} <b class="num">${o.giveAmount}</b> ${resName(o.give, o.giveAmount)}</span><span class="bs-arrow">→</span>
+      <span>${img(RES_ICON[o.get])} <b class="num good">${o.getAmount}</b> ${resName(o.get, o.getAmount)}</span>
       <button class="btn small ${can ? 'btn-gold' : ''}" data-action="bastion-trade" data-value="${o.id}" ${can ? '' : 'disabled'}>Échanger</button></div>`;
   }).join('');
   return `<div class="bs-block"><div class="bs-block-title">Échanges <small>· ${plural(left, 'échange')} aujourd'hui</small></div>${rows}
@@ -424,10 +425,10 @@ function renderCamp(state) {
   const out = (state.expeditions?.slots ?? []).filter(Boolean);
   const best = Math.max(state.maxStage ?? 1, state.records?.bestStage ?? 1);
   const c = campCards(state, false);
-  return `${c.fire}
-      <div class="card bs-soon"><img class="px" src="${ART('b_forge')}" alt=""><span><b>Le Bastion ouvre à l'étape ${BASTION_UNLOCK_STAGE}</b>
+  return `<div class="card bs-soon"><img class="px" src="${ART('b_forge')}" alt=""><span><b>Le Bastion ouvre à l'étape ${BASTION_UNLOCK_STAGE}</b>
         <small>Tes compagnons libres y travailleront : une forge, des recherches, des chantiers qui avancent même jeu fermé.</small>
         <span class="bs-bar"><i style="width:${Math.min(100, (best / BASTION_UNLOCK_STAGE) * 100).toFixed(0)}%"></i></span><small class="muted">Étape ${Math.min(best, BASTION_UNLOCK_STAGE)} / ${BASTION_UNLOCK_STAGE}</small></span></div>
+      ${c.fire}
       ${c.trophies}
       <div class="card"><b>Expéditions</b> ${out.length ? `<span class="muted">${out.length} en cours</span>` : '<span class="muted">aucune en cours</span>'}</div>
       ${c.links}`;

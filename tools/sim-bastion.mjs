@@ -14,7 +14,7 @@
 //       deux profils ;
 //     - pour information : l'étape atteinte par chaque partie (l'or donné au Bastion ne va pas aux améliorations).
 // Objectif (docs/plan-v1030.md, 10.6) : Bastion ≤ +25 %, campagne ≥ +200 %.
-// Usage : node tools/sim-bastion.mjs [seed = 1] [--days 7] [--session 20] [--json fichier]
+// Usage : node tools/sim-bastion.mjs [seed = 1] [--days 7] [--session 20] [--json fichier] [--log] [--noise]
 import { writeFileSync } from 'node:fs';
 import { createNewState } from '../src/core/state.js';
 import { changeStage, createCombat, levelForStage, referenceKillGold, step } from '../src/core/combat.js';
@@ -239,9 +239,9 @@ const P0 = computeHeroStats(base.state).combatPower;
 console.log(`Ouverture du Bastion : étape ${base.state.maxStage} après ${(warm / 3600).toFixed(1)} h de jeu · puissance ${P0} · compagnons ${Object.keys(base.state.companions.owned).length} (alliés : ${Object.keys(base.state.companions.owned).filter((id) => companionById(id)?.kind === 'ally').length}) · éclats ${base.state.materials.shards}`);
 
 // 2. Parties jumelles pendant 7 jours.
-function run(withBastion, share = 0, prefer = 'forge') {
+function run(withBastion, share = 0, prefer = 'forge', twist = 0) {
   const sim = {
-    state: structuredClone(base.state), rng: new Rng(seed * 97 + 1), withBastion, share, prefer, purse: 0, log: [], last: 0, day: 0, reserve: 0,
+    state: structuredClone(base.state), rng: new Rng(seed * 97 + 1 + twist), withBastion, share, prefer, purse: 0, log: [], last: 0, day: 0, reserve: 0,
     spent: { builds: 0, orders: 0, upgrades: 0, research: 0 }, gained: {}, extra: {}, goldKills: [],
   };
   sim.world = createCombat(sim.state);
@@ -274,6 +274,8 @@ function report(B, PA) {
 }
 const A = run(false);
 const PA = computeHeroStats(A.state).combatPower;
+// --noise : la même partie « campagne » avec d'autres tirages au sort, pour mesurer la part du hasard dans l'étape atteinte.
+const twins = args.includes('--noise') ? [run(false, 0, 'forge', 1000), run(false, 0, 'forge', 2000)].map((t) => t.state.maxStage) : null;
 const sims = [run(true, 0.3, 'équilibre'), run(true, 1, 'équilibre'), run(true, 1, 'forge'), run(true, 1, 'recherche')];
 const profiles = sims.map((B) => report(B, PA));
 const result = {
@@ -286,12 +288,13 @@ if (args.includes('--log')) for (const B of sims) console.log(`--- journal « ba
 console.log('\n=== Bilan sur', DAYS, 'jours, 2 connexions de', SESSION, 'min par jour (seed', seed, ') ===');
 console.log(`Campagne seule : étape ${result.opening.stage} → ${result.campaign.stage}, puissance ${pct(result.campaign.gain)} (objectif : au moins +200 %)`);
 console.log(`Or à chaque connexion, en ennemis de l'étape max : ${A.goldKills.join(', ')}`);
+if (twins) console.log(`Part du hasard : la même partie « campagne », autres tirages → étapes ${twins.join(' et ')} (au lieu de ${result.campaign.stage})`);
 for (const r of profiles) {
   console.log(`\nBastion, ${Math.round(r.share * 100)} % de l'or, profil « ${r.prefer} » : ${pct(r.own)} de puissance par lui-même (objectif : au plus +25 %)`);
   console.log(`  dont recherches ${pct(r.ownResearch)} · renforcements au-delà du plafond de base ${pct(r.ownUpgrades)} (${r.extraUpgrades} niveaux sur les objets portés)`);
   console.log(`  Forge niv. ${r.forge} · Bastion niv. ${r.level} ${JSON.stringify(r.buildings)} · recherches ${JSON.stringify(r.research)}`);
   console.log(`  éclats : chantiers ${r.shardsSpent.builds}, commandes ${r.shardsSpent.orders}, renforcements ${r.shardsSpent.upgrades} · produits : ${JSON.stringify(r.mined)} · ouvriers ${JSON.stringify(r.workers)}`);
-  console.log(`  pour information : étape ${r.stage} atteinte (campagne seule : ${result.campaign.stage} ; l'écart vient surtout de l'or détourné et du hasard)`);
+  console.log(`  pour information : étape ${r.stage} atteinte (campagne seule : ${result.campaign.stage}${twins ? `, ou ${twins.join(' et ')} avec d'autres tirages` : ''} ; l'écart vient du hasard et de l'or donné au Bastion)`);
 }
 if (jsonOut) writeFileSync(jsonOut, JSON.stringify(result, null, 2));
 const ok = profiles.every((r) => r.own <= 0.25) && result.campaign.gain >= 2;
