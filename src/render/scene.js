@@ -1000,7 +1000,9 @@ export class SceneRenderer {
     const wantShift = Math.min(Math.max(0, 3 - this.layout.left), this.tall ? Math.max(0, this.width - 130 - HERO_X) : 1e9);
     this.viewShift = this.viewShift === undefined ? wantShift : this.viewShift + (wantShift - this.viewShift) * Math.min(1, dt * 4);
     // v9.10 (6) : vitrine d'un compagnon — il est seul (pas de héros) et recentré à la place du héros.
-    const shift = Math.round(this.viewShift) + (this.soloUnit ? Math.round((HERO_X - this.layout.left) * 0.55) : 0);
+    // v10.3 (audit) : une scène peut fixer elle-même son cadrage (fixedShift : l'Arène centre la mêlée entière).
+    const shift = Number.isFinite(this.fixedShift) ? Math.round(this.fixedShift)
+      : Math.round(this.viewShift) + (this.soloUnit ? Math.round((HERO_X - this.layout.left) * 0.55) : 0);
     ctx.save();
     ctx.translate(shift, 0);
     this.drawEnemies(ctx, world, dt);
@@ -1009,8 +1011,10 @@ export class SceneRenderer {
     if (wade) { ctx.save(); ctx.beginPath(); ctx.rect(-shift - 8, 0, this.width + 16, this.groundY - 2); ctx.clip(); }
     this.processAllyQueue(); // v10.0 (9.1)
     this.drawCompanions(ctx, state, world, dt);
-    const pet = world.hero.dead ? null : equippedCompanions(state).find((c) => c.kind !== 'ally');
-    if (pet) this.drawPet(ctx, world, pet);
+    // v10.3 (audit) : tous les familiers de l'équipe (la campagne n'en a qu'un ; une formation d'Arène peut en avoir deux,
+    // le second n'était ni placé ni dessiné).
+    const pets = world.hero.dead ? [] : equippedCompanions(state).filter((c) => c.kind !== 'ally');
+    for (let i = pets.length - 1; i >= 0; i--) this.drawPet(ctx, world, pets[i]);
     if (!this.soloUnit) this.drawHero(ctx, state, world);
     if (wade) ctx.restore();
     drawTeamFx(this, ctx, state, world, HERO_X);
@@ -2312,8 +2316,7 @@ export class SceneRenderer {
       slots.set(c.id, { x, cx: x + ((span.l + span.r + 1) / 2) * sc });
       cursor = x + span.l * sc - GAP;
     };
-    const pet = team.find((c) => c.kind !== 'ally');
-    if (pet) place(pet);
+    team.filter((c) => c.kind !== 'ally').forEach(place); // v10.3 (audit) : chaque familier a sa case (un seul en campagne)
     team.filter((c) => c.kind === 'ally').forEach(place);
     return { slots, left: cursor + GAP };
   }

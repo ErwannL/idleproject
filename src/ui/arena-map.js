@@ -12,9 +12,11 @@ import { COMPANION_ROLES as ROLE_OF } from '../data/synergies.js';
 import { reduceMotion } from './prefs.js';
 
 const RULE_ART = { armored: 'rule_armored', swift: 'rule_swift', noheal: 'rule_noheal', frenzy: 'rule_frenzy', first: 'rule_first', backline: 'rule_backline' };
-const RULE_NAME = { armored: 'Carapace', swift: 'Vif-argent', noheal: 'Plaie ouverte', frenzy: 'Furie', first: 'Embuscade', backline: 'Assaut arrière' };
+const RULE_NAME = { armored: 'Carapace', swift: 'Vif-argent', noheal: 'Plaie ouverte', frenzy: 'Frénésie', first: 'Embuscade', backline: 'Assaut arrière' };
 export const ruleArt = (id) => (RULE_ART[id] ? `assets/ui/art102/${RULE_ART[id]}.png` : null);
 export const ruleName = (id) => RULE_NAME[id] ?? '';
+// v10.3 (audit) : plus de « Embuscade : Embuscade : … » quand le texte de la règle commence déjà par son nom.
+export const ruleDup = (rule) => Boolean(rule && ruleName(rule.id) && rule.text.startsWith(`${ruleName(rule.id)} : `));
 
 // v10.2 (P6) : la Survie (core/arena.js › fight) passe aussi par la carte : ses événements sont traduits dans la
 // forme de fightBoard (cartes à des cases, vagues de vrais monstres du monde de leur élément).
@@ -27,7 +29,8 @@ export function survivalAsCards(r) {
   for (const e of r.fight.events) {
     if (e.kind === 'wave') {
       w = e.i;
-      const cards = e.foes.map((f, i) => { const mo = monsterOf(f.element, (e.n ?? w) + 1, i); return { name: mo.name, enemyId: f.boss ? bossOf(f.element, e.n ?? w).id : mo.id, element: f.element, maxHp: f.maxHp, boss: f.boss, pos: w * 10 + i }; });
+      // v10.3 (audit) : le nom vient de la même fiche que le sprite (un boss de vague portait le nom d'un monstre).
+      const cards = e.foes.map((f, i) => { const mo = f.boss ? bossOf(f.element, e.n ?? w) : monsterOf(f.element, (e.n ?? w) + 1, i); return { name: mo.name, enemyId: mo.id, element: f.element, maxHp: f.maxHp, boss: f.boss, pos: w * 10 + i }; });
       alive = cards.map((c) => c.pos);
       if (!first) first = cards; else events.push({ t: e.t, kind: 'wave', n: e.n, cards });
     } else if (e.kind === 'hit' || e.kind === 'skill') events.push({ t: e.t, kind: e.kind, side: 'ally', from: posOf.get(e.who), to: w * 10 + e.foe, d: e.d, crit: e.crit, elem: e.elem });
@@ -47,16 +50,20 @@ export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
   const rule = run.setup.rule;
   const title = run.survival ? 'Épreuve · Survie' : `Arène · ${escapeHtml(floorName(run.floor))}`;
   el.innerHTML = `<div class="am-top"><b>${title}</b>
-      ${rule ? `<span class="am-rule">${ruleArt(rule.id) ? `<img class="px" src="${ruleArt(rule.id)}" alt="">` : ''}<b>${escapeHtml(ruleName(rule.id))}</b> : ${escapeHtml(rule.text)}</span>` : ''}
+      ${rule ? `<span class="am-rule">${ruleArt(rule.id) ? `<img class="px" src="${ruleArt(rule.id)}" alt="">` : ''}${ruleDup(rule) ? `<b>${escapeHtml(rule.text)}</b>` : `<b>${escapeHtml(ruleName(rule.id))}</b> : ${escapeHtml(rule.text)}`}</span>` : ''}
       <span class="am-time"><i>⏱</i><b class="num">0 s</b>${run.survival ? '' : `<small>3 ★ en moins de ${A.star3} s</small>`}</span><span class="am-stars">★★★</span></div>
-    <div class="am-stage"><canvas class="px am-canvas"></canvas></div>
+    <div class="am-stage"><canvas class="px am-canvas"></canvas><div class="am-names" aria-hidden="true"></div>
+      <div class="am-boss hidden"><b></b><span class="am-boss-bar"><i></i></span><small class="num"></small></div></div>
     <div class="am-bottom"><div class="am-cards"></div>
       <div class="am-ctrl"><button class="btn small am-speed" type="button">×1</button><button class="btn small am-mode" type="button">Auto</button><button class="btn small am-skip" type="button">Passer ⏭</button></div></div>
     <div class="am-end hidden"></div>`;
   document.body.appendChild(el);
   ui.arenaOpen = true;
   const canvas = el.querySelector('.am-canvas');
-  const scene = new ArenaScene(canvas, run, ui.state);
+  // v10.3 (audit) : si la scène ne peut pas se construire, l'écran se referme au lieu de rester bloqué par-dessus le jeu.
+  let scene;
+  try { scene = new ArenaScene(canvas, run, ui.state); } catch (err) { ui.arenaOpen = false; el.remove(); ui.invalidate?.(); throw err; }
+  el.scene = scene; // lu par tools/e2e-103-audit.mjs
   const fit = () => { const b = el.querySelector('.am-stage').getBoundingClientRect(); scene.resize(Math.max(200, b.width), Math.max(120, b.height)); };
   fit();
   const onResize = () => fit();
@@ -67,11 +74,39 @@ export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
     const unit = COMPANIONS.find((x) => x.id === c.id);
     const role = ROLES[c.role];
     const main = (c.skills ?? []).find((s) => !s.ultimate)?.name ?? '';
-    return `<button class="am-card r-${c.rarity}" data-pos="${c.pos}" type="button"><div class="am-pic">${hdArt(unit, 'am-art') || img(unit?.sprite ?? 'icon_star')}</div>
-      <b>${escapeHtml(c.name)}</b><small>${escapeHtml(role?.label ?? '')}${main ? ` · ${escapeHtml(main)}` : ''}</small>
+    // v10.3 (audit) : « rôle · sort » sans point orphelin quand la carte n'a pas de rôle (familiers).
+    const sub = [role?.label, main].filter(Boolean).map(escapeHtml).join(' · ');
+    return `<button class="am-card r-${c.rarity}" data-pos="${c.pos}" type="button" style="--i:${c.i ?? 0}"><div class="am-pic">${hdArt(unit, 'am-art') || img(unit?.sprite ?? 'icon_star')}</div>
+      <b>${escapeHtml(c.name)}</b><small>${sub}</small>
       <span class="am-hp"><i></i></span><span class="am-ult"><i></i></span></button>`;
   };
-  cardsEl.innerHTML = [...run.team].sort((a, b) => a.pos - b.pos).map(cardHtml).join('');
+  cardsEl.innerHTML = [...run.team].sort((a, b) => a.pos - b.pos).map((c, i) => cardHtml({ ...c, i })).join('');
+  // Les cartes sont distribuées face cachée puis se retournent : on y voit le dos de carte (doré après le 1er gardien).
+  cardsEl.classList.add('am-deal');
+  cardsEl.classList.toggle('back-gold', Boolean(run.goldBack));
+  // Nom de chaque monstre sous ses pieds ; boss ou gardien : nom et barre de vie en haut de la scène.
+  const namesEl = el.querySelector('.am-names'), bossEl = el.querySelector('.am-boss');
+  const tags = new Map();
+  let rows = 0;
+  const updateMarks = () => {
+    const live = new Set();
+    let boss = null;
+    for (const m of scene.marks()) {
+      if (m.boss) boss = m;
+      if (!m.name || !m.seen || m.boss) continue;
+      live.add(m.pos);
+      let t = tags.get(m.pos);
+      if (!t) { t = document.createElement('span'); t.className = 'am-name'; t.textContent = m.name; t.dataset.row = String(rows++ % 2); namesEl.appendChild(t); tags.set(m.pos, t); }
+      t.style.left = `${Math.round(m.x)}px`; t.style.top = `${Math.round(m.foot + 5 + Number(t.dataset.row) * 15)}px`;
+    }
+    for (const [pos, t] of tags) if (!live.has(pos)) { t.remove(); tags.delete(pos); }
+    bossEl.classList.toggle('hidden', !boss);
+    if (boss) {
+      if (bossEl.dataset.name !== boss.name) { bossEl.dataset.name = boss.name; bossEl.querySelector('b').textContent = boss.name; }
+      bossEl.querySelector('i').style.width = `${boss.hp * 100}%`;
+      const pct = `${Math.ceil(boss.hp * 100)} %`; const sm = bossEl.querySelector('small'); if (sm.textContent !== pct) sm.textContent = pct;
+    }
+  };
   cardsEl.addEventListener('click', (e) => { const b = e.target.closest('.am-card.ready'); if (b && waitUlt != null && Number(b.dataset.pos) === waitUlt) waitUlt = null; });
   el.querySelector('.am-speed').addEventListener('click', (e) => { speed = speed === 1 ? 2 : 1; e.target.textContent = `×${speed}`; });
   el.querySelector('.am-mode').addEventListener('click', (e) => { manual = !manual; e.target.textContent = manual ? 'Manuel' : 'Auto'; });
@@ -87,6 +122,7 @@ export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
       b.classList.toggle('ready', waitUlt === pos || (scene.gauge.get(pos) ?? 0) >= 100);
       b.classList.toggle('acting', scene.ultAt?.pos === pos && scene.t - scene.ultAt.t < 0.6);
     }
+    updateMarks();
     const t = Math.max(0, scene.t - 1);
     el.querySelector('.am-time b').textContent = `${Math.floor(t)} s`;
     if (run.survival) { el.querySelector('.am-stars').textContent = `Vague ${(scene.waveN ?? 0) + 1}`; return; }
@@ -114,6 +150,7 @@ export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
     }
     end.innerHTML = `<div class="am-end-card"><h2>${run.won ? `${escapeHtml(floorName(run.floor))} franchi !` : `${escapeHtml(floorName(run.floor))} : pas encore…`}</h2>
       <div class="am-end-stars">${[0, 1, 2].map((i) => `<span class="${i < run.stars ? 'on' : ''}" style="animation-delay:${0.25 + i * 0.35}s">★</span>`).join('')}</div>
+      ${run.newBack ? '<div class="am-end-back"><img class="px" src="assets/ui/art101/card_back_gold.png" alt=""><span><b>Dos de carte doré gagné !</b> Ta formation le porte dès le prochain combat.</span></div>' : ''}
       ${run.reward ? `<div class="am-end-rw">${rewardIcons(run.reward, 'named')}</div>` : run.won ? '<p class="muted">Étage déjà franchi : récompense déjà prise.</p>' : '<p class="muted">Change la formation (gardien devant, soigneur derrière) ou renforce tes compagnons : essais illimités.</p>'}
       <div class="am-end-btns">${run.won ? '<button class="btn btn-gold am-next" type="button">Étage suivant ›</button>' : '<button class="btn btn-gold am-retry" type="button">Retenter</button>'}<button class="btn am-close" type="button">Fermer</button></div></div>`;
     end.querySelector('.am-close')?.addEventListener('click', close);

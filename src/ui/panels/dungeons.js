@@ -229,6 +229,10 @@ function dungeonDetail(ui, state) {
     ['icon_gem', `${Math.round(DUNGEON_REWARD.gems * diff.gems)} gemmes`, 'r-rare'], ['icon_shard', `${Math.round(DUNGEON_REWARD.shards * diff.shards)} éclats`, 'r-epic'],
   ].map(([ic, t, r]) => `<div class="reward-icon ${r}">${img(ic)}</div><span class="reward-label">${t}</span>`).join('');
   const cleared = state.dungeonsCleared[sel.id] ?? 0;
+  // v10.3 (audit) : paliers de Cauchemar lus AVANT le bouton « Entrer » (il les cite) : la feuille plantait dès que
+  // « Difficile » était ouvert (« Cannot access 'nmSel' before initialization »).
+  const nmMax = nightmareOpen(state, sel.id);
+  const nmSel = Math.min(Number(ui.view.dungeonNm) || 0, nmMax);
   const enter = locked ? `<div class="bad">Débloqué à l'étape ${stageLabel(sel.unlockStage)}.</div>`
     : `<button class="btn btn-gold enter-btn primary-action" data-action="enter-dungeon" data-value="${sel.id}" data-diff="${diffId}" data-nm="${diffId === 'hard' ? nmSel : 0}" ${canEnterDungeon(state, sel.id) ? '' : 'disabled'}>Entrer · ${diff.label} — 1 ${img('icon_key')} <span class="key-stock">(${state.keys} en stock)</span></button>
       ${canSweepDungeon(state, sel.id, diffId) ? `<button class="btn btn-gold primary-action" data-action="sweep-dungeon" data-value="${sel.id}" data-diff="${diffId}">⚡ Balayer · ${diff.label} — 1 ${img('icon_key')}<small class="muted"> même butin, sans combat</small></button>` : ''}
@@ -240,8 +244,6 @@ function dungeonDetail(ui, state) {
   // v10.2 (1.6) : les équipes enregistrées passent sous « Équipe pour ce donjon », avec une phrase.
   const advice = `<div class="dg-advice-wrap"><div class="section-title">Équipe pour ce donjon</div><p class="muted small">Change d'équipe d'un appui : tes équipes enregistrées (chasse, or, boss) sont ci-dessous.</p>${teamChips(state)}<div class="dg-advice"><b>Équipe conseillée :</b> ${(sel.roles ?? []).map((r) => ROLES[r] ? `<span class="role-pill" style="--rc:${ROLES[r].color}">${img(ROLES[r].icon)} ${ROLES[r].label}</span>` : '').join(' ')}
     ${set ? `<div class="muted">Ensemble de ce donjon : <b style="color:${set.color}">${escapeHtml(set.name)}</b></div>` : ''}</div></div>`;
-  const nmMax = nightmareOpen(state, sel.id);
-  const nmSel = Math.min(Number(ui.view.dungeonNm) || 0, nmMax);
   const nmRow = nmMax ? `<div class="dg-nm"><b>Cauchemar</b> ${Array.from({ length: nmMax + 1 }, (_, i) => `<button class="btn chip-btn small${i === nmSel ? ' active' : ''}" data-action="dungeon-nm" data-value="${i}">${i ? roman(i) : 'Non'}</button>`).join('')}<span class="muted">+60 % de PV et de butin par palier</span></div>` : '';
   const detail = `<div class="card dungeon-detail">
       <div class="dungeon-head"><img class="px dg-boss-portrait" src="assets/ui/art102/${BOSS_ART[sel.id]}.png" alt="${escapeHtml(BOSSES[sel.boss].name)}"><div class="grow"><b class="dg-boss-name">${escapeHtml(BOSSES[sel.boss].name)}</b><div class="boss-title">${escapeHtml(sel.name)}</div>
