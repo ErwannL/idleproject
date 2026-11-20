@@ -186,7 +186,7 @@ test('7 — textes : le rangement s\'appelle « Réserve » (plus « coffre ») 
   const walk = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((d) => (d.isDirectory() ? (d.name === 'i18n' ? [] : walk(`${dir}/${d.name}`)) : d.name.endsWith('.js') ? [`${dir}/${d.name}`] : []));
   for (const f of ['src/main.js', ...walk('src/ui'), ...walk('src/core')]) {
     if (f.endsWith('panels/inventory.js')) continue; // écran refait par la partie 8 (autre lot) : ses 6 libellés « coffre » y sont signalés
-    const lines = readFileSync(f, 'utf8').split('\n').filter((l) => !/^\s*\/\//.test(l)).map((l) => l.replace(/\/\/.*$/, ''));
+    const lines = readFileSync(f, 'utf8').split(/\r?\n/).filter((l) => !/^\s*\/\//.test(l)).map((l) => l.replace(/\/\/.*$/, ''));
     for (const l of lines) assert.ok(!stash.test(l), `${f} : ${l.trim().slice(0, 110)}`);
   }
   const SHORT = readFileSync('src/ui/shortcuts.js', 'utf8');
