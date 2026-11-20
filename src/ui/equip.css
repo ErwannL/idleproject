@@ -233,13 +233,14 @@ button.eq-block:hover { background: #5c1a1e; } div.eq-block { cursor: default; }
 /* Panneau moyen : les personnages en rangée au-dessus, puis le personnage et sa fiche côte à côte. */
 @container (max-width: 699px) {
   .eq-main { grid-template-columns: minmax(0, 1fr) minmax(252px, 0.72fr); }
-  .eq-side { grid-column: 1 / -1; flex-direction: row; align-items: stretch; }
-  .eq-whos { flex-direction: row; flex: 1; min-width: 0; overflow-x: auto; padding: 6px 4px 2px 0; }
+  .eq-side { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; align-items: stretch; gap: 4px 8px; }
+  .eq-whos { flex-direction: row; flex: 0 1 auto; max-width: 100%; min-width: 0; overflow-x: auto; padding: 6px 6px 2px 0; }
   .eq-who { flex: 0 0 auto; display: grid; grid-template-columns: 36px auto; grid-template-areas: "art name" "art slots"; column-gap: 6px; align-items: center; justify-items: start; padding: 3px 10px 3px 5px; }
   .eq-who-art { grid-area: art; width: 36px; height: 36px; } .eq-who-art canvas, .eq-who-art img { max-width: 36px; max-height: 36px; }
   .eq-who b { grid-area: name; align-self: end; max-width: 84px; } .eq-who small { grid-area: slots; align-self: start; }
   .eq-who-up { top: -2px; left: 2px; }
-  .eq-shorts { flex-direction: row; margin-top: 0; align-items: center; }
+  .eq-shorts { flex-direction: row; margin: 0 0 0 auto; align-items: center; }
+  .eq-short { flex-direction: row; gap: 5px; padding: 3px 8px; }
 }
 @container (max-width: 899px) { .eq-who-unit .eq-stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 /* Panneau étroit : la fiche passe sous le personnage. */
