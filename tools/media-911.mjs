@@ -80,7 +80,7 @@ const titan = async (page) => { await ev(page, () => __idle.ui.showRift(false));
   await tab(page, 'contracts', { missionTab: 'chronicles' }); await wait(page, 2500); await click(page, '[data-action="chronicle-claim"]'); await wait(page, 3000);
   await ev(page, () => __idle.ui.closeModal()); await click(page, '[data-action="chronicle-claim"]'); await wait(page, 3000); await ev(page, () => __idle.ui.closeModal());
   await ev(page, () => __idle.ui.openTab('inventory', { selectedItemId: __idle.state.equipment.weapon.id, sheetOpen: 'item' })); await wait(page, 2500);
-  await click(page, '.item-pop [data-action="upgrade-item"]'); await wait(page, 2500);
+  await click(page, '.eq-sheet [data-action="upgrade-item"]'); await wait(page, 2500);
   await finish(ctx, page, '03-roue-chroniques-objet');
 }
 await browser.close(); server.close();

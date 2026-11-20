@@ -21,6 +21,7 @@ import { computeHeroStats } from '../../core/stats.js';
 import { expeditionDone, expeditionType, isAway } from '../../core/expeditions.js';
 import { companionPortrait, companionStill } from './expeditions.js';
 import { unitPopup } from './unit-popup.js'; // v9.3.4
+import { unitTodo } from './equip-sheet.js'; // v10.3 (8) : pastille « ! » (amélioration possible)
 import { canAfford, dupBonusPct, leveledSkill, levelMult, RESOURCE_KEYS, skillCap, skillLevels, skillUpgradeCost } from '../../core/progression.js'; // v9.3.3
 import { ACTIVE_EXTRA_AT, DUP_BONUS_PCT, SKILL_CAPS, SKILL_GROWTH, SKILL_RESOURCES, ULT_UNLOCK_COPIES } from '../../data/progression.js';
 import { bestGearFor, canEquip, classLabel, gearWaiting, gearStats, gearUpgradeCost, slotName, statText, unitGear, unitGearStats } from '../../core/companion-gear.js'; // v9.3.4 (f)
@@ -158,13 +159,21 @@ export default {
       <span class="team-sep"></span>${Array.from({ length: BALANCE.teamSlots.pet }, (_, i) => slot('pet', i)).join('')}
     </div>`;
     // v9.3.4 : cartes hautes : portrait en grand, nom sur deux lignes, cadre et pastille de rareté, élément et rôle.
+    const dupMax = COMPANION_RULES.maxCopies - 1;
     const thumb = (c) => {
       const owned = state.companions.owned[c.id];
       const equipped = state.companions.equipped.includes(c.id);
       const role = COMPANION_ROLES[c.id];
-      return `<button class="unit-card r-${c.rarity}${owned ? '' : ' unowned'}" data-action="companion-sel" data-value="${c.id}" aria-label="${escapeHtml(c.name)}">
+      // v10.3 (8) : carte portrait — fond à la couleur de la rareté, niveau, étoiles en losanges, « ! » si une
+      // amélioration est possible ; non obtenu : grisé, avec ses copies (0/1) et une barre.
+      const copies = Math.min(COMPANION_RULES.maxCopies, owned?.stars ?? 0);
+      const lvl = owned ? `<span class="uc-lvl">Niv. ${unitLevel(state, c.id)}</span>` : '';
+      const dia = owned ? `<span class="uc-dia" aria-label="${copies - 1} étoile${copies - 1 > 1 ? 's' : ''} sur ${dupMax}">${'◆'.repeat(copies - 1)}<i>${'◆'.repeat(dupMax - (copies - 1))}</i></span>`
+        : `<span class="uc-frag"><i class="uc-frag-bar"></i><b class="bad num">0/1</b></span>`;
+      const todo = owned && unitTodo(state, c) ? '<span class="uc-todo" title="Une amélioration est possible">!</span>' : '';
+      return `<button class="unit-card uc103 r-${c.rarity}${owned ? '' : ' unowned'}" data-action="companion-sel" data-value="${c.id}" aria-label="${escapeHtml(c.name)}">${lvl}${todo}
         <span class="uc-art">${owned ? companionStill(c) : `<img class="px" src="${icon(c.sprite, c.kind === 'ally' ? 1 : 3, { tint: { color: '#3a4a66', alpha: 1 } })}" alt=""><b class="uc-q">?</b>`}</span>
-        <span class="uc-name">${escapeHtml(c.name)}</span>
+        <span class="uc-name">${escapeHtml(c.name)}</span>${dia}
         <span class="uc-meta"><span class="rar-pill r-${c.rarity}">${rarityLabel(c.rarity)}</span>${elementBadge(unitElement(c.id), false, true)}${role ? `<span class="role-dot" style="background:${ROLES[role].color}" title="${ROLES[role].label}"></span>` : ''}</span>
         ${owned && gearWaiting(state, c.id) ? '<span class="gear-wait" title="Un meilleur objet attend">⬆</span>' : ''}${equipped ? '<span class="eq" title="Dans l\'équipe">✓</span>' : ''}${isAway(state, c.id) ? '<span class="away" title="En expédition">⚑</span>' : ''}</button>`;
     };
@@ -244,7 +253,6 @@ export default {
     // v9.1.3 (doc2 A12) : l'illustration, à pleine opacité, remplace le portrait dans l'en-tête de la fiche ;
     // Équiper et Améliorer sont à côté, donc visibles sans défiler (fiche en feuille du bas sur téléphone).
     const art = hdArt(sel, owned ? 'pet-art' : 'pet-art locked');
-    const dupMax = COMPANION_RULES.maxCopies - 1;
     // v9.3.4 : la fiche n'est plus dépliée sous la grille : popup (fenêtre centrée sur PC, plein écran sur téléphone).
     const twoButtons = actions; // Équiper / Retirer + Améliorer (niveau) ; l'aperçu « avant ▶ après » est dans la popup
     const detail = ui.view.sheetOpen === 'companion'

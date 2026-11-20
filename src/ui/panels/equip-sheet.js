@@ -11,7 +11,8 @@ import { SET_PIECES } from '../../data/sets.js';
 import { bastionOpen, forgeLevel, forgePerks } from '../../core/bastion.js';
 import { canEquip, itemClass, weaponClass } from '../../core/classes.js';
 import { companionById, skillKillGold } from '../../core/companions.js';
-import { canEquip as unitCanEquip, classLabel, gearScore, gearStats, gearUpgradePreview, slotName, statText, unitGear, wearerOf } from '../../core/companion-gear.js';
+import { bestGearFor, canEquip as unitCanEquip, classLabel, gearScore, gearStats, gearUpgradePreview, slotName, statText, unitGear, wearerOf } from '../../core/companion-gear.js';
+import { canAfford, skillUpgradeCost } from '../../core/progression.js';
 import { levelForStage } from '../../core/combat.js';
 import { formatStat } from '../../core/format.js';
 import { canReforge, canTargetReroll, sharpenCost, targetRerollChoices, targetRerollCost, upgradePreview } from '../../core/forge.js';
@@ -47,6 +48,17 @@ const FEM_SLOTS = new Set(['weapon', 'armor']);
 export const femSlot = (slot) => FEM_SLOTS.has(slot);
 const pctText = (v) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${formatDecimal(Math.abs(v), Math.abs(v) < 10 ? 1 : 0)} %`;
 export { pctText };
+
+// Une amélioration est possible sur ce compagnon (pastille rouge « ! ») : meilleur objet dans le sac, renforcement
+// payable d'une pièce portée, ou compétence payable.
+export function unitTodo(state, c) {
+  const own = state.companions?.owned?.[c.id];
+  if (!own) return false;
+  if (c.kind === 'ally' && bestGearFor(state, c.id).length) return true;
+  const kg = skillKillGold(state);
+  if (Object.values(unitGear(state, c.id)).some((it) => it && gearUpgradePreview(state, it, kg).canPay)) return true;
+  return ['passive', 'active', 'ultimate'].some((k) => { const cost = skillUpgradeCost(own, k, kg); return cost && canAfford(state, cost); });
+}
 
 // Vignette d'objet (cadre à la couleur de la rareté, pastille +N, flèche ▲, cadenas). `tag` : 'div' ou 'button'.
 export function itemTile(item, { cls = '', attrs = '', up = false, tag = 'div', note = '' } = {}) {

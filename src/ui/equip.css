@@ -9,7 +9,7 @@
   #panel-body:has(> .eq) .art-banner-wrap .tab-lead { padding: 4px 10px 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } }
 /* Téléphone : ces deux écrans demandent toute l'attention, le panneau prend 80 % de la hauteur. */
 #app.bottom-ui:not(.side-ui).panel-open.panel-tall #panel:has(.eq), #app.bottom-ui:not(.side-ui).panel-open.panel-tall #panel:has(.fg) { height: 80% !important; }
-#panel-body:has(> .fg) .art-banner-wrap .art-banner { height: 104px !important; max-height: 104px !important; }
+/* Forge : la bannière garde sa taille (une seule illustration en tête) ; plus basse seulement en fenêtre basse. */
 @media (max-height: 820px) { #panel-body:has(> .fg) .art-banner-wrap .art-banner { height: 64px !important; max-height: 64px !important; } }
 
 .eq, .fg { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
@@ -409,3 +409,15 @@ button.eq-block:hover { background: #5c1a1e; } div.eq-block { cursor: default; }
   .eq-art-box { height: 216px; } .eq-art-box .eq-art { max-height: 216px; }
   .eq-res { padding: 3px 8px; } .eq-tab { padding: 4px 10px 3px; }
 }
+
+/* ---------- Liste des compagnons (Équipe › Compagnons) : cartes portrait dans le même esprit ---------- */
+.unit-card.uc103 { background: linear-gradient(165deg, color-mix(in srgb, var(--uc, #5d6b88) 42%, #141c30), #0e1526 82%); padding-top: 18px; }
+.unit-card.uc103.r-common { --uc: var(--r-common); } .unit-card.uc103.r-rare { --uc: var(--r-rare); } .unit-card.uc103.r-epic { --uc: var(--r-epic); } .unit-card.uc103.r-legendary { --uc: var(--r-legendary); }
+.unit-card.uc103.unowned { opacity: 1; filter: grayscale(.85) brightness(.72); }
+.uc-lvl { position: absolute; top: 3px; left: 4px; padding: 0 5px; border-radius: 8px; background: rgba(11, 16, 32, .82); font-size: 10.5px; font-weight: 800; line-height: 15px; color: #f3e6c8; }
+.uc-todo { position: absolute; top: -6px; right: -5px; width: 18px; height: 18px; border-radius: 50%; background: #e0362c; color: #fff; font-weight: 900; font-size: 12px; line-height: 18px; text-align: center; box-shadow: 0 0 0 2px #0c1424; z-index: 1; }
+.unit-card.uc103 .eq { top: 3px; right: 16px; }
+.unit-card.uc103 .gear-wait { display: none; }
+.uc-dia { font-size: 11px; letter-spacing: 1px; color: var(--gold); line-height: 1; } .uc-dia i { font-style: normal; color: #3a4a70; }
+.uc-frag { display: flex; align-items: center; gap: 4px; width: 80%; font-size: 10.5px; line-height: 1; }
+.uc-frag-bar { flex: 1; height: 5px; border-radius: 3px; background: #0b1324; border: 1px solid #3a4a70; }

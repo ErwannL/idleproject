@@ -31,7 +31,7 @@ import { invFeatureOpen } from '../../core/unlocks.js';
 import { itemIconUrl, slotIconName } from '../../render/pixel.js';
 import { animCanvas } from '../animator.js';
 import { affixText, costButton, distinctTo, effectText, escapeHtml, fold, formatDecimal, formatNumber, hdArt, icon, img, itemFrame, rarityLabel, segment } from '../common.js';
-import { changeSheet, emptySlotSheet, femSlot, itemSheet, pctText } from './equip-sheet.js';
+import { changeSheet, emptySlotSheet, femSlot, itemSheet, pctText, unitTodo } from './equip-sheet.js';
 import { companionPortrait, companionStill } from './expeditions.js';
 import { recycleButton } from './forge.js';
 import { skillBubble, skillIcons } from './unit-popup.js';
@@ -51,13 +51,6 @@ const unitPower = (state, c) => Math.round(100 * companionMultiplier(state, c.id
 // Une amélioration est possible (pastille rouge « ! ») : meilleur objet, renforcement payable, compétence payable.
 function heroTodo(state, plan) {
   return plan.changes.length > 0 || Object.values(state.equipment).some((it) => it && upgradePreview(state, it).canPay);
-}
-function unitTodo(state, c) {
-  if (bestGearFor(state, c.id).length) return true;
-  const kg = skillKillGold(state);
-  if (Object.values(unitGear(state, c.id)).some((it) => it && gearUpgradePreview(state, it, kg).canPay)) return true;
-  const own = state.companions.owned[c.id];
-  return Boolean(own) && ['passive', 'active', 'ultimate'].some((k) => { const cost = skillUpgradeCost(own, k, kg); return cost && canAfford(state, cost); });
 }
 
 // Bandeau « Tes ressources » : ce qui sert ici (or, éclats), et en gris ce qui sert aux compagnons. Toucher une

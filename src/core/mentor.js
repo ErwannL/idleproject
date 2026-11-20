@@ -29,7 +29,7 @@ export function mentorTips(state, { element = null, wall = false } = {}, balance
   }
   const current = computeHeroStats(state, balance);
   const better = state.inventory.find((i) => isUpgrade(state, i, balance, current));
-  if (better) out.push({ id: 'item', icon: 'tab_equipment', title: 'Objet meilleur', text: `Équipe ${better.name}`, tab: 'inventory', point: '[data-action="equip-best"]' });
+  if (better) out.push({ id: 'item', icon: 'tab_equipment', title: 'Objet meilleur', text: `Équipe ${better.name}`, tab: 'inventory', point: '[data-action="eq-quick"], [data-action="equip"]' });
   const up = bestOpenUpgrade(state, balance);
   if (up && up.cost <= state.gold) {
     const pct = Math.round((upgradeProfits(state, balance)[up.key]?.pct ?? 0) * 10) / 10;
