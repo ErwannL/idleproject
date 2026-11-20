@@ -2,7 +2,7 @@
 // L'écran s'ouvre sans erreur JavaScript ni débordement horizontal ; on pose un ouvrier, on lance un chantier et une
 // commande, on ferme le jeu 3 h (horloge avancée, page rechargée), au retour le chantier est fini, la commande est dans
 // le coffre de butin, le Sceau et le Carnet le disent une fois ; puis une recherche, 1 h de plus, et une commande
-// restée « prête » (coffre de butin plein) qu'on récupère. Captures : docs/screenshots/v1030-bastion/.
+// restée « prête » (coffre de butin plein) qu'on récupère. Captures : dist/e2e-103-bastion/ (ou le dossier donné en argument).
 // Usage : node tools/e2e-103-bastion.mjs
 import { createRequire } from 'node:module';
 import { mkdir, readFile } from 'node:fs/promises';
@@ -11,7 +11,7 @@ const { chromium } = createRequire(import.meta.url)('playwright');
 const server = await startServer(0);
 const url = `http://localhost:${server.address().port}/`;
 const browser = await chromium.launch();
-const out = 'docs/screenshots/v1030-bastion';
+const out = process.argv[2] ?? 'dist/e2e-103-bastion';
 await mkdir(out, { recursive: true });
 // Partie de fin de jeu, avec de quoi payer : des éclats et de l'or (les coûts suivent les revenus du joueur).
 const save = JSON.parse(await readFile('tests/fixtures/endgame.json', 'utf8'));

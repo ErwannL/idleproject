@@ -2,6 +2,7 @@
 // nombre n'est écrit avec un point décimal, la fusion annonce la bonne chance (et suit la Forge du Bastion), elle ne
 // prend jamais un objet porté ou verrouillé, et renforcer depuis la Forge donne le même résultat que depuis la fiche.
 import test from 'node:test';
+import { FORGE_PERKS } from '../src/data/bastion.js';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
@@ -101,10 +102,10 @@ test('renforcement : au maximum, plus d\'aperçu ; coût impayable → canPay fa
   assert.equal(p.atMax, true);
   assert.equal(p.level, BALANCE.forge.maxUpgrades.common);
   assert.equal(p.max, forge.maxUpgrades(item, BALANCE, s));
-  // Forge du Bastion niveau 1 : +2 niveaux possibles, l'aperçu revient.
+  // Forge du Bastion niveau 1 : le plafond monte (FORGE_PERKS.maxUpgradePerLevel), l'aperçu revient.
   s.bastion = { buildings: { forge: { level: 1 } } };
   assert.equal(forge.upgradePreview(s, item).atMax, false);
-  assert.equal(forge.upgradePreview(s, item).max, BALANCE.forge.maxUpgrades.common + 2);
+  assert.equal(forge.upgradePreview(s, item).max, BALANCE.forge.maxUpgrades.common + FORGE_PERKS.maxUpgradePerLevel);
   const poor = rich(); poor.gold = 0; poor.materials.shards = 1;
   const it = makeItem(poor, 'iron_helm', 'epic', 10, BALANCE, new Rng(2)); poor.inventory.push(it);
   const q = forge.upgradePreview(poor, it);

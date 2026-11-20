@@ -64,3 +64,9 @@ html.reduce-motion .am-cards.am-deal .am-card::after { animation: none; opacity:
 .door-card.opening .door-art { transform: perspective(300px) rotateY(-72deg); filter: brightness(1.4) drop-shadow(0 0 14px #ffd34a); }
 .door-cards:has(.door-card.opening) .door-card:not(.opening) { opacity: .35; transition: opacity .3s; }
 .pcard.small.foe .pc-top b { -webkit-line-clamp: 3; font-size: 9.5px; }
+
+/* PC, menu à 6 sous-onglets (Profil) : « Apparences » et « Classement » s'écrivent en entier (2 lignes au besoin),
+   plus de « Appare… ». */
+@media (min-width: 900px) {
+  #panel-subtabs:has(.subtab:nth-of-type(6)) .subtab span { font-size: 11px; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; hyphens: auto; }
+}
