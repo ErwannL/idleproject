@@ -29,11 +29,12 @@
 .eq-res-note { font-size: 11px; color: #8493b3; font-style: italic; white-space: nowrap; }
 
 /* ---------- Onglets du personnage ---------- */
-.eq-tabs { display: flex; gap: 2px; align-items: center; border-bottom: 1px solid var(--line); }
+.eq-tabs { display: flex; gap: 2px; align-items: center; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+.eq-tabs::-webkit-scrollbar { display: none; }
 .eq-tab { background: none; border: 0; border-bottom: 3px solid transparent; color: #b9c7e6; padding: 6px 10px 5px; font: inherit; font-weight: 700; font-size: 13px; cursor: pointer; white-space: nowrap; }
 .eq-tab:hover { color: #fff; }
 .eq-tab.on { color: var(--gold-text); border-bottom-color: var(--gold); }
-.eq-elem { margin-left: auto; }
+.eq-elem { margin-left: auto; flex: none; }
 
 /* ---------- Grille : personnages | personnage en grand | fiche ---------- */
 .eq-main { display: grid; grid-template-columns: 74px minmax(0, 1fr) minmax(252px, 0.82fr); gap: 8px; align-items: stretch; }
@@ -249,7 +250,7 @@ button.eq-block:hover { background: #5c1a1e; } div.eq-block { cursor: default; }
   .eq-whos { padding-top: 6px; } .eq-who { grid-template-columns: 30px auto; padding: 2px 8px 2px 4px; column-gap: 4px; }
   .eq-who-art { width: 30px; height: 30px; } .eq-who-art canvas, .eq-who-art img { max-width: 30px; max-height: 30px; }
   .eq-who b { font-size: 11px; max-width: 62px; } .eq-who small { font-size: 10px; }
-  .eq-tab { padding: 5px 7px 4px; font-size: 12.5px; }
+  .eq-tab { padding: 5px 5px 4px; font-size: 12px; } .eq-elem span { display: none; } .eq-elem { padding: 2px 8px; }
   .eq-stage { min-height: 0; padding: 8px 6px 6px; gap: 6px; }
   .eq-doll { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; align-items: start; }
   .eq-doll.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -274,7 +275,8 @@ button.eq-block:hover { background: #5c1a1e; } div.eq-block { cursor: default; }
 /* Feuille du bas (téléphone) : la fiche de l'objet glisse depuis le bas, les places restent au-dessus. */
 #unit-host .unit-pop.eq-pop { position: fixed; inset: auto 0 0 0 !important; top: auto !important; left: 0 !important; bottom: 0 !important; transform: none !important; width: 100% !important; max-width: none !important; height: auto !important;
   max-height: 62vh !important; box-sizing: border-box; border-radius: 14px 14px 0 0 !important; border: 0; border-top: 2px solid var(--gold-2); padding: 0; overflow-y: auto; background: #101a30; animation: eq-sheet-up .18s ease-out; box-shadow: 0 -10px 30px rgba(0, 0, 0, .55); }
-#unit-host .eq-backdrop { background: rgba(4, 8, 16, .28); backdrop-filter: none; }
+/* Pas de voile : les places restent visibles et touchables au-dessus de la feuille (✕ pour la fermer). */
+#unit-host .eq-backdrop { background: none; backdrop-filter: none; pointer-events: none; }
 .eq-pop .eq-sheet { border: 0; border-radius: 0; padding: 10px 10px 12px; }
 .eq-pop .eq-close { display: inline-flex; position: absolute; top: 6px; right: 6px; z-index: 3; }
 .eq-pop .eq-sh-head { padding-right: 34px; }

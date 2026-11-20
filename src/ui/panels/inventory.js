@@ -594,7 +594,7 @@ export default {
     const sheetHtml = !pop ? sheet : v.sheetOpen === 'item'
       ? `<div class="unit-pop-backdrop eq-backdrop" data-action="close-sheet"></div><div class="unit-pop eq-pop" role="dialog" aria-modal="true" aria-label="Fiche de l'objet">${sheet}</div>` : '';
     const tabs = `<div class="eq-tabs" role="tablist">${TABS.map(([id, label]) => `<button class="eq-tab${id === tab ? ' on' : ''}" role="tab" aria-selected="${id === tab}" data-action="eq-tab" data-value="${id}">${label}</button>`).join('')}
-      ${wheelShown(state) ? '<button class="btn small eq-elem" data-action="elements-help">? Éléments</button>' : ''}</div>`;
+      ${wheelShown(state) ? '<button class="btn small eq-elem" data-action="elements-help" aria-label="Éléments" title="Éléments">?<span> Éléments</span></button>' : ''}</div>`;
     const bagHead = `<div class="inv-head eq-bag-head">
         ${open('stash') ? segment([['bag', `Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}`, 'icon_bag'], ['stash', `Réserve ${state.stash.length}/${STASH_SIZE}`, 'icon_chest']], 'inv-tab', invTab) : `<b class="inv-bag-count">${img('icon_bag')} Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}</b>`}
         <button class="btn small bag-gear${v.bagMenu ? ' active' : ''}" data-action="bag-menu" aria-expanded="${Boolean(v.bagMenu)}" aria-label="Filtres, builds et réglages du sac" title="Filtres, builds et réglages du sac">⚙ Filtres</button>
