@@ -14,6 +14,7 @@ import { ITEM_SETS } from '../data/sets.js'; // v9.6.1
 import { combatSkills, dupMultiplier, goldPerKill, levelMult, skillLevels, upgradeSkill } from './progression.js'; // v9.3.3
 import { GOLD_INDEX } from '../data/progression.js';
 import { unitGearStats } from './companion-gear.js'; // v9.3.3
+import { releaseWorker, researchEffects } from './bastion-base.js'; // v10.3 (10.3, 10.4)
 
 export const MULTIPLICATIVE = { damagePct: 'damageMultPct', maxHpPct: 'maxHpMultPct', goldPct: 'goldMultPct' };
 
@@ -51,7 +52,7 @@ export function ultimateUnlocked() {
 
 // v9.3.3 : compétences en combat = active (+ évolutions des niveaux 5 et 8) + ultime, avec leurs niveaux.
 export function companionSkills(state, id) {
-  const cd = unitGearStats(state, id).cd; // v9.3.3 : réduction de recharge de l'équipement (plafonnée)
+  const cd = unitGearStats(state, id).cd + (researchEffects(state).companionCdPct ?? 0); // v9.3.3 : réduction de recharge de l'équipement (plafonnée) · v10.3 : recherche « Rappel rapide »
   let list = combatSkills(skillList(id), state.companions.owned[id]);
   // v9.3.8 : familier — les dégâts de l'ultime retiré passent dans l'active : même dégâts par seconde qu'avant, au
   // même niveau (rapport calculé avec l'ancien kit complet).
@@ -212,7 +213,7 @@ export function companionUpgradeCost(state, id, balance = BALANCE) {
   const owned = state.companions.owned[id];
   if (!owned) return Infinity;
   return Math.floor(COMPANION_RULES.upgradeCostKills * referenceKillGold(levelForStage(state.maxStage, balance), balance)
-    * COMPANION_RULES.upgradeCostGrowth ** (unitLevel(state, id) - 1));
+    * COMPANION_RULES.upgradeCostGrowth ** (unitLevel(state, id) - 1) * (1 - (researchEffects(state).companionCostPct ?? 0) / 100)); // v10.3 : recherche « Entraînement commun »
 }
 
 export function upgradeCompanion(state, id, balance = BALANCE) {
@@ -289,6 +290,7 @@ export function replaceCompanion(state, newId, oldId) {
   const index = state.companions.equipped.indexOf(oldId);
   if (index < 0 || state.companions.equipped.includes(newId)) return false;
   state.companions.equipped[index] = newId;
+  releaseWorker(state, newId, 'team'); // v10.3 (10.3) : un ouvrier qui rejoint l'équipe quitte son bâtiment
   return true;
 }
 
@@ -312,5 +314,6 @@ export function toggleCompanion(state, id, balance = BALANCE) {
     state.companions.equipped = state.companions.equipped.filter((x) => !same.includes(x));
   }
   state.companions.equipped.push(id);
+  releaseWorker(state, id, 'team'); // v10.3 (10.3)
   return true;
 }

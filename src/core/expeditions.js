@@ -9,6 +9,7 @@ import { levelForStage, referenceKillGold, zoneIndexForStage } from './combat.js
 import { unitLevel } from './companions.js'; // v9.5.0 : niveau d'équipe
 import { COMPANION_ROLES } from '../data/synergies.js'; // v9.6.2
 import { unitElement, zoneElement } from './elements.js'; // v9.6.2
+import { releaseWorker, researchEffects } from './bastion-base.js'; // v10.3 (10.3, 10.4)
 
 export const EXPEDITION_RULES = { slots: 3 };
 export const EXPEDITION_TYPES = [
@@ -53,7 +54,7 @@ export function expeditionReward(state, companionId, typeId, balance = BALANCE) 
     fragments: h >= 12 ? Math.round((2 + stage / 60) * p) : h >= 4 ? Math.round((stage / 150) * p) : 0,
   };
   if (h >= 12 && p >= 3.5) reward.gems += TICKET_GEMS; // v9.1.3 : ancien ticket
-  const k = expeditionAffinity(state, companionId, typeId).mult; // v9.6.2 : rôle et élément adaptés
+  const k = expeditionAffinity(state, companionId, typeId).mult * (1 + (researchEffects(state).expeditionPct ?? 0) / 100); // v9.6.2 : rôle et élément adaptés · v10.3 : recherche « Éclaireurs »
   if (k !== 1) for (const key of ['gold', 'shards', 'gems', 'fragments']) if (reward[key]) reward[key] = Math.round(reward[key] * k);
   return Object.fromEntries(Object.entries(reward).filter(([, v]) => v > 0));
 }
@@ -100,6 +101,7 @@ export function startExpedition(state, slot, companionId, typeId, now = Date.now
   const reward = expeditionReward(state, companionId, typeId, balance);
   if (!reward) return false;
   ex.slots[slot] = { companionId, type: typeId, start: now, end: now + expeditionType(typeId).hours * HOUR, reward };
+  releaseWorker(state, companionId, 'expedition', now); // v10.3 (10.3) : un ouvrier qui part quitte son bâtiment
   daybookTrack(state, 'expeditions', 1, now); // v9.8 : Carnet du jour
   if (!ex.last) ex.last = Array(ex.slots.length).fill(null);
   ex.last[slot] = { companionId, type: typeId }; // v9.1.0 : « Repartir » refait la même expédition

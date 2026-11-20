@@ -9,7 +9,7 @@ import { trackMissions } from './missions.js';
 import { CLASS_WEAPON_DROP } from '../data/classes.js';
 import { activeClass, canEquip, classWeaponBases } from './classes.js';
 import { usefulSetPiece } from './sets.js';
-import { forgePerks } from './bastion.js'; // v10.3 (10.5) : la Forge du forgeron améliore les chiffres de la Forge
+import { forgePerks } from './bastion-base.js'; // v10.3 (10.5) : la Forge du forgeron améliore les chiffres de la Forge
 
 // tier 'rare' : Rare ou mieux (or + éclats) ; 'epic' : Épique ou mieux (or + plus d'éclats ; v9.1.3 : plus d'essences).
 export function craftCost(state, balance = BALANCE, tier = 'rare') {

@@ -1,5 +1,7 @@
 // v9.7.1 (lot 6) : liens entre compagnons — deux compagnons joués ensemble débloquent une courte scène (une fois) et
 // un petit bonus tant qu'ils sont dans la même équipe. Ajouter un lien = une ligne ici.
+import { researchEffects } from '../core/bastion-base.js';
+
 export const BONDS = [
   { id: 'sisters', pair: ['priestess', 'pyromancer'], name: 'Sœurs d\'armes', bonus: { companionPowerPct: 10 },
     scene: ['Prêtresse : « Cette fois, on ne tombera pas. »', 'Pyromancienne : « Cette fois, c\'est lui qui brûlera. »'] },
@@ -17,4 +19,5 @@ export function activeBonds(state) {
   const team = new Set(state.companions?.equipped ?? []);
   return BONDS.filter((b) => b.pair.every((id) => team.has(id)));
 }
-export function bondBonus(state, key) { return activeBonds(state).reduce((a, b) => a + (b.bonus[key] ?? 0), 0); }
+// v10.3 (10.4) : la recherche « Lien renforcé » ajoute +10 % par niveau aux bonus des liens.
+export function bondBonus(state, key) { return activeBonds(state).reduce((a, b) => a + (b.bonus[key] ?? 0), 0) * (1 + (researchEffects(state).bondPct ?? 0) / 100); }

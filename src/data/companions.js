@@ -118,3 +118,15 @@ export const COMPANIONS = [
   ally('sylvan_guardian', 'Gardienne sylvestre', 'legendary', '#63d98a', { regenPct: 1.2, goldPct: 15 }, { name: 'Sève de vie', type: 'heal', every: 10, value: 22, text: 'Soigne 22 % des PV' },
     signature('Récolte sylvestre', HEAL_25, { type: 'gold', value: 3 })),
 ];
+
+// v10.3 (10.3) : métier de chaque compagnon au Bastion (champ `trade`), lié à son rôle et à son histoire : +20 % de
+// vitesse dans le bâtiment de son métier (forgeron : Forge ; savant : Bibliothèque ; mineur : Mine de cristal ;
+// entraîneur : Camp d'entraînement ; marchand : Comptoir).
+const COMPANION_TRADES = {
+  dwarf: 'smith', pyromancer: 'smith', barbarian: 'smith', demon_queen: 'smith',
+  priestess: 'scholar', witch: 'scholar', high_priest: 'scholar', archangel: 'scholar',
+  ranger: 'miner', shadow: 'miner', ninja: 'miner', ice_empress: 'miner',
+  squire: 'trainer', lancer: 'trainer', azure_paladin: 'trainer', shadow_lord: 'trainer',
+  mercenary: 'merchant', rose_blade: 'merchant', elf_archer: 'merchant', sylvan_guardian: 'merchant',
+};
+for (const c of COMPANIONS) if (COMPANION_TRADES[c.id]) c.trade = COMPANION_TRADES[c.id];

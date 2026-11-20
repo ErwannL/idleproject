@@ -12,6 +12,7 @@ import { talentEffects } from './rebirth.js';
 import { achievementEffects } from './achievements.js';
 import { setEffects } from './sets.js';
 import { museumEffects } from './museum.js';
+import { researchBonuses } from './bastion-base.js'; // v10.3 (10.4) : recherches du Bastion
 
 export const BONUS_KEYS = [
   'damagePct', 'attackSpeedPct', 'maxHpPct', 'regenPct', 'armor', 'goldPct', 'dropChance',
@@ -50,6 +51,7 @@ export function bonusSources(state, equipment = state.equipment) {
     museum: museumEffects(state),
     boons: boonEffects(state), // v9.9 (K7/K8) : bénédictions de donjon, rencontres de route
     collection: { goldPct: COLLECTION_GOLD_PCT * Object.keys(state.companions?.owned ?? {}).length }, // v9.9 (K17)
+    research: researchBonuses(state), // v10.3 (10.4) : au plus +60 % dégâts, +60 % vie, +50 % or
   };
 }
 
