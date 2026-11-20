@@ -19,7 +19,7 @@ import { currentEvent, eventGoals, eventRecord } from './ancients.js';
 export function claimables(state, now = Date.now(), balance = BALANCE) {
   const out = [];
   const full = !hasRoom(state, balance); // v9.1.3 (doc3 lot 1) : sac plein → coffre ; bloqué si les deux sont pleins
-  const push = (entry) => out.push({ item: false, reward: {}, ...entry, blocked: entry.item && full ? 'Sac et coffre pleins' : null });
+  const push = (entry) => out.push({ item: false, reward: {}, ...entry, blocked: entry.item && full ? 'Sac et Réserve pleins' : null });
   if (state.missions) {
     if (loginReady(state)) push({ key: 'login', kind: 'login', label: loginPending(state) > 1 ? `Connexion : ${loginPending(state)} jours` : `Connexion : jour ${loginDay(state) + 1}`, reward: loginPendingReward(state), tab: 'contracts' });
     const tn = trackNext(state); // v9.1.3 : piste du mois

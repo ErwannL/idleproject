@@ -55,7 +55,7 @@ export function openSearch(ui) {
   const list = (q) => searchMatches(q, index).map((e, i) => `<button class="btn search-hit${i === 0 ? ' first' : ''}" data-search="${i}">
     <b>${escapeHtml(e.label)}</b><span class="muted">${escapeHtml(e.path)}</span></button>`).join('') || '<div class="muted">Aucun écran trouvé.</div>';
   ui.openModal(`<h2 id="modal-title">Aller à…</h2>
-    <input id="search-input" class="confirm-input search-input" type="search" autocomplete="off" placeholder="Coffre, Renaissance, Hauts faits…" aria-label="Rechercher un écran">
+    <input id="search-input" class="confirm-input search-input" type="search" autocomplete="off" placeholder="Réserve, Renaissance, Hauts faits…" aria-label="Rechercher un écran">
     <div class="search-list">${list('')}</div>
     <div class="detail-actions"><button class="btn" data-action="close-modal">Fermer</button></div>`);
   const card = ui.$('modal-card');

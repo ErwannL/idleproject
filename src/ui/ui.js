@@ -692,6 +692,7 @@ export class UI {
       encyclopedia: 'S\'ouvre après ton premier boss', boss: 'S\'ouvre après ton premier boss', contracts: 'S\'ouvre à ta première récompense',
       stats: `S'ouvre à l'étape ${stageLabel(40)}`, ranking: `S'ouvre à l'étape ${stageLabel(40)}`, guild: `S'ouvre à l'étape ${stageLabel(40)}`,
       forge: 'Termine la mini-quête « Forge »',
+      arena: `S'ouvre à l'étape ${stageLabel(25)}, avec un compagnon`, // v10.3 (audit 2.1)
     };
     return R[tab] ?? 'Bientôt';
   }
@@ -782,7 +783,9 @@ export class UI {
     this.layerHost?.('unit-host', '');
     // v9.1.3 (lot F) : « À récupérer » n'est plus un onglet, c'est une fenêtre (touche N, bouton de Missions).
     if (tab === 'inbox') { this.openClaims(); return; }
-    if (tab === 'arena') { tab = 'tower'; view = { ...(view ?? {}), defiTab: 'arena' }; } // v9.3.5 : Arène dans Défis
+    // v10.3 (audit 2.1) : l'Arène est un vrai onglet de Combat (Carte, Donjons, Arène, Défis, Événement). Avant, le
+    // bouton « Arène » renvoyait à Défis › Arène (titre « Défis », onglet Défis allumé). L'ancien chemin y mène encore.
+    if (tab === 'tower' && view?.defiTab === 'arena') { tab = 'arena'; view = { ...view, defiTab: null }; }
     if (!PANELS[tab] || this.tabVisible[tab] === false) return;
     if (this.view.themePreview && tab !== 'shop') this.actions.previewTheme(null); // v9.2.8 : fin de l'aperçu du thème
     this.sidePanel(true);
@@ -797,7 +800,7 @@ export class UI {
     }
     if (tab === 'ranking') this.actions.loadRanking?.();
     if (tab === 'guild') this.actions.loadGuild?.(); // v9.3.2
-    if (tab === 'tower' && this.view.defiTab === 'arena') this.actions.loadGlobalBoss?.(); // v9.3.5
+    if (tab === 'arena') this.actions.loadGlobalBoss?.(); // v9.3.5 (v10.3 : onglet Arène)
     // v9.2.6 : ouverture du panneau (ou changement d'onglet) animée, liste en cascade au prochain rendu.
     if (tab !== this.tab) { uiFx.panelOpenFx(this.$('panel'), !this.tab); this.vfxCascade = true; }
     this.tab = tab;
@@ -1102,7 +1105,7 @@ export class UI {
       case 'claim-peek': local(() => { v.claimPeek = !v.claimPeek; }); break; // v9.2.5 : liste de « Tout récupérer »
       case 'exp-dur': local(() => { v.expDur = value; }); break; // v9.1.3 : durée commune des expéditions
       case 'exp-per-slot': local(() => { v.expPerSlot = !v.expPerSlot; }); break;
-      case 'defi-tab': local(() => { v.defiTab = value; }); if (value === 'arena') a.loadGlobalBoss?.(); break; // v9.1.3 : Défis › Tour / Défi de la semaine
+      case 'defi-tab': if (value === 'arena') { this.openTab('arena'); break; } local(() => { v.defiTab = value; }); break; // v9.1.3 : Défis › Tour / Défi de la semaine (v10.3 : l'Arène a son onglet)
       case 'lang': a.setLanguage(value); break;
       case 'theme': a.setTheme(value); break;
       case 'speed': a.cycleSpeed(); break;
@@ -1207,7 +1210,14 @@ export class UI {
         break;
       }
       case 'sweep-all-go': this.closeModal(); v.dungeonSheet = false; a.sweepAllRun(); break;
-      case 'pick-door': this.closeModal(); clearInterval(this.doorTimer); a.chooseDoor(value); this.showBoons(); break;
+      case 'pick-door': { // v10.3 (audit 3) : la porte choisie s'ouvre (0,4 s) avant la salle — aussi au toucher, pas seulement au survol
+        if (this.doorPicked) break;
+        clearInterval(this.doorTimer);
+        const go = () => { this.doorPicked = false; this.closeModal(); a.chooseDoor(value); this.showBoons(); };
+        const card = el.closest?.('.door-card');
+        if (card && !reduceMotion()) { this.doorPicked = true; card.classList.add('opening'); setTimeout(go, 400); } else go();
+        break;
+      }
       case 'dungeon-path-pre': local(() => { v.dungeonPath = value; a.rememberDungeonChoice('path', value); }); break;
       case 'dungeon-path': a.setDungeonPath(value); break;
       case 'sweep-dungeon': this.closeModal(); a.sweepDungeon(value, v.dungeonSlot ?? this.state.ui.dungeonSlot ?? 'any', v.dungeonPath ?? this.state.ui.dungeonPath ?? 'gold', el.dataset.diff ?? v.dungeonDiff ?? 'easy'); break; // v9.8 (H2)
@@ -1454,7 +1464,7 @@ export class UI {
         }
         if (added && event.item.rarity !== 'common') {
           this.news(event.museum ? `${event.item.name} exposé au Musée`
-            : event.mannequin ? `${event.item.name} rangé au coffre (ensemble « ${setById(event.item.set)?.name ?? ''} »)`
+            : event.mannequin ? `${event.item.name} rangé dans la Réserve (ensemble « ${setById(event.item.set)?.name ?? ''} »)`
               : `Butin : ${event.item.name} (${rarity.label})`, rarity.color);
           if (event.item.rarity === 'legendary') this.announce(`Objet légendaire : ${event.item.name}`);
         }
@@ -2594,7 +2604,7 @@ export class UI {
     if (!icons && !items) return;
     this.openModal(`<div class="claim-recap"><h2 id="modal-title">${img('icon_chest', 'ico20')} ${count} récompense${count > 1 ? 's' : ''} récupérée${count > 1 ? 's' : ''}</h2>
       ${icons}${items ? `<p>+${items} objet${items > 1 ? 's' : ''} dans le sac</p>` : ''}
-      ${left ? `<p class="bad">${left} en attente : sac et coffre pleins</p>` : ''}
+      ${left ? `<p class="bad">${left} en attente : sac et Réserve pleins</p>` : ''}
       <div class="detail-actions"><button class="btn btn-primary" data-action="close-modal">Super !</button></div></div>`);
   }
 
@@ -2603,7 +2613,7 @@ export class UI {
     const ratio = r.before > 0 ? r.after / r.before : 1;
     const rows = [
       r.claimed ? `<li>${r.claimed} récompense${r.claimed > 1 ? 's' : ''} récupérée${r.claimed > 1 ? 's' : ''}</li>` : '',
-      r.claimsLeft ? `<li class="bad">${r.claimsLeft} récompense${r.claimsLeft > 1 ? 's' : ''} avec un objet en attente (sac et coffre pleins) : Objectifs › À récupérer.</li>` : '',
+      r.claimsLeft ? `<li class="bad">${r.claimsLeft} récompense${r.claimsLeft > 1 ? 's' : ''} avec un objet en attente (sac et Réserve pleins) : Objectifs › À récupérer.</li>` : '',
       r.equipped ? `<li>${r.equipped} objet${r.equipped > 1 ? 's' : ''} équipé${r.equipped > 1 ? 's' : ''}</li>` : '',
     ].join('') || '<li class="muted">Rien à récupérer ni à équiper.</li>';
     this.openModal(`<h2 id="modal-title">${img('icon_bolt', 'ico20')} Retour de session</h2><ul class="session-list">${rows}</ul>
@@ -2641,7 +2651,7 @@ export class UI {
       tree: q('talents') && best >= 10 || state.fragments > 0 || state.records.rebirths > 0 || (state.prestige?.count ?? 0) > 0 || (state.transcend?.count ?? 0) > 0,
       dungeons: q('dungeons') && best >= DUNGEONS[0].unlockStage || Object.keys(state.dungeonsCleared).length > 0 || Boolean(state.dungeon),
       // v9.1.3 : l'onglet Défis s'ouvre avec la Tour ou avec le Défi de la semaine (étape plus basse).
-      tower: q('challenges') && best >= TOWER_UNLOCK || (state.towerBest ?? 0) > 0 || Boolean(state.tower) || challengeUnlocked(state) || Boolean(state.challenge) || arenaUnlocked(state), // v9.3.5 : Arène comprise
+      tower: q('challenges') && best >= TOWER_UNLOCK || (state.towerBest ?? 0) > 0 || Boolean(state.tower) || challengeUnlocked(state) || Boolean(state.challenge), // v10.3 (audit 2.1) : l'Arène a son propre onglet, elle n'ouvre plus Défis
       boss: boss || Object.keys(state.powers).length > 0,
       companions: Object.keys(state.companions.owned).length > 0 || (q('summon') && boss),
       summon: q('summon') && (boss || Object.keys(state.companions.owned).length > 0), // v9.7.1 : aucun tirage avant la fin du monde 1
@@ -2730,7 +2740,7 @@ export class UI {
     // v10.1 (P2 §2.1) : une bannière illustrée en tête de chaque onglet, avec la phrase « à quoi sert l'écran ».
     const BANNER101 = { upgrades: 'banner_upgrades', skills: 'banner_skills', companions: 'banner_companions', dungeons: 'banner_dungeons', contracts: 'banner_missions',
       daybook: 'banner_daybook', boss: 'banner_boss', ranking: 'banner_ranking', stats: 'banner_stats', shop: 'banner_shop', guild: 'banner_guild', looks: 'banner_looks', forge: 'banner_forge', encyclopedia: 'banner_collections', inventory: 'banner_forge' };
-    const src = this.tab === 'tower' && this.view.defiTab === 'arena' ? 'assets/ui/art98/arena.png'
+    const src = this.tab === 'arena' ? 'assets/ui/art98/arena.png'
       : BANNER[this.tab] ? `assets/ui/art98/${BANNER[this.tab]}.png` : BANNER101[this.tab] ? `assets/ui/art101/${BANNER101[this.tab]}.png` : null;
     const lead = TAB_LEAD[this.tab] ? `<p class="tab-lead">${escapeHtml(TAB_LEAD[this.tab])}</p>` : '';
     const banner = src ? `<div class="art-banner-wrap"><img class="px art-banner" src="${src}" loading="lazy" alt="" aria-hidden="true">${lead}</div>` : lead;

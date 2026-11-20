@@ -2056,3 +2056,8 @@ PATTERNS.push(...patterns934(lookup));
 import { EXACT_971, patterns971 } from './en-971.js';
 for (const [k, v] of Object.entries(EXACT_971)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.push(...patterns971(lookup));
+// v10.3 (audit des parties 0 à 7) : Réserve, onglet Arène, dos de carte doré (./en-103-audit.js). Motifs placés en tête :
+// « Tri : … » et « … en attente … » existent déjà avec l'ancien mot « coffre ».
+import { EXACT_103A, patterns103a } from './en-103-audit.js';
+for (const [k, v] of Object.entries(EXACT_103A)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns103a(lookup));

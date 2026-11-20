@@ -224,6 +224,9 @@ export function autoFormation(state) {
   return f;
 }
 export const floorOpen = (state, f) => f >= 1 && f <= cardArena(state).best + 1;
+// v10.3 (audit) : dos de carte doré — gagné en battant le premier gardien (étage 25), porté ensuite par toute la formation.
+export const GOLD_BACK_FLOOR = 25;
+export const hasGoldBack = (state) => cardArena(state).best >= GOLD_BACK_FLOOR;
 
 export function playFloor(state, f, now = Date.now()) {
   const c = cardArena(state, now);
@@ -234,6 +237,8 @@ export function playFloor(state, f, now = Date.now()) {
   const setup = floorCards(f, cal);
   const r = fightBoard(team, setup.cards, { seed: f, rule: setup.rule });
   c.last = { floor: f, won: r.won, stars: r.stars, at: now };
+  const goldBack = c.best >= GOLD_BACK_FLOOR; // dos porté pendant CE combat
+  const newBack = r.won && !goldBack && f >= GOLD_BACK_FLOOR; // gagné par ce combat
   let reward = null;
   if (r.won) {
     const prev = c.stars[f] ?? 0;
@@ -244,7 +249,7 @@ export function playFloor(state, f, now = Date.now()) {
     heraldTrack(state, 'arena', 1);
     daybookTrack(state, 'arena', 1, now);
   }
-  return { ...r, floor: f, setup, team, reward, newStars: r.won ? Math.max(0, r.stars - 0) : 0 };
+  return { ...r, floor: f, setup, team, reward, goldBack, newBack, newStars: r.won ? Math.max(0, r.stars - 0) : 0 };
 }
 export function sweepFloor(state, f, now = Date.now()) {
   const c = cardArena(state, now);
