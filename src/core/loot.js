@@ -6,6 +6,7 @@ import { BALANCE } from '../data/balance.js';
 import { AFFIXES, GROUP_KINDS, ITEM_BASES, PERCENT_STATS, RARITIES, SIGNATURE_ITEMS, SLOT_GROUP } from '../data/items.js';
 import { rollSet } from './sets.js';
 import { levelForStage } from './combat.js'; // v9.2.0 (monde marin) : niveau de puissance des étapes
+import { researchEffects } from './bastion-base.js'; // v10.3 (10.4)
 
 const ALL_BASES = [...ITEM_BASES, ...SIGNATURE_ITEMS];
 
@@ -121,6 +122,15 @@ export function makeParts(base, rarityId, level, balance = BALANCE, rng = null) 
 // Sans emplacement imposé, on tire d'abord l'emplacement (poids de balance.loot.slotWeights), puis un
 // modèle : les accessoires, déclinés en plusieurs couleurs, ne remplissent pas tout le butin.
 // options.setZone (v8.5) : monde d'origine → l'objet peut appartenir à l'ensemble de ce monde.
+// v10.3 (10.4) : recherche « Œil du chasseur » — +2 % par niveau sur le poids des raretés Épique et Légendaire.
+function luckyWeights(state, weights) {
+  const pct = researchEffects(state).rareLootPct ?? 0;
+  if (!pct) return weights;
+  const k = 1 + pct / 100;
+  const w = (id) => weights?.[id] ?? RARITIES.find((r) => r.id === id).weight;
+  return { ...Object.fromEntries(RARITIES.map((r) => [r.id, w(r.id)])), epic: w('epic') * k, legendary: w('legendary') * k };
+}
+
 export function generateItem(state, rng, { level, minRarity = 'common', slot, setZone = null, weights = null } = {}, balance = BALANCE) {
   let chosen = slot;
   if (!chosen) {
@@ -138,7 +148,7 @@ export function generateItem(state, rng, { level, minRarity = 'common', slot, se
   // v9.0.6 : la plupart des armes tombent dans la classe active (les autres restent possibles).
   const classPool = chosen === 'weapon' && state && (!cls || cls === heroGearClass(state)) ? classWeaponBases(activeClass(state).id) : [];
   const base = classPool.length && rng.next() < CLASS_WEAPON_DROP ? rng.pick(classPool) : rng.pick(ITEM_BASES.filter((b) => b.slot === chosen));
-  const rarity = rollRarity(rng, minRarity, weights);
+  const rarity = rollRarity(rng, minRarity, luckyWeights(state, weights));
   const set = setZone === null || setZone === undefined ? null : rollSet(setZone, rarity, rng, balance);
   const item = makeItem(state, base.id, rarity, Math.max(1, level), balance, rng, set);
   if (cls) item.cls = cls;

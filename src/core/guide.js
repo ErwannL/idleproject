@@ -27,6 +27,7 @@ import { BANNERS } from '../data/economy.js';
 import { BOSSES } from '../data/enemies.js';
 import { claimables } from './claimables.js';
 import { computeHeroStats, statsWithItem } from './stats.js';
+import { bastionSeal } from './bastion-base.js'; // v10.3 (10.6)
 
 // Prochain boss : la première étape de boss à partir de l'étape actuelle.
 export function nextBossStage(state, balance = BALANCE) {
@@ -138,6 +139,8 @@ function* actionCandidates(state, ctx = {}, balance = BALANCE) {
   const bagFull = (state.inventory?.length ?? 0) >= (balance.loot?.inventorySize ?? Infinity);
   const claims = (ctx.claims ?? claimables(state, Date.now(), balance)).filter((c) => !c.blocked && !(c.item && bagFull));
   if (claims.length) yield claimAction(claims);
+  // v10.3 (10.6) : au retour, le Bastion annonce ce qu'il a fini — une seule fois (« Commande prête : Arme Épique »).
+  if (open('camp')) { const news = bastionSeal(state, ctx.now ?? Date.now()); if (news) yield news; }
   const current = computeHeroStats(state, balance);
   // v9.7.1 : sac de butin de la scène — une amélioration y attend, ou il se remplit.
   const bag = state.lootBag ?? [];
@@ -310,6 +313,9 @@ function nextBossName(state, balance) {
 // Aide « ? » de chaque écran (v9.1.0) : 3 lignes au plus (`short`), le détail dans « En savoir plus » (`more`).
 // Les textes suivent le lexique du jeu (Compétences, Boosts, Pouvoirs, Talents, Builds…).
 export const PANEL_HELP = {
+  // v10.3 (partie 10) : le Bastion.
+  camp: { short: 'Tes compagnons hors de l\'équipe travaillent au Bastion : chantiers, recherches et commandes avancent même jeu fermé.',
+    more: 'Pose un ouvrier sur un bâtiment d\'un toucher : son métier donne +20 % dans le bon bâtiment. Sans ouvrier, un bâtiment produit à 50 % et ne lance pas de chantier. Les Recherches ne se perdent pas aux Renaissances.' },
   // v9.8 (J1) : Forge et Carnet du jour.
   forge: { short: 'Recycle les objets inutiles en éclats, puis forge mieux.',
     more: 'Recycler, Fusionner ou Fabriquer : un gros bouton chacun. Les éclats renforcent tes objets et en fabriquent de nouveaux.' },

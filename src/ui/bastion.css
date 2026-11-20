@@ -1,0 +1,163 @@
+/* v10.3 (partie 10) : le Bastion (src/ui/panels/camp.js). PC : carte en grille sur le décor des expéditions, panneau du
+   bâtiment dessous, bandeau des Recherches en 3 colonnes. Téléphone (≤ 560 px) : liste de bâtiments, feuille du bas. */
+.bastion { display: grid; gap: 8px; }
+
+/* En-tête : ouvriers, or, éclats, « tout avance même jeu fermé ». */
+.bs-head { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.bs-chip { display: inline-flex; align-items: center; gap: 5px; min-height: 30px; padding: 3px 10px; border-radius: 999px; background: var(--bg-2); border: 1px solid var(--line); color: inherit; font: inherit; font-size: 13px; }
+.bs-chip img { width: 18px; height: 18px; image-rendering: pixelated; }
+button.bs-chip { cursor: pointer; border-color: var(--gold-2); }
+button.bs-chip:hover, .bs-chip.on { border-color: var(--gold); background: #1c2644; }
+.bs-chip.lvl { color: var(--gold-text); }
+.bs-always { flex-basis: 100%; font-size: 12px; color: var(--muted); }
+
+/* Carte du Bastion. */
+.bs-map { position: relative; padding: 8px; border-radius: 10px; border: 2px solid #6a5a2c; background-size: cover; background-position: center; image-rendering: pixelated; overflow: hidden; }
+.bs-map::before { content: ''; position: absolute; inset: 0; background: linear-gradient(rgba(10, 14, 26, 0.28), rgba(10, 14, 26, 0.5)); }
+.bs-grid { position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; image-rendering: auto; }
+.bs-card { position: relative; display: flex; flex-direction: column; min-width: 0; border-radius: 10px; background: rgba(15, 21, 38, 0.86); border: 2px solid #3b4768; color: inherit; cursor: pointer; overflow: hidden; }
+.bs-card:hover { border-color: #6f7fae; }
+.bs-card.idle { border-color: #8a3f46; }
+.bs-card.sel { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(232, 182, 74, 0.35); }
+.bs-card.locked { cursor: default; filter: grayscale(1) brightness(0.72); border-style: dashed; }
+.bs-pic { position: relative; height: 132px; display: flex; align-items: flex-end; justify-content: center; background: radial-gradient(ellipse at 50% 100%, rgba(255, 236, 170, 0.16), rgba(0, 0, 0, 0) 70%); }
+.bs-art { width: 192px; height: 128px; image-rendering: pixelated; }
+.bs-pic .bs-lv { position: absolute; left: 6px; top: 6px; }
+.bs-lv { display: inline-block; padding: 1px 8px; border-radius: 999px; background: #1b2540; border: 1px solid var(--gold-2); color: var(--gold-text); font-size: 12px; font-weight: 700; white-space: nowrap; }
+/* Petit ouvrier animé devant son bâtiment, l'outil de son métier à la main. */
+.bs-worker { position: absolute; left: 50%; bottom: 0; margin-left: -100px; width: 64px; height: 56px; pointer-events: none; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.55)); }
+.bs-worker canvas { width: 64px; height: 56px; image-rendering: pixelated; }
+.bs-tool { position: absolute; right: -4px; top: 12px; width: 24px; height: 24px; image-rendering: pixelated; transform-origin: 25% 80%; animation: bs-swing 0.8s steps(3) infinite; }
+.bs-tool.t-book { transform-origin: 50% 50%; animation: bs-read 2.2s steps(2) infinite; }
+.bs-tool.t-coin { transform-origin: 50% 50%; animation: bs-flip 1.2s steps(4) infinite; }
+@keyframes bs-swing { 0%, 100% { transform: rotate(-38deg); } 50% { transform: rotate(24deg); } }
+@keyframes bs-read { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes bs-flip { 0%, 100% { transform: translateY(0) scaleX(1); } 50% { transform: translateY(-6px) scaleX(0.2); } }
+/* Médaillon de l'ouvrier, ou « + » en pointillés. */
+.bs-medal { position: absolute; right: 6px; top: 6px; width: 42px; height: 42px; padding: 0; border-radius: 50%; border: 2px solid var(--rarity, #8e9db8); background: #18203a; overflow: hidden; cursor: pointer; display: grid; place-items: center; }
+.bs-medal img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+.bs-medal.empty { border: 2px dashed #cfd8ee; background: rgba(24, 32, 58, 0.72); color: #fff; font-size: 24px; font-weight: 700; line-height: 1; }
+.bs-medal.empty:hover, .bs-medal.empty.on { border-color: var(--gold); color: var(--gold-text); }
+.bs-info { display: grid; gap: 3px; padding: 6px 8px 8px; min-width: 0; }
+.bs-name { font-size: 14px; color: #fff; }
+.bs-fx { font-size: 12px; color: #cdd6ea; }
+.bs-idle { color: var(--bad); font-size: 12px; font-weight: 700; margin: 0; }
+.bs-lock { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #dfe5f5; margin: 0; }
+.bs-lock img { width: 14px; height: 14px; }
+.bs-line, .bs-time { font-size: 12px; }
+.bs-stock { display: grid; gap: 3px; }
+.bs-bar { position: relative; height: 8px; border-radius: 4px; background: #0b111f; border: 1px solid #2a3654; overflow: hidden; }
+.bs-bar > i { display: block; height: 100%; background: linear-gradient(#7fe0a0, #3fa86a); }
+.bs-bar.build > i { background: linear-gradient(#ffd97a, #d99a2a); }
+.bs-bar.stock > i { background: linear-gradient(#8fdcf2, #3f9ac0); }
+.bs-bar.stock.full > i { background: linear-gradient(#ffd97a, #d99a2a); }
+
+/* Panneau du bâtiment choisi. */
+.bs-detail { display: grid; gap: 0; border-color: var(--gold-2); }
+.bs-detail-head { display: flex; align-items: center; gap: 8px; }
+.bs-detail-head > img { width: 72px; height: 48px; flex: none; image-rendering: pixelated; }
+.bs-detail-head small { display: block; color: var(--muted); font-size: 12px; }
+.bs-detail-head b { font-size: 15px; }
+.bs-close { flex: none; min-width: 34px; margin-left: auto; }
+.bs-block { display: grid; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+.bs-block-title { font-weight: 700; font-size: 14px; }
+.bs-block-title small { font-weight: 400; color: var(--muted); }
+.bs-wlist { display: grid; gap: 2px; max-height: 232px; overflow-y: auto; }
+.bs-wrow { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 8px; min-width: 0; }
+.bs-wrow.here { background: rgba(99, 217, 138, 0.09); }
+.bs-wrow .grow { min-width: 0; }
+.bs-wpic { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--rarity, #8e9db8); background: #18203a; overflow: hidden; display: grid; place-items: center; font-weight: 700; }
+.bs-wpic.none { border-style: dashed; color: var(--muted); }
+.bs-wpic img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+.bs-wrow small.bs-wtrade, .bs-wtrade { display: block; font-size: 12px; color: var(--muted); }
+.bs-wtrade.good { color: var(--good); }
+.bs-wbonus { flex: none; font-size: 13px; }
+.bs-fxlist { display: grid; }
+.bs-fxrow { display: flex; justify-content: space-between; gap: 10px; padding: 2px 0; font-size: 13px; color: #cdd6ea; }
+.bs-fxrow span:last-child { white-space: nowrap; }
+.bs-fxrow.up { color: #fff; }
+.bs-costs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; font-size: 13px; }
+.bs-cost { display: inline-flex; align-items: center; gap: 4px; }
+.bs-cost img { width: 16px; height: 16px; }
+.bs-cost small, .bs-dur small { color: var(--muted); }
+.bs-cost.miss b { color: var(--bad); }
+.bs-why { color: var(--bad); }
+.bs-note { font-size: 12px; margin: 0; }
+.bs-get { font-size: 13px; margin: 0; }
+.bs-queue { display: grid; gap: 4px; }
+.bs-order { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 8px; background: #0f1728; border: 1px solid var(--line); font-size: 13px; }
+.bs-order .grow { display: grid; gap: 3px; min-width: 0; }
+.bs-order.ready { border-color: var(--good); }
+.bs-order.empty { border-style: dashed; }
+.bs-slots { display: flex; flex-wrap: wrap; gap: 4px; }
+.bs-slot { width: 44px; height: 44px; padding: 2px; border-radius: 8px; border: 2px solid var(--line); background: #0f1728; cursor: pointer; display: grid; place-items: center; }
+.bs-slot img { width: 32px; height: 32px; image-rendering: pixelated; }
+.bs-slot.on { border-color: var(--gold); background: #1c2644; }
+.bs-tiers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.bs-tier { display: grid; gap: 1px; padding: 5px 4px; border-radius: 8px; border: 2px solid var(--line); background: #0f1728; color: inherit; font: inherit; font-size: 13px; cursor: pointer; }
+.bs-tier small { color: var(--muted); }
+.bs-tier.on { border-color: var(--gold); background: #1c2644; }
+.bs-trade { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto; align-items: center; gap: 6px; font-size: 13px; }
+.bs-trade img, .bs-block small img { width: 16px; height: 16px; vertical-align: -3px; }
+.bs-free { display: flex; flex-wrap: wrap; gap: 8px; }
+.bs-freec { display: grid; justify-items: center; gap: 2px; font-size: 11px; color: var(--muted); }
+.bs-embed > .card { border: none; background: none; box-shadow: none; padding: 0; margin-top: 8px; }
+
+/* Bandeau des Recherches : 3 colonnes, en cours bordée de vert, suivantes cadenassées. */
+.bs-research { display: grid; gap: 6px; }
+.bs-research-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 15px; }
+.bs-versus { font-size: 12px; margin: 0; }
+.bs-research.closed .bs-cols { opacity: 0.5; }
+.bs-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.bs-col { display: grid; gap: 4px; align-content: start; min-width: 0; }
+.bs-col-head { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--gold-text); min-width: 0; }
+.bs-col-head b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bs-col-head img { width: 16px; height: 16px; }
+.bs-res { position: relative; display: grid; gap: 2px; min-height: 52px; align-content: start; padding: 5px 6px; border-radius: 8px; border: 2px solid var(--line); background: #0f1728; color: inherit; font: inherit; font-size: 12px; text-align: left; cursor: pointer; min-width: 0; }
+.bs-res b { padding-right: 30px; overflow-wrap: anywhere; }
+.bs-res small { color: var(--muted); }
+.bs-res-lv { position: absolute; right: 5px; top: 5px; font-size: 11px; color: var(--muted); }
+.bs-res.active { border-color: var(--good); box-shadow: 0 0 7px rgba(99, 217, 138, 0.42); }
+.bs-res.maxed { border-color: var(--gold-2); }
+.bs-res.locked { opacity: 0.58; border-style: dashed; }
+.bs-res.locked .bs-lock { display: block; }
+.bs-res.sel { outline: 2px solid var(--gold); outline-offset: 1px; }
+.bs-res-detail { display: grid; gap: 6px; padding-top: 8px; border-top: 1px solid var(--line); }
+
+/* Avant l'étape 40 : l'annonce. Après : le feu de camp, plus petit, en bas. */
+.bs-soon { display: flex; align-items: center; gap: 10px; border-color: var(--gold-2); }
+.bs-soon > img { width: 144px; height: 96px; flex: none; image-rendering: pixelated; }
+.bs-soon > span { display: grid; gap: 4px; min-width: 0; }
+.bs-soon small { color: #cdd6ea; }
+.bs-fire .camp-scene2 { aspect-ratio: auto; height: clamp(110px, 26vw, 150px); }
+.bs-fire .camp-scene2 .camp-unit { width: auto; height: 62%; }
+.bs-fire .camp-scene2 .camp-unit img { width: auto; height: 100%; }
+.bs-fire .camp-scene2 .camp-unit.s2, .bs-fire .camp-scene2 .camp-unit.s3 { width: auto; height: 50%; }
+.bs-fire .camp-bg { object-fit: cover; }
+/* Carnet du jour : « Le Bastion a fini 2 chantiers ». */
+.db-bastion { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; border-color: var(--good); }
+.db-bastion img { width: 60px; height: 40px; image-rendering: pixelated; }
+
+/* Téléphone : la carte devient une liste, le panneau une feuille du bas. */
+@media (max-width: 560px) {
+  .bs-map { padding: 6px; }
+  .bs-grid { grid-template-columns: 1fr; gap: 6px; }
+  .bs-card { flex-direction: row; align-items: stretch; min-height: 84px; }
+  .bs-pic { position: static; flex: none; width: 108px; height: auto; align-items: center; }
+  .bs-art { width: 96px; height: 64px; }
+  .bs-pic .bs-lv { left: 4px; top: 4px; font-size: 11px; padding: 0 6px; }
+  .bs-worker { left: 62px; bottom: 2px; margin-left: 0; transform: scale(0.62); transform-origin: 0 100%; }
+  .bs-medal { top: 50%; right: 8px; margin-top: -21px; }
+  .bs-info { flex: 1; padding: 6px 58px 6px 6px; align-content: center; }
+  .bs-card.locked .bs-info { padding-right: 8px; }
+  .bs-detail { position: sticky; bottom: 0; z-index: 6; max-height: 64vh; overflow-y: auto; border-radius: 14px 14px 0 0; border-top: 2px solid var(--gold); box-shadow: 0 -10px 24px rgba(0, 0, 0, 0.7); }
+  .bs-detail-head { position: sticky; top: -8px; z-index: 2; background: var(--bg-2); padding: 4px 0; }
+  .bs-cols { gap: 4px; }
+  .bs-col-head { font-size: 12px; gap: 2px; }
+  .bs-col-head img { width: 14px; height: 14px; }
+  .bs-res { padding: 4px; font-size: 11px; }
+  .bs-res b { padding-right: 0; padding-top: 12px; }
+  .bs-res-lv { left: 5px; right: auto; top: 3px; }
+  .bs-soon > img { width: 96px; height: 64px; }
+  #panel-body:has(.bs-detail) .phone-action { display: none; }
+}

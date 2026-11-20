@@ -1,7 +1,7 @@
 // Interface DOM : barre du haut (monnaies, contrats, récompenses, paramètres), surimpressions légères
 // de la scène, HUD, onglets débloqués progressivement et panneaux (un module par panneau dans ./panels).
 // L'interface ne modifie jamais l'état directement : elle appelle les actions fournies par main.js.
-import campPanel from './panels/camp.js'; // v9.7.1 (lot 6)
+import campPanel, { bastionAction, bastionBadge, bastionLiveKey, openBastion } from './panels/camp.js'; // v9.7.1 (lot 6) · v10.3 : le Bastion
 import { GLOSSARY, GLOSSARY_TERMS, RESOURCES } from '../data/glossary.js'; // v9.7.1 (lot 5)
 import { rageFree } from '../core/combat.js'; // v9.7.1 (lot 3)
 import { isUnlocked } from '../core/unlock-quests.js'; // v9.7.1 (lot 3)
@@ -208,7 +208,7 @@ const BULK_CONFIRM_MS = 4000;
 // v9.3.5 : nom court sous l'icône des boosts ; touches affichées seulement avec souris et clavier.
 const RUSH_SHORT = { rage: 'Rage', frenzy: 'Frénésie', midas: 'Midas', hunter: 'Chasseur', phantom: 'Fantôme' };
 const hasKeyboard = () => typeof matchMedia === 'function' && matchMedia('(hover: hover) and (pointer: fine)').matches;
-const LIVE_PANELS = new Set(['inventory', 'forge', 'daybook', 'arena', 'world', 'contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'looks', 'upgrades', 'companions', 'expeditions', 'encyclopedia', 'inbox', 'ranking', 'stats']);
+const LIVE_PANELS = new Set(['camp', 'inventory', 'forge', 'daybook', 'arena', 'world', 'contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'looks', 'upgrades', 'companions', 'expeditions', 'encyclopedia', 'inbox', 'ranking', 'stats']);
 
 // Renaissance : choix du seul pouvoir ancestral conservé.
 function powerChoice(state) {
@@ -700,7 +700,7 @@ export class UI {
   // v9.9 (K6) : tiroir ☰ — tout ce qui n'est pas dans les 5 onglets du bas.
   openDrawer() {
     const E = [['daybook', 'icon_trophy', 'Carnet du jour'], ['contracts', 'tab_missions', 'Missions et hauts faits'], ['encyclopedia', 'tab_collections', 'Collections'],
-      ['forge', 'tab_forge', 'Forge'], ['boss', 'tab_boss', 'Pouvoirs des boss'], ['camp', 'tab_expeditions', 'Camp'], ['looks', 'top_profile', 'Apparences'],
+      ['forge', 'tab_forge', 'Forge'], ['boss', 'tab_boss', 'Pouvoirs des boss'], ['camp', 'tab_expeditions', 'Bastion'], ['looks', 'top_profile', 'Apparences'],
       ['ranking', 'tab_ranking', 'Classement'], ['guild', 'tab_guild', 'Guilde'], ['stats', 'tab_stats', 'Statistiques']];
     const row = ([tab, ic, label]) => {
       const open = this.tabVisible[tab] !== false;
@@ -790,10 +790,12 @@ export class UI {
     if (this.view.themePreview && tab !== 'shop') this.actions.previewTheme(null); // v9.2.8 : fin de l'aperçu du thème
     this.sidePanel(true);
     if (tab === 'inventory') this.seenItemsUntil = this.state?.nextItemId ?? this.seenItemsUntil;
+    if (tab === 'camp' && this.tab !== 'camp') this.actions.bastion?.('seen'); // v10.3 : Bastion ouvert → ses nouvelles sont dites
     if (this.state?.ui) { const seen = (this.state.ui.seenTabs ??= []); if (!seen.includes(tab)) seen.push(tab); } // v10.0 (2)
     if (view) Object.assign(this.view, view);
     // Chaque onglet retrouve sa position de défilement (v9.1.0, mémoire de navigation).
     if (tab !== this.tab) {
+      if (this.tab === 'daybook') this.actions.bastion?.('book'); // v10.3 : « Le Bastion a fini… » lu dans le Carnet
       this.typed = {};
       if (this.tab) this.scrollMem[this.tab] = this.$('panel-body').scrollTop;
       this.pendingScroll = view ? 0 : this.scrollMem[tab] ?? 0;
@@ -876,6 +878,7 @@ export class UI {
   closePanel() {
     if (this.view) this.view.dungeonSheet = false; this.dgSheet?.(''); this.layerHost?.('unit-host', ''); // v10.1
     this.ring = null; document.getElementById('ring-tip')?.remove(); // v10.1
+    if (this.tab === 'daybook') this.actions.bastion?.('book'); // v10.3
     uiFx.panelCloseFx(this.$('panel')); // v9.2.6 : le panneau s'efface (copie figée, les clics passent)
     this.sidePanel(false);
     this.tab = null;
@@ -911,6 +914,7 @@ export class UI {
     const v = this.view;
     const a = this.actions;
     const local = (fn) => { fn(); this.invalidate(); };
+    if (action.startsWith('bastion-')) { if (el.closest('#modal')) this.closeModal(); bastionAction(this, action, value); return; } // v10.3 (partie 10)
     switch (action) {
       case 'buy': { // v9.9 (K3) : un petit « +N » monte du bouton à chaque achat
         const lv = this.state.upgrades[key] ?? 0;
@@ -1289,8 +1293,6 @@ export class UI {
       case 'forge-up-sel': local(() => { v.forgeUpSel = id; }); break;
       case 'craft-slot': local(() => { v.craftSlot = value; }); break;
       case 'forge-go': this.closeModal(); this.openTab('forge', { forgeSeg: value || 'recycle' }); break;
-      // Bastion (partie 10) : gestionnaire minimal, en attendant celui de l'écran du Bastion (même action, même valeur).
-      case 'bastion-open': this.closeModal(); this.openTab('camp', { bastionSel: value || null }); break;
       // --- fin v10.3 (parties 8 et 9) ---
       case 'talent-branch': a.buyTalentStep(value); break; // v9.3.9 : vue simple des Talents
       case 'talent-best': a.buyTalentsAll(null); break;
@@ -1845,6 +1847,7 @@ export class UI {
       if (LIVE_PANELS.has(this.tab) && now - this.lastLive > every) {
         this.lastLive = now;
         if (!busy && this.liveKey(state) !== this.lastHud.live) this.renderPanel(state);
+        else PANELS[this.tab]?.tick?.(this, state); // v10.3 : minuteurs du Bastion, sans redessin
       }
     }
   }
@@ -1852,6 +1855,7 @@ export class UI {
   // Empreinte du contenu d'un panneau « vivant » (évite de le redessiner pour rien).
   liveKey(state) {
     switch (this.tab) {
+      case 'camp': return bastionLiveKey(this, state); // v10.3
       case 'contracts': return state.contracts.map((c) => `${c.id}:${c.progress}`).join() + JSON.stringify(state.missions);
       // v9.1.3 (doc4 lot 6) : temps restant et ennemis vaincus pendant un essai dans un monde.
       case 'world': return `${state.worldRun ? `${state.worldRun.kills}|${Math.ceil(state.worldRun.deadline - (state.playSeconds ?? 0))}` : ''}|${JSON.stringify(state.worlds)}|${state.companions.equipped.join()}`;
@@ -2220,6 +2224,7 @@ export class UI {
     if (this.tabVisible.dungeons !== false && (state.keys ?? 0) > 0 && !state.dungeon) { this.tabBadges = { ...this.tabBadges, dungeons: 1 }; byTab.dungeons = byTab.dungeons ?? 1; }
     // v9.8 (H1/J1) : Carnet du jour — Roue ou Chasse rapide prêtes.
     { const n = (wheelReady(state) ? 1 : 0) + (quickHuntReady(state) ? 1 : 0) + dormantResources(state, (id) => this.tabVisible?.[id] !== false).length; if (n && this.tabVisible.daybook !== false) { byTab.daybook = n; this.tabBadges = { ...this.tabBadges, daybook: n }; } }
+    { const n = bastionBadge(state); if (n) { byTab.camp = n; this.tabBadges = { ...this.tabBadges, camp: n }; } } // v10.3 : commande prête, stock plein
     const current = computeHeroStats(state);
     // v10.1 : consignes mises de côté (revenues 3 fois sans être faites) pendant 10 min.
     const nowMs = Date.now();
@@ -2308,6 +2313,7 @@ export class UI {
     if (this.lastHud.nextWhy !== why) { this.lastHud.nextWhy = why; this.setText('next-action-why', why); }
     if (this.lastHud.next !== key) {
       this.sealIgnored(key);
+      if (key === 'bastion') this.actions.bastion?.('shown'); // v10.3 : dit une seule fois par retour
       this.lastHud.next = key;
       this.sealShownAt = performance.now();
       btn.dataset.kind = n.id;
@@ -2513,6 +2519,7 @@ export class UI {
       this.actions.claimEverything();
       uiFx.claimFly(before.cur, uiFx.snap(this.state).cur, this.$('next-action'), true);
     }
+    else if (n.action === 'bastion-open') openBastion(this, n.value); // v10.3 (10.6)
     else if (n.action === 'retry-boss') this.actions.retryBoss();
     else if (n.action === 'advance') this.actions.advance();
     // v9.3.5 : un clic fait l'action (équiper tout, placer, améliorer, monter, recycler).
@@ -2744,7 +2751,7 @@ export class UI {
     const device = h && (this.phone ? h.touch : h.mouse);
     // v9.8 (J1) : « ? » ouvre une page illustrée de 3 cases (ce que c'est, comment ça marche, ce que ça rapporte) ; le
     // texte complet reste derrière « En savoir plus ».
-    const HELP_ART = { tower: 'tower', expeditions: 'expedition_map', summon: 'summon_circle', event: 'event_market', tree: 'talent_tree', guild: 'guild_hall', forge: 'forge_hall', dungeons: 'door_crypt', arena: 'arena', camp: 'camp_night' };
+    const HELP_ART = { tower: 'tower', expeditions: 'expedition_map', summon: 'summon_circle', event: 'event_market', tree: 'talent_tree', guild: 'guild_hall', forge: 'forge_hall', dungeons: 'door_crypt', arena: 'arena', camp: 'expedition_map' };
     const sentences = (h?.more ?? '').split(/(?<=[.!])\s+/).filter(Boolean);
     const step = (pic, title, text) => text ? `<div class="hp-step">${pic}<b>${title}</b><span>${text}</span></div>` : '';
     const help = this.view.helpOpen === this.tab && h

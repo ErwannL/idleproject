@@ -47,6 +47,7 @@ import { sanitizeHeroClass } from './classes.js';
 import { STARTER_CLASS } from '../data/classes.js';
 import { seedEncyclopedia } from './encyclopedia.js';
 import { emptyExpeditions, sanitizeExpeditions } from './expeditions.js';
+import { sanitizeBastion } from './bastion-base.js'; // v10.3 (partie 10)
 import { setById } from './sets.js';
 import { STASH_OVERFLOW, STASH_SIZE, placeItem } from './stash.js';
 import { museumItems } from './museum.js';
@@ -709,6 +710,9 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   sanitizeSeals(state, raw.seals, balance); // v9.6.2 (7.6) : sceaux (mondes déjà dépassés : ouverts)
   if (Number.isFinite(raw.sealSince)) state.sealSince = raw.sealSince;
   mergeArmorIntoDefense(state, balance); // v9.3.9 (2.9) : « Peau de fer » fondue dans « Défense », sans perte de survie
+  // v10.3 (partie 10) : le Bastion (gardé à la Renaissance) ; une partie déjà à l'étape 40 le reçoit ouvert, Forge niveau 1.
+  state.bastion = sanitizeBastion(raw.bastion, state, now, isValidItem, cleanItem);
+  if (!state.bastion) delete state.bastion;
   return state;
 }
 

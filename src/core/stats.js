@@ -12,6 +12,7 @@ import { PRESTIGE } from '../data/prestige.js';
 import { challengeRule } from './challenge.js';
 import { rebirthBase, stellarMultiplier } from './transcend.js';
 import { rebirthPower } from './rebirth.js';
+import { researchEffects } from './bastion-base.js'; // v10.3 (10.4)
 
 // v8.4 : chaque Renaissance multiplie dégâts, PV et or (×1,5 par défaut).
 // v8.8 : + les Renaissances conservées par la Transcendance, et le multiplicateur stellaire.
@@ -107,7 +108,7 @@ export function computeHeroStats(state, balance = BALANCE, equipment = state.equ
     lifesteal: bonus.lifesteal + per('lifesteal'),
     dodgePct: Math.min(20, per('dodge')), // v9.2.0 : moitié contre les boss (core/combat.js)
     bossDamagePct: per('bossDamage'), // facteur à part, en plus des « dégâts contre les boss » des talents/objets
-    companionPowerPct: per('companionPower') + bondBonus(state, 'companionPowerPct'), // v9.7.1 (lot 6) : liens
+    companionPowerPct: per('companionPower') + bondBonus(state, 'companionPowerPct') + (researchEffects(state).companionPowerPct ?? 0), // v9.7.1 (lot 6) : liens · v10.3 : recherche
     thorns: bonus.thorns,
     goldPct: bonus.goldPct + (ups.goldFind ?? 0) * upgrades.goldFind.perLevel,
     // Multiplicateur d'or (Renaissances × paliers du Butin d'or), appliqué en plus du goldPct.

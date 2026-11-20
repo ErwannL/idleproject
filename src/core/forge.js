@@ -9,7 +9,7 @@ import { trackMissions } from './missions.js';
 import { CLASS_WEAPON_DROP } from '../data/classes.js';
 import { activeClass, canEquip, classWeaponBases } from './classes.js';
 import { usefulSetPiece } from './sets.js';
-import { forgePerks } from './bastion.js'; // v10.3 (10.5) : la Forge du forgeron améliore les chiffres de la Forge
+import { forgePerks } from './bastion-base.js'; // v10.3 (10.5) : la Forge du forgeron améliore les chiffres de la Forge
 import { computeHeroStats } from './stats.js'; // v10.3 (8) : Puissance avant → après d'un renforcement
 
 // tier 'rare' : Rare ou mieux (or + éclats) ; 'epic' : Épique ou mieux (or + plus d'éclats ; v9.1.3 : plus d'essences).
@@ -98,7 +98,7 @@ export function sharpenItem(state, id, balance = BALANCE) {
 }
 
 // --- Amélioration : chaque niveau augmente une statistique de l'objet (+12 %), la moins renforcée d'abord. ---
-// v10.3 (10.5) : avec `state`, la Forge du forgeron (Bastion) repousse le plafond (+2 par niveau) et baisse le coût
+// v10.3 (10.5) : avec `state`, la Forge du forgeron (Bastion) repousse le plafond (FORGE_PERKS.maxUpgradePerLevel par niveau) et baisse le coût
 // (−2 % par niveau). Sans `state` : les chiffres de base (objet seul, outils de mesure).
 export function maxUpgrades(item, balance = BALANCE, state = null) {
   const base = balance.forge.maxUpgrades[item.rarity] ?? 0;

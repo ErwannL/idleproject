@@ -11,6 +11,7 @@ import { addXp } from './level.js';
 import { generateItem, recycleValue } from './loot.js';
 import { Rng } from './rng.js';
 import { endWorldRun } from './banner.js';
+import { researchEffects } from './bastion-base.js'; // v10.3 (10.4)
 
 function measureAt(state, stage, balance, seconds) {
   const clone = structuredClone(state);
@@ -60,6 +61,11 @@ export function measureFarmRate(state, balance = BALANCE, seconds = balance.offl
   return { ...rate, paused: state.tower ? 'tower' : state.dungeon ? 'dungeon' : state.challenge ? 'challenge' : null };
 }
 
+// v10.3 (10.4) : plafond des gains hors ligne, en heures (la recherche « Longue veille » ajoute 1 h par niveau).
+export function offlineCapHours(state, balance = BALANCE) {
+  return balance.offline.capHours + (researchEffects(state).offlineHours ?? 0);
+}
+
 // fromMs / nowMs : horodatages en millisecondes (Date.now()).
 export function computeOfflineRewards(state, fromMs, nowMs, rng, balance = BALANCE) {
   const elapsed = (nowMs - fromMs) / 1000;
@@ -80,7 +86,7 @@ export function computeOfflineRewards(state, fromMs, nowMs, rng, balance = BALAN
   if (!Number.isFinite(elapsed) || !(fromMs > 0)) return result;
   if (elapsed < 0) return { ...result, clockSuspicious: true };
 
-  const cap = balance.offline.capHours * 3600;
+  const cap = offlineCapHours(state, balance) * 3600;
   const counted = Math.min(elapsed, cap);
   const rate = measureFarmRate(state, balance);
   const factor = counted * balance.offline.farmMultiplier;

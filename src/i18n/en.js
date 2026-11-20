@@ -2065,3 +2065,7 @@ PATTERNS.unshift(...patterns103a(lookup));
 import { EXACT_103_EQUIP, patterns103Equip } from './en-103-equip.js';
 for (const [k, v] of Object.entries(EXACT_103_EQUIP)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns103Equip(lookup)); // en tête : ces motifs sont précis et passent avant les règles générales (« Il manque … »)
+// v10.3 (partie 10) : le Bastion (./en-103-bastion.js).
+import { EXACT_103_BASTION, patterns103Bastion } from './en-103-bastion.js';
+for (const [k, v] of Object.entries(EXACT_103_BASTION)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.push(...patterns103Bastion(lookup));
