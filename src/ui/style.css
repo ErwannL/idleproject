@@ -4553,3 +4553,6 @@ html.reduce-motion .howto-card, html.reduce-motion .learn-card { animation: none
 .exp-map-empty { position: absolute; inset: auto 0 8px 0; text-align: center; color: #fff; text-shadow: 0 1px 2px #000; font-weight: 700; }
 .mw-card img { width: 220px; } .m-row .m-icon img { width: 56px; height: 56px; }
 .stat-tile img { width: 88px; height: 88px; } .st-rec img { width: 60px; height: 60px; }
+/* v10.2 : tailles réelles des illustrations (des règles plus anciennes les réduisaient). */
+.door-card img.door-art { width: 96px !important; height: 128px !important; }
+.dungeon-head img.dg-boss-portrait { width: 128px !important; height: 128px !important; max-width: none; }
