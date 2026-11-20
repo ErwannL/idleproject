@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 import { readFile } from 'node:fs/promises';
 import { startServer } from '../serve.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
-const TABS = process.argv.slice(2).length ? process.argv.slice(2) : ['upgrades', 'skills', 'inventory', 'forge', 'tree', 'companions', 'expeditions', 'summon', 'shop', 'campaign', 'dungeons', 'tower', 'event', 'daybook', 'contracts', 'encyclopedia', 'boss', 'ranking', 'guild', 'stats', 'looks', 'camp'];
+const TABS = process.argv.slice(2).length ? process.argv.slice(2) : ['upgrades', 'skills', 'inventory', 'forge', 'tree', 'companions', 'expeditions', 'summon', 'shop', 'campaign', 'dungeons', 'arena', 'tower', 'event', 'daybook', 'contracts', 'encyclopedia', 'boss', 'ranking', 'guild', 'stats', 'looks', 'camp'];
 const server = await startServer(0);
 const browser = await chromium.launch();
 const page = await (await browser.newContext({ viewport: { width: 1116, height: 993 } })).newPage();

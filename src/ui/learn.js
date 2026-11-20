@@ -50,7 +50,10 @@ export function showHowTo(ui, i = 0) {
 // Carte de déblocage de la prochaine notion atteinte (une à la fois, jamais par-dessus une fenêtre ou une bulle).
 export function maybeLearnCard(ui, st) {
   if (!st?.ui || ui.howtoOpen || typeof document === 'undefined') return;
+  // v10.3 (audit 4.2) : la carte attend aussi qu'une bulle de ressource ou un « Nouvel objet » soit parti — sinon deux
+  // messages à lire en même temps (relevé une fois en 12 minutes de partie neuve).
   if (document.querySelector('.learn-card, .howto-card, #prologue, #modal:not(.hidden), .tour, .cinematic')) return;
+  if ([...document.querySelectorAll('.res-bubble, .best-cards .best-card')].some((e) => e.offsetParent !== null)) return; // bulle visible seulement
   if (st.unlocks?.legacy) return; // ancienne partie : tout est déjà connu
   const stage = st.records?.bestStage ?? st.maxStage ?? 1;
   // v10.2 (4.1) : une notion demandée par le Sceau passe avant son étape ; sinon l'ordre des étapes.
