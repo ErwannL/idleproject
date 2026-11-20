@@ -2056,3 +2056,7 @@ PATTERNS.push(...patterns934(lookup));
 import { EXACT_971, patterns971 } from './en-971.js';
 for (const [k, v] of Object.entries(EXACT_971)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.push(...patterns971(lookup));
+// v10.3 (parties 8 et 9) : Équipement et Forge (./en-103-equip.js) — sans écraser l'existant.
+import { EXACT_103_EQUIP, patterns103Equip } from './en-103-equip.js';
+for (const [k, v] of Object.entries(EXACT_103_EQUIP)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns103Equip(lookup)); // en tête : ces motifs sont précis et passent avant les règles générales (« Il manque … »)
