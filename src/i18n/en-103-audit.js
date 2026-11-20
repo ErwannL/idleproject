@@ -5,6 +5,10 @@ const tr = (s) => LK(s) ?? s;
 const GUIDE_BAG_FR = 'Les objets grandissent avec leur niveau : Réaffûter remonte un objet au niveau de ton étape max. La Forge s\'ouvre à l\'étape 10 et la Réserve à l\'étape 20 : elle garde des objets jamais recyclés et les meilleures pièces d\'ensemble (filtre Ensemble, « Porter ») ; les Builds enregistrent équipe, équipement, classe, pouvoirs et compétences. Recyclage et fusion automatiques : Réglages du sac.';
 const GUIDE_FINDS_FR = 'Les trouvailles (coffres, gemmes, portails) arrivent pendant le combat. Sac plein : les objets vont à la Réserve ; sac et Réserve pleins : les récompenses avec un objet attendent ici. Les marchands sont dans Missions › Aujourd\'hui.';
 export const EXACT_103A = {
+  "Équipe la meilleure pièce de chaque emplacement ; l'objet porté prend sa place dans la Réserve": "Equips the best piece of each slot; the worn item takes its place in Storage",
+  "Une pièce d'ensemble ramassée, meilleure que la meilleure de la Réserve pour son emplacement, y va (l'ancienne est recyclée, sauf verrouillée)": "A picked-up set piece, better than the best one in Storage for its slot, goes there (the old one is recycled, unless locked)",
+  "Expose les objets ancestraux du sac et de la Réserve (pas ceux que porte le héros)": "Displays the ancestral items from the bag and Storage (not those the hero wears)",
+  "Exposer tout (sac + Réserve)": "Display all (bag + Storage)",
   'Arène : un étage à franchir (gemmes et étoiles)': 'Arena: a floor to clear (gems and stars)',
   'Tes compagnons deviennent des cartes : place-les et affronte les étages.': 'Your companions become cards: place them and take on the floors.',
   'Des gemmes, des éclats et des grimoires à chaque étage franchi.': 'Gems, shards and grimoires for every floor cleared.',

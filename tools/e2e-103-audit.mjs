@@ -207,7 +207,7 @@ async function quickRun() {
     const { ctx, page } = await open(w, h, { dpr });
     await page.evaluate(() => { const s = __idle.state; s.companions.owned.pyromancer = { stars: 1, level: 5 }; s.companions.equipped = ['pyromancer', ...s.companions.equipped.filter((x) => x !== 'pyromancer')].slice(0, 3); __idle.ui.openTab('inventory'); });
     await page.waitForTimeout(900);
-    const who = await page.evaluate(() => [...document.querySelectorAll('.who-card')].map((b) => { const n = b.querySelector('b'); const r = document.createRange(); r.selectNodeContents(n); const tr = r.getBoundingClientRect(), bb = b.getBoundingClientRect(); return { title: b.title, shown: n.innerText.trim(), clipped: tr.left < bb.left - 0.5 || tr.right > bb.right + 0.5 || n.scrollWidth > n.clientWidth + 1 || n.scrollHeight > n.clientHeight + 1 }; }));
+    const who = await page.evaluate(() => [...document.querySelectorAll('.who-card, .eq-who')].map((b) => { const n = b.querySelector('b'); const r = document.createRange(); r.selectNodeContents(n); const tr = r.getBoundingClientRect(), bb = b.getBoundingClientRect(); return { title: b.title, shown: n.innerText.trim(), clipped: tr.left < bb.left - 0.5 || tr.right > bb.right + 0.5 || n.scrollWidth > n.clientWidth + 1 || n.scrollHeight > n.clientHeight + 1 }; }));
     if (who.length) ok(`1.6 ${label} : « Pyromancienne » en entier dans Héros › Équipement`, who.some((x) => x.title === 'Pyromancienne') && who.every((x) => x.shown === x.title && !x.clipped), JSON.stringify(who.filter((x) => x.clipped || x.shown !== x.title)));
     else ok(`1.6 ${label} : rangée des personnages absente (écran d'équipement refait ?)`, false);
     await page.evaluate(() => __idle.ui.openTab('tree'));

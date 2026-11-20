@@ -40,7 +40,7 @@
 .eq-elem { margin-left: auto; flex: none; }
 
 /* ---------- Grille : personnages | personnage en grand | fiche ---------- */
-.eq-main { display: grid; grid-template-columns: 74px minmax(0, 1fr) minmax(252px, 0.82fr); gap: 8px; align-items: stretch; }
+.eq-main { display: grid; grid-template-columns: 92px minmax(0, 1fr) minmax(252px, 0.82fr); gap: 8px; align-items: stretch; }
 .eq-side { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .eq-whos { display: flex; flex-direction: column; gap: 6px; }
 .eq-who { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 5px 3px 4px; border-radius: 10px; border: 2px solid var(--line); background: #121d35; color: var(--text); font: inherit; cursor: pointer; min-width: 0; }
@@ -48,7 +48,8 @@
 .eq-who.on { border-color: var(--gold); background: linear-gradient(#22345a, #16233f); box-shadow: 0 0 10px -3px var(--gold); }
 .eq-who-art { width: 48px; height: 48px; display: grid; place-items: center; overflow: hidden; }
 .eq-who-art canvas, .eq-who-art img { max-width: 48px; max-height: 48px; width: auto; height: auto; image-rendering: pixelated; }
-.eq-who b { font-size: 11.5px; line-height: 1.15; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* 1.6 : le nom s'écrit toujours en entier (« Pyromancienne », « Mercenaire »), sur 2 lignes au besoin. */
+.eq-who b { font-size: 11px; line-height: 1.15; max-width: 100%; white-space: normal; overflow-wrap: break-word; text-align: center; }
 .eq-who small { font-size: 10.5px; color: #a9b8d8; }
 .eq-who-up { position: absolute; top: 1px; left: 4px; color: var(--good); font-weight: 900; font-size: 14px; text-shadow: 0 1px 0 #000; }
 .eq-who-todo { position: absolute; top: -6px; right: -5px; width: 18px; height: 18px; border-radius: 50%; background: #e0362c; color: #fff; font-weight: 900; font-size: 12px; line-height: 18px; text-align: center; box-shadow: 0 0 0 2px #0c1424; }
@@ -237,7 +238,7 @@ button.eq-block:hover { background: #5c1a1e; } div.eq-block { cursor: default; }
   .eq-whos { flex-direction: row; flex: 0 1 auto; max-width: 100%; min-width: 0; overflow-x: auto; padding: 6px 6px 2px 0; }
   .eq-who { flex: 0 0 auto; display: grid; grid-template-columns: 36px auto; grid-template-areas: "art name" "art slots"; column-gap: 6px; align-items: center; justify-items: start; padding: 3px 10px 3px 5px; }
   .eq-who-art { grid-area: art; width: 36px; height: 36px; } .eq-who-art canvas, .eq-who-art img { max-width: 36px; max-height: 36px; }
-  .eq-who b { grid-area: name; align-self: end; max-width: 84px; } .eq-who small { grid-area: slots; align-self: start; }
+  .eq-who b { grid-area: name; align-self: end; max-width: none; white-space: nowrap; text-align: left; } .eq-who small { grid-area: slots; align-self: start; }
   .eq-who-up { top: -2px; left: 2px; }
   .eq-shorts { flex-direction: row; margin: 0 0 0 auto; align-items: center; }
   .eq-short { flex-direction: row; gap: 5px; padding: 3px 8px; }
@@ -255,7 +256,7 @@ button.eq-block:hover { background: #5c1a1e; } div.eq-block { cursor: default; }
   .eq-res-other { margin-left: 0; } .eq-res-note { font-size: 10.5px; }
   .eq-whos { padding-top: 6px; } .eq-who { grid-template-columns: 30px auto; padding: 2px 8px 2px 4px; column-gap: 4px; }
   .eq-who-art { width: 30px; height: 30px; } .eq-who-art canvas, .eq-who-art img { max-width: 30px; max-height: 30px; }
-  .eq-who b { font-size: 11px; max-width: 62px; } .eq-who small { font-size: 10px; }
+  .eq-who b { font-size: 11px; max-width: none; } .eq-who small { font-size: 10px; }
   .eq-tab { padding: 5px 5px 4px; font-size: 12px; } .eq-elem span { display: none; } .eq-elem { padding: 2px 8px; }
   .eq-stage { min-height: 0; padding: 8px 6px 6px; gap: 6px; }
   .eq-doll { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; align-items: start; }

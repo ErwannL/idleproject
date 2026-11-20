@@ -374,12 +374,12 @@ function stashView(ui, state) {
   const filter = sets.length ? `<div class="row stash-sets"><select data-action="stash-set" aria-label="Ensemble">
       <option value="">Tous les objets (${state.stash.length})</option>
       ${sets.map((x) => `<option value="${x.setId}" ${x.setId === setId ? 'selected' : ''}>${escapeHtml(setById(x.setId).name)} (${x.slots}/${Object.keys(SLOTS).length})</option>`).join('')}</select>
-      ${setId ? `<button class="btn btn-gold small" data-action="wear-set" data-value="${setId}" title="Équipe la meilleure pièce de chaque emplacement ; l'objet porté prend sa place au coffre">Porter</button>` : ''}</div>` : '';
+      ${setId ? `<button class="btn btn-gold small" data-action="wear-set" data-value="${setId}" title="Équipe la meilleure pièce de chaque emplacement ; l'objet porté prend sa place dans la Réserve">Porter</button>` : ''}</div>` : '';
   const set = setId ? setById(setId) : null;
   const tiers = set ? `<div class="mq-tiers muted">${SET_PIECES.map((p) => `<span>${p} : ${effectText(set.bonuses[p])}</span>`).join(' · ')}</div>` : '';
   const over = state.stash.length > STASH_SIZE ? `<div class="bad">Réserve au-delà de ${STASH_SIZE} (pièces des anciens mannequins) : rien n'est perdu, mais rien n'y entre tant qu'il n'est pas redescendu.</div>` : '';
   return `<div class="muted">La Réserve garde ${STASH_SIZE} objets de plus que le sac, <b>jamais recyclés ni fusionnés</b>. Les pièces d'ensemble meilleures y vont d'elles-mêmes.
-      <button class="btn chip-btn small${auto ? ' active' : ''}" data-action="auto-mannequin" title="Une pièce d'ensemble ramassée, meilleure que la meilleure du coffre pour son emplacement, y va (l'ancienne est recyclée, sauf verrouillée)">${auto ? 'Rangement auto : activé' : 'Rangement auto : désactivé'}</button></div>
+      <button class="btn chip-btn small${auto ? ' active' : ''}" data-action="auto-mannequin" title="Une pièce d'ensemble ramassée, meilleure que la meilleure de la Réserve pour son emplacement, y va (l'ancienne est recyclée, sauf verrouillée)">${auto ? 'Rangement auto : activé' : 'Rangement auto : désactivé'}</button></div>
     ${over}${filter}${tiers}
     ${items.length ? `<div class="stash-layout"><div class="inv-grid">${grid}</div>${detail}</div>` : '<div class="card muted">La Réserve est vide.</div>'}`;
 }
@@ -409,7 +409,7 @@ export function museumView(ui, state) {
   // La version « modèle obtenu + meilleure rareté » n'est pas faite : voir docs/refontes-v913.md.
   const tools = fold(ui, 'museum-tools', 'Outils du Musée', () => `<div class="row-between">
       <button class="btn chip-btn small${auto ? ' active' : ''}" data-action="auto-museum" title="Les objets ancestraux ramassés vont dans leur vitrine si elle est vide ou s'ils sont meilleurs (l'ancien retourne au sac)">${auto ? 'Exposition auto : activée' : 'Exposition auto : désactivée'}</button>
-      <button class="btn btn-gold small" data-action="expose-all" title="Expose les objets ancestraux du sac et du coffre (pas ceux que porte le héros)">Exposer tout (sac + coffre)</button>
+      <button class="btn btn-gold small" data-action="expose-all" title="Expose les objets ancestraux du sac et de la Réserve (pas ceux que porte le héros)">Exposer tout (sac + Réserve)</button>
       ${dupes ? `<button class="btn btn-danger small" data-action="recycle-museum-dupes" title="Objets ancestraux du sac moins bons que l'exemplaire exposé (les verrouillés sont gardés)">Recycler les doublons (${dupes})</button>` : ''}</div>
       ${dupes ? `<div class="muted">${dupes} objet${dupes > 1 ? 's' : ''} ancestra${dupes > 1 ? 'ux' : 'l'} du sac ${dupes > 1 ? 'sont des doublons' : 'est un doublon'} : la vitrine expose déjà un exemplaire au moins aussi bon. Les objets ancestraux ne sont jamais recyclés automatiquement.</div>` : ''}`,
   { extra: !auto ? '<span class="muted">auto désactivée</span>' : dupes ? `<span class="muted">${dupes} doublon${dupes > 1 ? 's' : ''}</span>` : '' });

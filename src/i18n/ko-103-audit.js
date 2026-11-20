@@ -5,6 +5,10 @@ const tr = (s) => LK(s) ?? s;
 const GUIDE_BAG_FR = 'Les objets grandissent avec leur niveau : Réaffûter remonte un objet au niveau de ton étape max. La Forge s\'ouvre à l\'étape 10 et la Réserve à l\'étape 20 : elle garde des objets jamais recyclés et les meilleures pièces d\'ensemble (filtre Ensemble, « Porter ») ; les Builds enregistrent équipe, équipement, classe, pouvoirs et compétences. Recyclage et fusion automatiques : Réglages du sac.';
 const GUIDE_FINDS_FR = 'Les trouvailles (coffres, gemmes, portails) arrivent pendant le combat. Sac plein : les objets vont à la Réserve ; sac et Réserve pleins : les récompenses avec un objet attendent ici. Les marchands sont dans Missions › Aujourd\'hui.';
 export const EXACT_103A = {
+  "Équipe la meilleure pièce de chaque emplacement ; l'objet porté prend sa place dans la Réserve": "각 부위의 가장 좋은 아이템을 장착해요. 착용 중이던 아이템은 보관함으로 가요",
+  "Une pièce d'ensemble ramassée, meilleure que la meilleure de la Réserve pour son emplacement, y va (l'ancienne est recyclée, sauf verrouillée)": "주운 세트 아이템이 보관함의 같은 부위 최고 아이템보다 좋으면 보관함으로 가요 (이전 아이템은 잠금이 아니면 분해돼요)",
+  "Expose les objets ancestraux du sac et de la Réserve (pas ceux que porte le héros)": "가방과 보관함의 유물 아이템을 전시해요 (착용 중인 것은 제외)",
+  "Exposer tout (sac + Réserve)": "모두 전시 (가방 + 보관함)",
   'Arène : un étage à franchir (gemmes et étoiles)': '아레나: 층 하나 돌파하기 (보석과 별)',
   'Tes compagnons deviennent des cartes : place-les et affronte les étages.': '동료들이 카드가 돼요: 배치하고 층에 도전하세요.',
   'Des gemmes, des éclats et des grimoires à chaque étage franchi.': '층을 돌파할 때마다 보석, 파편, 마법서를 얻어요.',
