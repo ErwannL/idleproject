@@ -16,7 +16,7 @@ const EVENT_LABELS = {
   gems: 'Gemmes trouvées',
   portal: 'Portail vers une salle au trésor',
   wanderer: 'Boss errant vaincu',
-  held: 'Objet en attente (sac et coffre pleins)', // v9.1.3 (doc3 lot 1)
+  held: 'Objet en attente (sac et Réserve pleins)', // v9.1.3 (doc3 lot 1)
 };
 
 export function eventLabel(type) {

@@ -543,9 +543,9 @@ const actions = {
     if (n === before) break;
     }
     const left = claimables(state).length;
-    if (!n) { ui.toast(left ? 'Sac et coffre pleins : libérez de la place pour récupérer les objets.' : 'Rien à récupérer pour le moment.'); return; }
+    if (!n) { ui.toast(left ? 'Sac et Réserve pleins : libère de la place pour récupérer les objets.' : 'Rien à récupérer pour le moment.'); return; }
     const text = [rewardText(total, formatNumber), items ? `${items} objet${items > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ');
-    done(true, `Tout récupéré : ${text}${left ? ` (${left} en attente : sac et coffre pleins)` : ''}`, '#7fd4ff');
+    done(true, `Tout récupéré : ${text}${left ? ` (${left} en attente : sac et Réserve pleins)` : ''}`, '#7fd4ff');
     ui.showClaimRecap?.(total, { count: n, items, left }); // v9.3.9 : récapitulatif en icônes
   },
   // Retour de session (v9.1.0, touche S) : récupérer tout et équiper le meilleur, puis un récapitulatif.
@@ -588,7 +588,7 @@ const actions = {
   },
   claimEvent(id) {
     const given = claimEvent(state, id);
-    done(Boolean(given), given ? `Récupéré : ${rewardText(given) || given.item?.name}` : 'Sac et coffre pleins');
+    done(Boolean(given), given ? `Récupéré : ${rewardText(given) || given.item?.name}` : 'Sac et Réserve pleins');
   },
   buyMerchant(id) { done(buyFromMerchant(state, id), 'Objet acheté'); },
   dismissEvent(id) { done(dismissEvent(state, id)); },
@@ -673,7 +673,7 @@ const actions = {
   sortLootBag(choices, remember) {
     const r = sortLootBag(state, choices, { remember });
     if (r.recycled) for (const j of journals()) noteRecycled(j, r.recycled, r.gold);
-    const parts = [r.bag && `${r.bag} au sac`, r.stash && `${r.stash} au coffre`, r.held && `${r.held} en attente`, r.recycled && `${r.recycled} recyclé${r.recycled > 1 ? 's' : ''} (+${formatNumber(r.gold)} or)`].filter(Boolean);
+    const parts = [r.bag && `${r.bag} au sac`, r.stash && `${r.stash} en Réserve`, r.held && `${r.held} en attente`, r.recycled && `${r.recycled} recyclé${r.recycled > 1 ? 's' : ''} (+${formatNumber(r.gold)} or)`].filter(Boolean);
     if (parts.length) ui.toast(`Tri : ${parts.join(' · ')}`);
     save();
     ui.invalidate();
@@ -1062,7 +1062,7 @@ const actions = {
     done(Boolean(r), r ? `Prime du jour : ${r.item.name} (${rarityById(r.item.rarity).label}) et +${r.gems} gemmes` : null, '#ffe08a');
   },
   // Coffre (v8.9).
-  toStash(id) { done(moveToStash(state, id), 'Rangé au coffre'); },
+  toStash(id) { done(moveToStash(state, id), 'Rangé dans la Réserve'); },
   fromStash(id) {
     if (!takeFromStash(state, id)) ui.toast('Sac plein.', '#ff8a8a');
     else done(true, 'Repris dans le sac');
@@ -1075,11 +1075,11 @@ const actions = {
   setAutoMannequin(on) { state.ui.autoMannequin = on; done(true); },
   // Musée (v9.0).
   toMuseum(id) {
-    if (!putInMuseum(state, id)) ui.toast('Impossible : pas un objet ancestral, ou sac et coffre pleins.', '#ff8a8a');
+    if (!putInMuseum(state, id)) ui.toast('Impossible : pas un objet ancestral, ou sac et Réserve pleins.', '#ff8a8a');
     else done(true, 'Exposé au Musée', '#ffe08a');
   },
   fromMuseum(baseId) {
-    if (!takeFromMuseum(state, baseId)) ui.toast('Sac et coffre pleins.', '#ff8a8a');
+    if (!takeFromMuseum(state, baseId)) ui.toast('Sac et Réserve pleins.', '#ff8a8a');
     else done(true, 'Repris dans le sac');
   },
   setAutoMuseum(on) {

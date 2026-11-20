@@ -214,7 +214,7 @@ test('lot 1 : À récupérer — une seule liste, sac plein signalé, pastilles 
   assert.equal(list.find((c) => c.key === 'event:902').blocked, null, 'v9.1.3 (doc3) : sac plein → coffre');
   while (s.stash.length < BALANCE.loot.stashSize) s.stash.push(makeItem(s, 'leather_hood', 'common', 1));
   list = claimables(s, NOW);
-  assert.equal(list.find((c) => c.key === 'event:902').blocked, 'Sac et coffre pleins');
+  assert.equal(list.find((c) => c.key === 'event:902').blocked, 'Sac et Réserve pleins'); // v10.3 : le rangement s'appelle « Réserve »
   const byTab = claimablesByTab(list);
   assert.ok(byTab.contracts >= 2 && !byTab.inbox, JSON.stringify(byTab)); // v9.1.3 : trouvailles dans Missions (plus d'onglet À récupérer)
 });
