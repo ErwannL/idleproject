@@ -1,265 +1,327 @@
-// Inventaire en 3 zones (équipement porté · fiche de l'objet · grille) et Forge.
-import { elementBadge, elementWheel, zoneElement, wheelShown } from '../../core/elements.js'; // v9.5.1
-import { heroElement } from '../../core/companions.js'; // v9.6.1
-import { BIND_MODES } from '../../core/loadouts.js'; // v9.6.1
-import { MAJOR_EFFECTS } from '../../data/major-effects.js'; // v9.6.1
-import { activeMajor } from '../../core/inventory.js'; // v9.6.1
-import { GEAR_PROFILES, profileGain } from '../../core/inventory.js'; // v9.5.2
-const PROFILE_ICONS = { attack: 'icon_damage', survival: 'icon_defense', fortune: 'icon_gold' };
-const PROFILE_TIPS = { attack: 'Pour passer un boss : les dégâts d\'abord', survival: 'Pour tenir dans un monde dur : la survie d\'abord', fortune: 'Pour farmer : l\'or et le butin d\'abord' };
-import { currentEncounter as encNow, levelForStage } from '../../core/combat.js'; // v9.5.1
-import { canEquip, classById, weaponClass } from '../../core/classes.js';
-import { companionById, companionMultiplier, unitLevel } from '../../core/companions.js';
-import { gearClassOf as gearClassOfUnit } from '../../data/companion-gear.js';
+// Équipement (v10.3, partie 8) : une fenêtre qu'on comprend du premier coup. En haut « Tes ressources » ; à gauche le
+// héros et les compagnons de l'équipe en portraits ; au centre le personnage en grand et ses places à toucher ; à droite
+// la fiche de l'objet, toujours visible (feuille du bas sur téléphone) ; dessous, le sac en cartes carrées.
+// Les règles restent dans core/ (inventory, forge, companion-gear) : ce fichier ne fait que montrer.
 import { BALANCE } from '../../data/balance.js';
 import { BOSSES } from '../../data/enemies.js';
-import { EQUIP_SLOTS, HERO_SLOTS, RARITIES, SLOTS, STAT_LABELS, eqSlot, heroSlot } from '../../data/items.js';
-import { bestGearFor, canEquip as unitCanEquip, classLabel, gearStats, slotName, statText, unitGear, wearerOf, wornItems } from '../../core/companion-gear.js'; // v9.3.4 (f)
-import { heroGearClass, itemClass } from '../../core/classes.js';
-import { teamUpgradeFor } from '../../core/inventory.js';
-import { companionStill } from './expeditions.js';
-import { formatStat } from '../../core/format.js';
-import { canReforge, canTargetReroll, craftCost, fusionInheritOptions, fusionUsed, targetRerollChoices, targetRerollCost, fusableRarities, fusionChance, fusionGroups, fusionKeep, fusionPity, maxUpgrades, sharpenCost, upgradeCost } from '../../core/forge.js';
-import { KEEP_AFFIX_LABELS, bulkRecycleCandidates, isUpgrade, listInventory, RECYCLE_MODES, recycleRules } from '../../core/inventory.js';
-import { itemBase, rarityById, recycleLevelOf, recycleMaterials, recycleValue } from '../../core/loot.js';
-import { computeHeroStats, statsWithItem } from '../../core/stats.js';
-import { slotIconName } from '../../render/pixel.js';
-import {
-  affixText, coin, costButton, effectText, escapeHtml, fold, formatDecimal, formatNumber, img, itemFrame, rarityLabel, segment, shard,
-} from '../common.js';
-import { navPath } from '../nav.js';
-import { setById, setCounts } from '../../core/sets.js';
+import { COMPANION_RULES } from '../../data/companions.js';
+import { HERO_SLOTS, RARITIES, SLOTS, STAT_LABELS, eqSlot, heroSlot } from '../../data/items.js';
 import { ITEM_SETS, SET_PIECES, SET_SPECIALTY } from '../../data/sets.js';
-import { ZONES } from '../../data/zones.js'; // v9.5.2
+import { ZONES } from '../../data/zones.js';
+import { DUP_BONUS_PCT, ULT_UNLOCK_COPIES } from '../../data/progression.js';
+import { GEAR_CLASSES, gearClassOf } from '../../data/companion-gear.js';
+import { elementBadge, unitElement, wheelShown } from '../../core/elements.js';
+import * as bastion from '../../core/bastion.js';
+import { companionProfile } from '../../core/arena.js';
+import { activeClass, canEquip, classById, itemClass } from '../../core/classes.js';
+import { STAR_TIERS, companionById, companionMultiplier, companionUpgradeCost, heroElement, isAwakened, skillKillGold, unitLevel } from '../../core/companions.js';
+import { bestGearFor, canEquip as unitCanEquip, classLabel, gearStatsWith, gearUpgradePreview, slotName, statText, unitGear, unitGearStats, wearerOf, wornItems } from '../../core/companion-gear.js';
+import { formatStat } from '../../core/format.js';
+import { fusableRarities, upgradePreview, upgradeRanking } from '../../core/forge.js';
+import { heroById } from '../../core/heroes.js';
+import { GEAR_PROFILES, KEEP_AFFIX_LABELS, RECYCLE_MODES, bestPerSlot, bulkRecycleCandidates, heroGains, listInventory, quickEquipPlan, recycleRules } from '../../core/inventory.js';
+import { BIND_MODES } from '../../core/loadouts.js';
+import { itemBase, rarityById, recycleLevelOf, recycleValue } from '../../core/loot.js';
+import { MUSEUM, MUSEUM_PIECES, museumCount, museumDuplicates, museumEffects } from '../../core/museum.js';
+import { canAfford, skillLevels, skillUpgradeCost } from '../../core/progression.js';
+import { setById, setCounts } from '../../core/sets.js';
 import { STASH_SIZE, stashSets } from '../../core/stash.js';
-import { MUSEUM, MUSEUM_PIECES, isMuseumDuplicate, museumCount, museumDuplicates, museumEffects } from '../../core/museum.js';
-import { itemIconUrl } from '../../render/pixel.js';
+import { computeHeroStats } from '../../core/stats.js';
+import { invFeatureOpen } from '../../core/unlocks.js';
+import { itemIconUrl, slotIconName } from '../../render/pixel.js';
 import { animCanvas } from '../animator.js';
-import { invFeatureOpen, nextInvUnlock } from '../../core/unlocks.js';
-import { recycleButton } from './forge.js'; // v9.3.4
+import { affixText, costButton, distinctTo, effectText, escapeHtml, fold, formatDecimal, formatNumber, hdArt, icon, img, itemFrame, rarityLabel, segment } from '../common.js';
+import { changeSheet, emptySlotSheet, femSlot, itemSheet, pctText, unitTodo } from './equip-sheet.js';
+import { companionPortrait, companionStill } from './expeditions.js';
+import { recycleButton } from './forge.js';
+import { skillBubble, skillIcons } from './unit-popup.js';
 
-const STAT_ICONS = { damage: 'weapon_sword', attackSpeed: 'icon_bolt', maxHp: 'icon_heart', armor: 'icon_shield' };
-// v9.3.2 : aperçu des effets visuels de l'arme (purement visuels, sans statistique cachée).
-const FX_TEXT = { common: 'aucun effet', rare: 'lueur bleue sur la lame, étincelles à l\'impact', epic: 'lame violette lumineuse, traînée large, onde à l\'impact',
-  legendary: 'aura dorée, particules au repos, traînée éclatante, onde à l\'impact, éclat sur les compétences' };
-function weaponFxLine(item) {
-  if (item.slot !== 'weapon') return '';
-  return `<div class="muted fx-line"><span class="rarity-dot r-${item.rarity}"></span> Effets visuels en combat : ${FX_TEXT[item.rarity] ?? FX_TEXT.common} <small>(visuels seulement)</small></div>`;
-}
+const PROFILE_ICONS = { attack: 'icon_damage', survival: 'icon_defense', fortune: 'icon_gold' };
+const PROFILE_TIPS = { attack: 'Pour passer un boss : les dégâts d\'abord', survival: 'Pour tenir dans un monde dur : la survie d\'abord', fortune: 'Pour farmer : l\'or et le butin d\'abord' };
 const SORT_LABELS = { rarity: 'Rareté', level: 'Niveau', power: 'Puissance', recent: 'Récent' };
 
 export function visibleItems(state) {
   return listInventory(state, { slot: state.ui.slotFilter, sortBy: state.ui.sortBy, rarity: state.ui.rarityFilter ?? 'all' });
 }
 
-// v8.4 : les accessoires comptent aussi pour leurs effets (or, butin, critique, épines, dégâts contre les boss…).
-const BONUS_ROWS = {
-  goldPct: ['Or', ' %'], dropChance: ['Chance de butin', ' pts'], xpPct: ['XP', ' %'], critChance: ['Coup critique', ' %'],
-  damageVsBossPct: ['Dégâts contre les boss', ' %'], damageVsNormalPct: ['Dégâts contre les ennemis', ' %'],
-  lifesteal: ['Vol de vie', ' %'], thorns: ['Épines', ' %'], regenPct: ['Régénération', ' %/s'], attackSpeedPct: ['Vitesse d\'attaque', ' %'],
-  skillCooldownPct: ['Recharge des compétences', ' %'], lowHpArmor: ['Armure sous 30 % PV', ' %'],
-};
-function bonusRows(a, b, row) {
-  return Object.entries(BONUS_ROWS).filter(([k]) => Math.abs((a[k] ?? 0) - (b[k] ?? 0)) > 1e-6)
-    .map(([k, [label, unit]]) => row(label, a[k] ?? 0, b[k] ?? 0, (v) => formatDecimal(v), unit)).join('');
+// ---------------------------------------------------------------------------------------------------------------
+// Personnages : le héros puis les compagnons de l'équipe (les familiers ne portent rien).
+const teamOf = (state) => (state.companions?.equipped ?? []).map((id) => companionById(id)).filter((c) => c?.kind === 'ally');
+const unitPower = (state, c) => Math.round(100 * companionMultiplier(state, c.id));
+// Une amélioration est possible (pastille rouge « ! ») : meilleur objet, renforcement payable, compétence payable.
+function heroTodo(state, plan) {
+  return plan.changes.length > 0 || Object.values(state.equipment).some((it) => it && upgradePreview(state, it).canPay);
 }
 
-function detail(ui, state, item, whoUnit = null) {
-  const rarity = rarityById(item.rarity);
-  const base = itemBase(item.baseId);
-  const wearer = wearerOf(state, item.id); // v9.3.4 (f) : porté par un compagnon
-  const isEquipped = state.equipment[heroSlot(item)]?.id === item.id || Boolean(wearer);
-  const stats = Object.entries(item.stats).map(([k, v]) => `<li>${img(STAT_ICONS[k])}${STAT_LABELS[k]}
-    <b class="num ${v < 0 ? 'bad' : 'good'}">${formatStat(k, v, true)}</b></li>`).join('');
-  const affixes = (item.affixes ?? []).map((a) => `<li class="affix">✦ ${affixText(a)}</li>`).join('');
+// Bandeau « Tes ressources » : ce qui sert ici (or, éclats), et en gris ce qui sert aux compagnons. Toucher une
+// ressource ouvre sa carte de glossaire.
+function resourceBand(state) {
+  const chip = (key, pic, n, word, cls = '') => `<button class="eq-res-chip ${cls}" data-gloss="${key}" title="${escapeHtml(word)}">${img(pic)}<b class="num">${formatNumber(n)}</b><small>${word}</small></button>`;
+  return `<div class="eq-res" role="group" aria-label="Tes ressources"><span class="eq-res-title">Tes ressources</span>
+    ${chip('gold', 'coin', state.gold, 'Or · améliorer')}${chip('shards', 'icon_shard', state.materials.shards, 'Éclats · renforcer')}
+    <span class="eq-res-other">${chip('grimoire', 'icon_grimoire', state.materials.grimoire ?? 0, 'Grimoires', 'dim')}${chip('ascension', 'icon_ascension', state.materials.ascension ?? 0, 'Pierres d\'éveil', 'dim')}<small class="eq-res-note">pour les compagnons</small></span></div>`;
+}
 
-  let compare = '';
-  if (!isEquipped) {
-    const cur = computeHeroStats(state);
-    const next = statsWithItem(state, item);
-    // Héros actuel → héros avec cet objet (à la place de l'objet porté), et la différence.
-    const row = (label, a, b, fmt, unit = '') => {
-      const diff = b - a;
-      if (Math.abs(diff) < 0.001) return ''; // v9.1.0 : seules les lignes qui changent
-      const cls = Math.abs(diff) < 0.001 ? 'muted' : diff > 0 ? 'good' : 'bad';
-      const arrow = Math.abs(diff) < 0.001 ? '•' : diff > 0 ? '▲' : '▼';
-      return `<div class="compare-row"><span>${label}</span><span class="num muted">${fmt(a)}${unit} → ${fmt(b)}${unit}</span>
-        <span class="num ${cls}">${diff > 0 ? '+' : ''}${fmt(diff)}${unit} ${arrow}</span></div>`;
-    };
-    const current = state.equipment[heroSlot(item)];
-    const int = (v) => formatNumber(Math.round(v));
-    const rows = [row('Dégâts/s', cur.dps, next.dps, (v) => formatDecimal(v)),
-      row('Dégâts', cur.damage, next.damage, int),
-      row('Attaques / s', cur.attacksPerSecond, next.attacksPerSecond, (v) => formatDecimal(v, 2)),
-      row('PV max', cur.maxHp, next.maxHp, int),
-      row('Armure', cur.armor, next.armor, (v) => formatDecimal(v), ' %'),
-      bonusRows(cur.bonus, next.bonus, row)].join('');
-    // v9.8 (A) : l'effet réel de l'objet en % de la puissance (dégâts/s × robustesse), à la place des seuls chiffres bruts
-    // (« +6,3 M » à côté d'une attaque en Qa paraissait nul alors que l'objet entre dans tous les multiplicateurs).
-    const pw = (x) => (x.combatPower ?? x.dps * x.maxHp);
-    const gain = pw(cur) > 0 ? (pw(next) / pw(cur) - 1) * 100 : 0;
-    const big = `<div class="compare-power ${gain > 0.05 ? 'good' : gain < -0.05 ? 'bad' : 'muted'}"><b>${gain > 0 ? '+' : ''}${formatDecimal(gain, Math.abs(gain) < 10 ? 1 : 0)} %</b> de puissance</div>`;
-    compare = `<div class="compare"><div class="section-title">Si tu l'équipes${current ? ` (à la place de ${escapeHtml(current.name)})` : ' (emplacement vide)'}</div>
-      ${big}${rows || '<div class="muted">Aucun changement.</div>'}
-    </div>`;
+// Raccourcis du Bastion (partie 10) : chantiers visibles et accessibles depuis l'équipement.
+function bastionShortcuts(state) {
+  if (!bastion.bastionOpen(state)) return '';
+  const list = bastion.bastionShortcuts?.(state, Date.now()) ?? [];
+  if (!list.length) return '';
+  return `<div class="eq-shorts" role="group" aria-label="Bastion">${list.map((s) => `<button class="eq-short${s.ready ? ' ready' : ''}" data-action="bastion-open" data-value="${escapeHtml(s.id)}" title="${escapeHtml(s.label)}">
+    <b>${escapeHtml(s.label)}</b><span class="num">${s.busy}/${s.total}</span></button>`).join('')}</div>`;
+}
+
+// Colonne des personnages : portrait, nombre de places, ▲ si un meilleur objet attend, « ! » si une amélioration est possible.
+function whoColumn(ui, state, ctx) {
+  const card = (id, name, art, slots, ups, todo) => `<button class="eq-who${ctx.who === id ? ' on' : ''}" data-action="gear-who" data-value="${id}" aria-pressed="${ctx.who === id}" title="${escapeHtml(name)}">
+      <span class="eq-who-art">${art}</span><b>${escapeHtml(name)}</b><small>${slots} places</small>
+      ${ups ? '<span class="eq-who-up" title="Un meilleur objet attend dans le sac">▲</span>' : ''}${todo ? '<span class="eq-who-todo" title="Une amélioration est possible">!</span>' : ''}</button>`;
+  return `<div class="eq-whos" role="group" aria-label="Personnage">${card('hero', 'Héros', animCanvas('hero', 34, 34, 2), Object.keys(HERO_SLOTS).length, ctx.plan.changes.length, heroTodo(state, ctx.plan))}
+    ${ctx.team.map((c) => card(c.id, c.name, companionStill(c), 3, bestGearFor(state, c.id).length, unitTodo(state, c))).join('')}</div>`;
+}
+
+const shortName = (item) => String(item.name).split(' ')[0];
+
+// Une place : icône, cadre à la couleur de la rareté, pastille +N, ▲ si mieux dans le sac ; dessous le nom de la
+// place puis « Nom · Rareté ». Le niveau de l'objet est dans la fiche (« Niveau d'objet »).
+function slotBtn(ui, state, ctx, slot) {
+  const { unit } = ctx;
+  const label = unit ? slotName(unit, slot) : HERO_SLOTS[slot];
+  const item = unit ? unitGear(state, unit.id)[slot] : state.equipment[slot];
+  const on = item ? ctx.sel.item?.id === item.id : ctx.sel.slot === slot && !ctx.sel.item;
+  const up = unit ? ctx.unitSlots.has(slot) : Boolean(ctx.best[slot]);
+  if (!item) {
+    return `<button class="eq-slot empty${on ? ' on' : ''}" data-action="eq-slot" data-value="${slot}" aria-pressed="${on}" title="${escapeHtml(label)} : place vide">
+      <span class="eq-slot-box">${img(slotIconName(slot))}${up ? '<span class="eq-up" title="Un objet du sac va ici">▲</span>' : '<span class="eq-add">+</span>'}</span>
+      <small class="eq-slot-place">${escapeHtml(label)}</small><small class="eq-slot-name muted">Vide</small></button>`;
   }
-  const mats = recycleMaterials(item);
-  // v9.1.3 : verrou en icône dans l'en-tête de la fiche (plus de grand bouton texte).
-  const lock = `<button class="btn icon-btn lock-btn${item.locked ? ' on' : ''}" data-action="lock" data-id="${item.id}" aria-pressed="${item.locked}"
-      aria-label="${item.locked ? 'Déverrouiller' : 'Verrouiller'}" title="${item.locked ? 'Verrouillé : jamais recyclé ni fusionné (appuyer pour déverrouiller)' : 'Verrouiller : jamais recyclé ni fusionné'}">${img('icon_lock')}<span class="icon-word" aria-hidden="true">Verrou</span></button>`;
-  const sharpen = sharpenCost(state, item);
-  // Amélioration : +12 % sur une statistique au hasard, 5 fois (Commun, Rare) ou 10 fois (Épique, Légendaire).
-  const ups = item.upgrades ?? 0;
-  const maxUp = maxUpgrades(item, BALANCE, state);
-  const upCost = upgradeCost(item, BALANCE, state);
-  // Boutons toujours aux mêmes places, quel que soit l'objet : ceux qui ne s'appliquent pas sont grisés.
-  const upgradeBtn = ups >= maxUp
-    ? `<button class="btn btn-gold" disabled>Renforcement maximal (+${maxUp})</button>`
-    : `<button class="btn btn-gold num" data-action="upgrade-item" data-id="${item.id}" data-cost="${upCost.gold}" data-currency="gold"
-        ${state.materials.shards < upCost.shards ? 'data-locked="1" disabled' : state.gold < upCost.gold ? 'disabled' : ''}
->Renforcer +${ups + 1} ${coin()} ${formatNumber(upCost.gold)} ${shard()} ${upCost.shards}</button>`;
-  const sharpenBtn = sharpen
-    ? costButton({ action: 'sharpen', cost: sharpen, have: state.materials.shards, currency: 'shards', attrs: `data-id="${item.id}"`, cls: 'small', label: `Réaffûter niv. ${state.maxStage} ` })
-    : '<button class="btn small" disabled>Réaffûter (déjà au niveau)</button>';
-  const reforgeBtn = `<button class="btn small" data-action="reforge" data-id="${item.id}"
-      ${!canReforge(item) || state.materials.shards < BALANCE.forge.reforgeShards ? 'disabled' : ''}
->${canReforge(item) ? 'Relancer les effets' : 'Aucun effet à relancer'} ${shard()}${BALANCE.forge.reforgeShards}</button>`;
-  // v9.1.3 (doc3 lot 3) : relance orientée — choix de l'effet dans une liste, puis un 2e appui confirme.
-  let targetLine = '';
-  if (canTargetReroll(item)) {
-    const choices = targetRerollChoices(item);
-    const sel = choices.includes(ui.view.rerollType) ? ui.view.rerollType : choices[0];
-    const cost = targetRerollCost(item);
-    const armed = ui.view.rerollArmed === `${item.id}|${sel}`;
-    const what = item.rarity === 'legendary' ? 'Impose la 1re ligne d\'effet (les autres au hasard). Valeur ±20 %.' : 'Impose l\'effet spécial. Valeur ±20 %.';
-    targetLine = `<div class="tool-line target-reroll"><select data-action="reroll-type" aria-label="Effet voulu">${choices.map((t) => `<option value="${t}"${t === sel ? ' selected' : ''}>${escapeHtml(KEEP_AFFIX_LABELS[t] ?? t)}</option>`).join('')}</select>
-      <button class="btn small${armed ? ' btn-gold' : ''}" data-action="target-reroll" data-id="${item.id}" data-value="${sel}" ${state.materials.shards < cost ? 'disabled' : ''}>${armed ? 'Confirmer' : 'Relancer vers'} ${shard()}${cost}</button>
-      <span class="muted">${what}</span></div>`;
+  return `<button class="eq-slot r-${item.rarity}${on ? ' on' : ''}" data-action="eq-slot" data-value="${slot}" data-id="${item.id}" aria-pressed="${on}" title="${escapeHtml(label)} : ${escapeHtml(item.name)}">
+    <span class="eq-slot-box"><img class="px" src="${itemIconUrl(item)}" alt="">${item.upgrades ? `<span class="eq-plusn">+${item.upgrades}</span>` : ''}${up ? '<span class="eq-up" title="Mieux dans ton sac">▲</span>' : ''}</span>
+    <small class="eq-slot-place">${escapeHtml(label)}</small><small class="eq-slot-name">${escapeHtml(shortName(item))} · ${rarityLabel(item.rarity)}</small></button>`;
+}
+
+// Les 4 tuiles de statistiques. Héros : Dégâts/s, Vie, Vitesse, Critique ; compagnon : Attaque, PV, Défense, Recharge.
+// Quand une place est choisie, la tuile concernée montre le gain du prochain renforcement (« +0,1 si renforcée »).
+function tiles(ui, state, ctx) {
+  const { unit, st, sel } = ctx;
+  const tile = (pic, label, value, sub = '', gain = '') => `<div class="eq-stat"><span class="eq-stat-top">${img(pic)}<small>${label}</small></span><b class="num">${value}</b>${sub ? `<small class="eq-stat-sub">${sub}</small>` : ''}${gain ? `<small class="eq-stat-gain good num">${gain}</small>` : ''}</div>`;
+  const item = ctx.tab === 'gear' ? sel.item : null; // le gain du prochain renforcement ne s'affiche que dans l'onglet Équipement
+  const done = item && femSlot(heroSlot(item)) ? 'si renforcée' : 'si renforcé';
+  if (!unit) {
+    let after = null;
+    if (item && state.equipment[heroSlot(item)]?.id === item.id) {
+      const p = upgradePreview(state, item);
+      if (p.after) after = computeHeroStats(state, BALANCE, { ...state.equipment, [heroSlot(item)]: p.after });
+    }
+    const gain = (a, b, fmt) => (after && b - a > 1e-9 ? `+${fmt(b - a)} ${done}` : '');
+    const small = (v) => (v >= 100 ? formatNumber(v) : formatDecimal(v, v < 1 ? 2 : 1));
+    return `<div class="eq-stats-row">${tile('weapon_sword', 'Dégâts/s', formatNumber(st.dps), '', gain(st.dps, after?.dps, small))}
+      ${tile('icon_heart', 'Vie', formatNumber(st.maxHp), '', gain(st.maxHp, after?.maxHp, small))}
+      ${tile('icon_bolt', 'Vitesse', `${formatDecimal(st.attacksPerSecond, 2)}/s`, '', gain(st.attacksPerSecond, after?.attacksPerSecond, (v) => `${formatDecimal(v, 2)}/s`))}
+      ${tile('icon_star', 'Critique', `${formatDecimal(st.critChance)} %`, '', gain(st.critChance, after?.critChance, (v) => `${formatDecimal(v, 2)} %`))}</div>`;
   }
-  // v9.1.0 : toujours visibles (même dans la fiche du téléphone) : Équiper et Recycler (le verrou est dans l'en-tête).
-  const actions = `<div class="action-grid main-actions">
-      ${isEquipped ? '<button class="btn btn-primary" disabled>Équipé</button>' : canEquip(state, item)
-        ? `<button class="btn btn-primary primary-action" data-action="equip" data-id="${item.id}">Équiper</button>`
-        : `<button class="btn" disabled>Pour : ${escapeHtml(weaponClass(item.baseId)?.name ?? classLabel(itemClass(state, item)))}</button>`}
-      <button class="btn btn-outline-gold" data-action="recycle" data-id="${item.id}" ${item.locked || isEquipped ? 'disabled' : ''}>Recycler +${formatNumber(recycleValue(item, BALANCE, recycleLevelOf(state)))} ${coin()}${mats.shards ? ` +${mats.shards}${shard()}` : ''}</button>
-    </div>
-    ${!isEquipped && !canEquip(state, item) ? `<div class="muted">Change de classe pour la porter : ${navPath('hero', 'Classe')}.</div>` : ''}`;
-  // v9.1.3 (doc1 « Équipement : Fiche ») : trois onglets au lieu d'un long repli « Détails ».
-  const tab = ['compare', 'upgrade', 'store'].includes(ui.view.itemTab) ? ui.view.itemTab : 'compare';
-  const tabs = `<div class="item-tabs" role="tablist">${[['compare', 'Comparer'], ['upgrade', 'Améliorer'], ['store', 'Ranger']].map(([k, l]) => `<button class="btn chip-btn small${k === tab ? ' active' : ''}"
-      role="tab" aria-selected="${k === tab}" data-action="item-tab" data-value="${k}">${l}</button>`).join('')}</div>`;
-  const stash = state.stash.length >= STASH_SIZE;
-  let body;
-  if (tab === 'upgrade') {
-    body = `<div class="upgrade-line">${upgradeBtn}<span class="muted num">${ups}/${maxUp}</span></div>
-      <div class="muted">Renforcer : une statistique au hasard +${BALANCE.forge.upgradeBoostPct} %.</div>
-      <div class="tool-line">${sharpenBtn}<span class="muted">Remonte l'objet au niveau de ton étape max.</span></div>
-      <div class="tool-line">${reforgeBtn}<span class="muted">Change les effets spéciaux au hasard.</span></div>
-      ${targetLine}`;
-  } else if (tab === 'store') {
-    body = isEquipped ? '<div class="muted">Un objet porté ne se range pas : retire-le d\'abord en équipant un autre objet.</div>'
-      : `<div class="tool-line"><button class="btn small" data-action="to-stash" data-id="${item.id}" ${stash ? 'disabled' : ''}>Ranger au coffre (${state.stash.length}/${STASH_SIZE})</button>
-        <span class="muted">Jamais recyclé ni fusionné.</span></div>
-      ${base.signature ? `<div class="tool-line"><button class="btn small btn-gold" data-action="to-museum" data-id="${item.id}">Exposer au Musée</button></div>` : ''}`;
+  const p = companionProfile(state, unit.id);
+  const bare = companionProfile({ ...state, companionGear: null }, unit.id);
+  const g = unitGearStats(state, unit.id);
+  let next = null, nextG = null;
+  if (item && wearerOf(state, item.id) === unit.id && !gearUpgradePreview(state, item, skillKillGold(state)).atMax) {
+    const slots = { ...state.companionGear.equipped[unit.id], [eqSlot(item)]: { ...item, upgrades: (item.upgrades ?? 0) + 1 } };
+    const st2 = { ...state, companionGear: { ...state.companionGear, equipped: { ...state.companionGear.equipped, [unit.id]: slots } } };
+    next = companionProfile(st2, unit.id); nextG = unitGearStats(st2, unit.id);
+  }
+  const withGear = (a, b) => (a !== b ? `${formatNumber(a)} → ${formatNumber(b)} avec l'équipement` : '');
+  const gain = (a, b) => (next && b > a ? `+${formatNumber(b - a)} ${done}` : '');
+  return `<div class="eq-stats-row">${tile('weapon_sword', 'Attaque', formatNumber(p.atk), withGear(bare.atk, p.atk), gain(p.atk, next?.atk))}
+    ${tile('icon_heart', 'PV', formatNumber(p.maxHp), withGear(bare.maxHp, p.maxHp), gain(p.maxHp, next?.maxHp))}
+    ${tile('icon_shield', 'Défense', formatNumber(p.def), withGear(bare.def, p.def), gain(p.def, next?.def))}
+    ${tile('icon_bolt', 'Recharge', g.cd ? `−${formatDecimal(g.cd)} %` : '0 %', g.cd ? 'des compétences, avec l\'équipement' : 'des compétences', nextG && nextG.cd > g.cd ? `−${formatDecimal(nextG.cd - g.cd)} % ${done}` : '')}</div>`;
+}
+
+// Le personnage en grand : illustration, niveau dans un hexagone, puissance juste en dessous.
+function figure(ui, state, ctx, faded = false) {
+  const { unit, st, sel } = ctx;
+  let art;
+  if (unit) {
+    art = isAwakened(state, unit.id) ? `<img class="hd-art eq-art px-hd" src="assets/hd/px/awake/ally_${unit.id}.webp" alt="" loading="lazy">` : hdArt(unit, 'eq-art') || companionPortrait(unit, true);
   } else {
-    body = `${compare}<ul class="stat-list">${stats}${affixes}</ul>${weaponFxLine(item)}${setBlock(state, item)}`;
+    const look = heroById(state.heroes?.active);
+    const prev = sel.item && canEquip(state, sel.item) && !wearerOf(state, sel.item.id) ? { ...state.equipment, [heroSlot(sel.item)]: sel.item } : state.equipment;
+    art = `${look ? hdArt(look, 'eq-art') : ''}<span class="eq-live" title="Ton héros avec l'objet choisi">${animCanvas('hero', 64, 64, 3, `data-big="1" data-preview="${escapeHtml(JSON.stringify(prev))}"`)}</span>`;
   }
-  // v9.3.4 : popup d'objet — grande icône, nom coloré, pastilles, « Puissance +X » en gros, 3 statistiques au plus
-  // (chacune une fois), Équiper / Recycler ; le reste (Améliorer, Verrouiller, Ranger, effets, ensemble) derrière « ⋯ ».
-  const curP = computeHeroStats(state).combatPower;
-  const forHero = !whoUnit && !wearer && canEquip(state, item);
-  const gain = isEquipped || !forHero ? null : Math.round(statsWithItem(state, item).combatPower - curP);
-  const unitFor = wearer ? companionById(wearer) : whoUnit;
-  const better = !forHero && !wearer ? teamUpgradeFor(state, item) : null;
-  // v10.0 (5) : objet bien moins bon que celui porté → une phrase simple (pas « Dégâts −100 % ») ; Recycler passe en
-  // bouton principal.
-  const wornNow = forHero && !wearer ? state.equipment[heroSlot(item)] : null;
-  const worsePct = forHero && !isEquipped && wornNow ? (statsWithItem(state, item).combatPower / Math.max(1e-300, computeHeroStats(state).combatPower) - 1) * 100 : 0;
-  const worse = worsePct < -5;
-  let power = worse ? `<div class="ip-power bad">Bien moins bon que ton ${escapeHtml(HERO_SLOTS[heroSlot(item)].toLowerCase())} ${['Arme', 'Armure'].includes(HERO_SLOTS[heroSlot(item)]) ? 'actuelle' : 'actuel'} (−${formatDecimal(Math.min(99.9, -worsePct), Math.abs(worsePct) >= 10 ? 0 : 1)} %)</div>` : '';
-  if (!power) power = wearer ? `<div class="ip-power on">Porté par ${escapeHtml(companionById(wearer)?.name ?? '')}</div>`
-    : isEquipped ? '<div class="ip-power on">Porté</div>'
-    : forHero ? `<div class="ip-power ${gain > 0 ? 'good' : gain < 0 ? 'bad' : 'muted'}">Puissance ${gain > 0 ? '+' : ''}${formatNumber(gain)}</div>`
-    : `<div class="ip-power ${better ? 'good' : 'muted'}">${better ? `Meilleur pour ${escapeHtml(companionById(better)?.name ?? '')}` : `Pour : ${escapeHtml(classLabel(itemClass(state, item)))}`}</div>`;
-  // v9.5.2 (2.2) : Puissance contextuelle — gain réel ici (monstres ordinaires) et contre le prochain boss, et gain par
-  // profil (un objet moins « puissant » peut être meilleur dans la situation, et la fiche le dit).
-  let ctxLine = '';
-  if (forHero && !isEquipped && !worse) {
-    const cur = computeHeroStats(state), nx = statsWithItem(state, item);
-    const here = (st) => st.dps * (1 + (st.bonus?.damageVsNormalPct ?? 0) / 100);
-    const boss = (st) => st.dps * (1 + ((st.bonus?.damageVsBossPct ?? 0) + (st.bossDamagePct ?? 0)) / 100);
-    const pct = (a, b) => Math.round((b / a - 1) * 100);
-    const h = pct(here(cur), here(nx)), b = pct(boss(cur), boss(nx));
-    const sign = (v) => `<b class="${v > 0 ? 'good' : v < 0 ? 'bad' : 'muted'}">${v > 0 ? '+' : ''}${v} %</b>`;
-    const prof = ['attack', 'survival', 'fortune'].filter((p) => profileGain(cur, nx, p) > 0.01).map((p) => GEAR_PROFILES[p].label);
-    ctxLine = `<div class="ip-ctx">Dégâts ${sign(h)} ici · ${sign(b)} contre le prochain boss${prof.length ? ` · <span class="good">Meilleur pour : ${prof.join(', ')}</span>` : ''}</div>`;
-  }
-  const unitLine = unitFor || (!forHero && !wearer) ? `<div class="muted ip-unit">${escapeHtml(statText(gearStats(item, state)))}</div>` : '';
-  // v9.10 (8) : objet du héros → son apport en % de la Puissance (au lieu d'un nombre plat de dégâts illisible).
-  let share = '';
-  const heroWorn = state.equipment[heroSlot(item)]?.id === item.id;
-  if (heroWorn || forHero) {
-    const cur = computeHeroStats(state).combatPower;
-    const pct = heroWorn ? (1 - computeHeroStats(state, BALANCE, { ...state.equipment, [heroSlot(item)]: null }).combatPower / cur) * 100
-      : (statsWithItem(state, item).combatPower / cur - 1) * 100;
-    if (Number.isFinite(pct) && !worse) share = `<li class="ip-share">${img('icon_crown')}<b class="num ${pct >= 0 ? 'good' : 'bad'}">${pct >= 0 ? '+' : '−'}${formatDecimal(Math.abs(pct))} %</b> de ta puissance${heroWorn ? '' : ' si équipé'}</li>`;
-  }
-  const three = share + Object.entries(item.stats).filter(([k]) => !share || k !== 'damage').slice(0, share ? 2 : 3).map(([k, v]) => `<li>${img(STAT_ICONS[k])}${STAT_LABELS[k]} <b class="num">${formatStat(k, v, true)}</b></li>`).join('');
-  const more = ui.view.itemMore === item.id;
-  const unitTarget = whoUnit && unitCanEquip(state, whoUnit.id, item).ok ? whoUnit : better ? companionById(better) : null;
-  // v9.11 (5) : objet porté → les 3 gros boutons d'amélioration tout de suite, plus de boutons grisés ; objet du sac →
-  // Équiper, Recycler et « Améliorer » visibles ; « Plus » (avec un mot) garde Protéger, Ranger, Choisir l'effet.
-  const plus = ui.view.itemPlus === item.id;
-  const mainBtns = `${wearer ? `<button class="btn" data-action="gear-unequip" data-value="${wearer}|${eqSlot(item)}">Retirer</button>`
-      : isEquipped ? ''
-      : unitTarget ? `<button class="btn btn-gold" data-action="gear-equip" data-value="${unitTarget.id}|${item.id}">Équiper sur ${escapeHtml(unitTarget.name)}</button>`
-      : forHero ? `<button class="btn${worse ? '' : ' btn-gold'}" data-action="equip" data-id="${item.id}">Équiper</button>`
-      : `<button class="btn" disabled>Pour : ${escapeHtml(item.cls && item.cls !== heroGearClass(state) ? classLabel(item.cls) : weaponClass(item.baseId)?.name ?? '')}</button>`}
-    ${isEquipped ? '' : `<button class="btn${worse ? ' btn-gold' : ''}" data-action="recycle" data-id="${item.id}" ${item.locked ? 'disabled' : ''}>Recycler +${formatNumber(recycleValue(item, BALANCE, recycleLevelOf(state)))} ${coin()}${mats.shards ? ` +${mats.shards}${shard()}` : ''}</button>
-    <button class="btn btn-primary ip-improve${more ? ' active' : ''}" data-action="item-more" data-value="${more ? '' : item.id}" aria-expanded="${more}">⬆ Améliorer</button>`}
-    <button class="btn ip-plus${plus ? ' active' : ''}" data-action="item-plus" data-value="${plus ? '' : item.id}" aria-expanded="${plus}">Plus ▾</button>`;
-  // v9.8 (I2) : trois gros boutons illustrés (Renforcer, Remettre au niveau, Changer l'effet), le coût avec le nom de la
-  // monnaie, et « Protéger » au lieu d'un cadenas seul.
-  const shardN = (n) => `${shard()} ${n} éclats`;
-  const lvlNow = levelForStage(state.maxStage);
-  const bigTool = (action, icon, title, sub, cost, ok, extra = '') => `<button class="ip-tool" data-action="${action}" data-id="${item.id}" ${extra} ${ok ? '' : 'disabled'}>
-      ${img(icon)}<b>${title}</b><small>${sub}</small><span class="ip-cost">${cost}</span></button>`;
-  const tools = `<div class="ip-tools">
-      ${ups >= maxUp ? bigTool('upgrade-item', 'icon_anvil', 'Renforcer', `Au maximum (+${maxUp})`, '—', false)
-        : bigTool('upgrade-item', 'icon_anvil', 'Renforcer', `+${ups} → +${ups + 1} · une stat +${BALANCE.forge.upgradeBoostPct} %`, `${coin()} ${formatNumber(upCost.gold)} · ${shardN(upCost.shards)}`,
-          state.gold >= upCost.gold && state.materials.shards >= upCost.shards, `data-cost="${upCost.gold}" data-currency="gold"`)}
-      ${bigTool('sharpen', 'icon_shard', 'Remettre au niveau', sharpen ? `L'objet passe au niveau ${lvlNow}` : 'Déjà au niveau de ton étape', sharpen ? shardN(sharpen) : '—', Boolean(sharpen) && state.materials.shards >= sharpen)}
-      ${bigTool('reforge', 'icon_star', 'Changer l\'effet', canReforge(item) ? 'Nouveaux effets spéciaux au hasard' : 'Aucun effet spécial', shardN(BALANCE.forge.reforgeShards), canReforge(item) && state.materials.shards >= BALANCE.forge.reforgeShards)}
-    </div>`;
-  const protect = `<button class="btn${item.locked ? ' btn-gold' : ''}" data-action="lock" data-id="${item.id}" aria-pressed="${item.locked}">${img('icon_lock')} ${item.locked ? 'Protégé' : 'Protéger'}</button>`;
-  const showTools = isEquipped || more;
-  const moreBody = `${showTools ? `<div class="ip-more-box">${tools}</div>` : ''}${plus ? `<div class="ip-more-box ip-plus-box">
-      ${targetLine ? `<details class="ip-target"><summary>Choisir l'effet voulu</summary>${targetLine}</details>` : ''}
-      <div class="tool-line">${protect} ${isEquipped ? '' : `<button class="btn small" data-action="to-stash" data-id="${item.id}" ${stash ? 'disabled' : ''}>Ranger au coffre</button>`}
-        ${base.signature ? `<button class="btn small btn-gold" data-action="to-museum" data-id="${item.id}">Exposer au Musée</button>` : ''}</div>
-      ${affixes ? `<div class="section-title">Effets spéciaux</div><ul class="stat-list">${affixes}</ul>` : ''}${setBlock(state, item)}</div>` : ''}`;
-  return `<div class="unit-pop-backdrop" data-action="close-sheet"></div>
-  <div class="unit-pop item-pop r-${item.rarity}" role="dialog" aria-modal="true" aria-label="${escapeHtml(item.name)}">
-    <button class="btn small up-close" data-action="close-sheet" aria-label="Fermer">✕</button>
-    <div class="ip-head">${itemFrame(item, { tag: 'div' })}
-      <div><div class="ip-name r-${item.rarity}">${escapeHtml(item.name)}${ups ? ` +${ups}` : ''}</div>
-        <div class="ip-pills"><span class="rar-pill r-${item.rarity}">${rarity.label}</span><span class="role-pill">${HERO_SLOTS[heroSlot(item)]}</span><span class="role-pill cls-pill">${escapeHtml(classLabel(itemClass(state, item)))}</span>
-        ${base.signature ? `<span class="role-pill">Butin de ${escapeHtml(BOSSES[base.signature].name)}</span>` : ''}</div></div></div>
-    ${majorLine(state, item)}${power}${ctxLine}${unitLine}${base.signature ? '<div class="muted ip-collect">Possédé : exposé au Musée, il donne son bonus même sans être porté</div>' : ''}<ul class="stat-list ip-stats">${three}</ul>
-    ${moreBody}
-    <div class="up-actions">${mainBtns}</div>
-  </div>`;
+  const level = unit ? unitLevel(state, unit.id) : state.level;
+  const power = unit ? unitPower(state, unit) : st.combatPower;
+  const i = ctx.order.indexOf(ctx.who);
+  const nav = (dir, sign) => (ctx.order.length > 1 ? `<button class="eq-nav ${dir}" data-action="gear-who" data-value="${ctx.order[(i + sign + ctx.order.length) % ctx.order.length]}" aria-label="${sign < 0 ? 'Personnage précédent' : 'Personnage suivant'}">${sign < 0 ? '‹' : '›'}</button>` : '');
+  return `<div class="eq-figure${faded ? ' faded' : ''}">${nav('prev', -1)}<div class="eq-art-box">${art}</div>${nav('next', 1)}
+    <div class="eq-id"><span class="eq-hex" title="Niveau"><small>Niv.</small><b class="num">${level}</b></span>
+      <span class="eq-power"><small>Puissance</small><b class="num">${formatNumber(power)}</b></span></div></div>`;
 }
 
-// v9.6.1 (2.4) : grand effet de l'objet, et s'il est actif (un seul à la fois).
-function majorLine(state, item) {
-  const m = MAJOR_EFFECTS[item.major];
-  if (!m) return '';
-  const act = activeMajor(state);
-  const worn = Object.values(state.equipment).some((i) => i?.id === item.id);
-  const st = worn ? (act?.id === item.major && state.equipment[act.slot]?.id === item.id ? '<span class="good">actif</span>' : '<span class="bad">inactif : un seul grand effet à la fois</span>')
-    : act ? `<span class="muted">remplacerait « ${escapeHtml(MAJOR_EFFECTS[act.id].name)} »</span>` : '';
-  return `<div class="ip-major" style="--mc:${m.color}"><b>${escapeHtml(m.name)}</b> — ${escapeHtml(m.text)} ${st}</div>`;
+// Centre de l'écran : places autour du personnage, bouton vert « Équipement rapide (N ▲) », tuiles.
+function stage(ui, state, ctx) {
+  const { unit } = ctx;
+  const slots = unit ? Object.keys(unitGear(state, unit.id)) : Object.keys(HERO_SLOTS);
+  const half = Math.ceil(slots.length / 2);
+  const n = unit ? bestGearFor(state, unit.id).length : ctx.plan.changes.length;
+  const quick = n ? `<button class="btn eq-quick" data-action="eq-quick" data-value="${ctx.who}">Équipement rapide (${n} ▲)</button>`
+    : '<span class="eq-quick-none muted">Rien de mieux dans ton sac pour l\'instant.</span>';
+  let middle;
+  if (ctx.tab === 'skills' && unit) {
+    const own = state.companions.owned[unit.id];
+    middle = `<div class="eq-doll eq-skillring">${figure(ui, state, ctx, true)}${skillIcons(ui, state, unit, own)}</div>`;
+  } else {
+    middle = `<div class="eq-doll n${slots.length}"><div class="eq-slots left">${slots.slice(0, half).map((s) => slotBtn(ui, state, ctx, s)).join('')}</div>
+      ${figure(ui, state, ctx)}<div class="eq-slots right">${slots.slice(half).map((s) => slotBtn(ui, state, ctx, s)).join('')}</div></div>
+      <div class="eq-quick-row">${quick}</div>`;
+  }
+  return `<section class="eq-stage" style="background-image:linear-gradient(#0c1426d9,#0c1426f2),url('assets/ui/art98/guild_hall.png')" aria-label="${escapeHtml(unit ? unit.name : 'Héros')}">${middle}${tiles(ui, state, ctx)}</section>`;
+}
+
+const sheetShell = (ui, cls, label, body) => `<aside class="eq-sheet ${cls}" aria-label="${escapeHtml(label)}">${body}</aside>`;
+
+// Confirmation de l'Équipement rapide : chaque place avant → après, puis la puissance avant → après.
+function quickSheet(ui, state, ctx) {
+  const { unit } = ctx;
+  let rows, total;
+  if (unit) {
+    const ids = bestGearFor(state, unit.id);
+    const worn = unitGear(state, unit.id);
+    const pool = [...state.inventory, ...(state.stash ?? [])];
+    rows = ids.map((id) => pool.find((i) => i.id === id)).filter(Boolean).map((to) => {
+      const from = worn[eqSlot(to)];
+      return `<div class="eq-qrow"><small>${escapeHtml(slotName(unit, eqSlot(to)))}</small><span><span class="muted">${from ? escapeHtml(from.name) : 'place vide'}</span> <i>→</i> <b class="r-${to.rarity} rarity-text">${escapeHtml(to.name)}</b></span></div>`;
+    }).join('');
+    const a = statText(unitGearStats(state, unit.id)) || 'aucun bonus', b = statText(gearStatsWith(state, unit.id, ids));
+    total = `<div class="eq-ba"><span class="muted">${escapeHtml(a)}</span><i>→</i><b class="good">${escapeHtml(b)}</b></div>`;
+  } else {
+    const plan = ctx.plan;
+    rows = plan.changes.map((c) => `<div class="eq-qrow"><small>${HERO_SLOTS[c.slot]} <span class="good num">${pctText(c.pct)}</span></small><span><span class="muted">${c.from ? escapeHtml(c.from.name) : 'place vide'}</span> <i>→</i> <b class="r-${c.to.rarity} rarity-text">${escapeHtml(c.to.name)}</b></span></div>`).join('');
+    total = `<div class="eq-row chg pw"><span>${img('icon_crown')} Puissance</span><span class="num muted">${formatNumber(plan.before)}</span><i>→</i><b class="num good">${distinctTo(formatNumber(plan.before), formatNumber(plan.after), (plan.after / Math.max(1, plan.before) - 1) * 100)}</b></div>`;
+  }
+  return `<aside class="eq-sheet eq-quick-sheet${ui.view.sheetOpen === 'item' ? ' is-open' : ''}" aria-label="Équipement rapide"><div class="eq-sh-head"><div class="eq-sh-id"><b class="eq-name">Équipement rapide</b>
+      <div class="muted">Le meilleur objet de ton sac pour chaque place. Les anciens objets retournent dans le sac.</div></div></div>
+    <section class="eq-sec"><h4>Avant → après</h4><div class="eq-rows">${rows}${total}</div>
+      <div class="eq-actions"><button class="btn eq-quick" data-action="eq-quick-ok" data-value="${ctx.who}">Confirmer</button><button class="btn" data-action="eq-quick" data-value="">Annuler</button></div></section></aside>`;
+}
+
+// Onglet « Vue d'ensemble » : ce qui peut s'améliorer sur ce personnage, et où aller.
+function overviewSheet(ui, state, ctx) {
+  const { unit } = ctx;
+  const line = (pic, title, text, btn) => `<div class="eq-over-row">${img(pic)}<span><b>${title}</b><small>${text}</small></span>${btn}</div>`;
+  const go = (tab, label = 'Voir') => `<button class="btn small" data-action="eq-tab" data-value="${tab}">${label} ›</button>`;
+  if (!unit) {
+    const worn = Object.values(state.equipment).filter(Boolean).length;
+    const n = ctx.plan.changes.length;
+    const top = upgradeRanking(state).find((r) => r.preview.canPay);
+    const cls = activeClass(state);
+    return sheetShell(ui, 'eq-over', 'Vue d\'ensemble', `<div class="eq-sh-head"><div class="eq-sh-id"><b class="eq-name">Ton héros</b>
+        <div class="muted">Niveau ${state.level} · classe <b style="color:${cls.color}">${escapeHtml(cls.name)}</b></div></div></div>
+      <section class="eq-sec"><h4>Ce qui peut s'améliorer</h4>
+        ${line('icon_bag', `Équipement : ${worn}/${Object.keys(HERO_SLOTS).length} places`, n ? `<span class="good">${n} ▲ à équiper depuis ton sac</span>` : 'Rien de mieux dans ton sac.', go('gear'))}
+        ${line('icon_anvil', 'Renforcement', top ? `<span class="good">${escapeHtml(top.item.name)} +${top.preview.level} → +${top.preview.level + 1} : ${pctText(top.gainPct)} de puissance</span>` : 'Aucun renforcement payable pour l\'instant.', top ? `<button class="btn small" data-action="eq-slot" data-value="${top.slot}" data-id="${top.item.id}">Voir ›</button>` : go('gear'))}
+        ${line('icon_upgrade', 'Améliorations', 'Dépense ton or pour monter Dégâts, Vie et le reste.', '<button class="btn small" data-action="open-tab" data-value="upgrades">Y aller ›</button>')}
+        ${line('skill_quick', 'Compétences', 'Les sorts que ton héros lance tout seul.', '<button class="btn small" data-action="open-tab" data-value="skills">Y aller ›</button>')}</section>`);
+  }
+  const own = state.companions.owned[unit.id];
+  const lv = unitLevel(state, unit.id);
+  const maxed = lv >= COMPANION_RULES.maxLevel;
+  const copies = Math.min(COMPANION_RULES.maxCopies, own?.stars ?? 1);
+  const sk = skillLevels(own);
+  const kg = skillKillGold(state);
+  const skillOk = ['passive', 'active', 'ultimate'].some((k) => { const cost = skillUpgradeCost(own, k, kg); return cost && canAfford(state, cost); });
+  const worn = Object.values(unitGear(state, unit.id)).filter(Boolean).length;
+  const ups = bestGearFor(state, unit.id).length;
+  return sheetShell(ui, 'eq-over', 'Vue d\'ensemble', `<div class="eq-sh-head"><div class="eq-sh-id"><b class="eq-name r-${unit.rarity}">${escapeHtml(unit.name)}</b>
+      <div class="eq-pills"><span class="rar-pill r-${unit.rarity}">${rarityLabel(unit.rarity)}</span>${elementBadge(unitElement(unit.id))}<span class="role-pill">${escapeHtml(GEAR_CLASSES[gearClassOf(unit)].label)}</span></div></div></div>
+    <section class="eq-sec"><h4>Ce qui peut s'améliorer</h4>
+      ${line('icon_upgrade', `Niveau ${lv} / ${COMPANION_RULES.maxLevel}`, maxed ? 'Niveau maximal.' : `Niv. ${lv} → ${lv + 1} avec de l'or.`, maxed ? '' : costButton({ action: 'upgrade-companion', cost: companionUpgradeCost(state, unit.id), have: state.gold, attrs: `data-value="${unit.id}"`, cls: 'btn-gold small', label: 'Monter ' }))}
+      ${line('icon_star', `Étoile suivante : ${copies}/${COMPANION_RULES.maxCopies} copies`, copies < COMPANION_RULES.maxCopies ? `Prochaine copie : +${DUP_BONUS_PCT[copies]} % aux stats.` : 'Toutes les étoiles sont gagnées.', go('stars'))}
+      ${line('skill_quick', 'Compétences', `Passif ${sk.passive} · Active ${sk.active} · Ultime ${sk.ultimate}${skillOk ? ' · <span class="good">une amélioration est payable</span>' : ''}`, go('skills'))}
+      ${line('icon_bag', `Équipement : ${worn}/3 places`, ups ? `<span class="good">${ups} ▲ à équiper depuis ton sac</span>` : 'Rien de mieux dans ton sac.', go('gear'))}</section>`);
+}
+
+// Onglet « Étoiles » : étoiles actuelles → suivantes, tableau avant → après, copies possédées / requises.
+// Les étoiles viennent des copies obtenues à l'Invocation (règle inchangée : core/progression.js).
+function starsSheet(ui, state, ctx) {
+  const c = ctx.unit;
+  const own = state.companions.owned[c.id] ?? { stars: 1, level: 1 };
+  const max = COMPANION_RULES.maxCopies;
+  const copies = Math.min(max, own.stars ?? 1);
+  const dia = (n) => `<span class="eq-dia" aria-label="${n} étoile${n > 1 ? 's' : ''} sur ${max - 1}">${'◆'.repeat(n)}<i>${'◆'.repeat(max - 1 - n)}</i></span>`;
+  if (copies >= max) {
+    return sheetShell(ui, 'eq-stars', 'Étoiles', `<div class="eq-sh-head"><div class="eq-sh-id"><b class="eq-name">Étoiles</b><div>${dia(max - 1)}</div></div></div>
+      <section class="eq-sec"><p class="good">Toutes les étoiles sont gagnées : +${DUP_BONUS_PCT[max - 1]} % aux statistiques.</p></section>`);
+  }
+  const st2 = { ...state, companions: { ...state.companions, owned: { ...state.companions.owned, [c.id]: { ...own, stars: copies + 1 } } } };
+  const a = companionProfile(state, c.id), b = companionProfile(st2, c.id);
+  const row = (label, x, y) => `<div class="eq-row chg"><span>${label}</span><span class="num muted">${x}</span><i>→</i><b class="num good">${distinctTo(x, y, DUP_BONUS_PCT[copies] - DUP_BONUS_PCT[copies - 1])}</b></div>`;
+  const ultHead = copies + 1 === ULT_UNLOCK_COPIES ? '<div class="eq-named">Niveau max de l\'ultime <b>5 → 10</b></div>' : '';
+  const tier = [3, 5].map((n) => `<li class="${copies >= n ? 'good' : copies + 1 === n ? 'next' : 'muted'}">${n} copies : ${escapeHtml(STAR_TIERS[n].text)}${copies >= n ? ' ✓' : ''}</li>`).join('');
+  return sheetShell(ui, 'eq-stars', 'Étoiles', `<div class="eq-sh-head"><div class="eq-sh-id"><b class="eq-name">Étoiles</b>
+      <div class="eq-dia-line">${dia(copies - 1)}<i>→</i>${dia(copies)}</div></div></div>
+    <section class="eq-sec">${ultHead}<h4>Avec une copie de plus</h4><div class="eq-rows">
+      ${row('Puissance', formatNumber(unitPower(state, c)), formatNumber(unitPower(st2, c)))}${row('PV', formatNumber(a.maxHp), formatNumber(b.maxHp))}
+      ${row('Attaque', formatNumber(a.atk), formatNumber(b.atk))}${row('Défense', formatNumber(a.def), formatNumber(b.def))}
+      ${row('Bonus de copies', `+${DUP_BONUS_PCT[copies - 1]} %`, `+${DUP_BONUS_PCT[copies]} %`)}</div>
+      <ul class="eq-tiers">${tier}</ul></section>
+    <section class="eq-sec"><h4>Copies</h4>
+      <div class="eq-frag"><div class="eq-frag-bar"><i style="width:${(copies / max) * 100}%"></i></div><b class="num">${copies}/${max}</b></div>
+      <div class="eq-cost no">${img('icon_summon')}<span class="eq-need">Étoile suivante : 1 copie</span><span class="eq-have bad num">0/1</span><button class="eq-plusbtn" data-action="open-tab" data-value="summon" aria-label="Aller à l'Invocation">+</button></div>
+      <p class="eq-rule muted">Chaque copie de ${escapeHtml(c.name)} obtenue à l'Invocation ajoute une étoile toute seule : rien à promouvoir à la main.</p>
+      <button class="btn btn-gold eq-do" data-action="open-tab" data-value="summon">Invoquer ›</button></section>`);
+}
+
+// Onglet « Compétences » : la fiche de la compétence choisie (effet actuel, niveau suivant en orange, coût), et le
+// bandeau rouge quand c'est le nombre de copies qui bloque.
+function skillsSheet(ui, state, ctx) {
+  const c = ctx.unit;
+  const own = state.companions.owned[c.id] ?? { stars: 1, level: 1 };
+  const kind = ui.view.skillPop;
+  const copies = own.stars ?? 1;
+  const blocked = kind === 'ultimate' && copies < ULT_UNLOCK_COPIES && skillLevels(own).ultimate >= 5
+    ? `<button class="eq-block" data-action="eq-tab" data-value="stars">Niveaux 6 à 10 de l'ultime : il faut la ${ULT_UNLOCK_COPIES}e copie ›</button>` : '';
+  return sheetShell(ui, 'eq-skills', 'Compétences', `<div class="eq-sh-head"><div class="eq-sh-id"><b class="eq-name">Compétences</b>
+      <div class="muted">Touche une icône autour de ${escapeHtml(c.name)} pour voir son effet et son niveau suivant.</div></div></div>
+    <section class="eq-sec">${kind ? skillBubble(ui, state, c, own, Boolean(state.companions.owned[c.id])) : '<p class="muted">Aucune compétence choisie.</p>'}${blocked}</section>`);
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Le sac : cartes carrées, fond à la couleur de la rareté, niveau en bas, porteur en haut à droite, cadenas.
+function bagSection(ui, state, ctx) {
+  const { unit } = ctx;
+  const items = visibleItems(state);
+  const usableBy = (i) => (unit ? unitCanEquip(state, unit.id, i).ok : canEquip(state, i));
+  const shown = ui.view.bagAll ? items : items.filter(usableBy);
+  const hidden = items.length - shown.length;
+  const full = state.inventory.length >= BALANCE.loot.inventorySize;
+  const slotF = state.ui.slotFilter ?? 'all', rarF = state.ui.rarityFilter ?? 'all';
+  const passes = (i) => (slotF === 'all' || i.slot === slotF || eqSlot(i) === slotF) && (rarF === 'all' || i.rarity === rarF);
+  const card = (i, { wearer = '', worn = false } = {}) => {
+    const usable = worn || usableBy(i);
+    const up = !worn && (unit ? ctx.unitIds.has(i.id) : ctx.gains.get(i.id)?.up);
+    return `<button class="eq-card r-${i.rarity}${i.id === ctx.sel.item?.id ? ' selected' : ''}${usable ? '' : ' dim'}${worn ? ' worn' : ''}${itemBase(i.baseId).signature ? ' signature' : ''}" data-action="select-item" data-id="${i.id}"
+      title="${escapeHtml(i.name)}${i.upgrades ? ` +${i.upgrades}` : ''} · ${rarityLabel(i.rarity)} · niveau d'objet ${i.level}">
+      <img class="px" src="${itemIconUrl(i)}" alt="${escapeHtml(i.name)}">${i.upgrades ? `<span class="eq-plusn">+${i.upgrades}</span>` : ''}${wearer || (up ? '<span class="eq-up" title="Meilleur que l\'objet porté">▲</span>' : '')}
+      ${i.locked ? `<img class="px lock" src="${icon('icon_lock', 1)}" alt="Verrouillé">` : ''}${i.set && setById(i.set) ? `<img class="px set-ico" src="${icon(`set_${i.set}`, 1)}" alt="" title="Ensemble : ${escapeHtml(setById(i.set).name)}">` : ''}
+      <small class="eq-card-lvl">${usable ? `Niv. ${i.level}` : escapeHtml(classLabel(itemClass(state, i)))}</small></button>`;
+  };
+  // Objets portés (héros et équipe), en tête, avec le porteur en haut à droite.
+  const wornCards = [
+    ...Object.values(state.equipment).filter(Boolean).filter(passes).map((i) => card(i, { worn: true, wearer: `<span class="eq-wearer" title="Porté par ton héros">${img('menu_hero')}</span>` })),
+    ...ctx.team.flatMap((c) => Object.values(unitGear(state, c.id)).filter(Boolean).filter(passes).map((i) => card(i, { worn: true, wearer: `<span class="eq-wearer" title="Porté par ${escapeHtml(c.name)}">${companionStill(c)}</span>` }))),
+  ].join('');
+  const FILTERS = [['all', 'Tous les objets', null, 'Tous'], ['weapon', 'Armes', 'weapon', 'Armes'], ['armor', 'Armures', 'armor', 'Armures'], ['accessory', 'Accessoires', 'ring', 'Accessoires']];
+  const filterChips = FILTERS.map(([v, l, slot, word]) => `<button class="btn chip-btn filter-chip${slotF === v ? ' active' : ''}" data-action="filter" data-value="${v}"
+      aria-label="${l}" title="${l}" aria-pressed="${slotF === v}">${slot ? `${img(slotIconName(slot))}<span class="icon-word" aria-hidden="true">${word}</span>` : '<b>Tous</b>'}</button>`).join('');
+  const sortOptions = Object.entries(SORT_LABELS).map(([v, l]) => `<option value="${v}" ${v === state.ui.sortBy ? 'selected' : ''}>${l}</option>`).join('');
+  const tools = ui.view.bagMenu ? `<div class="inv-tools"><div class="filter-chips" role="group" aria-label="Emplacement">${filterChips}</div>
+      <select data-action="sort" aria-label="Trier">${sortOptions}</select>
+      <select data-action="rarity-filter" aria-label="Rareté">${[['all', 'Toutes'], ...RARITIES.map((r) => [r.id, r.label])].map(([v, l]) => `<option value="${v}" ${v === rarF ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+    ${ui.view.bagAll ? '<button class="btn small bag-for" data-action="bag-all" data-value="">Seulement les objets utilisables</button>' : `<button class="btn small bag-for" data-action="bag-all" data-value="1">Voir aussi les objets des autres classes${hidden ? ` (${hidden})` : ''}</button>`}` : '';
+  const grid = shown.map((i) => card(i)).join('');
+  return `${tools}<div class="eq-bag-grid">${wornCards}${grid}</div>
+    ${grid ? '' : '<div class="eq-bag-empty"><img class="px empty-art" src="assets/ui/art98/empty_chest.png" alt="">Ton sac est vide. Les monstres laissent parfois tomber de l\'équipement.</div>'}
+    ${recycleButton(state)}${full ? '<div class="bad">Sac plein : recycle les objets inutiles ou range-les dans la Réserve.</div>' : ''}`;
 }
 
 // v9.5.2 (2.3) : bandeau Ensembles — pour chaque ensemble entamé : pièces portées / possédées, prochain palier, spécialité
@@ -359,87 +421,6 @@ export function museumView(ui, state) {
     <div class="museum">${cases}</div>`;
 }
 
-function bag(ui, state) {
-  const items = visibleItems(state);
-  const equippedItems = Object.values(state.equipment).filter(Boolean);
-  const all = [...state.inventory, ...equippedItems, ...wornItems(state)];
-  // v9.3.4 (f) : personnage choisi (héros ou compagnon de l'équipe) : ses 3 places, et le sac vu pour lui.
-  const team = (state.companions?.equipped ?? []).map((id) => companionById(id)).filter((c) => c?.kind === 'ally'); // v9.3.8 : compagnons seulement (les familiers ne portent rien)
-  const who = team.some((c) => c.id === ui.view.gearWho) ? ui.view.gearWho : 'hero';
-  const whoUnit = who === 'hero' ? null : companionById(who);
-  let selected = all.find((i) => i.id === ui.view.selectedItemId);
-  if (!selected) {
-    selected = items[0] ?? state.equipment.weapon ?? equippedItems[0] ?? null;
-    ui.view.selectedItemId = selected?.id ?? null;
-  }
-  const slotFrame = (slot) => {
-    const label = whoUnit ? slotName(whoUnit, slot) : HERO_SLOTS[slot];
-    const item = whoUnit ? unitGear(state, who)[slot] : state.equipment[slot];
-    const frame = item
-      ? itemFrame(item, { selected: item.id === ui.view.selectedItemId, equipped: true })
-      : `<div class="item-frame empty named" title="${label} : aucun">${img(slotIconName(slot))}</div>`;
-    // v9.11 (5) : grande case (64 px), nom court dessous, « +N » et niveau, ⬆ vert si un renforcement est payable.
-    const c = item && !whoUnit && (item.upgrades ?? 0) < maxUpgrades(item, BALANCE, state) ? upgradeCost(item, BALANCE, state) : null;
-    const canUp = c && state.gold >= c.gold && state.materials.shards >= c.shards;
-    return `<div class="slot slot-big${item ? ` r-${item.rarity}` : ''}" title="${label}">${frame}${canUp ? '<span class="slot-up" title="Renforcement possible">⬆</span>' : ''}
-      <small class="slot-name">${label}${item?.upgrades ? ` <b>+${item.upgrades}</b>` : ''}</small>${item?.level ? `<small class="slot-lvl">Nv ${item.level}</small>` : ''}</div>`;
-  };
-  // v9.1.3 (doc2 A13) : filtre d'emplacement en icônes sur la ligne du tri (il tient sans prendre de hauteur).
-  // v9.1.3 (doc3 lot 4) : icône seule = aria-label ; en mode débutant, le mot court reste visible sous l'icône.
-  const FILTERS = [['all', 'Tous les objets', null, 'Tous'], ['weapon', 'Armes', 'weapon', 'Armes'], ['armor', 'Armures', 'armor', 'Armures'], ['accessory', 'Accessoires', 'ring', 'Accessoires']];
-  const filterChips = FILTERS.map(([v, l, slot, word]) => `<button class="btn chip-btn filter-chip${(state.ui.slotFilter ?? 'all') === v ? ' active' : ''}" data-action="filter" data-value="${v}"
-      aria-label="${l}" title="${l}" aria-pressed="${(state.ui.slotFilter ?? 'all') === v}">${slot ? `${img(slotIconName(slot))}<span class="icon-word" aria-hidden="true">${word}</span>` : '<b>Tous</b>'}</button>`).join('');
-  const sortOptions = Object.entries(SORT_LABELS)
-    .map(([v, l]) => `<option value="${v}" ${v === state.ui.sortBy ? 'selected' : ''}>${l}</option>`).join('');
-  const full = state.inventory.length >= BALANCE.loot.inventorySize;
-  // v9.3.8 (2.4) : par défaut, le sac ne montre que les objets utilisables par le personnage choisi.
-  const usableBy = (i) => (whoUnit ? unitCanEquip(state, who, i).ok : canEquip(state, i));
-  const shown = ui.view.bagAll ? items : items.filter(usableBy);
-  const hidden = items.length - shown.length;
-  const previewEq = selected && !whoUnit && heroSlot(selected) in HERO_SLOTS && !wearerOf(state, selected.id) ? { ...state.equipment, [heroSlot(selected)]: selected } : state.equipment;
-  const st = computeHeroStats(state);
-  // v9.3.8 (2.4) : grands portraits (héros et compagnons de l'équipe) avec niveau et puissance ; le personnage choisi en
-  // grand, dessiné comme en combat, ses places tout autour.
-  const unitPower = (c) => Math.round(100 * companionMultiplier(state, c.id));
-  const whoBtn = (id, label, art, sub) => `<button class="who-card${who === id ? ' active' : ''}" data-action="gear-who" data-value="${id}" aria-pressed="${who === id}" title="${escapeHtml(label)}">
-      <span class="who-art">${art}</span><b>${escapeHtml(label)}</b><small>${sub}</small></button>`;
-  // v9.11 (5) : « Nv 157 » sur une ligne, la puissance sur la suivante (jamais coupée).
-  const whoRow = `<div class="who-row" role="group" aria-label="Personnage">${whoBtn('hero', 'Héros', animCanvas('hero', 34, 34, 2), `<span>Nv ${state.level}</span><span class="nowrap">${formatNumber(st.combatPower)}</span>`)}${team.map((c) => whoBtn(c.id, c.name, companionStill(c), `<span>Nv ${unitLevel(state, c.id)}</span><span class="nowrap">${formatNumber(unitPower(c))}</span>`)).join('')}</div>`;
-  const PL = whoUnit ? Object.keys(EQUIP_SLOTS) : Object.keys(HERO_SLOTS);
-  const half = Math.ceil(PL.length / 2);
-  // v9.11 (5) : la ligne des éléments devient un bouton « ? Éléments » (schéma illustré en fenêtre).
-  const equipCol = `<div class="card inv-equip">${whoRow}${wheelShown(state) ? '<button class="btn small elem-help-btn" data-action="elements-help">? Éléments</button>' : ''}
-      <div class="equip-doll big"><div class="slot-col">${PL.slice(0, half).map(slotFrame).join('')}</div>
-        <div class="doll" title="Aperçu avec l'objet sélectionné">${whoUnit ? `<span class="doll-unit">${companionStill(whoUnit)}</span>` : animCanvas('hero', 64, 64, 3, `data-big="1" data-preview="${escapeHtml(JSON.stringify(previewEq))}"`)}</div>
-        <div class="slot-col acc">${PL.slice(half).map(slotFrame).join('')}</div></div>
-      ${whoUnit && bestGearFor(state, who).length ? `<button class="btn btn-gold primary-action" data-action="gear-best" data-value="${who}">⬆ Équiper le meilleur (${bestGearFor(state, who).length})</button>` : ''}
-      ${whoUnit ? `<div class="inv-power"><small>${escapeHtml(classLabel(gearClassOfUnit(whoUnit)))}</small><b class="num">${escapeHtml(statText(Object.values(unitGear(state, who)).filter(Boolean).reduce((t, it) => { for (const [k, v] of Object.entries(gearStats(it, state))) t[k] = Math.round(((t[k] ?? 0) + v) * 10) / 10; return t; }, {}))) || '—'}</b></div>`
-        : `<div class="inv-power"><small>Puissance</small><b class="num">${formatNumber(st.combatPower)}</b></div>`}</div>`;
-  // v9.1.3 (doc1 « Équipement : Sac ») : sur téléphone, les 7 cases portées en une ligne compacte en haut du sac
-  // (comme la ligne d'équipement de la Fiche du héros) au lieu du mannequin placé sous la grille.
-  const gearRow = `<div class="inv-gear-row" aria-label="Équipement porté">${PL.map(slotFrame).join('')}</div>`;
-  return `<div class="inv inv3">
-    ${equipCol}
-    ${selected && ui.view.sheetOpen === 'item' ? detail(ui, state, selected, whoUnit) : ''}
-    <div class="card inv-list">
-      ${gearRow}
-      ${ui.view.bagMenu ? `<div class="inv-tools"><div class="filter-chips" role="group" aria-label="Emplacement">${filterChips}</div>
-        <select data-action="sort" aria-label="Trier">${sortOptions}</select>
-        <select data-action="rarity-filter" aria-label="Rareté">${[['all', 'Toutes'], ...RARITIES.map((r) => [r.id, r.label])].map(([v, l]) => `<option value="${v}" ${v === (state.ui.rarityFilter ?? 'all') ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
-      ${ui.view.bagAll ? '<button class="btn small bag-for" data-action="bag-all" data-value="">Seulement les objets utilisables</button>' : `<button class="btn small bag-for" data-action="bag-all" data-value="1">Voir aussi les objets des autres classes${hidden ? ` (${hidden})` : ''}</button>`}` : ''}
-      <div class="inv-grid">${shown.map((i) => {
-        // v9.3.4 (f) : objet d'une autre classe que le personnage choisi : grisé, « Pour : … ».
-        const usable = whoUnit ? unitCanEquip(state, who, i).ok : canEquip(state, i);
-        const f = itemFrame(i, { selected: i.id === ui.view.selectedItemId, showUp: true, state, current: st });
-        return usable ? f : f.replace('class="item-frame', 'class="item-frame dim').replace(/<\/button>$/, `<span class="for-cls">${escapeHtml(classLabel(itemClass(state, i)))}</span></button>`);
-      }).join('')
-        || '<div class="inv-empty"><img class="px empty-art" src="assets/ui/art98/empty_chest.png" alt="">Aucun objet ici. Les ennemis laissent parfois tomber de l\'équipement.</div>'}</div>
-      ${recycleButton(state)}
-      ${full ? '<div class="bad">Sac plein : recycle les objets inutiles ou range au coffre.</div>' : ''}
-    </div>
-  </div>`;
-}
-
 // Réglages du sac (v9.1.0) : un seul écran replié pour tous les automatismes et le recyclage en lot.
 // v9.1.3 (doc1 « Équipement : autres », recyclage en 3 entrées) : une phrase et 3 replis. Recycler un objet seul
 // se fait depuis sa fiche ; ici le lot, la règle automatique (raretés) et, en avancé, le mode et les filtres.
@@ -500,97 +481,6 @@ function buildsBar(ui, state) {
   return `<div class="build-cards">${state.loadouts.map(card).join('')}</div>`;
 }
 
-export function forge(ui, state, part = null) { // v9.3.4 : exportée (onglet Forge)
-  const full = state.inventory.length >= BALANCE.loot.inventorySize;
-  // v9.1.3 (doc3 lot 2) : écran de fusion à pourcentage. « Fusionner tout » (deux appuis) = mises de 5 à 100 %,
-  // jamais un objet protégé. Commun/Rare : une ligne et « Fusionner ». Épique : ligne repliée, puis jauge, objets
-  // protégés (raison, « Inclure » d'un appui), texte d'échec (absent à 100 %) et une mise par bouton : aucune mise
-  // n'est présélectionnée.
-  const keep = fusionKeep(state);
-  const groups = fusionGroups(state, BALANCE, keep);
-  const count = BALANCE.forge.fusionCount;
-  const auto = groups.filter((g) => g.auto);
-  const n = auto.reduce((t, g) => t + Math.floor(g.usable / count) * count, 0);
-  const all = auto.length
-    ? `<button class="btn btn-gold primary-action${ui.view.fuseArmed ? ' armed' : ''}" data-action="fuse-all">${ui.view.fuseArmed
-      ? `Confirmer : fusionner ${n} objets ?` : `Fusionner tout · ${auto.length} groupe${auto.length > 1 ? 's' : ''}`}</button>` : '';
-  const fusion = groups.length
-    ? `${all}${ui.view.fuseMsg ? `<div class="bad" role="status">${escapeHtml(ui.view.fuseMsg)}</div>` : ''}<div class="fusion-list">${groups.map((g) => fusionRow(ui, state, g, keep)).join('')}</div>`
-    : `<div class="fuse-empty">${Array.from({ length: count }, () => `<div class="item-frame empty">${img('icon_bag')}</div>`).join('<i>+</i>')}<i>→</i><div class="item-frame empty next">${img('icon_star')}</div></div>
-        <div class="muted">Il faut ${count} objets identiques (place et rareté).</div>`;
-  // Fabrication ciblée : l'emplacement en liste, puis deux boutons (Rare+ et Épique+).
-  const slot = SLOTS[ui.view.craftSlot] ? ui.view.craftSlot : 'weapon';
-  const craftBtn = (tier) => {
-    const cost = craftCost(state, undefined, tier);
-    const short = state.gold < cost.gold || state.materials.shards < cost.shards;
-    return `<button class="btn ${tier === 'epic' ? 'btn-gold' : 'btn-primary'}" data-action="craft" data-value="${slot}" data-tier="${tier}" ${short || full ? 'disabled' : ''}>
-      Fabriquer ${tier === 'epic' ? 'Épique+' : 'Rare+'} · ${coin()} ${formatNumber(cost.gold)} ${shard()} ${cost.shards}</button>`;
-  };
-  const craft = () => `<div class="muted">Rareté choisie ou mieux, au niveau de ton étape max (${state.maxStage}).</div>
-      <div class="row"><select data-action="craft-slot" aria-label="Emplacement à fabriquer">${Object.entries(SLOTS).map(([k, l]) => `<option value="${k}" ${k === slot ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
-      <div class="options-row">${craftBtn('rare')}${craftBtn('epic')}</div>${full ? '<div class="bad">Sac plein.</div>' : ''}`;
-  // v9.8 (C2) : une seule partie à la fois (Fusionner ou Fabriquer), les règles derrière « ? ».
-  if (part === 'fuse') return `<div class="card">${fusion}
-      <details class="forge-help"><summary>?</summary>${BALANCE.forge.fusionCount} objets de même emplacement et de même rareté → 1 objet de la rareté suivante, au niveau du meilleur. Épique : 5 objets = sûr, ou tenter avec moins.</details></div>`;
-  if (part === 'craft') return `<div class="card">${craft()}</div>`;
-  return `<div class="card">
-      <div class="section-title">Fusion</div>
-      <div class="muted">${BALANCE.forge.fusionCount} objets de même emplacement et de même rareté → 1 objet de la rareté suivante, au niveau du meilleur.
-        <span>Épique : 5 objets = sûr, ou tenter avec moins.</span></div>
-      ${fusion}
-    </div>
-    ${fold(ui, 'forge-craft', 'Fabrication ciblée', craft)}
-    <div class="card"><div class="section-title">Matériaux</div>
-      <div>${shard()} <b>${formatNumber(state.materials.shards)}</b> éclats</div>
-      <div class="muted">Le recyclage et les boss rendent des éclats. Renforcer, Réaffûter et Relancer
-        les effets se font depuis la fiche d'un objet (Détails).</div></div>`;
-}
-
-// v9.1.3 (doc3 lot 2) : raisons de protection affichées (fusionKeep(state).reason).
-const PROTECT_LABELS = { upgraded: 'renforcé', better: "meilleur que l'équipé", set: 'utile à un ensemble', affix: 'effet gardé', build: 'dans un build' };
-
-// Une ligne de fusion : titre (emplacement · rareté → suivante, objets du sac) ; Épique repliée.
-function fusionRow(ui, state, g, keep) {
-  const key = `${g.slot}|${g.rarity}`;
-  const count = BALANCE.forge.fusionCount;
-  const included = Boolean(ui.view.fusionInclude?.[key]);
-  const avail = g.usable + (included ? g.protected : 0);
-  const title = `<span>${img(slotIconName(g.slot))} ${SLOTS[g.slot]} · <b class="r-${g.rarity} rarity-text">${rarityLabel(g.rarity)}</b>
-    → <b class="r-${g.next} rarity-text">${rarityLabel(g.next)}</b> <span class="muted">${g.bag} dans le sac</span></span>`;
-  const reasons = () => [...new Set(state.inventory.filter((i) => i.slot === g.slot && i.rarity === g.rarity && keep(i))
-    .map((i) => keep.reason(i)).filter((r) => PROTECT_LABELS[r]).map((r) => PROTECT_LABELS[r]))].join(', ');
-  const protectedLine = g.protected
-    ? `<span class="muted">${g.protected} objet${g.protected > 1 ? 's' : ''} protégé${g.protected > 1 ? 's' : ''} (${reasons()})</span>
-      <button class="btn small${included ? ' active' : ''}" data-action="fuse-include" data-value="${key}" aria-pressed="${included}">${included ? 'Inclus' : 'Inclure'}</button>` : '';
-  const stakeBtn = (stake) => {
-    const chance = fusionChance(state, g.slot, g.rarity, stake);
-    const label = chance >= 100 ? `Fusionner ${stake} · 100 %` : `Tenter à ${stake} · ${chance} %`;
-    return `<button class="btn ${chance >= 100 ? 'btn-gold' : ''} small" data-action="fuse" data-value="${key}" data-stake="${stake}">${label}</button>`;
-  };
-  // v9.1.3 (doc3 lot 5) : héritage d'ensemble — un appui par ensemble présent, ou « Aucun » (chance de la plus haute mise possible).
-  const top = Math.min(count, avail);
-  const opts = top > 0 ? fusionInheritOptions(fusionUsed(state, g.slot, g.rarity, included ? fusionKeep(state, { include: [key] }) : keep, top)) : [];
-  const chosen = ui.view.fuseSet?.[key] ?? opts[0]?.set;
-  const inheritLine = opts.length ? `<div class="fusion-sub inherit-row"><span class="muted">Ensemble hérité :</span>${opts.map((o) => {
-    const set = setById(o.set);
-    return `<button class="btn chip-btn small${chosen === o.set ? ' active' : ''}" data-action="fuse-set" data-value="${key}" data-set="${o.set}" aria-pressed="${chosen === o.set}">${img(`set_${o.set}`)} ${escapeHtml(set?.name ?? o.set)} · ${o.chance} %</button>`;
-  }).join('')}<button class="btn chip-btn small${chosen === 'none' ? ' active' : ''}" data-action="fuse-set" data-value="${key}" data-set="none" aria-pressed="${chosen === 'none'}">Aucun</button></div>` : '';
-  if (g.stakes.length === 1) {
-    const btn = avail >= count ? `<button class="btn btn-gold small" data-action="fuse" data-value="${key}">Fusionner</button>` : '';
-    return `<div class="fusion-row">${title}${btn}</div>${avail < count || included ? `<div class="fusion-sub">${protectedLine}</div>` : ''}${avail >= count ? inheritLine : ''}`;
-  }
-  const open = ui.view.fuseOpen === key;
-  const head = `<button class="fusion-row fusion-head" data-action="fuse-open" data-value="${key}" aria-expanded="${open}">${title}<span aria-hidden="true">${open ? '▾' : '▸'}</span></button>`;
-  if (!open) return head;
-  const stakes = g.stakes.filter((s) => s <= avail);
-  const risky = stakes.some((s) => fusionChance(state, g.slot, g.rarity, s) < 100);
-  const step = BALANCE.forge.fusion[g.rarity]?.pityStep ?? 0;
-  return `${head}<div class="fusion-detail">
-    <div class="fusion-sub"><span class="muted">Jauge +${fusionPity(state, g.slot, g.rarity)}</span>${protectedLine ? `<span class="muted" aria-hidden="true">·</span>${protectedLine}` : ''}</div>
-    ${risky ? `<div class="muted">Si échec : 1 objet rendu, jauge +${step}</div>` : ''}${inheritLine}
-    <div class="options-row">${stakes.map(stakeBtn).join('') || `<span class="muted">Il faut au moins ${g.stakes[0]} objets utilisables.</span>`}</div></div>`;
-}
-
 // Fusion automatique (v8.1) : 5 objets identiques (emplacement + rareté) → 1 objet de rareté supérieure.
 function autoFuseEditor(state) {
   const f = state.ui.autoFuse ?? { on: false, rarities: ['common'] };
@@ -634,36 +524,80 @@ export default {
   id: 'inventory',
   title: 'Équipement',
   icon: 'icon_bag',
-  extra: () => '', // v9.3.4 : plus de « 200 · 40/100 » sans libellé (le sac est compté dans l'en-tête de l'écran)
-  // v9.1.0 : un seul segment (Sac / Coffre) ; Mannequins et Forge s'ouvrent par un bouton (retour au sac en un clic) ;
-  // le Musée est dans Objectifs › Collections ; les builds en liste déroulante.
-  render(ui, state) {
-    const extra = ui.view.invView;
-    if (extra === 'forge' && invFeatureOpen(state, extra)) {
-      const back = `<div class="row-between"><button class="btn small" data-action="inv-view" data-value="">← Retour au sac</button>
-        <b>Forge</b></div>`;
-      return back + forge(ui, state);
+  extra: () => '',
+  // Téléphone : à l'ouverture de la feuille du bas, les places remontent en haut du panneau et la feuille s'arrête
+  // juste dessous : les places restent visibles au-dessus de la fiche (sauf fenêtre trop basse : la fiche d'abord).
+  afterRender(ui, body) {
+    const pop = body.querySelector('.eq-pop');
+    if (!pop) { ui.view.eqPopKey = null; return; }
+    const slots = [...body.querySelectorAll('.eq-doll .eq-slot')];
+    if (!slots.length) return;
+    const key = ui.view.gearWho ?? 'hero';
+    if (ui.view.eqPopKey !== key) {
+      body.scrollTop += Math.min(...slots.map((s) => s.getBoundingClientRect().top)) - body.getBoundingClientRect().top - 6;
+      ui.view.eqPopKey = key;
     }
-    // v9.1.3 (lot F) : Coffre, Mannequins et Forge s'ouvrent à un seuil (core/unlocks.js), puis restent visibles.
+    const bottom = Math.max(...slots.map((s) => s.getBoundingClientRect().bottom));
+    pop.style.setProperty('max-height', `${Math.round(Math.max(window.innerHeight * 0.5, window.innerHeight - bottom - 6))}px`, 'important');
+  },
+  render(ui, state) {
+    const v = ui.view;
     const open = (id) => invFeatureOpen(state, id);
-    const tab = ui.view.invTab === 'stash' && open('stash') ? 'stash' : 'bag';
-    const nextUnlock = nextInvUnlock(state);
+    const invTab = v.invTab === 'stash' && open('stash') ? 'stash' : 'bag';
+    const team = teamOf(state);
     const st = computeHeroStats(state);
-    const anyUpgrade = tab === 'bag' && state.inventory.some((i) => isUpgrade(state, i, undefined, st));
-    // v9.1.3 : une seule ligne Sac/Coffre/Mannequins/Forge ; « Équiper le meilleur » seulement s'il sert.
-    const head = `<div class="inv-head">
-        ${open('stash') ? segment([['bag', `Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}`, 'icon_bag'], ['stash', `Réserve ${state.stash.length}/${STASH_SIZE}`, 'icon_chest']], 'inv-tab', tab) : `<b class="inv-bag-count">${img('icon_bag')} Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}</b>`}
-        <button class="btn small bag-gear${ui.view.bagMenu ? ' active' : ''}" data-action="bag-menu" aria-expanded="${Boolean(ui.view.bagMenu)}" aria-label="Filtres, builds et réglages du sac" title="Filtres, builds et réglages du sac">⚙ Filtres</button>
-        ${'' /* v9.8 (B6) : « Prochain déblocage » seulement sous la scène (plus en double, notation 1-10) */}
-        ${anyUpgrade ? '<button class="btn btn-primary primary-action pulse-gold equip-best" data-action="equip-best">⬆ Équiper le meilleur</button>' : ''}
+    const gains = heroGains(state, BALANCE, st);
+    const best = bestPerSlot(state, BALANCE, gains);
+    const plan = quickEquipPlan(state, BALANCE, gains);
+    // Objet choisi : celui qu'on a touché (sac ou place) ; à défaut le premier objet porté, sinon la première place.
+    const all = [...state.inventory, ...Object.values(state.equipment).filter(Boolean), ...wornItems(state)];
+    let item = all.find((i) => i.id === v.selectedItemId) ?? null;
+    let who = team.some((c) => c.id === v.gearWho) ? v.gearWho : 'hero';
+    if (item) { // un objet porté montre son porteur
+      const w = wearerOf(state, item.id);
+      if (w && team.some((c) => c.id === w)) who = w;
+      else if (Object.values(state.equipment).some((i) => i?.id === item.id)) who = 'hero';
+    }
+    const unit = who === 'hero' ? null : companionById(who);
+    const worn = unit ? unitGear(state, unit.id) : state.equipment;
+    const slotKeys = unit ? Object.keys(worn) : Object.keys(HERO_SLOTS);
+    let slot = null;
+    if (!item) {
+      if (slotKeys.includes(v.eqSlot)) { item = worn[v.eqSlot] ?? null; if (!item) slot = v.eqSlot; }
+      else { const first = slotKeys.find((s) => worn[s]); if (first) item = worn[first]; else slot = slotKeys[0]; }
+    }
+    const TABS = unit ? [['overview', 'Vue d\'ensemble'], ['gear', 'Équipement'], ['stars', 'Étoiles'], ['skills', 'Compétences']] : [['overview', 'Vue d\'ensemble'], ['gear', 'Équipement']];
+    const tab = TABS.some(([id]) => id === v.eqTab) ? v.eqTab : 'gear';
+    const unitIds = new Set(unit ? bestGearFor(state, unit.id) : []);
+    const unitSlots = new Set([...state.inventory, ...(state.stash ?? [])].filter((i) => unitIds.has(i.id)).map((i) => eqSlot(i)));
+    const ctx = { who, unit, team, order: ['hero', ...team.map((c) => c.id)], st, gains, best, plan, sel: { item, slot }, tab, unitIds, unitSlots };
+    const isWorn = item && (Object.values(state.equipment).some((i) => i?.id === item.id) || Boolean(wearerOf(state, item.id)));
+    const quickN = unit ? unitIds.size : plan.changes.length;
+    let sheet;
+    if (tab === 'overview') sheet = overviewSheet(ui, state, ctx);
+    else if (tab === 'stars') sheet = starsSheet(ui, state, ctx);
+    else if (tab === 'skills') sheet = skillsSheet(ui, state, ctx);
+    else if (v.eqQuick === who && quickN) sheet = quickSheet(ui, state, ctx);
+    else if (item && v.eqChange && isWorn) sheet = changeSheet(ui, state, { unit, item, slot, gains, best });
+    else if (item) sheet = itemSheet(ui, state, { unit, item, slot, gains, best });
+    else sheet = emptySlotSheet(ui, state, { unit, slot, gains });
+    // Téléphone : la fiche de l'objet est une feuille du bas (ouverte en touchant une place ou un objet).
+    const narrow = (ui.root?.clientWidth ?? 9999) <= 600;
+    const pop = narrow && tab === 'gear';
+    const sheetHtml = !pop ? sheet : v.sheetOpen === 'item'
+      ? `<div class="unit-pop-backdrop eq-backdrop" data-action="close-sheet"></div><div class="unit-pop eq-pop" role="dialog" aria-modal="true" aria-label="Fiche de l'objet">${sheet}</div>` : '';
+    const tabs = `<div class="eq-tabs" role="tablist">${TABS.map(([id, label]) => `<button class="eq-tab${id === tab ? ' on' : ''}" role="tab" aria-selected="${id === tab}" data-action="eq-tab" data-value="${id}">${label}</button>`).join('')}
+      ${wheelShown(state) ? '<button class="btn small eq-elem" data-action="elements-help" aria-label="Éléments" title="Éléments">?<span> Éléments</span></button>' : ''}</div>`;
+    const bagHead = `<div class="inv-head eq-bag-head">
+        ${open('stash') ? segment([['bag', `Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}`, 'icon_bag'], ['stash', `Réserve ${state.stash.length}/${STASH_SIZE}`, 'icon_chest']], 'inv-tab', invTab) : `<b class="inv-bag-count">${img('icon_bag')} Sac ${state.inventory.length}/${BALANCE.loot.inventorySize}</b>`}
+        <button class="btn small bag-gear${v.bagMenu ? ' active' : ''}" data-action="bag-menu" aria-expanded="${Boolean(v.bagMenu)}" aria-label="Filtres, builds et réglages du sac" title="Filtres, builds et réglages du sac">⚙ Filtres</button>
       </div>
-      ${ui.view.bagMenu ? '' : '<!-- v9.7.1 : « Équiper pour », filtres et listes rangés derrière le bouton Filtres -->'}${!ui.view.bagMenu ? '' : `<div class="equip-for" role="group" aria-label="Équiper pour"><span>Équiper pour :</span>${['attack', 'survival', 'fortune'].map((p) => `<button class="btn small${state.ui.gearProfile === p ? ' active' : ''}" data-action="equip-for" data-value="${p}" title="${PROFILE_TIPS[p]}">${img(PROFILE_ICONS[p])} ${GEAR_PROFILES[p].label}</button>`).join('')}</div>`}${ui.view.bagMenu ? `<div class="card bag-menu">${fold(ui, 'inv-builds', 'Builds', () => buildsBar(ui, state), { extra: state.loadouts[Math.max(0, ui.view.buildSel ?? 0)]?.name ?? '' })}
-        ${fold(ui, 'bag-settings', 'Réglages du sac', () => bagSettings(ui, state))}</div>` : ''}`;
-    return head + (tab === 'stash' ? stashView(ui, state) : bag(ui, state)) + setsBanner(ui, state);
+      ${!v.bagMenu ? '' : `<div class="equip-for" role="group" aria-label="Équiper pour"><span>Équiper pour :</span>${['attack', 'survival', 'fortune'].map((p) => `<button class="btn small${state.ui.gearProfile === p ? ' active' : ''}" data-action="equip-for" data-value="${p}" title="${PROFILE_TIPS[p]}">${img(PROFILE_ICONS[p])} ${GEAR_PROFILES[p].label}</button>`).join('')}</div>
+        <div class="card bag-menu">${fold(ui, 'inv-builds', 'Builds', () => buildsBar(ui, state), { extra: state.loadouts[Math.max(0, v.buildSel ?? 0)]?.name ?? '' })}
+        ${fold(ui, 'bag-settings', 'Réglages du sac', () => bagSettings(ui, state))}</div>`}`;
+    return `<div class="eq${narrow ? ' eq-phone' : ''} eq-on-${tab} eq-who-${unit ? 'unit' : 'hero'}">${resourceBand(state)}${tabs}
+      <div class="eq-main"><div class="eq-side">${whoColumn(ui, state, ctx)}${bastionShortcuts(state)}</div>${stage(ui, state, ctx)}${sheetHtml}</div>
+      <div class="card eq-bag">${bagHead}${invTab === 'stash' ? stashView(ui, state) : bagSection(ui, state, ctx)}</div>
+      ${setsBanner(ui, state)}</div>`;
   },
 };
-
-// v9.8 (C2) : nombre de fusions possibles (compteur du bouton Fusionner).
-export function fusionCount(state) {
-  return fusionGroups(state, BALANCE, fusionKeep(state)).reduce((t, g) => t + Math.floor(g.usable / BALANCE.forge.fusionCount), 0);
-}

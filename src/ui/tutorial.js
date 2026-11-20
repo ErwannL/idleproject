@@ -9,7 +9,7 @@ const MENU = (m) => `#tabs button[data-menu="${m}"]`;
 export const TUTO_STEPS = [
   { id: 'tuto-item', finger: true, text: 'Nouvel objet : touche « Équiper »',
     when: (s) => (s.inventory?.length ?? 0) > 0 && (s.records?.bossesDefeated ?? 0) < 3,
-    targets: ['.item-pop [data-action="equip"]', '[data-action="select-item"]', '[data-sub="inventory"]', MENU('hero')] },
+    targets: ['.eq-sheet [data-action="equip"]', '[data-action="select-item"]', '[data-sub="inventory"]', MENU('hero')] },
   { id: 'tuto-damage', finger: true, text: 'Touche ici : plus de Dégâts',
     when: (s) => (s.upgrades?.damage ?? 0) < 1,
     targets: ['button[data-action="buy"][data-key="damage"]', '[data-sub="upgrades"]', MENU('hero')] },

@@ -38,7 +38,8 @@ export const effectText = (effects) => Object.entries(effects)
   .map(([k, v]) => EFFECT_LABELS[k](Math.round(v * 10) / 10))
   .join(' · ') || '—';
 
-export const affixText = (affix) => AFFIXES[affix.type].label(affix.value);
+// v10.3 (8) : valeur écrite avec une virgule (« +2,4 % de coup critique », plus de point décimal en français).
+export const affixText = (affix) => AFFIXES[affix.type].label(typeof affix.value === 'number' ? String(affix.value).replace('.', ',') : affix.value);
 
 export const rarityLabel = (id) => rarityById(id).label;
 

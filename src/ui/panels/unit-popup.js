@@ -18,7 +18,7 @@ import { effectText, escapeHtml, formatNumber, hdArt, icon, img, rarityLabel } f
 import { showcaseSlot } from '../showcase.js';
 import { companionPortrait } from './expeditions.js';
 
-const T = (s) => Math.round(s * 10) / 10;
+const T = (s) => String(Math.round(s * 10) / 10).replace('.', ','); // v10.3 (8) : virgule décimale
 // Description courte (6 mots au plus) d'une compétence, d'après son type et sa recharge.
 const SHORT = { hit: 'Frappe un ennemi', burst: 'Frappe tous les ennemis', heal: "Soigne l'équipe", shield: "Protège l'équipe", rally: "Renforce l'équipe", gold: "Fait tomber de l'or" };
 export const shortSkill = (sk) => `${SHORT[sk.type] ?? 'Effet spécial'}, toutes les ${T(sk.every)} s`;
@@ -32,7 +32,7 @@ function profile(state, c) {
   return companionProfile({ ...state, companions: { ...state.companions, owned: { [c.id]: { stars: 1, level: 1 } } }, companionGear: null }, c.id);
 }
 
-function skillIcons(ui, state, c, own) {
+export function skillIcons(ui, state, c, own) { // v10.3 (8) : aussi dans l'onglet Compétences de l'Équipement
   const lv = skillLevels(own);
   const list = allCompanionSkills(c.id);
   const act = list.find((s) => !s.ultimate), ult = list.find((s) => s.ultimate);
@@ -46,7 +46,7 @@ function skillIcons(ui, state, c, own) {
 }
 
 // Bulle d'une compétence : effet, différence au niveau suivant, déblocages à venir, bouton Améliorer.
-function skillBubble(ui, state, c, own, mine) {
+export function skillBubble(ui, state, c, own, mine) {
   const kind = ui.view.skillPop;
   if (!kind) return '';
   const lv = skillLevels(own)[kind];

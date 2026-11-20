@@ -63,7 +63,7 @@ check(hasX && await page.evaluate(() => document.getElementById('modal').classLi
 // 3. Objet porté
 await page.evaluate(() => { __idle.ui.openTab('inventory', { selectedItemId: __idle.state.equipment.weapon.id, sheetOpen: 'item' }); });
 await page.waitForTimeout(800);
-check(await page.evaluate(() => Boolean(document.querySelector('.item-pop [data-action="upgrade-item"]'))), 'Objet porté : Renforcer visible sans clic de plus');
+check(await page.evaluate(() => Boolean(document.querySelector('.eq-sheet [data-action="upgrade-item"]'))), 'Objet porté : Renforcer visible sans clic de plus');
 await page.evaluate(() => { __idle.ui.view.sheetOpen = null; __idle.ui.closePanel(); });
 
 // 4. Sceau

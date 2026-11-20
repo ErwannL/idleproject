@@ -26,7 +26,7 @@ export const TAB_LEAD = {
   skills: 'Apprends des sorts que ton héros lance tout seul en combat.',
   tree: 'Après une Renaissance, les fragments achètent des talents pour toujours.',
   inventory: 'Équipe les meilleurs objets sur ton héros et tes compagnons.',
-  forge: 'Recycle les objets inutiles en éclats, puis renforce ou fusionne.',
+  forge: 'Les objets dont tu n\'as plus besoin deviennent des éclats. Les éclats rendent tes bons objets plus forts.', // v10.3 (9)
   companions: 'Choisis qui combat à tes côtés et fais-les monter de niveau.',
   expeditions: 'Envoie les compagnons libres chercher des ressources pendant que tu joues.',
   summon: 'Dépense des gemmes ou des tickets pour obtenir de nouveaux compagnons.',

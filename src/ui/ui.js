@@ -63,7 +63,7 @@ const RING_OF = {
 const RING_TAB = {
   upgrades: ['[data-action="buy"][data-key="damage"]', 'Touche Dégâts'],
   skills: ['[data-action="learn-skill"]:not([disabled])', 'Touche Apprendre'],
-  inventory: ['[data-action="equip-best"], [data-action="equip"]', 'Touche Équiper'],
+  inventory: ['[data-action="eq-quick"], [data-action="equip"]', 'Touche Équiper'], // v10.3 (8) : Équipement rapide
   forge: ['[data-action="recycle-useless"]:not([disabled]), [data-action="fuse"]:not([disabled])', 'Touche le bouton doré'],
   companions: ['[data-action="toggle-companion"]', 'Touche Placer'],
   summon: ['[data-action="summon"]:not([disabled])', 'Touche Invoquer ×1'],
@@ -208,7 +208,7 @@ const BULK_CONFIRM_MS = 4000;
 // v9.3.5 : nom court sous l'icône des boosts ; touches affichées seulement avec souris et clavier.
 const RUSH_SHORT = { rage: 'Rage', frenzy: 'Frénésie', midas: 'Midas', hunter: 'Chasseur', phantom: 'Fantôme' };
 const hasKeyboard = () => typeof matchMedia === 'function' && matchMedia('(hover: hover) and (pointer: fine)').matches;
-const LIVE_PANELS = new Set(['daybook', 'arena', 'world', 'contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'looks', 'upgrades', 'companions', 'expeditions', 'encyclopedia', 'inbox', 'ranking', 'stats']);
+const LIVE_PANELS = new Set(['inventory', 'forge', 'daybook', 'arena', 'world', 'contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'looks', 'upgrades', 'companions', 'expeditions', 'encyclopedia', 'inbox', 'ranking', 'stats']);
 
 // Renaissance : choix du seul pouvoir ancestral conservé.
 function powerChoice(state) {
@@ -851,6 +851,9 @@ export class UI {
   panelTallFor(tab = this.tab) {
     const m = pref('panelTallMap');
     if (m && tab && tab in m) return m[tab] === true;
+    // v10.3 (8, 9) : sur téléphone, Équipement et Forge prennent le grand panneau par défaut (les 6 places visibles). Sur PC,
+    // le volet s'élargit seul (equip.css) sans passer en grand : le Sceau et la barre de compétences restent en vue.
+    if ((tab === 'inventory' || tab === 'forge') && !this.root?.classList.contains('side-ui')) return true;
     // v9.10 (2) : fenêtre basse (moins de 800 px) → panneau grand par défaut, pour voir l'essentiel sans défiler.
     return pref('panelTall') === true || (this.root?.clientHeight ?? 1000) < 800;
   }
@@ -922,7 +925,7 @@ export class UI {
       case 'upgrade-cat': local(() => { v.upgradeCat = value; }); break;
       case 'inv-tab': if (value === 'stash') markInvUsed(this.state, 'stash'); local(() => { v.invTab = value; }); break;
       case 'craft-tier': local(() => { v.craftTier = value; }); break;
-      case 'select-item': local(() => { v.selectedItemId = id; v.sheetOpen = 'item'; }); break;
+      case 'select-item': local(() => { v.selectedItemId = id; v.sheetOpen = 'item'; v.eqSlot = null; v.eqChange = false; v.eqQuick = null; }); break; // v10.3 (8)
       case 'auto-recycle-yes': this.closeModal(); a.setRecycleRule('mode', 'pickup'); break; // v9.3.4 : proposé au 1er sac plein
       case 'recycle-useless': a.recycleUseless(); local(() => { v.forgeFx = 'recycle'; }); setTimeout(() => { v.forgeFx = null; this.invalidate(); }, 700); break; // v9.3.4
       case 'item-more': local(() => { v.itemMore = value || null; }); break; // v9.3.4
@@ -999,7 +1002,7 @@ export class UI {
       case 'distribute-skills': a.distributeSkills(); break; // v9.3.8 (3a)
       case 'offline-double': if (this.lastOffline && this.canDoubleOffline(this.lastOffline)) { a.doubleOffline(this.lastOffline); this.lastOffline = null; this.closeModal(); } break; // v9.3.8 (4)
       case 'arena-edit': local(() => { v.arenaEdit = true; }); break; // v9.3.5
-      case 'open-tab': if (el.closest('#modal')) this.closeModal(); this.openTab(value); break;
+      case 'open-tab': if (el.closest('#modal')) this.closeModal(); this.openTab(value, el.dataset.view ? JSON.parse(el.dataset.view) : null); break; // v10.3 (9) : data-view = vue à montrer
       case 'session-goals': this.openModal(`${sessionGoalsHtml(this.state)}<div class="detail-actions"><button class="btn btn-primary" data-action="close-modal">OK</button></div>`); break; // v9.8 (C1)
       case 'cast-skill': a.castSkillNow?.(el.dataset.skill); break; // v9.7.1 (lot 2)
       case 'cast-ult': a.castUltNow?.(value); break;
@@ -1113,7 +1116,7 @@ export class UI {
       case 'check-update': a.checkUpdate(); break;
       case 'enter-tower': a.enterTower(); break;
       case 'skill-up': { const [id, kind] = value.split('|'); a.skillUp(id, kind); break; } // v9.3.3
-      case 'gear-who': local(() => { v.gearWho = value; v.sheetOpen = null; }); break; // v9.3.4 (f)
+      case 'gear-who': local(() => { v.gearWho = value; v.sheetOpen = null; v.selectedItemId = null; v.eqSlot = null; v.eqChange = false; v.eqQuick = null; if (v.eqTab === 'skills') v.skillPop = 'active'; }); break; // v9.3.4 (f) · v10.3 (8)
       case 'bag-all': local(() => { v.bagAll = Boolean(value); }); break; // v9.3.8 (2.4)
       case 'gear-equip': { const [id, item] = value.split('|'); a.gearDo('equip', id, item); break; }
       case 'gear-unequip': { const [id, slot] = value.split('|'); a.gearDo('unequip', id, slot); break; }
@@ -1275,6 +1278,20 @@ export class UI {
       case 'daybook-chest': a.daybookChest(); break; // v9.8 (H1)
       case 'offline-claim': this.closeModal(); this.adviceArrow(); break; // v9.8 (C1) : le conseil devient une flèche dorée
       case 'forge-seg': local(() => { v.forgeSeg = value; }); break; // v9.8 (C2)
+      // --- v10.3 (parties 8 et 9) : Équipement (places, onglets du personnage, Équipement rapide) et Forge ---
+      case 'eq-slot': local(() => { v.selectedItemId = id || null; v.eqSlot = value; v.sheetOpen = 'item'; v.eqChange = false; v.eqQuick = null; if (v.eqTab !== 'gear') v.eqTab = 'gear'; }); break;
+      case 'eq-tab': local(() => { v.eqTab = value; v.eqQuick = null; v.eqChange = false; v.skillPop = value === 'skills' ? 'active' : null; }); break;
+      case 'eq-change': local(() => { v.eqChange = Boolean(value); v.eqSetFilter = null; }); break;
+      case 'eq-setf': local(() => { v.eqSetFilter = value || null; }); break;
+      case 'eq-quick': local(() => { v.eqQuick = value || null; if (value) v.sheetOpen = 'item'; }); break;
+      case 'eq-quick-ok': v.eqQuick = null; a.quickEquip(value); break;
+      case 'eq-unequip': v.selectedItemId = null; v.eqSlot = value; a.unequip(value); break;
+      case 'forge-up-sel': local(() => { v.forgeUpSel = id; }); break;
+      case 'craft-slot': local(() => { v.craftSlot = value; }); break;
+      case 'forge-go': this.closeModal(); this.openTab('forge', { forgeSeg: value || 'recycle' }); break;
+      // Bastion (partie 10) : gestionnaire minimal, en attendant celui de l'écran du Bastion (même action, même valeur).
+      case 'bastion-open': this.closeModal(); this.openTab('camp', { bastionSel: value || null }); break;
+      // --- fin v10.3 (parties 8 et 9) ---
       case 'talent-branch': a.buyTalentStep(value); break; // v9.3.9 : vue simple des Talents
       case 'talent-best': a.buyTalentsAll(null); break;
       case 'apply-team': a.applyTeam(); break; // v9.5.0
@@ -1842,6 +1859,8 @@ export class UI {
       // Expéditions : la barre de progression avance (au plus une fois toutes les 30 s) et « Récupérer » apparaît.
       case 'expeditions': return `${Math.floor(Date.now() / 30000)}|${readyExpeditions(state)}|${state.expeditions.slots.map((x) => x?.companionId ?? '').join()}`;
       case 'companions': return `${state.companions.equipped.join()}|${Object.keys(state.companions.owned).length}`;
+      // v10.3 (8, 9) : « tu as … / il manque … » suit l'or (par paliers de 6 %), les éclats et le sac.
+      case 'inventory': case 'forge': return `${Math.floor(Math.log10(state.gold + 1) * 40)}|${state.materials.shards}|${state.inventory.length}|${state.maxStage}`;
       case 'inbox': return this.claims.map((c) => c.key).join() + (state.inbox.length);
       case 'arena': return this.view.arenaRun ? String(Math.floor(performance.now() / 120)) : JSON.stringify(state.arena) + Object.keys(state.companions.owned).length;
       case 'tower': return this.view.defiTab === 'arena' ? (this.view.arenaRun ? String(Math.floor(performance.now() / 120)) : JSON.stringify(state.arena) + Object.keys(state.companions.owned).length) // v9.3.5 : Arène dans Défis
@@ -2260,7 +2279,7 @@ export class UI {
         n = { id: 'quest', text: steps[i].text, tab: QUEST_TAB_UI[q.id][i] };
         if (q.id === 'equipment' && QUEST_TAB_UI[q.id][i] === 'inventory' && st.inventory?.some((it) => isUpgrade(st, it))) n = { id: 'quest', text: 'Héros › Équiper le nouvel objet', action: 'equip-best' };
         // v9.11 (5) : « Renforce ton arme » ouvre directement la fenêtre de l'arme portée (Renforcer visible).
-        if (q.id === 'forge' && i === 1 && st.equipment?.weapon) n = { id: 'quest', text: 'Héros › Renforcer ton arme', tab: 'inventory', view: { selectedItemId: st.equipment.weapon.id, sheetOpen: 'item' } };
+        if (q.id === 'forge' && i === 1 && st.equipment?.weapon) n = { id: 'quest', text: 'Héros › Renforcer ton arme', tab: 'inventory', view: { selectedItemId: st.equipment.weapon.id, sheetOpen: 'item', gearWho: 'hero', eqTab: 'gear', eqChange: false, eqQuick: null }, ring: ['[data-action="upgrade-item"]', 'Touche Renforcer'] };
         // v10.1 (P1) : « Lance une compétence à la main » : le Sceau la lance lui-même (le joueur voit le geste).
         if (q.id === 'skills' && i === 2) n = { id: 'quest', text: 'Lance une compétence à la main', action: 'cast-first' };
         // v10.1 (P1) : l'écran de la quête est déjà ouvert → le Sceau propose l'action utile suivante (amélioration…).
@@ -2443,13 +2462,13 @@ export class UI {
     this.openModal(`<div class="gloss-card"><div class="gloss-head">${pic}<div><h2 id="modal-title">${escapeHtml(r.name)}</h2><span class="muted">Tu en as <b class="num">${formatNumber(have)}</b></span></div></div>
       <p><b>À quoi ça sert :</b> ${escapeHtml(r.use)}</p><p><b>Où en gagner :</b> ${escapeHtml(r.where)}</p>
       ${key === 'gold' || key === 'gems' ? '<p class="muted small">Les grands nombres sont abrégés : K = mille, M = million, B = milliard, T = mille milliards, puis Qa, Qi…</p>' : ''}
-      <div class="detail-actions">${open ? `<button class="btn btn-gold" data-action="open-tab" data-value="${r.tab}">Y aller</button>` : ''}<button class="btn" data-action="close-modal">Fermer</button></div></div>`);
+      <div class="detail-actions">${open ? `<button class="btn btn-gold" data-action="open-tab" data-value="${r.tab}"${r.view ? ` data-view="${escapeHtml(JSON.stringify(r.view))}"` : ''}>Y aller</button>` : ''}<button class="btn" data-action="close-modal">Fermer</button></div></div>`);
   }
 
   // v10.1 (P1 §2.2) : quand le Sceau ouvre un écran, le bouton à toucher est entouré d'un anneau lumineux, avec une
   // bulle d'une ligne ; l'anneau reste jusqu'à l'action ou la fermeture de l'écran.
   setRing(n) {
-    const R = RING_OF[n.id] ?? (n.id === 'quest' ? RING_TAB[n.tab] : null) ?? RING_TAB[n.tab];
+    const R = n.ring ?? RING_OF[n.id] ?? (n.id === 'quest' ? RING_TAB[n.tab] : null) ?? RING_TAB[n.tab]; // v10.3 (8) : n.ring = bouton précis d'une quête
     this.ring = R ? { tab: n.tab, sel: R[0], text: R[1], until: Date.now() + 15000 } : null; // v10.1 : 15 s au plus
     setTimeout(() => this.applyRing(), 50);
     clearTimeout(this.ringTimer); this.ringTimer = setTimeout(() => this.applyRing(), 15100); // l'anneau s'éteint seul

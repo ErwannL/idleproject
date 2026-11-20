@@ -1,7 +1,7 @@
 // Forge : fabrication ciblée (choix de l'emplacement), relance des effets spéciaux,
 // réaffûtage d'un objet au niveau de l'étape maximale, amélioration et fusion.
 import { BALANCE } from '../data/balance.js';
-import { ACCESSORY_SLOTS, AFFIXES, ITEM_BASES, RARITIES } from '../data/items.js';
+import { ACCESSORY_SLOTS, AFFIXES, ITEM_BASES, RARITIES, heroSlot } from '../data/items.js';
 import { levelForStage, referenceKillGold } from './combat.js'; // v9.2.0 (monde marin) : niveau des étapes
 import { addToInventory, isUpgrade, keptByAffix, recycleRules } from './inventory.js';
 import { generateItem, itemBase, itemPower, makeItem, rarityIndex, refreshItemStats, rerollAffixes } from './loot.js';
@@ -10,6 +10,7 @@ import { CLASS_WEAPON_DROP } from '../data/classes.js';
 import { activeClass, canEquip, classWeaponBases } from './classes.js';
 import { usefulSetPiece } from './sets.js';
 import { forgePerks } from './bastion.js'; // v10.3 (10.5) : la Forge du forgeron améliore les chiffres de la Forge
+import { computeHeroStats } from './stats.js'; // v10.3 (8) : Puissance avant → après d'un renforcement
 
 // tier 'rare' : Rare ou mieux (or + éclats) ; 'epic' : Épique ou mieux (or + plus d'éclats ; v9.1.3 : plus d'essences).
 export function craftCost(state, balance = BALANCE, tier = 'rare') {
@@ -96,7 +97,7 @@ export function sharpenItem(state, id, balance = BALANCE) {
   return true;
 }
 
-// --- Amélioration : chaque niveau augmente une statistique de l'objet au hasard (+12 %). ---
+// --- Amélioration : chaque niveau augmente une statistique de l'objet (+12 %), la moins renforcée d'abord. ---
 // v10.3 (10.5) : avec `state`, la Forge du forgeron (Bastion) repousse le plafond (+2 par niveau) et baisse le coût
 // (−2 % par niveau). Sans `state` : les chiffres de base (objet seul, outils de mesure).
 export function maxUpgrades(item, balance = BALANCE, state = null) {
@@ -124,20 +125,79 @@ export function upgradableStats(item) { // v9.1.3 (doc3 lot 3) : exportée pour 
   return stats;
 }
 
-// Renvoie le nom de la statistique améliorée, ou null.
-export function upgradeItem(state, id, rng, balance = BALANCE) {
+// v10.3 (8) : le renforcement n'est plus tiré au hasard. La statistique renforcée est celle qui a reçu le moins de
+// renforts (égalité : ordre de `upgradableStats`) : l'écran peut annoncer un « avant → après » exact, stat nommée.
+export function nextUpgradeStat(item) {
+  const stats = item ? upgradableStats(item) : [];
+  let best = null;
+  for (const s of stats) if (best === null || (item.boosts?.[s] ?? 0) < (item.boosts?.[best] ?? 0)) best = s;
+  return best;
+}
+
+// Applique un renfort sur `stat` (même code pour l'aperçu et pour l'action : l'aperçu ne peut pas mentir).
+function applyUpgrade(item, stat, balance) {
+  item.boosts = { ...(item.boosts ?? {}), [stat]: (item.boosts?.[stat] ?? 0) + 1 };
+  item.upgrades = (item.upgrades ?? 0) + 1;
+  refreshItemStats(item, balance);
+}
+
+// Lignes d'un objet pour un « avant → après » : chaque statistique puis chaque effet spécial.
+// [{ key, kind: 'stat' | 'affix', stat | type, before, after }] ; `key` est le nom rendu par nextUpgradeStat.
+function upgradeRows(item, next) {
+  const base = itemBase(item.baseId);
+  const rows = Object.keys(item.stats ?? {}).map((k) => ({ key: k, kind: 'stat', stat: k, before: item.stats[k], after: next.stats[k] }));
+  (item.affixes ?? []).forEach((a, i) => rows.push({
+    key: base.mainAffix && i === 0 && a.type === base.mainAffix.type ? 'main' : `affix:${i}`, kind: 'affix', type: a.type, before: a.value, after: next.affixes[i].value }));
+  return rows;
+}
+
+// Aperçu exact du prochain renforcement d'un objet (porté, dans le sac ou dans la Réserve) :
+// { level, max, atMax, stat, cost, canPay, lack: { gold, shards }, rows, after, power: { before, after, worn } }.
+// `stat` = statistique qui sera renforcée ; `rows` = chaque statistique et effet avant → après ; `power` = Puissance
+// du héros avec l'objet à sa place, avant → après (null si le héros ne peut pas le porter) ; `after` = copie de
+// l'objet après le renfort. Au maximum : atMax, sans coût ni lignes.
+export function upgradePreview(state, item, balance = BALANCE) {
+  if (!item) return null;
+  const level = item.upgrades ?? 0;
+  const max = maxUpgrades(item, balance, state);
+  const stat = nextUpgradeStat(item);
+  if (level >= max || !stat) return { level, max, atMax: true, stat: null, cost: null, canPay: false, lack: null, rows: [], after: null, power: null };
+  const cost = upgradeCost(item, balance, state);
+  const lack = { gold: Math.max(0, Math.ceil(cost.gold - state.gold)), shards: Math.max(0, cost.shards - state.materials.shards) };
+  const after = JSON.parse(JSON.stringify(item));
+  applyUpgrade(after, stat, balance);
+  let power = null;
+  const slot = heroSlot(item);
+  const worn = state.equipment?.[slot]?.id === item.id;
+  if (worn || canEquip(state, item)) {
+    power = { worn, before: computeHeroStats(state, balance, { ...state.equipment, [slot]: item }).combatPower,
+      after: computeHeroStats(state, balance, { ...state.equipment, [slot]: after }).combatPower };
+  }
+  return { level, max, atMax: false, stat, cost, canPay: !lack.gold && !lack.shards, lack, rows: upgradeRows(item, after), after, power };
+}
+
+// v10.3 (9) : atelier « Renforcer » — objets portés par le héros, triés par gain de Puissance par éclat (le meilleur
+// investissement d'abord). [{ item, slot, preview, gainPct, perShard }] ; les objets au maximum sont à la fin.
+export function upgradeRanking(state, balance = BALANCE) {
+  const rows = Object.entries(state.equipment ?? {}).filter(([, item]) => item).map(([slot, item]) => {
+    const preview = upgradePreview(state, item, balance);
+    const gainPct = preview.power && preview.power.before > 0 ? (preview.power.after / preview.power.before - 1) * 100 : 0;
+    return { item, slot, preview, gainPct, perShard: preview.cost ? gainPct / preview.cost.shards : -1 };
+  });
+  return rows.sort((a, b) => b.perShard - a.perShard || b.gainPct - a.gainPct);
+}
+
+// Renvoie le nom de la statistique améliorée, ou null. `_rng` n'est plus consulté (gardé pour les appelants).
+export function upgradeItem(state, id, _rng = null, balance = BALANCE) {
   const item = findItem(state, id);
   if (!item || (item.upgrades ?? 0) >= maxUpgrades(item, balance, state)) return null;
   const cost = upgradeCost(item, balance, state);
   if (state.gold < cost.gold || state.materials.shards < cost.shards) return null;
-  const stats = upgradableStats(item);
-  if (!stats.length) return null;
+  const stat = nextUpgradeStat(item);
+  if (!stat) return null;
   state.gold -= cost.gold;
   state.materials.shards -= cost.shards;
-  const stat = stats[Math.floor(rng.next() * stats.length)];
-  item.boosts = { ...(item.boosts ?? {}), [stat]: (item.boosts?.[stat] ?? 0) + 1 };
-  item.upgrades = (item.upgrades ?? 0) + 1;
-  refreshItemStats(item, balance);
+  applyUpgrade(item, stat, balance);
   trackMissions(state, 'upgrades', 1);
   return stat;
 }
@@ -262,6 +322,51 @@ export function fusionInheritOptions(used, balance = BALANCE) {
 // Objets qu'une mise consommerait (pour l'écran : chance d'héritage de la mise la plus haute possible).
 export function fusionUsed(state, slot, rarity, keep, stake) {
   return fusionPool(state, slot, rarity, keep).slice(0, stake);
+}
+
+// v10.3 (9) : fusion détaillée — ce que l'écran montre avant d'appuyer. Les cases sont remplies d'elles-mêmes avec les
+// moins bons objets du sac (jamais un objet porté : il n'est pas dans le sac ; jamais un objet verrouillé, ancestral ou
+// protégé par `keep`). { count, used, available, stake, chance, stakes: [{ stake, chance, base, possible }], pity,
+// pityStep, next, level, inherit } ; `stake` = la plus haute mise possible avec les objets disponibles (null : aucune).
+export function fusionPreview(state, slot, rarity, keep = null, balance = BALANCE) {
+  const rule = fusionRule(rarity, balance);
+  if (!rule) return null;
+  const count = balance.forge.fusionCount;
+  const pool = fusionPool(state, slot, rarity, keep);
+  const all = fusionStakes(rarity, balance);
+  const stake = all.filter((s) => s <= pool.length).at(-1) ?? null;
+  const used = pool.slice(0, stake ?? Math.min(count, pool.length));
+  return {
+    count, used, available: pool.length, stake,
+    chance: stake ? fusionChance(state, slot, rarity, stake, balance) : null,
+    stakes: all.map((s) => ({ stake: s, chance: fusionChance(state, slot, rarity, s, balance), base: fusionChance(state, slot, rarity, s, balance, { base: true }), possible: s <= pool.length })),
+    pity: fusionPity(state, slot, rarity), pityStep: rule.pityStep ?? 0,
+    next: RARITIES[rarityIndex(rarity) + 1].id,
+    level: used.length ? Math.max(...used.map((i) => i.level)) : null,
+    inherit: stake ? fusionInheritOptions(used, balance) : [],
+  };
+}
+
+// Gain estimé d'une fusion ou d'une fabrication : Puissance du héros avec un objet type de cette place, de cette
+// rareté et de ce niveau (sans effet spécial tiré), par rapport à l'objet porté. En % ; null si la classe du héros
+// ne porte aucun modèle de cette place.
+export function estimateGainPct(state, slot, rarity, level, balance = BALANCE) {
+  const bases = slot === 'weapon' ? classWeaponBases(activeClass(state).id) : ITEM_BASES.filter((b) => b.slot === slot && !b.signature);
+  const base = bases.find((b) => !b.signature);
+  if (!base || !Number.isFinite(level)) return null;
+  const item = makeItem({ nextItemId: 0 }, base.id, rarity, Math.max(1, level), balance, null);
+  if (!canEquip(state, item)) return null;
+  const cur = computeHeroStats(state, balance).combatPower;
+  if (!(cur > 0)) return null;
+  return (computeHeroStats(state, balance, { ...state.equipment, [heroSlot(item)]: item }).combatPower / cur - 1) * 100;
+}
+
+// Chances de rareté d'une fabrication (mêmes poids que le tirage : RARITIES à partir de la rareté minimale).
+export function craftOdds(tier = 'rare', balance = BALANCE) {
+  const min = tier === 'epic' ? 'epic' : balance.forge.craftMinRarity;
+  const pool = RARITIES.slice(Math.max(0, rarityIndex(min)));
+  const total = pool.reduce((sum, r) => sum + r.weight, 0);
+  return pool.map((r) => ({ rarity: r.id, pct: (r.weight / total) * 100 }));
 }
 
 // `inherit` (lot 5) : 'auto' = ensemble le plus fréquent parmi les objets consommés, un id = cet ensemble,
