@@ -10,6 +10,7 @@ import { COMPANIONS } from '../data/companions.js';
 import { EQUIP_SLOTS, eqSlot } from '../data/items.js';
 import { BALANCE } from '../data/balance.js';
 import { itemClass } from './classes.js';
+import { formatDecimal } from './format.js'; // v10.3 (8) : virgule décimale (« +55,2 % Attaque »)
 
 const unitById = (id) => COMPANIONS.find((c) => c.id === id);
 export const CD_CAP = 30; // réduction de recharge maximale (%)
@@ -86,7 +87,7 @@ export function equipGear(state, unitId, itemId) {
 }
 // v9.8 (I6) : « Équiper le meilleur » pour un compagnon — par place, l'objet du sac compatible le plus fort (somme des
 // statistiques pondérées) s'il dépasse la pièce portée. Renvoie le nombre de pièces changées.
-const gearScore = (state, item) => { const st = gearStats(item, state); return (st.atk ?? 0) + (st.hp ?? 0) * 0.5 + (st.def ?? 0) * 0.5 + (st.heal ?? 0) + (st.cd ?? 0) * 2; };
+export const gearScore = (state, item) => { const st = gearStats(item, state); return (st.atk ?? 0) + (st.hp ?? 0) * 0.5 + (st.def ?? 0) * 0.5 + (st.heal ?? 0) + (st.cd ?? 0) * 2; };
 export function bestGearFor(state, unitId) {
   const worn = unitGear(state, unitId);
   const out = [];
@@ -172,7 +173,29 @@ export function recycleGear(state, itemId) {
 
 export const slotName = (unit, slot) => SLOT_NAMES[gearClassOf(unit)][TO_GEAR_SLOT[slot] ?? slot];
 export function statText(stats) {
-  return Object.entries(stats).filter(([, v]) => v).map(([k, v]) => `${k === 'cd' ? '−' : '+'}${v} % ${STAT_NAMES[k]}`).join(', ');
+  return Object.entries(stats).filter(([, v]) => v).map(([k, v]) => `${k === 'cd' ? '−' : '+'}${formatDecimal(v)} % ${STAT_NAMES[k]}`).join(', ');
+}
+// v10.3 (8) : aperçu du renforcement d'une pièce pour un compagnon (leur règle : +8 % des bonus par niveau).
+// { level, max, atMax, cost, canPay, lack: { gold, shards }, rows: [{ key, before, after }] } — mêmes champs que
+// l'aperçu du héros (core/forge.js upgradePreview), pour une seule section « Renforcer » à l'écran.
+export function gearUpgradePreview(state, item, killGold) {
+  const level = ups(item);
+  const max = GEAR_RARITY[item?.rarity]?.maxUp ?? 0;
+  const cost = item ? gearUpgradeCost(item, killGold) : null;
+  if (!cost) return { level, max, atMax: true, cost: null, canPay: false, lack: null, rows: [] };
+  const before = gearStats(item, state);
+  const after = gearStats({ ...item, upgrades: level + 1 }, state);
+  const lack = { gold: Math.max(0, Math.ceil(cost.gold - state.gold)), shards: Math.max(0, cost.shards - state.materials.shards) };
+  return { level, max, atMax: false, cost, canPay: !lack.gold && !lack.shards, lack, rows: Object.keys(before).map((k) => ({ key: k, before: before[k], after: after[k] })) };
+}
+// Total des bonus d'un compagnon si les objets `ids` (sac ou Réserve) remplaçaient ses pièces (Équipement rapide).
+export function gearStatsWith(state, unitId, ids) {
+  const worn = { ...unitGear(state, unitId) };
+  for (const id of ids) { const it = [...state.inventory, ...(state.stash ?? [])].find((i) => i.id === id); if (it) worn[eqSlot(it)] = it; }
+  const out = { atk: 0, hp: 0, def: 0, heal: 0, cd: 0 };
+  for (const item of Object.values(worn)) for (const [s, v] of Object.entries(gearStats(item, state))) out[s] += v;
+  out.cd = Math.min(CD_CAP, out.cd);
+  return out;
 }
 export { GEAR_SLOTS };
 

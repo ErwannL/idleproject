@@ -89,6 +89,62 @@ export function equipItem(state, itemId) {
   return true;
 }
 
+// v10.3 (8) : « Retirer » — l'objet porté par le héros retourne au sac (même plein : jamais perdu).
+export function unequipItem(state, slot) {
+  const item = state.equipment?.[slot];
+  if (!item) return false;
+  state.equipment[slot] = null;
+  state.inventory.push(item);
+  return true;
+}
+
+// v10.3 (8) : ce que chaque objet du sac apporterait au héros à la place de l'objet porté.
+// Map id → { pct (Puissance, en %), up (meilleur, même bilan qu'isUpgrade), slot } ; seuls les objets que le héros
+// peut porter y figurent. Un seul calcul des statistiques par objet : sert aux flèches ▲, aux listes triées par gain,
+// à « Mieux dans ton sac » et à l'Équipement rapide.
+export function heroGains(state, balance = BALANCE, current = computeHeroStats(state, balance)) {
+  const out = new Map();
+  for (const item of state.inventory) {
+    if (!canEquip(state, item)) continue;
+    const slot = heroSlot(item);
+    const next = statsWithItem(state, item, balance);
+    const pct = current.combatPower > 0 ? (next.combatPower / current.combatPower - 1) * 100 : 0;
+    let up;
+    if (!state.equipment[slot]) up = true;
+    else {
+      const score = Math.log(next.dps / current.dps) + Math.log(ehp(next) / ehp(current));
+      up = Math.abs(score) > 1e-4 ? score > 0 : extras(next) > extras(current) + 1e-6;
+    }
+    out.set(item.id, { pct, up, slot, score: state.equipment[slot] ? profileGain(current, next) : Infinity });
+  }
+  return out;
+}
+// Meilleur objet du sac pour chaque place du héros (seulement s'il est meilleur que l'objet porté) :
+// { slot: { item, pct } }. `gains` = heroGains(state) déjà calculé (facultatif).
+export function bestPerSlot(state, balance = BALANCE, gains = heroGains(state, balance)) {
+  const best = {};
+  for (const item of state.inventory) {
+    const g = gains.get(item.id);
+    if (!g?.up) continue;
+    if (!best[g.slot] || g.score > best[g.slot].score || (g.score === best[g.slot].score && g.pct > best[g.slot].pct)) best[g.slot] = { item, pct: g.pct, score: g.score };
+  }
+  return best;
+}
+// « Équipement rapide » du héros : équipe le meilleur objet de chaque place. Renvoie le nombre d'objets équipés.
+export function quickEquipHero(state, balance = BALANCE) {
+  let n = 0;
+  for (const { item } of Object.values(bestPerSlot(state, balance))) if (equipItem(state, item.id)) n += 1;
+  return n;
+}
+// Aperçu de l'Équipement rapide du héros : { changes: [{ slot, from, to, pct }], before, after } (Puissance).
+export function quickEquipPlan(state, balance = BALANCE, gains = undefined) {
+  const current = computeHeroStats(state, balance);
+  const best = bestPerSlot(state, balance, gains ?? heroGains(state, balance, current));
+  const equipment = { ...state.equipment };
+  const changes = Object.entries(best).map(([slot, b]) => { equipment[slot] = b.item; return { slot, from: state.equipment[slot] ?? null, to: b.item, pct: b.pct }; });
+  return { changes, before: current.combatPower, after: changes.length ? computeHeroStats(state, balance, equipment).combatPower : current.combatPower };
+}
+
 // Retourne l'or gagné, ou 0 si l'objet n'est pas dans l'inventaire ou s'il est verrouillé.
 export function recycleItem(state, itemId, balance = BALANCE) {
   const index = state.inventory.findIndex((i) => i.id === itemId);
