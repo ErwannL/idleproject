@@ -19,8 +19,8 @@ const results = [];
 const ok = (name, pass, info = '') => { results.push(pass); console.log(`${pass ? '✔' : '✘'} ${name} ${info}`); };
 const wait = (page, ms) => page.waitForTimeout(ms);
 
-async function open(w, h, { touch = false } = {}) {
-  const ctx = await browser.newContext({ viewport: { width: w, height: h }, ...(touch ? { hasTouch: true, isMobile: true } : {}) });
+async function open(w, h, { touch = false, dpr = 1 } = {}) {
+  const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: dpr, ...(touch ? { hasTouch: true, isMobile: true } : {}) });
   const page = await ctx.newPage();
   page.errors = []; page.on('pageerror', (e) => page.errors.push(e.message));
   await page.addInitScript((r) => { if (!sessionStorage.getItem('c')) { localStorage.setItem('idle-rpg.save', r); sessionStorage.setItem('c', '1'); } }, raw);
@@ -76,7 +76,7 @@ const geometry = (page) => page.evaluate(() => {
 
 for (const [w, h, phone] of [[1116, 993], [1716, 1000], [1280, 720], [900, 600], [390, 844, true]]) {
   const label = `${w}×${h}`;
-  const { ctx, page } = await open(w, h, { touch: Boolean(phone) });
+  const { ctx, page } = await open(w, h, { touch: Boolean(phone), dpr: phone ? 3 : 1 }); // téléphone : écran ×3, au toucher
   await fill(page, 4, 'rare');
   const g = await geometry(page);
   ok(`${label} : coffre dessiné dans le canvas de la scène (pas d'élément DOM visible)`, g.drawn && g.inCanvas && g.domInvisible, JSON.stringify({ kind: g.kind, domInvisible: g.domInvisible }));

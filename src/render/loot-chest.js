@@ -25,7 +25,8 @@ export const MIN_HIT = 44; // px CSS : zone de toucher minimale
 
 // Multiple entier (pixels d'écran par pixel d'art) pour une hauteur visée en px CSS.
 export function chestMultiple(targetCss, dpr = 1) {
-  return Math.max(1, Math.round((targetCss / CHEST_NATIVE.h) * dpr));
+  const x = (targetCss / CHEST_NATIVE.h) * dpr; // à égalité (téléphone ×3 : 55 ou 73 px pour 64), le plus grand
+  return Math.max(1, x - Math.floor(x) >= 0.49 ? Math.ceil(x) : Math.floor(x));
 }
 // Hauteur visée : ≈ 96 px sur PC, ≈ 64 px sur téléphone (scène portrait) ou dans une scène basse.
 export function chestTarget(tall, cssH = 600) {
