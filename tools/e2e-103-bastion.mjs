@@ -53,7 +53,8 @@ const overflow = (page) => page.evaluate(() => {
 });
 const tap = async (page, sel) => { await page.evaluate(() => { if (document.querySelector('#modal:not(.hidden) #bastion-away')) __idle.ui.closeModal(); }); await page.locator(sel).first().scrollIntoViewIfNeeded(); /* v10.4 : « Pendant ton absence » passe d'abord */ await page.locator(sel).first().click(); await page.waitForTimeout(350); };
 // Téléphone : la feuille du bas couvre la liste ; on la ferme (✕) avant de toucher un autre bâtiment.
-const closeSheet = async (page, w) => { if (w <= 560 && await page.locator('.bs-side.is-open .bs-close').count()) await tap(page, '.bs-side.is-open .bs-close'); };
+// (le panneau peut être redessiné pendant le toucher : on réessaie)
+const closeSheet = async (page, w) => { for (let i = 0; i < 3 && w <= 560 && await page.locator('.bs-side.is-open .bs-close').count(); i++) await tap(page, '.bs-side.is-open .bs-close').catch(() => {}); };
 // v10.4 : la carte (et pas l'arbre des recherches) ; un bâtiment s'ouvre d'un toucher ; un portrait pose l'ouvrier.
 const toMap = (page) => page.evaluate(() => { __idle.ui.view.bastionView = 'map'; __idle.ui.view.bastionKick = null; __idle.ui.invalidate(); });
 const placeFirst = async (page, id) => { await tap(page, `.bs-plot[data-building="${id}"]`); await tap(page, '.bs-side .bs-wcard:not(.here):not(.busy)'); };
@@ -72,7 +73,7 @@ for (const [w, h] of [[1116, 993], [1280, 720], [390, 844]]) {
   ok(`${tag} : l'écran du Bastion s'ouvre (6 bâtiments, les suivants verrouillés avec leur condition)`, /Bastion/.test(first.title) && first.cards === 6 && first.locked >= 2 && /Après|Étape|Bastion niv/.test(first.lock) && first.kicked, JSON.stringify(first));
   // Le démarrage a posé la Forge et la Bibliothèque ; on retire l'ouvrier de la Forge : la carte le signale en rouge.
   await page.evaluate(() => __idle.actions.bastion('worker', 'forge', null));
-  await page.waitForTimeout(500);
+  await page.waitForFunction(() => document.querySelector('.bs-plot[data-building="forge"] .bs-need'), null, { timeout: 4000 }).catch(() => {});
   const idle = await page.evaluate(() => ({ need: Boolean(document.querySelector('.bs-plot[data-building="forge"] .bs-need')), title: document.querySelector('.bs-plot[data-building="forge"] .bs-need')?.title ?? '' }));
   ok(`${tag} : sans ouvrier, la carte l'écrit en rouge`, idle.need && /Aucun ouvrier : à l'arrêt/.test(idle.title), JSON.stringify(idle));
   let o = await overflow(page);

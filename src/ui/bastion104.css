@@ -269,3 +269,13 @@
 /* Bandeau du haut : le village au lever du soleil (PixelLab), voilé pour garder les chiffres lisibles. */
 #app#app.page-ui .bs-top { position: relative; padding: 6px 10px; border-radius: 12px; border: 2px solid #4b3d22; box-sizing: border-box; isolation: isolate;
   background: linear-gradient(90deg, rgba(8, 12, 24, .55), rgba(8, 12, 24, .15)), url(../../assets/ui/art104/bastion_away.png) center 38% / cover no-repeat; image-rendering: pixelated; }
+#app.page-narrow .bs-hero .bs-tip { right: 52px; } /* la croix de la feuille reste touchable */
+/* Page des Recherches : l'arbre occupe les deux pages du livre (rangées réparties, nœuds plus grands en grand écran). */
+#app#app.page-ui:not(.page-narrow) .bs-pg[data-view="research"] .bs-tree { display: flex; flex-direction: column; }
+#app#app.page-ui:not(.page-narrow) .bs-pg[data-view="research"] .bs-branches { flex: 1; display: grid; align-content: space-evenly; padding: 9% 11% 9% 9%; }
+#app#app.page-ui:not(.page-narrow) .bs-pg[data-view="research"] .bs-branch { justify-content: center; }
+#app#app.page-ui:not(.page-narrow) .bs-pg[data-view="research"] .bs-link { max-width: 110px; }
+@media (min-width: 1500px) and (min-height: 900px) {
+  #app#app.page-ui .bs-pg[data-view="research"] .bs-node { width: 92px; height: 92px; }
+  #app#app.page-ui .bs-pg[data-view="research"] .bs-node > img { width: 68px; height: 68px; }
+}
