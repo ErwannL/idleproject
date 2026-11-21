@@ -2084,3 +2084,7 @@ PATTERNS.unshift(...patterns1031Arena(lookup));
 import { EXACT_1031_CHEST, patterns1031Chest } from './en-1031-chest.js';
 for (const [k, v] of Object.entries(EXACT_1031_CHEST)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1031Chest());
+// v10.4 (partie 5) : bulles de rareté du coffre de butin (./en-1040-chest.js).
+import { EXACT_1040_CHEST, patterns1040Chest } from './en-1040-chest.js';
+for (const [k, v] of Object.entries(EXACT_1040_CHEST)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1040Chest());
