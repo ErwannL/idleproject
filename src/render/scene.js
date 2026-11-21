@@ -48,6 +48,7 @@ import { drawWorldVfx, eventVfx } from './vfx-world.js'; // v9.2.6 : compétence
 import { weaponFx } from '../data/weapon-fx.js'; // v9.3.2 : effets d'arme selon la rareté
 import { DAMAGE_COLORS, drawDamageText, drawVfx, drawVfxFrame, projFrame, vfx, vfx2Ready, vfxReady } from './vfx.js'; // v9.2.6 : effets de combat PixelLab
 import { unitGear } from '../core/companion-gear.js'; // v9.3.3 : halo d'équipement
+import { drawLootChest, drawLootChestTop } from './loot-chest.js'; // v10.3.1 : coffre de butin dessiné dans la scène
 // v9.2.9 : toiles de travail relues par getImageData : mémoire côté processeur (avertissement Chrome « willReadFrequently »).
 const RF = { willReadFrequently: true };
 
@@ -571,6 +572,7 @@ export class SceneRenderer {
         const x0 = Math.max(HERO_X + 16, Math.min(this.width - 20, at.x));
         this.effects.push({ kind: 'beam', x: Math.round(x0), color, life: 1.4, max: 1.4, wide: big });
         // L'objet jaillit du monstre, retombe en brillant, puis file vers le sac du chevalier.
+        if (!(event.bagged && this.lootChest?.catch(event.item, x0, at.y))) /* v10.3.1 : vole au coffre dessiné */
         this.effects.push({ kind: 'loot', toBag: Boolean(event.bagged), item: event.item, color, x0, x: x0, y0: at.y, y: at.y, life: LOOT_LIFE, max: LOOT_LIFE });
         this.burst(x0, at.y - 4, color, big ? 14 : 6, 50);
         vfx(this, 'loot_burst', x0, at.y, { tint: color, size: big ? 1.3 : 0.9 }); // v9.2.6 : gerbe d'étincelles de rareté
@@ -1005,6 +1007,7 @@ export class SceneRenderer {
       : Math.round(this.viewShift) + (this.soloUnit ? Math.round((HERO_X - this.layout.left) * 0.55) : 0);
     ctx.save();
     ctx.translate(shift, 0);
+    drawLootChest(this, ctx, world); // v10.3.1 : coffre posé au sol, derrière les ennemis
     this.drawEnemies(ctx, world, dt);
     // v9.2.1 (marais) : l'équipe patauge — corps enfoncés (travLift) et coupés à la surface de l'eau.
     const wade = this.trav?.wade;
@@ -1030,6 +1033,7 @@ export class SceneRenderer {
     drawSkillFx(this, ctx); // v9.2.5 : effets de compétence
     this.drawMutationFx(ctx, dt); // v9.2.3
     drawWorldVfx(this, ctx, ZONES[zoneIndex], world, HERO_X, state); // v9.2.6 : auras, malus, ambiance
+    drawLootChestTop(this, ctx); // v10.3.1 : objet qui vole au coffre, pièces, pastille, bulle
     ctx.restore();
     ctx.restore();
 
