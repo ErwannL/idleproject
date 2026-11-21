@@ -1,0 +1,25 @@
+/* v10.4 (3) : Compétences — vignette de 160 px en tête de la fiche, petite vignette de 48 px au survol (PC) ou à l'appui
+   (téléphone) d'une case, étiquette du type d'effet. Les couleurs du type sont celles des icônes (assets/ui/art104/). */
+.sk2-vig-row.sk2-sheet { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+.sk2-sheet .sk-vignette:not(.sk-mini) { width: 160px; height: 160px; flex: none; image-rendering: pixelated; border-radius: 12px;
+  background: radial-gradient(circle at 50% 55%, #2c3a66, #0d1226 75%); border: 1px solid #4a5a8e; box-shadow: inset 0 0 18px #000a; }
+.sk2-sheet > .grow { flex: 1 1 140px; min-width: 0; }
+.sk2-type { display: inline-block; margin: 2px 0; padding: 1px 8px; border-radius: 10px; font-size: 12px; font-weight: 800; color: #10131c; background: #cfd6ea; }
+.sk2-type.t-hit { background: #ff6a5e; } .sk2-type.t-aoe { background: #ff9a3c; } .sk2-type.t-buff { background: #ffd23f; }
+.sk2-type.t-holy { background: #7fd6ff; } .sk2-type.t-boost { background: #b9a4ff; }
+
+/* Case : l'icône fait 36 px dans un carré de 48 px ; la petite vignette se pose par-dessus au survol / à l'appui. */
+.sk2-ic { display: grid; place-items: center; width: 48px; height: 48px; }
+.sk2-lv { right: -12px; }
+.sk2-ic .sk-mini { display: none; position: absolute; left: 0; top: 0; width: 48px; height: 48px; image-rendering: pixelated; border-radius: 8px;
+  background: radial-gradient(circle, #2c3a66, #0d1226 80%); }
+.sk2-cell:active .sk2-ic > img { visibility: hidden; }
+.sk2-cell:active .sk2-ic .sk-mini { display: block; }
+@media (hover: hover) {
+  .sk2-cell:hover .sk2-ic > img { visibility: hidden; }
+  .sk2-cell:hover .sk2-ic .sk-mini { display: block; }
+}
+/* « Réduire les animations » : rien ne s'anime au survol, l'icône reste. */
+.reduce-motion .sk2-ic .sk-mini { display: none !important; }
+.reduce-motion .sk2-cell:hover .sk2-ic > img, .reduce-motion .sk2-cell:active .sk2-ic > img { visibility: visible; }
+@media (max-width: 440px) { .sk2-sheet .sk-vignette:not(.sk-mini) { margin: 0 auto; } }

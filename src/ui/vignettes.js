@@ -3,10 +3,17 @@
 import { VFX } from '../render/art-vfx.js';
 import { drawVfxFrame } from '../render/vfx.js';
 
+// v10.4 (3) : balise d'une vignette (160 px en tête de la fiche, 48 px au survol d'une case). Page Personnage : même appel.
+export function vignetteHtml(fx, size = 160, cls = '') {
+  const e = String(fx).replace(/[^a-z0-9_]/gi, '');
+  return `<canvas class="px sk-vignette${size < 100 ? ' sk-mini' : ''}${cls && cls !== 'sk-mini' ? ` ${cls}` : ''}" width="${size}" height="${size}" data-vfx="${e}" aria-hidden="true"></canvas>`;
+}
+
 let running = false;
 function tick(now) {
   const list = document.querySelectorAll('canvas[data-vfx]');
   if (!list.length) { running = false; return; }
+  const still = document.documentElement.classList.contains('reduce-motion');
   for (const c of list) {
     if (!c.isConnected || c.offsetParent === null) continue;
     let name = c.dataset.vfx;
@@ -17,7 +24,8 @@ function tick(now) {
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, c.width, c.height);
     const per = (e.ms?.[0] || 90);
-    const i = Math.floor(now / per) % Math.max(1, e.n);
+    // « Réduire les animations » (classe posée par ui.js) : la première image seulement, sans boucle.
+    const i = still ? 0 : Math.floor(now / per) % Math.max(1, e.n);
     const k0 = e.scale || 1;
     const size = Math.min(c.width / (e.w * k0), c.height / (e.h * k0)) * 0.85;
     const k = k0 * size;
