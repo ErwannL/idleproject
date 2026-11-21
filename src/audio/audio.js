@@ -7,6 +7,7 @@ export const SFX_NAMES = [
   'hit', 'crit', 'enemyHit', 'kill', 'coin', 'loot', 'levelUp', 'bossSpawn', 'bossDefeated',
   'skill', 'summon', 'click', 'claim', 'step', 'wing', 'boost', 'upgrade', 'error', 'bossHit',
   'bubble', // v9.2.0 (monde marin)
+  'chestBell', // v10.4 : cloche du coffre de butin (objet Légendaire)
 ];
 
 const RARITY_LEVEL = { common: 0, rare: 1, epic: 2, legendary: 3 };
@@ -644,6 +645,15 @@ function buildEngine(ctx, { seed = 1, crackle = true } = {}) {
       sparkle(t + 0.3, 14, 1.2, 3500, 8000, 0.016);
       return 2.4;
     },
+    // v10.4 (plan 10.4, partie 5) : cloche du coffre quand un objet Légendaire y tombe : coup de cloche (partiels
+    // inharmoniques), carillon qui monte, poussière d'étincelles.
+    chestBell(t) {
+      const f = midiHz(79);
+      for (const [r, pk, d] of [[1, 0.17, 2.2], [2.0, 0.08, 1.6], [2.76, 0.07, 1.2], [5.4, 0.035, 0.7], [8.9, 0.02, 0.4]]) tone('sine', f * r, t, pk, 0.002, d, out);
+      chime(t + 0.3, [91, 95, 98], 0.09, 0.04, 1.2, 0.3);
+      sparkle(t + 0.2, 8, 0.8, 3500, 7500, 0.014);
+      return 2.4;
+    },
     levelUp(t) {
       const n = [72, 76, 79, 84, 88];
       n.forEach((m, i) => {
@@ -774,7 +784,7 @@ function buildEngine(ctx, { seed = 1, crackle = true } = {}) {
   // Anti-spam : écart minimal et polyphonie max par effet ; plafond global.
   const LIMITS = {
     coin: [0.05, 3], step: [0.09, 2], click: [0.03, 2], hit: [0.035, 4], bossHit: [0.06, 2], enemyHit: [0.05, 3], kill: [0.04, 3],
-    loot: [0.08, 3], wing: [0.1, 2], levelUp: [0.3, 1], bossSpawn: [1, 1], bossDefeated: [1, 1], summon: [0.08, 3],
+    loot: [0.08, 3], chestBell: [0.4, 2], wing: [0.1, 2], levelUp: [0.3, 1], bossSpawn: [1, 1], bossDefeated: [1, 1], summon: [0.08, 3],
   };
   const active = new Map(); const recentCoins = [];
   let totalVoices = [];

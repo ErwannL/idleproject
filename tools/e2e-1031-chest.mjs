@@ -57,8 +57,8 @@ const geometry = (page) => page.evaluate(() => {
   const d = window.__chestDraws.filter((x) => performance.now() - x.at < 300).pop();
   const btn = document.getElementById('loot-bag'); const b = btn.getBoundingClientRect();
   if (!d) return { drawn: false };
-  const pad = __idle.renderer.lootChest.L.m; // liseré d'un pixel d'art autour de l'image
-  const box = { left: c.left + (d.x + pad) / dpr, top: c.top + (d.y + pad) / dpr, w: (d.w - 2 * pad) / dpr, h: (d.h - 2 * pad) / dpr };
+  const body = __idle.renderer.lootChest.dev; // v10.4 : corps du coffre (l'image dessinée est plus grande : couvercle ouvert)
+  const box = { left: c.left + body.x / dpr, top: c.top + body.y / dpr, w: body.w / dpr, h: body.h / dpr };
   box.right = box.left + box.w; box.bottom = box.top + box.h;
   const feet = c.top + __idle.renderer.groundY * (c.height / __idle.renderer.height);
   const over = (id) => { const e = document.getElementById(id); if (!e || e.offsetParent === null) return false; const x = e.getBoundingClientRect(); return [box, b].some((r) => !(x.right <= r.left || x.left >= r.right || x.bottom <= r.top || x.top >= r.bottom)); };
@@ -96,14 +96,15 @@ for (const [w, h, phone] of [[1116, 993], [1716, 1000], [1280, 720], [900, 600],
     __idle.renderer.handleEvent(ev, world); __idle.ui.handleEvent(ev, s);
     const chest = __idle.renderer.lootChest; const t0 = chest.t;
     await new Promise((res) => setTimeout(res, 250));
-    const mid = { flying: chest.flies.some((f) => f.id === epic.id), bubble: chest.bubble?.text ?? null, fill: [...new Set(window.__fill)].includes('Butin !') };
+    const mid = { flying: chest.flies.some((f) => f.id === epic.id), bubble: null };
     await new Promise((res) => setTimeout(res, 900));
+    mid.bubble = chest.bubble?.text ?? null; mid.fill = [...new Set(window.__fill)].includes('Butin épique !'); // v10.4 : la bulle monte à l'arrivée de l'objet
     return { ...mid, landed: !chest.flies.some((f) => f.id === epic.id), opened: chest.openUntil > t0, coins: chest.coins.length + (chest.openUntil > t0 ? 3 : 0) };
   });
   await wait(page, 50);
   const after = await page.evaluate(() => ({ glow: __idle.renderer.lootChest.glowColor, epic: __idle.renderer.lootChest.epic, ray: __idle.ui.lootBag.btn.classList.contains('lb-epic') }));
   ok(`${label} : objet Épique ramassé → il vole jusqu'au coffre, le couvercle s'entrouvre`, flew.flying && flew.landed && flew.opened, JSON.stringify(flew));
-  ok(`${label} : la lueur passe à l'Épique (rayon de lumière) et la bulle « Butin ! » s'affiche`, before.glow !== after.glow && after.epic && after.ray && flew.bubble === 'Butin !' && flew.fill, JSON.stringify({ before, after, bubble: flew.bubble }));
+  ok(`${label} : la lueur passe à l'Épique (rayon de lumière) et la bulle « Butin épique ! » s'affiche`, before.glow !== after.glow && after.epic && after.ray && flew.bubble === 'Butin épique !' && flew.fill, JSON.stringify({ before, after, bubble: flew.bubble }));
   // Capture pendant un vol (nouvel Épique) : objet en l'air, rayon, bulle.
   await page.evaluate(() => { const s = __idle.state; const it = { ...structuredClone(s.lootBag[0]), id: `epic2-${Date.now()}`, rarity: 'epic' }; s.lootBag.push(it); const w = __idle.world; const foe = w.enemies.find((e) => !e.dead); const ev = { type: 'drop', item: it, x: foe ? foe.x : 300, enemyId: foe?.id ?? -1, bagged: true, time: w.time }; __idle.renderer.handleEvent(ev, w); __idle.ui.handleEvent(ev, s); });
   await wait(page, 380);

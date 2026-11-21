@@ -58,24 +58,29 @@ export class LootBag {
   get chest() {
     const r = this.ui.renderer;
     if (!r) return null;
-    return (r.lootChest ??= new LootChest());
+    const c = (r.lootChest ??= new LootChest());
+    // v10.4 : la cloche d'un objet Légendaire (volume et sourdine = réglages du son du jeu).
+    if (!c.onLegendary) c.onLegendary = () => this.ui.sound?.play?.('chestBell');
+    return c;
   }
   available() { return Boolean(this.state && lootBagOn(this.state) && this.state.lootBag.length); }
 
   // Un objet arrive : il vole du monstre au coffre, le couvercle s'entrouvre et 3 pièces sautent (dans la scène) ;
-  // bulle « Butin ! » la première fois puis à chaque Épique ou mieux (2 s).
+  // bulle la première fois puis selon la rareté : Rare, Épique, Légendaire (2 s).
   bump(item = null, fromX = null) {
     try { this.chest?.bump(item, fromX); } catch { /* objet incomplet : pas de vol */ }
     const st = this.state;
     const first = Boolean(st?.ui && !(st.ui.hints ?? []).includes('loot-chest'));
     if (first) (st.ui.hints ??= []).push('loot-chest');
     const text = bubbleFor(item, first);
-    if (text) this.say(text, 2000);
+    if (text) this.say(text, 2000, item?.id);
   }
-  say(text, ms) {
+  // Bulle : lue tout de suite par les lecteurs d'écran ; dessinée dans la scène à l'arrivée de l'objet au coffre (v10.4).
+  say(text, ms, itemId = null) {
     const b = this.btn.querySelector('.lb-bubble');
     b.textContent = text; b.classList.remove('hidden');
-    this.chest?.say(text, ms);
+    if (itemId != null && this.chest?.flies.some((f) => f.id === itemId)) this.chest.bubbleOnArrival(itemId, text, ms);
+    else this.chest?.say(text, ms);
     clearTimeout(this.sayT); this.sayT = setTimeout(() => b.classList.add('hidden'), ms);
   }
 

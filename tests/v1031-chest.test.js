@@ -64,8 +64,11 @@ test('1031 : conditions d\'affichage du bouton 10.2 (en service et non vide) ; p
 
 test('1031 : bulle « Butin ! » la première fois puis à chaque Épique ou mieux ; lueur de la meilleure rareté ; rayon dès l\'Épique', () => {
   assert.equal(C.bubbleFor({ rarity: 'common' }, true), 'Butin ! Touche le coffre pour trier');
-  assert.equal(C.bubbleFor({ rarity: 'rare' }, false), null);
-  for (const r of ['epic', 'legendary', 'mythic', 'ancestral']) assert.equal(C.bubbleFor({ rarity: r }, false), 'Butin !');
+  // v10.4 (plan 10.4, partie 5) : la bulle suit la rareté (Rare, Épique, Légendaire), plus seulement l'Épique.
+  assert.equal(C.bubbleFor({ rarity: 'common' }, false), null);
+  assert.equal(C.bubbleFor({ rarity: 'rare' }, false), 'Butin rare !');
+  assert.equal(C.bubbleFor({ rarity: 'epic' }, false), 'Butin épique !');
+  for (const r of ['legendary', 'mythic', 'ancestral']) assert.equal(C.bubbleFor({ rarity: r }, false), 'Butin légendaire !');
   const chest = new C.LootChest();
   chest.set({ count: 3, best: 'rare' });
   assert.equal(chest.shown, true);
