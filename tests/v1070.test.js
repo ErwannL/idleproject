@@ -53,3 +53,10 @@ test('10.7 (6) : fenêtre très large — compétences et Sceau sur une ligne, s
   assert.match(src('src/ui/ui.js'), /!\(ultra && items\.length === 2\)/);
   assert.match(src('src/render/scene.js'), /cssWidth \/ cssHeight > 2\.1 \? 0\.86 : 0\.74/);
 });
+
+test('10.7 (3) : titre du sac juste (+N portés), fiche de droite sur l\'objet porté, flèche vers l\'objet, portrait entier', () => {
+  const inv = src('src/ui/panels/inventory.js');
+  assert.ok(inv.includes('eq-worn-n') && inv.includes('ip-left') && inv.includes('const worn0 = state.equipment[heroSlot(item)]'));
+  assert.equal((inv.match(/<select data-action="rarity-filter"/g) ?? []).length, 1, 'plus de <select> en double');
+  assert.match(src('src/ui/hud106.css'), /\.eq-doll \.eq-art \{ max-height: min\(340px, 42vh\);/);
+});

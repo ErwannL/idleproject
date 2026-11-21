@@ -324,3 +324,10 @@
 #hud106.hq-wide #hq-path .hq-foot { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
 #hud106.hq-wide #hq-path .hq-reward { display: none; }
 #hud106.hq-wide #hq-carnet { top: 132px; left: 400px; width: auto; }
+
+/* ---- v10.7 (3) : équipement ---- */
+.eq-bag-title .eq-worn-n { font-size: 12px; font-weight: 700; opacity: .75; }
+.eq-itempop::before { content: ''; position: absolute; top: calc(var(--arrow-y, 40px) - 9px); left: -11px; border: 9px solid transparent; border-right-color: var(--rc, #e8b64a); border-left: 0; }
+.eq-itempop.ip-left::before { left: auto; right: -11px; border-right: 0; border-left: 9px solid var(--rc, #e8b64a); }
+/* Portrait d'un compagnon : entier, net, jamais plus haut que la place du personnage. */
+.eq-doll .eq-art { max-height: min(340px, 42vh); width: auto; max-width: 100%; object-fit: contain; image-rendering: pixelated; }

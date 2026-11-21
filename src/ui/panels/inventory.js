@@ -310,6 +310,7 @@ function bagSection(ui, state, ctx) {
       ${worn ? '' : badge(i)}<small class="eq-card-lvl">${usable ? `Niv. ${i.level}` : escapeHtml(classLabel(itemClass(state, i)))}</small></button>`;
   };
   // Objets portés (héros et équipe), en tête, avec le porteur en haut à droite.
+  const wornList = [...Object.values(state.equipment).filter(Boolean).filter(passes), ...ctx.team.flatMap((c) => Object.values(unitGear(state, c.id)).filter(Boolean).filter(passes))];
   const wornCards = [
     ...Object.values(state.equipment).filter(Boolean).filter(passes).map((i) => card(i, { worn: true, wearer: `<span class="eq-wearer" title="Porté par ton héros">${img('menu_hero')}</span>` })),
     ...ctx.team.flatMap((c) => Object.values(unitGear(state, c.id)).filter(Boolean).filter(passes).map((i) => card(i, { worn: true, wearer: `<span class="eq-wearer" title="Porté par ${escapeHtml(c.name)}">${companionStill(c)}</span>` }))),
@@ -321,10 +322,9 @@ function bagSection(ui, state, ctx) {
   const sortOptions = Object.entries(SORT_LABELS).map(([v, l]) => `<option value="${v}" ${v === state.ui.sortBy ? 'selected' : ''}>${l}</option>`).join('');
   const PLURAL = { weapon: 'Armes', helmet: 'Casques', armor: 'Armures', amulet: 'Colliers', ring: 'Anneaux', bracelet: 'Bracelets' };
   const owner = unit ? `de ${unit.name}` : 'du Héros';
-  const title = `<div class="eq-bag-title"><b>${slotF === 'all' ? 'Tout le sac' : `${PLURAL[slotF] ?? HERO_SLOTS[slotF] ?? slotF} ${escapeHtml(owner)}`} · <span class="num">${shown.filter(passes).length}</span></b>
+  const title = `<div class="eq-bag-title"><b>${slotF === 'all' ? 'Tout le sac' : `${PLURAL[slotF] ?? HERO_SLOTS[slotF] ?? slotF} ${escapeHtml(owner)}`} · <span class="num">${shown.filter(passes).length}</span>${wornList.length ? ` <small class="eq-worn-n">+${wornList.length} porté${wornList.length > 1 ? 's' : ''}</small>` : ''}</b>
       <select data-action="sort" aria-label="Trier">${sortOptions}</select></div><div class="filter-chips eq-slot-chips" role="group" aria-label="Emplacement">${filterChips}</div>`;
   const tools = ui.view.bagMenu ? `<div class="inv-tools">
-      <select data-action="rarity-filter" aria-label="Rareté">
       <select data-action="rarity-filter" aria-label="Rareté">${[['all', 'Toutes'], ...RARITIES.map((r) => [r.id, r.label])].map(([v, l]) => `<option value="${v}" ${v === rarF ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
     ${ui.view.bagAll ? '<button class="btn small bag-for" data-action="bag-all" data-value="">Seulement les objets utilisables</button>' : `<button class="btn small bag-for" data-action="bag-all" data-value="1">Voir aussi les objets des autres classes${hidden ? ` (${hidden})` : ''}</button>`}` : '';
   const sorted = (state.ui.sortBy ?? 'gain') === 'gain' && !unit ? [...shown].sort((a, b) => (gainOf(b) ?? -1e9) - (gainOf(a) ?? -1e9)) : shown;
@@ -560,6 +560,9 @@ export default {
         let y = C.top - H.top - 10;
         y = Math.max(4, Math.min(y, Math.max(4, H.height - h - 4)));
         ip.style.left = `${Math.round(x)}px`; ip.style.top = `${Math.round(y)}px`;
+        // v10.7 (3) : petite flèche qui relie la fenêtre à l'objet touché.
+        ip.classList.toggle('ip-left', x < C.left - H.left);
+        ip.style.setProperty('--arrow-y', `${Math.round(Math.max(14, Math.min(h - 14, C.top - H.top + C.height / 2 - y)))}px`);
       }
     }
     const pop = body.querySelector('.eq-pop');
@@ -592,6 +595,8 @@ export default {
       if (w && team.some((c) => c.id === w)) who = w;
       else if (Object.values(state.equipment).some((i) => i?.id === item.id)) who = 'hero';
     }
+    // v10.7 (3) : fenêtre d'objet ouverte → la fiche de droite montre l'objet porté à cette place, pour comparer.
+    if (v.itemPop && item?.id === v.itemPop && (ui.root?.clientWidth ?? 9999) > 600) { const worn0 = state.equipment[heroSlot(item)]; if (worn0) item = worn0; }
     const unit = who === 'hero' ? null : companionById(who);
     const worn = unit ? unitGear(state, unit.id) : state.equipment;
     const slotKeys = unit ? Object.keys(worn) : Object.keys(HERO_SLOTS);
