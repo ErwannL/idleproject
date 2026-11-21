@@ -1,0 +1,202 @@
+/* v10.4 (partie 6) : le Bastion en page plein écran (src/ui/panels/camp.js, gabarit de src/ui/page.css).
+   Carte du village (décor et bâtiments PixelLab, assets/ui/art104), ouvriers devant leur bâtiment, arbre des Recherches,
+   fiche du bâtiment à droite (feuille du bas sur téléphone), tour de la scène, écran « Pendant ton absence ». */
+
+/* ---------- Bandeau du haut ---------- */
+.bs-top { gap: 6px 8px; }
+.bs-view { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 3px 12px 3px 6px; border-radius: 10px; border: 2px solid #3b4768;
+  background: #121b31; color: #dfe6f7; font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; }
+.bs-view img { width: 30px; height: 30px; image-rendering: pixelated; }
+.bs-view.on { border-color: var(--gold); background: #22305a; color: #fff; box-shadow: 0 0 0 2px rgba(232, 182, 74, .25); }
+.bs-top .bs-chip { min-height: 32px; }
+.bs-top .bs-chip img { width: 22px; height: 22px; image-rendering: pixelated; }
+
+/* ---------- La carte du village ---------- */
+.bs-main { position: relative; }
+.bs-village { height: auto; display: flex; align-items: flex-start; justify-content: center; }
+.bs-world { position: relative; aspect-ratio: 384 / 216; width: min(100%, calc(var(--map-h, 100000px) * 384 / 216)); flex: none;
+  border-radius: 12px; border: 3px solid #6a5a2c; box-shadow: 0 8px 24px rgba(0, 0, 0, .55); overflow: hidden; container-type: inline-size; }
+.bs-ground { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; pointer-events: none; user-select: none; }
+.bs-plot { position: absolute; transform: translate(-50%, -100%); aspect-ratio: 1; padding: 0; margin: 0; border: 0; background: none; color: inherit; font: inherit;
+  cursor: pointer; display: block; filter: drop-shadow(0 3px 0 rgba(0, 0, 0, .35)); }
+.bs-plot:hover .bs-bimg, .bs-plot.sel .bs-bimg { filter: drop-shadow(0 0 3px #ffe08a) drop-shadow(0 0 1px #ffe08a); }
+.bs-plot:focus-visible { outline: 3px solid #ffd35a; outline-offset: 2px; border-radius: 8px; z-index: 3; }
+.bs-plot.locked { cursor: default; }
+.bs-bimg { display: block; width: 100%; height: 100%; object-fit: contain; object-position: 50% 100%; image-rendering: pixelated; pointer-events: none; }
+/* Nom et niveau sous le bâtiment ; condition des bâtiments verrouillés. */
+.bs-tag { position: absolute; left: 50%; bottom: -2px; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 4px; max-width: 150%; padding: 1px 8px 1px 2px;
+  border-radius: 999px; background: rgba(12, 17, 32, .9); border: 1px solid #c9963f; color: #fff; font-size: clamp(9px, 1.25cqi, 13px); font-weight: 700; white-space: nowrap; pointer-events: none; z-index: 2; }
+.bs-tag .bs-lvl { display: inline-grid; place-items: center; min-width: 1.6em; height: 1.6em; border-radius: 50%; background: #e8b64a; color: #2a1a05; font-size: .9em; }
+.bs-tag.lock { padding-left: 6px; border-color: #56607a; color: #cfd6e6; font-weight: 600; }
+.bs-tag.lock img { width: 1.2em; height: 1.2em; }
+/* Chantier : barre et temps restant au-dessus du bâtiment. */
+.bs-job { position: absolute; left: 12%; right: 12%; top: 4%; display: grid; gap: 1px; justify-items: center; z-index: 2; pointer-events: none; }
+.bs-job .bs-bar { width: 100%; height: 7px; box-shadow: 0 1px 0 #000; }
+.bs-job .bs-time { padding: 0 6px; border-radius: 6px; background: rgba(12, 17, 32, .85); color: #ffe08a; font-size: clamp(9px, 1.15cqi, 12px); font-weight: 700; }
+.bs-job.work .bs-bar { height: 5px; }
+/* Ouvrier devant son bâtiment, avec son outil. */
+.bs-plot .bs-worker { position: absolute; left: -6%; bottom: 4%; width: 44%; height: auto; aspect-ratio: 64 / 56; margin: 0; z-index: 1; pointer-events: none;
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .55)); }
+.bs-plot .bs-worker canvas { width: 100%; height: 100%; image-rendering: pixelated; }
+.bs-plot .bs-tool { position: absolute; right: -6%; top: 20%; width: 40%; height: auto; image-rendering: pixelated; transform-origin: 25% 80%; animation: bs-swing .8s steps(3) infinite; }
+.bs-plot .bs-tool.t-book { transform-origin: 50% 50%; animation: bs-read 2.2s steps(2) infinite; }
+.bs-plot .bs-tool.t-coin { transform-origin: 50% 50%; animation: bs-flip 1.2s steps(4) infinite; }
+/* Bâtiment vivant : planche PixelLab jouée image par image. */
+.bs-life { position: absolute; display: block; background-repeat: no-repeat; image-rendering: pixelated; pointer-events: none; transform: translate(-50%, -50%) scale(var(--k, 1));
+  animation-name: bs-sheet; animation-timing-function: steps(var(--n)); animation-iteration-count: infinite; }
+@keyframes bs-sheet { from { background-position: 0 0; } to { background-position: var(--sheet) 0; } }
+/* Pastilles : ouvrier qui manque (cadenas rouge), quelque chose à récupérer (point doré). */
+.bs-need { position: absolute; right: 12%; top: 26%; width: 22px; height: 22px; border-radius: 50%; background: #c0392b; border: 2px solid #fff; display: grid; place-items: center; z-index: 2; }
+.bs-need img { width: 12px; height: 12px; }
+.bs-dot { position: absolute; right: 10%; top: 12%; width: 14px; height: 14px; border-radius: 50%; background: #ffd24a; border: 2px solid #fff; box-shadow: 0 0 8px #ffd24a; z-index: 2; }
+/* Annonce du démarrage : les ouvriers posés et le chantier offert. */
+.bs-kick { position: absolute; left: 50%; bottom: 5%; transform: translateX(-50%); z-index: 5; display: grid; gap: 3px; justify-items: start; max-width: 92%;
+  padding: 8px 12px; border-radius: 12px; border: 2px solid #e8b64a; background: rgba(14, 20, 38, .95); box-shadow: 0 8px 22px rgba(0, 0, 0, .6); font-size: 13px; }
+.bs-kick > b { color: var(--gold-text); font-size: 14px; }
+.bs-kick span { display: inline-flex; align-items: center; gap: 6px; }
+.bs-kick span img { width: 24px; height: 24px; image-rendering: pixelated; }
+.bs-kick .gift { color: #ffe08a; }
+.bs-kick .btn { justify-self: end; }
+
+/* ---------- Arbre des Recherches : 3 branches, un nœud illustré par recherche ---------- */
+.bs-tree { display: grid; gap: 10px; align-content: start; padding: 10px; border-radius: 12px; border: 2px solid #4b3d22;
+  background: radial-gradient(ellipse at 50% 0%, rgba(232, 182, 74, .10), rgba(0, 0, 0, 0) 60%), #121a2e; }
+.bs-tree.closed .bs-branches { opacity: .55; }
+.bs-branches { display: grid; gap: 14px; }
+.bs-branch { display: flex; align-items: center; gap: 0; min-width: 0; }
+.bs-bhead { flex: none; width: 92px; display: grid; justify-items: center; gap: 2px; font-size: 13px; color: var(--gold-text); text-align: center; }
+.bs-bhead img { width: 48px; height: 48px; image-rendering: pixelated; }
+.bs-node { position: relative; flex: none; width: 76px; height: 76px; padding: 4px; border-radius: 50%; border: 3px solid #56607a; background: radial-gradient(#22304f, #0d1424);
+  cursor: pointer; display: grid; place-items: center; color: inherit; font: inherit; }
+.bs-node > img { width: 56px; height: 56px; image-rendering: pixelated; }
+.bs-node.got { border-color: #c9963f; }
+.bs-node.maxed { border-color: #ffe08a; box-shadow: 0 0 10px rgba(255, 224, 138, .45); }
+.bs-node.locked > img { filter: grayscale(1) brightness(.45); }
+.bs-node.active { border-color: #63d98a; box-shadow: 0 0 0 4px rgba(99, 217, 138, .35), 0 0 16px rgba(99, 217, 138, .6); }
+.bs-node.sel { outline: 3px solid var(--gold); outline-offset: 3px; }
+.bs-nlv { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); padding: 0 6px; border-radius: 8px; background: #0c1222; border: 1px solid #56607a; font-size: 11px; color: #fff; white-space: nowrap; }
+.bs-node .bs-time { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); padding: 0 6px; border-radius: 8px; background: #163a26; border: 1px solid #63d98a; color: #c8ffd9; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.bs-nlock { position: absolute; right: -2px; top: -2px; width: 22px; height: 22px; border-radius: 50%; background: #2a3148; display: grid; place-items: center; }
+.bs-nlock img { width: 12px; height: 12px; }
+.bs-link { flex: 1 1 0; min-width: 6px; max-width: 46px; height: 5px; background: #2a3148; border-radius: 3px; }
+.bs-link.lit { background: linear-gradient(90deg, #e8b64a, #ffe08a); box-shadow: 0 0 6px rgba(255, 224, 138, .6); }
+
+/* ---------- La fiche ---------- */
+.bs-side { display: grid; align-content: start; gap: 0; padding: 10px 12px; border-radius: 12px; border: 2px solid #c9963f; background: rgba(13, 20, 38, .96); }
+.bs-side:empty { display: none; }
+.bs-shead { display: flex; align-items: center; gap: 10px; }
+.bs-shead .grow { min-width: 0; }
+.bs-shead b { font-size: 17px; }
+.bs-shead small { display: block; color: var(--muted); font-size: 12px; }
+.bs-sart { width: 88px; height: 88px; flex: none; image-rendering: pixelated; object-fit: contain; }
+.bs-sart.node { width: 64px; height: 64px; }
+.bs-side .bs-close { margin-left: auto; }
+#app.page-ui:not(.page-narrow) .bs-side .bs-close { display: none; }
+.bs-tip { display: flex; align-items: center; gap: 8px; margin-top: 6px; padding: 6px 10px; border-radius: 10px; background: #fff6d8; color: #3a2a0c; font-size: 13px; position: relative; }
+.bs-tip::before { content: ''; position: absolute; left: 34px; top: -7px; border: 7px solid transparent; border-top: 0; border-bottom-color: #fff6d8; }
+.bs-tip span { flex: 1; }
+.bs-tradeico { width: 22px; height: 22px; image-rendering: pixelated; vertical-align: middle; }
+.bs-worker-now { display: flex; align-items: center; gap: 10px; padding: 6px; border-radius: 10px; background: rgba(99, 217, 138, .08); border: 1px solid rgba(99, 217, 138, .35); }
+.bs-worker-now .grow { display: grid; gap: 2px; min-width: 0; }
+.bs-wline { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: #cdd6ea; }
+.bs-wpic { flex: none; width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--rarity, #8e9db8); background: #18203a; overflow: hidden; display: grid; place-items: center; }
+.bs-wpic img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+.bs-wpic.big { width: 64px; height: 64px; }
+.bs-wgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 6px; }
+.bs-wcard { position: relative; display: grid; justify-items: center; gap: 2px; padding: 4px 2px 3px; border-radius: 10px; border: 2px solid #2f3a58; background: #0f1728; color: inherit; font: inherit; cursor: pointer; }
+.bs-wcard:hover { border-color: #8fa3d6; }
+.bs-wcard.match { border-color: #3fa86a; }
+.bs-wcard.here { border-color: var(--gold); background: #22305a; }
+.bs-wcard.busy { opacity: .72; }
+.bs-wcard .bs-wpic { width: 46px; height: 46px; }
+.bs-wcard .bs-wtrade { position: absolute; right: 2px; top: 2px; width: 20px; height: 20px; image-rendering: pixelated; }
+.bs-wcard .bs-wbonus { font-size: 12px; color: #fff; }
+.bs-wcard.match .bs-wbonus { color: var(--good); }
+.bs-wmore { border-radius: 10px; border: 2px dashed #3b4768; background: none; color: #cfd8ee; font: inherit; font-weight: 700; cursor: pointer; }
+.bs-ba { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.bs-ba img { width: 72px; height: 72px; image-rendering: pixelated; object-fit: contain; }
+.bs-ba .bs-arrow { font-size: 22px; color: var(--gold-text); }
+.bs-up .primary-action { width: 100%; }
+.bs-dur img { width: 16px; height: 16px; vertical-align: -3px; }
+.bs-order > img { width: 24px; height: 24px; image-rendering: pixelated; flex: none; }
+.bs-order.empty { min-height: 30px; }
+.bs-tier small img { width: 12px; height: 12px; vertical-align: -1px; }
+.bs-trades { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.bs-trades .bs-trade { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 6px; border-radius: 10px; border: 2px solid #c9963f; background: #1a2340; color: #fff; font: inherit; cursor: pointer; }
+.bs-trades .bs-trade.off { border-color: #2f3a58; opacity: .6; cursor: default; }
+.bs-trades .bs-trade img { width: 22px; height: 22px; image-rendering: pixelated; }
+.bs-to-tree { display: inline-flex; align-items: center; gap: 8px; }
+.bs-to-tree img { width: 32px; height: 32px; image-rendering: pixelated; }
+.bs-stock .bs-time img { width: 16px; height: 16px; vertical-align: -3px; }
+.bs-versus { font-size: 12px; margin: 6px 0 0; }
+.bs-side .bs-embed .card { border: 0; background: none; box-shadow: none; padding: 0; }
+
+/* ---------- Avant l'étape 40 : une seule colonne ---------- */
+#app#app.page-ui:not(.page-narrow) .pg.bs-solo { grid-template-columns: minmax(0, 1fr); grid-template-areas: "main"; grid-template-rows: minmax(0, 1fr); }
+.bs-camp-old { display: grid; gap: 8px; align-content: start; max-width: 900px; }
+
+/* ---------- Hors page (petite fenêtre) et téléphone : la carte défile en largeur ---------- */
+#app:not(.page-ui) .bs-pg { display: grid; gap: 8px; }
+#app:not(.page-ui) .bs-village, #app.page-narrow .bs-village { overflow-x: auto; overflow-y: hidden; justify-content: flex-start; height: auto; scrollbar-width: thin; }
+#app:not(.page-ui) .bs-world, #app.page-narrow .bs-world { width: max(100%, 620px); }
+#app:not(.page-ui) .bs-side:not(.is-open) { display: none; }
+#app.page-narrow .bs-tree { padding: 6px; }
+#app.page-narrow .bs-branch { flex-wrap: wrap; row-gap: 2px; }
+#app.page-narrow .bs-bhead { width: 100%; display: flex; justify-content: flex-start; gap: 6px; }
+#app.page-narrow .bs-bhead img { width: 28px; height: 28px; }
+#app.page-narrow .bs-node { width: 46px; height: 46px; border-width: 2px; padding: 2px; }
+#app.page-narrow .bs-node > img { width: 36px; height: 36px; }
+#app.page-narrow .bs-link { min-width: 4px; }
+#app.page-narrow .bs-node .bs-time { font-size: 10px; top: -12px; }
+#app.page-narrow .bs-top .bs-chip.lvl { display: none; }
+#app.page-narrow .bs-view { padding: 2px 8px 2px 4px; font-size: 13px; min-height: 34px; }
+#app.page-narrow .bs-view img { width: 24px; height: 24px; }
+#app.page-narrow .bs-shead { padding-right: 40px; }
+
+/* Réduire les animations : bâtiments, outils et rubans immobiles. */
+.reduce-motion .bs-life, .reduce-motion .bs-plot .bs-tool, .reduce-motion #bastion-tower .bt-dot { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .bs-life, .bs-plot .bs-tool, #bastion-tower .bt-dot { animation: none !important; } }
+
+/* ---------- Tour du Bastion sur la scène ---------- */
+#bastion-tower { position: absolute; z-index: 6; width: 64px; height: 76px; padding: 0; border: 0; background: none; cursor: pointer; display: block;
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .7)) drop-shadow(0 0 4px rgba(255, 210, 120, .35)); }
+#bastion-tower.hidden { display: none; }
+#bastion-tower img { width: 100%; height: 100%; object-fit: contain; object-position: 50% 100%; image-rendering: pixelated; }
+#bastion-tower:hover { filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .7)) drop-shadow(0 0 6px #ffe08a); }
+#bastion-tower:focus-visible { outline: 3px solid #ffd35a; outline-offset: 2px; border-radius: 8px; }
+#bastion-tower .bt-dot { position: absolute; right: 2px; top: 0; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: #e5483b; border: 2px solid #fff;
+  color: #fff; font: 800 11px/14px system-ui, sans-serif; text-align: center; box-sizing: border-box; animation: bt-pulse 1.4s ease-in-out infinite; }
+#bastion-tower .bt-dot.hidden { display: none; }
+@keyframes bt-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+#app.page-ui #bastion-tower { visibility: hidden !important; }
+
+/* ---------- « Pendant ton absence » ---------- */
+.ba-card { display: grid; gap: 10px; }
+.ba-banner { position: relative; margin: -4px -4px 0; border-radius: 10px; overflow: hidden; }
+.ba-banner img { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+.ba-banner h2 { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; padding: 18px 12px 8px; background: linear-gradient(rgba(0, 0, 0, 0), rgba(8, 10, 20, .9)); color: #fff; font-size: 20px; }
+.ba-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+.ba-tile { display: grid; justify-items: center; gap: 2px; padding: 6px 4px; border-radius: 10px; background: #121b31; border: 2px solid #3b4768; text-align: center; font-size: 12px; }
+.ba-tile img { width: 72px; height: 72px; image-rendering: pixelated; object-fit: contain; }
+.ba-tile.build { border-color: #c9963f; }
+.ba-tile.research { border-color: #63d98a; }
+.ba-tile.item img { width: 56px; height: 56px; }
+.ba-tile b { font-size: 13px; color: #fff; }
+.ba-tile small { color: #cdd6ea; }
+.ba-claim { width: 100%; min-height: 46px; font-size: 17px; }
+
+/* La mini-fenêtre de combat (page.css) : le bandeau descend jusqu'à son bas, même si --pg-top-h n'est pas encore posé. */
+#app#app.page-ui:not(.page-narrow) .bs-top { min-height: max(var(--pg-top-h, 0px), calc(var(--pg-mini-h) - 58px)); }
+
+/* Arbre des Recherches sous la carte (place libre sous le décor) ; nœuds plus petits. */
+.bs-main { display: grid; align-content: start; gap: 10px; }
+.bs-tree.below { padding: 8px 10px; }
+.bs-tree.below.hidden { display: none; }
+.bs-tree.below .bs-branches { gap: 8px; }
+.bs-tree.below .bs-node { width: 60px; height: 60px; }
+.bs-tree.below .bs-node > img { width: 44px; height: 44px; }
+.bs-tree.below .bs-bhead { width: 84px; }
+.bs-tree.below .bs-bhead img { width: 36px; height: 36px; }
+#app.page-narrow .bs-kick { left: 8px; transform: none; max-width: 340px; }
+/* En page, le Bastion prend toute la largeur (style.css borne les enfants du panneau à 1100 px). */
+#app#app.page-ui #panel-body > .bs-pg { max-width: none; margin-left: 0; margin-right: 0; }

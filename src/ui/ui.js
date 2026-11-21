@@ -2,6 +2,7 @@
 // de la scène, HUD, onglets débloqués progressivement et panneaux (un module par panneau dans ./panels).
 // L'interface ne modifie jamais l'état directement : elle appelle les actions fournies par main.js.
 import campPanel, { bastionAction, bastionBadge, bastionLiveKey, openBastion } from './panels/camp.js'; // v9.7.1 (lot 6) · v10.3 : le Bastion
+import { updateBastionTower } from './bastion-tower.js'; // v10.4 (6) : la tour du Bastion sur la scène
 import { GLOSSARY, GLOSSARY_TERMS, RESOURCES } from '../data/glossary.js'; // v9.7.1 (lot 5)
 import { rageFree } from '../core/combat.js'; // v9.7.1 (lot 3)
 import { isUnlocked } from '../core/unlock-quests.js'; // v9.7.1 (lot 3)
@@ -1775,6 +1776,7 @@ export class UI {
     const pill = this.$('goals-pill');
     if (pill) { const h = sessionGoalsPill(state); if (pill.dataset.h !== h) { pill.dataset.h = h; pill.innerHTML = h; pill.classList.toggle('hidden', !h); pill.classList.toggle('ready', sessionDone(state)); } }
     this.updateQuestBanner(state); // v9.8 (J2)
+    updateBastionTower(this, state); // v10.4 (6)
     this.$('rift-chip')?.classList.toggle('hidden', this.tabVisible.event === false || titanTriesLeft(state) <= 0); // v9.9 (K10)
     const stats = world.heroStats ?? computeHeroStats(state);
     this.setText('gold', formatNumber(state.gold));

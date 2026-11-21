@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="src/ui/bastion.css"> <!-- v10.3 : le Bastion -->
   <link rel="stylesheet" href="src/ui/dungeons1031.css"> <!-- v10.3.1 : feuille de donjon (mécanique en image), portes -->
   <link rel="stylesheet" href="src/ui/page.css"> <!-- v10.4 : pages plein écran (Personnage, Forge…) -->
+  <link rel="stylesheet" href="src/ui/bastion104.css"> <!-- v10.4 (6) : le Bastion en page, tour de la scène -->
 </head>
 <body>
   <!-- v9.2.6 : écran de chargement (cercle de runes PixelLab), effacé par src/ui/ui-vfx.js bootDone() -->
@@ -56,6 +57,7 @@
           <button id="goals-pill" class="hidden" data-action="session-goals" aria-label="Objectifs de session"></button>
           <button id="quest-banner" class="hidden" aria-label="Mission du jour"></button>
           <div id="gain-feed" aria-hidden="true"></div>
+          <button id="bastion-tower" class="hidden" type="button" data-action="bastion-tower" title="Bastion" aria-label="Bastion"><img class="px" src="assets/ui/art104/scene_tower.png" alt="" draggable="false"><i class="bt-dot hidden"></i></button>
           <button id="rift-chip" class="scene-btn hidden" data-action="rift-open" title="Faille du jour">⏳ Faille du jour</button>
           <div id="next-unlock" role="status" class="hidden"><i id="next-unlock-fill"></i><span id="next-unlock-text"></span></div>
           <button id="weak-spot" class="hidden" data-action="weak-spot" aria-label="Point faible"></button>
