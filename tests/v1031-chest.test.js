@@ -19,11 +19,11 @@ const { createNewState } = await import('../src/core/state.js');
 const { LOOT_BAG_MAX, lootBagSummary } = await import('../src/core/inventory.js');
 const src = (p) => readFileSync(p, 'utf8');
 
-test('1031 : coffre dessiné du 10.2 (fantasy, pixels doubles) agrandi par un multiple entier, ≈ 96 px sur PC et ≈ 64 px sur téléphone', () => {
+test('1031 → 10.6 : coffre agrandi par un multiple entier, ≈ 112 px sur PC et ≈ 72 px sur téléphone', () => {
   assert.ok(existsSync(C.CHEST_SRC) && existsSync(C.CHEST_OPEN_SRC));
   assert.deepEqual(C.CHEST_NATIVE, { w: 56, h: 55 });
   for (const dpr of [1, 1.25, 1.5, 2, 3]) {
-    for (const [tall, want] of [[false, 96], [true, 64]]) {
+    for (const [tall, want] of [[false, 112], [true, 72]]) {
       const m = C.chestMultiple(C.chestTarget(tall, 600), dpr);
       assert.ok(Number.isInteger(m) && m >= 1, `multiple entier (${m})`);
       const css = (C.CHEST_NATIVE.h * m) / dpr;
@@ -32,22 +32,21 @@ test('1031 : coffre dessiné du 10.2 (fantasy, pixels doubles) agrandi par un mu
       assert.ok(css >= C.MIN_HIT, 'assez grand pour un doigt');
     }
   }
-  assert.equal(C.chestTarget(false, 900), 96);
-  assert.equal(C.chestTarget(true, 900), 64);
+  assert.equal(C.chestTarget(false, 900), 112);
+  assert.equal(C.chestTarget(true, 900), 72);
 });
 
-test('1031 : posé juste derrière l\'ennemi le plus en arrière, dans la partie droite, à ≥ 40 px du bord', () => {
-  for (const W of [390, 900, 1116, 1280, 1716]) {
+test('10.6 (partie 1) : le coffre quitte le terrain — place fixe en bas à droite, la même à chaque vague et dans toutes les tailles', () => {
+  for (const W of [390, 1116, 1280, 2536]) {
     const cw = W < 560 ? 56 : 112;
-    const { min, max } = C.chestBounds(W, cw);
-    assert.ok(min <= max);
-    assert.ok(min >= C.MIN_EDGE && W - (max + cw) >= C.MIN_EDGE, `${W} px : bords`);
-    assert.equal(C.chestTargetX(W, cw, null), max, 'sans ennemi : à droite');
-    const mid = Math.round((min + max) / 2) - 8;
-    assert.equal(C.chestTargetX(W, cw, mid), mid + 8, 'juste derrière l\'ennemi');
-    assert.equal(C.chestTargetX(W, cw, 0), min, 'jamais sur l\'équipe');
-    assert.equal(C.chestTargetX(W, cw, W * 3), max, 'jamais hors de la scène');
+    const x = C.dockX(W, cw);
+    assert.equal(W - (x + cw), C.DOCK_RIGHT, `${W} px : collé au bord droit`);
+    assert.ok(x >= C.MIN_EDGE);
   }
+  const code = src('src/render/loot-chest.js');
+  assert.match(code, /cssH - DOCK_BOTTOM/, 'pieds au bas de la scène, sous le combat');
+  assert.match(code, /chest\.x = dockX\(/, 'plus de place calculée d\'après les ennemis');
+  assert.match(code, /- L\.band/, 'rayon arrêté à la bande de combat');
 });
 
 test('1031 : conditions d\'affichage du bouton 10.2 (en service et non vide) ; pas de coffre pendant l\'Arène ni la Veillée', () => {

@@ -1,0 +1,171 @@
+/* v10.6 (parties 2, 3 et 6) : quêtes et événements de l'écran de jeu, Prime du Héraut, page du Marché des Lueurs.
+   Animations courtes, seulement là où elles aident ; toutes coupées par « Réduire les animations » sauf les
+   déplacements utiles (prefers-reduced-motion et .calm). */
+#hud106 { position: absolute; inset: 0; pointer-events: none; z-index: 6; }
+#hud106.hidden, #hud106 .hidden { display: none !important; }
+#hud106 > * { pointer-events: auto; }
+
+/* 1. Chemin du héros */
+#hq-path { position: absolute; left: 8px; top: 116px; width: 300px; min-height: 104px; display: flex; gap: 10px; align-items: center;
+  padding: 10px 12px; border-radius: 12px; border: 2px solid #e8b64a; background: linear-gradient(180deg, #4a2c18f0, #2e1a12f0);
+  color: #fff3d8; text-align: left; cursor: pointer; box-shadow: 0 4px 14px #0008; font: inherit; }
+#hq-path .hq-world { width: 64px; height: 64px; flex: none; border-radius: 10px; border: 2px solid #e8b64a; background: #1b1020; }
+#hq-path .hq-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+#hq-path .hq-kicker { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #f2c25a; font-weight: 700; }
+#hq-path .hq-title { font-size: 15px; white-space: nowrap; overflow: hidden; line-height: 1.2; }
+#hq-path .hq-bar { height: 7px; border-radius: 4px; background: #00000070; overflow: hidden; }
+#hq-path .hq-bar i { display: block; height: 100%; background: linear-gradient(90deg, #ff6fa8, #ffb347); }
+#hq-path .hq-foot { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+#hq-path .hq-reward { display: flex; gap: 4px; font-size: 12px; align-items: center; }
+#hq-path .hq-reward img { width: 18px; height: 18px; }
+#hq-path .hq-btn { padding: 4px 12px; border-radius: 8px; background: #ffe08a; color: #3a2410; font-weight: 800; font-size: 12px; border: 2px solid #c98a1e; }
+#hq-path.ready { border-color: #ffd34d; box-shadow: 0 0 0 2px #ffd34d60, 0 4px 14px #0008; }
+#hq-path.hq-burst { animation: hq-burst .7s ease-out; }
+#hq-path.hq-burst::after { content: ''; position: absolute; inset: -22px; background: url(../../assets/ui/art106/fx_quest_done.png) center / 120px no-repeat; image-rendering: pixelated; pointer-events: none; animation: hq-flash .7s ease-out forwards; }
+#hq-path.hq-enter .hq-main, #hq-path.hq-enter .hq-world { animation: hq-slide .45s ease-out; }
+@keyframes hq-burst { 0% { box-shadow: 0 0 0 0 #ffd34d; background: #7a5418; } 100% { box-shadow: 0 0 0 14px #ffd34d00; } }
+@keyframes hq-flash { 0% { opacity: 0; transform: scale(.4); } 30% { opacity: 1; } 100% { opacity: 0; transform: scale(1.3); } }
+@keyframes hq-slide { from { transform: translateX(-24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.hq-fly { position: fixed; width: 24px; height: 24px; z-index: 999; pointer-events: none; image-rendering: pixelated; animation: hq-fly .8s ease-in forwards; }
+@keyframes hq-fly { 0% { transform: translate(-50%, -50%) scale(1.4); } 100% { transform: translate(calc(var(--dx) - 50%), calc(var(--dy) - 50%)) scale(.6); opacity: .4; } }
+
+/* 2. Carnet du jour (3 lignes) */
+#hq-carnet { position: absolute; left: 8px; top: 230px; width: 300px; display: flex; flex-direction: column; gap: 6px; }
+#hq-carnet .hq-carnet-title { align-self: flex-start; background: none; border: 0; color: #fff3d8; font: inherit; font-weight: 800; font-size: 13px; text-shadow: 0 1px 2px #000; cursor: pointer; padding: 0 2px; }
+#hq-carnet .hq-task { display: flex; align-items: center; gap: 10px; padding: 6px 12px; border-radius: 10px; border: 0; background: #f4dde6ee; color: #3b2033; font: inherit; font-weight: 700; font-size: 13px; cursor: pointer; text-align: left; }
+#hq-carnet .hq-task img { width: 32px; height: 32px; flex: none; }
+#hq-carnet .hq-task span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hq-carnet .hq-task b { color: #c03a6a; }
+#hq-carnet .hq-task.done { background: #d9f0d2ee; }
+#hq-carnet .hq-task.done b { color: #2e8a3a; }
+.hq-carnet-chip { display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; border: 2px solid #e8b64a; background: #2e1a12e8; color: #fff3d8; font: inherit; font-weight: 800; font-size: 12px; }
+.hq-carnet-chip img { width: 20px; height: 20px; }
+
+/* 3. Colonne d'événements */
+#hq-events { position: absolute; right: 8px; top: 96px; display: flex; flex-direction: column; gap: 4px; align-items: center; width: 84px; }
+#hq-events .hq-ev { position: relative; display: flex; flex-direction: column; align-items: center; background: none; border: 0; padding: 0; color: #fff; font: inherit; cursor: pointer; }
+#hq-events .hq-ev-art { position: relative; width: 66px; height: 66px; border-radius: 14px; border: 2px solid #e8b64a; background: radial-gradient(#5a3a6a, #2a1830); display: grid; place-items: center; box-shadow: 0 3px 8px #0008; }
+#hq-events .hq-ev-art img { width: 58px; height: 58px; }
+#hq-events .hq-ev-timer { position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-style: normal; font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 8px; background: #3a1f12; color: #ffe08a; border: 1px solid #e8b64a; }
+#hq-events small { font-size: 11px; font-weight: 800; text-shadow: 0 1px 2px #000, 0 0 2px #000; margin-top: 8px; max-width: 84px; text-align: center; line-height: 1.1; }
+#hq-events .hq-dot { position: absolute; top: -4px; right: 2px; min-width: 18px; height: 18px; border-radius: 9px; background: #e23b4a; color: #fff; font-size: 11px; display: grid; place-items: center; border: 2px solid #fff; }
+#hq-events .hq-ev.hot .hq-ev-art { animation: hq-hot 1.2s ease-in-out infinite; }
+#hq-events .hq-more { width: 44px; height: 44px; border-radius: 12px; border: 2px solid #e8b64a; background: #2a1830; font-size: 22px; font-weight: 800; }
+@keyframes hq-hot { 50% { transform: scale(1.06); box-shadow: 0 0 14px #ffd34d; } }
+
+/* 4. Prime du Héraut */
+#hq-bounty { position: absolute; top: 116px; left: 50%; width: 420px; height: 110px; margin-left: -210px; display: flex; align-items: center; gap: 10px; padding: 8px 14px; color: #3a2410; }
+#hq-bounty .hb-frame { position: absolute; inset: 0; background: url(../../assets/ui/art106/hud_bounty_frame.png) center / 100% 100% no-repeat; image-rendering: pixelated; z-index: -1; filter: drop-shadow(0 4px 8px #000a); }
+#hq-bounty .hb-boss { width: 80px; height: 80px; object-fit: contain; border-radius: 8px; background: #3a2a40; border: 2px solid #6b4a2a; flex: none; }
+#hq-bounty .hb-main { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+#hq-bounty .hb-kicker { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8a2b1a; font-weight: 800; }
+#hq-bounty .hb-name { font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hq-bounty .hb-clock { font-size: 17px; letter-spacing: .05em; }
+#hq-bounty .hb-reward img { width: 18px; height: 18px; }
+#hq-bounty .hb-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+#hq-bounty .hb-x { position: absolute; top: 4px; right: 8px; width: 28px; height: 28px; border-radius: 14px; border: 0; background: #3a2410; color: #ffe08a; font-size: 18px; line-height: 1; cursor: pointer; }
+#hq-bounty .hb-stamp { position: absolute; right: 120px; top: 18px; width: 64px; height: 64px; transform: rotate(-14deg); opacity: .9; }
+#hq-bounty.hb-arrive { animation: hb-arrive .8s cubic-bezier(.2, 1.3, .4, 1); }
+@keyframes hb-arrive { 0% { transform: translateY(-160px); } 70% { transform: translateY(0) rotate(-1.2deg); } 85% { transform: rotate(1deg); } 100% { transform: none; } }
+
+/* Téléphone : carte de quête sur une ligne, puce Carnet et rangée de 4 icônes + « + » dessous, affiche réduite.
+   Tout reste dans le haut de la scène, au-dessus de l'équipe et des monstres. */
+#hud106.hq-phone #hq-path { top: 92px; left: 6px; right: 6px; width: auto; min-height: 0; padding: 6px 8px; gap: 8px; }
+#hud106.hq-phone #hq-path .hq-world { width: 40px; height: 40px; }
+#hud106.hq-phone #hq-path .hq-main { padding-right: 96px; gap: 3px; }
+#hud106.hq-phone #hq-path .hq-title { font-size: 13px; }
+#hud106.hq-phone #hq-path .hq-foot { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
+#hud106.hq-phone #hq-path .hq-reward { display: none; }
+#hud106.hq-phone #hq-carnet { top: 162px; left: 6px; width: auto; }
+#hud106.hq-phone #hq-events { right: 6px; top: 156px; width: auto; flex-direction: row; gap: 6px; align-items: flex-start; }
+#hud106.hq-phone #hq-events .hq-ev-art { width: 44px; height: 44px; border-radius: 10px; }
+#hud106.hq-phone #hq-events .hq-ev-art img { width: 38px; height: 38px; }
+#hud106.hq-phone #hq-events .hq-ev-timer { font-size: 9px; padding: 0 4px; }
+#hud106.hq-phone #hq-events small { font-size: 9px; margin-top: 6px; max-width: 50px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hud106.hq-phone #hq-events .hq-more { width: 36px; height: 44px; }
+#hud106.hq-phone #hq-events.expanded-col { flex-wrap: wrap; justify-content: flex-end; max-width: 300px; }
+#hud106.hq-phone #hq-bounty { top: 226px; width: 320px; margin-left: -160px; height: 92px; }
+#hud106.hq-phone #hq-bounty .hb-boss { width: 56px; height: 56px; }
+#hud106.hq-phone #hq-bounty .hb-stamp { right: 90px; }
+
+/* 6. Réduire les animations : pas de pulsation, pas d'éclat ; l'affiche arrive sans trembler. */
+@media (prefers-reduced-motion: reduce) {
+  #hq-events .hq-ev.hot .hq-ev-art, #hq-path.hq-burst, #hq-path.hq-burst::after, #hq-bounty.hb-arrive { animation: none !important; }
+}
+.calm #hq-events .hq-ev.hot .hq-ev-art, .calm #hq-path.hq-burst, .calm #hq-path.hq-burst::after, .calm #hq-bounty.hb-arrive, .calm .lt-node.here .lt-lantern { animation: none !important; }
+
+/* ---- Partie 3 : page du Marché des Lueurs ---- */
+.lt-page { display: flex; flex-direction: column; gap: 12px; container-type: inline-size; }
+.lt-key { position: relative; height: 230px; border-radius: 12px; border: 2px solid #e8b64a; background: #1b1020 center / cover no-repeat; image-rendering: pixelated; overflow: hidden; }
+.lt-key::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #120a18d0 0%, #120a1830 45%, transparent 70%); }
+.lt-key-text { position: absolute; left: 18px; top: 14px; max-width: 56%; }
+.lt-key-text h3 { margin: 0; font-size: 26px; color: #ffe9c0; text-shadow: 0 2px 0 #000; letter-spacing: .03em; }
+.lt-key-text p { margin: 4px 0 0; color: #fff; font-weight: 700; text-shadow: 0 1px 2px #000; }
+.lt-timer { z-index: 2; position: absolute; right: 12px; top: 12px; padding: 4px 10px; border-radius: 8px; background: #2a1830e8; border: 2px solid #e8b64a; color: #fff; font-weight: 800; }
+.lt-key-prize { position: absolute; right: 26%; bottom: 0; height: 220px; width: auto; filter: drop-shadow(0 0 16px #ffd34d90); }
+.lt-key-prize-name { position: absolute; right: 24%; bottom: 8px; padding: 2px 10px; border-radius: 6px; background: #000a; color: #ffe08a; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.lt-wallet { z-index: 2; position: absolute; right: 12px; bottom: 12px; display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 10px; background: #2a1830e8; border: 2px solid #e8b64a; color: #fff; font-weight: 800; font-size: 18px; }
+.lt-cur { width: 22px; height: 22px; }
+.lt-map { position: relative; height: 190px; isolation: isolate; border-radius: 12px; border: 2px solid #6b4a6a; background: #2a1830 center / cover no-repeat; image-rendering: pixelated; }
+.lt-map::before { content: ''; position: absolute; inset: 0; border-radius: 10px; background: #1b1020a0; z-index: -1; }
+.lt-road { position: absolute; inset: 0; width: 100%; height: 100%; }
+.lt-road path { fill: none; stroke: #e8c07a; stroke-width: 1.6; stroke-dasharray: 2 2; vector-effect: non-scaling-stroke; stroke-width: 5; opacity: .75; }
+.lt-node { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; background: none; border: 0; padding: 0; color: #fff; font: inherit; cursor: default; }
+.lt-node .lt-lantern { width: 40px; height: 40px; }
+.lt-node.off .lt-lantern { filter: brightness(.6) saturate(.6); }
+.lt-node .lt-give { position: absolute; top: -14px; display: flex; gap: 2px; font-size: 10px; }
+.lt-node .lt-give img { width: 16px; height: 16px; }
+.lt-node small { font-size: 10px; font-weight: 800; text-shadow: 0 1px 2px #000; }
+.lt-node.ready { cursor: pointer; }
+.lt-node.ready .lt-lantern { filter: drop-shadow(0 0 8px #ffd34d); }
+.lt-node.claimed .lt-lantern { opacity: .75; }
+.lt-node.prize .lt-lantern { display: none; }
+.lt-node.prize .lt-give { position: static; }
+.lt-node.prize .lt-prize-mini { width: 76px; height: 76px; border-radius: 50%; border: 3px solid #ffd34d; box-shadow: 0 0 18px #ffd34d; background: #2a1830; }
+.lt-node.here .lt-lantern { animation: lt-light .8s ease-out; }
+.lt-hero { position: absolute; left: -26px; top: 2px; width: 30px; height: 30px; border-radius: 50%; border: 2px solid #ff7ab0; background: #2a1830; display: grid; place-items: center; transition: left .6s ease-out; }
+.lt-hero img { width: 22px; height: 22px; }
+.lt-all { position: absolute; right: 10px; bottom: 8px; }
+@keyframes lt-light { 0% { filter: brightness(.6); transform: scale(.9); } 60% { filter: brightness(1.6) drop-shadow(0 0 12px #ffd34d); transform: scale(1.12); } 100% { filter: none; transform: none; } }
+.lt-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.lt-cols h4 { margin: 0 0 6px; color: #ffc85a; text-transform: uppercase; letter-spacing: .06em; font-size: 13px; }
+.lt-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.lt-tile { position: relative; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: #f4dde6; color: #3b2033; }
+.lt-tile-art { width: 52px; height: 52px; flex: none; }
+.lt-tile-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.lt-tile-body b { font-size: 13px; }
+.lt-bar { height: 7px; border-radius: 4px; background: #d9b9c6; overflow: hidden; }
+.lt-bar i { display: block; height: 100%; background: #c2577e; }
+.lt-tile .lt-give { display: flex; align-items: center; gap: 2px; font-size: 12px; }
+.lt-tile .lt-give img { width: 16px; height: 16px; }
+.lt-stamp { position: absolute; right: 8px; top: 6px; padding: 1px 6px; border: 2px solid #c2577e; border-radius: 4px; color: #c2577e; font-size: 10px; font-weight: 900; text-transform: uppercase; transform: rotate(-6deg); }
+.lt-tile.lit { background: #f4e6d0; }
+.lt-tile .btn { flex: none; }
+.lt-shop { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.lt-shop-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px; border-radius: 12px; border: 2px solid #6b4a6a; background: #3a2238; color: #fff; font: inherit; cursor: pointer; }
+.lt-shop-item img:first-child { width: 56px; height: 56px; }
+.lt-shop-item b { font-size: 12px; }
+.lt-shop-item.off { opacity: .6; cursor: default; }
+.lt-price { display: flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 8px; background: #ffe08a; color: #3a2410; }
+.lt-price img { width: 16px; height: 16px; }
+/* Volet étroit (PC) et téléphone : l'affiche garde le titre à gauche et le grand prix à droite ; la carte garde ses
+   icônes de récompense sans étiquette ; missions et échoppe l'une sous l'autre. */
+@container (max-width: 760px) {
+  .lt-key { height: 210px; }
+  .lt-key::before { background: linear-gradient(90deg, #120a18e0 0%, #120a1890 50%, transparent 75%); }
+  .lt-key-text { max-width: 58%; }
+  .lt-key-text h3 { font-size: 22px; }
+  .lt-key-prize { right: 0; height: 190px; }
+  .lt-key-prize-name { right: 8px; bottom: 6px; font-size: 10px; }
+  .lt-wallet { right: auto; left: 12px; bottom: 12px; }
+  .lt-map { height: 170px; }
+  .lt-node .lt-lantern { width: 30px; height: 30px; }
+  .lt-node small { display: none; }
+  .lt-node.prize small { display: block; }
+  .lt-node.prize .lt-prize-mini { width: 56px; height: 56px; }
+  .lt-cols { grid-template-columns: 1fr; }
+}
+@container (max-width: 420px) {
+  .lt-tiles { grid-template-columns: 1fr; }
+  .lt-key-prize { height: 150px; bottom: 26px; }
+}

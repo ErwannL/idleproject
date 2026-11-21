@@ -1,5 +1,5 @@
 // Aide au joueur (v8.4) : puissance, puissance conseillée pour le prochain boss, conseils « que faire ».
-import { currentQuest, questSteps } from './unlock-quests.js'; // v9.7.1 (lot 3)
+import { currentQuest, isUnlocked, questSteps } from './unlock-quests.js'; // v9.7.1 (lot 3)
 // v9.7.1 (lot 3) : onglet utile pour chaque geste des mini-quêtes (null : en combat).
 const QUEST_TAB = { equipment: [null, null, 'inventory'], upgrades: [null, 'upgrades', null], skills: [null, 'skills', null], forge: ['inventory', 'forge', null] };
 import { BALANCE } from '../data/balance.js';
@@ -129,12 +129,17 @@ function whyOf(n, state, balance) {
 }
 const formatPct = (v) => (v >= 10 ? String(Math.round(v)) : v.toFixed(1).replace('.', ','));
 
+const GATED_TABS = { forge: 'forge', summon: 'summon', dungeons: 'dungeons', skills: 'skills' };
+
 function* actionCandidates(state, ctx = {}, balance = BALANCE) {
   if (state.dungeon) yield { id: 'mode-dungeon', text: 'Donjon en cours', tab: 'dungeons' };
   if (state.tower) yield { id: 'mode-tower', text: 'Tour en cours', tab: 'tower' };
   if (state.worldRun) yield { id: 'mode-world', text: 'Monde en cours', tab: 'world' }; // v9.1.3 (doc4 lot 6)
   if (state.challenge) yield { id: 'mode-challenge', text: 'Défi en cours', tab: 'tower', view: { defiTab: 'challenge' } };
-  const open = (tab) => (ctx.visible ?? {})[tab] !== false;
+  // v10.6 (partie 8) : un onglet absent de ctx.visible n'est plus « ouvert » d'office — ceux qui ont une mini-quête de
+  // déblocage attendent qu'elle soit faite (le Sceau proposait « Fusion prête à la Forge » à l'étape 1-7).
+  const open = (tab) => (ctx.visible ?? {})[tab] !== false && (!GATED_TABS[tab] || isUnlocked(state, GATED_TABS[tab]))
+    && (tab !== 'forge' || !state.unlocks || state.unlocks.legacy || Math.max(state.maxStage ?? 1, state.records?.bestStage ?? 1) >= 10); // « Prochain : Forge à l'étape 1-10 »
   // v10.1 : une récompense avec un objet attend tant que le sac est plein (« Tout récupérer » ne la prendrait pas).
   const bagFull = (state.inventory?.length ?? 0) >= (balance.loot?.inventorySize ?? Infinity);
   const claims = (ctx.claims ?? claimables(state, Date.now(), balance)).filter((c) => !c.blocked && !(c.item && bagFull));
@@ -192,7 +197,7 @@ function* actionCandidates(state, ctx = {}, balance = BALANCE) {
   }
   // v9.7.1 (lot 3) : la mini-quête de déblocage en cours, une consigne à la fois, quand rien de plus pressé n'attend.
   const quest = currentQuest(state);
-  if (quest) {
+  if (quest && (quest.id !== 'forge' || open('forge'))) { // v10.6 (8) : la quête de la Forge attend l'étape 1-10
     const steps = questSteps(state, quest);
     const i = steps.findIndex((x) => !x.done);
     if (i >= 0) yield { id: 'quest', text: `${quest.label} (${i + 1}/3) : ${steps[i].text}`, tab: QUEST_TAB[quest.id]?.[i] ?? null };

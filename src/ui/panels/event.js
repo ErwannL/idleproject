@@ -3,10 +3,12 @@
 // SSR universel à l'étape 30. Petit événement « Marché des lueurs » : objectifs et récompenses.
 import { EVENTS } from '../../data/economy.js';
 import { currentEvent, eventGoals, eventRecord, eventShop, eventStageLevel, totalStages, worldBossDay, worldBossStatus } from '../../core/ancients.js';
-import { liveAnnouncements, liveNextEvent } from '../../core/live.js'; // v9.3.0 : live-ops
+import { liveAnnouncements, liveNextEvent, liveNow } from '../../core/live.js'; // v9.3.0 : live-ops
 import { LIVE_EVENT_TYPES } from '../../data/live-catalog.js';
 import { WORLD_BOSS } from '../../core/world-boss.js'; // v9.2.9
-import { escapeHtml, formatNumber, img } from '../common.js';
+import { escapeHtml, formatNumber, img, rewardIcons } from '../common.js';
+import { LIGHTS_EVENT, lightsMissions, lightsPath, lightsPosition, lightsShop, lightsWallet } from '../../core/lights.js'; // v10.6
+const heroPortrait = () => img('icon_hero');
 import { walletIcon } from './shop.js';
 import { stageLabel } from '../../core/combat.js';
 
@@ -62,16 +64,52 @@ function grand(ui, state, ev) {
 `; // v9.3.5 : rien d'annoncé tant que ce n'est pas jouable
 }
 
-function small(state, ev) {
-  const rec = eventRecord(state);
-  return `<div class="card"><div class="section-title">${img('icon_star')} <span>${escapeHtml(EVENTS.small.name)}</span></div>
-    <div class="muted"><span>Jour</span> <b class="num">${ev.day}/${ev.days ?? 14}</b> · <span>Jusqu'au</span> ${dateText(ev.end - 86400000)}</div>
-    ${eventGoals(ev).map((g) => {
-      const p = rec.goals[g.id] ?? 0;
-      const done = rec.claimed.includes(g.id);
-      return `<div class="ev-goal"><span>${escapeHtml(g.label)}</span> <b class="num">${formatNumber(Math.min(p, g.target))}/${formatNumber(g.target)}</b> ${give(g.give)}
-        ${done ? '<span class="good">✓</span>' : `<button class="btn small" data-action="event-goal" data-value="${g.id}" ${p >= g.target ? '' : 'disabled'}>Récupérer</button>`}</div>`;
-    }).join('')}</div>`;
+// v10.6 (partie 3) : le Marché des Lueurs en page illustrée — affiche (nom, phrase, minuteur, Lueurs, grand prix dessiné
+// en grand), carte de 10 lanternes avec le portrait du héros, missions en tuiles Carnet, échoppe illustrée.
+// Modèle réutilisable : tout vient de LIGHTS_EVENT (core/lights.js).
+function small(ui, state, ev) {
+  const E = LIGHTS_EVENT;
+  const left = Math.max(1, Math.ceil((ev.end - liveNow()) / 86400000));
+  const wallet = lightsWallet(state);
+  const path = lightsPath(state);
+  const pos = lightsPosition(state);
+  const cur = `<img class="px lt-cur" src="${E.art.currency}" alt="">`;
+  // Carte : 10 étapes sur un chemin en vague (positions en % de la carte).
+  const N = path.length;
+  const xy = (i) => [4 + (i * 92) / (N - 1), i === N - 1 ? 42 : 50 + Math.sin(i * 1.1 + 0.6) * 26];
+  const dots = path.slice(0, -1).map((s, i) => { const [x1, y1] = xy(i), [x2, y2] = xy(i + 1); return `M${x1} ${y1} L${x2} ${y2}`; }).join(' ');
+  const nodes = path.map((s, i) => {
+    const [x, y] = xy(i);
+    const state0 = s.claimed ? 'claimed' : s.reached ? 'ready' : 'off';
+    const giveIcon = s.prize ? `<img class="px lt-prize-mini" src="${E.art.prize}" alt="">` : rewardIcons(s.give);
+    return `<button class="lt-node ${state0}${s.prize ? ' prize' : ''}${i === pos ? ' here' : ''}" style="left:${x}%;top:${y}%" ${s.reached && !s.claimed ? `data-action="lights-step" data-value="${i}"` : 'disabled'} title="${escapeHtml(s.label)} · ${s.at} Lueurs">
+      <img class="px lt-lantern" src="${s.reached ? E.art.nodeDone : E.art.node}" alt=""><span class="lt-give">${giveIcon}</span><small>${escapeHtml(s.label)}</small>
+      ${i === pos ? `<span class="lt-hero">${heroPortrait(state)}</span>` : ''}</button>`;
+  }).join('');
+  const ready = path.filter((s) => s.reached && !s.claimed).length;
+  const tiles = lightsMissions(state).map((m) => {
+    const pct = Math.round((m.p / m.target) * 100);
+    const btn = m.lit ? '<span class="lt-stamp">Allumée</span>'
+      : m.ready ? `<button class="btn btn-gold small" data-action="event-goal" data-value="${m.id}">Allumer</button>`
+      : m.tab ? `<button class="btn small lt-go" data-action="open-tab" data-value="${m.tab}">Y aller</button>` : '';
+    return `<div class="lt-tile${m.lit ? ' lit' : ''}${m.ready ? ' ready' : ''}"><img class="px lt-tile-art" src="${m.art}" alt="">
+      <div class="lt-tile-body"><b>${escapeHtml(m.title)}</b><div class="lt-bar"><i style="width:${pct}%"></i></div>
+      <span class="lt-give">${cur}<b class="num">+${m.lueurs}</b></span></div>${btn}</div>`;
+  }).join('');
+  const shop = lightsShop(state).map((i) => `<button class="lt-shop-item${i.can ? '' : ' off'}" data-action="lights-buy" data-value="${i.id}" ${i.can ? '' : 'disabled'} title="${i.left} en stock">
+      <img class="px" src="${i.art}" alt=""><b>${escapeHtml(i.title)}</b><span class="lt-price">${cur}<b class="num">${i.price}</b></span></button>`).join('');
+  return `<div class="lt-page">
+    <div class="lt-key" style="background-image:url(${E.art.key})">
+      <div class="lt-key-text"><h3>${escapeHtml(E.title)}</h3><p>${escapeHtml(E.tagline)}</p></div>
+      <span class="lt-timer">⏳ encore ${left} j</span>
+      <img class="px lt-key-prize" src="${E.art.prize}" alt="${escapeHtml(E.prize.label)}"><span class="lt-key-prize-name">Grand prix · ${escapeHtml(E.prize.label)}</span>
+      <span class="lt-wallet">${cur}<b class="num">${wallet.have}</b> ${E.currency}</span>
+    </div>
+    <div class="lt-map" style="background-image:url(${E.art.path})"><svg class="lt-road" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="${dots}"/></svg>${nodes}
+      ${ready > 1 ? `<button class="btn btn-gold small lt-all" data-action="lights-all">Tout récupérer (${ready})</button>` : ''}</div>
+    <div class="lt-cols"><section><h4>Allume des lanternes</h4><div class="lt-tiles">${tiles}</div></section>
+      <section><h4>Échoppe des Lueurs</h4><div class="lt-shop">${shop}</div></section></div>
+  </div>`;
 }
 
 // v9.3.0 : annonces (messages du jour) de la config live.
@@ -83,6 +121,8 @@ export default {
   id: 'event',
   title: 'Événement',
   icon: 'icon_map',
+  // v10.6 (partie 3) : le Marché des Lueurs a sa propre affiche ; pas de seconde bannière au-dessus.
+  banner() { return currentEvent()?.kind === 'small' ? '' : null; },
   render(ui, state) {
     const ev = currentEvent();
     const news = announcements();
@@ -90,6 +130,6 @@ export default {
       const nx = liveNextEvent();
       return `${news}<div class="muted">Aucun événement en cours.</div>${nx ? `<div class="muted"><span>Prochain événement</span> : ${escapeHtml(LIVE_EVENT_TYPES[nx.type].label)} · ${dateText(nx.start)}</div>` : ''}`;
     }
-    return news + (ev.kind === 'grand' ? grand(ui, state, ev) : small(state, ev));
+    return news + (ev.kind === 'grand' ? grand(ui, state, ev) : small(ui, state, ev));
   },
 };

@@ -45,8 +45,14 @@ export function chestMultiple(targetCss, dpr = 1) {
   return Math.max(1, x - Math.floor(x) >= 0.49 ? Math.ceil(x) : Math.floor(x));
 }
 // Hauteur visée : ≈ 96 px sur PC, ≈ 64 px sur téléphone (scène portrait) ou dans une scène basse.
+// v10.6 (partie 1) : 110 à 124 px sur PC, ≈ 72 px sur téléphone.
 export function chestTarget(tall, cssH = 600) {
-  return tall || cssH < 260 ? 64 : 96;
+  return tall || cssH < 260 ? 72 : 112;
+}
+// v10.6 : place fixe en bas à droite (px CSS) : bord droit à DOCK_RIGHT px, pieds à DOCK_BOTTOM px du bas de la scène.
+export const DOCK_RIGHT = 24, DOCK_BOTTOM = 14;
+export function dockX(cssW, chestW) {
+  return Math.max(MIN_EDGE, cssW - DOCK_RIGHT - chestW);
 }
 // Position (px CSS, bord gauche du coffre) : juste derrière l'ennemi le plus en arrière, bornée à la partie droite
 // de la scène et à au moins 40 px du bord droit.
@@ -258,7 +264,9 @@ export class LootChest {
     const m = chestMultiple(chestTarget(r.tall, cssH), dpr);
     const w = CHEST_NATIVE.w * m, h = CHEST_NATIVE.h * m; // px d'écran
     const shiftDev = ctx.getTransform().e;
-    return { dpr, cssW, cssH, m, w, h, shiftDev, feet: Math.round((r.groundY + 1) * r.k) + m };
+    // v10.6 : pieds du coffre au bas de la scène (bande sous le combat), et haut de cette bande (le rayon s'y arrête).
+    const band = Math.round((r.groundY + 1) * r.k) + m;
+    return { dpr, cssW, cssH, m, w, h, shiftDev, band, feet: Math.round((cssH - DOCK_BOTTOM) * dpr) };
   }
 }
 
@@ -274,23 +282,9 @@ export function drawLootChest(r, ctx, world) {
   const L = chest.layout(r, ctx);
   chest.L = L;
   const cssWc = L.w / L.dpr;
-  // Ennemi le plus en arrière (bord droit, px CSS) : le coffre se pose juste derrière.
-  let rear = null;
-  for (const e of world?.enemies ?? []) {
-    if (e.dead || e.hp <= 0) continue;
-    const fx = r.enemyFx?.get(e.id); // image affichée à l'image précédente (bord droit réel du monstre)
-    const right = fx?.sw && r.time - (fx.seen ?? -9) < 0.5 ? fx.sx + fx.sw : r.wx(e.x) + 12;
-    const ex = (right * r.k + L.shiftDev) / L.dpr;
-    if (ex < L.cssW && (rear == null || ex > rear)) rear = ex;
-  }
-  const target = chestTargetX(L.cssW, cssWc, rear);
-  const { min, max } = chestBounds(L.cssW, cssWc);
-  const scroll = r.smoothScroll ? r.smoothScroll(world) : 0;
-  if (chest.x == null) chest.x = target;
-  else if (world?.hero?.walking && chest.lastScroll != null && scroll > chest.lastScroll) {
-    chest.x = Math.max(min, chest.x - ((scroll - chest.lastScroll) * r.k) / L.dpr); // il suit le sol qui défile
-  } else chest.x += (target - chest.x) * Math.min(1, dt * 3);
-  chest.x = Math.max(min, Math.min(max, chest.x));
+  // v10.6 (partie 1) : le coffre quitte le terrain. Il se pose en bas à droite, sur la bande sous le combat (à côté de
+  // « Tout récupérer ») : même place à chaque vague et dans toutes les tailles, sans jamais recouvrir un monstre.
+  chest.x = dockX(L.cssW, cssWc);
   chest.lastScroll = scroll;
   // Saut à l'arrivée d'un objet (parabole) et flottaison continue au repos.
   const hp = (chest.t - chest.hopStart) / Math.max(0.01, chest.hopUntil - chest.hopStart);
@@ -313,7 +307,7 @@ export function drawLootChest(r, ctx, world) {
     const ex0 = fx.sx * r.k + L.shiftDev, ex1 = (fx.sx + fx.sw) * r.k + L.shiftDev;
     cover = Math.max(cover, (Math.min(ex1, x + L.w) - Math.max(ex0, x)) / L.w);
   }
-  chest.front = chest.front ? cover > 0.1 : cover > 0.25;
+  chest.front = chest.front ? cover > 0.1 : cover > 0.25; // (v10.6 : le coffre est hors du terrain, ce cas ne se produit plus)
   if (!chest.front) paintChest(r, ctx, chest);
 }
 
@@ -377,7 +371,7 @@ function paintChest(r, ctx, chest) {
   ctx.beginPath(); ctx.ellipse(x + L.w / 2, L.feet - L.m, L.w * 0.55, L.m * 3, 0, 0, Math.PI * 2); ctx.fill();
   // Rayon de lumière dès un Épique.
   if (chest.epic) {
-    const rh = Math.round(Math.min(L.h * 2.4, top + L.h * 0.4)), cx = x + L.w / 2, y0 = top + L.h * 0.4;
+    const rh = Math.round(Math.max(0, Math.min(L.h * 2.4, top + L.h * 0.4 - L.band))), cx = x + L.w / 2, y0 = top + L.h * 0.4;
     const beam = (rw, fill, alpha, mode) => {
       ctx.globalCompositeOperation = mode;
       ctx.globalAlpha = alpha;

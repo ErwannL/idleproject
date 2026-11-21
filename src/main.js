@@ -96,6 +96,8 @@ import { applyTheme, themeById } from './ui/themes.js';
 import { toggleWishlist, useSsrFragment } from './core/gacha.js';
 import { purchase } from './core/store.js';
 import { ownsTheme, unequipSkin, wornTheme } from './core/cosmetics.js';
+import { buyLights, claimLightsAll, claimLightsStep } from './core/lights.js'; // v10.6 (partie 3)
+import { claimBounty106, foldBounty, refuseBounty } from './core/herald-bounty.js'; // v10.6 (partie 2)
 import { buyEventItem, claimEventGoal, fightStage, finishWorldBoss, startWorldBoss, worldBossStatus } from './core/ancients.js';
 import { bossHpForDay } from './core/world-boss.js'; // v9.2.9 : World Boss en vrai combat
 import { bossesForStage, enemyStats, isBossStage, stageInZone } from './core/combat.js';
@@ -1036,7 +1038,14 @@ const actions = {
   },
   eventBossLeft() { return worldBossStatus(state)?.left ?? 0; },
   eventBuy(id) { done(Boolean(buyEventItem(state, id)), 'Échange effectué'); },
-  eventGoal(id) { done(Boolean(claimEventGoal(state, id)), 'Récompense récupérée'); },
+  eventGoal(id) { done(Boolean(claimEventGoal(state, id)), 'Lanterne allumée'); },
+  // v10.6 (partie 3) : carte et échoppe du Marché des Lueurs ; (partie 2) Prime du Héraut.
+  lightsStep(i) { const r = claimLightsStep(state, Number(i)); done(Boolean(r), r ? `${r.label} récupéré` : null); return r; },
+  lightsAll() { const r = claimLightsAll(state); done(r.length > 0, null); return r; },
+  lightsBuy(id) { const r = buyLights(state, id); done(Boolean(r), 'Échange effectué'); return r; },
+  bountyClaim() { const r = claimBounty106(state); done(Boolean(r), null); return r; },
+  bountyRefuse() { refuseBounty(state); done(true, null); },
+  bountyFold() { foldBounty(state); },
   // Vitesses débloquées par code (v8.4) ; ×100 demande une confirmation (effets visuels coupés).
   cycleSpeed() {
     if (state.cheats.skipBattle) {

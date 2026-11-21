@@ -2,6 +2,7 @@
 // de la scène, HUD, onglets débloqués progressivement et panneaux (un module par panneau dans ./panels).
 // L'interface ne modifie jamais l'état directement : elle appelle les actions fournies par main.js.
 import campPanel, { bastionAction, bastionBadge, bastionLiveKey, openBastion } from './panels/camp.js'; // v9.7.1 (lot 6) · v10.3 : le Bastion
+import { HudQuests } from './hud-quests.js'; // v10.6 (partie 2)
 import { updateBastionTower } from './bastion-tower.js'; // v10.4 (6) : la tour du Bastion sur la scène
 import { GLOSSARY, GLOSSARY_TERMS, RESOURCES } from '../data/glossary.js'; // v9.7.1 (lot 5)
 import { rageFree } from '../core/combat.js'; // v9.7.1 (lot 3)
@@ -412,6 +413,7 @@ export class UI {
     root.querySelectorAll('#tabs button').forEach((b) => { b.dataset.key = String(MENUS.findIndex((m) => m.id === b.dataset.menu) + 1); });
     installShortcuts(this);
     this.lootBag = new LootBag(this); // v9.7.1 : sac de butin dans la scène
+    this.hudQuests = new HudQuests(this); // v10.6 (partie 2) : quêtes et événements toujours visibles
     installHoldToRepeat(root);
     installTips(root);
     // Balayage horizontal entre onglets (tactile seulement), hors carte, arbre et barre d'onglets.
@@ -1091,6 +1093,12 @@ export class UI {
         break;
       case 'event-buy': a.eventBuy(value); break;
       case 'event-goal': a.eventGoal(value); break;
+      // v10.6 : Marché des Lueurs (carte, échoppe) et Prime du Héraut.
+      case 'lights-step': { const r = a.lightsStep(value); if (r) this.chestReveal(r.given, r.label, r.companion ? 'Fée des lueurs' : null); break; }
+      case 'lights-all': { const r = a.lightsAll(); if (r?.length) this.chestReveal(Object.assign({}, ...r.map((x) => x.given)), 'Lanternes'); break; }
+      case 'lights-buy': { const g = a.lightsBuy(value); if (g) this.chestReveal(g, 'Échoppe des Lueurs'); break; }
+      case 'bounty-claim': { const g = a.bountyClaim(); if (g) this.chestReveal(g, 'Prime du Héraut'); break; }
+      case 'bounty-refuse': a.bountyRefuse(); this.hudQuests?.update(this.state, true); break;
       case 'summon-odds': local(() => { v.summonOdds = v.summonOdds === value ? null : value; }); break; // v9.1.3 : « ? » d'un bassin
       case 'power-pity': local(() => { v.powerPity = v.powerPity === value ? null : value; }); break; // v9.1.3 : garantie derrière « ? »
       case 'talent-sel': local(() => { v.talentSel = value; }); break;
@@ -1777,9 +1785,16 @@ export class UI {
     // v9.8 (C1) : objectifs de session en pastille au bord de la scène.
     const pill = this.$('goals-pill');
     if (pill) { const h = sessionGoalsPill(state); if (pill.dataset.h !== h) { pill.dataset.h = h; pill.innerHTML = h; pill.classList.toggle('hidden', !h); pill.classList.toggle('ready', sessionDone(state)); } }
-    this.updateQuestBanner(state); // v9.8 (J2)
-    updateBastionTower(this, state); // v10.4 (6)
-    this.$('rift-chip')?.classList.toggle('hidden', this.tabVisible.event === false || titanTriesLeft(state) <= 0); // v9.9 (K10)
+    // v10.6 (partie 2) : Chemin du héros, Carnet en 3 lignes, colonne d'événements et Prime du Héraut. Ils prennent la
+    // place du bandeau de quête, de la puce « Faille du jour » et de la tour du Bastion posée sur la scène.
+    this.hudQuests?.update(state);
+    if (this.hudQuests && !this.hudQuests.root.classList.contains('hidden')) {
+      for (const id of ['quest-banner', 'rift-chip', 'bastion-tower']) this.$(id)?.classList.add('hidden');
+    } else {
+      this.updateQuestBanner(state); // v9.8 (J2)
+      updateBastionTower(this, state); // v10.4 (6)
+      this.$('rift-chip')?.classList.toggle('hidden', this.tabVisible.event === false || titanTriesLeft(state) <= 0); // v9.9 (K10)
+    }
     const stats = world.heroStats ?? computeHeroStats(state);
     this.setText('gold', formatNumber(state.gold));
     this.setText('strip-gold', formatNumber(state.gold));
@@ -3232,7 +3247,7 @@ export class UI {
     const offer = this.actions.offerBoons?.();
     if (!offer?.length) return;
     const card = (o, i) => { const b = boonById(o.id); const r = rarityOf(o.rarity);
-      return `<button class="boon-card r-${o.rarity}" data-action="pick-boon" data-value="${i}"><span class="boon-band">${r.label}</span><img class="px boon-art" src="assets/ui/art102/boon_${o.id}.png" alt="" onerror="this.remove()"><b>${escapeHtml(b.name)}</b>
+      return `<button class="boon-card r-${o.rarity}" data-action="pick-boon" data-value="${i}"><span class="boon-band">${r.label}</span><img class="px boon-art" src="assets/ui/art102/boon_${o.id}.png" alt="" data-fallback="remove"><b>${escapeHtml(b.name)}</b>
         <span>${escapeHtml(b.text)}</span><span class="boon-arrows">${'↑'.repeat(r.arrows)}</span></button>`; };
     const book = (this.state.dungeon.boons ?? []).map((x) => `<span title="${escapeHtml(boonById(x.id)?.name ?? '')}">${img(boonById(x.id)?.icon ?? 'icon_star')}</span>`).join('');
     this.openModal(`<div class="boon-screen"><h2 id="modal-title">Choisis une bénédiction</h2>
