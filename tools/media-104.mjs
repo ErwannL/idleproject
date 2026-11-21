@@ -5,6 +5,9 @@ import { readFile, mkdir, rename, rm } from 'node:fs/promises';
 import { startServer } from './serve.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2] ?? 'dist/media-10.4';
+// MEDIA_ONLY=absence,v2 : ne refaire que certaines parties (photos, absence, phone, v1, v2, v3, v4).
+const ONLY = (process.env.MEDIA_ONLY ?? '').split(',').filter(Boolean);
+const want = (k) => !ONLY.length || ONLY.includes(k);
 await mkdir(`${out}/photos`, { recursive: true }); await mkdir(`${out}/videos`, { recursive: true });
 const server = await startServer(0);
 const url = `http://localhost:${server.address().port}/`;
@@ -62,6 +65,12 @@ const wait = (page, ms) => page.waitForTimeout(ms);
 const click = async (page, sel, ms = 700) => { try { await page.locator(sel).first().click({ timeout: 3000 }); } catch { console.log(`(absent : ${sel})`); } await wait(page, ms); };
 const tab = async (page, t, v) => { await ev(page, ([t, v]) => __idle.ui.openTab(t, v ?? null), [t, v]); await wait(page, 1300); };
 const away = async (page, hours) => { await ev(page, (ms) => { __idle.save(); sessionStorage.setItem('skew', String(Number(sessionStorage.getItem('skew') || 0) + ms)); }, hours * HOUR); await page.goto(url); await page.waitForFunction(() => window.__idle?.ui, null, { timeout: 30000 }); await wait(page, 5000); };
+// Au retour : on récupère d'abord le récit hors ligne (un seul écran à la fois), puis vient « Pendant ton absence ».
+const absence = async (page) => {
+  await page.evaluate(() => document.querySelector('#modal:not(.hidden) [data-action="offline-claim"]')?.click());
+  await page.waitForSelector('#bastion-away', { timeout: 8000 }).catch(() => console.log('(pas d\'écran « Pendant ton absence »)'));
+  await page.waitForTimeout(900);
+};
 const closeTips = (page) => ev(page, () => document.querySelectorAll('.learn-card [data-close], .howto-card [data-close], .bs-tip [data-action="bastion-tip"], .bs-kick button').forEach((b) => b.click()));
 async function finish(ctx, page, name) {
   const v = page.video(); await ctx.close();
@@ -80,6 +89,7 @@ const skills = async (page) => { await tab(page, 'skills'); };
 
 // ---------- Photos : PC 1280 × 720, fenêtre haute 1116 × 993, grand écran 1716 × 1000 ----------
 for (const [size, tag] of [[PC, ''], [TALL, '-1116x993'], [WIDE, '-1716x1000']]) {
+  if (!want('photos')) break;
   const { page, ctx } = await session(`p${tag}`, { size });
   await tab(page, 'inventory'); await click(page, '.eq-doll .eq-slot[data-value="weapon"]'); await shot(page, `01-page-personnage${tag}`);
   if (!tag) {
@@ -105,13 +115,20 @@ for (const [size, tag] of [[PC, ''], [TALL, '-1116x993'], [WIDE, '-1716x1000']])
     await drop(page, 'epic'); await wait(page, 400); await shot(page, '16-objet-qui-arrive-en-tournant');
     await wait(page, 700); await shot(page, '17-coffre-ouvert-bulle-de-rarete');
     await drop(page, 'legendary'); await wait(page, 950); await shot(page, '18-butin-legendaire');
-    await tab(page, 'camp'); await closeTips(page); await click(page, '.bs-plot[data-building="forge"]'); await click(page, '.bs-side [data-action="bastion-order"]');
-    await away(page, 3); await wait(page, 1500); await shot(page, '19-pendant-ton-absence');
   }
   await finish(ctx, page, `p${tag}`);
 }
+// ---------- « Pendant ton absence » : une commande, un chantier, 3 h d'absence ----------
+if (want('absence')) {
+  const { page, ctx } = await session('absence');
+  await tab(page, 'camp'); await wait(page, 1200); await closeTips(page); await wait(page, 500);
+  await click(page, '.bs-plot[data-building="forge"]'); await closeTips(page); await wait(page, 400);
+  await click(page, '.bs-side [data-action="bastion-order"]');
+  await away(page, 3); await absence(page); await shot(page, '19-pendant-ton-absence');
+  await finish(ctx, page, 'absence');
+}
 // ---------- Photos téléphone ----------
-{
+if (want('phone')) {
   const { page, ctx } = await session('phone', { size: PHONE });
   await tab(page, 'inventory'); await shot(page, '20-telephone-personnage');
   await click(page, '.eq-doll .eq-slot[data-value="weapon"]'); await shot(page, '21-telephone-fiche-en-feuille-du-bas');
@@ -123,7 +140,7 @@ for (const [size, tag] of [[PC, ''], [TALL, '-1116x993'], [WIDE, '-1716x1000']])
   await finish(ctx, page, 'phone');
 }
 // ---------- Vidéos (1280 × 720) ----------
-{
+if (want('v1')) {
   const { page, ctx } = await session('v1', { video: true });
   await tab(page, 'inventory'); await wait(page, 1500);
   for (const s of ['weapon', 'helmet', 'armor']) await click(page, `.eq-doll .eq-slot[data-value="${s}"]`, 1400);
@@ -136,22 +153,24 @@ for (const [size, tag] of [[PC, ''], [TALL, '-1116x993'], [WIDE, '-1716x1000']])
   await click(page, '[data-action="forge-seg"][data-value="craft"]', 2200);
   await finish(ctx, page, '01-pages-personnage-et-forge');
 }
-{
+if (want('v2')) {
   const { page, ctx } = await session('v2', { video: true });
   await ev(page, () => __idle.ui.closePanel()); await wait(page, 2500);
-  await click(page, '#bastion-tower', 3500); await closeTips(page); await wait(page, 2000);
-  await click(page, '.bs-plot[data-building="forge"]', 2200); await closeTips(page); await wait(page, 800);
-  await click(page, '.bs-side .bs-wcard:not(.here)', 1800);
-  await click(page, '.bs-side [data-action="bastion-order"]', 2200);
-  await click(page, '.bs-plot[data-building="library"]', 2200); await closeTips(page); await wait(page, 800);
+  await click(page, '#bastion-tower', 4000); await closeTips(page); await wait(page, 2500);
+  await click(page, '.bs-plot[data-building="forge"]', 2200); await closeTips(page); await wait(page, 1200);
+  await click(page, '.bs-side [data-action="bastion-order"]', 2500);
+  await click(page, '.bs-plot[data-building="library"]', 2200); await closeTips(page); await wait(page, 1500);
+  await click(page, '.bs-top [data-action="bastion-view"][data-value="research"]', 3000);
+  await click(page, '.bs-top [data-action="bastion-view"][data-value="map"]', 2500);
+  await away(page, 3); await absence(page); await wait(page, 2500);
+  await click(page, '#bastion-away .btn-gold, #bastion-away button', 2500);
+  await tab(page, 'camp'); await closeTips(page); await wait(page, 2000);
   await click(page, '.bs-top [data-action="bastion-view"][data-value="research"]', 2200);
-  await click(page, '.bs-tree .bs-node[data-value="sharp"], #bs-research .bs-node', 1800); await click(page, '.bs-side [data-action="bastion-research"]', 2500);
-  await click(page, '.bs-top [data-action="bastion-view"][data-value="map"]', 3000);
-  await away(page, 3); await wait(page, 3500);
-  await click(page, '#bastion-away .btn-gold, #bastion-away button', 3000);
+  await click(page, '.bs-tree .bs-node[data-value="sharp"], #bs-research .bs-node', 1800); await click(page, '.bs-side [data-action="bastion-research"]', 3000);
+  await click(page, '.bs-top [data-action="bastion-view"][data-value="map"]', 3500);
   await finish(ctx, page, '02-bastion');
 }
-{
+if (want('v3')) {
   const { page, ctx } = await session('v3', { video: true });
   await tab(page, 'dungeons'); await wait(page, 2000);
   await ev(page, () => document.getElementById('panel-body')?.scrollTo({ top: 400, behavior: 'smooth' })); await wait(page, 1800);
@@ -163,7 +182,7 @@ for (const [size, tag] of [[PC, ''], [TALL, '-1116x993'], [WIDE, '-1716x1000']])
   for (let i = 1; i <= 6; i++) await click(page, `.sk2-cell:nth-of-type(${i})`, 2200);
   await finish(ctx, page, '03-donjons-et-competences');
 }
-{
+if (want('v4')) {
   const { page, ctx } = await session('v4', { video: true });
   await ev(page, () => __idle.ui.closePanel()); await chest(page, 2); await wait(page, 4000);
   for (const r of ['rare', 'epic', 'rare', 'legendary']) { await drop(page, r); await wait(page, 3000); }
