@@ -8,13 +8,13 @@ import { bastionOpen } from '../../core/bastion.js';
 import { levelForStage } from '../../core/combat.js';
 import { companionById, skillKillGold } from '../../core/companions.js';
 import { gearStats, gearUpgradePreview, slotName, statText, unitGear } from '../../core/companion-gear.js';
-import { craftCost, craftOdds, estimateGainPct, fusionGroups, fusionKeep, fusionPreview, gainsPower, upgradeRanking } from '../../core/forge.js';
+import { WEAK_GAIN_PCT, craftCost, craftOdds, estimateGainPct, fusionGroups, fusionKeep, fusionPreview, gainsPower, sharpenCost, upgradeAdvice } from '../../core/forge.js';
 import { recycleGoldOf, uselessItems } from '../../core/inventory.js';
 import { recycleMaterials } from '../../core/loot.js';
 import { setById } from '../../core/sets.js';
 import { slotIconName } from '../../render/pixel.js';
 import { coin, escapeHtml, formatDecimal, formatNumber, img, rarityLabel, shard } from '../common.js';
-import { costLines, itemTile, pctText, reinforceSection, statGainText } from './equip-sheet.js';
+import { costLines, helpQ, itemTile, pctText, reinforceSection, statGainText } from './equip-sheet.js';
 
 export function uselessPreview(state) {
   const list = uselessItems(state);
@@ -45,9 +45,11 @@ const teamOf = (state) => (state.companions?.equipped ?? []).map((id) => compani
 export function forgeNow(state) {
   const p = uselessPreview(state);
   const count = BALANCE.forge.fusionCount;
-  const ranking = upgradeRanking(state);
-  const top = ranking.find((r) => r.preview.canPay);
-  const first = ranking.find((r) => !r.preview.atMax);
+  // v10.4 (partie 2) : jamais « +0 % » — le meilleur gain réel, sinon « Remettre au niveau », sinon la statistique nommée.
+  const advice = upgradeAdvice(state);
+  const ranking = advice.ranking;
+  const lvlNow = levelForStage(state.maxStage);
+  const first = ranking.find((r) => !r.preview.atMax && r.gainPct >= WEAK_GAIN_PCT) ?? ranking.find((r) => !r.preview.atMax);
   const groups = fusionGroups(state, BALANCE, fusionKeep(state));
   const order = ['common', 'rare', 'epic', 'legendary'];
   const sure = groups.filter((g) => g.auto).sort((a, b) => order.indexOf(b.rarity) - order.indexOf(a.rarity) || b.usable - a.usable)[0];
@@ -60,8 +62,12 @@ export function forgeNow(state) {
     preview: p, ranking, groups,
     recycle: p.list.length ? { ok: true, text: `${plural(p.list.length, 'objet inutile', 'objets inutiles')} → +${p.shards} éclats, +${formatNumber(p.gold)} or` } : { ok: false, text: 'Rien à recycler : tout ce que tu as te sert.' },
     // v10.3.1 : un renfort sans effet sur la Puissance (effet spécial) nomme la statistique gagnée, pas « 0 % ».
-    upgrade: top ? { ok: true, text: `${top.item.name} +${top.preview.level} → +${top.preview.level + 1} : ${gainsPower(top) ? `${pctText(top.gainPct)} de puissance` : statGainText(top.preview)}` }
-      : first ? { ok: false, text: first.preview.lack.shards ? `Il manque ${plural(first.preview.lack.shards, 'éclat', 'éclats')} pour ${first.item.name} +${first.preview.level + 1}` : `Il manque ${formatNumber(first.preview.lack.gold)} or pour ${first.item.name} +${first.preview.level + 1}` }
+    // v10.4 : `item` = l'objet proposé (choisi d'office dans l'atelier 2).
+    upgrade: advice.kind === 'upgrade' ? { ok: true, item: advice.row.item, text: `${advice.row.item.name} +${advice.row.preview.level} → +${advice.row.preview.level + 1} : ${pctText(advice.row.gainPct)} de puissance` }
+      : first && first.gainPct >= WEAK_GAIN_PCT ? { ok: false, text: first.preview.lack.shards ? `Il manque ${plural(first.preview.lack.shards, 'éclat', 'éclats')} pour ${first.item.name} +${first.preview.level + 1}` : `Il manque ${formatNumber(first.preview.lack.gold)} or pour ${first.item.name} +${first.preview.level + 1}` }
+      : advice.kind === 'sharpen' ? { ok: advice.canPay, item: advice.item, text: `Remettre au niveau : ${advice.item.name} niv. ${advice.item.level} → ${lvlNow}` }
+      : advice.kind === 'stat' ? { ok: true, item: advice.row.item, text: `${advice.row.item.name} +${advice.row.preview.level} → +${advice.row.preview.level + 1} : ${statGainText(advice.row.preview)}` }
+      : first ? { ok: false, text: 'Rien d\'utile à renforcer : fusionne ou fabrique mieux.' }
       : { ok: false, text: ranking.length ? 'Tes objets portés sont au maximum.' : 'Équipe d\'abord un objet.' },
     fuse: sure ? { ok: true, text: `${grp(sure)} → ${Math.floor(sure.usable / count)} × ${rarityLabel(sure.next)}, sans risque` }
       : risky ? { ok: true, text: `${grp(risky)} → 1 × ${rarityLabel(risky.next)}, à tenter` }
@@ -81,18 +87,20 @@ function recycleBody(state, p) {
 
 // Atelier 2 : les objets portés, triés par gain de puissance par éclat ; l'objet choisi montre la même section
 // « Renforcer » que la fiche d'objet de l'Équipement.
-function upgradeBody(ui, state, ranking) {
+function upgradeBody(ui, state, ranking, suggested = null) {
   const kg = skillKillGold(state);
   const units = teamOf(state).flatMap((c) => Object.values(unitGear(state, c.id)).filter(Boolean).map((item) => ({ item, unit: c, preview: gearUpgradePreview(state, item, kg) })));
   const all = [...ranking.map((r) => ({ ...r, unit: null })), ...units];
   if (!all.length) return `<div class="card fg-body"><p class="muted">Tu ne portes encore aucun objet. Équipe-toi d'abord.</p><button class="btn btn-primary" data-action="open-tab" data-value="inventory">Ouvrir l'Équipement ›</button></div>`;
-  const sel = all.find((r) => r.item.id === ui.view.forgeUpSel) ?? all[0];
+  const sel = all.find((r) => r.item.id === ui.view.forgeUpSel) ?? all.find((r) => r.item.id === suggested?.id) ?? all[0];
   const row = (r) => {
     const p = r.preview;
-    const gain = p.atMax ? `au maximum (+${p.max})` : r.unit ? p.rows.map((x) => `${x.key === 'cd' ? '−' : '+'}${formatDecimal(x.after - x.before, 2)} %`).join(' · ') : gainsPower(r) ? `${pctText(r.gainPct)} de puissance` : escapeHtml(statGainText(p));
+    const weak = !r.unit && !p.atMax && r.gainPct < WEAK_GAIN_PCT && (gainsPower(r) || sharpenCost(state, r.item) > 0);
+    const gain = p.atMax ? `au maximum (+${p.max})` : r.unit ? p.rows.map((x) => `${x.key === 'cd' ? '−' : '+'}${formatDecimal(x.after - x.before, 2)} %`).join(' · ')
+      : weak ? 'presque sans effet' : gainsPower(r) ? `${pctText(r.gainPct)} de puissance` : escapeHtml(statGainText(p));
     return `<button class="fg-up-row r-${r.item.rarity}${r.item.id === sel.item.id ? ' on' : ''}" data-action="forge-up-sel" data-id="${r.item.id}" aria-pressed="${r.item.id === sel.item.id}">${itemTile(r.item)}
       <span class="fg-up-id"><b class="rarity-text">${escapeHtml(r.item.name)}${r.item.upgrades ? ` +${r.item.upgrades}` : ''}</b><small>${r.unit ? `${escapeHtml(slotName(r.unit, eqSlot(r.item)))} de ${escapeHtml(r.unit.name)}` : HERO_SLOTS[r.slot]}</small></span>
-      <span class="fg-up-gain ${p.canPay ? 'good' : 'muted'} num">${gain}</span>${p.cost ? `<span class="fg-up-cost num">${shard()} ${p.cost.shards} · ${coin()} ${formatNumber(p.cost.gold)}</span>` : ''}</button>`;
+      <span class="fg-up-gain ${p.canPay && !weak ? 'good' : 'muted'} num">${gain}</span>${p.cost ? `<span class="fg-up-cost num">${shard()} ${p.cost.shards} · ${coin()} ${formatNumber(p.cost.gold)}</span>` : ''}</button>`;
   };
   return `<div class="fg-body fg-up"><div class="card fg-up-list"><h4>Tes objets portés : le meilleur gain par éclat d'abord</h4>${ranking.map((r) => row({ ...r, unit: null })).join('')}
       ${units.length ? `<h4>Objets de tes compagnons</h4>${units.map(row).join('')}` : ''}</div>
@@ -117,8 +125,9 @@ function fuseBody(ui, state, groups) {
   const nAll = auto.reduce((t, x) => t + Math.floor(x.usable / count) * count, 0);
   const all = auto.length > 1 || (auto.length === 1 && auto[0].usable >= count * 2)
     ? `<button class="btn btn-outline-gold fg-all${ui.view.fuseArmed ? ' armed' : ''}" data-action="fuse-all">${ui.view.fuseArmed ? `Confirmer : fusionner ${nAll} objets ?` : `Fusionner tout ce qui est sûr · ${plural(auto.length, 'groupe', 'groupes')}`}</button>` : '';
-  const chips = groups.map((x) => `<button class="fg-group${keyOf(x) === key ? ' on' : ''}" data-action="fuse-open" data-value="${keyOf(x)}" aria-pressed="${keyOf(x) === key}">${img(slotIconName(x.slot))}
-      <span>${SLOTS[x.slot]} · <b class="r-${x.rarity} rarity-text">${rarityLabel(x.rarity)}</b> → <b class="r-${x.next} rarity-text">${rarityLabel(x.next)}</b></span><small class="num">${x.bag} dans le sac</small></button>`).join('');
+  // v10.4 : la place en icône, les raretés en couleur, le nombre dans le sac (le mot complet est au survol).
+  const chips = groups.map((x) => `<button class="fg-group${keyOf(x) === key ? ' on' : ''}" data-action="fuse-open" data-value="${keyOf(x)}" aria-pressed="${keyOf(x) === key}" title="${escapeHtml(SLOTS[x.slot])} · ${x.bag} dans le sac">${img(slotIconName(x.slot))}
+      <span><b class="r-${x.rarity} rarity-text">${rarityLabel(x.rarity)}</b> → <b class="r-${x.next} rarity-text">${rarityLabel(x.next)}</b></span><small class="num">×${x.bag}</small></button>`).join('');
   const included = Boolean(ui.view.fusionInclude?.[key]);
   const pv = fusionPreview(state, g.slot, g.rarity, included ? fusionKeep(state, { include: [key] }) : keep);
   const cases = Array.from({ length: count }, (_, i) => (pv.used[i] ? itemTile(pv.used[i], { note: `<small class="eq-gain">Niv. ${pv.used[i].level}</small>` }) : '<div class="eq-tile empty"></div>')).join('<i>+</i>');
@@ -128,21 +137,21 @@ function fuseBody(ui, state, groups) {
   const risky = pv.stakes.some((s) => s.chance < 100);
   const gauge = `<div class="fg-gauge"><div class="fg-gauge-bar ${pv.chance >= 100 ? 'sure' : ''}" role="img" aria-label="Chance de réussite : ${pv.chance ?? 0} %"><i style="width:${pv.chance ?? 0}%"></i><b class="num">${pv.stake ? `${pv.chance} %` : '—'}</b></div>
       <div class="fg-stakes">${pv.stakes.map((s) => `<span class="${s.stake === pv.stake ? 'on' : ''}${s.possible ? '' : ' off'}">${plural(s.stake, 'objet', 'objets')} : <b class="num">${s.chance} %</b></span>`).join('')}</div>
-      <p class="muted">${risky ? `Règle de pitié : après un échec, +${pv.pityStep} % à la tentative suivante${pv.pity ? ` (déjà +${pv.pity} % en réserve)` : ''}. Si la fusion rate, l'objet de plus haut niveau t'est rendu.` : `${count} objets : la fusion réussit toujours.`}</p></div>`;
+      ${risky ? helpQ(`Règle de pitié : après un échec, +${pv.pityStep} % à la tentative suivante${pv.pity ? ` (déjà +${pv.pity} % en réserve)` : ''}. Si la fusion rate, l'objet de plus haut niveau t'est rendu.`) : ''}</div>`;
   const chosen = ui.view.fuseSet?.[key] ?? pv.inherit[0]?.set;
   const inherit = pv.inherit.length ? `<li>${img('icon_star')}<span>Ensemble gardé, au choix :</span><span class="fg-inherit">${pv.inherit.map((o) => `<button class="btn chip-btn small${chosen === o.set ? ' active' : ''}" data-action="fuse-set" data-value="${key}" data-set="${o.set}" aria-pressed="${chosen === o.set}">${img(`set_${o.set}`)} ${escapeHtml(setById(o.set)?.name ?? o.set)} · ${o.chance} %</button>`).join('')}<button class="btn chip-btn small${chosen === 'none' ? ' active' : ''}" data-action="fuse-set" data-value="${key}" data-set="none" aria-pressed="${chosen === 'none'}">Aucun</button></span></li>` : '';
   const est = pv.level ? estimateGainPct(state, g.slot, pv.next, pv.level) : null;
   const gets = `<div class="fg-gets"><h4>Ce que tu obtiens</h4><ul class="eq-stats">
       <li>${img(slotIconName(g.slot))}<span>1 ${escapeHtml(SLOTS[g.slot].toLowerCase())}, modèle au hasard</span><b class="r-${pv.next} rarity-text">${rarityLabel(pv.next)}</b></li>
-      <li>${img('icon_upgrade')}<span>Niveau d'objet (celui du meilleur objet fusionné)</span><b class="num">${pv.level ?? '—'}</b></li>${inherit}
-      ${est === null ? '' : `<li>${img('icon_crown')}<span>Gain estimé face à ton objet porté</span><b class="num ${est > 0 ? 'good' : 'muted'}">${est > 0 ? `${pctText(est)} de puissance` : 'pas mieux que le tien'}</b></li>`}</ul></div>`;
+      <li>${img('icon_upgrade')}<span title="Celui du meilleur objet fusionné">Niveau d'objet</span><b class="num">${pv.level ?? '—'}</b></li>${inherit}
+      ${est === null ? '' : `<li>${img('icon_crown')}<span>Face à ton objet porté</span><b class="num ${est > 0 ? 'good' : 'muted'}">${est > 0 ? `${pctText(est)} de puissance` : 'pas mieux que le tien'}</b></li>`}</ul></div>`;
   const lower = pv.stakes.filter((s) => s.possible && s.stake !== pv.stake).map((s) => `<button class="btn small" data-action="fuse" data-value="${key}" data-stake="${s.stake}">Tenter à ${s.stake} · ${s.chance} %</button>`).join('');
   const main = pv.stake ? `<button class="btn btn-gold fg-fuse" data-action="fuse" data-value="${key}" data-stake="${pv.stake}">Fusionner (${pv.stake} objets · ${pv.chance} %)</button>`
     : `<span class="bad">Il manque ${plural(pv.stakes[0].stake - pv.available, 'objet', 'objets')} pour fusionner.</span>`;
   return `<div class="card fg-body fg-fusion">${all}${ui.view.fuseMsg ? `<div class="bad" role="status">${escapeHtml(ui.view.fuseMsg)}</div>` : ''}
     <div class="fg-groups" role="group" aria-label="Groupe à fusionner">${chips}</div>
-    <div class="fg-fusion-grid"><div><h4>Les ${count} cases, remplies avec tes moins bons objets</h4><div class="fg-cases">${cases}<i>→</i><div class="eq-tile next r-${pv.next}">?</div></div>
-      <p class="muted">Jamais pris : objet porté, protégé (cadenas), ancestral.</p>${protectedLine}${gauge}</div>
+    <div class="fg-fusion-grid"><div><h4>Les ${count} cases${helpQ('Remplies avec tes moins bons objets. Jamais pris : objet porté, protégé (cadenas), ancestral.')}</h4><div class="fg-cases">${cases}<i>→</i><div class="eq-tile next r-${pv.next}">?</div></div>
+      ${protectedLine}${gauge}</div>
       <div>${gets}<div class="fg-fuse-btns">${main}${lower}</div></div></div></div>`;
 }
 
@@ -180,9 +189,9 @@ export default {
     const fx = ui.view.forgeFx ? String(ui.view.forgeFx).split(' ')[0] : '';
     const step = (id, num, title, diagram, rule, line, btn) => `<div class="fg-step${seg === id ? ' on' : ''}${(fx === 'recycle' && id === 'recycle') || (fx === 'craft' && id === 'craft') ? ' fx' : ''}" data-action="forge-seg" data-value="${id}">
         <div class="fg-step-head"><span class="fg-num">${num}</span><b>${title}</b></div>
-        <div class="fg-diagram" aria-hidden="true">${diagram}</div>
+        <div class="fg-diagram" aria-hidden="true" title="${escapeHtml(rule)}">${diagram}</div>
         <p class="fg-rule">${rule}</p>
-        <p class="fg-now ${line.ok ? 'good' : 'muted'}">${line.ok ? '▶ ' : ''}${escapeHtml(line.text)}</p>${btn}</div>`;
+        <p class="fg-now ${line.ok ? 'good' : 'muted'}">${line.ok ? '<i class="fg-go" aria-hidden="true">▶</i> ' : ''}${escapeHtml(line.text)}</p>${btn}</div>`;
     const n = now.preview.list.length;
     const fuses = fusionCount(state);
     const steps = [
@@ -191,18 +200,21 @@ export default {
         `<button class="btn btn-gold fg-btn" data-action="recycle-useless" ${n ? '' : 'disabled'}>Recycler${n ? ` (${n})` : ''}</button>`),
       step('upgrade', 2, 'Renforcer', `${it(sword, 'epic')}<b>+</b>${img('icon_shard')}<i>→</i>${it(sword, 'epic', '<em>+1</em>')}`,
         `Un objet et des éclats : une de ses statistiques gagne ${BALANCE.forge.upgradeBoostPct} %.`, now.upgrade,
-        '<button class="btn btn-primary fg-btn" data-action="forge-seg" data-value="upgrade">Renforcer</button>'),
+        '<button class="btn btn-gold fg-btn" data-action="forge-seg" data-value="upgrade">Renforcer</button>'),
       step('fuse', 3, 'Fusionner', `<span class="fg-five">${'<s class="r-epic"></s>'.repeat(BALANCE.forge.fusionCount)}</span><i>→</i>${it(sword, 'legendary')}`,
         `${BALANCE.forge.fusionCount} objets de la même place et de la même rareté : 1 objet de la rareté au-dessus.`, now.fuse,
-        `<button class="btn btn-primary fg-btn" data-action="forge-seg" data-value="fuse">Fusionner${fuses ? ` (${fuses})` : ''}</button>`),
+        `<button class="btn btn-gold fg-btn" data-action="forge-seg" data-value="fuse">Fusionner${fuses ? ` (${fuses})` : ''}</button>`),
       step('craft', 4, 'Fabriquer', `${img('coin')}<b>+</b>${img('icon_shard')}<i>→</i>${it(helm, 'rare', '<em>✦</em>')}`,
         'De l\'or et des éclats : un objet neuf, pour la place que tu choisis.', now.craft,
-        '<button class="btn btn-primary fg-btn" data-action="forge-seg" data-value="craft">Fabriquer</button>'),
+        '<button class="btn btn-gold fg-btn" data-action="forge-seg" data-value="craft">Fabriquer</button>'),
     ].join('<i class="fg-arrow" aria-hidden="true">→</i>');
-    const body = seg === 'recycle' ? recycleBody(state, now.preview) : seg === 'upgrade' ? upgradeBody(ui, state, now.ranking) : seg === 'fuse' ? fuseBody(ui, state, now.groups) : craftBody(ui, state);
-    const chip = (key, pic, v, word) => `<button class="eq-res-chip" data-gloss="${key}" title="${word}">${img(pic)}<b class="num">${formatNumber(v)}</b><small>${word}</small></button>`;
-    return `<div class="fg"><div class="eq-res fg-res" role="group" aria-label="Tes ressources"><span class="eq-res-title">Tes ressources</span>${chip('shards', 'icon_shard', state.materials.shards, 'Éclats')}${chip('gold', 'coin', state.gold, 'Or')}</div>
-      <div class="fg-loop">${steps}</div>${body}</div>`;
+    const body = seg === 'recycle' ? recycleBody(state, now.preview) : seg === 'upgrade' ? upgradeBody(ui, state, now.ranking, now.upgrade.item) : seg === 'fuse' ? fuseBody(ui, state, now.groups) : craftBody(ui, state);
+    const chip = (key, pic, v, word) => `<button class="eq-res-chip" data-gloss="${key}" title="${word}" aria-label="${word}">${img(pic)}<b class="num">${formatNumber(v)}</b></button>`;
+    // v10.4 (partie 2) : gabarit de page — ressources en haut, les 4 ateliers en grand, le détail de l'atelier choisi à
+    // côté (la fusion détaillée se lit sans défiler).
+    return `<div class="fg pg pg-wide fg-on-${seg}"><div class="pg-top fg-top"><div class="eq-res fg-res" role="group" aria-label="Tes ressources">${chip('shards', 'icon_shard', state.materials.shards, 'Éclats')}${chip('gold', 'coin', state.gold, 'Or')}</div>
+      <img class="px art-banner fg-top-art" src="assets/ui/art101/banner_forge.png" loading="lazy" alt="" aria-hidden="true"></div>
+      <div class="pg-main fg-main"><div class="fg-loop">${steps}</div></div><div class="pg-side pg-inline fg-side">${body}</div></div>`;
   },
 };
 export const escape = escapeHtml;

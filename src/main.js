@@ -1898,6 +1898,7 @@ function tick() {
 setInterval(tick, SIM_INTERVAL_MS);
 
 let lastFrame = performance.now();
+let sceneDt = 0; // v10.4 : temps à rattraper par le dessin de la scène (une image sur deux pendant une page)
 function frame(ts) {
   const gap = ts - lastFrame;
   const dt = Math.min(0.1, gap / 1000);
@@ -1939,7 +1940,9 @@ function frame(ts) {
   // v9.9 (K12) : Veillée au Camp — le rendu du combat est coupé (seule la simulation tourne), l'écran se met à jour à bas régime.
   if (ui.sleeping) { ui.updateVigil?.(); requestAnimationFrame(frame); return; }
   // v10.2 (P6) : pendant l'Arène sur la carte (plein écran), la scène de campagne n'est pas dessinée (la simulation tourne).
-  if (!ui.arenaOpen) renderer.render(state, world, dt);
+  // v10.4 (partie 1) : page plein écran ouverte → la scène, voilée et recopiée en petit, est dessinée à ≈ 30 i/s.
+  sceneDt = ui.arenaOpen ? 0 : sceneDt + dt;
+  if (!ui.arenaOpen && (sceneDt >= 1 / 35 || !ui.root.classList.contains('page-ui'))) { renderer.render(state, world, sceneDt); sceneDt = 0; }
   placeWeakSpot(); // v9.7.1 (lot 2)
   ui.update(state, world);
   animateMenus(document.body, state, ts);

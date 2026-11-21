@@ -15,14 +15,14 @@ import { bestGearFor, canEquip as unitCanEquip, classLabel, gearScore, gearStats
 import { canAfford, skillUpgradeCost } from '../../core/progression.js';
 import { levelForStage } from '../../core/combat.js';
 import { formatStat } from '../../core/format.js';
-import { canReforge, canTargetReroll, sharpenCost, targetRerollChoices, targetRerollCost, upgradePreview } from '../../core/forge.js';
+import { WEAK_GAIN_PCT, canReforge, canTargetReroll, sharpenCost, targetRerollChoices, targetRerollCost, upgradeGainPct, upgradePreview } from '../../core/forge.js';
 import { KEEP_AFFIX_LABELS, activeMajor, teamUpgradeFor } from '../../core/inventory.js';
 import { itemBase, rarityById, recycleLevelOf, recycleMaterials, recycleValue } from '../../core/loot.js';
 import { setById, setCounts } from '../../core/sets.js';
 import { computeHeroStats, statsWithItem } from '../../core/stats.js';
 import { STASH_SIZE } from '../../core/stash.js';
 import { itemIconUrl, slotIconName } from '../../render/pixel.js';
-import { affixText, coin, distinctTo, effectText, escapeHtml, formatDecimal, formatNumber, icon, img, rarityLabel, shard } from '../common.js';
+import { affixText, coin, distinctTo, effectText, escapeHtml, fold, formatDecimal, formatNumber, icon, img, rarityLabel, shard } from '../common.js';
 
 const STAT_ICONS = { damage: 'weapon_sword', attackSpeed: 'icon_bolt', maxHp: 'icon_heart', armor: 'icon_shield' };
 // Une ligne d'aide par place : à quoi sert l'objet qu'on y met.
@@ -63,7 +63,7 @@ export function unitTodo(state, c) {
 // Vignette d'objet (cadre à la couleur de la rareté, pastille +N, flèche ▲, cadenas). `tag` : 'div' ou 'button'.
 export function itemTile(item, { cls = '', attrs = '', up = false, tag = 'div', note = '' } = {}) {
   return `<${tag} class="eq-tile r-${item.rarity} ${cls}" ${attrs} title="${escapeHtml(item.name)}${item.upgrades ? ` +${item.upgrades}` : ''} · ${rarityLabel(item.rarity)}">
-    <img class="px" src="${itemIconUrl(item)}" alt="${escapeHtml(item.name)}">${item.upgrades ? `<span class="eq-plusn">+${item.upgrades}</span>` : ''}${up ? '<span class="eq-up" title="Meilleur que l\'objet porté">▲</span>' : ''}${item.locked ? `<img class="px lock" src="${icon('icon_lock', 1)}" alt="Verrouillé">` : ''}${note}</${tag}>`;
+    <img class="px eq-ico" src="${itemIconUrl(item, 48)}" alt="${escapeHtml(item.name)}">${item.upgrades ? `<span class="eq-plusn">+${item.upgrades}</span>` : ''}${up ? '<span class="eq-up" title="Meilleur que l\'objet porté">▲</span>' : ''}${item.locked ? `<img class="px lock" src="${icon('icon_lock', 1)}" alt="Verrouillé">` : ''}${note}</${tag}>`;
 }
 
 // Coût pièce par pièce : « tu as … » en vert, ou « il manque … » en rouge avec « Où en gagner » et un bouton « + »
@@ -95,6 +95,9 @@ export function statGainText(preview) {
   return named ? `${rowLabel(named)} ${rowVal(named, named.before)} → ${rowVal(named, named.after)}` : '';
 }
 
+// v10.4 : l'aide secondaire se replie derrière un « ? » (ouvert au toucher, sans bouton de plus dans la fiche).
+export const helpQ = (text) => `<details class="eq-q"><summary aria-label="Comment ça marche ?">?</summary><p class="eq-rule muted">${text}</p></details>`;
+
 // Section « Renforcer : +N → +N+1 » d'un objet. Même rendu dans la fiche d'objet (Équipement) et dans l'atelier 2 de la
 // Forge. Objet du héros : règle de la Forge (core/forge.js upgradePreview, l'aperçu est le résultat exact) ; pièce
 // portée par un compagnon : règle des compagnons (core/companion-gear.js gearUpgradePreview).
@@ -108,7 +111,7 @@ export function reinforceSection(ui, state, item, { wearer = wearerOf(state, ite
     return `<section class="eq-sec eq-reinf"><h4>Renforcer : <b>+${p.level} → +${p.level + 1}</b> <span class="muted">max +${p.max}</span></h4>
       <div class="eq-rows">${rows}</div>${costLines(state, p.cost)}
       <button class="btn btn-gold eq-do" data-action="gear-up" data-value="${item.id}" ${p.canPay ? '' : 'disabled'}>Renforcer +${p.level + 1}</button>
-      <p class="eq-rule muted">Règle des compagnons : chaque niveau ajoute ${GEAR_UP_PCT} % aux bonus de la pièce.</p></section>`;
+      ${helpQ(`Règle des compagnons : chaque niveau ajoute ${GEAR_UP_PCT} % aux bonus de la pièce.`)}</section>`;
   }
   const p = upgradePreview(state, item);
   if (p.atMax) {
@@ -118,18 +121,26 @@ export function reinforceSection(ui, state, item, { wearer = wearerOf(state, ite
   const B = BALANCE.forge;
   const named = p.rows.find((r) => r.key === p.stat);
   const label = rowLabel, val = rowVal;
-  const rows = p.rows.map((r) => (r.before !== r.after
-    ? `<div class="eq-row chg"><span>${label(r)}</span><span class="num muted">${val(r, r.before)}</span><i>→</i><b class="num good">${distinctTo(val(r, r.before), val(r, r.after), B.upgradeBoostPct)}</b></div>`
-    : `<div class="eq-row"><span>${label(r)}</span><span class="num muted">${val(r, r.before)}</span><i>→</i><span class="num muted">${val(r, r.after)}</span></div>`)).join('');
-  const pwUp = p.power && p.power.after > p.power.before;
-  const pw = !p.power ? '' : `<div class="eq-row chg pw"><span>${img('icon_crown')} Puissance${p.power.worn ? '' : ' (si équipé)'}</span><span class="num muted">${formatNumber(p.power.before)}</span><i>→</i>${pwUp
-    ? `<b class="num good">${distinctTo(formatNumber(p.power.before), formatNumber(p.power.after), (p.power.after / Math.max(1, p.power.before) - 1) * 100)}</b>` : `<span class="num muted">${formatNumber(p.power.after)}</span>`}</div>`;
+  // v10.4 (partie 2) : seulement les statistiques qui changent (plus de « Coup critique 7 % → 7 % »).
+  const rows = p.rows.filter((r) => r.before !== r.after).map((r) => `<div class="eq-row chg"><span>${label(r)}</span><span class="num muted">${val(r, r.before)}</span><i>→</i><b class="num good">${distinctTo(val(r, r.before), val(r, r.after), B.upgradeBoostPct)}</b></div>`).join('');
+  // Gain réel : sous 0,5 % de Puissance, on le dit franchement et on propose mieux (jamais « +0,01 % »).
+  const gain = upgradeGainPct(p);
+  const weak = gain !== null && gain < WEAK_GAIN_PCT;
+  const sharpen = weak && !wearer ? sharpenCost(state, item) : 0;
+  const pw = !p.power ? '' : weak
+    ? `<div class="eq-row pw weak"><span>${img('icon_crown')} Puissance</span><span class="num muted">${formatNumber(p.power.before)}</span><i>→</i><span class="muted">presque pareille</span></div>`
+    : `<div class="eq-row chg pw"><span>${img('icon_crown')} Puissance${p.power.worn ? '' : ' (si équipé)'}</span><span class="num muted">${formatNumber(p.power.before)}</span><i>→</i><b class="num good">${distinctTo(formatNumber(p.power.before), formatNumber(p.power.after), (p.power.after / Math.max(1, p.power.before) - 1) * 100)}</b></div>`;
+  const better = !weak ? '' : sharpen
+    ? `<div class="eq-weak" role="note"><b>Presque sans effet</b> : cet objet est d'un niveau trop bas (${item.level} → ${levelForStage(state.maxStage)}).</div>
+      <button class="btn btn-gold eq-do eq-sharpen" data-action="sharpen" data-id="${item.id}" ${state.materials.shards >= sharpen ? '' : 'disabled'}>Remettre au niveau de ton étape (${formatNumber(sharpen)} éclats)</button>`
+    : `<div class="eq-weak" role="note"><b>Presque sans effet</b> sur ta puissance : un autre objet ira mieux ici.</div>
+      <button class="btn btn-gold eq-do" data-action="forge-go" data-value="craft">Fabriquer un meilleur objet ›</button>`;
   const cut = forgePerks(state).upgradeCostPct;
-  return `<section class="eq-sec eq-reinf"><h4>Renforcer : <b>+${p.level} → +${p.level + 1}</b> <span class="muted">max +${p.max}</span></h4>
+  const rule = `Règle : chaque niveau ajoute ${B.upgradeBoostPct} % à une statistique (la moins renforcée d'abord). Coût : de l'or, et ${B.upgradeShards} × (niveau + 1) éclats${cut ? ` (−${cut} % grâce à la Forge du Bastion)` : ''}. ${fem ? 'Renforcée' : 'Renforcé'} jusqu'à +${p.max}.`;
+  return `<section class="eq-sec eq-reinf${weak ? ' is-weak' : ''}"><h4>Renforcer : <b>+${p.level} → +${p.level + 1}</b> <span class="muted">max +${p.max}</span></h4>${helpQ(rule)}
     ${named ? `<div class="eq-named">Stat renforcée : <b>${label(named)}</b> <span class="good">+${B.upgradeBoostPct} %</span></div>` : ''}
-    <div class="eq-rows">${rows}${pw}</div>${costLines(state, p.cost)}
-    <button class="btn btn-gold eq-do" data-action="upgrade-item" data-id="${item.id}" data-cost="${p.cost.gold}" data-currency="gold" ${p.lack.shards ? 'data-locked="1" disabled' : p.lack.gold ? 'disabled' : ''}>Renforcer +${p.level + 1}</button>
-    <p class="eq-rule muted">Règle : chaque niveau ajoute ${B.upgradeBoostPct} % à une statistique (la moins renforcée d'abord). Coût : de l'or, et ${B.upgradeShards} × (niveau + 1) éclats${cut ? ` (−${cut} % grâce à la Forge du Bastion)` : ''}. ${fem ? 'Renforcée' : 'Renforcé'} jusqu'à +${p.max}.</p></section>`;
+    <div class="eq-rows">${rows}${pw}</div>${better}${costLines(state, p.cost)}
+    <button class="btn ${weak ? '' : 'btn-gold '}eq-do" data-action="upgrade-item" data-id="${item.id}" data-cost="${p.cost.gold}" data-currency="gold" ${p.lack.shards ? 'data-locked="1" disabled' : p.lack.gold ? 'disabled' : ''}>Renforcer +${p.level + 1}</button></section>`;
 }
 
 // Grand effet de l'objet, et s'il est actif (un seul à la fois).
@@ -208,7 +219,8 @@ export function itemSheet(ui, state, ctx) {
   if (heroWorn) {
     const cur = computeHeroStats(state).combatPower;
     const pct = cur > 0 ? (1 - computeHeroStats(state, BALANCE, { ...state.equipment, [hslot]: null }).combatPower / cur) * 100 : 0;
-    share = `<div class="eq-share good"><b class="num">+${formatDecimal(Math.max(0, pct), pct < 10 ? 1 : 0)} %</b> de ta puissance totale</div>`;
+    share = pct < 0.05 ? '<div class="eq-share muted">Presque rien dans ta puissance totale</div>'
+      : `<div class="eq-share good"><b class="num">+${formatDecimal(Math.max(0, pct), pct < 10 ? 1 : 0)} %</b> de ta puissance totale</div>`;
   } else if (wearUnit) {
     share = `<div class="eq-share">Porté par <b>${escapeHtml(wearUnit.name)}</b> : <span class="good">${escapeHtml(statText(gearStats(item, state)))}</span></div>`;
   } else if (unit && unitCanEquip(state, unit.id, item).ok) {
@@ -226,10 +238,14 @@ export function itemSheet(ui, state, ctx) {
   }
   const lock = wearer ? '' : `<button class="btn icon-btn eq-lock${item.locked ? ' on' : ''}" data-action="lock" data-id="${item.id}" aria-pressed="${Boolean(item.locked)}" aria-label="${item.locked ? 'Déverrouiller' : 'Verrouiller'}"
       title="${item.locked ? 'Protégé : jamais recyclé ni fusionné (toucher pour retirer la protection)' : 'Protéger : jamais recyclé ni fusionné'}">${img('icon_lock')}</button>`;
+  // v10.4 : en-tête court — grande icône, nom sur une ligne, rareté et place (l'aide de la place est au survol).
+  const tip = (wearUnit || (unit && !heroWorn) ? UNIT_SLOT_TIPS : SLOT_TIPS)[slot] ?? '';
+  const swap = heroWorn ? `<button class="btn small" data-action="eq-change" data-value="1">Changer</button><button class="btn small" data-action="eq-unequip" data-value="${hslot}">Retirer</button>`
+    : wearer ? `<button class="btn small" data-action="eq-change" data-value="1">Changer</button><button class="btn small" data-action="gear-unequip" data-value="${wearer}|${eqSlot(item)}">Retirer</button>` : '';
   const head = `<div class="eq-sh-head">${itemTile(item)}
-      <div class="eq-sh-id"><b class="eq-name r-${item.rarity}">${escapeHtml(item.name)}${ups ? ` +${ups}` : ''}</b>
-        <div class="eq-pills"><span class="rar-pill r-${item.rarity}">${rarityById(item.rarity).label}</span><span class="role-pill">${escapeHtml(place)}</span><span class="role-pill cls-pill">${escapeHtml(classLabel(itemClass(state, item)))}</span>${base.signature ? `<span class="role-pill">Butin de ${escapeHtml(BOSSES[base.signature].name)}</span>` : ''}</div>
-        ${share}</div>${lock}</div>`;
+      <div class="eq-sh-id"><b class="eq-name r-${item.rarity}" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}${ups ? ` +${ups}` : ''}</b>
+        <div class="eq-pills"><span class="rar-pill r-${item.rarity}">${rarityById(item.rarity).label}</span><span class="role-pill" title="${escapeHtml(tip)}">${escapeHtml(place)}</span>${base.signature ? `<span class="role-pill" title="Butin de ${escapeHtml(BOSSES[base.signature].name)}">Ancestral</span>` : ''}</div>
+        ${share}</div><div class="eq-head-acts">${lock}${swap}</div></div>`;
   // « Ce qu'elle donne » : chaque statistique et chaque effet spécial, en clair.
   const stats = Object.entries(item.stats).map(([k, v]) => `<li>${img(STAT_ICONS[k])}<span>${STAT_LABELS[k]}</span><b class="num ${v < 0 ? 'bad' : ''}">${formatStat(k, v, true)}</b></li>`).join('');
   const affixes = (item.affixes ?? []).map((a) => `<li class="affix"><i>✦</i><span>${affixText(a)}</span></li>`).join('');
@@ -285,16 +301,18 @@ export function itemSheet(ui, state, ctx) {
         <button class="btn small${armed ? ' btn-gold' : ''}" data-action="target-reroll" data-id="${item.id}" data-value="${sel}" ${shards < cost ? 'disabled' : ''}>${armed ? 'Confirmer' : 'Relancer vers cet effet'}</button></div>
         <p class="muted">${item.rarity === 'legendary' ? 'Impose la 1re ligne d\'effet (les autres au hasard).' : 'Impose l\'effet spécial.'} Valeur à ±20 %.</p></details>`;
     }
-    tools = `<section class="eq-sec eq-tools"><h4>Autres réglages</h4>
+    tools = `<section class="eq-sec eq-tools">${fold(ui, 'eq-more', 'Plus : changer l\'effet, remettre au niveau', () => `
       <button class="eq-tool" data-action="reforge" data-id="${item.id}" ${reforgeOk && shards >= BALANCE.forge.reforgeShards ? '' : 'disabled'}>${img('icon_star')}<span><b>Changer l'effet (${BALANCE.forge.reforgeShards} éclats)</b><small>${reforgeOk ? 'Retire de nouveaux effets spéciaux au hasard. Les statistiques ne changent pas.' : 'Cet objet n\'a pas d\'effet spécial à changer.'}</small></span></button>
       ${target}
       <button class="eq-tool" data-action="sharpen" data-id="${item.id}" ${sharpen && shards >= sharpen ? '' : 'disabled'}>${img('icon_shard')}<span><b>${sharpen ? `Remettre au niveau de ton étape (${formatNumber(sharpen)} éclats)` : 'Remettre au niveau de ton étape'}</b>
         <small>${sharpen ? `Niveau d'objet ${item.level} → ${lvlNow} : ses statistiques rattrapent ton étape ${state.maxStage}, les renforts sont gardés.` : `Déjà au niveau de ton étape (${lvlNow}). Quand tu avances, un vieil objet peut rattraper son retard ici.`}</small></span></button>
-      ${heroWorn ? `<div class="eq-actions"><button class="btn" data-action="eq-change" data-value="1">Changer</button><button class="btn" data-action="eq-unequip" data-value="${hslot}">Retirer</button></div>` : ''}</section>`;
-  } else {
-    tools = `<section class="eq-sec eq-tools"><div class="eq-actions"><button class="btn" data-action="eq-change" data-value="1">Changer</button><button class="btn" data-action="gear-unequip" data-value="${wearer}|${eqSlot(item)}">Retirer</button></div></section>`;
+`)}</section>`;
   }
-  return shell(ui, `r-${item.rarity}`, item.name, `${worn ? tipLine({ unit: wearUnit }, slot) : ''}${head}${gives}${bagBlock}${reinforceSection(ui, state, item, { wearer })}${better}${tools}${slotStrip(ui, state, ctx)}`);
+  // v10.4 (partie 1) : ce qui sert d'abord, sans défiler — objet porté : mieux dans le sac, Renforcer ; objet du sac :
+  // Équiper / Recycler. Ensuite ce que l'objet donne, puis « Plus » (replié).
+  const reinf = reinforceSection(ui, state, item, { wearer });
+  const body = worn ? `${head}${better}${reinf}${gives}` : `${head}${bagBlock}${gives}${reinf}`;
+  return shell(ui, `r-${item.rarity}`, item.name, `${body}${tools}${slotStrip(ui, state, ctx)}`);
 }
 
 // Place vide : les objets compatibles du sac, triés par gain, « Équiper le meilleur » en tête.
