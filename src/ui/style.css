@@ -3452,19 +3452,13 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 .ult-orders { font-size: 12px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-bottom: 4px; }
 .star-tiers { font-size: 12px; margin: 4px 10px; }
 
-/* v9.7.1 : sac de butin posé au sol, en bas à droite de la scène ; volet de tri sans quitter le combat. */
-#loot-bag { position: absolute; z-index: 4; right: 10px; top: calc(var(--feet-px, 100%) - 32px); width: 32px; height: 32px; padding: 0;
-  display: grid; place-items: center; background: rgba(40, 28, 16, 0.85); border: 2px solid #8a6a3a; border-radius: 8px 8px 6px 6px;
-  cursor: pointer; box-shadow: 0 2px 0 #000; }
-#loot-bag .lb-ico { font-size: 18px; line-height: 1; }
-#loot-bag .lb-count { position: absolute; top: -8px; right: -8px; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 8px;
-  background: #e0303a; color: #fff; font-size: 10px; line-height: 16px; text-align: center; box-shadow: 0 1px 0 #000; }
-#loot-bag .lb-up { position: absolute; bottom: -4px; left: -6px; color: #5ad07a; font-style: normal; font-size: 12px; text-shadow: 0 1px 0 #000; }
-#loot-bag.r-rare { border-color: #4a9dff; } #loot-bag.r-epic { border-color: #b05aff; } #loot-bag.r-legendary { border-color: #ffb020; box-shadow: 0 0 8px #ffb020; }
-#loot-bag.r-mythic, #loot-bag.r-ancestral { border-color: #ff4d6d; box-shadow: 0 0 8px #ff4d6d; }
-#loot-bag.active { outline: 2px solid #fff; }
-#loot-bag.lb-bump { animation: lb-bump 0.35s ease-out; }
-@keyframes lb-bump { 30% { transform: translateY(-7px) scale(1.08); } 60% { transform: translateY(0) scale(0.95, 1.05); } }
+/* v9.7.1 : volet de tri du butin sans quitter le combat. v10.3.1 : le coffre est dessiné dans la scène
+   (render/loot-chest.js) ; #loot-bag est sa zone de toucher, invisible, posée sur le coffre (place() de ui/loot-bag.js). */
+#loot-bag { position: absolute; z-index: 4; left: 0; top: 0; width: 44px; height: 44px; min-width: 44px; min-height: 44px; padding: 0; margin: 0;
+  background: transparent; border: 0; border-radius: 10px; box-shadow: none; cursor: pointer; color: transparent; overflow: hidden;
+  -webkit-tap-highlight-color: transparent; }
+#loot-bag > * { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+#loot-bag:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
 #loot-sheet { position: absolute; z-index: 6; top: 8px; right: 8px; bottom: 8px; width: min(340px, 46%); display: flex; flex-direction: column; gap: 6px;
   padding: 8px; background: rgba(14, 18, 30, 0.96); border: 1px solid #4a5f92; border-radius: 10px; color: #e8eefc; font-size: 12px; }
 .lb-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -4450,30 +4444,9 @@ html.reduce-motion .howto-card, html.reduce-motion .learn-card { animation: none
 /* Talents › Arbre avancé : ombre sur les bords pour montrer qu'il continue. */
 .tree-viewport, .talent-viewport { box-shadow: inset 14px 0 12px -10px rgba(0,0,0,.7), inset -14px 0 12px -10px rgba(0,0,0,.7), inset 0 14px 12px -10px rgba(0,0,0,.7), inset 0 -14px 12px -10px rgba(0,0,0,.7); }
 
-/* v10.2 (P7) : coffre de butin posé sur le sol de la scène, derrière les ennemis. */
-#loot-bag { right: max(40px, 9%); top: calc(var(--feet-px, 100%) - 92px); width: 96px; height: 96px; background: none; border: 0; box-shadow: none; border-radius: 0; overflow: visible; }
-#loot-bag .lb-chest, #loot-bag .lb-chest-open { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated;
-  filter: drop-shadow(0 0 6px var(--glow, transparent)) drop-shadow(0 0 2px var(--glow, transparent)) drop-shadow(0 3px 0 rgba(0,0,0,.6)); }
-#loot-bag .lb-chest-open { opacity: 0; } #loot-bag.lb-open .lb-chest-open { opacity: 1; } #loot-bag.lb-open .lb-chest { opacity: 0; }
-#loot-bag .lb-ray { position: absolute; left: 50%; bottom: 40%; width: 46px; height: 140px; transform: translateX(-50%); opacity: 0; pointer-events: none;
-  background: linear-gradient(to top, color-mix(in srgb, var(--glow, #fff) 70%, transparent), transparent); filter: blur(4px); border-radius: 50%; }
-#loot-bag.lb-epic .lb-ray { opacity: .75; animation: lb-ray 2.4s ease-in-out infinite; }
-@keyframes lb-ray { 50% { opacity: .35; } }
-#loot-bag .lb-count { top: 2px; right: 4px; min-width: 22px; height: 22px; line-height: 22px; font-size: 12px; border-radius: 11px; }
-#loot-bag .lb-up { bottom: 6px; left: 2px; font-size: 18px; }
-#loot-bag.r-rare, #loot-bag.r-epic, #loot-bag.r-legendary, #loot-bag.r-mythic, #loot-bag.r-ancestral { border: 0; box-shadow: none; }
-#loot-bag .lb-coin { position: absolute; left: 50%; top: 30%; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff6b0, #ffc52a 50%, #a66a00);
-  animation: lb-coin .8s ease-out forwards; pointer-events: none; }
-@keyframes lb-coin { 0% { transform: translate(0, 0); } 45% { transform: translate(var(--dx), -34px); } 100% { transform: translate(calc(var(--dx) * 1.6), 10px); opacity: 0; } }
-#loot-bag .lb-bubble { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 4px; white-space: nowrap; background: #fff5d6; color: #3a2508;
-  font-weight: 800; font-size: 12px; padding: 3px 8px; border-radius: 8px; border: 2px solid #c08a2a; pointer-events: none; }
-#loot-bag.lb-full .lb-spill { position: absolute; left: -30px; right: -30px; bottom: -2px; height: 12px; pointer-events: none;
-  background: radial-gradient(circle at 10% 60%, #ffc52a 3px, transparent 4px), radial-gradient(circle at 30% 80%, #ffd75a 3px, transparent 4px), radial-gradient(circle at 75% 70%, #ffc52a 3px, transparent 4px), radial-gradient(circle at 92% 55%, #e0a020 3px, transparent 4px); }
-.lb-fly { position: absolute; z-index: 6; width: 32px; height: 32px; transition: transform .6s cubic-bezier(.3,-.3,.6,1), opacity .6s; pointer-events: none; }
 .lb-info { display: flex; flex-direction: column; gap: 1px; font-size: 12px; min-width: 0; }
 .lb-dests .lb-d { font-size: 11px; }
 .lb-keep { flex: 1; }
-@media (max-width: 520px) { #loot-bag { width: 64px; height: 64px; top: calc(var(--feet-px, 100%) - 62px); right: max(40px, 8%); } }
 /* v10.2 (P7) : une ligne par objet — icône, nom et gain, trois actions lisibles. */
 #loot-sheet .lb-grid { display: flex !important; flex-direction: column; gap: 4px; }
 #loot-sheet .lb-cell { flex-direction: row !important; align-items: center; gap: 8px; padding: 4px 6px; }

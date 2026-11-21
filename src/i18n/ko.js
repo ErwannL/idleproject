@@ -435,3 +435,7 @@ PATTERNS.push(...patterns1031(lookup));
 import { EXACT_1031 as EXACT_1031_ARENA, patterns1031 as patterns1031Arena } from './ko-1031-arena.js';
 for (const [k, v] of Object.entries(EXACT_1031_ARENA)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1031Arena(lookup));
+// v10.3.1 (partie 7) : coffre de butin dessiné dans la scène (./ko-1031-chest.js).
+import { EXACT_1031_CHEST, patterns1031Chest } from './ko-1031-chest.js';
+for (const [k, v] of Object.entries(EXACT_1031_CHEST)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1031Chest());

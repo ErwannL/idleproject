@@ -1,15 +1,13 @@
-// v9.7.1 : sac de butin posé dans la scène (bas droite). Les objets lâchés y volent et attendent un tri rapide :
-// Sac (garder), Coffre (ranger) ou Recycler, sans quitter le combat. Pastille = nombre d'objets, liseré = meilleure
-// rareté, flèche verte = au moins une amélioration. Volet ancré à droite sur PC, feuille du bas sur téléphone.
+// v9.7.1 : sac de butin posé dans la scène. Les objets lâchés y volent et attendent un tri rapide : Garder, Ranger
+// (Réserve) ou Recycler, sans quitter le combat. Volet ancré à droite sur PC, feuille du bas sur téléphone.
+// v10.3.1 (plan 10.2, partie 7) : le coffre est dessiné dans la scène (render/loot-chest.js) ; ce bouton reste, invisible,
+// posé exactement sur le coffre dessiné (clic, appui, clavier, lecteurs d'écran ; touche B dans shortcuts.js).
 import { LOOT_BAG_MAX, compareWithEquipped, isUpgrade, lootBagKeepBestChoices, lootBagList, lootBagOn, lootBagSummary, suggestLootDest } from '../core/inventory.js';
 import { itemFrame, escapeHtml } from './common.js';
 import { formatNumber } from '../core/format.js';
+import { LootChest, RANK, bubbleFor, chestShown } from '../render/loot-chest.js';
 
 const DESTS = [['bag', '▲', 'Équiper / garder'], ['stash', '📦', 'Ranger (Réserve)'], ['recycle', '♻', 'Recycler']];
-// v10.2 (P7) : le sac devient un coffre de butin dessiné, posé sur le sol de la scène derrière les ennemis.
-const CHEST = 'assets/ui/art102/loot_chest.png', CHEST_OPEN = 'assets/ui/art102/loot_chest_open.png';
-const GLOW = { rare: '#4a9dff', epic: '#b05aff', legendary: '#ffb020', mythic: '#ff4d6d', ancestral: '#ff4d6d' };
-const RANK = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral'];
 
 export class LootBag {
   constructor(ui) {
@@ -24,7 +22,9 @@ export class LootBag {
     this.btn.className = 'hidden';
     this.btn.title = 'Coffre de butin (B) : touche pour trier';
     this.btn.setAttribute('aria-label', 'Coffre de butin');
-    this.btn.innerHTML = `<i class="lb-ray"></i><img class="px lb-chest" src="${CHEST}" alt=""><img class="px lb-chest-open" src="${CHEST_OPEN}" alt=""><b class="lb-count"></b><i class="lb-up hidden">▲</i><span class="lb-bubble hidden"></span><span class="lb-spill"></span>`;
+    this.btn.setAttribute('aria-expanded', 'false');
+    // Rien de visible : pastille, flèche et bulle sont dessinées dans la scène ; ces textes servent aux lecteurs d'écran.
+    this.btn.innerHTML = '<b class="lb-count"></b><i class="lb-up hidden">▲</i><span class="lb-bubble hidden"></span>';
     this.btn.addEventListener('click', () => this.toggle());
     area?.appendChild(this.btn);
     this.sheet = document.createElement('div');
@@ -50,42 +50,33 @@ export class LootBag {
     });
     for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) this.sheet.addEventListener(ev, () => clearTimeout(timer));
     this.lastKey = '';
+    this.placeKey = '';
   }
 
   get state() { return this.ui.state; }
+  // Coffre dessiné par la scène principale (elle seule : Arène, prologue et vitrines ont leur propre SceneRenderer).
+  get chest() {
+    const r = this.ui.renderer;
+    if (!r) return null;
+    return (r.lootChest ??= new LootChest());
+  }
   available() { return Boolean(this.state && lootBagOn(this.state) && this.state.lootBag.length); }
 
-  // Un objet arrive : il vole du monstre au coffre, le couvercle s'entrouvre et 3 pièces sautent ; bulle « Butin ! » la
-  // première fois puis à chaque Épique ou mieux (2 s).
+  // Un objet arrive : il vole du monstre au coffre, le couvercle s'entrouvre et 3 pièces sautent (dans la scène) ;
+  // bulle « Butin ! » la première fois puis à chaque Épique ou mieux (2 s).
   bump(item = null, fromX = null) {
-    this.btn.classList.remove('lb-bump', 'lb-open');
-    void this.btn.offsetWidth; // relance l'animation
-    this.btn.classList.add('lb-bump', 'lb-open');
-    clearTimeout(this.openT); this.openT = setTimeout(() => this.btn.classList.remove('lb-open'), 600);
-    for (let i = 0; i < 3; i++) { const c = document.createElement('i'); c.className = 'lb-coin'; c.style.setProperty('--dx', `${(i - 1) * 14}px`); c.style.animationDelay = `${i * 60}ms`; this.btn.appendChild(c); setTimeout(() => c.remove(), 900); }
-    if (item && typeof document !== 'undefined') { try { this.flyIn(item, fromX); } catch { /* objet incomplet : pas de vol */ } }
+    try { this.chest?.bump(item, fromX); } catch { /* objet incomplet : pas de vol */ }
     const st = this.state;
-    const first = st?.ui && !(st.ui.hints ?? []).includes('loot-chest');
+    const first = Boolean(st?.ui && !(st.ui.hints ?? []).includes('loot-chest'));
     if (first) (st.ui.hints ??= []).push('loot-chest');
-    if (first || RANK.indexOf(item?.rarity) >= RANK.indexOf('epic')) this.say(first ? 'Butin ! Touche le coffre pour trier' : 'Butin !', 2000);
+    const text = bubbleFor(item, first);
+    if (text) this.say(text, 2000);
   }
   say(text, ms) {
     const b = this.btn.querySelector('.lb-bubble');
     b.textContent = text; b.classList.remove('hidden');
+    this.chest?.say(text, ms);
     clearTimeout(this.sayT); this.sayT = setTimeout(() => b.classList.add('hidden'), ms);
-  }
-  flyIn(item, fromX) {
-    const area = document.getElementById('stage-area');
-    const r = this.btn.getBoundingClientRect(), a = area?.getBoundingClientRect();
-    if (!a || !r.width) return;
-    const f = document.createElement('div');
-    f.className = `lb-fly r-${item.rarity}`;
-    f.innerHTML = itemFrame(item, { tag: 'div' });
-    const x0 = (fromX ?? (r.left - a.left - 60)), y0 = r.top - a.top - 40;
-    f.style.left = `${x0}px`; f.style.top = `${y0}px`;
-    area.appendChild(f);
-    requestAnimationFrame(() => { f.style.transform = `translate(${r.left - a.left + r.width / 2 - x0 - 16}px, ${r.top - a.top + r.height / 2 - y0 - 16}px) scale(.4)`; f.style.opacity = '0.2'; });
-    setTimeout(() => f.remove(), 650);
   }
 
   toggle(force) {
@@ -94,28 +85,54 @@ export class LootBag {
     if (!this.open) { this.choices = {}; this.compareId = null; }
     this.sheet.classList.toggle('hidden', !this.open);
     this.btn.classList.toggle('active', this.open);
+    this.btn.setAttribute('aria-expanded', String(this.open));
     this.render();
   }
 
-  // Appelée à chaque image : met à jour la pastille (léger : seulement si le contenu change).
+  // Appelée à chaque image : contenu du coffre (seulement s'il change), puis zone de toucher posée sur le coffre dessiné.
   update(state) {
     const sum = state && lootBagOn(state) ? lootBagSummary(state) : { count: 0 };
-    const key = `${sum.count}|${sum.best}|${sum.upgrade}|${document.getElementById('app')?.classList.contains('layout-strip')}`;
-    if (key === this.lastKey) return;
-    this.lastKey = key;
-    const strip = document.getElementById('app')?.classList.contains('layout-strip');
-    this.btn.classList.toggle('hidden', !sum.count || strip);
-    this.btn.querySelector('.lb-count').textContent = sum.count > 99 ? '99+' : String(sum.count);
-    this.btn.querySelector('.lb-up').classList.toggle('hidden', !sum.upgrade);
-    this.btn.className = this.btn.className.replace(/\br-\w+/g, '').trim();
-    if (sum.best) this.btn.classList.add(`r-${sum.best}`);
-    this.btn.style.setProperty('--glow', GLOW[sum.best] ?? 'transparent');
-    this.btn.classList.toggle('lb-epic', RANK.indexOf(sum.best) >= RANK.indexOf('epic'));
-    const full = sum.count >= LOOT_BAG_MAX;
-    if (full && !this.btn.classList.contains('lb-full')) this.say('Coffre plein : trie-le', 3000);
-    this.btn.classList.toggle('lb-full', full);
-    if (!sum.count && this.open) this.toggle(false);
-    else if (this.open) this.render();
+    const shown = chestShown(state, this.ui);
+    const key = `${sum.count}|${sum.best}|${sum.upgrade}|${shown}`;
+    if (key !== this.lastKey) {
+      this.lastKey = key;
+      const full = sum.count >= LOOT_BAG_MAX;
+      this.chest?.set({ count: sum.count, best: sum.best, upgrade: sum.upgrade, full, shown });
+      this.btn.querySelector('.lb-count').textContent = sum.count > 99 ? '99+' : String(sum.count);
+      this.btn.querySelector('.lb-up').classList.toggle('hidden', !sum.upgrade);
+      this.btn.setAttribute('aria-label', `Coffre de butin : ${sum.count} objet${sum.count > 1 ? 's' : ''}${sum.upgrade ? ' (amélioration)' : ''}`);
+      this.btn.className = this.btn.className.replace(/\br-\w+/g, '').trim();
+      if (sum.best) this.btn.classList.add(`r-${sum.best}`);
+      this.btn.classList.toggle('lb-epic', RANK.indexOf(sum.best) >= RANK.indexOf('epic'));
+      if (full && !this.btn.classList.contains('lb-full')) this.say('Coffre plein : trie-le', 3000);
+      this.btn.classList.toggle('lb-full', full);
+      if (!sum.count && this.open) this.toggle(false);
+      else if (this.open) this.render();
+    }
+    this.place(shown);
+  }
+
+  // Zone de toucher (≥ 44 px) exactement sur le coffre dessiné ; cachée quand la scène ne le dessine pas.
+  place(shown) {
+    const c = this.chest, r = c?.rect;
+    const now = typeof performance !== 'undefined' ? performance.now() : 0;
+    if (!shown || !r || now - c.drawnAt > 500) {
+      if (this.placeKey !== 'off') { this.placeKey = 'off'; this.btn.classList.add('hidden'); }
+      return;
+    }
+    if (!this.offset || now - this.offsetAt > 500) {
+      const cv = this.ui.renderer?.canvas, area = this.btn.parentElement;
+      const a = area?.getBoundingClientRect(), b = cv?.getBoundingClientRect();
+      this.offset = a && b ? { x: b.left - a.left, y: b.top - a.top } : { x: 0, y: 0 };
+      this.offsetAt = now;
+    }
+    const x = Math.round(this.offset.x + r.x), y = Math.round(this.offset.y + r.y);
+    const key = `${x}|${y}|${r.w}|${r.h}`;
+    if (key === this.placeKey) return;
+    this.placeKey = key;
+    const st = this.btn.style;
+    st.left = `${x}px`; st.top = `${y}px`; st.width = `${r.w}px`; st.height = `${r.h}px`;
+    this.btn.classList.remove('hidden');
   }
 
   destOf(item) { return this.choices[item.id] ?? suggestLootDest(this.state, item); }

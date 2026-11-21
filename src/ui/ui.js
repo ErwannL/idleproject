@@ -74,7 +74,7 @@ const QUEST_ICONS = { login: 'icon_book', kills: 'weapon_sword', bosses: 'icon_b
 function sealShort(n) {
   const num = n.text.match(/\((\d+)\)/)?.[1];
   const S = { claim: `🎁 ${num ?? 'Récupérer'}`, equip: '⬆ Équiper', upgrade: '⬆ Améliorer', skills: '✦ Compétence', rebirth: '♻ Renaître', quest: '★ Quête',
-    mentor: '💡 Conseil', place: '➕ Placer', team: '➕ Équipe', level: '⬆ Niveau', lootbag: '🎒 Butin', retry: '⚔ Boss', goal: '⚔ Objectif' };
+    mentor: '💡 Conseil', place: '➕ Placer', team: '➕ Équipe', level: '⬆ Niveau', lootbag: 'Coffre', retry: '⚔ Boss', goal: '⚔ Objectif' };
   return S[n.id] ?? `› ${n.text.split(/\s+/).slice(0, 2).join(' ')}`;
 }
 const QUEST_TAB_UI = { equipment: [null, null, 'inventory'], upgrades: [null, 'upgrades', null], skills: [null, 'skills', null], forge: ['inventory', 'inventory', null] };
@@ -2944,7 +2944,7 @@ export class UI {
       summary.gems ? tile(img('icon_gem'), `+${formatNumber(summary.gems)}`, 'Gemmes') : '',
       mats.shards ? tile(img('icon_shard'), `+${formatNumber(mats.shards)}`, 'Éclats') : '',
       rare.length ? `<div class="rw-tile rw-items">${rare.slice(0, 2).map((i) => itemFrame(i, { tag: 'div' })).join('')}<small>Objets rares</small></div>` : '',
-      summary.baggedCount ? tile('🎒', summary.baggedCount, 'À trier') : ''].filter(Boolean).slice(0, 4).join('');
+      summary.baggedCount ? tile(img('icon_chest'), summary.baggedCount, 'À trier') : ''].filter(Boolean).slice(0, 4).join('');
     const free = st && (st.expeditions?.slots ?? []).filter(Boolean).length === 0 && Object.keys(st.companions?.owned ?? {}).length >= 5;
     this.openModal(`<div class="rw-banner"><div class="rw-camp">${team.map((c) => img(c.sprite)).join('')}<span class="camp-flame">🔥</span><span class="rw-zz">z z</span></div>
         <div class="rw-title"><small>${summary.hours ? 'Chasse rapide' : 'Récit du Camp'}</small><b>${summary.hours ? `${summary.hours} h` : formatDuration(summary.elapsedSeconds)}</b></div>
