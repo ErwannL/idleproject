@@ -5,7 +5,7 @@
 // chaque événement le geste et l'effet de la campagne (companionBasic, companionSkill, kill…). Rien n'est redessiné.
 import { BALANCE } from '../data/balance.js';
 import { ZONES } from '../data/zones.js';
-import { ZONE_ELEMENT } from '../core/elements.js';
+import { arenaZoneIndex } from '../core/arena-cards.js'; // v10.3.1 : une seule règle pour le monde d'un étage
 import { BOSSES, ENEMIES } from '../data/enemies.js';
 import { enemyStats, zoneStartStage } from '../core/combat.js';
 import { SceneRenderer } from './scene.js';
@@ -57,10 +57,8 @@ export function arenaEngineType(card, zoneIndex) {
 }
 export const arenaZoneOf = (run) => zoneIndexOf(run.setup.cards[0]?.element ?? 'green', run.floor ?? 1);
 
-function zoneIndexOf(el, f) {
-  const zs = ZONE_ELEMENT.map((e, i) => [e, i]).filter(([e, i]) => e === el && ZONES[i] && !ZONES[i].gauntlet).map(([, i]) => i);
-  return zs.length ? zs[f % zs.length] : 0;
-}
+// v10.3.1 : même règle que les cartes (core/arena-cards.js) — le décor est toujours le monde du boss affiché.
+const zoneIndexOf = (el, f) => arenaZoneIndex(el, f);
 // v10.3 (audit) : illustration propre à une carte (« file:assets/… », les gardiens), dessinée par cette scène.
 export const arenaArtOf = (card) => (String(card?.sprite ?? '').startsWith('file:') ? card.sprite.slice(5) : null);
 const ART_HEIGHT = 100; // hauteur dans la scène (pixels du monde) : la taille d'un boss de fin de monde

@@ -51,9 +51,17 @@ function foe(n, el, mult, rng, name, rule) {
 // monstre dessiné ; le rôle (Lancier, Mage…) passe en sous-titre. Boss d'étage : le boss du monde ; gardiens : leur nom
 // et leur propre illustration (assets/ui/art102/guardian_*.png).
 const ROLE_SUB = ['Gladiateur', 'Lancier', 'Arbalétrier', 'Mage noir', 'Brute', 'Assassin'];
+// v10.3.1 : un étage de boss (10, 20, 30…) tourne sur les mondes de son élément au rythme des boss, pas des étages :
+// sinon tous tombaient sur le même monde (10, 20, 30… sont tous pairs et multiples de 5), donc sur le même boss.
+const zoneTurn = (f) => (isBossFloor(f) && !isGuardianFloor(f) ? Math.floor(f / 10) : f);
+export function arenaZoneIndex(el, f) {
+  const zs = ZONE_ELEMENT.map((e, i) => [e, i]).filter(([e, i]) => e === el && ZONES[i] && !ZONES[i].gauntlet).map(([, i]) => i);
+  return zs.length ? zs[zoneTurn(f) % zs.length] : 0;
+}
+// L'élément d'un étage ne change pas (l'équilibrage calibré en dépend) : seul le monde tourne, parmi ceux de l'élément.
+export const floorElement = (f) => ELS[f % ELS.length];
 function zoneOf(el, f) {
-  const zs = ZONE_ELEMENT.map((e, i) => [e, i]).filter(([e]) => e === el).map(([, i]) => i);
-  return ZONES[zs.length ? zs[f % zs.length] : 0] ?? ZONES[0];
+  return ZONES[arenaZoneIndex(el, f)] ?? ZONES[0];
 }
 export function monsterOf(el, f, slot) {
   const z = zoneOf(el, f);
@@ -71,7 +79,7 @@ export function floorCards(f, cal = { hp: 1, atk: 1 }) {
   const r = new Rng(f * 7919 + 13); const rng = () => r.next();
   const rule = floorRule(f);
   const n = f * A.scale;
-  const el = ELS[f % ELS.length];
+  const el = floorElement(f);
   const cards = [];
   const base = { hp: cal.hp, atk: cal.atk, def: 1 };
   const m = (o) => ({ ...o, hp: o.hp * cal.hp, atk: o.atk * cal.atk });
