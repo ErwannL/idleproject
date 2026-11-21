@@ -367,3 +367,5 @@
 #app #panel .m-row .m-icon { width: 72px !important; height: 72px !important; flex: none; } #app #panel .m-row .m-icon img { width: 68px !important; height: 68px !important; }
 #app #panel .db-card .db-art { width: 96px; } #app #panel .db-card .db-art img { width: 96px !important; height: 96px !important; }
 #app #panel .upg-page107 .upg-pg-top { height: 160px; }
+#app #panel .upg-page107 .upg-pg-top { height: 240px; } #app #panel .upg-page107 .upg-group-head { height: 72px; }
+#app #panel .upg-page107 .upg-pg-top { height: 300px; } #app #panel .upg-page107 .upg-bb-medal { width: 170px; height: 170px; }
