@@ -4,6 +4,8 @@ let LK = () => null;
 const L = (s) => LK(s) ?? s;
 const TRADE = { forgeron: 'smith', forgeronne: 'smith', savant: 'scholar', savante: 'scholar', mineur: 'miner', mineuse: 'miner', 'entraîneur': 'trainer', 'entraîneuse': 'trainer', marchand: 'merchant', marchande: 'merchant', ouvrier: 'worker' };
 
+const RES = { 'éclat': 'shard', 'éclats': 'shards', grimoire: 'grimoire', grimoires: 'grimoires', pierre: 'stone', pierres: 'stones', essence: 'essence', essences: 'essences' };
+
 export const EXACT_1040_BASTION = {
   'Carte': 'Map',
   'Commandes': 'Orders',
@@ -31,8 +33,10 @@ export const EXACT_1040_BASTION = {
 };
 
 export const patterns1040Bastion = (lookup = () => null) => { LK = lookup; return [
+  [/^(\d+) compagnons? libres?$/, (m) => `${m[1]} free companion${m[1] === '1' ? '' : 's'}`],
+  [/^(\d+) (éclats?|grimoires?|pierres?|essences?) → (\d+) (éclats?|grimoires?|pierres?|essences?) \(tu as (.+)\)$/, (m) => `${m[1]} ${RES[m[2]]} → ${m[3]} ${RES[m[4]]} (you have ${m[5].replace(/(\d),(\d)/g, '$1.$2')})`],
   // « Reine démone, forgeronne : +40 % »
-  [/^(.+), (forgeronne?|savante?|mineur|mineuse|entraîneur|entraîneuse|marchande?|ouvrier) : \+(\d+) %$/, (m) => `${L(m[1])}, ${TRADE[m[2]]}: +${m[3]}%`],
+  [/^(.+), (forgeron(?:ne)?|savante?|mineur|mineuse|entraîneur|entraîneuse|marchande?|ouvrier) : \+(\d+) %$/, (m) => `${L(m[1])}, ${TRADE[m[2]]}: +${m[3]}%`],
   [/^Chantier offert : (.+), (.+)$/, (m) => `Free building work: ${L(m[1])}, ${L(m[2])}`],
   [/^Après : (.+)$/, (m) => `After: ${L(m[1])}`],
   [/^Bastion niv\. (\d+)$/, (m) => `Bastion lv. ${m[1]}`],
@@ -42,11 +46,11 @@ export const patterns1040Bastion = (lookup = () => null) => { LK = lookup; retur
   [/^Places prises \((\d+)\)$/, (m) => `Slots taken (${m[1]})`],
   [/^Recherches (\d+)\/(\d+)$/, (m) => `Research ${m[1]}/${m[2]}`],
   [/^Bastion : (\d+) à voir$/, (m) => `Bastion: ${m[1]} to see`],
-  [/^(.+) · à l'arrêt$/, (m) => `${L(m[1])} · at a standstill`],
-  [/^(.+) sans bonus$/, (m) => `${L(m[1])} without bonus`],
+  [/^(\d.*) · à l'arrêt$/, (m) => `${L(m[1])} · at a standstill`],
+  [/^(\d.*) sans bonus$/, (m) => `${L(m[1])} without bonus`],
   [/^Métier conseillé : (.+) \(\+(\d+) %\)$/, (m) => `Best trade: ${L(m[1])} (+${m[2]}%)`],
-  [/^(.+) par heure$/, (m) => `${L(m[1])} per hour`],
-  [/^(.+) par jour$/, (m) => `${L(m[1])} per day`],
+  [/^([\d,]+ (?:éclats|grimoires)) par heure$/, (m) => `${L(m[1])} per hour`],
+  [/^([\d,]+ (?:éclats|grimoires)) par jour$/, (m) => `${L(m[1])} per day`],
   [/^([\d,]+) (éclats|grimoires)$/, (m) => `${m[1].replace(',', '.')} ${m[2] === 'éclats' ? 'shards' : 'grimoires'}`],
   [/^(Forge du forgeron|Bibliothèque|Mine de cristal|Camp d'entraînement|Comptoir|Expéditions) : (.+)$/, (m) => `${L(m[1])}: ${L(m[2])}`],
 ]; };

@@ -249,3 +249,23 @@
 .bs-tree.below .bs-bhead { width: 56px; }
 @media (min-height: 900px) { .bs-wgrid { grid-template-columns: repeat(auto-fill, minmax(74px, 1fr)); } .bs-wcard .bs-wpic { width: 58px; height: 58px; } }
 #app.page-narrow .bs-tree .bs-branches { padding: 4px 6px; } #app.page-narrow .bs-tree .bs-bhead { width: 100%; } #app.page-narrow .bs-tree .bs-bhead img { width: 30px; height: 30px; }
+
+/* Compagnons libres : une bande d'herbe sous la carte, chacun avec l'icône de son métier. */
+.bs-idlers { display: flex; align-items: flex-end; justify-content: center; gap: 2px; width: 100%; height: 104px; padding: 4px 10px 6px; border-radius: 12px; border: 2px solid #6a5a2c;
+  background-size: 180% auto; background-position: 40% 76%; image-rendering: pixelated; cursor: pointer; overflow: hidden; box-sizing: border-box; justify-content: space-evenly; }
+.bs-idlers.hidden { display: none; }
+.bs-idlers:hover { border-color: #e8b64a; }
+.bs-idler { position: relative; flex: 0 1 64px; min-width: 36px; height: 86px; display: grid; place-items: end center; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .55)); }
+.bs-idler > img.still { width: 64px; height: 64px; object-fit: contain; image-rendering: pixelated; }
+.bs-idler > img:not(.still) { position: absolute; top: 0; right: 4px; width: 22px; height: 22px; image-rendering: pixelated; }
+/* Grand écran : l'en-tête illustré de la fiche grandit avec la hauteur de la fenêtre. */
+@media (min-height: 900px) {
+  .bs-hero { height: clamp(150px, 22vh, 230px); }
+  .bs-hero-b { width: 200px; height: 200px; }
+  .bs-hero-w { width: 84px; left: calc(50% - 150px); }
+  .bs-ba.big img { width: 120px; height: 120px; }
+}
+
+/* Bandeau du haut : le village au lever du soleil (PixelLab), voilé pour garder les chiffres lisibles. */
+#app#app.page-ui .bs-top { position: relative; padding: 6px 10px; border-radius: 12px; border: 2px solid #4b3d22; box-sizing: border-box; isolation: isolate;
+  background: linear-gradient(90deg, rgba(8, 12, 24, .55), rgba(8, 12, 24, .15)), url(../../assets/ui/art104/bastion_away.png) center 38% / cover no-repeat; image-rendering: pixelated; }

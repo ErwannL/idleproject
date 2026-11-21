@@ -60,7 +60,7 @@ const measure = (page) => page.evaluate(() => {
   const pics = [...pg.querySelectorAll('*')].filter((e) => {
     const cs = getComputedStyle(e);
     if (cs.display === 'none' || cs.visibility === 'hidden' || e.closest('.hidden')) return false;
-    return e.tagName === 'IMG' || e.tagName === 'CANVAS' || cs.backgroundImage.startsWith('url(');
+    return e.tagName === 'IMG' || e.tagName === 'CANVAS' || cs.backgroundImage.includes('url(');
   }).map((e) => clip(e.getBoundingClientRect(), e)).filter((b) => b.r > b.l && b.b > b.t);
   const x0 = Math.max(0, r.left), x1 = Math.min(innerWidth, r.right), y0 = Math.max(0, r.top), y1 = Math.min(innerHeight, r.bottom);
   let pts = 0, hit = 0;
@@ -109,7 +109,7 @@ for (const [w, h] of [[1116, 993], [1280, 720], [1716, 1000], [390, 844]]) {
   ok(`${tag} : Bastion atteint depuis le menu du bas en ${taps} touchers (Équipe › Bastion)`, taps <= 2 && await page.evaluate(() => __idle.ui.tab === 'camp' && Boolean(document.querySelector('.bs-pg'))));
   // ---- Le lancer : première ouverture.
   const kick = await page.evaluate(() => { const b = __idle.state.bastion; return { workers: Object.values(b.buildings).filter((x) => x.worker).length, builds: Object.values(b.buildings).filter((x) => x.build).length, kicked: b.kicked > 0, ribbon: document.querySelector('.bs-kick')?.textContent.replace(/\s+/g, ' ').trim() ?? '' }; });
-  ok(`${tag} : première ouverture — ouvriers posés, chantier offert lancé, annoncés (« …, forgeron : +25 % »)`, kick.workers >= 1 && kick.builds >= 1 && kick.kicked && /(forgeronne?|savante?) : \+\d+ %/.test(kick.ribbon) && /Chantier offert/.test(kick.ribbon), JSON.stringify(kick));
+  ok(`${tag} : première ouverture — ouvriers posés, chantier offert lancé, annoncés (« …, forgeron : +25 % »)`, kick.workers >= 1 && kick.builds >= 1 && kick.kicked && /(forgeron(?:ne)?|savante?) : \+\d+ %/.test(kick.ribbon) && /Chantier offert/.test(kick.ribbon), JSON.stringify(kick));
   await shot(page, '1-demarrage');
   // Fermer puis rouvrir : pas de second démarrage.
   await page.evaluate(() => { __idle.ui.closePanel(); });
@@ -246,6 +246,31 @@ for (const [w, h] of [[1116, 993], [1280, 720], [1716, 1000], [390, 844]]) {
   await page.waitForTimeout(1500);
   ok(`${tag} : l'écran ne revient pas`, await page.evaluate(() => document.getElementById('modal').classList.contains('hidden') || !document.getElementById('bastion-away')));
   ok(`${tag} : aucune erreur JavaScript`, page.errors.length === 0, page.errors.slice(0, 3).join(' | '));
+  await ctx.close();
+}
+// ---- Carte de déblocage (étape 40) : « Essayer maintenant » ouvre le Bastion (cartes montrées avec ?learn sous automate).
+{
+  const ctx = await browser.newContext({ viewport: { width: 1116, height: 993 } });
+  const page = await ctx.newPage();
+  page.errors = []; page.on('pageerror', (e) => page.errors.push(e.message));
+  await page.addInitScript((r) => { if (!sessionStorage.getItem('c')) { localStorage.setItem('idle-rpg.save', r); sessionStorage.setItem('c', '1'); } }, raw);
+  await page.goto(`${url}?learn`);
+  await page.waitForFunction(() => window.__idle?.ui, null, { timeout: 30000 });
+  await page.waitForTimeout(2000);
+  let card = null;
+  for (let i = 0; i < 30 && !card; i++) {
+    await page.evaluate(() => { __idle.ui.closeModal(); document.querySelectorAll('.learn-card:not(.bastion-card) [data-close], .howto-card [data-close]').forEach((b) => b.click()); });
+    await page.waitForTimeout(700);
+    card = await page.evaluate(() => { const c = document.querySelector('.bastion-card'); return c ? { title: c.querySelector('b')?.textContent, go: c.querySelector('[data-go]')?.textContent, img: c.querySelector('img')?.getAttribute('src') } : null; });
+  }
+  ok('carte de déblocage du Bastion (étape 40) : « Essayer maintenant », image PixelLab', card && /Bastion/.test(card.title) && card.go === 'Essayer maintenant' && /art104/.test(card.img ?? ''), JSON.stringify(card));
+  await page.screenshot({ path: `${out}/1116x993-6-carte-deblocage.png` });
+  const t0 = Date.now();
+  if (card) await page.locator('.bastion-card [data-go]').click();
+  await page.waitForTimeout(900);
+  const went = await page.evaluate(() => ({ tab: __idle.ui.tab, kicked: __idle.state.bastion?.kicked > 0, workers: Object.values(__idle.state.bastion?.buildings ?? {}).filter((x) => x.worker).length }));
+  ok('« Essayer maintenant » ouvre le Bastion en un toucher (moins de 10 s), qui se lance', went.tab === 'camp' && went.kicked && went.workers >= 1 && Date.now() - t0 < 10000, JSON.stringify(went));
+  ok('carte de déblocage : aucune erreur JavaScript', page.errors.length === 0, page.errors.slice(0, 3).join(' | '));
   await ctx.close();
 }
 const n = results.filter(Boolean).length;

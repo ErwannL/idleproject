@@ -51,7 +51,7 @@ const overflow = (page) => page.evaluate(() => {
   const wide = [...body.querySelectorAll('.bastion *')].filter((e) => !e.closest('.bs-village') && e.getBoundingClientRect().right > body.getBoundingClientRect().right + 1 && e.offsetParent !== null).length;
   return { doc: document.documentElement.scrollWidth - innerWidth, panel: body.scrollWidth - body.clientWidth, wide };
 });
-const tap = async (page, sel) => { await page.locator(sel).first().scrollIntoViewIfNeeded(); await page.locator(sel).first().click(); await page.waitForTimeout(350); };
+const tap = async (page, sel) => { await page.evaluate(() => { if (document.querySelector('#modal:not(.hidden) #bastion-away')) __idle.ui.closeModal(); }); await page.locator(sel).first().scrollIntoViewIfNeeded(); /* v10.4 : « Pendant ton absence » passe d'abord */ await page.locator(sel).first().click(); await page.waitForTimeout(350); };
 // Téléphone : la feuille du bas couvre la liste ; on la ferme (✕) avant de toucher un autre bâtiment.
 const closeSheet = async (page, w) => { if (w <= 560 && await page.locator('.bs-side.is-open .bs-close').count()) await tap(page, '.bs-side.is-open .bs-close'); };
 // v10.4 : la carte (et pas l'arbre des recherches) ; un bâtiment s'ouvre d'un toucher ; un portrait pose l'ouvrier.

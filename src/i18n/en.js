@@ -2087,4 +2087,4 @@ PATTERNS.unshift(...patterns1031Chest());
 // v10.4 (partie 6) : le Bastion en page, démarrage, tour, « Pendant ton absence » (./en-1040-bastion.js).
 import { EXACT_1040_BASTION, patterns1040Bastion } from './en-1040-bastion.js';
 for (const [k, v] of Object.entries(EXACT_1040_BASTION)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
-PATTERNS.push(...patterns1040Bastion(lookup));
+PATTERNS.unshift(...patterns1040Bastion(lookup)); // en tête : « Nain guerrier, forgeron : +25 % » avant les motifs plus larges

@@ -15,7 +15,7 @@ import { BASTION_MAX_LEVEL, BASTION_UNLOCK_STAGE, FORGE_PERKS, LIBRARY, RESEARCH
 import {
   BUILDINGS, ORDER_TIERS, RESEARCH, RESEARCH_BRANCHES, TRADES, availableWorkers, bastionLevel, bastionOf, buildCost, buildRemaining, buildingAccess,
   buildingDef, buildingLevel, canBuild, canOrder, canResearch, forgePerks, orderChances, orderCost, orderLabel, orderRemaining, orderSlots, orderTierOpen,
-  ordersReady, productionFactor, productionOf, researchCost, researchLevel, researchRemaining, researchSlots, researchStatus, stockOf, tradeLeft,
+  ordersReady, productionFactor, productionOf, researchCost, researchRemaining, researchSlots, researchStatus, stockOf, tradeLeft,
   tradeOf, tradeOffer, workerBonus, workerBuilding, workerOf, workerSlots, workersPlaced,
 } from '../../core/bastion.js';
 import { placedLine, tipSeen } from '../../core/bastion-start.js';
@@ -486,7 +486,7 @@ function renderBastion(ui, state) {
         <span class="bs-chip lvl" title="Niveau du Bastion : somme des niveaux">${img(`file:${ART('scene_tower')}`)}<b class="num">${bastionLevel(state)}</b></span>
         ${ready ? `<span class="bs-chip good">${img(slotIconName('weapon'))}<b class="num">${ready}</b></span>` : ''}
       </div>
-      <div class="pg-main bs-main">${view === 'research' ? researchTree(ui, state, now) : `${villageMap(ui, state, now)}${researchTree(ui, state, now, true)}`}</div>
+      <div class="pg-main bs-main">${view === 'research' ? researchTree(ui, state, now) : `${villageMap(ui, state, now)}${researchTree(ui, state, now, true)}${idlers(state)}`}</div>
       <div class="pg-side bs-side${open ? ' is-open' : ''}" id="bs-detail" data-sel="${escapeHtml(view === 'research' ? v.bastionRes ?? '' : v.bastionSel ?? '')}">${side}</div>
     </div>`;
 }
@@ -559,7 +559,21 @@ function fitMap(body) {
   if (h > 40 && !body.closest('.page-narrow')) world.style.setProperty('--map-h', `${h - 4}px`);
   // Sous la carte, l'arbre des Recherches quand la place le permet (sinon il est derrière « Recherches »).
   const tree = main.querySelector('.bs-tree.below');
-  if (tree) tree.classList.toggle('hidden', !body.closest('.page-narrow') && main.clientHeight - world.offsetHeight < tree.offsetHeight + 12);
+  const idle = main.querySelector('.bs-idlers');
+  const narrow = Boolean(body.closest('.page-narrow'));
+  const spare = main.clientHeight - world.offsetHeight;
+  if (tree) tree.classList.toggle('hidden', !narrow && spare < tree.offsetHeight + 12);
+  // Sinon, s'il reste une bande : les compagnons libres, qui attendent un poste.
+  if (idle) idle.classList.toggle('hidden', narrow || !tree?.classList.contains('hidden') || spare < 96);
+}
+
+// Bande des compagnons libres (ni dans l'équipe, ni en expédition, ni au travail), debout sur l'herbe du village.
+function idlers(state) {
+  const free = availableWorkers(state).filter((c) => !workerBuilding(state, c.id));
+  if (!free.length) return '';
+  const need = BUILDINGS.find((d) => !d.existing && buildingAccess(state, d.id).available && !workerOf(state, d.id));
+  return `<button class="bs-idlers hidden" style="background-image:url(${ART('bastion_map')})" data-action="bastion-open" data-value="${need?.id ?? 'forge'}" title="${escapeHtml(`${free.length} compagnons libres`)}" aria-label="${escapeHtml(`${free.length} compagnons libres`)}">
+      ${free.slice(0, 14).map((c) => `<span class="bs-idler" title="${escapeHtml(`${c.name} · ${TRADES[tradeOf(c.id)]?.label ?? ''}`)}">${companionStill(c)}<img class="px" src="${tradeArt(tradeOf(c.id))}" alt=""></span>`).join('')}</button>`;
 }
 
 export default {
