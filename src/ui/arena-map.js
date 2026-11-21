@@ -53,7 +53,7 @@ export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
   el.innerHTML = `<div class="am-top"><b>${title}</b>
       ${rule ? `<span class="am-rule">${ruleArt(rule.id) ? `<img class="px" src="${ruleArt(rule.id)}" alt="">` : ''}${ruleDup(rule) ? `<b>${escapeHtml(rule.text)}</b>` : `<b>${escapeHtml(ruleName(rule.id))}</b> : ${escapeHtml(rule.text)}`}</span>` : ''}
       <span class="am-time"><i>⏱</i><b class="num">0 s</b>${run.survival ? '' : `<small>3 ★ en moins de ${A.star3} s</small>`}</span><span class="am-stars">★★★</span></div>
-    <div class="am-stage"><canvas class="px am-canvas"></canvas><div class="am-names" aria-hidden="true"></div>
+    <div class="am-stage"><canvas class="px am-canvas"></canvas><div class="am-flash" aria-hidden="true"></div><div class="am-names" aria-hidden="true"></div>
       <div class="am-boss hidden"><b></b><span class="am-boss-bar"><i></i></span><small class="num"></small><span class="am-mech hidden"><i>◆</i><b></b><span></span></span></div></div>
     <div class="am-bottom"><div class="am-cards"></div>
       <div class="am-ctrl"><button class="btn small am-speed" type="button">×1</button><button class="btn small am-mode" type="button">Auto</button><button class="btn small am-skip" type="button">Passer ⏭</button></div></div>
@@ -151,6 +151,7 @@ export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
     scene.quiet = scene.fired < run.events.length; // v10.3.1 : Passer → fin sans avalanche d'effets
     while (scene.fired < run.events.length) scene.play(run.events[scene.fired++]);
     scene.quiet = false;
+    canvas.style.transform = ''; el.querySelector('.am-flash').style.opacity = '0';
     scene.t = Math.max(scene.t, (run.seconds ?? 0) + 1);
     updateCards();
     el.querySelector('.am-ctrl').classList.add('hidden');
@@ -175,6 +176,22 @@ export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
     end.querySelector('.am-retry')?.addEventListener('click', () => { close(); onRetry?.(); });
   };
   el.close = close;
+  // v10.3.1 : ultime — zoom léger sur le compagnon (0,4 s) et flash à sa couleur avant l'effet ; sans zoom avec
+  // « réduire les animations » (le flash reste, adouci).
+  const flashEl = el.querySelector('.am-flash');
+  let zoomed = false;
+  const ultFx = () => {
+    const u = ended ? null : scene.ultFocus();
+    if (u && u.scale > 1.001 && !reduceMotion()) {
+      canvas.style.transformOrigin = `${Math.round(u.x)}px ${Math.round(u.y)}px`;
+      canvas.style.transform = `scale(${u.scale.toFixed(4)})`;
+      zoomed = true;
+    } else if (zoomed) { canvas.style.transform = ''; zoomed = false; }
+    const a = u ? u.flash * (reduceMotion() ? 0.5 : 1) : 0;
+    flashEl.style.opacity = a > 0.005 ? a.toFixed(3) : '0';
+    if (u) { flashEl.style.setProperty('--flash', u.color); flashEl.style.setProperty('--fx', `${Math.round(u.x)}px`); flashEl.style.setProperty('--fy', `${Math.round(u.y)}px`); }
+    el.dataset.ult = u && (u.scale > 1.001 || a > 0.005) ? String(u.pos) : '';
+  };
   const frame = (now) => {
     if (!el.isConnected) return;
     if (skip && !ended) finish();
@@ -186,6 +203,7 @@ export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
       if (manual && nx?.kind === 'ult' && nx.side === 'ally' && nx.t <= scene.t - 1 + dt && waitUlt === null && !scene.ultDone?.has(scene.fired)) { waitUlt = nx.from; (scene.ultDone ??= new Set()).add(scene.fired); }
       const hold = waitUlt != null;
       while (dt > 0) { const s = Math.min(dt, ARENA_STEP * 2); scene.step(s, { hold }); dt -= s; }
+      ultFx();
       updateCards();
       if (scene.done) finish();
     } else scene.step(Math.min(0.05, dt));

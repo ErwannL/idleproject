@@ -112,3 +112,19 @@ test('6.2 — scène : la mécanique jouée (serviteurs qui surgissent et tomben
   assert.match(src('src/ui/arena-map.js'), /am-mech/);
   assert.match(src('index.html'), /src\/ui\/arena1031\.css/);
 });
+
+test('6.2 — ultime : zoom léger de 0,4 s sur le compagnon et flash à sa couleur avant l\'effet ; rien avec « réduire les animations »', () => {
+  const { run, scene } = sceneOf(10);
+  scene.r.layout = scene.r.teamLayout(scene.state);
+  const ult = run.events.find((e) => e.kind === 'ult' && e.side === 'ally');
+  assert.ok(ult);
+  assert.equal(S.ArenaScene.ULT_LEAD, 0.4);
+  const at = (dt) => { scene.t = ult.t + 1 + dt; while (scene.fired < run.events.length && run.events[scene.fired].t < scene.t - 1 && run.events[scene.fired] !== ult) scene.fired++; return scene.ultFocus(); };
+  assert.equal(at(-0.5), null, 'avant les 0,4 s : rien');
+  const mid = at(-0.2), end = at(-0.01);
+  assert.ok(mid && mid.pos === ult.from && mid.scale > 1 && mid.scale < end.scale && end.scale <= 1.08 + 1e-9, JSON.stringify({ mid, end }));
+  assert.ok(end.flash > mid.flash && end.flash > 0.3 && /^#/.test(end.color), 'le flash monte avant l\'effet, à la couleur du compagnon');
+  const code = src('src/ui/arena-map.js');
+  assert.match(code, /scene\.ultFocus\(\)/);
+  assert.match(code, /u\.scale > 1\.001 && !reduceMotion\(\)/, 'pas de zoom avec « réduire les animations »');
+});

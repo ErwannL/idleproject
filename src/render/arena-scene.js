@@ -523,6 +523,32 @@ export class ArenaScene {
     }
   }
 
+  // v10.3.1 (6.2) : ultime — zoom léger de 0,4 s sur le compagnon et flash à sa couleur AVANT l'effet (l'événement
+  // part à la fin du zoom), puis retour en 0,3 s. Renvoie null hors d'un ultime ; sinon le point visé (pixels CSS de la
+  // scène), l'échelle du zoom (1 → 1,08) et l'opacité du flash (0 → 0,45 sur la fin du zoom).
+  static ULT_LEAD = 0.4;
+  ultFocus() {
+    const now = this.t - 1;
+    if (!this.ultNext || this.ultNext.t + 0.35 < now) {
+      this.ultNext = null;
+      for (let i = this.fired; i < this.run.events.length; i++) {
+        const e = this.run.events[i];
+        if (e.t - ArenaScene.ULT_LEAD > now) break;
+        if (e.kind === 'ult' && e.side === 'ally' && this.allyAt.get(e.from) && !this.down.has(e.from)) { this.ultNext = e; break; }
+      }
+    }
+    const e = this.ultNext;
+    if (!e) return null;
+    const k = (now - (e.t - ArenaScene.ULT_LEAD)) / ArenaScene.ULT_LEAD; // 0 → 1 pendant le zoom, au-delà : retour
+    if (k < 0) return null;
+    const ease = (x) => x * x * (3 - 2 * x);
+    const zoom = k <= 1 ? ease(k) : Math.max(0, 1 - (k - 1) / 0.75);
+    const flash = k < 0.6 ? 0 : k <= 1 ? (k - 0.6) / 0.4 : Math.max(0, 1 - (k - 1) / 0.35);
+    const card = this.allyAt.get(e.from);
+    const m = this.allyMarks().find((a) => a.pos === e.from);
+    return { pos: e.from, x: m?.x ?? this.css.w / 3, y: (m?.foot ?? this.css.h * 0.7) - 30, scale: 1 + 0.08 * zoom, flash: 0.45 * flash, color: this.colorOf(card) };
+  }
+
   // Avance d'un pas : les monstres s'avancent (deux rangs), puis les événements du combat.
   step(dt, { hold = false } = {}) {
     const world = this.world;
