@@ -68,6 +68,15 @@ const overflow = (page) => page.evaluate(() => {
   const wide = [...b.querySelectorAll('.eq *, .fg *')].filter((e) => e.getBoundingClientRect().right > b.getBoundingClientRect().right + 1 && !e.closest('.eq-whos')).length;
   return { doc: document.documentElement.scrollWidth - innerWidth, body: b.scrollWidth - b.clientWidth, wide };
 });
+// v10.3.1 : sous chaque place, le premier mot de l'objet (« Heaume · Commun ») : jamais coupé par « … » ni rogné, et le nom
+// complet est dans le `title` de la place. Les noms sont masqués sur téléphone (6 places) : alors seul le `title` compte.
+const slotNames = (page, who) => page.evaluate((who) => [...document.querySelectorAll('.eq-doll .eq-slot:not(.empty)')].map((b) => {
+  const n = b.querySelector('.eq-slot-name'); const shown = Boolean(n) && n.offsetParent !== null; const cs = n && getComputedStyle(n);
+  // Héros : le nom vient de la partie ; compagnon : de la place elle-même (« Arme : Épée courte »), donc seul le premier mot est comparé.
+  const full = who === 'hero' ? __idle.state.equipment[b.dataset.value]?.name ?? null : b.title.split(' : ').slice(1).join(' : ') || null;
+  return { place: b.dataset.value, text: n?.textContent.trim(), shown, full, titleHasFull: Boolean(full) && b.title.includes(full),
+    cut: shown && (n.scrollWidth > n.clientWidth + 1 || /…|\.\.\./.test(n.textContent) || cs.textOverflow === 'ellipsis') };
+}), who);
 const dotted = (page, sel) => page.evaluate((sel) => [...document.querySelectorAll(sel)].map((e) => e.innerText).join(' ').match(/.{0,20}\d\.\d.{0,12}/)?.[0] ?? null, sel);
 
 for (const [w, h] of [[1116, 993], [1280, 720], [390, 844]]) {
@@ -101,10 +110,14 @@ for (const [w, h] of [[1116, 993], [1280, 720], [390, 844]]) {
     await page.waitForTimeout(250);
   }
   ok(`${tag} : Équipement sans débordement horizontal`, await overflow(page).then((o) => o.doc <= 0 && o.body <= 0 && o.wide === 0), JSON.stringify(await overflow(page)));
+  const hn = await slotNames(page, 'hero');
+  ok(`${tag} : aucun nom d'objet coupé par « … » sous les places du héros, nom complet dans le title`, hn.length === 6 && hn.every((x) => !x.cut && x.titleHasFull && (phone ? true : x.shown && x.text.split(' · ')[0] === x.full.split(' ')[0])), JSON.stringify(hn));
   ok(`${tag} : aucun nombre avec un point décimal (Équipement)`, (await dotted(page, '.eq')) === null, String(await dotted(page, '.eq')));
   // 2. Compagnon : 3 places, bonus écrits avec une virgule.
   await page.evaluate(() => { Object.assign(__idle.ui.view, { gearWho: __idle.state.companions.equipped[0], selectedItemId: null, eqSlot: null, sheetOpen: null }); __idle.ui.renderPanel(__idle.state); });
   slots = await visible(page, '.eq-doll .eq-slot');
+  const cn = await slotNames(page, 'unit');
+  ok(`${tag} : aucun nom d'objet coupé par « … » sous les places du compagnon (${cn.length} objets portés)`, cn.every((x) => !x.cut && x.titleHasFull && (!x.shown || x.text.split(' · ')[0] === x.full.split(' ')[0])), JSON.stringify(cn));
   ok(`${tag} : compagnon à 3 places visibles`, slots.length === 3 && slots.every(Boolean), JSON.stringify(slots));
   ok(`${tag} : compagnon sans point décimal ni débordement`, (await dotted(page, '.eq')) === null && (await overflow(page).then((o) => o.doc <= 0 && o.body <= 0 && o.wide === 0)), `${await dotted(page, '.eq')} ${JSON.stringify(await overflow(page))}`);
   await page.screenshot({ path: `${out}/compagnon-${w}.png` });
@@ -125,6 +138,8 @@ for (const [w, h] of [[1116, 993], [1280, 720], [390, 844]]) {
   if (phone) await page.evaluate(() => { __idle.ui.view.sheetOpen = null; __idle.ui.renderPanel(__idle.state); });
   await page.click('.eq-doll .eq-slot[data-value="weapon"]');
   await page.waitForSelector('.eq-sheet [data-action="upgrade-item"]:not([disabled])');
+  const sheetName = await page.evaluate(() => ({ shown: (document.querySelector('#unit-host .eq-sheet') ?? document.querySelector('.eq-main > .eq-sheet')).querySelector('.eq-name')?.textContent.trim(), full: __idle.state.equipment.weapon.name }));
+  ok(`${tag} : la fiche donne le nom complet de l'objet`, sheetName.shown?.startsWith(sheetName.full), JSON.stringify(sheetName));
   const promised = await page.evaluate(() => { const root = document.querySelector('#unit-host .eq-sheet') ?? document.querySelector('.eq-main > .eq-sheet');
     return { power: root.querySelector('.eq-row.pw b')?.textContent, stat: [...root.querySelectorAll('.eq-reinf .eq-row.chg:not(.pw)')].map((r) => [r.firstElementChild.textContent, r.querySelector('b').textContent])[0] }; });
   await page.click('.eq-sheet [data-action="upgrade-item"]');

@@ -425,5 +425,9 @@ import { EXACT_103_BASTION, patterns103Bastion } from './ko-103-bastion.js';
 for (const [k, v] of Object.entries(EXACT_103_BASTION)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.push(...patterns103Bastion(lookup));
 // v10.3.1 : feuille de donjon (./ko-1031-dungeons.js).
-import { EXACT_1031 } from "./ko-1031-dungeons.js";
+import { EXACT_1031 as EXACT_1031_DUNGEONS } from './ko-1031-dungeons.js';
+for (const [k, v] of Object.entries(EXACT_1031_DUNGEONS)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+// v10.3.1 : finitions — lexique du Bastion, ligne « maintenant » de la Forge (./ko-1031-finitions.js).
+import { EXACT_1031, patterns1031 } from './ko-1031-finitions.js';
 for (const [k, v] of Object.entries(EXACT_1031)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.push(...patterns1031(lookup));

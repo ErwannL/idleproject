@@ -74,8 +74,13 @@ export const BUILD_STEPS = [
   { minutes: 480, goldKills: 140_000, shards: 4000 },
 ];
 
-// Mine de cristal : éclats par heure (calé sur le recyclage : un Rare = 3 éclats) et stock de 6 à 12 h.
-export const MINE = { basePerHour: 5, perLevel: 5, capHours: [6, 12] };
+// Mine de cristal : éclats par heure et stock de 6 à 12 h. Calée sur le recyclage d'un objet de l'étape max
+// (BALANCE.materials.shards : Épique 18, Légendaire 50) et sur les Expéditions (15 éclats/h × puissance du compagnon,
+// soit 15 à 60/h par compagnon envoyé) : 25/h au niveau 1 (un objet Épique recyclé par heure), 115/h au niveau 10
+// (de quoi payer un renfort par jour). Avant (10.3.0) : 5 + 5 par niveau, soit 10 à 55/h — moins qu'un seul compagnon
+// en expédition. Le prix des chantiers (jusqu'à 4 000 éclats) et la borne « +25 % en 7 jours » ne bougent pas :
+// la mine rend le Bastion moins gourmand, elle ne rend pas le joueur plus fort (voir tools/sim-bastion.mjs).
+export const MINE = { basePerHour: 15, perLevel: 10, capHours: [6, 12] };
 // Camp d'entraînement : grimoires par heure (les missions du jour en donnent 6), stock de 6 à 12 h.
 export const TRAINING = { basePerHour: 0.15, perLevel: 0.05, capHours: [6, 12] };
 // Bibliothèque : une recherche à la fois (deux au niveau 6), durée −5 % par niveau au-delà du premier.

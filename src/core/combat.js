@@ -13,7 +13,7 @@ import { trackContracts } from './contracts.js';
 import { completeDungeon, dungeonById, dungeonKill, failDungeon , dungeonRooms, routeHp } from './dungeon.js';
 import { addGold } from './economy.js';
 import { rollEvent } from './events.js';
-import { collectItem } from './inventory.js';
+import { collectItem, isUpgrade } from './inventory.js';
 import { addXp, killXp } from './level.js';
 import { generateItem, makeSignatureItem, rarityIndex } from './loot.js';
 import { cheatLoot } from './cheats.js';
@@ -24,7 +24,7 @@ import { applyEnvironment, environmentFor } from './environment.js'; // v9.2.1
 import { earlyBoost } from './boost.js';
 import { phantomHitPct, rushById, tickRushes } from './rushes.js';
 import { recordKill } from './codex.js';
-import { activeClass, classRange } from './classes.js';
+import { activeClass, canEquip, classRange } from './classes.js';
 import { BOSS_MINIONS, BOSS_TRAITS, TRAITS, tickTide, traitAttack, traitDamageTaken } from './boss-traits.js'; // v9.2.0 (monde marin) : Marée
 import { DUNGEON_DIFFICULTIES } from '../data/dungeons.js';
 import { enemyScaleFactor } from './transcend.js';
@@ -609,7 +609,13 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
   if (common && balance.loot.killShardChance && rng.next() < balance.loot.killShardChance) state.materials.shards += 1;
   // v9.9 (K5) : premier objet garanti tôt (au 12e monstre au plus tard) — la carte « Meilleur objet » et la mini-quête
   // « Ramasse un objet » ne font plus attendre le débutant plusieurs minutes.
-  const firstItem = (state.records?.itemsFound ?? 0) === 0 && (state.records?.kills ?? 0) >= 12;
+  // v10.3.1 : un débutant (mini-quête « Équipement » ouverte) n'a encore rien dans son sac : un objet utile lui est
+  // garanti tous les 6 monstres (avant, le seul objet garanti pouvait être une arme moins bonne que la sienne ou d'une
+  // autre classe, recyclée aussitôt : « Équipe un objet » restait sans objet à équiper, parfois plus de 3 minutes).
+  const kills = state.records?.kills ?? 0;
+  const learner = Boolean(state.unlocks && !state.unlocks.legacy && !state.unlocks.done.includes('equipment') && (state.records?.equips ?? 0) === 0
+    && !state.lootBag?.length && Object.values(state.equipment ?? {}).filter(Boolean).length < 2 && !state.inventory.some((it) => isUpgrade(state, it)));
+  const firstItem = ((state.records?.itemsFound ?? 0) === 0 || (learner && kills % 6 === 0)) && kills >= 12;
   if (firstItem || rng.next() < dropChance) {
     // v9.0.6 : boss réaffronté (boucle, étape déjà franchie) → objet ancestral 5 fois plus rare.
     const farmed = enemy.boss && (Boolean(state.farmBoss) || enc.world || (!enc.dungeon && !enc.tower && !enc.challenge && state.stage < state.maxStage));
@@ -618,7 +624,9 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
     const base = enemy.boss || enemy.elite ? balance.loot.bossMinRarity : 'common';
     const luck = cheatLoot(state).minRarity;
     const minRarity = luck && rarityIndex(luck) > rarityIndex(base) ? luck : base;
-    const item = signature ?? generateItem(state, rng, { level: enc.level, minRarity, setZone: enc.tower ? null : enc.zoneIndex, weights: common ? balance.loot.dropRarityWeights : null }, balance);
+    const roll = () => generateItem(state, rng, { level: enc.level, minRarity, setZone: enc.tower ? null : enc.zoneIndex, weights: common ? balance.loot.dropRarityWeights : null }, balance);
+    let item = signature ?? roll();
+    if (learner && firstItem) for (let k = 0; k < 60 && !(canEquip(state, item) && isUpgrade(state, item)); k++) item = roll(); // un objet qu'il peut vraiment équiper, et qui le renforce
     dropItem(state, world, item, enemy.x, balance, enemy.id); // v9.2.2 : le rendu part de la position réelle à la mort
   }
 

@@ -19,7 +19,16 @@ export const GLOSSARY = {
   'Coffre de butin': 'Le coffre posé au sol, derrière les monstres : le butin s\'y entasse. Touche-le pour garder le meilleur et recycler le reste.',
   'Réserve': 'Le rangement de l\'équipement (300 places) : rien n\'y est recyclé ni fusionné tout seul.',
   Familier: 'Un petit compagnon (chat, hibou, slime…) qui suit ton héros : il frappe peu mais donne un bonus.',
+  // v10.3.1 : les mots du Bastion. Ils ne sont PAS surlignés dans les textes (voir GLOSSARY_MANUAL) : le lexique
+  // enveloppe le mot dans une balise, ce qui coupe la phrase en trois morceaux ; or les traductions se font phrase
+  // entière (un texte = une entrée du dictionnaire). Ils s'ouvrent depuis la rangée « Mots du Bastion » de l'écran.
+  Bastion: 'Ton camp de base, qui s\'ouvre à l\'étape 40 : des bâtiments où tes compagnons libres travaillent, même jeu fermé. Il t\'aide à avancer, il ne bloque jamais l\'histoire.',
+  Ouvrier: 'Un compagnon qui n\'est ni dans l\'équipe, ni en expédition. Pose-le sur un bâtiment : sans ouvrier, le bâtiment produit à 50 % et ne lance aucun chantier. Son métier lui donne +20 % dans le bon bâtiment.',
+  Chantier: 'Les travaux qui font gagner un niveau à un bâtiment : de l\'or, des éclats et du temps (de 15 min à 8 h). Le chantier avance même jeu fermé.',
+  Recherche: 'Une étude de la Bibliothèque : un petit bonus (dégâts, vie, or…) gagné avec le temps. Contrairement aux Talents, une recherche ne se perd pas à la Renaissance.',
 };
+// Mots qui s'ouvrent seulement depuis une rangée de boutons (jamais surlignés automatiquement dans les textes).
+export const GLOSSARY_MANUAL = new Set(['Bastion', 'Ouvrier', 'Chantier', 'Recherche']);
 // v10.1 (P1 §2.3) : carte de glossaire des ressources — image, à quoi ça sert, où en gagner, écran où aller.
 export const RESOURCES = {
   gold: { name: 'Or', icon: 'coin', use: 'Améliore ton héros (Dégâts, Vie…) et tes compagnons.', where: 'Chaque monstre vaincu en donne.', tab: 'upgrades' },
@@ -32,4 +41,4 @@ export const RESOURCES = {
   mastery: { name: 'Essences', icon: 'icon_mastery', use: 'Montent la maîtrise des compagnons.', where: 'Coffres de la semaine et expéditions.', tab: 'companions' },
   tickets: { name: 'Tickets de compagnon', icon: 'hero_ticket_limited', shop: true, use: 'Une invocation sans dépenser de gemmes.', where: 'Connexion, missions, coffres d\'étoiles de l\'Arène.', tab: 'summon' },
 };
-export const GLOSSARY_TERMS = Object.keys(GLOSSARY).sort((a, b) => b.length - a.length);
+export const GLOSSARY_TERMS = Object.keys(GLOSSARY).filter((k) => !GLOSSARY_MANUAL.has(k)).sort((a, b) => b.length - a.length);
