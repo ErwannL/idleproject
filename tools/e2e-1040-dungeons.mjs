@@ -43,8 +43,8 @@ const PREP = () => {
 };
 // Mots visibles de la page (le menu déroulant compte pour son option choisie) et nombre d'images chargées.
 const STATS = () => {
-  const root = document.querySelector('.dg-sheet');
-  const vis = (e) => { const b = e.getBoundingClientRect(); const cs = getComputedStyle(e); return b.width > 0 && b.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'; };
+  const root = document.querySelector('.dgp-root');
+  const vis = (e) => { const b = e.getBoundingClientRect(); const cs = getComputedStyle(e); if (cs.display === 'contents') return true; return b.width > 0 && b.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'; };
   let text = '';
   const walk = (n) => {
     if (n.nodeType === 3) { text += ` ${n.nodeValue}`; return; }
@@ -87,16 +87,16 @@ for (const [w, h, dpr, label, touch, noScroll] of FORMATS) {
   const per = [];
   for (const id of IDS) {
     await page.evaluate(() => { __idle.ui.view.dungeonSheet = false; __idle.ui.dgSheet(''); __idle.ui.invalidate(); });
-    await page.waitForTimeout(250);
+    await page.waitForTimeout(700);
     await page.evaluate((id) => document.querySelector(`.dg-banner .btn[data-action="dungeon-sel"][data-value="${id}"]`).scrollIntoView({ block: 'center' }), id);
     await page.click(`.dg-banner .btn[data-action="dungeon-sel"][data-value="${id}"]`);
     await page.waitForTimeout(700);
     const r = await page.evaluate((id) => {
       const q = (s) => document.querySelector(s);
       const inView = (e) => { if (!e) return false; const b = e.getBoundingClientRect(); return b.width > 0 && b.height > 0 && b.left >= -0.5 && b.right <= innerWidth + 0.5 && b.top >= -0.5 && b.bottom <= innerHeight + 0.5; };
-      const sheet = q('.dg-sheet'); const body = q('.dgp-body'); const enter = q('.dg-enter [data-action="enter-dungeon"]');
-      const boss = q('.dg-sheet .dg-boss-portrait'); const mech = q('.dg-sheet .dg-mech-img');
-      const secs = [...document.querySelectorAll('.dg-sheet .dgp-sec')];
+      const sheet = q('.dgp-root'); const body = q('.dgp-body'); const enter = q('.dg-enter [data-action="enter-dungeon"]');
+      const boss = q('.dgp-root .dg-boss-portrait'); const mech = q('.dgp-root .dg-mech-img');
+      const secs = [...document.querySelectorAll('.dgp-root .dgp-sec')];
       const hero = q('.dgp-hero').getBoundingClientRect();
       return {
         id, enter: inView(enter), enterText: enter?.textContent.replace(/\s+/g, ' ').trim(), boss: boss.naturalWidth > 0 && boss.getBoundingClientRect().height >= 140,
@@ -105,7 +105,7 @@ for (const [w, h, dpr, label, touch, noScroll] of FORMATS) {
         // rien d'important ne demande de défiler : chaque section est entièrement dans l'écran, et le corps ne défile pas
         secsVisible: secs.every(inView), bodyScroll: body.scrollHeight > body.clientHeight + 1, noHScroll: sheet.scrollWidth <= sheet.clientWidth + 1 && document.documentElement.scrollWidth <= innerWidth + 1,
         heroShare: Math.round(100 * hero.height / innerHeight), stats: null,
-        old: Boolean(q('.dg-sheet .path-card, .dg-sheet .reward-grid, .dg-sheet .dungeon-info, .dg-sheet .trait-box')), selectOk: (() => { const s = q('.dgp-team-select'); return Boolean(s) && s.options.length >= 3; })(),
+        old: Boolean(q('.dgp-root .path-card, .dgp-root .reward-grid, .dgp-root .dungeon-info, .dgp-root .trait-box')), selectOk: (() => { const s = q('.dgp-team-select'); return Boolean(s) && s.options.length >= 3; })(),
       };
     }, id);
     r.stats = await page.evaluate(STATS);
@@ -126,6 +126,7 @@ for (const [w, h, dpr, label, touch, noScroll] of FORMATS) {
 
   // ---- menu déroulant des équipes, changement de difficulté, « ? » ----
   await page.evaluate(() => { __idle.ui.view.dungeonSheet = false; __idle.ui.dgSheet(''); __idle.ui.invalidate(); });
+  await page.waitForTimeout(400);
   await page.evaluate(() => document.querySelector('.dg-banner .btn[data-action="dungeon-sel"][data-value="crypt"]').scrollIntoView({ block: 'center' }));
   await page.click('.dg-banner .btn[data-action="dungeon-sel"][data-value="crypt"]');
   await page.waitForTimeout(500);
@@ -157,7 +158,7 @@ for (const [w, h, dpr, label, touch, noScroll] of FORMATS) {
   // « Entrer » lance le donjon : itinéraire Normal par défaut
   await page.click('.dg-enter [data-action="enter-dungeon"]');
   await page.waitForTimeout(500);
-  const run = await page.evaluate(() => ({ d: __idle.state.dungeon?.id, route: __idle.state.dungeon?.route, diff: __idle.state.dungeon?.difficulty, sheet: Boolean(document.querySelector('.dg-sheet')) }));
+  const run = await page.evaluate(() => ({ d: __idle.state.dungeon?.id, route: __idle.state.dungeon?.route, diff: __idle.state.dungeon?.difficulty, sheet: Boolean(document.querySelector('.dgp-root')) }));
   ok(`${label} : « Entrer » lance le donjon (itinéraire Normal par défaut), la page se ferme`, run.d === 'crypt' && run.route === 'normal' && run.diff === 'easy' && !run.sheet, JSON.stringify(run));
   await page.evaluate(() => { if (__idle.state.dungeon) __idle.actions.abandonDungeon(); __idle.ui.closeModal(); });
   await ctx.close();

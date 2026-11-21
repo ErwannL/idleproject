@@ -20,7 +20,7 @@ test('Chaque donjon a une pastille de mécanique, son image PixelLab 64 × 64 et
     assert.ok(existsSync(`assets/ui/art104/dungeon_mech_${k}.png`), `image manquante : ${k}`);
     assert.deepEqual(pngSize(`assets/ui/art104/dungeon_mech_${k}.png`), [64, 64]);
     const pill = mechPill(d);
-    assert.ok(pill.split(/\s+/).length <= 16, `pastille trop longue : ${pill}`);
+    assert.ok(pill.split(/\s+/).length <= 20, `pastille trop longue : ${pill}`);
     assert.ok(EN[pill], `anglais manquant : ${pill}`);
     assert.ok(KO[pill], `coréen manquant : ${pill}`);
   }

@@ -17,6 +17,7 @@ import { ZONES } from '../../data/zones.js';
 import { escapeHtml, formatNumber, icon, img, progressBar } from '../common.js';
 import { companionById } from '../../core/companions.js';
 import { companionStill } from './expeditions.js';
+import { pageActive } from '../page.js'; // v10.4 : page plein écran
 import { TRAITS, bossTrait } from '../../core/boss-traits.js';
 import { ROLES } from '../../data/synergies.js';
 import { DOORS, DUNGEON_GAIN, bestSweepTarget, dungeonSet, dungeonStars, mainGain, nightmareBest, nightmareOpen, nightmareMult, roman } from '../../core/dungeon-plus.js'; // v10.1 (P3)
@@ -174,8 +175,9 @@ function dungeonsList(ui, state) {
   const head = `<div class="dg-head"><span class="dg-keys">${img('icon_key')} <b class="num">${state.keys}</b> clé${state.keys > 1 ? 's' : ''}</span>
     ${target && state.keys > 0 ? `<button class="btn btn-gold small" data-action="sweep-all-ask">Balayer tout (${state.keys})</button>` : ''}</div>`;
   const grid = `<div class="dg-grid">${DUNGEONS.map((d) => banner(state, d)).join('')}</div>`;
-  // La page vit au-dessus de tout (hors du panneau) : « Entrer » fixé en bas.
-  ui.dgSheet?.(ui.view.dungeonSheet ? `<div class="dg-sheet-back" data-action="dungeon-close"></div><div class="dg-sheet pg" role="dialog" aria-label="Donjon">${dungeonPage(ui, state)}</div>` : '');
+  // PC : la page du donjon EST le contenu du panneau en plein écran (socle des pages). Téléphone : feuille du bas (calque #dg-host).
+  if (ui.view.dungeonSheet && pageActive(ui)) { ui.dgSheet?.(''); return `<div class="pg dgp-page dgp-root" role="dialog" aria-label="Donjon">${dungeonPage(ui, state)}</div>`; }
+  ui.dgSheet?.(ui.view.dungeonSheet ? `<div class="dg-sheet-back" data-action="dungeon-close"></div><div class="dg-sheet dgp-root" role="dialog" aria-label="Donjon">${dungeonPage(ui, state)}</div>` : '');
   return head + grid;
 }
 

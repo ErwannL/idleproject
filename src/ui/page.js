@@ -27,6 +27,9 @@ export function pageActive(ui) {
 // Téléphone ou fenêtre étroite : la page en une colonne, sans mini-fenêtre.
 export const pageNarrow = (ui) => (ui?.root?.clientWidth ?? 9999) <= 600 || isPhone();
 
+// v10.4 (partie 4) : la page du donjon est une page plein écran sur PC ; sur téléphone, c'est la feuille du bas (calque #dg-host).
+PAGE_WHEN.dungeons = (ui) => Boolean(ui.view?.dungeonSheet) && !pageNarrow(ui);
+
 let raf = 0;
 let mini = null;
 let ctx2d = null;
