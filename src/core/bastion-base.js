@@ -64,6 +64,7 @@ export function emptyBastion(now = Date.now()) {
     stock: { mine: 0, training: 0 },
     trade: { day: '', used: 0 },
     news: [], notices: [], cards: [],
+    kicked: 0, tips: [], away: null, // v10.4 (6) : démarrage fait, bulles vues, « Pendant ton absence » (core/bastion-start.js)
   };
 }
 
@@ -588,6 +589,15 @@ export function sanitizeBastion(raw, state, now = Date.now(), isItem = () => tru
   out.news = (Array.isArray(raw.news) ? raw.news : []).filter((n) => n && ['build', 'research', 'order'].includes(n.kind) && typeof n.text === 'string')
     .slice(-12).map((n) => ({ kind: n.kind, ref: n.ref ?? null, text: n.text.slice(0, 80), at: num(n.at, 0, now), seal: num(n.seal, 0), book: Boolean(n.book) }));
   out.cards = (Array.isArray(raw.cards) ? raw.cards : []).filter((id) => buildingDef(id)).slice(0, BUILDINGS.length);
+  // v10.4 (6) : démarrage automatique fait (date), bulles vues, rapport « Pendant ton absence ».
+  out.kicked = num(raw.kicked, 0, now);
+  out.tips = [...new Set((Array.isArray(raw.tips) ? raw.tips : []).filter((id) => buildingDef(id) || id === 'research'))];
+  const KINDS = ['build', 'research', 'item', 'order'];
+  const list = (Array.isArray(raw.away?.list) ? raw.away.list : []).filter((x) => x && KINDS.includes(x.kind) && (typeof x.ref === 'string' || Number.isFinite(x.ref)))
+    .slice(-12).map((x) => ({ kind: x.kind, ref: x.ref, ...(Number.isFinite(x.level) ? { level: Math.floor(num(x.level, 0, 99)) } : {}),
+      ...(typeof x.name === 'string' ? { name: x.name.slice(0, 80) } : {}), ...(typeof x.rarity === 'string' ? { rarity: x.rarity.slice(0, 20) } : {}),
+      ...(typeof x.slot === 'string' ? { slot: x.slot.slice(0, 20) } : {}), ...(typeof x.text === 'string' ? { text: x.text.slice(0, 80) } : {}) }));
+  out.away = list.length ? { at: num(raw.away.at, 0, now), list } : null;
   return out;
 }
 

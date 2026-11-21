@@ -8,12 +8,12 @@
 // est dans le tiroir ☰ (Quêtes, Profil…). La Forge s'ouvre depuis Équipement et le tiroir.
 export const MENUS = [
   { id: 'hero', label: 'Héros', tabs: ['inventory', 'upgrades', 'skills', 'tree', 'forge'] }, // v9.10 (8) : la Forge sert l'équipement : 5e onglet de Héros
-  { id: 'team', label: 'Équipe', tabs: ['companions', 'expeditions'] },
+  { id: 'team', label: 'Équipe', tabs: ['companions', 'camp', 'expeditions'] }, // v10.4 (6) : le Bastion sous Équipe (Profil n'était pas trouvé)
   { id: 'adventure', label: 'Combat', tabs: ['campaign', 'dungeons', 'arena', 'tower', 'event'] }, // v10.2 (2.1) : l'Arène en tête de Combat
   { id: 'summon', label: 'Invocation', tabs: ['summon'] },
   { id: 'shop', label: 'Boutique', tabs: ['shop'] },
   { id: 'goals', label: 'Quêtes', tabs: ['daybook', 'contracts', 'encyclopedia'], top: true },
-  { id: 'profile', label: 'Profil', tabs: ['camp', 'looks', 'boss', 'ranking', 'guild', 'stats'], top: true },
+  { id: 'profile', label: 'Profil', tabs: ['looks', 'boss', 'ranking', 'guild', 'stats'], top: true },
 ];
 export const SUB_LABELS = {
   camp: 'Bastion', upgrades: 'Améliorations', skills: 'Compétences', tree: 'Talents', hero: 'Fiche', inventory: 'Équipement', forge: 'Forge', looks: 'Apparences',
@@ -40,7 +40,7 @@ export const TAB_LEAD = {
   encyclopedia: 'Tout ce que tu as découvert : monstres, objets, compagnons.',
   contracts: 'Missions du jour, de la semaine, Chroniques et hauts faits : des récompenses à récupérer.',
   daybook: 'Ta liste du jour : quelques gestes, un coffre à la fin.',
-  camp: 'Tes compagnons libres travaillent ici : bâtiments, recherches et forgeron.',
+  camp: 'Tes compagnons libres construisent et cherchent pour toi, même jeu fermé.', // v10.4 (6)
   looks: 'Change l\'apparence de ton héros (aucun effet sur la puissance).',
   ranking: 'Compare ton record à celui des autres joueurs.',
   guild: 'Rejoins une guilde pour des bonus et un boss commun.',
