@@ -19,9 +19,9 @@ test('Chaque donjon a une image de mécanique, une légende, et ses traductions'
   const leg = new Map(legends());
   for (const k of keys) {
     assert.ok(k === 'plain' || TRAITS[k], `mécanique inconnue ${k}`);
-    assert.ok(existsSync(`assets/ui/art103/mech_${k}.png`), `image manquante : mech_${k}.png`);
-    const png = readFileSync(`assets/ui/art103/mech_${k}.png`);
-    assert.equal(png.readUInt32BE(16), 96); assert.equal(png.readUInt32BE(20), 64);
+    assert.ok(existsSync(`assets/ui/art104/dungeon_mech_${k}.png`), `image manquante : dungeon_mech_${k}.png`); // v10.4 : images PixelLab
+    const png = readFileSync(`assets/ui/art104/dungeon_mech_${k}.png`);
+    assert.equal(png.readUInt32BE(16), 64); assert.equal(png.readUInt32BE(20), 64);
     const text = leg.get(k);
     assert.ok(text && text.length > 15, `légende manquante pour ${k}`);
     assert.ok(EN[text], `anglais manquant : ${text}`); assert.ok(KO[text], `coréen manquant : ${text}`);
@@ -36,7 +36,7 @@ test('La feuille de donjon et les styles sont branchés (fins de ligne indiffér
   const dg = read('src/ui/panels/dungeons.js');
   assert.ok(dg.split(/\r?\n/).some((l) => l.includes('dg-mech-img')));
   const css = read('src/ui/dungeons1031.css');
-  assert.match(css, /dg-boss-portrait[^}]*256px/);
+  assert.match(read('src/ui/dungeons1040.css'), /dg-boss-portrait[^}]*height: 100%/); // v10.4 : le boss remplit l'en-tête
   assert.match(css, /\.door-cards \{[^}]*nowrap/);
 });
 

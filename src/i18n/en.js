@@ -2100,3 +2100,7 @@ PATTERNS.unshift(...patterns1040Chest());
 import { EXACT_1040_PAGES, patterns1040Pages } from './en-1040-pages.js';
 for (const [k, v] of Object.entries(EXACT_1040_PAGES)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.push(...patterns1040Pages(lookup));
+// v10.4 (partie 4) : liste en bannières et page du donjon (./en-1040-dungeons.js).
+import { EXACT_1040_DUNGEONS, patterns1040Dungeons } from './en-1040-dungeons.js';
+for (const [k, v] of Object.entries(EXACT_1040_DUNGEONS)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1040Dungeons(lookup));

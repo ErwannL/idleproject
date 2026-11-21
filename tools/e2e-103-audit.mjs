@@ -184,7 +184,7 @@ async function quickRun() {
       await page.waitForTimeout(600);
       await page.click('.dg-card .btn[data-action="dungeon-sel"]');
       await page.waitForTimeout(700);
-      sheets.push(await page.evaluate(() => { const e = document.querySelector('.dg-enter [data-action="enter-dungeon"]'); if (!e) return false; const b = e.getBoundingClientRect(); return b.top >= 0 && b.bottom <= innerHeight && Boolean(document.querySelector('.dg-sheet .dg-boss-portrait')); }));
+      sheets.push(await page.evaluate(() => { const e = document.querySelector('.dg-enter [data-action="enter-dungeon"]'); if (!e) return false; const b = e.getBoundingClientRect(); return b.top >= 0 && b.bottom <= innerHeight && Boolean(document.querySelector('.dgp-root .dg-boss-portrait')); }));
       await page.evaluate(() => { __idle.ui.view.dungeonSheet = false; __idle.ui.dgSheet(''); });
     }
     ok('0 / 1.6 feuille de donjon : s\'ouvre avec « Difficile » débloqué, portrait du boss en tête, « Entrer » visible', sheets.every(Boolean), JSON.stringify(sheets));

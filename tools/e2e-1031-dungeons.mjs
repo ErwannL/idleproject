@@ -50,15 +50,15 @@ for (const [w, h, dpr, label, touch] of FORMATS) {
     const r = await page.evaluate((id) => {
       const q = (s) => document.querySelector(s);
       const vis = (e) => { if (!e) return false; const b = e.getBoundingClientRect(); return b.width > 0 && b.height > 0 && b.left >= 0 && b.right <= innerWidth + 0.5 && b.top >= 0 && b.bottom <= innerHeight + 0.5; };
-      const portrait = q('.dg-sheet .dg-boss-portrait'); const mech = q('.dg-sheet .dg-mech-img'); const legend = q('.dg-sheet .dg-mech-text'); const enter = q('.dg-enter [data-action="enter-dungeon"]');
-      const sheet = q('.dg-sheet');
+      const portrait = q('.dgp-root .dg-boss-portrait'); const mech = q('.dgp-root .dg-mech-img'); const legend = q('.dgp-root .dg-mech-text'); const enter = q('.dg-enter [data-action="enter-dungeon"]');
+      const sheet = q('.dgp-root');
       const ratio = (e) => e ? e.getBoundingClientRect().width / e.naturalWidth : 0;
-      const sw = sheet.scrollWidth, cw = sheet.clientWidth;
+      const sw = sheet.scrollWidth, cw = sheet.clientWidth; // v10.4 : le conteneur est la page ou la feuille
       // le portrait et l'image doivent être visibles en faisant défiler la feuille si besoin : on ne regarde que « Entrer » sans défilement
       const pb = portrait.getBoundingClientRect(), mb = mech.getBoundingClientRect();
       return {
-        id, portrait: portrait.naturalWidth > 0 && pb.width > 0, mech: mech.naturalWidth === 96 && mech.naturalHeight === 64 && mb.width > 0, mechSrc: mech.getAttribute('src'),
-        legend: legend.textContent.trim().length > 10, enter: vis(enter), pw: Math.round(pb.width), mw: Math.round(mb.width), mi: Number.isInteger(ratio(mech)) && Number.isInteger(1 / ratio(portrait) || 1) || Number.isInteger(ratio(portrait)) || Number.isInteger(1 / ratio(portrait)),
+        id, portrait: portrait.naturalWidth > 0 && pb.width > 0, mech: mech.naturalWidth === 64 && mech.naturalHeight === 64 && mb.width > 0, mechSrc: mech.getAttribute('src'),
+        legend: legend.textContent.trim().length > 10, enter: vis(enter), pw: Math.round(pb.width), mw: Math.round(mb.width), mi: Number.isInteger(ratio(mech)),
         noHScroll: sw <= cw + 1 && document.documentElement.scrollWidth <= innerWidth + 1, mechInSheet: mb.right <= sheet.getBoundingClientRect().right + 1,
         headTop: Math.round(pb.top), mechTop: Math.round(mb.top), mechBottom: Math.round(mb.bottom), enterTop: Math.round(enter.getBoundingClientRect().top),
       };
@@ -68,11 +68,11 @@ for (const [w, h, dpr, label, touch] of FORMATS) {
     // une capture de la feuille défilée jusqu'en haut (en tête)
   }
   const good = per.every((r) => r.portrait && r.mech && r.legend && r.enter && r.noHScroll && r.mechInSheet && r.mi);
-  ok(`${label} : feuille des 5 donjons — portrait, image de mécanique (96 × 64, échelle entière), légende, « Entrer » visible, pas de défilement horizontal`, good, good ? `portrait ${per[0].pw} px, image ${per[0].mw} px` : JSON.stringify(per.filter((r) => !(r.portrait && r.mech && r.legend && r.enter && r.noHScroll && r.mechInSheet && r.mi))));
+  ok(`${label} : feuille des 5 donjons — portrait, image de mécanique (64 × 64, échelle entière), légende, « Entrer » visible, pas de défilement horizontal`, good, good ? `portrait ${per[0].pw} px, image ${per[0].mw} px` : JSON.stringify(per.filter((r) => !(r.portrait && r.mech && r.legend && r.enter && r.noHScroll && r.mechInSheet && r.mi))));
   const srcs = per.map((r) => r.mechSrc.replace(/^.*mech_|\.png$/g, ''));
   ok(`${label} : une image de mécanique par donjon (${srcs.join(', ')})`, new Set(srcs).size === 5);
   ok(`${label} : aucune erreur JS à l'ouverture des feuilles`, errors.length === before, errors.slice(before).join(' | '));
-  if (w >= 900 && h >= 880) ok(`${label} : portrait à 256 px (taille réelle)`, per.every((r) => r.pw === 256), String(per[0].pw));
+  if (w >= 900 && h >= 880) ok(`${label} : portrait du boss en grand (≥ 200 px)`, per.every((r) => r.pw >= 200), String(per[0].pw));
 
   // ---- portes : 2 puis 3 portes, côte à côte, 96 × 128, ouverture au clic / au toucher ----
   for (const count of [2, 3]) {
