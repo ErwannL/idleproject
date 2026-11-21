@@ -44,7 +44,7 @@ const epic = (page) => ev(page, () => {
 });
 const arena = async (page, floor) => {
   await ev(page, () => __idle.ui.openTab('arena')); await wait(page, 900);
-  await ev(page, (f) => { __idle.state.arena.cards.best = Math.max(__idle.state.arena.cards.best, f + 1); __idle.ui.closePanel(); __idle.ui.arenaFight(f); }, floor);
+  await ev(page, (f) => { __idle.state.arena.cards.best = f - 1; __idle.ui.closePanel(); __idle.ui.arenaFight(f); // étage pas encore franchi : la fin montre ses récompenses }, floor);
   await page.waitForSelector('.arena-map .am-canvas', { timeout: 8000 }).catch(() => console.log('(Arène non ouverte)'));
 };
 const closeArena = (page) => ev(page, () => document.querySelector('.arena-map')?.close?.());
