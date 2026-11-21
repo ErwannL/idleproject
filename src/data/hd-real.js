@@ -1,3 +1,3 @@
-// Généré par tools/art/import_real.py — illustrations réalistes disponibles (assets/hd/real/<id>.png).
-// Le jeu les préfère à la version pixel HD quand elles existent.
-export const HD_REAL = new Set(['demoness', 'fairy', 'grombar', 'seraph', 'valkyrie']);
+// v10.7 (6 bis) : plus d'illustrations réalistes (elles ne collaient ni au style du jeu ni au personnage du combat) :
+// les 5 skins ont leur illustration pixel fidèle à leur sprite (tools/art/pl107_skins.py → assets/hd/px).
+export const HD_REAL = new Set();

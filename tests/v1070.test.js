@@ -78,3 +78,11 @@ test('10.7 (5) : bannière des Compétences refaite sans lettres, têtes de sect
   assert.ok(existsSync('assets/ui/art106/section_head.png'));
   assert.match(src('src/ui/hud106.css'), /#panel-body \.section-title \{ min-height: 56px;/);
 });
+
+test('10.7 (6 bis) : plus aucune peinture réaliste ; 11 illustrations pixel refaites depuis le sprite de combat', async () => {
+  const { HD_REAL } = await import('../src/data/hd-real.js');
+  assert.equal(HD_REAL.size, 0);
+  assert.ok(!existsSync('assets/hd/real') && !existsSync('tools/art/import_real.py'));
+  for (const k of ['fairy', 'valkyrie', 'demoness', 'seraph', 'grombar', 'hero_berserker', 'hero_dragon_knight']) assert.ok(existsSync(`assets/hd/px/${k}.webp`), k);
+  assert.ok(existsSync('docs/screenshots/v10.7/skins.png'));
+});
