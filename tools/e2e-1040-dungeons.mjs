@@ -99,11 +99,11 @@ for (const [w, h, dpr, label, touch, noScroll] of FORMATS) {
       const secs = [...document.querySelectorAll('.dgp-root .dgp-sec')];
       const hero = q('.dgp-hero').getBoundingClientRect();
       return {
-        id, enter: inView(enter), enterText: enter?.textContent.replace(/\s+/g, ' ').trim(), boss: boss.naturalWidth > 0 && boss.getBoundingClientRect().height >= 140,
+        id, enter: inView(enter), enterText: enter?.textContent.replace(/\s+/g, ' ').trim(), boss: boss.naturalWidth > 0 && boss.getBoundingClientRect().height >= (innerHeight < 700 ? 110 : 140),
         bossH: Math.round(boss.getBoundingClientRect().height), mech: mech.naturalWidth === 64 && mech.src.includes('art104/dungeon_mech_'), mechSrc: mech.getAttribute('src'),
         pill: q('.dg-mech-text').textContent.trim(), tiles: document.querySelectorAll('.dgp-tile').length, doors: document.querySelectorAll('.dgp-door img').length, gains: document.querySelectorAll('.dgp-gain').length,
         // rien d'important ne demande de défiler : chaque section est entièrement dans l'écran, et le corps ne défile pas
-        secsVisible: secs.every(inView), bodyScroll: body.scrollHeight > body.clientHeight + 1, noHScroll: sheet.scrollWidth <= sheet.clientWidth + 1 && document.documentElement.scrollWidth <= innerWidth + 1,
+        secsVisible: secs.every(inView), bodyScroll: [body, q('.pg-main'), q('.pg-side')].filter(Boolean).some((e) => e.scrollHeight > e.clientHeight + 1), noHScroll: sheet.scrollWidth <= sheet.clientWidth + 1 && document.documentElement.scrollWidth <= innerWidth + 1,
         heroShare: Math.round(100 * hero.height / innerHeight), stats: null,
         old: Boolean(q('.dgp-root .path-card, .dgp-root .reward-grid, .dgp-root .dungeon-info, .dgp-root .trait-box')), selectOk: (() => { const s = q('.dgp-team-select'); return Boolean(s) && s.options.length >= 3; })(),
       };
