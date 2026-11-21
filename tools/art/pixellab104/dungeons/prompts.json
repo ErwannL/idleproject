@@ -1,0 +1,74 @@
+{
+ "dungeon_diff_easy": {
+  "description": "difficulty card art: one small white bone skull on a mossy stone slab, green glow, dark dungeon background",
+  "size": 96,
+  "transparent": false,
+  "seed": 7
+ },
+ "dungeon_mech_desperate": {
+  "description": "an enraged glowing red angry eye above a cracked broken heart, red aura, icon",
+  "size": 64,
+  "transparent": true,
+  "seed": 5
+ },
+ "dungeon_mech_armored": {
+  "description": "a heavy steel shell armor plate with rivets and a big crack, flying metal shards, icon",
+  "size": 64,
+  "transparent": true,
+  "seed": 5
+ },
+ "dungeon_mech_plain": {
+  "description": "two crossed swords in front of a small round shield, duel icon",
+  "size": 64,
+  "transparent": true,
+  "seed": 5
+ },
+ "dungeon_mech_escalate": {
+  "description": "a roaring furnace fire, three flames growing bigger from left to right, orange and yellow, icon",
+  "size": 64,
+  "transparent": true,
+  "seed": 5
+ },
+ "dungeon_mech_summoner": {
+  "description": "a pale blue ghost queen raising her hands, two small ghost servants floating beside her, glowing summoning circle, icon",
+  "size": 64,
+  "transparent": true,
+  "seed": 5
+ },
+ "dungeon_diff_hard": {
+  "description": "difficulty card art: five fierce horned skulls surrounded by red flames on black cracked stone, red glow, dark background",
+  "size": 96,
+  "transparent": false,
+  "seed": 7
+ },
+ "dungeon_diff_lock": {
+  "description": "a golden padlock with iron chains, icon",
+  "size": 64,
+  "transparent": true,
+  "seed": 5
+ },
+ "dungeon_rw_set": {
+  "description": "a glowing golden set armor chest plate with a gem emblem, rare equipment piece, icon",
+  "size": 64,
+  "transparent": true,
+  "seed": 5
+ },
+ "dungeon_rw_gear": {
+  "description": "a glowing purple epic sword crossed with a shield, equipment icon",
+  "size": 64,
+  "transparent": true,
+  "seed": 5
+ },
+ "dungeon_rw_firstclear": {
+  "description": "a big ornate golden treasure chest overflowing with gems, a glowing gold star above, reward icon",
+  "size": 64,
+  "transparent": true,
+  "seed": 5
+ },
+ "dungeon_diff_normal": {
+  "description": "difficulty card art: a pile of exactly three white bone skulls (one big in front, two behind) on a small isometric blue ice stone slab, blue glow, black background",
+  "size": 96,
+  "transparent": false,
+  "seed": 10
+ }
+}
