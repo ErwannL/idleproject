@@ -253,3 +253,10 @@
 @keyframes bs-light { from { transform: scaleX(0); } to { transform: none; } }
 .calm .bs-node.fresh, .calm .bs-link.fresh { animation: none; }
 @media (prefers-reduced-motion: reduce) { .bs-node.fresh, .bs-link.fresh { animation: none; } }
+
+/* ---- Partie 7 : fenêtre large (scène plus de 2 fois plus large que haute) ---- */
+#hud106.hq-wide #hq-path { top: 76px; left: 236px; }
+#hud106.hq-wide #hq-carnet { top: 140px; left: 8px; width: auto; }
+#hud106.hq-wide #hq-events { top: 96px; right: 290px; width: auto; flex-direction: row; gap: 8px; align-items: flex-start; }
+#hud106.hq-wide #hq-events .hq-ev-art { width: 56px; height: 56px; }
+#hud106.hq-wide #hq-events .hq-ev-art img { width: 48px; height: 48px; }

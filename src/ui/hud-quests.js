@@ -164,6 +164,9 @@ export class HudQuests {
   }
 
   get phone() { return Boolean(this.ui.phone) || (this.ui.root?.clientWidth ?? 1000) < 560; }
+  // v10.6 (partie 7) : scène très large et basse (fenêtre large) : Carnet en puce, événements en rangée en haut à droite,
+  // pour ne jamais recouvrir l'équipe ni le coffre.
+  get wide() { const a = this.root.parentElement; return Boolean(a && a.clientWidth > 2 * a.clientHeight); }
 
   onPath() {
     const q = this.quest;
@@ -214,6 +217,7 @@ export class HudQuests {
     const off = ui.layout === 'strip' || calm.early || ui.arenaOpen || Boolean(state.dungeon || state.tower || state.challenge);
     this.root.classList.toggle('hidden', off);
     this.root.classList.toggle('hq-phone', this.phone);
+    this.root.classList.toggle('hq-wide', !this.phone && this.wide);
     if (off) return;
     const t = Date.now();
     // 1. Chemin du héros
@@ -229,7 +233,7 @@ export class HudQuests {
     this.path.classList.toggle('ready', Boolean(q?.ready));
     // 2. Carnet du jour
     const c = carnetTop(state, daybookOpen(ui), t);
-    const ch = c.total ? carnetHtml(c, this.phone) : '';
+    const ch = c.total ? carnetHtml(c, this.phone || this.wide) : '';
     if (this.carnet.dataset.h !== ch) { this.carnet.dataset.h = ch; this.carnet.innerHTML = ch; }
     this.carnet.classList.toggle('hidden', !ch);
     // 4. Prime du Héraut (avant la colonne : une prime rangée y prend sa place)
