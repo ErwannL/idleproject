@@ -115,3 +115,24 @@ test('10.6 (4) : toucher une case filtre le sac ; 7 puces, tri par gain, pastill
   for (const f of ['item_weapon_sword', 'item_helmet_helm', 'item_armor_plate', 'item_amulet_ruby', 'item_ring_band', 'item_bracelet_cuff', 'slot_empty_weapon', 'verdict_up', 'verdict_down'])
     assert.ok(existsSync(`assets/ui/art106/${f}.png`), f);
 });
+
+test('10.6 (5) : Améliorations en 3 groupes, meilleur achat, gains < 0,5 % grisés et hors de « Tout acheter » ; tri du coffre en grille ; recherches lisibles', () => {
+  const up = src('src/ui/panels/upgrades.js');
+  for (const k of ['Frapper fort', 'Tenir', 'Gagner plus', 'upg-bestbuy', 'badge_best_buy', "' weak'"]) assert.ok(up.includes(k), k);
+  assert.match(src('src/main.js'), /weakUpgrade\(state, a\.key\)/);
+  const bag = src('src/ui/loot-bag.js');
+  for (const k of ['lb-tile', 'lb-gain', 'lb-dest', 'lb-pop', "act === 'open'", 'lb-actions106']) assert.ok(bag.includes(k), k);
+  const css = src('src/ui/hud106.css');
+  assert.match(css, /\.bs-node\.locked > img \{ filter: grayscale\(\.5\) !important; opacity: \.7; \}/);
+  assert.match(src('src/ui/panels/camp.js'), /bs-nname/);
+  for (const f of ['group_strike', 'group_endure', 'group_earn', 'badge_best_buy', 'sort_keep', 'sort_store', 'sort_recycle', 'banner_loot']) assert.ok(existsSync(`assets/ui/art106/${f}.png`), f);
+});
+
+test('10.6 (5) : un achat sous 0,5 % de puissance est « presque sans effet »', async () => {
+  const G = await import('../src/core/guide.js');
+  const s = createNewState(Date.now());
+  assert.equal(G.weakUpgrade(s, 'goldFind'), false, 'l\'or ne compte pas dans la puissance');
+  assert.equal(G.weakUpgrade(s, 'damage'), false, 'au début, un niveau de Dégâts compte');
+  s.upgrades.damage = 4000;
+  assert.ok(G.upgradePowerPct(s, 'damage') < G.upgradePowerPct({ ...s, upgrades: { ...s.upgrades, damage: 1 } }, 'damage'));
+});

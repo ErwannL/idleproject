@@ -3,11 +3,12 @@
 // v10.3.1 (plan 10.2, partie 7) : le coffre est dessiné dans la scène (render/loot-chest.js) ; ce bouton reste, invisible,
 // posé exactement sur le coffre dessiné (clic, appui, clavier, lecteurs d'écran ; touche B dans shortcuts.js).
 import { LOOT_BAG_MAX, compareWithEquipped, isUpgrade, lootBagKeepBestChoices, lootBagList, lootBagOn, lootBagSummary, suggestLootDest } from '../core/inventory.js';
-import { itemFrame, escapeHtml } from './common.js';
-import { formatNumber } from '../core/format.js';
+import { escapeHtml, itemPic } from './common.js';
 import { LootChest, RANK, bubbleFor, chestShown } from '../render/loot-chest.js';
 
 const DESTS = [['bag', '▲', 'Équiper / garder'], ['stash', '📦', 'Ranger (Réserve)'], ['recycle', '♻', 'Recycler']];
+const DEST_ART = { bag: 'sort_keep', stash: 'sort_store', recycle: 'sort_recycle' }; // v10.6 (5) : choix dessiné sur l'objet
+const DEST_LABEL = { bag: 'Garder', stash: 'Ranger', recycle: 'Recycler' };
 
 export class LootBag {
   constructor(ui) {
@@ -148,6 +149,7 @@ export class LootBag {
     if (!t) return;
     const act = t.dataset.lb;
     if (act === 'dest') { this.choices[t.dataset.id] = t.dataset.value; this.render(); }
+    else if (act === 'open') { this.compareId = this.compareId === t.dataset.id ? null : t.dataset.id; this.render(); } // v10.6 (5) : fenêtre de l'objet
     else if (act === 'cycle') {
       const item = this.state.lootBag.find((i) => i.id === t.dataset.id);
       if (!item) return;
@@ -169,39 +171,37 @@ export class LootBag {
     if (!this.available()) this.toggle(false);
   }
 
+  // v10.6 (partie 5) : tri en grille d'icônes de 64 px — pastille de gain (±x %), choix proposé dessiné sur l'objet
+  // (sac, Réserve, recyclage), toucher un objet ouvre sa fenêtre (icône en grand, verdict, choix), 2 gros boutons.
   render() {
     if (!this.open || !this.state) return;
     const state = this.state;
     const items = lootBagList(state);
-    const counts = { bag: 0, stash: 0, recycle: 0 };
+    const pctOf = (item) => { const d = compareWithEquipped(state, item); return d.dpsBefore > 0 ? (d.dps / d.dpsBefore) * 100 : 0; };
+    const fmtPct = (v) => `${v > 0 ? '+' : '−'}${String(Math.round(Math.abs(v) * 10) / 10).replace('.', ',')} %`;
     const cells = items.map((item) => {
       const dest = this.destOf(item);
-      counts[dest] += 1;
-      const frame = itemFrame(item, { tag: 'span', showUp: true, state });
-      // v10.2 (P7) : icône, nom en couleur de rareté, ce que l'objet apporte par rapport à l'objet porté, action proposée.
-      const d = compareWithEquipped(state, item);
-      const pct = d.dpsBefore > 0 ? Math.round((d.dps / d.dpsBefore) * 1000) / 10 : null;
-      const gain = isUpgrade(state, item) ? `<span class="good">▲ ${pct != null && pct > 0 ? `+${String(pct).replace('.', ',')} % de dégâts/s` : 'meilleur que l\'objet porté'}</span>` : '<span class="muted">moins bon que l\'objet porté</span>';
-      return `<div class="lb-cell d-${dest}" data-lb-id="${item.id}">
-        <button class="lb-frame" data-lb="cycle" data-id="${item.id}" title="${escapeHtml(item.name)} — clic droit / appui long : comparer">${frame}</button>
-        <div class="lb-info"><b class="rarity-text r-${item.rarity}">${escapeHtml(item.name)}</b><small>${gain}</small></div>
-        <div class="lb-dests" role="group">${DESTS.map(([v, ic, l]) => `<button class="lb-d${dest === v ? ' on' : ''}" data-lb="dest" data-id="${item.id}" data-value="${v}" title="${l}">${ic} ${v === 'bag' ? (isUpgrade(state, item) ? 'Équiper' : 'Garder') : v === 'stash' ? 'Ranger' : 'Recycler'}</button>`).join('')}</div>
-      </div>`;
+      const pct = pctOf(item);
+      const badge = Math.abs(pct) >= 0.05 ? `<span class="lb-gain ${pct > 0 ? 'good' : 'bad'}">${fmtPct(pct)}</span>` : '';
+      return `<button class="lb-tile r-${item.rarity}${this.compareId === item.id ? ' sel' : ''}" data-lb="open" data-lb-id="${item.id}" data-id="${item.id}" title="${escapeHtml(item.name)}">
+        <img class="px lb-ico" src="${itemPic(item, 64)}" alt="${escapeHtml(item.name)}">${badge}
+        <img class="px lb-dest" src="assets/ui/art106/${DEST_ART[dest]}.png" alt="${DEST_LABEL[dest]}" title="${DEST_LABEL[dest]}"></button>`;
     }).join('');
-    const cmpItem = this.compareId && items.find((i) => i.id === this.compareId);
-    let cmp = '';
-    if (cmpItem) {
-      const d = compareWithEquipped(state, cmpItem);
-      const fmt = (v) => `<b class="${v > 0 ? 'good' : v < 0 ? 'bad' : 'muted'}">${v > 0 ? '+' : ''}${formatNumber(Math.round(v))}</b>`;
-      cmp = `<div class="lb-cmp"><b>${escapeHtml(cmpItem.name)}</b>${isUpgrade(state, cmpItem) ? ' <span class="good">▲ meilleur</span>' : ''}<br>
-        Dégâts ${fmt(d.damage)} · DPS ${fmt(d.dps)} · PV ${fmt(d.maxHp)} · Armure ${fmt(d.armor)}</div>`;
+    const sel = this.compareId && items.find((i) => i.id === this.compareId);
+    let pop = '';
+    if (sel) {
+      const pct = pctOf(sel), up = isUpgrade(state, sel), dest = this.destOf(sel);
+      pop = `<div class="lb-pop r-${sel.rarity}"><span class="lb-pop-art"><img class="px" src="${itemPic(sel, 104)}" alt=""></span>
+        <div class="lb-pop-main"><b class="rarity-text r-${sel.rarity}">${escapeHtml(sel.name)}</b>
+        <div class="lb-verdict ${up ? 'good' : 'bad'}">${up ? `▲ Meilleur${pct > 0.05 ? ` : ${fmtPct(pct)} de dégâts/s` : ''}` : 'Moins bon que l\'objet porté'}</div>
+        <div class="lb-dests" role="group">${DESTS.map(([v]) => `<button class="lb-d${dest === v ? ' on' : ''}" data-lb="dest" data-id="${sel.id}" data-value="${v}"><img class="px" src="assets/ui/art106/${DEST_ART[v]}.png" alt="">${v === 'bag' ? (up ? 'Équiper' : 'Garder') : v === 'stash' ? 'Ranger' : 'Recycler'}</button>`).join('')}</div></div></div>`;
     }
-    this.sheet.innerHTML = `<header class="lb-head"><b>Coffre de butin</b> <span class="muted">${items.length} objet${items.length > 1 ? 's' : ''}</span>
+    this.sheet.innerHTML = `<header class="lb-head" style="background-image:url(assets/ui/art106/banner_loot.png)"><b>Coffre de butin</b> <span>${items.length} objet${items.length > 1 ? 's' : ''}</span>
         <button class="lb-x" data-lb="close" aria-label="Fermer">✕</button></header>
-      <div class="lb-grid">${cells}</div>
-      ${cmp}
+      <div class="lb-grid lb-grid106">${cells}</div>
+      ${pop}
       <label class="toggle lb-remember"><input type="checkbox" data-lb="remember" ${this.remember ? 'checked' : ''}> Retenir pour la prochaine fois</label>
-      <div class="lb-actions"><button class="btn btn-gold lb-keep" data-lb="keep-best">Garder le meilleur, recycler le reste</button>
-        <button class="btn" data-lb="apply">Trier à la main (valider mes choix)</button></div>`;
+      <div class="lb-actions lb-actions106"><button class="btn btn-gold lb-keep" data-lb="keep-best">Garder le meilleur, recycler le reste</button>
+        <button class="btn lb-apply" data-lb="apply">Valider mes choix</button></div>`;
   }
 }

@@ -201,3 +201,55 @@
 .eq-itempop .ip-actions .btn { padding: 6px 4px; font-size: 12px; }
 .equip-fly { position: fixed; z-index: 1000; pointer-events: none; image-rendering: pixelated; }
 .eq-power b.rolling { color: #7cf08a; }
+
+/* ---- Partie 5 : Améliorations — meilleur achat, 3 groupes dessinés, gains presque nuls grisés ---- */
+.upg-bestbuy { display: flex; align-items: center; gap: 12px; border: 2px solid #ffd34d; background: linear-gradient(90deg, #4a3410, #2a1c10); }
+.upg-bb-badge { width: 56px; height: 56px; flex: none; }
+.upg-bb-main { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.upg-bb-main small { color: #ffd34d; font-weight: 900; text-transform: uppercase; letter-spacing: .06em; font-size: 11px; }
+.upg-bb-main b img { width: 20px; height: 20px; vertical-align: -4px; }
+.upg-bb-why { font-size: 12px; }
+.upg-bb-why img { width: 14px; height: 14px; vertical-align: -2px; }
+.upg-group { margin-top: 10px; }
+.upg-group-head { margin: 0 0 6px; height: 48px; border-radius: 10px; background: #2a1830 right center / auto 100% no-repeat; image-rendering: pixelated; display: flex; align-items: center; padding-left: 14px; }
+.upg-group-head span { font-size: 16px; color: #fff; text-shadow: 0 2px 0 #000, 0 0 6px #000; }
+.g-strike .upg-group-head { background-color: #5a1a1a; } .g-endure .upg-group-head { background-color: #1a4a26; } .g-earn .upg-group-head { background-color: #5a4210; }
+.upg-card.weak { opacity: .55; filter: saturate(.4); }
+.upg-card.weak .btn { box-shadow: none; }
+
+/* ---- Partie 5 : tri du coffre en grille d'icônes ---- */
+#loot-sheet .lb-head { background: #2a1830 right center / auto 100% no-repeat; image-rendering: pixelated; min-height: 64px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-radius: 10px; }
+#loot-sheet .lb-head b, #loot-sheet .lb-head span { text-shadow: 0 1px 2px #000, 0 0 4px #000; }
+#loot-sheet .lb-head .lb-x { margin-left: auto; }
+#loot-sheet .lb-grid.lb-grid106 { display: grid !important; grid-template-columns: repeat(auto-fill, 76px); grid-auto-rows: 76px; gap: 8px; justify-content: start; flex: none; overflow: visible; }
+#loot-sheet .lb-tile { width: 76px; height: 76px; position: relative; border-radius: 12px; border: 2px solid var(--rc, #888); background: radial-gradient(#4a3456, #1b1020); display: grid; place-items: center; cursor: pointer; padding: 0; }
+.lb-tile.r-common { --rc: #c9c9c9; } .lb-tile.r-rare { --rc: #4fa3ff; } .lb-tile.r-epic { --rc: #c06bff; } .lb-tile.r-legendary { --rc: #ffa630; } .lb-tile.r-mythic, .lb-tile.r-ancestral { --rc: #ff4d6d; }
+.lb-tile.sel { box-shadow: 0 0 0 3px #fff; }
+.lb-tile .lb-ico { width: 64px; height: 64px; image-rendering: pixelated; }
+.lb-tile .lb-gain { position: absolute; left: 2px; top: 2px; padding: 0 4px; border-radius: 6px; font-size: 10px; font-weight: 900; background: #0b2a12e0; color: #7cf08a; }
+.lb-tile .lb-gain.bad { background: #3a0e14e0; color: #ff8a8a; }
+.lb-tile .lb-dest { position: absolute; right: -4px; bottom: -4px; width: 28px; height: 28px; filter: drop-shadow(0 1px 2px #000); }
+.lb-pop { display: flex; gap: 10px; align-items: center; margin-top: 10px; padding: 10px; border-radius: 12px; border: 2px solid var(--rc, #888); background: #241628; }
+.lb-pop.r-common { --rc: #c9c9c9; } .lb-pop.r-rare { --rc: #4fa3ff; } .lb-pop.r-epic { --rc: #c06bff; } .lb-pop.r-legendary { --rc: #ffa630; }
+.lb-pop-art { width: 104px; height: 104px; flex: none; display: grid; place-items: center; border-radius: 10px; background: radial-gradient(#4a3456, #1b1020); }
+.lb-pop-art img { width: 96px; height: 96px; image-rendering: pixelated; }
+.lb-pop-main { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
+.lb-verdict { padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 12px; }
+.lb-verdict.good { background: #1f5a2a; } .lb-verdict.bad { background: #6a1f2a; }
+.lb-pop .lb-dests { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.lb-pop .lb-d { min-width: 0; padding: 3px 2px; white-space: nowrap; overflow: hidden; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; }
+.lb-pop .lb-d img { width: 28px; height: 28px; }
+.lb-actions106 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.lb-actions106 .btn { min-height: 52px; font-size: 14px; font-weight: 800; }
+
+/* ---- Partie 5 : Recherches — médaillons verrouillés lisibles (70 %, cadenas), nom sous chaque médaillon ;
+   partie 6 : le trait s'allume jusqu'au médaillon suivant, qui se retourne ---- */
+.bs-node.locked > img { filter: grayscale(.5) !important; opacity: .7; }
+.bs-node { margin-bottom: 18px; }
+.bs-nname { position: absolute; top: calc(100% + 9px); left: 50%; transform: translateX(-50%); width: 92px; text-align: center; font-size: 11px; line-height: 1.1; color: #f4e6c8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+.bs-node.fresh { animation: bs-flip .7s ease-out; }
+.bs-link.lit.fresh { animation: bs-light .5s ease-out; transform-origin: left; }
+@keyframes bs-flip { 0% { transform: rotateY(180deg); } 100% { transform: none; } }
+@keyframes bs-light { from { transform: scaleX(0); } to { transform: none; } }
+.calm .bs-node.fresh, .calm .bs-link.fresh { animation: none; }
+@media (prefers-reduced-motion: reduce) { .bs-node.fresh, .bs-link.fresh { animation: none; } }

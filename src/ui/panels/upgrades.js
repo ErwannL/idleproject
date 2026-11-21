@@ -11,6 +11,7 @@ import { bossForecast, coin, costButton, escapeHtml, fold, distinctTo, forecastH
 import { upgradeProfits } from '../../core/profit.js';
 import { pref } from '../prefs.js';
 import { BASE_UPGRADES, nextUpgradeUnlock, openUpgrades } from '../../core/unlocks.js';
+import { POWERLESS_UPGRADES, WEAK_UPGRADE_PCT, UPGRADE_NAMES } from '../../core/guide.js'; // v10.6 (5)
 import { currentEnvironment, hitsToFall } from '../../core/combat.js'; // v9.2.1 · v9.2.8 : coups encaissés
 
 const ICONS = {
@@ -22,6 +23,12 @@ const ICONS = {
 // v9.2.8 : lignes de survie — gain neutre affiché en « PV effectifs » (PV ÷ part des dégâts qui passe), comme
 // « dégâts/s » pour les lignes d'attaque.
 const SURVIVAL = new Set(['vitality', 'defense', 'armor']);
+// v10.6 (partie 5) : 3 groupes dessinés (bandeaux PixelLab), comme les tuiles du Carnet.
+const GROUPS = [
+  { id: 'strike', title: 'Frapper fort', art: 'group_strike', keys: ['damage', 'attackSpeed', 'crit', 'critDamage', 'doubleAttack', 'bossDamage', 'companionPower'] },
+  { id: 'endure', title: 'Tenir', art: 'group_endure', keys: ['vitality', 'defense', 'armor', 'regen', 'lifesteal', 'dodge'] },
+  { id: 'earn', title: 'Gagner plus', art: 'group_earn', keys: ['goldFind', 'xpGain'] },
+];
 
 // Valeur affichée « actuel → suivant » pour chaque amélioration.
 function effect(key, cur, next) {
@@ -142,7 +149,9 @@ export default {
         : pg && pg.gain > 0 ? ` <span class="muted upg-profit">${key === bestKey ? '<b class="upg-best" title="Meilleure affaire">▲</b> ' : ''}Puissance +${formatNumber(Math.round(pg.gain))}</span>` : '';
       // v9.1.3 (ligne type doc2 §3) : icône, nom + niveau (+ palier), un seul chiffre qui bouge (avant → après, l'unité
       // est dans le nom), +x % dégâts/s neutre sur la même ligne, bouton avec prix : 2 lignes au lieu de 3.
-      const html = `<div class="card upg-card${compact ? ' compact' : ''}">
+      const pctNow = pg && current.combatPower > 0 ? (pg.gain / current.combatPower) * 100 / count : Infinity;
+      const weak = !max && !POWERLESS_UPGRADES.has(key) && pctNow < WEAK_UPGRADE_PCT; // v10.6 (5) : presque sans effet → grisé
+      const html = `<div class="card upg-card${compact ? ' compact' : ''}${weak ? ' weak' : ''}" data-key="${key}" ${weak ? 'title="Presque sans effet (moins de 0,5 % de puissance) : pas dans « Tout acheter »"' : ''}>
         <div class="upg-icon">${img(ICONS[key])}</div>
         <div class="upg-main"><div class="upg-name" title="${escapeHtml(up.description)}">${escapeHtml(up.label)} <span class="upg-level">niv. ${level}${up.maxLevel ? `/${up.maxLevel}` : ''}</span>${milestone}${env?.counter === key ? `<span class="tag env-counter" title="${escapeHtml(`Contré : ${Math.round(env.countered)} % (complet au niveau ${env.fullAt})`)}">contre ${escapeHtml(env.name)}</span>` : ''}</div>
         ${compact || !beginner ? '' : `<div class="muted upg-desc">${escapeHtml(up.description)}</div>`}
@@ -153,6 +162,19 @@ export default {
       if (max) { done.push(html); return ''; }
       return html;
     });
+    const byKey = Object.fromEntries(keys.map((k, i) => [k, cards[i]]));
+    // v10.6 (partie 5) : sans catégorie choisie, la liste est rangée en 3 groupes dessinés.
+    const grouped = cat || beginner ? `<div class="upg-list">${cards.join('')}</div>` : GROUPS.map((g) => {
+      const body = g.keys.filter((k) => byKey[k]).map((k) => byKey[k]).join('');
+      return body ? `<section class="upg-group g-${g.id}"><h4 class="upg-group-head" style="background-image:url(assets/ui/art106/${g.art}.png)"><span>${g.title}</span></h4><div class="upg-list">${body}</div></section>` : '';
+    }).join('') + (() => { const rest = keys.filter((k) => !GROUPS.some((g) => g.keys.includes(k)) && byKey[k]).map((k) => byKey[k]).join(''); return rest ? `<div class="upg-list">${rest}</div>` : ''; })();
+    // v10.6 (partie 5) : « ★ Meilleur achat » en tête, avec sa raison en image.
+    const bk = bestKey && gains[bestKey];
+    const bkPct = bk && current.combatPower > 0 ? (bk.gain / current.combatPower) * 100 : 0;
+    const bestCard = bk && bkPct >= WEAK_UPGRADE_PCT ? `<div class="card upg-bestbuy"><img class="px upg-bb-badge" src="assets/ui/art106/badge_best_buy.png" alt="">
+      <div class="upg-bb-main"><small>★ Meilleur achat</small><b>${img(ICONS[bestKey])} ${escapeHtml(UPGRADE_NAMES[bestKey] ?? bestKey)}</b>
+      <span class="upg-bb-why"><b class="good num">+${formatDecimal(bkPct)} %</b> de puissance pour ${coin()}<b class="num">${formatNumber(bk.cost)}</b> : le meilleur rapport</span></div>
+      ${costButton({ action: 'buy', cost: bk.cost, have: state.gold, attrs: `data-key="${bestKey}" data-amount="${amount}"`, label: '' })}</div>` : '';
     // v9.2.8 : catégories en onglets toujours visibles (« Défense » ne se cache plus dans un menu replié) ; le tri
     // reste dans « Trier ».
     const catTabs = beginner ? '' : `<div class="chip-row upg-cats" role="group" aria-label="Catégorie">${[{ id: 'all', label: 'Toutes', icon: 'icon_upgrade' }, ...cats]
@@ -176,7 +198,7 @@ export default {
     return `${heroCard}<div class="card upg-top">${top}${buyAll}</div>
       ${catTabs}
       ${beginner ? '' : fold(ui, 'upg-filters', 'Trier', filters)}
-      <div class="upg-list">${cards.join('')}</div>
+      ${bestCard}${grouped}
       ${done.length ? fold(ui, 'upg-done', `Terminées (${done.length})`, `<div class="upg-list">${done.join('')}</div>`) : ''}
       ${rebirthRow(state)}
       ${beginner ? '<div class="muted">D\'autres améliorations s\'ouvrent au fil des boss.</div>' : ''}

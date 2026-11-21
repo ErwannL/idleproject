@@ -235,6 +235,17 @@ export function bestOpenUpgrade(state, balance = BALANCE) {
   return best;
 }
 
+// v10.6 (partie 5) : gain de puissance d'un niveau de plus (en %). Sous 0,5 %, l'achat est « presque sans effet » :
+// grisé dans la liste et sorti de « Tout acheter » (sauf Or et Expérience, qui ne comptent pas dans la puissance).
+export const WEAK_UPGRADE_PCT = 0.5;
+export const POWERLESS_UPGRADES = new Set(['goldFind', 'xpGain']);
+export function upgradePowerPct(state, key, levels = 1, balance = BALANCE) {
+  const cur = computeHeroStats(state, balance).combatPower;
+  if (!(cur > 0)) return Infinity;
+  return (computeHeroStats({ ...state, upgrades: { ...state.upgrades, [key]: (state.upgrades[key] ?? 0) + levels } }, balance).combatPower / cur - 1) * 100;
+}
+export const weakUpgrade = (state, key, balance = BALANCE) => !POWERLESS_UPGRADES.has(key) && upgradePowerPct(state, key, 1, balance) < WEAK_UPGRADE_PCT;
+
 export const UPGRADE_NAMES = { damage: 'Dégâts', attackSpeed: 'Vitesse d\'attaque', vitality: 'PV', crit: 'Critique', armor: 'Armure', defense: 'Défense',
   regen: 'Régénération', goldFind: 'Or', critDamage: 'Dégâts critiques', doubleAttack: 'Double attaque', lifesteal: 'Vol de vie',
   companionPower: 'Compagnons', dodge: 'Esquive', bossDamage: 'Dégâts aux boss', xpGain: 'Expérience' };

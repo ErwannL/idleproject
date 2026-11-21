@@ -106,7 +106,7 @@ import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagL
 import { playsOnSite } from './ui/panels/options.js';
 import { skillKillGold, upgradeCompanionSkill } from './core/companions.js'; // v9.3.3
 import { equipBestAllGear, equipBestGear, equipGear, recycleGear, unequipGear, upgradeGear } from './core/companion-gear.js'; // v9.3.3
-import { bestOpenUpgrade, companionToLevel, companionToPlace } from './core/guide.js';
+import { bestOpenUpgrade, weakUpgrade, companionToLevel, companionToPlace } from './core/guide.js';
 import { PROLOGUE_HINT, playPrologue } from './ui/prologue.js'; // v9.3.7
 import { recycleUseless } from './core/inventory.js'; // v9.3.4
 import { sortLootBag } from './core/inventory.js'; // v9.7.1 : sac de butin
@@ -674,7 +674,7 @@ const actions = {
     let n = 0;
     for (let i = 0; i < 2000; i++) {
       const a = bestOpenUpgrade(state);
-      if (!a || a.cost > state.gold || buyUpgradeBulk(state, a.key, '1') <= 0) break;
+      if (!a || a.cost > state.gold || weakUpgrade(state, a.key) || buyUpgradeBulk(state, a.key, '1') <= 0) break; // v10.6 (5) : rien sous 0,5 %
       n += 1;
     }
     if (n) { sound.play('upgrade', { volume: 0.6 }); save(); ui.invalidate(); ui.toast(`${n} amélioration${n > 1 ? 's' : ''} achetée${n > 1 ? 's' : ''}`, '#7fe0a0'); return; }

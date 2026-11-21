@@ -234,10 +234,15 @@ function villageMap(ui, state, now) {
 function researchNode(ui, state, def, now) {
   const st = researchStatus(state, def.id);
   const sel = ui.view.bastionRes === def.id;
-  const cls = `${st.active ? ' active' : ''}${!st.unlocked ? ' locked' : ''}${st.maxed ? ' maxed' : ''}${st.level ? ' got' : ''}${sel ? ' sel' : ''}`;
+  // v10.6 (partie 6) : un médaillon qui vient de s'ouvrir (recherche précédente terminée) se retourne une fois.
+  const seen = (ui.view.resSeen ??= {});
+  const fresh = st.unlocked && seen[def.id] === false;
+  seen[def.id] = Boolean(st.unlocked);
+  const cls = `${st.active ? ' active' : ''}${!st.unlocked ? ' locked' : ''}${st.maxed ? ' maxed' : ''}${st.level ? ' got' : ''}${sel ? ' sel' : ''}${fresh ? ' fresh' : ''}`;
+  const short = def.name.split(/\s+/).filter((w) => w.length > 2 || /^[A-ZÉ]/.test(w)).slice(0, 2).join(' ') || def.name; // v10.6 (5) : nom en 1 ou 2 mots
   const time = st.active ? (() => { const r = researchRemaining(state, def.id); return Number.isFinite(r) ? `<span class="bs-time" data-bt-short="1" data-bt-end="${Math.round(now + r)}">${formatDuration(r / 1000)}</span>` : '<span class="bs-time bad">en pause</span>'; })() : '';
   return `<button class="bs-node${cls}" data-action="bastion-res" data-value="${def.id}" aria-pressed="${sel}" title="${escapeHtml(`${def.name} : ${def.text}`)}" aria-label="${escapeHtml(def.name)}">
-      <img class="px" src="${researchArt(def.id)}" alt="" draggable="false"><span class="bs-nlv num">${st.level}/${def.max}</span>${time}${!st.unlocked ? `<span class="bs-nlock">${img('icon_lock')}</span>` : ''}</button>`;
+      <img class="px" src="${researchArt(def.id)}" alt="" draggable="false"><span class="bs-nlv num">${st.level}/${def.max}</span>${time}${!st.unlocked ? `<span class="bs-nlock">${img('icon_lock')}</span>` : ''}<small class="bs-nname">${escapeHtml(short)}</small></button>`;
 }
 
 function researchTree(ui, state, now, below = false) {
@@ -246,7 +251,8 @@ function researchTree(ui, state, now, below = false) {
     const list = RESEARCH.filter((r) => r.branch === br.id);
     const nodes = list.map((r, i) => {
       const lit = i > 0 && researchStatus(state, r.id).unlocked;
-      return `${i ? `<i class="bs-link${lit ? ' lit' : ''}" aria-hidden="true"></i>` : ''}${researchNode(ui, state, r, now)}`;
+      const fresh = lit && ui.view.resSeen?.[r.id] === false; // v10.6 (6) : le trait s'allume jusqu'au médaillon qui s'ouvre
+      return `${i ? `<i class="bs-link${lit ? ' lit' : ''}${fresh ? ' fresh' : ''}" aria-hidden="true"></i>` : ''}${researchNode(ui, state, r, now)}`;
     }).join('');
     return `<div class="bs-branch"><div class="bs-bhead" title="${escapeHtml(br.name)}"><img class="px" src="${ART(`research_branch_${br.id}`)}" alt="${escapeHtml(br.name)}"></div>${nodes}</div>`;
   }).join('');
