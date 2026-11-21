@@ -127,6 +127,17 @@ add('sort_store', 'a wooden storage chest with a lock', (48, 48))
 add('sort_recycle', 'an item breaking into blue crystal shards', (48, 48))
 add('banner_loot', 'an open treasure chest spilling weapons, armor and coins, sparkles', (320, 60), 2, False)
 
+# --- P2 écrans encore sous 20 % d'image ---------------------------------------------------------------------------
+for n, p in {'combat': 'a crossed sword and flame emblem, red glow', 'hunt': 'a hunting bow and arrow over a paw print, orange glow',
+             'resources': 'a pile of gold coins and a gem, golden glow', 'special': 'an ancient glowing purple rune fragment',
+             'arcane': 'an open spellbook with floating blue runes', 'survival': 'a green heart inside a shield, green glow'}.items():
+    add(f'talent_region_{n}', f'a round carved stone medallion: {p}, ornate rim', (128, 128))
+for n, p in {'sub_blessing': 'a golden blessing amulet with soft holy light', 'sub_pass': 'a royal adventure pass scroll with a ribbon and seal',
+             'sub_premium': 'a jeweled royal crown on a velvet cushion', 'pack_discovery': 'a small treasure bundle with a paladin shield',
+             'pack_heroic': 'a heroic treasure chest with a fairy wing emblem', 'pack_legendary': 'a legendary golden chest with angel wings',
+             'pack_collection': 'a collection of costume chests stacked, magical sparkles', 'gems': 'a heap of blue gems and crystals'}.items():
+    add(f'shop_{n}', f'shop offer illustration: {p}', (128, 128))
+
 
 def gen_one(name):
     from pl939_api import call, images_of, wait

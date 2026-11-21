@@ -314,9 +314,12 @@ export class SceneRenderer {
     } else {
       // Héros ≈ 15 % de la hauteur, largeur logique ≥ 380 px en 16:9 (480 px en 21:9), plafond 4.
       // v9.8 (0.8) : scène presque carrée (fenêtre haute) : moins de ciel, héros plus grand (260 px logiques de large).
-      const minW = (cssWidth / cssHeight > 2.1 ? 480 : cssHeight / cssWidth > 0.8 ? 260 : 380) / pref;
+      const minW = (cssWidth / cssHeight > 2.1 ? 400 : cssHeight / cssWidth > 0.8 ? 260 : 380) / pref;
       // Scène basse (paysage, petite fenêtre) : le héros prend une part plus grande (15 % à 700 px → 32 % à 250 px).
-      const frac = Math.min(0.32, Math.max(cssHeight / cssWidth > 0.8 ? 0.2 : HERO_FRAC, HERO_FRAC + ((700 - cssHeight) / 450) * 0.17));
+      // v10.6 (7) : fenêtre très large (plus de 2,1 fois plus large que haute) : le combat s'agrandit en hauteur au
+      // lieu de laisser une bande de briques vide (héros ≈ 22 % de la hauteur, 400 px logiques de large au moins).
+      const ultra = cssWidth / cssHeight > 2.1;
+      const frac = Math.min(0.32, Math.max(ultra ? 0.22 : cssHeight / cssWidth > 0.8 ? 0.2 : HERO_FRAC, HERO_FRAC + ((700 - cssHeight) / 450) * 0.17));
       scale = Math.min((frac * pref * cssHeight) / HERO_PX, cssWidth >= 560 ? cssWidth / minW : cssWidth / 240, AUTO_MAX_SCALE * pref);
     }
     // Les calques peints montent à 320 px au-dessus du sol : avec le sol remonté (≈ 65 %), la scène peut monter à ≈ 490 px.
@@ -1000,7 +1003,8 @@ export class SceneRenderer {
     this.layout = this.teamLayout(state);
     // v10.0 (8) : sur téléphone (portrait), le décalage est plafonné : au moins un ennemi reste à l'écran devant le héros
     // (l'arrière de l'équipe peut sortir à gauche).
-    const wantShift = Math.min(Math.max(0, 3 - this.layout.left), this.tall ? Math.max(0, this.width - 130 - HERO_X) : 1e9);
+    const edge = this.tall ? 3 : Math.max(3, Math.ceil(40 / (this.scale || 1))); // v10.6 (7) : l'équipe commence à 40 px du bord au moins
+    const wantShift = Math.min(Math.max(0, edge - this.layout.left), this.tall ? Math.max(0, this.width - 130 - HERO_X) : 1e9);
     this.viewShift = this.viewShift === undefined ? wantShift : this.viewShift + (wantShift - this.viewShift) * Math.min(1, dt * 4);
     // v9.10 (6) : vitrine d'un compagnon — il est seul (pas de héros) et recentré à la place du héros.
     // v10.3 (audit) : une scène peut fixer elle-même son cadrage (fixedShift : l'Arène centre la mêlée entière).

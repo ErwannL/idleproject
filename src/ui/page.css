@@ -88,3 +88,26 @@
 #app#app.page-ui #stage-area > :not(#scene) { visibility: hidden !important; }
 /* Téléphone : `.pg-side.pg-inline` garde la fiche dans la page, sous le contenu (au lieu d'une feuille du bas). */
 #app#app.page-ui.page-narrow .pg-side.pg-inline { position: static; transform: none; max-height: none; overflow: visible; z-index: auto; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+
+/* v10.6 (partie 7) : fenêtre large — contenu des pages limité à 1600 px, centré (le décor de la page remplit les côtés) ;
+   le menu du bas est opaque (plus de bande de scène entre la page et le menu) ; le personnage tient dans la hauteur. */
+#app#app.page-ui:not(.page-narrow) #panel-body > .pg { max-width: 1600px; margin: 0 auto; width: 100%; }
+#app#app.page-ui #tabs#tabs { background: #0b1020 !important; }
+#app#app.page-ui:not(.page-narrow) .eq-doll { max-height: calc(100vh - var(--page-bottom, 0px) - 330px); min-height: 300px; }
+#app#app.page-ui:not(.page-narrow) .eq-doll .eq-art, #app#app.page-ui:not(.page-narrow) .eq-doll canvas { max-height: calc(100vh - var(--page-bottom, 0px) - 400px); width: auto; object-fit: contain; }
+/* Fenêtre basse (≤ 1100 px) : le contenu de la page est réduit pour tenir sans défiler (personnage entier, sac, fiche). */
+@media (max-height: 1100px) and (min-width: 1200px) {
+  #app#app.page-ui:not(.page-narrow) .pg-main > .eq-pgin, #app#app.page-ui:not(.page-narrow) .pg-side { zoom: .66; }
+  #app#app.page-ui:not(.page-narrow) .eq-doll { max-height: none; }
+  #app#app.page-ui:not(.page-narrow) .eq-doll .eq-art, #app#app.page-ui:not(.page-narrow) .eq-doll canvas { max-height: 420px; }
+}
+/* La scène derrière la page s'arrête au menu du bas (plus de bande claire entre la page et le menu). */
+#app#app.page-ui { background: #0b1020; }
+#app#app.page-ui #main-col { clip-path: inset(0 0 calc(var(--page-bottom, 0px) / 3) 0); }
+/* Page du donjon en fenêtre large et basse : en-tête plus bas, tuiles de difficulté en bandeau (image + texte côte à côte)
+   pour que « Tu gagnes » et les portes tiennent au-dessus du pli. */
+@media (max-height: 1100px) and (min-width: 1600px) {
+  #app#app.page-ui:not(.page-narrow) .dgp-root { zoom: .8; }
+  #app#app.page-ui:not(.page-narrow) .dgp-tile { flex-direction: row; justify-content: center; gap: 10px; padding: 6px; background: linear-gradient(180deg, #1b2440, #0e1426); }
+  #app#app.page-ui:not(.page-narrow) .dgp-tile-art { height: 56px; mix-blend-mode: lighten; }
+}
