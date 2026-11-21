@@ -164,6 +164,10 @@ for (const [w, h] of [[1116, 993], [1280, 720], [1716, 1000], [390, 844]]) {
   ok(`${tag} : fiche de la Forge — ouvrier en portrait et métier en icône, ouvriers possibles en grille avec leur bonus (plus de « Poser »), avant → après, commandes`,
     sheet.open && /Forge/.test(sheet.head) && sheet.portrait && sheet.trade && sheet.cards >= 3 && sheet.bonus.every((b) => /^\+\d+ %$/.test(b)) && !sheet.poser && sheet.ba && sheet.orders, JSON.stringify(sheet));
   ok(`${tag} : une bulle à la première visite du bâtiment`, sheet.tip);
+  if (!phone) {
+    const go = await page.evaluate(() => { const b = document.querySelector('.bs-side [data-action="bastion-build"]'); const s = document.querySelector('.bs-side').getBoundingClientRect(); const r = b?.getBoundingClientRect(); return r ? { top: Math.round(r.top), bottom: Math.round(r.bottom), side: Math.round(s.bottom), vh: innerHeight } : null; });
+    ok(`${tag} : « Améliorer » de la Forge visible sans défiler`, go && go.bottom <= go.side + 1 && go.bottom <= go.vh && go.top >= 0, JSON.stringify(go));
+  }
   await shot(page, '3-fiche-forge');
   await page.locator('.bs-side [data-action="bastion-tip"]').click();
   await page.waitForTimeout(400);

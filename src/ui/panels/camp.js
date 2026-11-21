@@ -341,9 +341,9 @@ function upgradeBlock(state, def, now) {
   const pics = `<div class="bs-ba"><img class="px" src="${buildingArt(state, def, lv)}" alt=""><span class="bs-arrow">→</span><img class="px" src="${buildingArt(state, def, lv + 1)}" alt=""></div>`;
   return `<div class="bs-block bs-up"><div class="bs-block-title">${lv < 1 ? 'Construire' : 'Améliorer'} : niv. ${lv} → ${lv + 1}${buildingArt(state, def, lv) !== buildingArt(state, def, lv + 1) ? pics : ''}</div>
       <div class="bs-fxlist">${rows}</div>
-      <div class="bs-costs">${have(cost, state)}${duration(cost.ms, f)}</div>
+      <div class="bs-go"><div class="bs-costs">${have(cost, state)}${duration(cost.ms, f)}</div>
       <button class="btn btn-gold primary-action" data-action="bastion-build" data-value="${def.id}" ${can.ok ? '' : 'disabled'}>${lv < 1 ? 'Construire' : 'Améliorer'}</button>
-      ${can.ok ? '' : `<small class="bs-why">${escapeHtml(can.reason)}</small>`}</div>`;
+      ${can.ok ? '' : `<small class="bs-why">${escapeHtml(can.reason)}</small>`}</div></div>`;
 }
 
 function forgeBlock(ui, state, now) {

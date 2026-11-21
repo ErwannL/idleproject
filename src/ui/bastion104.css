@@ -279,3 +279,7 @@
   #app#app.page-ui .bs-pg[data-view="research"] .bs-node { width: 92px; height: 92px; }
   #app#app.page-ui .bs-pg[data-view="research"] .bs-node > img { width: 68px; height: 68px; }
 }
+
+/* « Améliorer » toujours en vue : coût et bouton collés au bas de la fiche quand elle défile (fenêtre basse). */
+.bs-go { display: grid; gap: 6px; }
+#app#app.page-ui:not(.page-narrow) .bs-side .bs-go { position: sticky; bottom: -10px; z-index: 4; margin: 0 -12px -10px; padding: 8px 12px 10px; background: linear-gradient(rgba(13, 20, 38, .9), #0d1426 30%); border-top: 1px solid rgba(201, 150, 63, .45); }
