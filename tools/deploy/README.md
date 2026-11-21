@@ -19,3 +19,10 @@ sudo systemctl daemon-reload && sudo systemctl enable --now idle-rpg-update.time
 ```
 
 Suivi : `journalctl -u idle-rpg-update`. Forcer une vérification : `sudo systemctl start idle-rpg-update`.
+
+## Déploiement immédiat (webhook GitHub)
+
+En plus du minuteur, GitHub prévient le serveur à chaque push : l'URL du webhook est
+`https://ascendrya.com/api/hooks/deploy` (Caddy sur le serveur, ports 80/443 redirigés par la Freebox ; l'ancienne adresse Funnel marche aussi).
+Caddy envoie ce chemin vers le récepteur local (127.0.0.1:9001), qui lance `idle-rpg-update` tout de suite ;
+le reste du site (`/`) va vers le jeu (127.0.0.1:8787).
