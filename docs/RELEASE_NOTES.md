@@ -1,6 +1,22 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.3.1 — L'Arène en profondeur, le coffre dans la scène
+## Ascendrya v10.4.0 — De grandes pages, un Bastion qui vit
+
+- **Pages plein écran** : le Personnage, la Forge, le Bastion et la page d'un donjon s'ouvrent maintenant sur toute la fenêtre, avec une petite fenêtre de combat en haut à gauche — ton équipe continue de se battre pendant que tu regardes. Les écrans de liste (Améliorations, Missions, Boutique…) gardent leur volet.
+- **Personnage** : ton héros ou ton compagnon en grand (300 px et plus), ses 6 places autour avec des icônes ×3 sur fond de rareté, la fiche à droite et « Renforcer » toujours visible sans défiler. Deux fois moins de mots : l'aide passe au survol et derrière « ? », le secondaire dans « Plus ».
+- **Renforcement franc** : l'avant → après ne liste plus que ce qui change ; sous 0,5 % de puissance, la fiche dit « presque sans effet : cet objet est d'un niveau trop bas » et propose « Remettre au niveau de ton étape ». La Forge ne suggère plus jamais un renfort à +0 %.
+- **Forge** : les 4 ateliers en boucle, chacun avec son illustration (établi, enclume, creuset, fourneau), boutons dorés, la ligne « maintenant » en pastille verte, et la fusion détaillée à côté, sans défiler.
+- **Le Bastion se trouve et se lance** : il est dans le menu du bas (Équipe › Compagnons · Bastion · Expéditions) et une tour sur la scène, près du Sceau, signale un chantier fini ou un ouvrier qui manque. À la première ouverture, tes meilleurs ouvriers sont posés selon leur métier (« Reine démone, forgeronne : +40 % ») et un premier chantier offert démarre.
+- **Un village qui vit** : les bâtiments sont dessinés sur la carte du Bastion et changent d'allure en montant de niveau ; fumée à la Forge, pages qui tournent à la Bibliothèque, cristaux qui brillent à la Mine ; chaque ouvrier travaille devant son bâtiment. Les ouvriers se choisissent dans une grille de portraits avec leur bonus. Les recherches sont un arbre dans un grand livre, un nœud illustré par recherche. Au retour, « Pendant ton absence » montre ce qui est fini et un seul bouton : « Tout récupérer ».
+- **Donjons** : la liste devient 5 bannières en ligne (décor, boss en grand, butin principal, « Entrer »). La page d'un donjon passe de 190 à moins de 60 mots : boss et mécanique en image, 3 tuiles de difficulté, ce que tu gagnes en icônes, ton équipe en portraits, les 5 portes, « Entrer » fixé en bas.
+- **Compétences** : chaque compétence joue enfin sa propre animation (la vignette restait bloquée sur la première), en 160 px en tête de sa fiche ; au survol, chaque case joue la sienne en petit ; 60 icônes redessinées, une couleur par type d'effet (coup, zone, soutien, soin).
+- **Coffre de butin vivant** : il flotte, sa lueur pulse, des étincelles montent. Un objet qui tombe part du monstre en tournant, le couvercle s'ouvre, des pièces jaillissent, la pastille grossit et une bulle annonce « Butin rare ! », « épique ! » ou « légendaire ! » ; un Légendaire ajoute un flash doré et un coup de cloche.
+- **Petits défauts** : noms entiers sur les cartes d'Arène ; Améliorations, Missions, Statistiques, Boutique et Invocation à 20 % d'image au moins, avec un bandeau propre à chaque partie ; le Sceau parle simplement (« Succès débloqué », « 10 équipements découverts ») ; la bulle d'une ressource n'arrive plus avant l'écran où elle sert (les clés avec les donjons).
+- Toutes les nouvelles illustrations sont faites avec PixelLab, dans le style du jeu.
+
+### Versions précédentes
+
+<details><summary><b>Ascendrya v10.3.1 — L'Arène en profondeur, le coffre dans la scène</b></summary>
 
 - **Arène sur deux rangs** : les cartes « Devant » combattent au premier plan, celles de « Derrière » un peu en retrait, plus haut et plus petites — pareil chez les monstres. Un compagnon vaincu se couche, grisé, et reste sur la carte ; les vainqueurs restent debout. Avant un ultime, un léger zoom et un flash à la couleur du compagnon.
 - **Boss d'Arène** : la mécanique du boss est jouée et écrite sous sa barre (Fournaise qui monte, Carapace des gardiens, serviteurs qui surgissent) ; les étages de boss alternent entre les mondes de leur élément au lieu de montrer toujours le même dragon. Fin de combat en deux lignes, Progression et Matériaux, « Étage suivant » en bouton principal.
@@ -11,7 +27,7 @@
 - **Équipement et Forge** : chaque renfort gagne au moins 1 unité affichée (plus de « 5 → 5 ») ; la ligne « maintenant » de la Forge nomme la statistique gagnée au lieu d'annoncer « 0 % de puissance », et classe d'abord les renforts qui augmentent la Puissance.
 - **Bastion** : Mine de cristal plus généreuse (25 à 115 éclats par heure) ; cartes de bâtiment utilisables au clavier ; « Mots du Bastion » (Bastion, Ouvrier, Chantier, Recherche) expliqués d'un toucher.
 
-### Versions précédentes
+</details>
 
 <details><summary><b>Ascendrya v10.3.0 — Un équipement qu'on comprend, une Forge en images, le Bastion</b></summary>
 
