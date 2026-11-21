@@ -10,6 +10,7 @@ import { COMPANIONS } from '../data/companions.js';
 import { bossOf, floorName, monsterOf } from '../core/arena-cards.js';
 import { COMPANION_ROLES as ROLE_OF } from '../data/synergies.js';
 import { reduceMotion } from './prefs.js';
+import { TRAITS } from '../core/boss-traits.js';
 
 const RULE_ART = { armored: 'rule_armored', swift: 'rule_swift', noheal: 'rule_noheal', frenzy: 'rule_frenzy', first: 'rule_first', backline: 'rule_backline' };
 const RULE_NAME = { armored: 'Carapace', swift: 'Vif-argent', noheal: 'Plaie ouverte', frenzy: 'Frénésie', first: 'Embuscade', backline: 'Assaut arrière' };
@@ -43,6 +44,16 @@ export function survivalAsCards(r) {
     wave: r.wave, kills: r.kills, rewards: r.rewards, record: r.record, end: null };
 }
 
+// v10.3.1 (6.2) : récompenses de fin de combat sur deux lignes, comme la fin de donjon : « Progression » (gemmes, or,
+// clés, fragments) puis « Matériaux » (éclats, grimoires, pierres, essences).
+const MATERIALS = new Set(['shards', 'grimoire', 'ascension', 'mastery']);
+export function rewardRows(reward) {
+  const pick = (mat) => Object.fromEntries(Object.entries(reward ?? {}).filter(([k, v]) => v > 0 && MATERIALS.has(k) === mat));
+  const row = (label, part) => { const html = rewardIcons(part, 'named'); return html ? `<div class="am-rw-row"><small>${label}</small>${html}</div>` : ''; };
+  const rows = row('Progression', pick(false)) + row('Matériaux', pick(true));
+  return rows ? `<div class="am-end-rw am-end-rows">${rows}</div>` : '';
+}
+
 export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
   document.querySelector('.arena-map')?.remove();
   const el = document.createElement('div');
@@ -52,8 +63,8 @@ export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
   el.innerHTML = `<div class="am-top"><b>${title}</b>
       ${rule ? `<span class="am-rule">${ruleArt(rule.id) ? `<img class="px" src="${ruleArt(rule.id)}" alt="">` : ''}${ruleDup(rule) ? `<b>${escapeHtml(rule.text)}</b>` : `<b>${escapeHtml(ruleName(rule.id))}</b> : ${escapeHtml(rule.text)}`}</span>` : ''}
       <span class="am-time"><i>⏱</i><b class="num">0 s</b>${run.survival ? '' : `<small>3 ★ en moins de ${A.star3} s</small>`}</span><span class="am-stars">★★★</span></div>
-    <div class="am-stage"><canvas class="px am-canvas"></canvas><div class="am-names" aria-hidden="true"></div>
-      <div class="am-boss hidden"><b></b><span class="am-boss-bar"><i></i></span><small class="num"></small></div></div>
+    <div class="am-stage"><canvas class="px am-canvas"></canvas><div class="am-flash" aria-hidden="true"></div><div class="am-names" aria-hidden="true"></div>
+      <div class="am-boss hidden"><b></b><span class="am-boss-bar"><i></i></span><small class="num"></small><span class="am-mech hidden"><i>◆</i><b></b><span></span></span></div></div>
     <div class="am-bottom"><div class="am-cards"></div>
       <div class="am-ctrl"><button class="btn small am-speed" type="button">×1</button><button class="btn small am-mode" type="button">Auto</button><button class="btn small am-skip" type="button">Passer ⏭</button></div></div>
     <div class="am-end hidden"></div>`;
@@ -91,18 +102,32 @@ export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
   const updateMarks = () => {
     const live = new Set();
     let boss = null;
-    for (const m of scene.marks()) {
+    // v10.3.1 : noms sous le sol, l'avant d'abord ; chaque nom prend la première ligne où il ne touche aucun autre.
+    const lines = [];
+    for (const m of scene.marks().sort((a, b) => Number(a.back) - Number(b.back) || a.x - b.x)) {
       if (m.boss) boss = m;
       if (!m.name || !m.seen || m.boss) continue;
       live.add(m.pos);
       let t = tags.get(m.pos);
-      if (!t) { t = document.createElement('span'); t.className = 'am-name'; t.textContent = m.name; t.dataset.row = String(rows++ % 2); namesEl.appendChild(t); tags.set(m.pos, t); }
-      t.style.left = `${Math.round(m.x)}px`; t.style.top = `${Math.round(m.foot + 5 + Number(t.dataset.row) * 15)}px`;
+      if (!t) { t = document.createElement('span'); t.className = 'am-name'; t.textContent = m.name; namesEl.appendChild(t); tags.set(m.pos, t); rows++; }
+      const w = (t.offsetWidth || m.name.length * 7) + 6;
+      const a = m.x - w / 2, b = m.x + w / 2;
+      let row = 0;
+      while ((lines[row] ??= []).some(([l, r]) => a < r && b > l)) row++;
+      lines[row].push([a, b]);
+      t.dataset.row = String(row);
+      t.style.left = `${Math.round(m.x)}px`; t.style.top = `${Math.round(m.foot + 5 + row * 15)}px`;
     }
     for (const [pos, t] of tags) if (!live.has(pos)) { t.remove(); tags.delete(pos); }
     bossEl.classList.toggle('hidden', !boss);
     if (boss) {
-      if (bossEl.dataset.name !== boss.name) { bossEl.dataset.name = boss.name; bossEl.querySelector('b').textContent = boss.name; }
+      if (bossEl.dataset.name !== boss.name) {
+        bossEl.dataset.name = boss.name; bossEl.querySelector('b').textContent = boss.name;
+        // v10.3.1 : la mécanique du boss ou du gardien, sous sa barre (nom et effet, à la couleur de la mécanique).
+        const T = TRAITS[boss.mech], mech = bossEl.querySelector('.am-mech');
+        mech.classList.toggle('hidden', !T);
+        if (T) { mech.style.setProperty('--mech', T.color); mech.querySelector('b').textContent = T.name; mech.querySelector('span').textContent = T.short; }
+      }
       bossEl.querySelector('i').style.width = `${boss.hp * 100}%`;
       const pct = `${Math.ceil(boss.hp * 100)} %`; const sm = bossEl.querySelector('small'); if (sm.textContent !== pct) sm.textContent = pct;
     }
@@ -133,7 +158,10 @@ export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
     if (ended) return;
     ended = true;
     // Tout ce qui reste est joué d'un coup (scène à jour), puis l'écran de fin.
+    scene.quiet = scene.fired < run.events.length; // v10.3.1 : Passer → fin sans avalanche d'effets
     while (scene.fired < run.events.length) scene.play(run.events[scene.fired++]);
+    scene.quiet = false;
+    canvas.style.transform = ''; el.querySelector('.am-flash').style.opacity = '0';
     scene.t = Math.max(scene.t, (run.seconds ?? 0) + 1);
     updateCards();
     el.querySelector('.am-ctrl').classList.add('hidden');
@@ -151,13 +179,31 @@ export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
     end.innerHTML = `<div class="am-end-card"><h2>${run.won ? `${escapeHtml(floorName(run.floor))} franchi !` : `${escapeHtml(floorName(run.floor))} : pas encore…`}</h2>
       <div class="am-end-stars">${[0, 1, 2].map((i) => `<span class="${i < run.stars ? 'on' : ''}" style="animation-delay:${0.25 + i * 0.35}s">★</span>`).join('')}</div>
       ${run.newBack ? '<div class="am-end-back"><img class="px" src="assets/ui/art101/card_back_gold.png" alt=""><span><b>Dos de carte doré gagné !</b> Ta formation le porte dès le prochain combat.</span></div>' : ''}
-      ${run.reward ? `<div class="am-end-rw">${rewardIcons(run.reward, 'named')}</div>` : run.won ? '<p class="muted">Étage déjà franchi : récompense déjà prise.</p>' : '<p class="muted">Change la formation (gardien devant, soigneur derrière) ou renforce tes compagnons : essais illimités.</p>'}
-      <div class="am-end-btns">${run.won ? '<button class="btn btn-gold am-next" type="button">Étage suivant ›</button>' : '<button class="btn btn-gold am-retry" type="button">Retenter</button>'}<button class="btn am-close" type="button">Fermer</button></div></div>`;
+      <div class="am-end-after" style="--after:${0.25 + 3 * 0.35 + 0.15}s">
+      ${run.reward ? rewardRows(run.reward) : run.won ? '<p class="muted">Étage déjà franchi : récompense déjà prise.</p>' : '<p class="muted">Change la formation (gardien devant, soigneur derrière) ou renforce tes compagnons : essais illimités.</p>'}
+      <div class="am-end-btns">${run.won ? '<button class="btn btn-gold primary-action am-next" type="button">Étage suivant ›</button>' : '<button class="btn btn-gold primary-action am-retry" type="button">Retenter</button>'}<button class="btn am-close" type="button">Fermer</button></div></div></div>`;
+    end.querySelector('.primary-action')?.focus({ preventScroll: true });
     end.querySelector('.am-close')?.addEventListener('click', close);
     end.querySelector('.am-next')?.addEventListener('click', () => { close(); onNext?.(); });
     end.querySelector('.am-retry')?.addEventListener('click', () => { close(); onRetry?.(); });
   };
   el.close = close;
+  // v10.3.1 : ultime — zoom léger sur le compagnon (0,4 s) et flash à sa couleur avant l'effet ; sans zoom avec
+  // « réduire les animations » (le flash reste, adouci).
+  const flashEl = el.querySelector('.am-flash');
+  let zoomed = false;
+  const ultFx = () => {
+    const u = ended ? null : scene.ultFocus();
+    if (u && u.scale > 1.001 && !reduceMotion()) {
+      canvas.style.transformOrigin = `${Math.round(u.x)}px ${Math.round(u.y)}px`;
+      canvas.style.transform = `scale(${u.scale.toFixed(4)})`;
+      zoomed = true;
+    } else if (zoomed) { canvas.style.transform = ''; zoomed = false; }
+    const a = u ? u.flash * (reduceMotion() ? 0.5 : 1) : 0;
+    flashEl.style.opacity = a > 0.005 ? a.toFixed(3) : '0';
+    if (u) { flashEl.style.setProperty('--flash', u.color); flashEl.style.setProperty('--fx', `${Math.round(u.x)}px`); flashEl.style.setProperty('--fy', `${Math.round(u.y)}px`); }
+    el.dataset.ult = u && (u.scale > 1.001 || a > 0.005) ? String(u.pos) : '';
+  };
   const frame = (now) => {
     if (!el.isConnected) return;
     if (skip && !ended) finish();
@@ -169,6 +215,7 @@ export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
       if (manual && nx?.kind === 'ult' && nx.side === 'ally' && nx.t <= scene.t - 1 + dt && waitUlt === null && !scene.ultDone?.has(scene.fired)) { waitUlt = nx.from; (scene.ultDone ??= new Set()).add(scene.fired); }
       const hold = waitUlt != null;
       while (dt > 0) { const s = Math.min(dt, ARENA_STEP * 2); scene.step(s, { hold }); dt -= s; }
+      ultFx();
       updateCards();
       if (scene.done) finish();
     } else scene.step(Math.min(0.05, dt));

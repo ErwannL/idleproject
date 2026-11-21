@@ -109,8 +109,10 @@ async function quickRun() {
     await page.waitForTimeout(600);
     await page.click('[data-action="global-boss"]').catch(() => {});
     await page.waitForTimeout(3000);
-    const gb = await page.evaluate(() => ({ canvas: document.querySelectorAll('.wb-overlay canvas').length, fixed: document.querySelectorAll('.arena-overlay, .arena-ally, .arena-foe').length }));
-    ok('6.2 Boss commun : joué sur une scène du moteur (WorldBossScene, pas ArenaScene), aucun portrait fixe', gb.canvas >= 1 && gb.fixed === 0, JSON.stringify(gb));
+    // v10.3.1 : le Boss commun passe par l'écran de l'Arène (ArenaBossScene : moteur et Colosse du World Boss).
+    const gb = await page.evaluate(() => ({ canvas: document.querySelectorAll('.arena-map.am-wb canvas').length, kind: document.querySelector('.arena-map.am-wb')?.scene?.kind ?? null, fixed: document.querySelectorAll('.arena-overlay, .arena-ally, .arena-foe').length }));
+    ok('6.2 Boss commun : joué dans l\'écran de l\'Arène (ArenaBossScene), aucun portrait fixe', gb.canvas >= 1 && gb.kind === 'boss' && gb.fixed === 0, JSON.stringify(gb));
+    await page.evaluate(() => document.querySelector('.arena-map')?.close());
     await ctx.close();
   }
 

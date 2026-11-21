@@ -34,7 +34,7 @@ function hudHtml(WORLD_BOSS) { // v9.7.1 (lot 7) : fiche du grand boss affronté
     <div class="wb-end hidden" role="dialog" aria-modal="true"></div>`;
 }
 
-function endHtml(sum, left, WORLD_BOSS) {
+export function endHtml(sum, left, WORLD_BOSS) { // v10.3.1 : repris par le Boss commun (ui/arena-boss.js)
   // v9.7.1 (lot 4) : face-à-face de l'histoire (revanche) — un objectif, réussi ou non, la jauge Revanche.
   if (sum.story) {
     const dots = Array.from({ length: sum.steps }, (_, i) => `<i class="rv-dot${i < sum.level ? ' on' : ''}"></i>`).join('');

@@ -1,21 +1,16 @@
-import { BG } from '../../render/bg.js';
-import { ZONES } from '../../data/zones.js';
-import { BOSSES, ENEMIES } from '../../data/enemies.js';
-import { ZONE_ELEMENT } from '../../core/elements.js';
 // v9.3.2 : Arène des compagnons — Aventure › Arène. Deux modes SANS HÉROS :
 //   Survie : un compagnon seul contre 30 vagues ; Étages : 3 compagnons/familiers contre des étages et des boss.
-// Le combat est calculé d'un coup (core/arena.js) puis rejoué ici (événements horodatés), en accéléré.
+// v10.3.1 : les combats se jouent sur la carte (ui/arena-map.js) ; l'ancien écran à portraits est retiré.
 import { ARENA } from '../../data/arena.js';
 import { COMPANIONS } from '../../data/companions.js';
 import { unitLevel } from '../../core/companions.js'; // v9.8 (I6) : même niveau que l'Équipe
-import { GLOBAL_BOSS, globalBossLeft, globalBossState, arenaState, arenaUnlocked, companionProfile, floorReward, floorSetup, survivalTriesLeft, survivalWave } from '../../core/arena.js';
+import { GLOBAL_BOSS, globalBossLeft, globalBossState, arenaState, arenaUnlocked, companionProfile, survivalTriesLeft, survivalWave } from '../../core/arena.js';
 import { ELEMENTS, elementBadge } from '../../core/elements.js';
 import { escapeHtml, formatNumber, icon, img, rarityLabel, rewardIcons } from '../common.js';
-import { companionPortrait, companionStill } from './expeditions.js';
+import { companionStill } from './expeditions.js';
 import { cardTowerHtml } from './arena-cards-view.js';
 import { cardArena } from '../../core/arena-cards.js';
 
-const REPLAY_SECONDS = 12; // durée maximale de la relecture
 const MODE_LABEL = { cards: 'Tour à cartes', survival: 'Épreuve : Survie', global: 'Épreuve : Boss commun' }; // v10.1 (P4)
 const SKILL_TXT = { hit: 'frappe', burst: 'zone', heal: 'soin', shield: 'bouclier', rally: 'cri', gold: 'fortune' };
 const MOD_TXT = { swift: 'rapides', armored: 'blindés', frenzy: 'enragés', regen: 'régénération' };
@@ -34,69 +29,6 @@ function foesPreview(group) {
   const els = [...new Set(group.foes.map((f) => f.element))];
   return `<span>${group.boss ? '<b class="bad">BOSS</b>' : `${group.foes.length} ennemi${group.foes.length > 1 ? 's' : ''}`} · ${els.map((e) => elementBadge(e, false, true)).join('')}
     ${group.mods?.length ? ` · ${group.mods.map((m) => MOD_TXT[m]).join(', ')}` : ''}${group.cond ? ` · <b>${escapeHtml(group.cond.text)}</b>` : ''}</span>`;
-}
-
-// Relecture : état du combat à l'instant t (PV des alliés et des ennemis, derniers coups).
-export function replayAt(run, t) {
-  const hp = Object.fromEntries(run.team.map((p) => [p.id, p.maxHp]));
-  let wave = null, foes = [], last = [];
-  for (const e of run.fight.events) {
-    if (e.t > t) break;
-    if (e.kind === 'wave') { wave = e; foes = e.foes.map((f) => ({ ...f, hp: f.maxHp })); }
-    else if ((e.kind === 'hit' || e.kind === 'skill') && foes[e.foe]) foes[e.foe].hp = Math.max(0, foes[e.foe].hp - e.d);
-    else if (e.kind === 'hurt') hp[e.who] = Math.max(0, hp[e.who] - e.d);
-    else if (e.kind === 'heal') for (const id of Object.keys(hp)) { const p = run.team.find((x) => x.id === id); if (hp[id] > 0) hp[id] = Math.min(p.maxHp, hp[id] + p.maxHp * 0.25); }
-    if (['hit', 'skill', 'heal', 'shield', 'rally', 'kill', 'fall'].includes(e.kind) && e.t > t - 0.6) last.push(e);
-  }
-  return { hp, wave, foes, last: last.slice(-4) };
-}
-const bar = (r, color) => `<span class="arena-bar"><i style="width:${Math.max(0, Math.min(100, r * 100))}%;background:${color}"></i></span>`;
-// v9.3.5 : monde dont l'élément est celui des ennemis (choisi par le numéro d'étage / de vague) et son monstre.
-export function foeZone(element, seed) {
-  const zs = ZONE_ELEMENT.map((e, i) => [e, i]).filter(([e]) => e === element).map(([, i]) => i);
-  return zs.length ? zs[seed % zs.length] : 0;
-}
-export function foeSprite(f, i, seed) {
-  const z = ZONES[foeZone(f.element, seed)] ?? ZONES[0];
-  if (f.boss) { const b = BOSSES[z.bosses?.[0]]; return b?.sprite ?? 'icon_boss'; }
-  const id = z.enemies[(i + seed) % z.enemies.length];
-  return ENEMIES[id]?.sprite ?? 'icon_skull';
-}
-
-function replayHtml(ui, state) {
-  const run = ui.view.arenaRun;
-  const span = Math.max(0.1, run.fight.seconds);
-  const speed = Math.max(1, span / REPLAY_SECONDS);
-  const t = Math.min(span, ((performance.now() - run.start) / 1000) * speed);
-  const done = t >= span;
-  const s = replayAt(run, t);
-  const name = (id) => COMPANIONS.find((c) => c.id === id)?.name ?? id;
-  const allies = run.team.map((p) => {
-    const c = COMPANIONS.find((x) => x.id === p.id);
-    const hurt = s.last.some((e) => e.kind === 'hurt' && e.who === p.id);
-    const acts = s.last.some((e) => (e.kind === 'hit' || e.kind === 'skill') && e.who === p.id);
-    return `<div class="arena-ally${s.hp[p.id] <= 0 ? ' down' : ''}${hurt ? ' hurt' : ''}${acts ? ' acts' : ''}">${companionPortrait(c, true)}<b>${escapeHtml(p.name)}</b>${bar(s.hp[p.id] / p.maxHp, '#5ad07a')}</div>`;
-  }).join('');
-  // v9.3.5 : vrais monstres de la campagne (monde de l'élément des ennemis) au lieu de têtes de mort.
-  const seed = run.floor ?? s.wave?.n ?? 1;
-  const zi = foeZone(s.foes[0]?.element, seed);
-  const foes = s.foes.map((f, i) => `<div class="arena-foe${f.hp <= 0 ? ' down' : ''}${f.boss ? ' boss' : ''}${s.last.some((e) => (e.kind === 'hit' || e.kind === 'skill') && e.foe === i) ? ' hit' : ''}"><img class="px foe-art" src="${icon(foeSprite(f, i, seed), f.boss ? 3 : 2)}" alt=""> ${elementBadge(f.element, false, true)}${bar(f.hp / f.maxHp, '#e84a5f')}</div>`).join('');
-  const log = s.last.map((e) => {
-    const el = e.elem > 1 ? ' <b class="adv">Efficace !</b>' : e.elem < 1 ? ' <b class="disadv">Résiste</b>' : '';
-    if (e.kind === 'hit' || e.kind === 'skill') return `<li>${escapeHtml(name(e.who))} : ${e.kind === 'skill' ? `<b>${SKILL_TXT[e.type]}</b> ` : ''}${formatNumber(Math.round(e.d))}${e.crit ? ' (critique)' : ''}${el}</li>`;
-    if (e.kind === 'heal' || e.kind === 'shield' || e.kind === 'rally') return `<li>${escapeHtml(name(e.who))} : <b>${SKILL_TXT[e.kind]}</b></li>`;
-    if (e.kind === 'fall') return `<li class="bad">${escapeHtml(name(e.who))} est à terre</li>`;
-    return '<li>Ennemi vaincu</li>';
-  }).join('');
-  const head = run.mode === 'survival' ? `Vague <b>${s.wave ? s.wave.n : 1}</b> / ${ARENA.survival.waves}${done && !run.won ? ' <span class="bad">(perdue)</span>' : ''}` : `Étage <b>${run.floor}</b>`;
-  const result = !done ? '' : run.mode === 'survival'
-    ? `<div class="card arena-result"><b class="gold-text">${run.wave} vague${run.wave > 1 ? 's' : ''} terminée${run.wave > 1 ? 's' : ''}</b> en ${Math.round(run.seconds)} s · ${run.kills} ennemis vaincus${run.won ? ' — <b class="good">30 vagues terminées !</b>' : ''}
-        ${run.rewards.length ? `<div>Paliers atteints : ${run.rewards.map((m) => `vague ${m.wave} ${rewardIcons(m.reward)}`).join(' · ')}</div>` : ''}${run.won ? '' : ui.mentorCardsHtml?.() ?? ''}</div>`
-    : `<div class="card arena-result">${run.won ? `<b class="good">Étage ${run.floor} franchi !</b> ${rewardIcons(run.reward)}` : `<b class="bad">Étage ${run.floor} non franchi.</b>${ui.mentorCardsHtml?.() ?? ''}`}</div>`; // v9.9 (K4) : Conseil du mentor
-  return `<div class="card arena-replay"><div class="row-between"><span>${head}</span>
-      <button class="btn small" data-action="arena-close">${done ? 'Fermer' : 'Passer ⏭'}</button></div>
-    <div class="arena-field arena-stage" style="--sky:${(BG[ZONES[zi]?.id] ?? BG.plains).sky.join(',')};background-image:url('assets/bg/${(BG[ZONES[zi]?.id] ?? BG.plains).layers.find((l) => l.anchor === 'ground')?.file ?? ''}'), linear-gradient(${(BG[ZONES[zi]?.id] ?? BG.plains).sky.join(',')});--ground:${(BG[ZONES[zi]?.id] ?? BG.plains).ground}"><div class="arena-side">${allies}</div><div class="arena-vs">VS</div><div class="arena-side foes">${foes}</div></div>
-    <ul class="arena-log">${log}</ul></div>${result}`;
 }
 
 // v9.10 (7) : choix de l'équipe (3 places) avant chaque mode d'Arène — la même pour Survie et Étages.
@@ -136,18 +68,6 @@ function survivalHtml(ui, state) {
       <div class="section-title">Aperçu des vagues</div><ul class="arena-preview">${next}</ul></div>`;
 }
 
-function floorsHtml(ui, state) {
-  const a = arenaState(state);
-  const team = arenaTeamOf(ui, state);
-  const f = a.floors.best + 1;
-  const setup = floorSetup(f);
-  return `<div class="card"><div class="row-between"><b>Étages : une équipe de ${ARENA.floors.teamSize}</b><span>${img('icon_trophy')} Record : <b>étage ${a.floors.best}</b></span></div>
-      <div class="muted">Aucun héros. Un boss tous les 10 étages, une contrainte tous les 5. Chaque étage rapporte sa récompense une fois.</div></div>
-    <div class="card"><div class="section-title">Étage ${f} ${rewardIcons(floorReward(f), 'named')}</div><div>${foesPreview(setup)}</div></div>
-    ${teamPicker(ui, state, team)}
-    <button class="btn btn-gold primary-action" data-action="arena-floor" ${team.length ? '' : 'disabled'}>⚔ Combattre l'étage ${f}</button>`;
-}
-
 // v9.3.2 : World Boss MONDIAL : une barre de PV commune à tous les joueurs (serveur). Distinct du World Boss des
 // grands événements (Aventure › Événement) : pas d'écus, pas de phases d'événement comptées en points.
 function globalHtml(ui, state) {
@@ -176,8 +96,6 @@ export default {
     if (!arenaUnlocked(state)) return `<div class="state-empty">L'Arène des compagnons s'ouvre à l'étape ${ARENA.unlockStage}, avec au moins un compagnon.</div>`;
     const mode = ['survival', 'global'].includes(ui.view.arenaMode) ? ui.view.arenaMode : 'cards';
     const tabs = `<div class="item-tabs" role="tablist">${Object.entries(MODE_LABEL).map(([k, l]) => `<button class="btn chip-btn small${k === mode ? ' active' : ''}" data-action="arena-mode" data-value="${k}" role="tab" aria-selected="${k === mode}">${l}</button>`).join('')}</div>`;
-    if (ui.view.arenaRun) return tabs + replayHtml(ui, state);
-    void floorsHtml;
     return tabs + (mode === 'cards' ? cardTowerHtml(ui, state) : mode === 'global' ? globalHtml(ui, state) : survivalHtml(ui, state));
   },
 };

@@ -43,7 +43,7 @@ import { buyUpgradeBulk } from './core/economy.js';
 import { buyFromMerchant, claimEvent, dismissEvent } from './core/events.js';
 import { endTower, startTower } from './core/tower.js';
 import { vigilAllowed as vigilRule } from './core/vigil.js';
-import { finishGlobalBoss, globalBossLeft, runFloor, runSurvival, startGlobalBoss } from './core/arena.js'; // v9.3.2
+import { finishGlobalBoss, globalBossLeft, runSurvival, startGlobalBoss } from './core/arena.js'; // v9.3.2
 import { autoFormation, claimSeason, claimStarChest, playFloor, setFormation, sweepFloor } from './core/arena-cards.js'; // v10.1 (P4)
 import { claimExpedition, expeditionType, relaunchExpeditions, sendAllExpeditions, startExpedition } from './core/expeditions.js';
 import { endChallenge, startChallenge } from './core/challenge.js';
@@ -843,12 +843,6 @@ const actions = {
   cardSweep(f) { const g = sweepFloor(state, f); if (g) ui.toast(`Balayage : ${rewardText(g, formatNumber)}`, '#ffd36a'); done(Boolean(g), null); },
   cardChest() { const g = claimStarChest(state); if (g) ui.chestReveal?.(g); done(Boolean(g), null); },
   cardSeason(f) { const g = claimSeason(state, f); if (g) ui.chestReveal?.(g); done(Boolean(g), null); },
-  arenaFloor(team) {
-    const r = runFloor(state, team);
-    if (!r) { ui.toast('Choisis au moins un compagnon.', '#ff8a8a'); return null; }
-    done(true, r.won ? `Arène : étage ${r.floor} franchi !` : null, '#7fe0a0');
-    return r;
-  },
   // v9.3.2 : Boss commun (barre commune, serveur) : même combat que celui des événements.
   globalBossStart() { return startGlobalBoss(state, bossHpForDay(state)); },
   globalBossFinish(setup, result) {

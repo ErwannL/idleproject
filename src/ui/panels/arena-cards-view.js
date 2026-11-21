@@ -1,10 +1,10 @@
-// v10.1 (P4) : écran de l'Arène à cartes — tour des étages, formation 2×3, plateau de combat rejoué.
+// v10.1 (P4) : écran de l'Arène à cartes — tour des étages, formation 2×3 (le combat se joue sur la carte : ui/arena-map.js).
 import { CARD_ARENA as A } from '../../data/arena-floors.js';
 import { COMPANIONS } from '../../data/companions.js';
 import { GOLD_BACK_FLOOR, arenaCal, cardArena, cardOf, chestsReady, floorCards, floorName, formationCards, hasGoldBack, isBossFloor, isGuardianFloor, sweepsLeft, totalStars } from '../../core/arena-cards.js';
 import { cardHtml } from '../card.js';
 import { ruleArt, ruleDup, ruleName } from '../arena-map.js';
-import { escapeHtml, formatNumber, img, rewardIcons } from '../common.js';
+import { escapeHtml, img, rewardIcons } from '../common.js';
 // v10.3 (audit) : l'image d'une carte ennemie vient de la carte elle-même (core/arena-cards.js › floorCards). Avant,
 // elle était recalculée ici d'après la CASE de la carte et non son rang : le nom et l'image ne correspondaient plus
 // (« Loup des neiges » sur un gluant), et le gardien prenait l'image du boss du monde au lieu de la sienne.
@@ -64,49 +64,4 @@ export function cardTowerHtml(ui, state) {
     <div class="card"><b>Saison</b> <span class="muted">meilleur étage : ${c.season.best}</span><div class="ct-season">${season}</div></div>
     <div class="ct-go"><button class="btn btn-gold primary-action" data-action="card-fight" data-value="${f}" ${team.length ? '' : 'disabled'}>${team.length ? `⚔ Combattre · ${escapeHtml(floorName(f))}` : 'Place au moins 1 carte'}</button>
       ${(c.stars[f] ?? 0) >= 3 ? `<button class="btn" data-action="card-sweep" data-value="${f}" ${sweepsLeft(state) > 0 ? '' : 'disabled'}>⚡ Balayer</button>` : ''}</div>`;
-}
-
-// Plateau rejoué (dans une fenêtre) : les cartes perdent leurs PV au fil des événements, l'attaquant s'avance.
-export function playBoard(ui, run) {
-  const side = (list, foe) => `<div class="cb-side${foe ? ' foe' : ''}">${[0, 1].map((r) => `<div class="cb-row">${[0, 1, 2].map((col) => {
-    const pos = (foe ? 1 - r : r) * 3 + col; // les deux rangées de devant se font face
-    const card = list.find((x) => x.pos === pos);
-    return `<div class="cb-cell">${card ? cardHtml(foe ? foeCard(card) : card, { small: true, foe }) : ''}</div>`;
-  }).join('')}</div>`).join('')}</div>`;
-  ui.openModal(`<div class="cb-board"><h2 id="modal-title">${escapeHtml(floorName(run.floor))}</h2>
-    ${side(run.setup.cards, true)}<div class="cb-mid"><span class="cb-time">0 s</span></div>${side(run.team, false)}
-    <div class="cb-end hidden"></div><div class="detail-actions"><button class="btn" data-action="card-skip">Passer ⏭</button></div></div>`);
-  const root = ui.$('modal-card');
-  const hp = { ally: Object.fromEntries(run.team.map((x) => [x.pos, x.maxHp])), foe: Object.fromEntries(run.setup.cards.map((x) => [x.pos, x.maxHp])) };
-  const max = { ally: Object.fromEntries(run.team.map((x) => [x.pos, x.maxHp])), foe: Object.fromEntries(run.setup.cards.map((x) => [x.pos, x.maxHp])) };
-  const el = (s, pos) => root.querySelector(`.cb-side${s === 'foe' ? '.foe' : ':not(.foe)'} .pcard[data-pos="${pos}"]`);
-  const speed = Math.max(1, run.seconds / 14);
-  let i = 0; const t0 = performance.now();
-  const finish = () => {
-    clearInterval(ui.cardTimer);
-    const end = root.querySelector('.cb-end');
-    if (!end) return;
-    end.classList.remove('hidden');
-    end.innerHTML = run.won ? `<b class="good">Victoire !</b> ${stars(run.stars)}${run.reward ? ` ${rewardIcons(run.reward, 'named')}` : ''}` : `<b class="bad">Défaite</b><div class="muted">Change la formation (gardien devant, soigneur derrière) et réessaie : essais illimités.</div>`;
-    const btn = root.querySelector('[data-action="card-skip"]'); if (btn) { btn.textContent = 'Fermer'; btn.dataset.action = 'close-modal'; }
-    for (const s of ['ally', 'foe']) for (const pos of Object.keys(hp[s])) { const e = el(s, pos); const end2 = s === 'ally' ? run.end.allies : run.end.foes; const v = end2.find((x) => String(x.pos) === pos); if (e && v) { e.querySelector('.pc-hp i').style.width = `${(v.hp / v.maxHp) * 100}%`; e.classList.toggle('down', v.hp <= 0); } }
-  };
-  ui.cardSkip = finish;
-  clearInterval(ui.cardTimer);
-  ui.cardTimer = setInterval(() => {
-    if (!root.isConnected) return clearInterval(ui.cardTimer);
-    const t = ((performance.now() - t0) / 1000) * speed;
-    const tm = root.querySelector('.cb-time'); if (tm) tm.textContent = `${Math.min(run.seconds, Math.round(t))} s`;
-    while (i < run.events.length && run.events[i].t <= t) {
-      const e = run.events[i++];
-      const target = e.side === 'ally' ? 'foe' : 'ally';
-      if (['hit', 'skill', 'splash', 'ulthit'].includes(e.kind)) {
-        hp[target][e.to] = Math.max(0, hp[target][e.to] - e.d);
-        const te = el(target, e.to); if (te) { te.querySelector('.pc-hp i').style.width = `${(hp[target][e.to] / max[target][e.to]) * 100}%`; te.classList.remove('struck'); void te.offsetWidth; te.classList.add('struck'); }
-        const ae = el(e.side, e.from); if (ae) { ae.classList.remove('lunge'); void ae.offsetWidth; ae.classList.add('lunge'); }
-      } else if (e.kind === 'fall') { const fe = el(e.side, e.pos); if (fe) fe.classList.add('down'); }
-      else if (e.kind === 'ult') { const ae = el(e.side, e.from); if (ae) { ae.classList.remove('ult'); void ae.offsetWidth; ae.classList.add('ult'); } }
-    }
-    if (i >= run.events.length && t >= run.seconds) finish();
-  }, 50);
 }

@@ -86,8 +86,8 @@ import { ADV, elementBadge, elementWheel, strongAgainst } from '../core/elements
 import { companionById } from '../core/companions.js'; // v9.5.1
 import { COMPANION_ROLES, ROLES } from '../data/synergies.js'; // v10.1
 import { dormantResources } from '../core/daybook.js';
-import { playBoard } from './panels/arena-cards-view.js';
 import { openArenaMap, survivalAsCards } from './arena-map.js'; // v10.2 (P6)
+import { openBossArena } from './arena-boss.js'; // v10.3.1 : Boss commun dans l'écran de l'Arène
 import { startVignettes } from './vignettes.js';
 import { DOORS, dungeonStars, roman } from '../core/dungeon-plus.js';
 const DIFF_LABEL = { easy: 'Facile', normal: 'Normal', hard: 'Difficile' };
@@ -160,7 +160,6 @@ import { measureFarmRate } from '../core/offline.js';
 import { claimables, claimablesByTab } from '../core/claimables.js';
 import { isPhone, pref, reduceMotion, setPref } from './prefs.js';
 import { mountShowcase } from './showcase.js';
-import { openArenaStage } from './arena-stage.js'; // v9.10 (7)
 import { showHowTo } from './learn.js'; // v10.1
 import { HERALD_TASKS, chronicleNow, heraldState, heraldTask } from '../core/chronicles.js'; // v9.11 (7)
 import * as uiFx from './ui-vfx.js'; // v9.2.6 : effets visuels de l'interface
@@ -1075,7 +1074,8 @@ export class UI {
         break;
       }
       case 'global-boss': // v9.3.2 : Boss commun (même écran, barre commune côté serveur)
-        openWorldBoss(this.state, { start: () => a.globalBossStart(), finish: (setup, r) => a.globalBossFinish(setup, r), left: () => a.globalBossLeft(), closed: () => this.invalidate() });
+        // v10.3.1 (6.2) : joué dans l'écran de l'Arène (ArenaBossScene), mêmes règles, score et bilan.
+        openBossArena(this, { start: () => a.globalBossStart(), finish: (setup, r) => a.globalBossFinish(setup, r), left: () => a.globalBossLeft(), closed: () => this.invalidate(), offline: () => Boolean(this.globalBoss?.offline) });
         break;
       case 'event-boss': // v9.2.9 : vrai combat animé (ui/world-boss.js)
         openWorldBoss(this.state, { start: () => a.eventBossStart(), finish: (setup, r) => a.eventBossFinish(setup, r), left: () => a.eventBossLeft(), closed: () => this.invalidate() });
@@ -1128,7 +1128,7 @@ export class UI {
       case 'gear-up': a.gearDo('up', null, value); break;
       case 'gear-recycle': a.gearDo('recycle', null, value); break;
       // v9.3.2 : Arène des compagnons.
-      case 'arena-mode': this.view.arenaMode = value; this.view.arenaRun = null; this.invalidate(); break;
+      case 'arena-mode': this.view.arenaMode = value; this.invalidate(); break;
       case 'arena-pick': this.view.arenaPick = value; this.invalidate(); break;
       case 'arena-team': {
         const t = [...(this.view.arenaTeam ?? [])];
@@ -1143,18 +1143,9 @@ export class UI {
       case 'card-auto': a.cardAuto(); break;
       case 'card-floor': local(() => { v.cardFloor = Number(value); }); break;
       case 'card-fight': this.arenaFight(Number(value)); break; // v10.2 (P6) : le combat se joue sur la carte
-      case 'card-skip': this.cardSkip?.(); break;
       case 'card-sweep': a.cardSweep(Number(value)); break;
       case 'card-chest': a.cardChest(); break;
       case 'card-season': a.cardSeason(Number(value)); break;
-      case 'arena-floor': this.arenaRun('floors'); break;
-      case 'arena-close': {
-        const run = this.view.arenaRun;
-        const span = run?.fight.seconds ?? 0, speed = Math.max(1, span / 12), now = performance.now();
-        if (run && ((now - run.start) / 1000) * speed < span) run.start = now - (span / speed) * 1000 - 1; // « Passer » : fin de la relecture
-        else this.view.arenaRun = null;
-        this.invalidate(); break;
-      }
       // v9.1.3 (doc4 lots 4 à 6) : Archives, mode monde, essai gratuit, score.
       case 'archive-target': a.setArchiveTarget(value); break;
       case 'open-world': this.openTab('world', { worldSel: value }); break;
@@ -1843,8 +1834,8 @@ export class UI {
     } else if (this.tab && !this.dirty) {
       this.refreshCosts(state);
       const now = performance.now();
-      // v9.3.2 : relecture d'un combat de l'Arène : rafraîchie toutes les 120 ms (barres de PV, coups).
-      const every = this.tab === 'tower' && this.view.defiTab === 'arena' && this.view.arenaRun ? 120 : 1000;
+      // Panneaux vivants : redessinés au plus une fois par seconde (v10.3.1 : plus de relecture d'Arène dans le panneau).
+      const every = 1000;
       if (LIVE_PANELS.has(this.tab) && now - this.lastLive > every) {
         this.lastLive = now;
         if (!busy && this.liveKey(state) !== this.lastHud.live) this.renderPanel(state);
@@ -1867,8 +1858,8 @@ export class UI {
       // v10.3 (8, 9) : « tu as … / il manque … » suit l'or (par paliers de 6 %), les éclats et le sac.
       case 'inventory': case 'forge': return `${Math.floor(Math.log10(state.gold + 1) * 40)}|${state.materials.shards}|${state.inventory.length}|${state.maxStage}`;
       case 'inbox': return this.claims.map((c) => c.key).join() + (state.inbox.length);
-      case 'arena': return this.view.arenaRun ? String(Math.floor(performance.now() / 120)) : JSON.stringify(state.arena) + Object.keys(state.companions.owned).length;
-      case 'tower': return this.view.defiTab === 'arena' ? (this.view.arenaRun ? String(Math.floor(performance.now() / 120)) : JSON.stringify(state.arena) + Object.keys(state.companions.owned).length) // v9.3.5 : Arène dans Défis
+      case 'arena': return JSON.stringify(state.arena) + Object.keys(state.companions.owned).length;
+      case 'tower': return this.view.defiTab === 'arena' ? (JSON.stringify(state.arena) + Object.keys(state.companions.owned).length) // v9.3.5 : Arène dans Défis
         : `${JSON.stringify(state.tower)}|${state.towerBest}|${JSON.stringify(state.challenge)}|${state.challengeWeek?.best}`;
       // Achat « Max » : le nombre de niveaux abordables change avec l'or.
       case 'upgrades': return this.view.buyAmount === 'max' ? String(Math.floor(Math.log10(state.gold + 1) * 8)) : '';
@@ -3119,13 +3110,11 @@ export class UI {
   arenaRun(mode) {
     const a = this.actions;
     const team = this.view.arenaTeam ?? [];
-    const r = mode === 'survival' ? a.arenaSurvival(team) : a.arenaFloor(team);
+    const r = a.arenaSurvival(team); // v10.3.1 : seule la Survie passe encore par ici (l'ancien mode Étages est retiré)
     if (!r) return;
-    this.view.arenaRun = null;
     this.view.arenaEdit = false;
-    // v10.2 (P6) : la Survie se joue aussi sur la carte (mêmes compagnons, mêmes effets) ; l'ancien mode Étages garde son écran.
-    if (mode === 'survival') openArenaMap(this, survivalAsCards(r), { onRetry: () => { if (survivalTriesLeft(this.state) > 0) this.arenaRun(mode); } });
-    else openArenaStage(this, { ...r, mode }, { retry: () => this.arenaRun(mode), triesLeft: () => survivalTriesLeft(this.state) });
+    // v10.2 (P6) : la Survie se joue aussi sur la carte (mêmes compagnons, mêmes effets).
+    openArenaMap(this, survivalAsCards(r), { onRetry: () => { if (survivalTriesLeft(this.state) > 0) this.arenaRun(mode); } });
     this.invalidate();
   }
 
