@@ -331,3 +331,15 @@
 .eq-itempop.ip-left::before { left: auto; right: -11px; border-right: 0; border-left: 9px solid var(--rc, #e8b64a); }
 /* Portrait d'un compagnon : entier, net, jamais plus haut que la place du personnage. */
 .eq-doll .eq-art { max-height: min(340px, 42vh); width: auto; max-width: 100%; object-fit: contain; image-rendering: pixelated; }
+
+/* ---- v10.7 (4) : Améliorations — meilleur achat toujours là, médaillon du héros, 3 colonnes égales ---- */
+.upg-bb-medal { width: 120px; height: 120px; flex: none; border-radius: 50%; border: 3px solid #ffd34d; background: center / cover no-repeat; display: grid; place-items: center; overflow: hidden; }
+.upg-bb-none { border-color: #8a6a3a; }
+.upg-card.advised { box-shadow: 0 0 0 2px #ffd34d; }
+.upg-page107 { grid-template-columns: minmax(0, 1fr) !important; grid-template-areas: "top" "main" !important; }
+.upg-page107 .upg-pg-top { height: 110px; }
+.upg-page107 .upg-toprow { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 12px; margin-bottom: 12px; }
+.upg-page107 .upg-toprow .upg-top { margin: 0; }
+.upg-page107 .upg-cols3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.upg-weak-why { display: block; font-size: 11px; color: #ffb36b; font-weight: 700; }
+.upg-bb-medal { position: relative; } .upg-bb-medal .upg-bb-badge { position: absolute; right: -4px; bottom: -4px; width: 44px; height: 44px; }

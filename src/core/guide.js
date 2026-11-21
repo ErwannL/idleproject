@@ -244,7 +244,10 @@ export function upgradePowerPct(state, key, levels = 1, balance = BALANCE) {
   if (!(cur > 0)) return Infinity;
   return (computeHeroStats({ ...state, upgrades: { ...state.upgrades, [key]: (state.upgrades[key] ?? 0) + levels } }, balance).combatPower / cur - 1) * 100;
 }
-export const weakUpgrade = (state, key, balance = BALANCE) => !POWERLESS_UPGRADES.has(key) && upgradePowerPct(state, key, 1, balance) < WEAK_UPGRADE_PCT;
+// v10.7 (4) : jugé sur tout ce que l'or permet d'acheter (mode « Max »), pas sur un seul niveau : 50 niveaux de Dégâts à
+// +0,01 % chacun peuvent faire +0,5 % ensemble.
+export const weakUpgrade = (state, key, balance = BALANCE) => !POWERLESS_UPGRADES.has(key)
+  && upgradePowerPct(state, key, Math.max(1, bulkPlan(state, key, 'max', balance).count), balance) < WEAK_UPGRADE_PCT;
 
 export const UPGRADE_NAMES = { damage: 'Dégâts', attackSpeed: 'Vitesse d\'attaque', vitality: 'PV', crit: 'Critique', armor: 'Armure', defense: 'Défense',
   regen: 'Régénération', goldFind: 'Or', critDamage: 'Dégâts critiques', doubleAttack: 'Double attaque', lifesteal: 'Vol de vie',
