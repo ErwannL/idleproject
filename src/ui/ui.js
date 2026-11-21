@@ -171,6 +171,7 @@ import { ZONES } from '../data/zones.js';
 import { CURRENCIES, currencyAmount } from '../data/currencies.js';
 import { MENUS, SUB_LABELS, SUB_SHORT, TAB_LEAD, navPath } from './nav.js';
 import { ELEMENTS, zoneElement } from '../core/elements.js'; // v9.3.1 : types
+import { syncPage } from './page.js'; // v10.4 (partie 1) : pages plein écran
 
 export { MENUS };
 
@@ -661,6 +662,7 @@ export class UI {
       this.root.style.setProperty('--panel-bottom', `${Math.round(h - tabsTop)}px`);
     }
     this.lastHud.tabs = null;
+    syncPage(this); // v10.4
   }
 
   // Un menu ouvre son dernier onglet (ou le premier disponible) ; un second clic le referme.
@@ -823,6 +825,7 @@ export class UI {
     uiFx.syncIcons(this.root); // v9.2.6 : l'icône du menu choisi s'anime
     this.lastHud.tabs = null;
     this.updatePanelLow();
+    syncPage(this); // v10.4 : Équipement, Forge… en page plein écran
     this.invalidate();
   }
 
@@ -879,9 +882,10 @@ export class UI {
     if (this.view) this.view.dungeonSheet = false; this.dgSheet?.(''); this.layerHost?.('unit-host', ''); // v10.1
     this.ring = null; document.getElementById('ring-tip')?.remove(); // v10.1
     if (this.tab === 'daybook') this.actions.bastion?.('book'); // v10.3
-    uiFx.panelCloseFx(this.$('panel')); // v9.2.6 : le panneau s'efface (copie figée, les clics passent)
+    if (!this.root.classList.contains('page-ui')) uiFx.panelCloseFx(this.$('panel')); // v9.2.6 : le panneau s'efface (copie figée, les clics passent)
     this.sidePanel(false);
     this.tab = null;
+    syncPage(this); // v10.4 : la page se ferme, tout revient comme avant
     this.$('panel').classList.add('hidden');
     this.root.classList.remove('panel-open');
     this.updatePanelLow();
@@ -2733,6 +2737,7 @@ export class UI {
     const panel = PANELS[this.tab];
     const body = this.$('panel-body');
     this.lastRender = performance.now();
+    const pageOn = syncPage(this); // v10.4 : en page, pas de bannière (la scène voilée fait le fond)
     const scroll = body.scrollTop;
     // Les zones défilantes internes (liste d'inventaire, fiche…) gardent aussi leur position.
     const inner = [...body.querySelectorAll('[class]')].filter((el) => el.scrollTop > 0)
@@ -2763,7 +2768,7 @@ export class UI {
     const src = this.tab === 'arena' ? 'assets/ui/art98/arena.png'
       : BANNER[this.tab] ? `assets/ui/art98/${BANNER[this.tab]}.png` : BANNER101[this.tab] ? `assets/ui/art101/${BANNER101[this.tab]}.png` : null;
     const lead = TAB_LEAD[this.tab] ? `<p class="tab-lead">${escapeHtml(TAB_LEAD[this.tab])}</p>` : '';
-    const banner = src ? `<div class="art-banner-wrap"><img class="px art-banner" src="${src}" loading="lazy" alt="" aria-hidden="true">${lead}</div>` : lead;
+    const banner = pageOn ? '' : src ? `<div class="art-banner-wrap"><img class="px art-banner" src="${src}" loading="lazy" alt="" aria-hidden="true">${lead}</div>` : lead;
     const html = lexify(help + banner + this.introCard(this.tab, state) + panel.render(this, state)); // v9.7.1 (lot 5) : lexique
     if (this.morphTab === this.tab && body.firstChild) morph(body, html);
     else body.innerHTML = html;
