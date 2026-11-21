@@ -1,0 +1,8 @@
+{
+  "_style": ", 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, no text, no letters, no characters, empty scene",
+  "forge_step_recycle": { "size": [320, 128], "seed": 1041, "prompt": "a blacksmith salvage workbench piled with broken old swords and dented helmets, a small grinder wheel throwing sparks, glowing blue crystal shards and gold coins spilling into a wooden crate, warm forge light" },
+  "forge_step_upgrade": { "size": [320, 128], "seed": 1042, "prompt": "a heavy iron anvil in a smithy with a glowing hot sword blade lying on it, a hammer resting beside, bright orange sparks flying, blue crystal shards on a stone ledge, dark stone wall" },
+  "forge_step_fuse": { "size": [320, 128], "seed": 1043, "prompt": "a large stone fusion crucible full of bright molten golden metal, several swords sinking and melting into it, purple and gold magic swirling above, glowing runes on the crucible rim" },
+  "forge_step_craft": { "size": [320, 128], "seed": 1044, "prompt": "a roaring stone furnace with an arched mouth of fire, a freshly made shiny knight helmet cooling on a rack in front, tongs and molds on a workbench, gold coins and blue crystals on the bench" },
+  "forge_banner_wide": { "size": [400, 112], "seed": 1045, "prompt": "wide panoramic interior of a grand fantasy forge hall, several glowing furnaces along a stone wall, anvils, racks of swords and shields, hanging chains and lanterns, embers floating in warm orange light" }
+}

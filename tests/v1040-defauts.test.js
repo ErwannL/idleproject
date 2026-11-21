@@ -118,5 +118,6 @@ test('2 — illustrations PixelLab de la partie 7 : fichiers présents, script e
 
 test('2 — seuil de check_screens relevé à 20 % pour les 5 onglets', () => {
   const t = text('tools/art/check_screens.mjs');
-  assert.match(t, /\['upgrades', 'contracts', 'stats', 'shop', 'summon'\]\.includes\(t\) \? 0\.2/);
+  // v10.4 : d'autres onglets peuvent s'ajouter à la liste (la Forge en page) ; les 5 restent dedans.
+  assert.match(t, /\['upgrades', 'contracts', 'stats', 'shop', 'summon'(, '[a-z]+')*\]\.includes\(t\) \? 0\.2/);
 });

@@ -188,8 +188,9 @@ export default {
     const it = (pic, rar, extra = '') => `<span class="fg-it r-${rar}">${img(pic)}${extra}</span>`;
     const fx = ui.view.forgeFx ? String(ui.view.forgeFx).split(' ')[0] : '';
     const step = (id, num, title, diagram, rule, line, btn) => `<div class="fg-step${seg === id ? ' on' : ''}${(fx === 'recycle' && id === 'recycle') || (fx === 'craft' && id === 'craft') ? ' fx' : ''}" data-action="forge-seg" data-value="${id}">
-        <div class="fg-step-head"><span class="fg-num">${num}</span><b>${title}</b></div>
-        <div class="fg-diagram" aria-hidden="true" title="${escapeHtml(rule)}">${diagram}</div>
+        <div class="fg-scene"><img class="px fg-step-art" src="assets/ui/art104/forge_step_${id}.png" loading="lazy" alt="" aria-hidden="true">
+          <div class="fg-step-head"><span class="fg-num">${num}</span><b>${title}</b></div>
+          <div class="fg-diagram" aria-hidden="true" title="${escapeHtml(rule)}">${diagram}</div></div>
         <p class="fg-rule">${rule}</p>
         <p class="fg-now ${line.ok ? 'good' : 'muted'}">${line.ok ? '<i class="fg-go" aria-hidden="true">▶</i> ' : ''}${escapeHtml(line.text)}</p>${btn}</div>`;
     const n = now.preview.list.length;
@@ -210,10 +211,12 @@ export default {
     ].join('<i class="fg-arrow" aria-hidden="true">→</i>');
     const body = seg === 'recycle' ? recycleBody(state, now.preview) : seg === 'upgrade' ? upgradeBody(ui, state, now.ranking, now.upgrade.item) : seg === 'fuse' ? fuseBody(ui, state, now.groups) : craftBody(ui, state);
     const chip = (key, pic, v, word) => `<button class="eq-res-chip" data-gloss="${key}" title="${word}" aria-label="${word}">${img(pic)}<b class="num">${formatNumber(v)}</b></button>`;
+    // v10.4 : chaque atelier a son illustration (établi, enclume, creuset, fourneau : art104/forge_step_*.png), son
+    // numéro, son titre et son schéma posés dessus.
     // v10.4 (partie 2) : gabarit de page — ressources en haut, les 4 ateliers en grand, le détail de l'atelier choisi à
     // côté (la fusion détaillée se lit sans défiler).
     return `<div class="fg pg pg-wide fg-on-${seg}"><div class="pg-top fg-top"><div class="eq-res fg-res" role="group" aria-label="Tes ressources">${chip('shards', 'icon_shard', state.materials.shards, 'Éclats')}${chip('gold', 'coin', state.gold, 'Or')}</div>
-      <img class="px art-banner fg-top-art" src="assets/ui/art101/banner_forge.png" loading="lazy" alt="" aria-hidden="true"></div>
+      <img class="px art-banner fg-top-art" src="assets/ui/art104/forge_banner_wide.png" loading="lazy" alt="" aria-hidden="true"></div>
       <div class="pg-main fg-main"><div class="fg-loop">${steps}</div></div><div class="pg-side pg-inline fg-side">${body}</div></div>`;
   },
 };

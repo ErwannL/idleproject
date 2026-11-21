@@ -27,8 +27,11 @@ for (const t of TABS) {
     // Grille de points : un point compte s'il tombe sur une image (img, canvas, fond illustré).
     let hit = 0, n = 0, big = 0;
     for (let y = view.top + 4; y < view.bottom; y += 8) for (let x = view.left + 4; x < view.right; x += 8) {
-      n++;
       const el = document.elementFromPoint(x, y);
+      // v10.4 : page plein écran — la mini-fenêtre de combat (#page-mini, hors du panneau) recouvre un coin du contenu :
+      // ces points ne sont pas l'écran mesuré, ils ne comptent ni pour ni contre.
+      if (el?.closest?.('#page-mini')) continue;
+      n++;
       const pic = el?.closest?.('img, canvas, .dg-card, .arena-tile, .art-banner-wrap, [style*="background-image"]');
       if (pic && body.contains(pic)) hit++;
     }
@@ -40,7 +43,8 @@ for (const t of TABS) {
   }, t);
   if (!r) { console.log(`? ${t} : panneau absent`); continue; }
   // v10.2 (P3) : seuil relevé à 20 % là où le joueur passe le plus de temps ; v10.4 (partie 7) : Boutique et Invocation aussi.
-  const min = ['upgrades', 'contracts', 'stats', 'shop', 'summon'].includes(t) ? 0.2 : 0.15;
+  // v10.4 : la Forge en page aussi (« pauvre en illustration » au retour du joueur).
+  const min = ['upgrades', 'contracts', 'stats', 'shop', 'summon', 'forge'].includes(t) ? 0.2 : 0.15;
   const ok = r.share >= min && r.big >= 1;
   bad += !ok;
   console.log(`${ok ? '✓' : '✗'} ${t.padEnd(13)} image ${(r.share * 100).toFixed(0)} % · grandes images ${r.big}`);
