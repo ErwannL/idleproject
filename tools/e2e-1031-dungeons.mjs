@@ -1,11 +1,11 @@
 // v10.3.1 (partie 3 du plan docs/plan-v1030.md) : feuille de donjon (portrait + mécanique en image + légende, « Entrer »
 // visible), portes de salles côte à côte (clic et toucher), « Balayer tout » (total figé). Cinq formats.
-// Usage : node tools/e2e-1031-dungeons.mjs   (captures dans /tmp/e2e-1031 ou le dossier donné en 1er argument)
+// Usage : node tools/e2e-1031-dungeons.mjs   (captures dans dist/e2e-1031-dungeons ou le dossier donné en 1er argument)
 import { createRequire } from 'node:module';
 import { readFile, mkdir } from 'node:fs/promises';
 import { startServer } from './serve.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
-const OUT = process.argv[2] ?? '/tmp/e2e-1031';
+const OUT = process.argv[2] ?? 'dist/e2e-1031-dungeons';
 await mkdir(OUT, { recursive: true });
 const server = await startServer(0);
 const url = `http://localhost:${server.address().port}/`;
