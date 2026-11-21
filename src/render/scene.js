@@ -967,6 +967,7 @@ export class SceneRenderer {
     // pas de secousses ni de particules d'ambiance, effets allégés.
     this.focus = Boolean(state.ui?.focus) || Boolean(this.calm);
     this.skillKey = heroAnimKey(activeHero(state).palette); // v9.2.5 : gestes de compétence du héros
+    this.skillClass = state.heroClass ?? 'knight'; // v10.4 (3) : effet propre à la classe (data/skill-vfx.js)
     if (this.focus || state.ui?.shake === false) this.shake = 0; // v9.3.9 : réglage « Tremblement de l'écran »
     this.bigAuras = state.ui?.bigAuras === true; // v9.5.3
     this.capRings();

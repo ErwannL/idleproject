@@ -9,6 +9,8 @@ import { phantomHitPct, rushDuration, rushEffect, rushLevel, rushSlots, rushUnlo
 import { computeHeroStats } from '../../core/stats.js';
 import { coin, effectText, escapeHtml, formatDecimal, formatNumber, img } from '../common.js';
 import { pref } from '../prefs.js';
+import { vignetteHtml } from '../vignettes.js';
+import { vignetteFx } from '../../data/skill-vfx.js';
 
 const time = (s) => (s >= 60 ? `${Math.ceil(s / 60)} min` : `${Math.ceil(s)} s`);
 
@@ -127,9 +129,17 @@ function gridView(ui, state) {
 // v9.3.4 : deux sections nommées — Attaques (payées en points, lancées seules) et Boosts (payés en or, à utiliser) ;
 // nom sous chaque icône, badge « Nv X », cadenas si bloqué, bulle courte au toucher, un seul gros bouton.
 const SKILL_SHORT = { /* v9.7.1 : compétences de classe : leur nom suffit */ quick: 'Coup rapide sur un ennemi', whirl: 'Frappe tous les ennemis', cry: "Plus de dégâts un moment", holy: 'Gros coup qui soigne' };
-function cellV2(c, sel) {
+// v10.4 (3) : effet joué par la vignette d'une case (compétence ou Boost) — le même qu'au combat (data/skill-vfx.js).
+export const skillFxName = (state, c) => vignetteFx(c.kind, c.id, state.heroClass ?? 'knight');
+const TYPE_LABEL = { hit: 'Coup unique', aoe: 'Zone', buff: 'Soutien', holy: 'Soin' };
+// Vignette animée d'une case, à la taille voulue (160 px en tête de la fiche, 48 px au survol d'une case).
+// Réutilisable ailleurs (page Personnage) : skillVignetteHtml(state, cell, 160).
+export const skillVignetteHtml = (state, c, size = 160) => vignetteHtml(skillFxName(state, c), size);
+function cellV2(c, sel, state) {
+  // v10.4 (3) : au survol (PC) ou à l'appui (téléphone), la petite vignette de 48 px remplace l'icône (CSS skills1040.css).
+  const mini = c.locked ? '' : vignetteHtml(skillFxName(state, c), 48, 'sk-mini');
   return `<button class="sk2-cell${c.locked ? ' locked' : ''}${sel ? ' sel' : ''}" data-action="skill-sel" data-value="${c.kind}:${c.id}" aria-pressed="${sel}">
-    <span class="sk2-ic${c.locked ? ' sk2-sil' : ''}">${img(c.icon)}${c.locked ? '<b class="sk2-q">?</b>' : `<i class="sk2-lv">Nv ${c.level}</i>`}
+    <span class="sk2-ic${c.locked ? ' sk2-sil' : ''}">${img(c.icon)}${mini}${c.locked ? '<b class="sk2-q">?</b>' : `<i class="sk2-lv">Nv ${c.level}</i>`}
       ${c.active > 0 ? '<i class="sk2-on">Actif</i>' : ''}</span><span class="sk2-name">${escapeHtml(c.name)}</span>${c.sub ? `<small class="sk2-sub">${c.sub}</small>` : ''}</button>`;
 }
 function bubbleV2(state, c) {
@@ -155,9 +165,11 @@ function bubbleV2(state, c) {
   if (c.plus && !c.plus.can && !c.locked && !c.maxed) main += `<p class="muted small">${c.kind === 's' ? 'Il te faut 1 point (1 par niveau du héros)' : 'Il te manque de l\'or'}</p>`;
   const lock = c.locked ? `<p class="up-lock">🔒 Débloqué au niveau ${c.unlock} du héros.</p>` : c.maxed ? '<p class="good">Niveau maximal.</p>' : '';
   // v10.1 (P2) : vignette animée — l'effet de la compétence joue en boucle (canvas animé par ui/vignettes.js).
-  const fx = { quick: 'sk_heavy_cut', whirl: 'sk_whirlwind', cry: 'sk_war_cry', holy: 'sk_holy_smite', phantom: 'sk_blade_dance', gold: 'sk_gold_rain' }[c.id] ?? `sk_${c.id}`;
-  return `<div class="sk2-bubble"><div class="sk2-vig-row"><canvas class="px sk-vignette" width="96" height="96" data-vfx="${escapeHtml(fx)}" aria-hidden="true"></canvas><div class="grow"><div class="row-between"><b>${escapeHtml(c.name)}</b><span class="muted">Nv ${c.level}</span></div>
-    <p>${escapeHtml(short)}</p></div></div><p class="muted">${detail}</p>${lock}<div class="sk2-actions">${main}${use}</div></div>`;
+  // v10.4 (3) : 160 px, en tête de la fiche ; chaque compétence joue SON effet (data/skill-vfx.js, le même qu'au combat).
+  const tk = c.kind === 'r' ? 'boost' : SKILLS.find((x) => x.id === c.id)?.type ?? '';
+  const type = c.kind === 'r' ? 'Boost' : TYPE_LABEL[tk] ?? '';
+  return `<div class="sk2-bubble"><div class="sk2-vig-row sk2-sheet">${skillVignetteHtml(state, c, 160)}<div class="grow"><div class="row-between"><b>${escapeHtml(c.name)}</b><span class="muted">Nv ${c.level}</span></div>
+    ${type ? `<span class="sk2-type t-${tk}">${type}</span>` : ''}<p>${escapeHtml(short)}</p></div></div><p class="muted">${detail}</p>${lock}<div class="sk2-actions">${main}${use}</div></div>`;
 }
 function viewV2(ui, state) {
   const cells = skillGridCells(state);
@@ -167,7 +179,7 @@ function viewV2(ui, state) {
   const affordable = cells.find((c) => c.kind === 's' && !c.locked && c.plus?.can);
   const sel = cells.find((c) => c.kind === k && c.id === id) ?? (pts > 0 ? affordable : null) ?? cells.find((c) => !c.locked) ?? null;
   const section = (kind, title, sub, auto) => `<div class="sk2-head"><span class="tt-title">${title}</span><span class="muted">${sub}</span>${auto}</div>
-    <div class="sk2-grid">${cells.filter((c) => c.kind === kind).map((c) => cellV2(c, c === sel)).join('')}</div>`;
+    <div class="sk2-grid">${cells.filter((c) => c.kind === kind).map((c) => cellV2(c, c === sel, state)).join('')}</div>`;
   return `<div class="sk2-points">Points à dépenser : <b class="gold-text">${pts}</b>${pts > 0 ? ' <button class="btn btn-gold primary-action sk2-spread" data-action="distribute-skills">Répartir les points</button>' : ''}</div>
     ${section('s', 'Attaques', 'payées en points, lancées seules', `<label class="toggle"><input type="checkbox" data-action="skill-auto" ${state.skillAuto ? 'checked' : ''}> Auto</label>`)}
     ${section('r', 'Boosts', 'payés en or, à utiliser', `<label class="toggle"><input type="checkbox" data-action="rush-auto" ${state.rushes.auto ? 'checked' : ''}> Auto</label>`)}

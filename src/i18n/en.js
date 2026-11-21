@@ -2084,3 +2084,7 @@ PATTERNS.unshift(...patterns1031Arena(lookup));
 import { EXACT_1031_CHEST, patterns1031Chest } from './en-1031-chest.js';
 for (const [k, v] of Object.entries(EXACT_1031_CHEST)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1031Chest());
+// v10.4 (partie 3) : étiquettes de type d'effet des compétences (./en-1040-skills.js).
+import { EXACT_1040_SKILLS, patterns1040Skills } from './en-1040-skills.js';
+for (const [k, v] of Object.entries(EXACT_1040_SKILLS)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1040Skills());

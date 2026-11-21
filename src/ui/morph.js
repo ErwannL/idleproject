@@ -25,13 +25,15 @@ function syncAttrs(from, to) {
   if ('disabled' in to && from.disabled !== to.disabled) from.disabled = to.disabled;
 }
 
-function morphNode(from, to) {
+export function morphNode(from, to) {
   if (from.nodeType === 3 || from.nodeType === 8) {
     if (from.nodeValue !== to.nodeValue) from.nodeValue = to.nodeValue;
     return;
   }
-  // Une image ou un canvas dont la source change est remplacé (pas de décodage en double ni d'état périmé).
-  if (from.tagName === 'CANVAS') return;
+  // v10.4 (3) : un canvas garde son dessin et ses enfants (il n'en a pas), mais ses attributs suivent le nouveau gabarit —
+  // sinon la vignette animée garde le `data-vfx` de la première compétence affichée. syncAttrs ne touche à rien d'égal
+  // (width/height identiques : le dessin n'est pas effacé) ; les boucles (vignettes, portraits) relisent les attributs.
+  if (from.tagName === 'CANVAS') { syncAttrs(from, to); return; }
   syncAttrs(from, to);
   morphChildren(from, to);
 }

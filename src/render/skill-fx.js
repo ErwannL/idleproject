@@ -5,6 +5,7 @@
 // « Réduire les animations » (scene.focus) : le geste reste, l'effet devient sobre (un halo et un éclat à sa couleur).
 // Tout est dessiné en pixels de jeu (fillRect sur des coordonnées entières) pour rester dans le style du jeu.
 import { SKILLS } from '../data/skills.js'; // v9.7.1 (lot 6)
+import { heroSkillFx } from '../data/skill-vfx.js'; // v10.4 (3) : un effet propre à chaque compétence
 import { COMPANIONS } from '../data/companions.js';
 import { COMPANION_ROLES } from '../data/synergies.js';
 import { SKILL_TEMPLATES, themedTemplate } from '../data/companion-skills.js';
@@ -32,7 +33,10 @@ for (const anims of Object.values(SKILL_ANIMS)) {
 for (const sk of SKILLS) {
   if (!sk.cls || HERO_SKILL_MOTIFS[sk.id]) continue;
   const own = sk.cls === 'pyromancer' && sk.type === 'aoe' ? 'meteor' : sk.cls === 'archer' && sk.type === 'aoe' ? 'volley' : null;
-  HERO_SKILL_MOTIFS[sk.id] = HERO_SKILL_MOTIFS[own ?? { hit: 'quick', aoe: 'whirl', buff: 'cry', holy: 'holy' }[sk.type]];
+  const base = HERO_SKILL_MOTIFS[own ?? { hit: 'quick', aoe: 'whirl', buff: 'cry', holy: 'holy' }[sk.type]];
+  // v10.4 (3) : le geste vient du type, l'effet est celui de la compétence (data/skill-vfx.js), pas celui de son type
+  // (les noms d'effets de la table existent tous dans FX : vérifié par tests/v1040-skills.test.js).
+  HERO_SKILL_MOTIFS[sk.id] = [base[0], heroSkillFx(sk.id, sk.cls) ?? base[1], base[2]];
 }
 export { HERO_SKILL_MOTIFS, SKILL_ANIMS, UNIT_SKILL_MOTIFS };
 
@@ -89,7 +93,10 @@ export function heroGesturePick(scene) {
 export function castHeroSkill(scene, key, skill, ctxInfo) {
   const entry = HERO_SKILL_MOTIFS[skill];
   if (!entry || scene.underwater) return false;
-  const [motif, fx] = entry;
+  const motif = entry[0];
+  // v10.4 (3) : les 4 compétences communes ont un effet par classe (data/skill-vfx.js), le même que dans la vignette.
+  const own = skill === 'meteor' || skill === 'volley' ? null : heroSkillFx(skill, scene.skillClass ?? 'knight');
+  const fx = own && FX[own] ? own : entry[1];
   // v9.2.5 : un geste peut reprendre une animation PixelLab des alliés (attack_archer pour la pluie de flèches).
   const anim = SKILL_ANIMS[key]?.[motif] ?? ALLY_ANIMS[key]?.[motif] ?? null;
   const dur = gestureTime(anim);
