@@ -43,7 +43,8 @@ async function quickRun() {
       subs: [...document.querySelectorAll('#panel-subtabs button')].map((b) => b.textContent.trim().replace(/^(.+)\1$/, '$1')), fight: Boolean(document.querySelector('[data-action="card-fight"]:not([disabled])')) }));
     ok('2.1 onglet « Arène » dans Combat (titre Arène, onglet Arène allumé, Combattre actif)', t.tab === 'arena' && t.title === 'Arène' && /Arène/.test(t.active) && t.fight && ['Carte', 'Donjons', 'Arène', 'Défis'].every((x) => t.subs.includes(x)), JSON.stringify(t));
     await page.evaluate(() => __idle.ui.openTab('campaign'));
-    await page.waitForTimeout(700);
+    await page.waitForSelector('#panel-body .arena-tile', { timeout: 5000 }).catch(() => {}); // le panneau se redessine à l'image suivante : on attend la tuile, pas une durée
+    await page.waitForTimeout(200);
     const tile = await page.evaluate(() => { const e = document.querySelector('#panel-body .arena-tile'); return e ? { bg: getComputedStyle(e).backgroundImage, w: e.getBoundingClientRect().width } : null; });
     await page.click('#panel-body .arena-tile').catch(() => {});
     await page.waitForTimeout(600);
