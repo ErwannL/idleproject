@@ -424,3 +424,7 @@ PATTERNS.unshift(...patterns103Equip(lookup)); // en tête : ces motifs sont pr�
 import { EXACT_103_BASTION, patterns103Bastion } from './ko-103-bastion.js';
 for (const [k, v] of Object.entries(EXACT_103_BASTION)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.push(...patterns103Bastion(lookup));
+// v10.3.1 (partie 7) : coffre de butin dessiné dans la scène (./ko-1031-chest.js).
+import { EXACT_1031_CHEST, patterns1031Chest } from './ko-1031-chest.js';
+for (const [k, v] of Object.entries(EXACT_1031_CHEST)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1031Chest());

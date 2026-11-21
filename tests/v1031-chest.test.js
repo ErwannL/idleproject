@@ -131,6 +131,20 @@ test('1031 : bouton réel invisible (clavier, lecteurs d\'écran, touche B), zon
   assert.match(src('src/ui/shortcuts.js'), /lootBag: 'b'/);
 });
 
+test('1031 : libellé accessible du coffre et bulles traduits (anglais, coréen)', async () => {
+  const i18n = await import('../src/i18n/i18n.js');
+  const want = {
+    en: ['Loot chest: 3 items (upgrade)', 'Loot chest: 1 item', 'Loot!', 'Chest full: sort it'],
+    ko: ['전리품 상자: 아이템 3개 (강화 가능)', '전리품 상자: 아이템 1개', '전리품!', '상자가 가득 찼어요: 정리하세요'],
+  };
+  try {
+    for (const lang of ['en', 'ko']) {
+      i18n.setLang(lang);
+      assert.deepEqual(['Coffre de butin : 3 objets (amélioration)', 'Coffre de butin : 1 objet', 'Butin !', 'Coffre plein : trie-le'].map((s) => i18n.t(s)), want[lang]);
+    }
+  } finally { i18n.setLang('fr'); }
+});
+
 test('1031 : plus d\'émoji 🎒 sur les libellés du coffre de butin', () => {
   const ui = src('src/ui/ui.js');
   assert.doesNotMatch(ui, /🎒/);
