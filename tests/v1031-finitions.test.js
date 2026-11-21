@@ -295,8 +295,9 @@ test('clavier : Entrée et Espace ouvrent les cartes « role=button » (Bastion,
   const src = readFileSync('src/ui/shortcuts.js', 'utf8');
   assert.match(src, /focused\.matches\('\[role="button"\]:not\(button\)'\)/);
   assert.match(src, /e\.preventDefault\(\);\s*if \(!e\.repeat\) focused\.click\(\)/);
-  assert.match(readFileSync('src/ui/bastion.css', 'utf8'), /\.bs-card:focus-visible\s*\{[^}]*outline: 3px solid/);
-  assert.match(readFileSync('src/ui/panels/camp.js', 'utf8'), /class="bs-card[^"]*"[^>]*role="button" tabindex="0"/);
+  // v10.4 (6) : les bâtiments de la carte sont de vrais boutons (Entrée et Espace natifs), contour visible au clavier.
+  assert.match(readFileSync('src/ui/bastion104.css', 'utf8'), /\.bs-plot:focus-visible\s*\{[^}]*outline: 3px solid/);
+  assert.match(readFileSync('src/ui/panels/camp.js', 'utf8'), /<button class="bs-plot[^"]*"[^>]*data-action="bastion-open"/);
 });
 
 test('lexique : Bastion, Ouvrier, Chantier, Recherche ont leur carte, sans surlignage dans les phrases', () => {

@@ -112,6 +112,8 @@ import { sortLootBag } from './core/inventory.js'; // v9.7.1 : sac de butin
 import { ackBastionNews, assignWorker, bastionSealShown, bastionTick, buildingDef, canBuild, canOrder, canResearch, collectOrder, collectStock, orderLabel, placeOrder,
   removeWorker, researchDef, startBuild, startResearch, takeNotices, trade, workerNoticeText } from './core/bastion.js';
 import { maybeBastionCard } from './ui/bastion-cards.js';
+import { collectAway, kickoffBastion, markTip, noteAway, placedLine } from './core/bastion-start.js'; // v10.4 (6)
+import { maybeBastionAway } from './ui/bastion-away.js'; // v10.4 (6)
 
 const SIM_INTERVAL_MS = 100;
 // v9.1.0 : codes de triche chargés seulement dans la version dev (fichier absent de la version publique).
@@ -255,7 +257,20 @@ const actions = {
     const now = Date.now();
     const refuse = (reason) => { ui.toast(reason, '#ff8a8a'); return false; };
     switch (op) {
-      case 'seen': ackBastionNews(state, null, now); break; // écran du Bastion ouvert : tout est dit
+      case 'seen': { // écran du Bastion ouvert : tout est dit ; v10.4 (6) : à la première ouverture, le Bastion se lance
+        ackBastionNews(state, null, now);
+        const k = kickoffBastion(state, now);
+        if (k) { ui.view.bastionKick = k; ui.view.bastionView = 'map'; if ((ui.root?.clientWidth ?? 0) > 600) ui.view.bastionSel = k.build?.building ?? k.placed[0].building; ui.toast(k.placed.map(placedLine).join(' · '), '#7fe0a0'); sound.play('claim', { volume: 0.7 }); }
+        break;
+      }
+      case 'tip': markTip(state, x); break; // v10.4 (6) : bulle d'un bâtiment lue (une seule fois)
+      case 'away-claim': { // v10.4 (6) : « Tout récupérer » (écran « Pendant ton absence »)
+        const r = collectAway(state, now);
+        ui.closeModal();
+        const got = Object.entries(r.resources).map(([k2, n]) => `+${formatNumber(n)} ${k2 === 'shards' ? 'éclats' : 'grimoires'}`);
+        if (got.length) ui.toast(got.join(' · '), '#7fe0a0');
+        break;
+      }
       case 'book': ackBastionNews(state, 'book', now); break; // ligne du Carnet lue
       case 'shown': bastionSealShown(state, now); break; // consigne du Sceau montrée (une fois par retour)
       case 'worker': {
@@ -1824,8 +1839,11 @@ function tick() {
     refreshMissions(state, now);
     // v10.3 (partie 10) : le Bastion avance (chantiers, recherches, commandes), même fenêtre masquée ; ce qui finit
     // pendant que le joueur regarde est annoncé d'un message, le reste attend son retour (Carnet, Sceau).
-    for (const e of bastionTick(state, now, { away: document.visibilityState === 'hidden' })) {
-      if (e.type === 'opened') ui.news?.('Le Bastion ouvre ses portes : ☰ › Bastion', '#ffd24a', 1);
+    const bastionEvents = bastionTick(state, now, { away: document.visibilityState === 'hidden' });
+    noteAway(state, bastionEvents, now); // v10.4 (6) : « Pendant ton absence »
+    maybeBastionAway(ui, state);
+    for (const e of bastionEvents) {
+      if (e.type === 'opened') ui.news?.('Le Bastion ouvre ses portes : Équipe › Bastion', '#ffd24a', 1);
       else if (e.type === 'delivered') ui.toast(`Commande livrée dans le coffre de butin : ${e.item.name}`, '#7fe0a0');
       else if (!e.away) { ui.toast(`${e.type === 'build' ? 'Chantier terminé' : e.type === 'research' ? 'Recherche terminée' : 'Commande prête'} : ${e.text}`, '#ffd24a'); sound.play('claim', { volume: 0.7 }); }
       ui.invalidate();

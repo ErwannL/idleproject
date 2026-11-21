@@ -1,0 +1,443 @@
+{
+ "frames": [
+  {
+   "filename": "ascendrya-bastion-fx-forge-smoke 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.96
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-bastion-fx-forge-smoke 1.png",
+   "frame": {
+    "x": 20,
+    "y": 0,
+    "w": 20,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.96
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-bastion-fx-forge-smoke 2.png",
+   "frame": {
+    "x": 40,
+    "y": 0,
+    "w": 20,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.96
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-bastion-fx-forge-smoke 3.png",
+   "frame": {
+    "x": 60,
+    "y": 0,
+    "w": 20,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.96
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-bastion-fx-forge-smoke 4.png",
+   "frame": {
+    "x": 0,
+    "y": 50,
+    "w": 20,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.96
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-bastion-fx-forge-smoke 5.png",
+   "frame": {
+    "x": 20,
+    "y": 50,
+    "w": 20,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.96
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-bastion-fx-forge-smoke 6.png",
+   "frame": {
+    "x": 40,
+    "y": 50,
+    "w": 20,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.96
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-bastion-fx-forge-smoke 7.png",
+   "frame": {
+    "x": 60,
+    "y": 50,
+    "w": 20,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.96
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-bastion-fx-forge-smoke 8.png",
+   "frame": {
+    "x": 0,
+    "y": 100,
+    "w": 20,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.96
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-bastion-fx-forge-smoke 9.png",
+   "frame": {
+    "x": 20,
+    "y": 100,
+    "w": 20,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.96
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-bastion-fx-forge-smoke 10.png",
+   "frame": {
+    "x": 40,
+    "y": 100,
+    "w": 20,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.96
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-bastion-fx-forge-smoke 11.png",
+   "frame": {
+    "x": 60,
+    "y": 100,
+    "w": 20,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.96
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-bastion-fx-forge-smoke 12.png",
+   "frame": {
+    "x": 0,
+    "y": 150,
+    "w": 20,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.96
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-bastion-fx-forge-smoke 13.png",
+   "frame": {
+    "x": 20,
+    "y": 150,
+    "w": 20,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.96
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-bastion-fx-forge-smoke 14.png",
+   "frame": {
+    "x": 40,
+    "y": 150,
+    "w": 20,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.96
+   },
+   "duration": 100
+  },
+  {
+   "filename": "ascendrya-bastion-fx-forge-smoke 15.png",
+   "frame": {
+    "x": 60,
+    "y": 150,
+    "w": 20,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.96
+   },
+   "duration": 100
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "ascendrya-bastion-fx-forge-smoke.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 80,
+   "h": 200
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 10,
+   "y": 48
+  },
+  "frameTags": [
+   {
+    "name": "ascendrya-bastion-fx-forge-smoke",
+    "from": 0,
+    "to": 15,
+    "direction": "forward"
+   }
+  ]
+ }
+}

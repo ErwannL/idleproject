@@ -40,6 +40,7 @@ import {
   ackBastionNews, assignWorker, availableWorkers, bastionLevel, bastionOf, bastionTick, buildCost, buildingAccess, buildingDef, canBuild, canOrder, canResearch,
   collectStock, forgeLevel, orderCost, placeOrder, researchCost, researchLevel, startBuild, startResearch, tradeOf, workerBonus, workerSlots,
 } from '../src/core/bastion.js';
+import { kickoffBastion } from '../src/core/bastion-start.js';
 
 const HOUR = 3_600_000;
 const T0 = Date.UTC(2026, 10, 9, 8);
@@ -142,6 +143,9 @@ function bastionPlan(sim, now) {
   for (const e of bastionTick(state, now)) if (e.type !== 'opened') sim.log.push(`  J${sim.day} ${e.type} : ${e.text}`);
   const b = bastionOf(state);
   if (!b) return;
+  // v10.4 (6) : à la première ouverture, le jeu pose les meilleurs ouvriers et offre le premier chantier (15 min).
+  const kick = kickoffBastion(state, now);
+  if (kick?.build) sim.log.push(`  J${sim.day} chantier offert ${buildingDef(kick.build.building).name} → niv. ${kick.build.level}`);
   for (const id of ['mine', 'training']) { const got = collectStock(state, id, now); if (got) sim.gained[got.resource] = (sim.gained[got.resource] ?? 0) + got.amount; }
   // Ouvriers : chaque bâtiment ouvert reçoit le meilleur compagnon libre (bon métier d'abord, puis rareté).
   const order = ['forge', 'library', 'mine', 'training', 'trade'].filter((id) => buildingAccess(state, id).available);

@@ -1,0 +1,600 @@
+{
+ "bastion_map": {
+  "description": "detailed high three-quarter top-down view of a large fortified village courtyard inside stone ramparts, green grass, winding dirt paths connecting six empty flat cobblestone building plots, a small pond, a well in the center, trees and bushes along the walls, banners on the rampart towers, sunny day, wide scene, no buildings on the plots, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels",
+  "image_size": {
+   "width": 384,
+   "height": 216
+  },
+  "no_background": false,
+  "seed": 12,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "research_node_sword": {
+  "description": "a sharp glowing steel sword with a whetstone and sparks, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 61,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "trade_smith": {
+  "description": "a blacksmith hammer striking over a small anvil with sparks, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 41,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "bastion_forge_lv1": {
+  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a small blacksmith forge: stone walls, red tiled roof, open front with glowing orange furnace, an anvil outside, a stone chimney, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 128,
+   "height": 128
+  },
+  "no_background": true,
+  "seed": 21,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "bastion_trade_lv1": {
+  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a small merchant trading post: wooden stall with a striped red and white awning, crates, barrels and sacks, hanging scales, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 128,
+   "height": 128
+  },
+  "no_background": true,
+  "seed": 25,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "bastion_expeditions": {
+  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, an expedition camp gate: a wooden watchtower with a flag, a signpost, travel bags and a small tent next to a map table, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 128,
+   "height": 128
+  },
+  "no_background": true,
+  "seed": 26,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "bastion_training_lv1": {
+  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a small training yard: wooden fence, two straw training dummies, a weapon rack with swords and spears, a little tent, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 128,
+   "height": 128
+  },
+  "no_background": true,
+  "seed": 24,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "bastion_mine_lv1": {
+  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a small mine entrance dug into a rocky hill with wooden support beams, a mine cart on rails, glowing cyan crystals around the entrance, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 128,
+   "height": 128
+  },
+  "no_background": true,
+  "seed": 23,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "bastion_site": {
+  "description": "high three-quarter top-down view of a small square plot of bare brown dirt with only building materials on it: stacked wooden planks, a pile of grey stone blocks, a wheelbarrow, a few wooden scaffolding poles tied with rope, nothing built yet, no house, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 128,
+   "height": 128
+  },
+  "no_background": true,
+  "seed": 29,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "scene_tower": {
+  "description": "a small fantasy stone watchtower with a red pointed roof and a golden banner, wooden door, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 31,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "trade_miner": {
+  "description": "a miner pickaxe with a glowing cyan crystal, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 43,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "bastion_library_lv1": {
+  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a small stone library tower with a blue slate roof, arched windows with warm light, a wooden door, books on a little stand, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 128,
+   "height": 128
+  },
+  "no_background": true,
+  "seed": 22,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "trade_merchant": {
+  "description": "a small pile of gold coins with a merchant scale, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 45,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "bastion_away": {
+  "description": "a cozy fortified village at sunrise seen from above, a blacksmith forge with smoke, a stone library tower, a crystal mine, villagers working, warm golden morning light, wide banner illustration, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels",
+  "image_size": {
+   "width": 320,
+   "height": 128
+  },
+  "no_background": false,
+  "seed": 32,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "trade_scholar": {
+  "description": "an open old spell book with a feather quill, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 42,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "research_branch_team": {
+  "description": "three small heroes standing together under a blue banner, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 52,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "research_branch_economy": {
+  "description": "a stack of gold coins next to a small leather purse, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 53,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "research_node_steelheart": {
+  "description": "a red heart covered with riveted steel armor plates, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 62,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "research_node_skull": {
+  "description": "a cracked skull pierced by a red critical strike slash mark, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 63,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "research_node_shield": {
+  "description": "a raised heavy kite shield with a golden rim, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 64,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "research_node_banner": {
+  "description": "a red war banner with a sword and a heart emblem on a pole, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 66,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "research_node_breath": {
+  "description": "a green glowing heart with a swirling breath of wind, healing, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 65,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "research_branch_combat": {
+  "description": "two crossed steel swords over a red round shield, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 51,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "research_node_hourglass": {
+  "description": "a blue hourglass with a lightning bolt, fast cooldown, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 68,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "research_node_dummy": {
+  "description": "a round straw training dummy on a wooden post with a red target painted on its chest, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 79,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "research_node_rings": {
+  "description": "two linked golden rings glowing with pink light, bond, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 69,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "research_node_gear": {
+  "description": "a hammer and a wrench crossed over a bronze gear, workers, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 72,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "research_node_spyglass": {
+  "description": "a brass spyglass on a rolled treasure map, scouting, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 71,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "trade_trainer": {
+  "description": "a wooden training sword and a round wooden shield, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 44,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "research_node_purse": {
+  "description": "a full leather purse overflowing with gold coins, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 73,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "research_node_hands": {
+  "description": "three hands stacked together in a circle of golden light, teamwork, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 67,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "research_node_eye": {
+  "description": "a hunter eye with a green iris and a crossed arrow, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 75,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "research_node_moon": {
+  "description": "a crescent moon over a lit candle and a small hourglass, night watch, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 74,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "research_node_crystal": {
+  "description": "a rich vein of glowing cyan crystals in dark rock, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 77,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "research_node_book": {
+  "description": "an old open book with a glowing golden star above the pages, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 78,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "research_node_cart": {
+  "description": "a small merchant cart full of goods on a road, icon, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 64,
+   "height": 64
+  },
+  "no_background": true,
+  "seed": 76,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "fx_mine_crystals": {
+  "description": "A small cluster of cyan crystals pulsing with light, bright glints twinkling on the facets, looping. Seamless loop. Retro 16-bit pixel art, crisp pixels, one pixel dark outline, transparent background, no text, centered.",
+  "artist": "lite",
+  "name": "ascendrya_bastion_fx_mine_crystals"
+ },
+ "fx_forge_smoke": {
+  "description": "A thin column of grey chimney smoke puffs rising slowly and fading, small, looping. Seamless loop. Retro 16-bit pixel art, crisp pixels, one pixel dark outline, transparent background, no text, centered.",
+  "artist": "lite",
+  "name": "ascendrya_bastion_fx_forge_smoke"
+ },
+ "fx_forge_sparks": {
+  "description": "Small bright orange and yellow sparks jumping up from a blacksmith anvil strike, short bursts, looping. Seamless loop. Retro 16-bit pixel art, crisp pixels, one pixel dark outline, transparent background, no text, centered.",
+  "artist": "lite",
+  "name": "ascendrya_bastion_fx_forge_sparks"
+ },
+ "fx_library_pages": {
+  "description": "An open magic book floating with its pages turning one after another, soft golden glow, looping. Seamless loop. Retro 16-bit pixel art, crisp pixels, one pixel dark outline, transparent background, no text, centered.",
+  "artist": "lite",
+  "name": "ascendrya_bastion_fx_library_pages"
+ },
+ "bastion_library_lv4": {
+  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a taller stone library with two towers, more arched windows, a balcony, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 128,
+   "height": 128
+  },
+  "no_background": true,
+  "seed": 87,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "init_image_strength": 380,
+  "init_image": "bastion_library_lv1"
+ },
+ "bastion_forge_lv4": {
+  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a medium blacksmith forge with an orange tiled roof, a stone chimney with smoke, a glowing orange furnace in the open front, two anvils and a weapon rack, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 128,
+   "height": 128
+  },
+  "no_background": true,
+  "seed": 85,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "bastion_mine_lv4": {
+  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a larger mine with a wooden lift tower, two carts and more glowing crystals, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 128,
+   "height": 128
+  },
+  "no_background": true,
+  "seed": 84,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "init_image_strength": 380,
+  "init_image": "bastion_mine_lv1"
+ },
+ "bastion_forge_lv8": {
+  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a large blacksmith forge hall with red tiled roofs, two big stone chimneys with fire, a huge glowing orange furnace in the open front, golden trims, an anvil and a weapon rack outside, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 128,
+   "height": 128
+  },
+  "no_background": true,
+  "seed": 95,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "bastion_mine_lv8": {
+  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a huge crystal mine with a big wooden headframe tower, rails, many large glowing cyan and purple crystals, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 128,
+   "height": 128
+  },
+  "no_background": true,
+  "seed": 94,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "init_image_strength": 260,
+  "init_image": "bastion_mine_lv1"
+ },
+ "bastion_trade_lv4": {
+  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a larger merchant post: a wooden shop building with a sign, an awning, many crates and a cart, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 128,
+   "height": 128
+  },
+  "no_background": true,
+  "seed": 85,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "init_image_strength": 380,
+  "init_image": "bastion_trade_lv1"
+ },
+ "bastion_library_lv8": {
+  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a grand wizard library with three towers, golden domes, stained glass windows, floating glowing books, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 128,
+   "height": 128
+  },
+  "no_background": true,
+  "seed": 97,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "init_image_strength": 260,
+  "init_image": "bastion_library_lv1"
+ },
+ "bastion_training_lv4": {
+  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a bigger training yard with a stone wall, more dummies, archery targets and a banner, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 128,
+   "height": 128
+  },
+  "no_background": true,
+  "seed": 88,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "init_image_strength": 380,
+  "init_image": "bastion_training_lv1"
+ },
+ "bastion_trade_lv8": {
+  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a big two story merchant market hall of wood and stone with red and white striped awnings, a golden coin sign, many crates, barrels and sacks, a cart in front, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 128,
+   "height": 128
+  },
+  "no_background": true,
+  "seed": 95,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ },
+ "bastion_training_lv8": {
+  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a grand training arena with stone walls, banners, an archery range, dummies and a small barracks building, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "image_size": {
+   "width": 128,
+   "height": 128
+  },
+  "no_background": true,
+  "seed": 98,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "init_image_strength": 260,
+  "init_image": "bastion_training_lv1"
+ },
+ "research_tree_bg": {
+  "description": "top-down view of a huge ancient open tome lying on a dark wooden desk, two wide blank parchment pages with faint ornate golden borders, candles, a quill and an inkpot at the edges, warm candle light, wide scene, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels",
+  "image_size": {
+   "width": 384,
+   "height": 216
+  },
+  "no_background": false,
+  "seed": 33,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
+ }
+}
