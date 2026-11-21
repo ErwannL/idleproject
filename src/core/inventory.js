@@ -288,6 +288,7 @@ const SORTERS = {
   level: (a, b) => b.level - a.level || rarityIndex(b.rarity) - rarityIndex(a.rarity),
   power: (a, b) => itemPower(b) - itemPower(a),
   recent: (a, b) => itemNumber(b) - itemNumber(a),
+  gain: (a, b) => rarityIndex(b.rarity) - rarityIndex(a.rarity) || itemPower(b) - itemPower(a), // v10.6 : affiné par le gain dans le sac
 };
 
 export function listInventory(state, { slot = 'all', sortBy = 'rarity', rarity = 'all' } = {}) {

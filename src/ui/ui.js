@@ -3,6 +3,7 @@
 // L'interface ne modifie jamais l'état directement : elle appelle les actions fournies par main.js.
 import campPanel, { bastionAction, bastionBadge, bastionLiveKey, openBastion } from './panels/camp.js'; // v9.7.1 (lot 6) · v10.3 : le Bastion
 import { HudQuests } from './hud-quests.js'; // v10.6 (partie 2)
+import { equipFly } from './equip-fx.js'; // v10.6 (parties 4 et 6)
 import { updateBastionTower } from './bastion-tower.js'; // v10.4 (6) : la tour du Bastion sur la scène
 import { GLOSSARY, GLOSSARY_TERMS, RESOURCES } from '../data/glossary.js'; // v9.7.1 (lot 5)
 import { rageFree } from '../core/combat.js'; // v9.7.1 (lot 3)
@@ -936,7 +937,8 @@ export class UI {
       case 'upgrade-cat': local(() => { v.upgradeCat = value; }); break;
       case 'inv-tab': if (value === 'stash') markInvUsed(this.state, 'stash'); local(() => { v.invTab = value; }); break;
       case 'craft-tier': local(() => { v.craftTier = value; }); break;
-      case 'select-item': local(() => { v.selectedItemId = id; v.sheetOpen = 'item'; v.eqSlot = null; v.eqChange = false; v.eqQuick = null; }); break; // v10.3 (8)
+      case 'select-item': local(() => { v.selectedItemId = id; v.sheetOpen = 'item'; v.eqSlot = null; v.eqChange = false; v.eqQuick = null; v.itemPop = el.closest('.eq-bag-grid') ? id : null; }); break; // v10.3 (8) ; v10.6 (4) : fenêtre de l'objet à côté de lui
+      case 'item-pop-close': local(() => { v.itemPop = null; }); break;
       case 'auto-recycle-yes': this.closeModal(); a.setRecycleRule('mode', 'pickup'); break; // v9.3.4 : proposé au 1er sac plein
       case 'recycle-useless': a.recycleUseless(); local(() => { v.forgeFx = 'recycle'; }); setTimeout(() => { v.forgeFx = null; this.invalidate(); }, 700); break; // v9.3.4
       case 'item-more': local(() => { v.itemMore = value || null; }); break; // v9.3.4
@@ -954,7 +956,15 @@ export class UI {
         clearTimeout(this.fuseTimer); v.fuseArmed = false; a.fuseAll(); break;
       case 'rename-build': local(() => { v.buildRename = v.buildRename === Number(value) ? null : Number(value); }); break;
       case 'confirm-rename-build': a.renameLoadout(Number(value), this.$('build-name')?.value); v.buildRename = null; break;
-      case 'equip': a.equip(id); break;
+      case 'equip': { // v10.6 (4 et 6) : l'objet vole dans sa case, la Puissance défile jusqu'à sa nouvelle valeur (0,6 s)
+        const from = el.closest('.eq-itempop, .eq-pop, .eq-side-sheet')?.querySelector('.ip-art img, .eq-tile img') ?? this.root.querySelector(`.eq-bag-grid [data-id="${CSS.escape(id ?? '')}"] img`);
+        const r0 = from?.getBoundingClientRect(), src0 = from?.src;
+        const pw = this.root.querySelector('.eq-power b'), before = this.state ? computeHeroStats(this.state).combatPower : 0;
+        v.itemPop = null;
+        a.equip(id);
+        if (r0?.width && !uiFx.calm()) setTimeout(() => equipFly(this.root, src0, r0, id, pw ? before : null, this.state), 60);
+        break;
+      }
       case 'recycle': {
         const list = visibleItems(this.state);
         const index = list.findIndex((i) => i.id === id);
@@ -1289,7 +1299,7 @@ export class UI {
       case 'offline-claim': this.closeModal(); this.adviceArrow(); break; // v9.8 (C1) : le conseil devient une flèche dorée
       case 'forge-seg': local(() => { v.forgeSeg = value; }); break; // v9.8 (C2)
       // --- v10.3 (parties 8 et 9) : Équipement (places, onglets du personnage, Équipement rapide) et Forge ---
-      case 'eq-slot': local(() => { v.selectedItemId = id || null; v.eqSlot = value; v.sheetOpen = 'item'; v.eqChange = false; v.eqQuick = null; if (v.eqTab !== 'gear') v.eqTab = 'gear'; }); break;
+      case 'eq-slot': local(() => { v.selectedItemId = id || null; v.eqSlot = value; v.sheetOpen = 'item'; v.eqChange = false; v.eqQuick = null; v.itemPop = null; if (v.eqTab !== 'gear') v.eqTab = 'gear'; if (this.state?.ui && value) this.state.ui.slotFilter = value; }); break; // v10.6 (4) : toucher une case filtre le sac sur cette place
       case 'eq-tab': local(() => { v.eqTab = value; v.eqQuick = null; v.eqChange = false; v.skillPop = value === 'skills' ? 'active' : null; }); break;
       case 'eq-change': local(() => { v.eqChange = Boolean(value); v.eqSetFilter = null; }); break;
       case 'eq-setf': local(() => { v.eqSetFilter = value || null; }); break;

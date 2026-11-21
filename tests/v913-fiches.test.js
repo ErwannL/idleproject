@@ -65,8 +65,8 @@ test('Équipement : 6 places autour du héros, bandeau des ressources, filtres r
   assert.equal((html.match(/class="eq-slot[ "]/g) ?? []).length, 6, '6 places pour le héros');
   assert.ok(html.includes('Tes ressources') && html.includes('data-gloss="shards"') && html.includes('pour les compagnons'));
   assert.ok(!html.includes('<div class="section-title">Sac</div>'));
-  assert.equal((html.match(/data-action="filter" data-value=/g) ?? []).length, 0); // v9.7.1 : rangés derrière « Filtres »
-  assert.equal((inventory.render(uiWith({ bagMenu: true }), s).match(/data-action="filter" data-value=/g) ?? []).length, 4); // Tous, Arme, Armure, Accessoire
+  // v10.6 (partie 4) : 7 puces illustrées toujours visibles (Tout et une par place) ; le reste reste derrière « Filtres ».
+  assert.equal((html.match(/data-action="filter" data-value=/g) ?? []).length, 7);
   assert.ok(!html.includes('data-action="eq-quick"'), 'sac vide : rien à équiper');
   s.inventory.push(generateItem(s, new Rng(1), { level: 5, slot: 'ring' }));
   html = inventory.render(uiWith(), s);

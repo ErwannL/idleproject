@@ -21,8 +21,8 @@ import { itemBase, rarityById, recycleLevelOf, recycleMaterials, recycleValue } 
 import { setById, setCounts } from '../../core/sets.js';
 import { computeHeroStats, statsWithItem } from '../../core/stats.js';
 import { STASH_SIZE } from '../../core/stash.js';
-import { itemIconUrl, slotIconName } from '../../render/pixel.js';
-import { affixText, coin, distinctTo, effectText, escapeHtml, fold, formatDecimal, formatNumber, icon, img, rarityLabel, shard } from '../common.js';
+import { slotIconName } from '../../render/pixel.js';
+import { affixText, itemPic, coin, distinctTo, effectText, escapeHtml, fold, formatDecimal, formatNumber, icon, img, rarityLabel, shard } from '../common.js';
 
 const STAT_ICONS = { damage: 'weapon_sword', attackSpeed: 'icon_bolt', maxHp: 'icon_heart', armor: 'icon_shield' };
 // Une ligne d'aide par place : à quoi sert l'objet qu'on y met.
@@ -63,7 +63,7 @@ export function unitTodo(state, c) {
 // Vignette d'objet (cadre à la couleur de la rareté, pastille +N, flèche ▲, cadenas). `tag` : 'div' ou 'button'.
 export function itemTile(item, { cls = '', attrs = '', up = false, tag = 'div', note = '' } = {}) {
   return `<${tag} class="eq-tile r-${item.rarity} ${cls}" ${attrs} title="${escapeHtml(item.name)}${item.upgrades ? ` +${item.upgrades}` : ''} · ${rarityLabel(item.rarity)}">
-    <img class="px eq-ico" src="${itemIconUrl(item, 48)}" alt="${escapeHtml(item.name)}">${item.upgrades ? `<span class="eq-plusn">+${item.upgrades}</span>` : ''}${up ? '<span class="eq-up" title="Meilleur que l\'objet porté">▲</span>' : ''}${item.locked ? `<img class="px lock" src="${icon('icon_lock', 1)}" alt="Verrouillé">` : ''}${note}</${tag}>`;
+    <img class="px eq-ico" src="${itemPic(item, 48)}" alt="${escapeHtml(item.name)}">${item.upgrades ? `<span class="eq-plusn">+${item.upgrades}</span>` : ''}${up ? '<span class="eq-up" title="Meilleur que l\'objet porté">▲</span>' : ''}${item.locked ? `<img class="px lock" src="${icon('icon_lock', 1)}" alt="Verrouillé">` : ''}${note}</${tag}>`;
 }
 
 // Coût pièce par pièce : « tu as … » en vert, ou « il manque … » en rouge avec « Où en gagner » et un bouton « + »
@@ -174,7 +174,7 @@ function slotStrip(ui, state, ctx) {
     const on = it ? it.id === ctx.item?.id : ctx.slot === s && !ctx.item;
     const name = ctx.unit ? slotName(ctx.unit, s) : HERO_SLOTS[s];
     return `<button class="eq-strip-slot${it ? ` r-${it.rarity}` : ' empty'}${on ? ' on' : ''}" data-action="eq-slot" data-value="${s}" aria-pressed="${on}" aria-label="${escapeHtml(name)}" title="${escapeHtml(name)}">
-      ${it ? `<img class="px" src="${itemIconUrl(it)}" alt="">${it.upgrades ? `<i>+${it.upgrades}</i>` : ''}` : img(slotIconName(s))}</button>`;
+      ${it ? `<img class="px" src="${itemPic(it)}" alt="">${it.upgrades ? `<i>+${it.upgrades}</i>` : ''}` : img(slotIconName(s))}</button>`;
   }).join('')}</nav>`;
 }
 
@@ -362,4 +362,30 @@ export function changeSheet(ui, state, ctx) {
     <section class="eq-sec"><div class="eq-change-grid">${shown.map((i) => itemTile(i, { tag: 'button', attrs: `data-action="select-item" data-id="${i.id}"`, up: !wearUnit && ctx.gains.get(i.id).up, note: gainNote(i) })).join('')}
       <button class="eq-tile eq-more" data-action="forge-go" data-value="craft" aria-label="Fabriquer un objet à la Forge" title="Fabriquer un objet à la Forge">+</button></div>
       ${shown.length ? '' : '<p class="muted">Aucun autre objet pour cette place dans ton sac. La case « + » mène à la Forge.</p>'}${filters}</section>${slotStrip(ui, state, ctx)}`);
+}
+
+// v10.6 (partie 4) : fenêtre de l'objet, ouverte à côté de l'objet touché dans le sac (PC ; sur téléphone, la feuille du
+// bas joue ce rôle). Icône en 104 px, une phrase sur ce que fait l'objet, verdict en bandeau vert ou rouge, les
+// statistiques qui changent (« porté → celui-ci »), et Équiper, Renforcer, Recycler.
+export function itemPopup(ui, state, { item, gains }) {
+  const base = itemBase(item.baseId);
+  const hslot = heroSlot(item);
+  const forHero = canEquip(state, item);
+  const pct = gains?.get(item.id)?.pct ?? 0;
+  const main = Object.entries(item.stats ?? {}).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))[0];
+  const what = main ? `${HERO_SLOTS[hslot] ?? 'Objet'} : ${formatStat(main[0], main[1], true)} ${STAT_LABELS[main[0]].toLowerCase()}${(item.affixes ?? []).length ? `, et ${item.affixes.length} effet${item.affixes.length > 1 ? 's' : ''} en plus` : ''}.` : (base.name ?? '');
+  const verdict = !forHero ? `<div class="ip-verdict muted">Pour : ${escapeHtml(item.cls ? classLabel(item.cls) : weaponClass(item.baseId)?.name ?? classLabel(itemClass(state, item)))}</div>`
+    : pct > 0.05 ? `<div class="ip-verdict good"><img class="px" src="assets/ui/art106/verdict_up.png" alt="">Meilleur : <b class="num">${pctText(pct)}</b> de puissance</div>`
+    : pct >= -0.05 ? '<div class="ip-verdict muted">Presque pareil que l\'objet porté</div>'
+    : `<div class="ip-verdict bad"><img class="px" src="assets/ui/art106/verdict_down.png" alt="">Moins bon que ${femSlot(hslot) ? 'celle' : 'celui'} que tu portes (${pctText(pct)})</div>`;
+  const rows = forHero ? compareRows(state, item) : '';
+  const mats = recycleMaterials(item);
+  return `<div class="eq-itempop r-${item.rarity}" role="dialog" aria-label="${escapeHtml(item.name)}" data-pop-for="${item.id}">
+    <button class="ip-x" data-action="item-pop-close" aria-label="Fermer">×</button>
+    <div class="ip-head"><span class="ip-art r-${item.rarity}"><img class="px" src="${itemPic(item, 104)}" alt=""></span>
+      <span class="ip-id"><b class="r-${item.rarity} rarity-text">${escapeHtml(item.name)}${item.upgrades ? ` +${item.upgrades}` : ''}</b><small>${rarityLabel(item.rarity)} · niv. ${item.level}</small><span class="ip-what">${escapeHtml(what)}</span></span></div>
+    ${verdict}${rows ? `<div class="eq-rows ip-rows"><div class="ip-rows-head"><span>porté</span><i>→</i><span>celui-ci</span></div>${rows}</div>` : ''}
+    <div class="ip-actions">${forHero ? `<button class="btn${pct > 0.05 ? ' btn-gold' : ''}" data-action="equip" data-id="${item.id}">Équiper</button>` : ''}
+      <button class="btn" data-action="forge-go" data-value="upgrade">Renforcer</button>
+      <button class="btn" data-action="recycle" data-id="${item.id}" ${item.locked ? 'disabled' : ''}>Recycler +${formatNumber(recycleValue(item, BALANCE, recycleLevelOf(state)))} ${coin()}${mats.shards ? ` +${mats.shards} ${shard()}` : ''}</button></div></div>`;
 }

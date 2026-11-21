@@ -102,3 +102,16 @@ test('10.6 (2) : écran de jeu — Chemin du héros, Carnet en 3 lignes, colonne
     assert.ok(existsSync(`assets/ui/art106/${f}.png`), f);
   for (let i = 1; i <= 12; i++) assert.ok(existsSync(`assets/ui/art106/hud_quest_chapter_${i}.png`));
 });
+
+test('10.6 (4) : toucher une case filtre le sac ; 7 puces, tri par gain, pastille ±%, fenêtre de l\'objet, icônes 64 px', () => {
+  const ui = src('src/ui/ui.js');
+  assert.match(ui, /case 'eq-slot':[^\n]*this\.state\.ui\.slotFilter = value/);
+  assert.match(ui, /case 'select-item':[^\n]*v\.itemPop = /);
+  const inv = src('src/ui/panels/inventory.js');
+  for (const k of ['eq-bag-title', 'Meilleur gain d\\\'abord', 'eq-gain', 'itemPopup(']) assert.ok(inv.includes(k), k);
+  const sheet = src('src/ui/panels/equip-sheet.js');
+  for (const k of ['ip-verdict good', 'ip-verdict bad', 'data-action="equip"', 'data-action="forge-go"', 'data-action="recycle"', 'itemPic(item, 104)']) assert.ok(sheet.includes(k), k);
+  assert.match(src('src/ui/equip-fx.js'), /EQUIP_FLY_MS = 600/);
+  for (const f of ['item_weapon_sword', 'item_helmet_helm', 'item_armor_plate', 'item_amulet_ruby', 'item_ring_band', 'item_bracelet_cuff', 'slot_empty_weapon', 'verdict_up', 'verdict_down'])
+    assert.ok(existsSync(`assets/ui/art106/${f}.png`), f);
+});

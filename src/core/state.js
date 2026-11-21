@@ -72,7 +72,7 @@ import { migrateEquipmentPlaces938, splitParts938 } from './migrations-v938.js';
 // v10 (v9.2.8) : économie du document du producteur (bannières, tickets, cosmétiques sans bonus ; migrations-v928.js).
 export const SAVE_VERSION = 13; // v9.3.8 : héros à 6 places (pièces réunies rendues), familiers sans équipement
 export const SAVE_VERSION_PREV = 10; // v8.4 : nouvel équilibrage (remboursement des améliorations) · v8.5 : arbre de 500 talents (fragments remboursés)
-export const SORT_OPTIONS = ['rarity', 'level', 'power', 'recent'];
+export const SORT_OPTIONS = ['gain', 'rarity', 'level', 'power', 'recent'] // v10.6 (4) : « Meilleur gain d'abord » (trié dans le sac);
 
 export function createNewState(now = Date.now(), seed = Math.floor(Math.random() * 2 ** 32)) {
   const state = {
@@ -97,7 +97,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
       bestLevel: 1, // v9.1.3 : meilleur niveau du héros jamais atteint (idem)
       equips: 0, recycled: 0, manualCasts: 0, guards: 0, // v9.7.1 (lot 3) : compteurs des mini-quêtes de déblocage
     },
-    ui: { slotFilter: 'all', sortBy: 'rarity', autoRecycle: 'off',
+    ui: { slotFilter: 'all', sortBy: 'gain', autoRecycle: 'off',
       // Étape 3 (gains UX) : nouvelle partie → les Communs moins bons que l'équipé sont recyclés quand le sac est plein.
       recycle: { mode: 'full', rarities: ['common'], slots: Object.keys(SLOTS) }, notify: { loot: true, boss: true, events: true }, focus: false },
     // Progression permanente (conservée par la Renaissance).

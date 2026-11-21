@@ -30,15 +30,15 @@ import { computeHeroStats } from '../../core/stats.js';
 import { invFeatureOpen } from '../../core/unlocks.js';
 import { itemIconUrl, slotIconName } from '../../render/pixel.js';
 import { animCanvas } from '../animator.js';
-import { affixText, costButton, distinctTo, effectText, escapeHtml, fold, formatDecimal, formatNumber, hdArt, icon, img, itemFrame, rarityLabel, segment } from '../common.js';
-import { changeSheet, emptySlotSheet, femSlot, itemSheet, pctText, statGainText, unitTodo } from './equip-sheet.js';
+import { affixText, itemPic, costButton, distinctTo, effectText, escapeHtml, fold, formatDecimal, formatNumber, hdArt, icon, img, itemFrame, rarityLabel, segment } from '../common.js';
+import { changeSheet, emptySlotSheet, femSlot, itemPopup, itemSheet, pctText, statGainText, unitTodo } from './equip-sheet.js';
 import { companionPortrait, companionStill } from './expeditions.js';
 import { recycleButton } from './forge.js';
 import { skillBubble, skillIcons } from './unit-popup.js';
 
 const PROFILE_ICONS = { attack: 'icon_damage', survival: 'icon_defense', fortune: 'icon_gold' };
 const PROFILE_TIPS = { attack: 'Pour passer un boss : les dégâts d\'abord', survival: 'Pour tenir dans un monde dur : la survie d\'abord', fortune: 'Pour farmer : l\'or et le butin d\'abord' };
-const SORT_LABELS = { rarity: 'Rareté', level: 'Niveau', power: 'Puissance', recent: 'Récent' };
+const SORT_LABELS = { gain: 'Meilleur gain d\'abord', rarity: 'Rareté', level: 'Niveau', power: 'Puissance', recent: 'Récent' }; // v10.6 (4) : le gain d'abord
 
 export function visibleItems(state) {
   return listInventory(state, { slot: state.ui.slotFilter, sortBy: state.ui.sortBy, rarity: state.ui.rarityFilter ?? 'all' });
@@ -93,11 +93,11 @@ function slotBtn(ui, state, ctx, slot) {
   const up = unit ? ctx.unitSlots.has(slot) : Boolean(ctx.best[slot]);
   if (!item) {
     return `<button class="eq-slot empty${on ? ' on' : ''}" data-action="eq-slot" data-value="${slot}" aria-pressed="${on}" title="${escapeHtml(label)} : place vide">
-      <span class="eq-slot-box">${img(slotIconName(slot))}${up ? '<span class="eq-up" title="Un objet du sac va ici">▲</span>' : '<span class="eq-add">+</span>'}</span>
+      <span class="eq-slot-box">${['weapon', 'helmet', 'armor', 'amulet', 'ring', 'bracelet'].includes(slot) ? `<img class="px eq-ico eq-empty-art" src="assets/ui/art106/slot_empty_${slot}.png" alt="">` : img(slotIconName(slot))}${up ? '<span class="eq-up" title="Un objet du sac va ici">▲</span>' : '<span class="eq-add">+</span>'}</span>
       <small class="eq-slot-place">${escapeHtml(label)}</small></button>`;
   }
   return `<button class="eq-slot r-${item.rarity}${on ? ' on' : ''}" data-action="eq-slot" data-value="${slot}" data-id="${item.id}" aria-pressed="${on}" title="${escapeHtml(label)} : ${escapeHtml(item.name)} · ${rarityLabel(item.rarity)}">
-    <span class="eq-slot-box"><img class="px eq-ico" src="${itemIconUrl(item, 48)}" alt="">${item.upgrades ? `<span class="eq-plusn">+${item.upgrades}</span>` : ''}${up ? '<span class="eq-up" title="Mieux dans ton sac">▲</span>' : ''}</span>
+    <span class="eq-slot-box"><img class="px eq-ico" src="${itemPic(item, 48)}" alt="">${item.upgrades ? `<span class="eq-plusn">+${item.upgrades}</span>` : ''}${up ? '<span class="eq-up" title="Mieux dans ton sac">▲</span>' : ''}</span>
     <small class="eq-slot-name">${escapeHtml(shortName(item))}</small></button>`;
 }
 
@@ -297,30 +297,39 @@ function bagSection(ui, state, ctx) {
   const full = state.inventory.length >= BALANCE.loot.inventorySize;
   const slotF = state.ui.slotFilter ?? 'all', rarF = state.ui.rarityFilter ?? 'all';
   const passes = (i) => (slotF === 'all' || i.slot === slotF || eqSlot(i) === slotF) && (rarF === 'all' || i.rarity === rarF);
+  // v10.6 (partie 4) : pastille du gain sur chaque objet du sac (+x % en vert, −x % en rouge).
+  const gainOf = (i) => (unit ? null : ctx.gains.get(i.id)?.pct ?? null);
+  const badge = (i) => { const g = gainOf(i); if (g == null || !Number.isFinite(g) || Math.abs(g) < 0.05) return ''; return `<span class="eq-gain ${g > 0 ? 'good' : 'bad'} num">${g > 0 ? '+' : '−'}${formatDecimal(Math.abs(g), Math.abs(g) < 10 ? 1 : 0)} %</span>`; };
   const card = (i, { wearer = '', worn = false } = {}) => {
     const usable = worn || usableBy(i);
     const up = !worn && (unit ? ctx.unitIds.has(i.id) : ctx.gains.get(i.id)?.up);
     return `<button class="eq-card r-${i.rarity}${i.id === ctx.sel.item?.id ? ' selected' : ''}${usable ? '' : ' dim'}${worn ? ' worn' : ''}${itemBase(i.baseId).signature ? ' signature' : ''}" data-action="select-item" data-id="${i.id}"
       title="${escapeHtml(i.name)}${i.upgrades ? ` +${i.upgrades}` : ''} · ${rarityLabel(i.rarity)} · niveau d'objet ${i.level}">
-      <img class="px eq-ico" src="${itemIconUrl(i, 48)}" alt="${escapeHtml(i.name)}">${i.upgrades ? `<span class="eq-plusn">+${i.upgrades}</span>` : ''}${wearer || (up ? '<span class="eq-up" title="Meilleur que l\'objet porté">▲</span>' : '')}
+      <img class="px eq-ico" src="${itemPic(i, 48)}" alt="${escapeHtml(i.name)}">${i.upgrades ? `<span class="eq-plusn">+${i.upgrades}</span>` : ''}${wearer || (up ? '<span class="eq-up" title="Meilleur que l\'objet porté">▲</span>' : '')}
       ${i.locked ? `<img class="px lock" src="${icon('icon_lock', 1)}" alt="Verrouillé">` : ''}${i.set && setById(i.set) ? `<img class="px set-ico" src="${icon(`set_${i.set}`, 1)}" alt="" title="Ensemble : ${escapeHtml(setById(i.set).name)}">` : ''}
-      <small class="eq-card-lvl">${usable ? `Niv. ${i.level}` : escapeHtml(classLabel(itemClass(state, i)))}</small></button>`;
+      ${worn ? '' : badge(i)}<small class="eq-card-lvl">${usable ? `Niv. ${i.level}` : escapeHtml(classLabel(itemClass(state, i)))}</small></button>`;
   };
   // Objets portés (héros et équipe), en tête, avec le porteur en haut à droite.
   const wornCards = [
     ...Object.values(state.equipment).filter(Boolean).filter(passes).map((i) => card(i, { worn: true, wearer: `<span class="eq-wearer" title="Porté par ton héros">${img('menu_hero')}</span>` })),
     ...ctx.team.flatMap((c) => Object.values(unitGear(state, c.id)).filter(Boolean).filter(passes).map((i) => card(i, { worn: true, wearer: `<span class="eq-wearer" title="Porté par ${escapeHtml(c.name)}">${companionStill(c)}</span>` }))),
   ].join('');
-  const FILTERS = [['all', 'Tous les objets', null, 'Tous'], ['weapon', 'Armes', 'weapon', 'Armes'], ['armor', 'Armures', 'armor', 'Armures'], ['accessory', 'Accessoires', 'ring', 'Accessoires']];
+  // v10.6 (partie 4) : 7 puces illustrées (Tout et une par place), toujours visibles au-dessus du sac.
+  const FILTERS = [['all', 'Tous les objets', null, 'Tout'], ...Object.entries(HERO_SLOTS).map(([k, l]) => [k, l, k, l])];
   const filterChips = FILTERS.map(([v, l, slot, word]) => `<button class="btn chip-btn filter-chip${slotF === v ? ' active' : ''}" data-action="filter" data-value="${v}"
-      aria-label="${l}" title="${l}" aria-pressed="${slotF === v}">${slot ? `${img(slotIconName(slot))}<span class="icon-word" aria-hidden="true">${word}</span>` : '<b>Tous</b>'}</button>`).join('');
+      aria-label="${l}" title="${l}" aria-pressed="${slotF === v}">${slot ? `${img(slotIconName(slot))}<span class="icon-word" aria-hidden="true">${word}</span>` : '<b>Tout</b>'}</button>`).join('');
   const sortOptions = Object.entries(SORT_LABELS).map(([v, l]) => `<option value="${v}" ${v === state.ui.sortBy ? 'selected' : ''}>${l}</option>`).join('');
-  const tools = ui.view.bagMenu ? `<div class="inv-tools"><div class="filter-chips" role="group" aria-label="Emplacement">${filterChips}</div>
-      <select data-action="sort" aria-label="Trier">${sortOptions}</select>
+  const PLURAL = { weapon: 'Armes', helmet: 'Casques', armor: 'Armures', amulet: 'Colliers', ring: 'Anneaux', bracelet: 'Bracelets' };
+  const owner = unit ? `de ${unit.name}` : 'du Héros';
+  const title = `<div class="eq-bag-title"><b>${slotF === 'all' ? 'Tout le sac' : `${PLURAL[slotF] ?? HERO_SLOTS[slotF] ?? slotF} ${escapeHtml(owner)}`} · <span class="num">${shown.filter(passes).length}</span></b>
+      <select data-action="sort" aria-label="Trier">${sortOptions}</select></div><div class="filter-chips eq-slot-chips" role="group" aria-label="Emplacement">${filterChips}</div>`;
+  const tools = ui.view.bagMenu ? `<div class="inv-tools">
+      <select data-action="rarity-filter" aria-label="Rareté">
       <select data-action="rarity-filter" aria-label="Rareté">${[['all', 'Toutes'], ...RARITIES.map((r) => [r.id, r.label])].map(([v, l]) => `<option value="${v}" ${v === rarF ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
     ${ui.view.bagAll ? '<button class="btn small bag-for" data-action="bag-all" data-value="">Seulement les objets utilisables</button>' : `<button class="btn small bag-for" data-action="bag-all" data-value="1">Voir aussi les objets des autres classes${hidden ? ` (${hidden})` : ''}</button>`}` : '';
-  const grid = shown.map((i) => card(i)).join('');
-  return `${tools}<div class="eq-bag-grid">${wornCards}${grid}</div>
+  const sorted = (state.ui.sortBy ?? 'gain') === 'gain' && !unit ? [...shown].sort((a, b) => (gainOf(b) ?? -1e9) - (gainOf(a) ?? -1e9)) : shown;
+  const grid = sorted.filter(passes).map((i) => card(i)).join('');
+  return `${title}${tools}<div class="eq-bag-grid">${wornCards}${grid}</div>
     ${grid ? '' : '<div class="eq-bag-empty"><img class="px empty-art" src="assets/ui/art98/empty_chest.png" alt="">Ton sac est vide. Les monstres laissent parfois tomber de l\'équipement.</div>'}
     ${recycleButton(state)}${full ? '<div class="bad">Sac plein : recycle les objets inutiles ou range-les dans la Réserve.</div>' : ''}`;
 }
@@ -536,6 +545,23 @@ export default {
       edge();
       if (!whos.dataset.edge) { whos.dataset.edge = '1'; whos.addEventListener('scroll', edge, { passive: true }); }
     }
+    // v10.6 (partie 4) : la fenêtre de l'objet se pose à droite de l'objet touché (à gauche s'il n'y a pas la place),
+    // sans sortir du sac.
+    const ip = body.querySelector('.eq-itempop');
+    if (ip) {
+      const card = body.querySelector(`.eq-bag-grid [data-id="${CSS.escape(ip.dataset.popFor)}"]`);
+      const host = ip.offsetParent ?? ip.parentElement;
+      if (card && host) {
+        const C = card.getBoundingClientRect(), H = host.getBoundingClientRect();
+        const w = ip.offsetWidth, h = ip.offsetHeight;
+        let x = C.right - H.left + 8;
+        if (x + w > H.width - 4) x = C.left - H.left - w - 8;
+        x = Math.max(4, Math.min(x, H.width - w - 4));
+        let y = C.top - H.top - 10;
+        y = Math.max(4, Math.min(y, Math.max(4, H.height - h - 4)));
+        ip.style.left = `${Math.round(x)}px`; ip.style.top = `${Math.round(y)}px`;
+      }
+    }
     const pop = body.querySelector('.eq-pop');
     if (!pop) { ui.view.eqPopKey = null; return; }
     const slots = [...body.querySelectorAll('.eq-doll .eq-slot')];
@@ -603,11 +629,14 @@ export default {
       ${!v.bagMenu ? '' : `<div class="equip-for" role="group" aria-label="Équiper pour"><span>Équiper pour :</span>${['attack', 'survival', 'fortune'].map((p) => `<button class="btn small${state.ui.gearProfile === p ? ' active' : ''}" data-action="equip-for" data-value="${p}" title="${PROFILE_TIPS[p]}">${img(PROFILE_ICONS[p])} ${GEAR_PROFILES[p].label}</button>`).join('')}</div>
         <div class="card bag-menu">${fold(ui, 'inv-builds', 'Builds', () => buildsBar(ui, state), { extra: state.loadouts[Math.max(0, v.buildSel ?? 0)]?.name ?? '' })}
         ${fold(ui, 'bag-settings', 'Réglages du sac', () => bagSettings(ui, state))}</div>`}`;
+    // v10.6 (partie 4) : fenêtre de l'objet touché, posée à côté de lui (PC ; téléphone : feuille du bas).
+    const popSrc = !narrow && tab === 'gear' && invTab === 'bag' && !unit && v.itemPop ? state.inventory.find((i) => i.id === v.itemPop) : null;
+    const popItem = popSrc ? itemPopup(ui, state, { item: popSrc, gains }) : '';
     // v10.4 (partie 1) : gabarit de page — bandeau (ressources, personnages, onglets) | personnage et sac | fiche.
     return `<div class="eq pg${narrow ? ' eq-phone' : ''} eq-on-${tab} eq-who-${unit ? 'unit' : 'hero'}">
       <div class="pg-top eq-top">${whoColumn(ui, state, ctx)}${resourceBand(state)}${tabs}</div>
       <div class="pg-main eq-pgmain"><div class="eq-pgin">${stage(ui, state, ctx)}
-        <div class="eq-pgbag${tab === 'stars' || tab === 'skills' ? ' eq-pgbag-off' : ''}"><div class="card eq-bag">${bagHead}${invTab === 'stash' ? stashView(ui, state) : bagSection(ui, state, ctx)}</div>
+        <div class="eq-pgbag${tab === 'stars' || tab === 'skills' ? ' eq-pgbag-off' : ''}"><div class="card eq-bag">${bagHead}${invTab === 'stash' ? stashView(ui, state) : bagSection(ui, state, ctx)}${popItem}</div>
         ${setsBanner(ui, state)}</div></div></div>
       ${narrow ? sheetHtml : `<div class="pg-side eq-side-sheet">${sheetHtml}</div>`}</div>`;
   },

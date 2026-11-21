@@ -46,13 +46,29 @@ export const rarityLabel = (id) => rarityById(id).label;
 // v9.3.5 (bug 10) : image manquante retirée par un écouteur (la CSP interdit onerror="…" en ligne).
 if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') document.addEventListener('error', (e) => { if (e.target?.dataset?.fallback === 'remove') e.target.remove(); }, true);
 
+// v10.6 (partie 4) : icônes d'objets en 64 px (PixelLab, assets/ui/art106/item_*.png), une par modèle ; la rareté se lit
+// à la couleur du cadre. Les modèles sans dessin (boucles d'oreilles) gardent leur sprite agrandi.
+const ITEM_ART = {
+  sword: 'weapon_sword', greatsword: 'weapon_greatsword', dagger: 'weapon_dagger', katar: 'weapon_katar', axe: 'weapon_axe', whip: 'weapon_whip',
+  bow: 'weapon_bow', longbow: 'weapon_longbow', crossbow: 'weapon_crossbow', spear: 'weapon_spear', halberd: 'weapon_halberd', mace: 'weapon_mace',
+  hammer: 'weapon_hammer', staff: 'weapon_staff', wand: 'weapon_wand', scepter: 'weapon_scepter', scythe: 'weapon_scythe',
+  helm: 'helmet_helm', horned: 'helmet_horned', hood: 'helmet_hood', circlet: 'helmet_circlet',
+  plate: 'armor_plate', mail: 'armor_mail', robe: 'armor_robe', tunic: 'armor_tunic',
+  pendant: 'amulet_pendant', ruby: 'amulet_ruby', band: 'ring_band', signet: 'ring_signet', cuff: 'bracelet_cuff', thorn: 'bracelet_thorn',
+};
+export function itemArt(item) {
+  const k = ITEM_ART[itemBase(item?.baseId)?.sprite];
+  return k ? `assets/ui/art106/item_${k}.png` : null;
+}
+export const itemPic = (item, size) => itemArt(item) ?? itemIconUrl(item, size);
+
 export function itemFrame(item, { selected = false, showUp = false, equipped = false, state = null, tag = 'button', action = 'select-item', current } = {}) {
   const up = showUp && state && isUpgrade(state, item, undefined, current);
   const attrs = tag === 'button' ? `data-action="${action}" data-id="${item.id}"` : '';
   const signature = itemBase(item.baseId).signature;
   return `<${tag} class="item-frame r-${item.rarity}${selected ? ' selected' : ''}${signature ? ' signature' : ''}" ${attrs}
     title="${escapeHtml(item.name)}${item.upgrades ? ` +${item.upgrades}` : ''} · ${rarityLabel(item.rarity)} · niv. ${item.level}">
-    <img class="px" src="${itemIconUrl(item)}" alt="${escapeHtml(item.name)}">
+    <img class="px" src="${itemPic(item)}" alt="${escapeHtml(item.name)}">
     ${item.upgrades ? `<span class="plus-lv">+${item.upgrades}</span>` : ''}
     ${item.set && setById(item.set) ? `<img class="px set-ico" src="${icon(`set_${item.set}`, 1)}" alt="" title="Ensemble : ${escapeHtml(setById(item.set).name)}">` : ''}
     ${up ? '<span class="up" title="Meilleur que l\'équipement porté">▲</span>' : ''}
