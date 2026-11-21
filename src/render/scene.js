@@ -335,7 +335,7 @@ export class SceneRenderer {
     this.width = Math.max(120, Math.floor(cssWidth / scale));
     this.height = Math.max(MIN_VIEW_HEIGHT, Math.floor(cssHeight / scale));
     const prevGround = this.groundY;
-    const lift0 = this.groundLift ?? (tall ? 0.68 : wide ? 0.74 : 0); // v9.11 (2, 6) : grands boss plus bas ; scène PC moins de briques vides
+    const lift0 = this.groundLift ?? (tall ? 0.68 : wide ? (cssWidth / cssHeight > 2.1 ? 0.86 : 0.74) : 0); // v10.7 (6) : fenêtre très large : le combat descend jusqu'à la barre de vague (plus de mur de briques vide) // v9.11 (2, 6) : grands boss plus bas ; scène PC moins de briques vides
     // v10.0 (1) : la colonne sous le sol (vague, compétences, Sceau) doit tenir : sinon c'est la scène qui rétrécit.
     const lift = this.groundLift == null && this.liftCap && lift0 ? Math.min(lift0, this.liftCap) : lift0;
     this.groundY = lift ? Math.max(MIN_VIEW_HEIGHT - GROUND_DEPTH, Math.min(this.height - GROUND_DEPTH, Math.round(this.height * lift))) : this.height - GROUND_DEPTH;

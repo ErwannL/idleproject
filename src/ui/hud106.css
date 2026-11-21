@@ -42,7 +42,6 @@
 .hq-carnet-chip img { width: 20px; height: 20px; }
 
 /* 3. Colonne d'événements */
-#hq-events { position: absolute; right: 8px; top: 96px; display: flex; flex-direction: column; gap: 4px; align-items: center; width: 84px; }
 #hq-events .hq-ev { position: relative; display: flex; flex-direction: column; align-items: center; background: none; border: 0; padding: 0; color: #fff; font: inherit; cursor: pointer; }
 #hq-events .hq-ev-art { position: relative; width: 66px; height: 66px; border-radius: 14px; border: 2px solid #e8b64a; background: radial-gradient(#5a3a6a, #2a1830); display: grid; place-items: center; box-shadow: 0 3px 8px #0008; }
 #hq-events .hq-ev-art img { width: 58px; height: 58px; }
@@ -77,13 +76,6 @@
 #hud106.hq-phone #hq-path .hq-foot { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
 #hud106.hq-phone #hq-path .hq-reward { display: none; }
 #hud106.hq-phone #hq-carnet { top: 162px; left: 6px; width: auto; }
-#hud106.hq-phone #hq-events { right: 6px; top: 156px; width: auto; flex-direction: row; gap: 6px; align-items: flex-start; }
-#hud106.hq-phone #hq-events .hq-ev-art { width: 44px; height: 44px; border-radius: 10px; }
-#hud106.hq-phone #hq-events .hq-ev-art img { width: 38px; height: 38px; }
-#hud106.hq-phone #hq-events .hq-ev-timer { font-size: 9px; padding: 0 4px; }
-#hud106.hq-phone #hq-events small { font-size: 9px; margin-top: 6px; max-width: 50px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#hud106.hq-phone #hq-events .hq-more { width: 36px; height: 44px; }
-#hud106.hq-phone #hq-events.expanded-col { flex-wrap: wrap; justify-content: flex-end; max-width: 300px; }
 #hud106.hq-phone #hq-bounty { top: 226px; width: 320px; margin-left: -160px; height: 92px; }
 #hud106.hq-phone #hq-bounty .hb-boss { width: 56px; height: 56px; }
 #hud106.hq-phone #hq-bounty .hb-stamp { right: 90px; }
@@ -255,11 +247,6 @@
 @media (prefers-reduced-motion: reduce) { .bs-node.fresh, .bs-link.fresh { animation: none; } }
 
 /* ---- Partie 7 : fenêtre large (scène plus de 2 fois plus large que haute) ---- */
-#hud106.hq-wide #hq-path { top: 76px; left: 236px; }
-#hud106.hq-wide #hq-carnet { top: 140px; left: 8px; width: auto; }
-#hud106.hq-wide #hq-events { top: 96px; right: 290px; width: auto; flex-direction: row; gap: 8px; align-items: flex-start; }
-#hud106.hq-wide #hq-events .hq-ev-art { width: 56px; height: 56px; }
-#hud106.hq-wide #hq-events .hq-ev-art img { width: 48px; height: 48px; }
 
 /* ---- Partie 9 : téléphone ---- */
 /* Bannières de donjon (et de l'Arène) : jamais plus larges que leur grille. */
@@ -306,3 +293,34 @@
 .upg-page .upg-hero { min-height: 320px; background-size: cover; }
 .upg-page .upg-group-head { height: 64px; }
 #stage-area:has(#loot-sheet:not(.hidden)) #hud106 { display: none; } /* le volet du coffre passe devant tout */
+
+/* ---- v10.7 (partie 2) : rangée d'événements accrochée sous la bande du haut, toujours au même endroit ---- */
+#hq-events { position: absolute; top: 0; display: flex; flex-direction: row; flex-wrap: nowrap; gap: 6px; align-items: flex-start; width: auto;
+  padding: 4px 10px 6px; background: linear-gradient(180deg, #1a1222f2, #24162ce8); border: 2px solid #4a3058; border-top: 0; border-radius: 0 0 14px 14px; box-shadow: 0 4px 10px #0007; }
+#hq-events.expanded-col { flex-wrap: wrap; }
+#hq-events .hq-ev { width: 64px; }
+#hq-events .hq-ev-art { width: 56px; height: 56px; border-radius: 12px; }
+#hq-events .hq-ev-art img { width: 50px; height: 50px; }
+#hq-events small { margin-top: 7px; font-size: 11px; max-width: 64px; white-space: nowrap; overflow: hidden; text-overflow: clip; }
+#hq-events .hq-ev-timer { font-size: 9px; padding: 0 5px; }
+#hq-events .hq-more .hq-ev-art { font-size: 26px; font-weight: 900; color: #ffe08a; }
+#hq-events .hq-more { height: auto; border: 0; background: none; }
+#hud106.hq-phone #hq-events { gap: 2px; padding: 3px 6px 5px; }
+#hud106.hq-phone #hq-events .hq-ev { width: 56px; }
+#hud106.hq-phone #hq-events .hq-ev-art { width: 46px; height: 46px; }
+#hud106.hq-phone #hq-events .hq-ev-art img { width: 40px; height: 40px; }
+#hud106.hq-phone #hq-events small { font-size: 10px; max-width: 56px; }
+/* Téléphone : la rangée prend le haut de la scène ; la carte de zone, « Avance auto » et la quête descendent dessous. */
+#stage-area:has(#hud106.hq-phone:not(.hidden)) #zone-card, #stage-area:has(#hud106.hq-phone:not(.hidden)) #auto-toggle { top: 84px !important; }
+#hud106.hq-phone #hq-path { top: 150px; }
+#hud106.hq-phone #hq-carnet { top: 216px; }
+#hud106.hq-phone #hq-bounty { top: 260px; }
+/* La Prime du Héraut glisse juste sous la rangée. */
+#hq-bounty { top: 100px; }
+/* Fenêtre large : carte de quête sur une ligne, calée sous la carte de zone ; le Carnet à sa droite (au-dessus de l'équipe). */
+#hud106.hq-wide #hq-path { top: 120px; left: 8px; width: 380px; min-height: 0; padding: 5px 8px; gap: 8px; }
+#hud106.hq-wide #hq-path .hq-world { width: 40px; height: 40px; }
+#hud106.hq-wide #hq-path .hq-main { padding-right: 96px; gap: 2px; }
+#hud106.hq-wide #hq-path .hq-foot { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
+#hud106.hq-wide #hq-path .hq-reward { display: none; }
+#hud106.hq-wide #hq-carnet { top: 132px; left: 400px; width: auto; }

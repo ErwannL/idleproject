@@ -42,3 +42,14 @@ test('10.7 (3) : l\'ancien filtre « accessory » devient « Tout le sac »', ()
 test('10.7 (1) : une partie avancée touchée par le bug a déjà vu les notions dépassées', () => {
   assert.match(src('src/ui/learn.js'), /bossesDefeated \?\? 0\) > 30\) for \(const x of LEARN\) if \(stage > x\.stage/);
 });
+
+test('10.7 (2) : rangée d\'événements sous la bande du haut, noms courts, « + » pour ce qui ne tient pas', async () => {
+  const h = src('src/ui/hud-quests.js');
+  for (const k of ['placeRow()', "market: 'Marché'", "rift: 'Faille'", "chest: 'Coffre'", 'hq-more']) assert.ok(h.includes(k), k);
+  assert.match(src('src/ui/hud106.css'), /#hq-events \{ position: absolute; top: 0;/);
+});
+
+test('10.7 (6) : fenêtre très large — compétences et Sceau sur une ligne, sol plus bas', () => {
+  assert.match(src('src/ui/ui.js'), /!\(ultra && items\.length === 2\)/);
+  assert.match(src('src/render/scene.js'), /cssWidth \/ cssHeight > 2\.1 \? 0\.86 : 0\.74/);
+});

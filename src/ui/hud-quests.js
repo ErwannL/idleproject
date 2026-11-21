@@ -118,13 +118,17 @@ function carnetHtml(c, phone) {
   }).join('');
   return `<button class="hq-carnet-title" data-action="open-tab" data-value="daybook">Carnet du jour ${c.done}/${c.total} ›</button>${rows}`;
 }
-function columnHtml(items, phone, expanded) {
-  const max = phone && !expanded ? 4 : items.length;
-  const shown = items.slice(0, max);
-  const more = items.length > max ? `<button class="hq-ev hq-more" data-action="hq-more" aria-label="Plus d'événements">+</button>` : '';
+// v10.7 (partie 2) : une rangée accrochée sous la bande du haut. max : nombre d'icônes qui tiennent dans la largeur
+// libre (entre la carte de zone et les boosts) ; le reste passe dans « + », qui déplie une seconde rangée.
+const SHORT = { market: 'Marché', rift: 'Faille', wheel: 'Roue', arena: 'Arène', bastion: 'Bastion', chest: 'Coffre', bounty: 'Prime' };
+export const shortName = (x) => SHORT[x.id] ?? x.name;
+function columnHtml(items, max, expanded) {
+  const cut = items.length > max ? Math.max(1, max - 1) : items.length;
+  const shown = expanded ? items : items.slice(0, cut);
+  const more = items.length > cut ? `<button class="hq-ev hq-more" data-action="hq-more" aria-label="Plus d'événements" aria-expanded="${expanded}"><span class="hq-ev-art">${expanded ? '−' : '+'}</span><small>${expanded ? 'Moins' : `${items.length - cut} de plus`}</small></button>` : '';
   return shown.map((x) => `<button class="hq-ev${x.hot ? ' hot' : ''}" data-hq="${x.id}" data-action="${x.action}" ${x.value ? `data-value="${x.value}"` : ''} title="${escapeHtml(x.title ?? x.name)}">
       <span class="hq-ev-art"><img class="px" src="${x.art}" alt="">${x.timer ? `<i class="hq-ev-timer">${escapeHtml(x.timer)}</i>` : ''}</span>
-      ${x.badge ? `<b class="hq-dot">${x.badge > 9 ? '9+' : x.badge}</b>` : ''}<small>${escapeHtml(x.name)}</small></button>`).join('') + more;
+      ${x.badge ? `<b class="hq-dot">${x.badge > 9 ? '9+' : x.badge}</b>` : ''}<small>${escapeHtml(shortName(x))}</small></button>`).join('') + more;
 }
 function bountyHtml(b) {
   return `<span class="hb-frame"></span><img class="px hb-boss" src="assets/ui/art102/${BOSS_ART[b.dungeon] ?? 'boss_frost_wyrm'}.png" alt="">
@@ -206,6 +210,27 @@ export class HudQuests {
     this.update(this.ui.state, true);
   }
 
+  // v10.7 (partie 2) : la rangée se pose juste sous la bande du haut, de la carte de zone (à gauche) aux boosts (à
+  // droite) ; sur téléphone, sur toute la largeur. Renvoie le nombre d'icônes (64 px + écart) qui tiennent.
+  placeRow() {
+    const area = this.root.parentElement;
+    const A = area?.getBoundingClientRect();
+    if (!A?.width) return 4;
+    const vis = (id) => { const e = document.getElementById(id); if (!e || e.classList.contains('hidden') || e.offsetParent === null) return null; const r = e.getBoundingClientRect(); return r.width && r.top - A.top < 140 ? r : null; };
+    let left = 6, right = A.width - 6;
+    if (!this.phone) {
+      const z = vis('zone-card'); if (z) left = z.right - A.left + 8;
+      for (const id of ['boost-group', 'skill-bar', 'rush-bar', 'auto-toggle']) { const r = vis(id); if (r && r.left - A.left > left + 60) right = Math.min(right, r.left - A.left - 8); }
+    }
+    const w = Math.max(80, right - left);
+    const st = this.events.style;
+    const L = `${Math.round(left)}px`, W = `${Math.round(w)}px`;
+    if (st.left !== L) st.left = L;
+    if (st.maxWidth !== W) st.maxWidth = W;
+    const cell = this.phone ? 58 : 70;
+    return Math.max(2, Math.floor((w - 12) / cell));
+  }
+
   // Appelée à chaque image ; le contenu ne change que deux fois par seconde (et seulement s'il change).
   update(state, force = false) {
     if (!state || typeof document === 'undefined') return;
@@ -251,7 +276,8 @@ export class HudQuests {
     }
     this.bounty.classList.toggle('hidden', !showPoster);
     // 3. Colonne d'événements
-    const eh = columnHtml(eventColumn(ui, state, t), this.phone, this.expanded);
+    const room = this.placeRow();
+    const eh = columnHtml(eventColumn(ui, state, t), room, this.expanded);
     if (this.events.dataset.h !== eh) { this.events.dataset.h = eh; this.events.innerHTML = eh; }
     this.events.classList.toggle('hidden', !eh);
     this.events.classList.toggle('expanded-col', this.expanded);

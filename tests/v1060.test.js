@@ -92,7 +92,7 @@ test('10.6 (2.4) : Prime du Héraut — 2 au plus par jour, 6 h, refusable, remp
 
 test('10.6 (2) : écran de jeu — Chemin du héros, Carnet en 3 lignes, colonne d\'événements, Prime ; anciens éléments rangés', () => {
   const h = src('src/ui/hud-quests.js');
-  for (const k of ['hq-path', 'hq-carnet', 'hq-events', 'hq-bounty', 'Carnet du jour', 'Chemin du héros', 'slice(0, 3)', 'phone && !expanded ? 4']) assert.ok(h.includes(k), k);
+  for (const k of ['hq-path', 'hq-carnet', 'hq-events', 'hq-bounty', 'Carnet du jour', 'Chemin du héros', 'slice(0, 3)', 'placeRow()']) assert.ok(h.includes(k), k);
   const ui = src('src/ui/ui.js');
   assert.match(ui, /for \(const id of \['quest-banner', 'rift-chip', 'bastion-tower'\]\)/);
   const css = src('src/ui/hud106.css');

@@ -2449,7 +2449,12 @@ export class UI {
     const fingerRoom = (el) => (el === seal && !seal.querySelector('.na-finger')?.classList.contains('hidden') ? 30 : 0); // place du doigt au-dessus du Sceau
     const need = items.reduce((t, el) => t + el.offsetHeight + 8 + fingerRoom(el), 0);
     const place = (el, top, left = '50%', tr = 'translateX(-50%)') => { el.style.top = `${Math.round(top)}px`; el.style.bottom = 'auto'; el.style.left = left; el.style.transform = tr; };
-    if (y + need <= H - 4) {
+    // v10.7 (6) : fenêtre très large : compétences et Sceau sur une seule ligne, juste sous la barre de vague ; le
+    // combat descend d'autant (plus de mur de briques vide).
+    const ultra = area.clientWidth > 2 * area.clientHeight;
+    if (ultra && !this.ultraLift && this.renderer) { this.ultraLift = true; this.renderer.liftCap = null; this.resizeScene?.(); }
+    if (!ultra) this.ultraLift = false;
+    if (y + need <= H - 4 && !(ultra && items.length === 2)) {
       let t = y;
       for (const el of items) { t += fingerRoom(el); place(el, t); t += el.offsetHeight + 8; }
     } else if (items.length === 2 && y + Math.max(bar.offsetHeight, seal.offsetHeight) <= H - 4) {
