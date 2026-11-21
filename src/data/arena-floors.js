@@ -9,6 +9,10 @@ export const CARD_ARENA = {
   chestEvery: 15,           // un coffre tous les 15 ★
   limit: 150,               // secondes de combat au plus (au-delà : défaite)
   star3: 30,                // v10.2 : 3 ★ = aucune carte perdue en moins de 30 s
+  // v10.3.1 : le plan (6.2) dit « 45 s », mais avec la courbe calibrée (étage 9 ≈ 28 s) les étages 11 à 19 durent
+  // 30 à 44 s sans perte : à 45 s, 8 à 10 étages de plus après le 10e passeraient à 3 ★ (parties de 11 h, débutant et
+  // de fin), contre l'exigence 1.4 (« 1 ★ ou 2 ★ dès l'étage 8 à 10 »). Allonger les combats de 50 % pour la tenir
+  // ferait durer l'étage 25 jusqu'à 217 s (limite 150 s) : 30 s est gardé (tests/v1031-arena.test.js).
   calTarget: 30,            // v10.2 (1.4) : l'équipe du premier passage bute vers l'étage 30
   calSlowFloor: 9,          //   et met ~28 s à l'étage 9 (2 ★ dès les étages 8-10)
   ultGauge: 100,            // jauge d'ultime : +12 par coup donné, +8 par coup reçu

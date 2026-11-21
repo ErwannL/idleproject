@@ -143,3 +143,23 @@ test('6.2 — fin de combat : récompenses sur 2 lignes (Progression / Matériau
   assert.match(code, /btn btn-gold primary-action am-next[^>]*>Étage suivant ›/);
   assert.match(src('src/ui/arena1031.css'), /\.arena-map \.am-end \{ z-index: 5;/, 'la carte de fin passe devant la rangée de cartes');
 });
+
+test('6.2 / 1.4 — seuil des 3 ★ : 30 s gardé (45 s ferait passer à 3 ★ des étages après le 10e) ; affiché tel quel', async () => {
+  assert.equal(CARD_ARENA.star3, 30);
+  const { createNewState } = await import('../src/core/state.js');
+  const mk = (list) => { const s = createNewState(); s.maxStage = 140; for (const [id, lv, st] of list) s.companions.owned[id] = { stars: st, level: lv }; return s; };
+  const saves = {
+    onzeH: () => mk([['shadow_lord', 30, 3], ['barbarian', 30, 3], ['archangel', 30, 3], ['elf_archer', 28, 2], ['demon_queen', 28, 2], ['squire', 25, 3], ['priestess', 25, 3], ['ranger', 22, 2], ['dwarf', 25, 2]]),
+    fin,
+  };
+  for (const [n, make] of Object.entries(saves)) {
+    const s = make(); A.autoFormation(s); const t = A.formationCards(s); const cal = A.calibrateArena(t);
+    const last = A.lastWon(t, cal, 60);
+    const runs = [];
+    for (let f = 10; f <= last; f++) { const x = A.floorCards(f, cal); runs.push([f, A.fightBoard(t, x.cards, { seed: f, rule: x.rule })]); }
+    assert.ok(runs.every(([, r]) => r.stars <= 2), `${n} : 3 ★ après l'étage 10 à 30 s`);
+    // À 45 s, plusieurs étages après le 10e (combats sans perte de 30 à 44 s) passeraient à 3 ★.
+    assert.ok(runs.filter(([, r]) => r.won && r.fallen === 0 && r.seconds <= 45).length >= 5, `${n} : le seuil de 45 s ne tiendrait pas 1.4`);
+  }
+  assert.match(src('src/ui/arena-map.js'), /3 ★ en moins de \$\{A\.star3\} s/);
+});
