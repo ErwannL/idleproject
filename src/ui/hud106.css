@@ -305,3 +305,4 @@
 .upg-page .upg-icon img { width: 64px !important; height: 64px !important; }
 .upg-page .upg-hero { min-height: 320px; background-size: cover; }
 .upg-page .upg-group-head { height: 64px; }
+#stage-area:has(#loot-sheet:not(.hidden)) #hud106 { display: none; } /* le volet du coffre passe devant tout */

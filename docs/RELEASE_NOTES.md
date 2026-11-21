@@ -1,6 +1,24 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.4.0 — De grandes pages, un Bastion qui vit
+## Ascendrya v10.6.0 — Des quêtes et des événements sur l'écran de jeu
+
+- **Écran de jeu vivant** : en haut à gauche, la carte « Chemin du héros » montre l'image du monde, l'étape en cours (sur une ligne, jamais coupée), sa barre et sa récompense, avec « Y aller » ou « Récupérer ». Une quête finie s'illumine d'or, ses récompenses volent vers la barre du haut et la suivante glisse à sa place. Dessous, le Carnet du jour en 3 lignes (les tâches les plus proches de la fin ; une puce « Carnet 4/8 » sur téléphone).
+- **Colonne d'événements** à droite : Marché des Lueurs, Faille du jour, Roue, Arène, Bastion et Coffre du jour, chacun avec son dessin, son minuteur et sa pastille ; le plus urgent pulse doucement. Sur téléphone : 4 icônes et « + ».
+- **Prime du Héraut** : une ou deux fois par jour, une affiche de prime arrive en glissant en haut de l'écran : un boss de donjon, 6 h pour le battre, 2 000 gemmes à la clé. « Combattre » ouvre les donjons ; « × » la refuse ; sans toucher, elle se range dans la colonne.
+- **Le coffre de butin quitte le terrain** : il se pose toujours en bas à droite, à côté de « Tout récupérer », sans jamais recouvrir un monstre ni un héros. Les objets y volent en arc depuis le monstre ; le rayon ne s'allume que pour un Épique ou mieux.
+- **Marché des Lueurs illustré** : une affiche avec le grand prix (la Fée des lueurs) dessiné en grand, une carte de 10 lanternes où ton portrait avance, des missions en tuiles (« Allumée » ou « Y aller ») et une échoppe de 6 objets payés en Lueurs. Les prochains événements reprendront ce modèle.
+- **Équipement** : toucher une case filtre le sac sur cette place (« Armes du Héros · 9 »), 7 puces illustrées, tri « Meilleur gain d'abord » et pastille +x % / −x % sur chaque objet. Toucher un objet ouvre sa fenêtre juste à côté : grande icône, ce qu'il fait, le verdict en vert ou en rouge, ce qui change, et Équiper, Renforcer, Recycler. En équipant, l'objet vole dans sa case et la Puissance défile. Les objets ont de nouvelles icônes de 64 px.
+- **Améliorations** en page plein écran, rangées en 3 groupes dessinés (Frapper fort, Tenir, Gagner plus), avec la carte « ★ Meilleur achat » ; un achat qui rapporte moins de 0,5 % de puissance est grisé et n'entre plus dans « Tout acheter ».
+- **Tri du coffre** en grille d'icônes : le gain sur chaque objet, le choix proposé dessiné dessus, un toucher pour le détail, 2 gros boutons.
+- **Recherches** : médaillons verrouillés lisibles, nom sous chacun ; une recherche finie allume le trait jusqu'au médaillon suivant, qui se retourne.
+- **Grande fenêtre** : les pages tiennent sur 1600 px au plus, centrées, sans défiler (personnage entier, page du donjon complète) ; le combat s'agrandit au lieu de laisser des briques vides ; l'équipe n'est plus coupée au bord.
+- **Débutant** : le Sceau ne parle plus de la Forge ni de la Fusion avant l'étape 1-10.
+- **Petits défauts** : plus d'erreur de sécurité (CSP) dans les donjons ; sur téléphone, bannières de donjon et noms des personnages de l'équipement ne débordent plus ; chaque onglet a au moins 35 % d'image (bannières plus grandes, médaillons des Talents, offres de la Boutique illustrées).
+- Toutes les nouvelles illustrations (111) sont faites avec PixelLab, dans le style du jeu. « Réduire les animations » coupe toutes les pulsations et les éclats.
+
+### Versions précédentes
+
+<details><summary><b>Ascendrya v10.4.0 — De grandes pages, un Bastion qui vit</b></summary>
 
 - **Pages plein écran** : le Personnage, la Forge, le Bastion et la page d'un donjon s'ouvrent maintenant sur toute la fenêtre, avec une petite fenêtre de combat en haut à gauche — ton équipe continue de se battre pendant que tu regardes. Les écrans de liste (Améliorations, Missions, Boutique…) gardent leur volet.
 - **Personnage** : ton héros ou ton compagnon en grand (300 px et plus), ses 6 places autour avec des icônes ×3 sur fond de rareté, la fiche à droite et « Renforcer » toujours visible sans défiler. Deux fois moins de mots : l'aide passe au survol et derrière « ? », le secondaire dans « Plus ».
@@ -14,7 +32,8 @@
 - **Petits défauts** : noms entiers sur les cartes d'Arène ; Améliorations, Missions, Statistiques, Boutique et Invocation à 20 % d'image au moins, avec un bandeau propre à chaque partie ; le Sceau parle simplement (« Succès débloqué », « 10 équipements découverts ») ; la bulle d'une ressource n'arrive plus avant l'écran où elle sert (les clés avec les donjons).
 - Toutes les nouvelles illustrations sont faites avec PixelLab, dans le style du jeu.
 
-### Versions précédentes
+</details>
+
 
 <details><summary><b>Ascendrya v10.3.1 — L'Arène en profondeur, le coffre dans la scène</b></summary>
 
