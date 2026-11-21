@@ -184,8 +184,15 @@ export function upgradeRanking(state, balance = BALANCE) {
     const gainPct = preview.power && preview.power.before > 0 ? (preview.power.after / preview.power.before - 1) * 100 : 0;
     return { item, slot, preview, gainPct, perShard: preview.cost ? gainPct / preview.cost.shards : -1 };
   });
-  return rows.sort((a, b) => b.perShard - a.perShard || b.gainPct - a.gainPct);
+  // v10.3.1 : d'abord les objets dont le prochain renfort augmente la Puissance (gain par éclat décroissant), puis ceux
+  // dont le renfort touche un effet spécial sans effet sur la Puissance (Coup critique…), puis les objets au maximum.
+  const rank = (r) => (r.preview.atMax ? 2 : gainsPower(r) ? 0 : 1);
+  return rows.sort((a, b) => rank(a) - rank(b) || b.perShard - a.perShard || b.gainPct - a.gainPct);
 }
+
+// Le prochain renfort de cette ligne de classement augmente-t-il la Puissance affichée (au moins +0,05 %, le plus
+// petit gain que l'écran écrit) ? Sinon l'écran nomme la statistique gagnée au lieu de « 0 % de puissance ».
+export const gainsPower = (row) => !row.preview.atMax && row.gainPct >= 0.05;
 
 // Renvoie le nom de la statistique améliorée, ou null. `_rng` n'est plus consulté (gardé pour les appelants).
 export function upgradeItem(state, id, _rng = null, balance = BALANCE) {

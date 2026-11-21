@@ -17,7 +17,7 @@ import { activeClass, canEquip, classById, itemClass } from '../../core/classes.
 import { STAR_TIERS, companionById, companionMultiplier, companionUpgradeCost, heroElement, isAwakened, skillKillGold, unitLevel } from '../../core/companions.js';
 import { bestGearFor, canEquip as unitCanEquip, classLabel, gearStatsWith, gearUpgradePreview, slotName, statText, unitGear, unitGearStats, wearerOf, wornItems } from '../../core/companion-gear.js';
 import { formatStat } from '../../core/format.js';
-import { fusableRarities, upgradePreview, upgradeRanking } from '../../core/forge.js';
+import { fusableRarities, gainsPower, upgradePreview, upgradeRanking } from '../../core/forge.js';
 import { heroById } from '../../core/heroes.js';
 import { GEAR_PROFILES, KEEP_AFFIX_LABELS, RECYCLE_MODES, bestPerSlot, bulkRecycleCandidates, heroGains, listInventory, quickEquipPlan, recycleRules } from '../../core/inventory.js';
 import { BIND_MODES } from '../../core/loadouts.js';
@@ -31,7 +31,7 @@ import { invFeatureOpen } from '../../core/unlocks.js';
 import { itemIconUrl, slotIconName } from '../../render/pixel.js';
 import { animCanvas } from '../animator.js';
 import { affixText, costButton, distinctTo, effectText, escapeHtml, fold, formatDecimal, formatNumber, hdArt, icon, img, itemFrame, rarityLabel, segment } from '../common.js';
-import { changeSheet, emptySlotSheet, femSlot, itemSheet, pctText, unitTodo } from './equip-sheet.js';
+import { changeSheet, emptySlotSheet, femSlot, itemSheet, pctText, statGainText, unitTodo } from './equip-sheet.js';
 import { companionPortrait, companionStill } from './expeditions.js';
 import { recycleButton } from './forge.js';
 import { skillBubble, skillIcons } from './unit-popup.js';
@@ -218,7 +218,7 @@ function overviewSheet(ui, state, ctx) {
         <div class="muted">Niveau ${state.level} · classe <b style="color:${cls.color}">${escapeHtml(cls.name)}</b></div></div></div>
       <section class="eq-sec"><h4>Ce qui peut s'améliorer</h4>
         ${line('icon_bag', `Équipement : ${worn}/${Object.keys(HERO_SLOTS).length} places`, n ? `<span class="good">${n} ▲ à équiper depuis ton sac</span>` : 'Rien de mieux dans ton sac.', go('gear'))}
-        ${line('icon_anvil', 'Renforcement', top ? `<span class="good">${escapeHtml(top.item.name)} +${top.preview.level} → +${top.preview.level + 1} : ${pctText(top.gainPct)} de puissance</span>` : 'Aucun renforcement payable pour l\'instant.', top ? `<button class="btn small" data-action="eq-slot" data-value="${top.slot}" data-id="${top.item.id}">Voir ›</button>` : go('gear'))}
+        ${line('icon_anvil', 'Renforcement', top ? `<span class="good">${escapeHtml(top.item.name)} +${top.preview.level} → +${top.preview.level + 1} : ${gainsPower(top) ? `${pctText(top.gainPct)} de puissance` : escapeHtml(statGainText(top.preview))}</span>` : 'Aucun renforcement payable pour l\'instant.', top ? `<button class="btn small" data-action="eq-slot" data-value="${top.slot}" data-id="${top.item.id}">Voir ›</button>` : go('gear'))}
         ${line('icon_upgrade', 'Améliorations', 'Dépense ton or pour monter Dégâts, Vie et le reste.', '<button class="btn small" data-action="open-tab" data-value="upgrades">Y aller ›</button>')}
         ${line('skill_quick', 'Compétences', 'Les sorts que ton héros lance tout seul.', '<button class="btn small" data-action="open-tab" data-value="skills">Y aller ›</button>')}</section>`);
   }

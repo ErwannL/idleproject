@@ -8,13 +8,13 @@ import { bastionOpen } from '../../core/bastion.js';
 import { levelForStage } from '../../core/combat.js';
 import { companionById, skillKillGold } from '../../core/companions.js';
 import { gearStats, gearUpgradePreview, slotName, statText, unitGear } from '../../core/companion-gear.js';
-import { craftCost, craftOdds, estimateGainPct, fusionGroups, fusionKeep, fusionPreview, upgradeRanking } from '../../core/forge.js';
+import { craftCost, craftOdds, estimateGainPct, fusionGroups, fusionKeep, fusionPreview, gainsPower, upgradeRanking } from '../../core/forge.js';
 import { recycleGoldOf, uselessItems } from '../../core/inventory.js';
 import { recycleMaterials } from '../../core/loot.js';
 import { setById } from '../../core/sets.js';
 import { slotIconName } from '../../render/pixel.js';
 import { coin, escapeHtml, formatDecimal, formatNumber, img, rarityLabel, shard } from '../common.js';
-import { costLines, itemTile, pctText, reinforceSection } from './equip-sheet.js';
+import { costLines, itemTile, pctText, reinforceSection, statGainText } from './equip-sheet.js';
 
 export function uselessPreview(state) {
   const list = uselessItems(state);
@@ -59,7 +59,8 @@ export function forgeNow(state) {
   return {
     preview: p, ranking, groups,
     recycle: p.list.length ? { ok: true, text: `${plural(p.list.length, 'objet inutile', 'objets inutiles')} → +${p.shards} éclats, +${formatNumber(p.gold)} or` } : { ok: false, text: 'Rien à recycler : tout ce que tu as te sert.' },
-    upgrade: top ? { ok: true, text: `${top.item.name} +${top.preview.level} → +${top.preview.level + 1} : ${pctText(top.gainPct)} de puissance` }
+    // v10.3.1 : un renfort sans effet sur la Puissance (effet spécial) nomme la statistique gagnée, pas « 0 % ».
+    upgrade: top ? { ok: true, text: `${top.item.name} +${top.preview.level} → +${top.preview.level + 1} : ${gainsPower(top) ? `${pctText(top.gainPct)} de puissance` : statGainText(top.preview)}` }
       : first ? { ok: false, text: first.preview.lack.shards ? `Il manque ${plural(first.preview.lack.shards, 'éclat', 'éclats')} pour ${first.item.name} +${first.preview.level + 1}` : `Il manque ${formatNumber(first.preview.lack.gold)} or pour ${first.item.name} +${first.preview.level + 1}` }
       : { ok: false, text: ranking.length ? 'Tes objets portés sont au maximum.' : 'Équipe d\'abord un objet.' },
     fuse: sure ? { ok: true, text: `${grp(sure)} → ${Math.floor(sure.usable / count)} × ${rarityLabel(sure.next)}, sans risque` }
@@ -88,7 +89,7 @@ function upgradeBody(ui, state, ranking) {
   const sel = all.find((r) => r.item.id === ui.view.forgeUpSel) ?? all[0];
   const row = (r) => {
     const p = r.preview;
-    const gain = p.atMax ? `au maximum (+${p.max})` : r.unit ? p.rows.map((x) => `${x.key === 'cd' ? '−' : '+'}${formatDecimal(x.after - x.before, 2)} %`).join(' · ') : `${pctText(r.gainPct)} de puissance`;
+    const gain = p.atMax ? `au maximum (+${p.max})` : r.unit ? p.rows.map((x) => `${x.key === 'cd' ? '−' : '+'}${formatDecimal(x.after - x.before, 2)} %`).join(' · ') : gainsPower(r) ? `${pctText(r.gainPct)} de puissance` : escapeHtml(statGainText(p));
     return `<button class="fg-up-row r-${r.item.rarity}${r.item.id === sel.item.id ? ' on' : ''}" data-action="forge-up-sel" data-id="${r.item.id}" aria-pressed="${r.item.id === sel.item.id}">${itemTile(r.item)}
       <span class="fg-up-id"><b class="rarity-text">${escapeHtml(r.item.name)}${r.item.upgrades ? ` +${r.item.upgrades}` : ''}</b><small>${r.unit ? `${escapeHtml(slotName(r.unit, eqSlot(r.item)))} de ${escapeHtml(r.unit.name)}` : HERO_SLOTS[r.slot]}</small></span>
       <span class="fg-up-gain ${p.canPay ? 'good' : 'muted'} num">${gain}</span>${p.cost ? `<span class="fg-up-cost num">${shard()} ${p.cost.shards} · ${coin()} ${formatNumber(p.cost.gold)}</span>` : ''}</button>`;

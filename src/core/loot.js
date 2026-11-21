@@ -55,10 +55,25 @@ function computeStats(base, rarity, level, balance, boosts = {}) {
   const stats = {};
   for (const [stat, value] of Object.entries(base.stats)) {
     const raw = itemStatValue(stat, value, rarity, level, balance);
-    const boost = raw > 0 ? 1 + ((boosts[stat] ?? 0) * balance.forge.upgradeBoostPct) / 100 : 1;
-    stats[stat] = PERCENT_STATS.has(stat) ? Math.round(raw * boost * 10) / 10 : Math.round(raw * boost);
+    const n = raw > 0 ? boosts[stat] ?? 0 : 0;
+    const boost = 1 + (n * balance.forge.upgradeBoostPct) / 100;
+    const pct = PERCENT_STATS.has(stat);
+    const v = pct ? Math.round(raw * boost * 10) / 10 : Math.round(raw * boost);
+    // v10.3.1 : chaque renfort ajoute au moins 1 unité affichée (0,1 pour une statistique en %) : sur un petit objet,
+    // +12 % de 5 s'arrondissait à « 5 → 5 ». Les gros objets (12 % ≥ 1 unité) ne changent pas.
+    stats[stat] = n ? Math.max(v, pct ? Math.round((raw + 0.1 * n) * 10) / 10 : Math.round(raw) + n) : v;
   }
   return stats;
+}
+
+// v10.3.1 : valeur d'un effet (principal ou spécial) après `n` renforts : +pct % chacun, arrondie à 1 décimale sous 3
+// (`whole` : entière dès 3, comme l'effet principal), et jamais moins de 0,1 (ou 1 unité entière) de gain par renfort.
+function boostedAffix(base, n, pct, { whole = false } = {}) {
+  const v = base * (1 + (n * pct) / 100);
+  const out = whole && v >= 3 ? Math.round(v) : Math.round(v * 10) / 10;
+  if (!n) return out;
+  const floor = whole && base >= 3 ? Math.round(base) + n : Math.round((base + 0.1 * n) * 10) / 10;
+  return Math.max(out, floor);
 }
 
 // Effet principal d'un accessoire : grandit avec la rareté et (modérément) avec le niveau.
@@ -177,9 +192,7 @@ export function refreshItemStats(item, balance = BALANCE) {
   const rarity = rarityById(item.rarity);
   item.stats = computeStats(base, rarity, item.level, balance, item.boosts ?? {});
   if (base.mainAffix && item.affixes[0]?.type === base.mainAffix.type) {
-    const boost = 1 + ((item.boosts?.main ?? 0) * balance.forge.upgradeBoostPct) / 100;
-    const v = mainAffixValue(base.mainAffix, rarity, item.level) * boost;
-    item.affixes[0].value = v < 3 ? Math.round(v * 10) / 10 : Math.round(v);
+    item.affixes[0].value = boostedAffix(mainAffixValue(base.mainAffix, rarity, item.level), item.boosts?.main ?? 0, balance.forge.upgradeBoostPct, { whole: true });
   }
   for (const part of item.parts ?? []) {
     const pb = itemBase(part.baseId);
@@ -188,8 +201,7 @@ export function refreshItemStats(item, balance = BALANCE) {
     const pr = rarityById(part.rarity ?? item.rarity) ?? rarity, lv = part.level ?? item.level, bo = part.boosts ?? item.boosts ?? {};
     part.stats = computeStats(pb, pr, lv, balance, bo);
     if (pb.mainAffix && part.affixes?.[0]?.type === pb.mainAffix.type) {
-      const v = mainAffixValue(pb.mainAffix, pr, lv) * (1 + ((bo.main ?? 0) * balance.forge.upgradeBoostPct) / 100);
-      part.affixes[0].value = v < 3 ? Math.round(v * 10) / 10 : Math.round(v);
+      part.affixes[0].value = boostedAffix(mainAffixValue(pb.mainAffix, pr, lv), bo.main ?? 0, balance.forge.upgradeBoostPct, { whole: true });
     }
   }
   // Affixes améliorés (v8.2) : valeur d'origine mémorisée dans `base`, +12 % par niveau d'amélioration.
@@ -197,8 +209,7 @@ export function refreshItemStats(item, balance = BALANCE) {
     const n = item.boosts?.[`affix:${i}`] ?? 0;
     if (!n) return;
     if (!Number.isFinite(a.base)) a.base = a.value;
-    const v = a.base * (1 + (n * balance.forge.upgradeBoostPct) / 100);
-    a.value = v < 3 ? Math.round(v * 10) / 10 : Math.round(v * 10) / 10;
+    a.value = boostedAffix(a.base, n, balance.forge.upgradeBoostPct);
   });
 }
 

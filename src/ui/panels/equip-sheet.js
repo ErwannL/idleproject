@@ -85,6 +85,16 @@ export function blockBanner(state, max) {
   return `<button class="eq-block" data-action="bastion-open" data-value="forge">Au-delà de +${max} : Forge du Bastion niveau ${forgeLevel(state) + 1} requise ›</button>`;
 }
 
+// Nom et valeur d'une ligne de renfort (statistique ou effet spécial) : « Coup critique », « 12,4 % ».
+const rowLabel = (r) => (r.kind === 'stat' ? STAT_LABELS[r.stat] : affixName(r.type));
+const rowVal = (r, v) => (r.kind === 'stat' ? formatStat(r.stat, v, true) : affixVal(r.type, v));
+// v10.3.1 : ce que gagne la statistique renforcée, en clair : « Coup critique 12,4 % → 13,6 % » (Forge : ligne
+// « maintenant » et liste de l'atelier, quand le renfort n'augmente pas la Puissance).
+export function statGainText(preview) {
+  const named = preview?.rows?.find((r) => r.key === preview.stat);
+  return named ? `${rowLabel(named)} ${rowVal(named, named.before)} → ${rowVal(named, named.after)}` : '';
+}
+
 // Section « Renforcer : +N → +N+1 » d'un objet. Même rendu dans la fiche d'objet (Équipement) et dans l'atelier 2 de la
 // Forge. Objet du héros : règle de la Forge (core/forge.js upgradePreview, l'aperçu est le résultat exact) ; pièce
 // portée par un compagnon : règle des compagnons (core/companion-gear.js gearUpgradePreview).
@@ -107,20 +117,17 @@ export function reinforceSection(ui, state, item, { wearer = wearerOf(state, ite
   }
   const B = BALANCE.forge;
   const named = p.rows.find((r) => r.key === p.stat);
-  const label = (r) => (r.kind === 'stat' ? STAT_LABELS[r.stat] : affixName(r.type));
-  const val = (r, v) => (r.kind === 'stat' ? formatStat(r.stat, v, true) : affixVal(r.type, v));
+  const label = rowLabel, val = rowVal;
   const rows = p.rows.map((r) => (r.before !== r.after
     ? `<div class="eq-row chg"><span>${label(r)}</span><span class="num muted">${val(r, r.before)}</span><i>→</i><b class="num good">${distinctTo(val(r, r.before), val(r, r.after), B.upgradeBoostPct)}</b></div>`
     : `<div class="eq-row"><span>${label(r)}</span><span class="num muted">${val(r, r.before)}</span><i>→</i><span class="num muted">${val(r, r.after)}</span></div>`)).join('');
   const pwUp = p.power && p.power.after > p.power.before;
   const pw = !p.power ? '' : `<div class="eq-row chg pw"><span>${img('icon_crown')} Puissance${p.power.worn ? '' : ' (si équipé)'}</span><span class="num muted">${formatNumber(p.power.before)}</span><i>→</i>${pwUp
     ? `<b class="num good">${distinctTo(formatNumber(p.power.before), formatNumber(p.power.after), (p.power.after / Math.max(1, p.power.before) - 1) * 100)}</b>` : `<span class="num muted">${formatNumber(p.power.after)}</span>`}</div>`;
-  // Petit objet : +12 % d'une petite valeur peut s'arrondir au même nombre. L'écran le dit avant de payer.
-  const flat = named && named.before === named.after ? '<p class="eq-warn">Ce renfort ne change encore rien : la valeur est trop petite, elle s\'arrondit au même nombre.</p>' : '';
   const cut = forgePerks(state).upgradeCostPct;
   return `<section class="eq-sec eq-reinf"><h4>Renforcer : <b>+${p.level} → +${p.level + 1}</b> <span class="muted">max +${p.max}</span></h4>
     ${named ? `<div class="eq-named">Stat renforcée : <b>${label(named)}</b> <span class="good">+${B.upgradeBoostPct} %</span></div>` : ''}
-    <div class="eq-rows">${rows}${pw}</div>${flat}${costLines(state, p.cost)}
+    <div class="eq-rows">${rows}${pw}</div>${costLines(state, p.cost)}
     <button class="btn btn-gold eq-do" data-action="upgrade-item" data-id="${item.id}" data-cost="${p.cost.gold}" data-currency="gold" ${p.lack.shards ? 'data-locked="1" disabled' : p.lack.gold ? 'disabled' : ''}>Renforcer +${p.level + 1}</button>
     <p class="eq-rule muted">Règle : chaque niveau ajoute ${B.upgradeBoostPct} % à une statistique (la moins renforcée d'abord). Coût : de l'or, et ${B.upgradeShards} × (niveau + 1) éclats${cut ? ` (−${cut} % grâce à la Forge du Bastion)` : ''}. ${fem ? 'Renforcée' : 'Renforcé'} jusqu'à +${p.max}.</p></section>`;
 }
