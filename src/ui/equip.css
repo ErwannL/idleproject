@@ -644,3 +644,7 @@ button.eq-block:hover { background: #5c1a1e; } div.eq-block { cursor: default; }
 }
 /* Le bandeau de la Forge, plus présent : la salle des forges en panorama sur toute la largeur du bandeau. */
 #app.page-ui:not(.page-narrow) .fg-top > .fg-top-art { object-position: center 55%; opacity: 1; border-color: rgba(255, 210, 120, .35); }
+
+/* v10.4 : en page, les 5 cases de la fusion et leur résultat restent sur une seule ligne (la case « ? » ne passe plus dessous). */
+#app.page-ui:not(.page-narrow) .fg-side .fg-cases { flex-wrap: nowrap; gap: 3px; }
+#app.page-ui:not(.page-narrow) .fg-side .fg-cases .eq-tile { flex: 0 1 54px; min-width: 40px; height: auto; aspect-ratio: 1; }
