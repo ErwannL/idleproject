@@ -2,7 +2,9 @@
 // L'écran s'ouvre sans erreur JavaScript ni débordement horizontal ; on pose un ouvrier, on lance un chantier et une
 // commande, on ferme le jeu 3 h (horloge avancée, page rechargée), au retour le chantier est fini, la commande est dans
 // le coffre de butin, le Sceau et le Carnet le disent une fois ; puis une recherche, 1 h de plus, et une commande
-// restée « prête » (coffre de butin plein) qu'on récupère. Captures : dist/e2e-103-bastion/ (ou le dossier donné en argument).
+// restée « prête » (coffre de butin plein) qu'on récupère. v10.4 (partie 6) : même parcours sur la page du Bastion
+// (carte du village, fiche à droite ou feuille du bas) ; le démarrage automatique pose les ouvriers à la première
+// ouverture (vérifié en détail par tools/e2e-1040-bastion.mjs). Captures : dist/e2e-103-bastion/ (ou le dossier donné en argument).
 // Usage : node tools/e2e-103-bastion.mjs
 import { createRequire } from 'node:module';
 import { mkdir, readFile } from 'node:fs/promises';
@@ -45,12 +47,16 @@ async function away(page, hours) {
 }
 const overflow = (page) => page.evaluate(() => {
   const body = document.getElementById('panel-body');
-  const wide = [...body.querySelectorAll('.bastion *')].filter((e) => e.getBoundingClientRect().right > body.getBoundingClientRect().right + 1 && e.offsetParent !== null).length;
+  // (la carte du village défile en largeur sur téléphone : ce qui est dans son cadre défilant ne compte pas)
+  const wide = [...body.querySelectorAll('.bastion *')].filter((e) => !e.closest('.bs-village') && e.getBoundingClientRect().right > body.getBoundingClientRect().right + 1 && e.offsetParent !== null).length;
   return { doc: document.documentElement.scrollWidth - innerWidth, panel: body.scrollWidth - body.clientWidth, wide };
 });
 const tap = async (page, sel) => { await page.locator(sel).first().scrollIntoViewIfNeeded(); await page.locator(sel).first().click(); await page.waitForTimeout(350); };
 // Téléphone : la feuille du bas couvre la liste ; on la ferme (✕) avant de toucher un autre bâtiment.
-const closeSheet = async (page, w) => { if (w <= 560 && await page.locator('.bs-detail .bs-close').count()) await tap(page, '.bs-detail .bs-close'); };
+const closeSheet = async (page, w) => { if (w <= 560 && await page.locator('.bs-side.is-open .bs-close').count()) await tap(page, '.bs-side.is-open .bs-close'); };
+// v10.4 : la carte (et pas l'arbre des recherches) ; un bâtiment s'ouvre d'un toucher ; un portrait pose l'ouvrier.
+const toMap = (page) => page.evaluate(() => { __idle.ui.view.bastionView = 'map'; __idle.ui.view.bastionKick = null; __idle.ui.invalidate(); });
+const placeFirst = async (page, id) => { await tap(page, `.bs-plot[data-building="${id}"]`); await tap(page, '.bs-side .bs-wcard:not(.here):not(.busy)'); };
 
 for (const [w, h] of [[1116, 993], [1280, 720], [390, 844]]) {
   const tag = `${w}×${h}`;
@@ -59,38 +65,42 @@ for (const [w, h] of [[1116, 993], [1280, 720], [390, 844]]) {
   await page.evaluate(() => __idle.ui.openTab('camp'));
   if (w <= 560) await page.evaluate(() => { if (!__idle.ui.panelTallFor('camp')) __idle.ui.togglePanelLow(); }); // téléphone : panneau déplié (bouton ⤢)
   await page.waitForTimeout(900);
-  const first = await page.evaluate(() => ({ title: document.getElementById('panel-title').textContent, cards: document.querySelectorAll('.bs-card').length, locked: document.querySelectorAll('.bs-card.locked').length,
-    head: document.querySelector('.bs-head')?.textContent ?? '', idle: document.querySelector('.bs-card[data-building="forge"] .bs-idle')?.textContent ?? '' }));
-  ok(`${tag} : l'écran du Bastion s'ouvre (6 bâtiments, les suivants verrouillés avec leur condition)`, /Bastion/.test(first.title) && first.cards === 6 && first.locked >= 2 && /même jeu fermé/.test(first.head), JSON.stringify(first));
-  ok(`${tag} : sans ouvrier, la carte l'écrit en rouge`, /Aucun ouvrier : à l'arrêt/.test(first.idle));
+  await toMap(page);
+  await page.waitForTimeout(400);
+  const first = await page.evaluate(() => ({ title: document.getElementById('panel-title').textContent, cards: document.querySelectorAll('.bs-plot').length, locked: document.querySelectorAll('.bs-plot.locked').length,
+    lock: document.querySelector('.bs-plot.locked .bs-tag')?.textContent ?? '', kicked: __idle.state.bastion.kicked > 0 }));
+  ok(`${tag} : l'écran du Bastion s'ouvre (6 bâtiments, les suivants verrouillés avec leur condition)`, /Bastion/.test(first.title) && first.cards === 6 && first.locked >= 2 && /Après|Étape|Bastion niv/.test(first.lock) && first.kicked, JSON.stringify(first));
+  // Le démarrage a posé la Forge et la Bibliothèque ; on retire l'ouvrier de la Forge : la carte le signale en rouge.
+  await page.evaluate(() => __idle.actions.bastion('worker', 'forge', null));
+  await page.waitForTimeout(500);
+  const idle = await page.evaluate(() => ({ need: Boolean(document.querySelector('.bs-plot[data-building="forge"] .bs-need')), title: document.querySelector('.bs-plot[data-building="forge"] .bs-need')?.title ?? '' }));
+  ok(`${tag} : sans ouvrier, la carte l'écrit en rouge`, idle.need && /Aucun ouvrier : à l'arrêt/.test(idle.title), JSON.stringify(idle));
   let o = await overflow(page);
   ok(`${tag} : aucun débordement horizontal`, o.doc <= 0 && o.panel <= 1 && o.wide === 0, JSON.stringify(o));
   await shot(page, '1-carte');
 
-  // Poser un ouvrier sur la Forge (le « + » en pointillés ouvre la liste, le meilleur métier en tête).
-  await tap(page, '.bs-card[data-building="forge"] .bs-medal');
-  const pick = await page.evaluate(() => ({ rows: document.querySelectorAll('.bs-wlist .bs-wrow').length, top: document.querySelector('.bs-wlist .bs-wrow b')?.textContent, bonus: document.querySelector('.bs-wlist .bs-wbonus')?.textContent }));
-  await tap(page, '.bs-wlist [data-action="bastion-worker"]');
+  // Poser un ouvrier sur la Forge : la fiche montre les portraits (le meilleur métier en tête) ; un toucher le pose.
+  await tap(page, '.bs-plot[data-building="forge"]');
+  const pick = await page.evaluate(() => ({ rows: document.querySelectorAll('.bs-side .bs-wcard').length, top: document.querySelector('.bs-side .bs-wcard')?.title, bonus: document.querySelector('.bs-side .bs-wcard .bs-wbonus')?.textContent }));
+  await tap(page, '.bs-side .bs-wcard:not(.busy)');
   const worker = await page.evaluate(() => __idle.state.bastion.buildings.forge.worker);
-  ok(`${tag} : un toucher pose l'ouvrier (forgeron en tête de liste)`, Boolean(worker) && pick.rows >= 3, JSON.stringify({ worker, ...pick }));
+  ok(`${tag} : un toucher pose l'ouvrier (forgeron en tête de liste)`, Boolean(worker) && pick.rows >= 3 && /Forgeron/.test(pick.top), JSON.stringify({ worker, ...pick }));
   // Lancer le chantier : « Améliorer : niv. 1 → 2 », effets avant → après, coût « tu as … », durée.
-  const up = await page.evaluate(() => { const b = [...document.querySelectorAll('.bs-detail .bs-block')].find((x) => /Améliorer/.test(x.textContent)); return b ? { title: b.querySelector('.bs-block-title').textContent, ups: b.querySelectorAll('.bs-fxrow.up').length, have: /tu as/.test(b.textContent), dur: b.querySelector('.bs-dur')?.textContent } : null; });
-  ok(`${tag} : « Améliorer : niv. 1 → 2 » montre chaque effet avant → après, le coût « tu as … » et la durée`, up && /niv\. 1 → 2/.test(up.title) && up.ups >= 3 && up.have && /Durée/.test(up.dur ?? ''), JSON.stringify(up));
+  const up = await page.evaluate(() => { const b = [...document.querySelectorAll('.bs-side .bs-block')].find((x) => /Améliorer/.test(x.textContent)); return b ? { title: b.querySelector('.bs-block-title').textContent, ups: b.querySelectorAll('.bs-fxrow.up').length, have: [...b.querySelectorAll('.bs-cost')].every((c) => /^tu as /.test(c.title)), dur: b.querySelector('.bs-dur')?.textContent } : null; });
+  ok(`${tag} : « Améliorer : niv. 1 → 2 » montre chaque effet avant → après, le coût « tu as … » et la durée`, up && /niv\. 1 → 2/.test(up.title) && up.ups >= 3 && up.have && /\d+ min/.test(up.dur ?? ''), JSON.stringify(up));
   await shot(page, '2-forge');
-  await tap(page, '.bs-detail [data-action="bastion-build"]');
+  await tap(page, '.bs-side [data-action="bastion-build"]');
   ok(`${tag} : chantier lancé`, await page.evaluate(() => Boolean(__idle.state.bastion.buildings.forge.build)));
   // Commande : place en icônes, rareté minimale (Légendaire+ cadenassée avant le niveau 6).
   await tap(page, '.bs-slots [data-value="armor"]');
   const tiers = await page.evaluate(() => [...document.querySelectorAll('.bs-tier')].map((t) => t.textContent.replace(/\s+/g, ' ').trim()));
-  await tap(page, '.bs-detail [data-action="bastion-order"]');
+  await tap(page, '.bs-side [data-action="bastion-order"]');
   const order = await page.evaluate(() => __idle.state.bastion.orders[0]);
   ok(`${tag} : commande passée (place choisie, Rare+)`, order?.slot === 'armor' && order?.tier === 'rare' && tiers.some((t) => /Légendaire\+.*niv\. 6/.test(t)), JSON.stringify({ order: order && { slot: order.slot, tier: order.tier }, tiers }));
-  // Bibliothèque : ouvrier puis construction (15 min).
+  // Bibliothèque : le démarrage y a posé un ouvrier et lancé sa construction (chantier offert, 15 min).
   await closeSheet(page, w);
-  await tap(page, '.bs-card[data-building="library"] .bs-medal');
-  await tap(page, '.bs-wlist [data-action="bastion-worker"]');
-  await tap(page, '.bs-detail [data-action="bastion-build"]');
-  ok(`${tag} : Bibliothèque en construction`, await page.evaluate(() => Boolean(__idle.state.bastion.buildings.library.build)));
+  await tap(page, '.bs-plot[data-building="library"]');
+  ok(`${tag} : Bibliothèque en construction`, await page.evaluate(() => Boolean(__idle.state.bastion.buildings.library.build && __idle.state.bastion.buildings.library.worker && document.querySelector('.bs-side .bs-bar.build'))));
   o = await overflow(page);
   ok(`${tag} : panneau du bâtiment sans débordement`, o.doc <= 0 && o.panel <= 1 && o.wide === 0, JSON.stringify(o));
   // Les minuteurs avancent sans redessiner le panneau.
@@ -98,9 +108,9 @@ for (const [w, h] of [[1116, 993], [1280, 720], [390, 844]]) {
   // (Un butin, une récompense… peuvent redessiner le panneau : on cherche une fenêtre de 2 s sans redessin.)
   let live = null;
   for (let i = 0; i < 5 && !live?.ok; i++) {
-    const before = await page.evaluate(() => ({ at: __idle.ui.lastRender, text: document.querySelector('.bs-card[data-building="library"] [data-bt-end]:not(i)').textContent }));
+    const before = await page.evaluate(() => ({ at: __idle.ui.lastRender, text: document.querySelector('.bs-plot[data-building="library"] .bs-time[data-bt-end]').textContent }));
     await page.waitForTimeout(2200);
-    const after = await page.evaluate(() => ({ at: __idle.ui.lastRender, text: document.querySelector('.bs-card[data-building="library"] [data-bt-end]:not(i)').textContent }));
+    const after = await page.evaluate(() => ({ at: __idle.ui.lastRender, text: document.querySelector('.bs-plot[data-building="library"] .bs-time[data-bt-end]').textContent }));
     live = { ok: after.at === before.at && after.text !== before.text, from: before.text, to: after.text, redrawn: after.at !== before.at };
   }
   ok(`${tag} : le temps restant se met à jour sans redessin`, live.ok, `${live.from} → ${live.to}`);
@@ -108,10 +118,10 @@ for (const [w, h] of [[1116, 993], [1280, 720], [390, 844]]) {
   // La carte avec ses ouvriers : médaillon, petit sprite devant le bâtiment, barre de chantier et temps restant.
   await page.evaluate(() => { __idle.ui.view.bastionSel = null; __idle.ui.invalidate(); });
   await page.waitForTimeout(500);
-  await page.evaluate(() => { document.getElementById('panel-body').scrollTop = document.querySelector('.bs-map').offsetTop - 4; });
   await page.waitForTimeout(400);
-  const posted = await page.evaluate(() => ({ medals: document.querySelectorAll('.bs-medal:not(.empty) img').length, sprites: document.querySelectorAll('.bs-worker canvas').length, tools: document.querySelectorAll('.bs-tool').length, bars: document.querySelectorAll('.bs-card .bs-bar.build').length }));
-  ok(`${tag} : sur la carte, médaillon et petit ouvrier animé devant chaque bâtiment occupé, barre de chantier`, posted.medals === 2 && posted.sprites === 2 && posted.tools === 2 && posted.bars === 2, JSON.stringify(posted));
+  const posted = await page.evaluate(() => ({ sprites: document.querySelectorAll('.bs-plot .bs-worker canvas').length, tools: document.querySelectorAll('.bs-plot .bs-tool').length, bars: document.querySelectorAll('.bs-plot .bs-bar.build').length,
+    named: [...document.querySelectorAll('.bs-plot .bs-worker')].every((x) => x.title.length > 1) }));
+  ok(`${tag} : sur la carte, petit ouvrier animé (avec son nom) devant chaque bâtiment occupé, barre de chantier`, posted.sprites === 2 && posted.tools === 2 && posted.bars === 2 && posted.named, JSON.stringify(posted));
   await shot(page, '3-chantiers');
 
   // Jeu fermé 3 h.
@@ -146,11 +156,12 @@ for (const [w, h] of [[1116, 993], [1280, 720], [390, 844]]) {
   if (modal) console.log(`  (fenêtre fermée : ${modal})`);
   await page.evaluate(() => __idle.ui.openTab('camp'));
   await page.waitForTimeout(600);
-  await tap(page, '.bs-res[data-value="sharp"]');
-  const res = await page.evaluate(() => ({ cols: document.querySelectorAll('.bs-col').length, tiles: document.querySelectorAll('.bs-res').length, locked: document.querySelectorAll('.bs-res.locked').length, versus: /ne se perdent pas aux Renaissances/.test(document.querySelector('.bs-versus')?.textContent ?? '') }));
+  await tap(page, '.bs-top [data-action="bastion-view"][data-value="research"]');
+  await tap(page, '#bs-research .bs-node[data-value="sharp"]');
+  const res = await page.evaluate(() => ({ cols: document.querySelectorAll('#bs-research .bs-branch').length, tiles: document.querySelectorAll('#bs-research .bs-node').length, locked: document.querySelectorAll('#bs-research .bs-node.locked').length, versus: /Gardées après les Renaissances/.test(document.querySelector('.bs-versus')?.textContent ?? '') }));
   await tap(page, '[data-action="bastion-research"]');
-  const active = await page.evaluate(() => ({ job: __idle.state.bastion.research.active[0]?.id, green: Boolean(document.querySelector('.bs-res.active[data-value="sharp"]')) }));
-  ok(`${tag} : Recherches en 3 colonnes de 6, suivantes cadenassées, différence avec les Talents écrite`, res.cols === 3 && res.tiles === 18 && res.locked === 15 && res.versus, JSON.stringify(res));
+  const active = await page.evaluate(() => ({ job: __idle.state.bastion.research.active[0]?.id, green: Boolean(document.querySelector('#bs-research .bs-node.active[data-value="sharp"]')) }));
+  ok(`${tag} : Recherches en 3 branches de 6, suivantes cadenassées, différence avec les Talents écrite`, res.cols === 3 && res.tiles === 18 && res.locked === 15 && res.versus, JSON.stringify(res));
   ok(`${tag} : recherche lancée, bordée de vert`, active.job === 'sharp' && active.green, JSON.stringify(active));
   o = await overflow(page);
   ok(`${tag} : bandeau des Recherches sans débordement`, o.doc <= 0 && o.panel <= 1 && o.wide === 0, JSON.stringify(o));
@@ -158,14 +169,17 @@ for (const [w, h] of [[1116, 993], [1280, 720], [390, 844]]) {
   await page.waitForTimeout(250);
   await shot(page, '5-recherches');
   // Deuxième commande, coffre de butin plein : elle attend « prête » dans la file, puis on la récupère.
-  await tap(page, '.bs-card[data-building="forge"]');
-  await tap(page, '.bs-detail [data-action="bastion-order"]');
+  await toMap(page);
+  await page.waitForTimeout(300);
+  await closeSheet(page, w);
+  await tap(page, '.bs-plot[data-building="forge"]');
+  await tap(page, '.bs-side [data-action="bastion-order"]');
   const second = await page.evaluate(() => { const s = __idle.state; const it = s.equipment.weapon; while (s.lootBag.length < 40) s.lootBag.push({ ...structuredClone(it), id: `it${900000 + s.lootBag.length}` }); return s.bastion.orders.length; });
   ok(`${tag} : deuxième commande passée`, second === 1);
   await away(page, 2);
   const waiting = await page.evaluate(() => { const s = __idle.state; return { sharp: s.bastion.research.levels.sharp ?? 0, ready: s.bastion.orders.filter((x) => x.ready).length, chest: s.lootBag.length }; });
   ok(`${tag} : 2 h plus tard, recherche finie ; coffre de butin plein → la commande attend « prête », rien n'est perdu`, waiting.sharp === 1 && waiting.ready === 1 && waiting.chest === 40, JSON.stringify(waiting));
-  await page.evaluate(() => { __idle.ui.openTab('camp'); __idle.ui.view.bastionSel = 'forge'; __idle.ui.invalidate(); });
+  await page.evaluate(() => { __idle.ui.closeModal(); __idle.ui.openTab('camp'); __idle.ui.view.bastionView = 'map'; __idle.ui.view.bastionSel = 'forge'; __idle.ui.invalidate(); });
   await page.waitForTimeout(700);
   const row = await page.evaluate(() => document.querySelector('.bs-order.ready')?.textContent.replace(/\s+/g, ' ').trim() ?? '');
   ok(`${tag} : la file l'écrit (« prête · le coffre de butin est plein », bouton Récupérer)`, /prête · le coffre de butin est plein/.test(row) && /Récupérer/.test(row), row);
@@ -186,7 +200,7 @@ for (const [w, h] of [[1116, 993], [1280, 720], [390, 844]]) {
     return { inTeam: s.companions.equipped.includes(w), still: s.bastion.buildings.forge.worker, toast: said.join(' | ') };
   });
   ok(`${tag} : l'ouvrier mis dans l'équipe quitte la Forge, avec un avertissement`, warn.inTeam && warn.still === null && /quitte la Forge du forgeron/.test(warn.toast), JSON.stringify(warn));
-  await page.evaluate(() => { __idle.ui.openTab('camp'); __idle.ui.view.bastionSel = 'workers'; __idle.ui.invalidate(); });
+  await page.evaluate(() => { __idle.ui.openTab('camp'); __idle.ui.view.bastionView = 'map'; __idle.ui.view.bastionSel = 'forge'; __idle.ui.invalidate(); }); // v10.4 : les ouvriers en grille dans la fiche
   await page.waitForTimeout(600);
   await shot(page, '7-ouvriers');
   o = await overflow(page);
@@ -198,86 +212,86 @@ for (const [w, h] of [[1116, 993], [1280, 720], [390, 844]]) {
     for (const id of ['forge', 'library', 'mine', 'training', 'trade']) b.buildings[id].level = Math.max(b.buildings[id].level, 2);
     b.stock.mine = 40; b.stock.training = 99; // (le plafond du Camp au niveau 2 limite le stock à 1 grimoire)
     s.materials.shards = 6000; s.materials.grimoire = 5; s.companions.equipped = s.companions.equipped.slice(0, 2);
-    __idle.ui.view.bastionSel = null; __idle.ui.openTab('camp'); __idle.ui.invalidate();
+    __idle.ui.view.bastionSel = null; __idle.ui.view.bastionView = 'map'; __idle.ui.openTab('camp'); __idle.ui.invalidate();
   });
   await page.waitForTimeout(700);
   for (const id of ['mine', 'training', 'trade']) {
     await closeSheet(page, w);
-    await tap(page, `.bs-card[data-building="${id}"] .bs-medal`);
-    await tap(page, '.bs-wlist [data-action="bastion-worker"]');
+    await placeFirst(page, id);
   }
   const placed = await page.evaluate(() => ['mine', 'training', 'trade'].map((id) => Boolean(__idle.state.bastion.buildings[id].worker)));
   ok(`${tag} : ouvriers posés sur la Mine, le Camp d'entraînement et le Comptoir`, placed.every(Boolean), JSON.stringify(placed));
   const mat = (k) => page.evaluate((key) => __idle.state.materials[key], k);
   // Mine de cristal : la carte s'ouvre, la production est écrite, « Récupérer » verse le stock en éclats.
   await closeSheet(page, w);
-  await tap(page, '.bs-card[data-building="mine"]');
-  const mine = await page.evaluate(() => ({ head: document.querySelector('.bs-detail-head b')?.textContent, block: document.querySelector('.bs-detail .bs-stock')?.textContent.replace(/\s+/g, ' ').trim(), perHour: document.querySelector('.bs-detail')?.textContent.match(/([\d,]+) éclats par heure/)?.[1] }));
+  await tap(page, '.bs-plot[data-building="mine"]');
+  const mine = await page.evaluate(() => ({ head: document.querySelector('.bs-side .bs-shead b')?.textContent, block: document.querySelector('.bs-side .bs-stock')?.textContent.replace(/\s+/g, ' ').trim(), perHour: document.querySelector('.bs-side')?.textContent.match(/([\d,]+) éclats par heure/)?.[1] }));
   const shardsBefore = await mat('shards');
   await shot(page, '8-mine');
-  await tap(page, '.bs-detail [data-action="bastion-collect"]');
+  await tap(page, '.bs-side [data-action="bastion-collect"]');
   const shardsAfter = await mat('shards');
   ok(`${tag} : Mine de cristal — production écrite, « Récupérer » verse le stock en éclats`, /Mine de cristal/.test(mine.head) && Boolean(mine.perHour) && shardsAfter - shardsBefore >= 40, JSON.stringify({ ...mine, gain: shardsAfter - shardsBefore }));
   o = await overflow(page);
   ok(`${tag} : Mine de cristal sans débordement`, o.doc <= 0 && o.panel <= 1 && o.wide === 0, JSON.stringify(o));
   // Camp d'entraînement : des grimoires.
   await closeSheet(page, w);
-  await tap(page, '.bs-card[data-building="training"]');
-  const camp = await page.evaluate(() => document.querySelector('.bs-detail-head b')?.textContent);
+  await tap(page, '.bs-plot[data-building="training"]');
+  const camp = await page.evaluate(() => document.querySelector('.bs-side .bs-shead b')?.textContent);
   const gBefore = await mat('grimoire');
   await shot(page, '9-camp-entrainement');
-  await tap(page, '.bs-detail [data-action="bastion-collect"]');
+  await tap(page, '.bs-side [data-action="bastion-collect"]');
   const gAfter = await mat('grimoire');
   ok(`${tag} : Camp d'entraînement — « Récupérer » verse les grimoires`, /Camp d'entraînement/.test(camp) && gAfter - gBefore >= 1, `${camp} +${gAfter - gBefore}`);
   o = await overflow(page);
   ok(`${tag} : Camp d'entraînement sans débordement`, o.doc <= 0 && o.panel <= 1 && o.wide === 0, JSON.stringify(o));
   // Comptoir : six échanges, taux, limite du jour ; un échange réel.
   await closeSheet(page, w);
-  await tap(page, '.bs-card[data-building="trade"]');
-  const post = await page.evaluate(() => ({ head: document.querySelector('.bs-detail-head b')?.textContent, rows: document.querySelectorAll('.bs-detail .bs-trade').length, left: document.querySelector('.bs-detail')?.textContent.match(/(\d+) échanges? aujourd/)?.[1] }));
+  await tap(page, '.bs-plot[data-building="trade"]');
+  const post = await page.evaluate(() => ({ head: document.querySelector('.bs-side .bs-shead b')?.textContent, rows: document.querySelectorAll('.bs-side .bs-trade').length, left: document.querySelector('.bs-side')?.textContent.match(/(\d+) échanges? aujourd/)?.[1] }));
   const before = { shards: await mat('shards'), grimoire: await mat('grimoire') };
   await shot(page, '10-comptoir');
-  await tap(page, '.bs-detail [data-action="bastion-trade"][data-value="buy-grimoire"]');
-  const after = { shards: await mat('shards'), grimoire: await mat('grimoire'), left: await page.evaluate(() => document.querySelector('.bs-detail')?.textContent.match(/(\d+) échanges? aujourd/)?.[1]) };
+  await tap(page, '.bs-side [data-action="bastion-trade"][data-value="buy-grimoire"]');
+  const after = { shards: await mat('shards'), grimoire: await mat('grimoire'), left: await page.evaluate(() => document.querySelector('.bs-side')?.textContent.match(/(\d+) échanges? aujourd/)?.[1]) };
   ok(`${tag} : Comptoir — 6 offres, un échange verse 1 grimoire contre des éclats et réduit la limite du jour`, /Comptoir/.test(post.head) && post.rows === 6 && after.grimoire === before.grimoire + 1 && after.shards < before.shards && Number(after.left) === Number(post.left) - 1,
     JSON.stringify({ post, before, after }));
   o = await overflow(page);
   ok(`${tag} : Comptoir sans débordement`, o.doc <= 0 && o.panel <= 1 && o.wide === 0, JSON.stringify(o));
   // Expéditions : le bâtiment reprend l'écran des expéditions.
   await closeSheet(page, w);
-  await tap(page, '.bs-card[data-building="expeditions"]');
-  const exp = await page.evaluate(() => ({ head: document.querySelector('.bs-detail-head b')?.textContent, embed: document.querySelector('.bs-detail .bs-embed')?.textContent.replace(/\s+/g, ' ').trim().length ?? 0, buttons: document.querySelectorAll('.bs-detail .bs-embed button').length }));
+  await tap(page, '.bs-plot[data-building="expeditions"]');
+  const exp = await page.evaluate(() => ({ head: document.querySelector('.bs-side .bs-shead b')?.textContent, embed: document.querySelector('.bs-side .bs-embed')?.textContent.replace(/\s+/g, ' ').trim().length ?? 0, buttons: document.querySelectorAll('.bs-side .bs-embed button').length }));
   await shot(page, '11-expeditions');
   ok(`${tag} : Expéditions — le bâtiment ouvre l'écran des expéditions`, /Expéditions/.test(exp.head) && exp.embed > 80 && exp.buttons >= 1, JSON.stringify(exp));
   o = await overflow(page);
   ok(`${tag} : Expéditions sans débordement`, o.doc <= 0 && o.panel <= 1 && o.wide === 0, JSON.stringify(o));
-  // Clavier : les cartes sont des « div role=button » ; Entrée et Espace les ouvrent, le focus se voit, Espace ne touche pas l'avance automatique.
+  // Clavier : les bâtiments sont des boutons ; Entrée et Espace les ouvrent, le focus se voit, Espace ne touche pas l'avance automatique.
   await closeSheet(page, w);
   await page.evaluate(() => { __idle.ui.view.bastionSel = null; __idle.ui.invalidate(); });
   await page.waitForTimeout(500);
   const auto0 = await page.evaluate(() => __idle.state.autoAdvance);
   // Au clavier : on arrive sur la carte avec Tab (la mise au point par la souris ne montre pas de contour).
-  await page.locator('.bs-card[data-building="mine"]').focus();
+  await page.locator('.bs-plot[data-building="mine"]').focus();
   await page.keyboard.press('Shift+Tab');
   await page.keyboard.press('Tab');
   const ring = await page.evaluate(() => { const c = getComputedStyle(document.activeElement); return { cls: document.activeElement.className, width: parseFloat(c.outlineWidth), style: c.outlineStyle, color: c.outlineColor }; });
-  ok(`${tag} : une carte de bâtiment au clavier a un contour visible`, /bs-card/.test(ring.cls) && ring.width >= 2 && ring.style !== 'none', JSON.stringify(ring));
+  ok(`${tag} : un bâtiment de la carte au clavier a un contour visible`, /bs-plot/.test(ring.cls) && ring.width >= 2 && ring.style !== 'none', JSON.stringify(ring));
   await shot(page, '12-clavier-focus');
   await page.keyboard.press('Enter');
   await page.waitForTimeout(450);
-  const viaEnter = await page.evaluate(() => document.querySelector('.bs-detail')?.dataset.sel);
+  const viaEnter = await page.evaluate(() => document.querySelector('.bs-side')?.dataset.sel);
   await closeSheet(page, w);
   await page.evaluate(() => { __idle.ui.view.bastionSel = null; __idle.ui.invalidate(); });
   await page.waitForTimeout(450);
-  await page.locator('.bs-card[data-building="training"]').focus();
+  await page.locator('.bs-plot[data-building="training"]').focus();
   await page.keyboard.press('Shift+Tab');
   await page.keyboard.press('Tab');
   await page.keyboard.press('Space');
   await page.waitForTimeout(450);
-  const viaSpace = await page.evaluate(() => ({ sel: document.querySelector('.bs-detail')?.dataset.sel, auto: __idle.state.autoAdvance }));
+  const viaSpace = await page.evaluate(() => ({ sel: document.querySelector('.bs-side')?.dataset.sel, auto: __idle.state.autoAdvance }));
   ok(`${tag} : Entrée ouvre la Mine, Espace ouvre le Camp d'entraînement (sans changer l'avance automatique)`, viaEnter === 'mine' && viaSpace.sel === 'training' && viaSpace.auto === auto0, JSON.stringify({ viaEnter, viaSpace, auto0 }));
-  // Lexique : « Mots du Bastion » — Bastion, Ouvrier, Chantier, Recherche ouvrent une carte d'explication.
-  await closeSheet(page, w);
+  // Lexique : « Mots du Bastion » (au bas de la fiche) — Bastion, Ouvrier, Chantier, Recherche ouvrent une carte d'explication.
+  await page.evaluate(() => { __idle.ui.view.bastionSel = 'forge'; __idle.ui.invalidate(); });
+  await page.waitForTimeout(450);
   const words = [];
   for (const word of ['Bastion', 'Ouvrier', 'Chantier', 'Recherche']) {
     await page.locator(`.bs-word[data-lex="${word}"]`).scrollIntoViewIfNeeded();

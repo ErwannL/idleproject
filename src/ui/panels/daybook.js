@@ -70,7 +70,7 @@ export default {
     return `${firstWeekHtml(ui, state)}<div class="db-head"><div class="db-title"><b>Carnet du jour</b><span class="num">${doneN}/${tasks.length}</span></div>
         <div class="db-path">${tasks.map((t) => `<i class="${t.done ? 'on' : ''}"></i>`).join('')}</div></div>
       ${(() => { const d = dormantResources(state, open); return d.length ? `<div class="card db-dormant"><b>Ça dort :</b>${d.map((x) => `<button class="btn small" data-action="open-tab" data-value="${x.tab}">${escapeHtml(x.text)} ›</button>`).join('')}</div>` : ''; })()}
-      ${(() => { const line = bastionDaybookLine(state); return line ? `<div class="card db-bastion"><img class="px" src="assets/ui/art103/b_forge.png" alt=""><b>${escapeHtml(line)}</b><button class="btn btn-gold small" data-action="bastion-open">Voir le Bastion ›</button></div>` : ''; })()}
+      ${(() => { const line = bastionDaybookLine(state); return line ? `<div class="card db-bastion"><img class="px" src="assets/ui/art104/bastion_forge_lv1.png" alt=""><b>${escapeHtml(line)}</b><button class="btn btn-gold small" data-action="bastion-open">Voir le Bastion ›</button></div>` : ''; })()}
       <div class="db-cards">${tasks.map((t) => card(t, t.done && fresh(t.id))).join('')}</div>
       ${all ? `<div class="db-big-stamp${fresh('all') ? ' fresh' : ''}">Journée accomplie</div>` : ''}
       ${chest}

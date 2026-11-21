@@ -178,7 +178,7 @@ test('illustrations : chaque image référencée par le Bastion existe sur le di
   const root = new URL('..', import.meta.url);
   const has = (p) => existsSync(new URL(p, root));
   const { BASTION_FX } = await import('../src/ui/bastion-art.js');
-  const files = ['bastion_map', 'bastion_site', 'bastion_away', 'scene_tower', 'bastion_expeditions', 'bastion_expeditions_locked',
+  const files = ['bastion_map', 'research_tree_bg', 'bastion_site', 'bastion_away', 'scene_tower', 'bastion_expeditions', 'bastion_expeditions_locked',
     ...BUILDINGS.filter((d) => !d.existing).flatMap((d) => [1, 4, 8].map((lv) => `bastion_${d.id}_lv${lv}`).concat(`bastion_${d.id}_locked`)),
     ...['smith', 'scholar', 'miner', 'trainer', 'merchant'].map((t) => `trade_${t}`),
     ...['combat', 'team', 'economy'].map((b) => `research_branch_${b}`),

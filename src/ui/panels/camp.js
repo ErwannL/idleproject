@@ -248,19 +248,19 @@ function researchTree(ui, state, now, below = false) {
       const lit = i > 0 && researchStatus(state, r.id).unlocked;
       return `${i ? `<i class="bs-link${lit ? ' lit' : ''}" aria-hidden="true"></i>` : ''}${researchNode(ui, state, r, now)}`;
     }).join('');
-    return `<div class="bs-branch"><div class="bs-bhead"><img class="px" src="${ART(`research_branch_${br.id}`)}" alt=""><b>${escapeHtml(br.name)}</b></div>${nodes}</div>`;
+    return `<div class="bs-branch"><div class="bs-bhead" title="${escapeHtml(br.name)}"><img class="px" src="${ART(`research_branch_${br.id}`)}" alt="${escapeHtml(br.name)}"></div>${nodes}</div>`;
   }).join('');
   const lock = lib >= 1 ? '' : `<p class="bs-lock">${img('icon_lock')} Construis la Bibliothèque</p>`;
-  if (below) return `<div class="bs-tree below${lib >= 1 ? '' : ' closed'}"><div class="bs-branches">${cols}</div></div>`;
-  return `<div class="bs-tree${lib >= 1 ? '' : ' closed'}" id="bs-research">${lock}<div class="bs-branches">${cols}</div></div>`;
+  if (below) return `<div class="bs-tree below${lib >= 1 ? '' : ' closed'}" style="background-image:url(${ART('research_tree_bg')})"><div class="bs-branches">${cols}</div></div>`;
+  return `<div class="bs-tree${lib >= 1 ? '' : ' closed'}" id="bs-research" style="background-image:url(${ART('research_tree_bg')})">${lock}<div class="bs-branches">${cols}</div></div>`;
 }
 
 function researchSheet(ui, state, now) {
   const def = RESEARCH.find((r) => r.id === ui.view.bastionRes) ?? RESEARCH.find((r) => researchStatus(state, r.id).active) ?? RESEARCH[0];
   const st = researchStatus(state, def.id);
-  const head = `<div class="bs-shead"><img class="px bs-sart node" src="${researchArt(def.id)}" alt=""><span class="grow"><b>${escapeHtml(def.name)}</b> <span class="bs-lv">${st.level}/${def.max}</span>
-      <small>${escapeHtml(def.text)}</small></span>${closeBtn()}</div>`;
-  const versus = '<p class="muted bs-versus">Gardées après les Renaissances.</p>';
+  const head = `<div class="bs-hero res" style="background-image:url(${ART('research_tree_bg')})"><img class="px bs-hero-b node" src="${researchArt(def.id)}" alt="">
+      <span class="bs-shead"><b>${escapeHtml(def.name)}</b> <span class="bs-lv">${st.level}/${def.max}</span><small>${escapeHtml(def.text)}</small></span>${closeBtn()}</div>`;
+  const versus = `<p class="muted bs-versus">Gardées après les Renaissances.</p>${libraryScene(state)}`;
   if (st.maxed) return `${head}<p class="good">${escapeHtml(researchText(def, st.level))}</p>`;
   if (!st.unlocked) return `${head}<p class="bs-lock">${img('icon_lock')} ${escapeHtml(st.lockedBy.name)} niv. ${Math.min(RESEARCH_UNLOCK_LEVEL, st.lockedBy.max)}</p>`;
   const f = productionFactor(state, 'library');
@@ -270,7 +270,7 @@ function researchSheet(ui, state, now) {
   return `${head}<div class="bs-block"><div class="bs-fxrow up"><span>Niv. ${st.level} → ${st.level + 1}</span><span>${st.level ? escapeHtml(researchText(def, st.level)) : '—'} → <b class="good">${escapeHtml(researchText(def, st.level + 1))}</b></span></div>
       <div class="bs-costs">${have(cost, state)}${duration(cost.ms, f)}</div>
       <button class="btn btn-gold" data-action="bastion-research" data-value="${def.id}" ${can.ok ? '' : 'disabled'}>Lancer</button>
-      ${can.ok ? '' : `<small class="bs-why">${escapeHtml(can.reason)}</small>`}</div>${versus}`;
+      ${can.ok ? '' : `<small class="bs-why">${escapeHtml(can.reason)}</small>`}</div>${versus}${words()}`;
 }
 
 // ---------------------------------------------------------------- la fiche du bâtiment
@@ -304,7 +304,8 @@ function workerBlock(ui, state, def) {
   const list = availableWorkers(state).sort((x, y) => workerBonus(state, y.id, def.id).totalPct - workerBonus(state, x.id, def.id).totalPct);
   const full = !c && workersPlaced(state) >= workerSlots(state);
   const more = ui.view.bastionMore === def.id;
-  const shown = more ? list : list.slice(0, 7);
+  const room = typeof innerHeight === 'number' && innerHeight < 820 ? 4 : 9; // fenêtre basse : une rangée de portraits
+  const shown = more ? list : list.slice(0, list.length > room + 1 ? room : room + 1);
   const trade = Object.entries(TRADES).find(([, t]) => t.building === def.id)?.[0];
   const head = c
     ? (() => { const b = workerBonus(state, c.id, def.id); return `<div class="bs-worker-now r-${c.rarity}"><span class="bs-wpic big">${companionStill(c)}</span>
@@ -324,7 +325,8 @@ function upgradeBlock(state, def, now) {
   const w = workerOf(state, def.id);
   const f = w ? productionFactor(state, def.id) : 0;
   if (slot.build) {
-    return `<div class="bs-block"><div class="bs-block-title">Chantier : niv. ${lv} → ${lv + 1}</div>
+    return `<div class="bs-block bs-up"><div class="bs-block-title">Chantier : niv. ${lv} → ${lv + 1}</div>
+      <div class="bs-ba big"><img class="px" src="${buildingArt(state, def, lv)}" alt=""><span class="bs-arrow">→</span><img class="px" src="${buildingArt(state, def, lv + 1)}" alt=""></div>
       ${jobBar(slot.build, f, now, 'build')}<span class="bs-line">${timer(buildRemaining(state, def.id), now)}</span></div>`;
   }
   const cost = buildCost(state, def.id);
@@ -337,8 +339,8 @@ function upgradeBlock(state, def, now) {
   }).join('');
   const can = canBuild(state, def.id);
   const pics = `<div class="bs-ba"><img class="px" src="${buildingArt(state, def, lv)}" alt=""><span class="bs-arrow">→</span><img class="px" src="${buildingArt(state, def, lv + 1)}" alt=""></div>`;
-  return `<div class="bs-block bs-up"><div class="bs-block-title">${lv < 1 ? 'Construire' : 'Améliorer'} : niv. ${lv} → ${lv + 1}</div>
-      ${buildingArt(state, def, lv) !== buildingArt(state, def, lv + 1) ? pics : ''}<div class="bs-fxlist">${rows}</div>
+  return `<div class="bs-block bs-up"><div class="bs-block-title">${lv < 1 ? 'Construire' : 'Améliorer'} : niv. ${lv} → ${lv + 1}${buildingArt(state, def, lv) !== buildingArt(state, def, lv + 1) ? pics : ''}</div>
+      <div class="bs-fxlist">${rows}</div>
       <div class="bs-costs">${have(cost, state)}${duration(cost.ms, f)}</div>
       <button class="btn btn-gold primary-action" data-action="bastion-build" data-value="${def.id}" ${can.ok ? '' : 'disabled'}>${lv < 1 ? 'Construire' : 'Améliorer'}</button>
       ${can.ok ? '' : `<small class="bs-why">${escapeHtml(can.reason)}</small>`}</div>`;
@@ -398,6 +400,24 @@ function tradeBlock(state) {
   return `<div class="bs-block"><div class="bs-block-title">Échanges <small>${plural(left, 'échange')} aujourd'hui</small></div><div class="bs-trades">${rows}</div></div>`;
 }
 
+// En-tête illustré de la fiche : le bâtiment en grand sur son coin de carte, son ouvrier devant lui, la bulle (une fois).
+function buildingHero(state, def, lv) {
+  const p = PLOTS[def.id];
+  const c = def.existing ? null : companionById(workerOf(state, def.id));
+  return `<div class="bs-hero" style="background-image:url(${ART('bastion_map')});background-position:${p.x}% ${Math.min(100, p.y - 10)}%">
+      <img class="px bs-hero-b" src="${buildingArt(state, def)}" alt="">${c ? `<span class="bs-hero-w" title="${escapeHtml(c.name)}">${animCanvas(`foe:${c.sprite}`, 64, 56, 1)}</span>` : ''}
+      <span class="bs-shead"><b>${escapeHtml(def.name)}</b>${def.existing ? '' : ` <span class="bs-lv">Niv. ${lv}</span>`}</span>${closeBtn()}${tipBubble(state, def)}</div>`;
+}
+// Sous une recherche : la Bibliothèque et son savant (la vitesse des recherches dépend de lui).
+function libraryScene(state) {
+  const def = buildingDef('library');
+  const c = companionById(workerOf(state, 'library'));
+  const f = productionFactor(state, 'library');
+  return `<div class="bs-hero lib" style="background-image:url(${ART('bastion_map')});background-position:${PLOTS.library.x}% ${PLOTS.library.y - 10}%">
+      <img class="px bs-hero-b" src="${buildingArt(state, def)}" alt="">${c ? `<span class="bs-hero-w" title="${escapeHtml(c.name)}">${animCanvas(`foe:${c.sprite}`, 64, 56, 1)}</span>` : ''}
+      <span class="bs-shead"><b>${escapeHtml(def.name)}</b> <span class="bs-lv">Niv. ${buildingLevel(state, 'library')}</span>${c ? ` <b class="good">+${Math.round((f - 1) * 100)} %</b>` : ''}</span></div>`;
+}
+
 function tipBubble(state, def) {
   if (tipSeen(state, def.id)) return '';
   return `<div class="bs-tip" data-tip="${def.id}" role="note"><span>${escapeHtml(def.role)}</span><button class="btn small" data-action="bastion-tip" data-value="${def.id}">Compris</button></div>`;
@@ -407,13 +427,15 @@ function buildingSheet(ui, state, now) {
   const def = buildingDef(ui.view.bastionSel);
   if (!def || !buildingAccess(state, def.id).available) return '';
   const lv = buildingLevel(state, def.id);
-  const head = `<div class="bs-shead"><img class="px bs-sart" src="${buildingArt(state, def)}" alt=""><span class="grow"><b>${escapeHtml(def.name)}</b>${def.existing ? '' : ` <span class="bs-lv">Niv. ${lv}</span>`}</span>${closeBtn()}</div>${tipBubble(state, def)}`;
+  const head = buildingHero(state, def, lv);
   if (def.existing) return `${head}<div class="bs-embed">${expeditionsPanel.render(ui, state)}</div>`;
   const own = lv < 1 ? '' : def.id === 'forge' ? forgeBlock(ui, state, now)
     : def.id === 'library' ? `<div class="bs-block"><button class="btn bs-to-tree" data-action="bastion-view" data-value="research"><img class="px" src="${researchArt('lessons')}" alt="">Recherches ${bastionOf(state).research.active.length}/${researchSlots(state)}</button></div>`
       : def.id === 'trade' ? tradeBlock(state) : stockBlock(state, def.id, now);
-  return `${head}${workerBlock(ui, state, def)}${upgradeBlock(state, def, now)}${own}`;
+  return `${head}${workerBlock(ui, state, def)}${upgradeBlock(state, def, now)}${own}${words()}`;
 }
+// v10.3.1 : lexique du Bastion (Bastion, Ouvrier, Chantier, Recherche) : un toucher ouvre sa carte d'explication.
+const words = () => `<p class="bs-words">${['Bastion', 'Ouvrier', 'Chantier', 'Recherche'].map((w) => `<button class="lex bs-word" data-lex="${w}">${w}</button>`).join('')}</p>`;
 
 // ---------------------------------------------------------------- le Camp d'avant (étape < 40)
 

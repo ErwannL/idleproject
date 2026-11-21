@@ -113,6 +113,7 @@ function frameIndex(e, fx, age) {
 export function drawVfxFrame(ctx, name, i, x, y, { size = 1, tint = null, flip = false, alpha = 1, rot = 0, tip = false } = {}) {
   const e = VFX[name];
   if (!e || !loaded || (e.at === 2 && !loaded2)) return;
+  i = ((Math.floor(i) % e.n) + e.n) % e.n || 0; // v10.4 : image toujours dans la planche (temps négatif ou NaN : image 0)
   const k = e.scale * size;
   // Projectile : ancré par sa pointe (bord droit), au milieu de sa hauteur.
   const ax = tip ? e.w - 1 : e.ax;

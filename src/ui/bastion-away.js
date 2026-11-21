@@ -15,7 +15,7 @@ export function bastionAwayHtml(state) {
   if (!r) return '';
   const tiles = [
     ...r.builds.map((x) => { const def = buildingDef(x.ref); return `<div class="ba-tile build"><img class="px" src="${buildingArt(state, def, x.level)}" alt=""><b>${escapeHtml(def.name)}</b><small>Niv. ${x.level}</small></div>`; }),
-    ...r.items.map((x) => `<div class="ba-tile item r-${escapeHtml(x.rarity ?? 'rare')}">${img(slotIconName(x.slot ?? 'weapon'))}<b class="r-${escapeHtml(x.rarity ?? 'rare')} rarity-text">${escapeHtml(x.name ?? '')}</b><small>Livré au coffre</small></div>`),
+    ...r.items.map((x) => `<div class="ba-tile item r-${escapeHtml(x.rarity ?? 'rare')}">${img(slotIconName(x.slot ?? 'weapon'))}<b class="r-${escapeHtml(x.rarity ?? 'rare')} rarity-text">${escapeHtml(x.name ?? '')}</b><small>Dans le coffre de butin</small></div>`),
     ...r.orders.map((x) => `<div class="ba-tile item">${img('icon_chest')}<b>${escapeHtml(x.text ?? '')}</b><small>Prête</small></div>`),
     ...r.research.map((x) => { const def = researchDef(x.ref); return `<div class="ba-tile research"><img class="px" src="${researchArt(x.ref)}" alt=""><b>${escapeHtml(def.name)}</b><small>Niv. ${x.level}</small></div>`; }),
     ...r.stock.map((s) => `<div class="ba-tile">${img(s.resource === 'shards' ? 'icon_shard' : 'icon_grimoire')}<b class="num">+${formatNumber(s.amount)}</b><small>${escapeHtml(buildingDef(s.id).name)}</small></div>`),

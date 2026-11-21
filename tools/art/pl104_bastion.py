@@ -42,7 +42,9 @@ ART = {
     'bastion_training_lv1': ((128, 128), BUILDING_VIEW + 'a small training yard: wooden fence, two straw training dummies, a weapon rack with swords and spears, a little tent', True, 24),
     'bastion_trade_lv1': ((128, 128), BUILDING_VIEW + 'a small merchant trading post: wooden stall with a striped red and white awning, crates, barrels and sacks, hanging scales', True, 25),
     'bastion_expeditions': ((128, 128), BUILDING_VIEW + 'an expedition camp gate: a wooden watchtower with a flag, a signpost, travel bags and a small tent next to a map table', True, 26),
-    'bastion_site': ((128, 128), BUILDING_VIEW + 'an empty construction site: wooden scaffolding, a pile of stones and planks, a wheelbarrow, rope and a small crane', True, 27),
+    'bastion_site': ((128, 128), 'high three-quarter top-down view of a small square plot of bare brown dirt with only building materials on it: stacked wooden planks, a pile of grey stone blocks, a wheelbarrow, a few wooden scaffolding poles tied with rope, nothing built yet, no house', True, 29),
+    # Fond de l'arbre des Recherches : un grand livre ouvert sur le bureau de la Bibliothèque.
+    'research_tree_bg': ((384, 216), 'top-down view of a huge ancient open tome lying on a dark wooden desk, two wide blank parchment pages with faint ornate golden borders, candles, a quill and an inkpot at the edges, warm candle light, wide scene', False, 33),
     # Tour de la scène (bouton) et écran « Pendant ton absence ».
     'scene_tower': ((64, 64), 'a small fantasy stone watchtower with a red pointed roof and a golden banner, wooden door, icon', True, 31),
     'bastion_away': ((320, 128), 'a cozy fortified village at sunrise seen from above, a blacksmith forge with smoke, a stone library tower, a crystal mine, villagers working, warm golden morning light, wide banner illustration', False, 32),
@@ -294,6 +296,8 @@ def build():
         transp = ART.get(name, (None, None, True))[2]
         if transp:
             im = clean(im)
+        if name == 'research_tree_bg':  # signature parasite en bas à droite : rognée
+            im = im.crop((0, 0, im.width, im.height - 14))
         if name == 'bastion_map' or name == 'bastion_away':
             k = 2
         elif name.startswith('bastion_'):

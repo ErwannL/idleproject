@@ -13,7 +13,7 @@ export const EXACT_1040_BASTION = {
   'Construire': 'Build',
   'Compris': 'Got it',
   'Prête': 'Ready',
-  'Livré au coffre': 'In the loot chest',
+  'Dans le coffre de butin': 'In the loot chest',
   'Livré dans le coffre de butin': 'Delivered to the loot chest',
   'Pendant ton absence': 'While you were away',
   'Tout récupérer': 'Collect all',

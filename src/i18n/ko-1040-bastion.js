@@ -13,7 +13,7 @@ export const EXACT_1040_BASTION = {
   'Construire': '건설',
   'Compris': '알겠어',
   'Prête': '준비 완료',
-  'Livré au coffre': '전리품 상자로 배달',
+  'Dans le coffre de butin': '전리품 상자 안',
   'Livré dans le coffre de butin': '전리품 상자로 배달됨',
   'Pendant ton absence': '자리를 비운 동안',
   'Tout récupérer': '모두 받기',

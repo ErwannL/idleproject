@@ -24,10 +24,10 @@ export function maybeBastionCard(ui, st) {
   const first = def.id === 'forge';
   const el = document.createElement('div');
   el.className = 'learn-card bastion-card';
-  el.innerHTML = `<img class="px" src="assets/ui/art103/b_${def.art}.png" alt=""><div class="howto-body"><small>Nouveau${first ? '' : ' au Bastion'}</small><b>${escapeHtml(first ? 'Le Bastion' : def.name)}</b>
+  el.innerHTML = `<img class="px" src="assets/ui/art104/bastion_${def.existing ? def.art : `${def.id}_lv1`}.png" alt=""><div class="howto-body"><small>Nouveau${first ? '' : ' au Bastion'}</small><b>${escapeHtml(first ? 'Le Bastion' : def.name)}</b>
     <p><b>À quoi ça sert :</b> ${escapeHtml(first ? 'Tes compagnons libres y travaillent. Premier bâtiment : la Forge du forgeron.' : def.role)}</p><p><b>Ce que ça rapporte :</b> ${escapeHtml(GAIN[def.id] ?? '')}</p>
     <div class="row-between"><button class="btn btn-gold" type="button" data-go>Essayer maintenant</button><button class="btn small" type="button" data-close>Plus tard</button></div></div>`;
   el.querySelector('[data-close]').addEventListener('click', () => el.remove());
-  el.querySelector('[data-go]').addEventListener('click', () => { el.remove(); ui.view.bastionSel = def.id; ui.view.bastionScroll = 'bs-detail'; ui.openTab('camp'); });
+  el.querySelector('[data-go]').addEventListener('click', () => { el.remove(); ui.view.bastionView = 'map'; ui.view.bastionSel = def.id; ui.openTab('camp'); });
   host.appendChild(el);
 }

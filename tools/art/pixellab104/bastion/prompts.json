@@ -96,13 +96,13 @@
   "detail": "highly detailed"
  },
  "bastion_site": {
-  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, an empty construction site: wooden scaffolding, a pile of stones and planks, a wheelbarrow, rope and a small crane, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "description": "high three-quarter top-down view of a small square plot of bare brown dirt with only building materials on it: stacked wooden planks, a pile of grey stone blocks, a wheelbarrow, a few wooden scaffolding poles tied with rope, nothing built yet, no house, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
   "image_size": {
    "width": 128,
    "height": 128
   },
   "no_background": true,
-  "seed": 27,
+  "seed": 29,
   "outline": "single color black outline",
   "shading": "medium shading",
   "detail": "highly detailed"
@@ -584,5 +584,17 @@
   "detail": "highly detailed",
   "init_image_strength": 260,
   "init_image": "bastion_training_lv1"
+ },
+ "research_tree_bg": {
+  "description": "top-down view of a huge ancient open tome lying on a dark wooden desk, two wide blank parchment pages with faint ornate golden borders, candles, a quill and an inkpot at the edges, warm candle light, wide scene, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels",
+  "image_size": {
+   "width": 384,
+   "height": 216
+  },
+  "no_background": false,
+  "seed": 33,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed"
  }
 }

@@ -200,3 +200,52 @@
 #app.page-narrow .bs-kick { left: 8px; transform: none; max-width: 340px; }
 /* En page, le Bastion prend toute la largeur (style.css borne les enfants du panneau à 1100 px). */
 #app#app.page-ui #panel-body > .bs-pg { max-width: none; margin-left: 0; margin-right: 0; }
+
+/* En-tête illustré de la fiche : le bâtiment en grand sur son coin de carte (décor agrandi), son ouvrier devant. */
+.bs-hero { position: relative; height: 150px; margin: -10px -12px 4px; border-radius: 10px 10px 0 0; overflow: hidden; background-size: 320% auto; background-repeat: no-repeat;
+  image-rendering: pixelated; border-bottom: 2px solid #c9963f; }
+.bs-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8, 12, 24, 0) 55%, rgba(8, 12, 24, .85)); pointer-events: none; }
+.bs-hero-b { position: absolute; left: 50%; bottom: -6px; width: 168px; height: 168px; transform: translateX(-50%); object-fit: contain; object-position: 50% 100%; image-rendering: pixelated;
+  filter: drop-shadow(0 4px 0 rgba(0, 0, 0, .35)); z-index: 0; }
+.bs-hero-b.node { width: 112px; height: 112px; bottom: 26px; }
+.bs-hero-w { position: absolute; left: calc(50% - 120px); bottom: 2px; width: 72px; aspect-ratio: 64 / 56; z-index: 1; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .6)); }
+.bs-hero-w canvas { width: 100%; height: 100%; image-rendering: pixelated; }
+.bs-hero .bs-shead { position: absolute; left: 10px; bottom: 6px; z-index: 2; display: block; text-shadow: 0 1px 2px #000, 0 0 4px #000; }
+.bs-hero .bs-shead small { color: #e6ecf8; }
+.bs-hero .bs-close { position: absolute; right: 6px; top: 6px; z-index: 3; }
+.bs-hero .bs-tip { position: absolute; left: 8px; right: 8px; top: 6px; margin: 0; z-index: 3; }
+.bs-hero .bs-tip::before { display: none; }
+.bs-hero.res { background-size: cover; background-position: center; }
+.bs-hero.lib { height: 130px; margin: 10px 0 0; border-radius: 10px; border: 2px solid #4b3d22; }
+.bs-block-title .bs-ba { display: inline-flex; float: right; gap: 2px; }
+.bs-block-title .bs-ba img { width: 44px; height: 44px; }
+.bs-block-title .bs-ba .bs-arrow { font-size: 16px; }
+.bs-block-title { min-height: 22px; }
+@media (max-height: 760px) {
+  .bs-hero { height: 118px; }
+  .bs-hero-b { width: 132px; height: 132px; }
+  .bs-hero-w { width: 58px; left: calc(50% - 98px); }
+  .bs-wpic.big { width: 48px; height: 48px; }
+  .bs-worker-now { padding: 3px 6px; }
+  .bs-side .bs-block { margin-top: 5px; padding-top: 5px; gap: 4px; }
+}
+/* L'arbre des Recherches dessiné dans un grand livre ouvert (PixelLab) ; il remplit la place. */
+.bs-tree { background-size: cover; background-position: center; image-rendering: pixelated; }
+.bs-tree .bs-branches { padding: 4% 4%; }
+#app.page-ui:not(.page-narrow) .bs-pg[data-view="research"] .bs-main { align-content: stretch; }
+#app.page-ui:not(.page-narrow) .bs-pg[data-view="research"] .bs-tree { height: 100%; box-sizing: border-box; grid-template-rows: auto 1fr; }
+#app.page-ui:not(.page-narrow) .bs-pg[data-view="research"] .bs-branches { align-content: space-evenly; }
+.bs-tree .bs-bhead { color: #5a3a12; text-shadow: none; font-weight: 800; }
+.bs-tree .bs-lock { color: #5a3a12; font-weight: 700; }
+.db-bastion img { width: 48px !important; height: 48px !important; object-fit: contain; } /* v10.4 : bâtiment PixelLab (carré) */
+
+/* Chantier : l'avant → après du bâtiment en grand. Arbre : icônes de branche dans la marge du livre, nœuds sur les pages. */
+.bs-ba.big { justify-content: center; }
+.bs-ba.big img { width: 96px; height: 96px; }
+@media (max-height: 760px) { .bs-ba.big img { width: 64px; height: 64px; } }
+.bs-tree .bs-branches { padding: 3% 15% 3% 5%; }
+.bs-tree .bs-bhead { width: 64px; }
+.bs-tree .bs-bhead img { width: 52px; height: 52px; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .6)); }
+.bs-tree.below .bs-bhead { width: 56px; }
+@media (min-height: 900px) { .bs-wgrid { grid-template-columns: repeat(auto-fill, minmax(74px, 1fr)); } .bs-wcard .bs-wpic { width: 58px; height: 58px; } }
+#app.page-narrow .bs-tree .bs-branches { padding: 4px 6px; } #app.page-narrow .bs-tree .bs-bhead { width: 100%; } #app.page-narrow .bs-tree .bs-bhead img { width: 30px; height: 30px; }
