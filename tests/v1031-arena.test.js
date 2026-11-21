@@ -3,7 +3,7 @@
 // Boss commun dans ArenaScene, ancien écran à portraits retiré.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
 globalThis.localStorage ??= { getItem: () => null, setItem: () => {}, removeItem: () => {} };
 const ctx2d = new Proxy({}, {
@@ -162,4 +162,14 @@ test('6.2 / 1.4 — seuil des 3 ★ : 30 s gardé (45 s ferait passer à 3 ★ d
     assert.ok(runs.filter(([, r]) => r.won && r.fallen === 0 && r.seconds <= 45).length >= 5, `${n} : le seuil de 45 s ne tiendrait pas 1.4`);
   }
   assert.match(src('src/ui/arena-map.js'), /3 ★ en moins de \$\{A\.star3\} s/);
+});
+
+test('6.2 — ancien écran à portraits retiré (openArenaStage, replayHtml, playBoard) ; Survie et Revanche intactes', () => {
+  assert.ok(!existsSync('src/ui/arena-stage.js'));
+  const all = ['src/ui/ui.js', 'src/ui/panels/arena.js', 'src/ui/panels/arena-cards-view.js', 'src/main.js'].map(src).join('\n');
+  for (const dead of ['openArenaStage', 'replayHtml', 'replayAt', 'playBoard', 'cardSkip', "'arena-floor'", "'arena-close'", 'floorsHtml', 'view.arenaRun']) assert.ok(!all.includes(dead), dead);
+  const ui = src('src/ui/ui.js');
+  assert.match(ui, /case 'arena-survival': this\.arenaRun\('survival'\)/, 'la Survie passe toujours par la carte');
+  assert.match(ui, /openArenaMap\(this, survivalAsCards\(r\)/);
+  assert.match(ui, /a\.revengeStart\(\)/, 'la Revanche garde son cadre');
 });
