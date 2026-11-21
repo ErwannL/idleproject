@@ -103,7 +103,8 @@ test('1 — noms de cartes : deux lignes au lieu d\'une coupure (Paladin d\'azur
 test('2 — illustrations PixelLab de la partie 7 : fichiers présents, script et prompts rangés', () => {
   assert.ok(existsSync('tools/art/pl104_screens.py'));
   assert.ok(existsSync('tools/art/pixellab104/screens/prompts.json'));
-  const files = readdirSync('assets/ui/art104').filter((f) => /\.png$/.test(f));
+  // Le dossier art104 est partagé (compétences, coffre, donjons, Bastion…) : on ne contrôle ici que les images de la partie 7.
+  const files = readdirSync('assets/ui/art104').filter((f) => /^(upgrades|missions|shop|summon|stats)_.*\.png$/.test(f));
   assert.ok(files.length >= 5, `${files.length} images`);
   for (const f of files) assert.match(f, /^[A-Za-z0-9_]+\.png$/, f);
   const prompts = JSON.parse(text('tools/art/pixellab104/screens/prompts.json'));
