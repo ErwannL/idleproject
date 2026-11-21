@@ -1222,7 +1222,8 @@ export class UI {
       case 'sweep-dungeon': this.closeModal(); a.sweepDungeon(value, v.dungeonSlot ?? this.state.ui.dungeonSlot ?? 'any', v.dungeonPath ?? this.state.ui.dungeonPath ?? 'gold', el.dataset.diff ?? v.dungeonDiff ?? 'easy'); break; // v9.8 (H2)
       case 'enter-dungeon': this.closeModal(); v.dungeonSheet = false; a.enterDungeon(value, v.dungeonSlot ?? this.state.ui.dungeonSlot ?? 'any', v.dungeonPath ?? this.state.ui.dungeonPath ?? 'gold', el.dataset.diff ?? v.dungeonDiff ?? 'easy', v.dungeonRoute ?? 'normal', Number(el.dataset.nm) || 0); break;
       case 'dungeon-route': local(() => { v.dungeonRoute = value; }); break; // v9.6.2
-      case 'dungeon-sel': local(() => { v.dungeonSel = value; v.dungeonDiff = null; v.dungeonSheet = true; v.dungeonNm = 0; }); break;
+      case 'dungeon-sel': local(() => { v.dungeonSel = value; v.dungeonDiff = null; v.dungeonSheet = true; v.dungeonNm = 0; v.dungeonHelp = false; }); break;
+      case 'dungeon-help': local(() => { v.dungeonHelp = !v.dungeonHelp; }); break; // v10.4 : « ? » de la page du donjon
       case 'dungeon-diff': local(() => { v.dungeonDiff = value; }); break;
       case 'abandon-dungeon': a.abandonDungeon(); break;
       case 'claim-contract': a.claimContract(Number(value)); break;
@@ -1389,6 +1390,7 @@ export class UI {
     if (action === 'upgrade-sort') { this.view.upgradeSort = el.value || null; this.invalidate(); }
     if (action === 'zone-select') { this.view.zoneSel = Number(el.value); this.invalidate(); }
     if (action === 'cycle-select') { this.view.cycleSel = Number(el.value); this.view.zoneSel = null; this.invalidate(); }
+    if (action === 'dungeon-team-select') { if (el.value !== '') this.actions.applyLoadout(Number(el.value)); this.invalidate(); } // v10.4 : équipes enregistrées en menu déroulant
     if (action === 'dungeon-slot-select') { this.view.dungeonSlot = el.value; this.actions.rememberDungeonChoice('slot', el.value); this.invalidate(); }
     if (action === 'skill-details') { this.view.open ??= new Set(); if (el.checked) this.view.open.add('skill-details'); else this.view.open.delete('skill-details'); this.invalidate(); }
     if (action === 'device-pref') {

@@ -439,3 +439,7 @@ PATTERNS.unshift(...patterns1031Arena(lookup));
 import { EXACT_1031_CHEST, patterns1031Chest } from './ko-1031-chest.js';
 for (const [k, v] of Object.entries(EXACT_1031_CHEST)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1031Chest());
+// v10.4 (partie 4) : liste en bannières et page du donjon (./ko-1040-dungeons.js).
+import { EXACT_1040_DUNGEONS, patterns1040Dungeons } from './ko-1040-dungeons.js';
+for (const [k, v] of Object.entries(EXACT_1040_DUNGEONS)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1040Dungeons(lookup));

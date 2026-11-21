@@ -53,12 +53,6 @@
   "transparent": true,
   "seed": 5
  },
- "dungeon_rw_gear": {
-  "description": "a glowing purple epic sword crossed with a shield, equipment icon",
-  "size": 64,
-  "transparent": true,
-  "seed": 5
- },
  "dungeon_rw_firstclear": {
   "description": "a big ornate golden treasure chest overflowing with gems, a glowing gold star above, reward icon",
   "size": 64,

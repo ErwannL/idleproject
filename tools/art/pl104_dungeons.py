@@ -25,7 +25,6 @@ ART = {
     'dungeon_diff_lock': (64, 'a golden padlock with iron chains, icon', True, 5),
     'dungeon_rw_firstclear': (64, 'a big ornate golden treasure chest overflowing with gems, a glowing gold star above, reward icon', True, 5),
     'dungeon_rw_set': (64, 'a glowing golden set armor chest plate with a gem emblem, rare equipment piece, icon', True, 5),
-    'dungeon_rw_gear': (64, 'a glowing purple epic sword crossed with a shield, equipment icon', True, 5),
 }
 
 

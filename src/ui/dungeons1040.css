@@ -1,0 +1,126 @@
+/* v10.4 (partie 4) : donjons — liste en bannières (une par ligne) et page du donjon illustrée (peu de texte, beaucoup d'images). */
+
+/* ---------- Liste : une bannière par ligne ---------- */
+.dg-grid { grid-template-columns: minmax(0, 1fr); max-width: 640px; margin: 0 auto; gap: 10px; justify-content: stretch; }
+.dg-card.dg-banner {
+  aspect-ratio: auto; height: 148px; padding: 0; display: block; box-shadow: none; border: 2px solid #3b4668;
+  background: #0a0f1e;
+}
+.dg-decor { position: absolute; inset: 0; background-size: cover; background-position: center; image-rendering: pixelated; z-index: 0; }
+.dg-decor::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(6, 9, 18, .95) 0%, rgba(6, 9, 18, .8) 36%, rgba(6, 9, 18, .12) 70%, rgba(6, 9, 18, 0) 100%); }
+.dg-banner .dg-boss { position: absolute; right: 4px; bottom: -6px; height: 156px; width: auto; max-width: 52%; object-fit: contain; object-position: right bottom; image-rendering: pixelated; pointer-events: none; z-index: 0; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .7)); }
+.dg-banner .dg-info { position: relative; z-index: 1; height: 100%; width: 64%; padding: 8px 10px; display: flex; flex-direction: column; justify-content: space-between; gap: 2px; pointer-events: none; box-sizing: border-box; }
+.dg-banner .dg-name { font-size: 17px; color: #fff; text-shadow: 0 2px 3px #000; line-height: 1.1; }
+.dg-banner .dg-sub { font-size: 12px; color: #cfd6ea; text-shadow: 0 1px 2px #000; }
+.dg-elem { display: inline-block; padding: 0 6px; border-radius: 8px; border: 1px solid var(--ec, #888); color: var(--ec, #ddd); background: rgba(0, 0, 0, .45); font-size: 11px; font-weight: 700; }
+.dg-stars { display: inline-flex; align-items: center; gap: 1px; }
+.dg-stars small { margin-left: 6px; color: #ff9ab0; font-size: 11px; }
+.dg-star { width: 18px; height: 18px; image-rendering: pixelated; }
+.dg-star.off { filter: grayscale(1) brightness(.35); }
+.dg-banner .dg-gain { font-size: 12px; } .dg-banner .dg-gain img { width: 24px; height: 24px; }
+.dg-banner .dg-actions > * { pointer-events: auto; }
+.dg-banner .dg-actions .btn { min-height: 30px; }
+@media (max-width: 600px) {
+  .dg-card.dg-banner { height: auto; min-height: 124px; aspect-ratio: 3.1 / 1; }
+  .dg-banner .dg-boss { height: 128%; right: 0; }
+  .dg-banner .dg-info { width: 66%; padding: 6px 8px; }
+  .dg-banner .dg-name { font-size: 15px; }
+}
+
+/* ---------- Page du donjon : PC = plein écran, téléphone = feuille du bas ---------- */
+.dg-sheet.pg { display: flex; flex-direction: column; overflow: hidden; padding: 0; width: min(100vw, 1100px); max-height: 94dvh; height: 94dvh; border-radius: 14px 14px 0 0; }
+@media (min-width: 900px) {
+  .dg-sheet.pg { left: 0; top: 0; right: 0; bottom: 0; transform: none; width: auto; max-height: none; height: auto; border-radius: 0; border: 0; }
+}
+.dgp-hero {
+  position: relative; flex: none; overflow: hidden; min-height: 190px; height: clamp(190px, 31vh, 320px);
+  background: #0a0f1e; border-bottom: 2px solid #4a5578; image-rendering: pixelated;
+}
+.dgp-hero .dg-boss-portrait { position: absolute; right: 4%; bottom: 0; height: 100%; z-index: 1; width: auto; max-width: 56%; object-fit: contain; object-position: right bottom; image-rendering: pixelated; background: none; border-radius: 0; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .7)); pointer-events: none; }
+.dgp-title { z-index: 2; position: absolute; left: 14px; top: 12px; display: flex; flex-direction: column; gap: 3px; max-width: 58%; text-shadow: 0 2px 3px #000; }
+.dgp-name { font-size: clamp(18px, 3vw, 26px); color: #fff; line-height: 1.1; }
+.dgp-boss { font-size: 13px; color: #ffb4b4; }
+.dgp-title .dg-stars .dg-star { width: 22px; height: 22px; }
+.dgp-hero .dg-mech { position: absolute; left: 12px; bottom: 10px; z-index: 2; display: flex; align-items: center; gap: 8px; max-width: min(520px, 62%); padding: 6px 10px 6px 6px; background: rgba(10, 14, 28, .86); border: 2px solid #4a5578; border-radius: 10px; }
+.dg-mech-img { width: 64px; height: 64px; flex: none; image-rendering: pixelated; display: block; }
+.dg-mech-text { font-size: 13px; line-height: 1.25; color: #f1f4fb; }
+.dgp-tools { position: absolute; right: 8px; top: 8px; display: flex; gap: 6px; z-index: 3; }
+.dgp-tools .btn { min-width: 36px; min-height: 36px; font-size: 18px; line-height: 1; padding: 0 8px; }
+.dg-sheet.pg .dg-close { position: static; float: none; }
+.dgp-body { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 10px 12px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px 14px; align-content: start; }
+@media (min-width: 900px) {
+  .dgp-body { grid-template-columns: minmax(0, 1fr) minmax(420px, 38%); padding: 12px 16px; }
+}
+.dgp-body > .pg-main, .dgp-body > .pg-side { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.dgp-sec { background: #101629; border: 1px solid #2c3550; border-radius: 10px; padding: 8px 10px; }
+.dgp-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; min-height: 28px; }
+.dgp-h h3 { margin: 0; font-size: 14px; color: #ffd98a; letter-spacing: .3px; }
+.dgp-nm { display: inline-flex; align-items: center; gap: 4px; }
+.dgp-nm .chip-btn { min-width: 30px; }
+
+/* Difficulté : 3 tuiles illustrées */
+.dgp-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.dgp-tile { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0 0 6px; background: #0a0f1e; border: 2px solid #3b4668; border-radius: 10px; overflow: hidden; color: #fff; cursor: pointer; font: inherit; }
+.dgp-tile-art { width: 100%; height: clamp(70px, 24vh, 240px); object-fit: cover; image-rendering: pixelated; display: block; background: #000; }
+.dgp-tile b { font-size: 14px; } .dgp-x { color: #ffd34a; font-weight: 700; font-size: 14px; }
+.dgp-tile.active { border-color: #ff5a5a; box-shadow: 0 0 10px -1px #ff5a5a; }
+.dgp-tile.done { border-color: #5fbf6a; } .dgp-tile.done.active { border-color: #ff5a5a; }
+.dgp-tile.locked { cursor: not-allowed; }
+.dgp-tile.locked .dgp-tile-art { filter: grayscale(.9) brightness(.45); }
+.dgp-tile.locked small { color: #c8cfe4; font-size: 12px; }
+.dgp-lock { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); width: 56px; height: 56px; image-rendering: pixelated; pointer-events: none; }
+
+/* Tu gagnes : une rangée d'icônes et de quantités */
+.dgp-gains { display: flex; flex-wrap: wrap; gap: 8px; }
+.dgp-gain { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 64px; flex: 1 1 64px; max-width: 110px; padding: 6px 4px; background: #0a0f1e; border: 1px solid #2c3550; border-radius: 8px; }
+.dgp-gain img { width: clamp(40px, 6.5vh, 64px); height: clamp(40px, 6.5vh, 64px); object-fit: contain; image-rendering: pixelated; }
+.dgp-gain b { font-size: 14px; color: #fff; }
+.dgp-gain.r-epic { border-color: #a46bff; } .dgp-gain.r-legendary { border-color: #ffcf45; box-shadow: 0 0 8px -2px #ffcf45; }
+.dgp-gain.got { opacity: .45; filter: grayscale(.8); }
+
+/* Ton équipe */
+.dgp-team-select, .dgp-team select { width: 100%; min-height: 36px; margin-bottom: 8px; font-size: 14px; }
+.dgp-faces { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.dgp-face { width: clamp(52px, 8vh, 80px); height: clamp(52px, 8vh, 80px); display: grid; place-items: center; background: #0a0f1e; border: 2px solid #3b4668; border-radius: 10px; padding: 0; overflow: hidden; }
+.dgp-face img { max-width: 100%; max-height: 100%; width: auto; height: auto; image-rendering: pixelated; }
+.dgp-face.ally { border-color: #ffd34a; box-shadow: 0 0 0 2px rgba(255, 211, 74, .35), 0 0 12px -1px #ffd34a; }
+.dgp-face.ally.off { border-style: dashed; box-shadow: none; opacity: .6; cursor: pointer; }
+span.dgp-face.ally.off { cursor: default; filter: grayscale(.8); }
+.dgp-ally { margin-top: 6px; font-weight: 700; color: #ffd98a; font-size: 14px; }
+.dgp-ally.off { color: #9aa4c0; }
+
+/* Les salles : 5 portes dessinées */
+.dgp-doors { display: flex; gap: 8px; justify-content: space-between; }
+.dgp-door { margin: 0; flex: 1 1 0; min-width: 0; max-width: 120px; }
+.dgp-door img { width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: contain; image-rendering: pixelated; display: block; }
+
+/* « Entrer » : toujours visible, collé en bas */
+.dg-sheet.pg .dg-enter { flex: none; position: static; margin: 0; padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px)); background: #141a2c; border-top: 2px solid #4a5578; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.dg-sheet.pg .dg-enter .enter-btn { flex: 1 1 220px; width: auto; min-height: 48px; font-size: 17px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.dg-sheet.pg .dg-enter .enter-btn img { width: 22px; height: 22px; }
+.dg-sheet.pg .dg-enter .dg-sweep { flex: 0 0 auto; min-height: 48px; }
+
+/* « ? » : phrases d'aide, réglages de butin, tentatives */
+.dgp-help { position: absolute; z-index: 4; right: 10px; top: 52px; width: min(440px, calc(100% - 20px)); max-height: calc(100% - 140px); overflow: auto; font-size: 13px; box-shadow: 0 8px 24px rgba(0, 0, 0, .6); }
+.dgp-help p { margin: 0 0 6px; }
+.dg-help.active { border-color: #ffd34a; }
+
+/* Petits écrans en hauteur (900 × 600) : tout tient sans défiler */
+@media (min-width: 900px) and (max-height: 760px) {
+  .dgp-hero { min-height: 150px; height: 24vh; }
+  .dgp-tile-art { height: clamp(64px, 12vh, 100px); }
+  .dgp-gain img { width: 40px; height: 40px; }
+  .dgp-face { width: 52px; height: 52px; }
+  .dgp-doors .dgp-door { max-width: 72px; }
+}
+@media (max-width: 899px) {
+  .dgp-hero { min-height: 140px; height: 19vh; }
+  .dgp-body { padding: 8px; gap: 8px; } .dgp-body > .pg-main, .dgp-body > .pg-side { gap: 8px; } .dgp-sec { padding: 6px 8px; }
+  .dgp-tile-art { height: clamp(48px, 8vh, 80px); } .dgp-tile b, .dgp-x { font-size: 13px; }
+  .dgp-gains { flex-wrap: nowrap; gap: 4px; } .dgp-gain { min-width: 0; flex: 1 1 0; padding: 4px 2px; } .dgp-gain img { width: 34px; height: 34px; } .dgp-gain b { font-size: 11px; }
+  .dgp-face { width: 44px; height: 44px; } .dgp-team-select { margin-bottom: 4px; min-height: 30px; } .dgp-faces { gap: 6px; } .dgp-ally { margin-top: 2px; font-size: 13px; }
+  .dgp-doors { gap: 4px; } .dgp-doors .dgp-door { max-width: 64px; }
+  .dg-mech-img { width: 48px; height: 48px; } .dg-mech-text { font-size: 12px; }
+  .dgp-h { margin-bottom: 4px; min-height: 22px; }
+}
+@media (max-width: 899px) and (max-height: 700px) { .dgp-hero { min-height: 150px; height: 24vh; } }
