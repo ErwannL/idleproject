@@ -326,3 +326,31 @@ test('traductions : lexique du Bastion et ligne « maintenant » de la Forge exi
   }
   assert.equal(en('Coup critique 12,4 % → 13,6 %'), 'Critical hit 12.4 % → 13.6 %');
 });
+
+// ---------------------------------------------------------------- D : le parcours du débutant
+
+test('débutant : « Équipe un objet » est toujours faisable en moins d\'une minute (le premier objet garanti est utile)', async () => {
+  const { createCombat, step } = await import('../src/core/combat.js');
+  const { equipBest, isUpgrade } = await import('../src/core/inventory.js');
+  const { advanceUnlocks } = await import('../src/core/unlock-quests.js');
+  // Les 6 premières graines à échouer avant la correction (premier objet recyclé aussitôt, ou une arme moins bonne)
+  // et quelques autres : la mini-quête « Équipement » finit toujours en moins de 60 s de jeu.
+  for (const seed of [24, 45, 54, 56, 57, 70, 1, 2, 3, 4, 5, 6]) {
+    const state = createNewState(1e12, seed);
+    state.unlocks = { done: [], base: { ...state.records } };
+    const world = createCombat(state);
+    const rng = new Rng(seed * 104729);
+    let done = null;
+    for (let i = 0; i < 20 * 90 && done === null; i++) {
+      step(state, world, 0.05, rng);
+      world.events.length = 0;
+      if (i % 100 === 0) {
+        // Le joueur touche ce que le Sceau montre : équiper le nouvel objet.
+        if (state.inventory.some((it) => isUpgrade(state, it))) equipBest(state);
+        advanceUnlocks(state);
+        if (state.unlocks.done.includes('equipment')) done = Math.round(i / 20);
+      }
+    }
+    assert.ok(done !== null && done <= 60, `graine ${seed} : mini-quête Équipement finie en ${done} s (kills ${state.records.kills}, objets trouvés ${state.records.itemsFound}, sac ${state.inventory.length})`);
+  }
+});
