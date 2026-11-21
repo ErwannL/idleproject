@@ -627,3 +627,20 @@ button.eq-block:hover { background: #5c1a1e; } div.eq-block { cursor: default; }
 #app:not(.page-ui) .fg-top > .fg-top-art { display: none; }
 /* Téléphone : les 4 onglets du personnage tiennent sur la largeur. */
 @container (max-width: 470px) { .eq-top .eq-tab { padding: 5px 6px 4px; font-size: 12px; } .eq-top .eq-elem span { display: none; } .eq-top .eq-elem { padding: 2px 8px; } }
+
+/* v10.4 (retour du joueur : « pauvre en illustration ») : chaque atelier a sa scène illustrée en tête (établi, enclume,
+   creuset, fourneau), le numéro et le titre en haut à gauche, le schéma en icônes posé en bas à droite. */
+.fg-scene { position: relative; min-height: 96px; border-radius: 9px; overflow: hidden; border: 1px solid rgba(255, 255, 255, .12); background: #0b1324; }
+.fg-scene > .fg-step-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 60%; image-rendering: pixelated; }
+.fg-scene > .fg-step-head { position: absolute; left: 6px; top: 6px; z-index: 1; padding: 3px 10px 3px 4px; border-radius: 999px; background: rgba(8, 12, 24, .82); }
+.fg-scene > .fg-diagram { position: absolute; right: 6px; bottom: 6px; z-index: 1; min-height: 0; padding: 4px 8px; border-radius: 10px; background: rgba(8, 12, 24, .8); }
+.fg-step.on .fg-scene { border-color: var(--gold); }
+#app.page-ui:not(.page-narrow) .fg-scene { flex: 1 1 auto; min-height: 104px; }
+@media (min-height: 821px) { #app.page-ui:not(.page-narrow) .fg-scene { min-height: 170px; } }
+/* Téléphone : la scène prend la largeur de la carte, le schéma en petit dessus. */
+@container (max-width: 470px) {
+  .fg-step { grid-template-areas: "scene scene" "rule rule" "now now" "btn btn"; }
+  .fg-scene { grid-area: scene; min-height: 110px; }
+}
+/* Le bandeau de la Forge, plus présent : la salle des forges en panorama sur toute la largeur du bandeau. */
+#app.page-ui:not(.page-narrow) .fg-top > .fg-top-art { object-position: center 55%; opacity: 1; border-color: rgba(255, 210, 120, .35); }
