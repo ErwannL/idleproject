@@ -261,7 +261,7 @@ async function learnRun(MIN) {
   const { ctx, page } = await open(1116, 993, { fresh: true, query: '?quests&learn' });
   // Notion ouverte par chaque type de consigne (plus large que la table du jeu : Équiper, Améliorer et l'équipe aussi).
   const NOTION = { upgrade: 'upgrades', equip: 'inventory', skills: 'skills', lootbag: 'lootbag', summon: 'summon', place: 'summon', team: 'summon', level: 'summon', recycle: 'forge', fusion: 'forge', keys: 'dungeons', 'c-arena': 'tower', 'c-tower': 'defis', 'c-challenge': 'defis' };
-  const JARGON = /Contrat|Trouvaille|Haut fait|Chronique|Sac de butin|sac de butin|Mutation|Résonance|Synergie|Palier|Ascension/;
+  const JARGON = /Contrat|Trouvaille|Haut fait|Chronique|Sac de butin|sac de butin|Mutation|Résonance|Synergie|Palier|Ascension|Exploit|Collections :|palier/; // v10.4 (partie 7) : + Exploit, Collections, palier
   const t0 = Date.now();
   let lastSid = null, upShows = 0, multi = 0, held = 0, noWhy = 0, last = null;
   const early = new Map(), texts = new Map(), jargon = new Set();

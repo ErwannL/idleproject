@@ -91,6 +91,8 @@ export default {
   id: 'shop',
   title: 'Boutique',
   icon: 'icon_gem',
+  // v10.4 (partie 7) : l'illustration de tête change avec la catégorie ouverte (assets/ui/art104/shop_cat_*.png).
+  banner: (ui) => `assets/ui/art104/shop_cat_${[...SHOP_CATEGORIES.map((c) => c.id), 'merchants'].includes(ui.view.shopCat) ? ui.view.shopCat : 'crystals'}.png`,
   extra: (ui, state) => `${gem()}<b class="num">${formatNumber(state.gems)}</b> ${walletIcon('ticketLimited')}<b class="num">${walletAmount(state, 'ticketLimited')}</b> ${walletIcon('ticketPet')}<b class="num">${walletAmount(state, 'ticketPet')}</b>`,
   render(ui, state) {
     // v9.11 (9) : Marchands dans leur propre onglet (plus répétés sous chaque liste).

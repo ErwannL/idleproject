@@ -78,7 +78,8 @@ export default {
     // v10.2 (P3) : portrait du héros qui évolue tous les 25 niveaux de Dégâts (aura de plus en plus forte).
     const tier = Math.min(6, Math.floor((state.upgrades.damage ?? 0) / 25));
     const nextAt = (tier + 1) * 25;
-    const heroCard = `<div class="upg-hero tier-${tier}"><div class="upg-hero-pic">${animCanvas('hero', 64, 58, 3)}</div><div><b>Puissance du héros : palier ${tier + 1}</b>
+    // v10.4 (partie 7) : un décor PixelLab derrière le héros, qui change tous les 2 paliers (upgrades_hero_tier1 à 4).
+    const heroCard = `<div class="upg-hero tier-${tier}" style="background-image:url(assets/ui/art104/upgrades_hero_tier${Math.min(4, Math.floor(tier / 2) + 1)}.png)"><div class="upg-hero-pic">${animCanvas('hero', 64, 58, 3)}</div><div><b>Puissance du héros : palier ${tier + 1}</b>
       <div class="muted small">${tier < 6 ? `Dégâts niveau ${nextAt} : l'aura grandit (encore ${Math.max(0, nextAt - (state.upgrades.damage ?? 0))} niveaux).` : 'Aura maximale.'}</div></div></div>`;
     const profits = upgradeProfits(state);
     let keys = (beginner ? BASE_UPGRADES : openUpgrades(state, BALANCE)).filter((k) => !cat || cat.keys.includes(k));

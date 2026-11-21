@@ -1,0 +1,37 @@
+/* v10.4 (partie 7, « Petits défauts relevés »). */
+
+/* 1 — Cartes de l'Arène : le nom d'une carte passe sur deux lignes au lieu d'être coupé par « … » (« Paladin d'azur »). */
+.pcard .pc-top { align-items: flex-start; }
+.pcard .pc-top b { flex: 1 1 auto; min-width: 0; white-space: normal; overflow: hidden; text-overflow: clip; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;
+  line-height: 1.1; overflow-wrap: break-word; hyphens: auto; }
+.pcard.small .pc-top b { font-size: 9.5px; }
+.pcard .pc-top .pc-el { flex: none; }
+
+/* 2 — illustrations des écrans sous 20 % : décor derrière le héros (Améliorations), bandeaux d'Invocation,
+   illustration de tête plus haute, objectifs de session illustrés. Images : assets/ui/art104/ (PixelLab). */
+.upg-hero { background-size: cover; background-position: center; image-rendering: pixelated; position: relative; }
+.upg-hero::before { content: ''; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(90deg, rgba(10, 14, 30, .05) 25%, rgba(10, 14, 30, .78) 62%); pointer-events: none; }
+.upg-hero > * { position: relative; }
+.upg-hero > div:last-child { text-shadow: 0 1px 3px #000; }
+
+.summon-row-head { min-height: 58px; padding: 8px 10px; margin: -4px -4px 8px; border-radius: 8px; background-size: cover; background-position: center; image-rendering: pixelated; text-shadow: 0 1px 3px #000; }
+.summon-row-head > b { font-size: 15px; }
+
+#panel-body .m-session .m-row { display: grid !important; grid-template-columns: 52px 1fr; grid-template-rows: auto auto; column-gap: 10px; row-gap: 4px; align-items: center; }
+#panel-body .m-session .sg-icon { grid-row: 1 / span 2; grid-column: 1; width: 52px; height: 52px; }
+#panel-body .m-session .sg-icon img { width: 44px; height: 44px; image-rendering: pixelated; }
+#panel-body .m-session .m-row > :not(.sg-icon) { grid-column: 2; }
+#panel-body:has(> .seg [data-action="mission-tab"]) .m-row:not(.m-session .m-row) { grid-template-columns: 48px 1fr 88px; }
+#panel-body:has(> .seg [data-action="mission-tab"]) .m-row .m-icon { width: 48px; height: 48px; }
+#panel-body:has(> .seg [data-action="mission-tab"]) .m-row .m-icon img { width: 40px; height: 40px; image-rendering: pixelated; }
+
+/* Illustration de tête plus haute sur écran court (84 px devenaient 116 px) pour ces cinq onglets. */
+@media (max-height: 820px) {
+  #panel-body:has(> .upg-hero) .art-banner-wrap .art-banner, #panel-body:has(> .shop-cats) .art-banner-wrap .art-banner,
+  #panel-body:has(> .summon-row) .art-banner-wrap .art-banner, #panel-body:has(> .seg [data-action="mission-tab"]) .art-banner-wrap .art-banner,
+  #panel-body:has(> .stat-tiles) .art-banner-wrap .art-banner { height: 116px !important; max-height: 116px !important; }
+}
+@media (min-height: 900px) and (min-width: 700px) {
+  #panel-body:has(> .seg [data-action="mission-tab"]) .art-banner-wrap .art-banner { height: 176px !important; max-height: 176px !important; }
+}
+.summon-row-head { min-height: 72px; }

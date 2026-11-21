@@ -443,3 +443,7 @@ PATTERNS.unshift(...patterns1031Chest());
 import { EXACT_1040_SKILLS, patterns1040Skills } from './ko-1040-skills.js';
 for (const [k, v] of Object.entries(EXACT_1040_SKILLS)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1040Skills());
+// v10.4 (partie 7) : libellés du Sceau en mots du joueur (./ko-1040-defauts.js).
+import { EXACT_1040_DEFAUTS, patterns1040Defauts } from './ko-1040-defauts.js';
+for (const [k, v] of Object.entries(EXACT_1040_DEFAUTS)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1040Defauts(lookup));

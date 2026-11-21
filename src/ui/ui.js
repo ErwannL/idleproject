@@ -2758,8 +2758,9 @@ export class UI {
     // v10.1 (P2 §2.1) : une bannière illustrée en tête de chaque onglet, avec la phrase « à quoi sert l'écran ».
     const BANNER101 = { upgrades: 'banner_upgrades', skills: 'banner_skills', companions: 'banner_companions', dungeons: 'banner_dungeons', contracts: 'banner_missions',
       daybook: 'banner_daybook', boss: 'banner_boss', ranking: 'banner_ranking', stats: 'banner_stats', shop: 'banner_shop', guild: 'banner_guild', looks: 'banner_looks', forge: 'banner_forge', encyclopedia: 'banner_collections', inventory: 'banner_forge' };
-    const src = this.tab === 'arena' ? 'assets/ui/art98/arena.png'
-      : BANNER[this.tab] ? `assets/ui/art98/${BANNER[this.tab]}.png` : BANNER101[this.tab] ? `assets/ui/art101/${BANNER101[this.tab]}.png` : null;
+    const src = panel.banner?.(this, state) // v10.4 (partie 7) : un onglet peut changer son illustration de tête selon sa partie ouverte
+      ?? (this.tab === 'arena' ? 'assets/ui/art98/arena.png'
+        : BANNER[this.tab] ? `assets/ui/art98/${BANNER[this.tab]}.png` : BANNER101[this.tab] ? `assets/ui/art101/${BANNER101[this.tab]}.png` : null);
     const lead = TAB_LEAD[this.tab] ? `<p class="tab-lead">${escapeHtml(TAB_LEAD[this.tab])}</p>` : '';
     const banner = src ? `<div class="art-banner-wrap"><img class="px art-banner" src="${src}" loading="lazy" alt="" aria-hidden="true">${lead}</div>` : lead;
     const html = lexify(help + banner + this.introCard(this.tab, state) + panel.render(this, state)); // v9.7.1 (lot 5) : lexique
