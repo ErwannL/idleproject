@@ -15,6 +15,8 @@ import { ELEMENTS, unitElement } from '../core/elements.js';
 import { spriteCanvas } from './pixel.js';
 import { SPRITES } from './sprites.js';
 import { BOSS_MINIONS, BOSS_TRAITS, TRAITS } from '../core/boss-traits.js';
+import { WorldBossScene } from './world-boss-scene.js';
+import { COMPANION_ROLES } from '../data/synergies.js';
 
 const W = BALANCE.world;
 export const ARENA_STEP = 1 / 60;
@@ -174,7 +176,8 @@ export class ArenaScene {
   // v10.3.1 (6.2) : le moteur de rendu apprend les deux rangs, sans changer scene.js. Trois méthodes de l'instance sont
   // remplacées : teamLayout (deux files de cases, l'arrière en retrait), drawCompanions (arrière puis avant, l'arrière
   // plus haut et ×0,9 ; un compagnon vaincu couché et grisé à sa case) et drawEnemies (même chose côté monstres).
-  installRows() {
+  installRows() { this.installAllyRows(); this.installFoeRows(); }
+  installAllyRows() {
     const r = this.r;
     const baseLayout = SceneRenderer.prototype.teamLayout, baseAlly = SceneRenderer.prototype.drawAlly, basePet = SceneRenderer.prototype.drawPet;
     r.teamLayout = (state) => {
@@ -210,6 +213,9 @@ export class ArenaScene {
         }
       }
     };
+  }
+  installFoeRows() {
+    const r = this.r;
     const draw = r.drawEnemies.bind(r);
     r.drawEnemies = (ctx, world, dt) => {
       this.viewT = ctx.getTransform?.() ?? null;
@@ -566,3 +572,69 @@ export class ArenaScene {
     this.r.render(this.state, world, dt);
   }
 }
+
+// v10.3.1 (6.2) : le Boss commun passe aussi par ArenaScene. C'est un combat en temps réel (core/world-boss.js ›
+// WorldBossFight : ses règles, son chrono, ses phases, son score) : le moteur et le Colosse dessiné restent ceux de
+// render/world-boss-scene.js, mais l'équipe est posée et dessinée comme dans l'Arène — deux rangs en profondeur
+// (gardiens et combattants devant ; mages, archers, soutiens, assassins et familiers derrière, plus haut, ×0,9), les
+// mêmes gestes et effets de sorts (événements du vrai moteur), le boss en grand avec sa barre en haut (ui/arena-boss.js).
+const FRONT_ROLES = new Set(['guardian', 'berserker']);
+export function bossBackIds(team) {
+  const back = team.filter((c) => c.kind !== 'ally' || !FRONT_ROLES.has(COMPANION_ROLES[c.id])).map((c) => c.id);
+  // Personne devant (que des mages…) : le premier compagnon tient l'avant, comme le placement auto de l'Arène.
+  const allies = team.filter((c) => c.kind === 'ally');
+  if (allies.length && allies.every((c) => back.includes(c.id))) back.splice(back.indexOf(allies[0].id), 1);
+  return new Set(back);
+}
+export class ArenaBossScene {
+  constructor(canvas, fight, { calm = false } = {}) {
+    this.kind = 'boss';
+    this.canvas = canvas;
+    this.fight = fight;
+    this.wb = new WorldBossScene(canvas, fight, { calm });
+    this.r = this.wb.r;
+    this.css = { w: 640, h: 360 };
+    this.backIds = bossBackIds(equippedCompanions(fight.state));
+    this.downIds = new Set();
+    this.fallAt = new Map();
+    this.installAllyRows();
+  }
+  // Téléphone (portrait) : comme l'écran du World Boss, la scène est rendue en 400 px logiques (×3) puis réduite à la
+  // largeur de l'écran — sinon le Colosse sort du champ.
+  resize(w, h) {
+    this.css = { w, h };
+    const c = this.canvas;
+    if (w < 560 && h > w * 0.9) {
+      // Hauteur plafonnée (1120 px pour 400 px logiques de large) : plus haute, la scène zoomerait et le Colosse sortirait à
+      // droite. Elle est posée en bas de la zone (le ciel du décor remplit le haut).
+      const vw = 1200, k = w / vw, vh = Math.min(1120, Math.round(h / k));
+      this.wb.resize(vw, vh);
+      c.style.transformOrigin = '0 0';
+      c.style.transform = `scale(${k})`;
+      c.style.top = `${Math.max(0, Math.round(h - vh * k))}px`;
+      this.cssK = k;
+      this.cssTop = Math.max(0, Math.round(h - vh * k));
+    } else {
+      this.wb.resize(w, h);
+      c.style.transform = '';
+      c.style.top = '';
+      this.cssK = 1;
+      this.cssTop = 0;
+    }
+  }
+  frame(dt) { this.wb.frame(dt); }
+  settle(n) { this.wb.settle(n); }
+  // Où sont les membres de l'équipe à l'écran (pixels CSS de la scène) : centre, pieds, rang.
+  allyMarks() {
+    const r = this.r;
+    const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+    const k = (r.k / dpr) * (this.cssK ?? 1);
+    const shift = Number.isFinite(r.fixedShift) ? Math.round(r.fixedShift) : Math.round(r.viewShift ?? 0);
+    return equippedCompanions(this.fight.state).map((c) => {
+      const s = r.layout?.slots.get(c.id);
+      const back = this.backIds.has(c.id);
+      return { id: c.id, back, x: ((s?.cx ?? 0) + shift) * k, foot: (this.cssTop ?? 0) + (r.groundY + 1 - (back ? BACK_LIFT : 0)) * k, k: back ? BACK_SCALE : 1, placed: Boolean(s), down: false };
+    });
+  }
+}
+for (const m of ['installAllyRows', 'depth', 'drawFallen']) ArenaBossScene.prototype[m] = ArenaScene.prototype[m];

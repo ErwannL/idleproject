@@ -108,6 +108,34 @@ for (const [w, h, dpr, label, minFps] of FORMATS) {
     await page.screenshot({ path: `${OUT}/etage${fl}-${tag}.png` });
     await page.evaluate(() => document.querySelector('.arena-map').close());
   }
+  // ---- Boss commun : joué dans l'écran de l'Arène (ArenaBossScene), hors ligne → « Serveur injoignable » ----
+  await page.evaluate(async () => {
+    const ui = __idle.ui; ui.globalBoss = { offline: true }; // pas de serveur pendant le test
+    const { globalBossState } = await import('./src/core/arena.js'); globalBossState(__idle.state).used = 0;
+    ui.openTab('arena'); ui.view.arenaMode = 'global'; ui.invalidate();
+  });
+  await page.waitForTimeout(700);
+  await page.click('[data-action="global-boss"]');
+  await page.waitForFunction(() => document.querySelector('.arena-map.am-wb')?.scene?.fight?.time >= 2.5, null, { timeout: 60000 });
+  const B = await page.evaluate(() => {
+    const el = document.querySelector('.arena-map.am-wb'); const s = el.scene; const st = el.querySelector('.am-stage').getBoundingClientRect();
+    const box = s.wb.bossBox(); const k = (s.r.k / devicePixelRatio) * (s.cssK ?? 1);
+    return { kind: s.kind, old: document.querySelectorAll('.wb-overlay').length, w: st.width, allies: s.allyMarks(), bar: el.querySelector('.am-boss b')?.textContent ?? '', cards: el.querySelectorAll('.am-card').length,
+      boss: box ? { l: Math.round(box.x * k - (box.w * k) / 2), r: Math.round(box.x * k + (box.w * k) / 2) } : null };
+  });
+  const bf = B.allies.filter((a) => !a.back), bb = B.allies.filter((a) => a.back);
+  ok(`${label} : Boss commun joué dans ArenaScene (plus de .wb-overlay), barre du boss en haut, cartes de l'équipe`, B.kind === 'boss' && B.old === 0 && /Colosse/.test(B.bar) && B.cards >= 2, JSON.stringify({ kind: B.kind, old: B.old, bar: B.bar, cards: B.cards }));
+  ok(`${label} : Boss commun — équipe sur deux rangs, à l'écran, boss en grand`, B.allies.every((a) => a.placed && a.x - 8 >= -1 && a.x + 8 <= B.w + 1) && (!bb.length || bb.every((b) => b.foot < bf[0].foot && b.k < 1)) && B.boss && B.boss.r - B.boss.l > B.w * 0.12,
+    JSON.stringify({ w: Math.round(B.w), allies: B.allies.map((a) => [a.id, a.back, Math.round(a.x), Math.round(a.foot)]), boss: B.boss }));
+  await page.screenshot({ path: `${OUT}/boss-commun-${tag}.png` });
+  await page.click('.am-wb .am-skip');
+  await page.waitForTimeout(1500);
+  const BE = await page.evaluate(() => { const el = document.querySelector('.arena-map.am-wb .am-end'); return { shown: el && !el.classList.contains('hidden'), text: el?.innerText ?? '', close: Boolean(el?.querySelector('.wb-close')) }; });
+  ok(`${label} : Boss commun — bilan (dégâts, record, paliers) et « Serveur injoignable » hors ligne`, BE.shown && /Dégâts de la tentative/.test(BE.text) && /Paliers/.test(BE.text) && /Serveur injoignable/.test(BE.text) && BE.close, BE.text.replace(/\s+/g, ' ').slice(0, 160));
+  await page.screenshot({ path: `${OUT}/boss-commun-fin-${tag}.png` });
+  await page.click('.am-wb .wb-close');
+  await page.waitForTimeout(400);
+  ok(`${label} : Boss commun — « Fermer » rend la main au jeu`, await page.evaluate(() => !document.querySelector('.arena-map') && !__idle.ui.arenaOpen));
   await ctx.close();
 }
 

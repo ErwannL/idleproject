@@ -33,3 +33,24 @@ html.reduce-motion .am-end-after, html.reduce-motion .am-end-stars span.on { ani
 
 /* Bandeau du haut : le nom de la règle ne se coupe plus en deux (« Vif- / argent ») sur téléphone. */
 .am-rule > b:first-of-type { white-space: nowrap; }
+
+/* Boss commun dans l'écran de l'Arène (ui/arena-boss.js) : dégâts infligés en haut, paliers des phases sur la barre,
+   annonce des phases et des attaques du Colosse, dégâts de chacun sur sa carte, message hors ligne au bilan. */
+.am-wb .am-wb-dmg { display: inline-flex; gap: 6px; align-items: baseline; color: #9aa6c8; font-size: 12px; }
+.am-wb .am-wb-dmg b { color: #ffd34a; font-size: 18px; }
+.am-wb .am-time.low b { color: #ff6a6a; }
+.am-wb .am-boss-bar { position: relative; height: 14px; }
+.am-wb .am-boss-bar > i { background: linear-gradient(color-mix(in srgb, var(--wb-color, #ff7a8a) 70%, #fff), var(--wb-color, #e84a5f)); }
+.am-wb .am-notch { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: rgba(255, 255, 255, .7); }
+.am-wb .am-boss .am-mech b { color: #ffd34a; }
+.am-banner { position: absolute; left: 50%; top: 92px; transform: translateX(-50%); z-index: 3; display: grid; justify-items: center; padding: 6px 18px; border-radius: 10px;
+  background: rgba(8, 11, 22, .82); border: 2px solid var(--wb-color, #ffd23f); color: #fff; pointer-events: none; text-align: center; }
+.am-banner.hidden { display: none; }
+.am-banner small { color: #9aa6c8; font-size: 11px; } .am-banner b { font-size: 16px; color: var(--wb-color, #ffd23f); }
+.am-wb .am-card { cursor: default; } .am-wb .am-share i { background: linear-gradient(90deg, #ffb020, #ffe680); }
+.am-card-dmg { font-size: 12px; color: #ffe08a; }
+.am-wb .am-end .wb-end-card { width: min(400px, 92vw); }
+.am-offline { margin: 0; padding: 6px 8px; border-radius: 8px; background: rgba(255, 106, 106, .12); border: 1px solid rgba(255, 106, 106, .5); color: #ffc0c0; font-size: 13px; }
+.am-wb .am-stage .am-canvas { will-change: auto; }
+@media (max-width: 520px) { .am-banner { top: 84px; } .am-wb .am-wb-dmg span { display: none; } }
+.am-wb .am-stage { background: linear-gradient(#2a0c10, #4a1612); } /* téléphone : ciel au-dessus de la scène posée en bas */

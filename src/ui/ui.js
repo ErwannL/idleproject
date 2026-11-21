@@ -87,6 +87,7 @@ import { companionById } from '../core/companions.js'; // v9.5.1
 import { COMPANION_ROLES, ROLES } from '../data/synergies.js'; // v10.1
 import { dormantResources } from '../core/daybook.js';
 import { openArenaMap, survivalAsCards } from './arena-map.js'; // v10.2 (P6)
+import { openBossArena } from './arena-boss.js'; // v10.3.1 : Boss commun dans l'écran de l'Arène
 import { startVignettes } from './vignettes.js';
 import { DOORS, dungeonStars, roman } from '../core/dungeon-plus.js';
 const DIFF_LABEL = { easy: 'Facile', normal: 'Normal', hard: 'Difficile' };
@@ -1073,7 +1074,8 @@ export class UI {
         break;
       }
       case 'global-boss': // v9.3.2 : Boss commun (même écran, barre commune côté serveur)
-        openWorldBoss(this.state, { start: () => a.globalBossStart(), finish: (setup, r) => a.globalBossFinish(setup, r), left: () => a.globalBossLeft(), closed: () => this.invalidate() });
+        // v10.3.1 (6.2) : joué dans l'écran de l'Arène (ArenaBossScene), mêmes règles, score et bilan.
+        openBossArena(this, { start: () => a.globalBossStart(), finish: (setup, r) => a.globalBossFinish(setup, r), left: () => a.globalBossLeft(), closed: () => this.invalidate(), offline: () => Boolean(this.globalBoss?.offline) });
         break;
       case 'event-boss': // v9.2.9 : vrai combat animé (ui/world-boss.js)
         openWorldBoss(this.state, { start: () => a.eventBossStart(), finish: (setup, r) => a.eventBossFinish(setup, r), left: () => a.eventBossLeft(), closed: () => this.invalidate() });

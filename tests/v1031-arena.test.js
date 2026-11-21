@@ -173,3 +173,22 @@ test('6.2 — ancien écran à portraits retiré (openArenaStage, replayHtml, pl
   assert.match(ui, /openArenaMap\(this, survivalAsCards\(r\)/);
   assert.match(ui, /a\.revengeStart\(\)/, 'la Revanche garde son cadre');
 });
+
+test('6.2 — Boss commun dans ArenaScene : écran de l\'Arène, équipe sur deux rangs, règles et bilan du World Boss, hors ligne signalé', async () => {
+  const { COMPANIONS } = await import('../src/data/companions.js');
+  const { COMPANION_ROLES } = await import('../src/data/synergies.js');
+  const byId = (id) => COMPANIONS.find((c) => c.id === id);
+  const back = S.bossBackIds(['squire', 'mercenary', 'ranger'].map(byId));
+  assert.deepEqual([...back], ['ranger'], 'gardien et combattant devant, archer derrière');
+  const mages = Object.keys(COMPANION_ROLES).filter((id) => COMPANION_ROLES[id] === 'mage' && byId(id)?.kind === 'ally').slice(0, 2);
+  if (mages.length === 2) assert.equal(S.bossBackIds(mages.map(byId)).size, 1, 'jamais personne devant : le premier tient l\'avant');
+  assert.equal(S.ArenaBossScene.prototype.installAllyRows, S.ArenaScene.prototype.installAllyRows, 'mêmes deux rangs que l\'Arène');
+  const ui = src('src/ui/ui.js');
+  assert.match(ui, /case 'global-boss':[\s\S]{0,200}openBossArena\(this, \{ start: \(\) => a\.globalBossStart\(\), finish: \(setup, r\) => a\.globalBossFinish\(setup, r\)/);
+  assert.match(ui, /case 'event-boss':[\s\S]{0,120}openWorldBoss/, 'le World Boss des événements garde son écran');
+  const boss = src('src/ui/arena-boss.js');
+  assert.match(boss, /new WorldBossFight\(ui\.state, setup\)/, 'mêmes règles (moteur du World Boss)');
+  assert.match(boss, /endHtml\(sum, actions\.left\(\), cfg\)/, 'même bilan (dégâts, record, paliers, écus)');
+  assert.match(boss, /Serveur injoignable/);
+  assert.match(boss, /className = 'arena-map am-wb'/);
+});
