@@ -210,6 +210,8 @@ export default {
   id: 'contracts',
   title: 'Missions',
   icon: 'icon_trophy',
+  // v10.4 (partie 7) : l'illustration de tête change avec la partie ouverte (Jour, Chroniques, Semaine, Mois, Hauts faits).
+  banner: (ui) => `assets/ui/art104/missions_${{ chronicles: 'chronicles', weekly: 'week', week: 'month', achievements: 'feats' }[ui.view.missionTab] ?? 'day'}.png`,
   extra: (ui) => {
     const list = ui.claims.filter((c) => c.tab === 'contracts');
     const n = list.filter((c) => !c.blocked).length;

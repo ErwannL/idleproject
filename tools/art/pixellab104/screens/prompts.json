@@ -1,0 +1,23 @@
+{
+  "_style": ", 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, no text, no letters, no characters, empty scene",
+  "upgrades_hero_tier1": {"size": [320, 128], "seed": 41, "prompt": "a quiet training yard at dawn, wooden practice dummies, hay bales and a stone wall, soft golden morning light, calm background scene"},
+  "upgrades_hero_tier2": {"size": [320, 128], "seed": 42, "prompt": "a castle courtyard at sunset, banners on the walls, lit torches, orange sky over stone towers, background scene"},
+  "upgrades_hero_tier3": {"size": [320, 128], "seed": 43, "prompt": "a mountain summit at dusk with glowing blue runes carved in standing stones, swirling magical clouds, background scene"},
+  "upgrades_hero_tier4": {"size": [320, 128], "seed": 44, "prompt": "a floating stone platform among stars and golden beams of light in a cosmic sky, divine glow, background scene"},
+  "missions_day": {"size": [320, 128], "seed": 51, "prompt": "a wooden quest board in a tavern hall covered in parchment notes, morning sun through a window, background scene"},
+  "missions_chronicles": {"size": [320, 128], "seed": 52, "prompt": "an old library desk with a big open chronicle book, a quill and candles, a herald horn on the wall, background scene"},
+  "missions_week": {"size": [320, 128], "seed": 53, "prompt": "a large parchment scroll with seven red wax seals pinned on a stone wall next to a treasure chest, candlelight"},
+  "missions_month": {"size": [320, 128], "seed": 54, "prompt": "a winding golden road across a map with glowing milestone markers and a big treasure chest at the far end, background scene"},
+  "missions_feats": {"size": [320, 128], "seed": 55, "prompt": "a hall of fame trophy room with golden trophies, laurel wreaths and banners on shelves, warm light, background scene"},
+  "shop_cat_crystals": {"size": [320, 128], "seed": 61, "prompt": "a heap of glowing blue crystals and cut gems in a cave, sparkling light, background scene"},
+  "shop_cat_heroTickets": {"size": [320, 128], "seed": 62, "prompt": "a fan of golden and purple summoning tickets with sparkles on a velvet cushion, background scene"},
+  "shop_cat_petTickets": {"size": [320, 128], "seed": 69, "prompt": "two green tickets with paw prints leaning on a mossy tree stump, a cute small cat and a small owl sitting beside them, glowing leaves, forest scene"},
+  "shop_cat_subs": {"size": [320, 128], "seed": 64, "prompt": "an ornate golden hourglass and a calendar with a stream of gold coins and gems pouring down, background scene"},
+  "shop_cat_skins": {"size": [320, 128], "seed": 65, "prompt": "a tailor workshop with mannequins wearing colorful heroic armor and capes, fabric rolls, background scene"},
+  "shop_cat_themes": {"size": [320, 128], "seed": 66, "prompt": "a painter's palette with bright color swatches floating in front of a painted castle landscape, background scene"},
+  "shop_cat_packs": {"size": [320, 128], "seed": 67, "prompt": "open gift boxes with ribbons overflowing with treasures, gems and potions, sparkles, background scene"},
+  "shop_cat_merchants": {"size": [320, 128], "seed": 68, "prompt": "a travelling merchant wagon with a striped awning loaded with goods and lanterns at dusk, background scene"},
+  "summon_head_limited": {"size": [320, 96], "seed": 71, "prompt": "a glowing purple and gold summoning circle on a stone altar, floating star crystals and light beams, wide scene"},
+  "summon_head_permanent": {"size": [320, 96], "seed": 72, "prompt": "a glowing blue and cyan summoning portal arch of ancient stone with swirling runes and mist, wide scene"},
+  "summon_head_pet": {"size": [320, 96], "seed": 73, "prompt": "an enchanted green forest clearing with a glowing paw print rune circle, fireflies and soft light, wide scene"}
+}

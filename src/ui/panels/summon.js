@@ -102,7 +102,7 @@ function walletChip(state, key) {
 function card(ui, state, pool, head, body) {
   const open = ui.view.summonOdds === pool;
   return `<div class="card summon-row eco-banner banner-${pool}">
-    <div class="summon-row-head">${head}<span class="grow"></span>
+    <div class="summon-row-head" style="background-image:linear-gradient(90deg,rgba(8,10,24,.78),rgba(8,10,24,.25)),url(assets/ui/art104/summon_head_${pool}.png)">${head}<span class="grow"></span>
       <button class="btn small help-q${open ? ' active' : ''}" data-action="summon-odds" data-value="${pool}" aria-expanded="${open}" aria-label="Règles et probabilités">?</button></div>
     ${body}
     ${pityGauge(state, pool)}
