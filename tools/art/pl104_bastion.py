@@ -78,14 +78,14 @@ ART = {
 }
 # Niveaux 4 et 8 : depuis le niveau 1 (bitforge, image de départ), le même bâtiment agrandi.
 LEVELS = {
-    'forge': ('a bigger blacksmith forge with two furnaces, a stone extension, iron roof details, more anvils and a weapon rack', 'a grand dwarven forge hall: tall stone walls, a large chimney with fire, golden trims, big glowing furnace, many weapons displayed'),
+    'forge': ('a medium blacksmith forge with an orange tiled roof, a stone chimney with smoke, a glowing orange furnace in the open front, two anvils and a weapon rack', 'a large blacksmith forge hall with red tiled roofs, two big stone chimneys with fire, a huge glowing orange furnace in the open front, golden trims, an anvil and a weapon rack outside'),
     'library': ('a taller stone library with two towers, more arched windows, a balcony', 'a grand wizard library with three towers, golden domes, stained glass windows, floating glowing books'),
     'mine': ('a larger mine with a wooden lift tower, two carts and more glowing crystals', 'a huge crystal mine with a big wooden headframe tower, rails, many large glowing cyan and purple crystals'),
     'training': ('a bigger training yard with a stone wall, more dummies, archery targets and a banner', 'a grand training arena with stone walls, banners, an archery range, dummies and a small barracks building'),
-    'trade': ('a larger merchant post: a wooden shop building with a sign, an awning, many crates and a cart', 'a grand market hall with a stone base, colourful awnings, gold sign, many goods, a warehouse'),
+    'trade': ('a larger merchant post: a wooden shop building with a sign, an awning, many crates and a cart', 'a big two story merchant market hall of wood and stone with red and white striped awnings, a golden coin sign, many crates, barrels and sacks, a cart in front'),
 }
 # Force de l'image de départ (bitforge) : trop haute, le bâtiment ne change pas (Forge, 1er essai à 380/260).
-STRENGTH = {'forge': (170, 110), 'trade': (380, 150)}
+STRENGTH = {'forge': (0, 0), 'trade': (380, 0)}  # 0 : dessiné à neuf (pixflux), palette du niveau 1
 for b, (l4, l8) in LEVELS.items():
     s4, s8 = STRENGTH.get(b, (380, 260))
     ART[f'bastion_{b}_lv4'] = ((128, 128), BUILDING_VIEW + l4, True, 80 + len(b), f'bastion_{b}_lv1', s4)
@@ -169,7 +169,11 @@ def gen_image(name, seed=None):
     size, desc, transp, seed0 = spec[:4]
     body = {'description': desc + (T if transp else STYLE), 'image_size': {'width': size[0], 'height': size[1]}, 'no_background': transp,
             'seed': seed if seed is not None else seed0, 'outline': 'single color black outline', 'shading': 'medium shading', 'detail': 'highly detailed'}
-    if len(spec) > 4:  # niveau 4 ou 8 : part du niveau 1 (même angle, même palette)
+    if len(spec) > 4 and spec[5] == 0:  # dessiné à neuf, mais avec la palette du niveau 1
+        base = Image.open(os.path.join(RAW, spec[4] + '.png')).convert('RGBA')
+        body['color_image'] = b64(base)
+        im = first_image(wait(_req('POST', '/create-image-pixflux', body)))
+    elif len(spec) > 4:  # niveau 4 ou 8 : part du niveau 1 (même angle, même palette)
         base = Image.open(os.path.join(RAW, spec[4] + '.png')).convert('RGBA')
         body.update({'init_image': b64(base), 'init_image_strength': spec[5], 'color_image': b64(base)})
         im = first_image(wait(_req('POST', '/create-image-bitforge', body)))
@@ -299,8 +303,8 @@ def build():
         if k > 1:
             im = im.resize((im.width * k, im.height * k), Image.NEAREST)
         im.save(os.path.join(DST, f))
-        if name.startswith('bastion_') and name.endswith('_lv1'):
-            silhouette(im).save(os.path.join(DST, name.replace('_lv1', '_locked') + '.png'))
+        if name.startswith('bastion_') and (name.endswith('_lv1') or name == 'bastion_expeditions'):
+            silhouette(im).save(os.path.join(DST, name.replace('_lv1', '') + '_locked.png'))
     sheets = {}
     for name in EFFECTS:
         if os.path.exists(os.path.join(VFX, name + '.png')):

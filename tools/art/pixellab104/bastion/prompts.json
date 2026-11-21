@@ -466,7 +466,7 @@
   "init_image": "bastion_library_lv1"
  },
  "bastion_forge_lv4": {
-  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a bigger blacksmith forge with two furnaces, a stone extension, iron roof details, more anvils and a weapon rack, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a medium blacksmith forge with an orange tiled roof, a stone chimney with smoke, a glowing orange furnace in the open front, two anvils and a weapon rack, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
   "image_size": {
    "width": 128,
    "height": 128
@@ -475,9 +475,7 @@
   "seed": 85,
   "outline": "single color black outline",
   "shading": "medium shading",
-  "detail": "highly detailed",
-  "init_image_strength": 170,
-  "init_image": "bastion_forge_lv1"
+  "detail": "highly detailed"
  },
  "bastion_mine_lv4": {
   "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a larger mine with a wooden lift tower, two carts and more glowing crystals, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
@@ -494,7 +492,7 @@
   "init_image": "bastion_mine_lv1"
  },
  "bastion_forge_lv8": {
-  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a grand dwarven forge hall: tall stone walls, a large chimney with fire, golden trims, big glowing furnace, many weapons displayed, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a large blacksmith forge hall with red tiled roofs, two big stone chimneys with fire, a huge glowing orange furnace in the open front, golden trims, an anvil and a weapon rack outside, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
   "image_size": {
    "width": 128,
    "height": 128
@@ -503,9 +501,7 @@
   "seed": 95,
   "outline": "single color black outline",
   "shading": "medium shading",
-  "detail": "highly detailed",
-  "init_image_strength": 110,
-  "init_image": "bastion_forge_lv1"
+  "detail": "highly detailed"
  },
  "bastion_mine_lv8": {
   "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a huge crystal mine with a big wooden headframe tower, rails, many large glowing cyan and purple crystals, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
@@ -564,7 +560,7 @@
   "init_image": "bastion_training_lv1"
  },
  "bastion_trade_lv8": {
-  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a grand market hall with a stone base, colourful awnings, gold sign, many goods, a warehouse, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
+  "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a big two story merchant market hall of wood and stone with red and white striped awnings, a golden coin sign, many crates, barrels and sacks, a cart in front, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
   "image_size": {
    "width": 128,
    "height": 128
@@ -573,9 +569,7 @@
   "seed": 95,
   "outline": "single color black outline",
   "shading": "medium shading",
-  "detail": "highly detailed",
-  "init_image_strength": 150,
-  "init_image": "bastion_trade_lv1"
+  "detail": "highly detailed"
  },
  "bastion_training_lv8": {
   "description": "single building seen from a high three-quarter top-down view, standing on a small square patch of grass and cobblestones, a grand training arena with stone walls, banners, an archery range, dummies and a small barracks building, 16-bit fantasy RPG pixel art, one pixel dark outline, light from the top left, rich warm colors, crisp pixels, transparent background, centered, no text",
