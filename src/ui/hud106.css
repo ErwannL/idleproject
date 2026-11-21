@@ -343,3 +343,27 @@
 .upg-page107 .upg-cols3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; }
 .upg-weak-why { display: block; font-size: 11px; color: #ffb36b; font-weight: 700; }
 .upg-bb-medal { position: relative; } .upg-bb-medal .upg-bb-badge { position: absolute; right: -4px; bottom: -4px; width: 44px; height: 44px; }
+
+/* ---- v10.7 (partie 5) : grandes listes groupées sous des têtes dessinées ; icônes de ligne en 48 à 64 px ---- */
+#app #panel #panel-body .section-title { min-height: 56px; display: flex; align-items: center; gap: 8px; padding: 0 16px; margin: 6px 0; border-radius: 8px;
+  background: url(../../assets/ui/art106/section_head.png) center / 100% 100% no-repeat; image-rendering: pixelated; color: #ffe9c0; text-shadow: 0 2px 0 #000; font-size: 15px; }
+#app #panel #panel-body .section-title img { width: 40px !important; height: 40px !important; }
+#app #panel .stat-tile img, #app #panel .sg-tile img { width: 64px !important; height: 64px !important; }
+#app #panel .mission img.px, #app #panel .mis-row img.px, #app #panel .sg-row img.px, #app #panel .herald-row img.px { width: 56px !important; height: 56px !important; }
+#app #panel .shop-card .shop-big img, #app #panel .shop-card img.shop-big { width: 96px !important; height: 96px !important; }
+#app #panel .comp-card img.px, #app #panel .comp-card canvas { width: 96px !important; height: 96px !important; object-fit: contain; }
+#app #panel .look-card img, #app #panel .look-card canvas { min-width: 96px; min-height: 96px; object-fit: contain; }
+#app #panel .boss-item img { width: 80px !important; height: 80px !important; }
+#app #panel .m-row img.px:first-of-type, #app #panel .m-row .q-art img { width: 64px !important; height: 64px !important; }
+#app #panel .unit-card img.px, #app #panel .unit-card canvas, #app #panel .unit-card .hd-art { width: 84px !important; height: 84px !important; object-fit: contain; }
+#app #panel .db-card .db-art { min-width: 80px; } #app #panel .db-card .db-art img { width: 80px !important; height: 80px !important; }
+#app #panel .shop-card .shop-big, #app #panel .shop-card > img { width: 112px !important; height: 112px !important; }
+#app #panel .shop-card img.shop-big, #app #panel .shop-card .shop-art106 { width: 150px !important; height: 150px !important; object-fit: contain; }
+#app #panel .m-row { min-height: 76px; }
+#app #panel .m-row img.px { width: 64px !important; height: 64px !important; }
+#app #panel .upg-page107 .upg-icon img { width: 72px !important; height: 72px !important; }
+#app #panel .upg-page107 .upg-bb-medal { width: 140px; height: 140px; }
+#app #panel .db-card { min-height: 150px; }
+#app #panel .m-row .m-icon { width: 72px !important; height: 72px !important; flex: none; } #app #panel .m-row .m-icon img { width: 68px !important; height: 68px !important; }
+#app #panel .db-card .db-art { width: 96px; } #app #panel .db-card .db-art img { width: 96px !important; height: 96px !important; }
+#app #panel .upg-page107 .upg-pg-top { height: 160px; }

@@ -138,6 +138,9 @@ for n, p in {'sub_blessing': 'a golden blessing amulet with soft holy light', 's
              'pack_collection': 'a collection of costume chests stacked, magical sparkles', 'gems': 'a heap of blue gems and crystals'}.items():
     add(f'shop_{n}', f'shop offer illustration: {p}', (128, 128))
 
+# --- v10.7 (partie 5) : têtes de section dessinées pour les grandes listes ---------------------------------------------
+add('section_head', 'wide horizontal header strip: dark plum wooden plank with gold metal trim and small rivets, a faint magic glow on the right, empty space for a title on the left, no text, no letters', (240, 32), 2, False)
+add('section_head_gold', 'wide horizontal header strip: dark royal blue banner with gold embroidery border and a small star emblem on the right, empty space on the left, no text, no letters', (240, 32), 2, False)
 
 def gen_one(name):
     from pl939_api import call, images_of, wait

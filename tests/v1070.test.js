@@ -72,3 +72,9 @@ test('10.7 (4) : « Meilleur achat » toujours là, gain jugé sur le mode chois
   assert.ok(poor === true || poor === false);
   assert.ok(G.upgradePowerPct(s, 'damage', 50) >= G.upgradePowerPct(s, 'damage', 1), 'plus de niveaux, plus de gain');
 });
+
+test('10.7 (5) : bannière des Compétences refaite sans lettres, têtes de section dessinées', () => {
+  assert.ok(existsSync('tools/art/pl107_art.py') && src('tools/art/pl107_art.py').includes('no text, no letters'));
+  assert.ok(existsSync('assets/ui/art106/section_head.png'));
+  assert.match(src('src/ui/hud106.css'), /#panel-body \.section-title \{ min-height: 56px;/);
+});
