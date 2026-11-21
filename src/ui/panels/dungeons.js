@@ -17,7 +17,7 @@ import { animCanvas } from '../animator.js';
 import { CHALLENGE, challengeTriesLeft, challengeWeek, modifierById, weeklySetup } from '../../core/challenge.js';
 import { ZONES } from '../../data/zones.js';
 import { escapeHtml, fold, formatNumber, img, progressBar, art98 } from '../common.js';
-import { bossTrait } from '../../core/boss-traits.js';
+import { TRAITS, bossTrait } from '../../core/boss-traits.js';
 import { ROLES } from '../../data/synergies.js';
 import { DUNGEON_GAIN, bestSweepTarget, dungeonSet, dungeonStars, nightmareBest, nightmareOpen, roman } from '../../core/dungeon-plus.js'; // v10.1 (P3)
 
@@ -99,6 +99,25 @@ function running(ui, state) {
 function mechanicLine(d) {
   const t = bossTrait(d.boss);
   return t ? `<div class="trait-box" style="--trait:${t.color}"><b>${escapeHtml(BOSSES[d.boss].name)} — ${escapeHtml(t.name)}</b> : ${escapeHtml(t.text)}. <span class="muted">Parade : ${escapeHtml(t.counter)}</span></div>` : '';
+}
+
+// v10.3.1 : la mécanique du boss « en image » (illustration 96 × 64, tools/art/mech1031.py) et sa légende d'une phrase.
+// Pas de mécanique (Dryade pourrissante) : image « combat franc ».
+export const MECH_LEGEND = {
+  summoner: 'Elle invoque des spectres : tue-les d\'abord.',
+  armored: 'Sa carapace encaisse presque tout, mais elle s\'use à chaque coup : frappe vite.',
+  escalate: 'Ses coups montent en puissance : finis-le vite, ou tiens bon.',
+  desperate: 'Sous la moitié de ses PV, il enrage : prépare une bonne armure.',
+  plain: 'Pas de mécanique spéciale : un combat franc.',
+};
+export function mechKey(d) {
+  const t = bossTrait(d.boss);
+  return Object.keys(TRAITS).find((k) => TRAITS[k] === t) ?? 'plain';
+}
+function mechFig(d) {
+  const k = mechKey(d);
+  const text = MECH_LEGEND[k] ?? MECH_LEGEND.plain;
+  return `<figure class="dg-mech"><img class="px dg-mech-img" src="assets/ui/art103/mech_${k}.png" alt=""><figcaption class="dg-mech-text">${escapeHtml(text)}</figcaption></figure>`;
 }
 
 function status(state, d) {
@@ -247,7 +266,7 @@ function dungeonDetail(ui, state) {
   const nmRow = nmMax ? `<div class="dg-nm"><b>Cauchemar</b> ${Array.from({ length: nmMax + 1 }, (_, i) => `<button class="btn chip-btn small${i === nmSel ? ' active' : ''}" data-action="dungeon-nm" data-value="${i}">${i ? roman(i) : 'Non'}</button>`).join('')}<span class="muted">+60 % de PV et de butin par palier</span></div>` : '';
   const detail = `<div class="card dungeon-detail">
       <div class="dungeon-head"><img class="px dg-boss-portrait" src="assets/ui/art102/${BOSS_ART[sel.id]}.png" alt="${escapeHtml(BOSSES[sel.boss].name)}"><div class="grow"><b class="dg-boss-name">${escapeHtml(BOSSES[sel.boss].name)}</b><div class="boss-title">${escapeHtml(sel.name)}</div>
-        <div class="muted">${escapeHtml(sel.description)}</div></div></div>
+        <div class="muted">${escapeHtml(sel.description)}</div></div>${mechFig(sel)}</div>
       ${advice}${nmRow}
       <div class="diff-box"><div class="section-title">Difficulté</div><div class="diff-row">${diffs}</div>${unlockHint}
         <div class="muted">♛ ${cleared} victoire${cleared > 1 ? 's' : ''} · ennemis niv. ${Math.max(1, state.maxStage + sel.levelOffset + diff.levelBonus)} · PV ×${diff.hp}</div></div>

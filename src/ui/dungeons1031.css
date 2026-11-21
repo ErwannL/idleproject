@@ -1,0 +1,23 @@
+/* v10.3.1 : feuille de donjon (grand portrait + mécanique du boss en image) et portes de salles. */
+.dg-sheet .dungeon-head { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "pic text" "pic mech"; gap: 6px 10px; align-items: start; }
+.dg-sheet .dungeon-head > .dg-boss-portrait { grid-area: pic; }
+.dg-sheet .dungeon-head > .grow { grid-area: text; min-width: 0; }
+.dg-sheet .dungeon-head > .dg-mech { grid-area: mech; }
+.dg-sheet .dungeon-head img.dg-boss-portrait { width: 128px !important; height: 128px !important; max-width: none; image-rendering: pixelated; }
+/* Grand écran en hauteur : le portrait passe à sa taille réelle (256 px) ; « Entrer » reste collé en bas de la feuille. */
+@media (min-width: 900px) and (min-height: 880px) {
+  .dg-sheet .dungeon-head img.dg-boss-portrait { width: 256px !important; height: 256px !important; }
+}
+.dg-mech { margin: 0; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; min-width: 0; }
+.dg-mech-img { width: 192px; height: 128px; max-width: none; image-rendering: pixelated; border: 2px solid #4a5578; border-radius: 6px; background: #0b1120; display: block; }
+.dg-mech-text { margin: 0; font-size: 12px; line-height: 1.3; color: #e8ecf6; }
+/* Téléphone : l'image passe en 1x si la colonne est trop étroite. */
+@media (max-width: 420px) {
+  .dg-mech-img { width: 96px; height: 64px; }
+}
+/* Portes : toujours côte à côte (2 ou 3), à leur vraie taille 96 × 128, même sur téléphone. */
+.door-cards { flex-wrap: nowrap; gap: 8px; }
+.door-card { width: auto; flex: 1 1 0; min-width: 0; max-width: 150px; padding: 8px 4px; touch-action: manipulation; }
+.door-card > b, .door-card > span { text-align: center; overflow-wrap: anywhere; }
+.door-card > span { font-size: 11px; }
+.door-screen .door-timer { display: block; margin-top: 10px; text-align: center; }

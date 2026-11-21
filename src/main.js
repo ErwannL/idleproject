@@ -484,14 +484,16 @@ const actions = {
     state.ui.sweepSeed = (state.ui.sweepSeed ?? 1) + 1;
     const copy = structuredClone(state);
     const r = sweepAll(copy, plan, () => new Rng(state.ui.sweepSeed));
+    ui.sweepStage = state.maxStage; // v10.3.1 : l'étape de l'aperçu est figée pour le vrai balayage
     ui.sweepPlan = plan; // v10.3 (audit 1.5) : le plan ANNONCÉ est celui qui sera joué (une clé gagnée entre-temps ne le change pas)
     return { plan, keys: r.count, earned: r.earned, items: r.items.length };
   },
   sweepAllRun() {
     const shown = ui.sweepPlan; ui.sweepPlan = null;
+    const stage = shown?.length ? ui.sweepStage : undefined; ui.sweepStage = undefined;
     const plan = shown?.length && shown.reduce((t, p) => t + p.n, 0) <= (state.keys ?? 0) ? shown : sweepAllPlan(state);
     if (!plan.length) return done(false, null);
-    const r = sweepAll(state, plan, () => new Rng(state.ui.sweepSeed ?? 1));
+    const r = sweepAll(state, plan, () => new Rng(state.ui.sweepSeed ?? 1), undefined, { stage });
     sound.play('upgrade', { volume: 0.6 });
     ui.sweepSummary?.(r);
     save(); ui.invalidate();

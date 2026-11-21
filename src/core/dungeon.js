@@ -187,7 +187,15 @@ export function sweepDungeonN(state, id, rng, n, opts = {}, balance = BALANCE) {
 }
 
 // v10.2 (1.5) : exécute un plan de « Balayer tout » (graine fixe : l'aperçu et le vrai balayage donnent le même total).
-export function sweepAll(state, plan, makeRng, balance = BALANCE) {
+// v10.3.1 : `opts.stage` fige l'étape (maxStage) vue à l'aperçu — le total annoncé est alors celui qui est reçu,
+// même si le héros a progressé entre l'aperçu et la confirmation (l'étape ne baisse jamais : on la restaure).
+export function sweepAll(state, plan, makeRng, balance = BALANCE, opts = {}) {
+  const live = state.maxStage;
+  const frozen = Number.isFinite(opts.stage) && opts.stage < live;
+  if (frozen) state.maxStage = opts.stage;
+  try { return sweepAllRaw(state, plan, makeRng, balance); } finally { if (frozen) state.maxStage = live; }
+}
+function sweepAllRaw(state, plan, makeRng, balance) {
   const out = { items: [], earned: {}, count: 0, keys: 0, parts: [] };
   const rng = makeRng();
   for (const p of plan) {
