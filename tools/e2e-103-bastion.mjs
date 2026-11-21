@@ -191,6 +191,103 @@ for (const [w, h] of [[1116, 993], [1280, 720], [390, 844]]) {
   await shot(page, '7-ouvriers');
   o = await overflow(page);
   ok(`${tag} : écran des ouvriers sans débordement`, o.doc <= 0 && o.panel <= 1 && o.wide === 0, JSON.stringify(o));
+  // ---- v10.3.1 : Mine de cristal, Camp d'entraînement, Comptoir, Expéditions, clavier et lexique.
+  // État préparé : bâtiments construits (niveau 2), un stock prêt à récupérer, de quoi échanger ; les ouvriers se posent d'un toucher.
+  await page.evaluate(() => {
+    const s = __idle.state; const b = s.bastion;
+    for (const id of ['forge', 'library', 'mine', 'training', 'trade']) b.buildings[id].level = Math.max(b.buildings[id].level, 2);
+    b.stock.mine = 40; b.stock.training = 99; // (le plafond du Camp au niveau 2 limite le stock à 1 grimoire)
+    s.materials.shards = 6000; s.materials.grimoire = 5; s.companions.equipped = s.companions.equipped.slice(0, 2);
+    __idle.ui.view.bastionSel = null; __idle.ui.openTab('camp'); __idle.ui.invalidate();
+  });
+  await page.waitForTimeout(700);
+  for (const id of ['mine', 'training', 'trade']) {
+    await closeSheet(page, w);
+    await tap(page, `.bs-card[data-building="${id}"] .bs-medal`);
+    await tap(page, '.bs-wlist [data-action="bastion-worker"]');
+  }
+  const placed = await page.evaluate(() => ['mine', 'training', 'trade'].map((id) => Boolean(__idle.state.bastion.buildings[id].worker)));
+  ok(`${tag} : ouvriers posés sur la Mine, le Camp d'entraînement et le Comptoir`, placed.every(Boolean), JSON.stringify(placed));
+  const mat = (k) => page.evaluate((key) => __idle.state.materials[key], k);
+  // Mine de cristal : la carte s'ouvre, la production est écrite, « Récupérer » verse le stock en éclats.
+  await closeSheet(page, w);
+  await tap(page, '.bs-card[data-building="mine"]');
+  const mine = await page.evaluate(() => ({ head: document.querySelector('.bs-detail-head b')?.textContent, block: document.querySelector('.bs-detail .bs-stock')?.textContent.replace(/\s+/g, ' ').trim(), perHour: document.querySelector('.bs-detail')?.textContent.match(/([\d,]+) éclats par heure/)?.[1] }));
+  const shardsBefore = await mat('shards');
+  await shot(page, '8-mine');
+  await tap(page, '.bs-detail [data-action="bastion-collect"]');
+  const shardsAfter = await mat('shards');
+  ok(`${tag} : Mine de cristal — production écrite, « Récupérer » verse le stock en éclats`, /Mine de cristal/.test(mine.head) && Boolean(mine.perHour) && shardsAfter - shardsBefore >= 40, JSON.stringify({ ...mine, gain: shardsAfter - shardsBefore }));
+  o = await overflow(page);
+  ok(`${tag} : Mine de cristal sans débordement`, o.doc <= 0 && o.panel <= 1 && o.wide === 0, JSON.stringify(o));
+  // Camp d'entraînement : des grimoires.
+  await closeSheet(page, w);
+  await tap(page, '.bs-card[data-building="training"]');
+  const camp = await page.evaluate(() => document.querySelector('.bs-detail-head b')?.textContent);
+  const gBefore = await mat('grimoire');
+  await shot(page, '9-camp-entrainement');
+  await tap(page, '.bs-detail [data-action="bastion-collect"]');
+  const gAfter = await mat('grimoire');
+  ok(`${tag} : Camp d'entraînement — « Récupérer » verse les grimoires`, /Camp d'entraînement/.test(camp) && gAfter - gBefore >= 1, `${camp} +${gAfter - gBefore}`);
+  o = await overflow(page);
+  ok(`${tag} : Camp d'entraînement sans débordement`, o.doc <= 0 && o.panel <= 1 && o.wide === 0, JSON.stringify(o));
+  // Comptoir : six échanges, taux, limite du jour ; un échange réel.
+  await closeSheet(page, w);
+  await tap(page, '.bs-card[data-building="trade"]');
+  const post = await page.evaluate(() => ({ head: document.querySelector('.bs-detail-head b')?.textContent, rows: document.querySelectorAll('.bs-detail .bs-trade').length, left: document.querySelector('.bs-detail')?.textContent.match(/(\d+) échanges? aujourd/)?.[1] }));
+  const before = { shards: await mat('shards'), grimoire: await mat('grimoire') };
+  await shot(page, '10-comptoir');
+  await tap(page, '.bs-detail [data-action="bastion-trade"][data-value="buy-grimoire"]');
+  const after = { shards: await mat('shards'), grimoire: await mat('grimoire'), left: await page.evaluate(() => document.querySelector('.bs-detail')?.textContent.match(/(\d+) échanges? aujourd/)?.[1]) };
+  ok(`${tag} : Comptoir — 6 offres, un échange verse 1 grimoire contre des éclats et réduit la limite du jour`, /Comptoir/.test(post.head) && post.rows === 6 && after.grimoire === before.grimoire + 1 && after.shards < before.shards && Number(after.left) === Number(post.left) - 1,
+    JSON.stringify({ post, before, after }));
+  o = await overflow(page);
+  ok(`${tag} : Comptoir sans débordement`, o.doc <= 0 && o.panel <= 1 && o.wide === 0, JSON.stringify(o));
+  // Expéditions : le bâtiment reprend l'écran des expéditions.
+  await closeSheet(page, w);
+  await tap(page, '.bs-card[data-building="expeditions"]');
+  const exp = await page.evaluate(() => ({ head: document.querySelector('.bs-detail-head b')?.textContent, embed: document.querySelector('.bs-detail .bs-embed')?.textContent.replace(/\s+/g, ' ').trim().length ?? 0, buttons: document.querySelectorAll('.bs-detail .bs-embed button').length }));
+  await shot(page, '11-expeditions');
+  ok(`${tag} : Expéditions — le bâtiment ouvre l'écran des expéditions`, /Expéditions/.test(exp.head) && exp.embed > 80 && exp.buttons >= 1, JSON.stringify(exp));
+  o = await overflow(page);
+  ok(`${tag} : Expéditions sans débordement`, o.doc <= 0 && o.panel <= 1 && o.wide === 0, JSON.stringify(o));
+  // Clavier : les cartes sont des « div role=button » ; Entrée et Espace les ouvrent, le focus se voit, Espace ne touche pas l'avance automatique.
+  await closeSheet(page, w);
+  await page.evaluate(() => { __idle.ui.view.bastionSel = null; __idle.ui.invalidate(); });
+  await page.waitForTimeout(500);
+  const auto0 = await page.evaluate(() => __idle.state.autoAdvance);
+  // Au clavier : on arrive sur la carte avec Tab (la mise au point par la souris ne montre pas de contour).
+  await page.locator('.bs-card[data-building="mine"]').focus();
+  await page.keyboard.press('Shift+Tab');
+  await page.keyboard.press('Tab');
+  const ring = await page.evaluate(() => { const c = getComputedStyle(document.activeElement); return { cls: document.activeElement.className, width: parseFloat(c.outlineWidth), style: c.outlineStyle, color: c.outlineColor }; });
+  ok(`${tag} : une carte de bâtiment au clavier a un contour visible`, /bs-card/.test(ring.cls) && ring.width >= 2 && ring.style !== 'none', JSON.stringify(ring));
+  await shot(page, '12-clavier-focus');
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(450);
+  const viaEnter = await page.evaluate(() => document.querySelector('.bs-detail')?.dataset.sel);
+  await closeSheet(page, w);
+  await page.evaluate(() => { __idle.ui.view.bastionSel = null; __idle.ui.invalidate(); });
+  await page.waitForTimeout(450);
+  await page.locator('.bs-card[data-building="training"]').focus();
+  await page.keyboard.press('Shift+Tab');
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Space');
+  await page.waitForTimeout(450);
+  const viaSpace = await page.evaluate(() => ({ sel: document.querySelector('.bs-detail')?.dataset.sel, auto: __idle.state.autoAdvance }));
+  ok(`${tag} : Entrée ouvre la Mine, Espace ouvre le Camp d'entraînement (sans changer l'avance automatique)`, viaEnter === 'mine' && viaSpace.sel === 'training' && viaSpace.auto === auto0, JSON.stringify({ viaEnter, viaSpace, auto0 }));
+  // Lexique : « Mots du Bastion » — Bastion, Ouvrier, Chantier, Recherche ouvrent une carte d'explication.
+  await closeSheet(page, w);
+  const words = [];
+  for (const word of ['Bastion', 'Ouvrier', 'Chantier', 'Recherche']) {
+    await page.locator(`.bs-word[data-lex="${word}"]`).scrollIntoViewIfNeeded();
+    await page.locator(`.bs-word[data-lex="${word}"]`).click();
+    await page.waitForTimeout(300);
+    words.push(await page.evaluate((wd) => { const m = document.getElementById('modal'); const ok2 = !m.classList.contains('hidden') && m.querySelector('.gloss-card h2')?.textContent === wd && m.querySelector('.gloss-card p')?.textContent.length > 40; __idle.ui.closeModal(); return ok2; }, word));
+  }
+  ok(`${tag} : le lexique du Bastion ouvre sa carte (Bastion, Ouvrier, Chantier, Recherche)`, words.every(Boolean), JSON.stringify(words));
+  await page.locator('.bs-words').scrollIntoViewIfNeeded();
+  await shot(page, '13-lexique');
   ok(`${tag} : aucune erreur JavaScript`, page.errors.length === 0, page.errors.slice(0, 3).join(' | '));
   await ctx.close();
 }

@@ -451,6 +451,7 @@ function renderBastion(ui, state) {
       <div class="bs-map" style="background-image:url(assets/ui/art98/expedition_map.png)"><div class="bs-grid">${BUILDINGS.map((d) => buildingCard(ui, state, d, now)).join('')}</div></div>
       ${body ? `<div class="card bs-detail" id="bs-detail" data-sel="${escapeHtml(sel)}">${body}</div>` : ''}
       ${researchBand(ui, state, now)}
+      <p class="bs-words"><span class="muted">Mots du Bastion :</span>${['Bastion', 'Ouvrier', 'Chantier', 'Recherche'].map((w) => `<button class="lex bs-word" data-lex="${w}">${w}</button>`).join('')}</p>
       ${c.fire}${c.trophies}${c.links}
     </div>`;
 }

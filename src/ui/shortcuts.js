@@ -208,6 +208,14 @@ export function installShortcuts(ui) {
     const onButton = focused && focused !== document.body && ui.root.contains(focused) && focused.matches('button, summary');
     const onControl = focused && focused !== document.body && ui.root.contains(focused) && focused.matches('select, input, textarea');
 
+    // v10.3.1 : une carte « div role=button » (bâtiments du Bastion, mots du lexique) s'ouvre avec Entrée ou Espace,
+    // comme un vrai bouton ; sans cela, Espace tombait sur « Avance automatique ».
+    if ((key === 'Enter' || key === ' ') && focused && focused !== document.body && ui.root.contains(focused) && focused.matches('[role="button"]:not(button)')) {
+      e.preventDefault();
+      if (!e.repeat) focused.click();
+      return;
+    }
+
     if (ARROWS[key]) {
       if (onControl && focused.tagName === 'SELECT' && (key === 'ArrowUp' || key === 'ArrowDown')) return; // choix de la liste
       if (onControl && focused.type === 'range' && (key === 'ArrowLeft' || key === 'ArrowRight')) return; // curseur de volume
