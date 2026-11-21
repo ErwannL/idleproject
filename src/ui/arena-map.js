@@ -44,6 +44,16 @@ export function survivalAsCards(r) {
     wave: r.wave, kills: r.kills, rewards: r.rewards, record: r.record, end: null };
 }
 
+// v10.3.1 (6.2) : récompenses de fin de combat sur deux lignes, comme la fin de donjon : « Progression » (gemmes, or,
+// clés, fragments) puis « Matériaux » (éclats, grimoires, pierres, essences).
+const MATERIALS = new Set(['shards', 'grimoire', 'ascension', 'mastery']);
+export function rewardRows(reward) {
+  const pick = (mat) => Object.fromEntries(Object.entries(reward ?? {}).filter(([k, v]) => v > 0 && MATERIALS.has(k) === mat));
+  const row = (label, part) => { const html = rewardIcons(part, 'named'); return html ? `<div class="am-rw-row"><small>${label}</small>${html}</div>` : ''; };
+  const rows = row('Progression', pick(false)) + row('Matériaux', pick(true));
+  return rows ? `<div class="am-end-rw am-end-rows">${rows}</div>` : '';
+}
+
 export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
   document.querySelector('.arena-map')?.remove();
   const el = document.createElement('div');
@@ -169,8 +179,10 @@ export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
     end.innerHTML = `<div class="am-end-card"><h2>${run.won ? `${escapeHtml(floorName(run.floor))} franchi !` : `${escapeHtml(floorName(run.floor))} : pas encore…`}</h2>
       <div class="am-end-stars">${[0, 1, 2].map((i) => `<span class="${i < run.stars ? 'on' : ''}" style="animation-delay:${0.25 + i * 0.35}s">★</span>`).join('')}</div>
       ${run.newBack ? '<div class="am-end-back"><img class="px" src="assets/ui/art101/card_back_gold.png" alt=""><span><b>Dos de carte doré gagné !</b> Ta formation le porte dès le prochain combat.</span></div>' : ''}
-      ${run.reward ? `<div class="am-end-rw">${rewardIcons(run.reward, 'named')}</div>` : run.won ? '<p class="muted">Étage déjà franchi : récompense déjà prise.</p>' : '<p class="muted">Change la formation (gardien devant, soigneur derrière) ou renforce tes compagnons : essais illimités.</p>'}
-      <div class="am-end-btns">${run.won ? '<button class="btn btn-gold am-next" type="button">Étage suivant ›</button>' : '<button class="btn btn-gold am-retry" type="button">Retenter</button>'}<button class="btn am-close" type="button">Fermer</button></div></div>`;
+      <div class="am-end-after" style="--after:${0.25 + 3 * 0.35 + 0.15}s">
+      ${run.reward ? rewardRows(run.reward) : run.won ? '<p class="muted">Étage déjà franchi : récompense déjà prise.</p>' : '<p class="muted">Change la formation (gardien devant, soigneur derrière) ou renforce tes compagnons : essais illimités.</p>'}
+      <div class="am-end-btns">${run.won ? '<button class="btn btn-gold primary-action am-next" type="button">Étage suivant ›</button>' : '<button class="btn btn-gold primary-action am-retry" type="button">Retenter</button>'}<button class="btn am-close" type="button">Fermer</button></div></div></div>`;
+    end.querySelector('.primary-action')?.focus({ preventScroll: true });
     end.querySelector('.am-close')?.addEventListener('click', close);
     end.querySelector('.am-next')?.addEventListener('click', () => { close(); onNext?.(); });
     end.querySelector('.am-retry')?.addEventListener('click', () => { close(); onRetry?.(); });

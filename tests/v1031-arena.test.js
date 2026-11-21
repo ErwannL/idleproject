@@ -128,3 +128,18 @@ test('6.2 — ultime : zoom léger de 0,4 s sur le compagnon et flash à sa coul
   assert.match(code, /scene\.ultFocus\(\)/);
   assert.match(code, /u\.scale > 1\.001 && !reduceMotion\(\)/, 'pas de zoom avec « réduire les animations »');
 });
+
+test('6.2 — fin de combat : récompenses sur 2 lignes (Progression / Matériaux), étoiles une à une, « Étage suivant » en bouton principal', async () => {
+  const { rewardRows } = await import('../src/ui/arena-map.js');
+  const html = rewardRows(CARD_ARENA.firstReward(10));
+  const rows = [...html.matchAll(/<div class="am-rw-row"><small>([^<]+)<\/small>(.*?)<\/span><\/div>/g)].map((m) => m[1]);
+  assert.deepEqual(rows, ['Progression', 'Matériaux'], html);
+  assert.match(html.split('Matériaux')[0], /data-gloss="gems"/);
+  assert.match(html.split('Matériaux')[1], /data-gloss="shards"[\s\S]*data-gloss="grimoire"/);
+  assert.equal(rewardRows({}), '');
+  const code = src('src/ui/arena-map.js');
+  assert.match(code, /animation-delay:\$\{0\.25 \+ i \* 0\.35\}s/, 'étoiles une à une');
+  assert.match(code, /am-end-after" style="--after:\$\{0\.25 \+ 3 \* 0\.35 \+ 0\.15\}s"/, 'récompenses après les étoiles');
+  assert.match(code, /btn btn-gold primary-action am-next[^>]*>Étage suivant ›/);
+  assert.match(src('src/ui/arena1031.css'), /\.arena-map \.am-end \{ z-index: 5;/, 'la carte de fin passe devant la rangée de cartes');
+});

@@ -243,6 +243,7 @@ export class ArenaScene {
   }
   // v10.3.1 : compagnon vaincu — il bascule en arrière (0,45 s), se couche au sol, grisé, et reste sur la carte.
   drawFallen(ctx, c, cx) {
+    this.fallenDrawn = (this.fallenDrawn ?? 0) + 1; // lu par tools/e2e-1031-arena.mjs
     const r = this.r;
     const img = spriteCanvas(c.sprite);
     const sc = SPRITES[c.sprite]?.scale ?? 1;
@@ -371,7 +372,7 @@ export class ArenaScene {
       const seen = fx?.sx != null && fx.seen != null;
       const p = this.toCss(seen ? fx.sx + fx.sw / 2 : r.wx(e.x), r.groundY + 1);
       const top = seen ? this.toCss(0, fx.sy).y : null;
-      return { pos: e.arenaPos, name: e.arenaName ?? '', boss: Boolean(e.arenaBoss), mech: e.mech ?? null, minion: Boolean(e.minion), back: (e.depth ?? 0) > 0.5, hp: Math.max(0, e.hp) / Math.max(1, e.maxHp), x: p.x, foot: p.y, top,
+      return { pos: e.arenaPos, name: e.arenaName ?? '', boss: Boolean(e.arenaBoss), mech: e.mech ?? null, minion: Boolean(e.minion), back: (e.depth ?? 0) > 0.5, hp: Math.max(0, e.hp) / Math.max(1, e.maxHp), x: p.x, foot: p.y, feet: this.toCss(0, r.groundY + 1 - BACK_LIFT * (e.depth ?? 0)).y, top,
         h: seen ? fx.sh * (this.viewT?.d ?? 1) * (this.css.h / Math.max(1, this.canvas.height)) : 0, seen: seen && p.x < this.css.w - 8 };
     });
   }
