@@ -56,10 +56,11 @@ function heroTodo(state, plan) {
 // Bandeau « Tes ressources » : ce qui sert ici (or, éclats), et en gris ce qui sert aux compagnons. Toucher une
 // ressource ouvre sa carte de glossaire.
 function resourceBand(state) {
-  const chip = (key, pic, n, word, cls = '') => `<button class="eq-res-chip ${cls}" data-gloss="${key}" title="${escapeHtml(word)}">${img(pic)}<b class="num">${formatNumber(n)}</b><small>${word}</small></button>`;
-  return `<div class="eq-res" role="group" aria-label="Tes ressources"><span class="eq-res-title">Tes ressources</span>
-    ${chip('gold', 'coin', state.gold, 'Or · améliorer')}${chip('shards', 'icon_shard', state.materials.shards, 'Éclats · renforcer')}
-    <span class="eq-res-other">${chip('grimoire', 'icon_grimoire', state.materials.grimoire ?? 0, 'Grimoires', 'dim')}${chip('ascension', 'icon_ascension', state.materials.ascension ?? 0, 'Pierres d\'éveil', 'dim')}<small class="eq-res-note">pour les compagnons</small></span></div>`;
+  // v10.4 : icône et nombre seulement (le mot est au survol et dans la carte de glossaire).
+  const chip = (key, pic, n, word, cls = '') => `<button class="eq-res-chip ${cls}" data-gloss="${key}" title="${escapeHtml(word)}" aria-label="${escapeHtml(word)}">${img(pic)}<b class="num">${formatNumber(n)}</b></button>`;
+  return `<div class="eq-res" role="group" aria-label="Tes ressources">
+    ${chip('gold', 'coin', state.gold, 'Or : améliorer')}${chip('shards', 'icon_shard', state.materials.shards, 'Éclats : renforcer')}
+    ${chip('grimoire', 'icon_grimoire', state.materials.grimoire ?? 0, 'Grimoires : pour les compagnons', 'dim')}${chip('ascension', 'icon_ascension', state.materials.ascension ?? 0, 'Pierres d\'éveil : pour les compagnons', 'dim')}</div>`;
 }
 
 // Raccourcis du Bastion (partie 10) : chantiers visibles et accessibles depuis l'équipement.
@@ -73,8 +74,8 @@ function bastionShortcuts(state) {
 
 // Colonne des personnages : portrait, nombre de places, ▲ si un meilleur objet attend, « ! » si une amélioration est possible.
 function whoColumn(ui, state, ctx) {
-  const card = (id, name, art, slots, ups, todo) => `<button class="eq-who${ctx.who === id ? ' on' : ''}" data-action="gear-who" data-value="${id}" aria-pressed="${ctx.who === id}" title="${escapeHtml(name)}">
-      <span class="eq-who-art">${art}</span><b>${escapeHtml(name)}</b><small>${slots} places</small>
+  const card = (id, name, art, slots, ups, todo) => `<button class="eq-who${ctx.who === id ? ' on' : ''}" data-action="gear-who" data-value="${id}" aria-pressed="${ctx.who === id}" title="${escapeHtml(name)}" data-slots="${slots}">
+      <span class="eq-who-art">${art}</span><b>${escapeHtml(name)}</b>
       ${ups ? '<span class="eq-who-up" title="Un meilleur objet attend dans le sac">▲</span>' : ''}${todo ? '<span class="eq-who-todo" title="Une amélioration est possible">!</span>' : ''}</button>`;
   return `<div class="eq-whos" role="group" aria-label="Personnage">${card('hero', 'Héros', animCanvas('hero', 34, 34, 2), Object.keys(HERO_SLOTS).length, ctx.plan.changes.length, heroTodo(state, ctx.plan))}
     ${ctx.team.map((c) => card(c.id, c.name, companionStill(c), 3, bestGearFor(state, c.id).length, unitTodo(state, c))).join('')}</div>`;
@@ -93,11 +94,11 @@ function slotBtn(ui, state, ctx, slot) {
   if (!item) {
     return `<button class="eq-slot empty${on ? ' on' : ''}" data-action="eq-slot" data-value="${slot}" aria-pressed="${on}" title="${escapeHtml(label)} : place vide">
       <span class="eq-slot-box">${img(slotIconName(slot))}${up ? '<span class="eq-up" title="Un objet du sac va ici">▲</span>' : '<span class="eq-add">+</span>'}</span>
-      <small class="eq-slot-place">${escapeHtml(label)}</small><small class="eq-slot-name muted">Vide</small></button>`;
+      <small class="eq-slot-place">${escapeHtml(label)}</small></button>`;
   }
-  return `<button class="eq-slot r-${item.rarity}${on ? ' on' : ''}" data-action="eq-slot" data-value="${slot}" data-id="${item.id}" aria-pressed="${on}" title="${escapeHtml(label)} : ${escapeHtml(item.name)}">
-    <span class="eq-slot-box"><img class="px" src="${itemIconUrl(item)}" alt="">${item.upgrades ? `<span class="eq-plusn">+${item.upgrades}</span>` : ''}${up ? '<span class="eq-up" title="Mieux dans ton sac">▲</span>' : ''}</span>
-    <small class="eq-slot-place">${escapeHtml(label)}</small><small class="eq-slot-name">${escapeHtml(shortName(item))} · ${rarityLabel(item.rarity)}</small></button>`;
+  return `<button class="eq-slot r-${item.rarity}${on ? ' on' : ''}" data-action="eq-slot" data-value="${slot}" data-id="${item.id}" aria-pressed="${on}" title="${escapeHtml(label)} : ${escapeHtml(item.name)} · ${rarityLabel(item.rarity)}">
+    <span class="eq-slot-box"><img class="px eq-ico" src="${itemIconUrl(item, 48)}" alt="">${item.upgrades ? `<span class="eq-plusn">+${item.upgrades}</span>` : ''}${up ? '<span class="eq-up" title="Mieux dans ton sac">▲</span>' : ''}</span>
+    <small class="eq-slot-name">${escapeHtml(shortName(item))}</small></button>`;
 }
 
 // Les 4 tuiles de statistiques. Héros : Dégâts/s, Vie, Vitesse, Critique ; compagnon : Attaque, PV, Défense, Recharge.
@@ -138,7 +139,7 @@ function tiles(ui, state, ctx) {
 }
 
 // Le personnage en grand : illustration, niveau dans un hexagone, puissance juste en dessous.
-function figure(ui, state, ctx, faded = false) {
+function figure(ui, state, ctx, faded = false, extra = '') {
   const { unit, st, sel } = ctx;
   let art;
   if (unit) {
@@ -154,7 +155,7 @@ function figure(ui, state, ctx, faded = false) {
   const nav = (dir, sign) => (ctx.order.length > 1 ? `<button class="eq-nav ${dir}" data-action="gear-who" data-value="${ctx.order[(i + sign + ctx.order.length) % ctx.order.length]}" aria-label="${sign < 0 ? 'Personnage précédent' : 'Personnage suivant'}">${sign < 0 ? '‹' : '›'}</button>` : '');
   return `<div class="eq-figure${faded ? ' faded' : ''}">${nav('prev', -1)}<div class="eq-art-box">${art}</div>${nav('next', 1)}
     <div class="eq-id"><span class="eq-hex" title="Niveau"><small>Niv.</small><b class="num">${level}</b></span>
-      <span class="eq-power"><small>Puissance</small><b class="num">${formatNumber(power)}</b></span></div></div>`;
+      <span class="eq-power"><small>Puissance</small><b class="num">${formatNumber(power)}</b></span>${extra}</div></div>`;
 }
 
 // Centre de l'écran : places autour du personnage, bouton vert « Équipement rapide (N ▲) », tuiles.
@@ -164,15 +165,14 @@ function stage(ui, state, ctx) {
   const half = Math.ceil(slots.length / 2);
   const n = unit ? bestGearFor(state, unit.id).length : ctx.plan.changes.length;
   const quick = n ? `<button class="btn eq-quick" data-action="eq-quick" data-value="${ctx.who}">Équipement rapide (${n} ▲)</button>`
-    : '<span class="eq-quick-none muted">Rien de mieux dans ton sac pour l\'instant.</span>';
+    : '<span class="eq-quick-none muted" title="Rien de mieux dans ton sac pour l\'instant.">✓ Le meilleur est porté</span>';
   let middle;
   if (ctx.tab === 'skills' && unit) {
     const own = state.companions.owned[unit.id];
     middle = `<div class="eq-doll eq-skillring">${figure(ui, state, ctx, true)}${skillIcons(ui, state, unit, own)}</div>`;
   } else {
     middle = `<div class="eq-doll n${slots.length}"><div class="eq-slots left">${slots.slice(0, half).map((s) => slotBtn(ui, state, ctx, s)).join('')}</div>
-      ${figure(ui, state, ctx)}<div class="eq-slots right">${slots.slice(half).map((s) => slotBtn(ui, state, ctx, s)).join('')}</div></div>
-      <div class="eq-quick-row">${quick}</div>`;
+      ${figure(ui, state, ctx, false, `<span class="eq-quick-row">${quick}</span>`)}<div class="eq-slots right">${slots.slice(half).map((s) => slotBtn(ui, state, ctx, s)).join('')}</div></div>`;
   }
   return `<section class="eq-stage" style="background-image:linear-gradient(#0c1426d9,#0c1426f2),url('assets/ui/art98/guild_hall.png')" aria-label="${escapeHtml(unit ? unit.name : 'Héros')}">${middle}${tiles(ui, state, ctx)}</section>`;
 }
@@ -220,7 +220,8 @@ function overviewSheet(ui, state, ctx) {
         ${line('icon_bag', `Équipement : ${worn}/${Object.keys(HERO_SLOTS).length} places`, n ? `<span class="good">${n} ▲ à équiper depuis ton sac</span>` : 'Rien de mieux dans ton sac.', go('gear'))}
         ${line('icon_anvil', 'Renforcement', top ? `<span class="good">${escapeHtml(top.item.name)} +${top.preview.level} → +${top.preview.level + 1} : ${gainsPower(top) ? `${pctText(top.gainPct)} de puissance` : escapeHtml(statGainText(top.preview))}</span>` : 'Aucun renforcement payable pour l\'instant.', top ? `<button class="btn small" data-action="eq-slot" data-value="${top.slot}" data-id="${top.item.id}">Voir ›</button>` : go('gear'))}
         ${line('icon_upgrade', 'Améliorations', 'Dépense ton or pour monter Dégâts, Vie et le reste.', '<button class="btn small" data-action="open-tab" data-value="upgrades">Y aller ›</button>')}
-        ${line('skill_quick', 'Compétences', 'Les sorts que ton héros lance tout seul.', '<button class="btn small" data-action="open-tab" data-value="skills">Y aller ›</button>')}</section>`);
+        ${line('skill_quick', 'Compétences', 'Les sorts que ton héros lance tout seul.', '<button class="btn small" data-action="open-tab" data-value="skills">Y aller ›</button>')}</section>
+      ${bastionShortcuts(state)}`);
   }
   const own = state.companions.owned[unit.id];
   const lv = unitLevel(state, unit.id);
@@ -276,7 +277,7 @@ function starsSheet(ui, state, ctx) {
 function skillsSheet(ui, state, ctx) {
   const c = ctx.unit;
   const own = state.companions.owned[c.id] ?? { stars: 1, level: 1 };
-  const kind = ui.view.skillPop;
+  const kind = (ui.view.skillPop ??= 'active'); // v10.4 : la fiche montre d'emblée une compétence
   const copies = own.stars ?? 1;
   const blocked = kind === 'ultimate' && copies < ULT_UNLOCK_COPIES && skillLevels(own).ultimate >= 5
     ? `<button class="eq-block" data-action="eq-tab" data-value="stars">Niveaux 6 à 10 de l'ultime : il faut la ${ULT_UNLOCK_COPIES}e copie ›</button>` : '';
@@ -301,7 +302,7 @@ function bagSection(ui, state, ctx) {
     const up = !worn && (unit ? ctx.unitIds.has(i.id) : ctx.gains.get(i.id)?.up);
     return `<button class="eq-card r-${i.rarity}${i.id === ctx.sel.item?.id ? ' selected' : ''}${usable ? '' : ' dim'}${worn ? ' worn' : ''}${itemBase(i.baseId).signature ? ' signature' : ''}" data-action="select-item" data-id="${i.id}"
       title="${escapeHtml(i.name)}${i.upgrades ? ` +${i.upgrades}` : ''} · ${rarityLabel(i.rarity)} · niveau d'objet ${i.level}">
-      <img class="px" src="${itemIconUrl(i)}" alt="${escapeHtml(i.name)}">${i.upgrades ? `<span class="eq-plusn">+${i.upgrades}</span>` : ''}${wearer || (up ? '<span class="eq-up" title="Meilleur que l\'objet porté">▲</span>' : '')}
+      <img class="px eq-ico" src="${itemIconUrl(i, 48)}" alt="${escapeHtml(i.name)}">${i.upgrades ? `<span class="eq-plusn">+${i.upgrades}</span>` : ''}${wearer || (up ? '<span class="eq-up" title="Meilleur que l\'objet porté">▲</span>' : '')}
       ${i.locked ? `<img class="px lock" src="${icon('icon_lock', 1)}" alt="Verrouillé">` : ''}${i.set && setById(i.set) ? `<img class="px set-ico" src="${icon(`set_${i.set}`, 1)}" alt="" title="Ensemble : ${escapeHtml(setById(i.set).name)}">` : ''}
       <small class="eq-card-lvl">${usable ? `Niv. ${i.level}` : escapeHtml(classLabel(itemClass(state, i)))}</small></button>`;
   };
@@ -528,6 +529,13 @@ export default {
   // Téléphone : à l'ouverture de la feuille du bas, les places remontent en haut du panneau et la feuille s'arrête
   // juste dessous : les places restent visibles au-dessus de la fiche (sauf fenêtre trop basse : la fiche d'abord).
   afterRender(ui, body) {
+    // v10.4 (partie 7) : la rangée des personnages dépasse → ombre au bord droit (elle défile au doigt).
+    const whos = body.querySelector('.eq-top > .eq-whos');
+    if (whos) {
+      const edge = () => whos.classList.toggle('more', whos.scrollLeft + whos.clientWidth < whos.scrollWidth - 2);
+      edge();
+      if (!whos.dataset.edge) { whos.dataset.edge = '1'; whos.addEventListener('scroll', edge, { passive: true }); }
+    }
     const pop = body.querySelector('.eq-pop');
     if (!pop) { ui.view.eqPopKey = null; return; }
     const slots = [...body.querySelectorAll('.eq-doll .eq-slot')];
@@ -595,9 +603,12 @@ export default {
       ${!v.bagMenu ? '' : `<div class="equip-for" role="group" aria-label="Équiper pour"><span>Équiper pour :</span>${['attack', 'survival', 'fortune'].map((p) => `<button class="btn small${state.ui.gearProfile === p ? ' active' : ''}" data-action="equip-for" data-value="${p}" title="${PROFILE_TIPS[p]}">${img(PROFILE_ICONS[p])} ${GEAR_PROFILES[p].label}</button>`).join('')}</div>
         <div class="card bag-menu">${fold(ui, 'inv-builds', 'Builds', () => buildsBar(ui, state), { extra: state.loadouts[Math.max(0, v.buildSel ?? 0)]?.name ?? '' })}
         ${fold(ui, 'bag-settings', 'Réglages du sac', () => bagSettings(ui, state))}</div>`}`;
-    return `<div class="eq${narrow ? ' eq-phone' : ''} eq-on-${tab} eq-who-${unit ? 'unit' : 'hero'}">${resourceBand(state)}${tabs}
-      <div class="eq-main"><div class="eq-side">${whoColumn(ui, state, ctx)}${bastionShortcuts(state)}</div>${stage(ui, state, ctx)}${sheetHtml}</div>
-      <div class="card eq-bag">${bagHead}${invTab === 'stash' ? stashView(ui, state) : bagSection(ui, state, ctx)}</div>
-      ${setsBanner(ui, state)}</div>`;
+    // v10.4 (partie 1) : gabarit de page — bandeau (ressources, personnages, onglets) | personnage et sac | fiche.
+    return `<div class="eq pg${narrow ? ' eq-phone' : ''} eq-on-${tab} eq-who-${unit ? 'unit' : 'hero'}">
+      <div class="pg-top eq-top">${whoColumn(ui, state, ctx)}${resourceBand(state)}${tabs}</div>
+      <div class="pg-main eq-pgmain"><div class="eq-pgin">${stage(ui, state, ctx)}
+        <div class="eq-pgbag${tab === 'stars' || tab === 'skills' ? ' eq-pgbag-off' : ''}"><div class="card eq-bag">${bagHead}${invTab === 'stash' ? stashView(ui, state) : bagSection(ui, state, ctx)}</div>
+        ${setsBanner(ui, state)}</div></div></div>
+      ${narrow ? sheetHtml : `<div class="pg-side eq-side-sheet">${sheetHtml}</div>`}</div>`;
   },
 };

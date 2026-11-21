@@ -7,7 +7,7 @@
 //    `.pg-main` (contenu en grand), `.pg-side` (fiche à droite, 420 px au moins). Rien d'autre à écrire.
 // 4. Option : `.pg.pg-wide` (fiche plus large, 40 %), `.pg-card` (carte sombre), `.pg-hint` (aide repliée « ? »).
 // 5. Téléphone (≤ 600 px) : une colonne ; `.pg-side` devient une feuille du bas (`.pg-side.is-open` pour la montrer,
-//    `.pg-side-close` pour la fermer) ; la mini-fenêtre est cachée (la page prend tout l'écran).
+//    `.pg-side-close` pour la fermer ; `.pg-side.pg-inline` la laisse dans la page) ; pas de mini-fenêtre.
 // 6. Tester `pageActive(ui)` dans un panneau pour adapter son rendu (ex. icônes ×3). Petite fenêtre (mini, barre) :
 //    jamais de page, le panneau latéral habituel reste.
 import { isPhone } from './prefs.js';
@@ -98,7 +98,7 @@ export function syncPage(ui) {
     // Le bandeau du haut (.pg-top) descend jusqu'au bas de la mini-fenêtre : le contenu commence dessous.
     const body = document.getElementById('panel-body');
     const box = document.getElementById('page-mini');
-    if (body && box && box.offsetParent !== null) {
+    if (body && box && box.getClientRects().length) { // (position fixe : offsetParent vaut toujours null)
       const pad = parseFloat(getComputedStyle(body).paddingTop) || 0;
       const need = box.getBoundingClientRect().bottom + 6 - (body.getBoundingClientRect().top + pad);
       root.style.setProperty('--pg-top-h', `${Math.max(0, Math.round(need))}px`);

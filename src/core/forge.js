@@ -194,6 +194,33 @@ export function upgradeRanking(state, balance = BALANCE) {
 // petit gain que l'écran écrit) ? Sinon l'écran nomme la statistique gagnée au lieu de « 0 % de puissance ».
 export const gainsPower = (row) => !row.preview.atMax && row.gainPct >= 0.05;
 
+// v10.4 (partie 2) : sous 0,5 % de Puissance, un renfort est « presque sans effet » et l'écran le dit franchement.
+export const WEAK_GAIN_PCT = 0.5;
+// Gain réel du prochain renfort d'un objet (en % de Puissance), ou null si le héros ne peut pas le porter ou s'il est au max.
+export function upgradeGainPct(preview) {
+  if (!preview || preview.atMax || !preview.power || !(preview.power.before > 0)) return null;
+  return (preview.power.after / preview.power.before - 1) * 100;
+}
+export const weakUpgrade = (preview) => { const g = upgradeGainPct(preview); return g !== null && g < WEAK_GAIN_PCT; };
+
+// v10.4 (partie 2) : ce que l'atelier 2 propose. Jamais un renfort à +0 % :
+// 1. le renfort payable au meilleur gain réel (≥ 0,5 % de Puissance) ;
+// 2. sinon, « Remettre au niveau de ton étape » l'objet porté le plus en retard (c'est son niveau qui bride le renfort) ;
+// 3. sinon, un renfort payable qui nomme une statistique hors Puissance (Coup critique… : règle de la v10.3.1) ;
+// 4. sinon rien (le bouton mène à Fabriquer ou Fusionner).
+// → { kind: 'upgrade' | 'sharpen' | 'stat' | 'none', row?, item?, slot?, cost?, canPay?, ranking }
+export function upgradeAdvice(state, balance = BALANCE) {
+  const ranking = upgradeRanking(state, balance);
+  const real = ranking.find((r) => r.preview.canPay && !r.preview.atMax && r.gainPct >= WEAK_GAIN_PCT);
+  if (real) return { kind: 'upgrade', row: real, ranking };
+  const lag = Object.entries(state.equipment ?? {}).filter(([, i]) => i && sharpenCost(state, i, balance) > 0)
+    .map(([slot, item]) => ({ slot, item, cost: sharpenCost(state, item, balance) })).sort((a, b) => a.item.level - b.item.level)[0];
+  if (lag) return { kind: 'sharpen', ...lag, canPay: state.materials.shards >= lag.cost, ranking };
+  const stat = ranking.find((r) => r.preview.canPay && !r.preview.atMax && !gainsPower(r));
+  if (stat) return { kind: 'stat', row: stat, ranking };
+  return { kind: 'none', ranking };
+}
+
 // Renvoie le nom de la statistique améliorée, ou null. `_rng` n'est plus consulté (gardé pour les appelants).
 export function upgradeItem(state, id, _rng = null, balance = BALANCE) {
   const item = findItem(state, id);

@@ -439,3 +439,7 @@ PATTERNS.unshift(...patterns1031Arena(lookup));
 import { EXACT_1031_CHEST, patterns1031Chest } from './ko-1031-chest.js';
 for (const [k, v] of Object.entries(EXACT_1031_CHEST)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1031Chest());
+// v10.4 (parties 1 et 2) : pages plein écran Personnage et Forge, gain réel des renforts (./ko-1040-pages.js).
+import { EXACT_1040_PAGES, patterns1040Pages } from './ko-1040-pages.js';
+for (const [k, v] of Object.entries(EXACT_1040_PAGES)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.push(...patterns1040Pages(lookup));

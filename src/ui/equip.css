@@ -428,3 +428,202 @@ button.eq-block:hover { background: #5c1a1e; } div.eq-block { cursor: default; }
 .uc-dia { font-size: 11px; letter-spacing: 1px; color: var(--gold); line-height: 1; } .uc-dia i { font-style: normal; color: #3a4a70; }
 .uc-frag { display: flex; align-items: center; gap: 4px; width: 80%; font-size: 10.5px; line-height: 1; }
 .uc-frag-bar { flex: 1; height: 5px; border-radius: 3px; background: #0b1324; border: 1px solid #3a4a70; }
+
+/* ======================================================================================================================
+   v10.4 (parties 1 et 2) : Personnage en page plein écran — bandeau (personnages, ressources, onglets) | personnage en
+   grand et sac | fiche à droite. Icônes d'objets ×3 en entier (48 px), fond à la couleur de la rareté, noms sur une ligne.
+   ====================================================================================================================== */
+/* Partout (page, petite fenêtre, téléphone) : bandeau, personnage, fiche, puis le sac. */
+.eq-pgmain, .eq-pgin { display: contents; }
+.eq > .eq-top { order: 0; } .eq .eq-stage { order: 1; } .eq > .eq-sheet, .eq > .pg-side { order: 2; } .eq .eq-pgbag { order: 3; } .eq > .eq-pop { order: 4; }
+.eq-pgbag { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.eq-top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.eq-top > .eq-whos { flex-direction: row; flex: 1 1 auto; max-width: 100%; min-width: 0; overflow-x: auto; scrollbar-width: none; padding: 6px 6px 2px 2px; gap: 6px; }
+.eq-top > .eq-whos::-webkit-scrollbar { display: none; }
+/* Rangée qui dépasse : une ombre au bord dit qu'il y a d'autres personnages (partie 7). */
+.eq-top > .eq-whos.more { mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); }
+.eq-top .eq-who { flex: 0 0 auto; flex-direction: row; gap: 6px; padding: 4px 12px 4px 5px; border-radius: 12px; }
+.eq-top .eq-who-art { width: 40px; height: 40px; } .eq-top .eq-who-art canvas, .eq-top .eq-who-art img { max-width: 40px; max-height: 40px; }
+.eq-top .eq-who b { font-size: 13px; white-space: nowrap; max-width: none; }
+.eq-top > .eq-res { border: 0; background: none; padding: 0; gap: 6px; flex-wrap: nowrap; }
+.eq-top .eq-res-chip { padding: 4px 10px 4px 6px; gap: 6px; } .eq-top .eq-res-chip img { width: 24px; height: 24px; } .eq-top .eq-res-chip b { font-size: 15px; }
+.eq-top .eq-res-chip.dim { padding: 3px 7px; } .eq-top .eq-res-chip.dim img { width: 18px; height: 18px; } .eq-top .eq-res-chip.dim b { font-size: 12.5px; }
+.eq-top > .eq-tabs { flex: 1 0 100%; border-bottom: 1px solid rgba(255, 255, 255, .1); }
+.eq-top .eq-tab { font-size: 14px; padding: 6px 14px 6px; }
+
+/* Places : grande case, icône 48 px (×3 en entier), centrée, fond à la couleur de la rareté ; nom sur une ligne. */
+.eq-slot-box { width: 76px; height: 76px; background: radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--rarity, #4a5f92) 62%, #1c2744), color-mix(in srgb, var(--rarity, #4a5f92) 22%, #0c1222) 78%); }
+.eq-slot-box > img.eq-ico, .eq-card > img.eq-ico, .eq-tile > img.eq-ico { width: 48px !important; height: 48px !important; image-rendering: pixelated; object-fit: contain; }
+.eq-slot.empty .eq-slot-box { background: #0e1830cc; }
+.eq-slot { width: 104px; gap: 3px; }
+.eq-slot-name { min-height: 0; max-width: 104px; white-space: nowrap; font-size: 12.5px; text-wrap: nowrap; }
+.eq-slot-place { font-size: 12px; }
+.eq-doll { grid-template-columns: 108px minmax(0, 1fr) 108px; }
+.eq-quick-none { font-size: 12.5px; }
+/* Sac : cartes à grande icône. */
+.eq-bag-grid { grid-template-columns: repeat(auto-fill, minmax(66px, 1fr)); }
+.eq-card { padding: 0 0 14px; background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--rarity, #4a5f92) 60%, #18223c), color-mix(in srgb, var(--rarity, #4a5f92) 18%, #0d1426) 85%); }
+/* Fiche : icône ×3, nom d'une ligne, Changer / Retirer près du cadenas. */
+.eq-tile { width: 60px; height: 60px; background: radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--rarity, #4a5f92) 58%, #1c2744), color-mix(in srgb, var(--rarity, #4a5f92) 20%, #0c1222) 80%); }
+.eq-sheet .eq-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 16.5px; }
+.eq-head-acts { display: flex; flex-direction: column; gap: 4px; align-items: stretch; flex: none; }
+.eq-head-acts .btn.small { min-height: 28px; padding: 2px 10px; }
+.eq-head-acts .eq-lock { align-self: flex-end; }
+.eq-sheet .eq-sh-head { align-items: center; }
+/* Partie 2 : renfort presque sans effet, dit franchement, avec mieux à faire. */
+.eq-weak { padding: 6px 9px; border-radius: 8px; border: 1px solid #b8862c; background: #3a2a0c; color: #ffe2a6; font-size: 13px; line-height: 1.3; }
+.eq-weak b { color: #ffd36a; }
+.eq-row.pw.weak { background: #1b1f2c; border-color: #3a4258; }
+.eq-reinf.is-weak .btn.eq-do[data-action="upgrade-item"] { min-height: 30px; font-size: 13px; }
+/* « ? » : l'aide secondaire repliée (règle du renforcement). */
+.eq-sec h4 { position: relative; }
+.eq-reinf { position: relative; }
+.eq-q { position: absolute; top: 4px; right: 0; z-index: 3; }
+.eq-q > summary { list-style: none; width: 24px; height: 24px; border-radius: 50%; border: 1px solid #5c7ab8; background: #18284a; color: #cfe0ff; font-weight: 900; font-size: 13px; line-height: 22px; text-align: center; cursor: pointer; }
+.eq-q > summary::-webkit-details-marker { display: none; }
+.eq-q[open] > .eq-rule { position: absolute; right: 0; top: 28px; width: min(300px, 80vw); padding: 8px 10px; border-radius: 8px; background: #0b1324; border: 1px solid #3a5288; box-shadow: 0 6px 16px #000a; }
+.eq-tools .fold-head { font-size: 13px; }
+
+/* ---------- Page plein écran (PC) ---------- */
+#app.page-ui:not(.page-narrow) .eq .eq-pgmain { display: block; }
+#app.page-ui:not(.page-narrow) .eq .eq-pgin { display: flex; flex-direction: column; gap: 10px; }
+@container pgmain (min-width: 780px) {
+  .eq:not(.eq-on-stars):not(.eq-on-skills) .eq-pgin { display: grid !important; grid-template-columns: minmax(520px, 1fr) minmax(260px, .62fr); align-items: start; }
+  .eq .eq-pgbag { max-height: 100%; }
+}
+#app.page-ui:not(.page-narrow) .eq-top { align-content: center; }
+#app.page-ui:not(.page-narrow) .eq-stage { min-height: 0; padding: 8px 10px; gap: 8px; background-size: cover; }
+#app.page-ui:not(.page-narrow) .eq-art-box { height: 312px; }
+#app.page-ui:not(.page-narrow) .eq-art-box .eq-art { max-height: 312px; }
+#app.page-ui:not(.page-narrow) .eq-art-box:not(:has(.eq-art)) .eq-live canvas { width: 288px; height: 288px; }
+#app.page-ui:not(.page-narrow) .eq-nav { top: 130px; }
+#app.page-ui:not(.page-narrow) .eq-slots { gap: 10px; }
+#app.page-ui:not(.page-narrow) .eq-side-sheet > .eq-sheet { min-height: 100%; box-sizing: border-box; contain: none; overflow: visible; }
+#app.page-ui:not(.page-narrow) .eq-side-sheet .eq-strip { display: none; }
+#app.page-ui:not(.page-narrow) .eq-skillring { min-height: 360px; }
+#app.page-ui:not(.page-narrow) .eq-skillring .eq-art-box { height: 340px; } #app.page-ui:not(.page-narrow) .eq-skillring .eq-art-box .eq-art { max-height: 340px; }
+#app.page-ui:not(.page-narrow) .eq-skillring .up-skill.k-ultimate { top: 230px; }
+@media (max-height: 820px) {
+  #app.page-ui:not(.page-narrow) .eq-art-box { height: 300px; } #app.page-ui:not(.page-narrow) .eq-art-box .eq-art { max-height: 300px; }
+  #app.page-ui:not(.page-narrow) .eq-slots { gap: 4px; }
+  #app.page-ui:not(.page-narrow) .eq-stat { padding: 3px 6px; }
+}
+/* Téléphone : la rangée des personnages défile (ombre au bord), places en une rangée sous le personnage. */
+#app.page-ui.page-narrow .eq-top { gap: 4px 6px; }
+#app.page-ui.page-narrow .eq-top > .eq-whos { flex-basis: 100%; }
+#app.page-ui.page-narrow .eq-top .eq-who { padding: 3px 9px 3px 4px; } #app.page-ui.page-narrow .eq-top .eq-who-art { width: 32px; height: 32px; }
+#app.page-ui.page-narrow .eq-top .eq-who-art canvas, #app.page-ui.page-narrow .eq-top .eq-who-art img { max-width: 32px; max-height: 32px; }
+#app.page-ui.page-narrow .eq-top .eq-res-chip { padding: 3px 8px 3px 5px; } #app.page-ui.page-narrow .eq-top .eq-res-chip img { width: 20px; height: 20px; }
+@container (max-width: 470px) {
+  .eq-slot { width: auto; min-width: 0; }
+  .eq-slot-box { width: 100%; height: auto; }
+  .eq-slot-box > img.eq-ico { width: 72% !important; height: 72% !important; max-width: 48px; max-height: 48px; }
+  .eq-slot-name { display: none; }
+  .eq-doll { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+/* L'Équipement rapide sous la puissance, dans la colonne du personnage. */
+.eq-id .eq-quick-row { min-height: 0; margin-top: 4px; }
+#app.page-ui:not(.page-narrow) .eq-id { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 4px 10px; margin-top: -26px; }
+#app.page-ui:not(.page-narrow) .eq-id .eq-quick-row { flex-basis: 100%; margin-top: 2px; }
+/* Page sur PC : les portraits du bandeau remplacent les flèches ‹ › ; le personnage grandit avec la fenêtre. */
+#app.page-ui:not(.page-narrow) .eq-figure > .eq-nav { display: none; }
+@media (min-height: 821px) {
+  #app.page-ui:not(.page-narrow) .eq-art-box { height: clamp(312px, 40vh, 400px); }
+  #app.page-ui:not(.page-narrow) .eq-art-box .eq-art { max-height: clamp(312px, 40vh, 400px); }
+}
+/* Étoiles et Compétences : le sac n'y sert pas (page PC) ; le personnage prend toute la largeur. */
+#app.page-ui:not(.page-narrow) .eq .eq-pgbag-off { display: none; }
+#app.page-ui:not(.page-narrow) .eq-on-stars .eq-pgin, #app.page-ui:not(.page-narrow) .eq-on-skills .eq-pgin { display: flex !important; }
+#app.page-ui:not(.page-narrow) .eq-who-unit .eq-stats-row { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+#app.page-ui:not(.page-narrow) .eq-skillring .up-skill { width: 150px; }
+#app.page-ui:not(.page-narrow) .eq-skillring .up-skill.k-passive { left: 12px; top: 20px; }
+#app.page-ui:not(.page-narrow) .eq-skillring .up-skill.k-active { right: 12px; top: 20px; }
+#app.page-ui:not(.page-narrow) .eq-skillring .up-skill.k-ultimate { top: auto; bottom: 6px; left: auto; right: 12px; transform: none; }
+
+/* ======================================================================================================================
+   v10.4 (partie 2) : Forge en page — les 4 ateliers en grand (2 × 2, en boucle), schémas en icônes ×3, boutons dorés,
+   ligne verte « maintenant » en évidence ; le détail de l'atelier choisi (fusion détaillée…) à droite, sans défiler.
+   ====================================================================================================================== */
+.fg > .fg-top { order: 0; } .fg > .fg-main { order: 1; } .fg > .fg-side { order: 2; }
+.fg-top > .eq-res { border: 0; background: none; padding: 0; }
+.fg-top .eq-res-chip { padding: 4px 10px 4px 6px; gap: 6px; } .fg-top .eq-res-chip img { width: 24px; height: 24px; } .fg-top .eq-res-chip b { font-size: 15px; }
+/* Schémas : icônes ×3 (48 px). */
+.fg-diagram { min-height: 64px; gap: 6px; }
+.fg-diagram > img { width: 40px; height: 40px; }
+.fg-it { width: 56px; height: 56px; border-width: 3px; border-radius: 10px; }
+.fg-it img { width: 48px; height: 48px; }
+.fg-it em { font-size: 12px; line-height: 15px; top: -8px; right: -8px; }
+.fg-five { grid-template-columns: repeat(3, 15px); gap: 3px; } .fg-five s { width: 15px; height: 15px; }
+.fg-diagram > i, .fg-diagram > b { font-size: 20px; }
+/* « Maintenant » : une pastille verte bien visible. */
+.fg-now.good { padding: 6px 9px; border-radius: 9px; background: linear-gradient(90deg, #12381f, #0f2a1a); border: 1px solid #3fae63; color: #9ff0b4; font-size: 13px; box-shadow: 0 0 10px -4px #3fae63; }
+.fg-now.good .fg-go { font-style: normal; color: #63e08a; }
+.fg-now.muted { padding: 6px 2px; }
+.fg-step .btn.btn-gold.fg-btn { min-height: 38px; font-size: 14.5px; }
+
+/* Page plein écran (PC) */
+#app.page-ui:not(.page-narrow) .fg .fg-main { display: flex; flex-direction: column; }
+#app.page-ui:not(.page-narrow) .fg-loop { flex: 1; display: grid; gap: 8px; align-items: stretch; min-height: 0;
+  grid-template-columns: minmax(0, 1fr) 26px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) 20px minmax(0, 1fr);
+  grid-template-areas: "s1 a1 s2" ". . a2" "s4 a3 s3"; }
+#app.page-ui:not(.page-narrow) .fg-loop > .fg-step:nth-of-type(1) { grid-area: s1; } #app.page-ui:not(.page-narrow) .fg-loop > .fg-step:nth-of-type(2) { grid-area: s2; }
+#app.page-ui:not(.page-narrow) .fg-loop > .fg-step:nth-of-type(3) { grid-area: s3; } #app.page-ui:not(.page-narrow) .fg-loop > .fg-step:nth-of-type(4) { grid-area: s4; }
+#app.page-ui:not(.page-narrow) .fg-loop > .fg-arrow:nth-of-type(1) { grid-area: a1; }
+#app.page-ui:not(.page-narrow) .fg-loop > .fg-arrow:nth-of-type(2) { grid-area: a2; justify-self: center; transform: rotate(90deg); display: block; line-height: 1; }
+#app.page-ui:not(.page-narrow) .fg-loop > .fg-arrow:nth-of-type(3) { grid-area: a3; transform: rotate(180deg); display: block; }
+#app.page-ui:not(.page-narrow) .fg-step { padding: 10px 12px; gap: 7px; justify-content: space-between; }
+#app.page-ui:not(.page-narrow) .fg-step-head b { font-size: 17px; } #app.page-ui:not(.page-narrow) .fg-num { width: 28px; height: 28px; font-size: 15px; }
+#app.page-ui:not(.page-narrow) .fg-rule { flex: 0 0 auto; font-size: 12.5px; }
+#app.page-ui:not(.page-narrow) .fg-side { display: flex; flex-direction: column; }
+#app.page-ui:not(.page-narrow) .fg-side > .card, #app.page-ui:not(.page-narrow) .fg-side > .fg-body { flex: 1 0 auto; }
+/* Atelier 2 à droite : la fiche de l'objet choisi d'abord (Renforcer en vue), la liste dessous. */
+#app.page-ui:not(.page-narrow) .fg-side .fg-up { display: flex; flex-direction: column; }
+#app.page-ui:not(.page-narrow) .fg-side .fg-up > .fg-sheet { order: -1; }
+/* Fusion détaillée à droite, en une colonne serrée. */
+#app.page-ui:not(.page-narrow) .fg-side .fg-fusion-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+#app.page-ui:not(.page-narrow) .fg-side .fg-groups { gap: 4px; }
+#app.page-ui:not(.page-narrow) .fg-side .fg-group { padding: 3px 7px; font-size: 12.5px; }
+#app.page-ui:not(.page-narrow) .fg-side .fg-cases .eq-tile { width: 54px; height: 54px; }
+#app.page-ui:not(.page-narrow) .fg-side .fg-cases .eq-tile > img.eq-ico { width: 48px !important; height: 48px !important; margin-bottom: 6px; }
+#app.page-ui:not(.page-narrow) .fg-side .fg-gets .eq-stats li { font-size: 12.5px; }
+#app.page-ui:not(.page-narrow) .fg-side .fg-tiers { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+#app.page-ui:not(.page-narrow) .fg-side .fg-slots { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+/* Vignettes d'objets à icône 48 px : cases assez grandes partout (Forge, Changer, fusion). */
+.fg-tiles .eq-tile { width: 56px; height: 56px; }
+.fg-up-row .eq-tile { width: 54px; height: 54px; }
+.fg-cases .eq-tile { width: 54px; height: 54px; } .fg-cases .eq-tile > img.eq-ico { margin-bottom: 8px; }
+.eq-change-grid { grid-template-columns: repeat(auto-fill, 60px); }
+.fg-body h4 { position: relative; padding-right: 28px; }
+.fg-gauge { position: relative; }
+/* Fenêtre basse : la phrase de règle de chaque atelier passe au survol du schéma (les ateliers et leurs boutons tiennent). */
+@media (max-height: 820px) { #app.page-ui:not(.page-narrow) .fg-rule { display: none; } }
+#app.page-ui:not(.page-narrow) .fg-side .fg-group small { color: #cfe0ff; font-weight: 800; }
+#app.page-ui:not(.page-narrow) .fg-side .fg-up > * { align-self: stretch; }
+.fg-gauge .eq-q { top: auto; bottom: 0; }
+/* Grande fenêtre : les ateliers se remplissent (schéma ×4, texte plus grand) au lieu de laisser des vides. */
+#app.page-ui:not(.page-narrow) .fg-step { justify-content: space-evenly; }
+@media (min-height: 821px) and (min-width: 1400px) {
+  #app.page-ui:not(.page-narrow) .fg-diagram { min-height: 92px; gap: 10px; }
+  #app.page-ui:not(.page-narrow) .fg-it { width: 74px; height: 74px; } #app.page-ui:not(.page-narrow) .fg-it img { width: 64px; height: 64px; }
+  #app.page-ui:not(.page-narrow) .fg-diagram > img { width: 56px; height: 56px; }
+  #app.page-ui:not(.page-narrow) .fg-five { grid-template-columns: repeat(3, 20px); } #app.page-ui:not(.page-narrow) .fg-five s { width: 20px; height: 20px; }
+  #app.page-ui:not(.page-narrow) .fg-rule { font-size: 14px; } #app.page-ui:not(.page-narrow) .fg-now.good { font-size: 14px; padding: 8px 10px; }
+}
+/* Téléphone : la ligne « maintenant » sur toute la largeur, le bouton dessous (le détail reste dans la page : .pg-inline). */
+@container (max-width: 470px) {
+  .fg-step { grid-template-areas: "head diagram" "rule rule" "now now" "btn btn"; }
+  .fg-btn { width: 100% !important; }
+  .fg-it { width: 46px; height: 46px; } .fg-it img { width: 36px; height: 36px; } .fg-diagram > img { width: 30px; height: 30px; }
+  .fg-diagram { min-height: 52px; gap: 4px; }
+}
+/* La bannière de la Forge remplit le bandeau du haut (une seule illustration en tête, comme avant la page). */
+.fg-top { flex-wrap: nowrap; }
+.fg-top > .fg-top-art { flex: 1 1 0; min-width: 0; height: 64px; max-height: none !important; object-fit: cover; object-position: center 40%; border-radius: 10px; border: 1px solid rgba(255, 255, 255, .12); opacity: .9; }
+#app.page-ui:not(.page-narrow) .fg-top { align-self: stretch; align-items: stretch; }
+#app.page-ui:not(.page-narrow) .fg-top > .eq-res { align-self: center; }
+#app.page-ui:not(.page-narrow) .fg-top > .fg-top-art { height: max(64px, calc(var(--pg-top-h, 100px) - 2px)); align-self: center; }
+#app.page-ui.page-narrow .fg-top > .fg-top-art { height: 40px; }
+/* Hors page (petite fenêtre), la bannière de l'onglet est déjà en tête : pas de seconde illustration. */
+#app:not(.page-ui) .fg-top > .fg-top-art { display: none; }
+/* Téléphone : les 4 onglets du personnage tiennent sur la largeur. */
+@container (max-width: 470px) { .eq-top .eq-tab { padding: 5px 6px 4px; font-size: 12px; } .eq-top .eq-elem span { display: none; } .eq-top .eq-elem { padding: 2px 8px; } }

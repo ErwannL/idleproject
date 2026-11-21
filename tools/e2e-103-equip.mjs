@@ -90,10 +90,10 @@ for (const [w, h] of [[1116, 993], [1280, 720], [390, 844]]) {
   ok(`${tag} : les 6 places du héros sont visibles`, slots.length === 6 && slots.every(Boolean), JSON.stringify(slots));
   await page.screenshot({ path: `${out}/equip-${w}.png` });
   if (!phone) {
-    const sheet = await page.evaluate(() => { const e = document.querySelector('.eq-main > .eq-sheet'); const b = e?.getBoundingClientRect(); const s = document.querySelector('.eq-stage').getBoundingClientRect();
+    const sheet = await page.evaluate(() => { const e = document.querySelector('.eq-side-sheet > .eq-sheet'); const b = e?.getBoundingClientRect(); const s = document.querySelector('.eq-stage').getBoundingClientRect();
       return { has: Boolean(e), right: b && b.left >= s.right - 1, top: b?.top, pop: Boolean(document.querySelector('#unit-host .unit-pop, #panel-body .unit-pop')), reinforce: Boolean(e?.querySelector('[data-action="upgrade-item"]')), h: b?.height };
     });
-    const head = await visible(page, '.eq-main > .eq-sheet .eq-sh-head');
+    const head = await visible(page, '.eq-side-sheet > .eq-sheet .eq-sh-head');
     ok(`${tag} : fiche de l'objet visible à droite du personnage, sans fenêtre par-dessus`, sheet.has && sheet.right && !sheet.pop && sheet.h > 200 && head[0] === true, JSON.stringify(sheet));
     ok(`${tag} : « Renforcer » est dans la fiche`, sheet.reinforce);
   } else {
@@ -138,9 +138,9 @@ for (const [w, h] of [[1116, 993], [1280, 720], [390, 844]]) {
   if (phone) await page.evaluate(() => { __idle.ui.view.sheetOpen = null; __idle.ui.renderPanel(__idle.state); });
   await page.click('.eq-doll .eq-slot[data-value="weapon"]');
   await page.waitForSelector('.eq-sheet [data-action="upgrade-item"]:not([disabled])');
-  const sheetName = await page.evaluate(() => ({ shown: (document.querySelector('#unit-host .eq-sheet') ?? document.querySelector('.eq-main > .eq-sheet')).querySelector('.eq-name')?.textContent.trim(), full: __idle.state.equipment.weapon.name }));
+  const sheetName = await page.evaluate(() => ({ shown: (document.querySelector('#unit-host .eq-sheet') ?? document.querySelector('.eq-side-sheet > .eq-sheet')).querySelector('.eq-name')?.textContent.trim(), full: __idle.state.equipment.weapon.name }));
   ok(`${tag} : la fiche donne le nom complet de l'objet`, sheetName.shown?.startsWith(sheetName.full), JSON.stringify(sheetName));
-  const promised = await page.evaluate(() => { const root = document.querySelector('#unit-host .eq-sheet') ?? document.querySelector('.eq-main > .eq-sheet');
+  const promised = await page.evaluate(() => { const root = document.querySelector('#unit-host .eq-sheet') ?? document.querySelector('.eq-side-sheet > .eq-sheet');
     return { power: root.querySelector('.eq-row.pw b')?.textContent, stat: [...root.querySelectorAll('.eq-reinf .eq-row.chg:not(.pw)')].map((r) => [r.firstElementChild.textContent, r.querySelector('b').textContent])[0] }; });
   await page.click('.eq-sheet [data-action="upgrade-item"]');
   await page.waitForFunction((n) => (__idle.state.equipment.weapon.upgrades ?? 0) === n + 1, before.up);
@@ -161,7 +161,9 @@ for (const [w, h] of [[1116, 993], [1280, 720], [390, 844]]) {
   const banners = await page.evaluate(() => document.querySelectorAll('#panel-body .art-banner, #panel-body .forge-hero').length);
   ok(`${tag} : une seule illustration en tête de la Forge`, banners === 1, String(banners));
   if (phone) ok(`${tag} : les 4 ateliers en liste verticale`, steps.length === 4 && steps.every((s, i) => s[0] === steps[0][0] && (i === 0 || s[1] > steps[i - 1][1])), JSON.stringify(steps));
-  else ok(`${tag} : les 4 ateliers côte à côte`, steps.length === 4 && steps.every((s, i) => s[1] === steps[0][1] && (i === 0 || s[0] > steps[i - 1][0])), JSON.stringify(steps));
+  // v10.4 : page plein écran — les 4 ateliers en boucle 2 × 2 (1 → 2 en haut, 3 ← 4 en bas), tous visibles sans défiler.
+  else ok(`${tag} : les 4 ateliers en boucle 2 × 2, visibles sans défiler`, steps.length === 4 && steps[0][1] === steps[1][1] && steps[0][0] < steps[1][0]
+    && steps[2][1] === steps[3][1] && steps[2][1] > steps[1][1] && steps[3][0] < steps[2][0] && steps[2][0] === steps[1][0] && first.length === 4 && first.every(Boolean), JSON.stringify({ steps, first }));
   await page.screenshot({ path: `${out}/forge-${w}.png` });
   for (const seg of ['upgrade', 'fuse', 'craft']) {
     await page.evaluate((seg) => { __idle.ui.view.forgeSeg = seg; if (seg === 'fuse') __idle.ui.view.fuseOpen = 'weapon|epic'; __idle.ui.renderPanel(__idle.state); }, seg);
