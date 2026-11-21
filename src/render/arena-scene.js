@@ -10,9 +10,37 @@ import { BOSSES, ENEMIES } from '../data/enemies.js';
 import { enemyStats, zoneStartStage } from '../core/combat.js';
 import { SceneRenderer } from './scene.js';
 import { vfx } from './vfx.js';
+import { equippedCompanions } from '../core/companions.js';
+import { ELEMENTS, unitElement } from '../core/elements.js';
+import { spriteCanvas } from './pixel.js';
+import { SPRITES } from './sprites.js';
 
 const W = BALANCE.world;
 export const ARENA_STEP = 1 / 60;
+// v10.3.1 (6.2) : deux rangs en profondeur. « Derrière » : en retrait (plus loin de l'adversaire), plus haut, ×0,9 ;
+// dessiné AVANT « Devant ». Valeurs en pixels du jeu (avant le zoom de la scène).
+export const BACK_SCALE = 0.9;
+export const BACK_LIFT = 14;
+const ALLY_OVERLAP = 12; // l'arrière chevauche le dernier de l'avant de 12 px
+export const isBackAlly = (pos) => pos >= 3;
+export const isBackFoe = (pos) => pos % 10 >= 3;
+// Files des monstres sur deux rangs : chaque rang est une file (même règle que la campagne) ; l'arrière, plus haut et
+// plus petit, prend la suite du dernier de l'avant en le chevauchant un peu (on voit les deux). Sans avant
+// vivant, l'arrière avance et devient l'avant. Entrée : [{ pos, boss, range }] dans l'ordre ; sortie : stop et rang.
+export function foeRows(list) {
+  const P = (e) => e.pos ?? e.arenaPos ?? 0;
+  const ord = (a, b) => Math.abs((P(a) % 3) - 1) - Math.abs((P(b) % 3) - 1);
+  let front = list.filter((e) => !isBackFoe(P(e))).sort(ord), back = list.filter((e) => isBackFoe(P(e))).sort(ord);
+  if (!front.length) [front, back] = [back, []];
+  const out = new Map();
+  let prev = null;
+  for (const e of front) { const stop = prev ? prev.stop + W.enemyGap * (e.boss || prev.boss ? 2 : 1) : W.heroX + W.meleeOffset + e.range; out.set(e, { stop, back: false }); prev = { stop, boss: e.boss }; }
+  // L'arrière commence derrière le dernier de l'avant (plus loin derrière un boss), un peu plus serré qu'une file.
+  const last = front.at(-1);
+  prev = last ? { stop: out.get(last).stop - W.enemyGap * (last.boss ? 0.6 : 0.4), boss: last.boss } : null;
+  for (const e of back) { const stop = prev ? prev.stop + W.enemyGap * (e.boss || prev.boss ? 2 : 1) : W.heroX + W.meleeOffset + e.range; out.set(e, { stop, back: true }); prev = { stop, boss: e.boss }; }
+  return out;
+}
 
 // v10.3 (audit) : type que le moteur de rendu connaît pour une carte ennemie — son monstre, ou le boss du monde pour
 // un boss d'étage et pour un gardien (qui n'est pas un monstre de la campagne). Toujours un type existant.
@@ -66,9 +94,11 @@ export class ArenaScene {
     this.t = 0;
     this.fired = 0;
     this.zone = arenaZoneOf(run);
-    // Ordre d'affichage : l'avant (cases 0-2) au plus près des ennemis, l'arrière derrière lui.
-    const order = [...run.team].sort((a, b) => (a.pos < 3 ? 0 : 1) - (b.pos < 3 ? 0 : 1) || Math.abs((a.pos % 3) - 1) - Math.abs((b.pos % 3) - 1));
+    // Ordre d'affichage : l'avant (cases 0-2) puis l'arrière ; dans chaque rang, la colonne du centre au plus près.
+    const order = [...run.team].sort((a, b) => (isBackAlly(a.pos) ? 1 : 0) - (isBackAlly(b.pos) ? 1 : 0) || Math.abs((a.pos % 3) - 1) - Math.abs((b.pos % 3) - 1));
     this.allyAt = new Map(run.team.map((c) => [c.pos, c]));
+    // v10.3.1 : rang de chaque compagnon (cartes « Derrière » de la formation).
+    this.backIds = new Set(run.team.filter((c) => isBackAlly(c.pos)).map((c) => c.id));
     this.state = {
       ...real,
       ui: { ...(real.ui ?? {}), focus: false },
@@ -80,53 +110,126 @@ export class ArenaScene {
     };
     this.r = new SceneRenderer(canvas);
     this.r.soloUnit = true; // pas de héros : l'équipe de cartes seule
-    this.fit(); // cadrage : le plus grand zoom qui montre toute la mêlée (au plus ×1,6)
+    this.installRows();
     this.world = {
       time: 0, enemies: [], hero: { hp: 1, dead: false, walking: false, respawnTimer: 0 }, heroStats: {}, scroll: 0, prevScroll: 0, alpha: 1,
       buffs: { cry: 0, cryPct: 0, shield: 0, shieldPct: 0 }, events: [], attackCount: 0, counters: { damage: {} },
     };
+    this.fit(); // cadrage : le plus grand zoom qui montre toute la mêlée (au plus ×1,6)
     this.nextId = 1;
     this.foeAt = new Map();
     // v10.3 (audit) : les cartes à illustration propre (gardiens) sont dessinées ici, dans le calque des ennemis,
     // à la place du boss du moteur (même principe que render/world-boss-scene.js) ; un gardien vaincu s'efface.
     this.fading = [];
-    const draw = this.r.drawEnemies.bind(this.r);
-    this.r.drawEnemies = (ctx, world, dt) => {
-      this.viewT = ctx.getTransform?.() ?? null;
-      const all = world.enemies;
-      const own = all.filter((e) => e.arenaArt);
-      if (own.length) { world.enemies = all.filter((e) => !e.arenaArt); draw(ctx, world, dt); world.enemies = all; } else draw(ctx, world, dt);
-      for (const e of own) this.drawArt(ctx, e, dt);
-      this.fading = this.fading.filter((g) => (g.life -= dt) > 0);
-      for (const g of this.fading) this.drawArt(ctx, g.e, dt, g.life / g.max);
-    };
     this.hp = { ally: new Map(run.team.map((c) => [c.pos, c.maxHp])), foe: new Map() };
     this.spawn(run.setup.cards);
     this.gauge = new Map(run.team.map((c) => [c.pos, 0]));
     this.down = new Set();
+    this.downIds = new Set();
+    this.fallAt = new Map();
     this.lastAct = new Map();
   }
 
+  // v10.3.1 (6.2) : le moteur de rendu apprend les deux rangs, sans changer scene.js. Trois méthodes de l'instance sont
+  // remplacées : teamLayout (deux files de cases, l'arrière en retrait), drawCompanions (arrière puis avant, l'arrière
+  // plus haut et ×0,9 ; un compagnon vaincu couché et grisé à sa case) et drawEnemies (même chose côté monstres).
+  installRows() {
+    const r = this.r;
+    const baseLayout = SceneRenderer.prototype.teamLayout, baseAlly = SceneRenderer.prototype.drawAlly, basePet = SceneRenderer.prototype.drawPet;
+    r.teamLayout = (state) => {
+      const ids = state.companions.equipped;
+      const sub = (list) => baseLayout.call(r, { ...state, companions: { ...state.companions, equipped: list } });
+      const front = sub(ids.filter((id) => !this.backIds.has(id)));
+      if (!this.backIds.size) return front;
+      const back = sub(ids.filter((id) => this.backIds.has(id)));
+      // L'arrière commence derrière le dernier de l'avant, en le chevauchant un peu (il est plus haut : on voit les deux).
+      const dx = front.slots.size ? front.left - sub([]).left + ALLY_OVERLAP : -ALLY_OVERLAP;
+      const slots = new Map(front.slots);
+      for (const [id, s] of back.slots) slots.set(id, { x: s.x + dx, cx: s.cx + dx, back: true });
+      return { slots, left: Math.min(front.left, back.left + dx) };
+    };
+    r.drawPet = () => {}; // dessinés ci-dessous, à leur rang
+    r.drawCompanions = (ctx, state, world) => {
+      r.state = state;
+      if (world.hero.dead) return;
+      const team = equippedCompanions(state);
+      const allies = team.filter((c) => c.kind === 'ally');
+      for (const back of [true, false]) {
+        const row = team.filter((c) => this.backIds.has(c.id) === back && r.layout?.slots.get(c.id))
+          .sort((a, b) => r.layout.slots.get(a.id).cx - r.layout.slots.get(b.id).cx); // du plus loin au plus proche
+        for (const c of row) {
+          const cx = r.layout.slots.get(c.id).cx;
+          ctx.save();
+          if (back) this.depth(ctx, cx, 1);
+          if (this.downIds.has(c.id)) this.drawFallen(ctx, c, cx);
+          else if (c.kind === 'ally') baseAlly.call(r, ctx, world, c, allies.indexOf(c));
+          else basePet.call(r, ctx, world, c);
+          ctx.restore();
+        }
+      }
+    };
+    const draw = r.drawEnemies.bind(r);
+    r.drawEnemies = (ctx, world, dt) => {
+      this.viewT = ctx.getTransform?.() ?? null;
+      const all = world.enemies;
+      const one = (e) => { if (e.arenaArt) this.drawArt(ctx, e, dt); else { world.enemies = [e]; draw(ctx, world, dt); } };
+      const alpha = Math.min(1, world.alpha ?? 1);
+      // L'arrière d'abord (le plus loin en premier), puis l'avant ; chacun de droite à gauche.
+      for (const e of [...all].sort((a, b) => (b.depth ?? 0) - (a.depth ?? 0) || b.x - a.x)) {
+        const d = e.depth ?? 0;
+        if (d < 0.01) { one(e); continue; }
+        const cx = r.wx((e.prevX ?? e.x) + (e.x - (e.prevX ?? e.x)) * alpha);
+        ctx.save(); this.depth(ctx, cx, d); one(e); ctx.restore();
+        this.unproject(r.enemyFx.get(e.id), cx, d);
+      }
+      world.enemies = all;
+      this.fading = this.fading.filter((g) => (g.life -= dt) > 0);
+      for (const g of this.fading) { const d = g.e.depth ?? 0; const cx = r.wx(g.e.x); ctx.save(); if (d >= 0.01) this.depth(ctx, cx, d); this.drawArt(ctx, g.e, dt, g.life / g.max); ctx.restore(); }
+    };
+  }
+  // Repère du rang arrière autour des pieds d'un personnage (x = cx) : plus haut de BACK_LIFT, ×0,9. d : 0 (avant) à 1.
+  depth(ctx, cx, d) {
+    const G = this.r.groundY + 1, k = 1 - (1 - BACK_SCALE) * d;
+    ctx.translate(cx, G - BACK_LIFT * d); ctx.scale(k, k); ctx.translate(-cx, -G);
+  }
+  // Géométrie relevée pendant le dessin (projectiles, impacts, nom) ramenée dans le repère de la scène.
+  unproject(fx, cx, d) {
+    if (!fx || fx.sx == null) return;
+    const G = this.r.groundY + 1, k = 1 - (1 - BACK_SCALE) * d;
+    fx.sx = cx + (fx.sx - cx) * k; fx.sw *= k; fx.sy = G - BACK_LIFT * d + (fx.sy - G) * k; fx.sh *= k;
+    if (fx.edge != null) fx.edge = cx + (fx.edge - cx) * k;
+  }
+  // v10.3.1 : compagnon vaincu — il bascule en arrière (0,45 s), se couche au sol, grisé, et reste sur la carte.
+  drawFallen(ctx, c, cx) {
+    const r = this.r;
+    const img = spriteCanvas(c.sprite);
+    const sc = SPRITES[c.sprite]?.scale ?? 1;
+    const w = img.width * sc, h = img.height * sc;
+    const k0 = r.focus ? 1 : Math.min(1, (r.time - (this.fallAt.get(c.id) ?? -9)) / 0.45);
+    const k = 1 - (1 - k0) ** 2;
+    const G = r.groundY + 1;
+    r.drawShadow(ctx, cx - h * 0.35 * k, Math.max(10, w * 0.5 + h * 0.3 * k));
+    ctx.translate(Math.round(cx), Math.round(G - (w / 2) * k * 0.8));
+    ctx.rotate((-Math.PI / 2) * k); // tête vers l'arrière, loin des monstres
+    ctx.globalAlpha = 0.92;
+    ctx.filter = 'grayscale(1) brightness(0.72)';
+    ctx.drawImage(img, -w / 2, -h, w, h);
+    ctx.filter = 'none';
+  }
+
   // Ennemis : avant puis arrière, chacun avec son vrai type de monstre (ou de boss). Une nouvelle vague (Survie) remplace la précédente.
-  // v10.3 (audit) : un gardien (étages 25, 50, 75, 100) n'est pas un monstre de la campagne : il n'a pas de type. Avant,
-  // on lui donnait le premier monstre du monde EN BOSS, type que le moteur ne connaît pas → le combat plantait à
-  // l'ouverture. Il prend ici, pour le moteur, la place du boss du monde, et son illustration est dessinée par cette scène.
-  // Type que le moteur connaît pour une carte (monstre du monde, boss du monde pour un boss ou un gardien).
+  // v10.3 (audit) : un gardien (étages 25, 50, 75, 100) n'est pas un monstre de la campagne : il n'a pas de type. Il prend
+  // ici, pour le moteur, la place du boss du monde, et son illustration est dessinée par cette scène.
   resolve(c) {
     const { type, boss } = arenaEngineType(c, this.zone);
     const s = enemyStats(1, type, boss);
     return { type, boss, range: s.range, speed: Math.max(30, s.speed * 1.6) };
   }
-  // File des ennemis d'une vague : avant puis arrière (le centre d'abord), et la place d'arrêt de chacun (règle de step).
+  // File des ennemis d'une vague sur deux rangs (foeRows) : la place d'arrêt de chacun.
   queue(cards) {
-    const foes = [...cards].sort((a, b) => (a.pos % 10 < 3 ? 0 : 1) - (b.pos % 10 < 3 ? 0 : 1) || Math.abs((a.pos % 3) - 1) - Math.abs((b.pos % 3) - 1));
-    let prev = null;
-    return foes.map((c) => {
-      const k = this.resolve(c);
-      const stop = prev ? prev.stop + W.enemyGap * (k.boss || prev.boss ? 2 : 1) : W.heroX + W.meleeOffset + k.range;
-      prev = { stop, boss: k.boss };
-      return { c, ...k, stop };
-    });
+    const items = cards.map((c) => ({ c, pos: c.pos, ...this.resolve(c) }));
+    const rows = foeRows(items);
+    return items.map((q) => ({ ...q, ...rows.get(q) })).sort((a, b) => (a.back ? 1 : 0) - (b.back ? 1 : 0) || a.stop - b.stop);
   }
   // Bord droit (pixels du monde) du dernier monstre d'une vague arrêtée.
   rightOf(cards) {
@@ -136,10 +239,10 @@ export class ArenaScene {
   spawn(cards) {
     for (const q of this.queue(cards)) {
       const c = q.c;
-      // v10.3 (audit) : les monstres entrent par le bord droit et sont en place en moins d'une seconde (le premier coup
-      // part à 1 s). Avant, ils partaient de très loin : le combat commençait contre un écran vide.
+      // v10.3 (audit) : les monstres entrent par le bord droit et sont en place en moins d'une seconde (le premier coup part à 1 s).
       const e = { id: this.nextId++, type: q.type, boss: q.boss, elite: false, x: q.stop + Math.min(q.speed * 0.8, 70), hp: c.maxHp, maxHp: c.maxHp, damage: 1, gold: 0,
-        speed: q.speed, range: q.range, engaged: false, age: 0, summons: [], arenaPos: c.pos, arenaName: c.name, arenaArt: arenaArtOf(c), arenaBoss: Boolean(c.boss) };
+        speed: q.speed, range: q.range, engaged: false, age: 0, summons: [], arenaPos: c.pos, arenaName: c.name, arenaArt: arenaArtOf(c), arenaBoss: Boolean(c.boss),
+        depth: q.back ? 1 : 0, stop: q.stop };
       e.prevX = e.x;
       this.world.enemies.push(e);
       this.foeAt.set(c.pos, e);
@@ -147,21 +250,14 @@ export class ArenaScene {
     }
   }
 
-  // v10.3 (audit) : cadrage. Avant, le zoom fixe (×1,6) et le recentrage « vitrine » poussaient les monstres hors de
-  // l'écran : sur téléphone on ne voyait que trois compagnons, sur PC le dernier monstre était coupé. Le zoom est
-  // maintenant le plus grand qui montre toute la mêlée (formation à gauche, file des monstres à droite), et la vue
-  // est centrée dessus ; si l'écran est vraiment trop étroit, ce sont les monstres qui restent visibles.
+  // v10.3 (audit) : cadrage — le plus grand zoom qui montre toute la mêlée (formation à gauche, monstres à droite), vue
+  // centrée dessus ; si l'écran est vraiment trop étroit, ce sont les monstres qui restent visibles.
   span() {
     let left = this.r.wx(W.heroX) - 40;
     try {
       const lay = this.r.teamLayout(this.state);
       left = lay.left;
-      // Téléphone (portrait) : on cadre les monstres et la première ligne (3 cartes) ; l'arrière peut sortir à gauche,
-      // comme en campagne, plutôt que de tout rapetisser.
-      if (this.r.tall) {
-        const xs = [...lay.slots.values()].map((s) => s.x).sort((a, b) => b - a).slice(0, 3);
-        if (xs.length) left = Math.max(left, xs.at(-1) - 2);
-      }
+      // v10.3.1 : téléphone compris, toute la formation est cadrée (deux rangs : elle est plus courte qu'une file).
     } catch { /* avant la première image */ }
     this.leftMin = Math.min(this.leftMin ?? left, left);
     return { left: this.leftMin, right: this.rightMax };
@@ -213,23 +309,42 @@ export class ArenaScene {
   get done() { return this.fired >= this.run.events.length && this.t >= (this.run.seconds ?? 0); }
   nextEvent() { return this.run.events[this.fired] ?? null; }
 
-  emit(type, data) { this.r.handleEvent({ type, time: this.world.time, ...data }, this.world); }
+  // v10.3.1 : « quiet » (Passer) : les événements restants mettent la scène à jour sans geste ni effet (plus d'avalanche
+  // d'effets à la fin) ; les vaincus se couchent, les vainqueurs restent debout.
+  emit(type, data) { if (!this.quiet) this.r.handleEvent({ type, time: this.world.time, ...data }, this.world); }
+  vfx(name, x, y, o) { if (!this.quiet) vfx(this.r, name, x, y, o); }
 
-  // v10.3 (audit) : où sont les monstres à l'écran (pixels CSS de la scène) — l'interface y pose leur nom, et la barre
-  // de vie du boss ou du gardien en haut. `x` : centre du monstre ; `foot` : ligne du sol.
-  marks() {
-    const r = this.r;
-    // Repère réel du calque des ennemis (décalage de la vue, échelle du canevas), relevé pendant le dessin.
+  // Repère réel de la scène (décalage de la vue, échelle du canevas), relevé pendant le dessin → pixels CSS.
+  toCss(x, y) {
     const T = this.viewT ?? { a: 1, d: 1, e: 0, f: 0 };
     const kx = this.css.w / Math.max(1, this.canvas.width), ky = this.css.h / Math.max(1, this.canvas.height);
+    return { x: (T.a * x + T.e) * kx, y: (T.d * y + T.f) * ky };
+  }
+  // v10.3 (audit) : où sont les monstres à l'écran (pixels CSS de la scène) — l'interface y pose leur nom, et la barre
+  // de vie du boss ou du gardien en haut. `x` : centre du monstre ; `foot` : ligne du sol ; `back` : rang arrière.
+  marks() {
+    const r = this.r;
     return this.world.enemies.map((e) => {
       const fx = r.enemyFx.get(e.id);
       const seen = fx?.sx != null && fx.seen != null;
-      const cx = seen ? fx.sx + fx.sw / 2 : r.wx(e.x);
-      const x = (T.a * cx + T.e) * kx;
-      return { pos: e.arenaPos, name: e.arenaName ?? '', boss: Boolean(e.arenaBoss), hp: Math.max(0, e.hp) / Math.max(1, e.maxHp), x, foot: (T.d * (r.groundY + 1) + T.f) * ky, seen: seen && x < this.css.w - 8 };
+      const p = this.toCss(seen ? fx.sx + fx.sw / 2 : r.wx(e.x), r.groundY + 1);
+      const top = seen ? this.toCss(0, fx.sy).y : null;
+      return { pos: e.arenaPos, name: e.arenaName ?? '', boss: Boolean(e.arenaBoss), back: (e.depth ?? 0) > 0.5, hp: Math.max(0, e.hp) / Math.max(1, e.maxHp), x: p.x, foot: p.y, top,
+        h: seen ? fx.sh * (this.viewT?.d ?? 1) * (this.css.h / Math.max(1, this.canvas.height)) : 0, seen: seen && p.x < this.css.w - 8 };
     });
   }
+  // v10.3.1 : où sont les compagnons (pixels CSS) : centre, pieds, rang, vaincu.
+  allyMarks() {
+    const r = this.r;
+    return this.run.team.map((c) => {
+      const s = r.layout?.slots.get(c.id);
+      const back = isBackAlly(c.pos);
+      const p = this.toCss(s?.cx ?? 0, r.groundY + 1 - (back ? BACK_LIFT : 0));
+      return { pos: c.pos, id: c.id, back, down: this.down.has(c.pos), x: p.x, foot: p.y, k: back ? BACK_SCALE : 1, placed: Boolean(s) };
+    });
+  }
+  // Couleur d'un compagnon (celle de son élément, comme la bulle de sort de la campagne).
+  colorOf(c) { return ELEMENTS[unitElement(c?.id)]?.color ?? c?.fx ?? '#ffd23f'; }
 
   // Un événement de fightBoard → geste et effet de la campagne.
   play(e) {
@@ -255,9 +370,9 @@ export class ArenaScene {
           this.hp.ally.set(e.to, Math.max(0, (this.hp.ally.get(e.to) ?? 0) - e.d));
           gain(e.to, 8);
           const slot = this.r.layout?.slots.get(victim.id);
-          const x = slot?.cx ?? 60;
-          vfx(this.r, 'hit_blunt', x + 4, this.r.groundY - 18, { size: 0.7, flip: true });
-          this.r.addText(String(Math.max(1, Math.round(e.d))), x, this.r.groundY - 44, '#ff6a6a', '#ffd0d0', false, null);
+          const x = slot?.cx ?? 60, up = isBackAlly(e.to) ? BACK_LIFT : 0;
+          this.vfx('hit_blunt', x + 4, this.r.groundY - 18 - up, { size: 0.7, flip: true });
+          if (!this.quiet) this.r.addText(String(Math.max(1, Math.round(e.d))), x, this.r.groundY - 44 - up, '#ff6a6a', '#ffd0d0', false, null);
         }
       }
     } else if (e.kind === 'ult' && card) {
@@ -281,38 +396,52 @@ export class ArenaScene {
             // Gardien vaincu : son illustration s'efface dans un éclat (pas la chute dessinée du boss du monde).
             const fx = this.r.enemyFxFor(foe.id);
             this.fading.push({ e: foe, life: 0.9, max: 0.9 });
-            vfx(this.r, 'death_soul', (fx.sx ?? this.r.wx(foe.x)) + (fx.sw ?? 0) / 2, this.r.groundY - 30, { size: 1.6 });
+            this.vfx('death_soul', (fx.sx ?? this.r.wx(foe.x)) + (fx.sw ?? 0) / 2, this.r.groundY - 30, { size: 1.6 });
             if (!this.r.focus) this.r.shake = Math.max(this.r.shake ?? 0, 3);
           } else this.emit('kill', { enemyId: foe.id, kind: foe.type, boss: foe.boss, elite: false, gold: 0, x: foe.x });
           this.world.enemies = this.world.enemies.filter((x) => x !== foe);
         }
       } else {
+        // v10.3.1 : le compagnon vaincu se couche, grisé, à sa place (il ne disparaît plus dans un effet).
         const c = this.allyAt.get(e.pos);
         if (c) {
           const slot = this.r.layout?.slots.get(c.id);
-          vfx(this.r, 'death_soul', slot?.cx ?? 60, this.r.groundY - 10, { size: 0.9 });
           this.down.add(e.pos);
-          this.state.companions = { ...this.state.companions, equipped: this.state.companions.equipped.filter((id) => id !== c.id) };
+          this.downIds.add(c.id);
+          this.fallAt.set(c.id, this.r.time);
+          this.r.allyAnims?.delete?.(c.id);
+          if (!this.r.focus && slot) this.r.dust(slot.cx - 8, 3);
         }
       }
     }
   }
 
-  // Avance d'un pas : les monstres s'avancent en file (même règle que la campagne), puis les événements du combat.
+  // Monstres : chacun rejoint sa place dans son rang (foeRows) ; quand l'avant est tombé, l'arrière avance.
+  moveFoes(dt) {
+    const world = this.world;
+    const rows = foeRows(world.enemies);
+    let lead = null;
+    for (const e of world.enemies) { const r = rows.get(e); if (!r.back && (!lead || r.stop < rows.get(lead).stop)) lead = e; }
+    for (const e of world.enemies) {
+      const row = rows.get(e);
+      e.prevX = e.x;
+      e.stop = row.stop;
+      e.x = Math.max(row.stop, e.x - e.speed * dt);
+      const at = e.x <= row.stop + 0.01;
+      e.engaged = at && e === lead;
+      e.queued = at && !e.engaged;
+      if (e.engaged) e.age += dt;
+      const want = row.back ? 1 : 0;
+      e.depth = (e.depth ?? want) + (want - (e.depth ?? want)) * Math.min(1, dt * 5);
+    }
+  }
+
+  // Avance d'un pas : les monstres s'avancent (deux rangs), puis les événements du combat.
   step(dt, { hold = false } = {}) {
     const world = this.world;
     world.time += dt;
     world.prevScroll = world.scroll;
-    world.enemies.forEach((e, i) => {
-      e.prevX = e.x;
-      const prev = world.enemies[i - 1];
-      const gap = W.enemyGap * (e.boss || prev?.boss ? 2 : 1);
-      const stopX = prev ? prev.x + gap : W.heroX + W.meleeOffset + e.range;
-      e.x = Math.max(stopX, e.x - e.speed * dt);
-      e.engaged = !prev && e.x <= stopX + 0.01;
-      e.queued = Boolean(prev) && e.x <= stopX + 0.01;
-      if (e.engaged) e.age += dt;
-    });
+    this.moveFoes(dt);
     // Les monstres arrivent avant le premier coup (1 s), puis le combat se rejoue à son rythme.
     if (!hold) this.t += dt;
     const t = this.t - 1;

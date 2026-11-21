@@ -91,13 +91,21 @@ export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
   const updateMarks = () => {
     const live = new Set();
     let boss = null;
-    for (const m of scene.marks()) {
+    // v10.3.1 : noms sous le sol, l'avant d'abord ; chaque nom prend la première ligne où il ne touche aucun autre.
+    const lines = [];
+    for (const m of scene.marks().sort((a, b) => Number(a.back) - Number(b.back) || a.x - b.x)) {
       if (m.boss) boss = m;
       if (!m.name || !m.seen || m.boss) continue;
       live.add(m.pos);
       let t = tags.get(m.pos);
-      if (!t) { t = document.createElement('span'); t.className = 'am-name'; t.textContent = m.name; t.dataset.row = String(rows++ % 2); namesEl.appendChild(t); tags.set(m.pos, t); }
-      t.style.left = `${Math.round(m.x)}px`; t.style.top = `${Math.round(m.foot + 5 + Number(t.dataset.row) * 15)}px`;
+      if (!t) { t = document.createElement('span'); t.className = 'am-name'; t.textContent = m.name; namesEl.appendChild(t); tags.set(m.pos, t); rows++; }
+      const w = (t.offsetWidth || m.name.length * 7) + 6;
+      const a = m.x - w / 2, b = m.x + w / 2;
+      let row = 0;
+      while ((lines[row] ??= []).some(([l, r]) => a < r && b > l)) row++;
+      lines[row].push([a, b]);
+      t.dataset.row = String(row);
+      t.style.left = `${Math.round(m.x)}px`; t.style.top = `${Math.round(m.foot + 5 + row * 15)}px`;
     }
     for (const [pos, t] of tags) if (!live.has(pos)) { t.remove(); tags.delete(pos); }
     bossEl.classList.toggle('hidden', !boss);
@@ -133,7 +141,9 @@ export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
     if (ended) return;
     ended = true;
     // Tout ce qui reste est joué d'un coup (scène à jour), puis l'écran de fin.
+    scene.quiet = scene.fired < run.events.length; // v10.3.1 : Passer → fin sans avalanche d'effets
     while (scene.fired < run.events.length) scene.play(run.events[scene.fired++]);
+    scene.quiet = false;
     scene.t = Math.max(scene.t, (run.seconds ?? 0) + 1);
     updateCards();
     el.querySelector('.am-ctrl').classList.add('hidden');
