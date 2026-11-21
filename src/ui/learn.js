@@ -57,6 +57,9 @@ export function maybeLearnCard(ui, st) {
   if ([...document.querySelectorAll('.res-bubble, .best-cards .best-card')].some((e) => e.offsetParent !== null)) return; // bulle visible seulement
   if (st.unlocks?.legacy) return; // ancienne partie : tout est déjà connu
   const stage = st.records?.bestStage ?? st.maxStage ?? 1;
+  // v10.7 (1) : joueurs touchés par l'ancien bug (liste remise à zéro à chaque chargement) : une partie avancée (plus de
+  // 30 boss) a déjà vu toutes les notions dont l'étape est dépassée.
+  if ((st.records?.bossesDefeated ?? 0) > 30) for (const x of LEARN) if (stage > x.stage && !learned(st).includes(x.id)) learned(st).push(x.id);
   // v10.2 (4.1) : une notion demandée par le Sceau passe avant son étape ; sinon l'ordre des étapes.
   const L = LEARN.find((x) => x.id === ui.wantLearn && !learned(st).includes(x.id)) ?? LEARN.find((x) => stage >= x.stage && !learned(st).includes(x.id));
   if (!L) return;

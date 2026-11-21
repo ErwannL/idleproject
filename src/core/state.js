@@ -634,7 +634,15 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   seedEncyclopedia(state); // v9.0.5 : les objets possédés comptent comme découverts
 
   if (raw.ui && typeof raw.ui === 'object') {
-    if (raw.ui.slotFilter === 'all' || raw.ui.slotFilter === 'accessory' || raw.ui.slotFilter in SLOTS) state.ui.slotFilter = raw.ui.slotFilter;
+    // v10.7 (3) : l'ancien filtre « accessory » n'existe plus (titre « accessory du Héros ») → « Tout le sac ».
+    if (raw.ui.slotFilter === 'all' || raw.ui.slotFilter in SLOTS) state.ui.slotFilter = raw.ui.slotFilter;
+    // v10.7 (1) : notions et ressources déjà présentées — écrites dans la sauvegarde mais jamais relues (la carte
+    // « Nouveau » revenait à chaque lancement) ; filtre de rareté du sac.
+    const ids = (a) => a.filter((x) => typeof x === 'string' && /^[a-zA-Z]{2,24}$/.test(x)).slice(0, 32);
+    if (Array.isArray(raw.ui.learned)) state.ui.learned = ids(raw.ui.learned);
+    if (Array.isArray(raw.ui.seenRes)) state.ui.seenRes = ids(raw.ui.seenRes);
+    if (typeof raw.ui.rarityFilter === 'string' && /^[a-z]{2,16}$/.test(raw.ui.rarityFilter)) state.ui.rarityFilter = raw.ui.rarityFilter;
+    if (Number.isInteger(raw.ui.sweepSeed) && raw.ui.sweepSeed > 0) state.ui.sweepSeed = raw.ui.sweepSeed;
     if (['off', 'common', 'rare'].includes(raw.ui.autoRecycle)) state.ui.autoRecycle = raw.ui.autoRecycle;
     const rec = raw.ui.recycle;
     if (!rec) delete state.ui.recycle; // partie existante : ses réglages d'avant (ancienne règle) restent tels quels
