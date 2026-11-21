@@ -317,6 +317,33 @@ export function drawLootChest(r, ctx, world) {
   if (!chest.front) paintChest(r, ctx, chest);
 }
 
+// Faisceau de lumière (trapèze à dégradé) dessiné une fois dans un canvas, puis simplement recopié à chaque image.
+const beamCache = new Map();
+function beamSprite(fill, rw, rh) {
+  const key = `${fill}|${Math.round(rw)}|${Math.round(rh)}`;
+  let c = beamCache.get(key);
+  if (c) return c;
+  c = canvasOf(Math.ceil(rw), Math.ceil(rh));
+  const g2 = c.getContext('2d');
+  const g = g2.createLinearGradient(0, rh, 0, 0);
+  g.addColorStop(0, fill); g.addColorStop(0.55, fill); g.addColorStop(1, 'rgba(0,0,0,0)');
+  g2.fillStyle = g;
+  g2.beginPath();
+  g2.moveTo(rw * 0.2, rh); g2.lineTo(rw * 0.8, rh); g2.lineTo(rw, 0); g2.lineTo(0, 0);
+  g2.closePath(); g2.fill();
+  if (beamCache.size > 16) beamCache.clear();
+  beamCache.set(key, c);
+  return c;
+}
+// Largeur du texte de la pastille (mesurée une fois par police et texte).
+const widthCache = new Map();
+function textWidth(ctx, text) {
+  const key = `${ctx.font}|${text}`;
+  let w = widthCache.get(key);
+  if (w == null) { w = ctx.measureText(text).width; if (widthCache.size > 64) widthCache.clear(); widthCache.set(key, w); }
+  return w;
+}
+
 // Étincelles : petites croix en pixels d'art qui montent du coffre et s'éteignent (positions calculées depuis le temps,
 // sans état : coût négligeable).
 function paintSparks(ctx, chest, L, x, top, color) {
@@ -350,17 +377,11 @@ function paintChest(r, ctx, chest) {
   ctx.beginPath(); ctx.ellipse(x + L.w / 2, L.feet - L.m, L.w * 0.55, L.m * 3, 0, 0, Math.PI * 2); ctx.fill();
   // Rayon de lumière dès un Épique.
   if (chest.epic) {
-    const rh = Math.min(L.h * 2.4, top + L.h * 0.4), cx = x + L.w / 2, y0 = top + L.h * 0.4;
+    const rh = Math.round(Math.min(L.h * 2.4, top + L.h * 0.4)), cx = x + L.w / 2, y0 = top + L.h * 0.4;
     const beam = (rw, fill, alpha, mode) => {
-      const g = ctx.createLinearGradient(0, y0, 0, y0 - rh);
-      g.addColorStop(0, fill); g.addColorStop(0.55, fill); g.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.globalCompositeOperation = mode;
       ctx.globalAlpha = alpha;
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.moveTo(cx - rw * 0.3, y0); ctx.lineTo(cx + rw * 0.3, y0);
-      ctx.lineTo(cx + rw * 0.5, y0 - rh); ctx.lineTo(cx - rw * 0.5, y0 - rh);
-      ctx.closePath(); ctx.fill();
+      ctx.drawImage(beamSprite(fill, rw, rh), Math.round(cx - rw / 2), Math.round(y0 - rh));
     };
     beam(L.w * 0.75, color, calm ? 0.45 : 0.3 + 0.2 * pulse, 'source-over');
     beam(L.w * 0.3, '#ffffff', calm ? 0.35 : 0.2 + 0.2 * pulse, 'lighter');
@@ -453,7 +474,7 @@ export function drawLootChestTop(r, ctx) {
   // Pastille du nombre d'objets (en haut à droite) : grossit à chaque arrivée, puis revient.
   const label = chest.count > 99 ? '99+' : String(chest.count);
   ctx.font = uiFont(12 * u);
-  const bh = 22 * u, bw = Math.max(bh, ctx.measureText(label).width + 10 * u);
+  const bh = 22 * u, bw = Math.max(bh, textWidth(ctx, label) + 10 * u);
   const bx = Math.round(D.x + D.w - bw * 0.7), by = Math.round(D.y - bh * 0.25);
   const pp = (chest.t - chest.popStart) / POP_TIME;
   chest.pillScale = pp >= 0 && pp < 1 ? 1 + 0.5 * Math.sin(pp * Math.PI) : 1;
