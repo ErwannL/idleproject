@@ -14,6 +14,7 @@ import { equippedCompanions } from '../core/companions.js';
 import { ELEMENTS, unitElement } from '../core/elements.js';
 import { spriteCanvas } from './pixel.js';
 import { SPRITES } from './sprites.js';
+import { BOSS_MINIONS, BOSS_TRAITS, TRAITS } from '../core/boss-traits.js';
 
 const W = BALANCE.world;
 export const ARENA_STEP = 1 / 60;
@@ -21,7 +22,7 @@ export const ARENA_STEP = 1 / 60;
 // dessiné AVANT « Devant ». Valeurs en pixels du jeu (avant le zoom de la scène).
 export const BACK_SCALE = 0.9;
 export const BACK_LIFT = 14;
-const ALLY_OVERLAP = 12; // l'arrière chevauche le dernier de l'avant de 12 px
+const ALLY_OVERLAP = 12; // l'arrière chevauche le dernier de l'avant de 12 px (30 sur téléphone, où la place manque)
 export const isBackAlly = (pos) => pos >= 3;
 export const isBackFoe = (pos) => pos % 10 >= 3;
 // Files des monstres sur deux rangs : chaque rang est une file (même règle que la campagne) ; l'arrière, plus haut et
@@ -37,7 +38,7 @@ export function foeRows(list) {
   for (const e of front) { const stop = prev ? prev.stop + W.enemyGap * (e.boss || prev.boss ? 2 : 1) : W.heroX + W.meleeOffset + e.range; out.set(e, { stop, back: false }); prev = { stop, boss: e.boss }; }
   // L'arrière commence derrière le dernier de l'avant (plus loin derrière un boss), un peu plus serré qu'une file.
   const last = front.at(-1);
-  prev = last ? { stop: out.get(last).stop - W.enemyGap * (last.boss ? 0.6 : 0.4), boss: last.boss } : null;
+  prev = last ? { stop: out.get(last).stop + W.enemyGap * (last.boss ? 1 : -0.4), boss: last.boss } : null;
   for (const e of back) { const stop = prev ? prev.stop + W.enemyGap * (e.boss || prev.boss ? 2 : 1) : W.heroX + W.meleeOffset + e.range; out.set(e, { stop, back: true }); prev = { stop, boss: e.boss }; }
   return out;
 }
@@ -84,6 +85,42 @@ function artCanvas(url) {
   return a.pic;
 }
 
+// v10.3.1 (6.2) : boss d'étage et gardiens jouent leur mécanique. Celle d'un boss d'étage est celle de son boss de
+// campagne (BOSS_TRAITS) ; les gardiens (défense ×1,3, « très solides ») ont la Carapace.
+export function arenaTraitOf(card) {
+  if (!card?.boss) return null;
+  const trait = card.guardian ? 'armored' : BOSS_TRAITS[card.enemyId];
+  return TRAITS[trait] ? trait : null;
+}
+// Événements horodatés `mechanic` tirés du combat : fightBoard ne modélise pas ces mécaniques, elles sont JOUÉES à
+// l'écran (comme la campagne les montre) sans rien changer au combat ni à son issue. Actions : intro (nom de la
+// mécanique), summon (serviteurs), escalate (Fournaise qui monte), enrage (Désespoir sous 50 %), shellBreak (Carapace
+// usée après ses coups), pulse (Marée, Miroir, Gel, Bouclier d'élément : rappel régulier).
+export function arenaMechanics(run) {
+  const out = [];
+  const waves = [{ t: 0, cards: run.setup?.cards ?? [] }, ...run.events.filter((e) => e.kind === 'wave' && e.cards).map((e) => ({ t: e.t, cards: e.cards }))];
+  for (const w of waves) for (const c of w.cards) {
+    const trait = arenaTraitOf(c);
+    if (!trait) continue;
+    const T = TRAITS[trait];
+    const end = run.events.find((e) => e.kind === 'fall' && e.side === 'foe' && e.pos === c.pos && e.t >= w.t)?.t ?? run.seconds ?? 0;
+    const at = (t, action, extra = {}) => { if (t < end) out.push({ t: Math.round(t * 100) / 100, kind: 'mechanic', trait, pos: c.pos, action, ...extra }); };
+    const hits = run.events.filter((e) => e.t >= w.t && e.side === 'ally' && e.to === c.pos && e.d > 0);
+    at(w.t + 0.3, 'intro');
+    if (trait === 'summoner' || trait === 'swarm') for (let t = w.t + T.every / 2; t < end; t += T.every) at(t, 'summon', { minion: BOSS_MINIONS[c.enemyId] ?? T.minion, count: Math.min(T.count, 3) });
+    else if (trait === 'escalate') {
+      for (let k = 3; ; k += 3) { const mult = Math.min(T.maxDamage, 1 + (T.stepPct / 100) * k); at(w.t + k * T.stepSeconds, 'escalate', { mult }); if (mult >= T.maxDamage || w.t + k * T.stepSeconds >= end) break; }
+    } else if (trait === 'desperate') {
+      let hp = c.maxHp;
+      for (const e of hits) { hp -= e.d; if (hp < c.maxHp * T.below) { at(e.t, 'enrage'); break; } }
+    } else if (trait === 'armored') {
+      const need = Math.ceil(T.shell / T.wear);
+      if (hits[need - 1]) at(hits[need - 1].t, 'shellBreak');
+    } else for (let t = w.t + 4; t < end; t += 5) at(t, 'pulse');
+  }
+  return out.sort((a, b) => a.t - b.t);
+}
+
 export class ArenaScene {
   // run : résultat de playFloor (team = cartes alliées avec pos, setup.cards = cartes ennemies, events horodatés).
   constructor(canvas, run, real) {
@@ -128,6 +165,10 @@ export class ArenaScene {
     this.downIds = new Set();
     this.fallAt = new Map();
     this.lastAct = new Map();
+    this.mech = arenaMechanics(run);
+    this.mechAt = 0;
+    this.mechPlayed = [];
+    this.minions = [];
   }
 
   // v10.3.1 (6.2) : le moteur de rendu apprend les deux rangs, sans changer scene.js. Trois méthodes de l'instance sont
@@ -143,7 +184,8 @@ export class ArenaScene {
       if (!this.backIds.size) return front;
       const back = sub(ids.filter((id) => this.backIds.has(id)));
       // L'arrière commence derrière le dernier de l'avant, en le chevauchant un peu (il est plus haut : on voit les deux).
-      const dx = front.slots.size ? front.left - sub([]).left + ALLY_OVERLAP : -ALLY_OVERLAP;
+      const lap = r.tall ? 30 : ALLY_OVERLAP;
+      const dx = front.slots.size ? front.left - sub([]).left + lap : -lap;
       const slots = new Map(front.slots);
       for (const [id, s] of back.slots) slots.set(id, { x: s.x + dx, cx: s.cx + dx, back: true });
       return { slots, left: Math.min(front.left, back.left + dx) };
@@ -242,7 +284,7 @@ export class ArenaScene {
       // v10.3 (audit) : les monstres entrent par le bord droit et sont en place en moins d'une seconde (le premier coup part à 1 s).
       const e = { id: this.nextId++, type: q.type, boss: q.boss, elite: false, x: q.stop + Math.min(q.speed * 0.8, 70), hp: c.maxHp, maxHp: c.maxHp, damage: 1, gold: 0,
         speed: q.speed, range: q.range, engaged: false, age: 0, summons: [], arenaPos: c.pos, arenaName: c.name, arenaArt: arenaArtOf(c), arenaBoss: Boolean(c.boss),
-        depth: q.back ? 1 : 0, stop: q.stop };
+        depth: q.back ? 1 : 0, stop: q.stop, trait: arenaTraitOf(c), mech: arenaTraitOf(c) };
       e.prevX = e.x;
       this.world.enemies.push(e);
       this.foeAt.set(c.pos, e);
@@ -256,7 +298,7 @@ export class ArenaScene {
     let left = this.r.wx(W.heroX) - 40;
     try {
       const lay = this.r.teamLayout(this.state);
-      left = lay.left;
+      left = lay.left - 8; // marge : un familier volant ou un geste dépasse un peu de sa case
       // v10.3.1 : téléphone compris, toute la formation est cadrée (deux rangs : elle est plus courte qu'une file).
     } catch { /* avant la première image */ }
     this.leftMin = Math.min(this.leftMin ?? left, left);
@@ -329,7 +371,7 @@ export class ArenaScene {
       const seen = fx?.sx != null && fx.seen != null;
       const p = this.toCss(seen ? fx.sx + fx.sw / 2 : r.wx(e.x), r.groundY + 1);
       const top = seen ? this.toCss(0, fx.sy).y : null;
-      return { pos: e.arenaPos, name: e.arenaName ?? '', boss: Boolean(e.arenaBoss), back: (e.depth ?? 0) > 0.5, hp: Math.max(0, e.hp) / Math.max(1, e.maxHp), x: p.x, foot: p.y, top,
+      return { pos: e.arenaPos, name: e.arenaName ?? '', boss: Boolean(e.arenaBoss), mech: e.mech ?? null, minion: Boolean(e.minion), back: (e.depth ?? 0) > 0.5, hp: Math.max(0, e.hp) / Math.max(1, e.maxHp), x: p.x, foot: p.y, top,
         h: seen ? fx.sh * (this.viewT?.d ?? 1) * (this.css.h / Math.max(1, this.canvas.height)) : 0, seen: seen && p.x < this.css.w - 8 };
     });
   }
@@ -357,6 +399,7 @@ export class ArenaScene {
         if (e.kind === 'hit' && card) { this.emit('companionBasic', { companionId: card.id, kind: 'hit', enemyId: tgtFoe?.id }); gain(e.from, 12); this.lastAct.set(e.from, 'hit'); }
         if (e.kind === 'skill' && card) { const i = Math.max(0, (card.skills ?? []).findIndex((s) => !s.ultimate)); this.emit('companionSkill', { companionId: card.id, skill: i, skillType: card.skill?.type ?? 'hit', ultimate: false }); this.lastAct.set(e.from, 'skill'); }
         if (tgtFoe) {
+          if (tgtFoe.boss && this.minions.length && e.kind !== 'splash') this.clearMinion();
           tgtFoe.hp = Math.max(0, tgtFoe.hp - e.d);
           this.hp.foe.set(e.to, tgtFoe.hp);
           this.emit('enemyHit', { enemyId: tgtFoe.id, damage: e.d, x: tgtFoe.x, boss: tgtFoe.boss, source: e.kind === 'hit' ? 'companion' : 'skill', crit: e.crit, elem: e.elem });
@@ -400,6 +443,7 @@ export class ArenaScene {
             if (!this.r.focus) this.r.shake = Math.max(this.r.shake ?? 0, 3);
           } else this.emit('kill', { enemyId: foe.id, kind: foe.type, boss: foe.boss, elite: false, gold: 0, x: foe.x });
           this.world.enemies = this.world.enemies.filter((x) => x !== foe);
+          if (foe.boss) while (this.minions.length) this.clearMinion(true);
         }
       } else {
         // v10.3.1 : le compagnon vaincu se couche, grisé, à sa place (il ne disparaît plus dans un effet).
@@ -416,15 +460,58 @@ export class ArenaScene {
     }
   }
 
+  // v10.3.1 : une mécanique de boss à l'écran — bulle de son nom (sa couleur), geste dessiné du boss, effet.
+  playMechanic(m) {
+    this.mechPlayed.push(m);
+    const boss = this.foeAt.get(m.pos);
+    if (this.quiet || !boss || !this.world.enemies.includes(boss)) return;
+    const r = this.r, T = TRAITS[m.trait];
+    const fx = r.enemyFxFor(boss.id);
+    const cx = fx.sx != null ? fx.sx + fx.sw / 2 : r.wx(boss.x);
+    const top = fx.sy != null ? fx.sy : r.groundY - 60;
+    const say = (text) => {
+      const half = Math.min(r.width / 2 - 2, text.length * 1.6 + 4);
+      r.pushCallout({ kind: 'callout', text, x: Math.max(half, Math.min(r.width - half, cx)), y: Math.max(16, top - 10), color: T.color, life: 1.5, max: 1.5, half });
+    };
+    const ring = (rad = 22) => r.effects.push({ kind: 'ring', x: cx, y: r.groundY - 24, color: T.color, life: 0.7, max: 0.7, r: rad });
+    if (m.action === 'intro') { say(T.name); ring(); fx.skill = 0.6; }
+    else if (m.action === 'summon') { this.summonMinions(boss, m.minion, m.count); say(T.name); }
+    else if (m.action === 'escalate') { say(`${T.name} ×${m.mult.toFixed(1).replace('.', ',')}`); fx.skill = 0.6; ring(18); }
+    else if (m.action === 'enrage') { this.emit('bossEnrage', { enemyId: boss.id, kind: boss.type }); say(`${T.name} !`); ring(28); if (!r.focus) r.shake = Math.max(r.shake ?? 0, 2); }
+    else if (m.action === 'shellBreak') { boss.trait = null; say('Carapace brisée'); r.burst(cx, r.groundY - 30, T.color, 16, 50); }
+    else { say(T.name); ring(); }
+  }
+  // Serviteurs d'une Invocatrice ou d'une Nuée : ils surgissent devant le boss et tombent sous les coups suivants de
+  // l'équipe (le combat calculé ne les compte pas : ils sont joués, pas simulés).
+  summonMinions(boss, type, count) {
+    for (let i = 0; i < count; i++) {
+      const e = { id: this.nextId++, type, boss: false, elite: false, x: boss.x - 12 - i * 7, hp: 1, maxHp: 1, damage: 1, gold: 0, speed: 0, range: 16,
+        engaged: false, queued: true, age: 0, summons: [], minion: true, depth: 0, born: this.t, arenaName: '' };
+      e.prevX = e.x;
+      this.world.enemies.push(e);
+      this.minions.push(e);
+    }
+    this.emit('bossSummon', { enemyId: boss.id, kind: type, master: boss.type, x: boss.x - 14 });
+  }
+  // Un coup de l'équipe sur un boss qui a des serviteurs depuis plus d'une seconde : un serviteur tombe.
+  clearMinion(force = false) {
+    const m = this.minions.find((x) => force || this.t - x.born > 1.2);
+    if (!m) return;
+    this.minions = this.minions.filter((x) => x !== m);
+    this.emit('kill', { enemyId: m.id, kind: m.type, boss: false, elite: false, gold: 0, x: m.x });
+    this.world.enemies = this.world.enemies.filter((x) => x !== m);
+  }
+
   // Monstres : chacun rejoint sa place dans son rang (foeRows) ; quand l'avant est tombé, l'arrière avance.
   moveFoes(dt) {
     const world = this.world;
-    const rows = foeRows(world.enemies);
+    const rows = foeRows(world.enemies.filter((e) => !e.minion));
     let lead = null;
-    for (const e of world.enemies) { const r = rows.get(e); if (!r.back && (!lead || r.stop < rows.get(lead).stop)) lead = e; }
+    for (const e of world.enemies) { const r = rows.get(e); if (r && !r.back && (!lead || r.stop < rows.get(lead).stop)) lead = e; }
     for (const e of world.enemies) {
       const row = rows.get(e);
       e.prevX = e.x;
+      if (!row) { e.queued = true; continue; } // serviteur invoqué : il reste où il est apparu
       e.stop = row.stop;
       e.x = Math.max(row.stop, e.x - e.speed * dt);
       const at = e.x <= row.stop + 0.01;
@@ -446,6 +533,7 @@ export class ArenaScene {
     if (!hold) this.t += dt;
     const t = this.t - 1;
     while (!hold && this.fired < this.run.events.length && this.run.events[this.fired].t <= t) this.play(this.run.events[this.fired++]);
+    while (!hold && this.mechAt < this.mech.length && this.mech[this.mechAt].t <= t) this.playMechanic(this.mech[this.mechAt++]);
     const want = this.frameShift();
     this.r.fixedShift += (want - this.r.fixedShift) * Math.min(1, dt * 4);
     this.r.render(this.state, world, dt);

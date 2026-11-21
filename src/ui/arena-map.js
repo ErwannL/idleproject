@@ -10,6 +10,7 @@ import { COMPANIONS } from '../data/companions.js';
 import { bossOf, floorName, monsterOf } from '../core/arena-cards.js';
 import { COMPANION_ROLES as ROLE_OF } from '../data/synergies.js';
 import { reduceMotion } from './prefs.js';
+import { TRAITS } from '../core/boss-traits.js';
 
 const RULE_ART = { armored: 'rule_armored', swift: 'rule_swift', noheal: 'rule_noheal', frenzy: 'rule_frenzy', first: 'rule_first', backline: 'rule_backline' };
 const RULE_NAME = { armored: 'Carapace', swift: 'Vif-argent', noheal: 'Plaie ouverte', frenzy: 'Frénésie', first: 'Embuscade', backline: 'Assaut arrière' };
@@ -53,7 +54,7 @@ export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
       ${rule ? `<span class="am-rule">${ruleArt(rule.id) ? `<img class="px" src="${ruleArt(rule.id)}" alt="">` : ''}${ruleDup(rule) ? `<b>${escapeHtml(rule.text)}</b>` : `<b>${escapeHtml(ruleName(rule.id))}</b> : ${escapeHtml(rule.text)}`}</span>` : ''}
       <span class="am-time"><i>⏱</i><b class="num">0 s</b>${run.survival ? '' : `<small>3 ★ en moins de ${A.star3} s</small>`}</span><span class="am-stars">★★★</span></div>
     <div class="am-stage"><canvas class="px am-canvas"></canvas><div class="am-names" aria-hidden="true"></div>
-      <div class="am-boss hidden"><b></b><span class="am-boss-bar"><i></i></span><small class="num"></small></div></div>
+      <div class="am-boss hidden"><b></b><span class="am-boss-bar"><i></i></span><small class="num"></small><span class="am-mech hidden"><i>◆</i><b></b><span></span></span></div></div>
     <div class="am-bottom"><div class="am-cards"></div>
       <div class="am-ctrl"><button class="btn small am-speed" type="button">×1</button><button class="btn small am-mode" type="button">Auto</button><button class="btn small am-skip" type="button">Passer ⏭</button></div></div>
     <div class="am-end hidden"></div>`;
@@ -110,7 +111,13 @@ export function openArenaMap(ui, run, { onNext, onRetry } = {}) {
     for (const [pos, t] of tags) if (!live.has(pos)) { t.remove(); tags.delete(pos); }
     bossEl.classList.toggle('hidden', !boss);
     if (boss) {
-      if (bossEl.dataset.name !== boss.name) { bossEl.dataset.name = boss.name; bossEl.querySelector('b').textContent = boss.name; }
+      if (bossEl.dataset.name !== boss.name) {
+        bossEl.dataset.name = boss.name; bossEl.querySelector('b').textContent = boss.name;
+        // v10.3.1 : la mécanique du boss ou du gardien, sous sa barre (nom et effet, à la couleur de la mécanique).
+        const T = TRAITS[boss.mech], mech = bossEl.querySelector('.am-mech');
+        mech.classList.toggle('hidden', !T);
+        if (T) { mech.style.setProperty('--mech', T.color); mech.querySelector('b').textContent = T.name; mech.querySelector('span').textContent = T.short; }
+      }
       bossEl.querySelector('i').style.width = `${boss.hp * 100}%`;
       const pct = `${Math.ceil(boss.hp * 100)} %`; const sm = bossEl.querySelector('small'); if (sm.textContent !== pct) sm.textContent = pct;
     }

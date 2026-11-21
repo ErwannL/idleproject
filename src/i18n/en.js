@@ -2069,3 +2069,7 @@ PATTERNS.unshift(...patterns103Equip(lookup)); // en tête : ces motifs sont pr�
 import { EXACT_103_BASTION, patterns103Bastion } from './en-103-bastion.js';
 for (const [k, v] of Object.entries(EXACT_103_BASTION)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.push(...patterns103Bastion(lookup));
+// v10.3.1 : Arène jouée sur la carte, fin de la partie 6 (./en-1031-arena.js) — sans écraser l'existant.
+import { EXACT_1031, patterns1031 } from './en-1031-arena.js';
+for (const [k, v] of Object.entries(EXACT_1031)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1031(lookup));

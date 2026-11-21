@@ -21,6 +21,7 @@ const A = await import('../src/core/arena-cards.js');
 const S = await import('../src/render/arena-scene.js');
 const { CARD_ARENA } = await import('../src/data/arena-floors.js');
 const { BALANCE } = await import('../src/data/balance.js');
+const TRAITS_MOD = await import('../src/core/boss-traits.js');
 
 const fin = () => sanitizeState(JSON.parse(readFileSync('tests/fixtures/endgame.json', 'utf8')));
 const src = (p) => readFileSync(p, 'utf8');
@@ -69,4 +70,45 @@ test('6.2 — compagnon vaincu : il reste dans l\'équipe dessinée, couché et 
   assert.ok(scene.state.companions.equipped.includes(id), 'il n\'est plus retiré de la scène');
   const code = src('src/render/arena-scene.js');
   assert.match(code, /drawFallen\(ctx, c, cx\) \{[\s\S]*?rotate\(\(-Math\.PI \/ 2\)[\s\S]*?grayscale\(1\)/, 'couché (rotation) et grisé');
+});
+
+test('6.2 — boss d\'étage et gardiens : leur mécanique est jouée (événements horodatés), sans changer le combat', () => {
+  const { BOSS_TRAITS, TRAITS } = TRAITS_MOD;
+  const s = fin(); const cal = A.arenaCal(s); const team = A.formationCards(s);
+  for (const f of [10, 25, 50]) {
+    const x = A.floorCards(f, cal);
+    const before = A.fightBoard(team, x.cards, { seed: f, rule: x.rule });
+    const boss = x.cards.find((c) => c.boss);
+    const trait = S.arenaTraitOf(boss);
+    assert.ok(trait && TRAITS[trait], `étage ${f} : ${boss.name} a une mécanique`);
+    if (boss.guardian) assert.equal(trait, 'armored'); else assert.equal(trait, BOSS_TRAITS[boss.enemyId]);
+    const run = { ...before, setup: x, team };
+    const m = S.arenaMechanics(run);
+    assert.ok(m.length >= 1 && m[0].action === 'intro' && m.every((e) => e.kind === 'mechanic' && e.t <= before.seconds), `étage ${f} : ${JSON.stringify(m)}`);
+    assert.deepEqual(A.fightBoard(team, x.cards, { seed: f, rule: x.rule }), before, 'le combat est identique');
+  }
+  // Chaque mécanique a son geste : invocation, rage, Fournaise, Carapace brisée.
+  const fake = (enemyId, guardian = false) => ({ seconds: 40, setup: { cards: [{ pos: 1, boss: true, guardian, enemyId, maxHp: 1000 }] },
+    events: Array.from({ length: 60 }, (_, i) => ({ t: 0.5 + i * 0.5, kind: 'hit', side: 'ally', from: 0, to: 1, d: 15 })) });
+  const acts = (id, g) => S.arenaMechanics(fake(id, g)).map((e) => e.action);
+  assert.ok(acts('spectral_queen').includes('summon'));
+  assert.ok(acts('demon_king').includes('enrage'));
+  assert.ok(acts('ash_dragon').includes('escalate'));
+  assert.ok(acts(null, true).includes('shellBreak'));
+  assert.ok(acts('boss_leviathan').includes('pulse'));
+  assert.deepEqual(acts('slime_king'), [], 'un boss sans mécanique (monde 1) n\'en joue pas');
+});
+
+test('6.2 — scène : la mécanique jouée (serviteurs qui surgissent et tombent, nom dans la barre du boss)', () => {
+  const { run, scene } = sceneOf(10);
+  scene.r.layout = scene.r.teamLayout(scene.state);
+  const boss = scene.world.enemies.find((e) => e.boss);
+  assert.equal(boss.trait, 'escalate', 'le moteur reçoit la mécanique (aura de rage de la campagne)');
+  scene.summonMinions(boss, 'wraith', 2);
+  assert.equal(scene.world.enemies.filter((e) => e.minion).length, 2);
+  scene.t += 2;
+  scene.play({ t: 1, kind: 'hit', side: 'ally', from: run.team[0].pos, to: boss.arenaPos, d: 1 });
+  assert.equal(scene.minions.length, 1, 'un coup sur le boss fait tomber un serviteur');
+  assert.match(src('src/ui/arena-map.js'), /am-mech/);
+  assert.match(src('index.html'), /src\/ui\/arena1031\.css/);
 });
