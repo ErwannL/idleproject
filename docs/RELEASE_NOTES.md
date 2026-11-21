@@ -1,6 +1,19 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.3.0 — Un équipement qu'on comprend, une Forge en images, le Bastion
+## Ascendrya v10.3.1 — L'Arène en profondeur, le coffre dans la scène
+
+- **Arène sur deux rangs** : les cartes « Devant » combattent au premier plan, celles de « Derrière » un peu en retrait, plus haut et plus petites — pareil chez les monstres. Un compagnon vaincu se couche, grisé, et reste sur la carte ; les vainqueurs restent debout. Avant un ultime, un léger zoom et un flash à la couleur du compagnon.
+- **Boss d'Arène** : la mécanique du boss est jouée et écrite sous sa barre (Fournaise qui monte, Carapace des gardiens, serviteurs qui surgissent) ; les étages de boss alternent entre les mondes de leur élément au lieu de montrer toujours le même dragon. Fin de combat en deux lignes, Progression et Matériaux, « Étage suivant » en bouton principal.
+- **Boss commun** : il se joue dans le même écran que l'Arène — ton équipe sur deux rangs, le Colosse en grand avec sa barre et ses phases, les dégâts de chacun sur sa carte, ×2 et Passer.
+- **Coffre de butin dessiné dans la scène** : ce n'est plus un bouton posé par-dessus ; le coffre est sur le sol, derrière les monstres, et suit l'équipe. Les objets y volent, le couvercle s'entrouvre, des pièces sautent. Un toucher ouvre toujours le tri.
+- **Donjons** : sur la feuille, le portrait du boss en grand et sa mécanique en image, avec une phrase (« Elle invoque des spectres : tue-les d'abord ») ; portes côte à côte sur tous les écrans ; le total annoncé par « Balayer tout » est celui que tu reçois, même si ton étape change entre-temps.
+- **Débutant** : la mini-quête « Équipe un objet » ne peut plus rester bloquée sur un sac vide — un objet qui te renforce est garanti tant qu'elle est ouverte.
+- **Équipement et Forge** : chaque renfort gagne au moins 1 unité affichée (plus de « 5 → 5 ») ; la ligne « maintenant » de la Forge nomme la statistique gagnée au lieu d'annoncer « 0 % de puissance », et classe d'abord les renforts qui augmentent la Puissance.
+- **Bastion** : Mine de cristal plus généreuse (25 à 115 éclats par heure) ; cartes de bâtiment utilisables au clavier ; « Mots du Bastion » (Bastion, Ouvrier, Chantier, Recherche) expliqués d'un toucher.
+
+### Versions précédentes
+
+<details><summary><b>Ascendrya v10.3.0 — Un équipement qu'on comprend, une Forge en images, le Bastion</b></summary>
 
 - **Équipement refait** : ton héros ou ton compagnon au centre, ses places autour (84 px, cadre à la couleur de la rareté, « +N », flèche ▲ si mieux dans le sac, « Épée · Légendaire » dessous), et la fiche de l'objet à côté, toujours visible — plus de fenêtre qui recouvre le personnage (feuille du bas sur téléphone). En haut, « Tes ressources » : l'or améliore, les éclats renforcent, grimoires et pierres sont pour les compagnons. Sous le personnage : son niveau, sa puissance et 4 tuiles (Dégâts/s, Vie, Vitesse, Critique ; Attaque, PV, Défense, Recharge pour un compagnon).
 - **Renforcer sans surprise** : la fiche nomme la statistique renforcée et montre chaque nombre avant → après, puis la puissance ; le coût s'écrit pièce par pièce avec « tu as … » en vert ou « il manque … » en rouge et un « + » vers là où en gagner. Le renforcement ne tire plus au hasard : il monte la statistique la moins renforcée. « Remettre au niveau de ton étape », « Changer l'effet » et « Retirer » ont leur phrase d'aide ; le bonus d'ensemble est dit en clair ; le niveau d'objet a son libellé.
@@ -11,7 +24,7 @@
 - **Recherches** (Bibliothèque) : 3 branches de 6 — Combat, Compagnons, Économie — qui avancent avec le temps et ne se perdent pas à la Renaissance ; au total au plus +54 % de dégâts et de vie, +50 % d'or. Au retour, le Carnet et le Sceau disent une fois ce que le Bastion a fini.
 - **Corrections de la 10.2** : la feuille de donjon s'ouvre de nouveau quand « Difficile » est débloqué ; le combat des gardiens d'Arène (étages 25, 50, 75, 100) ne plante plus ; sur la carte d'Arène, les monstres sont dans l'écran (téléphone compris) avec leur nom, le boss a sa barre en haut ; « Arène » est un vrai onglet de Combat ; le dos de carte doré se gagne au premier gardien ; « Balayer tout » joue exactement le plan annoncé ; les portes s'ouvrent au toucher ; noms entiers partout (« Pyromancienne », « Apparences », « Classement ») ; « Réserve » dans tous les textes.
 
-### Versions précédentes
+</details>
 
 <details><summary><b>Ascendrya v10.2.0 — L'Arène sur la carte, un vrai coffre de butin</b></summary>
 
