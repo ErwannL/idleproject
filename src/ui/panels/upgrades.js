@@ -10,6 +10,7 @@ import { computeHeroStats } from '../../core/stats.js';
 import { bossForecast, coin, costButton, escapeHtml, fold, distinctTo, forecastHtml, formatDecimal, formatNumber, img } from '../common.js';
 import { upgradeProfits } from '../../core/profit.js';
 import { pref } from '../prefs.js';
+import { pageActive, pageNarrow } from '../page.js'; // v10.6 (5)
 import { BASE_UPGRADES, nextUpgradeUnlock, openUpgrades } from '../../core/unlocks.js';
 import { POWERLESS_UPGRADES, WEAK_UPGRADE_PCT, UPGRADE_NAMES } from '../../core/guide.js'; // v10.6 (5)
 import { currentEnvironment, hitsToFall } from '../../core/combat.js'; // v9.2.1 · v9.2.8 : coups encaissés
@@ -195,6 +196,9 @@ export default {
     const top = qtyMenu ? `<div class="row-between upg-dps-row">${dpsHead}${amounts}</div>${forecast}` : `${dpsHead}${forecast}${amounts ? `<div class="row-between">${amounts}</div>` : ''}`;
     // v9.9 (K15) : « Tout acheter » en haut de l'onglet (meilleur rapport d'abord, confirmation la première fois).
     const buyAll = state.gold > 0 ? `<button class="btn btn-gold buy-all${ui.view.buyAllArmed ? ' armed' : ''}" data-action="${state.ui.buyAllOk || ui.view.buyAllArmed ? 'buy-best' : 'buy-all-arm'}">${ui.view.buyAllArmed && !state.ui.buyAllOk ? 'Confirmer : tout acheter ?' : 'Tout acheter'}</button>` : '';
+    // v10.6 (partie 5) : en page plein écran, gabarit .pg : héros et achats à gauche, les 3 groupes en colonnes à droite.
+    if (pageActive(ui) && !pageNarrow(ui)) return `<div class="pg upg-page"><div class="pg-top upg-pg-top"><img class="px upg-pg-banner" src="assets/ui/art101/banner_upgrades.png" alt="" aria-hidden="true"><b>Améliorations</b></div><div class="pg-main upg-pg-main">${bestCard}<div class="upg-cols">${grouped}</div>${done.length ? fold(ui, 'upg-done', `Terminées (${done.length})`, `<div class="upg-list">${done.join('')}</div>`) : ''}</div>
+      <div class="pg-side upg-pg-side">${heroCard}<div class="card upg-top">${top}${buyAll}</div>${catTabs}${rebirthRow(state)}</div></div>`;
     return `${heroCard}<div class="card upg-top">${top}${buyAll}</div>
       ${catTabs}
       ${beginner ? '' : fold(ui, 'upg-filters', 'Trier', filters)}

@@ -57,7 +57,8 @@ test('socle : PAGE_TABS, PAGE_WHEN et pageActive suivent le contrat', () => {
   const ui = (tab, layout = 'tall', view = {}) => ({ tab, layout, view });
   assert.equal(page.pageActive(ui('inventory')), true);
   assert.equal(page.pageActive(ui('forge')), true);
-  assert.equal(page.pageActive(ui('upgrades')), false, 'les écrans de liste gardent le volet');
+  assert.equal(page.pageActive(ui('upgrades')), true, 'v10.6 (5) : les Améliorations passent en page');
+  assert.equal(page.pageActive(ui('contracts')), false, 'les écrans de liste gardent le volet');
   assert.equal(page.pageActive(ui('inventory', 'mini')), false, 'petite fenêtre : pas de page');
   assert.equal(page.pageActive(ui('inventory', 'strip')), false);
   assert.equal(page.pageActive(ui(null)), false);

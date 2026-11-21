@@ -130,7 +130,7 @@ function simpleView(state) {
     const what = next ? `${big ? '<b class="gold-text">Gros palier : </b>' : ''}${escapeHtml(next.t.name)} — ${effectText(talentLevelEffects(next.t, next.lv + 1))}` : '<span class="good">Branche terminée</span>';
     const btn = next ? costButton({ action: 'talent-branch', cost: next.cost, have: state.fragments, currency: 'fragments', label: 'Apprendre ', attrs: `data-value="${b.id}"`, cls: big ? 'btn-gold' : 'btn-primary' }) : '';
     return `<div class="tb-row${big ? ' tb-big' : ''}" style="--branch:${b.color}">
-      <div class="tb-head">${img(meta.icon)}<b>${meta.name}</b><span class="muted">Palier ${tier}/${TIERS}</span></div>
+      <div class="tb-head"><img class="px tb-medal" src="assets/ui/art106/talent_region_${b.id}.png" alt=""><b>${meta.name}</b><span class="muted">Palier ${tier}/${TIERS}</span></div>
       <div class="tb-steps" aria-hidden="true">${steps}</div>
       <div class="tb-bonus">${bonus ? `Bonus : <b class="good">${bonus}</b>` : '<span class="muted">Aucun talent appris</span>'}</div>
       <div class="tb-next"><span>Prochain : ${what}</span>${btn}</div></div>`;

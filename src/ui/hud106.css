@@ -260,3 +260,48 @@
 #hud106.hq-wide #hq-events { top: 96px; right: 290px; width: auto; flex-direction: row; gap: 8px; align-items: flex-start; }
 #hud106.hq-wide #hq-events .hq-ev-art { width: 56px; height: 56px; }
 #hud106.hq-wide #hq-events .hq-ev-art img { width: 48px; height: 48px; }
+
+/* ---- Partie 9 : téléphone ---- */
+/* Bannières de donjon (et de l'Arène) : jamais plus larges que leur grille. */
+.dg-grid { grid-template-columns: minmax(0, 1fr) !important; }
+.dg-grid > .dg-card.dg-banner { min-width: 0; max-width: 100%; box-sizing: border-box; }
+/* Rangée des personnages de l'équipement : les 4 tiennent sans couper un nom (« Archange »). */
+@media (max-width: 600px) {
+  .eq-whos { gap: 4px !important; }
+  .eq-whos > .eq-who { flex: 1 1 0; min-width: 0; padding: 4px 3px !important; font-size: 10px !important; gap: 2px !important; }
+  .eq-whos > .eq-who img, .eq-whos > .eq-who canvas { width: 22px !important; height: 22px !important; flex: none; }
+  .eq-whos > .eq-who b, .eq-whos > .eq-who span { white-space: nowrap; overflow: hidden; text-overflow: clip; }
+}
+
+/* ---- P2 : écrans encore sous 20 % d'image ---- */
+.shop-card .shop-art106 { width: 128px; height: 128px; margin: 0 auto; display: block; image-rendering: pixelated; }
+.tb-head .tb-medal { width: 128px; height: 128px; image-rendering: pixelated; }
+.tb-row .tb-head { display: flex; align-items: center; gap: 10px; }
+/* Missions : icône de 64 px par mission, comme les tuiles du Carnet. */
+#panel .contracts img[src*="art101/mis_"], #panel .mission img[src*="art101/mis_"], #panel img.px[src*="art101/mis_"] { width: 64px !important; height: 64px !important; }
+/* Boss : portrait de 128 px ; Compagnons : portrait en grand sur la carte. */
+#panel .boss-card img.px, #panel .boss-row img.px:first-child { width: 128px; height: 128px; object-fit: contain; }
+#panel .comp-card .comp-portrait, #panel .comp-card canvas, #panel .comp-card .hd-art { width: 112px !important; height: 112px !important; object-fit: contain; }
+
+/* ---- Partie 10 : au moins 35 % d'image par onglet — bannière d'onglet plus haute, icônes des cartes agrandies ---- */
+#app #panel #panel-body > .art-banner-wrap .art-banner { height: 300px !important; max-height: 300px !important; object-fit: cover; }
+#app #panel .db-card .db-art img { width: 64px !important; height: 64px !important; }
+#app #panel .boss-item img { width: 64px !important; height: 64px !important; }
+#app #panel .shop-card .shop-big, #app #panel .shop-card > img.px:first-child { width: 96px !important; height: 96px !important; }
+#app #panel .stat-tile img, #app #panel .enc-card img, #app #panel .sk-card img { min-width: 48px; min-height: 48px; }
+.lt-key { height: 260px; } .lt-map { height: 220px; }
+@container (max-width: 760px) { .lt-key { height: 250px; } .lt-key-prize { height: 230px; } .lt-map { height: 210px; } .lt-node .lt-lantern { width: 38px; height: 38px; } }
+.lt-tile-art { width: 64px; height: 64px; }
+.lt-shop-item img:first-child { width: 72px; height: 72px; }
+.fg-side-art { width: 100%; height: 340px; object-fit: cover; border-radius: 12px; display: block; margin-bottom: 10px; image-rendering: pixelated; }
+#app #panel .tb-head img.tb-medal { width: 96px !important; height: 96px !important; }
+/* Améliorations en page : les 3 groupes côte à côte. */
+.upg-page .upg-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; align-items: start; }
+.upg-page .upg-group { margin-top: 0; }
+.upg-pg-top { position: relative; height: 150px; border-radius: 12px; overflow: hidden; }
+.upg-pg-top .upg-pg-banner { width: 100%; height: 100%; object-fit: cover; display: block; }
+.upg-pg-top b { position: absolute; left: 16px; bottom: 10px; font-size: 22px; color: #ffe9c0; text-shadow: 0 2px 0 #000, 0 0 6px #000; }
+.upg-page .upg-hero { min-height: 240px; }
+.upg-page .upg-icon img { width: 64px !important; height: 64px !important; }
+.upg-page .upg-hero { min-height: 320px; background-size: cover; }
+.upg-page .upg-group-head { height: 64px; }

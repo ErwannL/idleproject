@@ -136,3 +136,15 @@ test('10.6 (5) : un achat sous 0,5 % de puissance est « presque sans effet »',
   s.upgrades.damage = 4000;
   assert.ok(G.upgradePowerPct(s, 'damage') < G.upgradePowerPct({ ...s, upgrades: { ...s.upgrades, damage: 1 } }, 'damage'));
 });
+
+test('10.6 (7, 9, 10) : fenêtre large, téléphone, images P2 et outil de fin', () => {
+  const page = src('src/ui/page.css');
+  assert.match(page, /#panel-body > \.pg \{ max-width: 1600px; margin: 0 auto;/);
+  assert.match(src('src/render/scene.js'), /Math\.ceil\(40 \/ \(this\.scale \|\| 1\)\)/, 'équipe à 40 px du bord');
+  const css = src('src/ui/hud106.css');
+  assert.match(css, /\.dg-grid > \.dg-card\.dg-banner \{ min-width: 0; max-width: 100%;/);
+  assert.match(css, /\.eq-whos > \.eq-who \{ flex: 1 1 0; min-width: 0;/);
+  for (const f of ['talent_region_combat', 'talent_region_survival', 'shop_sub_pass', 'shop_pack_heroic', 'shop_gems']) assert.ok(existsSync(`assets/ui/art106/${f}.png`), f);
+  const e2e = src('tools/e2e-1060.mjs');
+  for (const k of ['docs/screenshots/v10.6', "t === 'event' ? 50 : 35", '[2536, 1011]', '[390, 844]']) assert.ok(e2e.includes(k), k);
+});

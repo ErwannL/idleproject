@@ -217,7 +217,7 @@ export default {
     // côté (la fusion détaillée se lit sans défiler).
     return `<div class="fg pg pg-wide fg-on-${seg}"><div class="pg-top fg-top"><div class="eq-res fg-res" role="group" aria-label="Tes ressources">${chip('shards', 'icon_shard', state.materials.shards, 'Éclats')}${chip('gold', 'coin', state.gold, 'Or')}</div>
       <img class="px art-banner fg-top-art" src="assets/ui/art104/forge_banner_wide.png" loading="lazy" alt="" aria-hidden="true"></div>
-      <div class="pg-main fg-main"><div class="fg-loop">${steps}</div></div><div class="pg-side pg-inline fg-side">${body}</div></div>`;
+      <div class="pg-main fg-main"><div class="fg-loop">${steps}</div></div><div class="pg-side pg-inline fg-side"><img class="px fg-side-art" src="assets/ui/art104/forge_step_${seg}.png" alt="" aria-hidden="true">${body}</div></div>`; // v10.6 (10) : l'atelier choisi en grand au-dessus de sa fiche
   },
 };
 export const escape = escapeHtml;

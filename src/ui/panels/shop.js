@@ -39,6 +39,9 @@ function buyButton(offer, st) {
     : `<button class="btn small shop-soon" disabled aria-label="${escapeHtml(`${euros(offer.price)} — Bientôt disponible`)}"><span class="num">${euros(offer.price)}</span> · <span>Bientôt disponible</span></button>`;
 }
 
+// v10.6 (P2) : une image de 128 px par offre (PixelLab), à la place des icônes de 32 px.
+const OFFER_ART = new Set(['sub_blessing', 'sub_pass', 'sub_premium', 'pack_discovery', 'pack_heroic', 'pack_legendary', 'pack_collection']);
+
 function offerCard(ui, state, offer) {
   const st = offerState(state, offer);
   const give = offerContent(state, offer);
@@ -49,7 +52,7 @@ function offerCard(ui, state, offer) {
   const skinPrev = (offer.skins ?? []).length ? `<button class="btn tiny" data-action="look-preview" data-value="${offer.skins[0]}">Aperçu</button>` : '';
   const swatch = offer.cat === 'themes' ? `<span class="theme-swatches">${themeSwatches(offer.themes[0]).map((c) => `<i style="background:${c}"></i>`).join('')}</span>` : '';
   return `<div class="shop-card${st.owned ? ' owned' : ''}">
-    ${shopIcon(offer.icon, false, 'shop-big')}
+    ${OFFER_ART.has(offer.id) ? `<img class="px shop-art106" src="assets/ui/art106/shop_${offer.id}.png" alt="">` : offer.cat === 'gems' ? '<img class="px shop-art106" src="assets/ui/art106/shop_gems.png" alt="">' : shopIcon(offer.icon, false, 'shop-big')}
     <div class="shop-name">${escapeHtml(offer.name)}</div>
     ${tierName ? `<div class="muted shop-tier">${escapeHtml(tierName)}</div>` : ''}
     ${Object.keys(give).length ? `<div class="shop-content">${contentLine(give)}</div>` : ''}

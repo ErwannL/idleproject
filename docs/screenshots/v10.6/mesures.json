@@ -1,0 +1,25 @@
+{
+  "share": {
+    "inventory": 40,
+    "upgrades": 35,
+    "skills": 37,
+    "tree": 41,
+    "forge": 40,
+    "companions": 38,
+    "expeditions": 52,
+    "camp": 36,
+    "summon": 46,
+    "shop": 42,
+    "campaign": 43,
+    "dungeons": 80,
+    "arena": 35,
+    "tower": 60,
+    "event": 58,
+    "contracts": 37,
+    "daybook": 38,
+    "boss": 37,
+    "encyclopedia": 39,
+    "stats": 46,
+    "looks": 56
+  }
+}

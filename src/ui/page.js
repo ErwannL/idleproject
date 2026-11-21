@@ -13,7 +13,7 @@
 import { isPhone } from './prefs.js';
 
 // Panneaux ouverts en page (les autres gardent le volet latéral : Améliorations, Missions, Carnet, Boutique…).
-export const PAGE_TABS = new Set(['inventory', 'forge', 'camp']); // v10.4 (6) : le Bastion
+export const PAGE_TABS = new Set(['inventory', 'forge', 'camp', 'upgrades']); // v10.6 (5) : les Améliorations en page // v10.4 (6) : le Bastion
 // Conditions par panneau : (ui) => booléen.
 export const PAGE_WHEN = {};
 

@@ -282,6 +282,9 @@ export function drawLootChest(r, ctx, world) {
   const L = chest.layout(r, ctx);
   chest.L = L;
   const cssWc = L.w / L.dpr;
+  // v10.6 (partie 1) : pas de bande libre sous le sol (scène réduite par un menu, téléphone) → le coffre ne se pose pas
+  // sur l'équipe : il attend que la scène retrouve sa place (le tri reste ouvert par la touche B et par le Sceau).
+  if ((L.feet - L.band) / L.dpr < L.h / L.dpr + 4) { chest.rect = null; chest.dev = null; return; }
   // v10.6 (partie 1) : le coffre quitte le terrain. Il se pose en bas à droite, sur la bande sous le combat (à côté de
   // « Tout récupérer ») : même place à chaque vague et dans toutes les tailles, sans jamais recouvrir un monstre.
   chest.x = dockX(L.cssW, cssWc);
