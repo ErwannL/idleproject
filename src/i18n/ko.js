@@ -439,3 +439,7 @@ PATTERNS.unshift(...patterns1031Arena(lookup));
 import { EXACT_1031_CHEST, patterns1031Chest } from './ko-1031-chest.js';
 for (const [k, v] of Object.entries(EXACT_1031_CHEST)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1031Chest());
+// v10.4 (partie 7) : libellés du Sceau en mots du joueur (./ko-1040-defauts.js).
+import { EXACT_1040_DEFAUTS, patterns1040Defauts } from './ko-1040-defauts.js';
+for (const [k, v] of Object.entries(EXACT_1040_DEFAUTS)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1040Defauts(lookup));

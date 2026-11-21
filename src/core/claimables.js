@@ -23,7 +23,7 @@ export function claimables(state, now = Date.now(), balance = BALANCE) {
   if (state.missions) {
     if (loginReady(state)) push({ key: 'login', kind: 'login', label: loginPending(state) > 1 ? `Connexion : ${loginPending(state)} jours` : `Connexion : jour ${loginDay(state) + 1}`, reward: loginPendingReward(state), tab: 'contracts' });
     const tn = trackNext(state); // v9.1.3 : piste du mois
-    if (tn?.ready) push({ key: 'track', kind: 'track', period: 'track', label: `Piste du mois : palier ${tn.pct} %`, reward: tn.reward, tab: 'contracts' });
+    if (tn?.ready) push({ key: 'track', kind: 'track', period: 'track', label: `Piste du mois : ${tn.pct} %`, reward: tn.reward, tab: 'contracts' });
     for (const p of MISSION_PERIODS) {
       for (const m of p.missions.filter((x) => missionOpen(state, x))) { // v9.3.5
         const st = missionStatus(state, p.id, m);
@@ -36,7 +36,7 @@ export function claimables(state, now = Date.now(), balance = BALANCE) {
     if (c.progress >= c.target) push({ key: `contract:${c.id}`, kind: 'contract', id: c.id, label: 'Mission finie', // v10.2 (4.4) : les mots du joueur
        reward: c.reward, tab: 'contracts' });
   }
-  for (const a of claimableAchievements(state)) push({ key: `achievement:${a.id}`, kind: 'achievement', id: a.id, label: `Exploit réussi : ${a.name}`, reward: { gems: a.gems }, tab: 'contracts' });
+  for (const a of claimableAchievements(state)) push({ key: `achievement:${a.id}`, kind: 'achievement', id: a.id, label: `Succès débloqué : ${a.name}`, reward: { gems: a.gems }, tab: 'contracts' });
   if (bountyReady(state, now)) push({ key: 'bounty', kind: 'bounty', label: 'Prime du jour', reward: { gems: BOUNTY.gems }, item: true, tab: 'campaign' }); // v9.3.8 : la Prime est sur la Carte
   for (const e of state.inbox ?? []) {
     if (e.type === 'merchant') continue;
@@ -46,11 +46,11 @@ export function claimables(state, now = Date.now(), balance = BALANCE) {
     if (expeditionDone(run, now)) push({ key: `expedition:${slot}`, kind: 'expedition', slot, label: `Expédition terminée : ${companionById(run.companionId)?.name ?? ''}`, reward: run.reward ?? {}, tab: 'expeditions' });
   });
   const enc = state.codex ? encyclopediaNext(state) : null;
-  if (enc?.ready) push({ key: 'encyclopedia', kind: 'encyclopedia', label: `Collections : palier ${Math.round(enc.pct)} %`, reward: enc.reward, tab: 'encyclopedia' });
+  if (enc?.ready) push({ key: 'encyclopedia', kind: 'encyclopedia', label: `Collection remplie à ${Math.round(enc.pct)} %`, reward: enc.reward, tab: 'encyclopedia' });
   if (state.codex) {
     for (const c of SECTIONS_WITH_MILESTONES) { // v9.1.3 : paliers de section (ancien Codex)
       const st = sectionStatus(state, c.id);
-      if (st.ready) push({ key: `collection:${c.id}`, kind: 'collection', id: c.id, label: `Collections : ${c.label} (${st.next})`, reward: st.reward, tab: 'encyclopedia' });
+      if (st.ready) push({ key: `collection:${c.id}`, kind: 'collection', id: c.id, label: `${st.next} ${c.label.toLowerCase()} découverts`, reward: st.reward, tab: 'encyclopedia' });
     }
   }
   for (const [bossId, entry] of Object.entries(state.powers ?? {})) {
