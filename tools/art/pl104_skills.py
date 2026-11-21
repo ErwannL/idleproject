@@ -27,7 +27,7 @@ CLASS_TYPES = {'knight': ('hit', 'holy'), 'archer': ('hit', 'aoe'), 'pyromancer'
                'paladin': ('holy', 'buff'), 'assassin': ('hit', 'aoe'), 'crossbowman': ('hit', 'aoe'), 'stormcaller': ('hit', 'aoe'), 'necromancer': ('holy', 'aoe')}
 # Un motif par compétence : deux compétences d'une classe ne se ressemblent jamais.
 MOTIF = {
-    'knight': ['a single sword thrust, a straight blade piercing forward', 'a spinning sword slash forming a full circle', 'a war banner flag with a roaring helmet',
+    'knight': ['a big broad sword held upright, vertical, point up, bright red steel blade and golden crossguard', 'a spinning sword slash forming a full circle', 'a war banner flag with a roaring helmet',
                'a sword with holy light pouring down on it', 'a heavy lance tip charging forward with speed lines', 'a kite shield with a glowing cross'],
     'archer': ['a single arrow flying to the right', 'a fan of five arrows spreading out from one point', 'a sharp eagle eye with a feather',
                'an arrow made of light with a halo ring', 'an arrow piercing through the center of a round target', 'five long arrows falling straight down from the top, pointing down, like a rain of arrows'],
@@ -39,7 +39,7 @@ MOTIF = {
                'a glowing spear with a halo of light', 'a spear tip striking a shield with sparks', 'a curved reaping arc cutting golden wheat'],
     'paladin': ['a big warhammer head raised high', 'a ring of holy runes on the ground', 'two praying hands with light above',
                 'a sword falling from heaven in a column of light', 'a straight ray of light breaking through clouds', 'a winged halo blessing with feathers'],
-    'assassin': ['a single dagger stab', 'a fan of thrown daggers', 'a hooded face in shadow with glowing eyes',
+    'assassin': ['a large wide dagger drawn diagonally from corner to corner with a bright blade and a golden hilt', 'a fan of thrown daggers', 'a hooded face in shadow with glowing eyes',
                  'a dagger with a holy glow', 'a dagger hidden in a cloak sleeve', 'two spinning twin daggers in a whirlwind'],
     'crossbowman': ['a single crossbow bolt with a metal tip flying to the right', 'a wide barrage of many bolts', 'a crosshair scope with a bolt',
                     'a glowing blessed bolt with a halo', 'a thick heavy iron bolt', 'a volley of three bolts side by side'],
@@ -60,7 +60,7 @@ def skills():
 
 
 def sym_prompt(s):
-    return f"{s['motif']}, {TYPE_COLOR[s['type']]} dominant color, bold simple readable silhouette, game skill icon symbol, centered, no frame" + STYLE
+    return f"{s['motif']}, {TYPE_COLOR[s['type']]} dominant color, one very large bold symbol filling the whole canvas, thick dark outline, bright saturated colors, readable at small size, centered, no frame" + STYLE
 
 
 def frame_prompt(cls):
@@ -86,13 +86,15 @@ def cmd_gen(args):
     force = '--force' in args
     seed = next((int(a[7:]) for a in args if a.startswith('--seed=')), None)
     names = [a for a in args if not a.startswith('--') and a not in ('frames', 'sym')]
+    if force and not names:
+        print('--force exige une liste explicite de noms (ex. knight_quick assassin_2) : jamais tout refaire.'); sys.exit(2)
     os.makedirs(RAW, exist_ok=True)
     jobs = []
     everything = not names and 'frames' not in args and 'sym' not in args
     for s in skills():
-        if everything or 'sym' in args or s['name'] in names: jobs.append(('sym', s))
+        if everything or ('sym' in args and not names) or s['name'] in names: jobs.append(('sym', s))
     for cls in MOTIF:
-        if everything or 'frames' in args or f'frame_{cls}' in names: jobs.append(('frame', cls))
+        if everything or ('frames' in args and not names) or f'frame_{cls}' in names: jobs.append(('frame', cls))
     json.dump({'sym': {s['name']: sym_prompt(s) for s in skills()}, 'frame': {c: frame_prompt(c) for c in MOTIF}, 'style': STYLE},
               open(os.path.join(RAW, 'prompts.json'), 'w', encoding='utf8'), ensure_ascii=False, indent=1)
 
@@ -142,10 +144,6 @@ def tint_frame(frame, cls, mask):
     return out
 
 
-# Symboles retournés à la fabrication : le dessin d'assassin_2 ressemblait trop à celui d'assassin_whirl (même orange, deux dagues).
-FLIP = {'assassin_2'}
-
-
 def auto_levels(sym, target=215, max_gain=2.4):
     """Éclaircit un symbole trop sombre (les 85 % de ses pixels clairs montent vers `target`) pour qu'il se détache du fond, même en gris."""
     px = sym.load(); lums = sorted(0.299 * r + 0.587 * g + 0.114 * b for r, g, b, a in sym.getdata() if a > 128 and 0.299 * r + 0.587 * g + 0.114 * b > 45)
@@ -161,29 +159,47 @@ def auto_levels(sym, target=215, max_gain=2.4):
     return out
 
 
+OLD = os.path.join(ROOT, 'assets', 'ui', 'skills98')
+RING = 6  # les anciennes icônes : 2 px de blanc, puis un cadre métallique de 4 px ; le centre mesure 28 × 28
+
+
+def old_frame(cls):
+    """Cadre biseauté d'une ancienne icône de la classe (assets/ui/skills98) : on ne garde que l'anneau ; le liseré blanc devient transparent."""
+    im = Image.open(os.path.join(OLD, f'{cls}_quick.png')).convert('RGBA'); px = im.load(); n = im.width
+    for y in range(n):
+        for x in range(n):
+            d = min(x, y, n - 1 - x, n - 1 - y)
+            if d < 2 or d >= RING: px[x, y] = (0, 0, 0, 0)
+    return im
+
+
+def fit_symbol(sym, box=26):
+    """Rogne le symbole, le met à l'échelle (×2 si minuscule, réduit s'il dépasse) et le centre dans le centre du cadre."""
+    bb = sym.getchannel('A').point(lambda a: 255 if a > 128 else 0).getbbox()
+    if not bb: return sym
+    c = sym.crop(bb); m = max(c.size)
+    if m <= box // 2: c = c.resize((c.width * 2, c.height * 2), Image.NEAREST)
+    elif m > box: k = box / m; c = c.resize((max(1, round(c.width * k)), max(1, round(c.height * k))), Image.NEAREST)
+    return c
+
+
 def cmd_build(args):
     os.makedirs(DST, exist_ok=True)
+    n = 40; inner = n - 2 * RING
     for s in skills():
-        sp = os.path.join(RAW, f"sym_{s['name']}.png"); fp = os.path.join(RAW, f'frame_{FRAME_BASE}.png')
-        if not (os.path.exists(sp) and os.path.exists(fp)): print(f"{s['name']} : source manquante"); continue
-        frame = Image.open(fp).convert('RGBA'); sym = auto_levels(Image.open(sp).convert('RGBA'))
-        if s['name'] in FLIP: sym = sym.transpose(Image.FLIP_LEFT_RIGHT)
-        mask = interior(frame)
-        frame = tint_frame(frame, s['cls'], mask)
+        sp = os.path.join(RAW, f"sym_{s['name']}.png")
+        if not os.path.exists(sp): print(f"{s['name']} : source manquante"); continue
+        sym = fit_symbol(auto_levels(Image.open(sp).convert('RGBA')))
+        out = Image.new('RGBA', (n, n), (0, 0, 0, 0)); px = out.load()
         r, g, b = TYPE_BG[s['type']]
-        out = frame.copy(); px = out.load()
-        # fond du type : sombre, un peu plus clair en haut à gauche (lumière), par paliers (pas de dégradé lissé)
-        for (x, y) in mask:
-            t = 1.0 + 0.22 * (1 - (x + y) / (frame.width + frame.height))
-            px[x, y] = (min(255, int(r * t)), min(255, int(g * t)), min(255, int(b * t)), 255)
-        layer = Image.new('RGBA', frame.size, (0, 0, 0, 0)); layer.alpha_composite(sym, ((frame.width - sym.width) // 2, (frame.height - sym.height) // 2))
-        lp = layer.load()
-        for y in range(frame.height):
-            for x in range(frame.width):
-                if (x, y) in mask and lp[x, y][3] > 0:
-                    a = lp[x, y][3] / 255
-                    o = px[x, y]
-                    px[x, y] = tuple(int(lp[x, y][i] * a + o[i] * (1 - a)) for i in range(3)) + (255,)
+        for y in range(RING, n - RING):
+            for x in range(RING, n - RING):
+                # fond du type : plus clair au centre et en haut à gauche, sombre vers les bords (vignette)
+                dx, dy = (x - (n - 1) / 2) / (inner / 2), (y - (n - 1) / 2) / (inner / 2)
+                v = 1.25 - 0.55 * min(1.0, (dx * dx + dy * dy) / 1.6) - 0.10 * ((x + y) / (2 * n))
+                px[x, y] = (min(255, int(r * v)), min(255, int(g * v)), min(255, int(b * v)), 255)
+        out.alpha_composite(sym, ((n - sym.width) // 2, (n - sym.height) // 2))
+        out.alpha_composite(old_frame(s['cls']))
         out.save(os.path.join(DST, f"skill_{s['name']}.png"))
     print('build ok →', DST)
 
