@@ -262,10 +262,18 @@ function researchNode(ui, state, def, now) {
   const fresh = st.unlocked && seen[def.id] === false;
   seen[def.id] = Boolean(st.unlocked);
   const cls = `${st.active ? ' active' : ''}${!st.unlocked ? ' locked' : ''}${st.maxed ? ' maxed' : ''}${st.level ? ' got' : ''}${sel ? ' sel' : ''}${fresh ? ' fresh' : ''}`;
-  const short = def.name.split(/\s+/).filter((w) => w.length > 2 || /^[A-ZÉ]/.test(w)).slice(0, 2).join(' ') || def.name; // v10.6 (5) : nom en 1 ou 2 mots
+  const short = shortResearchName(def.name); // v10.9 (3) : nom court (2 lignes au plus) ; le nom complet est dans la fiche
   const time = st.active ? (() => { const r = researchRemaining(state, def.id); return Number.isFinite(r) ? `<span class="bs-time" data-bt-short="1" data-bt-end="${Math.round(now + r)}">${formatDuration(r / 1000)}</span>` : '<span class="bs-time bad">en pause</span>'; })() : '';
   return `<button class="bs-node${cls}${def.keystone ? ' keystone' : ''}" data-action="bastion-res" data-value="${def.id}" aria-pressed="${sel}" title="${escapeHtml(`${def.name} : ${def.text}`)}" aria-label="${escapeHtml(def.name)}">
       <img class="px" src="${researchArt(def.id)}" alt="" draggable="false"><span class="bs-nlv num">${st.level}/${def.max}</span>${time}${!st.unlocked ? `<span class="bs-nlock">${img('icon_lock')}</span>` : ''}<small class="bs-nname">${escapeHtml(short)}</small></button>`;
+}
+
+// v10.9 (partie 3) : nom court d'une recherche — entier s'il tient (14 lettres), sinon son premier mot (« Œil du chasseur » → « Œil »).
+export function shortResearchName(name) {
+  if (name.length <= 14) return name;
+  const words = name.split(/\s+/);
+  const two = words.filter((w) => w.length > 2).slice(0, 2).join(' ');
+  return two.length <= 14 ? two : words[0];
 }
 
 function researchTree(ui, state, now, below = false) {
@@ -277,19 +285,24 @@ function researchTree(ui, state, now, below = false) {
   const pages = below ? '' : `<div class="bs-pages" role="tablist">${[1, 2, 3, 4, 5].map((t) => `<button class="bs-page${t === page ? ' on' : ''}${t > Math.max(1, age) ? ' off' : ''}" data-action="bastion-page" data-value="${t}" aria-selected="${t === page}">${t === page ? '<i class="bs-ribbon"></i>' : ''}Palier ${AGES[t - 1].roman}${t > Math.max(1, age) ? ` ${img('icon_lock')}` : ''}</button>`).join('')}</div>`;
   const tier = below ? 1 : page;
   const keys = tier === 3 ? `<div class="bs-keys">${KEYSTONES.map((k) => researchNode(ui, state, RESEARCH.find((r) => r.id === k.id), now)).join('')}</div>` : '';
-  const cols = RESEARCH_BRANCHES.map((br) => {
-    const list = RESEARCH.filter((r) => r.branch === br.id && (r.tier ?? 1) === tier && !r.keystone);
-    const nodes = list.map((r, i) => {
-      const lit = i > 0 && researchStatus(state, r.id).unlocked;
-      const fresh = lit && ui.view.resSeen?.[r.id] === false; // v10.6 (6) : le trait s'allume jusqu'au médaillon qui s'ouvre
-      return `${i ? `<i class="bs-link${lit ? ' lit' : ''}${fresh ? ' fresh' : ''}" aria-hidden="true"></i>` : ''}${researchNode(ui, state, r, now)}`;
-    }).join('');
-    return `<div class="bs-branch"><div class="bs-bhead" title="${escapeHtml(br.name)}"><img class="px" src="${ART(`research_branch_${br.id}`)}" alt="${escapeHtml(br.name)}"></div>${nodes}</div>`;
+  // v10.9 (partie 3) : une branche à la fois (onglets en haut) ; 3 médaillons sur la page de gauche, 3 sur celle de
+  // droite, loin du bord et de la reliure. Téléphone : une seule page, on la tourne avec une flèche.
+  const branch = RESEARCH_BRANCHES.find((b) => b.id === ui.view.resBranch) ?? RESEARCH_BRANCHES[0];
+  const tabs = `<div class="bs-btabs" role="tablist">${RESEARCH_BRANCHES.map((br) => `<button class="bs-btab${br.id === branch.id ? ' on' : ''}" role="tab" aria-selected="${br.id === branch.id}" data-action="bastion-branch" data-value="${br.id}"><img class="px" src="${ART(`research_branch_${br.id}`)}" alt="">${escapeHtml(br.name)}</button>`).join('')}</div>`;
+  const list = RESEARCH.filter((r) => r.branch === branch.id && (r.tier ?? 1) === tier && !r.keystone);
+  const leafHtml = (part, from) => part.map((r, i) => {
+    const k = from + i;
+    const lit = k > 0 && researchStatus(state, r.id).unlocked;
+    const fresh = lit && ui.view.resSeen?.[r.id] === false;
+    return `${i ? `<i class="bs-link${lit ? ' lit' : ''}${fresh ? ' fresh' : ''}" aria-hidden="true"></i>` : ''}${researchNode(ui, state, r, now)}`;
   }).join('');
+  const leaf = Math.min(1, Math.max(0, Number(ui.view.resLeaf) || 0));
+  const turn = list.length > 3 ? `<button class="bs-turn prev" data-action="bastion-leaf" data-value="0" aria-label="Page précédente"${leaf ? '' : ' disabled'}>‹</button><button class="bs-turn next" data-action="bastion-leaf" data-value="1" aria-label="Page suivante"${leaf ? ' disabled' : ''}>›</button>` : '';
+  const cols = `<div class="bs-spread leaf-${leaf}"><div class="bs-leaf left">${leafHtml(list.slice(0, 3), 0)}</div><div class="bs-leaf right">${leafHtml(list.slice(3, 6), 3)}</div>${turn}</div>`;
   const lock = lib >= 1 ? '' : `<p class="bs-lock">${img('icon_lock')} Construis la Bibliothèque</p>`;
-  if (below) return `<div class="bs-tree below${lib >= 1 ? '' : ' closed'}" style="background-image:url(${ART('research_tree_bg')})"><div class="bs-branches">${cols}</div></div>`;
+  if (below) return `<div class="bs-tree below${lib >= 1 ? '' : ' closed'}" style="background-image:url(${ART('research_tree_bg')})">${tabs}<div class="bs-branches">${cols}</div></div>`;
   const ageLock = tier > Math.max(1, age) ? `<p class="bs-lock">${img('icon_lock')} S'ouvre à l'Âge ${AGES[tier - 1].roman} : ${escapeHtml(AGES[tier - 1].name)}</p>` : '';
-  return `${pages}<div class="bs-tree tier-${tier}${lib >= 1 ? '' : ' closed'}" id="bs-research" style="background-image:url(${ART('research_tree_bg')})">${lock}${ageLock}${keys}<div class="bs-branches">${cols}</div></div>`;
+  return `${pages}${tabs}<div class="bs-tree tier-${tier}${lib >= 1 ? '' : ' closed'}" id="bs-research" style="background-image:url(${ART('research_tree_bg')})">${lock}${ageLock}${keys}<div class="bs-branches">${cols}</div></div>`;
 }
 
 function researchSheet(ui, state, now) {
@@ -591,6 +604,8 @@ export function bastionAction(ui, action, value) {
     case 'bastion-trade': a.bastion('trade', value); break;
     case 'bastion-away-claim': a.bastion('away-claim'); break;
     case 'bastion-tower': openBastion(ui); break; // v10.4 (6) : la tour de la scène
+    case 'bastion-branch': v.resBranch = value; v.resLeaf = 0; v.bastionRes = null; redraw(); break; // v10.9 (3)
+    case 'bastion-leaf': v.resLeaf = Number(value); redraw(); break; // v10.9 (3) : téléphone, page suivante
     case 'bastion-page': v.resPage = Number(value); v.bastionRes = null; redraw(); break; // v10.8 : pages du livre
     case 'bastion-engrave': a.bastion('engrave', value); break;
     case 'bastion-ascend': a.bastion('ascend', value); break;

@@ -85,3 +85,67 @@
   #app #panel .upg-bestbuy > :last-child { grid-column: 1 / -1; width: 100%; justify-self: stretch; }
   #app #panel .upg-hero { overflow: hidden; }
 }
+
+/* v10.9 (partie 3) : livre des recherches — onglets de branche en haut, 3 médaillons par page, rien sur la reliure. */
+.bs-btabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0; }
+.bs-btab { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px 4px 6px; border-radius: 10px; border: 2px solid #5a4422; background: #2a1d10; color: #ffe9c0; font: inherit; font-weight: 800; font-size: 13px; cursor: pointer; }
+.bs-btab img { width: 28px; height: 28px; image-rendering: pixelated; }
+.bs-btab.on { border-color: #ffd34d; background: #4a3214; box-shadow: 0 0 0 2px #ffd34d55; }
+#app .bs-tree .bs-branches { display: block; }
+.bs-spread { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 14%; padding: 9% 18% 12%; }
+.bs-leaf { display: flex; align-items: flex-start; justify-content: space-between; gap: 0; padding: 0 8%; min-width: 0; }
+.bs-leaf .bs-link { align-self: center; margin-top: -18px; }
+#app .bs-spread .bs-node { width: 64px; height: 64px; margin-bottom: 30px; flex: none; }
+#app .bs-spread .bs-node > img { width: 46px; height: 46px; }
+/* Nom : 2 lignes au plus, centré sous le médaillon, jamais coupé au milieu d'un mot. */
+#app .bs-spread .bs-nname { position: absolute; top: calc(100% + 3px); left: 50%; transform: translateX(-50%); width: 84px; max-width: 84px;
+  white-space: normal; overflow-wrap: normal; word-break: keep-all; hyphens: none; text-align: center; line-height: 1.1; font-size: 11px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+/* Minuteur : dans la page, au-dessus du médaillon. */
+#app .bs-spread .bs-node .bs-time { top: -16px; font-size: 10px; }
+.bs-turn { display: none; }
+/* Téléphone : une seule page à la fois, flèches pour tourner. */
+#app.page-narrow .bs-spread { grid-template-columns: minmax(0, 1fr); padding: 12% 12% 14%; }
+#app.page-narrow .bs-spread.leaf-0 .bs-leaf.right, #app.page-narrow .bs-spread.leaf-1 .bs-leaf.left { display: none; }
+#app.page-narrow .bs-spread .bs-leaf { padding: 0 4%; }
+#app.page-narrow .bs-spread .bs-node { width: 56px; height: 56px; }
+#app.page-narrow .bs-spread .bs-node > img { width: 40px; height: 40px; }
+#app.page-narrow .bs-turn { display: grid; place-items: center; position: absolute; top: 50%; width: 32px; height: 44px; margin-top: -22px; border-radius: 8px; border: 2px solid #5a4422; background: #2a1d10e8; color: #ffe08a; font-size: 22px; font-weight: 900; }
+#app.page-narrow .bs-turn.prev { left: 2px; } #app.page-narrow .bs-turn.next { right: 2px; }
+#app.page-narrow .bs-turn[disabled] { opacity: .35; }
+#app.page-narrow .bs-btab { font-size: 12px; padding: 3px 8px 3px 4px; } #app.page-narrow .bs-btab img { width: 22px; height: 22px; }
+#app#app .bs-tree .bs-branches:has(.bs-spread) { padding: 0 !important; display: flex !important; flex-direction: column; justify-content: center; flex: 1; }
+#app#app .bs-btabs { align-self: start; align-items: flex-start; height: auto; flex: none; }
+#app#app .bs-btab { height: auto; min-height: 0; align-self: flex-start; }
+#app#app .bs-spread .bs-node { width: 64px; height: 64px; }
+#app#app.page-ui:not(.page-narrow) .bs-pg[data-view="research"] .bs-main { grid-template-rows: auto auto minmax(0, 1fr); align-content: stretch; }
+/* Pages du dessin : gauche ≈ 20 à 51 %, droite ≈ 54 à 85 % de la largeur ; 8 % de marge depuis le bord et la reliure. */
+#app#app .bs-spread { column-gap: 6%; padding: 8% 16% 10% 21%; }
+#app#app .bs-spread .bs-leaf { padding: 0 6%; }
+#app#app .bs-spread .bs-node { width: 54px; height: 54px; padding: 3px; }
+#app#app .bs-spread .bs-node > img { width: 40px; height: 40px; }
+#app#app .bs-spread .bs-link { min-width: 2px; max-width: 14px; }
+#app#app .bs-spread .bs-nname { width: 66px; max-width: 66px; font-size: 10px; }
+/* Le dessin du livre est étiré au cadre : les pages restent au même endroit (gauche 19-50 %, droite 53-86 %). */
+#app#app .bs-tree:has(.bs-spread) { background-size: 100% 100% !important; background-position: center !important; }
+#app#app .bs-spread { column-gap: 0; padding: 0 14% 0 19%; grid-template-columns: 31fr 3fr 31fr; }
+#app#app .bs-spread .bs-leaf.left { grid-column: 1; } #app#app .bs-spread .bs-leaf.right { grid-column: 3; }
+#app#app .bs-spread .bs-leaf { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); justify-items: center; padding: 0 8%; }
+#app#app .bs-spread .bs-link { display: none; }
+#app#app .bs-spread .bs-node { width: 60px; height: 60px; margin-bottom: 34px; }
+#app#app .bs-spread .bs-node > img { width: 44px; height: 44px; }
+#app#app .bs-spread .bs-nname { width: auto; max-width: none; left: -14px; right: -14px; transform: none; }
+#app.page-narrow .bs-tree:has(.bs-spread) { min-height: 300px; }
+#app#app.page-narrow .bs-spread { grid-template-columns: minmax(0, 1fr); padding: 0 14%; }
+#app#app.page-narrow .bs-spread .bs-leaf { grid-column: 1 !important; }
+/* Pages hautes et étroites : les 3 médaillons d'une page s'empilent, le nom a toute la largeur de la page. */
+#app#app .bs-spread { flex: 1; min-height: 360px; padding: 10% 16% 12% 21%; align-items: stretch; }
+#app#app .bs-spread .bs-leaf { display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 0 8%; }
+#app#app .bs-spread .bs-nname { left: 50%; right: auto; transform: translateX(-50%); width: 150px; max-width: 150px; font-size: 11px; }
+#app#app .bs-spread .bs-node { margin-bottom: 28px; }
+#app#app.page-narrow .bs-spread { min-height: 420px; padding: 12% 18%; }
+#app#app.page-narrow .bs-spread.leaf-0 .bs-leaf.right, #app#app.page-narrow .bs-spread.leaf-1 .bs-leaf.left { display: none; }
+#app#app.page-narrow .bs-spread { min-height: 380px; padding: 16% 20% 18%; }
+#app#app.page-narrow .bs-spread.leaf-0 { padding-left: 20%; padding-right: 53%; }
+#app#app.page-narrow .bs-spread.leaf-1 { padding-left: 53%; padding-right: 20%; }
+#app#app.page-narrow .bs-spread .bs-nname { width: 96px; max-width: 96px; }
