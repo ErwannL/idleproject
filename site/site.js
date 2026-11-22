@@ -11,7 +11,8 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const store = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* privé */ } } };
+const store = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* privé */ } },
+  ss: (k) => { try { return sessionStorage.getItem(k) || undefined; } catch { return undefined; } } };
 
 // ---------- Langues ----------
 let lang = DEFAULT_LANG;
@@ -87,7 +88,7 @@ function renderGoal() {
   const reached = known && c >= target;
   const next = tiers.find((x) => c < x.at);
   // Objectif atteint et paliers bonus restants : la barre et le compteur visent le palier bonus suivant.
-  const goal = reached && next ? next.at : target;
+  const goal = next ? next.at : target; // 10.8 : le compteur vise toujours le prochain palier
   $('#count').textContent = known ? fmt(c) : '—';
   $('#count-of').textContent = t('goal.of', fmt(goal));
   $('#goal-fill').style.width = `${known ? Math.min(100, (c / goal) * 100) : 0}%`;
@@ -150,15 +151,58 @@ form.addEventListener('submit', async (event) => {
   const btn = form.querySelector('button[type=submit]');
   btn.disabled = true;
   try {
-    const res = await fetch('api/preregister', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, consent }) });
+    const res = await fetch('api/preregister', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, consent, ref: store.ss('ascendrya-ref'), utm: store.ss('ascendrya-utm') }) });
     if (res.status === 429) return say('form.errRate');
     if (!res.ok) return say('form.errInvalid');
+    const data = await res.json().catch(() => ({}));
     form.reset();
     say('form.ok', true);
+    showThanks(data.ref);
+    document.body.classList.add('registered'); // la barre flottante ne passe plus par-dessus l'encadré (téléphone)
     loadGoals();
   } catch { say('form.errNet'); } finally { btn.disabled = false; }
   return undefined;
 });
+
+// ---------- 10.8 : lien de parrainage (?ref=) et provenance (utm_source), gardés pour la session ----------
+{
+  const qs = new URLSearchParams(location.search);
+  const keep = (k, v, re) => { try { if (v && re.test(v)) sessionStorage.setItem(k, v); } catch { /* stockage bloqué */ } };
+  keep('ascendrya-ref', (qs.get('ref') ?? '').toUpperCase(), /^[A-HJ-NP-Z2-9]{5,6}$/);
+  keep('ascendrya-utm', qs.get('utm_source') ?? '', /^[\w.-]{1,40}$/);
+  // Confirmation de l'email : ?confirm=<jeton> (lien de l'email).
+  const tok = qs.get('confirm');
+  if (tok) fetch(`api/preregister/confirm?token=${encodeURIComponent(tok)}`).catch(() => {});
+}
+// ---------- Pixels Meta et TikTok (seulement si un identifiant est réglé dans config.js) ----------
+{
+  const px = SITE.pixels ?? {};
+  if (px.meta) {
+    /* eslint-disable */ !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    window.fbq('init', px.meta); window.fbq('track', 'PageView');
+  }
+  if (px.tiktok) {
+    const s = document.createElement('script'); s.async = true;
+    s.src = `https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=${encodeURIComponent(px.tiktok)}&lib=ttq`;
+    document.head.appendChild(s);
+  }
+}
+
+// ---------- 10.8 : parrainage, affiché après l'inscription ----------
+function showThanks(ref) {
+  const box = $('#thanks'); if (!box) return;
+  if (!ref) return;
+  const link = `https://${SITE.domain}/?ref=${encodeURIComponent(ref)}`;
+  const steps = t('ref.steps').map(([n, r]) => `<li><b>${n}</b><span>${r}</span></li>`).join('');
+  box.innerHTML = `<h3>${t('ref.title')}</h3><p>${t('ref.lead')}</p>
+    <div class="ref-link"><input id="ref-url" readonly value="${link}"><button type="button" class="btn" id="ref-copy">${t('ref.copy')}</button></div>
+    <div class="ref-share"><a class="btn small" target="_blank" rel="noopener" href="https://x.com/intent/post?text=${encodeURIComponent(t('ref.share') + ' ' + link)}">X</a><a class="btn small" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(t('ref.share') + ' ' + link)}">WhatsApp</a></div>
+    <ol class="ref-steps">${steps}</ol><p class="muted" id="ref-count">${t('ref.count', 0)}</p>`;
+  box.hidden = false;
+  fetch(`api/preregister/ref/${encodeURIComponent(ref)}`, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null))
+    .then((d) => { if (d && Number.isFinite(d.count)) $('#ref-count').textContent = t('ref.count', d.count); }).catch(() => {});
+  $('#ref-copy').addEventListener('click', () => { navigator.clipboard?.writeText(link).catch(() => {}); $('#ref-url').select(); });
+}
 
 // ---------- Réseaux ----------
 const ICONS = {

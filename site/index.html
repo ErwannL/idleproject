@@ -160,6 +160,13 @@
     .signup .btn { width: 100%; }
     .status { min-height: 1.4em; margin: 0; font-weight: 800; text-align: center; }
     .status.ok { color: var(--ok); } .status.err { color: var(--err); }
+    .thanks { min-width: 0; max-width: 100%; box-sizing: border-box; overflow-wrap: anywhere; margin-top: 18px; padding: 18px; border-radius: 14px; border: 2px solid var(--ok); background: rgba(0,0,0,.25); display: grid; gap: 12px; text-align: center; }
+    .thanks h3 { margin: 0; } .thanks p { margin: 0; }
+    .ref-link { display: flex; gap: 8px; } .ref-link input { flex: 1; min-width: 0; padding: 10px; border-radius: 10px; border: 1px solid #fff4; background: #0006; color: inherit; font: inherit; }
+    .ref-share { display: flex; gap: 8px; justify-content: center; }
+    .thanks .btn { width: auto; flex: none; padding-inline: 18px; } .ref-link input { min-width: 0; }
+    .ref-steps { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(84px, 100%), 1fr)); gap: 8px; }
+    .ref-steps li { padding: 10px 6px; border-radius: 10px; background: #fff1; display: grid; gap: 4px; font-size: .9em; }
     .socials { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 18px; }
     .socials a { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); color: var(--text); text-decoration: none; font-weight: 700; font-size: 14px; }
     .socials svg { width: 18px; height: 18px; fill: currentColor; }
@@ -172,6 +179,8 @@
     /* Bouton fixe (mobile) */
     .sticky { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 45; transform: translateY(150%); transition: transform .3s; }
     .sticky.on { transform: none; }
+    body.registered .sticky { display: none; }
+    @media (max-width: 480px) { .thanks { padding: 14px 10px; } .ref-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
     .sticky .btn { width: 100%; }
     @media (min-width: 721px) { .sticky { display: none; } }
 
@@ -259,6 +268,7 @@
           <button class="btn big" type="submit" data-t="form.submit">Pre-register</button>
           <p class="status" id="status" role="status"></p>
         </form>
+        <div id="thanks" class="thanks" hidden></div>
         <p class="follow" data-t="form.follow">Follow us</p>
         <div class="socials" id="socials"></div>
       </div>

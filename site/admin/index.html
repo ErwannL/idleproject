@@ -652,6 +652,18 @@
           $('kpis').append(card);
         }
         $('stats-time').textContent = `Mis à jour ${fmtDate(s.now)}`;
+        // v10.8 (site) : les 10 meilleurs parrains (filleuls confirmés ; email masqué).
+        const r = await api('/api/admin/referrers').catch(() => null);
+        if (r) {
+          const card = document.createElement('div');
+          card.className = 'kpi'; card.style.gridColumn = '1 / -1';
+          const l = document.createElement('div'); l.className = 'label'; l.textContent = 'Meilleurs parrains (filleuls confirmés)';
+          const list = document.createElement('ol'); list.style.margin = '6px 0 0'; list.style.paddingLeft = '20px';
+          for (const x of r.referrers) { const li = document.createElement('li'); li.textContent = `${x.who} · ${x.ref} · ${fmt(x.count)}`; list.append(li); }
+          if (!r.referrers.length) { const li = document.createElement('li'); li.textContent = 'Aucun parrainage confirmé pour le moment.'; list.append(li); }
+          card.append(l, list);
+          $('kpis').append(card);
+        }
       } catch (err) { toast(err.message, 'bad'); }
     }
     $('refresh-stats').addEventListener('click', loadStats);

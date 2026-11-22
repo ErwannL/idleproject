@@ -191,6 +191,18 @@ export class HttpError extends Error {
   }
 }
 
+// v10.8 (site) : codes de parrainage, 6 caractères sans 0/O ni 1/I.
+const REF_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+export const REF_RE = /^[A-HJ-NP-Z2-9]{5,6}$/;
+export function newRefCode() {
+  const b = randomBytes(6);
+  return [...b].map((x) => REF_ALPHABET[x % REF_ALPHABET.length]).join('');
+}
+export function maskEmail(email) {
+  const [user, domain = ''] = String(email).split('@');
+  return `${user.slice(0, 2)}***@${domain.slice(0, 1)}***`;
+}
+
 export function hashToken(token) {
   return createHash('sha256').update(token).digest('hex');
 }
@@ -401,6 +413,14 @@ export function createApp({
     upsertPrereg: db.prepare('INSERT INTO preregistrations (email, consent_version, consent_at) VALUES (?, ?, ?) ON CONFLICT(email) DO NOTHING'),
     deletePrereg: db.prepare('DELETE FROM preregistrations WHERE email = ?'),
     countPrereg: db.prepare('SELECT COUNT(*) AS n FROM preregistrations'),
+    findPrereg: db.prepare('SELECT email, ref, referrer, ip_hash, consent_at, confirmed_at FROM preregistrations WHERE email = ?'),
+    findPreregByRef: db.prepare('SELECT email, ref, ip_hash, consent_at FROM preregistrations WHERE ref = ?'),
+    insertPrereg: db.prepare('INSERT INTO preregistrations (email, consent_version, consent_at, ref, referrer, confirm_token, ip_hash, utm_source) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(email) DO NOTHING'),
+    setPreregRef: db.prepare('UPDATE preregistrations SET ref = ?, confirm_token = COALESCE(confirm_token, ?) WHERE email = ? AND ref IS NULL'),
+    confirmPrereg: db.prepare('UPDATE preregistrations SET confirmed_at = ? WHERE confirm_token = ? AND confirmed_at IS NULL'),
+    countReferrals: db.prepare('SELECT COUNT(*) AS n FROM preregistrations WHERE referrer = ? AND confirmed_at IS NOT NULL'),
+    topReferrers: db.prepare(`SELECT p.email, p.ref, COUNT(f.email) AS n FROM preregistrations p JOIN preregistrations f ON f.referrer = p.ref AND f.confirmed_at IS NOT NULL
+      GROUP BY p.ref ORDER BY n DESC, MIN(f.confirmed_at) ASC LIMIT 10`),
     // v9.1.3 (doc4 lot 7) : meilleur score par perso (on ne garde que le plus haut).
     upsertScore: db.prepare(`INSERT INTO world_scores (account_id, unit, damage, stars, level, at) VALUES (?, ?, ?, ?, ?, ?)
       ON CONFLICT(account_id, unit) DO UPDATE SET damage = excluded.damage, stars = excluded.stars, level = excluded.level, at = excluded.at
@@ -628,13 +648,28 @@ export function createApp({
 
     { method: 'POST', path: /^\/api\/preregister$/, handler: async ({ req }) => {
       rateLimit(preregLimit, `prereg:${clientIp(req, trustProxy)}`);
-      const { email, consent } = await readJson(req);
+      const { email, consent, ref, utm } = await readJson(req);
       if (typeof email !== 'string' || email.length > 254 || !EMAIL_RE.test(email.trim())) {
         throw new HttpError(400, 'Adresse email invalide');
       }
       if (consent !== true) throw new HttpError(400, 'Le consentement est requis');
-      q.upsertPrereg.run(email.trim().toLowerCase(), CONSENT_VERSION, now());
-      return { status: 202, body: { ok: true } };
+      // v10.8 (site) : code de parrainage court, lien de confirmation, parrain (jamais soi-même : même email ou même IP dans l'heure).
+      const mail = email.trim().toLowerCase();
+      const ipHash = hashToken(`prereg:${clientIp(req, trustProxy)}`);
+      const sponsor = typeof ref === 'string' && REF_RE.test(ref.toUpperCase()) ? q.findPreregByRef.get(ref.toUpperCase()) : undefined;
+      const referrer = sponsor && sponsor.email !== mail && !(sponsor.ip_hash === ipHash && now() - sponsor.consent_at < 3600_000) ? sponsor.ref : null;
+      const source = typeof utm === 'string' && /^[\w.-]{1,40}$/.test(utm) ? utm : null;
+      const token = randomBytes(24).toString('base64url');
+      const existing = q.findPrereg.get(mail);
+      if (!existing) {
+        for (let i = 0; i < 8; i++) {
+          try { q.insertPrereg.run(mail, CONSENT_VERSION, now(), newRefCode(), referrer, token, ipHash, source); break; } catch (e) { if (i === 7) throw e; }
+        }
+      } else if (!existing.ref) {
+        for (let i = 0; i < 8; i++) { try { q.setPreregRef.run(newRefCode(), token, mail); break; } catch (e) { if (i === 7) throw e; } }
+      }
+      const row = q.findPrereg.get(mail);
+      return { status: 202, body: { ok: true, ref: row.ref } };
     } },
 
     { method: 'POST', path: /^\/api\/preregister\/remove$/, handler: async ({ req }) => {
@@ -645,6 +680,24 @@ export function createApp({
     } },
 
     // Compteur public (agrégé) pour la barre de progression de la page d'accueil.
+    // v10.8 (site) : confirmation de l'email (lien de l'email de confirmation) ; le parrain gagne +1 à ce moment-là.
+    { method: 'GET', path: /^\/api\/preregister\/confirm$/, handler: ({ url }) => {
+      const token = url.searchParams.get('token') ?? '';
+      const done = token.length >= 16 && q.confirmPrereg.run(now(), token).changes > 0;
+      return { body: { ok: done } };
+    } },
+    // v10.8 (site) : nombre de filleuls confirmés d'un code de parrainage.
+    { method: 'GET', path: /^\/api\/preregister\/ref\/([A-Za-z0-9]{4,8})$/, handler: ({ params }) => {
+      const code = String(params[0]).toUpperCase();
+      if (!REF_RE.test(code)) throw new HttpError(404, 'Code inconnu');
+      return { body: { count: q.countReferrals.get(code).n } };
+    } },
+    // v10.8 (site) : les 10 meilleurs parrains (email masqué) pour l'admin.
+    { method: 'GET', path: /^\/api\/admin\/referrers$/, handler: ({ req }) => {
+      requireAdmin(req);
+      return { body: { referrers: q.topReferrers.all().map((r, i) => ({ rank: i + 1, who: maskEmail(r.email), ref: r.ref, count: r.n })) } };
+    } },
+
     { method: 'GET', path: /^\/api\/preregister\/count$/, handler: () => ({ body: { count: q.countPrereg.get().n } }) },
 
     // v9.1.3 (doc4 lot 7) : score en ligne d'un perso (mode monde, 60 s) : dégâts, étoiles, niveau ; joueurs listés.

@@ -1,0 +1,208 @@
+diff --git a/site/i18n/en.js b/../site108/i18n/en.js
+index 481bbedc..5bb5c0cf 100644
+--- a/site/i18n/en.js
++++ b/../site108/i18n/en.js
+@@ -20,7 +20,7 @@ export default {
+     title: 'Unlock rewards together',
+     lead: 'Every milestone reached unlocks a reward for all pre-registered players, delivered at launch.',
+     count: 'Pre-registered adventurers',
+-    of: (n) => `of ${n}`,
++    of: (n) => `of ${n} · next milestone`,
+     next: (n, m) => `${n} more to unlock the ${m} milestone`,
+     done: 'Goal reached, thank you all!',
+     offline: 'The counter is unavailable right now.',
+@@ -33,17 +33,24 @@ export default {
+   },
+   // Default rewards (same thresholds as the server) ; a reward changed in the admin is shown as written there.
+   tiers: {
+-    1000: ['250 gems + 100K gold', 'The kick-off: premium currency and gold coins'],
+-    2500: ['1 exclusive pet', 'Golden Slime'],
+-    5000: ['250 gems + 5 tickets', 'Hero summon tickets'],
+-    10000: ['1 exclusive companion', 'Rose Blade'],
+-    15000: ['1,000 gems + 150K gold', 'Premium currency and gold coins'],
+-    20000: ['1 legendary skin', 'Lilith the Demoness · Queen of Embers'],
+-    35000: ['1,500 gems + 5 tickets', '+ 500K gold · summon tickets'],
+-    50000: ['1 legendary skin + mega pack', 'King Grombar · 2,500 gems, 1M gold, 1 guaranteed SSR ticket'],
+-    75000: ['1 legendary pet + 2,000 gems', 'Little Phoenix'],
+-    100000: ['1 legendary skin of your choice + 3,000 gems', 'Any legendary skin · + 2M gold'],
+-    tags: { 'Exclusif': 'Exclusive', 'SR · Exclusif': 'SR · Exclusive', 'SSR · Exclusif': 'SSR · Exclusive', 'Méga pack': 'Mega pack', 'Bonus': 'Bonus', 'Bonus · Méga pack': 'Bonus · Mega pack', 'Légendaire · Exclusif': 'Legendary · Exclusive' },
++    250: ['100 gems', 'The first step: gems for everyone'],
++    500: ['250 gems + 100K gold', 'The kick-off: premium currency and gold coins'],
++    1000: ['1 exclusive pet', 'Golden Slime'],
++    2500: ['250 gems + 5 tickets', 'Hero summon tickets'],
++    5000: ['1 exclusive companion', 'Rose Blade'],
++    10000: ['1 SSR companion', 'Archangel · Celestial Judgment'],
++    15000: ['1 legendary skin', 'Lilith the Demoness · Queen of Embers'],
++    20000: ['1,500 gems + 5 tickets', '+ 500K gold · summon tickets'],
++    35000: ['1 legendary skin + mega pack', 'King Grombar · 2,500 gems, 1M gold, 1 guaranteed SSR ticket'],
++    50000: ['1 legendary pet + 2,000 gems', 'Little Phoenix'],
++    tags: { 'Exclusif': 'Exclusive', 'SR · Exclusif': 'SR · Exclusive', 'SSR · Exclusif': 'SSR · Exclusive', 'Méga pack': 'Mega pack', 'Bonus': 'Bonus', 'Bonus · Méga pack': 'Bonus · Mega pack', 'Bonus · Légendaire': 'Bonus · Legendary', 'Légendaire · Exclusif': 'Legendary · Exclusive' },
++  },
++  ref: {
++    title: 'Welcome to the adventure!',
++    lead: 'Your spot is reserved. Invite friends with your link: each friend who signs up earns you a reward at launch, and brings everyone closer to the next milestone.',
++    copy: 'Copy', share: 'I just pre-registered for Ascendrya, a pixel art idle RPG. Join me:',
++    steps: [['1 friend', '50 gems'], ['3 friends', '1 summon ticket'], ['5 friends', '"Pioneer" frame'], ['10 friends', '5 tickets + "Recruiter" title'], ['25 friends', 'Exclusive pet skin']],
++    count: (n) => `You brought ${n} adventurer${n === 1 ? '' : 's'}.`,
+   },
+   discover: {
+     kicker: 'Discover Ascendrya',
+diff --git a/site/i18n/fr.js b/../site108/i18n/fr.js
+index 917a0139..86a32b1f 100644
+--- a/site/i18n/fr.js
++++ b/../site108/i18n/fr.js
+@@ -20,7 +20,7 @@ export default {
+     title: 'Débloquons les récompenses ensemble',
+     lead: 'Chaque palier atteint débloque une récompense pour tous les joueurs préinscrits, remise au lancement.',
+     count: 'Aventuriers préinscrits',
+-    of: (n) => `sur ${n}`,
++    of: (n) => `sur ${n} · prochain palier`,
+     next: (n, m) => `Encore ${n} pour débloquer le palier ${m}`,
+     done: 'Objectif atteint, merci à tous !',
+     offline: 'Compteur indisponible pour le moment.',
+@@ -32,18 +32,25 @@ export default {
+     aria: "Progression vers l'objectif communautaire",
+   },
+   tiers: {
+-    1000: ['250 gemmes + 100 K or', "Le coup d'envoi : monnaie premium et pièces d'or"],
+-    2500: ['1 familier exclusif', 'Slime doré'],
+-    5000: ['250 gemmes + 5 tickets', "Tickets d'invocation de héros"],
+-    10000: ['1 compagnon exclusif', 'Lame rose'],
+-    15000: ['1 000 gemmes + 150 K or', "Monnaie premium et pièces d'or"],
+-    20000: ['1 apparence légendaire', 'Lilith la Diablesse · Reine des braises'],
+-    35000: ['1 500 gemmes + 5 tickets', "+ 500 K or · tickets d'invocation"],
+-    50000: ['1 apparence légendaire + méga pack', 'Roi Grombar · 2 500 gemmes, 1 M or, 1 ticket SSR garanti'],
+-    75000: ['1 familier légendaire + 2 000 gemmes', 'Petit phénix'],
+-    100000: ['1 apparence légendaire au choix + 3 000 gemmes', 'Parmi les apparences légendaires · + 2 M or'],
++    250: ['100 gemmes', 'Le premier pas : des gemmes pour tous'],
++    500: ['250 gemmes + 100 K or', "Le coup d'envoi : monnaie premium et pièces d'or"],
++    1000: ['1 familier exclusif', 'Slime doré'],
++    2500: ['250 gemmes + 5 tickets', "Tickets d'invocation de héros"],
++    5000: ['1 compagnon exclusif', 'Lame rose'],
++    10000: ['1 compagnon SSR', 'Archange · Jugement céleste'],
++    15000: ['1 apparence légendaire', 'Lilith la Diablesse · Reine des braises'],
++    20000: ['1 500 gemmes + 5 tickets', "+ 500 K or · tickets d'invocation"],
++    35000: ['1 apparence légendaire + méga pack', 'Roi Grombar · 2 500 gemmes, 1 M or, 1 ticket SSR garanti'],
++    50000: ['1 familier légendaire + 2 000 gemmes', 'Petit phénix'],
+     tags: {},
+   },
++  ref: {
++    title: 'Bienvenue dans l’aventure !',
++    lead: 'Ta place est réservée. Invite tes amis avec ton lien : chaque ami inscrit te rapporte une récompense au lancement, et nous rapproche du prochain palier.',
++    copy: 'Copier', share: 'Je me suis préinscrit à Ascendrya, un RPG idle en pixel art. Rejoins-moi :',
++    steps: [['1 ami', '50 gemmes'], ['3 amis', '1 ticket d’invocation'], ['5 amis', 'Cadre « Pionnier »'], ['10 amis', '5 tickets + titre « Recruteur »'], ['25 amis', 'Apparence de familier exclusive']],
++    count: (n) => `Tu as amené ${n} aventurier${n > 1 ? 's' : ''}.`,
++  },
+   discover: {
+     kicker: 'Découvrez Ascendrya',
+     title: 'Votre légende commence ici',
+diff --git a/site/index.html b/../site108/index.html
+index 3a6e572c..ae214074 100644
+--- a/site/index.html
++++ b/../site108/index.html
+@@ -160,6 +160,13 @@
+     .signup .btn { width: 100%; }
+     .status { min-height: 1.4em; margin: 0; font-weight: 800; text-align: center; }
+     .status.ok { color: var(--ok); } .status.err { color: var(--err); }
++    .thanks { margin-top: 18px; padding: 18px; border-radius: 14px; border: 2px solid var(--ok); background: rgba(0,0,0,.25); display: grid; gap: 12px; text-align: center; }
++    .thanks h3 { margin: 0; } .thanks p { margin: 0; }
++    .ref-link { display: flex; gap: 8px; } .ref-link input { flex: 1; min-width: 0; padding: 10px; border-radius: 10px; border: 1px solid #fff4; background: #0006; color: inherit; font: inherit; }
++    .ref-share { display: flex; gap: 8px; justify-content: center; }
++    .thanks .btn { width: auto; flex: none; padding-inline: 18px; } .ref-link input { min-width: 0; }
++    .ref-steps { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 8px; }
++    .ref-steps li { padding: 10px 6px; border-radius: 10px; background: #fff1; display: grid; gap: 4px; font-size: .9em; }
+     .socials { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 18px; }
+     .socials a { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); color: var(--text); text-decoration: none; font-weight: 700; font-size: 14px; }
+     .socials svg { width: 18px; height: 18px; fill: currentColor; }
+@@ -259,6 +266,7 @@
+           <button class="btn big" type="submit" data-t="form.submit">Pre-register</button>
+           <p class="status" id="status" role="status"></p>
+         </form>
++        <div id="thanks" class="thanks" hidden></div>
+         <p class="follow" data-t="form.follow">Follow us</p>
+         <div class="socials" id="socials"></div>
+       </div>
+diff --git a/site/live.js b/../site108/live.js
+index adfe2fe4..03672bf4 100644
+--- a/site/live.js
++++ b/../site108/live.js
+@@ -6,24 +6,24 @@
+ // En cas d'échec réseau : les goals par défaut (identiques à ceux d'avant la 9.3.0) avec count = null et offline = true.
+ 
+ export const DEFAULT_GOALS = {
+-  target: 50000,
++  target: 10000,
+   count: null,
+   texts: {
+-    headline: 'Objectif : 50 000 aventuriers pour débloquer toutes les récompenses',
++    headline: 'Objectif : 10 000 aventuriers pour débloquer toutes les récompenses',
+     reached: 'Objectif atteint, merci à tous ! Place aux paliers bonus.',
+   },
+   tiers: [
+-    { at: 1000, label: '1K', name: '250 gemmes + 100 K or', detail: 'Le coup d\'envoi : monnaie premium et pièces d\'or', img: 'assets/icon_gem.png' },
+-    { at: 2500, label: '2,5K', name: '1 familier exclusif', detail: 'Slime doré', tag: 'Exclusif', excl: true, img: 'assets/hd_pet_golden_slime.webp' },
+-    { at: 5000, label: '5K', name: '250 gemmes + 5 tickets', detail: 'Tickets d\'invocation de héros', img: 'assets/shop/hero_ticket_permanent.webp' },
+-    { at: 10000, label: '10K', name: '1 compagnon exclusif', detail: 'Lame rose', tag: 'SR · Exclusif', excl: true, img: 'assets/hd_ally_rose_blade.webp' },
+-    { at: 15000, label: '15K', name: '1 000 gemmes + 150 K or', detail: 'Monnaie premium et pièces d\'or', img: 'assets/shop/crystal_medium.webp' },
+-    { at: 20000, label: '20K', name: '1 apparence légendaire', detail: 'Lilith la Diablesse · Reine des braises', tag: 'Légendaire · Exclusif', excl: true, img: 'assets/hd_demoness.png' },
+-    { at: 35000, label: '35K', name: '1 500 gemmes + 5 tickets', detail: '+ 500 K or · tickets d\'invocation', img: 'assets/shop/crystal_large.webp' },
+-    { at: 50000, label: '50K', name: '1 apparence légendaire + méga pack', detail: 'Roi Grombar · 2 500 gemmes, 1 M or, 1 ticket SSR garanti', tag: 'Légendaire · Exclusif', excl: true, img: 'assets/hd_grombar.png' },
+-    // Paliers bonus (au-delà de l'objectif) : cachés sur le site tant que l'objectif n'est pas atteint, puis la barre vise le suivant.
+-    { at: 75000, label: '75K', name: '1 familier légendaire + 2 000 gemmes', detail: 'Petit phénix', tag: 'Bonus', excl: true, img: 'assets/px/pet_phoenix.webp' },
+-    { at: 100000, label: '100K', name: '1 apparence légendaire au choix + 3 000 gemmes', detail: 'Parmi les apparences légendaires · + 2 M or', tag: 'Bonus · Méga pack', excl: true, img: 'assets/shop/hero_ticket_limited.webp' },
++    { at: 250, label: '250', name: '100 gemmes', detail: 'Le premier pas : des gemmes pour tous', img: 'assets/icon_gem.png' },
++    { at: 500, label: '500', name: '250 gemmes + 100 K or', detail: 'Le coup d’envoi : monnaie premium et pièces d’or', img: 'assets/shop/crystal_medium.webp' },
++    { at: 1000, label: '1K', name: '1 familier exclusif', detail: 'Slime doré', tag: 'Exclusif', excl: true, img: 'assets/hd_pet_golden_slime.webp' },
++    { at: 2500, label: '2,5K', name: '250 gemmes + 5 tickets', detail: 'Tickets d’invocation de héros', img: 'assets/shop/hero_ticket_permanent.webp' },
++    { at: 5000, label: '5K', name: '1 compagnon exclusif', detail: 'Lame rose', tag: 'SR · Exclusif', excl: true, img: 'assets/hd_ally_rose_blade.webp' },
++    { at: 10000, label: '10K', name: '1 compagnon SSR', detail: 'Archange · Jugement céleste', tag: 'SSR', excl: true, img: 'assets/px/ally_archangel.webp' },
++    // Paliers bonus : récompenses mystère jusqu'à 10 000, puis révélées.
++    { at: 15000, label: '15K', name: '1 apparence légendaire', detail: 'Lilith la Diablesse · Reine des braises', tag: 'Bonus · Légendaire', excl: true, img: 'assets/hd_demoness.png' },
++    { at: 20000, label: '20K', name: '1 500 gemmes + 5 tickets', detail: '+ 500 K or · tickets d’invocation', tag: 'Bonus', img: 'assets/shop/crystal_large.webp' },
++    { at: 35000, label: '35K', name: '1 apparence légendaire + méga pack', detail: 'Roi Grombar · 2 500 gemmes, 1 M or, 1 ticket SSR garanti', tag: 'Bonus · Méga pack', excl: true, img: 'assets/hd_grombar.png' },
++    { at: 50000, label: '50K', name: '1 familier légendaire + 2 000 gemmes', detail: 'Petit phénix', tag: 'Bonus', excl: true, img: 'assets/px/pet_phoenix.webp' },
+   ],
+ };
+ 
+diff --git a/site/site.js b/../site108/site.js
+index b99264af..dc8ebc46 100644
+--- a/site/site.js
++++ b/../site108/site.js
+@@ -87,7 +87,7 @@ function renderGoal() {
+   const reached = known && c >= target;
+   const next = tiers.find((x) => c < x.at);
+   // Objectif atteint et paliers bonus restants : la barre et le compteur visent le palier bonus suivant.
+-  const goal = reached && next ? next.at : target;
++  const goal = next ? next.at : target; // 10.8 : le compteur vise toujours le prochain palier
+   $('#count').textContent = known ? fmt(c) : '—';
+   $('#count-of').textContent = t('goal.of', fmt(goal));
+   $('#goal-fill').style.width = `${known ? Math.min(100, (c / goal) * 100) : 0}%`;
+@@ -153,13 +153,28 @@ form.addEventListener('submit', async (event) => {
+     const res = await fetch('api/preregister', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, consent }) });
+     if (res.status === 429) return say('form.errRate');
+     if (!res.ok) return say('form.errInvalid');
++    const data = await res.json().catch(() => ({}));
+     form.reset();
+     say('form.ok', true);
++    showThanks(data.ref);
+     loadGoals();
+   } catch { say('form.errNet'); } finally { btn.disabled = false; }
+   return undefined;
+ });
+ 
++// ---------- 10.8 : parrainage, affiché après l'inscription ----------
++function showThanks(ref) {
++  const box = $('#thanks'); if (!box) return;
++  const link = `https://ascendrya.com/?ref=${encodeURIComponent(ref || 'TONCODE')}`;
++  const steps = t('ref.steps').map(([n, r]) => `<li><b>${n}</b><span>${r}</span></li>`).join('');
++  box.innerHTML = `<h3>${t('ref.title')}</h3><p>${t('ref.lead')}</p>
++    <div class="ref-link"><input id="ref-url" readonly value="${link}"><button type="button" class="btn" id="ref-copy">${t('ref.copy')}</button></div>
++    <div class="ref-share"><a class="btn small" target="_blank" rel="noopener" href="https://x.com/intent/post?text=${encodeURIComponent(t('ref.share') + ' ' + link)}">X</a><a class="btn small" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(t('ref.share') + ' ' + link)}">WhatsApp</a></div>
++    <ol class="ref-steps">${steps}</ol><p class="muted">${t('ref.count', 0)}</p>`;
++  box.hidden = false;
++  $('#ref-copy').addEventListener('click', () => { navigator.clipboard?.writeText(link).catch(() => {}); $('#ref-url').select(); });
++}
++
+ // ---------- Réseaux ----------
+ const ICONS = {
+   x: 'M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.2-8.3L1.8 3h6.4l4.4 5.8L17.8 3Zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5Z',

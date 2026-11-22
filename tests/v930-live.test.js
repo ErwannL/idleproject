@@ -164,9 +164,9 @@ test('live : goals librement réglables — objectif 40 260 (« 40,26k »), pali
   t.after(() => s.close());
   s.db.prepare("INSERT INTO preregistrations (email, consent_version, consent_at) VALUES ('a@b.fr', 'x', 1)").run();
   const before = await s.call('GET', '/api/live/goals');
-  assert.equal(before.body.target, 50000, 'v9.3.1 : objectif 50 000 par défaut');
-  assert.equal(before.body.tiers.length, 10, '8 paliers jusqu\'à 50 000 + 2 paliers bonus');
-  assert.equal(before.body.tiers.filter((x) => x.at <= before.body.target).length, 8);
+  assert.equal(before.body.target, 10000, 'v10.8 : objectif 10 000 par défaut');
+  assert.equal(before.body.tiers.length, 10, '6 paliers jusqu\'à 10 000 + 4 paliers bonus');
+  assert.equal(before.body.tiers.filter((x) => x.at <= before.body.target).length, 6);
   assert.equal(parseAmount('40.26k'), 40260);
   assert.equal(parseAmount('40,26k'), 40260);
   assert.equal(parseAmount('40 260'), 40260);
@@ -208,15 +208,15 @@ test('live : paliers revus — goals 9.3.1 jamais modifiés remplacés, goals de
 });
 
 test('live : paliers bonus — mystère avant l\'objectif, puis la barre vise le palier bonus suivant', () => {
-  const before = goalProgress({ ...DEFAULT_GOALS, count: 49000 });
-  assert.equal(before.goal, 50000);
+  const before = goalProgress({ ...DEFAULT_GOALS, count: 9000 });
+  assert.equal(before.goal, 10000);
   assert.ok(before.tiers.filter((x) => x.bonus).every((x) => x.secret));
-  const after = goalProgress({ ...DEFAULT_GOALS, count: 60000 });
+  const after = goalProgress({ ...DEFAULT_GOALS, count: 12000 });
   assert.equal(after.reached, true);
-  assert.equal(after.goal, 75000);
+  assert.equal(after.goal, 15000);
   assert.equal(after.pct, 80);
   assert.ok(after.tiers.every((x) => !x.secret));
-  assert.equal(goalProgress({ ...DEFAULT_GOALS, count: 120000 }).goal, 50000, 'tout débloqué : barre pleine');
+  assert.equal(goalProgress({ ...DEFAULT_GOALS, count: 120000 }).goal, 10000, 'tout débloqué : barre pleine');
 });
 
 // ---- Catalogue --------------------------------------------------------------------------------------------------------
@@ -399,4 +399,41 @@ test('client live : config vide d\'un serveur qui n\'a jamais rien programmé �
   applyLive(content({ programmed: true }), at, { local: at });
   assert.equal(currentEvent(at), null, 'programmé puis vidé : plus rien');
   resetLive();
+});
+
+test('site 10.8 : le compteur vise le prochain palier (4 sur 250, puis 300 sur 500)', () => {
+  const a = goalProgress({ ...DEFAULT_GOALS, count: 4 });
+  assert.equal(a.goal, 250);
+  assert.ok(Math.abs(a.pct - 1.6) < 1e-9);
+  assert.equal(a.tiers.find((x) => x.at === 250).state, 'next');
+  const b = goalProgress({ ...DEFAULT_GOALS, count: 300 });
+  assert.equal(b.tiers.find((x) => x.at === 250).state, 'reached');
+  assert.equal(b.goal, 500);
+  assert.equal(DEFAULT_GOALS.target, 10000);
+});
+
+test('site 10.8 : parrainage — code court, +1 seulement après confirmation, jamais soi-même, classement admin', async (t) => {
+  const s = await setup();
+  t.after(() => s.close());
+  const a = await s.call('POST', '/api/preregister', { email: 'parrain@exemple.fr', consent: true });
+  assert.equal(a.status, 202);
+  assert.match(a.body.ref, /^[A-HJ-NP-Z2-9]{6}$/);
+  const again = await s.call('POST', '/api/preregister', { email: 'Parrain@exemple.fr', consent: true });
+  assert.equal(again.body.ref, a.body.ref, 'même code pour le même email');
+  // Même adresse IP dans l'heure : pas compté.
+  await s.call('POST', '/api/preregister', { email: 'moi-bis@exemple.fr', consent: true, ref: a.body.ref });
+  s.advance(2 * HOUR);
+  await s.call('POST', '/api/preregister', { email: 'ami@exemple.fr', consent: true, ref: a.body.ref.toLowerCase(), utm: 'tiktok' });
+  const count = () => s.call('GET', `/api/preregister/ref/${a.body.ref}`).then((r) => r.body.count);
+  assert.equal(await count(), 0, 'pas avant la confirmation');
+  const rows = s.db.prepare('SELECT email, referrer, confirm_token, utm_source FROM preregistrations').all();
+  assert.equal(rows.find((r) => r.email === 'moi-bis@exemple.fr').referrer, null);
+  const ami = rows.find((r) => r.email === 'ami@exemple.fr');
+  assert.equal(ami.utm_source, 'tiktok');
+  assert.equal((await s.call('GET', `/api/preregister/confirm?token=${ami.confirm_token}`)).body.ok, true);
+  assert.equal((await s.call('GET', `/api/preregister/confirm?token=${ami.confirm_token}`)).body.ok, false, 'une seule fois');
+  assert.equal(await count(), 1);
+  const top = await s.call('GET', '/api/admin/referrers', undefined, s.token);
+  assert.deepEqual(top.body.referrers[0], { rank: 1, who: 'pa***@e***', ref: a.body.ref, count: 1 });
+  assert.equal((await s.call('GET', '/api/admin/referrers')).status, 401);
 });

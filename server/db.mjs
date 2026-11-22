@@ -90,6 +90,11 @@ export function openDatabase(file) {
   addColumnIfMissing(db, 'accounts', 'platform', 'TEXT');
   addColumnIfMissing(db, 'accounts', 'game_version', 'TEXT');
   addColumnIfMissing(db, 'accounts', 'claimed_at', 'INTEGER');
+  // v10.8 (site) : parrainage de la préinscription. ref = code court du préinscrit, referrer = code du parrain,
+  // confirm_token / confirmed_at = confirmation de l'email (un filleul ne compte qu'une fois confirmé), ip_hash = anti-autoparrainage.
+  for (const col of ['ref', 'referrer', 'confirm_token', 'ip_hash', 'utm_source']) addColumnIfMissing(db, 'preregistrations', col, 'TEXT');
+  addColumnIfMissing(db, 'preregistrations', 'confirmed_at', 'INTEGER');
+  db.exec('CREATE UNIQUE INDEX IF NOT EXISTS preregistrations_ref ON preregistrations (ref)');
   addColumnIfMissing(db, 'saves', 'gems', 'INTEGER NOT NULL DEFAULT 0');
   // v9.1.3 : temps de jeu cumulé de la dernière sauvegarde (refus d'une partie plus ancienne, survit aux renaissances).
   addColumnIfMissing(db, 'saves', 'play_seconds', 'REAL NOT NULL DEFAULT 0');

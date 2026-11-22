@@ -29,7 +29,32 @@ const bad = (msg) => new LiveError(400, msg);
 // Paliers revus (novembre 2026) : Les récompenses jusqu'à 50 000 sont les mêmes qu'en 9.3.1 (5 500 gemmes, 1,75 M or, 10 tickets,
 // 1 ticket SSR, Slime doré, Lame rose, apparences Lilith et Grombar ; les apparences sont nommées comme telles, pas comme des héros) réparties sur 8 paliers, avec deux premiers paliers proches
 // (1 000 et 2 500) pour lancer la dynamique. Deux paliers bonus après l'objectif (75 000, 100 000).
+// v10.8 (site) : paliers proches — 250, 500, 1 000, 2 500, 5 000 et l'objectif 10 000 (Archange SSR), puis 4 paliers bonus
+// en récompense mystère. Une petite victoire toutes les 3 à 4 semaines d'ici avril.
 export const DEFAULT_GOALS = {
+  target: 10000,
+  display: { mode: 'real', value: 0 },
+  texts: {
+    headline: 'Objectif : 10 000 aventuriers pour débloquer toutes les récompenses',
+    reached: 'Objectif atteint, merci à tous ! Place aux paliers bonus.',
+  },
+  tiers: [
+    { at: 250, label: '250', name: '100 gemmes', detail: 'Le premier pas : des gemmes pour tous', img: 'assets/icon_gem.png' },
+    { at: 500, label: '500', name: '250 gemmes + 100 K or', detail: 'Le coup d’envoi : monnaie premium et pièces d’or', img: 'assets/shop/crystal_medium.webp' },
+    { at: 1000, label: '1K', name: '1 familier exclusif', detail: 'Slime doré', tag: 'Exclusif', excl: true, img: 'assets/hd_pet_golden_slime.webp' },
+    { at: 2500, label: '2,5K', name: '250 gemmes + 5 tickets', detail: 'Tickets d’invocation de héros', img: 'assets/shop/hero_ticket_permanent.webp' },
+    { at: 5000, label: '5K', name: '1 compagnon exclusif', detail: 'Lame rose', tag: 'SR · Exclusif', excl: true, img: 'assets/hd_ally_rose_blade.webp' },
+    { at: 10000, label: '10K', name: '1 compagnon SSR', detail: 'Archange · Jugement céleste', tag: 'SSR', excl: true, img: 'assets/px/ally_archangel.webp' },
+    // Paliers bonus : récompenses mystère jusqu'à 10 000, puis révélées.
+    { at: 15000, label: '15K', name: '1 apparence légendaire', detail: 'Lilith la Diablesse · Reine des braises', tag: 'Bonus · Légendaire', excl: true, img: 'assets/hd_demoness.png' },
+    { at: 20000, label: '20K', name: '1 500 gemmes + 5 tickets', detail: '+ 500 K or · tickets d’invocation', tag: 'Bonus', img: 'assets/shop/crystal_large.webp' },
+    { at: 35000, label: '35K', name: '1 apparence légendaire + méga pack', detail: 'Roi Grombar · 2 500 gemmes, 1 M or, 1 ticket SSR garanti', tag: 'Bonus · Méga pack', excl: true, img: 'assets/hd_grombar.png' },
+    { at: 50000, label: '50K', name: '1 familier légendaire + 2 000 gemmes', detail: 'Petit phénix', tag: 'Bonus', excl: true, img: 'assets/px/pet_phoenix.webp' },
+  ],
+};
+
+// Paliers revus de novembre 2026 (objectif 50 000) : remplacés par ceux de la 10.8 tant que l'admin ne les a pas modifiés.
+export const GOALS_1061 = {
   target: 50000,
   display: { mode: 'real', value: 0 },
   texts: {
@@ -324,7 +349,7 @@ export function createLive({ db, now = () => Date.now() }) {
   }
   // Goals jamais modifiés (ceux de la 9.3.0 ou de la 9.3.1) → paliers revus. Des goals réglés dans l'admin sont gardés.
   const g0 = db.prepare('SELECT data, version FROM live_goals WHERE id = 1').get();
-  if (g0 && (g0.data === JSON.stringify(GOALS_930) || g0.data === JSON.stringify(GOALS_931))) {
+  if (g0 && (g0.data === JSON.stringify(GOALS_930) || g0.data === JSON.stringify(GOALS_931) || g0.data === JSON.stringify(GOALS_1061))) {
     db.prepare('UPDATE live_goals SET data = ?, version = version + 1, updated_at = ?, updated_by = ? WHERE id = 1').run(JSON.stringify(DEFAULT_GOALS), now(), 'système (paliers revus)');
   }
   const meta = {
