@@ -1,0 +1,26 @@
+/* v10.8 (parties 4 et 5) : Âges du Bastion — bandeau d'âge, passage d'âge, pages du livre des recherches, nœuds clés. */
+.bs-age { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 6px 12px; margin-bottom: 6px; border-radius: 10px; border: 2px solid var(--age); background: linear-gradient(90deg, color-mix(in srgb, var(--age) 22%, #140e1c), #140e1c); }
+.bs-age b { color: var(--age); font-size: 15px; letter-spacing: .02em; }
+.bs-age span { font-size: 12px; } .bs-age small { margin-left: auto; font-size: 11px; opacity: .8; }
+.bs-age-new { position: absolute; z-index: 20; left: 50%; top: 40%; transform: translate(-50%, -50%); padding: 14px 40px; border-radius: 14px; border: 3px solid var(--age); background: #140e1cee; text-align: center; animation: bs-age-in 3s ease-out forwards; pointer-events: none; }
+.bs-age-new small { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--age); }
+.bs-age-new b { font-size: 28px; color: #fff; text-shadow: 0 0 12px var(--age); }
+@keyframes bs-age-in { 0% { opacity: 0; transform: translate(-50%, -40%) scale(.9); } 15% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
+.calm .bs-age-new { animation: none; display: none; }
+@media (prefers-reduced-motion: reduce) { .bs-age-new { animation: none; display: none; } }
+.bs-village { position: relative; }
+.bs-pages { display: flex; gap: 4px; margin-bottom: 6px; flex-wrap: wrap; }
+.bs-page { position: relative; padding: 6px 12px 6px 14px; border-radius: 8px 8px 2px 2px; border: 2px solid #6b4a2a; background: #f2e2bf; color: #3a2410; font: inherit; font-weight: 800; font-size: 12px; cursor: pointer; }
+.bs-page.on { background: #ffe9b0; border-color: #c98a1e; }
+.bs-page.off { opacity: .55; }
+.bs-page img { width: 12px; height: 12px; vertical-align: -2px; }
+.bs-ribbon { position: absolute; left: 3px; top: -4px; width: 8px; height: 22px; background: #c2253a; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%); }
+.bs-keys { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; margin: 6px 0 10px; }
+.bs-node.keystone { border-color: #ffd34d; box-shadow: 0 0 12px #ffd34d80; }
+.bs-node.keystone.got { box-shadow: 0 0 18px #ffd34d; background: radial-gradient(#6a4a10, #2a1a08); }
+.bs-plot.locked .bs-bimg[src*="art108"] { filter: grayscale(1) brightness(.55); }
+.bs-tree.below .bs-nname { display: none; }
+.bs-main > .bs-age-new { position: fixed; }
+.bs-pages { align-items: flex-end; }
+.bs-page { min-height: 0; height: 32px; line-height: 1; }
+.bs-tree:not(.below) .bs-nname { color: #3a2410; text-shadow: 0 0 3px #f6e6c4, 0 0 2px #f6e6c4; font-weight: 800; }

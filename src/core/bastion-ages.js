@@ -1,6 +1,6 @@
 // v10.8 (parties 3 à 5) : ce que font les bâtiments des Âges du Bastion.
 //   Atelier d'enchantement : grave un effet de plus sur un objet Mythique ou au-delà (une fois par objet).
-//   Ménagerie : les familiers possédés produisent des essences de maîtrise, même jeu fermé (stock de 12 h).
+//   Ménagerie : un bâtiment producteur (essences de maîtrise), comme la Mine (core/bastion-base.js, PRODUCERS).
 //   Atelier d'Ascension : 3 objets Astraux de même place + 1 Larme d'Ascendrya (+ de l'or) → 1 objet Ascendant.
 //   Marché noir (nœud clé) : un objet Mythique par semaine au Comptoir, pour des éclats.
 // La Larme d'Ascendrya (state.materials.tears) vient de la première Renaissance de chaque saison (core/rebirth.js).
@@ -38,26 +38,6 @@ export function engraveItem(state, id, rng, balance = BALANCE) {
   item.engraved = true;
   refreshItemStats(item, balance);
   return extra;
-}
-
-// ---- Ménagerie : essences de maîtrise au fil du temps
-export const MENAGERIE = { perHourPerLevel: 0.08, capHours: 12 };
-export function menagerieStock(state, now = Date.now()) {
-  const b = bastionOf(state);
-  const lv = buildingLevel(state, 'menagerie');
-  if (!b || lv < 1) return 0;
-  b.menagerieAt ??= now;
-  const pets = Object.keys(state.companions?.owned ?? {}).filter((id) => id.startsWith('pet') || state.companions.owned[id]?.pet).length || 1;
-  const essencePct = Object.entries(b.research?.levels ?? {}).filter(([k]) => k.startsWith('essence')).reduce((t, [, v]) => t + 10 * v, 0);
-  const hours = Math.min(MENAGERIE.capHours, Math.max(0, now - b.menagerieAt) / HOUR);
-  return Math.floor(hours * MENAGERIE.perHourPerLevel * lv * Math.min(5, pets) * (1 + essencePct / 100));
-}
-export function collectMenagerie(state, now = Date.now()) {
-  const n = menagerieStock(state, now);
-  if (n < 1) return 0;
-  state.materials.mastery = (state.materials.mastery ?? 0) + n;
-  bastionOf(state).menagerieAt = now;
-  return n;
 }
 
 // ---- Atelier d'Ascension : 3 Astraux + 1 Larme → 1 Ascendant

@@ -10,7 +10,7 @@ import { createCombat, cycleForStage, zoneIndexForStage } from '../src/core/comb
 import { computeHeroStats } from '../src/core/stats.js';
 import { Rng } from '../src/core/rng.js';
 import { RESEARCH } from '../src/data/bastion.js';
-import { bastionLevel, bastionOf, researchLevel } from '../src/core/bastion.js';
+import { bastionAge, bastionLevel, bastionMult, bastionOf, researchLevel } from '../src/core/bastion.js';
 import { canRebirth, performRebirth, rebirthBlocked, rebirthWorth } from '../src/core/rebirth.js';
 import { RARITIES } from '../src/data/items.js';
 import { HOUR, T0, connection, play } from './sim-lib.mjs';
@@ -62,7 +62,7 @@ function runProfile(name) {
     const r = bestRarity(s);
     for (let k = 4; k <= r; k++) firsts[RANK[k]] ??= d + 1;
     const research = RESEARCH.map((x) => researchLevel(s, x.id)).reduce((a, b) => a + b, 0);
-    rows.push({ day: d + 1, best, world: world(best), power: computeHeroStats(s).combatPower, rarity: RANK[r], bastion: bastionOf(s) ? bastionLevel(s) : 0, age: s.bastion?.age ?? 1, research, rebirths });
+    rows.push({ day: d + 1, best, world: world(best), power: computeHeroStats(s).combatPower, rarity: RANK[r], bastion: bastionOf(s) ? bastionLevel(s) : 0, age: bastionAge(s), bmult: bastionMult(s, 'damage') * bastionMult(s, 'hp'), research, rebirths });
     if (process.env.SIM_DEBUG) console.log('  debug', JSON.stringify({ done: s.unlocks?.done, can: canRebirth(s), worth: rebirthWorth(s), frag: s.fragments }));
     if ((d + 1) % 10 === 0 || d === 0) console.log(`${name.padEnd(12)} J${String(d + 1).padStart(3)} : étape ${best} (monde ${world(best)}) · rareté ${RANK[r]} · Bastion ${rows.at(-1).bastion} (âge ${rows.at(-1).age}) · recherches ${research} · Renaissances ${rebirths}`);
   }
@@ -87,8 +87,8 @@ const md = [`# Rythme v10.8 (simulation, ${DAYS} jours, graine ${SEED})`, '',
   ...checks.map(([n, ok, v]) => `| ${n} | ${v} | ${ok == null ? '—' : ok ? '✔' : '✘'} |`), '',
   ...results.flatMap((r) => [`## Profil ${r.name} (${PROFILES[r.name]} connexion${PROFILES[r.name] > 1 ? 's' : ''} par jour)`, '',
     `Premières raretés : ${Object.entries(r.firsts).map(([k, v]) => `${k} jour ${v}`).join(' · ') || 'aucune au-delà de Légendaire'} · Renaissances : ${r.rebirths}`, '',
-    '| Jour | Étape | Monde | Puissance | Meilleure rareté | Bastion (niv. / âge) | Recherches | Renaissances |', '|---|---|---|---|---|---|---|---|',
-    ...r.rows.filter((x) => x.day <= 7 || x.day % 5 === 0).map((x) => `| ${x.day} | ${x.best} | ${x.world} | ${x.power.toExponential(2)} | ${x.rarity} | ${x.bastion} / ${x.age} | ${x.research} | ${x.rebirths} |`), '']),
+    '| Jour | Étape | Monde | Puissance | Meilleure rareté | Bastion (niv. / âge) | ×Bastion | Recherches | Renaissances |', '|---|---|---|---|---|---|---|---|---|',
+    ...r.rows.filter((x) => x.day <= 7 || x.day % 5 === 0).map((x) => `| ${x.day} | ${x.best} | ${x.world} | ${x.power.toExponential(2)} | ${x.rarity} | ${x.bastion} / ${x.age} | ×${x.bmult.toFixed(2)} | ${x.research} | ${x.rebirths} |`), '']),
 ].join('\n');
 writeFileSync(OUT, md);
 for (const [n, ok, v] of checks) console.log(`${ok == null ? '–' : ok ? '✔' : '✘'} ${n} : ${v}`);

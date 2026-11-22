@@ -366,7 +366,7 @@ test('sauvegarde : niveaux de recherche bornés, travaux valides gardés', () =>
   assert.deepEqual(fixed.research.active.map((a) => a.id), ['steel'], 'une recherche à la fois au niveau 1');
   assert.deepEqual(fixed.orders.map((o) => [o.id, o.slot, o.tier, o.ready]), [[4, 'weapon', 'rare', false]]);
   assert.equal(fixed.nextOrder, 5);
-  assert.deepEqual(fixed.stock, { mine: 0, training: 0 }, 'pas de Mine : pas de stock');
+  assert.deepEqual(fixed.stock, { mine: 0, training: 0, menagerie: 0 }, 'pas de Mine : pas de stock'); // v10.8 : Ménagerie
   assert.equal(fixed.at, T0);
   // Et le tout rejoue sans erreur.
   const live = sanitizeState(raw, BALANCE, T0);

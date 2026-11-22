@@ -60,7 +60,7 @@ export function emptyBastion(now = Date.now()) {
     buildings: Object.fromEntries(LEVELED.map((b) => [b.id, emptyBuilding(b)])),
     research: { levels: {}, active: [] },
     orders: [], nextOrder: 1,
-    stock: { mine: 0, training: 0 },
+    stock: { mine: 0, training: 0, menagerie: 0 },
     trade: { day: '', used: 0 },
     news: [], notices: [], cards: [],
     kicked: 0, tips: [], away: null, // v10.4 (6) : démarrage fait, bulles vues, « Pendant ton absence » (core/bastion-start.js)
@@ -287,13 +287,15 @@ export function buildRemaining(state, id) {
 
 // ---------------------------------------------------------------- production (Mine, Camp d'entraînement)
 
-const PRODUCERS = { mine: { rule: MINE, resource: 'shards' }, training: { rule: TRAINING, resource: 'grimoire' } };
+// v10.8 : la Ménagerie (Âge II) produit des essences de maîtrise.
+const MENAGERIE_RULE = { basePerHour: 0, perLevel: 0.08, capHours: [12, 12] };
+const PRODUCERS = { mine: { rule: MINE, resource: 'shards' }, training: { rule: TRAINING, resource: 'grimoire' }, menagerie: { rule: MENAGERIE_RULE, resource: 'mastery' } };
 const capHours = (rule, level) => rule.capHours[0] + ((rule.capHours[1] - rule.capHours[0]) * (Math.max(1, level) - 1)) / (BASTION_MAX_LEVEL - 1);
 // Production d'un bâtiment à un niveau donné : { perHour (sans ouvrier ni bonus), cap, capHours, resource } ou null.
 export function productionOf(state, id, level = buildingLevel(state, id)) {
   const p = PRODUCERS[id];
   if (!p || level < 1) return null;
-  const boost = id === 'mine' ? 1 + (researchEffects(state).minePct ?? 0) / 100 : 1;
+  const boost = id === 'mine' ? 1 + (researchEffects(state).minePct ?? 0) / 100 : id === 'menagerie' ? 1 + (researchEffects(state).essencePct ?? 0) / 100 : 1;
   const perHour = (p.rule.basePerHour + p.rule.perLevel * level) * boost;
   const hours = capHours(p.rule, level);
   return { perHour, capHours: hours, cap: Math.max(1, Math.floor(perHour * hours)), resource: p.resource };
@@ -365,7 +367,7 @@ export function researchStatus(state, id) {
   const ageOk = tier <= 1 || bastionAge(state) >= tier; // v10.8 : le palier N s'ouvre avec l'âge N
   const unlocked = ageOk && (!prev || researchLevel(state, prev.id) >= Math.min(RESEARCH_UNLOCK_LEVEL, prev.max));
   const active = (bastionOf(state)?.research?.active ?? []).find((a) => a.id === id) ?? null;
-  return { def, level: researchLevel(state, id), active, unlocked, lockedBy: unlocked ? null : prev, maxed: researchLevel(state, id) >= def.max };
+  return { def, level: researchLevel(state, id), active, unlocked, lockedBy: unlocked ? null : ageOk ? prev : null, ageLock: ageOk ? null : ageDef(tier), /* v10.8 : verrouillé par l'âge */ maxed: researchLevel(state, id) >= def.max };
 }
 
 export function researchRemaining(state, id) {
@@ -635,7 +637,6 @@ export function sanitizeBastion(raw, state, now = Date.now(), isItem = () => tru
   // v10.4 (6) : démarrage automatique fait (date), bulles vues, rapport « Pendant ton absence ».
   out.kicked = num(raw.kicked, 0, now);
   // v10.8 : Ménagerie, Marché noir, « Œil du destin »
-  if (Number.isFinite(raw.menagerieAt)) out.menagerieAt = Math.min(now, raw.menagerieAt);
   if (Number.isInteger(raw.blackMarketWeek)) out.blackMarketWeek = raw.blackMarketWeek;
   if (typeof raw.fateDay === 'string') out.fateDay = raw.fateDay.slice(0, 20);
   out.tips = [...new Set((Array.isArray(raw.tips) ? raw.tips : []).filter((id) => buildingDef(id) || id === 'research'))];

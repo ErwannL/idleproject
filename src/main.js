@@ -98,6 +98,7 @@ import { purchase } from './core/store.js';
 import { ownsTheme, unequipSkin, wornTheme } from './core/cosmetics.js';
 import { buyLights, claimLightsAll, claimLightsStep } from './core/lights.js'; // v10.6 (partie 3)
 import { claimBounty106, foldBounty, refuseBounty } from './core/herald-bounty.js'; // v10.6 (partie 2)
+import { BLACK_MARKET_SHARDS, ascendItems, buyBlackMarket, canAscend, canEngrave, engraveItem } from './core/bastion-ages.js'; // v10.8
 import { buyEventItem, claimEventGoal, fightStage, finishWorldBoss, startWorldBoss, worldBossStatus } from './core/ancients.js';
 import { bossHpForDay } from './core/world-boss.js'; // v9.2.9 : World Boss en vrai combat
 import { bossesForStage, enemyStats, isBossStage, stageInZone } from './core/combat.js';
@@ -294,6 +295,10 @@ const actions = {
       case 'collect': { const g = collectStock(state, x, now); return done(Boolean(g), g ? `+${formatNumber(g.amount)} ${g.resource === 'shards' ? 'éclats' : 'grimoires'}` : null, '#7fe0a0'); }
       case 'collect-order': { const r = collectOrder(state, x, now); if (!r) return refuse('Le coffre de butin est plein : trie-le d\'abord.'); return done(true, `Livré dans le coffre de butin : ${r.item.name}`, '#7fe0a0'); }
       case 'trade': { const o = trade(state, x, now); return o ? done(true, 'Échange fait', '#7fe0a0') : refuse('Échange impossible (matériaux ou échanges du jour épuisés).'); }
+      // v10.8 : ateliers des Âges (gravure, Ascension, Marché noir).
+      case 'engrave': { const c = canEngrave(state, x); if (!c.ok) return refuse(c.reason); const a = engraveItem(state, x, new Rng(now % 2 ** 31)); return done(Boolean(a), a ? 'Effet gravé' : null, '#c8a6ff'); }
+      case 'ascend': { const c = canAscend(state, x); if (!c.ok) return refuse(c.reason); const it = ascendItems(state, x, new Rng(now % 2 ** 31)); return done(Boolean(it), it ? `Objet Ascendant forgé : ${it.name}` : null, '#fff4c2'); }
+      case 'black-market': { const it = buyBlackMarket(state, x, new Rng(now % 2 ** 31), now); return it ? done(true, `Marché noir : ${it.name} (Mythique)`, '#ff4d4d') : refuse(`Il faut ${BLACK_MARKET_SHARDS} éclats (un objet par semaine)`); }
       default: break;
     }
     save();

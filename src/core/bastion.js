@@ -93,7 +93,7 @@ export function canResearch(state, id, balance = BALANCE) {
   if (researchSlots(state) < 1) return { ok: false, reason: 'Construis d\'abord la Bibliothèque' };
   const st = researchStatus(state, id);
   if (st.maxed) return { ok: false, reason: 'Niveau maximal atteint' };
-  if (!st.unlocked) return { ok: false, reason: `Demande ${st.lockedBy.name} niveau ${Math.min(RESEARCH_UNLOCK_LEVEL, st.lockedBy.max)}` };
+  if (!st.unlocked) return { ok: false, reason: st.ageLock ? `S'ouvre à l'Âge ${st.ageLock.roman} : ${st.ageLock.name}` : `Demande ${st.lockedBy.name} niveau ${Math.min(RESEARCH_UNLOCK_LEVEL, st.lockedBy.max)}` };
   if (st.active) return { ok: false, reason: 'Déjà en cours' };
   if (b.research.active.length >= researchSlots(state)) return { ok: false, reason: researchSlots(state) > 1 ? 'Deux recherches sont déjà en cours' : 'Une recherche est déjà en cours' };
   const cost = researchCost(state, id, balance);

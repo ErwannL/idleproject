@@ -149,7 +149,7 @@ export function bastionPlan(sim, now) {
   if (kick?.build) sim.log.push(`  J${sim.day} chantier offert ${buildingDef(kick.build.building).name} → niv. ${kick.build.level}`);
   for (const id of ['mine', 'training']) { const got = collectStock(state, id, now); if (got) sim.gained[got.resource] = (sim.gained[got.resource] ?? 0) + got.amount; }
   // Ouvriers : chaque bâtiment ouvert reçoit le meilleur compagnon libre (bon métier d'abord, puis rareté).
-  const order = ['forge', 'library', 'mine', 'training', 'trade'].filter((id) => buildingAccess(state, id).available);
+  const order = ['forge', 'library', 'mine', 'training', 'trade', 'runes', 'enchant', 'menagerie', 'observatory', 'ascension', 'wonder'].filter((id) => buildingAccess(state, id).available); // v10.8 : bâtiments des Âges
   for (const id of order.slice(0, workerSlots(state))) {
     if (b.buildings[id].worker) continue;
     const taken = new Set(Object.values(b.buildings).map((x) => x.worker).filter(Boolean));
@@ -171,7 +171,7 @@ export function bastionPlan(sim, now) {
     // Dégâts et vie d'abord (le niveau le plus bas des deux), puis l'ordre ci-dessus.
     for (let guard = 0; guard < 2; guard++) {
       const first = ['sharp', 'steel'].sort((x, y) => researchLevel(state, x) - researchLevel(state, y));
-      const pick = [...first, ...RESEARCH_ORDER].find((id) => canResearch(state, id).ok && afford(researchCost(state, id).gold));
+      const pick = [...first, ...RESEARCH_ORDER, ...RESEARCH.filter((r) => r.tier).sort((a, b) => a.tier - b.tier || (b.effect.damageMult ?? 0) + (b.effect.hpMult ?? 0) - (a.effect.damageMult ?? 0) - (a.effect.hpMult ?? 0)).map((r) => r.id)].find((id) => canResearch(state, id).ok && afford(researchCost(state, id).gold));
       if (!pick) break;
       startResearch(state, pick, now);
       sim.spent.research += 1;

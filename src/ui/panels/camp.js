@@ -31,6 +31,10 @@ import { animCanvas } from '../animator.js';
 import { BASTION_FX } from '../bastion-art.js';
 import { coin, escapeHtml, formatNumber, img, shard } from '../common.js';
 import { pageActive } from '../page.js';
+import { AGES, KEYSTONES } from '../../data/bastion.js'; // v10.8 : Âges du Bastion
+import { ageDef, bastionAge, bastionMult, nextAge } from '../../core/bastion-base.js';
+import { BLACK_MARKET_SHARDS, ENGRAVE_SHARDS, ascensionCost, ascensionPool, blackMarketOpen, canAscend, canEngrave } from '../../core/bastion-ages.js';
+import { rarityIndex } from '../../core/loot.js';
 import expeditionsPanel, { companionStill } from './expeditions.js';
 
 const ART = (name) => `assets/ui/art104/${name}.png`;
@@ -46,12 +50,14 @@ export const RESEARCH_ART = {
   spirit: 'hands', recall: 'hourglass', bond: 'rings', drill: 'dummy', scouts: 'spyglass', crew: 'gear',
   purse: 'purse', vigil: 'moon', hunter: 'eye', roads: 'cart', vein: 'crystal', lessons: 'book',
 };
-export const researchArt = (id) => ART(`research_node_${RESEARCH_ART[id] ?? 'book'}`);
+export const researchArt = (id) => { const r = RESEARCH.find((x) => x.id === id); return r?.tier ? `assets/ui/art108/${r.art}.png` : ART(`research_node_${RESEARCH_ART[id] ?? 'book'}`); }; // v10.8 : paliers II à V (art108)
 export const tradeArt = (trade) => ART(`trade_${trade ?? 'smith'}`);
 // Palier dessiné d'un bâtiment : niveau 1, 4 et 8 ; chantier (niveau 0) ; silhouette quand il est verrouillé.
 export function buildingArt(state, def, level = buildingLevel(state, def.id)) {
   const open = bastionOf(state) && buildingAccess(state, def.id).available;
   if (def.existing) return ART(open ? 'bastion_expeditions' : 'bastion_expeditions_locked');
+  // v10.8 : bâtiments des Âges (art108, 3 paliers dans l'âge) ; verrouillé : le premier palier, grisé (classe .locked).
+  if (def.age) { const a0 = (def.age - 1) * 10; return `assets/ui/art108/bastion_${def.id}_lv${!open || level < a0 + 4 ? 1 : level < a0 + 8 ? 2 : 3}.png`; }
   if (!open) return ART(`bastion_${def.id}_locked`);
   if (level < 1) return ART('bastion_site');
   return ART(`bastion_${def.id}_lv${level >= 8 ? 8 : level >= 4 ? 4 : 1}`);
@@ -60,6 +66,9 @@ export function buildingArt(state, def, level = buildingLevel(state, def.id)) {
 const PLOTS = {
   forge: { x: 17, y: 56, w: 21 }, library: { x: 84, y: 56, w: 21 }, mine: { x: 15, y: 98, w: 21 },
   training: { x: 66, y: 100, w: 21 }, trade: { x: 41, y: 78, w: 18 }, expeditions: { x: 51, y: 38, w: 17 },
+  // v10.8 : bâtiments des Âges, sur le pourtour de la carte agrandie
+  enchant: { x: 33, y: 46, w: 15 }, menagerie: { x: 88, y: 92, w: 16 }, observatory: { x: 68, y: 40, w: 14 },
+  runes: { x: 7, y: 78, w: 14 }, ascension: { x: 52, y: 100, w: 16 }, wonder: { x: 93, y: 34, w: 14 },
 };
 // Animations des bâtiments (planches PixelLab) : où les poser sur l'image du bâtiment (en % de sa boîte).
 const LIFE = {
@@ -224,9 +233,23 @@ function kickRibbon(ui) {
   return `<div class="bs-kick" role="status"><b>Ton Bastion se met au travail</b>${lines}${gift}<button class="btn small" data-action="bastion-kick-ok">OK</button></div>`;
 }
 
+// v10.8 (partie 4) : la carte grandit à chaque âge ; un bandeau dit l'âge, ce que le Bastion apporte et le suivant ;
+// au passage d'un âge, un fondu et la bannière « La Citadelle » (une fois).
+function ageRibbon(ui, state) {
+  const age = bastionAge(state), a = ageDef(age), nx = nextAge(state);
+  const mult = bastionMult(state, 'damage');
+  const seen = (state.ui.ageSeen ??= 1);
+  const fresh = age > seen;
+  if (fresh) state.ui.ageSeen = age;
+  return `<div class="bs-age" style="--age:${a.color}"><b>Âge ${a.roman} · ${escapeHtml(a.name)}</b><span>niveaux jusqu'à ${a.maxLevel}${mult > 1.001 ? ` · ×${dec(mult)} dégâts et vie` : ''}</span>
+      ${nx ? `<small>Âge ${nx.roman} · ${escapeHtml(nx.name)} : étape ${nx.stage}${nx.bastionLevel ? `, Bastion niveau ${nx.bastionLevel}` : ''}</small>` : '<small>Âge maximal</small>'}</div>
+    ${fresh ? `<div class="bs-age-new" role="status" style="--age:${a.color}"><small>Nouvel âge</small><b>${escapeHtml(a.name)}</b></div>` : ''}`;
+}
 function villageMap(ui, state, now) {
-  return `<div class="bs-village"><div class="bs-world"><img class="px bs-ground" src="${ART('bastion_map')}" alt="" draggable="false">
-      ${BUILDINGS.map((d) => plot(ui, state, d, now)).join('')}${kickRibbon(ui)}</div></div>`;
+  const age = bastionAge(state);
+  const ground = age >= 2 ? `assets/ui/art108/bastion_map_age${age}.png` : ART('bastion_map');
+  return `${ageRibbon(ui, state)}<div class="bs-village age-${age}"><div class="bs-world"><img class="px bs-ground" src="${ground}" alt="" draggable="false">
+      ${BUILDINGS.filter((d) => !d.age || d.age <= age + 1).map((d) => plot(ui, state, d, now)).join('')}${kickRibbon(ui)}</div></div>`;
 }
 
 // ---------------------------------------------------------------- arbre des Recherches
@@ -241,14 +264,21 @@ function researchNode(ui, state, def, now) {
   const cls = `${st.active ? ' active' : ''}${!st.unlocked ? ' locked' : ''}${st.maxed ? ' maxed' : ''}${st.level ? ' got' : ''}${sel ? ' sel' : ''}${fresh ? ' fresh' : ''}`;
   const short = def.name.split(/\s+/).filter((w) => w.length > 2 || /^[A-ZÉ]/.test(w)).slice(0, 2).join(' ') || def.name; // v10.6 (5) : nom en 1 ou 2 mots
   const time = st.active ? (() => { const r = researchRemaining(state, def.id); return Number.isFinite(r) ? `<span class="bs-time" data-bt-short="1" data-bt-end="${Math.round(now + r)}">${formatDuration(r / 1000)}</span>` : '<span class="bs-time bad">en pause</span>'; })() : '';
-  return `<button class="bs-node${cls}" data-action="bastion-res" data-value="${def.id}" aria-pressed="${sel}" title="${escapeHtml(`${def.name} : ${def.text}`)}" aria-label="${escapeHtml(def.name)}">
+  return `<button class="bs-node${cls}${def.keystone ? ' keystone' : ''}" data-action="bastion-res" data-value="${def.id}" aria-pressed="${sel}" title="${escapeHtml(`${def.name} : ${def.text}`)}" aria-label="${escapeHtml(def.name)}">
       <img class="px" src="${researchArt(def.id)}" alt="" draggable="false"><span class="bs-nlv num">${st.level}/${def.max}</span>${time}${!st.unlocked ? `<span class="bs-nlock">${img('icon_lock')}</span>` : ''}<small class="bs-nname">${escapeHtml(short)}</small></button>`;
 }
 
 function researchTree(ui, state, now, below = false) {
   const lib = buildingLevel(state, 'library');
+  // v10.8 (partie 5) : une page par palier (I à V) ; on tourne les pages, celle en cours garde un ruban. Les nœuds clés
+  // (palier III) s'allument en or.
+  const age = bastionAge(state);
+  const page = Math.min(5, Math.max(1, Number(ui.view.resPage) || 1));
+  const pages = below ? '' : `<div class="bs-pages" role="tablist">${[1, 2, 3, 4, 5].map((t) => `<button class="bs-page${t === page ? ' on' : ''}${t > Math.max(1, age) ? ' off' : ''}" data-action="bastion-page" data-value="${t}" aria-selected="${t === page}">${t === page ? '<i class="bs-ribbon"></i>' : ''}Palier ${AGES[t - 1].roman}${t > Math.max(1, age) ? ` ${img('icon_lock')}` : ''}</button>`).join('')}</div>`;
+  const tier = below ? 1 : page;
+  const keys = tier === 3 ? `<div class="bs-keys">${KEYSTONES.map((k) => researchNode(ui, state, RESEARCH.find((r) => r.id === k.id), now)).join('')}</div>` : '';
   const cols = RESEARCH_BRANCHES.map((br) => {
-    const list = RESEARCH.filter((r) => r.branch === br.id);
+    const list = RESEARCH.filter((r) => r.branch === br.id && (r.tier ?? 1) === tier && !r.keystone);
     const nodes = list.map((r, i) => {
       const lit = i > 0 && researchStatus(state, r.id).unlocked;
       const fresh = lit && ui.view.resSeen?.[r.id] === false; // v10.6 (6) : le trait s'allume jusqu'au médaillon qui s'ouvre
@@ -258,7 +288,8 @@ function researchTree(ui, state, now, below = false) {
   }).join('');
   const lock = lib >= 1 ? '' : `<p class="bs-lock">${img('icon_lock')} Construis la Bibliothèque</p>`;
   if (below) return `<div class="bs-tree below${lib >= 1 ? '' : ' closed'}" style="background-image:url(${ART('research_tree_bg')})"><div class="bs-branches">${cols}</div></div>`;
-  return `<div class="bs-tree${lib >= 1 ? '' : ' closed'}" id="bs-research" style="background-image:url(${ART('research_tree_bg')})">${lock}<div class="bs-branches">${cols}</div></div>`;
+  const ageLock = tier > Math.max(1, age) ? `<p class="bs-lock">${img('icon_lock')} S'ouvre à l'Âge ${AGES[tier - 1].roman} : ${escapeHtml(AGES[tier - 1].name)}</p>` : '';
+  return `${pages}<div class="bs-tree tier-${tier}${lib >= 1 ? '' : ' closed'}" id="bs-research" style="background-image:url(${ART('research_tree_bg')})">${lock}${ageLock}${keys}<div class="bs-branches">${cols}</div></div>`;
 }
 
 function researchSheet(ui, state, now) {
@@ -268,7 +299,7 @@ function researchSheet(ui, state, now) {
       <span class="bs-shead"><b>${escapeHtml(def.name)}</b> <span class="bs-lv">${st.level}/${def.max}</span><small>${escapeHtml(def.text)}</small></span>${closeBtn()}</div>`;
   const versus = `<p class="muted bs-versus">Gardées après les Renaissances.</p>${libraryScene(state)}`;
   if (st.maxed) return `${head}<p class="good">${escapeHtml(researchText(def, st.level))}</p>`;
-  if (!st.unlocked) return `${head}<p class="bs-lock">${img('icon_lock')} ${escapeHtml(st.lockedBy.name)} niv. ${Math.min(RESEARCH_UNLOCK_LEVEL, st.lockedBy.max)}</p>`;
+  if (!st.unlocked) return `${head}<p class="bs-lock">${img('icon_lock')} ${st.ageLock ? `Âge ${st.ageLock.roman} : ${escapeHtml(st.ageLock.name)}` : `${escapeHtml(st.lockedBy.name)} niv. ${Math.min(RESEARCH_UNLOCK_LEVEL, st.lockedBy.max)}`}</p>`;
   const f = productionFactor(state, 'library');
   if (st.active) return `${head}<div class="bs-block">${jobBar(st.active, f, now, 'work')}<span class="bs-line">Niv. ${st.level + 1} · ${timer(researchRemaining(state, def.id), now)}</span></div>${versus}`;
   const cost = researchCost(state, def.id);
@@ -395,6 +426,26 @@ function stockBlock(state, id, now) {
       <button class="btn btn-gold" data-action="bastion-collect" data-value="${id}" ${n >= 1 ? '' : 'disabled'}>Récupérer</button></div>`;
 }
 
+// v10.8 : Atelier d'enchantement — graver un effet de plus sur un objet Mythique ou au-delà.
+function enchantBlock(state) {
+  const items = [...Object.values(state.equipment).filter(Boolean), ...state.inventory].filter((i) => rarityIndex(i.rarity) >= rarityIndex('mythic')).slice(0, 8);
+  const rows = items.map((i) => { const c = canEngrave(state, i.id); return `<button class="bs-trade${c.ok ? '' : ' off'}" data-action="bastion-engrave" data-value="${i.id}" ${c.ok ? '' : 'disabled'} title="${escapeHtml(c.reason || `${ENGRAVE_SHARDS} éclats`)}"><span class="r-${i.rarity} rarity-text">${escapeHtml(i.name)}</span>${i.engraved ? '<b class="good">gravé</b>' : `${shard()}<b class="num">${ENGRAVE_SHARDS}</b>`}</button>`; }).join('');
+  return `<div class="bs-block"><div class="bs-block-title">Graver un effet <small>Mythique et au-delà, une fois par objet</small></div>${rows || '<p class="muted">Aucun objet Mythique pour l\'instant.</p>'}</div>`;
+}
+// v10.8 : Atelier d'Ascension — 3 Astraux de même place + 1 Larme → 1 Ascendant.
+function ascensionBlock(ui, state) {
+  const c = ascensionCost(state);
+  const rows = Object.keys(SLOTS).map((slot) => { const n = ascensionPool(state, slot).length; const ok = canAscend(state, slot).ok; return `<button class="bs-trade${ok ? '' : ' off'}" data-action="bastion-ascend" data-value="${slot}" ${ok ? '' : 'disabled'}>${img(slotIconName(slot))}<b class="num">${n}/${c.astral}</b> Astraux</button>`; }).join('');
+  return `<div class="bs-block"><div class="bs-block-title">Forger un Ascendant <small>${c.astral} Astraux + ${c.tears} Larme + ${coin()}${formatNumber(c.gold)}</small></div>
+      <p class="bs-line"><img class="px" src="assets/ui/art108/tear_ascendrya.png" alt="" width="24" height="24"> Larmes d'Ascendrya : <b class="num">${state.materials.tears ?? 0}</b> <small class="muted">(une à la première Renaissance de chaque saison)</small></p><div class="bs-trades">${rows}</div></div>`;
+}
+// v10.8 : nœud clé « Marché noir » — un objet Mythique par semaine.
+function blackMarketBlock(state) {
+  if (!state.bastion?.research?.levels?.key_market) return '';
+  const open = blackMarketOpen(state);
+  const rows = Object.keys(SLOTS).map((slot) => `<button class="bs-trade${open ? '' : ' off'}" data-action="bastion-black" data-value="${slot}" ${open ? '' : 'disabled'}>${img(slotIconName(slot))}${shard()}<b class="num">${BLACK_MARKET_SHARDS}</b></button>`).join('');
+  return `<div class="bs-block"><div class="bs-block-title">Marché noir <small>${open ? 'un objet Mythique cette semaine' : 'revient la semaine prochaine'}</small></div><div class="bs-trades">${rows}</div></div>`;
+}
 function tradeBlock(state) {
   const left = tradeLeft(state);
   const rows = TRADE_POST.offers.map((x) => {
@@ -437,7 +488,9 @@ function buildingSheet(ui, state, now) {
   if (def.existing) return `${head}<div class="bs-embed">${expeditionsPanel.render(ui, state)}</div>`;
   const own = lv < 1 ? '' : def.id === 'forge' ? forgeBlock(ui, state, now)
     : def.id === 'library' ? `<div class="bs-block"><button class="btn bs-to-tree" data-action="bastion-view" data-value="research"><img class="px" src="${researchArt('lessons')}" alt="">Recherches ${bastionOf(state).research.active.length}/${researchSlots(state)}</button></div>`
-      : def.id === 'trade' ? tradeBlock(state) : stockBlock(state, def.id, now);
+      : def.id === 'trade' ? tradeBlock(state) + blackMarketBlock(state) : def.id === 'enchant' ? enchantBlock(state) : def.id === 'ascension' ? ascensionBlock(ui, state)
+      : def.id === 'observatory' ? '<div class="bs-block"><p>Une Prime du Héraut de plus chaque jour.</p></div>' : def.id === 'runes' ? `<div class="bs-block"><p class="good">+${3 * lv} % de puissance des compagnons</p></div>`
+      : def.id === 'wonder' ? `<div class="bs-block"><p class="good">+${5 * lv} % d'or et d'expérience</p></div>` : stockBlock(state, def.id, now);
   return `${head}${workerBlock(ui, state, def)}${upgradeBlock(state, def, now)}${own}${words()}`;
 }
 // v10.3.1 : lexique du Bastion (Bastion, Ouvrier, Chantier, Recherche) : un toucher ouvre sa carte d'explication.
@@ -538,6 +591,10 @@ export function bastionAction(ui, action, value) {
     case 'bastion-trade': a.bastion('trade', value); break;
     case 'bastion-away-claim': a.bastion('away-claim'); break;
     case 'bastion-tower': openBastion(ui); break; // v10.4 (6) : la tour de la scène
+    case 'bastion-page': v.resPage = Number(value); v.bastionRes = null; redraw(); break; // v10.8 : pages du livre
+    case 'bastion-engrave': a.bastion('engrave', value); break;
+    case 'bastion-ascend': a.bastion('ascend', value); break;
+    case 'bastion-black': a.bastion('black-market', value); break;
     default: return false;
   }
   return true;
