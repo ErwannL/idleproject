@@ -1,0 +1,20 @@
+/* v10.8 (partie 3) : trois raretés de plus — Mythique (rouge), Astral (cyan), Ascendant (arc-en-ciel) : couleur de texte,
+   cadres d'objet (PixelLab : frame_mythic, frame_astral, frame_ascendant), cartes, fenêtres, coffre, filtres. */
+:root { --mythic: #ff4d4d; --astral: #4de3ff; --ascendant: #fff4c2; }
+.r-mythic { --rarity: var(--mythic); --rc: var(--mythic); }
+.r-astral { --rarity: var(--astral); --rc: var(--astral); }
+.r-ascendant { --rarity: var(--ascendant); --rc: #c8a6ff; }
+.rarity-text.r-ascendant, .r-ascendant.rarity-text, .eq-name.r-ascendant { background: linear-gradient(90deg, #ff6b6b, #ffd36b, #6bff9e, #6bd5ff, #c86bff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.item-frame.r-mythic, .item-frame.r-astral, .item-frame.r-ascendant, .eq-card.r-mythic, .eq-card.r-astral, .eq-card.r-ascendant,
+.lb-tile.r-mythic, .lb-tile.r-astral, .lb-tile.r-ascendant, .eq-slot.r-mythic .eq-slot-box, .eq-slot.r-astral .eq-slot-box, .eq-slot.r-ascendant .eq-slot-box {
+  box-shadow: 0 0 0 1px var(--rarity), 0 0 12px -1px var(--rarity); background-size: 100% 100%; background-repeat: no-repeat; image-rendering: pixelated; }
+.eq-card.r-mythic, .lb-tile.r-mythic { background-image: url(../../assets/ui/art106/frame_mythic.png); }
+.eq-card.r-astral, .lb-tile.r-astral { background-image: url(../../assets/ui/art108/frame_astral.png); }
+.eq-card.r-ascendant, .lb-tile.r-ascendant { background-image: url(../../assets/ui/art108/frame_ascendant.png); animation: rar-rainbow 4s linear infinite; }
+.eq-itempop.r-mythic, .lb-pop.r-mythic { --rc: var(--mythic); } .eq-itempop.r-astral, .lb-pop.r-astral { --rc: var(--astral); } .eq-itempop.r-ascendant, .lb-pop.r-ascendant { --rc: #c8a6ff; }
+.rar-pill.r-mythic { background: #6a1a1a; color: #ffd0d0; } .rar-pill.r-astral { background: #0f4a5a; color: #d0faff; } .rar-pill.r-ascendant { background: linear-gradient(90deg, #6a1a3a, #1a4a6a, #3a1a6a); color: #fff; }
+.rar-badge { display: inline-flex; align-items: center; gap: 4px; }
+.rar-badge img { width: 18px; height: 18px; image-rendering: pixelated; }
+@keyframes rar-rainbow { 0% { box-shadow: 0 0 12px -1px #ff6b6b; } 25% { box-shadow: 0 0 12px -1px #ffd36b; } 50% { box-shadow: 0 0 12px -1px #6bff9e; } 75% { box-shadow: 0 0 12px -1px #6bd5ff; } 100% { box-shadow: 0 0 12px -1px #c86bff; } }
+.calm .eq-card.r-ascendant, .calm .lb-tile.r-ascendant { animation: none; }
+@media (prefers-reduced-motion: reduce) { .eq-card.r-ascendant, .lb-tile.r-ascendant { animation: none; } }

@@ -40,6 +40,7 @@ test('navigation : le Bastion est sous Équipe (Compagnons · Bastion · Expédi
 
 test('démarrage : les meilleurs ouvriers selon le métier et la rareté, puis le chantier offert (15 min)', () => {
   const s = player();
+  s.maxStage = 100; s.records.bestStage = 100; // v10.8 : à l'étape 186, l'Âge III ouvre d'autres places et bâtiments
   assert.ok(needsKickoff(s));
   const gold = s.gold, shards = s.materials.shards;
   const k = kickoffBastion(s, T0 + 1000);
@@ -179,15 +180,16 @@ test('illustrations : chaque image référencée par le Bastion existe sur le di
   const has = (p) => existsSync(new URL(p, root));
   const { BASTION_FX } = await import('../src/ui/bastion-art.js');
   const files = ['bastion_map', 'research_tree_bg', 'bastion_site', 'bastion_away', 'scene_tower', 'bastion_expeditions', 'bastion_expeditions_locked',
-    ...BUILDINGS.filter((d) => !d.existing).flatMap((d) => [1, 4, 8].map((lv) => `bastion_${d.id}_lv${lv}`).concat(`bastion_${d.id}_locked`)),
+    ...BUILDINGS.filter((d) => !d.existing && !d.age).flatMap((d) => [1, 4, 8].map((lv) => `bastion_${d.id}_lv${lv}`).concat(`bastion_${d.id}_locked`)),
     ...['smith', 'scholar', 'miner', 'trainer', 'merchant'].map((t) => `trade_${t}`),
     ...['combat', 'team', 'economy'].map((b) => `research_branch_${b}`),
     ...Object.keys(BASTION_FX)];
   // Nœuds des recherches : un dessin par recherche, tous différents.
   const src = readFileSync(new URL('../src/ui/panels/camp.js', import.meta.url), 'utf8');
-  const map = Object.fromEntries([...src.matchAll(/(\w+): '(\w+)'/g)].filter(([, k]) => RESEARCH.some((r) => r.id === k)).map(([, k, v]) => [k, v]));
-  assert.equal(Object.keys(map).length, RESEARCH.length);
-  assert.equal(new Set(Object.values(map)).size, RESEARCH.length);
+  const map = Object.fromEntries([...src.matchAll(/(\w+): '(\w+)'/g)].filter(([, k]) => RESEARCH.some((r) => r.id === k && !r.tier)).map(([, k, v]) => [k, v]));
+  const tier1 = RESEARCH.filter((r) => !r.tier).length; // v10.8 : les paliers II à V ont leurs médaillons (art108, r.art)
+  assert.equal(Object.keys(map).length, tier1);
+  assert.equal(new Set(Object.values(map)).size, tier1);
   for (const v of Object.values(map)) files.push(`research_node_${v}`);
   const missing = files.filter((f) => !has(`assets/ui/art104/${f}.png`));
   assert.deepEqual(missing, []);

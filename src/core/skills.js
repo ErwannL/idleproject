@@ -52,13 +52,15 @@ export function classSkills(state) {
 export function activeSkills(state) {
   const learned = classSkills(state).filter((s) => (state.skills[s.id] ?? 0) > 0 && state.level >= s.unlockLevel);
   const pick = Array.isArray(state.skillLoadout) ? learned.filter((s) => state.skillLoadout.includes(s.id)) : [];
-  return (pick.length ? pick : learned).slice(0, LOADOUT_SIZE);
+  return (pick.length ? pick : learned).slice(0, loadoutSize(state));
 }
+// v10.8 (5) : nœud clé « Main d'Ascendrya » : un sort actif de plus.
+export const loadoutSize = (state) => LOADOUT_SIZE + (state?.bastion?.research?.levels?.key_hand ? 1 : 0);
 export function toggleLoadout(state, id) {
   const learned = classSkills(state).filter((s) => (state.skills[s.id] ?? 0) > 0).map((s) => s.id);
   if (!learned.includes(id)) return false;
   let cur = (Array.isArray(state.skillLoadout) ? state.skillLoadout : activeSkills(state).map((s) => s.id)).filter((x) => learned.includes(x));
-  cur = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id].slice(-LOADOUT_SIZE);
+  cur = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id].slice(-loadoutSize(state));
   state.skillLoadout = cur;
   return true;
 }

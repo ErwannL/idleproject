@@ -50,7 +50,8 @@ export function maybeStartBounty(state, now = Date.now(), sessionSeconds = 0) {
   if (activeBounty(state, now)) return null;
   const day = dayKey(now);
   if (b.day !== day) { b.day = day; b.count = 0; }
-  if (b.count >= BOUNTY.perDay || sessionSeconds < BOUNTY.firstAfter) return null;
+  const perDay = BOUNTY.perDay + ((state.bastion?.buildings?.observatory?.level ?? 0) >= 1 ? 1 : 0); // v10.8 : l'Observatoire en ajoute une
+  if (b.count >= perDay || sessionSeconds < BOUNTY.firstAfter) return null;
   if (b.lastEnd && now - b.lastEnd < BOUNTY.gapHours * H) return null;
   const list = openDungeons(state);
   if (!list.length) return null;

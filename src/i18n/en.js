@@ -2108,3 +2108,7 @@ PATTERNS.unshift(...patterns1040Dungeons(lookup));
 import { EXACT_1040_BASTION, patterns1040Bastion } from './en-1040-bastion.js';
 for (const [k, v] of Object.entries(EXACT_1040_BASTION)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1040Bastion(lookup)); // en tête : « Nain guerrier, forgeron : +25 % » avant les motifs plus larges
+// v10.8 : raretés, Âges du Bastion, paliers de recherche (./en-108.js).
+import { EXACT_108, patterns108 } from './en-108.js';
+for (const [k, v] of Object.entries(EXACT_108)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns108(lookup));

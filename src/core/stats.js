@@ -12,7 +12,7 @@ import { PRESTIGE } from '../data/prestige.js';
 import { challengeRule } from './challenge.js';
 import { rebirthBase, stellarMultiplier } from './transcend.js';
 import { rebirthPower } from './rebirth.js';
-import { researchEffects } from './bastion-base.js'; // v10.3 (10.4)
+import { bastionMult, buildingLevel, researchEffects } from './bastion-base.js'; // v10.3 (10.4) ; v10.8 : Âges
 
 // v8.4 : chaque Renaissance multiplie dégâts, PV et or (×1,5 par défaut).
 // v8.8 : + les Renaissances conservées par la Transcendance, et le multiplicateur stellaire.
@@ -56,6 +56,7 @@ export function computeHeroStats(state, balance = BALANCE, equipment = state.equ
     * dmg.milestoneMultiplier ** milestones * big(dmg, state.upgrades.damage) * reborn * (1 + bonus.damagePct / 100)
     * (1 + (balance.level.damagePctPerLevel * levelBonus) / 100) * cheatMultiplier(state, 'damage') * blessingMult(state, 'damage') * (1 + bondBonus(state, 'damagePct') / 100)
     * rankMult(state) // v9.8 (H6) : rang du héros, +3 % par rang gagné en duel (remplace les paliers de puissance)
+    * bastionMult(state, 'damage') // v10.8 (4) : Âges du Bastion et recherches des paliers II à V (multiplicatif)
     * Math.max(0.1, 1 + (bonus.damageMultPct ?? 0) / 100) * (state.challenge ? challengeRule(state, 'heroDamage') ?? 1 : 1);
 
   const upgradeFactor = Math.pow(1 - upgrades.attackSpeed.perLevel, state.upgrades.attackSpeed);
@@ -67,7 +68,7 @@ export function computeHeroStats(state, balance = BALANCE, equipment = state.equ
   const hpMilestones = vit.milestoneEvery ? Math.floor(ups.vitality / vit.milestoneEvery) : 0;
   const maxHp = Math.max(1, (hero.baseMaxHp + ups.vitality * vit.perLevel + gear.maxHp)
     * (vit.milestoneMultiplier ?? 1) ** hpMilestones * big(vit, ups.vitality) * reborn * (1 + bonus.maxHpPct / 100) * (1 + (balance.level.hpPctPerLevel * levelBonus) / 100)) * cheatMultiplier(state, 'hp') * blessingMult(state, 'hp') * (1 + bondBonus(state, 'maxHpPct') / 100)
-    * Math.max(0.1, 1 + (bonus.maxHpMultPct ?? 0) / 100) * (state.challenge ? challengeRule(state, 'heroHp') ?? 1 : 1);
+    * Math.max(0.1, 1 + (bonus.maxHpMultPct ?? 0) / 100) * (state.challenge ? challengeRule(state, 'heroHp') ?? 1 : 1) * bastionMult(state, 'hp'); // v10.8 (4)
   const armor = Math.min(hero.armorCapPct, Math.max(0, gear.armor + bonus.armor + (ups.armor ?? 0) * upgrades.armor.perLevel));
   // v9.2.0 : paliers de la Régénération (×1,1 tous les 10 niveaux, sur la part achetée seulement).
   const rg = upgrades.regen;
@@ -108,7 +109,7 @@ export function computeHeroStats(state, balance = BALANCE, equipment = state.equ
     lifesteal: bonus.lifesteal + per('lifesteal'),
     dodgePct: Math.min(20, per('dodge')), // v9.2.0 : moitié contre les boss (core/combat.js)
     bossDamagePct: per('bossDamage'), // facteur à part, en plus des « dégâts contre les boss » des talents/objets
-    companionPowerPct: per('companionPower') + bondBonus(state, 'companionPowerPct') + (researchEffects(state).companionPowerPct ?? 0), // v9.7.1 (lot 6) : liens · v10.3 : recherche
+    companionPowerPct: per('companionPower') + bondBonus(state, 'companionPowerPct') + (researchEffects(state).companionPowerPct ?? 0) + 3 * buildingLevel(state, 'runes') + ((bastionMult(state, 'companion') - 1) * 100), // v9.7.1 (lot 6) : liens · v10.3 : recherche · v10.8 : runes et « Meute »
     thorns: bonus.thorns,
     goldPct: bonus.goldPct + (ups.goldFind ?? 0) * upgrades.goldFind.perLevel,
     // Multiplicateur d'or (Renaissances × paliers du Butin d'or), appliqué en plus du goldPct.

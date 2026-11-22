@@ -148,3 +148,90 @@ export const RESEARCH_STEPS = {
   shards: 30,
   tierCostPct: 50,
 };
+
+// ---------------------------------------------------------------- v10.8 (parties 4 et 5) : les Âges du Bastion
+// Chaque âge relève le niveau maximal de 10, ajoute des bâtiments, une place d'ouvrier et un palier de recherches.
+// `stage` : étape record qui l'ouvre (monde 6 = étape 101, monde 9 = 161, monde 12 = 211) ; l'Âge V (saison) demande
+// aussi un Bastion de niveau `bastionLevel`. `minutes` : durée des chantiers du premier au dernier niveau de l'âge.
+export const AGES = [
+  { id: 1, roman: 'I', name: 'Le Fort', stage: 40, maxLevel: 10, minutes: [15, 480], color: '#7ee07e' },
+  { id: 2, roman: 'II', name: 'La Citadelle', stage: 101, maxLevel: 20, minutes: [480, 960], color: '#ffd25e' },
+  { id: 3, roman: 'III', name: 'La Cité haute', stage: 161, maxLevel: 30, minutes: [960, 1440], color: '#ff7ab0' },
+  { id: 4, roman: 'IV', name: 'La Couronne', stage: 211, maxLevel: 40, minutes: [1440, 2160], color: '#6fd6ff' },
+  { id: 5, roman: 'V', name: 'La Merveille', stage: 211, bastionLevel: 240, maxLevel: 50, minutes: [2160, 2880], color: '#c8a6ff', season: true },
+];
+// Au-delà du niveau 10 : coût ×1,35 en or et ×1,15 en éclats par niveau (le prix suit l'or du joueur, comme avant).
+export const AGE_STEPS = { goldKills: 140_000, goldGrowth: 1.35, shards: 4000, shardsGrowth: 1.15 };
+// Ce que chaque niveau au-delà du 10e apporte (multiplicatif) : ×1,02 dégâts et vie par niveau, tous bâtiments confondus.
+export const AGE_POWER = { perLevelPct: 2 };
+// Bâtiments des âges (ajoutés à BUILDINGS) : rôle, métier, et l'effet de chaque niveau.
+export const AGE_BUILDINGS = [
+  { id: 'enchant', name: 'Atelier d\'enchantement', the: 'l\'Atelier d\'enchantement', age: 2, trade: 'smith', art: 'enchant', tool: 'hammer', shards: 1.2,
+    role: 'Relance un effet d\'objet moins cher et grave un effet de plus sur les objets Mythiques et au-delà.', effect: { rerollCostPct: 3 } },
+  { id: 'menagerie', name: 'Ménagerie', the: 'la Ménagerie', age: 2, trade: 'trainer', art: 'menagerie', tool: 'sword', shards: 1,
+    role: 'Tes familiers y travaillent : des essences de maîtrise au fil du temps.', effect: { essencePerHour: 0.08 } },
+  { id: 'observatory', name: 'Observatoire', the: 'l\'Observatoire', age: 3, trade: 'scholar', art: 'observatory', tool: 'book', shards: 1,
+    role: 'Une Prime du Héraut de plus par jour, et la prochaine Faille annoncée.', effect: { bountyPerDay: 1 } },
+  { id: 'runes', name: 'Sanctuaire des runes', the: 'le Sanctuaire des runes', age: 3, trade: 'scholar', art: 'runes', tool: 'book', shards: 1.2,
+    role: 'Grave des runes sur tes compagnons : +3 % de leur puissance par niveau.', effect: { companionPowerPct: 3 } },
+  { id: 'ascension', name: 'Atelier d\'Ascension', the: 'l\'Atelier d\'Ascension', age: 4, trade: 'smith', art: 'ascension', tool: 'hammer', shards: 1.5,
+    role: '3 objets Astraux de même place et une Larme d\'Ascendrya : un objet Ascendant.', effect: {} },
+  { id: 'wonder', name: 'Merveille de saison', the: 'la Merveille de saison', age: 5, trade: 'merchant', art: 'wonder', tool: 'coin', shards: 2,
+    role: 'Un bâtiment unique qui change à chaque saison : or et expérience.', effect: { goldPct: 5, xpPct: 5 } },
+];
+for (const b of AGE_BUILDINGS) BUILDINGS.push(b);
+// Places d'ouvrier : une de plus par âge atteint.
+export const AGE_WORKER_SLOTS = 1;
+// Atelier d'Ascension : recette d'un objet Ascendant.
+export const ASCENSION_RECIPE = { astral: 3, tears: 1, gold: 2_000_000 };
+
+// Recherches des paliers II à V : 6 nœuds par branche et par palier, aux effets multiplicatifs (×(1 + x %) par niveau).
+// Palier II : âge II ; III : âge III (+ 6 nœuds clés) ; IV : âge IV ; V : âge V. 3e place de recherche à l'âge III,
+// 4e à l'âge IV. Durées : jusqu'à 12 h (palier II) et 24 h (palier V).
+export const RESEARCH_TIER_NODES = {
+  combat: [
+    ['fury', 'Fureur', { damageMult: 2 }, '×1,02 dégâts par niveau'],
+    ['bulwark', 'Rempart', { hpMult: 2 }, '×1,02 vie par niveau'],
+    ['riftbane', 'Fléau des Failles', { riftBossPct: 5 }, '+5 % de dégâts aux boss des Failles'],
+    ['mythforge', 'Forge mythique', { mythicChancePct: 10 }, '+10 % de chances de Mythique'],
+    ['critedge', 'Tranchant', { critDamagePct: 5 }, '+5 % de dégâts critiques'],
+    ['living', 'Bastion vivant', { damageMult: 1, hpMult: 1 }, '×1,01 dégâts et vie par niveau'],
+  ],
+  team: [
+    ['pack', 'Meute', { companionMult: 2 }, '×1,02 puissance des compagnons'],
+    ['essence', 'Essences', { essencePct: 10 }, '+10 % d\'essences de la Ménagerie'],
+    ['runecraft', 'Runes gravées', { companionPowerPct: 3 }, '+3 % de puissance des compagnons'],
+    ['swift', 'Pas rapides', { companionCdPct: 1 }, '−1 % de recharge des sorts des compagnons'],
+    ['mentor', 'Mentors', { companionCostPct: 2 }, '−2 % sur le coût des niveaux de compagnon'],
+    ['workers', 'Maîtres d\'œuvre', { workerPct: 3 }, '+3 % de vitesse des ouvriers'],
+  ],
+  economy: [
+    ['treasury', 'Trésor', { goldMult: 2 }, '×1,02 or par niveau'],
+    ['alchemy', 'Alchimie', { rerollCostPct: 3 }, '−3 % sur le coût des relances d\'effet'],
+    ['dreams', 'Rêves', { offlineHours: 0.5 }, '+30 min de gains hors ligne'],
+    ['caravan', 'Caravanes', { expeditionPct: 4 }, '+4 % de butin d\'expédition'],
+    ['scholar', 'Érudition', { xpPct: 4 }, '+4 % d\'expérience'],
+    ['fortune', 'Fortune', { rareLootPct: 2 }, '+2 % de butin Épique et Légendaire'],
+  ],
+};
+const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V'];
+for (const tier of [2, 3, 4, 5]) {
+  for (const [branch, nodes] of Object.entries(RESEARCH_TIER_NODES)) {
+    for (const [key, name, effect, text] of nodes) {
+      RESEARCH.push({ id: `${key}${tier}`, branch, tier, art: `rs_${key}`, name: `${name} ${ROMAN[tier]}`, max: 10, effect, text });
+    }
+  }
+}
+// Nœuds clés (palier III) : un niveau, un effet qui change la façon de jouer. Ils s'allument en or dans le livre.
+export const KEYSTONES = [
+  { id: 'key_hand', branch: 'combat', name: 'Main d\'Ascendrya', effect: { skillSlots: 1 }, text: 'Un sort actif de plus' },
+  { id: 'key_vigil', branch: 'combat', name: 'Veille éternelle', effect: { offlineHours: 4 }, text: '+4 h de gains hors ligne' },
+  { id: 'key_menagerie', branch: 'team', name: 'Cœur de la Ménagerie', effect: { petSlots: 1 }, text: 'Un familier de plus en combat' },
+  { id: 'key_caravan', branch: 'team', name: 'Caravane', effect: { expeditionItem: 1 }, text: 'Les expéditions rapportent un objet' },
+  { id: 'key_fate', branch: 'economy', name: 'Œil du destin', effect: { freeReroll: 1 }, text: '1 relance d\'effet gratuite par jour' },
+  { id: 'key_market', branch: 'economy', name: 'Marché noir', effect: { blackMarket: 1 }, text: 'Le Comptoir vend un objet Mythique par semaine' },
+];
+for (const k of KEYSTONES) RESEARCH.push({ ...k, tier: 3, keystone: true, art: k.id, max: 1 });
+// Durées et coûts des paliers : durée ×(1,5 par palier) jusqu'à 12 h (II) et 24 h (V) ; coût ×4 par palier.
+export const RESEARCH_TIERS = { 2: { maxMinutes: 720, cost: 4 }, 3: { maxMinutes: 960, cost: 16 }, 4: { maxMinutes: 1200, cost: 64 }, 5: { maxMinutes: 1440, cost: 256 } };
+export const RESEARCH_SLOTS_AT_AGE = { 3: 3, 4: 4 };

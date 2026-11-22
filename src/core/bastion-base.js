@@ -9,8 +9,7 @@
 //  - jamais d'attente obligatoire pour l'histoire : aucune donnée de campagne ne lit ce fichier.
 import {
   BASTION_MAX_LEVEL, BASTION_UNLOCK_STAGE, BUILDINGS, FORGE_PERKS, LIBRARY, MINE, ORDER_TIERS, RESEARCH, RESEARCH_BRANCHES,
-  RESEARCH_STEPS, RESEARCH_UNLOCK_LEVEL, TRADES, TRADE_POST, TRAINING, WORKER_RULES,
-} from '../data/bastion.js';
+  RESEARCH_STEPS, RESEARCH_UNLOCK_LEVEL, TRADES, TRADE_POST, TRAINING, WORKER_RULES, AGES, AGE_POWER, AGE_WORKER_SLOTS, RESEARCH_SLOTS_AT_AGE } from '../data/bastion.js';
 import { UNITS } from '../data/banners.js';
 import { RARITIES, SLOTS } from '../data/items.js';
 import { COMPANION_ROLES } from '../data/synergies.js';
@@ -90,6 +89,43 @@ export function bastionLevel(state) {
   return LEVELED.reduce((t, b) => t + buildingLevel(state, b.id), 0);
 }
 
+// ---------------------------------------------------------------- v10.8 (partie 4) : les Âges du Bastion
+// Âge atteint : le plus haut dont l'étape record (et, pour l'Âge V, le niveau du Bastion) est atteinte.
+export function bastionAge(state) {
+  if (!bastionOf(state)) return 0;
+  const best = bestStage(state);
+  let age = 1;
+  for (const a of AGES) if (best >= a.stage && (!a.bastionLevel || bastionLevel(state) >= a.bastionLevel)) age = a.id;
+  return age;
+}
+// Plafond des niveaux d'après l'étape record seule (réparation d'une sauvegarde, avant de connaître le Bastion).
+export function ageCapForStage(state) {
+  const best = bestStage(state);
+  return [...AGES].reverse().find((a) => best >= a.stage)?.maxLevel ?? AGES[0].maxLevel;
+}
+export const ageDef = (id) => AGES.find((a) => a.id === id) ?? AGES[0];
+export const nextAge = (state) => AGES.find((a) => a.id === bastionAge(state) + 1) ?? null;
+// Niveau maximal des bâtiments à l'âge atteint.
+export function maxBuildingLevel(state) {
+  return ageDef(bastionAge(state) || 1).maxLevel;
+}
+// Multiplicateur du Bastion (dégâts ou vie) : ×(1 + 2 %) par niveau de bâtiment au-delà du 10e, et les recherches
+// multiplicatives des paliers II à V. Il ne joue qu'à partir de l'Âge II.
+export function bastionMult(state, kind) {
+  const b = bastionOf(state);
+  if (!b) return 1;
+  let levels = 0;
+  for (const def of LEVELED) levels += Math.max(0, buildingLevel(state, def.id) - 10);
+  let m = (1 + AGE_POWER.perLevelPct / 100) ** levels;
+  const key = kind === 'hp' ? 'hpMult' : kind === 'companion' ? 'companionMult' : kind === 'gold' ? 'goldMult' : 'damageMult';
+  const lv = b.research?.levels ?? {};
+  for (const r of RESEARCH) {
+    const v = r.effect?.[key];
+    if (v && lv[r.id]) m *= (1 + v / 100) ** Math.min(r.max, lv[r.id]);
+  }
+  return kind === 'damage' || kind === 'hp' ? m : m;
+}
+
 // Bâtiment disponible ? Un seul à l'ouverture, puis un par un : étape record atteinte ET bâtiment précédent construit.
 // Renvoie { available, reason } (reason : la condition, en une ligne, quand il est verrouillé).
 export function buildingAccess(state, id) {
@@ -97,6 +133,7 @@ export function buildingAccess(state, id) {
   if (!def || !bastionOf(state)) return { available: false, reason: `S'ouvre à l'étape ${BASTION_UNLOCK_STAGE}` };
   if (def.existing) return expeditionsOpen(state) ? { available: true, reason: '' } : { available: false, reason: 'S\'ouvre avec 5 compagnons' };
   if (buildingLevel(state, id) > 0) return { available: true, reason: '' };
+  if (def.age && bastionAge(state) < def.age) { const a = ageDef(def.age); return { available: false, reason: `Âge ${a.roman} : ${a.name} (étape ${a.stage}${a.bastionLevel ? `, Bastion niveau ${a.bastionLevel}` : ''})` }; }
   if (def.bastionLevel) {
     return bastionLevel(state) >= def.bastionLevel ? { available: true, reason: '' } : { available: false, reason: `Bastion niveau ${def.bastionLevel} requis` };
   }
@@ -119,7 +156,7 @@ export function tradeOf(companionId) {
 
 export function workerSlots(state) {
   const lv = bastionLevel(state);
-  return WORKER_RULES.slotsAt.filter((at) => lv >= at).length;
+  return WORKER_RULES.slotsAt.filter((at) => lv >= at).length + Math.max(0, bastionAge(state) - 1) * AGE_WORKER_SLOTS; // v10.8 : une place par âge
 }
 export function workersPlaced(state) {
   return Object.values(bastionOf(state)?.buildings ?? {}).filter((b) => b.worker).length;
@@ -283,7 +320,8 @@ export const researchLevel = (state, id) => {
   const def = researchDef(id);
   return def ? Math.max(0, Math.min(def.max, Math.floor(bastionOf(state)?.research?.levels?.[id] ?? 0))) : 0;
 };
-export const branchOf = (branch) => RESEARCH.filter((r) => r.branch === branch);
+const WONDER_PCT = 5;
+export const branchOf = (branch, tier = 1) => RESEARCH.filter((r) => r.branch === branch && (r.tier ?? 1) === tier && !r.keystone); // v10.8 : par palier
 
 // Effets cumulés de toutes les recherches : { damagePct, maxHpPct, goldPct, critChance, … }.
 export function researchEffects(state) {
@@ -299,28 +337,33 @@ export function researchEffects(state) {
 }
 // Part des recherches lue par les statistiques du héros (core/bonuses.js, source « Recherches »).
 const HERO_KEYS = ['damagePct', 'maxHpPct', 'critChance', 'armor', 'regenPct', 'goldPct', 'xpPct'];
+// v10.8 : la Merveille de saison ajoute or et expérience ; les recherches « Trésor » donnent +2 % d'or par niveau.
 export function researchBonuses(state) {
-  const all = researchEffects(state);
+  const all = { ...researchEffects(state) };
+  all.goldPct = (all.goldPct ?? 0) + (all.goldMult ?? 0) + (WONDER_PCT * buildingLevel(state, 'wonder'));
+  all.xpPct = (all.xpPct ?? 0) + (WONDER_PCT * buildingLevel(state, 'wonder'));
   return Object.fromEntries(HERO_KEYS.filter((k) => all[k]).map((k) => [k, all[k]]));
 }
 // Total au niveau maximal (affichage et tests des plafonds).
-export function researchCaps() {
+export function researchCaps() { // palier I (les paliers II à V sont multiplicatifs, à part)
   const out = {};
-  for (const r of RESEARCH) for (const [k, v] of Object.entries(r.effect)) out[k] = Math.round(((out[k] ?? 0) + v * r.max) * 100) / 100;
+  for (const r of RESEARCH.filter((x) => !x.tier)) for (const [k, v] of Object.entries(r.effect)) out[k] = Math.round(((out[k] ?? 0) + v * r.max) * 100) / 100;
   return out;
 }
 
 export function researchSlots(state) {
   const lv = buildingLevel(state, 'library');
-  return lv < 1 ? 0 : lv >= LIBRARY.secondSlotLevel ? 2 : 1;
+  return lv < 1 ? 0 : Math.max(lv >= LIBRARY.secondSlotLevel ? 2 : 1, RESEARCH_SLOTS_AT_AGE[bastionAge(state)] ?? (bastionAge(state) > 4 ? 4 : 0)); // v10.8 : 3e place à l'âge III, 4e à l'âge IV
 }
 
 // État d'une recherche pour l'écran : { def, level, active, unlocked, lockedBy, maxed }.
 export function researchStatus(state, id) {
   const def = researchDef(id);
-  const list = branchOf(def.branch);
-  const prev = list[list.indexOf(def) - 1];
-  const unlocked = !prev || researchLevel(state, prev.id) >= Math.min(RESEARCH_UNLOCK_LEVEL, prev.max);
+  const tier = def.tier ?? 1;
+  const list = branchOf(def.branch, tier);
+  const prev = def.keystone ? null : list[list.indexOf(def) - 1];
+  const ageOk = tier <= 1 || bastionAge(state) >= tier; // v10.8 : le palier N s'ouvre avec l'âge N
+  const unlocked = ageOk && (!prev || researchLevel(state, prev.id) >= Math.min(RESEARCH_UNLOCK_LEVEL, prev.max));
   const active = (bastionOf(state)?.research?.active ?? []).find((a) => a.id === id) ?? null;
   return { def, level: researchLevel(state, id), active, unlocked, lockedBy: unlocked ? null : prev, maxed: researchLevel(state, id) >= def.max };
 }
@@ -549,9 +592,9 @@ export function sanitizeBastion(raw, state, now = Date.now(), isItem = () => tru
     const r = raw.buildings?.[def.id];
     const slot = out.buildings[def.id];
     if (!r || typeof r !== 'object') continue;
-    slot.level = Math.floor(num(r.level, def.startLevel ?? 0, BASTION_MAX_LEVEL));
+    slot.level = Math.floor(num(r.level, def.startLevel ?? 0, ageCapForStage(state))); // v10.8 : plafond de l'âge atteint
     if (typeof r.worker === 'string' && !seen.has(r.worker)) { slot.worker = r.worker; seen.add(r.worker); }
-    const j = slot.level < BASTION_MAX_LEVEL ? cleanJob(r.build, 8 * HOUR) : null;
+    const j = slot.level < ageCapForStage(state) ? cleanJob(r.build, (ageCapForStage(state) > 10 ? 48 : 8) * HOUR) : null;
     if (j) slot.build = { ...j, level: slot.level + 1 };
   }
   state.bastion = out; // les règles ci-dessous lisent l'état en cours de réparation
@@ -591,6 +634,10 @@ export function sanitizeBastion(raw, state, now = Date.now(), isItem = () => tru
   out.cards = (Array.isArray(raw.cards) ? raw.cards : []).filter((id) => buildingDef(id)).slice(0, BUILDINGS.length);
   // v10.4 (6) : démarrage automatique fait (date), bulles vues, rapport « Pendant ton absence ».
   out.kicked = num(raw.kicked, 0, now);
+  // v10.8 : Ménagerie, Marché noir, « Œil du destin »
+  if (Number.isFinite(raw.menagerieAt)) out.menagerieAt = Math.min(now, raw.menagerieAt);
+  if (Number.isInteger(raw.blackMarketWeek)) out.blackMarketWeek = raw.blackMarketWeek;
+  if (typeof raw.fateDay === 'string') out.fateDay = raw.fateDay.slice(0, 20);
   out.tips = [...new Set((Array.isArray(raw.tips) ? raw.tips : []).filter((id) => buildingDef(id) || id === 'research'))];
   const KINDS = ['build', 'research', 'item', 'order'];
   const list = (Array.isArray(raw.away?.list) ? raw.away.list : []).filter((x) => x && KINDS.includes(x.kind) && (typeof x.ref === 'string' || Number.isFinite(x.ref)))

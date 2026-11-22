@@ -4,11 +4,11 @@
 // max), commandes forgées (vrai générateur d'objets) livrées dans le coffre de butin, et le pas du Bastion.
 // Les règles sans dépendance (état, ouvriers, production, recherches, rappels, sauvegarde) sont dans ./bastion-base.js.
 import { BALANCE } from '../data/balance.js';
-import { BASTION_MAX_LEVEL, BASTION_UNLOCK_STAGE, BUILD_STEPS, LIBRARY, RESEARCH_STEPS, RESEARCH_UNLOCK_LEVEL } from '../data/bastion.js';
+import { AGES, AGE_STEPS, BASTION_UNLOCK_STAGE, BUILD_STEPS, LIBRARY, RESEARCH_STEPS, RESEARCH_TIERS, RESEARCH_UNLOCK_LEVEL } from '../data/bastion.js';
 import { SLOTS } from '../data/items.js';
 import {
   HOUR, MINUTE, advance, bastionOf, buildingAccess, buildingDef, buildingLevel, branchOf, ensureBastion, forgeLevel, forgePerks, orderLabel, orderSlots,
-  orderTier, orderTierOpen, pushNews, reconcileWorkers, researchDef, researchLevel, researchSlots, researchStatus,
+  orderTier, orderTierOpen, pushNews, reconcileWorkers, researchDef, researchLevel, researchSlots, researchStatus, maxBuildingLevel,
 } from './bastion-base.js';
 import { levelForStage, referenceKillGold } from './combat.js';
 import { craftCost } from './forge.js';
@@ -30,7 +30,15 @@ const goldRef = goldUnit;
 export function buildCost(state, id, balance = BALANCE) {
   const def = buildingDef(id);
   const level = buildingLevel(state, id);
-  if (!def || def.existing || level >= BASTION_MAX_LEVEL) return null;
+  if (!def || def.existing || level >= maxBuildingLevel(state)) return null;
+  if (level >= 10 || def.age) { // v10.8 (4) : niveaux des Âges (et bâtiments des âges dès leur niveau 1)
+    const age = AGES.find((a) => level < a.maxLevel) ?? AGES.at(-1);
+    const span = Math.max(1, age.maxLevel - (age.maxLevel - 10));
+    const inAge = (level - (age.maxLevel - 10)) / Math.max(1, span - 1);
+    const minutes = age.minutes[0] + (age.minutes[1] - age.minutes[0]) * Math.max(0, Math.min(1, inAge));
+    const k = Math.max(0, level - 10 + (def.age ? (def.age - 1) * 10 - Math.min(level, 10) : 0));
+    return { level: level + 1, gold: Math.floor(AGE_STEPS.goldKills * AGE_STEPS.goldGrowth ** k * goldRef(state, balance)), shards: Math.round(AGE_STEPS.shards * AGE_STEPS.shardsGrowth ** k * (def.shards ?? 1)), ms: Math.round(minutes * MINUTE) };
+  }
   const step = BUILD_STEPS[Math.min(level, BUILD_STEPS.length - 1)];
   const kills = def.goldKills?.[level] ?? step.goldKills;
   return { level: level + 1, gold: Math.floor(kills * goldRef(state, balance)), shards: Math.round(step.shards * (def.shards ?? 1)), ms: step.minutes * MINUTE };
@@ -68,10 +76,11 @@ export function researchCost(state, id, balance = BALANCE) {
   const level = researchLevel(state, id);
   if (level >= def.max) return null;
   const n = level + 1;
-  const pos = branchOf(def.branch).indexOf(def);
+  const T = RESEARCH_TIERS[def.tier ?? 1]; // v10.8 (5) : paliers II à V (et nœuds clés)
+  const pos = def.keystone ? 5 : Math.max(0, branchOf(def.branch, def.tier ?? 1).indexOf(def));
   const s = RESEARCH_STEPS;
-  const tier = 1 + (s.tierCostPct / 100) * pos;
-  const minutes = Math.min(s.maxMinutes, s.minutes[Math.min(n, s.minutes.length) - 1] * (1 + (s.tierTimePct / 100) * pos));
+  const tier = (1 + (s.tierCostPct / 100) * pos) * (T?.cost ?? 1) * (def.keystone ? 10 : 1);
+  const minutes = Math.min(T?.maxMinutes ?? s.maxMinutes, s.minutes[Math.min(n, s.minutes.length) - 1] * (1 + (s.tierTimePct / 100) * pos) * (T ? 1.5 ** ((def.tier ?? 1) - 1) : 1));
   const faster = 1 - Math.min(0.6, (LIBRARY.durationPctPerLevel / 100) * Math.max(0, buildingLevel(state, 'library') - 1));
   return { level: n, gold: Math.floor(s.goldKills * n ** 1.5 * tier * goldRef(state, balance)), shards: Math.round(s.shards * n ** 1.5 * tier), ms: Math.round(minutes * MINUTE * faster) };
 }

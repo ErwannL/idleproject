@@ -142,7 +142,9 @@ export function claimExpedition(state, slot, now = Date.now(), grant) {
   state.expeditions.slots[slot] = null;
   if (!expeditionDone(run, now)) return {};
   state.expeditions.done += 1;
-  return grant(state, run.reward);
+  const got = grant(state, run.reward);
+  if (state.bastion?.research?.levels?.key_caravan && got) got.caravanItem = true; // v10.8 : « Caravane » (l'objet est donné par main.js)
+  return got;
 }
 
 export function sanitizeExpeditions(raw, state) {

@@ -115,7 +115,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     seals: [], // v9.6.2 (7.6) : sceaux des boss de fin de monde (à partir du monde 3)
     gems: BALANCE.summon.startingGems,
     keys: STARTING_KEYS,
-    materials: { shards: 0, grimoire: 0, ascension: 0, mastery: 0 }, // v9.1.3 : essences fondues dans les éclats · v9.3.3 : ressources universelles
+    materials: { shards: 0, grimoire: 0, ascension: 0, mastery: 0, tears: 0 }, // v9.1.3 : essences fondues dans les éclats · v9.3.3 : ressources universelles
     // v9.2.8 : compteurs par bannière (limitée, permanente, familiers) et wishlist de la permanente.
     summon: { total: 0, pity: emptyPity(), wishlist: [] },
     economy: emptyEconomy(), // v9.2.8 : tickets, fragments SSR, écus, revenus du mois, achats, héritage des apparences
@@ -533,7 +533,8 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   // v9.8 (H6) : rang du héros ; une partie d'avant garde ses paliers de puissance (1 tous les 10 niveaux) en rangs.
   state.rank = Number.isFinite(raw.rank) ? Math.max(0, Math.min(20, Math.floor(raw.rank))) : Math.min(20, Math.floor(Math.max(0, Number(raw.level) || 0) / 10));
   // v9.8 (H) : Chasse rapide, Roue du jour, Carnet du jour (jour + compteurs).
-  if (raw.pace === 108) state.pace = 108; else delete state.pace; // v10.8 : seules les parties neuves ont le rythme long
+  if (raw.pace === 108) state.pace = 108; else delete state.pace;
+  if (typeof raw.tearSeason === 'string') state.tearSeason = raw.tearSeason.slice(0, 12); // v10.8 : Larme de la saison prise // v10.8 : seules les parties neuves ont le rythme long
   for (const k of ['quickHunt', 'wheel', 'daybook', 'titan', 'firstWeek', 'road', 'heraldBounty'] /* v10.6 : Prime du Héraut */) if (raw[k] && typeof raw[k] === 'object' && !Array.isArray(raw[k])) state[k] = JSON.parse(JSON.stringify(raw[k]));
   // v9.1.3 : le coffre peut déborder (mannequins convertis), jusqu'à STASH_OVERFLOW objets de plus.
   state.stash = (Array.isArray(raw.stash) ? raw.stash.filter(isValidItem) : []).slice(0, STASH_SIZE + STASH_OVERFLOW).map(cleanItem);
@@ -594,7 +595,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   for (const key of ['gems', 'keys']) state[key] = int(raw[key], state[key]);
   migrateTickets(state, raw); // v9.1.3 (lot E)
   const materials = obj(raw.materials);
-  state.materials = { shards: int(materials.shards, 0), grimoire: int(materials.grimoire, 0), ascension: int(materials.ascension, 0), mastery: int(materials.mastery, 0) };
+  state.materials = { shards: int(materials.shards, 0), grimoire: int(materials.grimoire, 0), ascension: int(materials.ascension, 0), mastery: int(materials.mastery, 0), tears: int(materials.tears, 0) }; // v10.8 : Larmes d'Ascendrya
   migrateEssence(state, materials); // v9.1.3 (lot F)
 
   // v8.4 : statistiques des objets recalculées (croissance exponentielle avec le niveau).

@@ -248,6 +248,9 @@ export function rebirthWorth(state) {
 export function performRebirth(state, keepPower = state.equippedPowers?.[0]) {
   const reward = rebirthReward(state);
   if (reward <= 0 || rebirthBlocked(state)) return 0;
+  // v10.8 (6) : la première Renaissance de chaque saison (trimestre) donne une Larme d'Ascendrya.
+  const d = new Date(); const season = `${d.getFullYear()}-T${Math.floor(d.getMonth() / 3) + 1}`;
+  if (state.tearSeason !== season) { state.tearSeason = season; state.materials.tears = (state.materials.tears ?? 0) + 1; }
   state.rebirthPower = rebirthPower(state) + rebirthGain(state);
   // Un seul pouvoir ancestral conservé (celui choisi, sinon le premier actif).
   const kept = state.powers?.[keepPower] ? keepPower : Object.keys(state.powers ?? {})[0];

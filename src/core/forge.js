@@ -40,11 +40,22 @@ export function canReforge(item) {
   return Boolean(item) && rarityIndex(item.rarity) >= 1 && !itemBase(item.baseId).signature;
 }
 
+// v10.8 (4, 5) : coût d'une relance d'effet — −3 % par niveau de l'Atelier d'enchantement et par niveau d'« Alchimie »
+// (au plus −60 %) ; gratuite une fois par jour avec le nœud clé « Œil du destin ».
+export function reforgeCost(state, balance = BALANCE) {
+  const lv = state?.bastion?.research?.levels ?? {};
+  if (lv.key_fate && state.bastion.fateDay !== new Date().toDateString()) return 0;
+  const alchemy = Object.entries(lv).filter(([k]) => k.startsWith('alchemy')).reduce((t, [, v]) => t + 3 * v, 0);
+  const pct = Math.min(60, 3 * (state?.bastion?.buildings?.enchant?.level ?? 0) + alchemy);
+  return Math.round(balance.forge.reforgeShards * (1 - pct / 100));
+}
 export function reforgeItem(state, id, rng, balance = BALANCE) {
   const item = findItem(state, id);
   const f = balance.forge;
-  if (!canReforge(item) || state.materials.shards < f.reforgeShards) return false;
-  state.materials.shards -= f.reforgeShards;
+  const cost = reforgeCost(state, balance);
+  if (!canReforge(item) || state.materials.shards < cost) return false;
+  state.materials.shards -= cost;
+  if (cost === 0) state.bastion.fateDay = new Date().toDateString(); // « Œil du destin » : la relance gratuite du jour est prise
   rerollAffixes(item, rng, balance);
   // v9.1.3 (doc3 lot 1, point 7) : les renforcements d'effets s'appliquent tout de suite aux nouveaux effets
   // (avant, ils semblaient perdus jusqu'au prochain recalcul).

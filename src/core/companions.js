@@ -268,7 +268,7 @@ export function equippedOfKind(state, kind) {
 // v9.6.3 (3.4) : places de l'équipe — une 3e place de compagnon à partir du monde 5 (record d'étape).
 export function teamSlotsOf(state, balance = BALANCE) {
   const best = Math.max(state?.maxStage ?? 1, state?.records?.bestStage ?? 1);
-  return { ally: balance.teamSlots.ally + (best >= (balance.thirdAllyStage ?? Infinity) ? 1 : 0), pet: balance.teamSlots.pet };
+  return { ally: balance.teamSlots.ally + (best >= (balance.thirdAllyStage ?? Infinity) ? 1 : 0), pet: balance.teamSlots.pet + (state?.bastion?.research?.levels?.key_menagerie ? 1 : 0) }; // v10.8 : « Cœur de la Ménagerie »
 }
 
 export function clampTeam(equipped, balance = BALANCE, state = null) {

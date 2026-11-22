@@ -67,7 +67,8 @@ test('1031 : bulle « Butin ! » la première fois puis à chaque Épique ou mie
   assert.equal(C.bubbleFor({ rarity: 'common' }, false), null);
   assert.equal(C.bubbleFor({ rarity: 'rare' }, false), 'Butin rare !');
   assert.equal(C.bubbleFor({ rarity: 'epic' }, false), 'Butin épique !');
-  for (const r of ['legendary', 'mythic', 'ancestral']) assert.equal(C.bubbleFor({ rarity: r }, false), 'Butin légendaire !');
+  for (const r of ['legendary', 'ancestral']) assert.equal(C.bubbleFor({ rarity: r }, false), r === 'ancestral' ? 'Butin ascendant !' : 'Butin légendaire !');
+  assert.equal(C.bubbleFor({ rarity: 'mythic' }, false), 'Butin mythique !'); // v10.8
   const chest = new C.LootChest();
   chest.set({ count: 3, best: 'rare' });
   assert.equal(chest.shown, true);

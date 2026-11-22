@@ -21,8 +21,8 @@ export const CHEST_SRC = 'assets/ui/art102/loot_chest.png';
 export const CHEST_OPEN_SRC = 'assets/ui/art102/loot_chest_open.png';
 const CROP = { x: 8, y: 10, w: 112, h: 110 }; // zone utile dans l'image 128 px (pixels doubles)
 export const CHEST_NATIVE = { w: CROP.w / 2, h: CROP.h / 2 }; // 56 × 55 pixels d'art
-export const GLOW = { common: '#e8e0c8', uncommon: '#5ad07a', rare: '#4a9dff', epic: '#b05aff', legendary: '#ffb020', mythic: '#ff4d6d', ancestral: '#ff4d6d' };
-export const RANK = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral'];
+export const GLOW = { common: '#e8e0c8', uncommon: '#5ad07a', rare: '#4a9dff', epic: '#b05aff', legendary: '#ffb020', mythic: '#ff4d4d', astral: '#4de3ff', ascendant: '#ffffff', ancestral: '#ff4d6d' };
+export const RANK = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'astral', 'ascendant', 'ancestral']; // v10.8 : Astral et Ascendant
 export const LID_FRAMES = 6;
 export const LID_SRC = (i) => `assets/ui/art104/loot_chest_lid_${i}.png`;
 // Images du couvercle : 64 × 64 pixels d'art, pieds sur la dernière ligne ; le corps du coffre (56 × 55) y occupe
@@ -76,6 +76,9 @@ export function chestShown(state, { arenaOpen = false, sleeping = false } = {}) 
 export function bubbleFor(item, first) {
   if (first) return 'Butin ! Touche le coffre pour trier';
   const r = RANK.indexOf(item?.rarity);
+  if (r >= RANK.indexOf('ascendant')) return 'Butin ascendant !';
+  if (r >= RANK.indexOf('astral')) return 'Butin astral !';
+  if (r >= RANK.indexOf('mythic')) return 'Butin mythique !';
   if (r >= RANK.indexOf('legendary')) return 'Butin légendaire !';
   if (r >= RANK.indexOf('epic')) return 'Butin épique !';
   if (r >= RANK.indexOf('rare')) return 'Butin rare !';

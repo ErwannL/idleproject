@@ -61,7 +61,7 @@ export class LootBag {
     if (!r) return null;
     const c = (r.lootChest ??= new LootChest());
     // v10.4 : la cloche d'un objet Légendaire (volume et sourdine = réglages du son du jeu).
-    if (!c.onLegendary) c.onLegendary = () => this.ui.sound?.play?.('chestBell');
+    if (!c.onLegendary) c.onLegendary = (item) => this.ui.sound?.play?.('chestBell', { rarity: item?.rarity });
     return c;
   }
   available() { return Boolean(this.state && lootBagOn(this.state) && this.state.lootBag.length); }

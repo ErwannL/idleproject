@@ -53,7 +53,7 @@ test('ouverture : étape 40, Forge du forgeron offerte au niveau 1, les autres b
   assert.equal(buildingAccess(young, 'forge').available, true);
   assert.match(buildingAccess(young, 'library').reason, /étape 55/);
   // Tout débloqué par l'étape : toujours un seul bâtiment nouveau à la fois (le précédent doit être construit).
-  const s = opened(200);
+  const s = opened(100);
   assert.equal(buildingAccess(s, 'library').available, true);
   assert.match(buildingAccess(s, 'mine').reason, /Construis d'abord : Bibliothèque/);
   assert.match(buildingAccess(s, 'trade').reason, /Bastion niveau 5/);
@@ -117,7 +117,7 @@ test('en jeu (pas d\'absence) : le chantier fini est un simple événement, pas 
 
 test('ouvriers : métier +20 %, rareté +5 à +20 % ; sans ouvrier, production à 50 % et chantier en pause', () => {
   for (const c of COMPANIONS.filter((x) => x.kind === 'ally')) assert.ok(c.trade, `${c.id} a un métier`);
-  const s = opened(200);
+  const s = opened(100);
   assert.equal(tradeOf('dwarf'), 'smith');
   assert.deepEqual([workerBonus(s, 'dwarf', 'forge').totalPct, workerBonus(s, 'dwarf', 'library').totalPct], [WORKER_RULES.tradeBonusPct + 5, 5]);
   assert.equal(workerBonus(s, 'witch', 'library').totalPct, 30);
@@ -198,7 +198,7 @@ test('la Forge du Bastion règle les chiffres de la Forge : chance de fusion, re
 
 test('recherches : 3 branches de 6, dans l\'ordre ; plafonds du total +60 % dégâts, +60 % vie, +50 % or', () => {
   assert.equal(RESEARCH_BRANCHES.length, 3);
-  for (const br of RESEARCH_BRANCHES) assert.equal(RESEARCH.filter((r) => r.branch === br.id).length, 6, br.id);
+  for (const br of RESEARCH_BRANCHES) assert.equal(RESEARCH.filter((r) => r.branch === br.id && !r.tier).length, 6, br.id); // palier I (v10.8 : paliers II à V à part)
   const caps = researchCaps();
   assert.ok(caps.damagePct <= 60 && caps.damagePct >= 40, `dégâts ${caps.damagePct}`);
   assert.ok(caps.maxHpPct <= 60 && caps.maxHpPct >= 40, `vie ${caps.maxHpPct}`);
@@ -208,8 +208,8 @@ test('recherches : 3 branches de 6, dans l\'ordre ; plafonds du total +60 % dég
   const bondHp = Math.max(...BONDS.map((b) => b.bonus.maxHpPct ?? 0)) * (caps.bondPct / 100);
   assert.ok(caps.damagePct + bondDamage <= 60 && caps.maxHpPct + bondHp <= 60, `${caps.damagePct + bondDamage} / ${caps.maxHpPct + bondHp}`);
   // Tout au maximum : la source « Recherches » des statistiques donne exactement ces totaux (niveaux bornés).
-  const s = opened(200);
-  for (const r of RESEARCH) s.bastion.research.levels[r.id] = r.max + 50;
+  const s = opened(100);
+  for (const r of RESEARCH.filter((x) => !x.tier)) s.bastion.research.levels[r.id] = r.max + 50; // palier I
   assert.deepEqual(researchEffects(s), caps);
   const src = bonusSources(s).research;
   assert.deepEqual([src.damagePct, src.maxHpPct, src.goldPct], [caps.damagePct, caps.maxHpPct, caps.goldPct]);
@@ -218,7 +218,7 @@ test('recherches : 3 branches de 6, dans l\'ordre ; plafonds du total +60 % dég
   s.companions.equipped = ['squire', 'azure_paladin']; s.companions.owned.azure_paladin = { stars: 1, level: 1 };
   assert.equal(bondBonus(s, 'maxHpPct'), 8 * (1 + caps.bondPct / 100));
   // Dans l'ordre : la suivante s'ouvre quand la précédente atteint le niveau 3 ; une à la fois, deux au niveau 6.
-  const p = opened(200);
+  const p = opened(100);
   assert.match(canResearch(p, 'sharp').reason, /Bibliothèque/);
   p.bastion.buildings.library.level = 1;
   assert.equal(researchSlots(p), 1);
@@ -229,9 +229,9 @@ test('recherches : 3 branches de 6, dans l\'ordre ; plafonds du total +60 % dég
   assert.equal(researchSlots(p), 2);
   assert.equal(startResearch(p, 'purse', T0), true);
   // Durées : 10 min au premier niveau, jamais plus de 6 h ; −5 % par niveau de Bibliothèque.
-  const q = opened(200); q.bastion.buildings.library.level = 1;
+  const q = opened(100); q.bastion.buildings.library.level = 1;
   assert.equal(researchCost(q, 'sharp').ms, 10 * 60_000);
-  for (const r of RESEARCH) for (let lv = 0; lv < r.max; lv++) { q.bastion.research.levels[r.id] = lv; const ms = researchCost(q, r.id).ms; assert.ok(ms >= 10 * 60_000 && ms <= 6 * HOUR, `${r.id} ${lv}`); }
+  for (const r of RESEARCH.filter((x) => !x.tier)) for (let lv = 0; lv < r.max; lv++) { q.bastion.research.levels[r.id] = lv; const ms = researchCost(q, r.id).ms; assert.ok(ms >= 10 * 60_000 && ms <= 6 * HOUR, `${r.id} ${lv}`); }
   q.bastion.research.levels = {}; q.bastion.buildings.library.level = 3;
   assert.equal(researchCost(q, 'sharp').ms, 10 * 60_000 * 0.9);
   // Sans ouvrier la recherche avance à 50 % ; avec un savant, +25 %.
@@ -300,7 +300,7 @@ test('commande du forgeron : livrée dans le coffre de butin, jamais perdue', ()
 });
 
 test('Mine de cristal et Camp d\'entraînement : le stock monte jeu fermé, jusqu\'au plafond', () => {
-  const s = opened(200);
+  const s = opened(100);
   s.bastion.buildings.library.level = 1; s.bastion.buildings.mine.level = 1;
   const prod = productionOf(s, 'mine');
   assert.ok(prod.perHour > 0 && Math.round(prod.capHours) === 6);
@@ -324,7 +324,7 @@ test('sauvegarde : un Bastion abîmé est réparé, une ancienne partie le reço
   // Partie neuve : pas de Bastion.
   assert.equal(sanitizeState(JSON.parse(JSON.stringify(createNewState(T0, 3)))).bastion, undefined);
   // Bastion abîmé.
-  const s = opened(200);
+  const s = opened(100);
   s.companions.equipped = ['squire'];
   const raw = JSON.parse(JSON.stringify(s));
   raw.bastion = {
@@ -354,7 +354,7 @@ test('sauvegarde : un Bastion abîmé est réparé, une ancienne partie le reço
 });
 
 test('sauvegarde : niveaux de recherche bornés, travaux valides gardés', () => {
-  const s = opened(200);
+  const s = opened(100);
   const raw = JSON.parse(JSON.stringify(s));
   raw.bastion.buildings.library = { level: 1, worker: null, build: null };
   raw.bastion.research = { levels: { sharp: 400, steel: 2, inconnue: 3 }, active: [{ id: 'steel', left: 600_000, total: 1_200_000 }, { id: 'nope', left: 1, total: 2 }, { id: 'purse', left: 1, total: 2 }] };
@@ -461,7 +461,7 @@ test('traductions : les textes du Bastion existent en anglais et en coréen', as
   const { lookup: en } = await import('../src/i18n/en.js');
   const { lookup: ko } = await import('../src/i18n/ko.js');
   const { TRADES } = await import('../src/data/bastion.js');
-  const s = opened(200);
+  const s = opened(100);
   const texts = [
     ...BUILDINGS.flatMap((b) => [b.name, b.the, b.role]), ...RESEARCH.flatMap((r) => [r.name, r.text, `${r.text} par niveau`]), ...RESEARCH_BRANCHES.map((b) => b.name),
     ...Object.values(TRADES).map((t) => t.label), ...ORDER_TIERS.map((t) => `Commander (Arme ${t.label})`),

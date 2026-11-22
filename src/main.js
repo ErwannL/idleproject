@@ -28,7 +28,7 @@ import { BALANCE } from './data/balance.js';
 import { BOSSES } from './data/enemies.js';
 import { referenceKillGold } from './core/combat.js';
 import { addGold } from './core/economy.js';
-import { changeStage, createCombat, currentEncounter, cycleForStage, resetWave, resumeAdvance, stageLabel, step, tapHit } from './core/combat.js';
+import { changeStage, createCombat, currentEncounter, cycleForStage, levelForStage, resetWave, resumeAdvance, stageLabel, step, tapHit } from './core/combat.js';
 import { ZONES } from './data/zones.js';
 import { playCinematic, playTransition, worldCinematic } from './ui/cinematic.js';
 import { TOUR_VERSION, maybeStartTour, startTour } from './ui/onboarding.js';
@@ -231,6 +231,14 @@ function announceSynergies() {
 }
 
 // Toute action réussie est sauvegardée immédiatement et rafraîchit le panneau.
+// v10.8 (5) : nœud clé « Caravane » — chaque expédition rapporte un objet Épique ou mieux, au niveau de l'étape record.
+function caravanItem(given) {
+  if (!given?.caravanItem) return;
+  delete given.caravanItem;
+  const best = Math.max(state.maxStage, state.records?.bestStage ?? 1);
+  const it = generateItem(state, new Rng(Date.now() % 2 ** 31), { level: levelForStage(best), minRarity: 'epic' });
+  addToInventory(state, it);
+}
 function done(ok, message = null, color = null) {
   if (!ok) return false;
   announceSynergies();
@@ -1077,6 +1085,7 @@ const actions = {
   },
   claimExpedition(slot) {
     const given = claimExpedition(state, slot, Date.now(), grantReward);
+    caravanItem(given);
     done(Boolean(given), given ? `Expédition terminée : ${rewardText(given, formatNumber)}` : null, '#9fe6ff');
   },
   claimAllExpeditions() {
@@ -1085,6 +1094,7 @@ const actions = {
     state.expeditions.slots.forEach((run, slot) => {
       if (!run || Date.now() < run.end) return;
       const given = claimExpedition(state, slot, Date.now(), grantReward);
+      caravanItem(given);
       if (given) { mergeReward(total, given); n += 1; }
     });
     done(n > 0, n ? `${n} expédition${n > 1 ? 's' : ''} récupérée${n > 1 ? 's' : ''} : ${rewardText(total, formatNumber)}` : null, '#9fe6ff');

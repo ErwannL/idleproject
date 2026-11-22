@@ -125,9 +125,9 @@ test('1040 : cloche synthétisée, au volume et à la sourdine du jeu ; branché
   assert.ok(SFX_NAMES.includes('chestBell'));
   const a = createAudio();
   assert.doesNotThrow(() => a.play('chestBell'));
-  assert.match(src('src/audio/audio.js'), /chestBell\(t\) \{/);
+  assert.match(src('src/audio/audio.js'), /chestBell\(t, o = \{\}\) \{/);
   const bag = src('src/ui/loot-bag.js');
-  assert.match(bag, /onLegendary = \(\) => this\.ui\.sound\?\.play\?\.\('chestBell'\)/);
+  assert.match(bag, /onLegendary = \(item\) => this\.ui\.sound\?\.play\?\.\('chestBell', \{ rarity: item\?\.rarity \}\)/);
   assert.match(src('src/audio/game-audio.js'), /setMuted\(on\)/, 'sourdine et volume : audio.setMuted / setVolume du jeu');
 });
 

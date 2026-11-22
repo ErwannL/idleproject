@@ -647,8 +647,9 @@ function buildEngine(ctx, { seed = 1, crackle = true } = {}) {
     },
     // v10.4 (plan 10.4, partie 5) : cloche du coffre quand un objet Légendaire y tombe : coup de cloche (partiels
     // inharmoniques), carillon qui monte, poussière d'étincelles.
-    chestBell(t) {
-      const f = midiHz(79);
+    chestBell(t, o = {}) {
+      // v10.8 (3) : cloche plus grave pour Astral (une quinte) et Ascendant (une octave).
+      const f = midiHz(o.rarity === 'ascendant' ? 67 : o.rarity === 'astral' ? 72 : 79);
       for (const [r, pk, d] of [[1, 0.17, 2.2], [2.0, 0.08, 1.6], [2.76, 0.07, 1.2], [5.4, 0.035, 0.7], [8.9, 0.02, 0.4]]) tone('sine', f * r, t, pk, 0.002, d, out);
       chime(t + 0.3, [91, 95, 98], 0.09, 0.04, 1.2, 0.3);
       sparkle(t + 0.2, 8, 0.8, 3500, 7500, 0.014);
