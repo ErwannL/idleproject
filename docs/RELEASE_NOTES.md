@@ -1,11 +1,24 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.8.1 — Réglages du rythme
+## Ascendrya v10.9.0 — Tout bien placé et propre
+
+- **Écran de jeu : une place fixe pour chaque chose**, la même dans toutes les tailles de fenêtre. En haut, une seule bande : la carte de zone, les événements, puis les boosts et « Auto ». À gauche, le Chemin du héros puis le Carnet du jour ; une fois le Carnet fini, il devient une seule ligne verte « ouvre le coffre du jour ». En bas : les puces d'état, puis les sorts, le Sceau et **le coffre de butin, toujours visible**.
+- **Équipement : c'est toi qui équipes.** Plus rien n'est équipé tout seul (retour de session, Sceau, tri du coffre). Une pastille verte ▲ sur Héros et la fenêtre de l'objet (« Meilleur : +12 % ») te montrent ce qui vaut le coup ; le bouton « Équiper » reste à toi. Pour ceux qui préfèrent, une option « Équiper automatiquement » existe (désactivée par défaut).
+- **Bastion** : nouvelles cartes pour les 5 âges (dessinées avec PixelLab), avec 12 dalles au sol ; chaque bâtiment se pose sur sa dalle, plus jamais sur un rempart. Étiquettes sur une ligne, qui ne se chevauchent plus. Zoom à la molette, à deux doigts ou avec + / −.
+- **Livre des recherches** : une branche à la fois (onglets en haut), 3 médaillons par page, des noms lisibles ; sur téléphone, une page à la fois avec des flèches.
+- **Roue du jour** : l'épée pointe enfin vers la roue, et les objets restent droits pendant et après le tour.
+- **Carnet du jour** : icônes à leur place, titre jamais couvert, tampon « Accompli » sur la barre.
+- **Améliorations** : 2 colonnes quand la fenêtre est étroite, les lignes « presque sans effet » regroupées dans un bloc replié.
+- **Boutique** : les tickets de compagnon et les lots de familiers retrouvent leurs images d'origine, comme sur le site.
+
+<details><summary>Ascendrya v10.8.1 — Réglages du rythme</summary>
 
 - **Bastion plus fort sur la durée** : moins d'or et un peu plus d'éclats pour les niveaux 6 à 10 et la Forge ; dès l'Âge II, chaque niveau du Bastion ajoute encore +1,7 % de dégâts et de vie. Ta partie ne peut qu'y gagner.
 - **Renaissances plus fréquentes** : la première demande toujours 8 h de blocage, les suivantes seulement 4 h.
 - **Un premier Mythique pour tout le monde** : la première Renaissance offre une arme Mythique au niveau de ton record (verrouillée, jamais recyclée par erreur). Les méga-boss ne donnent leur Mythique qu'à la première victoire, et la fusion de Légendaires reste un pari (5 Légendaires, la chance monte à chaque échec).
 - **Sceaux de monde** : le chemin du Bastion demande un niveau plus haut (25, 60, 120, 200) pour ouvrir les mondes 5, 7, 9 et 11.
+
+</details>
 
 <details><summary>Ascendrya v10.8.0 — Un jeu qui dure : raretés, Âges du Bastion, nœuds clés</summary>
 
