@@ -54,7 +54,7 @@ export function sanitizeSeals(state, raw, balance = BALANCE) {
 // v10.8 (partie 1) : Sceaux de monde (parties commencées en 10.8). Pour entrer dans les mondes 5, 7, 9 et 11, il faut des
 // Renaissances, ou un Bastion assez haut (somme des niveaux). La condition s'affiche à l'entrée du monde, avec un bouton
 // vers ce qui fait avancer ; la première Renaissance est guidée au mur du monde 5.
-export const WORLD_GATES = { 4: { rebirths: 1, bastion: 15 }, 6: { rebirths: 2, bastion: 40 }, 8: { rebirths: 4, bastion: 80 }, 10: { rebirths: 6, bastion: 140 } };
+export const WORLD_GATES = { 4: { rebirths: 1, bastion: 25 }, 6: { rebirths: 2, bastion: 60 }, 8: { rebirths: 4, bastion: 120 }, 10: { rebirths: 6, bastion: 200 } }; // v10.8.1 : seuils du Bastion relevés (chantiers moins chers)
 export function worldGate(state, stage, balance = BALANCE) {
   if (state?.pace !== 108 || cycleForStage(stage, balance) > 0 || stageInZone(stage, balance) !== 1) return null;
   const z = zoneIndexForStage(stage, balance);

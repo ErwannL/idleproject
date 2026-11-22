@@ -20,11 +20,11 @@ const { Rng } = await import('../src/core/rng.js');
 const src = (p) => readFileSync(p, 'utf8');
 const fixture = () => sanitizeState(JSON.parse(src('tests/fixtures/endgame.json')), BALANCE, Date.now());
 
-test('10.8 (règle) : une partie existante garde exactement sa puissance (pas de rythme long, pas de bonus d\'âge)', () => {
+test('10.8 (règle) : une partie existante n\'est jamais affaiblie (pas de rythme long ; v10.8.1 : le bonus d\'âge la renforce)', () => {
   const s = fixture();
   assert.equal(s.pace, undefined, 'le rythme long ne vaut que pour les parties neuves');
-  assert.equal(B.bastionMult(s, 'damage'), 1);
-  assert.equal(B.bastionMult(s, 'hp'), 1);
+  assert.ok(B.bastionMult(s, 'damage') >= 1);
+  assert.ok(B.bastionMult(s, 'hp') >= 1);
   const again = sanitizeState(JSON.parse(JSON.stringify(s)), BALANCE, Date.now());
   assert.ok(Math.abs(computeHeroStats(again).combatPower / computeHeroStats(s).combatPower - 1) <= 0.01);
   assert.equal(createNewState(Date.now()).pace, 108);
@@ -85,7 +85,7 @@ test('10.8 (4) : 5 Âges, niveaux jusqu\'à 50, 6 bâtiments avec leurs 3 dessin
   assert.ok(B.buildingAccess(s, 'enchant').available || /Construis/.test(B.buildingAccess(s, 'enchant').reason));
   assert.match(B.buildingAccess(s, 'observatory').reason, /Âge III/);
   s.bastion.buildings.forge.level = 15;
-  assert.ok(Math.abs(B.bastionMult(s, 'damage') - 1.02 ** 5) < 1e-9, 'multiplicatif au-delà du niveau 10');
+  assert.ok(Math.abs(B.bastionMult(s, 'damage') - 1.04 ** 5 * 1.017 ** B.bastionLevel(s)) < 1e-6, 'multiplicatif au-delà du niveau 10, et ×1,017 par niveau dès l\'Âge II');
 });
 
 test('10.8 (5) : paliers II à V (6 nœuds par branche), 6 nœuds clés avec leurs médaillons, places de recherche', () => {
@@ -124,4 +124,13 @@ test('10.8 (7) : téléphone vertical, bande du bas en grille, menus compacts, A
   assert.match(css, /\.art-banner-wrap \{ position: relative; height: 60px !important;/);
   assert.match(css, /#app\[data-boss-focus\] #topbar \.chip[^{]*\{ opacity: \.9 !important; \}/);
   assert.match(src('tools/sim-rythme.mjs'), /--days/);
+});
+
+test('10.8.1 : la première Renaissance offre un objet Mythique', () => {
+  const s = createNewState(Date.now());
+  s.maxStage = 200; s.records.bestStage = 200; s.unlocks = { legacy: true };
+  assert.ok(R.performRebirth(s) > 0);
+  assert.equal(s.inventory.filter((i) => i.rarity === 'mythic').length, 1);
+  s.maxStage = 200; R.performRebirth(s);
+  assert.equal(s.inventory.filter((i) => i.rarity === 'mythic').length, 1, 'une seule fois');
 });

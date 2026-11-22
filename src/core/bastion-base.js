@@ -117,6 +117,8 @@ export function bastionMult(state, kind) {
   let levels = 0;
   for (const def of LEVELED) levels += Math.max(0, buildingLevel(state, def.id) - 10);
   let m = (1 + AGE_POWER.perLevelPct / 100) ** levels;
+  // v10.8.1 : dès l'Âge II, chaque niveau du Bastion compte (×1,017 dégâts et vie) : environ ×2 au mois 1.
+  if ((kind === 'damage' || kind === 'hp') && bastionAge(state) >= 2) m *= (1 + AGE_POWER.agePerLevelPct / 100) ** bastionLevel(state);
   const key = kind === 'hp' ? 'hpMult' : kind === 'companion' ? 'companionMult' : kind === 'gold' ? 'goldMult' : 'damageMult';
   const lv = b.research?.levels ?? {};
   for (const r of RESEARCH) {

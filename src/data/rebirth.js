@@ -10,7 +10,8 @@ export const REBIRTH = {
   // (renaître en boucle à l'étape 30 dominait toute autre stratégie : ×2 220 en 3 h).
   fullPowerStage: 200,
   worthMult: 1.25, // v10.8 (6) : une Renaissance « rentable » multiplie la puissance d'au moins ×1,25
-  stuckSeconds: 28800, // … et le joueur n'a plus battu son record depuis 8 h de jeu (gains hors ligne compris)
+  stuckSeconds: 28800,
+  stuckSecondsNext: 14400, // v10.8.1 : les suivantes après 4 h de blocage (≈ une par semaine) // … et le joueur n'a plus battu son record depuis 8 h de jeu (gains hors ligne compris)
 };
 
 // Ce que la Renaissance réinitialise et conserve (affiché avant confirmation).

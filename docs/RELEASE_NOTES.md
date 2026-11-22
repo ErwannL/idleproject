@@ -1,6 +1,13 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.8.0 — Un jeu qui dure : raretés, Âges du Bastion, nœuds clés
+## Ascendrya v10.8.1 — Réglages du rythme
+
+- **Bastion plus fort sur la durée** : moins d'or et un peu plus d'éclats pour les niveaux 6 à 10 et la Forge ; dès l'Âge II, chaque niveau du Bastion ajoute encore +1,7 % de dégâts et de vie. Ta partie ne peut qu'y gagner.
+- **Renaissances plus fréquentes** : la première demande toujours 8 h de blocage, les suivantes seulement 4 h.
+- **Un premier Mythique pour tout le monde** : la première Renaissance offre une arme Mythique au niveau de ton record (verrouillée, jamais recyclée par erreur). Les méga-boss ne donnent leur Mythique qu'à la première victoire, et la fusion de Légendaires reste un pari (5 Légendaires, la chance monte à chaque échec).
+- **Sceaux de monde** : le chemin du Bastion demande un niveau plus haut (25, 60, 120, 200) pour ouvrir les mondes 5, 7, 9 et 11.
+
+<details><summary>Ascendrya v10.8.0 — Un jeu qui dure : raretés, Âges du Bastion, nœuds clés</summary>
 
 - **Trois raretés de plus** : Mythique (rouge), Astral (cyan) et Ascendant (arc-en-ciel), au-dessus du Légendaire. Le Légendaire devient plus rare (6 % du butin). Les Mythiques tombent des méga-boss dès le monde 6 et des donjons Difficiles, ou se fusionnent (5 Légendaires, la chance monte à chaque échec) ; les Astraux viennent des Failles ou de 3 Mythiques ; l'Ascendant ne tombe jamais : il se forge à l'Atelier d'Ascension avec 3 Astraux et une Larme d'Ascendrya. Nouveaux cadres, coffre et cloche plus grave pour ces butins.
 - **Les Âges du Bastion** : Le Fort, La Citadelle (monde 6), La Cité haute (monde 9), La Couronne (monde 12) et La Merveille (saison). Chaque âge relève le niveau maximal de 10 (jusqu'à 50), agrandit la carte du village et ajoute une place d'ouvrier. Au-delà du niveau 10, chaque niveau multiplie dégâts et vie.
@@ -14,6 +21,8 @@
 - Toutes les nouvelles illustrations sont faites avec PixelLab. Le jeu a maintenant son domaine : ascendrya.com.
 
 ### Versions précédentes
+
+</details>
 
 <details><summary><b>Ascendrya v10.6.0 — Des quêtes et des événements sur l'écran de jeu</b></summary>
 

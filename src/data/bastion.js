@@ -44,7 +44,7 @@ export const WORKER_RULES = {
 // qui tient la borne « au plus +25 % de puissance en 7 jours ».
 export const BUILDINGS = [
   { id: 'forge', name: 'Forge du forgeron', the: 'la Forge du forgeron', stage: 40, trade: 'smith', startLevel: 1, art: 'forge', tool: 'hammer', shards: 1.5,
-    goldKills: [0, 40_000, 250_000, 500_000, 800_000, 1_200_000, 1_700_000, 2_300_000, 3_000_000, 3_800_000],
+    goldKills: [0, 40_000, 220_000, 450_000, 700_000, 1_000_000, 1_300_000, 1_650_000, 2_000_000, 2_400_000], // v10.8.1 : un peu moins cher (borne des 7 jours tenue)
     role: 'Améliore les chiffres de la Forge et forge des objets sur commande.' },
   { id: 'library', name: 'Bibliothèque', the: 'la Bibliothèque', stage: 55, trade: 'scholar', art: 'library', tool: 'book', shards: 1,
     role: 'Mène les recherches : des bonus gardés après les Renaissances.' },
@@ -67,11 +67,11 @@ export const BUILD_STEPS = [
   { minutes: 60, goldKills: 3_000, shards: 300 },
   { minutes: 120, goldKills: 6_000, shards: 500 },
   { minutes: 180, goldKills: 12_000, shards: 800 },
-  { minutes: 240, goldKills: 25_000, shards: 1200 },
-  { minutes: 300, goldKills: 45_000, shards: 1700 },
-  { minutes: 360, goldKills: 70_000, shards: 2300 },
-  { minutes: 420, goldKills: 100_000, shards: 3000 },
-  { minutes: 480, goldKills: 140_000, shards: 4000 },
+  { minutes: 240, goldKills: 8_000, shards: 1500 }, // v10.8.1 : niveaux 6 à 10 surtout en éclats (l'or bloquait le Bastion)
+  { minutes: 300, goldKills: 10_000, shards: 2200 },
+  { minutes: 360, goldKills: 12_000, shards: 3000 },
+  { minutes: 420, goldKills: 15_000, shards: 4000 },
+  { minutes: 480, goldKills: 18_000, shards: 5500 },
 ];
 
 // Mine de cristal : éclats par heure et stock de 6 à 12 h. Calée sur le recyclage d'un objet de l'étape max
@@ -161,9 +161,9 @@ export const AGES = [
   { id: 5, roman: 'V', name: 'La Merveille', stage: 211, bastionLevel: 240, maxLevel: 50, minutes: [2160, 2880], color: '#c8a6ff', season: true },
 ];
 // Au-delà du niveau 10 : coût ×1,2 en or et ×1,08 en éclats par niveau (réglé par tools/sim-rythme.mjs) (le prix suit l'or du joueur, comme avant).
-export const AGE_STEPS = { goldKills: 140_000, goldGrowth: 1.2, shards: 4000, shardsGrowth: 1.08 };
+export const AGE_STEPS = { goldKills: 5_000, goldGrowth: 1.08, shards: 8000, shardsGrowth: 1.1 }; // v10.8.1 : surtout des éclats (l'or bloquait vers le niveau 35, les éclats s'entassaient)
 // Ce que chaque niveau au-delà du 10e apporte (multiplicatif) : ×1,02 dégâts et vie par niveau, tous bâtiments confondus.
-export const AGE_POWER = { perLevelPct: 2 };
+export const AGE_POWER = { perLevelPct: 4, agePerLevelPct: 1.7 }; // v10.8.1 : ×1,04 par niveau au-delà du 10e
 // Bâtiments des âges (ajoutés à BUILDINGS) : rôle, métier, et l'effet de chaque niveau.
 export const AGE_BUILDINGS = [
   { id: 'enchant', name: 'Atelier d\'enchantement', the: 'l\'Atelier d\'enchantement', age: 2, trade: 'smith', art: 'enchant', tool: 'hammer', shards: 1.2,

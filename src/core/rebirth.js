@@ -6,7 +6,10 @@ import { LEGACY_TALENTS, REBIRTH, TALENT_RESPEC, TALENTS } from '../data/rebirth
 import { PRESTIGE } from '../data/prestige.js';
 import { fragmentBonus, memoryShare } from './transcend.js';
 import { noteRebirth } from './times.js';
-import { levelForStage } from './combat.js'; // v9.2.0 (monde marin) : niveau de puissance des étapes
+import { levelForStage } from './combat.js';
+import { makeItem } from './loot.js'; // v10.8.1 : Mythique de la première Renaissance
+import { Rng } from './rng.js';
+import { ITEM_BASES } from '../data/items.js'; // v9.2.0 (monde marin) : niveau de puissance des étapes
 
 const BY_ID = new Map(TALENTS.map((t) => [t.id, t]));
 
@@ -245,7 +248,7 @@ export function rebirthMult(state) {
 export function rebirthWorth(state) {
   const r = rebirthReward(state);
   if (r <= 0) return false;
-  const stuck = (state.playSeconds ?? 0) - (state.recordAt ?? state.playSeconds ?? 0) >= REBIRTH.stuckSeconds;
+  const stuck = (state.playSeconds ?? 0) - (state.recordAt ?? state.playSeconds ?? 0) >= (state.records?.rebirths ? REBIRTH.stuckSecondsNext : REBIRTH.stuckSeconds); // v10.8.1 : 8 h la première fois, 4 h ensuite
   return rebirthMult(state) >= REBIRTH.worthMult && (stuck || r >= Math.max(60, 0.5 * ((state.fragments ?? 0) + fragmentsSpent(state))));
 }
 
@@ -271,6 +274,16 @@ export function performRebirth(state, keepPower = state.equippedPowers?.[0]) {
   state.fragments += reward;
   state.records.rebirths += 1;
   noteRebirth(state);
+  // v10.8.1 : la première Renaissance offre un premier objet Mythique (une arme au niveau du record), dans le coffre de
+  // butin : le premier Mythique arrive vers la 3e semaine pour tout le monde, pas au hasard d'une fusion.
+  if (state.records.rebirths === 1) {
+    const best = Math.max(state.maxStage ?? 1, state.records.bestStage ?? 1);
+    const pool = ITEM_BASES.filter((b) => b.slot === 'weapon' && !b.signature);
+    const rng = new Rng((state.seed ?? 7) + 108);
+    const it = makeItem(state, rng.pick(pool).id, 'mythic', levelForStage(best), undefined, rng);
+    it.locked = true; // protégé du recyclage automatique
+    state.inventory.push(it);
+  }
   state.gold = 0;
   // v8.8 : « Mémoire du guerrier » (Transcendance) conserve une partie des niveaux d'amélioration.
   const keep = memoryShare(state);

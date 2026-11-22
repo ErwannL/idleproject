@@ -244,7 +244,7 @@ test('Renaissance : seuil, récompense, réinitialisation et conservation', () =
   assert.deepEqual(state.upgrades, { damage: 0, attackSpeed: 0, vitality: 0 });
   assert.ok(state.powers.slime_king, 'pouvoirs conservés');
   assert.equal(state.equipment.weapon, weapon, 'équipement conservé');
-  assert.equal(state.inventory.length, 1, 'sac conservé');
+  assert.equal(state.inventory.filter((i) => i.rarity !== 'mythic').length, 1, 'sac conservé (+ le Mythique offert, v10.8.1)');
 });
 
 test('talents : coût, plafond, effets et emplacement de pouvoir supplémentaire', () => {

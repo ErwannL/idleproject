@@ -648,7 +648,7 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
     let high = null;
     if (H && cycle >= 1 && rng.next() < H.riftAstral) high = 'astral';
     else if (H && enc.dungeon && state.dungeon?.difficulty === 'hard' && rng.next() < H.hardDungeonMythic) high = 'mythic';
-    else if (H && !enc.dungeon && !enc.tower && !enc.challenge && bossTier(enemy.type) === 'mega' && zone + 1 >= H.megaBossFromWorld && rng.next() < H.megaBossMythic) high = 'mythic';
+    else if (H && !enc.dungeon && !enc.tower && !enc.challenge && bossTier(enemy.type) === 'mega' && zone + 1 >= H.megaBossFromWorld && state.stage >= state.maxStage && rng.next() < H.megaBossMythic) high = 'mythic'; // v10.8.1 : première victoire seulement (pas en refarmant)
     if (high) {
       const pool = ITEM_BASES.filter((b) => !b.signature);
       const it = makeItem(state, rng.pick(pool).id, high, enc.level, balance, rng);

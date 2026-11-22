@@ -10,7 +10,7 @@ import { createCombat, cycleForStage, zoneIndexForStage } from '../src/core/comb
 import { computeHeroStats } from '../src/core/stats.js';
 import { Rng } from '../src/core/rng.js';
 import { RESEARCH } from '../src/data/bastion.js';
-import { bastionAge, bastionLevel, bastionMult, bastionOf, researchLevel } from '../src/core/bastion.js';
+import { bastionAge, bastionLevel, bastionMult, bastionOf, buildCost, canBuild, researchLevel } from '../src/core/bastion.js';
 import { canRebirth, performRebirth, rebirthBlocked, rebirthWorth } from '../src/core/rebirth.js';
 import { RARITIES } from '../src/data/items.js';
 import { HOUR, T0, connection, play } from './sim-lib.mjs';
@@ -41,7 +41,7 @@ const world = (stage) => cycleForStage(Math.max(1, stage)) * 12 + zoneIndexForSt
 const RANK = RARITIES.map((r) => r.id);
 function bestRarity(s) {
   let best = 0;
-  for (const i of [...s.inventory, ...(s.stash ?? []), ...Object.values(s.equipment ?? {})]) if (i) best = Math.max(best, RANK.indexOf(i.rarity));
+  for (const i of [...s.inventory, ...(s.stash ?? []), ...(s.lootBag ?? []), ...Object.values(s.equipment ?? {})]) if (i) best = Math.max(best, RANK.indexOf(i.rarity));
   return best;
 }
 
@@ -69,7 +69,7 @@ function runProfile(name) {
     for (let k = 4; k <= r; k++) firsts[RANK[k]] ??= d + 1;
     const research = RESEARCH.map((x) => researchLevel(s, x.id)).reduce((a, b) => a + b, 0);
     rows.push({ day: d + 1, best, world: world(best), power: computeHeroStats(s).combatPower, rarity: RANK[r], bastion: bastionOf(s) ? bastionLevel(s) : 0, age: bastionAge(s), bmult: bastionMult(s, 'damage') * bastionMult(s, 'hp'), research, rebirths });
-    if (process.env.SIM_DEBUG) console.log('  debug', JSON.stringify({ done: s.unlocks?.done, can: canRebirth(s), worth: rebirthWorth(s), frag: s.fragments }));
+    if (process.env.SIM_DEBUG && (d + 1) % 5 === 0) console.log('  debug', JSON.stringify({ gold: s.gold, shards: s.materials.shards, purse: sim.purse, levels: Object.fromEntries(Object.entries(s.bastion?.buildings ?? {}).map(([k, v]) => [k, v.level])), why: Object.fromEntries(Object.keys(s.bastion?.buildings ?? {}).map((k) => [k, canBuild(s, k).reason])), cost: buildCost(s, 'mine') }));
     if ((d + 1) % 10 === 0 || d === 0) console.log(`${name.padEnd(12)} J${String(d + 1).padStart(3)} : étape ${best} (monde ${world(best)}) · rareté ${RANK[r]} · Bastion ${rows.at(-1).bastion} (âge ${rows.at(-1).age}) · recherches ${research} · Renaissances ${rebirths}`);
   }
   const dayOfWorld = (w) => rows.find((x) => x.world >= w)?.day ?? null;
