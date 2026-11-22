@@ -50,7 +50,7 @@ import { endChallenge, startChallenge } from './core/challenge.js';
 import { autoFuse, craftItem, fuseAll, fuseItems, fusionFailText, fusionKeep, reforgeItem, sharpenItem, targetReroll, upgradeItem } from './core/forge.js';
 import { normalizePool, summon } from './core/gacha.js';
 import { setActiveHero } from './core/heroes.js';
-import { addToInventory, bulkRecycleCandidates, equipBest, GEAR_PROFILES, equipItem, isUpgrade, quickEquipHero, recycleItem, recycleMatching, recycleRules, sweepInventory, toggleLock, unequipItem } from './core/inventory.js';
+import { addToInventory, betterItems, bulkRecycleCandidates, equipBest, GEAR_PROFILES, equipItem, isUpgrade, quickEquipHero, recycleItem, recycleMatching, recycleRules, sweepInventory, toggleLock, unequipItem } from './core/inventory.js';
 import { bossDungeon, bossFirstStage, claimMastery, powerById, powerSlots, rerollPower, resolveReroll, setPowerActive } from './core/powers.js';
 import { buyTalent, buyTalentMax, buyTalentPath, buyTalentsCheapest, performRebirth, respecTalents, suggestedTalent } from './core/rebirth.js';
 import { buyTranscendPerk, buyTranscendPerkMax, performTranscend, stellarMultiplier } from './core/transcend.js';
@@ -625,11 +625,14 @@ const actions = {
     const claimsBefore = claimables(state).length;
     this.claimEverything();
     const claimsLeft = claimables(state).length;
-    const equipped = equipBest(state);
+    // v10.9 (7 ter) : plus d'équipement automatique (sauf si le joueur l'a choisi dans les Options) ; on montre les objets
+    // meilleurs qui attendent, c'est lui qui appuie sur « Équiper ».
+    const equipped = state.ui.autoEquip === true ? equipBest(state) : 0;
+    const waiting = betterItems(state).length;
     const after = computeHeroStats(state).dps;
     save();
     ui.invalidate();
-    ui.showSessionReturn({ claimed: claimsBefore - claimsLeft, claimsLeft, equipped, before, after });
+    ui.showSessionReturn({ claimed: claimsBefore - claimsLeft, claimsLeft, equipped, waiting, before, after });
   },
   claimAchievement(id) {
     const a = claimAchievement(state, id);
@@ -1186,6 +1189,7 @@ const actions = {
   toggleLoadout(id) { if (toggleLoadout(state, id)) done(true); }, // v9.7.1 (lot 6) : 3 compétences actives
   setSimple(on) { state.ui.simple = on; document.documentElement.classList.toggle('simple', on); done(true); }, // v9.7.1 (lot 5)
   setCombatAssist(v) { state.ui.combatAssist = ['full', 'manual'].includes(v) ? v : 'mixed'; done(true); }, // v9.7.1 (lot 2)
+  setAutoEquip(on) { state.ui.autoEquip = on; done(true); }, // v10.9 (7 ter) : désactivé par défaut
   setSkillNames(on) { state.ui.skillNames = on; SceneRenderer.skillNames = on; done(true); }, // v9.7.1 (lot A)
   setCharSize(v) { state.ui.charSize = ['small', 'medium', 'large'].includes(v) ? v : 'auto'; SceneRenderer.sizePref = state.ui.charSize; resizeScene(); done(true); },
   setBigAuras(on) { state.ui.bigAuras = on; done(true); }, // v9.5.3

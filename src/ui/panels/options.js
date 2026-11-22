@@ -279,6 +279,7 @@ function interfaceTab(ui, state) {
         <label class="toggle"><input type="checkbox" data-action="notify" data-key="phone" ${state.ui.notify?.phone !== false ? 'checked' : ''}> Notifications du téléphone (2 par jour au plus)</label>
         <label class="toggle"><input type="checkbox" data-action="cinematics" ${state.ui.cinematics !== false ? 'checked' : ''}> Cinématiques (lancement du jeu, nouveau monde)</label>
         <label class="toggle"><input type="checkbox" data-action="screen-shake" ${state.ui.shake !== false ? 'checked' : ''}> Tremblement de l'écran (compétences de zone, coups de boss)</label>
+        <label class="toggle"><input type="checkbox" data-action="auto-equip" ${state.ui.autoEquip === true ? 'checked' : ''}> Équiper automatiquement les meilleurs objets (au retour de session)</label>
         <label class="toggle"><input type="checkbox" data-action="skill-names" ${state.ui.skillNames !== false ? 'checked' : ''}> Noms des sorts au-dessus du héros et des compagnons</label>
         <label class="toggle"><input type="checkbox" data-action="gain-feed" ${state.ui.feed !== false ? 'checked' : ''}> Fil des gains à gauche de la scène</label>
         <label class="toggle"><input type="checkbox" data-action="big-auras" ${state.ui.bigAuras === true ? 'checked' : ''}> Grandes auras des compagnons 5★ (sinon un simple liseré)</label>

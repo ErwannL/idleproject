@@ -26,7 +26,7 @@ import { liveNow } from '../core/live.js';
 import { stageLabel } from '../core/combat.js';
 import { calm as calmFx } from './ui-vfx.js';
 import { UPGRADE_NAMES, bestOpenUpgrade, weakUpgrade } from '../core/guide.js'; // v10.8 : mur doux
-import { isUpgrade } from '../core/inventory.js';
+import { betterItems, isUpgrade } from '../core/inventory.js';
 import { canRebirth, rebirthMult, rebirthWorth } from '../core/rebirth.js';
 
 const ART = 'assets/ui/art106/';
@@ -295,9 +295,12 @@ export class HudQuests {
 
 function wallCard(ui, state) {
   const acts = [];
+  // v10.9 (7 ter) : un objet meilleur passe en premier, avec son nom et son gain ; il ouvre la fenêtre de l'objet.
+  const better = betterItems(state)[0];
+  if (better) acts.push({ art: 'assets/ui/art106/item_weapon_sword.png', title: 'Équiper', text: `${better.item.name} : +${Math.round(better.pct)} %`, action: 'open-better', value: '' });
   const up = bestOpenUpgrade(state);
   if (up && up.cost <= state.gold && !weakUpgrade(state, up.key)) acts.push({ art: 'assets/ui/art106/badge_best_buy.png', title: 'Améliorer', text: UPGRADE_NAMES[up.key] ?? up.key, action: 'open-tab', value: 'upgrades' });
-  if (state.inventory.some((i) => isUpgrade(state, i))) acts.push({ art: 'assets/ui/art106/item_weapon_sword.png', title: 'Équiper', text: 'Un objet meilleur t\'attend', action: 'open-tab', value: 'inventory' });
+  if (!better && state.inventory.some((i) => isUpgrade(state, i))) acts.push({ art: 'assets/ui/art106/item_weapon_sword.png', title: 'Équiper', text: 'Un objet meilleur t\'attend', action: 'open-tab', value: 'inventory' });
   if (canRebirth(state) && rebirthWorth(state)) acts.push({ art: 'assets/ui/art98/phoenix_rebirth.png', title: 'Renaître', text: `×${String(Math.round(rebirthMult(state) * 100) / 100).replace('.', ',')} pour toujours`, action: 'open-tab', value: 'tree', view: { treeSeg: 'rebirth' } });
   if (state.bastion) acts.push({ art: 'assets/ui/art104/scene_tower.png', title: 'Bastion', text: 'Un chantier ou une recherche', action: 'bastion-tower', value: '' });
   acts.push({ art: 'assets/ui/art101/banner_dungeons.png', title: 'Donjons', text: 'Des objets d\'ensemble', action: 'open-tab', value: 'dungeons' });

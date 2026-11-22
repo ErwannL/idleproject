@@ -102,6 +102,12 @@ export function unequipItem(state, slot) {
 // Map id → { pct (Puissance, en %), up (meilleur, même bilan qu'isUpgrade), slot } ; seuls les objets que le héros
 // peut porter y figurent. Un seul calcul des statistiques par objet : sert aux flèches ▲, aux listes triées par gain,
 // à « Mieux dans ton sac » et à l'Équipement rapide.
+// v10.9 (7 ter) : objets du sac meilleurs que ceux portés par le héros, du plus fort gain au plus faible : [{ item, pct }].
+export function betterItems(state, balance = BALANCE) {
+  const gains = heroGains(state, balance);
+  return state.inventory.filter((i) => gains.get(i.id)?.up && (gains.get(i.id)?.pct ?? 0) > 0.05)
+    .map((item) => ({ item, pct: gains.get(item.id).pct })).sort((a, b) => b.pct - a.pct);
+}
 export function heroGains(state, balance = BALANCE, current = computeHeroStats(state, balance)) {
   const out = new Map();
   for (const item of state.inventory) {

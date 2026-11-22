@@ -116,7 +116,7 @@ import daybook from './panels/daybook.js'; // v9.8 (H1)
 import { WHEEL_SLICES, wheelReady } from '../core/wheel.js'; // v9.8 (H4)
 import { quickHuntReady } from '../core/quick-hunt.js'; // v9.8 (H3)
 import { duelOutcome } from '../core/ranks.js'; // v9.8 (H6)
-import { isUpgrade, teamUpgradeFor } from '../core/inventory.js';
+import { betterItems, isUpgrade, teamUpgradeFor } from '../core/inventory.js';
 import { canEquip as canEquipHero } from '../core/classes.js';
 import { mentorTips } from '../core/mentor.js'; // v9.9 (K4)
 import { teamChips } from './team-chips.js'; // v9.9 (K16)
@@ -938,6 +938,7 @@ export class UI {
       case 'inv-tab': if (value === 'stash') markInvUsed(this.state, 'stash'); local(() => { v.invTab = value; }); break;
       case 'craft-tier': local(() => { v.craftTier = value; }); break;
       case 'select-item': local(() => { v.selectedItemId = id; v.sheetOpen = 'item'; v.eqSlot = null; v.eqChange = false; v.eqQuick = null; v.itemPop = el.closest('.eq-bag-grid') ? id : null; }); break; // v10.3 (8) ; v10.6 (4) : fenêtre de l'objet à côté de lui
+      case 'open-better': this.openBetterItem(); break; // v10.9 (7 ter)
       case 'item-pop-close': local(() => { v.itemPop = null; }); break;
       case 'auto-recycle-yes': this.closeModal(); a.setRecycleRule('mode', 'pickup'); break; // v9.3.4 : proposé au 1er sac plein
       case 'recycle-useless': a.recycleUseless(); local(() => { v.forgeFx = 'recycle'; }); setTimeout(() => { v.forgeFx = null; this.invalidate(); }, 700); break; // v9.3.4
@@ -1442,6 +1443,7 @@ export class UI {
     if (action === 'screen-shake') this.actions.setShake(el.checked); // v9.3.9
     if (action === 'simple-mode') this.actions.setSimple(el.checked); // v9.7.1 (lot 5)
     if (action === 'combat-assist') this.actions.setCombatAssist(el.value); // v9.7.1 (lot 2)
+    if (action === 'auto-equip') this.actions.setAutoEquip(el.checked); // v10.9 (7 ter)
     if (action === 'skill-names') this.actions.setSkillNames(el.checked); // v9.7.1 (lot A)
     if (action === 'vigil-auto') { if (['never', 'phone', 'always'].includes(el.value)) this.state.ui.vigil = el.value; } // v9.10 (1)
     if (action === 'gain-feed') { if (el.checked) delete this.state.ui.feed; else this.state.ui.feed = false; } // v9.9 (K11)
@@ -2285,6 +2287,9 @@ export class UI {
       count.title = `${fresh} objet${fresh > 1 ? 's' : ''} neuf${fresh > 1 ? 's' : ''} dans le sac`;
       count.setAttribute('aria-label', `${fresh} objet${fresh > 1 ? 's' : ''} neuf${fresh > 1 ? 's' : ''}`);
     }
+    // v10.9 (7 ter) : pastille verte « ▲ » quand un objet meilleur attend dans le sac (le joueur équipe lui-même).
+    const better = this.$('better-hero');
+    if (better) { const k = (this._betterAt ?? 0) < performance.now() - 2000 ? (this._better = betterItems(state).length, this._betterAt = performance.now(), this._better) : this._better; better.classList.toggle('hidden', !k); }
     if (this.tab) this.renderSubtabs();
   }
 
@@ -2553,7 +2558,7 @@ export class UI {
     if (!n) return;
     this.sealClicked = true; // v9.10 (3)
     if (this.state?.ui) delete this.state.ui.sealMiniUntil;
-    if (n.id === 'quest' && n.action === 'equip-best') { this.userAt = performance.now(); this.actions.equipBest(); return; } // v9.10 (4)
+    if (n.action === 'equip-best') { this.userAt = performance.now(); this.openBetterItem(); return; } // v10.9 (7 ter) : ouvre la fenêtre de l'objet, le joueur équipe
     if (n.id === 'quest' && n.action === 'cast-first') { this.userAt = performance.now(); (document.querySelector('#skill-bar .skill-btn:not(.cooling)') ?? document.querySelector('#skill-bar .skill-btn'))?.click(); return; } // v10.1
     if (n.id === 'quest') { if (n.tab) { this.openTab(n.tab, n.view ?? null); this.setRing(n); } return; } // v9.9 (K2) : ouvre le bon écran
     if (n.id === 'mentor') { this.followTip(n); return; }
@@ -2569,7 +2574,6 @@ export class UI {
     else if (n.action === 'retry-boss') this.actions.retryBoss();
     else if (n.action === 'advance') this.actions.advance();
     // v9.3.5 : un clic fait l'action (équiper tout, placer, améliorer, monter, recycler).
-    else if (n.action === 'equip-best') this.actions.equipBest();
     else if (n.action === 'lootbag') this.lootBag?.toggle(true); // v9.7.1
     else if (n.action === 'place-companion') this.actions.toggleCompanion(n.value);
     else if (n.action === 'buy') { this.actions.buy(n.value, n.amount ?? '1'); (this.sealAside ??= {}).upgrade = Date.now() + 150000; } // v10.2 (4.3) : tout l'or utile d'un coup, puis 2 min 30 sans « Améliorer »
@@ -2680,6 +2684,17 @@ export class UI {
       <div class="detail-actions"><button class="btn btn-primary" data-action="close-modal">Super !</button></div></div>`);
   }
 
+  // v10.9 (7 ter) : ouvre l'équipement sur le meilleur objet qui attend (fenêtre de l'objet avec son verdict et « Équiper »).
+  openBetterItem() {
+    const best = this.state ? betterItems(this.state)[0] : null;
+    this.closeModal?.();
+    this.openTab('inventory');
+    if (!best) return;
+    const v = this.view ?? {};
+    Object.assign(v, { eqTab: 'gear', selectedItemId: best.item.id, sheetOpen: 'item', eqSlot: null, eqChange: false, eqQuick: null, itemPop: best.item.id });
+    this.invalidate?.();
+  }
+
   // Récapitulatif du Retour de session.
   showSessionReturn(r) {
     const ratio = r.before > 0 ? r.after / r.before : 1;
@@ -2687,6 +2702,7 @@ export class UI {
       r.claimed ? `<li>${r.claimed} récompense${r.claimed > 1 ? 's' : ''} récupérée${r.claimed > 1 ? 's' : ''}</li>` : '',
       r.claimsLeft ? `<li class="bad">${r.claimsLeft} récompense${r.claimsLeft > 1 ? 's' : ''} avec un objet en attente (sac et Réserve pleins) : Objectifs › À récupérer.</li>` : '',
       r.equipped ? `<li>${r.equipped} objet${r.equipped > 1 ? 's' : ''} équipé${r.equipped > 1 ? 's' : ''}</li>` : '',
+      r.waiting ? `<li><button class="link-btn good" data-action="open-better">▲ ${r.waiting} objet${r.waiting > 1 ? 's' : ''} meilleur${r.waiting > 1 ? 's' : ''} que les tiens t'attend${r.waiting > 1 ? 'ent' : ''} ›</button></li>` : '',
     ].join('') || '<li class="muted">Rien à récupérer ni à équiper.</li>';
     this.openModal(`<h2 id="modal-title">${img('icon_bolt', 'ico20')} Retour de session</h2><ul class="session-list">${rows}</ul>
       <p>Dégâts/s : <b>${formatNumber(r.before)}</b> → <b class="good">${formatNumber(r.after)}</b>${ratio > 1.0001 ? ` (×${ratio >= 100 ? formatNumber(Math.round(ratio)) : ratio.toFixed(2).replace('.', ',')})` : ''}</p>
@@ -3106,6 +3122,11 @@ export class UI {
     const dur = calm ? 0 : 3200;
     disc.style.transition = calm ? 'none' : `transform ${dur}ms cubic-bezier(.12,.7,.16,1)`;
     disc.style.transform = `rotate(${target}deg)`;
+    // 10.9 : chaque icône (et son nombre) contre-tourne du même angle, même durée, même courbe : elle reste droite.
+    for (const ico of disc.querySelectorAll('.wh-ico')) {
+      ico.style.transition = disc.style.transition;
+      ico.style.transform = `rotate(var(--a)) translateY(-86px) rotate(calc(-1 * var(--a) - ${target}deg))`;
+    }
     // « Tic » à chaque case : on lit l'angle courant pendant la rotation.
     const ptr = card.querySelector('.wh-pointer-img');
     let lastSlice = -1;

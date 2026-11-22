@@ -4253,9 +4253,9 @@ html.reduce-motion .best-card.first-item { animation: none; }
 .wh-win { position: absolute; inset: 6%; border-radius: 50%; opacity: 0; pointer-events: none;
   background: conic-gradient(from calc(var(--a, 0deg) - 22.5deg), #fff3a888 0deg 45deg, transparent 45deg 360deg); }
 .wh-win.on { opacity: 1; transition: opacity .3s; }
-.wh-pointer-img { position: absolute; left: 50%; top: -24px; width: 36px; transform: translateX(-50%) rotate(180deg); z-index: 3; image-rendering: pixelated; filter: drop-shadow(0 3px 2px #000); transform-origin: 50% 20%; }
+.wh-pointer-img { position: absolute; left: 50%; top: -24px; width: 36px; transform: translateX(-50%); z-index: 3; image-rendering: pixelated; filter: drop-shadow(0 3px 2px #000); transform-origin: 50% 20%; }
 .wh-pointer-img.tic { animation: wh-tic .12s ease-out; }
-@keyframes wh-tic { 50% { transform: translateX(-50%) rotate(168deg); } }
+@keyframes wh-tic { 50% { transform: translateX(-50%) rotate(-12deg); } } /* 10.9 : l'image pointe déjà vers le bas */
 .wh-light { position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px; border-radius: 50%; background: #ffe08a; box-shadow: 0 0 6px #ffd23f;
   transform: rotate(var(--a)) translateY(-152px); opacity: .5; z-index: 2; }
 .wheel-spinning .wh-light { animation: wh-blink .5s steps(2) infinite; animation-delay: var(--d); }
@@ -4529,3 +4529,7 @@ html.reduce-motion .howto-card, html.reduce-motion .learn-card { animation: none
 /* v10.2 : tailles réelles des illustrations (des règles plus anciennes les réduisaient). */
 .door-card img.door-art { width: 96px !important; height: 128px !important; }
 .dungeon-head img.dg-boss-portrait { width: 128px !important; height: 128px !important; max-width: none; }
+
+/* v10.9 (7 ter) : objet meilleur qui attend — pastille verte sur le bouton Héros. */
+.badge-better { position: absolute; top: -4px; left: -4px; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 8px; background: #2fbf5a; color: #fff; font: 900 10px/16px system-ui, sans-serif; font-style: normal; text-align: center; box-shadow: 0 0 0 2px #0b1120; pointer-events: none; }
+.badge-better.hidden { display: none; }
