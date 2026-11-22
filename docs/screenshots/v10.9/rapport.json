@@ -1,0 +1,429 @@
+[
+ {
+  "size": "1116x993",
+  "tab": "camp",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic.big > img.px.still",
+  "text": "5 px"
+ },
+ {
+  "size": "1116x993",
+  "tab": "camp",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "4 px"
+ },
+ {
+  "size": "1116x993",
+  "tab": "camp",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "12 px"
+ },
+ {
+  "size": "1116x993",
+  "tab": "camp",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "10 px"
+ },
+ {
+  "size": "1116x993",
+  "tab": "bastion-âge-2",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic.big > img.px.still",
+  "text": "5 px"
+ },
+ {
+  "size": "1116x993",
+  "tab": "bastion-âge-2",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "4 px"
+ },
+ {
+  "size": "1116x993",
+  "tab": "bastion-âge-2",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "12 px"
+ },
+ {
+  "size": "1116x993",
+  "tab": "bastion-âge-2",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "10 px"
+ },
+ {
+  "size": "1116x993",
+  "tab": "bastion-âge-3",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic.big > img.px.still",
+  "text": "5 px"
+ },
+ {
+  "size": "1116x993",
+  "tab": "bastion-âge-3",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "4 px"
+ },
+ {
+  "size": "1116x993",
+  "tab": "bastion-âge-3",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "12 px"
+ },
+ {
+  "size": "1116x993",
+  "tab": "bastion-âge-3",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "10 px"
+ },
+ {
+  "size": "1116x993",
+  "tab": "bastion-âge-4",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic.big > img.px.still",
+  "text": "5 px"
+ },
+ {
+  "size": "1116x993",
+  "tab": "bastion-âge-4",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "4 px"
+ },
+ {
+  "size": "1116x993",
+  "tab": "bastion-âge-4",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "12 px"
+ },
+ {
+  "size": "1116x993",
+  "tab": "bastion-âge-4",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "10 px"
+ },
+ {
+  "size": "1116x993",
+  "tab": "bastion-âge-5",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic.big > img.px.still",
+  "text": "5 px"
+ },
+ {
+  "size": "1116x993",
+  "tab": "bastion-âge-5",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "4 px"
+ },
+ {
+  "size": "1116x993",
+  "tab": "bastion-âge-5",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "12 px"
+ },
+ {
+  "size": "1116x993",
+  "tab": "bastion-âge-5",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "10 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "forge",
+  "kind": "texte-couvert",
+  "where": "p.fg-rule",
+  "text": "Les objets inutiles deviennent des éclat"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "forge",
+  "kind": "texte-couvert",
+  "where": "p.fg-now.muted",
+  "text": "Rien à recycler : tout ce que tu as te s"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "forge",
+  "kind": "texte-couvert",
+  "where": "button.btn.btn-gold",
+  "text": "Recycler"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "forge",
+  "kind": "texte-couvert",
+  "where": "p.fg-rule",
+  "text": "Un objet et des éclats : une de ses stat"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "forge",
+  "kind": "texte-couvert",
+  "where": "button.btn.btn-gold",
+  "text": "Renforcer"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "expeditions",
+  "kind": "image-dépasse",
+  "where": "div.bs-hero > img.px.bs-hero-b",
+  "text": "6 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "expeditions",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic.big > img.px.still",
+  "text": "7 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "expeditions",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "6 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "expeditions",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "4 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "expeditions",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "18 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "expeditions",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "4 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "expeditions",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "16 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "looks",
+  "kind": "image-dépasse",
+  "where": "div.look-preview-pic > img.hd-art.look-hd",
+  "text": "4 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-2",
+  "kind": "image-dépasse",
+  "where": "div.bs-hero > img.px.bs-hero-b",
+  "text": "5 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-2",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic.big > img.px.still",
+  "text": "6 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-2",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "5 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-2",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "4 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-2",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "14 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-2",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "4 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-2",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "12 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-3",
+  "kind": "image-dépasse",
+  "where": "div.bs-hero > img.px.bs-hero-b",
+  "text": "5 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-3",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic.big > img.px.still",
+  "text": "6 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-3",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "5 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-3",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "4 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-3",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "14 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-3",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "4 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-3",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "12 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-4",
+  "kind": "image-dépasse",
+  "where": "div.bs-hero > img.px.bs-hero-b",
+  "text": "5 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-4",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic.big > img.px.still",
+  "text": "6 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-4",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "5 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-4",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "4 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-4",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "14 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-4",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "4 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-4",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "12 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-5",
+  "kind": "image-dépasse",
+  "where": "div.bs-hero > img.px.bs-hero-b",
+  "text": "5 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-5",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic.big > img.px.still",
+  "text": "6 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-5",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "5 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-5",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "4 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-5",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "14 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-5",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "4 px"
+ },
+ {
+  "size": "2536x1011",
+  "tab": "bastion-âge-5",
+  "kind": "image-dépasse",
+  "where": "span.bs-wpic > img.px.still",
+  "text": "12 px"
+ }
+]

@@ -70,6 +70,22 @@ const PLOTS = {
   enchant: { x: 33, y: 46, w: 15 }, menagerie: { x: 88, y: 92, w: 16 }, observatory: { x: 68, y: 40, w: 14 },
   runes: { x: 7, y: 78, w: 14 }, ascension: { x: 52, y: 100, w: 16 }, wonder: { x: 93, y: 34, w: 14 },
 };
+// v10.9 (partie 2) : une carte par âge (assets/ui/art109, tools/art/pl109_maps.py), avec ses propres emplacements relevés
+// sur l'image : chaque bâtiment se pose sur une dalle dessinée au sol, jamais sur un mur. cols = centres (%), rows = bas
+// des dalles (%), w = largeur du bâtiment (%). Les bâtiments prennent les dalles dans l'ordre de ORDER109.
+const ORDER109 = ['forge', 'library', 'mine', 'training', 'trade', 'expeditions', 'enchant', 'menagerie', 'observatory', 'runes', 'ascension', 'wonder'];
+const GRID109 = {
+  1: { cols: [20, 40, 60, 80], rows: [44, 68, 92], w: 15 },
+  2: { cols: [11, 26.5, 42, 57.5, 73, 88.5], rows: [69, 94], w: 13 },
+  3: { cols: [19.5, 40, 60, 80], rows: [43, 67, 91], w: 15 },
+  4: { cols: [20, 40, 60, 80], rows: [43, 67, 91], w: 14 },
+  5: { cols: [23, 41, 59, 77], rows: [40, 63, 87], w: 12 },
+};
+export const PLOTS_BY_AGE = Object.fromEntries(Object.entries(GRID109).map(([age, g]) => {
+  const spots = g.rows.flatMap((y) => g.cols.map((x) => ({ x, y, w: g.w })));
+  const gap = Math.min(...g.cols.slice(1).map((c, i) => c - g.cols[i]));
+  return [age, Object.fromEntries(ORDER109.map((id, i) => [id, { ...spots[i], tag: gap - 1.5 }]))];
+}));
 // Animations des bâtiments (planches PixelLab) : où les poser sur l'image du bâtiment (en % de sa boîte).
 const LIFE = {
   forge: [['fx_forge_smoke', 25, -8, 2], ['fx_forge_sparks', 30, 42, 2]],
@@ -191,10 +207,10 @@ function workerSprite(c, def) {
 }
 
 function plot(ui, state, def, now) {
-  const p = PLOTS[def.id];
+  const p = PLOTS_BY_AGE[Math.min(5, Math.max(1, bastionAge(state)))]?.[def.id] ?? PLOTS[def.id];
   const access = buildingAccess(state, def.id);
   const sel = ui.view.bastionSel === def.id;
-  const style = `left:${p.x}%;top:${p.y}%;width:${p.w}%`;
+  const style = `left:${p.x}%;top:${p.y}%;width:${p.w}%${p.tag ? `;--tagw:${(p.tag / p.w) * 100}%` : ''}`;
   const art = `<img class="px bs-bimg" src="${buildingArt(state, def)}" alt="" draggable="false">`;
   if (!access.available) {
     return `<div class="bs-plot locked" style="${style}" data-building="${def.id}" title="${escapeHtml(`${def.name} : ${access.reason}`)}" aria-label="${escapeHtml(`${def.name} : ${access.reason}`)}">${art}
@@ -247,9 +263,10 @@ function ageRibbon(ui, state) {
 }
 function villageMap(ui, state, now) {
   const age = bastionAge(state);
-  const ground = age >= 2 ? `assets/ui/art108/bastion_map_age${age}.png` : ART('bastion_map');
+  const ground = `assets/ui/art109/bastion_map_age${Math.min(5, Math.max(1, age))}.png`; // v10.9 : une cour à 12 dalles par âge
   return `${ageRibbon(ui, state)}<div class="bs-village age-${age}"><div class="bs-world"><img class="px bs-ground" src="${ground}" alt="" draggable="false">
-      ${BUILDINGS.filter((d) => !d.age || d.age <= age + 1).map((d) => plot(ui, state, d, now)).join('')}${kickRibbon(ui)}</div></div>`;
+      ${BUILDINGS.filter((d) => !d.age || d.age <= age + 1).map((d) => plot(ui, state, d, now)).join('')}${kickRibbon(ui)}</div>
+      <div class="bs-zoom"><button type="button" data-zoom="in" aria-label="Zoomer">+</button><button type="button" data-zoom="out" aria-label="Dézoomer">−</button></div></div>`;
 }
 
 // ---------------------------------------------------------------- arbre des Recherches
@@ -271,9 +288,7 @@ function researchNode(ui, state, def, now) {
 // v10.9 (partie 3) : nom court d'une recherche — entier s'il tient (14 lettres), sinon son premier mot (« Œil du chasseur » → « Œil »).
 export function shortResearchName(name) {
   if (name.length <= 14) return name;
-  const words = name.split(/\s+/);
-  const two = words.filter((w) => w.length > 2).slice(0, 2).join(' ');
-  return two.length <= 14 ? two : words[0];
+  return name.split(/\s+/)[0];
 }
 
 function researchTree(ui, state, now, below = false) {
@@ -629,11 +644,32 @@ export function bastionBadge(state) {
 }
 
 // Hauteur disponible de la carte : le décor garde ses proportions (384 × 216) et tient dans la page sans défiler.
+// v10.9 (partie 2) : zoom de la carte (molette, deux doigts ou boutons + / −) et glissement quand elle est zoomée.
+function bindZoom(body) {
+  const v = body.querySelector('.bs-village');
+  if (!v || v.dataset.zoomBound) return;
+  v.dataset.zoomBound = '1';
+  let z = 1, px = 0, py = 0, drag = null, pinch = null;
+  const apply = () => { v.style.setProperty('--zoom', z); v.style.setProperty('--px', `${px}px`); v.style.setProperty('--py', `${py}px`); v.classList.toggle('zoomed', z > 1.01); };
+  const clamp = () => { const r = v.getBoundingClientRect(); const mx = (r.width * (z - 1)) / (2 * z), my = (r.height * (z - 1)) / (2 * z); px = Math.max(-mx, Math.min(mx, px)); py = Math.max(-my, Math.min(my, py)); };
+  const set = (nz) => { z = Math.max(1, Math.min(2.5, nz)); if (z <= 1.01) { px = 0; py = 0; } clamp(); apply(); };
+  v.addEventListener('wheel', (e) => { e.preventDefault(); set(z * (e.deltaY < 0 ? 1.15 : 1 / 1.15)); }, { passive: false });
+  v.querySelector('.bs-zoom')?.addEventListener('click', (e) => { const b = e.target.closest('[data-zoom]'); if (b) { e.stopPropagation(); set(z * (b.dataset.zoom === 'in' ? 1.4 : 1 / 1.4)); } });
+  v.addEventListener('pointerdown', (e) => { if (z > 1.01 && !e.target.closest('.bs-zoom')) drag = { x: e.clientX, y: e.clientY, px, py, moved: false }; });
+  v.addEventListener('pointermove', (e) => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; if (Math.abs(dx) + Math.abs(dy) > 4) drag.moved = true; px = drag.px + dx / z; py = drag.py + dy / z; clamp(); apply(); });
+  v.addEventListener('pointerup', () => { if (drag?.moved) v.addEventListener('click', (e) => e.stopPropagation(), { capture: true, once: true }); drag = null; });
+  v.addEventListener('touchmove', (e) => { if (e.touches.length !== 2) return; const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); if (pinch) set(z * (d / pinch)); pinch = d; e.preventDefault(); }, { passive: false });
+  v.addEventListener('touchend', () => { pinch = null; });
+}
+
 function fitMap(body) {
+  bindZoom(body);
   const main = body.querySelector('.bs-pg .bs-main');
   const world = main?.querySelector('.bs-world');
   if (!world) return;
-  const h = main.clientHeight;
+  // v10.9 : la place sous le bandeau d'âge (la carte entière tient dans son cadre, rien n'est coupé).
+  const village = world.parentElement;
+  const h = main.clientHeight - Math.max(0, village.getBoundingClientRect().top - main.getBoundingClientRect().top) / Math.max(0.01, main.getBoundingClientRect().height / Math.max(1, main.clientHeight));
   if (h > 40 && !body.closest('.page-narrow')) world.style.setProperty('--map-h', `${h - 4}px`);
   // Sous la carte, l'arbre des Recherches quand la place le permet (sinon il est derrière « Recherches »).
   const tree = main.querySelector('.bs-tree.below');
