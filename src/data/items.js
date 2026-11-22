@@ -36,7 +36,7 @@ export const RARITIES = [
   { id: 'epic', label: 'Épique', color: '#c06bff', weight: 7, statMultiplier: 2.6, recycleGold: 80 },
   { id: 'legendary', label: 'Légendaire', color: '#ffa630', weight: 1, statMultiplier: 4.2, recycleGold: 300 },
   // v10.8 (partie 3) : trois raretés au-dessus, jamais tirées au hasard du butin courant (poids 0) : méga-boss, donjon
-  // Difficile, Failles, fusion de 3, commande au forgeron, Atelier d'Ascension (Ascendant : jamais au sol).
+  // Difficile, Failles, fusion (5 Légendaires ou 3 Mythiques), commande au forgeron, Atelier d'Ascension (Ascendant : jamais au sol).
   { id: 'mythic', label: 'Mythique', color: '#ff4d4d', weight: 0, statMultiplier: 6.5, recycleGold: 1200, rare: true },
   { id: 'astral', label: 'Astral', color: '#4de3ff', weight: 0, statMultiplier: 10, recycleGold: 5000, rare: true },
   { id: 'ascendant', label: 'Ascendant', color: '#ffffff', weight: 0, statMultiplier: 15, recycleGold: 20000, rare: true, rainbow: true },

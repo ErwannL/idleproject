@@ -32,10 +32,10 @@ test('table BALANCE.forge.fusion : chiffres du doc, raretés tirées de la table
   assert.deepEqual(BALANCE.forge.fusion.epic, { rate: 100, stakes: { 3: 30, 4: 65 }, pityStep: 20 });
   assert.equal(BALANCE.forge.fusion.common.rate, 100);
   assert.equal(BALANCE.forge.fusion.rare.rate, 100);
-  assert.deepEqual(fusableRarities(), ['common', 'rare', 'epic', 'legendary', 'mythic']); // v10.8 : 3 Légendaires → Mythique, 3 Mythiques → Astral
+  assert.deepEqual(fusableRarities(), ['common', 'rare', 'epic', 'legendary', 'mythic']); // v10.8 : 5 Légendaires → Mythique, 3 Mythiques → Astral
   assert.deepEqual(fusionStakes('common'), [5]);
   assert.deepEqual(fusionStakes('epic'), [3, 4, 5]);
-  assert.deepEqual(fusionStakes('legendary'), [3]);
+  assert.deepEqual(fusionStakes('legendary'), [5]); // v10.8 : 5 Légendaires → Mythique
   assert.deepEqual(fusionStakes('astral'), [], 'Astral → Ascendant : seulement à l\'Atelier d\'Ascension');
   const s = fresh();
   assert.equal(fusionChance(s, 'helmet', 'epic', 3), 30);

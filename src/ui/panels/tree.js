@@ -493,7 +493,7 @@ function rebirthView(ui, state) {
         const now = computeHeroStats(state).combatPower, worth = rebirthWorth(state);
         return `<div class="rb-ba"><div><small>Avant</small><b class="num">${formatNumber(now)}</b></div><i>→</i><div><small>Après</small><b class="num good">${formatNumber(now * gain)}</b></div>
           <div><small>Retour à ${stageLabel(state.maxStage)}</small><b class="num">≈ ${formatDuration(rebirthCatchUp(state))}</b></div></div>
-          <p class="rb-rule ${worth ? 'good' : 'muted'}">${worth ? '✔ Rentable maintenant' : 'Rentable quand elle donne au moins ×1,25 et que tu bloques depuis 3 h de jeu'}</p>`;
+          <p class="rb-rule ${worth ? 'good' : 'muted'}">${worth ? '✔ Rentable maintenant' : 'Rentable quand elle donne au moins ×1,25 et que tu bloques depuis 8 h de jeu'}</p>`;
       })() : ''}
       ${can ? `<div class="rb-later">Si tu pousses encore 10 étapes : <b>+${formatNumber(rebirthReward(state, state.maxStage + 10))}</b> ${fragment()} (au lieu de +${formatNumber(reward)}).</div>` : ''}
       <div class="muted">Retour à l'étape 1${keep > 0 ? ` (${Math.round(keep * 100)} % des améliorations gardés)` : ''} ; le détail est dans la confirmation.</div>

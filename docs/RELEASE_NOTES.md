@@ -1,6 +1,21 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.6.0 — Des quêtes et des événements sur l'écran de jeu
+## Ascendrya v10.8.0 — Un jeu qui dure : raretés, Âges du Bastion, nœuds clés
+
+- **Trois raretés de plus** : Mythique (rouge), Astral (cyan) et Ascendant (arc-en-ciel), au-dessus du Légendaire. Le Légendaire devient plus rare (6 % du butin). Les Mythiques tombent des méga-boss dès le monde 6 et des donjons Difficiles, ou se fusionnent (5 Légendaires, la chance monte à chaque échec) ; les Astraux viennent des Failles ou de 3 Mythiques ; l'Ascendant ne tombe jamais : il se forge à l'Atelier d'Ascension avec 3 Astraux et une Larme d'Ascendrya. Nouveaux cadres, coffre et cloche plus grave pour ces butins.
+- **Les Âges du Bastion** : Le Fort, La Citadelle (monde 6), La Cité haute (monde 9), La Couronne (monde 12) et La Merveille (saison). Chaque âge relève le niveau maximal de 10 (jusqu'à 50), agrandit la carte du village et ajoute une place d'ouvrier. Au-delà du niveau 10, chaque niveau multiplie dégâts et vie.
+- **Six nouveaux bâtiments** : Atelier d'enchantement (graver un effet de plus sur un objet Mythique et au-delà), Ménagerie (essences de maîtrise), Observatoire (une Prime du Héraut de plus par jour), Sanctuaire des runes (puissance des compagnons), Atelier d'Ascension et Merveille de saison.
+- **Recherches sur la durée** : quatre nouveaux paliers (II à V) en pages du livre, aux effets multiplicatifs, une 3e et une 4e place de recherche, et **6 nœuds clés** en or : un sort actif de plus, un familier de plus en combat, des expéditions qui rapportent un objet, une relance d'effet gratuite par jour, un objet Mythique par semaine au Comptoir, +4 h de gains hors ligne.
+- **Renaissance revue** : elle devient rentable quand elle multiplie ta puissance d'au moins ×1,25 et que tu bloques depuis 8 h de jeu. L'écran montre l'avant / après et le temps pour revenir. La première de chaque saison donne une Larme d'Ascendrya.
+- **Nouvelles parties : une aventure plus longue** — après le monde 3, les monstres se renforcent davantage, et des Sceaux de monde (mondes 5, 7, 9, 11) demandent des Renaissances ou un Bastion assez haut. Au mur, une carte « Comment devenir plus fort » propose les 3 meilleures actions. **Ta partie en cours garde exactement sa puissance.**
+- **Économie** : en fin de jeu, plus d'amélioration à 40 d'or ; les très gros gains s'écrivent « ×30 de puissance ».
+- **Téléphone** : l'écran reste en vertical (la tablette peut tourner), la bande du bas est rangée en grille (sorts, Ultime, Boosts, coffre, « Tout récupérer »), les menus sont compacts (le premier donjon se voit sans défiler), la bande du haut ne se grise plus pendant un boss.
+- **Finitions 10.7** : les cartes « Nouveau » ne reviennent plus à chaque lancement ; rangée d'événements sous la bande du haut ; Améliorations avec « Meilleur achat » toujours présent ; skins du héros redessinés fidèles au combat ; Arène allégée (130 mots au lieu de 366).
+- Toutes les nouvelles illustrations sont faites avec PixelLab. Le jeu a maintenant son domaine : ascendrya.com.
+
+### Versions précédentes
+
+<details><summary><b>Ascendrya v10.6.0 — Des quêtes et des événements sur l'écran de jeu</b></summary>
 
 - **Écran de jeu vivant** : en haut à gauche, la carte « Chemin du héros » montre l'image du monde, l'étape en cours (sur une ligne, jamais coupée), sa barre et sa récompense, avec « Y aller » ou « Récupérer ». Une quête finie s'illumine d'or, ses récompenses volent vers la barre du haut et la suivante glisse à sa place. Dessous, le Carnet du jour en 3 lignes (les tâches les plus proches de la fin ; une puce « Carnet 4/8 » sur téléphone).
 - **Colonne d'événements** à droite : Marché des Lueurs, Faille du jour, Roue, Arène, Bastion et Coffre du jour, chacun avec son dessin, son minuteur et sa pastille ; le plus urgent pulse doucement. Sur téléphone : 4 icônes et « + ».
@@ -16,7 +31,8 @@
 - **Petits défauts** : plus d'erreur de sécurité (CSP) dans les donjons ; sur téléphone, bannières de donjon et noms des personnages de l'équipement ne débordent plus ; chaque onglet a au moins 35 % d'image (bannières plus grandes, médaillons des Talents, offres de la Boutique illustrées).
 - Toutes les nouvelles illustrations (111) sont faites avec PixelLab, dans le style du jeu. « Réduire les animations » coupe toutes les pulsations et les éclats.
 
-### Versions précédentes
+</details>
+
 
 <details><summary><b>Ascendrya v10.4.0 — De grandes pages, un Bastion qui vit</b></summary>
 

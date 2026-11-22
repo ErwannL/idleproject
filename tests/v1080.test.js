@@ -54,12 +54,12 @@ test('10.8 (2) : prix plancher en ennemis de l\'étape, jamais dans les 3 premie
   assert.match(src('src/ui/panels/upgrades.js'), /pct >= 1000 \? `×\$\{formatNumber/);
 });
 
-test('10.8 (3) : 7 raretés ; Mythique ×6,5, Astral ×10, Ascendant ×15 ; jamais tirées au butin courant ; fusion de 3', () => {
+test('10.8 (3) : 7 raretés ; Mythique ×6,5, Astral ×10, Ascendant ×15 ; jamais tirées au butin courant ; fusion', () => {
   assert.deepEqual(RARITIES.map((r) => r.id), ['common', 'rare', 'epic', 'legendary', 'mythic', 'astral', 'ascendant']);
   assert.deepEqual(RARITIES.slice(4).map((r) => r.statMultiplier), [6.5, 10, 15]);
   assert.ok(RARITIES.slice(4).every((r) => r.weight === 0));
   assert.deepEqual(BALANCE.loot.dropRarityWeights, { common: 10, rare: 42, epic: 42, legendary: 6 });
-  assert.equal(F.fusionSize('legendary'), 3);
+  assert.equal(F.fusionSize('legendary'), 5);
   assert.deepEqual(F.fusionStakes('astral'), []);
   // Un Mythique remis au niveau bat un Épique du même niveau.
   const s = createNewState(Date.now());
@@ -101,12 +101,12 @@ test('10.8 (5) : paliers II à V (6 nœuds par branche), 6 nœuds clés avec leu
   assert.match(B.canResearch(s, 'fury4').reason, /Âge IV/);
 });
 
-test('10.8 (6) : Renaissance rentable (×1,25 et blocage de 3 h), Larme d\'Ascendrya à la première de la saison', () => {
+test('10.8 (6) : Renaissance rentable (×1,25 et blocage de 8 h), Larme d\'Ascendrya à la première de la saison', () => {
   const s = createNewState(Date.now());
   s.maxStage = 200; s.records.bestStage = 200; s.unlocks = { legacy: true };
   s.playSeconds = 20000; s.recordAt = 20000;
   assert.equal(R.rebirthWorth(s), false, 'pas de blocage');
-  s.recordAt = 20000 - 3 * 3600;
+  s.recordAt = 20000 - 8 * 3600;
   assert.equal(R.rebirthWorth(s), true);
   const tears = s.materials.tears ?? 0;
   assert.ok(R.performRebirth(s) > 0);
