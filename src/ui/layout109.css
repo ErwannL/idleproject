@@ -1,0 +1,48 @@
+/* v10.9 (partie 4) : une place fixe pour chaque chose, la même dans toutes les tailles de fenêtre (hors téléphone et bande).
+   Bande d'en-tête : carte de zone | rangée d'événements | boosts Q W E + Auto. Colonne de gauche : Chemin du héros
+   puis Carnet du jour. Bande du bas (ui.js, layoutColumn) : puces d'état, puis sorts | Sceau | coffre. */
+#play.band109 { --hdr-top: 6px; --hdr-h: 76px; }
+#play.band109 #zone-card { top: calc(var(--hdr-top) + 7px) !important; left: 6px !important; min-width: 190px; box-sizing: border-box; }
+#play.band109 #hq-events { top: var(--hdr-top); height: var(--hdr-h); box-sizing: border-box; border: 2px solid #4a3058; border-radius: 14px; padding: 4px 10px; align-items: center; }
+#play.band109 #boost-group { top: var(--hdr-top) !important; right: 116px !important; left: auto !important; bottom: auto !important; transform: none !important;
+  height: var(--hdr-h); flex-direction: row; align-items: center; gap: 6px; }
+#play.band109 #boost-group #rush-bar { flex-wrap: nowrap; }
+#play.band109 #auto-toggle { top: calc(var(--hdr-top) + (var(--hdr-h) - 28px) / 2) !important; right: 6px !important; left: auto !important; }
+#play.band109 #rift-chip { display: none !important; } /* la Faille est déjà dans la rangée d'événements */
+#play.band109 #hq-bounty { top: calc(var(--hdr-top) + var(--hdr-h) + 8px); }
+
+/* Colonne de gauche : les deux cartes s'empilent ; une carte absente ne laisse aucun trou. */
+#hq-left { position: absolute; left: 8px; top: 90px; width: 300px; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+#hq-left > * { pointer-events: auto; }
+#hud106 #hq-left > #hq-path, #hud106 #hq-left > #hq-carnet { position: relative; left: auto; right: auto; top: auto; width: auto; }
+#hud106.hq-phone #hq-left { top: 150px; left: 6px; right: 6px; width: auto; }
+#hud106.hq-wide #hq-left { width: 380px; }
+#hud106 #hq-left > #hq-carnet { background: #24162ce0; border: 2px solid #4a3058; border-radius: 12px; padding: 8px; }
+#hud106 #hq-left > #hq-carnet:has(.hq-carnet-done), #hud106 #hq-left > #hq-carnet:has(.hq-carnet-chip) { background: none; border: 0; padding: 0; }
+.hq-carnet-done { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 12px; border-radius: 12px; border: 2px solid #4fd46a; background: #163a1ee8;
+  color: #c8ffd0; font: inherit; font-weight: 800; font-size: 13px; cursor: pointer; text-align: left; box-shadow: 0 3px 8px #0007; }
+.hq-carnet-done img { width: 28px; height: 28px; flex: none; }
+.hq-carnet-done b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Bande du bas : puces d'état sur une ligne, puis sorts | Sceau | coffre. */
+#play.band109 #env-chip, #play.band109 #scene-bottom { position: absolute; z-index: 3; height: 22px; }
+#play.band109 #scene-bottom { display: flex; align-items: center; }
+#play.band109 #skill-bar, #play.band109 #next-action { position: absolute; }
+/* Sceau : 2 lignes au plus, coupé avec « … », jamais au milieu d'un mot. */
+#next-action #next-action-text { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; text-overflow: ellipsis; word-break: normal; overflow-wrap: normal; }
+#next-action #next-action-why { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; }
+
+/* Coffre de butin : un vrai bouton, toujours visible, en bas à droite. */
+#loot-bag { width: 76px; height: 64px; background: none; border: 0; cursor: pointer; }
+#loot-bag > .lb-art { position: absolute; inset: 0; width: 100%; height: 100%; clip-path: none; overflow: visible; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 3px 4px #000a); }
+#loot-bag.lb-empty > .lb-art { filter: grayscale(.35) brightness(.8) drop-shadow(0 3px 4px #000a); }
+#loot-bag > .lb-count { position: absolute; top: -4px; right: -2px; width: auto; height: 20px; min-width: 20px; padding: 0 5px; clip-path: none; overflow: visible;
+  border-radius: 10px; background: #e23b4a; color: #fff; font: 800 12px/20px system-ui, sans-serif; text-align: center; border: 2px solid #fff; box-sizing: border-box; }
+#loot-bag.lb-empty > .lb-count { display: none; }
+#loot-bag > .lb-up:not(.hidden) { position: absolute; left: -4px; top: -4px; width: 18px; height: 18px; clip-path: none; overflow: visible; border-radius: 9px; background: #2fbf5a; color: #fff;
+  font: 900 11px/18px system-ui, sans-serif; font-style: normal; text-align: center; }
+#loot-bag > .lb-bubble:not(.hidden) { position: absolute; bottom: calc(100% + 6px); right: 0; width: auto; height: auto; clip-path: none; overflow: visible; padding: 4px 8px; border-radius: 8px;
+  background: #fff3d8; color: #3a2410; font: 800 12px/1.2 system-ui, sans-serif; white-space: nowrap; box-shadow: 0 3px 8px #0008; }
+#loot-bag.hidden { display: none; }
+#loot-bag:hover > .lb-art { transform: translateY(-2px); }
+#play.band109 #bastion-tower { display: none !important; } /* le Bastion est dans la rangée d'événements */

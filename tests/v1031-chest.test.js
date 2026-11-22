@@ -116,8 +116,8 @@ test('1031 : SceneRenderer appelle le coffre en quelques lignes (sol, dessus, vo
   assert.match(scene, /kind: 'loot', toBag: Boolean\(event\.bagged\)/, 'sans coffre dessiné (autres scènes) : butin habituel');
   const bag = src('src/ui/loot-bag.js');
   assert.match(bag, /r\.lootChest \?\?= new LootChest\(\)/, 'créé par l\'interface sur this.ui.renderer (scène principale)');
-  assert.doesNotMatch(bag, /loot_chest\.png|flyIn|lb-coin/, 'plus d\'image ni d\'animation DOM du coffre');
-  assert.doesNotMatch(bag.match(/this\.btn\.innerHTML = [^\n]*/)[0], /<img/, 'bouton invisible : pas d\'image (v10.6 : les icônes d\'objets sont dans le volet de tri)');
+  assert.doesNotMatch(bag, /flyIn|lb-coin/, 'pas d\'animation DOM du coffre');
+  assert.match(bag.match(/this\.btn\.innerHTML = [^\n]*/)[0], /<img class="px lb-art"/, 'v10.9 : le coffre est un vrai bouton, toujours visible');
 });
 
 test('1031 : bouton réel invisible (clavier, lecteurs d\'écran, touche B), zone ≥ 44 px, curseur main', () => {

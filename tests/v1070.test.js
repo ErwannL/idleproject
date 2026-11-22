@@ -50,7 +50,7 @@ test('10.7 (2) : rangée d\'événements sous la bande du haut, noms courts, « 
 });
 
 test('10.7 (6) : fenêtre très large — compétences et Sceau sur une ligne, sol plus bas', () => {
-  assert.match(src('src/ui/ui.js'), /!\(ultra && items\.length === 2\)/);
+  assert.match(src('src/ui/ui.js'), /play\.classList\.add\('band109'\)/, 'v10.9 : même bande du bas dans toutes les tailles');
   assert.match(src('src/render/scene.js'), /cssWidth \/ cssHeight > 2\.1 \? 0\.86 : 0\.74/);
 });
 

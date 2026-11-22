@@ -2425,7 +2425,7 @@ export class UI {
     play.classList.toggle('quest-mini', area.clientHeight < 300);
     hud?.classList.remove('seal-over');
     play.classList.remove('col-row');
-    if (this.layout === 'strip') return;
+    if (this.layout === 'strip') { play.classList.remove('band109'); return; }
     const ground = parseFloat(getComputedStyle(play).getPropertyValue('--ground-px')) || 0;
     const place0 = (el, top) => { el.style.top = `${Math.round(top)}px`; el.style.bottom = 'auto'; el.style.left = '50%'; el.style.transform = 'translateX(-50%)'; };
     // Limite basse : le bas de la scène, ou le haut de la barre d'onglets si elle passe par-dessus.
@@ -2443,54 +2443,48 @@ export class UI {
     if (area.clientWidth < 560 && area.clientHeight > area.clientWidth) {
       const bottom = this.$('scene-bottom');
       const set = (el, top, left, extra = {}) => { if (!el) return; el.style.top = `${Math.round(top)}px`; el.style.bottom = 'auto'; el.style.left = `${Math.round(left)}px`; el.style.transform = 'none'; Object.assign(el.style, extra); };
-      play.classList.add('phone-band');
+      play.classList.add('phone-band'); play.classList.remove('band109');
       if (bottom) set(bottom, ground + 6, 8, { right: 'auto' });
       const row = ground + 34;
       let x = 8;
       if (shown(bar)) { set(bar, row, x); x += bar.offsetWidth + 8; }
       if (shown(boost)) { set(boost, row, x, { right: 'auto', width: 'auto' }); }
       if (shown(seal)) set(seal, row + 70, 8, { maxWidth: `${Math.max(160, area.clientWidth - 8 - 112)}px` });
+      { const chest = this.$('loot-bag'); if (chest) set(chest, row + 70 + (shown(seal) ? (seal.offsetHeight - 64) / 2 : 0), area.clientWidth - 8 - 76, { right: 'auto', width: '76px', height: '64px' }); } // v10.9 : coffre toujours visible
       if (later && shown(seal)) { const b = seal.getBoundingClientRect(), a = area.getBoundingClientRect(); later.style.top = `${b.top - a.top + (b.height - later.offsetHeight) / 2}px`; later.style.left = `${b.right - a.left + 8}px`; }
       return;
     }
     play.classList.remove('phone-band');
-    const wideHud = play.classList.contains('wide-scene') && shown(hud);
-    let y = ground + 8;
-    if (wideHud) { hud.style.top = `${y}px`; y += hud.offsetHeight + 8; }
-    // v10.1 (P5) : la puce d'effet du monde (boost) passe au-dessus de la ligne compétences + Sceau.
-    // La place de la barre de compétences est réservée même quand elle est cachée : le Sceau ne saute plus.
-    if (shown(bar)) this.barH = bar.offsetHeight;
-    const items = [shown(bar) ? bar : null, shown(seal) ? seal : null].filter(Boolean);
-    const chip = shown(boost) ? boost.querySelector('#boost-chip') : null;
-    const needAll = items.reduce((t, el) => t + el.offsetHeight + 8, 0) + (chip ? chip.offsetHeight + 6 : 0) + (!shown(bar) && shown(seal) && this.barH ? this.barH + 8 : 0);
-    if (y + needAll <= H - 4) {
-      if (chip) { place0(boost, y - (chip.offsetTop || 0)); y += chip.offsetHeight + 6; }
-      if (!shown(bar) && shown(seal) && this.barH) y += this.barH + 8;
-    }
-    const fingerRoom = (el) => (el === seal && !seal.querySelector('.na-finger')?.classList.contains('hidden') ? 30 : 0); // place du doigt au-dessus du Sceau
-    const need = items.reduce((t, el) => t + el.offsetHeight + 8 + fingerRoom(el), 0);
-    const place = (el, top, left = '50%', tr = 'translateX(-50%)') => { el.style.top = `${Math.round(top)}px`; el.style.bottom = 'auto'; el.style.left = left; el.style.transform = tr; };
-    // v10.7 (6) : fenêtre très large : compétences et Sceau sur une seule ligne, juste sous la barre de vague ; le
-    // combat descend d'autant (plus de mur de briques vide).
-    const ultra = area.clientWidth > 2 * area.clientHeight;
-    if (ultra && !this.ultraLift && this.renderer) { this.ultraLift = true; this.renderer.liftCap = null; this.resizeScene?.(); }
-    if (!ultra) this.ultraLift = false;
-    if (y + need <= H - 4 && !(ultra && items.length === 2)) {
-      let t = y;
-      for (const el of items) { t += fingerRoom(el); place(el, t); t += el.offsetHeight + 8; }
-    } else if (items.length === 2 && y + Math.max(bar.offsetHeight, seal.offsetHeight) <= H - 4) {
-      play.classList.add('col-row');
-      place(bar, y, '8px', 'none');
-      place(seal, y + (bar.offsetHeight - seal.offsetHeight) / 2, `${Math.min(area.clientWidth - seal.offsetWidth - 8, bar.offsetWidth + 20)}px`, 'none');
-    } else if (this.resizeScene && !this.renderer?.liftShrinking) {
-      // La scène rétrécit : on remonte le sol de ce qui manque, puis on relance la mise en page.
+    // v10.9 (partie 4) : une place fixe pour chaque chose, la même dans toutes les tailles de fenêtre.
+    // Sous la barre de vague : les puces d'état (effet du monde, PV) sur une ligne, puis une grille de 3 colonnes :
+    // sorts | Sceau | coffre de butin (toujours visible). Les boosts restent dans la bande d'en-tête (CSS layout109.css).
+    play.classList.add('band109');
+    const A = area.getBoundingClientRect();
+    if (play.classList.contains('wide-scene') && shown(hud)) hud.style.top = `${ground + 8}px`;
+    const k = A.width / Math.max(1, area.clientWidth); // zoom de l'interface (rects à l'écran / px CSS)
+    const hudBottom = shown(hud) ? (hud.getBoundingClientRect().bottom - A.top) / k : ground;
+    const env = this.$('env-chip'), bottom = this.$('scene-bottom'), chest = this.$('loot-bag');
+    const pin = (el, top, left, extra = {}) => { if (!el) return; Object.assign(el.style, { top: `${Math.round(top)}px`, bottom: 'auto', left: `${Math.round(left)}px`, right: 'auto', transform: 'none' }, extra); };
+    let y = hudBottom + 6;
+    let x = 8;
+    if (shown(env)) { pin(env, y, x); x += env.offsetWidth + 8; }
+    if (bottom) pin(bottom, y, x, { width: 'auto' });
+    y += 28;
+    const rowH = 64;
+    const chestW = 76;
+    if (shown(bar)) { this.barH = bar.offsetHeight; pin(bar, y + (rowH - bar.offsetHeight) / 2, 8); }
+    const left = 8 + Math.max(shown(bar) ? bar.offsetWidth : 0, this.barH ? 52 : 0) + 12;
+    const right = area.clientWidth - 8 - chestW - 12;
+    if (shown(seal)) pin(seal, y + (rowH - seal.offsetHeight) / 2, left, { maxWidth: `${Math.max(160, right - left)}px` });
+    if (chest) pin(chest, y + (rowH - 64) / 2, area.clientWidth - 8 - chestW, { width: `${chestW}px`, height: '64px' });
+    if (later && shown(seal)) { const b = seal.getBoundingClientRect(); later.style.top = `${(b.top - A.top) / k + (b.height / k - later.offsetHeight) / 2}px`; later.style.left = `${(b.right - A.left) / k + 8}px`; }
+    // Trop juste en hauteur : la scène rétrécit (sol plus haut), comme avant.
+    if (y + rowH + 4 > H && this.resizeScene && this.renderer && !this.renderer.liftShrinking) {
       const r = this.renderer;
-      const missing = y + Math.max(...items.map((el) => el.offsetHeight), 0) + 12 - H;
-      const cur = r ? r.groundY / Math.max(1, r.height) : 0.7;
-      const cap = Math.max(0.55, cur - missing / area.clientHeight - 0.02); // v10.1 (P5) : la scène garde au moins 55 % de la hauteur
-      if (r && cap < cur - 0.005) { r.liftCap = Math.min(r.liftCap ?? 1, cap); r.liftShrinking = true; this.resizeScene(); setTimeout(() => { r.liftShrinking = false; this.layoutColumn(); }, 0); }
+      const cur = r.groundY / Math.max(1, r.height);
+      const cap = Math.max(0.55, cur - (y + rowH + 8 - H) / area.clientHeight - 0.02);
+      if (cap < cur - 0.005) { r.liftCap = Math.min(r.liftCap ?? 1, cap); r.liftShrinking = true; this.resizeScene(); setTimeout(() => { r.liftShrinking = false; this.layoutColumn(); }, 0); }
     }
-    if (later && shown(seal)) { const b = seal.getBoundingClientRect(), a = area.getBoundingClientRect(); later.style.top = `${b.top - a.top + (b.height - later.offsetHeight) / 2}px`; later.style.left = `${b.right - a.left + 8}px`; }
   }
 
   // v10.1 (P1 §2.8) : grande carte d'un compagnon obtenu.

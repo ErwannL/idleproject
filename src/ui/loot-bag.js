@@ -25,7 +25,8 @@ export class LootBag {
     this.btn.setAttribute('aria-label', 'Coffre de butin');
     this.btn.setAttribute('aria-expanded', 'false');
     // Rien de visible : pastille, flèche et bulle sont dessinées dans la scène ; ces textes servent aux lecteurs d'écran.
-    this.btn.innerHTML = '<b class="lb-count"></b><i class="lb-up hidden">▲</i><span class="lb-bubble hidden"></span>';
+    // v10.9 (partie 4) : le coffre est un vrai bouton, toujours visible, à sa place fixe en bas à droite (grille du bas).
+    this.btn.innerHTML = '<img class="px lb-art" src="assets/ui/art102/loot_chest.png" alt=""><b class="lb-count"></b><i class="lb-up hidden">▲</i><span class="lb-bubble hidden"></span>';
     this.btn.addEventListener('click', () => this.toggle());
     area?.appendChild(this.btn);
     this.sheet = document.createElement('div');
@@ -87,7 +88,7 @@ export class LootBag {
 
   toggle(force) {
     this.open = force ?? !this.open;
-    if (this.open && !this.available()) this.open = false;
+    if (this.open && !this.available()) { this.open = false; if (force == null) this.ui.toast?.('Le coffre de butin est vide : les objets lâchés par les monstres y arrivent.'); }
     if (!this.open) { this.choices = {}; this.compareId = null; }
     this.sheet.classList.toggle('hidden', !this.open);
     this.btn.classList.toggle('active', this.open);
@@ -98,12 +99,14 @@ export class LootBag {
   // Appelée à chaque image : contenu du coffre (seulement s'il change), puis zone de toucher posée sur le coffre dessiné.
   update(state) {
     const sum = state && lootBagOn(state) ? lootBagSummary(state) : { count: 0 };
-    const shown = chestShown(state, this.ui);
+    // v10.9 : plus de coffre dessiné dans la scène ; le bouton du bas est toujours là (sauf Arène, veille, coffre désactivé).
+    const shown = Boolean(state && state.ui?.lootBag !== false && !this.ui.arenaOpen && !this.ui.sleeping);
     const key = `${sum.count}|${sum.best}|${sum.upgrade}|${shown}`;
     if (key !== this.lastKey) {
       this.lastKey = key;
       const full = sum.count >= LOOT_BAG_MAX;
-      this.chest?.set({ count: sum.count, best: sum.best, upgrade: sum.upgrade, full, shown });
+      this.chest?.set({ count: sum.count, best: sum.best, upgrade: sum.upgrade, full, shown: false });
+      this.btn.classList.toggle('lb-empty', !sum.count);
       this.btn.querySelector('.lb-count').textContent = sum.count > 99 ? '99+' : String(sum.count);
       this.btn.querySelector('.lb-up').classList.toggle('hidden', !sum.upgrade);
       this.btn.setAttribute('aria-label', `Coffre de butin : ${sum.count} objet${sum.count > 1 ? 's' : ''}${sum.upgrade ? ' (amélioration)' : ''}`);
@@ -120,26 +123,12 @@ export class LootBag {
 
   // Zone de toucher (≥ 44 px) exactement sur le coffre dessiné ; cachée quand la scène ne le dessine pas.
   place(shown) {
-    const c = this.chest, r = c?.rect;
-    const now = typeof performance !== 'undefined' ? performance.now() : 0;
-    if (!shown || !r || now - c.drawnAt > 500) {
-      if (this.placeKey !== 'off') { this.placeKey = 'off'; this.btn.classList.add('hidden'); }
-      return;
-    }
-    if (!this.offset || now - this.offsetAt > 500) {
-      const cv = this.ui.renderer?.canvas, area = this.btn.parentElement;
-      const a = area?.getBoundingClientRect(), b = cv?.getBoundingClientRect();
-      this.offset = a && b ? { x: b.left - a.left, y: b.top - a.top } : { x: 0, y: 0 };
-      this.offsetAt = now;
-    }
-    const x = Math.round(this.offset.x + r.x), y = Math.round(this.offset.y + r.y);
-    const key = `${x}|${y}|${r.w}|${r.h}`;
+    const key = shown ? 'on' : 'off';
     if (key === this.placeKey) return;
     this.placeKey = key;
-    const st = this.btn.style;
-    st.left = `${x}px`; st.top = `${y}px`; st.width = `${r.w}px`; st.height = `${r.h}px`;
-    this.btn.classList.remove('hidden');
+    this.btn.classList.toggle('hidden', !shown);
   }
+
 
   destOf(item) { return this.choices[item.id] ?? suggestLootDest(this.state, item); }
 

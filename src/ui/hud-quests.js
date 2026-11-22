@@ -65,7 +65,7 @@ export function carnetTop(state, open, now = Date.now()) {
   const tasks = daybookTasks(state, open, now);
   const todo = tasks.filter((t) => !t.done).sort((a, b) => b.n / b.target - a.n / a.target);
   const done = tasks.filter((t) => t.done);
-  return { list: [...todo, ...done].slice(0, 3), done: done.length, total: tasks.length };
+  return { list: [...todo, ...done].slice(0, 3), done: done.length, total: tasks.length, chest: Boolean(daybookOf(state, now).chest) };
 }
 
 // Icônes de la colonne d'événements, dans l'ordre ; chacune : id, image, nom, minuteur, pastille, action, valeur, urgent.
@@ -114,6 +114,8 @@ function pathHtml(q) {
     <span class="hq-foot"><span class="hq-reward">${rewardIcons(q.reward)}</span>${btn}</span></span>`;
 }
 function carnetHtml(c, phone) {
+  // v10.9 (partie 4) : Carnet fini → une seule ligne verte, à la même place (rien d'autre ne bouge).
+  if (c.total && c.done >= c.total) return `<button class="hq-carnet-done" data-action="open-tab" data-value="daybook">${img('icon_chest')}<b>Carnet ${c.done}/${c.total} · ${c.chest ? 'coffre du jour ouvert ✓' : 'ouvre le coffre du jour ›'}</b></button>`;
   if (phone) return `<button class="hq-carnet-chip" data-action="open-tab" data-value="daybook">${img('icon_trophy')}<b>Carnet ${c.done}/${c.total}</b></button>`;
   const rows = c.list.map((t) => {
     const act = t.done ? 'data-action="open-tab" data-value="daybook"' : t.action ? `data-action="${t.action}"` : `data-action="open-tab" data-value="${t.tab}"`;
@@ -151,8 +153,9 @@ export class HudQuests {
     const area = document.getElementById('stage-area');
     this.root = document.createElement('div');
     this.root.id = 'hud106';
-    this.root.innerHTML = `<button id="hq-path" class="hidden" type="button" aria-label="Chemin du héros"></button>
-      <div id="hq-carnet" class="hidden"></div><div id="hq-events" class="hidden"></div>
+    // v10.9 (partie 4) : colonne de gauche — Chemin du héros puis Carnet du jour, l'un sous l'autre, sans trou.
+    this.root.innerHTML = `<div id="hq-left"><button id="hq-path" class="hidden" type="button" aria-label="Chemin du héros"></button>
+      <div id="hq-carnet" class="hidden"></div></div><div id="hq-events" class="hidden"></div>
       <div id="hq-bounty" class="hidden" role="dialog" aria-label="Prime du Héraut"></div>`;
     area?.appendChild(this.root);
     this.path = this.root.querySelector('#hq-path');
@@ -267,7 +270,7 @@ export class HudQuests {
     this.path.classList.toggle('ready', Boolean(q?.ready));
     // 2. Carnet du jour
     const c = carnetTop(state, daybookOpen(ui), t);
-    const ch = c.total ? carnetHtml(c, this.phone || this.wide) : '';
+    const ch = c.total ? carnetHtml(c, this.phone || this.wide) : ''; // fenêtre large : puce, pour ne pas couvrir l'équipe
     if (this.carnet.dataset.h !== ch) { this.carnet.dataset.h = ch; this.carnet.innerHTML = ch; }
     this.carnet.classList.toggle('hidden', !ch);
     // 4. Prime du Héraut (avant la colonne : une prime rangée y prend sa place)
