@@ -160,8 +160,8 @@ export const AGES = [
   { id: 4, roman: 'IV', name: 'La Couronne', stage: 211, maxLevel: 40, minutes: [1440, 2160], color: '#6fd6ff' },
   { id: 5, roman: 'V', name: 'La Merveille', stage: 211, bastionLevel: 240, maxLevel: 50, minutes: [2160, 2880], color: '#c8a6ff', season: true },
 ];
-// Au-delà du niveau 10 : coût ×1,35 en or et ×1,15 en éclats par niveau (le prix suit l'or du joueur, comme avant).
-export const AGE_STEPS = { goldKills: 140_000, goldGrowth: 1.35, shards: 4000, shardsGrowth: 1.15 };
+// Au-delà du niveau 10 : coût ×1,2 en or et ×1,08 en éclats par niveau (réglé par tools/sim-rythme.mjs) (le prix suit l'or du joueur, comme avant).
+export const AGE_STEPS = { goldKills: 140_000, goldGrowth: 1.2, shards: 4000, shardsGrowth: 1.08 };
 // Ce que chaque niveau au-delà du 10e apporte (multiplicatif) : ×1,02 dégâts et vie par niveau, tous bâtiments confondus.
 export const AGE_POWER = { perLevelPct: 2 };
 // Bâtiments des âges (ajoutés à BUILDINGS) : rôle, métier, et l'effet de chaque niveau.

@@ -345,7 +345,7 @@ export const BALANCE = {
       common: { rate: 100 }, rare: { rate: 100 },
       epic: { rate: 100, stakes: { 3: 30, 4: 65 }, pityStep: 20 },
       // v10.8 (3) : 3 Légendaires → 1 Mythique, 3 Mythiques → 1 Astral ; chaque échec monte la chance suivante (pitié).
-      legendary: { count: 3, rate: 35, pityStep: 15 },
+      legendary: { count: 3, rate: 12, pityStep: 8 }, // réglé par tools/sim-rythme.mjs : 1er Mythique vers la semaine 3
       mythic: { count: 3, rate: 20, pityStep: 10 },
     },
     // v9.1.3 (doc3 lot 5) : héritage d'ensemble en fusion : chance min(pièces × 20, 40) % (« Aucun » possible).

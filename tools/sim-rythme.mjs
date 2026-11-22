@@ -14,6 +14,9 @@ import { bastionAge, bastionLevel, bastionMult, bastionOf, researchLevel } from 
 import { canRebirth, performRebirth, rebirthBlocked, rebirthWorth } from '../src/core/rebirth.js';
 import { RARITIES } from '../src/data/items.js';
 import { HOUR, T0, connection, play } from './sim-lib.mjs';
+import { fuseItems } from '../src/core/forge.js';
+import { worldGate } from '../src/core/seals.js';
+import { SLOTS } from '../src/data/items.js';
 import { BALANCE } from '../src/data/balance.js';
 // Réglage : PACE_RATE=1.1 node tools/sim-rythme.mjs … essaie un autre taux sans toucher balance.js.
 if (process.env.PACE_RATE) BALANCE.enemyScaling.pace = { ...BALANCE.enemyScaling.pace, rate: Number(process.env.PACE_RATE) };
@@ -55,10 +58,13 @@ function runProfile(name) {
     for (const h of hours) {
       connection(sim, start + (d * 24 + h) * HOUR, 20);
       const s = sim.state;
+      // Le joueur fusionne ses Légendaires et Mythiques en trop (3 de la même place) : la voie principale des raretés hautes.
+      for (const slot of Object.keys(SLOTS)) for (const r of ['legendary', 'mythic']) for (let k = 0; k < 4; k++) { const n = s.inventory.filter((i) => i.slot === slot && i.rarity === r && !i.locked).length; if (n < 3 || !fuseItems(s, slot, r, sim.rng)) break; }
       if (canRebirth(s) && !rebirthBlocked(s) && rebirthWorth(s) && performRebirth(s) > 0) { rebirths += 1; sim.world = createCombat(s); }
     }
     const s = sim.state;
-    const best = Math.max(s.maxStage, s.records.bestStage ?? 1);
+    const best0 = Math.max(s.maxStage, s.records.bestStage ?? 1);
+    const best = worldGate(s, best0) ? best0 - 1 : best0; // record ouvert mais monde scellé : le joueur reste devant la porte
     const r = bestRarity(s);
     for (let k = 4; k <= r; k++) firsts[RANK[k]] ??= d + 1;
     const research = RESEARCH.map((x) => researchLevel(s, x.id)).reduce((a, b) => a + b, 0);
