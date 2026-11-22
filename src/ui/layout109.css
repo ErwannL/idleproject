@@ -46,3 +46,42 @@
 #loot-bag.hidden { display: none; }
 #loot-bag:hover > .lb-art { transform: translateY(-2px); }
 #play.band109 #bastion-tower { display: none !important; } /* le Bastion est dans la rangée d'événements */
+
+/* v10.9 (partie 5) : tuiles du Carnet — icône dans sa colonne de 56 px, titre jamais couvert, tampon en bas à droite
+   sur la barre finie, bouton sur toute la largeur sous la barre. */
+#app #panel .db-card { position: relative; display: grid !important; grid-template-columns: 56px minmax(0, 1fr); grid-template-areas: "art body" "go go"; column-gap: 12px; row-gap: 10px;
+  align-items: center; min-height: 0 !important; padding: 12px 14px !important; overflow: hidden; }
+#app #panel .db-card .db-art { grid-area: art; width: 56px !important; min-width: 0 !important; height: 56px; display: grid; place-items: center; align-self: start; overflow: hidden; }
+#app #panel .db-card .db-art img { width: 56px !important; height: 56px !important; object-fit: contain; }
+#app #panel .db-card .db-body { grid-area: body; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+#app #panel .db-card .db-body b, #app #panel .db-card .db-body small { white-space: normal; overflow-wrap: break-word; }
+#app #panel .db-card .db-go { grid-area: go; width: 100%; margin: 0; }
+#app #panel .db-card .db-stamp { position: absolute !important; right: 10px !important; bottom: 8px !important; top: auto !important; left: auto !important; transform: rotate(-6deg) !important; font-size: 12px; z-index: 1; }
+
+/* v10.9 (partie 6) : Améliorations — 3 colonnes seulement s'il y a la place ; icônes dans leur case de 48 px. */
+@media (max-width: 1399px) {
+  #app #panel .upg-page107 .upg-cols3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #app #panel .upg-page107 .upg-cols3 > .g-earn { grid-column: 1 / -1; }
+}
+@media (max-width: 699px) { #app #panel .upg-page107 .upg-cols3 { grid-template-columns: minmax(0, 1fr); } }
+#app #panel .upg-card { grid-template-columns: 48px minmax(0, 1fr) auto; }
+#app #panel .upg-card .upg-icon { width: 48px !important; height: 48px !important; flex: none; overflow: hidden; }
+#app #panel .upg-card .upg-icon img { width: 44px !important; height: 44px !important; object-fit: contain; }
+#app #panel .upg-card .upg-name { overflow-wrap: normal; word-break: normal; }
+.upg-weak-note { margin: 10px 2px 4px; font-size: 12px; }
+/* Carte « Meilleur achat » : illustration 120 px à gauche, texte sur toute la largeur restante, bouton dessous sur téléphone. */
+#app #panel .upg-bestbuy { display: grid !important; grid-template-columns: 120px minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+#app #panel .upg-bestbuy .upg-bb-medal { width: 120px !important; height: 120px !important; }
+#app #panel .upg-bestbuy .upg-bb-main { min-width: 0; overflow-wrap: normal; word-break: normal; }
+@media (max-width: 699px) {
+  #app #panel .upg-bestbuy { grid-template-columns: 96px minmax(0, 1fr); }
+  #app #panel .upg-bestbuy .upg-bb-medal { width: 96px !important; height: 96px !important; }
+  #app #panel .upg-bestbuy > .btn, #app #panel .upg-bestbuy > button { grid-column: 1 / -1; width: 100%; }
+}
+@media (max-width: 699px) {
+  #app #panel .upg-card { grid-template-columns: 48px minmax(0, 1fr) !important; }
+  #app #panel .upg-card .upg-main { min-width: 0; }
+  #app #panel .upg-card .upg-buy { grid-column: 1 / -1; display: flex; flex-direction: row-reverse; align-items: center; justify-content: space-between; gap: 8px; }
+  #app #panel .upg-bestbuy > :last-child { grid-column: 1 / -1; width: 100%; justify-self: stretch; }
+  #app #panel .upg-hero { overflow: hidden; }
+}

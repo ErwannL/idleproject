@@ -124,7 +124,8 @@ export default {
     const gains = Object.fromEntries(keys.map((k) => [k, powerGain(k)]));
     const weakOf = (k) => !POWERLESS_UPGRADES.has(k) && !(gains[k] && current.combatPower > 0 && (gains[k].gain / current.combatPower) * 100 >= WEAK_UPGRADE_PCT); // v10.7 (4)
     const bestKey = keys.filter((k) => gains[k]?.gain > 0).sort((a, b) => gains[b].gain / gains[b].cost - gains[a].gain / gains[a].cost)[0];
-    const done = []; // v9.8 (C2) : lignes au maximum, repliées dans « Terminées (N) »
+    const done = [];
+    const weakCards = []; // v10.9 (6) // v9.8 (C2) : lignes au maximum, repliées dans « Terminées (N) »
     const cards = keys.map((key) => {
       const up = BALANCE.upgrades[key];
       const level = state.upgrades[key];
@@ -159,11 +160,12 @@ export default {
         <div class="upg-icon">${img(ICONS[key])}</div>
         <div class="upg-main"><div class="upg-name" title="${escapeHtml(up.description)}">${escapeHtml(up.label)} <span class="upg-level">niv. ${level}${up.maxLevel ? `/${up.maxLevel}` : ''}</span>${milestone}${env?.counter === key ? `<span class="tag env-counter" title="${escapeHtml(`Contré : ${Math.round(env.countered)} % (complet au niveau ${env.fullAt})`)}">contre ${escapeHtml(env.name)}</span>` : ''}</div>
         ${compact || !beginner ? '' : `<div class="muted upg-desc">${escapeHtml(up.description)}</div>`}
-        ${weak ? '<small class="upg-weak-why">Presque sans effet sur ta puissance</small>' : ''}<div class="upg-effect num">${max ? `<span class="to">${from}</span>` : `<span class="from">${from}</span> → <b class="to good">${to}</b>`}</div></div>
+<div class="upg-effect num">${max ? `<span class="to">${from}</span>` : `<span class="from">${from}</span> → <b class="to good">${to}</b>`}</div></div>
         <div class="upg-buy">${costButton({ action: 'buy', cost, have: state.gold, attrs: `data-key="${key}" data-amount="${amount}"`, max, label: count > 1 ? `+${count} ` : '' })}
           ${max ? '' : `<small class="upg-gain">${key === bestKey ? '<b class="upg-best" title="Meilleure affaire">★</b> ' : ''}${totalPct > 0.05 ? `+${count} niv. · ${powerGainText(totalPct)}` : p?.pct > 0.05 ? `+${formatDecimal(p.pct)} % DPS` : gain ? gain.replace(/<[^>]+>/g, '').replace('▲', '').trim() : ''}</small>`}</div>
       </div>`; // v9.9 (K3/K15) : avant → après, gain sous le prix, étoile sur la meilleure affaire
       if (max) { done.push(html); return ''; }
+      if (weak && !cat && !beginner) { weakCards.push(html); return ''; } // v10.9 (6) : regroupées dans « Peu utiles maintenant »
       return html;
     });
     const byKey = Object.fromEntries(keys.map((k, i) => [k, cards[i]]));
@@ -210,16 +212,18 @@ export default {
     const buyAll = state.gold > 0 ? `<button class="btn btn-gold buy-all${ui.view.buyAllArmed ? ' armed' : ''}" data-action="${state.ui.buyAllOk || ui.view.buyAllArmed ? 'buy-best' : 'buy-all-arm'}">${ui.view.buyAllArmed && !state.ui.buyAllOk ? 'Confirmer : tout acheter ?' : 'Tout acheter'}</button>` : '';
     // v10.6 (partie 5) : en page plein écran, gabarit .pg : héros et achats à gauche, les 3 groupes en colonnes à droite.
     // v10.7 (4) : en page — « Meilleur achat » et « Tout acheter » sur toute la largeur, puis 3 colonnes égales.
+    // v10.9 (6) : « Presque sans effet » dit une seule fois ; les lignes concernées sont repliées ensemble.
+    const weakFold = weakCards.length ? `<p class="muted upg-weak-note">Presque sans effet sur ta puissance (moins de 0,5 %) : ces lignes ne sont pas dans « Tout acheter ».</p>${fold(ui, 'upg-weak', `Peu utiles maintenant (${weakCards.length})`, `<div class="upg-list">${weakCards.join('')}</div>`)}` : '';
     if (pageActive(ui) && !pageNarrow(ui)) {
       const col = (g) => { const body = g.keys.filter((k) => byKey[k]).map((k) => byKey[k]).join(''); return `<section class="upg-group g-${g.id}"><h4 class="upg-group-head" style="background-image:url(assets/ui/art106/${g.art}.png)"><span>${g.title}</span></h4><div class="upg-list">${body}</div>${g.id === 'earn' ? rebirthRow(state) : ''}</section>`; };
       return `<div class="pg upg-page upg-page107"><div class="pg-top upg-pg-top"><img class="px upg-pg-banner" src="assets/ui/art101/banner_upgrades.png" alt="" aria-hidden="true"><b>Améliorations</b></div>
       <div class="pg-main upg-pg-main"><div class="upg-toprow">${bestCard}<div class="card upg-top">${top}${buyAll}</div></div>
-        <div class="upg-cols3">${GROUPS.map(col).join('')}</div>${done.length ? fold(ui, 'upg-done', `Terminées (${done.length})`, `<div class="upg-list">${done.join('')}</div>`) : ''}</div></div>`;
+        <div class="upg-cols3">${GROUPS.map(col).join('')}</div>${weakFold}${done.length ? fold(ui, 'upg-done', `Terminées (${done.length})`, `<div class="upg-list">${done.join('')}</div>`) : ''}</div></div>`;
     }
     return `${heroCard}<div class="card upg-top">${top}${buyAll}</div>
       ${catTabs}
       ${beginner ? '' : fold(ui, 'upg-filters', 'Trier', filters)}
-      ${bestCard}${grouped}
+      ${bestCard}${grouped}${weakFold}
       ${done.length ? fold(ui, 'upg-done', `Terminées (${done.length})`, `<div class="upg-list">${done.join('')}</div>`) : ''}
       ${rebirthRow(state)}
       ${beginner ? '<div class="muted">D\'autres améliorations s\'ouvrent au fil des boss.</div>' : ''}
