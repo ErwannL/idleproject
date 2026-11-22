@@ -230,9 +230,17 @@ export function rebirthReward(state, stage = state.maxStage) {
 }
 // v9.6.2 (7.8) : la Renaissance vaut la peine dès que son gain dépasse un seuil (au moins 30 fragments, et au moins la
 // moitié des fragments déjà possédés ou dépensés) — proposée tôt, pas seulement quand un boss bloque.
+// v10.8 (partie 6) : rentable quand elle multiplie la puissance d'au moins ×REBIRTH.worthMult (le gain se voit) et que le
+// joueur stagne (pas de nouveau record depuis 30 min de jeu) — ou dès qu'elle rapporte beaucoup de fragments. L'ancien
+// seuil (la moitié des fragments déjà possédés) montait avec les fragments gagnés ailleurs : elle n'était jamais rentable.
+export function rebirthMult(state) {
+  return PRESTIGE.rebirthMultiplier ** rebirthGain(state);
+}
 export function rebirthWorth(state) {
   const r = rebirthReward(state);
-  return r > 0 && r >= Math.max(30, 0.5 * ((state.fragments ?? 0) + fragmentsSpent(state)));
+  if (r <= 0) return false;
+  const stuck = (state.playSeconds ?? 0) - (state.recordAt ?? state.playSeconds ?? 0) >= REBIRTH.stuckSeconds;
+  return rebirthMult(state) >= REBIRTH.worthMult && (stuck || r >= Math.max(60, 0.5 * ((state.fragments ?? 0) + fragmentsSpent(state))));
 }
 
 // Réinitialise la campagne, l'or et les améliorations ; conserve tout le reste.

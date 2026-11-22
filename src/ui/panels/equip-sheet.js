@@ -46,7 +46,7 @@ const affixVal = (type, v) => `${formatDecimal(v, 1)}${AFFIX_UNITS[type] ?? ' %'
 // Places féminines (« Ce qu'elle donne », « si renforcée »).
 const FEM_SLOTS = new Set(['weapon', 'armor']);
 export const femSlot = (slot) => FEM_SLOTS.has(slot);
-const pctText = (v) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${formatDecimal(Math.abs(v), Math.abs(v) < 10 ? 1 : 0)} %`;
+const pctText = (v) => (v >= 1000 ? `×${formatNumber(Math.round(1 + v / 100))}` : `${v > 0 ? "+" : v < 0 ? "−" : ""}${formatDecimal(Math.abs(v), Math.abs(v) < 10 ? 1 : 0)} %`); // v10.8 (2) : « ×30 » au-delà de +1 000 %
 export { pctText };
 
 // Une amélioration est possible sur ce compagnon (pastille rouge « ! ») : meilleur objet dans le sac, renforcement

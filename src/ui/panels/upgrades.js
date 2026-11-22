@@ -23,6 +23,8 @@ const ICONS = {
 };
 // v9.2.8 : lignes de survie — gain neutre affiché en « PV effectifs » (PV ÷ part des dégâts qui passe), comme
 // « dégâts/s » pour les lignes d'attaque.
+// v10.8 (partie 2) : au-delà de +1 000 %, « ×30 de puissance » au lieu de « +2,9 K % ».
+export const powerGainText = (pct) => (pct >= 1000 ? `×${formatNumber(Math.round(1 + pct / 100))} de puissance` : `+${formatDecimal(pct)} % de puissance`);
 const SURVIVAL = new Set(['vitality', 'defense', 'armor']);
 // v10.6 (partie 5) : 3 groupes dessinés (bandeaux PixelLab), comme les tuiles du Carnet.
 const GROUPS = [
@@ -94,8 +96,8 @@ export default {
     const env = currentEnvironment(state); // v9.2.1 : malus du monde actuel (mention neutre sur la ligne qui le contre)
     const nextUp = beginner ? null : nextUpgradeUnlock(state, BALANCE);
     if (ui.view.upgradeSort === 'profit') keys = [...keys].sort((x, y) => (profits[y]?.score ?? -1) - (profits[x]?.score ?? -1));
-    else if (ui.view.upgradeSort === 'cost') keys = [...keys].sort((x, y) => upgradeCost(x, state.upgrades[x]) - upgradeCost(y, state.upgrades[y]));
-    const cheapest = Math.min(Infinity, ...keys.map((k) => upgradeCost(k, state.upgrades[k])));
+    else if (ui.view.upgradeSort === 'cost') keys = [...keys].sort((x, y) => upgradeCost(x, state.upgrades[x], undefined, state) - upgradeCost(y, state.upgrades[y], undefined, state));
+    const cheapest = Math.min(Infinity, ...keys.map((k) => upgradeCost(k, state.upgrades[k], undefined, state)));
     const bulkOpen = !beginner || state.gold >= cheapest * 10;
     const amount = bulkOpen ? ui.view.buyAmount ?? ((state.records.bossesDefeated ?? 0) > 30 ? 'max' : '1') : '1'; // v10.7 (4) : « Max » par défaut dans une partie avancée
     const amountLabel = (a) => (a === 'max' ? 'Max' : `×${a}`);
@@ -115,7 +117,7 @@ export default {
       if (up.maxLevel !== undefined && lv >= up.maxLevel) return null;
       const plan = bulkPlan(state, key, amount);
       const n = Math.max(1, plan.count);
-      const c = plan.count ? plan.cost : upgradeCost(key, lv);
+      const c = plan.count ? plan.cost : upgradeCost(key, lv, undefined, state);
       const g = computeHeroStats({ ...state, upgrades: { ...state.upgrades, [key]: lv + n } }).combatPower - current.combatPower;
       return { gain: g, cost: c };
     };
@@ -129,7 +131,7 @@ export default {
       const max = up.maxLevel !== undefined && level >= up.maxLevel;
       const plan = bulkPlan(state, key, amount);
       const count = Math.max(1, plan.count);
-      const cost = plan.count ? plan.cost : upgradeCost(key, level);
+      const cost = plan.count ? plan.cost : upgradeCost(key, level, undefined, state);
       const next = computeHeroStats({ ...state, upgrades: { ...state.upgrades, [key]: level + count } });
       const [from, to0] = effect(key, current, next);
       const to = distinctTo(from, to0, current.combatPower > 0 ? (next.combatPower / current.combatPower - 1) * 100 : 0);
@@ -147,7 +149,7 @@ export default {
       const pg = gains[key];
       // v9.8 (I1) : avec ×10 / ×100 / Max, le gain total de l'achat (« +12 niv. · +4,1 % de puissance »).
       const totalPct = count > 1 && current.combatPower > 0 ? ((next.combatPower / current.combatPower) - 1) * 100 : 0;
-      const gain = totalPct > 0.05 ? ` <span class="muted upg-profit">${key === bestKey ? '<b class="upg-best" title="Meilleure affaire">▲</b> ' : ''}+${count} niv. · +${formatDecimal(totalPct)} % de puissance</span>`
+      const gain = totalPct > 0.05 ? ` <span class="muted upg-profit">${key === bestKey ? '<b class="upg-best" title="Meilleure affaire">▲</b> ' : ''}+${count} niv. · ${powerGainText(totalPct)}</span>`
         : pg && pg.gain > 0 ? ` <span class="muted upg-profit">${key === bestKey ? '<b class="upg-best" title="Meilleure affaire">▲</b> ' : ''}Puissance +${formatNumber(Math.round(pg.gain))}</span>` : '';
       // v9.1.3 (ligne type doc2 §3) : icône, nom + niveau (+ palier), un seul chiffre qui bouge (avant → après, l'unité
       // est dans le nom), +x % dégâts/s neutre sur la même ligne, bouton avec prix : 2 lignes au lieu de 3.
@@ -159,7 +161,7 @@ export default {
         ${compact || !beginner ? '' : `<div class="muted upg-desc">${escapeHtml(up.description)}</div>`}
         ${weak ? '<small class="upg-weak-why">Presque sans effet sur ta puissance</small>' : ''}<div class="upg-effect num">${max ? `<span class="to">${from}</span>` : `<span class="from">${from}</span> → <b class="to good">${to}</b>`}</div></div>
         <div class="upg-buy">${costButton({ action: 'buy', cost, have: state.gold, attrs: `data-key="${key}" data-amount="${amount}"`, max, label: count > 1 ? `+${count} ` : '' })}
-          ${max ? '' : `<small class="upg-gain">${key === bestKey ? '<b class="upg-best" title="Meilleure affaire">★</b> ' : ''}${totalPct > 0.05 ? `+${count} niv. · +${formatDecimal(totalPct)} % de puissance` : p?.pct > 0.05 ? `+${formatDecimal(p.pct)} % DPS` : gain ? gain.replace(/<[^>]+>/g, '').replace('▲', '').trim() : ''}</small>`}</div>
+          ${max ? '' : `<small class="upg-gain">${key === bestKey ? '<b class="upg-best" title="Meilleure affaire">★</b> ' : ''}${totalPct > 0.05 ? `+${count} niv. · ${powerGainText(totalPct)}` : p?.pct > 0.05 ? `+${formatDecimal(p.pct)} % DPS` : gain ? gain.replace(/<[^>]+>/g, '').replace('▲', '').trim() : ''}</small>`}</div>
       </div>`; // v9.9 (K3/K15) : avant → après, gain sous le prix, étoile sur la meilleure affaire
       if (max) { done.push(html); return ''; }
       return html;
@@ -179,7 +181,7 @@ export default {
     const medal = `<span class="upg-bb-medal" style="background-image:url(assets/ui/art104/upgrades_hero_tier${tier0}.png)">${animCanvas('hero', 64, 58, 2)}<img class="px upg-bb-badge" src="assets/ui/art106/badge_best_buy.png" alt=""></span>`;
     const bestCard = beginner ? '' : bk && bkPct >= WEAK_UPGRADE_PCT ? `<div class="card upg-bestbuy">${medal}
       <div class="upg-bb-main"><small>★ Meilleur achat</small><b>${img(ICONS[bestKey])} ${escapeHtml(UPGRADE_NAMES[bestKey] ?? bestKey)}</b>
-      <span class="upg-bb-why"><b class="good num">+${formatDecimal(bkPct)} %</b> de puissance pour ${coin()}<b class="num">${formatNumber(bk.cost)}</b> : le meilleur rapport</span></div>
+      <span class="upg-bb-why"><b class="good num">${powerGainText(bkPct)}</b> pour ${coin()}<b class="num">${formatNumber(bk.cost)}</b> : le meilleur rapport</span></div>
       ${costButton({ action: 'buy', cost: bk.cost, have: state.gold, attrs: `data-key="${bestKey}" data-amount="${amount}"`, label: '' })}</div>`
       : `<div class="card upg-bestbuy upg-bb-none">${medal}<div class="upg-bb-main"><small>★ Meilleur achat</small><b>${img('icon_anvil')} Ton or ira plus loin dans ton équipement</b>
       <span class="upg-bb-why">Ici, chaque achat rapporte moins de 0,5 % de puissance.</span></div><button class="btn btn-gold" data-action="open-tab" data-value="forge">Aller à la Forge ›</button></div>`;

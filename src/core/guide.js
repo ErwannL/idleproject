@@ -231,7 +231,7 @@ export function bestOpenUpgrade(state, balance = BALANCE) {
   for (const [k, p] of Object.entries(profits)) if (upgradeOpen(state, k, balance) && p.gain > 0 && (!best || p.score > best.score)) best = { key: k, ...p };
   if (best && best.cost <= state.gold) return best;
   const v = balance.upgrades.vitality;
-  if (v && upgradeOpen(state, 'vitality', balance)) { const cost = upgradeCost('vitality', state.upgrades.vitality ?? 0, balance); if (cost <= state.gold && (state.upgrades.vitality ?? 0) < (state.upgrades.damage ?? 0)) return { key: 'vitality', cost }; }
+  if (v && upgradeOpen(state, 'vitality', balance)) { const cost = upgradeCost('vitality', state.upgrades.vitality ?? 0, balance, state); if (cost <= state.gold && (state.upgrades.vitality ?? 0) < (state.upgrades.damage ?? 0)) return { key: 'vitality', cost }; }
   return best;
 }
 

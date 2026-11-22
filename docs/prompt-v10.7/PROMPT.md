@@ -273,6 +273,66 @@ Le joueur : « pour le héros, le skin ne colle pas du tout avec le jeu, revoir 
 
 ---
 
+## 6 ter. Téléphone : rester en vertical et compacter
+
+Le joueur : « les textes, les menus, etc. sont trop grands et pas assez adaptés sur mobile, autant mettre l'horizontal ; teste pour voir si horizontal ou vertical est mieux ; les compétences et les quêtes se chevauchent ».
+
+**Test fait** : la partie du joueur sur téléphone, en vertical (390 × 844) et en horizontal (844 × 390). J'ai regardé l'écran de jeu et 10 menus, et mesuré les tailles de texte, les chevauchements et la place du combat.
+
+| | Vertical 390 × 844 | Horizontal 844 × 390 |
+|---|---|---|
+| Combat (canvas) | 390 × 681 | 765 × 329 |
+| Part de l'écran prise par le HUD | 21 % | 34 % |
+| Chevauchements sur l'écran de jeu | 2 (Boosts sous Ultime, coffre contre « Tout récupérer ») | 6 (carte de quête sur les événements et les boosts, Carnet sur les événements, compétences sur « Tout récupérer ») |
+| Menu ouvert | feuille du bas, 378 px de combat encore visibles | volet de 440 px sur toute la hauteur |
+| Contenu visible d'un menu | Donjons : en-tête 75 px, onglets 50 px, bannière ≈ 220 px, donc **aucun donjon visible sans défiler** | la bannière remplit toute la hauteur (390 px), donc **aucun contenu visible** |
+| Tailles de texte | surtout 11 à 13 px | surtout 11 à 13 px |
+
+![Vertical](images/actuel/13-telephone-vertical-jeu.png)
+
+![Horizontal](images/actuel/16-telephone-horizontal-jeu.png)
+
+![Vertical, Donjons](images/actuel/15-telephone-vertical-donjons.png)
+
+![Horizontal, Donjons](images/actuel/17-telephone-horizontal-donjons.png)
+
+**Conclusion : garder le vertical sur téléphone.**
+- En horizontal, 390 px de haut ne suffisent pas : la bande du haut, la quête, les événements, la barre de vague et les boutons s'empilent sur un combat de 329 px, et chaque menu cache la moitié de l'écran.
+- Le vertical se joue d'une main, laisse le combat visible avec un menu ouvert, et c'est le format des jeux de référence (Slayer Legend, Capybara Go!).
+- Le texte n'est pas trop gros en soi (11 à 13 px). **Ce qui donne l'impression de « trop grand », ce sont les blocs** : en-têtes de 75 px, onglets de 50 px, bannières de 220 px, boutons pleine largeur.
+
+**À faire** :
+1. **Bloquer le vertical sur téléphone** : `android:screenOrientation="portrait"` dans `AndroidManifest.xml` (activité principale), et la même chose sur iOS. L'horizontal reste permis sur tablette, quand le petit côté fait 600 px ou plus.
+2. **Écran de jeu, vertical** (maquette `images/maquettes/05-telephone-ecran-de-jeu.png`), de haut en bas :
+   - la bande du haut ;
+   - **la rangée d'événements collée dessous** (partie 2) : 5 icônes de 46 px et « Plus » ;
+   - une ligne avec la zone en puce (« 5-14 ×2 ●●●●○ ») et « Avance auto » ;
+   - la carte de quête sur une ligne (48 px de haut) ;
+   - la puce Carnet ;
+   - le combat ;
+   - **une bande du bas, à fond plein**, rangée en grille fixe :
+     - les puces d'état (Froid mordant, PV) sur une ligne ;
+     - puis **Sort, Ultime et Boosts dans 3 cases de même taille (58 px)**, côte à côte ;
+     - le coffre à droite (96 px) ;
+     - « Tout récupérer » dessous, jusqu'au coffre ;
+   - la barre de vague.
+
+   **Plus rien ne se chevauche** : aujourd'hui le bouton Boosts passe sous Ultime (`images/actuel/14-telephone-boosts-sous-ultime.png`).
+3. **Menus en feuille du bas, compacts** (maquette `images/maquettes/06-telephone-menu-donjons.png`) :
+   - en-tête de 40 px (icône, titre, ressource, ✕) ; le ruban décoratif disparaît sur téléphone ;
+   - onglets en icônes seules, 40 px, avec le nom au toucher long ;
+   - **bannière de 60 px de haut** au lieu de 220, avec la phrase dessus ;
+   - le premier contenu (premier donjon, première tuile) est visible sans défiler ;
+   - pages plein écran (Personnage, Forge, Bastion) : même règle d'en-tête et de bannière.
+4. **Textes** : 12 px au moins pour tout texte utile (aujourd'hui, 55 caractères à 9 px sur l'écran de jeu : minuteurs, petites légendes). Titres de tuile à 14 px. Noms d'événement en un mot.
+
+**Tests** :
+- En 390 × 844 et en 360 × 780 : aucun chevauchement entre les blocs du HUD (zone, quête, Carnet, événements, compétences, boosts, Sceau, coffre).
+- Un menu ouvert montre son premier contenu sans défiler.
+- Le téléphone ne passe pas en horizontal. La tablette (800 × 1280) le peut.
+
+---
+
 ## 7. Tests de fin
 
 - **Relances** : 3 relances de la partie du joueur, aucune carte « Nouveau ».

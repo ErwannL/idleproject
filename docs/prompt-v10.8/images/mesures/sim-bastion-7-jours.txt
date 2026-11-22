@@ -1,0 +1,66 @@
+Ouverture du Bastion : étape 40 après 0.2 h de jeu · puissance 77301 · compagnons 5 (alliés : 5) · éclats 256
+campagne                 J1 : étape 80 · puissance 3.22e+6 · éclats 2969
+campagne                 J2 : étape 120 · puissance 2.20e+8 · éclats 12539
+campagne                 J3 : étape 155 · puissance 1.09e+9 · éclats 26638
+campagne                 J4 : étape 184 · puissance 1.33e+10 · éclats 45163
+campagne                 J5 : étape 220 · puissance 6.10e+10 · éclats 64703
+campagne                 J6 : étape 275 · puissance 5.47e+11 · éclats 86543
+campagne                 J7 : étape 306 · puissance 4.36e+12 · éclats 108275
+bastion 30 % équilibre   J1 : étape 80 · puissance 5.49e+6 · éclats 1426 · Forge 2 · Bastion 3 · recherches 0
+bastion 30 % équilibre   J2 : étape 120 · puissance 2.11e+8 · éclats 9124 · Forge 2 · Bastion 5 · recherches 1
+bastion 30 % équilibre   J3 : étape 160 · puissance 1.27e+9 · éclats 20389 · Forge 2 · Bastion 9 · recherches 4
+bastion 30 % équilibre   J4 : étape 180 · puissance 7.99e+9 · éclats 33849 · Forge 2 · Bastion 14 · recherches 5
+bastion 30 % équilibre   J5 : étape 218 · puissance 5.79e+10 · éclats 48263 · Forge 2 · Bastion 18 · recherches 5
+bastion 30 % équilibre   J6 : étape 270 · puissance 2.62e+11 · éclats 67603 · Forge 2 · Bastion 19 · recherches 8
+bastion 30 % équilibre   J7 : étape 285 · puissance 7.40e+11 · éclats 86230 · Forge 2 · Bastion 21 · recherches 8
+bastion 100 % équilibre  J1 : étape 80 · puissance 2.51e+6 · éclats 1702 · Forge 2 · Bastion 3 · recherches 0
+bastion 100 % équilibre  J2 : étape 120 · puissance 1.35e+8 · éclats 9083 · Forge 2 · Bastion 7 · recherches 1
+bastion 100 % équilibre  J3 : étape 160 · puissance 2.13e+9 · éclats 18338 · Forge 2 · Bastion 13 · recherches 4
+bastion 100 % équilibre  J4 : étape 195 · puissance 1.14e+10 · éclats 30193 · Forge 2 · Bastion 19 · recherches 8
+bastion 100 % équilibre  J5 : étape 200 · puissance 2.88e+10 · éclats 46726 · Forge 2 · Bastion 21 · recherches 9
+bastion 100 % équilibre  J6 : étape 233 · puissance 6.44e+10 · éclats 67014 · Forge 2 · Bastion 23 · recherches 13
+bastion 100 % équilibre  J7 : étape 265 · puissance 1.63e+11 · éclats 89181 · Forge 2 · Bastion 23 · recherches 15
+bastion 100 % forge      J1 : étape 80 · puissance 1.78e+6 · éclats 2394 · Forge 2 · Bastion 3 · recherches 0
+bastion 100 % forge      J2 : étape 100 · puissance 1.94e+7 · éclats 9325 · Forge 2 · Bastion 3 · recherches 0
+bastion 100 % forge      J3 : étape 140 · puissance 1.96e+8 · éclats 20873 · Forge 2 · Bastion 3 · recherches 0
+bastion 100 % forge      J4 : étape 154 · puissance 4.80e+8 · éclats 34330 · Forge 2 · Bastion 3 · recherches 0
+bastion 100 % forge      J5 : étape 180 · puissance 2.56e+9 · éclats 48651 · Forge 3 · Bastion 5 · recherches 1
+bastion 100 % forge      J6 : étape 190 · puissance 6.34e+9 · éclats 66083 · Forge 3 · Bastion 5 · recherches 1
+bastion 100 % forge      J7 : étape 195 · puissance 1.36e+10 · éclats 85354 · Forge 3 · Bastion 5 · recherches 1
+bastion 100 % recherche  J1 : étape 80 · puissance 2.51e+6 · éclats 1702 · Forge 2 · Bastion 3 · recherches 0
+bastion 100 % recherche  J2 : étape 120 · puissance 1.35e+8 · éclats 9083 · Forge 2 · Bastion 7 · recherches 1
+bastion 100 % recherche  J3 : étape 160 · puissance 2.13e+9 · éclats 18338 · Forge 2 · Bastion 13 · recherches 4
+bastion 100 % recherche  J4 : étape 195 · puissance 1.14e+10 · éclats 30193 · Forge 2 · Bastion 19 · recherches 8
+bastion 100 % recherche  J5 : étape 200 · puissance 2.88e+10 · éclats 46726 · Forge 2 · Bastion 21 · recherches 9
+bastion 100 % recherche  J6 : étape 233 · puissance 6.44e+10 · éclats 67014 · Forge 2 · Bastion 23 · recherches 13
+bastion 100 % recherche  J7 : étape 265 · puissance 1.63e+11 · éclats 89181 · Forge 2 · Bastion 23 · recherches 15
+
+=== Bilan sur 7 jours, 2 connexions de 20 min par jour (seed 1 ) ===
+Campagne seule : étape 40 → 306, puissance +5635692808.5 % (objectif : au moins +200 %)
+Or à chaque connexion, en ennemis de l'étape max : 38, 118674, 132961, 172517, 243875, 202118, 276885, 239523, 312299, 291533, 322348, 183040, 158793, 205879
+
+Bastion, 30 % de l'or, profil « équilibre » : +3.1 % de puissance par lui-même (objectif : au plus +25 %)
+  dont recherches +3.1 % · renforcements au-delà du plafond de base +0.0 % (12 niveaux sur les objets portés)
+  Forge niv. 2 · Bastion niv. 21 {"forge":2,"library":8,"mine":6,"training":5,"trade":0} · recherches {"sharp":3,"steel":1,"spirit":2,"purse":2}
+  éclats : chantiers 11774, commandes 1344, renforcements 3862 · produits : {"shards":4489,"grimoire":13} · ouvriers {"forge":"dwarf (smith)","library":"high_priest (scholar)","mine":"ranger (miner)","training":"azure_paladin (trainer)"}
+  pour information : étape 285 atteinte (campagne seule : 306 ; l'écart vient du hasard et de l'or donné au Bastion)
+
+Bastion, 100 % de l'or, profil « équilibre » : +9.1 % de puissance par lui-même (objectif : au plus +25 %)
+  dont recherches +5.0 % · renforcements au-delà du plafond de base +3.6 % (12 niveaux sur les objets portés)
+  Forge niv. 2 · Bastion niv. 23 {"forge":2,"library":9,"mine":6,"training":6,"trade":0} · recherches {"sharp":4,"steel":3,"fatal":2,"spirit":2,"purse":3,"vigil":1}
+  éclats : chantiers 14774, commandes 1271, renforcements 3316 · produits : {"shards":6225,"grimoire":23} · ouvriers {"forge":"dwarf (smith)","library":"barbarian (smith)","mine":"ninja (miner)","training":"shadow_lord (trainer)"}
+  pour information : étape 265 atteinte (campagne seule : 306 ; l'écart vient du hasard et de l'or donné au Bastion)
+
+Bastion, 100 % de l'or, profil « forge » : +16.4 % de puissance par lui-même (objectif : au plus +25 %)
+  dont recherches +0.7 % · renforcements au-delà du plafond de base +15.6 % (18 niveaux sur les objets portés)
+  Forge niv. 3 · Bastion niv. 5 {"forge":3,"library":2,"mine":0,"training":0,"trade":0} · recherches {"sharp":1}
+  éclats : chantiers 640, commandes 1211, renforcements 3291 · produits : {} · ouvriers {"forge":"dwarf (smith)","library":"high_priest (scholar)","mine":"ninja (miner)"}
+  pour information : étape 195 atteinte (campagne seule : 306 ; l'écart vient du hasard et de l'or donné au Bastion)
+
+Bastion, 100 % de l'or, profil « recherche » : +9.1 % de puissance par lui-même (objectif : au plus +25 %)
+  dont recherches +5.0 % · renforcements au-delà du plafond de base +3.6 % (12 niveaux sur les objets portés)
+  Forge niv. 2 · Bastion niv. 23 {"forge":2,"library":9,"mine":6,"training":6,"trade":0} · recherches {"sharp":4,"steel":3,"fatal":2,"spirit":2,"purse":3,"vigil":1}
+  éclats : chantiers 14774, commandes 1271, renforcements 3316 · produits : {"shards":6225,"grimoire":23} · ouvriers {"forge":"dwarf (smith)","library":"barbarian (smith)","mine":"ninja (miner)","training":"shadow_lord (trainer)"}
+  pour information : étape 265 atteinte (campagne seule : 306 ; l'écart vient du hasard et de l'or donné au Bastion)
+
+✔ bornes tenues

@@ -1,16 +1,25 @@
 // Or et améliorations achetables.
 import { BALANCE } from '../data/balance.js';
 
-export function upgradeCost(key, level, balance = BALANCE) {
+// v10.8 (partie 2) : avec `state`, un niveau ne coûte jamais moins que PRICE_FLOOR ennemis de l'étape record (prix en
+// « ennemis de l'étape », comme le Bastion) : en fin de jeu, plus d'amélioration à 40 d'or pour 6e14 d'or en réserve.
+export const PRICE_FLOOR = 60; // ≈ 1 minute de combat (3 ennemis toutes les 1,4 s, une partie du temps en marche)
+export function killGoldAt(stage, balance = BALANCE) {
+  return Math.max(1, Math.round(4 * balance.enemyScaling.goldGrowth ** Math.max(0, stage - 1)));
+}
+export function upgradeCost(key, level, balance = BALANCE, state = null) {
   const upgrade = balance.upgrades[key];
-  return Math.floor(upgrade.baseCost * Math.pow(upgrade.costGrowth, level));
+  const raw = Math.floor(upgrade.baseCost * Math.pow(upgrade.costGrowth, level));
+  if (!state || Math.max(state.maxStage ?? 1, state.records?.bestStage ?? 1) <= 60) return raw; // les 3 premiers mondes ne changent pas
+  const best = Math.max(state.maxStage ?? 1, state.records?.bestStage ?? 1);
+  return Math.max(raw, Math.floor(PRICE_FLOOR * killGoldAt(best, balance)));
 }
 
 export function buyUpgrade(state, key, balance = BALANCE) {
   if (!(key in balance.upgrades) || balance.upgrades[key].retired) return false; // v9.3.9 : Peau de fer n'est plus achetable
   const cap = balance.upgrades[key].maxLevel ?? Infinity;
   if (state.upgrades[key] >= cap) return false;
-  const cost = upgradeCost(key, state.upgrades[key], balance);
+  const cost = upgradeCost(key, state.upgrades[key], balance, state);
   if (state.gold < cost) return false;
   state.gold -= cost;
   state.upgrades[key] += 1;
@@ -26,7 +35,7 @@ export function bulkPlan(state, key, amount, balance = BALANCE) {
   let n = 0;
   let cost = 0;
   while (n < limit && start + n < cap) {
-    const next = upgradeCost(key, start + n, balance);
+    const next = upgradeCost(key, start + n, balance, state);
     if (amount === 'max' && cost + next > state.gold) break;
     cost += next;
     n += 1;

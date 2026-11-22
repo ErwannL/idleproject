@@ -32,10 +32,11 @@ test('table BALANCE.forge.fusion : chiffres du doc, raretés tirées de la table
   assert.deepEqual(BALANCE.forge.fusion.epic, { rate: 100, stakes: { 3: 30, 4: 65 }, pityStep: 20 });
   assert.equal(BALANCE.forge.fusion.common.rate, 100);
   assert.equal(BALANCE.forge.fusion.rare.rate, 100);
-  assert.deepEqual(fusableRarities(), ['common', 'rare', 'epic']);
+  assert.deepEqual(fusableRarities(), ['common', 'rare', 'epic', 'legendary', 'mythic']); // v10.8 : 3 Légendaires → Mythique, 3 Mythiques → Astral
   assert.deepEqual(fusionStakes('common'), [5]);
   assert.deepEqual(fusionStakes('epic'), [3, 4, 5]);
-  assert.deepEqual(fusionStakes('legendary'), []);
+  assert.deepEqual(fusionStakes('legendary'), [3]);
+  assert.deepEqual(fusionStakes('astral'), [], 'Astral → Ascendant : seulement à l\'Atelier d\'Ascension');
   const s = fresh();
   assert.equal(fusionChance(s, 'helmet', 'epic', 3), 30);
   assert.equal(fusionChance(s, 'helmet', 'epic', 4), 65);
@@ -104,7 +105,7 @@ test('sauvegarde : fusionPity nettoyé et borné, conservé à la Renaissance, s
   const s = fresh();
   const raw = JSON.parse(JSON.stringify({ ...s, fusionPity: { 'helmet|epic': 140, 'weapon|epic': 20.4, 'bad|epic': 20, 'helmet|legendary': 20, 'helmet|epic|x': 5, 'armor|epic': -3 } }));
   const back = sanitizeState(raw, BALANCE, NOW);
-  assert.deepEqual(back.fusionPity, { 'helmet|epic': 100, 'weapon|epic': 20 });
+  assert.deepEqual(back.fusionPity, { 'helmet|epic': 100, 'weapon|epic': 20, 'helmet|legendary': 20 }); // v10.8 : le Légendaire fusionne
   assert.deepEqual(sanitizeState({ ...JSON.parse(JSON.stringify(s)), fusionPity: undefined }, BALANCE, NOW).fusionPity, {});
   assert.deepEqual(sanitizeState({ ...JSON.parse(JSON.stringify(s)), fusionPity: [1] }, BALANCE, NOW).fusionPity, {});
   back.fusionPity = { 'helmet|epic': 40 };
@@ -188,8 +189,8 @@ test('fuseItems : null = impossible (rareté hors table, mise inconnue, pas asse
   epics(s, 2);
   assert.equal(fuseItems(s, 'helmet', 'epic', new Rng(1), BALANCE, null, 3), null);
   assert.equal(fuseItems(s, 'helmet', 'epic', new Rng(1), BALANCE, null, 2), null);
-  s.inventory.push(...[0, 1, 2, 3, 4].map(() => makeItem(s, 'iron_helm', 'legendary', 1)));
-  assert.equal(fuseItems(s, 'helmet', 'legendary', new Rng(1)), null);
+  s.inventory.push(...[0, 1, 2, 3, 4].map(() => makeItem(s, 'iron_helm', 'astral', 1)));
+  assert.equal(fuseItems(s, 'helmet', 'astral', new Rng(1)), null, 'v10.8 : l\'Astral ne fusionne pas')
   const noEpic = { ...BALANCE, forge: { ...BALANCE.forge, fusion: { common: { rate: 100 } } } };
   epics(s, 3);
   assert.equal(fuseItems(s, 'helmet', 'epic', new Rng(1), noEpic), null, 'rareté absente de la table');

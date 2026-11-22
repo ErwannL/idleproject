@@ -33,6 +33,7 @@ export function rollRarity(rng, minRarity = 'common', weights = null) {
   const pool = RARITIES.slice(Math.max(0, rarityIndex(minRarity)));
   const w = (r) => weights?.[r.id] ?? r.weight;
   const total = pool.reduce((sum, r) => sum + w(r), 0);
+  if (!(total > 0)) return pool[0].id; // v10.8 : raretés à poids 0 (Mythique et au-delà) → la rareté minimale demandée
   let roll = rng.next() * total;
   for (const rarity of pool) {
     roll -= w(rarity);

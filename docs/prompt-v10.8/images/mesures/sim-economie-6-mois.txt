@@ -1,0 +1,50 @@
+F2P occasionnel : 2000 simulations (2 s)
+F2P régulier : 2000 simulations (4 s)
+F2P très actif : 2000 simulations (7 s)
+Petit acheteur (15 €/mois) : 2000 simulations (10 s)
+Acheteur régulier (50 €/mois) : 2000 simulations (13 s)
+Gros acheteur (200 €/mois) : 2000 simulations (16 s)
+Whale (750 €/mois) : 2000 simulations (20 s)
+
+## F2P occasionnel — 0.00 €/mois
+Invocations héros : 1225 (limitée 690, permanente 536) · SSR 27.5 [p10 23 – p90 32] · vedettes 10.9 · 50/50 perdus 5.6 · garanties 5.3
+Limités distincts 8.1/13 · limités max 0.08 · SSR max 0.60 · héros max 15.6 · restes : 148 gemmes, 0.0 tickets
+Familiers : 278 invocations · SSR 10.5 [p10 8 – p90 14] · pity 60 atteinte 0.00 fois · max 6.07
+Familiers SSR (5) : distincts 4.45 · exemplaires 10.5/30 · au maximum 0.07 [p90 0] · collection SSR complète 0.0 %
+
+## F2P régulier — 0.00 €/mois
+Invocations héros : 2183 (limitée 1255, permanente 927) · SSR 49.4 [p10 43 – p90 56] · vedettes 20.2 · 50/50 perdus 10.2 · garanties 9.9
+Limités distincts 11.1/13 · limités max 2.12 · SSR max 4.80 · héros max 19.8 · restes : 154 gemmes, 0.0 tickets
+Familiers : 498 invocations · SSR 19.1 [p10 16 – p90 23] · pity 60 atteinte 0.00 fois · max 6.87
+Familiers SSR (5) : distincts 4.91 · exemplaires 18.5/30 · au maximum 0.87 [p90 2] · collection SSR complète 0.0 %
+
+## F2P très actif — 0.00 €/mois
+Invocations héros : 2725 (limitée 1544, permanente 1181) · SSR 62.0 [p10 55 – p90 69] · vedettes 24.9 · 50/50 perdus 12.7 · garanties 12.3
+Limités distincts 12.1/13 · limités max 2.51 · SSR max 6.34 · héros max 21.3 · restes : 146 gemmes, 0.0 tickets
+Familiers : 560 invocations · SSR 21.4 [p10 18 – p90 25] · pity 60 atteinte 0.00 fois · max 7.29
+Familiers SSR (5) : distincts 4.95 · exemplaires 20.3/30 · au maximum 1.29 [p90 2] · collection SSR complète 0.1 %
+
+## Petit acheteur (15 €/mois) — 14.98 €/mois
+Invocations héros : 2519 (limitée 1424, permanente 1095) · SSR 57.3 [p10 51 – p90 64] · vedettes 23.0 · 50/50 perdus 11.7 · garanties 11.4
+Limités distincts 11.2/13 · limités max 2.48 · SSR max 5.95 · héros max 21.0 · restes : 152 gemmes, 0.0 tickets
+Familiers : 498 invocations · SSR 19.1 [p10 15 – p90 23] · pity 60 atteinte 0.00 fois · max 6.89
+Familiers SSR (5) : distincts 4.91 · exemplaires 18.4/30 · au maximum 0.89 [p90 2] · collection SSR complète 0.0 %
+
+## Acheteur régulier (50 €/mois) — 49.96 €/mois
+Invocations héros : 3017 (limitée 1672, permanente 1344) · SSR 68.5 [p10 61 – p90 76] · vedettes 27.1 · 50/50 perdus 13.7 · garanties 13.4
+Limités distincts 11.3/13 · limités max 3.16 · SSR max 7.41 · héros max 22.4 · restes : 149 gemmes, 0.0 tickets
+Familiers : 768 invocations · SSR 29.6 [p10 25 – p90 34] · pity 60 atteinte 0.00 fois · max 8.74
+Familiers SSR (5) : distincts 4.99 · exemplaires 25.3/30 · au maximum 2.74 [p90 4] · collection SSR complète 2.1 %
+
+## Gros acheteur (200 €/mois) — 199.93 €/mois
+Invocations héros : 5174 (limitée 2987, permanente 2186) · SSR 118.1 [p10 109 – p90 127] · vedettes 48.5 · 50/50 perdus 24.4 · garanties 24.1
+Limités distincts 12.1/13 · limités max 6.86 · SSR max 11.84 · héros max 26.8 · restes : 147 gemmes, 0.0 tickets
+Familiers : 680 invocations · SSR 26.1 [p10 22 – p90 31] · pity 60 atteinte 0.00 fois · max 8.10
+Familiers SSR (5) : distincts 4.98 · exemplaires 23.5/30 · au maximum 2.10 [p90 3] · collection SSR complète 0.1 %
+
+## Whale (750 €/mois) — 744.85 €/mois
+Invocations héros : 9129 (limitée 5589, permanente 3540) · SSR 210.5 [p10 198 – p90 223] · vedettes 91.1 · 50/50 perdus 45.8 · garanties 45.5
+Limités distincts 12.1/13 · limités max 7.54 · SSR max 12.54 · héros max 27.5 · restes : 150 gemmes, 0.0 tickets
+Familiers : 4520 invocations · SSR 175.1 [p10 165 – p90 186] · pity 60 atteinte 0.00 fois · max 11.00
+Familiers SSR (5) : distincts 5.00 · exemplaires 30.0/30 · au maximum 5.00 [p90 5] · collection SSR complète 100.0 %
+Total : 20 s

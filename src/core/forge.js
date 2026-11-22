@@ -244,13 +244,15 @@ export function fusionRule(rarity, balance = BALANCE) {
   const rule = balance.forge.fusion?.[rarity];
   return rule && rarityIndex(rarity) >= 0 && rarityIndex(rarity) < RARITIES.length - 1 ? rule : null;
 }
+// v10.8 (3) : nombre d'objets d'une fusion (5 d'ordinaire, 3 pour Légendaire et Mythique).
+export const fusionSize = (rarity, balance = BALANCE) => balance.forge.fusion?.[rarity]?.count ?? balance.forge.fusionCount;
 export const fusableRarities = (balance = BALANCE) => RARITIES.map((r) => r.id).filter((r) => fusionRule(r, balance));
 
 // Mises possibles d'une rareté, de la plus courte à 5.
 export function fusionStakes(rarity, balance = BALANCE) {
   const rule = fusionRule(rarity, balance);
   if (!rule) return [];
-  const n = balance.forge.fusionCount;
+  const n = fusionSize(rarity, balance);
   return [...Object.keys(rule.stakes ?? {}).map(Number).filter((k) => k > 0 && k < n), n].sort((a, b) => a - b);
 }
 
@@ -261,11 +263,11 @@ export const fusionPity = (state, slot, rarity) => state.fusionPity?.[pityKey(sl
 export function fusionChance(state, slot, rarity, stake, balance = BALANCE, { base = false } = {}) {
   const rule = fusionRule(rarity, balance);
   if (!rule) return null;
-  const rate = stake === balance.forge.fusionCount ? rule.rate : rule.stakes?.[stake];
+  const rate = stake === fusionSize(rarity, balance) ? rule.rate : rule.stakes?.[stake];
   if (!Number.isFinite(rate)) return null;
   // v10.3 (10.5) : la Forge du forgeron ajoute +5 points par niveau aux mises courtes (plafond 95 % avant la jauge).
   const perks = forgePerks(state);
-  const forged = stake < balance.forge.fusionCount && rate < 100 ? Math.min(Math.max(rate, perks.fusionCap), rate + perks.fusionPoints) : rate;
+  const forged = stake < fusionSize(rarity, balance) && rate < 100 ? Math.min(Math.max(rate, perks.fusionCap), rate + perks.fusionPoints) : rate;
   return Math.min(100, forged + (base ? 0 : fusionPity(state, slot, rarity)));
 }
 
@@ -325,7 +327,7 @@ export function fusionGroups(state, balance = BALANCE, keep = null) {
     .map((g) => {
       const stakes = fusionStakes(g.rarity, balance);
       return { ...g, count: g.usable, next: RARITIES[rarityIndex(g.rarity) + 1].id, stakes,
-        auto: g.usable >= n && fusionChance(state, g.slot, g.rarity, n, balance, { base: true }) >= 100 };
+        auto: g.usable >= fusionSize(g.rarity, balance) && fusionChance(state, g.slot, g.rarity, fusionSize(g.rarity, balance), balance, { base: true }) >= 100 };
     })
     .filter((g) => g.usable + g.protected >= g.stakes[0])
     .sort((a, b) => rarityIndex(a.rarity) - rarityIndex(b.rarity) || a.slot.localeCompare(b.slot));
@@ -365,7 +367,7 @@ export function fusionUsed(state, slot, rarity, keep, stake) {
 export function fusionPreview(state, slot, rarity, keep = null, balance = BALANCE) {
   const rule = fusionRule(rarity, balance);
   if (!rule) return null;
-  const count = balance.forge.fusionCount;
+  const count = fusionSize(rarity, balance);
   const pool = fusionPool(state, slot, rarity, keep);
   const all = fusionStakes(rarity, balance);
   const stake = all.filter((s) => s <= pool.length).at(-1) ?? null;
@@ -398,7 +400,7 @@ export function estimateGainPct(state, slot, rarity, level, balance = BALANCE) {
 // Chances de rareté d'une fabrication (mêmes poids que le tirage : RARITIES à partir de la rareté minimale).
 export function craftOdds(tier = 'rare', balance = BALANCE) {
   const min = tier === 'epic' ? 'epic' : balance.forge.craftMinRarity;
-  const pool = RARITIES.slice(Math.max(0, rarityIndex(min)));
+  const pool = RARITIES.slice(Math.max(0, rarityIndex(min))).filter((r) => r.weight > 0); // v10.8 : Mythique et au-delà ne se fabriquent pas
   const total = pool.reduce((sum, r) => sum + r.weight, 0);
   return pool.map((r) => ({ rarity: r.id, pct: (r.weight / total) * 100 }));
 }
@@ -406,7 +408,7 @@ export function craftOdds(tier = 'rare', balance = BALANCE) {
 // `inherit` (lot 5) : 'auto' = ensemble le plus fréquent parmi les objets consommés, un id = cet ensemble,
 // null = « Aucun ». Le tirage d'héritage n'a lieu qu'après une réussite et seulement s'il y a des pièces :
 // chances, jauge et garanties du lot 2 inchangées.
-export function fuseItems(state, slot, rarity, rng, balance = BALANCE, keep = null, stake = balance.forge.fusionCount, inherit = 'auto') {
+export function fuseItems(state, slot, rarity, rng, balance = BALANCE, keep = null, stake = fusionSize(rarity, balance), inherit = 'auto') {
   const chance = fusionChance(state, slot, rarity, stake, balance);
   if (chance === null) return null;
   const pool = fusionPool(state, slot, rarity, keep);
@@ -425,7 +427,7 @@ export function fuseItems(state, slot, rarity, rng, balance = BALANCE, keep = nu
   }
   const ids = new Set(used.map((i) => i.id));
   state.inventory = state.inventory.filter((i) => !ids.has(i.id));
-  const safe = stake === balance.forge.fusionCount && rule.rate >= 100;
+  const safe = stake === fusionSize(rarity, balance) && rule.rate >= 100;
   if (!safe) delete state.fusionPity[key];
   const level = Math.max(...used.map((i) => i.level));
   const classPool = slot === 'weapon' ? classWeaponBases(activeClass(state).id) : [];

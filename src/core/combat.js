@@ -15,7 +15,8 @@ import { addGold } from './economy.js';
 import { rollEvent } from './events.js';
 import { collectItem, isUpgrade } from './inventory.js';
 import { addXp, killXp } from './level.js';
-import { generateItem, makeSignatureItem, rarityIndex } from './loot.js';
+import { generateItem, makeItem, makeSignatureItem, rarityIndex } from './loot.js';
+import { ITEM_BASES } from '../data/items.js';
 import { cheatLoot } from './cheats.js';
 import { recordBossVictory } from './powers.js';
 import { activeSkills, skillCooldown, skillValue } from './skills.js';
@@ -197,6 +198,12 @@ export function rebirthDamage(state, balance = BALANCE) {
 // mourait). Il ne vaut plus que pour le premier cycle, plafonné (CAMPAIGN_CAP, atteint vers le monde 4), et seulement
 // pour une partie commencée en 9.7.1 ou après (une ancienne partie garde la courbe avec laquelle elle a progressé).
 export const CAMPAIGN_CAP = 30;
+// v10.8 (partie 1) : rythme sur la durée — au-delà du monde 3, ×pace.rate de PV par niveau en plus (sans plafond, gardé
+// dans les Failles), pour les parties commencées en 10.8 (state.pace) : une partie existante garde sa courbe.
+export function paceHp(n, balance = BALANCE) {
+  const p = balance.enemyScaling.pace;
+  return p ? p.rate ** Math.max(0, Math.min(n, levelsPerCycle(balance)) - p.from) : 1; // les Failles gardent le facteur atteint
+}
 export function campaignHp(n, balance = BALANCE) {
   const g = balance.enemyScaling, c = g.campaign;
   if (!c || n >= levelsPerCycle(balance)) return 1;
@@ -355,6 +362,7 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
   const s = enemyStats(enc.level, type, boss, balance);
   if (!enc.world && !enc.worldBoss) s.hp = Math.round(s.hp * lateHp(Math.max(0, enc.level - 1), balance.enemyScaling)); // v9.7.0 (10.1)
   if (!enc.world && !enc.worldBoss && !enc.dungeon && !state.tower && !state.challenge && state.unlocks && !state.unlocks.legacy) s.hp = Math.round(s.hp * campaignHp(Math.max(0, enc.level - 1), balance)); // v9.7.1 (lot 3) ; v9.8 : parties neuves seulement
+  if (!enc.world && !enc.worldBoss && !enc.dungeon && !state.tower && !state.challenge && state.pace) s.hp = Math.round(s.hp * paceHp(Math.max(0, enc.level - 1), balance)); // v10.8 (1) : parties commencées en 10.8
   if (boss && enc.gauntlet) applyBerserk(s, balance);
   if (enc.dungeon) {
     // Donjons : bien plus durs que la campagne, selon la difficulté choisie.
@@ -628,6 +636,22 @@ function killEnemy(state, world, enemy, rng, balance, stats, enc) {
     let item = signature ?? roll();
     if (learner && firstItem) for (let k = 0; k < 60 && !(canEquip(state, item) && isUpgrade(state, item)); k++) item = roll(); // un objet qu'il peut vraiment équiper, et qui le renforce
     dropItem(state, world, item, enemy.x, balance, enemy.id); // v9.2.2 : le rendu part de la position réelle à la mort
+  }
+  // v10.8 (partie 3) : raretés hautes — méga-boss dès le monde 6 (Mythique 0,5 %), boss d'un donjon Difficile
+  // (Mythique 2 %), boss des Failles (Astral 0,2 %). Jamais l'Ascendant : il se crée à l'Atelier d'Ascension.
+  if (enemy.boss && !enemy.summoned) {
+    const H = balance.loot.highRarity;
+    const zone = enc.zoneIndex ?? 0, cycle = enc.dungeon || enc.tower || enc.challenge ? 0 : cycleForStage(Math.max(1, state.stage ?? 1), balance);
+    let high = null;
+    if (H && cycle >= 1 && rng.next() < H.riftAstral) high = 'astral';
+    else if (H && enc.dungeon && state.dungeon?.difficulty === 'hard' && rng.next() < H.hardDungeonMythic) high = 'mythic';
+    else if (H && !enc.dungeon && !enc.tower && !enc.challenge && bossTier(enemy.type) === 'mega' && zone + 1 >= H.megaBossFromWorld && rng.next() < H.megaBossMythic) high = 'mythic';
+    if (high) {
+      const pool = ITEM_BASES.filter((b) => !b.signature);
+      const it = makeItem(state, rng.pick(pool).id, high, enc.level, balance, rng);
+      dropItem(state, world, it, enemy.x, balance, enemy.id);
+      emit(world, 'highRarity', { rarity: high });
+    }
   }
 
   if (enemy.elite) {

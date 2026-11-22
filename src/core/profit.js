@@ -20,7 +20,7 @@ export function upgradeProfits(state, balance = BALANCE) {
     const up = balance.upgrades[k];
     const level = state.upgrades[k];
     if (up.maxLevel !== undefined && level >= up.maxLevel) continue;
-    const cost = upgradeCost(k, level, balance);
+    const cost = upgradeCost(k, level, balance, state);
     const next = computeHeroStats({ ...state, upgrades: { ...state.upgrades, [k]: level + 1 } }, balance).dps;
     const gain = Math.max(0, next - base);
     out[k] = { gain, cost, score: gain / Math.max(1, cost), pct: base > 0 ? (gain / base) * 100 : 0 };

@@ -264,6 +264,8 @@ export const BALANCE = {
     // coups ordinaires à son étape record au lieu de milliers (réglage : tools/measure-defense-v928.mjs).
     // ramp : montée douce sur les 60 premiers niveaux ; au-delà du niveau 240, ×lateGrowth par niveau ; ×cycleStep
     // à partir du 3e cycle ; rebirthPow : part du multiplicateur de Renaissance du héros reprise par les coups ennemis.
+    // v10.8 (partie 1) : rythme sur la durée (parties commencées en 10.8) — ×rate de PV par niveau après le monde 3.
+    pace: { from: 60, rate: 1.1 },
     damageCurve: { coef: 0.3, exp: 1.45, ramp: 60, knee: 240, lateGrowth: 1.002, bossPow: 1, rebirthPow: 0.8, cycleStep: 3.85 },
     goldGrowth: 1.0724,
   },
@@ -279,6 +281,8 @@ export const BALANCE = {
   },
 
   loot: {
+    // v10.8 (3) : sources des raretés hautes (chances par victoire).
+    highRarity: { megaBossMythic: 0.005, megaBossFromWorld: 6, hardDungeonMythic: 0.02, riftAstral: 0.002 },
     dropChance: 0.1,
     // v9.1.9 : le sac se remplissait en quelques minutes. Butin des monstres ordinaires (combat et hors ligne) :
     // chance × dropScale (−70 % d'objets) et rareté tirée avec dropRarityWeights : autant d'Épiques et de Légendaires
@@ -286,7 +290,7 @@ export const BALANCE = {
     // d'ensemble (setChance.rare ×2) et éclats (killShardChance : +1 éclat, à la place des Communs et Rares recyclés).
     // Mesures avant/après : docs/butin-v919.md (tools/measure-butin-v919.mjs).
     dropScale: 0.05, // v9.6.5 (2.8) : ÷6 objets (avant 0.3), mais de meilleure qualité ci-dessous
-    dropRarityWeights: { common: 10, rare: 40, epic: 40, legendary: 10 }, // v9.6.5 : moins mais mieux
+    dropRarityWeights: { common: 10, rare: 42, epic: 42, legendary: 6 }, // v9.6.5 : moins mais mieux ; v10.8 (3) : Légendaire 10 → 6 %
     killShardChance: 0.14, // v9.1.9 : chance d'un éclat par monstre ordinaire vaincu (compense les objets en moins)
     bossMinRarity: 'rare',
     stagePowerGrowth: 0.045, // +4,5 % de stats par niveau d'objet (linéaire jusqu'à la v8.3)
@@ -304,7 +308,7 @@ export const BALANCE = {
     // Poids de chaque emplacement dans le butin (accessoires ≈ 1/3 des objets).
     slotWeights: { weapon: 3, armor: 4, accessory: 4 }, // v9.3.4 (f) : 3 places (casque + armure, 4 bijoux réunis)
     // Effets spéciaux : nombre d'effets par rareté.
-    affixCount: { common: 0, rare: 1, epic: 1, legendary: 2 },
+    affixCount: { common: 0, rare: 1, epic: 1, legendary: 2, mythic: 3, astral: 3, ascendant: 4 }, // v10.8 (3)
     // v8.5 : chance qu'un objet appartienne à l'ensemble de son monde, par rareté.
     setChance: { common: 0, rare: 0.24, epic: 0.25, legendary: 0.4 }, // v9.1.9 : Rare 0,12 → 0,24 (deux fois moins de Rares)
   },
@@ -340,11 +344,13 @@ export const BALANCE = {
     fusion: {
       common: { rate: 100 }, rare: { rate: 100 },
       epic: { rate: 100, stakes: { 3: 30, 4: 65 }, pityStep: 20 },
-      // plus tard : legendary: { rate: 60, pityStep: 20 }, mise de 5 seulement
+      // v10.8 (3) : 3 Légendaires → 1 Mythique, 3 Mythiques → 1 Astral ; chaque échec monte la chance suivante (pitié).
+      legendary: { count: 3, rate: 35, pityStep: 15 },
+      mythic: { count: 3, rate: 20, pityStep: 10 },
     },
     // v9.1.3 (doc3 lot 5) : héritage d'ensemble en fusion : chance min(pièces × 20, 40) % (« Aucun » possible).
     fusionSetInherit: { perPiece: 20, max: 40 },
-    sharpenRarityFactor: { common: 1, rare: 2, epic: 3, legendary: 5 }, // réaffûtage : facteur de rareté
+    sharpenRarityFactor: { common: 1, rare: 2, epic: 3, legendary: 5, mythic: 3, astral: 4, ascendant: 5 }, // v10.8 (3) : Mythique et au-delà se remettent au niveau à moitié prix // réaffûtage : facteur de rareté
   },
 
   // Événements discrets pendant le farm (aucun ne demande de surveiller l'écran).

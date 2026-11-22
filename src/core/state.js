@@ -79,6 +79,7 @@ export function createNewState(now = Date.now(), seed = Math.floor(Math.random()
     version: SAVE_VERSION,
     createdAt: now,
     lastSaved: now,
+    pace: 108, // v10.8 (1) : partie commencée en 10.8 → courbe de rythme sur la durée (combat.js, paceHp)
     gold: 0,
     upgrades: Object.fromEntries(Object.keys(BALANCE.upgrades).map((k) => [k, 0])),
     stage: 1,
@@ -532,6 +533,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   // v9.8 (H6) : rang du héros ; une partie d'avant garde ses paliers de puissance (1 tous les 10 niveaux) en rangs.
   state.rank = Number.isFinite(raw.rank) ? Math.max(0, Math.min(20, Math.floor(raw.rank))) : Math.min(20, Math.floor(Math.max(0, Number(raw.level) || 0) / 10));
   // v9.8 (H) : Chasse rapide, Roue du jour, Carnet du jour (jour + compteurs).
+  if (raw.pace === 108) state.pace = 108; else delete state.pace; // v10.8 : seules les parties neuves ont le rythme long
   for (const k of ['quickHunt', 'wheel', 'daybook', 'titan', 'firstWeek', 'road', 'heraldBounty'] /* v10.6 : Prime du Héraut */) if (raw[k] && typeof raw[k] === 'object' && !Array.isArray(raw[k])) state[k] = JSON.parse(JSON.stringify(raw[k]));
   // v9.1.3 : le coffre peut déborder (mannequins convertis), jusqu'à STASH_OVERFLOW objets de plus.
   state.stash = (Array.isArray(raw.stash) ? raw.stash.filter(isValidItem) : []).slice(0, STASH_SIZE + STASH_OVERFLOW).map(cleanItem);
