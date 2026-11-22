@@ -29,7 +29,7 @@ function formationHtml(ui, state) {
   const gold = hasGoldBack(state) ? '<span class="cf-backchip" title="Gagné en battant le gardien de l\'étage 25"><img class="px" src="assets/ui/art101/card_back_gold.png" alt=""> Dos de carte doré</span>' : '';
   return `<div class="card cf-card"><div class="row-between"><b>Formation</b>${gold}<span><button class="btn small" data-action="card-auto">Placement auto</button></span></div>
     <div class="cf-rows"><small>Devant</small><div class="cf-row">${[0, 1, 2].map(slot).join('')}</div><small>Derrière</small><div class="cf-row">${[3, 4, 5].map(slot).join('')}</div></div>
-    <div class="muted small">Devant : encaisse. Derrière : protégé tant que l'avant tient. L'assassin ennemi vise l'arrière. ${c.formation.filter(Boolean).length}/${A.teamMax} cartes.</div>${picker}</div>`;
+    <div class="muted small">Devant encaisse, derrière frappe · ${c.formation.filter(Boolean).length}/${A.teamMax}</div>${picker}</div>`;
 }
 
 export function cardTowerHtml(ui, state) {
@@ -38,7 +38,7 @@ export function cardTowerHtml(ui, state) {
   const c = cardArena(state);
   // Bulle de première ouverture (une seule fois).
   if (fresh || !(state.ui.hints ?? []).includes('arena-formation')) { (state.ui.hints ??= []).push('arena-formation'); ui.view.arenaTip = true; }
-  const tip = ui.view.arenaTip ? ('<div class="card ct-tip">✨ <b>Ta formation est prête</b> : les cartes devant encaissent, celles derrière frappent. Touche une case pour la changer.</div>') : '';
+  const tip = ui.view.arenaTip ? ('<div class="card ct-tip">✨ <b>Formation prête</b> · touche une case pour la changer</div>') : '';
   const next = Math.min(c.best + 1, 100000);
   const f = Math.max(1, Math.min(next, Number(ui.view.cardFloor) || next));
   const setup = floorCards(f, arenaCal(state));
@@ -47,21 +47,21 @@ export function cardTowerHtml(ui, state) {
   const near = Array.from({ length: 7 }, (_, i) => next - 3 + i).filter((x) => x >= 1 && x <= next).map((x) =>
     `<button class="ct-floor${x === f ? ' on' : ''}${isBossFloor(x) ? ' boss' : ''}${isGuardianFloor(x) ? ' guard' : ''}" data-action="card-floor" data-value="${x}"><b>${x}</b>${stars(c.stars[x] ?? 0)}</button>`).join('');
   const chest = chestsReady(state);
-  const season = A.seasonRewards.map((m) => `<button class="btn small${c.season.claimed.includes(m.floor) ? ' done' : ''}" data-action="card-season" data-value="${m.floor}" ${c.season.best >= m.floor && !c.season.claimed.includes(m.floor) ? '' : 'disabled'}>Étage ${m.floor} ${rewardIcons(m.reward)}</button>`).join('');
+  const season = A.seasonRewards.map((m) => `<button class="btn small${c.season.claimed.includes(m.floor) ? ' done' : ''}" data-action="card-season" data-value="${m.floor}" ${c.season.best >= m.floor && !c.season.claimed.includes(m.floor) ? '' : 'disabled'} title="Étage ${m.floor}">${m.floor} ${rewardIcons(m.reward)}</button>`).join('');
   const first = f > c.best ? A.firstReward(f) : null;
   // v10.2 (2.4) : règle de l'étage en bandeau illustré, aperçu du dos de carte du premier gardien.
   const ruleBanner = setup.rule ? `<div class="ct-rule">${ruleArt(setup.rule.id) ? `<img class="px" src="${ruleArt(setup.rule.id)}" alt="">` : ''}<div>${ruleDup(setup.rule) ? `<b>${escapeHtml(setup.rule.text)}</b>` : `<b>${escapeHtml(ruleName(setup.rule.id))}</b><small>${escapeHtml(setup.rule.text)}</small>`}</div></div>` : '';
   const back = f === GOLD_BACK_FLOOR || (f < GOLD_BACK_FLOOR && f >= 20) ? `<div class="ct-back${hasGoldBack(state) ? ' won' : ''}"><img class="px" src="assets/ui/art101/card_back_gold.png" alt=""><span>${hasGoldBack(state) ? '✔ Gardien vaincu : ta formation porte le <b>dos de carte doré</b>.' : 'Gardien de l\'étage 25 vaincu : <b>dos de carte doré</b> pour toute ta formation.'}</span></div>` : '';
   return `${tip}<div class="ct-head"><span>${stars(3).replace(/<i>.*<\/i>/, '')} <b class="num">${totalStars(state)}</b> étoiles</span>
-      <button class="btn ${chest > 0 ? 'btn-gold' : ''} small" data-action="card-chest" ${chest > 0 ? '' : 'disabled'}>${img('icon_chest')} Coffre d'étoiles${chest > 0 ? ` (${chest})` : ` · ${A.chestEvery - (totalStars(state) % A.chestEvery)} ★ encore`}</button>
-      <span class="muted">Balayages : <b>${sweepsLeft(state)}</b>/${A.sweepsPerDay}</span></div>
+      <button class="btn ${chest > 0 ? 'btn-gold' : ''} small" data-action="card-chest" ${chest > 0 ? '' : 'disabled'}>${img('icon_chest')}${chest > 0 ? ` Coffre (${chest})` : ` ${A.chestEvery - (totalStars(state) % A.chestEvery)} ★`}</button>
+      <span class="muted" title="Balayages du jour">⚡ <b>${sweepsLeft(state)}</b>/${A.sweepsPerDay}</span></div>
     <div class="ct-floors">${near}</div>
     <div class="card ct-floor-card"><div class="row-between"><b>${escapeHtml(floorName(f))}</b>${stars(c.stars[f] ?? 0)}</div>${ruleBanner}<div class="ct-tags">${tags}</div>${back}
       <div class="ct-foes">${setup.cards.map((x) => cardHtml(foeCard(x), { small: true, foe: true })).join('')}</div>
-      ${first ? `<div>Premier passage : ${rewardIcons(first, 'named')}</div>` : ''}
-      <div class="muted small">3 ★ : gagner sans perdre de carte en moins de ${A.star3} s. Essais illimités.</div></div>
+      ${first ? `<div>1er passage : ${rewardIcons(first)}</div>` : ''}
+      <div class="muted small" title="Gagner sans perdre de carte en moins de ${A.star3} s. Essais illimités.">3 ★ : sans perte, en ${A.star3} s</div></div>
     ${formationHtml(ui, state)}
-    <div class="card"><b>Saison</b> <span class="muted">meilleur étage : ${c.season.best}</span><div class="ct-season">${season}</div></div>
+    <div class="card"><b>Saison</b> <span class="muted" title="Meilleur étage de la saison">★ ${c.season.best}</span><div class="ct-season">${season}</div></div>
     <div class="ct-go"><button class="btn btn-gold primary-action" data-action="card-fight" data-value="${f}" ${team.length ? '' : 'disabled'}>${team.length ? `⚔ Combattre · ${escapeHtml(floorName(f))}` : 'Place au moins 1 carte'}</button>
       ${(c.stars[f] ?? 0) >= 3 ? `<button class="btn" data-action="card-sweep" data-value="${f}" ${sweepsLeft(state) > 0 ? '' : 'disabled'}>⚡ Balayer</button>` : ''}</div>`;
 }

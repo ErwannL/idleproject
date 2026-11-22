@@ -534,6 +534,7 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
   state.rank = Number.isFinite(raw.rank) ? Math.max(0, Math.min(20, Math.floor(raw.rank))) : Math.min(20, Math.floor(Math.max(0, Number(raw.level) || 0) / 10));
   // v9.8 (H) : Chasse rapide, Roue du jour, Carnet du jour (jour + compteurs).
   if (raw.pace === 108) state.pace = 108; else delete state.pace;
+  if (Number.isFinite(raw.rebirthAt) && raw.rebirthAt >= 0) state.rebirthAt = raw.rebirthAt; // v10.8
   if (typeof raw.tearSeason === 'string') state.tearSeason = raw.tearSeason.slice(0, 12); // v10.8 : Larme de la saison prise // v10.8 : seules les parties neuves ont le rythme long
   for (const k of ['quickHunt', 'wheel', 'daybook', 'titan', 'firstWeek', 'road', 'heraldBounty'] /* v10.6 : Prime du Héraut */) if (raw[k] && typeof raw[k] === 'object' && !Array.isArray(raw[k])) state[k] = JSON.parse(JSON.stringify(raw[k]));
   // v9.1.3 : le coffre peut déborder (mannequins convertis), jusqu'à STASH_OVERFLOW objets de plus.
@@ -669,6 +670,8 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     if (Array.isArray(raw.ui.seenTabs)) state.ui.seenTabs = raw.ui.seenTabs.filter((x) => typeof x === 'string').slice(0, 60);
     if (Number.isFinite(raw.ui.sealMiniUntil)) state.ui.sealMiniUntil = raw.ui.sealMiniUntil;
     if (Number.isFinite(raw.ui.wallAt)) state.ui.wallAt = raw.ui.wallAt;
+    if (Number.isFinite(raw.ui.wallCardAt)) state.ui.wallCardAt = raw.ui.wallCardAt; // v10.8 : carte « Comment devenir plus fort »
+    if (Number.isInteger(raw.ui.ageSeen)) state.ui.ageSeen = raw.ui.ageSeen; // v10.8 : passage d'âge déjà montré
     if (raw.ui.buyAllOk === true) state.ui.buyAllOk = true;
     if (typeof raw.ui.riftDay === 'string') state.ui.riftDay = raw.ui.riftDay; // v9.9 (K10)
     if (raw.ui.feed === false) state.ui.feed = false; // v9.9 (K11)

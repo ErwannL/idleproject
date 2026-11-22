@@ -39,7 +39,7 @@ import { enemyBehavior } from '../data/behaviors.js'; // v9.6.0
 import { behaviorHitMult, behaviorTakenMult, teamCounters } from './behaviors.js'; // v9.6.0
 import { heroElement } from './companions.js'; // v9.6.1
 import { activeMajor } from './inventory.js'; // v9.6.1
-import { SEALS, grantSeal, needsSeal, worldClosed } from './seals.js'; // v9.6.2
+import { SEALS, grantSeal, needsSeal, worldGate, worldClosed } from './seals.js'; // v9.6.2
 const ENEMY_WINDUP = 0.25; // v9.1.9 : avance de l'événement « enemyWindup » sur le coup ennemi (s)
 
 const MAX_EVENTS = 300;
@@ -434,6 +434,7 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
 export function changeStage(state, world, stage, balance = BALANCE) {
   let target = Math.max(1, Math.min(stage, state.maxStage));
   if (needsSeal(state, target, balance)) target = Math.max(1, target - 1); // v9.6.2 : porte scellée
+  if (worldGate(state, target, balance)) target = Math.max(1, target - 1); // v10.8 : Sceau de monde
   const zoneChanged = zoneIndexForStage(target, balance) !== zoneIndexForStage(state.stage, balance);
   state.stage = target;
   state.kills = 0;
@@ -477,6 +478,8 @@ function clearStage(state, world, balance) {
   }
   if (retry && next === retry.stage) state.bossRetry = null;
   if (worldClosed(next)) { state.kills = 0; if (!world.closedNotified) { world.closedNotified = true; emit(world, 'worldClosed', { stage: next }); } return; } // v9.6.5 (10.3)
+  // v10.8 (1) : Sceau de monde — Renaissances ou niveau du Bastion (jamais accordé à l'usure).
+  { const gate = worldGate(state, next, balance); if (gate) { state.kills = 0; if (!world.gateNotified) { world.gateNotified = true; emit(world, 'worldGate', gate); } return; } }
   // v9.6.2 (7.6) : boss de fin de monde scellé — on refarme l'étape d'avant ; après 15 min, le sceau est accordé.
   if (needsSeal(state, next, balance)) {
     state.sealWait = (state.sealWait ?? 0) + 1;

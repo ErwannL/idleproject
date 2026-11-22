@@ -25,6 +25,9 @@ import { activeBounty, maybeStartBounty } from '../core/herald-bounty.js';
 import { liveNow } from '../core/live.js';
 import { stageLabel } from '../core/combat.js';
 import { calm as calmFx } from './ui-vfx.js';
+import { UPGRADE_NAMES, bestOpenUpgrade, weakUpgrade } from '../core/guide.js'; // v10.8 : mur doux
+import { isUpgrade } from '../core/inventory.js';
+import { canRebirth, rebirthMult, rebirthWorth } from '../core/rebirth.js';
 
 const ART = 'assets/ui/art106/';
 export const BOSS_ART = { crypt: 'boss_spectral_queen', sanctuary: 'boss_rotting_dryad', furnace: 'boss_magma_colossus', glacier: 'boss_frost_wyrm', citadel: 'boss_obsidian_tyrant' };
@@ -245,6 +248,12 @@ export class HudQuests {
     this.root.classList.toggle('hq-wide', !this.phone && this.wide);
     if (off) return;
     const t = Date.now();
+    // v10.8 (partie 1) : mur doux — bloqué depuis 30 min de jeu sur la même étape : la carte « Comment devenir plus fort »
+    // propose les 3 meilleures actions du moment, en images (une fois par heure au plus).
+    if ((state.playSeconds ?? 0) - (state.recordAt ?? state.playSeconds ?? 0) >= 1800 && (state.playSeconds ?? 0) - (state.ui.wallCardAt ?? -1e9) >= 3600 && ui.$('modal')?.classList.contains('hidden')) {
+      state.ui.wallCardAt = state.playSeconds ?? 0;
+      wallCard(ui, state);
+    }
     // 1. Chemin du héros
     const q = (this.quest = heroPathQuest(state));
     const ph = pathHtml(q);
@@ -282,6 +291,18 @@ export class HudQuests {
     this.events.classList.toggle('hidden', !eh);
     this.events.classList.toggle('expanded-col', this.expanded);
   }
+}
+
+function wallCard(ui, state) {
+  const acts = [];
+  const up = bestOpenUpgrade(state);
+  if (up && up.cost <= state.gold && !weakUpgrade(state, up.key)) acts.push({ art: 'assets/ui/art106/badge_best_buy.png', title: 'Améliorer', text: UPGRADE_NAMES[up.key] ?? up.key, action: 'open-tab', value: 'upgrades' });
+  if (state.inventory.some((i) => isUpgrade(state, i))) acts.push({ art: 'assets/ui/art106/item_weapon_sword.png', title: 'Équiper', text: 'Un objet meilleur t\'attend', action: 'open-tab', value: 'inventory' });
+  if (canRebirth(state) && rebirthWorth(state)) acts.push({ art: 'assets/ui/art98/phoenix_rebirth.png', title: 'Renaître', text: `×${String(Math.round(rebirthMult(state) * 100) / 100).replace('.', ',')} pour toujours`, action: 'open-tab', value: 'tree', view: { treeSeg: 'rebirth' } });
+  if (state.bastion) acts.push({ art: 'assets/ui/art104/scene_tower.png', title: 'Bastion', text: 'Un chantier ou une recherche', action: 'bastion-tower', value: '' });
+  acts.push({ art: 'assets/ui/art101/banner_dungeons.png', title: 'Donjons', text: 'Des objets d\'ensemble', action: 'open-tab', value: 'dungeons' });
+  const tiles = acts.slice(0, 3).map((a) => `<button class="wall-tile" data-action="${a.action}" ${a.value ? `data-value="${a.value}"` : ''} ${a.view ? `data-view='${JSON.stringify(a.view)}'` : ''}><img class="px" src="${a.art}" alt=""><b>${escapeHtml(a.title)}</b><small>${escapeHtml(a.text)}</small></button>`).join('');
+  ui.openModal?.(`<div class="wall-card"><h2 id="modal-title">Comment devenir plus fort</h2><p class="muted">Tu bloques sur cette étape : voici les 3 meilleures choses à faire maintenant.</p><div class="wall-tiles">${tiles}</div><button class="btn" data-action="close-modal">Plus tard</button></div>`);
 }
 
 // Le titre de l'étape tient sur une ligne, jamais coupé : la police descend jusqu'à 11 px s'il le faut.

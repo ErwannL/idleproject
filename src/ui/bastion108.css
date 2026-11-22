@@ -24,3 +24,42 @@
 .bs-pages { align-items: flex-end; }
 .bs-page { min-height: 0; height: 32px; line-height: 1; }
 .bs-tree:not(.below) .bs-nname { color: #3a2410; text-shadow: 0 0 3px #f6e6c4, 0 0 2px #f6e6c4; font-weight: 800; }
+/* v10.8 (6) : Renaissance — avant / après et temps pour revenir */
+.rb-ba { display: grid; grid-template-columns: 1fr auto 1fr 1fr; align-items: center; gap: 8px; margin: 8px 0; padding: 8px; border-radius: 10px; background: #1a1226; text-align: center; }
+.rb-ba small { display: block; font-size: 11px; opacity: .75; } .rb-ba b { font-size: 16px; } .rb-ba i { font-style: normal; font-size: 20px; color: #ffd34d; }
+.rb-rule { margin: 0 0 6px; font-weight: 700; font-size: 12px; }
+/* v10.8 (1) : mur doux — « Comment devenir plus fort » */
+.wall-card { text-align: center; }
+.wall-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0; }
+.wall-tile { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px; border-radius: 12px; border: 2px solid #e8b64a; background: #2a1830; color: #fff; font: inherit; cursor: pointer; }
+.wall-tile img { width: 72px; height: 72px; object-fit: contain; image-rendering: pixelated; }
+.wall-tile small { font-size: 11px; opacity: .85; }
+/* v10.8 (7) : pendant un boss, la bande du haut et la carte de zone restaient grisées (opacité 0,15 à 0,5) : illisibles
+   sur téléphone. Elles restent nettes ; seule une légère baisse marque le combat. */
+#app[data-boss-focus] #topbar .chip, #app[data-boss-focus] #topbar .icon-btn, #app[data-boss-focus] #zone-card { opacity: .9 !important; }
+/* Téléphone : bande du bas à fond plein, cases de 58 px (sorts, Ultime, Boosts), textes utiles à 12 px au moins. */
+#play.phone-band #skill-bar, #play.phone-band #boost-group, #play.phone-band #next-action, #play.phone-band #scene-bottom, #play.phone-band #loot-bag { z-index: 3; }
+#play.phone-band #boost-group { display: flex; gap: 6px; } #play.phone-band #boost-toggle { position: static !important; width: 58px; height: 58px; padding: 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; border-radius: 10px; }
+#play.phone-band #scene-bottom { width: auto; }
+#play.phone-band #next-action { width: auto; }
+#hud106.hq-phone #hq-events small, #hud106.hq-phone #hq-events .hq-ev-timer { font-size: 12px; }
+#hud106.hq-phone #hq-events .hq-ev-timer { font-size: 11px; }
+/* Téléphone : la carte de zone devient une puce sur une ligne (« 5-14 ×2 ●●●●○ »). */
+#stage-area:has(#hud106.hq-phone:not(.hidden)) #zone-card { padding: 4px 10px !important; display: flex; align-items: center; gap: 8px; max-width: 62%; }
+#stage-area:has(#hud106.hq-phone:not(.hidden)) #zone-card #wave-frieze, #stage-area:has(#hud106.hq-phone:not(.hidden)) #zone-card .zone-goals { display: none !important; }
+#stage-area:has(#hud106.hq-phone:not(.hidden)) #zone-card #zone-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; }
+/* v10.8 (7) / 10.7 (6 ter) : menus compacts sur téléphone — en-tête de 40 px, onglets en icônes seules (40 px, nom au
+   toucher long via title), bannière de 60 px avec la phrase dessus : le premier contenu se voit sans défiler. */
+@media (max-width: 600px) {
+  #app #panel > header { min-height: 40px !important; height: 40px; padding-top: 2px !important; padding-bottom: 2px !important; border-image: none !important; }
+  #app #panel > header #panel-crest, #app #panel > header .panel-ribbon { display: none !important; }
+  #app #panel #panel-subtabs .subtab { min-height: 40px; height: 40px; padding: 4px 6px !important; }
+  #app #panel #panel-subtabs .subtab span { display: none !important; }
+  #app #panel #panel-subtabs .subtab img { width: 26px !important; height: 26px !important; }
+  #app #panel #panel-body > .art-banner-wrap { position: relative; height: 60px !important; overflow: hidden; border-radius: 8px; }
+  #app #panel #panel-body > .art-banner-wrap .art-banner { height: 60px !important; max-height: 60px !important; object-fit: cover; }
+  #app #panel #panel-body > .art-banner-wrap .tab-lead { position: absolute; left: 8px; right: 8px; bottom: 4px; margin: 0; font-size: 12px; line-height: 1.2; color: #fff; text-shadow: 0 1px 2px #000, 0 0 4px #000; }
+  #app #panel .tile-title, #app #panel .db-body b, #app #panel .lt-tile-body b { font-size: 14px; }
+}
+/* v10.8 (7) : Arène — le verso d’une carte (ses sorts) n’existe à l’écran qu’une fois la carte retournée : 120 mots au plus. */
+.pcard:not(.flipped) .pc-back { display: none; }

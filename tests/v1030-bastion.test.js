@@ -243,11 +243,14 @@ test('recherches : 3 branches de 6, dans l\'ordre ; plafonds du total +60 % dég
 
 test('aucune étape de l\'histoire ne demande un niveau de Bastion', () => {
   // Les données et règles de la campagne ne lisent jamais le Bastion.
-  for (const file of ['data/zones.js', 'data/enemies.js', 'data/dungeons.js', 'data/arena-floors.js', 'data/missions.js', 'core/combat.js', 'core/seals.js',
+  for (const file of ['data/zones.js', 'data/enemies.js', 'data/dungeons.js', 'data/arena-floors.js', 'data/missions.js', 'core/combat.js',
     'core/unlocks.js', 'core/unlock-quests.js', 'core/dungeon.js', 'core/tower.js', 'core/challenge.js', 'core/arena-cards.js', 'core/rebirth.js']) {
     const src = readFileSync(new URL(`../src/${file}`, import.meta.url), 'utf8');
     assert.doesNotMatch(src, /bastion-base|bastion\.js|state\.bastion|buildingLevel|bastionLevel|forgeLevel|bastionOpen/, file);
   }
+  // v10.8 (1) : les Sceaux de monde acceptent le Bastion, mais toujours EN ALTERNATIVE à des Renaissances (jamais exigé).
+  const seals = readFileSync(new URL('../src/core/seals.js', import.meta.url), 'utf8');
+  assert.match(seals, /if \(reb >= g\.rebirths \|\| bastion >= g\.bastion\) return null;/);
   // Et le Sceau ne propose jamais d'attendre le Bastion : sa seule consigne est le rappel du retour.
   const guide = readFileSync(new URL('../src/core/guide.js', import.meta.url), 'utf8');
   assert.doesNotMatch(guide, /buildingLevel|bastionLevel|forgeLevel|canBuild|canResearch|researchLevel/);

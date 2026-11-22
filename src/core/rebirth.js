@@ -233,6 +233,12 @@ export function rebirthReward(state, stage = state.maxStage) {
 // v10.8 (partie 6) : rentable quand elle multiplie la puissance d'au moins ×REBIRTH.worthMult (le gain se voit) et que le
 // joueur stagne (pas de nouveau record depuis 30 min de jeu) — ou dès qu'elle rapporte beaucoup de fragments. L'ancien
 // seuil (la moitié des fragments déjà possédés) montait avec les fragments gagnés ailleurs : elle n'était jamais rentable.
+// v10.8 (6) : temps estimé pour revenir à l'étape actuelle après la Renaissance (le chemin déjà fait, plus vite d'autant
+// que la puissance est multipliée) : au moins 10 minutes.
+export function rebirthCatchUp(state) {
+  const since = Math.max(600, (state.playSeconds ?? 0) - (state.rebirthAt ?? 0));
+  return Math.max(600, since / rebirthMult(state) ** 2);
+}
 export function rebirthMult(state) {
   return PRESTIGE.rebirthMultiplier ** rebirthGain(state);
 }
@@ -251,6 +257,7 @@ export function performRebirth(state, keepPower = state.equippedPowers?.[0]) {
   // v10.8 (6) : la première Renaissance de chaque saison (trimestre) donne une Larme d'Ascendrya.
   const d = new Date(); const season = `${d.getFullYear()}-T${Math.floor(d.getMonth() / 3) + 1}`;
   if (state.tearSeason !== season) { state.tearSeason = season; state.materials.tears = (state.materials.tears ?? 0) + 1; }
+  state.rebirthAt = state.playSeconds ?? 0; // v10.8 : temps de jeu de la dernière Renaissance (estimation du retour)
   state.rebirthPower = rebirthPower(state) + rebirthGain(state);
   // Un seul pouvoir ancestral conservé (celui choisi, sinon le premier actif).
   const kept = state.powers?.[keepPower] ? keepPower : Object.keys(state.powers ?? {})[0];

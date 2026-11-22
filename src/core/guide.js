@@ -22,7 +22,7 @@ import { DUNGEONS } from '../data/dungeons.js';
 import { TOWER, climbsLeft, dayKey } from './tower.js'; // v9.6.2 (dayKey : même jour que le Carnet)
 import { CHALLENGE } from './challenge.js'; // v9.6.2
 import { arenaUnlocked } from './arena.js'; // v9.6.2
-import { SEALS, needsSeal } from './seals.js'; // v9.6.2
+import { SEALS, needsSeal, worldGate } from './seals.js'; // v9.6.2
 import { BANNERS } from '../data/economy.js';
 import { BOSSES } from '../data/enemies.js';
 import { claimables } from './claimables.js';
@@ -175,6 +175,8 @@ function* actionCandidates(state, ctx = {}, balance = BALANCE) {
   if (open('summon') && Object.keys(state.companions.owned).length && (freeOf('ally') || freeOf('pet')) && state.gems >= balance.summon.gemCost + 150) { // v9.7.1 : réserve de 150 gemmes
     yield { id: 'summon', text: freeOf('ally') ? 'Invoquer un compagnon (place libre)' : 'Invoquer un familier (place libre)', tab: 'summon' };
   }
+  // v10.8 (1, 6) : Sceau de monde — la Renaissance guidée (ou le Bastion).
+  { const gate = worldGate(state, state.stage + 1, balance); if (gate && state.stage + 1 > state.maxStage - 0) yield { id: 'gate', text: gate.text, tab: 'tree', view: { treeSeg: 'rebirth' }, why: 'Renaître te rend plus fort pour toujours' }; }
   // v9.6.2 (7.6) : boss de fin de monde scellé — dire comment gagner le sceau (et qu'il viendra quand même).
   if (needsSeal(state, state.stage + 1, balance) && state.stage + 1 <= state.maxStage) {
     const left = Math.max(0, Math.ceil((SEALS.waitSeconds - ((state.playSeconds ?? 0) - (state.sealSince ?? state.playSeconds ?? 0))) / 60));

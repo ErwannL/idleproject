@@ -2,7 +2,9 @@
 import { BALANCE } from '../../data/balance.js';
 import { REBIRTH, REBIRTH_KEEPS, REBIRTH_RESETS, TALENT_BRANCHES, TALENTS } from '../../data/rebirth.js';
 import { TREE } from '../../data/talent-tree.js';
-import { rebirthMultiplier } from '../../core/stats.js';
+import { computeHeroStats, rebirthMultiplier } from '../../core/stats.js';
+import { rebirthCatchUp, rebirthWorth } from '../../core/rebirth.js'; // v10.8 (6)
+import { formatDuration } from '../../core/format.js';
 import { TRANSCEND, TRANSCEND_KEEPS, TRANSCEND_PERKS, TRANSCEND_RESETS } from '../../data/transcend.js';
 import { canTranscend, keptRebirthShare, perkLevel, stellarMultiplier, transcendPerkCost, transcendReward } from '../../core/transcend.js';
 import { stageLabel } from '../../core/combat.js';
@@ -487,6 +489,12 @@ function rebirthView(ui, state) {
       <div class="row-between"><b>${img('icon_rebirth')} Renaissance</b><span class="muted">${state.records.rebirths} effectuée${state.records.rebirths > 1 ? 's' : ''}</span></div>
       ${can ? `<div class="rb-tiles">${tile('icon_fragment', `+${formatNumber(reward)}`, 'fragments')}${tile('icon_damage', `×${gain.toFixed(2).replace('.', ',')}`, 'pour toujours')}${tile('icon_boss', '1', 'pouvoir conservé')}</div>`
         : `<div>Atteins l'étape ${stageLabel(REBIRTH.minStage)} pour renaître (max ${stageLabel(state.maxStage)}).</div>`}
+      ${can ? (() => { // v10.8 (6) : la règle en image — avant / après, temps pour revenir, rentable ou pas encore
+        const now = computeHeroStats(state).combatPower, worth = rebirthWorth(state);
+        return `<div class="rb-ba"><div><small>Avant</small><b class="num">${formatNumber(now)}</b></div><i>→</i><div><small>Après</small><b class="num good">${formatNumber(now * gain)}</b></div>
+          <div><small>Retour à ${stageLabel(state.maxStage)}</small><b class="num">≈ ${formatDuration(rebirthCatchUp(state))}</b></div></div>
+          <p class="rb-rule ${worth ? 'good' : 'muted'}">${worth ? '✔ Rentable maintenant' : 'Rentable quand elle donne au moins ×1,25 et que tu bloques depuis 3 h de jeu'}</p>`;
+      })() : ''}
       ${can ? `<div class="rb-later">Si tu pousses encore 10 étapes : <b>+${formatNumber(rebirthReward(state, state.maxStage + 10))}</b> ${fragment()} (au lieu de +${formatNumber(reward)}).</div>` : ''}
       <div class="muted">Retour à l'étape 1${keep > 0 ? ` (${Math.round(keep * 100)} % des améliorations gardés)` : ''} ; le détail est dans la confirmation.</div>
       ${blocked && can ? `<div class="bad">${blocked}</div>` : ''}

@@ -2433,6 +2433,22 @@ export class UI {
       if (t > ground && t < H) H = t;
     }
     if (!ground || !H) return;
+    // v10.8 (7) / 10.7 (6 ter) : téléphone vertical — bande du bas en grille fixe : les puces d'état sur une ligne, puis
+    // sorts, Ultime et Boosts en cases de même taille côte à côte, le coffre à droite, « Tout récupérer » dessous.
+    if (area.clientWidth < 560 && area.clientHeight > area.clientWidth) {
+      const bottom = this.$('scene-bottom');
+      const set = (el, top, left, extra = {}) => { if (!el) return; el.style.top = `${Math.round(top)}px`; el.style.bottom = 'auto'; el.style.left = `${Math.round(left)}px`; el.style.transform = 'none'; Object.assign(el.style, extra); };
+      play.classList.add('phone-band');
+      if (bottom) set(bottom, ground + 6, 8, { right: 'auto' });
+      const row = ground + 34;
+      let x = 8;
+      if (shown(bar)) { set(bar, row, x); x += bar.offsetWidth + 8; }
+      if (shown(boost)) { set(boost, row, x, { right: 'auto', width: 'auto' }); }
+      if (shown(seal)) set(seal, row + 70, 8, { maxWidth: `${Math.max(160, area.clientWidth - 8 - 112)}px` });
+      if (later && shown(seal)) { const b = seal.getBoundingClientRect(), a = area.getBoundingClientRect(); later.style.top = `${b.top - a.top + (b.height - later.offsetHeight) / 2}px`; later.style.left = `${b.right - a.left + 8}px`; }
+      return;
+    }
+    play.classList.remove('phone-band');
     const wideHud = play.classList.contains('wide-scene') && shown(hud);
     let y = ground + 8;
     if (wideHud) { hud.style.top = `${y}px`; y += hud.offsetHeight + 8; }

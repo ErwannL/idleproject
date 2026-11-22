@@ -50,3 +50,18 @@ export function sanitizeSeals(state, raw, balance = BALANCE) {
   if (state.records?.rebirths > 0 || (state.transcend?.count ?? 0) > 0) for (let z = SEALS.fromZone; z < 12; z++) if (!list.includes(z)) list.push(z); // déjà vu en entier
   state.seals = [...new Set(list)].sort((a, b) => a - b);
 }
+
+// v10.8 (partie 1) : Sceaux de monde (parties commencées en 10.8). Pour entrer dans les mondes 5, 7, 9 et 11, il faut des
+// Renaissances, ou un Bastion assez haut (somme des niveaux). La condition s'affiche à l'entrée du monde, avec un bouton
+// vers ce qui fait avancer ; la première Renaissance est guidée au mur du monde 5.
+export const WORLD_GATES = { 4: { rebirths: 1, bastion: 15 }, 6: { rebirths: 2, bastion: 40 }, 8: { rebirths: 4, bastion: 80 }, 10: { rebirths: 6, bastion: 140 } };
+export function worldGate(state, stage, balance = BALANCE) {
+  if (state?.pace !== 108 || cycleForStage(stage, balance) > 0 || stageInZone(stage, balance) !== 1) return null;
+  const z = zoneIndexForStage(stage, balance);
+  const g = WORLD_GATES[z];
+  if (!g) return null;
+  const reb = state.records?.rebirths ?? 0;
+  const bastion = Object.values(state.bastion?.buildings ?? {}).reduce((t, b) => t + Math.max(0, Math.floor(b?.level ?? 0)), 0);
+  if (reb >= g.rebirths || bastion >= g.bastion) return null;
+  return { zone: z, rebirths: g.rebirths, bastion: g.bastion, text: `Monde ${z + 1} scellé : ${g.rebirths > 1 ? `${g.rebirths} Renaissances` : 'une Renaissance'} ou Bastion niveau ${g.bastion}` };
+}
