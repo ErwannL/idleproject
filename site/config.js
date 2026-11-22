@@ -7,9 +7,9 @@ export const SITE = {
   // v9.3.0 : réseaux du pied de page (un lien vide est masqué). v10.8 : à remplir avec les vraies adresses des comptes.
   socials: {
     discord: '',
-    x: '',
-    youtube: '',
-    tiktok: '',
+    x: 'https://x.com/Ascendrya',
+    youtube: 'https://www.youtube.com/@AscendryaRPG',
+    tiktok: 'https://www.tiktok.com/@ascendrya',
   },
   // v10.8 : pixels publicitaires (identifiants publics). Vides = rien n'est chargé.
   pixels: { meta: '', tiktok: '' },
