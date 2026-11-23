@@ -243,11 +243,21 @@ function renderSocials() {
 // ---------- Vidéo d'accueil : boucle muette lancée après la page ; image de couverture si « réduire les animations »,
 // « économiser les données » ou lecture automatique bloquée. ----------
 let reelPaused = false;
-function startReel() {
+// Vidéo choisie dans l'admin (sinon la vidéo d'origine) : { mp4, webm, poster }.
+const REEL_DEFAULT = { mp4: 'assets/trailer.mp4', webm: 'assets/trailer.webm', poster: 'assets/trailer-poster.webp' };
+const reelConfig = fetch('api/site/video').then((r) => (r.ok ? r.json() : REEL_DEFAULT)).catch(() => REEL_DEFAULT).then((c) => {
+  if (c.poster && c.poster !== REEL_DEFAULT.poster) {
+    $('#reel').poster = c.poster;
+    const m = $('.hero .media'); if (m) m.style.backgroundImage = `url("${c.poster}")`;
+  }
+  return c;
+});
+async function startReel() {
   const v = $('#reel');
   if (calm || navigator.connection?.saveData) return;
   const small = matchMedia('(max-width: 720px)').matches;
-  v.innerHTML = `<source src="assets/trailer.webm" type="video/webm"><source src="assets/trailer.mp4" type="video/mp4">`;
+  const c = await reelConfig;
+  v.innerHTML = `${c.webm ? `<source src="${esc(c.webm)}" type="video/webm">` : ''}${c.mp4 ? `<source src="${esc(c.mp4)}" type="video/mp4">` : ''}`;
   v.preload = small ? 'metadata' : 'auto';
   v.addEventListener('playing', () => { v.classList.add('on'); $('#reel-toggle').hidden = false; }, { once: true });
   v.load();

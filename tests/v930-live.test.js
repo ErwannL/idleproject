@@ -455,3 +455,35 @@ test('site 10.8 : parrainage — code court, +1 seulement après confirmation, j
   assert.deepEqual(top.body.referrers[0], { rank: 1, who: 'pa***@e***', ref: a.body.ref, count: 1 });
   assert.equal((await s.call('GET', '/api/admin/referrers')).status, 401);
 });
+
+test('site : vidéo de l\'accueil modifiable dans l\'admin (MP4/WebM vérifiés, aperçu, retour à l\'origine)', async (t) => {
+  const { mkdtempSync, existsSync, readFileSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const uploadsDir = mkdtempSync(`${tmpdir()}/up-`);
+  const db = openDatabase(':memory:');
+  const app = createApp({ db, siteDir: '', webDir: '', uploadsDir, adminPasswordHash: await hashPassword('motdepasse-admin-1') });
+  const server = createServer(app); server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  t.after(() => { server.close(); db.close(); });
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const token = (await (await fetch(`${base}/api/admin/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'erwann', password: 'motdepasse-admin-1' }) })).json()).token;
+  const up = (kind, body, tok = token) => fetch(`${base}/api/admin/video`, { method: 'POST', headers: { Authorization: `Bearer ${tok}`, 'X-Kind': kind }, body });
+  const pub = async () => (await fetch(`${base}/api/site/video`)).json();
+  assert.deepEqual(await pub(), { mp4: 'assets/trailer.mp4', webm: 'assets/trailer.webm', poster: 'assets/trailer-poster.webp' });
+  assert.equal((await up('video', Buffer.from('pas une vidéo du tout'))).status, 415);
+  assert.equal((await fetch(`${base}/api/admin/video`, { method: 'POST', headers: { 'X-Kind': 'video' }, body: Buffer.alloc(20) })).status, 401);
+  const mp4 = Buffer.concat([Buffer.from([0, 0, 0, 24]), Buffer.from('ftypisom'), Buffer.alloc(64)]);
+  assert.equal((await up('video', mp4)).status, 201);
+  let v = await pub();
+  assert.match(v.mp4, /^assets\/uploads\/video\/.+-site\.mp4$/);
+  assert.equal(v.webm, null, 'l\'ancien WebM n\'est plus proposé');
+  assert.ok(existsSync(`${uploadsDir}/video/${v.mp4.split('/').pop()}`));
+  assert.equal((await fetch(`${base}/${v.mp4}`)).status, 200, 'servie par le site');
+  const png = Buffer.concat([Buffer.from([0x89]), Buffer.from('PNG\r\n\x1a\n'), Buffer.alloc(32)]);
+  assert.equal((await up('poster', png)).status, 201);
+  v = await pub();
+  assert.match(v.poster, /\.png$/); assert.match(v.mp4, /\.mp4$/);
+  await fetch(`${base}/api/admin/video`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+  assert.equal((await pub()).mp4, 'assets/trailer.mp4');
+  assert.match(readFileSync('site/site.js', 'utf8'), /fetch\('api\/site\/video'\)/);
+  assert.match(readFileSync('site/admin/index.html', 'utf8'), /data-tab="site-video"/);
+});

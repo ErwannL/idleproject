@@ -54,12 +54,20 @@ export function safeAssetName(original) {
   const base = String(original ?? '').replace(/\.[^.]*$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
   return base || 'image';
 }
+// Vidéo du site (admin) : MP4 ou WebM jusqu'à 80 Mo, image d'aperçu jusqu'à 3 Mo ; type réel vérifié par sa signature.
+export const VIDEO_MAX_BYTES = 80 * 1024 * 1024;
+export const SITE_VIDEO_DEFAULT = { mp4: 'assets/trailer.mp4', webm: 'assets/trailer.webm', poster: 'assets/trailer-poster.webp' };
+export function detectVideoType(buf) {
+  if (buf.length >= 12 && buf.toString('latin1', 4, 8) === 'ftyp') return 'mp4';
+  if (buf.length >= 4 && buf[0] === 0x1a && buf[1] === 0x45 && buf[2] === 0xdf && buf[3] === 0xa3) return 'webm';
+  return null;
+}
 async function readRaw(req, limit) {
   const chunks = [];
   let size = 0;
   for await (const chunk of req) {
     size += chunk.length;
-    if (size > limit) throw new HttpError(413, 'Image trop lourde (3 Mo au plus)');
+    if (size > limit) throw new HttpError(413, limit > ASSET_MAX_BYTES ? `Fichier trop lourd (${Math.round(limit / 1048576)} Mo au plus)` : 'Image trop lourde (3 Mo au plus)');
     chunks.push(chunk);
   }
   return Buffer.concat(chunks);
@@ -1145,6 +1153,28 @@ export function createApp({
       writeFileSync(join(dir, file), data, { flag: 'wx' });
       return { status: 201, body: { path: `assets/uploads/${file}`, size: data.length } };
     } },
+    // Vidéo de l'accueil du site : envoi depuis l'admin (MP4, WebM, image d'aperçu), lecture publique, retour à l'origine.
+    { method: 'GET', path: /^\/api\/site\/video$/, handler: () => ({ body: siteVideo(), headers: { 'Cache-Control': 'public, max-age=60' } }) },
+    { method: 'GET', path: /^\/api\/admin\/video$/, handler: ({ req }) => { requireAdmin(req); return { body: { ...siteVideo(), custom: Boolean(readVideoMeta()), defaults: SITE_VIDEO_DEFAULT } }; } },
+    { method: 'POST', path: /^\/api\/admin\/video$/, handler: async ({ req }) => {
+      requireAdmin(req);
+      const kind = String(req.headers['x-kind'] ?? '');
+      if (!['video', 'poster'].includes(kind)) throw new HttpError(400, 'Choisis la vidéo ou l\'image d\'aperçu');
+      const data = await readRaw(req, kind === 'video' ? VIDEO_MAX_BYTES : ASSET_MAX_BYTES);
+      const ext = kind === 'video' ? detectVideoType(data) : detectImageType(data);
+      if (!ext) throw new HttpError(415, kind === 'video' ? 'Format refusé : MP4 ou WebM uniquement' : 'Format refusé : PNG, JPEG ou WebP');
+      const dir = join(uploadsDir, 'video');
+      mkdirSync(dir, { recursive: true });
+      const file = `${Date.now().toString(36)}-site.${ext}`;
+      writeFileSync(join(dir, file), data, { flag: 'wx' });
+      const cur = readVideoMeta() ?? {};
+      const path = `assets/uploads/video/${file}`;
+      // Une nouvelle vidéo remplace les deux formats (l'ancien WebM ou MP4 n'est plus proposé) ; l'aperçu est gardé.
+      const next = kind === 'poster' ? { ...cur, poster: path } : { poster: cur.poster, mp4: ext === 'mp4' ? path : null, webm: ext === 'webm' ? path : null };
+      writeVideoMeta(next);
+      return { status: 201, body: { ...siteVideo(), size: data.length } };
+    } },
+    { method: 'DELETE', path: /^\/api\/admin\/video$/, handler: ({ req }) => { requireAdmin(req); writeVideoMeta(null); return { body: siteVideo() }; } },
     { method: 'GET', path: /^\/api\/admin\/assets$/, handler: ({ req }) => {
       requireAdmin(req);
       // Images déjà présentes sur le serveur (dossier du site, sous-dossiers compris) puis envois de l'admin.
@@ -1190,6 +1220,21 @@ export function createApp({
       return { body: live.setGoals(s.username, await readJson(req, 32 * 1024)) };
     } },
   ];
+
+  // Réglage de la vidéo du site (table live_meta, clé site_video) : { mp4, webm, poster } ; absent = vidéo d'origine.
+  function readVideoMeta() {
+    try { const r = db.prepare("SELECT value FROM live_meta WHERE key = 'site_video'").get(); return r ? JSON.parse(r.value) : null; } catch { return null; }
+  }
+  function writeVideoMeta(v) {
+    if (!v) db.prepare("DELETE FROM live_meta WHERE key = 'site_video'").run();
+    else db.prepare("INSERT INTO live_meta (key, value) VALUES ('site_video', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(JSON.stringify(v));
+  }
+  function siteVideo() {
+    const m = readVideoMeta();
+    if (!m) return { ...SITE_VIDEO_DEFAULT };
+    const custom = m.mp4 || m.webm;
+    return { mp4: custom ? m.mp4 ?? null : SITE_VIDEO_DEFAULT.mp4, webm: custom ? m.webm ?? null : SITE_VIDEO_DEFAULT.webm, poster: m.poster ?? SITE_VIDEO_DEFAULT.poster };
+  }
 
   async function serveStatic(req, res, pathname) {
     // /play/... sert le jeu compilé (webDir), le reste sert le site (siteDir).
