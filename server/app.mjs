@@ -1256,7 +1256,23 @@ export function createApp({
     if (!info?.isFile()) return send(res, 404, { error: 'Introuvable' });
     const type = TYPES[extname(target)];
     if (!type) return send(res, 403, { error: 'Interdit' });
-    res.writeHead(200, { 'Content-Type': type, 'Cache-Control': 'public, max-age=300' });
+    // Lecture partielle (Range) : indispensable aux vidéos (lecture en continu, boucle, avance), surtout dans Safari et
+    // pour un MP4 dont l'index est à la fin du fichier.
+    const range = /^bytes=(\d*)-(\d*)$/.exec(String(req.headers.range ?? ''));
+    if (range && (range[1] || range[2])) {
+      let start = range[1] ? Number(range[1]) : Math.max(0, info.size - Number(range[2]));
+      let end = range[1] && range[2] ? Number(range[2]) : info.size - 1;
+      end = Math.min(end, info.size - 1);
+      if (start > end || start >= info.size) {
+        res.writeHead(416, { 'Content-Range': `bytes */${info.size}` });
+        return res.end();
+      }
+      res.writeHead(206, { 'Content-Type': type, 'Cache-Control': 'public, max-age=300', 'Accept-Ranges': 'bytes', 'Content-Range': `bytes ${start}-${end}/${info.size}`, 'Content-Length': end - start + 1 });
+      if (req.method === 'HEAD') return res.end();
+      createReadStream(target, { start, end }).pipe(res);
+      return undefined;
+    }
+    res.writeHead(200, { 'Content-Type': type, 'Cache-Control': 'public, max-age=300', 'Accept-Ranges': 'bytes', 'Content-Length': info.size });
     if (req.method === 'HEAD') return res.end();
     createReadStream(target).pipe(res);
     return undefined;

@@ -487,3 +487,21 @@ test('site : vidéo de l\'accueil modifiable dans l\'admin (MP4/WebM vérifiés,
   assert.match(readFileSync('site/site.js', 'utf8'), /fetch\('api\/site\/video'\)/);
   assert.match(readFileSync('site/admin/index.html', 'utf8'), /data-tab="site-video"/);
 });
+
+test('site : vidéos servies par morceaux (Range : 206, Content-Range), sinon 200 avec la taille', async (t) => {
+  const db = openDatabase(':memory:');
+  const app = createApp({ db, siteDir: new URL('../site', import.meta.url).pathname, webDir: '' });
+  const server = createServer(app); server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  t.after(() => { server.close(); db.close(); });
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const full = await fetch(`${base}/assets/trailer.mp4`);
+  assert.equal(full.status, 200); assert.equal(full.headers.get('accept-ranges'), 'bytes');
+  const size = Number(full.headers.get('content-length')); await full.arrayBuffer();
+  const part = await fetch(`${base}/assets/trailer.mp4`, { headers: { Range: 'bytes=0-99' } });
+  assert.equal(part.status, 206);
+  assert.equal(part.headers.get('content-range'), `bytes 0-99/${size}`);
+  assert.equal((await part.arrayBuffer()).byteLength, 100);
+  const tail = await fetch(`${base}/assets/trailer.mp4`, { headers: { Range: 'bytes=-10' } });
+  assert.equal((await tail.arrayBuffer()).byteLength, 10);
+  assert.equal((await fetch(`${base}/assets/trailer.mp4`, { headers: { Range: `bytes=${size + 5}-` } })).status, 416);
+});
