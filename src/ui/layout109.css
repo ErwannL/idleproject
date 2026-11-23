@@ -61,9 +61,13 @@
 /* v10.9 (partie 6) : Améliorations — 3 colonnes seulement s'il y a la place ; icônes dans leur case de 48 px. */
 @media (max-width: 1399px) {
   #app #panel .upg-page107 .upg-cols3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  #app #panel .upg-page107 .upg-cols3 > .g-earn { grid-column: 1 / -1; }
+  /* v10.11 (1) : 2 colonnes — « Frapper fort » à gauche, « Tenir » puis « Gagner plus » à droite (jamais de colonne vide). */
+  #app #panel .upg-page107 .upg-cols3 { grid-template-areas: "strike endure" "strike earn"; align-items: start; }
+  #app #panel .upg-page107 .upg-cols3 > .g-strike { grid-area: strike; } #app #panel .upg-page107 .upg-cols3 > .g-endure { grid-area: endure; }
+  #app #panel .upg-page107 .upg-cols3 > .g-earn { grid-area: earn; grid-column: auto; }
+  #app #panel .upg-page107 .upg-pg-top { height: 140px !important; }
 }
-@media (max-width: 699px) { #app #panel .upg-page107 .upg-cols3 { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 699px) { #app #panel .upg-page107 .upg-cols3 { grid-template-columns: minmax(0, 1fr); grid-template-areas: "strike" "endure" "earn"; } }
 #app #panel .upg-card { grid-template-columns: 48px minmax(0, 1fr) auto; }
 #app #panel .upg-card .upg-icon { width: 48px !important; height: 48px !important; flex: none; overflow: hidden; }
 #app #panel .upg-card .upg-icon img { width: 44px !important; height: 44px !important; object-fit: contain; }
@@ -198,3 +202,11 @@
 #app#app .bs-wpic { position: relative; }
 #app#app .bs-wpic > img { position: absolute; inset: 0; width: 100% !important; height: 100% !important; max-height: none !important; object-fit: contain; object-position: center bottom; }
 #app#app .bs-hero > img.bs-hero-b:not(.node) { bottom: 0; } /* v10.9.1 : le bâtiment de la fiche ne sort plus du cadre */
+
+/* v10.11 (1) : une amélioration « peu utile » reste dans sa colonne, grisée à 70 %, effet lisible, petite étiquette. */
+#app .upg-card.weak { opacity: .7; filter: none; }
+#app .upg-card.weak .upg-effect { opacity: 1; }
+.upg-weak-tag { margin-left: 6px; font-size: 10px; padding: 1px 6px; border-radius: 6px; background: #3a3348; color: #cbbfe0; }
+.upg-all-max { margin: 8px 4px; font-weight: 800; color: #9cf08a; }
+.upg-missing { display: block; margin-top: 4px; text-align: center; }
+.buy-all[disabled] { opacity: .55; filter: grayscale(.6); cursor: not-allowed; }

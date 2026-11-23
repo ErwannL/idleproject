@@ -63,7 +63,7 @@ test('10.7 (3) : titre du sac juste (+N portés), fiche de droite sur l\'objet p
 
 test('10.7 (4) : « Meilleur achat » toujours là, gain jugé sur le mode choisi (Max par défaut), bandeau cohérent, 3 colonnes', async () => {
   const up = src('src/ui/panels/upgrades.js');
-  for (const k of ['upg-bb-none', 'Ton or ira plus loin dans ton équipement', "'max' : '1'", 'upg-cols3', 'weakOf(\'damage\')', 'upg-weak-note', "' advised'"]) assert.ok(up.includes(k), k);
+  for (const k of ['upg-bb-none', 'Ton or ira plus loin dans ton équipement', "'max' : '1'", 'upg-cols3', 'weakOf(\'damage\')', 'upg-all-max', "' advised'"]) assert.ok(up.includes(k), k);
   const G = await import('../src/core/guide.js');
   const s = createNewState(Date.now());
   s.upgrades.damage = 4000; s.gold = 0;

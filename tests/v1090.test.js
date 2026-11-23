@@ -59,7 +59,7 @@ test('10.9 (5, 6) : Carnet en grille 56 px, Améliorations en 2 colonnes, « Pre
   assert.match(css, /@media \(max-width: 1399px\)[\s\S]*repeat\(2, minmax\(0, 1fr\)\)/);
   const up = src('src/ui/panels/upgrades.js');
   assert.doesNotMatch(up, /upg-weak-why/);
-  assert.match(up, /Peu utiles maintenant/);
+  assert.match(up, /peu utile/);
 });
 
 test('10.9 (7) : contrôle automatique du cadrage', () => {

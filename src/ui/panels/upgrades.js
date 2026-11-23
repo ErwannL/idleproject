@@ -154,18 +154,19 @@ export default {
         : pg && pg.gain > 0 ? ` <span class="muted upg-profit">${key === bestKey ? '<b class="upg-best" title="Meilleure affaire">▲</b> ' : ''}Puissance +${formatNumber(Math.round(pg.gain))}</span>` : '';
       // v9.1.3 (ligne type doc2 §3) : icône, nom + niveau (+ palier), un seul chiffre qui bouge (avant → après, l'unité
       // est dans le nom), +x % dégâts/s neutre sur la même ligne, bouton avec prix : 2 lignes au lieu de 3.
-      const pctNow = pg && current.combatPower > 0 ? (pg.gain / current.combatPower) * 100 : Infinity; // v10.7 (4) : gain de tout l'achat (mode choisi)
-      const weak = !max && !POWERLESS_UPGRADES.has(key) && pctNow < WEAK_UPGRADE_PCT; // v10.6 (5) : presque sans effet → grisé
+      // v10.11 (1) : « peu utile » jugé sur le gain d'UN niveau (manquer d'or n'est pas « peu utile »).
+      const one = max || POWERLESS_UPGRADES.has(key) ? null : computeHeroStats({ ...state, upgrades: { ...state.upgrades, [key]: level + 1 } });
+      const pctOne = one && current.combatPower > 0 ? ((one.combatPower / current.combatPower) - 1) * 100 : Infinity;
+      const weak = !max && !POWERLESS_UPGRADES.has(key) && pctOne < WEAK_UPGRADE_PCT; // grisé, mais reste dans sa colonne
       const html = `<div class="card upg-card${compact ? ' compact' : ''}${weak ? ' weak' : ''}${key === bestKey && !weak ? ' advised' : ''}" data-key="${key}" ${weak ? 'title="Presque sans effet (moins de 0,5 % de puissance) : pas dans « Tout acheter »"' : ''}>
         <div class="upg-icon">${img(ICONS[key])}</div>
-        <div class="upg-main"><div class="upg-name" title="${escapeHtml(up.description)}">${escapeHtml(up.label)} <span class="upg-level">niv. ${level}${up.maxLevel ? `/${up.maxLevel}` : ''}</span>${milestone}${env?.counter === key ? `<span class="tag env-counter" title="${escapeHtml(`Contré : ${Math.round(env.countered)} % (complet au niveau ${env.fullAt})`)}">contre ${escapeHtml(env.name)}</span>` : ''}</div>
+        <div class="upg-main"><div class="upg-name" title="${escapeHtml(up.description)}">${escapeHtml(up.label)} <span class="upg-level">niv. ${level}${up.maxLevel ? `/${up.maxLevel}` : ''}</span>${milestone}${weak ? '<span class="tag upg-weak-tag" title="Moins de 0,5 % de puissance : pas dans « Tout acheter »">peu utile</span>' : ''}${env?.counter === key ? `<span class="tag env-counter" title="${escapeHtml(`Contré : ${Math.round(env.countered)} % (complet au niveau ${env.fullAt})`)}">contre ${escapeHtml(env.name)}</span>` : ''}</div>
         ${compact || !beginner ? '' : `<div class="muted upg-desc">${escapeHtml(up.description)}</div>`}
 <div class="upg-effect num">${max ? `<span class="to">${from}</span>` : `<span class="from">${from}</span> → <b class="to good">${to}</b>`}</div></div>
         <div class="upg-buy">${costButton({ action: 'buy', cost, have: state.gold, attrs: `data-key="${key}" data-amount="${amount}"`, max, label: count > 1 ? `+${count} ` : '' })}
           ${max ? '' : `<small class="upg-gain">${key === bestKey ? '<b class="upg-best" title="Meilleure affaire">★</b> ' : ''}${totalPct > 0.05 ? `+${count} niv. · ${powerGainText(totalPct)}` : p?.pct > 0.05 ? `+${formatDecimal(p.pct)} % DPS` : gain ? gain.replace(/<[^>]+>/g, '').replace('▲', '').trim() : ''}</small>`}</div>
       </div>`; // v9.9 (K3/K15) : avant → après, gain sous le prix, étoile sur la meilleure affaire
       if (max) { done.push(html); return ''; }
-      if (weak && !cat && !beginner) { weakCards.push(html); return ''; } // v10.9 (6) : regroupées dans « Peu utiles maintenant »
       return html;
     });
     const byKey = Object.fromEntries(keys.map((k, i) => [k, cards[i]]));
@@ -209,13 +210,17 @@ export default {
     const dpsHead = `<div class="upg-dps"><span class="muted">Dégâts/s</span> <b class="num">${formatDecimal(current.dps)}</b>${beginner ? '' : surv}</div>`;
     const top = qtyMenu ? `<div class="row-between upg-dps-row">${dpsHead}${amounts}</div>${forecast}` : `${dpsHead}${forecast}${amounts ? `<div class="row-between">${amounts}</div>` : ''}`;
     // v9.9 (K15) : « Tout acheter » en haut de l'onglet (meilleur rapport d'abord, confirmation la première fois).
-    const buyAll = state.gold > 0 ? `<button class="btn btn-gold buy-all${ui.view.buyAllArmed ? ' armed' : ''}" data-action="${state.ui.buyAllOk || ui.view.buyAllArmed ? 'buy-best' : 'buy-all-arm'}">${ui.view.buyAllArmed && !state.ui.buyAllOk ? 'Confirmer : tout acheter ?' : 'Tout acheter'}</button>` : '';
+    // v10.11 (1) : rien d'achetable → bouton grisé et ce qui manque.
+    const cheapestLeft = Math.min(Infinity, ...keys.filter((k) => !(BALANCE.upgrades[k].maxLevel !== undefined && state.upgrades[k] >= BALANCE.upgrades[k].maxLevel)).map((k) => upgradeCost(k, state.upgrades[k], undefined, state)));
+    const buyAll = state.gold > 0 && state.gold < cheapestLeft && Number.isFinite(cheapestLeft)
+      ? `<button class="btn buy-all" disabled>Tout acheter</button><small class="muted upg-missing">Il manque ${coin()} <b class="num">${formatNumber(cheapestLeft - state.gold)}</b> or</small>`
+      : state.gold > 0 ? `<button class="btn btn-gold buy-all${ui.view.buyAllArmed ? ' armed' : ''}" data-action="${state.ui.buyAllOk || ui.view.buyAllArmed ? 'buy-best' : 'buy-all-arm'}">${ui.view.buyAllArmed && !state.ui.buyAllOk ? 'Confirmer : tout acheter ?' : 'Tout acheter'}</button>` : '';
     // v10.6 (partie 5) : en page plein écran, gabarit .pg : héros et achats à gauche, les 3 groupes en colonnes à droite.
     // v10.7 (4) : en page — « Meilleur achat » et « Tout acheter » sur toute la largeur, puis 3 colonnes égales.
     // v10.9 (6) : « Presque sans effet » dit une seule fois ; les lignes concernées sont repliées ensemble.
-    const weakFold = weakCards.length ? `<p class="muted upg-weak-note">Presque sans effet sur ta puissance (moins de 0,5 %) : ces lignes ne sont pas dans « Tout acheter ».</p>${fold(ui, 'upg-weak', `Peu utiles maintenant (${weakCards.length})`, `<div class="upg-list">${weakCards.join('')}</div>`)}` : '';
+    const weakFold = ''; // v10.11 (1) : plus de pli « Peu utiles » : chaque ligne reste dans sa colonne
     if (pageActive(ui) && !pageNarrow(ui)) {
-      const col = (g) => { const body = g.keys.filter((k) => byKey[k]).map((k) => byKey[k]).join(''); return `<section class="upg-group g-${g.id}"><h4 class="upg-group-head" style="background-image:url(assets/ui/art106/${g.art}.png)"><span>${g.title}</span></h4><div class="upg-list">${body}</div>${g.id === 'earn' ? rebirthRow(state) : ''}</section>`; };
+      const col = (g) => { const body = g.keys.filter((k) => byKey[k]).map((k) => byKey[k]).join('') || '<p class="muted upg-all-max">Tout est au maximum ✓</p>'; return `<section class="upg-group g-${g.id}"><h4 class="upg-group-head" style="background-image:url(assets/ui/art106/${g.art}.png)"><span>${g.title}</span></h4><div class="upg-list">${body}</div>${g.id === 'earn' ? rebirthRow(state) : ''}</section>`; };
       return `<div class="pg upg-page upg-page107"><div class="pg-top upg-pg-top"><img class="px upg-pg-banner" src="assets/ui/art101/banner_upgrades.png" alt="" aria-hidden="true"><b>Améliorations</b></div>
       <div class="pg-main upg-pg-main"><div class="upg-toprow">${bestCard}<div class="card upg-top">${top}${buyAll}</div></div>
         <div class="upg-cols3">${GROUPS.map(col).join('')}</div>${weakFold}${done.length ? fold(ui, 'upg-done', `Terminées (${done.length})`, `<div class="upg-list">${done.join('')}</div>`) : ''}</div></div>`;

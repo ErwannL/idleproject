@@ -1,0 +1,15 @@
+// v10.11 (docs/prompt-v10.11/PROMPT.md) : lisibilité et ergonomie.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+const src = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
+
+test('10.11 (1) : Améliorations — une ligne ne quitte jamais sa colonne, « peu utile » jugé sur un niveau, colonne jamais vide', () => {
+  const up = src('src/ui/panels/upgrades.js');
+  assert.doesNotMatch(up, /weakCards\.push/);
+  assert.doesNotMatch(up, /Peu utiles maintenant/);
+  assert.match(up, /\[key\]: level \+ 1/, 'gain d\'un seul niveau');
+  assert.match(up, /Tout est au maximum ✓/);
+  assert.match(up, /Il manque \$\{coin\(\)\}/);
+  assert.match(src('src/ui/layout109.css'), /grid-template-areas: "strike endure" "strike earn"/);
+});
