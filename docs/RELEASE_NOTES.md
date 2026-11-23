@@ -1,6 +1,11 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.9.0 — Tout bien placé et propre
+## Ascendrya v10.9.1 — Forge et portraits du Bastion
+
+- **Forge** : dans une fenêtre large et basse, les 4 ateliers tiennent entiers dans leur case — l'illustration rétrécit, la ligne « maintenant » et le bouton (Recycler, Renforcer, Fusionner, Fabriquer) restent toujours visibles.
+- **Bastion** : les portraits des ouvriers tiennent dans leur cercle, et le bâtiment de la fiche ne déborde plus de son cadre.
+
+<details><summary>Ascendrya v10.9.0 — Tout bien placé et propre</summary>
 
 - **Écran de jeu : une place fixe pour chaque chose**, la même dans toutes les tailles de fenêtre. En haut, une seule bande : la carte de zone, les événements, puis les boosts et « Auto ». À gauche, le Chemin du héros puis le Carnet du jour ; une fois le Carnet fini, il devient une seule ligne verte « ouvre le coffre du jour ». En bas : les puces d'état, puis les sorts, le Sceau et **le coffre de butin, toujours visible**.
 - **Équipement : c'est toi qui équipes.** Plus rien n'est équipé tout seul (retour de session, Sceau, tri du coffre). Une pastille verte ▲ sur Héros et la fenêtre de l'objet (« Meilleur : +12 % ») te montrent ce qui vaut le coup ; le bouton « Équiper » reste à toi. Pour ceux qui préfèrent, une option « Équiper automatiquement » existe (désactivée par défaut).
@@ -10,6 +15,8 @@
 - **Carnet du jour** : icônes à leur place, titre jamais couvert, tampon « Accompli » sur la barre.
 - **Améliorations** : 2 colonnes quand la fenêtre est étroite, les lignes « presque sans effet » regroupées dans un bloc replié.
 - **Boutique** : les tickets de compagnon et les lots de familiers retrouvent leurs images d'origine, comme sur le site.
+
+</details>
 
 <details><summary>Ascendrya v10.8.1 — Réglages du rythme</summary>
 

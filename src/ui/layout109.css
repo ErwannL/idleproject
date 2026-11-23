@@ -171,3 +171,30 @@
 #app#app .dg-card.dg-banner > img.dg-boss { bottom: 0 !important; }
 #app#app .look-pic > img.look-hd, #app#app .look-preview-pic > img.look-hd { bottom: 0 !important; }
 #app#app .bs-wpic > img { width: 100% !important; height: 100% !important; }
+
+/* v10.9.1 : Forge en page — chaque atelier tient dans sa case : l'illustration rétrécit, le texte et le bouton restent visibles. */
+#app#app.page-ui:not(.page-narrow) .fg-loop > .fg-step { min-height: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-start; }
+#app#app.page-ui:not(.page-narrow) .fg-step > .fg-scene { flex: 1 1 0; min-height: 72px; }
+#app#app.page-ui:not(.page-narrow) .fg-step > :not(.fg-scene) { flex: none; }
+#app#app.page-ui:not(.page-narrow) .fg-scene > .fg-diagram { max-height: calc(100% - 44px); }
+@media (max-height: 1100px) {
+  #app#app.page-ui:not(.page-narrow) .fg-diagram { min-height: 0; gap: 6px; }
+  #app#app.page-ui:not(.page-narrow) .fg-it { width: 52px; height: 52px; } #app#app.page-ui:not(.page-narrow) .fg-it img { width: 44px; height: 44px; }
+  #app#app.page-ui:not(.page-narrow) .fg-diagram > img { width: 36px; height: 36px; }
+}
+@media (max-height: 1100px) {
+  #app#app.page-ui:not(.page-narrow) .fg-rule { display: none; } /* la règle reste au survol du schéma */
+  #app#app.page-ui:not(.page-narrow) .fg .pg-top, #app#app.page-ui:not(.page-narrow) .fg-top { max-height: 120px; }
+  #app#app.page-ui:not(.page-narrow) .fg .pg-top img { max-height: 120px; object-fit: cover; }
+  #app#app.page-ui:not(.page-narrow) .fg-loop > .fg-step { gap: 5px; padding: 8px 10px; }
+}
+@media (max-height: 1100px) {
+  #app#app.page-ui:not(.page-narrow) .fg-step > .fg-scene { min-height: 56px; }
+  #app#app.page-ui:not(.page-narrow) .fg-step .btn.fg-btn { min-height: 32px; padding-top: 4px; padding-bottom: 4px; }
+  #app#app.page-ui:not(.page-narrow) .fg-step .fg-now { padding-top: 4px; padding-bottom: 4px; font-size: 13px; }
+  #app#app.page-ui:not(.page-narrow) .fg-loop { gap: 6px; grid-template-rows: minmax(0, 1fr) 14px minmax(0, 1fr); }
+}
+/* v10.9.1 : portraits des ouvriers du Bastion — l'image remplit le cercle sans en sortir. */
+#app#app .bs-wpic { position: relative; }
+#app#app .bs-wpic > img { position: absolute; inset: 0; width: 100% !important; height: 100% !important; max-height: none !important; object-fit: contain; object-position: center bottom; }
+#app#app .bs-hero > img.bs-hero-b:not(.node) { bottom: 0; } /* v10.9.1 : le bâtiment de la fiche ne sort plus du cadre */
