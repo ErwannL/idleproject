@@ -231,3 +231,26 @@
   #app#app .eq-who { flex: none; }
   #app#app .eq-who b { white-space: nowrap; overflow: visible; text-overflow: clip; max-width: none; }
 }
+
+/* v10.11 (3) : Bastion — « il manque un ouvrier » se voit et s'explique (pioche orange, pas un cadenas). */
+#app .bs-plot .bs-need { display: flex; align-items: center; justify-content: center; gap: 0; width: 26px; height: 26px; border-radius: 50%; background: #f08a24; border: 2px solid #fff;
+  color: #fff; font: 900 13px/1 system-ui, sans-serif; box-shadow: 0 2px 6px #0008; animation: bs-need-pulse 1.6s ease-in-out infinite; }
+#app .bs-plot .bs-need > b { font-size: 11px; margin-left: -2px; margin-top: -8px; }
+@keyframes bs-need-pulse { 50% { transform: scale(1.14); box-shadow: 0 0 0 5px #f08a2455; } }
+html.reduce-motion #app .bs-plot .bs-need { animation: none; }
+#app .bs-plot .bs-lvl.need { background: #f08a24; color: #fff; padding: 0 6px; border-radius: 8px; white-space: nowrap; font-size: 10px; }
+#app .bs-chip.bs-workers { font: inherit; color: inherit; cursor: default; display: inline-flex; align-items: center; gap: 5px; }
+#app .bs-chip.bs-workers.warn { background: #f08a24; border-color: #ffd0a0; color: #fff; cursor: pointer; animation: bs-need-pulse 2s ease-in-out infinite; }
+.bs-idle-box { display: grid; gap: 3px; margin: 6px 0; padding: 10px 12px; border-radius: 10px; border: 2px solid #f08a24; background: #3a2410; color: #ffe0c0; }
+.bs-idle-box b { color: #ffb36b; font-size: 14px; } .bs-idle-tip { color: #fff3d8; font-weight: 700; }
+.bs-wcard { position: relative; } .bs-wcard .bs-wname { display: block; font-size: 10px; line-height: 1.1; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bs-wcard .bs-wbest { position: absolute; top: 2px; left: 4px; color: #ffd34d; font-style: normal; font-weight: 900; text-shadow: 0 1px 2px #000; }
+.bs-need-btn { background: #3a2410; border: 2px solid #f08a24; color: #ffb36b; font-weight: 800; }
+.bs-idlers-wrap { display: grid; gap: 6px; }
+.bs-idlers-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 10px; border-radius: 10px; background: #16203a; border: 1px solid #2a3654; }
+.bs-idlers-head b { font-size: 13px; }
+/* Carte en fenêtre moyenne : 60 % carte, 40 % fiche ; étiquettes lisibles. */
+@media (min-width: 900px) and (max-width: 1399px) {
+  #app#app.page-ui:not(.page-narrow) .bs-pg { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr) !important; }
+  #app .bs-plot .bs-tag { font-size: 11px !important; }
+}

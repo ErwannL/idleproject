@@ -113,7 +113,7 @@ import { recycleUseless } from './core/inventory.js'; // v9.3.4
 import { sortLootBag } from './core/inventory.js'; // v9.7.1 : sac de butin
 // v10.3 (partie 10) : le Bastion.
 import { ackBastionNews, assignWorker, bastionSealShown, bastionTick, buildingDef, canBuild, canOrder, canResearch, collectOrder, collectStock, orderLabel, placeOrder,
-  removeWorker, researchDef, startBuild, startResearch, takeNotices, trade, workerNoticeText } from './core/bastion.js';
+  autoAssignWorkers, removeWorker, workerBonus, researchDef, startBuild, startResearch, takeNotices, trade, workerNoticeText } from './core/bastion.js';
 import { maybeBastionCard } from './ui/bastion-cards.js';
 import { collectAway, kickoffBastion, markTip, noteAway, placedLine } from './core/bastion-start.js'; // v10.4 (6)
 import { maybeBastionAway } from './ui/bastion-away.js'; // v10.4 (6)
@@ -284,6 +284,13 @@ const actions = {
       }
       case 'book': ackBastionNews(state, 'book', now); break; // ligne du Carnet lue
       case 'shown': bastionSealShown(state, now); break; // consigne du Sceau montrée (une fois par retour)
+      case 'autoplace': { // v10.11 (3) : « Poser au mieux »
+        const placed = autoAssignWorkers(state, now);
+        if (!placed.length) return refuse('Aucune place libre ou aucun compagnon libre.');
+        ui.view.bastionKick = { placed: placed.map((p) => ({ companionId: p.companionId, building: p.building, pct: workerBonus(state, p.companionId, p.building).totalPct })), build: null };
+        sound.play('claim', { volume: 0.6 });
+        return done(true, `${placed.length} ouvrier${placed.length > 1 ? 's' : ''} au travail`, '#7fe0a0');
+      }
       case 'worker': {
         if (!y) return done(removeWorker(state, x, now), 'Ouvrier retiré : le bâtiment est à l\'arrêt', '#ffb36b');
         const why = assignWorker(state, x, y, now);

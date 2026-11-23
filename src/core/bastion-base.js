@@ -223,6 +223,21 @@ export function assignWorker(state, buildingId, companionId, now = Date.now()) {
   return null;
 }
 
+// v10.11 (3) : « Poser au mieux » — remplit les places libres : chaque bâtiment ouvert sans ouvrier reçoit le compagnon
+// libre qui y travaille le mieux (métier et rareté). Renvoie [{ building, companionId }] (ce qui a été fait).
+export function autoAssignWorkers(state, now = Date.now()) {
+  const done = [];
+  const open = BUILDINGS.filter((d) => !d.existing && buildingAccess(state, d.id).available && !workerOf(state, d.id));
+  for (const def of open) {
+    if (workersPlaced(state) >= workerSlots(state)) break;
+    const free = availableWorkers(state).filter((c) => !workerBuilding(state, c.id));
+    if (!free.length) break;
+    const best = free.sort((a, b) => workerBonus(state, b.id, def.id).totalPct - workerBonus(state, a.id, def.id).totalPct)[0];
+    if (!assignWorker(state, def.id, best.id, now)) done.push({ building: def.id, companionId: best.id });
+  }
+  return done;
+}
+
 export function removeWorker(state, buildingId, now = Date.now()) {
   const slot = bastionOf(state)?.buildings?.[buildingId];
   if (!slot?.worker) return false;
