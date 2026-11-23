@@ -1,5 +1,5 @@
 ext {
-    minSdkVersion = 23
+    minSdkVersion = 24 // Google Play : la protection automatique demande Android 7.0 (SDK 24) ou plus
     compileSdkVersion = 35
     targetSdkVersion = 35
     androidxActivityVersion = '1.9.2'

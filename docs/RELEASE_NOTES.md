@@ -1,9 +1,15 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.9.1 — Forge et portraits du Bastion
+## Ascendrya v10.9.2 — Google Play
+
+- **Android** : l'application demande désormais Android 7.0 ou plus (exigence de la protection automatique de Google Play). Le paquet AAB s'importe sur la Play Console.
+
+<details><summary>Ascendrya v10.9.1 — Forge et portraits du Bastion</summary>
 
 - **Forge** : dans une fenêtre large et basse, les 4 ateliers tiennent entiers dans leur case — l'illustration rétrécit, la ligne « maintenant » et le bouton (Recycler, Renforcer, Fusionner, Fabriquer) restent toujours visibles.
 - **Bastion** : les portraits des ouvriers tiennent dans leur cercle, et le bâtiment de la fiche ne déborde plus de son cadre.
+
+</details>
 
 <details><summary>Ascendrya v10.9.0 — Tout bien placé et propre</summary>
 
