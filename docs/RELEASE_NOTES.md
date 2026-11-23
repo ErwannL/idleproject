@@ -1,8 +1,20 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.9.2 — Google Play
+## Ascendrya v10.11.0 — Lisibilité et ergonomie
+
+- **Améliorations** : chaque ligne reste dans sa colonne avec son effet « avant → après » et son prix, même quand tu manques d'or. Une ligne qui rapporte peu reste à sa place, grisée, avec une petite étiquette « peu utile ». « Tout acheter » se grise et dit ce qui manque.
+- **Fiche Héros** : le personnage tient dans sa case et ne passe plus sur les statistiques ni sur les objets ; Niveau et Puissance sont dessous. Sur téléphone : le personnage à gauche, les objets en grille dessous, les noms en entier.
+- **Bastion** : un bâtiment sans ouvrier porte une pioche orange et « + Ouvrier » (le cadenas ne sert plus qu'aux bâtiments fermés). Puce « Ouvriers 2/6 », bouton « Poser au mieux » qui remplit les places libres, fiche qui dit « choisis un ouvrier », meilleur choix marqué ★.
+- **Grand écran** : le combat se joue au milieu, plus de grand mur de briques vide, la rangée d'actions, les événements et la barre de vague sont centrés. Les grands messages s'affichent dans le ciel.
+- **Onglets** : dès 1300 px, tous les onglets des menus Héros et Équipe s'ouvrent en page, au contenu centré ; la page descend jusqu'au menu du bas.
+- **Téléphone** : tous les onglets en plein écran (les compagnons, les donjons… se voient tout de suite), Améliorations directes, boutons de 44 px au moins.
+- **Nouveau joueur** : une seule bulle à la fois, et le doigt montre le bon bouton.
+
+<details><summary>Ascendrya v10.9.2 — Google Play</summary>
 
 - **Android** : l'application demande désormais Android 7.0 ou plus (exigence de la protection automatique de Google Play). Le paquet AAB s'importe sur la Play Console.
+
+</details>
 
 <details><summary>Ascendrya v10.9.1 — Forge et portraits du Bastion</summary>
 
