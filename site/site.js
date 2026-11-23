@@ -39,6 +39,8 @@ async function setLang(code, push = false) {
   store.set('ascendrya-lang', code);
   if (push) { const u = new URL(location.href); u.searchParams.set('lang', code); history.replaceState(null, '', u); }
   document.documentElement.lang = code;
+  // Pages annexes (confidentialité, classement) dans la même langue.
+  for (const a of $$('a[href^="confidentialite.html"], a[href^="classement/"]')) a.href = `${a.getAttribute('href').split('?')[0]}?lang=${code}`;
   for (const el of $$('[data-t]')) el.textContent = t(el.dataset.t);
   for (const el of $$('[data-t-attr]')) for (const pair of el.dataset.tAttr.split(';')) { const [attr, k] = pair.split(':'); el.setAttribute(attr, t(k)); }
   // Référencement : titre, description, aperçus de partage et lien canonique de la langue.
@@ -65,7 +67,14 @@ const defTier = (x) => DEFAULT_GOALS.tiers.find((d) => d.at === x.at && d.name =
 function tierText(x) {
   const tr = defTier(x) && get(T, `tiers.${x.at}`);
   const tag = x.tag ? (get(T, `tiers.tags.${x.tag}`) || x.tag) : '';
-  return tr ? { name: tr[0], detail: tr[1], tag } : { name: x.name, detail: x.detail ?? '', tag };
+  const base = tr ? { name: tr[0], detail: tr[1], tag } : { name: x.name, detail: x.detail ?? '', tag };
+  // Textes anglais saisis dans l'admin (site dans une autre langue que le français).
+  if (lang !== 'fr') {
+    if (x.name_en) base.name = x.name_en;
+    if (x.detail_en) base.detail = x.detail_en;
+    if (x.tag_en) base.tag = x.tag_en;
+  }
+  return base;
 }
 // Carte d'un palier. Palier bonus pas encore révélé (objectif non atteint) : récompense mystère.
 function tierCard(x, st, secret) {
@@ -108,9 +117,9 @@ function renderGoal() {
   wrap.hidden = !bonus.length;
   if (bonus.length) {
     $('#bonus-title').textContent = t('goal.bonusTitle', x0({ at: target }));
-    $('#bonus-lead').textContent = reached ? t('goal.bonusOpen') : t('goal.bonusLead');
+    $('#bonus-lead').textContent = reached ? t('goal.bonusOpen') : GOALS.revealBonus ? t('goal.bonusShown') : t('goal.bonusLead');
     $('#bonus-tiers').style.setProperty('--cols', String(bonus.length));
-    $('#bonus-tiers').innerHTML = bonus.map((x) => tierCard(x, state(x), !reached)).join('');
+    $('#bonus-tiers').innerHTML = bonus.map((x) => tierCard(x, state(x), !reached && !GOALS.revealBonus)).join('');
   }
 }
 // Libellé du seuil : format de la langue pour les paliers par défaut (2,5K / 2.5K), sinon celui de l'admin.
@@ -122,7 +131,7 @@ async function loadGoals() {
     if (res.ok) {
       const g = await res.json();
       if (Number.isFinite(Number(g.target)) && Array.isArray(g.tiers) && g.tiers.length) {
-        GOALS = { target: Number(g.target), tiers: [...g.tiers].sort((a, b) => a.at - b.at), count: Number.isFinite(Number(g.count)) && g.count != null ? Number(g.count) : null };
+        GOALS = { target: Number(g.target), revealBonus: g.revealBonus === true, tiers: [...g.tiers].sort((a, b) => a.at - b.at), count: Number.isFinite(Number(g.count)) && g.count != null ? Number(g.count) : null };
       }
     }
   } catch { /* hors ligne */ }

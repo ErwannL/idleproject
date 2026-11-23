@@ -273,10 +273,13 @@ export function validateGoals(raw) {
     const tag = str(t.tag ?? '', 30, `Palier ${i + 1}, étiquette`);
     if (tag) tier.tag = tag;
     if (t.excl === true) tier.excl = true;
+    // Textes anglais du palier (site en anglais) ; vides = traduction par défaut, sinon le texte français.
+    for (const [k, max] of [['name_en', 60], ['detail_en', 120], ['tag_en', 30]]) { const v = str(t[k] ?? '', max, `Palier ${i + 1}, texte anglais`); if (v) tier[k] = v; }
     return tier;
   });
   return {
     target, display: { mode, value }, tiers,
+    revealBonus: raw.revealBonus === true, // paliers bonus montrés dès maintenant (sinon « récompense mystère » jusqu'à l'objectif)
     texts: { headline: str(raw.texts?.headline ?? '', 160, 'Phrase d\'objectif'), reached: str(raw.texts?.reached ?? '', 160, 'Texte une fois atteint') },
   };
 }
@@ -531,7 +534,7 @@ export function createLive({ db, now = () => Date.now() }) {
   }
   function publicGoals() {
     const g = goalsRow().data;
-    return { target: g.target, count: displayedCount(g, q.prereg.get().n), tiers: g.tiers, texts: g.texts };
+    return { target: g.target, count: displayedCount(g, q.prereg.get().n), tiers: g.tiers, texts: g.texts, revealBonus: g.revealBonus === true };
   }
 
   // Charge publique (sans serverTime, pour l'ETag) : seulement ce qui est programmé ou actif. Les dates sont en heure

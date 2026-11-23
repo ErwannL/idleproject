@@ -325,6 +325,7 @@
     $('lg-value').value = String(g.data.display.value);
     $('lg-headline').value = g.data.texts.headline ?? '';
     $('lg-reached').value = g.data.texts.reached ?? '';
+    $('lg-reveal').checked = g.data.revealBonus === true;
     renderTiers();
   }
   // Images déjà envoyées depuis l'admin (liste pour le champ « Image »).
@@ -409,10 +410,13 @@
 
   function renderTiers() {
     $('lg-value-wrap').classList.toggle('hidden', $('lg-mode').value === 'real');
-    $('lg-tiers').innerHTML = goalsDraft.tiers.map((t, i) => `<tr data-i="${i}">
-      <td><input data-f="at" value="${esc(fmt(t.at))}" inputmode="decimal" aria-label="Seuil"></td><td><input data-f="label" value="${esc(t.label)}" maxlength="12" aria-label="Libellé"></td>
-      <td><input data-f="name" value="${esc(t.name)}" maxlength="60" aria-label="Récompense"></td><td><input data-f="detail" value="${esc(t.detail)}" maxlength="120" aria-label="Détail"></td>
-      <td><input data-f="tag" value="${esc(t.tag ?? '')}" maxlength="30" aria-label="Étiquette"></td><td><input data-f="excl" type="checkbox"${t.excl ? ' checked' : ''} aria-label="Exclusif"></td>
+    const target = parseAmount($('lg-target').value);
+    const reveal = $('lg-reveal').checked;
+    $('lg-tiers').innerHTML = goalsDraft.tiers.map((t, i) => `<tr data-i="${i}" class="${t.at > target ? 'lv-bonus' : ''}">
+      <td><input data-f="at" value="${esc(fmt(t.at))}" inputmode="decimal" aria-label="Seuil">${t.at > target ? `<small class="lv-bonus-tag">${reveal ? 'Bonus · visible sur le site' : 'Bonus · « mystère » sur le site'}</small>` : ''}</td><td><input data-f="label" value="${esc(t.label)}" maxlength="12" aria-label="Libellé"></td>
+      <td><input data-f="name" value="${esc(t.name)}" maxlength="60" aria-label="Récompense" placeholder="Français"><input class="lv-en" data-f="name_en" value="${esc(t.name_en ?? '')}" maxlength="60" aria-label="Récompense en anglais" placeholder="English"></td>
+      <td><input data-f="detail" value="${esc(t.detail)}" maxlength="120" aria-label="Détail" placeholder="Français"><input class="lv-en" data-f="detail_en" value="${esc(t.detail_en ?? '')}" maxlength="120" aria-label="Détail en anglais" placeholder="English"></td>
+      <td><input data-f="tag" value="${esc(t.tag ?? '')}" maxlength="30" aria-label="Étiquette" placeholder="Français"><input class="lv-en" data-f="tag_en" value="${esc(t.tag_en ?? '')}" maxlength="30" aria-label="Étiquette en anglais" placeholder="English"></td><td><input data-f="excl" type="checkbox"${t.excl ? ' checked' : ''} aria-label="Exclusif"></td>
       <td class="lv-img"><div class="lv-img-row"><input data-f="img" value="${esc(t.img)}" maxlength="120" list="lg-assets" aria-label="Image"><button type="button" class="btn small lv-pick" data-browse>Parcourir le serveur</button><label class="btn small lv-pick">Depuis mon PC<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-pick hidden></label></div><img class="lv-thumb" data-thumb src="${esc(t.img ? "/" + t.img : "")}" alt="" width="40" height="40"></td><td><button class="btn small danger" data-del="${i}" aria-label="Supprimer le palier">✕</button></td></tr>`).join('');
     renderGoalPreview();
     loadAssets();
@@ -427,11 +431,13 @@
         else t[f] = el.value;
       });
       if (!t.tag) delete t.tag;
+      for (const k of ['name_en', 'detail_en', 'tag_en']) if (!t[k]) delete t[k];
     });
     const mode = $('lg-mode').value;
     return {
       target: parseAmount($('lg-target').value), display: { mode, value: mode === 'real' ? 0 : mode === 'offset' ? Number($('lg-value').value.replace(/\s/g, '')) : parseAmount($('lg-value').value) },
       texts: { headline: $('lg-headline').value, reached: $('lg-reached').value }, tiers: goalsDraft.tiers,
+      revealBonus: $('lg-reveal').checked,
     };
   }
   function renderGoalPreview() {
@@ -456,6 +462,8 @@
   });
   for (const id of ['lg-target', 'lg-value', 'lg-headline', 'lg-reached']) $(id).addEventListener('input', renderGoalPreview);
   $('lg-mode').addEventListener('change', renderTiers);
+  $('lg-reveal').addEventListener('change', () => { readGoals(); renderTiers(); });
+  $('lg-target').addEventListener('change', () => { readGoals(); renderTiers(); });
   $('lg-add').addEventListener('click', () => {
     readGoals();
     const last = goalsDraft.tiers.at(-1)?.at ?? 0;

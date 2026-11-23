@@ -27,6 +27,7 @@ export default {
     unlocked: 'Débloqué', locked: 'Verrouillé', nextTag: 'Prochain',
     bonusTitle: (m) => `Et après ${m} ? Les paliers bonus`,
     bonusLead: "On vise plus loin : ces récompenses seront révélées dès que l'objectif sera atteint.",
+    bonusShown: 'Après l\'objectif, encore plus de récompenses pour tous les préinscrits.',
     bonusOpen: 'Objectif atteint ! Les paliers bonus sont ouverts, continuons.',
     secret: 'Récompense mystère', secretDetail: (m) => `Révélée à ${m}`, bonusTag: 'Bonus',
     aria: "Progression vers l'objectif communautaire",

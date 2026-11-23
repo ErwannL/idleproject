@@ -20,6 +20,7 @@
 </head>
 <body>
   <main>
+    <div data-l="fr" lang="fr">
     <p><a href="/">← Retour à l'accueil</a></p>
     <h1>Politique de confidentialité</h1>
     <p>Dernière mise à jour : 31 octobre 2026. Responsable du traitement : le responsable du site Ascendrya, joignable à <span data-contact>contact@TON-DOMAINE.xyz</span>.</p>
@@ -60,10 +61,61 @@
     <p>Le site et le serveur sont hébergés sur une machine personnelle en France. Les données ne sont pas confiées à un sous-traitant d'hébergement.</p>
     <h2>Envoi des emails</h2>
     <p>Les emails de préinscription sont envoyés par <strong>Brevo</strong> (Sendinblue SAS, France), qui reçoit pour cela votre adresse email et le contenu du message. Les données sont hébergées dans l'Union européenne. Vos réponses à <span data-contact>contact@ascendrya.com</span> nous parviennent par un service de redirection d'email.</p>
+    </div>
+    <div data-l="en" lang="en" hidden>
+    <p><a href="/?lang=en">← Back to home</a></p>
+    <h1>Privacy policy</h1>
+    <p>Last updated: 31 October 2026. Data controller: the person running the Ascendrya website, reachable at <span data-contact>contact@ascendrya.com</span>.</p>
+
+    <h2>What we collect</h2>
+    <ul>
+      <li><strong>Pre-registration</strong>: your email address, the date and time of your consent, and the version of the consent text. If you came from a friend's link or an ad: that friend's referral code and the source of the visit (<code>utm_source</code> parameter). An irreversible fingerprint of your IP address is kept to prevent self-referral.</li>
+      <li><strong>Referrals</strong>: you get a personal code; only the number of friends who signed up with your link is shown. In the administrators' referrer ranking, your email is masked (first 2 letters only).</li>
+      <li><strong>Ad measurement</strong>: while campaigns are running, the home page may load the Meta and TikTok pixels, which measure visits coming from their ads and may set cookies on those services.</li>
+      <li><strong>Save account (optional)</strong>: a username and a password (stored as an irreversible hash, never in clear text), the date of your last login, and your game progress (level, stage, gold, gems, number of wins).</li>
+      <li><strong>Leaderboard</strong>: if you agree (on by default), your username, best stage, level and number of bosses defeated appear publicly on the Leaderboard page. You can turn this off at any time in the Options menu, and your player then disappears from the leaderboard.</li>
+      <li><strong>Technical</strong>: the server logs the method, path, response code and duration of each request, without email address, password or save content. These logs are kept only as long as needed for troubleshooting.</li>
+    </ul>
+    <p>The game runs entirely on your device: without an account or pre-registration, nothing is sent to the server.</p>
+
+    <h2>Why</h2>
+    <ul>
+      <li>Pre-registration: to send you an email confirming your address (with your referral link), then to tell you when the game launches, based on your consent. If a friend signs up with your link, a short email lets you know (at most one per day).</li>
+      <li>Account: to restore your progress on another device. Aggregated statistics (active players, average progress) help balance the game. No advertising use, no sharing with third parties.</li>
+      <li>Leaderboard: to compare progress between players, if you agree.</li>
+      <li>Referrals and visit sources: to hand out referral rewards at launch, and to know which campaigns bring sign-ups.</li>
+      <li>Logs: security and troubleshooting.</li>
+    </ul>
+
+    <h2>How long</h2>
+    <p>Pre-registrations are kept until you ask for removal, or until the game launches if you ask for nothing. Accounts stay active until you delete them. Login sessions expire after 30 days.</p>
+
+    <h2>How to delete them</h2>
+    <ul>
+      <li><strong>Pre-registration</strong>: remove your address with the link in every email, or write to <span data-contact>contact@ascendrya.com</span>.</li>
+      <li><strong>Account and saves</strong>: write to <span data-contact>contact@ascendrya.com</span> with your username. The account, password and progress on the server are deleted. Local saves stay on your device; you can clear them from your browser.</li>
+    </ul>
+
+    <h2>Your rights</h2>
+    <p>You can access, correct or delete your data, and lodge a complaint with the CNIL, the French data protection authority (cnil.fr).</p>
+
+    <h2>Hosting</h2>
+    <p>The website and server are hosted on a personal machine in France. Data is not entrusted to a hosting subcontractor.</p>
+    <h2>Sending emails</h2>
+    <p>Pre-registration emails are sent by <strong>Brevo</strong> (Sendinblue SAS, France), which receives your email address and the message content for this purpose. The data is hosted in the European Union. Your replies to <span data-contact>contact@ascendrya.com</span> reach us through an email forwarding service.</p>
+    </div>
   </main>
   <script type="module">
     import { SITE } from './config.js';
     for (const el of document.querySelectorAll('[data-contact]')) el.textContent = SITE.contactEmail;
+    // Langue : ?lang=, sinon celle choisie sur le site, sinon celle du navigateur (français par défaut).
+    let lang = new URLSearchParams(location.search).get('lang');
+    try { lang ??= localStorage.getItem('ascendrya-lang'); } catch { /* stockage bloqué */ }
+    lang ??= (navigator.language || 'fr').slice(0, 2);
+    const en = lang === 'en';
+    document.documentElement.lang = en ? 'en' : 'fr';
+    document.title = en ? 'Privacy · Ascendrya' : 'Confidentialité · Ascendrya';
+    for (const el of document.querySelectorAll('[data-l]')) el.hidden = el.dataset.l !== (en ? 'en' : 'fr');
   </script>
 </body>
 </html>

@@ -183,6 +183,12 @@
     .lv-tiers .lv-img { min-width: 330px; } .lv-img-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
     .lv-img-row input[data-f="img"] { flex: 1 1 100%; min-width: 0; }
     .lv-thumb { width: 40px; height: 40px; object-fit: contain; image-rendering: pixelated; margin-top: 4px; }
+    .lv-reveal { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; padding: 10px 12px; border-radius: 10px; border: 1px dashed var(--line, #2a3654); cursor: pointer; }
+    .lv-reveal input { margin-top: 3px; width: 18px; height: 18px; flex: none; }
+    .lv-tiers td:has(input.lv-en) input { display: block; width: 100%; box-sizing: border-box; min-width: 120px; }
+    .lv-tiers input.lv-en { margin-top: 4px; border-style: dashed; font-size: 12px; }
+    tr.lv-bonus td { background: rgba(127, 212, 255, .06); }
+    .lv-bonus-tag { display: block; margin-top: 4px; font-size: 11px; color: #7fd4ff; white-space: nowrap; }
     #lv-browser { display: none; } #lv-browser.open { display: grid; }
     .lv-modal-box { width: min(1100px, 100%); max-height: calc(100vh - 32px); display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 14px; background: var(--card, #131c33); border: 1px solid var(--line, #2a3654); box-shadow: 0 12px 40px #000a; overflow: hidden; }
     .lv-modal-head { display: flex; align-items: center; gap: 10px; } .lv-modal-head b { white-space: nowrap; } .lv-modal-head input { flex: 1; min-width: 0; }
@@ -428,10 +434,11 @@
               <label>Phrase d'objectif<input id="lg-headline" type="text" maxlength="160"></label>
               <label>Texte une fois l'objectif atteint<input id="lg-reached" type="text" maxlength="160"></label>
             </div>
+            <label class="lv-reveal"><input id="lg-reveal" type="checkbox"> <span><b>Montrer les paliers bonus dès maintenant</b><br><small class="muted">Les paliers au-dessus de l'objectif (lignes marquées « Bonus » plus bas) s'affichent sur le site en « récompense mystère » tant que l'objectif n'est pas atteint. Coche pour montrer tout de suite leur récompense, leur image et leur texte.</small></span></label>
           </div>
           <div class="panel"><h3>Aperçu de la progression</h3><div id="lg-preview"></div></div>
         </div>
-        <div class="panel" style="margin-top:16px"><h3>Paliers de récompenses</h3>
+        <div class="panel" style="margin-top:16px"><h3>Paliers de récompenses</h3><p class="muted" style="margin:-4px 0 10px;font-size:13px">Tout se modifie ici : seuil, récompense, texte, image. La 2e case (« English ») est le texte du site en anglais ; vide = traduction par défaut, sinon le texte français. Les lignes au-dessus de l'objectif sont les paliers bonus. Pense à « Enregistrer » en haut.</p>
           <div class="table-wrap"><table class="table lv-tiers"><thead><tr><th>Seuil</th><th>Libellé</th><th>Récompense</th><th>Détail</th><th>Étiquette</th><th>Exclusif</th><th>Image</th><th></th></tr></thead><tbody id="lg-tiers"></tbody></table></div>
           <div class="toolbar" style="margin-top:10px"><button class="btn small" id="lg-add">+ Ajouter un palier</button><button class="btn small" id="lg-sort">Trier par seuil</button></div>
         </div>

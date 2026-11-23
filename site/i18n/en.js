@@ -27,6 +27,7 @@ export default {
     unlocked: 'Unlocked', locked: 'Locked', nextTag: 'Next',
     bonusTitle: (m) => `Beyond ${m}: bonus milestones`,
     bonusLead: "We're aiming higher: these rewards are revealed as soon as the goal is reached.",
+    bonusShown: 'Past the goal, even more rewards for every pre-registered player.',
     bonusOpen: 'Goal reached! Bonus milestones are open, keep going.',
     secret: 'Mystery reward', secretDetail: (m) => `Revealed at ${m}`, bonusTag: 'Bonus',
     aria: 'Progress towards the community goal',

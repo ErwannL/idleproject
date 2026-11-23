@@ -5,6 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
 import { createServer } from 'node:http';
+import { readFileSync } from 'node:fs';
 import { createApp, hashPassword } from '../server/app.mjs';
 import { openDatabase } from '../server/db.mjs';
 import { DEFAULT_GOALS, GOALS_931, GOALS_1061, createLive, legacyCalendar, parseAmount, validateGoals } from '../server/live.mjs';
@@ -504,4 +505,13 @@ test('site : vidéos servies par morceaux (Range : 206, Content-Range), sinon 20
   const tail = await fetch(`${base}/assets/trailer.mp4`, { headers: { Range: 'bytes=-10' } });
   assert.equal((await tail.arrayBuffer()).byteLength, 10);
   assert.equal((await fetch(`${base}/assets/trailer.mp4`, { headers: { Range: `bytes=${size + 5}-` } })).status, 416);
+});
+
+test('site : paliers bonus montrés dès maintenant si l\'admin le choisit (sinon « mystère » jusqu\'à l\'objectif)', () => {
+  const g = validateGoals({ ...DEFAULT_GOALS, revealBonus: true });
+  assert.equal(g.revealBonus, true);
+  assert.equal(validateGoals(DEFAULT_GOALS).revealBonus, false);
+  assert.ok(goalProgress({ ...DEFAULT_GOALS, count: 4 }).tiers.filter((x) => x.bonus).every((x) => x.secret));
+  assert.ok(goalProgress({ ...DEFAULT_GOALS, revealBonus: true, count: 4 }).tiers.filter((x) => x.bonus).every((x) => !x.secret));
+  assert.match(readFileSync(new URL('../site/admin/index.html', import.meta.url), 'utf8'), /id="lg-reveal"/);
 });

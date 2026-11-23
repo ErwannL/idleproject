@@ -44,27 +44,43 @@
 </head>
 <body>
   <main class="wrap">
-    <h1>Classement</h1>
-    <p class="sub">Les meilleurs aventuriers d'Ascendrya</p>
+    <h1 data-i="title">Classement</h1>
+    <p class="sub" data-i="sub">Les meilleurs aventuriers d'Ascendrya</p>
     <div class="tabs" role="tablist" aria-label="Catégorie">
-      <button class="tab" role="tab" data-sort="stage" aria-selected="true">Étape max</button>
-      <button class="tab" role="tab" data-sort="level" aria-selected="false">Niveau</button>
-      <button class="tab" role="tab" data-sort="bosses" aria-selected="false">Boss vaincus</button>
+      <button class="tab" role="tab" data-sort="stage" aria-selected="true" data-i="stage">Étape max</button>
+      <button class="tab" role="tab" data-sort="level" aria-selected="false" data-i="level">Niveau</button>
+      <button class="tab" role="tab" data-sort="bosses" aria-selected="false" data-i="bosses">Boss vaincus</button>
     </div>
     <section class="board" aria-live="polite">
       <table>
         <thead><tr>
-          <th>#</th><th>Pseudo</th><th class="num">Étape max</th><th class="num">Niveau</th><th class="num hide-sm">Boss</th>
+          <th>#</th><th data-i="pseudo">Pseudo</th><th class="num" data-i="stage">Étape max</th><th class="num" data-i="level">Niveau</th><th class="num hide-sm" data-i="boss">Boss</th>
         </tr></thead>
         <tbody id="rows"><tr><td colspan="5" class="msg">Chargement…</td></tr></tbody>
       </table>
     </section>
-    <p class="foot">Seuls les joueurs ayant choisi d'apparaître sont listés, et les nouvelles parties sont exclues.
-      <a href="/">Retour à l'accueil</a> · <a href="/confidentialite.html">Confidentialité</a></p>
+    <p class="foot"><span data-i="foot">Seuls les joueurs ayant choisi d'apparaître sont listés, et les nouvelles parties sont exclues.</span>
+      <a href="/" data-i="home" id="home-link">Retour à l'accueil</a> · <a href="/confidentialite.html" data-i="privacy" id="privacy-link">Confidentialité</a></p>
   </main>
   <script>
     const rows = document.getElementById('rows');
-    const fmt = (n) => (n ?? 0).toLocaleString('fr-FR');
+    // Langue : ?lang=, sinon celle choisie sur le site, sinon celle du navigateur (français par défaut).
+    let lang = new URLSearchParams(location.search).get('lang');
+    try { lang ??= localStorage.getItem('ascendrya-lang'); } catch { /* stockage bloqué */ }
+    lang = (lang ?? navigator.language ?? 'fr').slice(0, 2) === 'en' ? 'en' : 'fr';
+    const TX = {
+      fr: { title: 'Classement', sub: "Les meilleurs aventuriers d'Ascendrya", stage: 'Étape max', level: 'Niveau', bosses: 'Boss vaincus', boss: 'Boss', pseudo: 'Pseudo',
+        foot: "Seuls les joueurs ayant choisi d'apparaître sont listés, et les nouvelles parties sont exclues.", home: "Retour à l'accueil", privacy: 'Confidentialité',
+        loading: 'Chargement…', empty: 'Pas encore de joueurs classés. Soyez le premier !', error: 'Classement indisponible pour le moment.', doc: 'Classement · Ascendrya' },
+      en: { title: 'Leaderboard', sub: 'The best adventurers of Ascendrya', stage: 'Best stage', level: 'Level', bosses: 'Bosses defeated', boss: 'Bosses', pseudo: 'Player',
+        foot: 'Only players who chose to appear are listed, and brand-new games are left out.', home: 'Back to home', privacy: 'Privacy',
+        loading: 'Loading…', empty: 'No ranked players yet. Be the first!', error: 'Leaderboard unavailable right now.', doc: 'Leaderboard · Ascendrya' },
+    }[lang];
+    document.documentElement.lang = lang;
+    document.title = TX.doc;
+    for (const el of document.querySelectorAll('[data-i]')) el.textContent = TX[el.dataset.i];
+    if (lang === 'en') { document.getElementById('home-link').href = '/?lang=en'; document.getElementById('privacy-link').href = '/confidentialite.html?lang=en'; }
+    const fmt = (n) => (n ?? 0).toLocaleString(lang === 'en' ? 'en-US' : 'fr-FR');
     let current = 'stage';
 
     function show(text) {
@@ -81,13 +97,13 @@
     async function load(sort) {
       current = sort;
       document.querySelectorAll('.tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.sort === sort)));
-      show('Chargement…');
+      show(TX.loading);
       try {
         const res = await fetch(`/api/leaderboard?sort=${sort}&limit=100`);
         if (!res.ok) throw new Error();
         const { players } = await res.json();
         if (sort !== current) return;
-        if (!players.length) return show('Pas encore de joueurs classés. Soyez le premier !');
+        if (!players.length) return show(TX.empty);
         rows.innerHTML = '';
         for (const p of players) {
           const tr = document.createElement('tr');
@@ -108,7 +124,7 @@
           rows.append(tr);
         }
       } catch {
-        if (sort === current) show('Classement indisponible pour le moment.');
+        if (sort === current) show(TX.error);
       }
     }
 

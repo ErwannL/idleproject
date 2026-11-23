@@ -57,7 +57,7 @@ export function goalProgress(goals) {
     reached,
     next,
     remaining: next ? next.at - count : 0,
-    tiers: goals.tiers.map((t, i) => ({ ...t, state: count >= t.at ? 'reached' : i === nextIndex ? 'next' : 'locked', bonus: t.at > goals.target, secret: t.at > goals.target && !reached })),
+    tiers: goals.tiers.map((t, i) => ({ ...t, state: count >= t.at ? 'reached' : i === nextIndex ? 'next' : 'locked', bonus: t.at > goals.target, secret: t.at > goals.target && !reached && !goals.revealBonus })),
   };
 }
 
