@@ -210,3 +210,24 @@
 .upg-all-max { margin: 8px 4px; font-weight: 800; color: #9cf08a; }
 .upg-missing { display: block; margin-top: 4px; text-align: center; }
 .buy-all[disabled] { opacity: .55; filter: grayscale(.6); cursor: not-allowed; }
+
+/* v10.11 (2) : fiche Héros — le personnage tient dans sa case (jamais sur les cadres de statistiques ni les cases
+   d'objets) ; Niveau et Puissance passent sous la case, sur leur propre ligne. */
+#app#app .eq-figure .eq-art-box { overflow: hidden; contain: paint; min-height: 0; }
+#app#app .eq-figure .eq-art-box { position: relative; }
+#app#app .eq-figure .eq-art-box > img.eq-art { position: absolute; inset: 0; max-height: none !important; max-width: none !important; width: 100% !important; height: 100% !important; object-fit: contain; object-position: center bottom; transform: none !important; margin: 0 !important; }
+#app#app .eq-figure .eq-art-box canvas { max-height: 100% !important; max-width: 100% !important; }
+#app#app .eq-figure .eq-id { position: relative; margin-top: 6px !important; z-index: 2; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 4px 12px; }
+#app#app .eq-figure .eq-id .eq-quick-row { flex-basis: 100%; display: flex; justify-content: center; }
+/* v10.11 (2.4, 2.5) : téléphone — dessin à gauche (110 px), Niveau et Puissance à droite, cases d'objets en grille
+   dessous ; onglets de personnage : le nom passe sur 2 lignes, jamais coupé net. */
+@media (max-width: 600px) {
+  #app#app .eq-figure { display: grid !important; grid-template-columns: 110px minmax(0, 1fr); align-items: center; gap: 10px; }
+  #app#app .eq-figure .eq-art-box { width: 110px !important; height: 110px !important; }
+  #app#app .eq-figure .eq-id { margin-top: 0 !important; justify-content: flex-start; }
+  #app#app .eq-figure .eq-power b { white-space: nowrap; }
+  #app#app .eq-figure .eq-nav { display: none; }
+  #app#app .eq-whos { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; mask-image: linear-gradient(90deg, #000 88%, transparent); }
+  #app#app .eq-who { flex: none; }
+  #app#app .eq-who b { white-space: nowrap; overflow: visible; text-overflow: clip; max-width: none; }
+}

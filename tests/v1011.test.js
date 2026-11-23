@@ -13,3 +13,10 @@ test('10.11 (1) : Améliorations — une ligne ne quitte jamais sa colonne, « p
   assert.match(up, /Il manque \$\{coin\(\)\}/);
   assert.match(src('src/ui/layout109.css'), /grid-template-areas: "strike endure" "strike earn"/);
 });
+
+test('10.11 (2) : fiche Héros — le dessin tient dans sa case, Niveau et Puissance dessous ; téléphone en grille', () => {
+  const css = src('src/ui/layout109.css');
+  assert.match(css, /\.eq-figure \.eq-art-box \{ overflow: hidden; contain: paint;/);
+  assert.match(css, /\.eq-art-box > img\.eq-art \{ position: absolute; inset: 0;[^}]*object-fit: contain;/);
+  assert.match(css, /grid-template-columns: 110px minmax\(0, 1fr\)/);
+});
