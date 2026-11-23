@@ -342,6 +342,9 @@ export class SceneRenderer {
     // v9.3.9 : la grande scène PC range les infos du combat (vague, boss, prochain déblocage) dans la terre, sous le sol.
     this.wide = wide && this.groundY < this.height - GROUND_DEPTH - 30;
     this.tall = tall;
+    // v10.11 (4) : grand écran (plus de 1300 px) : le combat se joue au milieu — le point de rencontre (héros → premier
+    // monstre) est poussé vers 47 % de la largeur ; le décor continue des deux côtés.
+    this.centerShift = !tall && cssWidth >= 1300 ? Math.max(0, Math.round(this.width * 0.47 - HERO_X - 34)) : 0;
     const play = this.canvas.parentElement?.parentElement;
     if (play?.style) {
       play.classList.toggle('wide-scene', this.wide);
@@ -385,7 +388,7 @@ export class SceneRenderer {
 
   // Bord droit de la scène en x du monde (un peu au-delà, pour entrer en marchant).
   get viewEdgeX() {
-    return BALANCE.world.heroX + (this.width + 14 - HERO_X) / SPREAD;
+    return BALANCE.world.heroX + (this.width + 14 - HERO_X - (this.centerShift ?? 0)) / SPREAD;
   }
 
   handleEvent(raw, world) {
@@ -1004,7 +1007,7 @@ export class SceneRenderer {
     // v10.0 (8) : sur téléphone (portrait), le décalage est plafonné : au moins un ennemi reste à l'écran devant le héros
     // (l'arrière de l'équipe peut sortir à gauche).
     const edge = this.tall ? 3 : Math.max(3, Math.ceil(40 / (this.scale || 1))); // v10.6 (7) : l'équipe commence à 40 px du bord au moins
-    const wantShift = Math.min(Math.max(0, edge - this.layout.left), this.tall ? Math.max(0, this.width - 130 - HERO_X) : 1e9);
+    const wantShift = Math.max(Math.min(Math.max(0, edge - this.layout.left), this.tall ? Math.max(0, this.width - 130 - HERO_X) : 1e9), this.soloUnit ? 0 : this.centerShift ?? 0);
     this.viewShift = this.viewShift === undefined ? wantShift : this.viewShift + (wantShift - this.viewShift) * Math.min(1, dt * 4);
     // v9.10 (6) : vitrine d'un compagnon — il est seul (pas de héros) et recentré à la place du héros.
     // v10.3 (audit) : une scène peut fixer elle-même son cadrage (fixedShift : l'Arène centre la mêlée entière).

@@ -254,3 +254,8 @@ html.reduce-motion #app .bs-plot .bs-need { animation: none; }
   #app#app.page-ui:not(.page-narrow) .bs-pg { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr) !important; }
   #app .bs-plot .bs-tag { font-size: 11px !important; }
 }
+/* v10.11 (4) : barre de vague 1400 px au plus, centrée, texte en 16 px. */
+@media (min-width: 1300px) {
+  #play.band109 #hud { left: 50% !important; right: auto !important; width: min(1400px, calc(100% - 32px)) !important; transform: translateX(-50%); }
+  #play.band109 #progress-text { font-size: 16px; }
+}

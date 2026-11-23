@@ -222,15 +222,21 @@ export class HudQuests {
     const area = this.root.parentElement;
     const A = area?.getBoundingClientRect();
     if (!A?.width) return 4;
-    const vis = (id) => { const e = document.getElementById(id); if (!e || e.classList.contains('hidden') || e.offsetParent === null) return null; const r = e.getBoundingClientRect(); return r.width && r.top - A.top < 140 ? r : null; };
-    let left = 6, right = A.width - 6;
+    // v10.11 : tout en px CSS de la scène (l'interface peut être zoomée : rectangles d'écran ÷ k).
+    const k = A.width / Math.max(1, area.clientWidth);
+    const vis = (id) => { const e = document.getElementById(id); if (!e || e.classList.contains('hidden') || e.offsetParent === null) return null; const r0 = e.getBoundingClientRect(); const r = { left: (r0.left - A.left) / k + A.left, right: (r0.right - A.left) / k + A.left, top: (r0.top - A.top) / k + A.top, width: r0.width / k }; return r.width && r.top - A.top < 140 ? r : null; };
+    const AW = area.clientWidth;
+    let left = 6, right = AW - 6;
     if (!this.phone) {
       const z = vis('zone-card'); if (z) left = z.right - A.left + 8;
       for (const id of ['boost-group', 'skill-bar', 'rush-bar', 'auto-toggle']) { const r = vis(id); if (r && r.left - A.left > left + 60) right = Math.min(right, r.left - A.left - 8); }
     }
     const w = Math.max(80, right - left);
     const st = this.events.style;
-    const L = `${Math.round(left)}px`, W = `${Math.round(w)}px`;
+    // v10.11 (4) : la rangée est centrée dans l'espace libre entre la carte de zone et les boosts.
+    const used = Math.min(w, this.events.scrollWidth || w);
+    const leftC = !this.phone && AW >= 1300 ? Math.max(left, Math.min(right - used, AW / 2 - used / 2)) : left;
+    const L = `${Math.round(leftC)}px`, W = `${Math.round(w - (leftC - left))}px`;
     if (st.left !== L) st.left = L;
     if (st.maxWidth !== W) st.maxWidth = W;
     const cell = this.phone ? 58 : 70;

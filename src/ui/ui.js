@@ -2472,18 +2472,25 @@ export class UI {
     y += 28;
     const rowH = 64;
     const chestW = 76;
-    if (shown(bar)) { this.barH = bar.offsetHeight; pin(bar, y + (rowH - bar.offsetHeight) / 2, 8); }
-    const left = 8 + Math.max(shown(bar) ? bar.offsetWidth : 0, this.barH ? 52 : 0) + 12;
-    const right = area.clientWidth - 8 - chestW - 12;
+    // v10.11 (4) : grand écran — la rangée d'actions est centrée, 1200 px au plus (plus d'élément isolé contre un bord).
+    const rowW = Math.min(area.clientWidth - 16, 1200);
+    const x0 = Math.round((area.clientWidth - rowW) / 2);
+    if (x0 > 8) { if (shown(env)) env.style.left = `${x0}px`; if (bottom) bottom.style.left = `${x0 + (shown(env) ? env.offsetWidth + 8 : 0)}px`; }
+    if (shown(bar)) { this.barH = bar.offsetHeight; pin(bar, y + (rowH - bar.offsetHeight) / 2, x0); }
+    const left = x0 + Math.max(shown(bar) ? bar.offsetWidth : 0, this.barH ? 52 : 0) + 12;
+    const right = x0 + rowW - chestW - 12;
     if (shown(seal)) pin(seal, y + (rowH - seal.offsetHeight) / 2, left, { maxWidth: `${Math.max(160, right - left)}px` });
-    if (chest) pin(chest, y + (rowH - 64) / 2, area.clientWidth - 8 - chestW, { width: `${chestW}px`, height: '64px' });
+    if (chest) pin(chest, y + (rowH - 64) / 2, x0 + rowW - chestW, { width: `${chestW}px`, height: '64px' });
     if (later && shown(seal)) { const b = seal.getBoundingClientRect(); later.style.top = `${(b.top - A.top) / k + (b.height / k - later.offsetHeight) / 2}px`; later.style.left = `${(b.right - A.left) / k + 8}px`; }
-    // Trop juste en hauteur : la scène rétrécit (sol plus haut), comme avant.
-    if (y + rowH + 4 > H && this.resizeScene && this.renderer && !this.renderer.liftShrinking) {
-      const r = this.renderer;
-      const cur = r.groundY / Math.max(1, r.height);
-      const cap = Math.max(0.55, cur - (y + rowH + 8 - H) / area.clientHeight - 0.02);
-      if (cap < cur - 0.005) { r.liftCap = Math.min(r.liftCap ?? 1, cap); r.liftShrinking = true; this.resizeScene(); setTimeout(() => { r.liftShrinking = false; this.layoutColumn(); }, 0); }
+    // v10.11 (4) : le sol se place pour que la bande du bas (barre de vague, puces, rangée d'actions) tienne juste en
+    // dessous — ni chevauchement, ni grand mur vide. Le réglage peut monter comme descendre (plus de plafond figé).
+    const r = this.renderer;
+    if (r && this.resizeScene && !r.liftShrinking && area.clientHeight > 0) {
+      const hudH = shown(hud) && !play.classList.contains('wide-scene') ? hud.offsetHeight + 8 : (shown(hud) ? hud.offsetHeight + 8 : 0);
+      const need = hudH + 6 + 28 + rowH + 22;
+      const cap = Math.max(0.55, Math.min(0.86, (H - need) / area.clientHeight));
+      const cur = r.liftCap ?? 1;
+      if (Math.abs(cap - cur) > 0.01) { r.liftCap = cap; r.liftShrinking = true; this.resizeScene(); setTimeout(() => { r.liftShrinking = false; this.layoutColumn(); }, 0); }
     }
   }
 
