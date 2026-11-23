@@ -62,3 +62,9 @@ test('10.11 (5, 6) : même forme dans un menu (pages dès 1300 px), contenu cent
   assert.match(css, /max-height: 120px !important/);
   assert.match(src('src/ui/page.js'), /bottom \/= z;/);
 });
+
+test('10.11 (8) : le contrôle du cadrage voit les groupes vides, les images sur les blocs, le combat décentré, les grands vides', () => {
+  const a = src('tools/audit-109.mjs');
+  for (const k of ['groupe-vide', 'image-sur-bloc', 'combat-décentré', 'grand-vide', 'premier-bouton-hors-écran', 'page-décentrée', '2548x1390', '1920x1080', '--gold']) assert.ok(a.includes(k), k);
+  assert.match(src('src/render/scene.js'), /this\.heroScreenX = /);
+});

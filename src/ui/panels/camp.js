@@ -76,7 +76,7 @@ const PLOTS = {
 const ORDER109 = ['forge', 'library', 'mine', 'training', 'trade', 'expeditions', 'enchant', 'menagerie', 'observatory', 'runes', 'ascension', 'wonder'];
 const GRID109 = {
   1: { cols: [20, 40, 60, 80], rows: [44, 68, 92], w: 15 },
-  2: { cols: [11, 26.5, 42, 57.5, 73, 88.5], rows: [69, 94], w: 13 },
+  2: { cols: [11, 26.5, 42, 57.5, 73, 88.5], rows: [46, 71], w: 13 }, // v10.11 : deux premières rangées (la dernière sortait du cadre)
   3: { cols: [19.5, 40, 60, 80], rows: [43, 67, 91], w: 15 },
   4: { cols: [20, 40, 60, 80], rows: [43, 67, 91], w: 14 },
   5: { cols: [23, 41, 59, 77], rows: [40, 63, 87], w: 12 },

@@ -1013,6 +1013,7 @@ export class SceneRenderer {
     // v10.3 (audit) : une scène peut fixer elle-même son cadrage (fixedShift : l'Arène centre la mêlée entière).
     const shift = Number.isFinite(this.fixedShift) ? Math.round(this.fixedShift)
       : Math.round(this.viewShift) + (this.soloUnit ? Math.round((HERO_X - this.layout.left) * 0.55) : 0);
+    this.heroScreenX = (HERO_X + shift) * (this.scale || 1); // v10.11 (8) : position du héros à l'écran (contrôle du cadrage)
     ctx.save();
     ctx.translate(shift, 0);
     drawLootChest(this, ctx, world); // v10.3.1 : coffre posé au sol, derrière les ennemis
