@@ -45,6 +45,7 @@ export default {
     tags: {},
   },
   ref: {
+    follow: 'Suis Ascendrya pour ne rien rater',
     title: 'Bienvenue dans l’aventure !',
     lead: 'Ta place est réservée. Invite tes amis avec ton lien : chaque ami inscrit te rapporte une récompense au lancement, et nous rapproche du prochain palier.',
     copy: 'Copier', share: 'Je me suis préinscrit à Ascendrya, un RPG idle en pixel art. Rejoins-moi :',

@@ -197,7 +197,7 @@ function showThanks(ref) {
   box.innerHTML = `<h3>${t('ref.title')}</h3><p>${t('ref.lead')}</p>
     <div class="ref-link"><input id="ref-url" readonly value="${link}"><button type="button" class="btn" id="ref-copy">${t('ref.copy')}</button></div>
     <div class="ref-share"><a class="btn small" target="_blank" rel="noopener" href="https://x.com/intent/post?text=${encodeURIComponent(t('ref.share') + ' ' + link)}">X</a><a class="btn small" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(t('ref.share') + ' ' + link)}">WhatsApp</a></div>
-    <ol class="ref-steps">${steps}</ol><p class="muted" id="ref-count">${t('ref.count', 0)}</p>`;
+    <ol class="ref-steps">${steps}</ol><p class="muted" id="ref-count">${t('ref.count', 0)}</p>${followHtml()}`;
   box.hidden = false;
   fetch(`api/preregister/ref/${encodeURIComponent(ref)}`, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null))
     .then((d) => { if (d && Number.isFinite(d.count)) $('#ref-count').textContent = t('ref.count', d.count); }).catch(() => {});
@@ -214,6 +214,12 @@ const ICONS = {
 const NAMES = { x: 'X', tiktok: 'TikTok', discord: 'Discord', youtube: 'YouTube' };
 // Un lien encore factice (« TON-… ») ou vide n'est pas affiché.
 const realLink = (u) => typeof u === 'string' && /^https:\/\//.test(u) && !/TON-/.test(u);
+// Encadré de parrainage : les mêmes boutons que « Suivez-nous ».
+function followHtml() {
+  const s = SITE.socials ?? {};
+  const links = Object.keys(ICONS).filter((k) => s[k]);
+  return links.length ? `<p class="follow">${t('ref.follow')}</p><div class="socials">${links.map((k) => `<a href="${esc(s[k])}" rel="noopener" target="_blank"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[k]}"/></svg>${NAMES[k]}</a>`).join('')}</div>` : '';
+}
 function renderSocials() {
   const s = SITE.socials ?? {};
   const links = Object.keys(NAMES).filter((k) => realLink(s[k]));

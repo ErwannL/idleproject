@@ -46,6 +46,7 @@ export default {
     tags: { 'Exclusif': 'Exclusive', 'SR · Exclusif': 'SR · Exclusive', 'SSR · Exclusif': 'SSR · Exclusive', 'Méga pack': 'Mega pack', 'Bonus': 'Bonus', 'Bonus · Méga pack': 'Bonus · Mega pack', 'Bonus · Légendaire': 'Bonus · Legendary', 'Légendaire · Exclusif': 'Legendary · Exclusive' },
   },
   ref: {
+    follow: "Follow Ascendrya so you don't miss a thing",
     title: 'Welcome to the adventure!',
     lead: 'Your spot is reserved. Invite friends with your link: each friend who signs up earns you a reward at launch, and brings everyone closer to the next milestone.',
     copy: 'Copy', share: 'I just pre-registered for Ascendrya, a pixel art idle RPG. Join me:',
