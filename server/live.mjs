@@ -356,6 +356,20 @@ export function createLive({ db, now = () => Date.now() }) {
     get: (k) => db.prepare('SELECT value FROM live_meta WHERE key = ?').get(k)?.value,
     set: (k, v) => db.prepare('INSERT INTO live_meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(k, v),
   };
+  // 10.8.2 : passage unique à l'objectif 10 000. La comparaison exacte ci-dessus ne suffit pas : des goals enregistrés une fois
+  // depuis l'admin (même sans changement, ou avec un autre mode de compteur) gardaient l'objectif 50 000 en ligne.
+  // Tout objectif encore à 50 000 est donc remplacé une fois (le mode du compteur est gardé) ; un autre objectif réglé
+  // dans l'admin n'est pas touché, et l'admin peut ensuite remettre ce qu'il veut.
+  if (!meta.get('goals_1080')) {
+    const g1 = db.prepare('SELECT data FROM live_goals WHERE id = 1').get();
+    let cur = null;
+    try { cur = JSON.parse(g1?.data ?? 'null'); } catch { cur = null; }
+    if (cur && cur.target === 50000) {
+      const next = { ...DEFAULT_GOALS, display: cur.display ?? DEFAULT_GOALS.display };
+      db.prepare('UPDATE live_goals SET data = ?, version = version + 1, updated_at = ?, updated_by = ? WHERE id = 1').run(JSON.stringify(next), now(), 'système (objectif 10 000)');
+    }
+    meta.set('goals_1080', '1');
+  }
   seedLegacyCalendar(db, meta, now());
   const q = {
     all: db.prepare('SELECT * FROM live_items ORDER BY COALESCE(starts_at, created_at) DESC, id DESC'),

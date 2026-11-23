@@ -24,7 +24,7 @@ echo "nouvelle version $NEW"
 
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
-git -C "$SRC" archive "$NEW" server site | tar -x -C "$TMP"
+git -C "$SRC" archive "$NEW" server site tools/deploy/idle-rpg-update | tar -x -C "$TMP"
 for f in $(find "$TMP/server" "$TMP/site" -name '*.mjs' -o -name '*.js'); do node --check "$f"; done
 
 BK=/var/backups/idle-rpg/$(date +%Y%m%d-%H%M%S)
@@ -47,6 +47,11 @@ if healthy; then
   echo "déployé $NEW (sauvegarde $BK)"
   # On garde les 15 dernières sauvegardes de déploiement.
   ls -1d /var/backups/idle-rpg/20*-* 2>/dev/null | head -n -15 | xargs -r rm -rf
+  # 10.8.2 : le script se met à jour lui-même depuis le dépôt (sinon un changement de branche ou de script
+  # fait dans le dépôt n'arrive jamais sur le serveur). Copie puis renommage : le script en cours n'est pas réécrit.
+  if ! cmp -s "$TMP/tools/deploy/idle-rpg-update" "$0"; then
+    sh -n "$TMP/tools/deploy/idle-rpg-update" && install -m 755 "$TMP/tools/deploy/idle-rpg-update" "$0.new" && mv -f "$0.new" "$0" && echo "script de mise à jour remplacé"
+  fi
 else
   echo "échec de la vérification : retour à la version précédente" >&2
   swap "$BK"

@@ -7,7 +7,7 @@ import { once } from 'node:events';
 import { createServer } from 'node:http';
 import { createApp, hashPassword } from '../server/app.mjs';
 import { openDatabase } from '../server/db.mjs';
-import { DEFAULT_GOALS, GOALS_931, createLive, legacyCalendar, parseAmount, validateGoals } from '../server/live.mjs';
+import { DEFAULT_GOALS, GOALS_931, GOALS_1061, createLive, legacyCalendar, parseAmount, validateGoals } from '../server/live.mjs';
 import { DEFAULT_GOALS as SITE_GOALS, goalProgress } from '../site/live.js';
 import { calendarEvent } from '../src/core/ancients.js';
 import { permanentSsr } from '../src/core/gacha.js';
@@ -205,6 +205,24 @@ test('live : paliers revus — goals 9.3.1 jamais modifiés remplacés, goals de
   assert.doesNotThrow(() => validateGoals(DEFAULT_GOALS));
   assert.deepEqual(SITE_GOALS.tiers, DEFAULT_GOALS.tiers, 'repli du site = paliers du serveur');
   assert.equal(SITE_GOALS.target, DEFAULT_GOALS.target);
+});
+
+test('live : 10.8.2 — objectif 50 000 enregistré depuis l\'admin ramené une fois à 10 000, mode du compteur gardé', () => {
+  const db = openDatabase(':memory:');
+  createLive({ db });
+  const edited = { ...GOALS_1061, display: { mode: 'offset', value: 120 }, texts: { ...GOALS_1061.texts, headline: 'Retouché dans l’admin' } };
+  db.prepare('UPDATE live_goals SET data = ? WHERE id = 1').run(JSON.stringify(edited));
+  db.prepare("DELETE FROM live_meta WHERE key = 'goals_1080'").run(); // base d'avant la 10.8.2
+  createLive({ db });
+  const after = JSON.parse(db.prepare('SELECT data FROM live_goals WHERE id = 1').get().data);
+  assert.equal(after.target, 10000);
+  assert.deepEqual(after.tiers, DEFAULT_GOALS.tiers);
+  assert.deepEqual(after.display, { mode: 'offset', value: 120 }, 'mode du compteur gardé');
+  // Une seule fois : si l'admin remet 50 000 ensuite, c'est gardé.
+  db.prepare('UPDATE live_goals SET data = ? WHERE id = 1').run(JSON.stringify(edited));
+  createLive({ db });
+  assert.equal(JSON.parse(db.prepare('SELECT data FROM live_goals WHERE id = 1').get().data).target, 50000);
+  db.close();
 });
 
 test('live : paliers bonus — mystère avant l\'objectif, puis la barre vise le palier bonus suivant', () => {

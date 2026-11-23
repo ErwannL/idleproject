@@ -18,6 +18,11 @@ sudo install -m 644 idle-rpg-update.service idle-rpg-update.timer /etc/systemd/s
 sudo systemctl daemon-reload && sudo systemctl enable --now idle-rpg-update.timer
 ```
 
+Depuis la 10.8.2, après chaque déploiement réussi, le script se remplace lui-même par la version du dépôt
+(`tools/deploy/idle-rpg-update`). **Une seule fois**, il faut donc réinstaller la nouvelle version à la main
+(la copie installée avant ne sait pas encore se mettre à jour ; elle suivait l'ancienne branche
+`claude/new-session-9noo7b`, supprimée de GitHub, et ne déployait plus rien).
+
 Suivi : `journalctl -u idle-rpg-update`. Forcer une vérification : `sudo systemctl start idle-rpg-update`.
 
 ## Déploiement immédiat (webhook GitHub)
