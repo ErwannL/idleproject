@@ -5,6 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
 import { createServer } from 'node:http';
+import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 import { createApp, hashPassword } from '../server/app.mjs';
 import { openDatabase } from '../server/db.mjs';
@@ -491,7 +492,7 @@ test('site : vidéo de l\'accueil modifiable dans l\'admin (MP4/WebM vérifiés,
 
 test('site : vidéos servies par morceaux (Range : 206, Content-Range), sinon 200 avec la taille', async (t) => {
   const db = openDatabase(':memory:');
-  const app = createApp({ db, siteDir: new URL('../site', import.meta.url).pathname, webDir: '' });
+  const app = createApp({ db, siteDir: fileURLToPath(new URL('../site', import.meta.url)), webDir: '' });
   const server = createServer(app); server.listen(0, '127.0.0.1'); await once(server, 'listening');
   t.after(() => { server.close(); db.close(); });
   const base = `http://127.0.0.1:${server.address().port}`;
