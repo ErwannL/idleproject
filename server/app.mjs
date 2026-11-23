@@ -8,6 +8,7 @@ import { extname, join, normalize, resolve, sep } from 'node:path';
 import { promisify } from 'node:util';
 import { createLive, LiveError, LIVE_MAX_AGE_S } from './live.mjs'; // v9.3.0 : live-ops
 import { createGuilds, GuildError } from './guilds.mjs'; // v9.3.2 : guildes et World Boss
+import { MAIL_LIMITS, confirmationEmail, friendJoinedEmail } from './mailer.mjs'; // emails de la préinscription (Brevo)
 
 const scrypt = promisify(scryptCb);
 
@@ -364,6 +365,7 @@ export function createApp({
   trustProxy = false,
   now = () => Date.now(),
   log = () => {},
+  mailer = null, // service d'envoi des emails (server/mailer.mjs) ; absent : aucun email
 }) {
   const authLimit = createRateLimiter(LIMITS.authAttempts, now);
   const failures = createFailureLimiter(LIMITS.authAttempts, now);
@@ -413,7 +415,13 @@ export function createApp({
     upsertPrereg: db.prepare('INSERT INTO preregistrations (email, consent_version, consent_at) VALUES (?, ?, ?) ON CONFLICT(email) DO NOTHING'),
     deletePrereg: db.prepare('DELETE FROM preregistrations WHERE email = ?'),
     countPrereg: db.prepare('SELECT COUNT(*) AS n FROM preregistrations'),
-    findPrereg: db.prepare('SELECT email, ref, referrer, ip_hash, consent_at, confirmed_at FROM preregistrations WHERE email = ?'),
+    findPrereg: db.prepare('SELECT email, ref, referrer, ip_hash, consent_at, confirmed_at, confirm_token, mailed_at, lang FROM preregistrations WHERE email = ?'),
+    findPreregByToken: db.prepare('SELECT email, ref, referrer, lang FROM preregistrations WHERE confirm_token = ?'),
+    findSponsorMail: db.prepare('SELECT email, ref, lang, friend_mailed_at FROM preregistrations WHERE ref = ?'),
+    setMailed: db.prepare('UPDATE preregistrations SET mailed_at = ? WHERE email = ?'),
+    setFriendMailed: db.prepare('UPDATE preregistrations SET friend_mailed_at = ? WHERE email = ?'),
+    setPreregLang: db.prepare('UPDATE preregistrations SET lang = ? WHERE email = ? AND lang IS NULL'),
+    deletePreregByToken: db.prepare('DELETE FROM preregistrations WHERE confirm_token = ?'),
     findPreregByRef: db.prepare('SELECT email, ref, ip_hash, consent_at FROM preregistrations WHERE ref = ?'),
     insertPrereg: db.prepare('INSERT INTO preregistrations (email, consent_version, consent_at, ref, referrer, confirm_token, ip_hash, utm_source) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(email) DO NOTHING'),
     setPreregRef: db.prepare('UPDATE preregistrations SET ref = ?, confirm_token = COALESCE(confirm_token, ?) WHERE email = ? AND ref IS NULL'),
@@ -648,7 +656,8 @@ export function createApp({
 
     { method: 'POST', path: /^\/api\/preregister$/, handler: async ({ req }) => {
       rateLimit(preregLimit, `prereg:${clientIp(req, trustProxy)}`);
-      const { email, consent, ref, utm } = await readJson(req);
+      const { email, consent, ref, utm, lang: lang0 } = await readJson(req);
+      const lang = lang0 === 'en' ? 'en' : 'fr';
       if (typeof email !== 'string' || email.length > 254 || !EMAIL_RE.test(email.trim())) {
         throw new HttpError(400, 'Adresse email invalide');
       }
@@ -668,7 +677,15 @@ export function createApp({
       } else if (!existing.ref) {
         for (let i = 0; i < 8; i++) { try { q.setPreregRef.run(newRefCode(), token, mail); break; } catch (e) { if (i === 7) throw e; } }
       }
+      q.setPreregLang.run(lang, mail);
       const row = q.findPrereg.get(mail);
+      // Email de confirmation (avec le lien de parrainage) : pas si l'adresse est déjà confirmée, et au plus un par heure.
+      // Un envoi raté ne fait jamais échouer l'inscription.
+      if (mailer && !row.confirmed_at && row.confirm_token && !(row.mailed_at && now() - row.mailed_at < MAIL_LIMITS.perAddressMs)) {
+        q.setMailed.run(now(), mail);
+        const m = confirmationEmail({ lang: row.lang ?? lang, baseUrl: mailer.baseUrl, token: row.confirm_token, ref: row.ref, count: q.countReferrals.get(row.ref).n });
+        await mailer.send({ to: mail, ...m });
+      }
       return { status: 202, body: { ok: true, ref: row.ref } };
     } },
 
@@ -679,11 +696,28 @@ export function createApp({
       return { status: 202, body: { ok: true } };
     } },
 
+    // Désinscription par le lien de l'email (jeton de confirmation) : l'adresse et ses données sont supprimées.
+    { method: 'POST', path: /^\/api\/preregister\/unsubscribe$/, handler: async ({ req }) => {
+      rateLimit(preregLimit, `prereg:${clientIp(req, trustProxy)}`);
+      const { token } = await readJson(req);
+      const done = typeof token === 'string' && token.length >= 16 && q.deletePreregByToken.run(token).changes > 0;
+      return { status: 202, body: { ok: done } };
+    } },
+
     // Compteur public (agrégé) pour la barre de progression de la page d'accueil.
     // v10.8 (site) : confirmation de l'email (lien de l'email de confirmation) ; le parrain gagne +1 à ce moment-là.
     { method: 'GET', path: /^\/api\/preregister\/confirm$/, handler: ({ url }) => {
       const token = url.searchParams.get('token') ?? '';
       const done = token.length >= 16 && q.confirmPrereg.run(now(), token).changes > 0;
+      // Le parrain est prévenu (au plus un email par jour et par parrain).
+      if (done && mailer) {
+        const me = q.findPreregByToken.get(token);
+        const sp = me?.referrer ? q.findSponsorMail.get(me.referrer) : null;
+        if (sp && !(sp.friend_mailed_at && now() - sp.friend_mailed_at < 24 * 3600_000)) {
+          q.setFriendMailed.run(now(), sp.email);
+          mailer.send({ to: sp.email, ...friendJoinedEmail({ lang: sp.lang ?? 'fr', baseUrl: mailer.baseUrl, ref: sp.ref, count: q.countReferrals.get(sp.ref).n }) });
+        }
+      }
       return { body: { ok: done } };
     } },
     // v10.8 (site) : nombre de filleuls confirmés d'un code de parrainage.

@@ -94,6 +94,9 @@ export function openDatabase(file) {
   // confirm_token / confirmed_at = confirmation de l'email (un filleul ne compte qu'une fois confirmé), ip_hash = anti-autoparrainage.
   for (const col of ['ref', 'referrer', 'confirm_token', 'ip_hash', 'utm_source']) addColumnIfMissing(db, 'preregistrations', col, 'TEXT');
   addColumnIfMissing(db, 'preregistrations', 'confirmed_at', 'INTEGER');
+  // Emails : langue de l'inscrit, date du dernier email de confirmation (un par heure au plus), dernier email « un ami t'a rejoint ».
+  addColumnIfMissing(db, 'preregistrations', 'lang', 'TEXT');
+  for (const col of ['mailed_at', 'friend_mailed_at']) addColumnIfMissing(db, 'preregistrations', col, 'INTEGER');
   db.exec('CREATE UNIQUE INDEX IF NOT EXISTS preregistrations_ref ON preregistrations (ref)');
   addColumnIfMissing(db, 'saves', 'gems', 'INTEGER NOT NULL DEFAULT 0');
   // v9.1.3 : temps de jeu cumulé de la dernière sauvegarde (refus d'une partie plus ancienne, survit aux renaissances).

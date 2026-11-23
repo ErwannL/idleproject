@@ -151,7 +151,7 @@ form.addEventListener('submit', async (event) => {
   const btn = form.querySelector('button[type=submit]');
   btn.disabled = true;
   try {
-    const res = await fetch('api/preregister', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, consent, ref: store.ss('ascendrya-ref'), utm: store.ss('ascendrya-utm') }) });
+    const res = await fetch('api/preregister', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, consent, ref: store.ss('ascendrya-ref'), utm: store.ss('ascendrya-utm'), lang }) });
     if (res.status === 429) return say('form.errRate');
     if (!res.ok) return say('form.errInvalid');
     const data = await res.json().catch(() => ({}));
@@ -171,8 +171,21 @@ form.addEventListener('submit', async (event) => {
   keep('ascendrya-ref', (qs.get('ref') ?? '').toUpperCase(), /^[A-HJ-NP-Z2-9]{5,6}$/);
   keep('ascendrya-utm', qs.get('utm_source') ?? '', /^[\w.-]{1,40}$/);
   // Confirmation de l'email : ?confirm=<jeton> (lien de l'email).
+  // Liens de l'email : ?confirm=<jeton> (confirmer l'adresse) et ?unsubscribe=<jeton> (se désinscrire).
+  const notice = (key, ok) => {
+    const el = document.createElement('div');
+    el.className = `mail-notice ${ok ? 'ok' : 'err'}`; el.setAttribute('role', 'status');
+    el.innerHTML = `<span></span><button type="button" aria-label="OK">✕</button>`;
+    el.querySelector('span').textContent = t(key);
+    el.querySelector('button').addEventListener('click', () => el.remove());
+    document.body.appendChild(el);
+    const u = new URL(location.href); u.searchParams.delete('confirm'); u.searchParams.delete('unsubscribe'); history.replaceState(null, '', u);
+  };
   const tok = qs.get('confirm');
-  if (tok) fetch(`api/preregister/confirm?token=${encodeURIComponent(tok)}`).catch(() => {});
+  if (tok) fetch(`api/preregister/confirm?token=${encodeURIComponent(tok)}`).then((r) => r.json()).then((d) => notice(d.ok ? 'mail.confirmed' : 'mail.invalid', d.ok)).catch(() => notice('mail.invalid', false));
+  const un = qs.get('unsubscribe');
+  if (un) fetch('api/preregister/unsubscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: un }) })
+    .then((r) => r.json()).then((d) => notice(d.ok ? 'mail.unsubscribed' : 'mail.invalid', d.ok)).catch(() => notice('mail.invalid', false));
 }
 // ---------- Pixels Meta et TikTok (seulement si un identifiant est réglé dans config.js) ----------
 {

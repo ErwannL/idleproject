@@ -45,6 +45,11 @@ export default {
     50000: ['1 legendary pet + 2,000 gems', 'Little Phoenix'],
     tags: { 'Exclusif': 'Exclusive', 'SR · Exclusif': 'SR · Exclusive', 'SSR · Exclusif': 'SSR · Exclusive', 'Méga pack': 'Mega pack', 'Bonus': 'Bonus', 'Bonus · Méga pack': 'Bonus · Mega pack', 'Bonus · Légendaire': 'Bonus · Legendary', 'Légendaire · Exclusif': 'Legendary · Exclusive' },
   },
+  mail: {
+    confirmed: 'Address confirmed, thank you! Your spot is reserved.',
+    invalid: 'This link was already used or is invalid.',
+    unsubscribed: 'You are unsubscribed: your address has been deleted.',
+  },
   ref: {
     follow: "Follow Ascendrya so you don't miss a thing",
     title: 'Welcome to the adventure!',

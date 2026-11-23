@@ -44,6 +44,11 @@ export default {
     50000: ['1 familier légendaire + 2 000 gemmes', 'Petit phénix'],
     tags: {},
   },
+  mail: {
+    confirmed: 'Adresse confirmée, merci ! Ta place est réservée.',
+    invalid: 'Lien déjà utilisé ou invalide.',
+    unsubscribed: 'Tu es désinscrit : ton adresse a été supprimée.',
+  },
   ref: {
     follow: 'Suis Ascendrya pour ne rien rater',
     title: 'Bienvenue dans l’aventure !',
