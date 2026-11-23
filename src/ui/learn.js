@@ -92,7 +92,7 @@ export const RESOURCE_SYSTEM = { gems: 'summon', tickets: 'summon', shards: 'for
 export const resourceScreenOpen = (st, key) => !RESOURCE_SYSTEM[key] || isUnlocked(st, RESOURCE_SYSTEM[key]);
 // Première fois qu'une ressource arrive (hors or, montré par le prologue) : une bulle, une seule fois par ressource.
 export function firstResourceBubble(ui, st) {
-  if (!st?.ui || typeof document === 'undefined' || document.querySelector('.res-bubble, .howto-card, .learn-card, #prologue, .best-card')) return; // v10.2 (4.2) : un message à la fois
+  if (!st?.ui || typeof document === 'undefined' || document.querySelector('.res-bubble, .howto-card, .learn-card, #prologue, .best-card, #tuto-layer .tuto-bubble')) return; // v10.2 (4.2) ; v10.11 (7) : jamais avec une bulle de tutoriel
   const seen = (st.ui.seenRes ??= []);
   for (const key of Object.keys(RESOURCES)) {
     if (key === 'gold' || seen.includes(key) || !(resourceAmount(st, key) > 0) || !resourceScreenOpen(st, key)) continue; // v10.4 : en attente tant que l'écran est fermé

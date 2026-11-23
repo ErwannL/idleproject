@@ -114,10 +114,14 @@ export function updateTutorial(state, root, full, panelOpen = false, translate =
   const bubble = layer.querySelector('.tuto-bubble');
   finger.hidden = !step.finger;
   // v9.8 (0.1) : cible dans la barre de gauche : le doigt pointe depuis la droite, la bulle suit à droite du doigt.
-  const side = Boolean(el.closest('#tabs'));
+  // v10.11 (7) : seulement quand le menu est une colonne ; menu du bas : le doigt se pose au centre du bouton visé.
+  const tabsEl = el.closest('#tabs');
+  const tabsBox = tabsEl?.getBoundingClientRect();
+  const side = Boolean(tabsEl && tabsBox && tabsBox.height > tabsBox.width);
+  const bottomBar = Boolean(tabsEl && !side);
   finger.classList.toggle('side', side);
   finger.style.left = `${Math.round(side ? r.right + 2 : r.left + r.width / 2 - 14)}px`;
-  finger.style.top = `${Math.round(side ? r.top + r.height / 2 - 16 : r.bottom - 6)}px`;
+  finger.style.top = `${Math.round(side ? r.top + r.height / 2 - 16 : bottomBar ? r.top + r.height / 2 - 14 : r.bottom - 6)}px`;
   // v9.3.8 (3b) : la bulle se met À CÔTÉ de sa cible (à droite, sinon à gauche, sinon au-dessus / dessous) pour ne jamais
   // cacher le bouton suivant ; plus étroite.
   const bw = Math.min(220, innerWidth - 32);

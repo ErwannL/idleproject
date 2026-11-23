@@ -281,3 +281,12 @@ html.reduce-motion #app .bs-plot .bs-need { animation: none; }
   #app #panel button.btn, #app #panel .chip-btn, #app #panel .eq-slot-box { min-height: 44px; }
   #app #panel .chip-btn { min-width: 44px; }
 }
+
+/* v10.11 (7) : bulle « Nouveau : … » posée dans le ciel, au-dessus du combat, jamais sur le héros. */
+#app .res-bubble { top: 8px !important; bottom: auto !important; }
+#app #play.phone-band .res-bubble, #app .hq-phone ~ .res-bubble { top: 140px !important; }
+/* v10.11 (4.6, 6.4) : les grands messages (Moment fort, Renaissance, nouvelle zone…) s'affichent dans le ciel, au-dessus
+   du combat, jamais sur les monstres, l'équipe ou la carte de zone. */
+#app .cinematic { align-items: flex-start; padding-top: max(90px, 14%); }
+#app .cinematic .cine-text { background: rgba(8, 10, 22, .55); border-radius: 14px; padding: 10px 20px; }
+#app #play.phone-band .cinematic, #app .layout-tall .cinematic { padding-top: 150px; }
