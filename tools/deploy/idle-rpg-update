@@ -5,7 +5,7 @@
 # en cas d'échec, l'ancienne version est remise en place.
 set -eu
 REPO=git@github.com:ErwannL/idleproject.git
-BRANCH=claude/new-session-9noo7b
+BRANCH=main
 SRC=/var/lib/idle-rpg-src/repo.git
 APP=/srv/idle-rpg
 DB=/var/lib/idle-rpg/games.sqlite

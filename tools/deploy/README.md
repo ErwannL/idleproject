@@ -1,7 +1,7 @@
 # Mise à jour automatique du serveur « games »
 
 Toutes les 5 minutes, `idle-rpg-update.timer` lance `/usr/local/sbin/idle-rpg-update`, qui compare
-la branche principale du dépôt (`claude/new-session-9noo7b`) à la dernière version déployée.
+la branche principale du dépôt (`main`) à la dernière version déployée.
 Si elle a changé : sauvegarde dans `/var/backups/idle-rpg/<date>/` (server, site, base), copie de
 `server/` et `site/` dans `/srv/idle-rpg/`, redémarrage d'`idle-rpg`, vérification de `/` et de l'API.
 En cas d'échec, l'ancienne version est remise en place (le commit refusé est noté dans
