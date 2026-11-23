@@ -259,3 +259,25 @@ html.reduce-motion #app .bs-plot .bs-need { animation: none; }
   #play.band109 #hud { left: 50% !important; right: auto !important; width: min(1400px, calc(100% - 32px)) !important; transform: translateX(-50%); }
   #play.band109 #progress-text { font-size: 16px; }
 }
+
+/* v10.11 (5) : page centrée — le contenu tient dans une colonne de 1600 px au plus ; le haut et les cartes partagent les
+   mêmes bords. Assez de place : la mini-fenêtre reste à gauche, hors de la colonne. */
+@media (min-width: 1300px) {
+  #app#app.page-ui:not(.page-narrow) #panel#panel #panel-body { padding-left: max(12px, calc((100% - 1600px) / 2)) !important; padding-right: max(12px, calc((100% - 1600px) / 2)) !important; box-sizing: border-box; }
+  #app#app.page-ui:not(.page-narrow) #panel#panel #panel-body:not(:has(> .pg)) { padding-top: calc(var(--pg-mini-h, 160px) - 64px) !important; }
+}
+@media (min-width: 2220px) {
+  #app#app.page-ui:not(.page-narrow) .pg-top { margin-left: 0 !important; }
+}
+/* Illustrations de tête des volets : 120 px au plus (le contenu utile commence plus haut). */
+#app #panel:not(.page) #panel-body > .art-banner-wrap .art-banner { height: auto !important; max-height: 120px !important; object-fit: cover; width: 100%; }
+
+/* v10.11 (6.3) : Améliorations sur téléphone — Dégâts/s et quantités, puis directement les lignes (le héros est déjà
+   dans la scène ; « Meilleur achat » devient l'étoile ★ sur sa ligne ; catégories et tri dans le menu ⚙). */
+@media (max-width: 600px) {
+  #app #panel .upg-hero, #app #panel .upg-bestbuy, #app #panel .upg-cats, #app #panel .fold:has(.upg-filters) { display: none !important; }
+  #app #panel .upg-top .buy-amounts { display: inline-flex; }
+  /* Cibles tactiles de 44 px au moins. */
+  #app #panel button.btn, #app #panel .chip-btn, #app #panel .eq-slot-box { min-height: 44px; }
+  #app #panel .chip-btn { min-width: 44px; }
+}

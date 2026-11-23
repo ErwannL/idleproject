@@ -50,3 +50,15 @@ test('10.11 (4) : grand écran — combat recentré, rangée d\'actions et barre
   assert.match(src('src/ui/hud-quests.js'), /AW \/ 2 - used \/ 2/);
   assert.match(src('src/ui/layout109.css'), /width: min\(1400px, calc\(100% - 32px\)\)/);
 });
+
+test('10.11 (5, 6) : même forme dans un menu (pages dès 1300 px), contenu centré 1600 px, téléphone tout en plein écran', async () => {
+  const P = await import('../src/ui/page.js');
+  const ui = (w, tab) => ({ tab, layout: 'tall', root: { clientWidth: w }, view: {} });
+  for (const t of ['skills', 'tree', 'companions', 'expeditions', 'inventory', 'upgrades', 'forge', 'camp']) assert.ok(P.pageActive(ui(1920, t)), t);
+  assert.equal(P.pageActive(ui(1116, 'skills')), false, 'en dessous de 1300 px : la règle d\'avant');
+  for (const t of ['summon', 'shop', 'daybook', 'companions']) assert.ok(P.pageActive(ui(390, t)), `téléphone ${t}`);
+  const css = src('src/ui/layout109.css');
+  assert.match(css, /calc\(\(100% - 1600px\) \/ 2\)/);
+  assert.match(css, /max-height: 120px !important/);
+  assert.match(src('src/ui/page.js'), /bottom \/= z;/);
+});

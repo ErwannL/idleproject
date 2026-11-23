@@ -21,11 +21,17 @@ export const PAGE_WHEN = {};
 // bureau (« mini ») et le mode barre, le panneau habituel fait l'affaire.
 export function pageActive(ui) {
   if (!ui?.tab || (ui.layout && ui.layout !== 'tall')) return false;
+  // v10.11 (6) : téléphone — tous les onglets en plein écran (le contenu commence en haut, pas à mi-hauteur).
+  if ((ui?.root?.clientWidth ?? 9999) <= 600) return true;
   return PAGE_TABS.has(ui.tab) || Boolean(PAGE_WHEN[ui.tab]?.(ui));
 }
 
 // Téléphone ou fenêtre étroite : la page en une colonne, sans mini-fenêtre.
 export const pageNarrow = (ui) => (ui?.root?.clientWidth ?? 9999) <= 600 || isPhone();
+
+// v10.11 (5) : même forme dans un menu — à partir de 1300 px, tous les onglets des menus Héros et Équipe en page.
+const WIDE_PAGES = ['skills', 'tree', 'companions', 'expeditions'];
+for (const id of WIDE_PAGES) PAGE_WHEN[id] = (ui) => (ui?.root?.clientWidth ?? 0) >= 1300 && !pageNarrow(ui);
 
 // v10.4 (partie 4) : la page du donjon est une page plein écran sur PC ; sur téléphone, c'est la feuille du bas (calque #dg-host).
 PAGE_WHEN.dungeons = (ui) => Boolean(ui.view?.dungeonSheet) && !pageNarrow(ui);
@@ -80,9 +86,13 @@ function placePage(root) {
   const rr = root.getBoundingClientRect();
   let bottom = 0, left = 0;
   if (r && r.width && r.height) {
-    if (r.width >= rr.width * 0.6) bottom = Math.max(0, rr.bottom - r.top);
+    if (r.width >= rr.width * 0.6 || r.top > rr.top + rr.height * 0.6) bottom = Math.max(0, rr.bottom - r.top); // v10.11 (5) : menu du bas centré (grand écran) compris
     else if (r.height >= rr.height * 0.6 && r.left <= rr.left + 2) left = Math.max(0, r.right - rr.left);
   }
+  // v10.11 (5) : le panneau peut être zoomé (CSS zoom, grand écran) : ses marges sont en px zoomés.
+  const panel = document.getElementById('panel');
+  const z = panel?.offsetHeight ? Math.max(1, panel.getBoundingClientRect().height / panel.offsetHeight) : 1;
+  bottom /= z; left /= z;
   root.style.setProperty('--page-bottom', `${Math.round(bottom)}px`);
   root.style.setProperty('--page-left', `${Math.round(left)}px`);
 }
