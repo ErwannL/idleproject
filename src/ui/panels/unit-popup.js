@@ -159,7 +159,7 @@ export function unitPopup(ui, state, c, { actions, gear }) {
 // v10.12 : fiche du compagnon sur téléphone, dans le gabarit du kit (.m-sheet) : portrait, nom, niveau, 4 statistiques, modes
 // (Compétences · Équipement · Histoire), puis les boutons. Mêmes actions que la fenêtre du PC (unit-tab, skill-pop, close-sheet…).
 // ctx : { actions (HTML des boutons du bas), gear (fonction → HTML de l'équipement), close (action de fermeture) }.
-export function unitSheetPhone(ui, state, c, { actions, gear, close = 'close-sheet' }) {
+export function unitSheetPhone(ui, state, c, { actions, gear, close = 'close-sheet', noGear = false }) {
   const owned = state.companions.owned[c.id];
   const own = owned ?? { stars: 1, level: 1 };
   const el = unitElement(c.id);
@@ -174,9 +174,9 @@ export function unitSheetPhone(ui, state, c, { actions, gear, close = 'close-she
   const guard = Math.round(Math.max(0, ...skills.filter((sk) => sk.type === 'shield').map((sk) => sk.value)));
   const copies = Math.min(COMPANION_RULES.maxCopies, own.stars ?? 1);
   const lvl = unitLevel(state, c.id);
-  const tab = ['skills', 'gear', 'story'].includes(ui.view.unitTab) && !(ui.view.unitTab === 'gear' && (c.kind !== 'ally' || !owned)) ? ui.view.unitTab : 'skills';
+  const tab = ['skills', 'gear', 'story'].includes(ui.view.unitTab) && !(ui.view.unitTab === 'gear' && (c.kind !== 'ally' || !owned || noGear)) ? ui.view.unitTab : 'skills';
   const modes = [{ id: 'skills', label: 'Compétences', icon: 'icon_star', action: 'unit-tab', value: 'skills' },
-    ...(owned && c.kind === 'ally' ? [{ id: 'gear', label: 'Équipement', icon: 'icon_helm', action: 'unit-tab', value: 'gear' }] : []),
+    ...(owned && c.kind === 'ally' && !noGear ? [{ id: 'gear', label: 'Équipement', icon: 'icon_helm', action: 'unit-tab', value: 'gear' }] : []),
     { id: 'story', label: 'Histoire', icon: 'icon_book', action: 'unit-tab', value: 'story' }];
   const awake = owned && isAwakened(state, c.id);
   const art = awake ? `<img class="hd-art up-art px-hd awake-art" src="assets/hd/px/awake/ally_${c.id}.webp" alt="" loading="lazy">` : hdArt(c, 'up-art') || companionPortrait(c, true);
