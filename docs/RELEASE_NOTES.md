@@ -1,11 +1,17 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.11.1 — Finitions de la 10.11
+## Ascendrya v10.11.2 — Logo du site
+
+- **Site** : le logo d'Ascendrya s'affiche maintenant dans l'onglet du navigateur, dans les résultats de Google et sur l'écran d'accueil du téléphone (icônes 48, 192 et 512 px, manifeste, logo dans les données du site).
+
+<details><summary>Ascendrya v10.11.1 — Finitions de la 10.11</summary>
 
 - **Bastion** : à la première visite, une main montre le bâtiment qui attend un ouvrier (« Pose un compagnon : sans ouvrier, rien n'avance ») ; un petit son quand un ouvrier prend son poste.
 - **Téléphone** : la scène reste visible en bande en haut de chaque onglet (la toucher revient au combat) ; l'Arène garde son volet, car elle se joue dans la scène.
 - **Apparences** : l'étiquette de rareté n'est plus cachée par le dessin.
 - Contrôle du cadrage repassé sur tous les onglets, 4 tailles et 2 parties : aucun défaut relevé.
+
+</details>
 
 <details><summary>Ascendrya v10.11.0 — Lisibilité et ergonomie</summary>
 

@@ -516,3 +516,16 @@ test('site : paliers bonus montrés dès maintenant si l\'admin le choisit (sino
   assert.ok(goalProgress({ ...DEFAULT_GOALS, revealBonus: true, count: 4 }).tiers.filter((x) => x.bonus).every((x) => !x.secret));
   assert.match(readFileSync(new URL('../site/admin/index.html', import.meta.url), 'utf8'), /id="lg-reveal"/);
 });
+
+test('site : icône pour Google (favicon.ico 48 px, PNG 192 et 512, manifeste, logo dans les données structurées)', async (t) => {
+  const { existsSync } = await import('node:fs');
+  for (const f of ['favicon.ico', 'favicon-192.png', 'favicon-512.png', 'apple-touch-icon.png', 'site.webmanifest']) assert.ok(existsSync(new URL(`../site/${f}`, import.meta.url)), f);
+  const html = readFileSync(new URL('../site/index.html', import.meta.url), 'utf8');
+  assert.match(html, /rel="icon" href="\/favicon\.ico" sizes="48x48"/);
+  assert.match(html, /"logo":"https:\/\/ascendrya\.com\/favicon-512\.png"/);
+  const db = openDatabase(':memory:');
+  const server = createServer(createApp({ db, siteDir: fileURLToPath(new URL('../site', import.meta.url)), webDir: '' })); server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  t.after(() => { server.close(); db.close(); });
+  const r = await fetch(`http://127.0.0.1:${server.address().port}/favicon.ico`);
+  assert.equal(r.status, 200); assert.equal(r.headers.get('content-type'), 'image/x-icon');
+});
