@@ -5,7 +5,7 @@ import { sendMetrics } from './core/metrics.js';
 // la simulation (minuterie, continue même fenêtre réduite) et le rendu (requestAnimationFrame,
 // suspendu automatiquement quand la fenêtre est masquée).
 import { stagesPerCycle } from './core/combat.js'; // v9.8 (A)
-import { toggleLoadout } from './core/skills.js'; // v9.7.1 (lot 6)
+import { setLoadoutSlot, toggleLoadout } from './core/skills.js'; // v9.7.1 (lot 6)
 import { activeBonds } from './data/bonds.js'; // v9.7.1 (lot 6)
 import { updateStars, worldStars } from './core/world-stars.js'; // v9.7.1 (lot 4)
 import { finishRevenge, startRevenge } from './core/revenge.js'; // v9.7.1 (lot 4)
@@ -1209,6 +1209,7 @@ const actions = {
   setShake(on) { state.ui.shake = on; done(true); }, // v9.3.9
   // v9.7.1 : taille des personnages (Auto / Petit / Moyen / Grand) : recadre la scène tout de suite.
   toggleLoadout(id) { if (toggleLoadout(state, id)) done(true); }, // v9.7.1 (lot 6) : 3 compétences actives
+  setSkillSlot(id, slot) { if (!setLoadoutSlot(state, id, slot)) return false; done(true); return true; }, // v10.13 (lot 4) : place précise dans la barre (clic ou glisser-déposer)
   setSimple(on) { state.ui.simple = on; document.documentElement.classList.toggle('simple', on); done(true); }, // v9.7.1 (lot 5)
   setCombatAssist(v) { state.ui.combatAssist = ['full', 'manual'].includes(v) ? v : 'mixed'; done(true); }, // v9.7.1 (lot 2)
   setAutoEquip(on) { state.ui.autoEquip = on; done(true); }, // v10.9 (7 ter) : désactivé par défaut

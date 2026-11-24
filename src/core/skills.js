@@ -51,7 +51,9 @@ export function classSkills(state) {
 }
 export function activeSkills(state) {
   const learned = classSkills(state).filter((s) => (state.skills[s.id] ?? 0) > 0 && state.level >= s.unlockLevel);
-  const pick = Array.isArray(state.skillLoadout) ? learned.filter((s) => state.skillLoadout.includes(s.id)) : [];
+  // v10.13 (lot 4) : l'ordre de la barre est celui du choix (place 1, 2, 3 = touches 1, 2, 3), plus celui du catalogue.
+  const pick = Array.isArray(state.skillLoadout)
+    ? [...new Set(state.skillLoadout)].map((id) => learned.find((s) => s.id === id)).filter(Boolean) : [];
   return (pick.length ? pick : learned).slice(0, loadoutSize(state));
 }
 // v10.8 (5) : nœud clé « Main d'Ascendrya » : un sort actif de plus.
@@ -62,6 +64,22 @@ export function toggleLoadout(state, id) {
   let cur = (Array.isArray(state.skillLoadout) ? state.skillLoadout : activeSkills(state).map((s) => s.id)).filter((x) => learned.includes(x));
   cur = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id].slice(-loadoutSize(state));
   state.skillLoadout = cur;
+  return true;
+}
+// v10.13 (lot 4) : met la compétence `id` (apprise) à la place `slot` (0 = touche 1) de la barre ; si elle y est déjà, les deux
+// places s'échangent ; une place vide est comblée à la suite. Ne change ni les coûts ni les effets, seulement l'ordre.
+export function setLoadoutSlot(state, id, slot) {
+  const learned = classSkills(state).filter((s) => (state.skills[s.id] ?? 0) > 0).map((s) => s.id);
+  if (!learned.includes(id)) return false;
+  const size = loadoutSize(state);
+  const to = Math.max(0, Math.min(size - 1, Math.floor(Number(slot) || 0)));
+  const cur = activeSkills(state).map((s) => s.id);
+  const from = cur.indexOf(id);
+  if (from === to) { state.skillLoadout = cur; return true; }
+  if (from >= 0) {
+    if (to < cur.length) { cur[from] = cur[to]; cur[to] = id; } else { cur.splice(from, 1); cur.push(id); }
+  } else if (to < cur.length) cur[to] = id; else cur.push(id);
+  state.skillLoadout = cur.slice(0, size);
   return true;
 }
 

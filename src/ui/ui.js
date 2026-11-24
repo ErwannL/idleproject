@@ -301,6 +301,31 @@ export class UI {
     window.addEventListener('pointerup', () => { this.pointerDown = false; this.userAt = performance.now(); }, { capture: true });
     window.addEventListener('pointercancel', () => { this.pointerDown = false; });
     root.addEventListener('keydown', () => { this.userAt = performance.now(); }, { capture: true });
+    // v10.13 (lot 4) : Compétences sur PC — glisser une carte (ou une place) sur une place de la barre de combat.
+    root.addEventListener('dragstart', (e) => {
+      const el = e.target instanceof Element ? e.target.closest('[data-skill-drag]') : null;
+      if (!el) return;
+      this.dragSkill = el.dataset.skillDrag; this.pointerDown = false;
+      e.dataTransfer?.setData('text/plain', `skill:${this.dragSkill}`);
+      if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+      el.classList.add('dragging');
+    });
+    root.addEventListener('dragend', () => { this.dragSkill = null; root.querySelectorAll('.dragging, .drop-on').forEach((n) => n.classList.remove('dragging', 'drop-on')); this.invalidate(); });
+    root.addEventListener('dragover', (e) => {
+      const el = this.dragSkill && e.target instanceof Element ? e.target.closest('[data-slot-drop]') : null;
+      if (!el) return;
+      e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+      root.querySelectorAll('.drop-on').forEach((n) => { if (n !== el) n.classList.remove('drop-on'); });
+      el.classList.add('drop-on');
+    });
+    root.addEventListener('drop', (e) => {
+      const el = this.dragSkill && e.target instanceof Element ? e.target.closest('[data-slot-drop]') : null;
+      if (!el) return;
+      e.preventDefault();
+      const id = this.dragSkill; this.dragSkill = null;
+      if (this.actions.setSkillSlot?.(id, Number(el.dataset.slotDrop))) { this.view.skillSlot = null; this.view.skillSel = `s:${id}`; this.invalidate(); }
+      else this.toast('Apprends d\'abord cette compétence (1 point)', '#ffb36b');
+    });
     // v9.0 : liste déroulante ouverte = aucun redessin du panneau (avant, un monstre tué juste après le clic
     // d'ouverture redessinait le panneau et refermait la liste). Elle est « fermée » au choix ou en la quittant.
     this.selectOpenAt = 0;
@@ -984,7 +1009,16 @@ export class UI {
         break;
       }
       case 'buy-amount': local(() => { v.buyAmount = value; v.qtyOpen = false; }); break;
-      case 'skill-sel': local(() => { v.skillSel = v.skillSel === value ? null : value; }); break; // v9.1.3 : case de la grille
+      case 'skill-sel': { // v9.1.3 : case de la grille · v10.13 (lot 4) : sur PC, la carte reste choisie ; avec une place de la barre armée, elle s'y met
+        const [kind, sid] = String(value).split(':');
+        if (v.skillSlot != null && kind === 's') {
+          if (a.setSkillSlot?.(sid, v.skillSlot)) v.skillSlot = null; else this.toast('Apprends d\'abord cette compétence (1 point)', '#ffb36b');
+        }
+        local(() => { v.skillSel = value; v.mDSkMode = kind === 'r' ? 'r' : 's'; });
+        break;
+      }
+      case 'skill-slot-pick': local(() => { v.skillSlot = v.skillSlot === Number(value) ? null : Number(value); }); break; // v10.13 (lot 4) : arme une place de la barre
+      case 'skill-slot-set': { const [sid, n] = String(value).split('|'); if (a.setSkillSlot?.(sid, Number(n))) local(() => { v.skillSlot = null; }); break; } // v10.13 (lot 4) : « Mettre dans la barre »
       case 'qty-toggle': local(() => { v.qtyOpen = !v.qtyOpen; }); break; // v9.1.3 (A22)
       case 'upgrade-cat': local(() => { v.upgradeCat = value; }); break;
       case 'inv-tab': if (value === 'stash') markInvUsed(this.state, 'stash'); local(() => { v.invTab = value; }); break;
@@ -1941,7 +1975,7 @@ export class UI {
     const now0 = performance.now();
     const userRecent = now0 - this.userAt < 400;
     const holding = document.body.classList.contains('hold-repeating');
-    const pointer = this.pointerDown && !holding;
+    const pointer = (this.pointerDown || !!this.dragSkill) && !holding;
     // Liste ouverte (au plus 60 s, au cas où sa fermeture n'aurait pas été vue).
     const selectOpen = this.selectOpenAt > 0 && now0 - this.selectOpenAt < 60000;
     const busy = pointer || selectOpen;

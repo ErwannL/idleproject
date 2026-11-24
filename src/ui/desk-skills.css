@@ -1,0 +1,150 @@
+/* v10.13 (lot 4, § 4) : Héros › Compétences sur PC (maquette m03). Toutes les règles sont sous #app:not(.m-phone) : le téléphone (kit 10.12) ne bouge pas.
+   Colonnes : grille .d-cols3b du kit (340px · reste · 470px, repli 2 puis 1 colonne selon la largeur du cadre). */
+
+/* Pastille « Points » : en haut à gauche du cadre (en flux, sous le cartouche, quand le cadre est étroit) */
+#app:not(.m-phone) .m-dsk .dsk-pts {
+  display: inline-flex; align-items: baseline; gap: 8px; margin: 0 0 12px; padding: 7px 14px; box-sizing: border-box;
+  border: 1px solid var(--m-gold); border-radius: 999px; background: var(--m-card); color: var(--m-text); font-size: 16px; font-weight: 800;
+}
+#app:not(.m-phone) .m-dsk .dsk-pts b { color: var(--m-gold-hi); font-size: 18px; font-variant-numeric: tabular-nums; }
+#app:not(.m-phone) .m-dsk .dsk-pts small { color: var(--m-soft); font-size: 13px; font-weight: 700; }
+@container mframe (min-width: 960px) {
+  #app:not(.m-phone) .m-dsk .dsk-pts { position: absolute; left: 24px; top: 22px; margin: 0; z-index: 3; }
+}
+
+/* Colonnes un peu plus serrées que le kit (300 · reste · 400) et 3 colonnes dès 1090 px de cadre : sous le zoom 125 % des grands écrans
+   (1878 x 1245 : cadre de 1116 px), il faut la place de 3 cartes de 120 px au centre et le détail doit rester à côté, jamais sous les cartes. */
+@container mframe (min-width: 1090px) {
+  #app:not(.m-phone) .m-dsk .d-cols3b { grid-template-columns: 300px minmax(0, 1fr) 400px; }
+  #app:not(.m-phone) .m-dsk .d-cols3b > :nth-child(n + 3) { grid-column: auto; }
+}
+/* Cadre étroit (panneau de droite d'une fenêtre de 1116 px) : le cartouche garde son nom entier */
+@container mframe (max-width: 560px) {
+  #app:not(.m-phone) .m-dsk > .m-title { padding: 0 58px; }
+  #app:not(.m-phone) .m-dsk > .m-title .m-title-in { min-width: 0; padding: 0 34px; gap: 8px; }
+  #app:not(.m-phone) .m-dsk > .m-title b { font-size: 22px; }
+}
+#app:not(.m-phone) .m-dsk .dsk-slots.n4 { gap: 6px; }
+#app:not(.m-phone) .m-dsk .dsk-slots.n4 .dsk-slot { width: 62px; height: 62px; }
+#app:not(.m-phone) .m-dsk .dsk-slots.n4 .dsk-slot img { width: 42px; height: 42px; }
+
+/* ---------- Colonne gauche : ta barre de combat ---------- */
+#app:not(.m-phone) .m-dsk .dsk-left { margin: 0; padding: 12px; }
+#app:not(.m-phone) .m-dsk .dsk-hero {
+  position: relative; height: 210px; border-radius: 12px; border: 2px solid #34447c; overflow: hidden; display: grid; place-items: end center; box-shadow: inset 0 0 24px rgba(0, 0, 0, .5);
+}
+#app:not(.m-phone) .m-dsk .dsk-lbl { position: absolute; left: 12px; top: 10px; font-size: 18px; font-weight: 900; color: #fff; text-shadow: 0 2px 0 #000, 0 0 6px #000; }
+#app:not(.m-phone) .m-dsk .dsk-hero-img { width: 150px; height: 150px; margin-bottom: 40px; image-rendering: pixelated; object-fit: contain; filter: drop-shadow(0 4px 0 rgba(0, 0, 0, .45)); }
+#app:not(.m-phone) .m-dsk .dsk-slots { display: flex; justify-content: center; gap: 10px; margin: -44px 0 0; position: relative; z-index: 1; flex-wrap: wrap; }
+#app:not(.m-phone) .m-dsk .dsk-slot {
+  position: relative; box-sizing: border-box; width: 78px; height: 78px; padding: 0; border-radius: 50%; cursor: pointer; display: grid; place-items: center; color: var(--m-text);
+  border: 3px solid var(--m-gold); background: radial-gradient(#2a3670, #0d1430); box-shadow: 0 0 12px rgba(243, 210, 122, .35), 0 3px 0 #000;
+}
+#app:not(.m-phone) .m-dsk .dsk-slot img { width: 52px; height: 52px; border-radius: 8px; image-rendering: pixelated; pointer-events: none; }
+#app:not(.m-phone) .m-dsk .dsk-slot kbd {
+  position: absolute; right: -4px; bottom: -6px; min-width: 22px; padding: 0 5px; box-sizing: border-box; border-radius: 7px; border: 1px solid var(--m-gold);
+  background: rgba(0, 0, 0, .85); color: #fff; font: 900 14px/20px system-ui, sans-serif; text-align: center;
+}
+#app:not(.m-phone) .m-dsk .dsk-slot.empty { border-style: dashed; border-color: #5a6aa0; box-shadow: none; background: rgba(11, 17, 36, .85); }
+#app:not(.m-phone) .m-dsk .dsk-slot.empty b { font-size: 34px; line-height: 1; color: #8a9ad0; font-weight: 900; }
+#app:not(.m-phone) .m-dsk .dsk-slot:hover { filter: brightness(1.15); }
+#app:not(.m-phone) .m-dsk .dsk-slot.armed, #app:not(.m-phone) .m-dsk .dsk-slot.drop-on { border-color: var(--m-gold-hi); box-shadow: 0 0 0 3px rgba(243, 210, 122, .55), 0 0 22px rgba(243, 210, 122, .8); transform: scale(1.06); }
+#app:not(.m-phone) .m-dsk .dsk-slot.dragging { opacity: .5; }
+#app:not(.m-phone) .m-dsk .dsk-cap { margin: 14px 0 0; text-align: center; font-size: 14px; line-height: 1.3; color: var(--m-soft); }
+#app:not(.m-phone) .m-dsk .dsk-cap .dsk-arm { color: var(--m-gold-hi); font-size: 15px; }
+#app:not(.m-phone) .m-dsk .dsk-sec { margin: 18px 0 8px; font-size: 15px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; color: var(--m-gold-hi); }
+#app:not(.m-phone) .m-dsk .dsk-left .m-grid { gap: 8px; align-items: start; }
+#app:not(.m-phone) .m-dsk .dsk-left .m-tilewrap > small { font-size: 12px; font-weight: 800; white-space: nowrap; letter-spacing: -.2px; }
+#app:not(.m-phone) .m-dsk .dsk-left .m-tile .m-gain { top: -10px; font-size: 12px; }
+#app:not(.m-phone) .m-dsk .dsk-spread { margin-top: 16px; }
+
+/* ---------- Colonne centrale : modes + cartes 3 x 2 ---------- */
+#app:not(.m-phone) .m-dsk .dsk-center { min-width: 0; }
+#app:not(.m-phone) .m-dsk .dsk-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 0 14px; }
+#app:not(.m-phone) .m-dsk .dsk-mode {
+  display: flex; flex-direction: column; align-items: center; min-width: 0; box-sizing: border-box; padding: 6px 6px 8px; border-radius: 14px; border: 2px solid #34447c; background: linear-gradient(180deg, #22305f, #161f40);
+}
+#app:not(.m-phone) .m-dsk .dsk-mode.on { border-color: var(--m-gold-hi); background: linear-gradient(180deg, #3a3f6e, #1d2650); box-shadow: 0 0 16px rgba(243, 210, 122, .33), inset 0 0 0 1px var(--m-gold); }
+#app:not(.m-phone) .m-dsk .dsk-mode .m-modes { width: 100%; margin: 0; padding: 0; }
+#app:not(.m-phone) .m-dsk .dsk-mode .m-mode { height: 60px; border: 0; background: none; box-shadow: none; }
+#app:not(.m-phone) .m-dsk .dsk-mode .m-mode:hover { color: #fff; }
+#app:not(.m-phone) .m-dsk .dsk-mode.on .m-mode { color: #fff; }
+#app:not(.m-phone) .m-dsk .m-switch { position: relative; display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 12px 0 6px; border-radius: 999px; background: #0e1630; font-weight: 800; font-size: 14px; color: #cfe; cursor: pointer; }
+#app:not(.m-phone) .m-dsk .m-switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+#app:not(.m-phone) .m-dsk .m-switch .m-sw { position: relative; flex: none; width: 38px; height: 20px; border-radius: 10px; background: #0b1124; border: 2px solid var(--m-btn-line); transition: background .15s; }
+#app:not(.m-phone) .m-dsk .m-switch .m-sw::after { content: ''; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--m-soft); transition: transform .15s, background .15s; }
+#app:not(.m-phone) .m-dsk .m-switch input:checked + .m-sw { background: #1f6b34; border-color: var(--m-ok); }
+#app:not(.m-phone) .m-dsk .m-switch input:checked + .m-sw::after { transform: translateX(18px); background: #d8ffe0; }
+#app:not(.m-phone) .m-dsk .m-switch input:focus-visible + .m-sw { outline: 2px solid var(--m-gold-hi); outline-offset: 2px; }
+
+#app:not(.m-phone) .m-dsk .dsk-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: stretch; }
+@container mframe (max-width: 760px) { #app:not(.m-phone) .m-dsk .dsk-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+#app:not(.m-phone) .m-dsk .dsk-card {
+  --c: #c070ff; position: relative; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; padding: 8px 8px 12px; margin: 0;
+  border-radius: 16px; border: 2px solid #34447c; background: linear-gradient(#22305f, #141c3b); color: var(--m-text); font-family: inherit; text-align: center; cursor: pointer;
+}
+#app:not(.m-phone) .m-dsk .dsk-card:hover { border-color: #5668a8; filter: brightness(1.08); }
+#app:not(.m-phone) .m-dsk .dsk-card.sel { border-color: var(--m-gold-hi); box-shadow: 0 0 18px rgba(243, 210, 122, .35); }
+#app:not(.m-phone) .m-dsk .dsk-card.locked { opacity: .55; filter: grayscale(.7); }
+#app:not(.m-phone) .m-dsk .dsk-card.dragging { opacity: .5; }
+#app:not(.m-phone) .m-dsk .dsk-ic {
+  display: grid; place-items: center; width: 92px; height: 92px; margin-top: 0; box-sizing: border-box; border-radius: 14px; border: 3px solid var(--c);
+  background: radial-gradient(circle, color-mix(in srgb, var(--c) 40%, transparent), #0d1430 75%); box-shadow: inset 0 0 14px rgba(0, 0, 0, .55), 0 0 10px -2px var(--c);
+}
+#app:not(.m-phone) .m-dsk .dsk-ic img { width: 80px; height: 80px; image-rendering: pixelated; object-fit: contain; pointer-events: none; }
+#app:not(.m-phone) .m-dsk .dsk-name { font-size: 16px; font-weight: 900; line-height: 1.15; min-height: 2.3em; display: flex; align-items: center; justify-content: center; overflow-wrap: break-word; hyphens: none; }
+#app:not(.m-phone) .m-dsk .sk2-type { display: inline-block; margin: 0; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 900; line-height: 1.3; color: #fff; background: #3a4a8a; }
+#app:not(.m-phone) .m-dsk .sk2-type.t-hit { background: #8a2a2a; } #app:not(.m-phone) .m-dsk .sk2-type.t-aoe { background: #8a5a1a; }
+#app:not(.m-phone) .m-dsk .sk2-type.t-buff { background: #3a4a8a; } #app:not(.m-phone) .m-dsk .sk2-type.t-holy { background: #1a5a8a; } #app:not(.m-phone) .m-dsk .sk2-type.t-boost { background: #5a2a8a; }
+#app:not(.m-phone) .m-dsk .dsk-line { display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 2.5em; font-size: 13px; line-height: 1.25; color: var(--m-soft); font-variant-numeric: tabular-nums; }
+#app:not(.m-phone) .m-dsk .dsk-line img { width: 14px; height: 14px; }
+#app:not(.m-phone) .m-dsk .dsk-top { display: flex; align-items: center; justify-content: space-between; align-self: stretch; gap: 4px; min-height: 22px; }
+#app:not(.m-phone) .m-dsk .dsk-lv, #app:not(.m-phone) .m-dsk .dsk-on { padding: 0 6px; border-radius: 8px; font-style: normal; font-size: 12px; font-weight: 900; line-height: 20px; white-space: nowrap; }
+#app:not(.m-phone) .m-dsk .dsk-lv { margin-left: auto; background: rgba(0, 0, 0, .7); border: 1px solid var(--m-gold); color: var(--m-gold-hi); }
+#app:not(.m-phone) .m-dsk .dsk-on { background: #1d7a3a; border: 1px solid var(--m-ok); color: #fff; }
+#app:not(.m-phone) .m-dsk .dsk-pips { display: flex; gap: 4px; margin-top: auto; padding-top: 2px; }
+#app:not(.m-phone) .m-dsk .dsk-pips i { width: 16px; height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--m-gold-hi) calc(var(--f) * 100%), #2c3a66 calc(var(--f) * 100%)); }
+
+/* ---------- Colonne droite : détail ---------- */
+#app:not(.m-phone) .m-dsk .dsk-detail { margin: 0; padding: 14px; display: flex; flex-direction: column; gap: 0; }
+#app:not(.m-phone) .m-dsk .dsk-prev { position: relative; height: 168px; border-radius: 12px; border: 2px solid var(--m-gold); overflow: hidden; box-shadow: inset 0 0 20px rgba(0, 0, 0, .45); }
+#app:not(.m-phone) .m-dsk .dsk-play { position: absolute; left: 10px; top: 10px; z-index: 3; padding: 3px 10px; border-radius: 8px; background: rgba(0, 0, 0, .75); border: 1px solid var(--m-gold); font-size: 13px; font-weight: 900; color: #fff; }
+#app:not(.m-phone) .m-dsk .dsk-ph { position: absolute; left: 6%; bottom: 8px; width: 130px; height: 130px; image-rendering: pixelated; object-fit: contain; z-index: 1; filter: drop-shadow(0 4px 0 rgba(0, 0, 0, .4)); }
+#app:not(.m-phone) .m-dsk .dsk-prev canvas.sk-vignette { position: absolute; left: 24%; bottom: 8px; width: 180px; height: 180px; z-index: 2; background: none; border: 0; box-shadow: none; border-radius: 0; image-rendering: pixelated; pointer-events: none; }
+#app:not(.m-phone) .m-dsk .dsk-mob { position: absolute; bottom: 14px; width: 66px; height: 66px; image-rendering: pixelated; object-fit: contain; z-index: 1; }
+#app:not(.m-phone) .m-dsk .dsk-mob.m0 { right: 22%; } #app:not(.m-phone) .m-dsk .dsk-mob.m1 { right: 6%; }
+#app:not(.m-phone) .m-dsk .dsk-dhead { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+#app:not(.m-phone) .m-dsk .dsk-dhead b { font-size: 24px; font-weight: 900; line-height: 1.1; }
+#app:not(.m-phone) .m-dsk .dsk-desc { margin: 4px 0 0; font-size: 15px; line-height: 1.3; color: var(--m-soft); }
+#app:not(.m-phone) .m-dsk .dsk-lvl { display: flex; justify-content: center; align-items: center; gap: 18px; margin: 8px 0; font-size: 26px; font-weight: 900; font-variant-numeric: tabular-nums; }
+#app:not(.m-phone) .m-dsk .dsk-lvl i { font-style: normal; color: var(--m-gold-hi); }
+#app:not(.m-phone) .m-dsk .dsk-lvl em { font-style: normal; font-size: 16px; }
+#app:not(.m-phone) .m-dsk .good { color: var(--m-ok); }
+#app:not(.m-phone) .m-dsk .dsk-cmps { display: flex; flex-direction: column; gap: 8px; }
+#app:not(.m-phone) .m-dsk .dsk-cmp { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 6px 12px; box-sizing: border-box; border-radius: 12px; background: #18223f; border: 1px solid var(--m-card-line); font-size: 16px; }
+#app:not(.m-phone) .m-dsk .dsk-cmp img { width: 22px; height: 22px; flex: none; image-rendering: pixelated; }
+#app:not(.m-phone) .m-dsk .dsk-cmp .m-k { flex: 0 0 auto; color: var(--m-text); }
+#app:not(.m-phone) .m-dsk .dsk-cmp .m-v { flex: 1 1 auto; min-width: 0; margin-left: auto; text-align: right; font-weight: 900; font-variant-numeric: tabular-nums; }
+#app:not(.m-phone) .m-dsk .dsk-cmp .m-v i { font-style: normal; color: var(--m-gold-hi); }
+#app:not(.m-phone) .m-dsk .dsk-costrow { display: flex; align-items: center; gap: 14px; margin: 8px 0; }
+#app:not(.m-phone) .m-dsk .dsk-costrow p { margin: 0; font-size: 14px; line-height: 1.35; color: var(--m-soft); }
+#app:not(.m-phone) .m-dsk .dsk-costrow p b { color: #fff; }
+#app:not(.m-phone) .m-dsk .dsk-costrow .m-cost-ico { width: 56px; height: 56px; }
+#app:not(.m-phone) .m-dsk .dsk-costrow .m-cost-ico img { width: 32px; height: 32px; }
+#app:not(.m-phone) .m-dsk .dsk-spark { font-size: 28px; color: var(--m-gold-hi); line-height: 1; }
+#app:not(.m-phone) .m-dsk .dsk-note { margin: 12px 0 0; display: flex; align-items: center; gap: 8px; font-size: 15px; color: var(--m-soft); }
+#app:not(.m-phone) .m-dsk .dsk-note img { width: 18px; height: 18px; }
+#app:not(.m-phone) .m-dsk .dsk-btns { display: flex; flex-direction: column; gap: 10px; margin-top: auto; padding-top: 8px; }
+#app:not(.m-phone) .m-dsk .dsk-btns .m-sk-state { margin: 0; text-align: center; font-size: 15px; font-weight: 800; color: var(--m-soft); }
+#app:not(.m-phone) .m-dsk .dsk-btns .m-sk-state.good { color: var(--m-ok); }
+
+/* Cadre moins large que 1120 px : le détail passe sous les deux autres colonnes, aperçu à gauche et infos à droite */
+@container mframe (min-width: 640px) and (max-width: 1089px) {
+  #app:not(.m-phone) .m-dsk .dsk-detail { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); column-gap: 18px; align-items: start; }
+  #app:not(.m-phone) .m-dsk .dsk-detail > * { grid-column: 2; }
+  #app:not(.m-phone) .m-dsk .dsk-detail > .dsk-prev { grid-column: 1; grid-row: 1 / span 8; }
+  #app:not(.m-phone) .m-dsk .dsk-detail > .dsk-dhead { margin-top: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #app:not(.m-phone) .m-dsk .dsk-slot.armed, #app:not(.m-phone) .m-dsk .dsk-slot.drop-on { transform: none; }
+}
