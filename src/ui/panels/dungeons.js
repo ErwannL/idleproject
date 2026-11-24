@@ -187,14 +187,14 @@ function dungeonsList(ui, state) {
 }
 
 // v10.12 : Donjons sur téléphone — clés en .m-cost dans l'en-tête ; chaque donjon : bannière de 120 px, « Entrer » (44 px) à droite.
-function phoneBanner(state, d) {
+function phoneBanner(state, d, rec = false) {
   const locked = state.maxStage < d.unlockStage;
   const stars = dungeonStars(state, d.id);
   const g = DUNGEON_GAIN[d.id];
   const diff = DIFFICULTY_ORDER[Math.max(0, stars - 1)];
   const n = Math.min(state.keys ?? 0, 10);
   const nm = nightmareBest(state, d.id);
-  const act = locked ? `<span class="dgm-lock">${img('icon_lock', 'ico-lock')} Étape ${stageLabel(d.unlockStage)}</span>` : mBtn('Entrer', { action: 'dungeon-sel', value: d.id, cls: 'dgm-enter' });
+  const act = locked ? `<span class="dgm-lock">${img('icon_lock', 'ico-lock')} Étape ${stageLabel(d.unlockStage)}</span>` : mBtn('Entrer', { action: 'dungeon-sel', value: d.id, cls: `dgm-enter${rec ? ' dgm-rec' : ''}` });
   const sweep = !locked && stars && n > 0 ? mChip(`Balayer ×${n}`, { action: 'sweep-n', value: `${d.id}|${diff}|${n}` }) : '';
   return `<div class="m-card dgm${locked ? ' locked' : ''}" data-d="${d.id}" style="--dgm-bg:url(assets/ui/art101/dungeon_${d.id}.png)">
     <div class="dgm-info"><b class="dgm-name">${escapeHtml(d.name)}</b><span class="dgm-sub">${escapeHtml(BOSSES[d.boss].name)} ${elemTag(zoneElement(d.zone))}</span>
@@ -202,10 +202,13 @@ function phoneBanner(state, d) {
     <div class="dgm-side"><img class="px dgm-boss" src="assets/ui/art102/${BOSS_ART[d.id]}.png" alt="">${act}</div></div>`;
 }
 function phoneList(state, target) {
+  // donjon conseillé (PC : le seul « Entrer » doré) : le premier ouvert qui a le moins d'étoiles
+  const open = DUNGEONS.filter((d) => state.maxStage >= d.unlockStage);
+  const recId = open.reduce((b, d) => (!b || dungeonStars(state, d.id) < dungeonStars(state, b.id) ? d : b), null)?.id;
   const all = target && state.keys > 0 ? mBtn(`Balayer tout (${state.keys})`, { action: 'sweep-all-ask' }) : '';
   return `<div class="m-frame cb-frame">${mTitle('icon_dungeon', 'Donjons', true)}
     <div class="m-card dgm-head"><span class="m-costs">${mCost('icon_key', state.keys, 1)}</span><b class="dgm-keys">Clés</b>${all}</div>
-    ${DUNGEONS.map((d) => phoneBanner(state, d)).join('')}</div>`;
+    ${DUNGEONS.map((d) => phoneBanner(state, d, d.id === recId)).join('')}</div>`;
 }
 
 // Textes courts de la pastille de mécanique (nombres tirés des données de TRAITS).
