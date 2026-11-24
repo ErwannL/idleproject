@@ -14,6 +14,8 @@ import { bossRetryPct } from '../../core/guide.js';
 import { envLine, environmentFor } from '../../core/environment.js'; // v9.2.1
 import { elementBadge, elementWheel, zoneElement, wheelShown } from '../../core/elements.js'; // v9.5.1
 import { attachMap, pulse } from '../ui-vfx.js'; // v9.2.6
+import { mBar, mBtn, mBtnGold, mChip, mTitle } from '../mobile-kit.js'; // v10.12
+import { isPhoneUi } from './combat-phone.js';
 
 // v9.0.6 : écran Aventure — « où j'en suis » en un coup d'œil : monde et étape, prochain boss, prévision,
 // avance automatique et la prochaine chose utile à faire (un clic ouvre le bon écran).
@@ -80,12 +82,21 @@ const MAP_NODES = [
 
 let mapView = null;
 let prevSel = null;
+let mapX = null; // v10.12 : défilement de la carte (téléphone)
 
 export default {
   id: 'campaign',
   // v9.2.6 : calque animé de la carte (nuages, eau, lave, étoiles, marqueur, chemin) et transition de monde choisi.
   afterRender(ui, body) {
     if (!mapView) return;
+    // v10.12 : téléphone — la carte (large de 440 px, pour des pastilles de 44 px) défile de côté ; elle se recentre sur le monde choisi.
+    const box = body.querySelector('.cb-mapbox');
+    if (box) {
+      const dot = box.querySelector('.map-dot.selected');
+      if ((mapX === null || prevSel !== mapView.sel) && dot) mapX = Math.max(0, dot.offsetLeft - box.clientWidth / 2);
+      box.scrollLeft = mapX ?? 0;
+      box.addEventListener('scroll', () => { mapX = box.scrollLeft; }, { passive: true });
+    }
     attachMap(body.querySelector('.mini-map'), MAP_NODES, mapView);
     if (prevSel !== null && prevSel !== mapView.sel) {
       pulse(body.querySelector('.world-name'), 'vfx-slide', 320);
@@ -132,6 +143,7 @@ export default {
     // v9.1.0 : d'abord le résumé, le choix du monde et de la difficulté, la liste d'étapes ; la grande carte est
     // repliée derrière un bouton (sa largeur suit le panneau, zoom 50–250 %).
     mapView = { cur: currentZone, last: lastZone, sel }; // v9.2.6 : pour le calque animé (afterRender)
+    if (isPhoneUi(ui)) return phoneView(ui, state, { sel, cycle, maxCycle, lastZone, markers, buttons, busyNote });
     const worldPicker = `<div class="mini-map"><img class="px" src="assets/ui/worldmap.png" alt="">${markers}</div>
       <div class="world-picker">
         <button class="btn small" data-action="zone-sel" data-value="${sel - 1}" ${sel > 0 ? '' : 'disabled'} aria-label="Monde précédent">◀</button>
@@ -158,3 +170,45 @@ export default {
       </div>`;
   },
 };
+
+// v10.12 : Carte sur téléphone — cadre, cartouche, en-tête fixe (monde, étape, barre, prochain boss), grande carte,
+// choix du monde et de la difficulté en puces, étapes, puis Revanche et Arène en deux cartes de 64 px.
+function phoneView(ui, state, c) {
+  const { sel, cycle, maxCycle, lastZone, markers, buttons, busyNote } = c;
+  const busy = state.dungeon || state.tower || state.challenge;
+  let head;
+  if (busy) {
+    head = `<div class="m-card cb-head"><b class="cb-zone">${state.dungeon ? 'Donjon en cours' : state.tower ? 'Tour en cours' : 'Défi en cours'}</b><span class="cb-sub">La campagne reprend à la fin.</span></div>`;
+  } else {
+    const zi = zoneIndexForStage(state.stage);
+    const zone = ZONES[zi];
+    const first = Math.floor((state.stage - 1) / stagesPerCycle()) * stagesPerCycle() + zoneStartStage(zi);
+    const pos = state.stage - first + 1;
+    const len = zoneLength(zone);
+    let next = state.stage;
+    while (!bossTierForStage(next) && next < first + len) next++;
+    const tier = bossTierForStage(next);
+    const boss = tier ? BOSSES[bossesForStage(next)[0]] : null;
+    const gap = next - state.stage;
+    head = `<div class="m-card cb-head"><div class="cb-top"><b class="cb-zone">${zi + 1}. ${escapeHtml(zone.name)}</b>${mChip('Auto', { action: 'toggle-auto', on: Boolean(state.autoAdvance) })}</div>
+      <span class="cb-sub">Étape ${pos}/${len}${boss ? ` · ${gap === 0 ? 'boss en cours' : `boss dans ${gap}`} : ${escapeHtml(boss.name)}` : ''}</span>${mBar(pos / len)}</div>`;
+  }
+  const r = state.bossRetry;
+  const retry = r && state.stage === r.stage - 1 ? bossRetryPct(state) : null;
+  const main = retry !== null ? mBtnGold(`Retenter le boss (${retry >= 100 ? 'prêt' : `${retry} %`})`, { action: 'retry-boss' })
+    : !state.autoAdvance && !busy ? mBtnGold('Avancer', { action: 'advance' }) : '';
+  const rv = revengePending(state);
+  const dots = Array.from({ length: REVENGE_STEPS }, (_, i) => `<i class="rv-dot${i < revengeLevel(state) ? ' on' : ''}"></i>`).join('');
+  const revenge = `<div class="m-card cb-mini cb-rv"><span class="cb-mini-t"><b>Revanche</b><span class="rv-dots" title="${revengeLevel(state)} / ${REVENGE_STEPS}">${dots}</span></span>
+    ${rv ? mBtn('Face-à-face', { action: 'revenge' }) : '<span class="cb-mini-r" title="Le face-à-face avec le Colosse a lieu à la fin du monde.">fin du monde</span>'}</div>`;
+  const arena = arenaUnlocked(state) ? `<button type="button" class="m-card cb-mini cb-arena" data-action="open-tab" data-value="arena"><span class="cb-mini-t"><b>Arène à cartes</b><span class="cb-mini-s">Étage ${cardArena(state).best + 1} · ${totalStars(state)} ★</span></span><span class="cb-mini-r">›</span></button>` : '';
+  const cycles = maxCycle > 0 ? `<div class="m-chips">${Array.from({ length: maxCycle + 1 }, (_, i) => mChip(`×${i + 1}`, { action: 'cycle-pick', value: i, on: i === cycle })).join('')}</div>` : '';
+  return `<div class="m-frame cb-frame">${mTitle('icon_map', 'Carte', true)}${head}${retry === null ? forecastHtml(bossForecast(state, () => ui.invalidate())) : ''}${main}
+    <div class="cb-mapbox"><div class="mini-map"><img class="px" src="assets/ui/worldmap.png" alt="">${markers}</div></div>
+    <div class="world-picker cb-picker"><button type="button" class="m-btn" data-action="zone-sel" data-value="${sel - 1}" ${sel > 0 ? '' : 'disabled'} aria-label="Monde précédent"><span>◀</span></button>
+      <b class="world-name">${sel + 1}. ${escapeHtml(ZONES[sel].name)}</b>
+      <button type="button" class="m-btn" data-action="zone-sel" data-value="${sel + 1}" ${sel < lastZone ? '' : 'disabled'} aria-label="Monde suivant"><span>▶</span></button></div>
+    ${cycles}<div class="cb-stars">${worldStarsHtml(state, sel)}</div>${busyNote}
+    <div class="m-card cb-stages"><div class="stage-grid">${buttons.join('')}</div></div>
+    ${revenge}${arena}</div>`;
+}

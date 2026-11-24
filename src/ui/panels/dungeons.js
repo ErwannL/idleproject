@@ -20,6 +20,8 @@ import { companionStill } from './expeditions.js';
 import { pageActive } from '../page.js'; // v10.4 : page plein écran
 import { TRAITS, bossTrait } from '../../core/boss-traits.js';
 import { ROLES } from '../../data/synergies.js';
+import { mBtn, mChip, mCost, mTitle } from '../mobile-kit.js'; // v10.12
+import { isPhoneUi } from './combat-phone.js';
 import { DOORS, DUNGEON_GAIN, bestSweepTarget, dungeonSet, dungeonStars, mainGain, nightmareBest, nightmareOpen, nightmareMult, roman } from '../../core/dungeon-plus.js'; // v10.1 (P3)
 
 
@@ -101,7 +103,10 @@ export default {
   icon: 'icon_dungeon',
   extra: (ui, state) => `${img('icon_key')}<b class="num">${state.keys}</b> clé${state.keys > 1 ? 's' : ''}`,
   render(ui, state) {
-    if (state.dungeon) { ui.view.dungeonSheet = false; ui.dgSheet?.(''); return running(ui, state); }
+    if (state.dungeon) {
+      ui.view.dungeonSheet = false; ui.dgSheet?.('');
+      return isPhoneUi(ui) ? `<div class="m-frame cb-frame">${mTitle('icon_dungeon', 'Donjons', true)}${running(ui, state)}</div>` : running(ui, state);
+    }
     // v9.1.3 : le Défi de la semaine est passé dans Aventure › Défis (avec la Tour).
     return dungeonsList(ui, state);
   },
@@ -178,7 +183,29 @@ function dungeonsList(ui, state) {
   // PC : la page du donjon EST le contenu du panneau en plein écran (socle des pages). Téléphone : feuille du bas (calque #dg-host).
   if (ui.view.dungeonSheet && pageActive(ui)) { ui.dgSheet?.(''); return `<div class="pg dgp-page dgp-root" role="dialog" aria-label="Donjon">${dungeonPage(ui, state)}</div>`; }
   ui.dgSheet?.(ui.view.dungeonSheet ? `<div class="dg-sheet-back" data-action="dungeon-close"></div><div class="dg-sheet dgp-root" role="dialog" aria-label="Donjon">${dungeonPage(ui, state)}</div>` : '');
-  return head + grid;
+  return isPhoneUi(ui) ? phoneList(state, target) : head + grid;
+}
+
+// v10.12 : Donjons sur téléphone — clés en .m-cost dans l'en-tête ; chaque donjon : bannière de 120 px, « Entrer » (44 px) à droite.
+function phoneBanner(state, d) {
+  const locked = state.maxStage < d.unlockStage;
+  const stars = dungeonStars(state, d.id);
+  const g = DUNGEON_GAIN[d.id];
+  const diff = DIFFICULTY_ORDER[Math.max(0, stars - 1)];
+  const n = Math.min(state.keys ?? 0, 10);
+  const nm = nightmareBest(state, d.id);
+  const act = locked ? `<span class="dgm-lock">${img('icon_lock', 'ico-lock')} Étape ${stageLabel(d.unlockStage)}</span>` : mBtn('Entrer', { action: 'dungeon-sel', value: d.id, cls: 'dgm-enter' });
+  const sweep = !locked && stars && n > 0 ? mChip(`Balayer ×${n}`, { action: 'sweep-n', value: `${d.id}|${diff}|${n}` }) : '';
+  return `<div class="m-card dgm${locked ? ' locked' : ''}" style="--dgm-bg:url(assets/ui/art101/dungeon_${d.id}.png)">
+    <div class="dgm-info"><b class="dgm-name">${escapeHtml(d.name)}</b><span class="dgm-sub">${escapeHtml(BOSSES[d.boss].name)} ${elemTag(zoneElement(d.zone))}</span>
+      <span class="dgm-row"><span class="dg-stars" role="img" aria-label="${stars} étoiles sur 3">${stars3(stars)}</span>${nm ? `<small>Cauchemar ${roman(nm)}</small>` : ''}${g ? `<span class="dgm-gain" title="${escapeHtml(g.label)}">${img(GAIN_ICON[g.key])}<span>${escapeHtml(g.label)}</span></span>` : ''}</span>${sweep}</div>
+    <div class="dgm-side"><img class="px dgm-boss" src="assets/ui/art102/${BOSS_ART[d.id]}.png" alt="">${act}</div></div>`;
+}
+function phoneList(state, target) {
+  const all = target && state.keys > 0 ? mBtn(`Balayer tout (${state.keys})`, { action: 'sweep-all-ask' }) : '';
+  return `<div class="m-frame cb-frame">${mTitle('icon_dungeon', 'Donjons', true)}
+    <div class="m-card dgm-head"><span class="m-costs">${mCost('icon_key', state.keys, 1)}</span><b class="dgm-keys">Clés</b>${all}</div>
+    ${DUNGEONS.map((d) => phoneBanner(state, d)).join('')}</div>`;
 }
 
 // Textes courts de la pastille de mécanique (nombres tirés des données de TRAITS).

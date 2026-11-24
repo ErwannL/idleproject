@@ -9,7 +9,11 @@ import { animCanvas } from '../animator.js';
 import { escapeHtml, fold, formatNumber, glyph, img, rewardIcons, segment } from '../common.js';
 import { challengeTriesLeft, challengeUnlocked } from '../../core/challenge.js';
 import { challengeCard } from './dungeons.js';
-import { bossTrait } from '../../core/boss-traits.js';
+import { bossTrait, TRAITS } from '../../core/boss-traits.js';
+import { CHALLENGE, challengeWeek, modifierById, weeklySetup } from '../../core/challenge.js';
+import { mBtn, mBtnGold, mEmpty, mModes, mSheet, mStat, mTitle } from '../mobile-kit.js'; // v10.12
+import { isPhoneUi } from './combat-phone.js';
+import { ZONES } from '../../data/zones.js';
 
 const bossName = (floor) => BOSSES[towerBoss(floor)]?.name ?? '?';
 const bossSprite = (floor) => { const b = BOSSES[towerBoss(floor)]; return b.sprite ?? ENEMIES[b.base].sprite; };
@@ -57,6 +61,7 @@ export default {
     const tab = forced ?? (parts.some(([id]) => id === ui.view.defiTab) ? ui.view.defiTab : (towerUnlocked(state) ? 'tower' : chOpen ? 'challenge' : 'tower'));
     const seg = parts.length > 1 ? segment(parts.map(([id, l, ic]) => [id, id === 'challenge' && !state.challenge ? `${l} (${challengeTriesLeft(state)})` : l, ic]), 'defi-tab', tab) : '';
     const tile = arenaUnlocked(state) ? `<button class="arena-tile" data-action="open-tab" data-value="arena" style="background-image:url(assets/ui/art101/arena_tile.png)"><b>Arène à cartes</b><span>Étage ${cardArena(state).best + 1} · ${totalStars(state)} ★</span></button>` : '';
+    if (isPhoneUi(ui)) return phoneView(ui, state, parts, tab);
     if (tab === 'challenge') return `${seg}${tile}<div class="card">${challengeCard(state)}</div>`;
     return seg + tile + towerBody(ui, state);
   },
@@ -92,4 +97,77 @@ function towerBody(ui, state) {
         </div></div>`;
     // v9.1.3 : les règles ne sont plus répétées ici (doublon de l'aide « ? »).
     return `${head}${fold(ui, 'tower-floors', 'Étages et récompenses', () => `<div class="tower-floors">${floorsList(state, floor)}</div>`)}`;
+}
+
+// v10.12 : Défis sur téléphone — modes Tour · Défi de la semaine, étage en grande case, nom, 2 icônes de règles (le détail est
+// dans la fiche « ? »), un seul bouton doré (Monter / Lancer le défi).
+const TRAIT_ICON = { armored: 'icon_shield', summoner: 'icon_summon', escalate: 'icon_damage', desperate: 'icon_alert' };
+const MOD_ICON = { tough: 'icon_heart', fierce: 'icon_damage', swift: 'icon_bolt', swarm: 'icon_skull', noheal: 'icon_regen', glass: 'icon_crit', giants: 'icon_boss', enraged: 'icon_alert' };
+const traitIcon = (trait) => TRAIT_ICON[Object.keys(TRAITS).find((k) => TRAITS[k] === trait)] ?? 'icon_boss';
+const rule = (ic, label) => `<button type="button" class="cb-rule" data-action="tower-info" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}">${img(ic)}</button>`;
+
+function phoneView(ui, state, parts, tab) {
+  const modes = parts.map(([id, l, ic]) => ({ id, label: id === 'challenge' ? 'Défi de la semaine' : l, icon: ic, action: 'defi-tab', value: id }));
+  const body = tab === 'challenge' ? phoneChallenge(state) : phoneTower(ui, state);
+  const sheet = ui.view.towerInfo ? phoneSheet(state, tab) : '';
+  return `<div class="m-frame cb-frame">${mTitle('icon_tower', 'Défis', true)}${modes.length > 1 ? mModes(modes, tab, { size: 64 }) : ''}${body}${sheet}</div>`;
+}
+
+function phoneTower(ui, state) {
+  if (!towerUnlocked(state)) return mEmpty(`La Tour de l'Éternité s'ouvre à l'étape ${stageLabel(TOWER.unlockStage)}.`, { icon: 'icon_tower' });
+  const run = state.tower;
+  const floor = run?.floor ?? (state.towerBest ?? 0) + 1;
+  const trait = bossTrait(towerBoss(floor));
+  const tr = run ? towerRule(state) : null;
+  const rules = [trait ? rule(traitIcon(trait), `${trait.name} : ${trait.short}`) : '', tr ? rule('icon_tower', tr.name) : rule('icon_star', 'Une règle change tous les 10 étages')].join('');
+  const head = `<div class="m-card cb-tower"><div class="cb-floor" aria-label="Étage ${floor}">${animCanvas(`foe:${bossSprite(floor)}`, 84, 56, 1)}<b class="cb-floor-n">${floor}</b></div>
+      <div class="cb-tower-in"><span class="cb-tower-k">${run ? 'Étage en cours' : 'Prochain étage'}</span><b class="cb-tower-name">${escapeHtml(bossName(floor))}</b>
+        <span class="cb-tower-lv">niv. ${formatNumber(towerLevel(state, floor))}</span><span class="cb-rules">${rules}</span></div></div>
+    <div class="m-stats2">${mStat('icon_trophy', 'Record', state.towerBest ?? 0)}${mStat('icon_star', 'Semaine', towerWeek(state).best)}</div>`;
+  const busy = state.dungeon || state.challenge;
+  const action = run
+    ? `<div class="m-card cb-run">${mStat('icon_timer', 'Effondrement', formatDuration(towerTimeLeft(state)))}${mBtn('Quitter la tour', { action: 'leave-tower', cls: 'cb-danger' })}</div>`
+    : climbsLeft(state) > 0
+      ? `${mBtnGold(`Monter (${climbsLeft(state)})`, { action: 'enter-tower', disabled: Boolean(busy), icon: 'icon_tower' })}${busy ? '<div class="cb-warn">Termine d\'abord le donjon ou le défi.</div>' : ''}`
+      : mBtn('Ascensions faites : reviens demain', { disabled: true });
+  return head + action + mBtn('Étages et récompenses', { action: 'tower-info' });
+}
+
+function phoneChallenge(state) {
+  const week = challengeWeek(state);
+  const setup = weeklySetup(week.week);
+  const run = state.challenge;
+  const left = challengeTriesLeft(state);
+  const mods = setup.mods.map((id) => modifierById(id)).filter(Boolean);
+  const head = `<div class="m-card cb-tower"><div class="cb-floor" aria-label="Défi de la semaine"><b class="cb-floor-n">${run ? run.wave : week.best}</b><small>${run ? 'vague' : 'record'}</small></div>
+      <div class="cb-tower-in"><span class="cb-tower-k">Règles de la semaine</span><b class="cb-tower-name">${escapeHtml(ZONES[setup.zone].name)}</b>
+        <span class="cb-rules">${mods.slice(0, 2).map((m) => rule(MOD_ICON[m.id] ?? 'icon_skull', `${m.name} : ${m.text}`)).join('')}${mods.length > 2 ? `<b class="cb-more">+${mods.length - 2}</b>` : ''}</span></div></div>
+    <div class="m-stats2">${mStat('icon_trophy', 'Record', state.challengeBest ?? 0)}${mStat('icon_star', 'Semaine', week.best)}</div>`;
+  const action = run
+    ? `<div class="m-card cb-run">${mStat('icon_skull', 'Vague en cours', run.wave)}${mBtn('Abandonner', { action: 'leave-challenge', cls: 'cb-danger' })}</div>`
+    : left > 0
+      ? mBtnGold(`Lancer le défi (${left})`, { action: 'enter-challenge', disabled: Boolean(state.dungeon || state.tower), icon: 'icon_skull' })
+      : mBtn('Tentatives épuisées : nouvelles règles lundi', { disabled: true });
+  return head + action + mBtn('Règles et historique', { action: 'tower-info' });
+}
+
+function phoneSheet(state, tab) {
+  const close = { close: 'tower-info', back: 'tower-info' };
+  if (tab === 'challenge') {
+    const week = challengeWeek(state);
+    const mods = weeklySetup(week.week).mods.map((id) => modifierById(id)).filter(Boolean);
+    const history = (state.challengeHistory ?? []).slice(0, 5).map((h) => mStat('icon_trophy', h.week.slice(5).replace('-', '/'), h.best)).join('');
+    return mSheet('Règles du défi', `<div class="m-card">${mods.map((m) => `<div class="cb-rule-row">${img(MOD_ICON[m.id] ?? 'icon_skull')}<span><b>${escapeHtml(m.name)}</b> ${escapeHtml(m.text)}</span></div>`).join('')}</div>
+      <div class="m-card cb-help">Des vagues de ${CHALLENGE.killsPerWave} ennemis toujours plus forts (${CHALLENGE.waveSeconds} s par vague), un boss toutes les ${CHALLENGE.bossEvery} vagues. Une défaite termine la tentative. Récompenses à chaque nouveau meilleur score.</div>
+      ${history ? `<div class="m-card">${history}</div>` : ''}`, { id: 'tower-sheet', icon: 'icon_skull', ...close });
+  }
+  const run = state.tower;
+  const floor = run?.floor ?? (state.towerBest ?? 0) + 1;
+  const trait = bossTrait(towerBoss(floor));
+  const tr = run ? towerRule(state) : null;
+  const last = state.towerLast;
+  return mSheet('La Tour', `${trait ? `<div class="m-card"><div class="cb-rule-row">${img(traitIcon(trait))}<span><b>${escapeHtml(trait.name)}</b> ${escapeHtml(trait.text)}. Parade : ${escapeHtml(trait.counter)}</span></div></div>` : ''}
+    <div class="m-card cb-rule-row">${img('icon_star')}<span>${tr ? `<b>${escapeHtml(tr.name)}</b> ${escapeHtml(tr.text)}` : 'Une règle change tous les 10 étages.'}</span></div>
+    ${last ? `<div class="m-card">${mStat('icon_timer', 'Dernière montée', `${last.floors} étage${last.floors > 1 ? 's' : ''} · ${formatDuration(last.seconds)}`)}</div>` : ''}
+    <div class="m-card cb-floors"><div class="tower-floors">${floorsList(state, floor)}</div></div>`, { id: 'tower-sheet', icon: 'icon_tower', ...close });
 }
