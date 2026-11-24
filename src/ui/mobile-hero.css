@@ -168,31 +168,10 @@
 #app.m-phone .m-sk-row2 .m-btn { padding: 0 6px; font-size: 13px; white-space: nowrap; }
 
 /* ---------- Talents ---------- */
-#app.m-phone .m-trhead { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: center; min-height: 84px; padding: 8px 10px; }
-#app.m-phone .m-trhead .m-costs { margin: 0; }
-#app.m-phone .m-trhead .m-cost > .m-cost-ico { width: 48px; height: 48px; }
-#app.m-phone .m-trhead .m-cost > .m-cost-ico img { width: 30px; height: 30px; }
-#app.m-phone .m-tr-btn { min-width: 0; }
-#app.m-phone .m-tr-btn .m-btn-gold { font-size: 16px; padding: 0 8px; }
-#app.m-phone .m-rank { display: flex; flex-direction: column; gap: 6px; }
-#app.m-phone .m-rank-t { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-#app.m-phone .m-rank-t b { font-size: 18px; font-weight: 900; color: var(--m-gold-hi); }
-#app.m-phone .m-rank-t small { font-size: 12px; color: var(--m-soft); }
-#app.m-phone .m-branch { --branch: var(--m-gold); display: flex; flex-direction: column; gap: 8px; border-color: color-mix(in srgb, var(--branch) 55%, #2c3a66); }
 #app.m-phone .m-br-head { display: flex; align-items: center; gap: 10px; min-width: 0; position: relative; }
 #app.m-phone .m-br-head img { width: 40px; height: 40px; flex: none; image-rendering: pixelated; }
 #app.m-phone .m-br-head b { font-size: 16px; font-weight: 900; min-width: 0; }
 #app.m-phone .m-br-head span { margin-left: auto; font-size: 12px; font-weight: 800; color: var(--m-soft); white-space: nowrap; }
-#app.m-phone .m-br-dot { position: absolute; top: 0; right: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--m-ok); box-shadow: 0 0 0 2px var(--m-card); }
-#app.m-phone .m-path { display: flex; align-items: center; justify-content: space-between; padding: 2px 0; }
-#app.m-phone .m-node-link { flex: 1 1 0; min-width: 6px; height: 4px; margin: 0 -2px; background: #2c3a66; border-radius: 2px; }
-#app.m-phone .m-node { flex: none; position: relative; width: 54px; height: 54px; box-sizing: border-box; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;
-  border: 3px solid #3a4a80; background: radial-gradient(circle at 50% 35%, #26335c, #0b1124); color: var(--m-soft); font: 900 18px/1 system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
-#app.m-phone .m-node b { font-weight: 900; font-variant-numeric: tabular-nums; }
-#app.m-phone .m-node.done { border-color: var(--branch); color: #fff; background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--branch) 60%, #1a2547), color-mix(in srgb, var(--branch) 25%, #0b1124)); box-shadow: 0 0 8px -1px var(--branch); }
-#app.m-phone .m-node.next { border-color: var(--m-gold-hi); color: var(--m-gold-hi); box-shadow: 0 0 0 2px rgba(243, 210, 122, .35), 0 0 12px rgba(243, 210, 122, .5); }
-#app.m-phone .m-node.far { opacity: .7; }
-#app.m-phone .m-node.big { border-color: color-mix(in srgb, var(--m-gold) 70%, #3a4a80); }
 #app.m-phone .m-brsheet { display: flex; flex-direction: column; gap: 8px; }
 #app.m-phone .m-brsheet .m-br-head img { width: 64px; height: 64px; }
 #app.m-phone .m-brsheet .m-br-head div { display: flex; flex-direction: column; gap: 2px; }
@@ -201,13 +180,6 @@
 #app.m-phone .m-sheet .m-note { margin: 4px 2px 8px; font-size: 13px; line-height: 1.35; color: var(--m-soft); }
 #app.m-phone .m-sheet .m-note.good, #app.m-phone .m-frame .m-note.good { color: var(--m-ok); }
 #app.m-phone .m-frame .m-note.bad, #app.m-phone .m-sheet .m-note.bad { color: var(--m-ko); }
-#app.m-phone .m-rbcard { display: flex; flex-direction: column; gap: 6px; }
-#app.m-phone .m-rbcard .m-rb-t { display: flex; align-items: center; gap: 8px; }
-#app.m-phone .m-rbcard .m-rb-t img { width: 28px; height: 28px; }
-#app.m-phone .m-rbcard .m-rb-t b { font-size: 18px; font-weight: 900; }
-#app.m-phone .m-rbcard .m-rb-t span { margin-left: auto; font-size: 12px; color: var(--m-soft); font-weight: 800; }
-#app.m-phone .m-rb-stats { margin: 0; }
-#app.m-phone .m-rb-stats .m-stat { flex-wrap: wrap; font-size: 13px; }
 #app.m-phone .m-rb-more { display: flex; gap: 8px; margin: 0 0 8px; }
 #app.m-phone .m-rb-more .m-btn { flex: 1 1 0; width: auto; min-width: 0; }
 #app.m-phone .m-perks .perk-row { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--m-card-line); }
@@ -296,3 +268,72 @@
 #app.m-phone .m-tsheet .m-br-head > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 #app.m-phone .m-tsheet .m-br-head .m-tn-disc { margin-left: 0; }
 
+/* ---------- Héros › Talents et Renaissance (10.13.1, lot 3) : cartes illustrées de la maquette t04, phénix de m05 en une colonne ---------- */
+#app.m-phone .m-tr .m-fragpill { position: absolute; left: 14px; top: 23px; z-index: 3; display: inline-flex; align-items: center; gap: 5px; height: 30px; padding: 0 10px 0 7px; box-sizing: border-box; border-radius: 999px; background: var(--m-card); border: 1px solid var(--m-gold); font-size: 14px; line-height: 1; }
+#app.m-phone .m-tr .m-fragpill img { width: 20px; height: 20px; image-rendering: pixelated; }
+#app.m-phone .m-tr .m-fragpill b { color: var(--m-gold-hi); font-weight: 900; font-variant-numeric: tabular-nums; }
+#app.m-phone .m-tsec { margin: 6px 2px 6px; font-size: 12px; font-weight: 900; letter-spacing: 1.2px; text-transform: uppercase; color: var(--m-gold-hi); }
+#app.m-phone .m-blist { display: flex; flex-direction: column; gap: 8px; margin: 0 0 8px; }
+#app.m-phone .m-bcard { display: grid; grid-template-columns: 78px minmax(0, 1fr); overflow: hidden; border-radius: 12px; border: 2px solid var(--c); background: linear-gradient(180deg, #22305f, #121a36); }
+#app.m-phone .m-bcard.rec { box-shadow: 0 0 0 1px #000, 0 0 14px -2px var(--c); }
+#app.m-phone .m-bart { appearance: none; -webkit-appearance: none; margin: 0; padding: 0; border: 0; display: grid; place-items: center; cursor: pointer; color: inherit; -webkit-tap-highlight-color: transparent;
+  background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--c) 55%, transparent), #0b1124 80%); }
+#app.m-phone .m-bart img { width: 60px; height: 60px; image-rendering: pixelated; filter: drop-shadow(0 4px 5px rgba(0, 0, 0, .6)); }
+#app.m-phone .m-bbody { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 8px 10px 10px 8px; }
+#app.m-phone .m-bhead { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-width: 0; }
+#app.m-phone .m-bhead b { min-width: 0; font-size: 16px; font-weight: 900; line-height: 1.15; }
+#app.m-phone .m-bhead span { flex: none; font-size: 12px; font-weight: 800; color: var(--m-soft); font-variant-numeric: tabular-nums; white-space: nowrap; }
+#app.m-phone .m-btrack { display: flex; gap: 2px; }
+#app.m-phone .m-btrack i { flex: 1; min-width: 0; height: 8px; box-sizing: border-box; border-radius: 3px; background: #0b1124; border: 1px solid var(--m-card-line); }
+#app.m-phone .m-btrack i.big { height: 10px; margin-top: -1px; border-color: #5a6aa8; }
+#app.m-phone .m-btrack i.f { background: var(--c); border-color: var(--c); }
+#app.m-phone .m-bnext { margin: 0; font-size: 13px; line-height: 1.3; color: var(--m-soft); }
+#app.m-phone .m-bnext b { display: block; color: var(--m-text); font-weight: 800; }
+#app.m-phone .m-bnext .good, #app.m-phone .m-bnext b.good { color: var(--m-ok); font-weight: 800; }
+#app.m-phone .m-bnext em { font-style: normal; font-size: 11px; font-weight: 900; letter-spacing: .6px; text-transform: uppercase; color: var(--m-gold-hi); }
+#app.m-phone .m-bfoot { display: flex; align-items: center; gap: 10px; margin-top: auto; }
+#app.m-phone .m-bcost { flex: none; display: inline-flex; align-items: center; gap: 5px; min-width: 44px; font-size: 16px; font-weight: 900; font-variant-numeric: tabular-nums; }
+#app.m-phone .m-bcost img { width: 20px; height: 20px; image-rendering: pixelated; }
+#app.m-phone .m-bcost.ko b { color: var(--m-ko); }
+#app.m-phone .m-bfoot .m-btn, #app.m-phone .m-bfoot .m-btn-gold { flex: 1; min-width: 0; width: auto; height: 44px; min-height: 44px; font-size: 15px; padding: 0 8px; }
+#app.m-phone .m-tr .m-blist + .m-tsec { margin-top: 10px; }
+#app.m-phone .m-gaint { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 0 0 8px; }
+#app.m-phone .m-gaint .d-gain { display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 0; padding: 8px 4px; border-radius: 10px; background: #1a2448; border: 1px solid var(--m-card-line); text-align: center; }
+#app.m-phone .m-gaint .d-gain img { width: 26px; height: 26px; image-rendering: pixelated; }
+#app.m-phone .m-gaint .d-gain b { font-size: 18px; font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap; }
+#app.m-phone .m-gaint .d-gain span { font-size: 12px; color: var(--m-soft); }
+#app.m-phone .m-tr-simple > .m-btn, #app.m-phone .m-tr-simple > .m-btn-gold { margin: 0 0 8px; }
+
+/* Renaissance */
+#app.m-phone .m-rb { display: flex; flex-direction: column; gap: 8px; }
+#app.m-phone .m-rb > .m-tsec { margin: 4px 2px 0; }
+#app.m-phone .m-rbart { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 10px 10px; text-align: center; border-radius: 14px; border: 2px solid #c8662c;
+  background: radial-gradient(ellipse at 50% 38%, rgba(255, 150, 50, .38), transparent 62%), linear-gradient(180deg, #2c100d, #150a15); }
+#app.m-phone .m-rbart img { width: 128px; height: 128px; max-width: 100%; image-rendering: pixelated; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .6)); }
+#app.m-phone .m-rbart > b { font-size: 24px; font-weight: 900; color: #ffd28a; text-shadow: 0 3px 0 #000; line-height: 1.1; }
+#app.m-phone .m-rbart span { font-size: 13px; color: var(--m-text); line-height: 1.3; }
+#app.m-phone .m-rbart span .good, #app.m-phone .m-rbba .good { color: var(--m-ok); }
+#app.m-phone .m-rbba { display: grid; grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr); align-items: center; gap: 4px; padding: 10px 8px; box-sizing: border-box; text-align: center; border-radius: 12px; background: var(--m-card); border: 1px solid var(--m-card-line); }
+#app.m-phone .m-rbba small { display: block; font-size: 12px; color: var(--m-soft); }
+#app.m-phone .m-rbba b { display: block; font-size: 26px; font-weight: 900; line-height: 1.15; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+#app.m-phone .m-rbba i { font-style: normal; font-size: 24px; color: var(--m-gold-hi); }
+#app.m-phone .m-rbgets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+#app.m-phone .m-rbtile { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; padding: 8px 4px; text-align: center; border-radius: 12px; background: var(--m-card); border: 1px solid var(--m-card-line); }
+#app.m-phone .m-rbtile b { font-size: 18px; font-weight: 900; line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+#app.m-phone .m-rbtile > span:not(.m-rbico) { font-size: 12px; color: var(--m-soft); line-height: 1.2; }
+#app.m-phone .m-rbico { flex: none; width: 44px; height: 44px; box-sizing: border-box; display: grid; place-items: center; border-radius: 10px; border: 3px solid var(--m-btn-line); background: var(--m-bg2); }
+#app.m-phone .m-rbico img { width: 26px; height: 26px; image-rendering: pixelated; }
+#app.m-phone .m-rbico.ep { border-color: var(--m-r-epic); } #app.m-phone .m-rbico.lg { border-color: var(--m-r-legendary); } #app.m-phone .m-rbico.ra { border-color: var(--m-r-rare); }
+#app.m-phone .m-rbwhat { margin: 0; display: grid; gap: 8px; font-size: 13px; }
+#app.m-phone .m-rbwhat p { margin: 0; font-weight: 800; line-height: 1.3; }
+#app.m-phone .m-rbwhat ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+#app.m-phone .m-rbwhat li { position: relative; padding-left: 20px; font-size: 13px; line-height: 1.3; }
+#app.m-phone .m-rbwhat li::before { position: absolute; left: 2px; top: 0; font-weight: 900; }
+#app.m-phone .m-rbwhat .keep li { color: var(--m-ok); } #app.m-phone .m-rbwhat .keep li::before { content: '✓'; }
+#app.m-phone .m-rbwhat .lose li { color: var(--m-ko); } #app.m-phone .m-rbwhat .lose li::before { content: '✕'; }
+#app.m-phone .m-rbworth { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 10px; font-size: 13px; line-height: 1.3; background: var(--m-card); border: 1px solid var(--m-card-line); color: var(--m-soft); }
+#app.m-phone .m-rbworth.ok { background: #132a1e; border-color: #2f9a54; color: var(--m-text); }
+#app.m-phone .m-rbworth small { font-size: 12px; color: var(--m-soft); }
+#app.m-phone .m-rbgo { gap: 10px; height: 64px; min-height: 64px; font-size: 22px; }
+#app.m-phone .m-rbgo img { width: 30px; height: 30px; } #app.m-phone .m-rbgo img:last-child { width: 24px; height: 24px; }
+#app.m-phone .m-rb > .m-note { margin: 4px 2px; }

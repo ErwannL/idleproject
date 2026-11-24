@@ -141,21 +141,28 @@ const TREE_INTRO = 'La Renaissance te ramène au monde 1 contre des fragments. L
 const regionImg = (id) => `file:assets/ui/art106/talent_region_${id}.png`;
 const nodeAttrs = (v) => `data-key="mTreeSheet" data-value="${v}"`;
 
-function phoneBranch(state, b) {
+// v10.13.1 (lot 3, maquette t04) : chaque branche est une carte large — illustration à gauche (78 px, fond de sa couleur, un appui ouvre
+// la fiche de la branche), nom et palier, piste de 15 crans, prochain talent et son effet en vert, coût en fragments et « Apprendre »
+// (doré seulement sur la branche conseillée, sombre sur les autres).
+function phoneBranch(state, b, rec) {
   const meta = SIMPLE_BRANCHES[b.id];
-  const pts = TALENTS.filter((t) => t.region === b.id).reduce((n, t) => n + (state.talents[t.id] ?? 0), 0);
-  const per = Math.max(1, Math.ceil(branchMax(b.id) / TIERS));
-  const tier = Math.min(TIERS, Math.ceil(pts / per));
+  const { tier } = branchTier(state, b.id);
   const next = branchNext(state, b.id);
-  const marks = [3, 6, 9, 12, 15];
-  const nextIdx = marks.findIndex((m) => tier < m);
-  const nodes = marks.map((m, i) => {
-    const st = tier >= m ? 'done' : i === nextIdx ? 'next' : 'far';
-    return `<button type="button" class="m-node ${st}${m === 15 ? ' big' : ''}" data-action="m-set" ${nodeAttrs(b.id)} aria-label="${escapeHtml(`${meta.name}, palier ${m} : ${st === 'done' ? 'atteint' : st === 'next' ? 'en cours' : 'à venir'}`)}"><b>${tier >= m ? '✓' : m}</b></button>`;
-  }).join('<i class="m-node-link" aria-hidden="true"></i>');
-  return `<div class="m-card m-branch" style="--branch:${b.color}">
-    <div class="m-br-head"><img class="px" src="assets/ui/art106/talent_region_${b.id}.png" alt="" width="40" height="40"><b>${meta.name}</b><span>Palier ${tier}/${TIERS}</span>${next ? '<i class="m-br-dot" title="Un talent est apprenable" aria-hidden="true"></i>' : ''}</div>
-    <div class="m-path" role="group" aria-label="Paliers de ${escapeHtml(meta.name)}">${nodes}</div></div>`;
+  const color = DESK_COLOR[b.id] ?? b.color;
+  const big = next && (next.t.kind === 'notable' || next.t.kind === 'keystone');
+  const steps = Array.from({ length: TIERS }, (_, i) => `<i class="${i < tier ? 'f' : ''}${(i + 1) % 5 === 0 ? ' big' : ''}"></i>`).join('');
+  const afford = next && state.fragments >= next.cost;
+  const nextBox = next
+    ? `<p class="m-bnext">${big ? '<em>Gros palier</em> ' : ''}<b>${escapeHtml(next.t.name)}</b> <span class="good">${effectText(talentLevelEffects(next.t, next.lv + 1))}</span></p>`
+    : '<p class="m-bnext done"><b class="good">Branche terminée ✓</b></p>';
+  const attrs = next ? `data-cost="${next.cost}" data-currency="fragments"` : '';
+  const foot = next
+    ? `<div class="m-bfoot"><span class="m-bcost ${afford ? 'ok' : 'ko'}" title="${afford ? '' : escapeHtml(missing(next.cost - state.fragments))}">${fragment()}<b>${formatNumber(next.cost)}</b></span>${(rec ? mBtnGold : mBtn)('Apprendre', { action: 'talent-branch', value: b.id, attrs, disabled: !afford })}</div>`
+    : '';
+  return `<div class="m-bcard${rec ? ' rec' : ''}" style="--c:${color};--branch:${color}">
+    <button type="button" class="m-bart" data-action="m-set" ${nodeAttrs(b.id)} aria-label="${escapeHtml(`${meta.name} : détails`)}"><img class="px" src="${regionImg(b.id).replace('file:', '')}" alt="" width="56" height="56"></button>
+    <div class="m-bbody"><div class="m-bhead"><b>${escapeHtml(meta.name)}</b><span>Palier ${tier}/${TIERS}</span></div>
+      <div class="m-btrack" role="img" aria-label="Palier ${tier} sur ${TIERS}">${steps}</div>${nextBox}${foot}</div></div>`;
 }
 
 function phoneBranchSheet(state, b) {
@@ -242,6 +249,8 @@ function phoneTreeTools(state) {
   return mSheet('Outils de l\'arbre', body, { id: 'mTreeSheet', icon: 'icon_tree', close: 'm-sheet-x', back: 'm-sheet-x' });
 }
 
+// v10.13.1 (lot 3, maquette m05 en une colonne) : le phénix en haut, Puissance avant » après en gros, 3 tuiles de gains, « Ce qui se
+// passe » (gardé en vert, remis à zéro en rouge), la bande « Rentable maintenant » et le bouton doré Renaître.
 function phoneRebirth(ui, state) {
   const reward = rebirthReward(state);
   const can = canRebirth(state);
@@ -251,26 +260,30 @@ function phoneRebirth(ui, state) {
   const f = prestigeFactors(state);
   const t = state.transcend;
   const showT = canTranscend(state) || t.count || t.stars;
-  let rows = '';
+  const n = state.records.rebirths;
+  const tile = (cls, icon, value, label) => `<div class="m-rbtile"><span class="m-rbico ${cls}">${img(icon)}</span><b>${value}</b><span>${label}</span></div>`;
+  const art = `<div class="m-rbart"><img class="px" src="assets/ui/art98/phoenix_rebirth.png" alt="" aria-hidden="true"><b>Renaissance</b>
+    <span>${n} déjà faite${n > 1 ? 's' : ''}${f.total > 1 ? ` · prestige actuel <b class="good">×${mult(f.total)}</b>` : ''}</span></div>`;
+  let body;
   if (can) {
     const now = computeHeroStats(state).combatPower, worth = rebirthWorth(state);
-    rows = `<div class="m-stats2 m-rb-stats">${mStat('icon_fragment', 'Fragments', `+${formatNumber(reward)}`)}${mStat('icon_damage', 'Pour toujours', `×${gain.toFixed(2).replace('.', ',')}`)}</div>
-      <div class="m-stats2 m-rb-stats">${mStat('icon_crown', 'Puissance', `${formatNumber(now)} › ${formatNumber(now * gain)}`)}${mStat('icon_timer', `Retour à ${stageLabel(state.maxStage)}`, `≈ ${formatDuration(rebirthCatchUp(state))}`)}</div>
-      <p class="m-note ${worth ? 'good' : ''}">${worth ? '✔ Rentable maintenant' : 'Rentable quand elle donne au moins ×1,25 et que tu bloques depuis 8 h de jeu'}</p>`;
-  } else rows = `<p class="m-note">Atteins l'étape ${stageLabel(REBIRTH.minStage)} pour renaître (max ${stageLabel(state.maxStage)}).</p>`;
-  return `<div class="m-card m-rbcard"><div class="m-rb-t">${img('icon_rebirth')}<b>Renaissance</b><span>${state.records.rebirths} effectuée${state.records.rebirths > 1 ? 's' : ''}</span></div>${rows}
-      ${blocked && can ? `<p class="m-note bad">${escapeHtml(blocked)}</p>` : ''}
-      <p class="m-note">Retour à l'étape 1${keep > 0 ? ` (${Math.round(keep * 100)} % des améliorations gardés)` : ''}${f.total > 1 ? ` · Prestige ×${mult(f.total)}` : ''}</p>
-      ${mBtnGold(`Renaître (+${formatNumber(reward)})`, { action: 'rebirth', icon: 'icon_fragment', disabled: !(can && !blocked) })}</div>
-    <div class="m-rb-more">${mBtn('Bonus éternels', { action: 'm-set', attrs: nodeAttrs('bonus'), icon: 'icon_star' })}${showT ? mBtn('Transcendance', { action: 'm-set', attrs: nodeAttrs('transcend'), icon: 'icon_stars' }) : ''}</div>`;
+    const later = rebirthReward(state, state.maxStage + 10);
+    body = `<div class="m-rbba"><div><small>Puissance avant</small><b>${formatNumber(now)}</b></div><i aria-hidden="true">»</i><div><small>Après</small><b class="good">${formatNumber(now * gain)}</b></div></div>
+      <div class="m-tsec">Ce que tu gagnes</div>
+      <div class="m-rbgets">${tile('ep', 'icon_fragment', `+${formatNumber(reward)}`, 'fragments')}${tile('lg', 'icon_damage', `×${gain.toFixed(2).replace('.', ',')}`, 'pour toujours')}${tile('ra', 'icon_bolt', '1', 'pouvoir gardé')}</div>
+      <div class="m-tsec">Ce qui se passe</div>
+      <div class="m-card m-rbwhat"><p><span aria-hidden="true">↺</span> Retour à l'étape 1${keep > 0 ? ` · ${Math.round(keep * 100)} % des améliorations gardés` : ''}</p><p><span aria-hidden="true">⏱</span> Retour à ${stageLabel(state.maxStage)} en ≈ ${formatDuration(rebirthCatchUp(state))}</p>
+        <ul class="keep">${REBIRTH_KEEPS.map((x) => `<li>${x}</li>`).join('')}</ul><ul class="lose">${REBIRTH_RESETS.map((x) => `<li>${x}</li>`).join('')}</ul></div>
+      <div class="m-rbworth${worth ? ' ok' : ''}">${worth ? '<span>✓ <b>Rentable maintenant</b> · tu bloques depuis 8 h et le gain dépasse ×1,25</span>' : '<span>Rentable quand elle donne au moins ×1,25 et que tu bloques depuis 8 h de jeu</span>'}<small>+10 étapes : +${formatNumber(later)}</small></div>
+      ${blocked ? `<p class="m-note bad">${escapeHtml(blocked)}</p>` : ''}`;
+  } else body = `<p class="m-note">Atteins l'étape ${stageLabel(REBIRTH.minStage)} pour renaître (max ${stageLabel(state.maxStage)}).</p>`;
+  return `<div class="m-rb">${art}${body}
+    <button type="button" class="m-btn-gold m-rbgo" data-action="rebirth" ${can && !blocked ? '' : 'disabled'}>${img('icon_rebirth')}<span>Renaître · +${formatNumber(reward)}</span>${fragment()}</button>
+    <div class="m-rb-more">${mBtn('Bonus éternels', { action: 'm-set', attrs: nodeAttrs('bonus'), icon: 'icon_star' })}${showT ? mBtn('Transcendance', { action: 'm-set', attrs: nodeAttrs('transcend'), icon: 'icon_stars' }) : ''}</div></div>`;
 }
 
 function phoneTree(ui, state, seg, items) {
-  const sg = suggestedTalent(state);
-  const costs = TALENTS.filter((t) => (state.talents[t.id] ?? 0) < t.max && talentUnlocked(state, t)).map((t) => talentCost(t, state.talents[t.id] ?? 0));
-  const need = costs.length ? Math.min(...costs) : state.fragments;
-  const best = seg === 'rebirth' ? '' : sg ? mBtnGold('Apprendre le meilleur', { action: 'talent-best' }) : mBtnGold('Apprendre le meilleur', { disabled: true });
-  const head = `<div class="m-card m-trhead"><div class="m-costs">${mCost('icon_fragment', state.fragments, need, { fmt: formatNumber })}</div><div class="m-tr-btn">${best}</div></div>`;
+  const pill = `<div class="m-fragpill" title="${escapeHtml(TREE_INTRO)}">${fragment()}<b>${formatNumber(state.fragments)}</b></div>`;
   const modes = items.length > 1 ? mModes(items.map(([id, label, ic]) => ({ id, label, icon: ic, action: 'tree-seg', value: id })), seg, { size: 64 }) : '';
   const help = ui.view.helpOpen === 'tree' ? `<div class="m-card m-help-card">${TREE_INTRO}</div>` : '';
   let content;
@@ -278,15 +291,18 @@ function phoneTree(ui, state, seg, items) {
   else if (seg === 'tree') content = phoneAdvanced(ui, state);
   else if (seg === 'region') content = `<div class="m-treewrap">${regionView(state)}</div>`;
   else {
-    const total = TALENTS.reduce((n, t) => n + (state.talents[t.id] ?? 0), 0);
-    const TITLES = ['Apprenti', 'Adepte', 'Expert', 'Maître', 'Grand maître', 'Sage', 'Légende'];
-    const rank = Math.min(TITLES.length - 1, Math.floor(total / 25));
-    const into = rank >= TITLES.length - 1 ? 1 : (total % 25) / 25;
-    const MAIN = ['combat', 'survival', 'resources'];
+    const sg = suggestedTalent(state);
+    const rec = recommendedBranch(state);
     const branches = TALENT_BRANCHES.filter((b) => SIMPLE_BRANCHES[b.id]);
-    const ordered = [...branches.filter((b) => MAIN.includes(b.id)), ...branches.filter((b) => !MAIN.includes(b.id))];
-    content = `<div class="m-card m-rank"><div class="m-rank-t"><b>${TITLES[rank]}</b><small>${rank >= TITLES.length - 1 ? 'Titre maximal' : `${25 - (total % 25)} talents pour : ${TITLES[rank + 1]}`}</small></div>${mBar(into)}</div>
-      ${ordered.map((b) => phoneBranch(state, b)).join('')}
+    const main = DESK_MAIN.map((id) => branches.find((b) => b.id === id)).filter(Boolean);
+    const others = branches.filter((b) => !DESK_MAIN.includes(b.id));
+    const open = ui.view.open?.has('tree-others');
+    const best = sg ? (rec ? mBtn : mBtnGold)('Apprendre le meilleur', { action: 'talent-best', icon: 'icon_star' }) : mBtn('Apprendre le meilleur', { icon: 'icon_star', disabled: true });
+    content = `<div class="m-blist">${main.map((b) => phoneBranch(state, b, b.id === rec)).join('')}</div>
+      <div class="m-tsec">Ce que tes talents donnent</div><div class="m-gaint">${talentGains(state, [0, 1, 3])}</div>
+      ${others.length ? `${mBtn(`Autres branches (${others.length}) ${open ? '▴' : '▾'}`, { action: 'toggle-section', value: 'tree-others', attrs: `data-expanded="${Boolean(open)}" aria-expanded="${Boolean(open)}"` })}
+        ${open ? `<div class="m-blist">${others.map((b) => phoneBranch(state, b, false)).join('')}</div>` : ''}` : ''}
+      ${best}
       ${advancedOpen(state) ? '' : '<p class="m-note">Arbre avancé : après 3 Renaissances</p>'}`;
   }
   // Fiches : une branche, les bonus éternels, la Transcendance (état de vue : mTreeSheet).
@@ -305,7 +321,7 @@ function phoneTree(ui, state, seg, items) {
         ${reward > 0 && rebirthBlocked(state) ? `<p class="m-note bad">${escapeHtml(rebirthBlocked(state))}</p>` : ''}</div>
       ${mBtnGold(`Transcender +${formatNumber(reward)}`, { action: 'transcend', icon: 'icon_stars', disabled: !(reward > 0 && !rebirthBlocked(state)) })}`, { id: 'mTreeSheet', icon: 'icon_stars', close: 'm-sheet-x', back: 'm-sheet-x' });
   }
-  return `<div class="m-frame m-hero m-tr">${mTitle('icon_tree', 'Talents', true)}${help}${head}${modes}${content}${sheet}</div>`;
+  return `<div class="m-frame m-hero m-tr m-tr-${seg}">${mTitle('icon_tree', 'Talents', true)}${pill}${help}${modes}${content}${sheet}</div>`;
 }
 
 // ============================================================================================================================
@@ -363,13 +379,13 @@ function deskBranch(state, b, rec) {
 
 const GAIN_TILES = [['icon_damage', ['damagePct', 'damageMultPct'], 'dégâts'], ['icon_heart', ['maxHpPct', 'maxHpMultPct'], 'PV'], ['coin', ['goldPct', 'goldMultPct'], 'or'],
   ['icon_crit', ['critChance'], 'critique'], ['icon_shield', ['armor'], 'défense'], ['icon_xp', ['xpPct'], 'expérience']];
-function talentGains(state) {
+function talentGains(state, pick = null) {
   const sum = {};
   for (const t of TALENTS) {
     const lv = state.talents[t.id] ?? 0;
     if (lv > 0) for (const [k, v] of Object.entries(talentLevelEffects(t, lv))) sum[k] = (sum[k] ?? 0) + v;
   }
-  return GAIN_TILES.map(([ic, keys, label]) => `<div class="d-gain">${img(ic)}<b>${pct1(keys.reduce((n, k) => n + (sum[k] ?? 0), 0))}</b><span>${label}</span></div>`).join('');
+  return GAIN_TILES.filter((_, i) => !pick || pick.includes(i)).map(([ic, keys, label]) => `<div class="d-gain">${img(ic)}<b>${pct1(keys.reduce((n, k) => n + (sum[k] ?? 0), 0))}</b><span>${label}</span></div>`).join('');
 }
 
 function deskSimple(state) {
