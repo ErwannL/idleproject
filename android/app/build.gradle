@@ -5,10 +5,10 @@ def gameVersion = new groovy.json.JsonSlurper().parse(file('../../package.json')
 def gameVersionCode = gameVersion.tokenize('.').collect { it as int }.with { it[0] * 10000 + it[1] * 100 + it[2] }
 
 android {
-    namespace "com.erwannl.idlerpg"
+    namespace "com.ascendrya.app"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.erwannl.idlerpg"
+        applicationId "com.ascendrya.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode gameVersionCode
