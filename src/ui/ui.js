@@ -2895,6 +2895,13 @@ export class UI {
     }
     body.scrollTop = this.pendingScroll ?? scroll;
     this.pendingScroll = null;
+    // v10.12 (lot Boutique) : une rangée .m-tabs qui défile garde l'onglet choisi visible (centré une fois par changement d'onglet).
+    body.querySelectorAll('.m-tabs').forEach((row) => {
+      const cur = row.querySelector('.m-tab.active');
+      if (!cur || row.scrollWidth <= row.clientWidth || this.tabsCentered?.get(row) === cur.dataset.m) return;
+      (this.tabsCentered ??= new WeakMap()).set(row, cur.dataset.m);
+      row.scrollLeft = Math.max(0, cur.getBoundingClientRect().left - row.getBoundingClientRect().left + row.scrollLeft - (row.clientWidth - cur.offsetWidth) / 2);
+    });
     if (focused) {
       const again = (focusSel && body.querySelector(focusSel)) || focusables(this)[focusIndex];
       again?.focus({ preventScroll: true });

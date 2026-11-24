@@ -1,0 +1,71 @@
+/* v10.12 : Invocation et Boutique, version téléphone (kit mobile-kit.css). Toutes les règles sont sous `#app.m-phone` : le PC ne change pas. */
+
+/* ---------- Invocation ---------- */
+#app.m-phone .m-summon .m-title b { font-size: 20px; }
+#app.m-phone .m-sum-card { padding: 8px; }
+#app.m-phone .m-sum-head {
+  display: flex; align-items: center; gap: 8px; height: 64px; box-sizing: border-box; padding: 0 8px 0 12px; margin: 0 0 8px; border-radius: 10px;
+  background-size: cover; background-position: center; border: 1px solid var(--m-card-line); overflow: hidden;
+}
+#app.m-phone .m-sum-head > b { font-size: 16px; font-weight: 900; white-space: nowrap; text-shadow: 0 2px 0 #000; }
+#app.m-phone .m-sum-head .grow { flex: 1 1 auto; }
+#app.m-phone .m-sum-head .eco-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 12px; background: rgba(0, 0, 0, .45); font-size: 13px; }
+#app.m-phone .m-sum-head .m-q {
+  width: 44px; height: 44px; border-radius: 12px; padding: 0; font: 900 18px/1 system-ui, sans-serif; color: var(--m-gold-hi); background: linear-gradient(180deg, #243158, #121a33); border: 1.5px solid var(--m-gold); cursor: pointer;
+}
+#app.m-phone .m-sum-head .m-q.on { background: linear-gradient(180deg, #ffe08a, #f0b93f); color: #2a1a05; }
+#app.m-phone .m-sum-body { min-height: 150px; margin: 0 0 8px; }
+#app.m-phone .m-sum-none { padding: 24px 8px; text-align: center; color: var(--m-soft); font-size: 14px; }
+#app.m-phone .m-sum-fav { display: flex; gap: 8px; align-items: baseline; margin: 0 0 6px; font-size: 14px; color: var(--m-soft); }
+#app.m-phone .m-sum-body .m-grid { gap: 10px 8px; }
+#app.m-phone .m-sum-body .m-tile .m-plus { font-size: 16px; }
+#app.m-phone .m-sum-body .m-tilewrap > small { font-size: 12px; }
+#app.m-phone .m-sum-feature { min-height: 150px; margin: 0; }
+#app.m-phone .m-sum-gauge { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; }
+#app.m-phone .m-sum-gauge .vt-bar { flex: 1 1 auto; }
+#app.m-phone .m-sum-gauge img { width: 28px; height: 28px; image-rendering: pixelated; }
+#app.m-phone .m-sum-gauge b { font-size: 16px; min-width: 32px; }
+#app.m-phone .m-sum-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 8px; }
+#app.m-phone .m-sum-row > button { min-width: 0; padding: 0 8px; gap: 6px; flex-wrap: nowrap; white-space: nowrap; }
+#app.m-phone .m-sum-row.main > button { height: 56px; min-height: 56px; font-size: 18px; }
+#app.m-phone .m-sum-row > button img { width: 22px; height: 22px; margin: 0; flex: none; object-fit: contain; }
+#app.m-phone .m-sum-row > button .m-sum-x { font-size: 18px; font-weight: 900; }
+#app.m-phone .m-sum-row > button .m-sum-n { font-size: 16px; font-weight: 900; font-variant-numeric: tabular-nums; }
+#app.m-phone .m-sum-card .summon-results { margin-top: 8px; }
+#app.m-phone .m-sum-card .odds-unit { min-height: 32px; }
+
+/* ---------- Boutique ---------- */
+#app.m-phone .m-shop .m-tabs { margin-bottom: 8px; }
+#app.m-phone .m-shop .m-tab { flex: 0 0 auto; min-width: 84px; padding: 4px 8px; }
+#app.m-phone .m-shop .m-tab img { width: 28px; height: 28px; object-fit: contain; image-rendering: auto; }
+#app.m-phone .m-soon { margin: 0 0 8px; padding: 6px 10px; text-align: center; border-radius: 10px; background: rgba(255, 255, 255, .06); border: 1px solid var(--m-card-line); color: var(--m-soft); font-size: 12px; font-weight: 800; }
+#app.m-phone .m-prevbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 14px; }
+#app.m-phone .m-prevbar .m-btn { width: auto; flex: none; }
+#app.m-phone .m-offers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0 0 8px; }
+#app.m-phone .m-offer { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 0; padding: 8px; min-width: 0; text-align: center; }
+#app.m-phone .m-offer.owned { opacity: .8; }
+#app.m-phone .m-offer-art { display: flex; align-items: center; justify-content: center; width: 100%; height: 88px; }
+#app.m-phone .m-offer-art img { max-width: 100%; max-height: 88px; width: auto; height: auto; margin: 0; object-fit: contain; filter: drop-shadow(0 3px 4px #0008); }
+#app.m-phone .m-offer-name { font-size: 14px; font-weight: 900; line-height: 1.15; min-height: 32px; display: flex; align-items: center; justify-content: center; overflow-wrap: normal; hyphens: none; }
+#app.m-phone .m-offer-tier { font-size: 12px; color: var(--m-soft); }
+#app.m-phone .m-offer-give { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 2px 8px; font-size: 12px; color: var(--m-soft); }
+#app.m-phone .m-offer-give .shop-give { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+#app.m-phone .m-offer-give .shop-ico { width: 18px; height: 18px; }
+#app.m-phone .m-offer-give .shop-give b { color: var(--m-text); font-size: 13px; }
+#app.m-phone .m-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
+#app.m-phone .m-badge { padding: 2px 7px; border-radius: 9px; font-size: 11px; font-weight: 900; background: #1f6b34; color: #d8ffe0; border: 1px solid var(--m-ok); }
+#app.m-phone .m-badge.daily { background: #5a3d0c; color: #ffe9b0; border-color: var(--m-gold); }
+#app.m-phone .m-badge.free { background: #1f6b34; }
+#app.m-phone .m-offer .theme-swatches { display: inline-flex; gap: 3px; }
+#app.m-phone .m-offer-act { display: flex; flex-direction: column; gap: 6px; width: 100%; margin-top: auto; padding-top: 4px; }
+#app.m-phone .m-offer-act .m-btn { padding: 0 6px; font-size: 14px; }
+#app.m-phone .m-offer-act .m-price { font-size: 15px; }
+#app.m-phone .m-owned { display: flex; align-items: center; justify-content: center; min-height: 44px; font-weight: 900; color: var(--m-ok); }
+#app.m-phone .m-shop .inc-row { min-height: 32px; }
+
+/* Le corps du panneau a déjà 8 px de marge de chaque côté : le cadre n'en rajoute pas (sinon il déborde de 16 px). */
+#app.m-phone .m-frame.m-summon, #app.m-phone .m-frame.m-shop { margin-left: 0; margin-right: 0; }
+#app.m-phone .m-offer-give { flex-direction: column; align-items: center; gap: 3px; width: 100%; }
+#app.m-phone .m-offer-give .shop-give { white-space: normal; text-align: left; line-height: 1.15; max-width: 100%; }
+#app.m-phone .m-offer-give img { width: 18px; height: 18px; margin: 0; flex: none; object-fit: contain; }
+#app.m-phone .m-offer-give.daily { flex-direction: row; justify-content: center; }

@@ -10,6 +10,7 @@ import { heroById } from '../../core/heroes.js';
 import { themeById, themeSwatches } from '../themes.js';
 import { escapeHtml, formatNumber, gem, img } from '../common.js';
 import { walletAmount } from '../../core/wallet.js';
+import { mTitle } from '../mobile-kit.js';
 
 const shopUrl = (name, small) => `assets/ui/shop/${name}${small ? '_s' : ''}.png`;
 export const shopIcon = (name, small = true, cls = '') => `<img class="shop-ico${small ? ' s' : ''}${cls ? ` ${cls}` : ''}" src="${shopUrl(name, small)}" alt="" draggable="false">`;
@@ -90,6 +91,65 @@ function spendBlock(state) {
     <div class="eco-tiers">${spendTiers(state).map((t) => `<span class="eco-tier${t.reached ? ' on' : ''}"><b class="num">${euros(t.cents)}</b> <span>${escapeHtml(t.reward)}</span></span>`).join('')}</div>`;
 }
 
+// ---------------------------------------------------------------------------------------------------------------
+// v10.12 : version téléphone (kit mobile). Une seule rangée d'onglets qui défile (icône + nom), les offres en grille de
+// 2 .m-card (image, nom, contenu, bouton de prix). Mêmes data-action que sur PC (shop-cat, buy-offer, theme-preview…).
+const CAT_UI = {
+  crystals: { label: 'Gemmes', icon: 'crystal_small' }, heroTickets: { label: 'Compagnons', icon: 'hero_ticket_limited' },
+  petTickets: { label: 'Familiers', icon: 'pet_ticket' }, subs: { label: 'Abonnements', icon: 'cosmetic_pack_discovery' },
+  skins: { label: 'Skins', icon: 'skin_epic' }, themes: { label: 'Thèmes', icon: 'theme_premium' },
+  packs: { label: 'Packs', icon: 'cosmetic_pack_heroic' }, merchants: { label: 'Marchands', icon: 'crystal_mini' },
+};
+function mOfferCard(ui, state, offer) {
+  const st = offerState(state, offer);
+  const give = offerContent(state, offer);
+  const tierName = offer.cat === 'skins' ? SKIN_TIERS[offer.tier]?.name : offer.cat === 'themes' ? THEME_TIERS[offer.tier]?.name : null;
+  const art = OFFER_ART.has(offer.id) ? `<img class="px" src="assets/ui/art106/shop_${offer.id}.png" alt="">` : offer.cat === 'gems' ? '<img class="px" src="assets/ui/art106/shop_gems.png" alt="">' : shopIcon(offer.icon, false, 'shop-big');
+  const cosm = [...(offer.skins ?? []).map((id) => heroById(id)?.name), ...(offer.themes ?? []).map((id) => `Thème ${themeById(id).name}`)].filter(Boolean);
+  const badges = [
+    offer.price === 0 ? '<span class="m-badge free">Gratuit</span>' : '',
+    offer.daily ? '<span class="m-badge daily">Chaque jour</span>' : '',
+    st.first ? '<span class="m-badge first">1re fois +100 %</span>' : '',
+  ].join('');
+  const swatch = offer.cat === 'themes' ? `<span class="theme-swatches">${themeSwatches(offer.themes[0]).map((c) => `<i style="background:${c}"></i>`).join('')}</span>` : '';
+  const prev = (offer.cat === 'themes' || (offer.cat === 'packs' && offer.themes?.length)) ? `<button type="button" class="m-btn m-prev" data-action="theme-preview" data-value="${offer.themes[0]}">Aperçu</button>`
+    : (offer.skins ?? []).length ? `<button type="button" class="m-btn m-prev" data-action="look-preview" data-value="${offer.skins[0]}">Aperçu</button>` : '';
+  let buy;
+  if (st.reason === 'owned') buy = '<span class="m-owned">Possédé ✓</span>';
+  else if (st.reason === 'limit') buy = '<button type="button" class="m-btn" disabled>Limite atteinte</button>';
+  else if (st.reason === 'active') buy = '<button type="button" class="m-btn" disabled>Déjà actif</button>';
+  else buy = paymentReady()
+    ? `<button type="button" class="m-btn m-price" data-action="buy-offer" data-value="${offer.id}"><b class="num">${euros(offer.price)}</b></button>`
+    : `<button type="button" class="m-btn m-price" disabled aria-label="${escapeHtml(`${euros(offer.price)} — Bientôt disponible`)}"><b class="num">${euros(offer.price)}</b></button>`;
+  return `<div class="m-card m-offer${st.owned ? ' owned' : ''}"><div class="m-offer-art">${art}</div>
+    <div class="m-offer-name">${escapeHtml(offer.name)}</div>${tierName ? `<div class="m-offer-tier">${escapeHtml(tierName)}</div>` : ''}
+    ${Object.keys(give).length ? `<div class="m-offer-give">${contentLine(give)}</div>` : ''}
+    ${cosm.length && offer.cat === 'packs' ? `<div class="m-offer-give">${cosm.map((n) => `<span class="shop-give">${escapeHtml(n)}</span>`).join('')}</div>` : ''}
+    ${offer.daily ? `<div class="m-offer-give daily">${contentLine(offer.daily)}<span>/ jour</span></div>` : ''}
+    ${swatch}${badges ? `<div class="m-badges">${badges}</div>` : ''}${st.limitLeft != null && !offer.days ? `<div class="m-offer-tier">Limite ${st.limitLeft}/${offer.limit}</div>` : ''}
+    <div class="m-offer-act">${prev}${buy}</div></div>`;
+}
+
+function phoneView(ui, state) {
+  const CATS = [...SHOP_CATEGORIES, { id: 'merchants', name: 'Marchands' }];
+  const cat = CATS.some((c) => c.id === ui.view.shopCat) ? ui.view.shopCat : 'crystals';
+  const tabs = `<div class="m-tabs" role="tablist">${CATS.map((c) => `<button type="button" class="m-tab${c.id === cat ? ' active' : ''}" role="tab" aria-selected="${c.id === cat}" data-m="${c.id}" data-action="shop-cat" data-value="${c.id}">${shopIcon(CAT_UI[c.id].icon, true)}<span>${escapeHtml(CAT_UI[c.id].label)}</span></button>`).join('')}</div>`;
+  const preview = ui.view.themePreview ? `<div class="m-card m-prevbar"><span>Aperçu : <b>${escapeHtml(themeById(ui.view.themePreview).name)}</b></span>
+    <button type="button" class="m-btn" data-action="theme-preview" data-value="">Mon thème</button></div>` : '';
+  let body;
+  if (cat === 'merchants') {
+    const merchants = merchantsHtml(state);
+    body = `<div class="m-card">${merchants || '<div class="state-empty">Aucun marchand de passage pour le moment</div>'}</div>`;
+  } else {
+    const offers = allOffers().filter((o) => o.cat === cat);
+    body = `<div class="m-offers">${offers.map((o) => mOfferCard(ui, state, o)).join('')}</div>
+      ${incomeBlock(state) ? `<div class="m-card">${incomeBlock(state)}</div>` : ''}
+      ${(state.economy?.store?.spentCents ?? 0) > 0 ? `<div class="m-card">${spendBlock(state)}</div>` : ''}`;
+  }
+  const note = paymentReady() ? '' : '<div class="m-soon">Achats bientôt disponibles</div>';
+  return `<div class="m-frame m-shop">${mTitle('icon_gem', 'Boutique', true)}${tabs}${preview}${note}${body}</div>`;
+}
+
 export default {
   id: 'shop',
   title: 'Boutique',
@@ -98,6 +158,7 @@ export default {
   banner: (ui) => `assets/ui/art104/shop_cat_${[...SHOP_CATEGORIES.map((c) => c.id), 'merchants'].includes(ui.view.shopCat) ? ui.view.shopCat : 'crystals'}.png`,
   extra: (ui, state) => `${gem()}<b class="num">${formatNumber(state.gems)}</b> ${walletIcon('ticketLimited')}<b class="num">${walletAmount(state, 'ticketLimited')}</b> ${walletIcon('ticketPet')}<b class="num">${walletAmount(state, 'ticketPet')}</b>`,
   render(ui, state) {
+    if (ui.root?.classList?.contains('m-phone')) return phoneView(ui, state);
     // v9.11 (9) : Marchands dans leur propre onglet (plus répétés sous chaque liste).
     const CATS = [...SHOP_CATEGORIES, { id: 'merchants', name: 'Marchands' }];
     const cat = CATS.some((c) => c.id === ui.view.shopCat) ? ui.view.shopCat : 'crystals';

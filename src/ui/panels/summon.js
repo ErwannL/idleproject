@@ -9,7 +9,8 @@ import { companionById, duplicates } from '../../core/companions.js';
 import { walletAmount } from '../../core/wallet.js';
 import { COMPANION_ROLES, ROLES } from '../../data/synergies.js';
 import { animCanvas } from '../animator.js';
-import { escapeHtml, fold, formatDecimal, formatNumber, gem, hdArt, icon, img, stars } from '../common.js';
+import { escapeHtml, fold, formatDecimal, formatNumber, gem, hdArt, hdArtUrl, icon, img, stars } from '../common.js';
+import { mGrid, mTabs, mTile, mTitle } from '../mobile-kit.js';
 import { walletIcon } from './shop.js';
 
 function unitPortrait(u) {
@@ -176,12 +177,93 @@ function historyBlock(state) {
   return `<div class="hist-row">${rows}</div>`;
 }
 
+// ---------------------------------------------------------------------------------------------------------------
+// v10.12 : version téléphone (kit mobile). Une bannière à la fois (onglets), bannière en tête, puis deux gros boutons
+// (×1 secondaire, ×10 doré, coût en icône). Un seul bouton doré à l'écran : la bannière affichée est toujours seule.
+// Les gemmes (2e monnaie) : même paire de boutons, en secondaire, juste dessous. Mêmes data-action que sur PC.
+const BANNER_TABS = [
+  { id: 'limited', label: 'Limitée', icon: 'icon_summon', cur: 'ticketLimited' },
+  { id: 'permanent', label: 'Permanente', icon: 'icon_book', cur: 'ticketPermanent' },
+  { id: 'pet', label: 'Familiers', icon: 'icon_paw', cur: 'ticketPet' },
+];
+const PHONE_POOL_NAME = { limited: 'Bannière limitée', permanent: 'Bannière permanente', pet: 'Familiers' };
+
+function mPay(state, pool, currency, gold) {
+  const cost = (n) => summonCost(n, currency, BALANCE);
+  const ico = currency === 'gems' ? gem() : walletIcon(currency);
+  const one = (n) => {
+    const ok = canPay(state, pool, n, currency);
+    const many = currency === 'gems' ? 'gemmes' : WALLET[currency].short.toLowerCase();
+    const name = cost(n) > 1 ? many : many.replace(/s\b/g, '');
+    const big = gold && n === 10;
+    return `<button type="button" class="${big ? 'm-btn-gold' : 'm-btn'} m-sum" data-action="summon" data-value="${n}" data-currency="${currency}" data-pool="${pool}" ${ok ? '' : 'disabled'}
+      aria-label="${escapeHtml(`×${n} : ${cost(n)} ${name}`)}"><b class="m-sum-x">×${n}</b>${ico}<span class="m-sum-n">${formatNumber(cost(n))}</span></button>`;
+  };
+  return `<div class="m-sum-row${gold ? ' main' : ''}">${one(1)}${one(10)}</div>`;
+}
+
+function mFace(c) {
+  return hdArtUrl(c, true) ?? icon(c.sprite, c.kind === 'ally' ? 1 : 2);
+}
+
+function mBannerBody(state, pool) {
+  if (pool === 'limited') {
+    const f = featuredUnit('limited');
+    if (!f) return '<div class="m-sum-none">Aucune vedette en ce moment</div>';
+    const c = companionById(f.id) ?? f;
+    const role = ROLES[COMPANION_ROLES[c.id]];
+    const owned = state.companions.owned[c.id];
+    return `<div class="eco-feature m-sum-feature" style="--vt:${c.fx ?? '#f2c060'}"><div class="eco-feature-art">${hdArt(c, 'vt-art') || unitPortrait(f)}</div>
+      <div class="eco-feature-info"><div class="vt-ribbon">✦ Vedette ✦</div><div class="vt-name">${escapeHtml(c.name)}</div>
+        <div><span class="r-legendary rarity-text">Légendaire</span>${role ? ` · ${escapeHtml(role.label)}` : ''}${owned && !owned.trial ? ` · ${stars(duplicates(owned))}` : ''}</div>
+        <div class="muted">Jusqu'au ${dateText(featuredEnds() - 86400000)}</div></div></div>`;
+  }
+  if (pool === 'permanent') {
+    const wish = state.summon.wishlist ?? [];
+    const tiles = permanentSsr().map((u) => {
+      const c = companionById(u.id) ?? u;
+      const on = wish.includes(u.id);
+      return `<div class="m-tilewrap">${mTile({ name: c.name, rarity: 'legendary' }, { size: 64, action: 'wish-toggle', value: u.id, src: mFace(c), selected: on, plus: on ? '♥' : '', attrs: `aria-pressed="${on}"` })}<small>${escapeHtml(c.name)}</small></div>`;
+    });
+    return `<div class="m-sum-fav"><b>Favoris</b> <span class="num">${wish.length}/${BANNERS.permanent.wishlistSize}</span></div>${mGrid(tiles, 3)}`;
+  }
+  const ssr = poolContext('pet', state).SSR.map((u) => companionById(u.id) ?? u);
+  const tiles = ssr.map((c) => {
+    const own = state.companions.owned[c.id];
+    return `<div class="m-tilewrap">${mTile({ name: c.name, rarity: 'legendary' }, { size: 64, src: mFace(c), plus: own && !own.trial ? '✓' : '' })}<small>${escapeHtml(c.name)}</small></div>`;
+  });
+  return mGrid(tiles, 3);
+}
+
+function phoneView(ui, state) {
+  const pool = normalizePool(ui.view.summonPool);
+  const tab = BANNER_TABS.find((t) => t.id === pool);
+  const open = ui.view.summonOdds === pool;
+  const g = state.summon.pity[BANNERS[pool].pity];
+  const left = BANNERS[pool].hard - g.ssr;
+  const tabs = mTabs(BANNER_TABS.map((t) => ({ id: t.id, label: t.label, icon: t.icon, action: 'summon-pool', value: t.id })), pool);
+  const head = `<div class="m-sum-head" style="background-image:linear-gradient(90deg,rgba(8,10,24,.78),rgba(8,10,24,.2)),url(assets/ui/art104/summon_head_${pool}.png)">
+    <b>${PHONE_POOL_NAME[pool]}</b><span class="eco-chip">${walletIcon(tab.cur)}<b class="num">${formatNumber(walletAmount(state, tab.cur))}</b></span><span class="grow"></span>
+    <button type="button" class="m-q${open ? ' on' : ''}" data-action="summon-odds" data-value="${pool}" aria-expanded="${open}" aria-label="Règles et probabilités">?</button></div>`;
+  const gauge = `<div class="m-sum-gauge" title="Légendaire garanti dans ${left} invocations"><span class="vt-bar"><i style="width:${Math.round((100 * g.ssr) / BANNERS[pool].hard)}%"></i></span>${img('icon_chest')}<b class="num">${left}</b></div>`;
+  const pay = pool === 'pet' ? mPay(state, pool, 'ticketPet', true) : `${mPay(state, pool, TICKET[pool], true)}${mPay(state, pool, 'gems', false)}`;
+  const hist = (state.summon.history ?? []).length ? `<div class="m-card">${fold(ui, 'summon-history', 'Historique', () => historyBlock(state))}</div>` : '';
+  const frag = fragmentBlock(state);
+  return `<div class="m-frame m-summon">${mTitle('icon_summon', 'Invocation', true)}${tabs}
+    <div class="m-card m-sum-card">${head}<div class="m-sum-body">${mBannerBody(state, pool)}</div>${gauge}${pay}
+      ${open ? `${ratesLine(pool)}${pityLine(state, pool)}${oddsBlock(state, pool)}` : ''}${resultsBlock(ui, pool)}</div>
+    ${frag ? frag.replace('class="card"', 'class="m-card"') : ''}${hist}</div>`;
+}
+
+const isMPhone = (ui) => !!(ui.root?.classList?.contains('m-phone'));
+
 export default {
   id: 'summon',
   title: 'Invocation',
   icon: 'icon_summon',
   extra: (ui, state) => `${gem()}<b class="num">${formatNumber(state.gems)}</b>`,
   render(ui, state) {
+    if (isMPhone(ui)) return phoneView(ui, state);
     return `${limitedCard(ui, state)}${permanentCard(ui, state)}${petCard(ui, state)}${fragmentBlock(state)}
       ${(state.summon.history ?? []).length ? fold(ui, 'summon-history', 'Historique', () => historyBlock(state)) : ''}`;
   },
