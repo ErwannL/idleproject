@@ -1,8 +1,7 @@
 // v10.4 (partie 3 du plan) : Compétences dans un vrai navigateur.
 //   node tools/e2e-1040-skills.mjs        → captures dans SHOTS (par défaut /tmp/ascendrya-1040-skills)
-// Pour 3 classes, en 1116 × 993 et 390 × 844 : les 11 cases du héros cliquées tour à tour donnent 11 data-vfx différents et
-// 11 animations réellement différentes (pixels du canvas), vignette de 160 px ; survol (PC) ou appui (téléphone) d'une case
-// → vignette de 48 px qui s'anime ; rien du tout avec « Réduire les animations » ; aucune erreur JavaScript.
+// v10.13 (lot 4) : sur PC (1920 x 1080), pour 3 classes : les 11 cartes du héros (6 Attaques + 5 Boosts) cliquées tour à tour donnent 11 data-vfx
+// différents et 11 animations réellement différentes (pixels du canvas de l aperçu en combat, 160 px) ; aucune erreur JavaScript.
 import { createRequire } from 'node:module';
 import { mkdirSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
@@ -49,80 +48,51 @@ async function setClass(page, cls) {
     __idle.ui.invalidate?.();
     __idle.ui.openTab('skills');
   }, cls);
-  await page.waitForSelector('#panel-body .sk2-cell', { timeout: 8000 });
+  await page.waitForSelector('#panel-body .dsk-card', { timeout: 8000 });
   await page.waitForTimeout(500);
 }
 
-const FORMATS = [[1116, 993, false, 'pc'], [390, 844, true, 'tel']];
+// v10.13 (lot 4) : la fiche PC est l'aperçu en combat (.dsk-prev) ; cartes .dsk-card, deux modes (Attaques 6, Boosts 5). Le téléphone a sa propre vue (kit 10.12).
+const FORMATS = [[1920, 1080, false, 'pc']];
 const CLASSES = ['assassin', 'knight', 'pyromancer'];
 
 for (const [w, h, touch, tag] of FORMATS) {
   const { ctx, page } = await open(w, h, { touch });
   for (const cls of CLASSES) {
     await setClass(page, cls);
-    const n = await page.locator('#panel-body .sk2-cell').count();
-    ok(`${tag} ${cls} : 11 cases (6 compétences + 5 Boosts)`, n === 11, `n=${n}`);
     const fxs = [], sigs = [], sizes = [];
-    for (let i = 0; i < n; i++) {
-      await page.locator('#panel-body .sk2-cell').nth(i).click();
-      await page.waitForFunction((k) => document.querySelectorAll('#panel-body .sk2-cell')[k]?.getAttribute('aria-pressed') === 'true', i, { timeout: 5000 }).catch(() => {});
-      await page.waitForTimeout(250);
-      const sel = '#panel-body .sk2-bubble canvas.sk-vignette:not(.sk-mini)';
-      fxs.push(await page.evaluate((s) => document.querySelector(s)?.dataset.vfx ?? null, sel));
-      sizes.push(await page.evaluate((s) => { const r = document.querySelector(s)?.getBoundingClientRect(); return r ? [Math.round(r.width), Math.round(r.height)] : null; }, sel));
-      const frames = [];
-      for (let t = 0; t < 7; t++) { frames.push(await hashCanvas(page, sel)); await page.waitForTimeout(110); }
-      sigs.push(frames);
-      if (i === 0 || i === 5 || i === 8) { await page.evaluate(() => document.querySelector('#panel-body .sk2-bubble')?.scrollIntoView({ block: 'end' })); await page.waitForTimeout(150); await page.screenshot({ path: `${SHOTS}/${tag}-${cls}-case${i}.png` }); }
+    let n = 0;
+    for (const mode of ['s', 'r']) {
+      if (mode === 'r') { await page.click('.dsk-mode:not(.on) .m-mode'); await page.waitForTimeout(300); }
+      const count = await page.locator('#panel-body .dsk-card').count();
+      n += count;
+      for (let i = 0; i < count; i++) {
+        await page.locator('#panel-body .dsk-card').nth(i).click();
+        await page.waitForFunction((k) => document.querySelectorAll('#panel-body .dsk-card')[k]?.getAttribute('aria-pressed') === 'true', i, { timeout: 5000 }).catch(() => {});
+        await page.waitForTimeout(250);
+        const sel = '#panel-body .dsk-prev canvas.sk-vignette';
+        fxs.push(await page.evaluate((s2) => document.querySelector(s2)?.dataset.vfx ?? null, sel));
+        sizes.push(await page.evaluate((s2) => { const c = document.querySelector(s2); return c ? [c.width, c.height] : null; }, sel));
+        const frames = [];
+        for (let t = 0; t < 7; t++) { frames.push(await hashCanvas(page, sel)); await page.waitForTimeout(110); }
+        sigs.push(frames);
+        if (n - count + i === 0 || n - count + i === 5 || n - count + i === 8) await page.screenshot({ path: `${SHOTS}/${tag}-${cls}-case${n - count + i}.png` });
+      }
     }
+    ok(`${tag} ${cls} : 11 cartes (6 compétences + 5 Boosts)`, n === 11, `n=${n}`);
     ok(`${tag} ${cls} : 11 data-vfx différents`, new Set(fxs).size === 11 && fxs.every((x) => x && x !== 'combo_burst'), fxs.join(' '));
-    // animations réellement différentes : la suite d'empreintes de chaque case n'est celle d'aucune autre, et chaque effet se dessine
+    // animations réellement différentes : la suite d'empreintes de chaque carte n'est celle d'aucune autre, et chaque effet se dessine
     const key = (f) => f.map((x) => `${x?.h}`).join('|');
     const keys = sigs.map(key);
     const drawn = sigs.every((f) => f.some((x) => x && x.n > 30));
     const moving = sigs.filter((f) => new Set(f.map((x) => x?.h)).size > 1).length;
-    // proximité : aucun effet n'a, image par image, les mêmes pixels qu'un autre (au moins 3 images sur 7 différentes)
     let minDiff = 7;
-    for (let a = 0; a < sigs.length; a++) for (let b = a + 1; b < sigs.length; b++) { const d = sigs[a].filter((x, k) => x?.h !== sigs[b][k]?.h).length; minDiff = Math.min(minDiff, d); }
+    for (let a2 = 0; a2 < sigs.length; a2++) for (let b2 = a2 + 1; b2 < sigs.length; b2++) { const d = sigs[a2].filter((x, k) => x?.h !== sigs[b2][k]?.h).length; minDiff = Math.min(minDiff, d); }
     ok(`${tag} ${cls} : 11 animations différentes (pixels du canvas), toutes dessinées, toutes animées`, new Set(keys).size === 11 && drawn && moving >= 10 && minDiff >= 3, `distinctes=${new Set(keys).size} dessinées=${drawn} animées=${moving} écartMin=${minDiff}/7`);
-    ok(`${tag} ${cls} : vignette de 160 px`, sizes.every((s) => s && s[0] === 160 && s[1] === 160), JSON.stringify(sizes[0]));
-    // la fiche garde le nom de la case choisie : la vignette est en tête
-    const head = await page.evaluate(() => { const b = document.querySelector('#panel-body .sk2-bubble'); const v = b?.querySelector('canvas.sk-vignette:not(.sk-mini)'); return v && b.firstElementChild?.contains(v); });
-    ok(`${tag} ${cls} : vignette en tête de la fiche`, head);
-
-    // survol (PC) ou appui (téléphone) : petite vignette de 48 px qui joue le même effet que la grande
-    const cell = page.locator('#panel-body .sk2-cell').nth(1);
-    await cell.scrollIntoViewIfNeeded();
-    const box = await cell.boundingBox();
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-    if (touch) await page.mouse.down();
-    await page.waitForTimeout(350);
-    const mini = await page.evaluate(() => { const c = document.querySelectorAll('#panel-body .sk2-cell')[1]?.querySelector('canvas.sk-mini'); if (!c) return null; const r = c.getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height), disp: getComputedStyle(c).display, fx: c.dataset.vfx }; });
-    const bigFx = await page.evaluate(() => document.querySelectorAll('#panel-body .sk2-cell')[1] && document.querySelectorAll('#panel-body canvas.sk-mini')[1]?.dataset.vfx);
-    const mh = [];
-    for (let t = 0; t < 6; t++) { mh.push(await page.evaluate(() => { const c = document.querySelectorAll('#panel-body .sk2-cell')[1]?.querySelector('canvas.sk-mini'); if (!c || !c.width) return null; const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let h = 0, n = 0; for (let i = 0; i < d.length; i += 4) { if (d[i + 3]) n++; h = (Math.imul(h, 31) + d[i] + d[i + 1] * 3 + d[i + 3]) >>> 0; } return `${h}:${n}`; })); await page.waitForTimeout(110); }
-    if (cls === 'assassin') await page.screenshot({ path: `${SHOTS}/${tag}-${cls}-apercu48.png` });
-    if (touch) await page.mouse.up();
-    ok(`${tag} ${cls} : ${touch ? 'appui' : 'survol'} → vignette de 48 px visible, animée, du même effet que la case`,
-      mini && mini.disp === 'block' && mini.w === 48 && mini.h === 48 && mini.fx === fxs[1] && mh.every((x) => x && Number(x.split(':')[1]) > 10) && new Set(mh).size > 1, JSON.stringify({ mini, distinct: new Set(mh).size }));
-    await page.mouse.move(2, 2);
-    await page.waitForTimeout(250);
-    const gone = await page.evaluate(() => { const c = document.querySelectorAll('#panel-body .sk2-cell')[3]?.querySelector('canvas.sk-mini'); return c ? getComputedStyle(c).display : null; });
-    ok(`${tag} ${cls} : hors survol, la petite vignette est cachée`, gone === 'none', gone);
+    ok(`${tag} ${cls} : vignette de 160 px (canvas)`, sizes.every((s2) => s2 && s2[0] === 160 && s2[1] === 160), JSON.stringify(sizes[0]));
+    const inPrev = await page.evaluate(() => { const p = document.querySelector('#panel-body .dsk-prev'); return !!p && !!p.querySelector('canvas.sk-vignette') && p.querySelectorAll('img').length >= 3; });
+    ok(`${tag} ${cls} : aperçu en combat = héros + effet animé + 2 monstres`, inPrev);
   }
-  await ctx.close();
-}
-
-// « Réduire les animations » : aucune vignette en petit au survol, l'icône reste
-{
-  const { ctx, page } = await open(1116, 993, { reduce: true });
-  await setClass(page, 'assassin');
-  const cell = page.locator('#panel-body .sk2-cell').nth(2);
-  await cell.hover();
-  await page.waitForTimeout(350);
-  const r = await page.evaluate(() => { const c = document.querySelectorAll('#panel-body .sk2-cell')[2]; const m = c.querySelector('canvas.sk-mini'); const i = c.querySelector('.sk2-ic > img'); return { calm: document.documentElement.classList.contains('reduce-motion'), mini: m ? getComputedStyle(m).display : 'absent', icon: i ? getComputedStyle(i).visibility : 'absent' }; });
-  ok('« Réduire les animations » : pas d\'aperçu animé au survol, l\'icône reste visible', r.calm && r.mini === 'none' && r.icon === 'visible', JSON.stringify(r));
-  await page.screenshot({ path: `${SHOTS}/pc-reduire-animations.png` });
   await ctx.close();
 }
 

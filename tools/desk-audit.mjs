@@ -194,6 +194,9 @@ export async function runAudit(argv) {
   const app = await startApp();
   const report = []; // { game, size, view, tab, issues[], skipped }
   const record = async (g, game, w, h, tab, view, kind, shotName) => {
+    // Une fenêtre (récompense du jour, retour hors ligne…) peut s'ouvrir après le dernier closeAll : elle devient la « racine » du contrôle
+    // et le cartouche du panneau semble absent. On la referme juste avant de mesurer.
+    if (kind === 'tab') await closeAll(g.page);
     const rec = { game, size: `${w}x${h}`, tab, view, issues: await g.page.evaluate(inPage, kind), skipped: null };
     report.push(rec);
     if (shots) await g.page.screenshot({ path: join(out, `${w}x${h}-${game === 'fresh' ? 'neuve-' : ''}${shotName}.jpg`), type: 'jpeg', quality: 70 });
