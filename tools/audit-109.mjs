@@ -150,7 +150,7 @@ for (const size of SIZES) {
     await closeAll();
     const ok = await page.evaluate((t) => { try { __idle.ui.openTab(t); return true; } catch { return false; } }, tab);
     if (!ok) continue;
-    await page.waitForTimeout(700);
+    await page.waitForTimeout(1500); // la page finit sa transition (capture nette)
     const found = await page.evaluate(CHECKS);
     report.push(...found.map((p) => ({ size, tab, ...p })));
     const f = `${OUT}/${size}-${tab}.jpg`; await page.screenshot({ path: f, type: 'jpeg', quality: 78 }); shots.push(f);

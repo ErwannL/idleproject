@@ -1,6 +1,13 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.11.0 — Lisibilité et ergonomie
+## Ascendrya v10.11.1 — Finitions de la 10.11
+
+- **Bastion** : à la première visite, une main montre le bâtiment qui attend un ouvrier (« Pose un compagnon : sans ouvrier, rien n'avance ») ; un petit son quand un ouvrier prend son poste.
+- **Téléphone** : la scène reste visible en bande en haut de chaque onglet (la toucher revient au combat) ; l'Arène garde son volet, car elle se joue dans la scène.
+- **Apparences** : l'étiquette de rareté n'est plus cachée par le dessin.
+- Contrôle du cadrage repassé sur tous les onglets, 4 tailles et 2 parties : aucun défaut relevé.
+
+<details><summary>Ascendrya v10.11.0 — Lisibilité et ergonomie</summary>
 
 - **Améliorations** : chaque ligne reste dans sa colonne avec son effet « avant → après » et son prix, même quand tu manques d'or. Une ligne qui rapporte peu reste à sa place, grisée, avec une petite étiquette « peu utile ». « Tout acheter » se grise et dit ce qui manque.
 - **Fiche Héros** : le personnage tient dans sa case et ne passe plus sur les statistiques ni sur les objets ; Niveau et Puissance sont dessous. Sur téléphone : le personnage à gauche, les objets en grille dessous, les noms en entier.
@@ -9,6 +16,8 @@
 - **Onglets** : dès 1300 px, tous les onglets des menus Héros et Équipe s'ouvrent en page, au contenu centré ; la page descend jusqu'au menu du bas.
 - **Téléphone** : tous les onglets en plein écran (les compagnons, les donjons… se voient tout de suite), Améliorations directes, boutons de 44 px au moins.
 - **Nouveau joueur** : une seule bulle à la fois, et le doigt montre le bon bouton.
+
+</details>
 
 <details><summary>Ascendrya v10.9.2 — Google Play</summary>
 
