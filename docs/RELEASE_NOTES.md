@@ -1,11 +1,23 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.11.4 — Téléphone, 2e tour
+## Ascendrya v10.12.0 — Un vrai jeu mobile
+
+Sur téléphone, tous les onglets ont été refaits sur un même modèle, celui d'un jeu mobile : un grand cadre sombre à bord doré, un cartouche de titre, des onglets et des modes avec icône et nom, de grosses cases d'objet aux couleurs de la rareté, et un seul gros bouton doré pour l'action principale. Le PC ne change pas.
+
+- **Équipement** : rangée de portraits, grand personnage avec sa Puissance, places en grandes cases, statistiques en 2 × 2, modes Équipement · Améliorer · Reforger · Sets, sac en grille de 5. Nouveau bouton « Tout améliorer ».
+- **Fiche d'un objet** : en plein écran, avec ses statistiques, son ensemble, la comparaison, et les actions Améliorer · Reforger · Équiper dans un panneau qui ne saute plus.
+- **Améliorations** : les 3 familles deviennent 3 modes, une ligne par amélioration, « Tout acheter » en haut.
+- **Compétences, Talents, Forge, Compagnons, Bastion, Expéditions, Carte, Donjons, Arène, Défis, Événement, Invocation, Boutique, Carnet, Missions, Encyclopédie, Apparences, Boss, Classement, Guilde, Statistiques, Paramètres** : même cadre, mêmes boutons, fiches en plein écran, plus aucune liste déroulante, des boutons d'au moins 44 px.
+- Un contrôle automatique vérifie chaque onglet sur deux tailles de téléphone (aucun défilement de côté, aucun bouton qui en chevauche un autre, aucun mot coupé).
+
+<details><summary>Ascendrya v10.11.4 — Téléphone, 2e tour</summary>
 
 - **Tuto** : on touche le monstre pour le frapper (anneau doré, doigt et « TOUCHE ! » sur lui) ; chaque appui le touche vraiment et les monstres tombent.
 - **Haut de l'écran** : événements en petites icônes, objectifs et Carnet à côté de l'étape ; plus rien ne se chevauche et le combat a plus de place.
 - **« Essayer maintenant »** : une carte de nouveauté n'arrive que quand son écran est ouvert, et le bouton y mène.
 - **Site** : classement et confidentialité entièrement en anglais quand l'anglais est choisi.
+
+</details>
 
 <details><summary>Ascendrya v10.11.3 — Passe téléphone</summary>
 

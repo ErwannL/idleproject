@@ -2954,6 +2954,8 @@ export class UI {
     let showRoot = body;
     { const pop = body.querySelector('.unit-pop'); const back = body.querySelector('.unit-pop-backdrop');
       if (pop) { const html = (back?.outerHTML ?? '') + pop.outerHTML; back?.remove(); pop.remove(); this.layerHost('unit-host', html); showRoot = document.getElementById('unit-host'); } else this.layerHost('unit-host', ''); }
+    // v10.12 : une fiche du kit mobile a été déplacée dans #panel : sa vitrine y est cherchée en priorité.
+    { const sheet = this.$('panel')?.querySelector(':scope > .m-sheet .showcase-slot'); if (sheet && !body.querySelector('.showcase-slot')) showRoot = sheet.closest('.m-sheet'); }
     mountShowcase(showRoot, state); // v9.2.7 : une seule vitrine animée, accrochée à la fiche affichée
     this.applyRing(); // v10.1 : anneau sur le bouton à toucher
     if (this.vfxCascade) { this.vfxCascade = false; uiFx.cascadeFx(body); } // v9.2.6
