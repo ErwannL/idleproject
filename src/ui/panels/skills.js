@@ -294,29 +294,92 @@ function deskView(ui, state) {
     <div class="d-cols3b">${deskLeft(ui, state, cells, activeIds, armed)}${deskCenter(ui, state, cells, activeIds, sel, mode)}${deskDetail(ui, state, sel, activeIds, armed)}</div></div>`;
 }
 
-// v10.12 (lot 4, § 5) : Compétences sur téléphone. Cadre + cartouche, points (et « Répartir » en doré quand il y en a),
-// deux modes Attaques / Boosts avec « Auto » en interrupteur, cases de 5 par ligne (nom dessous, Nv), une fiche au toucher.
+// v10.13.1 (§ 2, maquette t03) : Compétences sur téléphone, façon « vrai jeu ». Pastille de points à gauche du cartouche ; « Ta barre de combat »
+// (fond du monde, places rondes de 62 px numérotées : un toucher arme la place, un toucher sur une carte l'y met : mêmes actions que sur PC,
+// skill-slot-pick / skill-sel / skill-slot-set) ; modes Attaques / Boosts (chacun son Auto) ; cartes 3 x 2 (icône 42 px, nom, Nv, pastille de place) ;
+// dessous, le détail de la carte choisie (Avant » Après, raison s'il manque un point, un seul bouton doré). L'aperçu animé reste une fiche (▶).
+const phoneType = (c) => (c.kind === 'r' ? 'boost' : SKILLS.find((x) => x.id === c.id)?.type ?? 'hit');
+const autoSwitch = (action, on) => `<label class="m-switch m-sk-auto"><input type="checkbox" data-action="${action}" ${on ? 'checked' : ''}><span class="m-sw" aria-hidden="true"></span><span class="m-sw-t">Auto</span></label>`;
+
+function phoneBar(state, cells, activeIds, armed, mode) {
+  const world = worldStyle(state);
+  const size = loadoutSize(state);
+  const byId = (id) => cells.find((c) => c.kind === 's' && c.id === id);
+  const slots = Array.from({ length: size }, (_, i) => {
+    const c = byId(activeIds[i]);
+    return `<button type="button" class="m-skslot${c ? '' : ' empty'}${armed === i ? ' armed' : ''}" data-action="skill-slot-pick" data-value="${i}" aria-pressed="${armed === i}"
+      aria-label="${c ? `Place ${i + 1} : ${escapeHtml(c.name)}` : `Place ${i + 1} vide`}">${c ? img(c.icon) : '<b>+</b>'}<kbd>${i + 1}</kbd></button>`;
+  }).join('');
+  const cap = armed != null ? `<p class="m-skcap arm">${mode === 's' ? `Choisis une compétence pour la place ${armed + 1}` : 'Passe sur Attaques pour choisir la compétence'}</p>`
+    : activeIds.length ? '' : '<p class="m-skcap">Apprends une attaque pour la mettre dans ta barre</p>';
+  return `<div class="m-skbar" style="${world.style}"><span class="m-sklbl">Ta barre de combat</span><div class="m-skslots n${size}">${slots}</div></div>${cap}`;
+}
+
+function phoneCard(c, sel, activeIds) {
+  const t = phoneType(c);
+  const slot = c.kind === 's' ? activeIds.indexOf(c.id) : -1;
+  const badge = slot >= 0 ? `<em class="m-skon" aria-label="Place ${slot + 1} de la barre">${slot + 1}</em>` : c.kind === 'r' && c.active > 0 ? `<em class="m-skon t">${time(c.active)}</em>` : '';
+  const sub = c.locked ? `${img('icon_lock')} Niv. ${c.unlock}` : `Nv ${c.level}`;
+  return `<button type="button" class="m-skc${sel ? ' sel' : ''}${c.locked ? ' locked' : ''}" style="--c:${TYPE_COLOR[t]}" data-action="skill-sel" data-value="${c.kind}:${c.id}" aria-pressed="${sel}">
+    ${badge}<span class="m-skic">${img(c.icon)}</span><b>${escapeHtml(c.name)}</b><small>${sub}</small></button>`;
+}
+
+function phoneDetail(state, c, activeIds, armed) {
+  if (!c) return '';
+  const f = skillFacts(state, c);
+  const t = phoneType(c);
+  const head = `<div class="m-skdh"><span class="m-skic s" style="--c:${TYPE_COLOR[t]}">${img(c.icon)}</span>
+    <div class="m-skdn"><b>${escapeHtml(c.name)}</b><span class="m-sktype">${c.kind === 'r' ? 'Boost' : TYPE_LABEL[f.type] ?? ''}</span></div>
+    <span class="m-skdl">${c.maxed ? `Nv ${c.level} · max` : `Nv ${c.level} <i>»</i> <b class="good">${c.level + 1}</b>`}</span>
+    <button type="button" class="m-skplay" data-action="m-set" data-key="mSkillSheet" data-value="${c.kind}:${c.id}" aria-label="Aperçu en combat">▶</button></div>`;
+  const rows = f.rows.slice(0, 1).map((r) => `<div class="m-skcmp">${img(r.icon)}<span>${escapeHtml(r.label)}</span><b>${r.next ? `${escapeHtml(r.now)} <i>»</i> <span class="good">${escapeHtml(r.next)}</span>` : escapeHtml(r.now)}</b></div>`).join('');
+  const pts = skillPointsAvailable(state);
+  let why = '', main = '';
+  if (c.locked) why = `<p class="m-skwhy">${img('icon_lock')} Débloquée au niveau ${c.unlock} du héros.</p>`;
+  else if (c.maxed) why = '<p class="m-skwhy good">Niveau maximal atteint.</p>';
+  else if (c.kind === 's') {
+    const price = skillPointCost(c.level);
+    const ok = pts >= price;
+    if (!ok) why = `<p class="m-skwhy">Il manque ${price - pts} point${price - pts > 1 ? 's' : ''} · prochain au niveau ${state.level + 1}</p>`;
+    main = mBtnGold(`${c.level === 0 ? 'Apprendre' : 'Améliorer'} · ${price} pt`, { action: 'learn-skill', attrs: `data-key="${escapeHtml(c.id)}"`, disabled: !ok });
+  } else {
+    const price = c.plus?.cost ?? 0;
+    const ok = state.gold >= price;
+    why = ok ? '' : '<p class="m-skwhy">Il te manque de l\'or.</p>';
+    main = mBtnGold(`Améliorer · ${formatNumber(price)}`, { icon: 'coin', action: 'upgrade-rush', attrs: `data-key="${escapeHtml(c.id)}" data-cost="${price}" data-currency="gold"`, disabled: !ok });
+  }
+  // Seconde rangée : la barre de combat (compétence apprise) ou l'usage du Boost, et « Répartir » quand il reste des points.
+  const size = loadoutSize(state);
+  let bar = '';
+  if (c.kind === 's' && c.level > 0 && !c.locked) {
+    const at = activeIds.indexOf(c.id);
+    if (at >= 0) bar = mBtn(`Retirer (place ${at + 1})`, { action: 'skill-loadout', attrs: `data-key="${escapeHtml(c.id)}"`, disabled: activeIds.length <= 1 });
+    else { const slot = armed ?? (activeIds.length < size ? activeIds.length : size - 1); bar = mBtn(`Mettre en place ${slot + 1}`, { action: 'skill-slot-set', value: `${c.id}|${slot}` }); }
+  } else if (c.kind === 'r' && !c.locked) {
+    bar = c.active > 0 ? `<p class="m-sk-state good">Actif ${time(c.active)}</p>` : c.cd > 0 ? `<p class="m-sk-state">Prêt dans ${time(c.cd)}</p>` : mBtn('Utiliser', { action: 'rush', value: c.id });
+  }
+  const spread = pts > 0 ? mBtn('↺ Répartir', { action: 'distribute-skills' }) : '';
+  const row2 = bar || spread ? `<div class="m-sk-row2${bar && spread ? ' two' : ''}">${bar}${spread}</div>` : '';
+  return `<div class="m-card m-skdetail">${head}${rows}${why}${main}${row2}</div>`;
+}
+
 function phoneView(ui, state) {
   const cells = skillGridCells(state);
   const pts = skillPointsAvailable(state);
   const mode = ui.view.mSkillMode === 'r' ? 'r' : 's';
-  const [k, id] = String(ui.view.mSkillSheet ?? '').split(':');
-  const sel = cells.find((c) => c.kind === k && c.id === id) ?? null;
-  const modes = mModes([{ id: 's', label: 'Attaques', icon: 'skill_quick', action: 'm-set', value: 's', attrs: 'data-key="mSkillMode"' },
-    { id: 'r', label: 'Boosts', icon: 'icon_bolt', action: 'm-set', value: 'r', attrs: 'data-key="mSkillMode"' }], mode, { size: 64 });
-  const tile = (c) => mTile({ name: c.name, rarity: c.kind === 'r' ? 'epic' : 'rare', locked: c.locked }, {
-    size: 56, src: icon(c.icon), action: 'm-set', value: `${c.kind}:${c.id}`, attrs: 'data-key="mSkillSheet"', label: c.name, pips: false,
-    plus: c.locked ? '' : `Nv ${c.level}`, badge: c.active > 0 ? time(c.active) : '', bang: !c.locked && !c.maxed && c.plus?.can && c.kind === 's',
-  });
-  const auto = mode === 's'
-    ? `<label class="m-switch"><input type="checkbox" data-action="skill-auto" ${state.skillAuto ? 'checked' : ''}><span class="m-sw" aria-hidden="true"></span><span class="m-sw-t">Auto</span></label>`
-    : `<label class="m-switch"><input type="checkbox" data-action="rush-auto" ${state.rushes.auto ? 'checked' : ''}><span class="m-sw" aria-hidden="true"></span><span class="m-sw-t">Auto</span></label>`;
-  const head = `<div class="m-card m-skhead"><div class="m-sk-pts"><small>Points à dépenser</small><b class="num">${pts}</b></div>
-    <div class="m-sk-btn">${pts > 0 ? mBtnGold('Répartir les points', { action: 'distribute-skills' }) : ''}</div></div>`;
-  const list = cells.filter((c) => c.kind === mode);
-  const body = `<div class="m-card m-skbody"><div class="m-sk-row"><span class="m-sk-sub">${mode === 's' ? 'Payées en points, lancées seules' : 'Payés en or, à utiliser'}</span>${auto}</div>
-    ${mGrid(list.map(tile), 5)}</div>`;
-  return `<div class="m-frame m-hero m-sk">${mTitle('skill_quick', 'Compétences', true)}${head}${modes}${body}${sel ? phoneSheet(state, sel) : ''}</div>`;
+  const [sk, sid] = String(ui.view.mSkillSheet ?? '').split(':');
+  const sheet = cells.find((c) => c.kind === sk && c.id === sid) ?? null;
+  const [k, id] = String(ui.view.skillSel ?? '').split(':');
+  const chosen = cells.find((c) => c.kind === k && c.id === id) ?? null;
+  const inMode = cells.filter((c) => c.kind === mode);
+  const sel = chosen?.kind === mode ? chosen : (mode === 's' && pts > 0 ? inMode.find((c) => !c.locked && c.plus?.can) : null) ?? inMode.find((c) => !c.locked) ?? inMode[0] ?? null;
+  const activeIds = activeSkills(state).map((s) => s.id);
+  const armed = Number.isInteger(ui.view.skillSlot) && ui.view.skillSlot < loadoutSize(state) ? ui.view.skillSlot : null;
+  const box = (id2, label, ic, action, on) => `<div class="m-skmode${mode === id2 ? ' on' : ''}">${mModes([{ id: id2, label, icon: ic, action: 'm-set', value: id2, attrs: 'data-key="mSkillMode"' }], mode)}${autoSwitch(action, on)}</div>`;
+  const modes = `<div class="m-skmodes">${box('s', 'Attaques', 'skill_quick', 'skill-auto', state.skillAuto)}${box('r', 'Boosts', 'icon_bolt', 'rush-auto', state.rushes.auto)}</div>`;
+  return `<div class="m-frame m-hero m-sk">${mTitle('skill_quick', 'Compétences', true)}<span class="m-skpts" aria-label="${pts} point${pts > 1 ? 's' : ''} de compétence">✦ <b class="num">${pts}</b> pt</span>
+    ${phoneBar(state, cells, activeIds, armed, mode)}${modes}<div class="m-skgrid">${inMode.map((c) => phoneCard(c, c === sel, activeIds)).join('')}</div>
+    ${phoneDetail(state, sel, activeIds, armed)}${sheet ? phoneSheet(state, sheet) : ''}</div>`;
 }
 
 function phoneSheet(state, c) {
@@ -329,13 +392,13 @@ function phoneSheet(state, c) {
     short = SKILL_SHORT[skill.id] ?? skill.name;
     now = c.level > 0 ? `${skill.text(formatDecimal(skillValue(skill, c.level)))}, toutes les ${formatDecimal(skillCooldown(skill, bonus))} s.` : '';
     next = c.maxed ? '' : skill.text(formatDecimal(skillValue(skill, c.level + 1)));
-    if (c.plus) main = mBtnGold(`${c.level === 0 ? 'Apprendre' : 'Améliorer'} · ${c.plus.price}`, { action: 'learn-skill', attrs: `data-key="${escapeHtml(c.id)}"`, disabled: !c.plus.can });
+    if (c.plus) main = mBtn(`${c.level === 0 ? 'Apprendre' : 'Améliorer'} · ${c.plus.price}`, { action: 'learn-skill', attrs: `data-key="${escapeHtml(c.id)}"`, disabled: !c.plus.can });
     if (c.level > 0) { const on = activeSkills(state).some((x) => x.id === c.id); use = mBtn(on ? '✓ Active (3 au plus)' : 'Rendre active (3 au plus)', { action: 'skill-loadout', attrs: `data-key="${escapeHtml(c.id)}" aria-pressed="${on}"` }); }
   } else {
     const rush = RUSHES.find((x) => x.id === c.id);
     short = rush.id === 'phantom' ? 'Coups fantômes en plus' : effectText(rushEffect(state, rush));
     now = `Pendant ${rushDuration(state, rush)} s, recharge ${Math.round(rush.cooldown / 60)} min.`;
-    if (c.plus) main = mBtnGold(`Améliorer · ${c.plus.price}`, { icon: 'coin', action: 'upgrade-rush', attrs: `data-key="${escapeHtml(c.id)}" data-cost="${c.plus.cost}" data-currency="gold"`, disabled: !c.plus.can });
+    if (c.plus) main = mBtn(`Améliorer · ${c.plus.price}`, { icon: 'coin', action: 'upgrade-rush', attrs: `data-key="${escapeHtml(c.id)}" data-cost="${c.plus.cost}" data-currency="gold"`, disabled: !c.plus.can });
     use = c.locked ? '' : c.active > 0 ? `<p class="m-sk-state good">Actif ${time(c.active)}</p>` : c.cd > 0 ? `<p class="m-sk-state">Prêt dans ${time(c.cd)}</p>` : mBtn('Utiliser', { action: 'rush', value: rush.id });
   }
   const why = c.plus && !c.plus.can && !c.locked && !c.maxed ? (c.kind === 's' ? 'Il te faut 1 point (1 par niveau du héros)' : "Il te manque de l'or") : '';

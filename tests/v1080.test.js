@@ -117,7 +117,7 @@ test('10.8 (6) : Renaissance rentable (×1,25 et blocage de 8 h), Larme d\'Ascen
 });
 
 test('10.8 (7) : téléphone vertical, bande du bas en grille, menus compacts, Arène allégée', () => {
-  assert.match(src('android/app/src/main/java/com/erwannl/idlerpg/MainActivity.java'), /smallestScreenWidthDp < 600[\s\S]*SCREEN_ORIENTATION_USER_PORTRAIT/);
+  assert.match(src('android/app/src/main/java/com/ascendrya/app/MainActivity.java'), /smallestScreenWidthDp < 600[\s\S]*SCREEN_ORIENTATION_USER_PORTRAIT/);
   assert.match(src('src/ui/ui.js'), /play\.classList\.add\('phone-band'\)/);
   const css = src('src/ui/bastion108.css');
   assert.match(css, /#panel > header \{ min-height: 40px !important; height: 40px;/);

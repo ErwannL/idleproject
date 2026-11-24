@@ -57,12 +57,15 @@ function copyFrame() {
     // Gros plan sur le bas de la scène (le sol, le héros et les monstres), un peu à gauche du centre.
     const W = src.width, H = src.height;
     const band = w / h > 2.4; // bande du téléphone : assez de hauteur pour l'équipe entière
-    const sh = Math.min(H, band ? H * 0.3 : H * 0.62), sw = Math.min(W, sh * (w / h));
+    // v10.13.1 (téléphone) : la bande remplit toute la largeur (plus de bandes noires à gauche et à droite) : on prend la scène sur toute sa
+    // largeur, à l'échelle 1, et la hauteur qui va avec. Sur PC (pas de .m-phone), le cadrage ne change pas.
+    const fill = band && document.getElementById('app')?.classList.contains('m-phone');
+    const sh = Math.min(H, band ? (fill ? Math.min(H * 0.3, W * (h / w)) : H * 0.3) : H * 0.62), sw = Math.min(W, sh * (w / h));
     const sx = Math.max(0, Math.min(W - sw, W * 0.4 - sw / 2));
     // Le sol (pieds de l'équipe) vers le bas de la vignette : on suit la ligne du sol de la scène.
     const r = document.getElementById('app')?.__ui?.renderer;
     const gf = r?.height ? Math.min(0.97, (r.groundY + 6) / r.height) : 0.96;
-    const sy = Math.max(0, Math.min(H - sh, H * gf - sh * 0.92));
+    const sy = Math.max(0, Math.min(H - sh, H * gf - sh * (fill ? 0.97 : 0.92))); // téléphone : les pieds tout en bas de la bande
     const dw = Math.min(w, sw * (h / sh)), dx = Math.round((w - dw) / 2);
     if (dx > 0) { ctx2d.fillStyle = '#05070e'; ctx2d.fillRect(0, 0, w, h); }
     ctx2d.drawImage(src, sx, sy, sw, sh, dx, 0, dw, h);

@@ -1,0 +1,24 @@
+/* v10.13.1 (lot « partie neuve / mobile-audit ») : corrections des autres onglets relevées par tools/mobile-audit.mjs
+   (un seul doré, texte >= 11 px, aucun texte tronqué). TÉLÉPHONE SEULEMENT : tout sous `#app.m-phone`. Le PC ne change pas. */
+
+/* Améliorations : seul « Tout acheter » reste doré ; les achats par ligne sont sombres, bord vert quand ils sont possibles. */
+#app.m-phone .m-buy.ok, #app.m-phone .m-buy:not(:disabled):not(.max) {
+  background: linear-gradient(180deg, #1d3b34, #142a2a); border: 2px solid var(--m-ok); box-shadow: 0 2px 0 #0b1a1a;
+}
+#app.m-phone .m-buy.ok small, #app.m-phone .m-buy.ok .m-cost, #app.m-phone .m-buy:not(:disabled):not(.max) small, #app.m-phone .m-buy:not(:disabled):not(.max) .m-cost { color: var(--m-text); }
+#app.m-phone .m-buy.ok:active { box-shadow: 0 1px 0 #0b1a1a; }
+/* Textes d'effet et pronostic : ils passent à la ligne au lieu d'être coupés. */
+#app.m-phone .m-upfx { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
+#app.m-phone .m-uph-b .forecast { font-size: 11px; padding: 3px 6px; white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.2; }
+
+/* Donjons : « Entrer » sombre, doré seulement sur le donjon conseillé. */
+#app.m-phone .cb-frame .dgm-side .m-btn.dgm-enter { background: #141c38; border-color: var(--m-btn-line); color: var(--m-text); }
+#app.m-phone .cb-frame .dgm-side .m-btn.dgm-enter.dgm-rec { background: linear-gradient(180deg, #ffe08a, #f0b93f); border-color: #fff0b8; color: #2a1a05; }
+
+/* Textes sous 11 px : Invocation (ruban), Arène (cartes). */
+#app.m-phone .vt-ribbon { font-size: 11px; padding: 2px 7px; }
+#app.m-phone .pcard .pc-top, #app.m-phone .pcard .pc-top b, #app.m-phone .pcard .pc-el, #app.m-phone .pcard.small .pc-top b { font-size: 11px; }
+
+/* Cartouche des pages à « ? » et « ✕ » : le titre tient en 390 px. */
+#app.m-phone .m-title:has(.m-help + .m-close) b { font-size: 20px; }
+@media (max-width: 400px) { #app.m-phone .mp-frame .m-title b { font-size: 20px; } }

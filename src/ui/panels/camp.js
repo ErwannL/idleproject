@@ -374,17 +374,19 @@ function mrLockText(st) {
   return '';
 }
 
-function mrNode(ui, state, def, now, last) {
+function mrNode(ui, state, def, now) {
   const st = researchStatus(state, def.id);
   const seen = (ui.view.resSeen ??= {});
   const fresh = st.unlocked && seen[def.id] === false;
   seen[def.id] = Boolean(st.unlocked);
-  const meta = st.active ? `<span class="mr-lv">Niv. ${st.level} → ${st.level + 1}</span>${mrTime(state, def.id, now)}`
-    : !st.unlocked ? `<span class="mr-lockline">${img('icon_lock')} ${escapeHtml(mrLockText(st))}</span>`
-      : st.maxed ? `<span class="mr-lv ok">Niv. ${st.level}/${def.max} · max</span>` : `<span class="mr-lv">Niv. ${st.level}/${def.max}</span>`;
-  const cls = `${st.active ? ' active' : ''}${!st.unlocked ? ' locked' : ''}${st.maxed ? ' maxed' : ''}${def.keystone ? ' key' : ''}${fresh ? ' fresh' : ''}${ui.view.bastionRes === def.id ? ' sel' : ''}${last ? ' last' : ''}`;
+  // v10.13.1 (§ 5) : une ligne du livre : médaillon rond, nom foncé, condition ou effet, niveau « 0/15 » à droite.
+  const sub = st.active ? `En cours · ${mrTime(state, def.id, now)}`
+    : !st.unlocked ? escapeHtml(mrLockText(st))
+      : st.maxed ? escapeHtml(researchText(def, st.level)) : `${escapeHtml(def.text)} / niv.`;
+  const lvb = st.maxed ? 'max' : `${st.level}/${def.max}`;
+  const cls = `${st.active ? ' active' : ''}${!st.unlocked ? ' locked' : ''}${st.maxed ? ' maxed' : ''}${def.keystone ? ' key' : ''}${fresh ? ' fresh' : ''}${ui.view.bastionRes === def.id ? ' sel' : ''}`;
   return `<button type="button" class="mr-node${cls}" data-action="bastion-res" data-value="${def.id}" aria-label="${escapeHtml(`${def.name}, niveau ${st.level} sur ${def.max}`)}">
-      ${mrMedal(def, st)}<span class="mr-txt"><b class="mr-name">${escapeHtml(def.name)}</b><span class="mr-meta">${meta}</span></span><span class="mr-go" aria-hidden="true">›</span></button>`;
+      ${mrMedal(def, st)}<span class="mr-txt"><b class="mr-name">${!st.unlocked ? img('icon_lock') : ''}${escapeHtml(def.name)}</b><span class="mr-meta">${sub}</span></span><span class="mr-lvb num">${lvb}</span></button>`;
 }
 
 function researchTreePhone(ui, state, now) {
@@ -393,33 +395,29 @@ function researchTreePhone(ui, state, now) {
   const page = Math.min(5, Math.max(1, Number(ui.view.resPage) || 1));
   const branch = RESEARCH_BRANCHES.find((b) => b.id === ui.view.resBranch) ?? RESEARCH_BRANCHES[0];
   const b = bastionOf(state);
-  const slots = researchSlots(state);
+  const slots = Math.max(1, researchSlots(state));
   const cells = [];
-  for (let i = 0; i < Math.max(1, slots); i++) {
+  for (let i = 0; i < slots; i++) {
     const job = b.research.active[i];
     const d = job ? researchDef(job.id) : null;
-    if (d) {
-      cells.push(`<button type="button" class="mr-slot busy" data-action="bastion-res" data-value="${job.id}" aria-label="${escapeHtml(d.name)}">${mrMedal(d, researchStatus(state, job.id))}<b class="mr-sname">${escapeHtml(d.name)}</b>${mrTime(state, job.id, now)}</button>`);
-    } else {
-      cells.push(`<span class="mr-slot free${lib < 1 ? ' off' : ''}"><span class="mr-medal empty">${lib < 1 ? img('icon_lock') : '+'}</span><b class="mr-sname">${lib < 1 ? 'Fermée' : 'Libre'}</b></span>`);
-    }
+    if (d) cells.push(`<button type="button" class="mr-slot busy" data-action="bastion-res" data-value="${job.id}" aria-label="${escapeHtml(d.name)}"><b class="mr-sname">${escapeHtml(shortResearchName(d.name))}</b>${mrTime(state, job.id, now)}</button>`);
+    else cells.push(`<span class="mr-slot free${lib < 1 ? ' off' : ''}">${lib < 1 ? img('icon_lock') : ''}<b class="mr-sname">${lib < 1 ? 'Fermé' : 'Libre'}</b></span>`);
   }
-  const head = `<div class="m-card mr-slots"><div class="mr-slots-top"><b>Recherches en cours</b><span class="mr-count num">${b.research.active.length}/${slots}</span></div><div class="mr-slotrow">${cells.join('')}</div></div>`;
-  const tiers = mModes([1, 2, 3, 4, 5].map((t) => {
+  const workers = `<div class="mr-wk-h">Ouvriers · <span class="num">${b.research.active.length} / ${slots}</span> occupés</div><div class="mr-slotrow">${cells.join('')}</div>`;
+  const tiers = [1, 2, 3, 4, 5].map((t) => {
     const open = t <= age;
-    return { id: String(t), label: open ? `Pal. ${AGES[t - 1].roman}` : `Âge ${AGES[t - 1].roman}`, icon: open ? undefined : 'icon_lock', action: 'bastion-page', value: String(t) };
-  }), String(page), { size: 64 });
+    return `<button type="button" class="mr-tier${t === page ? ' on' : ''}${open ? '' : ' off'}" data-action="bastion-page" data-value="${t}" aria-pressed="${t === page}">${open ? '' : img('icon_lock')}${AGES[t - 1].roman}</button>`;
+  }).join('');
   const branches = mModes(RESEARCH_BRANCHES.map((br) => ({ id: br.id, label: br.name, icon: `file:${ART(`research_branch_${br.id}`)}`, action: 'bastion-branch', value: br.id })), branch.id, { size: 64 });
   const regular = RESEARCH.filter((r) => r.branch === branch.id && (r.tier ?? 1) === page && !r.keystone);
   const keys = page === 3 ? RESEARCH.filter((r) => r.branch === branch.id && r.keystone) : [];
   const all = [...regular, ...keys];
-  const lockMsg = lib < 1 ? `${img('icon_lock')} Construis la Bibliothèque` : page > age ? `${img('icon_lock')} Âge ${AGES[page - 1].roman} : ${escapeHtml(AGES[page - 1].name)}` : '';
-  const path = all.map((r, i) => `${keys.length && r === keys[0] ? '<div class="mr-keyhead"><i></i><span>Nœuds clés</span><i></i></div>' : ''}${mrNode(ui, state, r, now, i === all.length - 1)}`).join('');
+  const lockMsg = lib >= 1 && page > age ? `<p class="mr-lock">${img('icon_lock')} Âge ${AGES[page - 1].roman} : ${escapeHtml(AGES[page - 1].name)}</p>` : '';
+  const path = all.map((r) => `${keys.length && r === keys[0] ? '<div class="mr-keyhead"><i></i><span>Nœuds clés</span><i></i></div>' : ''}${mrNode(ui, state, r, now)}`).join('');
   const gate = libGate(state); // v10.13 (§ 7) : bandeau « Bibliothèque à construire »
-  const gateHtml = gate ? `<div class="m-card mr-gate"><img class="px" src="${researchArt('lessons')}" alt=""><span class="mr-gate-t"><b>${gate.title}</b><small>${escapeHtml(gate.sub)}</small></span>${mBtn(gate.label, { action: gate.action, value: 'library', cls: 'auto' })}</div>` : '';
-  return `<div class="mr-view">${gateHtml}${head}<div class="mr-tiers">${tiers}</div>${branches}
-    <div class="mr-pathhead tier-${page}"><b>Palier ${AGES[page - 1].roman}</b><span>${escapeHtml(AGES[page - 1].name)}</span></div>
-    ${lockMsg ? `<p class="mr-lock">${lockMsg}</p>` : ''}<div class="m-card mr-path${lockMsg ? ' closed' : ''}">${path}</div></div>`;
+  const gateHtml = gate ? `<div class="mr-gate"><img class="px" src="${researchArt('lessons')}" alt=""><span class="mr-gate-t"><b>${gate.title}</b><small>${escapeHtml(gate.sub)}</small></span>${mBtn(gate.label, { action: gate.action, value: 'library', cls: 'auto' })}</div>` : '';
+  return `<div class="mr-view">${branches}<div class="mr-tiers" role="group" aria-label="Paliers">${tiers}</div>
+    <div class="mr-book tier-${page}${lib < 1 || page > age ? ' closed' : ''}">${gateHtml}${lockMsg}<div class="mr-path">${path}</div></div>${workers}</div>`;
 }
 
 function researchSheetPhone(ui, state, now) {

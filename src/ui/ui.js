@@ -3,7 +3,7 @@
 // L'interface ne modifie jamais l'état directement : elle appelle les actions fournies par main.js.
 import campPanel, { bastionAction, bastionBadge, bastionLiveKey, openBastion } from './panels/camp.js'; // v9.7.1 (lot 6) · v10.3 : le Bastion
 import { HudQuests } from './hud-quests.js'; // v10.6 (partie 2)
-import { buildCombatConsole } from './combat-console.js'; // v10.13 (lot 8) : console du bas de l'écran de combat
+import { buildCombatConsole, placeBoostGroup } from './combat-console.js'; // v10.13 (lot 8) : console du bas de l'écran de combat
 import { equipFly } from './equip-fx.js'; // v10.6 (parties 4 et 6)
 import { updateBastionTower } from './bastion-tower.js'; // v10.4 (6) : la tour du Bastion sur la scène
 import { GLOSSARY, GLOSSARY_TERMS, RESOURCES } from '../data/glossary.js'; // v9.7.1 (lot 5)
@@ -2116,6 +2116,12 @@ export class UI {
     return parts.join('');
   }
 
+  // v10.13.1 (téléphone) : le bout de phrase « · Boss dans N étapes » de la barre de vague (vide si le boss est l'étape en cours ou si aucun boss n'est proche).
+  bossIn(state) {
+    for (let n = 1; n <= BALANCE.stages.bossEvery; n++) if (isBossStage(state.stage + n)) return ` · Boss dans ${n} étape${n > 1 ? 's' : ''}`;
+    return '';
+  }
+
   updateProgress(state, world) {
     const enc = currentEncounter(state);
     const progress = this.$('progress');
@@ -2149,7 +2155,7 @@ export class UI {
         ? `Vague ${state.challenge.wave} · ${state.challenge.kills}/${enc.killsNeeded} · ${Math.max(0, Math.ceil(CHALLENGE.waveSeconds - (state.challenge.time ?? 0)))} s`
         : state.dungeon
         ? `Salle ${state.dungeon.room}/${dungeonRooms(state, enc.dungeon)} · ${kills}/${enc.killsNeeded}`
-        : waveMode(enc) ? `Vague ${waveIndex(state)}/${waveCount()}` // v9.3.8 : vagues groupées
+        : waveMode(enc) ? (this.root.classList.contains('m-phone') ? `Vague ${waveIndex(state)} / ${waveCount()}${this.bossIn(state)}` : `Vague ${waveIndex(state)}/${waveCount()}`) // v9.3.8 : vagues groupées ; v10.13.1 (téléphone) : « Vague 2 / 5 · Boss dans 3 étapes »
         : `Ennemis vaincus ${kills}/${enc.killsNeeded}`;
     }
     // v9.9 (K11) : frise de l'étape — la vague en cours (entourée), les 2 suivantes et le boss, en petites icônes.
@@ -2561,6 +2567,7 @@ export class UI {
   layoutColumn() {
     const area = this.$('stage-area'), play = this.$('play');
     if (!area || !play || typeof getComputedStyle === 'undefined') return;
+    placeBoostGroup(this); // v10.13.1 : téléphone seulement (« Boosts » dans la console)
     const bar = this.$('skill-bar'), seal = this.$('next-action'), hud = this.$('hud'), boost = this.$('boost-group');
     const later = this.$('next-later');
     const shown = (el) => el && !el.classList.contains('hidden') && el.offsetParent !== null;

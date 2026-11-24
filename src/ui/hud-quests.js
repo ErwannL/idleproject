@@ -113,9 +113,15 @@ function pathHtml(q) {
     <span class="hq-bar"><i style="width:${Math.round(q.progress * 100)}%"></i></span>
     <span class="hq-foot"><span class="hq-reward">${rewardIcons(q.reward)}</span>${btn}</span></span>`;
 }
-function carnetHtml(c, phone) {
+function carnetHtml(c, phone, mphone) {
   // v10.9 (partie 4) : Carnet fini → une seule ligne verte, à la même place (rien d'autre ne bouge).
   if (c.total && c.done >= c.total) return `<button class="hq-carnet-done" data-action="open-tab" data-value="daybook">${img('icon_chest')}<b>Carnet ${c.done}/${c.total} · ${c.chest ? 'coffre du jour ouvert ✓' : 'ouvre le coffre du jour ›'}</b></button>`;
+  // v10.13.1 (téléphone, maquette t07) : le même cadre que la carte de zone : titre en petites capitales dorées et une seule ligne (la première mission à faire).
+  if (mphone) {
+    const t = c.list.find((x) => !x.done) ?? c.list[0];
+    const act = (x) => (x.done ? 'data-action="open-tab" data-value="daybook"' : x.action ? `data-action="${x.action}"` : `data-action="open-tab" data-value="${x.tab}"`);
+    return `<button class="hq-carnet-title" data-action="open-tab" data-value="daybook">Carnet du jour · ${c.done} / ${c.total} ›</button>${t ? `<button class="hq-task${t.done ? ' done' : ''}" ${act(t)}>${img(t.icon)}<span>${escapeHtml(t.title)}</span><b class="num">${t.done ? '✓ ' : ''}${Math.min(t.n, t.target)}/${t.target}</b></button>` : ''}`;
+  }
   if (phone) return `<button class="hq-carnet-chip" data-action="open-tab" data-value="daybook">${img('icon_trophy')}<b>Carnet ${c.done}/${c.total}</b></button>`;
   const rows = c.list.map((t) => {
     const act = t.done ? 'data-action="open-tab" data-value="daybook"' : t.action ? `data-action="${t.action}"` : `data-action="open-tab" data-value="${t.tab}"`;
@@ -177,6 +183,7 @@ export class HudQuests {
   }
 
   get phone() { return Boolean(this.ui.phone) || (this.ui.root?.clientWidth ?? 1000) < 560 || Boolean(this.ui.root?.classList.contains('hud-narrow')); } // v10.13 : scène étroite (panneau ouvert à côté) : mise en page compacte
+  get mphone() { return Boolean(this.ui.root?.classList.contains('m-phone')); } // v10.13.1 : téléphone seulement (maquette t07) ; la scène étroite du PC garde sa mise en page
   // v10.6 (partie 7) : scène très large et basse (fenêtre large) : Carnet en puce, événements en rangée en haut à droite,
   // pour ne jamais recouvrir l'équipe ni le coffre.
   get wide() { const a = this.root.parentElement; return Boolean(a && a.clientWidth > 2 * a.clientHeight); }
@@ -243,6 +250,7 @@ export class HudQuests {
     const L = `${Math.round(leftC)}px`, W = `${Math.round(w - (leftC - left))}px`;
     if (st.left !== L) st.left = L;
     if (st.maxWidth !== W) st.maxWidth = W;
+    if (this.mphone) return 8; // v10.13.1 : grille de 4 colonnes sur 2 rangées (maquette t07) ; le reste passe dans « + »
     const cell = this.phone ? 62 : 92; // v10.13 : cadre 76 px (56 sur téléphone) + écart
     return Math.max(2, Math.floor((w - 12) / cell));
   }
@@ -283,7 +291,7 @@ export class HudQuests {
     this.path.classList.toggle('ready', Boolean(q?.ready));
     // 2. Carnet du jour
     const c = carnetTop(state, daybookOpen(ui), t);
-    const ch = c.total ? carnetHtml(c, this.phone || (this.wide && (this.root.parentElement?.clientHeight ?? 0) < 560)) : ''; // v10.13 : puce seulement si la scène est vraiment basse
+    const ch = c.total ? carnetHtml(c, this.phone || (this.wide && (this.root.parentElement?.clientHeight ?? 0) < 560), this.mphone) : ''; // v10.13 : puce seulement si la scène est vraiment basse
     if (this.carnet.dataset.h !== ch) { this.carnet.dataset.h = ch; this.carnet.innerHTML = ch; }
     this.carnet.classList.toggle('hidden', !ch);
     // 4. Prime du Héraut (avant la colonne : une prime rangée y prend sa place)

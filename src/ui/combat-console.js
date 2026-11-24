@@ -33,3 +33,17 @@ export function buildCombatConsole(ui) {
   ui.console = box;
   return box;
 }
+
+// v10.13.1 (téléphone, maquette t07) : sur téléphone (#app.m-phone), l'étiquette « ⚡ Boosts » est la dernière étiquette de la console ;
+// ailleurs (PC, scène étroite du PC), le groupe reste dans la scène, à sa place d'origine (avant la pastille de combo).
+export function placeBoostGroup(ui) {
+  const doc = typeof document === 'undefined' ? null : document;
+  const box = ui?.console;
+  const group = doc?.getElementById('boost-group');
+  const area = doc?.getElementById('stage-area');
+  if (!box || !group || !area) return;
+  const phone = Boolean(ui.root?.classList.contains('m-phone'));
+  const wave = box.querySelector('.cc-wave');
+  if (phone && group.parentElement !== wave) wave.appendChild(group);
+  else if (!phone && group.parentElement === wave) area.insertBefore(group, doc.getElementById('combo-chip'));
+}
