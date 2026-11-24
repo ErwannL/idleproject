@@ -38,6 +38,7 @@ import { rarityIndex } from '../../core/loot.js';
 import expeditionsPanel, { companionStill, isPhoneUi } from './expeditions.js';
 import { mBar, mBtn, mBtnGold, mChip, mCost, mGrid, mModes, mSheet, mStat, mTile, mTitle } from '../mobile-kit.js'; // v10.12 : kit mobile (téléphone)
 
+let DESK = false; // v10.13 : vrai pendant le rendu de la carte PC (noms courts sous les bâtiments)
 let PHONE = false; // v10.12 : vrai pendant le rendu téléphone (le PC garde son HTML d'origine)
 
 const ART = (name) => `assets/ui/art104/${name}.png`;
@@ -256,7 +257,7 @@ function plot(ui, state, def, now) {
   return `<button class="bs-plot${sel ? ' sel' : ''}${missing ? ' idle' : ''}" style="${style}" data-action="bastion-open" data-value="${def.id}" data-building="${def.id}" aria-label="${escapeHtml(def.name)}">
       ${art}${lv >= 1 && !slot?.build ? life(def.id) : ''}${c ? workerSprite(c, def) : ''}
       ${missing ? '<span class="bs-need" title="Il manque un ouvrier : touche pour en poser un"><i aria-hidden="true">⛏</i><b>+</b></span>' : ''}${ready ? '<i class="bs-dot" aria-hidden="true"></i>' : ''}
-      ${PHONE ? `${missing ? '<b class="bs-lvl need bs-pill">+ Ouvrier</b>' : def.existing ? '' : `<b class="bs-lvl bs-chip-lv">${lv < 1 ? '0' : lv}</b>`}<span class="bs-tag"><span class="bs-nm">${escapeHtml(shortName(def))}</span></span>` : `<span class="bs-tag">${lvTag}${escapeHtml(def.name)}</span>`}${job}</button>`;
+      ${PHONE ? `${missing ? '<b class="bs-lvl need bs-pill">+ Ouvrier</b>' : def.existing ? '' : `<b class="bs-lvl bs-chip-lv">${lv < 1 ? '0' : lv}</b>`}<span class="bs-tag"><span class="bs-nm">${escapeHtml(shortName(def))}</span></span>` : `<span class="bs-tag">${lvTag}${escapeHtml(DESK ? shortName(def) : def.name)}</span>`}${job}</button>`;
 }
 
 function kickRibbon(ui) {
@@ -280,11 +281,11 @@ function ageRibbon(ui, state) {
       ${nx ? `<small>Âge ${nx.roman} · ${escapeHtml(nx.name)} : étape ${nx.stage}${nx.bastionLevel ? `, Bastion niveau ${nx.bastionLevel}` : ''}</small>` : '<small>Âge maximal</small>'}</div>
     ${fresh && !PHONE ? `<div class="bs-age-new" role="status" style="--age:${a.color}"><small>Nouvel âge</small><b>${escapeHtml(a.name)}</b></div>` : ''}`;
 }
-function villageMap(ui, state, now) {
+function villageMap(ui, state, now, kick = true) {
   const age = bastionAge(state);
   const ground = `assets/ui/art109/bastion_map_age${Math.min(5, Math.max(1, age))}.png`; // v10.9 : une cour à 12 dalles par âge
   return `${ageRibbon(ui, state)}<div class="bs-village age-${age}"><div class="bs-world"><img class="px bs-ground" src="${ground}" alt="" draggable="false">
-      ${BUILDINGS.filter((d) => !d.age || d.age <= age + 1).map((d) => plot(ui, state, d, now)).join('')}${PHONE ? '' : kickRibbon(ui)}</div>
+      ${BUILDINGS.filter((d) => !d.age || d.age <= age + 1).map((d) => plot(ui, state, d, now)).join('')}${PHONE || !kick ? '' : kickRibbon(ui)}</div>
       <div class="bs-zoom"><button type="button" data-zoom="in" aria-label="Zoomer">+</button><button type="button" data-zoom="out" aria-label="Dézoomer">−</button></div></div>`;
 }
 
@@ -816,10 +817,14 @@ function renderCamp(state) {
         ${mBar(Math.min(1, best / BASTION_UNLOCK_STAGE))}<small class="muted">Étape ${Math.min(best, BASTION_UNLOCK_STAGE)} / ${BASTION_UNLOCK_STAGE}</small></span></div>
       ${c.fire}${c.trophies}${c.links}</div>`;
   }
-  return `<div class="pg bs-solo"><div class="pg-main bs-camp-old"><div class="card bs-soon"><img class="px" src="${ART('bastion_forge_lv1')}" alt=""><span><b>Le Bastion ouvre à l'étape ${BASTION_UNLOCK_STAGE}</b>
+  // v10.13 : PC dans le cadre du kit (cartouche dedans) : le feu de camp en grand, l'annonce du Bastion et les trophées à côté.
+  const pct = Math.min(1, best / BASTION_UNLOCK_STAGE);
+  return `<div class="m-frame d-bs d-bs-camp">${mTitle('tab_expeditions', 'Bastion', true)}<div class="d-cols2 d-bs-cols">
+      <div class="d-stack">${c.fire}</div>
+      <div class="d-stack"><div class="m-card bs-soon"><img class="px" src="${ART('bastion_forge_lv1')}" alt=""><span><b>Le Bastion ouvre à l'étape ${BASTION_UNLOCK_STAGE}</b>
         <small>Tes compagnons libres y travailleront : une forge, des recherches, des chantiers qui avancent même jeu fermé.</small>
-        <span class="bs-bar"><i style="width:${Math.min(100, (best / BASTION_UNLOCK_STAGE) * 100).toFixed(0)}%"></i></span><small class="muted">Étape ${Math.min(best, BASTION_UNLOCK_STAGE)} / ${BASTION_UNLOCK_STAGE}</small></span></div>
-      ${c.fire}${c.trophies}${c.links}</div></div>`;
+        ${mBar(pct)}<small class="muted">Étape ${Math.min(best, BASTION_UNLOCK_STAGE)} / ${BASTION_UNLOCK_STAGE}</small></span></div>
+        ${c.trophies}${c.links}</div></div></div>`;
 }
 
 // ---------------------------------------------------------------- l'écran
@@ -893,6 +898,63 @@ function renderBastionPhone(ui, state, now) {
       <div class="bs-pg mt-bs" data-view="${view}"><div class="bs-main">${content}</div></div></div>${sheet}`;
 }
 
+// ---------------------------------------------------------------- v10.13 : Bastion sur PC (Carte, Ouvriers) dans le cadre du kit
+// Cadre + cartouche, modes Carte · Recherches · Ouvriers, ressources, puis 2 colonnes : la carte (ou la liste des ouvriers) et la fiche du
+// bâtiment choisi (toujours là). Le mode Recherches garde son propre écran (desk-research.css).
+function deskResources(state, canFill) {
+  const ready = ordersReady(state).length;
+  return `<div class="m-chips d-bs-res" role="group" aria-label="Tes ressources">
+      <span class="m-chip" data-gloss="gold">${coin()}<b class="num">${formatNumber(Math.floor(state.gold))}</b></span>
+      <span class="m-chip" data-gloss="shards">${shard()}<b class="num">${formatNumber(state.materials.shards)}</b></span>
+      <span class="m-chip" title="Niveau du Bastion : somme des niveaux">${img(`file:${ART('scene_tower')}`)}<b class="num">${bastionLevel(state)}</b></span>
+      <button type="button" class="m-chip bs-workers${canFill ? ' warn' : ''}" data-action="bastion-view" data-value="workers" title="Ouvriers posés / places${canFill ? ' : il en manque un' : ''}">👷 Ouvriers <b class="num">${workersPlaced(state)}/${workerSlots(state)}</b></button>
+      ${ready ? `<span class="m-chip good">${img(slotIconName('weapon'))}<b class="num">${ready}</b></span>` : ''}</div>`;
+}
+
+// Compagnons libres (ni dans l'équipe, ni en expédition, ni au travail) : leurs portraits, et « Poser au mieux » (doré seulement quand c'est l'action du mode).
+function deskFree(state, gold) {
+  const free = availableWorkers(state).filter((c) => !workerBuilding(state, c.id));
+  const need = BUILDINGS.find((d) => !d.existing && buildingAccess(state, d.id).available && !workerOf(state, d.id));
+  const slotsLeft = need && workersPlaced(state) < workerSlots(state);
+  const tiles = free.map((c) => mTile({ name: c.name, rarity: c.rarity }, { size: 56, pips: false, src: companionStill(c).match(/src="([^"]+)"/)?.[1], label: c.name.split(/\s+/)[0] }));
+  const auto = slotsLeft && free.length ? (gold ? mBtnGold('Poser au mieux', { action: 'bastion-autoplace', icon: 'icon_upgrade' }) : mBtn('Poser au mieux', { action: 'bastion-autoplace', icon: 'icon_upgrade' })) : '';
+  return `<div class="m-card d-bs-free"><div class="d-bs-sub">Compagnons libres (${free.length})${slotsLeft && free.length ? ' : pose-les dans tes bâtiments' : ''}</div>${tiles.length ? mGrid(tiles, 7) : '<small class="muted">Aucun compagnon libre</small>'}${auto}</div>`;
+}
+
+// Onglet Ouvriers : un bâtiment par ligne (image, niveau, son ouvrier et son bonus, ou « + Ouvrier » s'il en manque un).
+function deskWorkerRows(ui, state) {
+  return BUILDINGS.filter((d) => !d.existing && buildingAccess(state, d.id).available).map((d) => {
+    const w = workerOf(state, d.id);
+    const c = w ? companionById(w) : null;
+    const lv = buildingLevel(state, d.id);
+    const who = c ? `<span class="d-bw">${mTile({ name: c.name, rarity: c.rarity }, { size: 48, pips: false, src: companionStill(c).match(/src="([^"]+)"/)?.[1] })}<span class="d-bwt"><b>${escapeHtml(c.name.split(/\s+/)[0])}</b><small class="good">+${workerBonus(state, c.id, d.id).totalPct} %</small></span></span>`
+      : '<span class="d-bw need"><i aria-hidden="true">⛏</i><b>+ Ouvrier</b></span>';
+    return `<button type="button" class="m-card d-brow${c ? '' : ' idle'}${ui.view.bastionSel === d.id ? ' sel' : ''}" data-action="bastion-wopen" data-value="${d.id}" aria-label="${escapeHtml(d.name)}" aria-pressed="${ui.view.bastionSel === d.id}">
+        <img class="px d-bimg" src="${buildingArt(state, d, lv)}" alt=""><span class="d-btxt"><b>${escapeHtml(d.name)}</b><small>Niv. ${lv < 1 ? 0 : lv}</small></span>${who}</button>`;
+  }).join('');
+}
+
+function renderBastionDesk(ui, state, now, view) {
+  const v = ui.view;
+  DESK = true;
+  const firstIdle = BUILDINGS.find((d) => !d.existing && buildingAccess(state, d.id).available && !workerOf(state, d.id));
+  const canFill = Boolean(firstIdle && workersPlaced(state) < workerSlots(state) && availableWorkers(state).some((c) => !workerBuilding(state, c.id)));
+  if (!v.bastionSel || !buildingDef(v.bastionSel) || !buildingAccess(state, v.bastionSel).available) {
+    v.bastionSel = view === 'workers' && firstIdle ? firstIdle.id : BUILDINGS.find((d) => bastionOf(state).buildings[d.id]?.build)?.id ?? 'forge'; // la fiche est toujours là
+  }
+  const modes = mModes([
+    { id: 'map', label: 'Carte', icon: `file:${ART('scene_tower')}`, action: 'bastion-view', value: 'map' },
+    { id: 'research', label: 'Recherches', icon: `file:${ART('research_node_book')}`, action: 'bastion-view', value: 'research' },
+    { id: 'workers', label: 'Ouvriers', icon: `file:${tradeArt('smith')}`, action: 'bastion-view', value: 'workers', badge: canFill },
+  ], view, { size: 64 });
+  const side = buildingSheet(ui, state, now);
+  const left = view === 'workers'
+    ? `${deskFree(state, false)}<div class="d-bs-rows">${deskWorkerRows(ui, state)}</div>`
+    : `${villageMap(ui, state, now, false)}${deskFree(state, false)}`;
+  return `<div class="m-frame d-bs d-bs-${view}" data-view="${view}">${mTitle('tab_expeditions', 'Bastion', true)}${modes}${deskResources(state, canFill)}${kickRibbon(ui)}
+      <div class="d-cols2 d-bs-cols"><div class="d-stack d-bs-left">${left}</div><aside class="bs-side is-open d-bs-side" id="bs-detail" data-sel="${escapeHtml(v.bastionSel ?? '')}">${side}</aside></div></div>`;
+}
+
 function renderBastion(ui, state) {
   if (PHONE) return renderBastionPhone(ui, state, Date.now());
   const now = Date.now();
@@ -903,6 +965,7 @@ function renderBastion(ui, state) {
   // Sur grand écran la fiche est toujours là : le bâtiment en cours (sinon la Forge) est choisi d'office.
   if (view === 'map' && !v.bastionSel && !narrow) v.bastionSel = BUILDINGS.find((d) => bastionOf(state).buildings[d.id]?.build)?.id ?? 'forge';
   if (view === 'research') return researchDesk(ui, state, now); // v10.13 (§ 7) : cadre du kit PC
+  if ((ui.root?.clientWidth ?? 9999) > 600 && view !== 'research') return renderBastionDesk(ui, state, now, v.bastionView === 'workers' ? 'workers' : 'map'); // v10.13 : Carte et Ouvriers dans le cadre du kit PC
   const side = view === 'research' ? researchSheet(ui, state, now) : buildingSheet(ui, state, now);
   const open = Boolean(side) && (view === 'research' ? Boolean(v.bastionRes) || !narrow : Boolean(v.bastionSel));
   const ready = ordersReady(state).length;
@@ -1069,6 +1132,7 @@ export default {
   icon: 'tab_expeditions',
   render(ui, state) {
     PHONE = isPhoneUi(ui);
+    DESK = false;
     return bastionOf(state) ? renderBastion(ui, state) : renderCamp(state);
   },
   afterRender(ui, body) {

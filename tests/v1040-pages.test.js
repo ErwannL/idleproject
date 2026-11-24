@@ -181,8 +181,9 @@ test('partie 2 : l\'atelier 2 ne propose jamais un renfort à +0 % — meilleur 
   const list = forgePanel.render(uiWith({ forgeSeg: 'upgrade' }), s);
   assert.ok(!/fg-up-gain[^>]*>\+0(,0\d?)? %/.test(list));
   assert.match(list, /fg-up-gain muted num">presque sans effet</);
-  // Le bouton de chaque atelier est doré (plus de bleu).
-  assert.equal((list.match(/class="btn btn-gold fg-btn"/g) ?? []).length, 4);
+  // v10.13 : un seul bouton doré par écran (celui du détail de l'atelier) : les 4 boutons des ateliers sont sombres (jamais bleus).
+  assert.equal((list.match(/class="btn fg-btn"/g) ?? []).length, 4);
+  assert.equal((list.match(/btn-gold/g) ?? []).length, 1, 'un seul bouton doré visible dans la Forge');
   assert.ok(!list.includes('btn btn-primary fg-btn'));
 });
 

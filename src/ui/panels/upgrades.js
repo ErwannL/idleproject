@@ -65,7 +65,7 @@ function effect(key, cur, next) {
 
 // v9.9 (K14) : Renaissance toujours en vue, dernière ligne des Améliorations, avec son gain sur le bouton ; grisée avec la
 // raison tant qu'elle n'est pas rentable.
-function rebirthRow(state) {
+function rebirthRow(state, gold = true) {
   const gainPct = Math.round((PRESTIGE.rebirthMultiplier ** rebirthGain(state) - 1) * 100);
   const ok = canRebirth(state) && !rebirthBlocked(state) && rebirthWorth(state);
   const why = !canRebirth(state) ? (state.maxStage < REBIRTH.minStage ? `Rentable à l'étape ${stageLabel(REBIRTH.minStage)}` : 'Termine la mini-quête « Renaissance »')
@@ -73,7 +73,7 @@ function rebirthRow(state) {
   // v9.11 (6) : le texte sur toute la largeur, le bouton dessous (plus de colonne de 2 mots).
   return `<div class="card upg-rebirth upg-rebirth-v">
     <div class="upg-rb-head">${img('icon_star')}<div><div class="upg-name">Renaissance</div><div class="muted">Recommence plus fort : +${gainPct} % de dégâts, PV et or pour toujours</div></div></div>
-    ${ok ? `<button class="btn btn-gold" data-action="rebirth">Renaître · +${gainPct} %</button>` : `<button class="btn" disabled>${escapeHtml(why)}</button>`}</div>`;
+    ${ok ? `<button class="btn ${gold ? 'btn-gold' : 'btn-rebirth'}" data-action="rebirth">Renaître · +${gainPct} %</button>` : `<button class="btn" disabled>${escapeHtml(why)}</button>`}</div>`;
 }
 
 export default {
@@ -84,6 +84,8 @@ export default {
   render(ui, state) {
     const beginner = (state.records.bossesDefeated ?? 0) === 0;
     const phone = Boolean(ui.root?.classList.contains('m-phone')); // v10.12 : vue téléphone (kit mobile)
+    const pcFrame = !phone && !pageNarrow(ui); // v10.13 : page PC dans le cadre du kit (un seul bouton doré : « Tout acheter »)
+    const buyCls = pcFrame ? 'btn-buy' : 'btn-gold';
     const mrows = {};
     const cats = BALANCE.upgradeCategories.filter((c) => c.id !== 'rushes');
     const cat = phone ? null : cats.find((c) => c.id === ui.view.upgradeCat) ?? null; // null = toutes
@@ -166,7 +168,7 @@ export default {
         <div class="upg-main"><div class="upg-name" title="${escapeHtml(up.description)}">${escapeHtml(up.label)} <span class="upg-level">niv. ${level}${up.maxLevel ? `/${up.maxLevel}` : ''}</span>${milestone}${weak ? '<span class="tag upg-weak-tag" title="Moins de 0,5 % de puissance : pas dans « Tout acheter »">peu utile</span>' : ''}${env?.counter === key ? `<span class="tag env-counter" title="${escapeHtml(`Contré : ${Math.round(env.countered)} % (complet au niveau ${env.fullAt})`)}">contre ${escapeHtml(env.name)}</span>` : ''}</div>
         ${compact || !beginner ? '' : `<div class="muted upg-desc">${escapeHtml(up.description)}</div>`}
 <div class="upg-effect num">${max ? `<span class="to">${from}</span>` : `<span class="from">${from}</span> → <b class="to good">${to}</b>`}</div></div>
-        <div class="upg-buy">${costButton({ action: 'buy', cost, have: state.gold, attrs: `data-key="${key}" data-amount="${amount}"`, max, label: count > 1 ? `+${count} ` : '' })}
+        <div class="upg-buy">${costButton({ action: 'buy', cost, have: state.gold, attrs: `data-key="${key}" data-amount="${amount}"`, max, label: count > 1 ? `+${count} ` : '', cls: buyCls })}
           ${max ? '' : `<small class="upg-gain">${key === bestKey ? '<b class="upg-best" title="Meilleure affaire">★</b> ' : ''}${totalPct > 0.05 ? `+${count} niv. · ${powerGainText(totalPct)}` : p?.pct > 0.05 ? `+${formatDecimal(p.pct)} % DPS` : gain ? gain.replace(/<[^>]+>/g, '').replace('▲', '').trim() : ''}</small>`}</div>
       </div>`; // v9.9 (K3/K15) : avant → après, gain sous le prix, étoile sur la meilleure affaire
       if (phone) {
@@ -200,9 +202,9 @@ export default {
     const bestCard = beginner ? '' : bk && bkPct >= WEAK_UPGRADE_PCT ? `<div class="card upg-bestbuy">${medal}
       <div class="upg-bb-main"><small>★ Meilleur achat</small><b>${img(ICONS[bestKey])} ${escapeHtml(UPGRADE_NAMES[bestKey] ?? bestKey)}</b>
       <span class="upg-bb-why"><b class="good num">${powerGainText(bkPct)}</b> pour ${coin()}<b class="num">${formatNumber(bk.cost)}</b> : le meilleur rapport</span></div>
-      ${costButton({ action: 'buy', cost: bk.cost, have: state.gold, attrs: `data-key="${bestKey}" data-amount="${amount}"`, label: '' })}</div>`
+      ${costButton({ action: 'buy', cost: bk.cost, have: state.gold, attrs: `data-key="${bestKey}" data-amount="${amount}"`, label: '', cls: buyCls })}</div>`
       : `<div class="card upg-bestbuy upg-bb-none">${medal}<div class="upg-bb-main"><small>★ Meilleur achat</small><b>${img('icon_anvil')} Ton or ira plus loin dans ton équipement</b>
-      <span class="upg-bb-why">Ici, chaque achat rapporte moins de 0,5 % de puissance.</span></div><button class="btn btn-gold" data-action="open-tab" data-value="forge">Aller à la Forge ›</button></div>`;
+      <span class="upg-bb-why">Ici, chaque achat rapporte moins de 0,5 % de puissance.</span></div><button class="btn ${buyCls}" data-action="open-tab" data-value="forge">Aller à la Forge ›</button></div>`;
     const advised = bk && bkPct >= WEAK_UPGRADE_PCT ? bestKey : null;
     // v9.2.8 : catégories en onglets toujours visibles (« Défense » ne se cache plus dans un menu replié) ; le tri
     // reste dans « Trier ».
@@ -263,10 +265,11 @@ export default {
         <div class="m-uplist">${list || '<p class="m-note">Tout est au maximum ✓</p>'}</div>${rebirth}
         ${beginner ? '<p class="m-note">D\'autres améliorations s\'ouvrent au fil des boss.</p>' : nextUp ? `<p class="m-note">Prochaine ligne : ${escapeHtml(nextUp.label)}, dans 2 boss</p>` : ''}</div>`;
     }
-    if (pageActive(ui) && !pageNarrow(ui)) {
-      const col = (g) => { const body = g.keys.filter((k) => byKey[k]).map((k) => byKey[k]).join('') || '<p class="muted upg-all-max">Tout est au maximum ✓</p>'; return `<section class="upg-group g-${g.id}"><h4 class="upg-group-head" style="background-image:url(assets/ui/art106/${g.art}.png)"><span>${g.title}</span></h4><div class="upg-list">${body}</div>${g.id === 'earn' ? rebirthRow(state) : ''}</section>`; };
-      return `<div class="pg upg-page upg-page107"><div class="pg-top upg-pg-top"><img class="px upg-pg-banner" src="assets/ui/art101/banner_upgrades.png" alt="" aria-hidden="true"><b>Améliorations</b></div>
-      <div class="pg-main upg-pg-main"><div class="upg-toprow">${bestCard}<div class="card upg-top">${top}${buyAll}</div></div>
+    if (pcFrame) {
+      // v10.13 : cadre du kit PC (cartouche dedans), bande d'illustration + or, puis « Meilleur achat » et le haut, les 3 familles en colonnes.
+      const col = (g) => { const body = g.keys.filter((k) => byKey[k]).map((k) => byKey[k]).join('') || '<p class="muted upg-all-max">Tout est au maximum ✓</p>'; return `<section class="upg-group g-${g.id}"><h4 class="upg-group-head" style="background-image:url(assets/ui/art106/${g.art}.png)"><span>${g.title}</span></h4><div class="upg-list">${body}</div>${g.id === 'earn' ? rebirthRow(state, false) : ''}</section>`; };
+      return `<div class="m-frame d-upg">${mTitle('icon_upgrade', 'Améliorations', true)}<div class="upg-page107 d-up"><div class="d-topline"><span class="d-chip" title="Ton or">${coin()}<b class="num">${formatNumber(state.gold)}</b></span><img class="px d-topart" src="assets/ui/art101/banner_upgrades.png" alt="" aria-hidden="true"></div>
+      <div class="upg-toprow">${bestCard}<div class="card upg-top">${top}${buyAll}</div></div>
         <div class="upg-cols3">${GROUPS.map(col).join('')}</div>${weakFold}${done.length ? fold(ui, 'upg-done', `Terminées (${done.length})`, `<div class="upg-list">${done.join('')}</div>`) : ''}</div></div>`;
     }
     return `${heroCard}<div class="card upg-top">${top}${buyAll}</div>

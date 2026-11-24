@@ -1,0 +1,271 @@
+/* v10.13 (lot « base ») : Forge, Améliorations et Bastion (Carte, Ouvriers) sur PC, dans le kit PC (desk-kit.css).
+   Toutes les règles commencent par `#app:not(.m-phone)` : le téléphone (kit 10.12) n'est jamais touché.
+   Chargée après desk-kit.css. Le mode Bastion › Recherches (desk-research.css) n'est pas dans ce fichier. */
+
+/* ======================================================================================================================
+   FORGE : les 4 ateliers illustrés gardent leur allure (modèle du joueur, j02), dans un cadre à cartouche. Un seul doré :
+   le bouton du détail de l'atelier choisi ; les 4 boutons des ateliers sont sombres (le choisi a le bord doré).
+   ====================================================================================================================== */
+#app:not(.m-phone) .d-forge .d-fg { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; min-width: 0; padding: 0; }
+#app:not(.m-phone) .d-forge .d-fg > * { min-width: 0; order: 0; }
+#app:not(.m-phone) .d-forge .fg-top { grid-column: 1 / -1; display: flex; flex-wrap: nowrap; align-items: center; gap: 12px; margin: 0; max-height: none; }
+#app:not(.m-phone) .d-forge .fg-top > .eq-res { flex: none; display: flex; gap: 8px; }
+#app#app:not(.m-phone) .d-forge .fg-top .eq-res-chip { height: 44px; padding: 4px 14px 4px 8px; gap: 8px; border-radius: 22px; border: 2px solid var(--m-btn-line); background: #141c38; color: var(--m-text); }
+#app:not(.m-phone) .d-forge .fg-top .eq-res-chip img { width: 28px; height: 28px; }
+#app:not(.m-phone) .d-forge .fg-top .eq-res-chip b { font-size: 18px; }
+#app#app:not(.m-phone) .d-forge .fg-top > .fg-top-art { display: block; flex: 1 1 0; min-width: 0; height: 80px; max-height: 80px; object-fit: cover; object-position: center 55%; border-radius: 12px; border: 2px solid rgba(201, 161, 74, .55); }
+#app#app:not(.m-phone) .d-forge .fg-main { display: block; min-height: 0; overflow: visible; }
+/* La boucle des 4 ateliers : 2 x 2 reliés par des flèches. Chaque atelier a la hauteur de son contenu. */
+#app#app:not(.m-phone) .d-forge .fg-loop { display: grid; gap: 8px 6px; align-items: stretch; min-height: 0; grid-template-columns: minmax(0, 1fr) 26px minmax(0, 1fr); grid-template-rows: auto 22px auto;
+  grid-template-areas: "s1 a1 s2" ". . a2" "s4 a3 s3"; }
+#app#app:not(.m-phone) .d-forge .fg-loop > .fg-step { min-height: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-start; gap: 8px; padding: 10px 12px 12px; border-radius: 14px; border-width: 2px; }
+#app#app:not(.m-phone) .d-forge .fg-step > .fg-scene { flex: none; width: 100%; aspect-ratio: 16 / 10; min-height: 0; height: auto; }
+#app#app:not(.m-phone) .d-forge .fg-step > :not(.fg-scene) { flex: none; }
+#app#app:not(.m-phone) .d-forge .fg-scene > .fg-diagram { max-height: calc(100% - 12px); right: 8px; bottom: 8px; }
+#app#app:not(.m-phone) .d-forge .fg-scene > .fg-step-head { left: 8px; top: 8px; }
+#app#app:not(.m-phone) .d-forge .fg-step-head b { font-size: 18px; }
+#app#app:not(.m-phone) .d-forge .fg-rule { display: block; flex: 0 0 auto; font-size: 14px; line-height: 1.3; color: #d6def5; }
+#app#app:not(.m-phone) .d-forge .fg-now { font-size: 14px; line-height: 1.3; }
+#app#app:not(.m-phone) .d-forge .fg-now.good { padding: 8px 10px; font-size: 14px; }
+#app#app:not(.m-phone) .d-forge .fg-now.muted { padding: 4px 2px; color: var(--m-soft); }
+#app:not(.m-phone) .d-forge .fg-arrow { font-size: 24px; color: var(--m-gold-hi); }
+/* Les boutons des ateliers : sombres, 46 px, bord clair ; l'atelier choisi a le bord doré. */
+#app#app:not(.m-phone) .d-forge .fg-step .btn.fg-btn { width: 100%; min-height: 46px; height: 46px; padding: 0 14px; border-radius: 12px; font-size: 16px; font-weight: 800; color: var(--m-text);
+  background: linear-gradient(180deg, #26345f, #18224a); border: 2px solid var(--m-btn-line); box-shadow: none; animation: none; }
+#app#app:not(.m-phone) .d-forge .fg-step .btn.fg-btn:hover:not(:disabled) { border-color: var(--m-gold); background: linear-gradient(180deg, #2f3f72, #1e2a58); }
+#app#app:not(.m-phone) .d-forge .fg-step.on .btn.fg-btn:not(:disabled) { border-color: var(--m-gold-hi); color: var(--m-gold-hi); }
+#app#app:not(.m-phone) .d-forge .fg-step .btn.fg-btn:disabled { opacity: .5; }
+/* Le détail de l'atelier choisi. */
+#app#app:not(.m-phone) .d-forge .fg-side { display: flex; flex-direction: column; gap: 12px; min-height: 0; overflow: visible; padding: 0; }
+#app#app:not(.m-phone) .d-forge .fg-side-art { width: 100%; height: auto; aspect-ratio: 16 / 6; max-height: 240px; margin: 0; border-radius: 14px; border: 2px solid rgba(201, 161, 74, .55); object-fit: cover; }
+#app#app:not(.m-phone) .d-forge .fg-side > .card, #app#app:not(.m-phone) .d-forge .fg-side > .fg-body { flex: none; }
+#app#app:not(.m-phone) .d-forge .fg-body { gap: 10px; }
+#app#app:not(.m-phone) .d-forge .fg-body, #app#app:not(.m-phone) .d-forge .card { font-size: 14px; }
+#app#app:not(.m-phone) .d-forge h4, #app#app:not(.m-phone) .d-forge .fg-body h4 { font-size: 13px; letter-spacing: .04em; }
+#app#app:not(.m-phone) .d-forge .fg-up-id small, #app#app:not(.m-phone) .d-forge .fg-group small { font-size: 12.5px; }
+#app#app:not(.m-phone) .d-forge .fg-up-gain { font-size: 14px; }
+#app#app:not(.m-phone) .d-forge .fg-up-cost { font-size: 13px; }
+#app#app:not(.m-phone) .d-forge .fg-up-cost img { width: 14px; height: 14px; }
+#app#app:not(.m-phone) .d-forge .fg-group, #app#app:not(.m-phone) .d-forge .fg-stakes, #app#app:not(.m-phone) .d-forge .fg-odds, #app#app:not(.m-phone) .d-forge .fg-protected { font-size: 13.5px; }
+#app#app:not(.m-phone) .d-forge .fg-slot small { font-size: 12.5px; }
+#app#app:not(.m-phone) .d-forge .fg-up { grid-template-columns: minmax(0, 1fr); }
+#app#app:not(.m-phone) .d-forge .btn.btn-gold:not(.fg-btn), #app#app:not(.m-phone) .d-forge .fg-body .btn.btn-gold {
+  min-height: 62px; border-radius: 14px; font-size: 20px; font-weight: 900; color: #3a2300; border: 2px solid #ffe7a0; background: linear-gradient(180deg, #ffd45a, #e0a21f); box-shadow: 0 5px 0 #8a5a0a, 0 8px 18px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .55); }
+#app#app:not(.m-phone) .d-forge .btn.btn-gold:disabled { filter: grayscale(.85) brightness(.7); box-shadow: none; }
+#app#app:not(.m-phone) .d-forge .fg-body .btn:not(.btn-gold):not(.small):not(.chip-btn) { min-height: 44px; }
+@container mframe (min-width: 1100px) {
+  #app:not(.m-phone) .d-forge .d-fg { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+}
+/* schémas des ateliers : cases de 56 px (le même schéma à toutes les tailles : rien n'est rogné par la scène) */
+#app#app:not(.m-phone) .d-forge .fg-diagram { min-height: 0; gap: 6px; padding: 5px 8px; }
+#app#app:not(.m-phone) .d-forge .fg-it { width: 56px; height: 56px; } #app#app:not(.m-phone) .d-forge .fg-it img { width: 46px; height: 46px; }
+#app#app:not(.m-phone) .d-forge .fg-diagram > img { width: 38px; height: 38px; }
+#app#app:not(.m-phone) .d-forge .fg-diagram > i, #app#app:not(.m-phone) .d-forge .fg-diagram > b { font-size: 20px; }
+#app#app:not(.m-phone) .d-forge .fg-five { grid-template-columns: repeat(3, 16px); } #app#app:not(.m-phone) .d-forge .fg-five s { width: 16px; height: 16px; }
+#app#app:not(.m-phone) .d-forge .fg-step > .fg-scene { aspect-ratio: 16 / 9; }
+#app#app:not(.m-phone) .d-forge .fg-top > .fg-top-art { height: 72px; max-height: 72px; }
+@media (max-height: 820px) {
+  #app#app:not(.m-phone) .d-forge .fg-step > .fg-scene { aspect-ratio: 16 / 6.5; }
+  #app#app:not(.m-phone) .d-forge .fg-rule { display: none; } /* la règle reste au survol du schéma */
+}
+
+/* ======================================================================================================================
+   AMÉLIORATIONS : cadre du kit, 3 familles illustrées en colonnes ; l'effet « avant → après » de chaque ligne se lit sans
+   effort (acquis 10.11) ; un seul doré : « Tout acheter ». Les boutons de prix sont sombres (.btn-buy), le prix en or.
+   ====================================================================================================================== */
+#app#app:not(.m-phone) .d-upg .d-up { display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: 0; }
+#app#app:not(.m-phone) .d-topline { display: flex; align-items: center; gap: 12px; min-width: 0; }
+#app#app:not(.m-phone) .d-chip { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 4px 16px 4px 10px; box-sizing: border-box; border-radius: 22px; border: 2px solid var(--m-btn-line); background: #141c38; color: var(--m-text); font-size: 18px; font-weight: 900; }
+#app#app:not(.m-phone) .d-chip img { width: 28px; height: 28px; image-rendering: pixelated; }
+#app#app:not(.m-phone) .d-topart { flex: 1 1 0; min-width: 0; height: 72px; object-fit: cover; object-position: center 42%; border-radius: 12px; border: 2px solid rgba(201, 161, 74, .55); image-rendering: pixelated; }
+#app#app:not(.m-phone) .d-upg .upg-toprow:not(:has(.upg-bestbuy)) { grid-template-columns: minmax(0, 1fr); }
+#app#app:not(.m-phone) .d-upg .upg-toprow { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 14px; margin: 0; align-items: stretch; }
+@container mframe (max-width: 900px) { #app#app:not(.m-phone) .d-upg .upg-toprow { grid-template-columns: minmax(0, 1fr); } }
+#app#app:not(.m-phone) .d-upg .card { margin: 0; padding: 14px; border-radius: 14px; border: 1px solid var(--m-card-line); background: var(--m-card); color: var(--m-text); box-shadow: none; }
+/* Meilleur achat */
+#app#app:not(.m-phone) .d-upg .upg-bestbuy { display: grid !important; grid-template-columns: 104px minmax(0, 1fr) auto; align-items: center; gap: 14px; border: 2px solid var(--m-gold); background: linear-gradient(90deg, #3a2c12, #1d2140); }
+#app#app:not(.m-phone) .d-upg .upg-bestbuy .upg-bb-medal { width: 104px !important; height: 104px !important; border-width: 3px; }
+#app#app:not(.m-phone) .d-upg .upg-bb-main small { font-size: 13px; letter-spacing: .06em; }
+#app#app:not(.m-phone) .d-upg .upg-bb-main > b { font-size: 20px; }
+#app#app:not(.m-phone) .d-upg .upg-bb-main b img { width: 26px; height: 26px; vertical-align: -6px; }
+#app#app:not(.m-phone) .d-upg .upg-bb-why { font-size: 15px; line-height: 1.35; }
+#app#app:not(.m-phone) .d-upg .upg-bb-why img { width: 18px; height: 18px; }
+@container mframe (max-width: 640px) {
+  #app#app:not(.m-phone) .d-upg .upg-bestbuy { grid-template-columns: 88px minmax(0, 1fr); }
+  #app#app:not(.m-phone) .d-upg .upg-bestbuy .upg-bb-medal { width: 88px !important; height: 88px !important; }
+  #app#app:not(.m-phone) .d-upg .upg-bestbuy > :last-child { grid-column: 1 / -1; }
+}
+/* Dégâts/s, quantité, Tout acheter */
+#app#app:not(.m-phone) .d-upg .upg-top { display: flex; flex-direction: column; gap: 10px; justify-content: center; }
+#app#app:not(.m-phone) .d-upg .upg-dps { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; font-size: 16px; }
+#app#app:not(.m-phone) .d-upg .upg-dps b { font-size: 24px; color: var(--m-gold-hi); font-variant-numeric: tabular-nums; }
+#app#app:not(.m-phone) .d-upg .upg-surv { font-size: 15px; }
+#app#app:not(.m-phone) .d-upg .upg-surv img { width: 20px; height: 20px; }
+#app#app:not(.m-phone) .d-upg .upg-surv b { font-size: 15px; }
+#app#app:not(.m-phone) .d-upg .forecast { font-size: 14px; margin: 0; }
+#app#app:not(.m-phone) .d-upg .forecast small, #app#app:not(.m-phone) .d-upg .forecast .muted { font-size: 12.5px; }
+#app#app:not(.m-phone) .d-upg .forecast.bad, #app#app:not(.m-phone) .d-upg .forecast.bad b { font-size: 14px; }
+#app#app:not(.m-phone) .d-upg .buy-amounts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-start; margin: 0; }
+#app#app:not(.m-phone) .d-upg .buy-amounts .chip-btn { height: 40px; min-width: 56px; padding: 0 14px; border-radius: 20px; border: 2px solid var(--m-btn-line); background: #141c38; color: var(--m-soft); font: 800 15px/1 system-ui, sans-serif; justify-content: center; }
+#app#app:not(.m-phone) .d-upg .buy-amounts .chip-btn.active { color: #2a1a05; background: linear-gradient(180deg, #ffe08a, #f0b93f); border-color: #fff0b8; }
+#app#app:not(.m-phone) .d-upg .upg-top .buy-all { width: 100%; margin: 0; }
+#app#app:not(.m-phone) .d-upg .upg-top .btn-gold.buy-all { height: 62px; min-height: 62px; font-size: 22px; font-weight: 900; border-radius: 14px; color: #3a2300; border: 2px solid #ffe7a0; background: linear-gradient(180deg, #ffd45a, #e0a21f); box-shadow: 0 5px 0 #8a5a0a, 0 8px 18px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .55); }
+#app#app:not(.m-phone) .d-upg .upg-top .buy-all[disabled] { height: 62px; font-size: 22px; font-weight: 900; border-radius: 14px; }
+#app#app:not(.m-phone) .d-upg .upg-missing { font-size: 14px; }
+/* Les trois familles */
+#app#app:not(.m-phone) .d-upg .upg-cols3 { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: none; gap: 16px; align-items: start; margin: 0; }
+#app#app:not(.m-phone) .d-upg .upg-cols3 > section { grid-area: auto !important; grid-column: auto; margin: 0; min-width: 0; }
+@container mframe (min-width: 720px) { #app#app:not(.m-phone) .d-upg .upg-cols3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } #app#app:not(.m-phone) .d-upg .upg-cols3 > .g-earn { grid-column: 1 / -1; } #app#app:not(.m-phone) .d-upg .upg-cols3 > .g-earn .upg-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } }
+@container mframe (min-width: 1080px) { #app#app:not(.m-phone) .d-upg .upg-cols3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } #app#app:not(.m-phone) .d-upg .upg-cols3 > .g-earn { grid-column: auto; } #app#app:not(.m-phone) .d-upg .upg-cols3 > .g-earn .upg-list { display: flex; } }
+#app#app:not(.m-phone) .d-upg .upg-group-head { height: 76px; margin: 0 0 10px; padding-left: 18px; border-radius: 14px; border: 2px solid rgba(201, 161, 74, .45); background-position: right center; background-size: auto 100%; background-repeat: no-repeat; }
+#app#app:not(.m-phone) .d-upg .upg-group-head span { font-size: 22px; font-weight: 900; }
+#app#app:not(.m-phone) .d-upg .upg-list { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+/* Une ligne : icône à gauche, nom / niveau / effet à droite, achat dessous (sa colonne ne se déforme jamais). */
+#app#app:not(.m-phone) .d-upg .upg-card { display: grid; grid-template-columns: 64px minmax(0, 1fr); grid-template-areas: "i m" "b b"; gap: 8px 14px; align-items: start; padding: 12px 14px; }
+#app#app:not(.m-phone) .d-upg .upg-card.advised { box-shadow: 0 0 0 2px var(--m-gold); }
+#app#app:not(.m-phone) .d-upg .upg-card.weak { opacity: .72; }
+#app#app:not(.m-phone) .d-upg .upg-card .upg-icon { grid-area: i; width: 64px !important; height: 64px !important; border-radius: 12px; border: 3px solid var(--m-btn-line); background: radial-gradient(circle at 50% 40%, #2a3a72, #0d1430 75%); display: grid; place-items: center; box-shadow: inset 0 0 10px rgba(0, 0, 0, .55); }
+#app#app:not(.m-phone) .d-upg .upg-card .upg-icon img { width: 46px !important; height: 46px !important; object-fit: contain; }
+#app#app:not(.m-phone) .d-upg .upg-card .upg-main { grid-area: m; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+#app#app:not(.m-phone) .d-upg .upg-card .upg-name { font-size: 17px; font-weight: 900; color: var(--m-text); line-height: 1.2; overflow-wrap: normal; word-break: normal; }
+#app#app:not(.m-phone) .d-upg .upg-card .upg-level { display: block; font-size: 14px; font-weight: 700; color: var(--m-soft); }
+#app#app:not(.m-phone) .d-upg .upg-card .upg-name .tag, #app#app:not(.m-phone) .d-upg .upg-weak-tag { display: inline-block; margin: 4px 6px 0 0; padding: 1px 8px; border-radius: 8px; font-size: 12px; font-weight: 800; line-height: 1.4; background: #3a2c12; color: var(--m-gold-hi); }
+#app#app:not(.m-phone) .d-upg .upg-card .upg-weak-tag { background: #3a3348; color: #cbbfe0; }
+#app#app:not(.m-phone) .d-upg .upg-card .upg-effect { font-size: 17px; font-weight: 800; text-align: left; white-space: normal; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+#app#app:not(.m-phone) .d-upg .upg-card .upg-effect .from { color: var(--m-soft); font-weight: 700; }
+#app#app:not(.m-phone) .d-upg .upg-card .upg-effect .to { color: var(--m-ok); }
+#app#app:not(.m-phone) .d-upg .upg-card .upg-desc { font-size: 13px; }
+#app#app:not(.m-phone) .d-upg .upg-card .upg-buy { grid-area: b; display: flex; flex-direction: row-reverse; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+#app#app:not(.m-phone) .d-upg .upg-gain { font-size: 13.5px; color: var(--m-soft); white-space: normal; text-align: left; flex: 1 1 120px; }
+#app#app:not(.m-phone) .d-upg .upg-gain .upg-best, #app#app:not(.m-phone) .d-upg .upg-best { color: var(--m-ok); font-size: 14px; }
+#app#app:not(.m-phone) .d-upg .cost-wrap { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+#app#app:not(.m-phone) .d-upg .cost-missing { font-size: 12.5px; color: var(--m-ko); }
+@container mframe (max-width: 719px) {
+  #app#app:not(.m-phone) .d-upg .upg-card { grid-template-columns: 64px minmax(0, 1fr) auto; grid-template-areas: "i m b"; align-items: center; }
+  #app#app:not(.m-phone) .d-upg .upg-card .upg-buy { flex-direction: column; align-items: flex-end; flex-wrap: nowrap; }
+}
+/* Bouton de prix : sombre, bord clair, 46 px ; vert quand on peut payer, grisé sinon (jamais doré). */
+#app:not(.m-phone) .btn-buy { min-height: 46px; padding: 0 16px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 12px; border: 2px solid #3e8a58; background: linear-gradient(180deg, #1f4a33, #153525); color: #eafff0; font: 800 16px/1 system-ui, sans-serif; font-variant-numeric: tabular-nums; cursor: pointer; white-space: nowrap; }
+#app:not(.m-phone) .btn-buy img { width: 22px; height: 22px; image-rendering: pixelated; }
+#app:not(.m-phone) .btn-buy:hover:not(:disabled) { border-color: #6fe08f; filter: brightness(1.1); }
+#app:not(.m-phone) .btn-buy:disabled { border-color: var(--m-btn-line); background: #141c38; color: #8c98bb; cursor: default; }
+#app:not(.m-phone) .btn-buy:disabled img { opacity: .7; }
+/* Renaissance */
+#app#app:not(.m-phone) .d-upg .upg-rebirth { margin-top: 10px; border: 2px solid #8a5ad0 !important; background: linear-gradient(#2a1d48, #1a1430) !important; }
+#app#app:not(.m-phone) .d-upg .upg-rb-head { display: flex; align-items: center; gap: 12px; }
+#app#app:not(.m-phone) .d-upg .upg-rb-head img { width: 40px; height: 40px; }
+#app#app:not(.m-phone) .d-upg .upg-rb-head .upg-name { font-size: 18px; font-weight: 900; }
+#app#app:not(.m-phone) .d-upg .upg-rb-head .muted { font-size: 14px; }
+#app#app:not(.m-phone) .d-upg .btn-rebirth { min-height: 46px; width: 100%; border-radius: 12px; border: 2px solid #a679f0; background: #251a44; color: #f0e6ff; font: 800 16px/1 system-ui, sans-serif; cursor: pointer; }
+#app#app:not(.m-phone) .d-upg .btn-rebirth:hover { background: #33245c; }
+#app#app:not(.m-phone) .d-upg .upg-rebirth .btn:disabled { min-height: 46px; font-size: 14px; }
+#app#app:not(.m-phone) .d-upg .upg-all-max, #app#app:not(.m-phone) .d-upg .muted { font-size: 14px; }
+#app#app:not(.m-phone) .d-upg details.fold > summary, #app#app:not(.m-phone) .d-upg .fold summary { font-size: 15px; font-weight: 800; }
+/* fenêtre basse : les anciennes règles « bandeau compact » (style.css, #app.bottom-ui) ne s'appliquent pas dans le cadre */
+#app#app:not(.m-phone) .d-upg .upg-top { position: static !important; padding: 14px !important; flex-wrap: nowrap; }
+#app#app:not(.m-phone) .d-upg .upg-top .buy-all { position: static !important; transform: none !important; width: 100% !important; margin: 0 !important; padding: 0 18px; }
+#app#app:not(.m-phone) .d-upg .upg-top .forecast, #app#app:not(.m-phone) .d-upg .upg-top .upg-dps-row + .forecast { display: block !important; }
+#app#app:not(.m-phone) .d-upg .upg-top .upg-dps { display: flex !important; }
+#app#app:not(.m-phone) .d-upg .upg-top .upg-surv { display: inline-flex !important; margin-left: auto; }
+#app#app:not(.m-phone) .d-upg .upg-top .buy-amounts, #app#app:not(.m-phone) .d-upg .upg-top .chip-row { display: flex !important; }
+#app#app:not(.m-phone) .d-upg .upg-top > div { margin: 0; }
+#app#app:not(.m-phone) .d-upg .upg-top .chip-btn, #app#app:not(.m-phone) .d-upg .upg-top [data-action="buy-amount"] { min-height: 40px !important; padding: 0 14px !important; }
+#app#app:not(.m-phone) .d-upg .upg-card { padding: 12px 14px !important; margin: 0 !important; min-height: 0; }
+#app#app:not(.m-phone) .d-upg .upg-card .upg-icon img { width: 46px !important; height: 46px !important; }
+#app#app:not(.m-phone) .d-upg .upg-card .upg-level, #app#app:not(.m-phone) .d-upg .upg-card .upg-name .tag { display: inline-block; }
+#app#app:not(.m-phone) .d-upg .upg-card .upg-level { display: block !important; }
+#app#app:not(.m-phone) .d-upg .upg-card .upg-buy small:not(.upg-gain), #app#app:not(.m-phone) .d-upg .upg-card .cost-missing, #app#app:not(.m-phone) .d-upg .upg-card .upg-gain { display: block !important; }
+#app#app:not(.m-phone) .d-upg .upg-card .upg-buy .btn { min-height: 46px !important; padding: 0 16px !important; }
+#app#app:not(.m-phone) .d-upg .upg-card .upg-gain { font-size: 13.5px !important; }
+#app#app:not(.m-phone) .d-upg .upg-bb-why .num, #app#app:not(.m-phone) .d-upg .upg-bb-why b { white-space: nowrap; }
+#app#app:not(.m-phone) .d-upg .upg-group-head { background-position: right -28px center; }
+#app#app:not(.m-phone) .d-upg .upg-group-head span { font-size: 20px; }
+
+/* ======================================================================================================================
+   BASTION (Carte, Ouvriers) : cadre du kit, modes en tuiles, ressources en puces, la carte à gauche et la fiche du bâtiment
+   à droite (toujours là). Acquis 10.11 : « + Ouvrier » sur la carte et dans la liste, puce « Ouvriers n/m » qui s'allume.
+   Plus aucun chevauchement : les bâtiments sont à 88 % de leur case, l'annonce de départ est une carte au-dessus de la carte.
+   ====================================================================================================================== */
+#app#app:not(.m-phone) .d-bs .m-chips.d-bs-res { margin: 0 0 14px; gap: 10px; }
+#app#app:not(.m-phone) .d-bs .d-bs-res .m-chip { height: 40px; font-size: 16px; padding: 0 16px; gap: 8px; color: var(--m-text); }
+#app#app:not(.m-phone) .d-bs .d-bs-res .m-chip img { width: 24px; height: 24px; }
+#app#app:not(.m-phone) .d-bs .d-bs-res .m-chip.warn { border-color: #f08a24; color: #ffd9a8; background: #3a2410; animation: d-bs-warn 1.6s ease-in-out infinite; }
+#app#app:not(.m-phone) .d-bs .d-bs-res .m-chip.good { border-color: var(--m-ok); color: #c8ffd6; }
+@keyframes d-bs-warn { 0%, 100% { box-shadow: 0 0 0 0 rgba(240, 138, 36, 0); } 50% { box-shadow: 0 0 12px 2px rgba(240, 138, 36, .7); } }
+html.reduce-motion #app:not(.m-phone) .d-bs .d-bs-res .m-chip.warn { animation: none; }
+#app#app:not(.m-phone) .d-bs .d-bs-cols { align-items: start; gap: 16px; }
+#app#app:not(.m-phone) .d-bs .d-bs-left { gap: 14px; }
+/* Annonce de départ : une carte au-dessus de la carte (plus posée sur les bâtiments) */
+#app#app:not(.m-phone) .d-bs .bs-kick { position: static; transform: none; left: auto; right: auto; top: auto; bottom: auto; width: auto; max-width: none; margin: 0 0 14px; padding: 12px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 6px 18px; align-items: center;
+  border-radius: 14px; border: 2px solid var(--m-gold); background: var(--m-card); color: var(--m-text); box-shadow: none; }
+#app#app:not(.m-phone) .d-bs .bs-kick > b { grid-column: 1 / -1; font-size: 18px; }
+#app#app:not(.m-phone) .d-bs .bs-kick span { font-size: 15px; display: flex; align-items: center; gap: 8px; }
+#app#app:not(.m-phone) .d-bs .bs-kick span img { width: 24px; height: 24px; image-rendering: pixelated; }
+#app#app:not(.m-phone) .d-bs .bs-kick .btn { grid-column: 1 / -1; justify-self: end; min-height: 44px; min-width: 96px; font-size: 16px; font-weight: 800; border-radius: 12px; }
+/* Bandeau d'âge */
+#app#app:not(.m-phone) .d-bs .bs-age { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; padding: 10px 16px; border-radius: 14px; font-size: 15px; }
+#app#app:not(.m-phone) .d-bs .bs-age b { font-size: 18px; }
+#app#app:not(.m-phone) .d-bs .bs-age span, #app#app:not(.m-phone) .d-bs .bs-age small { font-size: 14px; }
+#app#app:not(.m-phone) .d-bs .bs-age small { margin-left: auto; }
+/* La carte : bâtiments à 88 % (rangées de 13,5 % de large, bâtiments carrés de 14 % : ils se touchaient), étiquettes lisibles */
+#app#app:not(.m-phone) .d-bs .bs-plot { transform: translate(-50%, -100%) scale(.88); transform-origin: 50% 100%; }
+#app#app:not(.m-phone) .d-bs .bs-plot .bs-tag { font-size: 12px !important; padding: 2px 8px 2px 2px; }
+#app#app:not(.m-phone) .d-bs .bs-plot .bs-tag.lock { font-size: 12px !important; }
+#app#app:not(.m-phone) .d-bs .bs-plot .bs-lvl { font-size: 12px; min-width: 1.7em; height: 1.7em; }
+#app#app:not(.m-phone) .d-bs .bs-plot .bs-lvl.need { font-size: 12px; padding: 0 7px; }
+#app#app:not(.m-phone) .d-bs .bs-plot .bs-job .bs-time { font-size: 12px; }
+#app#app:not(.m-phone) .d-bs .bs-plot .bs-need > b { font-size: 12px; }
+#app#app:not(.m-phone) .d-bs .bs-zoom button { min-width: 44px; min-height: 44px; font-size: 22px; }
+/* Compagnons libres */
+#app#app:not(.m-phone) .d-bs .d-bs-free { margin: 0; display: flex; flex-direction: column; gap: 12px; }
+#app#app:not(.m-phone) .d-bs .d-bs-sub { font-size: 17px; font-weight: 900; }
+#app#app:not(.m-phone) .d-bs .d-bs-free .m-grid { justify-items: start; }
+#app#app:not(.m-phone) .d-bs .d-bs-free .m-btn, #app#app:not(.m-phone) .d-bs .d-bs-free .m-btn-gold { max-width: 360px; }
+/* Ouvriers : un bâtiment par ligne */
+#app#app:not(.m-phone) .d-bs .d-bs-rows { display: flex; flex-direction: column; gap: 10px; }
+#app#app:not(.m-phone) .d-bs .d-brow { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; align-items: center; gap: 14px; width: 100%; margin: 0; padding: 10px 14px; text-align: left; cursor: pointer; font: inherit; color: var(--m-text); }
+#app#app:not(.m-phone) .d-bs .d-brow:hover { border-color: var(--m-gold); }
+#app#app:not(.m-phone) .d-bs .d-brow.sel { border-color: var(--m-gold-hi); box-shadow: 0 0 0 2px var(--m-gold); }
+#app#app:not(.m-phone) .d-bs .d-brow.idle { border-color: #f08a24; background: linear-gradient(90deg, #3a2410, var(--m-card) 60%); }
+#app#app:not(.m-phone) .d-bs .d-bimg { width: 72px; height: 72px; object-fit: contain; object-position: 50% 100%; image-rendering: pixelated; }
+#app#app:not(.m-phone) .d-bs .d-btxt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+#app#app:not(.m-phone) .d-bs .d-btxt b { font-size: 18px; font-weight: 900; }
+#app#app:not(.m-phone) .d-bs .d-btxt small { font-size: 14px; color: var(--m-soft); }
+#app#app:not(.m-phone) .d-bs .d-bw { display: inline-flex; align-items: center; gap: 10px; }
+#app#app:not(.m-phone) .d-bs .d-bwt { display: flex; flex-direction: column; font-size: 15px; }
+#app#app:not(.m-phone) .d-bs .d-bwt small { font-size: 14px; font-weight: 800; }
+#app#app:not(.m-phone) .d-bs .d-bw.need { padding: 8px 14px; border-radius: 12px; border: 2px dashed #f08a24; background: #3a2410; color: #ffd9a8; font-size: 16px; font-weight: 900; }
+#app#app:not(.m-phone) .d-bs .d-bw.need i { font-style: normal; font-size: 20px; }
+/* La fiche du bâtiment (à droite) */
+#app#app:not(.m-phone) .d-bs .d-bs-side { padding: 0 0 14px; overflow: hidden; border-radius: 16px; border: 2px solid var(--m-gold); background: linear-gradient(180deg, var(--m-bg1), var(--m-bg2)); font-size: 15px; color: var(--m-text); display: block; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .bs-block { padding: 12px 16px 0; margin: 0; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .bs-block-title { font-size: 17px; font-weight: 900; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .bs-shead { font-size: 22px; }
+#app#app:not(.m-phone) .d-bs .d-bs-side small, #app#app:not(.m-phone) .d-bs .d-bs-side .muted, #app#app:not(.m-phone) .d-bs .d-bs-side .bs-line { font-size: 13.5px; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .bs-fxrow { font-size: 15px; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .btn { min-height: 46px; font-size: 16px; font-weight: 800; border-radius: 12px; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .btn.small { min-height: 44px; font-size: 15px; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .btn.btn-gold { min-height: 62px; font-size: 20px; font-weight: 900; border-radius: 14px; color: #3a2300; border: 2px solid #ffe7a0; background: linear-gradient(180deg, #ffd45a, #e0a21f); box-shadow: 0 5px 0 #8a5a0a, 0 8px 18px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .55); }
+#app#app:not(.m-phone) .d-bs .d-bs-side .btn.btn-gold:disabled { filter: grayscale(.85) brightness(.7); box-shadow: none; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .bs-wcard small, #app#app:not(.m-phone) .d-bs .d-bs-side .bs-wcard b { font-size: 13px; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .bs-tip span, #app#app:not(.m-phone) .d-bs .d-bs-side .bs-tip { font-size: 15px; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .bs-tip .btn { min-height: 36px; font-size: 14px; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .bs-words .lex { font-size: 13px; }
+#app#app:not(.m-phone) .d-bs .bs-soon { display: flex; gap: 14px; align-items: center; }
+#app#app:not(.m-phone) .d-bs .bs-soon img { width: 96px; height: 96px; image-rendering: pixelated; }
+#app#app:not(.m-phone) .d-bs .bs-soon small, #app#app:not(.m-phone) .d-bs .bs-soon .muted { font-size: 14px; display: block; }
+#app#app:not(.m-phone) .d-bs .bs-soon > span { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; font-size: 17px; }
+#app#app:not(.m-phone) .d-bs-camp .camp-fire, #app#app:not(.m-phone) .d-bs-camp .card { font-size: 15px; }
+#app#app:not(.m-phone) .d-bs-camp .camp-cap, #app#app:not(.m-phone) .d-bs-camp small { font-size: 14px; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .bs-hero { margin: 0 0 4px; border-radius: 14px 14px 0 0; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .bs-hero.lib { margin: 12px 16px 0; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .bs-hero .bs-shead { left: 14px; bottom: 8px; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .bs-hero .bs-shead b { font-size: 22px; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .bs-lv { font-size: 13px; }
+#app#app:not(.m-phone) .d-bs .bs-zoom { top: 8px; bottom: auto; }
+#app#app:not(.m-phone) .d-bs .d-bwt, #app#app:not(.m-phone) .d-bs .d-bwt b, #app#app:not(.m-phone) .d-bs .d-bwt small { white-space: nowrap; }
+#app#app:not(.m-phone) .d-bs .bs-kick { padding: 10px 16px; gap: 4px 18px; }
+#app#app:not(.m-phone) .d-bs .bs-kick > b { font-size: 17px; }
+#app#app:not(.m-phone) .d-bs .bs-kick span { font-size: 14px; }
+@container mframe (max-width: 999px) { #app#app:not(.m-phone) .d-bs .d-bs-cols { grid-template-columns: minmax(0, 1fr); } }
+#app#app:not(.m-phone) .d-bs .bs-plot .bs-job .bs-time { white-space: nowrap; }
