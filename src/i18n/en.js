@@ -2109,3 +2109,7 @@ PATTERNS.unshift(...patterns1040Bastion(lookup)); // en tête : « Nain guerrier
 import { EXACT_108, patterns108 } from './en-108.js';
 for (const [k, v] of Object.entries(EXACT_108)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns108(lookup));
+// v10.13 (lot 5) : Héros › Talents et Renaissance sur PC (./en-1013-talents.js).
+import { EXACT_1013_TALENTS, patterns1013Talents } from './en-1013-talents.js';
+for (const [k, v] of Object.entries(EXACT_1013_TALENTS)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1013Talents(lookup));
