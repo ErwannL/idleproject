@@ -47,7 +47,7 @@ import { finishGlobalBoss, globalBossLeft, runSurvival, startGlobalBoss } from '
 import { autoFormation, claimSeason, claimStarChest, playFloor, setFormation, sweepFloor } from './core/arena-cards.js'; // v10.1 (P4)
 import { claimExpedition, expeditionType, relaunchExpeditions, sendAllExpeditions, startExpedition } from './core/expeditions.js';
 import { endChallenge, startChallenge } from './core/challenge.js';
-import { autoFuse, craftItem, fuseAll, fuseItems, fusionFailText, fusionKeep, reforgeItem, sharpenItem, targetReroll, upgradeItem } from './core/forge.js';
+import { autoFuse, craftItem, fuseAll, fuseItems, fusionFailText, fusionKeep, gainsPower, reforgeItem, sharpenItem, targetReroll, upgradeItem, upgradeRanking } from './core/forge.js';
 import { normalizePool, summon } from './core/gacha.js';
 import { setActiveHero } from './core/heroes.js';
 import { addToInventory, betterItems, bulkRecycleCandidates, equipBest, GEAR_PROFILES, equipItem, isUpgrade, quickEquipHero, recycleItem, recycleMatching, recycleRules, sweepInventory, toggleLock, unequipItem } from './core/inventory.js';
@@ -106,7 +106,7 @@ import { BUILT_IN_TOKEN } from './core/update-token.js';
 import { RELEASES_API, RELEASES_PAGE, TAGS_FALLBACK_API, parseRelease, parseTagList, updateStatus } from './core/update.js';
 import { playsOnSite } from './ui/panels/options.js';
 import { skillKillGold, upgradeCompanionSkill } from './core/companions.js'; // v9.3.3
-import { equipBestAllGear, equipBestGear, equipGear, recycleGear, unequipGear, upgradeGear } from './core/companion-gear.js'; // v9.3.3
+import { equipBestAllGear, equipBestGear, equipGear, gearUpgradePreview, recycleGear, unequipGear, unitGear, upgradeGear } from './core/companion-gear.js'; // v9.3.3
 import { bestOpenUpgrade, weakUpgrade, companionToLevel, companionToPlace } from './core/guide.js';
 import { PROLOGUE_HINT, playPrologue } from './ui/prologue.js'; // v9.3.7
 import { recycleUseless } from './core/inventory.js'; // v9.3.4
@@ -390,6 +390,29 @@ const actions = {
     const label = stat === 'main' || stat?.startsWith('affix:') ? 'effet spécial' : STAT_LABELS[stat];
     if (!stat) ui.toast('Renforcement impossible (or ou éclats insuffisants, ou maximum atteint).', '#ff8a8a');
     done(Boolean(stat), stat ? `Renforcé : ${label} +${BALANCE.forge.upgradeBoostPct} %` : null, '#7fe08f');
+  },
+  // v10.12 (téléphone, Équipement › Améliorer) : « Tout améliorer » enchaîne le renforcement existant, le meilleur gain par
+  // éclat d'abord, tant qu'on peut payer (au plus 60 renforts d'un appui). Mêmes règles et mêmes coûts qu'un appui sur « Améliorer ».
+  upgradeAll(who) {
+    let n = 0;
+    if (!who || who === 'hero') {
+      for (let i = 0; i < 60; i++) {
+        const row = upgradeRanking(state).find((r) => r.preview.canPay && !r.preview.atMax && gainsPower(r)); // jamais un renfort sans effet sur la Puissance
+        if (!row || !upgradeItem(state, row.item.id, rng)) break;
+        n++;
+      }
+    } else {
+      const kg = skillKillGold(state);
+      for (let i = 0; i < 60; i++) {
+        const rows = Object.values(unitGear(state, who)).filter(Boolean).map((it) => ({ it, p: gearUpgradePreview(state, it, kg) })).filter((r) => !r.p.atMax && r.p.canPay);
+        rows.sort((a, b) => a.p.cost.gold - b.p.cost.gold);
+        if (!rows.length || !upgradeGear(state, rows[0].it.id, kg)) break;
+        n++;
+      }
+    }
+    if (n) sound.play('upgrade');
+    else ui.toast('Rien à renforcer pour l\'instant (or ou éclats insuffisants).', '#ff8a8a');
+    done(n > 0, n ? `${n} renforcement${n > 1 ? 's' : ''}` : null, '#7fe08f');
   },
   // v9.1.3 (doc3 lot 2) : mise choisie (5 = sûr ; 3 ou 4 en Épique = tentative) ; `include` = objets protégés du
   // groupe inclus d'un appui. Les fusions à la main comptent pour la mission (pas la fusion auto).

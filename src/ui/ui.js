@@ -977,7 +977,7 @@ export class UI {
       case 'upgrade-cat': local(() => { v.upgradeCat = value; }); break;
       case 'inv-tab': if (value === 'stash') markInvUsed(this.state, 'stash'); local(() => { v.invTab = value; }); break;
       case 'craft-tier': local(() => { v.craftTier = value; }); break;
-      case 'select-item': local(() => { v.selectedItemId = id; v.sheetOpen = 'item'; v.eqSlot = null; v.eqChange = false; v.eqQuick = null; v.itemPop = el.closest('.eq-bag-grid') ? id : null; }); break; // v10.3 (8) ; v10.6 (4) : fenêtre de l'objet à côté de lui
+      case 'select-item': local(() => { v.selectedItemId = id; v.sheetOpen = 'item'; v.eqSlot = null; v.eqChange = false; v.eqQuick = null; v.itemTab = null; v.itemMore = null; v.itemPop = el.closest('.eq-bag-grid') ? id : null; }); break; // v10.3 (8) ; v10.6 (4) : fenêtre de l'objet à côté de lui
       case 'open-better': this.openBetterItem(); break; // v10.9 (7 ter)
       case 'item-pop-close': local(() => { v.itemPop = null; }); break;
       case 'auto-recycle-yes': this.closeModal(); a.setRecycleRule('mode', 'pickup'); break; // v9.3.4 : proposé au 1er sac plein
@@ -1340,12 +1340,12 @@ export class UI {
       case 'offline-claim': this.closeModal(); this.adviceArrow(); break; // v9.8 (C1) : le conseil devient une flèche dorée
       case 'forge-seg': local(() => { v.forgeSeg = value; }); break; // v9.8 (C2)
       // --- v10.3 (parties 8 et 9) : Équipement (places, onglets du personnage, Équipement rapide) et Forge ---
-      case 'eq-slot': local(() => { v.selectedItemId = id || null; v.eqSlot = value; v.sheetOpen = 'item'; v.eqChange = false; v.eqQuick = null; v.itemPop = null; if (v.eqTab !== 'gear') v.eqTab = 'gear'; if (this.state?.ui && value) this.state.ui.slotFilter = value; }); break; // v10.6 (4) : toucher une case filtre le sac sur cette place
+      case 'eq-slot': local(() => { v.selectedItemId = id || null; v.eqSlot = value; v.sheetOpen = 'item'; v.eqChange = false; v.eqQuick = null; v.itemPop = null; v.itemMore = null; if (!['gear', 'up', 'reforge', 'sets'].includes(v.eqTab)) v.eqTab = 'gear'; if (this.state?.ui && value) this.state.ui.slotFilter = value; }); break; // v10.6 (4) : toucher une case filtre le sac sur cette place
       case 'eq-tab': local(() => { v.eqTab = value; v.eqQuick = null; v.eqChange = false; v.skillPop = value === 'skills' ? 'active' : null; }); break;
       case 'eq-change': local(() => { v.eqChange = Boolean(value); v.eqSetFilter = null; }); break;
       case 'eq-setf': local(() => { v.eqSetFilter = value || null; }); break;
       case 'eq-quick': local(() => { v.eqQuick = value || null; if (value) v.sheetOpen = 'item'; }); break;
-      case 'eq-quick-ok': v.eqQuick = null; a.quickEquip(value); break;
+      case 'eq-quick-ok': v.eqQuick = null; v.sheetOpen = null; a.quickEquip(value); break;
       case 'eq-unequip': v.selectedItemId = null; v.eqSlot = value; a.unequip(value); break;
       case 'forge-up-sel': local(() => { v.forgeUpSel = id; }); break;
       case 'craft-slot': local(() => { v.craftSlot = value; }); break;
@@ -1435,6 +1435,17 @@ export class UI {
       case 'show-boost': this.showBoost(this.state); break;
       case 'toggle-boosts': this.boostsOpen = !this.boostsOpen; delete this.lastHud.rushTime; break;
       case 'close-sheet': local(() => { v.sheetOpen = null; }); break;
+      // v10.12 (Équipement, téléphone) : les choix qui étaient des <select> deviennent des puces ; « Tout améliorer ».
+      case 'upgrade-all': a.upgradeAll(value); break;
+      case 'stash-pick': local(() => { v.stashSel = id; }); break; // Réserve : choisir un objet sans ouvrir la fiche
+      case 'sort-menu': local(() => { v.sortMenu = !v.sortMenu; }); break;
+      case 'sort-set': a.setSort(value); break;
+      case 'rarity-set': local(() => { this.state.ui.rarityFilter = value; }); break;
+      case 'reroll-pick': local(() => { v.rerollType = value; v.rerollArmed = null; }); break;
+      case 'bulk-rarity-set': local(() => { v.bulkRarity = value; v.bulkArmed = false; }); break;
+      case 'recycle-mode-set': a.setRecycleRule('mode', value); break;
+      case 'bind-set': a.bindBuild(Number(value), el.dataset.bind); break;
+      case 'stash-set-pick': local(() => { v.stashSet = value || null; v.stashSel = null; }); break;
       case 'intro-seen': a.markSeen(value); break;
       case 'show-shortcuts': this.showShortcuts(); break;
       case 'show-journal': this.showJournal(this.sessionJournal?.() ?? {}); break;
