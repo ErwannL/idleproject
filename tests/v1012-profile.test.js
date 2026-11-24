@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-const src = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
+const src = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8').replace(/\r\n/g, '\n'); // fins de ligne Windows (CI)
 
 function blocks(css) {
   const text = css.replace(/\/\*[\s\S]*?\*\//g, '');

@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-const src = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
+const src = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8').replace(/\r\n/g, '\n'); // fins de ligne Windows (CI)
 
 test('10.11 (1) : Améliorations — une ligne ne quitte jamais sa colonne, « peu utile » jugé sur un niveau, colonne jamais vide', () => {
   const up = src('src/ui/panels/upgrades.js');

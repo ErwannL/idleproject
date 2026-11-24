@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-const src = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
+const src = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8').replace(/\r\n/g, '\n'); // fins de ligne Windows (CI)
 
 test('10.12 combat : mobile-combat.css est chargé après mobile-kit.css et chaque règle est sous #app.m-phone', () => {
   const html = src('index.html');

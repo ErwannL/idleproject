@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-const src = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
+const src = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8').replace(/\r\n/g, '\n'); // fins de ligne Windows (CI)
 
 test('10.12 (boutique) : mobile-shop.css ne contient que des règles #app.m-phone, chargé après le kit', () => {
   const css = src('src/ui/mobile-shop.css').replace(/\/\*[\s\S]*?\*\//g, '');
